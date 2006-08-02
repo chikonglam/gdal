@@ -1,6 +1,11 @@
 gdal (1.3.2-1) UNRELEASED; urgency=low
 
+  [ Francesco P. Lovergine ]
+
+  The "doing-it-yourself-is-better" release.
+
   * New upstream release. 
+    (closes: #370441)
     As stated previously, changed package name for
     a smooth C++ transition in case of (undocumented) API/ABI changes.
     Changed control and other files as consequence for 1.3.1 -> 1.3.2 transition.
@@ -14,7 +19,13 @@ gdal (1.3.2-1) UNRELEASED; urgency=low
     	ogrili2layer.cpp.dpatch (gcc 4.1 STL compatibility)
   * Policy bumped to 3.7.2. No changes.
   * Removed a couple of old *.docs and *.files files in debian dir.
-  * Added mysql support
+  * Added mysql support.
+  * Moved to new python policy. Note that python-gdal provides both modules 
+    and an extension, so quite a few changes are required all around.
+    See http://wiki.debian.org/DebianPython/NewPolicy for information about
+    the matter.
+    -- NOTE FOR BACKPORTERS: DO NOT EVEN TRY THAT, WITHOUT BACKPORTING ALL THE NEW PYTHON FRAMEWORK --
+    (Closes: #373433)
 
  -- Francesco Paolo Lovergine <frankie@debian.org>  Tue, 20 Jun 2006 15:06:13 +0200
 
