@@ -2,8 +2,8 @@ Source: gdal
 Section: science
 Priority: extra
 Maintainer: Debian GIS Project <pkg-grass-devel@lists.alioth.debian.org>
-Uploaders: Steve Halasz <debian@adkgis.org>, Jon Saints <saintsjd@yahoo.com>, Francesco Paolo Lovergine <frankie@debian.org>, Petter Reinholdtsen <pere@debian.org>
-Build-Depends: debhelper (>= 5.0.37.2), zlib1g-dev, libcfitsio-dev, netcdfg-dev, libtiff4-dev, libjasper-1.701-dev, libpng12-dev, libjpeg62-dev, libungif4-dev, libhdf4g-dev, libpq-dev | postgresql-dev, libxerces27-dev, unixodbc-dev (>= 2.2.11), libsqlite0-dev, python-dev, python-numeric, doxygen, d-shlibs, libgeos-dev, dpatch, libmysqlclient15-dev, python-all-dev (>= 2.3.5-11), python-central (>= 0.4.17)
+Uploaders: Steve Halasz <debian@adkgis.org>, Jon Saints <saintsjd@yahoo.com>, Francesco Paolo Lovergine <frankie@debian.org>, Petter Reinholdtsen <pere@debian.org>, Fabio Tranchitella <kobold@debian.org>
+Build-Depends: debhelper (>= 5.0.37.2), zlib1g-dev, libcfitsio-dev, netcdfg-dev, libtiff4-dev, libjasper-1.701-dev, libpng12-dev, libjpeg62-dev, libungif4-dev, libhdf4g-dev, libpq-dev | postgresql-dev, libxerces27-dev, unixodbc-dev (>= 2.2.11), libsqlite0-dev, python-dev, python-numeric, doxygen, d-shlibs, libgeos-dev, dpatch, libmysqlclient15-dev, python-all-dev (>= 2.3.5-11), python-central (>= 0.5)
 Standards-Version: 3.7.2
 XS-Python-Version: all
 
@@ -38,7 +38,7 @@ Description: Geospatial Data Abstraction Library
 Package: libgdal1-1.3.2-dev
 Section: libdevel
 Architecture: any
-Depends: libgdal1-1.3.2 (=${Source-Version}), libc6-dev, libcfitsio-dev, netcdfg-dev, libtiff4-dev, libjasper-1.701-dev, libpng12-dev, libjpeg62-dev, libungif4-dev, libhdf4g-dev, libpq-dev | postgresql-dev, libxerces27-dev, unixodbc-dev, libsqlite0-dev
+Depends: libgdal1-1.3.2 (=${Source-Version}), libc6-dev, libcfitsio-dev, netcdfg-dev, libtiff4-dev, libjasper-1.701-dev, libpng12-dev, libjpeg62-dev, libungif4-dev, libhdf4g-dev, libpq-dev | postgresql-dev, libxerces27-dev, unixodbc-dev, libsqlite0-dev, libgeos-dev, libmysqlclient15-dev
 Suggests: libgdal-doc
 Provides: libgdal-dev
 Replaces: libgdal1-dev, libgdal1-1.3.1-dev

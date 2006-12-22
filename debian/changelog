@@ -1,3 +1,13 @@
+gdal (1.3.2-3) unstable; urgency=high
+
+  * Urgency high: this release fixes two RC bugs.
+  * debian/rules: moved dh_pycentral before dh_builddeb, this adds postinst
+    and prerm maintainer scripts. (Closes: #385460)
+  * debian/control: added missing depends for libgeos-dev,
+    libmysqlclient15-dev for libgdal1-1.3.2-dev.  (Closes: #401162)
+
+ -- Fabio Tranchitella <kobold@debian.org>  Fri, 22 Dec 2006 16:57:54 +0100
+
 gdal (1.3.2-2) unstable; urgency=low
 
   * Added missing gdal1-1.3.1(-dev) conflicts/replaces to debian/control to
