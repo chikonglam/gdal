@@ -73,6 +73,9 @@ install:
 	dh_clean -k
 	dh_installdirs
 
+	# Save gdal-config for next use
+	cp apps/gdal-config-inst $(CURDIR)/debian/gdal-config.build
+
 	for V in $(PYVERS); do \
 		cp GDALmake.opt-$$V GDALmake.opt; \
 		(cd pymod && $(MAKE) clean); \
@@ -80,9 +83,14 @@ install:
 		$(MAKE) install prefix=$(CURDIR)/debian/tmp/usr \
 			INST_PYMOD="\$$(prefix)"`awk -F '/usr' '/INST_PYMOD/ {print $$2}' GDALmake.opt` ; \
 	done
+
 	$(MAKE) install-docs prefix=$(CURDIR)/debian/tmp/usr \
 		"INST_DOCS=\$$(prefix)/share/doc/libgdal-doc"\
 		"INST_MAN=\$$(prefix)/share/man"
+
+	# Restore build-time gdal-config
+	cp $(CURDIR)/debian/gdal-config.build $(CURDIR)/debian/tmp/usr/bin/gdal-config && \
+		rm -f $(CURDIR)/debian/gdal-config.build
 
 	# To reach compatibility with window-version which puts gdal-header
 	# files into /usr/include/gdal. I don't want to place headerfiles directly

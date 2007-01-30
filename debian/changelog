@@ -1,3 +1,11 @@
+gdal (1.3.2-4) UNRELEASED; urgency=low
+
+  * Now copies build-time gdal-config at install-time.
+    (closes: #385747)
+  * Removed Jon Saints and added Paul Wise to Uploaders.
+
+ -- Francesco Paolo Lovergine <frankie@debian.org>  Tue, 30 Jan 2007 17:45:14 +0100
+
 gdal (1.3.2-3) unstable; urgency=high
 
   * Urgency high: this release fixes two RC bugs.
