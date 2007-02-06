@@ -1,4 +1,4 @@
-gdal (1.3.2-4) UNRELEASED; urgency=low
+gdal (1.3.2-4) unstable; urgency=medium
 
   * Now copies build-time gdal-config at install-time.
     (closes: #385747)
