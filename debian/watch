@@ -1,2 +1,2 @@
 version=2
-ftp://ftp.remotesensing.org/pub/gdal/gdal-(.*)\.tar\.gz debian uupdate
+ftp://ftp.remotesensing.org/pub/gdal/gdal-([0-9].*)\.tar\.gz debian uupdate
