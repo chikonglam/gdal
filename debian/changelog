@@ -1,4 +1,4 @@
-gdal (1.4.0-1) UNRELEASED; urgency=low
+gdal (1.4.0-1) experimental; urgency=low
 
   * New upstream version. Moved to libgdal1-dev package, which allows rebuilds
     of dependent packages without source changes. It is currently superfluous
