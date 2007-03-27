@@ -1,3 +1,9 @@
+gdal (1.4.0-2) experimental; urgency=low
+
+  * Moved header files under /usr/include/gdal.
+
+ -- Francesco Paolo Lovergine <frankie@debian.org>  Mon, 26 Mar 2007 10:38:28 +0200
+
 gdal (1.4.0-1) experimental; urgency=low
 
   * New upstream version. Moved to libgdal1-dev package, which allows rebuilds
