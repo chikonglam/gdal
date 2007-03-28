@@ -1,8 +1,10 @@
 gdal (1.4.0-2) experimental; urgency=low
 
   * Moved header files under /usr/include/gdal.
+  * Added missing libjasper-dev dependency to libgdal1-dev.
+  * Added an alternate libcurl-dev build-dep.
 
- -- Francesco Paolo Lovergine <frankie@debian.org>  Mon, 26 Mar 2007 10:38:28 +0200
+ -- Francesco Paolo Lovergine <frankie@debian.org>  Wed, 28 Mar 2007 23:38:35 +0200
 
 gdal (1.4.0-1) experimental; urgency=low
 
