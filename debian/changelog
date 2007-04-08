@@ -1,3 +1,9 @@
+gdal (1.4.0-3) UNRELEASED; urgency=low
+
+  * NOT YET RELEASED
+
+ -- Francesco Paolo Lovergine <frankie@debian.org>  Sun,  8 Apr 2007 11:31:07 +0200
+
 gdal (1.4.0-2) unstable; urgency=low
 
   * Moved header files under /usr/include/gdal.
