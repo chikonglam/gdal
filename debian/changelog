@@ -1,6 +1,7 @@
-gdal (1.4.0-3) UNRELEASED; urgency=low
+gdal (1.4.1-1) UNRELEASED; urgency=low
 
   * NOT YET RELEASED
+  * New upstream version.
 
  -- Francesco Paolo Lovergine <frankie@debian.org>  Sun,  8 Apr 2007 11:31:07 +0200
 
