@@ -1,6 +1,5 @@
-gdal (1.4.1-1) UNRELEASED; urgency=low
+gdal (1.4.1-1) unstable; urgency=low
 
-  * NOT YET RELEASED
   * New upstream version. Package names are not changed in respect with 1.4.0
     and in derogation with current gdal migration policy for debian-gis
     because there are not changes to C/C++ API. 
