@@ -1,7 +1,9 @@
 gdal (1.4.1-1) UNRELEASED; urgency=low
 
   * NOT YET RELEASED
-  * New upstream version.
+  * New upstream version. Package names are not changed in respect with 1.4.0
+    and in derogation with current gdal migration policy for debian-gis
+    because there are not changes to C/C++ API. 
 
  -- Francesco Paolo Lovergine <frankie@debian.org>  Sun,  8 Apr 2007 11:31:07 +0200
 
