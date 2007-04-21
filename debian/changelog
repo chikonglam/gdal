@@ -1,3 +1,9 @@
+gdal (1.4.1-2) unstable; urgency=high
+
+  * Fixed rules file for libgdal-1.4.0
+
+ -- Francesco Paolo Lovergine <frankie@debian.org>  Sat, 21 Apr 2007 20:36:47 +0200
+
 gdal (1.4.1-1) unstable; urgency=low
 
   * New upstream version. Package names are not changed in respect with 1.4.0
