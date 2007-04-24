@@ -1,0 +1,40 @@
+#! /bin/sh /usr/share/dpatch/dpatch-run
+## ogdi.dpatch by Francesco Paolo Lovergine <frankie@debian.org>
+##
+## All lines beginning with `## DP:' are a description of the patch.
+## DP: No description.
+
+@DPATCH@
+diff -urNad gdal-1.4.1~/configure gdal-1.4.1/configure
+--- gdal-1.4.1~/configure	2007-04-10 17:16:54.000000000 +0200
++++ gdal-1.4.1/configure	2007-04-24 10:04:18.000000000 +0200
+@@ -23968,7 +23968,7 @@
+   echo $ECHO_N "(cached) $ECHO_C" >&6
+ else
+   ac_check_lib_save_LIBS=$LIBS
+-LIBS="-logdi31  $LIBS"
++LIBS="-logdi  $LIBS"
+ cat >conftest.$ac_ext <<_ACEOF
+ /* confdefs.h.  */
+ _ACEOF
+@@ -24034,16 +24034,16 @@
+ 
+ 
+   if test "$HAVE_OGDI" = "yes" ; then
+-    LIBS="-logdi31 $LIBS"
++    LIBS="-logdi $LIBS"
+   fi
+ 
+ else
+ 
+   HAVE_OGDI=yes
+-  LIBS="-L$with_ogdi -L$with_ogdi/lib -logdi31 $LIBS"
+-  OGDI_INCLUDE="-I$with_ogdi -I$with_ogdi/include"
++  LIBS="-logdi $LIBS"
++  OGDI_INCLUDE="-I/usr/include/ogdi"
+ 
+-  echo "using libogdi31 from $with_ogdi."
++  echo "using libogdi from $with_ogdi."
+ 
+ fi
+ 
