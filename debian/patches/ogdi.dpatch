@@ -5,9 +5,21 @@
 ## DP: No description.
 
 @DPATCH@
+diff -urNad gdal-1.4.1~/GDALmake.opt.in gdal-1.4.1/GDALmake.opt.in
+--- gdal-1.4.1~/GDALmake.opt.in	2007-04-24 12:46:08.000000000 +0200
++++ gdal-1.4.1/GDALmake.opt.in	2007-04-24 12:46:56.000000000 +0200
+@@ -275,7 +275,7 @@
+ # PCRaster support
+ PCRASTER_SETTING	=	@PCRASTER_SETTING@
+ 
+-OGDI_INCLUDE	=	@OGDI_INCLUDE@
++OGDI_INCLUDE	=	-I/usr/include/ogdi
+ 
+ PNG_SETTING     =	@PNG_SETTING@
+ JPEG_SETTING	=	@JPEG_SETTING@
 diff -urNad gdal-1.4.1~/configure gdal-1.4.1/configure
---- gdal-1.4.1~/configure	2007-04-10 17:16:54.000000000 +0200
-+++ gdal-1.4.1/configure	2007-04-24 10:04:18.000000000 +0200
+--- gdal-1.4.1~/configure	2007-04-24 12:45:54.000000000 +0200
++++ gdal-1.4.1/configure	2007-04-24 12:46:10.000000000 +0200
 @@ -23968,7 +23968,7 @@
    echo $ECHO_N "(cached) $ECHO_C" >&6
  else
