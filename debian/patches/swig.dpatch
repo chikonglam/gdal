@@ -1,0 +1,19 @@
+#! /bin/sh /usr/share/dpatch/dpatch-run
+## swig.dpatch by Francesco Paolo Lovergine <frankie@debian.org>
+##
+## All lines beginning with `## DP:' are a description of the patch.
+## DP: No description.
+
+@DPATCH@
+diff -urNad gdal-1.4.1~/pymod/GNUmakefile gdal-1.4.1/pymod/GNUmakefile
+--- gdal-1.4.1~/pymod/GNUmakefile	2007-04-10 17:15:15.000000000 +0200
++++ gdal-1.4.1/pymod/GNUmakefile	2007-04-30 11:58:10.000000000 +0200
+@@ -27,7 +27,7 @@
+ 	$(RM) *.o *.$(SO_EXT) *.la
+ 
+ gdal_wrap.c:	gdal.i
+-	-swig -python gdal.i
++#	-swig -python gdal.i
+ 
+ $(GDALMODULE_SO):	$(OBJ) $(EXE_DEP_LIBS)
+ 	$(PY_LD_SHARED) $(OBJ) \
