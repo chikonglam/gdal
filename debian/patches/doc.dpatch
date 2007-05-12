@@ -1,0 +1,31 @@
+#! /bin/sh /usr/share/dpatch/dpatch-run
+## doc.dpatch by Francesco Paolo Lovergine <frankie@debian.org>
+##
+## All lines beginning with `## DP:' are a description of the patch.
+## DP: No description.
+
+@DPATCH@
+diff -urNad gdal-1.4.1~/doc/index.dox gdal-1.4.1/doc/index.dox
+--- gdal-1.4.1~/doc/index.dox	2007-04-10 17:14:06.000000000 +0200
++++ gdal-1.4.1/doc/index.dox	2007-05-12 16:33:21.000000000 +0200
+@@ -18,7 +18,7 @@
+ for data translation and processing.  The \link NEWS.html NEWS\endlink 
+ page describes the January 2007 GDAL 1.4.0 release.
+ 
+-The related <a href="ogr">OGR</a> library (which lives within the GDAL source tree) 
++The related <a href="../ogr/index.html">OGR</a> library (which lives within the GDAL source tree) 
+ provides a similar capability for simple features vector data.
+ 
+ Master: http://www.gdal.org<br>
+diff -urNad gdal-1.4.1~/ogr/index.dox gdal-1.4.1/ogr/index.dox
+--- gdal-1.4.1~/ogr/index.dox	2007-04-10 17:15:08.000000000 +0200
++++ gdal-1.4.1/ogr/index.dox	2007-05-12 16:33:02.000000000 +0200
+@@ -5,7 +5,7 @@
+ formats including ESRI Shapefiles, S-57, SDTS, PostGIS, Oracle Spatial, 
+ and Mapinfo mid/mif and TAB formats.<p>
+ 
+-OGR is a part of the <a href="http://www.gdal.org/">GDAL</a> library.<p>
++OGR is a part of the <a href="../gdal/index.html">GDAL</a> library.<p>
+ 
+ <h2>Resources</h2>
+ 
