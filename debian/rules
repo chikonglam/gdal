@@ -33,7 +33,7 @@ configure-stamp: patch-stamp
 			--with-pg \
 			--with-ogdi \
 			--with-mysql \
-			--with-cfitsio=no \
+			--with-cfitsio=no; \
 		mv GDALmake.opt GDALmake.opt-$$V; \
 	done
 
