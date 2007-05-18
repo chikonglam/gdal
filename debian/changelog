@@ -1,3 +1,14 @@
+gdal (1.4.1-6) unstable; urgency=low
+
+  * New patch gcc43.dpatch, to be compliant with gcc 4.3. Thanks Martin Michlmayr.
+    (closes: #419827)
+  * Revised libgdal1-dev dependencies due to libtool .la file. Thanks Kurt Roeckx.
+    (closes: #421992)
+  * Removed fake libsqlite0-dev build-dep.
+  * Explicitly removing libtool .libs dir in clean target.
+
+ -- Francesco Paolo Lovergine <frankie@debian.org>  Fri, 18 May 2007 22:28:24 +0200
+
 gdal (1.4.1-5) unstable; urgency=low
 
   * libcfitsio3 library is now GPL on Debian, so disabled due to incompatibility with GDAL copyright.
