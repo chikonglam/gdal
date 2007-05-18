@@ -5,7 +5,6 @@ gdal (1.4.1-6) unstable; urgency=low
   * Revised libgdal1-dev dependencies due to libtool .la file. Thanks Kurt Roeckx.
     (closes: #421992)
   * Removed fake libsqlite0-dev build-dep.
-  * Explicitly removing libtool .libs dir in clean target.
 
  -- Francesco Paolo Lovergine <frankie@debian.org>  Fri, 18 May 2007 22:28:24 +0200
 
