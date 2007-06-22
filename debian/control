@@ -5,7 +5,7 @@ Maintainer: Debian GIS Project <pkg-grass-devel@lists.alioth.debian.org>
 Uploaders: Steve Halasz <debian@adkgis.org>, Francesco Paolo Lovergine <frankie@debian.org>, Petter Reinholdtsen <pere@debian.org>, Fabio Tranchitella <kobold@debian.org>, Paul Wise <pabs@debian.org>
 Build-Depends: debhelper (>= 5.0.37.2), zlib1g-dev, netcdfg-dev,
  libtiff4-dev, libjasper-dev|libjasper-1.701-dev, libpng12-dev, libjpeg62-dev, libungif4-dev,
- libhdf4g-dev, libhdf5-serial-dev, libpq-dev | postgresql-dev, libxerces27-dev, unixodbc-dev (>=2.2.11), 
+ libhdf4g-dev, libhdf5-serial-dev, libpq-dev, libxerces27-dev, unixodbc-dev (>=2.2.11), 
  python-dev, python-numeric, doxygen, d-shlibs, libgeos-dev, dpatch, libmysqlclient15-dev, python-all-dev (>= 2.3.5-11), 
  python-central (>=0.5), libcurl4-dev|libcurl-dev, libsqlite3-dev, libogdi3.2-dev
 Standards-Version: 3.7.2

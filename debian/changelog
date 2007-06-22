@@ -1,3 +1,10 @@
+gdal (1.4.1-7) unstable; urgency=low
+
+  * Removed obsolete postgresql-dev dependency.
+    (closes: #429974)
+
+ -- Francesco Paolo Lovergine <frankie@debian.org>  Fri, 22 Jun 2007 14:08:28 +0200
+
 gdal (1.4.1-6) unstable; urgency=low
 
   * New patch gcc43.dpatch, to be compliant with gcc 4.3. Thanks Martin Michlmayr.
