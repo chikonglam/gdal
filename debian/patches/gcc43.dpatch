@@ -5,9 +5,9 @@
 ## DP: Patch to be compliant with gcc 4.3
 
 @DPATCH@
-diff -urNad gdal-1.4.1~/frmts/idrisi/IdrisiDataset.cpp gdal-1.4.1/frmts/idrisi/IdrisiDataset.cpp
---- gdal-1.4.1~/frmts/idrisi/IdrisiDataset.cpp	2007-04-10 17:15:19.000000000 +0200
-+++ gdal-1.4.1/frmts/idrisi/IdrisiDataset.cpp	2007-05-18 22:14:49.000000000 +0200
+diff -urNad gdal-1.4.2~/frmts/idrisi/IdrisiDataset.cpp gdal-1.4.2/frmts/idrisi/IdrisiDataset.cpp
+--- gdal-1.4.2~/frmts/idrisi/IdrisiDataset.cpp	2007-09-03 17:12:12.000000000 +0200
++++ gdal-1.4.2/frmts/idrisi/IdrisiDataset.cpp	2007-09-03 17:12:26.000000000 +0200
 @@ -34,6 +34,7 @@
  #include "ogr_spatialref.h"
  #include "gdal_pam.h"
@@ -16,9 +16,9 @@ diff -urNad gdal-1.4.1~/frmts/idrisi/IdrisiDataset.cpp gdal-1.4.1/frmts/idrisi/I
  
  CPL_CVSID("$Id: IdrisiDataset.cpp 10646 2007-01-18 02:38:10Z warmerdam $");
  
-diff -urNad gdal-1.4.1~/frmts/ilwis/ilwisdataset.cpp gdal-1.4.1/frmts/ilwis/ilwisdataset.cpp
---- gdal-1.4.1~/frmts/ilwis/ilwisdataset.cpp	2007-04-10 17:15:31.000000000 +0200
-+++ gdal-1.4.1/frmts/ilwis/ilwisdataset.cpp	2007-05-18 22:14:31.000000000 +0200
+diff -urNad gdal-1.4.2~/frmts/ilwis/ilwisdataset.cpp gdal-1.4.2/frmts/ilwis/ilwisdataset.cpp
+--- gdal-1.4.2~/frmts/ilwis/ilwisdataset.cpp	2007-09-03 17:12:12.000000000 +0200
++++ gdal-1.4.2/frmts/ilwis/ilwisdataset.cpp	2007-09-03 17:12:26.000000000 +0200
 @@ -29,6 +29,7 @@
  
  #include "ilwisdataset.h"

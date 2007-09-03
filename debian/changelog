@@ -1,3 +1,9 @@
+gdal (1.4.2-1) unstable; urgency=low
+
+  * New upstream version. Still an upstream fix without API changes.
+
+ -- Francesco Paolo Lovergine <frankie@debian.org>  Mon, 03 Sep 2007 17:09:40 +0200
+
 gdal (1.4.1-7) unstable; urgency=low
 
   * Removed obsolete postgresql-dev dependency.
