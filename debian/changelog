@@ -1,3 +1,9 @@
+gdal (1.4.2-2) UNRELEASED; urgency=low
+
+  * Switch to new Homepage field
+
+ -- Paul Wise <pabs@debian.org>  Thu, 27 Sep 2007 09:58:52 +1000
+
 gdal (1.4.2-1) unstable; urgency=low
 
   * New upstream version. Still an upstream fix without API changes.

@@ -10,6 +10,7 @@ Build-Depends: debhelper (>= 5.0.37.2), zlib1g-dev, netcdfg-dev,
  python-central (>=0.5), libcurl4-dev|libcurl-dev, libsqlite3-dev, libogdi3.2-dev
 Standards-Version: 3.7.2
 XS-Python-Version: all
+Homepage: http://www.gdal.org/
 
 Package: libgdal1-1.4.0
 Section: libs
@@ -35,9 +36,7 @@ Description: Geospatial Data Abstraction Library
  OGR library supports popular vector formats like ESRI Shapefile,
  TIGER data, S57, MapInfo File, DGN, GML and more.
  .
- This package contains shared library.
- .
-  Homepage: http://www.gdal.org/
+ This package contains the shared library.
 
 Package: libgdal1-dev
 Section: libdevel
@@ -69,13 +68,12 @@ Description: Geospatial Data Abstraction Library - Development files
  .
  This package contains the files needed to develop a software that
  will use the GDAL/OGR (headers, static objects, configuration script). 
- .
-  Homepage: http://www.gdal.org/
 
 Package: libgdal-doc
 Section: doc
 Architecture: all
 Suggests: libgdal1-1.4.0 (=${Source-Version})
+Homepage: http://www.gdal.org/#index_userdocs
 Description: Documentation for the Geospatial Data Abstraction Library
  GDAL is a translator library for raster geospatial data formats.
  As a library, it presents a single abstract data model to the
@@ -94,13 +92,12 @@ Description: Documentation for the Geospatial Data Abstraction Library
  TIGER data, S57, MapInfo File, DGN, GML and more.
  .
  This package contains documentation for GDAL/OGR API.
- .
-  Homepage: http://www.gdal.org/#index_userdocs
 
 Package: gdal-bin
 Section: science
 Architecture: any
 Depends: ${shlibs:Depends}
+Homepage: http://www.gdal.org/gdal_utilities.html
 Description: Geospatial Data Abstraction Library - Utility programs
  GDAL is a translator library for raster geospatial data formats.
  As a library, it presents a single abstract data model to the
@@ -121,8 +118,6 @@ Description: Geospatial Data Abstraction Library - Utility programs
  This package contains utility programs, based on GDAL/OGR library,
  namely gdal_translate, gdalinfo, gdaladdo, gdalwarp, ogr2ogr, ogrinfo,
  ogrtindex.
- .
-  Homepage: http://www.gdal.org/gdal_utilities.html
 
 Package: python-gdal
 Section: python
@@ -148,5 +143,3 @@ Description: Python bindings to the Geospatial Data Abstraction Library
  TIGER data, S57, MapInfo File, DGN, GML and more.
  .
  This package contains Python bindings for GDAL/OGR library.
- .
-  Homepage: http://www.gdal.org/
