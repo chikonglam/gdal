@@ -41,7 +41,7 @@ Description: Geospatial Data Abstraction Library
 Package: libgdal1-dev
 Section: libdevel
 Architecture: any
-Depends: libgdal1-1.4.0 (=${Source-Version}), libc6-dev, netcdfg-dev, libtiff4-dev, 
+Depends: libgdal1-1.4.0 (=${binary:Version}), libc6-dev, netcdfg-dev, libtiff4-dev, 
  libjasper-dev|libjasper-1.701-dev, libpng12-dev, libjpeg62-dev, libungif4-dev, libhdf4g-dev, 
  libpq-dev | postgresql-dev, libxerces27-dev, unixodbc-dev, libsqlite3-dev, libgeos-dev,
  libmysqlclient15-dev, libhdf5-serial-dev, libltdl3-dev, libcurl4-dev|libcurl-dev
@@ -72,7 +72,7 @@ Description: Geospatial Data Abstraction Library - Development files
 Package: libgdal-doc
 Section: doc
 Architecture: all
-Suggests: libgdal1-1.4.0 (=${Source-Version})
+Suggests: libgdal1-1.4.0 (=${binary:Version})
 Homepage: http://www.gdal.org/#index_userdocs
 Description: Documentation for the Geospatial Data Abstraction Library
  GDAL is a translator library for raster geospatial data formats.
