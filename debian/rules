@@ -77,7 +77,7 @@ clean-unpatched:
 
 	dh_clean build-stamp configure-stamp
 
-install: 
+install: build
 	dh_testdir
 	dh_testroot
 	dh_clean -k

@@ -5,19 +5,19 @@
 ## DP: No description.
 
 @DPATCH@
-diff -urNad gdal-1.4.0~/GDALmake.opt.in gdal-1.4.0/GDALmake.opt.in
---- gdal-1.4.0~/GDALmake.opt.in	2007-02-28 15:49:22.000000000 +0100
-+++ gdal-1.4.0/GDALmake.opt.in	2007-02-28 15:50:42.000000000 +0100
-@@ -105,7 +105,7 @@
+diff -urNad gdal-1.4.2~/GDALmake.opt.in gdal-1.4.2/GDALmake.opt.in
+--- gdal-1.4.2~/GDALmake.opt.in	2007-10-05 15:25:02.000000000 +0200
++++ gdal-1.4.2/GDALmake.opt.in	2007-10-05 15:25:36.000000000 +0200
+@@ -106,7 +106,7 @@
  			-I$(GDAL_ROOT)/ogr -I$(GDAL_ROOT)/ogr/ogrsf_frmts
  
  # libtool targets and help variables
 -LIBGDAL	:=		libgdal.la
 +LIBGDAL	:=		libgdal1.4.0.la
  LIBGDAL_CURRENT	:=	12
- LIBGDAL_REVISION	:=	0
+ LIBGDAL_REVISION	:=	2
  LIBGDAL_AGE	:=	11
-@@ -118,9 +118,9 @@
+@@ -119,9 +119,9 @@
  GDAL_VERSION_MINOR =    @GDAL_VERSION_MINOR@
  GDAL_VERSION_REV   =    @GDAL_VERSION_REV@
  
@@ -30,7 +30,7 @@ diff -urNad gdal-1.4.0~/GDALmake.opt.in gdal-1.4.0/GDALmake.opt.in
  
  # Mac OS X Framework definition
  MACOSX_FRAMEWORK = @MACOSX_FRAMEWORK@
-@@ -325,14 +325,14 @@
+@@ -326,14 +326,14 @@
  
  ifeq ($(HAVE_LIBTOOL), yes)
  CONFIG_LIBS	=	$(GDAL_ROOT)/$(LIBGDAL)
@@ -47,3 +47,15 @@ diff -urNad gdal-1.4.0~/GDALmake.opt.in gdal-1.4.0/GDALmake.opt.in
  EXE_DEP_LIBS	=	$(GDAL_SLIB)
  else
  CONFIG_LIBS	=	$(GDAL_LIBS) $(LIBS)
+diff -urNad gdal-1.4.2~/swig/perl/Makefile.PL gdal-1.4.2/swig/perl/Makefile.PL
+--- gdal-1.4.2~/swig/perl/Makefile.PL	2007-10-05 15:25:02.000000000 +0200
++++ gdal-1.4.2/swig/perl/Makefile.PL	2007-10-05 15:26:03.000000000 +0200
+@@ -2,7 +2,7 @@
+ 
+ $libdir = $ENV{'PREFIX'} ? "-L$ENV{'PREFIX'}/lib" : '';
+ 
+-$ext = $^O eq 'MSWin32' ? '.dll' : ''; # works with MinGW but probably not with ActivePerl
++$ext = $^O eq 'MSWin32' ? '.dll' : '1.4.0'; # works with MinGW but probably not with ActivePerl
+ 
+ # for old-style, use gdal, gdalconst,ogr, and osr as keys
+ 
