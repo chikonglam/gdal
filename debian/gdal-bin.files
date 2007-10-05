@@ -1,4 +1,5 @@
 usr/bin/gdal_translate
+usr/bin/gdal_rasterize
 usr/bin/gdalinfo
 usr/bin/gdaladdo
 usr/bin/gdalwarp

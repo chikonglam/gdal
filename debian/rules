@@ -12,6 +12,8 @@ include /usr/share/dpatch/dpatch.make
 
 PYVERS=$(shell pyversions -v -r debian/control)
 PYDEF=$(shell pyversions -dv)
+RUBYDEF=$(shell ruby --version|cut -d' ' -f2|cut -d. -f1,2)
+PERLDEF=$(shell perl -V:version|cut -d\' -f2)
 
 configure: configure-stamp
 configure-stamp: patch-stamp
@@ -33,6 +35,8 @@ configure-stamp: patch-stamp
 			--with-pg \
 			--with-ogdi \
 			--with-mysql \
+			--with-perl \
+			--with-ruby \
 			--with-cfitsio=no; \
 		mv GDALmake.opt GDALmake.opt-$$V; \
 	done
@@ -90,6 +94,13 @@ install:
 	$(MAKE) install-docs DESTDIR=$(CURDIR)/debian/tmp \
 		"INST_DOCS=\$$(prefix)/share/doc/libgdal-doc"\
 		"INST_MAN=\$$(prefix)/share/man"
+	
+	# moves ruby/perl stuff the right dirs
+	install -o root -g root -d $(CURDIR)/debian/tmp/usr/lib/perl5/auto
+	install -o root -g root -d $(CURDIR)/debian/tmp/usr/lib/ruby/$(RUBYDEF)
+	mv $(CURDIR)/debian/tmp/usr/local/lib/perl/$(PERLDEF)/auto/* $(CURDIR)/debian/tmp/usr/lib/perl5/auto/.
+	mv $(CURDIR)/debian/tmp/usr/local/lib/perl/$(PERLDEF)/Geo $(CURDIR)/debian/tmp/usr/lib/perl5/.
+	mv $(CURDIR)/debian/tmp/usr/local/lib/site_ruby/$(RUBYDEF)/* $(CURDIR)/debian/tmp/usr/lib/ruby/$(RUBYDEF)/.
 
 binary-common: 
 	dh_testdir
