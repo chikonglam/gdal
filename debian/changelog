@@ -1,4 +1,4 @@
-gdal (1.4.2-2) UNRELEASED; urgency=low
+gdal (1.4.2-2) unstable; urgency=low
 
   [ Paul Wise ]
   * Switch to new Homepage field
@@ -6,13 +6,13 @@ gdal (1.4.2-2) UNRELEASED; urgency=low
   [ Francesco Paolo Lovergine ]
   * Migrated obsolete ${Source-Version} to ${binary:Version} in debian/control
   * Added perl and ruby binding and a couple of new binary packages for that.
-    At current time both php and java bindings are unmaintained, so skipped.
     (closes: #393167)
   * Build-deps updated.
   * Missing gdal_rasterize binary and python tools added to *.files
   * Missing man pages added to *.files
   * Added build dependency for install target in rules.
-  * Fixing swig/perl/Makefile.PL via libname.dpatch to build correctly perl binding.
+  * Fixed swig/perl/Makefile.PL on fly via libname.dpatch to build correctly perl binding.
+  * Added debian/TODO file
 
  -- Francesco Paolo Lovergine <frankie@debian.org>  Sat, 06 Oct 2007 10:34:38 +0200
 
