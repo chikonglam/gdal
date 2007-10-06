@@ -58,7 +58,7 @@ build-stamp:
 	dh_testdir
 
 	cp `ls GDALmake.opt-*|tail -1` GDALmake.opt
-	$(MAKE) lib-target apps-target
+	$(MAKE) lib-target apps-target swig-target
 	$(MAKE) docs
 
 	touch build-stamp
@@ -73,6 +73,7 @@ clean-unpatched:
 	dh_testroot
 
 	-$(MAKE) distclean
+	rm -rf $(CURDIR)/swig/ruby/.libs $(CURDIR)/swig/perl/*.bs
 	rm -f GDALmake.opt-*
 
 	dh_clean build-stamp configure-stamp
