@@ -1,0 +1,19 @@
+#! /bin/sh /usr/share/dpatch/dpatch-run
+## rubymakefile.dpatch by Francesco Paolo Lovergine <frankie@debian.org>
+##
+## All lines beginning with `## DP:' are a description of the patch.
+## DP: No description.
+
+@DPATCH@
+diff -urNad gdal-1.4.2~/swig/ruby/RubyMakefile.mk gdal-1.4.2/swig/ruby/RubyMakefile.mk
+--- gdal-1.4.2~/swig/ruby/RubyMakefile.mk	2007-10-05 17:18:36.000000000 +0200
++++ gdal-1.4.2/swig/ruby/RubyMakefile.mk	2007-10-16 12:16:07.000000000 +0200
+@@ -41,7 +41,7 @@
+ $(INSTALL_DIR):
+ 	mkdir -p $(DESTDIR)$(INSTALL_DIR)
+ 
+-install: $(INSTALL_DIR)
++install: $(INSTALL_DIR) $(RUBY_MODULES)
+ 	$(INSTALL) $(RUBY_MODULES) $(DESTDIR)$(INSTALL_DIR) 
+ 
+ $(RUBY_MODULES): %.so: %_wrap.o

@@ -13,8 +13,9 @@ gdal (1.4.2-2) unstable; urgency=low
   * Added build dependency for install target in rules.
   * Fixed swig/perl/Makefile.PL on fly via libname.dpatch to build correctly perl binding.
   * Added debian/TODO file
+  * Added patch rubymakefile.dpatch to fix ruby module building.
 
- -- Francesco Paolo Lovergine <frankie@debian.org>  Sat, 06 Oct 2007 10:34:38 +0200
+ -- Francesco Paolo Lovergine <frankie@debian.org>  Tue, 16 Oct 2007 12:16:16 +0200
 
 gdal (1.4.2-1) unstable; urgency=low
 
