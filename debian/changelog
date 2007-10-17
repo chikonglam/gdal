@@ -1,8 +1,10 @@
 gdal (1.4.2-3) UNRELEASED; urgency=low
 
   * YET NOT RELEASED
+  * Fixed debian-rules-ignores-make-clean-error lintian error
+  * debian/control
 
- -- Francesco Paolo Lovergine <frankie@debian.org>  Tue, 16 Oct 2007 14:47:35 +0200
+ -- Francesco Paolo Lovergine <frankie@debian.org>  Wed, 17 Oct 2007 12:25:46 +0200
 
 gdal (1.4.2-2) unstable; urgency=low
 
