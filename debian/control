@@ -8,7 +8,7 @@ Build-Depends: debhelper (>= 5.0.37.2), zlib1g-dev, netcdfg-dev,
  libhdf4g-dev, libhdf5-serial-dev, libpq-dev, libxerces27-dev, unixodbc-dev (>=2.2.11), 
  python-dev, python-numeric, doxygen, d-shlibs, libgeos-dev, dpatch, libmysqlclient15-dev, python-all-dev (>= 2.3.5-11), 
  python-central (>=0.5), libcurl4-dev|libcurl-dev, libsqlite3-dev, libogdi3.2-dev,
- ruby, ruby1.8-dev
+ ruby, ruby1.8-dev, chrpath
 Standards-Version: 3.7.2
 XS-Python-Version: all
 Homepage: http://www.gdal.org/

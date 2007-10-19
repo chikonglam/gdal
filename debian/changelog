@@ -1,10 +1,9 @@
-gdal (1.4.2-3) UNRELEASED; urgency=low
+gdal (1.4.2-3) unstable; urgency=low
 
-  * YET NOT RELEASED
-  * Fixed debian-rules-ignores-make-clean-error lintian error
-  * debian/control
+  * Fixed debian-rules-ignores-make-clean-error lintian warning
+  * Removes embedded rpath in perl extensions and MakeMaker .packlist files.
 
- -- Francesco Paolo Lovergine <frankie@debian.org>  Wed, 17 Oct 2007 12:25:46 +0200
+ -- Francesco Paolo Lovergine <frankie@debian.org>  Fri, 19 Oct 2007 23:46:07 +0200
 
 gdal (1.4.2-2) unstable; urgency=low
 

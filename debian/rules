@@ -96,6 +96,11 @@ install: build
 		"INST_DOCS=\$$(prefix)/share/doc/libgdal-doc"\
 		"INST_MAN=\$$(prefix)/share/man"
 	
+	# removing empty packlist MakeMaker files 
+	-find $(CURDIR)/debian/tmp/usr/local/lib/perl -type f -name .packlist -exec rm -f {} \;
+	# removing embedded rpath in perl shlibs
+	-find $(CURDIR)/debian/tmp/usr/local/lib/perl -type f -name "*.so" -exec chrpath --delete {} \;
+
 	# moves ruby/perl stuff the right dirs
 	install -o root -g root -d $(CURDIR)/debian/tmp/usr/lib/perl5/auto
 	install -o root -g root -d $(CURDIR)/debian/tmp/usr/lib/ruby/$(RUBYDEF)
