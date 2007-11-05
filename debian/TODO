@@ -3,10 +3,11 @@ Debian maintainers TODO list
 
 * C# binding needs probably to be investigated. It is currently not too stabilized.
   Tcl/Tk binding could be also considered as external project, but its status needs
-  to be checked as well. I would avoid both PHP and Java bindings because not
+  to be checked as well. I would avoid both PHP and Java bindings because not yet
+  mature.
 
 * Python bindings should move to Swig (aka ng-python binding) but that requires
-  building style changes for sure.
+  building style changes for sure. Still not suggested before 1.5.
 
  -- Francesco Paolo Lovergine <frankie@debian.org>  Sat, 06 Oct 2007 10:34:38 +0200
 

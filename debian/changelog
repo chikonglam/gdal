@@ -1,3 +1,12 @@
+gdal (1.4.3-1) unstable; urgency=low
+
+  * New upstream release.
+    This is a bug fixing release without API changes, so retaining current
+    naming scheme as for previous 1.4 series releases.
+  * Patchset revised.
+
+ -- Francesco Paolo Lovergine <frankie@debian.org>  Mon, 05 Nov 2007 14:47:08 +0100
+
 gdal (1.4.2-3) unstable; urgency=low
 
   * Fixed debian-rules-ignores-make-clean-error lintian warning
