@@ -3,9 +3,12 @@ gdal (1.4.3-1) unstable; urgency=low
   * New upstream release.
     This is a bug fixing release without API changes, so retaining current
     naming scheme as for previous 1.4 series releases.
-  * Patchset revised.
+  * Uses PIC building in Ruby bindings and properly fails in case of
+    building problems to avoid creating empty packages. Changed rubymakefile.dpatch
+    for that.
+    (closes: #450882)
 
- -- Francesco Paolo Lovergine <frankie@debian.org>  Mon, 05 Nov 2007 14:47:08 +0100
+ -- Francesco Paolo Lovergine <frankie@debian.org>  Thu, 15 Nov 2007 17:19:50 +0100
 
 gdal (1.4.2-3) unstable; urgency=low
 
