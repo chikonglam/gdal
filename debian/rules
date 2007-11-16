@@ -72,7 +72,7 @@ clean-unpatched:
 	dh_testdir
 	dh_testroot
 
-	[ ! -f GNUmakefile ] || $(MAKE) distclean
+	[ ! -f GDALmake.opt ] || $(MAKE) distclean
 	rm -rf $(CURDIR)/swig/ruby/.libs $(CURDIR)/swig/perl/*.bs
 	rm -f GDALmake.opt-*
 
