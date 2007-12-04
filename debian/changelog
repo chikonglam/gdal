@@ -1,3 +1,10 @@
+gdal (1.4.4-1) unstable; urgency=low
+
+  * New upstream version, which fixes an ABI breakage.
+    (closes: #452355)
+
+ -- Francesco Paolo Lovergine <frankie@debian.org>  Tue, 04 Dec 2007 10:22:19 +0100
+
 gdal (1.4.3-1) unstable; urgency=low
 
   * New upstream release.
