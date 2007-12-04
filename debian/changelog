@@ -4,6 +4,7 @@ gdal (1.4.4-1) unstable; urgency=low
     (closes: #452355)
   * Changed swig.dpatch because partially merged upstream.
   * Removed gcc43.dpatch because merged upstream.
+  * Added missing swig build-dep.
 
  -- Francesco Paolo Lovergine <frankie@debian.org>  Tue, 04 Dec 2007 11:10:37 +0100
 
