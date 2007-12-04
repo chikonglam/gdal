@@ -2,5 +2,4 @@ libname
 ogdi
 swig
 doc
-gcc43
 rubymakefile
