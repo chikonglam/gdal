@@ -9,9 +9,12 @@ Build-Depends: debhelper (>= 5.0.37.2), zlib1g-dev, netcdfg-dev,
  python-dev, python-numeric, doxygen, d-shlibs, libgeos-dev, dpatch, libmysqlclient15-dev, python-all-dev (>= 2.3.5-11), 
  python-central (>=0.5), libcurl4-dev|libcurl-dev, libsqlite3-dev, libogdi3.2-dev,
  ruby, ruby1.8-dev, chrpath, swig
-Standards-Version: 3.7.2
+Standards-Version: 3.7.3
 XS-Python-Version: all
 Homepage: http://www.gdal.org/
+Vcs-Browser: http://svn.debian.org/viewsvn/pkg-grass/packages/gdal/trunk
+Vcs-Svn: svn://svn.debian.org/svn/pkg-grass/packages/gdal/trunk
+
 
 Package: libgdal1-1.4.0
 Section: libs
