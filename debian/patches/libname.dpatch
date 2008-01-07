@@ -13,7 +13,7 @@ diff -urNad gdal-1.4.2~/GDALmake.opt.in gdal-1.4.2/GDALmake.opt.in
  
  # libtool targets and help variables
 -LIBGDAL	:=		libgdal.la
-+LIBGDAL	:=		libgdal1.4.0.la
++LIBGDAL	:=		libgdal1.5.0.la
  LIBGDAL_CURRENT	:=	12
  LIBGDAL_REVISION	:=	2
  LIBGDAL_AGE	:=	11
@@ -24,9 +24,9 @@ diff -urNad gdal-1.4.2~/GDALmake.opt.in gdal-1.4.2/GDALmake.opt.in
 -GDAL_LIB	= 	$(GDAL_ROOT)/libgdal.a
 -GDAL_SLIB	=	$(GDAL_ROOT)/libgdal.$(SO_EXT)
 -GDAL_SLIB_LINK	=	-L$(GDAL_ROOT) -lgdal
-+GDAL_LIB	= 	$(GDAL_ROOT)/libgdal1.4.0.a
-+GDAL_SLIB	=	$(GDAL_ROOT)/libgdal1.4.0.$(SO_EXT)
-+GDAL_SLIB_LINK	=	-L$(GDAL_ROOT) -lgdal1.4.0
++GDAL_LIB	= 	$(GDAL_ROOT)/libgdal1.5.0.a
++GDAL_SLIB	=	$(GDAL_ROOT)/libgdal1.5.0.$(SO_EXT)
++GDAL_SLIB_LINK	=	-L$(GDAL_ROOT) -lgdal1.5.0
  
  # Mac OS X Framework definition
  MACOSX_FRAMEWORK = @MACOSX_FRAMEWORK@
@@ -35,7 +35,7 @@ diff -urNad gdal-1.4.2~/GDALmake.opt.in gdal-1.4.2/GDALmake.opt.in
  ifeq ($(HAVE_LIBTOOL), yes)
  CONFIG_LIBS	=	$(GDAL_ROOT)/$(LIBGDAL)
 -CONFIG_LIBS_INS	=	-L$(INST_LIB) -lgdal
-+CONFIG_LIBS_INS	=	-L$(INST_LIB) -lgdal1.4.0
++CONFIG_LIBS_INS	=	-L$(INST_LIB) -lgdal1.5.0
  EXE_DEP_LIBS	=	$(GDAL_ROOT)/$(LIBGDAL)
  SO_EXT		=	la
  else
@@ -43,7 +43,7 @@ diff -urNad gdal-1.4.2~/GDALmake.opt.in gdal-1.4.2/GDALmake.opt.in
  ifeq ($(HAVE_LD_SHARED),yes)
  CONFIG_LIBS	=	$(GDAL_SLIB_LINK) $(LIBS)
 -CONFIG_LIBS_INS	=	-L$(INST_LIB) -lgdal
-+CONFIG_LIBS_INS	=	-L$(INST_LIB) -lgdal1.4.0
++CONFIG_LIBS_INS	=	-L$(INST_LIB) -lgdal1.5.0
  EXE_DEP_LIBS	=	$(GDAL_SLIB)
  else
  CONFIG_LIBS	=	$(GDAL_LIBS) $(LIBS)
@@ -55,7 +55,7 @@ diff -urNad gdal-1.4.2~/swig/perl/Makefile.PL gdal-1.4.2/swig/perl/Makefile.PL
  $libdir = $ENV{'PREFIX'} ? "-L$ENV{'PREFIX'}/lib" : '';
  
 -$ext = $^O eq 'MSWin32' ? '.dll' : ''; # works with MinGW but probably not with ActivePerl
-+$ext = $^O eq 'MSWin32' ? '.dll' : '1.4.0'; # works with MinGW but probably not with ActivePerl
++$ext = $^O eq 'MSWin32' ? '.dll' : '1.5.0'; # works with MinGW but probably not with ActivePerl
  
  # for old-style, use gdal, gdalconst,ogr, and osr as keys
  
