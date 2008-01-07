@@ -5,19 +5,19 @@
 ## DP: No description.
 
 @DPATCH@
-diff -urNad gdal-1.4.2~/GDALmake.opt.in gdal-1.4.2/GDALmake.opt.in
---- gdal-1.4.2~/GDALmake.opt.in	2007-10-05 15:25:02.000000000 +0200
-+++ gdal-1.4.2/GDALmake.opt.in	2007-10-05 15:25:36.000000000 +0200
-@@ -106,7 +106,7 @@
+diff -urNad gdal-1.5.0~/GDALmake.opt.in gdal-1.5.0/GDALmake.opt.in
+--- gdal-1.5.0~/GDALmake.opt.in	2007-12-08 18:32:49.000000000 +0100
++++ gdal-1.5.0/GDALmake.opt.in	2008-01-07 15:26:06.000000000 +0100
+@@ -80,7 +80,7 @@
  			-I$(GDAL_ROOT)/ogr -I$(GDAL_ROOT)/ogr/ogrsf_frmts
  
  # libtool targets and help variables
 -LIBGDAL	:=		libgdal.la
 +LIBGDAL	:=		libgdal1.5.0.la
- LIBGDAL_CURRENT	:=	12
- LIBGDAL_REVISION	:=	2
- LIBGDAL_AGE	:=	11
-@@ -119,9 +119,9 @@
+ LIBGDAL_CURRENT	:=	13
+ LIBGDAL_REVISION	:=	0
+ LIBGDAL_AGE	:=	12
+@@ -93,9 +93,9 @@
  GDAL_VERSION_MINOR =    @GDAL_VERSION_MINOR@
  GDAL_VERSION_REV   =    @GDAL_VERSION_REV@
  
@@ -30,26 +30,33 @@ diff -urNad gdal-1.4.2~/GDALmake.opt.in gdal-1.4.2/GDALmake.opt.in
  
  # Mac OS X Framework definition
  MACOSX_FRAMEWORK = @MACOSX_FRAMEWORK@
-@@ -326,14 +326,14 @@
- 
+@@ -320,9 +320,9 @@
  ifeq ($(HAVE_LIBTOOL), yes)
  CONFIG_LIBS	=	$(GDAL_ROOT)/$(LIBGDAL)
+ ifeq ($(MACOSX_FRAMEWORK),yes)
+-CONFIG_LIBS_INS	=	-L$(INST_LIB)/unix/lib -lgdal
++CONFIG_LIBS_INS	=	-L$(INST_LIB)/unix/lib -lgdal1.5.0
+ else
 -CONFIG_LIBS_INS	=	-L$(INST_LIB) -lgdal
 +CONFIG_LIBS_INS	=	-L$(INST_LIB) -lgdal1.5.0
+ endif
  EXE_DEP_LIBS	=	$(GDAL_ROOT)/$(LIBGDAL)
  SO_EXT		=	la
- else
- 
+@@ -331,9 +331,9 @@
  ifeq ($(HAVE_LD_SHARED),yes)
  CONFIG_LIBS	=	$(GDAL_SLIB_LINK) $(LIBS)
+ ifeq ($(MACOSX_FRAMEWORK),yes)
+-CONFIG_LIBS_INS	=	-L$(INST_LIB)/unix/lib -lgdal
++CONFIG_LIBS_INS	=	-L$(INST_LIB)/unix/lib -lgdal1.5.0
+ else
 -CONFIG_LIBS_INS	=	-L$(INST_LIB) -lgdal
 +CONFIG_LIBS_INS	=	-L$(INST_LIB) -lgdal1.5.0
+ endif
  EXE_DEP_LIBS	=	$(GDAL_SLIB)
  else
- CONFIG_LIBS	=	$(GDAL_LIBS) $(LIBS)
-diff -urNad gdal-1.4.2~/swig/perl/Makefile.PL gdal-1.4.2/swig/perl/Makefile.PL
---- gdal-1.4.2~/swig/perl/Makefile.PL	2007-10-05 15:25:02.000000000 +0200
-+++ gdal-1.4.2/swig/perl/Makefile.PL	2007-10-05 15:26:03.000000000 +0200
+diff -urNad gdal-1.5.0~/swig/perl/Makefile.PL gdal-1.5.0/swig/perl/Makefile.PL
+--- gdal-1.5.0~/swig/perl/Makefile.PL	2007-04-21 10:14:00.000000000 +0200
++++ gdal-1.5.0/swig/perl/Makefile.PL	2008-01-07 15:24:08.000000000 +0100
 @@ -2,7 +2,7 @@
  
  $libdir = $ENV{'PREFIX'} ? "-L$ENV{'PREFIX'}/lib" : '';
