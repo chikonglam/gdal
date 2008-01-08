@@ -41,6 +41,10 @@ configure-stamp: patch-stamp
 		mv GDALmake.opt GDALmake.opt-$$V; \
 	done
 
+	# Overrides the generated libtool with official one, due to 
+	# breakage in upstream version.
+	cp /usr/bin/libtool $(CURDIR)/libtool
+
 	# Patch the generated libtool to avoid passing -rpath when linking,
 	# and to explicitly link libraries against the libraries they
 	# depend on.
@@ -60,6 +64,7 @@ build-stamp:
 	cp `ls GDALmake.opt-*|tail -1` GDALmake.opt
 	$(MAKE) lib-target apps-target swig-target
 	$(MAKE) docs
+	$(MAKE) man
 
 	touch build-stamp
 
@@ -89,12 +94,16 @@ install: build
 		(cd pymod && $(MAKE) clean); \
 		$(MAKE) py-target; \
 		$(MAKE) install DESTDIR=$(CURDIR)/debian/tmp \
+			INST_DATA="\$$(prefix)/share/gdal"  \
 			INST_PYMOD="\$$(prefix)"`awk -F '/usr' '/INST_PYMOD/ {print $$2}' GDALmake.opt` ; \
 	done
 
 	$(MAKE) install-docs DESTDIR=$(CURDIR)/debian/tmp \
 		"INST_DOCS=\$$(prefix)/share/doc/libgdal-doc"\
-		"INST_MAN=\$$(prefix)/share/man"
+		"INST_MAN=\$$(prefix)/share/man" 
+	$(MAKE) install-man DESTDIR=$(CURDIR)/debian/tmp \
+		"INST_DOCS=\$$(prefix)/share/doc/libgdal-doc"\
+		"INST_MAN=\$$(prefix)/share/man" 
 	
 	# removing empty packlist MakeMaker files 
 	-find $(CURDIR)/debian/tmp/usr/local/lib/perl -type f -name .packlist -exec rm -f {} \;

@@ -1,3 +1,8 @@
+usr/bin/gdal_grid
+usr/bin/gdalenhance
+usr/bin/gdalmanage
+usr/bin/gdaltransform
+usr/bin/nearblack
 usr/bin/gdal_translate
 usr/bin/gdal_rasterize
 usr/bin/gdalinfo
@@ -15,3 +20,9 @@ usr/share/man/man1/gdalwarp.1
 usr/share/man/man1/gdaltindex.1
 usr/share/man/man1/gdal_contour.1
 usr/share/man/man1/ogr*.1
+usr/share/man/man1/gdal2tiles.1
+usr/share/man/man1/gdal_grid.1
+usr/share/man/man1/gdal_retile.1
+usr/share/man/man1/gdaltindex.1
+usr/share/man/man1/gdaltransform.1
+usr/share/man/man1/nearblack.1
