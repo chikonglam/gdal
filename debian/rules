@@ -92,7 +92,7 @@ install: build
 		(cd pymod && $(MAKE) clean); \
 		$(MAKE) py-target; \
 		$(MAKE) install DESTDIR=$(CURDIR)/debian/tmp \
-			INST_DATA="\$$(prefix)/share/gdal"  \
+			INST_DATA="\$$(prefix)/share/gdal15"  \
 			INST_PYMOD="\$$(prefix)"`awk -F '/usr' '/INST_PYMOD/ {print $$2}' GDALmake.opt` ; \
 	done
 

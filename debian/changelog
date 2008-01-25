@@ -1,10 +1,7 @@
-gdal (1.5.0-2) UNRELEASED; urgency=low
+gdal (1.5.0-2) unstable; urgency=low
 
-  * NOT RELEASED YET
-  * Added conflicts/replaces against libgdal1-1.4.0. This is of course largely
-    non optimal, a proper new package is required to move arch-independent and 
-    version agnostic files out in order to have multiple library versions 
-    co-existing on the system. This is a goal for next releases.
+  * Moved /usr/share/gdal -> /usr/share/gdal15 in order to avoid conflicting
+    with previous upstream version.
     (closes: #462525)
 
  -- Francesco Paolo Lovergine <frankie@debian.org>  Fri, 25 Jan 2008 14:25:21 +0100
