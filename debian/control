@@ -21,8 +21,8 @@ Section: libs
 Architecture: any
 Depends: ${shlibs:Depends}
 Recommends: proj
-Conflicts: libgdal1, libgdal1c2, libgdal1c2a, libgdal1-1.3.1, libgdal1-1.3.2
-Replaces: libgdal1, libgdal1c2, libgdal1c2a, libgdal1-1.3.1, libgdal1-1.3.2
+Conflicts: libgdal1, libgdal1c2, libgdal1c2a, libgdal1-1.3.1, libgdal1-1.3.2, libgdal1-1.4.0
+Replaces: libgdal1, libgdal1c2, libgdal1c2a, libgdal1-1.3.1, libgdal1-1.3.2, libgdal1-1.4.0
 Description: Geospatial Data Abstraction Library
  GDAL is a translator library for raster geospatial data formats.
  As a library, it presents a single abstract data model to the
