@@ -103,6 +103,8 @@ install: build
 		"INST_DOCS=\$$(prefix)/share/doc/libgdal-doc"\
 		"INST_MAN=\$$(prefix)/share/man" 
 	
+	# removing license file
+	rm -f $(CURDIR)/debian/tmp/usr/share/gdal15/LICENSE.TXT
 	# removing empty packlist MakeMaker files 
 	-find $(CURDIR)/debian/tmp/usr/local/lib/perl -type f -name .packlist -exec rm -f {} \;
 	# removing embedded rpath in perl shlibs
