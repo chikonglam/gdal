@@ -1,9 +1,13 @@
 gdal (1.5.0-3) UNRELEASED; urgency=low
 
-  * NOT RELEASE YET
   * [debian/rules] Removing LICENSE.TXT placed in the data dir.
+  * [debian/rules] Added explicit python-binding generation previously missing
+    Now installs files from new locations because 1.5 moved to ng-python
+    (swig-based) support. (closes: #463077)
+  * [debian/control] Changed python-numeric -> python-numpy build-dep due to 
+    new-generation python support.
 
- -- Francesco Paolo Lovergine <frankie@debian.org>  Fri, 25 Jan 2008 17:46:50 +0100
+ -- Francesco Paolo Lovergine <frankie@debian.org>  Tue, 29 Jan 2008 12:45:33 +0100
 
 gdal (1.5.0-2) unstable; urgency=low
 

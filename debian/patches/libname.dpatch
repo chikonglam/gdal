@@ -6,8 +6,8 @@
 
 @DPATCH@
 diff -urNad gdal-1.5.0~/GDALmake.opt.in gdal-1.5.0/GDALmake.opt.in
---- gdal-1.5.0~/GDALmake.opt.in	2007-12-08 18:32:49.000000000 +0100
-+++ gdal-1.5.0/GDALmake.opt.in	2008-01-07 15:26:06.000000000 +0100
+--- gdal-1.5.0~/GDALmake.opt.in	2008-01-29 13:05:45.000000000 +0100
++++ gdal-1.5.0/GDALmake.opt.in	2008-01-29 13:06:08.000000000 +0100
 @@ -80,7 +80,7 @@
  			-I$(GDAL_ROOT)/ogr -I$(GDAL_ROOT)/ogr/ogrsf_frmts
  
@@ -55,8 +55,8 @@ diff -urNad gdal-1.5.0~/GDALmake.opt.in gdal-1.5.0/GDALmake.opt.in
  EXE_DEP_LIBS	=	$(GDAL_SLIB)
  else
 diff -urNad gdal-1.5.0~/swig/perl/Makefile.PL gdal-1.5.0/swig/perl/Makefile.PL
---- gdal-1.5.0~/swig/perl/Makefile.PL	2007-04-21 10:14:00.000000000 +0200
-+++ gdal-1.5.0/swig/perl/Makefile.PL	2008-01-07 15:24:08.000000000 +0100
+--- gdal-1.5.0~/swig/perl/Makefile.PL	2008-01-29 13:05:45.000000000 +0100
++++ gdal-1.5.0/swig/perl/Makefile.PL	2008-01-29 13:06:08.000000000 +0100
 @@ -2,7 +2,7 @@
  
  $libdir = $ENV{'PREFIX'} ? "-L$ENV{'PREFIX'}/lib" : '';
@@ -66,3 +66,15 @@ diff -urNad gdal-1.5.0~/swig/perl/Makefile.PL gdal-1.5.0/swig/perl/Makefile.PL
  
  # for old-style, use gdal, gdalconst,ogr, and osr as keys
  
+diff -urNad gdal-1.5.0~/swig/python/setup.cfg gdal-1.5.0/swig/python/setup.cfg
+--- gdal-1.5.0~/swig/python/setup.cfg	2007-11-24 06:59:53.000000000 +0100
++++ gdal-1.5.0/swig/python/setup.cfg	2008-01-29 13:06:28.000000000 +0100
+@@ -1,7 +1,7 @@
+ [build_ext]
+ include_dirs = ../../port:../../gcore:../../alg:../../ogr/:/usr/local/include:/usr/include
+ library_dirs = ../../.libs:../../:/usr/local/lib:/usr/lib
+-libraries = gdal
++libraries = gdal1.5.0
+ gdal_config=../../apps/gdal-config
+ 
+ # setup.cfg settings for building on win32 with msvc

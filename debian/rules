@@ -38,6 +38,7 @@ configure-stamp: patch-stamp
 			--with-mysql \
 			--with-perl \
 			--with-ruby \
+			--with-python \
 			--with-cfitsio=no; \
 		mv GDALmake.opt GDALmake.opt-$$V; \
 	done
