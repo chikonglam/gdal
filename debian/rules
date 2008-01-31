@@ -106,6 +106,8 @@ install: build
 	
 	# removing license file
 	rm -f $(CURDIR)/debian/tmp/usr/share/gdal15/LICENSE.TXT
+	# removing information file
+	rm -f $(CURDIR)/debian/tmp/usr/lib/python-cetral/GDAL-1.5.0.egg-info
 	# removing empty packlist MakeMaker files 
 	-find $(CURDIR)/debian/tmp/usr/local/lib/perl -type f -name .packlist -exec rm -f {} \;
 	# removing embedded rpath in perl shlibs
@@ -128,7 +130,7 @@ binary-common:
 	dh_strip
 	dh_compress
 	dh_fixperms
-	dh_pycentral
+	dh_pycentral -XGDAL-1.5.0.egg-info
 	dh_perl
 	dh_makeshlibs
 	dh_installdeb

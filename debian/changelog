@@ -1,4 +1,4 @@
-gdal (1.5.0-3) UNRELEASED; urgency=low
+gdal (1.5.0-3) unstable; urgency=low
 
   * [debian/rules] Removing LICENSE.TXT placed in the data dir.
   * [debian/rules] Added explicit python-binding generation previously missing
@@ -10,8 +10,9 @@ gdal (1.5.0-3) UNRELEASED; urgency=low
     new-generation python support.
   * [debian/rules] Added missing dh_perl call.
     (closes: #463086)
+  * Added a doc file exclusion at dh_pycentral call.
 
- -- Francesco Paolo Lovergine <frankie@debian.org>  Wed, 30 Jan 2008 17:02:19 +0100
+ -- Francesco Paolo Lovergine <frankie@debian.org>  Thu, 31 Jan 2008 12:46:26 +0100
 
 gdal (1.5.0-2) unstable; urgency=low
 
