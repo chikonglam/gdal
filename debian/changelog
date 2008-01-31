@@ -10,12 +10,13 @@ gdal (1.5.0-3) unstable; urgency=low
     new-generation python support.
   * [debian/rules] Added missing dh_perl call.
     (closes: #463086)
-  * Added a doc file exclusion at dh_pycentral call.
+  * [debian/rules] Added a info file exclusion at dh_pycentral call.
+  * [debian/rules] Now removing info file installed in pycentral area.
   * Added gcc43.dpatch: remove transform() call.
     See http://trac.osgeo.org/gdal/changeset/13615?format=diff&new=13615 for fix.
     (closes: #462709)
 
- -- Francesco Paolo Lovergine <frankie@debian.org>  Thu, 31 Jan 2008 12:49:55 +0100
+ -- Francesco Paolo Lovergine <frankie@debian.org>  Thu, 31 Jan 2008 14:23:29 +0100
 
 gdal (1.5.0-2) unstable; urgency=low
 
