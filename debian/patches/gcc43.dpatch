@@ -49,3 +49,14 @@ diff -urNad gdal-1.5.0~/frmts/ilwis/ilwisdataset.cpp gdal-1.5.0/frmts/ilwis/ilwi
          if EQUAL(domType.c_str(),"domainvalue")  
              {
                  if (psInfo.stStoreType == stFloat)
+diff -urNad gdal-1.5.0~/frmts/idrisi/IdrisiDataset.cpp gdal-1.5.0/frmts/idrisi/IdrisiDataset.cpp
+--- gdal-1.5.0~/frmts/idrisi/IdrisiDataset.cpp	2007-11-20 22:01:46.000000000 +0100
++++ gdal-1.5.0/frmts/idrisi/IdrisiDataset.cpp	2008-02-04 15:29:10.000000000 +0100
+@@ -35,6 +35,7 @@
+ #include "gdal_pam.h"
+ #include "gdal_rat.h"
+ #include "gdal_alg.h"
++#include <climits>
+ 
+ CPL_CVSID( "$Id: IdrisiDataset.cpp 12896 2007-11-20 21:01:46Z rouault $" );
+ 
