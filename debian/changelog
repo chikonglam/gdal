@@ -1,3 +1,9 @@
+gdal (1.5.0-5) UNRELEASED; urgency=low
+
+  * NOT RELEASED YET
+
+ -- Francesco Paolo Lovergine <frankie@debian.org>  Fri, 14 Mar 2008 23:18:24 +0100
+
 gdal (1.5.0-4) unstable; urgency=low
 
   * Fixed removing of .info file in python-central area
