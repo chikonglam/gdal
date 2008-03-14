@@ -129,7 +129,7 @@ binary-common:
 	dh_compress
 	dh_fixperms
 	dh_pycentral -X.info
-	rm -f $(CURDIR)/debian/tmp/usr/share/pycentral/python-gdal/site-packages/GDAL-1.5.0.egg-info
+	rm -f $(CURDIR)/debian/python-gdal/usr/share/pycentral/python-gdal/site-packages/GDAL-1.5.0.egg-info
 	dh_perl
 	dh_makeshlibs
 	dh_installdeb

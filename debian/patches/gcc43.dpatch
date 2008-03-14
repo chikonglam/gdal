@@ -6,9 +6,18 @@
 
 @DPATCH@
 diff -urNad gdal-1.5.0~/frmts/ilwis/ilwisdataset.cpp gdal-1.5.0/frmts/ilwis/ilwisdataset.cpp
---- gdal-1.5.0~/frmts/ilwis/ilwisdataset.cpp	2007-08-02 23:14:09.000000000 +0200
-+++ gdal-1.5.0/frmts/ilwis/ilwisdataset.cpp	2008-01-31 12:55:42.000000000 +0100
-@@ -406,7 +406,6 @@
+--- gdal-1.5.0~/frmts/ilwis/ilwisdataset.cpp	2008-02-04 14:44:48.000000000 +0100
++++ gdal-1.5.0/frmts/ilwis/ilwisdataset.cpp	2008-02-04 14:47:03.000000000 +0100
+@@ -31,6 +31,8 @@
+ #include <float.h>
+ #include <climits>
+ 
++using namespace std;
++
+ // IniFile.cpp: implementation of the IniFile class.
+ //
+ //////////////////////////////////////////////////////////////////////
+@@ -406,7 +408,6 @@
  static CPLErr GetStoreType(string pszFileName, ilwisStoreType &stStoreType)
  {
      string st = ReadElement("MapStore", "Type", pszFileName.c_str());
@@ -16,7 +25,7 @@ diff -urNad gdal-1.5.0~/frmts/ilwis/ilwisdataset.cpp gdal-1.5.0/frmts/ilwis/ilwi
  		
      if( EQUAL(st.c_str(),"byte"))
      {
-@@ -482,8 +481,6 @@
+@@ -482,8 +483,6 @@
      else
          georef = ReadElement("MapList", "GeoRef", osFileName);
  
@@ -25,7 +34,7 @@ diff -urNad gdal-1.5.0~/frmts/ilwis/ilwisdataset.cpp gdal-1.5.0/frmts/ilwis/ilwi
      //Capture the geotransform, only if the georef is not 'none', 
      //otherwise, the default transform should be returned.
      if( (georef.length() != 0) && !EQUAL(georef.c_str(),"none"))
-@@ -788,7 +785,6 @@
+@@ -788,7 +787,6 @@
  		
          //	Fetch coordinate system
          string csy = ReadElement("GeoRef", "CoordSystem", pszGeoRef);
@@ -33,7 +42,7 @@ diff -urNad gdal-1.5.0~/frmts/ilwis/ilwisdataset.cpp gdal-1.5.0/frmts/ilwis/ilwi
  
          string pszProj;
          if( (csy.length() != 0) && !EQUAL(csy.c_str(),"unknown.csy"))
-@@ -1318,7 +1314,6 @@
+@@ -1318,7 +1316,6 @@
  {
      string domName = ReadElement("BaseMap", "Domain", pszFileName.c_str());
      string pszBaseName = string(CPLGetBasename( domName.c_str() ));
@@ -41,7 +50,7 @@ diff -urNad gdal-1.5.0~/frmts/ilwis/ilwisdataset.cpp gdal-1.5.0/frmts/ilwis/ilwi
      string pszPath = string(CPLGetPath( pszFileName.c_str() ));
  		
      if (GetStoreType(pszFileName, psInfo.stStoreType) != CE_None)
-@@ -1370,7 +1365,6 @@
+@@ -1370,7 +1367,6 @@
          pszDomainName = string(CPLFormFilename(pszPath.c_str(),pszBaseName.c_str(),"dom" ));
  				
          string domType = ReadElement("Domain", "Type", pszDomainName.c_str());

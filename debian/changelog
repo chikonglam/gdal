@@ -1,10 +1,11 @@
 gdal (1.5.0-4) UNRELEASED; urgency=low
 
-  * NOT RELEASED YET
   * Fixed removing of .info file in python-central area
-  * Fixed gcc43.dpatch to add climits inclusion
+  * Fixed gcc43.dpatch to manage namespace issue. This is not accepted upstream.
+    (closes: #462709)
+  * Updated debian/TODO.
 
- -- Francesco Paolo Lovergine <frankie@debian.org>  Mon, 04 Feb 2008 14:42:51 +0100
+ -- Francesco Paolo Lovergine <frankie@debian.org>  Fri, 14 Mar 2008 14:35:18 +0100
 
 gdal (1.5.0-3) unstable; urgency=low
 
