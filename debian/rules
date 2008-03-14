@@ -64,6 +64,7 @@ build-stamp:
 	dh_testdir
 
 	cp `ls GDALmake.opt-*|tail -1` GDALmake.opt
+	$(MAKE) -C $(CURDIR)/swig/perl generate 
 	$(MAKE) lib-target apps-target swig-target
 	$(MAKE) docs
 	$(MAKE) man
@@ -77,6 +78,7 @@ clean-unpatched:
 
 	[ ! -f GDALmake.opt ] || $(MAKE) distclean
 	rm -rf $(CURDIR)/swig/ruby/.libs $(CURDIR)/swig/perl/*.bs
+	rm -rf $(CURDIR)/swig/perl/*.c  $(CURDIR)/swig/perl/*.cpp
 	rm -f GDALmake.opt-*
 	rm -rf $(CURDIR)/man/man1
 

@@ -1,11 +1,14 @@
-gdal (1.5.0-4) UNRELEASED; urgency=low
+gdal (1.5.0-4) unstable; urgency=low
 
   * Fixed removing of .info file in python-central area
   * Fixed gcc43.dpatch to manage namespace issue. This is not accepted upstream.
     (closes: #462709)
   * Updated debian/TODO.
+  * Forcing regeneration of perl wrappers with current Swig in debian/rules
+    as suggested by Pabs.
+    (closes: #466785)
 
- -- Francesco Paolo Lovergine <frankie@debian.org>  Fri, 14 Mar 2008 14:35:18 +0100
+ -- Francesco Paolo Lovergine <frankie@debian.org>  Fri, 14 Mar 2008 15:57:34 +0100
 
 gdal (1.5.0-3) unstable; urgency=low
 
