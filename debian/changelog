@@ -1,6 +1,7 @@
-gdal (1.5.1-1) UNRELEASED; urgency=low
+gdal (1.5.1-1) unstable; urgency=low
 
-  * (NOT RELEASED YET) New upstream release
+  * New upstream release with useful bugfixes. No API/ABI changes, so
+    retaining package versions.
   * Moved build-dep libcurl-dev -> libcurl3-dev in debian/control for etch backports.
   * Patch swig.dpatch removed (merged upstream).
   * Patch gcc32.dpatch removed (merged upstream).
