@@ -1,7 +1,5 @@
 libname
 ogdi
-swig
 doc
 rubymakefile
 man
-gcc43
