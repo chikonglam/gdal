@@ -1,3 +1,14 @@
+gdal (1.5.1-2) unstable; urgency=low
+
+  * Moved libxerces27-dev dependency to libxerces-c2-dev in debian/control as
+    requested by xerces maintainer for migration.
+  * [PATCH] max.dpatch to fix max/min macros re-definition on some archs
+    which breaks C++ building. This is taken from GDAL patchest 13700+13701 in trunk.
+    Thanks DronK.
+    (closes: #474415)
+
+ -- Francesco Paolo Lovergine <frankie@debian.org>  Mon, 07 Apr 2008 12:58:56 +0200
+
 gdal (1.5.1-1) unstable; urgency=low
 
   * New upstream release with useful bugfixes. No API/ABI changes, so
