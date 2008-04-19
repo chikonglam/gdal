@@ -64,8 +64,17 @@ build-stamp:
 	dh_testdir
 
 	cp `ls GDALmake.opt-*|tail -1` GDALmake.opt
-	$(MAKE) -C $(CURDIR)/swig/perl generate 
-	$(MAKE) lib-target apps-target swig-target
+	$(MAKE) lib-target apps-target 
+	$(MAKE) -C $(CURDIR)/swig/perl generate build
+	$(MAKE) -C $(CURDIR)/swig/ruby generate build
+
+	# it needs pre-installing just after the building due to intermediate cleaning
+	for V in $(PYVERS); do \
+		cp GDALmake.opt-$$V GDALmake.opt; \
+		$(MAKE) -C $(CURDIR)/swig/python clean; \
+		$(MAKE) -C $(CURDIR)/swig/python generate build; \
+		$(MAKE) -C $(CURDIR)/swig/python install DESTDIR=$(CURDIR)/debian/python-tmp; \
+	done
 	$(MAKE) docs
 	$(MAKE) man
 
@@ -81,6 +90,7 @@ clean-unpatched:
 	rm -rf $(CURDIR)/swig/perl/*.c  $(CURDIR)/swig/perl/*.cpp
 	rm -f GDALmake.opt-*
 	rm -rf $(CURDIR)/man/man1
+	rm -rf $(CURDIR)/debian/tmp $(CURDIR)/debian/python-tmp
 
 	dh_clean build-stamp configure-stamp
 
@@ -90,21 +100,18 @@ install: build
 	dh_clean -k
 	dh_installdirs
 
-	for V in $(PYVERS); do \
-		cp GDALmake.opt-$$V GDALmake.opt; \
-		(cd pymod && $(MAKE) clean); \
-		$(MAKE) py-target; \
-		$(MAKE) install DESTDIR=$(CURDIR)/debian/tmp \
-			INST_DATA="\$$(prefix)/share/gdal15"  \
-			INST_PYMOD="\$$(prefix)"`awk -F '/usr' '/INST_PYMOD/ {print $$2}' GDALmake.opt` ; \
-	done
-
+	cp `ls GDALmake.opt-*|tail -1` GDALmake.opt
+	$(MAKE) install BINDINGS="perl ruby" DESTDIR=$(CURDIR)/debian/tmp \
+			INST_DATA="\$$(prefix)/share/gdal15" 
 	$(MAKE) install-docs DESTDIR=$(CURDIR)/debian/tmp \
 		"INST_DOCS=\$$(prefix)/share/doc/libgdal-doc"\
 		"INST_MAN=\$$(prefix)/share/man" 
 	$(MAKE) install-man DESTDIR=$(CURDIR)/debian/tmp \
 		"INST_DOCS=\$$(prefix)/share/doc/libgdal-doc"\
 		"INST_MAN=\$$(prefix)/share/man" 
+
+	# install python stuff previuosly built and pre-installed
+	cp -a $(CURDIR)/debian/python-tmp/usr/lib/* $(CURDIR)/debian/tmp/usr/lib/.
 	
 	# removing license file
 	rm -f $(CURDIR)/debian/tmp/usr/share/gdal15/LICENSE.TXT

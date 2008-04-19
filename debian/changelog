@@ -1,3 +1,14 @@
+gdal (1.5.1-3) unstable; urgency=low
+
+  * Removed old-python stuff still around in debian/rules.
+  * [PATCH] pythonmakefile.dpatch to fix wrong interpreter override in 1.5.1
+    See #2333 on gdal trac.
+    (closes: #476657)
+  * Revised the build/install rules to manage better Swig stuff and
+    specifically Python bindings.
+
+ -- Francesco Paolo Lovergine <frankie@debian.org>  Sat, 19 Apr 2008 19:11:11 +0200
+
 gdal (1.5.1-2) unstable; urgency=low
 
   * Moved libxerces27-dev dependency to libxerces-c2-dev in debian/control as
