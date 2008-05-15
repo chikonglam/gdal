@@ -2,8 +2,13 @@ gdal (1.5.1-4) unstable; urgency=low
 
   * [PATCH] ogr.py.dpatch added to manage #2187 upstream issue. Thanks Steko.
     (closes: #473912)
- 
- -- Francesco Paolo Lovergine <frankie@debian.org>  Tue, 06 May 2008 16:48:29 +0200
+  * [PATCH] gdalpaths.dpatch added to use the same plugins directory
+    used currently in gdal-grass. It would require a much better approach
+    upstream. See #2371 upstream bug. Also changed path for share dir path
+    to /usr/share/gdal15.
+    (closes: #481263)
+
+ -- Francesco Paolo Lovergine <frankie@debian.org>  Thu, 15 May 2008 00:05:21 +0200
 
 gdal (1.5.1-3) unstable; urgency=low
 
