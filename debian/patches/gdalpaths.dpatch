@@ -1,0 +1,43 @@
+#! /bin/sh /usr/share/dpatch/dpatch-run
+## pluginspath.dpatch by Francesco Paolo Lovergine <frankie@debian.org>
+##
+## All lines beginning with `## DP:' are a description of the patch.
+## DP: No description.
+
+@DPATCH@
+diff -urNad gdal-1.5.1~/gcore/gdaldrivermanager.cpp gdal-1.5.1/gcore/gdaldrivermanager.cpp
+--- gdal-1.5.1~/gcore/gdaldrivermanager.cpp	2007-08-13 17:02:33.000000000 +0200
++++ gdal-1.5.1/gcore/gdaldrivermanager.cpp	2008-05-15 16:35:29.000000000 +0200
+@@ -550,7 +550,7 @@
+     #ifdef MACOSX_FRAMEWORK
+                                         GDAL_PREFIX "/PlugIns");
+     #else
+-                                        GDAL_PREFIX "/lib/gdalplugins" );
++                                        GDAL_PREFIX "/lib/gdal15plugins" );
+     #endif
+ #else
+         char szExecPath[1024];
+diff -urNad gdal-1.5.1~/ogr/ogrsf_frmts/generic/ogrsfdriverregistrar.cpp gdal-1.5.1/ogr/ogrsf_frmts/generic/ogrsfdriverregistrar.cpp
+--- gdal-1.5.1~/ogr/ogrsf_frmts/generic/ogrsfdriverregistrar.cpp	2007-09-04 16:51:00.000000000 +0200
++++ gdal-1.5.1/ogr/ogrsf_frmts/generic/ogrsfdriverregistrar.cpp	2008-05-15 16:35:43.000000000 +0200
+@@ -638,7 +638,7 @@
+     #ifdef MACOSX_FRAMEWORK
+                                         GDAL_PREFIX "/PlugIns");
+     #else
+-                                        GDAL_PREFIX "/lib/gdalplugins" );
++                                        GDAL_PREFIX "/lib/gdal15plugins" );
+     #endif
+ #else
+         char szExecPath[1024];
+diff -urNad gdal-1.5.1~/port/cpl_findfile.cpp gdal-1.5.1/port/cpl_findfile.cpp
+--- gdal-1.5.1~/port/cpl_findfile.cpp	2007-04-03 19:49:14.000000000 +0200
++++ gdal-1.5.1/port/cpl_findfile.cpp	2008-05-15 16:37:29.000000000 +0200
+@@ -61,7 +61,7 @@
+   #ifdef MACOSX_FRAMEWORK
+             CPLPushFinderLocation( GDAL_PREFIX "/Resources/gdal" );
+   #else
+-            CPLPushFinderLocation( GDAL_PREFIX "/share/gdal" );
++            CPLPushFinderLocation( GDAL_PREFIX "/share/gdal15" );
+   #endif
+ #else
+             CPLPushFinderLocation( "/usr/local/share/gdal" );
