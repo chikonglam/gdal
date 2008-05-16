@@ -39,8 +39,7 @@ configure-stamp: patch-stamp
 			--with-perl \
 			--with-ruby \
 			--with-python \
-			--with-cfitsio=no \
-			--with-autoload=/usr/lib/gdal15plugins; \
+			--with-cfitsio=no; \
 		mv GDALmake.opt GDALmake.opt-$$V; \
 	done
 
