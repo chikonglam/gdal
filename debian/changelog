@@ -1,3 +1,9 @@
+gdal (1.5.1-5) UNRELEASED; urgency=low
+
+  * NOT RELEASED YET
+
+ -- Francesco Paolo Lovergine <frankie@debian.org>  Sun, 18 May 2008 11:16:21 +0200
+
 gdal (1.5.1-4) unstable; urgency=medium
 
   * [PATCH] ogr.py.dpatch added to manage #2187 upstream issue. Thanks Steko.
