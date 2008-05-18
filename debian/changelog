@@ -1,4 +1,4 @@
-gdal (1.5.1-4) unstable; urgency=low
+gdal (1.5.1-4) unstable; urgency=medium
 
   * [PATCH] ogr.py.dpatch added to manage #2187 upstream issue. Thanks Steko.
     (closes: #473912)
@@ -8,7 +8,7 @@ gdal (1.5.1-4) unstable; urgency=low
     to /usr/share/gdal15.
     (closes: #481263)
 
- -- Francesco Paolo Lovergine <frankie@debian.org>  Thu, 15 May 2008 00:05:21 +0200
+ -- Francesco Paolo Lovergine <frankie@debian.org>  Sun, 18 May 2008 09:55:57 +0200
 
 gdal (1.5.1-3) unstable; urgency=low
 
