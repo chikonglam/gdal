@@ -1,11 +1,15 @@
-gdal (1.5.1-5) UNRELEASED; urgency=low
+gdal (1.5.1-5) unstable; urgency=low
 
   * Installs gdal2tiles.py and other python scripts, previously missing.
     Due to dependency from python-gdal extensions, scripts are installed in
     that package instead of gdal-bin.
     (closes: #484559)
+  * Removed ogr.py.dpatch for #473912. Fix needs to be applied on fly to
+    be effective. It also causes a twice build FTBS. Added patch build-dep
+    to apply ogr.py.diff in debian/rules.
+    (closes: #473912)
 
- -- Francesco Paolo Lovergine <frankie@debian.org>  Sun, 18 May 2008 11:16:21 +0200
+ -- Francesco Paolo Lovergine <frankie@debian.org>  Fri, 06 Jun 2008 23:15:12 +0200
 
 gdal (1.5.1-4) unstable; urgency=medium
 

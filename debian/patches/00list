@@ -5,5 +5,4 @@ rubymakefile
 man
 max
 pythonmakefile
-ogr.py
 gdalpaths

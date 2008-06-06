@@ -1,10 +1,6 @@
-#! /bin/sh /usr/share/dpatch/dpatch-run
-## ogr.py.dpatch by Francesco Paolo Lovergine <frankie@debian.org>
-##
-## All lines beginning with `## DP:' are a description of the patch.
-## DP: No description.
+This is a patch suggested in #473912 (i.e. fix for upstream bug #2187). 
+It is merged in 1.5.2 AFAIK.
 
-@DPATCH@
 diff -urNad gdal-1.5.1~/swig/python/osgeo/ogr.py gdal-1.5.1/swig/python/osgeo/ogr.py
 --- gdal-1.5.1~/swig/python/osgeo/ogr.py	2008-04-19 19:46:19.000000000 +0200
 +++ gdal-1.5.1/swig/python/osgeo/ogr.py	2008-05-06 16:50:37.000000000 +0200
