@@ -1,6 +1,9 @@
 gdal (1.5.1-5) UNRELEASED; urgency=low
 
-  * NOT RELEASED YET
+  * Installs gdal2tiles.py and other python scripts, previously missing.
+    Due to dependency from python-gdal extensions, scripts are installed in
+    that package instead of gdal-bin.
+    (closes: #484559)
 
  -- Francesco Paolo Lovergine <frankie@debian.org>  Sun, 18 May 2008 11:16:21 +0200
 
