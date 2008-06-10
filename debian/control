@@ -102,6 +102,7 @@ Section: science
 Architecture: any
 Depends: ${shlibs:Depends}
 Homepage: http://www.gdal.org/gdal_utilities.html
+Suggests: python-gdal
 Description: Geospatial Data Abstraction Library - Utility programs
  GDAL is a translator library for raster geospatial data formats.
  As a library, it presents a single abstract data model to the
@@ -147,7 +148,8 @@ Description: Python bindings to the Geospatial Data Abstraction Library
  OGR library supports popular vector formats like ESRI Shapefile,
  TIGER data, S57, MapInfo File, DGN, GML and more.
  .
- This package contains Python bindings for GDAL/OGR library.
+ This package contains Python bindings for GDAL/OGR library and
+ a set of additional command line tools.
 
 Package: libgdal-perl
 Section: perl

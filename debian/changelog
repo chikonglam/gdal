@@ -2,9 +2,12 @@ gdal (1.5.2-1) unstable; urgency=low
 
   * New upstream release. This is a bug fix release. 
     (closes: #485582)
-  * Patchset updated: removed max.dpatch, merged upstream
+  * Patchset updated: removed max.dpatch, merged upstream.
+  * Added a gdal-grass stanza in debian/rules to generate the gdal-grass 
+    tarball on fly.
+  * Added a Suggests for python-gdal in gdal-bin stanza within debian/control. 
 
- -- Francesco Paolo Lovergine <frankie@debian.org>  Tue, 10 Jun 2008 14:43:06 +0200
+ -- Francesco Paolo Lovergine <frankie@debian.org>  Tue, 10 Jun 2008 16:08:05 +0200
 
 gdal (1.5.1-5) unstable; urgency=low
 

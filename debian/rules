@@ -16,6 +16,13 @@ PYDEF=$(shell pyversions -dv)
 RUBYDEF=$(shell ruby --version|cut -d' ' -f2|cut -d. -f1,2)
 PERLDEF=$(shell perl -V:version|cut -d\' -f2)
 
+gdal-grass: configure gdal-grass-dist clean
+gdal-grass-dist:
+	ln -fs $(CURDIR)/GDALmake.opt-$(PYDEF) $(CURDIR)/GDALmake.opt
+	[ -e $(CURDIR)/GDALmake.opt ] && $(MAKE) -C $(CURDIR)/frmts/grass dist
+	mv $(CURDIR)/frmts/grass/gdal-grass-*.tar.gz $(CURDIR)/..
+	rm -f $(CURDIR)/GDALmake.opt
+
 configure: configure-stamp
 configure-stamp: patch-stamp
 	dh_testdir
@@ -158,4 +165,4 @@ binary-indep: build install
 	$(MAKE) -f debian/rules DH_OPTIONS=-i binary-common
 
 binary: binary-arch binary-indep
-.PHONY: build clean binary-arch binary-indep binary-common binary install patch unpatch clean-unpatched
+.PHONY: build clean binary-arch binary-indep binary-common binary install patch unpatch clean-unpatched gdal-grass-dist
