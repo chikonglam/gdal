@@ -74,6 +74,7 @@ build-stamp:
 		$(MAKE) -C $(CURDIR)/swig/python clean; \
 		$(MAKE) -C $(CURDIR)/swig/python generate build; \
 		$(MAKE) -C $(CURDIR)/swig/python install DESTDIR=$(CURDIR)/debian/python-tmp; \
+		echo "Patching ogr.py" ; \
 		patch $(CURDIR)/debian/python-tmp/usr/lib/python$$V/site-packages/osgeo/ogr.py $(CURDIR)/debian/ogr.py.diff; \
 	done
 	$(MAKE) docs

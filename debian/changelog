@@ -1,8 +1,10 @@
-gdal (1.5.1-6) UNRELEASED; urgency=low
+gdal (1.5.2-1) unstable; urgency=low
 
-  * NOT RELEASED YET
+  * New upstream release. This is a bug fix release. 
+    (closes: #485582)
+  * Patchset updated: removed max.dpatch, merged upstream
 
- -- Francesco Paolo Lovergine <frankie@debian.org>  Sat, 07 Jun 2008 09:31:27 +0200
+ -- Francesco Paolo Lovergine <frankie@debian.org>  Tue, 10 Jun 2008 14:43:06 +0200
 
 gdal (1.5.1-5) unstable; urgency=low
 
