@@ -3,18 +3,17 @@ Section: science
 Priority: extra
 Maintainer: Debian GIS Project <pkg-grass-devel@lists.alioth.debian.org>
 Uploaders: Steve Halasz <debian@adkgis.org>, Francesco Paolo Lovergine <frankie@debian.org>, Petter Reinholdtsen <pere@debian.org>, Fabio Tranchitella <kobold@debian.org>, Paul Wise <pabs@debian.org>
-Build-Depends: debhelper (>= 5.0.37.2), zlib1g-dev, netcdfg-dev,
- libtiff4-dev, libjasper-dev|libjasper-1.701-dev, libpng12-dev, libjpeg62-dev, libungif4-dev,
+Build-Depends: debhelper (>= 5.0.37.2), zlib1g-dev, libnetcdf-dev,
+ libtiff4-dev, libjasper-dev|libjasper-1.701-dev, libpng12-dev, libjpeg62-dev, libgif-dev,
  libhdf4g-dev, libhdf5-serial-dev, libpq-dev, libxerces-c2-dev, unixodbc-dev (>=2.2.11), 
  python-dev, python-numpy, doxygen, d-shlibs, libgeos-dev, dpatch, libmysqlclient15-dev, python-all-dev (>= 2.3.5-11~), 
  python-central (>=0.5), libcurl4-dev|libcurl-dev, libsqlite3-dev, libogdi3.2-dev,
  ruby, ruby1.8-dev, chrpath, swig, libtool (>=1.5.24-2), patch
-Standards-Version: 3.7.3
+Standards-Version: 3.8.0
 XS-Python-Version: all
 Homepage: http://www.gdal.org/
 Vcs-Browser: http://svn.debian.org/viewsvn/pkg-grass/packages/gdal/trunk
 Vcs-Svn: svn://svn.debian.org/svn/pkg-grass/packages/gdal/trunk
-
 
 Package: libgdal1-1.5.0
 Section: libs
@@ -30,7 +29,7 @@ Description: Geospatial Data Abstraction Library
  library (which lives within the GDAL source tree) provides
  a similar capability for simple features vector data.
  .
- GDAL supports 40+ popular data formats, including commonly used
+ GDAL supports many popular data formats, including commonly used
  ones (GeoTIFF, JPEG, PNG and more) as well as the ones used in
  GIS and remote sensing software packages (ERDAS Imagine,
  ESRI Arc/Info, ENVI, PCI Geomatics). Also supported many remote
@@ -45,8 +44,8 @@ Description: Geospatial Data Abstraction Library
 Package: libgdal1-dev
 Section: libdevel
 Architecture: any
-Depends: libgdal1-1.5.0 (=${binary:Version}), libc6-dev, netcdfg-dev, libtiff4-dev, 
- libjasper-dev|libjasper-1.701-dev, libpng12-dev, libjpeg62-dev, libungif4-dev, libhdf4g-dev, 
+Depends: libgdal1-1.5.0 (=${binary:Version}), libc6-dev, libnetcdf-dev, libtiff4-dev, 
+ libjasper-dev|libjasper-1.701-dev, libpng12-dev, libjpeg62-dev, libgif-dev, libhdf4g-dev, 
  libpq-dev | postgresql-dev, libxerces-c2-dev, unixodbc-dev, libsqlite3-dev, libgeos-dev,
  libmysqlclient15-dev, libhdf5-serial-dev, libltdl3-dev, libcurl4-dev|libcurl3-dev
 Suggests: libgdal-doc
@@ -60,7 +59,7 @@ Description: Geospatial Data Abstraction Library - Development files
  library (which lives within the GDAL source tree) provides
  a similar capability for simple features vector data.
  .
- GDAL supports 40+ popular data formats, including commonly used
+ GDAL supports many popular data formats, including commonly used
  ones (GeoTIFF, JPEG, PNG and more) as well as the ones used in
  GIS and remote sensing software packages (ERDAS Imagine,
  ESRI Arc/Info, ENVI, PCI Geomatics). Also supported many remote

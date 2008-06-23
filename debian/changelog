@@ -1,3 +1,13 @@
+gdal (1.5.2-2) unstable; urgency=low
+
+  * Updated build-deps:
+  	netcdfg-dev -> libnetcdf-dev
+        libungif4-dev -> libgif-dev
+  * Policy bumped to 3.8.0.
+  * Long descriptions revised.
+
+ -- Francesco Paolo Lovergine <frankie@debian.org>  Mon, 23 Jun 2008 23:06:18 +0200
+
 gdal (1.5.2-1) unstable; urgency=low
 
   * New upstream release. This is a bug fix release. 
