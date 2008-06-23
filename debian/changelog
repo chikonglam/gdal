@@ -1,4 +1,4 @@
-gdal (1.5.2-2) unstable; urgency=low
+gdal (1.5.2-2) UNRELEASED; urgency=low
 
   * Updated build-deps:
   	netcdfg-dev -> libnetcdf-dev
