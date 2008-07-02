@@ -1,0 +1,26 @@
+#! /bin/sh /usr/share/dpatch/dpatch-run
+## eoverflow.dpatch by Francesco Paolo Lovergine <frankie@debian.org>
+##
+## All lines beginning with `## DP:' are a description of the patch.
+## DP: No description.
+
+@DPATCH@
+diff -urNad gdal-1.5.2~/gcore/gdalopeninfo.cpp gdal-1.5.2/gcore/gdalopeninfo.cpp
+--- gdal-1.5.2~/gcore/gdalopeninfo.cpp	2008-02-23 11:28:24.000000000 +0100
++++ gdal-1.5.2/gcore/gdalopeninfo.cpp	2008-07-02 17:27:23.000000000 +0200
+@@ -96,8 +96,13 @@
+                 VSIRewind( fp );
+             } 
+             else if( errno == 27 /* "File to large" */ 
+-                     || errno == ENOENT 
+-                     || errno == 79 /* EOVERFLOW - value too large */ )
++                     || errno == ENOENT || errno == EINVAL 
++#ifdef EOVERFLOW
++                     || errno == EOVERFLOW 
++#else
++                     || errno == 75 /* Linux EOVERFLOW */ 
++                     || errno == 79 /* Solaris EOVERFLOW */ )
++#endif
+             {
+                 fp = VSIFOpenL( pszFilename, "rb" );
+                 if( fp != NULL )
