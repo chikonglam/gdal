@@ -6,8 +6,11 @@ gdal (1.5.2-2) unstable; urgency=low
   * Policy bumped to 3.8.0.
   * Added build-dep on libexpat1-dev to enable use of Expat library.
   * Long descriptions revised.
+  * [PATCH] New eoverflow.dpatch.
+    It fixes largefile breakage introduced in recent versions.
+    See http://trac.osgeo.org/gdal/ticket/2437.
 
- -- Francesco Paolo Lovergine <frankie@debian.org>  Mon, 23 Jun 2008 23:06:18 +0200
+ -- Francesco Paolo Lovergine <frankie@debian.org>  Wed, 02 Jul 2008 17:27:38 +0200
 
 gdal (1.5.2-1) unstable; urgency=low
 
