@@ -1,8 +1,10 @@
 gdal (1.5.2-3) unstable; urgency=low
 
-  * Rebuilt with optimization off due to randomic segfaults with
-    other applications. Failure seems connected to C++ and raster data. 
-   (closes: #489124)
+  * [PATCH] sincos() is already defined in libm. Hopefully this is the only
+    case of a redefinition of a standard function. This is exploited casually
+    only in case of an optimization because of the reason exposed in 
+    http://www.nabble.com/Re%3A-g.region--g-crashes-in-a-latlon-location-p18579971.html
+    (closes: #489124)
 
  -- Francesco Paolo Lovergine <frankie@debian.org>  Tue, 22 Jul 2008 10:30:00 +0200
 
