@@ -28,7 +28,7 @@ configure-stamp: patch-stamp
 	dh_testdir
 
 	for V in $(PYVERS); do \
-		PYTHON=/usr/bin/python$$V ./configure --prefix=/usr \
+		PYTHON=/usr/bin/python$$V CFLAGS="-O0" CXXFLAGS="-O0" ./configure --prefix=/usr \
 			--mandir=\$$\{prefix\}/share/man \
 			--includedir=\$$\{prefix\}/include/gdal \
 			--with-threads \
