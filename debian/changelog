@@ -1,8 +1,9 @@
 gdal (1.5.2-3) unstable; urgency=low
 
-  * [PATCH] sincos() is already defined in libm. Hopefully this is the only
-    case of a redefinition of a standard function. This is exploited casually
-    only in case of an optimization because of the reason exposed in 
+  * [PATCH] sincos.dpatch: the sincos() function is already defined
+    in libm. Hopefully this is the only case of a redefinition
+    of a standard weak function. This is exploited casually only in
+    case of an optimization because of the reason exposed in
     http://www.nabble.com/Re%3A-g.region--g-crashes-in-a-latlon-location-p18579971.html
     (closes: #489124)
 
