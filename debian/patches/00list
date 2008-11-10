@@ -3,7 +3,7 @@ ogdi
 doc
 rubymakefile
 man
-pythonmakefile
+#pythonmakefile
 gdalpaths
-eoverflow
-sincos
+#eoverflow
+#sincos
