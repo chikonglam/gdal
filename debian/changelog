@@ -1,4 +1,4 @@
-gdal (1.5.3-1) UNRELEASED; urgency=low
+gdal (1.5.3-1) experimental; urgency=low
 
   * New upstream release. This is a bug fixing release, no changes in API
     are included.
@@ -6,8 +6,10 @@ gdal (1.5.3-1) UNRELEASED; urgency=low
          pythonmakefile
          eoverflow
          sincos
+  * [PATCH] gcc4.4.dpatch: fixed for gcc 4.4 compatibility. Thanks tbm.
+    (closes: #505629)
 
- -- Francesco Paolo Lovergine <frankie@debian.org>  Sun, 09 Nov 2008 20:50:44 +0100
+ -- Francesco Paolo Lovergine <frankie@debian.org>  Fri, 21 Nov 2008 10:53:35 +0100
 
 gdal (1.5.2-3) unstable; urgency=low
 

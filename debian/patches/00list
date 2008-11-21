@@ -3,7 +3,5 @@ ogdi
 doc
 rubymakefile
 man
-#pythonmakefile
 gdalpaths
-#eoverflow
-#sincos
+gcc4.4
