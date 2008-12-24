@@ -111,7 +111,7 @@ install: build
 
 	cp `ls GDALmake.opt-*|tail -1` GDALmake.opt
 	$(MAKE) install BINDINGS="perl ruby" DESTDIR=$(CURDIR)/debian/tmp \
-			INST_DATA="\$$(prefix)/share/gdal15" 
+			INST_DATA="\$$(prefix)/share/gdal16" 
 	$(MAKE) install-docs DESTDIR=$(CURDIR)/debian/tmp \
 		"INST_DOCS=\$$(prefix)/share/doc/libgdal-doc"\
 		"INST_MAN=\$$(prefix)/share/man" 
@@ -125,7 +125,7 @@ install: build
 	install -o root -g root -m 755 $(CURDIR)/swig/python/scripts/*.py $(CURDIR)/debian/tmp/usr/bin/.                                        
 
 	# removing license file
-	rm -f $(CURDIR)/debian/tmp/usr/share/gdal15/LICENSE.TXT
+	rm -f $(CURDIR)/debian/tmp/usr/share/gdal16/LICENSE.TXT
 	# removing empty packlist MakeMaker files 
 	-find $(CURDIR)/debian/tmp/usr/local/lib/perl -type f -name .packlist -exec rm -f {} \;
 	# removing embedded rpath in perl shlibs
@@ -149,11 +149,11 @@ binary-common:
 	dh_compress
 	dh_fixperms
 	dh_pycentral -X.info
-	rm -f $(CURDIR)/debian/python-gdal/usr/share/pycentral/python-gdal/site-packages/GDAL-1.5.0.egg-info
+	rm -f $(CURDIR)/debian/python-gdal/usr/share/pycentral/python-gdal/site-packages/GDAL-1.6.0.egg-info
 	dh_perl
 	dh_makeshlibs
 	dh_installdeb
-	dh_shlibdeps -L libgdal1-1.5.0 -l debian/libgdal1-1.5.0/usr/lib
+	dh_shlibdeps -L libgdal1-1.6.0 -l debian/libgdal1-1.6.0/usr/lib
 	dh_gencontrol
 	dh_md5sums
 	dh_builddeb

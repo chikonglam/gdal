@@ -15,7 +15,7 @@ Homepage: http://www.gdal.org/
 Vcs-Browser: http://svn.debian.org/viewsvn/pkg-grass/packages/gdal/trunk
 Vcs-Svn: svn://svn.debian.org/svn/pkg-grass/packages/gdal/trunk
 
-Package: libgdal1-1.5.0
+Package: libgdal1-1.6.0
 Section: libs
 Architecture: any
 Depends: ${shlibs:Depends}
@@ -44,7 +44,7 @@ Description: Geospatial Data Abstraction Library
 Package: libgdal1-dev
 Section: libdevel
 Architecture: any
-Depends: libgdal1-1.5.0 (=${binary:Version}), libc6-dev, libnetcdf-dev, libtiff4-dev, 
+Depends: libgdal1-1.6.0 (=${binary:Version}), libc6-dev, libnetcdf-dev, libtiff4-dev, 
  libjasper-dev|libjasper-1.701-dev, libpng12-dev, libjpeg62-dev, libgif-dev, libhdf4g-dev, 
  libpq-dev | postgresql-dev, libxerces-c2-dev, unixodbc-dev, libsqlite3-dev, libgeos-dev,
  libmysqlclient15-dev, libhdf5-serial-dev, libltdl3-dev, libcurl4-dev|libcurl3-dev
@@ -75,7 +75,7 @@ Description: Geospatial Data Abstraction Library - Development files
 Package: libgdal-doc
 Section: doc
 Architecture: all
-Suggests: libgdal1-1.5.0 (=${binary:Version})
+Suggests: libgdal1-1.6.0 (=${binary:Version})
 Homepage: http://www.gdal.org/#index_userdocs
 Description: Documentation for the Geospatial Data Abstraction Library
  GDAL is a translator library for raster geospatial data formats.
