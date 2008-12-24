@@ -24,9 +24,9 @@ diff -urNad gdal-1.6.0~/GDALmake.opt.in gdal-1.6.0/GDALmake.opt.in
 -GDAL_LIB	= 	$(GDAL_ROOT)/libgdal.a
 -GDAL_SLIB	=	$(GDAL_ROOT)/libgdal.$(SO_EXT)
 -GDAL_SLIB_LINK	=	-L$(GDAL_ROOT) -lgdal
-+GDAL_LIB	= 	$(GDAL_ROOT)/libgdal1.5.0.a
-+GDAL_SLIB	=	$(GDAL_ROOT)/libgdal1.5.0.$(SO_EXT)
-+GDAL_SLIB_LINK	=	-L$(GDAL_ROOT) -lgdal1.5.0
++GDAL_LIB	= 	$(GDAL_ROOT)/libgdal1.6.0.a
++GDAL_SLIB	=	$(GDAL_ROOT)/libgdal1.6.0.$(SO_EXT)
++GDAL_SLIB_LINK	=	-L$(GDAL_ROOT) -lgdal1.6.0
  
  # Mac OS X Framework definition
  MACOSX_FRAMEWORK = @MACOSX_FRAMEWORK@
