@@ -1,4 +1,4 @@
-gdal (1.6.0-1) UNRELEASED; urgency=low
+gdal (1.6.0-1) experimental; urgency=low
 
   * New upstream release.
   * Patchest updated for 1.6.0.
