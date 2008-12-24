@@ -5,19 +5,19 @@
 ## DP: No description.
 
 @DPATCH@
-diff -urNad gdal-1.5.1~/GDALmake.opt.in gdal-1.5.1/GDALmake.opt.in
---- gdal-1.5.1~/GDALmake.opt.in	2008-03-26 14:22:16.000000000 +0100
-+++ gdal-1.5.1/GDALmake.opt.in	2008-03-26 14:22:31.000000000 +0100
-@@ -81,7 +81,7 @@
+diff -urNad gdal-1.6.0~/GDALmake.opt.in gdal-1.6.0/GDALmake.opt.in
+--- gdal-1.6.0~/GDALmake.opt.in	2008-11-23 22:51:24.000000000 +0100
++++ gdal-1.6.0/GDALmake.opt.in	2008-12-24 11:21:35.000000000 +0100
+@@ -82,7 +82,7 @@
  			-I$(GDAL_ROOT)/ogr -I$(GDAL_ROOT)/ogr/ogrsf_frmts
  
  # libtool targets and help variables
 -LIBGDAL	:=		libgdal.la
-+LIBGDAL	:=		libgdal1.5.0.la
- LIBGDAL_CURRENT	:=	13
- LIBGDAL_REVISION	:=	1
- LIBGDAL_AGE	:=	12
-@@ -94,9 +94,9 @@
++LIBGDAL	:=		libgdal1.6.0.la
+ LIBGDAL_CURRENT	:=	14
+ LIBGDAL_REVISION	:=	0
+ LIBGDAL_AGE	:=	13
+@@ -95,9 +95,9 @@
  GDAL_VERSION_MINOR =    @GDAL_VERSION_MINOR@
  GDAL_VERSION_REV   =    @GDAL_VERSION_REV@
  
@@ -30,51 +30,39 @@ diff -urNad gdal-1.5.1~/GDALmake.opt.in gdal-1.5.1/GDALmake.opt.in
  
  # Mac OS X Framework definition
  MACOSX_FRAMEWORK = @MACOSX_FRAMEWORK@
-@@ -323,9 +323,9 @@
- ifeq ($(HAVE_LIBTOOL), yes)
+@@ -336,9 +336,9 @@
+ 
  CONFIG_LIBS	=	$(GDAL_ROOT)/$(LIBGDAL)
  ifeq ($(MACOSX_FRAMEWORK),yes)
 -CONFIG_LIBS_INS	=	-L$(INST_LIB)/unix/lib -lgdal
-+CONFIG_LIBS_INS	=	-L$(INST_LIB)/unix/lib -lgdal1.5.0
++CONFIG_LIBS_INS	=	-L$(INST_LIB)/unix/lib -lgdal1.6.0
  else
 -CONFIG_LIBS_INS	=	-L$(INST_LIB) -lgdal
-+CONFIG_LIBS_INS	=	-L$(INST_LIB) -lgdal1.5.0
- endif
++CONFIG_LIBS_INS	=	-L$(INST_LIB) -lgdal1.6.0
+ endif # MACOSX_FRAMEWORK
+ 
  EXE_DEP_LIBS	=	$(GDAL_ROOT)/$(LIBGDAL)
- SO_EXT		=	la
-@@ -334,9 +334,9 @@
+@@ -349,9 +349,9 @@
  ifeq ($(HAVE_LD_SHARED),yes)
  CONFIG_LIBS	=	$(GDAL_SLIB_LINK) $(LIBS)
  ifeq ($(MACOSX_FRAMEWORK),yes)
 -CONFIG_LIBS_INS	=	-L$(INST_LIB)/unix/lib -lgdal
-+CONFIG_LIBS_INS	=	-L$(INST_LIB)/unix/lib -lgdal1.5.0
++CONFIG_LIBS_INS	=	-L$(INST_LIB)/unix/lib -lgdal1.6.0
  else
 -CONFIG_LIBS_INS	=	-L$(INST_LIB) -lgdal
-+CONFIG_LIBS_INS	=	-L$(INST_LIB) -lgdal1.5.0
++CONFIG_LIBS_INS	=	-L$(INST_LIB) -lgdal1.6.0
  endif
  EXE_DEP_LIBS	=	$(GDAL_SLIB)
  else
-diff -urNad gdal-1.5.1~/swig/perl/Makefile.PL gdal-1.5.1/swig/perl/Makefile.PL
---- gdal-1.5.1~/swig/perl/Makefile.PL	2008-03-26 14:22:16.000000000 +0100
-+++ gdal-1.5.1/swig/perl/Makefile.PL	2008-03-26 14:22:31.000000000 +0100
-@@ -2,7 +2,7 @@
- 
- $libdir = $ENV{'PREFIX'} ? "-L$ENV{'PREFIX'}/lib" : '';
- 
--$ext = $^O eq 'MSWin32' ? '.dll' : ''; # works with MinGW but probably not with ActivePerl
-+$ext = $^O eq 'MSWin32' ? '.dll' : '1.5.0'; # works with MinGW but probably not with ActivePerl
- 
- # for old-style, use gdal, gdalconst,ogr, and osr as keys
- 
-diff -urNad gdal-1.5.1~/swig/python/setup.cfg gdal-1.5.1/swig/python/setup.cfg
---- gdal-1.5.1~/swig/python/setup.cfg	2008-03-26 14:22:16.000000000 +0100
-+++ gdal-1.5.1/swig/python/setup.cfg	2008-03-26 14:24:35.000000000 +0100
-@@ -1,7 +1,7 @@
- [build_ext]
- include-dirs = ../../port:../../gcore:../../alg:../../ogr/:/usr/local/include:/usr/include
- library-dirs = ../../.libs:../../:/usr/local/lib:/usr/lib
--libraries = gdal
-+libraries = gdal1.5.0
- gdal_config=gdal-config
- 
- # setup.cfg settings for building on win32 with msvc
+diff -urNad gdal-1.6.0~/swig/perl/Makefile.PL gdal-1.6.0/swig/perl/Makefile.PL
+--- gdal-1.6.0~/swig/perl/Makefile.PL	2008-10-28 12:08:30.000000000 +0100
++++ gdal-1.6.0/swig/perl/Makefile.PL	2008-12-24 11:24:34.000000000 +0100
+@@ -24,7 +24,7 @@
+     die "can't find gdal-config";
+ }
+ open $fh, $fh or die "$fh not found!";
+-$LIB .= " -lgdal ";
++$LIB .= " -lgdal1.6.0 ";
+ if ($fh) {
+     @config = <$fh>;
+     close $fh;
