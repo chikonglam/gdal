@@ -1,4 +1,4 @@
-gdal (1.5.4-1) experimental; urgency=low
+gdal (1.5.4-1) unstable; urgency=low
 
   * New upstream release for 1.5 branch.
   * Removed patch gcc4.4.dpatch merged upstream.
