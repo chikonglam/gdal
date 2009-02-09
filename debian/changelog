@@ -10,8 +10,10 @@ gdal (1.6.0-1) experimental; urgency=low
     It also fixes http://trac.osgeo.org/gdal/ticket/2486 issue.
     Also, removed libtiff4-dev dependencies.
     (closes: #501127)
+  * [PATCH] doxygen.dpatch: missing gdalwarp.1 man page generation due to moving
+    of doxygen stuff into source. This will be fixed in 1.6.1.
 
- -- Francesco Paolo Lovergine <frankie@debian.org>  Wed, 04 Feb 2009 18:16:09 +0100
+ -- Francesco Paolo Lovergine <frankie@debian.org>  Mon, 09 Feb 2009 17:32:12 +0100
 
 gdal (1.5.3-1) experimental; urgency=low
 
