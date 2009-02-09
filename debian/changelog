@@ -1,3 +1,10 @@
+gdal (1.5.4-1) experimental; urgency=low
+
+  * New upstream release for 1.5 branch.
+  * Removed patch gcc4.4.dpatch merged upstream.
+
+ -- Francesco Paolo Lovergine <frankie@debian.org>  Mon, 09 Feb 2009 12:42:11 +0100
+
 gdal (1.5.3-1) experimental; urgency=low
 
   * New upstream release. This is a bug fixing release, no changes in API
