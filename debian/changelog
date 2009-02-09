@@ -2,8 +2,10 @@ gdal (1.5.4-1) experimental; urgency=low
 
   * New upstream release for 1.5 branch.
   * Removed patch gcc4.4.dpatch merged upstream.
+  * dh_movefiles changed in dh_install in debian/rules.
+  * compat changed to 5 to be coherent with debian/control.
 
- -- Francesco Paolo Lovergine <frankie@debian.org>  Mon, 09 Feb 2009 12:42:11 +0100
+ -- Francesco Paolo Lovergine <frankie@debian.org>  Mon, 09 Feb 2009 14:01:41 +0100
 
 gdal (1.5.3-1) experimental; urgency=low
 
