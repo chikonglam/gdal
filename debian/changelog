@@ -1,10 +1,17 @@
 gdal (1.6.0-1) experimental; urgency=low
 
   * New upstream release.
+    (closes: #511874)
   * Patchest updated for 1.6.0.
   * Removed gcc4.4.dpatch merged upstream.
+  * Debhelper compatibility level moved to 7.
+  * Deprecated dh_movefiles changed in dh_install. 
+  * Now uses the more capable internal TIFF libraries which enables BigTIFF support.
+    It also fixes http://trac.osgeo.org/gdal/ticket/2486 issue.
+    Also, removed libtiff4-dev dependencies.
+    (closes: #501127)
 
- -- Francesco Paolo Lovergine <frankie@debian.org>  Wed, 24 Dec 2008 11:37:54 +0100
+ -- Francesco Paolo Lovergine <frankie@debian.org>  Wed, 04 Feb 2009 18:16:09 +0100
 
 gdal (1.5.3-1) experimental; urgency=low
 
