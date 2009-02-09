@@ -1,3 +1,9 @@
+gdal (1.5.4-2) UNRELEASED; urgency=low
+
+  * NOT RELEASED YET
+
+ -- Francesco Paolo Lovergine <frankie@debian.org>  Mon, 09 Feb 2009 14:50:02 +0100
+
 gdal (1.5.4-1) unstable; urgency=low
 
   * New upstream release for 1.5 branch.
