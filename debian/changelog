@@ -2,6 +2,7 @@ gdal (1.5.4-2) unstable; urgency=low
 
   * Moved *.files -> *.install due to dh_install use.
     (closes: #514700)
+  * Added --list-missing to dh_install call in debian/rules.
 
  -- Francesco Paolo Lovergine <frankie@debian.org>  Tue, 10 Feb 2009 17:36:10 +0100
 
