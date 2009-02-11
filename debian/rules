@@ -26,7 +26,7 @@ gdal-grass-dist:
 configure: configure-stamp
 configure-stamp: patch-stamp
 	dh_testdir
-
+	
 	for V in $(PYVERS); do \
 		PYTHON=/usr/bin/python$$V ./configure --prefix=/usr \
 			--mandir=\$$\{prefix\}/share/man \
@@ -51,11 +51,11 @@ configure-stamp: patch-stamp
 			--with-cfitsio=no; \
 		mv GDALmake.opt GDALmake.opt-$$V; \
 	done
-
+	
 	# Overrides the generated libtool with official one, due to 
 	# breakage in upstream version.
 	cp /usr/bin/libtool $(CURDIR)/libtool
-
+	
 	# Patch the generated libtool to avoid passing -rpath when linking,
 	# and to explicitly link libraries against the libraries they
 	# depend on.
@@ -65,18 +65,18 @@ configure-stamp: patch-stamp
 	-e 's/^hardcode_into_libs.*$$/hardcode_into_libs=no/'
 	mv libtool-2 libtool
 	chmod 755 libtool 
-
-	touch configure-stamp
+	
+	touch $@
 
 build: configure-stamp build-stamp
 build-stamp: 
 	dh_testdir
-
+	
 	cp `ls GDALmake.opt-*|tail -1` GDALmake.opt
 	$(MAKE) lib-target apps-target 
 	$(MAKE) -C $(CURDIR)/swig/perl generate build
 	$(MAKE) -C $(CURDIR)/swig/ruby generate build
-
+	
 	# it needs pre-installing just after the building due to intermediate cleaning
 	for V in $(PYVERS); do \
 		cp GDALmake.opt-$$V GDALmake.opt; \
@@ -88,29 +88,29 @@ build-stamp:
 	done
 	$(MAKE) docs
 	$(MAKE) man
-
-	touch build-stamp
+	
+	touch $@
 
 clean: clean-unpatched unpatch
 clean-unpatched:
 	dh_testdir
 	dh_testroot
-
+	
 	[ ! -f GDALmake.opt ] || $(MAKE) distclean
 	rm -rf $(CURDIR)/swig/ruby/.libs $(CURDIR)/swig/perl/*.bs
 	rm -rf $(CURDIR)/swig/perl/*.c  $(CURDIR)/swig/perl/*.cpp
 	rm -f GDALmake.opt-*
 	rm -rf $(CURDIR)/man/man1
 	rm -rf $(CURDIR)/debian/tmp $(CURDIR)/debian/python-tmp
-
-	dh_clean build-stamp configure-stamp
+	
+	dh_clean 
 
 install: build
 	dh_testdir
 	dh_testroot
-	dh_clean -k
+	dh_prep
 	dh_installdirs
-
+	
 	cp `ls GDALmake.opt-*|tail -1` GDALmake.opt
 	$(MAKE) install BINDINGS="perl ruby" DESTDIR=$(CURDIR)/debian/tmp \
 			INST_DATA="\$$(prefix)/share/gdal16" 
@@ -120,19 +120,19 @@ install: build
 	$(MAKE) install-man DESTDIR=$(CURDIR)/debian/tmp \
 		"INST_DOCS=\$$(prefix)/share/doc/libgdal-doc"\
 		"INST_MAN=\$$(prefix)/share/man" 
-
+	
 	# install python stuff previuosly built and pre-installed
 	cp -a $(CURDIR)/debian/python-tmp/usr/lib/* $(CURDIR)/debian/tmp/usr/lib/.
 	install -o root -g root -d $(CURDIR)/debian/tmp/usr/bin
 	install -o root -g root -m 755 $(CURDIR)/swig/python/scripts/*.py $(CURDIR)/debian/tmp/usr/bin/.                                        
-
+	
 	# removing license file
 	rm -f $(CURDIR)/debian/tmp/usr/share/gdal16/LICENSE.TXT
 	# removing empty packlist MakeMaker files 
 	-find $(CURDIR)/debian/tmp/usr/local/lib/perl -type f -name .packlist -exec rm -f {} \;
 	# removing embedded rpath in perl shlibs
 	-find $(CURDIR)/debian/tmp/usr/local/lib/perl -type f -name "*.so" -exec chrpath --delete {} \;
-
+	
 	# moves ruby/perl stuff the right dirs
 	install -o root -g root -d $(CURDIR)/debian/tmp/usr/lib/perl5/auto
 	install -o root -g root -d $(CURDIR)/debian/tmp/usr/lib/ruby/$(RUBYDEF)
@@ -167,4 +167,5 @@ binary-indep: build install
 	$(MAKE) -f debian/rules DH_OPTIONS=-i binary-common
 
 binary: binary-arch binary-indep
+
 .PHONY: build clean binary-arch binary-indep binary-common binary install patch unpatch clean-unpatched gdal-grass-dist

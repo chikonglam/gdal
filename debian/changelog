@@ -6,12 +6,15 @@ gdal (1.6.0-1) experimental; urgency=low
   * Removed gcc4.4.dpatch merged upstream.
   * Debhelper compatibility level moved to 7.
   * Deprecated dh_movefiles changed in dh_install. 
-  * Now uses the more capable internal TIFF libraries which enables BigTIFF support.
+  * Now uses the more capable internal TIFF library which allows BigTIFF 
+    support.
     It also fixes http://trac.osgeo.org/gdal/ticket/2486 issue.
-    Also, removed libtiff4-dev dependencies.
+    Removed libtiff4-dev dependencies.
     (closes: #501127)
   * [PATCH] doxygen.dpatch: missing gdalwarp.1 man page generation due to moving
     of doxygen stuff into source. This will be fixed in 1.6.1.
+  * Now uses dh_prep instead of deprecated dh_clean -k.
+  * Some minor clean-ups in debian/rules.
 
  -- Francesco Paolo Lovergine <frankie@debian.org>  Mon, 09 Feb 2009 17:32:12 +0100
 
