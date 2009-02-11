@@ -1,3 +1,9 @@
+gdal (1.5.4-3) UNRELEASED; urgency=low
+
+  * NOT RELEASED YET
+
+ -- Francesco Paolo Lovergine <frankie@debian.org>  Tue, 10 Feb 2009 20:47:35 +0100
+
 gdal (1.5.4-2) unstable; urgency=low
 
   * Moved *.files -> *.install due to dh_install use.
