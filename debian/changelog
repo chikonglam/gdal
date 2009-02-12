@@ -5,6 +5,7 @@ gdal (1.6.0-1) experimental; urgency=low
   * Patchest updated for 1.6.0.
   * Removed gcc4.4.dpatch merged upstream.
   * Debhelper compatibility level moved to 7.
+    Changed dh_clean and dh_install usages.
   * Deprecated dh_movefiles changed in dh_install. 
   * Now uses the more capable internal TIFF library which allows BigTIFF 
     support.
