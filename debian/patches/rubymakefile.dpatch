@@ -13,7 +13,7 @@ diff -urNad gdal-1.4.3~/swig/ruby/RubyMakefile.mk gdal-1.4.3/swig/ruby/RubyMakef
  
  RUBY_INCLUDE = -I$(RUBY_INCLUDE_DIR)
 -LDFLAGS += -shared -L$(RUBY_LIB_DIR)
-+LDFLAGS += -fPIC -DPIC -shared -L$(RUBY_LIB_DIR)
++LDFLAGS += -fPIC -DPIC -Xcompiler -shared -L$(RUBY_LIB_DIR)
 +CFLAGS += -fPIC -DPIC
 +CXXFLAGS += -fPIC -DPIC
  RUBY_LIB := -l$(RUBY_SO_NAME)
