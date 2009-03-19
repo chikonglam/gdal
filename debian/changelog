@@ -3,8 +3,10 @@ gdal (1.6.0-3) experimental; urgency=low
   * NOT RELEASED YET
   * Fixed rubymakefile.dpatch to also work with libtool 2.2.
     (closes: #518495)
+  * Watch file updated to version 3.
+  * Updated build-deps to remove obsolete entries.
 
- -- Francesco Paolo Lovergine <frankie@debian.org>  Thu, 26 Feb 2009 15:07:21 +0100
+ -- Francesco Paolo Lovergine <frankie@debian.org>  Thu, 19 Mar 2009 15:56:50 +0100
 
 gdal (1.6.0-2) experimental; urgency=low
 
