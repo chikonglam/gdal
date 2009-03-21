@@ -5,8 +5,10 @@ gdal (1.6.0-3) experimental; urgency=low
     (closes: #518495)
   * Watch file updated to version 3.
   * Updated build-deps to remove obsolete entries.
+  * Fixed internal tiff choice option at configure time which prevented it to work.
+    Thanks Even Roualt.
 
- -- Francesco Paolo Lovergine <frankie@debian.org>  Thu, 19 Mar 2009 15:56:50 +0100
+ -- Francesco Paolo Lovergine <frankie@debian.org>  Sat, 21 Mar 2009 10:37:34 +0100
 
 gdal (1.6.0-2) experimental; urgency=low
 

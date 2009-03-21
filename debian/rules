@@ -34,7 +34,7 @@ configure-stamp: patch-stamp
 			--with-threads \
 			--with-grass=no \
 			--with-hide-internal-symbols=yes \
-			--with-tiff=internal \
+			--with-libtiff=internal \
 			--with-geotiff=internal \
 			--with-jasper \
 			--with-netcdf \
