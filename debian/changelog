@@ -7,8 +7,13 @@ gdal (1.6.0-3) experimental; urgency=low
   * Updated build-deps to remove obsolete entries.
   * Fixed internal tiff choice option at configure time which prevented it to work.
     Thanks Even Roualt.
+    (closes: #521747)
+  * Removed obsolete Conflicts/Replaces on old gdal versions.
+  * Moved to libproj-dev build-dependency and recommending proj-bin.
+  * Moved to libhdf4-alt-dev build-dependency to be compatible with netcdf library.
+    (closes: #495353)
 
- -- Francesco Paolo Lovergine <frankie@debian.org>  Sat, 21 Mar 2009 10:37:34 +0100
+ -- Francesco Paolo Lovergine <frankie@debian.org>  Sun, 29 Mar 2009 23:53:24 +0200
 
 gdal (1.6.0-2) experimental; urgency=low
 

@@ -2,13 +2,13 @@ Source: gdal
 Section: science
 Priority: extra
 Maintainer: Debian GIS Project <pkg-grass-devel@lists.alioth.debian.org>
-Uploaders: Steve Halasz <debian@adkgis.org>, Francesco Paolo Lovergine <frankie@debian.org>, Petter Reinholdtsen <pere@debian.org>, Fabio Tranchitella <kobold@debian.org>, Paul Wise <pabs@debian.org>
+Uploaders: Francesco Paolo Lovergine <frankie@debian.org>
 Build-Depends: debhelper (>= 7), zlib1g-dev, libnetcdf-dev,
  libjasper-dev, libpng12-dev, libjpeg62-dev, libgif-dev,
- libhdf4g-dev, libhdf5-serial-dev, libpq-dev, libxerces-c2-dev, unixodbc-dev (>= 2.2.11), 
+ libhdf4alt-dev, libhdf5-serial-dev, libpq-dev, libxerces-c2-dev, unixodbc-dev (>= 2.2.11), 
  python-dev, python-numpy, doxygen, d-shlibs, libgeos-dev, dpatch, libmysqlclient15-dev, python-all-dev (>= 2.3.5-11~), 
  python-central (>= 0.5), libcurl4-gnutls-dev, libsqlite3-dev, libogdi3.2-dev,
- ruby, ruby1.8-dev, chrpath, swig, libtool (>= 1.5.24-2), patch, libexpat1-dev
+ ruby, ruby1.8-dev, chrpath, swig, libtool (>= 1.5.24-2), patch, libexpat1-dev, libproj-dev
 Standards-Version: 3.8.0
 XS-Python-Version: all
 Homepage: http://www.gdal.org/
@@ -20,8 +20,6 @@ Section: libs
 Architecture: any
 Depends: ${shlibs:Depends}
 Recommends: proj-bin
-Conflicts: libgdal1, libgdal1c2, libgdal1c2a, libgdal1-1.3.1, libgdal1-1.3.2
-Replaces: libgdal1, libgdal1c2, libgdal1c2a, libgdal1-1.3.1, libgdal1-1.3.2
 Description: Geospatial Data Abstraction Library
  GDAL is a translator library for raster geospatial data formats.
  As a library, it presents a single abstract data model to the
@@ -50,8 +48,6 @@ Depends: libgdal1-1.6.0 (=${binary:Version}), libc6-dev, libnetcdf-dev,
  libmysqlclient15-dev, libhdf5-serial-dev, libltdl3-dev, libcurl4-dev|libcurl3-dev
 Suggests: libgdal-doc
 Provides: libgdal-dev
-Replaces: libgdal1-1.3.1-dev, libgdal1-1.3.2-dev
-Conflicts: libgdal1-1.3.2-dev, libgdal1-1.3.1-dev
 Description: Geospatial Data Abstraction Library - Development files
  GDAL is a translator library for raster geospatial data formats.
  As a library, it presents a single abstract data model to the
