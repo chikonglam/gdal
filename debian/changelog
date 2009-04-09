@@ -12,8 +12,9 @@ gdal (1.6.0-3) experimental; urgency=low
   * Moved to libproj-dev build-dependency and recommending proj-bin.
   * Moved to libhdf4-alt-dev build-dependency to be compatible with netcdf library.
     (closes: #495353)
+  * Policy bumped to 3.8.1. No changes.
 
- -- Francesco Paolo Lovergine <frankie@debian.org>  Sun, 29 Mar 2009 23:53:24 +0200
+ -- Francesco Paolo Lovergine <frankie@debian.org>  Mon, 30 Mar 2009 11:39:58 +0200
 
 gdal (1.6.0-2) experimental; urgency=low
 
