@@ -1,8 +1,7 @@
 gdal (1.5.4-3) unstable; urgency=low
 
-  * NOT RELEASED YET
   * From trunk: fixed rubymakefile.dpatch to work with libtool 2.2.
-    (closes: #518495)
+    (closes: #518495, #523210)
 
  -- Francesco Paolo Lovergine <frankie@debian.org>  Fri, 06 Mar 2009 20:23:47 +0100
 
