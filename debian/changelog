@@ -1,9 +1,17 @@
+gdal (1.5.4-4) unstable; urgency=low
+
+  * NOT RELEASED YET
+  * Changed section to ruby for ruby-related packages.
+
+ -- Francesco Paolo Lovergine <frankie@debian.org>  Fri, 10 Apr 2009 17:57:09 +0200
+
 gdal (1.5.4-3) unstable; urgency=low
 
   * From trunk: fixed rubymakefile.dpatch to work with libtool 2.2.
     (closes: #518495, #523210)
+  * Changed libltdl3-dev into libltdl-dev for libtool 2.2. 
 
- -- Francesco Paolo Lovergine <frankie@debian.org>  Fri, 06 Mar 2009 20:23:47 +0100
+ -- Francesco Paolo Lovergine <frankie@debian.org>  Thu, 09 Apr 2009 12:31:55 +0200
 
 gdal (1.5.4-2) unstable; urgency=low
 
