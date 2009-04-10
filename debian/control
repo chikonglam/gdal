@@ -171,7 +171,7 @@ Description: Perl bindings to the Geospatial Data Abstraction Library
  This package contains Perl bindings for GDAL/OGR library.
 
 Package: libgdal-ruby1.8
-Section: interpreters
+Section: ruby
 Architecture: any
 Depends: ${shlibs:Depends}
 Description: Ruby 1.8 bindings to the Geospatial Data Abstraction Library
@@ -194,7 +194,7 @@ Description: Ruby 1.8 bindings to the Geospatial Data Abstraction Library
  This package contains ruby 1.8 bindings for GDAL/OGR library.
 
 Package: libgdal-ruby
-Section: interpreters
+Section: ruby
 Architecture: any
 Depends: libgdal-ruby1.8
 Description: Ruby bindings to the Geospatial Data Abstraction Library
