@@ -6,3 +6,6 @@ man
 gdalpaths
 python
 doxygen
+hdf5
+mysql5.1
+swig1338

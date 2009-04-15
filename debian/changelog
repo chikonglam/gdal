@@ -12,11 +12,15 @@ gdal (1.6.0-3) experimental; urgency=low
   * Moved to libproj-dev build-dependency and recommending proj-bin.
   * Moved to libhdf4-alt-dev build-dependency to be compatible with netcdf library.
     (closes: #495353)
+  * [PATCH] Added hdf5.dpatch to link the -alt HDF4 libs.
+  * Added ODBC support for ESRI personal geo database.
   * Policy bumped to 3.8.1. No changes.
   * Changed section to ruby in ruby-related packages stanzas, due to
     ftpmasters changes.
+  * Removed obsolete postgresql-dev dependency.
+  * [PATCH] Added swig1338 to be compatible with Swig 1.3.38 (currently in experimental)
 
- -- Francesco Paolo Lovergine <frankie@debian.org>  Fri, 10 Apr 2009 17:59:22 +0200
+ -- Francesco Paolo Lovergine <frankie@debian.org>  Mon, 13 Apr 2009 11:15:19 +0200
 
 gdal (1.6.0-2) experimental; urgency=low
 

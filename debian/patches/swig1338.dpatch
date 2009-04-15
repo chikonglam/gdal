@@ -1,0 +1,22 @@
+#! /bin/sh /usr/share/dpatch/dpatch-run
+## swig1338.dpatch by Francesco Paolo Lovergine <frankie@debian.org>
+##
+## All lines beginning with `## DP:' are a description of the patch.
+## DP: No description.
+
+@DPATCH@
+diff -urNad gdal-1.6.0~/swig/include/python/typemaps_python.i gdal-1.6.0/swig/include/python/typemaps_python.i
+--- gdal-1.6.0~/swig/include/python/typemaps_python.i	2008-09-22 00:52:46.000000000 +0200
++++ gdal-1.6.0/swig/include/python/typemaps_python.i	2009-04-15 16:58:36.000000000 +0200
+@@ -877,7 +877,11 @@
+   for( int i = 0; i<$1; i++ ) {
+ 
+       PyObject *o = PySequence_GetItem($input,i);
++%#if SWIG_VERSION <= 0x010337
+       PySwigObject *sobj = SWIG_Python_GetSwigThis(o);
++%#else
++      SwigPyObject *sobj = SWIG_Python_GetSwigThis(o);
++%#endif
+       type* rawobjectpointer = NULL;
+       if (sobj) {
+           Py_DECREF(sobj);
