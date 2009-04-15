@@ -94,14 +94,20 @@ build-stamp:
 	
 	# It needs pre-installing just after the building due to intermediate cleaning.
 	# Apply conditionally an on-fly patch for pre 1.3.38 swig versions.
+ifneq ($(SWIGOK),yes)
 	for V in $(PYVERS); do \
 		cp GDALmake.opt-$$V GDALmake.opt; \
 		$(MAKE) -C $(CURDIR)/swig/python clean; \
 		$(MAKE) -C $(CURDIR)/swig/python generate build; \
 		$(MAKE) -C $(CURDIR)/swig/python install DESTDIR=$(CURDIR)/debian/python-tmp; \
-ifneq ($(SWIGOK),yes)
 		echo "Patching ogr.py" ; \
 		patch $(CURDIR)/debian/python-tmp/usr/lib/python$$V/site-packages/osgeo/ogr.py $(CURDIR)/debian/ogr.py.diff; \
+else
+	for V in $(PYVERS); do \
+		cp GDALmake.opt-$$V GDALmake.opt; \
+		$(MAKE) -C $(CURDIR)/swig/python clean; \
+		$(MAKE) -C $(CURDIR)/swig/python generate build; \
+		$(MAKE) -C $(CURDIR)/swig/python install DESTDIR=$(CURDIR)/debian/python-tmp; \
 endif
 	done
 	$(MAKE) docs
