@@ -19,8 +19,10 @@ gdal (1.6.0-3) experimental; urgency=low
     ftpmasters changes.
   * Removed obsolete postgresql-dev dependency.
   * [PATCH] Added swig1338 to be compatible with Swig 1.3.38 (currently in experimental).
+  * Swig 1.3.38 has no more problems with ogr.py, so the on-fly patch application trick is now
+    applied on for past versions in debian/rules.
 
- -- Francesco Paolo Lovergine <frankie@debian.org>  Mon, 13 Apr 2009 11:15:19 +0200
+ -- Francesco Paolo Lovergine <frankie@debian.org>  Wed, 15 Apr 2009 20:44:18 +0200
 
 gdal (1.6.0-2) experimental; urgency=low
 
