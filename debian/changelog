@@ -1,3 +1,13 @@
+gdal (1.6.0-4) experimental; urgency=low
+
+  * NOT RELEASED.
+  * Patch hdf5.dpatch renamed into hdf4.dpatch, sorry.
+  * The mysql5.1.dpatch is a dirty trick to avoid FTBS due to MySQL 5.1 client
+    lib headers which collide with g++ headers. This should be fixed at MySQL
+    level, but at least it allows building.
+
+ -- Francesco Paolo Lovergine <frankie@debian.org>  Fri, 17 Apr 2009 12:02:35 +0200
+
 gdal (1.6.0-3) experimental; urgency=low
 
   * Fixed rubymakefile.dpatch to also work with libtool 2.2.
