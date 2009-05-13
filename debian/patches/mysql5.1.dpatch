@@ -1,0 +1,23 @@
+#! /bin/sh /usr/share/dpatch/dpatch-run
+## mysql5.1.dpatch by Francesco Paolo Lovergine <frankie@debian.org>
+##
+## All lines beginning with `## DP:' are a description of the patch.
+## DP: No description.
+
+@DPATCH@
+diff -urNad gdal-1.6.0~/ogr/ogrsf_frmts/mysql/ogr_mysql.h gdal-1.6.0/ogr/ogrsf_frmts/mysql/ogr_mysql.h
+--- gdal-1.6.0~/ogr/ogrsf_frmts/mysql/ogr_mysql.h	2008-10-23 00:04:33.000000000 +0000
++++ gdal-1.6.0/ogr/ogrsf_frmts/mysql/ogr_mysql.h	2009-05-12 21:22:04.000000000 +0000
+@@ -31,8 +31,12 @@
+ #ifndef _OGR_MYSQL_H_INCLUDED
+ #define _OGR_MYSQL_H_INCLUDED
+ 
++#define max
++#define min
+ #include <my_global.h>
+ #include <mysql.h>
++#undef min
++#undef max
+ 
+ #ifdef bool
+ #undef bool
