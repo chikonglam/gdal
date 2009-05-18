@@ -1,9 +1,10 @@
 gdal (1.5.4-4) unstable; urgency=low
 
-  * NOT RELEASED YET
   * Changed section to ruby for ruby-related packages.
+  * Added missing libproj-dev dependency.
+  * Backported mysql5.1 patch to fix building with recent libmysqlclient.
 
- -- Francesco Paolo Lovergine <frankie@debian.org>  Fri, 10 Apr 2009 17:57:09 +0200
+ -- Francesco Paolo Lovergine <frankie@debian.org>  Mon, 18 May 2009 23:16:05 +0200
 
 gdal (1.5.4-3) unstable; urgency=low
 
