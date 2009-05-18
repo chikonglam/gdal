@@ -5,10 +5,10 @@
 ## DP: No description.
 
 @DPATCH@
-diff -urNad gdal-1.6.0~/swig/include/python/typemaps_python.i gdal-1.6.0/swig/include/python/typemaps_python.i
---- gdal-1.6.0~/swig/include/python/typemaps_python.i	2008-09-22 00:52:46.000000000 +0200
-+++ gdal-1.6.0/swig/include/python/typemaps_python.i	2009-04-15 16:58:36.000000000 +0200
-@@ -877,7 +877,11 @@
+diff -urNad gdal-1.6.1~/swig/include/python/typemaps_python.i gdal-1.6.1/swig/include/python/typemaps_python.i
+--- gdal-1.6.1~/swig/include/python/typemaps_python.i	2009-05-18 12:03:54.000000000 +0200
++++ gdal-1.6.1/swig/include/python/typemaps_python.i	2009-05-18 12:04:09.000000000 +0200
+@@ -939,7 +939,11 @@
    for( int i = 0; i<$1; i++ ) {
  
        PyObject *o = PySequence_GetItem($input,i);
@@ -18,5 +18,5 @@ diff -urNad gdal-1.6.0~/swig/include/python/typemaps_python.i gdal-1.6.0/swig/in
 +      SwigPyObject *sobj = SWIG_Python_GetSwigThis(o);
 +%#endif
        type* rawobjectpointer = NULL;
-       if (sobj) {
-           Py_DECREF(sobj);
+       if (!sobj) {
+           SWIG_fail;
