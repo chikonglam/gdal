@@ -2,9 +2,9 @@ gdal (1.6.1-1) experimental; urgency=low
 
   * NOT RELEASED YET
   * New upstream release with many fixes.
-  * Updated patches: doxygen.
+  * Updated patches: doxygen.dpatch and swig1338.dpatch.
 
- -- Francesco Paolo Lovergine <frankie@debian.org>  Mon, 18 May 2009 12:03:30 +0200
+ -- Francesco Paolo Lovergine <frankie@debian.org>  Mon, 18 May 2009 13:03:04 +0200
 
 gdal (1.6.0-4) experimental; urgency=low
 
