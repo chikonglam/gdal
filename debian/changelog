@@ -2,7 +2,7 @@ gdal (1.6.1-1) experimental; urgency=low
 
   * New upstream release with many fixes.
   * Updated patches: doxygen.dpatch and swig1338.dpatch.
-  * Added new tool: gdalbuildvrt, now built per default.
+  * Added new binary/python tools.
 
  -- Francesco Paolo Lovergine <frankie@debian.org>  Mon, 18 May 2009 13:03:04 +0200
 
