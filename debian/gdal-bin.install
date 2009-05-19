@@ -11,6 +11,8 @@ usr/bin/gdalwarp
 usr/bin/gdaltindex
 usr/bin/gdal_contour
 usr/bin/ogr*
+usr/bin/gdalbuildvrt
+usr/bin/testepsg
 usr/share/man/man1/gdal_rasterize.1
 usr/share/man/man1/gdal_translate.1
 usr/share/man/man1/gdal_utilities.1
