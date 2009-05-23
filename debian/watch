@@ -1,2 +1,2 @@
 version=3
-ftp://ftp.remotesensing.org/pub/gdal/gdal-([0-9].*)\.tar\.gz 
+http://download.osgeo.org/gdal gdal-([0-9].*)\.tar\.gz 

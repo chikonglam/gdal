@@ -1,8 +1,13 @@
 gdal (1.6.1-2) experimental; urgency=low
 
   * Removed superfluous patches, applied upstream: mysql5.1, swig1338
+  * Do not regenerate swig stuff, the upstream enclosed is more recent than
+    sid/experimental which are broken on some regards.
+    (closes: #529745)
+  * Fixed watch file url.
+    (closes: #504715)
 
- -- Francesco Paolo Lovergine <frankie@debian.org>  Tue, 19 May 2009 15:35:02 +0200
+ -- Francesco Paolo Lovergine <frankie@debian.org>  Sat, 23 May 2009 12:04:58 +0200
 
 gdal (1.6.1-1) experimental; urgency=low
 
