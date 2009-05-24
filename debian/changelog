@@ -1,9 +1,9 @@
 gdal (1.6.1-2) experimental; urgency=low
 
   * Removed superfluous patches, applied upstream: mysql5.1, swig1338
-  * Do not regenerate swig stuff for python, the upstream enclosed is
-    more recent than sid/experimental which are broken on some regards.
-    Note that perl swig stuff enclosed within upstream tarball is still broken.
+  * [PATCH] Added cpl_ddl.dpatch to fix missing external declaration. Note that 
+    the default -fvisibility=hidden is propagated into python stuff and other 
+    swig bindings.
     (closes: #529745)
   * Fixed watch file url.
     (closes: #504715)

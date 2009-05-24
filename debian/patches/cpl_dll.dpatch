@@ -1,0 +1,19 @@
+#! /bin/sh /usr/share/dpatch/dpatch-run
+## cpl_dll.dpatch by Francesco Paolo Lovergine <frankie@debian.org>
+##
+## All lines beginning with `## DP:' are a description of the patch.
+## DP: No description.
+
+@DPATCH@
+diff -urNad gdal-1.6.1~/swig/python/extensions/_gdal_array.cpp gdal-1.6.1/swig/python/extensions/_gdal_array.cpp
+--- gdal-1.6.1~/swig/python/extensions/_gdal_array.cpp	2007-10-30 21:22:28.000000000 +0100
++++ gdal-1.6.1/swig/python/extensions/_gdal_array.cpp	2009-05-24 11:27:30.000000000 +0200
+@@ -106,7 +106,7 @@
+     {NULL, NULL, 0, NULL}
+ };
+ 
+-PyMODINIT_FUNC
++PyMODINIT_FUNC CPL_DLL
+ init_gdal_array(void)
+ {
+     PyObject* module;

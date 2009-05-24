@@ -18,15 +18,6 @@ PERLDEF=$(shell perl -V:version|cut -d\' -f2)
 SWIGVER=$(shell swig -version |grep Version|cut -d' ' -f3|sed -e 's/\.//g')
 SWIGOK=$(shell test $(SWIGVER) -ge 1338 && echo yes)
 
-# This is a silly hack to avoid swig stuff rebuild for python
-GENERATE_SWIG_PYTHON=no
-
-ifneq ($(GENERATE_SWIG_PYTHON),yes)
-PYTHON_SWIG_TAG=build
-else
-PYTHON_SWIG_TAG=generate build
-endif
-
 versions:
 	@echo Swig version: $(SWIGVER)
 	@echo Python default: $(PYDEF)
@@ -107,7 +98,7 @@ ifneq ($(SWIGOK),yes)
 	for V in $(PYVERS); do \
 		cp GDALmake.opt-$$V GDALmake.opt; \
 		$(MAKE) -C $(CURDIR)/swig/python clean; \
-		$(MAKE) -C $(CURDIR)/swig/python $(PYTHON_SWIG_TAG); \
+		$(MAKE) -C $(CURDIR)/swig/python generate build; \
 		$(MAKE) -C $(CURDIR)/swig/python install DESTDIR=$(CURDIR)/debian/python-tmp; \
 		echo "Patching ogr.py" ; \
 		patch $(CURDIR)/debian/python-tmp/usr/lib/python$$V/site-packages/osgeo/ogr.py $(CURDIR)/debian/ogr.py.diff; \
@@ -116,7 +107,7 @@ else
 	for V in $(PYVERS); do \
 		cp GDALmake.opt-$$V GDALmake.opt; \
 		$(MAKE) -C $(CURDIR)/swig/python clean; \
-		$(MAKE) -C $(CURDIR)/swig/python $(PYTHON_SWIG_TAG); \
+		$(MAKE) -C $(CURDIR)/swig/python generate build; \
 		$(MAKE) -C $(CURDIR)/swig/python install DESTDIR=$(CURDIR)/debian/python-tmp; \
 	done
 endif
