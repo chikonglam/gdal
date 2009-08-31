@@ -9,7 +9,7 @@ Build-Depends: debhelper (>= 7), zlib1g-dev, libnetcdf-dev,
  python-dev, python-numpy, doxygen, d-shlibs, libgeos-dev, dpatch, libmysqlclient-dev, python-all-dev (>= 2.3.5-11~), 
  python-central (>= 0.5), libcurl4-gnutls-dev, libsqlite3-dev, libogdi3.2-dev,
  ruby, ruby1.8-dev, chrpath, swig, libtool (>= 1.5.24-2), patch, libexpat1-dev, libproj-dev
-Standards-Version: 3.8.1
+Standards-Version: 3.8.3
 XS-Python-Version: all
 Homepage: http://www.gdal.org/
 Vcs-Browser: http://svn.debian.org/viewsvn/pkg-grass/packages/gdal/trunk
@@ -45,7 +45,7 @@ Architecture: any
 Depends: libgdal1-1.6.0 (=${binary:Version}), libc6-dev, libnetcdf-dev, 
  libjasper-dev|libjasper-1.701-dev, libpng12-dev, libjpeg62-dev, libgif-dev, libhdf4-alt-dev, 
  libpq-dev, libxerces-c2-dev, unixodbc-dev, libsqlite3-dev, libgeos-dev,
- libmysqlclient15-dev, libhdf5-serial-dev, libltdl3-dev, libcurl4-dev|libcurl3-dev
+ libmysqlclient-dev, libhdf5-serial-dev, libltdl3-dev, libcurl4-dev|libcurl3-dev
 Suggests: libgdal-doc
 Provides: libgdal-dev
 Description: Geospatial Data Abstraction Library - Development files

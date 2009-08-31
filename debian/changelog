@@ -2,11 +2,17 @@ gdal (1.6.1-3) unstable; urgency=low
 
   * Upload to unstable, due to hdf4 -alt support transitioned from experimental.
     (closes: #540403)
-  * Build-dep on libmysqlclient-dev and removed duplicated build-dep.
+  * Build-dep on libmysqlclient-dev and removed duplicated build-dep. Now -dev
+    package also depends on the same package.
     (closes: #538542)
   * Build-dep on libhdf5-serial-dev >= 1.8.3 to be safe about linking HDF5 1.8.
+  * Ack previous NMU by aba. This version is also compatible with current
+    swing version.
+    (closes: #543629, #542968)
+  * Removed libtool .la file as required by current release goal for squeeze.
+  * Policy bumped to 3.8.3.
 
- -- Francesco Paolo Lovergine <frankie@debian.org>  Sun, 09 Aug 2009 10:28:00 +0200
+ -- Francesco Paolo Lovergine <frankie@debian.org>  Mon, 31 Aug 2009 15:51:21 +0200
 
 gdal (1.6.1-2) experimental; urgency=low
 

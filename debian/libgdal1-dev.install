@@ -1,6 +1,5 @@
 usr/bin/gdal-config
 usr/include
 usr/lib/libgdal1.6.0.a
-usr/lib/libgdal1.6.0.la
 usr/lib/libgdal1.6.0.so
 usr/share/man/man1/gdal-config.1
