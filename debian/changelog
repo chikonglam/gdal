@@ -1,3 +1,9 @@
+gdal (1.6.2-1) UNRELEASED; urgency=low
+
+  * New upstream release, with minor changes.
+
+ -- Francesco Paolo Lovergine <frankie@debian.org>  Mon, 31 Aug 2009 22:53:06 +0200
+
 gdal (1.6.1-3) unstable; urgency=low
 
   * Upload to unstable, due to hdf4 -alt support transitioned from experimental.
