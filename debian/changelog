@@ -6,7 +6,7 @@ gdal (1.6.2-1) unstable; urgency=low
     GDAL is transitioning to a major version. See gdal-grass package to 
     understand  how it is managed. This trick does allow a proper fix
     of #544978.
-  * Fixed .egg-info stripping. Name and location can change at every release.
+  * Removed .egg-info stripping.
 
  -- Francesco Paolo Lovergine <frankie@debian.org>  Tue, 08 Sep 2009 16:51:50 +0200
 

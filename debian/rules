@@ -24,6 +24,7 @@ GDAL_MINOR=$(word 2,$(GDALVER))
 GDAL_PATCH=$(word 3,$(GDALVER))
 
 versions:
+	@echo Gdal version: $(GDAL_MAJOR).$(GDAL_MINOR).$(GDAL_PATCH)
 	@echo Swig version: $(SWIGVER)
 	@echo Python default: $(PYDEF)
 	@echo Python versions: $(PYVERS)
@@ -181,7 +182,6 @@ binary-common:
 	dh_compress
 	dh_fixperms
 	dh_pycentral -X.info
-	find $(CURDIR)/debian/python-gdal -name GDAL-$(GDAL_MAJOR).$(GDAL_MINOR).$(GDAL_PATCH).egg-info -delete || true
 	dh_perl
 	dh_makeshlibs
 	dh_installdeb
