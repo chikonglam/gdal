@@ -18,6 +18,11 @@ PERLDEF=$(shell perl -V:version|cut -d\' -f2)
 SWIGVER=$(shell swig -version |grep Version|cut -d' ' -f3|sed -e 's/\.//g')
 SWIGOK=$(shell test $(SWIGVER) -ge 1338 && echo yes)
 
+GDALVER=$(shell cat VERSION|sed -e 's/\./ /g')
+GDAL_MAJOR=$(word 1,$(GDALVER))
+GDAL_MINOR=$(word 2,$(GDALVER))
+GDAL_PATCH=$(word 3,$(GDALVER))
+
 versions:
 	@echo Swig version: $(SWIGVER)
 	@echo Python default: $(PYDEF)
@@ -176,7 +181,7 @@ binary-common:
 	dh_compress
 	dh_fixperms
 	dh_pycentral -X.info
-	rm -f $(CURDIR)/debian/python-gdal/usr/share/pycentral/python-gdal/site-packages/GDAL-1.6.0.egg-info
+	find $(CURDIR)/debian/python-gdal -name GDAL-$(GDAL_MAJOR).$(GDAL_MINOR).$(GDAL_PATCH).egg-info -delete || true
 	dh_perl
 	dh_makeshlibs
 	dh_installdeb

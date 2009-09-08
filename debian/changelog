@@ -1,8 +1,14 @@
-gdal (1.6.2-1) UNRELEASED; urgency=low
+gdal (1.6.2-1) unstable; urgency=low
 
-  * New upstream release, with minor changes.
+  * New upstream release, with a bounce of bugs fixing.
+  * [PATCH] Added gdal-grass.dpatch to add VERSION to the grass plugin
+    tarball. This is useful to force failing when a binNMU happens while
+    GDAL is transitioning to a major version. See gdal-grass package to 
+    understand  how it is managed. This trick does allow a proper fix
+    of #544978.
+  * Fixed .egg-info stripping. Name and location can change at every release.
 
- -- Francesco Paolo Lovergine <frankie@debian.org>  Mon, 31 Aug 2009 22:53:06 +0200
+ -- Francesco Paolo Lovergine <frankie@debian.org>  Tue, 08 Sep 2009 14:34:08 +0200
 
 gdal (1.6.1-3) unstable; urgency=low
 
