@@ -8,7 +8,7 @@ gdal (1.6.2-1) unstable; urgency=low
     of #544978.
   * Fixed .egg-info stripping. Name and location can change at every release.
 
- -- Francesco Paolo Lovergine <frankie@debian.org>  Tue, 08 Sep 2009 14:34:08 +0200
+ -- Francesco Paolo Lovergine <frankie@debian.org>  Tue, 08 Sep 2009 16:51:50 +0200
 
 gdal (1.6.1-3) unstable; urgency=low
 
