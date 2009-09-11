@@ -35,6 +35,7 @@ ifneq ($(SWIGOK),yes)
 else
 	@echo Swig is fixed for ogr.py
 endif
+	@echo GDAL version: $(GDAL_MAJOR).$(GDAL_MINOR).$(GDAL_PATCH)
 
 gdal-grass: configure gdal-grass-dist clean
 gdal-grass-dist:
@@ -181,6 +182,7 @@ binary-common:
 	dh_strip
 	dh_compress
 	dh_fixperms
+	#find $(CURDIR)/debian/python-gdal -name GDAL-$(GDAL_MAJOR).$(GDAL_MINOR).$(GDAL_PATCH).egg-info -delete || true
 	dh_pycentral -X.info
 	dh_perl
 	dh_makeshlibs

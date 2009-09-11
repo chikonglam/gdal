@@ -1,0 +1,17 @@
+GDAL source for Debian
+----------------------
+
+This package uses quilt to manage all modifications to the upstream
+source. Changes are stored in the source package as diffs in
+debian/patches and applied during the build.
+
+To get detailed instructions on how to apply the series of patches
+and modify them, please read /usr/share/doc/quilt/README.source.
+
+Most of applied patches are due to Debian Policy requirements and
+the need of avoiding hidden breakages at every new release, due
+to ABI changes in the public C++ interface. This is the reason
+to embed versions within package and library names.
+
+ -- Francesco Paolo Lovergine <frankie@debian.org>  Tue, 01 Sep 2009 22:45:56 +0200
+

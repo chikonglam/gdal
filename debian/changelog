@@ -1,3 +1,11 @@
+gdal (1.6.2-2) unstable; urgency=low
+
+  * Fixed gdal-grass patch to generate a tarball with a name coherent with
+    current plugin source package.
+  * Added a README.source document.
+
+ -- Francesco Paolo Lovergine <frankie@debian.org>  Fri, 11 Sep 2009 11:29:03 +0200
+
 gdal (1.6.2-1) unstable; urgency=low
 
   * New upstream release, with a bounce of bugs fixing.
