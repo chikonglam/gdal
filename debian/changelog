@@ -1,3 +1,9 @@
+gdal (1.6.3-1) unstable; urgency=low
+
+  * New upstream release, with bugs fixing.
+
+ -- Alan Boudreault <aboudreault@mapgears.com>  Mon, 30 Nov 2009 14:42:58 -0500
+
 gdal (1.6.2-2) unstable; urgency=low
 
   * Fixed gdal-grass patch to generate a tarball with a name coherent with
