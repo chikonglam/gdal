@@ -1,8 +1,13 @@
 gdal (1.6.3-1) unstable; urgency=low
 
+  [ Alan Boudreault ]
   * New upstream release, with bugs fixing.
 
- -- Alan Boudreault <aboudreault@mapgears.com>  Mon, 30 Nov 2009 14:42:58 -0500
+  [ Francesco Paolo Lovergine ]
+  * Added MrSID and ECW plugins supports as useful patches to generate
+    separate source tarballs.
+
+ -- Francesco Paolo Lovergine <frankie@debian.org>  Mon, 30 Nov 2009 23:58:20 +0100
 
 gdal (1.6.2-2) unstable; urgency=low
 
