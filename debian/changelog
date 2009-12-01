@@ -2,12 +2,14 @@ gdal (1.6.3-1) unstable; urgency=low
 
   [ Alan Boudreault ]
   * New upstream release, with bugs fixing.
+  * Added MrSID plugins support as useful patch to generate separate
+    source tarballs.
 
   [ Francesco Paolo Lovergine ]
-  * Added MrSID and ECW plugins supports as useful patches to generate
-    separate source tarballs.
+  * Added ECW plugins support as useful patch to generate separate
+    source tarballs.
 
- -- Francesco Paolo Lovergine <frankie@debian.org>  Mon, 30 Nov 2009 23:58:20 +0100
+ -- Francesco Paolo Lovergine <frankie@debian.org>  Tue, 01 Dec 2009 19:37:58 +0100
 
 gdal (1.6.2-2) unstable; urgency=low
 
