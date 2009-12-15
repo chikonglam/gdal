@@ -14,12 +14,12 @@ diff -urNad gdal-1.6.3~/frmts/mrsid/GNUmakefile gdal-1.6.3/frmts/mrsid/GNUmakefi
  install-obj:	$(O_OBJ:.o=.$(OBJ_EXT))
 +
 +dist:
-+	cp -r pkg gdal-mrsid-$(GDAL_VER)
-+	rm -rf gdal-mrsid-$(GDAL_VER)/.svn
-+	cp *.h gdal-mrsid-$(GDAL_VER)
-+	cp *.cpp gdal-mrsid-$(GDAL_VER)
-+	tar czvf gdal-mrsid-$(GDAL_VER).tar.gz ./gdal-mrsid-$(GDAL_VER)
-+	rm -rf gdal-mrsid-$(GDAL_VER)
++	cp -r pkg libgdal-mrsid-$(GDAL_VER)
++	rm -rf libgdal-mrsid-$(GDAL_VER)/.svn
++	cp *.h libgdal-mrsid-$(GDAL_VER)
++	cp *.cpp libgdal-mrsid-$(GDAL_VER)
++	tar czvf libgdal-mrsid-$(GDAL_VER).tar.gz ./libgdal-mrsid-$(GDAL_VER)
++	rm -rf libgdal-mrsid-$(GDAL_VER)
 diff -urNad gdal-1.6.3~/frmts/mrsid/pkg/Makefile.in gdal-1.6.3/frmts/mrsid/pkg/Makefile.in
 --- gdal-1.6.3~/frmts/mrsid/pkg/Makefile.in	1969-12-31 19:00:00.000000000 -0500
 +++ gdal-1.6.3/frmts/mrsid/pkg/Makefile.in	2009-12-01 09:12:23.800604739 -0500

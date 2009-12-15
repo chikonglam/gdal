@@ -37,12 +37,31 @@ else
 endif
 	@echo GDAL version: $(GDAL_MAJOR).$(GDAL_MINOR).$(GDAL_PATCH)
 
+#
+# The following targets are useful to autogen independent plugins sources
+#
 gdal-grass: configure gdal-grass-dist clean
 gdal-grass-dist:
 	ln -fs $(CURDIR)/GDALmake.opt-$(PYDEF) $(CURDIR)/GDALmake.opt
 	[ -e $(CURDIR)/GDALmake.opt ] && $(MAKE) -C $(CURDIR)/frmts/grass dist
-	mv $(CURDIR)/frmts/grass/gdal-grass-*.tar.gz $(CURDIR)/..
+	mv $(CURDIR)/frmts/grass/libgdal-grass-*.tar.gz $(CURDIR)/..
 	rm -f $(CURDIR)/GDALmake.opt
+
+gdal-ecw: configure gdal-ecw-dist clean
+gdal-ecw-dist:
+	ln -fs $(CURDIR)/GDALmake.opt-$(PYDEF) $(CURDIR)/GDALmake.opt
+	[ -e $(CURDIR)/GDALmake.opt ] && $(MAKE) -C $(CURDIR)/frmts/ecw dist
+	mv $(CURDIR)/frmts/ecw/libgdal-ecw-*.tar.gz $(CURDIR)/..
+	rm -f $(CURDIR)/GDALmake.opt
+
+gdal-mrsid: configure gdal-mrsid-dist clean
+gdal-mrsid-dist: 
+	ln -fs $(CURDIR)/GDALmake.opt-$(PYDEF) $(CURDIR)/GDALmake.opt
+	[ -e $(CURDIR)/GDALmake.opt ] && $(MAKE) -C $(CURDIR)/frmts/mrsid dist
+	mv $(CURDIR)/frmts/mrsid/libgdal-mrsid-*.tar.gz $(CURDIR)/..
+	rm -f $(CURDIR)/GDALmake.opt
+
+
 
 configure: configure-stamp
 configure-stamp: patch-stamp

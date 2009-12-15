@@ -13,5 +13,11 @@ the need of avoiding hidden breakages at every new release, due
 to ABI changes in the public C++ interface. This is the reason
 to embed versions within package and library names.
 
+Note that debian/rules includes three target (gdal-{grass,ecw,mrsid})
+to autogenerate Grass/ECW/MrSID external plugins which are coherent
+with the plain package provided in Debian. Note that the only 
+plugins which is supported upstream is the Grass one. Do not bother
+upstream with bugs or requests about the other ones.
+
  -- Francesco Paolo Lovergine <frankie@debian.org>  Tue, 01 Sep 2009 22:45:56 +0200
 

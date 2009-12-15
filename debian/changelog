@@ -1,3 +1,11 @@
+gdal (1.6.3-2) unstable; urgency=low
+
+  * Addded a couple of useful target in debian/rules to generate ECW/MrSID plugins.
+  * Fixed gdal-grass tarball name.
+    (closes: #560019)
+
+ -- Francesco Paolo Lovergine <frankie@debian.org>  Tue, 15 Dec 2009 14:06:14 +0100
+
 gdal (1.6.3-1) unstable; urgency=low
 
   [ Alan Boudreault ]
