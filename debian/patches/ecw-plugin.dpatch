@@ -6,8 +6,8 @@
 
 @DPATCH@
 diff -urNad gdal-1.6.3~/frmts/ecw/GNUmakefile gdal-1.6.3/frmts/ecw/GNUmakefile
---- gdal-1.6.3~/frmts/ecw/GNUmakefile	2009-05-08 06:52:49.000000000 +0200
-+++ gdal-1.6.3/frmts/ecw/GNUmakefile	2009-12-01 19:35:41.000000000 +0100
+--- gdal-1.6.3~/frmts/ecw/GNUmakefile	2009-12-15 14:23:22.000000000 +0100
++++ gdal-1.6.3/frmts/ecw/GNUmakefile	2009-12-23 15:18:30.000000000 +0100
 @@ -18,3 +18,12 @@
  $(PLUGIN_SO):	$(OBJ)
  	$(LD_SHARED) $(LNK_FLAGS) $(OBJ) $(CONFIG_LIBS) $(EXTRA_LIBS) \
@@ -22,27 +22,18 @@ diff -urNad gdal-1.6.3~/frmts/ecw/GNUmakefile gdal-1.6.3/frmts/ecw/GNUmakefile
 +	rm -rf libgdal-ecw-$(GDAL_VER)
 + 
 diff -urNad gdal-1.6.3~/frmts/ecw/ecwdataset.cpp gdal-1.6.3/frmts/ecw/ecwdataset.cpp
---- gdal-1.6.3~/frmts/ecw/ecwdataset.cpp	2009-09-09 20:29:39.000000000 +0200
-+++ gdal-1.6.3/frmts/ecw/ecwdataset.cpp	2009-12-01 19:35:41.000000000 +0100
-@@ -1616,6 +1616,15 @@
+--- gdal-1.6.3~/frmts/ecw/ecwdataset.cpp	2009-12-15 14:23:22.000000000 +0100
++++ gdal-1.6.3/frmts/ecw/ecwdataset.cpp	2009-12-23 15:20:13.000000000 +0100
+@@ -1616,6 +1616,3 @@
  #endif /* def FRMT_ecw */
  }
  
-+CPL_C_START
-+void GDALRegister_ECW_JP2ECW(void);
-+CPL_C_END
-+
-+void GDALRegister_ECW_JP2ECW(void)
-+{
-+    GDALRegister_ECW();
-+    GDALRegister_JP2ECW();
-+}
- 
- 
- 
+-
+-
+-
 diff -urNad gdal-1.6.3~/frmts/ecw/pkg/Makefile.in gdal-1.6.3/frmts/ecw/pkg/Makefile.in
 --- gdal-1.6.3~/frmts/ecw/pkg/Makefile.in	1970-01-01 01:00:00.000000000 +0100
-+++ gdal-1.6.3/frmts/ecw/pkg/Makefile.in	2009-12-01 19:35:41.000000000 +0100
++++ gdal-1.6.3/frmts/ecw/pkg/Makefile.in	2009-12-23 15:18:30.000000000 +0100
 @@ -0,0 +1,36 @@
 +CC	=	@CC@
 +CXX	=	@CXX@
@@ -82,7 +73,7 @@ diff -urNad gdal-1.6.3~/frmts/ecw/pkg/Makefile.in gdal-1.6.3/frmts/ecw/pkg/Makef
 +
 diff -urNad gdal-1.6.3~/frmts/ecw/pkg/README gdal-1.6.3/frmts/ecw/pkg/README
 --- gdal-1.6.3~/frmts/ecw/pkg/README	1970-01-01 01:00:00.000000000 +0100
-+++ gdal-1.6.3/frmts/ecw/pkg/README	2009-12-01 19:35:41.000000000 +0100
++++ gdal-1.6.3/frmts/ecw/pkg/README	2009-12-23 15:18:30.000000000 +0100
 @@ -0,0 +1,30 @@
 +	Standalone ECW 3.3 Drivers for GDAL
 +	===================================
@@ -116,7 +107,7 @@ diff -urNad gdal-1.6.3~/frmts/ecw/pkg/README gdal-1.6.3/frmts/ecw/pkg/README
 +
 diff -urNad gdal-1.6.3~/frmts/ecw/pkg/aclocal.m4 gdal-1.6.3/frmts/ecw/pkg/aclocal.m4
 --- gdal-1.6.3~/frmts/ecw/pkg/aclocal.m4	1970-01-01 01:00:00.000000000 +0100
-+++ gdal-1.6.3/frmts/ecw/pkg/aclocal.m4	2009-12-01 19:35:41.000000000 +0100
++++ gdal-1.6.3/frmts/ecw/pkg/aclocal.m4	2009-12-23 15:18:30.000000000 +0100
 @@ -0,0 +1,202 @@
 +AC_DEFUN(AC_COMPILER_LOCALHACK,
 +[
@@ -322,7 +313,7 @@ diff -urNad gdal-1.6.3~/frmts/ecw/pkg/aclocal.m4 gdal-1.6.3/frmts/ecw/pkg/acloca
 +])
 diff -urNad gdal-1.6.3~/frmts/ecw/pkg/configure gdal-1.6.3/frmts/ecw/pkg/configure
 --- gdal-1.6.3~/frmts/ecw/pkg/configure	1970-01-01 01:00:00.000000000 +0100
-+++ gdal-1.6.3/frmts/ecw/pkg/configure	2009-12-01 19:35:41.000000000 +0100
++++ gdal-1.6.3/frmts/ecw/pkg/configure	2009-12-23 15:18:30.000000000 +0100
 @@ -0,0 +1,4498 @@
 +#! /bin/sh
 +# Guess values for system-dependent variables and create Makefiles.
@@ -4824,7 +4815,7 @@ diff -urNad gdal-1.6.3~/frmts/ecw/pkg/configure gdal-1.6.3/frmts/ecw/pkg/configu
 +
 diff -urNad gdal-1.6.3~/frmts/ecw/pkg/configure.in gdal-1.6.3/frmts/ecw/pkg/configure.in
 --- gdal-1.6.3~/frmts/ecw/pkg/configure.in	1970-01-01 01:00:00.000000000 +0100
-+++ gdal-1.6.3/frmts/ecw/pkg/configure.in	2009-12-01 19:35:41.000000000 +0100
++++ gdal-1.6.3/frmts/ecw/pkg/configure.in	2009-12-23 15:18:30.000000000 +0100
 @@ -0,0 +1,186 @@
 +dnl ***************************************************************************
 +dnl $Id: configure.in 9971 2006-08-23 20:06:02Z fwarmerdam $
