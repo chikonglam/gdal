@@ -4,6 +4,8 @@ gdal (1.6.3-2) unstable; urgency=low
   * Fixed gdal-grass tarball name.
     (closes: #560019)
   * Fixed ecw-grass patch to remove an already provided init function.
+  * Added a simple workaround for manpages generated with a redundant _ character
+    by current version of Doxygen. It fixes a FTBS caused by missing manpages.
 
  -- Francesco Paolo Lovergine <frankie@debian.org>  Wed, 23 Dec 2009 15:21:21 +0100
 
