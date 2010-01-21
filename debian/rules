@@ -141,7 +141,7 @@ endif
 	$(MAKE) man
 	# a temporary workaround for doxygen problem #564243 
 	cd man/man1 && \
-			for i in `find . -name "*_*"`; do basename=`basename $$i`; mv $$basename `echo $$basename|sed -e 's/__/_/'`; done
+			for i in `find . -name "*_*"`; do basename=`basename $$i`; mv $$basename `echo $$basename|sed -e 's/__/_/'` || true; done
 	touch $@
 
 clean: clean-unpatched unpatch
