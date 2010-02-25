@@ -7,7 +7,6 @@ gdalpaths
 python
 doxygen
 hdf4
-cpl_dll
 gdal-grass
 ecw-plugin
 mrsid-plugin

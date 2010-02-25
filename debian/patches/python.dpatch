@@ -13,6 +13,6 @@ diff -urNad gdal-1.6.0~/swig/python/setup.cfg gdal-1.6.0/swig/python/setup.cfg
  #include_dirs = ../../port:../../gcore:../../alg:../../ogr/ 
  #library_dirs = ../../.libs:../../ 
 -#libraries = gdal 
-+libraries = gdal1.6.0 
++libraries = gdal1.7.0 
  gdal_config=../../apps/gdal-config
  

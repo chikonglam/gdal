@@ -13,7 +13,7 @@ diff -urNad gdal-1.5.1~/gcore/gdaldrivermanager.cpp gdal-1.5.1/gcore/gdaldriverm
                                          GDAL_PREFIX "/PlugIns");
      #else
 -                                        GDAL_PREFIX "/lib/gdalplugins" );
-+                                        GDAL_PREFIX "/lib/gdal16plugins" );
++                                        GDAL_PREFIX "/lib/gdal17plugins" );
      #endif
  #else
          char szExecPath[1024];
@@ -25,7 +25,7 @@ diff -urNad gdal-1.5.1~/ogr/ogrsf_frmts/generic/ogrsfdriverregistrar.cpp gdal-1.
                                          GDAL_PREFIX "/PlugIns");
      #else
 -                                        GDAL_PREFIX "/lib/gdalplugins" );
-+                                        GDAL_PREFIX "/lib/gdal16plugins" );
++                                        GDAL_PREFIX "/lib/gdal17plugins" );
      #endif
  #else
          char szExecPath[1024];
@@ -37,7 +37,7 @@ diff -urNad gdal-1.5.1~/port/cpl_findfile.cpp gdal-1.5.1/port/cpl_findfile.cpp
              CPLPushFinderLocation( GDAL_PREFIX "/Resources/gdal" );
    #else
 -            CPLPushFinderLocation( GDAL_PREFIX "/share/gdal" );
-+            CPLPushFinderLocation( GDAL_PREFIX "/share/gdal16" );
++            CPLPushFinderLocation( GDAL_PREFIX "/share/gdal17" );
    #endif
  #else
              CPLPushFinderLocation( "/usr/local/share/gdal" );

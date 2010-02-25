@@ -5,24 +5,23 @@
 ## DP: No description.
 
 @DPATCH@
-diff -urNad gdal-1.6.3~/frmts/mrsid/GNUmakefile gdal-1.6.3/frmts/mrsid/GNUmakefile
---- gdal-1.6.3~/frmts/mrsid/GNUmakefile	2009-05-08 00:52:49.000000000 -0400
-+++ gdal-1.6.3/frmts/mrsid/GNUmakefile	2009-12-01 09:12:23.800604739 -0500
-@@ -15,3 +15,11 @@
- 	rm -f *.o $(O_OBJ)
+diff -urNad gdal-1.7.1~/frmts/mrsid/GNUmakefile gdal-1.7.1/frmts/mrsid/GNUmakefile
+--- gdal-1.7.1~/frmts/mrsid/GNUmakefile	2009-05-08 00:52:49.000000000 -0400
++++ gdal-1.7.1/frmts/mrsid/GNUmakefile	2009-12-01 09:12:23.800604739 -0500
+@@ -28,3 +28,10 @@
+ #    -rpath $(INST_LIB) \
+ #    -no-undefined -export-dynamic
  
- install-obj:	$(O_OBJ:.o=.$(OBJ_EXT))
-+
 +dist:
-+	cp -r pkg libgdal-mrsid-$(GDAL_VER)
-+	rm -rf libgdal-mrsid-$(GDAL_VER)/.svn
-+	cp *.h libgdal-mrsid-$(GDAL_VER)
-+	cp *.cpp libgdal-mrsid-$(GDAL_VER)
-+	tar czvf libgdal-mrsid-$(GDAL_VER).tar.gz ./libgdal-mrsid-$(GDAL_VER)
-+	rm -rf libgdal-mrsid-$(GDAL_VER)
-diff -urNad gdal-1.6.3~/frmts/mrsid/pkg/Makefile.in gdal-1.6.3/frmts/mrsid/pkg/Makefile.in
---- gdal-1.6.3~/frmts/mrsid/pkg/Makefile.in	1969-12-31 19:00:00.000000000 -0500
-+++ gdal-1.6.3/frmts/mrsid/pkg/Makefile.in	2009-12-01 09:12:23.800604739 -0500
++       cp -r pkg gdal-mrsid-$(GDAL_VER)
++       rm -rf gdal-mrsid-$(GDAL_VER)/.svn
++       cp *.h gdal-mrsid-$(GDAL_VER)
++       cp *.cpp gdal-mrsid-$(GDAL_VER)
++       tar czvf gdal-mrsid-$(GDAL_VER).tar.gz ./gdal-mrsid-$(GDAL_VER)
++       rm -rf gdal-mrsid-$(GDAL_VER)
+diff -urNad gdal-1.7.1~/frmts/mrsid/pkg/Makefile.in gdal-1.7.1/frmts/mrsid/pkg/Makefile.in
+--- gdal-1.7.1~/frmts/mrsid/pkg/Makefile.in	1969-12-31 19:00:00.000000000 -0500
++++ gdal-1.7.1/frmts/mrsid/pkg/Makefile.in	2009-12-01 09:12:23.800604739 -0500
 @@ -0,0 +1,36 @@
 +CC	=	@CC@
 +CXX	=	@CXX@
@@ -60,9 +59,9 @@ diff -urNad gdal-1.6.3~/frmts/mrsid/pkg/Makefile.in gdal-1.6.3/frmts/mrsid/pkg/M
 +%.o:	%.cpp
 +	$(CXX) $(CXXFLAGS) $(CPPFLAGS) -c -o $@ $<
 +
-diff -urNad gdal-1.6.3~/frmts/mrsid/pkg/README gdal-1.6.3/frmts/mrsid/pkg/README
---- gdal-1.6.3~/frmts/mrsid/pkg/README	1969-12-31 19:00:00.000000000 -0500
-+++ gdal-1.6.3/frmts/mrsid/pkg/README	2009-12-01 09:12:23.800604739 -0500
+diff -urNad gdal-1.7.1~/frmts/mrsid/pkg/README gdal-1.7.1/frmts/mrsid/pkg/README
+--- gdal-1.7.1~/frmts/mrsid/pkg/README	1969-12-31 19:00:00.000000000 -0500
++++ gdal-1.7.1/frmts/mrsid/pkg/README	2009-12-01 09:12:23.800604739 -0500
 @@ -0,0 +1,34 @@
 +	Standalone MrSID Drivers for GDAL
 +	===================================
@@ -98,9 +97,9 @@ diff -urNad gdal-1.6.3~/frmts/mrsid/pkg/README gdal-1.6.3/frmts/mrsid/pkg/README
 +  http://www.gdal.org/
 +  http://www.lizardtech.com/
 +  http://www.lizardtech.com/download/
-diff -urNad gdal-1.6.3~/frmts/mrsid/pkg/aclocal.m4 gdal-1.6.3/frmts/mrsid/pkg/aclocal.m4
---- gdal-1.6.3~/frmts/mrsid/pkg/aclocal.m4	1969-12-31 19:00:00.000000000 -0500
-+++ gdal-1.6.3/frmts/mrsid/pkg/aclocal.m4	2009-12-01 09:12:23.800604739 -0500
+diff -urNad gdal-1.7.1~/frmts/mrsid/pkg/aclocal.m4 gdal-1.7.1/frmts/mrsid/pkg/aclocal.m4
+--- gdal-1.7.1~/frmts/mrsid/pkg/aclocal.m4	1969-12-31 19:00:00.000000000 -0500
++++ gdal-1.7.1/frmts/mrsid/pkg/aclocal.m4	2009-12-01 09:12:23.800604739 -0500
 @@ -0,0 +1,202 @@
 +AC_DEFUN(AC_COMPILER_LOCALHACK,
 +[
@@ -304,9 +303,9 @@ diff -urNad gdal-1.6.3~/frmts/mrsid/pkg/aclocal.m4 gdal-1.6.3/frmts/mrsid/pkg/ac
 +  AC_SUBST(LD_SHARED,$LD_SHARED)
 +  AC_SUBST(SO_EXT,$SO_EXT)
 +])
-diff -urNad gdal-1.6.3~/frmts/mrsid/pkg/configure gdal-1.6.3/frmts/mrsid/pkg/configure
---- gdal-1.6.3~/frmts/mrsid/pkg/configure	1969-12-31 19:00:00.000000000 -0500
-+++ gdal-1.6.3/frmts/mrsid/pkg/configure	2009-12-01 09:12:23.800604739 -0500
+diff -urNad gdal-1.7.1~/frmts/mrsid/pkg/configure gdal-1.7.1/frmts/mrsid/pkg/configure
+--- gdal-1.7.1~/frmts/mrsid/pkg/configure	1969-12-31 19:00:00.000000000 -0500
++++ gdal-1.7.1/frmts/mrsid/pkg/configure	2009-12-01 09:12:23.800604739 -0500
 @@ -0,0 +1,4680 @@
 +#! /bin/sh
 +# Guess values for system-dependent variables and create Makefiles.
@@ -4988,9 +4987,9 @@ diff -urNad gdal-1.6.3~/frmts/mrsid/pkg/configure gdal-1.6.3/frmts/mrsid/pkg/con
 +  $ac_cs_success || { (exit 1); exit 1; }
 +fi
 +
-diff -urNad gdal-1.6.3~/frmts/mrsid/pkg/configure.in gdal-1.6.3/frmts/mrsid/pkg/configure.in
---- gdal-1.6.3~/frmts/mrsid/pkg/configure.in	1969-12-31 19:00:00.000000000 -0500
-+++ gdal-1.6.3/frmts/mrsid/pkg/configure.in	2009-12-01 09:12:23.800604739 -0500
+diff -urNad gdal-1.7.1~/frmts/mrsid/pkg/configure.in gdal-1.7.1/frmts/mrsid/pkg/configure.in
+--- gdal-1.7.1~/frmts/mrsid/pkg/configure.in	1969-12-31 19:00:00.000000000 -0500
++++ gdal-1.7.1/frmts/mrsid/pkg/configure.in	2009-12-01 09:12:23.800604739 -0500
 @@ -0,0 +1,280 @@
 +dnl ***************************************************************************
 +dnl $Id: configure.in 9971 2006-08-23 20:06:02Z fwarmerdam $

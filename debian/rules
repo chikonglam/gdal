@@ -16,7 +16,6 @@ PYDEF=$(shell pyversions -dv)
 RUBYDEF=$(shell ruby --version|cut -d' ' -f2|cut -d. -f1,2)
 PERLDEF=$(shell perl -V:version|cut -d\' -f2)
 SWIGVER=$(shell swig -version |grep Version|cut -d' ' -f3|sed -e 's/\.//g')
-SWIGOK=$(shell test $(SWIGVER) -ge 1338 && echo yes)
 
 GDALVER=$(shell cat VERSION|sed -e 's/\./ /g')
 GDAL_MAJOR=$(word 1,$(GDALVER))
@@ -30,11 +29,6 @@ versions:
 	@echo Python versions: $(PYVERS)
 	@echo Ruby default: $(RUBYDEF)
 	@echo Perl default: $(PERLDEF)
-ifneq ($(SWIGOK),yes)
-	@echo Swig is not fixed for ogr.py
-else
-	@echo Swig is fixed for ogr.py
-endif
 	@echo GDAL version: $(GDAL_MAJOR).$(GDAL_MINOR).$(GDAL_PATCH)
 
 #
@@ -120,23 +114,13 @@ build-stamp:
 	
 	# It needs pre-installing just after the building due to intermediate cleaning.
 	# Apply conditionally an on-fly patch for pre 1.3.38 swig versions.
-ifneq ($(SWIGOK),yes)
-	for V in $(PYVERS); do \
-		cp GDALmake.opt-$$V GDALmake.opt; \
-		$(MAKE) -C $(CURDIR)/swig/python clean; \
-		$(MAKE) -C $(CURDIR)/swig/python generate build; \
-		$(MAKE) -C $(CURDIR)/swig/python install DESTDIR=$(CURDIR)/debian/python-tmp; \
-		echo "Patching ogr.py" ; \
-		patch $(CURDIR)/debian/python-tmp/usr/lib/python$$V/site-packages/osgeo/ogr.py $(CURDIR)/debian/ogr.py.diff; \
-	done
-else
 	for V in $(PYVERS); do \
 		cp GDALmake.opt-$$V GDALmake.opt; \
 		$(MAKE) -C $(CURDIR)/swig/python clean; \
 		$(MAKE) -C $(CURDIR)/swig/python generate build; \
 		$(MAKE) -C $(CURDIR)/swig/python install DESTDIR=$(CURDIR)/debian/python-tmp; \
 	done
-endif
+
 	$(MAKE) docs
 	$(MAKE) man
 	# a temporary workaround for doxygen problem #564243 
@@ -166,7 +150,7 @@ install: build
 	
 	cp `ls GDALmake.opt-*|tail -1` GDALmake.opt
 	$(MAKE) install BINDINGS="perl ruby" DESTDIR=$(CURDIR)/debian/tmp \
-			INST_DATA="\$$(prefix)/share/gdal16" 
+			INST_DATA="\$$(prefix)/share/gdal17" 
 	$(MAKE) install-docs DESTDIR=$(CURDIR)/debian/tmp \
 		"INST_DOCS=\$$(prefix)/share/doc/libgdal-doc"\
 		"INST_MAN=\$$(prefix)/share/man" 
@@ -180,7 +164,7 @@ install: build
 	install -o root -g root -m 755 $(CURDIR)/swig/python/scripts/*.py $(CURDIR)/debian/tmp/usr/bin/.                                        
 	
 	# removing license file
-	rm -f $(CURDIR)/debian/tmp/usr/share/gdal16/LICENSE.TXT
+	rm -f $(CURDIR)/debian/tmp/usr/share/gdal17/LICENSE.TXT
 	# removing empty packlist MakeMaker files 
 	-find $(CURDIR)/debian/tmp/usr/local/lib/perl -type f -name .packlist -exec rm -f {} \;
 	# removing embedded rpath in perl shlibs
@@ -208,7 +192,7 @@ binary-common:
 	dh_perl
 	dh_makeshlibs
 	dh_installdeb
-	dh_shlibdeps -L libgdal1-1.6.0 -l debian/libgdal1-1.6.0/usr/lib
+	dh_shlibdeps -L libgdal1-1.7.0 -l debian/libgdal1-1.7.0/usr/lib
 	dh_gencontrol
 	dh_md5sums
 	dh_builddeb
