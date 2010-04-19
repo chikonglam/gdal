@@ -83,6 +83,7 @@ configure-stamp: patch-stamp
 			--with-ruby \
 			--with-python \
 			--with-odbc \
+			--with-dods=/usr \
 			--with-cfitsio=no; \
 		mv GDALmake.opt GDALmake.opt-$$V; \
 	done
