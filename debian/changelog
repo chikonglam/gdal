@@ -1,4 +1,4 @@
-gdal (1.7.1-2) experimental; urgency=low
+gdal (1.7.2-1) experimental; urgency=low
 
   * New upstream release.
   * Merged patch doxygen.dpatch.
