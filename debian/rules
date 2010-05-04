@@ -74,7 +74,7 @@ configure-stamp: patch-stamp
 			--with-netcdf \
 			--with-xerces \
 			--with-geos \
-			--with-sqlite \
+			--with-sqlite3 \
 			--with-curl \
 			--with-pg \
 			--with-ogdi \
@@ -83,7 +83,8 @@ configure-stamp: patch-stamp
 			--with-ruby \
 			--with-python \
 			--with-odbc \
-			--with-dods=/usr \
+			--with-dods-root=/usr \
+			--with-static-proj4=yes \
 			--with-cfitsio=no; \
 		mv GDALmake.opt GDALmake.opt-$$V; \
 	done

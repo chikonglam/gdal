@@ -1,9 +1,18 @@
+gdal (1.7.2-2) experimental; urgency=low
+
+  * Now enable static linking for proj at configuration time.
+    (closes: #579989)
+  * Fixed a couple of configure options not enabled.
+  * Fixed hdf4 patch.
+
+ -- Francesco Paolo Lovergine <frankie@debian.org>  Tue, 04 May 2010 10:03:29 +0200
+
 gdal (1.7.2-1) experimental; urgency=low
 
   * New upstream release.
   * Merged patch doxygen.dpatch.
 
- -- Francesco Paolo Lovergine <frankie@debian.org>  Mon, 03 May 2010 12:37:50 +0200
+ -- Francesco Paolo Lovergine <frankie@debian.org>  Tue, 04 May 2010 10:03:26 +0200
 
 gdal (1.7.1-1) experimental; urgency=low
 

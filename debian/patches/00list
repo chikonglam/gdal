@@ -5,7 +5,6 @@ rubymakefile
 man
 gdalpaths
 python
-hdf4
 gdal-grass
 ecw-plugin
 mrsid-plugin
