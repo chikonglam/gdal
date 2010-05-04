@@ -4,8 +4,9 @@ gdal (1.7.2-2) experimental; urgency=low
     (closes: #579989)
   * Fixed a couple of configure options not enabled.
   * Fixed hdf4 patch.
+  * Added build-dep on libxml2-dev.
 
- -- Francesco Paolo Lovergine <frankie@debian.org>  Tue, 04 May 2010 10:03:29 +0200
+ -- Francesco Paolo Lovergine <frankie@debian.org>  Tue, 04 May 2010 11:45:46 +0200
 
 gdal (1.7.2-1) experimental; urgency=low
 
