@@ -1,3 +1,4 @@
+usr/bin/gdaldem
 usr/bin/gdal_grid
 usr/bin/gdalenhance
 usr/bin/gdalmanage
@@ -28,3 +29,4 @@ usr/share/man/man1/gdal_retile.1
 usr/share/man/man1/gdaltindex.1
 usr/share/man/man1/gdaltransform.1
 usr/share/man/man1/nearblack.1
+usr/share/man/man1/gdaldem.1

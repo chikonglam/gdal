@@ -1,68 +1,56 @@
 #! /bin/sh /usr/share/dpatch/dpatch-run
-## libname.dpatch by Francesco Paolo Lovergine <frankie@debian.org>
+## libname.dpatch by Alan Boudreault <aboudreault@mapgears.com>
 ##
 ## All lines beginning with `## DP:' are a description of the patch.
 ## DP: No description.
 
 @DPATCH@
-diff -urNad gdal-1.6.0~/GDALmake.opt.in gdal-1.6.0/GDALmake.opt.in
---- gdal-1.6.0~/GDALmake.opt.in	2008-11-23 22:51:24.000000000 +0100
-+++ gdal-1.6.0/GDALmake.opt.in	2008-12-24 11:21:35.000000000 +0100
-@@ -82,7 +82,7 @@
+diff -urNad gdal-1.7.1~/GDALmake.opt.in gdal-1.7.1/GDALmake.opt.in
+--- gdal-1.7.1~/GDALmake.opt.in	2010-02-08 14:52:34.000000000 -0500
++++ gdal-1.7.1/GDALmake.opt.in	2010-02-18 11:08:22.123682825 -0500
+@@ -84,7 +84,7 @@
  			-I$(GDAL_ROOT)/ogr -I$(GDAL_ROOT)/ogr/ogrsf_frmts
  
  # libtool targets and help variables
 -LIBGDAL	:=		libgdal.la
-+LIBGDAL	:=		libgdal1.6.0.la
- LIBGDAL_CURRENT	:=	14
- LIBGDAL_REVISION	:=	0
- LIBGDAL_AGE	:=	13
-@@ -95,9 +95,9 @@
++LIBGDAL	:=		libgdal1.7.0.la
+ LIBGDAL_CURRENT	:=	15
+ LIBGDAL_REVISION	:=	1
+ LIBGDAL_AGE	:=	14
+@@ -97,9 +97,9 @@
  GDAL_VERSION_MINOR =    @GDAL_VERSION_MINOR@
  GDAL_VERSION_REV   =    @GDAL_VERSION_REV@
  
 -GDAL_LIB	= 	$(GDAL_ROOT)/libgdal.a
 -GDAL_SLIB	=	$(GDAL_ROOT)/libgdal.$(SO_EXT)
 -GDAL_SLIB_LINK	=	-L$(GDAL_ROOT) -lgdal
-+GDAL_LIB	= 	$(GDAL_ROOT)/libgdal1.6.0.a
-+GDAL_SLIB	=	$(GDAL_ROOT)/libgdal1.6.0.$(SO_EXT)
-+GDAL_SLIB_LINK	=	-L$(GDAL_ROOT) -lgdal1.6.0
++GDAL_LIB	= 	$(GDAL_ROOT)/libgdal1.7.0.a
++GDAL_SLIB	=	$(GDAL_ROOT)/libgdal1.7.0.$(SO_EXT)
++GDAL_SLIB_LINK	=	-L$(GDAL_ROOT) -lgdal1.7.0
  
  # Mac OS X Framework definition
  MACOSX_FRAMEWORK = @MACOSX_FRAMEWORK@
-@@ -336,9 +336,9 @@
+@@ -363,9 +363,9 @@
  
  CONFIG_LIBS	=	$(GDAL_ROOT)/$(LIBGDAL)
  ifeq ($(MACOSX_FRAMEWORK),yes)
 -CONFIG_LIBS_INS	=	-L$(INST_LIB)/unix/lib -lgdal
-+CONFIG_LIBS_INS	=	-L$(INST_LIB)/unix/lib -lgdal1.6.0
++CONFIG_LIBS_INS	=	-L$(INST_LIB)/unix/lib -lgdal1.7.0
  else
 -CONFIG_LIBS_INS	=	-L$(INST_LIB) -lgdal
-+CONFIG_LIBS_INS	=	-L$(INST_LIB) -lgdal1.6.0
++CONFIG_LIBS_INS	=	-L$(INST_LIB) -lgdal1.7.0
  endif # MACOSX_FRAMEWORK
  
  EXE_DEP_LIBS	=	$(GDAL_ROOT)/$(LIBGDAL)
-@@ -349,9 +349,9 @@
- ifeq ($(HAVE_LD_SHARED),yes)
- CONFIG_LIBS	=	$(GDAL_SLIB_LINK) $(LIBS)
- ifeq ($(MACOSX_FRAMEWORK),yes)
--CONFIG_LIBS_INS	=	-L$(INST_LIB)/unix/lib -lgdal
-+CONFIG_LIBS_INS	=	-L$(INST_LIB)/unix/lib -lgdal1.6.0
- else
--CONFIG_LIBS_INS	=	-L$(INST_LIB) -lgdal
-+CONFIG_LIBS_INS	=	-L$(INST_LIB) -lgdal1.6.0
- endif
- EXE_DEP_LIBS	=	$(GDAL_SLIB)
- else
-diff -urNad gdal-1.6.0~/swig/perl/Makefile.PL gdal-1.6.0/swig/perl/Makefile.PL
---- gdal-1.6.0~/swig/perl/Makefile.PL	2008-10-28 12:08:30.000000000 +0100
-+++ gdal-1.6.0/swig/perl/Makefile.PL	2008-12-24 11:24:34.000000000 +0100
+diff -urNad gdal-1.7.1~/swig/perl/Makefile.PL gdal-1.7.1/swig/perl/Makefile.PL
+--- gdal-1.7.1~/swig/perl/Makefile.PL	2010-02-08 14:52:22.000000000 -0500
++++ gdal-1.7.1/swig/perl/Makefile.PL	2010-02-18 11:08:44.843685363 -0500
 @@ -24,7 +24,7 @@
      die "can't find gdal-config";
  }
  open $fh, $fh or die "$fh not found!";
 -$LIB .= " -lgdal ";
-+$LIB .= " -lgdal1.6.0 ";
++$LIB .= " -lgdal1.7.0 ";
  if ($fh) {
      @config = <$fh>;
      close $fh;
