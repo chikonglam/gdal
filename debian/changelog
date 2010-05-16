@@ -1,3 +1,9 @@
+gdal (1.7.2-4) unstable; urgency=low
+
+  * Added libspatialite-dev dependency for libgdal1-dev.
+
+ -- Alan Boudreault <aboudreault@mapgears.com>  Sun, 16 May 2010 13:41:18 -0400
+
 gdal (1.7.2-3) unstable; urgency=low
 
   * Uploaded to unstable.
