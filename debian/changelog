@@ -1,21 +1,15 @@
 gdal (1.7.3-1) unstable; urgency=low
 
+  [ Alan Boudreault ]
   * New upstream release with many fixes.
-
- -- Alan Boudreault <aboudreault@mapgears.com>  Fri, 26 Nov 2010 09:27:09 -0500
-
-gdal (1.7.2-4) unstable; urgency=low
-
   * Added libspatialite-dev dependency for libgdal1-dev.
 
- -- Alan Boudreault <aboudreault@mapgears.com>  Sun, 16 May 2010 13:41:18 -0400
-
-gdal (1.7.2-3) unstable; urgency=low
-
-  * Uploaded to unstable.
+  [ Francesco Paolo Lovergine ]
   * Added sample programs to python-gdal documentation.
+  * Merged changelog to be ready for true unstable upload. 
+  * Policy bumped to 3.9.1, without changes.
 
- -- Francesco Paolo Lovergine <frankie@debian.org>  Wed, 12 May 2010 17:28:58 +0200
+ -- Francesco Paolo Lovergine <frankie@debian.org>  Tue, 08 Feb 2011 14:17:26 +0100
 
 gdal (1.7.2-2) experimental; urgency=low
 
