@@ -8,8 +8,17 @@ gdal (1.7.3-1) unstable; urgency=low
   * Added sample programs to python-gdal documentation.
   * Merged changelog to be ready for true unstable upload. 
   * Policy bumped to 3.9.1, without changes.
+  * Added Build-Conflicts against python-setuptools, because it still
+    has problems at building time.
+    (closes: #579987)
+  * Removed unuseful strict versioning in libgdal-doc suggest for libgdal1-1.7.0.
+    (closes: #580172)
+  * Added libdap-dev dependency for libgdal1-dev.
+    (closes: #598346)
+  * Man pages garbling seems now fixed.
+    (closes: #598643)
 
- -- Francesco Paolo Lovergine <frankie@debian.org>  Tue, 08 Feb 2011 14:17:26 +0100
+ -- Francesco Paolo Lovergine <frankie@debian.org>  Tue, 08 Feb 2011 15:05:36 +0100
 
 gdal (1.7.2-2) experimental; urgency=low
 

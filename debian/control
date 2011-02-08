@@ -10,6 +10,7 @@ Build-Depends: debhelper (>= 7), zlib1g-dev, libnetcdf-dev (>= 1:4.0.0),
  python-central (>= 0.5), libcurl4-gnutls-dev, libsqlite3-dev, libogdi3.2-dev,
  ruby, ruby1.8-dev, chrpath, swig, libtool (>= 1.5.24-2), patch, libexpat1-dev, libproj-dev,
  libdap-dev, libxml2-dev, libspatialite-dev (>= 2.4.0~rc2-4)
+Build-Conflicts: python-setuptools
 Standards-Version: 3.9.1
 XS-Python-Version: all
 Homepage: http://www.gdal.org/
@@ -47,7 +48,7 @@ Depends: libgdal1-1.7.0 (=${binary:Version}), libc6-dev, libnetcdf-dev,
  libjasper-dev|libjasper-1.701-dev, libpng12-dev, libjpeg62-dev, libgif-dev, libhdf4-alt-dev, 
  libpq-dev, libxerces-c2-dev, unixodbc-dev, libsqlite3-dev, libgeos-dev,
  libmysqlclient-dev, libhdf5-serial-dev, libltdl3-dev, libcurl4-dev|libcurl3-dev,
- libspatialite-dev
+ libspatialite-dev, libdap-dev
 Suggests: libgdal-doc
 Provides: libgdal-dev
 Description: Geospatial Data Abstraction Library - Development files
@@ -73,7 +74,7 @@ Description: Geospatial Data Abstraction Library - Development files
 Package: libgdal-doc
 Section: doc
 Architecture: all
-Suggests: libgdal1-1.7.0 (=${binary:Version})
+Suggests: libgdal1-1.7.0 
 Homepage: http://www.gdal.org/#index_userdocs
 Description: Documentation for the Geospatial Data Abstraction Library
  GDAL is a translator library for raster geospatial data formats.
