@@ -1,13 +1,7 @@
-#! /bin/sh /usr/share/dpatch/dpatch-run
-## doc.dpatch by Alan Boudreault <aboudreault@mapgears.com>
-##
-## All lines beginning with `## DP:' are a description of the patch.
-## DP: No description.
-
-@DPATCH@
-diff -urNad gdal-1.7.1~/doc/index.dox gdal-1.7.1/doc/index.dox
---- gdal-1.7.1~/doc/index.dox	2010-02-18 15:02:46.000000000 -0500
-+++ gdal-1.7.1/doc/index.dox	2010-02-25 12:03:48.553681163 -0500
+Index: gdal/doc/index.dox
+===================================================================
+--- gdal.orig/doc/index.dox	2011-02-18 15:52:35.000000000 +0100
++++ gdal/doc/index.dox	2011-02-18 16:47:08.000000000 +0100
 @@ -19,7 +19,7 @@
  <a href="http://trac.osgeo.org/gdal/wiki/Release/1.6.3-News">NEWS</a> 
  page describes the November 2009 GDAL/OGR 1.6.3 release.
@@ -17,9 +11,10 @@ diff -urNad gdal-1.7.1~/doc/index.dox gdal-1.7.1/doc/index.dox
  provides a similar capability for simple features vector data.
  
  Master: http://www.gdal.org<br>
-diff -urNad gdal-1.7.1~/ogr/index.dox gdal-1.7.1/ogr/index.dox
---- gdal-1.7.1~/ogr/index.dox	2010-02-18 15:02:46.000000000 -0500
-+++ gdal-1.7.1/ogr/index.dox	2010-02-25 12:04:27.773684026 -0500
+Index: gdal/ogr/index.dox
+===================================================================
+--- gdal.orig/ogr/index.dox	2011-02-18 15:52:35.000000000 +0100
++++ gdal/ogr/index.dox	2011-02-18 16:47:08.000000000 +0100
 @@ -6,7 +6,7 @@
  formats including ESRI Shapefiles, S-57, SDTS, PostGIS, Oracle Spatial, 
  and Mapinfo mid/mif and TAB formats.<p>

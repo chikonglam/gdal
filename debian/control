@@ -3,10 +3,10 @@ Section: science
 Priority: extra
 Maintainer: Debian GIS Project <pkg-grass-devel@lists.alioth.debian.org>
 Uploaders: Francesco Paolo Lovergine <frankie@debian.org>
-Build-Depends: debhelper (>= 7), zlib1g-dev, libnetcdf-dev (>= 1:4.0.0),
+Build-Depends: debhelper (>= 8), zlib1g-dev, libnetcdf-dev (>= 1:4.0.0),
  libjasper-dev, libpng12-dev, libjpeg62-dev, libgif-dev,
  libhdf4-alt-dev, libhdf5-serial-dev (>=1.6.6), libpq-dev, libxerces-c2-dev, unixodbc-dev (>= 2.2.11),
- python-dev, python-numpy, doxygen, d-shlibs, libgeos-dev, dpatch, libmysqlclient-dev, python-all-dev (>= 2.3.5-11~), 
+ python-dev, python-numpy, doxygen, d-shlibs, libgeos-dev, libmysqlclient-dev, python-all-dev (>= 2.3.5-11~), 
  python-central (>= 0.5), libcurl4-gnutls-dev, libsqlite3-dev, libogdi3.2-dev,
  ruby, ruby1.8-dev, chrpath, swig, libtool (>= 1.5.24-2), patch, libexpat1-dev, libproj-dev,
  libdap-dev, libxml2-dev, libspatialite-dev (>= 2.4.0~rc2-4)
@@ -14,13 +14,13 @@ Build-Conflicts: python-setuptools
 Standards-Version: 3.9.1
 XS-Python-Version: all
 Homepage: http://www.gdal.org/
-Vcs-Browser: http://svn.debian.org/viewsvn/pkg-grass/packages/gdal/trunk
-Vcs-Svn: svn://svn.debian.org/svn/pkg-grass/packages/gdal/trunk
+Vcs-Browser: http://git.debian.org/?p=pkg-grass/gdal.git
+Vcs-Git: git://git.debian.org/git/pkg-grass/gdal.git
 
 Package: libgdal1-1.7.0
 Section: libs
 Architecture: any
-Depends: ${shlibs:Depends}
+Depends: ${shlibs:Depends}, ${misc:Depends}
 Recommends: proj-bin
 Description: Geospatial Data Abstraction Library
  GDAL is a translator library for raster geospatial data formats.
@@ -48,7 +48,7 @@ Depends: libgdal1-1.7.0 (=${binary:Version}), libc6-dev, libnetcdf-dev,
  libjasper-dev|libjasper-1.701-dev, libpng12-dev, libjpeg62-dev, libgif-dev, libhdf4-alt-dev, 
  libpq-dev, libxerces-c2-dev, unixodbc-dev, libsqlite3-dev, libgeos-dev,
  libmysqlclient-dev, libhdf5-serial-dev, libltdl3-dev, libcurl4-dev|libcurl3-dev,
- libspatialite-dev, libdap-dev
+ libspatialite-dev, libdap-dev, ${misc:Depends}
 Suggests: libgdal-doc
 Provides: libgdal-dev
 Description: Geospatial Data Abstraction Library - Development files
@@ -75,6 +75,7 @@ Package: libgdal-doc
 Section: doc
 Architecture: all
 Suggests: libgdal1-1.7.0 
+Depends: ${misc:Depends} 
 Homepage: http://www.gdal.org/#index_userdocs
 Description: Documentation for the Geospatial Data Abstraction Library
  GDAL is a translator library for raster geospatial data formats.
@@ -98,7 +99,7 @@ Description: Documentation for the Geospatial Data Abstraction Library
 Package: gdal-bin
 Section: science
 Architecture: any
-Depends: ${shlibs:Depends}
+Depends: ${shlibs:Depends}, ${misc:Depends}
 Homepage: http://www.gdal.org/gdal_utilities.html
 Suggests: python-gdal
 Description: Geospatial Data Abstraction Library - Utility programs
@@ -125,7 +126,7 @@ Description: Geospatial Data Abstraction Library - Utility programs
 Package: python-gdal
 Section: python
 Architecture: any
-Depends: ${shlibs:Depends}, ${python:Depends}, python-numpy
+Depends: ${shlibs:Depends}, ${python:Depends}, python-numpy, ${misc:Depends}
 Provides: ${python:Provides}
 Homepage: http://trac.osgeo.org/gdal/wiki/GdalOgrInPython
 XB-Python-Version: ${python:Versions}
@@ -152,7 +153,7 @@ Description: Python bindings to the Geospatial Data Abstraction Library
 Package: libgdal-perl
 Section: perl
 Architecture: any
-Depends: ${shlibs:Depends}, ${perl:Depends}
+Depends: ${shlibs:Depends}, ${perl:Depends}, ${misc:Depends}
 Homepage: http://map.hut.fi/doc/Geo-GDAL/html/
 Description: Perl bindings to the Geospatial Data Abstraction Library
  GDAL is a translator library for raster geospatial data formats.
@@ -176,7 +177,7 @@ Description: Perl bindings to the Geospatial Data Abstraction Library
 Package: libgdal-ruby1.8
 Section: ruby
 Architecture: any
-Depends: ${shlibs:Depends}
+Depends: ${shlibs:Depends}, ${misc:Depends}
 Description: Ruby 1.8 bindings to the Geospatial Data Abstraction Library
  GDAL is a translator library for raster geospatial data formats.
  As a library, it presents a single abstract data model to the
@@ -199,7 +200,7 @@ Description: Ruby 1.8 bindings to the Geospatial Data Abstraction Library
 Package: libgdal-ruby
 Section: ruby
 Architecture: any
-Depends: libgdal-ruby1.8
+Depends: libgdal-ruby1.8, ${misc:Depends}
 Description: Ruby bindings to the Geospatial Data Abstraction Library
  This is a dummy package which depends on current ruby version
  to support GDAL/OGR library binding upgrades.

@@ -1,34 +1,42 @@
-#! /bin/sh /usr/share/dpatch/dpatch-run
-## mrsid-plugin.dpatch by Alan Boudreault <aboudreault@mapgears.com>
-##
-## All lines beginning with `## DP:' are a description of the patch.
-## DP: No description.
-
-@DPATCH@
-diff -urNad gdal-1.7.1~/frmts/mrsid/GNUmakefile gdal-1.7.1/frmts/mrsid/GNUmakefile
---- gdal-1.7.1~/frmts/mrsid/GNUmakefile	2009-05-08 00:52:49.000000000 -0400
-+++ gdal-1.7.1/frmts/mrsid/GNUmakefile	2009-12-01 09:12:23.800604739 -0500
-@@ -28,3 +28,10 @@
- #    -rpath $(INST_LIB) \
- #    -no-undefined -export-dynamic
- 
+Index: gdal/frmts/ecw/GNUmakefile
+===================================================================
+--- gdal.orig/frmts/ecw/GNUmakefile	2011-02-18 15:52:35.000000000 +0100
++++ gdal/frmts/ecw/GNUmakefile	2011-02-18 16:49:18.000000000 +0100
+@@ -18,3 +18,12 @@
+ $(PLUGIN_SO):	$(OBJ)
+ 	$(LD_SHARED) $(LNK_FLAGS) $(OBJ) $(CONFIG_LIBS) $(EXTRA_LIBS) \
+ 		-o $(PLUGIN_SO)
++ 
 +dist:
-+	cp -r pkg libgdal-mrsid-$(GDAL_VER)
-+	rm -rf libgdal-mrsid-$(GDAL_VER)/.svn
-+	cp *.h libgdal-mrsid-$(GDAL_VER)
-+	cp *.cpp libgdal-mrsid-$(GDAL_VER)
-+	tar czvf libgdal-mrsid-$(GDAL_VER).tar.gz ./libgdal-mrsid-$(GDAL_VER)
-+	rm -rf libgdal-mrsid-$(GDAL_VER)
-diff -urNad gdal-1.7.1~/frmts/mrsid/pkg/Makefile.in gdal-1.7.1/frmts/mrsid/pkg/Makefile.in
---- gdal-1.7.1~/frmts/mrsid/pkg/Makefile.in	1969-12-31 19:00:00.000000000 -0500
-+++ gdal-1.7.1/frmts/mrsid/pkg/Makefile.in	2009-12-01 09:12:23.800604739 -0500
++	cp -r pkg libgdal-ecw-$(GDAL_VER)
++	rm -rf libgdal-ecw-$(GDAL_VER)/.svn
++	cp *.cpp libgdal-ecw-$(GDAL_VER)
++	cp *.h libgdal-ecw-$(GDAL_VER)
++	tar czvf libgdal-ecw-$(GDAL_VER).tar.gz ./libgdal-ecw-$(GDAL_VER)
++	rm -rf libgdal-ecw-$(GDAL_VER)
++ 
+Index: gdal/frmts/ecw/ecwdataset.cpp
+===================================================================
+--- gdal.orig/frmts/ecw/ecwdataset.cpp	2011-02-18 15:52:35.000000000 +0100
++++ gdal/frmts/ecw/ecwdataset.cpp	2011-02-18 16:49:18.000000000 +0100
+@@ -1730,6 +1730,3 @@
+ #endif /* def FRMT_ecw */
+ }
+ 
+-
+-
+-
+Index: gdal/frmts/ecw/pkg/Makefile.in
+===================================================================
+--- /dev/null	1970-01-01 00:00:00.000000000 +0000
++++ gdal/frmts/ecw/pkg/Makefile.in	2011-02-18 16:49:18.000000000 +0100
 @@ -0,0 +1,36 @@
 +CC	=	@CC@
 +CXX	=	@CXX@
 +LD	=	@CXX@
 +
-+CPPFLAGS = -DFRMT_mrsid @GDAL_INC@ @MRSID_FLAGS@ @MRSID_INCLUDE@ @GEOTIFF_INCLUDE@ @CPPFLAGS@ 
-+CXXFLAGS = -DFRMT_mrsid @CXX_WFLAGS@ @MRSID_INCLUDE@ @GEOTIFF_INCLUDE@ @CXX_PIC@ 
++CPPFLAGS = -DFRMT_ecw @GDAL_INC@ @ECW_INCLUDE@ @CPPFLAGS@ 
++CXXFLAGS = -DFRMT_ecw @CXX_WFLAGS@ @ECW_INCLUDE@ @CXX_PIC@ 
 +
 +RANLIB		=	@RANLIB@
 +SO_EXT		=	@SO_EXT@
@@ -38,7 +46,7 @@ diff -urNad gdal-1.7.1~/frmts/mrsid/pkg/Makefile.in gdal-1.7.1/frmts/mrsid/pkg/M
 +
 +AUTOLOAD_DIR	=	@AUTOLOAD_DIR@
 +
-+GLIBNAME =	gdal_MrSID.so
++GLIBNAME =	gdal_ECW_JP2ECW.so
 +
 +default:	$(GLIBNAME) 
 +
@@ -53,53 +61,51 @@ diff -urNad gdal-1.7.1~/frmts/mrsid/pkg/Makefile.in gdal-1.7.1/frmts/mrsid/pkg/M
 +	rm -fr Makefile config.status config.log autom*.cache
 +
 +
-+$(GLIBNAME):	mrsiddataset.o mrsidstream.o
-+	$(LD_SHARED) mrsiddataset.o mrsidstream.o $(LIBS) -o $(GLIBNAME)
++$(GLIBNAME):	ecwcreatecopy.o ecwdataset.o jp2userbox.o
++	$(LD_SHARED) ecwcreatecopy.o ecwdataset.o jp2userbox.o $(LIBS) -o $(GLIBNAME)
 +
 +%.o:	%.cpp
 +	$(CXX) $(CXXFLAGS) $(CPPFLAGS) -c -o $@ $<
 +
-diff -urNad gdal-1.7.1~/frmts/mrsid/pkg/README gdal-1.7.1/frmts/mrsid/pkg/README
---- gdal-1.7.1~/frmts/mrsid/pkg/README	1969-12-31 19:00:00.000000000 -0500
-+++ gdal-1.7.1/frmts/mrsid/pkg/README	2009-12-01 09:12:23.800604739 -0500
-@@ -0,0 +1,34 @@
-+	Standalone MrSID Drivers for GDAL
+Index: gdal/frmts/ecw/pkg/README
+===================================================================
+--- /dev/null	1970-01-01 00:00:00.000000000 +0000
++++ gdal/frmts/ecw/pkg/README	2011-02-18 16:49:18.000000000 +0100
+@@ -0,0 +1,30 @@
++	Standalone ECW 3.3 Drivers for GDAL
 +	===================================
 +
-+This package contains standalone drivers for MrSID raster files that      
++This package contains standalone drivers for ECW raster files that      
 +can be built after GDAL has been built and installed as an "autoload"   
 +driver.                                                                 
 +
-+The purpose of this code is allowing a separate building of the MrSID
-+driver which is problematic for implied LIZARDTECH COMPUTER SOFTWARE
-+LICENSE. Note that in order to use GDAL (and GDAL-based third parties
-+product) along with LizardTech DSDK you need to read, understand and
-+approve the LizardTech DSDK license which can be retrieved on the
-+LizardTech site.
++The purpose of this code is allowing a separate building of the ECW
++driver which is problematic for implied EULA. Note that in order to use
++GDAL (and GDAL-based third parties product) along with Ermapper ECW SDK
++you need to read, understand and approve the Ermapper EULA which can be
++retrieved on the Ermapper site.
 +
-+
-+To build this driver it is necessary for it to find GDAL and MrSID support
++To build this driver it is necessary for it to find GDAL and ECW support
 +files. Typically the configure and build process would look something
 +like:
 +
-+./configure --with-gdal=/usr/local/bin/gdal-config \
-+            --with-mrsid=/usr/local/GeoDSDK-7.0    \
-+            --with-jp2mrsid=yes
-+            --with-geotiff=[yes or path]  
++./configure --with-gdal=/usr/local/bin/gdal-config --with-ecw=/usr/local/ecw3.3
 +make
 +sudo make install
 +
-+The GeoDSDK-7.0 directory will contain the required includes and libraries distributed 
-+by LizardTech.
++The ecw3.3 directory will contain the required includes and libraries as
++compiled starting from the source Ermapper SDK.
 +
 +See also:
 +
 +  http://www.gdal.org/
-+  http://www.lizardtech.com/
-+  http://www.lizardtech.com/download/
-diff -urNad gdal-1.7.1~/frmts/mrsid/pkg/aclocal.m4 gdal-1.7.1/frmts/mrsid/pkg/aclocal.m4
---- gdal-1.7.1~/frmts/mrsid/pkg/aclocal.m4	1969-12-31 19:00:00.000000000 -0500
-+++ gdal-1.7.1/frmts/mrsid/pkg/aclocal.m4	2009-12-01 09:12:23.800604739 -0500
++  http://www.ermapper.com/
++  http://ermapper.com/Downloads.aspx?v=315
++
+Index: gdal/frmts/ecw/pkg/aclocal.m4
+===================================================================
+--- /dev/null	1970-01-01 00:00:00.000000000 +0000
++++ gdal/frmts/ecw/pkg/aclocal.m4	2011-02-18 16:49:18.000000000 +0100
 @@ -0,0 +1,202 @@
 +AC_DEFUN(AC_COMPILER_LOCALHACK,
 +[
@@ -303,10 +309,11 @@ diff -urNad gdal-1.7.1~/frmts/mrsid/pkg/aclocal.m4 gdal-1.7.1/frmts/mrsid/pkg/ac
 +  AC_SUBST(LD_SHARED,$LD_SHARED)
 +  AC_SUBST(SO_EXT,$SO_EXT)
 +])
-diff -urNad gdal-1.7.1~/frmts/mrsid/pkg/configure gdal-1.7.1/frmts/mrsid/pkg/configure
---- gdal-1.7.1~/frmts/mrsid/pkg/configure	1969-12-31 19:00:00.000000000 -0500
-+++ gdal-1.7.1/frmts/mrsid/pkg/configure	2009-12-01 09:12:23.800604739 -0500
-@@ -0,0 +1,4680 @@
+Index: gdal/frmts/ecw/pkg/configure
+===================================================================
+--- /dev/null	1970-01-01 00:00:00.000000000 +0000
++++ gdal/frmts/ecw/pkg/configure	2011-02-18 16:49:18.000000000 +0100
+@@ -0,0 +1,4498 @@
 +#! /bin/sh
 +# Guess values for system-dependent variables and create Makefiles.
 +# Generated by GNU Autoconf 2.61.
@@ -943,9 +950,8 @@ diff -urNad gdal-1.7.1~/frmts/mrsid/pkg/configure gdal-1.7.1/frmts/mrsid/pkg/con
 +GDAL_CONFIG
 +GDAL_INC
 +AUTOLOAD_DIR
-+MRSID_INCLUDE
-+MRSID_FLAGS
-+GEOTIFF_INCLUDE
++ECW_INCLUDE
++ECW_SETTING
 +LIBOBJS
 +LTLIBOBJS'
 +ac_subst_files=''
@@ -1531,9 +1537,7 @@ diff -urNad gdal-1.7.1~/frmts/mrsid/pkg/configure gdal-1.7.1/frmts/mrsid/pkg/con
 +  --with-ld-shared=cmd    provide shared library link
 +  --with-gdal=PATH        GDAL (PATH is path to gdal-config)
 +  --with-autoload=DIR      Directory for autoload drivers
-+  --with-mrsid=ARG      Include MrSID support (ARG=path to MrSID DSDK or no)
-+  --with-jp2mrsid=ARG   Enable MrSID JPEG2000 support (ARG=yes/no)
-+  --with-geotiff=ARG    Libgeotiff library to use (ARG=yes or path)
++  --with-ecw=ARG        Include ECW support (ARG=ECW SDK Path)
 +
 +Some influential environment variables:
 +  CC          C compiler command
@@ -3603,8 +3607,8 @@ diff -urNad gdal-1.7.1~/frmts/mrsid/pkg/configure gdal-1.7.1/frmts/mrsid/pkg/con
 +
 +else
 +
-+  { { echo "$as_me:$LINENO: error: gdal required to build GDAL MrSID driver" >&5
-+echo "$as_me: error: gdal required to build GDAL MrSID driver" >&2;}
++  { { echo "$as_me:$LINENO: error: gdal required to build GDAL ECW 3.3 driver" >&5
++echo "$as_me: error: gdal required to build GDAL ECW 3.3 driver" >&2;}
 +   { (exit 1); exit 1; }; }
 +
 +fi
@@ -3638,171 +3642,39 @@ diff -urNad gdal-1.7.1~/frmts/mrsid/pkg/configure gdal-1.7.1/frmts/mrsid/pkg/con
 +
 +
 +
-+MRSID_INCLUDE=
-+MRSID_FLAGS=
-+MRSID_SETTING=no
-+HAVE_KAKADU=no
++ECW_SETTING=no
++ECW_INCLUDE=
++export ECW_INCLUDE ECW_SETTING
 +
 +
-+# Check whether --with-mrsid was given.
-+if test "${with_mrsid+set}" = set; then
-+  withval=$with_mrsid;
++# Check whether --with-ecw was given.
++if test "${with_ecw+set}" = set; then
++  withval=$with_ecw;
 +fi
 +
 +
-+
-+# Check whether --with-jp2mrsid was given.
-+if test "${with_jp2mrsid+set}" = set; then
-+  withval=$with_jp2mrsid;
-+fi
-+
-+
-+if test "x$with_mrsid" = "xno"  -o "x$with_mrsid" = "x" ; then
-+
-+  { { echo "$as_me:$LINENO: error: MrSID DSDK is required to build GDAL MrSID driver" >&5
-+echo "$as_me: error: MrSID DSDK is required to build GDAL MrSID driver" >&2;}
-+   { (exit 1); exit 1; }; }
-+
++if test ! -z "`uname | grep Darwin`" ; then
++  CARBON_FRAMEWORK="-framework Carbon"
 +else
-+
-+  MRSID_BASE="$with_mrsid/include"
-+
-+  { echo "$as_me:$LINENO: checking for lt_base.h in $MRSID_BASE/support" >&5
-+echo $ECHO_N "checking for lt_base.h in $MRSID_BASE/support... $ECHO_C" >&6; }
-+  if test -r "$MRSID_BASE/support/lt_base.h" ; then
-+
-+    { echo "$as_me:$LINENO: result: found MrSID DSDK version 4.x or newer." >&5
-+echo "${ECHO_T}found MrSID DSDK version 4.x or newer." >&6; }
-+    MRSID_SETTING=yes
-+    MRSID_INCLUDE="-I$MRSID_BASE/base -I$MRSID_BASE/metadata -I$MRSID_BASE/mrsid_readers -I$MRSID_BASE/j2k_readers -I$MRSID_BASE/support"
-+
-+  else
-+
-+    { echo "$as_me:$LINENO: result: not found." >&5
-+echo "${ECHO_T}not found." >&6; }
-+
-+    { echo "$as_me:$LINENO: checking for lt_base.h in $MRSID_BASE" >&5
-+echo $ECHO_N "checking for lt_base.h in $MRSID_BASE... $ECHO_C" >&6; }
-+    if test -r "$MRSID_BASE/lt_base.h" ; then
-+
-+      { echo "$as_me:$LINENO: result: found MrSID DSDK version 7.x or newer." >&5
-+echo "${ECHO_T}found MrSID DSDK version 7.x or newer." >&6; };
-+      MRSID_SETTING=yes
-+      MRSID_INCLUDE="-I$MRSID_BASE"
-+
-+    fi
-+
-+  fi
-+
-+  if test $MRSID_SETTING = yes ; then
-+
-+    MRSID_LIBS="-lltidsdk -lpthread"
-+
-+    { echo "$as_me:$LINENO: checking for MG3ImageWriter.h in $with_mrsid/include/mrsid_writers" >&5
-+echo $ECHO_N "checking for MG3ImageWriter.h in $with_mrsid/include/mrsid_writers... $ECHO_C" >&6; }
-+    if test -r "$with_mrsid/include/mrsid_writers/MG3ImageWriter.h" ; then
-+      { echo "$as_me:$LINENO: result: found MrSID ESDK version 4.x or newer." >&5
-+echo "${ECHO_T}found MrSID ESDK version 4.x or newer." >&6; }
-+      MRSID_FLAGS="-DMRSID_ESDK $MRSID_FLAGS"
-+      MRSID_INCLUDE="-I$with_mrsid/include/mrsid_writers -I$with_mrsid/include/j2k_writers $MRSID_INCLUDE"
-+      if test -r $with_mrsid/3rd-party/lib/Release/libcryptopp.a ; then
-+        MRSID_LIBS="-lltiesdk -lcryptopp -lxmlparse $MRSID_LIBS"
-+      else
-+        MRSID_LIBS="-lltiesdk -lxmlparse $MRSID_LIBS"
-+      fi
-+    else
-+      { echo "$as_me:$LINENO: result: no encoding support." >&5
-+echo "${ECHO_T}no encoding support." >&6; }
-+    fi
-+
-+    { echo "$as_me:$LINENO: checking for MrSID JPEG2000 support" >&5
-+echo $ECHO_N "checking for MrSID JPEG2000 support... $ECHO_C" >&6; }
-+    if test "x$with_jp2mrsid" = "xyes" -a "$HAVE_KAKADU" = "yes" ; then
-+      { { echo "$as_me:$LINENO: error: MrSID JPEG2000 support requested, but this is incompatible with use of standalone Kakadu" >&5
-+echo "$as_me: error: MrSID JPEG2000 support requested, but this is incompatible with use of standalone Kakadu" >&2;}
-+   { (exit 1); exit 1; }; }
-+    fi
-+
-+    MRSID_KAKADU_LIB=
-+    if test "$HAVE_KAKADU" = "no" ; then
-+      if test x"$with_jp2mrsid" = x"" -o x"$with_jp2mrsid" = x"yes" ; then
-+        if test -r $with_mrsid/3rd-party/lib/Release/libltikdu.a ; then
-+          with_jp2mrsid=yes
-+          MRSID_KAKADU_LIB=-lltikdu
-+        elif test -r $with_mrsid/3rd-party/lib/Release/liblt_kakadu.a ; then
-+          with_jp2mrsid=yes
-+          MRSID_KAKADU_LIB=-llt_kakadu
-+        else
-+          { { echo "$as_me:$LINENO: error: MrSID JPEG2000 support requested, but libltikdu.a not found." >&5
-+echo "$as_me: error: MrSID JPEG2000 support requested, but libltikdu.a not found." >&2;}
-+   { (exit 1); exit 1; }; }
-+        fi
-+      fi
-+    fi
-+
-+    if test "x$with_jp2mrsid" = "xyes" ; then
-+      MRSID_LIBS="$MRSID_LIBS $MRSID_KAKADU_LIB"
-+      MRSID_FLAGS="-DMRSID_J2K $MRSID_FLAGS"
-+      { echo "$as_me:$LINENO: result: enabled" >&5
-+echo "${ECHO_T}enabled" >&6; }
-+    else
-+      { echo "$as_me:$LINENO: result: disabled" >&5
-+echo "${ECHO_T}disabled" >&6; }
-+    fi
-+
-+    if test -r "$with_mrsid/lib/libltidsdk.a" ; then
-+      MRSID_LIBS="-L$with_mrsid/lib -L$with_mrsid/3rd-party/lib $MRSID_LIBS"
-+    else
-+      MRSID_LIBS="-L$with_mrsid/lib/Release -L$with_mrsid/3rd-party/lib/Release $MRSID_LIBS"
-+    fi
-+
-+    LIBS="$MRSID_LIBS $LIBS"
-+  else
-+    MRSID_SETTING=no
-+    { echo "$as_me:$LINENO: result: not found." >&5
-+echo "${ECHO_T}not found." >&6; }
-+    { { echo "$as_me:$LINENO: error:   MrSID requested, but components not found." >&5
-+echo "$as_me: error:   MrSID requested, but components not found." >&2;}
-+   { (exit 1); exit 1; }; }
-+  fi
++  CARBON_FRAMEWORK=
 +fi
 +
-+MRSID_INCLUDE=$MRSID_INCLUDE
-+
-+MRSID_FLAGS=$MRSID_FLAGS
-+
-+
-+
-+GEOTIFF_INCLUDE=
-+GEOTIFF_LIBS=
-+GEOTIFF_SETTING=no
-+
-+
-+# Check whether --with-geotiff was given.
-+if test "${with_geotiff+set}" = set; then
-+  withval=$with_geotiff;
++if test "$with_ecw" = "no" ; then
++  { { echo "$as_me:$LINENO: error: ECW required for this driver, please install ECW 3.3+ and rebuild" >&5
++echo "$as_me: error: ECW required for this driver, please install ECW 3.3+ and rebuild" >&2;}
++   { (exit 1); exit 1; }; }
 +fi
 +
++if test "$with_ecw" = "yes" -o "$with_ecw" = "" ; then
 +
-+if test "x$with_geotiff" = "xno" ; then
 +
-+  { { echo "$as_me:$LINENO: error: libgeotiff is required to build GDAL MrSID driver" >&5
-+echo "$as_me: error: libgeotiff is required to build GDAL MrSID driver" >&2;}
-+   { (exit 1); exit 1; }; }
-+
-+else
-+
-+  GEOTIFF_SETTING=not_found
-+
-+  if test "x$with_geotiff" = "xyes"  -o "x$with_geotiff" = "x" ; then
-+
-+{ echo "$as_me:$LINENO: checking for XTIFFClientOpen in -lgeotiff" >&5
-+echo $ECHO_N "checking for XTIFFClientOpen in -lgeotiff... $ECHO_C" >&6; }
-+if test "${ac_cv_lib_geotiff_XTIFFClientOpen+set}" = set; then
++{ echo "$as_me:$LINENO: checking for NCScbmOpenFileView in -lNCSEcw" >&5
++echo $ECHO_N "checking for NCScbmOpenFileView in -lNCSEcw... $ECHO_C" >&6; }
++if test "${ac_cv_lib_NCSEcw_NCScbmOpenFileView+set}" = set; then
 +  echo $ECHO_N "(cached) $ECHO_C" >&6
 +else
 +  ac_check_lib_save_LIBS=$LIBS
-+LIBS="-lgeotiff  $LIBS"
++LIBS="-lNCSEcw -lNCSCnet -lNCSUtil $LIBS"
 +cat >conftest.$ac_ext <<_ACEOF
 +/* confdefs.h.  */
 +_ACEOF
@@ -3816,11 +3688,11 @@ diff -urNad gdal-1.7.1~/frmts/mrsid/pkg/configure gdal-1.7.1/frmts/mrsid/pkg/con
 +#ifdef __cplusplus
 +extern "C"
 +#endif
-+char XTIFFClientOpen ();
++char NCScbmOpenFileView ();
 +int
 +main ()
 +{
-+return XTIFFClientOpen ();
++return NCScbmOpenFileView ();
 +  ;
 +  return 0;
 +}
@@ -3843,196 +3715,147 @@ diff -urNad gdal-1.7.1~/frmts/mrsid/pkg/configure gdal-1.7.1/frmts/mrsid/pkg/con
 +	 test ! -s conftest.err
 +       } && test -s conftest$ac_exeext &&
 +       $as_test_x conftest$ac_exeext; then
-+  ac_cv_lib_geotiff_XTIFFClientOpen=yes
++  ac_cv_lib_NCSEcw_NCScbmOpenFileView=yes
 +else
 +  echo "$as_me: failed program was:" >&5
 +sed 's/^/| /' conftest.$ac_ext >&5
 +
-+	ac_cv_lib_geotiff_XTIFFClientOpen=no
++	ac_cv_lib_NCSEcw_NCScbmOpenFileView=no
 +fi
 +
 +rm -f core conftest.err conftest.$ac_objext conftest_ipa8_conftest.oo \
 +      conftest$ac_exeext conftest.$ac_ext
 +LIBS=$ac_check_lib_save_LIBS
 +fi
-+{ echo "$as_me:$LINENO: result: $ac_cv_lib_geotiff_XTIFFClientOpen" >&5
-+echo "${ECHO_T}$ac_cv_lib_geotiff_XTIFFClientOpen" >&6; }
-+if test $ac_cv_lib_geotiff_XTIFFClientOpen = yes; then
-+  GEOTIFF_SETTING=yes
++{ echo "$as_me:$LINENO: result: $ac_cv_lib_NCSEcw_NCScbmOpenFileView" >&5
++echo "${ECHO_T}$ac_cv_lib_NCSEcw_NCScbmOpenFileView" >&6; }
++if test $ac_cv_lib_NCSEcw_NCScbmOpenFileView = yes; then
++  ECW_SETTING=yes
 +else
-+  GEOTIFF_SETTING=not_found
++  ECW_SETTING=no
 +fi
 +
 +
-+    if test "$GEOTIFF_SETTING" = "yes" ; then
-+      GEOTIFF_LIBS="-lgeotiff"
-+      if test  -d /usr/include/geotiff ; then
-+         GEOTIFF_INCLUDE="-I/usr/include/geotiff"
-+      fi
-+    else
-+        { { echo "$as_me:$LINENO: error: libgeotiff is required to build GDAL MrSID driver" >&5
-+echo "$as_me: error: libgeotiff is required to build GDAL MrSID driver" >&2;}
-+   { (exit 1); exit 1; }; }
-+    fi
-+
-+  else
-+            { echo "$as_me:$LINENO: checking for XTIFFClientOpen in -lgeotiff" >&5
-+echo $ECHO_N "checking for XTIFFClientOpen in -lgeotiff... $ECHO_C" >&6; }
-+if test "${ac_cv_lib_geotiff_XTIFFClientOpen+set}" = set; then
-+  echo $ECHO_N "(cached) $ECHO_C" >&6
-+else
-+  ac_check_lib_save_LIBS=$LIBS
-+LIBS="-lgeotiff -L$with_geotiff/lib $LIBS"
-+cat >conftest.$ac_ext <<_ACEOF
-+/* confdefs.h.  */
-+_ACEOF
-+cat confdefs.h >>conftest.$ac_ext
-+cat >>conftest.$ac_ext <<_ACEOF
-+/* end confdefs.h.  */
-+
-+/* Override any GCC internal prototype to avoid an error.
-+   Use char because int might match the return type of a GCC
-+   builtin and then its argument prototype would still apply.  */
-+#ifdef __cplusplus
-+extern "C"
-+#endif
-+char XTIFFClientOpen ();
-+int
-+main ()
-+{
-+return XTIFFClientOpen ();
-+  ;
-+  return 0;
-+}
-+_ACEOF
-+rm -f conftest.$ac_objext conftest$ac_exeext
-+if { (ac_try="$ac_link"
-+case "(($ac_try" in
-+  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
-+  *) ac_try_echo=$ac_try;;
-+esac
-+eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
-+  (eval "$ac_link") 2>conftest.er1
-+  ac_status=$?
-+  grep -v '^ *+' conftest.er1 >conftest.err
-+  rm -f conftest.er1
-+  cat conftest.err >&5
-+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
-+  (exit $ac_status); } && {
-+	 test -z "$ac_c_werror_flag" ||
-+	 test ! -s conftest.err
-+       } && test -s conftest$ac_exeext &&
-+       $as_test_x conftest$ac_exeext; then
-+  ac_cv_lib_geotiff_XTIFFClientOpen=yes
-+else
-+  echo "$as_me: failed program was:" >&5
-+sed 's/^/| /' conftest.$ac_ext >&5
-+
-+	ac_cv_lib_geotiff_XTIFFClientOpen=no
-+fi
-+
-+rm -f core conftest.err conftest.$ac_objext conftest_ipa8_conftest.oo \
-+      conftest$ac_exeext conftest.$ac_ext
-+LIBS=$ac_check_lib_save_LIBS
-+fi
-+{ echo "$as_me:$LINENO: result: $ac_cv_lib_geotiff_XTIFFClientOpen" >&5
-+echo "${ECHO_T}$ac_cv_lib_geotiff_XTIFFClientOpen" >&6; }
-+if test $ac_cv_lib_geotiff_XTIFFClientOpen = yes; then
-+  GEOTIFF_SETTING=yes
-+else
-+  GEOTIFF_SETTING=not_found
-+fi
-+
-+
-+    if test $GEOTIFF_SETTING = "yes" ; then
-+      GEOTIFF_LIBS="-L$with_geotiff/lib -lgeotiff"
-+      if test  -d $with_geotiff/include ; then
-+         GEOTIFF_INCLUDE="-I$with_geotiff/include"
-+      fi
-+    else
-+            { echo "$as_me:$LINENO: checking for XTIFFClientOpen in -lgeotiff" >&5
-+echo $ECHO_N "checking for XTIFFClientOpen in -lgeotiff... $ECHO_C" >&6; }
-+if test "${ac_cv_lib_geotiff_XTIFFClientOpen+set}" = set; then
-+  echo $ECHO_N "(cached) $ECHO_C" >&6
-+else
-+  ac_check_lib_save_LIBS=$LIBS
-+LIBS="-lgeotiff -L$with_geotiff $LIBS"
-+cat >conftest.$ac_ext <<_ACEOF
-+/* confdefs.h.  */
-+_ACEOF
-+cat confdefs.h >>conftest.$ac_ext
-+cat >>conftest.$ac_ext <<_ACEOF
-+/* end confdefs.h.  */
-+
-+/* Override any GCC internal prototype to avoid an error.
-+   Use char because int might match the return type of a GCC
-+   builtin and then its argument prototype would still apply.  */
-+#ifdef __cplusplus
-+extern "C"
-+#endif
-+char XTIFFClientOpen ();
-+int
-+main ()
-+{
-+return XTIFFClientOpen ();
-+  ;
-+  return 0;
-+}
-+_ACEOF
-+rm -f conftest.$ac_objext conftest$ac_exeext
-+if { (ac_try="$ac_link"
-+case "(($ac_try" in
-+  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
-+  *) ac_try_echo=$ac_try;;
-+esac
-+eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
-+  (eval "$ac_link") 2>conftest.er1
-+  ac_status=$?
-+  grep -v '^ *+' conftest.er1 >conftest.err
-+  rm -f conftest.er1
-+  cat conftest.err >&5
-+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
-+  (exit $ac_status); } && {
-+	 test -z "$ac_c_werror_flag" ||
-+	 test ! -s conftest.err
-+       } && test -s conftest$ac_exeext &&
-+       $as_test_x conftest$ac_exeext; then
-+  ac_cv_lib_geotiff_XTIFFClientOpen=yes
-+else
-+  echo "$as_me: failed program was:" >&5
-+sed 's/^/| /' conftest.$ac_ext >&5
-+
-+	ac_cv_lib_geotiff_XTIFFClientOpen=no
-+fi
-+
-+rm -f core conftest.err conftest.$ac_objext conftest_ipa8_conftest.oo \
-+      conftest$ac_exeext conftest.$ac_ext
-+LIBS=$ac_check_lib_save_LIBS
-+fi
-+{ echo "$as_me:$LINENO: result: $ac_cv_lib_geotiff_XTIFFClientOpen" >&5
-+echo "${ECHO_T}$ac_cv_lib_geotiff_XTIFFClientOpen" >&6; }
-+if test $ac_cv_lib_geotiff_XTIFFClientOpen = yes; then
-+  GEOTIFF_SETTING=yes
-+else
-+  GEOTIFF_SETTING=not_found
-+fi
-+
-+
-+	if test $GEOTIFF_SETTING = "yes" ; then
-+       	   GEOTIFF_LIBS="-L$with_geotiff -lgeotiff"
-+      	   GEOTIFF_INCLUDE="-I$with_geotiff"
-+        else
-+           { { echo "$as_me:$LINENO: error: libgeotiff is required to build GDAL MrSID driver" >&5
-+echo "$as_me: error: libgeotiff is required to build GDAL MrSID driver" >&2;}
-+   { (exit 1); exit 1; }; }
-+	fi
-+     fi
-+  echo "using libgeotiff from $with_geotiff."
++  if test "$ECW_SETTING" = "yes" ; then
++    LIBS="-lNCSEcw -lNCSCnet -lNCSUtil $LIBS"
 +  fi
-+  LIBS="$GEOTIFF_LIBS $LIBS"
++
++  if test "$ECW_SETTING" = "no" ; then
++    { echo "$as_me:$LINENO: checking for NCScbmOpenFileView in -lecwj2" >&5
++echo $ECHO_N "checking for NCScbmOpenFileView in -lecwj2... $ECHO_C" >&6; }
++if test "${ac_cv_lib_ecwj2_NCScbmOpenFileView+set}" = set; then
++  echo $ECHO_N "(cached) $ECHO_C" >&6
++else
++  ac_check_lib_save_LIBS=$LIBS
++LIBS="-lecwj2 $CARBON_FRAMEWORK $LIBS"
++cat >conftest.$ac_ext <<_ACEOF
++/* confdefs.h.  */
++_ACEOF
++cat confdefs.h >>conftest.$ac_ext
++cat >>conftest.$ac_ext <<_ACEOF
++/* end confdefs.h.  */
++
++/* Override any GCC internal prototype to avoid an error.
++   Use char because int might match the return type of a GCC
++   builtin and then its argument prototype would still apply.  */
++#ifdef __cplusplus
++extern "C"
++#endif
++char NCScbmOpenFileView ();
++int
++main ()
++{
++return NCScbmOpenFileView ();
++  ;
++  return 0;
++}
++_ACEOF
++rm -f conftest.$ac_objext conftest$ac_exeext
++if { (ac_try="$ac_link"
++case "(($ac_try" in
++  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
++  *) ac_try_echo=$ac_try;;
++esac
++eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
++  (eval "$ac_link") 2>conftest.er1
++  ac_status=$?
++  grep -v '^ *+' conftest.er1 >conftest.err
++  rm -f conftest.er1
++  cat conftest.err >&5
++  echo "$as_me:$LINENO: \$? = $ac_status" >&5
++  (exit $ac_status); } && {
++	 test -z "$ac_c_werror_flag" ||
++	 test ! -s conftest.err
++       } && test -s conftest$ac_exeext &&
++       $as_test_x conftest$ac_exeext; then
++  ac_cv_lib_ecwj2_NCScbmOpenFileView=yes
++else
++  echo "$as_me: failed program was:" >&5
++sed 's/^/| /' conftest.$ac_ext >&5
++
++	ac_cv_lib_ecwj2_NCScbmOpenFileView=no
 +fi
 +
-+GEOTIFF_INCLUDE=$GEOTIFF_INCLUDE
++rm -f core conftest.err conftest.$ac_objext conftest_ipa8_conftest.oo \
++      conftest$ac_exeext conftest.$ac_ext
++LIBS=$ac_check_lib_save_LIBS
++fi
++{ echo "$as_me:$LINENO: result: $ac_cv_lib_ecwj2_NCScbmOpenFileView" >&5
++echo "${ECHO_T}$ac_cv_lib_ecwj2_NCScbmOpenFileView" >&6; }
++if test $ac_cv_lib_ecwj2_NCScbmOpenFileView = yes; then
++  ECW_SETTING=yes
++else
++  ECW_SETTING=no
++fi
++
++    if test "$ECW_SETTING" = "yes" ; then
++      LIBS="-lecwj2 $CARBON_FRAMEWORK $LIBS"
++    fi
++  fi
++
++else
++
++  { echo "$as_me:$LINENO: checking for libNCSEcw.so or libecwj2" >&5
++echo $ECHO_N "checking for libNCSEcw.so or libecwj2... $ECHO_C" >&6; }
++  ECW_SETTING=yes
++  if test -r $with_ecw/lib/libNCSCnet.so -o -r $with_ecw/lib/libNCSCnet.dylib ; then
++    LIBS="-L$with_ecw/lib -lNCSEcw -lNCSCnet -lNCSUtil $LIBS"
++    { echo "$as_me:$LINENO: result: found in $with_ecw/lib." >&5
++echo "${ECHO_T}found in $with_ecw/lib." >&6; }
++  elif test -r $with_ecw/lib/libNCSCNet.so -o -r $with_ecw/lib/libNCSCNet.dylib ; then
++    LIBS="-L$with_ecw/lib -lNCSEcw -lNCSCNet -lNCSUtil $LIBS"
++    { echo "$as_me:$LINENO: result: found in $with_ecw/lib." >&5
++echo "${ECHO_T}found in $with_ecw/lib." >&6; }
++  elif test -r $with_ecw/bin/libNCSEcw.so -o -r $with_ecw/bin/libNCSEcw.dylib ; then
++    LIBS="-L$with_ecw/bin -lNCSEcw -lNCSEcw -lNCSCnet $LIBS"
++    { echo "$as_me:$LINENO: result: found in $with_ecw/bin." >&5
++echo "${ECHO_T}found in $with_ecw/bin." >&6; }
++  elif test -r $with_ecw/lib/libecwj2.dylib ; then
++    LIBS="-L$with_ecw/lib -lecwj2 $CARBON_FRAMEWORK $LIBS"
++    { echo "$as_me:$LINENO: result: found libecwj2 in $with_ecw/lib." >&5
++echo "${ECHO_T}found libecwj2 in $with_ecw/lib." >&6; }
++  else
++    { { echo "$as_me:$LINENO: error: not found in $with_ecw/lib or $with_ecw/bin." >&5
++echo "$as_me: error: not found in $with_ecw/lib or $with_ecw/bin." >&2;}
++   { (exit 1); exit 1; }; }
++  fi
++
++  { echo "$as_me:$LINENO: checking for NCSECWClient.h in $with_ecw/include" >&5
++echo $ECHO_N "checking for NCSECWClient.h in $with_ecw/include... $ECHO_C" >&6; }
++  if test -r $with_ecw/include/NCSECWClient.h ; then
++    { echo "$as_me:$LINENO: result: found." >&5
++echo "${ECHO_T}found." >&6; }
++    ECW_INCLUDE="-I$with_ecw/include"
++  else
++    { { echo "$as_me:$LINENO: error: not found." >&5
++echo "$as_me: error: not found." >&2;}
++   { (exit 1); exit 1; }; }
++  fi
++fi
++
++ECW_INCLUDE=$ECW_INCLUDE
++
++ECW_SETTING=$ECW_SETTING
 +
 +
 +
@@ -4653,14 +4476,13 @@ diff -urNad gdal-1.7.1~/frmts/mrsid/pkg/configure gdal-1.7.1/frmts/mrsid/pkg/con
 +GDAL_CONFIG!$GDAL_CONFIG$ac_delim
 +GDAL_INC!$GDAL_INC$ac_delim
 +AUTOLOAD_DIR!$AUTOLOAD_DIR$ac_delim
-+MRSID_INCLUDE!$MRSID_INCLUDE$ac_delim
-+MRSID_FLAGS!$MRSID_FLAGS$ac_delim
-+GEOTIFF_INCLUDE!$GEOTIFF_INCLUDE$ac_delim
++ECW_INCLUDE!$ECW_INCLUDE$ac_delim
++ECW_SETTING!$ECW_SETTING$ac_delim
 +LIBOBJS!$LIBOBJS$ac_delim
 +LTLIBOBJS!$LTLIBOBJS$ac_delim
 +_ACEOF
 +
-+  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 62; then
++  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 61; then
 +    break
 +  elif $ac_last_try; then
 +    { { echo "$as_me:$LINENO: error: could not make $CONFIG_STATUS" >&5
@@ -4987,22 +4809,26 @@ diff -urNad gdal-1.7.1~/frmts/mrsid/pkg/configure gdal-1.7.1/frmts/mrsid/pkg/con
 +  $ac_cs_success || { (exit 1); exit 1; }
 +fi
 +
-diff -urNad gdal-1.7.1~/frmts/mrsid/pkg/configure.in gdal-1.7.1/frmts/mrsid/pkg/configure.in
---- gdal-1.7.1~/frmts/mrsid/pkg/configure.in	1969-12-31 19:00:00.000000000 -0500
-+++ gdal-1.7.1/frmts/mrsid/pkg/configure.in	2009-12-01 09:12:23.800604739 -0500
-@@ -0,0 +1,280 @@
++
++
++
+Index: gdal/frmts/ecw/pkg/configure.in
+===================================================================
+--- /dev/null	1970-01-01 00:00:00.000000000 +0000
++++ gdal/frmts/ecw/pkg/configure.in	2011-02-18 16:49:18.000000000 +0100
+@@ -0,0 +1,186 @@
 +dnl ***************************************************************************
 +dnl $Id: configure.in 9971 2006-08-23 20:06:02Z fwarmerdam $
 +dnl
-+dnl Project:  GDAL MrSID Plugin
++dnl Project:  GDAL ECW Plugin
 +dnl Purpose:  Configure source file.
 +dnl Author:   Frank Warmerdam, warmerdam@pobox.com
-+dnl Changed by: Alan Boudreault, aboudreault@mapgears.com on the basis of
++dnl Changed by: Francesco P Lovergine, frankie@debian.org on the basis of
 +dnl             GDAL GRASS Plugin 
 +dnl
 +dnl ***************************************************************************
 +dnl Copyright (c) 2005, Frank Warmerdam
-+dnl Copyright (c) 2008, Alan Boudreault
++dnl Copyright (c) 2008, Francesco P Lovergine
 +dnl
 +dnl Permission is hereby granted, free of charge, to any person obtaining a
 +dnl copy of this software and associated documentation files (the "Software"),
@@ -5075,7 +4901,7 @@ diff -urNad gdal-1.7.1~/frmts/mrsid/pkg/configure.in gdal-1.7.1/frmts/mrsid/pkg/
 +
 +else
 +
-+  AC_MSG_ERROR([gdal required to build GDAL MrSID driver])
++  AC_MSG_ERROR([gdal required to build GDAL ECW 3.3 driver])
 +
 +fi
 +
@@ -5103,171 +4929,77 @@ diff -urNad gdal-1.7.1~/frmts/mrsid/pkg/configure.in gdal-1.7.1/frmts/mrsid/pkg/
 +AC_SUBST(AUTOLOAD_DIR,$AUTOLOAD_DIR)
 +
 +dnl ---------------------------------------------------------------------------
-+dnl Find MrSID stuff
++dnl Find ECW stuff
 +dnl ---------------------------------------------------------------------------
 +
-+MRSID_INCLUDE=
-+MRSID_FLAGS=
-+MRSID_SETTING=no
-+HAVE_KAKADU=no
++ECW_SETTING=no
++ECW_INCLUDE=
++export ECW_INCLUDE ECW_SETTING
 +
-+AC_ARG_WITH(mrsid,[  --with-mrsid[=ARG]      Include MrSID support (ARG=path to MrSID DSDK or no)],,)
++AC_ARG_WITH(ecw,[  --with-ecw[=ARG]        Include ECW support (ARG=ECW SDK Path)],,)
 +
-+AC_ARG_WITH(jp2mrsid,[  --with-jp2mrsid[=ARG]   Enable MrSID JPEG2000 support (ARG=yes/no)],,)
++if test ! -z "`uname | grep Darwin`" ; then
++  CARBON_FRAMEWORK="-framework Carbon"
++else
++  CARBON_FRAMEWORK=
++fi
 +
-+if test "x$with_mrsid" = "xno"  -o "x$with_mrsid" = "x" ; then
++if test "$with_ecw" = "no" ; then
++  AC_MSG_ERROR([ECW required for this driver, please install ECW 3.3+ and rebuild])
++fi
 +
-+  AC_MSG_ERROR([MrSID DSDK is required to build GDAL MrSID driver])
++if test "$with_ecw" = "yes" -o "$with_ecw" = "" ; then
++
++  AC_CHECK_LIB(NCSEcw,NCScbmOpenFileView,ECW_SETTING=yes,ECW_SETTING=no,-lNCSCnet -lNCSUtil)
++
++  if test "$ECW_SETTING" = "yes" ; then   
++    LIBS="-lNCSEcw -lNCSCnet -lNCSUtil $LIBS"
++  fi
++
++  if test "$ECW_SETTING" = "no" ; then
++    AC_CHECK_LIB(ecwj2,NCScbmOpenFileView,ECW_SETTING=yes,ECW_SETTING=no,$CARBON_FRAMEWORK)
++    if test "$ECW_SETTING" = "yes" ; then   
++      LIBS="-lecwj2 $CARBON_FRAMEWORK $LIBS"
++    fi
++  fi
 +
 +else
 +
-+  MRSID_BASE="$with_mrsid/include"
-+
-+  AC_MSG_CHECKING([for lt_base.h in $MRSID_BASE/support])
-+  if test -r "$MRSID_BASE/support/lt_base.h" ; then
-+
-+    AC_MSG_RESULT([found MrSID DSDK version 4.x or newer.])
-+    MRSID_SETTING=yes
-+    MRSID_INCLUDE="-I$MRSID_BASE/base -I$MRSID_BASE/metadata -I$MRSID_BASE/mrsid_readers -I$MRSID_BASE/j2k_readers -I$MRSID_BASE/support"
-+
++  AC_MSG_CHECKING([for libNCSEcw.so or libecwj2])
++  ECW_SETTING=yes
++  if test -r $with_ecw/lib/libNCSCnet.so -o -r $with_ecw/lib/libNCSCnet.dylib ; then
++    LIBS="-L$with_ecw/lib -lNCSEcw -lNCSCnet -lNCSUtil $LIBS"
++    AC_MSG_RESULT([found in $with_ecw/lib.])
++  elif test -r $with_ecw/lib/libNCSCNet.so -o -r $with_ecw/lib/libNCSCNet.dylib ; then
++    LIBS="-L$with_ecw/lib -lNCSEcw -lNCSCNet -lNCSUtil $LIBS"
++    AC_MSG_RESULT([found in $with_ecw/lib.])
++  elif test -r $with_ecw/bin/libNCSEcw.so -o -r $with_ecw/bin/libNCSEcw.dylib ; then
++    LIBS="-L$with_ecw/bin -lNCSEcw -lNCSEcw -lNCSCnet $LIBS"
++    AC_MSG_RESULT([found in $with_ecw/bin.])
++  elif test -r $with_ecw/lib/libecwj2.dylib ; then
++    LIBS="-L$with_ecw/lib -lecwj2 $CARBON_FRAMEWORK $LIBS"
++    AC_MSG_RESULT([found libecwj2 in $with_ecw/lib.])
 +  else
-+
-+    AC_MSG_RESULT([not found.])
-+
-+    AC_MSG_CHECKING([for lt_base.h in $MRSID_BASE])
-+    if test -r "$MRSID_BASE/lt_base.h" ; then
-+
-+      AC_MSG_RESULT([found MrSID DSDK version 7.x or newer.]);
-+      MRSID_SETTING=yes
-+      MRSID_INCLUDE="-I$MRSID_BASE"
-+
-+    fi
-+
++    AC_MSG_ERROR([not found in $with_ecw/lib or $with_ecw/bin.])
 +  fi
 +
-+  if test $MRSID_SETTING = yes ; then
-+
-+    MRSID_LIBS="-lltidsdk -lpthread"
-+
-+    AC_MSG_CHECKING([for MG3ImageWriter.h in $with_mrsid/include/mrsid_writers])
-+    if test -r "$with_mrsid/include/mrsid_writers/MG3ImageWriter.h" ; then
-+      AC_MSG_RESULT([found MrSID ESDK version 4.x or newer.])
-+      MRSID_FLAGS="-DMRSID_ESDK $MRSID_FLAGS"
-+      MRSID_INCLUDE="-I$with_mrsid/include/mrsid_writers -I$with_mrsid/include/j2k_writers $MRSID_INCLUDE"
-+      if test -r $with_mrsid/3rd-party/lib/Release/libcryptopp.a ; then
-+        MRSID_LIBS="-lltiesdk -lcryptopp -lxmlparse $MRSID_LIBS"
-+      else
-+        MRSID_LIBS="-lltiesdk -lxmlparse $MRSID_LIBS"
-+      fi
-+    else
-+      AC_MSG_RESULT([no encoding support.])
-+    fi
-+
-+    AC_MSG_CHECKING([for MrSID JPEG2000 support])
-+    if test "x$with_jp2mrsid" = "xyes" -a "$HAVE_KAKADU" = "yes" ; then
-+      AC_MSG_ERROR([MrSID JPEG2000 support requested, but this is incompatible with use of standalone Kakadu])
-+    fi
-+
-+    MRSID_KAKADU_LIB=
-+    if test "$HAVE_KAKADU" = "no" ; then
-+      if test x"$with_jp2mrsid" = x"" -o x"$with_jp2mrsid" = x"yes" ; then
-+        if test -r $with_mrsid/3rd-party/lib/Release/libltikdu.a ; then 
-+          with_jp2mrsid=yes
-+          MRSID_KAKADU_LIB=-lltikdu
-+        elif test -r $with_mrsid/3rd-party/lib/Release/liblt_kakadu.a ; then 
-+          with_jp2mrsid=yes
-+          MRSID_KAKADU_LIB=-llt_kakadu
-+        else
-+          AC_MSG_ERROR([MrSID JPEG2000 support requested, but libltikdu.a not found.])
-+        fi
-+      fi
-+    fi
-+
-+    if test "x$with_jp2mrsid" = "xyes" ; then
-+      MRSID_LIBS="$MRSID_LIBS $MRSID_KAKADU_LIB"
-+      MRSID_FLAGS="-DMRSID_J2K $MRSID_FLAGS"
-+      AC_MSG_RESULT([enabled])
-+    else
-+      AC_MSG_RESULT([disabled])
-+    fi
-+
-+    if test -r "$with_mrsid/lib/libltidsdk.a" ; then
-+      MRSID_LIBS="-L$with_mrsid/lib -L$with_mrsid/3rd-party/lib $MRSID_LIBS"
-+    else
-+      MRSID_LIBS="-L$with_mrsid/lib/Release -L$with_mrsid/3rd-party/lib/Release $MRSID_LIBS"
-+    fi
-+
-+    LIBS="$MRSID_LIBS $LIBS" 
++  AC_MSG_CHECKING([for NCSECWClient.h in $with_ecw/include])
++  if test -r $with_ecw/include/NCSECWClient.h ; then  
++    AC_MSG_RESULT([found.])
++    ECW_INCLUDE="-I$with_ecw/include"
 +  else
-+    MRSID_SETTING=no
-+    AC_MSG_RESULT([not found.])
-+    AC_MSG_ERROR([  MrSID requested, but components not found.])
++    AC_MSG_ERROR([not found.])
 +  fi
 +fi
 +
-+AC_SUBST(MRSID_INCLUDE,$MRSID_INCLUDE)
-+AC_SUBST(MRSID_FLAGS,$MRSID_FLAGS)
-+
-+dnl ---------------------------------------------------------------------------
-+dnl Select a libgeotiff library to use.
-+dnl ---------------------------------------------------------------------------
-+
-+GEOTIFF_INCLUDE=
-+GEOTIFF_LIBS=
-+GEOTIFF_SETTING=no
-+
-+AC_ARG_WITH(geotiff,[  --with-geotiff=ARG    Libgeotiff library to use (ARG=yes or path)],,)
-+
-+if test "x$with_geotiff" = "xno" ; then
-+
-+  AC_MSG_ERROR([libgeotiff is required to build GDAL MrSID driver])
-+
-+else
-+
-+  GEOTIFF_SETTING=not_found
-+
-+  if test "x$with_geotiff" = "xyes"  -o "x$with_geotiff" = "x" ; then
-+    AC_CHECK_LIB(geotiff,XTIFFClientOpen,GEOTIFF_SETTING=yes,GEOTIFF_SETTING=not_found)
-+
-+    if test "$GEOTIFF_SETTING" = "yes" ; then
-+      GEOTIFF_LIBS="-lgeotiff"
-+      if test  -d /usr/include/geotiff ; then
-+         GEOTIFF_INCLUDE="-I/usr/include/geotiff"
-+      fi
-+    else
-+        AC_MSG_ERROR([libgeotiff is required to build GDAL MrSID driver])
-+    fi
-+ 
-+  else
-+    dnl We now require libgeotiff 1.2.1 (for XTIFFClientOpen). 
-+    dnl first check if $with_geotiff/lib has the library:
-+    AC_CHECK_LIB(geotiff,XTIFFClientOpen,GEOTIFF_SETTING=yes,GEOTIFF_SETTING=not_found, -L$with_geotiff/lib)
-+
-+    if test $GEOTIFF_SETTING = "yes" ; then
-+      GEOTIFF_LIBS="-L$with_geotiff/lib -lgeotiff"
-+      if test  -d $with_geotiff/include ; then
-+         GEOTIFF_INCLUDE="-I$with_geotiff/include"
-+      fi
-+    else
-+      dnl check if $with_geotiff itself contains the header and library (e.g. as an uninstalled build directory would)
-+      AC_CHECK_LIB(geotiff,XTIFFClientOpen,GEOTIFF_SETTING=yes,GEOTIFF_SETTING=not_found,-L$with_geotiff)
-+    
-+	if test $GEOTIFF_SETTING = "yes" ; then
-+       	   GEOTIFF_LIBS="-L$with_geotiff -lgeotiff"
-+      	   GEOTIFF_INCLUDE="-I$with_geotiff"
-+        else
-+           AC_MSG_ERROR([libgeotiff is required to build GDAL MrSID driver])
-+	fi
-+     fi
-+  echo "using libgeotiff from $with_geotiff."
-+  fi
-+  LIBS="$GEOTIFF_LIBS $LIBS"
-+fi
-+
-+AC_SUBST(GEOTIFF_INCLUDE,$GEOTIFF_INCLUDE)
++AC_SUBST(ECW_INCLUDE,$ECW_INCLUDE)
++AC_SUBST(ECW_SETTING,$ECW_SETTING)
 +
 +dnl ---------------------------------------------------------------------------
 +
 +rm -f conftest*
 +
 +AC_OUTPUT(Makefile)
++
++
++

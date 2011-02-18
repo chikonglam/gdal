@@ -1,13 +1,7 @@
-#! /bin/sh /usr/share/dpatch/dpatch-run
-## libname.dpatch by Alan Boudreault <aboudreault@mapgears.com>
-##
-## All lines beginning with `## DP:' are a description of the patch.
-## DP: No description.
-
-@DPATCH@
-diff -urNad gdal-1.7.1~/GDALmake.opt.in gdal-1.7.1/GDALmake.opt.in
---- gdal-1.7.1~/GDALmake.opt.in	2010-02-08 14:52:34.000000000 -0500
-+++ gdal-1.7.1/GDALmake.opt.in	2010-02-18 11:08:22.123682825 -0500
+Index: gdal/GDALmake.opt.in
+===================================================================
+--- gdal.orig/GDALmake.opt.in	2011-02-18 15:52:35.000000000 +0100
++++ gdal/GDALmake.opt.in	2011-02-18 16:45:45.000000000 +0100
 @@ -84,7 +84,7 @@
  			-I$(GDAL_ROOT)/ogr -I$(GDAL_ROOT)/ogr/ogrsf_frmts
  
@@ -15,7 +9,7 @@ diff -urNad gdal-1.7.1~/GDALmake.opt.in gdal-1.7.1/GDALmake.opt.in
 -LIBGDAL	:=		libgdal.la
 +LIBGDAL	:=		libgdal1.7.0.la
  LIBGDAL_CURRENT	:=	15
- LIBGDAL_REVISION	:=	1
+ LIBGDAL_REVISION	:=	3
  LIBGDAL_AGE	:=	14
 @@ -97,9 +97,9 @@
  GDAL_VERSION_MINOR =    @GDAL_VERSION_MINOR@
@@ -42,9 +36,10 @@ diff -urNad gdal-1.7.1~/GDALmake.opt.in gdal-1.7.1/GDALmake.opt.in
  endif # MACOSX_FRAMEWORK
  
  EXE_DEP_LIBS	=	$(GDAL_ROOT)/$(LIBGDAL)
-diff -urNad gdal-1.7.1~/swig/perl/Makefile.PL gdal-1.7.1/swig/perl/Makefile.PL
---- gdal-1.7.1~/swig/perl/Makefile.PL	2010-02-08 14:52:22.000000000 -0500
-+++ gdal-1.7.1/swig/perl/Makefile.PL	2010-02-18 11:08:44.843685363 -0500
+Index: gdal/swig/perl/Makefile.PL
+===================================================================
+--- gdal.orig/swig/perl/Makefile.PL	2011-02-18 15:52:35.000000000 +0100
++++ gdal/swig/perl/Makefile.PL	2011-02-18 16:45:45.000000000 +0100
 @@ -24,7 +24,7 @@
      die "can't find gdal-config";
  }

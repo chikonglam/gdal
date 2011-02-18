@@ -1,13 +1,7 @@
-#! /bin/sh /usr/share/dpatch/dpatch-run
-## rubymakefile.dpatch by Alan Boudreault <aboudreault@mapgears.com>
-##
-## All lines beginning with `## DP:' are a description of the patch.
-## DP: No description.
-
-@DPATCH@
-diff -urNad gdal-1.7.1~/swig/ruby/RubyMakefile.mk gdal-1.7.1/swig/ruby/RubyMakefile.mk
---- gdal-1.7.1~/swig/ruby/RubyMakefile.mk	2010-02-08 14:52:08.000000000 -0500
-+++ gdal-1.7.1/swig/ruby/RubyMakefile.mk	2010-02-18 11:53:56.380910015 -0500
+Index: gdal/swig/ruby/RubyMakefile.mk
+===================================================================
+--- gdal.orig/swig/ruby/RubyMakefile.mk	2011-02-18 15:52:35.000000000 +0100
++++ gdal/swig/ruby/RubyMakefile.mk	2011-02-18 16:47:30.000000000 +0100
 @@ -25,7 +25,9 @@
  INSTALL_DIR := $(RUBY_EXTENSIONS_DIR)/gdal
  

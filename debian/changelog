@@ -1,3 +1,12 @@
+gdal (1.7.3-2) unstable; urgency=low
+
+  * Moved to alioth git repository, and changed Vcs-* fields.
+  * Now using source format 3.0 and quilt for patches.
+  * Added ${misc:Depends} due to debhelper use.
+  * Moved to debhelper level 8 which is now recommended default.
+
+ -- Francesco Paolo Lovergine <frankie@debian.org>  Fri, 18 Feb 2011 16:51:32 +0100
+
 gdal (1.7.3-1) unstable; urgency=low
 
   [ Alan Boudreault ]

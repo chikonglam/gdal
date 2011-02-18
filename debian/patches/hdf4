@@ -1,13 +1,7 @@
-#! /bin/sh /usr/share/dpatch/dpatch-run
-## hdf4.dpatch by Alan Boudreault <aboudreault@mapgears.com>
-##
-## All lines beginning with `## DP:' are a description of the patch.
-## DP: No description.
-
-@DPATCH@
-diff -urNad '--exclude=CVS' '--exclude=.svn' '--exclude=.git' '--exclude=.arch' '--exclude=.hg' '--exclude=_darcs' '--exclude=.bzr' gdal-1.7.2~/configure gdal-1.7.2/configure
---- gdal-1.7.2~/configure	2010-04-24 01:22:11.000000000 +0200
-+++ gdal-1.7.2/configure	2010-05-03 12:36:18.000000000 +0200
+Index: gdal/configure
+===================================================================
+--- gdal.orig/configure	2011-02-18 15:52:35.000000000 +0100
++++ gdal/configure	2011-02-18 16:48:36.000000000 +0100
 @@ -18774,7 +18774,7 @@
  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_mfhdf_SDreaddata" >&5
  $as_echo "$ac_cv_lib_mfhdf_SDreaddata" >&6; }
@@ -53,4 +47,3 @@ diff -urNad '--exclude=CVS' '--exclude=.svn' '--exclude=.git' '--exclude=.arch' 
  else
    HDF_LIB_NAME=missing
  fi
-diff -urNad '--exclude=CVS' '--exclude=.svn' '--exclude=.git' '--exclude=.arch' '--exclude=.hg' '--exclude=_darcs' '--exclude=.bzr' gdal-1.7.2~/configure.~1~ gdal-1.7.2/configure.~1~

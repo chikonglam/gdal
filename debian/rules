@@ -8,9 +8,6 @@
 # Uncomment this to turn on verbose mode.
 #export DH_VERBOSE=1
 
-# dpatch targets
-include /usr/share/dpatch/dpatch.make
-
 PYVERS=$(shell pyversions -v -r debian/control)
 PYDEF=$(shell pyversions -dv)
 RUBYDEF=$(shell ruby --version|cut -d' ' -f2|cut -d. -f1,2)
@@ -58,7 +55,7 @@ gdal-mrsid-dist:
 
 
 configure: configure-stamp
-configure-stamp: patch-stamp
+configure-stamp: 
 	dh_testdir
 	
 	for V in $(PYVERS); do \
@@ -131,8 +128,7 @@ build-stamp:
 			for i in `find . -name "*__*"`; do basename=`basename $$i`; mv $$basename `echo $$basename|sed -e 's/__/_/'`; done
 	touch $@
 
-clean: clean-unpatched unpatch
-clean-unpatched:
+clean: 
 	dh_testdir
 	dh_testroot
 	
@@ -212,4 +208,4 @@ binary-indep: build install
 
 binary: binary-arch binary-indep
 
-.PHONY: build clean binary-arch binary-indep binary-common binary install patch unpatch clean-unpatched gdal-grass-dist versions
+.PHONY: build clean binary-arch binary-indep binary-common binary install gdal-grass-dist versions
