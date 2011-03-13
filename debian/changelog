@@ -1,3 +1,11 @@
+gdal (1.7.3-3) unstable; urgency=low
+
+  * Added libepsilon support.
+  * Now debian/copyright has moved to DEP5 format and revised on the basis of
+    the GDAL LICENSE file.
+
+ -- Francesco Paolo Lovergine <frankie@debian.org>  Sun, 13 Mar 2011 18:32:54 +0100
+
 gdal (1.7.3-2) unstable; urgency=low
 
   * Moved to alioth git repository, and changed Vcs-* fields.
