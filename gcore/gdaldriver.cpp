@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdaldriver.cpp 18348 2009-12-19 14:32:39Z rouault $
+ * $Id: gdaldriver.cpp 21431 2011-01-07 22:24:09Z warmerdam $
  *
  * Project:  GDAL Core
  * Purpose:  Implementation of GDALDriver class (and C wrappers)
@@ -29,7 +29,7 @@
 
 #include "gdal_priv.h"
 
-CPL_CVSID("$Id: gdaldriver.cpp 18348 2009-12-19 14:32:39Z rouault $");
+CPL_CVSID("$Id: gdaldriver.cpp 21431 2011-01-07 22:24:09Z warmerdam $");
 
 /************************************************************************/
 /*                             GDALDriver()                             */
@@ -103,19 +103,19 @@ void CPL_STDCALL GDALDestroyDriver( GDALDriverH hDriver )
  *
  * Equivelent of the C function GDALCreate().
  * 
- * @param pszFilename the name of the dataset to create.
+ * @param pszFilename the name of the dataset to create.  UTF-8 encoded.
  * @param nXSize width of created raster in pixels.
  * @param nYSize height of created raster in pixels.
  * @param nBands number of bands.
  * @param eType type of raster.
- * @param papszParmList list of driver specific control parameters.
+ * @param papszOptions list of driver specific control parameters.
  *
  * @return NULL on failure, or a new GDALDataset.
  */
 
 GDALDataset * GDALDriver::Create( const char * pszFilename,
                                   int nXSize, int nYSize, int nBands,
-                                  GDALDataType eType, char ** papszParmList )
+                                  GDALDataType eType, char ** papszOptions )
 
 {
     CPLLocaleC  oLocaleForcer;
@@ -157,10 +157,15 @@ GDALDataset * GDALDriver::Create( const char * pszFilename,
 /*      name.  But even if that seems to fail we will continue since    */
 /*      it might just be a corrupt file or something.                   */
 /* -------------------------------------------------------------------- */
-    QuietDelete( pszFilename );
+    if( !CSLFetchBoolean(papszOptions, "APPEND_SUBDATASET", FALSE) )
+        QuietDelete( pszFilename );
 
+/* -------------------------------------------------------------------- */
+/*      Validate creation options.                                      */
+/* -------------------------------------------------------------------- */
     if (CSLTestBoolean(CPLGetConfigOption("GDAL_VALIDATE_CREATION_OPTIONS", "YES")))
-        GDALValidateCreationOptions( this, papszParmList);
+        GDALValidateCreationOptions( this, papszOptions );
+
 /* -------------------------------------------------------------------- */
 /*      Proceed with creation.                                          */
 /* -------------------------------------------------------------------- */
@@ -169,10 +174,10 @@ GDALDataset * GDALDriver::Create( const char * pszFilename,
     CPLDebug( "GDAL", "GDALDriver::Create(%s,%s,%d,%d,%d,%s,%p)",
               GetDescription(), pszFilename, nXSize, nYSize, nBands, 
               GDALGetDataTypeName( eType ), 
-              papszParmList );
+              papszOptions );
     
     poDS = pfnCreate( pszFilename, nXSize, nYSize, nBands, eType,
-                      papszParmList );
+                      papszOptions );
 
     if( poDS != NULL )
     {
@@ -211,58 +216,6 @@ GDALCreate( GDALDriverH hDriver, const char * pszFilename,
 }
 
 /************************************************************************/
-/*                         CopyBandImageData()                          */
-/*                                                                      */
-/*      Local helper function to copy image data from source to         */
-/*      destination band.                                               */
-/************************************************************************/
-
-static CPLErr CopyBandImageData( GDALRasterBand *poSrcBand,
-                                 GDALRasterBand *poDstBand,
-                                 GDALProgressFunc pfnProgress, 
-                                 void *pProgressData, 
-                                 double dfProgBase, double dfProgRatio )
-
-{
-    void           *pData;
-    GDALDataType   eType = poDstBand->GetRasterDataType();
-    int            nXSize = poSrcBand->GetXSize();
-    int            nYSize = poSrcBand->GetYSize();
-    int            iLine;
-    CPLErr         eErr = CE_None;
-
-    pData = VSIMalloc2(nXSize, GDALGetDataTypeSize(eType) / 8);
-    if( pData == NULL )
-    {
-        CPLError( CE_Failure, CPLE_OutOfMemory,
-                  "CopyBandImageData(): Out of memory.\n");
-        eErr = CE_Failure;
-    }
-
-    for( iLine = 0; iLine < nYSize && eErr == CE_None; iLine++ )
-    {
-        eErr = poSrcBand->RasterIO( GF_Read, 0, iLine, nXSize, 1, 
-                                    pData, nXSize, 1, eType, 0, 0 );
-        if( eErr != CE_None )
-            break;
-            
-        eErr = poDstBand->RasterIO( GF_Write, 0, iLine, nXSize, 1, 
-                                    pData, nXSize, 1, eType, 0, 0 );
-
-        if( !pfnProgress( ((iLine+1) / (double) nYSize) * dfProgRatio
-                          + dfProgBase, NULL, pProgressData ) )
-        {
-            CPLError( CE_Failure, CPLE_UserInterrupt, "User terminated" );
-            eErr = CE_Failure;
-        }
-    }
-
-    CPLFree( pData );
-
-    return eErr;
-}
-
-/************************************************************************/
 /*                          DefaultCopyMasks()                          */
 /************************************************************************/
 
@@ -276,6 +229,8 @@ CPLErr GDALDriver::DefaultCopyMasks( GDALDataset *poSrcDS,
     int nBands = poSrcDS->GetRasterCount();
     if (nBands == 0)
         return CE_None;
+
+    const char* papszOptions[2] = { "COMPRESSED=YES", NULL };
 
 /* -------------------------------------------------------------------- */
 /*      Try to copy mask if it seems appropriate.                       */
@@ -294,10 +249,11 @@ CPLErr GDALDriver::DefaultCopyMasks( GDALDataset *poSrcDS,
             eErr = poDstBand->CreateMaskBand( nMaskFlags );
             if( eErr == CE_None )
             {
-                eErr = CopyBandImageData( 
+                eErr = GDALRasterBandCopyWholeRaster(
                     poSrcBand->GetMaskBand(),
                     poDstBand->GetMaskBand(),
-                    GDALDummyProgress, NULL, 0.0, 0.0 );
+                    (char**)papszOptions,
+                    GDALDummyProgress, NULL);
             }
             else if( !bStrict )
                 eErr = CE_None;
@@ -315,10 +271,11 @@ CPLErr GDALDriver::DefaultCopyMasks( GDALDataset *poSrcDS,
         eErr = poDstDS->CreateMaskBand( nMaskFlags );
         if( eErr == CE_None )
         {
-            eErr = CopyBandImageData( 
+            eErr = GDALRasterBandCopyWholeRaster(
                 poSrcDS->GetRasterBand(1)->GetMaskBand(),
                 poDstDS->GetRasterBand(1)->GetMaskBand(),
-                GDALDummyProgress, NULL, 0.0, 0.0 );
+                (char**)papszOptions,
+                GDALDummyProgress, NULL);
         }
         else if( !bStrict )
             eErr = CE_None;
@@ -603,7 +560,7 @@ GDALDataset *GDALDriver::DefaultCreateCopy( const char * pszFilename,
  * also ensures that all the data and metadata has been written to the dataset
  * (GDALFlushCache() is not sufficient for that purpose).
  *
- * @param pszFilename the name for the new dataset. 
+ * @param pszFilename the name for the new dataset.  UTF-8 encoded.
  * @param poSrcDS the dataset being duplicated. 
  * @param bStrict TRUE if the copy must be strictly equivelent, or more
  * normally FALSE indicating that the copy may adapt as needed for the 
@@ -633,8 +590,12 @@ GDALDataset *GDALDriver::CreateCopy( const char * pszFilename,
 /*      name.  But even if that seems to fail we will continue since    */
 /*      it might just be a corrupt file or something.                   */
 /* -------------------------------------------------------------------- */
-    QuietDelete( pszFilename );
+    if( !CSLFetchBoolean(papszOptions, "APPEND_SUBDATASET", FALSE) )
+        QuietDelete( pszFilename );
 
+/* -------------------------------------------------------------------- */
+/*      Validate creation options.                                      */
+/* -------------------------------------------------------------------- */
     if (CSLTestBoolean(CPLGetConfigOption("GDAL_VALIDATE_CREATION_OPTIONS", "YES")))
         GDALValidateCreationOptions( this, papszOptions);
 
@@ -833,32 +794,16 @@ CPLErr CPL_STDCALL GDALDeleteDataset( GDALDriverH hDriver, const char * pszFilen
 }
 
 /************************************************************************/
-/*                               Rename()                               */
+/*                           DefaultRename()                            */
+/*                                                                      */
+/*      The generic implementation based on the file list used when     */
+/*      there is no format specific implementation.                     */
 /************************************************************************/
 
-/**
- * \brief Rename a dataset.
- *
- * Rename a dataset. This may including moving the dataset to a new directory
- * or even a new filesystem.  
- *
- * It is unwise to have open dataset handles on this dataset when it is
- * being renamed. 
- *
- * Equivelent of the C function GDALRenameDataset().
- *
- * @param pszNewName new name for the dataset.
- * @param pszOldName old name for the dataset.
- *
- * @return CE_None on success, or CE_Failure if the operation fails.
- */
-
-CPLErr GDALDriver::Rename( const char * pszNewName, const char *pszOldName )
+CPLErr GDALDriver::DefaultRename( const char * pszNewName, 
+                                  const char *pszOldName )
 
 {
-    if( pfnRename != NULL )
-        return pfnRename( pszNewName, pszOldName );
-
 /* -------------------------------------------------------------------- */
 /*      Collect file list.                                              */
 /* -------------------------------------------------------------------- */
@@ -917,6 +862,36 @@ CPLErr GDALDriver::Rename( const char * pszNewName, const char *pszOldName )
 }
 
 /************************************************************************/
+/*                               Rename()                               */
+/************************************************************************/
+
+/**
+ * \brief Rename a dataset.
+ *
+ * Rename a dataset. This may including moving the dataset to a new directory
+ * or even a new filesystem.  
+ *
+ * It is unwise to have open dataset handles on this dataset when it is
+ * being renamed. 
+ *
+ * Equivelent of the C function GDALRenameDataset().
+ *
+ * @param pszNewName new name for the dataset.
+ * @param pszOldName old name for the dataset.
+ *
+ * @return CE_None on success, or CE_Failure if the operation fails.
+ */
+
+CPLErr GDALDriver::Rename( const char * pszNewName, const char *pszOldName )
+
+{
+    if( pfnRename != NULL )
+        return pfnRename( pszNewName, pszOldName );
+    else
+        return DefaultRename( pszNewName, pszOldName );
+}
+
+/************************************************************************/
 /*                         GDALRenameDataset()                          */
 /************************************************************************/
 
@@ -946,28 +921,16 @@ CPLErr CPL_STDCALL GDALRenameDataset( GDALDriverH hDriver,
 }
 
 /************************************************************************/
-/*                             CopyFiles()                              */
+/*                          DefaultCopyFiles()                          */
+/*                                                                      */
+/*      The default implementation based on file lists used when        */
+/*      there is no format specific implementation.                     */
 /************************************************************************/
 
-/**
- * \brief Copy the files of a dataset.
- *
- * Copy all the files associated with a dataset.
- *
- * Equivelent of the C function GDALCopyDatasetFiles().
- *
- * @param pszNewName new name for the dataset.
- * @param pszOldName old name for the dataset.
- *
- * @return CE_None on success, or CE_Failure if the operation fails.
- */
-
-CPLErr GDALDriver::CopyFiles( const char * pszNewName, const char *pszOldName )
+CPLErr GDALDriver::DefaultCopyFiles( const char * pszNewName, 
+                                     const char *pszOldName )
 
 {
-    if( pfnRename != NULL )
-        return pfnRename( pszNewName, pszOldName );
-
 /* -------------------------------------------------------------------- */
 /*      Collect file list.                                              */
 /* -------------------------------------------------------------------- */
@@ -1023,6 +986,32 @@ CPLErr GDALDriver::CopyFiles( const char * pszNewName, const char *pszOldName )
     CSLDestroy( papszFileList );
 
     return eErr;
+}
+
+/************************************************************************/
+/*                             CopyFiles()                              */
+/************************************************************************/
+
+/**
+ * \brief Copy the files of a dataset.
+ *
+ * Copy all the files associated with a dataset.
+ *
+ * Equivelent of the C function GDALCopyDatasetFiles().
+ *
+ * @param pszNewName new name for the dataset.
+ * @param pszOldName old name for the dataset.
+ *
+ * @return CE_None on success, or CE_Failure if the operation fails.
+ */
+
+CPLErr GDALDriver::CopyFiles( const char * pszNewName, const char *pszOldName )
+
+{
+    if( pfnCopyFiles != NULL )
+        return pfnCopyFiles( pszNewName, pszOldName );
+    else
+        return DefaultCopyFiles( pszNewName, pszOldName );
 }
 
 /************************************************************************/

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: cpl_conv.h 17742 2009-10-03 16:13:16Z rouault $
+ * $Id: cpl_conv.h 20996 2010-10-28 18:38:15Z rouault $
  *
  * Project:  CPL - Common Portability Library
  * Purpose:  Convenience functions declarations.
@@ -73,8 +73,8 @@ char CPL_DLL *CPLStrlwr( char *);
 /* -------------------------------------------------------------------- */
 char CPL_DLL *CPLFGets( char *, int, FILE *);
 const char CPL_DLL *CPLReadLine( FILE * );
-const char CPL_DLL *CPLReadLineL( FILE * );
-const char CPL_DLL *CPLReadLine2L( FILE * , int nMaxCols, char** papszOptions);
+const char CPL_DLL *CPLReadLineL( VSILFILE * );
+const char CPL_DLL *CPLReadLine2L( VSILFILE * , int nMaxCols, char** papszOptions);
 
 /* -------------------------------------------------------------------- */
 /*      Convert ASCII string to floationg point number                  */
@@ -210,6 +210,17 @@ int CPL_DLL CPLUnlinkTree( const char * );
 int CPL_DLL CPLCopyFile( const char *pszNewPath, const char *pszOldPath );
 int CPL_DLL CPLMoveFile( const char *pszNewPath, const char *pszOldPath );
 
+/* -------------------------------------------------------------------- */
+/*      ZIP Creation.                                                   */
+/* -------------------------------------------------------------------- */
+#define CPL_ZIP_API_OFFERED
+void CPL_DLL  *CPLCreateZip( const char *pszZipFilename, char **papszOptions );
+CPLErr CPL_DLL CPLCreateFileInZip( void *hZip, const char *pszFilename, 
+                                   char **papszOptions );
+CPLErr CPL_DLL CPLWriteFileInZip( void *hZip, const void *pBuffer, int nBufferSize );
+CPLErr CPL_DLL CPLCloseFileInZip( void *hZip );
+CPLErr CPL_DLL CPLCloseZip( void *hZip );
+                            
 CPL_C_END
 
 /* -------------------------------------------------------------------- */

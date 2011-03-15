@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: rasterband.cpp 18326 2009-12-17 20:17:29Z rouault $
+ * $Id: rasterband.cpp 21304 2010-12-21 09:44:03Z nowakpl $
  *
  * Project:  WMS Client Driver
  * Purpose:  Implementation of Dataset and RasterBand classes for WMS
@@ -35,6 +35,7 @@ GDALWMSRasterBand::GDALWMSRasterBand(GDALWMSDataset *parent_dataset, int band, d
     m_parent_dataset = parent_dataset;
     m_scale = scale;
     m_overview = -1;
+    m_color_interp = GCI_Undefined;
 
     poDS = parent_dataset;
     nRasterXSize = static_cast<int>(m_parent_dataset->m_data_window.m_sx * scale + 0.5);
@@ -74,6 +75,17 @@ CPLErr GDALWMSRasterBand::ReadBlocks(int x, int y, void *buffer, int bx0, int by
         http_request_optstr.Printf("TIMEOUT=%d", m_parent_dataset->m_http_timeout);
         http_request_opts = CSLAddString(http_request_opts, http_request_optstr.c_str());
     }
+
+    if (m_parent_dataset->m_osUserAgent.size() != 0)
+    {
+        CPLString osUserAgentOptStr("USERAGENT=");
+        osUserAgentOptStr += m_parent_dataset->m_osUserAgent;
+        http_request_opts = CSLAddString(http_request_opts, osUserAgentOptStr.c_str());
+    }
+    if (m_parent_dataset->m_unsafeSsl >= 1) {
+        http_request_opts = CSLAddString(http_request_opts, "UNSAFESSL=1");
+    }
+
     for (int iy = by0; iy <= by1; ++iy) {
         for (int ix = bx0; ix <= bx1; ++ix) {
             bool need_this_block = false;
@@ -583,4 +595,8 @@ CPLErr GDALWMSRasterBand::AdviseRead(int x0, int y0, int sx, int sy, int bsx, in
     int by1 = (y0 + sy - 1) / nBlockYSize;
 
     return ReadBlocks(0, 0, NULL, bx0, by0, bx1, by1, 1);
+}
+
+GDALColorInterp GDALWMSRasterBand::GetColorInterpretation() {
+    return m_color_interp;
 }

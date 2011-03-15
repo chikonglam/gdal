@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrsqlitedatasource.cpp 19238 2010-03-28 17:22:40Z rouault $
+ * $Id: ogrsqlitedatasource.cpp 21298 2010-12-20 10:58:34Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implements OGRSQLiteDataSource class.
@@ -38,7 +38,7 @@
 
 static int bSpatialiteLoaded = FALSE;
 
-CPL_CVSID("$Id: ogrsqlitedatasource.cpp 19238 2010-03-28 17:22:40Z rouault $");
+CPL_CVSID("$Id: ogrsqlitedatasource.cpp 21298 2010-12-20 10:58:34Z rouault $");
 
 /************************************************************************/
 /*                        OGRSQLiteDataSource()                         */
@@ -90,65 +90,6 @@ OGRSQLiteDataSource::~OGRSQLiteDataSource()
 }
 
 /************************************************************************/
-/*                     SpatiaLiteToOGRGeomType()                        */
-/*      Map SpatiaLite geometry format strings to corresponding         */
-/*      OGR constants.                                                  */
-/************************************************************************/
-
-OGRwkbGeometryType
-OGRSQLiteDataSource::SpatiaLiteToOGRGeomType( const char *pszGeomType )
-{
-    if ( EQUAL(pszGeomType, "POINT") )
-        return wkbPoint;
-    else if ( EQUAL(pszGeomType, "LINESTRING") )
-        return wkbLineString;
-    else if ( EQUAL(pszGeomType, "POLYGON") )
-        return wkbPolygon;
-    else if ( EQUAL(pszGeomType, "MULTIPOINT") )
-        return wkbMultiPoint;
-    else if ( EQUAL(pszGeomType, "MULTILINESTRING") )
-        return wkbMultiLineString;
-    else if ( EQUAL(pszGeomType, "MULTIPOLYGON") )
-        return wkbMultiPolygon;
-    else if ( EQUAL(pszGeomType, "GEOMETRYCOLLECTION") )
-        return wkbGeometryCollection;
-    else
-        return wkbUnknown;
-}
-
-/************************************************************************/
-/*                     OGRToSpatiaLiteGeomType()                        */
-/*      Map OGR geometry format constants to corresponding              */
-/*      SpatiaLite strings                                              */
-/************************************************************************/
-
-const char *
-OGRSQLiteDataSource::OGRToSpatiaLiteGeomType( OGRwkbGeometryType eGeomType )
-{
-    switch ( wkbFlatten(eGeomType) )
-    {
-        case wkbUnknown:
-            return "GEOMETRY";
-        case wkbPoint:
-            return "POINT";
-        case wkbLineString:
-            return "LINESTRING";
-        case wkbPolygon:
-            return "POLYGON";
-        case wkbMultiPoint:
-            return "MULTIPOINT";
-        case wkbMultiLineString:
-            return "MULTILINESTRING";
-        case wkbMultiPolygon:
-            return "MULTIPOLYGON";
-        case wkbGeometryCollection:
-            return "GEOMETRYCOLLECTION";
-        default:
-            return "";
-    }
-}
-
-/************************************************************************/
 /*                                Open()                                */
 /*                                                                      */
 /*      Note, the Open() will implicitly create the database if it      */
@@ -190,7 +131,37 @@ int OGRSQLiteDataSource::Open( const char * pszNewName )
                   
         return FALSE;
     }
-    
+
+    char *pszErrMsg = NULL;
+
+    const char* pszSqliteSync = CPLGetConfigOption("OGR_SQLITE_SYNCHRONOUS", NULL);
+    if (pszSqliteSync != NULL)
+    {
+        if (EQUAL(pszSqliteSync, "OFF") || EQUAL(pszSqliteSync, "0") ||
+            EQUAL(pszSqliteSync, "FALSE"))
+            rc = sqlite3_exec( hDB, "PRAGMA synchronous = OFF", NULL, NULL, &pszErrMsg );
+        else if (EQUAL(pszSqliteSync, "NORMAL") || EQUAL(pszSqliteSync, "1"))
+            rc = sqlite3_exec( hDB, "PRAGMA synchronous = NORMAL", NULL, NULL, &pszErrMsg );
+        else if (EQUAL(pszSqliteSync, "ON") || EQUAL(pszSqliteSync, "FULL") ||
+            EQUAL(pszSqliteSync, "2") || EQUAL(pszSqliteSync, "TRUE"))
+            rc = sqlite3_exec( hDB, "PRAGMA synchronous = FULL", NULL, NULL, &pszErrMsg );
+        else
+        {
+            CPLError( CE_Warning, CPLE_AppDefined, "Unrecognized value for OGR_SQLITE_SYNCHRONOUS : %s",
+                      pszSqliteSync);
+            rc = SQLITE_OK;
+        }
+
+        if( rc != SQLITE_OK )
+        {
+            CPLError( CE_Failure, CPLE_AppDefined,
+                      "Unable to create view geom_cols_ref_sys: %s",
+                      pszErrMsg );
+            sqlite3_free( pszErrMsg );
+            return FALSE;
+        }
+    }
+
     CPLHashSet* hSet = CPLHashSetNew(CPLHashSetHashStr, CPLHashSetEqualStr, CPLFree);
 
 /* -------------------------------------------------------------------- */
@@ -199,7 +170,6 @@ int OGRSQLiteDataSource::Open( const char * pszNewName )
 /* -------------------------------------------------------------------- */
     char **papszResult;
     int nRowCount, iRow, nColCount;
-    char *pszErrMsg;
 
     rc = sqlite3_get_table( 
         hDB,
@@ -281,7 +251,7 @@ int OGRSQLiteDataSource::Open( const char * pszNewName )
                 papszRow[3] == NULL)
                 continue;
 
-            eGeomType = SpatiaLiteToOGRGeomType(papszRow[2]);
+            eGeomType = OGRFromOGCGeomType(papszRow[2]);
 
             if( atoi(papszRow[3]) > 2 )
                 eGeomType = (OGRwkbGeometryType) (((int)eGeomType) | wkb25DBit);
@@ -403,7 +373,7 @@ int OGRSQLiteDataSource::OpenTable( const char *pszNewName,
 
     if( poLayer->Initialize( pszNewName, pszGeomCol, 
                              eGeomType, pszGeomFormat,
-                             poSRS, nSRID, bHasSpatialIndex ) )
+                             poSRS, nSRID, bHasSpatialIndex ) != CE_None )
     {
         delete poLayer;
         return FALSE;
@@ -428,6 +398,8 @@ int OGRSQLiteDataSource::TestCapability( const char * pszCap )
 {
     if( EQUAL(pszCap,ODsCCreateLayer) )
         return TRUE;
+    else if( EQUAL(pszCap,ODsCDeleteLayer) )
+        return TRUE;
     else
         return FALSE;
 }
@@ -448,6 +420,17 @@ OGRLayer *OGRSQLiteDataSource::GetLayer( int iLayer )
 /************************************************************************/
 /*                             ExecuteSQL()                             */
 /************************************************************************/
+
+static const char* apszSpatialiteFuncs[] =
+{
+    "InitSpatialMetaData",
+    "AddGeometryColumn",
+    "RecoverGeometryColumn",
+    "DiscardGeometryColumn",
+    "CreateSpatialIndex",
+    "CreateMbrCache",
+    "DisableSpatialIndex"
+};
 
 OGRLayer * OGRSQLiteDataSource::ExecuteSQL( const char *pszSQLCommand,
                                           OGRGeometry *poSpatialFilter,
@@ -513,11 +496,40 @@ OGRLayer * OGRSQLiteDataSource::ExecuteSQL( const char *pszSQLCommand,
     }
     
 /* -------------------------------------------------------------------- */
+/*      Special case for some spatialite functions which must be run    */
+/*      only once                                                       */
+/* -------------------------------------------------------------------- */
+    if( EQUALN(pszSQLCommand,"SELECT ",7) &&
+        bIsSpatiaLite && bSpatialiteLoaded )
+    {
+        unsigned int i;
+        for(i=0;i<sizeof(apszSpatialiteFuncs)/
+                  sizeof(apszSpatialiteFuncs[0]);i++)
+        {
+            if( EQUALN(apszSpatialiteFuncs[i], pszSQLCommand + 7,
+                       strlen(apszSpatialiteFuncs[i])) )
+            {
+                if (sqlite3_column_count( hSQLStmt ) == 1 &&
+                    sqlite3_column_type( hSQLStmt, 0 ) == SQLITE_INTEGER )
+                {
+                    int ret = sqlite3_column_int( hSQLStmt, 0 );
+
+                    sqlite3_finalize( hSQLStmt );
+
+                    return new OGRSQLiteSingleFeatureLayer
+                                        ( apszSpatialiteFuncs[i], ret );
+                }
+            }
+        }
+    }
+
+/* -------------------------------------------------------------------- */
 /*      Create layer.                                                   */
 /* -------------------------------------------------------------------- */
     OGRSQLiteSelectLayer *poLayer = NULL;
         
-    poLayer = new OGRSQLiteSelectLayer( this, hSQLStmt );
+    CPLString osSQL = pszSQLCommand;
+    poLayer = new OGRSQLiteSelectLayer( this, osSQL, hSQLStmt );
 
     if( poSpatialFilter != NULL )
         poLayer->SetSpatialFilter( poSpatialFilter );
@@ -700,7 +712,7 @@ OGRSQLiteDataSource::CreateLayer( const char * pszLayerNameIn,
                     "(f_table_name, f_geometry_column, type, "
                     "coord_dimension, srid, spatial_index_enabled) "
                     "VALUES ('%s','%s', '%s', %d, %d, 0)", 
-                    pszLayerName, pszGeomCol, OGRToSpatiaLiteGeomType(eType),
+                    pszLayerName, pszGeomCol, OGRToOGCGeomType(eType),
                     nCoordDim, nSRSId );
             else
                 osCommand.Printf(
@@ -719,7 +731,7 @@ OGRSQLiteDataSource::CreateLayer( const char * pszLayerNameIn,
                     "(f_table_name, f_geometry_column, type, "
                     "coord_dimension, spatial_index_enabled) "
                     "VALUES ('%s','%s', '%s', %d, 0)", 
-                    pszLayerName, pszGeomCol, OGRToSpatiaLiteGeomType(eType),
+                    pszLayerName, pszGeomCol, OGRToOGCGeomType(eType),
                     nCoordDim );
             else
                 osCommand.Printf(
@@ -764,51 +776,13 @@ OGRSQLiteDataSource::CreateLayer( const char * pszLayerNameIn,
                 osCommand.Printf("SELECT CreateSpatialIndex('%s', '%s')",
                                  pszLayerName, pszGeomCol);
 
-            /* -------------------------------------------------------------------- */
-            /*      Prepare statement.                                              */
-            /* -------------------------------------------------------------------- */
-                int rc;
-                sqlite3_stmt *hSQLStmt = NULL;
-
-                rc = sqlite3_prepare( GetDB(), osCommand, strlen(osCommand),
-                                      &hSQLStmt, NULL );
-
+                rc = sqlite3_exec( hDB, osCommand, NULL, NULL, &pszErrMsg );
                 if( rc != SQLITE_OK )
                 {
                     CPLError( CE_Failure, CPLE_AppDefined, 
-                            "In CreateLayer(): sqlite3_prepare(%s):\n  %s", 
-                            osCommand.c_str(), sqlite3_errmsg(GetDB()) );
-                }
-                else
-                {
-                    /* -------------------------------------------------------------------- */
-                    /*      Do we get a resultset?                                          */
-                    /* -------------------------------------------------------------------- */
-                    rc = sqlite3_step( hSQLStmt );
-                    if( rc != SQLITE_ROW )
-                    {
-                        if ( rc != SQLITE_DONE )
-                        {
-                            CPLError( CE_Failure, CPLE_AppDefined, 
-                                "In CreateLayer(): sqlite3_step(%s):\n  %s", 
-                                osCommand.c_str(), sqlite3_errmsg(GetDB()) );
-                        }
-                    }
-                    else
-                    {
-                        if (sqlite3_column_count(hSQLStmt) != 1 &&
-                            sqlite3_column_int(hSQLStmt, 0) != 1)
-                        {
-                            CPLError( CE_Failure, CPLE_AppDefined, 
-                                "In CreateLayer(): sqlite3_step(%s): did not get expected result", 
-                                osCommand.c_str() );
-                        }
-                    }
-                }
-
-                if( hSQLStmt != NULL )
-                {
-                    sqlite3_finalize( hSQLStmt );
+                            "Unable to create spatial index:\n%s", pszErrMsg );
+                    sqlite3_free( pszErrMsg );
+                    return FALSE;
                 }
             }
         }
@@ -821,8 +795,13 @@ OGRSQLiteDataSource::CreateLayer( const char * pszLayerNameIn,
 
     poLayer = new OGRSQLiteTableLayer( this );
 
-    poLayer->Initialize( pszLayerName, pszGeomCol, eType, pszGeomFormat, 
-                         FetchSRS(nSRSId), nSRSId );
+    if ( poLayer->Initialize( pszLayerName, pszGeomCol, eType, pszGeomFormat,
+                         FetchSRS(nSRSId), nSRSId ) != CE_None )
+    {
+        delete poLayer;
+        CPLFree( pszLayerName );
+        return NULL;
+    }
 
     poLayer->SetLaunderFlag( CSLFetchBoolean(papszOptions,"LAUNDER",TRUE) );
 
@@ -885,11 +864,30 @@ void OGRSQLiteDataSource::DeleteLayer( const char *pszLayerName )
         return;
     }
 
+    DeleteLayer(iLayer);
+}
+
+/************************************************************************/
+/*                            DeleteLayer()                             */
+/************************************************************************/
+
+OGRErr OGRSQLiteDataSource::DeleteLayer(int iLayer)
+{
+    if( iLayer < 0 || iLayer >= nLayers )
+    {
+        CPLError( CE_Failure, CPLE_AppDefined,
+                  "Layer %d not in legal range of 0 to %d.",
+                  iLayer, nLayers-1 );
+        return OGRERR_FAILURE;
+    }
+
+    CPLString osLayerName = GetLayer(iLayer)->GetName();
+
 /* -------------------------------------------------------------------- */
 /*      Blow away our OGR structures related to the layer.  This is     */
 /*      pretty dangerous if anything has a reference to this layer!     */
 /* -------------------------------------------------------------------- */
-    CPLDebug( "OGR_SQLITE", "DeleteLayer(%s)", pszLayerName );
+    CPLDebug( "OGR_SQLITE", "DeleteLayer(%s)", osLayerName.c_str() );
 
     delete papoLayers[iLayer];
     memmove( papoLayers + iLayer, papoLayers + iLayer + 1, 
@@ -902,15 +900,15 @@ void OGRSQLiteDataSource::DeleteLayer( const char *pszLayerName )
     int rc;
     char *pszErrMsg;
 
-    rc = sqlite3_exec( hDB, CPLSPrintf( "DROP TABLE '%s'", pszLayerName ),
+    rc = sqlite3_exec( hDB, CPLSPrintf( "DROP TABLE '%s'", osLayerName.c_str() ),
                        NULL, NULL, &pszErrMsg );
     if( rc != SQLITE_OK )
     {
         CPLError( CE_Failure, CPLE_AppDefined, 
                   "Unable to drop table %s: %s",
-                  pszLayerName, pszErrMsg );
+                  osLayerName.c_str(), pszErrMsg );
         sqlite3_free( pszErrMsg );
-        return;
+        return OGRERR_FAILURE;
     }
 
 /* -------------------------------------------------------------------- */
@@ -922,7 +920,7 @@ void OGRSQLiteDataSource::DeleteLayer( const char *pszLayerName )
 
         osCommand.Printf( 
             "DELETE FROM geometry_columns WHERE f_table_name = '%s'",
-            pszLayerName );
+            osLayerName.c_str() );
         
         rc = sqlite3_exec( hDB, osCommand, NULL, NULL, &pszErrMsg );
         if( rc != SQLITE_OK )
@@ -931,8 +929,10 @@ void OGRSQLiteDataSource::DeleteLayer( const char *pszLayerName )
                       "Removal from geometry_columns failed.\n%s: %s", 
                       osCommand.c_str(), pszErrMsg );
             sqlite3_free( pszErrMsg );
+            return OGRERR_FAILURE;
         }
     }
+    return OGRERR_NONE;
 }
 
 /************************************************************************/
@@ -1198,7 +1198,10 @@ int OGRSQLiteDataSource::FetchSRSId( OGRSpatialReference * poSRS )
         char    *pszWKT = NULL;
 
         if( oSRS.exportToWkt( &pszWKT ) != OGRERR_NONE )
+        {
+            CPLFree(pszWKT);
             return -1;
+        }
 
         osSRS = pszWKT;
         CPLFree( pszWKT );
@@ -1207,24 +1210,7 @@ int OGRSQLiteDataSource::FetchSRSId( OGRSpatialReference * poSRS )
 /* -------------------------------------------------------------------- */
 /*      Try to find based on the WKT match.                             */
 /* -------------------------------------------------------------------- */
-        osCommand.Printf( "SELECT srid FROM spatial_ref_sys WHERE srtext = '%s'",
-                          osSRS.c_str());
-        
-        rc = sqlite3_get_table( hDB, osCommand, &papszResult,
-                                &nRowCount, &nColCount, &pszErrMsg );
-        if( rc != SQLITE_OK )
-        {
-            CPLError( CE_Failure, CPLE_AppDefined,
-                      "Search for existing SRS by WKT failed: %s", pszErrMsg );
-            sqlite3_free( pszErrMsg );
-        }
-        else if( nRowCount == 1 )
-        {
-            nSRSId = (papszResult[1] != NULL) ? atoi(papszResult[1]) : -1;
-            sqlite3_free_table(papszResult);
-            return nSRSId;
-        }
-        sqlite3_free_table(papszResult);
+        osCommand.Printf( "SELECT srid FROM spatial_ref_sys WHERE srtext = ?");
     }
 
 /* -------------------------------------------------------------------- */
@@ -1238,43 +1224,53 @@ int OGRSQLiteDataSource::FetchSRSId( OGRSpatialReference * poSRS )
         char    *pszProj4 = NULL;
 
         if( oSRS.exportToProj4( &pszProj4 ) != OGRERR_NONE )
+        {
+            CPLFree(pszProj4);
             return -1;
+        }
 
         osSRS = pszProj4;
         CPLFree( pszProj4 );
         pszProj4 = NULL;
 
 /* -------------------------------------------------------------------- */
-/*      Try to find based on the WKT match.                             */
+/*      Try to find based on the PROJ.4 match.                          */
 /* -------------------------------------------------------------------- */
         osCommand.Printf(
-            "SELECT srid FROM spatial_ref_sys WHERE proj4text = '%s'",
-            osSRS.c_str());
-        
-        rc = sqlite3_get_table( hDB, osCommand, &papszResult,
-                                &nRowCount, &nColCount, &pszErrMsg );
-        if( rc != SQLITE_OK )
-        {
-            CPLError( CE_Failure, CPLE_AppDefined,
-                      "Search for existing SRS by PROJ.4 string failed: %s",
-                      pszErrMsg );
-            sqlite3_free( pszErrMsg );
-        }
-        else if( nRowCount == 1 )
-        {
-            nSRSId = (papszResult[1] != NULL) ? atoi(papszResult[1]) : -1;
-            sqlite3_free_table(papszResult);
-            return nSRSId;
-        }
-        sqlite3_free_table(papszResult);
+            "SELECT srid FROM spatial_ref_sys WHERE proj4text = ?");
+    }
+
+    sqlite3_stmt *hSelectStmt = NULL;
+    rc = sqlite3_prepare( hDB, osCommand, -1, &hSelectStmt, NULL );
+
+    if( rc == SQLITE_OK)
+        rc = sqlite3_bind_text( hSelectStmt, 1, osSRS.c_str(), -1, SQLITE_STATIC );
+
+    if( rc == SQLITE_OK)
+        rc = sqlite3_step( hSelectStmt );
+
+    if (rc == SQLITE_ROW)
+    {
+        if (sqlite3_column_type( hSelectStmt, 0 ) == SQLITE_INTEGER)
+            nSRSId = sqlite3_column_int( hSelectStmt, 0 );
+        else
+            nSRSId = -1;
+
+        sqlite3_finalize( hSelectStmt );
+        return nSRSId;
     }
 
 /* -------------------------------------------------------------------- */
 /*      If the command actually failed, then the metadata table is      */
 /*      likely missing, so we give up.                                  */
 /* -------------------------------------------------------------------- */
-    if( rc != SQLITE_OK )
+    if (rc != SQLITE_DONE && rc != SQLITE_ROW)
+    {
+        sqlite3_finalize( hSelectStmt );
         return -1;
+    }
+
+    sqlite3_finalize( hSelectStmt );
 
 /* -------------------------------------------------------------------- */
 /*      If we have an authority code try to assign SRS ID the same      */
@@ -1330,22 +1326,28 @@ int OGRSQLiteDataSource::FetchSRSId( OGRSpatialReference * poSRS )
 /* -------------------------------------------------------------------- */
 /*      Try adding the SRS to the SRS table.                            */
 /* -------------------------------------------------------------------- */
+
+    const char* apszToInsert[] = { NULL, NULL, NULL, NULL, NULL };
+
     if ( !bIsSpatiaLite )
     {
         if( pszAuthorityName != NULL )
         {
             osCommand.Printf(
                 "INSERT INTO spatial_ref_sys (srid,srtext,auth_name,auth_srid) "
-                "                     VALUES (%d, '%s', '%s', '%s')",
-                nSRSId, osSRS.c_str(), 
-                pszAuthorityName, pszAuthorityCode );
+                "                     VALUES (%d, ?, ?, ?)",
+                nSRSId );
+            apszToInsert[0] = osSRS.c_str();
+            apszToInsert[1] = pszAuthorityName;
+            apszToInsert[2] = pszAuthorityCode;
         }
         else
         {
             osCommand.Printf(
                 "INSERT INTO spatial_ref_sys (srid,srtext) "
-                "                     VALUES (%d, '%s')",
-                nSRSId, osSRS.c_str() );
+                "                     VALUES (%d, ?)",
+                nSRSId );
+            apszToInsert[0] = osSRS.c_str();
         }
     }
     else
@@ -1357,46 +1359,77 @@ int OGRSQLiteDataSource::FetchSRSId( OGRSpatialReference * poSRS )
         if( pszAuthorityName != NULL )
         {
             if ( pszProjCS )
+            {
                 osCommand.Printf(
                     "INSERT INTO spatial_ref_sys "
                     "(srid, auth_name, auth_srid, ref_sys_name, proj4text) "
-                    "VALUES (%d, '%s', '%s', '%s', '%s')",
-                    nSRSId, pszAuthorityName,
-                    pszAuthorityCode, pszProjCS, osSRS.c_str() );
+                    "VALUES (%d, ?, ?, ?, ?)",
+                    nSRSId );
+                apszToInsert[0] = pszAuthorityName;
+                apszToInsert[1] = pszAuthorityCode;
+                apszToInsert[2] = pszProjCS;
+                apszToInsert[3] = osSRS.c_str();
+            }
             else
+            {
                 osCommand.Printf(
                     "INSERT INTO spatial_ref_sys "
                     "(srid, auth_name, auth_srid, proj4text) "
-                    "VALUES (%d, '%s', '%s', '%s')",
-                    nSRSId, pszAuthorityName,
-                    pszAuthorityCode, osSRS.c_str() );
+                    "VALUES (%d, ?, ?, ?)",
+                    nSRSId );
+                apszToInsert[0] = pszAuthorityName;
+                apszToInsert[1] = pszAuthorityCode;
+                apszToInsert[2] = osSRS.c_str();
+            }
         }
         else
         {
             /* SpatiaLite spatial_ref_sys auth_name and auth_srid columns must be NOT NULL */
             /* so insert within a fake OGR "authority" */
             if ( pszProjCS )
+            {
                 osCommand.Printf(
                     "INSERT INTO spatial_ref_sys "
-                    "(srid, auth_name, auth_srid, ref_sys_name, proj4text) VALUES (%d, '%s', %d, '%s', '%s')",
-                    nSRSId, "OGR", nSRSId, pszProjCS, osSRS.c_str() );
+                    "(srid, auth_name, auth_srid, ref_sys_name, proj4text) VALUES (%d, 'OGR', %d, ?, ?)",
+                    nSRSId, nSRSId );
+                apszToInsert[0] = pszProjCS;
+                apszToInsert[1] = osSRS.c_str();
+            }
             else
+            {
                 osCommand.Printf(
                     "INSERT INTO spatial_ref_sys "
-                    "(srid, auth_name, auth_srid, proj4text) VALUES (%d, '%s', %d, '%s')",
-                    nSRSId, "OGR", nSRSId, osSRS.c_str() );
+                    "(srid, auth_name, auth_srid, proj4text) VALUES (%d, 'OGR', %d, ?)",
+                    nSRSId, nSRSId );
+                apszToInsert[0] = osSRS.c_str();
+            }
         }
     }
 
-    rc = sqlite3_exec( hDB, osCommand, NULL, NULL, &pszErrMsg );
-    if( rc != SQLITE_OK )
+    sqlite3_stmt *hInsertStmt = NULL;
+    rc = sqlite3_prepare( hDB, osCommand, -1, &hInsertStmt, NULL );
+
+    int i;
+    for(i=0;apszToInsert[i]!=NULL;i++)
+    {
+        if( rc == SQLITE_OK)
+            rc = sqlite3_bind_text( hInsertStmt, i+1, apszToInsert[i], -1, SQLITE_STATIC );
+    }
+
+    if( rc == SQLITE_OK)
+        rc = sqlite3_step( hInsertStmt );
+
+    if( rc != SQLITE_OK && rc != SQLITE_DONE )
     {
         CPLError( CE_Failure, CPLE_AppDefined, 
                   "Unable to insert SRID (%s): %s",
-                  osCommand.c_str(), pszErrMsg );
-        sqlite3_free( pszErrMsg );
+                  osCommand.c_str(), sqlite3_errmsg(hDB) );
+
+        sqlite3_finalize( hInsertStmt );
         return FALSE;
     }
+
+    sqlite3_finalize( hInsertStmt );
 
     return nSRSId;
 }

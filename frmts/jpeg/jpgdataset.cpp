@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: jpgdataset.cpp 18301 2009-12-15 05:42:12Z warmerdam $
+ * $Id: jpgdataset.cpp 20996 2010-10-28 18:38:15Z rouault $
  *
  * Project:  JPEG JFIF Driver
  * Purpose:  Implement GDAL JPEG Support based on IJG libjpeg.
@@ -38,7 +38,7 @@
 #include <setjmp.h>
 
 
-CPL_CVSID("$Id: jpgdataset.cpp 18301 2009-12-15 05:42:12Z warmerdam $");
+CPL_CVSID("$Id: jpgdataset.cpp 20996 2010-10-28 18:38:15Z rouault $");
 
 CPL_C_START
 #ifdef LIBJPEG_12_PATH 
@@ -60,8 +60,8 @@ CPL_C_START
 void	GDALRegister_JPEG(void);
 CPL_C_END
 
-void jpeg_vsiio_src (j_decompress_ptr cinfo, FILE * infile);
-void jpeg_vsiio_dest (j_compress_ptr cinfo, FILE * outfile);
+void jpeg_vsiio_src (j_decompress_ptr cinfo, VSILFILE * infile);
+void jpeg_vsiio_dest (j_compress_ptr cinfo, VSILFILE * outfile);
 
 /*  
 * Do we want to do special processing suitable for when JSAMPLE is a 
@@ -97,7 +97,7 @@ class JPGDataset : public GDALPamDataset
     int	   nGCPCount;
     GDAL_GCP *pasGCPList;
 
-    FILE   *fpImage;
+    VSILFILE   *fpImage;
     GUIntBig nSubfileOffset;
 
     int    nLoadedScanline;
@@ -118,8 +118,8 @@ class JPGDataset : public GDALPamDataset
     CPLErr LoadScanline(int);
     void   Restart();
     
-    CPLErr EXIFExtractMetadata(FILE *, int);
-    int    EXIFInit(FILE *);
+    CPLErr EXIFExtractMetadata(VSILFILE *, int);
+    int    EXIFInit(VSILFILE *);
     void   EXIFPrintData(char *, GUInt16, GUInt32, unsigned char* );
 
     int    nQLevel;
@@ -427,7 +427,7 @@ void JPGDataset::EXIFPrintData(char* pszData, GUInt16 type,
 /*                                                                      */
 /*           Create Metadata from Information file directory APP1       */
 /************************************************************************/
-int JPGDataset::EXIFInit(FILE *fp)
+int JPGDataset::EXIFInit(VSILFILE *fp)
 {
     int           one = 1;
     TIFFHeader    hdr;
@@ -505,7 +505,7 @@ int JPGDataset::EXIFInit(FILE *fp)
 /*                                                                      */
 /*      Extract all entry from a IFD                                    */
 /************************************************************************/
-CPLErr JPGDataset::EXIFExtractMetadata(FILE *fp, int nOffset)
+CPLErr JPGDataset::EXIFExtractMetadata(VSILFILE *fp, int nOffset)
 {
     GUInt16        nEntryCount;
     int space;
@@ -1490,6 +1490,49 @@ CPLErr JPGDataset::IRasterIO( GDALRWFlag eRWFlag,
 }
 
 /************************************************************************/
+/*                    JPEGDatasetIsJPEGLS()                             */
+/************************************************************************/
+
+static int JPEGDatasetIsJPEGLS( GDALOpenInfo * poOpenInfo )
+
+{
+    GByte  *pabyHeader = poOpenInfo->pabyHeader;
+    int    nHeaderBytes = poOpenInfo->nHeaderBytes;
+
+    if( nHeaderBytes < 10 )
+        return FALSE;
+
+    if( pabyHeader[0] != 0xff
+        || pabyHeader[1] != 0xd8 )
+        return FALSE;
+
+    int nOffset = 2;
+    for (;nOffset + 4 < nHeaderBytes;)
+    {
+        if (pabyHeader[nOffset] != 0xFF)
+            return FALSE;
+
+        int nMarker = pabyHeader[nOffset + 1];
+        if (nMarker == 0xF7 /* JPEG Extension 7, JPEG-LS */)
+            return TRUE;
+        if (nMarker == 0xF8 /* JPEG Extension 8, JPEG-LS Extension */)
+            return TRUE;
+        if (nMarker == 0xC3 /* Start of Frame 3 */)
+            return TRUE;
+        if (nMarker == 0xC7 /* Start of Frame 7 */)
+            return TRUE;
+        if (nMarker == 0xCB /* Start of Frame 11 */)
+            return TRUE;
+        if (nMarker == 0xCF /* Start of Frame 15 */)
+            return TRUE;
+
+        nOffset += 2 + pabyHeader[nOffset + 2] * 256 + pabyHeader[nOffset + 3];
+    }
+
+    return FALSE;
+}
+
+/************************************************************************/
 /*                              Identify()                              */
 /************************************************************************/
 
@@ -1518,6 +1561,11 @@ int JPGDataset::Identify( GDALOpenInfo * poOpenInfo )
         || pabyHeader[1] != 0xd8
         || pabyHeader[2] != 0xff )
         return FALSE;
+
+    if (JPEGDatasetIsJPEGLS(poOpenInfo))
+    {
+        return FALSE;
+    }
 
     return TRUE;
 }
@@ -1795,13 +1843,15 @@ GDALDataset *JPGDataset::Open( GDALOpenInfo * poOpenInfo )
 /* -------------------------------------------------------------------- */
     if( !bIsSubfile )
     {
+        int bEndsWithWld = strlen(poOpenInfo->pszFilename) > 4 &&
+                           EQUAL( poOpenInfo->pszFilename + strlen(poOpenInfo->pszFilename) - 4, ".wld");
         poDS->bGeoTransformValid = 
             GDALReadWorldFile( poOpenInfo->pszFilename, NULL, 
                                poDS->adfGeoTransform )
             || GDALReadWorldFile( poOpenInfo->pszFilename, ".jpw", 
                                   poDS->adfGeoTransform )
-            || GDALReadWorldFile( poOpenInfo->pszFilename, ".wld", 
-                                  poDS->adfGeoTransform );
+            || ( !bEndsWithWld && GDALReadWorldFile( poOpenInfo->pszFilename, ".wld",
+                                  poDS->adfGeoTransform ));
 
         if( !poDS->bGeoTransformValid )
         {
@@ -1977,20 +2027,25 @@ static void JPGAppendMask( const char *pszJPGFilename, GDALRasterBand *poMask )
     int nBitBufSize = nYSize * ((nXSize+7)/8);
     int iX, iY;
     GByte *pabyBitBuf, *pabyMaskLine;
+    CPLErr eErr = CE_None;
 
 /* -------------------------------------------------------------------- */
 /*      Allocate uncompressed bit buffer.                               */
 /* -------------------------------------------------------------------- */
-    pabyBitBuf = (GByte *) CPLCalloc(1,nBitBufSize);
+    pabyBitBuf = (GByte *) VSICalloc(1,nBitBufSize);
 
-    pabyMaskLine = (GByte *) CPLMalloc(nXSize);
+    pabyMaskLine = (GByte *) VSIMalloc(nXSize);
+    if (pabyBitBuf == NULL || pabyMaskLine == NULL)
+    {
+        CPLError( CE_Failure, CPLE_OutOfMemory, "Out of memory");
+        eErr = CE_Failure;
+    }
 
 /* -------------------------------------------------------------------- */
 /*      Set bit buffer from mask band, scanline by scanline.            */
 /* -------------------------------------------------------------------- */
-    CPLErr eErr = CE_None;
     int iBit = 0;
-    for( iY = 0; iY < nYSize; iY++ )
+    for( iY = 0; eErr == CE_None && iY < nYSize; iY++ )
     {
         eErr = poMask->RasterIO( GF_Read, 0, iY, nXSize, 1,
                                  pabyMaskLine, nXSize, 1, GDT_Byte, 0, 0 );
@@ -2016,8 +2071,16 @@ static void JPGAppendMask( const char *pszJPGFilename, GDALRasterBand *poMask )
 
     if( eErr == CE_None )
     {
-        pabyCMask = (GByte *) CPLMalloc(nBitBufSize + 30);
+        pabyCMask = (GByte *) VSIMalloc(nBitBufSize + 30);
+        if (pabyCMask == NULL)
+        {
+            CPLError( CE_Failure, CPLE_OutOfMemory, "Out of memory");
+            eErr = CE_Failure;
+        }
+    }
 
+    if ( eErr == CE_None )
+    {
         memset( &sStream, 0, sizeof(z_stream) );
         
         deflateInit( &sStream, 9 );
@@ -2045,7 +2108,7 @@ static void JPGAppendMask( const char *pszJPGFilename, GDALRasterBand *poMask )
 /* -------------------------------------------------------------------- */
     if( eErr == CE_None )
     {
-        FILE *fpOut;
+        VSILFILE *fpOut;
         GUInt32 nImageSize;
 
         fpOut = VSIFOpenL( pszJPGFilename, "r+" );
@@ -2188,7 +2251,7 @@ JPEGCreateCopy( const char * pszFilename, GDALDataset *poSrcDS,
 /* -------------------------------------------------------------------- */
 /*      Create the dataset.                                             */
 /* -------------------------------------------------------------------- */
-    FILE	*fpImage;
+    VSILFILE	*fpImage;
 
     fpImage = VSIFOpenL( pszFilename, "wb" );
     if( fpImage == NULL )

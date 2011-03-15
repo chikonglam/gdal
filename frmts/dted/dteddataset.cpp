@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: dteddataset.cpp 18060 2009-11-21 20:26:25Z rouault $
+ * $Id: dteddataset.cpp 20763 2010-10-04 22:04:10Z rouault $
  *
  * Project:  DTED Translator
  * Purpose:  GDALDataset driver for DTED translator.
@@ -31,7 +31,7 @@
 #include "gdal_pam.h"
 #include "ogr_spatialref.h"
 
-CPL_CVSID("$Id: dteddataset.cpp 18060 2009-11-21 20:26:25Z rouault $");
+CPL_CVSID("$Id: dteddataset.cpp 20763 2010-10-04 22:04:10Z rouault $");
 
 CPL_C_START
 void    GDALRegister_DTED(void);
@@ -431,6 +431,18 @@ GDALDataset *DTEDDataset::Open( GDALOpenInfo * poOpenInfo )
     poDS->SetMetadataItem( "DTED_RelVerticalAccuracy", pszValue );
     free( pszValue );
     
+    pszValue = DTEDGetMetadata( psDTED, DTEDMD_ORIGINLAT );
+    poDS->SetMetadataItem( "DTED_OriginLatitude", pszValue );
+    free( pszValue );
+    
+    pszValue = DTEDGetMetadata( psDTED, DTEDMD_ORIGINLONG );
+    poDS->SetMetadataItem( "DTED_OriginLongitude", pszValue );
+    free( pszValue );
+    
+    pszValue = DTEDGetMetadata( psDTED, DTEDMD_NIMA_DESIGNATOR ); 
+    poDS->SetMetadataItem( "DTED_NimaDesignator", pszValue ); 
+    free( pszValue );
+    
     poDS->SetMetadataItem( GDALMD_AREA_OR_POINT, GDALMD_AOP_POINT );
 
 /* -------------------------------------------------------------------- */
@@ -526,7 +538,7 @@ const char *DTEDDataset::GetProjectionRef()
             CPLError( CE_Warning, CPLE_AppDefined,
                       "The DTED file %s indicates %s as horizontal datum, which is not recognized by the DTED driver. \n"
                       "The DTED driver is going to consider it as WGS84.\n"
-                      "No more warnings will be issued in this session about this operation.", GetFileName(), pszProjection );
+                      "No more warnings will be issued in this session about this operation.", GetFileName(), pszPrj );
         }
         return( "GEOGCS[\"WGS 84\",DATUM[\"WGS_1984\",SPHEROID[\"WGS 84\",6378137,298.257223563]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433],AUTHORITY[\"EPSG\",\"4326\"]]" );
     }
@@ -683,7 +695,13 @@ DTEDCreateCopy( const char * pszFilename, GDALDataset *poSrcDS,
     GInt16      *panData;
 
     panData = (GInt16 *) 
-        CPLMalloc(sizeof(GInt16) * psDTED->nXSize * psDTED->nYSize);
+        VSIMalloc(sizeof(GInt16) * psDTED->nXSize * psDTED->nYSize);
+    if (panData == NULL)
+    {
+        CPLError( CE_Failure, CPLE_OutOfMemory, "Out of memory");
+        DTEDClose(psDTED);
+        return NULL;
+    }
 
     for( int iY = 0; iY < psDTED->nYSize; iY++ )
     {

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: aigopen.c 19497 2010-04-22 15:40:48Z warmerdam $
+ * $Id: aigopen.c 20996 2010-10-28 18:38:15Z rouault $
  *
  * Project:  Arc/Info Binary Grid Translator
  * Purpose:  Grid file access cover API for non-GDAL use.
@@ -29,7 +29,7 @@
 
 #include "aigrid.h"
 
-CPL_CVSID("$Id: aigopen.c 19497 2010-04-22 15:40:48Z warmerdam $");
+CPL_CVSID("$Id: aigopen.c 20996 2010-10-28 18:38:15Z rouault $");
 
 /************************************************************************/
 /*                              AIGOpen()                               */
@@ -223,6 +223,7 @@ CPLErr AIGAccessTile( AIGInfo_t *psInfo, int iTileX, int iTileY )
         CPLError( CE_Warning, CPLE_OpenFailed,
                   "Failed to open grid file, assuming region is nodata:\n%s\n",
                   pszFilename );
+        CPLFree( pszFilename );
         return CE_Warning;
     }
 
@@ -448,10 +449,10 @@ void AIGClose( AIGInfo_t * psInfo )
 /*      upper cased versions of file names.                             */
 /************************************************************************/
 
-FILE *AIGLLOpen( const char *pszFilename, const char *pszAccess )
+VSILFILE *AIGLLOpen( const char *pszFilename, const char *pszAccess )
 
 {
-    FILE	*fp;
+    VSILFILE	*fp;
 
     fp = VSIFOpenL( pszFilename, pszAccess );
     if( fp == NULL )

@@ -49,12 +49,13 @@ using namespace PCIDSK;
 /************************************************************************/
 
 CBandInterleavedChannel::CBandInterleavedChannel( PCIDSKBuffer &image_header, 
+                                                  uint64 ih_offset, 
                                                   PCIDSKBuffer &file_header,
                                                   int channelnum,
                                                   CPCIDSKFile *file,
                                                   uint64 image_offset,
                                                   eChanType pixel_type )
-        : CPCIDSKChannel( image_header, file, pixel_type, channelnum )
+        : CPCIDSKChannel( image_header, ih_offset, file, pixel_type, channelnum)
 
 {
     io_handle_p = NULL;
@@ -166,7 +167,8 @@ int CBandInterleavedChannel::ReadBlock( int block_index, void *buffer,
         MutexHolder holder( *io_mutex_p );
         
         interfaces->io->Seek( *io_handle_p, offset, SEEK_SET );
-        interfaces->io->Read( buffer, 1, line_from_disk.buffer_size, 
+        interfaces->io->Read( line_from_disk.buffer, 
+                              1, line_from_disk.buffer_size, 
                               *io_handle_p );
 
         for( i = 0, this_pixel = line_from_disk.buffer; i < xsize; i++ )
@@ -181,7 +183,7 @@ int CBandInterleavedChannel::ReadBlock( int block_index, void *buffer,
 /*      Do byte swapping if needed.                                     */
 /* -------------------------------------------------------------------- */
     if( needs_swap )
-        SwapData( buffer, pixel_size, xsize );
+        SwapPixels( buffer, pixel_type, xsize );
 
     return 1;
 }
@@ -197,6 +199,8 @@ int CBandInterleavedChannel::WriteBlock( int block_index, void *buffer )
 
     if( !file->GetUpdatable() )
         throw PCIDSKException( "File not open for update in WriteBlock()" );
+
+    InvalidateOverviews();
 
 /* -------------------------------------------------------------------- */
 /*      Establish region to read.                                       */
@@ -220,13 +224,13 @@ int CBandInterleavedChannel::WriteBlock( int block_index, void *buffer )
         MutexHolder holder( *io_mutex_p );
 
         if( needs_swap ) // swap before write.
-            SwapData( buffer, pixel_size, width );
+            SwapPixels( buffer, pixel_type, width );
 
         interfaces->io->Seek( *io_handle_p, offset, SEEK_SET );
         interfaces->io->Write( buffer, 1, window_size, *io_handle_p );
 
         if( needs_swap ) // restore to original order.
-            SwapData( buffer, pixel_size, width );
+            SwapPixels( buffer, pixel_type, width );
     }
 
 /* -------------------------------------------------------------------- */
@@ -251,7 +255,7 @@ int CBandInterleavedChannel::WriteBlock( int block_index, void *buffer )
                     pixel_size );
 
             if( needs_swap ) // swap before write.
-                SwapData( this_pixel, pixel_size, 1 );
+                SwapPixels( this_pixel, pixel_type, 1 );
 
             this_pixel += pixel_size;
         }

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gtmtracklayer.cpp 17637 2009-09-12 23:22:00Z warmerdam $
+ * $Id: gtmtracklayer.cpp 20996 2010-10-28 18:38:15Z rouault $
  *
  * Project:  GTM Driver
  * Purpose:  Implementation of GTMTrackLayer class.
@@ -219,11 +219,11 @@ inline void GTMTrackLayer::WriteTrackpoint( double lat, double lon, float altitu
 /************************************************************************/
 OGRErr GTMTrackLayer::CreateFeature (OGRFeature *poFeature)
 {
-    FILE* fpTmpTrackpoints = poDS->getTmpTrackpointsFP();
+    VSILFILE* fpTmpTrackpoints = poDS->getTmpTrackpointsFP();
     if (fpTmpTrackpoints == NULL)
         return CE_Failure;
 
-    FILE* fpTmpTracks = poDS->getTmpTracksFP();
+    VSILFILE* fpTmpTracks = poDS->getTmpTracksFP();
     if (fpTmpTracks == NULL)
         return CE_Failure;
 

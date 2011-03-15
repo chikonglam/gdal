@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: hfatest.cpp 18178 2009-12-05 00:29:57Z warmerdam $
+ * $Id: hfatest.cpp 18624 2010-01-24 02:54:43Z warmerdam $
  *
  * Project:  Erdas Imagine (.img) Translator
  * Purpose:  Testing mainline for HFA services - transitory.
@@ -29,7 +29,7 @@
 
 #include "hfa_p.h"
 
-CPL_CVSID("$Id: hfatest.cpp 18178 2009-12-05 00:29:57Z warmerdam $");
+CPL_CVSID("$Id: hfatest.cpp 18624 2010-01-24 02:54:43Z warmerdam $");
 
 /************************************************************************/
 /*                               Usage()                                */
@@ -45,7 +45,7 @@ static void Usage()
 /* Stub for HFAPCSStructToWKT, defined in hfadataset.cpp but used by    */
 /* hfaopen.cpp                                                          */
 /************************************************************************/
-
+#ifndef WIN32
 char *
 HFAPCSStructToWKT( const Eprj_Datum *psDatum,
                    const Eprj_ProParameters *psPro,
@@ -54,6 +54,7 @@ HFAPCSStructToWKT( const Eprj_Datum *psDatum,
 {
     return NULL;
 }
+#endif
 
 /************************************************************************/
 /*                                main()                                */

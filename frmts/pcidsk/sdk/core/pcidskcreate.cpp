@@ -79,7 +79,7 @@ PCIDSK::Create( std::string filename, int pixels, int lines,
 
     if( channel_types == NULL )
     {
-        default_channel_types.resize( channel_count, CHN_8U );
+        default_channel_types.resize( channel_count+1, CHN_8U );
         channel_types = &(default_channel_types[0]);
     }
    
@@ -114,7 +114,7 @@ PCIDSK::Create( std::string filename, int pixels, int lines,
 /* -------------------------------------------------------------------- */
 /*      Validate the channel types.                                     */
 /* -------------------------------------------------------------------- */
-    int channels[4] = {0,0,0,0};
+    int channels[7] = {0,0,0,0,0,0,0};
     int chan_index;
     bool regular = true;
 
@@ -157,7 +157,14 @@ PCIDSK::Create( std::string filename, int pixels, int lines,
     if( strcmp(interleaving,"PIXEL") == 0 )
     {
         pixel_group_size = 
-            channels[0] + channels[1]*2 + channels[2]*2 + channels[3]*4;
+            channels[0] + // CHN_8U
+            channels[1] * DataTypeSize(CHN_16U) + 
+            channels[2] * DataTypeSize(CHN_16S) + 
+            channels[3] * DataTypeSize(CHN_32R) +
+            channels[4] * DataTypeSize(CHN_C16U) +
+            channels[5] * DataTypeSize(CHN_C16S) +
+            channels[6] * DataTypeSize(CHN_C32R);
+            //channels[0] + channels[1]*2 + channels[2]*2 + channels[3]*4;
         line_size = ((pixel_group_size * pixels + 511) / 512) * 512;
         image_data_size = (((uint64)line_size) * lines) / 512;
 
@@ -170,7 +177,13 @@ PCIDSK::Create( std::string filename, int pixels, int lines,
     else if( strcmp(interleaving,"BAND") == 0 )
     {
         pixel_group_size = 
-            channels[0] + channels[1]*2 + channels[2]*2 + channels[3]*4;
+            channels[0] + // CHN_8U
+            channels[1] * DataTypeSize(CHN_16U) + 
+            channels[2] * DataTypeSize(CHN_16S) + 
+            channels[3] * DataTypeSize(CHN_32R) +
+            channels[4] * DataTypeSize(CHN_C16U) +
+            channels[5] * DataTypeSize(CHN_C16S) +
+            channels[6] * DataTypeSize(CHN_C32R);
         // BAND interleaved bands are tightly packed.
         image_data_size = 
             (((uint64)pixel_group_size) * pixels * lines + 511) / 512;
@@ -191,7 +204,7 @@ PCIDSK::Create( std::string filename, int pixels, int lines,
 
         // TODO: Old code enforces a 1TB limit on the fattest band.
     }
-    
+
 /* -------------------------------------------------------------------- */
 /*      Place components.                                               */
 /* -------------------------------------------------------------------- */
@@ -300,6 +313,15 @@ PCIDSK::Create( std::string filename, int pixels, int lines,
 
     // FH24.4 - 32R bands.
     fh.Put( channels[3], 476, 4 );
+    
+    // FH24.5 - C16U bands
+    fh.Put( channels[4], 480, 4 );
+    
+    // FH24.6 - C16S bands
+    fh.Put( channels[5], 484, 4 );
+    
+    // FH24.7 - C32R bands
+    fh.Put( channels[6], 488, 4 );
 
 /* -------------------------------------------------------------------- */
 /*      Write out the file header.                                      */
@@ -330,14 +352,7 @@ PCIDSK::Create( std::string filename, int pixels, int lines,
 
     for( chan_index = 0; chan_index < channel_count; chan_index++ )
     {
-        if( channel_types[chan_index] == CHN_8U )
-            ih.Put( "8U", 160, 8 );
-        else if( channel_types[chan_index] == CHN_16S )
-            ih.Put( "16S", 160, 8 );
-        else if( channel_types[chan_index] == CHN_16U )
-            ih.Put( "16U", 160, 8 );
-        else if( channel_types[chan_index] == CHN_32R )
-            ih.Put( "32R", 160, 8 );
+        ih.Put(DataTypeName(channel_types[chan_index]).c_str(), 160, 8);    
 
         if( strncmp("TILED",options.c_str(),5) == 0 )
         {
@@ -372,8 +387,8 @@ PCIDSK::Create( std::string filename, int pixels, int lines,
 /* ==================================================================== */
 /*      Write out the segment pointers, all spaces.                     */
 /* ==================================================================== */
-    PCIDSKBuffer segment_pointers( segment_ptr_size*512 );
-    segment_pointers.Put( " ", 0, segment_ptr_size*512 );
+    PCIDSKBuffer segment_pointers( (int) (segment_ptr_size*512) );
+    segment_pointers.Put( " ", 0, (int) (segment_ptr_size*512) );
 
     interfaces->io->Seek( io_handle, segment_ptr_start*512, SEEK_SET );
     interfaces->io->Write( segment_pointers.buffer, segment_ptr_size, 512, 
@@ -400,14 +415,9 @@ PCIDSK::Create( std::string filename, int pixels, int lines,
 /* -------------------------------------------------------------------- */
 /*      Create a default georeferencing segment.                        */
 /* -------------------------------------------------------------------- */
-    int segment = file->CreateSegment( "GEOref", 
-                                       "Master Georeferencing Segment for File",
-                                       SEG_GEO, 6 );
-
-    PCIDSKSegment *geo_seg = file->GetSegment( segment );
-    PCIDSKGeoref *geo = dynamic_cast<PCIDSKGeoref*>( geo_seg );
-
-    geo->WriteSimple( "PIXEL", 0.0, 1.0, 0.0, 0.0, 0.0, 1.0 );
+    file->CreateSegment( "GEOref", 
+                         "Master Georeferencing Segment for File",
+                         SEG_GEO, 6 );
 
 /* -------------------------------------------------------------------- */
 /*      If the dataset is tiled, create the file band data.             */
@@ -423,8 +433,6 @@ PCIDSK::Create( std::string filename, int pixels, int lines,
         SysBlockMap *bm = 
             dynamic_cast<SysBlockMap *>(file->GetSegment( segment ));
 
-        bm->Initialize();
-        
         for( chan_index = 0; chan_index < channel_count; chan_index++ )
         {
             bm->CreateVirtualImageFile( pixels, lines, blocksize, blocksize,

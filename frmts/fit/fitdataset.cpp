@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: fitdataset.cpp 16443 2009-03-01 19:01:54Z rouault $
+ * $Id: fitdataset.cpp 20996 2010-10-28 18:38:15Z rouault $
  *
  * Project:  FIT Driver
  * Purpose:  Implement FIT Support - not using the SGI iflFIT library.
@@ -32,7 +32,7 @@
 #include "gdal_pam.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: fitdataset.cpp 16443 2009-03-01 19:01:54Z rouault $");
+CPL_CVSID("$Id: fitdataset.cpp 20996 2010-10-28 18:38:15Z rouault $");
 
 CPL_C_START
  
@@ -57,7 +57,7 @@ class FITDataset : public GDALPamDataset
 {
     friend class FITRasterBand;
     
-    FILE	*fp;
+    VSILFILE	*fp;
     FITinfo	*info;
     double      adfGeoTransform[6];
     
@@ -886,10 +886,6 @@ GDALDataset *FITDataset::Open( GDALOpenInfo * poOpenInfo )
     poDS = new FITDataset();
     DeleteGuard<FITDataset> guard( poDS );
 
-    // close FILE* as it will not handle large files
-    VSIFClose( poOpenInfo->fp );
-    poOpenInfo->fp = NULL;
-
 	// re-open file for large file (64bit) access
     if ( poOpenInfo->eAccess == GA_ReadOnly )
 	poDS->fp = VSIFOpenL( poOpenInfo->pszFilename, "rb" );
@@ -1096,7 +1092,7 @@ static GDALDataset *FITCreateCopy(const char * pszFilename,
 /* -------------------------------------------------------------------- */
 /*      Create the dataset.                                             */
 /* -------------------------------------------------------------------- */
-    FILE	*fpImage;
+    VSILFILE	*fpImage;
 
     if( !pfnProgress( 0.0, NULL, pProgressData ) )
     {
@@ -1359,6 +1355,7 @@ void GDALRegister_FIT()
         poDriver->SetMetadataItem( GDAL_DMD_HELPTOPIC, 
                                    "frmt_various.html#" );
         poDriver->SetMetadataItem( GDAL_DMD_EXTENSION, "" );
+        poDriver->SetMetadataItem( GDAL_DCAP_VIRTUALIO, "YES" );
 
         poDriver->pfnOpen = FITDataset::Open;
 #ifdef FIT_WRITE

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: jdemdataset.cpp 16706 2009-04-02 03:44:07Z warmerdam $
+ * $Id: jdemdataset.cpp 20996 2010-10-28 18:38:15Z rouault $
  *
  * Project:  JDEM Reader
  * Purpose:  All code for Japanese DEM Reader
@@ -29,7 +29,7 @@
 
 #include "gdal_pam.h"
 
-CPL_CVSID("$Id: jdemdataset.cpp 16706 2009-04-02 03:44:07Z warmerdam $");
+CPL_CVSID("$Id: jdemdataset.cpp 20996 2010-10-28 18:38:15Z rouault $");
 
 CPL_C_START
 void	GDALRegister_JDEM(void);
@@ -85,7 +85,7 @@ class JDEMDataset : public GDALPamDataset
 {
     friend class JDEMRasterBand;
 
-    FILE	*fp;
+    VSILFILE	*fp;
     GByte	abyHeader[1012];
 
   public:

@@ -53,57 +53,76 @@ namespace PCIDSK
         friend class PCIDSKFile;
 
     public:
-        CPCIDSKChannel( PCIDSKBuffer &image_header, 
+        CPCIDSKChannel( PCIDSKBuffer &image_header, uint64 ih_offset,
             CPCIDSKFile *file, eChanType pixel_type,
             int channel_number );
         virtual   ~CPCIDSKChannel();
 
-        virtual int GetBlockWidth() { return block_width; }
-        virtual int GetBlockHeight() { return block_height; }
-        virtual int GetBlockCount();
+        virtual int GetBlockWidth() const { return block_width; }
+        virtual int GetBlockHeight() const { return block_height; }
+        virtual int GetBlockCount() const;
 
-        virtual int GetWidth() { return width; }
-        virtual int GetHeight() { return height; }
-        virtual eChanType GetType() { return pixel_type; }
+        virtual int GetWidth() const { return width; }
+        virtual int GetHeight() const { return height; }
+        virtual eChanType GetType() const { return pixel_type; }
 
         int       GetOverviewCount();
         PCIDSKChannel  *GetOverview( int i );
+        bool IsOverviewValid( int i );
+        void SetOverviewValidity( int i, bool validity );
+        std::string GetOverviewResampling( int i );
+        std::vector<int> GetOverviewLevelMapping() const;
 
         int         GetChannelNumber() { return channel_number; }
 
-        std::string GetMetadataValue( std::string key ) 
+        std::string GetMetadataValue( const std::string &key ) const 
             { return metadata.GetMetadataValue(key); }
-        void        SetMetadataValue( std::string key, std::string value ) 
+        void        SetMetadataValue( const std::string &key, const std::string &value ) 
             { metadata.SetMetadataValue(key,value); }
-        std::vector<std::string> GetMetadataKeys() 
+        std::vector<std::string> GetMetadataKeys() const
             { return metadata.GetMetadataKeys(); }
 
         virtual void Synchronize() {}
+
+        std::string GetDescription();
+        void SetDescription( const std::string &description );
+
+        virtual std::vector<std::string> GetHistoryEntries() const;
+        virtual void SetHistoryEntries( const std::vector<std::string> &entries );
+        virtual void PushHistory(const std::string &app,
+                                 const std::string &message);
 
     // Just for CPCIDSKFile.
         void      InvalidateOverviewInfo();
 
     protected:
         CPCIDSKFile *file;
-        MetadataSet  metadata;
+        mutable MetadataSet  metadata;
+
+        void LoadHistory( const PCIDSKBuffer &image_header );
+        std::vector<std::string> history_;
 
         int       channel_number;
-        eChanType pixel_type;
+        uint64    ih_offset;
+        mutable eChanType pixel_type;
         char      byte_order; // 'S': littleendian, 'N': bigendian
-        int       needs_swap;
+        mutable int       needs_swap;
 
     // width/height, and block size.
-        int       width;
-        int       height;
-        int       block_width;
-        int       block_height;
+        mutable int       width;
+        mutable int       height;
+        mutable int       block_width;
+        mutable int       block_height;
 
     // info about overviews;
-        void      EstablishOverviewInfo();
+        void      EstablishOverviewInfo() const;
 
-        bool                         overviews_initialized;
-        std::vector<std::string>     overview_infos;
-        std::vector<CTiledChannel *> overview_bands;
+        mutable bool                         overviews_initialized;
+        mutable std::vector<std::string>     overview_infos;
+        mutable std::vector<CTiledChannel *> overview_bands;
+        mutable std::vector<int>             overview_decimations;
+
+        void      InvalidateOverviews();
     };
 } // end namespace PCIDSK
 

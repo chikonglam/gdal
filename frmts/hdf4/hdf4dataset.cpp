@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: hdf4dataset.cpp 18946 2010-02-27 20:39:51Z rouault $
+ * $Id: hdf4dataset.cpp 19769 2010-05-25 00:39:46Z ilucena $
  *
  * Project:  Hierarchical Data Format Release 4 (HDF4)
  * Purpose:  HDF4 Datasets. Open HDF4 file, fetch metadata and list of
@@ -39,7 +39,7 @@
 #include "hdf4compat.h"
 #include "hdf4dataset.h"
 
-CPL_CVSID("$Id: hdf4dataset.cpp 18946 2010-02-27 20:39:51Z rouault $");
+CPL_CVSID("$Id: hdf4dataset.cpp 19769 2010-05-25 00:39:46Z ilucena $");
 
 CPL_C_START
 void	GDALRegister_HDF4(void);
@@ -755,13 +755,16 @@ GDALDataset *HDF4Dataset::Open( GDALOpenInfo * poOpenInfo )
     int		nCount;
     int32	aiDimSizes[H4_MAX_VAR_DIMS];
     int32	iRank, iNumType, nAttrs;
-
+    bool        bIsHDF = true;
+    
     // Sometimes "HDFEOSVersion" attribute is not defined and we will
     // determine HDF-EOS datasets using other records
     // (see ReadGlobalAttributes() method).
     if ( poDS->bIsHDFEOS
          || CSLFetchNameValue(poDS->papszGlobalMetadata, "HDFEOSVersion") )
     {
+        bIsHDF  = false;
+
         int32   nSubDatasets, nStrBufSize;
 
 /* -------------------------------------------------------------------- */
@@ -978,9 +981,11 @@ GDALDataset *HDF4Dataset::Open( GDALOpenInfo * poOpenInfo )
             GDclose( hHDF4 );
         }
         GDclose( hHDF4 );
+
+        bIsHDF = ( nSubDatasets == 0 ); // Try to read as HDF
     }
 
-    else
+    if( bIsHDF )
     {
 
 /* -------------------------------------------------------------------- */

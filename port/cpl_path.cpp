@@ -1,5 +1,5 @@
 /**********************************************************************
- * $Id: cpl_path.cpp 17818 2009-10-14 18:06:56Z rouault $
+ * $Id: cpl_path.cpp 21433 2011-01-07 22:32:36Z warmerdam $
  *
  * Project:  CPL - Common Portability Library
  * Purpose:  Portable filename/path parsing, and forming ala "Glob API".
@@ -31,11 +31,12 @@
 #include "cpl_string.h"
 #include "cpl_multiproc.h"
 
-CPL_CVSID("$Id: cpl_path.cpp 17818 2009-10-14 18:06:56Z rouault $");
+CPL_CVSID("$Id: cpl_path.cpp 21433 2011-01-07 22:32:36Z warmerdam $");
 
 
 /* should be size of larged possible filename */
 #define CPL_PATH_BUF_SIZE 2048
+#define CPL_PATH_BUF_COUNT  10
 
 #if defined(WIN32) || defined(WIN32CE)
 #define SEP_CHAR '\\'
@@ -59,14 +60,24 @@ static const char* CPLStaticBufferTooSmall(char *pszStaticResult)
 static char *CPLGetStaticResult()
 
 {
-    char *pszStaticResult = (char *) CPLGetTLS( CTLS_PATHBUF );
-    if( pszStaticResult == NULL )
+    char *pachBufRingInfo = (char *) CPLGetTLS( CTLS_PATHBUF );
+    if( pachBufRingInfo == NULL )
     {
-        pszStaticResult = (char *) CPLMalloc(CPL_PATH_BUF_SIZE);
-        CPLSetTLS( CTLS_PATHBUF, pszStaticResult, TRUE );
+        pachBufRingInfo = (char *) CPLCalloc(1, sizeof(int) + CPL_PATH_BUF_SIZE * CPL_PATH_BUF_COUNT);
+        CPLSetTLS( CTLS_PATHBUF, pachBufRingInfo, TRUE );
     }
 
-    return pszStaticResult;
+/* -------------------------------------------------------------------- */
+/*      Work out which string in the "ring" we want to use this         */
+/*      time.                                                           */
+/* -------------------------------------------------------------------- */
+    int *pnBufIndex = (int *) pachBufRingInfo;
+    int nOffset = sizeof(int) + *pnBufIndex * CPL_PATH_BUF_SIZE;
+    char *pachBuffer = pachBufRingInfo + nOffset;
+
+    *pnBufIndex = (*pnBufIndex + 1) % CPL_PATH_BUF_COUNT;
+
+    return pachBuffer;
 }
 
 
@@ -462,7 +473,14 @@ const char *CPLFormFilename( const char * pszPath,
     else if( strlen(pszPath) > 0
              && pszPath[strlen(pszPath)-1] != '/'
              && pszPath[strlen(pszPath)-1] != '\\' )
-        pszAddedPathSep = SEP_STRING;
+    {
+        /* FIXME? would be better to ask the filesystems what they */
+        /* prefer as directory separator */
+        if (strncmp(pszPath, "/vsicurl/", 9) == 0)
+            pszAddedPathSep = "/";
+        else
+            pszAddedPathSep = SEP_STRING;
+    }
 
     if( pszExtension == NULL )
         pszExtension = "";
@@ -512,9 +530,11 @@ const char *CPLFormCIFilename( const char * pszPath,
                                const char * pszExtension )
 
 {
-#if defined(WIN32) || defined(WIN32CE)
-    return CPLFormFilename( pszPath, pszBasename, pszExtension );
-#else
+    // On case insensitive filesystems, just default to
+    // CPLFormFilename()
+    if( !VSIIsCaseSensitiveFS(pszPath) )
+        return CPLFormFilename( pszPath, pszBasename, pszExtension );
+
     const char  *pszAddedExtSep = "";
     char        *pszFilename;
     const char  *pszFullPath;
@@ -536,17 +556,17 @@ const char *CPLFormCIFilename( const char * pszPath,
              pszBasename, pszAddedExtSep, pszExtension );
 
     pszFullPath = CPLFormFilename( pszPath, pszFilename, NULL );
-    nStatRet = VSIStatL( pszFullPath, &sStatBuf );
+    nStatRet = VSIStatExL( pszFullPath, &sStatBuf, VSI_STAT_EXISTS_FLAG );
     if( nStatRet != 0 )
     {
         for( i = 0; pszFilename[i] != '\0'; i++ )
         {
             if( islower(pszFilename[i]) )
-                pszFilename[i] = toupper(pszFilename[i]);
+                pszFilename[i] = (char) toupper(pszFilename[i]);
         }
 
         pszFullPath = CPLFormFilename( pszPath, pszFilename, NULL );
-        nStatRet = VSIStatL( pszFullPath, &sStatBuf );
+        nStatRet = VSIStatExL( pszFullPath, &sStatBuf, VSI_STAT_EXISTS_FLAG );
     }
 
     if( nStatRet != 0 )
@@ -554,11 +574,11 @@ const char *CPLFormCIFilename( const char * pszPath,
         for( i = 0; pszFilename[i] != '\0'; i++ )
         {
             if( isupper(pszFilename[i]) )
-                pszFilename[i] = tolower(pszFilename[i]);
+                pszFilename[i] = (char) tolower(pszFilename[i]);
         }
 
         pszFullPath = CPLFormFilename( pszPath, pszFilename, NULL );
-        nStatRet = VSIStatL( pszFullPath, &sStatBuf );
+        nStatRet = VSIStatExL( pszFullPath, &sStatBuf, VSI_STAT_EXISTS_FLAG );
     }
 
     if( nStatRet != 0 )
@@ -567,7 +587,6 @@ const char *CPLFormCIFilename( const char * pszPath,
     CPLFree( pszFilename );
 
     return pszFullPath;
-#endif
 }
 
 /************************************************************************/
@@ -622,7 +641,14 @@ const char *CPLProjectRelativeFilename( const char *pszProjectDir,
     if( pszProjectDir[strlen(pszProjectDir)-1] != '/' 
         && pszProjectDir[strlen(pszProjectDir)-1] != '\\' )
     {
-        if (CPLStrlcat( pszStaticResult, SEP_STRING, CPL_PATH_BUF_SIZE ) >= CPL_PATH_BUF_SIZE)
+        /* FIXME? would be better to ask the filesystems what they */
+        /* prefer as directory separator */
+        const char* pszAddedPathSep;
+        if (strncmp(pszStaticResult, "/vsicurl/", 9) == 0)
+            pszAddedPathSep = "/";
+        else
+            pszAddedPathSep = SEP_STRING;
+        if (CPLStrlcat( pszStaticResult, pszAddedPathSep, CPL_PATH_BUF_SIZE ) >= CPL_PATH_BUF_SIZE)
             goto error;
     }
 
@@ -866,7 +892,11 @@ char **CPLCorrespondingPaths( const char *pszOldFilename,
     {
         for( i=0; papszFileList[i] != NULL; i++ )
         {
-            if( osOldBasename != CPLGetBasename( papszFileList[i] ) )
+            if( osOldBasename == CPLGetBasename( papszFileList[i] ) )
+                continue;
+
+            if( !EQUALN(papszFileList[i],osOldBasename,osOldBasename.size())
+                || papszFileList[i][osOldBasename.size()] != '.' )
             {
                 CPLError( CE_Failure, CPLE_AppDefined, 
                           "Unable to rename fileset due irregular basenames.");

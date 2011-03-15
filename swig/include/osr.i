@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: osr.i 18491 2010-01-09 09:34:44Z rouault $
+ * $Id: osr.i 20889 2010-10-19 12:19:02Z dron $
  *
  * Project:  GDAL SWIG Interfaces.
  * Purpose:  OGRSpatialReference related declarations.
@@ -59,6 +59,10 @@
 %javaconst(0);
 #endif
 
+%inline %{
+typedef char retStringAndCPLFree;
+%}
+
 %{
 #include <iostream>
 using namespace std;
@@ -76,9 +80,6 @@ typedef struct OGRCoordinateTransformationHS OGRCoordinateTransformationShadow;
 typedef void OSRSpatialReferenceShadow;
 typedef void OSRCoordinateTransformationShadow;
 #endif
-
-typedef char retStringAndCPLFree;
-
 %}
 
 typedef int OGRErr;
@@ -148,11 +149,7 @@ OGRErr GetUserInputAsWKT( const char *name, char **argout ) {
 
 #if !defined(SWIGPYTHON)
 %rename (GetProjectionMethods) OPTGetProjectionMethods;
-#ifdef SWIGJAVA
-%apply (char **out_ppsz_and_free) {(char **)};
-#else
 %apply (char **CSL) {(char **)};
-#endif
 char **OPTGetProjectionMethods();
 %clear (char **);
 
@@ -160,6 +157,8 @@ char **OPTGetProjectionMethods();
 #ifdef SWIGJAVA
 %apply (char **retAsStringArrayAndFree) {(char **)};
 %apply (char **OUTPUT) { char **username };
+#elif defined(SWIGPERL)
+%apply (char **CSL_REF) {(char **)};
 #else
 %apply (char **CSL) {(char **)};
 #endif
@@ -205,7 +204,7 @@ public:
 /* FIXME : all bindings should avoid using the #else case */
 /* as the deallocator for the char* is delete[] where as */
 /* OSRExportToPrettyWkt uses CPL/VSIMalloc() */
-#if defined(SWIGPYTHON)||defined(SWIGJAVA)
+#if defined(SWIGCSHARP)||defined(SWIGPYTHON)||defined(SWIGJAVA)||defined(SWIGPERL)
   retStringAndCPLFree *__str__() {
     char *buf = 0;
     OSRExportToPrettyWkt( self, &buf, 0 );
@@ -319,6 +318,16 @@ public:
     return OSRSetUTM( self, zone, north );
   }
 
+  int GetUTMZone() {
+    // Note: we will return south zones as negative since it is 
+    // hard to return two values as the C API does. 
+    int bNorth = FALSE;
+    int nZone = OSRGetUTMZone( self, &bNorth );
+    if( !bNorth )
+        nZone = -1 * ABS(nZone);
+    return nZone;
+  }
+
   OGRErr SetStatePlane( int zone, int is_nad83 = 1, char const *unitsname = "", double units = 0.0 ) {
     return OSRSetStatePlaneWithUnits( self, zone, is_nad83, unitsname, units );
   }
@@ -347,6 +356,21 @@ public:
   double GetNormProjParm( const char *name, double default_val = 0.0 ) {
     // Return code ignored.
     return OSRGetNormProjParm( self, name, default_val, 0 );
+  }
+
+  double GetSemiMajor( ) {
+    // Return code ignored.
+    return OSRGetSemiMajor( self, 0 );
+  }
+
+  double GetSemiMinor( ) {
+    // Return code ignored.
+    return OSRGetSemiMinor( self, 0 );
+  }
+
+  double GetInvFlattening( ) {
+    // Return code ignored.
+    return OSRGetInvFlattening( self, 0 );
   }
 
 %feature( "kwargs" ) SetACEA;
@@ -725,6 +749,11 @@ public:
     return OSRImportFromXML( self, xmlString );
   }
   
+  OGRErr ImportFromERM( char const *proj, char const *datum,
+                        char const *units ) {
+    return OSRImportFromERM( self, proj, datum, units );
+  }
+
   OGRErr ImportFromMICoordSys( char const *pszCoordSys ) {
     return OSRImportFromMICoordSys( self, pszCoordSys );
   }

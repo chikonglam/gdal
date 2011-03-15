@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: isis2dataset.cpp 17786 2009-10-09 19:35:19Z warmerdam $
+ * $Id: isis2dataset.cpp 20996 2010-10-28 18:38:15Z rouault $
  *
  * Project:  ISIS Version 2 Driver
  * Purpose:  Implementation of ISIS2Dataset
@@ -48,7 +48,7 @@
 #include "cpl_string.h" 
 #include "nasakeywordhandler.h"
 
-CPL_CVSID("$Id: isis2dataset.cpp 17786 2009-10-09 19:35:19Z warmerdam $");
+CPL_CVSID("$Id: isis2dataset.cpp 20996 2010-10-28 18:38:15Z rouault $");
 
 CPL_C_START
 void	GDALRegister_ISIS2(void);
@@ -62,7 +62,7 @@ CPL_C_END
 
 class ISIS2Dataset : public RawDataset
 {
-    FILE	*fpImage;	// image data file.
+    VSILFILE	*fpImage;	// image data file.
 
     NASAKeywordHandler  oKeywords;
   
@@ -172,7 +172,7 @@ GDALDataset *ISIS2Dataset::Open( GDALOpenInfo * poOpenInfo )
 /* -------------------------------------------------------------------- */
 /*      Open the file using the large file API.                         */
 /* -------------------------------------------------------------------- */
-    FILE *fpQube = VSIFOpenL( poOpenInfo->pszFilename, "rb" );
+    VSILFILE *fpQube = VSIFOpenL( poOpenInfo->pszFilename, "rb" );
 
     if( fpQube == NULL )
         return NULL;
@@ -242,7 +242,7 @@ GDALDataset *ISIS2Dataset::Open( GDALOpenInfo * poOpenInfo )
     float center_lon = 0.0;
     float first_std_parallel = 0.0;
     float second_std_parallel = 0.0;
-    FILE	*fp;
+    VSILFILE	*fp;
 
     /* -------------------------------------------------------------------- */
     /*      Checks to see if this is valid ISIS2 cube                       */
@@ -619,13 +619,13 @@ GDALDataset *ISIS2Dataset::Open( GDALOpenInfo * poOpenInfo )
     osName = CPLGetBasename(poOpenInfo->pszFilename);
     const char  *pszPrjFile = CPLFormCIFilename( osPath, osName, "prj" );
 
-    fp = VSIFOpen( pszPrjFile, "r" );
+    fp = VSIFOpenL( pszPrjFile, "r" );
     if( fp != NULL )
     {
         char	**papszLines;
         OGRSpatialReference oSRS;
 
-        VSIFClose( fp );
+        VSIFCloseL( fp );
         
         papszLines = CSLLoad( pszPrjFile );
 
@@ -768,6 +768,7 @@ void GDALRegister_ISIS2()
                                    "USGS Astrogeology ISIS cube (Version 2)" );
         poDriver->SetMetadataItem( GDAL_DMD_HELPTOPIC, 
                                    "frmt_various.html#ISIS2" );
+        poDriver->SetMetadataItem( GDAL_DCAP_VIRTUALIO, "YES" );
 
         poDriver->pfnOpen = ISIS2Dataset::Open;
 

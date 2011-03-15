@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrregisterall.cpp 18449 2010-01-07 09:09:09Z martinl $
+ * $Id: ogrregisterall.cpp 21372 2011-01-01 23:53:54Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Function to register all known OGR drivers.
@@ -29,7 +29,7 @@
 
 #include "ogrsf_frmts.h"
 
-CPL_CVSID("$Id: ogrregisterall.cpp 18449 2010-01-07 09:09:09Z martinl $");
+CPL_CVSID("$Id: ogrregisterall.cpp 21372 2011-01-01 23:53:54Z rouault $");
 
 /************************************************************************/
 /*                           OGRRegisterAll()                           */
@@ -84,6 +84,9 @@ void OGRRegisterAll()
 #ifdef GPX_ENABLED
     RegisterOGRGPX();
 #endif
+#ifdef LIBKML_ENABLED
+    RegisterOGRLIBKML();
+#endif
 #ifdef KML_ENABLED
     RegisterOGRKML();
 #endif
@@ -109,6 +112,9 @@ void OGRRegisterAll()
 #ifdef PGEO_ENABLED
     RegisterOGRPGeo();
 #endif
+#ifdef MSSQLSPATIAL_ENABLED
+    RegisterOGRMSSQLSpatial();
+#endif 
 #ifdef OGDI_ENABLED
     RegisterOGROGDI();
 #endif
@@ -164,6 +170,31 @@ void OGRRegisterAll()
 #ifdef VFK_ENABLED
     RegisterOGRVFK();
 #endif
-
+#ifdef PGDUMP_ENABLED
+    RegisterOGRPGDump();
+#endif
+#ifdef GPSBABEL_ENABLED
+    RegisterOGRGPSBabel();
+#endif
+#ifdef SUA_ENABLED
+    RegisterOGRSUA();
+#endif
+#ifdef OPENAIR_ENABLED
+    RegisterOGROpenAir();
+#endif
+#ifdef PDS_ENABLED
+    RegisterOGRPDS();
+#endif
+#ifdef WFS_ENABLED
+    RegisterOGRWFS();
+#endif
+#ifdef SOSI_ENABLED 
+	RegisterOGRSOSI(); 
+#endif
+#ifdef HTF_ENABLED
+    RegisterOGRHTF();
+#endif
+#ifdef AERONAVFAA_ENABLED
+    RegisterOGRAeronavFAA();
+#endif
 } /* OGRRegisterAll */
-

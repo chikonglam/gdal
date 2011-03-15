@@ -1,5 +1,5 @@
 /* ****************************************************************************
- * $Id: dumpoverviews.cpp 17797 2009-10-12 15:23:05Z jorgearevalo $
+ * $Id: dumpoverviews.cpp 20991 2010-10-27 20:13:47Z rouault $
  *
  * Project:  GDAL Utilities
  * Purpose:  Dump overviews to external files.
@@ -32,7 +32,7 @@
 #include "gdal_priv.h"
 #include "ogr_spatialref.h"
 
-CPL_CVSID("$Id: dumpoverviews.cpp 17797 2009-10-12 15:23:05Z jorgearevalo $");
+CPL_CVSID("$Id: dumpoverviews.cpp 20991 2010-10-27 20:13:47Z rouault $");
 
 static void DumpBand( GDALDatasetH hBaseDS, GDALRasterBandH hBand,
                       const char *pszName );
@@ -113,6 +113,12 @@ int main( int argc, char ** argv )
         for( iOverview = 0; iOverview < nOverviewCount; iOverview++ )
         {
             GDALRasterBandH hSrcOver = GDALGetOverview( hBaseBand, iOverview );
+            
+            if (hSrcOver == NULL)
+            {
+                fprintf(stderr, "skipping overview %d as being null\n", iOverview);
+                continue;
+            }
 
 /* -------------------------------------------------------------------- */
 /*      Is this a requested overview?                                   */
@@ -139,6 +145,15 @@ int main( int argc, char ** argv )
                                CPLGetBasename(pszSrcFilename),
                                iBand+1, iOverview );
             DumpBand( hSrcDS, hSrcOver, osFilename );
+
+            if( bMasks )
+            {
+                CPLString osFilename;
+                osFilename.Printf( "%s_%d_%d_mask.tif",
+                                CPLGetBasename(pszSrcFilename),
+                                iBand+1, iOverview );
+                DumpBand( hSrcDS, GDALGetMaskBand(hSrcOver), osFilename );
+            }
         }
 
 /* -------------------------------------------------------------------- */

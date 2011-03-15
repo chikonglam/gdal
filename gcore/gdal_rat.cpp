@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdal_rat.cpp 16570 2009-03-14 11:42:31Z rouault $
+ * $Id: gdal_rat.cpp 21167 2010-11-24 15:19:51Z warmerdam $
  *
  * Project:  GDAL Core
  * Purpose:  Implementation of GDALRasterAttributeTable and related classes.
@@ -30,7 +30,7 @@
 #include "gdal_priv.h"
 #include "gdal_rat.h"
 
-CPL_CVSID("$Id: gdal_rat.cpp 16570 2009-03-14 11:42:31Z rouault $");
+CPL_CVSID("$Id: gdal_rat.cpp 21167 2010-11-24 15:19:51Z warmerdam $");
 
 /**
  * \class GDALRasterAttributeTable
@@ -1401,13 +1401,13 @@ GDALColorTable *GDALRasterAttributeTable::TranslateToColorTable(
         }
         else
         {
-            sColor.c1 = GetValueAsInt( iRow, iRed );
-            sColor.c2 = GetValueAsInt( iRow, iGreen );
-            sColor.c3 = GetValueAsInt( iRow, iBlue );
+            sColor.c1 = (short) GetValueAsInt( iRow, iRed );
+            sColor.c2 = (short) GetValueAsInt( iRow, iGreen );
+            sColor.c3 = (short) GetValueAsInt( iRow, iBlue );
             if( iAlpha == -1 )
                 sColor.c4 = 255;
             else
-                sColor.c4 = GetValueAsInt( iRow, iAlpha );
+                sColor.c4 = (short) GetValueAsInt( iRow, iAlpha );
         }
         
         poCT->SetColorEntry( iEntry, &sColor );

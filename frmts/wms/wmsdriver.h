@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: wmsdriver.h 18020 2009-11-14 14:33:20Z rouault $
+ * $Id: wmsdriver.h 21304 2010-12-21 09:44:03Z nowakpl $
  *
  * Project:  WMS Client Driver
  * Purpose:  Implementation of Dataset and RasterBand classes for WMS
@@ -230,6 +230,8 @@ protected:
     int m_http_max_conn;
     int m_http_timeout;
     int m_clamp_requests;
+    int m_unsafeSsl;
+    CPLString m_osUserAgent;
 };
 
 class GDALWMSRasterBand : public GDALPamRasterBand {
@@ -255,12 +257,14 @@ protected:
     CPLErr ReadBlockFromFile(int x, int y, const char *file_name, int to_buffer_band, void *buffer, int advise_read);
     CPLErr ZeroBlock(int x, int y, int to_buffer_band, void *buffer);
     CPLErr ReportWMSException(const char *file_name);
+    virtual GDALColorInterp GetColorInterpretation();
 
 protected:
     GDALWMSDataset *m_parent_dataset;
     double m_scale;
     std::vector<GDALWMSRasterBand *> m_overviews;
     int m_overview;
+    GDALColorInterp m_color_interp;
 };
 
 GDALDataset *GDALWMSDatasetOpen(GDALOpenInfo *poOpenInfo);

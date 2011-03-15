@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_opt.cpp 18033 2009-11-15 19:18:57Z rouault $
+ * $Id: ogr_opt.cpp 19782 2010-05-31 13:03:17Z dron $
  *
  * Project:  OpenGIS Simple Features
  * Purpose:  Functions for getting list of projection types, and their parms.
@@ -30,7 +30,7 @@
 #include "ogr_srs_api.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: ogr_opt.cpp 18033 2009-11-15 19:18:57Z rouault $");
+CPL_CVSID("$Id: ogr_opt.cpp 19782 2010-05-31 13:03:17Z dron $");
 
 static const char *papszParameterDefinitions[] = {
     SRS_PP_CENTRAL_MERIDIAN,    "Central Meridian",     "Long",  "0.0",
@@ -128,6 +128,14 @@ static const char *papszProjectionDefinitions[] = {
     SRS_PP_FALSE_NORTHING,
 
     "*",
+    SRS_PT_BONNE,
+    "Bonne",
+    SRS_PP_STANDARD_PARALLEL_1,
+    SRS_PP_CENTRAL_MERIDIAN, 
+    SRS_PP_FALSE_EASTING, 
+    SRS_PP_FALSE_NORTHING,
+
+    "*",
     SRS_PT_ECKERT_I,
     "Eckert I",
     SRS_PP_CENTRAL_MERIDIAN, 
@@ -175,6 +183,15 @@ static const char *papszProjectionDefinitions[] = {
     SRS_PP_LATITUDE_OF_ORIGIN, 
     SRS_PP_CENTRAL_MERIDIAN, 
     SRS_PP_STANDARD_PARALLEL_1, 
+    SRS_PP_FALSE_EASTING, 
+    SRS_PP_FALSE_NORTHING,
+
+    "*",
+    SRS_PT_GAUSSSCHREIBERTMERCATOR,
+    "Gauss-Schreiber Transverse Mercator",
+    SRS_PP_LATITUDE_OF_ORIGIN, 
+    SRS_PP_CENTRAL_MERIDIAN, 
+    SRS_PP_SCALE_FACTOR, 
     SRS_PP_FALSE_EASTING, 
     SRS_PP_FALSE_NORTHING,
 
@@ -286,6 +303,15 @@ static const char *papszProjectionDefinitions[] = {
     SRS_PP_FALSE_NORTHING,
 
     "*",
+    SRS_PT_MERCATOR_2SP,
+    "Mercator (2SP)",
+    SRS_PP_STANDARD_PARALLEL_1,
+    SRS_PP_LATITUDE_OF_ORIGIN,
+    SRS_PP_CENTRAL_MERIDIAN, 
+    SRS_PP_FALSE_EASTING,
+    SRS_PP_FALSE_NORTHING,
+
+    "*",
     SRS_PT_MOLLWEIDE,
     "Mollweide",
     SRS_PP_CENTRAL_MERIDIAN, 
@@ -357,10 +383,31 @@ static const char *papszProjectionDefinitions[] = {
     SRS_PP_FALSE_EASTING, 
     SRS_PP_FALSE_NORTHING,
 
+    "*"
+    SRS_PT_TWO_POINT_EQUIDISTANT,
+    "Two Point Equidistant",
+    SRS_PP_LATITUDE_OF_1ST_POINT,
+    SRS_PP_LONGITUDE_OF_1ST_POINT, 
+    SRS_PP_LATITUDE_OF_2ND_POINT,
+    SRS_PP_LONGITUDE_OF_2ND_POINT,
+    SRS_PP_FALSE_EASTING, 
+    SRS_PP_FALSE_NORTHING,
+
     "*",
     SRS_PT_VANDERGRINTEN,
     "Van Der Grinten",
     SRS_PP_CENTRAL_MERIDIAN,
+    SRS_PP_FALSE_EASTING, 
+    SRS_PP_FALSE_NORTHING,
+
+    "*"
+    SRS_PT_KROVAK,
+    "Krovak",
+    SRS_PP_LATITUDE_OF_CENTER,
+    SRS_PP_LONGITUDE_OF_CENTER, 
+    SRS_PP_AZIMUTH,
+    SRS_PP_PSEUDO_STD_PARALLEL_1,
+    SRS_PP_SCALE_FACTOR,
     SRS_PP_FALSE_EASTING, 
     SRS_PP_FALSE_NORTHING,
 

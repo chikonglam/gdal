@@ -107,7 +107,7 @@ void PCIDSKBuffer::SetSize( int size )
 /*                                Get()                                 */
 /************************************************************************/
 
-const char *PCIDSKBuffer::Get( int offset, int size )
+const char *PCIDSKBuffer::Get( int offset, int size ) const
 
 {
     Get( offset, size, work_field, 0 );
@@ -118,7 +118,7 @@ const char *PCIDSKBuffer::Get( int offset, int size )
 /*                                Get()                                 */
 /************************************************************************/
 
-void PCIDSKBuffer::Get( int offset, int size, std::string &target, int unpad )
+void PCIDSKBuffer::Get( int offset, int size, std::string &target, int unpad ) const
 
 {
     if( offset + size > buffer_size )
@@ -137,7 +137,7 @@ void PCIDSKBuffer::Get( int offset, int size, std::string &target, int unpad )
 /*                             GetUInt64()                              */
 /************************************************************************/
 
-uint64 PCIDSKBuffer::GetUInt64( int offset, int size )
+uint64 PCIDSKBuffer::GetUInt64( int offset, int size ) const
 
 {
     std::string value_str;
@@ -154,7 +154,7 @@ uint64 PCIDSKBuffer::GetUInt64( int offset, int size )
 /*                               GetInt()                               */
 /************************************************************************/
 
-int PCIDSKBuffer::GetInt( int offset, int size )
+int PCIDSKBuffer::GetInt( int offset, int size ) const
 
 {
     std::string value_str;
@@ -171,7 +171,7 @@ int PCIDSKBuffer::GetInt( int offset, int size )
 /*                             GetDouble()                              */
 /************************************************************************/
 
-double PCIDSKBuffer::GetDouble( int offset, int size )
+double PCIDSKBuffer::GetDouble( int offset, int size ) const
 
 {
     std::string value_str;

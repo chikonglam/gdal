@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: srtmhgtdataset.cpp 18117 2009-11-27 19:42:29Z rouault $
+ * $Id: srtmhgtdataset.cpp 20996 2010-10-28 18:38:15Z rouault $
  *
  * Project:  SRTM HGT Driver
  * Purpose:  SRTM HGT File Read Support.
@@ -37,7 +37,7 @@
 
 #define SRTMHG_NODATA_VALUE -32768
 
-CPL_CVSID("$Id: srtmhgtdataset.cpp 18117 2009-11-27 19:42:29Z rouault $");
+CPL_CVSID("$Id: srtmhgtdataset.cpp 20996 2010-10-28 18:38:15Z rouault $");
 
 CPL_C_START
 void	GDALRegister_SRTMHGT(void);
@@ -55,7 +55,7 @@ class SRTMHGTDataset : public GDALPamDataset
 {
     friend class SRTMHGTRasterBand;
 
-    FILE*  fpImage;
+    VSILFILE*  fpImage;
     double adfGeoTransform[6];
     GInt16* panBuffer;
 
@@ -485,7 +485,7 @@ GDALDataset * SRTMHGTDataset::CreateCopy( const char * pszFilename, GDALDataset 
 /* -------------------------------------------------------------------- */
 /*      Write output file.                                              */
 /* -------------------------------------------------------------------- */
-    FILE* fp = VSIFOpenL(pszFilename, "wb");
+    VSILFILE* fp = VSIFOpenL(pszFilename, "wb");
 
     GInt16* panData = (GInt16*) CPLMalloc(sizeof(GInt16) * nXSize);
     GDALRasterBand* poSrcBand = poSrcDS->GetRasterBand(1);

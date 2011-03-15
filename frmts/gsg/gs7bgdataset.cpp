@@ -1,5 +1,5 @@
 /****************************************************************************
- * $Id: gs7bgdataset.cpp 17664 2009-09-21 21:16:45Z rouault $
+ * $Id: gs7bgdataset.cpp 20996 2010-10-28 18:38:15Z rouault $
  *
  * Project:  GDAL
  * Purpose:  Implements the Golden Software Surfer 7 Binary Grid Format.
@@ -59,7 +59,7 @@
 # define SHRT_MAX 32767
 #endif /* SHRT_MAX */
 
-CPL_CVSID("$Id: gs7bgdataset.cpp 17664 2009-09-21 21:16:45Z rouault $");
+CPL_CVSID("$Id: gs7bgdataset.cpp 20996 2010-10-28 18:38:15Z rouault $");
 
 CPL_C_START
 void	GDALRegister_GS7BG(void);
@@ -80,7 +80,7 @@ class GS7BGDataset : public GDALPamDataset
     static double dfNoData_Value;
     static size_t nData_Position;
 
-    FILE	*fp;
+    VSILFILE	*fp;
 
   public:
     ~GS7BGDataset();

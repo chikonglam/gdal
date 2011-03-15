@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: bsbdataset.cpp 18181 2009-12-05 01:07:47Z warmerdam $
+ * $Id: bsbdataset.cpp 21298 2010-12-20 10:58:34Z rouault $
  *
  * Project:  BSB Reader
  * Purpose:  BSBDataset implementation for BSB format.
@@ -32,7 +32,7 @@
 #include "cpl_string.h"
 #include "ogr_spatialref.h"
 
-CPL_CVSID("$Id: bsbdataset.cpp 18181 2009-12-05 01:07:47Z warmerdam $");
+CPL_CVSID("$Id: bsbdataset.cpp 21298 2010-12-20 10:58:34Z rouault $");
 
 CPL_C_START
 void	GDALRegister_BSB(void);
@@ -140,7 +140,13 @@ CPLErr BSBRasterBand::IReadBlock( int nBlockXOff, int nBlockYOff,
     if( BSBReadScanline( poGDS->psInfo, nBlockYOff, pabyScanline ) )
     {
         for( int i = 0; i < nBlockXSize; i++ )
-            pabyScanline[i] -= 1;
+        {
+            /* The indices start at 1, except in case of some charts */
+            /* where there are missing values, which are filled to 0 */
+            /* by BSBReadScanline */
+            if (pabyScanline[i] > 0)
+                pabyScanline[i] -= 1;
+        }
 
         return CE_None;
     }
@@ -381,37 +387,113 @@ void BSBDataset::ScanForGCPs( bool isNos, const char *pszFilename )
         GDALHeuristicDatelineWrapGCPs( nGCPCount, pasGCPList );
 
 /* -------------------------------------------------------------------- */
-/*      Can we derive a reasonable coordinate system definition for     */
-/*      this file?  For now we keep it simple, just handling            */
-/*      mercator. In the future we should consider others.              */
+/*      Collect coordinate system related parameters from header.       */
 /* -------------------------------------------------------------------- */
-    CPLString osUnderlyingSRS;
     int i;
+    const char *pszKNP=NULL, *pszKNQ=NULL;
 
     for( i = 0; psInfo->papszHeader[i] != NULL; i++ )
     {
         if( EQUALN(psInfo->papszHeader[i],"KNP/",4) )
         {
-            const char *pszPR = strstr(psInfo->papszHeader[i],"PR=");
+            pszKNP = psInfo->papszHeader[i];
+            SetMetadataItem( "BSB_KNP", pszKNP + 4 );
+        }
+        if( EQUALN(psInfo->papszHeader[i],"KNQ/",4) )
+        {
+            pszKNQ = psInfo->papszHeader[i]; 
+            SetMetadataItem( "BSB_KNQ", pszKNQ + 4 );
+        }
+    }
 
-            // Capture whole line as metadata so some apps can do more
-            // specific processing.
-            SetMetadataItem( "BSB_KNP", psInfo->papszHeader[i] + 4 );
+    
+/* -------------------------------------------------------------------- */
+/*      Can we derive a reasonable coordinate system definition for     */
+/*      this file?  For now we keep it simple, just handling            */
+/*      mercator. In the future we should consider others.              */
+/* -------------------------------------------------------------------- */
+    CPLString osUnderlyingSRS;
+    if( pszKNP != NULL )
+    {
+        const char *pszPR = strstr(pszKNP,"PR=");
+        const char *pszValue, *pszEnd = NULL;
+        CPLString osPP;
+        
+        // Capture the PP string.
+        pszValue = strstr(pszKNP,"PP=");
+        if( pszValue )
+            pszEnd = strstr(pszValue,",");
+        if( pszValue && pszEnd )
+            osPP.assign(pszValue+3,pszEnd-pszValue-3);
+        
+        if( pszPR == NULL )
+        {
+            /* no match */
+        }
+        else if( EQUALN(pszPR,"PR=MERCATOR", 11) )
+        {
+            // We somewhat arbitrarily select our first GCPX as our 
+            // central meridian.  This is mostly helpful to ensure 
+            // that regions crossing the dateline will be contiguous 
+            // in mercator.
+            osUnderlyingSRS.Printf( "PROJCS[\"Global Mercator\",GEOGCS[\"WGS 84\",DATUM[\"WGS_1984\",SPHEROID[\"WGS 84\",6378137,298.257223563]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.01745329251994328]],PROJECTION[\"Mercator_2SP\"],PARAMETER[\"standard_parallel_1\",0],PARAMETER[\"latitude_of_origin\",0],PARAMETER[\"central_meridian\",%d],PARAMETER[\"false_easting\",0],PARAMETER[\"false_northing\",0],UNIT[\"Meter\",1]]", (int) pasGCPList[0].dfGCPX );
+        }
 
-            if( pszPR == NULL )
-            {
-                /* no match */
-            }
-            else if( EQUALN(pszPR,"PR=MERCATOR", 11) )
-            {
-                // We somewhat arbitrarily select our first GCPX as our 
-                // central meridian.  This is mostly helpful to ensure 
-                // that regions crossing the dateline will be contiguous 
-                // in mercator.
-                osUnderlyingSRS.Printf( "PROJCS[\"Global Mercator\",GEOGCS[\"WGS 84\",DATUM[\"WGS_1984\",SPHEROID[\"WGS 84\",6378137,298.257223563]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.01745329251994328]],PROJECTION[\"Mercator_2SP\"],PARAMETER[\"standard_parallel_1\",0],PARAMETER[\"latitude_of_origin\",0],PARAMETER[\"central_meridian\",%d],PARAMETER[\"false_easting\",0],PARAMETER[\"false_northing\",0],UNIT[\"Meter\",1]]", (int) pasGCPList[0].dfGCPX );
-            }
+        else if( EQUALN(pszPR,"PR=TRANSVERSE MERCATOR", 22)
+                 && osPP.size() > 0 )
+        {
             
-            break;
+            osUnderlyingSRS.Printf( 
+                "PROJCS[\"unnamed\",GEOGCS[\"WGS 84\",DATUM[\"WGS_1984\",SPHEROID[\"WGS 84\",6378137,298.257223563,AUTHORITY[\"EPSG\",\"7030\"]],TOWGS84[0,0,0,0,0,0,0],AUTHORITY[\"EPSG\",\"6326\"]],PRIMEM[\"Greenwich\",0,AUTHORITY[\"EPSG\",\"8901\"]],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9108\"]],AUTHORITY[\"EPSG\",\"4326\"]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",0],PARAMETER[\"central_meridian\",%s],PARAMETER[\"scale_factor\",1],PARAMETER[\"false_easting\",0],PARAMETER[\"false_northing\",0]]", 
+                osPP.c_str() );
+        }
+
+        else if( EQUALN(pszPR,"PR=UNIVERSAL TRANSVERSE MERCATOR", 32)
+                 && osPP.size() > 0 )
+        {
+            // This is not *really* UTM unless the central meridian 
+            // matches a zone which it does not in some (most?) maps. 
+            osUnderlyingSRS.Printf( 
+                "PROJCS[\"unnamed\",GEOGCS[\"WGS 84\",DATUM[\"WGS_1984\",SPHEROID[\"WGS 84\",6378137,298.257223563,AUTHORITY[\"EPSG\",\"7030\"]],TOWGS84[0,0,0,0,0,0,0],AUTHORITY[\"EPSG\",\"6326\"]],PRIMEM[\"Greenwich\",0,AUTHORITY[\"EPSG\",\"8901\"]],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9108\"]],AUTHORITY[\"EPSG\",\"4326\"]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",0],PARAMETER[\"central_meridian\",%s],PARAMETER[\"scale_factor\",0.9996],PARAMETER[\"false_easting\",500000],PARAMETER[\"false_northing\",0]]", 
+                osPP.c_str() );
+        }
+
+        else if( EQUALN(pszPR,"PR=POLYCONIC", 12) && osPP.size() > 0 )
+        {
+            osUnderlyingSRS.Printf( 
+                "PROJCS[\"unnamed\",GEOGCS[\"WGS 84\",DATUM[\"WGS_1984\",SPHEROID[\"WGS 84\",6378137,298.257223563,AUTHORITY[\"EPSG\",\"7030\"]],TOWGS84[0,0,0,0,0,0,0],AUTHORITY[\"EPSG\",\"6326\"]],PRIMEM[\"Greenwich\",0,AUTHORITY[\"EPSG\",\"8901\"]],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9108\"]],AUTHORITY[\"EPSG\",\"4326\"]],PROJECTION[\"Polyconic\"],PARAMETER[\"latitude_of_origin\",0],PARAMETER[\"central_meridian\",%s],PARAMETER[\"false_easting\",0],PARAMETER[\"false_northing\",0]]", 
+                osPP.c_str() );
+        }
+        
+        else if( EQUALN(pszPR,"PR=LAMBERT CONFORMAL CONIC", 26) 
+                 && osPP.size() > 0 && pszKNQ != NULL )
+        {
+            CPLString osP2, osP3;
+        
+            // Capture the KNQ/P2 string.
+            pszValue = strstr(pszKNQ,"P2=");
+            if( pszValue )
+                pszEnd = strstr(pszValue,",");
+            if( pszValue && pszEnd )
+                osP2.assign(pszValue+3,pszEnd-pszValue-3);
+            
+            // Capture the KNQ/P3 string.
+            pszValue = strstr(pszKNQ,"P3=");
+            if( pszValue )
+                pszEnd = strstr(pszValue,",");
+            if( pszValue )
+            {
+                if( pszEnd )
+                    osP3.assign(pszValue+3,pszEnd-pszValue-3);
+                else
+                    osP3.assign(pszValue+3);
+            }
+
+            if( osP2.size() > 0 && osP3.size() > 0 )
+                osUnderlyingSRS.Printf( 
+                    "PROJCS[\"unnamed\",GEOGCS[\"WGS 84\",DATUM[\"WGS_1984\",SPHEROID[\"WGS 84\",6378137,298.257223563,AUTHORITY[\"EPSG\",\"7030\"]],TOWGS84[0,0,0,0,0,0,0],AUTHORITY[\"EPSG\",\"6326\"]],PRIMEM[\"Greenwich\",0,AUTHORITY[\"EPSG\",\"8901\"]],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9108\"]],AUTHORITY[\"EPSG\",\"4326\"]],PROJECTION[\"Lambert_Conformal_Conic_2SP\"],PARAMETER[\"standard_parallel_1\",%s],PARAMETER[\"standard_parallel_2\",%s],PARAMETER[\"latitude_of_origin\",0.0],PARAMETER[\"central_meridian\",%s],PARAMETER[\"false_easting\",0.0],PARAMETER[\"false_northing\",0.0]]",
+                    osP2.c_str(), osP3.c_str(), osPP.c_str() );
+
         }
     }
 
@@ -1065,6 +1147,7 @@ void GDALRegister_BSB()
                                    "Maptech BSB Nautical Charts" );
         poDriver->SetMetadataItem( GDAL_DMD_HELPTOPIC, 
                                    "frmt_various.html#BSB" );
+        poDriver->SetMetadataItem( GDAL_DCAP_VIRTUALIO, "YES" );
 #ifdef BSB_CREATE
         poDriver->SetMetadataItem( GDAL_DMD_CREATIONDATATYPES, "Byte" );
 #endif

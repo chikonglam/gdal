@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: blxdataset.cpp 17664 2009-09-21 21:16:45Z rouault $
+ * $Id: blxdataset.cpp 20482 2010-08-28 22:30:42Z rouault $
  *
  * Project:  BLX Driver
  * Purpose:  GDAL BLX support.
@@ -32,7 +32,7 @@
 #include "gdal_pam.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: blxdataset.cpp 17664 2009-09-21 21:16:45Z rouault $");
+CPL_CVSID("$Id: blxdataset.cpp 20482 2010-08-28 22:30:42Z rouault $");
 
 CPL_C_START
 #include <blx.h>
@@ -345,6 +345,7 @@ BLXCreateCopy( const char * pszFilename, GDALDataset *poSrcDS,
         CPLError( CE_Failure, CPLE_OpenFailed, 
                   "Unable to create blx file %s.\n", 
                   pszFilename );
+        blx_free_context(ctx);
         return NULL;
     }
 
@@ -354,7 +355,14 @@ BLXCreateCopy( const char * pszFilename, GDALDataset *poSrcDS,
     GInt16     *pabyTile;
     CPLErr      eErr=CE_None;
 
-    pabyTile = (GInt16 *) CPLMalloc( sizeof(GInt16)*ctx->cell_xsize*ctx->cell_ysize );
+    pabyTile = (GInt16 *) VSIMalloc( sizeof(GInt16)*ctx->cell_xsize*ctx->cell_ysize );
+    if (pabyTile == NULL)
+    {
+        CPLError( CE_Failure, CPLE_OutOfMemory, "Out of memory");
+        blxclose(ctx);
+        blx_free_context(ctx);
+        return NULL;
+    }
 
     if( !pfnProgress( 0.0, NULL, pProgressData ) )
         eErr = CE_Failure;

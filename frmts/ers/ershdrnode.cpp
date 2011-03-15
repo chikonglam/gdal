@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ershdrnode.cpp 17867 2009-10-21 21:04:49Z rouault $
+ * $Id: ershdrnode.cpp 20996 2010-10-28 18:38:15Z rouault $
  *
  * Project:  ERMapper .ers Driver
  * Purpose:  Implementation of ERSHdrNode class for parsing/accessing .ers hdr.
@@ -31,7 +31,7 @@
 #include "cpl_string.h"
 #include "ershdrnode.h"
 
-CPL_CVSID("$Id: ershdrnode.cpp 17867 2009-10-21 21:04:49Z rouault $");
+CPL_CVSID("$Id: ershdrnode.cpp 20996 2010-10-28 18:38:15Z rouault $");
 
 
 /************************************************************************/
@@ -100,7 +100,7 @@ void ERSHdrNode::MakeSpace()
 /*      will be appended for objects enclosed in {}.                    */
 /************************************************************************/
 
-int ERSHdrNode::ReadLine( FILE * fp, CPLString &osLine )
+int ERSHdrNode::ReadLine( VSILFILE * fp, CPLString &osLine )
 
 {
     int  nBracketLevel;
@@ -153,7 +153,7 @@ int ERSHdrNode::ReadLine( FILE * fp, CPLString &osLine )
 /*      This function is used recursively to read sub-objects.          */
 /************************************************************************/
 
-int ERSHdrNode::ParseChildren( FILE * fp )
+int ERSHdrNode::ParseChildren( VSILFILE * fp )
 
 {
     while( TRUE )
@@ -233,7 +233,7 @@ int ERSHdrNode::ParseChildren( FILE * fp )
 /*      Recursively write self and children to file.                    */
 /************************************************************************/
 
-int ERSHdrNode::WriteSelf( FILE * fp, int nIndent )
+int ERSHdrNode::WriteSelf( VSILFILE * fp, int nIndent )
 
 {
     CPLString oIndent;

@@ -1,4 +1,4 @@
-/* $Id: tif_dirwrite.c,v 1.71 2009-01-23 06:21:29 fwarmerdam Exp $ */
+/* $Id: tif_dirwrite.c,v 1.74 2010-12-31 17:51:08 olivier Exp $ */
 
 /*
  * Copyright (c) 1988-1997 Sam Leffler
@@ -394,6 +394,8 @@ TIFFWriteDirectorySec(TIFF* tif, int isimage, int imagedone, uint64* pdiroff)
 			tif->tif_rawdata = NULL;
 			tif->tif_rawcc = 0;
 			tif->tif_rawdatasize = 0;
+                        tif->tif_rawdataoff = 0;
+                        tif->tif_rawdataloaded = 0;
 		}
 		tif->tif_flags &= ~(TIFF_BEENWRITING|TIFF_BUFFERSETUP);
 	}
@@ -583,6 +585,11 @@ TIFFWriteDirectorySec(TIFF* tif, int isimage, int imagedone, uint64* pdiroff)
 			if (TIFFFieldSet(tif,FIELD_YCBCRPOSITIONING))
 			{
 				if (!TIFFWriteDirectoryTagShort(tif,&ndir,dir,TIFFTAG_YCBCRPOSITIONING,tif->tif_dir.td_ycbcrpositioning))
+					goto bad;
+			}
+			if (TIFFFieldSet(tif,FIELD_REFBLACKWHITE))
+			{
+				if (!TIFFWriteDirectoryTagRationalArray(tif,&ndir,dir,TIFFTAG_REFERENCEBLACKWHITE,6,tif->tif_dir.td_refblackwhite))
 					goto bad;
 			}
 			if (TIFFFieldSet(tif,FIELD_TRANSFERFUNCTION))
@@ -2782,3 +2789,10 @@ _TIFFRewriteField(TIFF* tif, uint16 tag, TIFFDataType in_datatype,
     return 1;
 }
 /* vim: set ts=8 sts=8 sw=8 noet: */
+/*
+ * Local Variables:
+ * mode: c
+ * c-basic-offset: 8
+ * fill-column: 78
+ * End:
+ */

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_spatialref.h 18490 2010-01-09 05:44:49Z warmerdam $
+ * $Id: ogr_spatialref.h 21467 2011-01-12 20:19:38Z warmerdam $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Classes for manipulating spatial reference systems in a
@@ -135,8 +135,13 @@ class CPL_DLL OGRSpatialReference
     int         nRefCount;
     int         bNormInfoSet;
 
-    OGRErr      ValidateProjection();
-    int         IsAliasFor( const char *, const char * );
+    static OGRErr Validate(OGR_SRSNode *poRoot);
+    static OGRErr ValidateAuthority(OGR_SRSNode *poRoot);
+    static OGRErr ValidateAxis(OGR_SRSNode *poRoot);
+    static OGRErr ValidateUnit(OGR_SRSNode *poRoot);
+    static OGRErr ValidateVertDatum(OGR_SRSNode *poRoot);
+    static OGRErr ValidateProjection( OGR_SRSNode* poRoot );
+    static int  IsAliasFor( const char *, const char * );
     void        GetNormInfo() const;
 
   public:
@@ -200,7 +205,7 @@ class CPL_DLL OGRSpatialReference
 
     int         EPSGTreatsAsLatLong();
     const char *GetAxis( const char *pszTargetKey, int iAxis, 
-                         OGRAxisOrientation *peOrientation );
+                         OGRAxisOrientation *peOrientation ) const;
     OGRErr      SetAxes( const char *pszTargetKey, 
                          const char *pszXAxisName, 
                          OGRAxisOrientation eXAxisOrientation,
@@ -218,7 +223,7 @@ class CPL_DLL OGRSpatialReference
 
     OGRErr      SetNode( const char *, const char * );
     OGRErr      SetNode( const char *, double );
-    
+
     OGRErr      SetLinearUnitsAndUpdateParameters( const char *pszName, 
                                                    double dfInMeters );
     OGRErr      SetLinearUnits( const char *pszName, double dfInMeters );
@@ -232,7 +237,9 @@ class CPL_DLL OGRSpatialReference
     int         IsGeographic() const;
     int         IsProjected() const;
     int         IsLocal() const;
+    int         IsVertical() const;
     int         IsSameGeogCS( const OGRSpatialReference * ) const;
+    int         IsSameVertCS( const OGRSpatialReference * ) const;
     int         IsSame( const OGRSpatialReference * ) const;
 
     void        Clear();
@@ -355,6 +362,7 @@ class CPL_DLL OGRSpatialReference
     OGRErr      SetGnomonic(double dfCenterLat, double dfCenterLong,
                             double dfFalseEasting, double dfFalseNorthing );
 
+    /** Hotine Oblique Mercator */
     OGRErr      SetHOM( double dfCenterLat, double dfCenterLong,
                         double dfAzimuth, double dfRectToSkew,
                         double dfScale,

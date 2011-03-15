@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrinfo.cpp 18306 2009-12-15 18:57:11Z rouault $
+ * $Id: ogrinfo.cpp 20589 2010-09-12 16:47:56Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Simple client for viewing OGR driver data.
@@ -34,7 +34,7 @@
 #include "cpl_string.h"
 #include "cpl_multiproc.h"
 
-CPL_CVSID("$Id: ogrinfo.cpp 18306 2009-12-15 18:57:11Z rouault $");
+CPL_CVSID("$Id: ogrinfo.cpp 20589 2010-09-12 16:47:56Z rouault $");
 
 int     bReadOnly = FALSE;
 int     bVerbose = TRUE;
@@ -60,6 +60,7 @@ int main( int nArgc, char ** papszArgv )
     int         nRepeatCount = 1, bAllLayers = FALSE;
     const char  *pszSQLStatement = NULL;
     const char  *pszDialect = NULL;
+    int          nRet = 0;
     
     /* Check strict compilation and runtime library version as we use C++ API */
     if (! GDAL_CHECK_VERSION(papszArgv[0]))
@@ -198,7 +199,8 @@ int main( int nArgc, char ** papszArgv )
             printf( "  -> %s\n", poR->GetDriver(iDriver)->GetName() );
         }
 
-        exit( 1 );
+        nRet = 1;
+        goto end;
     }
 
     CPLAssert( poDriver != NULL);
@@ -267,12 +269,12 @@ int main( int nArgc, char ** papszArgv )
                 {
                     printf( "%d: %s",
                             iLayer+1,
-                            poLayer->GetLayerDefn()->GetName() );
+                            poLayer->GetName() );
 
-                    if( poLayer->GetLayerDefn()->GetGeomType() != wkbUnknown )
+                    if( poLayer->GetGeomType() != wkbUnknown )
                         printf( " (%s)", 
                                 OGRGeometryTypeToName( 
-                                    poLayer->GetLayerDefn()->GetGeomType() ) );
+                                    poLayer->GetGeomType() ) );
 
                     printf( "\n" );
                 }
@@ -313,6 +315,7 @@ int main( int nArgc, char ** papszArgv )
 /* -------------------------------------------------------------------- */
 /*      Close down.                                                     */
 /* -------------------------------------------------------------------- */
+end:
     CSLDestroy( papszArgv );
     CSLDestroy( papszLayers );
     CSLDestroy( papszOptions );
@@ -322,7 +325,7 @@ int main( int nArgc, char ** papszArgv )
 
     OGRCleanupAll();
 
-    return 0;
+    return nRet;
 }
 
 /************************************************************************/
@@ -334,7 +337,7 @@ static void Usage()
 {
     printf( "Usage: ogrinfo [--help-general] [-ro] [-q] [-where restricted_where]\n"
             "               [-spat xmin ymin xmax ymax] [-fid fid]\n"
-            "               [-sql statement] [-al] [-so] [-fields={YES/NO}]\n"
+            "               [-sql statement] [-dialect sql_dialect] [-al] [-so] [-fields={YES/NO}]\n"
             "               [-geom={YES/NO/SUMMARY}][--formats]\n"
             "               datasource_name [layer [layer ...]]\n");
     exit( 1 );
@@ -364,12 +367,12 @@ static void ReportOnLayer( OGRLayer * poLayer, const char *pszWHERE,
 /* -------------------------------------------------------------------- */
     printf( "\n" );
     
-    printf( "Layer name: %s\n", poDefn->GetName() );
+    printf( "Layer name: %s\n", poLayer->GetName() );
 
     if( bVerbose )
     {
         printf( "Geometry: %s\n", 
-                OGRGeometryTypeToName( poDefn->GetGeomType() ) );
+                OGRGeometryTypeToName( poLayer->GetGeomType() ) );
         
         printf( "Feature Count: %d\n", poLayer->GetFeatureCount() );
         

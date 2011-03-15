@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdalproxypool.cpp 17636 2009-09-12 23:19:18Z warmerdam $
+ * $Id: gdalproxypool.cpp 21211 2010-12-08 13:38:25Z rouault $
  *
  * Project:  GDAL Core
  * Purpose:  A dataset and raster band classes that differ the opening of the
@@ -31,7 +31,7 @@
 #include "gdal_proxy.h"
 #include "cpl_multiproc.h"
 
-CPL_CVSID("$Id: gdalproxypool.cpp 17636 2009-09-12 23:19:18Z warmerdam $");
+CPL_CVSID("$Id: gdalproxypool.cpp 21211 2010-12-08 13:38:25Z rouault $");
 
 /* Functions shared between gdalproxypool.cpp and gdaldataset.cpp */
 void** GDALGetphDLMutex();
@@ -432,6 +432,16 @@ CPL_C_END
 /*                     GDALProxyPoolDataset                             */
 /* ******************************************************************** */
 
+/* Note : the bShared parameter must be used with caution. You can */
+/* set it to TRUE  for being used as a VRT source : in that case, */
+/* VRTSimpleSource will take care of destroying it when there are no */
+/* reference to it (in VRTSimpleSource::~VRTSimpleSource()) */
+/* However this will not be registered as a genuine shared dataset, like it */
+/* would have been with MarkAsShared(). But MarkAsShared() is not usable for */
+/* GDALProxyPoolDataset objects, as they share the same description as their */
+/* underlying dataset. So *NEVER* call MarkAsShared() on a GDALProxyPoolDataset */
+/* object */
+
 GDALProxyPoolDataset::GDALProxyPoolDataset(const char* pszSourceDatasetDescription,
                                    int nRasterXSize, int nRasterYSize,
                                    GDALAccess eAccess, int bShared,
@@ -490,6 +500,13 @@ GDALProxyPoolDataset::GDALProxyPoolDataset(const char* pszSourceDatasetDescripti
 
 GDALProxyPoolDataset::~GDALProxyPoolDataset()
 {
+    /* See comment in constructor */
+    /* It is not really a genuine shared dataset, so we don't */
+    /* want ~GDALDataset() to try to release it from its */
+    /* shared dataset hashset. This will save a */
+    /* "Should not happen. Cannot find %s, this=%p in phSharedDatasetSet" debug message */
+    bShared = FALSE;
+
     CPLFree(pszProjectionRef);
     CPLFree(pszGCPProjection);
     if (nGCPCount)
@@ -843,6 +860,20 @@ GDALProxyPoolRasterBand::~GDALProxyPoolRasterBand()
 
 
 /************************************************************************/
+/*                 AddSrcMaskBandDescription()                          */
+/************************************************************************/
+
+void GDALProxyPoolRasterBand::AddSrcMaskBandDescription( GDALDataType eDataType,
+                                                         int nBlockXSize,
+                                                         int nBlockYSize)
+{
+    CPLAssert(poProxyMaskBand == NULL);
+    poProxyMaskBand = new GDALProxyPoolMaskBand((GDALProxyPoolDataset*)poDS,
+                                                this, eDataType,
+                                                nBlockXSize, nBlockYSize);
+}
+
+/************************************************************************/
 /*                  RefUnderlyingRasterBand()                           */
 /************************************************************************/
 
@@ -852,7 +883,13 @@ GDALRasterBand* GDALProxyPoolRasterBand::RefUnderlyingRasterBand()
     if (poUnderlyingDataset == NULL)
         return NULL;
 
-    return poUnderlyingDataset->GetRasterBand(nBand);
+    GDALRasterBand* poBand = poUnderlyingDataset->GetRasterBand(nBand);
+    if (poBand == NULL)
+    {
+        ((GDALProxyPoolDataset*)poDS)->UnrefUnderlyingDataset(poUnderlyingDataset);
+    }
+
+    return poBand;
 }
 
 /************************************************************************/
@@ -1128,6 +1165,22 @@ GDALProxyPoolMaskBand::GDALProxyPoolMaskBand(GDALProxyPoolDataset* poDS,
                                              GDALRasterBand* poUnderlyingMaskBand,
                                              GDALProxyPoolRasterBand* poMainBand) :
         GDALProxyPoolRasterBand(poDS, poUnderlyingMaskBand)
+{
+    this->poMainBand = poMainBand;
+
+    poUnderlyingMainRasterBand = NULL;
+    nRefCountUnderlyingMainRasterBand = 0;
+}
+
+/* ******************************************************************** */
+/*                     GDALProxyPoolMaskBand()                          */
+/* ******************************************************************** */
+
+GDALProxyPoolMaskBand::GDALProxyPoolMaskBand(GDALProxyPoolDataset* poDS,
+                                             GDALProxyPoolRasterBand* poMainBand,
+                                             GDALDataType eDataType,
+                                             int nBlockXSize, int nBlockYSize) :
+        GDALProxyPoolRasterBand(poDS, 1, eDataType, nBlockXSize, nBlockYSize)
 {
     this->poMainBand = poMainBand;
 

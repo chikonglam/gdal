@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdalpamdataset.cpp 20148 2010-07-27 22:30:19Z rouault $
+ * $Id: gdalpamdataset.cpp 21295 2010-12-19 22:00:31Z rouault $
  *
  * Project:  GDAL Core
  * Purpose:  Implementation of GDALPamDataset, a dataset base class that 
@@ -32,7 +32,7 @@
 #include "cpl_string.h"
 #include "ogr_spatialref.h"
 
-CPL_CVSID("$Id: gdalpamdataset.cpp 20148 2010-07-27 22:30:19Z rouault $");
+CPL_CVSID("$Id: gdalpamdataset.cpp 21295 2010-12-19 22:00:31Z rouault $");
 
 /************************************************************************/
 /*                           GDALPamDataset()                           */
@@ -161,7 +161,7 @@ void GDALPamDataset::FlushCache()
 /*                           SerializeToXML()                           */
 /************************************************************************/
 
-CPLXMLNode *GDALPamDataset::SerializeToXML( const char *pszVRTPath )
+CPLXMLNode *GDALPamDataset::SerializeToXML( const char *pszUnused )
 
 {
     CPLString oFmt;
@@ -269,7 +269,7 @@ CPLXMLNode *GDALPamDataset::SerializeToXML( const char *pszVRTPath )
         if( poBand == NULL || !(poBand->GetMOFlags() & GMO_PAM_CLASS) )
             continue;
 
-        psBandTree = poBand->SerializeToXML( pszVRTPath );
+        psBandTree = poBand->SerializeToXML( pszUnused );
 
         if( psBandTree != NULL )
             CPLAddXMLChild( psDSTree, psBandTree );
@@ -363,7 +363,7 @@ void GDALPamDataset::PamClear()
 /*                              XMLInit()                               */
 /************************************************************************/
 
-CPLErr GDALPamDataset::XMLInit( CPLXMLNode *psTree, const char *pszVRTPath )
+CPLErr GDALPamDataset::XMLInit( CPLXMLNode *psTree, const char *pszUnused )
 
 {
 /* -------------------------------------------------------------------- */
@@ -467,6 +467,40 @@ CPLErr GDALPamDataset::XMLInit( CPLXMLNode *psTree, const char *pszVRTPath )
     oMDMD.XMLInit( psTree, TRUE );
 
 /* -------------------------------------------------------------------- */
+/*      Try loading ESRI xml encoded projection                         */
+/* -------------------------------------------------------------------- */
+    if (psPam->pszProjection == NULL)
+    {
+        char** papszXML = oMDMD.GetMetadata( "xml:ESRI" );
+        if (CSLCount(papszXML) == 1)
+        {
+            CPLXMLNode *psValueAsXML = CPLParseXMLString( papszXML[0] );
+            if (psValueAsXML)
+            {
+                const char* pszESRI_WKT = CPLGetXMLValue(psValueAsXML,
+                                  "=GeodataXform.SpatialReference.WKT", NULL);
+                if (pszESRI_WKT)
+                {
+                    OGRSpatialReference* poSRS = new OGRSpatialReference(NULL);
+                    char* pszTmp = (char*)pszESRI_WKT;
+                    if (poSRS->importFromWkt(&pszTmp) == OGRERR_NONE &&
+                        poSRS->morphFromESRI() == OGRERR_NONE)
+                    {
+                        char* pszWKT = NULL;
+                        if (poSRS->exportToWkt(&pszWKT) == OGRERR_NONE)
+                        {
+                            psPam->pszProjection = CPLStrdup(pszWKT);
+                        }
+                        CPLFree(pszWKT);
+                    }
+                    delete poSRS;
+                }
+                CPLDestroyXMLNode(psValueAsXML);
+            }
+        }
+    }
+
+/* -------------------------------------------------------------------- */
 /*      Process bands.                                                  */
 /* -------------------------------------------------------------------- */
     CPLXMLNode *psBandTree;
@@ -489,7 +523,7 @@ CPLErr GDALPamDataset::XMLInit( CPLXMLNode *psTree, const char *pszVRTPath )
         if( poBand == NULL || !(poBand->GetMOFlags() & GMO_PAM_CLASS) )
             continue;
 
-        poBand->XMLInit( psBandTree, pszVRTPath );
+        poBand->XMLInit( psBandTree, pszUnused );
     }
 
 /* -------------------------------------------------------------------- */
@@ -626,7 +660,8 @@ CPLErr GDALPamDataset::TryLoadXML()
 
     VSIStatBufL sStatBuf;
 
-    if( VSIStatL( psPam->pszPamFilename, &sStatBuf ) == 0 
+    if( VSIStatExL( psPam->pszPamFilename, &sStatBuf,
+                    VSI_STAT_EXISTS_FLAG | VSI_STAT_NATURE_FLAG ) == 0
         && VSI_ISREG( sStatBuf.st_mode ) )
     {
         CPLErrorReset();
@@ -712,12 +747,16 @@ CPLErr GDALPamDataset::TrySaveXML()
 /* -------------------------------------------------------------------- */
 /*      Build the XML representation of the auxilary metadata.          */
 /* -------------------------------------------------------------------- */
-    CPLString osVRTPath = CPLGetPath(psPam->pszPamFilename);
-
-    psTree = SerializeToXML( osVRTPath );
+    psTree = SerializeToXML( NULL );
 
     if( psTree == NULL )
+    {
+        /* If we have unset all metadata, we have to delete the PAM file */
+        CPLPushErrorHandler( CPLQuietErrorHandler );
+        VSIUnlink(psPam->pszPamFilename);
+        CPLPopErrorHandler();
         return CE_None;
+    }
 
 /* -------------------------------------------------------------------- */
 /*      If we are working with a subdataset, we need to integrate       */
@@ -972,11 +1011,16 @@ char **GDALPamDataset::GetFileList()
 
     if( psPam && psPam->pszPamFilename 
         && (nPamFlags & GPF_DIRTY 
-            || VSIStatL( psPam->pszPamFilename, &sStatBuf ) == 0) )
+            || VSIStatExL( psPam->pszPamFilename, &sStatBuf, VSI_STAT_EXISTS_FLAG ) == 0) )
     {
         papszFileList = CSLAddString( papszFileList, psPam->pszPamFilename );
     }
 
+    if( psPam && psPam->osAuxFilename.size() > 0 &&
+        CSLFindString( papszFileList, psPam->osAuxFilename ) == -1 )
+    {
+        papszFileList = CSLAddString( papszFileList, psPam->osAuxFilename );
+    }
     return papszFileList;
 }
 
@@ -1307,6 +1351,8 @@ CPLErr GDALPamDataset::TryLoadAux()
 
     if( poAuxDS == NULL )
         return CE_None;
+
+    psPam->osAuxFilename = poAuxDS->GetDescription();
 
 /* -------------------------------------------------------------------- */
 /*      Do we have an SRS on the aux file?                              */

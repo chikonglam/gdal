@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: MajorObject.i 16504 2009-03-07 20:01:35Z rouault $
+ * $Id: MajorObject.i 19353 2010-04-09 20:34:50Z rouault $
  *
  * Project:  GDAL SWIG Interfaces.
  * Purpose:  SWIG Definitions for GDALMajorObject.
@@ -93,6 +93,7 @@ public:
 /*
  * GetMetadataItem
  */
+  %apply Pointer NONNULL {const char * pszName};
   const char *GetMetadataItem( const char *pszName, const char *pszDomain = "" ) {
     return GDALGetMetadataItem( self, pszName, pszDomain);
   }
@@ -104,6 +105,7 @@ public:
                                             const char * pszDomain = "" ) {
     return GDALSetMetadataItem( self, pszName, pszValue, pszDomain);
   }
+  %clear const char * pszName;
 
 } /* %extend */
 };

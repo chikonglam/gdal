@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: cplstring.cpp 11044 2007-03-22 12:04:04Z dron $
+ * $Id: cplstring.cpp 21136 2010-11-16 22:47:42Z warmerdam $
  *
  * Project:  GDAL 
  * Purpose:  CPLString implementation.
@@ -30,7 +30,7 @@
 #include "cpl_string.h"
 #include <string>
 
-CPL_CVSID("$Id: cplstring.cpp 11044 2007-03-22 12:04:04Z dron $");
+CPL_CVSID("$Id: cplstring.cpp 21136 2010-11-16 22:47:42Z warmerdam $");
 
 /*
  * The CPLString class is derived from std::string, so the vast majority 
@@ -200,6 +200,35 @@ CPLString &CPLString::Trim()
     }
     
     assign( substr( iLeft, iRight - iLeft + 1 ) );
+
+    return *this;
+}
+
+/************************************************************************/
+/*                               Recode()                               */
+/************************************************************************/
+
+CPLString &CPLString::Recode( const char *pszSrcEncoding,
+                              const char *pszDstEncoding )
+
+{
+    if( pszSrcEncoding == NULL )
+        pszSrcEncoding = CPL_ENC_UTF8;
+    if( pszDstEncoding == NULL )
+        pszDstEncoding = CPL_ENC_UTF8;
+
+    if( strcmp(pszSrcEncoding,pszDstEncoding) == 0 )
+        return *this;
+
+    char *pszRecoded = CPLRecode( c_str(), 
+                                  pszSrcEncoding,
+                                  pszDstEncoding );
+
+    if( pszRecoded == NULL )
+        return *this;
+
+    assign( pszRecoded );
+    CPLFree( pszRecoded );
 
     return *this;
 }

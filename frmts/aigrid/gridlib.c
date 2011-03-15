@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gridlib.c 17435 2009-07-23 22:36:32Z rouault $
+ * $Id: gridlib.c 20996 2010-10-28 18:38:15Z rouault $
  *
  * Project:  Arc/Info Binary Grid Translator
  * Purpose:  Grid file reading code.
@@ -29,7 +29,7 @@
 
 #include "aigrid.h"
 
-CPL_CVSID("$Id: gridlib.c 17435 2009-07-23 22:36:32Z rouault $");
+CPL_CVSID("$Id: gridlib.c 20996 2010-10-28 18:38:15Z rouault $");
 
 /************************************************************************/
 /*                    AIGProcessRaw32bitFloatBlock()                    */
@@ -549,7 +549,7 @@ CPLErr AIGProcessBlock( GByte *pabyCur, int nDataSize, int nMin, int nMagic,
 /*      Read a single block of integer grid data.                       */
 /************************************************************************/
 
-CPLErr AIGReadBlock( FILE * fp, GUInt32 nBlockOffset, int nBlockSize,
+CPLErr AIGReadBlock( VSILFILE * fp, GUInt32 nBlockOffset, int nBlockSize,
                      int nBlockXSize, int nBlockYSize,
                      GInt32 *panData, int nCellType )
 
@@ -783,7 +783,7 @@ CPLErr AIGReadHeader( const char * pszCoverName, AIGInfo_t * psInfo )
 
 {
     char	*pszHDRFilename;
-    FILE	*fp;
+    VSILFILE	*fp;
     GByte	abyData[308];
 
 /* -------------------------------------------------------------------- */
@@ -850,7 +850,7 @@ CPLErr AIGReadBlockIndex( AIGInfo_t * psInfo, AIGTileInfo *psTInfo,
 
 {
     char	*pszHDRFilename;
-    FILE	*fp;
+    VSILFILE	*fp;
     int		nLength, i;
     GInt32	nValue;
     GUInt32	*panIndex;
@@ -976,7 +976,7 @@ CPLErr AIGReadBounds( const char * pszCoverName, AIGInfo_t * psInfo )
 
 {
     char	*pszHDRFilename;
-    FILE	*fp;
+    VSILFILE	*fp;
     double	adfBound[4];
 
 /* -------------------------------------------------------------------- */
@@ -1031,7 +1031,7 @@ CPLErr AIGReadStatistics( const char * pszCoverName, AIGInfo_t * psInfo )
 
 {
     char	*pszHDRFilename;
-    FILE	*fp;
+    VSILFILE	*fp;
     double	adfStats[4];
 
     psInfo->dfMin = 0.0;

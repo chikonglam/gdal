@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gtmwaypointlayer.cpp 17637 2009-09-12 23:22:00Z warmerdam $
+ * $Id: gtmwaypointlayer.cpp 20996 2010-10-28 18:38:15Z rouault $
  *
  * Project:  GTM Driver
  * Purpose:  Implementation of gtmwaypoint class.
@@ -229,7 +229,7 @@ void GTMWaypointLayer::WriteFeatureAttributes( OGRFeature *poFeature, float alti
 /************************************************************************/
 OGRErr GTMWaypointLayer::CreateFeature (OGRFeature *poFeature)
 {
-    FILE* fp = poDS->getOutputFP();
+    VSILFILE* fp = poDS->getOutputFP();
     if (fp == NULL)
         return CE_Failure;
 

@@ -257,6 +257,12 @@ public class Band : MajorObject {
     return ret;
   }
 
+  public CPLErr SetUnitType(string val) {
+    CPLErr ret = (CPLErr)GdalPINVOKE.Band_SetUnitType(swigCPtr, val);
+    if (GdalPINVOKE.SWIGPendingException.Pending) throw GdalPINVOKE.SWIGPendingException.Retrieve();
+    return ret;
+  }
+
   public string[] GetRasterCategoryNames() {
         /* %typemap(csout) char**options */
         IntPtr cPtr = GdalPINVOKE.Band_GetRasterCategoryNames(swigCPtr);
@@ -302,6 +308,18 @@ public class Band : MajorObject {
   public void GetScale(out double val, out int hasval) {
     GdalPINVOKE.Band_GetScale(swigCPtr, out val, out hasval);
     if (GdalPINVOKE.SWIGPendingException.Pending) throw GdalPINVOKE.SWIGPendingException.Retrieve();
+  }
+
+  public CPLErr SetOffset(double val) {
+    CPLErr ret = (CPLErr)GdalPINVOKE.Band_SetOffset(swigCPtr, val);
+    if (GdalPINVOKE.SWIGPendingException.Pending) throw GdalPINVOKE.SWIGPendingException.Retrieve();
+    return ret;
+  }
+
+  public CPLErr SetScale(double val) {
+    CPLErr ret = (CPLErr)GdalPINVOKE.Band_SetScale(swigCPtr, val);
+    if (GdalPINVOKE.SWIGPendingException.Pending) throw GdalPINVOKE.SWIGPendingException.Retrieve();
+    return ret;
   }
 
   public CPLErr GetStatistics(int approx_ok, int force, out double min, out double max, out double mean, out double stddev) {

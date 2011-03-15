@@ -50,17 +50,18 @@ namespace PCIDSK
 
     public:
         CTiledChannel( PCIDSKBuffer &image_header, 
+                       uint64 ih_offset,
                        PCIDSKBuffer &file_header, 
                        int channelnum,
                        CPCIDSKFile *file,
                        eChanType pixel_type );
         virtual ~CTiledChannel();
 
-        virtual int GetBlockWidth();
-        virtual int GetBlockHeight();
-        virtual int GetWidth();
-        virtual int GetHeight();
-        virtual eChanType GetType();
+        virtual int GetBlockWidth() const;
+        virtual int GetBlockHeight() const;
+        virtual int GetWidth() const;
+        virtual int GetHeight() const;
+        virtual eChanType GetType() const;
 
         virtual int ReadBlock( int block_index, void *buffer,
                                int xoff=-1, int yoff=-1,
@@ -69,18 +70,22 @@ namespace PCIDSK
 
         virtual void Synchronize();
         
+        
+        
     private:
         int                      image;
 
-        SysVirtualFile          *vfile;
+        mutable SysVirtualFile          *vfile;
 
-        std::string              compression;
+        mutable std::string              compression;
 
-        std::vector<uint64>      tile_offsets;
-        std::vector<int>         tile_sizes;
-        bool                     tile_info_dirty;
+        mutable std::vector<uint64>      tile_offsets;
+        mutable std::vector<int>         tile_sizes;
+        mutable bool                     tile_info_loaded;
+        mutable bool                     tile_info_dirty;
 
-        void                     EstablishAccess();
+        void                     EstablishAccess() const;
+        void                     EstablishTileAccess() const;
         void                     RLEDecompressBlock( PCIDSKBuffer &oCompressed,
                                                      PCIDSKBuffer &oDecompressed );
         void                     RLECompressBlock( PCIDSKBuffer &oUncompressed,
@@ -89,6 +94,8 @@ namespace PCIDSK
                                                       PCIDSKBuffer &oDecompressed );
         void                     JPEGCompressBlock( PCIDSKBuffer &oDecompressed,
                                                     PCIDSKBuffer &oCompressed );
+
+        bool                     IsTileEmpty(void* buffer) const;
 
     };
 } // end namespace PCIDSK

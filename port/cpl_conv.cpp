@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: cpl_conv.cpp 18060 2009-11-21 20:26:25Z rouault $
+ * $Id: cpl_conv.cpp 21474 2011-01-13 00:09:06Z warmerdam $
  *
  * Project:  CPL - Common Portability Library
  * Purpose:  Convenience functions.
@@ -34,7 +34,7 @@
 #include "cpl_vsi.h"
 #include "cpl_multiproc.h"
 
-CPL_CVSID("$Id: cpl_conv.cpp 18060 2009-11-21 20:26:25Z rouault $");
+CPL_CVSID("$Id: cpl_conv.cpp 21474 2011-01-13 00:09:06Z warmerdam $");
 
 #if defined(WIN32CE)
 #  include "cpl_wince.h"
@@ -536,7 +536,7 @@ const char *CPLReadLine( FILE * fp )
  * from the file or NULL if the end of file was encountered.
  */
 
-const char *CPLReadLineL( FILE * fp )
+const char *CPLReadLineL( VSILFILE * fp )
 {
     return CPLReadLine2L( fp, -1, NULL );
 }
@@ -561,9 +561,11 @@ const char *CPLReadLineL( FILE * fp )
  * @since GDAL 1.7.0
  */
 
-const char *CPLReadLine2L( FILE * fp, int nMaxCars, char** papszOptions )
+const char *CPLReadLine2L( VSILFILE * fp, int nMaxCars, char** papszOptions )
 
 {
+    (void) papszOptions;
+
 /* -------------------------------------------------------------------- */
 /*      Cleanup case.                                                   */
 /* -------------------------------------------------------------------- */
@@ -917,6 +919,12 @@ void *CPLScanPointer( const char *pszString, int nMaxLength )
         sscanf( szTemp+2, "%p", &pResult );
 #else
         sscanf( szTemp, "%p", &pResult );
+
+        /* Solaris actually behaves like MSVCRT... */
+        if (pResult == NULL)
+        {
+            sscanf( szTemp+2, "%p", &pResult );
+        }
 #endif
     }
     
@@ -1398,7 +1406,7 @@ void CPLVerifyConfiguration()
   * @param pszDefault a default value if the key does not match existing defined options (may be NULL)
   * @return the value associated to the key, or the default value if not found
   *
-  * @see CPLSetConfigOption()
+  * @see CPLSetConfigOption(), http://trac.osgeo.org/gdal/wiki/ConfigOptions
   */
 const char * CPL_STDCALL
 CPLGetConfigOption( const char *pszKey, const char *pszDefault )
@@ -1451,6 +1459,8 @@ CPLGetConfigOption( const char *pszKey, const char *pszDefault )
   *
   * @param pszKey the key of the option
   * @param pszValue the value of the option
+  * 
+  * @see http://trac.osgeo.org/gdal/wiki/ConfigOptions
   */
 void CPL_STDCALL 
 CPLSetConfigOption( const char *pszKey, const char *pszValue )
@@ -1489,7 +1499,7 @@ CPLSetThreadLocalConfigOption( const char *pszKey, const char *pszValue )
     papszTLConfigOptions = 
         CSLSetNameValue( papszTLConfigOptions, pszKey, pszValue );
 
-    CPLSetTLS( CTLS_CONFIGOPTIONS, papszTLConfigOptions, FALSE );
+    CPLSetTLSWithFreeFunc( CTLS_CONFIGOPTIONS, papszTLConfigOptions, (CPLTLSFreeFunc)CSLDestroy );
 }
 
 /************************************************************************/
@@ -1623,7 +1633,7 @@ double CPLDMSToDec( const char *is )
         ++s;
     }
     /* postfix sign */
-    if (*s && (p = (char *) strchr(sym, *s))) {
+    if (*s && ((p = (char *) strchr(sym, *s))) != NULL) {
         sign = (p - sym) >= 4 ? '-' : '+';
         ++s;
     }
@@ -1678,7 +1688,7 @@ const char *CPLDecToDMS( double dfAngle, const char * pszAxis,
     else
         pszHemisphere = "N";
 
-    sprintf( szFormat, "%%3dd%%2d\'%%.%df\"%s", nPrecision, pszHemisphere );
+    sprintf( szFormat, "%%3dd%%2d\'%%%d.%df\"%s", nPrecision+3, nPrecision, pszHemisphere );
     sprintf( szBuffer, szFormat, nDegrees, nMinutes, dfSeconds );
 
     return( szBuffer );
@@ -1875,7 +1885,7 @@ FILE *CPLOpenShared( const char *pszFilename, const char *pszAccess,
     FILE *fp;
 
     if( bLarge )
-        fp = VSIFOpenL( pszFilename, pszAccess );
+        fp = (FILE*) VSIFOpenL( pszFilename, pszAccess );
     else
         fp = VSIFOpen( pszFilename, pszAccess );
 
@@ -1943,7 +1953,7 @@ void CPLCloseShared( FILE * fp )
 /*      Close the file, and remove the information.                     */
 /* -------------------------------------------------------------------- */
     if( pasSharedFileList[i].bLarge )
-        VSIFCloseL( pasSharedFileList[i].fp );
+        VSIFCloseL( (VSILFILE*) pasSharedFileList[i].fp );
     else
         VSIFClose( pasSharedFileList[i].fp );
 
@@ -1951,9 +1961,9 @@ void CPLCloseShared( FILE * fp )
     CPLFree( pasSharedFileList[i].pszAccess );
 
 //    pasSharedFileList[i] = pasSharedFileList[--nSharedFileCount];
-    memcpy( (void *) (pasSharedFileList + i), 
-            (void *) (pasSharedFileList + --nSharedFileCount), 
-            sizeof(CPLSharedFileInfo) );
+    memmove( (void *) (pasSharedFileList + i), 
+             (void *) (pasSharedFileList + --nSharedFileCount), 
+             sizeof(CPLSharedFileInfo) );
 
     if( nSharedFileCount == 0 )
     {
@@ -2130,7 +2140,7 @@ int CPLUnlinkTree( const char *pszPath )
 int CPLCopyFile( const char *pszNewPath, const char *pszOldPath )
 
 {
-    FILE *fpOld, *fpNew;
+    VSILFILE *fpOld, *fpNew;
     GByte *pabyBuffer;
     size_t nBufferSize;
     size_t nBytesRead;
@@ -2187,7 +2197,7 @@ int CPLCopyFile( const char *pszNewPath, const char *pszOldPath )
 int CPLMoveFile( const char *pszNewPath, const char *pszOldPath )
 
 {
-    if( VSIRename( pszNewPath, pszOldPath ) == 0 )
+    if( VSIRename( pszOldPath, pszNewPath ) == 0 )
         return 0;
 
     int nRet = CPLCopyFile( pszNewPath, pszOldPath );
@@ -2293,3 +2303,44 @@ int CPLCheckForFile( char *pszFilename, char **papszSiblingFiles )
 
     return FALSE;
 }
+
+/************************************************************************/
+/*      Stub implementation of zip services if we don't have libz.      */
+/************************************************************************/
+
+#if !defined(HAVE_LIBZ)
+
+void *CPLCreateZip( const char *pszZipFilename, char **papszOptions )
+
+{
+    CPLError( CE_Failure, CPLE_NotSupported,
+              "This GDAL/OGR build does not include zlib and zip services." );
+    return NULL;
+}
+
+CPLErr CPLCreateFileInZip( void *hZip, const char *pszFilename, 
+                           char **papszOptions )
+
+{
+    return CE_Failure;
+}
+
+CPLErr CPLWriteFileInZip( void *hZip, const void *pBuffer, int nBufferSize )
+
+{
+    return CE_Failure;
+}
+
+CPLErr CPLCloseFileInZip( void *hZip )
+
+{
+    return CE_Failure;
+}
+
+CPLErr CPLCloseZip( void *hZip )
+
+{
+    return CE_Failure;
+}
+
+#endif /* !defined(HAVE_LIBZ) */

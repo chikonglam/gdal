@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id$
+ * $Id: ogrgeojsondatasource.cpp 21345 2010-12-30 11:37:54Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implementation of OGRGeoJSONDataSource class (OGR GeoJSON Driver).
@@ -89,6 +89,10 @@ int OGRGeoJSONDataSource::Open( const char* pszName )
     nSrcType = GeoJSONGetSourceType( pszName );
     if( eGeoJSONSourceService == nSrcType )
     {
+        if( (strstr(pszName, "SERVICE=WFS") || strstr(pszName, "service=WFS") ||
+             strstr(pszName, "service=wfs")) && !strstr(pszName, "json"))
+            return FALSE;
+
         if( !ReadFromService( pszName ) )
             return FALSE;
     }
@@ -200,7 +204,12 @@ OGRLayer* OGRGeoJSONDataSource::CreateLayer( const char* pszName_,
 /* -------------------------------------------------------------------- */
     
     // TOOD: Waiting for multi-layer support
-    CPLAssert( 0 == nLayers_ );
+    if ( nLayers_ != 0 )
+    {
+        CPLError(CE_Failure, CPLE_NotSupported,
+                 "GeoJSON driver doesn't support creating more than one layer");
+        return NULL;
+    }
 
     papoLayers_ = (OGRGeoJSONLayer **)
         CPLRealloc( papoLayers_,  sizeof(OGRGeoJSONLayer*) * (nLayers_ + 1) );
@@ -329,7 +338,7 @@ int OGRGeoJSONDataSource::ReadFromFile( const char* pszSource )
         return FALSE;
     }
 
-    FILE* fp = NULL;
+    VSILFILE* fp = NULL;
     fp = VSIFOpenL( pszSource, "rb" );
     if( NULL == fp )
     {
@@ -337,15 +346,28 @@ int OGRGeoJSONDataSource::ReadFromFile( const char* pszSource )
         return FALSE;
     }
 
-    size_t nDataLen = 0;
+    vsi_l_offset nDataLen = 0;
 
     VSIFSeekL( fp, 0, SEEK_END );
     nDataLen = VSIFTellL( fp );
+
+    // With "large" VSI I/O API we can read data chunks larger than VSIMalloc
+    // could allocate. Catch it here.
+    if ( nDataLen > (vsi_l_offset)(size_t)nDataLen )
+    {
+        CPLDebug( "GeoJSON", "Input file too large to be opened" );
+        VSIFCloseL( fp );
+        return FALSE;
+    }
+
     VSIFSeekL( fp, 0, SEEK_SET );
 
-    pszGeoData_ = (char*)CPLMalloc(nDataLen + 1);
+    pszGeoData_ = (char*)VSIMalloc(nDataLen + 1);
     if( NULL == pszGeoData_ )
+    {
+        VSIFCloseL(fp);
         return FALSE;
+    }
 
     pszGeoData_[nDataLen] = '\0';
     if( ( nDataLen != VSIFReadL( pszGeoData_, 1, nDataLen, fp ) ) )
@@ -423,8 +445,12 @@ int OGRGeoJSONDataSource::ReadFromService( const char* pszSource )
 
     // TODO: Eventually, CPLHTTPResult::pabyData could be assigned
     //       to pszGeoData_, so we will avoid copying of potentially (?) big data.
-    pszGeoData_ = (char*)CPLMalloc( sizeof(char) * pResult->nDataLen + 1 );
-    CPLAssert( NULL != pszGeoData_ );
+    pszGeoData_ = (char*)VSIMalloc( sizeof(char) * pResult->nDataLen + 1 );
+    if( NULL == pszGeoData_ )
+    {
+        CPLHTTPDestroyResult( pResult );
+        return FALSE;
+    }
 
     strncpy( pszGeoData_, pszData, pResult->nDataLen );
     pszGeoData_[pResult->nDataLen] = '\0';
@@ -460,7 +486,24 @@ OGRGeoJSONLayer* OGRGeoJSONDataSource::LoadLayer()
     }
 
     OGRErr err = OGRERR_NONE;
-    OGRGeoJSONLayer* poLayer = NULL;    
+    OGRGeoJSONLayer* poLayer = NULL;
+
+/* -------------------------------------------------------------------- */
+/*      Is it ESRI Feature Service data ?                               */
+/* -------------------------------------------------------------------- */
+    if ( strstr(pszGeoData_, "esriGeometry") ||
+         strstr(pszGeoData_, "esriFieldTypeOID") )
+    {
+        OGRESRIJSONReader reader;
+        err = reader.Parse( pszGeoData_ );
+        if( OGRERR_NONE == err )
+        {
+            // TODO: Think about better name selection
+            poLayer = reader.ReadLayer( OGRGeoJSONLayer::DefaultName, this );
+        }
+
+        return poLayer;
+    }
     
 /* -------------------------------------------------------------------- */
 /*      Configure GeoJSON format translator.                            */

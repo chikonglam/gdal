@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: bsb_read.c 19713 2010-05-14 22:23:18Z rouault $
+ * $Id: bsb_read.c 20996 2010-10-28 18:38:15Z rouault $
  *
  * Project:  BSB Reader
  * Purpose:  Low level BSB Access API Implementation (non-GDAL).
@@ -36,7 +36,7 @@
 #include "cpl_conv.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: bsb_read.c 19713 2010-05-14 22:23:18Z rouault $");
+CPL_CVSID("$Id: bsb_read.c 20996 2010-10-28 18:38:15Z rouault $");
 
 static int BSBReadHeaderLine( BSBInfo *psInfo, char* pszLine, int nLineMaxLen, int bNO1 );
 static int BSBSeekAndCheckScanlineNumber ( BSBInfo *psInfo, int nScanline,
@@ -173,7 +173,7 @@ int BSBGetc( BSBInfo *psInfo, int bNO1, int* pbErrorFlag )
 BSBInfo *BSBOpen( const char *pszFilename )
 
 {
-    FILE	*fp;
+    VSILFILE	*fp;
     char	achTestBlock[1000];
     char        szLine[1000];
     int         i, bNO1 = FALSE;
@@ -271,6 +271,21 @@ BSBInfo *BSBOpen( const char *pszFilename )
             papszTokens = CSLTokenizeStringComplex( szLine+4, ",=", 
                                                     FALSE,FALSE);
             nCount = CSLCount(papszTokens);
+        }
+        else if( EQUALN(szLine,"    ",4) && szLine[4] != ' ' )
+        {
+            /* add extension lines to the last header line. */
+            int iTargetHeader = CSLCount(psInfo->papszHeader);
+
+            if( iTargetHeader != -1 )
+            {
+                psInfo->papszHeader[iTargetHeader] = (char *) 
+                    CPLRealloc(psInfo->papszHeader[iTargetHeader],
+                               strlen(psInfo->papszHeader[iTargetHeader])
+                               + strlen(szLine) + 5 );
+                strcat( psInfo->papszHeader[iTargetHeader], "," );
+                strcat( psInfo->papszHeader[iTargetHeader], szLine+4 );
+            }
         }
 
         if( EQUALN(szLine,"BSB/",4) )
@@ -638,7 +653,7 @@ static int BSBSeekAndCheckScanlineNumber ( BSBInfo *psInfo, int nScanline,
 {
     int		nLineMarker = 0;
     int         byNext;
-    FILE	*fp = psInfo->fp;
+    VSILFILE	*fp = psInfo->fp;
     int         bErrorFlag = FALSE;
 
 /* -------------------------------------------------------------------- */
@@ -688,14 +703,16 @@ static int BSBSeekAndCheckScanlineNumber ( BSBInfo *psInfo, int nScanline,
         }
         return FALSE;
     }
-
     if( nLineMarker != nScanline 
         && nLineMarker != nScanline + 1 )
     {
-        if (bVerboseIfError)
+        int bIgnoreLineNumbers = 
+            CSLTestBoolean(CPLGetConfigOption("BSB_IGNORE_LINENUMBERS", "NO"));
+
+        if (bVerboseIfError && !bIgnoreLineNumbers )
         {
             CPLError( CE_Failure, CPLE_AppDefined,
-                     "Got scanline id %d when looking for %d @ offset %d.", 
+                     "Got scanline id %d when looking for %d @ offset %d.\nSet BSB_IGNORE_LINENUMBERS=TRUE configuration option to try file anyways.", 
                      nLineMarker, nScanline+1, psInfo->panLineOffset[nScanline]);
         }
         else
@@ -703,7 +720,9 @@ static int BSBSeekAndCheckScanlineNumber ( BSBInfo *psInfo, int nScanline,
             CPLDebug("BSB", "Got scanline id %d when looking for %d @ offset %d.", 
                      nLineMarker, nScanline+1, psInfo->panLineOffset[nScanline]);
         }
-        return FALSE;
+
+        if( !bIgnoreLineNumbers )
+            return FALSE;
     }
 
     return TRUE;
@@ -720,7 +739,7 @@ int BSBReadScanline( BSBInfo *psInfo, int nScanline,
 {
     int		nValueShift, iPixel = 0;
     unsigned char byValueMask, byCountMask;
-    FILE	*fp = psInfo->fp;
+    VSILFILE	*fp = psInfo->fp;
     int         byNext, i;
 
 /* -------------------------------------------------------------------- */
@@ -791,7 +810,7 @@ int BSBReadScanline( BSBInfo *psInfo, int nScanline,
             }
 
             /* Prevent over-run of line data */
-            if (nRunCount < 0)
+            if (nRunCount < 0 || nRunCount > INT_MAX - (iPixel + 1))
             {
                 CPLError( CE_Failure, CPLE_FileIO, 
                           "Corrupted run count : %d", nRunCount );
@@ -912,7 +931,7 @@ BSBInfo *BSBCreate( const char *pszFilename, int nCreationFlags, int nVersion,
                     int nXSize, int nYSize )
 
 {
-    FILE	*fp;
+    VSILFILE	*fp;
     BSBInfo     *psInfo;
 
 /* -------------------------------------------------------------------- */

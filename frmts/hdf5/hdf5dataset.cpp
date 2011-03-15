@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: hdf5dataset.cpp 20438 2010-08-25 17:20:18Z chaitanya $
+ * $Id: hdf5dataset.cpp 20437 2010-08-25 17:20:02Z chaitanya $
  *
  * Project:  Hierarchical Data Format Release 5 (HDF5)
  * Purpose:  HDF5 Datasets. Open HDF5 file, fetch metadata and list of
@@ -39,7 +39,7 @@
 #include "cpl_string.h"
 #include "hdf5dataset.h"
 
-CPL_CVSID("$Id: hdf5dataset.cpp 20438 2010-08-25 17:20:18Z chaitanya $");
+CPL_CVSID("$Id: hdf5dataset.cpp 20437 2010-08-25 17:20:02Z chaitanya $");
 
 CPL_C_START
 void	GDALRegister_HDF5(void);
@@ -752,6 +752,9 @@ CPLErr HDF5Dataset::CreateMetadata( HDF5GroupObjects *poH5Object, int nType)
 
     HDF5Dataset *poDS;
 
+    if( !poH5Object->pszPath )
+        return CE_None;
+
     poDS = this;
 
     poH5CurrentObject = poH5Object;
@@ -797,7 +800,7 @@ CPLErr HDF5Dataset::CreateMetadata( HDF5GroupObjects *poH5Object, int nType)
 /*      Find object by name                                             */
 /************************************************************************/
 HDF5GroupObjects* HDF5Dataset::HDF5FindDatasetObjectsbyPath
-    ( HDF5GroupObjects *poH5Objects, char* pszDatasetPath )
+    ( HDF5GroupObjects *poH5Objects, const char* pszDatasetPath )
 {
     int i;
     HDF5Dataset *poDS;
@@ -833,7 +836,7 @@ HDF5GroupObjects* HDF5Dataset::HDF5FindDatasetObjectsbyPath
 /*      Find object by name                                             */
 /************************************************************************/
 HDF5GroupObjects* HDF5Dataset::HDF5FindDatasetObjects
-    ( HDF5GroupObjects *poH5Objects, char* pszDatasetName )
+    ( HDF5GroupObjects *poH5Objects, const char* pszDatasetName )
 {
     int i;
     HDF5Dataset *poDS;

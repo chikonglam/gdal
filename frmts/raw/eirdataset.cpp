@@ -47,7 +47,7 @@ class EIRDataset : public RawDataset
 {
     friend class RawRasterBand;
 
-    FILE  *fpImage; // image data file
+    VSILFILE  *fpImage; // image data file
     int    bGotTransform;
     double adfGeoTransform[6];
     int    bHDRDirty;
@@ -249,7 +249,7 @@ GDALDataset *EIRDataset::Open( GDALOpenInfo * poOpenInfo )
 
 {
     int     i;
-    FILE    *fp;
+    VSILFILE    *fp;
     const char *    pszLine;
     
     
@@ -304,7 +304,7 @@ GDALDataset *EIRDataset::Open( GDALOpenInfo * poOpenInfo )
     CPLString osRasterFilename = CPLFormCIFilename( osPath, osName, "" );
     
     // parse the header file
-    while( !bDone && (pszLine = CPLReadLineL( fp )) )
+    while( !bDone && (pszLine = CPLReadLineL( fp )) != NULL )
     {
         char    **papszTokens;
 
@@ -573,6 +573,7 @@ void GDALRegister_EIR()
                                    "Erdas Imagine Raw" );
         poDriver->SetMetadataItem( GDAL_DMD_HELPTOPIC, 
                                    "frmt_various.html#EIR" );
+        poDriver->SetMetadataItem( GDAL_DCAP_VIRTUALIO, "YES" );
 
         poDriver->pfnOpen = EIRDataset::Open;
         poDriver->pfnIdentify = EIRDataset::Identify;

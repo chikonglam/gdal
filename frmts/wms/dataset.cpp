@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: dataset.cpp 18020 2009-11-14 14:33:20Z rouault $
+ * $Id: dataset.cpp 21304 2010-12-21 09:44:03Z nowakpl $
  *
  * Project:  WMS Client Driver
  * Purpose:  Implementation of Dataset and RasterBand classes for WMS
@@ -36,6 +36,7 @@ GDALWMSDataset::GDALWMSDataset() {
     m_hint.m_valid = false;
     m_data_type = GDT_Byte;
     m_clamp_requests = true;
+    m_unsafeSsl = false;
 }
 
 GDALWMSDataset::~GDALWMSDataset() {
@@ -44,6 +45,10 @@ GDALWMSDataset::~GDALWMSDataset() {
 }
 CPLErr GDALWMSDataset::Initialize(CPLXMLNode *config) {
     CPLErr ret = CE_None;
+
+    const char *pszUserAgent = CPLGetXMLValue(config, "UserAgent", "");
+    if (pszUserAgent[0] != '\0')
+        m_osUserAgent = pszUserAgent;
 
     if (ret == CE_None) {
         const char *max_conn = CPLGetXMLValue(config, "MaxConnections", "");
@@ -299,15 +304,33 @@ CPLErr GDALWMSDataset::Initialize(CPLXMLNode *config) {
             return CE_Failure;
         }
 
+        GDALColorInterp default_color_interp[4][4] = {
+            { GCI_GrayIndex, GCI_Undefined, GCI_Undefined, GCI_Undefined },
+            { GCI_GrayIndex, GCI_AlphaBand, GCI_Undefined, GCI_Undefined },
+            { GCI_RedBand, GCI_GreenBand, GCI_BlueBand, GCI_Undefined },
+            { GCI_RedBand, GCI_GreenBand, GCI_BlueBand, GCI_AlphaBand }
+        };
         for (int i = 0; i < nBandCount; ++i) {
+            GDALColorInterp color_interp = (nBandCount <= 4 && i <= 3 ? default_color_interp[nBandCount - 1][i] : GCI_Undefined);
             GDALWMSRasterBand *band = new GDALWMSRasterBand(this, i, 1.0);
+            band->m_color_interp = color_interp;
             SetBand(i + 1, band);
             double scale = 0.5;
             for (int j = 0; j < m_overview_count; ++j) {
                 band->AddOverview(scale);
+                band->m_color_interp = color_interp;
                 scale *= 0.5;
             }
         }
+    }
+    if (ret == CE_None) {
+    	const int v = StrToBool(CPLGetXMLValue(config, "UnsafeSSL", "false"));
+    	if (v == -1) {
+	    CPLError(CE_Failure, CPLE_AppDefined, "GDALWMS: Invalid value of UnsafeSSL: true or false expected.");
+	    ret = CE_Failure;
+	} else {
+	    m_unsafeSsl = v;
+	}
     }
 
     if (ret == CE_None) {

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_ingres.h 18518 2010-01-11 03:25:51Z warmerdam $
+ * $Id: ogr_ingres.h 19509 2010-04-23 16:49:33Z warmerdam $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Declarations for Ingres OGR Driver Classes.
@@ -74,6 +74,7 @@ public:
 
     int    IsColumnLong(int iCol);
     void   ClearDynamicColumns();
+    void   Close();
     int    SendParms();
 };
 
@@ -105,7 +106,7 @@ class OGRIngresLayer : public OGRLayer
 
     OGRIngresStatement *poResultSet; /* stmt */
 
-    int                 FetchSRSId();
+    int                 FetchSRSId(OGRFeatureDefn *poDefn);
     OGRGeometry        *TranslateGeometry( const char * );
 
   public:

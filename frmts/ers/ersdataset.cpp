@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ersdataset.cpp 17867 2009-10-21 21:04:49Z rouault $
+ * $Id: ersdataset.cpp 20996 2010-10-28 18:38:15Z rouault $
  *
  * Project:  ERMapper .ers Driver
  * Purpose:  Implementation of .ers driver.
@@ -32,7 +32,7 @@
 #include "cpl_string.h"
 #include "ershdrnode.h"
 
-CPL_CVSID("$Id: ersdataset.cpp 17867 2009-10-21 21:04:49Z rouault $");
+CPL_CVSID("$Id: ersdataset.cpp 20996 2010-10-28 18:38:15Z rouault $");
 
 /************************************************************************/
 /* ==================================================================== */
@@ -44,7 +44,7 @@ class ERSRasterBand;
 
 class ERSDataset : public RawDataset
 {
-    FILE	*fpImage;	// image data file.
+    VSILFILE	*fpImage;	// image data file.
     GDALDataset *poDepFile;
 
     int         bGotTransform;
@@ -162,7 +162,7 @@ void ERSDataset::FlushCache()
 {
     if( bHDRDirty )
     {
-        FILE * fpERS = VSIFOpenL( GetDescription(), "w" );
+        VSILFILE * fpERS = VSIFOpenL( GetDescription(), "w" );
         if( fpERS == NULL )
         {
             CPLError( CE_Failure, CPLE_OpenFailed, 
@@ -623,7 +623,7 @@ GDALDataset *ERSDataset::Open( GDALOpenInfo * poOpenInfo )
 /* -------------------------------------------------------------------- */
 /*      Open the .ers file, and read the first line.                    */
 /* -------------------------------------------------------------------- */
-    FILE *fpERS = VSIFOpenL( poOpenInfo->pszFilename, "rb" );
+    VSILFILE *fpERS = VSIFOpenL( poOpenInfo->pszFilename, "rb" );
     
     if( fpERS == NULL )
         return NULL;
@@ -839,6 +839,14 @@ GDALDataset *ERSDataset::Open( GDALOpenInfo * poOpenInfo )
             {
                 CPLPushErrorHandler( CPLQuietErrorHandler );
                 poDS->GetRasterBand( iBand )->SetDescription( pszValue );
+                CPLPopErrorHandler();
+            }
+
+            pszValue = poRI->papoItemChild[iChild]->Find( "Units", NULL );
+            if ( pszValue )
+            {
+                CPLPushErrorHandler( CPLQuietErrorHandler );
+                poDS->GetRasterBand( iBand )->SetUnitType( pszValue );
                 CPLPopErrorHandler();
             }
         }
@@ -1103,7 +1111,7 @@ GDALDataset *ERSDataset::Create( const char * pszFilename,
     GUIntBig nSize;
     GByte byZero = 0;
 
-    FILE *fpBin = VSIFOpenL( osBinFile, "w" );
+    VSILFILE *fpBin = VSIFOpenL( osBinFile, "w" );
 
     if( fpBin == NULL )
     {
@@ -1130,7 +1138,7 @@ GDALDataset *ERSDataset::Create( const char * pszFilename,
 /* -------------------------------------------------------------------- */
 /*      Try writing header file.                                        */
 /* -------------------------------------------------------------------- */
-    FILE *fpERS = VSIFOpenL( osErsFile, "w" );
+    VSILFILE *fpERS = VSIFOpenL( osErsFile, "w" );
     
     if( fpERS == NULL )
     {

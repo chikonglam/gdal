@@ -1,5 +1,5 @@
 /**********************************************************************
- * $Id: cpl_error.h 14047 2008-03-20 18:46:12Z rouault $
+ * $Id: cpl_error.h 19588 2010-04-30 19:56:38Z rouault $
  *
  * Name:     cpl_error.h
  * Project:  CPL - Common Portability Library
@@ -66,6 +66,7 @@ typedef void (CPL_STDCALL *CPLErrorHandler)(CPLErr, int, const char*);
 void CPL_DLL CPL_STDCALL CPLLoggingErrorHandler( CPLErr, int, const char * );
 void CPL_DLL CPL_STDCALL CPLDefaultErrorHandler( CPLErr, int, const char * );
 void CPL_DLL CPL_STDCALL CPLQuietErrorHandler( CPLErr, int, const char * );
+void CPLTurnFailureIntoWarning(int bOn );
 
 CPLErrorHandler CPL_DLL CPL_STDCALL CPLSetErrorHandler(CPLErrorHandler);
 void CPL_DLL CPL_STDCALL CPLPushErrorHandler( CPLErrorHandler );

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: landataset.cpp 17117 2009-05-25 19:26:01Z warmerdam $
+ * $Id: landataset.cpp 20996 2010-10-28 18:38:15Z rouault $
  *
  * Project:  eCognition
  * Purpose:  Implementation of Erdas .LAN / .GIS format.
@@ -31,7 +31,7 @@
 #include "cpl_string.h"
 #include "ogr_srs_api.h"
 
-CPL_CVSID("$Id: landataset.cpp 17117 2009-05-25 19:26:01Z warmerdam $");
+CPL_CVSID("$Id: landataset.cpp 20996 2010-10-28 18:38:15Z rouault $");
 
 CPL_C_START
 void	GDALRegister_LAN(void);
@@ -132,7 +132,7 @@ class LAN4BitRasterBand : public GDALPamRasterBand
 class LANDataset : public RawDataset
 {
   public:
-    FILE	*fpImage;	// image data file.
+    VSILFILE	*fpImage;	// image data file.
     
     char	pachHeader[ERD_HEADER_SIZE];
 
@@ -339,7 +339,7 @@ GDALDataset *LANDataset::Open( GDALOpenInfo * poOpenInfo )
 /*      We assume the user is pointing to the header (.pcb) file.       */
 /*      Does this appear to be a pcb file?                              */
 /* -------------------------------------------------------------------- */
-    if( poOpenInfo->nHeaderBytes < ERD_HEADER_SIZE || poOpenInfo->fp == NULL )
+    if( poOpenInfo->nHeaderBytes < ERD_HEADER_SIZE )
         return NULL;
 
     if( !EQUALN((const char *)poOpenInfo->pabyHeader,"HEADER",6)
@@ -540,7 +540,7 @@ GDALDataset *LANDataset::Open( GDALOpenInfo * poOpenInfo )
     char *pszBasename = CPLStrdup(CPLGetBasename(poOpenInfo->pszFilename));
     const char *pszTRLFilename = 
         CPLFormCIFilename( pszPath, pszBasename, "trl" );
-    FILE *fpTRL;
+    VSILFILE *fpTRL;
 
     fpTRL = VSIFOpenL( pszTRLFilename, "rb" );
     if( fpTRL != NULL )
@@ -644,15 +644,13 @@ void LANDataset::CheckForStatistics()
 /* -------------------------------------------------------------------- */
     osSTAFilename = CPLResetExtension(GetDescription(),"sta");
 
-    FILE *fpSTA = VSIFOpenL( osSTAFilename, "r" );
+    VSILFILE *fpSTA = VSIFOpenL( osSTAFilename, "r" );
 
-#ifndef WIN32
-    if( fpSTA == NULL )
+    if( fpSTA == NULL && VSIIsCaseSensitiveFS(osSTAFilename) )
     {
         osSTAFilename = CPLResetExtension(GetDescription(),"STA");
         fpSTA = VSIFOpenL( osSTAFilename, "r" );
     }
-#endif
 
     if( fpSTA == NULL )
     {
@@ -721,6 +719,7 @@ void GDALRegister_LAN()
                                    "Erdas .LAN/.GIS" );
         poDriver->SetMetadataItem( GDAL_DMD_HELPTOPIC, 
                                    "frmt_various.html#LAN" );
+        poDriver->SetMetadataItem( GDAL_DCAP_VIRTUALIO, "YES" );
         
         poDriver->pfnOpen = LANDataset::Open;
 

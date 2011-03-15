@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gmlreader.cpp 18190 2009-12-06 05:25:31Z chaitanya $
+ * $Id: gmlreader.cpp 21390 2011-01-03 22:43:07Z rouault $
  *
  * Project:  GML Reader
  * Purpose:  Implementation of GMLReader class.
@@ -29,6 +29,8 @@
 
 #include "gmlreader.h"
 #include "cpl_error.h"
+#include "cpl_string.h"
+#include "gmlutils.h"
 
 #define SUPPORT_GEOMETRY
 
@@ -105,13 +107,14 @@ GMLReader::GMLReader()
 #if HAVE_XERCES == 1
     m_poSAXReader = NULL;
     m_poCompleteFeature = NULL;
+    m_GMLInputSource = NULL;
 #else
     oParser = NULL;
     ppoFeatureTab = NULL;
     nFeatureTabIndex = 0;
     nFeatureTabLength = 0;
-    fpGML = NULL;
 #endif
+    fpGML = NULL;
     m_bReadStarted = FALSE;
     
     m_poState = NULL;
@@ -119,6 +122,16 @@ GMLReader::GMLReader()
     m_pszFilename = NULL;
 
     m_bStopParsing = FALSE;
+
+    /* A bit experimental. Not publicly advertized. See commented doc in drv_gml.html */
+    m_bFetchAllGeometries = CSLTestBoolean(CPLGetConfigOption("GML_FETCH_ALL_GEOMETRIES", "NO"));
+
+    m_bInvertAxisOrderIfLatLong = CSLTestBoolean(CPLGetConfigOption("GML_INVERT_AXIS_ORDER_IF_LAT_LONG", "YES"));
+
+    m_pszGlobalSRSName = NULL;
+    m_bCanUseGlobalSRSName = FALSE;
+
+    m_pszFilteredClassName = NULL;
 }
 
 /************************************************************************/
@@ -143,15 +156,17 @@ GMLReader::~GMLReader()
     }
 #endif
 
-#ifdef HAVE_EXPAT
     if (fpGML)
         VSIFCloseL(fpGML);
     fpGML = NULL;
-#endif
+
+    CPLFree(m_pszGlobalSRSName);
+
+    CPLFree(m_pszFilteredClassName);
 }
 
 /************************************************************************/
-/*                             SetSource()                              */
+/*                          SetSourceFile()                             */
 /************************************************************************/
 
 void GMLReader::SetSourceFile( const char *pszFilename )
@@ -159,6 +174,16 @@ void GMLReader::SetSourceFile( const char *pszFilename )
 {
     CPLFree( m_pszFilename );
     m_pszFilename = CPLStrdup( pszFilename );
+}
+
+/************************************************************************/
+/*                       GetSourceFileName()                           */
+/************************************************************************/
+
+const char* GMLReader::GetSourceFileName()
+
+{
+    return m_pszFilename;
 }
 
 #ifdef HAVE_EXPAT
@@ -188,6 +213,11 @@ static void XMLCALL dataHandlerCbk(void *pUserData, const char *data, int nLen)
 int GMLReader::SetupParser()
 
 {
+    if (fpGML == NULL)
+        fpGML = VSIFOpenL(m_pszFilename, "rt");
+    if (fpGML != NULL)
+        VSIFSeekL( fpGML, 0, SEEK_SET );
+
 #if HAVE_XERCES == 1
 
     if( !m_bXercesInitialized )
@@ -260,6 +290,9 @@ int GMLReader::SetupParser()
                   "Exception initializing Xerces based GML reader.\n" );
         return FALSE;
     }
+
+    if (m_GMLInputSource == NULL && fpGML != NULL)
+        m_GMLInputSource = new GMLInputSource(fpGML);
 #else
     // Cleanup any old parser.
     if( oParser != NULL )
@@ -271,9 +304,6 @@ int GMLReader::SetupParser()
     XML_SetElementHandler(oParser, ::startElementCbk, ::endElementCbk);
     XML_SetCharacterDataHandler(oParser, ::dataHandlerCbk);
     XML_SetUserData(oParser, m_poGMLHandler);
-
-    if (fpGML != NULL)
-        VSIFSeekL( fpGML, 0, SEEK_SET );
 #endif
 
     m_bReadStarted = FALSE;
@@ -305,6 +335,10 @@ void GMLReader::CleanupParser()
 #if HAVE_XERCES == 1
     delete m_poSAXReader;
     m_poSAXReader = NULL;
+    delete m_GMLInputSource;
+    m_GMLInputSource = NULL;
+    delete m_poCompleteFeature;
+    m_poCompleteFeature = NULL;
 #else
     if (oParser)
         XML_ParserFree(oParser);
@@ -326,6 +360,61 @@ void GMLReader::CleanupParser()
     m_bReadStarted = FALSE;
 }
 
+#if HAVE_XERCES == 1
+
+GMLBinInputStream::GMLBinInputStream(VSILFILE* fp)
+{
+    this->fp = fp;
+    emptyString = 0;
+}
+
+GMLBinInputStream::~ GMLBinInputStream()
+{
+}
+
+#if XERCES_VERSION_MAJOR >= 3
+XMLFilePos GMLBinInputStream::curPos() const
+{
+    return (XMLFilePos)VSIFTellL(fp);
+}
+
+XMLSize_t GMLBinInputStream::readBytes(XMLByte* const toFill, const XMLSize_t maxToRead)
+{
+    return (XMLSize_t)VSIFReadL(toFill, 1, maxToRead, fp);
+}
+
+const XMLCh* GMLBinInputStream::getContentType() const
+{
+    return &emptyString;
+}
+#else
+unsigned int GMLBinInputStream::curPos() const
+{
+    return (unsigned int)VSIFTellL(fp);
+}
+
+unsigned int GMLBinInputStream::readBytes(XMLByte* const toFill, const unsigned int maxToRead)
+{
+    return (unsigned int)VSIFReadL(toFill, 1, maxToRead, fp);
+}
+#endif
+
+GMLInputSource::GMLInputSource(VSILFILE* fp, MemoryManager* const manager) : InputSource(manager)
+{
+    binInputStream = new GMLBinInputStream(fp);
+}
+
+GMLInputSource::~GMLInputSource()
+{
+}
+
+BinInputStream* GMLInputSource::makeStream() const
+{
+    return binInputStream;
+}
+
+#endif
+
 /************************************************************************/
 /*                            NextFeature()                             */
 /************************************************************************/
@@ -343,9 +432,13 @@ GMLFeature *GMLReader::NextFeature()
             if( m_poSAXReader == NULL )
                 SetupParser();
 
-            if( !m_poSAXReader->parseFirst( m_pszFilename, m_oToFill ) )
-                return NULL;
             m_bReadStarted = TRUE;
+
+            if (m_GMLInputSource == NULL)
+                return NULL;
+
+            if( !m_poSAXReader->parseFirst( *m_GMLInputSource, m_oToFill ) )
+                return NULL;
         }
 
         while( m_poCompleteFeature == NULL 
@@ -383,9 +476,6 @@ GMLFeature *GMLReader::NextFeature()
     {
         if (oParser == NULL)
             SetupParser();
-
-        if (fpGML == NULL)
-            fpGML = VSIFOpenL(m_pszFilename, "rt");
 
         m_bReadStarted = TRUE;
     }
@@ -507,8 +597,39 @@ int GMLReader::IsFeatureElement( const char *pszElement )
 
     const char *pszLast = m_poState->GetLastComponent();
     int        nLen = strlen(pszLast);
+    int        nElementLength = strlen(pszElement);
 
-    if( nLen < 6 || !(EQUAL(pszLast+nLen-6,"member") ||
+    if (strcmp(pszLast, "dane") == 0)
+    {
+         /* Polish TBD GML */
+    }
+
+    /* Begin of OpenLS */
+    else if (strcmp(pszLast, "GeocodeResponseList") == 0 &&
+             strcmp(pszElement, "GeocodedAddress") == 0)
+    {
+    }
+    else if (strcmp(pszLast, "DetermineRouteResponse") == 0)
+    {
+        /* We don't want the children of RouteInstructionsList */
+        /* to be a single feature. We want each RouteInstruction */
+        /* to be a feature */
+        if (strcmp(pszElement, "RouteInstructionsList") == 0)
+            return FALSE;
+    }
+    else if (strcmp(pszElement, "RouteInstruction") == 0 &&
+             strcmp(pszLast, "RouteInstructionsList") == 0)
+    {
+    }
+    /* End of OpenLS */
+
+    else if (nLen > 6 && strcmp(pszLast + nLen - 6, "_layer") == 0 &&
+             nElementLength > 8 && strcmp(pszElement + nElementLength - 8, "_feature") == 0)
+    {
+        /* GML answer of MapServer WMS GetFeatureInfo request */
+    }
+
+    else if( nLen < 6 || !(EQUAL(pszLast+nLen-6,"member") ||
                       EQUAL(pszLast+nLen-7,"members")) )
         return FALSE;
 
@@ -528,6 +649,48 @@ int GMLReader::IsFeatureElement( const char *pszElement )
 }
 
 /************************************************************************/
+/*                IsCityGMLGenericAttributeElement()                    */
+/************************************************************************/
+
+int GMLReader::IsCityGMLGenericAttributeElement( const char *pszElement, void* attr )
+
+{
+    if( strcmp(pszElement, "stringAttribute") != 0 &&
+        strcmp(pszElement, "intAttribute") != 0 &&
+        strcmp(pszElement, "doubleAttribute") != 0 )
+        return FALSE;
+
+    if( m_poState->m_poFeature == NULL )
+        return FALSE;
+
+    char* pszVal = m_poGMLHandler->GetAttributeValue(attr, "name");
+    if (pszVal == NULL)
+        return FALSE;
+
+    GMLFeatureClass *poClass = m_poState->m_poFeature->GetClass();
+
+    // If the schema is not yet locked, then any simple element
+    // is potentially an attribute.
+    if( !poClass->IsSchemaLocked() )
+    {
+        CPLFree(pszVal);
+        return TRUE;
+    }
+
+    for( int i = 0; i < poClass->GetPropertyCount(); i++ )
+    {
+        if( strcmp(poClass->GetProperty(i)->GetSrcElement(),pszVal) == 0 )
+        {
+            CPLFree(pszVal);
+            return TRUE;
+        }
+    }
+
+    CPLFree(pszVal);
+    return FALSE;
+}
+
+/************************************************************************/
 /*                         IsAttributeElement()                         */
 /************************************************************************/
 
@@ -537,16 +700,28 @@ int GMLReader::IsAttributeElement( const char *pszElement )
     if( m_poState->m_poFeature == NULL )
         return FALSE;
 
-    if( m_poState->m_nPathLength > 0 )
-        return FALSE;
-
     GMLFeatureClass *poClass = m_poState->m_poFeature->GetClass();
 
+    // If the schema is not yet locked, then any simple element
+    // is potentially an attribute.
     if( !poClass->IsSchemaLocked() )
         return TRUE;
 
+    // Otherwise build the path to this element into a single string
+    // and compare against known attributes.
+    CPLString osElemPath;
+
+    if( m_poState->m_nPathLength == 0 )
+        osElemPath = pszElement;
+    else
+    {
+        osElemPath = m_poState->m_pszPath;
+        osElemPath += "|";
+        osElemPath += pszElement;
+    }
+
     for( int i = 0; i < poClass->GetPropertyCount(); i++ )
-        if( EQUAL(poClass->GetProperty(i)->GetSrcElement(),pszElement) )
+        if( strcmp(poClass->GetProperty(i)->GetSrcElement(),osElemPath) == 0 )
             return TRUE;
 
     return FALSE;
@@ -687,8 +862,8 @@ void GMLReader::SetFeatureProperty( const char *pszElement,
 
     for( iProperty=0; iProperty < poClass->GetPropertyCount(); iProperty++ )
     {
-        if( EQUAL(poClass->GetProperty( iProperty )->GetSrcElement(),
-                  pszElement ) )
+        if( strcmp(poClass->GetProperty( iProperty )->GetSrcElement(),
+                  pszElement ) == 0 )
             break;
     }
     
@@ -700,13 +875,33 @@ void GMLReader::SetFeatureProperty( const char *pszElement,
             return;
         }
 
-        GMLPropertyDefn *poPDefn = new GMLPropertyDefn(pszElement,pszElement);
+        CPLString osFieldName;
+        
+        if( strchr(pszElement,'|') == NULL )
+            osFieldName = pszElement;
+        else
+        {
+            osFieldName = strrchr(pszElement,'|') + 1;
+            if( poClass->GetPropertyIndex(osFieldName) != -1 )
+                osFieldName = pszElement;
+        }
+
+        // Does this conflict with an existing property name? 
+        while( poClass->GetProperty(osFieldName) != NULL )
+        {
+            osFieldName += "_";
+        }
+
+        GMLPropertyDefn *poPDefn = new GMLPropertyDefn(osFieldName,pszElement);
 
         if( EQUAL(CPLGetConfigOption( "GML_FIELDTYPES", ""), "ALWAYS_STRING") )
             poPDefn->SetType( GMLPT_String );
 
-        poClass->AddProperty( poPDefn );
-
+        if (poClass->AddProperty( poPDefn ) < 0)
+        {
+            delete poPDefn;
+            return;
+        }
     }
 
 /* -------------------------------------------------------------------- */
@@ -718,7 +913,10 @@ void GMLReader::SetFeatureProperty( const char *pszElement,
 /*      Do we need to update the property type?                         */
 /* -------------------------------------------------------------------- */
     if( !poClass->IsSchemaLocked() )
-        poClass->GetProperty( iProperty )->AnalysePropertyValue(pszValue);
+    {
+        poClass->GetProperty(iProperty)->AnalysePropertyValue(
+                             poFeature->GetProperty(iProperty));
+    }
 }
 
 /************************************************************************/
@@ -735,11 +933,11 @@ int GMLReader::LoadClasses( const char *pszFile )
 /* -------------------------------------------------------------------- */
 /*      Load the raw XML file.                                          */
 /* -------------------------------------------------------------------- */
-    FILE       *fp;
+    VSILFILE       *fp;
     int         nLength;
     char        *pszWholeText;
 
-    fp = VSIFOpen( pszFile, "rb" );
+    fp = VSIFOpenL( pszFile, "rb" );
 
     if( fp == NULL )
     {
@@ -748,9 +946,9 @@ int GMLReader::LoadClasses( const char *pszFile )
         return FALSE;
     }
 
-    VSIFSeek( fp, 0, SEEK_END );
-    nLength = VSIFTell( fp );
-    VSIFSeek( fp, 0, SEEK_SET );
+    VSIFSeekL( fp, 0, SEEK_END );
+    nLength = VSIFTellL( fp );
+    VSIFSeekL( fp, 0, SEEK_SET );
 
     pszWholeText = (char *) VSIMalloc(nLength+1);
     if( pszWholeText == NULL )
@@ -759,21 +957,21 @@ int GMLReader::LoadClasses( const char *pszFile )
                   "Failed to allocate %d byte buffer for %s,\n"
                   "is this really a GMLFeatureClassList file?",
                   nLength, pszFile );
-        VSIFClose( fp );
+        VSIFCloseL( fp );
         return FALSE;
     }
     
-    if( VSIFRead( pszWholeText, nLength, 1, fp ) != 1 )
+    if( VSIFReadL( pszWholeText, nLength, 1, fp ) != 1 )
     {
         VSIFree( pszWholeText );
-        VSIFClose( fp );
+        VSIFCloseL( fp );
         CPLError( CE_Failure, CPLE_AppDefined, 
                   "Read failed on %s.", pszFile );
         return FALSE;
     }
     pszWholeText[nLength] = '\0';
 
-    VSIFClose( fp );
+    VSIFCloseL( fp );
 
     if( strstr( pszWholeText, "<GMLFeatureClassList>" ) == NULL )
     {
@@ -868,20 +1066,20 @@ int GMLReader::SaveClasses( const char *pszFile )
 /* -------------------------------------------------------------------- */
 /*      Serialize to disk.                                              */
 /* -------------------------------------------------------------------- */
-    FILE        *fp;
+    VSILFILE        *fp;
     int         bSuccess = TRUE;
     char        *pszWholeText = CPLSerializeXMLTree( psRoot );
     
     CPLDestroyXMLNode( psRoot );
  
-    fp = VSIFOpen( pszFile, "wb" );
+    fp = VSIFOpenL( pszFile, "wb" );
     
     if( fp == NULL )
         bSuccess = FALSE;
-    else if( VSIFWrite( pszWholeText, strlen(pszWholeText), 1, fp ) != 1 )
+    else if( VSIFWriteL( pszWholeText, strlen(pszWholeText), 1, fp ) != 1 )
         bSuccess = FALSE;
     else
-        VSIFClose( fp );
+        VSIFCloseL( fp );
 
     CPLFree( pszWholeText );
 
@@ -911,6 +1109,8 @@ int GMLReader::PrescanForSchema( int bGetExtents )
     if( !SetupParser() )
         return FALSE;
 
+    m_bCanUseGlobalSRSName = TRUE;
+
     while( (poFeature = NextFeature()) != NULL )
     {
         GMLFeatureClass *poClass = poFeature->GetClass();
@@ -923,43 +1123,95 @@ int GMLReader::PrescanForSchema( int bGetExtents )
 #ifdef SUPPORT_GEOMETRY
         if( bGetExtents )
         {
-            OGRGeometry *poGeometry = NULL;
-
-            if( poFeature->GetGeometry() != NULL 
-                && strlen(poFeature->GetGeometry()) != 0 )
-            {
-                poGeometry = OGRGeometryFactory::createFromGML( 
-                    poFeature->GetGeometry() );
-            }
+            OGRGeometry *poGeometry = GML_BuildOGRGeometryFromList(
+                poFeature->GetGeometryList(), TRUE, m_bInvertAxisOrderIfLatLong, NULL);
 
             if( poGeometry != NULL )
             {
                 double  dfXMin, dfXMax, dfYMin, dfYMax;
                 OGREnvelope sEnvelope;
+                OGRwkbGeometryType eGType = (OGRwkbGeometryType) 
+                    poClass->GetGeometryType();
 
-                poGeometry->getEnvelope( &sEnvelope );
+                char* pszSRSName = GML_ExtractSrsNameFromGeometry(poFeature->GetGeometryList());
+                if (pszSRSName != NULL)
+                    m_bCanUseGlobalSRSName = FALSE;
+                poClass->MergeSRSName(pszSRSName);
+                CPLFree(pszSRSName);
+
+                // Merge geometry type into layer.
+                if( poClass->GetFeatureCount() == 1 && eGType == wkbUnknown )
+                    eGType = wkbNone;
+
+                poClass->SetGeometryType( 
+                    (int) OGRMergeGeometryTypes(
+                        eGType, poGeometry->getGeometryType() ) );
+
+                // merge extents.
+                if (!poGeometry->IsEmpty())
+                {
+                    poGeometry->getEnvelope( &sEnvelope );
+                    if( poClass->GetExtents(&dfXMin, &dfXMax, &dfYMin, &dfYMax) )
+                    {
+                        dfXMin = MIN(dfXMin,sEnvelope.MinX);
+                        dfXMax = MAX(dfXMax,sEnvelope.MaxX);
+                        dfYMin = MIN(dfYMin,sEnvelope.MinY);
+                        dfYMax = MAX(dfYMax,sEnvelope.MaxY);
+                    }
+                    else
+                    {
+                        dfXMin = sEnvelope.MinX;
+                        dfXMax = sEnvelope.MaxX;
+                        dfYMin = sEnvelope.MinY;
+                        dfYMax = sEnvelope.MaxY;
+                    }
+
+                    poClass->SetExtents( dfXMin, dfXMax, dfYMin, dfYMax );
+                }
                 delete poGeometry;
-                if( poClass->GetExtents(&dfXMin, &dfXMax, &dfYMin, &dfYMax) )
-                {
-                    dfXMin = MIN(dfXMin,sEnvelope.MinX);
-                    dfXMax = MAX(dfXMax,sEnvelope.MaxX);
-                    dfYMin = MIN(dfYMin,sEnvelope.MinY);
-                    dfYMax = MAX(dfYMax,sEnvelope.MaxY);
-                }
-                else
-                {
-                    dfXMin = sEnvelope.MinX;
-                    dfXMax = sEnvelope.MaxX;
-                    dfYMin = sEnvelope.MinY;
-                    dfYMax = sEnvelope.MaxY;
-                }
 
-                poClass->SetExtents( dfXMin, dfXMax, dfYMin, dfYMax );
             }
 #endif /* def SUPPORT_GEOMETRY */
         }
         
         delete poFeature;
+    }
+
+    for( int i = 0; i < m_nClassCount; i++ )
+    {
+        GMLFeatureClass *poClass = m_papoClass[i];
+        const char* pszSRSName = poClass->GetSRSName();
+
+        if (m_bCanUseGlobalSRSName)
+            pszSRSName = m_pszGlobalSRSName;
+        
+        if (m_bInvertAxisOrderIfLatLong && GML_IsSRSLatLongOrder(pszSRSName))
+        {
+            OGRSpatialReference oSRS;
+            if (oSRS.SetFromUserInput(pszSRSName) == OGRERR_NONE)
+            {
+                OGR_SRSNode *poGEOGCS = oSRS.GetAttrNode( "GEOGCS" );
+                if( poGEOGCS != NULL )
+                {
+                    poGEOGCS->StripNodes( "AXIS" );
+
+                    char* pszWKT = NULL;
+                    if (oSRS.exportToWkt(&pszWKT) == OGRERR_NONE)
+                        poClass->SetSRSName(pszWKT);
+                    CPLFree(pszWKT);
+
+                    /* So when we have computed the extent, we didn't know yet */
+                    /* the SRS to use. Now we know it, we have to fix the extent */
+                    /* order */
+                    if (m_bCanUseGlobalSRSName)
+                    {
+                        double  dfXMin, dfXMax, dfYMin, dfYMax;
+                        if( poClass->GetExtents(&dfXMin, &dfXMax, &dfYMin, &dfYMax) )
+                            poClass->SetExtents( dfYMin, dfYMax, dfXMin, dfXMax );
+                    }
+                }
+            }
+        }
     }
 
     CleanupParser();
@@ -975,6 +1227,28 @@ void GMLReader::ResetReading()
 
 {
     CleanupParser();
+    SetFilteredClassName(NULL);
+}
+
+/************************************************************************/
+/*                          SetGlobalSRSName()                          */
+/************************************************************************/
+
+void GMLReader::SetGlobalSRSName( const char* pszGlobalSRSName )
+{
+    if (m_pszGlobalSRSName == NULL && pszGlobalSRSName != NULL)
+        m_pszGlobalSRSName = CPLStrdup(pszGlobalSRSName);
+}
+
+/************************************************************************/
+/*                       SetFilteredClassName()                         */
+/************************************************************************/
+
+int GMLReader::SetFilteredClassName(const char* pszClassName)
+{
+    CPLFree(m_pszFilteredClassName);
+    m_pszFilteredClassName = (pszClassName) ? CPLStrdup(pszClassName) : NULL;
+    return TRUE;
 }
 
 #endif /* HAVE_XERCES == 1 or HAVE_EXPAT */

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: rasterlitedataset.cpp 18343 2009-12-19 10:39:30Z rouault $
+ * $Id: rasterlitedataset.cpp 20996 2010-10-28 18:38:15Z rouault $
  *
  * Project:  GDAL Rasterlite driver
  * Purpose:  Implement GDAL Rasterlite support using OGR SQLite driver
@@ -34,7 +34,7 @@
 
 #include "rasterlitedataset.h"
 
-CPL_CVSID("$Id: rasterlitedataset.cpp 18343 2009-12-19 10:39:30Z rouault $");
+CPL_CVSID("$Id: rasterlitedataset.cpp 20996 2010-10-28 18:38:15Z rouault $");
 
 /************************************************************************/
 /*                            RasterliteBand()                          */
@@ -192,7 +192,7 @@ CPLErr RasterliteBand::IReadBlock( int nBlockXOff, int nBlockYOff, void * pImage
             int nDataSize = 0;
             GByte* pabyData = OGR_F_GetFieldAsBinary(hFeat, 0, &nDataSize);
 
-            FILE * fp = VSIFileFromMemBuffer( osMemFileName.c_str(), pabyData,
+            VSILFILE * fp = VSIFileFromMemBuffer( osMemFileName.c_str(), pabyData,
                                               nDataSize, FALSE);
             VSIFCloseL(fp);
             
@@ -749,7 +749,7 @@ int RasterliteDataset::GetBlockParams(OGRLayerH hRasterLyr, int nLevel,
     
     CPLString osMemFileName;
     osMemFileName.Printf("/vsimem/%p", this);
-    FILE * fp = VSIFileFromMemBuffer( osMemFileName.c_str(), pabyData,
+    VSILFILE * fp = VSIFileFromMemBuffer( osMemFileName.c_str(), pabyData,
                                       nDataSize, FALSE);
     VSIFCloseL(fp);
     
@@ -931,9 +931,9 @@ GDALDataset* RasterliteDataset::Open(GDALOpenInfo* poOpenInfo)
     /* Set SQLITE_LIST_ALL_TABLES option as we wan't to be able to */
     /* fetch non spatial tables */
     CPLString osOldVal = CPLGetConfigOption("SQLITE_LIST_ALL_TABLES", "FALSE");
-    CPLSetConfigOption("SQLITE_LIST_ALL_TABLES", "TRUE");
+    CPLSetThreadLocalConfigOption("SQLITE_LIST_ALL_TABLES", "TRUE");
     OGRDataSourceH hDS = OGROpen(osFileName.c_str(), TRUE, NULL);
-    CPLSetConfigOption("SQLITE_LIST_ALL_TABLES", osOldVal.c_str());
+    CPLSetThreadLocalConfigOption("SQLITE_LIST_ALL_TABLES", osOldVal.c_str());
     CPLDebug("RASTERLITE", "SQLite DB Open");
     
     RasterliteDataset* poDS = NULL;

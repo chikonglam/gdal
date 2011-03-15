@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdaldataset.cpp 19122 2010-03-18 21:38:24Z rouault $
+ * $Id: gdaldataset.cpp 21440 2011-01-08 17:06:36Z rouault $
  *
  * Project:  GDAL Core
  * Purpose:  Base class for raster file formats.  
@@ -32,7 +32,20 @@
 #include "cpl_hash_set.h"
 #include "cpl_multiproc.h"
 
-CPL_CVSID("$Id: gdaldataset.cpp 19122 2010-03-18 21:38:24Z rouault $");
+CPL_CVSID("$Id: gdaldataset.cpp 21440 2011-01-08 17:06:36Z rouault $");
+
+CPL_C_START
+GDALAsyncReader *
+GDALGetDefaultAsyncReader( GDALDataset *poDS,
+                             int nXOff, int nYOff,
+                             int nXSize, int nYSize,
+                             void *pBuf,
+                             int nBufXSize, int nBufYSize,
+                             GDALDataType eBufType,
+                             int nBandCount, int* panBandMap,
+                             int nPixelSpace, int nLineSpace,
+                             int nBandSpace, char **papszOptions);
+CPL_C_END
 
 typedef struct
 {
@@ -445,7 +458,7 @@ void GDALDataset::RasterInitialize( int nXSize, int nYSize )
  *
  * Note that the new GDALRasterBand is not returned.  It may be fetched
  * after successful completion of the method by calling 
- * GDALDataset::GetRasterBand(GDALDataset::GetRasterCount()-1) as the newest
+ * GDALDataset::GetRasterBand(GDALDataset::GetRasterCount()) as the newest
  * band will always be the last band.
  *
  * @param eType the data type of the pixels in the new band. 
@@ -1185,8 +1198,9 @@ int CPL_STDCALL GDALGetGCPCount( GDALDatasetH hDS )
  * This method is the same as the C function GDALGetGCPProjection(). 
  *
  * The projection string follows the normal rules from GetProjectionRef().
- * 
+ *
  * @return internal projection string or "" if there are no GCPs. 
+ *  It should not be altered, freed or expected to last for long.
  */
 
 const char *GDALDataset::GetGCPProjection()
@@ -1763,7 +1777,9 @@ GDALDatasetRasterIO( GDALDatasetH hDS, GDALRWFlag eRWFlag,
 static int GDALGetOpenDatasetsForeach(void* elt, void* user_data)
 {
     int* pnIndex = (int*) user_data;
-    ppDatasets[*pnIndex] = (GDALDataset*) elt;
+    DatasetCtxt* psStruct = (DatasetCtxt*) elt;
+
+    ppDatasets[*pnIndex] = psStruct->poDS;
 
     (*pnIndex) ++;
 
@@ -1775,8 +1791,8 @@ static int GDALGetOpenDatasetsForeach(void* elt, void* user_data)
  *
  * This method is the same as the C function GDALGetOpenDatasets().
  *
- * NOTE: This method is not thread safe.  The returned list may changed
- * at any time.
+ * NOTE: This method is not thread safe.  The returned list may change
+ * at any time and it should not be freed.
  *
  * @param pnCount integer into which to place the count of dataset pointers
  * being returned.
@@ -1955,7 +1971,8 @@ GDALDatasetAdviseRead( GDALDatasetH hDS,
  * with CSLDestroy().
  * 
  * The returned filenames will normally be relative or absolute paths 
- * depending on the path used to originally open the dataset.
+ * depending on the path used to originally open the dataset.  The strings
+ * will be UTF8 encoded.
  *
  * This method is the same as the C GDALGetFileList() function.
  *
@@ -1972,7 +1989,7 @@ char **GDALDataset::GetFileList()
 /* -------------------------------------------------------------------- */
 /*      Is the main filename even a real filesystem object?             */
 /* -------------------------------------------------------------------- */
-    bMainFileReal = VSIStatL( osMainFilename, &sStat ) == 0;
+    bMainFileReal = VSIStatExL( osMainFilename, &sStat, VSI_STAT_EXISTS_FLAG ) == 0;
 
 /* -------------------------------------------------------------------- */
 /*      Form new list.                                                  */
@@ -2018,7 +2035,7 @@ char **GDALDataset::GetFileList()
             szDerivedExtension[3] = '\0';
             CPLString osWorldFilename = CPLResetExtension( osMainFilename, szDerivedExtension );
             
-            if( VSIStatL( osWorldFilename, &sStat ) == 0 )
+            if( VSIStatExL( osWorldFilename, &sStat, VSI_STAT_EXISTS_FLAG ) == 0 )
                 papszList = CSLAddString( papszList, osWorldFilename );
         }
     }
@@ -2059,6 +2076,10 @@ char ** CPL_STDCALL GDALGetFileList( GDALDatasetH hDS )
  * The mask images will be deflate compressed tiled images with the same
  * block size as the original image if possible.
  *
+ * Note that if you got a mask band with a previous call to GetMaskBand(),
+ * it might be invalidated by CreateMaskBand(). So you have to call GetMaskBand()
+ * again.
+ *
  * @since GDAL 1.5.0
  *
  * @param nFlags ignored. GMF_PER_DATASET will be assumed.
@@ -2071,7 +2092,24 @@ CPLErr GDALDataset::CreateMaskBand( int nFlags )
 
 {
     if( oOvManager.IsInitialized() )
-        return oOvManager.CreateMaskBand( nFlags, -1 );
+    {
+        CPLErr eErr = oOvManager.CreateMaskBand( nFlags, -1 );
+        if (eErr != CE_None)
+            return eErr;
+
+        /* Invalidate existing raster band masks */
+        int i;
+        for(i=0;i<nBands;i++)
+        {
+            GDALRasterBand* poBand = papoBands[i];
+            if (poBand->bOwnMask)
+                delete poBand->poMask;
+            poBand->bOwnMask = false;
+            poBand->poMask = NULL;
+        }
+
+        return CE_None;
+    }
 
     CPLError( CE_Failure, CPLE_NotSupported,
               "CreateMaskBand() not supported for this dataset." );
@@ -2105,7 +2143,7 @@ CPLErr CPL_STDCALL GDALCreateDatasetMaskBand( GDALDatasetH hDS, int nFlags )
  * This function will try to open the passed file, or virtual dataset
  * name by invoking the Open method of each registered GDALDriver in turn. 
  * The first successful open will result in a returned dataset.  If all
- * drivers fail then NULL is returned.
+ * drivers fail then NULL is returned and an error is issued.
  *
  * Several recommandations :
  * <ul>
@@ -2122,7 +2160,8 @@ CPLErr CPL_STDCALL GDALCreateDatasetMaskBand( GDALDatasetH hDS, int nFlags )
  *
  * @param pszFilename the name of the file to access.  In the case of
  * exotic drivers this may not refer to a physical file, but instead contain
- * information for the driver on how to access a dataset.
+ * information for the driver on how to access a dataset.  It should be in UTF8
+ * encoding.
  *
  * @param eAccess the desired access, either GA_Update or GA_ReadOnly.  Many
  * drivers support only read only access.
@@ -2135,8 +2174,16 @@ GDALDatasetH CPL_STDCALL
 GDALOpen( const char * pszFilename, GDALAccess eAccess )
 
 {
+    return GDALOpenInternal(pszFilename, eAccess, NULL);
+}
+
+/* The drivers listed in papszAllowedDrivers can be in any order */
+/* Only the order of registration will be taken into account */
+GDALDatasetH GDALOpenInternal( const char * pszFilename, GDALAccess eAccess,
+                               const char* const * papszAllowedDrivers)
+{
     VALIDATE_POINTER1( pszFilename, "GDALOpen", NULL );
-        
+
     int         iDriver;
     GDALDriverManager *poDM = GetGDALDriverManager();
     GDALOpenInfo oOpenInfo( pszFilename, eAccess );
@@ -2150,6 +2197,10 @@ GDALOpen( const char * pszFilename, GDALAccess eAccess )
         GDALDriver      *poDriver = poDM->GetDriver( iDriver );
         GDALDataset     *poDS;
 
+        if (papszAllowedDrivers != NULL &&
+            CSLFindString((char**)papszAllowedDrivers, GDALGetDriverShortName(poDriver)) == -1)
+            continue;
+
         if ( poDriver->pfnOpen == NULL )
             continue;
 
@@ -2157,12 +2208,12 @@ GDALOpen( const char * pszFilename, GDALAccess eAccess )
         if( poDS != NULL )
         {
             if( strlen(poDS->GetDescription()) == 0 )
-                poDS->SetDescription( pszFilename );
+                poDS->SetDescription( oOpenInfo.pszFilename );
 
             if( poDS->poDriver == NULL )
                 poDS->poDriver = poDriver;
 
-            
+
             if( CPLGetPID() != GDALGetResponsiblePIDForCurrentThread() )
                 CPLDebug( "GDAL", "GDALOpen(%s, this=%p) succeeds as %s (pid=%d, responsiblePID=%d).",
                           pszFilename, poDS, poDriver->GetDescription(),
@@ -2187,7 +2238,7 @@ GDALOpen( const char * pszFilename, GDALAccess eAccess )
                   "`%s' does not exist in the file system,\n"
                   "and is not recognised as a supported dataset name.\n",
                   pszFilename );
-              
+
     return NULL;
 }
 
@@ -2215,7 +2266,8 @@ GDALOpen( const char * pszFilename, GDALAccess eAccess )
  *
  * @param pszFilename the name of the file to access.  In the case of
  * exotic drivers this may not refer to a physical file, but instead contain
- * information for the driver on how to access a dataset.
+ * information for the driver on how to access a dataset.  It should be in 
+ * UTF8 encoding.
  *
  * @param eAccess the desired access, either GA_Update or GA_ReadOnly.  Many
  * drivers support only read only access.
@@ -2421,5 +2473,160 @@ int CPL_STDCALL GDALDumpOpenDatasets( FILE *fp )
     {
         return 0;
     }
+}
+
+/************************************************************************/
+/*                        BeginAsyncReader()                          */
+/************************************************************************/
+
+/**
+ * \brief Sets up an asynchronous data request
+ *
+ * This method establish an asynchronous raster read request for the
+ * indicated window on the dataset into the indicated buffer.  The parameters
+ * for windowing, buffer size, buffer type and buffer organization are similar
+ * to those for GDALDataset::RasterIO(); however, this call only launches
+ * the request and filling the buffer is accomplished via calls to 
+ * GetNextUpdatedRegion() on the return GDALAsyncReader session object.
+ * 
+ * Once all processing for the created session is complete, or if no further
+ * refinement of the request is required, the GDALAsyncReader object should
+ * be destroyed with the GDALDataset::EndAsyncReader() method. 
+ * 
+ * Note that the data buffer (pData) will potentially continue to be 
+ * updated as long as the session lives, but it is not deallocated when
+ * the session (GDALAsyncReader) is destroyed with EndAsyncReader().  It
+ * should be deallocated by the application at that point. 
+ *
+ * Additional information on asynchronous IO in GDAL may be found at: 
+ *   http://trac.osgeo.org/gdal/wiki/rfc24_progressive_data_support
+ * 
+ * This method is the same as the C GDALBeginAsyncReader() function.
+ *
+ * @param nXOff The pixel offset to the top left corner of the region
+ * of the band to be accessed.  This would be zero to start from the left side.
+ *
+ * @param nYOff The line offset to the top left corner of the region
+ * of the band to be accessed.  This would be zero to start from the top.
+ *
+ * @param nXSize The width of the region of the band to be accessed in pixels.
+ *
+ * @param nYSize The height of the region of the band to be accessed in lines.
+ *
+ * @param pBuf The buffer into which the data should be read. This buffer must 
+ * contain at least nBufXSize * nBufYSize * nBandCount words of type eBufType.  
+ * It is organized in left to right,top to bottom pixel order.  Spacing is 
+ * controlled by the nPixelSpace, and nLineSpace parameters.
+ *
+ * @param nBufXSize the width of the buffer image into which the desired region
+ * is to be read, or from which it is to be written.
+ *
+ * @param nBufYSize the height of the buffer image into which the desired
+ * region is to be read, or from which it is to be written.
+ *
+ * @param eBufType the type of the pixel values in the pData data buffer.  The
+ * pixel values will automatically be translated to/from the GDALRasterBand
+ * data type as needed.
+ *
+ * @param nBandCount the number of bands being read or written. 
+ *
+ * @param panBandMap the list of nBandCount band numbers being read/written.
+ * Note band numbers are 1 based.   This may be NULL to select the first 
+ * nBandCount bands.
+ *
+ * @param nPixelSpace The byte offset from the start of one pixel value in
+ * pData to the start of the next pixel value within a scanline.  If defaulted
+ * (0) the size of the datatype eBufType is used.
+ *
+ * @param nLineSpace The byte offset from the start of one scanline in
+ * pData to the start of the next.  If defaulted the size of the datatype
+ * eBufType * nBufXSize is used.
+ *
+ * @param nBandSpace the byte offset from the start of one bands data to the
+ * start of the next.  If defaulted (zero) the value will be 
+ * nLineSpace * nBufYSize implying band sequential organization
+ * of the data buffer. 
+ *
+ * @param papszOptions Driver specific control options in a string list or NULL.
+ * Consult driver documentation for options supported.
+ * 
+ * @return The GDALAsyncReader object representing the request.
+ */
+
+GDALAsyncReader* 
+GDALDataset::BeginAsyncReader(int nXOff, int nYOff,
+                              int nXSize, int nYSize,
+                              void *pBuf,
+                              int nBufXSize, int nBufYSize,
+                              GDALDataType eBufType,
+                              int nBandCount, int* panBandMap,
+                              int nPixelSpace, int nLineSpace,
+                              int nBandSpace, char **papszOptions)
+{
+    // See gdaldefaultasync.cpp
+
+    return
+        GDALGetDefaultAsyncReader( this, 
+                                     nXOff, nYOff, nXSize, nYSize,
+                                     pBuf, nBufXSize, nBufYSize, eBufType,
+                                     nBandCount, panBandMap,
+                                     nPixelSpace, nLineSpace, nBandSpace,
+                                     papszOptions );
+}
+
+/************************************************************************/
+/*                        GDALBeginAsyncReader()                      */
+/************************************************************************/
+
+GDALAsyncReaderH CPL_STDCALL 
+GDALBeginAsyncReader(GDALDatasetH hDS, int xOff, int yOff,
+                       int xSize, int ySize,
+                       void *pBuf,
+                       int bufXSize, int bufYSize,
+                       GDALDataType bufType,
+                       int nBandCount, int* bandMap,
+                       int nPixelSpace, int nLineSpace,
+                       int nBandSpace,
+                       char **papszOptions)
+
+{
+    VALIDATE_POINTER1( hDS, "GDALDataset", NULL );
+    return (GDALAsyncReaderH)((GDALDataset *) hDS)->
+        BeginAsyncReader(xOff, yOff,
+                           xSize, ySize,
+                           pBuf, bufXSize, bufYSize,
+                           bufType, nBandCount, bandMap,
+                           nPixelSpace, nLineSpace,
+                           nBandSpace, papszOptions);
+}
+
+/************************************************************************/
+/*                        EndAsyncReader()                            */
+/************************************************************************/
+
+/**
+ * End asynchronous request.
+ *
+ * This method destroys an asynchronous io request and recovers all 
+ * resources associated with it.
+ * 
+ * This method is the same as the C function GDALEndAsyncReader(). 
+ *
+ * @param poARIO pointer to a GDALAsyncReader
+ */
+
+void GDALDataset::EndAsyncReader(GDALAsyncReader *poARIO )
+{
+    delete poARIO;
+}
+
+/************************************************************************/
+/*                        GDALEndAsyncReader()                        */
+/************************************************************************/
+void CPL_STDCALL GDALEndAsyncReader(GDALDatasetH hDS, GDALAsyncReaderH hAsyncReaderH)
+{
+    VALIDATE_POINTER0( hDS, "GDALDataset" );
+    VALIDATE_POINTER0( hAsyncReaderH, "GDALAsyncReader" );
+    ((GDALDataset *) hDS) -> EndAsyncReader((GDALAsyncReader *)hAsyncReaderH);	
 }
 

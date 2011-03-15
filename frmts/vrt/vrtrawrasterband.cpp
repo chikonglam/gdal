@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: vrtrawrasterband.cpp 17902 2009-10-25 22:22:29Z rouault $
+ * $Id: vrtrawrasterband.cpp 20996 2010-10-28 18:38:15Z rouault $
  *
  * Project:  Virtual GDAL Datasets
  * Purpose:  Implementation of VRTRawRasterBand
@@ -32,7 +32,7 @@
 #include "cpl_string.h"
 #include "rawdataset.h"
 
-CPL_CVSID("$Id: vrtrawrasterband.cpp 17902 2009-10-25 22:22:29Z rouault $");
+CPL_CVSID("$Id: vrtrawrasterband.cpp 20996 2010-10-28 18:38:15Z rouault $");
 
 /************************************************************************/
 /* ==================================================================== */
@@ -260,14 +260,14 @@ void VRTRawRasterBand::ClearRawLink()
 {
     if( poRawRaster != NULL )
     {
-        FILE* fp = poRawRaster->GetFP();
+        VSILFILE* fp = poRawRaster->GetFPL();
         delete poRawRaster;
         poRawRaster = NULL;
         /* We close the file after deleting the raster band */
         /* since data can be flushed in the destructor */
         if( fp != NULL )
         {
-            CPLCloseShared( fp );
+            CPLCloseShared( (FILE*) fp );
         }
     }
     CPLFree( pszSourceFilename );
@@ -453,4 +453,7 @@ void VRTRawRasterBand::GetFileList(char*** ppapszFileList, int *pnSize,
     CPLHashSetInsert(hSetFiles, (*ppapszFileList)[*pnSize]);
     
     (*pnSize) ++;
+
+    VRTRasterBand::GetFileList( ppapszFileList, pnSize,
+                                pnMaxSize, hSetFiles);
 }

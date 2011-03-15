@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: subfile_source.h 17244 2009-06-16 16:22:47Z warmerdam $
+ * $Id: subfile_source.h 21098 2010-11-08 00:34:26Z warmerdam $
  *
  * Project:  JPEG-2000
  * Purpose:  Implements read-only virtual io on a subregion of a file.
@@ -161,6 +161,6 @@ class subfile_source : public kdu_compressed_source {
     int subfile_offset;
     int subfile_size;
     
-    FILE *file;
+    VSILFILE *file;
   };
 

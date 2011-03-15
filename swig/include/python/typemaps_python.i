@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: typemaps_python.i 18403 2009-12-28 11:37:39Z rouault $
+ * $Id: typemaps_python.i 20716 2010-09-30 22:27:35Z rouault $
  *
  * Name:     typemaps_python.i
  * Project:  GDAL Python Interface
@@ -23,6 +23,27 @@
 %include "typemaps.i"
 
 %apply (double *OUTPUT) { double *argout };
+
+%typemap(in) GIntBig bigint
+{
+    PY_LONG_LONG val;
+    if ( !PyArg_Parse($input,"L",&val) ) {
+        PyErr_SetString(PyExc_TypeError, "not an integer");
+        SWIG_fail;
+    }
+    $1 = (GIntBig)val;
+}
+
+%typemap(out) GIntBig bigint
+{
+    char szTmp[32];
+    sprintf(szTmp, CPL_FRMT_GIB, $1);
+%#if PY_VERSION_HEX>=0x03000000
+    $result = PyLong_FromString(szTmp, NULL, 10);
+%#else
+    $result = PyInt_FromString(szTmp, NULL, 10);
+%#endif
+}
 
 /*
  * double *val, int*hasval, is a special contrived typemap used for
@@ -48,6 +69,28 @@
     r = PyFloat_FromDouble( *$1 );
     $result = t_output_helper($result,r);
   }
+}
+
+
+%typemap(in,numinputs=0) (double argout[6], int* isvalid) ( double argout[6], int isvalid )
+{
+  /* %typemap(in,numinputs=0) (double argout[6], int* isvalid) */
+  $1 = argout;
+  $2 = &isvalid;
+}
+
+%typemap(argout) (double argout[6], int* isvalid) 
+{
+   /* %typemap(argout) (double argout[6], int* isvalid)  */
+  PyObject *r;
+  if ( !*$2 ) {
+    Py_INCREF(Py_None);
+    r = Py_None;
+  }
+  else {
+    r = CreateTupleFromDoubleArray($1, 6);
+  }
+  $result = t_output_helper($result,r);
 }
 
 /*
@@ -254,8 +297,31 @@ CreateTupleFromDoubleArray( int *first, unsigned int size ) {
 %}
 
 /*
+ * Typemap Band::ReadRaster()
+ */
+%typemap(in,numinputs=0) ( void **outPythonObject ) ( void *pyObject = NULL )
+{
+  /* %typemap(in,numinputs=0) ( void **outPythonObject ) ( void *pyObject = NULL ) */
+  $1 = &pyObject;
+}
+%typemap(argout) ( void **outPythonObject )
+{
+  /* %typemap(argout) ( void **outPythonObject ) */
+  Py_XDECREF($result);
+  if (*$1)
+  {
+      $result = (PyObject*)*$1;
+  }
+  else
+  {
+      $result = Py_None;
+      Py_INCREF($result);
+  }
+}
+
+/*
  * Typemap for buffers with length <-> PyStrings
- * Used in Band::ReadRaster() and Band::WriteRaster()
+ * Used in Band::WriteRaster()
  *
  * This typemap has a typecheck also since the WriteRaster()
  * methods are overloaded.
@@ -291,7 +357,7 @@ CreateTupleFromDoubleArray( int *first, unsigned int size ) {
 %#if PY_VERSION_HEX>=0x03000000
   if (PyUnicode_Check($input))
   {
-    size_t safeLen;
+    size_t safeLen = 0;
     int ret = SWIG_AsCharPtrAndSize($input, (char**) &$2, &safeLen, &alloc);
     if (!SWIG_IsOK(ret)) {
       SWIG_exception( SWIG_RuntimeError, "invalid Unicode string" );
@@ -300,16 +366,29 @@ CreateTupleFromDoubleArray( int *first, unsigned int size ) {
     if (safeLen) safeLen--;
     $1 = (int) safeLen;
   }
-  else
+  else if (PyBytes_Check($input))
   {
-    Py_ssize_t safeLen;
+    Py_ssize_t safeLen = 0;
     PyBytes_AsStringAndSize($input, (char**) &$2, &safeLen);
     $1 = (int) safeLen;
   }
+  else
+  {
+    PyErr_SetString(PyExc_TypeError, "not a unicode string or a bytes");
+    SWIG_fail;
+  }
 %#else
-  Py_ssize_t safeLen;
-  PyString_AsStringAndSize($input, (char**) &$2, &safeLen);
-  $1 = (int) safeLen;
+  if (PyString_Check($input))
+  {
+    Py_ssize_t safeLen = 0;
+    PyString_AsStringAndSize($input, (char**) &$2, &safeLen);
+    $1 = (int) safeLen;
+  }
+  else
+  {
+    PyErr_SetString(PyExc_TypeError, "not a string");
+    SWIG_fail;
+  }
 %#endif
 }
 
@@ -321,6 +400,91 @@ CreateTupleFromDoubleArray( int *first, unsigned int size ) {
   }
 }
 
+
+%typemap(in,numinputs=1) (GIntBig nLen, char *pBuf ) (int alloc = 0)
+{
+  /* %typemap(in,numinputs=1) (GIntBig nLen, char *pBuf ) */
+%#if PY_VERSION_HEX>=0x03000000
+  if (PyUnicode_Check($input))
+  {
+    size_t safeLen = 0;
+    int ret = SWIG_AsCharPtrAndSize($input, (char**) &$2, &safeLen, &alloc);
+    if (!SWIG_IsOK(ret)) {
+      SWIG_exception( SWIG_RuntimeError, "invalid Unicode string" );
+    }
+
+    if (safeLen) safeLen--;
+    $1 = (GIntBig) safeLen;
+  }
+  else if (PyBytes_Check($input))
+  {
+    Py_ssize_t safeLen = 0;
+    PyBytes_AsStringAndSize($input, (char**) &$2, &safeLen);
+    $1 = (GIntBig) safeLen;
+  }
+  else
+  {
+    PyErr_SetString(PyExc_TypeError, "not a unicode string or a bytes");
+    SWIG_fail;
+  }
+%#else
+  if (PyString_Check($input))
+  {
+    Py_ssize_t safeLen = 0;
+    PyString_AsStringAndSize($input, (char**) &$2, &safeLen);
+    $1 = (GIntBig) safeLen;
+  }
+  else
+  {
+    PyErr_SetString(PyExc_TypeError, "not a string");
+    SWIG_fail;
+  }
+%#endif
+}
+
+%typemap(freearg) (GIntBig nLen, char *pBuf )
+{
+  /* %typemap(freearg) (GIntBig *nLen, char *pBuf ) */
+  if( alloc$argnum == SWIG_NEWOBJ ) {
+    delete[] $2;
+  }
+}
+
+/* required for GDALAsyncReader */
+
+%typemap(in,numinputs=1) (int nLenKeepObject, char *pBufKeepObject, void* pyObject)
+{
+  /* %typemap(in,numinputs=1) (int nLenKeepObject, char *pBufKeepObject, void* pyObject) */
+%#if PY_VERSION_HEX>=0x03000000
+  if (PyBytes_Check($input))
+  {
+    Py_ssize_t safeLen = 0;
+    PyBytes_AsStringAndSize($input, (char**) &$2, &safeLen);
+    $1 = (int) safeLen;
+    $3 = $input;
+  }
+  else
+  {
+    PyErr_SetString(PyExc_TypeError, "not a bytes");
+    SWIG_fail;
+  }
+%#else
+  if (PyString_Check($input))
+  {
+    Py_ssize_t safeLen = 0;
+    PyString_AsStringAndSize($input, (char**) &$2, &safeLen);
+    $1 = (int) safeLen;
+    $3 = $input;
+  }
+  else
+  {
+    PyErr_SetString(PyExc_TypeError, "not a string");
+    SWIG_fail;
+  }
+%#endif
+}
+
+/* end of required for GDALAsyncReader */
 
 /*
  * Typemap argout used in Feature::GetFieldAsIntegerList()
@@ -562,14 +726,33 @@ CreateTupleFromDoubleArray( int *first, unsigned int size ) {
 
   int size = PySequence_Size($input);
   for (int i = 0; i < size; i++) {
-    char *pszItem = NULL;
     PyObject* pyObj = PySequence_GetItem($input,i);
-    if ( ! PyArg_Parse( pyObj, "s", &pszItem ) ) {
+    if (PyUnicode_Check(pyObj))
+    {
+      char *pszStr;
+      Py_ssize_t nLen;
+      PyObject* pyUTF8Str = PyUnicode_AsUTF8String(pyObj);
+%#if PY_VERSION_HEX >= 0x03000000
+      PyBytes_AsStringAndSize(pyUTF8Str, &pszStr, &nLen);
+%#else
+      PyString_AsStringAndSize(pyUTF8Str, &pszStr, &nLen);
+%#endif
+      $1 = CSLAddString( $1, pszStr );
+      Py_XDECREF(pyUTF8Str);
+    }
+%#if PY_VERSION_HEX >= 0x03000000
+    else if (PyBytes_Check(pyObj))
+      $1 = CSLAddString( $1, PyBytes_AsString(pyObj) );
+%#else
+    else if (PyString_Check(pyObj))
+      $1 = CSLAddString( $1, PyString_AsString(pyObj) );
+%#endif
+    else
+    {
         Py_DECREF(pyObj);
         PyErr_SetString(PyExc_TypeError,"sequence must contain strings");
         SWIG_fail;
     }
-    $1 = CSLAddString( $1, pszItem );
     Py_DECREF(pyObj);
   }
 }
@@ -605,9 +788,9 @@ CreateTupleFromDoubleArray( int *first, unsigned int size ) {
 
 /* Almost same as %typemap(out) char **options */
 /* but we CSLDestroy the char** pointer at the end */
-%typemap(out) char **out_ppsz_and_free
+%typemap(out) char **CSL
 {
-  /* %typemap(out) char **options -> ( string ) */
+  /* %typemap(out) char **CSL -> ( string ) */
   char **stringarray = $1;
   if ( stringarray == NULL ) {
     $result = Py_None;
@@ -701,7 +884,7 @@ OPTIONAL_POD(int,i);
  */
 
 
-%typemap(in) (tostring argin) (PyObject * str=0)
+%typemap(in) (tostring argin) (PyObject * str=0, int bToFree = 0)
 {
   /* %typemap(in) (tostring argin) */
   str = PyObject_Str( $input );
@@ -710,7 +893,7 @@ OPTIONAL_POD(int,i);
     SWIG_fail;
   }
  
-  $1 = GDALPythonObjectToCStr(str); 
+  $1 = GDALPythonObjectToCStr(str, &bToFree); 
 }
 %typemap(freearg)(tostring argin)
 {
@@ -719,12 +902,7 @@ OPTIONAL_POD(int,i);
   {
     Py_DECREF(str$argnum);
   }
-  GDALPythonFreeCStr($1);
-}
-%typemap(typecheck,precedence=SWIG_TYPECHECK_POINTER) (tostring argin)
-{
-  /* %typemap(typecheck,precedence=SWIG_TYPECHECK_POINTER) (tostring argin) */
-  $1 = 1;
+  GDALPythonFreeCStr($1, bToFree$argnum);
 }
 
 /*
@@ -915,20 +1093,15 @@ CHECK_NOT_UNDEF(OGRFeatureShadow, feature, feature)
         psProgressInfo->nLastReported = -1;
         psProgressInfo->psPyCallback = NULL;
         psProgressInfo->psPyCallbackData = NULL;
-
+        $1 = psProgressInfo;
 }
 
-/*  This is kind of silly, but this typemap takes the $input'ed         */
-/*  PyObject* and hangs it on the struct's callback data *and* sets     */
-/*  the argument to the psProgressInfo void* that will eventually be    */
-/*  passed into the function as its callback data.  Confusing.  Sorry.  */
+/*  This typemap takes the $input'ed  PyObject* and hangs it on the     */
+/*  struct's callback data .                                            */
 %typemap(in) (void* callback_data=NULL) 
 {
     /* %typemap(in) ( void* callback_data=NULL)  */
-  
         psProgressInfo->psPyCallbackData = $input ;
-        $1 = psProgressInfo;
-
 }
 
 /*  Here is our actual callback function.  It could be a generic GDAL   */
@@ -1054,18 +1227,28 @@ OBJECT_LIST_INPUT(GDALRasterBandShadow);
 %typemap(arginit) (int buckets, int* panHistogram)
 {
   /* %typemap(in) int buckets, int* panHistogram -> list */
-  $2 = (int *) CPLCalloc(sizeof(int),$1);
+  $2 = (int *) VSICalloc(sizeof(int),$1);
 }
 
 %typemap(in, numinputs=1) (int buckets, int* panHistogram)
 {
   /* %typemap(in) int buckets, int* panHistogram -> list */
-  int requested_buckets;
+  int requested_buckets = 0;
   SWIG_AsVal_int($input, &requested_buckets);
   if( requested_buckets != $1 )
-  { 
+  {
     $1 = requested_buckets;
-    $2 = (int *) CPLRealloc($2,sizeof(int) * requested_buckets);
+    if (requested_buckets <= 0 || requested_buckets > (int)(INT_MAX / sizeof(int)))
+    {
+        PyErr_SetString( PyExc_RuntimeError, "Bad value for buckets" );
+        SWIG_fail;
+    }
+    $2 = (int *) VSIRealloc($2, sizeof(int) * requested_buckets);
+  }
+  if ($2 == NULL)
+  {
+    PyErr_SetString( PyExc_RuntimeError, "Cannot allocate buckets" );
+    SWIG_fail;
   }
 }
 
@@ -1073,7 +1256,7 @@ OBJECT_LIST_INPUT(GDALRasterBandShadow);
 {
   /* %typemap(freearg) (int buckets, int* panHistogram)*/
   if ( $2 ) {
-    CPLFree( $2 );
+    VSIFree( $2 );
   }
 }
 
@@ -1328,4 +1511,21 @@ DecomposeSequenceOfCoordinates( PyObject *seq, int nCount, double *x, double *y,
     VSIFree($3);
     VSIFree($4);
     VSIFree($5);
+}
+
+%typemap(in) (const char *utf8_path) (int bToFree = 0)
+{
+    /* %typemap(in) (const char *utf8_path) */
+    $1 = GDALPythonObjectToCStr( $input, &bToFree );
+    if ($1 == NULL)
+    {
+        PyErr_SetString( PyExc_RuntimeError, "not a string" );
+        SWIG_fail;
+    }
+}
+
+%typemap(freearg)(const char *utf8_path)
+{
+    /* %typemap(freearg) (const char *utf8_path) */
+    GDALPythonFreeCStr($1, bToFree$argnum);
 }

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: createdata.cs 19469 2010-04-20 20:22:11Z tamas $
+ * $Id: createdata.cs 19757 2010-05-22 18:37:08Z rouault $
  *
  * Name:     createdata.cs
  * Project:  GDAL CSharp Interface
@@ -101,6 +101,18 @@ class CreateData {
         /* -------------------------------------------------------------------- */
 
         Layer layer;
+        
+        int i;
+        for(i=0;i<ds.GetLayerCount();i++)
+        {
+            layer = ds.GetLayerByIndex( i );
+            if( layer != null && layer.GetLayerDefn().GetName() == args[1])
+            {
+                Console.WriteLine("Layer already existed. Recreating it.\n");
+                ds.DeleteLayer(i);
+                break;
+            }
+        }
 
         layer = ds.CreateLayer( args[1], null, wkbGeometryType.wkbPoint, new string[] {} );
         if( layer == null )

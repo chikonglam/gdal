@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrocidatasource.cpp 15008 2008-07-23 19:27:15Z mloskot $
+ * $Id: ogrocidatasource.cpp 20120 2010-07-23 02:41:07Z ilucena $
  *
  * Project:  Oracle Spatial Driver
  * Purpose:  Implementation of the OGROCIDataSource class.
@@ -31,7 +31,7 @@
 #include "cpl_conv.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: ogrocidatasource.cpp 15008 2008-07-23 19:27:15Z mloskot $");
+CPL_CVSID("$Id: ogrocidatasource.cpp 20120 2010-07-23 02:41:07Z ilucena $");
 
 static int anEPSGOracleMapping[] = 
 {
@@ -166,7 +166,19 @@ int OGROCIDataSource::Open( const char * pszNewName, int bUpdate,
     CPLDebug( "OCI", "Userid=%s, Password=%s, Database=%s", 
               pszUserid, pszPassword, pszDatabase );
 
-    poSession = OGRGetOCISession( pszUserid, pszPassword, pszDatabase );
+    if( EQUAL(pszDatabase, "") &&
+        EQUAL(pszPassword, "") &&
+        EQUAL(pszUserid, "") )
+    {
+        /* Use username/password OS Authentication and ORACLE_SID database */
+
+        poSession = OGRGetOCISession( "/", "", "" );
+    }
+    else
+    {
+        poSession = OGRGetOCISession( pszUserid, pszPassword, pszDatabase );
+    }
+
     if( poSession == NULL )
         return FALSE;
 
@@ -282,11 +294,10 @@ void OGROCIDataSource::ValidateLayer( const char *pszLayerName )
 /* -------------------------------------------------------------------- */
     OGROCITableLayer *poLayer = (OGROCITableLayer *) papoLayers[iLayer];
 
-    if( strlen(poLayer->GetFIDColumn()) == 0 
-        || strlen(poLayer->GetGeometryColumn()) == 0 )
+    if( strlen(poLayer->GetFIDColumn()) == 0 )
     {
         CPLError( CE_Failure, CPLE_AppDefined, 
-                  "ValidateLayer(): %s lacks a geometry or fid column.", 
+                  "ValidateLayer(): %s lacks a fid column.", 
                   pszLayerName );
 
         return;
@@ -295,43 +306,47 @@ void OGROCIDataSource::ValidateLayer( const char *pszLayerName )
 /* -------------------------------------------------------------------- */
 /*      Prepare and execute the geometry validation.                    */
 /* -------------------------------------------------------------------- */
-    OGROCIStringBuf oValidateCmd;
-    OGROCIStatement oValidateStmt( GetSession() );
 
-    oValidateCmd.Append( "SELECT c." );
-    oValidateCmd.Append( poLayer->GetFIDColumn() );
-    oValidateCmd.Append( ", SDO_GEOM.VALIDATE_GEOMETRY(c." );
-    oValidateCmd.Append( poLayer->GetGeometryColumn() );
-    oValidateCmd.Append( ", m.diminfo) from " );
-    oValidateCmd.Append( poLayer->GetLayerDefn()->GetName() );
-    oValidateCmd.Append( " c, user_sdo_geom_metadata m WHERE m.table_name= '");
-    oValidateCmd.Append( poLayer->GetLayerDefn()->GetName() );
-    oValidateCmd.Append( "' AND m.column_name = '" );
-    oValidateCmd.Append( poLayer->GetGeometryColumn() );
-    oValidateCmd.Append( "' AND SDO_GEOM.VALIDATE_GEOMETRY(c." );
-    oValidateCmd.Append( poLayer->GetGeometryColumn() );
-    oValidateCmd.Append( ", m.diminfo ) <> 'TRUE'" );
+    if( !strlen(poLayer->GetGeometryColumn()) == 0 )
+    {
+        OGROCIStringBuf oValidateCmd;
+        OGROCIStatement oValidateStmt( GetSession() );
 
-    oValidateStmt.Execute( oValidateCmd.GetString() );
+        oValidateCmd.Append( "SELECT c." );
+        oValidateCmd.Append( poLayer->GetFIDColumn() );
+        oValidateCmd.Append( ", SDO_GEOM.VALIDATE_GEOMETRY(c." );
+        oValidateCmd.Append( poLayer->GetGeometryColumn() );
+        oValidateCmd.Append( ", m.diminfo) from " );
+        oValidateCmd.Append( poLayer->GetLayerDefn()->GetName() );
+        oValidateCmd.Append( " c, user_sdo_geom_metadata m WHERE m.table_name= '");
+        oValidateCmd.Append( poLayer->GetLayerDefn()->GetName() );
+        oValidateCmd.Append( "' AND m.column_name = '" );
+        oValidateCmd.Append( poLayer->GetGeometryColumn() );
+        oValidateCmd.Append( "' AND SDO_GEOM.VALIDATE_GEOMETRY(c." );
+        oValidateCmd.Append( poLayer->GetGeometryColumn() );
+        oValidateCmd.Append( ", m.diminfo ) <> 'TRUE'" );
+
+        oValidateStmt.Execute( oValidateCmd.GetString() );
 
 /* -------------------------------------------------------------------- */
 /*      Report results to debug stream.                                 */
 /* -------------------------------------------------------------------- */
-    char **papszRow;
+        char **papszRow;
 
-    while( (papszRow = oValidateStmt.SimpleFetchRow()) != NULL )
-    {
-        const char *pszReason = papszRow[1];
+        while( (papszRow = oValidateStmt.SimpleFetchRow()) != NULL )
+        {
+            const char *pszReason = papszRow[1];
 
-        if( EQUAL(pszReason,"13011") )
-            pszReason = "13011: value is out of range";
-        else if( EQUAL(pszReason,"13050") )
-            pszReason = "13050: unable to construct spatial object";
-        else if( EQUAL(pszReason,"13349") )
-            pszReason = "13349: polygon boundary crosses itself";
+            if( EQUAL(pszReason,"13011") )
+                pszReason = "13011: value is out of range";
+            else if( EQUAL(pszReason,"13050") )
+                pszReason = "13050: unable to construct spatial object";
+            else if( EQUAL(pszReason,"13349") )
+                pszReason = "13349: polygon boundary crosses itself";
 
-        CPLDebug( "OCI", "Validation failure for FID=%s: %s", 
+            CPLDebug( "OCI", "Validation failure for FID=%s: %s",
                   papszRow[0], pszReason );
+        }
     }
 }
 
@@ -384,7 +399,7 @@ void OGROCIDataSource::DeleteLayer( const char *pszLayerName )
     oCommand.Execute( szCommand );
 
     sprintf( szCommand, 
-             "DELETE FROM USER_SDO_GEOM_METADATA WHERE TABLE_NAME = '%s'", 
+             "DELETE FROM USER_SDO_GEOM_METADATA WHERE TABLE_NAME = UPPER('%s')",
              pszLayerName );
     oCommand.Execute( szCommand );
 
@@ -465,11 +480,26 @@ OGROCIDataSource::CreateLayer( const char * pszLayerName,
         CPLGetConfigOption( "OCI_FID", "OGR_FID" );    
    
     OGROCIStatement oStatement( poSession );
-    sprintf( szCommand, 
+
+/* -------------------------------------------------------------------- */
+/*      If geometry type is wkbNone, do not create a geoemtry column    */
+/* -------------------------------------------------------------------- */
+
+    if (eType == wkbNone)
+    {
+        sprintf( szCommand,
+             "CREATE TABLE \"%s\" ( "
+             "%s INTEGER)",
+             pszSafeLayerName, pszExpectedFIDName);
+    }
+    else
+    {
+        sprintf( szCommand,
              "CREATE TABLE \"%s\" ( "
              "%s INTEGER, "
              "%s %s )",
              pszSafeLayerName, pszExpectedFIDName, pszGeometryName, SDO_GEOMETRY );
+    }
 
     if( oStatement.Execute( szCommand ) != CE_None )
     {

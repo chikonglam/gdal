@@ -127,14 +127,17 @@ ALTERED_DESTROY(GDALRasterAttributeTableShadow, GDALc, delete_RasterAttributeTab
 %rename (_GetTypeOfCol) GetTypeOfCol;
 %rename (_CreateColumn) CreateColumn;
 
+%rename (Stat) VSIStatL;
+
 %perlcode %{
     use strict;
     use Carp;
+    use Encode;
     use Geo::GDAL::Const;
     use Geo::OGR;
     use Geo::OSR;
     our $VERSION = '0.23';
-    our $GDAL_VERSION = '1.7.3';
+    our $GDAL_VERSION = '1.8.0';
     use vars qw/
 	%TYPE_STRING2INT %TYPE_INT2STRING
 	%ACCESS_STRING2INT %ACCESS_INT2STRING
@@ -284,6 +287,19 @@ ALTERED_DESTROY(GDALRasterAttributeTableShadow, GDALc, delete_RasterAttributeTab
 	$_[3] = $RESAMPLING_STRING2INT{$_[3]} if $_[3] and exists $RESAMPLING_STRING2INT{$_[3]};
 	return _AutoCreateWarpedVRT(@_);
     }
+    sub FindFile {
+	my $a = _FindFile(@_);
+	$a = decode('utf8', $a); # GDAL returns utf8
+	return $a;
+    }
+    sub ReadDir {
+	return unless defined wantarray;
+	my $a = _ReadDir(@_);
+	for (@$a) {
+	    $_ = decode('utf8', $_); # GDAL returns utf8
+	}
+	return wantarray ? @$a : $a;
+    }
 
     package Geo::GDAL::MajorObject;
     use vars qw/@DOMAINS/;
@@ -322,14 +338,15 @@ ALTERED_DESTROY(GDALRasterAttributeTableShadow, GDALc, delete_RasterAttributeTab
 	my $h = $self->GetMetadata;
 	my @cap;
 	for my $cap (@CAPABILITIES) {
-	    push @cap, $cap if $h->{'DCAP_'.uc($cap)} eq 'YES';
+	    my $test = $h->{'DCAP_'.uc($cap)};
+	    push @cap, $cap if defined($test) and $test eq 'YES';
 	}
 	return @cap;
     }
     sub TestCapability {
 	my($self, $cap) = @_;
-	my $h = $self->GetMetadata;
-	return $h->{'DCAP_'.uc($cap)} eq 'YES' ? 1 : undef;
+	my $h = $self->GetMetadata->{'DCAP_'.uc($cap)};
+	return (defined($h) and $h eq 'YES') ? 1 : undef;
     }
     sub Extension {
 	my $self = shift;
@@ -617,6 +634,15 @@ ALTERED_DESTROY(GDALRasterAttributeTableShadow, GDALc, delete_RasterAttributeTab
 			$params{NoDataValue}, $layer, $params{IDField}, $params{ElevField},
 			$params{callback}, $params{callback_data});
 	return $layer;
+    }
+    sub FillNodata {
+      croak 'usage: FillNodata($mask)' unless isa($_[1], 'Geo::GDAL::Band');
+      $_[2] = 10 unless defined $_[2];
+      $_[3] = 0 unless defined $_[3];
+      $_[4] = undef unless defined $_[4];
+      $_[5] = undef unless defined $_[5];
+      $_[6] = undef unless defined $_[6];
+      Geo::GDAL::FillNodata(@_);
     }
 
     package Geo::GDAL::ColorTable;

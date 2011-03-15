@@ -1,5 +1,5 @@
 /**********************************************************************
- * $Id: cpl_vsil_stdout.cpp 18725 2010-02-04 21:02:19Z rouault $
+ * $Id: cpl_vsil_stdout.cpp 20794 2010-10-08 16:58:27Z warmerdam $
  *
  * Project:  CPL - Common Portability Library
  * Purpose:  Implement VSI large file api for stdout
@@ -32,8 +32,12 @@
 #include "cpl_vsi_virtual.h"
 
 #include <stdio.h>
+#ifdef WIN32
+#include <io.h>
+#include <fcntl.h>
+#endif
 
-CPL_CVSID("$Id: cpl_vsil_stdout.cpp 18725 2010-02-04 21:02:19Z rouault $");
+CPL_CVSID("$Id: cpl_vsil_stdout.cpp 20794 2010-10-08 16:58:27Z warmerdam $");
 
 /************************************************************************/
 /* ==================================================================== */
@@ -46,7 +50,7 @@ class VSIStdoutFilesystemHandler : public VSIFilesystemHandler
 public:
     virtual VSIVirtualHandle *Open( const char *pszFilename, 
                                     const char *pszAccess);
-    virtual int      Stat( const char *pszFilename, VSIStatBufL *pStatBuf );
+    virtual int      Stat( const char *pszFilename, VSIStatBufL *pStatBuf, int nFlags );
 };
 
 /************************************************************************/
@@ -163,6 +167,11 @@ VSIStdoutFilesystemHandler::Open( const char *pszFilename,
         return NULL;
     }
 
+#ifdef WIN32
+    if ( strchr(pszAccess, 'b') != NULL )
+        setmode( fileno( stdout ), O_BINARY );
+#endif
+
     return new VSIStdoutHandle;
 }
 
@@ -171,9 +180,12 @@ VSIStdoutFilesystemHandler::Open( const char *pszFilename,
 /************************************************************************/
 
 int VSIStdoutFilesystemHandler::Stat( const char * pszFilename,
-                                      VSIStatBufL * pStatBuf )
+                                      VSIStatBufL * pStatBuf,
+                                      int nFlags )
 
 {
+    memset( pStatBuf, 0, sizeof(VSIStatBufL) );
+
     return -1;
 }
 

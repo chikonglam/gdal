@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrshape.h 20123 2010-07-23 05:33:24Z chaitanya $
+ * $Id: ogrshape.h 21257 2010-12-14 20:23:13Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Private definitions within the Shapefile driver to implement
@@ -134,14 +134,14 @@ class OGRShapeDataSource : public OGRDataSource
 
     int                 bDSUpdate;
 
-    int                 bSingleNewFile;
+    int                 bSingleFileDataSource;
 
   public:
                         OGRShapeDataSource();
                         ~OGRShapeDataSource();
 
     int                 Open( const char *, int bUpdate, int bTestOpen,
-                              int bSingleNewFile = FALSE );
+                              int bForceSingleFileDataSource = FALSE );
     int                 OpenFile( const char *, int bUpdate, int bTestOpen );
 
     const char          *GetName() { return pszName; }

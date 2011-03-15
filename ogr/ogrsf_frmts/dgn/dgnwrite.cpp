@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: dgnwrite.cpp 10645 2007-01-18 02:22:39Z warmerdam $
+ * $Id: dgnwrite.cpp 19572 2010-04-29 13:44:07Z warmerdam $
  *
  * Project:  Microstation DGN Access Library
  * Purpose:  DGN Access functions related to writing DGN elements.
@@ -29,7 +29,7 @@
 
 #include "dgnlibp.h"
 
-CPL_CVSID("$Id: dgnwrite.cpp 10645 2007-01-18 02:22:39Z warmerdam $");
+CPL_CVSID("$Id: dgnwrite.cpp 19572 2010-04-29 13:44:07Z warmerdam $");
 
 static void DGNPointToInt( DGNInfo *psDGN, DGNPoint *psPoint, 
                            unsigned char *pabyTarget );
@@ -2224,7 +2224,8 @@ DGNCreateCellHeaderFromGroup( DGNHandle hDGN, const char *pszName,
 
         /* establish level */
         nLevel = papsElems[i]->level;
-        abyLevelsOccuring[nLevel >> 3] |= (0x1 << ((nLevel-1)&0x7));
+        nLevel = MAX(1,MIN(nLevel,64));
+        abyLevelsOccuring[(nLevel-1) >> 3] |= (0x1 << ((nLevel-1)&0x7));
         
         DGNGetElementExtents( hDGN, papsElems[i], &sThisMin, &sThisMax );
         if( i == 0 )

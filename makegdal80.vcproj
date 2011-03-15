@@ -901,6 +901,14 @@
 						>
 					</File>
 				</Filter>
+				<Filter
+					Name="kmlsuperoverlay"
+					>
+					<File
+						RelativePath=".\frmts\kmlsuperoverlay\makefile.vc"
+						>
+					</File>
+				</Filter>
 			</Filter>
 			<Filter
 				Name="gcore"
@@ -2468,6 +2476,14 @@
 					</File>
 					<File
 						RelativePath=".\frmts\zlib\zutil.h"
+						>
+					</File>
+				</Filter>
+				<Filter
+					Name="kmlsuperoverlay"
+					>
+					<File
+						RelativePath=".\frmts\kmlsuperoverlay\kmlsuperoverlaydataset.h"
 						>
 					</File>
 				</Filter>
@@ -6320,6 +6336,14 @@
 						>
 					</File>
 				</Filter>
+				<Filter
+					Name="kmlsuperoverlay"
+					>
+					<File
+						RelativePath=".\frmts\kmlsuperoverlay\kmlsuperoverlaydataset.cpp"
+						>
+					</File>
+				</Filter>
 			</Filter>
 			<Filter
 				Name="gcore"
@@ -7044,6 +7068,10 @@
 						</File>
 						<File
 							RelativePath=".\ogr\ogrsf_frmts\gml\trstring.cpp"
+							>
+						</File>
+						<File
+							RelativePath=".\ogr\ogrsf_frmts\gml\resolvexlinks.cpp"
 							>
 						</File>
 					</Filter>

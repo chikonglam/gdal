@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: dipxdataset.cpp 16396 2009-02-22 20:49:52Z rouault $
+ * $Id: dipxdataset.cpp 20996 2010-10-28 18:38:15Z rouault $
  *
  * Project:  GDAL
  * Purpose:  Implementation for ELAS DIPEx format variant.
@@ -31,7 +31,7 @@
 #include "cpl_string.h"
 #include "ogr_spatialref.h"
 
-CPL_CVSID("$Id: dipxdataset.cpp 16396 2009-02-22 20:49:52Z rouault $");
+CPL_CVSID("$Id: dipxdataset.cpp 20996 2010-10-28 18:38:15Z rouault $");
 
 CPL_C_START
 void	GDALRegister_DIPEx(void);
@@ -73,7 +73,7 @@ class DIPExDataset : public GDALPamDataset
 {
     friend class DIPExRasterBand;
 
-    FILE	*fp;
+    VSILFILE	*fp;
     CPLString    osSRS;
 
     DIPExHeader  sHeader;

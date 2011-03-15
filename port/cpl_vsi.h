@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: cpl_vsi.h 18725 2010-02-04 21:02:19Z rouault $
+ * $Id: cpl_vsi.h 20996 2010-10-28 18:38:15Z rouault $
  *
  * Project:  CPL - Common Portability Library
  * Author:   Frank Warmerdam, warmerdam@pobox.com
@@ -124,17 +124,28 @@ int CPL_DLL VSIStat( const char *, VSIStatBuf * );
 /* ==================================================================== */
 typedef GUIntBig vsi_l_offset;
 
-FILE CPL_DLL *  VSIFOpenL( const char *, const char * );
-int CPL_DLL     VSIFCloseL( FILE * );
-int CPL_DLL     VSIFSeekL( FILE *, vsi_l_offset, int );
-vsi_l_offset CPL_DLL VSIFTellL( FILE * );
-void CPL_DLL    VSIRewindL( FILE * );
-size_t CPL_DLL  VSIFReadL( void *, size_t, size_t, FILE * );
-size_t CPL_DLL  VSIFWriteL( const void *, size_t, size_t, FILE * );
-int CPL_DLL     VSIFEofL( FILE * );
-int CPL_DLL     VSIFFlushL( FILE * );
-int CPL_DLL     VSIFPrintfL( FILE *, const char *, ... ) CPL_PRINT_FUNC_FORMAT(2, 3);
-int CPL_DLL     VSIFPutcL( int, FILE * );
+/* Make VSIL_STRICT_ENFORCE active in DEBUG builds */
+#ifdef DEBUG
+#define VSIL_STRICT_ENFORCE
+#endif
+
+#ifdef VSIL_STRICT_ENFORCE
+typedef struct _VSILFILE VSILFILE;
+#else
+typedef FILE VSILFILE;
+#endif
+
+VSILFILE CPL_DLL *  VSIFOpenL( const char *, const char * );
+int CPL_DLL     VSIFCloseL( VSILFILE * );
+int CPL_DLL     VSIFSeekL( VSILFILE *, vsi_l_offset, int );
+vsi_l_offset CPL_DLL VSIFTellL( VSILFILE * );
+void CPL_DLL    VSIRewindL( VSILFILE * );
+size_t CPL_DLL  VSIFReadL( void *, size_t, size_t, VSILFILE * );
+size_t CPL_DLL  VSIFWriteL( const void *, size_t, size_t, VSILFILE * );
+int CPL_DLL     VSIFEofL( VSILFILE * );
+int CPL_DLL     VSIFFlushL( VSILFILE * );
+int CPL_DLL     VSIFPrintfL( VSILFILE *, const char *, ... ) CPL_PRINT_FUNC_FORMAT(2, 3);
+int CPL_DLL     VSIFPutcL( int, VSILFILE * );
 
 #if defined(VSI_STAT64_T)
 typedef struct VSI_STAT64_T VSIStatBufL;
@@ -143,6 +154,14 @@ typedef struct VSI_STAT64_T VSIStatBufL;
 #endif
 
 int CPL_DLL     VSIStatL( const char *, VSIStatBufL * );
+
+#define VSI_STAT_EXISTS_FLAG    0x1
+#define VSI_STAT_NATURE_FLAG    0x2
+#define VSI_STAT_SIZE_FLAG      0x4
+
+int CPL_DLL     VSIStatExL( const char * pszFilename, VSIStatBufL * psStatBuf, int nFlags );
+
+int CPL_DLL     VSIIsCaseSensitiveFS( const char * pszFilename );
 
 /* ==================================================================== */
 /*      Memory allocation                                               */
@@ -191,12 +210,16 @@ char CPL_DLL *VSIStrerror( int );
 void CPL_DLL VSIInstallMemFileHandler(void);
 void CPL_DLL VSIInstallLargeFileHandler(void);
 void CPL_DLL VSIInstallSubFileHandler(void);
+void VSIInstallCurlFileHandler(void);
 void VSIInstallGZipFileHandler(void); /* No reason to export that */
 void VSIInstallZipFileHandler(void); /* No reason to export that */
+void VSIInstallStdinHandler(void); /* No reason to export that */
 void VSIInstallStdoutHandler(void); /* No reason to export that */
+void CPL_DLL VSIInstallSparseFileHandler(void);
+void VSIInstallTarFileHandler(void); /* No reason to export that */
 void CPL_DLL VSICleanupFileManager(void);
 
-FILE CPL_DLL *VSIFileFromMemBuffer( const char *pszFilename, 
+VSILFILE CPL_DLL *VSIFileFromMemBuffer( const char *pszFilename,
                                     GByte *pabyData, 
                                     vsi_l_offset nDataLength,
                                     int bTakeOwnership );

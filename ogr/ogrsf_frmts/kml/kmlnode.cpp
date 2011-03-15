@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: kmlnode.cpp 19595 2010-05-01 22:48:05Z rouault $
+ * $Id: kmlnode.cpp 20602 2010-09-13 18:37:20Z rouault $
  *
  * Project:  KML Driver
  * Purpose:  Class for building up the node structure of the kml file.
@@ -76,7 +76,7 @@ Coordinate* ParseCoordinate(std::string const& text)
 
     // X coordinate
     while(isNumberDigit(text[pos++]));
-    psTmp->dfLongitude = atof(text.substr(0, (pos - 1)).c_str());
+    psTmp->dfLongitude = CPLAtof(text.substr(0, (pos - 1)).c_str());
 
     // Y coordinate
     if(text[pos - 1] != ',')
@@ -87,7 +87,7 @@ Coordinate* ParseCoordinate(std::string const& text)
     std::string tmp(text.substr(pos, text.length() - pos));
     pos = 0;
     while(isNumberDigit(tmp[pos++]));
-    psTmp->dfLatitude = atof(tmp.substr(0, (pos - 1)).c_str());
+    psTmp->dfLatitude = CPLAtof(tmp.substr(0, (pos - 1)).c_str());
     
     // Z coordinate
     if(tmp[pos - 1] != ',')
@@ -100,7 +100,7 @@ Coordinate* ParseCoordinate(std::string const& text)
     pos = 0;
     while(isNumberDigit(tmp[pos++]));
     psTmp->bHasZ = TRUE;
-    psTmp->dfAltitude = atof(tmp.substr(0, (pos - 1)).c_str());
+    psTmp->dfAltitude = CPLAtof(tmp.substr(0, (pos - 1)).c_str());
 
     return psTmp;
 }
@@ -652,7 +652,7 @@ Feature* KMLNode::getFeature(std::size_t nNum, int& nLastAsked, int &nLastCount)
     if(nNum >= this->getNumFeatures())
         return NULL;
 
-    if (nLastAsked + 1 != nNum)
+    if (nLastAsked + 1 != (int)nNum)
     {
         nCount = 0;
         nCountP = 0;

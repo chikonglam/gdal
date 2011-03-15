@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #******************************************************************************
-#  $Id: gdal_sieve.py 15700 2008-11-10 15:29:13Z warmerdam $
+#  $Id: gdal_fillnodata.py 19392 2010-04-12 18:27:09Z rouault $
 # 
 #  Project:  GDAL Python Interface
 #  Purpose:  Application for filling nodata areas in a raster by interpolation
@@ -45,7 +45,7 @@ def CopyBand( srcband, dstband ):
         
 def Usage():
     print("""
-gdal_nodatafill [-q] [-md max_distance] [-si smooth_iterations]
+gdal_fillnodata [-q] [-md max_distance] [-si smooth_iterations]
                 [-o name=value] [-b band]
                 srcfile [-nomask] [-mask filename] [-of format] [dstfile]
 """)
@@ -193,7 +193,7 @@ result = gdal.FillNodata( dstband, maskband,
                           callback = prog_func )
 
 
-
-
-
+src_ds = None
+dst_ds = None
+mask_ds = None
 

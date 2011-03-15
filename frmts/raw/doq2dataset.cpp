@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: doq2dataset.cpp 17664 2009-09-21 21:16:45Z rouault $
+ * $Id: doq2dataset.cpp 21298 2010-12-20 10:58:34Z rouault $
  *
  * Project:  USGS DOQ Driver (Second Generation Format)
  * Purpose:  Implementation of DOQ2Dataset
@@ -30,7 +30,7 @@
 #include "rawdataset.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: doq2dataset.cpp 17664 2009-09-21 21:16:45Z rouault $");
+CPL_CVSID("$Id: doq2dataset.cpp 21298 2010-12-20 10:58:34Z rouault $");
 
 CPL_C_START
 void	GDALRegister_DOQ2(void);
@@ -163,7 +163,7 @@ GDALDataset *DOQ2Dataset::Open( GDALOpenInfo * poOpenInfo )
     /* read and discard the first line */
     pszLine = CPLReadLine( poOpenInfo->fp );
 
-    while( (pszLine = CPLReadLine( poOpenInfo->fp )) )
+    while( (pszLine = CPLReadLine( poOpenInfo->fp )) != NULL )
     {
 	char    **papszTokens;
 

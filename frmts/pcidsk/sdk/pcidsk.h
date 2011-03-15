@@ -54,11 +54,11 @@ namespace PCIDSK {
 /*                      PCIDSK Access Functions                         */
 /************************************************************************/
 PCIDSKFile PCIDSK_DLL *Open( std::string filename, std::string access,  
-                             const PCIDSKInterfaces *interfaces );
+                             const PCIDSKInterfaces *interfaces = NULL );
 PCIDSKFile PCIDSK_DLL *Create( std::string filename, int pixels, int lines,
                                int channel_count, eChanType *channel_types, 
                                std::string options,
-                               const PCIDSKInterfaces *interfaces );
+                               const PCIDSKInterfaces *interfaces = NULL );
 
 
 } // end of PCIDSK namespace

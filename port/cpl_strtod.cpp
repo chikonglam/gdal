@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: cpl_strtod.cpp 15802 2008-11-23 20:11:36Z dron $
+ * $Id: cpl_strtod.cpp 19692 2010-05-13 17:16:55Z rouault $
  *
  * Project:  CPL - Common Portability Library
  * Purpose:  Functions to convert ASCII string to floating point number.
@@ -33,7 +33,7 @@
 
 #include "cpl_conv.h"
 
-CPL_CVSID("$Id: cpl_strtod.cpp 15802 2008-11-23 20:11:36Z dron $");
+CPL_CVSID("$Id: cpl_strtod.cpp 19692 2010-05-13 17:16:55Z rouault $");
 
 // XXX: with GCC 2.95 strtof() function is only available when in c99 mode.
 // Fix it here not touching the compiler options.
@@ -41,6 +41,23 @@ CPL_CVSID("$Id: cpl_strtod.cpp 15802 2008-11-23 20:11:36Z dron $");
 extern "C" {
 extern float strtof(const char *nptr, char **endptr);
 }
+#endif
+
+#ifndef NAN
+#  ifdef HUGE_VAL
+#    define NAN (HUGE_VAL * 0.0)
+#  else
+
+static float CPLNaN(void)
+{
+    float fNan;
+    int nNan = 0x7FC00000;
+    memcpy(&fNan, &nNan, 4);
+    return fNan;
+}
+
+#    define NAN CPLNan()
+#  endif
 #endif
 
 /************************************************************************/
@@ -222,6 +239,10 @@ static void CPLReplacePointByLocalePoint(char* pszNumber, char point)
  */
 double CPLStrtodDelim(const char *nptr, char **endptr, char point)
 {
+   if (EQUAL(nptr,"nan") || EQUAL(nptr, "1.#QNAN") ||
+       EQUAL(nptr, "-1.#QNAN") || EQUAL(nptr, "-1.#IND"))
+       return NAN;
+
 /* -------------------------------------------------------------------- */
 /*  We are implementing a simple method here: copy the input string     */
 /*  into the temporary buffer, replace the specified decimal delimiter  */
@@ -352,4 +373,5 @@ float CPLStrtof(const char *nptr, char **endptr)
 {
     return CPLStrtofDelim(nptr, endptr, '.');
 }
+
 /* END OF FILE */

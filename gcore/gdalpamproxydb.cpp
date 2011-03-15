@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdalpamproxydb.cpp 18063 2009-11-21 21:11:49Z warmerdam $
+ * $Id: gdalpamproxydb.cpp 20996 2010-10-28 18:38:15Z rouault $
  *
  * Project:  GDAL Core
  * Purpose:  Implementation of the GDAL PAM Proxy database interface.
@@ -35,7 +35,7 @@
 #include "ogr_spatialref.h"
 #include "cpl_multiproc.h"
 
-CPL_CVSID("$Id: gdalpamproxydb.cpp 18063 2009-11-21 21:11:49Z warmerdam $");
+CPL_CVSID("$Id: gdalpamproxydb.cpp 20996 2010-10-28 18:38:15Z rouault $");
 
 /************************************************************************/
 /* ==================================================================== */
@@ -93,7 +93,7 @@ void GDALPamProxyDB::LoadDB()
 /* -------------------------------------------------------------------- */
     CPLString osDBName = 
         CPLFormFilename( osProxyDBDir, "gdal_pam_proxy", "dat" );
-    FILE *fpDB = VSIFOpenL( osDBName, "r" );
+    VSILFILE *fpDB = VSIFOpenL( osDBName, "r" );
 
     nUpdateCounter = 0;
     if( fpDB == NULL )
@@ -186,7 +186,7 @@ void GDALPamProxyDB::SaveDB()
                   osDBName.c_str() );
     }
 
-    FILE *fpDB = VSIFOpenL( osDBName, "w" );
+    VSILFILE *fpDB = VSIFOpenL( osDBName, "w" );
     if( fpDB == NULL )
     {
         if( hLock )

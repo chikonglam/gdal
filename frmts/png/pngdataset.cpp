@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: pngdataset.cpp 18008 2009-11-12 22:16:00Z rouault $
+ * $Id: pngdataset.cpp 21032 2010-10-31 20:58:34Z warmerdam $
  *
  * Project:  PNG Driver
  * Purpose:  Implement GDAL PNG Support
@@ -49,7 +49,7 @@
 #include "cpl_string.h"
 #include <setjmp.h>
 
-CPL_CVSID("$Id: pngdataset.cpp 18008 2009-11-12 22:16:00Z rouault $");
+CPL_CVSID("$Id: pngdataset.cpp 21032 2010-10-31 20:58:34Z warmerdam $");
 
 CPL_C_START
 void	GDALRegister_PNG(void);
@@ -88,7 +88,7 @@ class PNGDataset : public GDALPamDataset
 {
     friend class PNGRasterBand;
 
-    FILE        *fpImage;
+    VSILFILE        *fpImage;
     png_structp hPNG;
     png_infop   psPNGInfo;
     int         nBitDepth;
@@ -131,7 +131,7 @@ class PNGDataset : public GDALPamDataset
     png_structp m_hPNG;
     png_infop   m_psPNGInfo;
     png_color	*m_pasPNGColors;
-    FILE        *m_fpImage;
+    VSILFILE        *m_fpImage;
     int	   m_bGeoTransformValid;
     double m_adfGeoTransform[6];
     char        *m_pszFilename;
@@ -739,7 +739,7 @@ GDALDataset *PNGDataset::Open( GDALOpenInfo * poOpenInfo )
 /* -------------------------------------------------------------------- */
 /*      Open a file handle using large file API.                        */
 /* -------------------------------------------------------------------- */
-    FILE *fp = VSIFOpenL( poOpenInfo->pszFilename, "rb" );
+    VSILFILE *fp = VSIFOpenL( poOpenInfo->pszFilename, "rb" );
     if( fp == NULL )
     {
         CPLError( CE_Failure, CPLE_OpenFailed, 
@@ -1043,7 +1043,7 @@ PNGCreateCopy( const char * pszFilename, GDALDataset *poSrcDS,
 /* -------------------------------------------------------------------- */
 /*      Create the dataset.                                             */
 /* -------------------------------------------------------------------- */
-    FILE	*fpImage;
+    VSILFILE	*fpImage;
 
     fpImage = VSIFOpenL( pszFilename, "wb" );
     if( fpImage == NULL )
@@ -1077,6 +1077,25 @@ PNGCreateCopy( const char * pszFilename, GDALDataset *poSrcDS,
     png_set_IHDR( hPNG, psPNGInfo, nXSize, nYSize, 
                   nBitDepth, nColorType, PNG_INTERLACE_NONE, 
                   PNG_COMPRESSION_TYPE_BASE, PNG_FILTER_TYPE_BASE );
+
+/* -------------------------------------------------------------------- */
+/*      Do we want to control the compression level?                    */
+/* -------------------------------------------------------------------- */
+    const char *pszLevel = CSLFetchNameValue( papszOptions, "ZLEVEL" );
+
+    if( pszLevel )
+    {
+        int nLevel = atoi(pszLevel);
+        if( nLevel < 1 || nLevel > 9 )
+        {
+            CPLError( CE_Failure, CPLE_AppDefined,
+                      "Illegal ZLEVEL value '%s', should be 1-9.",
+                      pszLevel );
+            return NULL;
+        }
+
+        png_set_compression_level( hPNG, nLevel );
+    }
 
 /* -------------------------------------------------------------------- */
 /*      Try to handle nodata values as a tRNS block (note for           */
@@ -1296,7 +1315,7 @@ png_vsi_read_data(png_structp png_ptr, png_bytep data, png_size_t length)
     * instead of an int, which is what fread() actually returns.
     */
    check = (png_size_t)VSIFReadL(data, (png_size_t)1, length,
-                                 (png_FILE_p)png_ptr->io_ptr);
+                                 (VSILFILE*)png_ptr->io_ptr);
 
    if (check != length)
       png_error(png_ptr, "Read Error");
@@ -1311,7 +1330,7 @@ png_vsi_write_data(png_structp png_ptr, png_bytep data, png_size_t length)
 {
    png_uint_32 check;
 
-   check = VSIFWriteL(data, 1, length, (png_FILE_p)(png_ptr->io_ptr));
+   check = VSIFWriteL(data, 1, length, (VSILFILE*)(png_ptr->io_ptr));
 
    if (check != length)
       png_error(png_ptr, "Write Error");
@@ -1322,7 +1341,7 @@ png_vsi_write_data(png_structp png_ptr, png_bytep data, png_size_t length)
 /************************************************************************/
 static void png_vsi_flush(png_structp png_ptr)
 {
-    VSIFFlushL( (png_FILE_p)(png_ptr->io_ptr) );
+    VSIFFlushL( (VSILFILE*)(png_ptr->io_ptr) );
 }
 
 /************************************************************************/
@@ -1381,6 +1400,7 @@ void GDALRegister_PNG()
         poDriver->SetMetadataItem( GDAL_DMD_CREATIONOPTIONLIST, 
 "<CreationOptionList>\n"
 "   <Option name='WORLDFILE' type='boolean' description='Create world file'/>\n"
+"   <Option name='ZLEVEL' type='int' description='DEFLATE compression level 1-9' default='6'/>"
 "</CreationOptionList>\n" );
 
         poDriver->SetMetadataItem( GDAL_DCAP_VIRTUALIO, "YES" );

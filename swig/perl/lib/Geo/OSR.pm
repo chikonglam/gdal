@@ -104,6 +104,7 @@ sub DESTROY {
 *GetAuthorityCode = *Geo::OSRc::SpatialReference_GetAuthorityCode;
 *GetAuthorityName = *Geo::OSRc::SpatialReference_GetAuthorityName;
 *SetUTM = *Geo::OSRc::SpatialReference_SetUTM;
+*GetUTMZone = *Geo::OSRc::SpatialReference_GetUTMZone;
 *SetStatePlane = *Geo::OSRc::SpatialReference_SetStatePlane;
 *AutoIdentifyEPSG = *Geo::OSRc::SpatialReference_AutoIdentifyEPSG;
 *SetProjection = *Geo::OSRc::SpatialReference_SetProjection;
@@ -111,6 +112,9 @@ sub DESTROY {
 *GetProjParm = *Geo::OSRc::SpatialReference_GetProjParm;
 *SetNormProjParm = *Geo::OSRc::SpatialReference_SetNormProjParm;
 *GetNormProjParm = *Geo::OSRc::SpatialReference_GetNormProjParm;
+*GetSemiMajor = *Geo::OSRc::SpatialReference_GetSemiMajor;
+*GetSemiMinor = *Geo::OSRc::SpatialReference_GetSemiMinor;
+*GetInvFlattening = *Geo::OSRc::SpatialReference_GetInvFlattening;
 *SetACEA = *Geo::OSRc::SpatialReference_SetACEA;
 *SetAE = *Geo::OSRc::SpatialReference_SetAE;
 *SetBonne = *Geo::OSRc::SpatialReference_SetBonne;
@@ -167,6 +171,7 @@ sub DESTROY {
 *ImportFromPCI = *Geo::OSRc::SpatialReference_ImportFromPCI;
 *ImportFromUSGS = *Geo::OSRc::SpatialReference_ImportFromUSGS;
 *ImportFromXML = *Geo::OSRc::SpatialReference_ImportFromXML;
+*ImportFromERM = *Geo::OSRc::SpatialReference_ImportFromERM;
 *ImportFromMICoordSys = *Geo::OSRc::SpatialReference_ImportFromMICoordSys;
 *ExportToWkt = *Geo::OSRc::SpatialReference_ExportToWkt;
 *ExportToPrettyWkt = *Geo::OSRc::SpatialReference_ExportToPrettyWkt;
@@ -221,7 +226,7 @@ sub DESTROY {
 }
 
 *TransformPoint = *Geo::OSRc::CoordinateTransformation_TransformPoint;
-*TransformPoints = *Geo::OSRc::CoordinateTransformation_TransformPoints;
+*_TransformPoints = *Geo::OSRc::CoordinateTransformation__TransformPoints;
 sub DISOWN {
     my $self = shift;
     my $ptr = tied(%$self);
@@ -378,4 +383,13 @@ package Geo::OSR;
 	bless $self, $pkg if defined $self;
     }
     *AsText = *ExportToWkt;
+    package Geo::OSR::CoordinateTransformation;
+    use strict;
+    sub TransformPoints {
+	my($self, $points) = @_;
+	_TransformPoints($self, $points), return unless ref($points->[0]->[0]);
+	for my $p (@$points) {
+	    TransformPoints($self, $p);
+	}
+    }
 1;

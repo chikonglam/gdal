@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: tildataset.cpp 17664 2009-09-21 21:16:45Z rouault $
+ * $Id: tildataset.cpp 20996 2010-10-28 18:38:15Z rouault $
  *
  * Project:  EarthWatch .TIL Driver
  * Purpose:  Implementation of the TILDataset class.
@@ -35,7 +35,7 @@
 #include "cpl_multiproc.h"
 #include "cplkeywordparser.h"
 
-CPL_CVSID("$Id: tildataset.cpp 17664 2009-09-21 21:16:45Z rouault $");
+CPL_CVSID("$Id: tildataset.cpp 20996 2010-10-28 18:38:15Z rouault $");
 
 /************************************************************************/
 /* ==================================================================== */
@@ -200,7 +200,7 @@ GDALDataset *TILDataset::Open( GDALOpenInfo * poOpenInfo )
 /* -------------------------------------------------------------------- */
 /*      Try to load and parse the .TIL file.                            */
 /* -------------------------------------------------------------------- */
-    FILE *fp = VSIFOpenL( poOpenInfo->pszFilename, "r" );
+    VSILFILE *fp = VSIFOpenL( poOpenInfo->pszFilename, "r" );
     
     if( fp == NULL )
     {

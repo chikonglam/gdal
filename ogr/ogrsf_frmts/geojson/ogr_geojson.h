@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id$
+ * $Id: ogr_geojson.h 20996 2010-10-28 18:38:15Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Definitions of OGR OGRGeoJSON driver types.
@@ -118,7 +118,7 @@ public:
     // OGRGeoJSONDataSource Interface
     //
     int Create( const char* pszName, char** papszOptions );
-    FILE* GetOutputFile() const { return fpOut_; }
+    VSILFILE* GetOutputFile() const { return fpOut_; }
 
     enum GeometryTranslation
     {
@@ -145,7 +145,7 @@ private:
     char* pszGeoData_;
     OGRGeoJSONLayer** papoLayers_;
     int nLayers_;
-    FILE* fpOut_;
+    VSILFILE* fpOut_;
     
     //
     // Translation/Creation control flags

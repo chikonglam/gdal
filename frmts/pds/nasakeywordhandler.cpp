@@ -83,7 +83,7 @@ NASAKeywordHandler::~NASAKeywordHandler()
 /*                               Ingest()                               */
 /************************************************************************/
 
-int NASAKeywordHandler::Ingest( FILE *fp, int nOffset )
+int NASAKeywordHandler::Ingest( VSILFILE *fp, int nOffset )
 
 {
 /* -------------------------------------------------------------------- */
@@ -144,7 +144,9 @@ int NASAKeywordHandler::ReadGroup( const char *pszPathPrefix )
             if( !ReadGroup( (CPLString(pszPathPrefix) + osValue + ".").c_str() ) )
                 return FALSE;
         }
-        else if( EQUALN(osName,"END",3) )
+        else if( EQUAL(osName,"END") 
+                 || EQUAL(osName,"END_GROUP" )
+                 || EQUAL(osName,"END_OBJECT" ) )
         {
             return TRUE;
         }

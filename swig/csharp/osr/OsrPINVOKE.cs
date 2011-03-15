@@ -294,6 +294,9 @@ class OsrPINVOKE {
   [DllImport("osr_wrap", EntryPoint="CSharp_SpatialReference_SetUTM")]
   public static extern int SpatialReference_SetUTM(HandleRef jarg1, int jarg2, int jarg3);
 
+  [DllImport("osr_wrap", EntryPoint="CSharp_SpatialReference_GetUTMZone")]
+  public static extern int SpatialReference_GetUTMZone(HandleRef jarg1);
+
   [DllImport("osr_wrap", EntryPoint="CSharp_SpatialReference_SetStatePlane")]
   public static extern int SpatialReference_SetStatePlane(HandleRef jarg1, int jarg2, int jarg3, string jarg4, double jarg5);
 
@@ -314,6 +317,15 @@ class OsrPINVOKE {
 
   [DllImport("osr_wrap", EntryPoint="CSharp_SpatialReference_GetNormProjParm")]
   public static extern double SpatialReference_GetNormProjParm(HandleRef jarg1, string jarg2, double jarg3);
+
+  [DllImport("osr_wrap", EntryPoint="CSharp_SpatialReference_GetSemiMajor")]
+  public static extern double SpatialReference_GetSemiMajor(HandleRef jarg1);
+
+  [DllImport("osr_wrap", EntryPoint="CSharp_SpatialReference_GetSemiMinor")]
+  public static extern double SpatialReference_GetSemiMinor(HandleRef jarg1);
+
+  [DllImport("osr_wrap", EntryPoint="CSharp_SpatialReference_GetInvFlattening")]
+  public static extern double SpatialReference_GetInvFlattening(HandleRef jarg1);
 
   [DllImport("osr_wrap", EntryPoint="CSharp_SpatialReference_SetACEA")]
   public static extern int SpatialReference_SetACEA(HandleRef jarg1, double jarg2, double jarg3, double jarg4, double jarg5, double jarg6, double jarg7);
@@ -482,6 +494,9 @@ class OsrPINVOKE {
 
   [DllImport("osr_wrap", EntryPoint="CSharp_SpatialReference_ImportFromXML")]
   public static extern int SpatialReference_ImportFromXML(HandleRef jarg1, string jarg2);
+
+  [DllImport("osr_wrap", EntryPoint="CSharp_SpatialReference_ImportFromERM")]
+  public static extern int SpatialReference_ImportFromERM(HandleRef jarg1, string jarg2, string jarg3, string jarg4);
 
   [DllImport("osr_wrap", EntryPoint="CSharp_SpatialReference_ImportFromMICoordSys")]
   public static extern int SpatialReference_ImportFromMICoordSys(HandleRef jarg1, string jarg2);

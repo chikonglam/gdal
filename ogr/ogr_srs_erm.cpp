@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_srs_erm.cpp 18063 2009-11-21 21:11:49Z warmerdam $
+ * $Id: ogr_srs_erm.cpp 20888 2010-10-19 10:51:17Z dron $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implement ERMapper projection conversions.
@@ -30,14 +30,35 @@
 #include "ogr_spatialref.h"
 #include "cpl_conv.h"
 
-CPL_CVSID("$Id: ogr_srs_erm.cpp 18063 2009-11-21 21:11:49Z warmerdam $");
+CPL_CVSID("$Id: ogr_srs_erm.cpp 20888 2010-10-19 10:51:17Z dron $");
+
+/************************************************************************/
+/*                         OSRImportFromERM()                           */
+/************************************************************************/
+
+/**
+ * \brief Create OGR WKT from ERMapper projection definitions.
+ *
+ * This function is the same as OGRSpatialReference::importFromERM().
+ */
+
+OGRErr OSRImportFromERM( OGRSpatialReferenceH hSRS, const char *pszProj,
+                         const char *pszDatum, const char *pszUnits )
+
+{
+    VALIDATE_POINTER1( hSRS, "OSRImportFromERM", CE_Failure );
+
+    return ((OGRSpatialReference *) hSRS)->importFromERM( pszProj,
+                                                          pszDatum,
+                                                          pszUnits );
+}
 
 /************************************************************************/
 /*                           importFromERM()                            */
 /************************************************************************/
 
 /**
- * OGR WKT from ERMapper projection definitions.
+ * Create OGR WKT from ERMapper projection definitions.
  *
  * Generates an OGRSpatialReference definition from an ERMapper datum
  * and projection name.  Based on the ecw_cs.wkt dictionary file from 
@@ -99,6 +120,24 @@ OGRErr OGRSpatialReference::importFromERM( const char *pszProj,
         CopyGeogCSFrom( &oGeogCS );
 
     return OGRERR_NONE;
+}
+
+/************************************************************************/
+/*                          OSRExportToERM()                            */
+/************************************************************************/
+/** 
+ * \brief Convert coordinate system to ERMapper format.
+ *
+ * This function is the same as OGRSpatialReference::exportToERM().
+ */
+OGRErr OSRExportToERM( OGRSpatialReferenceH hSRS,
+                       char *pszProj, char *pszDatum, char *pszUnits )
+
+{
+    VALIDATE_POINTER1( hSRS, "OSRExportToERM", CE_Failure );
+
+    return ((OGRSpatialReference *) hSRS)->exportToERM( pszProj, pszDatum,
+                                                        pszUnits );
 }
 
 /************************************************************************/

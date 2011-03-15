@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: hfaband.cpp 19689 2010-05-13 12:07:48Z warmerdam $
+ * $Id: hfaband.cpp 21476 2011-01-13 00:58:39Z warmerdam $
  *
  * Project:  Erdas Imagine (.img) Translator
  * Purpose:  Implementation of the HFABand, for accessing one Eimg_Layer.
@@ -32,7 +32,7 @@
 
 /* include the compression code */
 
-CPL_CVSID("$Id: hfaband.cpp 19689 2010-05-13 12:07:48Z warmerdam $");
+CPL_CVSID("$Id: hfaband.cpp 21476 2011-01-13 00:58:39Z warmerdam $");
 
 /************************************************************************/
 /*                              HFABand()                               */
@@ -241,15 +241,41 @@ CPLErr HFABand::LoadOverviews()
     }
 
 /* -------------------------------------------------------------------- */
+/*      If there are no overviews mentioned in this file, probe for     */
+/*      an .rrd file anyways.                                           */
+/* -------------------------------------------------------------------- */
+    HFAEntry *poBandProxyNode = poNode;
+    HFAInfo_t *psOvHFA = psInfo;
+
+    if( nOverviews == 0 
+        && EQUAL(CPLGetExtension(psInfo->pszFilename),"aux") )
+    {
+        CPLString osRRDFilename = CPLResetExtension( psInfo->pszFilename,"rrd");
+        CPLString osFullRRD = CPLFormFilename( psInfo->pszPath, osRRDFilename,
+                                               NULL );
+        VSIStatBufL sStatBuf;
+
+        if( VSIStatL( osFullRRD, &sStatBuf ) == 0 )
+        {
+            psOvHFA = HFAGetDependent( psInfo, osRRDFilename );
+            if( psOvHFA )
+                poBandProxyNode = 
+                    psOvHFA->poRoot->GetNamedChild( poNode->GetName() );
+            else
+                psOvHFA = psInfo;
+        }
+    }
+
+/* -------------------------------------------------------------------- */
 /*      If there are no named overviews, try looking for unnamed        */
 /*      overviews within the same layer, as occurs in floodplain.img    */
-/*      for instance.                                                   */
+/*      for instance, or in the not-referenced rrd mentioned in #3463.  */
 /* -------------------------------------------------------------------- */
-    if( nOverviews == 0 )
+    if( nOverviews == 0 && poBandProxyNode != NULL )
     {
         HFAEntry	*poChild;
 
-        for( poChild = poNode->GetChild(); 
+        for( poChild = poBandProxyNode->GetChild(); 
              poChild != NULL;
              poChild = poChild->GetNext() ) 
         {
@@ -257,7 +283,7 @@ CPLErr HFABand::LoadOverviews()
             {
                 papoOverviews = (HFABand **) 
                     CPLRealloc(papoOverviews, sizeof(void*) * ++nOverviews );
-                papoOverviews[nOverviews-1] = new HFABand( psInfo, poChild );
+                papoOverviews[nOverviews-1] = new HFABand( psOvHFA, poChild );
                 if (papoOverviews[nOverviews-1]->nWidth == 0)
                 {
                     nWidth = nHeight = 0;
@@ -267,8 +293,24 @@ CPLErr HFABand::LoadOverviews()
                 }
             }
         }
-    }
 
+        int i1, i2; 
+        
+        // bubble sort into biggest to smallest order.
+        for( i1 = 0; i1 < nOverviews; i1++ )
+        {
+            for( i2 = 0; i2 < nOverviews-1; i2++ )
+            {
+                if( papoOverviews[i2]->nWidth < 
+                    papoOverviews[i2+1]->nWidth )
+                {
+                    HFABand *poTemp = papoOverviews[i2+1];
+                    papoOverviews[i2+1] = papoOverviews[i2];
+                    papoOverviews[i2] = poTemp;
+                }
+            }
+        }
+    }
     return CE_None;
 }
 
@@ -367,10 +409,7 @@ CPLErr	HFABand::LoadExternalBlockInfo()
 /* -------------------------------------------------------------------- */
 /*      Open raw data file.                                             */
 /* -------------------------------------------------------------------- */
-    const char *pszRawFilename = poDMS->GetStringField( "fileName.string" );
-    const char *pszFullFilename;
-
-    pszFullFilename = CPLFormFilename( psInfo->pszPath, pszRawFilename, NULL );
+    const char *pszFullFilename = HFAGetIGEFilename( psInfo );
 
     if( psInfo->eAccess == HFA_ReadOnly )
 	fpExternal = VSIFOpenL( pszFullFilename, "rb" );
@@ -1024,7 +1063,7 @@ CPLErr HFABand::GetRasterBlock( int nXBlock, int nYBlock, void * pData, int nDat
 
 {
     int		iBlock;
-    FILE	*fpData;
+    VSILFILE	*fpData;
 
     if( LoadBlockInfo() != CE_None )
         return CE_Failure;
@@ -1240,7 +1279,7 @@ CPLErr HFABand::SetRasterBlock( int nXBlock, int nYBlock, void * pData )
 
 {
     int		iBlock;
-    FILE	*fpData;
+    VSILFILE	*fpData;
 
     if( psInfo->eAccess == HFA_ReadOnly )
     {
@@ -1913,7 +1952,7 @@ CPLErr HFABand::SetPCT( int nColors,
 /*                           CreateOverview()                           */
 /************************************************************************/
 
-int HFABand::CreateOverview( int nOverviewLevel )
+int HFABand::CreateOverview( int nOverviewLevel, const char *pszResampling )
 
 {
 
@@ -1946,9 +1985,19 @@ int HFABand::CreateOverview( int nOverviewLevel )
     }
 
 /* -------------------------------------------------------------------- */
+/*      What pixel type should we use for the overview.  Usually        */
+/*      this is the same as the base layer, but when                    */
+/*      AVERAGE_BIT2GRAYSCALE is in effect we force it to u8 from u1.   */
+/* -------------------------------------------------------------------- */
+    int nOverviewDataType = nDataType;
+
+    if( EQUALN(pszResampling,"AVERAGE_BIT2GR",14) )
+        nOverviewDataType = EPT_u8;
+
+/* -------------------------------------------------------------------- */
 /*      Eventually we need to decide on the whether to use the spill    */
 /*      file, primarily on the basis of whether the new overview        */
-/*      will drive our .img file size near 4BG.  For now, just base     */
+/*      will drive our .img file size near 4GB.  For now, just base     */
 /*      it on the config options.                                       */
 /* -------------------------------------------------------------------- */
     int bCreateLargeRaster = CSLTestBoolean(
@@ -1957,13 +2006,13 @@ int HFABand::CreateOverview( int nOverviewLevel )
 
     if( (psRRDInfo->nEndOfFile 
          + (nOXSize * (double) nOYSize)
-         * (HFAGetDataTypeBits(nDataType) / 8)) > 2000000000.0 )
+         * (HFAGetDataTypeBits(nOverviewDataType) / 8)) > 2000000000.0 )
         bCreateLargeRaster = TRUE;
 
     if( bCreateLargeRaster )
     {
         if( !HFACreateSpillStack( psRRDInfo, nOXSize, nOYSize, 1, 
-                                  64, nDataType, 
+                                  64, nOverviewDataType, 
                                   &nValidFlagsOffset, &nDataOffset ) )
 	{
 	    return -1;
@@ -1977,7 +2026,7 @@ int HFABand::CreateOverview( int nOverviewLevel )
 
     if( !HFACreateLayer( psRRDInfo, poParent, osLayerName, 
                          TRUE, 64, FALSE, bCreateLargeRaster, FALSE,
-                         nOXSize, nOYSize, nDataType, NULL,
+                         nOXSize, nOYSize, nOverviewDataType, NULL,
                          nValidFlagsOffset, nDataOffset, 1, 0 ) )
         return -1;
     

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: aigrid.h 19497 2010-04-22 15:40:48Z warmerdam $
+ * $Id: aigrid.h 20996 2010-10-28 18:38:15Z rouault $
  *
  * Project:  Arc/Info Binary Grid Translator
  * Purpose:  Grid file access include file.
@@ -47,7 +47,7 @@ typedef struct {
     GUInt32	*panBlockOffset;
     int		*panBlockSize;
 
-    FILE	*fpGrid;	/* the w001001.adf file */
+    VSILFILE	*fpGrid;	/* the w001001.adf file */
     int         bTriedToLoad;
 } AIGTileInfo;
 
@@ -102,7 +102,7 @@ typedef struct {
 /* ==================================================================== */
 
 CPLErr AIGAccessTile( AIGInfo_t *psInfo, int iTileX, int iTileY );
-CPLErr AIGReadBlock( FILE * fp, GUInt32 nBlockOffset, int nBlockSize,
+CPLErr AIGReadBlock( VSILFILE * fp, GUInt32 nBlockOffset, int nBlockSize,
                      int nBlockXSize, int nBlockYSize, GInt32 * panData,
                      int nCellType );
 
@@ -127,7 +127,7 @@ CPLErr 		AIGReadFloatTile( AIGInfo_t *, int, int, float * );
 
 void		AIGClose( AIGInfo_t * );
 
-FILE           *AIGLLOpen( const char *, const char * );
+VSILFILE           *AIGLLOpen( const char *, const char * );
 
 CPL_C_END
 

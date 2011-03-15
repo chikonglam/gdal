@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #******************************************************************************
-#  $Id: esri2wkt.py 18953 2010-02-28 12:00:54Z rouault $
+#  $Id: esri2wkt.py 18952 2010-02-28 11:59:53Z rouault $
 # 
 #  Project:  GDAL
 #  Purpose:  Simple command line program for translating ESRI .prj files

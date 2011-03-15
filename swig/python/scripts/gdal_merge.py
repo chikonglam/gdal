@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 ###############################################################################
-# $Id: gdal_merge.py 18953 2010-02-28 12:00:54Z rouault $
+# $Id: gdal_merge.py 20778 2010-10-06 17:31:34Z rouault $
 #
 # Project:  InSAR Peppers
 # Purpose:  Module to extract data from many rasters into one output.
@@ -27,12 +27,18 @@
 
 try:
     from osgeo import gdal
-    gdal.TermProgress = gdal.TermProgress_nocb
 except ImportError:
     import gdal
 
+try:
+    progress = gdal.TermProgress_nocb
+except:
+    progress = gdal.TermProgress
+
+
 import sys
 import glob
+import math
 
 __version__ = '$id$'[5:-1]
 verbose = 0
@@ -234,7 +240,7 @@ class file_info:
 # =============================================================================
 def Usage():
     print('Usage: gdal_merge.py [-o out_filename] [-of out_format] [-co NAME=VALUE]*')
-    print('                     [-ps pixelsize_x pixelsize_y] [-separate] [-q] [-v] [-pct]')
+    print('                     [-ps pixelsize_x pixelsize_y] [-tap] [-separate] [-q] [-v] [-pct]')
     print('                     [-ul_lr ulx uly lrx lry] [-n nodata_value] [-init "value [value...]"]')
     print('                     [-ot datatype] [-createonly] input_files')
     print('                     [--help-general]')
@@ -263,6 +269,7 @@ def main( argv=None ):
     pre_init = []
     band_type = None
     createonly = 0
+    bTargetAlignedPixels = False
     
     gdal.AllRegister()
     if argv is None:
@@ -333,6 +340,9 @@ def main( argv=None ):
             psize_y = -1 * abs(float(argv[i+2]))
             i = i + 2
 
+        elif arg == '-tap':
+            bTargetAlignedPixels = True
+
         elif arg == '-ul_lr':
             ulx = float(argv[i+1])
             uly = float(argv[i+2])
@@ -397,6 +407,13 @@ def main( argv=None ):
     
     # Create output file if it does not already exist.
     if t_fh is None:
+    
+        if bTargetAlignedPixels:
+            ulx = math.floor(ulx / psize_x) * psize_x
+            lrx = math.ceil(lrx / psize_x) * psize_x
+            lry = math.floor(lry / -psize_y) * -psize_y
+            uly = math.ceil(uly / -psize_y) * -psize_y
+    
         geotransform = [ulx, psize_x, 0, uly, 0, psize_y]
 
         xsize = int((lrx - ulx) / geotransform[1] + 0.5)
@@ -440,7 +457,7 @@ def main( argv=None ):
     t_band = 1
 
     if quiet == 0 and verbose == 0:
-        gdal.TermProgress( 0.0 )
+        progress( 0.0 )
     fi_processed = 0
     
     for fi in file_infos:
@@ -463,7 +480,7 @@ def main( argv=None ):
             
         fi_processed = fi_processed+1
         if quiet == 0 and verbose == 0:
-            gdal.TermProgress( fi_processed / float(len(file_infos))  )
+            progress( fi_processed / float(len(file_infos))  )
     
     # Force file to be closed.
     t_fh = None

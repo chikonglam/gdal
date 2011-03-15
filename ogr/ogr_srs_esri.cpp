@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_srs_esri.cpp 18024 2009-11-14 18:22:05Z rouault $
+ * $Id: ogr_srs_esri.cpp 21298 2010-12-20 10:58:34Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  OGRSpatialReference translation to/from ESRI .prj definitions.
@@ -33,7 +33,7 @@
 
 #include "ogr_srs_esri_names.h"
 
-CPL_CVSID("$Id: ogr_srs_esri.cpp 18024 2009-11-14 18:22:05Z rouault $");
+CPL_CVSID("$Id: ogr_srs_esri.cpp 21298 2010-12-20 10:58:34Z rouault $");
 
 void  SetNewName( OGRSpatialReference* pOgr, const char* keyName, const char* newName );
 int   RemapImgWGSProjcsName(OGRSpatialReference* pOgr, const char* pszProjCSName, 
@@ -782,6 +782,15 @@ OGRErr OGRSpatialReference::importFromESRI( char **papszPrj )
                OSR_GDV( papszPrj, "PARAM_4", 0.0 ) );
     }
 
+    else if( EQUAL(osProj,"MERCATOR") )
+    {
+        SetMercator( OSR_GDV( papszPrj, "PARAM_1", 0.0 ), 
+                     OSR_GDV( papszPrj, "PARAM_0", 0.0 ), 
+                     1.0, 
+                     OSR_GDV( papszPrj, "PARAM_2", 0.0 ), 
+                     OSR_GDV( papszPrj, "PARAM_3", 0.0 ) );
+    }
+
     else
     {
         CPLDebug( "OGR_ESRI", "Unsupported projection: %s", osProj.c_str() );
@@ -1078,7 +1087,7 @@ OGRErr OGRSpatialReference::morphToESRI()
 /*      If the PROJCS name is unset, use the PROJECTION name in         */
 /*      place of unknown, or unnamed.  At the request of Peng Gao.      */
 /* -------------------------------------------------------------------- */
-        if( (poProjCS = GetAttrNode( "PROJCS" )) )
+        if( (poProjCS = GetAttrNode( "PROJCS" )) != NULL )
             poProjCSNodeChild = poProjCS->GetChild(0);
 
         if( poProjCSNodeChild )

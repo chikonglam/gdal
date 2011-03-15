@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: vfkfeature.cpp 18509 2010-01-10 14:18:42Z martinl $
+ * $Id: vfkfeature.cpp 19643 2010-05-08 21:56:18Z rouault $
  *
  * Project:  VFK Reader - Feature definition
  * Purpose:  Implements VFKFeature class.
@@ -88,7 +88,7 @@ void VFKFeature::SetProperty(int iIndex, const char *pszValue)
 	    m_propertyList[iIndex] = VFKProperty(atoi(pszValue));
 	    break;
 	case OFTReal:
-	    m_propertyList[iIndex] = VFKProperty(atof(pszValue));
+	    m_propertyList[iIndex] = VFKProperty(CPLAtof(pszValue));
 	    break;
 	default:
 	    m_propertyList[iIndex] = VFKProperty(pszValue);

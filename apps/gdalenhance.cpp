@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdalenhance.cpp 17553 2009-08-21 14:27:19Z rouault $
+ * $Id: gdalenhance.cpp 21298 2010-12-20 10:58:34Z rouault $
  *
  * Project:  GDAL Utilities
  * Purpose:  Commandline application to do image enhancement. 
@@ -33,7 +33,7 @@
 #include "cpl_multiproc.h"
 #include "vrt/vrtdataset.h"
 
-CPL_CVSID("$Id: gdalenhance.cpp 17553 2009-08-21 14:27:19Z rouault $");
+CPL_CVSID("$Id: gdalenhance.cpp 21298 2010-12-20 10:58:34Z rouault $");
 
 static int
 ComputeEqualizationLUTs( GDALDatasetH hDataset,  int nLUTBins,
@@ -144,8 +144,6 @@ int main( int argc, char ** argv )
             {
                 printf( "Unknown output pixel type: %s\n", argv[i+1] );
                 Usage();
-                GDALDestroyDriverManager();
-                exit( 2 );
             }
             i++;
         }
@@ -193,8 +191,6 @@ int main( int argc, char ** argv )
             printf( "Option %s incomplete, or not recognised.\n\n", 
                     argv[i] );
             Usage();
-            GDALDestroyDriverManager();
-            exit( 2 );
         }
         else if( pszSource == NULL )
         {
@@ -209,16 +205,12 @@ int main( int argc, char ** argv )
         {
             printf( "Too many command options.\n\n" );
             Usage();
-            GDALDestroyDriverManager();
-            exit( 2 );
         }
     }
 
     if( pszSource == NULL )
     {
         Usage();
-        GDALDestroyDriverManager();
-        exit( 10 );
     }
 
 /* -------------------------------------------------------------------- */
@@ -263,12 +255,6 @@ int main( int argc, char ** argv )
         }
         printf( "\n" );
         Usage();
-        
-        GDALClose( hDataset );
-        GDALDestroyDriverManager();
-        CSLDestroy( argv );
-        CSLDestroy( papszCreateOptions );
-        exit( 1 );
     }
 
 /* -------------------------------------------------------------------- */

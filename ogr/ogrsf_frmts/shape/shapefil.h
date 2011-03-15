@@ -2,7 +2,7 @@
 #define SHAPEFILE_H_INCLUDED
 
 /******************************************************************************
- * $Id: shapefil.h 18681 2010-01-28 11:37:07Z warmerdam $
+ * $Id: shapefil.h 18680 2010-01-28 11:36:02Z warmerdam $
  *
  * Project:  Shapelib
  * Purpose:  Primary include file for Shapelib.

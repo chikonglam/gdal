@@ -78,6 +78,34 @@ public delegate void GDALErrorHandlerDelegate(int eclass, int code, IntPtr msg);
     return ret;
   }
 
+  public static Geometry ForceToPolygon(Geometry geom_in) {
+    IntPtr cPtr = OgrPINVOKE.ForceToPolygon(Geometry.getCPtr(geom_in));
+    Geometry ret = (cPtr == IntPtr.Zero) ? null : new Geometry(cPtr, true, ThisOwn_true());
+    if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
+    return ret;
+  }
+
+  public static Geometry ForceToMultiPolygon(Geometry geom_in) {
+    IntPtr cPtr = OgrPINVOKE.ForceToMultiPolygon(Geometry.getCPtr(geom_in));
+    Geometry ret = (cPtr == IntPtr.Zero) ? null : new Geometry(cPtr, true, ThisOwn_true());
+    if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
+    return ret;
+  }
+
+  public static Geometry ForceToMultiPoint(Geometry geom_in) {
+    IntPtr cPtr = OgrPINVOKE.ForceToMultiPoint(Geometry.getCPtr(geom_in));
+    Geometry ret = (cPtr == IntPtr.Zero) ? null : new Geometry(cPtr, true, ThisOwn_true());
+    if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
+    return ret;
+  }
+
+  public static Geometry ForceToMultiLineString(Geometry geom_in) {
+    IntPtr cPtr = OgrPINVOKE.ForceToMultiLineString(Geometry.getCPtr(geom_in));
+    Geometry ret = (cPtr == IntPtr.Zero) ? null : new Geometry(cPtr, true, ThisOwn_true());
+    if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
+    return ret;
+  }
+
   public static int GetDriverCount() {
     int ret = OgrPINVOKE.GetDriverCount();
     if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
@@ -101,6 +129,18 @@ public delegate void GDALErrorHandlerDelegate(int eclass, int code, IntPtr msg);
     if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
   }
 
+  public static string GeometryTypeToName(wkbGeometryType eType) {
+    string ret = OgrPINVOKE.GeometryTypeToName((int)eType);
+    if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
+    return ret;
+  }
+
+  public static string GetFieldTypeName(FieldType type) {
+    string ret = OgrPINVOKE.GetFieldTypeName((int)type);
+    if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
+    return ret;
+  }
+
   public static DataSource GetOpenDS(int ds_number) {
     IntPtr cPtr = OgrPINVOKE.GetOpenDS(ds_number);
     DataSource ret = (cPtr == IntPtr.Zero) ? null : new DataSource(cPtr, false, ThisOwn_false());
@@ -115,8 +155,8 @@ public delegate void GDALErrorHandlerDelegate(int eclass, int code, IntPtr msg);
     return ret;
   }
 
-  public static DataSource OpenShared(string filename, int update) {
-    IntPtr cPtr = OgrPINVOKE.OpenShared(filename, update);
+  public static DataSource OpenShared(string utf8_path, int update) {
+    IntPtr cPtr = OgrPINVOKE.OpenShared(utf8_path, update);
     DataSource ret = (cPtr == IntPtr.Zero) ? null : new DataSource(cPtr, true, ThisOwn_true());
     if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
     return ret;

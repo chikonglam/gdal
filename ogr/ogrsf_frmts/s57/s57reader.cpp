@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s57reader.cpp 19775 2010-05-27 15:17:49Z warmerdam $
+ * $Id: s57reader.cpp 19774 2010-05-27 15:12:33Z warmerdam $
  *
  * Project:  S-57 Translator
  * Purpose:  Implements S57Reader class.
@@ -35,7 +35,7 @@
 #include <string>
 #include <fstream>
 
-CPL_CVSID("$Id: s57reader.cpp 19775 2010-05-27 15:17:49Z warmerdam $");
+CPL_CVSID("$Id: s57reader.cpp 19774 2010-05-27 15:12:33Z warmerdam $");
 
 #ifndef PI
 #define PI  3.14159265358979323846
@@ -2034,7 +2034,8 @@ void S57Reader::AssembleAreaGeometry( DDFRecord * poFRecord,
             
                 nVC_RCID = ParseName( poSRecord->FindField( "VRPT" ), 0 );
 
-                if( FetchPoint( RCNM_VC, nVC_RCID, &dfX, &dfY ) )
+                if( nVC_RCID != -1
+                    && FetchPoint( RCNM_VC, nVC_RCID, &dfX, &dfY ) )
                     poLine->addPoint( dfX, dfY );
             }
         
@@ -2160,6 +2161,13 @@ int S57Reader::ParseName( DDFField * poField, int nIndex, int * pnRCNM )
 
 {
     unsigned char       *pabyData;
+
+    if( poField == NULL )
+    {
+        CPLError( CE_Failure, CPLE_AppDefined,
+                  "Missing field in ParseName()." );
+        return -1;
+    }
 
     pabyData = (unsigned char *)
         poField->GetSubfieldData(

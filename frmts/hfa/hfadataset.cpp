@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: hfadataset.cpp 21007 2010-10-29 15:31:38Z warmerdam $
+ * $Id: hfadataset.cpp 21476 2011-01-13 00:58:39Z warmerdam $
  *
  * Name:     hfadataset.cpp
  * Project:  Erdas Imagine Driver
@@ -33,7 +33,7 @@
 #include "hfa_p.h"
 #include "ogr_spatialref.h"
 
-CPL_CVSID("$Id: hfadataset.cpp 21007 2010-10-29 15:31:38Z warmerdam $");
+CPL_CVSID("$Id: hfadataset.cpp 21476 2011-01-13 00:58:39Z warmerdam $");
 
 CPL_C_START
 void	GDALRegister_HFA(void);
@@ -292,6 +292,8 @@ class CPL_DLL HFADataset : public GDALPamDataset
                 ~HFADataset();
 
     static int          Identify( GDALOpenInfo * );
+    static CPLErr       Rename( const char *pszNewName, const char *pszOldName);
+    static CPLErr       CopyFiles( const char *pszNewName, const char *pszOldName);
     static GDALDataset *Open( GDALOpenInfo * );
     static GDALDataset *Create( const char * pszFilename,
                                 int nXSize, int nYSize, int nBands,
@@ -420,6 +422,35 @@ HFARasterBand::HFARasterBand( HFADataset *poDS, int nBand, int iOverview )
     HFAGetBandInfo( hHFA, nBand, &nHFADataType,
                     &nBlockXSize, &nBlockYSize, &nCompression );
     
+/* -------------------------------------------------------------------- */
+/*      If this is an overview, we need to fetch the actual size,       */
+/*      and block size.                                                 */
+/* -------------------------------------------------------------------- */
+    if( iOverview > -1 )
+    {
+        int nHFADataTypeO;
+
+        nOverviews = 0;
+        HFAGetOverviewInfo( hHFA, nBand, iOverview,
+                            &nRasterXSize, &nRasterYSize,
+                            &nBlockXSize, &nBlockYSize, &nHFADataTypeO  );
+
+/* -------------------------------------------------------------------- */
+/*      If we are an 8bit overview of a 1bit layer, we need to mark     */
+/*      ourselves as being "resample: average_bit2grayscale".           */
+/* -------------------------------------------------------------------- */
+        if( nHFADataType == EPT_u1 && nHFADataTypeO == EPT_u8 )
+        {
+            GDALMajorObject::SetMetadataItem( "RESAMPLING", 
+                                              "AVERAGE_BIT2GRAYSCALE" );
+            GDALMajorObject::SetMetadataItem( "NBITS", "8" );
+            nHFADataType = nHFADataTypeO;
+        }
+    }
+
+/* -------------------------------------------------------------------- */
+/*      Set some other information.                                     */
+/* -------------------------------------------------------------------- */
     if( nCompression != 0 )
         GDALMajorObject::SetMetadataItem( "COMPRESSION", "RLE", 
                                           "IMAGE_STRUCTURE" );
@@ -486,31 +517,6 @@ HFARasterBand::HFARasterBand( HFADataset *poDS, int nBand, int iOverview )
     {
         GDALMajorObject::SetMetadataItem( "PIXELTYPE", "SIGNEDBYTE", 
                                           "IMAGE_STRUCTURE" );
-    }
-
-/* -------------------------------------------------------------------- */
-/*      If this is an overview, we need to fetch the actual size,       */
-/*      and block size.                                                 */
-/* -------------------------------------------------------------------- */
-    if( iOverview > -1 )
-    {
-        int nHFADataTypeO;
-
-        nOverviews = 0;
-        HFAGetOverviewInfo( hHFA, nBand, iOverview,
-                            &nRasterXSize, &nRasterYSize,
-                            &nBlockXSize, &nBlockYSize, &nHFADataTypeO  );
-
-/* -------------------------------------------------------------------- */
-/*      If we are an 8bit overview of a 1bit layer, we need to mark     */
-/*      ourselves as being "resample: average_bit2grayscale".           */
-/* -------------------------------------------------------------------- */
-        if( nHFADataType == EPT_u1 && nHFADataTypeO == EPT_u8 )
-        {
-            GDALMajorObject::SetMetadataItem( "RESAMPLING", 
-                                              "AVERAGE_BIT2GRAYSCALE" );
-            GDALMajorObject::SetMetadataItem( "NBITS", "8" );
-        }
     }
 
 /* -------------------------------------------------------------------- */
@@ -690,6 +696,8 @@ void HFARasterBand::ReadHistogramMetadata()
         return;
 
     int nNumBins = poEntry->GetIntField( "numRows" );
+    if (nNumBins < 0)
+        return;
 
 /* -------------------------------------------------------------------- */
 /*      Fetch the histogram values.                                     */
@@ -702,8 +710,16 @@ void HFARasterBand::ReadHistogramMetadata()
     if( pszType != NULL && EQUALN( "real", pszType, 4 ) )
         nBinSize = 8;
 
-    int *panHistValues = (int *) CPLMalloc(sizeof(int) * nNumBins);
-    GByte  *pabyWorkBuf = (GByte *) CPLMalloc(nBinSize * nNumBins);
+    int *panHistValues = (int *) VSIMalloc2(sizeof(int), nNumBins);
+    GByte  *pabyWorkBuf = (GByte *) VSIMalloc2(nBinSize, nNumBins);
+    
+    if (panHistValues == NULL || pabyWorkBuf == NULL)
+    {
+        CPLError(CE_Failure, CPLE_OutOfMemory, "Cannot allocate memory");
+        VSIFree(panHistValues);
+        VSIFree(pabyWorkBuf);
+        return;
+    }
 
     VSIFSeekL( hHFA->fp, nOffset, SEEK_SET );
 
@@ -958,7 +974,6 @@ CPLErr HFARasterBand::IReadBlock( int nBlockXOff, int nBlockYOff,
 
 {
     CPLErr	eErr;
-    int         nThisDataType = nHFADataType; // overview may differ.
 
     if( nThisOverview == -1 )
         eErr = HFAGetRasterBlockEx( hHFA, nBand, nBlockXOff, nBlockYOff,
@@ -970,11 +985,9 @@ CPLErr HFARasterBand::IReadBlock( int nBlockXOff, int nBlockYOff,
                                            nBlockXOff, nBlockYOff,
                                            pImage,
                                            nBlockXSize * nBlockYSize * (GDALGetDataTypeSize(eDataType) / 8));
-        nThisDataType = 
-            hHFA->papoBand[nBand-1]->papoOverviews[nThisOverview]->nDataType;
     }
 
-    if( eErr == CE_None && nThisDataType == EPT_u4 )
+    if( eErr == CE_None && nHFADataType == EPT_u4 )
     {
         GByte	*pabyData = (GByte *) pImage;
 
@@ -985,7 +998,7 @@ CPLErr HFARasterBand::IReadBlock( int nBlockXOff, int nBlockYOff,
             pabyData[ii]   = (pabyData[k]) & 0xf;
         }
     }
-    if( eErr == CE_None && nThisDataType == EPT_u2 )
+    if( eErr == CE_None && nHFADataType == EPT_u2 )
     {
         GByte	*pabyData = (GByte *) pImage;
 
@@ -998,7 +1011,7 @@ CPLErr HFARasterBand::IReadBlock( int nBlockXOff, int nBlockYOff,
             pabyData[ii]   = (pabyData[k]) & 0x3;
         }
     }
-    if( eErr == CE_None && nThisDataType == EPT_u1)
+    if( eErr == CE_None && nHFADataType == EPT_u1)
     {
         GByte	*pabyData = (GByte *) pImage;
 
@@ -1365,7 +1378,9 @@ CPLErr HFARasterBand::BuildOverviews( const char *pszResampling,
 /* -------------------------------------------------------------------- */
         if( papoOvBands[iOverview] == NULL )
         {
-            iResult = HFACreateOverview( hHFA, nBand, panOverviewList[iOverview] );
+            iResult = HFACreateOverview( hHFA, nBand, 
+                                         panOverviewList[iOverview],
+                                         pszResampling );
             if( iResult < 0 )
                 return CE_Failure;
             
@@ -2205,6 +2220,22 @@ CPLErr HFADataset::WriteProjection()
         sPro.proParams[6] = oSRS.GetProjParm(SRS_PP_FALSE_EASTING);
         sPro.proParams[7] = oSRS.GetProjParm(SRS_PP_FALSE_NORTHING);
     }
+    else if( EQUAL(pszProjName,"New_Zealand_Map_Grid") )
+    {
+        sPro.proType = EPRJ_EXTERNAL;
+        sPro.proNumber = 0;
+        sPro.proExeName = (char*) EPRJ_EXTERNAL_NZMG;
+        sPro.proName = (char*) "New Zealand Map Grid";
+        sPro.proZone = 0;
+        sPro.proParams[0] = 0;  // false easting etc not stored in .img it seems 
+        sPro.proParams[1] = 0;  // always fixed by definition. 
+        sPro.proParams[2] = 0;
+        sPro.proParams[3] = 0;
+        sPro.proParams[4] = 0;
+        sPro.proParams[5] = 0;
+        sPro.proParams[6] = 0;
+        sPro.proParams[7] = 0;
+    }
     // Anything we can't map, we store as an ESRI PE_STRING 
     else if( oSRS.IsProjected() || oSRS.IsGeographic() )
     {
@@ -2520,7 +2551,20 @@ HFAPCSStructToWKT( const Eprj_Datum *psDatum,
 
     else if( psPro->proType == EPRJ_EXTERNAL )
     {
-        oSRS.SetLocalCS( psPro->proName );
+        if( EQUALN(psPro->proExeName,EPRJ_EXTERNAL_NZMG,4) )
+        {
+            /* -------------------------------------------------------------------- */
+            /*         handle NZMG which is an external projection see              */
+            /*         http://www.linz.govt.nz/core/surveysystem/geodeticinfo\      */
+            /*                /datums-projections/projections/nzmg/index.html       */
+            /* -------------------------------------------------------------------- */
+            /* Is there a better way that doesn't require hardcoding of these numbers? */
+            oSRS.SetNZMG(-41.0,173.0,2510000,6023150);
+        }
+        else
+        {
+            oSRS.SetLocalCS( psPro->proName );
+        }
     }
 
     else if( psPro->proNumber != EPRJ_LATLONG
@@ -2601,7 +2645,7 @@ HFAPCSStructToWKT( const Eprj_Datum *psDatum,
         pszDatumName = psDatum->datumname;
 
         /* Imagine to WKT translation */
-        for( i = 0; apszDatumMap[i] != NULL; i += 2 )
+        for( i = 0; pszDatumName != NULL && apszDatumMap[i] != NULL; i += 2 )
         {
             if( EQUAL(pszDatumName,apszDatumMap[i]) )
             {
@@ -2894,7 +2938,10 @@ HFAPCSStructToWKT( const Eprj_Datum *psDatum,
     if( oSRS.GetAttrNode("GEOGCS") == NULL
         && oSRS.GetAttrNode("LOCAL_CS") == NULL )
     {
-        if( EQUAL(pszDatumName,"WGS 84") 
+        if( pszDatumName == NULL)
+            oSRS.SetGeogCS( pszDatumName, pszDatumName, pszEllipsoidName,
+                            psPro->proSpheroid.a, dfInvFlattening );
+        else if( EQUAL(pszDatumName,"WGS 84") 
             ||  EQUAL(pszDatumName,"WGS_1984") )
             oSRS.SetWellKnownGeogCS( "WGS84" );
         else if( strstr(pszDatumName,"NAD27") != NULL 
@@ -3522,6 +3569,12 @@ char **HFADataset::GetFileList()
                                       HFAGetIGEFilename( hHFA ) );
     }
 
+    // Request an overview to force opening of dependent overview
+    // files. 
+    if( nBands > 0 
+        && GetRasterBand(1)->GetOverviewCount() > 0 )
+        GetRasterBand(1)->GetOverview(0);
+
     if( hHFA->psDependent != NULL )
     {
         HFAInfo_t *psDep = hHFA->psDependent;
@@ -3661,6 +3714,106 @@ GDALDataset *HFADataset::Create( const char * pszFilenameIn,
 
     return poDS;
 
+}
+
+/************************************************************************/
+/*                               Rename()                               */
+/*                                                                      */
+/*      Custom Rename() implementation that knows how to update         */
+/*      filename references in .img and .aux files.                     */
+/************************************************************************/
+
+CPLErr HFADataset::Rename( const char *pszNewName, const char *pszOldName )
+
+{
+/* -------------------------------------------------------------------- */
+/*      Rename all the files at the filesystem level.                   */
+/* -------------------------------------------------------------------- */
+    GDALDriver *poDriver = (GDALDriver*) GDALGetDriverByName( "HFA" );
+
+    CPLErr eErr = poDriver->DefaultRename( pszNewName, pszOldName );
+    
+    if( eErr != CE_None )
+        return eErr;
+
+/* -------------------------------------------------------------------- */
+/*      Now try to go into the .img file and update RRDNames[]          */
+/*      lists.                                                          */
+/* -------------------------------------------------------------------- */
+    CPLString osOldBasename, osNewBasename;
+
+    osOldBasename = CPLGetBasename( pszOldName );
+    osNewBasename = CPLGetBasename( pszNewName );
+
+    if( osOldBasename != osNewBasename )
+    {
+        HFAHandle hHFA = HFAOpen( pszNewName, "r+" );
+
+        if( hHFA != NULL )
+        {
+            eErr = HFARenameReferences( hHFA, osNewBasename, osOldBasename );
+
+            HFAGetOverviewCount( hHFA, 1 );
+
+            if( hHFA->psDependent != NULL )
+                HFARenameReferences( hHFA->psDependent, 
+                                     osNewBasename, osOldBasename );
+
+            HFAClose( hHFA );
+        }
+    }
+
+    return eErr;
+}
+
+/************************************************************************/
+/*                             CopyFiles()                              */
+/*                                                                      */
+/*      Custom CopyFiles() implementation that knows how to update      */
+/*      filename references in .img and .aux files.                     */
+/************************************************************************/
+
+CPLErr HFADataset::CopyFiles( const char *pszNewName, const char *pszOldName )
+
+{
+/* -------------------------------------------------------------------- */
+/*      Rename all the files at the filesystem level.                   */
+/* -------------------------------------------------------------------- */
+    GDALDriver *poDriver = (GDALDriver*) GDALGetDriverByName( "HFA" );
+
+    CPLErr eErr = poDriver->DefaultCopyFiles( pszNewName, pszOldName );
+    
+    if( eErr != CE_None )
+        return eErr;
+
+/* -------------------------------------------------------------------- */
+/*      Now try to go into the .img file and update RRDNames[]          */
+/*      lists.                                                          */
+/* -------------------------------------------------------------------- */
+    CPLString osOldBasename, osNewBasename;
+
+    osOldBasename = CPLGetBasename( pszOldName );
+    osNewBasename = CPLGetBasename( pszNewName );
+
+    if( osOldBasename != osNewBasename )
+    {
+        HFAHandle hHFA = HFAOpen( pszNewName, "r+" );
+
+        if( hHFA != NULL )
+        {
+            eErr = HFARenameReferences( hHFA, osNewBasename, osOldBasename );
+
+            HFAGetOverviewCount( hHFA, 1 );
+
+            if( hHFA->psDependent != NULL )
+                HFARenameReferences( hHFA->psDependent, 
+                                     osNewBasename, osOldBasename );
+
+            HFAClose( hHFA );
+        }
+    }
+
+    return eErr;
 }
 
 /************************************************************************/
@@ -3945,6 +4098,9 @@ void GDALRegister_HFA()
         poDriver->pfnCreate = HFADataset::Create;
         poDriver->pfnCreateCopy = HFADataset::CreateCopy;
         poDriver->pfnIdentify = HFADataset::Identify;
+        poDriver->pfnRename = HFADataset::Rename;
+        poDriver->pfnCopyFiles = HFADataset::CopyFiles;
+        
 
         GetGDALDriverManager()->RegisterDriver( poDriver );
     }

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrvrtlayer.cpp 20825 2010-10-13 20:50:04Z rouault $
+ * $Id: ogrvrtlayer.cpp 20827 2010-10-13 20:57:50Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implements OGRVRTLayer class.
@@ -32,7 +32,7 @@
 #include "cpl_string.h"
 #include <string>
 
-CPL_CVSID("$Id: ogrvrtlayer.cpp 20825 2010-10-13 20:50:04Z rouault $");
+CPL_CVSID("$Id: ogrvrtlayer.cpp 20827 2010-10-13 20:57:50Z rouault $");
 
 typedef struct 
 {
@@ -192,9 +192,8 @@ int OGRVRTLayer::Initialize( CPLXMLNode *psLTree, const char *pszVRTDirectory,
 
     bSrcDSShared = CSLTestBoolean( pszSharedSetting );
 
-    // update mode doesn't make sense for a shared datasource or if we
-    // have a SrcSQL element
-    if (bSrcDSShared || CPLGetXMLValue( psLTree, "SrcSQL", NULL ) != NULL)
+    // update mode doesn't make sense if we have a SrcSQL element
+    if (CPLGetXMLValue( psLTree, "SrcSQL", NULL ) != NULL)
         bUpdate = FALSE;
 
 /* -------------------------------------------------------------------- */
@@ -682,6 +681,9 @@ int OGRVRTLayer::ResetSourceReading()
                     pszXField, sEnvelope.MaxX,
                     pszYField, sEnvelope.MinY,
                     pszYField, sEnvelope.MaxY );
+            char* pszComma;
+            while((pszComma = strchr(pszFilter, ',')) != NULL)
+                *pszComma = '.';
         }
     }
 
@@ -971,8 +973,11 @@ retry:
         {
             /* Eventually we need to offer some more sophisticated translation
                options here for more esoteric types. */
-            
-            poDstFeat->SetField( iVRTField, 
+            if (poDstDefn->GetType() == OFTReal)
+                poDstFeat->SetField( iVRTField, 
+                                 poSrcFeat->GetFieldAsDouble(anSrcField[iVRTField]));
+            else
+                poDstFeat->SetField( iVRTField, 
                                  poSrcFeat->GetFieldAsString(anSrcField[iVRTField]));
         }
     }
@@ -1291,29 +1296,29 @@ OGRErr OGRVRTLayer::SetAttributeFilter( const char *pszNewQuery )
 int OGRVRTLayer::TestCapability( const char * pszCap )
 
 {
-    if ((EQUAL(pszCap,OLCFastFeatureCount) ||
-         EQUAL(pszCap,OLCFastSetNextByIndex)) &&
-        (eGeometryType == VGS_Direct ||
-         (poSrcRegion == NULL && m_poFilterGeom == NULL)) &&
-        m_poAttrQuery == NULL )
-        return poSrcLayer->TestCapability(pszCap);
+    if ( EQUAL(pszCap,OLCFastFeatureCount) ||
+         EQUAL(pszCap,OLCFastSetNextByIndex) )
+        return (eGeometryType == VGS_Direct ||
+               (poSrcRegion == NULL && m_poFilterGeom == NULL)) &&
+               m_poAttrQuery == NULL &&
+               poSrcLayer->TestCapability(pszCap);
 
-    else if( EQUAL(pszCap,OLCFastSpatialFilter) &&
-             eGeometryType == VGS_Direct && m_poAttrQuery == NULL )
-        return poSrcLayer->TestCapability(pszCap);
+    else if( EQUAL(pszCap,OLCFastSpatialFilter) )
+        return eGeometryType == VGS_Direct && m_poAttrQuery == NULL &&
+               poSrcLayer->TestCapability(pszCap);
 
-    else if (EQUAL(pszCap,OLCFastGetExtent) &&
-             eGeometryType == VGS_Direct &&
-             m_poAttrQuery == NULL &&
-             poSrcRegion == NULL)
-        return poSrcLayer->TestCapability(pszCap);
+    else if ( EQUAL(pszCap,OLCFastGetExtent) )
+        return eGeometryType == VGS_Direct &&
+               m_poAttrQuery == NULL &&
+               poSrcRegion == NULL &&
+               poSrcLayer->TestCapability(pszCap);
 
-    else if( EQUAL(pszCap,OLCRandomRead) && iFIDField == -1 )
-        return poSrcLayer->TestCapability(pszCap);
+    else if( EQUAL(pszCap,OLCRandomRead) )
+        return iFIDField == -1 && poSrcLayer->TestCapability(pszCap);
 
     else if( EQUAL(pszCap,OLCSequentialWrite) 
              || EQUAL(pszCap,OLCRandomWrite)
-             || EQUAL(pszCap,OLCDeleteFeature))
+             || EQUAL(pszCap,OLCDeleteFeature) )
         return bUpdate && iFIDField == -1 && poSrcLayer->TestCapability(pszCap);
 
     else if( EQUAL(pszCap,OLCStringsAsUTF8) )
@@ -1379,6 +1384,15 @@ void OGRVRTLayer::SetSpatialFilter( OGRGeometry * poGeomIn )
     if (eGeometryType == VGS_Direct)
         bNeedReset = TRUE;
     OGRLayer::SetSpatialFilter(poGeomIn);
+}
+
+/************************************************************************/
+/*                             SyncToDisk()                             */
+/************************************************************************/
+
+OGRErr OGRVRTLayer::SyncToDisk()
+{
+    return poSrcLayer->SyncToDisk();
 }
 
 /************************************************************************/

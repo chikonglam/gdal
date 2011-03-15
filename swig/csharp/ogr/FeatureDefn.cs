@@ -119,6 +119,28 @@ public class FeatureDefn : IDisposable {
     return ret;
   }
 
+  public int IsGeometryIgnored() {
+    int ret = OgrPINVOKE.FeatureDefn_IsGeometryIgnored(swigCPtr);
+    if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
+    return ret;
+  }
+
+  public void SetGeometryIgnored(int bIgnored) {
+    OgrPINVOKE.FeatureDefn_SetGeometryIgnored(swigCPtr, bIgnored);
+    if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
+  }
+
+  public int IsStyleIgnored() {
+    int ret = OgrPINVOKE.FeatureDefn_IsStyleIgnored(swigCPtr);
+    if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
+    return ret;
+  }
+
+  public void SetStyleIgnored(int bIgnored) {
+    OgrPINVOKE.FeatureDefn_SetStyleIgnored(swigCPtr, bIgnored);
+    if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
+  }
+
 }
 
 }

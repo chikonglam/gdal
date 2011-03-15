@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: typemaps_java.i 18044 2009-11-18 21:26:29Z rouault $
+ * $Id: typemaps_java.i 20641 2010-09-18 11:35:15Z rouault $
  *
  * Name:     typemaps_java.i
  * Project:  GDAL SWIG Interface
@@ -1112,14 +1112,14 @@
 
 
 /***************************************************
- * Typemaps for char **out_ppsz_and_free
+ * Typemaps for char** CSL
  ***************************************************/
 
 /* Almost same as %typemap(out) char **options */
 /* but we CSLDestroy the char** pointer at the end */
-%typemap(out) char **out_ppsz_and_free
+%typemap(out) char **CSL
 {
-  /* %typemap(out) char **out_ppsz_and_free -> vector of strings */
+  /* %typemap(out) char **CSL -> vector of strings */
   char **stringarray = $1;
   const jclass vector = jenv->FindClass("java/util/Vector");
   const jmethodID constructor = jenv->GetMethodID(vector, "<init>", "()V");
@@ -1138,11 +1138,11 @@
   CSLDestroy($1);
 }
 
-%typemap(jni) (char **out_ppsz_and_free) "jobject"
-%typemap(jtype) (char **out_ppsz_and_free) "java.util.Vector"
-%typemap(jstype) (char **out_ppsz_and_free) "java.util.Vector"
-%typemap(javain) (char **out_ppsz_and_free) "$javainput"
-%typemap(javaout) (char **out_ppsz_and_free) {
+%typemap(jni) (char **CSL) "jobject"
+%typemap(jtype) (char **CSL) "java.util.Vector"
+%typemap(jstype) (char **CSL) "java.util.Vector"
+%typemap(javain) (char **CSL) "$javainput"
+%typemap(javaout) (char **CSL) {
     return $jnicall;
   }
 

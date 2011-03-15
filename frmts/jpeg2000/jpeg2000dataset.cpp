@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: jpeg2000dataset.cpp 18317 2009-12-16 20:36:48Z rouault $
+ * $Id: jpeg2000dataset.cpp 20599 2010-09-12 22:13:18Z rouault $
  *
  * Project:  JPEG-2000
  * Purpose:  Partial implementation of the ISO/IEC 15444-1 standard
@@ -34,7 +34,7 @@
 #include <jasper/jasper.h>
 #include "jpeg2000_vsil_io.h"
 
-CPL_CVSID("$Id: jpeg2000dataset.cpp 18317 2009-12-16 20:36:48Z rouault $");
+CPL_CVSID("$Id: jpeg2000dataset.cpp 20599 2010-09-12 22:13:18Z rouault $");
 
 CPL_C_START
 void    GDALRegister_JPEG2000(void);
@@ -486,8 +486,8 @@ int JPEG2000Dataset::DecodeImage()
                      "The dimensions indicated in the IHDR box (%d x %d) mismatch "
                      "the value specified in the code stream (%d x %d)",
                      nRasterXSize, nRasterYSize,
-                     jas_image_cmptwidth( psImage, 0 ),
-                     jas_image_cmptheight( psImage, 0 ));
+                     (int)jas_image_cmptwidth( psImage, 0 ),
+                     (int)jas_image_cmptheight( psImage, 0 ));
             jas_image_destroy( psImage );
             psImage = NULL;
             return FALSE;
@@ -709,7 +709,7 @@ GDALDataset *JPEG2000Dataset::Open( GDALOpenInfo * poOpenInfo )
                           "width=%d, height=%d, numcmpts=%d, bpp=%d",
                           (int)box->data.ihdr.width, (int)box->data.ihdr.height,
                           (int)box->data.ihdr.numcmpts, (box->data.ihdr.bpc & 0x7F) + 1 );
-                /* ISO/IEC 15444-1:2004 §I.5.3.1 specifies that 255 means that all */
+                /* ISO/IEC 15444-1:2004 I.5.3.1 specifies that 255 means that all */
                 /* components have not the same bit depth and/or sign and that a */
                 /* BPCC box must then follow to specify them for each component */
                 if ( box->data.ihdr.bpc != 255 )

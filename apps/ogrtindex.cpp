@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrtindex.cpp 17890 2009-10-24 15:51:01Z rouault $
+ * $Id: ogrtindex.cpp 19803 2010-06-05 11:05:38Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Program to generate a UMN MapServer compatible tile index for a
@@ -31,10 +31,11 @@
 #include "ogrsf_frmts.h"
 #include "cpl_conv.h"
 #include "cpl_string.h"
+#include "ogr_api.h"
 
 #include <cassert>
 
-CPL_CVSID("$Id: ogrtindex.cpp 17890 2009-10-24 15:51:01Z rouault $");
+CPL_CVSID("$Id: ogrtindex.cpp 19803 2010-06-05 11:05:38Z rouault $");
 
 static void Usage();
 
@@ -544,6 +545,8 @@ int main( int nArgc, char ** papszArgv )
         }
         CPLFree(existingLayersTab);
     }
+
+    OGRCleanupAll();
 
     return 0;
 }

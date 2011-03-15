@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_pg.h 19243 2010-03-28 19:30:33Z rouault $
+ * $Id: ogr_pg.h 21037 2010-11-01 12:59:54Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Private definitions for OGR/PostgreSQL driver.
@@ -142,7 +142,7 @@ class OGRPGLayer : public OGRLayer
 
     virtual void        ResetReading();
 
-    OGRFeatureDefn *    GetLayerDefn() { return poFeatureDefn; }
+    virtual OGRFeatureDefn *    GetLayerDefn();
 
     virtual OGRErr      StartTransaction();
     virtual OGRErr      CommitTransaction();
@@ -164,16 +164,18 @@ class OGRPGLayer : public OGRLayer
 /*                           OGRPGTableLayer                            */
 /************************************************************************/
 
+typedef enum
+{
+    GEOM_TYPE_UNKNOWN = 0,
+    GEOM_TYPE_GEOMETRY = 1,
+    GEOM_TYPE_GEOGRAPHY = 2
+} PostgisType;
 
 class OGRPGTableLayer : public OGRPGLayer
 {
     int                 bUpdateAccess;
 
-    OGRFeatureDefn     *ReadTableDefinition(CPLString& osCurrentSchema,
-                                            const char * pszTableName,
-                                            const char * pszSchemaName,
-                                            const char * pszGeomColumnIn,
-                                            int bAdvertizeGeomColumn);
+    OGRFeatureDefn     *ReadTableDefinition();
 
     void                BuildWhere(void);
     CPLString           BuildFields(void);
@@ -183,8 +185,15 @@ class OGRPGTableLayer : public OGRPGLayer
     char               *pszSchemaName;
     char               *pszSqlTableName;
 
+    CPLString           osPrimaryKey;
+
+    int                 bGeometryInformationSet;
+    OGRwkbGeometryType  nGeomType;
+
     /* Name of the parent table with the geometry definition if it is a derived table or NULL */
-    char               *pszSqlGeomParentTableName; 
+    char               *pszSqlGeomParentTableName;
+
+    CPLString           osDefnName;
 
     CPLString           osQuery;
     CPLString           osWHERE;
@@ -203,7 +212,10 @@ class OGRPGTableLayer : public OGRPGLayer
                   
     int                 bHasWarnedIncompatibleGeom;
     void                CheckGeomTypeCompatibility(OGRGeometry* poGeom);
-    
+
+    int                 bRetrieveFID;
+    int                 bHasWarnedAlreadySetFID;
+
 public:
                         OGRPGTableLayer( OGRPGDataSource *,
                                          CPLString& osCurrentSchema,
@@ -214,6 +226,16 @@ public:
                                          int bAdvertizeGeomColumn,
                                          int nSRSId = -2 );
                         ~OGRPGTableLayer();
+
+    void                SetGeometryInformation(const char* pszGeomType,
+                                               int nCoordDimension,
+                                               int nSRID,
+                                               PostgisType ePostgisType);
+
+    virtual const char  *GetName() { return osDefnName.c_str(); }
+    virtual OGRwkbGeometryType GetGeomType();
+
+    virtual OGRFeatureDefn *    GetLayerDefn();
 
     virtual OGRFeature *GetFeature( long nFeatureId );
     virtual void        ResetReading();
@@ -248,6 +270,8 @@ public:
 
     virtual OGRErr      StartCopy();
     virtual OGRErr      EndCopy();
+
+    OGRFeatureDefn     *GetLayerDefnCanReturnNULL();
 };
 
 /************************************************************************/
@@ -321,7 +345,7 @@ class OGRPGDataSource : public OGRDataSource
 
     OGRPGTableLayer     *poLayerInCopyMode;
 
-    void                OGRPGDecodeVersionString(PGver* psVersion, char* pszVer);
+    void                OGRPGDecodeVersionString(PGver* psVersion, const char* pszVer);
 
     CPLString           GetCurrentSchema();
 
@@ -343,7 +367,7 @@ class OGRPGDataSource : public OGRDataSource
     OGRErr              InitializeMetadataTables();
 
     int                 Open( const char *, int bUpdate, int bTestOpen );
-    int                 OpenTable( CPLString& osCurrentSchema,
+    OGRPGTableLayer*    OpenTable( CPLString& osCurrentSchema,
                                    const char * pszTableName,
                                    const char * pszSchemaName,
                                    const char * pszGeomColumnIn,

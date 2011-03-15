@@ -1,6 +1,12 @@
-# $Id: nmake.opt 18515 2010-01-10 19:59:11Z rouault $
+# $Id: nmake.opt 21481 2011-01-13 02:57:51Z warmerdam $
 #
 # nmake.opt - main configuration file for NMAKE makefiles.
+#
+# Usage examples (see details below):
+# nmake -f makefile.vc
+# nmake -f makefile.vc MSVC_VER=1400
+# nmake -f makefile.vc MSVC_VER=1500 DEBUG=1
+# nmake -f makefile.vc MSVC_VER=1600 DEBUG=1 ANALYZE=1
 #
 ###############################################################################
 # For convenience, user may put custom settings to private mynmake.opt
@@ -22,8 +28,8 @@
 # 1200 = 6.0
 #
 !IFNDEF MSVC_VER
-#assume msvc 7.1
-MSVC_VER=1310
+#assume msvc VS2008.
+MSVC_VER=1600
 !ENDIF
 
 ###############################################################################
@@ -41,12 +47,24 @@ MSVC_VER=1310
 !IFNDEF GDAL_HOME
 GDAL_HOME = "C:\warmerda\bld"
 !ENDIF
+!IFNDEF BINDIR
 BINDIR = $(GDAL_HOME)\bin
+!ENDIF
+!IFNDEF PLUGINDIR
 PLUGINDIR = $(BINDIR)\gdalplugins
+!ENDIF
+!IFNDEF LIBDIR
 LIBDIR = $(GDAL_HOME)\lib
+!ENDIF
+!IFNDEF INCDIR
 INCDIR = $(GDAL_HOME)\include
+!ENDIF
+!IFNDEF DATADIR
 DATADIR = $(GDAL_HOME)\data
+!ENDIF
+!IFNDEF HTMLDIR
 HTMLDIR = $(GDAL_HOME)\html
+!ENDIF
 
 # Set this to the installed directory containing python.  If you don't
 # have python just let it point to a directory that does not exist (as now).
@@ -73,18 +91,27 @@ JAR=$(JAVA_HOME)\bin\jar
 JAVA_INCLUDE=-I$(JAVA_HOME)\include -I$(JAVA_HOME)\include\win32
 
 # Compilation flags
+
+# Enable code analyzis on request
+# http://msdn.microsoft.com/en-us/library/ms173498.aspx
+!IFDEF ANALYZE
+CXX_ANALYZE_FLAGS=/analyze
+!ELSE
+CXX_ANALYZE_FLAGS=
+!ENDIF
+
 !IFNDEF OPTFLAGS
 !IF $(MSVC_VER) >= 1400
 !IFNDEF DEBUG
-OPTFLAGS= /nologo /MD /EHsc /Ox /W3 /D_CRT_SECURE_NO_DEPRECATE /D_CRT_NONSTDC_NO_DEPRECATE /DNDEBUG
+OPTFLAGS= $(CXX_ANALYZE_FLAGS) /nologo /MD /EHsc /Ox /W3 /D_CRT_SECURE_NO_DEPRECATE /D_CRT_NONSTDC_NO_DEPRECATE /DNDEBUG
 !ELSE
-OPTFLAGS= /nologo /MD /EHsc /Zi /W4 /D_CRT_SECURE_NO_DEPRECATE /D_CRT_NONSTDC_NO_DEPRECATE /Fd$(GDAL_ROOT)\gdal$(VERSION).pdb
+OPTFLAGS= $(CXX_ANALYZE_FLAGS) /nologo /MD /EHsc /Zi /W4 /D_CRT_SECURE_NO_DEPRECATE /D_CRT_NONSTDC_NO_DEPRECATE /Fd$(GDAL_ROOT)\gdal$(VERSION).pdb /DDEBUG
 !ENDIF
 !ELSE
 !IFNDEF DEBUG
 OPTFLAGS=	/nologo /MD /EHsc /GR /Ox /W3 /DNDEBUG
 !ELSE
-OPTFLAGS=	/nologo /MD /EHsc /GR /Zi /W4 /Fd$(GDAL_ROOT)\gdal$(VERSION).pdb
+OPTFLAGS=	/nologo /MD /EHsc /GR /Zi /W4 /Fd$(GDAL_ROOT)\gdal$(VERSION).pdb  /DDEBUG
 !ENDIF
 !ENDIF  #MSVC_VER
 !ENDIF  # OPTFLAGS
@@ -105,7 +132,7 @@ LDEBUG= /debug
 STDCALL=YES
 
 # Version number embedded in DLL name. 
-VERSION =	17
+VERSION =	18
 
 # Comment the following out if you want PAM supported disabled
 # by default.  
@@ -120,7 +147,7 @@ DLLBUILD=1
 INCLUDE_OGR_FRMTS = YES
 
 # Location of Visual C++ directory (only required for following SETARGV stuff)
-VCDIR   = 	"D:\Software\VStudio\VC98"
+#VCDIR   = 	"D:\Software\VStudio\VC98"
 
 # Enable the following if VCDIR set properly, and you want the utility
 # programs to be able to expand wildcards. 
@@ -159,10 +186,50 @@ JPEG12_SUPPORTED = 1
 #GEOTIFF_INC =   -Ic:/warmerda/libgeotiff -Ic:/warmerda/libgeotiff/libxtiff
 #GEOTIFF_LIB =   C:/warmerda/libgeotiff/geotiff_i.lib
 
-# Uncomment the following and update to enable ECW support.
-#ECW_PLUGIN = NO
+# Uncomment out the following lines to enable LibKML support.
+#LIBKML_DIR = C:/Dev/libkml
+#LIBKML_INCLUDE = -I$(LIBKML_DIR)/src -I$(LIBKML_DIR)/third_party/boost_1_34_1
+#LIBKML_LIBRARY = $(LIBKML_DIR)/msvc/Release
+#LIBKML_LIBS =	$(LIBKML_LIBRARY)/libkmlbase.lib \
+#		$(LIBKML_LIBRARY)/libkmlconvenience.lib \
+#		$(LIBKML_LIBRARY)/libkmldom.lib \
+#		$(LIBKML_LIBRARY)/libkmlengine.lib \
+#		$(LIBKML_LIBRARY)/libkmlregionator.lib \
+#		$(LIBKML_LIBRARY)/libkmlxsd.lib \
+#		$(LIBKML_LIBRARY)/minizip_static.lib \
+#		$(LIBKML_DIR)/third_party\expat.win32/libexpat.lib \
+#		$(LIBKML_DIR)/third_party\uriparser-0.7.5.win32/release/uriparser.lib \
+#		$(LIBKML_DIR)/third_party\zlib-1.2.3.win32/lib/minizip.lib \
+#		$(LIBKML_DIR)/third_party\zlib-1.2.3.win32/lib/zlib.lib
+							
+# Uncomment the following and update to enable ECW read support with the 
+# 4.1+ readonly SDK
+#ECWDIR  = 	"c:/Program Files/ERDAS/ERDAS ECW JPEG2000 Read SDK"
+#ECWFLAGS =	-DECWSDK_VERSION=41 \
+#		-I$(ECWDIR)\include \
+#		-I$(ECWDIR)\include/ecw/api -I$(ECWDIR)\include/ecw/jp2 \
+#		-I$(ECWDIR)\include/ecw/ecw
+#ECWLIB  = 	$(ECWDIR)\lib\vc90\win32\NCSEcw4_RO.lib \
+#		$(ECWDIR)\lib\vc90\win32\NCSUtil4.lib \
+#		$(ECWDIR)\lib\vc90\win32\NCScnet4.lib
+
+# To add Write support, use the write SDK, change NCSEcw4_RO.lib to 
+# NCSEcw4.lib, and add -DHAVE_COMPRESS to ECWFLAGS.  The ECWDIR setting will
+# also need some adjustment. 
+
+# To build ECW support as a plugin uncomment the following, and make sure
+# to do "nmake /f makefile.vc plugin" in gdal/frmts/ecw and copy the two
+# resulting DLLs to an appropriate place.
+#ECW_PLUGIN = YES
+
+# Uncomment the following and update to enable ECW support with the 3.3 SDK.
+# Significant adaption may be needed.
 #ECWDIR  = 	C:\warmerda\libecwj2-3.3
 #ECWLIB  = 	$(ECWDIR)\Source\NCSBuildQmake\Debug\libecwj2.lib
+#ECWFLAGS = 	-DECWSDK_VERSION=33 \
+#		-I$(ECWDIR)\include -I$(ECWDIR)/Source/include \
+#		/D_MBCS /D_UNICODE /DUNICODE /D_WINDOWS \
+#		/DLIBECWJ2 /DWIN32 /D_WINDLL -DNO_X86_MMI
 
 # DWG/DXF support via DWGdirect from Open Design Alliance
 
@@ -185,9 +252,6 @@ JPEG12_SUPPORTED = 1
 #XERCES_DIR =	c:\warmerda\supportlibs\xerces-c_2_6_0
 #XERCES_INCLUDE = -I$(XERCES_DIR)/include -I$(XERCES_DIR)/include/xercesc
 #XERCES_LIB = $(XERCES_DIR)/lib/xerces-c_2.lib
-
-# Uncomment if the NAS source is available, and Xerces is available.
-#NAS_ENABLED = YES
 
 # Uncomment the following for Interlis support.  Note that a Xercex 2.x
 # is also required (see above).  Also, Interlis support only works with
@@ -217,24 +281,20 @@ JPEG12_SUPPORTED = 1
 #HDF5_DIR =	c:\warmerda\supportlibs\hdf5\5-164-win
 #HDF5_LIB =	$(HDF5_DIR)\dll\hdf5dll.lib 
 
-# Uncomment the following for MrSID support.
-# You will likely require /MD and /EHsc in OPTFLAGS. 
+# Uncomment the following for MrSID support.  Only MRSID_DIR is required,
+# which may point to a MrSID Raster SDK, Lidar SDK, or the combined SDK, and
+# will auto-configure the mrsid and/or mrsid_lidar drivers as appropriate.
+# Other configuration options can be specified to control specific features
+# that may be available.  See comments at the top of frmts/mrsid/nmake.opt
+# for more details.
 #MRSID_DIR =	d:\projects\mrsid
-#MRSID_INCLUDE = -I$(MRSID_DIR)\include\base -I$(MRSID_DIR)\include\support \
-#		-I$(MRSID_DIR)\include\metadata \
-#		-I$(MRSID_DIR)\include\mrsid_readers \
-#		-I$(MRSID_DIR)\include\j2k_readers
-#MRSID_LIB =	$(MRSID_DIR)\lib\Release_md\lti_dsdk_dll.lib advapi32.lib user32.lib
-# Comment out the following to supress JP2MRSID driver. 
-#MRSID_FLAGS =	-DMRSID_J2K
-# Enable these, if you have the MrSID Encoding SDK and want
-# to create MrSID files
-#MRSID_FLAGS =	-DMRSID_ESDK $(MRSID_FLAGS)
-#MRSID_INCLUDE = -I$(MRSID_DIR)\include\mrsid_writers \
-#		-I$(MRSID_DIR)\include\j2k_writers $(MRSID_INCLUDE)
-#MRSID_LIB =	$(MRSID_DIR)\lib\Release_md\lti_esdk_dll.lib $(MRSID_LIB)
-# Enable the following if you prefer to build MrSID support as a plugin.
-#MRSID_PLUGIN = YES
+#MRSID_JP2 =    YES
+
+!IF DEFINED(MRSID_DIR) || DEFINED(MRSID_RASTER_DIR) || DEFINED(MRSID_LIDAR_DIR)
+!IF EXIST(frmts\mrsid\nmake.opt)
+!INCLUDE frmts\mrsid\nmake.opt
+!ENDIF
+!ENDIF
 
 # PCIDSK Libraries - default configuration uses internal implementation
 PCIDSK_SETTING=INTERNAL
@@ -311,6 +371,17 @@ OCI_INCLUDE =	-I$(ORACLE_HOME)\oci\include
 #SDE_LIB = $(SDE_SDK)\lib\pe$(SDE_VERSION).lib \
 #          $(SDE_SDK)\lib\sde$(SDE_VERSION).lib $(SDE_SDK)\lib\sg$(SDE_VERSION).lib      
 
+#uncomment to use ArcObjects
+#ARCOBJECTS_ENABLED = YES
+#ARCOBJECTS_PLUGIN = YES
+#ARCOBJECTS_SDK = C:\PROGRA~2\ArcGIS\com
+#ARCOBJECTS_INC = $(ARCOBJECTS_SDK)\..\include
+#
+#Interestingly, since this is a COM application, we don't link against external libraries,
+#but we still need to link the app, so we put the generic user32.lib to force the linking process
+#ARCOBJECTS_LIB = user32.lib
+
+
 # Uncomment to use libcurl (DLL by default)
 # The cURL library is used for WCS, WMS, GeoJSON, SRS call importFromUrl(), etc.
 #CURL_DIR=C:\curl-7.15.0
@@ -332,8 +403,30 @@ OCI_INCLUDE =	-I$(ORACLE_HOME)\oci\include
 #GEOS_CFLAGS = -I$(GEOS_DIR)/capi -I$(GEOS_DIR)/source/headers -DHAVE_GEOS
 #GEOS_LIB     = $(GEOS_DIR)/source/geos_c_i.lib
 
+# Uncomment for SOSI support
+#SOSI_ENABLED = YES
+#SOSI_INC_DIR = e:/sosi
+#SOSI_LIBS = e:/sosi/FYBA.lib e:/sosi/GM.lib e:/sosi/UT.lib
+
+# Uncomment for OpenJpeg support
+#OPENJPEG_ENABLED = YES
+#OPENJPEG_CFLAGS = -IC:\openjpeg\libopenjpeg
+#OPENJPEG_LIB = C:\openjpeg\bin\Release\openjpeg.lib
+
+# Uncomment for PDF support
+# Uncomment POPPLER_BASE_STREAM_HAS_TWO_ARGS = YES for Poppler >= 0.16.0
+#POPPLER_ENABLED = YES
+#POPPLER_CFLAGS = -Ie:/kde/include -Ie:/kde/include/poppler
+#POPPLER_HAS_OPTCONTENT = YES
+#POPPLER_BASE_STREAM_HAS_TWO_ARGS = YES
+#POPPLER_LIBS = e:/kde/lib/poppler.lib e:/kde/lib/freetype.lib e:/kde/lib/liblcms-1.lib advapi32.lib gdi32.lib
+
+# Uncomment for LZMA TIFF support
+#LZMA_CFLAGS = -IC:/gdal_trunk/xz-5.0.0-windows/include
+#LZMA_LIBS = C:/gdal_trunk/xz-5.0.0-windows/bin_i486/liblzma.lib
+
 # Any extra libraries needed on this platform?
-ADD_LIBS	=
+ADD_LIBS	= 
 
 # Comment out the following if you want to build with Python support, but
 # you don't have Numeric Python installed (with include files).  Numeric
@@ -384,8 +477,7 @@ GDALLIB	=    $(GDAL_ROOT)/gdal.lib
 ODBCLIB = odbc32.lib odbccp32.lib user32.lib
 !ENDIF
 
-
-!IFDEF MRSID_DIR
+!IF DEFINED(MRSID_DIR) || DEFINED(MRSID_RASTER_DIR) || DEFINED(MRSID_LIDAR_DIR)
 !IF "$(MRSID_PLUGIN)" != "YES"
 MRSID_LIB_LINK = $(MRSID_LIB)
 !ELSE
@@ -433,6 +525,10 @@ HDF5_LIB_LINK =
 !ENDIF
 !ENDIF
 
+!IFDEF XERCES_DIR
+NAS_ENABLED = YES
+!ENDIF
+
 # Under win64, symbols for function names lack the underscore prefix
 # present on win32. Also the STDCALL calling convention is not used.
 !IFDEF WIN64
@@ -445,9 +541,10 @@ EXTERNAL_LIBS =	$(OGDILIB) $(XERCES_LIB) $(EXPAT_LIB) $(OCI_LIB) $(PG_LIB) \
 	$(ECW_LIB_LINK) $(HDF4_LIB_LINK) $(FME_LIB) $(MRSID_LIB_LINK) \
 	$(FITS_LIB_LINK) $(JPEG_LIB) $(NETCDF_LIB_LINK) $(PROJ4_LIB) \
 	$(GEOTIFF_LIB) $(TIFF_LIB) $(PROJ_LIBRARY) $(SQLITE_LIB) \
-	$(MYSQL_LIB) $(GEOS_LIB) $(HDF5_LIB_LINK) $(SDE_LIB) $(DWG_LIB) \
+	$(MYSQL_LIB) $(GEOS_LIB) $(HDF5_LIB_LINK) $(SDE_LIB) $(ARCOBJECTS_LIB) $(DWG_LIB) \
 	$(IDB_LIB) $(CURL_LIB) $(DODS_LIB) $(KAKLIB) $(PCIDSK_LIB) \
-	$(ODBCLIB) $(JASPER_LIB) $(PNG_LIB) $(ADD_LIBS) 
+	$(ODBCLIB) $(JASPER_LIB) $(PNG_LIB) $(ADD_LIBS) $(OPENJPEG_LIB) \
+	$(MRSID_LIDAR_LIB) $(LIBKML_LIBS) $(SOSI_LIBS) $(POPPLER_LIBS) $(LZMA_LIBS)
 		
 .c.obj:	
 	$(CC) $(CFLAGS) /c $*.c

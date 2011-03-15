@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gribdataset.cpp 20431 2010-08-25 14:08:18Z gaige $
+ * $Id: gribdataset.cpp 20996 2010-10-28 18:38:15Z rouault $
  *
  * Project:  GRIB Driver
  * Purpose:  GDALDataset driver for GRIB translator for read support
@@ -40,7 +40,7 @@
 
 #include "ogr_spatialref.h"
 
-CPL_CVSID("$Id: gribdataset.cpp 20431 2010-08-25 14:08:18Z gaige $");
+CPL_CVSID("$Id: gribdataset.cpp 20996 2010-10-28 18:38:15Z rouault $");
 
 CPL_C_START
 void	GDALRegister_GRIB(void);
@@ -69,7 +69,7 @@ class GRIBDataset : public GDALPamDataset
     const char *GetProjectionRef();
 	private:
 		void SetGribMetaData(grib_MetaData* meta);
-    FILE	*fp;
+    VSILFILE	*fp;
     char  *pszProjection;
 		char  *pszDescription;
     OGRCoordinateTransformation *poTransform;
@@ -447,9 +447,6 @@ GDALDataset *GRIBDataset::Open( GDALOpenInfo * poOpenInfo )
 /* -------------------------------------------------------------------- */
 /*      A fast "probe" on the header that is partially read in memory.  */
 /* -------------------------------------------------------------------- */
-    if( poOpenInfo->fp == NULL)
-        return NULL;
-
     char *buff = NULL;
     uInt4 buffLen = 0;
     sInt4 sect0[SECT0LEN_WORD];
@@ -745,6 +742,7 @@ void GDALRegister_GRIB()
         poDriver->SetMetadataItem( GDAL_DMD_HELPTOPIC, 
                                    "frmt_grib.html" );
         poDriver->SetMetadataItem( GDAL_DMD_EXTENSION, "grb" );
+        poDriver->SetMetadataItem( GDAL_DCAP_VIRTUALIO, "YES" );
 
         poDriver->pfnOpen = GRIBDataset::Open;
         poDriver->pfnIdentify = GRIBDataset::Identify;

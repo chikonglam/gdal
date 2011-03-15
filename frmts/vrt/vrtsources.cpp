@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: vrtsources.cpp 17852 2009-10-18 11:15:09Z rouault $
+ * $Id: vrtsources.cpp 20964 2010-10-25 23:44:34Z rouault $
  *
  * Project:  Virtual GDAL Datasets
  * Purpose:  Implementation of VRTSimpleSource, VRTFuncSource and 
@@ -28,14 +28,14 @@
  * DEALINGS IN THE SOFTWARE.
  ****************************************************************************/
 
-#include <algorithm>
-
 #include "vrtdataset.h"
 #include "gdal_proxy.h"
 #include "cpl_minixml.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: vrtsources.cpp 17852 2009-10-18 11:15:09Z rouault $");
+#include <algorithm>
+
+CPL_CVSID("$Id: vrtsources.cpp 20964 2010-10-25 23:44:34Z rouault $");
 
 /************************************************************************/
 /* ==================================================================== */
@@ -70,6 +70,7 @@ VRTSimpleSource::VRTSimpleSource()
 
 {
     poRasterBand = NULL;
+    poMaskBandMainBand = NULL;
     bNoDataSet = FALSE;
 }
 
@@ -80,7 +81,17 @@ VRTSimpleSource::VRTSimpleSource()
 VRTSimpleSource::~VRTSimpleSource()
 
 {
-    if( poRasterBand != NULL && poRasterBand->GetDataset() != NULL )
+    if( poMaskBandMainBand != NULL )
+    {
+        if (poMaskBandMainBand->GetDataset() != NULL )
+        {
+            if( poMaskBandMainBand->GetDataset()->GetShared() )
+                GDALClose( (GDALDatasetH) poMaskBandMainBand->GetDataset() );
+            else
+                poMaskBandMainBand->GetDataset()->Dereference();
+        }
+    }
+    else if( poRasterBand != NULL && poRasterBand->GetDataset() != NULL )
     {
         if( poRasterBand->GetDataset()->GetShared() )
             GDALClose( (GDALDatasetH) poRasterBand->GetDataset() );
@@ -97,6 +108,19 @@ void VRTSimpleSource::SetSrcBand( GDALRasterBand *poNewSrcBand )
 
 {
     poRasterBand = poNewSrcBand;
+}
+
+
+/************************************************************************/
+/*                          SetSrcMaskBand()                            */
+/************************************************************************/
+
+/* poSrcBand is not the mask band, but the band from which the mask band is taken */
+void VRTSimpleSource::SetSrcMaskBand( GDALRasterBand *poNewSrcBand )
+
+{
+    poRasterBand = poNewSrcBand->GetMaskBand();
+    poMaskBandMainBand = poNewSrcBand;
 }
 
 /************************************************************************/
@@ -161,16 +185,40 @@ CPLXMLNode *VRTSimpleSource::SerializeToXML( const char *pszVRTPath )
     if( poRasterBand == NULL )
         return NULL;
 
-    GDALDataset     *poDS = poRasterBand->GetDataset();
+    GDALDataset     *poDS;
 
-    if( poDS == NULL || poRasterBand->GetBand() < 1 )
-        return NULL;
+    if (poMaskBandMainBand)
+    {
+        poDS = poMaskBandMainBand->GetDataset();
+        if( poDS == NULL || poMaskBandMainBand->GetBand() < 1 )
+            return NULL;
+    }
+    else
+    {
+        poDS = poRasterBand->GetDataset();
+        if( poDS == NULL || poRasterBand->GetBand() < 1 )
+            return NULL;
+    }
 
     psSrc = CPLCreateXMLNode( NULL, CXT_Element, "SimpleSource" );
 
-    pszRelativePath = 
-        CPLExtractRelativePath( pszVRTPath, poDS->GetDescription(), 
-                                &bRelativeToVRT );
+    VSIStatBufL sStat;
+    /* If this isn't actually a file, don't even try to know if it is */
+    /* a relative path. It can't be !, and unfortunately */
+    /* CPLIsFilenameRelative() can only work with strings that are filenames */
+    /* To be clear NITF_TOC_ENTRY:CADRG_JOG-A_250K_1_0:some_path isn't a relative */
+    /* file path */
+    if( VSIStatExL( poDS->GetDescription(), &sStat, VSI_STAT_EXISTS_FLAG ) != 0 )
+    {
+        pszRelativePath = poDS->GetDescription();
+        bRelativeToVRT = FALSE;
+    }
+    else
+    {
+        pszRelativePath =
+            CPLExtractRelativePath( pszVRTPath, poDS->GetDescription(),
+                                    &bRelativeToVRT );
+    }
     
     CPLSetXMLValue( psSrc, "SourceFilename", pszRelativePath );
     
@@ -179,8 +227,12 @@ CPLXMLNode *VRTSimpleSource::SerializeToXML( const char *pszVRTPath )
                           CXT_Attribute, "relativeToVRT" ), 
         CXT_Text, bRelativeToVRT ? "1" : "0" );
 
-    CPLSetXMLValue( psSrc, "SourceBand", 
-                    CPLSPrintf("%d",poRasterBand->GetBand()) );
+    if (poMaskBandMainBand)
+        CPLSetXMLValue( psSrc, "SourceBand",
+                        CPLSPrintf("mask,%d",poMaskBandMainBand->GetBand()) );
+    else
+        CPLSetXMLValue( psSrc, "SourceBand",
+                        CPLSPrintf("%d",poRasterBand->GetBand()) );
 
     /* Write a few additional useful properties of the dataset */
     /* so that we can use a proxy dataset when re-opening. See XMLInit() */
@@ -257,8 +309,26 @@ CPLErr VRTSimpleSource::XMLInit( CPLXMLNode *psSrc, const char *pszVRTPath )
     else
         pszSrcDSName = CPLStrdup( pszFilename );
 
-
-    int nSrcBand = atoi(CPLGetXMLValue(psSrc,"SourceBand","1"));
+    const char* pszSourceBand = CPLGetXMLValue(psSrc,"SourceBand","1");
+    int nSrcBand = 0;
+    int bGetMaskBand = FALSE;
+    if (EQUALN(pszSourceBand, "mask",4))
+    {
+        bGetMaskBand = TRUE;
+        if (pszSourceBand[4] == ',')
+            nSrcBand = atoi(pszSourceBand + 5);
+        else
+            nSrcBand = 1;
+    }
+    else
+        nSrcBand = atoi(pszSourceBand);
+    if (nSrcBand <= 0)
+    {
+        CPLError( CE_Warning, CPLE_AppDefined,
+                  "Invalid <SourceBand> element in VRTRasterBand." );
+        CPLFree( pszSrcDSName );
+        return CE_Failure;
+    }
 
     /* Newly generated VRT will have RasterXSize, RasterYSize, DataType, */
     /* BlockXSize, BlockYSize tags, so that we don't have actually to */
@@ -313,6 +383,8 @@ CPLErr VRTSimpleSource::XMLInit( CPLXMLNode *psSrc, const char *pszVRTPath )
         /* but that's OK since we only use that band afterwards */
         for(i=1;i<=nSrcBand;i++)
             proxyDS->AddSrcBandDescription(eDataType, nBlockXSize, nBlockYSize);
+        if (bGetMaskBand)
+            ((GDALProxyPoolRasterBand*)proxyDS->GetRasterBand(nSrcBand))->AddSrcMaskBandDescription(eDataType, nBlockXSize, nBlockYSize);
     }
 
     CPLFree( pszSrcDSName );
@@ -326,8 +398,19 @@ CPLErr VRTSimpleSource::XMLInit( CPLXMLNode *psSrc, const char *pszVRTPath )
     
     poRasterBand = poSrcDS->GetRasterBand(nSrcBand);
     if( poRasterBand == NULL )
+    {
+        if( poSrcDS->GetShared() )
+            GDALClose( (GDALDatasetH) poSrcDS );
         return CE_Failure;
-    
+    }
+    if (bGetMaskBand)
+    {
+        poMaskBandMainBand = poRasterBand;
+        poRasterBand = poRasterBand->GetMaskBand();
+        if( poRasterBand == NULL )
+            return CE_Failure;
+    }
+
 /* -------------------------------------------------------------------- */
 /*      Set characteristics.                                            */
 /* -------------------------------------------------------------------- */
@@ -375,7 +458,7 @@ void VRTSimpleSource::GetFileList(char*** ppapszFileList, int *pnSize,
 /*      Is the filename even a real filesystem object?                  */
 /* -------------------------------------------------------------------- */
         VSIStatBufL  sStat;
-        if( VSIStatL( pszFilename, &sStat ) != 0 )
+        if( VSIStatExL( pszFilename, &sStat, VSI_STAT_EXISTS_FLAG ) != 0 )
             return;
             
 /* -------------------------------------------------------------------- */
@@ -826,9 +909,10 @@ VRTAveragedSource::RasterIO( int nXOff, int nYOff, int nXSize, int nYSize,
                         continue;
 
                     float fSampledValue = pafSrc[iX + iY * nReqXSize];
+                    if (CPLIsNan(fSampledValue))
+                        continue;
 
-                    if( bNoDataSet
-                        && ABS(fSampledValue-dfNoDataValue) < 0.0001 )
+                    if( bNoDataSet && EQUAL_TO_NODATA(fSampledValue, dfNoDataValue))
                         continue;
 
                     nPixelCount++;
@@ -913,8 +997,11 @@ CPLXMLNode *VRTComplexSource::SerializeToXML( const char *pszVRTPath )
 
     if( bNoDataSet )
     {
-        CPLSetXMLValue( psSrc, "NODATA", 
-                        CPLSPrintf("%g", dfNoDataValue) );
+        if (CPLIsNan(dfNoDataValue))
+            CPLSetXMLValue( psSrc, "NODATA", "nan");
+        else
+            CPLSetXMLValue( psSrc, "NODATA", 
+                            CPLSPrintf("%g", dfNoDataValue) );
     }
         
     if( bDoScaling )
@@ -973,7 +1060,7 @@ CPLErr VRTComplexSource::XMLInit( CPLXMLNode *psSrc, const char *pszVRTPath )
     if( CPLGetXMLValue(psSrc, "NODATA", NULL) != NULL )
     {
         bNoDataSet = TRUE;
-        dfNoDataValue = atof(CPLGetXMLValue(psSrc, "NODATA", "0"));
+        dfNoDataValue = CPLAtofM(CPLGetXMLValue(psSrc, "NODATA", "0"));
     }
 
     if( CPLGetXMLValue(psSrc, "LUT", NULL) != NULL )
@@ -1112,7 +1199,12 @@ VRTComplexSource::RasterIO( int nXOff, int nYOff, int nXSize, int nYSize,
     }
     else
     {
-        pafData = (float *) CPLMalloc(nOutXSize*nOutYSize*sizeof(float));
+        pafData = (float *) VSIMalloc3(nOutXSize,nOutYSize,sizeof(float));
+        if (pafData == NULL)
+        {
+            CPLError( CE_Failure, CPLE_OutOfMemory, "Out of memory");
+            return CE_Failure;
+        }
         eErr = poRasterBand->RasterIO( GF_Read, 
                                        nReqXOff, nReqYOff, nReqXSize, nReqYSize,
                                        pafData, nOutXSize, nOutYSize, GDT_Float32,
@@ -1150,7 +1242,9 @@ VRTComplexSource::RasterIO( int nXOff, int nYOff, int nXSize, int nYSize,
             if (pafData)
             {
                 fResult = pafData[iX + iY * nOutXSize];
-                if( bNoDataSet && fResult == dfNoDataValue )
+                if( CPLIsNan(dfNoDataValue) && CPLIsNan(fResult) )
+                    continue;
+                if( bNoDataSet && EQUAL_TO_NODATA(fResult, dfNoDataValue) )
                     continue;
 
                 if (nColorTableComponent)
@@ -1169,9 +1263,14 @@ VRTComplexSource::RasterIO( int nXOff, int nYOff, int nXSize, int nYSize,
                     }
                     else
                     {
-                        CPLError(CE_Failure, CPLE_AppDefined,
-                                 "No entry %d.", (int)fResult);
-                        return CE_Failure;
+                        static int bHasWarned = FALSE;
+                        if (!bHasWarned)
+                        {
+                            bHasWarned = TRUE;
+                            CPLError(CE_Failure, CPLE_AppDefined,
+                                    "No entry %d.", (int)fResult);
+                        }
+                        continue;
                     }
                 }
 

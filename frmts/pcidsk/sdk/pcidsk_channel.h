@@ -37,30 +37,42 @@ namespace PCIDSK
 /*                            PCIDSKChannel                             */
 /************************************************************************/
 
-//! Interface to one PCIDSK channel (band).
+//! Interface to one PCIDSK channel (band) or bitmap segment.
 
     class PCIDSK_DLL PCIDSKChannel 
     {
     public:
         virtual ~PCIDSKChannel() {};
-        virtual int GetBlockWidth() = 0;
-        virtual int GetBlockHeight() = 0;
-        virtual int GetBlockCount() = 0;
-        virtual int GetWidth() = 0;
-        virtual int GetHeight() = 0;
-        virtual eChanType GetType() = 0;
+        virtual int GetBlockWidth() const = 0;
+        virtual int GetBlockHeight() const = 0;
+        virtual int GetBlockCount() const = 0;
+        virtual int GetWidth() const = 0;
+        virtual int GetHeight() const = 0;
+        virtual eChanType GetType() const = 0;
         virtual int ReadBlock( int block_index, void *buffer,
             int win_xoff=-1, int win_yoff=-1,
             int win_xsize=-1, int win_ysize=-1 ) = 0;
         virtual int WriteBlock( int block_index, void *buffer ) = 0;
         virtual int GetOverviewCount() = 0;
         virtual PCIDSKChannel *GetOverview( int i ) = 0;
+        virtual bool IsOverviewValid( int i ) = 0;
+        virtual std::string GetOverviewResampling( int i ) = 0;
+        virtual void SetOverviewValidity( int i, bool validity ) = 0;
+        virtual std::vector<int> GetOverviewLevelMapping() const = 0;
 
-        virtual std::string GetMetadataValue( std::string key ) = 0;
-        virtual void SetMetadataValue( std::string key, std::string value ) = 0;
-        virtual std::vector<std::string> GetMetadataKeys() = 0;
+        virtual std::string GetMetadataValue( const std::string &key ) const = 0;
+        virtual void SetMetadataValue( const std::string &key, const std::string &value ) = 0;
+        virtual std::vector<std::string> GetMetadataKeys() const = 0;
 
         virtual void Synchronize() = 0;
+
+        virtual std::string GetDescription() = 0;
+        virtual void SetDescription( const std::string &description ) = 0;
+
+        virtual std::vector<std::string> GetHistoryEntries() const = 0;
+        virtual void SetHistoryEntries( const std::vector<std::string> &entries ) = 0;
+        virtual void PushHistory(const std::string &app,
+                                 const std::string &message) = 0;
     };
 } // end namespace PCIDSK
 

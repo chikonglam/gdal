@@ -1,12 +1,13 @@
 
-
 include ../../../GDALmake.opt
 
 OBJ	=	ogrdxfdriver.o ogrdxfdatasource.o ogrdxflayer.o \
-		ogrdxf_diskio.o ogrdxf_blockmap.o ogrdxf_dimension.o \
-		ogrdxfwriterds.o ogrdxfwriterlayer.o intronurbs.o
+		ogrdxfreader.o ogrdxf_blockmap.o ogrdxf_dimension.o \
+		ogrdxfwriterds.o ogrdxfwriterlayer.o intronurbs.o \
+		ogrdxf_polyline_smooth.o ogrdxfblockslayer.o \
+		ogrdxfblockswriterlayer.o ogrdxf_hatch.o
 
-CPPFLAGS	:=	-I.. -I../.. $(GDAL_INCLUDE) $(CPPFLAGS) -DDEBUG
+CPPFLAGS	:=	-I.. -I../.. $(GDAL_INCLUDE) $(CPPFLAGS)
 
 default:	$(O_OBJ:.o=.$(OBJ_EXT))
 

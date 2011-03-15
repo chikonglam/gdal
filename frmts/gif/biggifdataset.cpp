@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: biggifdataset.cpp 17666 2009-09-22 10:34:11Z mloskot $
+ * $Id: biggifdataset.cpp 20996 2010-10-28 18:38:15Z rouault $
  *
  * Project:  BIGGIF Driver
  * Purpose:  Implement GDAL support for reading large GIF files in a 
@@ -32,7 +32,7 @@
 #include "gdal_pam.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: biggifdataset.cpp 17666 2009-09-22 10:34:11Z mloskot $");
+CPL_CVSID("$Id: biggifdataset.cpp 20996 2010-10-28 18:38:15Z rouault $");
 
 CPL_C_START
 #include "gif_lib.h"
@@ -59,7 +59,7 @@ class BIGGIFDataset : public GDALPamDataset
 {
     friend class BIGGifRasterBand;
 
-    FILE *fp;
+    VSILFILE *fp;
 
     GifFileType *hGifFile;
     int         nLastLineRead;
@@ -471,7 +471,7 @@ GDALDataset *BIGGIFDataset::Open( GDALOpenInfo * poOpenInfo )
 /* -------------------------------------------------------------------- */
 /*      Open the file.                                                  */
 /* -------------------------------------------------------------------- */
-    FILE                *fp;
+    VSILFILE                *fp;
 
     fp = VSIFOpenL( poOpenInfo->pszFilename, "r" );
     if( fp == NULL )
@@ -540,7 +540,7 @@ static int VSIGIFReadFunc( GifFileType *psGFile, GifByteType *pabyBuffer,
 
 {
     return VSIFReadL( pabyBuffer, 1, nBytesToRead, 
-                      (FILE *) psGFile->UserData );
+                      (VSILFILE *) psGFile->UserData );
 }
 
 /************************************************************************/

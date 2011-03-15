@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: hfafield.cpp 21077 2010-11-06 23:31:36Z warmerdam $
+ * $Id: hfafield.cpp 21184 2010-12-01 03:11:03Z warmerdam $
  *
  * Project:  Erdas Imagine (.img) Translator
  * Purpose:  Implementation of the HFAField class for managing information
@@ -30,7 +30,7 @@
 
 #include "hfa_p.h"
 
-CPL_CVSID("$Id: hfafield.cpp 21077 2010-11-06 23:31:36Z warmerdam $");
+CPL_CVSID("$Id: hfafield.cpp 21184 2010-12-01 03:11:03Z warmerdam $");
 
 #define MAX_ENTRY_REPORT   16
                            
@@ -122,6 +122,8 @@ const char *HFAField::Initialize( const char * pszInput )
     if( chItemType == 'o' )
     {
         for( i = 0; pszInput[i] != '\0' && pszInput[i] != ','; i++ ) {}
+        if (pszInput[i] == '\0')
+            return NULL;
 
         pszItemObjectType = (char *) CPLMalloc(i+1);
         strncpy( pszItemObjectType, pszInput, i );
@@ -153,11 +155,15 @@ const char *HFAField::Initialize( const char * pszInput )
             
             pszInput++;
         }
+        if (*pszInput == '\0')
+            return NULL;
 
         chItemType = 'o';
 
         // find the comma terminating the type name.
         for( i = 0; pszInput[i] != '\0' && pszInput[i] != ','; i++ ) {}
+        if (pszInput[i] == '\0')
+            return NULL;
 
         pszItemObjectType = (char *) CPLMalloc(i+1);
         strncpy( pszItemObjectType, pszInput, i );
@@ -206,6 +212,8 @@ const char *HFAField::Initialize( const char * pszInput )
 /*      Extract the field name.                                         */
 /* -------------------------------------------------------------------- */
     for( i = 0; pszInput[i] != '\0' && pszInput[i] != ','; i++ ) {}
+    if (pszInput[i] == '\0')
+        return NULL;
 
     pszFieldName = (char *) CPLMalloc(i+1);
     strncpy( pszFieldName, pszInput, i );
@@ -728,6 +736,8 @@ HFAField::SetInstValue( const char * pszField, int nIndexValue,
 
             if( poItemObjectType->nBytes > 0 )
             {
+                if (nIndexValue != 0 && poItemObjectType->nBytes > INT_MAX / nIndexValue)
+                    return CE_Failure;
                 nExtraOffset = poItemObjectType->nBytes * nIndexValue;
             }
             else
@@ -747,6 +757,9 @@ HFAField::SetInstValue( const char * pszField, int nIndexValue,
                     nExtraOffset += nInc;
                 }
             }
+
+            if (nExtraOffset >= nDataSize)
+                return CE_Failure;
 
             if( pszField != NULL && strlen(pszField) > 0 )
             {
@@ -785,7 +798,7 @@ HFAField::SetInstValue( const char * pszField, int nIndexValue,
 int
 HFAField::ExtractInstValue( const char * pszField, int nIndexValue,
                            GByte *pabyData, GUInt32 nDataOffset, int nDataSize,
-                           char chReqType, void *pReqReturn )
+                           char chReqType, void *pReqReturn, int *pnRemainingDataSize )
 
 {
     char		*pszStringRet = NULL;
@@ -793,6 +806,9 @@ HFAField::ExtractInstValue( const char * pszField, int nIndexValue,
     double		dfDoubleRet = 0.0;
     int			nInstItemCount = GetInstCount( pabyData, nDataSize );
     GByte		*pabyRawData = NULL;
+
+    if (pnRemainingDataSize)
+        *pnRemainingDataSize = -1;
 
 /* -------------------------------------------------------------------- */
 /*      Check the index value is valid.                                 */
@@ -847,6 +863,8 @@ HFAField::ExtractInstValue( const char * pszField, int nIndexValue,
     if( (chItemType == 'c' || chItemType == 'C') && chReqType == 's' )
     {
         *((GByte **)pReqReturn) = pabyData;
+        if (pnRemainingDataSize)
+            *pnRemainingDataSize = nDataSize;
         return( pabyData != NULL );
     }
 
@@ -1118,6 +1136,8 @@ HFAField::ExtractInstValue( const char * pszField, int nIndexValue,
 
             if( poItemObjectType->nBytes > 0 )
             {
+                if (nIndexValue != 0 && poItemObjectType->nBytes > INT_MAX / nIndexValue)
+                    return CE_Failure;
                 nExtraOffset = poItemObjectType->nBytes * nIndexValue;
             }
             else
@@ -1138,6 +1158,9 @@ HFAField::ExtractInstValue( const char * pszField, int nIndexValue,
                 }
             }
 
+            if (nExtraOffset >= nDataSize)
+                return CE_Failure;
+
             pabyRawData = pabyData + nExtraOffset;
 
             if( pszField != NULL && strlen(pszField) > 0 )
@@ -1146,7 +1169,7 @@ HFAField::ExtractInstValue( const char * pszField, int nIndexValue,
                         ExtractInstValue( pszField, pabyRawData,
                                           nDataOffset + nExtraOffset,
                                           nDataSize - nExtraOffset,
-                                          chReqType, pReqReturn ) );
+                                          chReqType, pReqReturn, pnRemainingDataSize ) );
             }
         }
         break;
@@ -1163,8 +1186,13 @@ HFAField::ExtractInstValue( const char * pszField, int nIndexValue,
     {
         if( pszStringRet == NULL )
         {
-            sprintf( szNumberString, "%.14g", dfDoubleRet );
-            pszStringRet = szNumberString;
+            /* HFAEntry:: BuildEntryFromMIFObject() expects to have always */
+            /* 8 bytes before the data. In normal situations, it should */
+            /* not go here, but that can happen if the file is corrupted */
+            /* so reserve the first 8 bytes before the string to contain null bytes */
+            memset(szNumberString, 0, 8);
+            sprintf( szNumberString + 8, "%.14g", dfDoubleRet );
+            pszStringRet = szNumberString + 8;
         }
         
         *((char **) pReqReturn) = pszStringRet;
@@ -1229,7 +1257,7 @@ int HFAField::GetInstBytes( GByte *pabyData, int nDataSize )
 
     if( chItemType == 'b' && nCount != 0 ) // BASEDATA
     {
-        if (nDataSize < 4+4+2)
+        if (nDataSize - nInstBytes < 4+4+2)
         {
             CPLError(CE_Failure, CPLE_AppDefined, "Buffer too small");
             return -1;
@@ -1246,12 +1274,23 @@ int HFAField::GetInstBytes( GByte *pabyData, int nDataSize )
         HFAStandard( 2, &nBaseItemType );
 
         nInstBytes += 12;
+        
+        if (nRows < 0 || nColumns < 0)
+            return -1;
+        if (nColumns != 0 && nRows > INT_MAX / nColumns)
+            return -1;
+        if (nColumns != 0 && ((HFAGetDataTypeBits(nBaseItemType) + 7) / 8) * nRows > INT_MAX / nColumns)
+            return -1;
+        if (((HFAGetDataTypeBits(nBaseItemType) + 7) / 8) * nRows * nColumns > INT_MAX - nInstBytes)
+            return -1;
 
         nInstBytes += 
             ((HFAGetDataTypeBits(nBaseItemType) + 7) / 8) * nRows * nColumns;
     }
     else if( poItemObjectType == NULL )
     {
+        if (nCount != 0 && HFADictionary::GetItemSize(chItemType) > INT_MAX / nCount)
+            return -1;
         nInstBytes += nCount * HFADictionary::GetItemSize(chItemType);
     }
     else
@@ -1305,6 +1344,11 @@ int HFAField::GetInstCount( GByte * pabyData, int nDataSize )
         HFAStandard( 4, &nRows );
         memcpy( &nColumns, pabyData+12, 4 );
         HFAStandard( 4, &nColumns );
+
+        if (nRows < 0 || nColumns < 0)
+            return 0;
+        if (nColumns != 0 && nRows > INT_MAX / nColumns)
+            return 0;
 
         return nRows * nColumns;
     }
@@ -1446,11 +1490,12 @@ void HFAField::DumpInstValue( FILE *fpOut,
             
                 sprintf( szLongFieldName, "%s    ", pszPrefix );
             
-                poItemObjectType->DumpInstValue( fpOut,
-                                                 pabyData + nByteOffset,
-                                                 nDataOffset + nByteOffset,
-                                                 nDataSize - nByteOffset,
-                                                 szLongFieldName );
+                if( poItemObjectType )
+                    poItemObjectType->DumpInstValue( fpOut,
+                                                     pabyData + nByteOffset,
+                                                     nDataOffset + nByteOffset,
+                                                     nDataSize - nByteOffset,
+                                                     szLongFieldName );
             }
             break;
 

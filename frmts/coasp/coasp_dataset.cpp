@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: coasp_dataset.cpp 17664 2009-09-21 21:16:45Z rouault $
+ * $Id: coasp_dataset.cpp 20996 2010-10-28 18:38:15Z rouault $
  *
  * Project:  DRDC Configurable Airborne SAR Processor (COASP) data reader
  * Purpose:  Support in GDAL for the DRDC COASP format data, both Metadata
@@ -38,7 +38,7 @@
 #include "cpl_vsi.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: coasp_dataset.cpp 17664 2009-09-21 21:16:45Z rouault $");
+CPL_CVSID("$Id: coasp_dataset.cpp 20996 2010-10-28 18:38:15Z rouault $");
 
 CPL_C_START
 void    GDALRegister_COASP(void);
@@ -65,7 +65,7 @@ class COASPMetadataItem;
 
 class COASPMetadataReader
 {
-	FILE *fp; 
+	VSILFILE *fp;
 	char **papszMetadata;
 	int nMetadataCount;
 	int nCurrentItem;
@@ -249,10 +249,10 @@ class COASPDataset : public GDALDataset
 {
 	friend class COASPRasterBand;
 	FILE *fpHdr; /* File pointer for the header file */
-	FILE *fpBinHH; /* File pointer for the binary matrix */
-	FILE *fpBinHV;
-	FILE *fpBinVH;
-	FILE *fpBinVV;
+	VSILFILE *fpBinHH; /* File pointer for the binary matrix */
+	VSILFILE *fpBinHV;
+	VSILFILE *fpBinVH;
+	VSILFILE *fpBinVV;
 
 	char *pszFileName; /* line and mission ID, mostly, i.e. l27p7 */
 	char *pszPrefix; /* file name prefix */
@@ -273,16 +273,16 @@ public:
  ********************************************************************/
 
 class COASPRasterBand : public GDALRasterBand {
-	FILE *fp;
+	VSILFILE *fp;
 	int ePol;
 public:
-	COASPRasterBand( COASPDataset *poDS, GDALDataType eDataType, int ePol, FILE *fp );
+	COASPRasterBand( COASPDataset *poDS, GDALDataType eDataType, int ePol, VSILFILE *fp );
 	virtual CPLErr IReadBlock( int nBlockXOff, int nBlockYOff, 
 		void *pImage);
 };
 
 COASPRasterBand::COASPRasterBand( COASPDataset *poDS, GDALDataType eDataType,
-	int ePol, FILE *fp)
+	int ePol, VSILFILE *fp)
 {
 	this->fp = fp;
 	this->ePol = ePol;

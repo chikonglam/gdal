@@ -1,4 +1,4 @@
-/* $Id: tif_dirread.c,v 1.155 2009-10-29 20:04:07 bfriesen Exp $ */
+/* $Id: tif_dirread.c,v 1.165 2010-12-15 01:05:02 faxguy Exp $ */
 
 /*
  * Copyright (c) 1988-1997 Sam Leffler
@@ -67,9 +67,7 @@ static enum TIFFReadDirEntryErr TIFFReadDirEntryByte(TIFF* tif, TIFFDirEntry* di
 static enum TIFFReadDirEntryErr TIFFReadDirEntryShort(TIFF* tif, TIFFDirEntry* direntry, uint16* value);
 static enum TIFFReadDirEntryErr TIFFReadDirEntryLong(TIFF* tif, TIFFDirEntry* direntry, uint32* value);
 static enum TIFFReadDirEntryErr TIFFReadDirEntryLong8(TIFF* tif, TIFFDirEntry* direntry, uint64* value);
-#ifdef notdef
 static enum TIFFReadDirEntryErr TIFFReadDirEntryFloat(TIFF* tif, TIFFDirEntry* direntry, float* value);
-#endif
 static enum TIFFReadDirEntryErr TIFFReadDirEntryDouble(TIFF* tif, TIFFDirEntry* direntry, double* value);
 static enum TIFFReadDirEntryErr TIFFReadDirEntryIfd8(TIFF* tif, TIFFDirEntry* direntry, uint64* value);
 
@@ -530,7 +528,6 @@ static enum TIFFReadDirEntryErr TIFFReadDirEntryLong8(TIFF* tif, TIFFDirEntry* d
 	}
 }
 
-#ifdef notdef
 static enum TIFFReadDirEntryErr TIFFReadDirEntryFloat(TIFF* tif, TIFFDirEntry* direntry, float* value)
 {
 	enum TIFFReadDirEntryErr err;
@@ -586,7 +583,16 @@ static enum TIFFReadDirEntryErr TIFFReadDirEntryFloat(TIFF* tif, TIFFDirEntry* d
 				err=TIFFReadDirEntryCheckedLong8(tif,direntry,&m);
 				if (err!=TIFFReadDirEntryErrOk)
 					return(err);
+#if defined(__WIN32__) && (_MSC_VER < 1500)
+				/*
+				 * XXX: MSVC 6.0 does not support conversion
+				 * of 64-bit integers into floating point
+				 * values.
+				 */
+				*value = _TIFFUInt64ToFloat(m);
+#else
 				*value=(float)m;
+#endif
 				return(TIFFReadDirEntryErrOk);
 			}
 		case TIFF_SLONG8:
@@ -632,7 +638,6 @@ static enum TIFFReadDirEntryErr TIFFReadDirEntryFloat(TIFF* tif, TIFFDirEntry* d
 			return(TIFFReadDirEntryErrType);
 	}
 }
-#endif /* def notdef */
 
 static enum TIFFReadDirEntryErr TIFFReadDirEntryDouble(TIFF* tif, TIFFDirEntry* direntry, double* value)
 {
@@ -2731,7 +2736,7 @@ static enum TIFFReadDirEntryErr TIFFReadDirEntryPersampleShort(TIFF* tif, TIFFDi
 	uint16* m;
 	uint16* na;
 	uint16 nb;
-	if (direntry->tdir_count!=(uint64)tif->tif_dir.td_samplesperpixel)
+	if (direntry->tdir_count<(uint64)tif->tif_dir.td_samplesperpixel)
 		return(TIFFReadDirEntryErrCount);
 	err=TIFFReadDirEntryShortArray(tif,direntry,&m);
 	if (err!=TIFFReadDirEntryErrOk)
@@ -2759,7 +2764,7 @@ static enum TIFFReadDirEntryErr TIFFReadDirEntryPersampleDouble(TIFF* tif, TIFFD
 	double* m;
 	double* na;
 	uint16 nb;
-	if (direntry->tdir_count!=(uint64)tif->tif_dir.td_samplesperpixel)
+	if (direntry->tdir_count<(uint64)tif->tif_dir.td_samplesperpixel)
 		return(TIFFReadDirEntryErrCount);
 	err=TIFFReadDirEntryDoubleArray(tif,direntry,&m);
 	if (err!=TIFFReadDirEntryErrOk)
@@ -2796,7 +2801,7 @@ static void TIFFReadDirEntryCheckedSbyte(TIFF* tif, TIFFDirEntry* direntry, int8
 static void TIFFReadDirEntryCheckedShort(TIFF* tif, TIFFDirEntry* direntry, uint16* value)
 {
 	*value = direntry->tdir_offset.toff_short;
-	//*value=*(uint16*)(&direntry->tdir_offset);
+	/* *value=*(uint16*)(&direntry->tdir_offset); */
 	if (tif->tif_flags&TIFF_SWAB)
 		TIFFSwabShort(value);
 }
@@ -3414,7 +3419,7 @@ TIFFReadDirectory(TIFF* tif)
 	TIFFDirEntry* dp;
 	uint16 di;
 	const TIFFField* fip;
-	uint32 fii;
+	uint32 fii=FAILED_FII;
         toff_t nextdiroff;
 	tif->tif_diroff=tif->tif_nextdiroff;
 	if (!TIFFCheckDirOffset(tif,tif->tif_nextdiroff))
@@ -3430,6 +3435,20 @@ TIFFReadDirectory(TIFF* tif)
 		return 0;
 	}
 	TIFFReadDirectoryCheckOrder(tif,dir,dircount);
+	{
+		TIFFDirEntry* ma;
+		uint16 mb;
+		for (ma=dir, mb=0; mb<dircount; ma++, mb++)
+		{
+			TIFFDirEntry* na;
+			uint16 nb;
+			for (na=ma+1, nb=mb+1; nb<dircount; na++, nb++)
+			{
+				if (ma->tdir_tag==na->tdir_tag)
+					na->tdir_tag=IGNORE;
+			}
+		}
+	}
 	tif->tif_flags &= ~TIFF_BEENWRITING;    /* reset before new dir */
 	tif->tif_flags &= ~TIFF_BUF4WRITE;      /* reset before new dir */
 	/* free any old stuff and reinit */
@@ -3703,7 +3722,7 @@ TIFFReadDirectory(TIFF* tif)
 					uint32 countpersample;
 					uint32 countrequired;
 					uint32 incrementpersample;
-					uint16* value;
+					uint16* value=NULL;
 					countpersample=(1L<<tif->tif_dir.td_bitspersample);
 					if ((dp->tdir_tag==TIFFTAG_TRANSFERFUNCTION)&&(dp->tdir_count==(uint64)countpersample))
 					{
@@ -3793,8 +3812,7 @@ TIFFReadDirectory(TIFF* tif)
 		}
 		if (!TIFFFieldSet(tif,FIELD_SAMPLESPERPIXEL))
 		{
-			if ((tif->tif_dir.td_photometric==PHOTOMETRIC_RGB)
-			    || (tif->tif_dir.td_photometric==PHOTOMETRIC_YCBCR))
+			if (tif->tif_dir.td_photometric==PHOTOMETRIC_RGB)
 			{
 				TIFFWarningExt(tif->tif_clientdata,module,
 				    "SamplesPerPixel tag is missing, "
@@ -3802,12 +3820,21 @@ TIFFReadDirectory(TIFF* tif)
 				if (!TIFFSetField(tif,TIFFTAG_SAMPLESPERPIXEL,3))
 					goto bad;
 			}
-			else if ((tif->tif_dir.td_photometric==PHOTOMETRIC_MINISWHITE)
-				 || (tif->tif_dir.td_photometric==PHOTOMETRIC_MINISBLACK))
+			if (tif->tif_dir.td_photometric==PHOTOMETRIC_YCBCR)
 			{
 				TIFFWarningExt(tif->tif_clientdata,module,
 				    "SamplesPerPixel tag is missing, "
-				    "assuming correct SamplesPerPixel value is 1");
+				    "applying correct SamplesPerPixel value of 3");
+				if (!TIFFSetField(tif,TIFFTAG_SAMPLESPERPIXEL,3))
+					goto bad;
+			}
+			else if ((tif->tif_dir.td_photometric==PHOTOMETRIC_MINISWHITE)
+				 || (tif->tif_dir.td_photometric==PHOTOMETRIC_MINISBLACK))
+			{
+				/*
+				 * SamplesPerPixel tag is missing, but is not required
+				 * by spec.  Assume correct SamplesPerPixel value of 1.
+				 */
 				if (!TIFFSetField(tif,TIFFTAG_SAMPLESPERPIXEL,1))
 					goto bad;
 			}
@@ -3818,8 +3845,14 @@ TIFFReadDirectory(TIFF* tif)
 	 */
 	if (tif->tif_dir.td_photometric == PHOTOMETRIC_PALETTE &&
 	    !TIFFFieldSet(tif, FIELD_COLORMAP)) {
-		MissingRequired(tif, "Colormap");
-		goto bad;
+		if ( tif->tif_dir.td_bitspersample>=8 && tif->tif_dir.td_samplesperpixel==3)
+			tif->tif_dir.td_photometric = PHOTOMETRIC_RGB;
+		else if (tif->tif_dir.td_bitspersample>=8)
+			tif->tif_dir.td_photometric = PHOTOMETRIC_MINISBLACK;
+		else {
+			MissingRequired(tif, "Colormap");
+			goto bad;
+		}
 	}
 	/*
 	 * OJPEG hack:
@@ -4333,6 +4366,7 @@ CheckDirCount(TIFF* tif, TIFFDirEntry* dir, uint32 count)
 	"incorrect count for field \"%s\" (" TIFF_UINT64_FORMAT ", expecting %u); tag trimmed",
 		    TIFFFieldWithTag(tif, dir->tdir_tag)->field_name,
 		    dir->tdir_count, count);
+		dir->tdir_count = count;
 		return (1);
 	}
 	return (1);
@@ -4710,6 +4744,19 @@ TIFFFetchNormalTag(TIFF* tif, TIFFDirEntry* dp, int recover)
 				assert(fip->field_readcount==1);
 				assert(fip->field_passcount==0);
 				err=TIFFReadDirEntryLong8(tif,dp,&data);
+				if (err==TIFFReadDirEntryErrOk)
+				{
+					if (!TIFFSetField(tif,dp->tdir_tag,data))
+						return(0);
+				}
+			}
+			break;
+		case TIFF_SETGET_FLOAT:
+			{
+				float data;
+				assert(fip->field_readcount==1);
+				assert(fip->field_passcount==0);
+				err=TIFFReadDirEntryFloat(tif,dp,&data);
 				if (err==TIFFReadDirEntryErrOk)
 				{
 					if (!TIFFSetField(tif,dp->tdir_tag,data))
@@ -5286,6 +5333,7 @@ TIFFFetchSubjectDistance(TIFF* tif, TIFFDirEntry* dir)
 	static const char module[] = "TIFFFetchSubjectDistance";
 	enum TIFFReadDirEntryErr err;
 	UInt64Aligned_t m;
+    m.l=0;
 	assert(sizeof(double)==8);
 	assert(sizeof(uint64)==8);
 	assert(sizeof(uint32)==4);
@@ -5432,3 +5480,10 @@ ChopUpSingleUncompressedStrip(TIFF* tif)
 }
 
 /* vim: set ts=8 sts=8 sw=8 noet: */
+/*
+ * Local Variables:
+ * mode: c
+ * c-basic-offset: 8
+ * fill-column: 78
+ * End:
+ */

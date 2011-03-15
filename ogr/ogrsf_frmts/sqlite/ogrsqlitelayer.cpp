@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrsqlitelayer.cpp 18761 2010-02-08 16:41:51Z chaitanya $
+ * $Id: ogrsqlitelayer.cpp 20895 2010-10-19 17:42:22Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implements OGRSQLiteLayer class, code shared between 
@@ -33,7 +33,7 @@
 #include "ogr_sqlite.h"
 #include <cassert>
 
-CPL_CVSID("$Id: ogrsqlitelayer.cpp 18761 2010-02-08 16:41:51Z chaitanya $");
+CPL_CVSID("$Id: ogrsqlitelayer.cpp 20895 2010-10-19 17:42:22Z rouault $");
 
 /************************************************************************/
 /*                           OGRSQLiteLayer()                           */
@@ -255,6 +255,7 @@ const char *OGRSQLiteLayer::GetGeometryColumn()
 void OGRSQLiteLayer::ResetReading()
 
 {
+    ClearStatement();
     iNextShapeId = 0;
 }
 
@@ -290,8 +291,12 @@ OGRFeature *OGRSQLiteLayer::GetNextFeature()
 OGRFeature *OGRSQLiteLayer::GetNextRawFeature()
 
 {
-    if( GetStatement() == NULL )
-        return NULL;
+    if( hStmt == NULL )
+    {
+        ResetStatement();
+        if (hStmt == NULL)
+            return NULL;
+    }
 
 /* -------------------------------------------------------------------- */
 /*      If we are marked to restart then do so, and fetch a record.     */
@@ -303,6 +308,7 @@ OGRFeature *OGRSQLiteLayer::GetNextRawFeature()
     {
         if ( rc != SQLITE_DONE )
         {
+            sqlite3_reset(hStmt);
             CPLError( CE_Failure, CPLE_AppDefined, 
                     "In GetNextRawFeature(): sqlite3_step() : %s", 
                     sqlite3_errmsg(poDS->GetDB()) );
@@ -353,7 +359,7 @@ OGRFeature *OGRSQLiteLayer::GetNextRawFeature()
 /* -------------------------------------------------------------------- */
 /*      Process Geometry if we have a column.                           */
 /* -------------------------------------------------------------------- */
-    if( osGeomColumn.size() )
+    if( osGeomColumn.size() && !poFeatureDefn->IsGeometryIgnored() )
     {
         int iGeomCol;
 
@@ -434,6 +440,9 @@ OGRFeature *OGRSQLiteLayer::GetNextRawFeature()
     for( iField = 0; iField < poFeatureDefn->GetFieldCount(); iField++ )
     {
         OGRFieldDefn *poFieldDefn = poFeatureDefn->GetFieldDefn( iField );
+        if ( poFieldDefn->IsIgnored() )
+            continue;
+
         int iRawField = panFieldOrdinals[iField] - 1;
 
         if( sqlite3_column_type( hStmt, iRawField ) == SQLITE_NULL )
@@ -1065,6 +1074,9 @@ int OGRSQLiteLayer::TestCapability( const char * pszCap )
     else if( EQUAL(pszCap,OLCFastSpatialFilter) )
         return FALSE;
 
+    else if( EQUAL(pszCap,OLCIgnoreFields) )
+        return TRUE; 
+
     else if( EQUAL(pszCap,OLCTransactions) )
         return TRUE;
 
@@ -1110,4 +1122,19 @@ OGRErr OGRSQLiteLayer::RollbackTransaction()
 
 {
     return poDS->SoftRollback();
+}
+
+/************************************************************************/
+/*                           ClearStatement()                           */
+/************************************************************************/
+
+void OGRSQLiteLayer::ClearStatement()
+
+{
+    if( hStmt != NULL )
+    {
+        CPLDebug( "OGR_SQLITE", "finalize %p", hStmt );
+        sqlite3_finalize( hStmt );
+        hStmt = NULL;
+    }
 }

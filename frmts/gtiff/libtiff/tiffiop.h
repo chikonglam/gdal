@@ -1,4 +1,4 @@
-/* $Id: tiffiop.h,v 1.73 2008/04/14 09:05:26 dron Exp $ */
+/* $Id: tiffiop.h,v 1.80 2010-07-01 15:33:28 dron Exp $ */
 
 /*
  * Copyright (c) 1988-1997 Sam Leffler
@@ -192,6 +192,8 @@ struct tiff {
 	tmsize_t             tif_scanlineskew; /* scanline skew for reading strips */
 	uint8*               tif_rawdata;      /* raw data buffer */
 	tmsize_t             tif_rawdatasize;  /* # of bytes in raw data buffer */
+        tmsize_t             tif_rawdataoff;   /* rawdata offset within strip */
+        tmsize_t             tif_rawdataloaded;/* amount of data in rawdata */
 	uint8*               tif_rawcp;        /* current spot in raw buffer */
 	tmsize_t             tif_rawcc;        /* bytes unread from raw buffer */
 	/* memory-mapped file support */
@@ -258,12 +260,17 @@ struct tiff {
 #endif
 
 /* NB: the uint32 casts are to silence certain ANSI-C compilers */
-#define TIFFhowmany_32(x, y) ((((uint32)(x))+(((uint32)(y))-1))/((uint32)(y)))
+#define TIFFhowmany_32(x, y) (((uint32)x < (0xffffffff - (uint32)(y-1))) ? \
+			   ((((uint32)(x))+(((uint32)(y))-1))/((uint32)(y))) : \
+			   0U)
 #define TIFFhowmany8_32(x) (((x)&0x07)?((uint32)(x)>>3)+1:(uint32)(x)>>3)
 #define TIFFroundup_32(x, y) (TIFFhowmany_32(x,y)*(y))
 #define TIFFhowmany_64(x, y) ((((uint64)(x))+(((uint64)(y))-1))/((uint64)(y)))
 #define TIFFhowmany8_64(x) (((x)&0x07)?((uint64)(x)>>3)+1:(uint64)(x)>>3)
 #define TIFFroundup_64(x, y) (TIFFhowmany_64(x,y)*(y))
+
+/* Safe multiply which returns zero if there is an integer overflow */
+#define TIFFSafeMultiply(t,v,m) ((((t)m != (t)0) && (((t)((v*m)/m)) == (t)v)) ? (t)(v*m) : (t)0)
 
 #define TIFFmax(A,B) ((A)>(B)?(A):(B))
 #define TIFFmin(A,B) ((A)<(B)?(A):(B))
@@ -312,8 +319,10 @@ extern TIFFErrorHandler _TIFFerrorHandler;
 extern TIFFErrorHandlerExt _TIFFwarningHandlerExt;
 extern TIFFErrorHandlerExt _TIFFerrorHandlerExt;
 
-extern void* _TIFFCheckMalloc(TIFF* tif, tmsize_t nmemb, tmsize_t elem_size, const char* what);
-extern void* _TIFFCheckRealloc(TIFF* tif, void* buffer, tmsize_t nmemb, tmsize_t elem_size, const char* what);
+extern uint32 _TIFFMultiply32(TIFF*, uint32, uint32, const char*);
+extern uint64 _TIFFMultiply64(TIFF*, uint64, uint64, const char*);
+extern void* _TIFFCheckMalloc(TIFF*, tmsize_t, tmsize_t, const char*);
+extern void* _TIFFCheckRealloc(TIFF*, void*, tmsize_t, tmsize_t, const char*);
 
 extern double _TIFFUInt64ToDouble(uint64);
 extern float _TIFFUInt64ToFloat(uint64);
@@ -353,6 +362,9 @@ extern int TIFFInitPixarLog(TIFF*, int);
 #ifdef LOGLUV_SUPPORT
 extern int TIFFInitSGILog(TIFF*, int);
 #endif
+#ifdef LZMA_SUPPORT
+extern int TIFFInitLZMA(TIFF*, int);
+#endif
 #ifdef VMS
 extern const TIFFCodec _TIFFBuiltinCODECS[];
 #else
@@ -365,3 +377,10 @@ extern TIFFCodec _TIFFBuiltinCODECS[];
 #endif /* _TIFFIOP_ */
 
 /* vim: set ts=8 sts=8 sw=8 noet: */
+/*
+ * Local Variables:
+ * mode: c
+ * c-basic-offset: 8
+ * fill-column: 78
+ * End:
+ */

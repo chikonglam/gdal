@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #******************************************************************************
-#  $Id: gdal_sieve.py 18953 2010-02-28 12:00:54Z rouault $
+#  $Id: gdal_sieve.py 19392 2010-04-12 18:27:09Z rouault $
 # 
 #  Project:  GDAL Python Interface
 #  Purpose:  Application for applying sieve filter to raster data.
@@ -180,9 +180,9 @@ result = gdal.SieveFilter( srcband, maskband, dstband,
                            threshold, connectedness, 
                            callback = prog_func )
     
-
-
-
+src_ds = None
+dst_ds = None
+mask_ds = None
 
 
 

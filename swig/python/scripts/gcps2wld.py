@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #******************************************************************************
-#  $Id: gcps2wld.py 18953 2010-02-28 12:00:54Z rouault $
+#  $Id: gcps2wld.py 18952 2010-02-28 11:59:53Z rouault $
 # 
 #  Name:     gcps2wld
 #  Project:  GDAL Python Interface

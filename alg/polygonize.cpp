@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: polygonize.cpp 18523 2010-01-11 18:12:25Z mloskot $
+ * $Id: polygonize.cpp 21236 2010-12-11 17:28:32Z rouault $
  * Project:  GDAL
  * Purpose:  Raster to Polygon Converter
  * Author:   Frank Warmerdam, warmerdam@pobox.com
@@ -28,11 +28,14 @@
 
 #include "gdal_alg_priv.h"
 #include "cpl_conv.h"
+#include "cpl_string.h"
 #include <vector>
 
-CPL_CVSID("$Id: polygonize.cpp 18523 2010-01-11 18:12:25Z mloskot $");
+CPL_CVSID("$Id: polygonize.cpp 21236 2010-12-11 17:28:32Z rouault $");
 
 #define GP_NODATA_MARKER -51502112
+
+#ifdef OGR_ENABLED
 
 /************************************************************************/
 /* ==================================================================== */
@@ -427,7 +430,8 @@ GPMaskImageData( GDALRasterBandH hMaskBand, GByte* pabyMaskLine, int iY, int nXS
 
     return eErr;
 }
- 
+#endif // OGR_ENABLED
+
 /************************************************************************/
 /*                           GDALPolygonize()                           */
 /************************************************************************/
@@ -473,8 +477,11 @@ GPMaskImageData( GDALRasterBandH hMaskBand, GByte* pabyMaskLine, int iY, int nXS
  * be written. 
  * @param iPixValField the attribute field index indicating the feature
  * attribute into which the pixel value of the polygon should be written.
- * @param papszOptions a name/value list of additional options (none currently
- * supported). 
+ * @param papszOptions a name/value list of additional options
+ * <dl>
+ * <dt>"8CONNECTED":</dt> May be set to "8" to use 8 connectedness.
+ * Otherwise 4 connectedness will be applied to the algorithm
+ * </dl>
  * @param pfnProgress callback for reporting algorithm progress matching the
  * GDALProgressFunc() semantics.  May be NULL.
  * @param pProgressArg callback argument passed to pfnProgress.
@@ -491,11 +498,17 @@ GDALPolygonize( GDALRasterBandH hSrcBand,
                 void * pProgressArg )
 
 {
+#ifndef OGR_ENABLED
+    CPLError(CE_Failure, CPLE_NotSupported, "GDALPolygonize() unimplemented in a non OGR build");
+    return CE_Failure;
+#else
     VALIDATE_POINTER1( hSrcBand, "GDALPolygonize", CE_Failure );
     VALIDATE_POINTER1( hOutLayer, "GDALPolygonize", CE_Failure );
 
     if( pfnProgress == NULL )
         pfnProgress = GDALDummyProgress;
+
+    int nConnectedness = CSLFetchNameValue( papszOptions, "8CONNECTED" ) ? 8 : 4;
 
 /* -------------------------------------------------------------------- */
 /*      Confirm our output layer will support feature creation.         */
@@ -549,7 +562,7 @@ GDALPolygonize( GDALRasterBandH hSrcBand,
 /*      what on the second pass.                                        */
 /* -------------------------------------------------------------------- */
     int iY;
-    GDALRasterPolygonEnumerator oFirstEnum;
+    GDALRasterPolygonEnumerator oFirstEnum(nConnectedness);
 
     for( iY = 0; eErr == CE_None && iY < nYSize; iY++ )
     {
@@ -615,7 +628,7 @@ GDALPolygonize( GDALRasterBandH hSrcBand,
 /*      We will use a new enumerator for the second pass primariliy     */
 /*      so we can preserve the first pass map.                          */
 /* -------------------------------------------------------------------- */
-    GDALRasterPolygonEnumerator oSecondEnum;
+    GDALRasterPolygonEnumerator oSecondEnum(nConnectedness);
     RPolygon **papoPoly = (RPolygon **) 
         CPLCalloc(sizeof(RPolygon*),oFirstEnum.nNextPolygonId);
 
@@ -749,5 +762,6 @@ GDALPolygonize( GDALRasterBandH hSrcBand,
     CPLFree( papoPoly );
 
     return eErr;
+#endif // OGR_ENABLED
 }
 

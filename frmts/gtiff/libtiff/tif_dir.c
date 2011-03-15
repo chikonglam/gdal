@@ -1,4 +1,4 @@
-/* $Id: tif_dir.c,v 1.101 2009-11-30 18:19:16 fwarmerdam Exp $ */
+/* $Id: tif_dir.c,v 1.105 2010-07-02 09:48:25 dron Exp $ */
 
 /*
  * Copyright (c) 1988-1997 Sam Leffler
@@ -165,7 +165,9 @@ _TIFFVSetField(TIFF* tif, uint32 tag, va_list ap)
 		 * work in with its normal work.
 		 */
 		if (tif->tif_flags & TIFF_SWAB) {
-			if (td->td_bitspersample == 16)
+			if (td->td_bitspersample == 8)
+				tif->tif_postdecode = _TIFFNoPostDecode;
+			else if (td->td_bitspersample == 16)
 				tif->tif_postdecode = _TIFFSwab16BitData;
 			else if (td->td_bitspersample == 24)
 				tif->tif_postdecode = _TIFFSwab24BitData;
@@ -489,7 +491,7 @@ _TIFFVSetField(TIFF* tif, uint32 tag, va_list ap)
 		}
 		else
 		{
-			if(fip->field_passcount) {
+			if (fip->field_passcount) {
 				if (fip->field_writecount == TIFF_VARIABLE2)
 					tv->count = (uint32) va_arg(ap, uint32);
 				else
@@ -502,9 +504,21 @@ _TIFFVSetField(TIFF* tif, uint32 tag, va_list ap)
 			else
 				tv->count = fip->field_writecount;
 
+			if (tv->count == 0) {
+				status = 0;
+				TIFFErrorExt(tif->tif_clientdata, module,
+					     "%s: Null count for \"%s\" (type "
+					     "%d, writecount %d, passcount %d)",
+					     tif->tif_name,
+					     fip->field_name,
+					     fip->field_type,
+					     fip->field_writecount,
+					     fip->field_passcount);
+				goto end;
+			}
 
-			tv->value = _TIFFCheckMalloc(tif, tv_size, tv->count,
-			    "Tag Value");
+			tv->value = _TIFFCheckMalloc(tif, tv->count, tv_size,
+			    "custom tag binary object");
 			if (!tv->value) {
 				status = 0;
 				goto end;
@@ -1504,6 +1518,8 @@ TIFFUnlinkDirectory(TIFF* tif, uint16 dirn)
 		_TIFFfree(tif->tif_rawdata);
 		tif->tif_rawdata = NULL;
 		tif->tif_rawcc = 0;
+                tif->tif_rawdataoff = 0;
+                tif->tif_rawdataloaded = 0;
 	}
 	tif->tif_flags &= ~(TIFF_BEENWRITING|TIFF_BUFFERSETUP|TIFF_POSTENCODE|TIFF_BUF4WRITE);
 	TIFFFreeDirectory(tif);
@@ -1517,3 +1533,10 @@ TIFFUnlinkDirectory(TIFF* tif, uint16 dirn)
 }
 
 /* vim: set ts=8 sts=8 sw=8 noet: */
+/*
+ * Local Variables:
+ * mode: c
+ * c-basic-offset: 8
+ * fill-column: 78
+ * End:
+ */

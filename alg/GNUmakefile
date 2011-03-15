@@ -6,22 +6,19 @@ OBJ	=	gdalmediancut.o gdaldither.o gdal_crs.o gdaltransformer.o \
 		gdalwarpoperation.o gdalchecksum.o gdal_rpc.o gdal_tps.o \
 		thinplatespline.o llrasterize.o gdalrasterize.o gdalgeoloc.o \
 		gdalgrid.o gdalcutline.o gdalproximity.o rasterfill.o \
-		gdalrasterpolygonenumerator.o gdalsievefilter.o
-
-ifeq ($(OGR_ENABLED),yes)
-OBJ += contour.o polygonize.o
-endif
+		gdalrasterpolygonenumerator.o gdalsievefilter.o \
+		gdalwarpkernel_opencl.o polygonize.o contour.o
 
 ifeq ($(HAVE_GEOS),yes)
 CPPFLAGS 	:=	-DHAVE_GEOS=1 $(GEOS_CFLAGS) $(CPPFLAGS)
 endif
 
-CPPFLAGS	:=	$(GDAL_INCLUDE) $(CPPFLAGS)
+CPPFLAGS	:=	$(GDAL_INCLUDE) $(CPPFLAGS) $(OPENCL_FLAGS)
 
 default:	$(OBJ:.o=.$(OBJ_EXT))
 
 clean:
-	$(RM) *.o
+	$(RM) *.o $(O_OBJ)
 
 docs:	
 	(cd ..; $(MAKE) docs)

@@ -36,6 +36,29 @@ system "rm -rf tmp_ds_*" unless $^O eq 'MSWin32';
 		);
 
 {
+    # test conversion methods
+    my $g = Geo::OGR::Geometry->create(WKT=>'POINT (1 1)');
+    my $x = Geo::OGR::Geometry->create(WKT=>'POINT (2 2)');
+    my $g2 = $g->ForceToMultiPoint($x);
+    ok($g2->AsText eq 'MULTIPOINT (1 1,2 2)', 'ForceToMultiPoint');
+    $g = Geo::OGR::Geometry->create(WKT=>'LINESTRING (1 1,2 2)');
+    $x = Geo::OGR::Geometry->create(WKT=>'LINESTRING (2 2,3 3)');
+    $g2 = $g->ForceToMultiLineString($x);
+    ok($g2->AsText eq 'MULTILINESTRING ((1 1,2 2),(2 2,3 3))', 'ForceToMultiLineString');
+    $g = Geo::OGR::Geometry->create(WKT=>'POLYGON ((0.49 0.5,0.83 0.5,0.83 0.77,0.49 0.77,0.49 0.5))');
+    $x = Geo::OGR::Geometry->create(WKT=>'POLYGON ((0.49 0.5,0.83 0.5,0.83 0.77,0.49 0.77,0.49 0.5))');
+    $g2 = $g->ForceToMultiPolygon($x);
+    ok($g2->AsText eq 'MULTIPOLYGON (((0.49 0.5,0.83 0.5,0.83 0.77,0.49 0.77,0.49 0.5)),((0.49 0.5,0.83 0.5,0.83 0.77,0.49 0.77,0.49 0.5)))', 'ForceToMultiPolygon');
+    $g = Geo::OGR::Geometry->create(WKT=>'POINT (1 1)');
+    $x = Geo::OGR::Geometry->create(WKT=>'LINESTRING (2 2,3 3)');
+    $g2 = $g->ForceToCollection($x);
+    ok($g2->AsText eq 'GEOMETRYCOLLECTION (POINT (1 1),LINESTRING (2 2,3 3))', 'ForceToCollection');
+    my @g = $g2->Dissolve;
+    ok($g[0]->AsText eq 'POINT (1 1)', 'Dissolve point');
+    ok($g[1]->AsText eq 'LINESTRING (2 2,3 3)', 'Dissolve line string');
+}
+
+{
     my $g = Geo::OGR::Geometry->create(wkt => "point(1 2)");
     $g->Point(2,3);
     my @p = $g->Point;
@@ -56,6 +79,11 @@ system "rm -rf tmp_ds_*" unless $^O eq 'MSWin32';
 	$g = Geo::OGR::Geometry->create(GeoJSON => "abc");
     };
     ok ($@ =~ /GeoJSON parsing error/, "create from GeoJSON: $@");
+}
+
+{
+    my $g = Geo::OGR::Geometry->create(wkt => "linestring(1 1, 1 2, 2 2)");
+    ok ($g->Length == 2, "Length 1");
 }
 
 {
@@ -83,6 +111,7 @@ system "rm -rf tmp_ds_*" unless $^O eq 'MSWin32';
 			]
 	       );
     my $f = Geo::OGR::Feature->new($d);
+    ok($f->Schema->{Fields}->[1]->{Index} == 1, "Index in field in schema");
     
     $f->Row( ilist => [1,2,3],
 	     rlist => [1.1,2.2,3.3],
@@ -132,9 +161,16 @@ system "rm -rf tmp_ds_*" unless $^O eq 'MSWin32';
 }
 {
     my $driver = Geo::OGR::Driver('Memory');
+    my @cap = $driver->Capabilities;
+    ok(is_deeply(\@cap, ['CreateDataSource']), "driver capabilities");
     my $datasource = $driver->CreateDataSource('test');
+    @cap = $datasource->Capabilities;
+    ok(is_deeply(\@cap, ['CreateLayer','DeleteLayer']), "data source capabilities");
     
-    $datasource->CreateLayer('a', undef, 'Point');
+    my $layer = $datasource->CreateLayer('a', undef, 'Point');
+    @cap = $layer->Capabilities;
+    ok(is_deeply(\@cap, [qw/RandomRead SequentialWrite RandomWrite 
+	  FastFeatureCount CreateField DeleteFeature FastSetNextByIndex/]), "layer capabilities");
     $datasource->CreateLayer('b', undef, 'Point');
     $datasource->CreateLayer('c', undef, 'Point');
     my @layers = $datasource->Layers;
@@ -145,7 +181,7 @@ system "rm -rf tmp_ds_*" unless $^O eq 'MSWin32';
 	ok(is_deeply(\@layers, ['a','c'], "delete layer"));
     }
     
-    my $layer = $datasource->CreateLayer('test', undef, 'Point');
+    $layer = $datasource->CreateLayer('test', undef, 'Point');
     $layer->Schema(Fields => 
 		   [{Name => 'test1', Type => 'Integer'},
 		    {Name => 'test2', Type => 'String'},
@@ -202,7 +238,7 @@ my $methods = Geo::OSR::GetProjectionMethods;
 
 for my $method (@$methods) {
     my($params, $name) = Geo::OSR::GetProjectionMethodParameterList($method);
-    ok(ref($params) eq 'ARRAY', "$method: GetProjectionMethodParameterList params");
+    ok(ref($params) eq 'ARRAY', "$method: GetProjectionMethodParameterList params, out=($params, $name)");
     ok($name ne '', "$method: GetProjectionMethodParameterList name");
     next if $method =~ /^International_Map_of_the_World/; # there is a bug in there...
     for my $parameter (@$params) {

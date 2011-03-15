@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: bmpdataset.cpp 17544 2009-08-20 22:26:18Z rouault $
+ * $Id: bmpdataset.cpp 20996 2010-10-28 18:38:15Z rouault $
  *
  * Project:  Microsoft Windows Bitmap
  * Purpose:  Read/write MS Windows Device Independent Bitmap (DIB) files
@@ -31,7 +31,7 @@
 #include "gdal_pam.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: bmpdataset.cpp 17544 2009-08-20 22:26:18Z rouault $");
+CPL_CVSID("$Id: bmpdataset.cpp 20996 2010-10-28 18:38:15Z rouault $");
 
 CPL_C_START
 void    GDALRegister_BMP(void);
@@ -222,7 +222,7 @@ class BMPDataset : public GDALPamDataset
     int                 bGeoTransformValid;
 
     char                *pszFilename;
-    FILE                *fp;
+    VSILFILE            *fp;
 
   protected:
     virtual CPLErr      IRasterIO( GDALRWFlag, int, int, int, int,

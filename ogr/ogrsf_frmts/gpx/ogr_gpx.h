@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_gpx.h 17549 2009-08-21 11:16:41Z rouault $
+ * $Id: ogr_gpx.h 20996 2010-10-28 18:38:15Z rouault $
  *
  * Project:  GPX Translator
  * Purpose:  Definition of classes for OGR .gpx driver.
@@ -67,7 +67,7 @@ class OGRGPXLayer : public OGRLayer
     int                nFeatures;
     int                eof;
     int                nNextFID;
-    FILE*              fpGPX; /* Large file API */
+    VSILFILE*          fpGPX; /* Large file API */
     const char*        pszElementToScan;
 #ifdef HAVE_EXPAT
     XML_Parser         oParser;
@@ -116,12 +116,16 @@ class OGRGPXLayer : public OGRLayer
     int                nWithoutEventCounter;
     int                nDataHandlerCounter;
     
+    int                iFirstGPXField;
+    
   private:
-    void               WriteFeatureAttributes( OGRFeature *poFeature );
+    void               WriteFeatureAttributes( OGRFeature *poFeature, int nIdentLevel = 1 );
     void               LoadExtensionsSchema();
 #ifdef HAVE_EXPAT
     void               AddStrToSubElementValue(const char* pszStr);
 #endif
+    int                OGRGPX_WriteXMLExtension(const char* pszTagName,
+                                                const char* pszContent);
 
   public:
                         OGRGPXLayer(const char *pszFilename,
@@ -175,7 +179,9 @@ class OGRGPXDataSource : public OGRDataSource
     int                 nLayers;
 
     /*  Export related */
-    FILE                *fpOutput; /* Standard file API */
+    VSILFILE           *fpOutput; /* Large file API */
+    int                 bIsBackSeekable;
+    const char         *pszEOL;
     int                 nOffsetBounds;
     double              dfMinLat, dfMinLon, dfMaxLat, dfMaxLon;
     
@@ -196,6 +202,10 @@ class OGRGPXDataSource : public OGRDataSource
                         OGRGPXDataSource();
                         ~OGRGPXDataSource();
 
+    int                nLastRteId;
+    int                nLastTrkId;
+    int                nLastTrkSegId;
+
     int                 Open( const char * pszFilename,
                               int bUpdate );
     
@@ -214,7 +224,7 @@ class OGRGPXDataSource : public OGRDataSource
 
     int                 TestCapability( const char * );
     
-    FILE *              GetOutputFP() { return fpOutput; }
+    VSILFILE *              GetOutputFP() { return fpOutput; }
     void                SetLastGPXGeomTypeWritten(GPXGeometryType gpxGeomType)
                             { lastGPXGeomTypeWritten = gpxGeomType; }
     GPXGeometryType     GetLastGPXGeomTypeWritten() { return lastGPXGeomTypeWritten; }
@@ -230,6 +240,8 @@ class OGRGPXDataSource : public OGRDataSource
     const char*         GetVersion() { return pszVersion; }
     
     void                AddCoord(double dfLon, double dfLat);
+    
+    void                PrintLine(const char *fmt, ...) CPL_PRINT_FUNC_FORMAT (2, 3);
 };
 
 /************************************************************************/

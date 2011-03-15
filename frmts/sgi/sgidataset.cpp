@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: sgidataset.cpp 16706 2009-04-02 03:44:07Z warmerdam $
+ * $Id: sgidataset.cpp 20996 2010-10-28 18:38:15Z rouault $
  *
  * Project:  SGI Image Driver
  * Purpose:  Implement SGI Image Support based on Paul Bourke's SGI Image code.
@@ -35,7 +35,7 @@
 #include "cpl_port.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: sgidataset.cpp 16706 2009-04-02 03:44:07Z warmerdam $");
+CPL_CVSID("$Id: sgidataset.cpp 20996 2010-10-28 18:38:15Z rouault $");
 
 CPL_C_START
 void	GDALRegister_SGI(void);
@@ -56,7 +56,7 @@ struct ImageRec
     char name[80];
     GUInt32 colorMap;
 
-    FILE* file;
+    VSILFILE* file;
     std::string fileName;
     unsigned char* tmp;
     GUInt32 rleEnd;
@@ -200,7 +200,7 @@ class SGIDataset : public GDALPamDataset
 {
     friend class SGIRasterBand;
 
-    FILE*  fpImage;
+    VSILFILE*  fpImage;
 
     int	   bGeoTransformValid;
     double adfGeoTransform[6];
@@ -701,7 +701,7 @@ GDALDataset *SGIDataset::Create( const char * pszFilename,
 /* -------------------------------------------------------------------- */
 /*      Open the file for output.                                       */
 /* -------------------------------------------------------------------- */
-    FILE *fp = VSIFOpenL( pszFilename, "w" );
+    VSILFILE *fp = VSIFOpenL( pszFilename, "w" );
     if( fp == NULL )
     {
         CPLError( CE_Failure, CPLE_OpenFailed, 

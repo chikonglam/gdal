@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ddfrecord.cpp 16282 2009-02-09 20:41:42Z warmerdam $
+ * $Id: ddfrecord.cpp 20996 2010-10-28 18:38:15Z rouault $
  *
  * Project:  ISO 8211 Access
  * Purpose:  Implements the DDFRecord class.
@@ -30,7 +30,7 @@
 #include "iso8211.h"
 #include "cpl_conv.h"
 
-CPL_CVSID("$Id: ddfrecord.cpp 16282 2009-02-09 20:41:42Z warmerdam $");
+CPL_CVSID("$Id: ddfrecord.cpp 20996 2010-10-28 18:38:15Z rouault $");
 
 static const size_t nLeaderSize = 24;
 
@@ -485,7 +485,7 @@ int DDFRecord::ReadHeader()
         // Now, rewind a little.  Only the TERMINATOR should have been read
         // --------------------------------------------------------------------
         int rewindSize = nFieldEntryWidth - 1;
-        FILE *fp = poModule->GetFP();
+        VSILFILE *fp = poModule->GetFP();
         vsi_l_offset pos = VSIFTellL(fp) - rewindSize;
         VSIFSeekL(fp, pos, SEEK_SET);
         nDataSize -= rewindSize;

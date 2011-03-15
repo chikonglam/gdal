@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: rasterliteoverviews.cpp 19564 2010-04-28 21:02:28Z rouault $
+ * $Id: rasterliteoverviews.cpp 20090 2010-07-17 22:18:37Z rouault $
  *
  * Project:  GDAL Rasterlite driver
  * Purpose:  Implement GDAL Rasterlite support using OGR SQLite driver
@@ -33,7 +33,7 @@
 
 #include "rasterlitedataset.h"
 
-CPL_CVSID("$Id: rasterliteoverviews.cpp 19564 2010-04-28 21:02:28Z rouault $");
+CPL_CVSID("$Id: rasterliteoverviews.cpp 20090 2010-07-17 22:18:37Z rouault $");
 
 /************************************************************************/
 /*                         ReloadOverviews()                            */
@@ -547,9 +547,9 @@ CPLErr RasterliteDataset::CreateOverviewLevel(int nOvrFactor,
             OGRReleaseDataSource(hDS);
             
             CPLString osOldVal = CPLGetConfigOption("SQLITE_LIST_ALL_TABLES", "FALSE");
-            CPLSetConfigOption("SQLITE_LIST_ALL_TABLES", "TRUE");
+            CPLSetThreadLocalConfigOption("SQLITE_LIST_ALL_TABLES", "TRUE");
             hDS = OGROpen(osFileName.c_str(), TRUE, NULL);
-            CPLSetConfigOption("SQLITE_LIST_ALL_TABLES", osOldVal.c_str());
+            CPLSetThreadLocalConfigOption("SQLITE_LIST_ALL_TABLES", osOldVal.c_str());
             
             osSQL.Printf("SELECT COUNT(*) FROM \"%s\" WHERE "
                           "pixel_x_size >= %.15f AND pixel_x_size <= %.15f AND "

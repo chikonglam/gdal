@@ -1296,6 +1296,46 @@ SWIGEXPORT int SWIGSTDCALL CSharp_GMF_NODATA_get() {
 }
 
 
+SWIGEXPORT int SWIGSTDCALL CSharp_GARIO_PENDING_get() {
+  int jresult ;
+  int result;
+  
+  result = (int) GARIO_PENDING;
+  jresult = result; 
+  return jresult;
+}
+
+
+SWIGEXPORT int SWIGSTDCALL CSharp_GARIO_UPDATE_get() {
+  int jresult ;
+  int result;
+  
+  result = (int) GARIO_UPDATE;
+  jresult = result; 
+  return jresult;
+}
+
+
+SWIGEXPORT int SWIGSTDCALL CSharp_GARIO_ERROR_get() {
+  int jresult ;
+  int result;
+  
+  result = (int) GARIO_ERROR;
+  jresult = result; 
+  return jresult;
+}
+
+
+SWIGEXPORT int SWIGSTDCALL CSharp_GARIO_COMPLETE_get() {
+  int jresult ;
+  int result;
+  
+  result = (int) GARIO_COMPLETE;
+  jresult = result; 
+  return jresult;
+}
+
+
 #ifdef __cplusplus
 }
 #endif

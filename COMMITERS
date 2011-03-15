@@ -1,3 +1,6 @@
+===========================================================
+List of GDAL/OGR committers
+===========================================================
 
 Folks who have agreed to RFC 3 terms:
 
@@ -37,7 +40,7 @@ ajolma        Ari Jolma                    perl bindings
 shalasz       Steve Halasz                 DebianGIS Packaging
               debian at adkgis.org
 
-mloskot	      Mateusz Loskot		   wince
+mloskot	      Mateusz Loskot		   wince, geojson
               mateusz at loskot.net
 
 ilucena       Ivan Lucena                  idrisi, ingr, georaster
@@ -120,6 +123,28 @@ jorgearevalo  Jorge Arevalo		   WKT Raster driver.
 martinl       Martin Landa                 OGR: VFK and GRASS drivers
               landa.martin at gmail.com
 
+gaige         Gaige B Paulsen
+              osgeo at gbp.gaige.net
+
+kyle	      Kyle Shannon		   netcdf, lcp
+	      ksshannon at gmail.com
+
+winkey        Brian Case                   libkml
+              rush at winkey.org
+
+nowakpl       Adam Nowacki                 wms
+              nowak at xpam.de
+
+harshgovind   Harsh Govind                 kmlsuperoverlay, sde
+              harsh.govind at spadac.com
+
+aboudreault   Alan Boudreault
+              aboudreault at mapgears.com  mitab, DebianGIS Packaging
+              
+rburhum       Ragi Yaser Burhum            OGR: ArcObjects
+
+kirk          Kirk McKelvey                mrsid, raster
+              kmckelvey@lizardtech.com
 
 
 ===============
@@ -158,4 +183,4 @@ collinsb	Benjamin Collins        collinsb at mitre.org		gdal
 
 marit		Marit Jentoft-Nilson    jentoft-nilsen at agnes.gsfc.nasa.gov geotiff
 
-
+vgough  Valient Gough   vgough at remotesensing.org

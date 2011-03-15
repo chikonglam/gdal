@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrdxfwriterlayer.cpp 18842 2010-02-17 04:22:56Z warmerdam $
+ * $Id: ogrdxfwriterlayer.cpp 21298 2010-12-20 10:58:34Z rouault $
  *
  * Project:  DXF Translator
  * Purpose:  Implements OGRDXFWriterLayer - the OGRLayer class used for
@@ -33,7 +33,7 @@
 #include "cpl_string.h"
 #include "ogr_featurestyle.h"
 
-CPL_CVSID("$Id: ogrdxfwriterlayer.cpp 18842 2010-02-17 04:22:56Z warmerdam $");
+CPL_CVSID("$Id: ogrdxfwriterlayer.cpp 21298 2010-12-20 10:58:34Z rouault $");
 
 #ifndef PI
 #define PI  3.14159265358979323846
@@ -43,12 +43,13 @@ CPL_CVSID("$Id: ogrdxfwriterlayer.cpp 18842 2010-02-17 04:22:56Z warmerdam $");
 /*                         OGRDXFWriterLayer()                          */
 /************************************************************************/
 
-OGRDXFWriterLayer::OGRDXFWriterLayer( FILE *fp )
+OGRDXFWriterLayer::OGRDXFWriterLayer( OGRDXFWriterDS *poDS, VSILFILE *fp )
 
 {
     this->fp = fp;
+    this->poDS = poDS;
 
-    nNextFID = 80;
+    nNextAutoID = 1;
 
     poFeatureDefn = new OGRFeatureDefn( "entities" );
     poFeatureDefn->Reference();
@@ -70,6 +71,15 @@ OGRDXFWriterLayer::OGRDXFWriterLayer( FILE *fp )
 
     OGRFieldDefn  oTextField( "Text", OFTString );
     poFeatureDefn->AddFieldDefn( &oTextField );
+
+    OGRFieldDefn  oBlockField( "BlockName", OFTString );
+    poFeatureDefn->AddFieldDefn( &oBlockField );
+    
+    OGRFieldDefn  oScaleField( "BlockScale", OFTRealList );
+    poFeatureDefn->AddFieldDefn( &oScaleField );
+    
+    OGRFieldDefn  oBlockAngleField( "BlockAngle", OFTReal );
+    poFeatureDefn->AddFieldDefn( &oBlockAngleField );
 }
 
 /************************************************************************/
@@ -81,6 +91,18 @@ OGRDXFWriterLayer::~OGRDXFWriterLayer()
 {
     if( poFeatureDefn )
         poFeatureDefn->Release();
+}
+
+/************************************************************************/
+/*                              ResetFP()                               */
+/*                                                                      */
+/*      Redirect output.  Mostly used for writing block definitions.    */
+/************************************************************************/
+
+void OGRDXFWriterLayer::ResetFP( VSILFILE *fpNew )
+
+{
+    fp = fpNew;
 }
 
 /************************************************************************/
@@ -111,7 +133,8 @@ OGRErr OGRDXFWriterLayer::CreateField( OGRFieldDefn *poField,
         return OGRERR_NONE;
 
     CPLError( CE_Failure, CPLE_AppDefined,
-              "DXF layer does not support arbitrary field creation." );
+              "DXF layer does not support arbitrary field creation, field '%s' not created.",
+              poField->GetNameRef() );
 
     return OGRERR_FAILURE;
 }
@@ -160,12 +183,16 @@ int OGRDXFWriterLayer::WriteValue( int nCode, int nValue )
 int OGRDXFWriterLayer::WriteValue( int nCode, double dfValue )
 
 {
-    CPLString osLinePair;
+    char szLinePair[64];
 
-    osLinePair.Printf( "%3d\n%.15g\n", nCode, dfValue );
+    snprintf(szLinePair, sizeof(szLinePair), "%3d\n%.15g\n", nCode, dfValue );
+    char* pszComma = strchr(szLinePair, ',');
+    if (pszComma)
+        *pszComma = '.';
+    size_t nLen = strlen(szLinePair);
 
-    return VSIFWriteL( osLinePair.c_str(), 
-                       1, osLinePair.size(), fp ) == osLinePair.size();
+    return VSIFWriteL( szLinePair, 
+                       1, nLen, fp ) == nLen;
 }
 
 /************************************************************************/
@@ -184,16 +211,85 @@ OGRErr OGRDXFWriterLayer::WriteCore( OGRFeature *poFeature )
 /*      Also, for reasons I don't understand these ids seem to have     */
 /*      to start somewhere around 0x50 hex (80 decimal).                */
 /* -------------------------------------------------------------------- */
-    char szEntityID[16];
-
-    sprintf( szEntityID, "%X", nNextFID++ );
-    WriteValue( 5, szEntityID );
+    poFeature->SetFID( poDS->WriteEntityID(fp,poFeature->GetFID()) );
 
 /* -------------------------------------------------------------------- */
 /*      For now we assign everything to the default layer - layer       */
-/*      "0".                                                            */
+/*      "0" - if there is no layer property on the source features.     */
 /* -------------------------------------------------------------------- */
-    WriteValue( 8, "0" ); // layer 
+    const char *pszLayer = poFeature->GetFieldAsString( "Layer" );
+    if( pszLayer == NULL || strlen(pszLayer) == 0 )
+    {
+        WriteValue( 8, "0" );
+    }
+    else
+    {
+        const char *pszExists = 
+            poDS->oHeaderDS.LookupLayerProperty( pszLayer, "Exists" );
+        if( (pszExists == NULL || strlen(pszExists) == 0)
+            && CSLFindString( poDS->papszLayersToCreate, pszLayer ) == -1 )
+        {
+            poDS->papszLayersToCreate = 
+                CSLAddString( poDS->papszLayersToCreate, pszLayer );
+        }
+
+        WriteValue( 8, pszLayer );
+    }
+
+    return OGRERR_NONE;
+}
+
+/************************************************************************/
+/*                            WriteINSERT()                             */
+/************************************************************************/
+
+OGRErr OGRDXFWriterLayer::WriteINSERT( OGRFeature *poFeature )
+
+{
+    WriteValue( 0, "INSERT" );
+    WriteCore( poFeature );
+    WriteValue( 100, "AcDbEntity" );
+    WriteValue( 100, "AcDbBlockReference" );
+    WriteValue( 2, poFeature->GetFieldAsString("BlockName") );
+    
+/* -------------------------------------------------------------------- */
+/*      Write location.                                                 */
+/* -------------------------------------------------------------------- */
+    OGRPoint *poPoint = (OGRPoint *) poFeature->GetGeometryRef();
+
+    WriteValue( 10, poPoint->getX() );
+    if( !WriteValue( 20, poPoint->getY() ) ) 
+        return OGRERR_FAILURE;
+
+    if( poPoint->getGeometryType() == wkbPoint25D )
+    {
+        if( !WriteValue( 30, poPoint->getZ() ) )
+            return OGRERR_FAILURE;
+    }
+    
+/* -------------------------------------------------------------------- */
+/*      Write scaling.                                                  */
+/* -------------------------------------------------------------------- */
+    int nScaleCount;
+    const double *padfScale = 
+        poFeature->GetFieldAsDoubleList( "BlockScale", &nScaleCount );
+
+    if( nScaleCount == 3 )
+    {
+        WriteValue( 41, padfScale[0] );
+        WriteValue( 42, padfScale[1] );
+        WriteValue( 43, padfScale[2] );
+    }
+
+/* -------------------------------------------------------------------- */
+/*      Write rotation.                                                 */
+/* -------------------------------------------------------------------- */
+    double dfAngle = poFeature->GetFieldAsDouble( "BlockAngle" );
+
+    if( dfAngle != 0.0 )
+    {
+        WriteValue( 50, dfAngle ); // degrees
+    }
 
     return OGRERR_NONE;
 }
@@ -223,6 +319,48 @@ OGRErr OGRDXFWriterLayer::WritePOINT( OGRFeature *poFeature )
     }
     
     return OGRERR_NONE;
+}
+
+/************************************************************************/
+/*                             TextEscape()                             */
+/*                                                                      */
+/*      Translate UTF8 to Win1252 and escape special characters like    */
+/*      newline and space with DXF style escapes.  Note that            */
+/*      non-win1252 unicode characters are translated using the         */
+/*      unicode escape sequence.                                        */
+/************************************************************************/
+
+CPLString OGRDXFWriterLayer::TextEscape( const char *pszInput )
+
+{
+    CPLString osResult;
+    wchar_t *panInput = CPLRecodeToWChar( pszInput, 
+                                          CPL_ENC_UTF8, 
+                                          CPL_ENC_UCS2 );
+    int i;
+
+
+    for( i = 0; panInput[i] != 0; i++ )
+    {
+        if( panInput[i] == '\n' )
+            osResult += "\\P";
+        else if( panInput[i] == ' ' )
+            osResult += "\\~";
+        else if( panInput[i] == '\\' )
+            osResult += "\\\\";
+        else if( panInput[i] > 255 )
+        {
+            CPLString osUnicode;
+            osUnicode.Printf( "\\U+%04x", (int) panInput[i] );
+            osResult += osUnicode;
+        }
+        else
+            osResult += (char) panInput[i];
+    }
+
+    CPLFree(panInput);
+    
+    return osResult;
 }
 
 /************************************************************************/
@@ -271,8 +409,10 @@ OGRErr OGRDXFWriterLayer::WriteTEXT( OGRFeature *poFeature )
 /* -------------------------------------------------------------------- */
         double dfAngle = poLabel->Angle(bDefault);
 
+        // The DXF2000 reference says this is in radians, but in files
+        // I see it seems to be in degrees. Perhaps this is version dependent?
         if( !bDefault )
-            WriteValue( 50, dfAngle * (PI/180.0) );
+            WriteValue( 50, dfAngle );
 
 /* -------------------------------------------------------------------- */
 /*      Height - We need to fetch this in georeferenced units - I'm     */
@@ -299,26 +439,14 @@ OGRErr OGRDXFWriterLayer::WriteTEXT( OGRFeature *poFeature )
         }
 
 /* -------------------------------------------------------------------- */
-/*      Text - split into distinct lines.                               */
+/*      Escape the text, and convert to ISO8859.                        */
 /* -------------------------------------------------------------------- */
         const char *pszText = poLabel->TextString( bDefault );
 
         if( pszText != NULL && !bDefault )
         {
-            int iLine;
-            char **papszLines = CSLTokenizeStringComplex(
-                pszText, "\n", FALSE, TRUE );
-
-            for( iLine = 0; 
-                 papszLines != NULL && papszLines[iLine] != NULL;
-                 iLine++ )
-            {
-                if( iLine == 0 )
-                    WriteValue( 1, papszLines[iLine] );
-                else
-                    WriteValue( 3, papszLines[iLine] );
-            }
-            CSLDestroy( papszLines );
+            CPLString osEscaped = TextEscape( pszText );
+            WriteValue( 1, osEscaped );
         }
     }
 
@@ -341,6 +469,78 @@ OGRErr OGRDXFWriterLayer::WriteTEXT( OGRFeature *poFeature )
     
     return OGRERR_NONE;
 
+}
+
+/************************************************************************/
+/*                     PrepareLineTypeDefinition()                      */
+/************************************************************************/
+CPLString 
+OGRDXFWriterLayer::PrepareLineTypeDefinition( OGRFeature *poFeature, 
+                                              OGRStyleTool *poTool )
+
+{
+    CPLString osDef;
+    OGRStylePen *poPen = (OGRStylePen *) poTool;
+    GBool  bDefault;
+    const char *pszPattern;
+    
+/* -------------------------------------------------------------------- */
+/*      Fetch pattern.                                                  */
+/* -------------------------------------------------------------------- */
+    pszPattern = poPen->Pattern( bDefault );
+    if( bDefault || strlen(pszPattern) == 0 ) 
+        return "";
+
+/* -------------------------------------------------------------------- */
+/*      Split into pen up / pen down bits.                              */
+/* -------------------------------------------------------------------- */
+    char **papszTokens = CSLTokenizeString(pszPattern);
+    int i;
+    double dfTotalLength = 0;
+
+    for( i = 0; papszTokens != NULL && papszTokens[i] != NULL; i++ )
+    {
+        const char *pszToken = papszTokens[i];
+        const char *pszUnit;
+        CPLString osAmount;
+        CPLString osDXFEntry;
+
+        // Split amount and unit.
+        for( pszUnit = pszToken; 
+             strchr( "0123456789.", *pszUnit) != NULL;
+             pszUnit++ ) {}
+
+        osAmount.assign(pszToken,(int) (pszUnit-pszToken));
+        
+        // If the unit is other than 'g' we really should be trying to 
+        // do some type of transformation - but what to do?  Pretty hard.
+        
+        // 
+
+        // Even entries are "pen down" represented as negative in DXF.
+        if( i%2 == 0 )
+            osDXFEntry.Printf( " 49\n-%s\n 74\n0\n", osAmount.c_str() );
+        else
+            osDXFEntry.Printf( " 49\n%s\n 74\n0\n", osAmount.c_str() );
+        
+        osDef += osDXFEntry;
+
+        dfTotalLength += atof(osAmount);
+    }
+
+/* -------------------------------------------------------------------- */
+/*      Prefix 73 and 40 items to the definition.                       */
+/* -------------------------------------------------------------------- */
+    CPLString osPrefix;
+    
+    osPrefix.Printf( " 73\n%d\n 40\n%.6g\n", 
+                     CSLCount(papszTokens), 
+                     dfTotalLength );
+    osDef = osPrefix + osDef;
+
+    CSLDestroy( papszTokens );
+
+    return osDef;
 }
 
 /************************************************************************/
@@ -453,7 +653,57 @@ OGRErr OGRDXFWriterLayer::WritePOLYLINE( OGRFeature *poFeature,
             WriteValue( 370, (int) floor(dfWidthInMM * 100 + 0.5) );
     }
 
-    delete poTool;
+/* -------------------------------------------------------------------- */
+/*      Do we have a Linetype for the feature?                          */
+/* -------------------------------------------------------------------- */
+    CPLString osLineType = poFeature->GetFieldAsString( "Linetype" );
+
+    if( osLineType.size() > 0 
+        && (poDS->oHeaderDS.LookupLineType( osLineType ) != NULL 
+            || oNewLineTypes.count(osLineType) > 0 ) )
+    {
+        // Already define -> just reference it.
+        WriteValue( 6, osLineType );
+    }
+    else if( poTool != NULL && poTool->GetType() == OGRSTCPen )
+    {
+        CPLString osDefinition = PrepareLineTypeDefinition( poFeature, 
+                                                            poTool );
+
+        if( osDefinition != "" && osLineType == "" )
+        {
+            // Is this definition already created and named?
+            std::map<CPLString,CPLString>::iterator it;
+
+            for( it = oNewLineTypes.begin();
+                 it != oNewLineTypes.end();
+                 it++ )
+            {
+                if( (*it).second == osDefinition )
+                {
+                    osLineType = (*it).first;
+                    break;
+                }
+            }
+
+            // create an automatic name for it.
+            if( osLineType == "" )
+            {
+                do 
+                { 
+                    osLineType.Printf( "AutoLineType-%d", nNextAutoID++ );
+                }
+                while( poDS->oHeaderDS.LookupLineType(osLineType) != NULL );
+            }
+        }
+
+        // If it isn't already defined, add it now.
+        if( osDefinition != "" && oNewLineTypes.count(osLineType) == 0 )
+        {
+            oNewLineTypes[osLineType] = osDefinition;
+            WriteValue( 6, osLineType );
+        }
+    }
 
 /* -------------------------------------------------------------------- */
 /*      Write the vertices                                              */
@@ -473,6 +723,8 @@ OGRErr OGRDXFWriterLayer::WritePOLYLINE( OGRFeature *poFeature,
         }
     }
     
+    delete poTool;
+
     return OGRERR_NONE;
 
 #ifdef notdef
@@ -528,7 +780,27 @@ OGRErr OGRDXFWriterLayer::CreateFeature( OGRFeature *poFeature )
 
     if( eGType == wkbPoint )
     {
-        if( poFeature->GetStyleString() != NULL
+        const char *pszBlockName = poFeature->GetFieldAsString("BlockName");
+
+        // we don't want to treat as a block ref if we are writing blocks layer
+        if( pszBlockName != NULL
+            && poDS->poBlocksLayer != NULL 
+            && poFeature->GetDefnRef() == poDS->poBlocksLayer->GetLayerDefn())
+            pszBlockName = NULL;
+
+        // We don't want to treat as a blocks ref if the block is not defined
+        if( pszBlockName 
+            && poDS->oHeaderDS.LookupBlock(pszBlockName) == NULL )
+        {
+            if( poDS->poBlocksLayer == NULL
+                || poDS->poBlocksLayer->FindBlock(pszBlockName) == NULL )
+                pszBlockName = NULL;
+        }
+                                  
+        if( pszBlockName != NULL )
+            return WriteINSERT( poFeature );
+            
+        else if( poFeature->GetStyleString() != NULL
             && EQUALN(poFeature->GetStyleString(),"LABEL",5) )
             return WriteTEXT( poFeature );
         else
@@ -539,6 +811,28 @@ OGRErr OGRDXFWriterLayer::CreateFeature( OGRFeature *poFeature )
              || eGType == wkbPolygon 
              || eGType == wkbMultiPolygon )
         return WritePOLYLINE( poFeature );
+
+    // Explode geometry collections into multiple entities.
+    else if( eGType == wkbGeometryCollection )
+    {
+        OGRGeometryCollection *poGC = (OGRGeometryCollection *)
+            poFeature->StealGeometry();
+        int iGeom;
+
+        for( iGeom = 0; iGeom < poGC->getNumGeometries(); iGeom++ )
+        {
+            poFeature->SetGeometry( poGC->getGeometryRef(iGeom) );
+                                    
+            OGRErr eErr = CreateFeature( poFeature );
+            
+            if( eErr != OGRERR_NONE )
+                return eErr;
+
+        }
+        
+        poFeature->SetGeometryDirectly( poGC );
+        return OGRERR_NONE;
+    }
     else 
     {
         CPLError( CE_Failure, CPLE_AppDefined,
@@ -546,8 +840,6 @@ OGRErr OGRDXFWriterLayer::CreateFeature( OGRFeature *poFeature )
                   OGRGeometryTypeToName(eGType) );
         return OGRERR_FAILURE;
     }
-
-    return OGRERR_NONE;
 }
 
 /************************************************************************/

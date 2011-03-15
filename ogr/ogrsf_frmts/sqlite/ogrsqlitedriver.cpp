@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrsqlitedriver.cpp 19230 2010-03-28 14:11:18Z rouault $
+ * $Id: ogrsqlitedriver.cpp 20521 2010-09-04 14:22:20Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implements OGRSQLiteDriver class.
@@ -29,11 +29,12 @@
 
 #include "ogr_sqlite.h"
 #include "cpl_conv.h"
+#include "cpl_csv.h"
 
-CPL_CVSID("$Id: ogrsqlitedriver.cpp 19230 2010-03-28 14:11:18Z rouault $");
+CPL_CVSID("$Id: ogrsqlitedriver.cpp 20521 2010-09-04 14:22:20Z rouault $");
 
 /************************************************************************/
-/*                            ~OGRSQLiteDriver()                            */
+/*                            ~OGRSQLiteDriver()                        */
 /************************************************************************/
 
 OGRSQLiteDriver::~OGRSQLiteDriver()
@@ -133,14 +134,46 @@ OGRDataSource *OGRSQLiteDriver::CreateDataSource( const char * pszName,
         return NULL;
     }
 
+    int bSpatialite = CSLFetchBoolean( papszOptions, "SPATIALITE", FALSE );
+    int bMetadata = CSLFetchBoolean( papszOptions, "METADATA", TRUE );
+
+    CPLString osCommand;
+    char *pszErrMsg = NULL;
+
+    const char* pszSqliteSync = CPLGetConfigOption("OGR_SQLITE_SYNCHRONOUS", NULL);
+    if (pszSqliteSync != NULL)
+    {
+        if (EQUAL(pszSqliteSync, "OFF") || EQUAL(pszSqliteSync, "0") ||
+            EQUAL(pszSqliteSync, "FALSE"))
+            rc = sqlite3_exec( hDB, "PRAGMA synchronous = OFF", NULL, NULL, &pszErrMsg );
+        else if (EQUAL(pszSqliteSync, "NORMAL") || EQUAL(pszSqliteSync, "1"))
+            rc = sqlite3_exec( hDB, "PRAGMA synchronous = NORMAL", NULL, NULL, &pszErrMsg );
+        else if (EQUAL(pszSqliteSync, "ON") || EQUAL(pszSqliteSync, "FULL") ||
+            EQUAL(pszSqliteSync, "2") || EQUAL(pszSqliteSync, "TRUE"))
+            rc = sqlite3_exec( hDB, "PRAGMA synchronous = FULL", NULL, NULL, &pszErrMsg );
+        else
+        {
+            CPLError( CE_Warning, CPLE_AppDefined, "Unrecognized value for OGR_SQLITE_SYNCHRONOUS : %s",
+                      pszSqliteSync);
+            rc = SQLITE_OK;
+        }
+
+        if( rc != SQLITE_OK )
+        {
+            CPLError( CE_Failure, CPLE_AppDefined,
+                      "Unable to create view geom_cols_ref_sys: %s",
+                      pszErrMsg );
+            sqlite3_free( pszErrMsg );
+            sqlite3_close( hDB );
+            return NULL;
+        }
+    }
+
 /* -------------------------------------------------------------------- */
 /*      Create the SpatiaLite metadata tables.                          */
 /* -------------------------------------------------------------------- */
-    if ( CSLFetchBoolean( papszOptions, "SPATIALITE", FALSE ) )
+    if ( bSpatialite )
     {
-        CPLString osCommand;
-        char *pszErrMsg = NULL;
-
         osCommand = 
             "CREATE TABLE geometry_columns ("
             "     f_table_name VARCHAR NOT NULL, "
@@ -156,6 +189,7 @@ OGRDataSource *OGRSQLiteDriver::CreateDataSource( const char * pszName,
                       "Unable to create table geometry_columns: %s",
                       pszErrMsg );
             sqlite3_free( pszErrMsg );
+            sqlite3_close( hDB );
             return NULL;
         }
 
@@ -165,7 +199,8 @@ OGRDataSource *OGRSQLiteDriver::CreateDataSource( const char * pszName,
             "     auth_name VARCHAR NOT NULL,"
             "     auth_srid INTEGER NOT NULL,"
             "     ref_sys_name VARCHAR,"
-            "     proj4text VARCHAR NOT NULL)";
+            "     proj4text VARCHAR NOT NULL,"
+            "     srs_wkt VARCHAR)";
         rc = sqlite3_exec( hDB, osCommand, NULL, NULL, &pszErrMsg );
         if( rc != SQLITE_OK )
         {
@@ -173,6 +208,25 @@ OGRDataSource *OGRSQLiteDriver::CreateDataSource( const char * pszName,
                       "Unable to create table spatial_ref_sys: %s",
                       pszErrMsg );
             sqlite3_free( pszErrMsg );
+            sqlite3_close( hDB );
+            return NULL;
+        }
+
+        osCommand = 
+            "CREATE VIEW geom_cols_ref_sys AS"
+            "   SELECT f_table_name, f_geometry_column, type,"
+            "          coord_dimension, spatial_ref_sys.srid AS srid,"
+            "          auth_name, auth_srid, ref_sys_name, proj4text"
+            "   FROM geometry_columns, spatial_ref_sys"
+            "   WHERE geometry_columns.srid = spatial_ref_sys.srid";
+        rc = sqlite3_exec( hDB, osCommand, NULL, NULL, &pszErrMsg );
+        if( rc != SQLITE_OK )
+        {
+            CPLError( CE_Failure, CPLE_AppDefined, 
+                      "Unable to create view geom_cols_ref_sys: %s",
+                      pszErrMsg );
+            sqlite3_free( pszErrMsg );
+            sqlite3_close( hDB );
             return NULL;
         }
     }
@@ -180,11 +234,8 @@ OGRDataSource *OGRSQLiteDriver::CreateDataSource( const char * pszName,
 /* -------------------------------------------------------------------- */
 /*  Create the geometry_columns and spatial_ref_sys metadata tables.    */
 /* -------------------------------------------------------------------- */
-    else if( CSLFetchBoolean( papszOptions, "METADATA", TRUE ) )
+    else if( bMetadata )
     {
-        CPLString osCommand;
-        char *pszErrMsg = NULL;
-
         osCommand = 
             "CREATE TABLE geometry_columns ("
             "     f_table_name VARCHAR, "
@@ -200,6 +251,7 @@ OGRDataSource *OGRSQLiteDriver::CreateDataSource( const char * pszName,
                       "Unable to create table geometry_columns: %s",
                       pszErrMsg );
             sqlite3_free( pszErrMsg );
+            sqlite3_close( hDB );
             return NULL;
         }
 
@@ -216,6 +268,7 @@ OGRDataSource *OGRSQLiteDriver::CreateDataSource( const char * pszName,
                       "Unable to create table spatial_ref_sys: %s",
                       pszErrMsg );
             sqlite3_free( pszErrMsg );
+            sqlite3_close( hDB );
             return NULL;
         }
     }
@@ -239,11 +292,204 @@ OGRDataSource *OGRSQLiteDriver::CreateDataSource( const char * pszName,
     }
 
 /* -------------------------------------------------------------------- */
+/*      Optionnaly initialize the content of the spatial_ref_sys table  */
+/*      with the EPSG database                                          */
+/* -------------------------------------------------------------------- */
+    if ( (bSpatialite || bMetadata) &&
+         CSLFetchBoolean( papszOptions, "INIT_WITH_EPSG", FALSE ) )
+    {
+        InitWithEPSG(hDB, bSpatialite);
+    }
+
+/* -------------------------------------------------------------------- */
 /*      Close the DB file so we can reopen it normally.                 */
 /* -------------------------------------------------------------------- */
     sqlite3_close( hDB );
 
     return Open( pszName, TRUE );
+}
+
+/************************************************************************/
+/*                           InitWithEPSG()                             */
+/************************************************************************/
+
+int OGRSQLiteDriver::InitWithEPSG(sqlite3* hDB, int bSpatialite)
+{
+    CPLString osCommand;
+    char* pszErrMsg = NULL;
+
+    int rc = sqlite3_exec( hDB, "BEGIN", NULL, NULL, &pszErrMsg );
+    if( rc != SQLITE_OK )
+    {
+        CPLError( CE_Failure, CPLE_AppDefined, 
+                "Unable to insert into spatial_ref_sys: %s",
+                pszErrMsg );
+        sqlite3_free( pszErrMsg );
+        return FALSE;
+    }
+
+    FILE* fp;
+    int i;
+    for(i=0;i<2 && rc == SQLITE_OK;i++)
+    {
+        const char* pszFilename = (i == 0) ? "gcs.csv" : "pcs.csv";
+        fp = VSIFOpen(CSVFilename(pszFilename), "rt");
+        if (fp == NULL)
+        {
+            CPLError( CE_Failure, CPLE_OpenFailed, 
+                "Unable to open EPSG support file %s.\n"
+                "Try setting the GDAL_DATA environment variable to point to the\n"
+                "directory containing EPSG csv files.", 
+                pszFilename );
+
+            continue;
+        }
+
+        OGRSpatialReference oSRS;
+        char** papszTokens;
+        CSLDestroy(CSVReadParseLine( fp ));
+        while ( (papszTokens = CSVReadParseLine( fp )) != NULL && rc == SQLITE_OK)
+        {
+            int nSRSId = atoi(papszTokens[0]);
+            CSLDestroy(papszTokens);
+
+            CPLPushErrorHandler(CPLQuietErrorHandler);
+            oSRS.importFromEPSG(nSRSId);
+            CPLPopErrorHandler();
+
+            if (bSpatialite)
+            {
+                char    *pszProj4 = NULL;
+
+                CPLPushErrorHandler(CPLQuietErrorHandler);
+                OGRErr eErr = oSRS.exportToProj4( &pszProj4 );
+                CPLPopErrorHandler();
+
+                char    *pszWKT = NULL;
+                if( oSRS.exportToWkt( &pszWKT ) != OGRERR_NONE )
+                {
+                    CPLFree(pszWKT);
+                    pszWKT = NULL;
+                }
+
+                if( eErr == OGRERR_NONE )
+                {
+                    const char  *pszProjCS = oSRS.GetAttrValue("PROJCS");
+                    if (pszProjCS == NULL)
+                        pszProjCS = oSRS.GetAttrValue("GEOGCS");
+
+                    if ( pszProjCS )
+                        osCommand.Printf(
+                            "INSERT INTO spatial_ref_sys "
+                            "(srid, auth_name, auth_srid, ref_sys_name, proj4text, srs_wkt) "
+                            "VALUES (%d, 'EPSG', '%d', ?, ?, ?)",
+                            nSRSId, nSRSId);
+                    else
+                        osCommand.Printf(
+                            "INSERT INTO spatial_ref_sys "
+                            "(srid, auth_name, auth_srid, proj4text, srs_wkt) "
+                            "VALUES (%d, 'EPSG', '%d', ?, ?)",
+                            nSRSId, nSRSId);
+
+                    sqlite3_stmt *hInsertStmt = NULL;
+                    rc = sqlite3_prepare( hDB, osCommand, -1, &hInsertStmt, NULL );
+
+                    if ( pszProjCS )
+                    {
+                        if( rc == SQLITE_OK)
+                            rc = sqlite3_bind_text( hInsertStmt, 1, pszProjCS, -1, SQLITE_STATIC );
+                        if( rc == SQLITE_OK)
+                            rc = sqlite3_bind_text( hInsertStmt, 2, pszProj4, -1, SQLITE_STATIC );
+                        if( rc == SQLITE_OK && pszWKT != NULL)
+                            rc = sqlite3_bind_text( hInsertStmt, 3, pszWKT, -1, SQLITE_STATIC );
+                    }
+                    else
+                    {
+                        if( rc == SQLITE_OK)
+                            rc = sqlite3_bind_text( hInsertStmt, 1, pszProj4, -1, SQLITE_STATIC );
+                        if( rc == SQLITE_OK && pszWKT != NULL)
+                            rc = sqlite3_bind_text( hInsertStmt, 2, pszWKT, -1, SQLITE_STATIC );
+                    }
+
+                    if( rc == SQLITE_OK)
+                        rc = sqlite3_step( hInsertStmt );
+
+                    if( rc != SQLITE_OK && rc != SQLITE_DONE )
+                    {
+                        CPLError( CE_Failure, CPLE_AppDefined, 
+                                    "Cannot insert %s into spatial_ref_sys : %s",
+                                    pszProj4,
+                                    sqlite3_errmsg(hDB) );
+
+                        sqlite3_finalize( hInsertStmt );
+                        CPLFree(pszProj4);
+                        CPLFree(pszWKT);
+                        break;
+                    }
+                    rc = SQLITE_OK;
+
+                    sqlite3_finalize( hInsertStmt );
+                }
+
+                CPLFree(pszProj4);
+                CPLFree(pszWKT);
+            }
+            else
+            {
+                char    *pszWKT = NULL;
+                if( oSRS.exportToWkt( &pszWKT ) == OGRERR_NONE )
+                {
+                    osCommand.Printf(
+                        "INSERT INTO spatial_ref_sys "
+                        "(srid, auth_name, auth_srid, srtext) "
+                        "VALUES (%d, 'EPSG', '%d', ?)",
+                        nSRSId, nSRSId );
+
+                    sqlite3_stmt *hInsertStmt = NULL;
+                    rc = sqlite3_prepare( hDB, osCommand, -1, &hInsertStmt, NULL );
+
+                    if( rc == SQLITE_OK)
+                        rc = sqlite3_bind_text( hInsertStmt, 1, pszWKT, -1, SQLITE_STATIC );
+
+                    if( rc == SQLITE_OK)
+                        rc = sqlite3_step( hInsertStmt );
+
+                    if( rc != SQLITE_OK && rc != SQLITE_DONE )
+                    {
+                        CPLError( CE_Failure, CPLE_AppDefined, 
+                                    "Cannot insert %s into spatial_ref_sys : %s",
+                                    pszWKT,
+                                    sqlite3_errmsg(hDB) );
+
+                        sqlite3_finalize( hInsertStmt );
+                        CPLFree(pszWKT);
+                        break;
+                    }
+                    rc = SQLITE_OK;
+
+                    sqlite3_finalize( hInsertStmt );
+                }
+
+                CPLFree(pszWKT);
+            }
+        }
+        VSIFClose(fp);
+    }
+
+    if (rc == SQLITE_OK)
+        rc = sqlite3_exec( hDB, "COMMIT", NULL, NULL, &pszErrMsg );
+    else
+        rc = sqlite3_exec( hDB, "ROLLBACK", NULL, NULL, &pszErrMsg );
+
+    if( rc != SQLITE_OK )
+    {
+        CPLError( CE_Failure, CPLE_AppDefined, 
+                "Unable to insert into spatial_ref_sys: %s",
+                pszErrMsg );
+        sqlite3_free( pszErrMsg );
+    }
+
+    return (rc == SQLITE_OK);
 }
 
 /************************************************************************/
