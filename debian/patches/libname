@@ -1,45 +1,57 @@
 Index: gdal/GDALmake.opt.in
 ===================================================================
---- gdal.orig/GDALmake.opt.in	2011-02-18 15:52:35.000000000 +0100
-+++ gdal/GDALmake.opt.in	2011-02-18 16:45:45.000000000 +0100
-@@ -84,7 +84,7 @@
+--- gdal.orig/GDALmake.opt.in	2011-03-15 17:54:02.000000000 +0100
++++ gdal/GDALmake.opt.in	2011-03-15 18:07:27.000000000 +0100
+@@ -92,7 +92,7 @@
  			-I$(GDAL_ROOT)/ogr -I$(GDAL_ROOT)/ogr/ogrsf_frmts
  
  # libtool targets and help variables
 -LIBGDAL	:=		libgdal.la
-+LIBGDAL	:=		libgdal1.7.0.la
- LIBGDAL_CURRENT	:=	15
- LIBGDAL_REVISION	:=	3
- LIBGDAL_AGE	:=	14
-@@ -97,9 +97,9 @@
++LIBGDAL	:=		libgdal1.8.0.la
+ LIBGDAL_CURRENT	:=	16
+ LIBGDAL_REVISION	:=	0
+ LIBGDAL_AGE	:=	15
+@@ -105,9 +105,9 @@
  GDAL_VERSION_MINOR =    @GDAL_VERSION_MINOR@
  GDAL_VERSION_REV   =    @GDAL_VERSION_REV@
  
 -GDAL_LIB	= 	$(GDAL_ROOT)/libgdal.a
 -GDAL_SLIB	=	$(GDAL_ROOT)/libgdal.$(SO_EXT)
 -GDAL_SLIB_LINK	=	-L$(GDAL_ROOT) -lgdal
-+GDAL_LIB	= 	$(GDAL_ROOT)/libgdal1.7.0.a
-+GDAL_SLIB	=	$(GDAL_ROOT)/libgdal1.7.0.$(SO_EXT)
-+GDAL_SLIB_LINK	=	-L$(GDAL_ROOT) -lgdal1.7.0
++GDAL_LIB	= 	$(GDAL_ROOT)/libgdal1.8.0.a
++GDAL_SLIB	=	$(GDAL_ROOT)/libgdal1.8.0.$(SO_EXT)
++GDAL_SLIB_LINK	=	-L$(GDAL_ROOT) -lgdal1.8.0
  
  # Mac OS X Framework definition
  MACOSX_FRAMEWORK = @MACOSX_FRAMEWORK@
-@@ -363,9 +363,9 @@
+@@ -433,9 +433,9 @@
  
  CONFIG_LIBS	=	$(GDAL_ROOT)/$(LIBGDAL)
  ifeq ($(MACOSX_FRAMEWORK),yes)
 -CONFIG_LIBS_INS	=	-L$(INST_LIB)/unix/lib -lgdal
-+CONFIG_LIBS_INS	=	-L$(INST_LIB)/unix/lib -lgdal1.7.0
++CONFIG_LIBS_INS	=	-L$(INST_LIB)/unix/lib -lgdal1.8.0
  else
 -CONFIG_LIBS_INS	=	-L$(INST_LIB) -lgdal
-+CONFIG_LIBS_INS	=	-L$(INST_LIB) -lgdal1.7.0
++CONFIG_LIBS_INS	=	-L$(INST_LIB) -lgdal1.8.0
  endif # MACOSX_FRAMEWORK
  
  EXE_DEP_LIBS	=	$(GDAL_ROOT)/$(LIBGDAL)
+@@ -446,9 +446,9 @@
+ ifeq ($(HAVE_LD_SHARED),yes)
+ CONFIG_LIBS	=	$(GDAL_SLIB_LINK) $(LIBS)
+ ifeq ($(MACOSX_FRAMEWORK),yes)
+-CONFIG_LIBS_INS	=	-L$(INST_LIB)/unix/lib -lgdal
++CONFIG_LIBS_INS	=	-L$(INST_LIB)/unix/lib -lgdal1.8.0
+ else
+-CONFIG_LIBS_INS	=	-L$(INST_LIB) -lgdal
++CONFIG_LIBS_INS	=	-L$(INST_LIB) -lgdal1.8.0
+ endif
+ EXE_DEP_LIBS	=	$(GDAL_SLIB)
+ else
 Index: gdal/swig/perl/Makefile.PL
 ===================================================================
---- gdal.orig/swig/perl/Makefile.PL	2011-02-18 15:52:35.000000000 +0100
-+++ gdal/swig/perl/Makefile.PL	2011-02-18 16:45:45.000000000 +0100
+--- gdal.orig/swig/perl/Makefile.PL	2011-02-24 16:10:17.000000000 +0100
++++ gdal/swig/perl/Makefile.PL	2011-03-15 18:03:50.000000000 +0100
 @@ -24,7 +24,7 @@
      die "can't find gdal-config";
  }
