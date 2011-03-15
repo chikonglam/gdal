@@ -1,5 +1,5 @@
 #ifndef DOXYGEN_SKIP                                                            
-/* $Id: index.dox 18121 2009-11-27 22:13:56Z rouault $ */               
+/* $Id: index.dox 21116 2010-11-11 11:52:10Z rouault $ */               
 #endif /* DOXYGEN_SKIP */                                                       
 
 /*! \mainpage GDAL - Geospatial Data Abstraction Library
@@ -16,8 +16,8 @@ Geospatial Foundation</a>.  As a library, it presents a
 to the calling application for all supported formats.  It also comes with a variety
 of useful \link gdal_utilities.html commandline utilities\endlink
 for data translation and processing.  The 
-<a href="http://trac.osgeo.org/gdal/wiki/Release/1.6.3-News">NEWS</a> 
-page describes the November 2009 GDAL/OGR 1.6.3 release.
+<a href="http://trac.osgeo.org/gdal/wiki/Release/1.7.3-News">NEWS</a>
+page describes the November 2010 GDAL/OGR 1.7.3 release.
 
 The related <a href="ogr/index.html">OGR</a> library (which lives within the GDAL source tree) 
 provides a similar capability for simple features vector data.
@@ -59,23 +59,22 @@ Download:
 <li> <a href="wince.html">GDAL for Windows CE</a>
 </ul>
 
-
-\section foss4g Conference
-
-\htmlonly
-<table border="0" cellspacing="4" cellpadding="4">
-
-<tr><td><a href="http://www.foss4g2009.org/">
-<img src="foss4g09.png" alt="" border="0" width="183" height="101">
-</a></td>
-
-<td><a href="http://www.foss4g2009.org">FOSS4G 2009</a> is the leading annual 
-conference for free and open source geospatial software.  It will include 
-workshops and presentations related to GDAL/OGR, and some of the GDAL/OGR 
-development community will be attending.  It is <i>the</i> event for those 
-interested in GDAL/OGR, other FOSS geospatial technologies and the community 
-around them.</td>
-</table>
+\section foss4g Conference 
+ 
+\htmlonly 
+<table border="0" cellspacing="4" cellpadding="4"> 
+ 
+<tr><td><a href="http://2010.foss4g.org/"> 
+<img src="http://2010.foss4g.org/images/logo_125x125.jpg" alt="" border="0" width="125" height="125"> 
+</a></td> 
+ 
+<td><a href="http://2010.foss4g.org">FOSS4G 2010</a> is the leading annual  
+conference for free and open source geospatial software.  It will include  
+workshops and presentations related to GDAL/OGR, and some of the GDAL/OGR  
+development community will be attending.  It is <i>the</i> event for those  
+interested in GDAL/OGR, other FOSS geospatial technologies and the community  
+around them.</td> 
+</table> 
 \endhtmlonly
 
 \section index_maillist Mailing List
@@ -107,11 +106,10 @@ listed</a> using Trac.<p>
 The following bindings of GDAL in other languages are available:
 
 <ul>
-<li> <a href="http://map.hut.fi/gdal-perl/">Perl</a>
+<li> <a href="http://trac.osgeo.org/gdal/wiki/GdalOgrInPerl">Perl</a>
 <li> <a href="http://trac.osgeo.org/gdal/wiki/GdalOgrInPython">Python</a>
 <li> <a href="vb6_tutorial.html">VB6 Bindings</a> (not using SWIG)
-<li> <a href="http://rgdal.sourceforge.net/">GDAL Bindings into R</a>
-by Timothy H. Keitt.
+<li> <a href="https://r-forge.r-project.org/projects/rgdal/">GDAL Bindings into R</a> by Timothy H. Keitt.
 <li> <a href="http://trac.osgeo.org/gdal/wiki/GdalOgrInRuby">Ruby</a>
 <li> <a href="http://trac.osgeo.org/gdal/wiki/GdalOgrInJava">Java</a>
 <li> <a href="http://trac.osgeo.org/gdal/wiki/GdalOgrInCsharp">C# / .Net</a>

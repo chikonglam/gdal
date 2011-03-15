@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: rasterlitecreatecopy.cpp 18604 2010-01-19 23:10:43Z rouault $
+ * $Id: rasterlitecreatecopy.cpp 20090 2010-07-17 22:18:37Z rouault $
  *
  * Project:  GDAL Rasterlite driver
  * Purpose:  Implement GDAL Rasterlite support using OGR SQLite driver
@@ -33,7 +33,7 @@
 
 #include "rasterlitedataset.h"
 
-CPL_CVSID("$Id: rasterlitecreatecopy.cpp 18604 2010-01-19 23:10:43Z rouault $");
+CPL_CVSID("$Id: rasterlitecreatecopy.cpp 20090 2010-07-17 22:18:37Z rouault $");
 
 /************************************************************************/
 /*                  RasterliteGetTileDriverOptions ()                   */
@@ -254,9 +254,9 @@ OGRDataSourceH RasterliteCreateTables(OGRDataSourceH hDS, const char* pszTableNa
         /* Re-open the DB to take into account the new tables*/
         OGRReleaseDataSource(hDS);
         
-        CPLSetConfigOption("SQLITE_LIST_ALL_TABLES", "TRUE");
+        CPLSetThreadLocalConfigOption("SQLITE_LIST_ALL_TABLES", "TRUE");
         hDS = OGROpen(osDBName.c_str(), TRUE, NULL);
-        CPLSetConfigOption("SQLITE_LIST_ALL_TABLES", osOldVal.c_str());
+        CPLSetThreadLocalConfigOption("SQLITE_LIST_ALL_TABLES", osOldVal.c_str());
     }
     else
     {
@@ -288,9 +288,9 @@ OGRDataSourceH RasterliteCreateTables(OGRDataSourceH hDS, const char* pszTableNa
                     /* Re-open the DB to take into account the change of SRS */
                     OGRReleaseDataSource(hDS);
                     
-                    CPLSetConfigOption("SQLITE_LIST_ALL_TABLES", "TRUE");
+                    CPLSetThreadLocalConfigOption("SQLITE_LIST_ALL_TABLES", "TRUE");
                     hDS = OGROpen(osDBName.c_str(), TRUE, NULL);
-                    CPLSetConfigOption("SQLITE_LIST_ALL_TABLES", osOldVal.c_str());
+                    CPLSetThreadLocalConfigOption("SQLITE_LIST_ALL_TABLES", osOldVal.c_str());
                 }
                 else
                 {
@@ -461,7 +461,7 @@ RasterliteCreateCopy( const char * pszFilename, GDALDataset *poSrcDS,
     
     CPLString osOldVal =
         CPLGetConfigOption("SQLITE_LIST_ALL_TABLES", "FALSE");
-    CPLSetConfigOption("SQLITE_LIST_ALL_TABLES", "TRUE");
+    CPLSetThreadLocalConfigOption("SQLITE_LIST_ALL_TABLES", "TRUE");
     if (!bExists)
     {
         char** papszOGROptions = CSLAddString(NULL, "SPATIALITE=YES");
@@ -473,7 +473,7 @@ RasterliteCreateCopy( const char * pszFilename, GDALDataset *poSrcDS,
     {
         hDS = OGROpen(osDBName.c_str(), TRUE, NULL);
     }
-    CPLSetConfigOption("SQLITE_LIST_ALL_TABLES", osOldVal.c_str());
+    CPLSetThreadLocalConfigOption("SQLITE_LIST_ALL_TABLES", osOldVal.c_str());
     
     if (hDS == NULL)
     {

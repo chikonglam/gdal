@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrfeature.cpp 18479 2010-01-08 22:35:20Z rouault $
+ * $Id: ogrfeature.cpp 21270 2010-12-15 22:48:30Z warmerdam $
  * 
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  The OGRFeature class implementation. 
@@ -30,8 +30,9 @@
 #include "ogr_feature.h"
 #include "ogr_api.h"
 #include "ogr_p.h"
+#include <vector>
 
-CPL_CVSID("$Id: ogrfeature.cpp 18479 2010-01-08 22:35:20Z rouault $");
+CPL_CVSID("$Id: ogrfeature.cpp 21270 2010-12-15 22:48:30Z warmerdam $");
 
 /************************************************************************/
 /*                             OGRFeature()                             */
@@ -419,6 +420,31 @@ OGRGeometry *OGRFeature::StealGeometry()
 }
 
 /************************************************************************/
+/*                        OGR_F_StealGeometry()                         */
+/************************************************************************/
+
+/**
+ * \brief Take away ownership of geometry.
+ *
+ * Fetch the geometry from this feature, and clear the reference to the
+ * geometry on the feature.  This is a mechanism for the application to
+ * take over ownship of the geometry from the feature without copying. 
+ * Sort of an inverse to OGR_FSetGeometryDirectly().
+ *
+ * After this call the OGRFeature will have a NULL geometry.
+ *
+ * @return the pointer to the geometry.
+ */
+
+OGRGeometryH OGR_F_StealGeometry( OGRFeatureH hFeat )
+
+{
+    VALIDATE_POINTER1( hFeat, "OGR_F_StealGeometry", NULL );
+
+    return (OGRGeometryH) ((OGRFeature *) hFeat)->StealGeometry();
+}
+
+/************************************************************************/
 /*                           GetGeometryRef()                           */
 /************************************************************************/
 
@@ -653,6 +679,42 @@ int OGR_F_GetFieldIndex( OGRFeatureH hFeat, const char *pszName )
  * @return TRUE if the field has been set, otherwise false.
  */
 
+int OGRFeature::IsFieldSet( int iField ) const
+
+{
+    int iSpecialField = iField - poDefn->GetFieldCount();
+    if (iSpecialField >= 0)
+    {
+        // special field value accessors
+        switch (iSpecialField)
+        {
+          case SPF_FID:
+            return ((OGRFeature *)this)->GetFID() != OGRNullFID;
+
+          case SPF_OGR_GEOM_WKT:
+          case SPF_OGR_GEOMETRY:
+            return poGeometry != NULL;
+
+          case SPF_OGR_STYLE:
+            return ((OGRFeature *)this)->GetStyleString() != NULL;
+
+          case SPF_OGR_GEOM_AREA:
+            if( poGeometry == NULL )
+                return FALSE;
+
+            return OGR_G_GetArea((OGRGeometryH)poGeometry) != 0.0;
+
+          default:
+            return FALSE;
+        }
+    }
+    else
+    { 
+        return pauFields[iField].Set.nMarker1 != OGRUnsetMarker
+            || pauFields[iField].Set.nMarker2 != OGRUnsetMarker;
+    }
+}
+
 /************************************************************************/
 /*                          OGR_F_IsFieldSet()                          */
 /************************************************************************/
@@ -672,8 +734,16 @@ int OGR_F_IsFieldSet( OGRFeatureH hFeat, int iField )
 
 {
     VALIDATE_POINTER1( hFeat, "OGR_F_IsFieldSet", 0 );
+    
+    OGRFeature* poFeature = (OGRFeature* )hFeat;
+    
+    if (iField < 0 || iField >= poFeature->GetFieldCount())
+    {
+        CPLError(CE_Failure, CPLE_AppDefined, "Invalid index : %d", iField);
+        return FALSE;
+    }
 
-    return ((OGRFeature *)hFeat)->IsFieldSet( iField );
+    return poFeature->IsFieldSet( iField );
 }
 
 /************************************************************************/
@@ -984,7 +1054,7 @@ double OGR_F_GetFieldAsDouble( OGRFeatureH hFeat, int iField )
  * @param iField the field to fetch, from 0 to GetFieldCount()-1.
  *
  * @return the field value.  This string is internal, and should not be
- * modified, or freed.  It's lifetime may be very brief. 
+ * modified, or freed.  Its lifetime may be very brief. 
  */
 
 const char *OGRFeature::GetFieldAsString( int iField )
@@ -1270,7 +1340,7 @@ const char *OGRFeature::GetFieldAsString( int iField )
  * @param iField the field to fetch, from 0 to GetFieldCount()-1.
  *
  * @return the field value.  This string is internal, and should not be
- * modified, or freed.  It's lifetime may be very brief. 
+ * modified, or freed.  Its lifetime may be very brief. 
  */
 
 const char *OGR_F_GetFieldAsString( OGRFeatureH hFeat, int iField )
@@ -1296,7 +1366,7 @@ const char *OGR_F_GetFieldAsString( OGRFeatureH hFeat, int iField )
  * @param pnCount an integer to put the list count (number of integers) into.
  *
  * @return the field value.  This list is internal, and should not be
- * modified, or freed.  It's lifetime may be very brief.  If *pnCount is zero
+ * modified, or freed.  Its lifetime may be very brief.  If *pnCount is zero
  * on return the returned pointer may be NULL or non-NULL.
  */
 
@@ -1306,13 +1376,8 @@ const int *OGRFeature::GetFieldAsIntegerList( int iField, int *pnCount )
     OGRFieldDefn        *poFDefn = poDefn->GetFieldDefn( iField );
 
     CPLAssert( poFDefn != NULL || iField == -1 );
-    if( poFDefn == NULL )
-        return NULL;
-    
-    if( !IsFieldSet(iField) )
-        return NULL;
-    
-    if( poFDefn->GetType() == OFTIntegerList )
+    if( poFDefn != NULL && IsFieldSet(iField) &&
+        poFDefn->GetType() == OFTIntegerList )
     {
         if( pnCount != NULL )
             *pnCount = pauFields[iField].IntegerList.nCount;
@@ -1345,7 +1410,7 @@ const int *OGRFeature::GetFieldAsIntegerList( int iField, int *pnCount )
  * @param pnCount an integer to put the list count (number of integers) into.
  *
  * @return the field value.  This list is internal, and should not be
- * modified, or freed.  It's lifetime may be very brief.  If *pnCount is zero
+ * modified, or freed.  Its lifetime may be very brief.  If *pnCount is zero
  * on return the returned pointer may be NULL or non-NULL.
  */
 
@@ -1373,7 +1438,7 @@ const int *OGR_F_GetFieldAsIntegerList( OGRFeatureH hFeat, int iField,
  * @param pnCount an integer to put the list count (number of doubles) into.
  *
  * @return the field value.  This list is internal, and should not be
- * modified, or freed.  It's lifetime may be very brief.  If *pnCount is zero
+ * modified, or freed.  Its lifetime may be very brief.  If *pnCount is zero
  * on return the returned pointer may be NULL or non-NULL.
  */
 
@@ -1383,13 +1448,8 @@ const double *OGRFeature::GetFieldAsDoubleList( int iField, int *pnCount )
     OGRFieldDefn        *poFDefn = poDefn->GetFieldDefn( iField );
 
     CPLAssert( poFDefn != NULL || iField == -1 );
-    if( poFDefn == NULL )
-        return NULL;
-    
-    if( !IsFieldSet(iField) )
-        return NULL;
-    
-    if( poFDefn->GetType() == OFTRealList )
+    if( poFDefn != NULL && IsFieldSet(iField) &&
+        poFDefn->GetType() == OFTRealList )
     {
         if( pnCount != NULL )
             *pnCount = pauFields[iField].RealList.nCount;
@@ -1422,7 +1482,7 @@ const double *OGRFeature::GetFieldAsDoubleList( int iField, int *pnCount )
  * @param pnCount an integer to put the list count (number of doubles) into.
  *
  * @return the field value.  This list is internal, and should not be
- * modified, or freed.  It's lifetime may be very brief.  If *pnCount is zero
+ * modified, or freed.  Its lifetime may be very brief.  If *pnCount is zero
  * on return the returned pointer may be NULL or non-NULL.
  */
 
@@ -1452,7 +1512,7 @@ const double *OGR_F_GetFieldAsDoubleList( OGRFeatureH hFeat, int iField,
  * @param iField the field to fetch, from 0 to GetFieldCount()-1.
  *
  * @return the field value.  This list is internal, and should not be
- * modified, or freed.  It's lifetime may be very brief.
+ * modified, or freed.  Its lifetime may be very brief.
  */
 
 char **OGRFeature::GetFieldAsStringList( int iField ) const
@@ -1496,7 +1556,7 @@ char **OGRFeature::GetFieldAsStringList( int iField ) const
  * @param iField the field to fetch, from 0 to GetFieldCount()-1.
  *
  * @return the field value.  This list is internal, and should not be
- * modified, or freed.  It's lifetime may be very brief.
+ * modified, or freed.  Its lifetime may be very brief.
  */
 
 char **OGR_F_GetFieldAsStringList( OGRFeatureH hFeat, int iField )
@@ -1522,7 +1582,7 @@ char **OGR_F_GetFieldAsStringList( OGRFeatureH hFeat, int iField )
  * @param pnBytes location to put the number of bytes returned.
  *
  * @return the field value.  This data is internal, and should not be
- * modified, or freed.  It's lifetime may be very brief.
+ * modified, or freed.  Its lifetime may be very brief.
  */
 
 GByte *OGRFeature::GetFieldAsBinary( int iField, int *pnBytes )
@@ -1567,13 +1627,14 @@ GByte *OGRFeature::GetFieldAsBinary( int iField, int *pnBytes )
  * @param pnBytes location to place count of bytes returned.
  *
  * @return the field value.  This list is internal, and should not be
- * modified, or freed.  It's lifetime may be very brief.
+ * modified, or freed.  Its lifetime may be very brief.
  */
 
 GByte *OGR_F_GetFieldAsBinary( OGRFeatureH hFeat, int iField, int *pnBytes )
 
 {
     VALIDATE_POINTER1( hFeat, "OGR_F_GetFieldAsBinary", NULL );
+    VALIDATE_POINTER1( pnBytes, "OGR_F_GetFieldAsBinary", NULL );
 
     return ((OGRFeature *)hFeat)->GetFieldAsBinary(iField,pnBytes);
 }
@@ -1890,6 +1951,43 @@ void OGRFeature::SetField( int iField, const char * pszValue )
         if( OGRParseDate( pszValue, &sWrkField, 0 ) )
             memcpy( pauFields+iField, &sWrkField, sizeof(sWrkField));
     }
+    else if( poFDefn->GetType() == OFTIntegerList 
+             || poFDefn->GetType() == OFTRealList )
+    {
+        char **papszValueList = NULL;
+
+        if( pszValue[0] == '(' && strchr(pszValue,':') != NULL )
+        {
+            papszValueList = CSLTokenizeString2( 
+                pszValue, ",:()", 0 );
+        }
+
+        if( CSLCount(papszValueList) == 0
+            || atoi(papszValueList[0]) != CSLCount(papszValueList)-1 )
+        {
+            /* do nothing - the count does not match entries */
+        }
+        else if( poFDefn->GetType() == OFTIntegerList )
+        {
+            int i, nCount = atoi(papszValueList[0]);
+            std::vector<int> anValues;
+
+            for( i=0; i < nCount; i++ )
+                anValues.push_back( atoi(papszValueList[i+1]) );
+            SetField( iField, nCount, &(anValues[0]) );
+        }
+        else if( poFDefn->GetType() == OFTRealList )
+        {
+            int i, nCount = atoi(papszValueList[0]);
+            std::vector<double> adfValues;
+
+            for( i=0; i < nCount; i++ )
+                adfValues.push_back( atoi(papszValueList[i+1]) );
+            SetField( iField, nCount, &(adfValues[0]) );
+        }
+
+        CSLDestroy(papszValueList);
+    }
     else
         /* do nothing for other field types */;
 }
@@ -1950,6 +2048,7 @@ void OGRFeature::SetField( int iField, int nCount, int *panValues )
         OGRField        uField;
 
         uField.IntegerList.nCount = nCount;
+        uField.Set.nMarker2 = 0;
         uField.IntegerList.paList = panValues;
 
         SetField( iField, &uField );
@@ -2012,6 +2111,7 @@ void OGRFeature::SetField( int iField, int nCount, double * padfValues )
         OGRField        uField;
         
         uField.RealList.nCount = nCount;
+        uField.Set.nMarker2 = 0;
         uField.RealList.paList = padfValues;
         
         SetField( iField, &uField );
@@ -2073,8 +2173,9 @@ void OGRFeature::SetField( int iField, char ** papszValues )
         OGRField        uField;
         
         uField.StringList.nCount = CSLCount(papszValues);
+        uField.Set.nMarker2 = 0;
         uField.StringList.paList = papszValues;
-        
+
         SetField( iField, &uField );
     }
 }
@@ -2134,7 +2235,9 @@ void OGRFeature::SetField( int iField, int nBytes, GByte *pabyData )
         OGRField        uField;
 
         uField.Binary.nCount = nBytes;
+        uField.Set.nMarker2 = 0;
         uField.Binary.paData = pabyData;
+
         SetField( iField, &uField );
     }
 }

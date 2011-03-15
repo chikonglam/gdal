@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: hdf5dataset.h 18004 2009-11-12 15:44:51Z warmerdam $
+ * $Id: hdf5dataset.h 20115 2010-07-22 13:52:05Z dron $
  *
  * Project:  Hierarchical Data Format Release 5 (HDF5)
  * Purpose:  Header file for HDF5 datasets reader.
@@ -78,8 +78,8 @@ class HDF5Dataset : public GDALPamDataset
   CPLErr HDF5ListGroupObjects(HDF5GroupObjects *, int );
   CPLErr CreateMetadata( HDF5GroupObjects *, int );
 
-  HDF5GroupObjects* HDF5FindDatasetObjects( HDF5GroupObjects *, char * );
-  HDF5GroupObjects* HDF5FindDatasetObjectsbyPath( HDF5GroupObjects *, char * );
+  HDF5GroupObjects* HDF5FindDatasetObjects( HDF5GroupObjects *, const char * );
+  HDF5GroupObjects* HDF5FindDatasetObjectsbyPath( HDF5GroupObjects *, const char * );
   char* CreatePath(HDF5GroupObjects *);
   void DestroyH5Objects(HDF5GroupObjects *);
  

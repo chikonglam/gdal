@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrociloaderlayer.cpp 14858 2008-07-08 16:31:55Z mloskot $
+ * $Id: ogrociloaderlayer.cpp 19871 2010-06-15 04:32:45Z ilucena $
  *
  * Project:  Oracle Spatial Driver
  * Purpose:  Implementation of the OGROCILoaderLayer class.  This implements
@@ -32,7 +32,7 @@
 #include "cpl_conv.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: ogrociloaderlayer.cpp 14858 2008-07-08 16:31:55Z mloskot $");
+CPL_CVSID("$Id: ogrociloaderlayer.cpp 19871 2010-06-15 04:32:45Z ilucena $");
 
 /************************************************************************/
 /*                         OGROCILoaderLayer()                          */
@@ -668,7 +668,7 @@ void OGROCILoaderLayer::FinalizeNewLayer()
     sDimUpdate.Append( ")" );
 
     sDimUpdate.Appendf( strlen(poFeatureDefn->GetName()) + 100,
-                        " WHERE table_name = '%s'", 
+                        " WHERE table_name = UPPER('%s')",
                         poFeatureDefn->GetName() );
 
 /* -------------------------------------------------------------------- */

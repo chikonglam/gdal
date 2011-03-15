@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrpgeoselectlayer.cpp 10645 2007-01-18 02:22:39Z warmerdam $
+ * $Id: ogrpgeoselectlayer.cpp 20194 2010-08-06 18:28:05Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implements OGRPGeoSelectLayer class, layer access to the results
@@ -31,7 +31,7 @@
 #include "cpl_conv.h"
 #include "ogr_pgeo.h"
 
-CPL_CVSID("$Id: ogrpgeoselectlayer.cpp 10645 2007-01-18 02:22:39Z warmerdam $");
+CPL_CVSID("$Id: ogrpgeoselectlayer.cpp 20194 2010-08-06 18:28:05Z rouault $");
 
 /************************************************************************/
 /*                          OGRPGeoSelectLayer()                        */
@@ -61,6 +61,7 @@ OGRPGeoSelectLayer::~OGRPGeoSelectLayer()
 
 {
     ClearStatement();
+    CPLFree(pszBaseStatement);
 }
 
 /************************************************************************/

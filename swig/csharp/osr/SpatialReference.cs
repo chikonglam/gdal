@@ -186,6 +186,12 @@ public class SpatialReference : IDisposable {
     return ret;
   }
 
+  public int GetUTMZone() {
+    int ret = OsrPINVOKE.SpatialReference_GetUTMZone(swigCPtr);
+    if (OsrPINVOKE.SWIGPendingException.Pending) throw OsrPINVOKE.SWIGPendingException.Retrieve();
+    return ret;
+  }
+
   public int SetStatePlane(int zone, int is_nad83, string unitsname, double units) {
     int ret = OsrPINVOKE.SpatialReference_SetStatePlane(swigCPtr, zone, is_nad83, unitsname, units);
     if (OsrPINVOKE.SWIGPendingException.Pending) throw OsrPINVOKE.SWIGPendingException.Retrieve();
@@ -224,6 +230,24 @@ public class SpatialReference : IDisposable {
 
   public double GetNormProjParm(string name, double default_val) {
     double ret = OsrPINVOKE.SpatialReference_GetNormProjParm(swigCPtr, name, default_val);
+    if (OsrPINVOKE.SWIGPendingException.Pending) throw OsrPINVOKE.SWIGPendingException.Retrieve();
+    return ret;
+  }
+
+  public double GetSemiMajor() {
+    double ret = OsrPINVOKE.SpatialReference_GetSemiMajor(swigCPtr);
+    if (OsrPINVOKE.SWIGPendingException.Pending) throw OsrPINVOKE.SWIGPendingException.Retrieve();
+    return ret;
+  }
+
+  public double GetSemiMinor() {
+    double ret = OsrPINVOKE.SpatialReference_GetSemiMinor(swigCPtr);
+    if (OsrPINVOKE.SWIGPendingException.Pending) throw OsrPINVOKE.SWIGPendingException.Retrieve();
+    return ret;
+  }
+
+  public double GetInvFlattening() {
+    double ret = OsrPINVOKE.SpatialReference_GetInvFlattening(swigCPtr);
     if (OsrPINVOKE.SWIGPendingException.Pending) throw OsrPINVOKE.SWIGPendingException.Retrieve();
     return ret;
   }
@@ -560,6 +584,12 @@ public class SpatialReference : IDisposable {
 
   public int ImportFromXML(string xmlString) {
     int ret = OsrPINVOKE.SpatialReference_ImportFromXML(swigCPtr, xmlString);
+    if (OsrPINVOKE.SWIGPendingException.Pending) throw OsrPINVOKE.SWIGPendingException.Retrieve();
+    return ret;
+  }
+
+  public int ImportFromERM(string proj, string datum, string units) {
+    int ret = OsrPINVOKE.SpatialReference_ImportFromERM(swigCPtr, proj, datum, units);
     if (OsrPINVOKE.SWIGPendingException.Pending) throw OsrPINVOKE.SWIGPendingException.Retrieve();
     return ret;
   }

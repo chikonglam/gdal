@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gifdataset.cpp 17689 2009-09-25 17:23:37Z rouault $
+ * $Id: gifdataset.cpp 20996 2010-10-28 18:38:15Z rouault $
  *
  * Project:  GIF Driver
  * Purpose:  Implement GDAL GIF Support using libungif code.  
@@ -30,7 +30,7 @@
 #include "gdal_pam.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: gifdataset.cpp 17689 2009-09-25 17:23:37Z rouault $");
+CPL_CVSID("$Id: gifdataset.cpp 20996 2010-10-28 18:38:15Z rouault $");
 
 CPL_C_START
 #include "gif_lib.h"
@@ -61,7 +61,7 @@ class GIFDataset : public GDALPamDataset
 {
     friend class GIFRasterBand;
 
-    FILE        *fp;
+    VSILFILE        *fp;
 
     GifFileType *hGifFile;
 
@@ -441,7 +441,7 @@ GDALDataset *GIFDataset::Open( GDALOpenInfo * poOpenInfo )
 /*      Open the file and ingest.                                       */
 /* -------------------------------------------------------------------- */
     GifFileType 	*hGifFile;
-    FILE                *fp;
+    VSILFILE                *fp;
     int                  nGifErr;
 
     fp = VSIFOpenL( poOpenInfo->pszFilename, "r" );
@@ -655,7 +655,7 @@ GIFCreateCopy( const char * pszFilename, GDALDataset *poSrcDS,
 /*      Open the output file.                                           */
 /* -------------------------------------------------------------------- */
     GifFileType *hGifFile;
-    FILE *fp;
+    VSILFILE *fp;
 
     fp = VSIFOpenL( pszFilename, "w" );
     if( fp == NULL )
@@ -911,7 +911,7 @@ static int VSIGIFReadFunc( GifFileType *psGFile, GifByteType *pabyBuffer,
 
 {
     return VSIFReadL( pabyBuffer, 1, nBytesToRead, 
-                      (FILE *) psGFile->UserData );
+                      (VSILFILE *) psGFile->UserData );
 }
 
 /************************************************************************/
@@ -925,7 +925,7 @@ static int VSIGIFWriteFunc( GifFileType *psGFile,
 
 {
     return VSIFWriteL( (void *) pabyBuffer, 1, nBytesToWrite, 
-                       (FILE *) psGFile->UserData );
+                       (VSILFILE *) psGFile->UserData );
 }
 
 /************************************************************************/

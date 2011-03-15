@@ -1,13 +1,14 @@
-<html>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html lang=en>
 <head>
 <title>GDAL Raster Formats</title>
 </head>
 
-<body bgcolor="#ffffff">
+<body>
 
 <h1>GDAL Raster Formats</h1>
 
-<table border>
+<table border="1">
 
 <tr>
 <th>Long Format Name</th>
@@ -15,7 +16,7 @@
 <th>Creation</th>
 <th>Georeferencing</th>
 <th>Maximum file size<sup><a href="#footnote1">1</a></sup></th>
-<th>Compiled by<br>default</th>
+<th>Compiled by<br/>default</th>
 </tr>
 
 <tr><td> <a href="frmt_various.html#AAIGrid">Arc/Info ASCII Grid</a>
@@ -170,7 +171,7 @@
 </td><td> Yes
 </td></tr>
 
-<tr><td> <a href="frmt_ecw.html">ERMapper Compressed Wavelets (.ecw)</a>
+<tr><td> <a href="frmt_ecw.html">ERDAS Compressed Wavelets (.ecw)</a>
 </td><td> ECW
 </td><td> Yes
 </td><td> Yes
@@ -362,6 +363,14 @@
 </td><td> Yes (internal libtiff and libgeotiff provided)
 </td></tr>
 
+<tr><td> NOAA .gtx vertical datum shift
+</td><td> GTX
+</td><td> Yes
+</td><td> Yes
+</td><td> 
+</td><td> Yes
+</td></tr>
+
 <tr><td> <a href="frmt_various.html#GXF">GXF - Grid eXchange File</a>
 </td><td> GXF
 </td><td> No
@@ -384,6 +393,14 @@
 </td><td> Yes
 </td><td> 2GiB
 </td><td> No, needs libhdf5
+</td></tr>
+
+<tr><td> <a href="frmt_hf2.html">HF2/HFZ heightfield raster</a>
+</td><td> HF2
+</td><td> Yes
+</td><td> Yes
+</td><td> -
+</td><td> Yes
 </td></tr>
 
 <tr><td> <a href="frmt_hfa.html">Erdas Imagine (.img)</a>
@@ -458,20 +475,20 @@
 </td><td> Yes (internal libjpeg provided)
 </td></tr>
 
+<tr><td> <a href="frmt_jpegls.html">JPEG-LS</a>
+</td><td> JPEGLS
+</td><td> Yes
+</td><td> No
+</td><td> --
+</td><td> No, needs CharLS library
+</td></tr>
+
 <tr><td> <a href="frmt_jpeg2000.html">JPEG2000 (.jp2, .j2k)</a>
 </td><td> JPEG2000
 </td><td> Yes
 </td><td> Yes
 </td><td> 2GiB
 </td><td> No, needs libjasper
-</td></tr>
-
-<tr><td> <a href="frmt_jp2kak.html">JPEG2000 (.jp2, .j2k)</a>
-</td><td> JP2KAK
-</td><td> Yes
-</td><td> Yes
-</td><td> No limits
-</td><td> No, needs Kakadu library
 </td></tr>
 
 <tr><td> <a href="frmt_jp2ecw.html">JPEG2000 (.jp2, .j2k)</a>
@@ -482,12 +499,28 @@
 </td><td> No, needs ECW SDK
 </td></tr>
 
+<tr><td> <a href="frmt_jp2kak.html">JPEG2000 (.jp2, .j2k)</a>
+</td><td> JP2KAK
+</td><td> Yes
+</td><td> Yes
+</td><td> No limits
+</td><td> No, needs Kakadu library
+</td></tr>
+
 <tr><td> <a href="frmt_jp2mrsid.html">JPEG2000 (.jp2, .j2k)</a>
 </td><td> JP2MrSID
 </td><td> Yes
 </td><td> Yes
 </td><td> 
 </td><td> No, needs MrSID SDK
+</td></tr>
+
+<tr><td> <a href="frmt_jp2openjpeg.html">JPEG2000 (.jp2, .j2k)</a>
+</td><td> JP2OpenJPEG
+</td><td> Yes
+</td><td> Yes
+</td><td>
+</td><td> No, needs OpenJPEG library (v2)
 </td></tr>
 
 <tr><td> <a href="frmt_l1b.html">NOAA Polar Orbiter Level 1b Data Set (AVHRR)</a>
@@ -522,6 +555,14 @@
 </td><td> Yes
 </td></tr>
 
+<tr><td> NADCON .los/.las Datum Grid Shift
+</td><td> LOSLAS
+</td><td> No
+</td><td> Yes
+</td><td>
+</td><td> Yes
+</td></tr>
+
 <tr><td> <a href="frmt_mem.html">In Memory Raster</a>
 </td><td> MEM
 </td><td> Yes
@@ -544,6 +585,14 @@
 </td><td> Yes
 </td><td> No limits
 </td><td> Yes
+</td></tr>
+
+<tr><td> <a href="frmt_mrsid_lidar.html">MG4 Encoded Lidar</a>
+</td><td> MG4Lidar
+</td><td> No
+</td><td> Yes
+</td><td> --
+</td><td> No, needs LIDAR SDK
 </td></tr>
 
 <tr><td> <a href="frmt_mrsid.html">Multi-resolution Seamless Image Database</a>
@@ -594,6 +643,14 @@
 </td><td> No, needs libnetcdf
 </td></tr>
 
+<tr><td> NTv2 Datum Grid Shift
+</td><td> NTv2
+</td><td> Yes
+</td><td> Yes
+</td><td>
+</td><td> Yes
+</td></tr>
+
 <tr><td> Northwood/VerticalMapper Classified Grid Format .grc/.tab
 </td><td> NWT_GRC
 </td><td> No
@@ -616,6 +673,14 @@
 </td><td> Yes
 </td><td> --
 </td><td> No, needs OGDI library
+</td></tr>
+
+<tr><td> <a href="frmt_ozi.html">OZI OZF2/OZFX3</a>
+</td><td> OZI
+</td><td> No
+</td><td> Yes
+</td><td> --
+</td><td> No
 </td></tr>
 
 <tr><td> <a href="frmt_various.html#PAux">PCI .aux Labelled</a>
@@ -642,6 +707,14 @@
 </td><td> Yes (internal libcsf provided)
 </td></tr>
 
+<tr><td> <a href="frmt_pdf.html">Geospatial PDF</a>
+</td><td> PDF
+</td><td> No
+</td><td> Yes
+</td><td> --
+</td><td> No, needs libpoppler
+</td></tr>
+
 <tr><td> NASA Planetary Data System
 </td><td> PDS
 </td><td> No
@@ -650,22 +723,20 @@
 </td><td> Yes
 </td></tr>
 
-<!-- Sorry PGCHIP, it was nice to meet you but WKTRaster has hopefully a better future...
-<tr><td>  <a href="http://simon.benjamin.free.fr/pgchip">Postgis CHIP raster (under development)</a>
-</td><td> PGCHIP
-</td><td> Yes
-</td><td> Yes
-</td><td> --
-</td><td> No, needs PostgreSQL library and Postgis headers
-</td></tr>
--->
-
 <tr><td> <a href="frmt_various.html#PNG">Portable Network Graphics (.png)</a>
 </td><td> PNG
 </td><td> Yes
 </td><td> No
 </td><td>&nbsp;
 </td><td> Yes (internal libpng provided)
+</td></tr>
+
+<tr><td>  <a href="http://trac.osgeo.org/gdal/wiki/frmts_wtkraster.html">PostGIS Raster (previously WKTRaster)</a>
+</td><td> PostGISRaster
+</td><td> No
+</td><td> Yes
+</td><td> --
+</td><td> No, needs PostgreSQL library
 </td></tr>
 
 <tr><td> <a href="frmt_various.html#PNM">Netpbm (.ppm,.pgm)</a>
@@ -682,6 +753,14 @@
 </td><td> No
 </td><td> --
 </td><td> Yes
+</td></tr>
+
+<tr><td> <a href="frmt_rasdaman.html">Rasdaman</a>
+</td><td> RASDAMAN
+</td><td> No
+</td><td> No
+</td><td> No limits
+</td><td> No (needs raslib)
 </td></tr>
 
 <tr><td> <a href="frmt_rasterlite.html">Rasterlite - Rasters in SQLite DB</a>
@@ -820,7 +899,7 @@
 </td><td> Yes
 </td></tr>
 
-<tr><td> <a href="frmt_usgsdem.html">USGS ASCII DEM (.dem)</a>
+<tr><td> <a href="frmt_usgsdem.html">USGS ASCII DEM / CDED (.dem)</a>
 </td><td> USGSDEM
 </td><td> Yes
 </td><td> Yes
@@ -844,14 +923,6 @@
 </td><td> No, needs libcurl
 </td></tr>
 
-<tr><td>  <a href="http://trac.osgeo.org/gdal/wiki/frmts_wtkraster.html">WKTRaster</a>
-</td><td> WKTRaster
-</td><td> No
-</td><td> Yes
-</td><td> --
-</td><td> No, needs PostgreSQL library
-</td></tr>
-
 <tr><td> <a href="frmt_wms.html">OGC Web Map Server</a>
 </td><td> WMS
 </td><td> No
@@ -868,24 +939,31 @@
 </td><td> Yes
 </td></tr>
 
+<tr><td> <a href="frmt_xyz.html">ASCII Gridded XYZ</a>
+</td><td> XYZ
+</td><td> Yes
+</td><td> Yes
+</td><td> --
+</td><td> Yes
+</td></tr>
 
 </table>
 
 <p>
-<a name="#footnote1"><sup>1</sup>Maximum file size does not only determined by
+<a name="footnote1"><sup>1</sup></a>Maximum file size is not only determined by
 	the file format itself, but operating system/file system capabilities
 	as well. Look <a href="gdal_building.html#gdal_building_lfs">here</a>
-	for details.</a>
+	for details.
 </p>
 
 <p>
-<a name="#footnote2"><sup>2</sup>ERDAS Imagine has different file format for
+<a name="footnote2"><sup>2</sup></a>ERDAS Imagine has different file format for
 	large files, where 32-bit pointers cannot be used. Look for details
 	<a href="frmt_hfa.html">here</a>.
 </p>
 
 <p>
-$Id: formats_list.html 18250 2009-12-10 18:58:39Z rouault $
+$Id: formats_list.html 21404 2011-01-05 01:20:33Z warmerdam $
 </p>
 
 </body>

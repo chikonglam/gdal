@@ -1,5 +1,5 @@
 /* ***************************************************************************
-* $Id$
+* $Id: javadoc.java 21370 2011-01-01 18:56:16Z rouault $
 *
 * Project:  GDAL/OGR Java bindings
 * Purpose:  Documentation for the Java bindings
@@ -1611,7 +1611,7 @@ public class Dataset
  *
  * Note that the new Band object is not returned.  It may be fetched
  * after successful completion of the method by calling 
- * ds.GetRasterBand(ds.GetRasterCount()-1) as the newest
+ * ds.GetRasterBand(ds.GetRasterCount()) as the newest
  * band will always be the last band.
  *
  * @param datatype the data type of the pixels in the new band. 
@@ -3103,7 +3103,7 @@ public class Band:public int GetMaskFlags()
  * 
  * For file formats that don't know this intrinsically, no value will be returned
  *
- * @param val empty allocated array of type Doube[] of size 1. val[0] will contain a Double object
+ * @param val empty allocated array of type Double[] of size 1. val[0] will contain a Double object
  * with the minimum value if available, other val[0] will contain null
  */
 public class Band:public void GetMinimum(Double[] val)
@@ -3113,7 +3113,7 @@ public class Band:public void GetMinimum(Double[] val)
  * 
  * For file formats that don't know this intrinsically, no value will be returned
  *
- * @param val empty allocated array of type Doube[] of size 1. val[0] will contain a Double object
+ * @param val empty allocated array of type Double[] of size 1. val[0] will contain a Double object
  * with the maximum value if available, other val[0] will contain null
  */
 public class Band:public void GetMaximum(Double[] val)
@@ -3130,7 +3130,7 @@ public class Band:public void GetMaximum(Double[] val)
  * <p>
  * For file formats that don't know this intrinsically, no value will be returned
  *
- * @param val empty allocated array of type Doube[] of size 1. val[0] will contain a Double object
+ * @param val empty allocated array of type Double[] of size 1. val[0] will contain a Double object
  * with the offset value if available, other val[0] will contain null
  */
 public class Band:public void GetOffset(Double[] val)
@@ -3147,7 +3147,7 @@ public class Band:public void GetOffset(Double[] val)
  * <p>
  * For file formats that don't know this intrinsically, no value will be returned
  *
- * @param val empty allocated array of type Doube[] of size 1. val[0] will contain a Double object
+ * @param val empty allocated array of type Double[] of size 1. val[0] will contain a Double object
  * with the scale value if available, other val[0] will contain null
  */
 public class Band:public void GetScale(Double[] val)
@@ -3159,7 +3159,7 @@ public class Band:public void GetScale(Double[] val)
  * value used to mark pixels that are not valid data.  Such pixels should
  * generally not be displayed, nor contribute to analysis operations.
  *
- * @param val empty allocated array of type Doube[] of size 1. val[0] will contain a Double object
+ * @param val empty allocated array of type Double[] of size 1. val[0] will contain a Double object
  * with the no data value if available, other val[0] will contain null
  */
 public class Band:public void GetNoDataValue(Double[] val)
@@ -4285,6 +4285,50 @@ public class Band:public int SetDefaultRAT(RasterAttributeTable table)
  * been emitted.
  */
 public class Band:public int SetNoDataValue(double nodataValue)
+
+/**
+ * Set scaling offset.
+ *
+ * Very few formats implement this method.
+ * When not implemented it will issue a CPLE_NotSupported error and return CE_Failure.
+ *
+ * @param newoffset the new offset.
+ *
+ * @return gdalconst.CE_None or success or gdalconst.CE_Failure on failure. 
+ *
+ * @since Java bindings 1.8.0
+ */
+public class Band:public int SetOffset(double newoffset)
+
+/**
+ * Set scaling ratio.
+ *
+ * Very few formats implement this method.
+ * When not implemented it will issue a CPLE_NotSupported error and return CE_Failure.
+ *
+ * @param newscale the new scale.
+ *
+ * @return gdalconst.CE_None or success or gdalconst.CE_Failure on failure. 
+ *
+ * @since Java bindings 1.8.0
+ */
+public class Band:public int SetScale(double newscale)
+
+/**
+ * Set unit type.
+ *
+ * Set the unit type for a raster band.  Values should be one of
+ * "" (the default indicating it is unknown), "m" indicating meters, 
+ * or "ft" indicating feet, though other nonstandard values are allowed.
+ *
+ * @param newunittype the new unit type value.
+ *
+ * @return gdalconst.CE_None on success or gdalconst.CE_Failure if not succuessful, or 
+ * unsupported.
+ *
+ * @since Java bindings 1.8.0
+ */
+public class Band:public int SetUnitType(String newunittype)
 
 /**
  * Set the category names for this band.
@@ -5904,6 +5948,24 @@ public class org.gdal.ogr.Driver:public String getName()
 public class org.gdal.ogr.Driver:public String GetName()
 
 
+/** 
+  Add a driver to the list of registered drivers.
+
+  If the driver is already registered (based on handle comparison) 
+  then the driver isn't registered.  New drivers are added at the end of
+  the list of registered drivers.
+
+  @since GDAL 1.8.0
+*/
+public class org.gdal.ogr.Driver:public void Register()
+
+/** 
+  Remove the  driver from the list of registered drivers.
+
+  @since GDAL 1.8.0
+*/
+public class org.gdal.ogr.Driver:public void Deregister()
+
 /* Class DataSource */
 /**
   * This class represents a data source.
@@ -6446,6 +6508,25 @@ public class Layer:public String GetFIDColumn()
 */
 public class Layer:public String GetGeometryColumn()
 
+
+/**
+ Set which fields can be omitted when retrieving features from the layer.
+
+ If the driver supports this functionality (testable using OLCIgnoreFields capability), it will not fetch the specified fields
+ in subsequent calls to GetFeature() / GetNextFeature() and thus save some processing time and/or bandwidth.
+
+ Besides field names of the layers, the following special fields can be passed: "OGR_GEOMETRY" to ignore geometry and
+ "OGR_STYLE" to ignore layer style.
+
+ By default, no fields are ignored.
+
+ @param fieldNames a vector of field names. If null is passed, the ignored list is cleared.
+ @return ogr.OGRERR_NONE if all field names have been resolved (even if the driver does not support this method)
+
+ @since OGR 1.8.0
+*/
+public class Layer:public int SetIgnoredFields(java.util.Vector fieldNames)
+
 /** 
  Fetch the schema information for this layer.
 
@@ -6459,10 +6540,27 @@ public class Layer:public FeatureDefn GetLayerDefn()
 
 /**
  * Return the layer name.
- * This actually an alias for GetLayerDefn().GetName().
+ *
+ * This returns the same content as GetLayerDefn().GetName(), but for a
+ * few drivers, calling GetName() directly can avoid lengthy layer
+ * definition initialization.
+ *
  * @return the layer name
 */
 public class Layer:public String GetName()
+
+/**
+ * Return the layer geometry type.
+ *
+ * This returns the same result as GetLayerDefn().GetGeomType(), but for a
+ * few drivers, calling GetGeomType() directly can avoid lengthy layer
+ * definition initialization.
+ *
+ * @return the geometry name
+ *
+ * @since OGR 1.8.0
+ */
+public class Layer:public int GetGeomType()
 
 /**
  Fetch the next available feature from this layer.
@@ -6729,6 +6827,8 @@ fields are assured to be in UTF-8 format.  If false the encoding of fields
 is uncertain, though it might still be UTF-8.<p>
 
 <li> <b>OLCTransactions</b> / "Transactions": true if the StartTransaction(), CommitTransaction() and RollbackTransaction() methods work in a meaningful way, otherwise false.<p>
+
+<li> <b>OLCIgnoreFields</b> / "IgnoreFields": true if fields, geometry and style will be omitted when fetching features as set by SetIgnoredFields() method.<p>
 
 <p>
 
@@ -7226,9 +7326,10 @@ public class Feature:public void SetFieldStringList(int ifield, java.util.Vector
  *
  * @return 0 if the operation succeeds, even if some values are
  * not transferred, otherwise throws a RuntimeException (or an error code if DontUseExceptions() has been called).
+ *
+ * @see #SetFromWithMap(org.gdal.ogr.Feature srcFeature, int forgiving, int[] map)
  */
 public class Feature:public int SetFrom(Feature srcFeature, int forgiving)
-
 
 /**
  * Set one feature from another.
@@ -7240,6 +7341,39 @@ public class Feature:public int SetFrom(Feature srcFeature, int forgiving)
  * @since Java bindings 1.7.0
  */
 public class Feature:public int SetFrom(Feature srcFeature)
+
+/**
+ * Set one feature from another.
+ *
+ * Overwrite the contents of this feature from the geometry and attributes
+ * of another.  The hOtherFeature does not need to have the same
+ * OGRFeatureDefn.  Field values are copied according to the provided indices
+ * map. Field types do not have to exactly match.  SetField() function
+ * conversion rules will be applied as needed. This is more efficient than
+ * <a href="#SetFrom(org.gdal.ogr.Feature, int)">SetFrom(Feature, int)</a>
+ * in that this doesn't lookup the fields by their names.
+ * Particularly useful when the field names don't match.
+ *
+ * @param srcFeature the feature from which geometry, and field values will
+ * be copied.
+ *
+ * @param forgiving 1 if the operation should continue despite lacking
+ * output fields matching some of the source fields.
+ *
+ * @param map Array of the indices of the destination feature's fields
+ * stored at the corresponding index of the source feature's fields. A value of
+ * -1 should be used to ignore the source's field. The array should not be null
+ * and be as long as the number of fields in the source feature.
+ *
+ * @return 0 if the operation succeeds, even if some values are
+ * not transferred, otherwise throws a RuntimeException (or an error code if DontUseExceptions() has been called).
+ *
+ * @since OGR 1.8.0
+ *
+ * @see #SetFrom(org.gdal.ogr.Feature srcFeature, int forgiving)
+ */
+public class Feature:public int SetFromWithMap(Feature srcFeature, int forgiving, int[] map)
+
 
 /**
  * Set feature geometry.
@@ -7366,6 +7500,10 @@ public class Geometry:public Geometry(int eGeometryType, String wkt, byte[] wkb,
  * to make an internal copy.
  * <p>
  * There is no SFCOM analog to this method.
+ * <p>
+ * For a polygon, other must be a linearring. If the polygon is empty,
+ * the first added subgeometry will be the exterior ring. The next ones will be
+ * the interior rings.
  *
  * @param other geometry to add to the container.
  *
@@ -7383,6 +7521,10 @@ public class Geometry:public int AddGeometry(Geometry other)
  * does.
  * <p>
  * There is no SFCOM analog to this method.
+ * <p>
+ * For a polygon, other must be a linearring. If the polygon is empty,
+ * the first added subgeometry will be the exterior ring. The next ones will be
+ * the interior rings.
  *
  * @param other geometry to add to the container.
  *
@@ -7480,12 +7622,21 @@ public class Geometry:public Geometry Buffer(double distance, int quadsecs)
 public class Geometry:public Geometry Buffer(double distance)
 
 /**
- * Compute and return centroid of surface.  The centroid is not necessarily
- * within the geometry.  
+ * Compute the geometry centroid.
+ *
+ * The centroid is not necessarily within the geometry.  
  * <p>
- * This method relates to the SFCOM ISurface::get_Centroid() method.
+ * This method relates to the SFCOM ISurface::get_Centroid() method
+ * however the current implementation based on GEOS can operate on other
+ * geometry types such as multipoint, linestring, geometrycollection such as
+ * multipolygons.
+ * OGC SF SQL 1.1 defines the operation for surfaces (polygons).
+ * SQL/MM-Part 3 defines the operation for surfaces and multisurfaces (multipolygons).
  * <p>
- * NOTE: Only implemented when GEOS included in build.
+ * This function is built on the GEOS library, check it for the definition
+ * of the geometry operation.
+ * If OGR is built without the GEOS library, this function will always fail, 
+ * issuing a CPLE_NotSupported error. 
  *
  * @return point with the centroid location, or null in case of failure
  */
@@ -7783,9 +7934,20 @@ public class Geometry:public void FlattenTo2D()
  * Compute geometry area.
  *
  * Computes the area for an OGRLinearRing, OGRPolygon or OGRMultiPolygon.
- * Undefined for all other geometry types (returns zero). 
+ * Undefined for all other geometry types (returns zero).
  *
  * @return the area or 0.0 for unsupported geometry types.
+ *
+ * @since OGR 1.8.0
+ */
+public class Geometry:public double Area()
+
+/**
+ * Compute geometry area (deprecated).
+ *
+ * @deprecated
+ *
+ * @see #Area()
  */
 public class Geometry:public double GetArea()
 
@@ -7793,13 +7955,24 @@ public class Geometry:public double GetArea()
  * Compute boundary.
  *
  * A new geometry object is created and returned containing the boundary
- * of the geometry on which the method is invoked.  
+ * of the geometry on which the method is invoked.
  * <p>
  * This method is built on the GEOS library, check it for the definition
  * of the geometry operation.
  * If OGR is built without the GEOS library, this method will always fail.
  *
  * @return a newly allocated geometry now owned by the caller, or null on failure.
+ *
+ * @since OGR 1.8.0
+ */
+public class Geometry:public Geometry Boundary()
+
+/**
+ * Compute boundary (deprecated).
+ *
+ * @deprecated
+ *
+ * @see #Boundary()
  */
 public class Geometry:public Geometry GetBoundary()
 
@@ -7840,6 +8013,8 @@ public class Geometry:public void GetEnvelope(double[] argout)
  * wkbMultiPolygon[25D] or wkbGeometryCollection[25D] may return a valid value.
  * Other geometry types will silently return 0.
  *
+ * For a polygon, the returned number is the number of rings (exterior ring + interior rings).
+ *
  * @return the number of elements.
  */
 public class Geometry:public int GetGeometryCount()
@@ -7863,6 +8038,9 @@ public class Geometry:public String GetGeometryName()
  * <p>
  * This function relates to the SFCOM 
  * IGeometryCollection::get_Geometry() method.
+ * <p>
+ * For a polygon, OGR_G_GetGeometryRef(iSubGeom) returns the exterior ring
+ * if iSubGeom == 0, and the interior rings for iSubGeom > 0.
  *
  * @param iSubGeom the index of the geometry to fetch, between 0 and
  *          GetGeometryCount() - 1.
@@ -8160,6 +8338,23 @@ public class Geometry:public void SetPoint(int ipoint, double x, double y, doubl
 public class Geometry:public void SetPoint(int ipoint, double x, double y)
 
 /**
+ * Simplify the geometry.
+ *
+ * This function is built on the GEOS library, check it for the definition
+ * of the geometry operation.
+ * If OGR is built without the GEOS library, this function will always fail,
+ * issuing a CPLE_NotSupported error.
+ *
+ * @param dTolerance the distance tolerance for the simplification.
+ *
+ * @return the simplified geometry or null if an error occurs.
+ *
+ * @since OGR 1.8.0
+ */
+public class Geometry:public Geometry Simplify(double dTolerance)
+
+
+/**
  * Compute symmetric difference.
  *
  * Generates a new geometry which is the symmetric difference of this
@@ -8173,6 +8368,17 @@ public class Geometry:public void SetPoint(int ipoint, double x, double y)
  *
  * @return a new geometry representing the symmetric difference or null if the 
  * difference is empty or an error occurs.
+ *
+ * @since OGR 1.8.0
+ */
+public class Geometry:public Geometry SymDifference(Geometry other)
+
+/**
+ * Compute symmetric difference (deprecated).
+ *
+ * @deprecated
+ *
+ * @see #SymDifference(Geometry)
  */
 public class Geometry:public Geometry SymmetricDifference(Geometry other)
 
@@ -8255,6 +8461,20 @@ public class Geometry:public int Transform(CoordinateTransformation ct)
 public class Geometry:public Geometry Union(Geometry other)
 
 /**
+ * Compute union using cascading.
+ *
+ * This method is built on the GEOS library, check it for the definition
+ * of the geometry operation.
+ * If OGR is built without the GEOS library, this method will always fail,
+ * issuing a CPLE_NotSupported error.
+ *
+ * @return a new geometry representing the union or null if an error occurs.
+ *
+ * @since OGR 1.8.0
+ */
+public class Geometry:public Geometry UnionCascaded()
+
+/**
  * Test for containment.
  *
  * Tests if actual geometry object is within the passed geometry.
@@ -8282,6 +8502,12 @@ public class Geometry:public boolean Within(Geometry other)
  */
 public class Geometry:public int WkbSize()
 
+/**
+ * Returns the length of the geometry
+ * @return length of the geometry
+ * @since Java bindings 1.8.0
+ */
+public class Geometry:public double Length()
 
 /* Class FeatureDefn */
 
@@ -8371,6 +8597,42 @@ public class FeatureDefn:public FieldDefn GetFieldDefn(int ifield)
  * @return the field index, or -1 if no match found.
  */
 public class FeatureDefn:public int GetFieldIndex(String name)
+
+/**
+ * Determine whether the geometry can be omitted when fetching features.
+ *
+ * @return ignore state (1 if ignored, 0 otherwise)
+ *
+ * @since OGR 1.8.0
+ */
+public class FeatureDefn:public int IsGeometryIgnored()
+
+/**
+ * Set whether the geometry can be omitted when fetching features.
+ *
+ * @param bIgnore ignore state (1 to ignore, 0 otherwise)
+ *
+ * @since OGR 1.8.0
+ */
+public class FeatureDefn:public void SetGeometryIgnored(int bIgnore)
+
+/**
+ * Determine whether the style can be omitted when fetching features.
+ *
+ * @return ignore state (1 if ignored, 0 otherwise)
+ *
+ * @since OGR 1.8.0
+ */
+public class FeatureDefn:public int IsStyleIgnored()
+
+/**
+ * Set whether the style can be omitted when fetching features.
+ *
+ * @param bIgnore ignore state (1 to ignore, 0 otherwise)
+ *
+ * @since OGR 1.8.0
+ */
+public class FeatureDefn:public void SetStyleIgnored(int bIgnore)
 
 /**
  * Fetch the geometry base type.
@@ -8540,6 +8802,23 @@ public class FieldDefn:public void SetType(int type)
  */
 public class FieldDefn:public void SetWidth(int width) 
 
+/**
+ * Return whether this field should be omitted when fetching features.
+ *
+ * @return ignore state (1 if ignored, 0 otherwise)
+ *
+ * @since OGR 1.8.0
+ */
+public class FieldDefn:public int IsIgnored()
+
+/**
+ * Set whether this field should be omitted when fetching features.
+ *
+ * @param bIgnored ignore state (1 to ignore, 0 otherwise)
+ *
+ * @since OGR 1.8.0
+ */
+public class FieldDefn:public void SetIgnored(int bIgnored) 
 
 /* Class ogr */
 
@@ -8597,7 +8876,7 @@ public class ogr:public static void DontUseExceptions()
  *
  * @since Java bindings 1.7.0
  */
-public class ogr:public static Geometry ApproximateArcAngles(double dfCenterX, double dfCenterY, double dfZ, double dfPrimaryRadius, double dfSecondaryAxis, double dfRotation, double dfStartAngle, double dfEndAngle, double dfMaxAngleStepSizeDegrees) 
+public class ogr:public static Geometry ApproximateArcAngles(double dfCenterX, double dfCenterY, double dfZ, double dfPrimaryRadius, double dfSecondaryRadius, double dfRotation, double dfStartAngle, double dfEndAngle, double dfMaxAngleStepSizeDegrees) 
 
 /**
  * Build a ring from a bunch of arcs.
@@ -8971,6 +9250,67 @@ public class ogr:public static void RegisterAll()
   * generation of such WKB.
   */
 public class ogr:public static int SetGenerate_DB2_V72_BYTE_ORDER(int bGenerate_DB2_V72_BYTE_ORDER) 
+
+/**
+ * Convert to polygon.
+ *
+ * Tries to force the provided geometry to be a polygon.  Currently
+ * this just effects a change on multipolygons.
+ *
+ * Note: contrary to the C/C++ method, a new object is returned.
+ * 
+ * @param geom the input geometry
+ * @return new geometry.
+ * @since Java bindings 1.8.0
+ */
+public class ogr:public static Geometry ForceToPolygon(Geometry geom)
+
+/**
+ * Convert to multipolygon.
+ *
+ * Tries to force the provided geometry to be a multipolygon.  Currently
+ * this just effects a change on polygons.
+ *
+ * Note: contrary to the C/C++ method, a new object is returned.
+ * 
+ * @param geom the input geometry
+ * @return new geometry.
+ * @since Java bindings 1.8.0
+ */
+public class ogr:public static Geometry ForceToMultiPolygon(Geometry geom)
+
+/**
+ * Convert to multipoint.
+ *
+ * Tries to force the provided geometry to be a multipoint.  Currently
+ * this just effects a change on points.
+ *
+ * Note: contrary to the C/C++ method, a new object is returned.
+ * 
+ * @param geom the input geometry
+ * @return new geometry.
+ * @since Java bindings 1.8.0
+ */
+public class ogr:public static Geometry ForceToMultiPoint(Geometry geom)
+
+/**
+ * Convert to multilinestring.
+ *
+ * Tries to force the provided geometry to be a multilinestring.
+ * <ul>
+ * <li>linestrings are placed in a multilinestring.
+ * <li>geometry collections will be converted to multilinestring if they only 
+ * contain linestrings.
+ * <li>polygons will be changed to a collection of linestrings (one per ring).
+ * </ul>
+ *
+ * Note: contrary to the C/C++ method, a new object is returned.
+ * 
+ * @param geom the input geometry
+ * @return new geometry.
+ * @since Java bindings 1.8.0
+ */
+public class ogr:public static Geometry ForceToMultiLineString(Geometry geom)
 
 /* Class SpatialReference */
 
@@ -10399,6 +10739,16 @@ public class SpatialReference:public int SetUTM(int zone)
  * @return 0 on success. Otherwise throws a RuntimeException() (or an error code if DontUseExceptions() has been called).
  */
 public class SpatialReference:public int SetUTM(int zone, int north)
+
+/**
+ * Get UTM zone information.
+ *
+ * @return the UTM zone. As a positive value for the northern hemisphere
+ * and as a negative value for the southern hemisphere.
+ *
+ * @since Java bindings 1.8.0
+ */
+public class SpatialReference:public int GetUTMZone()
 
 /**
  * Set a GeogCS based on well known name.

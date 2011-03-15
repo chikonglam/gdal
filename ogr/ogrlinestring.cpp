@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrlinestring.cpp 17792 2009-10-11 17:44:13Z rouault $
+ * $Id: ogrlinestring.cpp 20652 2010-09-19 21:52:52Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  The OGRLineString geometry class.
@@ -31,7 +31,7 @@
 #include "ogr_p.h"
 #include <assert.h>
 
-CPL_CVSID("$Id: ogrlinestring.cpp 17792 2009-10-11 17:44:13Z rouault $");
+CPL_CVSID("$Id: ogrlinestring.cpp 20652 2010-09-19 21:52:52Z rouault $");
 
 /************************************************************************/
 /*                           OGRLineString()                            */
@@ -314,18 +314,30 @@ void OGRLineString::setNumPoints( int nNewPointCount )
 
     if( nNewPointCount > nPointCount )
     {
-        paoPoints = (OGRRawPoint *)
-            OGRRealloc(paoPoints, sizeof(OGRRawPoint) * nNewPointCount);
-
-        assert( paoPoints != NULL );
+        OGRRawPoint* paoNewPoints = (OGRRawPoint *)
+            VSIRealloc(paoPoints, sizeof(OGRRawPoint) * nNewPointCount);
+        if (paoNewPoints == NULL)
+        {
+            CPLError(CE_Failure, CPLE_OutOfMemory,
+                     "Could not allocate array for %d points", nNewPointCount);
+            return;
+        }
+        paoPoints = paoNewPoints;
         
         memset( paoPoints + nPointCount,
                 0, sizeof(OGRRawPoint) * (nNewPointCount - nPointCount) );
         
         if( getCoordinateDimension() == 3 )
         {
-            padfZ = (double *)
-                OGRRealloc( padfZ, sizeof(double)*nNewPointCount );
+            double* padfNewZ = (double *)
+                VSIRealloc( padfZ, sizeof(double)*nNewPointCount );
+            if (padfNewZ == NULL)
+            {
+                CPLError(CE_Failure, CPLE_OutOfMemory,
+                     "Could not allocate array for %d points", nNewPointCount);
+                return;
+            }
+            padfZ = padfNewZ;
             memset( padfZ + nPointCount, 0,
                     sizeof(double) * (nNewPointCount - nPointCount) );
         }
@@ -383,7 +395,11 @@ void OGRLineString::setPoint( int iPoint, double xIn, double yIn, double zIn )
         Make3D();
 
     if( iPoint >= nPointCount )
+    {
         setNumPoints( iPoint+1 );
+        if (nPointCount < iPoint + 1)
+            return;
+    }
 
     paoPoints[iPoint].x = xIn;
     paoPoints[iPoint].y = yIn;
@@ -403,7 +419,11 @@ void OGRLineString::setPoint( int iPoint, double xIn, double yIn )
 
 {
     if( iPoint >= nPointCount )
+    {
         setNumPoints( iPoint+1 );
+        if (nPointCount < iPoint + 1)
+            return;
+    }
 
     paoPoints[iPoint].x = xIn;
     paoPoints[iPoint].y = yIn;
@@ -482,6 +502,9 @@ void OGRLineString::setPoints( int nPointsIn, OGRRawPoint * paoPointsIn,
 
 {
     setNumPoints( nPointsIn );
+    if (nPointCount < nPointsIn)
+        return;
+
     memcpy( paoPoints, paoPointsIn, sizeof(OGRRawPoint) * nPointsIn);
 
 /* -------------------------------------------------------------------- */
@@ -535,6 +558,8 @@ void OGRLineString::setPoints( int nPointsIn, double * padfX, double * padfY,
 /*      Assign values.                                                  */
 /* -------------------------------------------------------------------- */
     setNumPoints( nPointsIn );
+    if (nPointCount < nPointsIn)
+        return;
 
     for( i = 0; i < nPointsIn; i++ )
     {
@@ -605,15 +630,19 @@ void OGRLineString::addSubLineString( const OGRLineString *poOtherLine,
                                       int nStartVertex, int nEndVertex )
 
 {
+    int nOtherLineNumPoints = poOtherLine->getNumPoints();
+    if (nOtherLineNumPoints == 0)
+        return;
+
 /* -------------------------------------------------------------------- */
 /*      Do a bit of argument defaulting and validation.                 */
 /* -------------------------------------------------------------------- */
     if( nEndVertex == -1 )
-        nEndVertex = poOtherLine->getNumPoints() - 1;
+        nEndVertex = nOtherLineNumPoints - 1;
 
     if( nStartVertex < 0 || nEndVertex < 0 
-        || nStartVertex >= poOtherLine->getNumPoints() 
-        || nEndVertex >= poOtherLine->getNumPoints() )
+        || nStartVertex >= nOtherLineNumPoints 
+        || nEndVertex >= nOtherLineNumPoints )
     {
         CPLAssert( FALSE );
         return;
@@ -626,6 +655,8 @@ void OGRLineString::addSubLineString( const OGRLineString *poOtherLine,
     int nPointsToAdd = ABS(nEndVertex-nStartVertex) + 1;
 
     setNumPoints( nPointsToAdd + nOldPoints );
+    if (nPointCount < nPointsToAdd + nOldPoints)
+        return;
 
 /* -------------------------------------------------------------------- */
 /*      Copy the x/y points - forward copies use memcpy.                */
@@ -742,6 +773,8 @@ OGRErr OGRLineString::importFromWkb( unsigned char * pabyData,
     }
 
     setNumPoints( nNewNumPoints );
+    if (nPointCount < nNewNumPoints)
+        return OGRERR_FAILURE;
     
     if( bIs3D )
         Make3D();
@@ -889,9 +922,10 @@ OGRErr OGRLineString::importFromWkt( char ** ppszInput )
         return OGRERR_CORRUPT_DATA;
 
 /* -------------------------------------------------------------------- */
-/*      Check for EMPTY or (EMPTY).                                     */
+/*      Check for EMPTY                                                 */
 /* -------------------------------------------------------------------- */
     const char *pszPreScan;
+    int bHasZ = FALSE, bHasM = FALSE;
 
     pszPreScan = OGRWktReadToken( pszInput, szToken );
     if( EQUAL(szToken,"EMPTY") )
@@ -900,20 +934,57 @@ OGRErr OGRLineString::importFromWkt( char ** ppszInput )
         return OGRERR_NONE;
     }
 
+/* -------------------------------------------------------------------- */
+/*      Check for Z, M or ZM. Will ignore the Measure                   */
+/* -------------------------------------------------------------------- */
+    else if( EQUAL(szToken,"Z") )
+    {
+        bHasZ = TRUE;
+    }
+    else if( EQUAL(szToken,"M") )
+    {
+        bHasM = TRUE;
+    }
+    else if( EQUAL(szToken,"ZM") )
+    {
+        bHasZ = TRUE;
+        bHasM = TRUE;
+    }
+
+    if (bHasZ || bHasM)
+    {
+        pszInput = pszPreScan;
+        pszPreScan = OGRWktReadToken( pszInput, szToken );
+        if( EQUAL(szToken,"EMPTY") )
+        {
+            *ppszInput = (char *) pszPreScan;
+            empty();
+            /* FIXME?: In theory we should store the dimension and M presence */
+            /* if we want to allow round-trip with ExportToWKT v1.2 */
+            return OGRERR_NONE;
+        }
+    }
+
     if( !EQUAL(szToken,"(") )
         return OGRERR_CORRUPT_DATA;
-    
-    pszPreScan = OGRWktReadToken( pszPreScan, szToken );
-    if( EQUAL(szToken,"EMPTY") )
-    {
-        pszPreScan = OGRWktReadToken( pszPreScan, szToken );
 
-        *ppszInput = (char *) pszPreScan;
-        
-        if( !EQUAL(szToken,")") )
-            return OGRERR_CORRUPT_DATA;
-        else
-            return OGRERR_NONE;
+    if ( !bHasZ && !bHasM )
+    {
+        /* Test for old-style LINESTRING(EMPTY) */
+        pszPreScan = OGRWktReadToken( pszPreScan, szToken );
+        if( EQUAL(szToken,"EMPTY") )
+        {
+            pszInput = OGRWktReadToken( pszPreScan, szToken );
+
+            if( !EQUAL(szToken,")") )
+                return OGRERR_CORRUPT_DATA;
+            else
+            {
+                *ppszInput = (char *) pszInput;
+                empty();
+                return OGRERR_NONE;
+            }
+        }
     }
 
 /* -------------------------------------------------------------------- */
@@ -933,7 +1004,17 @@ OGRErr OGRLineString::importFromWkt( char ** ppszInput )
     if( padfZ == NULL )
         nCoordDimension = 2;
     else
-        nCoordDimension = 3;
+    {
+        /* Ignore Z array when we have a LINESTRING M */
+        if (bHasM && !bHasZ)
+        {
+            nCoordDimension = 2;
+            CPLFree(padfZ);
+            padfZ = NULL;
+        }
+        else
+            nCoordDimension = 3;
+    }
     
     return OGRERR_NONE;
 }
@@ -1119,7 +1200,13 @@ void OGRLineString::getEnvelope( OGREnvelope * psEnvelope ) const
     double      dfMinX, dfMinY, dfMaxX, dfMaxY;
 
     if( nPointCount == 0 )
+    {
+        psEnvelope->MinX = 0;
+        psEnvelope->MaxX = 0;
+        psEnvelope->MinY = 0;
+        psEnvelope->MaxY = 0;
         return;
+    }
     
     dfMinX = dfMaxX = paoPoints[0].x;
     dfMinY = dfMaxY = paoPoints[0].y;
@@ -1184,16 +1271,23 @@ OGRErr OGRLineString::transform( OGRCoordinateTransformation *poCT )
     return OGRERR_FAILURE;
 #else
     double      *xyz;
-    int         i;
+    int         *pabSuccess;
+    int         i, j;
 
 /* -------------------------------------------------------------------- */
-/*      Because we don't want to partially transform this geometry      */
-/*      (if some points fail after some have succeeded) we will         */
-/*      instead make a copy of the points to operate on.                */
+/*   Make a copy of the points to operate on, so as to be able to       */
+/*   keep only valid reprojected points if partial reprojection enabled */
+/*   or keeping intact the original geometry if only full reprojection  */
+/*   allowed.                                                           */
 /* -------------------------------------------------------------------- */
-    xyz = (double *) CPLMalloc(sizeof(double) * nPointCount * 3);
-    if( xyz == NULL )
+    xyz = (double *) VSIMalloc(sizeof(double) * nPointCount * 3);
+    pabSuccess = (int *) VSICalloc(sizeof(int), nPointCount);
+    if( xyz == NULL || pabSuccess == NULL )
+    {
+        VSIFree(xyz);
+        VSIFree(pabSuccess);
         return OGRERR_NOT_ENOUGH_MEMORY;
+    }
 
     for( i = 0; i < nPointCount; i++ )
     {
@@ -1208,22 +1302,75 @@ OGRErr OGRLineString::transform( OGRCoordinateTransformation *poCT )
 /* -------------------------------------------------------------------- */
 /*      Transform and reapply.                                          */
 /* -------------------------------------------------------------------- */
-    if( !poCT->Transform( nPointCount, xyz, xyz + nPointCount, 
-                          xyz+nPointCount*2 ) )
+    poCT->TransformEx( nPointCount, xyz, xyz + nPointCount,
+                       xyz+nPointCount*2, pabSuccess );
+
+    const char* pszEnablePartialReprojection = NULL;
+
+    for( i = 0, j = 0; i < nPointCount; i++ )
+    {
+        if (pabSuccess[i])
+        {
+            xyz[j] = xyz[i];
+            xyz[j+nPointCount] = xyz[i+nPointCount];
+            xyz[j+2*nPointCount] = xyz[i+2*nPointCount];
+            j ++;
+        }
+        else
+        {
+            if (pszEnablePartialReprojection == NULL)
+                pszEnablePartialReprojection =
+                    CPLGetConfigOption("OGR_ENABLE_PARTIAL_REPROJECTION", NULL);
+            if (pszEnablePartialReprojection == NULL)
+            {
+                static int bHasWarned = FALSE;
+                if (!bHasWarned)
+                {
+                    /* Check that there is at least one valid reprojected point */
+                    /* and issue an error giving an hint to use OGR_ENABLE_PARTIAL_REPROJECTION */
+                    int bHasOneValidPoint = (j != 0);
+                    for( ; i < nPointCount && !bHasOneValidPoint; i++ )
+                    {
+                        if (pabSuccess[i])
+                            bHasOneValidPoint = TRUE;
+                    }
+                    if (bHasOneValidPoint)
+                    {
+                        bHasWarned = TRUE;
+                        CPLError(CE_Failure, CPLE_AppDefined,
+                                "Full reprojection failed, but partial is possible if you define "
+                                "OGR_ENABLE_PARTIAL_REPROJECTION configuration option to TRUE");
+                    }
+                }
+
+                CPLFree( xyz );
+                CPLFree( pabSuccess );
+                return OGRERR_FAILURE;
+            }
+            else if (!CSLTestBoolean(pszEnablePartialReprojection))
+            {
+                CPLFree( xyz );
+                CPLFree( pabSuccess );
+                return OGRERR_FAILURE;
+            }
+        }
+    }
+
+    if (j == 0 && nPointCount != 0)
     {
         CPLFree( xyz );
+        CPLFree( pabSuccess );
         return OGRERR_FAILURE;
     }
-    else
-    {
-        setPoints( nPointCount, xyz, xyz+nPointCount,
-                   ( padfZ ) ? xyz+nPointCount*2 : NULL);
-        CPLFree( xyz );
 
-        assignSpatialReference( poCT->GetTargetCS() );
+    setPoints( j, xyz, xyz+nPointCount,
+            ( padfZ ) ? xyz+nPointCount*2 : NULL);
+    CPLFree( xyz );
+    CPLFree( pabSuccess );
 
-        return OGRERR_NONE;
-    }
+    assignSpatialReference( poCT->GetTargetCS() );
+
+    return OGRERR_NONE;
 #endif
 }
 
@@ -1312,5 +1459,20 @@ void OGRLineString::segmentize( double dfMaxLength )
     {
         OGRFree(padfZ);
         padfZ = padfNewZ;
+    }
+}
+
+/************************************************************************/
+/*                               swapXY()                               */
+/************************************************************************/
+
+void OGRLineString::swapXY()
+{
+    int i;
+    for( i = 0; i < nPointCount; i++ )
+    {
+        double dfTemp = paoPoints[i].x;
+        paoPoints[i].x = paoPoints[i].y;
+        paoPoints[i].y = dfTemp;
     }
 }

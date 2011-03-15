@@ -1,5 +1,5 @@
 /**********************************************************************
- * $Id: cpl_vsil_unix_stdio_64.cpp 17402 2009-07-16 20:11:00Z warmerdam $
+ * $Id: cpl_vsil_unix_stdio_64.cpp 20774 2010-10-05 20:41:05Z rouault $
  *
  * Project:  CPL - Common Portability Library
  * Purpose:  Implement VSI large file api for Unix platforms with fseek64()
@@ -48,7 +48,7 @@
 #include <dirent.h>
 #include <errno.h>
 
-CPL_CVSID("$Id: cpl_vsil_unix_stdio_64.cpp 17402 2009-07-16 20:11:00Z warmerdam $");
+CPL_CVSID("$Id: cpl_vsil_unix_stdio_64.cpp 20774 2010-10-05 20:41:05Z rouault $");
 
 #if defined(UNIX_STDIO_64)
 
@@ -99,7 +99,7 @@ class VSIUnixStdioFilesystemHandler : public VSIFilesystemHandler
 public:
     virtual VSIVirtualHandle *Open( const char *pszFilename, 
                                     const char *pszAccess);
-    virtual int      Stat( const char *pszFilename, VSIStatBufL *pStatBuf );
+    virtual int      Stat( const char *pszFilename, VSIStatBufL *pStatBuf, int nFlags );
     virtual int      Unlink( const char *pszFilename );
     virtual int      Rename( const char *oldpath, const char *newpath );
     virtual int      Mkdir( const char *pszDirname, long nMode );
@@ -165,22 +165,22 @@ int VSIUnixStdioHandle::Seek( vsi_l_offset nOffset, int nWhence )
 
     if( nWhence == SEEK_SET )
     {
-        VSIDebug3( "VSIUnixStdioHandle::Seek(%p,%d,SEEK_SET) = %d",
+        VSIDebug3( "VSIUnixStdioHandle::Seek(%p," CPL_FRMT_GUIB ",SEEK_SET) = %d",
                    fp, nOffset, nResult );
     }
     else if( nWhence == SEEK_END )
     {
-        VSIDebug3( "VSIUnixStdioHandle::Seek(%p,%d,SEEK_END) = %d",
+        VSIDebug3( "VSIUnixStdioHandle::Seek(%p," CPL_FRMT_GUIB ",SEEK_END) = %d",
                    fp, nOffset, nResult );
     }
     else if( nWhence == SEEK_CUR )
     {
-        VSIDebug3( "VSIUnixStdioHandle::Seek(%p,%d,SEEK_CUR) = %d",
+        VSIDebug3( "VSIUnixStdioHandle::Seek(%p," CPL_FRMT_GUIB ",SEEK_CUR) = %d",
                    fp, nOffset, nResult );
     }
     else
     {
-        VSIDebug4( "VSIUnixStdioHandle::Seek(%p,%d,%d-Unknown) = %d",
+        VSIDebug4( "VSIUnixStdioHandle::Seek(%p," CPL_FRMT_GUIB ",%d-Unknown) = %d",
                    fp, nOffset, nWhence, nResult );
     }
 
@@ -380,7 +380,8 @@ VSIUnixStdioFilesystemHandler::Open( const char *pszFilename,
 /************************************************************************/
 
 int VSIUnixStdioFilesystemHandler::Stat( const char * pszFilename, 
-                                         VSIStatBufL * pStatBuf )
+                                         VSIStatBufL * pStatBuf,
+                                         int nFlags)
 
 {
     return( VSI_STAT64( pszFilename, pStatBuf ) );

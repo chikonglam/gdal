@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrogdilayer.cpp 18502 2010-01-09 19:38:29Z rouault $
+ * $Id: ogrogdilayer.cpp 20207 2010-08-06 22:07:29Z rouault $
  *
  * Project:  OGDI Bridge
  * Purpose:  Implements OGROGDILayer class.
@@ -56,7 +56,7 @@
 #include "cpl_conv.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: ogrogdilayer.cpp 18502 2010-01-09 19:38:29Z rouault $");
+CPL_CVSID("$Id: ogrogdilayer.cpp 20207 2010-08-06 22:07:29Z rouault $");
 
 /************************************************************************/
 /*                           OGROGDILayer()                            */
@@ -125,6 +125,21 @@ void OGROGDILayer::SetSpatialFilter( OGRGeometry * poGeomIn )
 }
 
 /************************************************************************/
+/*                         SetAttributeFilter()                         */
+/************************************************************************/
+
+OGRErr OGROGDILayer::SetAttributeFilter( const char *pszQuery )
+{
+    OGRErr eErr = OGRLayer::SetAttributeFilter(pszQuery);
+
+    ResetReading();
+
+    m_nTotalShapeCount = -1;
+
+    return eErr;
+}
+
+/************************************************************************/
 /*                            ResetReading()                            */
 /************************************************************************/
 
@@ -179,6 +194,7 @@ void OGROGDILayer::ResetReading()
     }
 
     m_iNextShapeId = 0;
+    m_nFilteredOutShapes = 0;
 }
 
 /************************************************************************/
@@ -208,7 +224,7 @@ OGRFeature *OGROGDILayer::GetNextFeature()
     if (! ECSSUCCESS(psResult))
     {
         // We probably reached EOF... keep track of shape count.
-        m_nTotalShapeCount = m_iNextShapeId;
+        m_nTotalShapeCount = m_iNextShapeId - m_nFilteredOutShapes;
         return NULL;
     }
    
@@ -225,6 +241,7 @@ OGRFeature *OGROGDILayer::GetNextFeature()
         ecs_Point       *psPoint = &(ECSGEOM(psResult).point);
         OGRPoint        *poOGRPoint = new OGRPoint(psPoint->c.x, psPoint->c.y);
 
+        poOGRPoint->assignSpatialReference(m_poSpatialRef);
         poFeature->SetGeometryDirectly(poOGRPoint);
     }
     else if (m_eFamily == Line)
@@ -239,6 +256,7 @@ OGRFeature *OGROGDILayer::GetNextFeature()
             poOGRLine->setPoint(i, psLine->c.c_val[i].x, psLine->c.c_val[i].y);
         }
 
+        poOGRLine->assignSpatialReference(m_poSpatialRef);
         poFeature->SetGeometryDirectly(poOGRLine);
     }
     else if (m_eFamily == Area)
@@ -264,6 +282,7 @@ OGRFeature *OGROGDILayer::GetNextFeature()
         // __TODO__
         // When OGR supports polygon centroids then we should carry them here
 
+        poOGRPolygon->assignSpatialReference(m_poSpatialRef);
         poFeature->SetGeometryDirectly(poOGRPolygon);
     }
     else if (m_eFamily == Text)
@@ -274,6 +293,7 @@ OGRFeature *OGROGDILayer::GetNextFeature()
         ecs_Text       *psText = &(ECSGEOM(psResult).text);
         OGRPoint        *poOGRPoint = new OGRPoint(psText->c.x, psText->c.y);
 
+        poOGRPoint->assignSpatialReference(m_poSpatialRef);
         poFeature->SetGeometryDirectly(poOGRPoint);
     }
     else
@@ -341,6 +361,7 @@ OGRFeature *OGROGDILayer::GetNextFeature()
         || (m_poFilterGeom != NULL 
             && !FilterGeometry( poFeature->GetGeometryRef() ) ) )
     {
+        m_nFilteredOutShapes ++;
         delete poFeature;
         goto TryAgain;
     }
@@ -413,11 +434,8 @@ int OGROGDILayer::TestCapability( const char * pszCap )
 /*      For now just return FALSE for everything.                       */
 /* -------------------------------------------------------------------- */
 #ifdef __TODO__
-    if( EQUAL(pszCap,OLCRandomRead) )
-        return TRUE;
-
-    else if( EQUAL(pszCap,OLCFastFeatureCount) )
-        return m_poFilterGeom == NULL;
+    if( EQUAL(pszCap,OLCFastFeatureCount) )
+        return m_poFilterGeom == NULL && m_poAttrQuery == NULL;
 
     else if( EQUAL(pszCap,OLCFastSpatialFilter) )
         return FALSE;
@@ -426,7 +444,11 @@ int OGROGDILayer::TestCapability( const char * pszCap )
         return FALSE;
 #endif
 
-    return FALSE;
+    if( EQUAL(pszCap,OLCRandomRead) )
+        return TRUE;
+
+    else
+        return FALSE;
 }
 
 
@@ -472,10 +494,27 @@ void OGROGDILayer::BuildFeatureDefn()
         eLayerGeomType = wkbUnknown;
         break;
     }
-
-    m_poFeatureDefn = new OGRFeatureDefn(CPLSPrintf("%s_%s", 
+    
+    char* pszFeatureDefnName;
+    if (m_poODS->LaunderLayerNames())
+    {
+        pszFeatureDefnName = CPLStrdup(m_pszOGDILayerName);
+        char* pszAt = strchr(pszFeatureDefnName, '@');
+        if (pszAt)
+            *pszAt = '_';
+        char* pszLeftParenthesis = strchr(pszFeatureDefnName, '(');
+        if (pszLeftParenthesis)
+            *pszLeftParenthesis = '\0';
+    }
+    else
+        pszFeatureDefnName = CPLStrdup(CPLSPrintf("%s_%s", 
                                                     m_pszOGDILayerName, 
                                                     pszGeomName ));
+
+    m_poFeatureDefn = new OGRFeatureDefn(pszFeatureDefnName);
+    CPLFree(pszFeatureDefnName);
+    pszFeatureDefnName = NULL;
+    
     m_poFeatureDefn->SetGeomType(eLayerGeomType);
     m_poFeatureDefn->Reference();
 

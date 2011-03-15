@@ -104,6 +104,12 @@ public class Layer : IDisposable {
     return ret;
   }
 
+  public wkbGeometryType GetGeomType() {
+    wkbGeometryType ret = (wkbGeometryType)OgrPINVOKE.Layer_GetGeomType(swigCPtr);
+    if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
+    return ret;
+  }
+
   public string GetGeometryColumn() {
     string ret = OgrPINVOKE.Layer_GetGeometryColumn(swigCPtr);
     if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
@@ -221,6 +227,12 @@ public class Layer : IDisposable {
     if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
     return res;
 }
+
+  public int SetIgnoredFields(string[] options) {
+    int ret = OgrPINVOKE.Layer_SetIgnoredFields(swigCPtr, (options != null)? new OgrPINVOKE.StringListMarshal(options)._ar : null);
+    if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
+    return ret;
+  }
 
 }
 

@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: mkgdaldist.sh 18973 2010-02-28 20:19:12Z warmerdam $
+# $Id: mkgdaldist.sh 18972 2010-02-28 20:17:58Z warmerdam $
 #
 # mkgdaldist.sh - prepares GDAL source distribution package
 #
@@ -47,7 +47,7 @@ SVNMODULE="gdal"
 
 echo "Generating package '${GDAL_VERSION}' from '${SVNBRANCH}' branch"
 echo
- 
+
 # Disable for now, seems to depend on modern SVN versions.
 #SVN_CONFIG="--config-option config:miscellany:use-commit-times=yes"
 

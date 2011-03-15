@@ -56,24 +56,44 @@ if (0) {
 {
     my $driver = Geo::GDAL::GetDriver('MEM');
     my $dataset = $driver->Create('tmp', 10, 10, 3 , 'Int32', []);
+    ok($dataset->isa('Geo::GDAL::Dataset'), 'Geo::GDAL::Dataset');
+    ok($dataset->{RasterXSize} == 10, "Geo::GDAL::Dataset::RasterXSize $dataset->{RasterXSize}");
+    ok($dataset->{RasterCount} == 3, "Geo::GDAL::Dataset::RasterCount $dataset->{RasterCount}");
     my $drv = $dataset->GetDriver;
     ok($drv->isa('Geo::GDAL::Driver'), 'Geo::GDAL::Dataset::GetDriver');
+    my @size = $dataset->Size();
+    ok(is_deeply([10,10], \@size), "Geo::GDAL::Dataset::Size @size");
     my $r = $dataset->GetRasterBand(1);
-    my $g = $dataset->GetRasterBand(1);
-    my $b = $dataset->GetRasterBand(1);
+    my $g = $dataset->GetRasterBand(2);
+    my $b = $dataset->GetRasterBand(3);
 
     $b->WriteTile([
-    [0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0],
-    [0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0],
-    [0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0],
-    [0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0],
-    [0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0],
-    [0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0],
-    [0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0],
-    [0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0],
-    [0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0],
-    [0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0]
+    [1,2,3,4,5,6,7,8,9,10],
+    [1,2,3,4,5,6,7,8,9,10],
+    [1,2,3,4,5,6,7,8,9,10],
+    [1,2,3,0,0,0,0,8,9,10],
+    [1,2,3,0,0,0,0,8,9,10],
+    [1,2,3,0,0,0,0,8,9,10],
+    [1,2,3,0,0,0,0,8,9,10],
+    [1,2,3,4,5,6,7,8,9,10],
+    [1,2,3,4,5,6,7,8,9,10],
+    [1,2,3,4,5,6,7,8,9,10]
     ]);
+    $r->WriteTile([
+    [1,2,3,4,5,6,7,8,9,10],
+    [1,2,3,4,5,6,7,8,9,10],
+    [1,2,3,4,5,6,7,8,9,10],
+    [1,2,3,0,0,0,0,8,9,10],
+    [1,2,3,0,0,0,0,8,9,10],
+    [1,2,3,0,0,0,0,8,9,10],
+    [1,2,3,0,0,0,0,8,9,10],
+    [1,2,3,4,5,6,7,8,9,10],
+    [1,2,3,4,5,6,7,8,9,10],
+    [1,2,3,4,5,6,7,8,9,10]
+    ]);
+    $g->WriteTile($b->ReadTile);
+    $b->FillNodata($r);
+    #print STDERR "@$_\n" for (@{$b->ReadTile()});
 
     my $histogram;
     eval {

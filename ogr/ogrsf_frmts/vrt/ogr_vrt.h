@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_vrt.h 17729 2009-10-02 17:23:59Z warmerdam $
+ * $Id: ogr_vrt.h 20475 2010-08-28 12:45:57Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Private definitions for OGR/VRT driver.
@@ -128,6 +128,8 @@ class OGRVRTLayer : public OGRLayer
     virtual OGRErr      SetFeature( OGRFeature* poFeature );
 
     virtual OGRErr      DeleteFeature( long nFID );
+
+    virtual OGRErr      SyncToDisk();
 };
 
 /************************************************************************/

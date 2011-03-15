@@ -123,7 +123,13 @@ public int ExportToWkb( byte[] buffer, wkbByteOrder byte_order ) {
   }
 
   public string ExportToGML() {
-    string ret = OgrPINVOKE.Geometry_ExportToGML(swigCPtr);
+    string ret = OgrPINVOKE.Geometry_ExportToGML__SWIG_0(swigCPtr);
+    if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
+    return ret;
+  }
+
+  public string ExportToGML(string[] options) {
+    string ret = OgrPINVOKE.Geometry_ExportToGML__SWIG_1(swigCPtr, (options != null)? new OgrPINVOKE.StringListMarshal(options)._ar : null);
     if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
     return ret;
   }
@@ -177,6 +183,18 @@ public int ExportToWkb( byte[] buffer, wkbByteOrder byte_order ) {
 
   public string GetGeometryName() {
     string ret = OgrPINVOKE.Geometry_GetGeometryName(swigCPtr);
+    if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
+    return ret;
+  }
+
+  public double Length() {
+    double ret = OgrPINVOKE.Geometry_Length(swigCPtr);
+    if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
+    return ret;
+  }
+
+  public double Area() {
+    double ret = OgrPINVOKE.Geometry_Area(swigCPtr);
     if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
     return ret;
   }
@@ -244,6 +262,20 @@ public int ExportToWkb( byte[] buffer, wkbByteOrder byte_order ) {
     return ret;
   }
 
+  public Geometry Simplify(double tolerance) {
+    IntPtr cPtr = OgrPINVOKE.Geometry_Simplify(swigCPtr, tolerance);
+    Geometry ret = (cPtr == IntPtr.Zero) ? null : new Geometry(cPtr, true, ThisOwn_true());
+    if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
+    return ret;
+  }
+
+  public Geometry Boundary() {
+    IntPtr cPtr = OgrPINVOKE.Geometry_Boundary(swigCPtr);
+    Geometry ret = (cPtr == IntPtr.Zero) ? null : new Geometry(cPtr, true, ThisOwn_true());
+    if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
+    return ret;
+  }
+
   public Geometry GetBoundary() {
     IntPtr cPtr = OgrPINVOKE.Geometry_GetBoundary(swigCPtr);
     Geometry ret = (cPtr == IntPtr.Zero) ? null : new Geometry(cPtr, true, ThisOwn_true());
@@ -279,8 +311,22 @@ public int ExportToWkb( byte[] buffer, wkbByteOrder byte_order ) {
     return ret;
   }
 
+  public Geometry UnionCascaded() {
+    IntPtr cPtr = OgrPINVOKE.Geometry_UnionCascaded(swigCPtr);
+    Geometry ret = (cPtr == IntPtr.Zero) ? null : new Geometry(cPtr, true, ThisOwn_true());
+    if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
+    return ret;
+  }
+
   public Geometry Difference(Geometry other) {
     IntPtr cPtr = OgrPINVOKE.Geometry_Difference(swigCPtr, Geometry.getCPtr(other));
+    Geometry ret = (cPtr == IntPtr.Zero) ? null : new Geometry(cPtr, true, ThisOwn_true());
+    if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
+    return ret;
+  }
+
+  public Geometry SymDifference(Geometry other) {
+    IntPtr cPtr = OgrPINVOKE.Geometry_SymDifference(swigCPtr, Geometry.getCPtr(other));
     Geometry ret = (cPtr == IntPtr.Zero) ? null : new Geometry(cPtr, true, ThisOwn_true());
     if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
     return ret;
@@ -328,8 +374,20 @@ public int ExportToWkb( byte[] buffer, wkbByteOrder byte_order ) {
     return ret;
   }
 
+  public bool Intersects(Geometry other) {
+    bool ret = OgrPINVOKE.Geometry_Intersects(swigCPtr, Geometry.getCPtr(other));
+    if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
+    return ret;
+  }
+
   public bool Intersect(Geometry other) {
     bool ret = OgrPINVOKE.Geometry_Intersect(swigCPtr, Geometry.getCPtr(other));
+    if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
+    return ret;
+  }
+
+  public bool Equals(Geometry other) {
+    bool ret = OgrPINVOKE.Geometry_Equals(swigCPtr, Geometry.getCPtr(other));
     if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
     return ret;
   }

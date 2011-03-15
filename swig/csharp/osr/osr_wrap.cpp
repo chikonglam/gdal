@@ -336,6 +336,9 @@ SWIGINTERN void SWIG_CSharpException(int code, const char *msg) {
 #include <stdexcept>
 
 
+typedef char retStringAndCPLFree;
+
+
 #include <iostream>
 using namespace std;
 
@@ -352,9 +355,6 @@ typedef struct OGRCoordinateTransformationHS OGRCoordinateTransformationShadow;
 typedef void OSRSpatialReferenceShadow;
 typedef void OSRCoordinateTransformationShadow;
 #endif
-
-typedef char retStringAndCPLFree;
-
 
 
 void VeryQuiteErrorHandler(CPLErr eclass, int code, const char *msg ) {
@@ -374,9 +374,6 @@ void UseExceptions() {
 void DontUseExceptions() {
   CPLSetErrorHandler( CPLDefaultErrorHandler );
 }
-
-
-    typedef char retStringAndCPLFree;
 
 
     void StringListDestroy(void *buffer_ptr) {
@@ -434,7 +431,7 @@ SWIGINTERN void delete_OSRSpatialReferenceShadow(OSRSpatialReferenceShadow *self
       OSRDestroySpatialReference( self );
     }
   }
-SWIGINTERN char *OSRSpatialReferenceShadow___str__(OSRSpatialReferenceShadow *self){
+SWIGINTERN retStringAndCPLFree *OSRSpatialReferenceShadow___str__(OSRSpatialReferenceShadow *self){
     char *buf = 0;
     OSRExportToPrettyWkt( self, &buf, 0 );
     return buf;
@@ -506,6 +503,15 @@ SWIGINTERN char const *OSRSpatialReferenceShadow_GetAuthorityName(OSRSpatialRefe
 SWIGINTERN OGRErr OSRSpatialReferenceShadow_SetUTM(OSRSpatialReferenceShadow *self,int zone,int north=1){
     return OSRSetUTM( self, zone, north );
   }
+SWIGINTERN int OSRSpatialReferenceShadow_GetUTMZone(OSRSpatialReferenceShadow *self){
+    // Note: we will return south zones as negative since it is 
+    // hard to return two values as the C API does. 
+    int bNorth = FALSE;
+    int nZone = OSRGetUTMZone( self, &bNorth );
+    if( !bNorth )
+        nZone = -1 * ABS(nZone);
+    return nZone;
+  }
 SWIGINTERN OGRErr OSRSpatialReferenceShadow_SetStatePlane(OSRSpatialReferenceShadow *self,int zone,int is_nad83=1,char const *unitsname="",double units=0.0){
     return OSRSetStatePlaneWithUnits( self, zone, is_nad83, unitsname, units );
   }
@@ -528,6 +534,18 @@ SWIGINTERN OGRErr OSRSpatialReferenceShadow_SetNormProjParm(OSRSpatialReferenceS
 SWIGINTERN double OSRSpatialReferenceShadow_GetNormProjParm(OSRSpatialReferenceShadow *self,char const *name,double default_val=0.0){
     // Return code ignored.
     return OSRGetNormProjParm( self, name, default_val, 0 );
+  }
+SWIGINTERN double OSRSpatialReferenceShadow_GetSemiMajor(OSRSpatialReferenceShadow *self){
+    // Return code ignored.
+    return OSRGetSemiMajor( self, 0 );
+  }
+SWIGINTERN double OSRSpatialReferenceShadow_GetSemiMinor(OSRSpatialReferenceShadow *self){
+    // Return code ignored.
+    return OSRGetSemiMinor( self, 0 );
+  }
+SWIGINTERN double OSRSpatialReferenceShadow_GetInvFlattening(OSRSpatialReferenceShadow *self){
+    // Return code ignored.
+    return OSRGetInvFlattening( self, 0 );
   }
 SWIGINTERN OGRErr OSRSpatialReferenceShadow_SetACEA(OSRSpatialReferenceShadow *self,double stdp1,double stdp2,double clat,double clong,double fe,double fn){
     return OSRSetACEA( self, stdp1, stdp2, clat, clong, 
@@ -731,6 +749,9 @@ SWIGINTERN OGRErr OSRSpatialReferenceShadow_ImportFromUSGS(OSRSpatialReferenceSh
   }
 SWIGINTERN OGRErr OSRSpatialReferenceShadow_ImportFromXML(OSRSpatialReferenceShadow *self,char const *xmlString){
     return OSRImportFromXML( self, xmlString );
+  }
+SWIGINTERN OGRErr OSRSpatialReferenceShadow_ImportFromERM(OSRSpatialReferenceShadow *self,char const *proj,char const *datum,char const *units){
+    return OSRImportFromERM( self, proj, datum, units );
   }
 SWIGINTERN OGRErr OSRSpatialReferenceShadow_ImportFromMICoordSys(OSRSpatialReferenceShadow *self,char const *pszCoordSys){
     return OSRImportFromMICoordSys( self, pszCoordSys );
@@ -1155,12 +1176,12 @@ SWIGEXPORT void SWIGSTDCALL CSharp_delete_SpatialReference(void * jarg1) {
 SWIGEXPORT char * SWIGSTDCALL CSharp_SpatialReference___str__(void * jarg1) {
   char * jresult ;
   OSRSpatialReferenceShadow *arg1 = (OSRSpatialReferenceShadow *) 0 ;
-  char *result = 0 ;
+  retStringAndCPLFree *result = 0 ;
   
   arg1 = (OSRSpatialReferenceShadow *)jarg1; 
   {
     CPLErrorReset();
-    result = (char *)OSRSpatialReferenceShadow___str__(arg1);
+    result = (retStringAndCPLFree *)OSRSpatialReferenceShadow___str__(arg1);
     CPLErr eclass = CPLGetLastErrorType();
     if ( eclass == CE_Failure || eclass == CE_Fatal ) {
       SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
@@ -1180,8 +1201,18 @@ SWIGEXPORT char * SWIGSTDCALL CSharp_SpatialReference___str__(void * jarg1) {
     
     
   }
-  jresult = SWIG_csharp_string_callback((const char *)result); 
-  delete [] result;
+  
+  /* %typemap(out) (retStringAndCPLFree*) */
+  if(result)
+  {
+    jresult = SWIG_csharp_string_callback((const char *)result);
+    CPLFree(result);
+  }
+  else
+  {
+    jresult = NULL;
+  }
+  
   return jresult;
 }
 
@@ -1909,6 +1940,39 @@ SWIGEXPORT int SWIGSTDCALL CSharp_SpatialReference_SetUTM(void * jarg1, int jarg
 }
 
 
+SWIGEXPORT int SWIGSTDCALL CSharp_SpatialReference_GetUTMZone(void * jarg1) {
+  int jresult ;
+  OSRSpatialReferenceShadow *arg1 = (OSRSpatialReferenceShadow *) 0 ;
+  int result;
+  
+  arg1 = (OSRSpatialReferenceShadow *)jarg1; 
+  {
+    CPLErrorReset();
+    result = (int)OSRSpatialReferenceShadow_GetUTMZone(arg1);
+    CPLErr eclass = CPLGetLastErrorType();
+    if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+      SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
+      
+      
+      
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+  }
+  jresult = result; 
+  return jresult;
+}
+
+
 SWIGEXPORT int SWIGSTDCALL CSharp_SpatialReference_SetStatePlane(void * jarg1, int jarg2, int jarg3, char * jarg4, double jarg5) {
   int jresult ;
   OSRSpatialReferenceShadow *arg1 = (OSRSpatialReferenceShadow *) 0 ;
@@ -2205,6 +2269,105 @@ SWIGEXPORT double SWIGSTDCALL CSharp_SpatialReference_GetNormProjParm(void * jar
   {
     CPLErrorReset();
     result = (double)OSRSpatialReferenceShadow_GetNormProjParm(arg1,(char const *)arg2,arg3);
+    CPLErr eclass = CPLGetLastErrorType();
+    if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+      SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
+      
+      
+      
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+  }
+  jresult = result; 
+  return jresult;
+}
+
+
+SWIGEXPORT double SWIGSTDCALL CSharp_SpatialReference_GetSemiMajor(void * jarg1) {
+  double jresult ;
+  OSRSpatialReferenceShadow *arg1 = (OSRSpatialReferenceShadow *) 0 ;
+  double result;
+  
+  arg1 = (OSRSpatialReferenceShadow *)jarg1; 
+  {
+    CPLErrorReset();
+    result = (double)OSRSpatialReferenceShadow_GetSemiMajor(arg1);
+    CPLErr eclass = CPLGetLastErrorType();
+    if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+      SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
+      
+      
+      
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+  }
+  jresult = result; 
+  return jresult;
+}
+
+
+SWIGEXPORT double SWIGSTDCALL CSharp_SpatialReference_GetSemiMinor(void * jarg1) {
+  double jresult ;
+  OSRSpatialReferenceShadow *arg1 = (OSRSpatialReferenceShadow *) 0 ;
+  double result;
+  
+  arg1 = (OSRSpatialReferenceShadow *)jarg1; 
+  {
+    CPLErrorReset();
+    result = (double)OSRSpatialReferenceShadow_GetSemiMinor(arg1);
+    CPLErr eclass = CPLGetLastErrorType();
+    if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+      SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
+      
+      
+      
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+  }
+  jresult = result; 
+  return jresult;
+}
+
+
+SWIGEXPORT double SWIGSTDCALL CSharp_SpatialReference_GetInvFlattening(void * jarg1) {
+  double jresult ;
+  OSRSpatialReferenceShadow *arg1 = (OSRSpatialReferenceShadow *) 0 ;
+  double result;
+  
+  arg1 = (OSRSpatialReferenceShadow *)jarg1; 
+  {
+    CPLErrorReset();
+    result = (double)OSRSpatialReferenceShadow_GetInvFlattening(arg1);
     CPLErr eclass = CPLGetLastErrorType();
     if ( eclass == CE_Failure || eclass == CE_Fatal ) {
       SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
@@ -4907,6 +5070,52 @@ SWIGEXPORT int SWIGSTDCALL CSharp_SpatialReference_ImportFromXML(void * jarg1, c
   {
     CPLErrorReset();
     result = (OGRErr)OSRSpatialReferenceShadow_ImportFromXML(arg1,(char const *)arg2);
+    CPLErr eclass = CPLGetLastErrorType();
+    if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+      SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
+      
+      
+      
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+  }
+  {
+    /* %typemap(out,fragment="OGRErrMessages",canthrow=1) OGRErr */
+    jresult = result;
+  }
+  {
+    /* %typemap(ret) OGRErr */
+    
+  }
+  return jresult;
+}
+
+
+SWIGEXPORT int SWIGSTDCALL CSharp_SpatialReference_ImportFromERM(void * jarg1, char * jarg2, char * jarg3, char * jarg4) {
+  int jresult ;
+  OSRSpatialReferenceShadow *arg1 = (OSRSpatialReferenceShadow *) 0 ;
+  char *arg2 = (char *) 0 ;
+  char *arg3 = (char *) 0 ;
+  char *arg4 = (char *) 0 ;
+  OGRErr result;
+  
+  arg1 = (OSRSpatialReferenceShadow *)jarg1; 
+  arg2 = (char *)jarg2; 
+  arg3 = (char *)jarg3; 
+  arg4 = (char *)jarg4; 
+  {
+    CPLErrorReset();
+    result = (OGRErr)OSRSpatialReferenceShadow_ImportFromERM(arg1,(char const *)arg2,(char const *)arg3,(char const *)arg4);
     CPLErr eclass = CPLGetLastErrorType();
     if ( eclass == CE_Failure || eclass == CE_Fatal ) {
       SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());

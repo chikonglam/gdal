@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: hfadictionary.cpp 18184 2009-12-05 04:17:34Z warmerdam $
+ * $Id: hfadictionary.cpp 21184 2010-12-01 03:11:03Z warmerdam $
  *
  * Project:  Erdas Imagine (.img) Translator
  * Purpose:  Implementation of the HFADictionary class for managing the
@@ -32,7 +32,7 @@
 #include "hfa_p.h"
 #include "cpl_conv.h"
 
-CPL_CVSID("$Id: hfadictionary.cpp 18184 2009-12-05 04:17:34Z warmerdam $");
+CPL_CVSID("$Id: hfadictionary.cpp 21184 2010-12-01 03:11:03Z warmerdam $");
 
 static const char *apszDefDefn[] = {
 
@@ -174,7 +174,8 @@ HFAType * HFADictionary::FindType( const char * pszName )
 
     for( i = 0; i < nTypes; i++ )
     {
-        if( strcmp(pszName,papoTypes[i]->pszTypeName) == 0 )
+        if( papoTypes[i]->pszTypeName != NULL &&
+            strcmp(pszName,papoTypes[i]->pszTypeName) == 0 )
             return( papoTypes[i] );
     }
 
@@ -193,7 +194,8 @@ HFAType * HFADictionary::FindType( const char * pszName )
             AddType( poNewType );
             poNewType->CompleteDefn( this );
 
-            osDictionaryText.erase( osDictionaryText.size() - 1, 1 );
+            if( osDictionaryText.size() > 0 )
+                osDictionaryText.erase( osDictionaryText.size() - 1, 1 );
             osDictionaryText += apszDefDefn[i+1];
             osDictionaryText += ",.";
 

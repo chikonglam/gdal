@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: EnvisatFile.c 11332 2007-04-21 20:48:53Z warmerdam $
+ * $Id: EnvisatFile.c 20600 2010-09-12 22:56:55Z rouault $
  *
  * Project:  APP ENVISAT Support
  * Purpose:  Low Level Envisat file access (read/write) API.
@@ -32,7 +32,7 @@
 #  include "cpl_conv.h"
 #  include "EnvisatFile.h"
 
-CPL_CVSID("$Id: EnvisatFile.c 11332 2007-04-21 20:48:53Z warmerdam $");
+CPL_CVSID("$Id: EnvisatFile.c 20600 2010-09-12 22:56:55Z rouault $");
 
 #else
 #  include "APP/app.h"
@@ -1765,18 +1765,9 @@ int S_NameValueList_Parse( const char *text, int text_offset,
         /*
          * Add the entry to the name/value list. 
          */
-        if( entries == NULL )
-        {
-            *entry_count = 1;
-            *entries = (EnvisatNameValue **) 
-                calloc( 1, sizeof(EnvisatNameValue) );
-        }
-        else
-        {
-            (*entry_count)++;
-            *entries = (EnvisatNameValue **) 
-                realloc( *entries, *entry_count * sizeof(EnvisatNameValue*) );
-        }
+        (*entry_count)++;
+        *entries = (EnvisatNameValue **)
+            realloc( *entries, *entry_count * sizeof(EnvisatNameValue*) );
 
         if( *entries == NULL )
         {

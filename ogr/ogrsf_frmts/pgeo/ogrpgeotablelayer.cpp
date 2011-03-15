@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrpgeotablelayer.cpp 20191 2010-08-06 16:27:21Z rouault $
+ * $Id: ogrpgeotablelayer.cpp 20579 2010-09-12 11:43:35Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implements OGRPGeoTableLayer class, access to an existing table.
@@ -30,7 +30,7 @@
 #include "cpl_conv.h"
 #include "ogr_pgeo.h"
 
-CPL_CVSID("$Id: ogrpgeotablelayer.cpp 20191 2010-08-06 16:27:21Z rouault $");
+CPL_CVSID("$Id: ogrpgeotablelayer.cpp 20579 2010-09-12 11:43:35Z rouault $");
 
 /************************************************************************/
 /*                          OGRPGeoTableLayer()                         */
@@ -278,7 +278,7 @@ OGRFeature *OGRPGeoTableLayer::GetFeature( long nFeatureId )
     poStmt = new CPLODBCStatement( poDS->GetSession() );
     poStmt->Append( "SELECT * FROM " );
     poStmt->Append( poFeatureDefn->GetName() );
-    poStmt->Appendf( " WHERE %s = %d", pszFIDColumn, nFeatureId );
+    poStmt->Appendf( " WHERE %s = %ld", pszFIDColumn, nFeatureId );
 
     if( !poStmt->ExecuteSQL() )
     {

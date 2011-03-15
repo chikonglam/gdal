@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrsqlitetablelayer.cpp 21012 2010-10-29 17:22:39Z rouault $
+ * $Id: ogrsqlitetablelayer.cpp 21002 2010-10-29 08:17:09Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implements OGRSQLiteTableLayer class, access to an existing table.
@@ -32,7 +32,7 @@
 #include "ogr_sqlite.h"
 #include <string>
 
-CPL_CVSID("$Id: ogrsqlitetablelayer.cpp 21012 2010-10-29 17:22:39Z rouault $");
+CPL_CVSID("$Id: ogrsqlitetablelayer.cpp 21002 2010-10-29 08:17:09Z rouault $");
 
 /************************************************************************/
 /*                        OGRSQLiteTableLayer()                         */
@@ -165,34 +165,6 @@ CPLErr OGRSQLiteTableLayer::Initialize( const char *pszTableName,
 }
 
 /************************************************************************/
-/*                           ClearStatement()                           */
-/************************************************************************/
-
-void OGRSQLiteTableLayer::ClearStatement()
-
-{
-    if( hStmt != NULL )
-    {
-        CPLDebug( "OGR_SQLITE", "finalize %p", hStmt );
-	sqlite3_finalize( hStmt );
-        hStmt = NULL;
-    }
-}
-
-/************************************************************************/
-/*                            GetStatement()                            */
-/************************************************************************/
-
-sqlite3_stmt *OGRSQLiteTableLayer::GetStatement()
-
-{
-    if( hStmt == NULL )
-        ResetStatement();
-
-    return hStmt;
-}
-
-/************************************************************************/
 /*                           ResetStatement()                           */
 /************************************************************************/
 
@@ -227,16 +199,6 @@ OGRErr OGRSQLiteTableLayer::ResetStatement()
     }
 }
 
-/************************************************************************/
-/*                            ResetReading()                            */
-/************************************************************************/
-
-void OGRSQLiteTableLayer::ResetReading()
-
-{
-    ClearStatement();
-    OGRSQLiteLayer::ResetReading();
-}
 
 /************************************************************************/
 /*                             GetFeature()                             */

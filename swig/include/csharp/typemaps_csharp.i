@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: typemaps_csharp.i 19467 2010-04-20 20:14:51Z tamas $
+ * $Id: typemaps_csharp.i 20641 2010-09-18 11:35:15Z rouault $
  *
  * Name:     typemaps_csharp.i
  * Project:  GDAL CSharp Interface
@@ -105,10 +105,7 @@ OPTIONAL_POD(int, int);
 /***************************************************
  * Typemaps for  (retStringAndCPLFree*)
  ***************************************************/
-%inline %{
-    typedef char retStringAndCPLFree;
-%}
- 
+
 %typemap(out) (retStringAndCPLFree*)
 %{ 
     /* %typemap(out) (retStringAndCPLFree*) */
@@ -163,6 +160,9 @@ OPTIONAL_POD(int, int);
 /*
  * Typemap for char** options
  */
+
+/* FIXME: all those typemaps are not equivalent... out(char **CSL) should free */
+/* the list with CSLDestroy() for example */
 
 %typemap(imtype, out="IntPtr") char **options, char **dict, char **CSL "IntPtr[]"
 %typemap(cstype) char **options, char **dict, char **CSL %{string[]%}

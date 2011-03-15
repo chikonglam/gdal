@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: l1bdataset.cpp 17664 2009-09-21 21:16:45Z rouault $
+ * $Id: l1bdataset.cpp 20996 2010-10-28 18:38:15Z rouault $
  *
  * Project:  NOAA Polar Orbiter Level 1b Dataset Reader (AVHRR)
  * Purpose:  Can read NOAA-9(F)-NOAA-17(M) AVHRR datasets
@@ -32,7 +32,7 @@
 #include "gdal_pam.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: l1bdataset.cpp 17664 2009-09-21 21:16:45Z rouault $");
+CPL_CVSID("$Id: l1bdataset.cpp 20996 2010-10-28 18:38:15Z rouault $");
 
 CPL_C_START
 void    GDALRegister_L1B(void);
@@ -235,7 +235,7 @@ class L1BDataset : public GDALPamDataset
 
     char        *pszGCPProjection;
 
-    FILE        *fp;
+    VSILFILE   *fp;
 
     int         bFetchGeolocation;
     int         bGuessDataFormat;

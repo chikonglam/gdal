@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: contour.cpp 19882 2010-06-17 19:08:11Z chaitanya $
+ * $Id: contour.cpp 21236 2010-12-11 17:28:32Z rouault $
  *
  * Project:  Contour Generation
  * Purpose:  Core algorithm implementation for contour line generation. 
@@ -32,7 +32,9 @@
 #include "gdal_alg.h"
 #include "ogr_api.h"
 
-CPL_CVSID("$Id: contour.cpp 19882 2010-06-17 19:08:11Z chaitanya $");
+CPL_CVSID("$Id: contour.cpp 21236 2010-12-11 17:28:32Z rouault $");
+
+#ifdef OGR_ENABLED
 
 // The amount of a contour interval that pixels should be fudged by if they
 // match a contour level exactly.
@@ -1388,6 +1390,7 @@ CPLErr OGRContourWriter( double dfLevel,
 
     return CE_None;
 }
+#endif // OGR_ENABLED
 
 /************************************************************************/
 /*                        GDALContourGenerate()                         */
@@ -1535,6 +1538,10 @@ CPLErr GDALContourGenerate( GDALRasterBandH hBand,
                             GDALProgressFunc pfnProgress, void *pProgressArg )
 
 {
+#ifndef OGR_ENABLED
+    CPLError(CE_Failure, CPLE_NotSupported, "GDALContourGenerate() unimplemented in a non OGR build");
+    return CE_Failure;
+#else
     VALIDATE_POINTER1( hBand, "GDALContourGenerate", CE_Failure );
 
     OGRContourWriterInfo oCWI;
@@ -1610,4 +1617,5 @@ CPLErr GDALContourGenerate( GDALRasterBandH hBand,
     CPLFree( padfScanline );
 
     return eErr;
+#endif // OGR_ENABLED
 }

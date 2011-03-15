@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_gml.h 16241 2009-02-06 06:05:51Z warmerdam $
+ * $Id: ogr_gml.h 21383 2011-01-03 18:58:41Z rouault $
  *
  * Project:  GML Reader
  * Purpose:  Declarations for OGR wrapper classes for GML, and GML<->OGR
@@ -56,6 +56,8 @@ class OGRGMLLayer : public OGRLayer
 
     GMLFeatureClass     *poFClass;
 
+    int                 m_bInvertAxisOrderIfLatLong;
+
   public:
                         OGRGMLLayer( const char * pszName, 
                                      OGRSpatialReference *poSRS, 
@@ -81,6 +83,8 @@ class OGRGMLLayer : public OGRLayer
     virtual OGRSpatialReference *GetSpatialRef();
     
     int                 TestCapability( const char * );
+    
+    virtual const char *GetGeometryColumn();
 };
 
 /************************************************************************/
@@ -99,16 +103,27 @@ class OGRGMLDataSource : public OGRDataSource
     char               **papszCreateOptions;
 
     // output related parameters 
-    FILE                *fpOutput;
+    VSILFILE           *fpOutput;
+    int                 bFpOutputIsNonSeekable;
+    int                 bFpOutputSingleFile;
     OGREnvelope         sBoundingRect;
     int                 nBoundedByLocation;
     
     int                 nSchemaInsertLocation;
+    int                 bIsOutputGML3;
+    int                 bIsLongSRSRequired;
+    int                 bWriteSpaceIndentation;
 
     // input related parameters.
     IGMLReader          *poReader;
+    int                 bOutIsTempFile;
 
     void                InsertHeader();
+
+    int                 bExposeGMLId;
+    int                 bIsWFS;
+
+    OGRSpatialReference* poGlobalSRS;
 
   public:
                         OGRGMLDataSource();
@@ -128,10 +143,19 @@ class OGRGMLDataSource : public OGRDataSource
 
     int                 TestCapability( const char * );
 
-    FILE                *GetOutputFP() { return fpOutput; }
+    VSILFILE            *GetOutputFP() { return fpOutput; }
     IGMLReader          *GetReader() { return poReader; }
 
     void                GrowExtents( OGREnvelope *psGeomBounds );
+
+    int                 ExposeGMLId() { return bExposeGMLId; }
+
+    static void         PrintLine(VSILFILE* fp, const char *fmt, ...) CPL_PRINT_FUNC_FORMAT (2, 3);
+
+    int                 IsGML3Output() { return bIsOutputGML3; }
+    int                 IsLongSRSRequired() { return bIsLongSRSRequired; }
+    int                 WriteSpaceIndentation() { return bWriteSpaceIndentation; }
+    const char         *GetGlobalSRSName();
 };
 
 /************************************************************************/

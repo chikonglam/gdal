@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: sagadataset.cpp 20747 2010-10-04 16:04:11Z warmerdam $
+ * $Id: sagadataset.cpp 21420 2011-01-06 19:09:20Z rouault $
  * Project:  SAGA GIS Binary Driver
  * Purpose:  Implements the SAGA GIS Binary Grid Format.
  * Author:   Volker Wichmann, wichmann@laserdata.at
@@ -35,7 +35,7 @@
 
 #include "gdal_pam.h"
 
-CPL_CVSID("$Id: sagadataset.cpp 20747 2010-10-04 16:04:11Z warmerdam $");
+CPL_CVSID("$Id: sagadataset.cpp 21420 2011-01-06 19:09:20Z rouault $");
 
 #ifndef INT_MAX
 # define INT_MAX 2147483647
@@ -70,11 +70,11 @@ class SAGADataset : public GDALPamDataset
     friend class		SAGARasterBand;
 
 	static CPLErr		WriteHeader( CPLString osHDRFilename, GDALDataType eType,
-									GInt16 nXSize, GInt16 nYSize,
+									int nXSize, int nYSize,
 									double dfMinX, double dfMinY,
 									double dfCellsize, double dfNoData,
 									double dfZFactor, bool bTopToBottom );
-    FILE				*fp;
+    VSILFILE				*fp;
 
   public:
 		~SAGADataset();
@@ -357,7 +357,7 @@ GDALDataset *SAGADataset::Open( GDALOpenInfo * poOpenInfo )
     osHDRFilename = CPLFormCIFilename( osPath, osName, ".sgrd" );
 
 
-    FILE	*fp;
+    VSILFILE	*fp;
 
     fp = VSIFOpenL( osHDRFilename, "r" );
     
@@ -380,7 +380,7 @@ GDALDataset *SAGADataset::Open( GDALOpenInfo * poOpenInfo )
     char            **papszHDR			= NULL;
     
 	
-    while( (pszLine = CPLReadLineL( fp )) )    
+    while( (pszLine = CPLReadLineL( fp )) != NULL )    
     {
         char	**papszTokens;
 
@@ -666,13 +666,13 @@ CPLErr SAGADataset::SetGeoTransform( double *padfGeoTransform )
 /************************************************************************/
 
 CPLErr SAGADataset::WriteHeader( CPLString osHDRFilename, GDALDataType eType,
-                                 GInt16 nXSize, GInt16 nYSize,
+                                 int nXSize, int nYSize,
                                  double dfMinX, double dfMinY,
                                  double dfCellsize, double dfNoData,
                                  double dfZFactor, bool bTopToBottom )
 
 {
-    FILE	*fp;
+    VSILFILE	*fp;
 
     fp = VSIFOpenL( osHDRFilename, "wt" );
 
@@ -766,7 +766,7 @@ GDALDataset *SAGADataset::Create( const char * pszFilename,
         return NULL;
     }
 
-    FILE *fp = VSIFOpenL( pszFilename, "w+b" );
+    VSILFILE *fp = VSIFOpenL( pszFilename, "w+b" );
 
     if( fp == NULL )
     {

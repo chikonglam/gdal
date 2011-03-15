@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gmlreaderp.h 18188 2009-12-05 22:19:00Z chaitanya $
+ * $Id: gmlreaderp.h 21390 2011-01-03 22:43:07Z rouault $
  *
  * Project:  GML Reader
  * Purpose:  Private Declarations for OGR free GML Reader code.
@@ -32,6 +32,7 @@
 
 #include "gmlreader.h"
 #include "ogr_api.h"
+#include "cpl_vsi.h"
 
 class GMLReader;
 
@@ -43,13 +44,28 @@ class GMLHandler
     char       *m_pszCurField;
 
     char       *m_pszGeometry;
-    int        m_nGeomAlloc;
-    int        m_nGeomLen;
+    size_t     m_nGeomAlloc;
+    size_t     m_nGeomLen;
 
     int        m_nGeometryDepth;
 
     int        m_nDepth;
     int        m_nDepthFeature;
+    int        m_bIgnoreFeature;
+
+    int        m_bInBoundedBy;
+    int        m_inBoundedByDepth;
+
+    int        m_bInCityGMLGenericAttr;
+    char      *m_pszCityGMLGenericAttrName;
+    int        m_inCityGMLGenericAttrDepth;
+    int        m_bIsCityGML;
+
+    int        m_bReportHref;
+    int        m_bIsAIXM;
+    char      *m_pszHref;
+    char      *m_pszUom;
+    char      *m_pszValue;
 
 protected:
     GMLReader  *m_poReader;
@@ -63,6 +79,7 @@ public:
     virtual OGRErr      dataHandler(const char *data, int nLen);
     virtual char*       GetFID(void* attr) = 0;
     virtual char*       GetAttributes(void* attr) = 0;
+    virtual char*       GetAttributeValue(void* attr, const char* pszAttributeName) = 0;
 
     int         IsGeometryElement( const char *pszElement );
 };
@@ -82,10 +99,51 @@ public:
 #include <sax2/SAX2XMLReader.hpp>
 #include <sax2/XMLReaderFactory.hpp>
 #include <sax2/Attributes.hpp>
+#include <sax/InputSource.hpp>
+#include <util/BinInputStream.hpp>
 
 #ifdef XERCES_CPP_NAMESPACE_USE
 XERCES_CPP_NAMESPACE_USE
 #endif
+
+/************************************************************************/
+/*                        GMLBinInputStream                             */
+/************************************************************************/
+class GMLBinInputStream : public BinInputStream
+{
+    VSILFILE* fp;
+    XMLCh emptyString;
+
+public :
+
+             GMLBinInputStream(VSILFILE* fp);
+    virtual ~GMLBinInputStream();
+
+#if XERCES_VERSION_MAJOR >= 3
+    virtual XMLFilePos curPos() const;
+    virtual XMLSize_t readBytes(XMLByte* const toFill, const XMLSize_t maxToRead);
+    virtual const XMLCh* getContentType() const ;
+#else
+    virtual unsigned int curPos() const;
+    virtual unsigned int readBytes(XMLByte* const toFill, const unsigned int maxToRead);
+#endif
+};
+
+/************************************************************************/
+/*                           GMLInputSource                             */
+/************************************************************************/
+
+class GMLInputSource : public InputSource
+{
+    GMLBinInputStream* binInputStream;
+
+public:
+             GMLInputSource(VSILFILE* fp,
+                            MemoryManager* const manager = XMLPlatformUtils::fgMemoryManager);
+    virtual ~GMLInputSource();
+
+    virtual BinInputStream* makeStream() const;
+};
 
 
 /************************************************************************/
@@ -132,6 +190,7 @@ public:
 
     virtual char*       GetFID(void* attr);
     virtual char*       GetAttributes(void* attr);
+    virtual char*       GetAttributeValue(void* attr, const char* pszAttributeName);
 };
 
 #elif defined(HAVE_EXPAT)
@@ -161,6 +220,7 @@ public:
 
     virtual char*       GetFID(void* attr);
     virtual char*       GetAttributes(void* attr);
+    virtual char*       GetAttributeValue(void* attr, const char* pszAttributeName);
 };
 
 #endif
@@ -214,14 +274,15 @@ private:
     SAX2XMLReader *m_poSAXReader;
     XMLPScanToken m_oToFill;
     GMLFeature   *m_poCompleteFeature;
+    GMLInputSource *m_GMLInputSource;
 #else
     GMLExpatHandler    *m_poGMLHandler;
-    FILE*         fpGML;
     XML_Parser    oParser;
     GMLFeature ** ppoFeatureTab;
     int           nFeatureTabLength;
     int           nFeatureTabIndex;
 #endif
+    VSILFILE*     fpGML;
     int           m_bReadStarted;
 
     GMLReadState *m_poState;
@@ -230,6 +291,19 @@ private:
 
     int           SetupParser();
     void          CleanupParser();
+
+    int           m_bFetchAllGeometries;
+
+    int           m_bInvertAxisOrderIfLatLong;
+
+    int           ParseFeatureType(CPLXMLNode *psSchemaNode,
+                                const char* pszName,
+                                const char *pszType);
+
+    char         *m_pszGlobalSRSName;
+    int           m_bCanUseGlobalSRSName;
+
+    char         *m_pszFilteredClassName;
 
 public:
                 GMLReader();
@@ -240,6 +314,7 @@ public:
         { m_bClassListLocked = bFlag; }
 
     void             SetSourceFile( const char *pszFilename );
+    const char*      GetSourceFileName();
 
     int              GetClassCount() const { return m_nClassCount; }
     GMLFeatureClass *GetClass( int i ) const;
@@ -253,7 +328,10 @@ public:
     int              LoadClasses( const char *pszFile = NULL );
     int              SaveClasses( const char *pszFile = NULL );
 
-    int              ParseXSD( const char *pszFile );
+    int              ResolveXlinks( const char *pszFile,
+                                    int* pbOutIsTempFile,
+                                    char **papszSkip = NULL,
+                                    const int bStrict = FALSE );
 
     int              PrescanForSchema(int bGetExtents = TRUE );
     void             ResetReading();
@@ -266,6 +344,7 @@ public:
 
     int         IsFeatureElement( const char *pszElement );
     int         IsAttributeElement( const char *pszElement );
+    int         IsCityGMLGenericAttributeElement( const char *pszElement, void* attr );
 
     void        PushFeature( const char *pszElement, 
                              const char *pszFID );
@@ -275,6 +354,15 @@ public:
 
     int         HasStoppedParsing() { return m_bStopParsing; }
 
+    int         FetchAllGeometries() { return m_bFetchAllGeometries; }
+
+    void        SetGlobalSRSName( const char* pszGlobalSRSName ) ;
+    const char* GetGlobalSRSName() { return m_pszGlobalSRSName; }
+
+    int         CanUseGlobalSRSName() { return m_bCanUseGlobalSRSName; }
+
+    int         SetFilteredClassName(const char* pszClassName);
+    const char* GetFilteredClassName() { return m_pszFilteredClassName; }
 };
 
 #endif /* _CPL_GMLREADERP_H_INCLUDED */

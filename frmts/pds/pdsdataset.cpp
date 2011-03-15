@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: pdsdataset.cpp 19663 2010-05-10 15:22:12Z warmerdam $
+ * $Id: pdsdataset.cpp 20996 2010-10-28 18:38:15Z rouault $
  *
  * Project:  PDS Driver; Planetary Data System Format
  * Purpose:  Implementation of PDSDataset
@@ -46,7 +46,7 @@
 #include "cpl_string.h" 
 #include "nasakeywordhandler.h"
 
-CPL_CVSID("$Id: pdsdataset.cpp 19663 2010-05-10 15:22:12Z warmerdam $");
+CPL_CVSID("$Id: pdsdataset.cpp 20996 2010-10-28 18:38:15Z rouault $");
 
 CPL_C_START
 void	GDALRegister_PDS(void);
@@ -60,7 +60,7 @@ CPL_C_END
 
 class PDSDataset : public RawDataset
 {
-    FILE	*fpImage;	// image data file.
+    VSILFILE	*fpImage;	// image data file.
     GDALDataset *poCompressedDS;
 
     NASAKeywordHandler  oKeywords;
@@ -512,19 +512,19 @@ void PDSDataset::ParseSRS()
 /* ==================================================================== */
     {
         CPLString osPath, osName;
-        FILE *fp;
+        VSILFILE *fp;
 
         osPath = CPLGetPath( pszFilename );
         osName = CPLGetBasename(pszFilename);
         const char  *pszPrjFile = CPLFormCIFilename( osPath, osName, "prj" );
 
-        fp = VSIFOpen( pszPrjFile, "r" );
+        fp = VSIFOpenL( pszPrjFile, "r" );
         if( fp != NULL )
         {
             char	**papszLines;
             OGRSpatialReference oSRS;
 
-            VSIFClose( fp );
+            VSIFCloseL( fp );
         
             papszLines = CSLLoad( pszPrjFile );
 
@@ -636,13 +636,14 @@ int PDSDataset::ParseUncompressedImage()
     /* -------------------------------------------------------------------- */
     const char *value;
 
-    value = GetKeyword( "IMAGE.ENCODING_TYPE", "N/A" );
-    if ( !(EQUAL(value,"N/A") ) )
+    CPLString osEncodingType = GetKeyword( "IMAGE.ENCODING_TYPE", "N/A" );
+    CleanString(osEncodingType);
+    if ( !EQUAL(osEncodingType.c_str(),"N/A") )
     {
         CPLError( CE_Failure, CPLE_OpenFailed, 
                   "*** PDS image file has an ENCODING_TYPE parameter:\n"
                   "*** gdal pds driver does not support compressed image types\n"
-                  "found: (%s)\n\n", value );
+                  "found: (%s)\n\n", osEncodingType.c_str() );
         return FALSE;
     } 
     /**************** end ENCODING_TYPE check ***********************/
@@ -788,17 +789,28 @@ int PDSDataset::ParseUncompressedImage()
 /* -------------------------------------------------------------------- */
     
     if( eAccess == GA_ReadOnly )
-        fpImage = VSIFOpenL( osTargetFile, "rb" );
-    else
-        fpImage = VSIFOpenL( osTargetFile, "r+b" );
-
-    if( fpImage == NULL )
     {
-        CPLError( CE_Failure, CPLE_OpenFailed, 
-                  "Failed to open %s with write permission.\n%s", 
-                  osTargetFile.c_str(),
-                  VSIStrerror( errno ) );
-        return FALSE;
+        fpImage = VSIFOpenL( osTargetFile, "rb" );
+        if( fpImage == NULL )
+        {
+            CPLError( CE_Failure, CPLE_OpenFailed, 
+                    "Failed to open %s.\n%s", 
+                    osTargetFile.c_str(),
+                    VSIStrerror( errno ) );
+            return FALSE;
+        }
+    }
+    else
+    {
+        fpImage = VSIFOpenL( osTargetFile, "r+b" );
+        if( fpImage == NULL )
+        {
+            CPLError( CE_Failure, CPLE_OpenFailed, 
+                    "Failed to open %s with write permission.\n%s", 
+                    osTargetFile.c_str(),
+                    VSIStrerror( errno ) );
+            return FALSE;
+        }
     }
 
 /* -------------------------------------------------------------------- */
@@ -851,6 +863,22 @@ int PDSDataset::ParseUncompressedImage()
 #endif        
                                TRUE );
 
+        if( nBands == 1 )
+        {
+            const char* pszMin = GetKeyword("IMAGE.MINIMUM", NULL);
+            const char* pszMax = GetKeyword("IMAGE.MAXIMUM", NULL);
+            const char* pszMean = GetKeyword("IMAGE.MEAN", NULL);
+            const char* pszStdDev= GetKeyword("IMAGE.STANDARD_DEVIATION", NULL);
+            if (pszMin != NULL && pszMax != NULL &&
+                pszMean != NULL && pszStdDev != NULL)
+            {
+                poBand->SetStatistics( CPLAtofM(pszMin),
+                                       CPLAtofM(pszMax),
+                                       CPLAtofM(pszMean),
+                                       CPLAtofM(pszStdDev));
+            }
+        }
+        
         if( bNoDataSet )
             poBand->SetNoDataValue( dfNoData );
 
@@ -953,7 +981,7 @@ GDALDataset *PDSDataset::Open( GDALOpenInfo * poOpenInfo )
 /*      Open and parse the keyword header.  Sometimes there is stuff    */
 /*      before the PDS_VERSION_ID, which we want to ignore.             */
 /* -------------------------------------------------------------------- */
-    FILE *fpQube = VSIFOpenL( poOpenInfo->pszFilename, "rb" );
+    VSILFILE *fpQube = VSIFOpenL( poOpenInfo->pszFilename, "rb" );
 
     if( fpQube == NULL )
         return NULL;
@@ -1161,6 +1189,7 @@ void GDALRegister_PDS()
                                    "NASA Planetary Data System" );
         poDriver->SetMetadataItem( GDAL_DMD_HELPTOPIC, 
                                    "frmt_various.html#PDS" );
+        poDriver->SetMetadataItem( GDAL_DCAP_VIRTUALIO, "YES" );
 
         poDriver->pfnOpen = PDSDataset::Open;
         poDriver->pfnIdentify = PDSDataset::Identify;

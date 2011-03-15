@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrpgdatasource.cpp 19243 2010-03-28 19:30:33Z rouault $
+ * $Id: ogrpgdatasource.cpp 20687 2010-09-25 17:19:28Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implements OGRPGDataSource class.
@@ -34,7 +34,7 @@
 #include "cpl_string.h"
 #include "cpl_hash_set.h"
 
-CPL_CVSID("$Id: ogrpgdatasource.cpp 19243 2010-03-28 19:30:33Z rouault $");
+CPL_CVSID("$Id: ogrpgdatasource.cpp 20687 2010-09-25 17:19:28Z rouault $");
 
 static void OGRPGNoticeProcessor( void *arg, const char * pszMessage );
 
@@ -127,16 +127,17 @@ CPLString OGRPGDataSource::GetCurrentSchema()
 /*                      OGRPGDecodeVersionString()                      */
 /************************************************************************/
 
-void OGRPGDataSource::OGRPGDecodeVersionString(PGver* psVersion, char* pszVer)
+void OGRPGDataSource::OGRPGDecodeVersionString(PGver* psVersion, const char* pszVer)
 {
     GUInt32 iLen;
-    char* ptr;
+    const char* ptr;
     char szNum[25];
     char szVer[10];
 
+    while ( *pszVer == ' ' ) pszVer++;
+
     ptr = pszVer;
     // get Version string
-    if ( *ptr == ' ' ) *ptr++;
     while (*ptr && *ptr != ' ') ptr++;
     iLen = ptr-pszVer;
     if ( iLen > sizeof(szVer) - 1 ) iLen = sizeof(szVer) - 1;
@@ -153,6 +154,8 @@ void OGRPGDataSource::OGRPGDecodeVersionString(PGver* psVersion, char* pszVer)
     szNum[iLen] = '\0';
     psVersion->nMajor = atoi(szNum);
 
+    if (*ptr == 0)
+        return;
     pszVer = ++ptr;
 
     // get Minor number
@@ -186,9 +189,19 @@ void OGRPGDataSource::OGRPGDecodeVersionString(PGver* psVersion, char* pszVer)
 
 typedef struct
 {
+    char* pszName;
+    char* pszGeomType;
+    int   nCoordDimension;
+    int   nSRID;
+    PostgisType   ePostgisType;
+} PGGeomColumnDesc;
+
+typedef struct
+{
     char* pszTableName;
     char* pszSchemaName;
-    char** papszGeomColumnNames; /* list of geometry columns */
+    int   nGeomColumnCount;
+    PGGeomColumnDesc* pasGeomColumns;   /* list of geometry columns */
     int   bDerivedInfoAdded;            /* set to TRUE if it derives from another table */
 } PGTableEntry;
 
@@ -207,12 +220,47 @@ static int OGRPGEqualTableEntry(const void* _psTableEntry1, const void* _psTable
            strcmp(psTableEntry1->pszSchemaName, psTableEntry2->pszSchemaName) == 0;
 }
 
+static void OGRPGTableEntryAddGeomColumn(PGTableEntry* psTableEntry,
+                                         const char* pszName,
+                                         const char* pszGeomType = NULL,
+                                         int nCoordDimension = 0,
+                                         int nSRID = 0,
+                                         PostgisType ePostgisType = GEOM_TYPE_UNKNOWN)
+{
+    psTableEntry->pasGeomColumns = (PGGeomColumnDesc*)
+        CPLRealloc(psTableEntry->pasGeomColumns,
+               sizeof(PGGeomColumnDesc) * (psTableEntry->nGeomColumnCount + 1));
+    psTableEntry->pasGeomColumns[psTableEntry->nGeomColumnCount].pszName = CPLStrdup(pszName);
+    psTableEntry->pasGeomColumns[psTableEntry->nGeomColumnCount].pszGeomType = (pszGeomType) ? CPLStrdup(pszGeomType) : NULL;
+    psTableEntry->pasGeomColumns[psTableEntry->nGeomColumnCount].nCoordDimension = nCoordDimension;
+    psTableEntry->pasGeomColumns[psTableEntry->nGeomColumnCount].nSRID = nSRID;
+    psTableEntry->pasGeomColumns[psTableEntry->nGeomColumnCount].ePostgisType = ePostgisType;
+    psTableEntry->nGeomColumnCount ++;
+}
+
+static void OGRPGTableEntryAddGeomColumn(PGTableEntry* psTableEntry,
+                                         const PGGeomColumnDesc* psGeomColumnDesc)
+{
+    OGRPGTableEntryAddGeomColumn(psTableEntry,
+                                 psGeomColumnDesc->pszName,
+                                 psGeomColumnDesc->pszGeomType,
+                                 psGeomColumnDesc->nCoordDimension,
+                                 psGeomColumnDesc->nSRID,
+                                 psGeomColumnDesc->ePostgisType);
+}
+
 static void OGRPGFreeTableEntry(void * _psTableEntry)
 {
     PGTableEntry* psTableEntry = (PGTableEntry*)_psTableEntry;
     CPLFree(psTableEntry->pszTableName);
     CPLFree(psTableEntry->pszSchemaName);
-    CSLDestroy(psTableEntry->papszGeomColumnNames);
+    int i;
+    for(i=0;i<psTableEntry->nGeomColumnCount;i++)
+    {
+        CPLFree(psTableEntry->pasGeomColumns[i].pszName);
+        CPLFree(psTableEntry->pasGeomColumns[i].pszGeomType);
+    }
+    CPLFree(psTableEntry->pasGeomColumns);
     CPLFree(psTableEntry);
 }
 
@@ -268,6 +316,7 @@ int OGRPGDataSource::Open( const char * pszNewName, int bUpdate,
     }
 
     pszName = CPLStrdup( pszNewName );
+    char* pszConnectionName = CPLStrdup(pszName);
 
 /* -------------------------------------------------------------------- */
 /*      Determine if the connection string contains an optional         */
@@ -275,9 +324,9 @@ int OGRPGDataSource::Open( const char * pszNewName, int bUpdate,
 /* -------------------------------------------------------------------- */
     char             *pszActiveSchemaStart;
     CPLString         osActiveSchema;
-    pszActiveSchemaStart = strstr(pszName, "active_schema=");
+    pszActiveSchemaStart = strstr(pszConnectionName, "active_schema=");
     if (pszActiveSchemaStart == NULL)
-        pszActiveSchemaStart = strstr(pszName, "ACTIVE_SCHEMA=");
+        pszActiveSchemaStart = strstr(pszConnectionName, "ACTIVE_SCHEMA=");
     if (pszActiveSchemaStart != NULL)
     {
         char           *pszActiveSchema;
@@ -287,9 +336,9 @@ int OGRPGDataSource::Open( const char * pszNewName, int bUpdate,
 
         pszEnd = strchr(pszActiveSchemaStart, ' ');
         if( pszEnd == NULL )
-            pszEnd = pszName + strlen(pszName);
+            pszEnd = pszConnectionName + strlen(pszConnectionName);
 
-        // Remove ACTIVE_SCHEMA=xxxxx from pszName string
+        // Remove ACTIVE_SCHEMA=xxxxx from pszConnectionName string
         memmove( pszActiveSchemaStart, pszEnd, strlen(pszEnd) + 1 );
 
         pszActiveSchema[pszEnd - pszActiveSchemaStart - strlen("active_schema=")] = '\0';
@@ -308,9 +357,9 @@ int OGRPGDataSource::Open( const char * pszNewName, int bUpdate,
 /* -------------------------------------------------------------------- */
     char             *pszSchemasStart;
     char            **papszSchemaList = NULL;
-    pszSchemasStart = strstr(pszName, "schemas=");
+    pszSchemasStart = strstr(pszConnectionName, "schemas=");
     if (pszSchemasStart == NULL)
-        pszSchemasStart = strstr(pszName, "SCHEMAS=");
+        pszSchemasStart = strstr(pszConnectionName, "SCHEMAS=");
     if (pszSchemasStart != NULL)
     {
         char           *pszSchemas;
@@ -320,9 +369,9 @@ int OGRPGDataSource::Open( const char * pszNewName, int bUpdate,
 
         pszEnd = strchr(pszSchemasStart, ' ');
         if( pszEnd == NULL )
-            pszEnd = pszName + strlen(pszName);
+            pszEnd = pszConnectionName + strlen(pszConnectionName);
 
-        // Remove SCHEMAS=xxxxx from pszName string
+        // Remove SCHEMAS=xxxxx from pszConnectionName string
         memmove( pszSchemasStart, pszEnd, strlen(pszEnd) + 1 );
 
         pszSchemas[pszEnd - pszSchemasStart - strlen("schemas=")] = '\0';
@@ -348,14 +397,13 @@ int OGRPGDataSource::Open( const char * pszNewName, int bUpdate,
 /*      We must also strip this information from the connection         */
 /*      string; PQconnectdb() does not like unknown directives          */
 /* -------------------------------------------------------------------- */
-    char              **papszTableNames=NULL;
-    char              **papszSchemaNames=NULL;
-    char              **papszGeomColumnNames=NULL;
+    PGTableEntry **papsTables = NULL;
+    int            nTableCount = 0;
 
     char             *pszTableStart;
-    pszTableStart = strstr(pszName, "tables=");
+    pszTableStart = strstr(pszConnectionName, "tables=");
     if (pszTableStart == NULL)
-        pszTableStart = strstr(pszName, "TABLES=");
+        pszTableStart = strstr(pszConnectionName, "TABLES=");
 
     if( pszTableStart != NULL )
     {
@@ -368,9 +416,9 @@ int OGRPGDataSource::Open( const char * pszNewName, int bUpdate,
 
         pszEnd = strchr(pszTableStart, ' ');
         if( pszEnd == NULL )
-            pszEnd = pszName + strlen(pszName);
+            pszEnd = pszConnectionName + strlen(pszConnectionName);
 
-        // Remove TABLES=xxxxx from pszName string
+        // Remove TABLES=xxxxx from pszConnectionName string
         memmove( pszTableStart, pszEnd, strlen(pszEnd) + 1 );
 
         pszTableSpec[pszEnd - pszTableStart - 7] = '\0';
@@ -383,10 +431,11 @@ int OGRPGDataSource::Open( const char * pszNewName, int bUpdate,
             // Get schema and table name
             papszQualifiedParts = CSLTokenizeString2( papszTableList[i],
                                                       ".", 0 );
+            int nParts = CSLCount( papszQualifiedParts );
 
-            /* Find the geometry column name if specified */
-            if( CSLCount( papszQualifiedParts ) >= 1 )
+            if( nParts == 1 || nParts == 2 )
             {
+                /* Find the geometry column name if specified */
                 char* pszGeomColumnName = NULL;
                 char* pos = strchr(papszQualifiedParts[CSLCount( papszQualifiedParts ) - 1], '(');
                 if (pos != NULL)
@@ -397,22 +446,23 @@ int OGRPGDataSource::Open( const char * pszNewName, int bUpdate,
                     if (len > 0)
                         pszGeomColumnName[len - 1] = '\0';
                 }
-                papszGeomColumnNames = CSLAddString( papszGeomColumnNames,
-                        pszGeomColumnName ? pszGeomColumnName : "");
-            }
 
-            if( CSLCount( papszQualifiedParts ) == 2 )
-            {
-                papszSchemaNames = CSLAddString( papszSchemaNames, 
-                                                papszQualifiedParts[0] );
-                papszTableNames = CSLAddString( papszTableNames,
-                                                papszQualifiedParts[1] );
-            }
-            else if( CSLCount( papszQualifiedParts ) == 1 )
-            {
-                papszSchemaNames = CSLAddString( papszSchemaNames, osActiveSchema.c_str());
-                papszTableNames = CSLAddString( papszTableNames,
-                                                papszQualifiedParts[0] );
+                papsTables = (PGTableEntry**)CPLRealloc(papsTables, sizeof(PGTableEntry*) * (nTableCount + 1));
+                papsTables[nTableCount] = (PGTableEntry*) CPLCalloc(1, sizeof(PGTableEntry));
+                if (pszGeomColumnName)
+                    OGRPGTableEntryAddGeomColumn(papsTables[nTableCount], pszGeomColumnName);
+
+                if( nParts == 2 )
+                {
+                    papsTables[nTableCount]->pszSchemaName = CPLStrdup( papszQualifiedParts[0] );
+                    papsTables[nTableCount]->pszTableName = CPLStrdup( papszQualifiedParts[1] );
+                }
+                else
+                {
+                    papsTables[nTableCount]->pszSchemaName = CPLStrdup( osActiveSchema.c_str());
+                    papsTables[nTableCount]->pszTableName = CPLStrdup( papszQualifiedParts[0] );
+                }
+                nTableCount ++;
             }
 
             CSLDestroy(papszQualifiedParts);
@@ -422,26 +472,30 @@ int OGRPGDataSource::Open( const char * pszNewName, int bUpdate,
         CPLFree(pszTableSpec);
     }
 
+
+    CPLString      osCurrentSchema;
+    CPLHashSet    *hSetTables = NULL;
+    int            bRet = FALSE;
+    int            bListAllTables = CSLTestBoolean(CPLGetConfigOption("PG_LIST_ALL_TABLES", "NO"));
+    PGresult      *hResult = NULL;
+
 /* -------------------------------------------------------------------- */
 /*      Try to establish connection.                                    */
 /* -------------------------------------------------------------------- */
-    hPGConn = PQconnectdb( pszName + (bUseBinaryCursor ? 4 : 3) );
+    hPGConn = PQconnectdb( pszConnectionName + (bUseBinaryCursor ? 4 : 3) );
+    CPLFree(pszConnectionName);
+    pszConnectionName = NULL;
+
     if( hPGConn == NULL || PQstatus(hPGConn) == CONNECTION_BAD )
     {
-        CSLDestroy( papszSchemaList );
-        CSLDestroy( papszSchemaNames );
-        CSLDestroy( papszTableNames );
-        CSLDestroy( papszGeomColumnNames );
-
-        CPLFree(pszName);
-        pszName = NULL;
-
         CPLError( CE_Failure, CPLE_AppDefined,
                   "PQconnectdb failed.\n%s",
                   PQerrorMessage(hPGConn) );
+
         PQfinish(hPGConn);
         hPGConn = NULL;
-        return FALSE;
+
+        goto end;
     }
 
     bDSUpdate = bUpdate;
@@ -503,14 +557,10 @@ int OGRPGDataSource::Open( const char * pszNewName, int bUpdate,
         {
             OGRPGClearResult( hResult );
 
-            CSLDestroy( papszSchemaList );
-            CSLDestroy( papszSchemaNames );
-            CSLDestroy( papszTableNames );
-            CSLDestroy( papszGeomColumnNames );
-
             CPLError( CE_Failure, CPLE_AppDefined,
                     "%s", PQerrorMessage(hPGConn) );
-            return FALSE;
+
+            goto end;
         }
 
         OGRPGClearResult(hResult);
@@ -519,8 +569,6 @@ int OGRPGDataSource::Open( const char * pszNewName, int bUpdate,
 /* -------------------------------------------------------------------- */
 /*      Find out PostgreSQL version                                     */
 /* -------------------------------------------------------------------- */
-    PGresult    *hResult = NULL;
-
     sPostgreSQLVersion.nMajor = -1;
     sPostgreSQLVersion.nMinor = -1;
     sPostgreSQLVersion.nRelease = -1;
@@ -604,6 +652,18 @@ int OGRPGDataSource::Open( const char * pszNewName, int bUpdate,
     }
 #endif
 
+#ifdef notdef
+    /* This would be the quickest fix... instead, ogrpglayer has been updated to support */
+    /* bytea hex format */
+    if (sPostgreSQLVersion.nMajor >= 9)
+    {
+        /* Starting with PostgreSQL 9.0, the default output format for values of type bytea */
+        /* is hex, whereas we traditionnaly expect escape */
+        hResult = PQexec(hPGConn, "SET bytea_output TO escape");
+        OGRPGClearResult( hResult );
+    }
+#endif
+
 /* -------------------------------------------------------------------- */
 /*      Test to see if this database instance has support for the       */
 /*      PostGIS Geometry type.  If so, disable sequential scanning      */
@@ -630,8 +690,6 @@ int OGRPGDataSource::Open( const char * pszNewName, int bUpdate,
     {
         nGeometryOID = (Oid) 0;
     }
-
-    int bListAllTables = CSLTestBoolean(CPLGetConfigOption("PG_LIST_ALL_TABLES", "NO"));
 
     OGRPGClearResult( hResult );
 
@@ -683,9 +741,9 @@ int OGRPGDataSource::Open( const char * pszNewName, int bUpdate,
 /*      specified through the TABLES connection string param           */
 /* -------------------------------------------------------------------- */
 
-    CPLHashSet* hSetTables = CPLHashSetNew(OGRPGHashTableEntry, OGRPGEqualTableEntry, OGRPGFreeTableEntry);
+    hSetTables = CPLHashSetNew(OGRPGHashTableEntry, OGRPGEqualTableEntry, OGRPGFreeTableEntry);
 
-    if (papszTableNames == NULL)
+    if (nTableCount == 0)
     {
         CPLString osCommand;
         const char* pszAllowedRelations;
@@ -706,8 +764,14 @@ int OGRPGDataSource::Open( const char * pszNewName, int bUpdate,
             {
                 /* PostGIS 1.5 brings support for 'geography' type. */
                 /* Checks that the type exists */
-                if (sPostGISVersion.nMajor > 1 ||
-                    (sPostGISVersion.nMajor == 1 && sPostGISVersion.nMinor >= 5))
+
+                /* Note: the PG_USE_GEOGRAPHY config option is only used for testing */
+                /* purpose, to test the ability of the driver to work with older PostGIS */
+                /* versions, even when we have a newer one. It should not be used by */
+                /* *real* OGR users */
+                if ((sPostGISVersion.nMajor > 1 ||
+                    (sPostGISVersion.nMajor == 1 && sPostGISVersion.nMinor >= 5)) &&
+                    CSLTestBoolean(CPLGetConfigOption("PG_USE_GEOGRAPHY", "YES")) )
                 {
                     hResult = PQexec(hPGConn,
                                     "SELECT oid FROM pg_type WHERE typname = 'geography'" );
@@ -727,17 +791,17 @@ int OGRPGDataSource::Open( const char * pszNewName, int bUpdate,
                 }
                 
                 osCommand.Printf("DECLARE mycursor CURSOR for "
-                                 "SELECT c.relname, n.nspname, g.f_geometry_column FROM pg_class c, pg_namespace n, geometry_columns g "
+                                 "SELECT c.relname, n.nspname, g.f_geometry_column, g.type, g.coord_dimension, g.srid, %d FROM pg_class c, pg_namespace n, geometry_columns g "
                                  "WHERE (c.relkind in (%s) AND c.relname !~ '^pg_' AND c.relnamespace=n.oid "
                                  "AND c.relname::TEXT = g.f_table_name::TEXT AND n.nspname = g.f_table_schema)",
-                                 pszAllowedRelations);
+                                 GEOM_TYPE_GEOMETRY, pszAllowedRelations);
 
                 if (bHaveGeography)
                     osCommand += CPLString().Printf(
-                                     "UNION SELECT c.relname, n.nspname, g.f_geography_column FROM pg_class c, pg_namespace n, geography_columns g "
+                                     "UNION SELECT c.relname, n.nspname, g.f_geography_column, g.type, g.coord_dimension, g.srid, %d FROM pg_class c, pg_namespace n, geography_columns g "
                                      "WHERE (c.relkind in (%s) AND c.relname !~ '^pg_' AND c.relnamespace=n.oid "
                                      "AND c.relname::TEXT = g.f_table_name::TEXT AND n.nspname = g.f_table_schema)",
-                                     pszAllowedRelations);
+                                     GEOM_TYPE_GEOGRAPHY, pszAllowedRelations);
             }
             else
                 osCommand.Printf("DECLARE mycursor CURSOR for "
@@ -757,16 +821,10 @@ int OGRPGDataSource::Open( const char * pszNewName, int bUpdate,
         if( !hResult || PQresultStatus(hResult) != PGRES_TUPLES_OK )
         {
             OGRPGClearResult( hResult );
-            CPLHashSetDestroy(hSetTables);
-
-            CSLDestroy( papszSchemaList );
-            CSLDestroy( papszSchemaNames );
-            CSLDestroy( papszTableNames );
-            CSLDestroy( papszGeomColumnNames );
 
             CPLError( CE_Failure, CPLE_AppDefined,
                     "%s", PQerrorMessage(hPGConn) );
-            return FALSE;
+            goto end;
         }
 
     /* -------------------------------------------------------------------- */
@@ -776,27 +834,48 @@ int OGRPGDataSource::Open( const char * pszNewName, int bUpdate,
         {
             const char *pszTable = PQgetvalue(hResult, iRecord, 0);
             const char *pszSchemaName = PQgetvalue(hResult, iRecord, 1);
-            const char *pszGeomColumnName =
-                    (bHavePostGIS && !bListAllTables) ? PQgetvalue(hResult, iRecord, 2) : NULL;
+            const char *pszGeomColumnName = NULL;
+            const char *pszGeomType = NULL;
+            int nGeomCoordDimension = 0;
+            int nSRID = 0;
+            PostgisType ePostgisType = GEOM_TYPE_UNKNOWN;
+            if (bHavePostGIS && !bListAllTables)
+            {
+                pszGeomColumnName = PQgetvalue(hResult, iRecord, 2);
+                pszGeomType = PQgetvalue(hResult, iRecord, 3);
+                nGeomCoordDimension = atoi(PQgetvalue(hResult, iRecord, 4));
+                nSRID = atoi(PQgetvalue(hResult, iRecord, 5));
+                ePostgisType = (PostgisType) atoi(PQgetvalue(hResult, iRecord, 6));
+            }
 
             if( EQUAL(pszTable,"spatial_ref_sys")
-                || EQUAL(pszTable,"geometry_columns") )
+                || EQUAL(pszTable,"geometry_columns")
+                || EQUAL(pszTable,"geography_columns") )
                 continue;
 
             if( EQUAL(pszSchemaName,"information_schema") )
                 continue;
 
-            papszTableNames = CSLAddString(papszTableNames, pszTable);
-            papszSchemaNames = CSLAddString(papszSchemaNames, pszSchemaName);
+            papsTables = (PGTableEntry**)CPLRealloc(papsTables, sizeof(PGTableEntry*) * (nTableCount + 1));
+            papsTables[nTableCount] = (PGTableEntry*) CPLCalloc(1, sizeof(PGTableEntry));
+            papsTables[nTableCount]->pszTableName = CPLStrdup( pszTable );
+            papsTables[nTableCount]->pszSchemaName = CPLStrdup( pszSchemaName );
             if (pszGeomColumnName)
-                papszGeomColumnNames = CSLAddString(papszGeomColumnNames, pszGeomColumnName);
+                OGRPGTableEntryAddGeomColumn(papsTables[nTableCount],
+                                             pszGeomColumnName,
+                                             pszGeomType, nGeomCoordDimension,
+                                             nSRID, ePostgisType);
+            nTableCount ++;
 
             PGTableEntry* psEntry = OGRPGFindTableEntry(hSetTables, pszTable, pszSchemaName);
             if (psEntry == NULL)
                 psEntry = OGRPGAddTableEntry(hSetTables, pszTable, pszSchemaName);
             if (pszGeomColumnName)
-                psEntry->papszGeomColumnNames =
-                        CSLAddString(psEntry->papszGeomColumnNames, pszGeomColumnName);
+                OGRPGTableEntryAddGeomColumn(psEntry,
+                                             pszGeomColumnName,
+                                             pszGeomType,
+                                             nGeomCoordDimension,
+                                             nSRID, ePostgisType);
         }
 
     /* -------------------------------------------------------------------- */
@@ -837,16 +916,9 @@ int OGRPGDataSource::Open( const char * pszNewName, int bUpdate,
             {
                 OGRPGClearResult( hResult );
 
-                CPLHashSetDestroy(hSetTables);
-
-                CSLDestroy( papszSchemaList );
-                CSLDestroy( papszSchemaNames );
-                CSLDestroy( papszTableNames );
-                CSLDestroy( papszGeomColumnNames );
-
                 CPLError( CE_Failure, CPLE_AppDefined,
                         "%s", PQerrorMessage(hPGConn) );
-                return FALSE;
+                goto end;
             }
 
         /* -------------------------------------------------------------------- */
@@ -886,17 +958,19 @@ int OGRPGDataSource::Open( const char * pszNewName, int bUpdate,
                             if (psEntry == NULL)
                                 psEntry = OGRPGAddTableEntry(hSetTables, pszTable, pszSchemaName);
 
-                            char** iterGeomColumnNames = psParentEntry->papszGeomColumnNames;
-                            while(*iterGeomColumnNames)
+                            int iGeomColumn;
+                            for(iGeomColumn = 0; iGeomColumn < psParentEntry->nGeomColumnCount; iGeomColumn++)
                             {
-                                papszTableNames = CSLAddString(papszTableNames, pszTable);
-                                papszSchemaNames = CSLAddString(papszSchemaNames, pszSchemaName);
-                                papszGeomColumnNames = CSLAddString(papszGeomColumnNames, *iterGeomColumnNames);
+                                papsTables = (PGTableEntry**)CPLRealloc(papsTables, sizeof(PGTableEntry*) * (nTableCount + 1));
+                                papsTables[nTableCount] = (PGTableEntry*) CPLCalloc(1, sizeof(PGTableEntry));
+                                papsTables[nTableCount]->pszTableName = CPLStrdup( pszTable );
+                                papsTables[nTableCount]->pszSchemaName = CPLStrdup( pszSchemaName );
+                                OGRPGTableEntryAddGeomColumn(papsTables[nTableCount],
+                                                             &psParentEntry->pasGeomColumns[iGeomColumn]);
+                                nTableCount ++;
 
-                                psEntry->papszGeomColumnNames =
-                                        CSLAddString(psEntry->papszGeomColumnNames, *iterGeomColumnNames);
-
-                                iterGeomColumnNames ++;
+                                OGRPGTableEntryAddGeomColumn(psEntry,
+                                                             &psParentEntry->pasGeomColumns[iGeomColumn]);
                             }
 
                             psEntry->bDerivedInfoAdded = TRUE;
@@ -920,25 +994,20 @@ int OGRPGDataSource::Open( const char * pszNewName, int bUpdate,
 
     }
 
-    CPLString osCurrentSchema = GetCurrentSchema();
+    osCurrentSchema = GetCurrentSchema();
 
 /* -------------------------------------------------------------------- */
 /*      Register the available tables.                                  */
 /* -------------------------------------------------------------------- */
-    for( int iRecord = 0;
-         papszTableNames != NULL && papszTableNames[iRecord] != NULL;
-         iRecord++ )
+    for( int iRecord = 0; iRecord < nTableCount; iRecord++ )
     {
-        PGTableEntry sEntry;
         PGTableEntry* psEntry;
-        sEntry.pszTableName = (char*) papszTableNames[iRecord];
-        sEntry.pszSchemaName = (char*) papszSchemaNames[iRecord];
-        psEntry = (PGTableEntry* )CPLHashSetLookup(hSetTables, &sEntry);
+        psEntry = (PGTableEntry* )CPLHashSetLookup(hSetTables, papsTables[iRecord]);
 
         /* If SCHEMAS= is specified, only take into account tables inside */
         /* one of the specified schemas */
         if (papszSchemaList != NULL &&
-            CSLFindString(papszSchemaList, papszSchemaNames[iRecord]) == -1)
+            CSLFindString(papszSchemaList, papsTables[iRecord]->pszSchemaName) == -1)
         {
             continue;
         }
@@ -953,51 +1022,66 @@ int OGRPGDataSource::Open( const char * pszNewName, int bUpdate,
         /* - if we get no geometry column, let ReadTableDefinition() parses the columns */
         /*   and find the likely geometry column */
 
-        if (psEntry != NULL && CSLCount(psEntry->papszGeomColumnNames) <= 1)
+        OGRPGTableLayer* poLayer;
+        if (psEntry != NULL && psEntry->nGeomColumnCount <= 1)
         {
-            if (CSLCount(psEntry->papszGeomColumnNames) == 1)
-                OpenTable( osCurrentSchema, papszTableNames[iRecord],
-                           papszSchemaNames[iRecord],
-                           psEntry->papszGeomColumnNames[0], bUpdate, FALSE, FALSE );
+            if (psEntry->nGeomColumnCount == 1)
+            {
+                poLayer = OpenTable( osCurrentSchema, papsTables[iRecord]->pszTableName,
+                           papsTables[iRecord]->pszSchemaName,
+                           psEntry->pasGeomColumns[0].pszName, bUpdate, FALSE, FALSE );
+                poLayer->SetGeometryInformation(psEntry->pasGeomColumns[0].pszGeomType,
+                                                psEntry->pasGeomColumns[0].nCoordDimension,
+                                                psEntry->pasGeomColumns[0].nSRID,
+                                                psEntry->pasGeomColumns[0].ePostgisType);
+            }
             else
-                OpenTable( osCurrentSchema, papszTableNames[iRecord],
-                           papszSchemaNames[iRecord], NULL, bUpdate, FALSE, FALSE );
+                poLayer = OpenTable( osCurrentSchema, papsTables[iRecord]->pszTableName,
+                           papsTables[iRecord]->pszSchemaName, NULL, bUpdate, FALSE, FALSE );
         }
         else
         {
-            CPLAssert( papszGeomColumnNames && papszGeomColumnNames[iRecord]);
-            if (EQUAL(papszGeomColumnNames[iRecord], ""))
-                OpenTable( osCurrentSchema, papszTableNames[iRecord],
-                           papszSchemaNames[iRecord], NULL, bUpdate, FALSE, FALSE );
+            if (papsTables[iRecord]->nGeomColumnCount == 0)
+                poLayer = OpenTable( osCurrentSchema, papsTables[iRecord]->pszTableName,
+                           papsTables[iRecord]->pszSchemaName, NULL, bUpdate, FALSE, FALSE );
             else
-                OpenTable( osCurrentSchema, papszTableNames[iRecord],
-                           papszSchemaNames[iRecord], papszGeomColumnNames[iRecord],
-                           bUpdate, FALSE, !EQUAL(papszGeomColumnNames[iRecord], "wkb_geometry") );
+            {
+                poLayer = OpenTable( osCurrentSchema, papsTables[iRecord]->pszTableName,
+                           papsTables[iRecord]->pszSchemaName, papsTables[iRecord]->pasGeomColumns[0].pszName,
+                           bUpdate, FALSE, !EQUAL(papsTables[iRecord]->pasGeomColumns[0].pszName, "wkb_geometry") );
+                poLayer->SetGeometryInformation(papsTables[iRecord]->pasGeomColumns[0].pszGeomType,
+                                                papsTables[iRecord]->pasGeomColumns[0].nCoordDimension,
+                                                papsTables[iRecord]->pasGeomColumns[0].nSRID,
+                                                papsTables[iRecord]->pasGeomColumns[0].ePostgisType);
+            }
         }
     }
 
-    CPLHashSetDestroy(hSetTables);
+    bRet = TRUE;
 
+end:
+    if (hSetTables)
+        CPLHashSetDestroy(hSetTables);
     CSLDestroy( papszSchemaList );
-    CSLDestroy( papszSchemaNames );
-    CSLDestroy( papszTableNames );
-    CSLDestroy( papszGeomColumnNames );
 
-/* -------------------------------------------------------------------- */
-    return nLayers > 0 || bUpdate;
+    for(int i=0;i<nTableCount;i++)
+        OGRPGFreeTableEntry(papsTables[i]);
+    CPLFree(papsTables);
+
+    return bRet;
 }
 
 /************************************************************************/
 /*                             OpenTable()                              */
 /************************************************************************/
 
-int OGRPGDataSource::OpenTable( CPLString& osCurrentSchema,
+OGRPGTableLayer* OGRPGDataSource::OpenTable( CPLString& osCurrentSchema,
                                 const char *pszNewName,
                                 const char *pszSchemaName,
                                 const char * pszGeomColumnIn,
                                 int bUpdate,
                                 int bTestOpen,
-                                int bAdvertizeGeomColumn )
+                                int bAdvertizeGeomColumn)
 
 {
 /* -------------------------------------------------------------------- */
@@ -1009,10 +1093,10 @@ int OGRPGDataSource::OpenTable( CPLString& osCurrentSchema,
                                    pszNewName, pszSchemaName,
                                    pszGeomColumnIn, bUpdate,
                                    bAdvertizeGeomColumn );
-    if( poLayer->GetLayerDefn() == NULL )
+    if( bTestOpen && poLayer->GetLayerDefnCanReturnNULL() == NULL )
     {
         delete poLayer;
-        return FALSE;
+        return NULL;
     }
 
 /* -------------------------------------------------------------------- */
@@ -1022,7 +1106,7 @@ int OGRPGDataSource::OpenTable( CPLString& osCurrentSchema,
         CPLRealloc( papoLayers,  sizeof(OGRPGTableLayer *) * (nLayers+1) );
     papoLayers[nLayers++] = poLayer;
 
-    return TRUE;
+    return poLayer;
 }
 
 /************************************************************************/
@@ -1049,6 +1133,9 @@ int OGRPGDataSource::DeleteLayer( int iLayer )
     memmove( papoLayers + iLayer, papoLayers + iLayer + 1,
              sizeof(void *) * (nLayers - iLayer - 1) );
     nLayers--;
+
+    if (osLayerName.size() == 0)
+        return OGRERR_NONE;
 
 /* -------------------------------------------------------------------- */
 /*      Remove from the database.                                       */
@@ -1086,7 +1173,7 @@ int OGRPGDataSource::DeleteLayer( int iLayer )
 /************************************************************************/
 
 OGRLayer *
-OGRPGDataSource::CreateLayer( const char * pszLayerNameIn,
+OGRPGDataSource::CreateLayer( const char * pszLayerName,
                               OGRSpatialReference *poSRS,
                               OGRwkbGeometryType eType,
                               char ** papszOptions )
@@ -1095,27 +1182,18 @@ OGRPGDataSource::CreateLayer( const char * pszLayerNameIn,
     PGresult            *hResult = NULL;
     CPLString            osCommand;
     const char          *pszGeomType = NULL;
-    char                *pszLayerName = NULL;
-    const char          *pszTableName = NULL;
+    char                *pszTableName = NULL;
     char                *pszSchemaName = NULL;
     int                 nDimension = 3;
 
-    if (pszLayerNameIn == NULL)
+    if (pszLayerName == NULL)
         return NULL;
 
-    if (strncmp(pszLayerNameIn, "pg", 2) == 0)
+    if (strncmp(pszLayerName, "pg", 2) == 0)
     {
         CPLError(CE_Warning, CPLE_AppDefined,
                  "The layer name should not begin by 'pg' as it is a reserved prefix");
     }
-
-    if( CSLFetchBoolean(papszOptions,"LAUNDER", TRUE) )
-    {
-        pszLayerName = LaunderName( pszLayerNameIn );
-        
-    }
-    else
-        pszLayerName = CPLStrdup( pszLayerNameIn );
 
     if( wkbFlatten(eType) == eType )
         nDimension = 2;
@@ -1128,21 +1206,29 @@ OGRPGDataSource::CreateLayer( const char * pszLayerNameIn,
        Set layer name to "schema.table" or to "table" if schema == current_schema()
        Usage without schema name is backwards compatible
     */
-    pszTableName = strstr(pszLayerName,".");
-    if ( pszTableName != NULL )
+    const char* pszDotPos = strstr(pszLayerName,".");
+    if ( pszDotPos != NULL )
     {
-      int length = pszTableName - pszLayerName;
+      int length = pszDotPos - pszLayerName;
       pszSchemaName = (char*)CPLMalloc(length+1);
       strncpy(pszSchemaName, pszLayerName, length);
       pszSchemaName[length] = '\0';
-      ++pszTableName; //skip "."
+      
+      if( CSLFetchBoolean(papszOptions,"LAUNDER", TRUE) )
+          pszTableName = LaunderName( pszDotPos + 1 ); //skip "."
+      else
+          pszTableName = CPLStrdup( pszDotPos + 1 ); //skip "."
     }
     else
     {
       pszSchemaName = NULL;
-      pszTableName = pszLayerName;
+      if( CSLFetchBoolean(papszOptions,"LAUNDER", TRUE) )
+          pszTableName = LaunderName( pszLayerName ); //skip "."
+      else
+          pszTableName = CPLStrdup( pszLayerName ); //skip "."
     }
 
+    
 /* -------------------------------------------------------------------- */
 /*      Set the default schema for the layers.                          */
 /* -------------------------------------------------------------------- */
@@ -1167,7 +1253,17 @@ OGRPGDataSource::CreateLayer( const char * pszLayerNameIn,
 
     for( iLayer = 0; iLayer < nLayers; iLayer++ )
     {
-        if( EQUAL(pszLayerName,papoLayers[iLayer]->GetLayerDefn()->GetName()) )
+        CPLString osSQLLayerName;
+        if (pszSchemaName == NULL || (strlen(osCurrentSchema) > 0 && EQUAL(pszSchemaName, osCurrentSchema.c_str())))
+            osSQLLayerName = pszTableName;
+        else
+        {
+            osSQLLayerName = pszSchemaName;
+            osSQLLayerName += ".";
+            osSQLLayerName += pszTableName;
+        }
+
+        if( EQUAL(osSQLLayerName.c_str(),papoLayers[iLayer]->GetName()) )
         {
             if( CSLFetchNameValue( papszOptions, "OVERWRITE" ) != NULL
                 && !EQUAL(CSLFetchNameValue(papszOptions,"OVERWRITE"),"NO") )
@@ -1180,8 +1276,8 @@ OGRPGDataSource::CreateLayer( const char * pszLayerNameIn,
                           "Layer %s already exists, CreateLayer failed.\n"
                           "Use the layer creation option OVERWRITE=YES to "
                           "replace it.",
-                          pszLayerName );
-                CPLFree( pszLayerName );
+                          osSQLLayerName.c_str() );
+                CPLFree( pszTableName );
                 CPLFree( pszSchemaName );
                 return NULL;
             }
@@ -1200,18 +1296,18 @@ OGRPGDataSource::CreateLayer( const char * pszLayerNameIn,
             pszGeomType = "bytea";
     }
     
-    if( EQUAL(pszGeomType, "geography") && !bHaveGeography )
+    if( eType != wkbNone && EQUAL(pszGeomType, "geography") && !bHaveGeography )
     {
         CPLError( CE_Failure, CPLE_AppDefined,
                   "GEOM_TYPE=geography is only supported in PostGIS >= 1.5.\n"
                   "Creation of layer %s has failed.",
                   pszLayerName );
-        CPLFree( pszLayerName );
+        CPLFree( pszTableName );
         CPLFree( pszSchemaName );
         return NULL;
     }
 
-    if( bHavePostGIS && !EQUAL(pszGeomType,"geometry") &&
+    if( eType != wkbNone && bHavePostGIS && !EQUAL(pszGeomType,"geometry") &&
         !EQUAL(pszGeomType, "geography") )
     {
         if( bHaveGeography )
@@ -1225,7 +1321,7 @@ OGRPGDataSource::CreateLayer( const char * pszLayerNameIn,
                       "Creation of layer %s with GEOM_TYPE %s has failed.",
                       pszLayerName, pszGeomType );
 
-        CPLFree( pszLayerName );
+        CPLFree( pszTableName );
         CPLFree( pszSchemaName );
         return NULL;
     }
@@ -1239,42 +1335,7 @@ OGRPGDataSource::CreateLayer( const char * pszLayerNameIn,
     if( poSRS != NULL )
         nSRSId = FetchSRSId( poSRS );
         
-    const char *pszGeometryType;
-    switch( wkbFlatten(eType) )
-    {
-        case wkbPoint:
-            pszGeometryType = "POINT";
-            break;
-
-        case wkbLineString:
-            pszGeometryType = "LINESTRING";
-            break;
-
-        case wkbPolygon:
-            pszGeometryType = "POLYGON";
-            break;
-
-        case wkbMultiPoint:
-            pszGeometryType = "MULTIPOINT";
-            break;
-
-        case wkbMultiLineString:
-            pszGeometryType = "MULTILINESTRING";
-            break;
-
-        case wkbMultiPolygon:
-            pszGeometryType = "MULTIPOLYGON";
-            break;
-
-        case wkbGeometryCollection:
-            pszGeometryType = "GEOMETRYCOLLECTION";
-            break;
-
-        default:
-            pszGeometryType = "GEOMETRY";
-            break;
-    }
-    
+    const char *pszGeometryType = OGRToOGCGeomType(eType);
 /* -------------------------------------------------------------------- */
 /*      Create a basic table with the FID.  Also include the            */
 /*      geometry if this is not a PostGIS enabled table.                */
@@ -1284,16 +1345,28 @@ OGRPGDataSource::CreateLayer( const char * pszLayerNameIn,
     
     const char *pszGFldName = NULL;
     
-    if( !bHavePostGIS )
+    CPLString osCreateTable;
+    int bTemporary = CSLFetchNameValue( papszOptions, "TEMPORARY" ) != NULL &&
+                     CSLTestBoolean(CSLFetchNameValue( papszOptions, "TEMPORARY" ));
+    if (bTemporary)
+    {
+        CPLFree(pszSchemaName);
+        pszSchemaName = CPLStrdup("pg_temp_1");
+        osCreateTable.Printf("CREATE TEMPORARY TABLE \"%s\"", pszTableName);
+    }
+    else
+        osCreateTable.Printf("CREATE TABLE \"%s\".\"%s\"", pszSchemaName, pszTableName);
+    
+    if( eType != wkbNone && !bHavePostGIS )
     {
         osCommand.Printf(
-                 "CREATE TABLE \"%s\".\"%s\" ( "
+                 "%s ( "
                  "   OGC_FID SERIAL, "
                  "   WKB_GEOMETRY %s, "
                  "   CONSTRAINT \"%s_pk\" PRIMARY KEY (OGC_FID) )",
-                 pszSchemaName, pszTableName, pszGeomType, pszTableName );
+                 osCreateTable.c_str(), pszGeomType, pszTableName );
     }
-    else if ( EQUAL(pszGeomType, "geography") )
+    else if ( eType != wkbNone && EQUAL(pszGeomType, "geography") )
     {
         if( CSLFetchNameValue( papszOptions, "GEOMETRY_NAME") != NULL )
             pszGFldName = CSLFetchNameValue( papszOptions, "GEOMETRY_NAME");
@@ -1302,18 +1375,18 @@ OGRPGDataSource::CreateLayer( const char * pszLayerNameIn,
         
         if (nSRSId)
             osCommand.Printf(
-                     "CREATE TABLE \"%s\".\"%s\" ( OGC_FID SERIAL, \"%s\" geography(%s%s,%d), CONSTRAINT \"%s_pk\" PRIMARY KEY (OGC_FID) )",
-                     pszSchemaName, pszTableName, pszGFldName, pszGeometryType, nDimension == 2 ? "" : "Z", nSRSId, pszTableName );
+                     "%s ( OGC_FID SERIAL, \"%s\" geography(%s%s,%d), CONSTRAINT \"%s_pk\" PRIMARY KEY (OGC_FID) )",
+                     osCreateTable.c_str(), pszGFldName, pszGeometryType, nDimension == 2 ? "" : "Z", nSRSId, pszTableName );
         else
             osCommand.Printf(
-                     "CREATE TABLE \"%s\".\"%s\" ( OGC_FID SERIAL, \"%s\" geography(%s%s), CONSTRAINT \"%s_pk\" PRIMARY KEY (OGC_FID) )",
-                     pszSchemaName, pszTableName, pszGFldName, pszGeometryType, nDimension == 2 ? "" : "Z", pszTableName );
+                     "%s ( OGC_FID SERIAL, \"%s\" geography(%s%s), CONSTRAINT \"%s_pk\" PRIMARY KEY (OGC_FID) )",
+                     osCreateTable.c_str(), pszGFldName, pszGeometryType, nDimension == 2 ? "" : "Z", pszTableName );
     }
     else
     {
         osCommand.Printf(
-                 "CREATE TABLE \"%s\".\"%s\" ( OGC_FID SERIAL, CONSTRAINT \"%s_pk\" PRIMARY KEY (OGC_FID) )",
-                 pszSchemaName, pszTableName, pszTableName );
+                 "%s ( OGC_FID SERIAL, CONSTRAINT \"%s_pk\" PRIMARY KEY (OGC_FID) )",
+                 osCreateTable.c_str(), pszTableName );
     }
 
     hResult = PQexec(hPGConn, osCommand.c_str());
@@ -1321,7 +1394,7 @@ OGRPGDataSource::CreateLayer( const char * pszLayerNameIn,
     {
         CPLError( CE_Failure, CPLE_AppDefined,
                   "%s\n%s", osCommand.c_str(), PQerrorMessage(hPGConn) );
-        CPLFree( pszLayerName );
+        CPLFree( pszTableName );
         CPLFree( pszSchemaName );
 
         OGRPGClearResult( hResult );
@@ -1337,7 +1410,7 @@ OGRPGDataSource::CreateLayer( const char * pszLayerNameIn,
 /*      "geometric layers", capturing the WKT projection, and           */
 /*      perhaps some other housekeeping.                                */
 /* -------------------------------------------------------------------- */
-    if( bHavePostGIS && !EQUAL(pszGeomType, "geography"))
+    if( eType != wkbNone && bHavePostGIS && !EQUAL(pszGeomType, "geography"))
     {
         if( CSLFetchNameValue( papszOptions, "GEOMETRY_NAME") != NULL )
             pszGFldName = CSLFetchNameValue( papszOptions, "GEOMETRY_NAME");
@@ -1369,7 +1442,7 @@ OGRPGDataSource::CreateLayer( const char * pszLayerNameIn,
                       "AddGeometryColumn failed for layer %s, layer creation has failed.",
                       pszLayerName );
 
-            CPLFree( pszLayerName );
+            CPLFree( pszTableName );
             CPLFree( pszSchemaName );
 
             OGRPGClearResult( hResult );
@@ -1383,7 +1456,7 @@ OGRPGDataSource::CreateLayer( const char * pszLayerNameIn,
         OGRPGClearResult( hResult );
     }
     
-    if( bHavePostGIS )
+    if( eType != wkbNone && bHavePostGIS )
     {
 /* -------------------------------------------------------------------- */
 /*      Create the spatial index.                                       */
@@ -1408,7 +1481,7 @@ OGRPGDataSource::CreateLayer( const char * pszLayerNameIn,
                         "'%s' failed for layer %s, index creation has failed.",
                         osCommand.c_str(), pszLayerName );
 
-                CPLFree( pszLayerName );
+                CPLFree( pszTableName );
                 CPLFree( pszSchemaName );
 
                 OGRPGClearResult( hResult );
@@ -1434,9 +1507,9 @@ OGRPGDataSource::CreateLayer( const char * pszLayerNameIn,
     OGRPGTableLayer     *poLayer;
 
     poLayer = new OGRPGTableLayer( this, osCurrentSchema, pszTableName, pszSchemaName, NULL, TRUE, FALSE, nSRSId);
-    if( poLayer->GetLayerDefn() == NULL )
+    if( poLayer->GetLayerDefnCanReturnNULL() == NULL )
     {
-        CPLFree( pszLayerName );
+        CPLFree( pszTableName );
         CPLFree( pszSchemaName );
         delete poLayer;
         return NULL;
@@ -1453,7 +1526,7 @@ OGRPGDataSource::CreateLayer( const char * pszLayerNameIn,
 
     papoLayers[nLayers++] = poLayer;
 
-    CPLFree( pszLayerName );
+    CPLFree( pszTableName );
     CPLFree( pszSchemaName );
 
     return poLayer;
@@ -1508,7 +1581,7 @@ OGRLayer *OGRPGDataSource::GetLayerByName( const char *pszName )
     {
         OGRPGTableLayer *poLayer = papoLayers[i];
 
-        if( strcmp( pszName, poLayer->GetLayerDefn()->GetName() ) == 0 )
+        if( strcmp( pszName, poLayer->GetName() ) == 0 )
         {
             return poLayer;
         }
@@ -1519,7 +1592,7 @@ OGRLayer *OGRPGDataSource::GetLayerByName( const char *pszName )
     {
         OGRPGTableLayer *poLayer = papoLayers[i];
 
-        if( EQUAL( pszName, poLayer->GetLayerDefn()->GetName() ) )
+        if( EQUAL( pszName, poLayer->GetName() ) )
         {
             return poLayer;
         }
@@ -1551,20 +1624,14 @@ OGRLayer *OGRPGDataSource::GetLayerByName( const char *pszName )
     pszNameWithoutBracket = NULL;
 
     CPLString osCurrentSchema = GetCurrentSchema();
-    int bRet = OpenTable( osCurrentSchema, pszTableName, pszSchemaName,
-                          pszGeomColumnName, TRUE, FALSE, TRUE );
+    OGRPGTableLayer* poLayer = OpenTable( osCurrentSchema, pszTableName,
+                                          pszSchemaName,
+                                          pszGeomColumnName, TRUE, TRUE, TRUE );
     CPLFree(pszTableName);
     CPLFree(pszSchemaName);
     CPLFree(pszGeomColumnName);
 
-    if (bRet)
-    {
-        return GetLayer(count);
-    }
-    else
-    {
-        return NULL;
-    }
+    return poLayer;
 }
 
 
@@ -2028,7 +2095,7 @@ OGRLayer * OGRPGDataSource::ExecuteSQL( const char *pszSQLCommand,
         
         for( int iLayer = 0; iLayer < nLayers; iLayer++ )
         {
-            if( EQUAL(papoLayers[iLayer]->GetLayerDefn()->GetName(), 
+            if( EQUAL(papoLayers[iLayer]->GetName(), 
                       pszLayerName ))
             {
                 DeleteLayer( iLayer );

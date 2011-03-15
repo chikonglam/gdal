@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: wcsdataset.cpp 17921 2009-10-30 04:41:31Z warmerdam $
+ * $Id: wcsdataset.cpp 20996 2010-10-28 18:38:15Z rouault $
  *
  * Project:  WCS Client Driver
  * Purpose:  Implementation of Dataset and RasterBand classes for WCS.
@@ -31,9 +31,10 @@
 #include "cpl_string.h"
 #include "cpl_minixml.h"
 #include "cpl_http.h"
+#include "cpl_base64.h"
 #include "ogr_spatialref.h"
 
-CPL_CVSID("$Id: wcsdataset.cpp 17921 2009-10-30 04:41:31Z warmerdam $");
+CPL_CVSID("$Id: wcsdataset.cpp 20996 2010-10-28 18:38:15Z rouault $");
 
 /************************************************************************/
 /* ==================================================================== */
@@ -1758,6 +1759,12 @@ GDALDataset *WCSDataset::GDALOpenResult( CPLHTTPResult *psResult )
         {
             pabyData = psResult->pasMimePart[1].pabyData;
             nDataLen = psResult->pasMimePart[1].nDataLen;
+
+            if (CSLFindString(psResult->pasMimePart[1].papszHeaders,
+                              "Content-Transfer-Encoding: base64") != -1)
+            {
+                nDataLen = CPLBase64DecodeInPlace(pabyData);
+            }
         }
     }
 
@@ -1769,7 +1776,7 @@ GDALDataset *WCSDataset::GDALOpenResult( CPLHTTPResult *psResult )
     osResultFilename.Printf( "/vsimem/wcs/%p/wcsresult.dat", 
                              this );
 
-    FILE *fp = VSIFileFromMemBuffer( osResultFilename, pabyData, nDataLen, 
+    VSILFILE *fp = VSIFileFromMemBuffer( osResultFilename, pabyData, nDataLen,
                                      FALSE );
 
     if( fp == NULL )
@@ -1793,7 +1800,7 @@ GDALDataset *WCSDataset::GDALOpenResult( CPLHTTPResult *psResult )
     if( poDS == NULL )
     {
         CPLString osTempFilename;
-        FILE *fpTemp;
+        VSILFILE *fpTemp;
         
         osTempFilename.Printf( "/tmp/%p_wcs.dat", this );
                                

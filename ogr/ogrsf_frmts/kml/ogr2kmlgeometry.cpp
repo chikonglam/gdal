@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr2kmlgeometry.cpp 19607 2010-05-02 10:35:06Z rouault $
+ * $Id: ogr2kmlgeometry.cpp 21019 2010-10-30 11:37:54Z rouault $
  *
  * Project:  KML Driver
  * Purpose:  Implementation of OGR -> KML geometries writer.
@@ -33,6 +33,9 @@
 #include "cpl_error.h"
 #include "cpl_conv.h"
 
+
+#define EPSILON 1e-8
+
 /************************************************************************/
 /*                        MakeKMLCoordinate()                           */
 /************************************************************************/
@@ -43,31 +46,53 @@ static void MakeKMLCoordinate( char *pszTarget,
 {
     if (y < -90 || y > 90)
     {
-        static int bFirstWarning = TRUE;
-        if (bFirstWarning)
+        if (y > 90 && y < 90 + EPSILON)
         {
-            CPLError(CE_Failure, CPLE_AppDefined,
-                     "Latitude %f is invalid. Valid range is [-90,90]. This warning will not be issued any more",
-                     y);
-            bFirstWarning = FALSE;
+            y = 90;
+        }
+        else if (y > -90 - EPSILON  && y < -90)
+        {
+            y = -90;
+        }
+        else
+        {
+            static int bFirstWarning = TRUE;
+            if (bFirstWarning)
+            {
+                CPLError(CE_Failure, CPLE_AppDefined,
+                        "Latitude %f is invalid. Valid range is [-90,90]. This warning will not be issued any more",
+                        y);
+                bFirstWarning = FALSE;
+            }
         }
     }
 
     if (x < -180 || x > 180)
     {
-        static int bFirstWarning = TRUE;
-        if (bFirstWarning)
+        if (x > 180 && x < 180 + EPSILON)
         {
-            CPLError(CE_Warning, CPLE_AppDefined,
-                     "Longitude %f has been modified to fit into range [-180,180]. This warning will not be issued any more",
-                     x);
-            bFirstWarning = FALSE;
+            x = 180;
         }
-
-        if (x > 180)
-            x -= ((int) ((x+180)/360)*360);
-        else if (x < -180)
-            x += ((int) (180 - x)/360)*360;
+        else if (x > -180 - EPSILON  && x < -180)
+        {
+            x = -180;
+        }
+        else
+        {
+            static int bFirstWarning = TRUE;
+            if (bFirstWarning)
+            {
+                CPLError(CE_Warning, CPLE_AppDefined,
+                        "Longitude %f has been modified to fit into range [-180,180]. This warning will not be issued any more",
+                        x);
+                bFirstWarning = FALSE;
+            }
+    
+            if (x > 180)
+                x -= ((int) ((x+180)/360)*360);
+            else if (x < -180)
+                x += ((int) (180 - x)/360)*360;
+        }
     }
 
     OGRMakeWktCoordinate( pszTarget, x, y, z, b3D ? 3 : 2 );
@@ -192,17 +217,27 @@ static int OGR2KMLGeometryAppend( OGRGeometry *poGeometry,
         char szCoordinate[256] = { 0 };
         OGRPoint* poPoint = static_cast<OGRPoint*>(poGeometry);
 
-        MakeKMLCoordinate( szCoordinate, 
-                           poPoint->getX(), poPoint->getY(), 0.0, FALSE );
-                           
-        _GrowBuffer( *pnLength + strlen(szCoordinate) + 60, 
+        if (poPoint->getCoordinateDimension() == 0)
+        {
+            _GrowBuffer( *pnLength + 10, 
                      ppszText, pnMaxLength );
+            strcat( *ppszText + *pnLength, "<Point/>");
+            *pnLength += strlen( *ppszText + *pnLength );
+        }
+        else
+        {
+            MakeKMLCoordinate( szCoordinate, 
+                            poPoint->getX(), poPoint->getY(), 0.0, FALSE );
 
-        sprintf( *ppszText + *pnLength, 
-                "<Point><coordinates>%s</coordinates></Point>",
-                 szCoordinate );
+            _GrowBuffer( *pnLength + strlen(szCoordinate) + 60, 
+                        ppszText, pnMaxLength );
 
-        *pnLength += strlen( *ppszText + *pnLength );
+            sprintf( *ppszText + *pnLength, 
+                    "<Point><coordinates>%s</coordinates></Point>",
+                    szCoordinate );
+
+            *pnLength += strlen( *ppszText + *pnLength );
+        }
     }
 /* -------------------------------------------------------------------- */
 /*      3D Point                                                        */
@@ -419,6 +454,18 @@ CPLXMLNode* OGR_G_ExportEnvelopeToKMLTree( OGRGeometryH hGeometry )
 /************************************************************************/
 /*                         OGR_G_ExportToKML()                          */
 /************************************************************************/
+
+/**
+ * \brief Convert a geometry into KML format.
+ *
+ * The returned string should be freed with CPLFree() when no longer required.
+ *
+ * This method is the same as the C++ method OGRGeometry::exportToKML().
+ *
+ * @param hGeometry handle to the geometry.
+ * @param pszAltitudeMode value to write in altitudeMode element, or NULL.
+ * @return A KML fragment or NULL in case of error.
+ */
 
 char *OGR_G_ExportToKML( OGRGeometryH hGeometry, const char *pszAltitudeMode )
 {

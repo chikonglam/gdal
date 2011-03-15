@@ -1,5 +1,5 @@
 /*****************************************************************************
-* $Id: IdrisiDataset.cpp 19789 2010-06-01 13:59:37Z ilucena $
+* $Id: IdrisiDataset.cpp 20996 2010-10-28 18:38:15Z rouault $
 *
 * Project:  Idrisi Raster Image File Driver
 * Purpose:  Read/write Idrisi Raster Image Format RST
@@ -36,7 +36,7 @@
 #include "gdal_alg.h"
 #include "gdal_rat.h"
 
-CPL_CVSID( "$Id: IdrisiDataset.cpp 19789 2010-06-01 13:59:37Z ilucena $" );
+CPL_CVSID( "$Id: IdrisiDataset.cpp 20996 2010-10-28 18:38:15Z rouault $" );
 
 CPL_C_START
 void GDALRegister_IDRISI( void);
@@ -264,7 +264,7 @@ class IdrisiDataset : public GDALPamDataset
     friend class IdrisiRasterBand;
 
 private:
-    FILE *fp;
+    VSILFILE *fp;
 
     char *pszFilename;
     char *pszDocFilename;
@@ -581,7 +581,7 @@ GDALDataset *IdrisiDataset::Open( GDALOpenInfo *poOpenInfo )
     if( poDS->nBands != 3 )
     {
         const char *pszSMPFilename = CPLResetExtension( poDS->pszFilename, extSMP );
-        FILE *fpSMP;
+        VSILFILE *fpSMP;
         if( ( fpSMP = VSIFOpenL( pszSMPFilename, "rb" ) ) != NULL )
         {
             int dfMaxValue = atoi_nz( CSLFetchNameValue( poDS->papszRDC, rdcMAX_VALUE ) );
@@ -805,7 +805,7 @@ GDALDataset *IdrisiDataset::Create( const char *pszFilename,
     //  Create an empty data file
     // ---------------------------------------------------------------- 
 
-    FILE *fp;
+    VSILFILE *fp;
 
     fp = VSIFOpenL( pszFilename, "wb+" );
 
@@ -1661,7 +1661,7 @@ CPLErr IdrisiRasterBand::SetColorTable( GDALColorTable *poColorTable )
 
     const char *pszSMPFilename;
     pszSMPFilename = CPLResetExtension( poGDS->pszFilename, extSMP );
-    FILE *fpSMP;
+    VSILFILE *fpSMP;
 
     if( ( fpSMP = VSIFOpenL( pszSMPFilename, "w" ) ) != NULL )
     {
@@ -2926,7 +2926,7 @@ char *GetUnitDefault( const char *pszUnitName, const char *pszToMeter )
 
 int  SaveAsCRLF(char **papszStrList, const char *pszFname)
 {
-    FILE    *fp;
+    VSILFILE    *fp;
     int     nLines = 0;
 
     if (papszStrList)

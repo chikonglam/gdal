@@ -1,5 +1,5 @@
 /**********************************************************************
- * $Id: gmlfeatureclass.cpp 17629 2009-09-10 14:51:45Z chaitanya $
+ * $Id: gmlfeatureclass.cpp 20422 2010-08-23 20:55:20Z rouault $
  *
  * Project:  GML Reader
  * Purpose:  Implementation of GMLFeatureClass.
@@ -29,6 +29,7 @@
 
 #include "gmlreader.h"
 #include "cpl_conv.h"
+#include "ogr_core.h"
 
 /************************************************************************/
 /*                          GMLFeatureClass()                           */
@@ -49,6 +50,10 @@ GMLFeatureClass::GMLFeatureClass( const char *pszName )
     m_nFeatureCount = -1; // unknown
 
     m_nGeometryType = 0; // wkbUnknown
+    m_nGeometryIndex = -1;
+
+    m_pszSRSName = NULL;
+    m_bSRSNameConsistant = TRUE;
 }
 
 /************************************************************************/
@@ -65,6 +70,7 @@ GMLFeatureClass::~GMLFeatureClass()
     for( int i = 0; i < m_nPropertyCount; i++ )
         delete m_papoProperty[i];
     CPLFree( m_papoProperty );
+    CPLFree( m_pszSRSName );
 }
 
 /************************************************************************/
@@ -101,7 +107,13 @@ int GMLFeatureClass::GetPropertyIndex( const char *pszName ) const
 int GMLFeatureClass::AddProperty( GMLPropertyDefn *poDefn )
 
 {
-    CPLAssert( GetProperty(poDefn->GetName()) == NULL );
+    if( GetProperty(poDefn->GetName()) != NULL )
+    {
+        CPLError(CE_Warning, CPLE_AppDefined,
+                 "Field with same name (%s) already exists. Skipping newer ones",
+                 poDefn->GetName());
+        return -1;
+    }
 
     m_nPropertyCount++;
     m_papoProperty = (GMLPropertyDefn **)
@@ -227,6 +239,45 @@ int GMLFeatureClass::GetExtents( double *pdfXMin, double *pdfXMax,
 }
 
 /************************************************************************/
+/*                            SetSRSName()                              */
+/************************************************************************/
+
+void GMLFeatureClass::SetSRSName( const char* pszSRSName )
+
+{
+    m_bSRSNameConsistant = TRUE;
+    CPLFree(m_pszSRSName);
+    m_pszSRSName = (pszSRSName) ? CPLStrdup(pszSRSName) : NULL;
+}
+
+/************************************************************************/
+/*                           MergeSRSName()                             */
+/************************************************************************/
+
+void GMLFeatureClass::MergeSRSName( const char* pszSRSName )
+
+{
+    if(!m_bSRSNameConsistant)
+        return;
+
+    if( m_pszSRSName == NULL )
+    {
+        if (pszSRSName)
+            m_pszSRSName = CPLStrdup(pszSRSName);
+    }
+    else
+    {
+        m_bSRSNameConsistant = pszSRSName != NULL &&
+                                  strcmp(m_pszSRSName, pszSRSName) == 0;
+        if (!m_bSRSNameConsistant)
+        {
+            CPLFree(m_pszSRSName);
+            m_pszSRSName = NULL;
+        }
+    }
+}
+
+/************************************************************************/
 /*                         InitializeFromXML()                          */
 /************************************************************************/
 
@@ -267,10 +318,20 @@ int GMLFeatureClass::InitializeFromXML( CPLXMLNode *psRoot )
     if( strlen( pszGPath ) > 0 )
         SetGeometryElement( pszGPath );
 
-    if( CPLGetXMLValue( psRoot, "GeometryType", NULL ) != NULL )
+    const char* pszGeometryType = CPLGetXMLValue( psRoot, "GeometryType", NULL );
+    if( pszGeometryType != NULL )
     {
-        SetGeometryType( atoi(CPLGetXMLValue( psRoot, "GeometryType", NULL )) );
+        int nGeomType = atoi(pszGeometryType) & (~wkb25DBit);
+        if ((nGeomType >= 0 && nGeomType <= 7) || nGeomType == 100)
+            SetGeometryType( atoi(pszGeometryType) );
+        else
+        {
+            CPLError(CE_Warning, CPLE_AppDefined, "Unrecognised geometry type : %s",
+                     pszGeometryType);
+        }
     }
+
+    SetSRSName( CPLGetXMLValue( psRoot, "SRSName", NULL ) );
 
 /* -------------------------------------------------------------------- */
 /*      Collect dataset specific info.                                  */
@@ -294,10 +355,10 @@ int GMLFeatureClass::InitializeFromXML( CPLXMLNode *psRoot )
             && CPLGetXMLValue( psDSI, "ExtentYMin", NULL ) != NULL
             && CPLGetXMLValue( psDSI, "ExtentYMax", NULL ) != NULL )
         {
-            SetExtents( atof(CPLGetXMLValue( psDSI, "ExtentXMin", "0.0" )),
-                        atof(CPLGetXMLValue( psDSI, "ExtentXMax", "0.0" )),
-                        atof(CPLGetXMLValue( psDSI, "ExtentYMin", "0.0" )),
-                        atof(CPLGetXMLValue( psDSI, "ExtentYMax", "0.0" )) );
+            SetExtents( CPLAtof(CPLGetXMLValue( psDSI, "ExtentXMin", "0.0" )),
+                        CPLAtof(CPLGetXMLValue( psDSI, "ExtentXMax", "0.0" )),
+                        CPLAtof(CPLGetXMLValue( psDSI, "ExtentYMin", "0.0" )),
+                        CPLAtof(CPLGetXMLValue( psDSI, "ExtentYMax", "0.0" )) );
         }
     }
     
@@ -355,6 +416,7 @@ int GMLFeatureClass::InitializeFromXML( CPLXMLNode *psRoot )
                 CPLError( CE_Failure, CPLE_AppDefined, 
                           "Unrecognised property type %s.", 
                           pszType );
+                delete poPDefn;
                 return FALSE;
             }
 
@@ -392,6 +454,12 @@ CPLXMLNode *GMLFeatureClass::SerializeToXML()
 
         sprintf( szValue, "%d", GetGeometryType() );
         CPLCreateXMLElementAndValue( psRoot, "GeometryType", szValue );
+    }
+
+    const char* pszSRSName = GetSRSName();
+    if( pszSRSName )
+    {
+        CPLCreateXMLElementAndValue( psRoot, "SRSName", pszSRSName );
     }
 
 /* -------------------------------------------------------------------- */

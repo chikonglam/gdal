@@ -145,6 +145,17 @@ public class FieldDefn : IDisposable {
     return ret;
   }
 
+  public int IsIgnored() {
+    int ret = OgrPINVOKE.FieldDefn_IsIgnored(swigCPtr);
+    if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
+    return ret;
+  }
+
+  public void SetIgnored(int bIgnored) {
+    OgrPINVOKE.FieldDefn_SetIgnored(swigCPtr, bIgnored);
+    if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
+  }
+
 }
 
 }

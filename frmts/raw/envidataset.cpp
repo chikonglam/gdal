@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: envidataset.cpp 20645 2010-09-18 15:49:39Z rouault $
+ * $Id: envidataset.cpp 21180 2010-11-29 15:14:06Z rouault $
  *
  * Project:  ENVI .hdr Driver
  * Purpose:  Implementation of ENVI .hdr labelled raw raster support.
@@ -32,7 +32,7 @@
 #include "ogr_spatialref.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: envidataset.cpp 20645 2010-09-18 15:49:39Z rouault $");
+CPL_CVSID("$Id: envidataset.cpp 21180 2010-11-29 15:14:06Z rouault $");
 
 CPL_C_START
 void GDALRegister_ENVI(void);
@@ -224,8 +224,8 @@ static int ITTVISToUSGSZone( int nITTVISZone )
 
 class ENVIDataset : public RawDataset
 {
-    FILE	*fpImage;	// image data file.
-    FILE	*fp;		// header file
+    VSILFILE	*fpImage;	// image data file.
+    VSILFILE	*fp;		// header file
     char	*pszHDRFilename;
 
     int		bFoundMapinfo;
@@ -238,7 +238,7 @@ class ENVIDataset : public RawDataset
 
     char        **papszHeader;
 
-    int         ReadHeader( FILE * );
+    int         ReadHeader( VSILFILE * );
     int         ProcessMapinfo( const char * );
     void        ProcessRPCinfo( const char * ,int ,int);
     void        ProcessStatsFile();
@@ -308,10 +308,8 @@ ENVIDataset::~ENVIDataset()
         VSIFCloseL( fpImage );
     if( fp )
         VSIFCloseL( fp );
-    if ( pszProjection )
-	CPLFree( pszProjection );
-    if ( papszHeader )
-	CSLDestroy( papszHeader );
+    CPLFree( pszProjection );
+    CSLDestroy( papszHeader );
     CPLFree(pszHDRFilename);
 }
 
@@ -856,8 +854,7 @@ const char *ENVIDataset::GetProjectionRef()
 CPLErr ENVIDataset::SetProjection( const char *pszNewProjection )
 
 {
-    if ( pszProjection )
-	CPLFree( pszProjection );
+    CPLFree( pszProjection );
     pszProjection = CPLStrdup( pszNewProjection );
 
     bHeaderDirty = TRUE;
@@ -1386,7 +1383,7 @@ void ENVIDataset::ProcessRPCinfo( const char *pszRPCinfo,
 void ENVIDataset::ProcessStatsFile()
 {
     CPLString   osStaFilename;
-    FILE	*fpStaFile;
+    VSILFILE	*fpStaFile;
 
     osStaFilename = CPLResetExtension( pszHDRFilename, "sta" );
     fpStaFile = VSIFOpenL( osStaFilename, "rb" );
@@ -1507,7 +1504,7 @@ double ENVIDataset::byteSwapDouble(double swapMe)
 /*                             ReadHeader()                             */
 /************************************************************************/
 
-int ENVIDataset::ReadHeader( FILE * fpHdr )
+int ENVIDataset::ReadHeader( VSILFILE * fpHdr )
 
 {
 
@@ -1559,11 +1556,13 @@ int ENVIDataset::ReadHeader( FILE * fpHdr )
             int		i;
 
             pszValue = pszWorkingLine + iEqual + 1;
-            while( *pszValue == ' ' )
+            while( *pszValue == ' ' || *pszValue == '\t' )
                 pszValue++;
             
             pszWorkingLine[iEqual--] = '\0';
-            while( iEqual > 0 && pszWorkingLine[iEqual] == ' ' )
+            while( iEqual > 0 
+                   && (pszWorkingLine[iEqual] == ' '
+                       || pszWorkingLine[iEqual] == '\t') )
                 pszWorkingLine[iEqual--] = '\0';
 
             // Convert spaces in the name to underscores.
@@ -1605,7 +1604,7 @@ GDALDataset *ENVIDataset::Open( GDALOpenInfo * poOpenInfo )
 /* -------------------------------------------------------------------- */
     const char	*pszMode;
     CPLString   osHdrFilename;
-    FILE	*fpHeader = NULL;
+    VSILFILE	*fpHeader = NULL;
 
     if( poOpenInfo->eAccess == GA_Update )
 	pszMode = "r+";
@@ -1617,27 +1616,26 @@ GDALDataset *ENVIDataset::Open( GDALOpenInfo * poOpenInfo )
         osHdrFilename = CPLResetExtension( poOpenInfo->pszFilename, "hdr" );
         fpHeader = VSIFOpenL( osHdrFilename, pszMode );
     
-    #ifndef WIN32
-        if( fpHeader == NULL )
+        if( fpHeader == NULL && VSIIsCaseSensitiveFS(osHdrFilename) )
         {
             osHdrFilename = CPLResetExtension( poOpenInfo->pszFilename, "HDR" );
             fpHeader = VSIFOpenL( osHdrFilename, pszMode );
         }
-    #endif
-        if( fpHeader == NULL )
+
+        if( fpHeader == NULL && VSIIsCaseSensitiveFS(osHdrFilename) )
         {
             osHdrFilename = CPLFormFilename( NULL, poOpenInfo->pszFilename, 
                                             "hdr" );
             fpHeader = VSIFOpenL( osHdrFilename, pszMode );
         }
-    #ifndef WIN32
-        if( fpHeader == NULL )
+
+        if( fpHeader == NULL && VSIIsCaseSensitiveFS(osHdrFilename) )
         {
             osHdrFilename = CPLFormFilename( NULL, poOpenInfo->pszFilename, 
                                             "HDR" );
             fpHeader = VSIFOpenL( osHdrFilename, pszMode );
         }
-    #endif
+
     }
     else
     {
@@ -1863,20 +1861,15 @@ GDALDataset *ENVIDataset::Open( GDALOpenInfo * poOpenInfo )
     }
 
 /* -------------------------------------------------------------------- */
-/*      Warn about compressed datasets.                                 */
+/*      Detect (gzipped) compressed datasets.                           */
 /* -------------------------------------------------------------------- */
+    int bIsCompressed = FALSE;
     if( CSLFetchNameValue(poDS->papszHeader,"file_compression" ) != NULL )
     {
         if( atoi(CSLFetchNameValue(poDS->papszHeader,"file_compression" )) 
             != 0 )
         {
-            delete poDS;
-            CPLError( CE_Failure, CPLE_OpenFailed, 
-                      "File %s is marked as compressed in the ENVI .hdr\n"
-                      "GDAL does not support auto-decompression of ENVI data\n"
-                      "files.",
-                      poOpenInfo->pszFilename );
-            return NULL;
+            bIsCompressed = TRUE;
         }
     }
 
@@ -1890,10 +1883,22 @@ GDALDataset *ENVIDataset::Open( GDALOpenInfo * poOpenInfo )
 /* -------------------------------------------------------------------- */
 /*      Reopen file in update mode if necessary.                        */
 /* -------------------------------------------------------------------- */
+    CPLString osImageFilename(poOpenInfo->pszFilename);
+    if (bIsCompressed)
+        osImageFilename = "/vsigzip/" + osImageFilename;
     if( poOpenInfo->eAccess == GA_Update )
-        poDS->fpImage = VSIFOpenL( poOpenInfo->pszFilename, "rb+" );
+    {
+        if (bIsCompressed)
+        {
+            delete poDS;
+            CPLError( CE_Failure, CPLE_OpenFailed, 
+                  "Cannot open compressed file in update mode.\n");
+            return NULL;
+        }
+        poDS->fpImage = VSIFOpenL( osImageFilename, "rb+" );
+    }
     else
-        poDS->fpImage = VSIFOpenL( poOpenInfo->pszFilename, "rb" );
+        poDS->fpImage = VSIFOpenL( osImageFilename, "rb" );
 
     if( poDS->fpImage == NULL )
     {
@@ -2193,7 +2198,7 @@ GDALDataset *ENVIDataset::Create( const char * pszFilename,
 /* -------------------------------------------------------------------- */
 /*      Try to create the file.                                         */
 /* -------------------------------------------------------------------- */
-    FILE	*fp;
+    VSILFILE	*fp;
 
     fp = VSIFOpenL( pszFilename, "wb" );
 

@@ -336,6 +336,9 @@ SWIGINTERN void SWIG_CSharpException(int code, const char *msg) {
 #include <stdexcept>
 
 
+typedef char retStringAndCPLFree;
+
+
 #include <iostream>
 using namespace std;
 
@@ -370,7 +373,6 @@ typedef void OGRFieldDefnShadow;
 #endif
 
 
-
 void VeryQuiteErrorHandler(CPLErr eclass, int code, const char *msg ) {
   /* If the error class is CE_Fatal, we want to have a message issued
      because the CPL support code does an abort() before any exception
@@ -390,9 +392,6 @@ void DontUseExceptions() {
 }
 
 
-    typedef char retStringAndCPLFree;
-
-
     void StringListDestroy(void *buffer_ptr) {
        CSLDestroy((char**)buffer_ptr);
     }
@@ -401,12 +400,12 @@ SWIGINTERN OGRDataSourceShadow *OGRDriverShadow_CreateDataSource(OGRDriverShadow
     OGRDataSourceShadow *ds = (OGRDataSourceShadow*) OGR_Dr_CreateDataSource( self, name, options);
     return ds;
   }
-SWIGINTERN OGRDataSourceShadow *OGRDriverShadow_CopyDataSource(OGRDriverShadow *self,OGRDataSourceShadow *copy_ds,char const *name,char **options=0){
-    OGRDataSourceShadow *ds = (OGRDataSourceShadow*) OGR_Dr_CopyDataSource(self, copy_ds, name, options);
+SWIGINTERN OGRDataSourceShadow *OGRDriverShadow_CopyDataSource(OGRDriverShadow *self,OGRDataSourceShadow *copy_ds,char const *utf8_path,char **options=0){
+    OGRDataSourceShadow *ds = (OGRDataSourceShadow*) OGR_Dr_CopyDataSource(self, copy_ds, utf8_path, options);
     return ds;
   }
-SWIGINTERN OGRDataSourceShadow *OGRDriverShadow_Open(OGRDriverShadow *self,char const *name,int update=0){
-    OGRDataSourceShadow* ds = (OGRDataSourceShadow*) OGR_Dr_Open(self, name, update);
+SWIGINTERN OGRDataSourceShadow *OGRDriverShadow_Open(OGRDriverShadow *self,char const *utf8_path,int update=0){
+    OGRDataSourceShadow* ds = (OGRDataSourceShadow*) OGR_Dr_Open(self, utf8_path, update);
     return ds;
   }
 SWIGINTERN int OGRDriverShadow_DeleteDataSource(OGRDriverShadow *self,char const *name){
@@ -418,6 +417,12 @@ SWIGINTERN bool OGRDriverShadow_TestCapability(OGRDriverShadow *self,char const 
   }
 SWIGINTERN char const *OGRDriverShadow_GetName(OGRDriverShadow *self){
     return OGR_Dr_GetName( self );
+  }
+SWIGINTERN void OGRDriverShadow_Register(OGRDriverShadow *self){
+    OGRRegisterDriver( self );
+  }
+SWIGINTERN void OGRDriverShadow_Deregister(OGRDriverShadow *self){
+    OGRDeregisterDriver( self );
   }
 SWIGINTERN void delete_OGRDataSourceShadow(OGRDataSourceShadow *self){
     OGRReleaseDataSource(self);
@@ -519,7 +524,10 @@ SWIGINTERN void OGRLayerShadow_ResetReading(OGRLayerShadow *self){
     OGR_L_ResetReading(self);
   }
 SWIGINTERN char const *OGRLayerShadow_GetName(OGRLayerShadow *self){
-    return OGR_FD_GetName(OGR_L_GetLayerDefn(self));
+    return OGR_L_GetName(self);
+  }
+SWIGINTERN OGRwkbGeometryType OGRLayerShadow_GetGeomType(OGRLayerShadow *self){
+    return (OGRwkbGeometryType) OGR_L_GetGeomType(self);
   }
 SWIGINTERN char const *OGRLayerShadow_GetGeometryColumn(OGRLayerShadow *self){
     return OGR_L_GetGeometryColumn(self);
@@ -580,6 +588,9 @@ SWIGINTERN OSRSpatialReferenceShadow *OGRLayerShadow_GetSpatialRef(OGRLayerShado
   }
 SWIGINTERN GIntBig OGRLayerShadow_GetFeaturesRead(OGRLayerShadow *self){
     return OGR_L_GetFeaturesRead(self);
+  }
+SWIGINTERN OGRErr OGRLayerShadow_SetIgnoredFields(OGRLayerShadow *self,char const **options){
+    return OGR_L_SetIgnoredFields( self, options );
   }
 SWIGINTERN void delete_OGRFeatureShadow(OGRFeatureShadow *self){
     OGR_F_Destroy(self);
@@ -755,6 +766,15 @@ SWIGINTERN void OGRFeatureShadow_SetFieldStringList(OGRFeatureShadow *self,int i
 SWIGINTERN OGRErr OGRFeatureShadow_SetFrom(OGRFeatureShadow *self,OGRFeatureShadow *other,int forgiving=1){
     return OGR_F_SetFrom(self, other, forgiving);
   }
+SWIGINTERN OGRErr OGRFeatureShadow_SetFromWithMap(OGRFeatureShadow *self,OGRFeatureShadow *other,int forgiving,int nList,int *pList){
+    if (nList != OGR_F_GetFieldCount(other))
+    {
+        CPLError(CE_Failure, CPLE_AppDefined,
+                 "The size of map doesn't match with the field count of the source feature");
+        return 6;
+    }
+    return OGR_F_SetFromWithMap(self, other, forgiving, pList);
+  }
 SWIGINTERN char const *OGRFeatureShadow_GetStyleString(OGRFeatureShadow *self){
     return (const char*) OGR_F_GetStyleString(self);
   }
@@ -806,6 +826,18 @@ SWIGINTERN void OGRFeatureDefnShadow_SetGeomType(OGRFeatureDefnShadow *self,OGRw
   }
 SWIGINTERN int OGRFeatureDefnShadow_GetReferenceCount(OGRFeatureDefnShadow *self){
     return OGR_FD_GetReferenceCount(self);
+  }
+SWIGINTERN int OGRFeatureDefnShadow_IsGeometryIgnored(OGRFeatureDefnShadow *self){
+    return OGR_FD_IsGeometryIgnored(self);
+  }
+SWIGINTERN void OGRFeatureDefnShadow_SetGeometryIgnored(OGRFeatureDefnShadow *self,int bIgnored){
+    return OGR_FD_SetGeometryIgnored(self,bIgnored);
+  }
+SWIGINTERN int OGRFeatureDefnShadow_IsStyleIgnored(OGRFeatureDefnShadow *self){
+    return OGR_FD_IsStyleIgnored(self);
+  }
+SWIGINTERN void OGRFeatureDefnShadow_SetStyleIgnored(OGRFeatureDefnShadow *self,int bIgnored){
+    return OGR_FD_SetStyleIgnored(self,bIgnored);
   }
 
     static int ValidateOGRFieldType(OGRFieldType field_type)
@@ -877,6 +909,12 @@ SWIGINTERN char const *OGRFieldDefnShadow_GetTypeName(OGRFieldDefnShadow *self){
   }
 SWIGINTERN char const *OGRFieldDefnShadow_GetFieldTypeName(OGRFieldDefnShadow *self,OGRFieldType type){
     return OGR_GetFieldTypeName(type);
+  }
+SWIGINTERN int OGRFieldDefnShadow_IsIgnored(OGRFieldDefnShadow *self){
+    return OGR_Fld_IsIgnored( self );
+  }
+SWIGINTERN void OGRFieldDefnShadow_SetIgnored(OGRFieldDefnShadow *self,int bIgnored){
+    return OGR_Fld_SetIgnored( self, bIgnored );
   }
 
   OGRGeometryShadow* CreateGeometryFromWkb( int len, char *bin_string, 
@@ -957,6 +995,34 @@ SWIGINTERN char const *OGRFieldDefnShadow_GetFieldTypeName(OGRFieldDefnShadow *s
              dfStartAngle, dfEndAngle, dfMaxAngleStepSizeDegrees );
   }
 
+
+OGRGeometryShadow* ForceToPolygon( OGRGeometryShadow *geom_in ) {
+ if (geom_in == NULL)
+     return NULL;
+ return OGR_G_ForceToPolygon( OGR_G_Clone(geom_in) );
+}
+
+
+OGRGeometryShadow* ForceToMultiPolygon( OGRGeometryShadow *geom_in ) {
+ if (geom_in == NULL)
+     return NULL;
+ return OGR_G_ForceToMultiPolygon( OGR_G_Clone(geom_in) );
+}
+
+
+OGRGeometryShadow* ForceToMultiPoint( OGRGeometryShadow *geom_in ) {
+ if (geom_in == NULL)
+     return NULL;
+ return OGR_G_ForceToMultiPoint( OGR_G_Clone(geom_in) );
+}
+
+
+OGRGeometryShadow* ForceToMultiLineString( OGRGeometryShadow *geom_in ) {
+ if (geom_in == NULL)
+     return NULL;
+ return OGR_G_ForceToMultiLineString( OGR_G_Clone(geom_in) );
+}
+
 SWIGINTERN void delete_OGRGeometryShadow(OGRGeometryShadow *self){
     OGR_G_DestroyGeometry( self );
   }
@@ -982,8 +1048,11 @@ SWIGINTERN OGRGeometryShadow *new_OGRGeometryShadow(OGRwkbGeometryType type=wkbU
 SWIGINTERN OGRErr OGRGeometryShadow_ExportToWkt(OGRGeometryShadow *self,char **argout){
     return OGR_G_ExportToWkt(self, argout);
   }
-SWIGINTERN retStringAndCPLFree *OGRGeometryShadow_ExportToGML(OGRGeometryShadow *self){
-    return (retStringAndCPLFree*) OGR_G_ExportToGML(self);
+SWIGINTERN retStringAndCPLFree *OGRGeometryShadow_ExportToGML__SWIG_0(OGRGeometryShadow *self){
+    return (retStringAndCPLFree*) OGR_G_ExportToGMLEx(self, NULL);
+  }
+SWIGINTERN retStringAndCPLFree *OGRGeometryShadow_ExportToGML__SWIG_1(OGRGeometryShadow *self,char **options){
+    return (retStringAndCPLFree*) OGR_G_ExportToGMLEx(self, options);
   }
 SWIGINTERN retStringAndCPLFree *OGRGeometryShadow_ExportToKML(OGRGeometryShadow *self,char const *altitude_mode=NULL){
     return (retStringAndCPLFree *) OGR_G_ExportToKML(self, altitude_mode);
@@ -1012,8 +1081,14 @@ SWIGINTERN OGRwkbGeometryType OGRGeometryShadow_GetGeometryType(OGRGeometryShado
 SWIGINTERN char const *OGRGeometryShadow_GetGeometryName(OGRGeometryShadow *self){
     return (const char *) OGR_G_GetGeometryName(self);
   }
+SWIGINTERN double OGRGeometryShadow_Length(OGRGeometryShadow *self){
+    return OGR_G_Length(self);
+  }
+SWIGINTERN double OGRGeometryShadow_Area(OGRGeometryShadow *self){
+    return OGR_G_Area(self);
+  }
 SWIGINTERN double OGRGeometryShadow_GetArea(OGRGeometryShadow *self){
-    return OGR_G_GetArea(self);
+    return OGR_G_Area(self);
   }
 SWIGINTERN int OGRGeometryShadow_GetPointCount(OGRGeometryShadow *self){
     return OGR_G_GetPointCount(self);
@@ -1047,8 +1122,14 @@ SWIGINTERN void OGRGeometryShadow_SetPoint_2D(OGRGeometryShadow *self,int point,
 SWIGINTERN OGRGeometryShadow *OGRGeometryShadow_GetGeometryRef(OGRGeometryShadow *self,int geom){
     return (OGRGeometryShadow*) OGR_G_GetGeometryRef(self, geom);
   }
+SWIGINTERN OGRGeometryShadow *OGRGeometryShadow_Simplify(OGRGeometryShadow *self,double tolerance){
+    return (OGRGeometryShadow*) OGR_G_Simplify(self, tolerance);
+  }
+SWIGINTERN OGRGeometryShadow *OGRGeometryShadow_Boundary(OGRGeometryShadow *self){
+    return (OGRGeometryShadow*) OGR_G_Boundary(self);
+  }
 SWIGINTERN OGRGeometryShadow *OGRGeometryShadow_GetBoundary(OGRGeometryShadow *self){
-    return (OGRGeometryShadow*) OGR_G_GetBoundary(self);
+    return (OGRGeometryShadow*) OGR_G_Boundary(self);
   }
 SWIGINTERN OGRGeometryShadow *OGRGeometryShadow_ConvexHull(OGRGeometryShadow *self){
     return (OGRGeometryShadow*) OGR_G_ConvexHull(self);
@@ -1062,11 +1143,17 @@ SWIGINTERN OGRGeometryShadow *OGRGeometryShadow_Intersection(OGRGeometryShadow *
 SWIGINTERN OGRGeometryShadow *OGRGeometryShadow_Union(OGRGeometryShadow *self,OGRGeometryShadow *other){
     return (OGRGeometryShadow*) OGR_G_Union( self, other );
   }
+SWIGINTERN OGRGeometryShadow *OGRGeometryShadow_UnionCascaded(OGRGeometryShadow *self){
+    return (OGRGeometryShadow*) OGR_G_UnionCascaded( self );
+  }
 SWIGINTERN OGRGeometryShadow *OGRGeometryShadow_Difference(OGRGeometryShadow *self,OGRGeometryShadow *other){
     return (OGRGeometryShadow*) OGR_G_Difference( self, other );
   }
+SWIGINTERN OGRGeometryShadow *OGRGeometryShadow_SymDifference(OGRGeometryShadow *self,OGRGeometryShadow *other){
+    return (OGRGeometryShadow*) OGR_G_SymDifference( self, other );
+  }
 SWIGINTERN OGRGeometryShadow *OGRGeometryShadow_SymmetricDifference(OGRGeometryShadow *self,OGRGeometryShadow *other){
-    return (OGRGeometryShadow*) OGR_G_SymmetricDifference( self, other );
+    return (OGRGeometryShadow*) OGR_G_SymDifference( self, other );
   }
 SWIGINTERN double OGRGeometryShadow_Distance(OGRGeometryShadow *self,OGRGeometryShadow *other){
     return OGR_G_Distance(self, other);
@@ -1086,11 +1173,17 @@ SWIGINTERN bool OGRGeometryShadow_IsSimple(OGRGeometryShadow *self){
 SWIGINTERN bool OGRGeometryShadow_IsRing(OGRGeometryShadow *self){
     return (OGR_G_IsRing(self) > 0);
   }
+SWIGINTERN bool OGRGeometryShadow_Intersects(OGRGeometryShadow *self,OGRGeometryShadow *other){
+    return (OGR_G_Intersects(self, other) > 0);
+  }
 SWIGINTERN bool OGRGeometryShadow_Intersect(OGRGeometryShadow *self,OGRGeometryShadow *other){
-    return (OGR_G_Intersect(self, other) > 0);
+    return (OGR_G_Intersects(self, other) > 0);
+  }
+SWIGINTERN bool OGRGeometryShadow_Equals(OGRGeometryShadow *self,OGRGeometryShadow *other){
+    return (OGR_G_Equals(self, other) > 0);
   }
 SWIGINTERN bool OGRGeometryShadow_Equal(OGRGeometryShadow *self,OGRGeometryShadow *other){
-    return (OGR_G_Equal(self, other) > 0);
+    return (OGR_G_Equals(self, other) > 0);
   }
 SWIGINTERN bool OGRGeometryShadow_Disjoint(OGRGeometryShadow *self,OGRGeometryShadow *other){
     return (OGR_G_Disjoint(self, other) > 0);
@@ -1199,9 +1292,9 @@ char const *OGRDataSourceShadow_name_get( OGRDataSourceShadow *h ) {
   }
 
 
-  OGRDataSourceShadow* OpenShared( const char *filename, int update =0 ) {
+  OGRDataSourceShadow* OpenShared( const char *utf8_path, int update =0 ) {
     CPLErrorReset();
-    OGRDataSourceShadow* ds = (OGRDataSourceShadow*)OGROpenShared(filename,update,NULL);
+    OGRDataSourceShadow* ds = (OGRDataSourceShadow*)OGROpenShared(utf8_path,update,NULL);
     if( CPLGetLastErrorType() == CE_Failure && ds != NULL )
     {
         OGRReleaseDataSource(ds);
@@ -1785,13 +1878,6 @@ SWIGEXPORT void * SWIGSTDCALL CSharp_Driver_CopyDataSource(void * jarg1, void * 
   arg3 = (char *)jarg3; 
   arg4 = (char **)jarg4; 
   {
-    if (!arg3) {
-      {
-        SWIG_CSharpException(SWIG_ValueError, "Received a NULL pointer."); return 0; 
-      };
-    }
-  }
-  {
     CPLErrorReset();
     result = (OGRDataSourceShadow *)OGRDriverShadow_CopyDataSource(arg1,arg2,(char const *)arg3,arg4);
     CPLErr eclass = CPLGetLastErrorType();
@@ -1828,13 +1914,6 @@ SWIGEXPORT void * SWIGSTDCALL CSharp_Driver_Open(void * jarg1, char * jarg2, int
   arg1 = (OGRDriverShadow *)jarg1; 
   arg2 = (char *)jarg2; 
   arg3 = (int)jarg3; 
-  {
-    if (!arg2) {
-      {
-        SWIG_CSharpException(SWIG_ValueError, "Received a NULL pointer."); return 0; 
-      };
-    }
-  }
   {
     CPLErrorReset();
     result = (OGRDataSourceShadow *)OGRDriverShadow_Open(arg1,(char const *)arg2,arg3);
@@ -1976,6 +2055,64 @@ SWIGEXPORT char * SWIGSTDCALL CSharp_Driver_GetName(void * jarg1) {
   }
   jresult = SWIG_csharp_string_callback((const char *)result); 
   return jresult;
+}
+
+
+SWIGEXPORT void SWIGSTDCALL CSharp_Driver_Register(void * jarg1) {
+  OGRDriverShadow *arg1 = (OGRDriverShadow *) 0 ;
+  
+  arg1 = (OGRDriverShadow *)jarg1; 
+  {
+    CPLErrorReset();
+    OGRDriverShadow_Register(arg1);
+    CPLErr eclass = CPLGetLastErrorType();
+    if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+      SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
+      
+      
+      
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+  }
+}
+
+
+SWIGEXPORT void SWIGSTDCALL CSharp_Driver_Deregister(void * jarg1) {
+  OGRDriverShadow *arg1 = (OGRDriverShadow *) 0 ;
+  
+  arg1 = (OGRDriverShadow *)jarg1; 
+  {
+    CPLErrorReset();
+    OGRDriverShadow_Deregister(arg1);
+    CPLErr eclass = CPLGetLastErrorType();
+    if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+      SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
+      
+      
+      
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+  }
 }
 
 
@@ -2309,6 +2446,13 @@ SWIGEXPORT void * SWIGSTDCALL CSharp_DataSource_CopyLayer(void * jarg1, void * j
   arg3 = (char *)jarg3; 
   arg4 = (char **)jarg4; 
   {
+    if (!arg2) {
+      {
+        SWIG_CSharpException(SWIG_ValueError, "Received a NULL pointer."); return 0; 
+      };
+    }
+  }
+  {
     CPLErrorReset();
     result = (OGRLayerShadow *)OGRDataSourceShadow_CopyLayer(arg1,arg2,(char const *)arg3,arg4);
     CPLErr eclass = CPLGetLastErrorType();
@@ -2459,6 +2603,13 @@ SWIGEXPORT void * SWIGSTDCALL CSharp_DataSource_ExecuteSQL(void * jarg1, char * 
   arg2 = (char *)jarg2; 
   arg3 = (OGRGeometryShadow *)jarg3; 
   arg4 = (char *)jarg4; 
+  {
+    if (!arg2) {
+      {
+        SWIG_CSharpException(SWIG_ValueError, "Received a NULL pointer."); return 0; 
+      };
+    }
+  }
   {
     CPLErrorReset();
     result = (OGRLayerShadow *)OGRDataSourceShadow_ExecuteSQL(arg1,(char const *)arg2,arg3,(char const *)arg4);
@@ -2751,6 +2902,39 @@ SWIGEXPORT char * SWIGSTDCALL CSharp_Layer_GetName(void * jarg1) {
     
   }
   jresult = SWIG_csharp_string_callback((const char *)result); 
+  return jresult;
+}
+
+
+SWIGEXPORT int SWIGSTDCALL CSharp_Layer_GetGeomType(void * jarg1) {
+  int jresult ;
+  OGRLayerShadow *arg1 = (OGRLayerShadow *) 0 ;
+  OGRwkbGeometryType result;
+  
+  arg1 = (OGRLayerShadow *)jarg1; 
+  {
+    CPLErrorReset();
+    result = (OGRwkbGeometryType)OGRLayerShadow_GetGeomType(arg1);
+    CPLErr eclass = CPLGetLastErrorType();
+    if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+      SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
+      
+      
+      
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+  }
+  jresult = result; 
   return jresult;
 }
 
@@ -3498,6 +3682,48 @@ SWIGEXPORT GIntBig SWIGSTDCALL CSharp_Layer_GetFeaturesRead(void * jarg1) {
     
   }
   jresult = result; 
+  return jresult;
+}
+
+
+SWIGEXPORT int SWIGSTDCALL CSharp_Layer_SetIgnoredFields(void * jarg1, void * jarg2) {
+  int jresult ;
+  OGRLayerShadow *arg1 = (OGRLayerShadow *) 0 ;
+  char **arg2 = (char **) 0 ;
+  OGRErr result;
+  
+  arg1 = (OGRLayerShadow *)jarg1; 
+  arg2 = (char **)jarg2; 
+  {
+    CPLErrorReset();
+    result = (OGRErr)OGRLayerShadow_SetIgnoredFields(arg1,(char const **)arg2);
+    CPLErr eclass = CPLGetLastErrorType();
+    if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+      SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
+      
+      
+      
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+  }
+  {
+    /* %typemap(out,fragment="OGRErrMessages",canthrow=1) OGRErr */
+    jresult = result;
+  }
+  {
+    /* %typemap(ret) OGRErr */
+    
+  }
   return jresult;
 }
 
@@ -5073,6 +5299,64 @@ SWIGEXPORT int SWIGSTDCALL CSharp_Feature_SetFrom(void * jarg1, void * jarg2, in
 }
 
 
+SWIGEXPORT int SWIGSTDCALL CSharp_Feature_SetFromWithMap(void * jarg1, void * jarg2, int jarg3, int jarg4, void * jarg5) {
+  int jresult ;
+  OGRFeatureShadow *arg1 = (OGRFeatureShadow *) 0 ;
+  OGRFeatureShadow *arg2 = (OGRFeatureShadow *) 0 ;
+  int arg3 ;
+  int arg4 ;
+  int *arg5 = (int *) 0 ;
+  OGRErr result;
+  
+  arg1 = (OGRFeatureShadow *)jarg1; 
+  arg2 = (OGRFeatureShadow *)jarg2; 
+  arg3 = (int)jarg3; 
+  arg4 = (int)jarg4; 
+  {
+    /* %typemap(in) (int inout[ANY]) */
+    arg5 = (int *)jarg5;
+  }
+  {
+    if (!arg2) {
+      {
+        SWIG_CSharpException(SWIG_ValueError, "Received a NULL pointer."); return 0; 
+      };
+    }
+  }
+  {
+    CPLErrorReset();
+    result = (OGRErr)OGRFeatureShadow_SetFromWithMap(arg1,arg2,arg3,arg4,arg5);
+    CPLErr eclass = CPLGetLastErrorType();
+    if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+      SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
+      
+      
+      
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+  }
+  {
+    /* %typemap(out,fragment="OGRErrMessages",canthrow=1) OGRErr */
+    jresult = result;
+  }
+  {
+    /* %typemap(ret) OGRErr */
+    
+  }
+  return jresult;
+}
+
+
 SWIGEXPORT char * SWIGSTDCALL CSharp_Feature_GetStyleString(void * jarg1) {
   char * jresult ;
   OGRFeatureShadow *arg1 = (OGRFeatureShadow *) 0 ;
@@ -5551,6 +5835,134 @@ SWIGEXPORT int SWIGSTDCALL CSharp_FeatureDefn_GetReferenceCount(void * jarg1) {
   }
   jresult = result; 
   return jresult;
+}
+
+
+SWIGEXPORT int SWIGSTDCALL CSharp_FeatureDefn_IsGeometryIgnored(void * jarg1) {
+  int jresult ;
+  OGRFeatureDefnShadow *arg1 = (OGRFeatureDefnShadow *) 0 ;
+  int result;
+  
+  arg1 = (OGRFeatureDefnShadow *)jarg1; 
+  {
+    CPLErrorReset();
+    result = (int)OGRFeatureDefnShadow_IsGeometryIgnored(arg1);
+    CPLErr eclass = CPLGetLastErrorType();
+    if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+      SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
+      
+      
+      
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+  }
+  jresult = result; 
+  return jresult;
+}
+
+
+SWIGEXPORT void SWIGSTDCALL CSharp_FeatureDefn_SetGeometryIgnored(void * jarg1, int jarg2) {
+  OGRFeatureDefnShadow *arg1 = (OGRFeatureDefnShadow *) 0 ;
+  int arg2 ;
+  
+  arg1 = (OGRFeatureDefnShadow *)jarg1; 
+  arg2 = (int)jarg2; 
+  {
+    CPLErrorReset();
+    OGRFeatureDefnShadow_SetGeometryIgnored(arg1,arg2);
+    CPLErr eclass = CPLGetLastErrorType();
+    if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+      SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
+      
+      
+      
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+  }
+}
+
+
+SWIGEXPORT int SWIGSTDCALL CSharp_FeatureDefn_IsStyleIgnored(void * jarg1) {
+  int jresult ;
+  OGRFeatureDefnShadow *arg1 = (OGRFeatureDefnShadow *) 0 ;
+  int result;
+  
+  arg1 = (OGRFeatureDefnShadow *)jarg1; 
+  {
+    CPLErrorReset();
+    result = (int)OGRFeatureDefnShadow_IsStyleIgnored(arg1);
+    CPLErr eclass = CPLGetLastErrorType();
+    if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+      SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
+      
+      
+      
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+  }
+  jresult = result; 
+  return jresult;
+}
+
+
+SWIGEXPORT void SWIGSTDCALL CSharp_FeatureDefn_SetStyleIgnored(void * jarg1, int jarg2) {
+  OGRFeatureDefnShadow *arg1 = (OGRFeatureDefnShadow *) 0 ;
+  int arg2 ;
+  
+  arg1 = (OGRFeatureDefnShadow *)jarg1; 
+  arg2 = (int)jarg2; 
+  {
+    CPLErrorReset();
+    OGRFeatureDefnShadow_SetStyleIgnored(arg1,arg2);
+    CPLErr eclass = CPLGetLastErrorType();
+    if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+      SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
+      
+      
+      
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+  }
 }
 
 
@@ -6046,6 +6458,70 @@ SWIGEXPORT char * SWIGSTDCALL CSharp_FieldDefn_GetFieldTypeName(void * jarg1, in
 }
 
 
+SWIGEXPORT int SWIGSTDCALL CSharp_FieldDefn_IsIgnored(void * jarg1) {
+  int jresult ;
+  OGRFieldDefnShadow *arg1 = (OGRFieldDefnShadow *) 0 ;
+  int result;
+  
+  arg1 = (OGRFieldDefnShadow *)jarg1; 
+  {
+    CPLErrorReset();
+    result = (int)OGRFieldDefnShadow_IsIgnored(arg1);
+    CPLErr eclass = CPLGetLastErrorType();
+    if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+      SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
+      
+      
+      
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+  }
+  jresult = result; 
+  return jresult;
+}
+
+
+SWIGEXPORT void SWIGSTDCALL CSharp_FieldDefn_SetIgnored(void * jarg1, int jarg2) {
+  OGRFieldDefnShadow *arg1 = (OGRFieldDefnShadow *) 0 ;
+  int arg2 ;
+  
+  arg1 = (OGRFieldDefnShadow *)jarg1; 
+  arg2 = (int)jarg2; 
+  {
+    CPLErrorReset();
+    OGRFieldDefnShadow_SetIgnored(arg1,arg2);
+    CPLErr eclass = CPLGetLastErrorType();
+    if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+      SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
+      
+      
+      
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+  }
+}
+
+
 SWIGEXPORT void * SWIGSTDCALL CSharp_CreateGeometryFromWkb(int jarg1, char * jarg2, void * jarg3) {
   void * jresult ;
   int arg1 ;
@@ -6278,6 +6754,138 @@ SWIGEXPORT void * SWIGSTDCALL CSharp_ApproximateArcAngles(double jarg1, double j
 }
 
 
+SWIGEXPORT void * SWIGSTDCALL CSharp_ForceToPolygon(void * jarg1) {
+  void * jresult ;
+  OGRGeometryShadow *arg1 = (OGRGeometryShadow *) 0 ;
+  OGRGeometryShadow *result = 0 ;
+  
+  arg1 = (OGRGeometryShadow *)jarg1; 
+  {
+    CPLErrorReset();
+    result = (OGRGeometryShadow *)ForceToPolygon(arg1);
+    CPLErr eclass = CPLGetLastErrorType();
+    if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+      SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
+      
+      
+      
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+  }
+  jresult = (void *)result; 
+  return jresult;
+}
+
+
+SWIGEXPORT void * SWIGSTDCALL CSharp_ForceToMultiPolygon(void * jarg1) {
+  void * jresult ;
+  OGRGeometryShadow *arg1 = (OGRGeometryShadow *) 0 ;
+  OGRGeometryShadow *result = 0 ;
+  
+  arg1 = (OGRGeometryShadow *)jarg1; 
+  {
+    CPLErrorReset();
+    result = (OGRGeometryShadow *)ForceToMultiPolygon(arg1);
+    CPLErr eclass = CPLGetLastErrorType();
+    if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+      SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
+      
+      
+      
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+  }
+  jresult = (void *)result; 
+  return jresult;
+}
+
+
+SWIGEXPORT void * SWIGSTDCALL CSharp_ForceToMultiPoint(void * jarg1) {
+  void * jresult ;
+  OGRGeometryShadow *arg1 = (OGRGeometryShadow *) 0 ;
+  OGRGeometryShadow *result = 0 ;
+  
+  arg1 = (OGRGeometryShadow *)jarg1; 
+  {
+    CPLErrorReset();
+    result = (OGRGeometryShadow *)ForceToMultiPoint(arg1);
+    CPLErr eclass = CPLGetLastErrorType();
+    if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+      SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
+      
+      
+      
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+  }
+  jresult = (void *)result; 
+  return jresult;
+}
+
+
+SWIGEXPORT void * SWIGSTDCALL CSharp_ForceToMultiLineString(void * jarg1) {
+  void * jresult ;
+  OGRGeometryShadow *arg1 = (OGRGeometryShadow *) 0 ;
+  OGRGeometryShadow *result = 0 ;
+  
+  arg1 = (OGRGeometryShadow *)jarg1; 
+  {
+    CPLErrorReset();
+    result = (OGRGeometryShadow *)ForceToMultiLineString(arg1);
+    CPLErr eclass = CPLGetLastErrorType();
+    if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+      SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
+      
+      
+      
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+  }
+  jresult = (void *)result; 
+  return jresult;
+}
+
+
 SWIGEXPORT void SWIGSTDCALL CSharp_delete_Geometry(void * jarg1) {
   OGRGeometryShadow *arg1 = (OGRGeometryShadow *) 0 ;
   
@@ -6401,7 +7009,7 @@ SWIGEXPORT int SWIGSTDCALL CSharp_Geometry_ExportToWkt(void * jarg1, void * jarg
 }
 
 
-SWIGEXPORT char * SWIGSTDCALL CSharp_Geometry_ExportToGML(void * jarg1) {
+SWIGEXPORT char * SWIGSTDCALL CSharp_Geometry_ExportToGML__SWIG_0(void * jarg1) {
   char * jresult ;
   OGRGeometryShadow *arg1 = (OGRGeometryShadow *) 0 ;
   retStringAndCPLFree *result = 0 ;
@@ -6409,7 +7017,53 @@ SWIGEXPORT char * SWIGSTDCALL CSharp_Geometry_ExportToGML(void * jarg1) {
   arg1 = (OGRGeometryShadow *)jarg1; 
   {
     CPLErrorReset();
-    result = (retStringAndCPLFree *)OGRGeometryShadow_ExportToGML(arg1);
+    result = (retStringAndCPLFree *)OGRGeometryShadow_ExportToGML__SWIG_0(arg1);
+    CPLErr eclass = CPLGetLastErrorType();
+    if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+      SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
+      
+      
+      
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+  }
+  
+  /* %typemap(out) (retStringAndCPLFree*) */
+  if(result)
+  {
+    jresult = SWIG_csharp_string_callback((const char *)result);
+    CPLFree(result);
+  }
+  else
+  {
+    jresult = NULL;
+  }
+  
+  return jresult;
+}
+
+
+SWIGEXPORT char * SWIGSTDCALL CSharp_Geometry_ExportToGML__SWIG_1(void * jarg1, void * jarg2) {
+  char * jresult ;
+  OGRGeometryShadow *arg1 = (OGRGeometryShadow *) 0 ;
+  char **arg2 = (char **) 0 ;
+  retStringAndCPLFree *result = 0 ;
+  
+  arg1 = (OGRGeometryShadow *)jarg1; 
+  arg2 = (char **)jarg2; 
+  {
+    CPLErrorReset();
+    result = (retStringAndCPLFree *)OGRGeometryShadow_ExportToGML__SWIG_1(arg1,arg2);
     CPLErr eclass = CPLGetLastErrorType();
     if ( eclass == CE_Failure || eclass == CE_Fatal ) {
       SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
@@ -6612,6 +7266,13 @@ SWIGEXPORT int SWIGSTDCALL CSharp_Geometry_AddGeometryDirectly(void * jarg1, voi
   arg1 = (OGRGeometryShadow *)jarg1; 
   arg2 = (OGRGeometryShadow *)jarg2; 
   {
+    if (!arg2) {
+      {
+        SWIG_CSharpException(SWIG_ValueError, "Received a NULL pointer."); return 0; 
+      };
+    }
+  }
+  {
     CPLErrorReset();
     result = (OGRErr)OGRGeometryShadow_AddGeometryDirectly(arg1,arg2);
     CPLErr eclass = CPLGetLastErrorType();
@@ -6653,6 +7314,13 @@ SWIGEXPORT int SWIGSTDCALL CSharp_Geometry_AddGeometry(void * jarg1, void * jarg
   
   arg1 = (OGRGeometryShadow *)jarg1; 
   arg2 = (OGRGeometryShadow *)jarg2; 
+  {
+    if (!arg2) {
+      {
+        SWIG_CSharpException(SWIG_ValueError, "Received a NULL pointer."); return 0; 
+      };
+    }
+  }
   {
     CPLErrorReset();
     result = (OGRErr)OGRGeometryShadow_AddGeometry(arg1,arg2);
@@ -6782,6 +7450,72 @@ SWIGEXPORT char * SWIGSTDCALL CSharp_Geometry_GetGeometryName(void * jarg1) {
     
   }
   jresult = SWIG_csharp_string_callback((const char *)result); 
+  return jresult;
+}
+
+
+SWIGEXPORT double SWIGSTDCALL CSharp_Geometry_Length(void * jarg1) {
+  double jresult ;
+  OGRGeometryShadow *arg1 = (OGRGeometryShadow *) 0 ;
+  double result;
+  
+  arg1 = (OGRGeometryShadow *)jarg1; 
+  {
+    CPLErrorReset();
+    result = (double)OGRGeometryShadow_Length(arg1);
+    CPLErr eclass = CPLGetLastErrorType();
+    if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+      SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
+      
+      
+      
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+  }
+  jresult = result; 
+  return jresult;
+}
+
+
+SWIGEXPORT double SWIGSTDCALL CSharp_Geometry_Area(void * jarg1) {
+  double jresult ;
+  OGRGeometryShadow *arg1 = (OGRGeometryShadow *) 0 ;
+  double result;
+  
+  arg1 = (OGRGeometryShadow *)jarg1; 
+  {
+    CPLErrorReset();
+    result = (double)OGRGeometryShadow_Area(arg1);
+    CPLErr eclass = CPLGetLastErrorType();
+    if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+      SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
+      
+      
+      
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+  }
+  jresult = result; 
   return jresult;
 }
 
@@ -7169,6 +7903,74 @@ SWIGEXPORT void * SWIGSTDCALL CSharp_Geometry_GetGeometryRef(void * jarg1, int j
 }
 
 
+SWIGEXPORT void * SWIGSTDCALL CSharp_Geometry_Simplify(void * jarg1, double jarg2) {
+  void * jresult ;
+  OGRGeometryShadow *arg1 = (OGRGeometryShadow *) 0 ;
+  double arg2 ;
+  OGRGeometryShadow *result = 0 ;
+  
+  arg1 = (OGRGeometryShadow *)jarg1; 
+  arg2 = (double)jarg2; 
+  {
+    CPLErrorReset();
+    result = (OGRGeometryShadow *)OGRGeometryShadow_Simplify(arg1,arg2);
+    CPLErr eclass = CPLGetLastErrorType();
+    if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+      SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
+      
+      
+      
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+  }
+  jresult = (void *)result; 
+  return jresult;
+}
+
+
+SWIGEXPORT void * SWIGSTDCALL CSharp_Geometry_Boundary(void * jarg1) {
+  void * jresult ;
+  OGRGeometryShadow *arg1 = (OGRGeometryShadow *) 0 ;
+  OGRGeometryShadow *result = 0 ;
+  
+  arg1 = (OGRGeometryShadow *)jarg1; 
+  {
+    CPLErrorReset();
+    result = (OGRGeometryShadow *)OGRGeometryShadow_Boundary(arg1);
+    CPLErr eclass = CPLGetLastErrorType();
+    if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+      SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
+      
+      
+      
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+  }
+  jresult = (void *)result; 
+  return jresult;
+}
+
+
 SWIGEXPORT void * SWIGSTDCALL CSharp_Geometry_GetBoundary(void * jarg1) {
   void * jresult ;
   OGRGeometryShadow *arg1 = (OGRGeometryShadow *) 0 ;
@@ -7356,6 +8158,39 @@ SWIGEXPORT void * SWIGSTDCALL CSharp_Geometry_Union(void * jarg1, void * jarg2) 
 }
 
 
+SWIGEXPORT void * SWIGSTDCALL CSharp_Geometry_UnionCascaded(void * jarg1) {
+  void * jresult ;
+  OGRGeometryShadow *arg1 = (OGRGeometryShadow *) 0 ;
+  OGRGeometryShadow *result = 0 ;
+  
+  arg1 = (OGRGeometryShadow *)jarg1; 
+  {
+    CPLErrorReset();
+    result = (OGRGeometryShadow *)OGRGeometryShadow_UnionCascaded(arg1);
+    CPLErr eclass = CPLGetLastErrorType();
+    if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+      SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
+      
+      
+      
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+  }
+  jresult = (void *)result; 
+  return jresult;
+}
+
+
 SWIGEXPORT void * SWIGSTDCALL CSharp_Geometry_Difference(void * jarg1, void * jarg2) {
   void * jresult ;
   OGRGeometryShadow *arg1 = (OGRGeometryShadow *) 0 ;
@@ -7374,6 +8209,48 @@ SWIGEXPORT void * SWIGSTDCALL CSharp_Geometry_Difference(void * jarg1, void * ja
   {
     CPLErrorReset();
     result = (OGRGeometryShadow *)OGRGeometryShadow_Difference(arg1,arg2);
+    CPLErr eclass = CPLGetLastErrorType();
+    if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+      SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
+      
+      
+      
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+  }
+  jresult = (void *)result; 
+  return jresult;
+}
+
+
+SWIGEXPORT void * SWIGSTDCALL CSharp_Geometry_SymDifference(void * jarg1, void * jarg2) {
+  void * jresult ;
+  OGRGeometryShadow *arg1 = (OGRGeometryShadow *) 0 ;
+  OGRGeometryShadow *arg2 = (OGRGeometryShadow *) 0 ;
+  OGRGeometryShadow *result = 0 ;
+  
+  arg1 = (OGRGeometryShadow *)jarg1; 
+  arg2 = (OGRGeometryShadow *)jarg2; 
+  {
+    if (!arg2) {
+      {
+        SWIG_CSharpException(SWIG_ValueError, "Received a NULL pointer."); return 0; 
+      };
+    }
+  }
+  {
+    CPLErrorReset();
+    result = (OGRGeometryShadow *)OGRGeometryShadow_SymDifference(arg1,arg2);
     CPLErr eclass = CPLGetLastErrorType();
     if ( eclass == CE_Failure || eclass == CE_Fatal ) {
       SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
@@ -7643,6 +8520,48 @@ SWIGEXPORT unsigned int SWIGSTDCALL CSharp_Geometry_IsRing(void * jarg1) {
 }
 
 
+SWIGEXPORT unsigned int SWIGSTDCALL CSharp_Geometry_Intersects(void * jarg1, void * jarg2) {
+  unsigned int jresult ;
+  OGRGeometryShadow *arg1 = (OGRGeometryShadow *) 0 ;
+  OGRGeometryShadow *arg2 = (OGRGeometryShadow *) 0 ;
+  bool result;
+  
+  arg1 = (OGRGeometryShadow *)jarg1; 
+  arg2 = (OGRGeometryShadow *)jarg2; 
+  {
+    if (!arg2) {
+      {
+        SWIG_CSharpException(SWIG_ValueError, "Received a NULL pointer."); return 0; 
+      };
+    }
+  }
+  {
+    CPLErrorReset();
+    result = (bool)OGRGeometryShadow_Intersects(arg1,arg2);
+    CPLErr eclass = CPLGetLastErrorType();
+    if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+      SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
+      
+      
+      
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+  }
+  jresult = result; 
+  return jresult;
+}
+
+
 SWIGEXPORT unsigned int SWIGSTDCALL CSharp_Geometry_Intersect(void * jarg1, void * jarg2) {
   unsigned int jresult ;
   OGRGeometryShadow *arg1 = (OGRGeometryShadow *) 0 ;
@@ -7661,6 +8580,48 @@ SWIGEXPORT unsigned int SWIGSTDCALL CSharp_Geometry_Intersect(void * jarg1, void
   {
     CPLErrorReset();
     result = (bool)OGRGeometryShadow_Intersect(arg1,arg2);
+    CPLErr eclass = CPLGetLastErrorType();
+    if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+      SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
+      
+      
+      
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+  }
+  jresult = result; 
+  return jresult;
+}
+
+
+SWIGEXPORT unsigned int SWIGSTDCALL CSharp_Geometry_Equals(void * jarg1, void * jarg2) {
+  unsigned int jresult ;
+  OGRGeometryShadow *arg1 = (OGRGeometryShadow *) 0 ;
+  OGRGeometryShadow *arg2 = (OGRGeometryShadow *) 0 ;
+  bool result;
+  
+  arg1 = (OGRGeometryShadow *)jarg1; 
+  arg2 = (OGRGeometryShadow *)jarg2; 
+  {
+    if (!arg2) {
+      {
+        SWIG_CSharpException(SWIG_ValueError, "Received a NULL pointer."); return 0; 
+      };
+    }
+  }
+  {
+    CPLErrorReset();
+    result = (bool)OGRGeometryShadow_Equals(arg1,arg2);
     CPLErr eclass = CPLGetLastErrorType();
     if ( eclass == CE_Failure || eclass == CE_Fatal ) {
       SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
@@ -8595,6 +9556,72 @@ SWIGEXPORT void SWIGSTDCALL CSharp_RegisterAll() {
     
     
   }
+}
+
+
+SWIGEXPORT char * SWIGSTDCALL CSharp_GeometryTypeToName(int jarg1) {
+  char * jresult ;
+  OGRwkbGeometryType arg1 ;
+  char *result = 0 ;
+  
+  arg1 = (OGRwkbGeometryType)jarg1; 
+  {
+    CPLErrorReset();
+    result = (char *)OGRGeometryTypeToName(arg1);
+    CPLErr eclass = CPLGetLastErrorType();
+    if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+      SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
+      
+      
+      
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+  }
+  jresult = SWIG_csharp_string_callback((const char *)result); 
+  return jresult;
+}
+
+
+SWIGEXPORT char * SWIGSTDCALL CSharp_GetFieldTypeName(int jarg1) {
+  char * jresult ;
+  OGRFieldType arg1 ;
+  char *result = 0 ;
+  
+  arg1 = (OGRFieldType)jarg1; 
+  {
+    CPLErrorReset();
+    result = (char *)OGR_GetFieldTypeName(arg1);
+    CPLErr eclass = CPLGetLastErrorType();
+    if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+      SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
+      
+      
+      
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+  }
+  jresult = SWIG_csharp_string_callback((const char *)result); 
+  return jresult;
 }
 
 

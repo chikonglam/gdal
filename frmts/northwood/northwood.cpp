@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: northwood.cpp 18354 2009-12-20 10:42:15Z rouault $
+ * $Id: northwood.cpp 21298 2010-12-20 10:58:34Z rouault $
  *
  * Project:  GRC/GRD Reader
  * Purpose:  Northwood Format basic implementation
@@ -125,13 +125,13 @@ int nwt_ParseHeader( NWT_GRID * pGrd, char *nwtHeader )
 
     pGrd->iZUnits = nwtHeader[512];
 
-    if( nwtHeader[513] && 0x80 )
+    if( nwtHeader[513] & 0x80 )
         pGrd->bShowGradient = true;
 
-    if( nwtHeader[513] && 0x40 )
+    if( nwtHeader[513] & 0x40 )
         pGrd->bShowHillShade = true;
 
-    if( nwtHeader[513] && 0x20 )
+    if( nwtHeader[513] & 0x20 )
         pGrd->bHillShadeExists = true;
 
     memcpy( (void *) &pGrd->iNumColorInflections, (void *) &nwtHeader[516],
@@ -287,7 +287,7 @@ int nwt_LoadColors( NWT_RGB * pMap, int mapSize, NWT_GRID * pGrd )
     }
     else
     {
-        int index;
+        int index = 0;
         for( ; i < pGrd->iNumColorInflections; i++ )
         {
             if( pGrd->fZMax < pGrd->stInflection[i].zVal )
@@ -507,8 +507,8 @@ void nwtPrintGridHeader( NWT_GRID * pGrd )
         }
     }
     printf( "\nDim (x,y) = (%d,%d)", pGrd->nXSide, pGrd->nYSide );
-    printf( "\nStep Size = %lf", pGrd->dfStepSize );
-    printf( "\nBounds = (%lf,%lf) (%lf,%lf)", pGrd->dfMinX, pGrd->dfMinY,
+    printf( "\nStep Size = %f", pGrd->dfStepSize );
+    printf( "\nBounds = (%f,%f) (%f,%f)", pGrd->dfMinX, pGrd->dfMinY,
             pGrd->dfMaxX, pGrd->dfMaxY );
     printf( "\nCoordinate System = %s", pGrd->cMICoordSys );
 

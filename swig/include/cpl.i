@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: cpl.i 18347 2009-12-19 14:02:04Z rouault $
+ * $Id: cpl.i 20996 2010-10-28 18:38:15Z rouault $
  *
  * Name:     cpl.i
  * Project:  GDAL Python Interface
@@ -40,6 +40,10 @@ typedef enum
     CE_Fatal = 4
 } CPLErr;
 #endif
+
+%inline %{
+typedef char retStringAndCPLFree;
+%}
 
 %inline %{
   void Debug( const char *msg_class, const char *message ) {
@@ -91,6 +95,9 @@ typedef enum
 %rename (finder_clean) CPLFinderClean;
 %rename (find_file) CPLFindFile;
 %rename (read_dir) VSIReadDir;
+%rename (mkdir) VSIMkdir;
+%rename (rmdir) VSIRmdir;
+%rename (rename) VSIRename;
 %rename (set_config_option) CPLSetConfigOption;
 %rename (get_config_option) wrapper_CPLGetConfigOption;
 %rename (binary_to_hex) CPLBinaryToHex;
@@ -108,8 +115,16 @@ typedef enum
 %rename (PushFinderLocation) CPLPushFinderLocation;
 %rename (PopFinderLocation) CPLPopFinderLocation;
 %rename (FinderClean) CPLFinderClean;
+#ifdef SWIGPERL
+%rename (_FindFile) CPLFindFile;
+%rename (_ReadDir) VSIReadDir;
+#else
 %rename (FindFile) CPLFindFile;
 %rename (ReadDir) VSIReadDir;
+#endif
+%rename (Mkdir) VSIMkdir;
+%rename (Rmdir) VSIRmdir;
+%rename (Rename) VSIRename;
 %rename (SetConfigOption) CPLSetConfigOption;
 %rename (GetConfigOption) wrapper_CPLGetConfigOption;
 %rename (CPLBinaryToHex) CPLBinaryToHex;
@@ -132,9 +147,6 @@ void CPLErrorReset();
 #endif
 
 #ifdef SWIGJAVA
-%{
-typedef char retStringAndCPLFree;
-%}
 %apply (int nLen, unsigned char *pBuf ) {( int len, unsigned char *bin_string )};
 %inline %{
 retStringAndCPLFree* EscapeString(int len, unsigned char *bin_string , int scheme) {
@@ -156,10 +168,7 @@ retStringAndCPLFree* EscapeString(int len, char *bin_string , int scheme) {
 retStringAndCPLFree* EscapeString(int len, char *bin_string , int scheme=CPLES_SQL) {
     return CPLEscapeString(bin_string, len, scheme);
 }
-#elif defined(SWIGPYTHON)
-%{
-typedef char retStringAndCPLFree;
-%}
+#elif defined(SWIGPYTHON) || defined(SWIGPERL)
 %apply (int nLen, char *pBuf ) { (int len, char *bin_string)};
 %inline %{
 retStringAndCPLFree* EscapeString(int len, char *bin_string , int scheme=CPLES_SQL) {
@@ -177,27 +186,48 @@ char* EscapeString(int len, char *bin_string , int scheme=CPLES_SQL) {
 %clear (int len, char *bin_string);
 #endif
 
+#if defined(SWIGPYTHON)
+/* We don't want errors to be cleared or thrown by this */
+/* call */
+%exception CPLGetLastErrorNo
+{
+    result = CPLGetLastErrorNo();
+}
+#endif
 int CPLGetLastErrorNo();
 
+#if defined(SWIGPYTHON)
+/* We don't want errors to be cleared or thrown by this */
+/* call */
+%exception CPLGetLastErrorType
+{
+    result = CPLGetLastErrorType();
+}
+int CPLGetLastErrorType();
+#else
 CPLErr CPLGetLastErrorType();
+#endif
 
-char const *CPLGetLastErrorMsg();
+#if defined(SWIGPYTHON)
+/* We don't want errors to be cleared or thrown by this */
+/* call */
+%exception CPLGetLastErrorMsg
+{
+    result = (char*)CPLGetLastErrorMsg();
+}
+#endif
+const char *CPLGetLastErrorMsg();
 
-void CPLPushFinderLocation( const char * pszLocation );
+void CPLPushFinderLocation( const char * utf8_path );
 
 void CPLPopFinderLocation();
 
 void CPLFinderClean();
 
-const char * CPLFindFile( const char *pszClass, const char *pszBasename );
+const char * CPLFindFile( const char *pszClass, const char *utf8_path );
 
-#if defined(SWIGPYTHON) || defined (SWIGJAVA)
-%apply (char **out_ppsz_and_free) {char **};
-#else
-/* FIXME: wrong typemap. VSIReadDir() return should be CSLDestroy'ed */
-%apply (char **options) {char **};
-#endif
-char **VSIReadDir( const char * pszDirName );
+%apply (char **CSL) {char **};
+char **VSIReadDir( const char * utf8_path );
 %clear char **;
 
 %apply Pointer NONNULL {const char * pszKey};
@@ -212,17 +242,15 @@ const char *wrapper_CPLGetConfigOption( const char * pszKey, const char * pszDef
 %clear const char * pszKey;
 
 /* Provide hooks to hex encoding methods */
-#ifdef SWIGJAVA
+#if defined(SWIGJAVA) || defined(SWIGPERL)
 %apply (int nLen, unsigned char *pBuf ) {( int nBytes, const GByte *pabyData )};
 retStringAndCPLFree* CPLBinaryToHex( int nBytes, const GByte *pabyData );
 %clear ( int nBytes, const GByte *pabyData );
-#else
-#ifdef SWIGCSHARP
+#elif defined(SWIGCSHARP)
 retStringAndCPLFree* CPLBinaryToHex( int nBytes, const GByte *pabyData );
 #else
 /* FIXME : wrong typemap. The string should be freed */
 char * CPLBinaryToHex( int nBytes, const GByte *pabyData );
-#endif
 #endif
 
 #ifdef SWIGJAVA
@@ -244,13 +272,13 @@ GByte *CPLHexToBinary( const char *pszHex, int *pnBytes );
 %apply (int nLen, char *pBuf) {( int nBytes, const GByte *pabyData )};
 #endif
 %inline {
-void wrapper_VSIFileFromMemBuffer( const char* pszFilename, int nBytes, const GByte *pabyData)
+void wrapper_VSIFileFromMemBuffer( const char* utf8_path, int nBytes, const GByte *pabyData)
 {
     GByte* pabyDataDup = (GByte*)VSIMalloc(nBytes);
     if (pabyDataDup == NULL)
             return;
     memcpy(pabyDataDup, pabyData, nBytes);
-    VSIFCloseL(VSIFileFromMemBuffer(pszFilename, (GByte*) pabyDataDup, nBytes, TRUE));
+    VSIFCloseL(VSIFileFromMemBuffer(utf8_path, (GByte*) pabyDataDup, nBytes, TRUE));
 }
 
 }
@@ -270,5 +298,37 @@ int wrapper_HasThreadSupport()
     return strcmp(CPLGetThreadingModel(), "stub") != 0;
 }
 }
+
+/* Added for GDAL 1.8 */
+int VSIMkdir(const char *utf8_path, int mode );
+int VSIRmdir(const char *utf8_path );
+int VSIRename(const char * pszOld, const char *pszNew );
+
+/* Added for GDAL 1.8 
+
+   We do not bother renaming the VSI*L api as this wrapping is not
+   considered "official", or available for use by application code. 
+   It is just for some testing stuff. 
+*/
+
+#if !defined(SWIGJAVA)
+
+typedef void VSILFILE;
+
+#if defined(SWIGPERL)
+%apply RETURN_NONE_TRUE_IS_ERROR {RETURN_NONE};
+RETURN_NONE VSIStatL( const char * utf8_path, VSIStatBufL *psStatBuf );
+%clear RETURN_NONE;
+#endif
+
+VSILFILE   *VSIFOpenL( const char *utf8_path, const char *pszMode );
+void    VSIFCloseL( VSILFILE * );
+int     VSIFSeekL( VSILFILE *, long, int );
+long    VSIFTellL( VSILFILE * );
+int     VSIFWriteL( const char *, int, int, VSILFILE * );
+
+/* VSIFReadL() handled specially in python/gdal_python.i */
+
+#endif
 
 #endif

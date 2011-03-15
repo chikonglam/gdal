@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ndfdataset.cpp 17664 2009-09-21 21:16:45Z rouault $
+ * $Id: ndfdataset.cpp 20996 2010-10-28 18:38:15Z rouault $
  *
  * Project:  NDF Driver
  * Purpose:  Implementation of NLAPS Data Format read support.
@@ -31,7 +31,7 @@
 #include "ogr_spatialref.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: ndfdataset.cpp 17664 2009-09-21 21:16:45Z rouault $");
+CPL_CVSID("$Id: ndfdataset.cpp 20996 2010-10-28 18:38:15Z rouault $");
 
 /************************************************************************/
 /* ==================================================================== */
@@ -49,7 +49,7 @@ class NDFDataset : public RawDataset
     char        **papszHeader;
     const char  *Get( const char *pszKey, const char *pszDefault);
 
-    int         ReadHeader( FILE * );
+    int         ReadHeader( VSILFILE * );
 
   public:
     		NDFDataset();
@@ -95,7 +95,7 @@ NDFDataset::~NDFDataset()
 
     for( int i = 0; i < GetRasterCount(); i++ )
     {
-        VSIFCloseL( ((RawRasterBand *) GetRasterBand(i+1))->GetFP() );
+        VSIFCloseL( ((RawRasterBand *) GetRasterBand(i+1))->GetFPL() );
     }
 }
 
@@ -292,7 +292,7 @@ GDALDataset *NDFDataset::Open( GDALOpenInfo * poOpenInfo )
             osFilename = CPLFormFilename( osBasePath, osFilename, NULL);
         }
 
-        FILE *fpRaw = VSIFOpenL( osFilename, "rb" );
+        VSILFILE *fpRaw = VSIFOpenL( osFilename, "rb" );
         if( fpRaw == NULL )
         {
             CPLError( CE_Failure, CPLE_AppDefined, 

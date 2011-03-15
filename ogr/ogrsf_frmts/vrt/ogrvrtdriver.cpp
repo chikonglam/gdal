@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrvrtdriver.cpp 17637 2009-09-12 23:22:00Z warmerdam $
+ * $Id: ogrvrtdriver.cpp 20996 2010-10-28 18:38:15Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implements OGRVRTDriver class.
@@ -30,7 +30,7 @@
 #include "ogr_vrt.h"
 #include "cpl_conv.h"
 
-CPL_CVSID("$Id: ogrvrtdriver.cpp 17637 2009-09-12 23:22:00Z warmerdam $");
+CPL_CVSID("$Id: ogrvrtdriver.cpp 20996 2010-10-28 18:38:15Z rouault $");
 
 /************************************************************************/
 /*                            ~OGRVRTDriver()                            */
@@ -80,8 +80,13 @@ OGRDataSource *OGRVRTDriver::Open( const char * pszFilename,
 /* -------------------------------------------------------------------- */
     else
     {
-        FILE *fp;
+        VSILFILE *fp;
         char achHeader[18];
+
+        VSIStatBufL sStatBuf;
+        if (VSIStatExL( pszFilename, &sStatBuf, VSI_STAT_EXISTS_FLAG | VSI_STAT_NATURE_FLAG ) != 0 ||
+            VSI_ISDIR(sStatBuf.st_mode))
+            return FALSE;
 
         fp = VSIFOpenL( pszFilename, "rb" );
 

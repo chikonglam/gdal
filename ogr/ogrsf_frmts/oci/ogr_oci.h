@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_oci.h 15240 2008-08-28 18:14:21Z warmerdam $
+ * $Id: ogr_oci.h 20120 2010-07-23 02:41:07Z ilucena $
  *
  * Project:  Oracle Spatial Driver
  * Purpose:  Oracle Spatial OGR Driver Declarations. 
@@ -98,6 +98,8 @@ class CPL_DLL OGROCISession {
     OCIEnv     *hEnv;
     OCIError   *hError;
     OCISvcCtx  *hSvcCtx;
+    OCIServer  *hServer;
+    OCISession *hSession;
     OCIDescribe*hDescribe;
     OCIType    *hGeometryTDO;
     OCIType    *hOrdinatesTDO;
@@ -421,7 +423,7 @@ class OGROCITableLayer : public OGROCIWritableLayer
     OCIInd            **papaeWriteFieldInd;
     int                *panWriteFIDs;
 
-    int                 AllocAndBindForWrite();
+    int                 AllocAndBindForWrite(int eType);
     OGRErr              FlushPendingFeatures();
 
     OGRErr              UnboundCreateFeature( OGRFeature *poFeature );

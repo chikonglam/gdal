@@ -31,6 +31,10 @@
 #include <float.h>
 #include <limits.h>
 
+#include <string>
+
+using namespace std;
+
 // IniFile.cpp: implementation of the IniFile class.
 //
 //////////////////////////////////////////////////////////////////////
@@ -55,7 +59,7 @@ static string TrimSpaces(const string& input)
     return input.substr(iFirstNonSpace, iFindLastSpace - iFirstNonSpace + 1);
 }
 
-static string GetLine(FILE* fil)
+static string GetLine(VSILFILE* fil)
 {
     const char *p = CPLReadLineL( fil );
     if (p == NULL)
@@ -154,7 +158,7 @@ void IniFile::RemoveSection(const string& section)
 void IniFile::Load()
 {
     enum ParseState { FindSection, FindKey, ReadFindKey, StoreKey, None } state;
-    FILE *filIni = VSIFOpenL(filename.c_str(), "r");
+    VSILFILE *filIni = VSIFOpenL(filename.c_str(), "r");
     if (filIni == NULL)
         return;
 
@@ -213,7 +217,7 @@ void IniFile::Load()
 
 void IniFile::Store()
 {
-    FILE *filIni = VSIFOpenL(filename.c_str(), "w+");
+    VSILFILE *filIni = VSIFOpenL(filename.c_str(), "w+");
     if (filIni == NULL)
         return;
 
@@ -943,7 +947,7 @@ GDALDataset *ILWISDataset::Create(const char* pszFilename,
 /* -------------------------------------------------------------------- */
         pszDataName = CPLResetExtension(pszODFName.c_str(), "mp#" );
 
-        FILE  *fp = VSIFOpenL( pszDataName.c_str(), "wb" );
+        VSILFILE  *fp = VSIFOpenL( pszDataName.c_str(), "wb" );
 
         if( fp == NULL )
         {
@@ -1052,7 +1056,7 @@ ILWISDataset::CreateCopy( const char * pszFilename, GDALDataset *poSrcDS,
 		
     for( iBand = 0; iBand < nBands; iBand++ )
     {
-        FILE *fpData;
+        VSILFILE *fpData;
         GByte *pData;
         
         GDALRasterBand *poBand = poSrcDS->GetRasterBand( iBand+1 );

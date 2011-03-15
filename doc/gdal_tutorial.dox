@@ -1,4 +1,4 @@
-/* $Id: gdal_tutorial.dox 16692 2009-03-30 17:58:12Z rouault $ */
+/* $Id: gdal_tutorial.dox 20418 2010-08-23 19:01:36Z rouault $ */
 
 /*!
 \page gdal_tutorial GDAL API Tutorial
@@ -12,6 +12,8 @@ to register all known drivers, including those auto-loaded from .so files
 using GDALDriverManager::AutoLoadDrivers().  If for some applications it
 is necessary to limit the set of drivers it may be helpful to review
 the code from <a href="gdalallregister.cpp.html">gdalallregister.cpp</a>.
+Python automatically calls GDALAllRegister() when the gdal module is 
+imported.
 
 Once the drivers are registered, the application should call the free
 standing GDALOpen() function to open a dataset, passing the name of the
@@ -20,6 +22,7 @@ dataset and the access desired (GA_ReadOnly or GA_Update).
 In C++:
 \code
 #include "gdal_priv.h"
+#include "cpl_conv.h" // for CPLMalloc()
 
 int main()
 {
@@ -37,6 +40,7 @@ int main()
 In C:
 \code
 #include "gdal.h"
+#include "cpl_conv.h" /* for CPLMalloc() */
 
 int main()
 {
@@ -266,6 +270,8 @@ In C++:
                           0, 0 );
 \endcode
 
+The pafScanline buffer should be freed with CPLFree() when it is no longer used.
+
 In C:
 \code
 	float *pafScanline;
@@ -276,6 +282,8 @@ In C:
                       pafScanline, nXSize, 1, GDT_Float32, 
                       0, 0 );
 \endcode
+
+The pafScanline buffer should be freed with CPLFree() when it is no longer used.
 
 In Python:
  
@@ -638,7 +646,7 @@ In Python:
 
 \htmlonly
 <p>
-$Id: gdal_tutorial.dox 16692 2009-03-30 17:58:12Z rouault $
+$Id: gdal_tutorial.dox 20418 2010-08-23 19:01:36Z rouault $
 </p>
 \endhtmlonly
 

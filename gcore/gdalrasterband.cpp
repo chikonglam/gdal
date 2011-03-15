@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdalrasterband.cpp 19737 2010-05-17 19:32:21Z rouault $
+ * $Id: gdalrasterband.cpp 21167 2010-11-24 15:19:51Z warmerdam $
  *
  * Project:  GDAL Core
  * Purpose:  Base class for format specific band class implementation.  This
@@ -40,13 +40,7 @@
 // (minimum value, maximum value, etc.)
 #define GDALSTAT_APPROX_NUMSAMPLES 2500
 
-// Test if pixel value matches nodata value. Avoid using strict comparison as
-// the stored nodata value in GeoTIFF files is stored as a string, so there might
-// be numerical imprecision when reading it back. See #3573
-#define EQUAL_TO_NODATA(dfValue, dfNoDataValue) \
- (dfValue == dfNoDataValue || (dfNoDataValue != 0 && fabs(1 - dfValue / dfNoDataValue) < 1e-10 ))
-
-CPL_CVSID("$Id: gdalrasterband.cpp 19737 2010-05-17 19:32:21Z rouault $");
+CPL_CVSID("$Id: gdalrasterband.cpp 21167 2010-11-24 15:19:51Z warmerdam $");
 
 /************************************************************************/
 /*                           GDALRasterBand()                           */
@@ -78,6 +72,8 @@ GDALRasterBand::GDALRasterBand()
     nBlockReads = 0;
     bForceCachedIO =  CSLTestBoolean( 
         CPLGetConfigOption( "GDAL_FORCE_CACHING", "NO") );
+
+    eFlushBlockErr = CE_None;
 }
 
 /************************************************************************/
@@ -210,6 +206,15 @@ CPLErr GDALRasterBand::RasterIO( GDALRWFlag eRWFlag,
                   nBufXSize, nBufYSize );
 
         return CE_None;
+    }
+
+    if( eRWFlag == GF_Write && eFlushBlockErr != CE_None )
+    {
+        CPLError(eFlushBlockErr, CPLE_AppDefined,
+                 "An error occured while writing a dirty block");
+        CPLErr eErr = eFlushBlockErr;
+        eFlushBlockErr = CE_None;
+        return eErr;
     }
 
 /* -------------------------------------------------------------------- */
@@ -521,7 +526,16 @@ CPLErr GDALRasterBand::WriteBlock( int nXBlockOff, int nYBlockOff,
 
         return( CE_Failure );
     }
-    
+
+    if( eFlushBlockErr != CE_None )
+    {
+        CPLError(eFlushBlockErr, CPLE_AppDefined,
+                 "An error occured while writing a dirty block");
+        CPLErr eErr = eFlushBlockErr;
+        eFlushBlockErr = CE_None;
+        return eErr;
+    }
+
 /* -------------------------------------------------------------------- */
 /*      Invoke underlying implementation method.                        */
 /* -------------------------------------------------------------------- */
@@ -873,8 +887,17 @@ CPLErr GDALRasterBand::AdoptBlock( int nXBlockOff, int nYBlockOff,
 CPLErr GDALRasterBand::FlushCache()
 
 {
+    CPLErr eGlobalErr = eFlushBlockErr;
+
+    if (eFlushBlockErr != CE_None)
+    {
+        CPLError(eFlushBlockErr, CPLE_AppDefined,
+                 "An error occured while writing a dirty block");
+        eFlushBlockErr = CE_None;
+    }
+
     if (papoBlocks == NULL)
-        return CE_None;
+        return eGlobalErr;
 
 /* -------------------------------------------------------------------- */
 /*      Flush all blocks in memory ... this case is without subblocking.*/
@@ -889,14 +912,14 @@ CPLErr GDALRasterBand::FlushCache()
                 {
                     CPLErr    eErr;
 
-                    eErr = FlushBlock( iX, iY );
+                    eErr = FlushBlock( iX, iY, eGlobalErr == CE_None );
 
                     if( eErr != CE_None )
-                        return eErr;
+                        eGlobalErr = eErr;
                 }
             }
         }
-        return CE_None;
+        return eGlobalErr;
     }
 
 /* -------------------------------------------------------------------- */
@@ -925,9 +948,10 @@ CPLErr GDALRasterBand::FlushCache()
                         CPLErr eErr;
 
                         eErr = FlushBlock( iX + iSBX * SUBBLOCK_SIZE, 
-                                           iY + iSBY * SUBBLOCK_SIZE );
+                                           iY + iSBY * SUBBLOCK_SIZE,
+                                           eGlobalErr == CE_None );
                         if( eErr != CE_None )
-                            return eErr;
+                            eGlobalErr = eErr;
                     }
                 }
             }
@@ -939,7 +963,7 @@ CPLErr GDALRasterBand::FlushCache()
         }
     }
 
-    return( CE_None );
+    return( eGlobalErr );
 }
 
 /************************************************************************/
@@ -970,7 +994,7 @@ CPLErr CPL_STDCALL GDALFlushRasterCache( GDALRasterBandH hBand )
 /*      Protected method.                                               */
 /************************************************************************/
 
-CPLErr GDALRasterBand::FlushBlock( int nXBlockOff, int nYBlockOff )
+CPLErr GDALRasterBand::FlushBlock( int nXBlockOff, int nYBlockOff, int bWriteDirtyBlock )
 
 {
     int             nBlockIndex;
@@ -1051,7 +1075,7 @@ CPLErr GDALRasterBand::FlushBlock( int nXBlockOff, int nYBlockOff )
 
     poBlock->Detach();
 
-    if( poBlock->GetDirty() )
+    if( bWriteDirtyBlock && poBlock->GetDirty() )
         eErr = poBlock->Write();
 
 /* -------------------------------------------------------------------- */
@@ -1302,7 +1326,7 @@ CPLErr GDALRasterBand::Fill(double dfRealValue, double dfImaginaryValue) {
 
     // General approach is to construct a source block of the file's
     // native type containing the appropriate value and then copy this
-    // to each block in the image via the the RasterBlock cache. Using
+    // to each block in the image via the RasterBlock cache. Using
     // the cache means we avoid file I/O if it's not necessary, at the
     // expense of some extra memcpy's (since we write to the
     // RasterBlock cache, which is then at some point written to the
@@ -2136,6 +2160,9 @@ GDALRasterBand *GDALRasterBand::GetRasterSampleOverview( int nDesiredSamples )
         GDALRasterBand  *poOBand = GetOverview( iOverview );
         double          dfOSamples = 0;
 
+        if (poOBand == NULL)
+            continue;
+
         dfOSamples = poOBand->GetXSize() * (double)poOBand->GetYSize();
 
         if( dfOSamples < dfBestSamples && dfOSamples > nDesiredSamples )
@@ -2465,6 +2492,8 @@ const char * CPL_STDCALL GDALGetRasterUnitType( GDALRasterBandH hBand )
  * "" (the default indicating it is unknown), "m" indicating meters, 
  * or "ft" indicating feet, though other nonstandard values are allowed.
  *
+ * This method is the same as the C function GDALSetRasterUnitType(). 
+ *
  * @param pszNewValue the new unit type value.
  *
  * @return CE_None on success or CE_Failure if not succuessful, or 
@@ -2478,6 +2507,27 @@ CPLErr GDALRasterBand::SetUnitType( const char *pszNewValue )
         CPLError( CE_Failure, CPLE_NotSupported, 
                   "SetUnitType() not supported on this raster band." );
     return CE_Failure;
+}
+
+/************************************************************************/
+/*                       GDALSetRasterUnitType()                        */
+/************************************************************************/
+
+/**
+ * \brief Set unit type.
+ *
+ * @see GDALRasterBand::SetUnitType()
+ *
+ * @since GDAL 1.8.0
+ */
+
+CPLErr CPL_STDCALL GDALSetRasterUnitType( GDALRasterBandH hBand, const char *pszNewValue )
+
+{
+    VALIDATE_POINTER1( hBand, "GDALSetRasterUnitType", CE_Failure );
+
+    GDALRasterBand *poBand = static_cast<GDALRasterBand*>(hBand);
+    return poBand->SetUnitType(pszNewValue);
 }
 
 /************************************************************************/
@@ -2809,8 +2859,6 @@ CPLErr GDALRasterBand::GetHistogram( double dfMin, double dfMax,
                     {
                         double dfReal = ((GInt16 *)pData)[iOffset*2];
                         double dfImag = ((GInt16 *)pData)[iOffset*2+1];
-                        if ( CPLIsNan(dfReal) || CPLIsNan(dfImag) )
-                            continue;
                         dfValue = sqrt( dfReal * dfReal + dfImag * dfImag );
                     }
                     break;
@@ -2818,8 +2866,6 @@ CPLErr GDALRasterBand::GetHistogram( double dfMin, double dfMax,
                     {
                         double dfReal = ((GInt32 *)pData)[iOffset*2];
                         double dfImag = ((GInt32 *)pData)[iOffset*2+1];
-                        if ( CPLIsNan(dfReal) || CPLIsNan(dfImag) )
-                            continue;
                         dfValue = sqrt( dfReal * dfReal + dfImag * dfImag );
                     }
                     break;
@@ -2976,9 +3022,13 @@ CPLErr GDALRasterBand::GetHistogram( double dfMin, double dfMax,
                         break;
                       case GDT_Float32:
                         dfValue = ((float *) pData)[iOffset];
+                        if (CPLIsNan(dfValue))
+                            continue;
                         break;
                       case GDT_Float64:
                         dfValue = ((double *) pData)[iOffset];
+                        if (CPLIsNan(dfValue))
+                            continue;
                         break;
                       case GDT_CInt16:
                         {
@@ -2986,8 +3036,6 @@ CPLErr GDALRasterBand::GetHistogram( double dfMin, double dfMax,
                                 ((GInt16 *) pData)[iOffset*2];
                             double  dfImag =
                                 ((GInt16 *) pData)[iOffset*2+1];
-                            if ( CPLIsNan(dfReal) || CPLIsNan(dfImag) )
-                                continue;
                             dfValue = sqrt( dfReal * dfReal + dfImag * dfImag );
                         }
                         break;
@@ -2997,8 +3045,6 @@ CPLErr GDALRasterBand::GetHistogram( double dfMin, double dfMax,
                                 ((GInt32 *) pData)[iOffset*2];
                             double  dfImag =
                                 ((GInt32 *) pData)[iOffset*2+1];
-                            if ( CPLIsNan(dfReal) || CPLIsNan(dfImag) )
-                                continue;
                             dfValue = sqrt( dfReal * dfReal + dfImag * dfImag );
                         }
                         break;
@@ -3754,7 +3800,7 @@ GDALRasterBand::ComputeStatistics( int bApproxOK,
     double dfMean = dfSum / nSampleCount;
     double dfStdDev = sqrt((dfSum2 / nSampleCount) - (dfMean * dfMean));
 
-    if( nSampleCount > 1 )
+    if( nSampleCount > 0 )
         SetStatistics( dfMin, dfMax, dfMean, dfStdDev );
 
 /* -------------------------------------------------------------------- */
@@ -4636,6 +4682,10 @@ int CPL_STDCALL GDALGetMaskFlags( GDALRasterBandH hBand )
  * The mask images will be deflate compressed tiled images with the same
  * block size as the original image if possible.
  *
+ * Note that if you got a mask band with a previous call to GetMaskBand(),
+ * it might be invalidated by CreateMaskBand(). So you have to call GetMaskBand()
+ * again.
+ *
  * @since GDAL 1.5.0
  *
  * @return CE_None on success or CE_Failure on an error.
@@ -4648,7 +4698,19 @@ CPLErr GDALRasterBand::CreateMaskBand( int nFlags )
 
 {
     if( poDS != NULL && poDS->oOvManager.IsInitialized() )
-        return poDS->oOvManager.CreateMaskBand( nFlags, nBand );
+    {
+        CPLErr eErr = poDS->oOvManager.CreateMaskBand( nFlags, nBand );
+        if (eErr != CE_None)
+            return eErr;
+
+        /* Invalidate existing raster band mask */
+        if (bOwnMask)
+            delete poMask;
+        bOwnMask = false;
+        poMask = NULL;
+
+        return CE_None;
+    }
 
     CPLError( CE_Failure, CPLE_NotSupported,
               "CreateMaskBand() not supported for this band." );
@@ -4776,7 +4838,7 @@ unsigned char* GDALRasterBand::GetIndexColorTranslationTo(GDALRasterBand* poRefe
                             entry->c2 == entryRef->c2 &&
                             entry->c3 == entryRef->c3)
                         {
-                            pTranslationTable[i] = j;
+                            pTranslationTable[i] = (unsigned char) j;
                             break;
                         }
                     }
@@ -4799,15 +4861,36 @@ unsigned char* GDALRasterBand::GetIndexColorTranslationTo(GDALRasterBand* poRefe
                                 best_distance = distance;
                             }
                         }
-                        pTranslationTable[i] = best_j;
+                        pTranslationTable[i] = (unsigned char) best_j;
                     }
                 }
                 if (bHasNoDataValueRef && bHasNoDataValueSrc)
-                    pTranslationTable[noDataValueSrc] = noDataValueRef;
+                    pTranslationTable[noDataValueSrc] = (unsigned char) noDataValueRef;
 
                 return pTranslationTable;
             }
         }
     }
     return NULL;
+}
+
+/************************************************************************/
+/*                         SetFlushBlockErr()                           */
+/************************************************************************/
+
+/**
+ * \brief Store that an error occured while writing a dirty block.
+ *
+ * This function stores the fact that an error occured while writing a dirty
+ * block from GDALRasterBlock::FlushCacheBlock(). Indeed when dirty blocks are
+ * flushed when the block cache get full, it is not convenient/possible to
+ * report that a dirty block could not be written correctly. This function
+ * remembers the error and re-issue it from GDALRasterBand::FlushCache(),
+ * GDALRasterBand::WriteBlock() and GDALRasterBand::RasterIO(), which are
+ * places where the user can easily match the error with the relevant dataset.
+ */
+
+void GDALRasterBand::SetFlushBlockErr( CPLErr eErr )
+{
+    eFlushBlockErr = eErr;
 }

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrshapelayer.cpp 20806 2010-10-11 02:07:39Z warmerdam $
+ * $Id: ogrshapelayer.cpp 20885 2010-10-19 00:16:08Z warmerdam $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implements OGRShapeLayer class.
@@ -35,15 +35,7 @@
 #  include <wce_errno.h>
 #endif
 
-#if defined(WIN32) || defined(WIN32CE)
-#define SEP_CHAR '\\'
-#else
-#define SEP_CHAR '/'
-#endif
-
-
-
-CPL_CVSID("$Id: ogrshapelayer.cpp 20806 2010-10-11 02:07:39Z warmerdam $");
+CPL_CVSID("$Id: ogrshapelayer.cpp 20885 2010-10-19 00:16:08Z warmerdam $");
 
 /************************************************************************/
 /*                           OGRShapeLayer()                            */
@@ -680,6 +672,9 @@ int OGRShapeLayer::TestCapability( const char * pszCap )
 
     else if( EQUAL(pszCap,OLCCreateField) )
         return bUpdateAccess;
+    
+    else if( EQUAL(pszCap,OLCIgnoreFields) )
+        return TRUE;
 
     else 
         return FALSE;
@@ -1166,9 +1161,7 @@ OGRErr OGRShapeLayer::Repack()
 /* -------------------------------------------------------------------- */
     DBFHandle hNewDBF = NULL;
     
-    CPLString oTempFile(osDirname);
-    oTempFile += SEP_CHAR;
-    oTempFile += osBasename;
+    CPLString oTempFile(CPLFormFilename(osDirname, osBasename, NULL));
     oTempFile += "_packed.dbf";
 
     hNewDBF = DBFCloneEmpty( hDBF, oTempFile );
@@ -1241,9 +1234,7 @@ OGRErr OGRShapeLayer::Repack()
             return OGRERR_FAILURE;
         }
 
-        oTempFile = osDirname;
-        oTempFile += SEP_CHAR;
-        oTempFile += osBasename;
+        oTempFile = CPLFormFilename(osDirname, osBasename, NULL);
         oTempFile += "_packed.shp";
 
         hNewSHP = SHPCreate( oTempFile, hSHP->nShapeType );

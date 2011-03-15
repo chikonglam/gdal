@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_java.i 17966 2009-11-04 22:05:11Z rouault $
+ * $Id: ogr_java.i 19751 2010-05-22 11:29:53Z rouault $
  *
  * Name:     ogr_java.i
  * Project:  GDAL SWIG Interface
@@ -16,11 +16,7 @@
  *
  *
 */
-#ifdef SWIGJAVA
-%{
-typedef char retStringAndCPLFree;
-%}
-#endif
+
 %include java_exceptions.i
 
 %pragma(java) jniclasscode=%{
@@ -54,13 +50,6 @@ typedef char retStringAndCPLFree;
 %rename (GetOpenDSCount) OGRGetOpenDSCount;
 %rename (SetGenerate_DB2_V72_BYTE_ORDER) OGRSetGenerate_DB2_V72_BYTE_ORDER;
 %rename (RegisterAll) OGRRegisterAll();
-
-
-%rename (GeometryTypeToName) OGRGeometryTypeToName;
-const char *OGRGeometryTypeToName( OGRwkbGeometryType eType );
-
-%rename (GetFieldTypeName) OGR_GetFieldTypeName;
-const char * OGR_GetFieldTypeName(OGRFieldType type);
 
 /*
  *

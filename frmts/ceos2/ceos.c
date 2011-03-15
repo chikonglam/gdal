@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ceos.c 12600 2007-11-01 14:09:01Z dron $
+ * $Id: ceos.c 20996 2010-10-28 18:38:15Z rouault $
  *
  * Project:  ASI CEOS Translator
  * Purpose:  Core CEOS functions.
@@ -29,7 +29,7 @@
 
 #include "ceos.h"
 
-CPL_CVSID("$Id: ceos.c 12600 2007-11-01 14:09:01Z dron $");
+CPL_CVSID("$Id: ceos.c 20996 2010-10-28 18:38:15Z rouault $");
 
 /* Function implementations of functions described in ceos.h */
 
@@ -324,7 +324,7 @@ CeosRecord_t *FindCeosRecord(Link_t *record_list, CeosTypeCode_t typecode, int32
     return NULL;
 }
 
-void SerializeCeosRecordsToFile(Link_t *record_list, FILE *fp)
+void SerializeCeosRecordsToFile(Link_t *record_list, VSILFILE *fp)
 {
     Link_t *list;
     CeosRecord_t crec;
@@ -337,22 +337,22 @@ void SerializeCeosRecordsToFile(Link_t *record_list, FILE *fp)
 	memcpy(&crec,list->object,sizeof(CeosRecord_t));
 	Buffer = crec.Buffer;
 	crec.Buffer = NULL;
-	fwrite(&crec,sizeof(CeosRecord_t),1,fp);
-	fwrite(Buffer,crec.Length,1,fp);
+	VSIFWriteL(&crec,sizeof(CeosRecord_t),1,fp);
+	VSIFWriteL(Buffer,crec.Length,1,fp);
     }
 }
 
-void SerializeCeosRecordsFromFile(Link_t *record_list, FILE *fp)
+void SerializeCeosRecordsFromFile(Link_t *record_list, VSILFILE *fp)
 {
     CeosRecord_t *crec;
     Link_t *Link;
 
-    while(!feof(fp))
+    while(!VSIFEofL(fp))
     {
 	crec = HMalloc(sizeof(CeosRecord_t));
-	fread(crec,sizeof(CeosRecord_t),1,fp);
+	VSIFReadL(crec,sizeof(CeosRecord_t),1,fp);
 	crec->Buffer = HMalloc(crec->Length * sizeof(char) );
-	fread(crec->Buffer,sizeof(char),crec->Length,fp);
+	VSIFReadL(crec->Buffer,sizeof(char),crec->Length,fp);
 	Link = ceos2CreateLink(crec);
 	AddLink(record_list,Link);
     }

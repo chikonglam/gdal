@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: jp2userbox.cpp 20919 2010-10-21 02:00:35Z warmerdam $
+ * $Id: jp2userbox.cpp 21325 2010-12-28 23:44:31Z warmerdam $
  *
  * Project:  GDAL ECW Driver
  * Purpose:  JP2UserBox implementation - arbitrary box read/write.
@@ -29,7 +29,7 @@
 
 #include "jp2userbox.h"
 
-CPL_CVSID("$Id: jp2userbox.cpp 20919 2010-10-21 02:00:35Z warmerdam $");
+CPL_CVSID("$Id: jp2userbox.cpp 21325 2010-12-28 23:44:31Z warmerdam $");
 
 #if defined(HAVE_COMPRESS)
 
@@ -93,9 +93,13 @@ void JP2UserBox::UpdateXLBox()
 /*      Parse box, and data contents from file into memory.             */
 /************************************************************************/
 
+#if ECWSDK_VERSION >= 40
+CNCSError JP2UserBox::Parse( NCS::JP2::CFile &JP2File, 
+                             NCS::CIOStream &Stream )
+#else
 CNCSError JP2UserBox::Parse( class CNCSJP2File &JP2File, 
                              CNCSJPCIOStream &Stream )
-
+#endif
 {
     CNCSError Error = NCS_SUCCESS;
     
@@ -108,9 +112,13 @@ CNCSError JP2UserBox::Parse( class CNCSJP2File &JP2File,
 /*      Write box meta information, and data to file.                   */
 /************************************************************************/
 
+#if ECWSDK_VERSION >= 40
+CNCSError JP2UserBox::UnParse( NCS::JP2::CFile &JP2File, 
+                               NCS::CIOStream &Stream )
+#else
 CNCSError JP2UserBox::UnParse( class CNCSJP2File &JP2File, 
                                CNCSJPCIOStream &Stream )
-
+#endif
 {
     CNCSError Error = NCS_SUCCESS;
 

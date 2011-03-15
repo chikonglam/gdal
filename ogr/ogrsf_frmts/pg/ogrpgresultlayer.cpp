@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrpgresultlayer.cpp 18655 2010-01-24 19:42:09Z rouault $
+ * $Id: ogrpgresultlayer.cpp 20698 2010-09-26 13:38:41Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implements OGRPGResultLayer class, access the resultset from
@@ -32,7 +32,7 @@
 #include "ogr_pg.h"
 #include "ogrpgutility.h"
 
-CPL_CVSID("$Id: ogrpgresultlayer.cpp 18655 2010-01-24 19:42:09Z rouault $");
+CPL_CVSID("$Id: ogrpgresultlayer.cpp 20698 2010-09-26 13:38:41Z rouault $");
 
 
 /************************************************************************/
@@ -132,16 +132,27 @@ OGRFeatureDefn *OGRPGResultLayer::ReadResultDefinition(PGresult *hInitialResultI
         
         if( EQUAL(oField.GetNameRef(),"ogc_fid") )
         {
+            if (bHasFid)
+            {
+                CPLError(CE_Warning, CPLE_AppDefined,
+                         "More than one ogc_fid column was found in the result of the SQL request. Only last one will be used");
+            }
             bHasFid = TRUE;
+            CPLFree(pszFIDColumn);
             pszFIDColumn = CPLStrdup(oField.GetNameRef());
             continue;
         }
         else if( nTypeOID == poDS->GetGeometryOID()  ||
                  nTypeOID == poDS->GetGeographyOID()  ||
-                 EQUAL(oField.GetNameRef(),"ST_AsText") ||
                  EQUAL(oField.GetNameRef(),"ST_AsBinary") ||
+                 EQUAL(oField.GetNameRef(),"BinaryBase64") ||
+                 EQUAL(oField.GetNameRef(),"ST_AsEWKT") ||
+                 EQUAL(oField.GetNameRef(),"ST_AsEWKB") ||
+                 EQUAL(oField.GetNameRef(),"EWKBBase64") ||
+                 EQUAL(oField.GetNameRef(),"ST_AsText") ||
                  EQUAL(oField.GetNameRef(),"AsBinary") ||
                  EQUAL(oField.GetNameRef(),"asEWKT") ||
+                 EQUAL(oField.GetNameRef(),"asEWKB") ||
                  EQUAL(oField.GetNameRef(),"asText") )
         {
             if (bHasPostGISGeometry || bHasPostGISGeography )
@@ -406,14 +417,20 @@ void OGRPGResultLayer::SetSpatialFilter( OGRGeometry * poGeomIn )
         {
             if( m_poFilterGeom != NULL)
             {
+                char szBox3D_1[128];
+                char szBox3D_2[128];
+                char* pszComma;
                 OGREnvelope  sEnvelope;
 
                 m_poFilterGeom->getEnvelope( &sEnvelope );
-                osWHERE.Printf("WHERE \"%s\" && SetSRID('BOX3D(%.12f %.12f, %.12f %.12f)'::box3d,%d) ",
-                            pszGeomColumn,
-                            sEnvelope.MinX, sEnvelope.MinY,
-                            sEnvelope.MaxX, sEnvelope.MaxY,
-                            nSRSId );
+                snprintf(szBox3D_1, sizeof(szBox3D_1), "%.12f %.12f", sEnvelope.MinX, sEnvelope.MinY);
+                while((pszComma = strchr(szBox3D_1, ',')) != NULL)
+                    *pszComma = '.';
+                snprintf(szBox3D_2, sizeof(szBox3D_2), "%.12f %.12f", sEnvelope.MaxX, sEnvelope.MaxY);
+                while((pszComma = strchr(szBox3D_2, ',')) != NULL)
+                    *pszComma = '.';
+                osWHERE.Printf("WHERE \"%s\" && SetSRID('BOX3D(%s, %s)'::box3d,%d) ",
+                            pszGeomColumn, szBox3D_1, szBox3D_2, nSRSId );
             }
             else
             {

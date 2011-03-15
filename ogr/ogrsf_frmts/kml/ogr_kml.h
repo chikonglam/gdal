@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_kml.h 16908 2009-05-02 14:53:26Z rouault $
+ * $Id: ogr_kml.h 20996 2010-10-28 18:38:15Z rouault $
  *
  * Project:  KML Driver
  * Purpose:  Declarations for OGR wrapper classes for KML, and OGR->KML
@@ -120,7 +120,7 @@ public:
     const char* GetNameField() const { return pszNameField_; }
     const char* GetDescriptionField() const { return pszDescriptionField_; }
     const char* GetAltitudeMode() { return pszAltitudeMode_; }
-    FILE* GetOutputFP() { return fpOutput_; }
+    VSILFILE* GetOutputFP() { return fpOutput_; }
     void GrowExtents( OGREnvelope *psGeomBounds );
 #ifdef HAVE_EXPAT
     KML* GetKMLFile() { return poKMLFile_; };
@@ -150,7 +150,7 @@ private:
     char** papszCreateOptions_;
 
     // output related parameters 
-    FILE* fpOutput_;
+    VSILFILE* fpOutput_;
 
     OGREnvelope oEnvelope_;
     int nSchemaInsertLocation_;

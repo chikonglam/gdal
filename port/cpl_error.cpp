@@ -1,5 +1,5 @@
 /**********************************************************************
- * $Id: cpl_error.cpp 17293 2009-06-26 14:55:34Z warmerdam $
+ * $Id: cpl_error.cpp 19588 2010-04-30 19:56:38Z rouault $
  *
  * Name:     cpl_error.cpp
  * Project:  CPL - Common Portability Library
@@ -40,7 +40,7 @@
  
 #define TIMESTAMP_DEBUG
 
-CPL_CVSID("$Id: cpl_error.cpp 17293 2009-06-26 14:55:34Z warmerdam $");
+CPL_CVSID("$Id: cpl_error.cpp 19588 2010-04-30 19:56:38Z rouault $");
 
 static void *hErrorMutex = NULL;
 static CPLErrorHandler pfnErrorHandler = CPLDefaultErrorHandler;
@@ -62,7 +62,9 @@ typedef struct {
     CPLErr  eLastErrType;
     CPLErrorHandlerNode *psHandlerStack;
     int     nLastErrMsgMax;
+    int     nFailureIntoWarning;
     char    szLastErrMsg[DEFAULT_LAST_ERR_MSG_SIZE];
+    /* Do not add anything here. szLastErrMsg must be the last field. See CPLRealloc() below */
 } CPLErrorContext;
 
 /************************************************************************/
@@ -141,6 +143,9 @@ void    CPLError(CPLErr eErrClass, int err_no, const char *fmt, ...)
 void    CPLErrorV(CPLErr eErrClass, int err_no, const char *fmt, va_list args )
 {
     CPLErrorContext *psCtx = CPLGetErrorContext();
+
+    if (psCtx->nFailureIntoWarning > 0 && eErrClass == CE_Failure)
+        eErrClass = CE_Warning;
 
 /* -------------------------------------------------------------------- */
 /*      Expand the error message                                        */
@@ -380,7 +385,8 @@ void CPL_STDCALL CPLErrorReset()
 /**
  * Fetch the last error number.
  *
- * This is the error number, not the error class.
+ * Fetches the last error number posted with CPLError(), that hasn't
+ * been cleared by CPLErrorReset().  This is the error number, not the error class.
  *
  * @return the error number of the last error to occur, or CPLE_None (0)
  * if there are no posted errors.
@@ -400,9 +406,10 @@ int CPL_STDCALL CPLGetLastErrorNo()
 /**
  * Fetch the last error type.
  *
- * This is the error class, not the error number.
+ * Fetches the last error type posted with CPLError(), that hasn't
+ * been cleared by CPLErrorReset().  This is the error class, not the error number.
  *
- * @return the error number of the last error to occur, or CE_None (0)
+ * @return the error type of the last error to occur, or CE_None (0)
  * if there are no posted errors.
  */
 
@@ -581,6 +588,20 @@ void CPL_STDCALL CPLLoggingErrorHandler( CPLErr eErrClass, int nError,
         fprintf( fpLog, "ERROR %d: %s\n", nError, pszErrorMsg );
 
     fflush( fpLog );
+}
+
+/**********************************************************************
+ *                      CPLTurnFailureIntoWarning()                   *
+ **********************************************************************/
+
+void CPLTurnFailureIntoWarning(int bOn )
+{
+    CPLErrorContext *psCtx = CPLGetErrorContext();
+    psCtx->nFailureIntoWarning += (bOn) ? 1 : -1;
+    if (psCtx->nFailureIntoWarning < 0)
+    {
+        CPLDebug("CPL", "Wrong nesting of CPLTurnFailureIntoWarning(TRUE) / CPLTurnFailureIntoWarning(FALSE)");
+    }
 }
 
 /**********************************************************************

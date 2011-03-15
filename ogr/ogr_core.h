@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_core.h 17722 2009-10-01 16:40:26Z warmerdam $
+ * $Id: ogr_core.h 20885 2010-10-19 00:16:08Z warmerdam $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Define some core portability services for cross-platform OGR code.
@@ -328,6 +328,7 @@ int CPL_DLL OGRParseDate( const char *pszInput, OGRField *psOutput,
 #define OLCDeleteFeature       "DeleteFeature"
 #define OLCFastSetNextByIndex  "FastSetNextByIndex"
 #define OLCStringsAsUTF8       "StringsAsUTF8"
+#define OLCIgnoreFields        "IgnoreFields"
 
 #define ODsCCreateLayer        "CreateLayer"
 #define ODsCDeleteLayer        "DeleteLayer"

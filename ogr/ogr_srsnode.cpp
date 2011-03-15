@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_srsnode.cpp 18443 2010-01-05 19:33:15Z rouault $
+ * $Id: ogr_srsnode.cpp 20835 2010-10-15 20:00:50Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  The OGR_SRSNode class.
@@ -30,7 +30,7 @@
 #include "ogr_spatialref.h"
 #include "ogr_p.h"
 
-CPL_CVSID("$Id: ogr_srsnode.cpp 18443 2010-01-05 19:33:15Z rouault $");
+CPL_CVSID("$Id: ogr_srsnode.cpp 20835 2010-10-15 20:00:50Z rouault $");
 
 /************************************************************************/
 /*                            OGR_SRSNode()                             */
@@ -839,8 +839,9 @@ void OGR_SRSNode::StripNodes( const char * pszName )
  * wrong.  
  */
 
+/* EXTENSION ... being a OSR extension... is arbitrary placed before the AUTHORITY */
 static const char * const apszPROJCSRule[] = 
-{ "PROJCS", "GEOGCS", "PROJECTION", "PARAMETER", "UNIT", "AXIS", "AUTHORITY", 
+{ "PROJCS", "GEOGCS", "PROJECTION", "PARAMETER", "UNIT", "AXIS", "EXTENSION", "AUTHORITY", 
   NULL };
 
 static const char * const apszDATUMRule[] = 

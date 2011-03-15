@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id$
+ * $Id: ogrgeojsonwriter.cpp 21350 2010-12-30 18:35:09Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implementation of GeoJSON writer utilities (OGR GeoJSON Driver).
@@ -45,6 +45,15 @@ json_object* OGRGeoJSONWriteFeature( OGRFeature* poFeature )
 
     json_object_object_add( poObj, "type",
                             json_object_new_string("Feature") );
+
+/* -------------------------------------------------------------------- */
+/*      Write FID if available                                          */
+/* -------------------------------------------------------------------- */
+    if ( poFeature->GetFID() != OGRNullFID )
+    {
+        json_object_object_add( poObj, "id",
+                                json_object_new_int((int)poFeature->GetFID()) );
+    }
 
 /* -------------------------------------------------------------------- */
 /*      Write feature attributes to GeoJSON "properties" object.        */
@@ -200,7 +209,7 @@ json_object* OGRGeoJSONWritePoint( OGRPoint* poPoint )
     }
     else
     {
-        CPLAssert( !"SHOULD NEVER GET HERE" );
+        /* We can get here with POINT EMPTY geometries */
     }
 
     return poObj;
@@ -235,6 +244,8 @@ json_object* OGRGeoJSONWritePolygon( OGRPolygon* poPolygon )
     
     /* Exterior ring. */
     OGRLinearRing* poRing = poPolygon->getExteriorRing();
+    if (poRing == NULL)
+        return poObj;
     
     json_object* poObjRing = NULL;
     poObjRing = OGRGeoJSONWriteLineCoords( poRing );
@@ -245,6 +256,9 @@ json_object* OGRGeoJSONWritePolygon( OGRPolygon* poPolygon )
     for( int i = 0; i < nCount; ++i )
     {
         poRing = poPolygon->getInteriorRing( i );
+        if (poRing == NULL)
+            continue;
+
         poObjRing = OGRGeoJSONWriteLineCoords( poRing );
 
         json_object_array_add( poObj, poObjRing );
@@ -406,6 +420,17 @@ json_object* OGRGeoJSONWriteLineCoords( OGRLineString* poLine )
 /************************************************************************/
 /*                           OGR_G_ExportToJson                         */
 /************************************************************************/
+
+/**
+ * \brief Convert a geometry into GeoJSON format.
+ *
+ * The returned string should be freed with CPLFree() when no longer required.
+ *
+ * This method is the same as the C++ method OGRGeometry::exportToJson().
+ *
+ * @param hGeometry handle to the geometry.
+ * @return A GeoJSON fragment or NULL in case of error.
+ */
 
 char* OGR_G_ExportToJson( OGRGeometryH hGeometry )
 {

@@ -53,13 +53,13 @@ namespace PCIDSK
 
         PCIDSKBuffer &operator=(const PCIDSKBuffer& src);
 
-        const char *Get( int offset, int size );
-        void        Get( int offset, int size, std::string &target, int unpad=1 );
+        const char *Get( int offset, int size ) const;
+        void        Get( int offset, int size, std::string &target, int unpad=1 ) const;
 
-        double      GetDouble( int offset, int size );
-        int         GetInt( int offset, int size );
-        int64       GetInt64( int offset, int size );
-        uint64      GetUInt64( int offset, int size );
+        double      GetDouble( int offset, int size ) const;
+        int         GetInt( int offset, int size ) const;
+        int64       GetInt64( int offset, int size ) const;
+        uint64      GetUInt64( int offset, int size ) const;
 
         void        Put( const char *value,  int offset, int size );
         void        Put( uint64 value, int offset, int size );
@@ -70,7 +70,7 @@ namespace PCIDSK
         void        SetSize( int size );
         
     private:
-        std::string work_field;
+        mutable std::string work_field;
     };
 } // end namespace PCIDSK
 #endif // __INCLUDE_PCIDSKBUFFER_H 

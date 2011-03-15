@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: dodsdataset2.cpp 18515 2010-01-10 19:59:11Z rouault $
+ * $Id: dodsdataset2.cpp 20634 2010-09-16 22:02:29Z rouault $
  *
  * Project:  OPeNDAP Raster Driver
  * Purpose:  Implements DODSDataset and DODSRasterBand classes.
@@ -50,7 +50,14 @@
 #include <Sequence.h>
 #include <Grid.h>
 
-#include <AISConnect.h>		
+#ifdef LIBDAP_310
+/* AISConnect.h/AISConnect class was renamed to Connect.h/Connect in libdap 3.10 */
+#include <Connect.h>
+#define AISConnect Connect
+#else
+#include <AISConnect.h>
+#endif
+
 #include <DDS.h>
 #include <DAS.h>
 #include <BaseTypeFactory.h>
@@ -63,7 +70,7 @@
 
 using namespace libdap;
 
-CPL_CVSID("$Id: dodsdataset2.cpp 18515 2010-01-10 19:59:11Z rouault $");
+CPL_CVSID("$Id: dodsdataset2.cpp 20634 2010-09-16 22:02:29Z rouault $");
 
 CPL_C_START
 void GDALRegister_DODS(void);
@@ -1066,7 +1073,7 @@ DODSDataset::Open(GDALOpenInfo *poOpenInfo)
         string msg =
 "An error occurred while creating a virtual connection to the DAP server:\n";
         msg += e.get_error_message();
-        CPLError(CE_Failure, CPLE_AppDefined, msg.c_str());
+        CPLError(CE_Failure, CPLE_AppDefined, "%s", msg.c_str());
         delete poDS;
         poDS = NULL;
     }
@@ -1631,7 +1638,7 @@ DODSRasterBand::IReadBlock(int nBlockXOff, int nBlockYOff, void *pImage)
 /*      Catch exceptions                                                */
 /* -------------------------------------------------------------------- */
     catch (Error &e) {
-        CPLError(CE_Failure, CPLE_AppDefined, e.get_error_message().c_str());
+        CPLError(CE_Failure, CPLE_AppDefined, "%s", e.get_error_message().c_str());
         return CE_Failure;
     }
     

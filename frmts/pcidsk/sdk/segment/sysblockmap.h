@@ -49,12 +49,15 @@ namespace PCIDSK
     /*                             SysBlockMap                              */
     /************************************************************************/
 
-    class SysBlockMap : public CPCIDSKSegment
+    class SysBlockMap : virtual public CPCIDSKSegment
     {
     public:
         SysBlockMap( PCIDSKFile *file, int segment,const char *segment_pointer );
 
         virtual        ~SysBlockMap();
+
+        virtual void    Synchronize();
+        virtual void    Initialize();
 
         SysVirtualFile *GetVirtualFile( int image );
         int             CreateVirtualFile();
@@ -62,26 +65,28 @@ namespace PCIDSK
                                                 int block_width, int block_height,
                                                 eChanType chan_type,
                                                 std::string compression );
-        void            Synchronize();
-        void            Initialize();
         int             GrowVirtualFile( int image, int &last_block,
                                          int &block_segment_ret );
         void            SetVirtualFileSize( int image, uint64 file_length );
+
+        int             GetNextBlockMapEntry( int bm_index,
+                                              uint16 &segment,
+                                              int &block_in_segment );
     
     private:
-        bool         loaded;
+        bool         partial_loaded;
+        bool         full_loaded;
         bool         dirty;
 
-        void         Load();
+        void         PartialLoad();
+        void         FullLoad();
         void         AllocateBlocks();
 
-        PCIDSKBuffer seg_data;
+        PCIDSKBuffer layer_data; // only if partial_loaded
+        PCIDSKBuffer blockmap_data; // only if full_loaded.
 
         int          block_count;
         int          first_free_block;
-
-        int          block_map_offset;
-        int          layer_list_offset;
 
         int          growing_segment;
 

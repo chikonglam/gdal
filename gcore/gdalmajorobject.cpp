@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdalmajorobject.cpp 16573 2009-03-14 12:34:17Z rouault $
+ * $Id: gdalmajorobject.cpp 18719 2010-02-04 16:42:38Z mloskot $
  *
  * Project:  GDAL Core
  * Purpose:  Base class for objects with metadata, etc.
@@ -30,7 +30,7 @@
 #include "gdal_priv.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: gdalmajorobject.cpp 16573 2009-03-14 12:34:17Z rouault $");
+CPL_CVSID("$Id: gdalmajorobject.cpp 18719 2010-02-04 16:42:38Z mloskot $");
 
 /************************************************************************/
 /*                          GDALMajorObject()                           */
@@ -68,7 +68,7 @@ GDALMajorObject::~GDALMajorObject()
  *
  * This method is the same as the C function GDALGetDescription().
  * 
- * @return pointer to internal description string.
+ * @return non-null pointer to internal description string.
  */
 
 const char *GDALMajorObject::GetDescription() const

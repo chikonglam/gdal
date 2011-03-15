@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: rcreatecopy.cpp 17425 2009-07-21 21:05:07Z rouault $
+ * $Id: rcreatecopy.cpp 20996 2010-10-28 18:38:15Z rouault $
  *
  * Project:  R Format Driver
  * Purpose:  CreateCopy() implementation for R stats package object format.
@@ -30,7 +30,7 @@
 #include "gdal_pam.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: rcreatecopy.cpp 17425 2009-07-21 21:05:07Z rouault $");
+CPL_CVSID("$Id: rcreatecopy.cpp 20996 2010-10-28 18:38:15Z rouault $");
 
 /************************************************************************/
 /* ==================================================================== */
@@ -42,7 +42,7 @@ CPL_CVSID("$Id: rcreatecopy.cpp 17425 2009-07-21 21:05:07Z rouault $");
 /*                           RWriteInteger()                            */
 /************************************************************************/
 
-static void RWriteInteger( FILE *fp, int bASCII, int nValue )
+static void RWriteInteger( VSILFILE *fp, int bASCII, int nValue )
 
 {
     if( bASCII )
@@ -62,7 +62,7 @@ static void RWriteInteger( FILE *fp, int bASCII, int nValue )
 /*                            RWriteString()                            */
 /************************************************************************/
 
-static void RWriteString( FILE *fp, int bASCII, const char *pszValue )
+static void RWriteString( VSILFILE *fp, int bASCII, const char *pszValue )
 
 {
     RWriteInteger( fp, bASCII, 4105 );
@@ -113,7 +113,7 @@ RCreateCopy( const char * pszFilename, GDALDataset *poSrcDS,
 /* -------------------------------------------------------------------- */
 /*      Create the file.                                                */
 /* -------------------------------------------------------------------- */
-    FILE	*fp;
+    VSILFILE	*fp;
 
     fp = VSIFOpenL( osAdjustedFilename, "wb" );
     if( fp == NULL )

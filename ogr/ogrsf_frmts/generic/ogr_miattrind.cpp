@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_miattrind.cpp 19747 2010-05-21 21:45:56Z rouault $
+ * $Id: ogr_miattrind.cpp 20104 2010-07-18 17:34:53Z tamas $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implements interface to MapInfo .ID files used as attribute
@@ -32,7 +32,7 @@
 #include "mitab/mitab_priv.h"
 #include "cpl_minixml.h"
 
-CPL_CVSID("$Id: ogr_miattrind.cpp 19747 2010-05-21 21:45:56Z rouault $");
+CPL_CVSID("$Id: ogr_miattrind.cpp 20104 2010-07-18 17:34:53Z tamas $");
 
 /************************************************************************/
 /*                            OGRMIAttrIndex                            */
@@ -59,6 +59,7 @@ public:
     GByte      *BuildKey( OGRField *psKey );
     long        GetFirstMatch( OGRField *psKey );
     long       *GetAllMatches( OGRField *psKey );
+    long       *GetAllMatches( OGRField *psKey, long* panFIDList, int* nFIDCount, int* nLength );
 
     OGRErr      AddEntry( OGRField *psKey, long nFID );
     OGRErr      RemoveEntry( OGRField *psKey, long nFID );
@@ -106,6 +107,7 @@ public:
     /* custom to OGRMILayerAttrIndex */
     OGRErr      SaveConfigToXML();
     OGRErr      LoadConfigFromXML();
+    OGRErr      LoadConfigFromXML(const char* pszRawXML);
     void        AddAttrInd( int iField, int iINDIndex );
 
     OGRLayer   *GetLayer() { return poLayer; }
@@ -123,6 +125,8 @@ OGRMILayerAttrIndex::OGRMILayerAttrIndex()
     papoIndexList = NULL;
     bUnlinkINDFile = FALSE;
     bINDAsReadOnly = TRUE;
+    pszMIINDFilename = NULL;
+    pszMetadataFilename = NULL;
 }
 
 /************************************************************************/
@@ -167,6 +171,10 @@ OGRErr OGRMILayerAttrIndex::Initialize( const char *pszIndexPathIn,
     poLayer = poLayerIn;
 
     pszIndexPath = CPLStrdup( pszIndexPathIn );
+
+    /* try to process the XML string directly */
+    if (EQUALN(pszIndexPathIn, "<OGRMILayerAttrIndex>", 21))
+        return LoadConfigFromXML(pszIndexPathIn);
     
     pszMetadataFilename = CPLStrdup(
         CPLResetExtension( pszIndexPathIn, "idm" ) );
@@ -193,37 +201,13 @@ OGRErr OGRMILayerAttrIndex::Initialize( const char *pszIndexPathIn,
 /*                         LoadConfigFromXML()                          */
 /************************************************************************/
 
-OGRErr OGRMILayerAttrIndex::LoadConfigFromXML()
+OGRErr OGRMILayerAttrIndex::LoadConfigFromXML(const char* pszRawXML)
 
 {
-    FILE *fp;
-    int  nXMLSize;
-    char *pszRawXML;
-
-    CPLAssert( poINDFile == NULL );
-
-/* -------------------------------------------------------------------- */
-/*      Read the XML file.                                              */
-/* -------------------------------------------------------------------- */
-    fp = VSIFOpen( pszMetadataFilename, "rb" );
-    if( fp == NULL )
-        return OGRERR_NONE;
-
-    VSIFSeek( fp, 0, SEEK_END );
-    nXMLSize = VSIFTell( fp );
-    VSIFSeek( fp, 0, SEEK_SET );
-
-    pszRawXML = (char *) CPLMalloc(nXMLSize+1);
-    pszRawXML[nXMLSize] = '\0';
-    VSIFRead( pszRawXML, nXMLSize, 1, fp );
-
-    VSIFClose( fp );
-
 /* -------------------------------------------------------------------- */
 /*      Parse the XML.                                                  */
 /* -------------------------------------------------------------------- */
     CPLXMLNode *psRoot = CPLParseXMLString( pszRawXML );
-    CPLFree( pszRawXML );
 
     if( psRoot == NULL )
         return OGRERR_FAILURE;
@@ -232,12 +216,18 @@ OGRErr OGRMILayerAttrIndex::LoadConfigFromXML()
 /*      Open the index file.                                            */
 /* -------------------------------------------------------------------- */
     poINDFile = new TABINDFile();
+    
+    if (pszMIINDFilename == NULL)
+        pszMIINDFilename = CPLStrdup(CPLGetXMLValue(psRoot,"MIIDFilename",""));
+    
+    if( pszMIINDFilename == NULL )
+        return OGRERR_FAILURE;
 
     /* NOTE: Replaced r+ with r according to explanation in Ticket #1620.
      * This change has to be observed if it doesn't cause any
      * problems in future. (mloskot)
      */
-    if( poINDFile->Open( pszMetadataFilename, "r" ) != 0 )
+    if( poINDFile->Open( pszMIINDFilename, "r" ) != 0 )
     {
         CPLDestroyXMLNode( psRoot );
         CPLError( CE_Failure, CPLE_OpenFailed,
@@ -245,7 +235,6 @@ OGRErr OGRMILayerAttrIndex::LoadConfigFromXML()
                   pszMIINDFilename );
         return OGRERR_FAILURE;
     }
-
 /* -------------------------------------------------------------------- */
 /*      Process each attrindex.                                         */
 /* -------------------------------------------------------------------- */
@@ -281,6 +270,37 @@ OGRErr OGRMILayerAttrIndex::LoadConfigFromXML()
               pszMetadataFilename, pszMIINDFilename );
 
     return OGRERR_NONE;
+}
+
+OGRErr OGRMILayerAttrIndex::LoadConfigFromXML()
+{
+    FILE *fp;
+    int  nXMLSize;
+    char *pszRawXML;
+
+    CPLAssert( poINDFile == NULL );
+
+/* -------------------------------------------------------------------- */
+/*      Read the XML file.                                              */
+/* -------------------------------------------------------------------- */
+    fp = VSIFOpen( pszMetadataFilename, "rb" );
+    if( fp == NULL )
+        return OGRERR_NONE;
+
+    VSIFSeek( fp, 0, SEEK_END );
+    nXMLSize = VSIFTell( fp );
+    VSIFSeek( fp, 0, SEEK_SET );
+
+    pszRawXML = (char *) CPLMalloc(nXMLSize+1);
+    pszRawXML[nXMLSize] = '\0';
+    VSIFRead( pszRawXML, nXMLSize, 1, fp );
+
+    VSIFClose( fp );
+
+    OGRErr eErr = LoadConfigFromXML(pszRawXML);
+    CPLFree(pszRawXML);
+
+    return eErr;
 }
 
 /************************************************************************/
@@ -754,31 +774,40 @@ long OGRMIAttrIndex::GetFirstMatch( OGRField *psKey )
 /*                           GetAllMatches()                            */
 /************************************************************************/
 
-long *OGRMIAttrIndex::GetAllMatches( OGRField *psKey )
-
+long *OGRMIAttrIndex::GetAllMatches( OGRField *psKey, long* panFIDList, int* nFIDCount, int* nLength )
 {
     GByte *pabyKey = BuildKey( psKey );
-    long  *panFIDList = NULL, nFID;
-    int   nFIDCount=0, nFIDMax=2;
+    long nFID;
 
-    panFIDList = (long *) CPLMalloc(sizeof(long) * 2);
+    if (panFIDList == NULL)
+    {
+        panFIDList = (long *) CPLMalloc(sizeof(long) * 2);
+        *nFIDCount = 0;
+        *nLength = 2;
+    }
 
     nFID = poINDFile->FindFirst( iIndex, pabyKey );
     while( nFID > 0 )
     {
-        if( nFIDCount >= nFIDMax-1 )
+        if( *nFIDCount >= *nLength-1 )
         {
-            nFIDMax = nFIDMax * 2 + 10;
-            panFIDList = (long *) CPLRealloc(panFIDList, sizeof(long)*nFIDMax);
+            *nLength = (*nLength) * 2 + 10;
+            panFIDList = (long *) CPLRealloc(panFIDList, sizeof(long)* (*nLength));
         }
-        panFIDList[nFIDCount++] = nFID - 1;
+        panFIDList[(*nFIDCount)++] = nFID - 1;
         
         nFID = poINDFile->FindNext( iIndex, pabyKey );
     }
 
-    panFIDList[nFIDCount] = OGRNullFID;
+    panFIDList[*nFIDCount] = OGRNullFID;
     
     return panFIDList;
+}
+
+long *OGRMIAttrIndex::GetAllMatches( OGRField *psKey )
+{
+    int nFIDCount, nLength;
+    return GetAllMatches( psKey, NULL, &nFIDCount, &nLength );
 }
 
 /************************************************************************/

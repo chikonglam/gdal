@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gt_wkt_srs.cpp 18584 2010-01-19 04:24:54Z warmerdam $
+ * $Id: gt_wkt_srs.cpp 21448 2011-01-09 18:28:40Z rouault $
  *
  * Project:  GeoTIFF Driver
  * Purpose:  Implements translation between GeoTIFF normalized projection
@@ -30,25 +30,38 @@
  * DEALINGS IN THE SOFTWARE.
  ****************************************************************************/
 
-#include "cpl_port.h"
 #include "cpl_serv.h"
 #include "geo_tiffp.h"
 #define CPL_ERROR_H_INCLUDED
 
-#include "geo_normalize.h"
 #include "geovalues.h"
 #include "ogr_spatialref.h"
 #include "gdal.h"
 #include "xtiffio.h"
 #include "cpl_multiproc.h"
+#include "tifvsi.h"
+#include "gt_wkt_srs.h"
+#include "gt_wkt_srs_for_gdal.h"
+#include "gt_citation.h"
 
-CPL_CVSID("$Id: gt_wkt_srs.cpp 18584 2010-01-19 04:24:54Z warmerdam $")
+CPL_CVSID("$Id: gt_wkt_srs.cpp 21448 2011-01-09 18:28:40Z rouault $")
 
 CPL_C_START
-void GTiffOneTimeInit();
-int CPL_DLL VSIFCloseL( FILE * );
+#ifndef CPL_SERV_H_INTERNAL
+/* Make VSIL_STRICT_ENFORCE active in DEBUG builds */
+#ifdef DEBUG
+#define VSIL_STRICT_ENFORCE
+#endif
+
+#ifdef VSIL_STRICT_ENFORCE
+typedef struct _VSILFILE VSILFILE;
+#else
+typedef FILE VSILFILE;
+#endif
+
+int CPL_DLL VSIFCloseL( VSILFILE * );
 int CPL_DLL VSIUnlink( const char * );
-FILE CPL_DLL *VSIFileFromMemBuffer( const char *pszFilename, 
+VSILFILE CPL_DLL *VSIFileFromMemBuffer( const char *pszFilename,
                                     GByte *pabyData, 
                                     GUIntBig nDataLength,
                                     int bTakeOwnership );
@@ -56,19 +69,29 @@ GByte CPL_DLL *VSIGetMemFileBuffer( const char *pszFilename,
                                     GUIntBig *pnDataLength, 
                                     int bUnlinkAndSeize );
 
-char CPL_DLL *  GTIFGetOGISDefn( GTIF *, GTIFDefn * );
-int  CPL_DLL   GTIFSetFromOGISDefn( GTIF *, const char * );
+/* Those stuff are redefined in external libgeotiff cpl_serv.h */
+/* as macros. Let's use GDAL functions instead */
+/* E.Rouault : I'm wondering why we just don't #define CPL_SERV_H_INCLUDED */
+/* at the beginning of this file to avoid cpl_serv.h to be used at all ??? */
 
-CPLErr CPL_DLL GTIFMemBufFromWkt( const char *pszWKT, 
-                                  const double *padfGeoTransform,
-                                  int nGCPCount, const GDAL_GCP *pasGCPList,
-                                  int *pnSize, unsigned char **ppabyBuffer );
-CPLErr CPL_DLL GTIFWktFromMemBuf( int nSize, unsigned char *pabyBuffer, 
-                          char **ppszWKT, double *padfGeoTransform,
-                          int *pnGCPCount, GDAL_GCP **ppasGCPList );
+#undef CSVReadParseLine
+char CPL_DLL  **CSVReadParseLine( FILE *fp);
+#undef CSLDestroy
+void CPL_DLL CPL_STDCALL CSLDestroy(char **papszStrList);
+#undef VSIFree
+void CPL_DLL    VSIFree( void * );
+#undef CPLFree
+#define CPLFree VSIFree
+#undef CPLMalloc
+void CPL_DLL *CPLMalloc( size_t );
+#undef CPLCalloc
+void CPL_DLL *CPLCalloc( size_t, size_t );
+#undef CPLStrdup
+char CPL_DLL *CPLStrdup( const char * );
+
+#endif /* CPL_SERV_H_INTERNAL */
+
 CPL_C_END
-
-TIFF* VSI_TIFFOpen(const char* name, const char* mode);
 
 static const char *papszDatumEquiv[] =
 {
@@ -90,17 +113,23 @@ static const char *papszDatumEquiv[] =
 # define CT_CylindricalEqualArea 28
 #endif
 
-void SetLinearUnitCitation(GTIF* psGTIF, char* pszLinearUOMName);
-void SetGeogCSCitation(GTIF * psGTIF, OGRSpatialReference *poSRS, char* angUnitName, int nDatum, short nSpheroid);
-OGRBoolean SetCitationToSRS(GTIF* hGTIF, char* szCTString, int nCTStringLen,
-                            geokey_t geoKey, OGRSpatialReference* poSRS, OGRBoolean* linearUnitIsSet);
-void GetGeogCSFromCitation(char* szGCSName, int nGCSName,
-                           geokey_t geoKey, 
-                          char	**ppszGeogName,
-                          char	**ppszDatumName,
-                          char	**ppszPMName,
-                          char	**ppszSpheroidName,
-                          char	**ppszAngularUnits);
+/************************************************************************/
+/*                       GTIFToCPLRecyleString()                        */
+/*                                                                      */
+/*      This changes a string from the libgeotiff heap to the GDAL      */
+/*      heap.                                                           */
+/************************************************************************/
+
+static void GTIFToCPLRecycleString( char **ppszTarget )
+
+{
+    if( *ppszTarget == NULL )
+        return;
+
+    char *pszTempString = CPLStrdup(*ppszTarget);
+    GTIFFreeMemory( *ppszTarget );
+    *ppszTarget = pszTempString;
+}
 
 /************************************************************************/
 /*                          WKTMassageDatum()                           */
@@ -115,14 +144,7 @@ static void WKTMassageDatum( char ** ppszDatum )
     int		i, j;
     char	*pszDatum;
 
-/* -------------------------------------------------------------------- */
-/*      First copy string and allocate with our CPLStrdup() to so we    */
-/*      know when we are done this function we will have a CPL          */
-/*      string, not a GTIF one.                                         */
-/* -------------------------------------------------------------------- */
-    pszDatum = CPLStrdup(*ppszDatum);
-    GTIFFreeMemory( *ppszDatum );
-    *ppszDatum = pszDatum;
+    pszDatum = *ppszDatum;
     if (pszDatum[0] == '\0')
         return;
 
@@ -180,11 +202,11 @@ static void WKTMassageDatum( char ** ppszDatum )
 /************************************************************************/
 
 /* For example:
-   GTCitationGeoKey (Ascii,215): "IMAGINE GeoTIFF Support\nCopyright 1991 - 2001 by ERDAS, Inc. All Rights Reserved\n@(#)$RCSfile$ $Revision: 18584 $ $Date: 2010-01-18 20:24:54 -0800 (Mon, 18 Jan 2010) $\nProjection Name = UTM\nUnits = meters\nGeoTIFF Units = meters"
+   GTCitationGeoKey (Ascii,215): "IMAGINE GeoTIFF Support\nCopyright 1991 - 2001 by ERDAS, Inc. All Rights Reserved\n@(#)$RCSfile$ $Revision: 21448 $ $Date: 2011-01-09 10:28:40 -0800 (Sun, 09 Jan 2011) $\nProjection Name = UTM\nUnits = meters\nGeoTIFF Units = meters"
 
-   GeogCitationGeoKey (Ascii,267): "IMAGINE GeoTIFF Support\nCopyright 1991 - 2001 by ERDAS, Inc. All Rights Reserved\n@(#)$RCSfile$ $Revision: 18584 $ $Date: 2010-01-18 20:24:54 -0800 (Mon, 18 Jan 2010) $\nUnable to match Ellipsoid (Datum) to a GeographicTypeGeoKey value\nEllipsoid = Clarke 1866\nDatum = NAD27 (CONUS)"
+   GeogCitationGeoKey (Ascii,267): "IMAGINE GeoTIFF Support\nCopyright 1991 - 2001 by ERDAS, Inc. All Rights Reserved\n@(#)$RCSfile$ $Revision: 21448 $ $Date: 2011-01-09 10:28:40 -0800 (Sun, 09 Jan 2011) $\nUnable to match Ellipsoid (Datum) to a GeographicTypeGeoKey value\nEllipsoid = Clarke 1866\nDatum = NAD27 (CONUS)"
 
-   PCSCitationGeoKey (Ascii,214): "IMAGINE GeoTIFF Support\nCopyright 1991 - 2001 by ERDAS, Inc. All Rights Reserved\n@(#)$RCSfile$ $Revision: 18584 $ $Date: 2010-01-18 20:24:54 -0800 (Mon, 18 Jan 2010) $\nUTM Zone 10N\nEllipsoid = Clarke 1866\nDatum = NAD27 (CONUS)"
+   PCSCitationGeoKey (Ascii,214): "IMAGINE GeoTIFF Support\nCopyright 1991 - 2001 by ERDAS, Inc. All Rights Reserved\n@(#)$RCSfile$ $Revision: 21448 $ $Date: 2011-01-09 10:28:40 -0800 (Sun, 09 Jan 2011) $\nUTM Zone 10N\nEllipsoid = Clarke 1866\nDatum = NAD27 (CONUS)"
  
 */
 
@@ -355,23 +377,36 @@ char *GTIFGetOGISDefn( GTIF *hGTIF, GTIFDefn * psDefn )
         && hGTIF != NULL 
         && GTIFKeyGet( hGTIF, GeogCitationGeoKey, szGCSName, 0, 
                        sizeof(szGCSName)) )
-      GetGeogCSFromCitation(szGCSName, sizeof(szGCSName),
-                            GeogCitationGeoKey, 
-                          &pszGeogName, &pszDatumName,
-                          &pszPMName, &pszSpheroidName,
-                          &pszAngularUnits);
-
+    {
+        GetGeogCSFromCitation(szGCSName, sizeof(szGCSName),
+                              GeogCitationGeoKey, 
+                              &pszGeogName, &pszDatumName,
+                              &pszPMName, &pszSpheroidName,
+                              &pszAngularUnits);
+    }
+    else
+        GTIFToCPLRecycleString( &pszGeogName );
+        
     if( !pszDatumName )
+    {
       GTIFGetDatumInfo( psDefn->Datum, &pszDatumName, NULL );
+      GTIFToCPLRecycleString( &pszDatumName );
+    }
     if( !pszSpheroidName )
+    {
       GTIFGetEllipsoidInfo( psDefn->Ellipsoid, &pszSpheroidName, NULL, NULL );
+      GTIFToCPLRecycleString( &pszSpheroidName );
+    }
     else
     {
       GTIFKeyGet(hGTIF, GeogSemiMajorAxisGeoKey, &(psDefn->SemiMajor), 0, 1 );
       GTIFKeyGet(hGTIF, GeogInvFlatteningGeoKey, &dfInvFlattening, 0, 1 );
     }
     if( !pszPMName )
-      GTIFGetPMInfo( psDefn->PM, &pszPMName, NULL );
+    {
+        GTIFGetPMInfo( psDefn->PM, &pszPMName, NULL );
+        GTIFToCPLRecycleString( &pszPMName );
+    }
     else
       GTIFKeyGet(hGTIF, GeogPrimeMeridianLongGeoKey, &(psDefn->PMLongToGreenwich), 0, 1 );
     
@@ -380,6 +415,8 @@ char *GTIFGetOGISDefn( GTIF *hGTIF, GTIFDefn * psDefn )
       GTIFGetUOMAngleInfo( psDefn->UOMAngle, &pszAngularUnits, NULL );
       if( pszAngularUnits == NULL )
           pszAngularUnits = CPLStrdup("unknown");
+      else
+          GTIFToCPLRecycleString( &pszAngularUnits );
     }
     else
     {
@@ -387,8 +424,8 @@ char *GTIFGetOGISDefn( GTIF *hGTIF, GTIFDefn * psDefn )
       aUnitGot = TRUE;
     }
 
-    if( pszDatumName != NULL )            /* was a GTIFFreeMemory'able string */
-        WKTMassageDatum( &pszDatumName ); /* now a CPLFree'able string */
+    if( pszDatumName != NULL )
+        WKTMassageDatum( &pszDatumName );
 
     dfSemiMajor = psDefn->SemiMajor;
     if( dfSemiMajor == 0.0 )
@@ -409,9 +446,10 @@ char *GTIFGetOGISDefn( GTIF *hGTIF, GTIFDefn * psDefn )
     }
     if(!pszGeogName || strlen(pszGeogName) == 0)
     {
-      GTIFFreeMemory(pszGeogName);             /* was a GTIFFreeMemory'able string */
-      pszGeogName = CPLStrdup( pszDatumName ); /* now a CPLFree'able string */
+        CPLFree(pszGeogName);
+        pszGeogName = CPLStrdup( pszDatumName );
     }
+
     if(aUnitGot)
       oSRS.SetGeogCS( pszGeogName, pszDatumName, 
                       pszSpheroidName, dfSemiMajor, dfInvFlattening,
@@ -438,9 +476,9 @@ char *GTIFGetOGISDefn( GTIF *hGTIF, GTIFDefn * psDefn )
 
     CPLFree( pszGeogName );
     CPLFree( pszDatumName );
-    GTIFFreeMemory( pszPMName );
-    GTIFFreeMemory( pszSpheroidName );
-    GTIFFreeMemory( pszAngularUnits );
+    CPLFree( pszSpheroidName );
+    CPLFree( pszPMName );
+    CPLFree( pszAngularUnits );
         
 /* ==================================================================== */
 /*      Handle projection parameters.                                   */
@@ -651,6 +689,8 @@ char *GTIFGetOGISDefn( GTIF *hGTIF, GTIFDefn * psDefn )
     const char *pszFilename = NULL;
     const char *pszValue;
     char szSearchKey[128];
+    bool bNeedManualVertCS = false;
+    char citation[2048];
 
     // Don't do anything if there is no apparent vertical information.
     GTIFKeyGet( hGTIF, VerticalCSTypeGeoKey, &verticalCSType, 0, 1 );
@@ -660,8 +700,6 @@ char *GTIFGetOGISDefn( GTIF *hGTIF, GTIFDefn * psDefn )
     if( (verticalCSType != -1 || verticalDatum != -1 || verticalUnits != -1)
         && (oSRS.IsGeographic() || oSRS.IsProjected() || oSRS.IsLocal()) )
     {
-        char citation[2048];
-        
         if( !GTIFKeyGet( hGTIF, VerticalCitationGeoKey, &citation, 
                          0, sizeof(citation) ) )
             strcpy( citation, "unknown" );
@@ -704,11 +742,30 @@ char *GTIFGetOGISDefn( GTIF *hGTIF, GTIFDefn * psDefn )
         oSRS.Clear();
         oSRS.SetNode( "COMPD_CS", "unknown" );
         oSRS.GetRoot()->AddChild( poOldRoot );
-        
+
+/* -------------------------------------------------------------------- */
+/*      If we have the vertical cs, try to look it up using the         */
+/*      vertcs.csv file, and use the definition provided by that.       */
+/* -------------------------------------------------------------------- */
+        bNeedManualVertCS = true;
+
+        if( verticalCSType != KvUserDefined && verticalCSType > 0 )
+        {
+            OGRSpatialReference oVertSRS;
+            if( oVertSRS.importFromEPSG( verticalCSType ) == OGRERR_NONE )
+            {
+                oSRS.GetRoot()->AddChild( oVertSRS.GetRoot()->Clone() );
+                bNeedManualVertCS = false;
+            }
+        }
+    }
+
 /* -------------------------------------------------------------------- */
 /*      Collect some information from the VerticalCS if not provided    */
 /*      via geokeys.                                                    */
 /* -------------------------------------------------------------------- */
+    if( bNeedManualVertCS )
+    {
         if( verticalCSType > 0 && verticalCSType != KvUserDefined )
         {
             pszFilename = CSVFilename( "coordinate_reference_system.csv" );
@@ -877,6 +934,7 @@ static int OGCDatumName2EPSGDatumCode( const char * pszOGCName )
     char	**papszTokens;
     int		nReturn = KvUserDefined;
 
+
 /* -------------------------------------------------------------------- */
 /*      Do we know it as a built in?                                    */
 /* -------------------------------------------------------------------- */
@@ -891,7 +949,7 @@ static int OGCDatumName2EPSGDatumCode( const char * pszOGCName )
         return Datum_WGS84;
     else if( EQUAL(pszOGCName,"WGS72") || EQUAL(pszOGCName,"WGS_1972") )
         return Datum_WGS72;
-    
+
 /* -------------------------------------------------------------------- */
 /*      Open the table if possible.                                     */
 /* -------------------------------------------------------------------- */
@@ -1995,7 +2053,7 @@ CPLErr GTIFWktFromMemBuf( int nSize, unsigned char *pabyBuffer,
 /* -------------------------------------------------------------------- */
 /*      Create a memory file from the buffer.                           */
 /* -------------------------------------------------------------------- */
-    FILE *fp = VSIFileFromMemBuffer( szFilename, pabyBuffer, nSize, FALSE );
+    VSILFILE *fp = VSIFileFromMemBuffer( szFilename, pabyBuffer, nSize, FALSE );
     if( fp == NULL )
         return CE_Failure;
     VSIFCloseL( fp );

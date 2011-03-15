@@ -28,8 +28,13 @@
  * DEALINGS IN THE SOFTWARE.
  *****************************************************************************/
 
+#include "gdal_priv.h"
+
+#include <string.h>
+
 #include "georaster_priv.h"
 #include "cpl_vsi.h"
+#include "cpl_error.h"
 
 //  ---------------------------------------------------------------------------
 //                                                        GeoRasterRasterBand()
@@ -42,7 +47,7 @@ GeoRasterRasterBand::GeoRasterRasterBand( GeoRasterDataset *poGDS,
     poDS                = (GDALDataset*) poGDS;
     poGeoRaster         = poGDS->poGeoRaster;
     this->nBand         = nBand;
-    this->eDataType     = OWGetDataType( poGeoRaster->pszCellDepth );
+    this->eDataType     = OWGetDataType( poGeoRaster->sCellDepth.c_str() );
     poColorTable        = new GDALColorTable();
     poDefaultRAT        = NULL;
     pszVATName          = NULL;
@@ -54,18 +59,21 @@ GeoRasterRasterBand::GeoRasterRasterBand( GeoRasterDataset *poGDS,
     bValidStats         = false;
     nOverviewLevel      = nLevel;
     papoOverviews       = NULL;
-    nOverviews          = 0;
-
+    nOverviewCount      = 0;
+    pahNoDataArray      = NULL;
+    nNoDataArraySz      = 0;
+    bHasNoDataArray     = false;
+    
     //  -----------------------------------------------------------------------
     //  Initialize overview list
     //  -----------------------------------------------------------------------
 
     if( nLevel == 0 && poGeoRaster->nPyramidMaxLevel > 0 )
     {
-        nOverviews      = poGeoRaster->nPyramidMaxLevel;
+        nOverviewCount      = poGeoRaster->nPyramidMaxLevel;
         papoOverviews   = (GeoRasterRasterBand**) VSIMalloc(
-                sizeof(GeoRasterRasterBand*) * nOverviews );
-        for( int i = 0; i < nOverviews; i++ )
+                sizeof(GeoRasterRasterBand*) * nOverviewCount );
+        for( int i = 0; i < nOverviewCount; i++ )
         {
           papoOverviews[i] = new GeoRasterRasterBand(
                 (GeoRasterDataset*) poDS, nBand, i + 1 );
@@ -90,6 +98,81 @@ GeoRasterRasterBand::GeoRasterRasterBand( GeoRasterDataset *poGDS,
             nBlockYSize = nRasterYSize;
         }
     }
+
+    //  -----------------------------------------------------------------------
+    //  Load NoData values and value ranges for this band (layer)
+    //  -----------------------------------------------------------------------
+
+    if( ( (GeoRasterDataset*) poDS)->bApplyNoDataArray )
+    {
+        CPLList* psList = NULL;
+        int nLayerCount = 0;
+        int nObjCount = 0;
+
+        /*
+         *  Count the number of NoData values and value ranges
+         */
+
+        for( psList = poGeoRaster->psNoDataList; psList ; psList = psList->psNext )
+        {
+            hNoDataItem* phItem = (hNoDataItem*) psList->pData;
+
+            if( phItem->nBand == nBand )
+            {
+                nLayerCount++;
+            }
+
+            if( phItem->nBand == 0 )
+            {
+                nObjCount++;
+            }
+
+            if( phItem->nBand > nBand )
+            {
+                break;
+            }
+        }
+
+        /*
+         * Join the object nodata values to layer NoData values
+         */
+
+        nNoDataArraySz = nLayerCount + nObjCount;
+
+        pahNoDataArray = (hNoDataItem*) VSIMalloc2( sizeof(hNoDataItem),
+                nNoDataArraySz );
+
+        int i = 0;
+        bool bFirst = true;
+
+        for( psList = poGeoRaster->psNoDataList ; psList && i < nNoDataArraySz;
+             psList = psList->psNext )
+        {
+            hNoDataItem* phItem = (hNoDataItem*) psList->pData;
+
+            if( phItem->nBand == nBand || phItem->nBand == 0 )
+            {
+                pahNoDataArray[i].nBand = nBand;
+                pahNoDataArray[i].dfLower = phItem->dfLower;
+                pahNoDataArray[i].dfUpper = phItem->dfUpper;
+                i++;
+
+                if( bFirst )
+                {
+                    bFirst = false;
+
+                    /*
+                     * Use the first value to assigned pixel values
+                     * on method ApplyNoDataArray()
+                     */
+                    
+                    dfNoData = phItem->dfLower;
+                }
+            }
+        }
+
+        bHasNoDataArray = nNoDataArraySz > 0;
+    }
 }
 
 //  ---------------------------------------------------------------------------
@@ -102,10 +185,11 @@ GeoRasterRasterBand::~GeoRasterRasterBand()
     delete poDefaultRAT;
     
     CPLFree( pszVATName );
+    CPLFree( pahNoDataArray );
 
-    if( nOverviews && papoOverviews )
+    if( nOverviewCount && papoOverviews )
     {
-        for( int i = 0; i < nOverviews; i++ )
+        for( int i = 0; i < nOverviewCount; i++ )
         {
             delete papoOverviews[i];
         }
@@ -128,6 +212,11 @@ CPLErr GeoRasterRasterBand::IReadBlock( int nBlockXOff,
                                    nBlockYOff,
                                    pImage ) )
     {
+        if( bHasNoDataArray )
+        {
+            ApplyNoDataArry( pImage );
+        }
+
         return CE_None;
     }
     else
@@ -332,7 +421,14 @@ double GeoRasterRasterBand::GetNoDataValue( int *pbSuccess )
 {
     if( pbSuccess )
     {
-        *pbSuccess = (int) poGeoRaster->GetNoData( &dfNoData );
+        if( nNoDataArraySz )
+        {
+            *pbSuccess = true;
+        }
+        else
+        {
+            *pbSuccess = (int) poGeoRaster->GetNoData( nBand, &dfNoData );
+        }
     }
 
     return dfNoData;
@@ -344,7 +440,11 @@ double GeoRasterRasterBand::GetNoDataValue( int *pbSuccess )
 
 CPLErr GeoRasterRasterBand::SetNoDataValue( double dfNoDataValue )
 {
-    poGeoRaster->SetNoData( dfNoDataValue );
+    const char* pszFormat = 
+        (eDataType == GDT_Float32 || eDataType == GDT_Float64) ? "%f" : "%.0f";
+
+    poGeoRaster->SetNoData( (poDS->GetRasterCount() == 1) ? 0 : nBand,
+        CPLSPrintf( pszFormat, dfNoDataValue ) );
 
     return CE_None;
 }
@@ -370,23 +470,44 @@ CPLErr GeoRasterRasterBand::SetDefaultRAT( const GDALRasterAttributeTable *poRAT
     poDefaultRAT = poRAT->Clone();
 
     // ----------------------------------------------------------
+    // Check if RAT is just colortable and/or histogram
+    // ----------------------------------------------------------
+
+    CPLString sColName = "";
+    int  iCol = 0;
+    int  nColCount = poRAT->GetColumnCount();
+
+    for( iCol = 0; iCol < poRAT->GetColumnCount(); iCol++ )
+    {
+        sColName = poRAT->GetNameOfCol( iCol );
+
+        if( EQUAL( sColName, "histogram" ) ||
+            EQUAL( sColName, "red" ) ||
+            EQUAL( sColName, "green" ) ||
+            EQUAL( sColName, "blue" ) ||
+            EQUAL( sColName, "opacity" ) )
+        {
+            nColCount--;
+        }
+    }
+
+    if( nColCount < 2 )
+    {
+        return CE_None;
+    }
+
+    // ----------------------------------------------------------
     // Format Table description
     // ----------------------------------------------------------
 
     char szName[OWTEXT];
     char szDescription[OWTEXT];
-    int  iCol = 0;
 
     strcpy( szDescription, "( ID NUMBER" );
 
     for( iCol = 0; iCol < poRAT->GetColumnCount(); iCol++ )
     {
         strcpy( szName, poRAT->GetNameOfCol( iCol ) );
-
-    if( EQUAL( szName, "histogram" ) )
-    {
-        return CE_None;
-    }
 
         strcpy( szDescription, CPLSPrintf( "%s, %s",
             szDescription, szName ) );
@@ -403,8 +524,8 @@ CPLErr GeoRasterRasterBand::SetDefaultRAT( const GDALRasterAttributeTable *poRAT
         }
         if( poRAT->GetTypeOfCol( iCol ) == GFT_String )
         {
-            strcpy( szDescription, CPLSPrintf( "%s VARCHAR2(128)",
-                szDescription ) );
+            strcpy( szDescription, CPLSPrintf( "%s VARCHAR2(%d)",
+                szDescription, MAXLEN_VATSTR) );
         }
     }
     strcpy( szDescription, CPLSPrintf( "%s )", szDescription ) );
@@ -417,7 +538,7 @@ CPLErr GeoRasterRasterBand::SetDefaultRAT( const GDALRasterAttributeTable *poRAT
     {
         pszVATName = CPLStrdup( CPLSPrintf(
             "RAT_%s_%d_%d", 
-            poGeoRaster->pszDataTable, 
+            poGeoRaster->sDataTable.c_str(),
             poGeoRaster->nRasterId,
             nBand ) );
     }
@@ -459,68 +580,131 @@ CPLErr GeoRasterRasterBand::SetDefaultRAT( const GDALRasterAttributeTable *poRAT
     int iEntry       = 0;
     int nEntryCount  = poRAT->GetRowCount();
     int nColunsCount = poRAT->GetColumnCount();
+    int nVATStrSize  = MAXLEN_VATSTR * poGeoRaster->poConnection->GetCharSize();
 
-    char szInsert[OWTEXT];
+    // ---------------------------
+    // Allocate array of buffers
+    // ---------------------------
 
-    CPLString osInserts = 
-        "DECLARE\n"
-        "  GR1  SDO_GEORASTER   := NULL;\n"
-        "BEGIN\n";
+    void** papWriteFields = (void**) VSIMalloc2(sizeof(void*), nColunsCount + 1);
+
+    papWriteFields[0] = 
+        (void*) VSIMalloc3(sizeof(int), sizeof(int), nEntryCount ); // ID field
+
+    for(iCol = 0; iCol < nColunsCount; iCol++)
+    {
+        if( poRAT->GetTypeOfCol( iCol ) == GFT_String )
+        {
+            papWriteFields[iCol + 1] =
+                (void*) VSIMalloc3(sizeof(char), nVATStrSize, nEntryCount );
+        }
+        if( poRAT->GetTypeOfCol( iCol ) == GFT_Integer )
+        {
+            papWriteFields[iCol + 1] =
+                (void*) VSIMalloc3(sizeof(int), sizeof(int), nEntryCount );
+        }
+        if( poRAT->GetTypeOfCol( iCol ) == GFT_Real )
+        {
+            papWriteFields[iCol + 1] =
+                 (void*) VSIMalloc3(sizeof(double), sizeof(double), nEntryCount );
+        }
+    }
+    
+    // ---------------------------
+    // Load data to buffers
+    // ---------------------------
 
     for( iEntry = 0; iEntry < nEntryCount; iEntry++ )
     {
-        szInsert[0] = '\0';
+        ((int *)(papWriteFields[0]))[iEntry] = iEntry; // ID field
 
-        strcat( szInsert, CPLSPrintf ( "  INSERT INTO %s VALUES (%d", 
-            pszVATName, iEntry ) );
-
-        for( iCol = 0; iCol < nColunsCount; iCol++ )
+        for(iCol = 0; iCol < nColunsCount; iCol++)
         {
             if( poRAT->GetTypeOfCol( iCol ) == GFT_String )
             {
-                strcat( szInsert, CPLSPrintf ( ", '%s'", 
-                    poRAT->GetValueAsString( iEntry, iCol ) ) );
+
+                int nOffset = iEntry * nVATStrSize;
+                char* pszTarget = ((char*)papWriteFields[iCol + 1]) + nOffset;
+                const char *pszStrValue = poRAT->GetValueAsString(iEntry, iCol);
+                int nLen = strlen( pszStrValue );
+                nLen = nLen > ( nVATStrSize - 1 ) ? nVATStrSize : ( nVATStrSize - 1 );
+                strncpy( pszTarget, pszStrValue, nLen );
+                pszTarget[nLen] = '\0';
             }
-            if( poRAT->GetTypeOfCol( iCol ) == GFT_Integer ||
-                poRAT->GetTypeOfCol( iCol ) == GFT_Real )
+            if( poRAT->GetTypeOfCol( iCol ) == GFT_Integer )
             {
-                strcat( szInsert, CPLSPrintf ( ", %s", 
-                    poRAT->GetValueAsString( iEntry, iCol ) ) );
+                ((int *)(papWriteFields[iCol + 1]))[iEntry] =
+                    poRAT->GetValueAsInt(iEntry, iCol);
+            }
+            if( poRAT->GetTypeOfCol( iCol ) == GFT_Real )
+            {
+                ((double *)(papWriteFields[iCol]))[iEntry + 1] =
+                    poRAT->GetValueAsDouble(iEntry, iCol);
             }
         }
-
-        strcat( szInsert, ");\n" );
-        osInserts += szInsert;
     }
 
-    osInserts += CPLSPrintf(
-        "  SELECT %s INTO GR1 FROM %s T WHERE\n"
-        "    T.%s.RasterDataTable = '%s' AND\n"
-        "    T.%s.RasterId = %d FOR UPDATE;\n"
-        "  SDO_GEOR.setVAT(GR1, %d, '%s');\n"
-        "  UPDATE %s T SET %s = GR1 WHERE\n"
-        "    T.%s.RasterDataTable = '%s' AND\n"
-        "    T.%s.RasterId = %d;\n"
-        "END;",
-        poGeoRaster->pszColumn, poGeoRaster->pszTable,
-        poGeoRaster->pszColumn, poGeoRaster->pszDataTable,
-        poGeoRaster->pszColumn, poGeoRaster->nRasterId,
-        nBand, pszVATName,
-        poGeoRaster->pszTable,  poGeoRaster->pszColumn,
-        poGeoRaster->pszColumn, poGeoRaster->pszDataTable,
-        poGeoRaster->pszColumn, poGeoRaster->nRasterId  );
+    // ---------------------------
+    // Prepare insert statement
+    // ---------------------------
 
-    poStmt = poGeoRaster->poConnection->CreateStatement( osInserts.c_str() );
-
-    if( ! poStmt->Execute() )
+    CPLString osInsert = CPLSPrintf( "INSERT INTO %s VALUES (", pszVATName );
+    
+    for( iCol = 0; iCol < ( nColunsCount + 1); iCol++ )
     {
-        CPLError( CE_Failure, CPLE_AppDefined, "Insert/registering VAT Error!" );
-        return CE_Failure;
+        if( iCol > 0 )
+        {
+            osInsert.append(", ");
+        }
+        osInsert.append( CPLSPrintf(":%d", iCol + 1) );
     }
+    osInsert.append(")");
+
+    poStmt = poGeoRaster->poConnection->CreateStatement( osInsert.c_str() );
+
+    // ---------------------------
+    // Bind buffers to columns
+    // ---------------------------
+
+    poStmt->Bind((int*) papWriteFields[0]); // ID field
+    
+    for(iCol = 0; iCol < nColunsCount; iCol++)
+    {
+        if( poRAT->GetTypeOfCol( iCol ) == GFT_String )
+        {
+            poStmt->Bind( (char*) papWriteFields[iCol + 1], nVATStrSize );
+        }
+        if( poRAT->GetTypeOfCol( iCol ) == GFT_Integer )
+        {
+            poStmt->Bind( (int*) papWriteFields[iCol + 1]);
+        }
+        if( poRAT->GetTypeOfCol( iCol ) == GFT_Real )
+        {
+            poStmt->Bind( (double*) papWriteFields[iCol + 1]);
+        }
+    }
+
+    if( poStmt->Execute( iEntry ) )
+    {
+        poGDS->poGeoRaster->SetVAT( nBand, pszVATName );
+    }
+    else
+    {
+        CPLError( CE_Failure, CPLE_AppDefined, "Insert VAT Error!" );
+    }
+
+    // ---------------------------
+    // Clean up
+    // ---------------------------
+
+    for(iCol = 0; iCol < ( nColunsCount + 1); iCol++)
+    {
+        CPLFree( papWriteFields[iCol] );
+    }
+    
+    CPLFree( papWriteFields );
 
     delete poStmt;
-
-    poGDS->poGeoRaster->SetVAT( nBand, pszVATName );
 
     return CE_None;
 }
@@ -677,7 +861,7 @@ const GDALRasterAttributeTable *GeoRasterRasterBand::GetDefaultRAT()
 
 int GeoRasterRasterBand::GetOverviewCount()
 {
-    return nOverviews;
+    return nOverviewCount;
 }
 
 //  ---------------------------------------------------------------------------
@@ -686,7 +870,7 @@ int GeoRasterRasterBand::GetOverviewCount()
 
 GDALRasterBand* GeoRasterRasterBand::GetOverview( int nLevel )
 {
-    if( nLevel < nOverviews && papoOverviews[ nLevel ] )
+    if( nLevel < nOverviewCount && papoOverviews[ nLevel ] )
     {
         return (GDALRasterBand*) papoOverviews[ nLevel ];
     }
@@ -741,3 +925,156 @@ int GeoRasterRasterBand::GetMaskFlags()
     return GMF_ALL_VALID;
 }
 
+//  ---------------------------------------------------------------------------
+//                                                            ApplyNoDataArry()
+//  ---------------------------------------------------------------------------
+
+void GeoRasterRasterBand::ApplyNoDataArry(void* pBuffer)
+{
+    int i = 0;
+    int j = 0;
+    long n = nBlockXSize * nBlockYSize;
+
+    switch( eDataType )
+    {
+        case GDT_Byte:
+        {
+            GByte* pbBuffer = (GByte*) pBuffer;
+
+            for( i = 0; i < n; i++ )
+            {
+                for( j = 0; j < nNoDataArraySz; j++ )
+                {
+                    if( pbBuffer[i] == (GByte) pahNoDataArray[j].dfLower ||
+                      ( pbBuffer[i] >  (GByte) pahNoDataArray[j].dfLower &&
+                        pbBuffer[i] <  (GByte) pahNoDataArray[j].dfUpper ) )
+                    {
+                        pbBuffer[i] = (GByte) dfNoData;
+                    }
+                }
+            }
+
+            break;
+        }
+        case GDT_Float32:
+        case GDT_CFloat32:
+        {
+            float* pfBuffer = (float*) pBuffer;
+
+            for( i = 0; i < n; i++ )
+            {
+                for( j = 0; j < nNoDataArraySz; j++ )
+                {
+                    if( pfBuffer[i] == (float) pahNoDataArray[j].dfLower ||
+                      ( pfBuffer[i] >  (float) pahNoDataArray[j].dfLower &&
+                        pfBuffer[i] <  (float) pahNoDataArray[j].dfUpper ) )
+                    {
+                        pfBuffer[i] = (float) dfNoData;
+                    }
+                }
+            }
+
+            break;
+        }
+        case GDT_Float64:
+        case GDT_CFloat64:
+        {
+            double* pdfBuffer = (double*) pBuffer;
+
+            for( i = 0; i < n; i++ )
+            {
+                for( j = 0; j < nNoDataArraySz; j++ )
+                {
+                    if( pdfBuffer[i] == (double) pahNoDataArray[j].dfLower ||
+                      ( pdfBuffer[i] >  (double) pahNoDataArray[j].dfLower &&
+                        pdfBuffer[i] <  (double) pahNoDataArray[j].dfUpper ) )
+                    {
+                        pdfBuffer[i] = (double) dfNoData;
+                    }
+                }
+            }
+
+            break;
+        }
+        case GDT_Int16:
+        case GDT_CInt16:
+        {
+            GInt16* pnBuffer = (GInt16*) pBuffer;
+
+            for( i = 0; i < n; i++ )
+            {
+                for( j = 0; j < nNoDataArraySz; j++ )
+                {
+                    if( pnBuffer[i] == (GInt16) pahNoDataArray[j].dfLower ||
+                      ( pnBuffer[i] >  (GInt16) pahNoDataArray[j].dfLower &&
+                        pnBuffer[i] <  (GInt16) pahNoDataArray[j].dfUpper ) )
+                    {
+                        pnBuffer[i] = (GInt16) dfNoData;
+                    }
+                }
+            }
+
+            break;
+        }
+        case GDT_Int32:
+        case GDT_CInt32:
+        {
+            GInt32* pnBuffer = (GInt32*) pBuffer;
+
+            for( i = 0; i < n; i++ )
+            {
+                for( j = 0; j < nNoDataArraySz; j++ )
+                {
+                    if( pnBuffer[i] == (GInt32) pahNoDataArray[j].dfLower ||
+                      ( pnBuffer[i] >  (GInt32) pahNoDataArray[j].dfLower &&
+                        pnBuffer[i] <  (GInt32) pahNoDataArray[j].dfUpper ) )
+                    {
+                        pnBuffer[i] = (GInt32) dfNoData;
+                    }
+                }
+            }
+
+            break;
+        }
+        case GDT_UInt16:
+        {
+            GUInt16* pnBuffer = (GUInt16*) pBuffer;
+
+            for( i = 0; i < n; i++ )
+            {
+                for( j = 0; j < nNoDataArraySz; j++ )
+                {
+                    if( pnBuffer[i] == (GUInt16) pahNoDataArray[j].dfLower ||
+                      ( pnBuffer[i] >  (GUInt16) pahNoDataArray[j].dfLower &&
+                        pnBuffer[i] <  (GUInt16) pahNoDataArray[j].dfUpper ) )
+                    {
+                        pnBuffer[i] = (GUInt16) dfNoData;
+                    }
+                }
+            }
+
+            break;
+        }
+        case GDT_UInt32:
+        {
+            GUInt32* pnBuffer = (GUInt32*) pBuffer;
+
+            for( i = 0; i < n; i++ )
+            {
+                for( j = 0; j < nNoDataArraySz; j++ )
+                {
+                    if( pnBuffer[i] == (GUInt32) pahNoDataArray[j].dfLower ||
+                      ( pnBuffer[i] >  (GUInt32) pahNoDataArray[j].dfLower &&
+                        pnBuffer[i] <  (GUInt32) pahNoDataArray[j].dfUpper ) )
+                    {
+                        pnBuffer[i] = (GUInt32) dfNoData;
+                    }
+                }
+            }
+
+            break;
+        }
+        default:
+            ;
+    }
+}

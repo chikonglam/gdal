@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_feature.h 18226 2009-12-09 09:30:48Z chaitanya $
+ * $Id: ogr_feature.h 20885 2010-10-19 00:16:08Z warmerdam $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Class for representing a whole feature, and layer schemas.
@@ -57,6 +57,8 @@ class CPL_DLL OGRFieldDefn
     int                 nWidth;                 /* zero is variable */
     int                 nPrecision;
     OGRField            uDefault;
+    
+    int                 bIgnore;
 
     void                Initialize( const char *, OGRFieldType );
     
@@ -88,6 +90,9 @@ class CPL_DLL OGRFieldDefn
 
     void                SetDefault( const OGRField * );
     const OGRField     *GetDefaultRef() { return &uDefault; }
+    
+    int                 IsIgnored() { return bIgnore; }
+    void                SetIgnored( int bIgnore ) { this->bIgnore = bIgnore; }
 };
 
 /************************************************************************/
@@ -122,6 +127,9 @@ class CPL_DLL OGRFeatureDefn
 
     char        *pszFeatureClassName;
     
+    int         bIgnoreGeometry;
+    int         bIgnoreStyle;
+    
   public:
                 OGRFeatureDefn( const char * pszName = NULL );
     virtual    ~OGRFeatureDefn();
@@ -143,6 +151,11 @@ class CPL_DLL OGRFeatureDefn
     int         Dereference() { return CPLAtomicDec(&nRefCount); }
     int         GetReferenceCount() { return nRefCount; }
     void        Release();
+
+    int         IsGeometryIgnored() { return bIgnoreGeometry; }
+    void        SetGeometryIgnored( int bIgnore ) { bIgnoreGeometry = bIgnore; }
+    int        IsStyleIgnored() { return bIgnoreStyle; }
+    void        SetStyleIgnored( int bIgnore ) { bIgnoreStyle = bIgnore; }
 
     static OGRFeatureDefn  *CreateFeatureDefn( const char *pszName = NULL );
     static void         DestroyFeatureDefn( OGRFeatureDefn * );
@@ -190,11 +203,7 @@ class CPL_DLL OGRFeature
     int                 GetFieldIndex( const char * pszName)
                                       { return poDefn->GetFieldIndex(pszName);}
 
-    int                 IsFieldSet( int iField ) const
-                        { return
-                              pauFields[iField].Set.nMarker1 != OGRUnsetMarker
-                           || pauFields[iField].Set.nMarker2 != OGRUnsetMarker;
-                              }
+    int                 IsFieldSet( int iField ) const;
     
     void                UnsetField( int iField );
     

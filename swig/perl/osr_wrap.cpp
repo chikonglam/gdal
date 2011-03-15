@@ -1572,6 +1572,9 @@ SWIG_From_double  SWIG_PERL_DECL_ARGS_1(double value)
 }
 
 
+typedef char retStringAndCPLFree;
+
+
 #include <iostream>
 using namespace std;
 
@@ -1588,9 +1591,6 @@ typedef struct OGRCoordinateTransformationHS OGRCoordinateTransformationShadow;
 typedef void OSRSpatialReferenceShadow;
 typedef void OSRCoordinateTransformationShadow;
 #endif
-
-typedef char retStringAndCPLFree;
-
 
 
 void VeryQuiteErrorHandler(CPLErr eclass, int code, const char *msg ) {
@@ -1724,7 +1724,7 @@ SWIGINTERN void delete_OSRSpatialReferenceShadow(OSRSpatialReferenceShadow *self
       OSRDestroySpatialReference( self );
     }
   }
-SWIGINTERN char *OSRSpatialReferenceShadow___str__(OSRSpatialReferenceShadow *self){
+SWIGINTERN retStringAndCPLFree *OSRSpatialReferenceShadow___str__(OSRSpatialReferenceShadow *self){
     char *buf = 0;
     OSRExportToPrettyWkt( self, &buf, 0 );
     return buf;
@@ -1940,6 +1940,15 @@ SWIGINTERN char const *OSRSpatialReferenceShadow_GetAuthorityName(OSRSpatialRefe
 SWIGINTERN OGRErr OSRSpatialReferenceShadow_SetUTM(OSRSpatialReferenceShadow *self,int zone,int north=1){
     return OSRSetUTM( self, zone, north );
   }
+SWIGINTERN int OSRSpatialReferenceShadow_GetUTMZone(OSRSpatialReferenceShadow *self){
+    // Note: we will return south zones as negative since it is 
+    // hard to return two values as the C API does. 
+    int bNorth = FALSE;
+    int nZone = OSRGetUTMZone( self, &bNorth );
+    if( !bNorth )
+        nZone = -1 * ABS(nZone);
+    return nZone;
+  }
 SWIGINTERN OGRErr OSRSpatialReferenceShadow_SetStatePlane(OSRSpatialReferenceShadow *self,int zone,int is_nad83=1,char const *unitsname="",double units=0.0){
     return OSRSetStatePlaneWithUnits( self, zone, is_nad83, unitsname, units );
   }
@@ -1962,6 +1971,18 @@ SWIGINTERN OGRErr OSRSpatialReferenceShadow_SetNormProjParm(OSRSpatialReferenceS
 SWIGINTERN double OSRSpatialReferenceShadow_GetNormProjParm(OSRSpatialReferenceShadow *self,char const *name,double default_val=0.0){
     // Return code ignored.
     return OSRGetNormProjParm( self, name, default_val, 0 );
+  }
+SWIGINTERN double OSRSpatialReferenceShadow_GetSemiMajor(OSRSpatialReferenceShadow *self){
+    // Return code ignored.
+    return OSRGetSemiMajor( self, 0 );
+  }
+SWIGINTERN double OSRSpatialReferenceShadow_GetSemiMinor(OSRSpatialReferenceShadow *self){
+    // Return code ignored.
+    return OSRGetSemiMinor( self, 0 );
+  }
+SWIGINTERN double OSRSpatialReferenceShadow_GetInvFlattening(OSRSpatialReferenceShadow *self){
+    // Return code ignored.
+    return OSRGetInvFlattening( self, 0 );
   }
 SWIGINTERN OGRErr OSRSpatialReferenceShadow_SetACEA(OSRSpatialReferenceShadow *self,double stdp1,double stdp2,double clat,double clong,double fe,double fn){
     return OSRSetACEA( self, stdp1, stdp2, clat, clong, 
@@ -2177,6 +2198,9 @@ SWIGINTERN OGRErr OSRSpatialReferenceShadow_ImportFromUSGS(OSRSpatialReferenceSh
 SWIGINTERN OGRErr OSRSpatialReferenceShadow_ImportFromXML(OSRSpatialReferenceShadow *self,char const *xmlString){
     return OSRImportFromXML( self, xmlString );
   }
+SWIGINTERN OGRErr OSRSpatialReferenceShadow_ImportFromERM(OSRSpatialReferenceShadow *self,char const *proj,char const *datum,char const *units){
+    return OSRImportFromERM( self, proj, datum, units );
+  }
 SWIGINTERN OGRErr OSRSpatialReferenceShadow_ImportFromMICoordSys(OSRSpatialReferenceShadow *self,char const *pszCoordSys){
     return OSRImportFromMICoordSys( self, pszCoordSys );
   }
@@ -2355,7 +2379,7 @@ XS(_wrap_GetWellKnownGeogCSAsWKT) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -2442,7 +2466,7 @@ XS(_wrap_GetUserInputAsWKT) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -2509,25 +2533,37 @@ XS(_wrap_GetProjectionMethods) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
     }
     {
       /* %typemap(out) char **CSL */
-      AV *av = (AV*)sv_2mortal((SV*)newAV());
-      if (result) {
-        int i;
-        for (i = 0; result[i]; i++) {
-          SV *s = newSVpv(result[i], 0);
-          if (!av_store(av, i, s))
-          SvREFCNT_dec(s);
+      if (GIMME_V == G_ARRAY) {
+        if (result) {
+          int i;
+          for (i = 0; result[i]; i++) {
+            if (i>items-1) EXTEND(SP, 1);
+            ST(argvi) = sv_2mortal(newSVpv(result[i], 0));
+            argvi++;
+          }
+          CSLDestroy(result);
         }
-        CSLDestroy(result);
+      } else {
+        AV *av = (AV*)sv_2mortal((SV*)newAV());
+        if (result) {
+          int i;
+          for (i = 0; result[i]; i++) {
+            SV *s = newSVpv(result[i], 0);
+            if (!av_store(av, i, s))
+            SvREFCNT_dec(s);
+          }
+          CSLDestroy(result);
+        }
+        ST(argvi) = newRV_noinc((SV*)av);
+        argvi++;
       }
-      ST(argvi) = newRV_noinc((SV*)av);
-      argvi++;
     }
     XSRETURN(argvi);
   fail:
@@ -2584,13 +2620,13 @@ XS(_wrap_GetProjectionMethodParameterList) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
     }
     {
-      /* %typemap(out) char **CSL */
+      /* %typemap(out) char **CSL_REF */
       AV *av = (AV*)sv_2mortal((SV*)newAV());
       if (result) {
         int i;
@@ -2688,7 +2724,7 @@ XS(_wrap_GetProjectionMethodParamInfo) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -2770,7 +2806,7 @@ XS(_wrap_new_SpatialReference) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -2820,7 +2856,7 @@ XS(_wrap_delete_SpatialReference) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -2841,7 +2877,7 @@ XS(_wrap_SpatialReference___str__) {
     void *argp1 = 0 ;
     int res1 = 0 ;
     int argvi = 0;
-    char *result = 0 ;
+    retStringAndCPLFree *result = 0 ;
     dXSARGS;
     
     if ((items < 1) || (items > 1)) {
@@ -2854,7 +2890,7 @@ XS(_wrap_SpatialReference___str__) {
     arg1 = reinterpret_cast< OSRSpatialReferenceShadow * >(argp1);
     {
       CPLErrorReset();
-      result = (char *)OSRSpatialReferenceShadow___str__(arg1);
+      result = (retStringAndCPLFree *)OSRSpatialReferenceShadow___str__(arg1);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
         SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
@@ -2871,14 +2907,25 @@ XS(_wrap_SpatialReference___str__) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
     }
-    ST(argvi) = SWIG_FromCharPtr((const char *)result); argvi++ ;
     
-    delete[] result;
+    /* %typemap(out) (retStringAndCPLFree*) */
+    if(result)
+    {
+      ST(argvi) = SWIG_FromCharPtr((const char *)result);
+      CPLFree(result);
+    }
+    else
+    {
+      ST(argvi) = sv_newmortal();
+    }
+    argvi++ ;
+    
+    
     XSRETURN(argvi);
   fail:
     
@@ -2936,7 +2983,7 @@ XS(_wrap_SpatialReference_IsSame) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -3002,7 +3049,7 @@ XS(_wrap_SpatialReference_IsSameGeogCS) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -3055,7 +3102,7 @@ XS(_wrap_SpatialReference_IsGeographic) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -3106,7 +3153,7 @@ XS(_wrap_SpatialReference_IsProjected) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -3157,7 +3204,7 @@ XS(_wrap_SpatialReference_IsLocal) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -3208,7 +3255,7 @@ XS(_wrap_SpatialReference_EPSGTreatsAsLatLong) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -3285,7 +3332,7 @@ XS(_wrap_SpatialReference_SetAuthority) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -3373,7 +3420,7 @@ XS(_wrap_SpatialReference_GetAttrValue) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -3451,7 +3498,7 @@ XS(_wrap_SpatialReference_SetAttrValue) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -3535,7 +3582,7 @@ XS(_wrap_SpatialReference_SetAngularUnits) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -3597,7 +3644,7 @@ XS(_wrap_SpatialReference_GetAngularUnits) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -3670,7 +3717,7 @@ XS(_wrap_SpatialReference_SetLinearUnits) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -3754,7 +3801,7 @@ XS(_wrap_SpatialReference_SetLinearUnitsAndUpdateParameters) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -3816,7 +3863,7 @@ XS(_wrap_SpatialReference_GetLinearUnits) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -3867,7 +3914,7 @@ XS(_wrap_SpatialReference_GetLinearUnitsName) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -3927,7 +3974,7 @@ XS(_wrap_SpatialReference_GetAuthorityCode) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -3989,7 +4036,7 @@ XS(_wrap_SpatialReference_GetAuthorityName) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -4060,7 +4107,7 @@ XS(_wrap_SpatialReference_SetUTM) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -4080,6 +4127,57 @@ XS(_wrap_SpatialReference_SetUTM) {
   fail:
     
     
+    
+    SWIG_croak_null();
+  }
+}
+
+
+XS(_wrap_SpatialReference_GetUTMZone) {
+  {
+    OSRSpatialReferenceShadow *arg1 = (OSRSpatialReferenceShadow *) 0 ;
+    void *argp1 = 0 ;
+    int res1 = 0 ;
+    int argvi = 0;
+    int result;
+    dXSARGS;
+    
+    if ((items < 1) || (items > 1)) {
+      SWIG_croak("Usage: SpatialReference_GetUTMZone(self);");
+    }
+    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OSRSpatialReferenceShadow, 0 |  0 );
+    if (!SWIG_IsOK(res1)) {
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "SpatialReference_GetUTMZone" "', argument " "1"" of type '" "OSRSpatialReferenceShadow *""'"); 
+    }
+    arg1 = reinterpret_cast< OSRSpatialReferenceShadow * >(argp1);
+    {
+      CPLErrorReset();
+      result = (int)OSRSpatialReferenceShadow_GetUTMZone(arg1);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /* 
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
+    ST(argvi) = SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(result)); argvi++ ;
+    
+    XSRETURN(argvi);
+  fail:
     
     SWIG_croak_null();
   }
@@ -4161,7 +4259,7 @@ XS(_wrap_SpatialReference_SetStatePlane) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -4227,7 +4325,7 @@ XS(_wrap_SpatialReference_AutoIdentifyEPSG) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -4294,7 +4392,7 @@ XS(_wrap_SpatialReference_SetProjection) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -4376,7 +4474,7 @@ XS(_wrap_SpatialReference_SetProjParm) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -4462,7 +4560,7 @@ XS(_wrap_SpatialReference_GetProjParm) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -4539,7 +4637,7 @@ XS(_wrap_SpatialReference_SetNormProjParm) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -4625,7 +4723,7 @@ XS(_wrap_SpatialReference_GetNormProjParm) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -4638,6 +4736,159 @@ XS(_wrap_SpatialReference_GetNormProjParm) {
   fail:
     
     if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
+    
+    SWIG_croak_null();
+  }
+}
+
+
+XS(_wrap_SpatialReference_GetSemiMajor) {
+  {
+    OSRSpatialReferenceShadow *arg1 = (OSRSpatialReferenceShadow *) 0 ;
+    void *argp1 = 0 ;
+    int res1 = 0 ;
+    int argvi = 0;
+    double result;
+    dXSARGS;
+    
+    if ((items < 1) || (items > 1)) {
+      SWIG_croak("Usage: SpatialReference_GetSemiMajor(self);");
+    }
+    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OSRSpatialReferenceShadow, 0 |  0 );
+    if (!SWIG_IsOK(res1)) {
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "SpatialReference_GetSemiMajor" "', argument " "1"" of type '" "OSRSpatialReferenceShadow *""'"); 
+    }
+    arg1 = reinterpret_cast< OSRSpatialReferenceShadow * >(argp1);
+    {
+      CPLErrorReset();
+      result = (double)OSRSpatialReferenceShadow_GetSemiMajor(arg1);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /* 
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
+    ST(argvi) = SWIG_From_double  SWIG_PERL_CALL_ARGS_1(static_cast< double >(result)); argvi++ ;
+    
+    XSRETURN(argvi);
+  fail:
+    
+    SWIG_croak_null();
+  }
+}
+
+
+XS(_wrap_SpatialReference_GetSemiMinor) {
+  {
+    OSRSpatialReferenceShadow *arg1 = (OSRSpatialReferenceShadow *) 0 ;
+    void *argp1 = 0 ;
+    int res1 = 0 ;
+    int argvi = 0;
+    double result;
+    dXSARGS;
+    
+    if ((items < 1) || (items > 1)) {
+      SWIG_croak("Usage: SpatialReference_GetSemiMinor(self);");
+    }
+    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OSRSpatialReferenceShadow, 0 |  0 );
+    if (!SWIG_IsOK(res1)) {
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "SpatialReference_GetSemiMinor" "', argument " "1"" of type '" "OSRSpatialReferenceShadow *""'"); 
+    }
+    arg1 = reinterpret_cast< OSRSpatialReferenceShadow * >(argp1);
+    {
+      CPLErrorReset();
+      result = (double)OSRSpatialReferenceShadow_GetSemiMinor(arg1);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /* 
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
+    ST(argvi) = SWIG_From_double  SWIG_PERL_CALL_ARGS_1(static_cast< double >(result)); argvi++ ;
+    
+    XSRETURN(argvi);
+  fail:
+    
+    SWIG_croak_null();
+  }
+}
+
+
+XS(_wrap_SpatialReference_GetInvFlattening) {
+  {
+    OSRSpatialReferenceShadow *arg1 = (OSRSpatialReferenceShadow *) 0 ;
+    void *argp1 = 0 ;
+    int res1 = 0 ;
+    int argvi = 0;
+    double result;
+    dXSARGS;
+    
+    if ((items < 1) || (items > 1)) {
+      SWIG_croak("Usage: SpatialReference_GetInvFlattening(self);");
+    }
+    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OSRSpatialReferenceShadow, 0 |  0 );
+    if (!SWIG_IsOK(res1)) {
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "SpatialReference_GetInvFlattening" "', argument " "1"" of type '" "OSRSpatialReferenceShadow *""'"); 
+    }
+    arg1 = reinterpret_cast< OSRSpatialReferenceShadow * >(argp1);
+    {
+      CPLErrorReset();
+      result = (double)OSRSpatialReferenceShadow_GetInvFlattening(arg1);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /* 
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
+    ST(argvi) = SWIG_From_double  SWIG_PERL_CALL_ARGS_1(static_cast< double >(result)); argvi++ ;
+    
+    XSRETURN(argvi);
+  fail:
     
     SWIG_croak_null();
   }
@@ -4728,7 +4979,7 @@ XS(_wrap_SpatialReference_SetACEA) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -4830,7 +5081,7 @@ XS(_wrap_SpatialReference_SetAE) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -4928,7 +5179,7 @@ XS(_wrap_SpatialReference_SetBonne) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -5026,7 +5277,7 @@ XS(_wrap_SpatialReference_SetCEA) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -5124,7 +5375,7 @@ XS(_wrap_SpatialReference_SetCS) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -5238,7 +5489,7 @@ XS(_wrap_SpatialReference_SetEC) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -5332,7 +5583,7 @@ XS(_wrap_SpatialReference_SetEckertIV) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -5420,7 +5671,7 @@ XS(_wrap_SpatialReference_SetEckertVI) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -5516,7 +5767,7 @@ XS(_wrap_SpatialReference_SetEquirectangular) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -5622,7 +5873,7 @@ XS(_wrap_SpatialReference_SetEquirectangular2) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -5730,7 +5981,7 @@ XS(_wrap_SpatialReference_SetGaussSchreiberTMercator) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -5822,7 +6073,7 @@ XS(_wrap_SpatialReference_SetGS) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -5910,7 +6161,7 @@ XS(_wrap_SpatialReference_SetGH) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -6006,7 +6257,7 @@ XS(_wrap_SpatialReference_SetGEOS) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -6104,7 +6355,7 @@ XS(_wrap_SpatialReference_SetGnomonic) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -6226,7 +6477,7 @@ XS(_wrap_SpatialReference_SetHOM) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -6362,7 +6613,7 @@ XS(_wrap_SpatialReference_SetHOM2PNO) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -6492,7 +6743,7 @@ XS(_wrap_SpatialReference_SetKrovak) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -6596,7 +6847,7 @@ XS(_wrap_SpatialReference_SetLAEA) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -6710,7 +6961,7 @@ XS(_wrap_SpatialReference_SetLCC) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -6820,7 +7071,7 @@ XS(_wrap_SpatialReference_SetLCC1SP) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -6936,7 +7187,7 @@ XS(_wrap_SpatialReference_SetLCCB) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -7038,7 +7289,7 @@ XS(_wrap_SpatialReference_SetMC) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -7144,7 +7395,7 @@ XS(_wrap_SpatialReference_SetMercator) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -7236,7 +7487,7 @@ XS(_wrap_SpatialReference_SetMollweide) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -7332,7 +7583,7 @@ XS(_wrap_SpatialReference_SetNZMG) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -7438,7 +7689,7 @@ XS(_wrap_SpatialReference_SetOS) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -7538,7 +7789,7 @@ XS(_wrap_SpatialReference_SetOrthographic) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -7636,7 +7887,7 @@ XS(_wrap_SpatialReference_SetPolyconic) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -7742,7 +7993,7 @@ XS(_wrap_SpatialReference_SetPS) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -7834,7 +8085,7 @@ XS(_wrap_SpatialReference_SetRobinson) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -7922,7 +8173,7 @@ XS(_wrap_SpatialReference_SetSinusoidal) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -8026,7 +8277,7 @@ XS(_wrap_SpatialReference_SetStereographic) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -8126,7 +8377,7 @@ XS(_wrap_SpatialReference_SetSOC) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -8232,7 +8483,7 @@ XS(_wrap_SpatialReference_SetTM) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -8349,7 +8600,7 @@ XS(_wrap_SpatialReference_SetTMVariant) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -8451,7 +8702,7 @@ XS(_wrap_SpatialReference_SetTMG) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -8557,7 +8808,7 @@ XS(_wrap_SpatialReference_SetTMSO) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -8649,7 +8900,7 @@ XS(_wrap_SpatialReference_SetVDG) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -8727,7 +8978,7 @@ XS(_wrap_SpatialReference_SetWellKnownGeogCS) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -8801,7 +9052,7 @@ XS(_wrap_SpatialReference_SetFromUserInput) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -8874,7 +9125,7 @@ XS(_wrap_SpatialReference_CopyGeogCSFrom) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -8998,7 +9249,7 @@ XS(_wrap_SpatialReference_SetTOWGS84) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -9076,7 +9327,7 @@ XS(_wrap_SpatialReference_GetTOWGS84) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -9150,7 +9401,7 @@ XS(_wrap_SpatialReference_SetLocalCS) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -9295,7 +9546,7 @@ XS(_wrap_SpatialReference_SetGeogCS) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -9387,7 +9638,7 @@ XS(_wrap_SpatialReference_SetProjCS) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -9454,7 +9705,7 @@ XS(_wrap_SpatialReference_ImportFromWkt) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -9523,7 +9774,7 @@ XS(_wrap_SpatialReference_ImportFromProj4) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -9592,7 +9843,7 @@ XS(_wrap_SpatialReference_ImportFromUrl) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -9679,7 +9930,7 @@ XS(_wrap_SpatialReference_ImportFromESRI) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -9753,7 +10004,7 @@ XS(_wrap_SpatialReference_ImportFromEPSG) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -9821,7 +10072,7 @@ XS(_wrap_SpatialReference_ImportFromEPSGA) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -9916,7 +10167,7 @@ XS(_wrap_SpatialReference_ImportFromPCI) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -10023,7 +10274,7 @@ XS(_wrap_SpatialReference_ImportFromUSGS) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -10098,7 +10349,7 @@ XS(_wrap_SpatialReference_ImportFromXML) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -10117,6 +10368,97 @@ XS(_wrap_SpatialReference_ImportFromXML) {
   fail:
     
     if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
+    SWIG_croak_null();
+  }
+}
+
+
+XS(_wrap_SpatialReference_ImportFromERM) {
+  {
+    OSRSpatialReferenceShadow *arg1 = (OSRSpatialReferenceShadow *) 0 ;
+    char *arg2 = (char *) 0 ;
+    char *arg3 = (char *) 0 ;
+    char *arg4 = (char *) 0 ;
+    void *argp1 = 0 ;
+    int res1 = 0 ;
+    int res2 ;
+    char *buf2 = 0 ;
+    int alloc2 = 0 ;
+    int res3 ;
+    char *buf3 = 0 ;
+    int alloc3 = 0 ;
+    int res4 ;
+    char *buf4 = 0 ;
+    int alloc4 = 0 ;
+    int argvi = 0;
+    OGRErr result;
+    dXSARGS;
+    
+    if ((items < 4) || (items > 4)) {
+      SWIG_croak("Usage: SpatialReference_ImportFromERM(self,proj,datum,units);");
+    }
+    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OSRSpatialReferenceShadow, 0 |  0 );
+    if (!SWIG_IsOK(res1)) {
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "SpatialReference_ImportFromERM" "', argument " "1"" of type '" "OSRSpatialReferenceShadow *""'"); 
+    }
+    arg1 = reinterpret_cast< OSRSpatialReferenceShadow * >(argp1);
+    res2 = SWIG_AsCharPtrAndSize(ST(1), &buf2, NULL, &alloc2);
+    if (!SWIG_IsOK(res2)) {
+      SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "SpatialReference_ImportFromERM" "', argument " "2"" of type '" "char const *""'");
+    }
+    arg2 = reinterpret_cast< char * >(buf2);
+    res3 = SWIG_AsCharPtrAndSize(ST(2), &buf3, NULL, &alloc3);
+    if (!SWIG_IsOK(res3)) {
+      SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "SpatialReference_ImportFromERM" "', argument " "3"" of type '" "char const *""'");
+    }
+    arg3 = reinterpret_cast< char * >(buf3);
+    res4 = SWIG_AsCharPtrAndSize(ST(3), &buf4, NULL, &alloc4);
+    if (!SWIG_IsOK(res4)) {
+      SWIG_exception_fail(SWIG_ArgError(res4), "in method '" "SpatialReference_ImportFromERM" "', argument " "4"" of type '" "char const *""'");
+    }
+    arg4 = reinterpret_cast< char * >(buf4);
+    {
+      CPLErrorReset();
+      result = (OGRErr)OSRSpatialReferenceShadow_ImportFromERM(arg1,(char const *)arg2,(char const *)arg3,(char const *)arg4);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /* 
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
+    {
+      /* %typemap(out) OGRErr */
+      if ( result != 0 ) {
+        const char *err = CPLGetLastErrorMsg();
+        if (err and *err) SWIG_croak(err); /* this is usually better */
+        SWIG_croak( OGRErrMessages(result) );
+      }
+    }
+    
+    if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
+    if (alloc3 == SWIG_NEWOBJ) delete[] buf3;
+    if (alloc4 == SWIG_NEWOBJ) delete[] buf4;
+    XSRETURN(argvi);
+  fail:
+    
+    if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
+    if (alloc3 == SWIG_NEWOBJ) delete[] buf3;
+    if (alloc4 == SWIG_NEWOBJ) delete[] buf4;
     SWIG_croak_null();
   }
 }
@@ -10167,7 +10509,7 @@ XS(_wrap_SpatialReference_ImportFromMICoordSys) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -10233,7 +10575,7 @@ XS(_wrap_SpatialReference_ExportToWkt) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -10324,7 +10666,7 @@ XS(_wrap_SpatialReference_ExportToPrettyWkt) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -10407,7 +10749,7 @@ XS(_wrap_SpatialReference_ExportToProj4) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -10500,7 +10842,7 @@ XS(_wrap_SpatialReference_ExportToPCI) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -10623,7 +10965,7 @@ XS(_wrap_SpatialReference_ExportToUSGS) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -10735,7 +11077,7 @@ XS(_wrap_SpatialReference_ExportToXML) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -10818,7 +11160,7 @@ XS(_wrap_SpatialReference_ExportToMICoordSys) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -10893,7 +11235,7 @@ XS(_wrap_SpatialReference_CloneGeogCS) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -10944,7 +11286,7 @@ XS(_wrap_SpatialReference_Clone) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -10995,7 +11337,7 @@ XS(_wrap_SpatialReference_Validate) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -11053,7 +11395,7 @@ XS(_wrap_SpatialReference_StripCTParms) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -11111,7 +11453,7 @@ XS(_wrap_SpatialReference_FixupOrdering) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -11169,7 +11511,7 @@ XS(_wrap_SpatialReference_Fixup) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -11227,7 +11569,7 @@ XS(_wrap_SpatialReference_MorphToESRI) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -11285,7 +11627,7 @@ XS(_wrap_SpatialReference_MorphFromESRI) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -11351,7 +11693,7 @@ XS(_wrap_new_CoordinateTransformation) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -11408,7 +11750,7 @@ XS(_wrap_delete_CoordinateTransformation) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -11478,7 +11820,7 @@ XS(_wrap_CoordinateTransformation_TransformPoint__SWIG_0) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -11572,7 +11914,7 @@ XS(_wrap_CoordinateTransformation_TransformPoint__SWIG_1) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -11703,7 +12045,7 @@ XS(_wrap_CoordinateTransformation_TransformPoint) {
 }
 
 
-XS(_wrap_CoordinateTransformation_TransformPoints) {
+XS(_wrap_CoordinateTransformation__TransformPoints) {
   {
     OSRCoordinateTransformationShadow *arg1 = (OSRCoordinateTransformationShadow *) 0 ;
     int arg2 ;
@@ -11717,11 +12059,11 @@ XS(_wrap_CoordinateTransformation_TransformPoints) {
     dXSARGS;
     
     if ((items < 2) || (items > 2)) {
-      SWIG_croak("Usage: CoordinateTransformation_TransformPoints(self,nCount,x,y,z);");
+      SWIG_croak("Usage: CoordinateTransformation__TransformPoints(self,nCount,x,y,z);");
     }
     res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OSRCoordinateTransformationShadow, 0 |  0 );
     if (!SWIG_IsOK(res1)) {
-      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "CoordinateTransformation_TransformPoints" "', argument " "1"" of type '" "OSRCoordinateTransformationShadow *""'"); 
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "CoordinateTransformation__TransformPoints" "', argument " "1"" of type '" "OSRCoordinateTransformationShadow *""'"); 
     }
     arg1 = reinterpret_cast< OSRCoordinateTransformationShadow * >(argp1);
     {
@@ -11779,7 +12121,7 @@ XS(_wrap_CoordinateTransformation_TransformPoints) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -11829,7 +12171,7 @@ XS(_wrap_CoordinateTransformation_TransformPoints) {
 
 static swig_type_info _swigt__p_OSRCoordinateTransformationShadow = {"_p_OSRCoordinateTransformationShadow", "OSRCoordinateTransformationShadow *", 0, 0, (void*)"Geo::OSR::CoordinateTransformation", 0};
 static swig_type_info _swigt__p_OSRSpatialReferenceShadow = {"_p_OSRSpatialReferenceShadow", "OSRSpatialReferenceShadow *", 0, 0, (void*)"Geo::OSR::SpatialReference", 0};
-static swig_type_info _swigt__p_char = {"_p_char", "char *", 0, 0, (void*)0, 0};
+static swig_type_info _swigt__p_char = {"_p_char", "char *|retStringAndCPLFree *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_double = {"_p_double", "double *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_int = {"_p_int", "int *|OGRErr *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_long = {"_p_long", "long *", 0, 0, (void*)0, 0};
@@ -11908,6 +12250,7 @@ static swig_command_info swig_commands[] = {
 {"Geo::OSRc::SpatialReference_GetAuthorityCode", _wrap_SpatialReference_GetAuthorityCode},
 {"Geo::OSRc::SpatialReference_GetAuthorityName", _wrap_SpatialReference_GetAuthorityName},
 {"Geo::OSRc::SpatialReference_SetUTM", _wrap_SpatialReference_SetUTM},
+{"Geo::OSRc::SpatialReference_GetUTMZone", _wrap_SpatialReference_GetUTMZone},
 {"Geo::OSRc::SpatialReference_SetStatePlane", _wrap_SpatialReference_SetStatePlane},
 {"Geo::OSRc::SpatialReference_AutoIdentifyEPSG", _wrap_SpatialReference_AutoIdentifyEPSG},
 {"Geo::OSRc::SpatialReference_SetProjection", _wrap_SpatialReference_SetProjection},
@@ -11915,6 +12258,9 @@ static swig_command_info swig_commands[] = {
 {"Geo::OSRc::SpatialReference_GetProjParm", _wrap_SpatialReference_GetProjParm},
 {"Geo::OSRc::SpatialReference_SetNormProjParm", _wrap_SpatialReference_SetNormProjParm},
 {"Geo::OSRc::SpatialReference_GetNormProjParm", _wrap_SpatialReference_GetNormProjParm},
+{"Geo::OSRc::SpatialReference_GetSemiMajor", _wrap_SpatialReference_GetSemiMajor},
+{"Geo::OSRc::SpatialReference_GetSemiMinor", _wrap_SpatialReference_GetSemiMinor},
+{"Geo::OSRc::SpatialReference_GetInvFlattening", _wrap_SpatialReference_GetInvFlattening},
 {"Geo::OSRc::SpatialReference_SetACEA", _wrap_SpatialReference_SetACEA},
 {"Geo::OSRc::SpatialReference_SetAE", _wrap_SpatialReference_SetAE},
 {"Geo::OSRc::SpatialReference_SetBonne", _wrap_SpatialReference_SetBonne},
@@ -11971,6 +12317,7 @@ static swig_command_info swig_commands[] = {
 {"Geo::OSRc::SpatialReference_ImportFromPCI", _wrap_SpatialReference_ImportFromPCI},
 {"Geo::OSRc::SpatialReference_ImportFromUSGS", _wrap_SpatialReference_ImportFromUSGS},
 {"Geo::OSRc::SpatialReference_ImportFromXML", _wrap_SpatialReference_ImportFromXML},
+{"Geo::OSRc::SpatialReference_ImportFromERM", _wrap_SpatialReference_ImportFromERM},
 {"Geo::OSRc::SpatialReference_ImportFromMICoordSys", _wrap_SpatialReference_ImportFromMICoordSys},
 {"Geo::OSRc::SpatialReference_ExportToWkt", _wrap_SpatialReference_ExportToWkt},
 {"Geo::OSRc::SpatialReference_ExportToPrettyWkt", _wrap_SpatialReference_ExportToPrettyWkt},
@@ -11990,7 +12337,7 @@ static swig_command_info swig_commands[] = {
 {"Geo::OSRc::new_CoordinateTransformation", _wrap_new_CoordinateTransformation},
 {"Geo::OSRc::delete_CoordinateTransformation", _wrap_delete_CoordinateTransformation},
 {"Geo::OSRc::CoordinateTransformation_TransformPoint", _wrap_CoordinateTransformation_TransformPoint},
-{"Geo::OSRc::CoordinateTransformation_TransformPoints", _wrap_CoordinateTransformation_TransformPoints},
+{"Geo::OSRc::CoordinateTransformation__TransformPoints", _wrap_CoordinateTransformation__TransformPoints},
 {0,0}
 };
 /* -----------------------------------------------------------------------------

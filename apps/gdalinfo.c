@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdalinfo.c 18576 2010-01-17 22:32:24Z rouault $
+ * $Id: gdalinfo.c 19692 2010-05-13 17:16:55Z rouault $
  *
  * Project:  GDAL Utilities
  * Purpose:  Commandline application to list info about a file.
@@ -34,7 +34,7 @@
 #include "cpl_conv.h"
 #include "cpl_multiproc.h"
 
-CPL_CVSID("$Id: gdalinfo.c 18576 2010-01-17 22:32:24Z rouault $");
+CPL_CVSID("$Id: gdalinfo.c 19692 2010-05-13 17:16:55Z rouault $");
 
 static int 
 GDALInfoReportCorner( GDALDatasetH hDataset, 
@@ -169,6 +169,7 @@ int main( int argc, char ** argv )
                  pszFilename );
 
         CSLDestroy( argv );
+        CSLDestroy( papszExtraMDDomains );
     
         GDALDumpOpenDatasets( stderr );
 
@@ -523,7 +524,10 @@ int main( int argc, char ** argv )
         dfNoData = GDALGetRasterNoDataValue( hBand, &bGotNodata );
         if( bGotNodata )
         {
-            printf( "  NoData Value=%.18g\n", dfNoData );
+            if (CPLIsNan(dfNoData))
+                printf( "  NoData Value=nan\n" );
+            else
+                printf( "  NoData Value=%.18g\n", dfNoData );
         }
 
         if( GDALGetOverviewCount(hBand) > 0 )
@@ -542,16 +546,21 @@ int main( int argc, char ** argv )
                     printf( ", " );
 
                 hOverview = GDALGetOverview( hBand, iOverview );
-                printf( "%dx%d", 
-                        GDALGetRasterBandXSize( hOverview ),
-                        GDALGetRasterBandYSize( hOverview ) );
+                if (hOverview != NULL)
+                {
+                    printf( "%dx%d", 
+                            GDALGetRasterBandXSize( hOverview ),
+                            GDALGetRasterBandYSize( hOverview ) );
 
-                pszResampling = 
-                    GDALGetMetadataItem( hOverview, "RESAMPLING", "" );
+                    pszResampling = 
+                        GDALGetMetadataItem( hOverview, "RESAMPLING", "" );
 
-                if( pszResampling != NULL 
-                    && EQUALN(pszResampling,"AVERAGE_BIT2",12) )
-                    printf( "*" );
+                    if( pszResampling != NULL 
+                        && EQUALN(pszResampling,"AVERAGE_BIT2",12) )
+                        printf( "*" );
+                }
+                else
+                    printf( "(null)" );
             }
             printf( "\n" );
 
@@ -568,10 +577,13 @@ int main( int argc, char ** argv )
                         printf( ", " );
 
                     hOverview = GDALGetOverview( hBand, iOverview );
-                    printf( "%d",
-                            GDALChecksumImage(hOverview, 0, 0,
-                                      GDALGetRasterBandXSize(hOverview),
-                                      GDALGetRasterBandYSize(hOverview)));
+                    if (hOverview)
+                        printf( "%d",
+                                GDALChecksumImage(hOverview, 0, 0,
+                                        GDALGetRasterBandXSize(hOverview),
+                                        GDALGetRasterBandYSize(hOverview)));
+                    else
+                        printf( "(null)" );
                 }
                 printf( "\n" );
             }

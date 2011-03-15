@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #******************************************************************************
-#  $Id: gdal_proximity.py 18953 2010-02-28 12:00:54Z rouault $
+#  $Id: gdal_proximity.py 19392 2010-04-12 18:27:09Z rouault $
 # 
 #  Name:     gdalproximity
 #  Project:  GDAL Python Interface
@@ -151,7 +151,7 @@ try:
     else:
         dst_ds = None
 except:
-    dst_ts = None
+    dst_ds = None
 
 # =============================================================================
 #     Create output file.
@@ -182,7 +182,7 @@ gdal.ComputeProximity( srcband, dstband, options,
 srcband = None
 dstband = None
 src_ds = None
-
+dst_ds = None
 
 
 

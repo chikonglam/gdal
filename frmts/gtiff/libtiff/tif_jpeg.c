@@ -1,4 +1,4 @@
-/* $Id: tif_jpeg.c,v 1.86 2009-12-04 01:37:58 fwarmerdam Exp $ */
+/* $Id: tif_jpeg.c,v 1.99 2011-01-06 05:51:13 fwarmerdam Exp $ */
 
 /*
  * Copyright (c) 1994-1997 Sam Leffler
@@ -530,26 +530,28 @@ std_fill_input_buffer(j_decompress_ptr cinfo)
 	static const JOCTET dummy_EOI[2] = { 0xFF, JPEG_EOI };
 
 #ifdef IPPJ_HUFF
-   /*
-    * The Intel IPP performance library does not necessarily read the whole
-    * input buffer in one pass, so it is possible to get here with data
-    * yet to read. 
-    * 
-    * We just return without doing anything, until the entire buffer has been
-    * read. Because the whole input tile is read into memory
-    * we never need to "fill" the buffer, as init_source does that.
-    * http://trac.osgeo.org/gdal/wiki/JpegIPP
-    */
+        /*
+         * The Intel IPP performance library does not necessarily read the whole
+         * input buffer in one pass, so it is possible to get here with data
+         * yet to read. 
+         * 
+         * We just return without doing anything, until the entire buffer has
+         * been read.  
+         * http://trac.osgeo.org/gdal/wiki/JpegIPP
+         */
         if( sp->src.bytes_in_buffer > 0 ) {
             return (TRUE);
         }
 #endif
 
 	/*
-	 * Should never get here since entire strip/tile is
-	 * read into memory before the decompressor is called,
-	 * and thus was supplied by init_source.
+         * Normally the whole strip/tile is read and so we don't need to do
+         * a fill.  In the case of CHUNKY_STRIP_READ_SUPPORT we might not have
+         * all the data, but the rawdata is refreshed between scanlines and
+         * we push this into the io machinery in JPEGDecode(). 	 
+         * http://trac.osgeo.org/gdal/ticket/3894
 	 */
+        
 	WARNMS(cinfo, JWRN_JPEG_EOF);
 	/* insert a fake EOI marker */
 	sp->src.next_input_byte = dummy_EOI;
@@ -577,8 +579,6 @@ static void
 std_term_source(j_decompress_ptr cinfo)
 {
 	/* No work necessary here */
-	/* Or must we update tif->tif_rawcp, tif->tif_rawcc ??? */
-	/* (if so, need empty tables_term_source!) */
 	(void) cinfo;
 }
 
@@ -1016,8 +1016,13 @@ JPEGPreDecode(TIFF* tif, uint16 s)
 	/*
 	 * Read the header for this strip/tile.
 	 */
+        
 	if (TIFFjpeg_read_header(sp, TRUE) != JPEG_HEADER_OK)
 		return (0);
+
+        tif->tif_rawcp = (uint8*) sp->src.next_input_byte;
+        tif->tif_rawcc = sp->src.bytes_in_buffer;
+
 	/*
 	 * Check image parameters and set decompression parameters.
 	 */
@@ -1201,6 +1206,13 @@ JPEGDecode(TIFF* tif, uint8* buf, tmsize_t cc, uint16 s)
 	tmsize_t nrows;
 	(void) s;
 
+        /*
+        ** Update available information, buffer may have been refilled
+        ** between decode requests
+        */
+	sp->src.next_input_byte = (const JOCTET*) tif->tif_rawcp;
+	sp->src.bytes_in_buffer = (size_t) tif->tif_rawcc;
+        
 	nrows = cc / sp->bytesperline;
 	if (cc % sp->bytesperline)
 		TIFFWarningExt(tif->tif_clientdata, tif->tif_name, "fractional scanline not read");
@@ -1289,6 +1301,10 @@ JPEGDecode(TIFF* tif, uint8* buf, tmsize_t cc, uint16 s)
 			_TIFFfree( line_work_buf );
 	}
 
+        /* Update information on consumed data */
+        tif->tif_rawcp = (uint8*) sp->src.next_input_byte;
+        tif->tif_rawcc = sp->src.bytes_in_buffer;
+                
 	/* Close down the decompressor if we've finished the strip or tile. */
 	return sp->cinfo.d.output_scanline < sp->cinfo.d.output_height
 	    || TIFFjpeg_finish_decompress(sp);
@@ -1401,7 +1417,7 @@ JPEGDecodeRaw(TIFF* tif, uint8* buf, tmsize_t cc, uint16 s)
 					}
 				}
 				else
-				{         // 12-bit
+					{         /* 12-bit */
 					int value_pairs = (sp->cinfo.d.output_width
 					    * sp->cinfo.d.num_components) / 2;
 					int iPair;
@@ -1612,12 +1628,16 @@ JPEGSetupEncode(TIFF* tif)
 
 	/* Create a JPEGTables field if appropriate */
 	if (sp->jpegtablesmode & (JPEGTABLESMODE_QUANT|JPEGTABLESMODE_HUFF)) {
-		if (!prepare_JPEGTables(tif))
-			return (0);
-		/* Mark the field present */
-		/* Can't use TIFFSetField since BEENWRITING is already set! */
-		TIFFSetFieldBit(tif, FIELD_JPEGTABLES);
-		tif->tif_flags |= TIFF_DIRTYDIRECT;
+                if( sp->jpegtables == NULL
+                    || memcmp(sp->jpegtables,"\0\0\0\0\0\0\0\0\0",8) == 0 )
+                {
+                        if (!prepare_JPEGTables(tif))
+                                return (0);
+                        /* Mark the field present */
+                        /* Can't use TIFFSetField since BEENWRITING is already set! */
+                        tif->tif_flags |= TIFF_DIRTYDIRECT;
+                        TIFFSetFieldBit(tif, FIELD_JPEGTABLES);
+                }
 	} else {
 		/* We do not support application-supplied JPEGTables, */
 		/* so mark the field not present */
@@ -1697,8 +1717,15 @@ JPEGPreEncode(TIFF* tif, uint16 s)
 			sp->cinfo.c.comp_info[0].h_samp_factor = sp->h_sampling;
 			sp->cinfo.c.comp_info[0].v_samp_factor = sp->v_sampling;
 		} else {
-			sp->cinfo.c.in_color_space = JCS_UNKNOWN;
-			if (!TIFFjpeg_set_colorspace(sp, JCS_UNKNOWN))
+			if ((td->td_photometric == PHOTOMETRIC_MINISWHITE || td->td_photometric == PHOTOMETRIC_MINISBLACK) && td->td_samplesperpixel == 1)
+				sp->cinfo.c.in_color_space = JCS_GRAYSCALE;
+			else if (td->td_photometric == PHOTOMETRIC_RGB)
+				sp->cinfo.c.in_color_space = JCS_RGB;
+			else if (td->td_photometric == PHOTOMETRIC_SEPARATED && td->td_samplesperpixel == 4)
+				sp->cinfo.c.in_color_space = JCS_CMYK;
+			else
+				sp->cinfo.c.in_color_space = JCS_UNKNOWN;
+			if (!TIFFjpeg_set_colorspace(sp, sp->cinfo.c.in_color_space))
 				return (0);
 			/* jpeg_set_colorspace set all sampling factors to 1 */
 		}
@@ -1719,9 +1746,9 @@ JPEGPreEncode(TIFF* tif, uint16 s)
 	sp->cinfo.c.write_JFIF_header = FALSE;
 	sp->cinfo.c.write_Adobe_marker = FALSE;
 	/* set up table handling correctly */
+        if (!TIFFjpeg_set_quality(sp, sp->jpegquality, FALSE))
+		return (0);
 	if (! (sp->jpegtablesmode & JPEGTABLESMODE_QUANT)) {
-		if (!TIFFjpeg_set_quality(sp, sp->jpegquality, FALSE))
-			return (0);
 		unsuppress_quant_table(sp, 0);
 		unsuppress_quant_table(sp, 1);
 	}
@@ -1905,7 +1932,7 @@ JPEGEncodeRaw(TIFF* tif, uint8* buf, tmsize_t cc, uint16 s)
 			sp->scancount = 0;
 		}
 		tif->tif_row += sp->v_sampling;
-		buf += sp->bytesperline;
+		buf += bytesperclumpline;
 		nrows -= sp->v_sampling;
 	}
 	return (1);
@@ -2283,7 +2310,14 @@ TIFFInitJPEG(TIFF* tif, int scheme)
         if( tif->tif_diroff == 0 )
         {
 #define SIZE_OF_JPEGTABLES 2000
+/*
+The following line assumes incorrectly that all JPEG-in-TIFF files will have
+a JPEGTABLES tag generated and causes null-filled JPEGTABLES tags to be written
+when the JPEG data is placed with TIFFWriteRawStrip.  The field bit should be 
+set, anyway, later when actual JPEGTABLES header is generated, so removing it 
+here hopefully is harmless.
             TIFFSetFieldBit(tif, FIELD_JPEGTABLES);
+*/
             sp->jpegtables_length = SIZE_OF_JPEGTABLES;
             sp->jpegtables = (void *) _TIFFmalloc(sp->jpegtables_length);
 	    _TIFFmemset(sp->jpegtables, 0, SIZE_OF_JPEGTABLES);
@@ -2296,3 +2330,10 @@ TIFFInitJPEG(TIFF* tif, int scheme)
 
 /* vim: set ts=8 sts=8 sw=8 noet: */
 
+/*
+ * Local Variables:
+ * mode: c
+ * c-basic-offset: 8
+ * fill-column: 78
+ * End:
+ */

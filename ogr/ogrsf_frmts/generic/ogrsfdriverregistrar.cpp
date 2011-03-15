@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrsfdriverregistrar.cpp 18771 2010-02-09 01:30:33Z hobu $
+ * $Id: ogrsfdriverregistrar.cpp 21447 2011-01-09 16:02:28Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  The OGRSFDriverRegistrar class implementation.
@@ -31,8 +31,13 @@
 #include "ogr_api.h"
 #include "ogr_p.h"
 #include "cpl_multiproc.h"
+#include "swq.h"
 
-CPL_CVSID("$Id: ogrsfdriverregistrar.cpp 18771 2010-02-09 01:30:33Z hobu $");
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>
+#endif
+
+CPL_CVSID("$Id: ogrsfdriverregistrar.cpp 21447 2011-01-09 16:02:28Z rouault $");
 
 static void *hDRMutex = NULL;
 static OGRSFDriverRegistrar * volatile poRegistrar = NULL;
@@ -142,6 +147,7 @@ void OGRCleanupAll()
         if( poRegistrar != NULL )
             delete poRegistrar;
         OSRCleanup();
+        swq_op_registrar::DeInitialize();
     }
 
     CPLFinderClean();
@@ -191,6 +197,11 @@ OGRDataSource *OGRSFDriverRegistrar::Open( const char * pszName,
 {
     OGRDataSource       *poDS;
 
+#ifdef HAVE_READLINK
+    char szPointerFilename[2048];
+    int  bHasRetried = FALSE;
+#endif
+
     if( ppoDriver != NULL )
         *ppoDriver = NULL;
 
@@ -200,6 +211,9 @@ OGRDataSource *OGRSFDriverRegistrar::Open( const char * pszName,
 
     CPLAcquireMutex( hDRMutex, 0.1 );
 
+#ifdef HAVE_READLINK
+retry:
+#endif
     for( int iDriver = 0; iDriver < poRegistrar->nDrivers; iDriver++ )
     {
         OGRSFDriver *poDriver = poRegistrar->papoDrivers[iDriver];
@@ -227,6 +241,23 @@ OGRDataSource *OGRSFDriverRegistrar::Open( const char * pszName,
 
         CPLAcquireMutex( hDRMutex, 0.1 );
     }
+
+#ifdef HAVE_READLINK
+    if (!bHasRetried)
+    {
+        /* If someone creates a file with "ln -sf /vsicurl/http://svn.osgeo.org/gdal/trunk/autotest/ogr/data/poly.shp my_remote_poly.shp" */
+        /* we will be able to open it by passing my_remote_poly.shp */
+        /* This helps a lot for OGR based readers that only provide file explorers to open datasources */
+        int nBytes = readlink(pszName, szPointerFilename, sizeof(szPointerFilename));
+        if (nBytes != -1)
+        {
+            szPointerFilename[MIN(nBytes, (int)sizeof(szPointerFilename)-1)] = 0;
+            pszName = szPointerFilename;
+            bHasRetried = TRUE;
+            goto retry;
+        }
+    }
+#endif
 
     CPLReleaseMutex( hDRMutex );
 
@@ -589,6 +620,46 @@ void OGRRegisterDriver( OGRSFDriverH hDriver )
 }
 
 /************************************************************************/
+/*                          DeregisterDriver()                          */
+/************************************************************************/
+
+void OGRSFDriverRegistrar::DeregisterDriver( OGRSFDriver * poDriver )
+
+{
+    CPLMutexHolderD( &hDRMutex );
+    int         i;
+
+    for( i = 0; i < nDrivers; i++ )
+    {
+        if( poDriver == papoDrivers[i] )
+            break;
+    }
+
+    if (i == nDrivers)
+        return;
+
+    while( i < nDrivers-1 )
+    {
+        papoDrivers[i] = papoDrivers[i+1];
+        i++;
+    }
+    nDrivers--;
+}
+
+/************************************************************************/
+/*                        OGRDeregisterDriver()                         */
+/************************************************************************/
+
+void OGRDeregisterDriver( OGRSFDriverH hDriver )
+
+{
+    VALIDATE_POINTER0( hDriver, "OGRDeregisterDriver" );
+
+    OGRSFDriverRegistrar::GetRegistrar()->DeregisterDriver( 
+        (OGRSFDriver *) hDriver );
+}
+
+/************************************************************************/
 /*                           GetDriverCount()                           */
 /************************************************************************/
 
@@ -691,12 +762,12 @@ OGRSFDriverH OGRGetDriverByName( const char *pszName )
  * If that is not set the following defaults are used:
  *
  * <ul>
- * <li> Linux/Unix: <prefix>/lib/gdalplugins is searched or 
+ * <li> Linux/Unix: &lt;prefix&gt;/lib/gdalplugins is searched or
  * /usr/local/lib/gdalplugins if the install prefix is not known.
- * <li> MacOSX: <prefix>/PlugIns is searched, or /usr/local/lib/gdalplugins if
+ * <li> MacOSX: &lt;prefix&gt;/PlugIns is searched, or /usr/local/lib/gdalplugins if
  * the install prefix is not known.  Also, the framework directory
  * /Library/Application Support/GDAL/PlugIns is searched.
- * <li> Win32: <prefix>/lib/gdalplugins if the prefix is known (normally it 
+ * <li> Win32: &lt;prefix&gt;/lib/gdalplugins if the prefix is known (normally it
  * is not), otherwise the gdalplugins subdirectory of the directory containing
  * the currently running executable is used. 
  * </ul>

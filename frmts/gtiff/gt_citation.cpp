@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id$
+ * $Id: gt_citation.cpp 21102 2010-11-08 20:47:38Z rouault $
  *
  * Project:  GeoTIFF Driver
  * Purpose:  Implements special parsing of Imagine citation strings, and
@@ -31,11 +31,10 @@
 #include "cpl_port.h"
 #include "cpl_string.h"
 
-#include "geo_normalize.h"
 #include "geovalues.h"
-#include "ogr_spatialref.h"
+#include "gt_citation.h"
 
-CPL_CVSID("$Id$");
+CPL_CVSID("$Id: gt_citation.cpp 21102 2010-11-08 20:47:38Z rouault $");
 
 #define nCitationNameTypes 9
 typedef enum 
@@ -53,17 +52,6 @@ typedef enum
 
 char* ImagineCitationTranslation(const char* psCitation, geokey_t keyID);
 char** CitationStringParse(const char* psCitation);
-void SetLinearUnitCitation(GTIF* psGTIF, char* pszLinearUOMName);
-void SetGeogCSCitation(GTIF * psGTIF, OGRSpatialReference *poSRS, char* angUnitName, int nDatum, short nSpheroid);
-OGRBoolean SetCitationToSRS(GTIF* hGTIF, char* szCTString, int nCTStringLen,
-                            geokey_t geoKey,  OGRSpatialReference* poSRS, OGRBoolean* linearUnitIsSet);
-void GetGeogCSFromCitation(char* szGCSName, int nGCSName,
-                           geokey_t geoKey, 
-                          char	**ppszGeogName,
-                          char	**ppszDatumName,
-                          char	**ppszPMName,
-                          char	**ppszSpheroidName,
-                          char	**ppszAngularUnits);
 
 /************************************************************************/
 /*                     ImagineCitationTranslation()                     */
@@ -194,7 +182,7 @@ char** CitationStringParse(const char* psCitation)
     OGRBoolean nameFound = FALSE;
     while((pStr-psCitation+1)< nCitationLen)
     {
-        if( (pDelimit = strstr(pStr, "|")) )
+        if( (pDelimit = strstr(pStr, "|")) != NULL )
         {
             osName = "";
             osName.append(pStr, pDelimit-pStr);

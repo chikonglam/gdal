@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_srs_api.h 17970 2009-11-06 20:00:29Z warmerdam $
+ * $Id: ogr_srs_api.h 21005 2010-10-29 14:50:50Z dron $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  C API and constant declarations for OGR Spatial References.
@@ -285,9 +285,11 @@ OGRErr CPL_DLL OSRImportFromDict( OGRSpatialReferenceH, const char *,
                                   const char * );
 OGRErr CPL_DLL OSRImportFromPanorama( OGRSpatialReferenceH, long, long, long,
                                       double * );
-OGRErr OSRImportFromOzi( OGRSpatialReferenceH , const char *, const char *,
-                         const char * );
+OGRErr CPL_DLL OSRImportFromOzi( OGRSpatialReferenceH , const char *, const char *,
+                                 const char * );
 OGRErr CPL_DLL OSRImportFromMICoordSys( OGRSpatialReferenceH, const char *);
+OGRErr CPL_DLL OSRImportFromERM( OGRSpatialReferenceH,
+                                 const char *, const char *, const char * );
 OGRErr CPL_DLL OSRImportFromUrl( OGRSpatialReferenceH, const char * );
 
 OGRErr CPL_DLL CPL_STDCALL OSRExportToWkt( OGRSpatialReferenceH, char ** );
@@ -301,6 +303,7 @@ OGRErr CPL_DLL OSRExportToXML( OGRSpatialReferenceH, char **, const char * );
 OGRErr CPL_DLL OSRExportToPanorama( OGRSpatialReferenceH, long *, long *,
                                     long *, long *, double * );
 OGRErr CPL_DLL OSRExportToMICoordSys( OGRSpatialReferenceH, char ** );
+OGRErr CPL_DLL OSRExportToERM( OGRSpatialReferenceH, char *, char *, char * );
 
 OGRErr CPL_DLL OSRMorphToESRI( OGRSpatialReferenceH );
 OGRErr CPL_DLL OSRMorphFromESRI( OGRSpatialReferenceH );
@@ -323,7 +326,9 @@ double CPL_DLL OSRGetPrimeMeridian( OGRSpatialReferenceH, char ** );
 int CPL_DLL OSRIsGeographic( OGRSpatialReferenceH );
 int CPL_DLL OSRIsLocal( OGRSpatialReferenceH );
 int CPL_DLL OSRIsProjected( OGRSpatialReferenceH );
+int CPL_DLL OSRIsVertical( OGRSpatialReferenceH );
 int CPL_DLL OSRIsSameGeogCS( OGRSpatialReferenceH, OGRSpatialReferenceH );
+int CPL_DLL OSRIsVertCS( OGRSpatialReferenceH, OGRSpatialReferenceH );
 int CPL_DLL OSRIsSame( OGRSpatialReferenceH, OGRSpatialReferenceH );
 
 OGRErr CPL_DLL OSRSetLocalCS( OGRSpatialReferenceH hSRS, const char *pszName );

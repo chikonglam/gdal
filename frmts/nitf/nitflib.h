@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: nitflib.h 17062 2009-05-19 21:58:16Z rouault $
+ * $Id: nitflib.h 21059 2010-11-03 14:18:58Z dron $
  *
  * Project:  NITF Read/Write Library
  * Purpose:  Main GDAL independent include file for NITF support.  
@@ -32,6 +32,7 @@
 
 #include "cpl_port.h"
 #include "cpl_error.h"
+#include "cpl_vsi.h"
 
 CPL_C_START
 
@@ -55,7 +56,7 @@ typedef struct {
 } NITFSegmentInfo;
 
 typedef struct {
-    FILE    *fp;
+    VSILFILE  *fp;
 
     char    szVersion[10];
 
@@ -104,10 +105,10 @@ typedef struct {
 
 } NITFBandInfo;
 
-typedef struct { 
-    int	nLocId;
-    int nLocOffset;
-    int nLocSize;
+typedef struct {
+    GUInt16 nLocId;
+    GUInt32 nLocOffset;
+    GUInt32 nLocSize;
 } NITFLocation;
 
 typedef struct
@@ -157,6 +158,7 @@ typedef struct {
     double     dfLRY;
     double     dfLLX;
     double     dfLLY;
+    int        bIsBoxCenterOfPixel;
 
     char       *pszComments;
     char       szIC[3];
@@ -229,6 +231,31 @@ int NITFUncompressARIDPCM( NITFImage *psImage,
 int NITFUncompressBILEVEL( NITFImage *psImage, 
                            GByte *pabyInputData, int nInputBytes,
                            GByte *pabyOutputImage );
+
+NITFLocation* NITFReadRPFLocationTable(VSILFILE* fp, int* pnLocCount);
+
+/* -------------------------------------------------------------------- */
+/*      DE segment access.                                              */
+/* -------------------------------------------------------------------- */
+typedef struct {
+    NITFFile  *psFile;
+    int        iSegment;
+    char      *pachHeader;
+
+    char       **papszMetadata;
+} NITFDES;
+
+NITFDES   CPL_DLL *NITFDESAccess( NITFFile *, int iSegment );
+void      CPL_DLL  NITFDESDeaccess( NITFDES * );
+
+int       CPL_DLL  NITFDESGetTRE(   NITFDES* psDES,
+                                    int nOffset,
+                                    char szTREName[7],
+                                    char** ppabyTREData,
+                                    int* pnFoundTRESize);
+void      CPL_DLL  NITFDESFreeTREData( char* pabyTREData );
+
+int       CPL_DLL  NITFDESExtractShapefile(NITFDES* psDES, const char* pszRadixFileName);
 
 /* -------------------------------------------------------------------- */
 /*      These are really intended to be private helper stuff for the    */

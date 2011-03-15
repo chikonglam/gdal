@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: hfa_overviews.cpp 18877 2010-02-21 03:23:00Z warmerdam $
+ * $Id: hfa_overviews.cpp 18859 2010-02-19 19:41:06Z warmerdam $
  *
  * Project:  Erdas Imagine Driver
  * Purpose:  Entry point for building overviews, used by non-imagine formats.
@@ -31,7 +31,7 @@
 #include "hfa_p.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: hfa_overviews.cpp 18877 2010-02-21 03:23:00Z warmerdam $");
+CPL_CVSID("$Id: hfa_overviews.cpp 18859 2010-02-19 19:41:06Z warmerdam $");
 
 CPLErr HFAAuxBuildOverviews( const char *pszOvrFilename, 
                              GDALDataset *poParentDS,

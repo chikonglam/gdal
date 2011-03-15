@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id$
+ * $Id: ogrgeojsonlayer.cpp 21338 2010-12-29 22:45:03Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implementation of OGRGeoJSONLayer class (OGR GeoJSON Driver).
@@ -75,7 +75,7 @@ OGRGeoJSONLayer::OGRGeoJSONLayer( const char* pszName,
 
 OGRGeoJSONLayer::~OGRGeoJSONLayer()
 {
-    FILE* fp = poDS_->GetOutputFile();
+    VSILFILE* fp = poDS_->GetOutputFile();
     if( NULL != fp )
     {
         VSIFPrintfL( fp, "\n]\n}\n" );
@@ -202,8 +202,8 @@ OGRFeature* OGRGeoJSONLayer::GetFeature( long nFID )
 
 OGRErr OGRGeoJSONLayer::CreateFeature( OGRFeature* poFeature )
 {
-    FILE* fp = poDS_->GetOutputFile();
-    if( NULL == poFeature )
+    VSILFILE* fp = poDS_->GetOutputFile();
+    if( NULL == fp )
     {
         CPLDebug( "GeoJSON", "Target datasource file is invalid." );
         return CE_Failure;
@@ -325,6 +325,9 @@ void OGRGeoJSONLayer::AddFeature( OGRFeature* poFeature )
 
 void OGRGeoJSONLayer::DetectGeometryType()
 {
+    if (poFeatureDefn_->GetGeomType() != wkbUnknown)
+        return;
+
     OGRwkbGeometryType featType = wkbUnknown;
     OGRGeometry* poGeometry = NULL;
     FeaturesSeq::const_iterator it = seqFeatures_.begin();

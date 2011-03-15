@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: vsiiostream.h 20919 2010-10-21 02:00:35Z warmerdam $
+ * $Id: vsiiostream.h 21341 2010-12-30 09:21:32Z rouault $
  *
  * Project:  GDAL 
  * Purpose:  ECW Driver: virtualized io stream declaration.
@@ -36,6 +36,15 @@
 
 #ifdef FRMT_ecw
 
+// The following is needed on 4.x+ to enable rw support.
+#if defined(HAVE_COMPRESS)
+#  define ECW_COMPRESS_RW_SDK_VERSION
+#endif
+
+#if defined(_MSC_VER)
+#  pragma warning(disable:4800)
+#endif
+
 /* -------------------------------------------------------------------- */
 /*      These definitions aren't really specific to the VSIIOStream,    */
 /*      but are shared amoung the ECW driver modules.                   */
@@ -47,21 +56,27 @@
 #include <NCSJP2FileView.h>
 
 /* By default, assume 3.3 SDK Version. */
-
 #if !defined(ECWSDK_VERSION)
 #  define ECWSDK_VERSION 33
 #endif
 
 #if ECWSDK_VERSION < 40
+
+#if !defined(NO_COMPRESS)
+#  define HAVE_COMPRESS
+#endif
+
 #  include <NCSJP2File.h>
 #else
 #  include <ECWJP2BuildNumber.h>
 #  define NCS_FASTCALL
 #endif
 
-/* As of July 2002 only uncompress support is available on Unix */
-#if !defined(NO_COMPRESS)
-#  define HAVE_COMPRESS
+#ifndef NCSFILEBASE_H
+#  include <NCSJP2FileView.h>
+#else
+#  undef  CNCSJP2FileView
+#  define CNCSJP2FileView	  CNCSFile
 #endif
 
 #ifdef HAVE_COMPRESS
@@ -95,7 +110,7 @@ class VSIIOStream : public CNCSJPCIOStream
     
     INT64    startOfJPData;
     INT64    lengthOfJPData;
-    FILE    *fpVSIL;
+    VSILFILE    *fpVSIL;
     int      bWritable;
 	int      nFileViewCount;
     char     *pszFilename;
@@ -118,7 +133,7 @@ class VSIIOStream : public CNCSJPCIOStream
     virtual NCS::CIOStream *Clone() { return NULL; }
 #endif /* ECWSDK_VERSION >= 4 */
 
-    virtual CNCSError Access( FILE *fpVSILIn, BOOLEAN bWrite,
+    virtual CNCSError Access( VSILFILE *fpVSILIn, BOOLEAN bWrite,
                               const char *pszFilename, 
                               INT64 start, INT64 size = -1) {
 
@@ -179,8 +194,8 @@ class VSIIOStream : public CNCSJPCIOStream
         if( VSIFReadL( buffer, count, 1, fpVSIL ) != 1 )
         {
             CPLDebug( "VSIIOSTREAM",
-                      "Read(%d) failed @ %d, ignoring failure.",
-                      count, (int) (VSIFTellL( fpVSIL ) - startOfJPData) );
+                      "Read(%d) failed @ " CPL_FRMT_GIB ", ignoring failure.",
+                      count, (VSIFTellL( fpVSIL ) - startOfJPData) );
         }
         
         return true;

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: btdataset.cpp 16706 2009-04-02 03:44:07Z warmerdam $
+ * $Id: btdataset.cpp 20996 2010-10-28 18:38:15Z rouault $
  *
  * Project:  VTP .bt Driver
  * Purpose:  Implementation of VTP .bt elevation format read/write support.
@@ -31,7 +31,7 @@
 #include "rawdataset.h"
 #include "ogr_spatialref.h"
 
-CPL_CVSID("$Id: btdataset.cpp 16706 2009-04-02 03:44:07Z warmerdam $");
+CPL_CVSID("$Id: btdataset.cpp 20996 2010-10-28 18:38:15Z rouault $");
 
 CPL_C_START
 void    GDALRegister_BT(void);
@@ -47,7 +47,7 @@ class BTDataset : public GDALPamDataset
 {
     friend class BTRasterBand;
 
-    FILE        *fpImage;       // image data file.
+    VSILFILE        *fpImage;       // image data file.
 
     int         bGeoTransformValid;
     double      adfGeoTransform[6];
@@ -89,11 +89,11 @@ class BTDataset : public GDALPamDataset
 
 class BTRasterBand : public GDALRasterBand
 {
-    FILE          *fpImage;
+    VSILFILE          *fpImage;
 
   public:
 
-                   BTRasterBand( GDALDataset * poDS, FILE * fp,
+                   BTRasterBand( GDALDataset * poDS, VSILFILE * fp,
                                  GDALDataType eType );
 
     virtual CPLErr IReadBlock( int, int, void * );
@@ -109,7 +109,7 @@ class BTRasterBand : public GDALRasterBand
 /*                           BTRasterBand()                             */
 /************************************************************************/
 
-BTRasterBand::BTRasterBand( GDALDataset *poDS, FILE *fp, GDALDataType eType )
+BTRasterBand::BTRasterBand( GDALDataset *poDS, VSILFILE *fp, GDALDataType eType )
 
 {
     this->poDS = poDS;
@@ -502,7 +502,7 @@ CPLErr BTDataset::SetProjection( const char *pszNewProjection )
 /* -------------------------------------------------------------------- */
     if( oSRS.GetAuthorityName( "GEOGCS|DATUM" ) != NULL
         && EQUAL(oSRS.GetAuthorityName( "GEOGCS|DATUM" ),"EPSG") )
-        nShortTemp = atoi(oSRS.GetAuthorityName( "GEOGCS|DATUM" )) + 2000;
+        nShortTemp = atoi(oSRS.GetAuthorityCode( "GEOGCS|DATUM" )) + 2000;
     else
         nShortTemp = -2;
     nShortTemp = CPL_LSBWORD16( nShortTemp ); /* datum unknown */
@@ -512,7 +512,7 @@ CPLErr BTDataset::SetProjection( const char *pszNewProjection )
 /*      Write out the projection to a .prj file.                        */
 /* -------------------------------------------------------------------- */
     const char  *pszPrjFile = CPLResetExtension( GetDescription(), "prj" );
-    FILE * fp;
+    VSILFILE * fp;
 
     fp = VSIFOpenL( pszPrjFile, "wt" );
     if( fp != NULL )
@@ -623,7 +623,7 @@ GDALDataset *BTDataset::Open( GDALOpenInfo * poOpenInfo )
     {
         const char  *pszPrjFile = CPLResetExtension( poOpenInfo->pszFilename, 
                                                      "prj" );
-        FILE *fp;
+        VSILFILE *fp;
 
         fp = VSIFOpenL( pszPrjFile, "rt" );
         if( fp != NULL )
@@ -835,7 +835,7 @@ GDALDataset *BTDataset::Create( const char * pszFilename,
 /* -------------------------------------------------------------------- */
 /*      Try to create the file.                                         */
 /* -------------------------------------------------------------------- */
-    FILE        *fp;
+    VSILFILE        *fp;
 
     fp = VSIFOpenL( pszFilename, "wb" );
 

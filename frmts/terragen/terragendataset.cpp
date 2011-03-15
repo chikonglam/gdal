@@ -106,7 +106,7 @@
 #include "gdal_pam.h"
 #include "ogr_spatialref.h"
 
-// CPL_CVSID("$Id: terragendataset.cpp 18240 2009-12-10 15:53:48Z warmerdam $");
+// CPL_CVSID("$Id: terragendataset.cpp 20996 2010-10-28 18:38:15Z rouault $");
 
 CPL_C_START
 void	GDALRegister_Terragen(void);
@@ -166,7 +166,7 @@ class TerragenDataset : public GDALPamDataset
 				m_span_m[2], 
 				m_span_px[2];
 
-    FILE*			m_fp;
+    VSILFILE*			m_fp;
     vsi_l_offset	m_nDataOffset;
 
     GInt16		m_nHeightScale;

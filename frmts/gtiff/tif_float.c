@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: tif_float.c 10645 2007-01-18 02:22:39Z warmerdam $
+ * $Id: tif_float.c 21102 2010-11-08 20:47:38Z rouault $
  *
  * Project:  GeoTIFF Driver
  * Purpose:  Floating point conversion functions. Convert 16- and 24-bit
@@ -44,7 +44,7 @@
  *
  ****************************************************************************/
 
-#include "cpl_port.h"
+#include "tif_float.h"
 
 /************************************************************************/
 /*                           HalfToFloat()                              */

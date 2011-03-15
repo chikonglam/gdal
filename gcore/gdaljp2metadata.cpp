@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdaljp2metadata.cpp 17636 2009-09-12 23:19:18Z warmerdam $
+ * $Id: gdaljp2metadata.cpp 21102 2010-11-08 20:47:38Z rouault $
  *
  * Project:  GDAL 
  * Purpose:  GDALJP2Metadata - Read GeoTIFF and/or GML georef info.
@@ -33,8 +33,9 @@
 #include "ogr_spatialref.h"
 #include "ogr_geometry.h"
 #include "ogr_api.h"
+#include "gt_wkt_srs_for_gdal.h"
 
-CPL_CVSID("$Id: gdaljp2metadata.cpp 17636 2009-09-12 23:19:18Z warmerdam $");
+CPL_CVSID("$Id: gdaljp2metadata.cpp 21102 2010-11-08 20:47:38Z rouault $");
 
 static const unsigned char msi_uuid2[16] =
 {0xb1,0x4b,0xf8,0xbd,0x08,0x3d,0x4b,0x43,
@@ -43,16 +44,6 @@ static const unsigned char msi_uuid2[16] =
 static const unsigned char msig_uuid[16] = 
 { 0x96,0xA9,0xF1,0xF1,0xDC,0x98,0x40,0x2D,
   0xA7,0xAE,0xD6,0x8E,0x34,0x45,0x18,0x09 };
-
-CPL_C_START
-CPLErr CPL_DLL GTIFMemBufFromWkt( const char *pszWKT, 
-                                  const double *padfGeoTransform,
-                                  int nGCPCount, const GDAL_GCP *pasGCPList,
-                                  int *pnSize, unsigned char **ppabyBuffer );
-CPLErr CPL_DLL GTIFWktFromMemBuf( int nSize, unsigned char *pabyBuffer, 
-                          char **ppszWKT, double *padfGeoTransform,
-                          int *pnGCPCount, GDAL_GCP **ppasGCPList );
-CPL_C_END
 
 /************************************************************************/
 /*                          GDALJP2Metadata()                           */
@@ -113,7 +104,7 @@ GDALJP2Metadata::~GDALJP2Metadata()
 int GDALJP2Metadata::ReadAndParse( const char *pszFilename )
 
 {
-    FILE *fpLL;
+    VSILFILE *fpLL;
         
     fpLL = VSIFOpenL( pszFilename, "rb" );
         
@@ -204,7 +195,7 @@ void GDALJP2Metadata::CollectGMLData( GDALJP2Box *poGMLData )
 /*                             ReadBoxes()                              */
 /************************************************************************/
 
-int GDALJP2Metadata::ReadBoxes( FILE *fpVSIL )
+int GDALJP2Metadata::ReadBoxes( VSILFILE *fpVSIL )
 
 {
     GDALJP2Box oBox( fpVSIL );
@@ -810,7 +801,7 @@ GDALJP2Box *GDALJP2Metadata::CreateGMLJP2( int nXSize, int nYSize )
 /* -------------------------------------------------------------------- */
     if( CPLGetConfigOption( "GMLJP2OVERRIDE", NULL ) != NULL )
     {
-        FILE *fp = VSIFOpenL( CPLGetConfigOption( "GMLJP2OVERRIDE",""), "r" );
+        VSILFILE *fp = VSIFOpenL( CPLGetConfigOption( "GMLJP2OVERRIDE",""), "r" );
         char *pszGML = NULL;
 
         if( fp == NULL )

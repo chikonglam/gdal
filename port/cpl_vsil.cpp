@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: cpl_vsil.cpp 18725 2010-02-04 21:02:19Z rouault $
+ * $Id: cpl_vsil.cpp 20996 2010-10-28 18:38:15Z rouault $
  *
  * Project:  VSI Virtual File System
  * Purpose:  Implementation VSI*L File API and other file system access
@@ -32,7 +32,7 @@
 #include "cpl_string.h"
 #include <string>
 
-CPL_CVSID("$Id: cpl_vsil.cpp 18725 2010-02-04 21:02:19Z rouault $");
+CPL_CVSID("$Id: cpl_vsil.cpp 20996 2010-10-28 18:38:15Z rouault $");
 
 /************************************************************************/
 /*                             VSIReadDir()                             */
@@ -52,9 +52,10 @@ CPL_CVSID("$Id: cpl_vsil.cpp 18725 2010-02-04 21:02:19Z rouault $");
  * This function used to be known as CPLReadDir(), but the old name is now 
  * deprecated. 
  *
- * @param pszPath the relative, or absolute path of a directory to read.
+ * @param pszPath the relative, or absolute path of a directory to read.  
+ * UTF-8 encoded.
  * @return The list of entries in the directory, or NULL if the directory
- * doesn't exist.
+ * doesn't exist.  Filenames are returned in UTF-8 encoding.
  */
 
 char **VSIReadDir(const char *pszPath)
@@ -96,7 +97,7 @@ char **CPLReadDir( const char *pszPath )
  *
  * Analog of the POSIX mkdir() function.
  *
- * @param pszPathname the path to the directory to create. 
+ * @param pszPathname the path to the directory to create. UTF-8 encoded.
  * @param mode the permissions mode.
  *
  * @return 0 on success or -1 on an error.
@@ -125,7 +126,7 @@ int VSIMkdir( const char *pszPathname, long mode )
  *
  * Analog of the POSIX unlink() function.
  *
- * @param pszFilename the path of the file to be deleted.
+ * @param pszFilename the path of the file to be deleted. UTF-8 encoded.
  *
  * @return 0 on success or -1 on an error.
  */
@@ -155,8 +156,8 @@ int VSIUnlink( const char * pszFilename )
  *
  * Analog of the POSIX rename() function.
  *
- * @param oldpath the name of the file to be renamed.
- * @param newpath the name the file should be given. 
+ * @param oldpath the name of the file to be renamed.  UTF-8 encoded.
+ * @param newpath the name the file should be given.  UTF-8 encoded.
  *
  * @return 0 on success or -1 on an error.
  */
@@ -185,7 +186,7 @@ int VSIRename( const char * oldpath, const char * newpath )
  *
  * Analog of the POSIX rmdir() function.
  *
- * @param pszDirname the path of the directory to be deleted.
+ * @param pszDirname the path of the directory to be deleted.  UTF-8 encoded.
  *
  * @return 0 on success or -1 on an error.
  */
@@ -217,13 +218,50 @@ int VSIRmdir( const char * pszDirname )
  *
  * Analog of the POSIX stat() function.
  *
- * @param pszFilename the path of the filesystem object to be queried.
+ * @param pszFilename the path of the filesystem object to be queried.  UTF-8 encoded.
  * @param psStatBuf the structure to load with information. 
  *
  * @return 0 on success or -1 on an error.
  */
 
 int VSIStatL( const char * pszFilename, VSIStatBufL *psStatBuf )
+
+{
+    return VSIStatExL(pszFilename, psStatBuf, 0);
+}
+
+
+/************************************************************************/
+/*                            VSIStatExL()                              */
+/************************************************************************/
+
+/**
+ * \brief Get filesystem object info.
+ *
+ * Fetches status information about a filesystem object (file, directory, etc).
+ * The returned information is placed in the VSIStatBufL structure.   For
+ * portability only the st_size (size in bytes), and st_mode (file type).
+ * This method is similar to VSIStat(), but will work on large files on
+ * systems where this requires special calls.
+ *
+ * This method goes through the VSIFileHandler virtualization and may
+ * work on unusual filesystems such as in memory.
+ *
+ * Analog of the POSIX stat() function, with an extra parameter to specify
+ * which information is needed, which offers a potential for speed optimizations
+ * on specialized and potentially slow virtual filesystem objects (/vsigzip/, /vsicurl/)
+ *
+ * @param pszFilename the path of the filesystem object to be queried.  UTF-8 encoded.
+ * @param psStatBuf the structure to load with information.
+ * @param nFlags 0 to get all information, or VSI_STAT_EXISTS_FLAG, VSI_STAT_NATURE_FLAG or
+ *                  VSI_STAT_SIZE_FLAG, or a combination of those to get partial info.
+ *
+ * @return 0 on success or -1 on an error.
+ *
+ * @since GDAL 1.8.0
+ */
+
+int VSIStatExL( const char * pszFilename, VSIStatBufL *psStatBuf, int nFlags )
 
 {
     char    szAltPath[4];
@@ -238,10 +276,43 @@ int VSIStatL( const char * pszFilename, VSIStatBufL *psStatBuf )
         pszFilename = szAltPath;
     }
 
-    VSIFilesystemHandler *poFSHandler = 
+    VSIFilesystemHandler *poFSHandler =
         VSIFileManager::GetHandler( pszFilename );
 
-    return poFSHandler->Stat( pszFilename, psStatBuf );
+    if (nFlags == 0)
+        nFlags = VSI_STAT_EXISTS_FLAG | VSI_STAT_NATURE_FLAG | VSI_STAT_SIZE_FLAG;
+
+    return poFSHandler->Stat( pszFilename, psStatBuf, nFlags );
+}
+
+/************************************************************************/
+/*                       VSIIsCaseSensitiveFS()                         */
+/************************************************************************/
+
+/**
+ * \brief Returns if the filenames of the filesystem are case sensitive.
+ *
+ * This method retrieves to which filesystem belongs the passed filename
+ * and return TRUE if the filenames of that filesystem are case sensitive.
+ *
+ * Currently, this will return FALSE only for Windows real filenames. Other
+ * VSI virtual filesystems are case sensitive.
+ *
+ * This methods avoid ugly #ifndef WIN32 / #endif code, that is wrong when
+ * dealing with virtual filenames.
+ *
+ * @param pszFilename the path of the filesystem object to be tested.  UTF-8 encoded.
+ *
+ * @return TRUE if the filenames of the filesystem are case sensitive.
+ *
+ * @since GDAL 1.8.0
+ */
+int VSIIsCaseSensitiveFS( const char * pszFilename )
+{
+    VSIFilesystemHandler *poFSHandler =
+        VSIFileManager::GetHandler( pszFilename );
+        
+    return poFSHandler->IsCaseSensitive( pszFilename );
 }
 
 /************************************************************************/
@@ -255,7 +326,7 @@ int VSIStatL( const char * pszFilename, VSIStatBufL *psStatBuf )
  * than 2GB) should be supported.  Binary access is always implied and
  * the "b" does not need to be included in the pszAccess string.
  *
- * Note that the "FILE *" returned by this function is not really a 
+ * Note that the "VSILFILE *" returned since GDAL 1.8.0 by this function is *NOT* a
  * standard C library FILE *, and cannot be used with any functions other
  * than the "VSI*L" family of functions.  They aren't "real" FILE objects.
  *
@@ -264,19 +335,19 @@ int VSIStatL( const char * pszFilename, VSIStatBufL *psStatBuf )
  *
  * Analog of the POSIX fopen() function.
  *
- * @param pszFilename the file to open.
+ * @param pszFilename the file to open.  UTF-8 encoded.
  * @param pszAccess access requested (ie. "r", "r+", "w".  
  *
  * @return NULL on failure, or the file handle.
  */
 
-FILE *VSIFOpenL( const char * pszFilename, const char * pszAccess )
+VSILFILE *VSIFOpenL( const char * pszFilename, const char * pszAccess )
 
 {
     VSIFilesystemHandler *poFSHandler = 
         VSIFileManager::GetHandler( pszFilename );
         
-    FILE* fp = (FILE *) poFSHandler->Open( pszFilename, pszAccess );
+    VSILFILE* fp = (VSILFILE *) poFSHandler->Open( pszFilename, pszAccess );
 
     VSIDebug3( "VSIFOpenL(%s,%s) = %p", pszFilename, pszAccess, fp );
         
@@ -302,7 +373,7 @@ FILE *VSIFOpenL( const char * pszFilename, const char * pszAccess )
  * @return 0 on success or -1 on failure.
  */
 
-int VSIFCloseL( FILE * fp )
+int VSIFCloseL( VSILFILE * fp )
 
 {
     VSIVirtualHandle *poFileHandle = (VSIVirtualHandle *) fp;
@@ -337,7 +408,7 @@ int VSIFCloseL( FILE * fp )
  * @return 0 on success or -1 one failure.
  */
 
-int VSIFSeekL( FILE * fp, vsi_l_offset nOffset, int nWhence )
+int VSIFSeekL( VSILFILE * fp, vsi_l_offset nOffset, int nWhence )
 
 {
     VSIVirtualHandle *poFileHandle = (VSIVirtualHandle *) fp;
@@ -365,7 +436,7 @@ int VSIFSeekL( FILE * fp, vsi_l_offset nOffset, int nWhence )
  * @return file offset in bytes.
  */
 
-vsi_l_offset VSIFTellL( FILE * fp )
+vsi_l_offset VSIFTellL( VSILFILE * fp )
 
 {
     VSIVirtualHandle *poFileHandle = (VSIVirtualHandle *) fp;
@@ -377,7 +448,7 @@ vsi_l_offset VSIFTellL( FILE * fp )
 /*                             VSIRewindL()                             */
 /************************************************************************/
 
-void VSIRewindL( FILE * fp )
+void VSIRewindL( VSILFILE * fp )
 
 {
     VSIFSeekL( fp, 0, SEEK_SET );
@@ -403,7 +474,7 @@ void VSIRewindL( FILE * fp )
  * @return 0 on success or -1 on error.
  */
 
-int VSIFFlushL( FILE * fp )
+int VSIFFlushL( VSILFILE * fp )
 
 {
     VSIVirtualHandle *poFileHandle = (VSIVirtualHandle *) fp;
@@ -435,7 +506,7 @@ int VSIFFlushL( FILE * fp )
  * @return number of objects successfully read. 
  */
 
-size_t VSIFReadL( void * pBuffer, size_t nSize, size_t nCount, FILE * fp )
+size_t VSIFReadL( void * pBuffer, size_t nSize, size_t nCount, VSILFILE * fp )
 
 {
     VSIVirtualHandle *poFileHandle = (VSIVirtualHandle *) fp;
@@ -467,7 +538,7 @@ size_t VSIFReadL( void * pBuffer, size_t nSize, size_t nCount, FILE * fp )
  * @return number of objects successfully written.
  */
 
-size_t VSIFWriteL( const void *pBuffer, size_t nSize, size_t nCount, FILE *fp )
+size_t VSIFWriteL( const void *pBuffer, size_t nSize, size_t nCount, VSILFILE *fp )
 
 {
     VSIVirtualHandle *poFileHandle = (VSIVirtualHandle *) fp;
@@ -495,7 +566,7 @@ size_t VSIFWriteL( const void *pBuffer, size_t nSize, size_t nCount, FILE *fp )
  * @return TRUE if at EOF else FALSE.
  */
 
-int VSIFEofL( FILE * fp )
+int VSIFEofL( VSILFILE * fp )
 
 {
     VSIVirtualHandle *poFileHandle = (VSIVirtualHandle *) fp;
@@ -521,7 +592,7 @@ int VSIFEofL( FILE * fp )
  * @return the number of bytes written or -1 on an error.
  */
 
-int VSIFPrintfL( FILE *fp, const char *pszFormat, ... )
+int VSIFPrintfL( VSILFILE *fp, const char *pszFormat, ... )
 
 {
     va_list args;
@@ -538,7 +609,7 @@ int VSIFPrintfL( FILE *fp, const char *pszFormat, ... )
 /*                              VSIFPutcL()                              */
 /************************************************************************/
 
-int VSIFPutcL( int nChar, FILE * fp )
+int VSIFPutcL( int nChar, VSILFILE * fp )
 
 {
     unsigned char cChar = (unsigned char)nChar;
@@ -579,7 +650,7 @@ VSIFileManager::~VSIFileManager()
 
     for( iter = oHandlers.begin();
          iter != oHandlers.end();
-         iter++ )
+         ++iter )
     {
         delete iter->second;
     }
@@ -608,7 +679,13 @@ VSIFileManager *VSIFileManager::Get()
         VSIInstallGZipFileHandler();
         VSIInstallZipFileHandler();
 #endif
+#ifdef HAVE_CURL
+        VSIInstallCurlFileHandler();
+#endif
+        VSIInstallStdinHandler();
         VSIInstallStdoutHandler();
+        VSIInstallSparseFileHandler();
+        VSIInstallTarFileHandler();
     }
     
     return poManager;
@@ -627,7 +704,7 @@ VSIFilesystemHandler *VSIFileManager::GetHandler( const char *pszPath )
 
     for( iter = poThis->oHandlers.begin();
          iter != poThis->oHandlers.end();
-         iter++ )
+         ++iter )
     {
         const char* pszIterKey = iter->first.c_str();
         int nIterKeyLen = iter->first.size();
@@ -639,6 +716,11 @@ VSIFilesystemHandler *VSIFileManager::GetHandler( const char *pszPath )
             pszIterKey[nIterKeyLen-1] == '/' &&
             pszPath[nIterKeyLen-1] == '\\' &&
             strncmp(pszPath,pszIterKey,nIterKeyLen-1) == 0 )
+            return iter->second;
+
+        /* /vsimem should be treated as a match for /vsimem/ */
+        if( nPathLen == nIterKeyLen - 1
+            && strncmp(pszPath,pszIterKey,nIterKeyLen-1) == 0 )
             return iter->second;
     }
     

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: stuff.cpp 18020 2009-11-14 14:33:20Z rouault $
+ * $Id: stuff.cpp 20996 2010-10-28 18:38:15Z rouault $
  *
  * Project:  WMS Client Driver
  * Purpose:  Implementation of Dataset and RasterBand classes for WMS
@@ -86,7 +86,7 @@ CPLString BufferToVSIFile(GByte *buffer, size_t size) {
     CPLString file_name;
 
     file_name.Printf("/vsimem/wms/%p/wmsresult.dat", buffer);
-    FILE *f = VSIFileFromMemBuffer(file_name.c_str(), buffer, size, false);
+    VSILFILE *f = VSIFileFromMemBuffer(file_name.c_str(), buffer, size, false);
     if (f == NULL) return CPLString();
     VSIFCloseL(f);
     return file_name;

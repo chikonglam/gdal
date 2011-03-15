@@ -44,18 +44,46 @@
 %typemap(out) (char **CSL)
 {
     /* %typemap(out) char **CSL */
-    AV *av = (AV*)sv_2mortal((SV*)newAV());
-    if ($1) {
-	int i;
-	for (i = 0; $1[i]; i++) {
-	    SV *s = newSVpv($1[i], 0);
-	    if (!av_store(av, i, s))
-		SvREFCNT_dec(s);
+    if (GIMME_V == G_ARRAY) {
+	if ($1) {
+	    int i;
+	    for (i = 0; $1[i]; i++) {
+		if (i>items-1) EXTEND(SP, 1);
+		ST(argvi) = sv_2mortal(newSVpv($1[i], 0));
+		argvi++;
+	    }
+	    CSLDestroy($1);
 	}
-	CSLDestroy($1);
+    } else {
+	AV *av = (AV*)sv_2mortal((SV*)newAV());
+	if ($1) {
+	    int i;
+	    for (i = 0; $1[i]; i++) {
+		SV *s = newSVpv($1[i], 0);
+		if (!av_store(av, i, s))
+		    SvREFCNT_dec(s);
+	    }
+	    CSLDestroy($1);
+	}
+	$result = newRV_noinc((SV*)av);
+	argvi++;
     }
-    $result = newRV_noinc((SV*)av);
-    argvi++;
+}
+%typemap(out) (char **CSL_REF)
+{
+    /* %typemap(out) char **CSL_REF */
+  AV *av = (AV*)sv_2mortal((SV*)newAV());
+  if ($1) {
+    int i;
+    for (i = 0; $1[i]; i++) {
+      SV *s = newSVpv($1[i], 0);
+      if (!av_store(av, i, s))
+	SvREFCNT_dec(s);
+    }
+    CSLDestroy($1);
+  }
+  $result = newRV_noinc((SV*)av);
+  argvi++;
 }
 %typemap(out) (char **free)
 {
@@ -71,25 +99,36 @@
   $result = newRV_noinc((SV*)av);
   argvi++;
 }
-/* if the call to the fct failed, return an undef */
+/* drop GDAL return value */
 %typemap(out) IF_FALSE_RETURN_NONE
 {
   /* %typemap(out) IF_FALSE_RETURN_NONE */
 }
+/* croak if GDAL return FALSE */
 %typemap(ret) IF_FALSE_RETURN_NONE
 {
  /* %typemap(ret) IF_FALSE_RETURN_NONE */
   if ($1 == 0 ) {
-    /* this is currently used only in GDALGCPsToGeoTransform
-       this is probably a memory leak
-       ST(argvi-1) is at this point an array which needs to be destr
-     */
-    ST(argvi-1) = sv_newmortal();
+    SWIG_croak("unexpected error in $symname");
   }
 }
+/* drop GDAL return value */
+%typemap(out) RETURN_NONE_TRUE_IS_ERROR
+{
+  /* %typemap(out) RETURN_NONE_TRUE_IS_ERROR */
+}
+/* croak if GDAL return TRUE */
+%typemap(ret) RETURN_NONE_TRUE_IS_ERROR
+{
+ /* %typemap(ret) RETURN_NONE_TRUE_IS_ERROR */
+  if ($1 != 0 ) {
+    SWIG_croak("unexpected error in $symname");
+  }
+}
+/* drop GDAL return value */
 %typemap(out) IF_ERROR_RETURN_NONE
 {
-  /* %typemap(out) IF_ERROR_RETURN_NONE (do not return the error code) */
+  /* %typemap(out) IF_ERROR_RETURN_NONE */
 }
 
 /*
@@ -270,7 +309,7 @@ CreateArrayFromStringArray( char **first ) {
 }
 
 /*
- *  Typemap for counted arrays of ints <- PySequence
+ *  Typemap for counted arrays of ints <- Perl list
  */
 %typemap(in,numinputs=1) (int nList, int* pList)
 {
@@ -377,6 +416,55 @@ CreateArrayFromStringArray( char **first ) {
 	$1 = 0;
     }
 }
+%typemap(in,numinputs=1) (int nLen, unsigned char *pBuf )
+{
+    /* %typemap(in,numinputs=1) (int nLen, unsigned char *pBuf ) */
+    if (SvOK($input)) {
+	if (!SvPOK($input))
+	    SWIG_croak("expected binary data as input");
+	STRLEN len = SvCUR($input);
+	$2 = (unsigned char *)SvPV_nolen($input);
+	$1 = len;
+    } else {
+	$2 = NULL;
+	$1 = 0;
+    }
+}
+
+/***************************************************
+ * Typemaps for  (retStringAndCPLFree*)
+ ***************************************************/
+
+%typemap(out) (retStringAndCPLFree*)
+%{ 
+    /* %typemap(out) (retStringAndCPLFree*) */
+    if($1)
+    {
+        $result = SWIG_FromCharPtr((const char *)result);
+        CPLFree($1);
+    }
+    else
+    {
+        $result = sv_newmortal();
+    }
+    argvi++ ;
+%}
+
+/* slightly different version(?) for GDALAsyncReader */
+%typemap(in,numinputs=0) (int *nLength, char **pBuffer ) ( int nLength = 0, char *pBuffer = 0 )
+{
+  /* %typemap(in,numinputs=0) (int *nLength, char **pBuffer ) */
+  $1 = &nLength;
+  $2 = &pBuffer;
+}
+%typemap(freearg) (int *nLength, char **pBuffer )
+{
+  /* %typemap(freearg) (int *nLength, char **pBuffer ) */
+  if( *$1 ) {
+    free( *$2 );
+  }
+}
+
 
 /*
  * Typemap argout of GDAL_GCP* used in Dataset::GetGCPs( )
@@ -581,7 +669,7 @@ CreateArrayFromStringArray( char **first ) {
     if ( stringarray != NULL ) {
 	int n = CSLCount( stringarray );
 	for ( int i = 0; i < n; i++ ) {
-	    SV *s = newSVpv(stringarray[i], strlen(*stringarray));
+	    SV *s = newSVpv(stringarray[i], 0);
 	    if (!av_store(av, i, s))
 		SvREFCNT_dec(s);
 	}
@@ -803,6 +891,7 @@ static AV *XMLTreeToAV( CPLXMLNode *psTree )
 
 CHECK_NOT_UNDEF(char, method, method)
 CHECK_NOT_UNDEF(const char, name, name)
+CHECK_NOT_UNDEF(const char, utf8_path, path)
 CHECK_NOT_UNDEF(const char, request, request)
 CHECK_NOT_UNDEF(const char, cap, capability)
 CHECK_NOT_UNDEF(const char, statement, statement)
@@ -906,4 +995,34 @@ CHECK_NOT_UNDEF(OGRFeatureShadow, feature, feature)
 	saved_env.data = (SV *)$input;
     if (saved_env.fct)
 	$1 = (void *)(&saved_env); /* the Perl layer must make sure that this parameter is always given */
+}
+
+/*
+ * Typemaps for VSIStatL
+ */
+%typemap(in,numinputs=0) (VSIStatBufL *) (VSIStatBufL sStatBuf)
+{
+  /* %typemap(in,numinputs=0) (VSIStatBufL *) (VSIStatBufL sStatBuf) */
+  $1 = &sStatBuf;
+}
+%typemap(argout) (VSIStatBufL *)
+{
+  /* %typemap(argout) (VSIStatBufL *) */
+  SP -= 1; /* should be somewhere else, remove the filename arg */
+  EXTEND(SP, 1);
+  char mode[2];
+  mode[0] = ' ';
+  mode[1] = '\0';
+  if (S_ISREG(sStatBuf2.st_mode)) mode[0] = 'f';
+  else if (S_ISDIR(sStatBuf2.st_mode)) mode[0] = 'd';
+  else if (S_ISLNK(sStatBuf2.st_mode)) mode[0] = 'l';
+  else if (S_ISFIFO(sStatBuf2.st_mode)) mode[0] = 'p';
+  else if (S_ISSOCK(sStatBuf2.st_mode)) mode[0] = 'S';
+  else if (S_ISBLK(sStatBuf2.st_mode)) mode[0] = 'b';
+  else if (S_ISCHR(sStatBuf2.st_mode)) mode[0] = 'c';
+  PUSHs(sv_2mortal(newSVpv(mode, 0)));
+  argvi++;
+  EXTEND(SP, 1);
+  PUSHs(sv_2mortal(newSVuv(sStatBuf2.st_size)));
+  argvi++;
 }

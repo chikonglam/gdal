@@ -33,7 +33,7 @@
 #include "cpl_minixml.h"
 #include "ogr_spatialref.h"
 
-CPL_CVSID("$Id: dimapdataset.cpp 17664 2009-09-21 21:16:45Z rouault $");
+CPL_CVSID("$Id: dimapdataset.cpp 20504 2010-09-02 02:40:49Z warmerdam $");
 
 CPL_C_START
 void	GDALRegister_DIMAP(void);
@@ -586,6 +586,7 @@ void GDALRegister_DIMAP()
                                    "SPOT DIMAP" );
         poDriver->SetMetadataItem( GDAL_DMD_HELPTOPIC, 
                                    "frmt_various.html#DIMAP" );
+        poDriver->SetMetadataItem( GDAL_DCAP_VIRTUALIO, "YES" );
 
         poDriver->pfnOpen = DIMAPDataset::Open;
         poDriver->pfnIdentify = DIMAPDataset::Identify;

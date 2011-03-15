@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: pcidskdataset.cpp 17097 2009-05-21 19:59:35Z warmerdam $
+ * $Id: pcidskdataset2.cpp 21466 2011-01-12 20:17:59Z warmerdam $
  *
  * Project:  PCIDSK Database File
  * Purpose:  Read/write PCIDSK Database File used by the PCI software, using
@@ -34,7 +34,7 @@
 #include "cpl_string.h"
 #include "ogr_spatialref.h"
 
-CPL_CVSID("$Id: pcidskdataset.cpp 17097 2009-05-21 19:59:35Z warmerdam $");
+CPL_CVSID("$Id: pcidskdataset2.cpp 21466 2011-01-12 20:17:59Z warmerdam $");
 
 using namespace PCIDSK;
 
@@ -54,7 +54,8 @@ class PCIDSK2Dataset : public GDALPamDataset
 
     PCIDSKFile  *poFile;
 
-    static GDALDataType PCIDSKTypeToGDAL( eChanType eType );
+    static GDALDataType  PCIDSKTypeToGDAL( eChanType eType );
+    void                 ProcessRPC();
 
   public:
                 PCIDSK2Dataset();
@@ -159,6 +160,10 @@ PCIDSK2Band::PCIDSK2Band( PCIDSK2Dataset *poDS,
     
     eDataType = PCIDSK2Dataset::PCIDSKTypeToGDAL( poChannel->GetType() );
 
+    if( !EQUALN(poChannel->GetDescription().c_str(),
+                "Contents Not Specified",20) )
+        SetDescription( poChannel->GetDescription().c_str() );
+
 /* -------------------------------------------------------------------- */
 /*      Do we have overviews?                                           */
 /* -------------------------------------------------------------------- */
@@ -168,7 +173,8 @@ PCIDSK2Band::PCIDSK2Band( PCIDSK2Dataset *poDS,
 /************************************************************************/
 /*                            PCIDSK2Band()                             */
 /*                                                                      */
-/*      This constructor is used for overviews.                         */
+/*      This constructor is used for overviews and bitmap segments      */
+/*      as bands.                                                       */
 /************************************************************************/
 
 PCIDSK2Band::PCIDSK2Band( PCIDSKChannel *poChannel )
@@ -187,6 +193,12 @@ PCIDSK2Band::PCIDSK2Band( PCIDSKChannel *poChannel )
     nRasterYSize = (int) poChannel->GetHeight();
 
     eDataType = PCIDSK2Dataset::PCIDSKTypeToGDAL( poChannel->GetType() );
+
+    if( poChannel->GetType() == CHN_BIT )
+    {
+        SetMetadataItem( "NBITS", "1", "IMAGE_STRUCTURE" );
+        SetDescription( poChannel->GetDescription().c_str() );
+    }
 }
 
 /************************************************************************/
@@ -450,6 +462,21 @@ CPLErr PCIDSK2Band::IReadBlock( int iBlockX, int iBlockY, void *pData )
     {
         poChannel->ReadBlock( iBlockX + iBlockY * nBlocksPerRow,
                               pData );
+
+        // Do we need to upsample 1bit to 8bit?
+        if( poChannel->GetType() == CHN_BIT )
+        {
+            GByte	*pabyData = (GByte *) pData;
+
+            for( int ii = nBlockXSize * nBlockYSize - 1; ii >= 0; ii-- )
+            {
+                if( (pabyData[ii>>3] & (0x80 >> (ii & 0x7))) )
+                    pabyData[ii] = 1;
+                else
+                    pabyData[ii] = 0;
+            }
+        }
+
         return CE_None;
     }
     catch( PCIDSKException ex )
@@ -713,6 +740,137 @@ PCIDSK2Dataset::~PCIDSK2Dataset()
 }
 
 /************************************************************************/
+/*                             ProcessRPC()                             */
+/************************************************************************/
+
+void PCIDSK2Dataset::ProcessRPC()
+
+{
+/* -------------------------------------------------------------------- */
+/*      Search all BIN segments looking for an RPC segment.             */
+/* -------------------------------------------------------------------- */
+    PCIDSKSegment *poSeg = poFile->GetSegment( SEG_BIN, "" );
+    PCIDSKRPCSegment *poRPCSeg = NULL;
+
+    while( poSeg != NULL 
+           && (poRPCSeg = dynamic_cast<PCIDSKRPCSegment*>( poSeg )) == NULL )
+			   
+    {
+        poSeg = poFile->GetSegment( SEG_BIN, "", 
+                                    poSeg->GetSegmentNumber() );
+    }
+
+    if( poRPCSeg == NULL )
+        return;
+
+/* -------------------------------------------------------------------- */
+/*      Turn RPC segment into GDAL RFC 22 style metadata.               */
+/* -------------------------------------------------------------------- */
+    try
+    {
+        CPLString osValue;
+        double dfLineOffset, dfLineScale, dfSampOffset, dfSampScale;
+        double dfLatOffset, dfLatScale,
+            dfLongOffset, dfLongScale,
+            dfHeightOffset, dfHeightScale;
+		
+        poRPCSeg->GetRPCTranslationCoeffs( 
+            dfLongOffset, dfLongScale, 
+            dfLatOffset, dfLatScale,
+            dfHeightOffset, dfHeightScale,
+            dfSampOffset, dfSampScale,
+            dfLineOffset, dfLineScale );
+
+        osValue.Printf( "%.16g", dfLineOffset );
+        GDALPamDataset::SetMetadataItem( "LINE_OFF", osValue, "RPC" );
+
+        osValue.Printf( "%.16g", dfLineScale );
+        GDALPamDataset::SetMetadataItem( "LINE_SCALE", osValue, "RPC" );
+
+        osValue.Printf( "%.16g", dfSampOffset );
+        GDALPamDataset::SetMetadataItem( "SAMP_OFF", osValue, "RPC" );
+
+        osValue.Printf( "%.16g", dfSampScale );
+        GDALPamDataset::SetMetadataItem( "SAMP_SCALE", osValue, "RPC" );
+
+        osValue.Printf( "%.16g", dfLongOffset );
+        GDALPamDataset::SetMetadataItem( "LONG_OFF", osValue, "RPC" );
+
+        osValue.Printf( "%.16g", dfLongScale );
+        GDALPamDataset::SetMetadataItem( "LONG_SCALE", osValue, "RPC" );
+
+        osValue.Printf( "%.16g", dfLatOffset );
+        GDALPamDataset::SetMetadataItem( "LAT_OFF", osValue, "RPC" );
+
+        osValue.Printf( "%.16g", dfLatScale );
+        GDALPamDataset::SetMetadataItem( "LAT_SCALE", osValue, "RPC" );
+
+        osValue.Printf( "%.16g", dfHeightOffset );
+        GDALPamDataset::SetMetadataItem( "HEIGHT_OFF", osValue, "RPC" );
+
+        osValue.Printf( "%.16g", dfHeightScale );
+        GDALPamDataset::SetMetadataItem( "HEIGHT_SCALE", osValue, "RPC" );
+
+        CPLString osCoefList;
+        std::vector<double> adfCoef;
+        int i;
+
+        if( poRPCSeg->GetXNumerator().size() != 20 
+            || poRPCSeg->GetXDenominator().size() != 20 
+            || poRPCSeg->GetYNumerator().size() != 20 
+            || poRPCSeg->GetYDenominator().size() != 20 )
+        {
+            GDALPamDataset::SetMetadata( NULL, "RPC" );
+            CPLError( CE_Failure, CPLE_AppDefined,
+                      "Did not get 20 values in the RPC coefficients lists." );
+            return;
+        }
+
+        adfCoef = poRPCSeg->GetYNumerator();
+        osCoefList = "";
+        for( i = 0; i < 20; i++ )
+        {
+            osValue.Printf( "%.16g ", adfCoef[i] );
+            osCoefList += osValue;
+        }
+        GDALPamDataset::SetMetadataItem( "LINE_NUM_COEFF", osCoefList, "RPC" );
+
+        adfCoef = poRPCSeg->GetYDenominator();
+        osCoefList = "";
+        for( i = 0; i < 20; i++ )
+        {
+            osValue.Printf( "%.16g ", adfCoef[i] );
+            osCoefList += osValue;
+        }
+        GDALPamDataset::SetMetadataItem( "LINE_DEN_COEFF", osCoefList, "RPC" );
+
+        adfCoef = poRPCSeg->GetXNumerator();
+        osCoefList = "";
+        for( i = 0; i < 20; i++ )
+        {
+            osValue.Printf( "%.16g ", adfCoef[i] );
+            osCoefList += osValue;
+        }
+        GDALPamDataset::SetMetadataItem( "SAMP_NUM_COEFF", osCoefList, "RPC" );
+
+        adfCoef = poRPCSeg->GetXDenominator();
+        osCoefList = "";
+        for( i = 0; i < 20; i++ )
+        {
+            osValue.Printf( "%.16g ", adfCoef[i] );
+            osCoefList += osValue;
+        }
+        GDALPamDataset::SetMetadataItem( "SAMP_DEN_COEFF", osCoefList, "RPC" );
+    }
+    catch( PCIDSKException ex )
+    {
+        GDALPamDataset::SetMetadata( NULL, "RPC" );
+        CPLError( CE_Failure, CPLE_AppDefined,
+                  "%s", ex.what() );
+    }
+}
+
+/************************************************************************/
 /*                             FlushCache()                             */
 /************************************************************************/
 
@@ -733,7 +891,6 @@ void PCIDSK2Dataset::FlushCache()
         }
     }
 }
-
 
 /************************************************************************/
 /*                            SetMetadata()                             */
@@ -953,9 +1110,7 @@ CPLErr PCIDSK2Dataset::GetGeoTransform( double * padfTransform )
         // I should really check whether this is an expected issue.
     }
         
-    if( poGeoref == NULL )
-        return GDALPamDataset::GetGeoTransform( padfTransform );
-    else
+    if( poGeoref != NULL )
     {
         try
         {
@@ -973,8 +1128,24 @@ CPLErr PCIDSK2Dataset::GetGeoTransform( double * padfTransform )
             return CE_Failure;
         }
 
-        return CE_None;
+        // If we got anything non-default return it.
+        if( padfTransform[0] != 0.0
+            || padfTransform[1] != 1.0
+            || padfTransform[2] != 0.0
+            || padfTransform[3] != 0.0
+            || padfTransform[4] != 0.0
+            || padfTransform[5] != 1.0 )
+            return CE_None;
     }
+
+/* -------------------------------------------------------------------- */
+/*      Check for worldfile if we have no other georeferencing.         */
+/* -------------------------------------------------------------------- */
+    if( GDALReadWorldFile( GetDescription(), "pxw", 
+                           padfTransform ) )
+        return CE_None;
+    else
+        return GDALPamDataset::GetGeoTransform( padfTransform );
 }
 
 /************************************************************************/
@@ -1170,7 +1341,7 @@ CPLErr PCIDSK2Dataset::IBuildOverviews( const char *pszResampling,
 /*      representative.                                                 */
 /* -------------------------------------------------------------------- */
     int   i, nNewOverviews, *panNewOverviewList = NULL;
-    GDALRasterBand *poBand = GetRasterBand( panBandList[0] );
+    PCIDSK2Band *poBand = (PCIDSK2Band*) GetRasterBand( panBandList[0] );
 
     nNewOverviews = 0;
     panNewOverviewList = (int *) CPLCalloc(sizeof(int),nOverviews);
@@ -1221,7 +1392,7 @@ CPLErr PCIDSK2Dataset::IBuildOverviews( const char *pszResampling,
     int iBand;
     for( iBand = 0; iBand < nListBands; iBand++ )
     {
-        poBand = GetRasterBand( panBandList[iBand] );
+        poBand = (PCIDSK2Band *) GetRasterBand( panBandList[iBand] );
         ((PCIDSK2Band *) poBand)->RefreshOverviewList();
     }
 
@@ -1230,6 +1401,7 @@ CPLErr PCIDSK2Dataset::IBuildOverviews( const char *pszResampling,
 /* -------------------------------------------------------------------- */
     GDALRasterBand **papoOverviewBands;
     CPLErr eErr = CE_None;
+    std::vector<int> anRegenLevels;
 
     papoOverviewBands = (GDALRasterBand **) 
         CPLCalloc(sizeof(void*),nOverviews);
@@ -1238,7 +1410,7 @@ CPLErr PCIDSK2Dataset::IBuildOverviews( const char *pszResampling,
     {
         nNewOverviews = 0;
 
-        poBand = GetRasterBand( panBandList[iBand] );
+        poBand = (PCIDSK2Band*) GetRasterBand( panBandList[iBand] );
 
         for( i = 0; i < nOverviews && poBand != NULL; i++ )
         {
@@ -1257,6 +1429,7 @@ CPLErr PCIDSK2Dataset::IBuildOverviews( const char *pszResampling,
                                                        poBand->GetXSize() ) )
                 {
                     papoOverviewBands[nNewOverviews++] = poOverview;
+                    anRegenLevels.push_back( j );
                     break;
                 }
             }
@@ -1269,6 +1442,11 @@ CPLErr PCIDSK2Dataset::IBuildOverviews( const char *pszResampling,
                                             (GDALRasterBandH*)papoOverviewBands,
                                             pszResampling, 
                                             pfnProgress, pProgressData );
+
+            // Mark the regenerated overviews as valid.
+            for( i = 0; i < (int) anRegenLevels.size(); i++ )
+                poBand->poChannel->SetOverviewValidity( anRegenLevels[i], 
+                                                        true );
         }
     }
 
@@ -1294,6 +1472,18 @@ GDALDataType PCIDSK2Dataset::PCIDSKTypeToGDAL( eChanType eType )
         
       case CHN_32R:
         return GDT_Float32;
+
+      case CHN_BIT:
+        return GDT_Byte;
+        
+      case CHN_C16U:
+        return GDT_CInt16;
+      
+      case CHN_C16S:
+        return GDT_CInt16;
+      
+      case CHN_C32R:
+        return GDT_CFloat32;
         
       default:
         return GDT_Unknown;
@@ -1374,6 +1564,29 @@ GDALDataset *PCIDSK2Dataset::Open( GDALOpenInfo * poOpenInfo )
         }
 
 /* -------------------------------------------------------------------- */
+/*      Create band objects for bitmap segments.                        */
+/* -------------------------------------------------------------------- */
+        int nLastBitmapSegment = 0;
+        PCIDSKSegment *poBitSeg;
+        
+        while( (poBitSeg = poFile->GetSegment( SEG_BIT, "", 
+                                               nLastBitmapSegment)) != NULL )
+        {
+            PCIDSKChannel *poChannel = 
+                dynamic_cast<PCIDSKChannel*>( poBitSeg );
+
+            poDS->SetBand( poDS->GetRasterCount()+1, 
+                           new PCIDSK2Band( poChannel ) );
+
+            nLastBitmapSegment = poBitSeg->GetSegmentNumber();
+        }
+
+/* -------------------------------------------------------------------- */
+/*      Process RPC segment, if there is one.                           */
+/* -------------------------------------------------------------------- */
+        poDS->ProcessRPC();
+
+/* -------------------------------------------------------------------- */
 /*      Initialize any PAM information.                                 */
 /* -------------------------------------------------------------------- */
         poDS->SetDescription( poOpenInfo->pszFilename );
@@ -1422,13 +1635,17 @@ GDALDataset *PCIDSK2Dataset::Create( const char * pszFilename,
     std::vector<eChanType> aeChanTypes;
 
     if( eType == GDT_Float32 )
-        aeChanTypes.resize( MAX(1,nBands), CHN_32R ); 
+        aeChanTypes.resize( MAX(1,nBands), CHN_32R );
     else if( eType == GDT_Int16 )
-        aeChanTypes.resize( MAX(1,nBands), CHN_16S ); 
+        aeChanTypes.resize( MAX(1,nBands), CHN_16S );
     else if( eType == GDT_UInt16 )
-        aeChanTypes.resize( MAX(1,nBands), CHN_16U ); 
+        aeChanTypes.resize( MAX(1,nBands), CHN_16U );
+    else if( eType == GDT_CInt16 )
+        aeChanTypes.resize( MAX(1, nBands), CHN_C16S );
+    else if( eType == GDT_CFloat32 )
+        aeChanTypes.resize( MAX(1, nBands), CHN_C32R );
     else 
-        aeChanTypes.resize( MAX(1,nBands), CHN_8U ); 
+        aeChanTypes.resize( MAX(1,nBands), CHN_8U );
 
 /* -------------------------------------------------------------------- */
 /*      Reformat options.  Currently no support for jpeg compression    */
@@ -1507,7 +1724,7 @@ void GDALRegister_PCIDSK()
                                    "frmt_pcidsk.html" );
         poDriver->SetMetadataItem( GDAL_DCAP_VIRTUALIO, "YES" );
         poDriver->SetMetadataItem( GDAL_DMD_EXTENSION, "pix" );
-        poDriver->SetMetadataItem( GDAL_DMD_CREATIONDATATYPES, "Byte UInt16 Int16 Float32" );
+        poDriver->SetMetadataItem( GDAL_DMD_CREATIONDATATYPES, "Byte UInt16 Int16 Float32 CInt16 CFloat32" );
         poDriver->SetMetadataItem( GDAL_DMD_CREATIONOPTIONLIST,
 "<CreationOptionList>"
 "   <Option name='INTERLEAVING' type='string-select' default='BAND' description='raster data organization'>"

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdal_translate.cpp 18576 2010-01-17 22:32:24Z rouault $
+ * $Id: gdal_translate.cpp 21386 2011-01-03 20:17:11Z rouault $
  *
  * Project:  GDAL Utilities
  * Purpose:  GDAL Image Translator Program
@@ -34,10 +34,12 @@
 #include "ogr_spatialref.h"
 #include "vrt/vrtdataset.h"
 
-CPL_CVSID("$Id: gdal_translate.cpp 18576 2010-01-17 22:32:24Z rouault $");
+CPL_CVSID("$Id: gdal_translate.cpp 21386 2011-01-03 20:17:11Z rouault $");
 
 static int ArgIsNumeric( const char * );
 static void AttachMetadata( GDALDatasetH, char ** );
+static void CopyBandInfo( GDALRasterBand * poSrcBand, GDALRasterBand * poDstBand,
+                            int bCanCopyStatsMetadata, int bCopyScale, int bCopyNoData );
 static int bSubCall = FALSE;
 
 /*  ******************************************************************* */
@@ -52,14 +54,14 @@ static void Usage()
     printf( "Usage: gdal_translate [--help-general]\n"
             "       [-ot {Byte/Int16/UInt16/UInt32/Int32/Float32/Float64/\n"
             "             CInt16/CInt32/CFloat32/CFloat64}] [-strict]\n"
-            "       [-of format] [-b band] [-expand {gray|rgb|rgba}]\n"
+            "       [-of format] [-b band] [-mask band] [-expand {gray|rgb|rgba}]\n"
             "       [-outsize xsize[%%] ysize[%%]]\n"
             "       [-unscale] [-scale [src_min src_max [dst_min dst_max]]]\n"
             "       [-srcwin xoff yoff xsize ysize] [-projwin ulx uly lrx lry]\n"
             "       [-a_srs srs_def] [-a_ullr ulx uly lrx lry] [-a_nodata value]\n"
             "       [-gcp pixel line easting northing [elevation]]*\n" 
             "       [-mo \"META-TAG=VALUE\"]* [-q] [-sds]\n"
-            "       [-co \"NAME=VALUE\"]*\n"
+            "       [-co \"NAME=VALUE\"]* [-stats]\n"
             "       src_dataset dst_dataset\n\n" );
 
     printf( "%s\n\n", GDALVersionInfo( "--version" ) );
@@ -83,6 +85,13 @@ static void Usage()
 /*                             ProxyMain()                              */
 /************************************************************************/
 
+enum
+{
+    MASK_DISABLED,
+    MASK_AUTO,
+    MASK_USER
+};
+
 static int ProxyMain( int argc, char ** argv )
 
 {
@@ -91,7 +100,8 @@ static int ProxyMain( int argc, char ** argv )
     int			nRasterXSize, nRasterYSize;
     const char		*pszSource=NULL, *pszDest=NULL, *pszFormat = "GTiff";
     GDALDriverH		hDriver;
-    int			*panBandList = NULL, nBandCount = 0, bDefBands = TRUE;
+    int			*panBandList = NULL; /* negative value of panBandList[i] means mask band of ABS(panBandList[i]) */
+    int         nBandCount = 0, bDefBands = TRUE;
     double		adfGeoTransform[6];
     GDALDataType	eOutputType = GDT_Unknown;
     int			nOXSize = 0, nOYSize = 0;
@@ -113,8 +123,13 @@ static int ProxyMain( int argc, char ** argv )
     int                 bCopySubDatasets = FALSE;
     double              adfULLR[4] = { 0,0,0,0 };
     int                 bSetNoData = FALSE;
+    int                 bUnsetNoData = FALSE;
     double		dfNoDataReal = 0.0;
     int                 nRGBExpand = 0;
+    int                 bParsedMaskArgument = FALSE;
+    int                 eMaskMode = MASK_AUTO;
+    int                 nMaskBand = 0; /* negative value means mask band of ABS(nMaskBand) */
+    int                 bStats = FALSE, bApproxStats = FALSE;
 
 
     anSrcWin[0] = 0;
@@ -195,21 +210,76 @@ static int ProxyMain( int argc, char ** argv )
         }
         else if( EQUAL(argv[i],"-b") && i < argc-1 )
         {
-            if( atoi(argv[i+1]) < 1 )
+            const char* pszBand = argv[i+1];
+            int bMask = FALSE;
+            if (EQUAL(pszBand, "mask"))
+                pszBand = "mask,1";
+            if (EQUALN(pszBand, "mask,", 5))
+            {
+                bMask = TRUE;
+                pszBand += 5;
+                /* If we use tha source mask band as a regular band */
+                /* don't create a target mask band by default */
+                if( !bParsedMaskArgument )
+                    eMaskMode = MASK_DISABLED;
+            }
+            int nBand = atoi(pszBand);
+            if( nBand < 1 )
             {
                 printf( "Unrecognizable band number (%s).\n", argv[i+1] );
                 Usage();
                 GDALDestroyDriverManager();
                 exit( 2 );
             }
+            i++;
 
             nBandCount++;
             panBandList = (int *) 
                 CPLRealloc(panBandList, sizeof(int) * nBandCount);
-            panBandList[nBandCount-1] = atoi(argv[++i]);
+            panBandList[nBandCount-1] = nBand;
+            if (bMask)
+                panBandList[nBandCount-1] *= -1;
 
             if( panBandList[nBandCount-1] != nBandCount )
                 bDefBands = FALSE;
+        }
+        else if( EQUAL(argv[i],"-mask") && i < argc-1 )
+        {
+            bParsedMaskArgument = TRUE;
+            const char* pszBand = argv[i+1];
+            if (EQUAL(pszBand, "none"))
+            {
+                eMaskMode = MASK_DISABLED;
+            }
+            else if (EQUAL(pszBand, "auto"))
+            {
+                eMaskMode = MASK_AUTO;
+            }
+            else
+            {
+                int bMask = FALSE;
+                if (EQUAL(pszBand, "mask"))
+                    pszBand = "mask,1";
+                if (EQUALN(pszBand, "mask,", 5))
+                {
+                    bMask = TRUE;
+                    pszBand += 5;
+                }
+                int nBand = atoi(pszBand);
+                if( nBand < 1 )
+                {
+                    printf( "Unrecognizable band number (%s).\n", argv[i+1] );
+                    Usage();
+                    GDALDestroyDriverManager();
+                    exit( 2 );
+                }
+                
+                eMaskMode = MASK_USER;
+                nMaskBand = nBand;
+                if (bMask)
+                    nMaskBand *= -1;
+            }
+            i ++;
         }
         else if( EQUAL(argv[i],"-not_strict")  )
             bStrict = FALSE;
@@ -230,17 +300,17 @@ static int ProxyMain( int argc, char ** argv )
                 CPLRealloc( pasGCPs, sizeof(GDAL_GCP) * nGCPCount );
             GDALInitGCPs( 1, pasGCPs + nGCPCount - 1 );
 
-            pasGCPs[nGCPCount-1].dfGCPPixel = atof(argv[++i]);
-            pasGCPs[nGCPCount-1].dfGCPLine = atof(argv[++i]);
-            pasGCPs[nGCPCount-1].dfGCPX = atof(argv[++i]);
-            pasGCPs[nGCPCount-1].dfGCPY = atof(argv[++i]);
+            pasGCPs[nGCPCount-1].dfGCPPixel = CPLAtofM(argv[++i]);
+            pasGCPs[nGCPCount-1].dfGCPLine = CPLAtofM(argv[++i]);
+            pasGCPs[nGCPCount-1].dfGCPX = CPLAtofM(argv[++i]);
+            pasGCPs[nGCPCount-1].dfGCPY = CPLAtofM(argv[++i]);
             if( argv[i+1] != NULL 
                 && (CPLStrtod(argv[i+1], &endptr) != 0.0 || argv[i+1][0] == '0') )
             {
                 /* Check that last argument is really a number and not a filename */
                 /* looking like a number (see ticket #863) */
                 if (endptr && *endptr == 0)
-                    pasGCPs[nGCPCount-1].dfGCPZ = atof(argv[++i]);
+                    pasGCPs[nGCPCount-1].dfGCPZ = CPLAtofM(argv[++i]);
             }
 
             /* should set id and info? */
@@ -248,17 +318,24 @@ static int ProxyMain( int argc, char ** argv )
 
         else if( EQUAL(argv[i],"-a_nodata") && i < argc - 1 )
         {
-            bSetNoData = TRUE;
-            dfNoDataReal = atof(argv[i+1]);
+            if (EQUAL(argv[i+1], "none"))
+            {
+                bUnsetNoData = TRUE;
+            }
+            else
+            {
+                bSetNoData = TRUE;
+                dfNoDataReal = CPLAtofM(argv[i+1]);
+            }
             i += 1;
         }   
 
         else if( EQUAL(argv[i],"-a_ullr") && i < argc - 4 )
         {
-            adfULLR[0] = atof(argv[i+1]);
-            adfULLR[1] = atof(argv[i+2]);
-            adfULLR[2] = atof(argv[i+3]);
-            adfULLR[3] = atof(argv[i+4]);
+            adfULLR[0] = CPLAtofM(argv[i+1]);
+            adfULLR[1] = CPLAtofM(argv[i+2]);
+            adfULLR[2] = CPLAtofM(argv[i+3]);
+            adfULLR[3] = CPLAtofM(argv[i+4]);
 
             bGotBounds = TRUE;
             
@@ -276,14 +353,14 @@ static int ProxyMain( int argc, char ** argv )
             if( i < argc-2 && ArgIsNumeric(argv[i+1]) )
             {
                 bHaveScaleSrc = TRUE;
-                dfScaleSrcMin = atof(argv[i+1]);
-                dfScaleSrcMax = atof(argv[i+2]);
+                dfScaleSrcMin = CPLAtofM(argv[i+1]);
+                dfScaleSrcMax = CPLAtofM(argv[i+2]);
                 i += 2;
             }
             if( i < argc-2 && bHaveScaleSrc && ArgIsNumeric(argv[i+1]) )
             {
-                dfScaleDstMin = atof(argv[i+1]);
-                dfScaleDstMax = atof(argv[i+2]);
+                dfScaleDstMin = CPLAtofM(argv[i+1]);
+                dfScaleDstMax = CPLAtofM(argv[i+2]);
                 i += 2;
             }
             else
@@ -320,10 +397,10 @@ static int ProxyMain( int argc, char ** argv )
 
         else if( EQUAL(argv[i],"-projwin") && i < argc-4 )
         {
-            dfULX = atof(argv[++i]);
-            dfULY = atof(argv[++i]);
-            dfLRX = atof(argv[++i]);
-            dfLRY = atof(argv[++i]);
+            dfULX = CPLAtofM(argv[++i]);
+            dfULY = CPLAtofM(argv[++i]);
+            dfLRX = CPLAtofM(argv[++i]);
+            dfLRY = CPLAtofM(argv[++i]);
         }   
 
         else if( EQUAL(argv[i],"-a_srs") && i < argc-1 )
@@ -359,6 +436,17 @@ static int ProxyMain( int argc, char ** argv )
                 exit( 2 );
             }
             i++;
+        }
+
+        else if( EQUAL(argv[i], "-stats") )
+        {
+            bStats = TRUE;
+            bApproxStats = FALSE;
+        }
+        else if( EQUAL(argv[i], "-approx_stats") )
+        {
+            bStats = TRUE;
+            bApproxStats = TRUE;
         }
 
         else if( argv[i][0] == '-' )
@@ -439,19 +527,25 @@ static int ProxyMain( int argc, char ** argv )
         char *pszSubDest = (char *) CPLMalloc(strlen(pszDest)+32);
         int i;
         int bOldSubCall = bSubCall;
-        
-        argv[iDstFileArg] = pszSubDest;
+        char** papszDupArgv = CSLDuplicate(argv);
+        int nRet = 0;
+
+        CPLFree(papszDupArgv[iDstFileArg]);
+        papszDupArgv[iDstFileArg] = pszSubDest;
         bSubCall = TRUE;
         for( i = 0; papszSubdatasets[i] != NULL; i += 2 )
         {
-            argv[iSrcFileArg] = strstr(papszSubdatasets[i],"=")+1;
+            CPLFree(papszDupArgv[iSrcFileArg]);
+            papszDupArgv[iSrcFileArg] = CPLStrdup(strstr(papszSubdatasets[i],"=")+1);
             sprintf( pszSubDest, "%s%d", pszDest, i/2 + 1 );
-            if( ProxyMain( argc, argv ) != 0 )
+            nRet = ProxyMain( argc, papszDupArgv );
+            if (nRet != 0)
                 break;
         }
+        CSLDestroy(papszDupArgv);
         
         bSubCall = bOldSubCall;
-        CPLFree( pszSubDest );
+        CSLDestroy(argv);
 
         GDALClose( hDataset );
 
@@ -460,7 +554,7 @@ static int ProxyMain( int argc, char ** argv )
             GDALDumpOpenDatasets( stderr );
             GDALDestroyDriverManager();
         }
-        return 1;
+        return nRet;
     }
 
 /* -------------------------------------------------------------------- */
@@ -499,11 +593,11 @@ static int ProxyMain( int argc, char ** argv )
     {
         for( i = 0; i < nBandCount; i++ )
         {
-            if( panBandList[i] < 1 || panBandList[i] > GDALGetRasterCount(hDataset) )
+            if( ABS(panBandList[i]) > GDALGetRasterCount(hDataset) )
             {
                 fprintf( stderr, 
                          "Band %d requested, but only bands 1 to %d available.\n",
-                         panBandList[i], GDALGetRasterCount(hDataset) );
+                         ABS(panBandList[i]), GDALGetRasterCount(hDataset) );
                 GDALDestroyDriverManager();
                 exit( 2 );
             }
@@ -626,16 +720,22 @@ static int ProxyMain( int argc, char ** argv )
 /*      this entire program to use virtual datasets to construct a      */
 /*      virtual input source to copy from.                              */
 /* -------------------------------------------------------------------- */
+
+
+    int bSpatialArrangementPreserved = (
+           anSrcWin[0] == 0 && anSrcWin[1] == 0
+        && anSrcWin[2] == GDALGetRasterXSize(hDataset)
+        && anSrcWin[3] == GDALGetRasterYSize(hDataset)
+        && pszOXSize == NULL && pszOYSize == NULL );
+
     if( eOutputType == GDT_Unknown 
         && !bScale && !bUnscale
         && CSLCount(papszMetadataOptions) == 0 && bDefBands 
-        && anSrcWin[0] == 0 && anSrcWin[1] == 0 
-        && anSrcWin[2] == GDALGetRasterXSize(hDataset)
-        && anSrcWin[3] == GDALGetRasterYSize(hDataset) 
-        && pszOXSize == NULL && pszOYSize == NULL 
+        && eMaskMode == MASK_AUTO
+        && bSpatialArrangementPreserved
         && nGCPCount == 0 && !bGotBounds
-        && pszOutputSRS == NULL && !bSetNoData
-        && nRGBExpand == 0)
+        && pszOutputSRS == NULL && !bSetNoData && !bUnsetNoData
+        && nRGBExpand == 0 && !bStats )
     {
         
         hOutDS = GDALCreateCopy( hDriver, pszDest, hDataset, 
@@ -672,9 +772,9 @@ static int ProxyMain( int argc, char ** argv )
     else
     {
         nOXSize = (int) ((pszOXSize[strlen(pszOXSize)-1]=='%' 
-                          ? atof(pszOXSize)/100*anSrcWin[2] : atoi(pszOXSize)));
+                          ? CPLAtofM(pszOXSize)/100*anSrcWin[2] : atoi(pszOXSize)));
         nOYSize = (int) ((pszOYSize[strlen(pszOYSize)-1]=='%' 
-                          ? atof(pszOYSize)/100*anSrcWin[3] : atoi(pszOYSize)));
+                          ? CPLAtofM(pszOYSize)/100*anSrcWin[3] : atoi(pszOYSize)));
     }
     
 /* ==================================================================== */
@@ -776,20 +876,70 @@ static int ProxyMain( int argc, char ** argv )
 /*      Transfer metadata that remains valid if the spatial             */
 /*      arrangement of the data is unaltered.                           */
 /* -------------------------------------------------------------------- */
-    if( anSrcWin[0] == 0 && anSrcWin[1] == 0 
-        && anSrcWin[2] == GDALGetRasterXSize(hDataset)
-        && anSrcWin[3] == GDALGetRasterYSize(hDataset) 
-        && pszOXSize == NULL && pszOYSize == NULL )
+    if( bSpatialArrangementPreserved )
     {
         char **papszMD;
 
         papszMD = ((GDALDataset*)hDataset)->GetMetadata("RPC");
         if( papszMD != NULL )
             poVDS->SetMetadata( papszMD, "RPC" );
+
+        papszMD = ((GDALDataset*)hDataset)->GetMetadata("GEOLOCATION");
+        if( papszMD != NULL )
+            poVDS->SetMetadata( papszMD, "GEOLOCATION" );
     }
 
+    int nSrcBandCount = nBandCount;
+
     if (nRGBExpand != 0)
-        nBandCount += nRGBExpand - 1;
+    {
+        GDALRasterBand  *poSrcBand;
+        poSrcBand = ((GDALDataset *) 
+                     hDataset)->GetRasterBand(ABS(panBandList[0]));
+        if (panBandList[0] < 0)
+            poSrcBand = poSrcBand->GetMaskBand();
+        GDALColorTable* poColorTable = poSrcBand->GetColorTable();
+        if (poColorTable == NULL)
+        {
+            fprintf(stderr, "Error : band %d has no color table\n", ABS(panBandList[0]));
+            GDALClose( hDataset );
+            CPLFree( panBandList );
+            GDALDestroyDriverManager();
+            CSLDestroy( argv );
+            CSLDestroy( papszCreateOptions );
+            exit( 1 );
+        }
+        
+        /* Check that the color table only contains gray levels */
+        /* when using -expand gray */
+        if (nRGBExpand == 1)
+        {
+            int nColorCount = poColorTable->GetColorEntryCount();
+            int nColor;
+            for( nColor = 0; nColor < nColorCount; nColor++ )
+            {
+                const GDALColorEntry* poEntry = poColorTable->GetColorEntry(nColor);
+                if (poEntry->c1 != poEntry->c2 || poEntry->c1 != poEntry->c2)
+                {
+                    fprintf(stderr, "Warning : color table contains non gray levels colors\n");
+                    break;
+                }
+            }
+        }
+
+        if (nBandCount == 1)
+            nBandCount = nRGBExpand;
+        else if (nBandCount == 2 && (nRGBExpand == 3 || nRGBExpand == 4))
+            nBandCount = nRGBExpand;
+        else
+        {
+            fprintf(stderr, "Error : invalid use of -expand option.\n");
+            exit( 1 );
+        }
+    }
+
+    int bFilterOutStatsMetadata =
+        (bScale || bUnscale || !bSpatialArrangementPreserved || nRGBExpand != 0);
 
 /* ==================================================================== */
 /*      Process all bands.                                              */
@@ -799,43 +949,23 @@ static int ProxyMain( int argc, char ** argv )
         VRTSourcedRasterBand   *poVRTBand;
         GDALRasterBand  *poSrcBand;
         GDALDataType    eBandType;
+        int             nComponent = 0;
 
-        if (nRGBExpand != 0 && i < nRGBExpand)
+        int nSrcBand;
+        if (nRGBExpand != 0)
         {
-            poSrcBand = ((GDALDataset *) 
-                     hDataset)->GetRasterBand(panBandList[0]);
-            GDALColorTable* poColorTable = poSrcBand->GetColorTable();
-            if (poColorTable == NULL)
+            if (nSrcBandCount == 2 && nRGBExpand == 4 && i == 3)
+                nSrcBand = panBandList[1];
+            else
             {
-                fprintf(stderr, "Error : band %d has no color table\n", panBandList[0]);
-                GDALClose( hDataset );
-                CPLFree( panBandList );
-                GDALDestroyDriverManager();
-                CSLDestroy( argv );
-                CSLDestroy( papszCreateOptions );
-                exit( 1 );
-            }
-            
-            /* Check that the color table only contains gray levels */
-            /* when using -expand gray */
-            if (nRGBExpand == 1)
-            {
-                int nColorCount = poColorTable->GetColorEntryCount();
-                int nColor;
-                for( nColor = 0; nColor < nColorCount; nColor++ )
-                {
-                    const GDALColorEntry* poEntry = poColorTable->GetColorEntry(nColor);
-                    if (poEntry->c1 != poEntry->c2 || poEntry->c1 != poEntry->c2)
-                    {
-                        fprintf(stderr, "Warning : color table contains non gray levels colors\n");
-                        break;
-                    }
-                }
+                nSrcBand = panBandList[0];
+                nComponent = i + 1;
             }
         }
         else
-            poSrcBand = ((GDALDataset *) 
-                        hDataset)->GetRasterBand(panBandList[i]);
+            nSrcBand = panBandList[i];
+
+        poSrcBand = ((GDALDataset *) hDataset)->GetRasterBand(ABS(nSrcBand));
 
 /* -------------------------------------------------------------------- */
 /*      Select output data type to match source.                        */
@@ -850,7 +980,12 @@ static int ProxyMain( int argc, char ** argv )
 /* -------------------------------------------------------------------- */
         poVDS->AddBand( eBandType, NULL );
         poVRTBand = (VRTSourcedRasterBand *) poVDS->GetRasterBand( i+1 );
-            
+        if (nSrcBand < 0)
+        {
+            poVRTBand->AddMaskBandSource(poSrcBand);
+            continue;
+        }
+
 /* -------------------------------------------------------------------- */
 /*      Do we need to collect scaling information?                      */
 /* -------------------------------------------------------------------- */
@@ -894,7 +1029,7 @@ static int ProxyMain( int argc, char ** argv )
                                          0, 0, nOXSize, nOYSize,
                                          dfOffset, dfScale,
                                          VRT_NODATA_UNSET,
-                                         (nRGBExpand != 0 && i < nRGBExpand) ? i + 1 : 0 );
+                                         nComponent );
         }
         else
             poVRTBand->AddSimpleSource( poSrcBand,
@@ -904,7 +1039,7 @@ static int ProxyMain( int argc, char ** argv )
 
 /* -------------------------------------------------------------------- */
 /*      In case of color table translate, we only set the color         */
-/*      interpretation other info copied by CopyCommonInfoFrom are      */
+/*      interpretation other info copied by CopyBandInfo are            */
 /*      not relevant in RGB expansion.                                  */
 /* -------------------------------------------------------------------- */
         if (nRGBExpand == 1)
@@ -921,13 +1056,10 @@ static int ProxyMain( int argc, char ** argv )
 /* -------------------------------------------------------------------- */
         else
         {
-            poVRTBand->CopyCommonInfoFrom( poSrcBand );
-
-            if( bUnscale )
-            {
-                poVRTBand->SetOffset( 0.0 );
-                poVRTBand->SetScale( 1.0 );
-            }
+            CopyBandInfo( poSrcBand, poVRTBand,
+                          !bStats && !bFilterOutStatsMetadata,
+                          !bUnscale,
+                          !bSetNoData && !bUnsetNoData );
         }
 
 /* -------------------------------------------------------------------- */
@@ -981,6 +1113,69 @@ static int ProxyMain( int argc, char ** argv )
             
             poVRTBand->SetNoDataValue( dfVal );
         }
+
+        if (eMaskMode == MASK_AUTO &&
+            (GDALGetMaskFlags(GDALGetRasterBand(hDataset, 1)) & GMF_PER_DATASET) == 0 &&
+            (poSrcBand->GetMaskFlags() & (GMF_ALL_VALID | GMF_NODATA)) == 0)
+        {
+            if (poVRTBand->CreateMaskBand(poSrcBand->GetMaskFlags()) == CE_None)
+            {
+                VRTSourcedRasterBand* hMaskVRTBand =
+                    (VRTSourcedRasterBand*)poVRTBand->GetMaskBand();
+                hMaskVRTBand->AddMaskBandSource(poSrcBand,
+                                        anSrcWin[0], anSrcWin[1],
+                                        anSrcWin[2], anSrcWin[3],
+                                        0, 0, nOXSize, nOYSize );
+            }
+        }
+    }
+
+    if (eMaskMode == MASK_USER)
+    {
+        GDALRasterBand *poSrcBand =
+            (GDALRasterBand*)GDALGetRasterBand(hDataset, ABS(nMaskBand));
+        if (poSrcBand && poVDS->CreateMaskBand(GMF_PER_DATASET) == CE_None)
+        {
+            VRTSourcedRasterBand* hMaskVRTBand = (VRTSourcedRasterBand*)
+                GDALGetMaskBand(GDALGetRasterBand((GDALDatasetH)poVDS, 1));
+            if (nMaskBand > 0)
+                hMaskVRTBand->AddSimpleSource(poSrcBand,
+                                        anSrcWin[0], anSrcWin[1],
+                                        anSrcWin[2], anSrcWin[3],
+                                        0, 0, nOXSize, nOYSize );
+            else
+                hMaskVRTBand->AddMaskBandSource(poSrcBand,
+                                        anSrcWin[0], anSrcWin[1],
+                                        anSrcWin[2], anSrcWin[3],
+                                        0, 0, nOXSize, nOYSize );
+        }
+    }
+    else
+    if (eMaskMode == MASK_AUTO && nSrcBandCount > 0 &&
+        GDALGetMaskFlags(GDALGetRasterBand(hDataset, 1)) == GMF_PER_DATASET)
+    {
+        if (poVDS->CreateMaskBand(GMF_PER_DATASET) == CE_None)
+        {
+            VRTSourcedRasterBand* hMaskVRTBand = (VRTSourcedRasterBand*)
+                GDALGetMaskBand(GDALGetRasterBand((GDALDatasetH)poVDS, 1));
+            hMaskVRTBand->AddMaskBandSource((GDALRasterBand*)GDALGetRasterBand(hDataset, 1),
+                                        anSrcWin[0], anSrcWin[1],
+                                        anSrcWin[2], anSrcWin[3],
+                                        0, 0, nOXSize, nOYSize );
+        }
+    }
+
+/* -------------------------------------------------------------------- */
+/*      Compute stats if required.                                      */
+/* -------------------------------------------------------------------- */
+    if (bStats)
+    {
+        for( i = 0; i < poVDS->GetRasterCount(); i++ )
+        {
+            double dfMin, dfMax, dfMean, dfStdDev;
+            poVDS->GetRasterBand(i+1)->ComputeStatistics( bApproxStats,
+                    &dfMin, &dfMax, &dfMean, &dfStdDev, GDALDummyProgress, NULL );
+        }
     }
 
 /* -------------------------------------------------------------------- */
@@ -991,7 +1186,14 @@ static int ProxyMain( int argc, char ** argv )
                              pfnProgress, NULL );
     if( hOutDS != NULL )
     {
+        int bHasGotErr = FALSE;
+        CPLErrorReset();
+        GDALFlushCache( hOutDS );
+        if (CPLGetLastErrorType() != CE_None)
+            bHasGotErr = TRUE;
         GDALClose( hOutDS );
+        if (bHasGotErr)
+            hOutDS = NULL;
     }
     
     GDALClose( (GDALDatasetH) poVDS );
@@ -1059,6 +1261,60 @@ static void AttachMetadata( GDALDatasetH hDS, char **papszMetadataOptions )
     }
 
     CSLDestroy( papszMetadataOptions );
+}
+
+/************************************************************************/
+/*                           CopyBandInfo()                            */
+/************************************************************************/
+
+/* A bit of a clone of VRTRasterBand::CopyCommonInfoFrom(), but we need */
+/* more and more custom behaviour in the context of gdal_translate ... */
+
+static void CopyBandInfo( GDALRasterBand * poSrcBand, GDALRasterBand * poDstBand,
+                          int bCanCopyStatsMetadata, int bCopyScale, int bCopyNoData )
+
+{
+    int bSuccess;
+    double dfNoData;
+
+    if (bCanCopyStatsMetadata)
+    {
+        poDstBand->SetMetadata( poSrcBand->GetMetadata() );
+    }
+    else
+    {
+        char** papszMetadata = poSrcBand->GetMetadata();
+        char** papszMetadataNew = NULL;
+        for( int i = 0; papszMetadata != NULL && papszMetadata[i] != NULL; i++ )
+        {
+            if (strncmp(papszMetadata[i], "STATISTICS_", 11) != 0)
+                papszMetadataNew = CSLAddString(papszMetadataNew, papszMetadata[i]);
+        }
+        poDstBand->SetMetadata( papszMetadataNew );
+        CSLDestroy(papszMetadataNew);
+    }
+
+    poDstBand->SetColorTable( poSrcBand->GetColorTable() );
+    poDstBand->SetColorInterpretation(poSrcBand->GetColorInterpretation());
+    if( strlen(poSrcBand->GetDescription()) > 0 )
+        poDstBand->SetDescription( poSrcBand->GetDescription() );
+
+    if (bCopyNoData)
+    {
+        dfNoData = poSrcBand->GetNoDataValue( &bSuccess );
+        if( bSuccess )
+            poDstBand->SetNoDataValue( dfNoData );
+    }
+
+    if (bCopyScale)
+    {
+        poDstBand->SetOffset( poSrcBand->GetOffset() );
+        poDstBand->SetScale( poSrcBand->GetScale() );
+    }
+
+    poDstBand->SetCategoryNames( poSrcBand->GetCategoryNames() );
+    if( !EQUAL(poSrcBand->GetUnitType(),"") )
+        poDstBand->SetUnitType( poSrcBand->GetUnitType() );
 }
 
 /************************************************************************/

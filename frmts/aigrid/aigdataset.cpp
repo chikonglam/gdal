@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: aigdataset.cpp 19497 2010-04-22 15:40:48Z warmerdam $
+ * $Id: aigdataset.cpp 20504 2010-09-02 02:40:49Z warmerdam $
  *
  * Project:  Arc/Info Binary Grid Driver
  * Purpose:  Implements GDAL interface to underlying library.
@@ -34,7 +34,7 @@
 #include "aigrid.h"
 #include "avc.h"
 
-CPL_CVSID("$Id: aigdataset.cpp 19497 2010-04-22 15:40:48Z warmerdam $");
+CPL_CVSID("$Id: aigdataset.cpp 20504 2010-09-02 02:40:49Z warmerdam $");
 
 CPL_C_START
 void	GDALRegister_AIGrid(void);
@@ -1014,6 +1014,7 @@ void GDALRegister_AIGrid()
                                    "Arc/Info Binary Grid" );
         poDriver->SetMetadataItem( GDAL_DMD_HELPTOPIC, 
                                    "frmt_various.html#AIG" );
+        poDriver->SetMetadataItem( GDAL_DCAP_VIRTUALIO, "YES" );
         
         poDriver->pfnOpen = AIGDataset::Open;
 

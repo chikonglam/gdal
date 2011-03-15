@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: lcpdataset.cpp 18125 2009-11-28 11:07:24Z rouault $
+ * $Id: lcpdataset.cpp 20996 2010-10-28 18:38:15Z rouault $
  *
  * Project:  LCP Driver
  * Purpose:  FARSITE v.4 Landscape file (.lcp) reader for GDAL
@@ -31,7 +31,7 @@
 #include "cpl_string.h"
 #include "ogr_spatialref.h"
 
-CPL_CVSID("$Id: lcpdataset.cpp 18125 2009-11-28 11:07:24Z rouault $");
+CPL_CVSID("$Id: lcpdataset.cpp 20996 2010-10-28 18:38:15Z rouault $");
 
 CPL_C_START
 void    GDALRegister_LCP(void);
@@ -47,7 +47,7 @@ CPL_C_END
 
 class LCPDataset : public RawDataset
 {
-    FILE    *fpImage;       // image data file.
+    VSILFILE    *fpImage;       // image data file.
     char	pachHeader[LCP_HEADER_SIZE];
 
     CPLString   osPrjFilename;
@@ -192,7 +192,7 @@ GDALDataset *LCPDataset::Open( GDALOpenInfo * poOpenInfo )
 /*      Create a corresponding GDALDataset.                             */
 /* -------------------------------------------------------------------- */
     LCPDataset  *poDS;
-    FILE        *fpImage;
+    VSILFILE        *fpImage;
 
     fpImage = VSIFOpenL(poOpenInfo->pszFilename, "rb");
     if (fpImage == NULL)
@@ -696,13 +696,11 @@ GDALDataset *LCPDataset::Open( GDALOpenInfo * poOpenInfo )
     poDS->osPrjFilename = CPLFormFilename( pszDirname, pszBasename, "prj" );
     int nRet = VSIStatL( poDS->osPrjFilename, &sStatBuf );
 
-#ifndef WIN32
-    if( nRet != 0 )
+    if( nRet != 0 && VSIIsCaseSensitiveFS(poDS->osPrjFilename))
     {
         poDS->osPrjFilename = CPLFormFilename( pszDirname, pszBasename, "PRJ" );
         nRet = VSIStatL( poDS->osPrjFilename, &sStatBuf );
     }
-#endif
 
     if( nRet == 0 )
     {

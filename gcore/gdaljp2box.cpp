@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdaljp2box.cpp 17636 2009-09-12 23:19:18Z warmerdam $
+ * $Id: gdaljp2box.cpp 21430 2011-01-07 22:22:40Z warmerdam $
  *
  * Project:  GDAL 
  * Purpose:  GDALJP2Box Implementation - Low level JP2 box reader.
@@ -30,13 +30,13 @@
 #include "gdaljp2metadata.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: gdaljp2box.cpp 17636 2009-09-12 23:19:18Z warmerdam $");
+CPL_CVSID("$Id: gdaljp2box.cpp 21430 2011-01-07 22:22:40Z warmerdam $");
 
 /************************************************************************/
 /*                             GDALJP2Box()                             */
 /************************************************************************/
 
-GDALJP2Box::GDALJP2Box( FILE *fpIn )
+GDALJP2Box::GDALJP2Box( VSILFILE *fpIn )
 
 {
     fpVSIL = fpIn;
@@ -96,6 +96,7 @@ int GDALJP2Box::ReadNext()
 int GDALJP2Box::ReadFirstChild( GDALJP2Box *poSuperBox )
 
 {
+    szBoxType[0] = '\0';
     if( !poSuperBox->IsSuperBox() )
         return FALSE;
 
@@ -243,9 +244,26 @@ int GDALJP2Box::DumpReadable( FILE *fpOut )
              (int)(nBoxLength - (nDataOffset - nBoxOffset)) );
 
     if( IsSuperBox() )
+    {
         fprintf( fpOut, " (super)" );
+    }
 
     fprintf( fpOut, "\n" );
+    
+    if( IsSuperBox() ) 
+    {
+        GDALJP2Box oSubBox( GetFILE() );
+
+        for( oSubBox.ReadFirstChild( this );
+             strlen(oSubBox.GetType()) > 0;
+             oSubBox.ReadNextChild( this ) )
+        {
+            oSubBox.DumpReadable( fpOut );
+        }
+
+        printf( "  (end of %s subboxes)\n", szBoxType );
+    }
+
     if( EQUAL(GetType(),"uuid") )
     {
         char *pszHex = CPLBinaryToHex( 16, GetUUID() );
@@ -259,6 +277,7 @@ int GDALJP2Box::DumpReadable( FILE *fpOut )
 
         fprintf( fpOut, "\n" );
     }
+
     return 0;
 }
 

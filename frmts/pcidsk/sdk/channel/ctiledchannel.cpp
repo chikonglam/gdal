@@ -48,14 +48,16 @@ using namespace PCIDSK;
 /************************************************************************/
 
 CTiledChannel::CTiledChannel( PCIDSKBuffer &image_header, 
+                              uint64 ih_offset,
                               PCIDSKBuffer &file_header,
                               int channelnum,
                               CPCIDSKFile *file,
                               eChanType pixel_type )
-        : CPCIDSKChannel( image_header, file, pixel_type, channelnum )
+        : CPCIDSKChannel( image_header, ih_offset, file, pixel_type, channelnum)
 
 {
     tile_info_dirty = false;
+    tile_info_loaded = false;
 
 /* -------------------------------------------------------------------- */
 /*      Establish the virtual file we will be accessing.                */
@@ -72,7 +74,7 @@ CTiledChannel::CTiledChannel( PCIDSKBuffer &image_header,
 
 /* -------------------------------------------------------------------- */
 /*      If this is an unassociated channel (ie. an overview), we        */
-/*      will set the size and blocksize values to someone               */
+/*      will set the size and blocksize values to something             */
 /*      unreasonable and set them properly in EstablishAccess()         */
 /* -------------------------------------------------------------------- */
     if( channelnum == -1 )
@@ -98,7 +100,7 @@ CTiledChannel::~CTiledChannel()
 /*                          EstablishAccess()                           */
 /************************************************************************/
 
-void CTiledChannel::EstablishAccess()
+void CTiledChannel::EstablishAccess() const
 
 {
     if( vfile != NULL )
@@ -131,19 +133,36 @@ void CTiledChannel::EstablishAccess()
     theader.Get(32,4,data_type);
     theader.Get(54, 8, compression);
     
-    if( data_type == "8U" )
-        pixel_type = CHN_8U;
-    else if( data_type == "16S" )
-        pixel_type = CHN_16S;
-    else if( data_type == "16U" )
-        pixel_type = CHN_16U;
-    else if( data_type == "32R" )
-        pixel_type = CHN_32R;
-    else
+    pixel_type = GetDataTypeFromName(data_type);
+    if (pixel_type == CHN_UNKNOWN)
     {
         ThrowPCIDSKException( "Unknown channel type: %s", 
                               data_type.c_str() );
     }
+
+/* -------------------------------------------------------------------- */
+/*      Establish byte swapping.  Tiled data files are always big       */
+/*      endian, regardless of what the headers might imply.             */
+/* -------------------------------------------------------------------- */
+    unsigned short test_value = 1;
+    
+    if( ((uint8 *) &test_value)[0] == 1 )
+        needs_swap = pixel_type != CHN_8U;
+    else
+        needs_swap = false;
+}
+
+/************************************************************************/
+/*                        EstablishTileAccess()                         */
+/************************************************************************/
+
+void CTiledChannel::EstablishTileAccess() const
+
+{
+    if( tile_info_loaded )
+        return;
+
+    EstablishAccess();
 
 /* -------------------------------------------------------------------- */
 /*      Extract the tile map                                            */
@@ -166,18 +185,8 @@ void CTiledChannel::EstablishAccess()
         tile_sizes[i] = tmap.GetInt( tile_count*12 + i*8, 8 );
     }
 
+    tile_info_loaded = true;
     tile_info_dirty = false;
-
-/* -------------------------------------------------------------------- */
-/*      Establish byte swapping.  Tiled data files are always big       */
-/*      endian, regardless of what the headers might imply.             */
-/* -------------------------------------------------------------------- */
-    unsigned short test_value = 1;
-    
-    if( ((uint8 *) &test_value)[0] == 1 )
-        needs_swap = pixel_type != CHN_8U;
-    else
-        needs_swap = false;
 }
 
 /************************************************************************/
@@ -221,8 +230,8 @@ int CTiledChannel::ReadBlock( int block_index, void *buffer,
                               int xsize, int ysize )
 
 {
-    if( !vfile )
-        EstablishAccess();
+    if( !tile_info_loaded )
+        EstablishTileAccess();
 
     int pixel_size = DataTypeSize(GetType());
 
@@ -277,7 +286,7 @@ int CTiledChannel::ReadBlock( int block_index, void *buffer,
                              tile_sizes[block_index] );
         // Do byte swapping if needed.
         if( needs_swap )
-            SwapData( buffer, pixel_size, xsize * ysize );
+            SwapPixels( buffer, pixel_type, xsize * ysize );
 
         return 1;
     }
@@ -301,7 +310,7 @@ int CTiledChannel::ReadBlock( int block_index, void *buffer,
         
         // Do byte swapping if needed.
         if( needs_swap )
-            SwapData( buffer, pixel_size, xsize * ysize );
+            SwapPixels( buffer, pixel_type, xsize * ysize );
         
         return 1;
     }
@@ -340,7 +349,7 @@ int CTiledChannel::ReadBlock( int block_index, void *buffer,
 /*      data.  Perhaps this should be conditional?                      */
 /* -------------------------------------------------------------------- */
     if( needs_swap )
-        SwapData( oUncompressedData.buffer, pixel_size, 
+        SwapPixels( oUncompressedData.buffer, pixel_type, 
                   GetBlockWidth() * GetBlockHeight() );
 
 /* -------------------------------------------------------------------- */
@@ -360,14 +369,49 @@ int CTiledChannel::ReadBlock( int block_index, void *buffer,
 }
 
 /************************************************************************/
+/*                            IsTileEmpty()                             */
+/************************************************************************/
+bool CTiledChannel::IsTileEmpty(void *buffer) const
+{
+    assert(sizeof(int32) == 4); // just to be on the safe side...
+
+    unsigned int num_dword = 
+        (block_width * block_height * DataTypeSize(pixel_type)) / 4;
+    unsigned int rem = 
+        (block_width * block_height * DataTypeSize(pixel_type)) % 4;
+
+    int32* int_buf = reinterpret_cast<int32*>(buffer);
+
+    if (num_dword > 0) {
+        for (unsigned int n = 0; n < num_dword; n++) {
+            if (int_buf[n]) return false;
+        }
+    }
+
+    char* char_buf = reinterpret_cast<char*>(int_buf + num_dword);
+    if (rem > 0) {
+        for (unsigned int n = 0; n < rem; n++) {
+            if (char_buf[n]) return false;
+        }
+    }
+
+    return true;
+}
+
+/************************************************************************/
 /*                             WriteBlock()                             */
 /************************************************************************/
 
 int CTiledChannel::WriteBlock( int block_index, void *buffer )
 
 {
-    if( !vfile )
-        EstablishAccess();
+    if( !tile_info_loaded )
+        EstablishTileAccess();
+
+    if( !file->GetUpdatable() )
+        throw PCIDSKException( "File not open for update in WriteBlock()" );
+
+    InvalidateOverviews();
 
     int pixel_size = DataTypeSize(GetType());
     int pixel_count = GetBlockWidth() * GetBlockHeight();
@@ -387,16 +431,25 @@ int CTiledChannel::WriteBlock( int block_index, void *buffer )
     {
         // Do byte swapping if needed.
         if( needs_swap )
-            SwapData( buffer, pixel_size, pixel_count );
+            SwapPixels( buffer, pixel_type, pixel_count );
 
         vfile->WriteToFile( buffer, 
                             tile_offsets[block_index], 
                             tile_sizes[block_index] );
 
         if( needs_swap )
-            SwapData( buffer, pixel_size, pixel_count );
+            SwapPixels( buffer, pixel_type, pixel_count );
 
         return 1;
+    }
+
+    if ((int)tile_offsets[block_index] == -1)
+    {
+        // Check if the tile is empty. If it is, we can skip writing it,
+        // unless the tile is already dirty.
+        bool is_empty = IsTileEmpty(buffer);
+
+        if (is_empty) return 1; // we don't need to do anything else
     }
 
 /* -------------------------------------------------------------------- */
@@ -409,7 +462,7 @@ int CTiledChannel::WriteBlock( int block_index, void *buffer )
             oUncompressedData.buffer_size );
 
     if( needs_swap )
-        SwapData( oUncompressedData.buffer, pixel_size, pixel_count );
+        SwapPixels( oUncompressedData.buffer, pixel_type, pixel_count );
 
 /* -------------------------------------------------------------------- */
 /*      Compress the imagery.                                           */
@@ -470,7 +523,7 @@ int CTiledChannel::WriteBlock( int block_index, void *buffer )
 /*                           GetBlockWidth()                            */
 /************************************************************************/
 
-int CTiledChannel::GetBlockWidth()
+int CTiledChannel::GetBlockWidth() const
 
 {
     EstablishAccess();
@@ -481,7 +534,7 @@ int CTiledChannel::GetBlockWidth()
 /*                           GetBlockHeight()                           */
 /************************************************************************/
 
-int CTiledChannel::GetBlockHeight()
+int CTiledChannel::GetBlockHeight() const
 
 {
     EstablishAccess();
@@ -492,7 +545,7 @@ int CTiledChannel::GetBlockHeight()
 /*                              GetWidth()                              */
 /************************************************************************/
 
-int CTiledChannel::GetWidth()
+int CTiledChannel::GetWidth() const
 
 {
     if( width == -1 )
@@ -505,7 +558,7 @@ int CTiledChannel::GetWidth()
 /*                             GetHeight()                              */
 /************************************************************************/
 
-int CTiledChannel::GetHeight()
+int CTiledChannel::GetHeight() const
 
 {
     if( height == -1 )
@@ -518,7 +571,7 @@ int CTiledChannel::GetHeight()
 /*                              GetType()                               */
 /************************************************************************/
 
-eChanType CTiledChannel::GetType()
+eChanType CTiledChannel::GetType() const
 
 {
     if( pixel_type == CHN_UNKNOWN )

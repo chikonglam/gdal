@@ -42,18 +42,26 @@ This default number can be changed with the GPX_N_MAX_LINKS environment variable
 
 <h2>Encoding issues</h2>
 
-Expat library supports the following built-in encodings :
+Expat library supports reading the following built-in encodings :
 <ul>
 <li>US-ASCII</li>
 <li>UTF-8</li>
 <li>UTF-16</li>
 <li>ISO-8859-1</li>
 </ul>
+
+OGR 1.8.0 adds supports for Windows-1252 encoding (for previous versions, altering the encoding
+mentionned in the XML header to ISO-8859-1 might work in some cases).<p>
+
+The content returned by OGR will be encoded in UTF-8, after the conversion from the
+encoding mentionned in the file header is.<p>
+
 If your GPX file is not encoded in one of the previous encodings, it will not be parsed by the
 GPX driver. You may convert it into one of the supported encoding with the <i>iconv</i> utility
 for example and change accordingly the <i>encoding</i> parameter value in the XML header.<br>
-Note : Windows-1252 differs only on a small range of characters with ISO-8859-1.
-Patching the  <i>encoding</i> parameter value to ISO-8859-1 may be enough to make it work...<p>
+<p>
+
+When writing a GPX file, the driver expects UTF-8 content to be passed in.<p>
 
 <h2>Extensions element reading</h2>
 
@@ -110,6 +118,17 @@ Supported geometries :
 For route points and tracks points, if there is a Z coordinate, it is used to fill the elevation element
 of the corresponding points.<p>
 
+Starting with GDAL/OGR 1.8.0, if a layer is named "track_points" with wkbPoint/wkbPoint25D geometries, the
+tracks in the GPX file will be built from the sequence of features in that layer. This is the way of setting GPX attributes
+for each track point, in addition to the raw coordinates. Points belonging to the same track are
+identified thanks to the same value of the 'track_fid' field (and it will be broken into track segments
+according to the value of the 'track_seg_id' field). They must be written in sequence so that track objects
+are properly reconstructed. The 'track_name' field can be set on the first track point to fill the &lt;name&gt;
+element of the track.
+Similarly, if a layer is named "route_points" with wkbPoint/wkbPoint25D geometries, the routes in the GPX file
+will be built from the sequence of points with the same value of the 'route_fid' field.  The 'route_name'
+field can be set on the first track point to fill the &lt;name&gt; element of the route.<p>
+
 The GPX writer supports the following <i>layer</i> creation options:
 <ul>
 <li> <b>FORCE_GPX_TRACK</b>:
@@ -136,6 +155,12 @@ The namespace value used for extension tags. By default, "ogr".</li><p>
 <li> <b>GPX_EXTENSIONS_NS_URL</b>:
 Only used if GPX_USE_EXTENSIONS=YES and GPX_EXTENSIONS_NS is set.<br>
 The namespace URI. By default, "http://osgeo.org/gdal".</li><p>
+<li> <b>LINEFORMAT</b>: (GDAL/OGR >= 1.8.0)
+By default files are created with the line
+termination conventions of the local platform (CR/LF on win32 or 
+LF on all other systems).  This may be overridden through use of the
+LINEFORMAT layer creation option which may have a value of <b>CRLF</b>
+(DOS format) or <b>LF</b> (Unix format).</li> <p>
 </ul>
 <p>
 

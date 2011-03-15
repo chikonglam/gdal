@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: cpl_vsisimple.cpp 18568 2010-01-17 02:49:31Z rouault $
+ * $Id: cpl_vsisimple.cpp 20666 2010-09-21 23:13:27Z warmerdam $
  *
  * Project:  Common Portability Library 
  * Purpose:  Simple implementation of POSIX VSI functions.
@@ -38,6 +38,7 @@
 #include "cpl_port.h"
 #include "cpl_vsi.h"
 #include "cpl_error.h"
+#include "cpl_string.h"
 
 /* Uncomment to check consistent usage of VSIMalloc(), VSIRealloc(), */
 /* VSICalloc(), VSIFree(), VSIStrdup() */
@@ -51,7 +52,7 @@
 /* DEBUG_VSIMALLOC must also be defined */
 //#define DEBUG_VSIMALLOC_VERBOSE
 
-CPL_CVSID("$Id: cpl_vsisimple.cpp 18568 2010-01-17 02:49:31Z rouault $");
+CPL_CVSID("$Id: cpl_vsisimple.cpp 20666 2010-09-21 23:13:27Z warmerdam $");
 
 /* for stat() */
 
@@ -84,12 +85,31 @@ CPL_CVSID("$Id: cpl_vsisimple.cpp 18568 2010-01-17 02:49:31Z rouault $");
 FILE *VSIFOpen( const char * pszFilename, const char * pszAccess )
 
 {
-    FILE    *fp = fopen( (char *) pszFilename, (char *) pszAccess );
-    int     nError = errno;
+    FILE *fp = NULL;
+    int     nError;
 
+#if defined(WIN32) && !defined(WIN32CE)
+    if( CSLTestBoolean(
+            CPLGetConfigOption( "GDAL_FILENAME_IS_UTF8", "YES" ) ) )
+    {
+        wchar_t *pwszFilename = 
+            CPLRecodeToWChar( pszFilename, CPL_ENC_UTF8, CPL_ENC_UCS2 );
+        wchar_t *pwszAccess = 
+            CPLRecodeToWChar( pszAccess, CPL_ENC_UTF8, CPL_ENC_UCS2 );
+
+        fp = _wfopen( pwszFilename, pwszAccess );
+
+        CPLFree( pwszFilename );
+        CPLFree( pwszAccess );
+    }
+    else
+#endif
+    fp = fopen( (char *) pszFilename, (char *) pszAccess );
+
+    nError = errno;
     VSIDebug3( "VSIFOpen(%s,%s) = %p", pszFilename, pszAccess, fp );
-
     errno = nError;
+
     return( fp );
 }
 
@@ -368,20 +388,20 @@ void *VSIMalloc( size_t nSize )
 
 {
 #ifdef DEBUG_VSIMALLOC
-    char* ptr = (char*) malloc(4 + sizeof(size_t) + nSize);
+    char* ptr = (char*) malloc(2 * sizeof(void*) + nSize);
     if (ptr == NULL)
         return NULL;
     ptr[0] = 'V';
     ptr[1] = 'S';
     ptr[2] = 'I';
     ptr[3] = 'M';
-    memcpy(ptr + 4, &nSize, sizeof(size_t));
+    memcpy(ptr + sizeof(void*), &nSize, sizeof(void*));
 #if defined(DEBUG_VSIMALLOC_STATS) || defined(DEBUG_VSIMALLOC_VERBOSE)
     {
         CPLMutexHolderD(&hMemStatMutex);
 #ifdef DEBUG_VSIMALLOC_VERBOSE
         fprintf(stderr, "Thread[%p] VSIMalloc(%d) = %p\n",
-                (void*)CPLGetPID(), (int)nSize, ptr + 4 + sizeof(size_t));
+                (void*)CPLGetPID(), (int)nSize, ptr + 2 * sizeof(void*));
 #endif
 #ifdef DEBUG_VSIMALLOC_STATS
         nVSIMallocs ++;
@@ -393,7 +413,7 @@ void *VSIMalloc( size_t nSize )
 #endif
     }
 #endif
-    return ptr + 4 + sizeof(size_t);
+    return ptr + 2 * sizeof(void*);
 #else
     return( malloc( nSize ) );
 #endif
@@ -423,24 +443,24 @@ void * VSIRealloc( void * pData, size_t nNewSize )
     if (pData == NULL)
         return VSIMalloc(nNewSize);
         
-    char* ptr = ((char*)pData) - 4 - sizeof(size_t);
+    char* ptr = ((char*)pData) - 2 * sizeof(void*);
     VSICheckMarker(ptr);
 #ifdef DEBUG_VSIMALLOC_STATS
     size_t nOldSize;
-    memcpy(&nOldSize, ptr + 4, sizeof(size_t));
+    memcpy(&nOldSize, ptr + sizeof(void*), sizeof(void*));
 #endif
 
-    ptr = (char*) realloc(ptr, nNewSize + 4 + sizeof(size_t));
+    ptr = (char*) realloc(ptr, nNewSize + 2 * sizeof(void*));
     if (ptr == NULL)
         return NULL;
-    memcpy(ptr + 4, &nNewSize, sizeof(size_t));
+    memcpy(ptr + sizeof(void*), &nNewSize, sizeof(void*));
 
 #if defined(DEBUG_VSIMALLOC_STATS) || defined(DEBUG_VSIMALLOC_VERBOSE)
     {
         CPLMutexHolderD(&hMemStatMutex);
 #ifdef DEBUG_VSIMALLOC_VERBOSE
         fprintf(stderr, "Thread[%p] VSIRealloc(%p, %d) = %p\n",
-                (void*)CPLGetPID(), pData, (int)nNewSize, ptr + 4 + sizeof(size_t));
+                (void*)CPLGetPID(), pData, (int)nNewSize, ptr + 2 * sizeof(void*));
 #endif
 #ifdef DEBUG_VSIMALLOC_STATS
         nVSIReallocs ++;
@@ -451,7 +471,7 @@ void * VSIRealloc( void * pData, size_t nNewSize )
 #endif
     }
 #endif
-    return ptr + 4 + sizeof(size_t);
+    return ptr + 2 * sizeof(void*);
 #else
     return( realloc( pData, nNewSize ) );
 #endif
@@ -468,7 +488,7 @@ void VSIFree( void * pData )
     if (pData == NULL)
         return;
 
-    char* ptr = ((char*)pData) - 4 - sizeof(size_t);
+    char* ptr = ((char*)pData) - 2 * sizeof(void*);
     VSICheckMarker(ptr);
     ptr[0] = 'M';
     ptr[1] = 'I';
@@ -476,7 +496,7 @@ void VSIFree( void * pData )
     ptr[3] = 'V';
 #if defined(DEBUG_VSIMALLOC_STATS) || defined(DEBUG_VSIMALLOC_VERBOSE)
     size_t nOldSize;
-    memcpy(&nOldSize, ptr + 4, sizeof(size_t));
+    memcpy(&nOldSize, ptr + sizeof(void*), sizeof(void*));
     {
         CPLMutexHolderD(&hMemStatMutex);
 #ifdef DEBUG_VSIMALLOC_VERBOSE
@@ -506,6 +526,8 @@ char *VSIStrdup( const char * pszString )
 #ifdef DEBUG_VSIMALLOC
     int nSize = strlen(pszString) + 1;
     char* ptr = (char*) VSIMalloc(nSize);
+    if (ptr == NULL)
+        return NULL;
     memcpy(ptr, pszString, nSize);
     return ptr;
 #else
@@ -672,11 +694,23 @@ void CPL_DLL *VSIMalloc3( size_t nSize1, size_t nSize2, size_t nSize3 )
 int VSIStat( const char * pszFilename, VSIStatBuf * pStatBuf )
 
 {
-#if defined(macos_pre10)
-    return -1;
-#else
-    return( stat( pszFilename, pStatBuf ) );
-#endif
+#if defined(WIN32) && !defined(WIN32CE)
+    if( CSLTestBoolean(
+            CPLGetConfigOption( "GDAL_FILENAME_IS_UTF8", "YES" ) ) )
+    {
+        int nResult;
+        wchar_t *pwszFilename = 
+            CPLRecodeToWChar( pszFilename, CPL_ENC_UTF8, CPL_ENC_UCS2 );
+
+        nResult = _wstat( pwszFilename, (struct _stat *) pStatBuf );
+
+        CPLFree( pwszFilename );
+
+        return nResult;
+    }
+    else
+#endif 
+        return( stat( pszFilename, pStatBuf ) );
 }
 
 /************************************************************************/

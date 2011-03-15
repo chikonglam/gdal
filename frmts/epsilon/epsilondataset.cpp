@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: epsilondataset.cpp 17975 2009-11-08 20:51:31Z rouault $
+ * $Id: epsilondataset.cpp 20996 2010-10-28 18:38:15Z rouault $
  *
  * Project:  GDAL Epsilon driver
  * Purpose:  Implement GDAL Epsilon support using Epsilon library
@@ -30,7 +30,7 @@
 #include "epsilon.h"
 #include "gdal_pam.h"
 
-CPL_CVSID("$Id: epsilondataset.cpp 17975 2009-11-08 20:51:31Z rouault $");
+CPL_CVSID("$Id: epsilondataset.cpp 20996 2010-10-28 18:38:15Z rouault $");
 
 #define RASTERLITE_WAVELET_HEADER "StartWaveletsImage$$"
 #define RASTERLITE_WAVELET_FOOTER "$$EndWaveletsImage"
@@ -59,7 +59,7 @@ class EpsilonDataset : public GDALPamDataset
 {
     friend class EpsilonRasterBand;
 
-    FILE*    fp;
+    VSILFILE*    fp;
     vsi_l_offset nFileOff;
     
     GByte*   pabyFileBuf;
@@ -627,7 +627,7 @@ GDALDataset* EpsilonDataset::Open(GDALOpenInfo* poOpenInfo)
         return NULL;
     }
 
-    FILE* fp = VSIFOpenL(poOpenInfo->pszFilename, "rb");
+    VSILFILE* fp = VSIFOpenL(poOpenInfo->pszFilename, "rb");
     if (fp == NULL)
         return NULL;
     
@@ -780,7 +780,7 @@ EpsilonDatasetCreateCopy( const char * pszFilename, GDALDataset *poSrcDS,
 /*      Open file                                                       */
 /* -------------------------------------------------------------------- */
 
-    FILE* fp = VSIFOpenL(pszFilename, "wb");
+    VSILFILE* fp = VSIFOpenL(pszFilename, "wb");
     if (fp == NULL)
         return NULL;
 

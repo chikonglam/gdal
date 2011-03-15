@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: netcdfdataset.h 18153 2009-12-02 04:28:55Z warmerdam $
+ * $Id: netcdfdataset.h 18931 2010-02-25 20:32:37Z kyle $
  *
  * Project:  netCDF read/write Driver
  * Purpose:  GDAL bindings over netCDF library.
@@ -45,7 +45,10 @@
 /* ==================================================================== */
 /************************************************************************/
 #define MAX_STR_LEN            8192
+#define AEA                    "albers_conical_equal_area"
+#define AE                     "azimuthal_equidistant"
 #define CEA                    "cylindrical_equal_area"
+#define LCEA                   "lambert_cylindrical_equal_area"
 #define L_C_CONIC              "lambert_conformal_conic"
 #define TM                     "transverse_mercator"
 #define LAEA                   "lambert_azimuthal_equal_area"
@@ -53,10 +56,17 @@
 #define GRD_MAPPING            "grid_mapping"
 #define COORDINATES            "coordinates"
 #define LONLAT                 "lon lat"
+#define LATITUDE_LONGITUDE     "latitude_longitude"
+#define MERCATOR               "mercator"
+#define ORTHOGRAPHIC           "orthographic"
+#define POLAR_STEREO           "polar_stereographic"
+#define STEREO                 "stereographic"
 
+#define STD_PARALLEL           "standard_parallel"
 #define STD_PARALLEL_1         "standard_parallel_1"
 #define STD_PARALLEL_2         "standard_parallel_2"
-#define LONG_CENTRAL_MERIDIAN  "central_meridian"
+#define CENTRAL_MERIDIAN       "central_meridian"
+#define LONG_CENTRAL_MERIDIAN  "longitude_of_central_meridian"
 #define LON_PROJ_ORIGIN        "longitude_of_projection_origin"
 #define LAT_PROJ_ORIGIN        "latitude_of_projection_origin"
 #define SCALE_FACTOR_ORIGIN    "scale_factor_at_projection_origin"
@@ -67,6 +77,11 @@
 #define SCALE_FACTOR           "scale_factor_at_central_meridian"
 #define FALSE_EASTING          "false_easting"
 #define FALSE_NORTHING         "false_northing"
+#define EARTH_RADIUS           "earth_radius"
+#define INVERSE_FLATTENING     "inverse_flattening"
+#define LONG_PRIME_MERIDIAN    "longitude_of_prime_meridian"
+#define SEMI_MAJOR_AXIS        "semi_major_axis"
+#define SEMI_MINOR_AXIS        "semi_minor_axis"
 
 #define STD_NAME               "standard_name"
 #define LNG_NAME               "long_name"
@@ -97,7 +112,7 @@ static const oNetcdfSRS poNetcdfSRS[] = {
     {"goode_homolosine", SRS_PT_GOODE_HOMOLOSINE },
     {"gnomonic", SRS_PT_GNOMONIC },
     {"hotine_oblique_mercator", SRS_PT_HOTINE_OBLIQUE_MERCATOR},
-    {"hotine_oblique_marcator_2P", 
+    {"hotine_oblique_mercator_2P", 
      SRS_PT_HOTINE_OBLIQUE_MERCATOR_TWO_POINT_NATURAL_ORIGIN},
     {"laborde_oblique_mercator", SRS_PT_LABORDE_OBLIQUE_MERCATOR },
     {"lambert_conformal_conic1", SRS_PT_LAMBERT_CONFORMAL_CONIC_1SP },
@@ -150,6 +165,8 @@ class netCDFDataset : public GDALPamDataset
 
     double       FetchCopyParm( const char *pszGridMappingValue, 
                                 const char *pszParm, double dfDefault );
+
+    char **      FetchStandardParallels( const char *pszGridMappingValue );
 
   public:
     int           cdfid;

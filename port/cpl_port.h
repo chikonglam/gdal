@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: cpl_port.h 19887 2010-06-17 22:47:55Z rouault $
+ * $Id: cpl_port.h 21167 2010-11-24 15:19:51Z warmerdam $
  *
  * Project:  CPL - Common Portability Library
  * Author:   Frank Warmerdam, warmerdam@pobox.com
@@ -33,7 +33,7 @@
 
 /* Remove annoying warnings Microsoft Visual C++ */
 #if defined(_MSC_VER)
-#  pragma warning(disable:4251 4275 4786)
+#  pragma warning(disable:4251 4275 4786 4127 4100)
 #endif
 
 /**
@@ -166,7 +166,12 @@ typedef unsigned int    GUInt32;
 typedef short           GInt16;
 typedef unsigned short  GUInt16;
 typedef unsigned char   GByte;
+/* hack for PDF driver and poppler >= 0.15.0 that defines incompatible "typedef bool GBool" */
+/* in include/poppler/goo/gtypes.h */
+#ifndef CPL_GBOOL_DEFINED
+#define CPL_GBOOL_DEFINED
 typedef int             GBool;
+#endif
 
 /* -------------------------------------------------------------------- */
 /*      64bit support                                                   */

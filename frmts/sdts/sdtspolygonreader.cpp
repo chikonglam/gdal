@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: sdtspolygonreader.cpp 19953 2010-07-02 06:03:04Z warmerdam $
+ * $Id: sdtspolygonreader.cpp 19952 2010-07-02 05:44:18Z warmerdam $
  *
  * Project:  SDTS Translator
  * Purpose:  Implementation of SDTSPolygonReader and SDTSRawPolygon classes.
@@ -29,7 +29,7 @@
 
 #include "sdts_al.h"
 
-CPL_CVSID("$Id: sdtspolygonreader.cpp 19953 2010-07-02 06:03:04Z warmerdam $");
+CPL_CVSID("$Id: sdtspolygonreader.cpp 19952 2010-07-02 05:44:18Z warmerdam $");
 
 /************************************************************************/
 /* ==================================================================== */

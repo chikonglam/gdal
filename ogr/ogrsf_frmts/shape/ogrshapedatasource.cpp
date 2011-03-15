@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrshapedatasource.cpp 19450 2010-04-18 18:41:06Z warmerdam $
+ * $Id: ogrshapedatasource.cpp 21257 2010-12-14 20:23:13Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implements OGRShapeDataSource class.
@@ -31,7 +31,7 @@
 #include "cpl_conv.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: ogrshapedatasource.cpp 19450 2010-04-18 18:41:06Z warmerdam $");
+CPL_CVSID("$Id: ogrshapedatasource.cpp 21257 2010-12-14 20:23:13Z rouault $");
 
 /************************************************************************/
 /*                         OGRShapeDataSource()                         */
@@ -43,7 +43,7 @@ OGRShapeDataSource::OGRShapeDataSource()
     pszName = NULL;
     papoLayers = NULL;
     nLayers = 0;
-    bSingleNewFile = FALSE;
+    bSingleFileDataSource = FALSE;
 }
 
 /************************************************************************/
@@ -70,7 +70,7 @@ OGRShapeDataSource::~OGRShapeDataSource()
 /************************************************************************/
 
 int OGRShapeDataSource::Open( const char * pszNewName, int bUpdate,
-                              int bTestOpen, int bSingleNewFileIn )
+                              int bTestOpen, int bForceSingleFileDataSource )
 
 {
     VSIStatBufL  stat;
@@ -81,22 +81,22 @@ int OGRShapeDataSource::Open( const char * pszNewName, int bUpdate,
 
     bDSUpdate = bUpdate;
 
-    bSingleNewFile = bSingleNewFileIn;
+    bSingleFileDataSource = bForceSingleFileDataSource;
 
 /* -------------------------------------------------------------------- */
-/*      If bSingleNewFile is TRUE we don't try to do anything else.     */
+/*      If  bSingleFileDataSource is TRUE we don't try to do anything else.     */
 /*      This is only utilized when the OGRShapeDriver::Create()         */
 /*      method wants to create a stub OGRShapeDataSource for a          */
 /*      single shapefile.  The driver will take care of creating the    */
 /*      file by calling CreateLayer().                                  */
 /* -------------------------------------------------------------------- */
-    if( bSingleNewFile )
+    if( bSingleFileDataSource )
         return TRUE;
     
 /* -------------------------------------------------------------------- */
 /*      Is the given path a directory or a regular file?                */
 /* -------------------------------------------------------------------- */
-    if( VSIStatL( pszNewName, &stat ) != 0 
+    if( VSIStatExL( pszNewName, &stat, VSI_STAT_EXISTS_FLAG | VSI_STAT_NATURE_FLAG ) != 0 
         || (!VSI_ISDIR(stat.st_mode) && !VSI_ISREG(stat.st_mode)) )
     {
         if( !bTestOpen )
@@ -122,6 +122,8 @@ int OGRShapeDataSource::Open( const char * pszNewName, int bUpdate,
 
             return FALSE;
         }
+
+        bSingleFileDataSource = TRUE;
 
         return TRUE;
     }
@@ -304,17 +306,15 @@ int OGRShapeDataSource::OpenFile( const char *pszNewName, int bUpdate,
 /* -------------------------------------------------------------------- */
     OGRSpatialReference *poSRS = NULL;
     const char  *pszPrjFile = CPLResetExtension( pszNewName, "prj" );
-    FILE        *fp = NULL;
+    VSILFILE        *fp = NULL;
 
     fp = VSIFOpenL( pszPrjFile, "r" );
 
-#ifndef WIN32
     if( NULL == fp )
     {
         pszPrjFile = CPLResetExtension( pszNewName, "PRJ" );
         fp = VSIFOpenL( pszPrjFile, "r" );
     }
-#endif
 
     if( fp != NULL )
     {
@@ -368,6 +368,23 @@ OGRShapeDataSource::CreateLayer( const char * pszLayerName,
     SHPHandle   hSHP;
     DBFHandle   hDBF;
     int         nShapeType;
+    int         iLayer;
+
+/* -------------------------------------------------------------------- */
+/*      Check that the layer doesn't already exist.                     */
+/* -------------------------------------------------------------------- */
+    for( iLayer = 0; iLayer < nLayers; iLayer++ )
+    {
+        OGRLayer        *poLayer = papoLayers[iLayer];
+
+        if( poLayer != NULL 
+            && EQUAL(poLayer->GetLayerDefn()->GetName(),pszLayerName) )
+        {
+            CPLError( CE_Failure, CPLE_AppDefined, "Layer '%s' already exists",
+                      pszLayerName);
+            return NULL;
+        }
+    }
 
 /* -------------------------------------------------------------------- */
 /*      Verify we are in update mode.                                   */
@@ -491,7 +508,7 @@ OGRShapeDataSource::CreateLayer( const char * pszLayerName,
 /* -------------------------------------------------------------------- */
     char *pszBasename;
 
-    if( bSingleNewFile && nLayers == 0 )
+    if(  bSingleFileDataSource && nLayers == 0 )
     {
         char *pszPath = CPLStrdup(CPLGetPath(pszName));
         char *pszFBasename = CPLStrdup(CPLGetBasename(pszName));
@@ -501,8 +518,14 @@ OGRShapeDataSource::CreateLayer( const char * pszLayerName,
         CPLFree( pszFBasename );
         CPLFree( pszPath );
     }
-    else if( bSingleNewFile )
+    else if(  bSingleFileDataSource )
     {
+        /* This is a very weird use case : the user creates/open a datasource */
+        /* made of a single shapefile 'foo.shp' and wants to add a new layer */
+        /* to it, 'bar'. So we create a new shapefile 'bar.shp' in the same */
+        /* directory as 'foo.shp' */
+        /* So technically, we will not be any longer a single file */
+        /* datasource ... Ahem ahem */
         char *pszPath = CPLStrdup(CPLGetPath(pszName));
         pszBasename = CPLStrdup(CPLFormFilename(pszPath,pszLayerName,NULL));
         CPLFree( pszPath );
@@ -549,6 +572,7 @@ OGRShapeDataSource::CreateLayer( const char * pszLayerName,
                   pszFilename );
         CPLFree( pszFilename );
         CPLFree( pszBasename );
+        SHPClose(hSHP);
         return NULL;
     }
 
@@ -561,17 +585,17 @@ OGRShapeDataSource::CreateLayer( const char * pszLayerName,
     {
         char    *pszWKT = NULL;
         CPLString osPrjFile = CPLFormFilename( NULL, pszBasename, "prj");
-        FILE    *fp;
+        VSILFILE    *fp;
 
         /* the shape layer needs it's own copy */
         poSRS = poSRS->Clone();
         poSRS->morphToESRI();
 
         if( poSRS->exportToWkt( &pszWKT ) == OGRERR_NONE 
-            && (fp = VSIFOpen( osPrjFile, "wt" )) != NULL )
+            && (fp = VSIFOpenL( osPrjFile, "wt" )) != NULL )
         {
-            VSIFWrite( pszWKT, strlen(pszWKT), 1, fp );
-            VSIFClose( fp );
+            VSIFWriteL( pszWKT, strlen(pszWKT), 1, fp );
+            VSIFCloseL( fp );
         }
 
         CPLFree( pszWKT );

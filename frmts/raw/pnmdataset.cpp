@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: pnmdataset.cpp 16865 2009-04-27 12:49:49Z chaitanya $
+ * $Id: pnmdataset.cpp 20996 2010-10-28 18:38:15Z rouault $
  *
  * Project:  PNM Driver
  * Purpose:  Portable anymap file format imlementation
@@ -31,7 +31,7 @@
 #include "cpl_string.h"
 #include <ctype.h>
 
-CPL_CVSID("$Id: pnmdataset.cpp 16865 2009-04-27 12:49:49Z chaitanya $");
+CPL_CVSID("$Id: pnmdataset.cpp 20996 2010-10-28 18:38:15Z rouault $");
 
 CPL_C_START
 void    GDALRegister_PNM(void);
@@ -45,7 +45,7 @@ CPL_C_END
 
 class PNMDataset : public RawDataset
 {
-    FILE        *fpImage;       // image data file.
+    VSILFILE        *fpImage;       // image data file.
 
     int         bGeoTransformValid;
     double      adfGeoTransform[6];
@@ -351,7 +351,7 @@ GDALDataset *PNMDataset::Create( const char * pszFilename,
 /* -------------------------------------------------------------------- */
 /*      Try to create the file.                                         */
 /* -------------------------------------------------------------------- */
-    FILE        *fp;
+    VSILFILE        *fp;
 
     fp = VSIFOpenL( pszFilename, "wb" );
 

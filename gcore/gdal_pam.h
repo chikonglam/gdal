@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdal_pam.h 16731 2009-04-07 02:18:52Z warmerdam $
+ * $Id: gdal_pam.h 21291 2010-12-19 20:42:06Z rouault $
  *
  * Project:  GDAL Core
  * Purpose:  Declaration for Peristable Auxilary Metadata classes.
@@ -51,6 +51,7 @@ class GDALPamRasterBand;
 #define GCIF_BAND_METADATA      0x040000
 #define GCIF_RAT                0x080000
 #define GCIF_MASK               0x100000
+#define GCIF_BAND_DESCRIPTION   0x200000
 
 #define GCIF_ONLY_IF_MISSING    0x10000000
 #define GCIF_PROCESS_BANDS      0x20000000
@@ -62,7 +63,8 @@ class GDALPamRasterBand;
                                  GCIF_UNITTYPE | GCIF_COLORTABLE |         \
                                  GCIF_COLORINTERP | GCIF_BAND_METADATA |   \
                                  GCIF_RAT | GCIF_MASK |                    \
-                                 GCIF_ONLY_IF_MISSING | GCIF_PROCESS_BANDS )
+                                 GCIF_ONLY_IF_MISSING | GCIF_PROCESS_BANDS|\
+                                 GCIF_BAND_DESCRIPTION) 
 
 /* GDAL PAM Flags */
 #define GPF_DIRTY		0x01  // .pam file needs to be written on close
@@ -95,6 +97,7 @@ public:
 
     CPLString   osPhysicalFilename;
     CPLString   osSubdatasetName;
+    CPLString   osAuxFilename;
 };
 
 /* ******************************************************************** */
@@ -232,6 +235,8 @@ class CPL_DLL GDALPamRasterBand : public GDALRasterBand
   public:
                 GDALPamRasterBand();
     virtual     ~GDALPamRasterBand();
+
+    virtual void        SetDescription( const char * );
 
     virtual CPLErr SetNoDataValue( double );
     virtual double GetNoDataValue( int *pbSuccess = NULL );

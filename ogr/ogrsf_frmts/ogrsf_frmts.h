@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrsf_frmts.h 18449 2010-01-07 09:09:09Z martinl $
+ * $Id: ogrsf_frmts.h 21372 2011-01-01 23:53:54Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Classes related to format registration, and file opening.
@@ -80,6 +80,8 @@ class CPL_DLL OGRLayer
     virtual OGRErr      CreateFeature( OGRFeature *poFeature );
     virtual OGRErr      DeleteFeature( long nFID );
 
+    virtual const char *GetName();
+    virtual OGRwkbGeometryType GetGeomType();
     virtual OGRFeatureDefn *GetLayerDefn() = 0;
 
     virtual OGRSpatialReference *GetSpatialRef() { return NULL; }
@@ -96,16 +98,10 @@ class CPL_DLL OGRLayer
 
     virtual OGRErr      SyncToDisk();
 
-    OGRStyleTable       *GetStyleTable(){ return m_poStyleTable; }
-    void                SetStyleTableDirectly( OGRStyleTable *poStyleTable )
-                            { if ( m_poStyleTable ) delete m_poStyleTable;
-                              m_poStyleTable = poStyleTable; }
-    void                SetStyleTable(OGRStyleTable *poStyleTable)
-                            {
-                                if ( m_poStyleTable ) delete m_poStyleTable;
-                                if ( poStyleTable )
-                                    m_poStyleTable = poStyleTable->Clone();
-                            }
+    virtual OGRStyleTable *GetStyleTable();
+    virtual void        SetStyleTableDirectly( OGRStyleTable *poStyleTable );
+                            
+    virtual void        SetStyleTable(OGRStyleTable *poStyleTable);
 
     virtual OGRErr      StartTransaction();
     virtual OGRErr      CommitTransaction();
@@ -113,6 +109,8 @@ class CPL_DLL OGRLayer
 
     virtual const char *GetFIDColumn();
     virtual const char *GetGeometryColumn();
+
+    virtual OGRErr      SetIgnoredFields( const char **papszFields );
 
     int                 Reference();
     int                 Dereference();
@@ -178,16 +176,10 @@ class CPL_DLL OGRDataSource
                                    const char *pszNewName, 
                                    char **papszOptions = NULL );
 
-    OGRStyleTable       *GetStyleTable(){ return m_poStyleTable; }
-    void                SetStyleTableDirectly( OGRStyleTable *poStyleTable )
-                            { if ( m_poStyleTable ) delete m_poStyleTable;
-                              m_poStyleTable = poStyleTable; }
-    void                SetStyleTable(OGRStyleTable *poStyleTable)
-                            {
-                                if ( m_poStyleTable ) delete m_poStyleTable;
-                                if ( poStyleTable )
-                                    m_poStyleTable = poStyleTable->Clone();
-                            }
+    virtual OGRStyleTable *GetStyleTable();
+    virtual void        SetStyleTableDirectly( OGRStyleTable *poStyleTable );
+                            
+    virtual void        SetStyleTable(OGRStyleTable *poStyleTable);
 
     virtual OGRLayer *  ExecuteSQL( const char *pszStatement,
                                     OGRGeometry *poSpatialFilter,
@@ -287,6 +279,7 @@ class CPL_DLL OGRSFDriverRegistrar
     OGRErr      ReleaseDataSource( OGRDataSource * );
 
     void        RegisterDriver( OGRSFDriver * poDriver );
+    void        DeregisterDriver( OGRSFDriver * poDriver );
 
     int         GetDriverCount( void );
     OGRSFDriver *GetDriver( int iDriver );
@@ -315,10 +308,12 @@ void CPL_DLL RegisterOGRMIF();
 void CPL_DLL RegisterOGROGDI();
 void CPL_DLL RegisterOGRODBC();
 void CPL_DLL RegisterOGRPG();
+void CPL_DLL RegisterOGRMSSQLSpatial();
 void CPL_DLL RegisterOGRMySQL();
 void CPL_DLL RegisterOGROCI();
 void CPL_DLL RegisterOGRDGN();
 void CPL_DLL RegisterOGRGML();
+void CPL_DLL RegisterOGRLIBKML();
 void CPL_DLL RegisterOGRKML();
 void CPL_DLL RegisterOGRGeoJSON();
 void CPL_DLL RegisterOGRAVCBin();
@@ -348,7 +343,15 @@ void CPL_DLL RegisterOGRNAS();
 void CPL_DLL RegisterOGRGeoRSS();
 void CPL_DLL RegisterOGRGTM();
 void CPL_DLL RegisterOGRVFK();
-
+void CPL_DLL RegisterOGRPGDump();
+void CPL_DLL RegisterOGRGPSBabel();
+void CPL_DLL RegisterOGRSUA();
+void CPL_DLL RegisterOGROpenAir();
+void CPL_DLL RegisterOGRPDS();
+void CPL_DLL RegisterOGRWFS();
+void CPL_DLL RegisterOGRSOSI();
+void CPL_DLL RegisterOGRHTF();
+void CPL_DLL RegisterOGRAeronavFAA();
 CPL_C_END
 
 

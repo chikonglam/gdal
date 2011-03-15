@@ -1,5 +1,5 @@
 dnl ***************************************************************************
-dnl $Id: acinclude.m4 19158 2010-03-22 15:17:24Z hobu $
+dnl $Id: acinclude.m4 19157 2010-03-22 15:11:19Z hobu $
 dnl
 dnl Project:  GDAL
 dnl Purpose:  Configure extra local definitions.

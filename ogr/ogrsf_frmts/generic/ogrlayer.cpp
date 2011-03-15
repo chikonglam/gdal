@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrlayer.cpp 17223 2009-06-07 19:41:08Z rouault $
+ * $Id: ogrlayer.cpp 20885 2010-10-19 00:16:08Z warmerdam $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  The generic portions of the OGRSFLayer class.
@@ -32,7 +32,7 @@
 #include "ogr_p.h"
 #include "ogr_attrind.h"
 
-CPL_CVSID("$Id: ogrlayer.cpp 17223 2009-06-07 19:41:08Z rouault $");
+CPL_CVSID("$Id: ogrlayer.cpp 20885 2010-10-19 00:16:08Z warmerdam $");
 
 /************************************************************************/
 /*                              OGRLayer()                              */
@@ -197,19 +197,17 @@ OGRErr OGRLayer::GetExtent(OGREnvelope *psExtent, int bForce )
     OGREnvelope oEnv;
     GBool       bExtentSet = FALSE;
 
+    psExtent->MinX = 0.0;
+    psExtent->MaxX = 0.0;
+    psExtent->MinY = 0.0;
+    psExtent->MaxY = 0.0;
+
 /* -------------------------------------------------------------------- */
 /*      If this layer has a none geometry type, then we can             */
 /*      reasonably assume there are not extents available.              */
 /* -------------------------------------------------------------------- */
     if( GetLayerDefn()->GetGeomType() == wkbNone )
-    {
-        psExtent->MinX = 0.0;
-        psExtent->MaxX = 0.0;
-        psExtent->MinY = 0.0;
-        psExtent->MaxY = 0.0;
-        
         return OGRERR_FAILURE;
-    }
 
 /* -------------------------------------------------------------------- */
 /*      If not forced, we should avoid having to scan all the           */
@@ -226,12 +224,16 @@ OGRErr OGRLayer::GetExtent(OGREnvelope *psExtent, int bForce )
     while( (poFeature = GetNextFeature()) != NULL )
     {
         OGRGeometry *poGeom = poFeature->GetGeometryRef();
-        if (poGeom && !bExtentSet)
+        if (poGeom == NULL || poGeom->IsEmpty())
+        {
+            /* Do nothing */
+        }
+        else if (!bExtentSet)
         {
             poGeom->getEnvelope(psExtent);
             bExtentSet = TRUE;
         }
-        else if (poGeom)
+        else
         {
             poGeom->getEnvelope(&oEnv);
             if (oEnv.MinX < psExtent->MinX) 
@@ -960,6 +962,38 @@ const char *OGR_L_GetGeometryColumn( OGRLayerH hLayer )
 }
 
 /************************************************************************/
+/*                            GetStyleTable()                           */
+/************************************************************************/
+
+OGRStyleTable *OGRLayer::GetStyleTable()
+{
+    return m_poStyleTable;
+}
+
+/************************************************************************/
+/*                         SetStyleTableDirectly()                      */
+/************************************************************************/
+
+void OGRLayer::SetStyleTableDirectly( OGRStyleTable *poStyleTable )
+{
+    if ( m_poStyleTable )
+        delete m_poStyleTable;
+    m_poStyleTable = poStyleTable;
+}
+
+/************************************************************************/
+/*                            SetStyleTable()                           */
+/************************************************************************/
+
+void OGRLayer::SetStyleTable(OGRStyleTable *poStyleTable)
+{
+    if ( m_poStyleTable )
+        delete m_poStyleTable;
+    if ( poStyleTable )
+        m_poStyleTable = poStyleTable->Clone();
+}
+
+/************************************************************************/
 /*                         OGR_L_GetStyleTable()                        */
 /************************************************************************/
 
@@ -996,4 +1030,101 @@ void OGR_L_SetStyleTable( OGRLayerH hLayer,
     VALIDATE_POINTER0( hStyleTable, "OGR_L_SetStyleTable" );
     
     ((OGRLayer *) hLayer)->SetStyleTable( (OGRStyleTable *) hStyleTable);
+}
+
+/************************************************************************/
+/*                               GetName()                              */
+/************************************************************************/
+
+const char *OGRLayer::GetName()
+
+{
+    return GetLayerDefn()->GetName();
+}
+
+/************************************************************************/
+/*                           OGR_L_GetName()                            */
+/************************************************************************/
+
+const char* OGR_L_GetName( OGRLayerH hLayer )
+
+{
+    VALIDATE_POINTER1( hLayer, "OGR_L_GetName", "" );
+
+    return ((OGRLayer *) hLayer)->GetName();
+}
+
+/************************************************************************/
+/*                            GetGeomType()                             */
+/************************************************************************/
+
+OGRwkbGeometryType OGRLayer::GetGeomType()
+{
+    return GetLayerDefn()->GetGeomType();
+}
+/************************************************************************/
+/*                         OGR_L_GetGeomType()                          */
+/************************************************************************/
+
+OGRwkbGeometryType OGR_L_GetGeomType( OGRLayerH hLayer )
+
+{
+    VALIDATE_POINTER1( hLayer, "OGR_L_GetGeomType", wkbUnknown );
+
+    return ((OGRLayer *) hLayer)->GetGeomType();
+}
+
+/************************************************************************/
+/*                          SetIgnoredFields()                          */
+/************************************************************************/
+
+OGRErr OGRLayer::SetIgnoredFields( const char **papszFields )
+{
+    OGRFeatureDefn *poDefn = GetLayerDefn();
+
+    // first set everything as *not* ignored
+    for( int iField = 0; iField < poDefn->GetFieldCount(); iField++ )
+    {
+        poDefn->GetFieldDefn(iField)->SetIgnored( FALSE );
+    }
+    poDefn->SetGeometryIgnored( FALSE );
+    poDefn->SetStyleIgnored( FALSE );
+    
+    if ( papszFields == NULL )
+        return OGRERR_NONE;
+
+    // ignore some fields
+    while ( *papszFields )
+    {
+        const char* pszFieldName = *papszFields;
+        // check special fields
+        if ( EQUAL(pszFieldName, "OGR_GEOMETRY") )
+            poDefn->SetGeometryIgnored( TRUE );
+        else if ( EQUAL(pszFieldName, "OGR_STYLE") )
+            poDefn->SetStyleIgnored( TRUE );
+        else
+        {
+            // check ordinary fields
+            int iField = poDefn->GetFieldIndex(pszFieldName);
+            if ( iField == -1 )
+                return OGRERR_FAILURE;
+            else
+                poDefn->GetFieldDefn(iField)->SetIgnored( TRUE );
+        }
+        papszFields++;
+    }
+
+    return OGRERR_NONE;
+}
+
+/************************************************************************/
+/*                       OGR_L_SetIgnoredFields()                       */
+/************************************************************************/
+
+OGRErr OGR_L_SetIgnoredFields( OGRLayerH hLayer, const char **papszFields )
+
+{
+    VALIDATE_POINTER1( hLayer, "OGR_L_SetIgnoredFields", NULL );
+
+    return ((OGRLayer *) hLayer)->SetIgnoredFields( papszFields );
 }

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s57featuredefns.cpp 19775 2010-05-27 15:17:49Z warmerdam $
+ * $Id: s57featuredefns.cpp 21268 2010-12-14 23:33:34Z warmerdam $
  *
  * Project:  S-57 Translator
  * Purpose:  Implements methods to create OGRFeatureDefns for various
@@ -33,7 +33,7 @@
 #include "cpl_conv.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: s57featuredefns.cpp 19775 2010-05-27 15:17:49Z warmerdam $");
+CPL_CVSID("$Id: s57featuredefns.cpp 21268 2010-12-14 23:33:34Z warmerdam $");
 
 
 /************************************************************************/
@@ -387,7 +387,7 @@ OGRFeatureDefn *S57GenerateObjectClassDefn( S57ClassRegistrar *poCR,
 
         if( iAttrIndex == -1 )
         {
-            CPLDebug( "S57", "Can't find attribute %s from class %s:%s.\n",
+            CPLDebug( "S57", "Can't find attribute %s from class %s:%s.",
                       papszAttrList[iAttr],
                       poCR->GetAcronym(),
                       poCR->GetDescription() );

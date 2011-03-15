@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: bagdataset.cpp 18000 2009-11-12 14:28:14Z warmerdam $
+ * $Id: bagdataset.cpp 19430 2010-04-17 00:49:53Z warmerdam $
  *
  * Project:  Hierarchical Data Format Release 5 (HDF5)
  * Purpose:  Read BAG datasets.
@@ -34,7 +34,7 @@
 #include "ogr_spatialref.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: bagdataset.cpp 18000 2009-11-12 14:28:14Z warmerdam $");
+CPL_CVSID("$Id: bagdataset.cpp 19430 2010-04-17 00:49:53Z warmerdam $");
 
 CPL_C_START
 void    GDALRegister_BAG(void);
@@ -497,6 +497,7 @@ GDALDataset *BAGDataset::Open( GDALOpenInfo * poOpenInfo )
 /* -------------------------------------------------------------------- */
 /*      Setup/check for pam .aux.xml.                                   */
 /* -------------------------------------------------------------------- */
+    poDS->SetDescription( poOpenInfo->pszFilename );
     poDS->TryLoadXML();
 
 /* -------------------------------------------------------------------- */

@@ -108,7 +108,7 @@ void CPCIDSKRPCModelSegment::Load()
     
     assert(data_size - 1024 == 7 * 512);
     
-    pimpl_->seg_data.SetSize(data_size - 1024); // should be 7 * 512
+    pimpl_->seg_data.SetSize((int) (data_size - 1024)); // should be 7 * 512
     
     ReadFromFile(pimpl_->seg_data.buffer, 0, data_size - 1024);
     
@@ -178,10 +178,10 @@ void CPCIDSKRPCModelSegment::Load()
     
     pimpl_->lines = pimpl_->seg_data.GetInt(512 + 4, 10);
     pimpl_->pixels = pimpl_->seg_data.GetInt(512 + 14, 10);
-    pimpl_->y_off = pimpl_->seg_data.GetDouble(512 + 24, 22);
-    pimpl_->y_scale = pimpl_->seg_data.GetDouble(512 + 46, 22);
-    pimpl_->x_off = pimpl_->seg_data.GetDouble(512 + 68, 22);
-    pimpl_->x_scale = pimpl_->seg_data.GetDouble(512 + 90, 22);
+    pimpl_->x_off = pimpl_->seg_data.GetDouble(512 + 24, 22);
+    pimpl_->x_scale = pimpl_->seg_data.GetDouble(512 + 46, 22);
+    pimpl_->y_off = pimpl_->seg_data.GetDouble(512 + 68, 22);
+    pimpl_->y_scale = pimpl_->seg_data.GetDouble(512 + 90, 22);
     pimpl_->z_off = pimpl_->seg_data.GetDouble(512 + 112, 22);
     pimpl_->z_scale = pimpl_->seg_data.GetDouble(512 + 134, 22);
     pimpl_->pix_off = pimpl_->seg_data.GetDouble(512 + 156, 22);

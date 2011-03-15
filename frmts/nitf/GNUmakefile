@@ -4,7 +4,7 @@ include ../../GDALmake.opt
 
 GDAL_OBJ	=	nitfdataset.o rpftocdataset.o nitfwritejpeg.o nitfwritejpeg_12.o
 NITFLIB_OBJ	=	nitffile.o nitfimage.o mgrs.o nitfaridpcm.o \
-			nitfbilevel.o rpftocfile.o
+			nitfbilevel.o rpftocfile.o nitfdes.o
 
 CPPFLAGS	:=	-I../vrt $(GDAL_INCLUDE) $(CPPFLAGS)
 
@@ -31,7 +31,7 @@ OBJ = $(GDAL_OBJ) $(NITFLIB_OBJ)
 
 default:	$(PREDEPEND) $(OBJ:.o=.$(OBJ_EXT))
 
-$(OBJ) $(O_OBJ):	../../gcore/gdal_proxy.h nitflib.h
+$(OBJ) $(O_OBJ):	../../gcore/gdal_proxy.h  ../vrt/vrtdataset.h nitflib.h nitfwritejpeg.cpp
 
 clean:
 	rm -f *.o $(O_OBJ) nitfdump$(EXE)

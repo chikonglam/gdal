@@ -246,6 +246,11 @@
 # \note aka CreateDataSource
 # @param name The data source name.
 # @param options Driver specific options.
+#
+# Usage:
+# \code
+# $ds = Geo::OGR::Driver('driver name')->Create('data source name', {});
+# \endcode
 # @return a new Geo::OGR::DataSource object.
 
 ## @method Geo::OGR::DataSource Copy($ds, $name, \@options = undef)
@@ -680,13 +685,25 @@
 # @param name
 # @return a Geo::OGR::FeatureDefn object
 
+## @cmethod Geo::OGR::FeatureDefn create(%schema)
+# Example usage:
+# \code
+# $fd = Geo::OGR::FeatureDefn->create( Name => "name", GeometryType =>
+# "Polygon", Fields => [{Name => 'field1', Type => 'String'}] );
+# \endcode
+# @param schema The schema for the new feature definition, as in
+# Geo::OGR::FeatureDefn::Schema.
+# @return a Geo::OGR::FeatureDefn object
+
 ## @method \%Schema(%schema)
 # Get or set the schema. The schema is a hash (Name => name,
 # GeometryType => geometry_type, Fields => [list of
 # Geo::OGR::FieldDefn objects or hashrefs from which such can be
-# created]. The Name nor GeometryType cannot be set and the Fields are
-# added to the schema. Fields is an array of hashrefs that
-# contain schemas of FieldDefns
+# created (see Geo::OGR::FieldDefn::create)]. The Name cannot be set
+# and the Fields are added to the schema. Fields is an array of
+# hashrefs that contain schemas of FieldDefns. In addition, in the
+# 'get' form of the function, each field hash contains key 'Index',
+# whose value is the index of the field.
 # @param schema [optional]
 # @return
 
@@ -739,12 +756,22 @@
 
 ## @cmethod Geo::OGR::FieldDefn create($name = "unnamed", $field_type = 'String')
 # @param name
-# @param field_type one of field types
+# @param field_type one of field types. Optional. Default is String.
+#
+# Usage:
+# \code
+# $fd = Geo::OGR::FieldDefn->create(...arguments...);
+# \endcode
 # @return a new Geo::OGR::FieldDefn object
 
 ## @cmethod Geo::OGR::FieldDefn create(%parameters)
 # @param parameters named parameters: Name, Type, Justify, Width,
 # Precision
+#
+# Usage:
+# \code
+# $fd = Geo::OGR::FieldDefn->create( Name => "name", Type => "FieldType", ...);
+# \endcode
 # @return a new Geo::OGR::FieldDefn object
 
 ## @method \%Schema(%parameters)
@@ -839,12 +866,25 @@
 
 ## @cmethod Geo::OGR::Geometry create($type)
 # @param type One of geometry type strings: 'Point', 'LineString', etc.
+#
+# Usage:
+# \code
+# $g = Geo::OGR::Geometry->create(...arguments...);
+# \endcode
 # @return a new Geo::OGR::Geometry object
 
 ## @cmethod Geo::OGR::Geometry create(%params)
 # @param %params A named parameter, possible are: GeometryType, WKT,
-# WKB, HEXWKB, GML, GeoJSON, and Points (as in method
+# WKB, HEXWKB, GML, GeoJSON, arc, and Points (as in method
 # Geo::OGR::Geometry::Points).
+# - \a arc An anonymous list of [CenterX, CenterY, CenterZ,
+#    PrimaryRadius, SecondaryRadius, Rotation, StartAngle, EndAngle,
+#    MaxAngleStepSizeDegrees]
+#
+# Usage:
+# \code
+# $g = Geo::OGR::Geometry->create(...arguments...);
+# \endcode
 # @return a new Geo::OGR::Geometry object
 
 ## @method FlattenTo2D()
@@ -1018,6 +1058,48 @@
 
 ## @method Geo::OGR::Geometry ConvexHull()
 # @return a new Geo::OGR::Geometry object
+
+## @method Geo::OGR::Geometry BuildPolygonFromEdges($BestEffort = 0, $AutoClose = 0, $Tolerance = 0)
+# Attempt to create a polygon from a collection of lines or from a multilinestring.
+# @param BestEffort For future
+# @param AutoClose Assure the first and last points of rings are same.
+# @param Tolerance Snap distance.
+# @exception Several possibilities, some are reported, some are general errors.
+# @return a new Geo::OGR::Geometry object (Polygon)
+
+## @method Geo::OGR::Geometry Collect(@geometries)
+# Create a geometrycollection from this and possibly other geometries.
+# @param geometries [optional] More geometries to add to the collection.
+# @return a new Geo::OGR::Geometry object of type geometrycollection.
+
+## @method @Dissolve()
+# Dissolve a geometrycollection into separate geometries.
+# @return a list of new Geo::OGR::Geometry objects cloned from the collection.
+
+## @method Geo::OGR::Geometry ForceToPolygon()
+# Attempt to create a polygon from the geometry.
+# @exception None reported. If this method fails, just a copy is returned.
+# @return a new Geo::OGR::Geometry object
+
+## @method Geo::OGR::Geometry ForceToMultiPoint(@points)
+# Attempt to create a multipoint from the geometry, which must be a point.
+# @param points [optional] More points to add to the collection.
+# @return a new Geo::OGR::Geometry object of type multipoint.
+
+## @method Geo::OGR::Geometry ForceToMultiLineString(@linestrings)
+# Attempt to create a multilinestring from the geometry, which must be a linestring.
+# @param linestrings [optional] More linestrings to add to the collection.
+# @return a new Geo::OGR::Geometry object of type multilinestring.
+
+## @method Geo::OGR::Geometry ForceToMultiPolygon(@polygons)
+# Attempt to create a multipolygon from the geometry, which must be a polygon.
+# @param polygons [optional] More polygons to add to the collection.
+# @return a new Geo::OGR::Geometry object of type multipolygon.
+
+## @method Geo::OGR::Geometry ForceToCollection(@geometries)
+# Create a geometrycollection from the geometry.
+# @param polygons [optional] More geometries to add to the collection.
+# @return a new Geo::OGR::Geometry object of type geometrycollection.
 
 ## @method Geo::OGR::Geometry Buffer($distance, $quadsecs = 30)
 # @param distance

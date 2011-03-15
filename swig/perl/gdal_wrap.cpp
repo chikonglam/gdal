@@ -1501,27 +1501,30 @@ SWIG_Perl_SetModule(swig_module_info *module) {
 #define SWIGTYPE_p_CPLErrorHandler swig_types[0]
 #define SWIGTYPE_p_CPLXMLNode swig_types[1]
 #define SWIGTYPE_p_GByte swig_types[2]
-#define SWIGTYPE_p_GDALColorEntry swig_types[3]
-#define SWIGTYPE_p_GDALColorTableShadow swig_types[4]
-#define SWIGTYPE_p_GDALDatasetShadow swig_types[5]
-#define SWIGTYPE_p_GDALDriverShadow swig_types[6]
-#define SWIGTYPE_p_GDALMajorObjectShadow swig_types[7]
-#define SWIGTYPE_p_GDALProgressFunc swig_types[8]
-#define SWIGTYPE_p_GDALRasterAttributeTableShadow swig_types[9]
-#define SWIGTYPE_p_GDALRasterBandShadow swig_types[10]
-#define SWIGTYPE_p_GDALTransformerInfoShadow swig_types[11]
-#define SWIGTYPE_p_GDAL_GCP swig_types[12]
-#define SWIGTYPE_p_OGRLayerShadow swig_types[13]
-#define SWIGTYPE_p_SavedEnv swig_types[14]
-#define SWIGTYPE_p_char swig_types[15]
-#define SWIGTYPE_p_double swig_types[16]
-#define SWIGTYPE_p_f_double_p_q_const__char_p_void__int swig_types[17]
-#define SWIGTYPE_p_int swig_types[18]
-#define SWIGTYPE_p_p_GDAL_GCP swig_types[19]
-#define SWIGTYPE_p_p_char swig_types[20]
-#define SWIGTYPE_p_p_int swig_types[21]
-static swig_type_info *swig_types[23];
-static swig_module_info swig_module = {swig_types, 22, 0, 0, 0, 0};
+#define SWIGTYPE_p_GDALAsyncReaderShadow swig_types[3]
+#define SWIGTYPE_p_GDALColorEntry swig_types[4]
+#define SWIGTYPE_p_GDALColorTableShadow swig_types[5]
+#define SWIGTYPE_p_GDALDatasetShadow swig_types[6]
+#define SWIGTYPE_p_GDALDriverShadow swig_types[7]
+#define SWIGTYPE_p_GDALMajorObjectShadow swig_types[8]
+#define SWIGTYPE_p_GDALProgressFunc swig_types[9]
+#define SWIGTYPE_p_GDALRasterAttributeTableShadow swig_types[10]
+#define SWIGTYPE_p_GDALRasterBandShadow swig_types[11]
+#define SWIGTYPE_p_GDALTransformerInfoShadow swig_types[12]
+#define SWIGTYPE_p_GDAL_GCP swig_types[13]
+#define SWIGTYPE_p_OGRLayerShadow swig_types[14]
+#define SWIGTYPE_p_SavedEnv swig_types[15]
+#define SWIGTYPE_p_VSIStatBufL swig_types[16]
+#define SWIGTYPE_p_char swig_types[17]
+#define SWIGTYPE_p_double swig_types[18]
+#define SWIGTYPE_p_f_double_p_q_const__char_p_void__int swig_types[19]
+#define SWIGTYPE_p_int swig_types[20]
+#define SWIGTYPE_p_p_GDAL_GCP swig_types[21]
+#define SWIGTYPE_p_p_char swig_types[22]
+#define SWIGTYPE_p_p_int swig_types[23]
+#define SWIGTYPE_p_void swig_types[24]
+static swig_type_info *swig_types[26];
+static swig_module_info swig_module = {swig_types, 25, 0, 0, 0, 0};
 #define SWIG_TypeQuery(name) SWIG_TypeQueryModule(&swig_module, &swig_module, name)
 #define SWIG_MangledTypeQuery(name) SWIG_MangledTypeQueryModule(&swig_module, &swig_module, name)
 
@@ -1576,8 +1579,10 @@ typedef void GDALRasterBandShadow;
 typedef void GDALColorTableShadow;
 typedef void GDALRasterAttributeTableShadow;
 typedef void GDALTransformerInfoShadow;
+typedef void GDALAsyncReaderShadow;
 
-typedef int FALSE_IS_ERR;
+/* use this to not return the int returned by GDAL */
+typedef int RETURN_NONE;
 
 
 
@@ -1736,6 +1741,9 @@ void DontUseExceptions() {
 typedef void OGRLayerShadow;
 
 
+typedef char retStringAndCPLFree;
+
+
   void Debug( const char *msg_class, const char *message ) {
     CPLDebug( msg_class, "%s", message );
   }
@@ -1863,7 +1871,7 @@ SWIG_AsVal_int SWIG_PERL_DECL_ARGS_2(SV * obj, int *val)
 }
 
 
-char* EscapeString(int len, char *bin_string , int scheme=CPLES_SQL) {
+retStringAndCPLFree* EscapeString(int len, char *bin_string , int scheme=CPLES_SQL) {
     return CPLEscapeString(bin_string, len, scheme);
 } 
 
@@ -1894,13 +1902,13 @@ const char *wrapper_CPLGetConfigOption( const char * pszKey, const char * pszDef
 }
 
 
-void wrapper_VSIFileFromMemBuffer( const char* pszFilename, int nBytes, const GByte *pabyData)
+void wrapper_VSIFileFromMemBuffer( const char* utf8_path, int nBytes, const GByte *pabyData)
 {
     GByte* pabyDataDup = (GByte*)VSIMalloc(nBytes);
     if (pabyDataDup == NULL)
             return;
     memcpy(pabyDataDup, pabyData, nBytes);
-    VSIFCloseL(VSIFileFromMemBuffer(pszFilename, (GByte*) pabyDataDup, nBytes, TRUE));
+    VSIFCloseL(VSIFileFromMemBuffer(utf8_path, (GByte*) pabyDataDup, nBytes, TRUE));
 }
 
 
@@ -1934,10 +1942,10 @@ SWIGINTERN char const *GDALMajorObjectShadow_GetMetadataItem(GDALMajorObjectShad
 SWIGINTERN CPLErr GDALMajorObjectShadow_SetMetadataItem(GDALMajorObjectShadow *self,char const *pszName,char const *pszValue,char const *pszDomain=""){
     return GDALSetMetadataItem( self, pszName, pszValue, pszDomain);
   }
-SWIGINTERN GDALDatasetShadow *GDALDriverShadow_Create(GDALDriverShadow *self,char const *name,int xsize,int ysize,int bands=1,GDALDataType eType=GDT_Byte,char **options=0){
+SWIGINTERN GDALDatasetShadow *GDALDriverShadow_Create(GDALDriverShadow *self,char const *utf8_path,int xsize,int ysize,int bands=1,GDALDataType eType=GDT_Byte,char **options=0){
 
     GDALDatasetShadow* ds = (GDALDatasetShadow*) GDALCreate(    self, 
-                                                                name, 
+                                                                utf8_path, 
                                                                 xsize, 
                                                                 ysize, 
                                                                 bands, 
@@ -1945,10 +1953,10 @@ SWIGINTERN GDALDatasetShadow *GDALDriverShadow_Create(GDALDriverShadow *self,cha
                                                                 options );
     return ds;
   }
-SWIGINTERN GDALDatasetShadow *GDALDriverShadow_CreateCopy(GDALDriverShadow *self,char const *name,GDALDatasetShadow *src,int strict=1,char **options=0,GDALProgressFunc callback=NULL,void *callback_data=NULL){
+SWIGINTERN GDALDatasetShadow *GDALDriverShadow_CreateCopy(GDALDriverShadow *self,char const *utf8_path,GDALDatasetShadow *src,int strict=1,char **options=0,GDALProgressFunc callback=NULL,void *callback_data=NULL){
 
     GDALDatasetShadow *ds = (GDALDatasetShadow*) GDALCreateCopy(    self, 
-                                                                    name, 
+                                                                    utf8_path, 
                                                                     src, 
                                                                     strict, 
                                                                     options, 
@@ -1956,11 +1964,14 @@ SWIGINTERN GDALDatasetShadow *GDALDriverShadow_CreateCopy(GDALDriverShadow *self
                                                                     callback_data );
     return ds;
   }
-SWIGINTERN int GDALDriverShadow_Delete(GDALDriverShadow *self,char const *name){
-    return GDALDeleteDataset( self, name );
+SWIGINTERN int GDALDriverShadow_Delete(GDALDriverShadow *self,char const *utf8_path){
+    return GDALDeleteDataset( self, utf8_path );
   }
 SWIGINTERN int GDALDriverShadow_Rename(GDALDriverShadow *self,char const *newName,char const *oldName){
     return GDALRenameDataset( self, newName, oldName );
+  }
+SWIGINTERN int GDALDriverShadow_CopyFiles(GDALDriverShadow *self,char const *newName,char const *oldName){
+    return GDALCopyDatasetFiles( self, newName, oldName );
   }
 SWIGINTERN int GDALDriverShadow_Register(GDALDriverShadow *self){
     return GDALRegisterDriver( self );
@@ -2123,12 +2134,17 @@ CreateArrayFromDoubleArray( double *first, unsigned int size ) {
 
 /* Returned size is in bytes or 0 if an error occured */
 static
-int ComputeDatasetRasterIOSize (int buf_xsize, int buf_ysize, int nPixelSize,
+GIntBig ComputeDatasetRasterIOSize (int buf_xsize, int buf_ysize, int nPixelSize,
                                 int nBands, int* bandMap, int nBandMapArrayLength,
                                 int nPixelSpace, int nLineSpace, int nBandSpace,
                                 int bSpacingShouldBeMultipleOfPixelSize )
 {
-    const int MAX_INT = 0x7fffffff;
+#if SIZEOF_VOIDP == 8
+    const GIntBig MAX_INT = (((GIntBig)0x7fffffff) << 32) | 0xffffffff;
+#else
+    const GIntBig MAX_INT = 0x7fffffff;
+#endif
+    const GIntBig MAX_INT32 = 0x7fffffff;
     if (buf_xsize <= 0 || buf_ysize <= 0)
     {
         CPLError(CE_Failure, CPLE_IllegalArg, "Illegal values for buffer size");
@@ -2157,9 +2173,9 @@ int ComputeDatasetRasterIOSize (int buf_xsize, int buf_ysize, int nPixelSize,
 
     if( nLineSpace == 0 )
     {
-        if (nPixelSpace > MAX_INT / buf_xsize)
+        if (nPixelSpace > MAX_INT32 / buf_xsize)
         {
-            CPLError(CE_Failure, CPLE_IllegalArg, "Integer overflow");
+            CPLError(CE_Failure, CPLE_IllegalArg, "Integer overflow for nLineSpace");
             return 0;
         }
         nLineSpace = nPixelSpace * buf_xsize;
@@ -2172,9 +2188,9 @@ int ComputeDatasetRasterIOSize (int buf_xsize, int buf_ysize, int nPixelSize,
 
     if( nBandSpace == 0 )
     {
-        if (nLineSpace > MAX_INT / buf_ysize)
+        if (nLineSpace > MAX_INT32 / buf_ysize)
         {
-            CPLError(CE_Failure, CPLE_IllegalArg, "Integer overflow");
+            CPLError(CE_Failure, CPLE_IllegalArg, "Integer overflow for nBandSpace");
             return 0;
         }
         nBandSpace = nLineSpace * buf_ysize;
@@ -2191,18 +2207,14 @@ int ComputeDatasetRasterIOSize (int buf_xsize, int buf_ysize, int nPixelSize,
         return 0;
     }
 
-    if ((buf_ysize - 1) > MAX_INT / nLineSpace ||
-        (buf_xsize - 1) > MAX_INT / nPixelSpace ||
-        (nBands - 1) > MAX_INT / nBandSpace ||
-        (buf_ysize - 1) * nLineSpace > MAX_INT - (buf_xsize - 1) * nPixelSpace ||
-        (buf_ysize - 1) * nLineSpace + (buf_xsize - 1) * nPixelSpace > MAX_INT - (nBands - 1) * nBandSpace ||
-        (buf_ysize - 1) * nLineSpace + (buf_xsize - 1) * nPixelSpace + (nBands - 1) * nBandSpace > MAX_INT - nPixelSize)
+    GIntBig nRet = (GIntBig)(buf_ysize - 1) * nLineSpace + (GIntBig)(buf_xsize - 1) * nPixelSpace + (GIntBig)(nBands - 1) * nBandSpace + nPixelSize;
+    if (nRet > MAX_INT)
     {
         CPLError(CE_Failure, CPLE_IllegalArg, "Integer overflow");
         return 0;
     }
 
-    return (buf_ysize - 1) * nLineSpace + (buf_xsize - 1) * nPixelSpace + (nBands - 1) * nBandSpace + nPixelSize;
+    return nRet;
 }
 
 
@@ -2216,10 +2228,16 @@ CPLErr DSReadRaster_internal( GDALDatasetShadow *obj,
                             int pixel_space, int line_space, int band_space)
 {
   CPLErr result;
-  
-  *buf_size = ComputeDatasetRasterIOSize (buf_xsize, buf_ysize, GDALGetDataTypeSize( buf_type ) / 8,
+
+  GIntBig nRequiredSize = ComputeDatasetRasterIOSize (buf_xsize, buf_ysize, GDALGetDataTypeSize( buf_type ) / 8,
                                           band_list ? band_list : GDALGetRasterCount(obj), pband_list, band_list,
                                           pixel_space, line_space, band_space, FALSE);
+  if (nRequiredSize > 0x7fffffff)
+  {
+     CPLError(CE_Failure, CPLE_IllegalArg, "Integer overflow");
+     nRequiredSize = 0;
+  }
+  *buf_size = (int)nRequiredSize;
   if (*buf_size == 0)
   {
       *buf = 0;
@@ -2248,6 +2266,74 @@ CPLErr DSReadRaster_internal( GDALDatasetShadow *obj,
   return result;
 }
 
+
+typedef struct
+{
+    GDALAsyncReaderH  hAsyncReader;
+    void             *pyObject;
+} GDALAsyncReaderWrapper;
+
+typedef void* GDALAsyncReaderWrapperH;
+
+static GDALAsyncReaderH AsyncReaderWrapperGetReader(GDALAsyncReaderWrapperH hWrapper)
+{
+    GDALAsyncReaderWrapper* psWrapper = (GDALAsyncReaderWrapper*)hWrapper;
+    if (psWrapper->hAsyncReader == NULL)
+    {
+        CPLError(CE_Failure, CPLE_AppDefined, "AsyncReader object is defunct");
+    }
+    return psWrapper->hAsyncReader;
+}
+
+static void* AsyncReaderWrapperGetPyObject(GDALAsyncReaderWrapperH hWrapper)
+{
+    GDALAsyncReaderWrapper* psWrapper = (GDALAsyncReaderWrapper*)hWrapper;
+    return psWrapper->pyObject;
+}
+
+static void DeleteAsyncReaderWrapper(GDALAsyncReaderWrapperH hWrapper)
+{
+    GDALAsyncReaderWrapper* psWrapper = (GDALAsyncReaderWrapper*)hWrapper;
+    if (psWrapper->hAsyncReader != NULL)
+    {
+        CPLError(CE_Failure, CPLE_AppDefined,
+                 "Native AsyncReader object will leak. EndAsyncReader() should have been called before");
+    }
+    CPLFree(psWrapper);
+}
+
+
+SWIGINTERN void delete_GDALAsyncReaderShadow(GDALAsyncReaderShadow *self){
+        DeleteAsyncReaderWrapper(self);
+    }
+SWIGINTERN GDALAsyncStatusType GDALAsyncReaderShadow_GetNextUpdatedRegion(GDALAsyncReaderShadow *self,double timeout,int *xoff,int *yoff,int *buf_xsize,int *buf_ysize){
+        GDALAsyncReaderH hReader = AsyncReaderWrapperGetReader(self);
+        if (hReader == NULL)
+        {
+            *xoff = 0;
+            *yoff = 0;
+            *buf_xsize = 0;
+            *buf_ysize = 0;
+            return GARIO_ERROR;
+        }
+        return GDALARGetNextUpdatedRegion(hReader, timeout, xoff, yoff, buf_xsize, buf_ysize );
+    }
+SWIGINTERN int GDALAsyncReaderShadow_LockBuffer(GDALAsyncReaderShadow *self,double timeout){
+        GDALAsyncReaderH hReader = AsyncReaderWrapperGetReader(self);
+        if (hReader == NULL)
+        {
+            return 0;
+        }
+        return GDALARLockBuffer(hReader,timeout);
+    }
+SWIGINTERN void GDALAsyncReaderShadow_UnlockBuffer(GDALAsyncReaderShadow *self){
+        GDALAsyncReaderH hReader = AsyncReaderWrapperGetReader(self);
+        if (hReader == NULL)
+        {
+            return;
+        }
+        GDALARUnlockBuffer(hReader);
+    }
 SWIGINTERN void delete_GDALDatasetShadow(GDALDatasetShadow *self){
     if ( GDALDereferenceDataset( self ) <= 0 ) {
       GDALClose(self);
@@ -2269,7 +2355,7 @@ SWIGINTERN CPLErr GDALDatasetShadow_SetProjection(GDALDatasetShadow *self,char c
     return GDALSetProjection( self, prj );
   }
 SWIGINTERN void GDALDatasetShadow_GetGeoTransform(GDALDatasetShadow *self,double argout[6]){
-    if ( GDALGetGeoTransform( self, argout ) != 0 ) {
+    if ( GDALGetGeoTransform( self, argout ) != CE_None ) {
       argout[0] = 0.0;
       argout[1] = 1.0;
       argout[2] = 0.0;
@@ -2335,7 +2421,7 @@ SWIGINTERN CPLErr GDALDatasetShadow_WriteRaster(GDALDatasetShadow *self,int xoff
     int line_space = (buf_line_space == 0) ? 0 : *buf_line_space;
     int band_space = (buf_band_space == 0) ? 0 : *buf_band_space;
 
-    int min_buffer_size =
+    GIntBig min_buffer_size =
       ComputeDatasetRasterIOSize (nxsize, nysize, GDALGetDataTypeSize( ntype ) / 8,
                                   band_list ? band_list : GDALGetRasterCount(self), pband_list, band_list,
                                   pixel_space, line_space, band_space, FALSE);
@@ -2394,11 +2480,16 @@ int GDALDatasetShadow_RasterCount_get( GDALDatasetShadow *h ) {
 
 /* Returned size is in bytes or 0 if an error occured */
 static
-int ComputeBandRasterIOSize (int buf_xsize, int buf_ysize, int nPixelSize,
+GIntBig ComputeBandRasterIOSize (int buf_xsize, int buf_ysize, int nPixelSize,
                              int nPixelSpace, int nLineSpace,
                              int bSpacingShouldBeMultipleOfPixelSize )
 {
-    const int MAX_INT = 0x7fffffff;
+#if SIZEOF_VOIDP == 8
+    const GIntBig MAX_INT = (((GIntBig)0x7fffffff) << 32) | 0xffffffff;
+#else
+    const GIntBig MAX_INT = 0x7fffffff;
+#endif
+    const GIntBig MAX_INT32 = 0x7fffffff;
     if (buf_xsize <= 0 || buf_ysize <= 0)
     {
         CPLError(CE_Failure, CPLE_IllegalArg, "Illegal values for buffer size");
@@ -2427,9 +2518,9 @@ int ComputeBandRasterIOSize (int buf_xsize, int buf_ysize, int nPixelSize,
 
     if( nLineSpace == 0 )
     {
-        if (nPixelSpace > MAX_INT / buf_xsize)
+        if (nPixelSpace > MAX_INT32 / buf_xsize)
         {
-            CPLError(CE_Failure, CPLE_IllegalArg, "Integer overflow");
+            CPLError(CE_Failure, CPLE_IllegalArg, "Integer overflow for nLineSpace");
             return 0;
         }
         nLineSpace = nPixelSpace * buf_xsize;
@@ -2440,16 +2531,14 @@ int ComputeBandRasterIOSize (int buf_xsize, int buf_ysize, int nPixelSize,
         return 0;
     }
 
-    if ((buf_ysize - 1) > MAX_INT / nLineSpace ||
-        (buf_xsize - 1) > MAX_INT / nPixelSpace ||
-        (buf_ysize - 1) * nLineSpace > MAX_INT - (buf_xsize - 1) * nPixelSpace ||
-        (buf_ysize - 1) * nLineSpace + (buf_xsize - 1) * nPixelSpace > MAX_INT - nPixelSize)
+    GIntBig nRet = (GIntBig)(buf_ysize - 1) * nLineSpace + (GIntBig)(buf_xsize - 1) * nPixelSpace + nPixelSize;
+    if (nRet > MAX_INT)
     {
         CPLError(CE_Failure, CPLE_IllegalArg, "Integer overflow");
         return 0;
     }
 
-    return (buf_ysize - 1) * nLineSpace + (buf_xsize - 1) * nPixelSpace + nPixelSize;
+    return nRet;
 }
 
 
@@ -2459,26 +2548,33 @@ CPLErr ReadRaster_internal( GDALRasterBandShadow *obj,
                             int buf_xsize, int buf_ysize,
                             GDALDataType buf_type,
                             int *buf_size, char **buf,
-                            int pixel_space, int line_space)
+                            int pixel_space, int line_space )
 {
   CPLErr result;
-  
-  *buf_size = ComputeBandRasterIOSize (buf_xsize, buf_ysize, GDALGetDataTypeSize( buf_type ) / 8,
+
+  GIntBig nRequiredSize = ComputeBandRasterIOSize( buf_xsize, buf_ysize, GDALGetDataTypeSize( buf_type ) / 8,
                                        pixel_space, line_space, FALSE );
+  if (nRequiredSize > 0x7fffffff)
+  {
+     CPLError(CE_Failure, CPLE_IllegalArg, "Integer overflow");
+     nRequiredSize = 0;
+  }
+  *buf_size = (int)nRequiredSize;
   
-  if (*buf_size == 0)
+  if ( *buf_size == 0 )
   {
       *buf = 0;
       return CE_Failure;
   }
   
   *buf = (char*) malloc( *buf_size );
-  if (*buf)
+  if ( *buf )
   {
     result =  GDALRasterIO( obj, GF_Read, xoff, yoff, xsize, ysize,
                                     (void *) *buf, buf_xsize, buf_ysize,
                                     buf_type, pixel_space, line_space );
-    if ( result != CE_None ) {
+    if ( result != CE_None )
+    {
         free( *buf );
         *buf = 0;
         *buf_size = 0;
@@ -2491,18 +2587,20 @@ CPLErr ReadRaster_internal( GDALRasterBandShadow *obj,
     *buf = 0;
     *buf_size = 0;
   }
+
   return result;
 }
+
 
 static
 CPLErr WriteRaster_internal( GDALRasterBandShadow *obj,
                              int xoff, int yoff, int xsize, int ysize,
                              int buf_xsize, int buf_ysize,
                              GDALDataType buf_type,
-                             int buf_size, char *buffer,
+                             GIntBig buf_size, char *buffer,
                              int pixel_space, int line_space)
 {
-    int min_buffer_size = ComputeBandRasterIOSize (buf_xsize, buf_ysize, GDALGetDataTypeSize( buf_type ) / 8,
+    GIntBig min_buffer_size = ComputeBandRasterIOSize (buf_xsize, buf_ysize, GDALGetDataTypeSize( buf_type ) / 8,
                                                    pixel_space, line_space, FALSE );
     if ( min_buffer_size == 0 )
       return CE_Failure;
@@ -2543,6 +2641,9 @@ SWIGINTERN CPLErr GDALRasterBandShadow_SetNoDataValue(GDALRasterBandShadow *self
 SWIGINTERN char const *GDALRasterBandShadow_GetUnitType(GDALRasterBandShadow *self){
       return GDALGetRasterUnitType( self );
   }
+SWIGINTERN CPLErr GDALRasterBandShadow_SetUnitType(GDALRasterBandShadow *self,char const *val){
+    return GDALSetRasterUnitType( self, val );
+  }
 SWIGINTERN char **GDALRasterBandShadow_GetRasterCategoryNames(GDALRasterBandShadow *self){
     return GDALGetRasterCategoryNames( self );
   }
@@ -2560,6 +2661,12 @@ SWIGINTERN void GDALRasterBandShadow_GetOffset(GDALRasterBandShadow *self,double
   }
 SWIGINTERN void GDALRasterBandShadow_GetScale(GDALRasterBandShadow *self,double *val,int *hasval){
     *val = GDALGetRasterScale( self, hasval );
+  }
+SWIGINTERN CPLErr GDALRasterBandShadow_SetOffset(GDALRasterBandShadow *self,double val){
+    return GDALSetRasterOffset( self, val );
+  }
+SWIGINTERN CPLErr GDALRasterBandShadow_SetScale(GDALRasterBandShadow *self,double val){
+    return GDALSetRasterScale( self, val );
   }
 SWIGINTERN CPLErr GDALRasterBandShadow_GetStatistics(GDALRasterBandShadow *self,int approx_ok,int force,double *min,double *max,double *mean,double *stddev){
     if (min) *min = 0;
@@ -2814,6 +2921,8 @@ SWIGINTERN int GDALRasterAttributeTableShadow_GetRowOfValue(GDALRasterAttributeT
         return GDALRATGetRowOfValue( self, dfValue );
     }
 
+#include "gdalgrid.h"
+
 #ifdef DEBUG 
 typedef struct OGRLayerHS OGRLayerShadow;
 typedef struct OGRGeometryHS OGRGeometryShadow;
@@ -3014,6 +3123,40 @@ int  RegenerateOverview( GDALRasterBandShadow *srcBand,
 }
 
 
+int ContourGenerate( GDALRasterBandShadow *srcBand,
+                     double contourInterval,
+                     double contourBase,
+                     int fixedLevelCount,
+                     double *fixedLevels,
+                     int useNoData,
+                     double noDataValue,
+                     OGRLayerShadow* dstLayer, 
+                     int idField,
+                     int elevField,
+                     GDALProgressFunc callback = NULL,
+                     void* callback_data = NULL)
+{
+    CPLErr eErr;
+
+    CPLErrorReset();
+
+    eErr =  GDALContourGenerate( srcBand,
+                                 contourInterval,
+                                 contourBase,
+                                 fixedLevelCount,
+                                 fixedLevels,
+                                 useNoData,
+                                 noDataValue,
+                                 dstLayer,
+                                 idField,
+                                 elevField,
+                                 callback,
+                                 callback_data);
+
+    return eErr;
+}
+
+
 GDALDatasetShadow *AutoCreateWarpedVRT( GDALDatasetShadow *src_ds,
                                         const char *src_wkt = 0,
                                         const char *dst_wkt = 0,
@@ -3068,6 +3211,24 @@ SWIGINTERN int GDALTransformerInfoShadow_TransformPoints(GDALTransformerInfoShad
 
     return nRet;
   }
+
+int wrapper_GDALGetCacheMax()
+{
+    return GDALGetCacheMax();
+}
+
+
+int wrapper_GDALGetCacheUsed()
+{
+    return GDALGetCacheUsed();
+}
+
+
+void wrapper_GDALSetCacheMax(int nBytes)
+{
+    return GDALSetCacheMax(nBytes);
+}
+
 
 /************************************************************************/
 /*                          XMLTreeToAV()                               */
@@ -3155,9 +3316,9 @@ GDALDriverShadow* GetDriver( int i ) {
 }
 
 
-GDALDatasetShadow* Open( char const* name, GDALAccess eAccess = GA_ReadOnly ) {
+GDALDatasetShadow* Open( char const* utf8_path, GDALAccess eAccess = GA_ReadOnly ) {
   CPLErrorReset();
-  GDALDatasetShadow *ds = GDALOpen( name, eAccess );
+  GDALDatasetShadow *ds = GDALOpen( utf8_path, eAccess );
   if( ds != NULL && CPLGetLastErrorType() == CE_Failure )
   {
       if ( GDALDereferenceDataset( ds ) <= 0 )
@@ -3168,9 +3329,9 @@ GDALDatasetShadow* Open( char const* name, GDALAccess eAccess = GA_ReadOnly ) {
 }
 
 
-GDALDatasetShadow* OpenShared( char const* name, GDALAccess eAccess = GA_ReadOnly ) {
+GDALDatasetShadow* OpenShared( char const* utf8_path, GDALAccess eAccess = GA_ReadOnly ) {
   CPLErrorReset();
-  GDALDatasetShadow *ds = GDALOpenShared( name, eAccess );
+  GDALDatasetShadow *ds = GDALOpenShared( utf8_path, eAccess );
   if( ds != NULL && CPLGetLastErrorType() == CE_Failure )
   {
       if ( GDALDereferenceDataset( ds ) <= 0 )
@@ -3181,9 +3342,9 @@ GDALDatasetShadow* OpenShared( char const* name, GDALAccess eAccess = GA_ReadOnl
 }
 
 
-GDALDriverShadow *IdentifyDriver( const char *pszDatasource, 
+GDALDriverShadow *IdentifyDriver( const char *utf8_path, 
                                   char **papszSiblings = NULL ) {
-    return (GDALDriverShadow *) GDALIdentifyDriver( pszDatasource, 
+    return (GDALDriverShadow *) GDALIdentifyDriver( utf8_path, 
 	                                            papszSiblings );
 }
 
@@ -3375,7 +3536,7 @@ XS(_wrap_new_SavedEnv) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -3423,7 +3584,7 @@ XS(_wrap_delete_SavedEnv) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -3564,7 +3725,7 @@ XS(_wrap_Debug) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -3620,7 +3781,7 @@ XS(_wrap_PushErrorHandler__SWIG_0) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -3695,7 +3856,7 @@ XS(_wrap_Error) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -3755,7 +3916,7 @@ XS(_wrap_PushErrorHandler__SWIG_1) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -3858,7 +4019,7 @@ XS(_wrap_PopErrorHandler) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -3898,7 +4059,7 @@ XS(_wrap_ErrorReset) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -3919,7 +4080,7 @@ XS(_wrap_EscapeString) {
     int val3 ;
     int ecode3 = 0 ;
     int argvi = 0;
-    char *result = 0 ;
+    retStringAndCPLFree *result = 0 ;
     dXSARGS;
     
     if ((items < 1) || (items > 2)) {
@@ -3947,7 +4108,7 @@ XS(_wrap_EscapeString) {
     }
     {
       CPLErrorReset();
-      result = (char *)EscapeString(arg1,arg2,arg3);
+      result = (retStringAndCPLFree *)EscapeString(arg1,arg2,arg3);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
         SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
@@ -3964,12 +4125,24 @@ XS(_wrap_EscapeString) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
     }
-    ST(argvi) = SWIG_FromCharPtr((const char *)result); argvi++ ;
+    
+    /* %typemap(out) (retStringAndCPLFree*) */
+    if(result)
+    {
+      ST(argvi) = SWIG_FromCharPtr((const char *)result);
+      CPLFree(result);
+    }
+    else
+    {
+      ST(argvi) = sv_newmortal();
+    }
+    argvi++ ;
+    
     
     XSRETURN(argvi);
   fail:
@@ -4007,7 +4180,7 @@ XS(_wrap_GetLastErrorNo) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -4048,7 +4221,7 @@ XS(_wrap_GetLastErrorType) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -4091,7 +4264,7 @@ XS(_wrap_GetLastErrorMsg) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -4114,13 +4287,18 @@ XS(_wrap_PushFinderLocation) {
     dXSARGS;
     
     if ((items < 1) || (items > 1)) {
-      SWIG_croak("Usage: PushFinderLocation(pszLocation);");
+      SWIG_croak("Usage: PushFinderLocation(utf8_path);");
     }
     res1 = SWIG_AsCharPtrAndSize(ST(0), &buf1, NULL, &alloc1);
     if (!SWIG_IsOK(res1)) {
       SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "PushFinderLocation" "', argument " "1"" of type '" "char const *""'");
     }
     arg1 = reinterpret_cast< char * >(buf1);
+    {
+      if (!arg1) {
+        SWIG_exception(SWIG_ValueError,"Received a NULL pointer.");
+      }
+    }
     {
       CPLErrorReset();
       CPLPushFinderLocation((char const *)arg1);
@@ -4140,7 +4318,7 @@ XS(_wrap_PushFinderLocation) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -4182,7 +4360,7 @@ XS(_wrap_PopFinderLocation) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -4222,7 +4400,7 @@ XS(_wrap_FinderClean) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -4235,7 +4413,7 @@ XS(_wrap_FinderClean) {
 }
 
 
-XS(_wrap_FindFile) {
+XS(_wrap__FindFile) {
   {
     char *arg1 = (char *) 0 ;
     char *arg2 = (char *) 0 ;
@@ -4250,18 +4428,23 @@ XS(_wrap_FindFile) {
     dXSARGS;
     
     if ((items < 2) || (items > 2)) {
-      SWIG_croak("Usage: FindFile(pszClass,pszBasename);");
+      SWIG_croak("Usage: _FindFile(pszClass,utf8_path);");
     }
     res1 = SWIG_AsCharPtrAndSize(ST(0), &buf1, NULL, &alloc1);
     if (!SWIG_IsOK(res1)) {
-      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "FindFile" "', argument " "1"" of type '" "char const *""'");
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "_FindFile" "', argument " "1"" of type '" "char const *""'");
     }
     arg1 = reinterpret_cast< char * >(buf1);
     res2 = SWIG_AsCharPtrAndSize(ST(1), &buf2, NULL, &alloc2);
     if (!SWIG_IsOK(res2)) {
-      SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "FindFile" "', argument " "2"" of type '" "char const *""'");
+      SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "_FindFile" "', argument " "2"" of type '" "char const *""'");
     }
     arg2 = reinterpret_cast< char * >(buf2);
+    {
+      if (!arg2) {
+        SWIG_exception(SWIG_ValueError,"Received a NULL pointer.");
+      }
+    }
     {
       CPLErrorReset();
       result = (char *)CPLFindFile((char const *)arg1,(char const *)arg2);
@@ -4281,7 +4464,7 @@ XS(_wrap_FindFile) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -4298,7 +4481,7 @@ XS(_wrap_FindFile) {
 }
 
 
-XS(_wrap_ReadDir) {
+XS(_wrap__ReadDir) {
   {
     char *arg1 = (char *) 0 ;
     int res1 ;
@@ -4309,13 +4492,18 @@ XS(_wrap_ReadDir) {
     dXSARGS;
     
     if ((items < 1) || (items > 1)) {
-      SWIG_croak("Usage: ReadDir(pszDirName);");
+      SWIG_croak("Usage: _ReadDir(utf8_path);");
     }
     res1 = SWIG_AsCharPtrAndSize(ST(0), &buf1, NULL, &alloc1);
     if (!SWIG_IsOK(res1)) {
-      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "ReadDir" "', argument " "1"" of type '" "char const *""'");
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "_ReadDir" "', argument " "1"" of type '" "char const *""'");
     }
     arg1 = reinterpret_cast< char * >(buf1);
+    {
+      if (!arg1) {
+        SWIG_exception(SWIG_ValueError,"Received a NULL pointer.");
+      }
+    }
     {
       CPLErrorReset();
       result = (char **)VSIReadDir((char const *)arg1);
@@ -4335,25 +4523,37 @@ XS(_wrap_ReadDir) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
     }
     {
-      /* %typemap(out) char **options -> ( string ) */
-      AV* av = (AV*)sv_2mortal((SV*)newAV());
-      char **stringarray = result;
-      if ( stringarray != NULL ) {
-        int n = CSLCount( stringarray );
-        for ( int i = 0; i < n; i++ ) {
-          SV *s = newSVpv(stringarray[i], strlen(*stringarray));
-          if (!av_store(av, i, s))
-          SvREFCNT_dec(s);
+      /* %typemap(out) char **CSL */
+      if (GIMME_V == G_ARRAY) {
+        if (result) {
+          int i;
+          for (i = 0; result[i]; i++) {
+            if (i>items-1) EXTEND(SP, 1);
+            ST(argvi) = sv_2mortal(newSVpv(result[i], 0));
+            argvi++;
+          }
+          CSLDestroy(result);
         }
+      } else {
+        AV *av = (AV*)sv_2mortal((SV*)newAV());
+        if (result) {
+          int i;
+          for (i = 0; result[i]; i++) {
+            SV *s = newSVpv(result[i], 0);
+            if (!av_store(av, i, s))
+            SvREFCNT_dec(s);
+          }
+          CSLDestroy(result);
+        }
+        ST(argvi) = newRV_noinc((SV*)av);
+        argvi++;
       }
-      ST(argvi) = newRV_noinc((SV*)av);
-      argvi++;
     }
     if (alloc1 == SWIG_NEWOBJ) delete[] buf1;
     XSRETURN(argvi);
@@ -4414,7 +4614,7 @@ XS(_wrap_SetConfigOption) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -4484,7 +4684,7 @@ XS(_wrap_GetConfigOption) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -4505,30 +4705,29 @@ XS(_wrap_CPLBinaryToHex) {
   {
     int arg1 ;
     GByte *arg2 = (GByte *) 0 ;
-    int val1 ;
-    int ecode1 = 0 ;
-    void *argp2 = 0 ;
-    int res2 = 0 ;
     int argvi = 0;
-    char *result = 0 ;
+    retStringAndCPLFree *result = 0 ;
     dXSARGS;
     
-    if ((items < 2) || (items > 2)) {
+    if ((items < 1) || (items > 1)) {
       SWIG_croak("Usage: CPLBinaryToHex(nBytes,pabyData);");
     }
-    ecode1 = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(0), &val1);
-    if (!SWIG_IsOK(ecode1)) {
-      SWIG_exception_fail(SWIG_ArgError(ecode1), "in method '" "CPLBinaryToHex" "', argument " "1"" of type '" "int""'");
-    } 
-    arg1 = static_cast< int >(val1);
-    res2 = SWIG_ConvertPtr(ST(1), &argp2,SWIGTYPE_p_GByte, 0 |  0 );
-    if (!SWIG_IsOK(res2)) {
-      SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "CPLBinaryToHex" "', argument " "2"" of type '" "GByte const *""'"); 
+    {
+      /* %typemap(in,numinputs=1) (int nLen, unsigned char *pBuf ) */
+      if (SvOK(ST(0))) {
+        if (!SvPOK(ST(0)))
+        SWIG_croak("expected binary data as input");
+        STRLEN len = SvCUR(ST(0));
+        arg2 = (unsigned char *)SvPV_nolen(ST(0));
+        arg1 = len;
+      } else {
+        arg2 = NULL;
+        arg1 = 0;
+      }
     }
-    arg2 = reinterpret_cast< GByte * >(argp2);
     {
       CPLErrorReset();
-      result = (char *)CPLBinaryToHex(arg1,(GByte const *)arg2);
+      result = (retStringAndCPLFree *)CPLBinaryToHex(arg1,(GByte const *)arg2);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
         SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
@@ -4545,18 +4744,26 @@ XS(_wrap_CPLBinaryToHex) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
     }
-    ST(argvi) = SWIG_FromCharPtr((const char *)result); argvi++ ;
     
+    /* %typemap(out) (retStringAndCPLFree*) */
+    if(result)
+    {
+      ST(argvi) = SWIG_FromCharPtr((const char *)result);
+      CPLFree(result);
+    }
+    else
+    {
+      ST(argvi) = sv_newmortal();
+    }
+    argvi++ ;
     
     XSRETURN(argvi);
   fail:
-    
-    
     SWIG_croak_null();
   }
 }
@@ -4607,7 +4814,7 @@ XS(_wrap_CPLHexToBinary) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -4640,7 +4847,7 @@ XS(_wrap_FileFromMemBuffer) {
     dXSARGS;
     
     if ((items < 3) || (items > 3)) {
-      SWIG_croak("Usage: FileFromMemBuffer(pszFilename,nBytes,pabyData);");
+      SWIG_croak("Usage: FileFromMemBuffer(utf8_path,nBytes,pabyData);");
     }
     res1 = SWIG_AsCharPtrAndSize(ST(0), &buf1, NULL, &alloc1);
     if (!SWIG_IsOK(res1)) {
@@ -4681,7 +4888,7 @@ XS(_wrap_FileFromMemBuffer) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -4742,7 +4949,7 @@ XS(_wrap_Unlink) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -4785,7 +4992,7 @@ XS(_wrap_HasThreadSupport) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -4793,6 +5000,600 @@ XS(_wrap_HasThreadSupport) {
     ST(argvi) = SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(result)); argvi++ ;
     XSRETURN(argvi);
   fail:
+    SWIG_croak_null();
+  }
+}
+
+
+XS(_wrap_Mkdir) {
+  {
+    char *arg1 = (char *) 0 ;
+    int arg2 ;
+    int res1 ;
+    char *buf1 = 0 ;
+    int alloc1 = 0 ;
+    int val2 ;
+    int ecode2 = 0 ;
+    int argvi = 0;
+    int result;
+    dXSARGS;
+    
+    if ((items < 2) || (items > 2)) {
+      SWIG_croak("Usage: Mkdir(utf8_path,mode);");
+    }
+    res1 = SWIG_AsCharPtrAndSize(ST(0), &buf1, NULL, &alloc1);
+    if (!SWIG_IsOK(res1)) {
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Mkdir" "', argument " "1"" of type '" "char const *""'");
+    }
+    arg1 = reinterpret_cast< char * >(buf1);
+    ecode2 = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(1), &val2);
+    if (!SWIG_IsOK(ecode2)) {
+      SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "Mkdir" "', argument " "2"" of type '" "int""'");
+    } 
+    arg2 = static_cast< int >(val2);
+    {
+      if (!arg1) {
+        SWIG_exception(SWIG_ValueError,"Received a NULL pointer.");
+      }
+    }
+    {
+      CPLErrorReset();
+      result = (int)VSIMkdir((char const *)arg1,arg2);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /* 
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
+    ST(argvi) = SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(result)); argvi++ ;
+    if (alloc1 == SWIG_NEWOBJ) delete[] buf1;
+    
+    XSRETURN(argvi);
+  fail:
+    if (alloc1 == SWIG_NEWOBJ) delete[] buf1;
+    
+    SWIG_croak_null();
+  }
+}
+
+
+XS(_wrap_Rmdir) {
+  {
+    char *arg1 = (char *) 0 ;
+    int res1 ;
+    char *buf1 = 0 ;
+    int alloc1 = 0 ;
+    int argvi = 0;
+    int result;
+    dXSARGS;
+    
+    if ((items < 1) || (items > 1)) {
+      SWIG_croak("Usage: Rmdir(utf8_path);");
+    }
+    res1 = SWIG_AsCharPtrAndSize(ST(0), &buf1, NULL, &alloc1);
+    if (!SWIG_IsOK(res1)) {
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Rmdir" "', argument " "1"" of type '" "char const *""'");
+    }
+    arg1 = reinterpret_cast< char * >(buf1);
+    {
+      if (!arg1) {
+        SWIG_exception(SWIG_ValueError,"Received a NULL pointer.");
+      }
+    }
+    {
+      CPLErrorReset();
+      result = (int)VSIRmdir((char const *)arg1);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /* 
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
+    ST(argvi) = SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(result)); argvi++ ;
+    if (alloc1 == SWIG_NEWOBJ) delete[] buf1;
+    XSRETURN(argvi);
+  fail:
+    if (alloc1 == SWIG_NEWOBJ) delete[] buf1;
+    SWIG_croak_null();
+  }
+}
+
+
+XS(_wrap_Rename) {
+  {
+    char *arg1 = (char *) 0 ;
+    char *arg2 = (char *) 0 ;
+    int res1 ;
+    char *buf1 = 0 ;
+    int alloc1 = 0 ;
+    int res2 ;
+    char *buf2 = 0 ;
+    int alloc2 = 0 ;
+    int argvi = 0;
+    int result;
+    dXSARGS;
+    
+    if ((items < 2) || (items > 2)) {
+      SWIG_croak("Usage: Rename(pszOld,pszNew);");
+    }
+    res1 = SWIG_AsCharPtrAndSize(ST(0), &buf1, NULL, &alloc1);
+    if (!SWIG_IsOK(res1)) {
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Rename" "', argument " "1"" of type '" "char const *""'");
+    }
+    arg1 = reinterpret_cast< char * >(buf1);
+    res2 = SWIG_AsCharPtrAndSize(ST(1), &buf2, NULL, &alloc2);
+    if (!SWIG_IsOK(res2)) {
+      SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "Rename" "', argument " "2"" of type '" "char const *""'");
+    }
+    arg2 = reinterpret_cast< char * >(buf2);
+    {
+      CPLErrorReset();
+      result = (int)VSIRename((char const *)arg1,(char const *)arg2);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /* 
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
+    ST(argvi) = SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(result)); argvi++ ;
+    if (alloc1 == SWIG_NEWOBJ) delete[] buf1;
+    if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
+    XSRETURN(argvi);
+  fail:
+    if (alloc1 == SWIG_NEWOBJ) delete[] buf1;
+    if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
+    SWIG_croak_null();
+  }
+}
+
+
+XS(_wrap_Stat) {
+  {
+    char *arg1 = (char *) 0 ;
+    VSIStatBufL *arg2 = (VSIStatBufL *) 0 ;
+    int res1 ;
+    char *buf1 = 0 ;
+    int alloc1 = 0 ;
+    VSIStatBufL sStatBuf2 ;
+    int argvi = 0;
+    RETURN_NONE result;
+    dXSARGS;
+    
+    {
+      /* %typemap(in,numinputs=0) (VSIStatBufL *) (VSIStatBufL sStatBuf2) */
+      arg2 = &sStatBuf2;
+    }
+    if ((items < 1) || (items > 1)) {
+      SWIG_croak("Usage: Stat(utf8_path);");
+    }
+    res1 = SWIG_AsCharPtrAndSize(ST(0), &buf1, NULL, &alloc1);
+    if (!SWIG_IsOK(res1)) {
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Stat" "', argument " "1"" of type '" "char const *""'");
+    }
+    arg1 = reinterpret_cast< char * >(buf1);
+    {
+      if (!arg1) {
+        SWIG_exception(SWIG_ValueError,"Received a NULL pointer.");
+      }
+    }
+    {
+      CPLErrorReset();
+      result = VSIStatL((char const *)arg1,arg2);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /* 
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
+    {
+      /* %typemap(out) RETURN_NONE_TRUE_IS_ERROR */
+    }
+    {
+      /* %typemap(argout) (VSIStatBufL *) */
+      SP -= 1; /* should be somewhere else, remove the filename arg */
+      EXTEND(SP, 1);
+      char mode[2];
+      mode[0] = ' ';
+      mode[1] = '\0';
+      if (S_ISREG(sStatBuf2.st_mode)) mode[0] = 'f';
+      else if (S_ISDIR(sStatBuf2.st_mode)) mode[0] = 'd';
+      else if (S_ISLNK(sStatBuf2.st_mode)) mode[0] = 'l';
+      else if (S_ISFIFO(sStatBuf2.st_mode)) mode[0] = 'p';
+      else if (S_ISSOCK(sStatBuf2.st_mode)) mode[0] = 'S';
+      else if (S_ISBLK(sStatBuf2.st_mode)) mode[0] = 'b';
+      else if (S_ISCHR(sStatBuf2.st_mode)) mode[0] = 'c';
+      PUSHs(sv_2mortal(newSVpv(mode, 0)));
+      argvi++;
+      EXTEND(SP, 1);
+      PUSHs(sv_2mortal(newSVuv(sStatBuf2.st_size)));
+      argvi++;
+    }
+    if (alloc1 == SWIG_NEWOBJ) delete[] buf1;
+    
+    {
+      /* %typemap(ret) RETURN_NONE_TRUE_IS_ERROR */
+      if (result != 0 ) {
+        SWIG_croak("unexpected error in Stat");
+      }
+    }
+    XSRETURN(argvi);
+  fail:
+    if (alloc1 == SWIG_NEWOBJ) delete[] buf1;
+    
+    SWIG_croak_null();
+  }
+}
+
+
+XS(_wrap_VSIFOpenL) {
+  {
+    char *arg1 = (char *) 0 ;
+    char *arg2 = (char *) 0 ;
+    int res1 ;
+    char *buf1 = 0 ;
+    int alloc1 = 0 ;
+    int res2 ;
+    char *buf2 = 0 ;
+    int alloc2 = 0 ;
+    int argvi = 0;
+    VSILFILE *result = 0 ;
+    dXSARGS;
+    
+    if ((items < 2) || (items > 2)) {
+      SWIG_croak("Usage: VSIFOpenL(utf8_path,pszMode);");
+    }
+    res1 = SWIG_AsCharPtrAndSize(ST(0), &buf1, NULL, &alloc1);
+    if (!SWIG_IsOK(res1)) {
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "VSIFOpenL" "', argument " "1"" of type '" "char const *""'");
+    }
+    arg1 = reinterpret_cast< char * >(buf1);
+    res2 = SWIG_AsCharPtrAndSize(ST(1), &buf2, NULL, &alloc2);
+    if (!SWIG_IsOK(res2)) {
+      SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "VSIFOpenL" "', argument " "2"" of type '" "char const *""'");
+    }
+    arg2 = reinterpret_cast< char * >(buf2);
+    {
+      if (!arg1) {
+        SWIG_exception(SWIG_ValueError,"Received a NULL pointer.");
+      }
+    }
+    {
+      CPLErrorReset();
+      result = (VSILFILE *)VSIFOpenL((char const *)arg1,(char const *)arg2);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /* 
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
+    ST(argvi) = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_void, 0 | 0); argvi++ ;
+    if (alloc1 == SWIG_NEWOBJ) delete[] buf1;
+    if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
+    XSRETURN(argvi);
+  fail:
+    if (alloc1 == SWIG_NEWOBJ) delete[] buf1;
+    if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
+    SWIG_croak_null();
+  }
+}
+
+
+XS(_wrap_VSIFCloseL) {
+  {
+    VSILFILE *arg1 = (VSILFILE *) 0 ;
+    int res1 ;
+    int argvi = 0;
+    dXSARGS;
+    
+    if ((items < 1) || (items > 1)) {
+      SWIG_croak("Usage: VSIFCloseL(VSILFILE *);");
+    }
+    res1 = SWIG_ConvertPtr(ST(0),SWIG_as_voidptrptr(&arg1), 0, 0);
+    if (!SWIG_IsOK(res1)) {
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "VSIFCloseL" "', argument " "1"" of type '" "VSILFILE *""'"); 
+    }
+    {
+      CPLErrorReset();
+      VSIFCloseL(arg1);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /* 
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
+    ST(argvi) = sv_newmortal();
+    
+    XSRETURN(argvi);
+  fail:
+    
+    SWIG_croak_null();
+  }
+}
+
+
+XS(_wrap_VSIFSeekL) {
+  {
+    VSILFILE *arg1 = (VSILFILE *) 0 ;
+    long arg2 ;
+    int arg3 ;
+    int res1 ;
+    long val2 ;
+    int ecode2 = 0 ;
+    int val3 ;
+    int ecode3 = 0 ;
+    int argvi = 0;
+    int result;
+    dXSARGS;
+    
+    if ((items < 3) || (items > 3)) {
+      SWIG_croak("Usage: VSIFSeekL(VSILFILE *,long,int);");
+    }
+    res1 = SWIG_ConvertPtr(ST(0),SWIG_as_voidptrptr(&arg1), 0, 0);
+    if (!SWIG_IsOK(res1)) {
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "VSIFSeekL" "', argument " "1"" of type '" "VSILFILE *""'"); 
+    }
+    ecode2 = SWIG_AsVal_long SWIG_PERL_CALL_ARGS_2(ST(1), &val2);
+    if (!SWIG_IsOK(ecode2)) {
+      SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "VSIFSeekL" "', argument " "2"" of type '" "long""'");
+    } 
+    arg2 = static_cast< long >(val2);
+    ecode3 = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(2), &val3);
+    if (!SWIG_IsOK(ecode3)) {
+      SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "VSIFSeekL" "', argument " "3"" of type '" "int""'");
+    } 
+    arg3 = static_cast< int >(val3);
+    {
+      CPLErrorReset();
+      result = (int)VSIFSeekL(arg1,arg2,arg3);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /* 
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
+    ST(argvi) = SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(result)); argvi++ ;
+    
+    
+    
+    XSRETURN(argvi);
+  fail:
+    
+    
+    
+    SWIG_croak_null();
+  }
+}
+
+
+XS(_wrap_VSIFTellL) {
+  {
+    VSILFILE *arg1 = (VSILFILE *) 0 ;
+    int res1 ;
+    int argvi = 0;
+    long result;
+    dXSARGS;
+    
+    if ((items < 1) || (items > 1)) {
+      SWIG_croak("Usage: VSIFTellL(VSILFILE *);");
+    }
+    res1 = SWIG_ConvertPtr(ST(0),SWIG_as_voidptrptr(&arg1), 0, 0);
+    if (!SWIG_IsOK(res1)) {
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "VSIFTellL" "', argument " "1"" of type '" "VSILFILE *""'"); 
+    }
+    {
+      CPLErrorReset();
+      result = (long)VSIFTellL(arg1);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /* 
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
+    ST(argvi) = SWIG_From_long  SWIG_PERL_CALL_ARGS_1(static_cast< long >(result)); argvi++ ;
+    
+    XSRETURN(argvi);
+  fail:
+    
+    SWIG_croak_null();
+  }
+}
+
+
+XS(_wrap_VSIFWriteL) {
+  {
+    char *arg1 = (char *) 0 ;
+    int arg2 ;
+    int arg3 ;
+    VSILFILE *arg4 = (VSILFILE *) 0 ;
+    int res1 ;
+    char *buf1 = 0 ;
+    int alloc1 = 0 ;
+    int val2 ;
+    int ecode2 = 0 ;
+    int val3 ;
+    int ecode3 = 0 ;
+    int res4 ;
+    int argvi = 0;
+    int result;
+    dXSARGS;
+    
+    if ((items < 4) || (items > 4)) {
+      SWIG_croak("Usage: VSIFWriteL(char const *,int,int,VSILFILE *);");
+    }
+    res1 = SWIG_AsCharPtrAndSize(ST(0), &buf1, NULL, &alloc1);
+    if (!SWIG_IsOK(res1)) {
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "VSIFWriteL" "', argument " "1"" of type '" "char const *""'");
+    }
+    arg1 = reinterpret_cast< char * >(buf1);
+    ecode2 = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(1), &val2);
+    if (!SWIG_IsOK(ecode2)) {
+      SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "VSIFWriteL" "', argument " "2"" of type '" "int""'");
+    } 
+    arg2 = static_cast< int >(val2);
+    ecode3 = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(2), &val3);
+    if (!SWIG_IsOK(ecode3)) {
+      SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "VSIFWriteL" "', argument " "3"" of type '" "int""'");
+    } 
+    arg3 = static_cast< int >(val3);
+    res4 = SWIG_ConvertPtr(ST(3),SWIG_as_voidptrptr(&arg4), 0, 0);
+    if (!SWIG_IsOK(res4)) {
+      SWIG_exception_fail(SWIG_ArgError(res4), "in method '" "VSIFWriteL" "', argument " "4"" of type '" "VSILFILE *""'"); 
+    }
+    {
+      CPLErrorReset();
+      result = (int)VSIFWriteL((char const *)arg1,arg2,arg3,arg4);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /* 
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
+    ST(argvi) = SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(result)); argvi++ ;
+    if (alloc1 == SWIG_NEWOBJ) delete[] buf1;
+    
+    
+    
+    XSRETURN(argvi);
+  fail:
+    if (alloc1 == SWIG_NEWOBJ) delete[] buf1;
+    
+    
+    
     SWIG_croak_null();
   }
 }
@@ -4834,7 +5635,7 @@ XS(_wrap_MajorObject_GetDescription) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -4898,7 +5699,7 @@ XS(_wrap_MajorObject_SetDescription) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -4962,7 +5763,7 @@ XS(_wrap_MajorObject_GetMetadata) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -5057,7 +5858,7 @@ XS(_wrap_MajorObject_SetMetadata__SWIG_0) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -5140,7 +5941,7 @@ XS(_wrap_MajorObject_SetMetadata__SWIG_1) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -5299,6 +6100,11 @@ XS(_wrap_MajorObject_GetMetadataItem) {
       arg3 = reinterpret_cast< char * >(buf3);
     }
     {
+      if (!arg2) {
+        SWIG_exception(SWIG_ValueError,"Received a NULL pointer.");
+      }
+    }
+    {
       CPLErrorReset();
       result = (char *)GDALMajorObjectShadow_GetMetadataItem(arg1,(char const *)arg2,(char const *)arg3);
       CPLErr eclass = CPLGetLastErrorType();
@@ -5317,7 +6123,7 @@ XS(_wrap_MajorObject_GetMetadataItem) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -5383,6 +6189,11 @@ XS(_wrap_MajorObject_SetMetadataItem) {
       arg4 = reinterpret_cast< char * >(buf4);
     }
     {
+      if (!arg2) {
+        SWIG_exception(SWIG_ValueError,"Received a NULL pointer.");
+      }
+    }
+    {
       CPLErrorReset();
       result = (CPLErr)GDALMajorObjectShadow_SetMetadataItem(arg1,(char const *)arg2,(char const *)arg3,(char const *)arg4);
       CPLErr eclass = CPLGetLastErrorType();
@@ -5401,7 +6212,7 @@ XS(_wrap_MajorObject_SetMetadataItem) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -5460,7 +6271,7 @@ XS(_wrap_Driver_ShortName_get) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -5511,7 +6322,7 @@ XS(_wrap_Driver_LongName_get) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -5562,7 +6373,7 @@ XS(_wrap_Driver_HelpTopic_get) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -5604,7 +6415,7 @@ XS(_wrap_Driver__Create) {
     dXSARGS;
     
     if ((items < 4) || (items > 7)) {
-      SWIG_croak("Usage: Driver__Create(self,name,xsize,ysize,bands,eType,options);");
+      SWIG_croak("Usage: Driver__Create(self,utf8_path,xsize,ysize,bands,eType,options);");
     }
     res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_GDALDriverShadow, 0 |  0 );
     if (!SWIG_IsOK(res1)) {
@@ -5692,7 +6503,7 @@ XS(_wrap_Driver__Create) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -5751,7 +6562,7 @@ XS(_wrap_Driver_CreateCopy) {
     saved_env.fct = NULL;
     saved_env.data = NULL;
     if ((items < 3) || (items > 7)) {
-      SWIG_croak("Usage: Driver_CreateCopy(self,name,src,strict,options,callback,callback_data);");
+      SWIG_croak("Usage: Driver_CreateCopy(self,utf8_path,src,strict,options,callback,callback_data);");
     }
     res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_GDALDriverShadow, 0 |  0 );
     if (!SWIG_IsOK(res1)) {
@@ -5858,7 +6669,7 @@ XS(_wrap_Driver_CreateCopy) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -5903,7 +6714,7 @@ XS(_wrap_Driver_Delete) {
     dXSARGS;
     
     if ((items < 2) || (items > 2)) {
-      SWIG_croak("Usage: Driver_Delete(self,name);");
+      SWIG_croak("Usage: Driver_Delete(self,utf8_path);");
     }
     res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_GDALDriverShadow, 0 |  0 );
     if (!SWIG_IsOK(res1)) {
@@ -5939,7 +6750,7 @@ XS(_wrap_Driver_Delete) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -6020,7 +6831,90 @@ XS(_wrap_Driver_Rename) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
+    ST(argvi) = SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(result)); argvi++ ;
+    
+    if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
+    if (alloc3 == SWIG_NEWOBJ) delete[] buf3;
+    XSRETURN(argvi);
+  fail:
+    
+    if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
+    if (alloc3 == SWIG_NEWOBJ) delete[] buf3;
+    SWIG_croak_null();
+  }
+}
+
+
+XS(_wrap_Driver_CopyFiles) {
+  {
+    GDALDriverShadow *arg1 = (GDALDriverShadow *) 0 ;
+    char *arg2 = (char *) 0 ;
+    char *arg3 = (char *) 0 ;
+    void *argp1 = 0 ;
+    int res1 = 0 ;
+    int res2 ;
+    char *buf2 = 0 ;
+    int alloc2 = 0 ;
+    int res3 ;
+    char *buf3 = 0 ;
+    int alloc3 = 0 ;
+    int argvi = 0;
+    int result;
+    dXSARGS;
+    
+    if ((items < 3) || (items > 3)) {
+      SWIG_croak("Usage: Driver_CopyFiles(self,newName,oldName);");
+    }
+    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_GDALDriverShadow, 0 |  0 );
+    if (!SWIG_IsOK(res1)) {
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Driver_CopyFiles" "', argument " "1"" of type '" "GDALDriverShadow *""'"); 
+    }
+    arg1 = reinterpret_cast< GDALDriverShadow * >(argp1);
+    res2 = SWIG_AsCharPtrAndSize(ST(1), &buf2, NULL, &alloc2);
+    if (!SWIG_IsOK(res2)) {
+      SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "Driver_CopyFiles" "', argument " "2"" of type '" "char const *""'");
+    }
+    arg2 = reinterpret_cast< char * >(buf2);
+    res3 = SWIG_AsCharPtrAndSize(ST(2), &buf3, NULL, &alloc3);
+    if (!SWIG_IsOK(res3)) {
+      SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "Driver_CopyFiles" "', argument " "3"" of type '" "char const *""'");
+    }
+    arg3 = reinterpret_cast< char * >(buf3);
+    {
+      if (!arg2) {
+        SWIG_exception(SWIG_ValueError,"Received a NULL pointer.");
+      }
+    }
+    {
+      if (!arg3) {
+        SWIG_exception(SWIG_ValueError,"Received a NULL pointer.");
+      }
+    }
+    {
+      CPLErrorReset();
+      result = (int)GDALDriverShadow_CopyFiles(arg1,(char const *)arg2,(char const *)arg3);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /* 
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -6075,7 +6969,7 @@ XS(_wrap_Driver_Register) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -6125,7 +7019,7 @@ XS(_wrap_Driver_Deregister) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -6183,7 +7077,7 @@ XS(_wrap_GCP_GCPX_set) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -6236,7 +7130,7 @@ XS(_wrap_GCP_GCPX_get) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -6294,7 +7188,7 @@ XS(_wrap_GCP_GCPY_set) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -6347,7 +7241,7 @@ XS(_wrap_GCP_GCPY_get) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -6405,7 +7299,7 @@ XS(_wrap_GCP_GCPZ_set) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -6458,7 +7352,7 @@ XS(_wrap_GCP_GCPZ_get) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -6516,7 +7410,7 @@ XS(_wrap_GCP_GCPPixel_set) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -6569,7 +7463,7 @@ XS(_wrap_GCP_GCPPixel_get) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -6627,7 +7521,7 @@ XS(_wrap_GCP_GCPLine_set) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -6680,7 +7574,7 @@ XS(_wrap_GCP_GCPLine_get) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -6742,7 +7636,7 @@ XS(_wrap_GCP_Info_set) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -6795,7 +7689,7 @@ XS(_wrap_GCP_Info_get) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -6857,7 +7751,7 @@ XS(_wrap_GCP_Id_set) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -6910,7 +7804,7 @@ XS(_wrap_GCP_Id_get) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -7025,7 +7919,7 @@ XS(_wrap_new_GCP) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -7087,7 +7981,7 @@ XS(_wrap_delete_GCP) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -7143,7 +8037,7 @@ XS(_wrap_GDAL_GCP_GCPX_get) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -7206,7 +8100,7 @@ XS(_wrap_GDAL_GCP_GCPX_set) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -7264,7 +8158,7 @@ XS(_wrap_GDAL_GCP_GCPY_get) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -7327,7 +8221,7 @@ XS(_wrap_GDAL_GCP_GCPY_set) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -7385,7 +8279,7 @@ XS(_wrap_GDAL_GCP_GCPZ_get) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -7448,7 +8342,7 @@ XS(_wrap_GDAL_GCP_GCPZ_set) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -7506,7 +8400,7 @@ XS(_wrap_GDAL_GCP_GCPPixel_get) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -7569,7 +8463,7 @@ XS(_wrap_GDAL_GCP_GCPPixel_set) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -7627,7 +8521,7 @@ XS(_wrap_GDAL_GCP_GCPLine_get) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -7690,7 +8584,7 @@ XS(_wrap_GDAL_GCP_GCPLine_set) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -7748,7 +8642,7 @@ XS(_wrap_GDAL_GCP_Info_get) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -7812,7 +8706,7 @@ XS(_wrap_GDAL_GCP_Info_set) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -7870,7 +8764,7 @@ XS(_wrap_GDAL_GCP_Id_get) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -7934,7 +8828,7 @@ XS(_wrap_GDAL_GCP_Id_set) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -7992,7 +8886,7 @@ XS(_wrap_GDAL_GCP_get_GCPX) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -8055,7 +8949,7 @@ XS(_wrap_GDAL_GCP_set_GCPX) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -8113,7 +9007,7 @@ XS(_wrap_GDAL_GCP_get_GCPY) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -8176,7 +9070,7 @@ XS(_wrap_GDAL_GCP_set_GCPY) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -8234,7 +9128,7 @@ XS(_wrap_GDAL_GCP_get_GCPZ) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -8297,7 +9191,7 @@ XS(_wrap_GDAL_GCP_set_GCPZ) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -8355,7 +9249,7 @@ XS(_wrap_GDAL_GCP_get_GCPPixel) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -8418,7 +9312,7 @@ XS(_wrap_GDAL_GCP_set_GCPPixel) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -8476,7 +9370,7 @@ XS(_wrap_GDAL_GCP_get_GCPLine) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -8539,7 +9433,7 @@ XS(_wrap_GDAL_GCP_set_GCPLine) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -8597,7 +9491,7 @@ XS(_wrap_GDAL_GCP_get_Info) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -8661,7 +9555,7 @@ XS(_wrap_GDAL_GCP_set_Info) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -8719,7 +9613,7 @@ XS(_wrap_GDAL_GCP_get_Id) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -8783,7 +9677,7 @@ XS(_wrap_GDAL_GCP_set_Id) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -8811,7 +9705,7 @@ XS(_wrap_GCPsToGeoTransform) {
     int val4 ;
     int ecode4 = 0 ;
     int argvi = 0;
-    FALSE_IS_ERR result;
+    RETURN_NONE result;
     dXSARGS;
     
     {
@@ -8865,7 +9759,7 @@ XS(_wrap_GCPsToGeoTransform) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -8888,11 +9782,7 @@ XS(_wrap_GCPsToGeoTransform) {
     {
       /* %typemap(ret) IF_FALSE_RETURN_NONE */
       if (result == 0 ) {
-        /* this is currently used only in GDALGCPsToGeoTransform
-               this is probably a memory leak
-               ST(argvi-1) is at this point an array which needs to be destr
-             */
-        ST(argvi-1) = sv_newmortal();
+        SWIG_croak("unexpected error in GCPsToGeoTransform");
       }
     }
     XSRETURN(argvi);
@@ -8903,6 +9793,276 @@ XS(_wrap_GCPsToGeoTransform) {
       free(arg2);
     }
     
+    
+    SWIG_croak_null();
+  }
+}
+
+
+XS(_wrap_delete_AsyncReader) {
+  {
+    GDALAsyncReaderShadow *arg1 = (GDALAsyncReaderShadow *) 0 ;
+    void *argp1 = 0 ;
+    int res1 = 0 ;
+    int argvi = 0;
+    dXSARGS;
+    
+    if ((items < 1) || (items > 1)) {
+      SWIG_croak("Usage: delete_AsyncReader(self);");
+    }
+    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_GDALAsyncReaderShadow, SWIG_POINTER_DISOWN |  0 );
+    if (!SWIG_IsOK(res1)) {
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "delete_AsyncReader" "', argument " "1"" of type '" "GDALAsyncReaderShadow *""'"); 
+    }
+    arg1 = reinterpret_cast< GDALAsyncReaderShadow * >(argp1);
+    {
+      CPLErrorReset();
+      delete_GDALAsyncReaderShadow(arg1);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /* 
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
+    ST(argvi) = sv_newmortal();
+    
+    XSRETURN(argvi);
+  fail:
+    
+    SWIG_croak_null();
+  }
+}
+
+
+XS(_wrap_AsyncReader_GetNextUpdatedRegion) {
+  {
+    GDALAsyncReaderShadow *arg1 = (GDALAsyncReaderShadow *) 0 ;
+    double arg2 ;
+    int *arg3 = (int *) 0 ;
+    int *arg4 = (int *) 0 ;
+    int *arg5 = (int *) 0 ;
+    int *arg6 = (int *) 0 ;
+    void *argp1 = 0 ;
+    int res1 = 0 ;
+    double val2 ;
+    int ecode2 = 0 ;
+    int temp3 ;
+    int res3 = SWIG_TMPOBJ ;
+    int temp4 ;
+    int res4 = SWIG_TMPOBJ ;
+    int temp5 ;
+    int res5 = SWIG_TMPOBJ ;
+    int temp6 ;
+    int res6 = SWIG_TMPOBJ ;
+    int argvi = 0;
+    GDALAsyncStatusType result;
+    dXSARGS;
+    
+    arg3 = &temp3;
+    arg4 = &temp4;
+    arg5 = &temp5;
+    arg6 = &temp6;
+    if ((items < 2) || (items > 2)) {
+      SWIG_croak("Usage: AsyncReader_GetNextUpdatedRegion(self,timeout);");
+    }
+    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_GDALAsyncReaderShadow, 0 |  0 );
+    if (!SWIG_IsOK(res1)) {
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "AsyncReader_GetNextUpdatedRegion" "', argument " "1"" of type '" "GDALAsyncReaderShadow *""'"); 
+    }
+    arg1 = reinterpret_cast< GDALAsyncReaderShadow * >(argp1);
+    ecode2 = SWIG_AsVal_double SWIG_PERL_CALL_ARGS_2(ST(1), &val2);
+    if (!SWIG_IsOK(ecode2)) {
+      SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "AsyncReader_GetNextUpdatedRegion" "', argument " "2"" of type '" "double""'");
+    } 
+    arg2 = static_cast< double >(val2);
+    {
+      CPLErrorReset();
+      result = (GDALAsyncStatusType)GDALAsyncReaderShadow_GetNextUpdatedRegion(arg1,arg2,arg3,arg4,arg5,arg6);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /* 
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
+    ST(argvi) = SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(result)); argvi++ ;
+    if (SWIG_IsTmpObj(res3)) {
+      if (argvi >= items) EXTEND(sp,1);  ST(argvi) = SWIG_From_int  SWIG_PERL_CALL_ARGS_1((*arg3)); argvi++  ;
+    } else {
+      int new_flags = SWIG_IsNewObj(res3) ? (SWIG_POINTER_OWN | 0) : 0;
+      if (argvi >= items) EXTEND(sp,1);  ST(argvi) = SWIG_NewPointerObj((void*)(arg3), SWIGTYPE_p_int, new_flags); argvi++  ;
+    }
+    if (SWIG_IsTmpObj(res4)) {
+      if (argvi >= items) EXTEND(sp,1);  ST(argvi) = SWIG_From_int  SWIG_PERL_CALL_ARGS_1((*arg4)); argvi++  ;
+    } else {
+      int new_flags = SWIG_IsNewObj(res4) ? (SWIG_POINTER_OWN | 0) : 0;
+      if (argvi >= items) EXTEND(sp,1);  ST(argvi) = SWIG_NewPointerObj((void*)(arg4), SWIGTYPE_p_int, new_flags); argvi++  ;
+    }
+    if (SWIG_IsTmpObj(res5)) {
+      if (argvi >= items) EXTEND(sp,1);  ST(argvi) = SWIG_From_int  SWIG_PERL_CALL_ARGS_1((*arg5)); argvi++  ;
+    } else {
+      int new_flags = SWIG_IsNewObj(res5) ? (SWIG_POINTER_OWN | 0) : 0;
+      if (argvi >= items) EXTEND(sp,1);  ST(argvi) = SWIG_NewPointerObj((void*)(arg5), SWIGTYPE_p_int, new_flags); argvi++  ;
+    }
+    if (SWIG_IsTmpObj(res6)) {
+      if (argvi >= items) EXTEND(sp,1);  ST(argvi) = SWIG_From_int  SWIG_PERL_CALL_ARGS_1((*arg6)); argvi++  ;
+    } else {
+      int new_flags = SWIG_IsNewObj(res6) ? (SWIG_POINTER_OWN | 0) : 0;
+      if (argvi >= items) EXTEND(sp,1);  ST(argvi) = SWIG_NewPointerObj((void*)(arg6), SWIGTYPE_p_int, new_flags); argvi++  ;
+    }
+    
+    
+    
+    
+    
+    
+    XSRETURN(argvi);
+  fail:
+    
+    
+    
+    
+    
+    
+    SWIG_croak_null();
+  }
+}
+
+
+XS(_wrap_AsyncReader_LockBuffer) {
+  {
+    GDALAsyncReaderShadow *arg1 = (GDALAsyncReaderShadow *) 0 ;
+    double arg2 ;
+    void *argp1 = 0 ;
+    int res1 = 0 ;
+    double val2 ;
+    int ecode2 = 0 ;
+    int argvi = 0;
+    int result;
+    dXSARGS;
+    
+    if ((items < 2) || (items > 2)) {
+      SWIG_croak("Usage: AsyncReader_LockBuffer(self,timeout);");
+    }
+    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_GDALAsyncReaderShadow, 0 |  0 );
+    if (!SWIG_IsOK(res1)) {
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "AsyncReader_LockBuffer" "', argument " "1"" of type '" "GDALAsyncReaderShadow *""'"); 
+    }
+    arg1 = reinterpret_cast< GDALAsyncReaderShadow * >(argp1);
+    ecode2 = SWIG_AsVal_double SWIG_PERL_CALL_ARGS_2(ST(1), &val2);
+    if (!SWIG_IsOK(ecode2)) {
+      SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "AsyncReader_LockBuffer" "', argument " "2"" of type '" "double""'");
+    } 
+    arg2 = static_cast< double >(val2);
+    {
+      CPLErrorReset();
+      result = (int)GDALAsyncReaderShadow_LockBuffer(arg1,arg2);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /* 
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
+    ST(argvi) = SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(result)); argvi++ ;
+    
+    
+    XSRETURN(argvi);
+  fail:
+    
+    
+    SWIG_croak_null();
+  }
+}
+
+
+XS(_wrap_AsyncReader_UnlockBuffer) {
+  {
+    GDALAsyncReaderShadow *arg1 = (GDALAsyncReaderShadow *) 0 ;
+    void *argp1 = 0 ;
+    int res1 = 0 ;
+    int argvi = 0;
+    dXSARGS;
+    
+    if ((items < 1) || (items > 1)) {
+      SWIG_croak("Usage: AsyncReader_UnlockBuffer(self);");
+    }
+    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_GDALAsyncReaderShadow, 0 |  0 );
+    if (!SWIG_IsOK(res1)) {
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "AsyncReader_UnlockBuffer" "', argument " "1"" of type '" "GDALAsyncReaderShadow *""'"); 
+    }
+    arg1 = reinterpret_cast< GDALAsyncReaderShadow * >(argp1);
+    {
+      CPLErrorReset();
+      GDALAsyncReaderShadow_UnlockBuffer(arg1);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /* 
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
+    ST(argvi) = sv_newmortal();
+    
+    XSRETURN(argvi);
+  fail:
     
     SWIG_croak_null();
   }
@@ -8945,7 +10105,7 @@ XS(_wrap_Dataset_RasterXSize_get) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -8996,7 +10156,7 @@ XS(_wrap_Dataset_RasterYSize_get) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -9047,7 +10207,7 @@ XS(_wrap_Dataset_RasterCount_get) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -9097,7 +10257,7 @@ XS(_wrap_delete_Dataset) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -9148,7 +10308,7 @@ XS(_wrap_Dataset__GetDriver) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -9207,7 +10367,7 @@ XS(_wrap_Dataset__GetRasterBand) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -9260,7 +10420,7 @@ XS(_wrap_Dataset_GetProjection) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -9311,7 +10471,7 @@ XS(_wrap_Dataset_GetProjectionRef) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -9353,6 +10513,11 @@ XS(_wrap_Dataset_SetProjection) {
     }
     arg2 = reinterpret_cast< char * >(buf2);
     {
+      if (!arg2) {
+        SWIG_exception(SWIG_ValueError,"Received a NULL pointer.");
+      }
+    }
+    {
       CPLErrorReset();
       result = (CPLErr)GDALDatasetShadow_SetProjection(arg1,(char const *)arg2);
       CPLErr eclass = CPLGetLastErrorType();
@@ -9371,7 +10536,7 @@ XS(_wrap_Dataset_SetProjection) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -9431,7 +10596,7 @@ XS(_wrap_Dataset_GetGeoTransform) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -9502,7 +10667,7 @@ XS(_wrap_Dataset_SetGeoTransform) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -9615,7 +10780,7 @@ XS(_wrap_Dataset_BuildOverviews) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -9680,7 +10845,7 @@ XS(_wrap_Dataset_GetGCPCount) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -9731,7 +10896,7 @@ XS(_wrap_Dataset_GetGCPProjection) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -9790,7 +10955,7 @@ XS(_wrap_Dataset_GetGCPs) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -9889,7 +11054,7 @@ XS(_wrap_Dataset_SetGCPs) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -9953,7 +11118,7 @@ XS(_wrap_Dataset_FlushCache) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -10043,7 +11208,7 @@ XS(_wrap_Dataset__AddBand) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -10114,7 +11279,7 @@ XS(_wrap_Dataset_CreateMaskBand) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -10169,25 +11334,37 @@ XS(_wrap_Dataset_GetFileList) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
     }
     {
       /* %typemap(out) char **CSL */
-      AV *av = (AV*)sv_2mortal((SV*)newAV());
-      if (result) {
-        int i;
-        for (i = 0; result[i]; i++) {
-          SV *s = newSVpv(result[i], 0);
-          if (!av_store(av, i, s))
-          SvREFCNT_dec(s);
+      if (GIMME_V == G_ARRAY) {
+        if (result) {
+          int i;
+          for (i = 0; result[i]; i++) {
+            if (i>items-1) EXTEND(SP, 1);
+            ST(argvi) = sv_2mortal(newSVpv(result[i], 0));
+            argvi++;
+          }
+          CSLDestroy(result);
         }
-        CSLDestroy(result);
+      } else {
+        AV *av = (AV*)sv_2mortal((SV*)newAV());
+        if (result) {
+          int i;
+          for (i = 0; result[i]; i++) {
+            SV *s = newSVpv(result[i], 0);
+            if (!av_store(av, i, s))
+            SvREFCNT_dec(s);
+          }
+          CSLDestroy(result);
+        }
+        ST(argvi) = newRV_noinc((SV*)av);
+        argvi++;
       }
-      ST(argvi) = newRV_noinc((SV*)av);
-      argvi++;
     }
     
     XSRETURN(argvi);
@@ -10381,7 +11558,7 @@ XS(_wrap_Dataset_WriteRaster) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -10605,7 +11782,7 @@ XS(_wrap_Dataset_ReadRaster) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -10705,7 +11882,7 @@ XS(_wrap_Band_XSize_get) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -10756,7 +11933,7 @@ XS(_wrap_Band_YSize_get) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -10807,7 +11984,7 @@ XS(_wrap_Band_DataType_get) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -10858,7 +12035,7 @@ XS(_wrap_Band_GetBand) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -10916,7 +12093,7 @@ XS(_wrap_Band_GetBlockSize) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -10983,7 +12160,7 @@ XS(_wrap_Band_GetColorInterpretation) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -11034,7 +12211,7 @@ XS(_wrap_Band_GetRasterColorInterpretation) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -11093,7 +12270,7 @@ XS(_wrap_Band_SetColorInterpretation) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -11156,7 +12333,7 @@ XS(_wrap_Band_SetRasterColorInterpretation) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -11219,7 +12396,7 @@ XS(_wrap_Band_GetNoDataValue) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -11285,7 +12462,7 @@ XS(_wrap_Band_SetNoDataValue) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -11340,7 +12517,7 @@ XS(_wrap_Band_GetUnitType) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -11350,6 +12527,70 @@ XS(_wrap_Band_GetUnitType) {
     XSRETURN(argvi);
   fail:
     
+    SWIG_croak_null();
+  }
+}
+
+
+XS(_wrap_Band_SetUnitType) {
+  {
+    GDALRasterBandShadow *arg1 = (GDALRasterBandShadow *) 0 ;
+    char *arg2 = (char *) 0 ;
+    void *argp1 = 0 ;
+    int res1 = 0 ;
+    int res2 ;
+    char *buf2 = 0 ;
+    int alloc2 = 0 ;
+    int argvi = 0;
+    CPLErr result;
+    dXSARGS;
+    
+    if ((items < 2) || (items > 2)) {
+      SWIG_croak("Usage: Band_SetUnitType(self,val);");
+    }
+    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_GDALRasterBandShadow, 0 |  0 );
+    if (!SWIG_IsOK(res1)) {
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Band_SetUnitType" "', argument " "1"" of type '" "GDALRasterBandShadow *""'"); 
+    }
+    arg1 = reinterpret_cast< GDALRasterBandShadow * >(argp1);
+    res2 = SWIG_AsCharPtrAndSize(ST(1), &buf2, NULL, &alloc2);
+    if (!SWIG_IsOK(res2)) {
+      SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "Band_SetUnitType" "', argument " "2"" of type '" "char const *""'");
+    }
+    arg2 = reinterpret_cast< char * >(buf2);
+    {
+      CPLErrorReset();
+      result = (CPLErr)GDALRasterBandShadow_SetUnitType(arg1,(char const *)arg2);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /* 
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
+    {
+      /* %typemap(out) CPLErr */
+    }
+    
+    if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
+    XSRETURN(argvi);
+  fail:
+    
+    if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
     SWIG_croak_null();
   }
 }
@@ -11391,7 +12632,7 @@ XS(_wrap_Band_GetRasterCategoryNames) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -11403,7 +12644,7 @@ XS(_wrap_Band_GetRasterCategoryNames) {
       if ( stringarray != NULL ) {
         int n = CSLCount( stringarray );
         for ( int i = 0; i < n; i++ ) {
-          SV *s = newSVpv(stringarray[i], strlen(*stringarray));
+          SV *s = newSVpv(stringarray[i], 0);
           if (!av_store(av, i, s))
           SvREFCNT_dec(s);
         }
@@ -11483,7 +12724,7 @@ XS(_wrap_Band_SetRasterCategoryNames) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -11552,7 +12793,7 @@ XS(_wrap_Band_GetMinimum) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -11618,7 +12859,7 @@ XS(_wrap_Band_GetMaximum) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -11684,7 +12925,7 @@ XS(_wrap_Band_GetOffset) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -11750,7 +12991,7 @@ XS(_wrap_Band_GetScale) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -11766,6 +13007,132 @@ XS(_wrap_Band_GetScale) {
     
     XSRETURN(argvi);
   fail:
+    
+    SWIG_croak_null();
+  }
+}
+
+
+XS(_wrap_Band_SetOffset) {
+  {
+    GDALRasterBandShadow *arg1 = (GDALRasterBandShadow *) 0 ;
+    double arg2 ;
+    void *argp1 = 0 ;
+    int res1 = 0 ;
+    double val2 ;
+    int ecode2 = 0 ;
+    int argvi = 0;
+    CPLErr result;
+    dXSARGS;
+    
+    if ((items < 2) || (items > 2)) {
+      SWIG_croak("Usage: Band_SetOffset(self,val);");
+    }
+    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_GDALRasterBandShadow, 0 |  0 );
+    if (!SWIG_IsOK(res1)) {
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Band_SetOffset" "', argument " "1"" of type '" "GDALRasterBandShadow *""'"); 
+    }
+    arg1 = reinterpret_cast< GDALRasterBandShadow * >(argp1);
+    ecode2 = SWIG_AsVal_double SWIG_PERL_CALL_ARGS_2(ST(1), &val2);
+    if (!SWIG_IsOK(ecode2)) {
+      SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "Band_SetOffset" "', argument " "2"" of type '" "double""'");
+    } 
+    arg2 = static_cast< double >(val2);
+    {
+      CPLErrorReset();
+      result = (CPLErr)GDALRasterBandShadow_SetOffset(arg1,arg2);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /* 
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
+    {
+      /* %typemap(out) CPLErr */
+    }
+    
+    
+    XSRETURN(argvi);
+  fail:
+    
+    
+    SWIG_croak_null();
+  }
+}
+
+
+XS(_wrap_Band_SetScale) {
+  {
+    GDALRasterBandShadow *arg1 = (GDALRasterBandShadow *) 0 ;
+    double arg2 ;
+    void *argp1 = 0 ;
+    int res1 = 0 ;
+    double val2 ;
+    int ecode2 = 0 ;
+    int argvi = 0;
+    CPLErr result;
+    dXSARGS;
+    
+    if ((items < 2) || (items > 2)) {
+      SWIG_croak("Usage: Band_SetScale(self,val);");
+    }
+    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_GDALRasterBandShadow, 0 |  0 );
+    if (!SWIG_IsOK(res1)) {
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Band_SetScale" "', argument " "1"" of type '" "GDALRasterBandShadow *""'"); 
+    }
+    arg1 = reinterpret_cast< GDALRasterBandShadow * >(argp1);
+    ecode2 = SWIG_AsVal_double SWIG_PERL_CALL_ARGS_2(ST(1), &val2);
+    if (!SWIG_IsOK(ecode2)) {
+      SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "Band_SetScale" "', argument " "2"" of type '" "double""'");
+    } 
+    arg2 = static_cast< double >(val2);
+    {
+      CPLErrorReset();
+      result = (CPLErr)GDALRasterBandShadow_SetScale(arg1,arg2);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /* 
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
+    {
+      /* %typemap(out) CPLErr */
+    }
+    
+    
+    XSRETURN(argvi);
+  fail:
+    
     
     SWIG_croak_null();
   }
@@ -11840,13 +13207,13 @@ XS(_wrap_Band_GetStatistics) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
     }
     {
-      /* %typemap(out) IF_ERROR_RETURN_NONE (do not return the error code) */
+      /* %typemap(out) IF_ERROR_RETURN_NONE */
     }
     if (SWIG_IsTmpObj(res4)) {
       if (argvi >= items) EXTEND(sp,1);  ST(argvi) = SWIG_From_double  SWIG_PERL_CALL_ARGS_1((*arg4)); argvi++  ;
@@ -11984,13 +13351,13 @@ XS(_wrap_Band_ComputeStatistics) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
     }
     {
-      /* %typemap(out) IF_ERROR_RETURN_NONE (do not return the error code) */
+      /* %typemap(out) IF_ERROR_RETURN_NONE */
     }
     if (SWIG_IsTmpObj(res3)) {
       if (argvi >= items) EXTEND(sp,1);  ST(argvi) = SWIG_From_double  SWIG_PERL_CALL_ARGS_1((*arg3)); argvi++  ;
@@ -12105,7 +13472,7 @@ XS(_wrap_Band_SetStatistics) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -12164,7 +13531,7 @@ XS(_wrap_Band_GetOverviewCount) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -12223,7 +13590,7 @@ XS(_wrap_Band_GetOverview) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -12324,7 +13691,7 @@ XS(_wrap_Band_Checksum) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -12398,7 +13765,7 @@ XS(_wrap_Band_ComputeRasterMinMax) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -12473,7 +13840,7 @@ XS(_wrap_Band_ComputeBandStats) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -12551,7 +13918,7 @@ XS(_wrap_Band_Fill) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -12717,7 +14084,7 @@ XS(_wrap_Band_ReadRaster) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -12920,7 +14287,7 @@ XS(_wrap_Band_WriteRaster) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -12988,7 +14355,7 @@ XS(_wrap_Band_FlushCache) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -13039,7 +14406,7 @@ XS(_wrap_Band_GetRasterColorTable) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -13090,7 +14457,7 @@ XS(_wrap_Band_GetColorTable) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -13149,7 +14516,7 @@ XS(_wrap_Band_SetRasterColorTable) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -13210,7 +14577,7 @@ XS(_wrap_Band_SetColorTable) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -13263,7 +14630,7 @@ XS(_wrap_Band_GetDefaultRAT) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -13322,7 +14689,7 @@ XS(_wrap_Band_SetDefaultRAT) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -13375,7 +14742,7 @@ XS(_wrap_Band_GetMaskBand) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -13426,7 +14793,7 @@ XS(_wrap_Band_GetMaskFlags) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -13485,7 +14852,7 @@ XS(_wrap_Band_CreateMaskBand) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -13625,13 +14992,13 @@ XS(_wrap_Band__GetHistogram) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
     }
     {
-      /* %typemap(out) IF_ERROR_RETURN_NONE (do not return the error code) */
+      /* %typemap(out) IF_ERROR_RETURN_NONE */
     }
     {
       /* %typemap(argout) (int len, int *output) */
@@ -13759,13 +15126,13 @@ XS(_wrap_Band_GetDefaultHistogram) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
     }
     {
-      /* %typemap(out) IF_ERROR_RETURN_NONE (do not return the error code) */
+      /* %typemap(out) IF_ERROR_RETURN_NONE */
     }
     if (SWIG_IsTmpObj(res2)) {
       if (argvi >= items) EXTEND(sp,1);  ST(argvi) = SWIG_From_double  SWIG_PERL_CALL_ARGS_1((*arg2)); argvi++  ;
@@ -13867,7 +15234,7 @@ XS(_wrap_Band_SetDefaultHistogram) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -13932,7 +15299,7 @@ XS(_wrap_Band_HasArbitraryOverviews) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -14075,7 +15442,7 @@ XS(_wrap_Band_ContourGenerate) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -14150,7 +15517,7 @@ XS(_wrap_new_ColorTable) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -14200,7 +15567,7 @@ XS(_wrap_delete_ColorTable) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -14251,7 +15618,7 @@ XS(_wrap_ColorTable_Clone) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -14302,7 +15669,7 @@ XS(_wrap_ColorTable__GetPaletteInterpretation) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -14353,7 +15720,7 @@ XS(_wrap_ColorTable_GetCount) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -14412,7 +15779,7 @@ XS(_wrap_ColorTable_GetColorEntry) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -14491,7 +15858,7 @@ XS(_wrap_ColorTable_GetColorEntryAsRGB) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -14586,7 +15953,7 @@ XS(_wrap_ColorTable__SetColorEntry) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -14696,7 +16063,7 @@ XS(_wrap_ColorTable_CreateColorRamp) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -14753,7 +16120,7 @@ XS(_wrap_new_RasterAttributeTable) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -14801,7 +16168,7 @@ XS(_wrap_delete_RasterAttributeTable) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -14852,7 +16219,7 @@ XS(_wrap_RasterAttributeTable_Clone) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -14903,7 +16270,7 @@ XS(_wrap_RasterAttributeTable_GetColumnCount) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -14962,7 +16329,7 @@ XS(_wrap_RasterAttributeTable_GetNameOfCol) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -15023,7 +16390,7 @@ XS(_wrap_RasterAttributeTable__GetUsageOfCol) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -15084,7 +16451,7 @@ XS(_wrap_RasterAttributeTable__GetTypeOfCol) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -15145,7 +16512,7 @@ XS(_wrap_RasterAttributeTable__GetColOfUsage) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -15198,7 +16565,7 @@ XS(_wrap_RasterAttributeTable_GetRowCount) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -15265,7 +16632,7 @@ XS(_wrap_RasterAttributeTable_GetValueAsString) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -15336,7 +16703,7 @@ XS(_wrap_RasterAttributeTable_GetValueAsInt) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -15407,7 +16774,7 @@ XS(_wrap_RasterAttributeTable_GetValueAsDouble) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -15482,7 +16849,7 @@ XS(_wrap_RasterAttributeTable_SetValueAsString) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -15560,7 +16927,7 @@ XS(_wrap_RasterAttributeTable_SetValueAsInt) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -15640,7 +17007,7 @@ XS(_wrap_RasterAttributeTable_SetValueAsDouble) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -15704,7 +17071,7 @@ XS(_wrap_RasterAttributeTable_SetRowCount) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -15782,7 +17149,7 @@ XS(_wrap_RasterAttributeTable__CreateColumn) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -15847,7 +17214,7 @@ XS(_wrap_RasterAttributeTable_GetLinearBinning) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -15930,7 +17297,7 @@ XS(_wrap_RasterAttributeTable_SetLinearBinning) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -15993,7 +17360,7 @@ XS(_wrap_RasterAttributeTable_GetRowOfValue) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -16065,7 +17432,7 @@ XS(_wrap_TermProgress_nocb) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -16203,7 +17570,7 @@ XS(_wrap__ComputeMedianCutPCT) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -16352,7 +17719,7 @@ XS(_wrap__DitherRGB2PCT) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -16514,7 +17881,7 @@ XS(_wrap__ReprojectImage) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -16657,7 +18024,7 @@ XS(_wrap__ComputeProximity) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -16844,7 +18211,7 @@ XS(_wrap__RasterizeLayer) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -17025,7 +18392,7 @@ XS(_wrap__Polygonize) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -17181,7 +18548,7 @@ XS(_wrap_FillNodata) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -17352,7 +18719,7 @@ XS(_wrap__SieveFilter) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -17481,7 +18848,7 @@ XS(_wrap__RegenerateOverview) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -17496,6 +18863,194 @@ XS(_wrap__RegenerateOverview) {
     
     
     if (alloc3 == SWIG_NEWOBJ) delete[] buf3;
+    
+    SWIG_croak_null();
+  }
+}
+
+
+XS(_wrap_ContourGenerate) {
+  {
+    GDALRasterBandShadow *arg1 = (GDALRasterBandShadow *) 0 ;
+    double arg2 ;
+    double arg3 ;
+    int arg4 ;
+    double *arg5 = (double *) 0 ;
+    int arg6 ;
+    double arg7 ;
+    OGRLayerShadow *arg8 = (OGRLayerShadow *) 0 ;
+    int arg9 ;
+    int arg10 ;
+    GDALProgressFunc arg11 = (GDALProgressFunc) NULL ;
+    void *arg12 = (void *) NULL ;
+    void *argp1 = 0 ;
+    int res1 = 0 ;
+    double val2 ;
+    int ecode2 = 0 ;
+    double val3 ;
+    int ecode3 = 0 ;
+    int val6 ;
+    int ecode6 = 0 ;
+    double val7 ;
+    int ecode7 = 0 ;
+    void *argp8 = 0 ;
+    int res8 = 0 ;
+    int val9 ;
+    int ecode9 = 0 ;
+    int val10 ;
+    int ecode10 = 0 ;
+    int argvi = 0;
+    int result;
+    dXSARGS;
+    
+    SavedEnv saved_env;
+    saved_env.fct = NULL;
+    saved_env.data = NULL;
+    if ((items < 9) || (items > 11)) {
+      SWIG_croak("Usage: ContourGenerate(srcBand,contourInterval,contourBase,fixedLevelCount,fixedLevels,useNoData,noDataValue,dstLayer,idField,elevField,callback,callback_data);");
+    }
+    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_GDALRasterBandShadow, 0 |  0 );
+    if (!SWIG_IsOK(res1)) {
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "ContourGenerate" "', argument " "1"" of type '" "GDALRasterBandShadow *""'"); 
+    }
+    arg1 = reinterpret_cast< GDALRasterBandShadow * >(argp1);
+    ecode2 = SWIG_AsVal_double SWIG_PERL_CALL_ARGS_2(ST(1), &val2);
+    if (!SWIG_IsOK(ecode2)) {
+      SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "ContourGenerate" "', argument " "2"" of type '" "double""'");
+    } 
+    arg2 = static_cast< double >(val2);
+    ecode3 = SWIG_AsVal_double SWIG_PERL_CALL_ARGS_2(ST(2), &val3);
+    if (!SWIG_IsOK(ecode3)) {
+      SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "ContourGenerate" "', argument " "3"" of type '" "double""'");
+    } 
+    arg3 = static_cast< double >(val3);
+    {
+      /* %typemap(in,numinputs=1) (int nList, double* pList) */
+      if (!(SvROK(ST(3)) && (SvTYPE(SvRV(ST(3)))==SVt_PVAV)))
+      SWIG_croak("expected a reference to an array");
+      AV *av = (AV*)(SvRV(ST(3)));
+      arg4 = av_len(av)+1;
+      arg5 = (double*) malloc(arg4*sizeof(double));
+      for( int i = 0; i<arg4; i++ ) {
+        SV **sv = av_fetch(av, i, 0);
+        arg5[i] =  SvNV(*sv);
+      }
+    }
+    ecode6 = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(4), &val6);
+    if (!SWIG_IsOK(ecode6)) {
+      SWIG_exception_fail(SWIG_ArgError(ecode6), "in method '" "ContourGenerate" "', argument " "6"" of type '" "int""'");
+    } 
+    arg6 = static_cast< int >(val6);
+    ecode7 = SWIG_AsVal_double SWIG_PERL_CALL_ARGS_2(ST(5), &val7);
+    if (!SWIG_IsOK(ecode7)) {
+      SWIG_exception_fail(SWIG_ArgError(ecode7), "in method '" "ContourGenerate" "', argument " "7"" of type '" "double""'");
+    } 
+    arg7 = static_cast< double >(val7);
+    res8 = SWIG_ConvertPtr(ST(6), &argp8,SWIGTYPE_p_OGRLayerShadow, 0 |  0 );
+    if (!SWIG_IsOK(res8)) {
+      SWIG_exception_fail(SWIG_ArgError(res8), "in method '" "ContourGenerate" "', argument " "8"" of type '" "OGRLayerShadow *""'"); 
+    }
+    arg8 = reinterpret_cast< OGRLayerShadow * >(argp8);
+    ecode9 = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(7), &val9);
+    if (!SWIG_IsOK(ecode9)) {
+      SWIG_exception_fail(SWIG_ArgError(ecode9), "in method '" "ContourGenerate" "', argument " "9"" of type '" "int""'");
+    } 
+    arg9 = static_cast< int >(val9);
+    ecode10 = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(8), &val10);
+    if (!SWIG_IsOK(ecode10)) {
+      SWIG_exception_fail(SWIG_ArgError(ecode10), "in method '" "ContourGenerate" "', argument " "10"" of type '" "int""'");
+    } 
+    arg10 = static_cast< int >(val10);
+    if (items > 9) {
+      {
+        /* %typemap(in) (GDALProgressFunc callback = NULL) */
+        if (SvOK(ST(9))) {
+          if (SvROK(ST(9))) {
+            if (SvTYPE(SvRV(ST(9))) != SVt_PVCV) {
+              SWIG_croak("the callback arg must be a reference to a subroutine\n");
+            } else {
+              saved_env.fct = (SV *)ST(9);
+              arg11 = &callback_d_cp_vp;
+            }
+          } else {
+            SWIG_croak("the callback arg must be a reference to a subroutine\n");
+          }
+        }
+      }
+    }
+    if (items > 10) {
+      {
+        /* %typemap(in) (void* callback_data=NULL) */
+        if (SvOK(ST(10)))
+        saved_env.data = (SV *)ST(10);
+        if (saved_env.fct)
+        arg12 = (void *)(&saved_env); /* the Perl layer must make sure that this parameter is always given */
+      }
+    }
+    {
+      if (!arg1) {
+        SWIG_exception(SWIG_ValueError,"Received a NULL pointer.");
+      }
+    }
+    {
+      if (!arg8) {
+        SWIG_exception(SWIG_ValueError,"Received a NULL pointer.");
+      }
+    }
+    {
+      CPLErrorReset();
+      result = (int)ContourGenerate(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11,arg12);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /* 
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
+    ST(argvi) = SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(result)); argvi++ ;
+    
+    
+    
+    {
+      /* %typemap(freearg) (int nList, double* pList) */
+      if (arg5)
+      free((void*) arg5);
+    }
+    
+    
+    
+    
+    
+    
+    XSRETURN(argvi);
+  fail:
+    
+    
+    
+    {
+      /* %typemap(freearg) (int nList, double* pList) */
+      if (arg5)
+      free((void*) arg5);
+    }
+    
+    
+    
+    
+    
     
     SWIG_croak_null();
   }
@@ -17585,7 +19140,7 @@ XS(_wrap__AutoCreateWarpedVRT) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -17679,7 +19234,7 @@ XS(_wrap_new_Transformer) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -17739,7 +19294,7 @@ XS(_wrap_delete_Transformer) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -17813,7 +19368,7 @@ XS(_wrap_Transformer_TransformPoint__SWIG_0) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -17913,7 +19468,7 @@ XS(_wrap_Transformer_TransformPoint__SWIG_1) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -18066,7 +19621,7 @@ XS(_wrap_Transformer_TransformPoint) {
 }
 
 
-XS(_wrap_Transformer_TransformPoints) {
+XS(_wrap_Transformer__TransformPoints) {
   {
     GDALTransformerInfoShadow *arg1 = (GDALTransformerInfoShadow *) 0 ;
     int arg2 ;
@@ -18087,16 +19642,16 @@ XS(_wrap_Transformer_TransformPoints) {
     dXSARGS;
     
     if ((items < 4) || (items > 4)) {
-      SWIG_croak("Usage: Transformer_TransformPoints(self,bDstToSrc,nCount,x,y,z,panSuccess);");
+      SWIG_croak("Usage: Transformer__TransformPoints(self,bDstToSrc,nCount,x,y,z,panSuccess);");
     }
     res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_GDALTransformerInfoShadow, 0 |  0 );
     if (!SWIG_IsOK(res1)) {
-      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Transformer_TransformPoints" "', argument " "1"" of type '" "GDALTransformerInfoShadow *""'"); 
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Transformer__TransformPoints" "', argument " "1"" of type '" "GDALTransformerInfoShadow *""'"); 
     }
     arg1 = reinterpret_cast< GDALTransformerInfoShadow * >(argp1);
     ecode2 = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(1), &val2);
     if (!SWIG_IsOK(ecode2)) {
-      SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "Transformer_TransformPoints" "', argument " "2"" of type '" "int""'");
+      SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "Transformer__TransformPoints" "', argument " "2"" of type '" "int""'");
     } 
     arg2 = static_cast< int >(val2);
     {
@@ -18131,7 +19686,7 @@ XS(_wrap_Transformer_TransformPoints) {
     }
     res7 = SWIG_ConvertPtr(ST(3), &argp7,SWIGTYPE_p_int, 0 |  0 );
     if (!SWIG_IsOK(res7)) {
-      SWIG_exception_fail(SWIG_ArgError(res7), "in method '" "Transformer_TransformPoints" "', argument " "7"" of type '" "int *""'"); 
+      SWIG_exception_fail(SWIG_ArgError(res7), "in method '" "Transformer__TransformPoints" "', argument " "7"" of type '" "int *""'"); 
     }
     arg7 = reinterpret_cast< int * >(argp7);
     _saved[0] = ST(2);
@@ -18154,7 +19709,7 @@ XS(_wrap_Transformer_TransformPoints) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -18267,7 +19822,7 @@ XS(_wrap_ApplyGeoTransform) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -18349,7 +19904,7 @@ XS(_wrap_InvGeoTransform) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -18415,7 +19970,7 @@ XS(_wrap_VersionInfo) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -18457,7 +20012,7 @@ XS(_wrap_AllRegister) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -18497,7 +20052,7 @@ XS(_wrap_GDALDestroyDriverManager) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -18521,7 +20076,7 @@ XS(_wrap_GetCacheMax) {
     }
     {
       CPLErrorReset();
-      result = (int)GDALGetCacheMax();
+      result = (int)wrapper_GDALGetCacheMax();
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
         SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
@@ -18538,7 +20093,48 @@ XS(_wrap_GetCacheMax) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
+    ST(argvi) = SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(result)); argvi++ ;
+    XSRETURN(argvi);
+  fail:
+    SWIG_croak_null();
+  }
+}
+
+
+XS(_wrap_GetCacheUsed) {
+  {
+    int argvi = 0;
+    int result;
+    dXSARGS;
+    
+    if ((items < 0) || (items > 0)) {
+      SWIG_croak("Usage: GetCacheUsed();");
+    }
+    {
+      CPLErrorReset();
+      result = (int)wrapper_GDALGetCacheUsed();
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /* 
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -18569,7 +20165,7 @@ XS(_wrap_SetCacheMax) {
     arg1 = static_cast< int >(val1);
     {
       CPLErrorReset();
-      GDALSetCacheMax(arg1);
+      wrapper_GDALSetCacheMax(arg1);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
         SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
@@ -18586,7 +20182,7 @@ XS(_wrap_SetCacheMax) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -18596,47 +20192,6 @@ XS(_wrap_SetCacheMax) {
     XSRETURN(argvi);
   fail:
     
-    SWIG_croak_null();
-  }
-}
-
-
-XS(_wrap_GetCacheUsed) {
-  {
-    int argvi = 0;
-    int result;
-    dXSARGS;
-    
-    if ((items < 0) || (items > 0)) {
-      SWIG_croak("Usage: GetCacheUsed();");
-    }
-    {
-      CPLErrorReset();
-      result = (int)GDALGetCacheUsed();
-      CPLErr eclass = CPLGetLastErrorType();
-      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
-        
-        
-        
-        
-        
-      }
-      
-      
-      /* 
-          Make warnings regular Perl warnings. This duplicates the warning
-          message if DontUseExceptions() is in effect (it is not by default).
-          */
-      if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
-      }
-      
-      
-    }
-    ST(argvi) = SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(result)); argvi++ ;
-    XSRETURN(argvi);
-  fail:
     SWIG_croak_null();
   }
 }
@@ -18678,7 +20233,7 @@ XS(_wrap_GetDataTypeSize) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -18729,7 +20284,7 @@ XS(_wrap_DataTypeIsComplex) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -18780,7 +20335,7 @@ XS(_wrap_GetDataTypeName) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -18832,7 +20387,7 @@ XS(_wrap_GetDataTypeByName) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -18883,7 +20438,7 @@ XS(_wrap_GetColorInterpretationName) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -18934,7 +20489,7 @@ XS(_wrap_GetPaletteInterpretationName) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -19004,7 +20559,7 @@ XS(_wrap_DecToDMS) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -19059,7 +20614,7 @@ XS(_wrap_PackedDMSToDec) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -19110,7 +20665,7 @@ XS(_wrap_DecToPackedDMS) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -19162,7 +20717,7 @@ XS(_wrap_ParseXMLString) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -19189,7 +20744,7 @@ XS(_wrap_SerializeXMLTree) {
   {
     CPLXMLNode *arg1 = (CPLXMLNode *) 0 ;
     int argvi = 0;
-    char *result = 0 ;
+    retStringAndCPLFree *result = 0 ;
     dXSARGS;
     
     if ((items < 1) || (items > 1)) {
@@ -19205,7 +20760,7 @@ XS(_wrap_SerializeXMLTree) {
     }
     {
       CPLErrorReset();
-      result = (char *)CPLSerializeXMLTree(arg1);
+      result = (retStringAndCPLFree *)CPLSerializeXMLTree(arg1);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
         SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
@@ -19222,12 +20777,24 @@ XS(_wrap_SerializeXMLTree) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
     }
-    ST(argvi) = SWIG_FromCharPtr((const char *)result); argvi++ ;
+    
+    /* %typemap(out) (retStringAndCPLFree*) */
+    if(result)
+    {
+      ST(argvi) = SWIG_FromCharPtr((const char *)result);
+      CPLFree(result);
+    }
+    else
+    {
+      ST(argvi) = sv_newmortal();
+    }
+    argvi++ ;
+    
     {
       /* %typemap(freearg) (CPLXMLNode *xmlnode) */
       if ( arg1 ) CPLDestroyXMLNode( arg1 );
@@ -19271,7 +20838,7 @@ XS(_wrap_GetDriverCount) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -19326,7 +20893,7 @@ XS(_wrap_GetDriverByName) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -19377,7 +20944,7 @@ XS(_wrap__GetDriver) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -19406,7 +20973,7 @@ XS(_wrap__Open__SWIG_1) {
     dXSARGS;
     
     if ((items < 1) || (items > 2)) {
-      SWIG_croak("Usage: _Open(name,eAccess);");
+      SWIG_croak("Usage: _Open(utf8_path,eAccess);");
     }
     res1 = SWIG_AsCharPtrAndSize(ST(0), &buf1, NULL, &alloc1);
     if (!SWIG_IsOK(res1)) {
@@ -19444,7 +21011,7 @@ XS(_wrap__Open__SWIG_1) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -19525,7 +21092,7 @@ XS(_wrap__OpenShared__SWIG_1) {
     dXSARGS;
     
     if ((items < 1) || (items > 2)) {
-      SWIG_croak("Usage: _OpenShared(name,eAccess);");
+      SWIG_croak("Usage: _OpenShared(utf8_path,eAccess);");
     }
     res1 = SWIG_AsCharPtrAndSize(ST(0), &buf1, NULL, &alloc1);
     if (!SWIG_IsOK(res1)) {
@@ -19563,7 +21130,7 @@ XS(_wrap__OpenShared__SWIG_1) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -19642,7 +21209,7 @@ XS(_wrap_IdentifyDriver) {
     dXSARGS;
     
     if ((items < 1) || (items > 2)) {
-      SWIG_croak("Usage: IdentifyDriver(pszDatasource,papszSiblings);");
+      SWIG_croak("Usage: IdentifyDriver(utf8_path,papszSiblings);");
     }
     res1 = SWIG_AsCharPtrAndSize(ST(0), &buf1, NULL, &alloc1);
     if (!SWIG_IsOK(res1)) {
@@ -19678,6 +21245,11 @@ XS(_wrap_IdentifyDriver) {
       }
     }
     {
+      if (!arg1) {
+        SWIG_exception(SWIG_ValueError,"Received a NULL pointer.");
+      }
+    }
+    {
       CPLErrorReset();
       result = (GDALDriverShadow *)IdentifyDriver((char const *)arg1,arg2);
       CPLErr eclass = CPLGetLastErrorType();
@@ -19696,7 +21268,7 @@ XS(_wrap_IdentifyDriver) {
           message if DontUseExceptions() is in effect (it is not by default).
           */
       if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg() );
+        warn( CPLGetLastErrorMsg(), "%s" );
       }
       
       
@@ -19734,6 +21306,7 @@ static void *_p_GDALRasterBandShadowTo_p_GDALMajorObjectShadow(void *x, int *SWI
 static swig_type_info _swigt__p_CPLErrorHandler = {"_p_CPLErrorHandler", "CPLErrorHandler *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_CPLXMLNode = {"_p_CPLXMLNode", "CPLXMLNode *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_GByte = {"_p_GByte", "GByte *", 0, 0, (void*)0, 0};
+static swig_type_info _swigt__p_GDALAsyncReaderShadow = {"_p_GDALAsyncReaderShadow", "GDALAsyncReaderShadow *", 0, 0, (void*)"Geo::GDAL::AsyncReader", 0};
 static swig_type_info _swigt__p_GDALColorEntry = {"_p_GDALColorEntry", "GDALColorEntry *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_GDALColorTableShadow = {"_p_GDALColorTableShadow", "GDALColorTableShadow *", 0, 0, (void*)"Geo::GDAL::ColorTable", 0};
 static swig_type_info _swigt__p_GDALDatasetShadow = {"_p_GDALDatasetShadow", "GDALDatasetShadow *", 0, 0, (void*)"Geo::GDAL::Dataset", 0};
@@ -19746,18 +21319,21 @@ static swig_type_info _swigt__p_GDALTransformerInfoShadow = {"_p_GDALTransformer
 static swig_type_info _swigt__p_GDAL_GCP = {"_p_GDAL_GCP", "GDAL_GCP *", 0, 0, (void*)"Geo::GDAL::GCP", 0};
 static swig_type_info _swigt__p_OGRLayerShadow = {"_p_OGRLayerShadow", "OGRLayerShadow *", 0, 0, (void*)"Geo::OGR::Layer", 0};
 static swig_type_info _swigt__p_SavedEnv = {"_p_SavedEnv", "SavedEnv *", 0, 0, (void*)"Geo::GDAL::SavedEnv", 0};
-static swig_type_info _swigt__p_char = {"_p_char", "char *", 0, 0, (void*)0, 0};
+static swig_type_info _swigt__p_VSIStatBufL = {"_p_VSIStatBufL", "VSIStatBufL *", 0, 0, (void*)0, 0};
+static swig_type_info _swigt__p_char = {"_p_char", "char *|retStringAndCPLFree *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_double = {"_p_double", "double *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_f_double_p_q_const__char_p_void__int = {"_p_f_double_p_q_const__char_p_void__int", "int (*)(double,char const *,void *)", 0, 0, (void*)0, 0};
-static swig_type_info _swigt__p_int = {"_p_int", "OGRFieldType *|GDALRATFieldType *|GDALAccess *|int *|OGRwkbByteOrder *|CPLErr *|GDALRATFieldUsage *|OGRJustification *|GDALColorInterp *|GDALPaletteInterp *|GDALResampleAlg *|OGRErr *|OGRwkbGeometryType *|GDALDataType *", 0, 0, (void*)0, 0};
+static swig_type_info _swigt__p_int = {"_p_int", "OGRFieldType *|GDALRATFieldType *|GDALAccess *|int *|OGRwkbByteOrder *|CPLErr *|GDALRATFieldUsage *|OGRJustification *|GDALPaletteInterp *|GDALColorInterp *|GDALResampleAlg *|OGRErr *|OGRwkbGeometryType *|GDALDataType *|GDALAsyncStatusType *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_p_GDAL_GCP = {"_p_p_GDAL_GCP", "GDAL_GCP **", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_p_char = {"_p_p_char", "char **", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_p_int = {"_p_p_int", "int **", 0, 0, (void*)0, 0};
+static swig_type_info _swigt__p_void = {"_p_void", "VSILFILE *|void *", 0, 0, (void*)0, 0};
 
 static swig_type_info *swig_type_initial[] = {
   &_swigt__p_CPLErrorHandler,
   &_swigt__p_CPLXMLNode,
   &_swigt__p_GByte,
+  &_swigt__p_GDALAsyncReaderShadow,
   &_swigt__p_GDALColorEntry,
   &_swigt__p_GDALColorTableShadow,
   &_swigt__p_GDALDatasetShadow,
@@ -19770,6 +21346,7 @@ static swig_type_info *swig_type_initial[] = {
   &_swigt__p_GDAL_GCP,
   &_swigt__p_OGRLayerShadow,
   &_swigt__p_SavedEnv,
+  &_swigt__p_VSIStatBufL,
   &_swigt__p_char,
   &_swigt__p_double,
   &_swigt__p_f_double_p_q_const__char_p_void__int,
@@ -19777,11 +21354,13 @@ static swig_type_info *swig_type_initial[] = {
   &_swigt__p_p_GDAL_GCP,
   &_swigt__p_p_char,
   &_swigt__p_p_int,
+  &_swigt__p_void,
 };
 
 static swig_cast_info _swigc__p_CPLErrorHandler[] = {  {&_swigt__p_CPLErrorHandler, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_CPLXMLNode[] = {  {&_swigt__p_CPLXMLNode, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_GByte[] = {  {&_swigt__p_GByte, 0, 0, 0},{0, 0, 0, 0}};
+static swig_cast_info _swigc__p_GDALAsyncReaderShadow[] = {  {&_swigt__p_GDALAsyncReaderShadow, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_GDALColorEntry[] = {  {&_swigt__p_GDALColorEntry, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_GDALColorTableShadow[] = {  {&_swigt__p_GDALColorTableShadow, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_GDALDatasetShadow[] = {  {&_swigt__p_GDALDatasetShadow, 0, 0, 0},{0, 0, 0, 0}};
@@ -19794,6 +21373,7 @@ static swig_cast_info _swigc__p_GDALTransformerInfoShadow[] = {  {&_swigt__p_GDA
 static swig_cast_info _swigc__p_GDAL_GCP[] = {  {&_swigt__p_GDAL_GCP, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_OGRLayerShadow[] = {  {&_swigt__p_OGRLayerShadow, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_SavedEnv[] = {  {&_swigt__p_SavedEnv, 0, 0, 0},{0, 0, 0, 0}};
+static swig_cast_info _swigc__p_VSIStatBufL[] = {  {&_swigt__p_VSIStatBufL, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_char[] = {  {&_swigt__p_char, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_double[] = {  {&_swigt__p_double, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_f_double_p_q_const__char_p_void__int[] = {  {&_swigt__p_f_double_p_q_const__char_p_void__int, 0, 0, 0},{0, 0, 0, 0}};
@@ -19801,11 +21381,13 @@ static swig_cast_info _swigc__p_int[] = {  {&_swigt__p_int, 0, 0, 0},{0, 0, 0, 0
 static swig_cast_info _swigc__p_p_GDAL_GCP[] = {  {&_swigt__p_p_GDAL_GCP, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_p_char[] = {  {&_swigt__p_p_char, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_p_int[] = {  {&_swigt__p_p_int, 0, 0, 0},{0, 0, 0, 0}};
+static swig_cast_info _swigc__p_void[] = {  {&_swigt__p_void, 0, 0, 0},{0, 0, 0, 0}};
 
 static swig_cast_info *swig_cast_initial[] = {
   _swigc__p_CPLErrorHandler,
   _swigc__p_CPLXMLNode,
   _swigc__p_GByte,
+  _swigc__p_GDALAsyncReaderShadow,
   _swigc__p_GDALColorEntry,
   _swigc__p_GDALColorTableShadow,
   _swigc__p_GDALDatasetShadow,
@@ -19818,6 +21400,7 @@ static swig_cast_info *swig_cast_initial[] = {
   _swigc__p_GDAL_GCP,
   _swigc__p_OGRLayerShadow,
   _swigc__p_SavedEnv,
+  _swigc__p_VSIStatBufL,
   _swigc__p_char,
   _swigc__p_double,
   _swigc__p_f_double_p_q_const__char_p_void__int,
@@ -19825,6 +21408,7 @@ static swig_cast_info *swig_cast_initial[] = {
   _swigc__p_p_GDAL_GCP,
   _swigc__p_p_char,
   _swigc__p_p_int,
+  _swigc__p_void,
 };
 
 
@@ -19861,8 +21445,8 @@ static swig_command_info swig_commands[] = {
 {"Geo::GDALc::PushFinderLocation", _wrap_PushFinderLocation},
 {"Geo::GDALc::PopFinderLocation", _wrap_PopFinderLocation},
 {"Geo::GDALc::FinderClean", _wrap_FinderClean},
-{"Geo::GDALc::FindFile", _wrap_FindFile},
-{"Geo::GDALc::ReadDir", _wrap_ReadDir},
+{"Geo::GDALc::_FindFile", _wrap__FindFile},
+{"Geo::GDALc::_ReadDir", _wrap__ReadDir},
 {"Geo::GDALc::SetConfigOption", _wrap_SetConfigOption},
 {"Geo::GDALc::GetConfigOption", _wrap_GetConfigOption},
 {"Geo::GDALc::CPLBinaryToHex", _wrap_CPLBinaryToHex},
@@ -19870,6 +21454,15 @@ static swig_command_info swig_commands[] = {
 {"Geo::GDALc::FileFromMemBuffer", _wrap_FileFromMemBuffer},
 {"Geo::GDALc::Unlink", _wrap_Unlink},
 {"Geo::GDALc::HasThreadSupport", _wrap_HasThreadSupport},
+{"Geo::GDALc::Mkdir", _wrap_Mkdir},
+{"Geo::GDALc::Rmdir", _wrap_Rmdir},
+{"Geo::GDALc::Rename", _wrap_Rename},
+{"Geo::GDALc::Stat", _wrap_Stat},
+{"Geo::GDALc::VSIFOpenL", _wrap_VSIFOpenL},
+{"Geo::GDALc::VSIFCloseL", _wrap_VSIFCloseL},
+{"Geo::GDALc::VSIFSeekL", _wrap_VSIFSeekL},
+{"Geo::GDALc::VSIFTellL", _wrap_VSIFTellL},
+{"Geo::GDALc::VSIFWriteL", _wrap_VSIFWriteL},
 {"Geo::GDALc::MajorObject_GetDescription", _wrap_MajorObject_GetDescription},
 {"Geo::GDALc::MajorObject_SetDescription", _wrap_MajorObject_SetDescription},
 {"Geo::GDALc::MajorObject_GetMetadata", _wrap_MajorObject_GetMetadata},
@@ -19883,6 +21476,7 @@ static swig_command_info swig_commands[] = {
 {"Geo::GDALc::Driver_CreateCopy", _wrap_Driver_CreateCopy},
 {"Geo::GDALc::Driver_Delete", _wrap_Driver_Delete},
 {"Geo::GDALc::Driver_Rename", _wrap_Driver_Rename},
+{"Geo::GDALc::Driver_CopyFiles", _wrap_Driver_CopyFiles},
 {"Geo::GDALc::Driver_Register", _wrap_Driver_Register},
 {"Geo::GDALc::Driver_Deregister", _wrap_Driver_Deregister},
 {"Geo::GDALc::GCP_GCPX_set", _wrap_GCP_GCPX_set},
@@ -19930,6 +21524,10 @@ static swig_command_info swig_commands[] = {
 {"Geo::GDALc::GDAL_GCP_get_Id", _wrap_GDAL_GCP_get_Id},
 {"Geo::GDALc::GDAL_GCP_set_Id", _wrap_GDAL_GCP_set_Id},
 {"Geo::GDALc::GCPsToGeoTransform", _wrap_GCPsToGeoTransform},
+{"Geo::GDALc::delete_AsyncReader", _wrap_delete_AsyncReader},
+{"Geo::GDALc::AsyncReader_GetNextUpdatedRegion", _wrap_AsyncReader_GetNextUpdatedRegion},
+{"Geo::GDALc::AsyncReader_LockBuffer", _wrap_AsyncReader_LockBuffer},
+{"Geo::GDALc::AsyncReader_UnlockBuffer", _wrap_AsyncReader_UnlockBuffer},
 {"Geo::GDALc::Dataset_RasterXSize_get", _wrap_Dataset_RasterXSize_get},
 {"Geo::GDALc::Dataset_RasterYSize_get", _wrap_Dataset_RasterYSize_get},
 {"Geo::GDALc::Dataset_RasterCount_get", _wrap_Dataset_RasterCount_get},
@@ -19964,12 +21562,15 @@ static swig_command_info swig_commands[] = {
 {"Geo::GDALc::Band_GetNoDataValue", _wrap_Band_GetNoDataValue},
 {"Geo::GDALc::Band_SetNoDataValue", _wrap_Band_SetNoDataValue},
 {"Geo::GDALc::Band_GetUnitType", _wrap_Band_GetUnitType},
+{"Geo::GDALc::Band_SetUnitType", _wrap_Band_SetUnitType},
 {"Geo::GDALc::Band_GetRasterCategoryNames", _wrap_Band_GetRasterCategoryNames},
 {"Geo::GDALc::Band_SetRasterCategoryNames", _wrap_Band_SetRasterCategoryNames},
 {"Geo::GDALc::Band_GetMinimum", _wrap_Band_GetMinimum},
 {"Geo::GDALc::Band_GetMaximum", _wrap_Band_GetMaximum},
 {"Geo::GDALc::Band_GetOffset", _wrap_Band_GetOffset},
 {"Geo::GDALc::Band_GetScale", _wrap_Band_GetScale},
+{"Geo::GDALc::Band_SetOffset", _wrap_Band_SetOffset},
+{"Geo::GDALc::Band_SetScale", _wrap_Band_SetScale},
 {"Geo::GDALc::Band_GetStatistics", _wrap_Band_GetStatistics},
 {"Geo::GDALc::Band_ComputeStatistics", _wrap_Band_ComputeStatistics},
 {"Geo::GDALc::Band_SetStatistics", _wrap_Band_SetStatistics},
@@ -20035,19 +21636,20 @@ static swig_command_info swig_commands[] = {
 {"Geo::GDALc::FillNodata", _wrap_FillNodata},
 {"Geo::GDALc::_SieveFilter", _wrap__SieveFilter},
 {"Geo::GDALc::_RegenerateOverview", _wrap__RegenerateOverview},
+{"Geo::GDALc::ContourGenerate", _wrap_ContourGenerate},
 {"Geo::GDALc::_AutoCreateWarpedVRT", _wrap__AutoCreateWarpedVRT},
 {"Geo::GDALc::new_Transformer", _wrap_new_Transformer},
 {"Geo::GDALc::delete_Transformer", _wrap_delete_Transformer},
 {"Geo::GDALc::Transformer_TransformPoint", _wrap_Transformer_TransformPoint},
-{"Geo::GDALc::Transformer_TransformPoints", _wrap_Transformer_TransformPoints},
+{"Geo::GDALc::Transformer__TransformPoints", _wrap_Transformer__TransformPoints},
 {"Geo::GDALc::ApplyGeoTransform", _wrap_ApplyGeoTransform},
 {"Geo::GDALc::InvGeoTransform", _wrap_InvGeoTransform},
 {"Geo::GDALc::VersionInfo", _wrap_VersionInfo},
 {"Geo::GDALc::AllRegister", _wrap_AllRegister},
 {"Geo::GDALc::GDALDestroyDriverManager", _wrap_GDALDestroyDriverManager},
 {"Geo::GDALc::GetCacheMax", _wrap_GetCacheMax},
-{"Geo::GDALc::SetCacheMax", _wrap_SetCacheMax},
 {"Geo::GDALc::GetCacheUsed", _wrap_GetCacheUsed},
+{"Geo::GDALc::SetCacheMax", _wrap_SetCacheMax},
 {"Geo::GDALc::GetDataTypeSize", _wrap_GetDataTypeSize},
 {"Geo::GDALc::DataTypeIsComplex", _wrap_DataTypeIsComplex},
 {"Geo::GDALc::GetDataTypeName", _wrap_GetDataTypeName},
@@ -20370,6 +21972,7 @@ XS(SWIG_init) {
   SWIG_TypeClientData(SWIGTYPE_p_GDALMajorObjectShadow, (void*) "Geo::GDAL::MajorObject");
   SWIG_TypeClientData(SWIGTYPE_p_GDALDriverShadow, (void*) "Geo::GDAL::Driver");
   SWIG_TypeClientData(SWIGTYPE_p_GDAL_GCP, (void*) "Geo::GDAL::GCP");
+  SWIG_TypeClientData(SWIGTYPE_p_GDALAsyncReaderShadow, (void*) "Geo::GDAL::AsyncReader");
   SWIG_TypeClientData(SWIGTYPE_p_GDALDatasetShadow, (void*) "Geo::GDAL::Dataset");
   SWIG_TypeClientData(SWIGTYPE_p_GDALRasterBandShadow, (void*) "Geo::GDAL::Band");
   SWIG_TypeClientData(SWIGTYPE_p_GDALColorTableShadow, (void*) "Geo::GDAL::ColorTable");

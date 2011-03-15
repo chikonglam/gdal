@@ -27,10 +27,13 @@
 #include "pcidsk_config.h"
 #include "pcidsk_types.h"
 #include "pcidsk_exception.h"
+#include "pcidsk_georef.h"
 #include "core/pcidsk_utils.h"
 #include <cstdlib>
 #include <cstring>
 #include <cctype>
+#include <cstdio>
+#include <cmath>
 
 using namespace PCIDSK;
 
@@ -122,13 +125,50 @@ int64 PCIDSK::atoint64( const char *str_value )
 }
 
 /************************************************************************/
+/*                            SwapPixels()                              */
+/************************************************************************/
+/**
+ * @brief Perform an endianess swap for a given buffer of pixels
+ *
+ * Baed on the provided data type, do an appropriate endianess swap for
+ * a buffer of pixels. Deals with the Complex case specially, in
+ * particular.
+ *
+ * @param data the pixels to be swapped
+ * @param type the data type of the pixels
+ * @param count the count of pixels (not bytes, words, etc.)
+ */
+void PCIDSK::SwapPixels(void* const data, 
+                        const eChanType type, 
+                        const std::size_t count)
+{
+    switch(type) {
+    case CHN_8U:
+    case CHN_16U:
+    case CHN_16S:
+    case CHN_32R:
+        SwapData(data, DataTypeSize(type), count);
+        break;
+    case CHN_C16U:
+    case CHN_C16S:
+    case CHN_C32R:
+        SwapData(data, DataTypeSize(type) / 2, count * 2);
+        break;
+    default:
+        ThrowPCIDSKException("Unknown data type passed to SwapPixels."
+            "This is a software bug. Please contact your vendor.");
+    }
+}
+
+/************************************************************************/
 /*                              SwapData()                              */
 /************************************************************************/
 
-void PCIDSK::SwapData( void *data, int size, int count )
+void PCIDSK::SwapData( void* const data, const int size, const int wcount )
 
 {
-    uint8 *data8 = (uint8 *) data;
+    uint8* data8 = reinterpret_cast<uint8*>(data);
+    std::size_t count = wcount;
 
     if( size == 2 )
     {
@@ -251,7 +291,9 @@ void PCIDSK::ParseTileFormat( std::string full_text,
     if( *next_text != '\0' )
     {
         compression = next_text;
-        if( compression != "RLE"
+        if (compression == "NO_WARNINGS")
+            compression = "";
+        else if( compression != "RLE"
             && strncmp(compression.c_str(),"JPEG",4) != 0 
             && compression != "NONE"
             && compression != "QUADTREE" )
@@ -331,4 +373,94 @@ int PCIDSK::pci_strncasecmp( const char *string1, const char *string2, int len )
 
     return 0;
 }
+
+/************************************************************************/
+/*                         ProjParmsFromText()                          */
+/*                                                                      */
+/*      function to turn a ProjParms string (17 floating point          */
+/*      numbers) into an array, as well as attaching the units code     */
+/*      derived from the geosys string.                                 */
+/************************************************************************/
+
+std::vector<double> PCIDSK::ProjParmsFromText( std::string geosys, 
+                                               std::string sparms )
+
+{
+    std::vector<double> dparms;
+    const char *next = sparms.c_str();
+
+    for( next = sparms.c_str(); *next != '\0'; )
+    {
+        dparms.push_back( atof(next) );
+
+        // move past this token
+        while( *next != '\0' && *next != ' ' )
+            next++;
+
+        // move past white space.
+        while( *next != '\0' && *next == ' ' )
+            next++;
+    }
+
+    dparms.resize(18);
+
+    // This is rather iffy!
+    if( EQUALN(geosys.c_str(),"DEGREE",3) )
+        dparms[17] = (double) (int) UNIT_DEGREE;
+    else if( EQUALN(geosys.c_str(),"MET",3) )
+        dparms[17] = (double) (int) UNIT_METER;
+    else if( EQUALN(geosys.c_str(),"FOOT",4) )
+        dparms[17] = (double) (int) UNIT_US_FOOT;
+    else if( EQUALN(geosys.c_str(),"FEET",4) )
+        dparms[17] = (double) (int) UNIT_US_FOOT;
+    else if( EQUALN(geosys.c_str(),"INTL FOOT",5) )
+        dparms[17] = (double) (int) UNIT_INTL_FOOT;
+    else if( EQUALN(geosys.c_str(),"SPCS",4) )
+        dparms[17] = (double) (int) UNIT_METER;
+    else if( EQUALN(geosys.c_str(),"SPIF",4) )
+        dparms[17] = (double) (int) UNIT_INTL_FOOT;
+    else if( EQUALN(geosys.c_str(),"SPAF",4) )
+        dparms[17] = (double) (int) UNIT_US_FOOT;
+    else
+        dparms[17] = -1.0; /* unknown */
+    
+    return dparms;
+}
+
+/************************************************************************/
+/*                          ProjParmsToText()                           */
+/************************************************************************/
+
+std::string PCIDSK::ProjParmsToText( std::vector<double> dparms )
+
+{
+    unsigned int i;
+    std::string sparms;
+
+    for( i = 0; i < 17; i++ )
+    {
+        char value[64];
+        double dvalue;
+
+        if( i < dparms.size() )
+            dvalue = dparms[i];
+        else
+            dvalue = 0.0;
+
+        if( dvalue == floor(dvalue) )
+            sprintf( value, "%d", (int) dvalue );
+        else
+            sprintf( value, "%.15g", dvalue );
+        
+        if( i > 0 )
+            sparms += " ";
+        
+        sparms += value;
+    }
+
+    return sparms;
+}
+
+
+
 

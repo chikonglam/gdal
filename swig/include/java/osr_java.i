@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: osr_java.i 16554 2009-03-12 20:10:50Z rouault $
+ * $Id: osr_java.i 19751 2010-05-22 11:29:53Z rouault $
  *
  * Name:     osr_java.i
  * Project:  GDAL SWIG Interface
@@ -166,10 +166,6 @@
 /************************************************************************/
 /*                        GetWellKnownGeogCSAsWKT()                     */
 /************************************************************************/
-
-%{
-typedef char retStringAndCPLFree;
-%}
 
 %inline %{
 retStringAndCPLFree* GetWellKnownGeogCSAsWKT( const char *name ) {

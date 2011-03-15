@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdalpamrasterband.cpp 17579 2009-08-25 18:31:50Z rouault $
+ * $Id: gdalpamrasterband.cpp 20810 2010-10-11 15:22:08Z warmerdam $
  *
  * Project:  GDAL Core
  * Purpose:  Implementation of GDALPamRasterBand, a raster band base class
@@ -33,7 +33,7 @@
 #include "gdal_rat.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: gdalpamrasterband.cpp 17579 2009-08-25 18:31:50Z rouault $");
+CPL_CVSID("$Id: gdalpamrasterband.cpp 20810 2010-10-11 15:22:08Z warmerdam $");
 
 /************************************************************************/
 /*                         GDALPamRasterBand()                          */
@@ -60,7 +60,7 @@ GDALPamRasterBand::~GDALPamRasterBand()
 /*                           SerializeToXML()                           */
 /************************************************************************/
 
-CPLXMLNode *GDALPamRasterBand::SerializeToXML( const char *pszVRTPath )
+CPLXMLNode *GDALPamRasterBand::SerializeToXML( const char *pszUnused )
 
 {
     if( psPam == NULL )
@@ -86,8 +86,11 @@ CPLXMLNode *GDALPamRasterBand::SerializeToXML( const char *pszVRTPath )
 
     if( psPam->bNoDataValueSet )
     {
-        CPLSetXMLValue( psTree, "NoDataValue", 
-                        oFmt.Printf( "%.14E", psPam->dfNoDataValue ) );
+        if (CPLIsNan(psPam->dfNoDataValue))
+            CPLSetXMLValue( psTree, "NoDataValue",  "nan" );
+        else
+            CPLSetXMLValue( psTree, "NoDataValue", 
+                            oFmt.Printf( "%.14E", psPam->dfNoDataValue ) );
 
         /* hex encode real floating point values */
         if( psPam->dfNoDataValue != floor(psPam->dfNoDataValue) 
@@ -289,7 +292,7 @@ void GDALPamRasterBand::PamClear()
 /*                              XMLInit()                               */
 /************************************************************************/
 
-CPLErr GDALPamRasterBand::XMLInit( CPLXMLNode *psTree, const char *pszVRTPath )
+CPLErr GDALPamRasterBand::XMLInit( CPLXMLNode *psTree, const char *pszUnused )
 
 {
     PamInitialize();
@@ -302,7 +305,7 @@ CPLErr GDALPamRasterBand::XMLInit( CPLXMLNode *psTree, const char *pszVRTPath )
 /* -------------------------------------------------------------------- */
 /*      Collect various other items of metadata.                        */
 /* -------------------------------------------------------------------- */
-    SetDescription( CPLGetXMLValue( psTree, "Description", "" ) );
+    GDALMajorObject::SetDescription( CPLGetXMLValue( psTree, "Description", "" ) );
     
     if( CPLGetXMLValue( psTree, "NoDataValue", NULL ) != NULL )
     {
@@ -476,6 +479,18 @@ CPLErr GDALPamRasterBand::CloneInfo( GDALRasterBand *poSrcBand,
     }
 
 /* -------------------------------------------------------------------- */
+/*      Band description.                                               */
+/* -------------------------------------------------------------------- */
+    if( nCloneFlags & GCIF_BAND_DESCRIPTION )
+    {
+        if( strlen(poSrcBand->GetDescription()) > 0 )
+        {
+            if( !bOnlyIfMissing || strlen(GetDescription()) == 0 )
+                GDALPamRasterBand::SetDescription( poSrcBand->GetDescription());
+        }
+    }
+
+/* -------------------------------------------------------------------- */
 /*      NODATA                                                          */
 /* -------------------------------------------------------------------- */
     if( nCloneFlags & GCIF_NODATA )
@@ -546,7 +561,7 @@ CPLErr GDALPamRasterBand::CloneInfo( GDALRasterBand *poSrcBand,
 /* -------------------------------------------------------------------- */
 /*      color table.                                                    */
 /* -------------------------------------------------------------------- */
-    if( nCloneFlags && GCIF_COLORTABLE )
+    if( nCloneFlags & GCIF_COLORTABLE )
     {
         if( poSrcBand->GetColorTable() != NULL )
         {
@@ -561,7 +576,7 @@ CPLErr GDALPamRasterBand::CloneInfo( GDALRasterBand *poSrcBand,
 /* -------------------------------------------------------------------- */
 /*      Raster Attribute Table.                                         */
 /* -------------------------------------------------------------------- */
-    if( nCloneFlags && GCIF_RAT )
+    if( nCloneFlags & GCIF_RAT )
     {
         const GDALRasterAttributeTable *poRAT = poSrcBand->GetDefaultRAT();
 
@@ -763,12 +778,21 @@ CPLErr GDALPamRasterBand::SetUnitType( const char *pszNewValue )
 
     if( psPam )
     {
-        CPLFree( psPam->pszUnitType );
-        
-        if( pszNewValue == NULL )
+        if( pszNewValue == NULL || pszNewValue[0] == '\0' )
+        {
+            if (psPam->pszUnitType != NULL)
+                psPam->poParentDS->MarkPamDirty();
+            CPLFree( psPam->pszUnitType );
             psPam->pszUnitType = NULL;
+        }
         else
+        {
+            if (psPam->pszUnitType == NULL ||
+                strcmp(psPam->pszUnitType, pszNewValue) != 0)
+                psPam->poParentDS->MarkPamDirty();
+            CPLFree( psPam->pszUnitType );
             psPam->pszUnitType = CPLStrdup(pszNewValue);
+        }
 
         return CE_None;
     }
@@ -888,6 +912,24 @@ GDALColorInterp GDALPamRasterBand::GetColorInterpretation()
         return psPam->eColorInterp;
     else
         return GDALRasterBand::GetColorInterpretation();
+}
+
+/************************************************************************/
+/*                           SetDescription()                           */
+/*                                                                      */
+/*      We let the GDALMajorObject hold the description, but we keep    */
+/*      track of whether it has been changed so we know to save it.     */
+/************************************************************************/
+
+void GDALPamRasterBand::SetDescription( const char *pszDescription )
+
+{
+    PamInitialize();
+
+    if( psPam && strcmp(pszDescription,GetDescription()) != 0 )
+        psPam->poParentDS->MarkPamDirty();
+    
+    GDALRasterBand::SetDescription( pszDescription );
 }
 
 /************************************************************************/

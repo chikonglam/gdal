@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_dxf.h 18754 2010-02-07 22:09:13Z warmerdam $
+ * $Id: ogr_dxf.h 21245 2010-12-13 18:32:46Z warmerdam $
  *
  * Project:  DXF Translator
  * Purpose:  Definition of classes for OGR .dxf driver.
@@ -34,7 +34,8 @@
 #include "cpl_conv.h"
 #include <vector>
 #include <map>
-#include <stack>
+#include <set>
+#include <queue>
 
 class OGRDXFDataSource;
 
@@ -55,10 +56,37 @@ public:
 };
 
 /************************************************************************/
+/*                         OGRDXFBlocksLayer()                          */
+/************************************************************************/
+
+class OGRDXFBlocksLayer : public OGRLayer
+{
+    OGRDXFDataSource   *poDS;
+
+    OGRFeatureDefn     *poFeatureDefn;
+    
+    int                 iNextFID;
+    unsigned int        iNextSubFeature;
+
+    std::map<CPLString,DXFBlockDefinition>::iterator oIt;
+
+  public:
+    OGRDXFBlocksLayer( OGRDXFDataSource *poDS );
+    ~OGRDXFBlocksLayer();
+
+    void                ResetReading();
+    OGRFeature *        GetNextFeature();
+
+    OGRFeatureDefn *    GetLayerDefn() { return poFeatureDefn; }
+
+    int                 TestCapability( const char * );
+
+    OGRFeature *        GetNextUnfilteredFeature();
+};
+
+/************************************************************************/
 /*                             OGRDXFLayer                              */
 /************************************************************************/
-class OGRDXFDataSource;
-
 class OGRDXFLayer : public OGRLayer
 {
     OGRDXFDataSource   *poDS;
@@ -66,7 +94,7 @@ class OGRDXFLayer : public OGRLayer
     OGRFeatureDefn     *poFeatureDefn;
     int                 iNextFID;
 
-    std::stack<OGRFeature*> apoPendingFeatures;
+    std::queue<OGRFeature*> apoPendingFeatures;
     void                ClearPendingFeatures();
 
     std::map<CPLString,CPLString> oStyleProperties;
@@ -88,8 +116,12 @@ class OGRDXFLayer : public OGRLayer
     OGRFeature *        TranslateMTEXT();
     OGRFeature *        TranslateTEXT();
     OGRFeature *        TranslateDIMENSION();
+    OGRFeature *        TranslateHATCH();
 
     void                FormatDimension( CPLString &osText, double dfValue );
+    OGRErr              CollectBoundaryPath( OGRGeometryCollection * );
+
+    static CPLString    TextUnescape( const char * );
 
   public:
     OGRDXFLayer( OGRDXFDataSource *poDS );
@@ -106,17 +138,20 @@ class OGRDXFLayer : public OGRLayer
 };
 
 /************************************************************************/
-/*                           OGRDXFDataSource                           */
+/*                             OGRDXFReader                             */
+/*                                                                      */
+/*      A class for very low level DXF reading without interpretation.  */
 /************************************************************************/
 
-class OGRDXFDataSource : public OGRDataSource
+class OGRDXFReader
 {
-    CPLString           osName;
-    std::vector<OGRDXFLayer*> apoLayers;
-
-    FILE                *fp;
-
-    int                 iEntitiesSectionOffset;
+public:
+    OGRDXFReader();
+    ~OGRDXFReader();
+    
+    void                Initialize( VSILFILE * fp );
+    
+    VSILFILE           *fp;
 
     int                 iSrcBufferOffset;
     int                 nSrcBufferBytes;
@@ -125,6 +160,27 @@ class OGRDXFDataSource : public OGRDataSource
     
     int                 nLastValueSize;
 
+    int                 ReadValue( char *pszValueBuffer, 
+                                   int nValueBufferSize = 81 );
+    void                UnreadValue();
+    void                LoadDiskChunk();
+    void                ResetReadPointer( int iNewOffset );
+};
+
+
+/************************************************************************/
+/*                           OGRDXFDataSource                           */
+/************************************************************************/
+
+class OGRDXFDataSource : public OGRDataSource
+{
+    VSILFILE           *fp;
+
+    CPLString           osName;
+    std::vector<OGRLayer*> apoLayers;
+
+    int                 iEntitiesSectionOffset;
+
     std::map<CPLString,DXFBlockDefinition> oBlockMap;
     std::map<CPLString,CPLString> oHeaderVariables;
 
@@ -132,12 +188,18 @@ class OGRDXFDataSource : public OGRDataSource
     std::map< CPLString, std::map<CPLString,CPLString> > 
                         oLayerTable;
 
+    std::map<CPLString,CPLString> oLineTypeTable;
+
+    int                 bInlineBlocks;
+
+    OGRDXFReader        oReader;
+
   public:
                         OGRDXFDataSource();
                         ~OGRDXFDataSource();
 
-    int                 Open( const char * pszFilename );
-    
+    int                 Open( const char * pszFilename, int bHeaderOnly=FALSE );
+
     const char          *GetName() { return osName; }
 
     int                 GetLayerCount() { return apoLayers.size(); }
@@ -147,30 +209,37 @@ class OGRDXFDataSource : public OGRDataSource
 
     // The following is only used by OGRDXFLayer
 
-    // Implemented in ogrdxf_diskio.cpp 
-    int                 ReadValue( char *pszValueBuffer, 
-                                   int nValueBufferSize = 81 );
-    void                UnreadValue();
-    void                LoadDiskChunk();
-    void                ResetReadPointer( int iNewOffset );
-    void                RestartEntities() 
-                        { ResetReadPointer(iEntitiesSectionOffset); }
+    int                 InlineBlocks() { return bInlineBlocks; }
+    void                AddStandardFields( OGRFeatureDefn *poDef );
 
     // Implemented in ogrdxf_blockmap.cpp
     void                ReadBlocksSection();
     OGRGeometry        *SimplifyBlockGeometry( OGRGeometryCollection * );
     DXFBlockDefinition *LookupBlock( const char *pszName );
+    std::map<CPLString,DXFBlockDefinition> &GetBlockMap() { return oBlockMap; }
 
-    // Layer Table Handling (ogrdxf_tables.cpp)
+    // Layer and other Table Handling (ogrdatasource.cpp)
     void                ReadTablesSection();
     void                ReadLayerDefinition();
+    void                ReadLineTypeDefinition();
     const char         *LookupLayerProperty( const char *pszLayer, 
                                              const char *pszProperty );
+    const char         *LookupLineType( const char *pszName );
 
     // Header variables. 
     void                ReadHeaderSection();
     const char         *GetVariable(const char *pszName, 
                                     const char *pszDefault=NULL );
+
+    // reader related.
+    int  ReadValue( char *pszValueBuffer, int nValueBufferSize = 81 )
+        { return oReader.ReadValue( pszValueBuffer, nValueBufferSize ); }
+    void RestartEntities() 
+        { oReader.ResetReadPointer(iEntitiesSectionOffset); }
+    void UnreadValue()
+        { oReader.UnreadValue(); }
+    void ResetReadPointer( int iNewOffset )
+        { oReader.ResetReadPointer( iNewOffset ); }
 };
 
 /************************************************************************/
@@ -181,9 +250,10 @@ class OGRDXFWriterDS;
 
 class OGRDXFWriterLayer : public OGRLayer
 {
-    FILE               *fp;
+    VSILFILE           *fp;
     OGRFeatureDefn     *poFeatureDefn;
-    int                 nNextFID;
+
+    OGRDXFWriterDS     *poDS;
 
     int                 WriteValue( int nCode, const char *pszValue );
     int                 WriteValue( int nCode, int nValue );
@@ -193,11 +263,17 @@ class OGRDXFWriterLayer : public OGRLayer
     OGRErr              WritePOINT( OGRFeature* );
     OGRErr              WriteTEXT( OGRFeature* );
     OGRErr              WritePOLYLINE( OGRFeature*, OGRGeometry* = NULL );
+    OGRErr              WriteINSERT( OGRFeature* );
 
+    static CPLString    TextEscape( const char * );
     int                 ColorStringToDXFColor( const char * );
+    CPLString           PrepareLineTypeDefinition( OGRFeature*, OGRStyleTool* );
+
+    std::map<CPLString,CPLString> oNewLineTypes;
+    int                 nNextAutoID;
 
   public:
-    OGRDXFWriterLayer( FILE *fp );
+    OGRDXFWriterLayer( OGRDXFWriterDS *poDS, VSILFILE *fp );
     ~OGRDXFWriterLayer();
 
     void                ResetReading() {}
@@ -209,6 +285,36 @@ class OGRDXFWriterLayer : public OGRLayer
     OGRErr              CreateFeature( OGRFeature *poFeature );
     OGRErr              CreateField( OGRFieldDefn *poField,
                                      int bApproxOK = TRUE );
+
+    void                ResetFP( VSILFILE * );
+
+    std::map<CPLString,CPLString>& GetNewLineTypeMap() { return oNewLineTypes;}
+};
+
+/************************************************************************/
+/*                       OGRDXFBlocksWriterLayer                        */
+/************************************************************************/
+
+class OGRDXFBlocksWriterLayer : public OGRLayer
+{
+    OGRFeatureDefn     *poFeatureDefn;
+
+  public:
+    OGRDXFBlocksWriterLayer( OGRDXFWriterDS *poDS );
+    ~OGRDXFBlocksWriterLayer();
+
+    void                ResetReading() {}
+    OGRFeature         *GetNextFeature() { return NULL; }
+
+    OGRFeatureDefn *    GetLayerDefn() { return poFeatureDefn; }
+
+    int                 TestCapability( const char * );
+    OGRErr              CreateFeature( OGRFeature *poFeature );
+    OGRErr              CreateField( OGRFieldDefn *poField,
+                                     int bApproxOK = TRUE );
+
+    std::vector<OGRFeature*> apoBlocks;
+    OGRFeature          *FindBlock( const char * );
 };
 
 /************************************************************************/
@@ -217,10 +323,39 @@ class OGRDXFWriterLayer : public OGRLayer
 
 class OGRDXFWriterDS : public OGRDataSource
 {
+    friend class OGRDXFWriterLayer;
+    
+    int                 nNextFID;
+
     CPLString           osName;
     OGRDXFWriterLayer  *poLayer;
-    FILE               *fp;
+    OGRDXFBlocksWriterLayer *poBlocksLayer;
+    VSILFILE           *fp;
     CPLString           osTrailerFile;
+
+    CPLString           osTempFilename;
+    VSILFILE           *fpTemp;
+
+    CPLString           osHeaderFile;
+    OGRDXFDataSource    oHeaderDS;
+    char               **papszLayersToCreate;
+
+    vsi_l_offset        nHANDSEEDOffset;
+
+    std::vector<int>    anDefaultLayerCode;
+    std::vector<CPLString> aosDefaultLayerText;
+
+    std::set<CPLString> aosUsedEntities;
+    void                ScanForEntities( const char *pszFilename,
+                                         const char *pszTarget );
+
+    int                 WriteNewLineTypeRecords( VSILFILE *fp );
+    int                 WriteNewBlockRecords( VSILFILE * );
+    int                 WriteNewBlockDefinitions( VSILFILE * );
+    int                 WriteNewLayerDefinitions( VSILFILE * );
+    int                 TransferUpdateHeader( VSILFILE * );
+    int                 TransferUpdateTrailer( VSILFILE * );
+    int                 FixupHANDSEED( VSILFILE * );
 
   public:
                         OGRDXFWriterDS();
@@ -241,6 +376,9 @@ class OGRDXFWriterDS : public OGRDataSource
                                      OGRwkbGeometryType eGType = wkbUnknown,
                                      char ** papszOptions = NULL );
 
+    int                 CheckEntityID( const char *pszEntityID );
+    long                WriteEntityID( VSILFILE * fp,
+                                       long nPreferredFID = OGRNullFID );
 };
 
 /************************************************************************/
@@ -261,5 +399,6 @@ class OGRDXFDriver : public OGRSFDriver
     OGRDataSource      *CreateDataSource( const char *pszName,
                                           char ** = NULL );
 };
+
 
 #endif /* ndef _OGR_DXF_H_INCLUDED */

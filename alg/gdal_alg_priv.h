@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdal_alg_priv.h 18522 2010-01-11 18:07:15Z mloskot $
+ * $Id: gdal_alg_priv.h 20078 2010-07-16 21:21:29Z rouault $
  *
  * Project:  GDAL Image Processing Algorithms
  * Purpose:  Prototypes and definitions for various GDAL based algorithms:
@@ -116,5 +116,13 @@ public:
 
     void     Clear();
 };
+
+
+typedef void* (*GDALTransformDeserializeFunc)( CPLXMLNode *psTree );
+
+void* GDALRegisterTransformDeserializer(const char* pszTransformName,
+                                       GDALTransformerFunc pfnTransformerFunc,
+                                       GDALTransformDeserializeFunc pfnDeserializeFunc);
+void GDALUnregisterTransformDeserializer(void* pData);
 
 #endif /* ndef GDAL_ALG_PRIV_H_INCLUDED */

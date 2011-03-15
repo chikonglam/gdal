@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: srpdataset.cpp 18436 2010-01-04 20:52:43Z rouault $
+ * $Id: srpdataset.cpp 21203 2010-12-06 20:33:01Z rouault $
  * Purpose:  ASRP/USRP Reader
  * Author:   Frank Warmerdam (warmerdam@pobox.com)
  *
@@ -33,7 +33,7 @@
 #include "cpl_string.h"
 #include "iso8211.h"
 
-CPL_CVSID("$Id: srpdataset.cpp 18436 2010-01-04 20:52:43Z rouault $");
+CPL_CVSID("$Id: srpdataset.cpp 21203 2010-12-06 20:33:01Z rouault $");
 
 class SRPDataset : public GDALPamDataset
 {
@@ -41,7 +41,7 @@ class SRPDataset : public GDALPamDataset
 
     static CPLString ResetTo01( const char* str );
 
-    FILE*        fdIMG;
+    VSILFILE*        fdIMG;
     int*         TILEINDEX;
     int          offsetInIMG;
     CPLString    osProduct;
@@ -564,7 +564,9 @@ int SRPDataset::GetFromRecord(const char* pszFileName, DDFRecord * record)
 
         int nIndexValueWidth = subfieldDefn->GetWidth();
 
-        if (field->GetDataSize() != nIndexValueWidth * NFL * NFC + 1)
+        /* Should be strict comparison, but apparently a few datasets */
+        /* have GetDataSize() greater than the required minimum (#3862) */
+        if (field->GetDataSize() < nIndexValueWidth * NFL * NFC + 1)
         {
             return FALSE;
         }

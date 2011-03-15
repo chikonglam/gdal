@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #******************************************************************************
-#  $Id: gdal_polygonize.py 18953 2010-02-28 12:00:54Z rouault $
+#  $Id: gdal_polygonize.py 19392 2010-04-12 18:27:09Z rouault $
 # 
 #  Project:  GDAL Python Interface
 #  Purpose:  Application for converting raster data to a vector polygon layer.
@@ -205,8 +205,9 @@ result = gdal.Polygonize( srcband, maskband, dst_layer, dst_field, options,
                           callback = prog_func )
     
 srcband = None
+src_ds = None
 dst_ds = None
-
+mask_ds = None
 
 
 

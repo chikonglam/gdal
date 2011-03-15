@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: rawdataset.h 18538 2010-01-12 17:52:08Z mloskot $
+ * $Id: rawdataset.h 20996 2010-10-28 18:38:15Z rouault $
  *
  * Project:  Raw Translator
  * Purpose:  Implementation of RawDataset class.  Intented to be subclassed
@@ -74,7 +74,8 @@ class CPL_DLL RawRasterBand : public GDALPamRasterBand
 protected:
     friend class RawDataset;
 
-    FILE	*fpRaw;
+    FILE       *fpRaw;
+    VSILFILE   *fpRawL;
     int         bIsVSIL;
 
     vsi_l_offset nImgOffset;
@@ -85,6 +86,7 @@ protected:
 
     int		nLoadedScanline;
     void	*pLineBuffer;
+    void        *pLineStart;
     int         bDirty;
 
     GDALColorTable *poCT;
@@ -109,13 +111,13 @@ protected:
 
 public:
 
-                 RawRasterBand( GDALDataset *poDS, int nBand, FILE * fpRaw, 
+                 RawRasterBand( GDALDataset *poDS, int nBand, void * fpRaw,
                                 vsi_l_offset nImgOffset, int nPixelOffset,
                                 int nLineOffset,
                                 GDALDataType eDataType, int bNativeOrder,
                                 int bIsVSIL = FALSE, int bOwnsFP = FALSE );
 
-                 RawRasterBand( FILE * fpRaw, 
+                 RawRasterBand( void * fpRaw,
                                 vsi_l_offset nImgOffset, int nPixelOffset,
                                 int nLineOffset,
                                 GDALDataType eDataType, int bNativeOrder,
@@ -151,7 +153,8 @@ public:
     int          GetLineOffset() { return nLineOffset; }
     int          GetNativeOrder() { return bNativeOrder; }
     int          GetIsVSIL() { return bIsVSIL; }
-    FILE        *GetFP() { return fpRaw; }
+    FILE        *GetFP() { return (bIsVSIL) ? (FILE*)fpRawL : fpRaw; }
+    VSILFILE    *GetFPL() { CPLAssert(bIsVSIL); return fpRawL; }
     int          GetOwnsFP() { return bOwnsFP; }
 };
 

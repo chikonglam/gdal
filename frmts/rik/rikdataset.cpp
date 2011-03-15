@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: rikdataset.cpp 19994 2010-07-08 23:28:38Z rouault $
+ * $Id: rikdataset.cpp 20246 2010-08-10 17:24:28Z rouault $
  *
  * Project:  RIK Reader
  * Purpose:  All code for RIK Reader
@@ -31,7 +31,7 @@
 #include <zlib.h>
 #include "gdal_pam.h"
 
-CPL_CVSID("$Id: rikdataset.cpp 19994 2010-07-08 23:28:38Z rouault $");
+CPL_CVSID("$Id: rikdataset.cpp 20246 2010-08-10 17:24:28Z rouault $");
 
 CPL_C_START
 void	GDALRegister_RIK(void);
@@ -1055,12 +1055,12 @@ GDALDataset *RIKDataset::Open( GDALOpenInfo * poOpenInfo )
               " name: %s\n"
               " header: %s\n"
               " unknown: 0x%X\n"
-              " south: %lf\n"
-              " west: %lf\n"
-              " north: %lf\n"
-              " east: %lf\n"
+              " south: %f\n"
+              " west: %f\n"
+              " north: %f\n"
+              " east: %f\n"
               " original scale: %d\n"
-              " meters per pixel: %lf\n"
+              " meters per pixel: %f\n"
               " block width: %d\n"
               " block height: %d\n"
               " horizontal blocks: %d\n"

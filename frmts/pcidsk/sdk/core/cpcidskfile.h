@@ -59,7 +59,7 @@ namespace PCIDSK
         virtual PCIDSKInterfaces *GetInterfaces() { return &interfaces; }
 
         PCIDSKChannel  *GetChannel( int band );
-        PCIDSKSegment   *GetSegment( int segment );
+        PCIDSKSegment  *GetSegment( int segment );
         std::vector<PCIDSKSegment *> GetSegments();
 
         PCIDSKSegment  *GetSegment( int type, std::string name,
@@ -89,6 +89,9 @@ namespace PCIDSK
 
         void      GetIODetails( void ***io_handle_pp, Mutex ***io_mutex_pp,
             std::string filename = "" );
+
+        bool      GetEDBFileDetails( EDBFile** file_p, Mutex **io_mutex_p,
+                                     std::string filename );
 
         std::string GetMetadataValue( const std::string& key ) 
             { return metadata.GetMetadataValue(key); }
@@ -143,6 +146,9 @@ namespace PCIDSK
 
     // register of open external raw files.
         std::vector<ProtectedFile>  file_list;
+
+    // register of open external databasefiles
+        std::vector<ProtectedEDBFile> edb_file_list;
 
         MetadataSet  metadata;
     };

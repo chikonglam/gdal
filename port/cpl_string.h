@@ -1,5 +1,5 @@
 /**********************************************************************
- * $Id: cpl_string.h 18103 2009-11-25 21:03:23Z rouault $
+ * $Id: cpl_string.h 21136 2010-11-16 22:47:42Z warmerdam $
  *
  * Name:     cpl_string.h
  * Project:  CPL - Common Portability Library
@@ -200,9 +200,9 @@ CPL_C_END
 /* Avoid C2614 errors */
 #ifdef MSVC_OLD_STUPID_BEHAVIOUR
     using std::string;
-# define std_string string
+# define gdal_std_string string
 #else
-# define std_string std::string
+# define gdal_std_string std::string
 #endif 
 
 /* Remove annoying warnings in Microsoft eVC++ and Microsoft Visual C++ */
@@ -213,35 +213,35 @@ CPL_C_END
 
 
 
-class CPL_DLL CPLString : public std_string
+class CPL_DLL CPLString : public gdal_std_string
 {
 public:
 
     
     CPLString(void) {}
-    CPLString( const std::string &oStr ) : std_string( oStr ) {}
-    CPLString( const char *pszStr ) : std_string( pszStr ) {}
+    CPLString( const std::string &oStr ) : gdal_std_string( oStr ) {}
+    CPLString( const char *pszStr ) : gdal_std_string( pszStr ) {}
     
     operator const char* (void) const { return c_str(); }
 
     char& operator[](std::string::size_type i)
     {
-        return std_string::operator[](i);
+        return gdal_std_string::operator[](i);
     }
     
     const char& operator[](std::string::size_type i) const
     {
-        return std_string::operator[](i);
+        return gdal_std_string::operator[](i);
     }
 
     char& operator[](int i)
     {
-        return std_string::operator[](static_cast<std::string::size_type>(i));
+        return gdal_std_string::operator[](static_cast<std::string::size_type>(i));
     }
 
     const char& operator[](int i) const
     {
-        return std_string::operator[](static_cast<std::string::size_type>(i));
+        return gdal_std_string::operator[](static_cast<std::string::size_type>(i));
     }
 
     void Clear() { resize(0); }
@@ -251,6 +251,8 @@ public:
     CPLString &vPrintf( const char *pszFormat, va_list args );
     CPLString &FormatC( double dfValue, const char *pszFormat = NULL );
     CPLString &Trim();
+    CPLString &Recode( const char *pszSrcEncoding, const char *pszDstEncoding );
+
 };
 
 #endif /* def __cplusplus && !CPL_SUPRESS_CPLUSPLUS */

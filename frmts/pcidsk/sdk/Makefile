@@ -27,10 +27,13 @@ OBJ = \
 	segment/cpcidskvectorsegment.o \
 	segment/metadatasegment_p.o \
 	segment/sysblockmap.o \
-	segment/cpcidskrpcmodel.o
+	segment/cpcidskrpcmodel.o \
+	segment/cpcidskgcp2segment.o \
+	segment/cpcidskbitmap.o \
+	segment/cpcidsk_tex.o
 
 
-CXXFLAGS = -g -Wall -fPIC -I. $(JPEG_FLAGS)
+CXXFLAGS = -g -O0 -Wall -fPIC -I. $(JPEG_FLAGS)
 
 default:	pcidsk.a libpcidsk.so
 

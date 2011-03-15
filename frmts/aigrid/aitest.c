@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: aitest.c 19497 2010-04-22 15:40:48Z warmerdam $
+ * $Id: aitest.c 19496 2010-04-22 15:39:29Z warmerdam $
  *
  * Project:  Arc/Info Binary Grid Translator
  * Purpose:  Test mainline for examining AIGrid files.
@@ -29,7 +29,7 @@
 
 #include "aigrid.h"
 
-CPL_CVSID("$Id: aitest.c 19497 2010-04-22 15:40:48Z warmerdam $");
+CPL_CVSID("$Id: aitest.c 19496 2010-04-22 15:39:29Z warmerdam $");
 
 /************************************************************************/
 /*                             DumpMagic()                              */

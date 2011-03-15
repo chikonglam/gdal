@@ -79,15 +79,15 @@ public class Driver : IDisposable {
     return ret;
   }
 
-  public DataSource CopyDataSource(DataSource copy_ds, string name, string[] options) {
-    IntPtr cPtr = OgrPINVOKE.Driver_CopyDataSource(swigCPtr, DataSource.getCPtr(copy_ds), name, (options != null)? new OgrPINVOKE.StringListMarshal(options)._ar : null);
+  public DataSource CopyDataSource(DataSource copy_ds, string utf8_path, string[] options) {
+    IntPtr cPtr = OgrPINVOKE.Driver_CopyDataSource(swigCPtr, DataSource.getCPtr(copy_ds), utf8_path, (options != null)? new OgrPINVOKE.StringListMarshal(options)._ar : null);
     DataSource ret = (cPtr == IntPtr.Zero) ? null : new DataSource(cPtr, true, ThisOwn_true());
     if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
     return ret;
   }
 
-  public DataSource Open(string name, int update) {
-    IntPtr cPtr = OgrPINVOKE.Driver_Open(swigCPtr, name, update);
+  public DataSource Open(string utf8_path, int update) {
+    IntPtr cPtr = OgrPINVOKE.Driver_Open(swigCPtr, utf8_path, update);
     DataSource ret = (cPtr == IntPtr.Zero) ? null : new DataSource(cPtr, true, ThisOwn_true());
     if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
     return ret;
@@ -109,6 +109,16 @@ public class Driver : IDisposable {
     string ret = OgrPINVOKE.Driver_GetName(swigCPtr);
     if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
     return ret;
+  }
+
+  public void Register() {
+    OgrPINVOKE.Driver_Register(swigCPtr);
+    if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
+  }
+
+  public void Deregister() {
+    OgrPINVOKE.Driver_Deregister(swigCPtr);
+    if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
   }
 
 }

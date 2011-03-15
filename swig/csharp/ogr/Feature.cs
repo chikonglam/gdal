@@ -323,6 +323,12 @@ public class Feature : IDisposable {
     return ret;
   }
 
+  public int SetFromWithMap(Feature other, int forgiving, int nList, int[] pList) {
+    int ret = OgrPINVOKE.Feature_SetFromWithMap(swigCPtr, Feature.getCPtr(other), forgiving, nList, pList);
+    if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
+    return ret;
+  }
+
   public string GetStyleString() {
     string ret = OgrPINVOKE.Feature_GetStyleString(swigCPtr);
     if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();

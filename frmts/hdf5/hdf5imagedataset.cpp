@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: hdf5imagedataset.cpp 18176 2009-12-05 00:13:26Z rouault $
+ * $Id: hdf5imagedataset.cpp 21169 2010-11-24 15:57:11Z warmerdam $
  *
  * Project:  Hierarchical Data Format Release 5 (HDF5)
  * Purpose:  Read subdatasets of HDF5 file.
@@ -37,7 +37,7 @@
 #include "hdf5dataset.h"
 #include "ogr_spatialref.h"
 
-CPL_CVSID("$Id: hdf5imagedataset.cpp 18176 2009-12-05 00:13:26Z rouault $");
+CPL_CVSID("$Id: hdf5imagedataset.cpp 21169 2010-11-24 15:57:11Z warmerdam $");
 
 CPL_C_START
 void    GDALRegister_HDF5Image(void);
@@ -377,8 +377,9 @@ GDALDataset *HDF5ImageDataset::Open( GDALOpenInfo * poOpenInfo )
     /*      Create a corresponding GDALDataset.                             */
     /* -------------------------------------------------------------------- */
     /* printf("poOpenInfo->pszFilename %s\n",poOpenInfo->pszFilename); */
-    char **papszName = CSLTokenizeString2(  poOpenInfo->pszFilename,
-                                            ":", CSLT_HONOURSTRINGS );
+    char **papszName = 
+        CSLTokenizeString2(  poOpenInfo->pszFilename,
+                             ":", CSLT_HONOURSTRINGS|CSLT_PRESERVEESCAPES );
 
     if( !((CSLCount(papszName) == 3) || (CSLCount(papszName) == 4)) )
     {
@@ -486,9 +487,6 @@ GDALDataset *HDF5ImageDataset::Open( GDALOpenInfo * poOpenInfo )
 		poBand->SetNoDataValue( 255 );
     }
 
-    
-    poDS->oSRS.SetWellKnownGeogCS( "WGS84" );
-    poDS->oSRS.exportToWkt( &poDS->pszProjection );
     poDS->CreateProjections( );
 
     poDS->SetMetadata( poDS->papszMetadata );
@@ -555,6 +553,9 @@ CPLErr HDF5ImageDataset::CreateProjections()
     nDeltaLat = nRasterYSize / NBGCPLAT;
     nDeltaLon = nRasterXSize / NBGCPLON;
 
+    if( nDeltaLat == 0 || nDeltaLon == 0 )
+        return CE_None;
+
 /* -------------------------------------------------------------------- */
 /*      Create HDF5 Data Hierarchy in a link list                       */
 /* -------------------------------------------------------------------- */
@@ -604,7 +605,8 @@ CPLErr HDF5ImageDataset::CreateProjections()
 		  Longitude );
 	
 	oSRS.SetWellKnownGeogCS( "WGS84" );
-  CPLFree(pszProjection);
+        CPLFree(pszProjection);
+        CPLFree(pszGCPProjection);
 	oSRS.exportToWkt( &pszProjection );
 	oSRS.exportToWkt( &pszGCPProjection );
 	

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: usgsdemdataset.cpp 19468 2010-04-20 20:19:42Z warmerdam $
+ * $Id: usgsdemdataset.cpp 19291 2010-04-03 02:04:35Z warmerdam $
  *
  * Project:  USGS DEM Driver
  * Purpose:  All reader for USGS DEM Reader
@@ -33,7 +33,7 @@
 #include "gdal_pam.h"
 #include "ogr_spatialref.h"
 
-CPL_CVSID("$Id: usgsdemdataset.cpp 19468 2010-04-20 20:19:42Z warmerdam $");
+CPL_CVSID("$Id: usgsdemdataset.cpp 19291 2010-04-03 02:04:35Z warmerdam $");
 
 CPL_C_START
 void	GDALRegister_USGSDEM(void);
@@ -195,7 +195,7 @@ CPLErr USGSDEMRasterBand::IReadBlock( int nBlockXOff, int nBlockYOff,
         djunk = DConvert(poGDS->fp, 24);
         djunk = DConvert(poGDS->fp, 24);
 
-        if( strstr(poGDS->pszProjection,"PROJCS") == NULL )
+        if( EQUALN(poGDS->pszProjection,"GEOGCS",6) )
             dyStart = dyStart / 3600.0;
 
         lygap = (int)((dfYMin - dyStart)/poGDS->adfGeoTransform[5]+ 0.5);
@@ -438,6 +438,9 @@ int USGSDEMDataset::LoadFromFile(FILE *InDem)
             sr.SetWellKnownGeogCS( "NAD83" );
             break;
 
+          case -9:
+            break;
+
           default:
             sr.SetWellKnownGeogCS( "NAD27" );
             break;
@@ -469,7 +472,9 @@ int USGSDEMDataset::LoadFromFile(FILE *InDem)
 /*      pixels and lines, but we have to make the anchors be modulus    */
 /*      the pixel size which what really gets used.                     */
 /* -------------------------------------------------------------------- */
-    if (nCoordSystem == 1 || nCoordSystem == 2 )	// UTM or State Plane
+    if (nCoordSystem == 1          // UTM
+        || nCoordSystem == 2 	   // State Plane
+        || nCoordSystem == -9999 ) // unknown
     {
         int	njunk;
         double  dxStart;
@@ -556,7 +561,8 @@ int USGSDEMDataset::Identify( GDALOpenInfo * poOpenInfo )
     if( !EQUALN((const char *) poOpenInfo->pabyHeader+156, "     0",6)
         && !EQUALN((const char *) poOpenInfo->pabyHeader+156, "     1",6)
         && !EQUALN((const char *) poOpenInfo->pabyHeader+156, "     2",6) 
-        && !EQUALN((const char *) poOpenInfo->pabyHeader+156, "     3",6) )
+        && !EQUALN((const char *) poOpenInfo->pabyHeader+156, "     3",6)
+        && !EQUALN((const char *) poOpenInfo->pabyHeader+156, " -9999",6) )
         return FALSE;
 
     if( !EQUALN((const char *) poOpenInfo->pabyHeader+150, "     1",6) 

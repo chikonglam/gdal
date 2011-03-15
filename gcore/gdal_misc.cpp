@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdal_misc.cpp 19900 2010-06-23 09:30:34Z dron $
+ * $Id: gdal_misc.cpp 21408 2011-01-05 19:26:04Z rouault $
  *
  * Project:  GDAL Core
  * Purpose:  Free standing functions for GDAL.
@@ -34,7 +34,7 @@
 #include <ctype.h>
 #include <string>
 
-CPL_CVSID("$Id: gdal_misc.cpp 19900 2010-06-23 09:30:34Z dron $");
+CPL_CVSID("$Id: gdal_misc.cpp 21408 2011-01-05 19:26:04Z rouault $");
 
 #include "ogr_spatialref.h"
 
@@ -285,7 +285,8 @@ int CPL_STDCALL GDALDataTypeIsComplex( GDALDataType eDataType )
  * datatypes in debug statements, errors and other user output. 
  *
  * @param eDataType type to get name of.
- * @return string corresponding to type.
+ * @return string corresponding to existing data type
+ *         or NULL pointer if invalid type given.
  */
 
 const char * CPL_STDCALL GDALGetDataTypeName( GDALDataType eDataType )
@@ -369,6 +370,76 @@ GDALDataType CPL_STDCALL GDALGetDataTypeByName( const char *pszName )
 }
 
 /************************************************************************/
+/*                        GDALGetAsyncStatusTypeByName()                */
+/************************************************************************/
+/**
+ * Get AsyncStatusType by symbolic name.
+ *
+ * Returns a data type corresponding to the given symbolic name. This
+ * function is opposite to the GDALGetAsyncStatusTypeName().
+ *
+ * @param pszName string containing the symbolic name of the type.
+ * 
+ * @return GDAL AsyncStatus type.
+ */
+GDALAsyncStatusType CPL_DLL CPL_STDCALL GDALGetAsyncStatusTypeByName( const char *pszName )
+{
+	VALIDATE_POINTER1( pszName, "GDALGetAsyncStatusTypeByName", GARIO_ERROR);
+
+    int	iType;
+
+	for( iType = 1; iType < GARIO_TypeCount; iType++ )
+    {
+        if( GDALGetAsyncStatusTypeName((GDALAsyncStatusType)iType) != NULL
+            && EQUAL(GDALGetAsyncStatusTypeName((GDALAsyncStatusType)iType), pszName) )
+        {
+            return (GDALAsyncStatusType)iType;
+        }
+    }
+
+	return GARIO_ERROR;
+}
+
+
+/************************************************************************/
+/*                        GDALGetAsyncStatusTypeName()                 */
+/************************************************************************/
+
+/**
+ * Get name of AsyncStatus data type.
+ *
+ * Returns a symbolic name for the AsyncStatus data type.  This is essentially the
+ * the enumerated item name with the GARIO_ prefix removed.  So GARIO_COMPLETE returns
+ * "COMPLETE".  The returned strings are static strings and should not be modified
+ * or freed by the application.  These strings are useful for reporting
+ * datatypes in debug statements, errors and other user output. 
+ *
+ * @param eAsyncStatusType type to get name of.
+ * @return string corresponding to type.
+ */
+
+ const char * CPL_STDCALL GDALGetAsyncStatusTypeName( GDALAsyncStatusType eAsyncStatusType )
+
+{
+    switch( eAsyncStatusType )
+    {
+      case GARIO_PENDING:
+        return "PENDING";
+
+      case GARIO_UPDATE:
+        return "UPDATE";
+
+      case GARIO_ERROR:
+        return "ERROR";
+
+      case GARIO_COMPLETE:
+        return "COMPLETE";
+      default:
+        return NULL;
+    }
+}
+
+/************************************************************************/
 /*                  GDALGetPaletteInterpretationName()                  */
 /************************************************************************/
 
@@ -420,7 +491,8 @@ const char *GDALGetPaletteInterpretationName( GDALPaletteInterp eInterp )
  * or freed by the application.
  *
  * @param eInterp color interpretation to get name of.
- * @return string corresponding to color interpretation.
+ * @return string corresponding to color interpretation
+ *         or NULL pointer if invalid enumerator given.
  */
 
 const char *GDALGetColorInterpretationName( GDALColorInterp eInterp )
@@ -1002,18 +1074,32 @@ int CPL_STDCALL GDALLoadOziMapFile( const char *pszFilename,
     const char *pszProj = NULL, *pszProjParms = NULL;
     OGRErr eErr = OGRERR_NONE;
 
+    /* The Map Scale Factor has been introduced recently on the 6th line */
+    /* and is a trick that is used to just change that line without changing */
+    /* the rest of the MAP file but providing an imagery that is smaller or larger */
+    /* so we have to correct the pixel/line values read in the .MAP file so they */
+    /* match the actual imagery dimension. Well, this is a bad summary of what */
+    /* is explained at http://tech.groups.yahoo.com/group/OziUsers-L/message/12484 */
+    double dfMSF = 1;
+
     for ( iLine = 5; iLine < nLines; iLine++ )
     {
-        if ( EQUALN(papszLines[iLine], "Map Projection", 14) )
+        if ( EQUALN(papszLines[iLine], "MSF,", 4) )
+        {
+            dfMSF = atof(papszLines[iLine] + 4);
+            if (dfMSF <= 0.01) /* Suspicious values */
+            {
+                CPLDebug("OZI", "Suspicious MSF value : %s", papszLines[iLine]);
+                dfMSF = 1;
+            }
+        }
+        else if ( EQUALN(papszLines[iLine], "Map Projection", 14) )
         {
             pszProj = papszLines[iLine];
-            continue;
         }
-
-        if ( EQUALN(papszLines[iLine], "Projection Setup", 16) )
+        else if ( EQUALN(papszLines[iLine], "Projection Setup", 16) )
         {
             pszProjParms = papszLines[iLine];
-            continue;
         }
     }
 
@@ -1038,7 +1124,10 @@ int CPL_STDCALL GDALLoadOziMapFile( const char *pszFilename,
                                        | CSLT_STRIPENDSPACES );
 
         if ( CSLCount(papszTok) < 12 )
+        {
+            CSLDestroy(papszTok);
             continue;
+        }
 
         if ( CSLCount(papszTok) >= 17
              && EQUALN(papszTok[0], "Point", 5)
@@ -1047,7 +1136,7 @@ int CPL_STDCALL GDALLoadOziMapFile( const char *pszFilename,
              && nCoordinateCount < MAX_GCP )
         {
             int     bReadOk = FALSE;
-            double  dfLon, dfLat;
+            double  dfLon = 0., dfLat = 0.;
 
             if ( !EQUAL(papszTok[6], "")
                  && !EQUAL(papszTok[7], "")
@@ -1099,8 +1188,8 @@ int CPL_STDCALL GDALLoadOziMapFile( const char *pszFilename,
                 GDALInitGCPs( 1, asGCPs + nCoordinateCount );
 
                 // Set pixel/line part
-                asGCPs[nCoordinateCount].dfGCPPixel = CPLAtofM(papszTok[2]);
-                asGCPs[nCoordinateCount].dfGCPLine = CPLAtofM(papszTok[3]);
+                asGCPs[nCoordinateCount].dfGCPPixel = CPLAtofM(papszTok[2]) / dfMSF;
+                asGCPs[nCoordinateCount].dfGCPLine = CPLAtofM(papszTok[3]) / dfMSF;
 
                 asGCPs[nCoordinateCount].dfGCPX = dfLon;
                 asGCPs[nCoordinateCount].dfGCPY = dfLat;
@@ -1126,7 +1215,7 @@ int CPL_STDCALL GDALLoadOziMapFile( const char *pszFilename,
 /*      possible.  Otherwise we will need to use them as GCPs.          */
 /* -------------------------------------------------------------------- */
     if( !GDALGCPsToGeoTransform( nCoordinateCount, asGCPs, padfGeoTransform, 
-                                 FALSE ) )
+                                 CSLTestBoolean(CPLGetConfigOption("OZI_APPROX_GEOTRANSFORM", "NO")) ) )
     {
         if ( pnGCPCount && ppasGCPs )
         {
@@ -1171,13 +1260,11 @@ int CPL_STDCALL GDALReadOziMapFile( const char * pszBaseFilename,
 
     fpOzi = VSIFOpen( pszOzi, "rt" );
 
-#ifndef WIN32
-    if ( fpOzi == NULL )
+    if ( fpOzi == NULL && VSIIsCaseSensitiveFS(pszOzi) )
     {
         pszOzi = CPLResetExtension( pszBaseFilename, "MAP" );
         fpOzi = VSIFOpen( pszOzi, "rt" );
     }
-#endif
     
     if ( fpOzi == NULL )
         return FALSE;
@@ -1355,27 +1442,25 @@ int CPL_STDCALL GDALReadTabFile( const char * pszBaseFilename,
 
 {
     const char	*pszTAB;
-    FILE	*fpTAB;
+    VSILFILE	*fpTAB;
 
 /* -------------------------------------------------------------------- */
 /*      Try lower case, then upper case.                                */
 /* -------------------------------------------------------------------- */
     pszTAB = CPLResetExtension( pszBaseFilename, "tab" );
 
-    fpTAB = VSIFOpen( pszTAB, "rt" );
+    fpTAB = VSIFOpenL( pszTAB, "rt" );
 
-#ifndef WIN32
-    if( fpTAB == NULL )
+    if( fpTAB == NULL && VSIIsCaseSensitiveFS(pszTAB) )
     {
         pszTAB = CPLResetExtension( pszBaseFilename, "TAB" );
-        fpTAB = VSIFOpen( pszTAB, "rt" );
+        fpTAB = VSIFOpenL( pszTAB, "rt" );
     }
-#endif
     
     if( fpTAB == NULL )
         return FALSE;
 
-    VSIFClose( fpTAB );
+    VSIFCloseL( fpTAB );
 
 /* -------------------------------------------------------------------- */
 /*      We found the file, now load and parse it.                       */
@@ -1577,15 +1662,13 @@ GDALReadWorldFile( const char *pszBaseFilename, const char *pszExtension,
 
     pszTFW = CPLResetExtension( pszBaseFilename, szExtLower );
 
-    bGotTFW = VSIStatL( pszTFW, &sStatBuf ) == 0;
+    bGotTFW = VSIStatExL( pszTFW, &sStatBuf, VSI_STAT_EXISTS_FLAG ) == 0;
 
-#ifndef WIN32
-    if( !bGotTFW )
+    if( !bGotTFW  && VSIIsCaseSensitiveFS(pszTFW) )
     {
         pszTFW = CPLResetExtension( pszBaseFilename, szExtUpper );
-        bGotTFW = VSIStatL( pszTFW, &sStatBuf ) == 0;
+        bGotTFW = VSIStatExL( pszTFW, &sStatBuf, VSI_STAT_EXISTS_FLAG ) == 0;
     }
-#endif
     
     if( !bGotTFW )
         return FALSE;
@@ -1658,7 +1741,7 @@ GDALWriteWorldFile( const char * pszBaseFilename, const char *pszExtension,
 /*      Update extention, and write to disk.                            */
 /* -------------------------------------------------------------------- */
     const char  *pszTFW;
-    FILE    *fpTFW;
+    VSILFILE    *fpTFW;
 
     pszTFW = CPLResetExtension( pszBaseFilename, pszExtension );
     fpTFW = VSIFOpenL( pszTFW, "wt" );
@@ -1712,7 +1795,7 @@ const char * CPL_STDCALL GDALVersionInfo( const char *pszRequest )
         }
 
         const char *pszFilename = CPLFindFile( "etc", "LICENSE.TXT" );
-        FILE *fp = NULL;
+        VSILFILE *fp = NULL;
         int  nLength;
 
         if( pszFilename != NULL )
@@ -2179,6 +2262,7 @@ GDALGeneralCmdLineProcessor( int nArgc, char ***ppapszArgv, int nOptions )
             for( i = 0; papszFiles[i] != NULL; i++ )
             {
                 CPLString osOldPath, osNewPath;
+                VSIStatBufL sStatBuf;
                 
                 if( EQUAL(papszFiles[i],".") || EQUAL(papszFiles[i],"..") )
                     continue;
@@ -2187,11 +2271,24 @@ GDALGeneralCmdLineProcessor( int nArgc, char ***ppapszArgv, int nOptions )
                                              papszFiles[i], NULL );
                 osNewPath.Printf( "/vsimem/%s", papszFiles[i] );
 
+                if( VSIStatL( osOldPath, &sStatBuf ) != 0
+                    || VSI_ISDIR( sStatBuf.st_mode ) )
+                {
+                    CPLDebug( "VSI", "Skipping preload of %s.", 
+                              osOldPath.c_str() );
+                    continue;
+                }
+
                 CPLDebug( "VSI", "Preloading %s to %s.", 
                           osOldPath.c_str(), osNewPath.c_str() );
 
                 if( CPLCopyFile( osNewPath, osOldPath ) != 0 )
+                {
+                    CPLError( CE_Failure, CPLE_AppDefined,
+                              "Failed to copy %s to /vsimem", 
+                              osOldPath.c_str() );
                     return -1;
+                }
             }
             
             CSLDestroy( papszFiles );
@@ -2517,9 +2614,7 @@ GDALDataset *GDALFindAssociatedAuxFile( const char *pszBasename,
 
 {
     const char *pszAuxSuffixLC = "aux";
-#ifndef WIN32
     const char *pszAuxSuffixUC = "AUX";
-#endif
 
     if( EQUAL(CPLGetExtension(pszBasename), pszAuxSuffixLC) )
         return NULL;
@@ -2542,26 +2637,29 @@ GDALDataset *GDALFindAssociatedAuxFile( const char *pszBasename,
     CPLString osAuxFilename = CPLResetExtension(pszBasename, pszAuxSuffixLC);
     GDALDataset *poODS = NULL;
     GByte abyHeader[32];
-    FILE *fp;
+    VSILFILE *fp;
 
     fp = VSIFOpenL( osAuxFilename, "rb" );
 
 
-    if ( fp == NULL ) 
+    if ( fp == NULL && VSIIsCaseSensitiveFS(osAuxFilename)) 
     {
         // Can't found file with lower case suffix. Try the upper case one.
-        // no point in doing this on Win32 with case insensitive filenames.
-#ifndef WIN32
         osAuxFilename = CPLResetExtension(pszBasename, pszAuxSuffixUC);
         fp = VSIFOpenL( osAuxFilename, "rb" );
-#endif
     }
 
     if( fp != NULL )
     {
-        VSIFReadL( abyHeader, 1, 32, fp );
-        if( EQUALN((char *) abyHeader,"EHFA_HEADER_TAG",15) )
-            poODS =  (GDALDataset *) GDALOpenShared( osAuxFilename, eAccess );
+        if( VSIFReadL( abyHeader, 1, 32, fp ) == 32 &&
+            EQUALN((char *) abyHeader,"EHFA_HEADER_TAG",15) )
+        {
+            /* Avoid causing failure in opening of main file from SWIG bindings */
+            /* when auxiliary file cannot be opened (#3269) */
+            CPLTurnFailureIntoWarning(TRUE);
+            poODS = (GDALDataset *) GDALOpenShared( osAuxFilename, eAccess );
+            CPLTurnFailureIntoWarning(FALSE);
+        }
         VSIFCloseL( fp );
     }
 
@@ -2584,7 +2682,7 @@ GDALDataset *GDALFindAssociatedAuxFile( const char *pszBasename,
         {
             VSIStatBufL sStatBuf;
 
-            if( VSIStatL( pszDep, &sStatBuf ) == 0 )
+            if( VSIStatExL( pszDep, &sStatBuf, VSI_STAT_EXISTS_FLAG ) == 0 )
             {
                 CPLDebug( "AUX", "%s is for file %s, not %s, ignoring.",
                           osAuxFilename.c_str(), 
@@ -2636,8 +2734,7 @@ GDALDataset *GDALFindAssociatedAuxFile( const char *pszBasename,
         osAuxFilename += ".";
         osAuxFilename += pszAuxSuffixLC;
         fp = VSIFOpenL( osAuxFilename, "rb" );
-#ifndef WIN32
-        if ( fp == NULL )
+        if ( fp == NULL && VSIIsCaseSensitiveFS(osAuxFilename) )
         {
             // Can't found file with lower case suffix. Try the upper case one.
             osAuxFilename = pszBasename;
@@ -2645,13 +2742,18 @@ GDALDataset *GDALFindAssociatedAuxFile( const char *pszBasename,
             osAuxFilename += pszAuxSuffixUC;
             fp = VSIFOpenL( osAuxFilename, "rb" );
         }
-#endif
 
         if( fp != NULL )
         {
-            VSIFReadL( abyHeader, 1, 32, fp );
-            if( EQUALN((char *) abyHeader,"EHFA_HEADER_TAG",15) )
+            if( VSIFReadL( abyHeader, 1, 32, fp ) == 32 &&
+                EQUALN((char *) abyHeader,"EHFA_HEADER_TAG",15) )
+            {
+                /* Avoid causing failure in opening of main file from SWIG bindings */
+                /* when auxiliary file cannot be opened (#3269) */
+                CPLTurnFailureIntoWarning(TRUE);
                 poODS = (GDALDataset *) GDALOpenShared( osAuxFilename, eAccess );
+                CPLTurnFailureIntoWarning(FALSE);
+            }
             VSIFCloseL( fp );
         }
  
@@ -2671,7 +2773,7 @@ GDALDataset *GDALFindAssociatedAuxFile( const char *pszBasename,
             {
                 VSIStatBufL sStatBuf;
 
-                if( VSIStatL( pszDep, &sStatBuf ) == 0 )
+                if( VSIStatExL( pszDep, &sStatBuf, VSI_STAT_EXISTS_FLAG ) == 0 )
                 {
                     CPLDebug( "AUX", "%s is for file %s, not %s, ignoring.",
                               osAuxFilename.c_str(), 

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdaldrivermanager.cpp 18771 2010-02-09 01:30:33Z hobu $
+ * $Id: gdaldrivermanager.cpp 18770 2010-02-09 01:29:11Z hobu $
  *
  * Project:  GDAL Core
  * Purpose:  Implementation of GDALDriverManager class.
@@ -34,7 +34,7 @@
 #include "cpl_multiproc.h"
 #include "gdal_pam.h"
 
-CPL_CVSID("$Id: gdaldrivermanager.cpp 18771 2010-02-09 01:30:33Z hobu $");
+CPL_CVSID("$Id: gdaldrivermanager.cpp 18770 2010-02-09 01:29:11Z hobu $");
 
 static const char *pszUpdatableINST_DATA = 
 "__INST_DATA_TARGET:                                                                                                                                      ";

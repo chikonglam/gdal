@@ -51,6 +51,7 @@ namespace PCIDSK
     {
     public:
         CBandInterleavedChannel( PCIDSKBuffer &image_header, 
+            uint64 ih_offset,
             PCIDSKBuffer &file_header, 
             int channelnum,
             CPCIDSKFile *file,

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrspatialreference.cpp 20132 2010-07-25 10:15:39Z chaitanya $
+ * $Id: ogrspatialreference.cpp 21435 2011-01-08 10:41:11Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  The OGRSpatialReference class.
@@ -33,7 +33,7 @@
 #include "cpl_http.h"
 #include "cpl_atomic_ops.h"
 
-CPL_CVSID("$Id: ogrspatialreference.cpp 20132 2010-07-25 10:15:39Z chaitanya $");
+CPL_CVSID("$Id: ogrspatialreference.cpp 21435 2011-01-08 10:41:11Z rouault $");
 
 // The current opinion is that WKT longitudes like central meridian
 // should be relative to greenwich, not the prime meridian in use. 
@@ -877,6 +877,8 @@ OGRErr OGRSpatialReference::SetAngularUnits( const char * pszUnitsName,
     if( poCS->FindChild( "UNIT" ) >= 0 )
     {
         poUnits = poCS->GetChild( poCS->FindChild( "UNIT" ) );
+        if (poUnits->GetChildCount() < 2)
+            return OGRERR_FAILURE;
         poUnits->GetChild(0)->SetValue( pszUnitsName );
         poUnits->GetChild(1)->SetValue( szValue );
     }
@@ -1093,6 +1095,8 @@ OGRErr OGRSpatialReference::SetLinearUnits( const char * pszUnitsName,
 
     poCS = GetAttrNode( "PROJCS" );
     if( poCS == NULL )
+        poCS = GetAttrNode( "VERT_CS" );
+    if( poCS == NULL )
         poCS = GetAttrNode( "LOCAL_CS" );
 
     if( poCS == NULL )
@@ -1106,6 +1110,8 @@ OGRErr OGRSpatialReference::SetLinearUnits( const char * pszUnitsName,
     if( poCS->FindChild( "UNIT" ) >= 0 )
     {
         poUnits = poCS->GetChild( poCS->FindChild( "UNIT" ) );
+        if (poUnits->GetChildCount() < 2)
+            return OGRERR_FAILURE;
         poUnits->GetChild(0)->SetValue( pszUnitsName );
         poUnits->GetChild(1)->SetValue( szValue );
         if( poUnits->FindChild( "AUTHORITY" ) != -1 )
@@ -1539,7 +1545,7 @@ OGRErr OGRSpatialReference::SetWellKnownGeogCS( const char * pszName )
         pszWKT = (char* ) "GEOGCS[\"WGS 72\",DATUM[\"WGS_1972\",SPHEROID[\"WGS 72\",6378135,298.26,AUTHORITY[\"EPSG\",\"7043\"]],TOWGS84[0,0,4.5,0,0,0.554,0.2263],AUTHORITY[\"EPSG\",\"6322\"]],PRIMEM[\"Greenwich\",0,AUTHORITY[\"EPSG\",\"8901\"]],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9108\"]],AUTHORITY[\"EPSG\",\"4322\"]]";
 
     else if( EQUAL(pszName, "NAD27") || EQUAL(pszName, "CRS27") )
-        pszWKT = (char* ) "GEOGCS[\"NAD27\",DATUM[\"North_American_Datum_1927\",SPHEROID[\"Clarke 1866\",6378206.4,294.978698213898,AUTHORITY[\"EPSG\",\"7008\"]],TOWGS84[-3,142,183,0,0,0,0],AUTHORITY[\"EPSG\",\"6267\"]],PRIMEM[\"Greenwich\",0,AUTHORITY[\"EPSG\",\"8901\"]],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9108\"]],AUTHORITY[\"EPSG\",\"4267\"]]";
+        pszWKT = (char* ) "GEOGCS[\"NAD27\",DATUM[\"North_American_Datum_1927\",SPHEROID[\"Clarke 1866\",6378206.4,294.978698213898,AUTHORITY[\"EPSG\",\"7008\"]],AUTHORITY[\"EPSG\",\"6267\"]],PRIMEM[\"Greenwich\",0,AUTHORITY[\"EPSG\",\"8901\"]],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9108\"]],AUTHORITY[\"EPSG\",\"4267\"]]";
         
     else if( EQUAL(pszName, "NAD83") || EQUAL(pszName,"CRS83") )
         pszWKT = (char* ) "GEOGCS[\"NAD83\",DATUM[\"North_American_Datum_1983\",SPHEROID[\"GRS 1980\",6378137,298.257222101,AUTHORITY[\"EPSG\",\"7019\"]],TOWGS84[0,0,0,0,0,0,0],AUTHORITY[\"EPSG\",\"6269\"]],PRIMEM[\"Greenwich\",0,AUTHORITY[\"EPSG\",\"8901\"]],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9108\"]],AUTHORITY[\"EPSG\",\"4269\"]]";
@@ -1727,14 +1733,49 @@ OGRErr OGRSpatialReference::SetFromUserInput( const char * pszDefinition )
         return err;
     }
 
-    if( EQUALN(pszDefinition,"EPSG:",5) )
-        return importFromEPSG( atoi(pszDefinition+5) );
+    if( EQUALN(pszDefinition,"EPSG:",5) 
+        || EQUALN(pszDefinition,"EPSGA:",6) )
+    {
+        OGRErr eStatus; 
 
-    if( EQUALN(pszDefinition,"EPSGA:",6) )
-        return importFromEPSGA( atoi(pszDefinition+6) );
+        if( EQUALN(pszDefinition,"EPSG:",5) )
+            eStatus = importFromEPSG( atoi(pszDefinition+5) );
+        
+        else /* if( EQUALN(pszDefinition,"EPSGA:",6) ) */
+            eStatus = importFromEPSGA( atoi(pszDefinition+6) );
+        
+        // Do we want to turn this into a compound definition
+        // with a vertical datum?
+        if( eStatus == OGRERR_NONE && strchr( pszDefinition, '+' ) != NULL )
+        {
+            OGRSpatialReference oVertSRS;
+
+            eStatus = oVertSRS.importFromEPSG( 
+                atoi(strchr(pszDefinition,'+')+1) );
+            if( eStatus == OGRERR_NONE )
+            {
+                OGR_SRSNode *poHorizSRS = GetRoot()->Clone();
+
+                Clear();
+
+                CPLString osName = poHorizSRS->GetChild(0)->GetValue();
+                osName += " + ";
+                osName += oVertSRS.GetRoot()->GetValue();
+
+                SetNode( "COMPD_CS", osName );
+                GetRoot()->AddChild( poHorizSRS );
+                GetRoot()->AddChild( oVertSRS.GetRoot()->Clone() );
+            }
+            
+            return eStatus;
+        }
+        else
+            return eStatus;
+    }
 
     if( EQUALN(pszDefinition,"urn:ogc:def:crs:",16) 
-        || EQUALN(pszDefinition,"urn:x-ogc:def:crs:",18) )
+        || EQUALN(pszDefinition,"urn:x-ogc:def:crs:",18)
+        || EQUALN(pszDefinition,"urn:opengis:def:crs:",20))
         return importFromURN( pszDefinition );
 
     if( EQUALN(pszDefinition,"AUTO:",5) )
@@ -1777,6 +1818,12 @@ OGRErr OGRSpatialReference::SetFromUserInput( const char * pszDefinition )
     {
         return importFromUrl (pszDefinition);
     }
+
+    if( EQUAL(pszDefinition,"osgb:BNG") )
+    {
+        return importFromEPSG(27700);
+    }
+
 /* -------------------------------------------------------------------- */
 /*      Try to open it as a file.                                       */
 /* -------------------------------------------------------------------- */
@@ -1985,12 +2032,14 @@ OGRErr OSRImportFromUrl( OGRSpatialReferenceH hSRS, const char *pszUrl )
 OGRErr OGRSpatialReference::importFromURN( const char *pszURN )
 
 {
-    const char *pszCur = pszURN + 16;
+    const char *pszCur;
 
     if( EQUALN(pszURN,"urn:ogc:def:crs:",16) )
         pszCur = pszURN + 16;
     else if( EQUALN(pszURN,"urn:x-ogc:def:crs:",18) )
         pszCur = pszURN + 18;
+    else if( EQUALN(pszURN,"urn:opengis:def:crs:",20) )
+        pszCur = pszURN + 20;
     else
     {
         CPLError( CE_Failure, CPLE_AppDefined, 
@@ -2010,7 +2059,7 @@ OGRErr OGRSpatialReference::importFromURN( const char *pszURN )
 /* -------------------------------------------------------------------- */
 /*      Find code (ignoring version) out of string like:                */
 /*                                                                      */
-/*      authority:version:code                                          */
+/*      authority:[version]:code                                          */
 /* -------------------------------------------------------------------- */
     const char *pszAuthority = pszCur;
 
@@ -2021,10 +2070,16 @@ OGRErr OGRSpatialReference::importFromURN( const char *pszURN )
         pszCur++;
 
     // skip version
+    const char* pszBeforeVersion = pszCur;
     while( *pszCur != ':' && *pszCur )
         pszCur++;
     if( *pszCur == ':' )
         pszCur++;
+    else
+        /* We come here in the case, the content to parse is authority:code (instead of authority::code) */
+        /* which is probably illegal according to http://www.opengeospatial.org/ogcUrnPolicy */
+        /* but such content is found for example in what is returned by GeoServer */
+        pszCur = pszBeforeVersion;
 
     const char *pszCode = pszCur;
 
@@ -4668,6 +4723,10 @@ OGRErr OSRSetUTM( OGRSpatialReferenceH hSRS, int nZone, int bNorth )
  *
  * This is the same as the C function OSRGetUTMZone().
  *
+ * In SWIG bindings (Python, Java, etc) the GetUTMZone() method returns a 
+ * zone which is negative in the southern hemisphere instead of having the 
+ * pbNorth flag used in the C and C++ interface.
+ *
  * @param pbNorth pointer to in to set to TRUE if northern hemisphere, or
  * FALSE if southern. 
  * 
@@ -4703,9 +4762,9 @@ int OGRSpatialReference::GetUTMZone( int * pbNorth ) const
 
     double      dfCentralMeridian = GetNormProjParm( SRS_PP_CENTRAL_MERIDIAN, 
                                                      0.0);
-    double      dfZone = (dfCentralMeridian+183) / 6.0 + 0.000000001;
+    double      dfZone = ( dfCentralMeridian + 186.0 ) / 6.0;
 
-    if( ABS(dfZone - (int) dfZone) > 0.00001
+    if( ABS(dfZone - (int) dfZone - 0.5 ) > 0.00001
         || dfCentralMeridian < -177.00001
         || dfCentralMeridian > 177.000001 )
         return 0;
@@ -5236,6 +5295,49 @@ int OSRIsLocal( OGRSpatialReferenceH hSRS )
 }
 
 /************************************************************************/
+/*                            IsVertical()                              */
+/************************************************************************/
+
+/**
+ * \brief Check if vertical coordinate system.
+ *
+ * This method is the same as the C function OSRIsVertical().
+ *
+ * @return TRUE if this contains a VERT_CS node indicating a it is a 
+ * vertical coordinate system. 
+ */
+
+int OGRSpatialReference::IsVertical() const
+
+{
+    if( poRoot == NULL )
+        return FALSE;
+
+    if( EQUAL(poRoot->GetValue(),"VERT_CS") )
+        return TRUE;
+    else if( EQUAL(poRoot->GetValue(),"COMPD_CS") )
+        return GetAttrNode( "VERT_CS" ) != NULL;
+    else 
+        return FALSE;
+}
+
+/************************************************************************/
+/*                           OSRIsVertical()                            */
+/************************************************************************/
+/** 
+ * \brief Check if vertical coordinate system.
+ *
+ * This function is the same as OGRSpatialReference::IsVertical().
+ */
+int OSRIsVertical( OGRSpatialReferenceH hSRS ) 
+
+{
+    VALIDATE_POINTER1( hSRS, "OSRIsVertical", 0 );
+
+    return ((OGRSpatialReference *) hSRS)->IsVertical();
+}
+
+/************************************************************************/
 /*                            CloneGeogCS()                             */
 /************************************************************************/
 
@@ -5308,6 +5410,21 @@ int OGRSpatialReference::IsSameGeogCS( const OGRSpatialReference *poOther ) cons
         return FALSE;
 
 /* -------------------------------------------------------------------- */
+/*      Do the datum TOWGS84 values match if present?                   */
+/* -------------------------------------------------------------------- */
+    double adfTOWGS84[7], adfOtherTOWGS84[7];
+    int i;
+
+    this->GetTOWGS84( adfTOWGS84, 7 );
+    poOther->GetTOWGS84( adfOtherTOWGS84, 7 );
+
+    for( i = 0; i < 7; i++ )
+    {
+        if( fabs(adfTOWGS84[i] - adfOtherTOWGS84[i]) > 0.00001 )
+            return FALSE;
+    }
+
+/* -------------------------------------------------------------------- */
 /*      Do the prime meridians match?  If missing assume a value of zero.*/
 /* -------------------------------------------------------------------- */
     pszThisValue = this->GetAttrValue( "PRIMEM", 1 );
@@ -5370,6 +5487,71 @@ int OSRIsSameGeogCS( OGRSpatialReferenceH hSRS1, OGRSpatialReferenceH hSRS2 )
     VALIDATE_POINTER1( hSRS2, "OSRIsSameGeogCS", 0 );
 
     return ((OGRSpatialReference *) hSRS1)->IsSameGeogCS( 
+        (OGRSpatialReference *) hSRS2 );
+}
+
+/************************************************************************/
+/*                            IsSameVertCS()                            */
+/************************************************************************/
+
+/**
+ * \brief Do the VertCS'es match?
+ *
+ * This method is the same as the C function OSRIsSameVertCS().
+ *
+ * @param poOther the SRS being compared against. 
+ *
+ * @return TRUE if they are the same or FALSE otherwise. 
+ */
+
+int OGRSpatialReference::IsSameVertCS( const OGRSpatialReference *poOther ) const
+
+{
+    const char *pszThisValue, *pszOtherValue;
+
+/* -------------------------------------------------------------------- */
+/*      Does the datum name match?                                      */
+/* -------------------------------------------------------------------- */
+    pszThisValue = this->GetAttrValue( "VERT_DATUM" );
+    pszOtherValue = poOther->GetAttrValue( "VERT_DATUM" );
+
+    if( pszThisValue == NULL || pszOtherValue == NULL 
+        || !EQUAL(pszThisValue, pszOtherValue) )
+        return FALSE;
+
+/* -------------------------------------------------------------------- */
+/*      Do the units match?                                             */
+/* -------------------------------------------------------------------- */
+    pszThisValue = this->GetAttrValue( "VERT_CS|UNIT", 1 );
+    if( pszThisValue == NULL )
+        pszThisValue = "1.0";
+
+    pszOtherValue = poOther->GetAttrValue( "VERT_CS|UNIT", 1 );
+    if( pszOtherValue == NULL )
+        pszOtherValue = "1.0";
+
+    if( ABS(CPLAtof(pszOtherValue) - CPLAtof(pszThisValue)) > 0.00000001 )
+        return FALSE;
+
+    return TRUE;
+}
+
+/************************************************************************/
+/*                          OSRIsSameVertCS()                           */
+/************************************************************************/
+
+/** 
+ * \brief Do the VertCS'es match?
+ *
+ * This function is the same as OGRSpatialReference::IsSameVertCS().
+ */
+int OSRIsSameVertCS( OGRSpatialReferenceH hSRS1, OGRSpatialReferenceH hSRS2 )
+
+{
+    VALIDATE_POINTER1( hSRS1, "OSRIsSameVertCS", 0 );
+    VALIDATE_POINTER1( hSRS2, "OSRIsSameVertCS", 0 );
+
+    return ((OGRSpatialReference *) hSRS1)->IsSameVertCS( 
         (OGRSpatialReference *) hSRS2 );
 }
 
@@ -5450,6 +5632,12 @@ int OGRSpatialReference::IsSame( const OGRSpatialReference * poOtherSRS ) const
                 return FALSE;
         }
     }
+
+/* -------------------------------------------------------------------- */
+/*      Compare vertical coordinate system.                             */
+/* -------------------------------------------------------------------- */
+    if( IsVertical() && !IsSameVertCS( poOtherSRS ) )
+        return FALSE;
 
     return TRUE;
 }
@@ -5983,7 +6171,7 @@ void OSRCleanup( void )
 
 const char *
 OGRSpatialReference::GetAxis( const char *pszTargetKey, int iAxis, 
-                              OGRAxisOrientation *peOrientation )
+                              OGRAxisOrientation *peOrientation ) const
 
 {
     if( peOrientation != NULL )

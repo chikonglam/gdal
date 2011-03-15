@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ecwcreatecopy.cpp 17906 2009-10-26 19:47:21Z rouault $
+ * $Id: ecwcreatecopy.cpp 21492 2011-01-14 04:54:09Z warmerdam $
  *
  * Project:  GDAL ECW Driver
  * Purpose:  ECW CreateCopy method implementation.
@@ -35,14 +35,7 @@
 #include "jp2userbox.h"
 #include "gdaljp2metadata.h"
 
-CPL_CVSID("$Id: ecwcreatecopy.cpp 17906 2009-10-26 19:47:21Z rouault $");
-
-CPL_C_START
-CPLErr CPL_DLL GTIFMemBufFromWkt( const char *pszWKT, 
-                                  const double *padfGeoTransform,
-                                  int nGCPCount, const GDAL_GCP *pasGCPList,
-                                  int *pnSize, unsigned char **ppabyBuffer );
-CPL_C_END
+CPL_CVSID("$Id: ecwcreatecopy.cpp 21492 2011-01-14 04:54:09Z warmerdam $");
 
 void ECWInitialize( void );
 
@@ -61,7 +54,7 @@ public:
     virtual bool WriteCancel();
 
     CPLErr  Initialize( const char *pszFilename, char **papszOptions, 
-                        int nXSize, int nYSize, int nBands, 
+                        int nXSize, int nYSize, int nBands, int bRGBA,
                         GDALDataType eType, 
                         const char *pszWKT, double *padfGeoTransform,
                         int nGCPCount, const GDAL_GCP *pasGCPList,
@@ -413,7 +406,7 @@ CPLErr GDALECWCompressor::WriteJP2Box( GDALJP2Box * poBox )
     poECWBox = new JP2UserBox();
     memcpy( &(poECWBox->m_nTBox), poBox->GetType(), 4 );
 
-    poECWBox->SetData( poBox->GetDataLength(), 
+    poECWBox->SetData( (int) poBox->GetDataLength(), 
                        poBox->GetWritableData() );
 
     AddBox( poECWBox );
@@ -521,7 +514,7 @@ static int ECWTranslateFromWKT( const char *pszWKT,
 
 CPLErr GDALECWCompressor::Initialize( 
     const char *pszFilename, char **papszOptions, 
-    int nXSize, int nYSize, int nBands, 
+    int nXSize, int nYSize, int nBands, int bRGBA,
     GDALDataType eType, 
     const char *pszWKT, double *padfGeoTransform,
     int nGCPCount, const GDAL_GCP *pasGCPList,
@@ -541,7 +534,13 @@ CPLErr GDALECWCompressor::Initialize(
 /* -------------------------------------------------------------------- */
 /*      Parse out some known options.                                   */
 /* -------------------------------------------------------------------- */
-    float      fTargetCompression = 75.0;
+    float      fTargetCompression;
+
+    // Default compression based on image type per request from Paul Beaty.
+    if( nBands > 1 ) 
+        fTargetCompression = 95.0;
+    else
+        fTargetCompression = 90.0;
 
     if( CSLFetchNameValue(papszOptions, "TARGET") != NULL )
     {
@@ -563,16 +562,20 @@ CPLErr GDALECWCompressor::Initialize(
 /* -------------------------------------------------------------------- */
     NCSFileViewFileInfoEx    *psClient = &(sFileInfo);
     
-    psClient->nBands = nBands;
+    psClient->nBands = (UINT16) nBands;
     psClient->nSizeX = nXSize;
     psClient->nSizeY = nYSize;
-    psClient->nCompressionRate = (int) MAX(1,100 / (100-fTargetCompression));
+    psClient->nCompressionRate = (UINT16) MAX(1,100/(100-fTargetCompression));
     psClient->eCellSizeUnits = ECW_CELL_UNITS_METERS;
 
     if( nBands == 1 )
         psClient->eColorSpace = NCSCS_GREYSCALE;
     else if( nBands == 3 )
         psClient->eColorSpace = NCSCS_sRGB;
+#if ECWSDK_VERSION >= 40
+    else if( nBands == 4 && bRGBA )
+        psClient->eColorSpace = NCSCS_sRGB;
+#endif
     else
         psClient->eColorSpace = NCSCS_MULTIBAND;
 
@@ -645,8 +648,8 @@ CPLErr GDALECWCompressor::Initialize(
         CPLMalloc( sizeof(NCSFileBandInfo) * nBands );
     for( iBand = 0; iBand < nBands; iBand++ )
     {
-        psClient->pBands[iBand].nBits = nBits;
-        psClient->pBands[iBand].bSigned = bSigned;
+        psClient->pBands[iBand].nBits = (UINT8) nBits;
+        psClient->pBands[iBand].bSigned = (BOOLEAN)bSigned;
         psClient->pBands[iBand].szDesc = CPLStrdup(
             CPLSPrintf("Band%d",iBand+1) );
     }
@@ -839,7 +842,7 @@ CPLErr GDALECWCompressor::Initialize(
 /* -------------------------------------------------------------------- */
 /*      Handle special case of a JPEG2000 data stream in another file.  */
 /* -------------------------------------------------------------------- */
-    FILE *fpVSIL = NULL;
+    VSILFILE *fpVSIL = NULL;
 
     if( EQUALN(pszFilename,"J2K_SUBFILE:",12) )
     {
@@ -878,13 +881,14 @@ CPLErr GDALECWCompressor::Initialize(
                           subfile_offset, subfile_size );
     }
 
-
 /* -------------------------------------------------------------------- */
 /*      Check if we can enable large files.  This option should only    */
 /*      be set when the application is adhering to one of the           */
 /*      ERMapper options for licensing larger than 500MB input          */
-/*      files.  See Bug 767.                                            */
+/*      files.  See Bug 767.  This option no longer exists with         */
+/*      version 4+.                                                     */
 /* -------------------------------------------------------------------- */
+#if ECWSDK_VERSION < 40
     const char *pszLargeOK = CSLFetchNameValue(papszOptions, "LARGE_OK");
     if( pszLargeOK == NULL )
         pszLargeOK = "NO";
@@ -896,6 +900,7 @@ CPLErr GDALECWCompressor::Initialize(
         CNCSFile::SetKeySize();
         CPLDebug( "ECW", "Large file generation enabled." );
     }
+#endif /* ECWSDK_VERSION < 40 */
 
 /* -------------------------------------------------------------------- */
 /*      Set the file info.                                              */
@@ -945,6 +950,34 @@ ECWCreateCopy( const char * pszFilename, GDALDataset *poSrcDS,
     ECWInitialize();
 
 /* -------------------------------------------------------------------- */
+/*      For 4.x and beyond you need a license key to compress data.     */
+/*      Check for it as a configuration option or a creation option.    */
+/* -------------------------------------------------------------------- */
+#if ECWSDK_VERSION >= 40 
+    const char* pszECWKey = CSLFetchNameValue( papszOptions, "ECW_ENCODE_KEY");
+    if( pszECWKey == NULL )
+        pszECWKey = CPLGetConfigOption( "ECW_ENCODE_KEY", NULL );
+    
+    const char* pszECWCompany = 
+        CSLFetchNameValue( papszOptions, "ECW_ENCODE_COMPANY");
+    if( pszECWCompany == NULL )
+        pszECWCompany = CPLGetConfigOption( "ECW_ENCODE_COMPANY", NULL );
+    
+    if( pszECWKey && pszECWCompany)
+    {
+        CPLDebug( "ECW", "SetOEMKey(%s,%s)", pszECWCompany, pszECWKey );
+        CNCSFile::SetOEMKey( (char *) pszECWCompany, (char *)pszECWKey );
+    }
+    else if( pszECWKey || pszECWCompany )
+    {
+        CPLError( CE_Failure, CPLE_AppDefined,
+                  "Only one of ECW_ENCODE_KEY and ECW_ENCODE_COMPANY were provided.\nBoth are required." );
+        return NULL;
+    }
+
+#endif /* ECWSDK_VERSION >= 40
+
+/* -------------------------------------------------------------------- */
 /*      Get various values from the source dataset.                     */
 /* -------------------------------------------------------------------- */
     int  nBands = poSrcDS->GetRasterCount();
@@ -972,7 +1005,7 @@ ECWCreateCopy( const char * pszFilename, GDALDataset *poSrcDS,
 /*      Confirm the datatype is 8bit.  It appears no other datatype     */
 /*      is supported in ECW format.                                     */
 /* -------------------------------------------------------------------- */
-    if( eType != GDT_Byte )
+    if( eType != GDT_Byte && !bIsJPEG2000 )
     {
         if( bStrict )
         {
@@ -991,6 +1024,17 @@ ECWCreateCopy( const char * pszFilename, GDALDataset *poSrcDS,
     }
 
 /* -------------------------------------------------------------------- */
+/*      Is the input RGBA?                                              */
+/* -------------------------------------------------------------------- */
+    int bRGBA = FALSE;
+
+    if( nBands == 4 )
+    {
+        bRGBA = (poSrcDS->GetRasterBand(4)->GetColorInterpretation() 
+                 == GCI_AlphaBand);
+    }        
+
+/* -------------------------------------------------------------------- */
 /*      Setup the compressor.                                           */
 /* -------------------------------------------------------------------- */
     GDALECWCompressor         oCompressor;
@@ -1003,7 +1047,7 @@ ECWCreateCopy( const char * pszFilename, GDALDataset *poSrcDS,
         return NULL;
 
     if( oCompressor.Initialize( pszFilename, papszOptions, 
-                                nXSize, nYSize, nBands,
+                                nXSize, nYSize, nBands, bRGBA,
                                 eType, pszWKT, adfGeoTransform, 
                                 poSrcDS->GetGCPCount(), 
                                 poSrcDS->GetGCPs(),
@@ -1077,8 +1121,7 @@ ECWCreateCopyECW( const char * pszFilename, GDALDataset *poSrcDS,
         return NULL;
     }
 
-    if( poSrcDS->GetRasterXSize() < 128 
-        || poSrcDS->GetRasterYSize() < 128 )
+    if( poSrcDS->GetRasterXSize() < 128 || poSrcDS->GetRasterYSize() < 128 )
     {
         CPLError( CE_Failure, CPLE_NotSupported, 
                   "ECW driver requires image to be at least 128x128,\n"
@@ -1088,7 +1131,7 @@ ECWCreateCopyECW( const char * pszFilename, GDALDataset *poSrcDS,
                   
         return NULL;
     }
-    
+
     if (poSrcDS->GetRasterBand(1)->GetColorTable() != NULL)
     {
         CPLError( (bStrict) ? CE_Failure : CE_Warning, CPLE_NotSupported, 
@@ -1218,7 +1261,9 @@ class CPL_DLL ECWWriteDataset : public GDALDataset
     		~ECWWriteDataset();
 
     virtual void   FlushCache( void );
-                
+
+    virtual CPLErr GetGeoTransform( double * );
+    virtual const char* GetProjectionRef();
     virtual CPLErr SetGeoTransform( double * );
     virtual CPLErr SetProjection( const char *pszWKT );
 };
@@ -1321,6 +1366,26 @@ void ECWWriteDataset::FlushCache()
 }
 
 /************************************************************************/
+/*                         GetProjectionRef()                           */
+/************************************************************************/
+
+const char*  ECWWriteDataset::GetProjectionRef()
+{
+    return pszProjection;
+}
+
+/************************************************************************/
+/*                          GetGeoTransform()                           */
+/************************************************************************/
+
+CPLErr ECWWriteDataset::GetGeoTransform( double *padfGeoTransform )
+
+{
+    memcpy( padfGeoTransform, adfGeoTransform, sizeof(double) * 6 );
+    return CE_None;
+}
+
+/************************************************************************/
 /*                          SetGeoTransform()                           */
 /************************************************************************/
 
@@ -1361,7 +1426,7 @@ CPLErr ECWWriteDataset::Crystalize()
         return CE_None;
 
     eErr = oCompressor.Initialize( pszFilename, papszOptions, 
-                                   nRasterXSize, nRasterYSize, nBands, 
+                                   nRasterXSize, nRasterYSize, nBands, FALSE,
                                    eDataType, 
                                    pszProjection, adfGeoTransform, 
                                    0, NULL,

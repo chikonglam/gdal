@@ -17,17 +17,17 @@ Translator Ivan Lucena <ivan.lucena@pmldnet.com>
 \htmlonly<img src="gdalicon.png" alt="GDAL">\endhtmlonly \latexonly GDAL \endlatexonly
 &eacute; uma bibliot&eacute;ca para tradu&ccedil;&atilde;o de formatos de dados geogr&aacute;ficos distribu&iacute;da pela 
 <a href="http://www.osgeo.org/">Open Source Geospatial Foundation</a> sob a licen&ccedil;a 
-<a href="faq.html#license">X/MIT</a> estilo 
+<a href="http://trac.osgeo.org/gdal/wiki/FAQGeneral#WhatlicensedoesGDALOGRuse">X/MIT</a> estilo
 <a href="http://www.opensource.org/"> Open Source</a>. 
 As aplica&ccedil;&otilde;es que &agrave; utilizam acessam todos os formats 
 supportados pela biblioteca atrav&eacute;s de 
 \link gdal_datamodel_br.html um &uacute;nico modelo de dados abstrato\endlink.
 A bilioteca GDAL tamb&eacute;m conta com uma variadade de programas 
-\link gdal_utilities.html utilit&aacute;rios de linha de comando \endlink 
+<a class="el" href="gdal_utilities.html"> utilit&aacute;rios de linha de comando</a>
 para a tradu&ccedil;&atilde;o de formatos bem como uma s&eacute;rie de outras fun&ccedil;&otilde;es. 
 A p&aacute;gina 
-<a href="http://trac.osgeo.org/gdal/wiki/Release/1.6.3-News">novidades</a> descreve o 
-lan&ccedil;amento em Novembro de 2009 da release 1.6.3 da biblioteca GDAL/OGR.
+<a href="http://trac.osgeo.org/gdal/wiki/Release/1.7.3-News">novidades</a> descreve o 
+lan&ccedil;amento em Novembro de 2010 da release 1.7.3 da biblioteca GDAL/OGR.
 
 A bilioteca <a href="ogr">OGR</a> (cujo c&oacute;digo fonte esta inclu&iacute;do na GDAL) possue
 funcionalidades semelhantes &agrave;s da GDAL para datos vetorias (Simple Features).
@@ -66,6 +66,25 @@ Download:
 <li> <a href="classGDALRasterBand.html">GDALRasterBand</a>
 <li> <a href="wince.html">GDAL para Windows CE</a>
 </ul>
+
+\section foss4g Conferencial
+\htmlonly
+<table border="0" cellspacing="4" cellpadding="4"> 
+  <tr>
+  <td>
+    <a href="http://www.foss4g2010.org/"> 
+      <img src="http://2010.foss4g.org/images/logo_125x125.jpg" alt="" border="0" width="125" height="125"> 
+    </a>
+  </td> 
+  <td><a href="http://www.foss4g2010.org">FOSS4G 2010</a> &eacute; a mais 
+    importante confer&ecirc;ncia anual de software geospatial livre, incluindo 
+    apresenta&ccedil;&otilde;es sobre GDAL/OGR, com a presen&ccedil;a de parte 
+    da communidade de desenvolvedores do GDAL/OGR. &Eacute; o principal evento 
+    para aqueles interessados em GDA/OGR e outras tecnologias FOSS geospatial 
+    relacionadas.
+  </td> 
+</table> 
+\endhtmlonly
 
 \section index_maillist Lista de discussao por correio eletronico
 

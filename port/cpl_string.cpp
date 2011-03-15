@@ -1,5 +1,5 @@
 /**********************************************************************
- * $Id: cpl_string.cpp 18179 2009-12-05 00:40:04Z warmerdam $
+ * $Id: cpl_string.cpp 21449 2011-01-09 21:58:17Z warmerdam $
  *
  * Name:     cpl_string.cpp
  * Project:  CPL - Common Portability Library
@@ -54,7 +54,7 @@
 #  include <wce_string.h>
 #endif
 
-CPL_CVSID("$Id: cpl_string.cpp 18179 2009-12-05 00:40:04Z warmerdam $");
+CPL_CVSID("$Id: cpl_string.cpp 21449 2011-01-09 21:58:17Z warmerdam $");
 
 /*=====================================================================
                     StringList manipulation functions.
@@ -292,7 +292,7 @@ char **CSLMerge( char **papszOrig, char **papszOverride )
 
 char **CSLLoad2(const char *pszFname, int nMaxLines, int nMaxCols, char** papszOptions)
 {
-    FILE        *fp;
+    VSILFILE    *fp;
     const char  *pszLine;
     char        **papszStrList=NULL;
     int          nLines = 0;
@@ -328,10 +328,8 @@ char **CSLLoad2(const char *pszFname, int nMaxLines, int nMaxCols, char** papszO
                 papszStrList[nLines + 1] = NULL;
                 nLines ++;
             }
-            else if (CPLGetLastErrorType() != 0)
-            {
+            else
                 break;
-            }
         }
 
         VSIFCloseL(fp);
@@ -383,7 +381,7 @@ char **CSLLoad(const char *pszFname)
  **********************************************************************/
 int  CSLSave(char **papszStrList, const char *pszFname)
 {
-    FILE    *fp;
+    VSILFILE *fp;
     int     nLines = 0;
 
     if (papszStrList)
@@ -788,6 +786,8 @@ char ** CSLTokenizeString2( const char * pszString,
                             int nCSLTFlags )
 
 {
+    if( pszString == NULL )
+        return (char **) CPLCalloc(sizeof(char *),1);
     char        **papszRetList = NULL;
     int         nRetMax = 0, nRetLen = 0;
     char        *pszToken;

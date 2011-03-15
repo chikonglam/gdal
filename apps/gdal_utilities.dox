@@ -1,5 +1,5 @@
 #ifndef DOXYGEN_SKIP
-/* $Id: gdal_utilities.dox 18669 2010-01-27 02:07:32Z chaitanya $ */
+/* $Id: gdal_utilities.dox 21386 2011-01-03 20:17:11Z rouault $ */
 #endif /* DOXYGEN_SKIP */
 
 /*! 
@@ -29,6 +29,7 @@ The following utility programs are distributed with GDAL.
 <li> \ref gdal_polygonize - Generate polygons from raster.
 <li> \ref gdal_sieve - Raster Sieve filter.
 <li> \ref gdal_fillnodata - Interpolate in nodata regions.
+<li> \ref gdallocationinfo - Query raster at a location.
 <li> \ref gdal-config - Get options required to build software using GDAL.
 </ul>
 
@@ -123,7 +124,11 @@ All GDAL command line utility programs support the following
 GDAL build (read-only and read-write) and exit. The format support is indicated
  as follows: 'ro' is read-only driver; 
 'rw' is read or write (ie. supports CreateCopy);
-'rw+' is read, write and update (ie. supports Create).  A 'v' is appended for formats supporting virtual IO (/vsimem, /vsigzip, /vsizip, etc).</dd>
+'rw+' is read, write and update (ie. supports Create).
+A 'v' is appended for formats supporting virtual IO (/vsimem, /vsigzip, /vsizip, etc).
+Note: The valid formats for the output of gdalwarp are formats that support the
+Create() method (marked as rw+), not just the CreateCopy() method.
+</dd>
 
 <dt> <b>--format</b> <i>format</i></dt><dd>
 List detailed information about a single format driver.  The <i>format</i> 
@@ -137,11 +142,12 @@ may be kept together with double quotes.
 </dd>
 
 <dt> <b>--config</b> <i>key value</i></dt><dd>
-Sets the named configuration keyword to the given value, as opposed to 
+Sets the named <a href="http://trac.osgeo.org/gdal/wiki/ConfigOptions">
+configuration keyword</a> to the given value, as opposed to 
 setting them as environment variables.  Some common configuration keywords
 are GDAL_CACHEMAX (memory used internally for caching in megabytes)
 and GDAL_DATA (path of the GDAL "data" directory).  Individual drivers may
-be influenced by other configuration options. 
+be influenced by other configuration options.  
 </dd>
 
 <dt> <b>--debug</b> <i>value</i></dt><dd>
@@ -160,7 +166,7 @@ and exit.
 
 \htmlonly
 <p>
-$Id: gdal_utilities.dox 18669 2010-01-27 02:07:32Z chaitanya $
+$Id: gdal_utilities.dox 21386 2011-01-03 20:17:11Z rouault $
 </p>
 \endhtmlonly
 */
@@ -173,7 +179,7 @@ lists information about a raster dataset
 \section synopsis SYNOPSIS
 
 \verbatim
-gdalinfo [--help-general] [-mm] [-stats] [-nogcp] [-nomd]
+gdalinfo [--help-general] [-mm] [-stats] [-hist] [-nogcp] [-nomd]
          [-noct] [-checksum] [-mdd domain]* datasetname
 \endverbatim
 
@@ -185,6 +191,7 @@ raster dataset.
 <dt> <b>-mm</b></dt><dd> Force computation of the actual min/max values for each
 band in the dataset.</dd>
 <dt> <b>-stats</b></dt><dd> Read and display image statistics. Force computation if no statistics are stored in an image.</dd>
+<dt> <b>-hist</b></dt><dd> Report histogram information for all bands.</dd>
 <dt> <b>-nogcp</b></dt><dd> Suppress ground control points list printing. It may be
 useful for datasets with huge amount of GCPs, such as L1B AVHRR or HDF4 MODIS
 which contain thousands of the ones.</dd>
@@ -267,14 +274,14 @@ converts raster data between different formats
 gdal_translate [--help-general]
        [-ot {Byte/Int16/UInt16/UInt32/Int32/Float32/Float64/
              CInt16/CInt32/CFloat32/CFloat64}] [-strict]
-       [-of format] [-b band] [-expand {gray|rgb|rgba}]
+       [-of format] [-b band] [-mask band] [-expand {gray|rgb|rgba}]
        [-outsize xsize[%] ysize[%]]
        [-unscale] [-scale [src_min src_max [dst_min dst_max]]]
        [-srcwin xoff yoff xsize ysize] [-projwin ulx uly lrx lry]
        [-a_srs srs_def] [-a_ullr ulx uly lrx lry] [-a_nodata value]
        [-gcp pixel line easting northing [elevation]]*
        [-mo "META-TAG=VALUE"]* [-q] [-sds]
-       [-co "NAME=VALUE"]*
+       [-co "NAME=VALUE"]* [-stats]
        src_dataset dst_dataset
 \endverbatim
 
@@ -292,9 +299,17 @@ when translating to the output format.</dd>
 <dt> <b>-of</b> <i>format</i>:</dt><dd> Select the output format.  The default
 is GeoTIFF (GTiff).  Use the short format name.</dd>
 <dt> <b>-b</b> <i>band</i>:</dt><dd> Select an input band <i>band</i> for
-output. Bands are numbered from 1 Multiple <b>-b</b> switches may be used
+output. Bands are numbered from 1. Multiple <b>-b</b> switches may be used
 to select a set of input bands to write to the output file, or to reorder
-bands.</dd>
+bands. Starting with GDAL 1.8.0, <i>band</i> can also be set to "mask,1"
+(or just "mask") to mean the mask band of the 1st band of the input dataset.</dd>
+<dt> <b>-mask</b> <i>band</i>:</dt><dd> (GDAL >= 1.8.0) Select an input band
+<i>band</i> to create output dataset mask band. Bands are numbered from 1. 
+<i>band</i> can be set to "none" to avoid copying the global mask of the input dataset if
+it exists. Otherwise it is copied by default ("auto"), unless the mask is an alpha channel,
+or if it is explicitely used to ben a regular band of the output dataset ("-b mask").
+<i>band</i> can also be set to "mask,1" (or just "mask") to mean the mask band of
+the 1st band of the input dataset.</dd>
 <dt> <b>-expand</b> <i>gray|rgb|rgba</i>:</dt><dd> (From GDAL 1.6.0) To expose a dataset with 1 band
 with a color table as a dataset with 3 (RGB) or 4 (RGBA) bands. Usefull for
 output drivers such as JPEG, JPEG2000, MrSID, ECW that don't support color
@@ -325,7 +340,9 @@ Assign/override the georeferenced bounds of the output file.  This assigns
 georeferenced bounds to the output file, ignoring what would have been derived 
 from the source file.</dd>
 <dt> <b>-a_nodata</b> <i>value</i>:</dt><dd>
-Assign a specified nodata value to output bands.</dd>
+Assign a specified nodata value to output bands. Starting with GDAL 1.8.0, can
+be set to <i>none</i> to avoid setting a nodata value to the output file if
+one exists for the source file</dd>
 <dt> <b>-mo</b> <i>"META-TAG=VALUE"</i>:</dt><dd> Passes a metadata key and
 value to set on the output dataset if possible.</dd>
 <dt> <b>-co</b> <i>"NAME=VALUE"</i>:</dt><dd> Passes a creation option to the
@@ -339,6 +356,7 @@ may be provided multiple times to provide a set of GCPs.
 output.</dd>
 <dt> <b>-sds</b>:</dt><dd> Copy all subdatasets of this file to individual 
 output files.  Use with formats like HDF or OGDI that have subdatasets.</dd>
+<dt> <b>-stats</b>:</dt><dd> (GDAL >= 1.8.0) Force (re)computation of statistics.</dd>
 <dt> <i>src_dataset</i>:</dt><dd>The source dataset name. It can be either
 file name, URL of data source or subdataset name for multi-dataset files.</dd>
 <dt> <i>dst_dataset</i>:</dt><dd> The destination file name.</dd>
@@ -348,6 +366,16 @@ file name, URL of data source or subdataset name for multi-dataset files.</dd>
 
 \verbatim
 gdal_translate -of GTiff -co "TILED=YES" utm.tif utm_tiled.tif
+\endverbatim
+
+Starting with GDAL 1.8.0, to create a JPEG-compressed TIFF with internal mask from a RGBA dataset :
+\verbatim
+gdal_translate rgba.tif withmask.tif -b 1 -b 2 -b 3 -mask 4 -co COMPRESS=JPEG -co PHOTOMETRIC=YCBCR --config GDAL_TIFF_INTERNAL_MASK YES
+\endverbatim
+
+Starting with GDAL 1.8.0, to create a RGBA dataset from a RGB dataset with a mask :
+\verbatim
+gdal_translate withmask.tif rgba.tif -b 1 -b 2 -b 3 -b mask
 \endverbatim
 
 \if man
@@ -410,11 +438,24 @@ store overviews in a secondary file with the extension .ovr that is actually
 in TIFF format.  By default, the GeoTIFF driver stores overviews internally to the file 
 operated on (if it is writable), unless the -ro flag is specified.
 
+Most drivers also support an alternate overview format using Erdas Imagine 
+format.  To trigger this use the USE_RRD=YES configuration option.  This will 
+place the overviews in an associated .aux file suitable for direct use with 
+Imagine or ArcGIS as well as GDAL applications.  (eg --config USE_RRD YES)
+
+\section externalgtiffoverviews External overviews in GeoTIFF format
+
 External overviews created in TIFF format may be compressed using the COMPRESS_OVERVIEW 
 configuration option.  All compression methods, supported by the GeoTIFF 
-driver, available here. (eg --config COMPRESS_OVERVIEW DEFLATE).
+driver, are available here. (eg --config COMPRESS_OVERVIEW DEFLATE).
 The photometric interpretation can be set with --config PHOTOMETRIC_OVERVIEW {RGB,YCBCR,...},
 and the interleaving with --config INTERLEAVE_OVERVIEW {PIXEL|BAND}.
+
+For JPEG compressed external overviews, the JPEG quality can be set with
+"--config JPEG_QUALITY_OVERVIEW value" (GDAL 1.7.0 or later).
+
+For LZW or DEFLATE compressed external overviews, the predictor value can be set
+with "--config PREDICTOR_OVERVIEW 1|2|3" (GDAL 1.8.0 or later).
 
 To produce the smallest possible JPEG-In-TIFF overviews, you should use :
 \verbatim
@@ -433,10 +474,7 @@ documented in the GeoTIFF driver documentation.
 </ul>
 <br>
 
-Most drivers also support an alternate overview format using Erdas Imagine 
-format.  To trigger this use the USE_RRD=YES configuration option.  This will 
-place the overviews in an associated .aux file suitable for direct use with 
-Imagine or ArcGIS as well as GDAL applications.  (eg --config USE_RRD YES)
+See the documentation of the GeoTIFF driver for further explanations on all those options.
 
 \section aexample EXAMPLE
 
@@ -533,10 +571,10 @@ Builds a VRT from a list of datasets. (compiled by default since GDAL 1.6.1)
 
 \verbatim
 gdalbuildvrt [-tileindex field_name] [-resolution {highest|lowest|average|user}]
-             [-tr xres yres] [-separate] [-allow_projection_difference] [-q]
+             [-tr xres yres] [-tap] [-separate] [-allow_projection_difference] [-q]
              [-te xmin ymin xmax ymax] [-addalpha] [-hidenodata]
              [-srcnodata "value [value...]"] [-vrtnodata "value [value...]"]
-             [-input_file_list my_liste.txt] output.vrt [gdalfile]*
+             [-input_file_list my_liste.txt] [-overwrite] output.vrt [gdalfile]*
 \endverbatim
 
 \section gdalbuildvrt_description DESCRIPTION
@@ -582,9 +620,13 @@ enables the user to control the way the output resolution is computed. 'average'
 
 <dt> <b>-tr</b> xres yres :</dt><dd>  (starting with GDAL 1.7.0)
 set target resolution. The values must be expressed in georeferenced units.
-Both must be positive values. Specifying those values is of curse incompatible with
+Both must be positive values. Specifying those values is of course incompatible with
 highest|lowest|average values for -resolution option.
 </dd>
+
+<dt> <b>-tap</b>:</dt><dd> (GDAL >= 1.8.0) (target aligned pixels) align
+the coordinates of the extent of the output file to the values of the -tr,
+such that the aligned extent includes the minimum extent.</dd>
 
 <dt> <b>-te</b> xmin ymin xmax ymax :</dt><dd>  (starting with GDAL 1.7.0)
 set georeferenced extents of VRT file. The values must be expressed in georeferenced units.
@@ -641,6 +683,8 @@ To specify a text file with an input filename on each line
 To disable the progress bar on the console
 </dd>
 
+<dt> <b>-overwrite</b>:</dt><dd>Overwrite the VRT if it already exists.</dd>
+
 </dl>
 
 \section gdalbuildvrt_example EXAMPLE
@@ -653,6 +697,7 @@ Example:
 gdalbuildvrt doq_index.vrt doq/*.tif
 gdalbuildvrt -input_file_list my_liste.txt doq_index.vrt
 gdalbuildvrt -separate rgb.vrt red.tif green.tif blue.tif
+gdalbuildvrt -hidenodata -vrtnodata "0 0 255" doq_index.vrt doq/*.tif
 \endverbatim
 
 \if man
@@ -738,9 +783,14 @@ burns vector geometries into a raster
 \section zsynopsis SYNOPSIS
 
 \verbatim
-Usage: gdal_rasterize [-b band] [-i] [-at]
-       [-burn value] | [-a attribute_name] [-3d]
+Usage: gdal_rasterize [-b band]* [-i] [-at]
+       [-burn value]* | [-a attribute_name] [-3d]
        [-l layername]* [-where expression] [-sql select_statement]
+       [-of format] [-a_srs srs_def] [-co "NAME=VALUE"]*
+       [-a_nodata value] [-init value]*
+       [-te xmin ymin xmax ymax] [-tr xres yres] [-tap] [-ts width height]
+       [-ot {Byte/Int16/UInt16/UInt32/Int32/Float32/Float64/
+             CInt16/CInt32/CFloat32/CFloat64}] [-q]
        <src_datasource> <dst_filename>
 \endverbatim
 
@@ -751,7 +801,10 @@ raster band(s) of a raster image.  Vectors are read from OGR supported vector
 formats. 
 
 Note that the vector data must in the same coordinate system as the 
-raster data, on the fly reprojection is not provided.
+raster data; on the fly reprojection is not provided.
+
+Since GDAL 1.8.0, the target GDAL file can be created by gdal_rasterize. One of -tr or -ts option
+must be used in that case.
 
 <dl>
 <dt> <b>-b</b> <em>band</em>: </dt><dd> 
@@ -795,12 +848,56 @@ to burn in from the input layer(s). </dd>
 An SQL statement to be evaluated against the datasource to produce a
 virtual layer of features to be burned in.</dd>
 
+<dt> <b>-of</b> <i>format</i>:</dt><dd> (GDAL >= 1.8.0) Select the output format.  The default
+is GeoTIFF (GTiff).  Use the short format name.</dd>
+
+<dt> <b>-a_nodata</b> <i>value</i>:</dt><dd> (GDAL >= 1.8.0)
+Assign a specified nodata value to output bands.</dd>
+
+<dt> <b>-init</b> <i>value</i>:</dt><dd> (GDAL >= 1.8.0)
+Pre-initialize the output image bands with these values.  However, it is not
+marked as the nodata value in the output file.  If only one value is given, the
+same value is used in all the bands.</dd>
+
+<dt> <b>-a_srs</b> <i>srs_def</i>:</dt><dd> (GDAL >= 1.8.0) Override the projection for the
+output file. If not specified, the projection of the input vector file will be used if available.
+If incompatible projections between input and output files, no attempt will be made to reproject features.
+The <i>srs_def</i> may be any of the usual GDAL/OGR forms,
+complete WKT, PROJ.4, EPSG:n or a file containing the WKT. </dd>
+
+<dt> <b>-co</b> <i>"NAME=VALUE"</i>:</dt><dd> (GDAL >= 1.8.0) Passes a creation option to the
+output format driver.  Multiple <b>-co</b> options may be listed.  See format 
+specific documentation for legal creation options for each format.</dd>
+
+<dt> <b>-te</b> <em>xmin ymin xmax ymax</em> :</dt><dd> (GDAL >= 1.8.0) 
+set georeferenced extents. The values must be expressed in georeferenced units.
+If not specified, the extent of the output file will be the extent of the vector layers.
+</dd>
+
+<dt> <b>-tr</b> <em>xres yres</em> :</dt><dd> (GDAL >= 1.8.0) 
+set target resolution. The values must be expressed in georeferenced units.
+Both must be positive values.
+</dd>
+
+<dt> <b>-tap</b>:</dt><dd> (GDAL >= 1.8.0) (target aligned pixels) align
+the coordinates of the extent of the output file to the values of the -tr,
+such that the aligned extent includes the minimum extent.</dd>
+
+<dt> <b>-ts</b> <em>width height</em>:</dt><dd>  (GDAL >= 1.8.0) set output file size in
+pixels and lines. Note that -ts cannot be used with -tr</dd>
+
+<dt> <b>-ot</b> <i>type</i>:</dt><dd> (GDAL >= 1.8.0) For the output bands to be of the
+indicated data type. Defaults to Float64</dd>
+
+<dt> <b>-q</b>:</dt><dd> (GDAL >= 1.8.0) Suppress progress monitor and other non-error
+output.</dd>
+
 <dt> <em>src_datasource</em>: </dt><dd> 
 Any OGR supported readable datasource.</dd>
 
 <dt> <em>dst_filename</em>: </dt><dd> 
-The GDAL supported output file.  Must support update mode access.  Currently 
-gdal_rasterize cannot create new output files though that may be added eventually.</dd>
+The GDAL supported output file.  Must support update mode access.  
+Before GDAL 1.8.0, gdal_rasterize could not create new output files.</dd>
 
 </dl>
 
@@ -850,7 +947,8 @@ maximize output image visual quality.
 color table.  Defaults to 256.  Must be between 2 and 256. </dd>
 <dt> <b>-pct</b> <i>palette_file</i>:</dt><dd> Extract the color table from
 <i>palette_file</i> instead of computing it. Can be used to have a consistant
-color table for multiple files. </dd>
+color table for multiple files.  The <i>palette_file</i> must be a raster file
+in a GDAL supported format with a palette.</dd>
 <dt> <b>-of</b> <i>format</i>:</dt><dd> Format to generated (defaults to GeoTIFF).  Same
 semantics as the <b>-of</b> flag for gdal_translate.  Only output formats
 supporting pseudocolor tables should be used. </dd>
@@ -861,6 +959,29 @@ created.</dd>
 
 NOTE: rgb2pct.py is a Python script, and will only work if GDAL was built
 with Python support.  
+
+\section example EXAMPLE
+
+If it is desired to hand create the palette, likely the simpliest text format
+is the GDAL VRT format.  In the following example a VRT was created in a 
+text editor with a small 4 color palette with the RGBA colors 238/238/238/255, 
+237/237/237/255, 236/236/236/255 and 229/229/229/255.
+
+\verbatim
+% rgb2pct.py -pct palette.vrt rgb.tif pseudo-colored.tif
+% more < palette.vrt
+<VRTDataset rasterXSize="226" rasterYSize="271">
+  <VRTRasterBand dataType="Byte" band="1">
+    <ColorInterp>Palette</ColorInterp>
+    <ColorTable>
+      <Entry c1="238" c2="238" c3="238" c4="255"/>
+      <Entry c1="237" c2="237" c3="237" c4="255"/>
+      <Entry c1="236" c2="236" c3="236" c4="255"/>
+      <Entry c1="229" c2="229" c3="229" c4="255"/>
+    </ColorTable>
+  </VRTRasterBand>
+</VRTDataset> 
+\endverbatim
 
 \if man
 \section iauthor AUTHOR
@@ -880,7 +1001,7 @@ Usage:
 \endhtmlonly
 
 \verbatim
-pct2rgb.py [-of format] [-b band] source_file dest_file
+pct2rgb.py [-of format] [-b band] [-rgba] source_file dest_file
 \endverbatim
 
 \section pdescription DESCRIPTION
@@ -892,6 +1013,7 @@ RGB file of the desired format.
 <dt> <b>-of</b> <i>format</i>:</dt><dd> Format to generated (defaults to GeoTIFF).</dd>
 <dt> <b>-b</b> <i>band</i>:</dt><dd> 
 Band to convert to RGB, defaults to 1.</dd>
+<dt> <b>-rgba:</b></dt><dd> Generate a RGBA file (instead of a RGB file by default).</dd>
 <dt> <i>source_file</i>:</dt><dd> The input file. </dd>
 <dt> <i>dest_file</i>:</dt><dd> The output RGB file that will be
 created.</dd>
@@ -1013,8 +1135,8 @@ convert nearly black/white borders to black
 \section msynopsis SYNOPSIS
 
 \verbatim
-nearblack [-white] [-near dist] [-nb non_black_pixels]
-          [-o outfile] infile
+nearblack [-of format] [-white] [-near dist] [-nb non_black_pixels]
+          [-setalpha] [-setmask] [-o outfile] [-q]  [-co "NAME=VALUE"]* infile
 \endverbatim
 
 \section mdescription DESCRIPTION
@@ -1026,8 +1148,13 @@ can be treated as transparent when mosaicing.
 
 <dl>
 <dt> <b>-o</b> <i>outfile</i>:</dt><dd> The name of the output file to be
-created.  Newly created files are currently always created with the HFA driver
+created.  Newly created files are created with the HFA driver by default
 (Erdas Imagine - .img)</dd>
+<dt> <b>-of</b> <i>format</i>:</dt><dd> (GDAL 1.8.0 or later) Select the output format.
+Use the short format name (GTiff for GeoTIFF for examle).</dd>
+<dt> <b>-co</b> <i>"NAME=VALUE"</i>:</dt><dd> (GDAL 1.8.0 or later) Passes a creation option to the
+output format driver.  Multiple <b>-co</b> options may be listed.  See format 
+specific documentation for legal creation options for each format. Only valid when creating a new file</dd>
 <dt> <b>-white</b>:</dt><dd> 
 Search for nearly white (255) pixels instead of nearly black pixels.
 </dd>
@@ -1037,6 +1164,19 @@ Select how far from black (or white) the pixel values can be and still considere
 <dt> <b>-nb</b> <i>non_black_pixels</i>:</dt><dd> 
 number of non-black pixels that can be encountered before the giving up search inwards. Defaults to 2. 
 </dd>
+<dt> <b>-setalpha</b>:</dt><dd> (GDAL 1.8.0 or later) 
+Adds an alpha band if the output file is specified and the input file has 3 bands,
+or sets the alpha band of the output file if it is specified and the input file has 4 bands,
+or sets the alpha band of the input file if it has 4 bands and no output file is specified.
+The alpha band is set to 0 in the image collar and to 255 elsewhere.
+</dd>
+<dt> <b>-setmask</b>:</dt><dd> (GDAL 1.8.0 or later) 
+Adds a mask band to the output file,
+or adds a mask band to the input file if it does not already have one and no output file is specified.
+The mask band is set to 0 in the image collar and to 255 elsewhere.
+</dd>
+<dt> <b>-q</b>:</dt><dd> (GDAL 1.8.0 or later) Suppress progress monitor and other non-error
+output.</dd>
 <dt> <i>infile</i>:</dt><dd> 
 The input file.  Any GDAL supported format, any number of bands, normally 8bit 
 Byte bands.
@@ -1070,9 +1210,9 @@ mosaics a set of images
 
 \verbatim
 gdal_merge.py [-o out_filename] [-of out_format] [-co NAME=VALUE]*
-                     [-ps pixelsize_x pixelsize_y] [-separate] [-v] [-pct]
-                     [-ul_lr ulx uly lrx lry] [-n nodata_value] [-init "value [value...]"]
-                     [-ot datatype] [-createonly] input_files
+              [-ps pixelsize_x pixelsize_y] [-tap] [-separate] [-v] [-pct]
+              [-ul_lr ulx uly lrx lry] [-n nodata_value] [-init "value [value...]"]
+              [-ot datatype] [-createonly] input_files
 \endverbatim
 
 \section gdescription DESCRIPTION
@@ -1097,6 +1237,11 @@ Force the output image bands to have a specific type. Use type names (ie. Byte, 
 <dt> <b>-ps</b> <i>pixelsize_x pixelsize_y</i>:</dt><dd> Pixel size to be used for the
 output file.  If not specified the resolution of the first input file will
 be used.</dd>
+
+<dt> <b>-tap</b>:</dt><dd> (GDAL >= 1.8.0) (target aligned pixels) align
+the coordinates of the extent of the output file to the values of the -tr,
+such that the aligned extent includes the minimum extent.</dd>
+
 <dt> <b>-ul_lr</b> <i>ulx uly lrx lry</i>:</dt><dd> The extents of the output file. 
 If not specified the aggregate extents of all input files will be
 used.</dd>
@@ -1113,7 +1258,7 @@ color table.
 <dt> <b>-n</b> <i>nodata_value</i>:</dt><dd> 
 Ignore pixels from files being merged in with this pixel value. 
 </dd>
-<dt> <b>-init</b> <i>value</i>:</dt><dd> 
+<dt> <b>-init</b> <i>"value(s)"</i>:</dt><dd> 
 Pre-initialize the output image bands with these values.  However, it is not
 marked as the nodata value in the output file.  If only one value is given, the
 same value is used in all the bands. 
@@ -1126,6 +1271,21 @@ image data is copied into it.
 
 NOTE: gdal_merge.py is a Python script, and will only work if GDAL was built
 with Python support.
+
+\section example EXAMPLE
+
+Create an image with the pixels in all bands initialized to 255.
+
+\verbatim
+% gdal_merge.py -init 255 -o out.tif in1.tif in2.tif
+\endverbatim
+
+Create an RGB image that shows blue in pixels with no data. The first two bands
+will be initialized to 0 and the third band will be initalized to 255.
+
+\verbatim
+% gdal_merge.py -init "0 0 255" -o out.tif in1.tif in2.tif
+\endverbatim
 
 \if man
 \section gauthor AUTHORS
@@ -1255,6 +1415,7 @@ gdal_retile.py [-v] [-co NAME=VALUE]* [-of out_format] [-ps pixelWidth pixelHeig
                [-s_srs srs_def]  [-pyramidOnly]
                [-r {near/bilinear/cubic/cubicspline/lanczos}]
                -levels numberoflevels
+               [-useDirForEachRow]   
                -targetDir TileDirectory input_files
 
 \endverbatim
@@ -1271,7 +1432,7 @@ If your number of input tiles exhausts the command line buffer, use the general 
 
 <dl>
 <dt> <b>-targetDir</b> <i>directory</i>:</dt><dd>
-The Directory where the tile result is created. Pyramids are stored
+The directory where the tile result is created. Pyramids are stored
 in  subdirs  numbered  from  1. Created tile names have a numbering
 schema and contain the name of the source tiles(s)
 </dd>
@@ -1321,9 +1482,20 @@ The file contains 5 columns: tilename,minx,maxx,miny,maxy
 <dt> <b>-csvDelim</b> <i>column delimiter</i>:</dt><dd>
 The column delimter used in the csv file, default value is a semicolon ";"
 </dd>
+<dt> <b>-useDirForEachRow</b>:</dt><dd>
+Normally the tiles of the base image are stored as described in <b>-targetDir</b>.
+For large images, some file systems have performance problems if the number of files 
+in a directory is to big, causing gdal_retile not to finish in reasonable time. 
+Using this parameter creates a different output structure. The tiles of the base image
+are stored in a subdirectory called 0, the pyramids in subdirectories numbered 1,2,....
+Within each of these directories another level of subdirectories is created, numbered from
+0...n, depending of how many tile rows are needed for each level. Finally, a directory contains
+only the the tiles for one row for a specific level. For large images a performance improvement
+of a factor N could be achieved.
+</dd>
 </dl>
 
-NOTE: gdal_merge.py is a Python script, and will only work if GDAL was built
+NOTE: gdal_retile.py is a Python script, and will only work if GDAL was built
 with Python support.
 
 \if man
@@ -1340,16 +1512,18 @@ creates regular grid from the scattered data
 \section gdal_grid_synopsis SYNOPSIS
 
 \verbatim
-Usage: gdal_grid [--help-general] [--formats]
-    [-ot {Byte/Int16/UInt16/UInt32/Int32/Float32/Float64/
+gdal_grid [-ot {Byte/Int16/UInt16/UInt32/Int32/Float32/Float64/
           CInt16/CInt32/CFloat32/CFloat64}]
-    [-of format] [-co "NAME=VALUE"]
-    [-zfield field_name]
-    [-a_srs srs_def] [-spat xmin ymin xmax ymax]
-    [-l layername]* [-where expression] [-sql select_statement]
-    [-txe xmin xmax] [-tye ymin ymax] [-outsize xsize ysize]
-    [-a algorithm[:parameter1=value1]*] [-q]
-    <src_datasource> <dst_filename>
+	  [-of format] [-co "NAME=VALUE"]
+	  [-zfield field_name]
+	  [-a_srs srs_def] [-spat xmin ymin xmax ymax]
+          [-clipsrc <xmin ymin xmax ymax>|WKT|datasource|spat_extent]
+          [-clipsrcsql sql_statement] [-clipsrclayer layer]
+          [-clipsrcwhere expression]
+	  [-l layername]* [-where expression] [-sql select_statement]
+	  [-txe xmin xmax] [-tye ymin ymax] [-outsize xsize ysize]
+	  [-a algorithm[:parameter1=value1]*] [-q]
+	  <src_datasource> <dst_filename>
 \endverbatim
 
 \section gdal_grid_description DESCRIPTION
@@ -1658,18 +1832,21 @@ Usage:
     gdaldem hillshade input_dem output_hillshade
                 [-z ZFactor (default=1)] [-s scale* (default=1)]"
                 [-az Azimuth (default=315)] [-alt Altitude (default=45)]
-                [-b Band (default=1)] [-of format] [-co "NAME=VALUE"]* [-q]
+                [-alg ZevenbergenThorne]
+                [-compute_edges] [-b Band (default=1)] [-of format] [-co "NAME=VALUE"]* [-q]
 
 - To generate a slope map from any GDAL-supported elevation raster :
     gdaldem slope input_dem output_slope_map"
                 [-p use percent slope (default=degrees)] [-s scale* (default=1)]
-                [-b Band (default=1)] [-of format] [-co "NAME=VALUE"]* [-q]
+                [-alg ZevenbergenThorne]
+                [-compute_edges] [-b Band (default=1)] [-of format] [-co "NAME=VALUE"]* [-q]
 
 - To generate an aspect map from any GDAL-supported elevation raster
   Outputs a 32-bit float raster with pixel values from 0-360 indicating azimuth :
     gdaldem aspect input_dem output_aspect_map"
                 [-trigonometric] [-zero_for_flat]
-                [-b Band (default=1)] [-of format] [-co "NAME=VALUE"]* [-q]
+                [-alg ZevenbergenThorne]
+                [-compute_edges] [-b Band (default=1)] [-of format] [-co "NAME=VALUE"]* [-q]
 
 - To generate a color relief map from any GDAL-supported elevation raster
     gdaldem color-relief input_dem color_text_file output_color_relief_map
@@ -1679,15 +1856,15 @@ Usage:
     
 - To generate a Terrain Ruggedness Index (TRI) map from any GDAL-supported elevation raster:
     gdaldem TRI input_dem output_TRI_map
-                [-b Band (default=1)] [-of format] [-q]
+                [-compute_edges] [-b Band (default=1)] [-of format] [-q]
             
 - To generate a Topographic Position Index (TPI) map from any GDAL-supported elevation raster:
     gdaldem TPI input_dem output_TPI_map
-                [-b Band (default=1)] [-of format] [-q]
+                [-compute_edges] [-b Band (default=1)] [-of format] [-q]
             
 - To generate a roughness map from any GDAL-supported elevation raster:
     gdaldem roughness input_dem output_roughness_map
-                [-b Band (default=1)] [-of format] [-q]
+                [-compute_edges] [-b Band (default=1)] [-of format] [-q]
 
 Notes :
   Scale is the ratio of vertical units to horizontal
@@ -1715,6 +1892,8 @@ The following general options are available :
 <dt> <i>output_xxx_map</i>:</dt><dd> The output raster produced</dd>
 <dt> <b>-of</b> <i>format</i>:</dt><dd> Select the output format.  The default
 is GeoTIFF (GTiff).  Use the short format name.</dd>
+<dt> <b>-compute_edges</b>:</dt><dd> (GDAL >= 1.8.0) Do the computation at raster edges and near nodata values</dd>
+<dt> <b>-alg</b> <i>ZevenbergenThorne</i>:</dt><dd> (GDAL >= 1.8.0) Use Zevenbergen & Thorne formula, instead of Horn's formula, to compute slope & aspect. The litterature suggests Zevenbergen & Thorne to be more suited to smooth landscapes, whereas Horn's formula to perform better on rougher terrain.</dd>
 <dt> <b>-b</b> <i>band</i>:</dt><dd> Select an input <i>band</i> to be processed. Bands are numbered from 1.</dd>
 <dt> <b>-co</b> <i>"NAME=VALUE"</i>:</dt><dd> Passes a creation option to the
 output format driver.  Multiple <b>-co</b> options may be listed.  See format 
@@ -1722,6 +1901,12 @@ specific documentation for legal creation options for each format.</dd>
 <dt> <b>-q</b>:</dt><dd> Suppress progress monitor and other non-error
 output.</dd>
 </dl>
+
+For all algorithms, except color-relief, a nodata value in the target dataset will be emitted if
+at least one pixel set to the nodata value is found in the 3x3 window centered around each source pixel.
+The consequence is that there will be a 1-pixel border around each image set with nodata value.
+From GDAL 1.8.0, if -compute_edges is specified, gdaldem will compute values at image edges
+or if a nodata value is found in the 3x3 window, by interpolating missing values.
 
 \section gdaldem_modes Modes
 
@@ -1731,6 +1916,8 @@ This command outputs an 8-bit raster with a nice shaded relief effect.
 It’s very useful for visualizing the terrain.
 You can optionally specify the azimuth and altitude of the light source,
 a vertical exaggeration factor and a scaling factor to account for differences between vertical and horizontal units.
+
+The value 0 is used as the output nodata value.
 
 The following specific options are available :
 <dl>
@@ -1745,6 +1932,8 @@ The following specific options are available :
 This command will take a DEM raster and output a 32-bit float raster with slope values.
 You have the option of specifying the type of slope value you want: degrees or percent slope.
 In cases where the horizontal units differ from the vertical units, you can also supply a scaling factor.
+
+The value -9999 is used as the output nodata value.
 
 The following specific options are available :
 <dl>
@@ -1800,6 +1989,8 @@ Various field separators are accepted : comma, tabulation, spaces, ':'.
 Common colors used by GRASS can also be specified by using their name, instead of the RGB triplet. The supported list is :
 white, black, red, green, blue, yellow, magenta, cyan, aqua, grey/gray, orange, brown, purple/violet and indigo.
 
+Since GDAL 1.8.0, GMT .cpt palette files are also supported (COLOR_MODEL = RGB only).
+
 Note: the syntax of the color configuration file is derived from the one supported by GRASS r.colors utility.
 ESRI HDR color table files (.clr) also match that syntax.
 The alpha component and the support of tablulations and commma as separators are GDAL specific extensions.
@@ -1819,6 +2010,8 @@ nv     0   0   0   0
 This command outputs a single-band raster with values computed from the elevation.
 TRI stands for Terrain Ruggedness Index, which is defined as the mean difference between a central pixel and its surrounding cells (see Wilson et al 2007, Marine Geodesy 30:3-35).
 
+The value -9999 is used as the output nodata value.
+
 There are no specific options.
 
 \subsection gdaldem_TPI TPI
@@ -1826,12 +2019,16 @@ There are no specific options.
 This command outputs a single-band raster with values computed from the elevation.
 TPI stands for Topographic Position Index, which is defined as the difference between a central pixel and the mean of its surrounding cells (see Wilson et al 2007, Marine Geodesy 30:3-35).
 
+The value -9999 is used as the output nodata value.
+
 There are no specific options.
 
 \subsection gdaldem_roughness roughness
 
 This command outputs a single-band raster with values computed from the elevation.
 Roughness is the the largest inter-cell difference of a central pixel and its surrounding cell, as defined in Wilson et al (2007, Marine Geodesy 30:3-35).
+
+The value -9999 is used as the output nodata value.
 
 There are no specific options.
 

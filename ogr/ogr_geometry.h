@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_geometry.h 18155 2009-12-02 15:27:29Z warmerdam $
+ * $Id: ogr_geometry.h 21023 2010-10-30 19:48:23Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Classes for manipulating simple features that is not specific
@@ -60,13 +60,10 @@ typedef struct GEOSGeom_t *GEOSGeom;
 /*                             OGRGeometry                              */
 /************************************************************************/
 
+class OGRPoint;
+
 /**
  * Abstract base class for all geometry classes.
- *
- * Note that the family of spatial analysis methods (Equal(), Disjoint(), ...,
- * ConvexHull(), Buffer(), ...) are not implemented at ths time.  Some other
- * required and optional geometry methods have also been omitted at this
- * time.
  *
  * Some spatial analysis methods require that OGR is built on the GEOS library
  * to work properly. The precise meaning of methods that describe spatial relationships
@@ -112,7 +109,7 @@ class CPL_DLL OGRGeometry
     virtual const char *getGeometryName() const = 0;
     virtual void   dumpReadable( FILE *, const char * = NULL, char** papszOptions = NULL ) const;
     virtual void   flattenTo2D() = 0;
-    virtual char * exportToGML() const;
+    virtual char * exportToGML( const char* const * papszOptions = NULL ) const;
 	virtual char * exportToKML() const;
     virtual char * exportToJson() const;
     virtual GEOSGeom exportToGEOS() const;
@@ -139,21 +136,28 @@ class CPL_DLL OGRGeometry
     virtual OGRBoolean  Overlaps( const OGRGeometry * ) const;
 //    virtual OGRBoolean  Relate( const OGRGeometry *, const char * ) const;
 
-    virtual OGRGeometry *getBoundary() const;
+    virtual OGRGeometry *Boundary() const;
     virtual double  Distance( const OGRGeometry * ) const;
     virtual OGRGeometry *ConvexHull() const;
     virtual OGRGeometry *Buffer( double dfDist, int nQuadSegs = 30 ) const;
     virtual OGRGeometry *Intersection( const OGRGeometry *) const;
     virtual OGRGeometry *Union( const OGRGeometry * ) const;
+    virtual OGRGeometry *UnionCascaded() const;
     virtual OGRGeometry *Difference( const OGRGeometry * ) const;
-    virtual OGRGeometry *SymmetricDifference( const OGRGeometry * ) const;
+    virtual OGRGeometry *SymDifference( const OGRGeometry * ) const;
+    virtual OGRErr       Centroid( OGRPoint * poPoint ) const;
+    virtual OGRGeometry *Simplify(double dTolerance) const;
 
-    // backward compatibility methods. 
+    // backward compatibility to non-standard method names. 
     OGRBoolean  Intersect( OGRGeometry * ) const;
     OGRBoolean  Equal( OGRGeometry * ) const;
-
+    virtual OGRGeometry *SymmetricDifference( const OGRGeometry * ) const;
+    virtual OGRGeometry *getBoundary() const;
+    
     // Special HACK for DB2 7.2 support
     static int bGenerate_DB2_V72_BYTE_ORDER;
+
+    virtual void        swapXY();
 };
 
 /************************************************************************/
@@ -211,6 +215,8 @@ class CPL_DLL OGRPoint : public OGRGeometry
     virtual OGRwkbGeometryType getGeometryType() const;
     virtual OGRErr  transform( OGRCoordinateTransformation *poCT );
     virtual void flattenTo2D();
+
+    virtual void        swapXY();
 };
 
 /************************************************************************/
@@ -311,6 +317,8 @@ class CPL_DLL OGRLineString : public OGRCurve
     virtual OGRErr  transform( OGRCoordinateTransformation *poCT );
     virtual void flattenTo2D();
     virtual void segmentize(double dfMaxLength);
+
+    virtual void        swapXY();
 };
 
 /************************************************************************/
@@ -382,7 +390,6 @@ class CPL_DLL OGRSurface : public OGRGeometry
 {
   public:
     virtual double      get_Area() const = 0;
-    virtual OGRErr      Centroid( OGRPoint * poPoint ) const = 0;
     virtual OGRErr      PointOnSurface( OGRPoint * poPoint ) const = 0;
 };
 
@@ -420,7 +427,6 @@ class CPL_DLL OGRPolygon : public OGRSurface
 
     // ISurface Interface
     virtual double      get_Area() const;
-    virtual int         Centroid( OGRPoint * poPoint ) const;
     virtual int         PointOnSurface( OGRPoint * poPoint ) const;
     
     // IWks Interface
@@ -452,6 +458,8 @@ class CPL_DLL OGRPolygon : public OGRSurface
     OGRBoolean IsPointOnSurface( const OGRPoint * ) const;
 
     virtual void closeRings();
+
+    virtual void        swapXY();
 };
 
 /************************************************************************/
@@ -491,6 +499,7 @@ class CPL_DLL OGRGeometryCollection : public OGRGeometry
     virtual OGRErr importFromWkt( char ** );
     virtual OGRErr exportToWkt( char ** ppszDstText ) const;
 
+    virtual double get_Length() const;
     virtual double get_Area() const;
 
     // IGeometry methods
@@ -512,6 +521,8 @@ class CPL_DLL OGRGeometryCollection : public OGRGeometry
     virtual OGRErr removeGeometry( int iIndex, int bDelete = TRUE );
 
     void closeRings();
+
+    virtual void        swapXY();
 };
 
 /************************************************************************/
@@ -553,7 +564,7 @@ class CPL_DLL OGRMultiPolygon : public OGRGeometryCollection
 class CPL_DLL OGRMultiPoint : public OGRGeometryCollection
 {
   private:
-    OGRErr  importFromWkt_Bracketed( char ** );
+    OGRErr  importFromWkt_Bracketed( char **, int bHasM, int bHasZ );
 
   public:
             OGRMultiPoint();
@@ -641,5 +652,8 @@ class CPL_DLL OGRGeometryFactory
                               double dfStartAngle, double dfEndAngle,
                               double dfMaxAngleStepSizeDegrees );
 };
+
+OGRwkbGeometryType CPL_DLL OGRFromOGCGeomType( const char *pszGeomType );
+const char CPL_DLL * OGRToOGCGeomType( OGRwkbGeometryType eGeomType );
 
 #endif /* ndef _OGR_GEOMETRY_H_INCLUDED */

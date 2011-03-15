@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_csv.h 17495 2009-08-02 11:44:13Z rouault $
+ * $Id: ogr_csv.h 21373 2011-01-02 00:41:43Z rouault $
  *
  * Project:  CSV Translator
  * Purpose:  Definition of classes for OGR .csv driver.
@@ -43,6 +43,8 @@ typedef enum
 
 class OGRCSVDataSource;
 
+char **OGRCSVReadParseLineL( VSILFILE * fp, char chDelimiter, int bDontHonourStrings );
+
 /************************************************************************/
 /*                             OGRCSVLayer                              */
 /************************************************************************/
@@ -51,7 +53,7 @@ class OGRCSVLayer : public OGRLayer
 {
     OGRFeatureDefn     *poFeatureDefn;
 
-    FILE               *fpCSV;
+    VSILFILE           *fpCSV;
 
     int                 nNextFID;
 
@@ -72,9 +74,13 @@ class OGRCSVLayer : public OGRLayer
     int                 iWktGeomReadField;
     int                 bFirstFeatureAppendedDuringSession;
 
+    /*http://www.faa.gov/airports/airport_safety/airportdata_5010/menu/index.cfm specific */
+    int                 iNfdcLatitudeS, iNfdcLongitudeS;
+    int                 bDontHonourStrings;
+
   public:
-    OGRCSVLayer( const char *pszName, FILE *fp, const char *pszFilename,
-                 int bNew, int bInWriteMode, char chDelimiter );
+    OGRCSVLayer( const char *pszName, VSILFILE *fp, const char *pszFilename,
+                 int bNew, int bInWriteMode, char chDelimiter, const char* pszNfdcRunwaysGeomField );
   ~OGRCSVLayer();
 
     void                ResetReading();
@@ -106,14 +112,16 @@ class OGRCSVDataSource : public OGRDataSource
     int                 nLayers;
 
     int                 bUpdate;
-    
+
+    CPLString           osDefaultCSVName;
+
   public:
                         OGRCSVDataSource();
                         ~OGRCSVDataSource();
 
     int                 Open( const char * pszFilename,
                               int bUpdate, int bForceAccept );
-    int                 OpenTable( const char * pszFilename );
+    int                 OpenTable( const char * pszFilename, const char* pszNfdcRunwaysGeomField = NULL );
     
     const char          *GetName() { return pszName; }
 
@@ -128,6 +136,9 @@ class OGRCSVDataSource : public OGRDataSource
     virtual OGRErr      DeleteLayer(int);
 
     int                 TestCapability( const char * );
+
+    void                SetDefaultCSVName( const char *pszName ) 
+        { osDefaultCSVName = pszName; }
 };
 
 /************************************************************************/

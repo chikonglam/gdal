@@ -1,6 +1,6 @@
 
 /******************************************************************************
- * $Id: swig_csharp_extensions.i 20171 2010-08-05 11:27:24Z tamas $
+ * $Id: swig_csharp_extensions.i 20170 2010-08-05 11:24:07Z tamas $
  *
  * Name:     swig_csharp_extensions.i
  * Purpose:  Fix for the SWIG Interface problems (early GC) 

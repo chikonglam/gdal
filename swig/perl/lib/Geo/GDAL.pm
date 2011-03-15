@@ -66,8 +66,8 @@ package Geo::GDAL;
 *PushFinderLocation = *Geo::GDALc::PushFinderLocation;
 *PopFinderLocation = *Geo::GDALc::PopFinderLocation;
 *FinderClean = *Geo::GDALc::FinderClean;
-*FindFile = *Geo::GDALc::FindFile;
-*ReadDir = *Geo::GDALc::ReadDir;
+*_FindFile = *Geo::GDALc::_FindFile;
+*_ReadDir = *Geo::GDALc::_ReadDir;
 *SetConfigOption = *Geo::GDALc::SetConfigOption;
 *GetConfigOption = *Geo::GDALc::GetConfigOption;
 *CPLBinaryToHex = *Geo::GDALc::CPLBinaryToHex;
@@ -75,6 +75,15 @@ package Geo::GDAL;
 *FileFromMemBuffer = *Geo::GDALc::FileFromMemBuffer;
 *Unlink = *Geo::GDALc::Unlink;
 *HasThreadSupport = *Geo::GDALc::HasThreadSupport;
+*Mkdir = *Geo::GDALc::Mkdir;
+*Rmdir = *Geo::GDALc::Rmdir;
+*Rename = *Geo::GDALc::Rename;
+*Stat = *Geo::GDALc::Stat;
+*VSIFOpenL = *Geo::GDALc::VSIFOpenL;
+*VSIFCloseL = *Geo::GDALc::VSIFCloseL;
+*VSIFSeekL = *Geo::GDALc::VSIFSeekL;
+*VSIFTellL = *Geo::GDALc::VSIFTellL;
+*VSIFWriteL = *Geo::GDALc::VSIFWriteL;
 *GDAL_GCP_GCPX_get = *Geo::GDALc::GDAL_GCP_GCPX_get;
 *GDAL_GCP_GCPX_set = *Geo::GDALc::GDAL_GCP_GCPX_set;
 *GDAL_GCP_GCPY_get = *Geo::GDALc::GDAL_GCP_GCPY_get;
@@ -114,6 +123,7 @@ package Geo::GDAL;
 *FillNodata = *Geo::GDALc::FillNodata;
 *_SieveFilter = *Geo::GDALc::_SieveFilter;
 *_RegenerateOverview = *Geo::GDALc::_RegenerateOverview;
+*ContourGenerate = *Geo::GDALc::ContourGenerate;
 *_AutoCreateWarpedVRT = *Geo::GDALc::_AutoCreateWarpedVRT;
 *ApplyGeoTransform = *Geo::GDALc::ApplyGeoTransform;
 *InvGeoTransform = *Geo::GDALc::InvGeoTransform;
@@ -121,8 +131,8 @@ package Geo::GDAL;
 *AllRegister = *Geo::GDALc::AllRegister;
 *GDALDestroyDriverManager = *Geo::GDALc::GDALDestroyDriverManager;
 *GetCacheMax = *Geo::GDALc::GetCacheMax;
-*SetCacheMax = *Geo::GDALc::SetCacheMax;
 *GetCacheUsed = *Geo::GDALc::GetCacheUsed;
+*SetCacheMax = *Geo::GDALc::SetCacheMax;
 *GetDataTypeSize = *Geo::GDALc::GetDataTypeSize;
 *DataTypeIsComplex = *Geo::GDALc::DataTypeIsComplex;
 *GetDataTypeName = *Geo::GDALc::GetDataTypeName;
@@ -224,6 +234,7 @@ use vars qw(@ISA %OWNER %ITERATORS %BLESSEDMEMBERS);
 *CreateCopy = *Geo::GDALc::Driver_CreateCopy;
 *Delete = *Geo::GDALc::Driver_Delete;
 *Rename = *Geo::GDALc::Driver_Rename;
+*CopyFiles = *Geo::GDALc::Driver_CopyFiles;
 *Register = *Geo::GDALc::Driver_Register;
 *Deregister = *Geo::GDALc::Driver_Deregister;
 sub DISOWN {
@@ -283,6 +294,40 @@ sub DESTROY {
     $self->RELEASE_PARENTS();
 }
 
+sub DISOWN {
+    my $self = shift;
+    my $ptr = tied(%$self);
+    delete $OWNER{$ptr};
+}
+
+sub ACQUIRE {
+    my $self = shift;
+    my $ptr = tied(%$self);
+    $OWNER{$ptr} = 1;
+}
+
+
+############# Class : Geo::GDAL::AsyncReader ##############
+
+package Geo::GDAL::AsyncReader;
+use vars qw(@ISA %OWNER %ITERATORS %BLESSEDMEMBERS);
+@ISA = qw( Geo::GDAL );
+%OWNER = ();
+%ITERATORS = ();
+sub DESTROY {
+    return unless $_[0]->isa('HASH');
+    my $self = tied(%{$_[0]});
+    return unless defined $self;
+    delete $ITERATORS{$self};
+    if (exists $OWNER{$self}) {
+        Geo::GDALc::delete_AsyncReader($self);
+        delete $OWNER{$self};
+    }
+}
+
+*GetNextUpdatedRegion = *Geo::GDALc::AsyncReader_GetNextUpdatedRegion;
+*LockBuffer = *Geo::GDALc::AsyncReader_LockBuffer;
+*UnlockBuffer = *Geo::GDALc::AsyncReader_UnlockBuffer;
 sub DISOWN {
     my $self = shift;
     my $ptr = tied(%$self);
@@ -379,12 +424,15 @@ use vars qw(@ISA %OWNER %ITERATORS %BLESSEDMEMBERS);
 *GetNoDataValue = *Geo::GDALc::Band_GetNoDataValue;
 *SetNoDataValue = *Geo::GDALc::Band_SetNoDataValue;
 *GetUnitType = *Geo::GDALc::Band_GetUnitType;
+*SetUnitType = *Geo::GDALc::Band_SetUnitType;
 *GetRasterCategoryNames = *Geo::GDALc::Band_GetRasterCategoryNames;
 *SetRasterCategoryNames = *Geo::GDALc::Band_SetRasterCategoryNames;
 *GetMinimum = *Geo::GDALc::Band_GetMinimum;
 *GetMaximum = *Geo::GDALc::Band_GetMaximum;
 *GetOffset = *Geo::GDALc::Band_GetOffset;
 *GetScale = *Geo::GDALc::Band_GetScale;
+*SetOffset = *Geo::GDALc::Band_SetOffset;
+*SetScale = *Geo::GDALc::Band_SetScale;
 *GetStatistics = *Geo::GDALc::Band_GetStatistics;
 *ComputeStatistics = *Geo::GDALc::Band_ComputeStatistics;
 *SetStatistics = *Geo::GDALc::Band_SetStatistics;
@@ -558,7 +606,7 @@ sub DESTROY {
 }
 
 *TransformPoint = *Geo::GDALc::Transformer_TransformPoint;
-*TransformPoints = *Geo::GDALc::Transformer_TransformPoints;
+*_TransformPoints = *Geo::GDALc::Transformer__TransformPoints;
 sub DISOWN {
     my $self = shift;
     my $ptr = tied(%$self);
@@ -580,11 +628,12 @@ package Geo::GDAL;
 
     use strict;
     use Carp;
+    use Encode;
     use Geo::GDAL::Const;
     use Geo::OGR;
     use Geo::OSR;
     our $VERSION = '0.23';
-    our $GDAL_VERSION = '1.7.3';
+    our $GDAL_VERSION = '1.8.0';
     use vars qw/
 	%TYPE_STRING2INT %TYPE_INT2STRING
 	%ACCESS_STRING2INT %ACCESS_INT2STRING
@@ -734,6 +783,19 @@ package Geo::GDAL;
 	$_[3] = $RESAMPLING_STRING2INT{$_[3]} if $_[3] and exists $RESAMPLING_STRING2INT{$_[3]};
 	return _AutoCreateWarpedVRT(@_);
     }
+    sub FindFile {
+	my $a = _FindFile(@_);
+	$a = decode('utf8', $a); # GDAL returns utf8
+	return $a;
+    }
+    sub ReadDir {
+	return unless defined wantarray;
+	my $a = _ReadDir(@_);
+	for (@$a) {
+	    $_ = decode('utf8', $_); # GDAL returns utf8
+	}
+	return wantarray ? @$a : $a;
+    }
 
     package Geo::GDAL::MajorObject;
     use vars qw/@DOMAINS/;
@@ -772,14 +834,15 @@ package Geo::GDAL;
 	my $h = $self->GetMetadata;
 	my @cap;
 	for my $cap (@CAPABILITIES) {
-	    push @cap, $cap if $h->{'DCAP_'.uc($cap)} eq 'YES';
+	    my $test = $h->{'DCAP_'.uc($cap)};
+	    push @cap, $cap if defined($test) and $test eq 'YES';
 	}
 	return @cap;
     }
     sub TestCapability {
 	my($self, $cap) = @_;
-	my $h = $self->GetMetadata;
-	return $h->{'DCAP_'.uc($cap)} eq 'YES' ? 1 : undef;
+	my $h = $self->GetMetadata->{'DCAP_'.uc($cap)};
+	return (defined($h) and $h eq 'YES') ? 1 : undef;
     }
     sub Extension {
 	my $self = shift;
@@ -1067,6 +1130,15 @@ package Geo::GDAL;
 			$params{NoDataValue}, $layer, $params{IDField}, $params{ElevField},
 			$params{callback}, $params{callback_data});
 	return $layer;
+    }
+    sub FillNodata {
+      croak 'usage: FillNodata($mask)' unless isa($_[1], 'Geo::GDAL::Band');
+      $_[2] = 10 unless defined $_[2];
+      $_[3] = 0 unless defined $_[3];
+      $_[4] = undef unless defined $_[4];
+      $_[5] = undef unless defined $_[5];
+      $_[6] = undef unless defined $_[6];
+      Geo::GDAL::FillNodata(@_);
     }
 
     package Geo::GDAL::ColorTable;
