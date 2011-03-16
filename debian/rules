@@ -12,6 +12,9 @@ PYVERS=$(shell pyversions -v -r debian/control)
 PYDEF=$(shell pyversions -dv)
 RUBYDEF=$(shell ruby --version|cut -d' ' -f2|cut -d. -f1,2)
 PERLDEF=$(shell perl -V:version|cut -d\' -f2)
+PERL_VENDOR_ARCH=$(shell perl -V:vendorarch|cut -d\' -f2)
+PERL_ARCH_NAME=$(shell perl -V:archname|cut -d\' -f2)
+PERL_PATH="$(PERL_VENDOR_ARCH)/$(PERL_ARCH_NAME)"
 SWIGVER=$(shell swig -version |grep Version|cut -d' ' -f3|sed -e 's/\.//g')
 
 GDALVER=$(shell cat VERSION|sed -e 's/\./ /g')
@@ -168,15 +171,15 @@ install: build
 	# removing license file
 	rm -f $(CURDIR)/debian/tmp/usr/share/gdal/1.8/LICENSE.TXT
 	# removing empty packlist MakeMaker files 
-	-find $(CURDIR)/debian/tmp/usr/local/lib/perl -type f -name .packlist -exec rm -f {} \;
+	-find $(CURDIR)/debian/tmp$(PERL_PATH) -type f -name .packlist -exec rm -f {} \;
 	# removing embedded rpath in perl shlibs
-	-find $(CURDIR)/debian/tmp/usr/local/lib/perl -type f -name "*.so" -exec chrpath --delete {} \;
+	-find $(CURDIR)/debian/tmp/$(PERL_PATH) -type f -name "*.so" -exec chrpath --delete {} \;
 	
 	# moves ruby/perl stuff the right dirs
 	install -o root -g root -d $(CURDIR)/debian/tmp/usr/lib/perl5/auto
 	install -o root -g root -d $(CURDIR)/debian/tmp/usr/lib/ruby/$(RUBYDEF)
-	mv $(CURDIR)/debian/tmp/usr/local/lib/perl/$(PERLDEF)/auto/* $(CURDIR)/debian/tmp/usr/lib/perl5/auto/.
-	mv $(CURDIR)/debian/tmp/usr/local/lib/perl/$(PERLDEF)/Geo $(CURDIR)/debian/tmp/usr/lib/perl5/.
+	mv $(CURDIR)/debian/tmp$(PERL_PATH)/auto/* $(CURDIR)/debian/tmp/usr/lib/perl5/auto/.
+	mv $(CURDIR)/debian/tmp$(PERL_PATH)/lib/perl/$(PERLDEF)/Geo $(CURDIR)/debian/tmp/usr/lib/perl5/.
 	mv $(CURDIR)/debian/tmp/usr/local/lib/site_ruby/$(RUBYDEF)/* $(CURDIR)/debian/tmp/usr/lib/ruby/$(RUBYDEF)/.
 	# copy sample programs for python-gdal
 	install -o root -g root -d $(CURDIR)/debian/tmp/usr/share/doc/python-gdal/examples
