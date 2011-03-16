@@ -166,8 +166,6 @@ install: build
 	install -o root -g root -d $(CURDIR)/debian/tmp/usr/bin
 	install -o root -g root -m 755 $(CURDIR)/swig/python/scripts/*.py $(CURDIR)/debian/tmp/usr/bin/.                                        
 	
-	ls -R $(CURDIR)/debian/tmp/ 
-	
 	# removing license file
 	rm -f $(CURDIR)/debian/tmp/usr/share/gdal/1.8/LICENSE.TXT
 	# removing empty packlist MakeMaker files 
