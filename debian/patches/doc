@@ -1,10 +1,10 @@
 Index: gdal/doc/index.dox
 ===================================================================
---- gdal.orig/doc/index.dox	2011-02-18 15:52:35.000000000 +0100
-+++ gdal/doc/index.dox	2011-02-18 16:47:08.000000000 +0100
+--- gdal.orig/doc/index.dox	2011-03-15 18:20:37.000000000 +0100
++++ gdal/doc/index.dox	2011-03-16 09:50:07.000000000 +0100
 @@ -19,7 +19,7 @@
- <a href="http://trac.osgeo.org/gdal/wiki/Release/1.6.3-News">NEWS</a> 
- page describes the November 2009 GDAL/OGR 1.6.3 release.
+ <a href="http://trac.osgeo.org/gdal/wiki/Release/1.7.3-News">NEWS</a>
+ page describes the November 2010 GDAL/OGR 1.7.3 release.
  
 -The related <a href="ogr/index.html">OGR</a> library (which lives within the GDAL source tree) 
 +The related <a href="../ogr/index.html">OGR</a> library (which lives within the GDAL source tree) 
@@ -13,8 +13,8 @@ Index: gdal/doc/index.dox
  Master: http://www.gdal.org<br>
 Index: gdal/ogr/index.dox
 ===================================================================
---- gdal.orig/ogr/index.dox	2011-02-18 15:52:35.000000000 +0100
-+++ gdal/ogr/index.dox	2011-02-18 16:47:08.000000000 +0100
+--- gdal.orig/ogr/index.dox	2011-03-15 18:20:37.000000000 +0100
++++ gdal/ogr/index.dox	2011-03-16 09:50:07.000000000 +0100
 @@ -6,7 +6,7 @@
  formats including ESRI Shapefiles, S-57, SDTS, PostGIS, Oracle Spatial, 
  and Mapinfo mid/mif and TAB formats.<p>

@@ -1,8 +1,8 @@
 Index: gdal/GDALmake.opt.in
 ===================================================================
---- gdal.orig/GDALmake.opt.in	2011-02-18 16:45:45.000000000 +0100
-+++ gdal/GDALmake.opt.in	2011-02-18 16:46:26.000000000 +0100
-@@ -291,7 +291,7 @@
+--- gdal.orig/GDALmake.opt.in	2011-03-16 09:51:24.000000000 +0100
++++ gdal/GDALmake.opt.in	2011-03-16 09:51:24.000000000 +0100
+@@ -330,7 +330,7 @@
  # PCRaster support
  PCRASTER_SETTING	=	@PCRASTER_SETTING@
  
