@@ -7,6 +7,6 @@ Index: gdal/swig/python/setup.cfg
  #include_dirs = ../../port:../../gcore:../../alg:../../ogr/ 
  #library_dirs = ../../.libs:../../ 
 -#libraries = gdal 
-+libraries = gdal1.7.0 
++libraries = gdal1.8.0 
  gdal_config=../../apps/gdal-config
  

@@ -57,7 +57,7 @@ Index: gdal/swig/perl/Makefile.PL
  }
  open $fh, $fh or die "$fh not found!";
 -$LIB .= " -lgdal ";
-+$LIB .= " -lgdal1.7.0 ";
++$LIB .= " -lgdal1.8.0 ";
  if ($fh) {
      @config = <$fh>;
      close $fh;
