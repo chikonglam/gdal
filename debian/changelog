@@ -5,8 +5,10 @@ gdal (1.8.0-1) experimental; urgency=low
   * Added libepsilon support.
   * Now debian/copyright has moved to DEP5 format and revised on the basis of
     the GDAL LICENSE file.
+  * Swig generated stuff for perl is now removed just before building, not
+    at clean time to be more nice against git-bp.
 
- -- Francesco Paolo Lovergine <frankie@debian.org>  Tue, 15 Mar 2011 17:55:24 +0100
+ -- Francesco Paolo Lovergine <frankie@debian.org>  Wed, 16 Mar 2011 09:46:02 +0100
 
 gdal (1.7.3-2) unstable; urgency=low
 
