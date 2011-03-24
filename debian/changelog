@@ -1,10 +1,10 @@
 gdal (1.7.3-3) unstable; urgency=low
 
-  * Added libepsilon support.
+  * Added libepsilon support. Note that libepsilon is LGPL-3 (too).
   * Now debian/copyright has moved to DEP5 format and revised on the basis of
     the GDAL LICENSE file.
 
- -- Francesco Paolo Lovergine <frankie@debian.org>  Sun, 13 Mar 2011 18:32:54 +0100
+ -- Francesco Paolo Lovergine <frankie@debian.org>  Thu, 24 Mar 2011 15:17:59 +0100
 
 gdal (1.7.3-2) unstable; urgency=low
 
