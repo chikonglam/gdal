@@ -99,9 +99,9 @@ configure-stamp:
 	# and to explicitly link libraries against the libraries they
 	# depend on.
 	#sed < libtool > libtool-2 \
-	-e 's/^hardcode_libdir_flag_spec.*$$/hardcode_libdir_flag_spec=" -D__LIBTOOL_IS_A_FOOL__ "/' \
-	-e '/^archive_cmds="/s/"$$/ \\$$deplibs"/' \
-	-e 's/^hardcode_into_libs.*$$/hardcode_into_libs=no/'
+	#	-e 's/^hardcode_libdir_flag_spec.*$$/hardcode_libdir_flag_spec=" -D__LIBTOOL_IS_A_FOOL__ "/' \
+	#	-e '/^archive_cmds="/s/"$$/ \\$$deplibs"/' \
+	#	-e 's/^hardcode_into_libs.*$$/hardcode_into_libs=no/'
 	#mv libtool-2 libtool
 	#chmod 755 libtool 
 	
