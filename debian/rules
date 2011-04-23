@@ -126,6 +126,7 @@ build-stamp:
 		$(MAKE) -C $(CURDIR)/swig/python install DESTDIR=$(CURDIR)/debian/python-tmp; \
 	done
 
+	mkdir $(CURDIR)/html || true
 	$(MAKE) docs
 	$(MAKE) man
 	# a temporary workaround for doxygen problem #564243 
@@ -142,6 +143,7 @@ clean:
 	rm -f GDALmake.opt-*
 	rm -rf $(CURDIR)/man/man1
 	rm -rf $(CURDIR)/debian/tmp $(CURDIR)/debian/python-tmp
+	rm -rf $(CURDIR)/html
 	
 	dh_clean 
 
