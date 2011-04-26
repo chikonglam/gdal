@@ -163,7 +163,7 @@ install: build
 	# removing embedded rpath in perl shlibs
 	-find $(CURDIR)/debian/tmp/$(PERL_PATH) -type f -name "*.so" -exec chrpath --delete {} \;
 	# removing embedded rpath in main lib
-	-find $(CURDIR)/debian/tmp/usr/lib -type f -name "*.so" -exec chrpath --delete {} \;
+	-find $(CURDIR)/debian/tmp/usr/lib -type f -name "*.so*" -exec chrpath --delete {} \;
 	
 	# moves ruby/perl stuff the right dirs
 	install -o root -g root -d $(CURDIR)/debian/tmp/usr/lib/perl5/auto
