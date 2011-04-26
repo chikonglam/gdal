@@ -1,3 +1,9 @@
+gdal (1.7.3-4) unstable; urgency=low
+
+  * Now post-removing rpath also in main lib to avoig tweaking with libtool.
+
+ -- Francesco Paolo Lovergine <frankie@debian.org>  Tue, 26 Apr 2011 18:04:27 +0200
+
 gdal (1.7.3-3) unstable; urgency=low
 
   * Added libepsilon support. Note that libepsilon is LGPL-3 (too).
