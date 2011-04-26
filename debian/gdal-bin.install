@@ -14,6 +14,7 @@ usr/bin/gdal_contour
 usr/bin/ogr*
 usr/bin/gdalbuildvrt
 usr/bin/testepsg
+usr/bin/gdallocationinfo
 usr/share/man/man1/gdal_rasterize.1
 usr/share/man/man1/gdal_translate.1
 usr/share/man/man1/gdal_utilities.1
@@ -30,3 +31,4 @@ usr/share/man/man1/gdaltindex.1
 usr/share/man/man1/gdaltransform.1
 usr/share/man/man1/nearblack.1
 usr/share/man/man1/gdaldem.1
+usr/share/man/man1/gdallocationinfo.1

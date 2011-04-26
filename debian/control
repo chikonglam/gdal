@@ -11,7 +11,7 @@ Build-Depends: debhelper (>= 8), zlib1g-dev, libnetcdf-dev (>= 1:4.0.0),
  ruby, ruby1.8-dev, chrpath, swig, libtool (>= 1.5.24-2), patch, libexpat1-dev, libproj-dev,
  libdap-dev, libxml2-dev, libspatialite-dev (>= 2.4.0~rc2-4), libepsilon-dev
 Build-Conflicts: python-setuptools
-Standards-Version: 3.9.1
+Standards-Version: 3.9.2
 XS-Python-Version: all
 Homepage: http://www.gdal.org/
 Vcs-Browser: http://git.debian.org/?p=pkg-grass/gdal.git

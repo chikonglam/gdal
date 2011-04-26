@@ -7,8 +7,13 @@ gdal (1.8.0-1) experimental; urgency=low
     the GDAL LICENSE file.
   * Swig generated stuff for perl is now removed just before building, not
     at clean time to be more nice against git-bp.
+  * Added gdallocationinfo installation in gdal-bin.
+  * Policy bumped to 3.9.2, no changes required.
+  * Fixed manpages oddities.
+    (closes: #615535)
+  * Added some more cleanup instructions.
 
- -- Francesco Paolo Lovergine <frankie@debian.org>  Wed, 16 Mar 2011 09:46:02 +0100
+ -- Francesco Paolo Lovergine <frankie@debian.org>  Tue, 26 Apr 2011 16:11:03 +0200
 
 gdal (1.7.3-2) unstable; urgency=low
 

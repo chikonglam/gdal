@@ -91,20 +91,6 @@ configure-stamp:
 		mv GDALmake.opt GDALmake.opt-$$V; \
 	done
 	
-	# Overrides the generated libtool with official one, due to 
-	# breakage in upstream version.
-	#cp /usr/bin/libtool $(CURDIR)/libtool
-	
-	# Patch the generated libtool to avoid passing -rpath when linking,
-	# and to explicitly link libraries against the libraries they
-	# depend on.
-	#sed < libtool > libtool-2 \
-	#	-e 's/^hardcode_libdir_flag_spec.*$$/hardcode_libdir_flag_spec=" -D__LIBTOOL_IS_A_FOOL__ "/' \
-	#	-e '/^archive_cmds="/s/"$$/ \\$$deplibs"/' \
-	#	-e 's/^hardcode_into_libs.*$$/hardcode_into_libs=no/'
-	#mv libtool-2 libtool
-	#chmod 755 libtool 
-	
 	touch $@
 
 build: configure-stamp build-stamp
@@ -143,7 +129,9 @@ clean:
 	rm -f GDALmake.opt-*
 	rm -rf $(CURDIR)/man/man1
 	rm -rf $(CURDIR)/debian/tmp $(CURDIR)/debian/python-tmp
-	rm -rf $(CURDIR)/html
+	rm -rf $(CURDIR)/html $(CURDIR)/doc/br/html $(CURDIR)/doc/ru/html
+	rm -rf $(CURDIR)/frmts/o/.libs
+	rm -f  $(CURDIR)/islibdappost310.*
 	
 	dh_clean 
 
@@ -179,7 +167,7 @@ install: build
 	install -o root -g root -d $(CURDIR)/debian/tmp/usr/lib/perl5/auto
 	install -o root -g root -d $(CURDIR)/debian/tmp/usr/lib/ruby/$(RUBYDEF)
 	mv $(CURDIR)/debian/tmp$(PERL_PATH)/auto/* $(CURDIR)/debian/tmp/usr/lib/perl5/auto/.
-	mv $(CURDIR)/debian/tmp$(PERL_PATH)/lib/perl/$(PERLDEF)/Geo $(CURDIR)/debian/tmp/usr/lib/perl5/.
+	mv $(CURDIR)/debian/tmp$(PERL_PATH)/Geo $(CURDIR)/debian/tmp/usr/lib/perl5/.
 	mv $(CURDIR)/debian/tmp/usr/local/lib/site_ruby/$(RUBYDEF)/* $(CURDIR)/debian/tmp/usr/lib/ruby/$(RUBYDEF)/.
 	# copy sample programs for python-gdal
 	install -o root -g root -d $(CURDIR)/debian/tmp/usr/share/doc/python-gdal/examples
