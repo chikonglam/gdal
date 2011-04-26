@@ -12,8 +12,10 @@ gdal (1.8.0-1) experimental; urgency=low
   * Fixed manpages oddities.
     (closes: #615535)
   * Added some more cleanup instructions.
+  * Now post-removing rpath in main library as well to avoid libtool tricks at
+    building time.
 
- -- Francesco Paolo Lovergine <frankie@debian.org>  Tue, 26 Apr 2011 16:11:03 +0200
+ -- Francesco Paolo Lovergine <frankie@debian.org>  Tue, 26 Apr 2011 17:55:11 +0200
 
 gdal (1.7.3-2) unstable; urgency=low
 
