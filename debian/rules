@@ -155,6 +155,8 @@ install: build
 	-find $(CURDIR)/debian/tmp/usr/local/lib/perl -type f -name .packlist -exec rm -f {} \;
 	# removing embedded rpath in perl shlibs
 	-find $(CURDIR)/debian/tmp/usr/local/lib/perl -type f -name "*.so" -exec chrpath --delete {} \;
+	# removing embedded rpath in main lib
+	-find $(CURDIR)/debian/tmp/usr/lib -type f -name "*.so*" -exec chrpath --delete {} \;
 	
 	# moves ruby/perl stuff the right dirs
 	install -o root -g root -d $(CURDIR)/debian/tmp/usr/lib/perl5/auto

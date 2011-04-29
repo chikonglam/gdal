@@ -5,6 +5,8 @@ gdal (1.7.3-3) unstable; urgency=low
     the GDAL LICENSE file.
   * Removed obsolete libtool workaround in debian/rules. 
     (closes: #621930)
+  * Now post-removing rpath in main library as well to avoid libtool tricks at
+    building time.
 
  -- Francesco Paolo Lovergine <frankie@debian.org>  Tue, 26 Apr 2011 16:52:20 +0200
 
