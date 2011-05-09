@@ -67,7 +67,6 @@ configure-stamp:
 			--includedir=\$$\{prefix\}/include/gdal \
 			--with-threads \
 			--with-grass=no \
-			--with-hide-internal-symbols=yes \
 			--with-libtiff=internal \
 			--with-geotiff=internal \
 			--with-jasper \
