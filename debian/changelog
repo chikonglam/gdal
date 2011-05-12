@@ -1,3 +1,14 @@
+gdal (1.8.0-2) experimental; urgency=low
+
+  * Patch: symver. Added symbol versioning (GDAL_X.Y) for all symbols 
+    exported by GDAL.
+    (closes: #558733)
+  * Patch: spatialite. Added explicit linking to sqlite3 for spatialite.
+    This is Debian specific, because Debian spatialite does not embed Sqlite
+    functions as in upstream release.
+
+ -- Francesco Paolo Lovergine <frankie@debian.org>  Thu, 12 May 2011 11:12:36 +0200
+
 gdal (1.8.0-1) experimental; urgency=low
 
   * New upstream release.
