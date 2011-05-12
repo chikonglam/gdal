@@ -1,3 +1,10 @@
+gdal (1.7.3-4) unstable; urgency=low
+
+  * [PATCH] Added epsilon patch to fix syntax oddity in referencing
+    eps_block_header union members.
+
+ -- Francesco Paolo Lovergine <frankie@debian.org>  Thu, 12 May 2011 11:49:37 +0200
+
 gdal (1.7.3-3) unstable; urgency=low
 
   * Added libepsilon support. Note that libepsilon is LGPL-3 (too).
