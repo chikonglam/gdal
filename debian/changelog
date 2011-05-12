@@ -1,9 +1,11 @@
 gdal (1.7.3-4) unstable; urgency=low
 
-  * [PATCH] Added epsilon patch to fix syntax oddity in referencing
-    eps_block_header union members.
+  * [PATCH] Added epsilon patch to fix syntax problem in referencing
+    eps_block_header named union members. This is a >= 0.9.1 problem 
+    with epsilon header file.
+  * Now build-depends on epsilon libraryi by version.
 
- -- Francesco Paolo Lovergine <frankie@debian.org>  Thu, 12 May 2011 11:49:37 +0200
+ -- Francesco Paolo Lovergine <frankie@debian.org>  Thu, 12 May 2011 12:24:15 +0200
 
 gdal (1.7.3-3) unstable; urgency=low
 
