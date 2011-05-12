@@ -4,7 +4,7 @@ Priority: extra
 Maintainer: Debian GIS Project <pkg-grass-devel@lists.alioth.debian.org>
 Uploaders: Francesco Paolo Lovergine <frankie@debian.org>
 Build-Depends: debhelper (>= 8), zlib1g-dev, libnetcdf-dev (>= 1:4.0.0),
- libjasper-dev, libpng12-dev, libpeg-dev, libgif-dev,
+ libjasper-dev, libpng12-dev, libjpeg-dev, libgif-dev,
  libhdf4-alt-dev, libhdf5-serial-dev (>= 1.6.6), libpq-dev, libxerces-c2-dev, unixodbc-dev (>= 2.2.11),
  python-dev, python-numpy, doxygen, d-shlibs, libgeos-dev, libmysqlclient-dev, python-all-dev (>= 2.3.5-11~), 
  python-central (>= 0.5), libcurl4-gnutls-dev, libsqlite3-dev, libogdi3.2-dev,
