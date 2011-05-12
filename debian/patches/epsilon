@@ -1,0 +1,34 @@
+Index: gdal/frmts/epsilon/epsilondataset.cpp
+===================================================================
+--- gdal.orig/frmts/epsilon/epsilondataset.cpp	2011-05-12 11:50:58.000000000 +0200
++++ gdal/frmts/epsilon/epsilondataset.cpp	2011-05-12 11:53:19.000000000 +0200
+@@ -237,8 +237,8 @@
+         return CE_Failure;
+     }
+     
+-    int w = (hdr.block_type == EPS_GRAYSCALE_BLOCK) ? hdr.gs.w : hdr.tc.w;
+-    int h = (hdr.block_type == EPS_GRAYSCALE_BLOCK) ? hdr.gs.h : hdr.tc.h;
++    int w = (hdr.block_type == EPS_GRAYSCALE_BLOCK) ? hdr.hdr_data.gs.w : hdr.hdr_data.tc.w;
++    int h = (hdr.block_type == EPS_GRAYSCALE_BLOCK) ? hdr.hdr_data.gs.h : hdr.hdr_data.tc.h;
+     int i;
+ 
+     if (poGDS->nBands == 1)
+@@ -505,12 +505,12 @@
+             continue;
+         }
+         
+-        int W = (hdr.block_type == EPS_GRAYSCALE_BLOCK) ? hdr.gs.W : hdr.tc.W;
+-        int H = (hdr.block_type == EPS_GRAYSCALE_BLOCK) ? hdr.gs.H : hdr.tc.H;
+-        int x = (hdr.block_type == EPS_GRAYSCALE_BLOCK) ? hdr.gs.x : hdr.tc.x;
+-        int y = (hdr.block_type == EPS_GRAYSCALE_BLOCK) ? hdr.gs.y : hdr.tc.y;
+-        int w = (hdr.block_type == EPS_GRAYSCALE_BLOCK) ? hdr.gs.w : hdr.tc.w;
+-        int h = (hdr.block_type == EPS_GRAYSCALE_BLOCK) ? hdr.gs.h : hdr.tc.h;
++        int W = (hdr.block_type == EPS_GRAYSCALE_BLOCK) ? hdr.hdr_data.gs.W : hdr.hdr_data.tc.W;
++        int H = (hdr.block_type == EPS_GRAYSCALE_BLOCK) ? hdr.hdr_data.gs.H : hdr.hdr_data.tc.H;
++        int x = (hdr.block_type == EPS_GRAYSCALE_BLOCK) ? hdr.hdr_data.gs.x : hdr.hdr_data.tc.x;
++        int y = (hdr.block_type == EPS_GRAYSCALE_BLOCK) ? hdr.hdr_data.gs.y : hdr.hdr_data.tc.y;
++        int w = (hdr.block_type == EPS_GRAYSCALE_BLOCK) ? hdr.hdr_data.gs.w : hdr.hdr_data.tc.w;
++        int h = (hdr.block_type == EPS_GRAYSCALE_BLOCK) ? hdr.hdr_data.gs.h : hdr.hdr_data.tc.h;
+ 
+         //CPLDebug("EPSILON", "W=%d,H=%d,x=%d,y=%d,w=%d,h=%d,offset=" CPL_FRMT_GUIB,
+         //                    W, H, x, y, w, h, nStartBlockFileOff);
