@@ -168,7 +168,7 @@ install: build
 	install -o root -g root -d $(CURDIR)/debian/tmp/usr/share/doc/python-gdal/examples
 	install -o root -g root -m 755 $(CURDIR)/swig/python/samples/*.py $(CURDIR)/debian/tmp/usr/share/doc/python-gdal/examples/.
 	# create lintian overrides file
-	echo "libgdal1-1.7.0: embedded-library $$(basename debian/tmp/usr/lib/libgdal1.7.0.so.*.*.*|cut -d. -f5,6,7): tiff" \
+	echo "libgdal1-1.7.0: embedded-library usr/lib/libgdal1.7.0.so.$$(basename debian/tmp/usr/lib/libgdal1.7.0.so.*.*.*|cut -d. -f5,6,7): tiff" \
 		>$(CURDIR)/debian/libgdal1-1.7.0.lintian-overrides
 
 binary-common: 
