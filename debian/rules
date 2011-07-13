@@ -182,6 +182,7 @@ binary-common:
 	dh_strip
 	dh_compress
 	dh_fixperms
+	dh_lintian
 	dh_pycentral -X.info
 	dh_perl
 	dh_makeshlibs
