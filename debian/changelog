@@ -1,3 +1,10 @@
+gdal (1.7.3-5) unstable; urgency=low
+
+  * Migrating to libjpeg-dev build-dep and dep. 
+    (closes: #629964)
+
+ -- Francesco Paolo Lovergine <frankie@debian.org>  Wed, 13 Jul 2011 18:16:42 +0200
+
 gdal (1.7.3-4) unstable; urgency=low
 
   * [PATCH] Added epsilon patch to fix syntax problem in referencing
