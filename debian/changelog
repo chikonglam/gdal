@@ -1,3 +1,12 @@
+gdal (1.8.0-2) UNRELEASED; urgency=low
+
+  * Really use libjpeg-dev to in favor of libjpeg8 transition.
+    (Closes: #629964)
+  * Build-Depends on libpng-dev instead of libpng12-dev.
+  * Transition to dh_python2. (Closes: #616821)
+
+ -- Aron Xu <aron@debian.org>  Thu, 14 Jul 2011 02:30:52 +0800
+
 gdal (1.8.0-2) experimental; urgency=low
 
   * Patch: symver. Added symbol versioning (GDAL_X.Y) for all symbols 

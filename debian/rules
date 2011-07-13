@@ -186,7 +186,7 @@ binary-common:
 	dh_compress
 	dh_fixperms
 	#find $(CURDIR)/debian/python-gdal -name GDAL-$(GDAL_MAJOR).$(GDAL_MINOR).$(GDAL_PATCH).egg-info -delete || true
-	dh_pycentral -X.info
+	dh_python2 -X.info
 	dh_perl
 	dh_makeshlibs
 	dh_installdeb
