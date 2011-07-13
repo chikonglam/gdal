@@ -3,8 +3,9 @@ gdal (1.7.3-5) unstable; urgency=low
   * Migrating to libjpeg-dev build-dep and dep. 
     (closes: #629964)
   * Policy bumped to 3.9.2, no changes needed.
+  * Added a lintian override for the embedded tiff library.
 
- -- Francesco Paolo Lovergine <frankie@debian.org>  Wed, 13 Jul 2011 20:48:02 +0200
+ -- Francesco Paolo Lovergine <frankie@debian.org>  Wed, 13 Jul 2011 23:15:03 +0200
 
 gdal (1.7.3-4) unstable; urgency=low
 
