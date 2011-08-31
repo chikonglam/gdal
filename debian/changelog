@@ -1,12 +1,13 @@
-gdal (1.7.3-6) unstable; urgency=low
+gdal (1.7.3-6) unstable; urgency=high
 
   * Added a dods patch to work only with libdap >= 3.10. Upstream recent
     versions manage multi-versioning and the dropped AISConnect class, 
     but we are currently only interested in supporting wheezy libdap.
     (closes: #638367, #639066, #639179)
   * Now forces build-dep on libdap >= 3.10 as required.
+  * Priority set to high to promote a fast transition into testing possibly.
 
- -- Francesco Paolo Lovergine <frankie@debian.org>  Wed, 31 Aug 2011 12:18:54 +0200
+ -- Francesco Paolo Lovergine <frankie@debian.org>  Wed, 31 Aug 2011 12:30:42 +0200
 
 gdal (1.7.3-5) unstable; urgency=low
 
