@@ -1,0 +1,38 @@
+Index: gdal/frmts/dods/dodsdataset2.cpp
+===================================================================
+--- gdal.orig/frmts/dods/dodsdataset2.cpp	2011-08-31 11:51:34.000000000 +0200
++++ gdal/frmts/dods/dodsdataset2.cpp	2011-08-31 12:09:07.000000000 +0200
+@@ -50,7 +50,15 @@
+ #include <Sequence.h>
+ #include <Grid.h>
+ 
++#define LIBDAP_310 /* This is supposed to build with OpeNDAP 3.10+ a better general fix is present in recent upstream sources */
++
++#ifdef LIBDAP_310
++/* AISConnect.h/AISConnect class was renamed to Connect.h/Connect in libdap 3.10 */
++#include <Connect.h>		
++#else
+ #include <AISConnect.h>		
++#endif
++
+ #include <DDS.h>
+ #include <DAS.h>
+ #include <BaseTypeFactory.h>
+Index: gdal/ogr/ogrsf_frmts/dods/ogr_dods.h
+===================================================================
+--- gdal.orig/ogr/ogrsf_frmts/dods/ogr_dods.h	2011-08-31 12:12:46.000000000 +0200
++++ gdal/ogr/ogrsf_frmts/dods/ogr_dods.h	2011-08-31 12:14:43.000000000 +0200
+@@ -61,7 +61,13 @@
+ #include <Sequence.h>
+ #include <Grid.h>
+ 
++#define LIBDAP_310 /* This is supposed to be linked only against 3.10+ a better fix is included upstream */
++#ifdef LIBDAP_310
++#include <Connect.h>
++#else
+ #include <AISConnect.h>		
++#endif
++
+ #include <DDS.h>
+ #include <DAS.h>
+ #include <BaseTypeFactory.h>

@@ -1,3 +1,13 @@
+gdal (1.7.3-6) unstable; urgency=low
+
+  * Added a dods patch to work only with libdap >= 3.10. Upstream recent
+    versions manage multi-versioning and the dropped AISConnect class, 
+    but we are currently only interested in supporting wheezy libdap.
+    (closes: #638367, #639066, #639179)
+  * Now forces build-dep on libdap >= 3.10 as required.
+
+ -- Francesco Paolo Lovergine <frankie@debian.org>  Wed, 31 Aug 2011 12:18:54 +0200
+
 gdal (1.7.3-5) unstable; urgency=low
 
   * Migrating to libjpeg-dev build-dep and dep. 

@@ -9,7 +9,7 @@ Build-Depends: debhelper (>= 8), zlib1g-dev, libnetcdf-dev (>= 1:4.0.0),
  python-dev, python-numpy, doxygen, d-shlibs, libgeos-dev, libmysqlclient-dev, python-all-dev (>= 2.3.5-11~), 
  python-central (>= 0.5), libcurl4-gnutls-dev, libsqlite3-dev, libogdi3.2-dev,
  ruby, ruby1.8-dev, chrpath, swig, libtool (>= 1.5.24-2), patch, libexpat1-dev, libproj-dev,
- libdap-dev, libxml2-dev, libspatialite-dev (>= 2.4.0~rc2-4), libepsilon-dev (>= 0.9.1)
+ libdap-dev (>= 3.10), libxml2-dev, libspatialite-dev (>= 2.4.0~rc2-4), libepsilon-dev (>= 0.9.1)
 Build-Conflicts: python-setuptools
 Standards-Version: 3.9.2
 XS-Python-Version: all
