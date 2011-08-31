@@ -6,8 +6,9 @@ gdal (1.7.3-6) unstable; urgency=high
     (closes: #638367, #639066, #639179)
   * Now forces build-dep on libdap >= 3.10 as required.
   * Priority set to high to promote a fast transition into testing possibly.
+  * Added missing new build-dep on librtmp-dev and uuid-dev.
 
- -- Francesco Paolo Lovergine <frankie@debian.org>  Wed, 31 Aug 2011 12:30:42 +0200
+ -- Francesco Paolo Lovergine <frankie@debian.org>  Wed, 31 Aug 2011 14:07:59 +0200
 
 gdal (1.7.3-5) unstable; urgency=low
 
