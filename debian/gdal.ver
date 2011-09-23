@@ -1,5 +1,18 @@
 GDAL_1.8 {
-    global: *;
-    local: TIFF*;
+    local: 
+           TIFF*;
            _TIFF*;
+           LogL10fromY;
+           LogL10toY;
+           LogL16fromY;
+           LogL16toY;
+           LogLuv24fromXYZ;
+           LogLuv24toXYZ;
+           LogLuv32fromXYZ;
+           LogLuv32toXYZ;
+           uv_decode;
+           uv_encode;
+           XYZtoRGB24;
+    global: 
+           *;
 };
