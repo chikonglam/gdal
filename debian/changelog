@@ -7,6 +7,7 @@ gdal (1.8.0-2) experimental; urgency=low
   * Transition to dh_python2. (Closes: #616821)
 
   [ Francesco Paolo Lovergine ]
+  * New upstream release with fixes for 1.8 series.
   * Revised for migration to dh_python2.
   * Merged lintian-overrides handling from 1.7 branch.
   * This version is already compatible with libdap >= 3.10, no patch needed.
@@ -15,7 +16,7 @@ gdal (1.8.0-2) experimental; urgency=low
   * Updated debian/watch file to cope with release-candidate versions which
     results newer than final ones.
 
- -- Francesco Paolo Lovergine <frankie@debian.org>  Mon, 26 Sep 2011 13:09:27 +0200
+ -- Francesco Paolo Lovergine <frankie@debian.org>  Mon, 26 Sep 2011 13:15:37 +0200
 
 gdal (1.8.0-2) experimental; urgency=low
 
