@@ -1,6 +1,4 @@
 GDAL_1.8 {
-    local:
-        TIFF*;
     global: 
         *;
 };

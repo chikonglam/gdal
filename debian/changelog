@@ -8,15 +8,20 @@ gdal (1.8.1-1) experimental; urgency=low
 
   [ Francesco Paolo Lovergine ]
   * New upstream release with fixes for 1.8 series.
+    (closes: #636053, #638073)
   * Revised for migration to dh_python2.
+    (closes: #616821)
   * Merged lintian-overrides handling from 1.7 branch.
   * This version is already compatible with libdap >= 3.10, no patch needed.
   * Still retaining chrpath trick to maintain compatibility against libtool 
     inner use in swing-enabled bindings.
   * Updated debian/watch file to cope with release-candidate versions which
     results newer than final ones.
+  * Added symbol file to track changes in exported symbols. 
+    The -fvisibility=hidden has been removed.
+  * 
 
- -- Francesco Paolo Lovergine <frankie@debian.org>  Mon, 26 Sep 2011 13:15:37 +0200
+ -- Francesco Paolo Lovergine <frankie@debian.org>  Mon, 26 Sep 2011 17:32:44 +0200
 
 gdal (1.8.0-2) experimental; urgency=low
 
