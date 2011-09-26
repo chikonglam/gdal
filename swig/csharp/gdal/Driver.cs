@@ -82,21 +82,21 @@ public class Driver : MajorObject {
   }
 
   public Dataset Create(string utf8_path, int xsize, int ysize, int bands, DataType eType, string[] options) {
-    IntPtr cPtr = GdalPINVOKE.Driver_Create(swigCPtr, utf8_path, xsize, ysize, bands, (int)eType, (options != null)? new GdalPINVOKE.StringListMarshal(options)._ar : null);
+    IntPtr cPtr = GdalPINVOKE.Driver_Create(swigCPtr, System.Text.Encoding.Default.GetString(System.Text.Encoding.UTF8.GetBytes(utf8_path)), xsize, ysize, bands, (int)eType, (options != null)? new GdalPINVOKE.StringListMarshal(options)._ar : null);
     Dataset ret = (cPtr == IntPtr.Zero) ? null : new Dataset(cPtr, true, ThisOwn_true());
     if (GdalPINVOKE.SWIGPendingException.Pending) throw GdalPINVOKE.SWIGPendingException.Retrieve();
     return ret;
   }
 
   public Dataset CreateCopy(string utf8_path, Dataset src, int strict, string[] options, Gdal.GDALProgressFuncDelegate callback, string callback_data) {
-    IntPtr cPtr = GdalPINVOKE.Driver_CreateCopy(swigCPtr, utf8_path, Dataset.getCPtr(src), strict, (options != null)? new GdalPINVOKE.StringListMarshal(options)._ar : null, callback, callback_data);
+    IntPtr cPtr = GdalPINVOKE.Driver_CreateCopy(swigCPtr, System.Text.Encoding.Default.GetString(System.Text.Encoding.UTF8.GetBytes(utf8_path)), Dataset.getCPtr(src), strict, (options != null)? new GdalPINVOKE.StringListMarshal(options)._ar : null, callback, callback_data);
     Dataset ret = (cPtr == IntPtr.Zero) ? null : new Dataset(cPtr, true, ThisOwn_true());
     if (GdalPINVOKE.SWIGPendingException.Pending) throw GdalPINVOKE.SWIGPendingException.Retrieve();
     return ret;
   }
 
   public int Delete(string utf8_path) {
-    int ret = GdalPINVOKE.Driver_Delete(swigCPtr, utf8_path);
+    int ret = GdalPINVOKE.Driver_Delete(swigCPtr, System.Text.Encoding.Default.GetString(System.Text.Encoding.UTF8.GetBytes(utf8_path)));
     if (GdalPINVOKE.SWIGPendingException.Pending) throw GdalPINVOKE.SWIGPendingException.Retrieve();
     return ret;
   }

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: geotiff.cpp 21488 2011-01-13 22:59:44Z rouault $
+ * $Id: geotiff.cpp 22461 2011-05-29 18:40:33Z rouault $
  *
  * Project:  GeoTIFF Driver
  * Purpose:  GDAL GeoTIFF support.
@@ -47,8 +47,9 @@
 #include "gdal_csv.h"
 #include "gt_wkt_srs.h"
 #include "tifvsi.h"
+#include "cpl_multiproc.h"
 
-CPL_CVSID("$Id: geotiff.cpp 21488 2011-01-13 22:59:44Z rouault $");
+CPL_CVSID("$Id: geotiff.cpp 22461 2011-05-29 18:40:33Z rouault $");
 
 /************************************************************************/
 /* ==================================================================== */
@@ -72,6 +73,7 @@ class GDALOverviewDS : public GDALDataset
         friend class GDALOverviewBand;
 
         GDALDataset* poDS;
+        GDALDataset* poOvrDS;
         int          nOvrLevel;
 
     public:
@@ -101,6 +103,7 @@ GDALOverviewDS::GDALOverviewDS(GDALDataset* poDS, int nOvrLevel)
     eAccess = poDS->GetAccess();
     nRasterXSize = poDS->GetRasterBand(1)->GetOverview(nOvrLevel)->GetXSize();
     nRasterYSize = poDS->GetRasterBand(1)->GetOverview(nOvrLevel)->GetYSize();
+    poOvrDS = poDS->GetRasterBand(1)->GetOverview(nOvrLevel)->GetDataset();
     nBands = poDS->GetRasterCount();
     int i;
     for(i=0;i<nBands;i++)
@@ -114,11 +117,17 @@ GDALOverviewDS::~GDALOverviewDS()
 
 char  **GDALOverviewDS::GetMetadata( const char * pszDomain )
 {
+    if (poOvrDS != NULL)
+        return poOvrDS->GetMetadata(pszDomain);
+
     return poDS->GetMetadata(pszDomain);
 }
 
 const char *GDALOverviewDS::GetMetadataItem( const char * pszName, const char * pszDomain )
 {
+    if (poOvrDS != NULL)
+        return poOvrDS->GetMetadataItem(pszName, pszDomain);
+
     return poDS->GetMetadataItem(pszName, pszDomain);
 }
 
@@ -292,8 +301,8 @@ class GTiffDataset : public GDALPamDataset
 
     void*        pabyTempWriteBuffer;
     int          nTempWriteBufferSize;
-    int          WriteEncodedTile(uint32 tile, void* data, int bPreserveDataBuffer);
-    int          WriteEncodedStrip(uint32 strip, void* data, int bPreserveDataBuffer);
+    int          WriteEncodedTile(uint32 tile, GByte* pabyData, int bPreserveDataBuffer);
+    int          WriteEncodedStrip(uint32 strip, GByte* pabyData, int bPreserveDataBuffer);
 
     GTiffDataset* poMaskDS;
     GTiffDataset* poBaseDS;
@@ -718,6 +727,7 @@ CPLErr GTiffRasterBand::IReadBlock( int nBlockXOff, int nBlockYOff,
         nBlockBufSize = TIFFStripSize( poGDS->hTIFF );
     }
 
+    CPLAssert(nBlocksPerRow != 0);
     nBlockIdBand0 = nBlockXOff + nBlockYOff * nBlocksPerRow;
     if( poGDS->nPlanarConfig == PLANARCONFIG_SEPARATE )
         nBlockId = nBlockIdBand0 + (nBand-1) * poGDS->nBlocksPerBand;
@@ -995,6 +1005,7 @@ CPLErr GTiffRasterBand::IWriteBlock( int nBlockXOff, int nBlockYOff,
                && nBlockXOff >= 0
                && nBlockYOff >= 0
                && pImage != NULL );
+    CPLAssert(nBlocksPerRow != 0);
 
 /* -------------------------------------------------------------------- */
 /*      Handle case of "separate" images                                */
@@ -1013,7 +1024,6 @@ CPLErr GTiffRasterBand::IWriteBlock( int nBlockXOff, int nBlockYOff,
 /* -------------------------------------------------------------------- */
 /*      Handle case of pixel interleaved (PLANARCONFIG_CONTIG) images.  */
 /* -------------------------------------------------------------------- */
-
     nBlockId = nBlockXOff + nBlockYOff * nBlocksPerRow;
         
     eErr = poGDS->LoadBlockBuf( nBlockId );
@@ -1789,6 +1799,7 @@ CPLErr GTiffRGBABand::IReadBlock( int nBlockXOff, int nBlockYOff,
     if (!poGDS->SetDirectory())
         return CE_Failure;
 
+    CPLAssert(nBlocksPerRow != 0);
     nBlockBufSize = 4 * nBlockXSize * nBlockYSize;
     nBlockId = nBlockXOff + nBlockYOff * nBlocksPerRow;
 
@@ -1973,6 +1984,7 @@ CPLErr GTiffOddBitsBand::IWriteBlock( int nBlockXOff, int nBlockYOff,
 /* -------------------------------------------------------------------- */
 /*      Load the block buffer.                                          */
 /* -------------------------------------------------------------------- */
+    CPLAssert(nBlocksPerRow != 0);
     nBlockId = nBlockXOff + nBlockYOff * nBlocksPerRow;
 
     if( poGDS->nPlanarConfig == PLANARCONFIG_SEPARATE )
@@ -2228,6 +2240,7 @@ CPLErr GTiffOddBitsBand::IReadBlock( int nBlockXOff, int nBlockYOff,
     if (!poGDS->SetDirectory())
         return CE_Failure;
 
+    CPLAssert(nBlocksPerRow != 0);
     nBlockId = nBlockXOff + nBlockYOff * nBlocksPerRow;
 
     if( poGDS->nPlanarConfig == PLANARCONFIG_SEPARATE )
@@ -2934,31 +2947,104 @@ void GTiffDataset::FillEmptyTiles()
 /*                        WriteEncodedTile()                            */
 /************************************************************************/
 
-int GTiffDataset::WriteEncodedTile(uint32 tile, void* data,
+int GTiffDataset::WriteEncodedTile(uint32 tile, GByte *pabyData,
                                    int bPreserveDataBuffer)
 {
-    /* TIFFWriteEncodedTile can alter the passed buffer if byte-swapping is necessary */
-    /* so we use a temporary buffer before calling it */
     int cc = TIFFTileSize( hTIFF );
-    if (bPreserveDataBuffer && TIFFIsByteSwapped(hTIFF))
+    int bNeedTileFill = FALSE;
+    int iRow=0, iColumn=0;
+    int nBlocksPerRow=1, nBlocksPerColumn=1;
+
+    /* 
+    ** Do we need to spread edge values right or down for a partial 
+    ** JPEG encoded tile?  We do this to avoid edge artifacts. 
+    */
+    if( nCompression == COMPRESSION_JPEG )
+    {
+        nBlocksPerRow = (nRasterXSize + nBlockXSize - 1) / nBlockXSize;
+        nBlocksPerColumn = (nRasterYSize + nBlockYSize - 1) / nBlockYSize;
+
+        iColumn = (tile % nBlocksPerBand) % nBlocksPerRow;
+        iRow = (tile % nBlocksPerBand) / nBlocksPerRow;
+
+        // Is this a partial right edge tile?
+        if( iRow == nBlocksPerRow - 1
+            && nRasterXSize % nBlockXSize != 0 )
+            bNeedTileFill = TRUE;
+
+        // Is this a partial bottom edge tile?
+        if( iColumn == nBlocksPerColumn - 1
+            && nRasterYSize % nBlockYSize != 0 )
+            bNeedTileFill = TRUE;
+    }
+
+    /* 
+    ** If we need to fill out the tile, or if we want to prevent
+    ** TIFFWriteEncodedTile from altering the buffer as part of
+    ** byte swapping the data on write then we will need a temporary
+    ** working buffer.  If not, we can just do a direct write. 
+    */
+    if (bPreserveDataBuffer 
+        && (TIFFIsByteSwapped(hTIFF) || bNeedTileFill) )
     {
         if (cc != nTempWriteBufferSize)
         {
             pabyTempWriteBuffer = CPLRealloc(pabyTempWriteBuffer, cc);
             nTempWriteBufferSize = cc;
         }
-        memcpy(pabyTempWriteBuffer, data, cc);
-        return TIFFWriteEncodedTile(hTIFF, tile, pabyTempWriteBuffer, cc);
+        memcpy(pabyTempWriteBuffer, pabyData, cc);
+
+        pabyData = (GByte *) pabyTempWriteBuffer;
     }
-    else
-        return TIFFWriteEncodedTile(hTIFF, tile, data, cc);
+
+    /*
+    ** Perform tile fill if needed.
+    */
+    if( bNeedTileFill )
+    {
+        int nRightPixelsToFill = 0;
+        int nBottomPixelsToFill = 0;
+        int nPixelSize = cc / (nBlockXSize * nBlockYSize);
+        unsigned int iX, iY, iSrcX, iSrcY;
+        
+        CPLDebug( "GTiff", "Filling out jpeg edge tile on write." );
+
+        if( iColumn == nBlocksPerRow - 1 )
+            nRightPixelsToFill = nBlockXSize * (iColumn+1) - nRasterXSize;
+        if( iRow == nBlocksPerColumn - 1 )
+            nBottomPixelsToFill = nBlockYSize * (iRow+1) - nRasterYSize;
+
+        // Fill out to the right. 
+        iSrcX = nBlockXSize - nRightPixelsToFill - 1;
+
+        for( iX = iSrcX+1; iX < nBlockXSize; iX++ )
+        {
+            for( iY = 0; iY < nBlockYSize; iY++ )
+            {
+                memcpy( pabyData + (nBlockXSize * iY + iX) * nPixelSize, 
+                        pabyData + (nBlockXSize * iY + iSrcX) * nPixelSize, 
+                        nPixelSize );
+            }
+        }
+
+        // now fill out the bottom.
+        iSrcY = nBlockYSize - nBottomPixelsToFill - 1;
+        for( iY = iSrcY+1; iY < nBlockYSize; iY++ )
+        {
+            memcpy( pabyData + nBlockXSize * nPixelSize * iY, 
+                    pabyData + nBlockXSize * nPixelSize * iSrcY, 
+                    nPixelSize * nBlockXSize );
+        }
+    }
+
+    return TIFFWriteEncodedTile(hTIFF, tile, pabyData, cc);
 }
 
 /************************************************************************/
 /*                        WriteEncodedStrip()                           */
 /************************************************************************/
 
-int  GTiffDataset::WriteEncodedStrip(uint32 strip, void* data,
+int  GTiffDataset::WriteEncodedStrip(uint32 strip, GByte* pabyData,
                                      int bPreserveDataBuffer)
 {
     int cc = TIFFStripSize( hTIFF );
@@ -2990,11 +3076,11 @@ int  GTiffDataset::WriteEncodedStrip(uint32 strip, void* data,
             pabyTempWriteBuffer = CPLRealloc(pabyTempWriteBuffer, cc);
             nTempWriteBufferSize = cc;
         }
-        memcpy(pabyTempWriteBuffer, data, cc);
+        memcpy(pabyTempWriteBuffer, pabyData, cc);
         return TIFFWriteEncodedStrip(hTIFF, strip, pabyTempWriteBuffer, cc);
     }
     else
-        return TIFFWriteEncodedStrip(hTIFF, strip, data, cc);
+        return TIFFWriteEncodedStrip(hTIFF, strip, pabyData, cc);
 }
 
 /************************************************************************/
@@ -3008,14 +3094,16 @@ CPLErr  GTiffDataset::WriteEncodedTileOrStrip(uint32 tile_or_strip, void* data,
 
     if( TIFFIsTiled( hTIFF ) )
     {
-        if( WriteEncodedTile(tile_or_strip, data, bPreserveDataBuffer) == -1 )
+        if( WriteEncodedTile(tile_or_strip, (GByte*) data, 
+                             bPreserveDataBuffer) == -1 )
         {
             eErr = CE_Failure;
         }
     }
     else
     {
-        if( WriteEncodedStrip(tile_or_strip, data, bPreserveDataBuffer) == -1 )
+        if( WriteEncodedStrip(tile_or_strip, (GByte *) data, 
+                              bPreserveDataBuffer) == -1 )
         {
             eErr = CE_Failure;
         }
@@ -8570,7 +8658,8 @@ int GTiffOneTimeInit()
 {
     static int bInitIsOk = TRUE;
     static int bOneTimeInitDone = FALSE;
-    
+    static void* hMutex = NULL;
+    CPLMutexHolder oHolder( &hMutex);
     if( bOneTimeInitDone )
         return bInitIsOk;
 
@@ -8592,10 +8681,8 @@ int GTiffOneTimeInit()
         const char* pszVersion = pfnVersion();
         if (pszVersion && strstr(pszVersion, "Version 3.") != NULL)
         {
-            CPLError(CE_Failure, CPLE_AppDefined,
-                     "WARNING ! libtiff version mismatch : You're linking against libtiff 3.X but GDAL has been compiled against libtiff >= 4.0.0");
-            bInitIsOk = FALSE;
-            return FALSE;
+            CPLError(CE_Warning, CPLE_AppDefined,
+                     "libtiff version mismatch : You're linking against libtiff 3.X, but GDAL has been compiled against libtiff >= 4.0.0");
         }
     }
 #endif

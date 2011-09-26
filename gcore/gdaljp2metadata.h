@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdaljp2metadata.h 20996 2010-10-28 18:38:15Z rouault $
+ * $Id: gdaljp2metadata.h 22650 2011-07-06 00:59:22Z warmerdam $
  *
  * Project:  GDAL 
  * Purpose:  JP2 Box Reader (and GMLJP2 Interpreter)
@@ -112,12 +112,12 @@ private:
     GByte  *pabyMSIGData;
 
 public:
-    char   **papszGMLMetadata;
+    char  **papszGMLMetadata;
     
     int     bHaveGeoTransform;
     double  adfGeoTransform[6];
 
-    char    *pszProjection;
+    char   *pszProjection;
 
     int         nGCPCount;
     GDAL_GCP    *pasGCPList;

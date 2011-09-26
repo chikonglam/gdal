@@ -88,7 +88,7 @@ OWConnection::OWConnection( const char* pszUserIn,
     }
 
     // ------------------------------------------------------
-    //  Initialize Environment handler                                  */
+    //  Initialize Environment handler
     // ------------------------------------------------------
 
     if( OCIEnvCreate( &hEnv,
@@ -148,7 +148,7 @@ OWConnection::OWConnection( const char* pszUserIn,
     }
 
     if( CheckError( OCIAttrSet((dvoid *) hSession, (ub4) OCI_HTYPE_SESSION,
-        (dvoid *) pszUserId, (ub4) strlen((char *) pszUserId),
+        (dvoid *) pszUserId, (ub4) strlen( pszUserId),
         (ub4) OCI_ATTR_USERNAME, hError), hError ) )
     {
         return;
@@ -223,15 +223,15 @@ OWConnection::OWConnection( const char* pszUserIn,
         (size_t) 0,
         (dvoid**) NULL ), hError );
 
-    hNumArrayTDO    = DescribeType( (char*) SDO_NUMBER_ARRAY );
-    hGeometryTDO    = DescribeType( (char*) SDO_GEOMETRY );
-    hGeoRasterTDO   = DescribeType( (char*) SDO_GEORASTER );
-    hElemArrayTDO   = DescribeType( (char*) SDO_ELEM_INFO_ARRAY);
-    hOrdnArrayTDO   = DescribeType( (char*) SDO_ORDINATE_ARRAY);
+    hNumArrayTDO    = DescribeType( SDO_NUMBER_ARRAY );
+    hGeometryTDO    = DescribeType( SDO_GEOMETRY );
+    hGeoRasterTDO   = DescribeType( SDO_GEORASTER );
+    hElemArrayTDO   = DescribeType( SDO_ELEM_INFO_ARRAY);
+    hOrdnArrayTDO   = DescribeType( SDO_ORDINATE_ARRAY);
 
     if( nVersion > 10 )
     {
-        hPCTDO      = DescribeType( (char*) SDO_PC );
+        hPCTDO      = DescribeType( SDO_PC );
     }
 }
 
@@ -258,7 +258,7 @@ OWConnection::~OWConnection()
         OCIHandleFree((dvoid *) hSession, (ub4) OCI_HTYPE_SESSION);
 }
 
-OCIType* OWConnection::DescribeType( char *pszTypeName )
+OCIType* OWConnection::DescribeType( const char *pszTypeName )
 {
     OCIParam* hParam    = NULL;
     OCIRef*   hRef      = NULL;
@@ -741,9 +741,9 @@ void OWStatement::Bind( sdo_geometry** pphData )
         hBind,
         hError,
         poConnection->hGeometryTDO,
-	(dvoid**) pphData,
+    (dvoid**) pphData,
         (ub4*) 0,
-	(dvoid**) 0,
+    (dvoid**) 0,
         (ub4*) 0),
         hError );
 
@@ -938,8 +938,6 @@ void OWStatement::Define( OCILobLocator** pphLocator )
 
 void OWStatement::WriteCLob( OCILobLocator** pphLocator, char* pszData )
 {
-    OCIDefine*  hDefine = NULL;
-
     nNextCol++;
 
     CheckError( OCIDescriptorAlloc(
@@ -977,8 +975,6 @@ void OWStatement::WriteCLob( OCILobLocator** pphLocator, char* pszData )
         (ub2) 0,
         (ub1) SQLCS_IMPLICIT ),
         hError );
-
-    CPLDebug("GEOR","Clob = %d = %d", nAmont, strlen(pszData));
 }
 
 void OWStatement::Define( OCIArray** pphData )
@@ -1371,7 +1367,7 @@ char* OWStatement::ReadCLob( OCILobLocator* phLocator )
 
     pszBuffer[nAmont] = '\0';
 
-	return pszBuffer;
+    return pszBuffer;
 }
 
 void OWStatement::BindName( const char* pszName, int* pnData )
@@ -1575,10 +1571,11 @@ const char* OWReplaceString( const char* pszBaseString,
     // Search for Token, Stop Token on the Base String
 
     char* pszStart = strstr( szUpcaseBase, szUpcaseToken );
-    char* pszEnd   = strstr( szUpcaseBase, szUpcaseStopT );
 
     if( pszStart )
     {
+	    char* pszEnd = strstr( pszStart, szUpcaseStopT );
+
         // Concatenate the result
 
         int nStart = (int) ( pszStart - szUpcaseBase );
@@ -1590,7 +1587,7 @@ const char* OWReplaceString( const char* pszBaseString,
         strcat( szResult, &pszBaseString[nEnd + 1] );
     }
 
-    return CPLStrdup( szResult );
+    return szResult;
 }
 
 /*****************************************************************************/
@@ -1649,7 +1646,7 @@ const char* OWParseSDO_GEOR_INIT( const char* pszInsert, int nField )
         *pszIn = (char) toupper( *pszIn );
     }
 
-    char* pszStart = strstr( szUpcase, "SDO_GEOR.INIT" );
+    char* pszStart = strstr( szUpcase, "SDO_GEOR.INIT" ) + strlen("SDO_GEOR.");
 
     if( pszStart == NULL )
     {
@@ -1672,7 +1669,7 @@ const char* OWParseSDO_GEOR_INIT( const char* pszInsert, int nField )
     strncpy( szBuffer, pszStart, nLength );
     szBuffer[nLength] = '\0';
 
-    const char* pszValue = OWParseValue( szBuffer, " .(,)", "INIT", nField );
+    const char* pszValue = OWParseValue( szBuffer, " (,)", "INIT", nField );
 
     return EQUAL( pszValue, "" ) ? "NULL" : pszValue;
 }
@@ -1803,7 +1800,7 @@ bool CheckError( sword nStatus, OCIError* hError )
         }
 
         CPLError( CE_Failure, CPLE_AppDefined, "%.*s",
-            sizeof(szMsg), szMsg );
+            static_cast<int>(sizeof(szMsg)), szMsg );
         break;
 
     default:
@@ -1819,7 +1816,7 @@ bool CheckError( sword nStatus, OCIError* hError )
                 (ub4) sizeof(szMsg), OCI_HTYPE_ERROR);
 
             CPLError( CE_Failure, CPLE_AppDefined, "%.*s",
-                sizeof(szMsg), szMsg );
+                static_cast<int>(sizeof(szMsg)), szMsg );
             break;
 
     }

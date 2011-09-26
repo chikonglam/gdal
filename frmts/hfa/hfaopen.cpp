@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: hfaopen.cpp 21476 2011-01-13 00:58:39Z warmerdam $
+ * $Id: hfaopen.cpp 21764 2011-02-20 16:19:53Z warmerdam $
  *
  * Project:  Erdas Imagine (.img) Translator
  * Purpose:  Supporting functions for HFA (.img) ... main (C callable) API
@@ -41,7 +41,7 @@
 #include <limits.h>
 #include <vector>
 
-CPL_CVSID("$Id: hfaopen.cpp 21476 2011-01-13 00:58:39Z warmerdam $");
+CPL_CVSID("$Id: hfaopen.cpp 21764 2011-02-20 16:19:53Z warmerdam $");
 
 
 static const char *apszAuxMetadataItems[] = {
@@ -1243,6 +1243,13 @@ CPLErr HFASetPEString( HFAHandle hHFA, const char *pszPEString )
         poProX = hHFA->papoBand[iBand]->poNode->GetNamedChild( "ProjectionX" );
 
 /* -------------------------------------------------------------------- */
+/*      If we are setting an empty string then a missing entry is       */
+/*      equivelent.                                                     */
+/* -------------------------------------------------------------------- */
+        if( strlen(pszPEString) == 0 && poProX == NULL )
+            continue;
+
+/* -------------------------------------------------------------------- */
 /*      Create the node.                                                */
 /* -------------------------------------------------------------------- */
         if( poProX == NULL )
@@ -1435,6 +1442,9 @@ CPLErr HFASetProParameters( HFAHandle hHFA, const Eprj_ProParameters *poPro )
         pabyData = poMIEntry->MakeData( nSize );
         poMIEntry->SetPosition();
 
+        // Initialize the whole thing to zeros for a clean start.
+        memset( poMIEntry->GetData(), 0, poMIEntry->GetDataSize() );
+
 /* -------------------------------------------------------------------- */
 /*      Write the various fields.                                       */
 /* -------------------------------------------------------------------- */
@@ -1576,6 +1586,9 @@ CPLErr HFASetDatum( HFAHandle hHFA, const Eprj_Datum *poDatum )
 
         pabyData = poDatumEntry->MakeData( nSize );
         poDatumEntry->SetPosition();
+
+        // Initialize the whole thing to zeros for a clean start.
+        memset( poDatumEntry->GetData(), 0, poDatumEntry->GetDataSize() );
 
 /* -------------------------------------------------------------------- */
 /*      Write the various fields.                                       */
@@ -3733,6 +3746,7 @@ CPLErr HFARenameReferences( HFAHandle hHFA,
         // Collect all the existing names.
         int i, nNameCount = poRRDNL->GetFieldCount( "nameList" );
         
+        CPLString osAlgorithm = poRRDNL->GetStringField("algorithm.string");
         for( i = 0; i < nNameCount; i++ )
         {
             CPLString osFN;
@@ -3760,7 +3774,11 @@ CPLErr HFARenameReferences( HFAHandle hHFA,
                                + nNameCount * (strlen(pszNewBase) - strlen(pszOldBase)) );
         }
 
+        // Initialize the whole thing to zeros for a clean start.
+        memset( poRRDNL->GetData(), 0, poRRDNL->GetDataSize() );
+
         // Write the updates back to the file.
+        poRRDNL->SetStringField( "algorithm.string", osAlgorithm );
         for( i = 0; i < nNameCount; i++ )
         {
             CPLString osFN;
@@ -3815,6 +3833,9 @@ CPLErr HFARenameReferences( HFAHandle hHFA,
             poERDMS->MakeData( poERDMS->GetDataSize() 
                                + (strlen(pszNewBase) - strlen(pszOldBase)) );
         }
+
+        // Initialize the whole thing to zeros for a clean start.
+        memset( poERDMS->GetData(), 0, poERDMS->GetDataSize() );
 
         // Write it all out again, this may change the size of the node.
         poERDMS->SetStringField( "fileName.string", osFileName );

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gmlutils.cpp 21380 2011-01-03 15:19:49Z rouault $
+ * $Id: gmlutils.cpp 21600 2011-01-29 13:40:21Z rouault $
  *
  * Project:  GML Utils
  * Purpose:  GML reader
@@ -182,7 +182,7 @@ OGRGeometry* GML_BuildOGRGeometryFromList(char** papszGeometryList,
         }
     }
 
-    if (bInvertAxisOrderIfLatLong)
+    if ( poGeom != NULL && bInvertAxisOrderIfLatLong )
     {
         char* pszSRSName = GML_ExtractSrsNameFromGeometry(papszGeometryList);
         if (GML_IsSRSLatLongOrder(pszSRSName ? pszSRSName : pszDefaultSRSName))

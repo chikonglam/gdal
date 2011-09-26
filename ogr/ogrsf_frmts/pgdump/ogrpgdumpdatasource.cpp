@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrpgdumpdatasource.cpp 21035 2010-10-31 23:17:09Z rouault $
+ * $Id: ogrpgdumpdatasource.cpp 22138 2011-04-11 18:03:16Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implements OGRPGDumpDataSource class.
@@ -32,7 +32,7 @@
 #include "cpl_conv.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: ogrpgdumpdatasource.cpp 21035 2010-10-31 23:17:09Z rouault $");
+CPL_CVSID("$Id: ogrpgdumpdatasource.cpp 22138 2011-04-11 18:03:16Z rouault $");
 
 /************************************************************************/
 /*                      OGRPGDumpDataSource()                           */
@@ -190,6 +190,8 @@ OGRPGDumpDataSource::CreateLayer( const char * pszLayerNameIn,
         pszLayerName = CPLStrdup( pszLayerNameIn );
     
     int bCreateTable = CSLFetchBoolean(papszOptions,"CREATE_TABLE", TRUE);
+    int bCreateSchema = CSLFetchBoolean(papszOptions,"CREATE_SCHEMA", TRUE);
+    const char* pszDropTable = CSLFetchNameValueDef(papszOptions,"DROP_TABLE", "YES");
 
     if (eType == wkbNone)
         bHavePostGIS = FALSE;
@@ -228,8 +230,11 @@ OGRPGDumpDataSource::CreateLayer( const char * pszLayerNameIn,
     {
         CPLFree(pszSchemaName);
         pszSchemaName = CPLStrdup(CSLFetchNameValue( papszOptions, "SCHEMA" ));
-        osCommand.Printf("CREATE SCHEMA \"%s\"", pszSchemaName);
-        Log(osCommand);
+        if (bCreateSchema)
+        {
+            osCommand.Printf("CREATE SCHEMA \"%s\"", pszSchemaName);
+            Log(osCommand);
+        }
     }
 
     if ( pszSchemaName == NULL)
@@ -256,9 +261,15 @@ OGRPGDumpDataSource::CreateLayer( const char * pszLayerNameIn,
     }
 
 
-    if (bCreateTable)
+    if (bCreateTable && (EQUAL(pszDropTable, "YES") ||
+                         EQUAL(pszDropTable, "ON") ||
+                         EQUAL(pszDropTable, "TRUE") ||
+                         EQUAL(pszDropTable, "IF_EXISTS")))
     {
-        osCommand.Printf("DROP TABLE \"%s\".\"%s\" CASCADE", pszSchemaName, pszTableName );
+        if (EQUAL(pszDropTable, "IF_EXISTS"))
+            osCommand.Printf("DROP TABLE IF EXISTS \"%s\".\"%s\" CASCADE", pszSchemaName, pszTableName );
+        else
+            osCommand.Printf("DROP TABLE \"%s\".\"%s\" CASCADE", pszSchemaName, pszTableName );
         Log(osCommand);
     }
     

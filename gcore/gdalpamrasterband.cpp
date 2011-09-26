@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdalpamrasterband.cpp 20810 2010-10-11 15:22:08Z warmerdam $
+ * $Id: gdalpamrasterband.cpp 21714 2011-02-13 18:37:57Z rouault $
  *
  * Project:  GDAL Core
  * Purpose:  Implementation of GDALPamRasterBand, a raster band base class
@@ -33,7 +33,7 @@
 #include "gdal_rat.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: gdalpamrasterband.cpp 20810 2010-10-11 15:22:08Z warmerdam $");
+CPL_CVSID("$Id: gdalpamrasterband.cpp 21714 2011-02-13 18:37:57Z rouault $");
 
 /************************************************************************/
 /*                         GDALPamRasterBand()                          */
@@ -145,13 +145,19 @@ CPLXMLNode *GDALPamRasterBand::SerializeToXML( const char *pszUnused )
     {
         CPLXMLNode *psCT_XML = CPLCreateXMLNode( psTree, CXT_Element, 
                                                  "ColorTable" );
+        CPLXMLNode* psLastChild = NULL;
 
         for( int iEntry=0; iEntry < psPam->poColorTable->GetColorEntryCount(); 
              iEntry++ )
         {
             GDALColorEntry sEntry;
-            CPLXMLNode *psEntry_XML = CPLCreateXMLNode( psCT_XML, CXT_Element, 
+            CPLXMLNode *psEntry_XML = CPLCreateXMLNode( NULL, CXT_Element,
                                                         "Entry" );
+            if( psLastChild == NULL )
+                psCT_XML->psChild = psEntry_XML;
+            else
+                psLastChild->psNext = psEntry_XML;
+            psLastChild = psEntry_XML;
 
             psPam->poColorTable->GetColorEntryAsRGB( iEntry, &sEntry );
             

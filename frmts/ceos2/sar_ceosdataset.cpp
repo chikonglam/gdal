@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: sar_ceosdataset.cpp 20996 2010-10-28 18:38:15Z rouault $
+ * $Id: sar_ceosdataset.cpp 22663 2011-07-07 15:08:47Z warmerdam $
  *
  * Project:  ASI CEOS Translator
  * Purpose:  GDALDataset driver for CEOS translator.
@@ -33,7 +33,7 @@
 #include "cpl_string.h"
 #include "ogr_srs_api.h"
 
-CPL_CVSID("$Id: sar_ceosdataset.cpp 20996 2010-10-28 18:38:15Z rouault $");
+CPL_CVSID("$Id: sar_ceosdataset.cpp 22663 2011-07-07 15:08:47Z warmerdam $");
 
 CPL_C_START
 void	GDALRegister_SAR_CEOS(void);
@@ -1612,13 +1612,11 @@ GDALDataset *SAR_CEOSDataset::Open( GDALOpenInfo * poOpenInfo )
 /* -------------------------------------------------------------------- */
 /*      Try to read the current file as an imagery file.                */
 /* -------------------------------------------------------------------- */
+    
     psVolume->ImagryOptionsFile = TRUE;
-    if( ProcessData( fp, __CEOS_IMAGRY_OPT_FILE, psVolume, 4, -1) )
+    if( ProcessData( fp, __CEOS_IMAGRY_OPT_FILE, psVolume, 4, -1) != CE_None )
     {
         delete poDS;
-        CPLError( CE_Failure, CPLE_OpenFailed, 
-                  "Corrupted or unknown CEOS format:\n%s", 
-                  poOpenInfo->pszFilename );
         return NULL;
     }
 
@@ -1678,9 +1676,14 @@ GDALDataset *SAR_CEOSDataset::Open( GDALOpenInfo * poOpenInfo )
             {
                 char szThisExtension[32];
 
-                sprintf( szThisExtension, "%s%s", 
-                         CeosExtension[e][iFile], 
-                         pszExtension+3 );
+                if( strlen(pszExtension) > 3 )
+                    sprintf( szThisExtension, "%s%s", 
+                             CeosExtension[e][iFile], 
+                             pszExtension+3 );
+                else
+                    sprintf( szThisExtension, "%s", 
+                             CeosExtension[e][iFile] );
+
                 pszFilename = CPLStrdup(
                     CPLFormFilename(pszPath,pszBasename,szThisExtension));
             }
@@ -1991,6 +1994,7 @@ ProcessData( VSILFILE *fp, int fileid, CeosSARVolume_t *sar, int max_records,
     int                CurrentSequence = 0;
     Link_t             *TheLink;
     CeosRecord_t       *record;
+    int                iThisRecord = 0;
 
     while(max_records != 0 && max_bytes != 0)
     {
@@ -1998,6 +2002,25 @@ ProcessData( VSILFILE *fp, int fileid, CeosSARVolume_t *sar, int max_records,
         VSIFSeekL( fp, start, SEEK_SET );
         VSIFReadL( temp_buffer, 1, __CEOS_HEADER_LENGTH, fp );
         record->Length = DetermineCeosRecordBodyLength( temp_buffer );
+
+        iThisRecord++;
+        CeosToNative( &(record->Sequence), temp_buffer, 4, 4 );
+
+        if( iThisRecord != record->Sequence )
+        {
+            if( fileid == __CEOS_IMAGRY_OPT_FILE && iThisRecord == 2 )
+            {
+                CPLDebug( "SAR_CEOS", "Ignoring CEOS file with wrong second record sequence number - likely it has padded records." );
+                return CE_Warning;
+            }
+            else
+            {
+                CPLError( CE_Failure, CPLE_AppDefined, 
+                          "Corrupt CEOS File - got record seq# %d instead of the expected %d.",
+                          record->Sequence, iThisRecord );
+                return CE_Failure;
+            }
+        }
         
         if( record->Length > CurrentBodyLength )
         {
@@ -2048,7 +2071,7 @@ ProcessData( VSILFILE *fp, int fileid, CeosSARVolume_t *sar, int max_records,
 
     CPLFree(temp_body);
 
-    return 0;
+    return CE_None;
 }
 
 /************************************************************************/

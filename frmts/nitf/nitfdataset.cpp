@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: nitfdataset.cpp 21318 2010-12-27 14:25:44Z rouault $
+ * $Id: nitfdataset.cpp 21608 2011-01-30 13:15:38Z rouault $
  *
  * Project:  NITF Read/Write Translator
  * Purpose:  GDALDataset/GDALRasterBand implementation on top of "nitflib".
@@ -37,7 +37,7 @@
 #include "cpl_csv.h"
 #include "gdal_proxy.h"
 
-CPL_CVSID("$Id: nitfdataset.cpp 21318 2010-12-27 14:25:44Z rouault $");
+CPL_CVSID("$Id: nitfdataset.cpp 21608 2011-01-30 13:15:38Z rouault $");
 
 static void NITFPatchImageLength( const char *pszFilename,
                                   GUIntBig nImageOffset, 
@@ -1511,13 +1511,42 @@ GDALDataset *NITFDataset::Open( GDALOpenInfo * poOpenInfo,
                     isNorth=1;
                 else if (psImage->chICORDS =='S')
                     isNorth=0;
-                else
+                else if (psImage->chICORDS == 'G' || psImage->chICORDS == 'D' || psImage->chICORDS == 'C')
                 {
                     if (psImage->dfLLY+psImage->dfLRY+psImage->dfULY+psImage->dfURY < 0)
                         isNorth=0;
                     else
                         isNorth=1;
                 }
+                else if (psImage->chICORDS == 'U')
+                {
+                    isNorth = psImage->nZone >= 0;
+                }
+                else
+                {
+                    isNorth = 1; /* arbitrarly suppose we are in northern hemisphere */
+
+                    /* unless we have other information to determine the hemisphere */
+                    char** papszUSE00A_MD = NITFReadSTDIDC( psImage );
+                    if( papszUSE00A_MD != NULL )
+                    {
+                        const char* pszLocation = CSLFetchNameValue(papszUSE00A_MD, "NITF_STDIDC_LOCATION");
+                        if (pszLocation && strlen(pszLocation) == 11)
+                        {
+                            isNorth = (pszLocation[4] == 'N');
+                        }
+                        CSLDestroy( papszUSE00A_MD );
+                    }
+                    else
+                    {
+                        NITFRPC00BInfo sRPCInfo;
+                        if( NITFReadRPC00B( psImage, &sRPCInfo ) && sRPCInfo.SUCCESS )
+                        {
+                            isNorth = (sRPCInfo.LAT_OFF >= 0);
+                        }
+                    }
+                }
+
                 if( (EQUALN(papszLines[7],
                             "Selected Projection: Universal Transverse Mercator",50)) &&
                     (EQUALN(papszLines[8],"Zone: ",6)) &&

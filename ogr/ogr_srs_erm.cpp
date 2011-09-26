@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_srs_erm.cpp 20888 2010-10-19 10:51:17Z dron $
+ * $Id: ogr_srs_erm.cpp 21667 2011-02-09 22:55:10Z warmerdam $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implement ERMapper projection conversions.
@@ -30,7 +30,7 @@
 #include "ogr_spatialref.h"
 #include "cpl_conv.h"
 
-CPL_CVSID("$Id: ogr_srs_erm.cpp 20888 2010-10-19 10:51:17Z dron $");
+CPL_CVSID("$Id: ogr_srs_erm.cpp 21667 2011-02-09 22:55:10Z warmerdam $");
 
 /************************************************************************/
 /*                         OSRImportFromERM()                           */
@@ -83,6 +83,17 @@ OGRErr OGRSpatialReference::importFromERM( const char *pszProj,
 /* -------------------------------------------------------------------- */
     if( EQUAL(pszProj,"RAW") )
         return OGRERR_NONE;
+
+/* -------------------------------------------------------------------- */
+/*      Do we have an EPSG coordinate system?                           */
+/* -------------------------------------------------------------------- */
+
+    if( EQUALN(pszProj,"EPSG:",5) )
+        return importFromEPSG( atoi(pszProj+5) );
+
+
+    if( EQUALN(pszDatum,"EPSG:",5) )
+        return importFromEPSG( atoi(pszDatum+5) );
 
 /* -------------------------------------------------------------------- */
 /*      Set projection if we have it.                                   */

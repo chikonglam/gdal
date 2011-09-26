@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrgeojsonreader.cpp 21350 2010-12-30 18:35:09Z rouault $
+ * $Id: ogrgeojsonreader.cpp 22358 2011-05-11 18:11:29Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implementation of OGRGeoJSONReader class (OGR GeoJSON Driver).
@@ -422,7 +422,8 @@ bool OGRGeoJSONReader::GenerateFeatureDefn( json_object* poObj )
 /* -------------------------------------------------------------------- */
     json_object* poObjProps = NULL;
     poObjProps = OGRGeoJSONFindMemberByName( poObj, "properties" );
-    if( NULL != poObjProps )
+    if( NULL != poObjProps &&
+        json_object_get_type(poObjProps) == json_type_object )
     {
         json_object_iter it;
         it.key = NULL;
@@ -430,11 +431,23 @@ bool OGRGeoJSONReader::GenerateFeatureDefn( json_object* poObj )
         it.entry = NULL;
         json_object_object_foreachC( poObjProps, it )
         {
-            if( -1 == poDefn->GetFieldIndex( it.key ) )
+            int nFldIndex = poDefn->GetFieldIndex( it.key );
+            if( -1 == nFldIndex )
             {
                 OGRFieldDefn fldDefn( it.key,
                     GeoJSONPropertyToFieldType( it.val ) );
                 poDefn->AddFieldDefn( &fldDefn );
+            }
+            else
+            {
+                OGRFieldDefn* poFDefn = poDefn->GetFieldDefn(nFldIndex);
+                OGRFieldType eType = poFDefn->GetType();
+                if( eType == OFTInteger )
+                {
+                    OGRFieldType eNewType = GeoJSONPropertyToFieldType( it.val );
+                    if( eNewType == OFTReal )
+                        poFDefn->SetType(OFTReal);
+                }
             }
         }
 
@@ -542,7 +555,8 @@ OGRFeature* OGRGeoJSONReader::ReadFeature( json_object* poObj )
 
     json_object* poObjProps = NULL;
     poObjProps = OGRGeoJSONFindMemberByName( poObj, "properties" );
-    if( !bAttributesSkip_ && NULL != poObjProps )
+    if( !bAttributesSkip_ && NULL != poObjProps &&
+        json_object_get_type(poObjProps) == json_type_object )
     {
         int nField = -1;
         OGRFieldDefn* poFieldDefn = NULL;

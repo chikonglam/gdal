@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: usgsdemdataset.cpp 19291 2010-04-03 02:04:35Z warmerdam $
+ * $Id: usgsdemdataset.cpp 21831 2011-02-24 17:51:40Z warmerdam $
  *
  * Project:  USGS DEM Driver
  * Purpose:  All reader for USGS DEM Reader
@@ -33,7 +33,7 @@
 #include "gdal_pam.h"
 #include "ogr_spatialref.h"
 
-CPL_CVSID("$Id: usgsdemdataset.cpp 19291 2010-04-03 02:04:35Z warmerdam $");
+CPL_CVSID("$Id: usgsdemdataset.cpp 21831 2011-02-24 17:51:40Z warmerdam $");
 
 CPL_C_START
 void	GDALRegister_USGSDEM(void);
@@ -69,7 +69,7 @@ static double DConvert( FILE *fp, int nCharCount )
             szBuffer[i] = 'E';
     }
 
-    return atof(szBuffer);
+    return CPLAtof(szBuffer);
 }
 
 /************************************************************************/

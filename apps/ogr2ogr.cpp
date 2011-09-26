@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr2ogr.cpp 21366 2011-01-01 18:09:04Z rouault $
+ * $Id: ogr2ogr.cpp 22027 2011-03-25 19:28:44Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Simple client for translating between formats.
@@ -34,7 +34,7 @@
 #include "ogr_api.h"
 #include "gdal.h"
 
-CPL_CVSID("$Id: ogr2ogr.cpp 21366 2011-01-01 18:09:04Z rouault $");
+CPL_CVSID("$Id: ogr2ogr.cpp 22027 2011-03-25 19:28:44Z rouault $");
 
 static int bSkipFailures = FALSE;
 static int nGroupTransactions = 200;
@@ -63,6 +63,7 @@ static int TranslateLayer( OGRDataSource *poSrcDS,
                            OGRGeometry *poClipDst,
                            int bExplodeCollections,
                            const char* pszZField,
+                           const char* pszWHERE,
                            GDALProgressFunc pfnProgress,
                            void *pProgressArg);
 
@@ -1168,7 +1169,7 @@ int main( int nArgc, char ** papszArgv )
                                  poSourceSRS, papszSelFields, bAppend, eGType,
                                  bOverwrite, dfMaxSegmentLength, papszFieldTypesToString,
                                  nCountLayerFeatures, bWrapDateline, poClipSrc, poClipDst,
-                                 bExplodeCollections, pszZField, pfnProgress, pProgressArg))
+                                 bExplodeCollections, pszZField, pszWHERE, pfnProgress, pProgressArg))
             {
                 CPLError( CE_Failure, CPLE_AppDefined, 
                           "Terminating translation prematurely after failed\n"
@@ -1349,7 +1350,7 @@ int main( int nArgc, char ** papszArgv )
                                 poSourceSRS, papszSelFields, bAppend, eGType,
                                 bOverwrite, dfMaxSegmentLength, papszFieldTypesToString,
                                 panLayerCountFeatures[iLayer], bWrapDateline, poClipSrc, poClipDst,
-                                bExplodeCollections, pszZField, pfnProgress, pProgressArg)
+                                bExplodeCollections, pszZField, pszWHERE, pfnProgress, pProgressArg)
                 && !bSkipFailures )
             {
                 CPLError( CE_Failure, CPLE_AppDefined, 
@@ -1567,6 +1568,7 @@ static int TranslateLayer( OGRDataSource *poSrcDS,
                            OGRGeometry *poClipDst,
                            int bExplodeCollections,
                            const char* pszZField,
+                           const char* pszWHERE,
                            GDALProgressFunc pfnProgress,
                            void *pProgressArg)
 
@@ -1663,6 +1665,15 @@ static int TranslateLayer( OGRDataSource *poSrcDS,
 /* -------------------------------------------------------------------- */
     int iLayer = -1;
     poDstLayer = NULL;
+
+    /* GetLayerByName() can instanciate layers that would have been */
+    /* 'hidden' otherwise, for example, non-spatial tables in a */
+    /* Postgis-enabled database, so this apparently useless command is */
+    /* not useless... (#4012) */
+    CPLPushErrorHandler(CPLQuietErrorHandler);
+    poDstDS->GetLayerByName(pszNewLayerName);
+    CPLPopErrorHandler();
+    CPLErrorReset();
 
     for( iLayer = 0; iLayer < poDstDS->GetLayerCount(); iLayer++ )
     {
@@ -1861,6 +1872,23 @@ static int TranslateLayer( OGRDataSource *poSrcDS,
         {
             int iSrcField;
             char** papszIgnoredFields = NULL;
+            int bUseIgnoredFields = TRUE;
+            char** papszWHEREUsedFields = NULL;
+
+            if (pszWHERE)
+            {
+                /* We must not ignore fields used in the -where expression (#4015) */
+                OGRFeatureQuery oFeatureQuery;
+                if ( oFeatureQuery.Compile( poSrcLayer->GetLayerDefn(), pszWHERE ) == OGRERR_NONE )
+                {
+                    papszWHEREUsedFields = oFeatureQuery.GetUsedFields();
+                }
+                else
+                {
+                    bUseIgnoredFields = FALSE;
+                }
+            }
+
             for(iSrcField=0;iSrcField<poSrcFDefn->GetFieldCount();iSrcField++)
             {
                 const char* pszFieldName =
@@ -1874,12 +1902,16 @@ static int TranslateLayer( OGRDataSource *poSrcDS,
                         break;
                     }
                 }
+                bFieldRequested |= CSLFindString(papszWHEREUsedFields, pszFieldName) >= 0;
+
                 /* If source field not requested, add it to ignored files list */
                 if (!bFieldRequested)
                     papszIgnoredFields = CSLAddString(papszIgnoredFields, pszFieldName);
             }
-            poSrcLayer->SetIgnoredFields((const char**)papszIgnoredFields);
+            if (bUseIgnoredFields)
+                poSrcLayer->SetIgnoredFields((const char**)papszIgnoredFields);
             CSLDestroy(papszIgnoredFields);
+            CSLDestroy(papszWHEREUsedFields);
         }
     }
     else if( !bAppend )

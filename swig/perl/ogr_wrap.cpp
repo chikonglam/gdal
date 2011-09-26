@@ -1698,8 +1698,8 @@ SWIG_AsCharPtrAndSize(SV *obj, char** cptr, size_t* psize, int *alloc)
 
 
 
-SWIGINTERN OGRDataSourceShadow *OGRDriverShadow_CreateDataSource(OGRDriverShadow *self,char const *name,char **options=0){
-    OGRDataSourceShadow *ds = (OGRDataSourceShadow*) OGR_Dr_CreateDataSource( self, name, options);
+SWIGINTERN OGRDataSourceShadow *OGRDriverShadow_CreateDataSource(OGRDriverShadow *self,char const *utf8_path,char **options=0){
+    OGRDataSourceShadow *ds = (OGRDataSourceShadow*) OGR_Dr_CreateDataSource( self, utf8_path, options);
     return ds;
   }
 SWIGINTERN OGRDataSourceShadow *OGRDriverShadow_CopyDataSource(OGRDriverShadow *self,OGRDataSourceShadow *copy_ds,char const *utf8_path,char **options=0){
@@ -1838,9 +1838,9 @@ SWIGINTERN OGRDataSourceShadow *OGRDriverShadow_Open(OGRDriverShadow *self,char 
     OGRDataSourceShadow* ds = (OGRDataSourceShadow*) OGR_Dr_Open(self, utf8_path, update);
     return ds;
   }
-SWIGINTERN int OGRDriverShadow_DeleteDataSource(OGRDriverShadow *self,char const *name){
+SWIGINTERN int OGRDriverShadow_DeleteDataSource(OGRDriverShadow *self,char const *utf8_path){
 
-    return OGR_Dr_DeleteDataSource( self, name );
+    return OGR_Dr_DeleteDataSource( self, utf8_path );
   }
 SWIGINTERN bool OGRDriverShadow_TestCapability(OGRDriverShadow *self,char const *cap){
     return (OGR_Dr_TestCapability(self, cap) > 0);
@@ -2724,9 +2724,9 @@ char const *OGRDataSourceShadow_name_get( OGRDataSourceShadow *h ) {
   }
 
 
-  OGRDataSourceShadow* Open( const char *filename, int update =0 ) {
+  OGRDataSourceShadow* Open( const char *utf8_path, int update =0 ) {
     CPLErrorReset();
-    OGRDataSourceShadow* ds = (OGRDataSourceShadow*)OGROpen(filename,update,NULL);
+    OGRDataSourceShadow* ds = (OGRDataSourceShadow*)OGROpen(utf8_path,update,NULL);
     if( CPLGetLastErrorType() == CE_Failure && ds != NULL )
     {
         CPLDebug( "SWIG", 
@@ -2903,7 +2903,7 @@ XS(_wrap_Driver_CreateDataSource) {
     dXSARGS;
     
     if ((items < 2) || (items > 3)) {
-      SWIG_croak("Usage: Driver_CreateDataSource(self,name,options);");
+      SWIG_croak("Usage: Driver_CreateDataSource(self,utf8_path,options);");
     }
     res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OGRDriverShadow, 0 |  0 );
     if (!SWIG_IsOK(res1)) {
@@ -2944,9 +2944,9 @@ XS(_wrap_Driver_CreateDataSource) {
       }
     }
     {
-      if (!arg2) {
-        SWIG_exception(SWIG_ValueError,"Received a NULL pointer.");
-      }
+      /* %typemap(check) (const char *utf8_path) */
+      if (!arg2)
+      SWIG_croak("The path must not be undefined");
     }
     {
       CPLErrorReset();
@@ -3199,7 +3199,7 @@ XS(_wrap_Driver_DeleteDataSource) {
     dXSARGS;
     
     if ((items < 2) || (items > 2)) {
-      SWIG_croak("Usage: Driver_DeleteDataSource(self,name);");
+      SWIG_croak("Usage: Driver_DeleteDataSource(self,utf8_path);");
     }
     res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OGRDriverShadow, 0 |  0 );
     if (!SWIG_IsOK(res1)) {
@@ -3212,9 +3212,9 @@ XS(_wrap_Driver_DeleteDataSource) {
     }
     arg2 = reinterpret_cast< char * >(buf2);
     {
-      if (!arg2) {
-        SWIG_exception(SWIG_ValueError,"Received a NULL pointer.");
-      }
+      /* %typemap(check) (const char *utf8_path) */
+      if (!arg2)
+      SWIG_croak("The path must not be undefined");
     }
     {
       CPLErrorReset();
@@ -16415,7 +16415,7 @@ XS(_wrap_Open) {
     dXSARGS;
     
     if ((items < 1) || (items > 2)) {
-      SWIG_croak("Usage: Open(filename,update);");
+      SWIG_croak("Usage: Open(utf8_path,update);");
     }
     res1 = SWIG_AsCharPtrAndSize(ST(0), &buf1, NULL, &alloc1);
     if (!SWIG_IsOK(res1)) {
@@ -16428,6 +16428,11 @@ XS(_wrap_Open) {
         SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "Open" "', argument " "2"" of type '" "int""'");
       } 
       arg2 = static_cast< int >(val2);
+    }
+    {
+      /* %typemap(check) (const char *utf8_path) */
+      if (!arg1)
+      SWIG_croak("The path must not be undefined");
     }
     {
       CPLErrorReset();

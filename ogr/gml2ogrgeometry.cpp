@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gml2ogrgeometry.cpp 21072 2010-11-06 17:31:02Z rouault $
+ * $Id: gml2ogrgeometry.cpp 21605 2011-01-30 12:33:48Z rouault $
  *
  * Project:  GML Reader
  * Purpose:  Code to translate between GML and OGR geometry forms.
@@ -1341,9 +1341,11 @@ static OGRGeometry *GML2OGRGeometry_XMLNode( const CPLXMLNode *psNode,
 
         psCurve = FindBareXMLChild(psCurveProperty,"LineString");
         if( psCurve == NULL )
+            psCurve = FindBareXMLChild(psCurveProperty,"Curve");
+        if( psCurve == NULL )
         {
             CPLError( CE_Failure, CPLE_AppDefined, 
-                      "directedEdge: Failed to get LineString geometry in curveProperty" );
+                      "directedEdge: Failed to get LineString or Curve tag in curveProperty" );
             return NULL;
         }
 
@@ -1386,6 +1388,7 @@ static OGRGeometry *GML2OGRGeometry_XMLNode( const CPLXMLNode *psNode,
         // correct orientation of the line string
         if( bEdgeOrientation != bOrientation )
         {
+            int nCoordDimensions = poLineString->getCoordinateDimension();
             int iStartCoord = 0, iEndCoord = poLineString->getNumPoints() - 1;
             OGRPoint *poTempStartPoint = new OGRPoint();
             OGRPoint *poTempEndPoint = new OGRPoint();
@@ -1400,6 +1403,8 @@ static OGRGeometry *GML2OGRGeometry_XMLNode( const CPLXMLNode *psNode,
             }
             delete poTempStartPoint;
             delete poTempEndPoint;
+            /* Restore coordinate dimension ass setPoint will force to 3D */
+            poLineString->setCoordinateDimension(nCoordDimensions);
         }
         return poLineString;
     }

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: jp2kakdataset.cpp 21163 2010-11-24 14:32:28Z warmerdam $
+ * $Id: jp2kakdataset.cpp 22650 2011-07-06 00:59:22Z warmerdam $
  *
  * Project:  JPEG-2000
  * Purpose:  Implementation of the ISO/IEC 15444-1 standard based on Kakadu.
@@ -66,7 +66,7 @@
 
 // #define KAKADU_JPX	1
 
-CPL_CVSID("$Id: jp2kakdataset.cpp 21163 2010-11-24 14:32:28Z warmerdam $");
+CPL_CVSID("$Id: jp2kakdataset.cpp 22650 2011-07-06 00:59:22Z warmerdam $");
 
 static int kakadu_initialized = FALSE;
 
@@ -1413,6 +1413,41 @@ GDALDataset *JP2KAKDataset::Open( GDALOpenInfo * poOpenInfo )
 
                 CPLFree( pszName );
             }
+
+/* -------------------------------------------------------------------- */
+/*      Do we have other misc metadata?                                 */
+/* -------------------------------------------------------------------- */
+            if( CSLFetchNameValue( oJP2Geo.papszGMLMetadata,
+                                   "TIFFTAG_XRESOLUTION" ) != NULL )
+            {
+                char **papszMD = poDS->GDALPamDataset::GetMetadata();
+                const char *pszItem;
+
+                pszItem = CSLFetchNameValue( oJP2Geo.papszGMLMetadata,
+                                             "TIFFTAG_XRESOLUTION" );
+                if( pszItem )
+                    papszMD = 
+                        CSLSetNameValue( papszMD, "TIFFTAG_XRESOLUTION", 
+                                         pszItem );
+                                         
+                pszItem = CSLFetchNameValue( oJP2Geo.papszGMLMetadata,
+                                             "TIFFTAG_YRESOLUTION" );
+                if( pszItem )
+                    papszMD = 
+                        CSLSetNameValue( papszMD, "TIFFTAG_YRESOLUTION", 
+                                         pszItem );
+                                         
+                pszItem = CSLFetchNameValue( oJP2Geo.papszGMLMetadata,
+                                             "TIFFTAG_RESOLUTIONUNIT" );
+                if( pszItem )
+                    papszMD = 
+                        CSLSetNameValue( papszMD, "TIFFTAG_RESOLUTIONUNIT", 
+                                         pszItem );
+                                         
+                poDS->GDALPamDataset::SetMetadata( papszMD );
+
+                CSLDestroy( papszMD );
+            }
         }
 
 /* -------------------------------------------------------------------- */
@@ -2513,6 +2548,38 @@ JP2KAKCreateCopy( const char * pszFilename, GDALDataset *poSrcDS,
         }
         else
             colour.init( JP2_sLUM_SPACE );
+
+        // Resolution
+        if( poSrcDS->GetMetadataItem("TIFFTAG_XRESOLUTION") != NULL
+            && poSrcDS->GetMetadataItem("TIFFTAG_YRESOLUTION") != NULL
+            && poSrcDS->GetMetadataItem("TIFFTAG_RESOLUTIONUNIT") != NULL )
+        {
+            jp2_resolution res = jp2_out.access_resolution();
+            double dfXRes = 
+                CPLAtof(poSrcDS->GetMetadataItem("TIFFTAG_XRESOLUTION"));
+            double dfYRes = 
+                CPLAtof(poSrcDS->GetMetadataItem("TIFFTAG_XRESOLUTION"));
+
+            if( atoi(poSrcDS->GetMetadataItem("TIFFTAG_RESOLUTIONUNIT")) == 2 )
+            {
+                // convert pixels per inch to pixels per cm. 
+                dfXRes = dfXRes * 39.37 / 100.0;
+                dfYRes = dfYRes * 39.37 / 100.0;
+            }
+            
+            // convert to pixels per meter.
+            dfXRes *= 100.0;
+            dfYRes *= 100.0;
+
+            if( dfXRes != 0.0 && dfYRes != 0.0 )
+            {
+                if( fabs(dfXRes/dfYRes - 1.0) > 0.00001 )
+                    res.init( dfYRes/dfXRes );
+                else
+                    res.init( 1.0 );
+                res.set_resolution( dfXRes, true );
+            }
+        }
     }
 
 /* -------------------------------------------------------------------- */

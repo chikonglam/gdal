@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: cplstring.cpp 21136 2010-11-16 22:47:42Z warmerdam $
+ * $Id: cplstring.cpp 21815 2011-02-23 22:56:54Z warmerdam $
  *
  * Project:  GDAL 
  * Purpose:  CPLString implementation.
@@ -30,7 +30,7 @@
 #include "cpl_string.h"
 #include <string>
 
-CPL_CVSID("$Id: cplstring.cpp 21136 2010-11-16 22:47:42Z warmerdam $");
+CPL_CVSID("$Id: cplstring.cpp 21815 2011-02-23 22:56:54Z warmerdam $");
 
 /*
  * The CPLString class is derived from std::string, so the vast majority 
@@ -231,4 +231,45 @@ CPLString &CPLString::Recode( const char *pszSrcEncoding,
     CPLFree( pszRecoded );
 
     return *this;
+}
+
+/************************************************************************/
+/*                               ifind()                                */
+/************************************************************************/
+
+/** 
+ * Case insensitive find() alternative. 
+ */
+
+size_t CPLString::ifind( const std::string & str, size_t pos ) const
+
+{
+    return ifind( str.c_str(), pos );
+}
+
+size_t CPLString::ifind( const char *s, size_t nPos ) const
+
+{
+    const char *pszHaystack = c_str();
+    char chFirst = (char) tolower( s[0] );
+    int nTargetLen = strlen(s);
+
+    if( nPos > size() )
+        nPos = size();
+
+    pszHaystack += nPos;
+
+    while( *pszHaystack != '\0' )
+    {
+        if( chFirst == tolower(*pszHaystack) )
+        {
+            if( EQUALN(pszHaystack,s,nTargetLen) )
+                return nPos;
+        }
+
+        nPos++;
+        pszHaystack++;
+    }
+
+    return std::string::npos;
 }

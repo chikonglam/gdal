@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: rasterfill.cpp 21167 2010-11-24 15:19:51Z warmerdam $
+ * $Id: rasterfill.cpp 22396 2011-05-17 21:27:47Z warmerdam $
  *
  * Project:  GDAL
  * Purpose:  Interpolate in nodata areas.
@@ -31,7 +31,7 @@
 #include "cpl_conv.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: rasterfill.cpp 21167 2010-11-24 15:19:51Z warmerdam $");
+CPL_CVSID("$Id: rasterfill.cpp 22396 2011-05-17 21:27:47Z warmerdam $");
 
 /************************************************************************/
 /*                           GDALFilterLine()                           */
@@ -451,7 +451,8 @@ GDALFillNodata( GDALRasterBandH hTargetBand,
     
     GDALDatasetH hYDS;
     GDALRasterBandH hYBand;
-    static const char *apszOptions[] = { "COMPRESS=LZW", NULL };
+    static const char *apszOptions[] = { "COMPRESS=LZW", "BIGTIFF=IF_SAFER", 
+                                         NULL };
     CPLString osTmpFile = CPLGenerateTempFilename("");
     CPLString osYTmpFile = osTmpFile + "fill_y_work.tif";
     

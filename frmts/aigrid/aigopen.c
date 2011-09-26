@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: aigopen.c 20996 2010-10-28 18:38:15Z rouault $
+ * $Id: aigopen.c 22160 2011-04-14 18:19:58Z warmerdam $
  *
  * Project:  Arc/Info Binary Grid Translator
  * Purpose:  Grid file access cover API for non-GDAL use.
@@ -29,7 +29,7 @@
 
 #include "aigrid.h"
 
-CPL_CVSID("$Id: aigopen.c 20996 2010-10-28 18:38:15Z rouault $");
+CPL_CVSID("$Id: aigopen.c 22160 2011-04-14 18:19:58Z warmerdam $");
 
 /************************************************************************/
 /*                              AIGOpen()                               */
@@ -307,7 +307,7 @@ CPLErr AIGReadTile( AIGInfo_t * psInfo, int nBlockXOff, int nBlockYOff,
                          psTInfo->panBlockOffset[nBlockID],
                          psTInfo->panBlockSize[nBlockID],
                          psInfo->nBlockXSize, psInfo->nBlockYSize,
-                         panData, psInfo->nCellType );
+                         panData, psInfo->nCellType, psInfo->bCompressed );
 
 /* -------------------------------------------------------------------- */
 /*      Apply floating point post-processing.                           */
@@ -397,7 +397,8 @@ CPLErr AIGReadFloatTile( AIGInfo_t * psInfo, int nBlockXOff, int nBlockYOff,
                          psTInfo->panBlockOffset[nBlockID],
                          psTInfo->panBlockSize[nBlockID],
                          psInfo->nBlockXSize, psInfo->nBlockYSize,
-                         (GInt32 *) pafData, psInfo->nCellType );
+                         (GInt32 *) pafData, psInfo->nCellType, 
+                         psInfo->bCompressed );
 
 /* -------------------------------------------------------------------- */
 /*      Perform integer post processing.                                */

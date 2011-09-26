@@ -1,5 +1,5 @@
 /**********************************************************************
- * $Id: cpl_string.h 21136 2010-11-16 22:47:42Z warmerdam $
+ * $Id: cpl_string.h 21815 2011-02-23 22:56:54Z warmerdam $
  *
  * Name:     cpl_string.h
  * Project:  CPL - Common Portability Library
@@ -252,6 +252,10 @@ public:
     CPLString &FormatC( double dfValue, const char *pszFormat = NULL );
     CPLString &Trim();
     CPLString &Recode( const char *pszSrcEncoding, const char *pszDstEncoding );
+
+    /* case insensitive find alternates */
+    size_t    ifind( const std::string & str, size_t pos = 0 ) const;
+    size_t    ifind( const char * s, size_t pos = 0 ) const;
 
 };
 

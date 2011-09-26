@@ -396,8 +396,8 @@ void DontUseExceptions() {
        CSLDestroy((char**)buffer_ptr);
     }
 
-SWIGINTERN OGRDataSourceShadow *OGRDriverShadow_CreateDataSource(OGRDriverShadow *self,char const *name,char **options=0){
-    OGRDataSourceShadow *ds = (OGRDataSourceShadow*) OGR_Dr_CreateDataSource( self, name, options);
+SWIGINTERN OGRDataSourceShadow *OGRDriverShadow_CreateDataSource(OGRDriverShadow *self,char const *utf8_path,char **options=0){
+    OGRDataSourceShadow *ds = (OGRDataSourceShadow*) OGR_Dr_CreateDataSource( self, utf8_path, options);
     return ds;
   }
 SWIGINTERN OGRDataSourceShadow *OGRDriverShadow_CopyDataSource(OGRDriverShadow *self,OGRDataSourceShadow *copy_ds,char const *utf8_path,char **options=0){
@@ -408,9 +408,9 @@ SWIGINTERN OGRDataSourceShadow *OGRDriverShadow_Open(OGRDriverShadow *self,char 
     OGRDataSourceShadow* ds = (OGRDataSourceShadow*) OGR_Dr_Open(self, utf8_path, update);
     return ds;
   }
-SWIGINTERN int OGRDriverShadow_DeleteDataSource(OGRDriverShadow *self,char const *name){
+SWIGINTERN int OGRDriverShadow_DeleteDataSource(OGRDriverShadow *self,char const *utf8_path){
 
-    return OGR_Dr_DeleteDataSource( self, name );
+    return OGR_Dr_DeleteDataSource( self, utf8_path );
   }
 SWIGINTERN bool OGRDriverShadow_TestCapability(OGRDriverShadow *self,char const *cap){
     return (OGR_Dr_TestCapability(self, cap) > 0);
@@ -1276,9 +1276,9 @@ char const *OGRDataSourceShadow_name_get( OGRDataSourceShadow *h ) {
   }
 
 
-  OGRDataSourceShadow* Open( const char *filename, int update =0 ) {
+  OGRDataSourceShadow* Open( const char *utf8_path, int update =0 ) {
     CPLErrorReset();
-    OGRDataSourceShadow* ds = (OGRDataSourceShadow*)OGROpen(filename,update,NULL);
+    OGRDataSourceShadow* ds = (OGRDataSourceShadow*)OGROpen(utf8_path,update,NULL);
     if( CPLGetLastErrorType() == CE_Failure && ds != NULL )
     {
         CPLDebug( "SWIG", 
@@ -1832,13 +1832,6 @@ SWIGEXPORT void * SWIGSTDCALL CSharp_Driver_CreateDataSource(void * jarg1, char 
   arg2 = (char *)jarg2; 
   arg3 = (char **)jarg3; 
   {
-    if (!arg2) {
-      {
-        SWIG_CSharpException(SWIG_ValueError, "Received a NULL pointer."); return 0; 
-      };
-    }
-  }
-  {
     CPLErrorReset();
     result = (OGRDataSourceShadow *)OGRDriverShadow_CreateDataSource(arg1,(char const *)arg2,arg3);
     CPLErr eclass = CPLGetLastErrorType();
@@ -1949,13 +1942,6 @@ SWIGEXPORT int SWIGSTDCALL CSharp_Driver_DeleteDataSource(void * jarg1, char * j
   
   arg1 = (OGRDriverShadow *)jarg1; 
   arg2 = (char *)jarg2; 
-  {
-    if (!arg2) {
-      {
-        SWIG_CSharpException(SWIG_ValueError, "Received a NULL pointer."); return 0; 
-      };
-    }
-  }
   {
     CPLErrorReset();
     result = (int)OGRDriverShadow_DeleteDataSource(arg1,(char const *)arg2);
