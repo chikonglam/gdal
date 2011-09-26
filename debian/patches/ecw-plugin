@@ -1,7 +1,7 @@
 Index: gdal/frmts/ecw/GNUmakefile
 ===================================================================
---- gdal.orig/frmts/ecw/GNUmakefile	2011-02-18 15:52:35.000000000 +0100
-+++ gdal/frmts/ecw/GNUmakefile	2011-02-18 16:49:18.000000000 +0100
+--- gdal.orig/frmts/ecw/GNUmakefile	2011-09-26 13:18:54.000000000 +0200
++++ gdal/frmts/ecw/GNUmakefile	2011-09-26 13:20:22.000000000 +0200
 @@ -18,3 +18,12 @@
  $(PLUGIN_SO):	$(OBJ)
  	$(LD_SHARED) $(LNK_FLAGS) $(OBJ) $(CONFIG_LIBS) $(EXTRA_LIBS) \
@@ -17,9 +17,9 @@ Index: gdal/frmts/ecw/GNUmakefile
 + 
 Index: gdal/frmts/ecw/ecwdataset.cpp
 ===================================================================
---- gdal.orig/frmts/ecw/ecwdataset.cpp	2011-02-18 15:52:35.000000000 +0100
-+++ gdal/frmts/ecw/ecwdataset.cpp	2011-02-18 16:49:18.000000000 +0100
-@@ -1730,6 +1730,3 @@
+--- gdal.orig/frmts/ecw/ecwdataset.cpp	2011-09-26 13:18:54.000000000 +0200
++++ gdal/frmts/ecw/ecwdataset.cpp	2011-09-26 13:20:22.000000000 +0200
+@@ -1904,6 +1904,3 @@
  #endif /* def FRMT_ecw */
  }
  
@@ -29,7 +29,7 @@ Index: gdal/frmts/ecw/ecwdataset.cpp
 Index: gdal/frmts/ecw/pkg/Makefile.in
 ===================================================================
 --- /dev/null	1970-01-01 00:00:00.000000000 +0000
-+++ gdal/frmts/ecw/pkg/Makefile.in	2011-02-18 16:49:18.000000000 +0100
++++ gdal/frmts/ecw/pkg/Makefile.in	2011-09-26 13:20:22.000000000 +0200
 @@ -0,0 +1,36 @@
 +CC	=	@CC@
 +CXX	=	@CXX@
@@ -70,7 +70,7 @@ Index: gdal/frmts/ecw/pkg/Makefile.in
 Index: gdal/frmts/ecw/pkg/README
 ===================================================================
 --- /dev/null	1970-01-01 00:00:00.000000000 +0000
-+++ gdal/frmts/ecw/pkg/README	2011-02-18 16:49:18.000000000 +0100
++++ gdal/frmts/ecw/pkg/README	2011-09-26 13:20:22.000000000 +0200
 @@ -0,0 +1,30 @@
 +	Standalone ECW 3.3 Drivers for GDAL
 +	===================================
@@ -105,7 +105,7 @@ Index: gdal/frmts/ecw/pkg/README
 Index: gdal/frmts/ecw/pkg/aclocal.m4
 ===================================================================
 --- /dev/null	1970-01-01 00:00:00.000000000 +0000
-+++ gdal/frmts/ecw/pkg/aclocal.m4	2011-02-18 16:49:18.000000000 +0100
++++ gdal/frmts/ecw/pkg/aclocal.m4	2011-09-26 13:20:22.000000000 +0200
 @@ -0,0 +1,202 @@
 +AC_DEFUN(AC_COMPILER_LOCALHACK,
 +[
@@ -312,7 +312,7 @@ Index: gdal/frmts/ecw/pkg/aclocal.m4
 Index: gdal/frmts/ecw/pkg/configure
 ===================================================================
 --- /dev/null	1970-01-01 00:00:00.000000000 +0000
-+++ gdal/frmts/ecw/pkg/configure	2011-02-18 16:49:18.000000000 +0100
++++ gdal/frmts/ecw/pkg/configure	2011-09-26 13:20:22.000000000 +0200
 @@ -0,0 +1,4498 @@
 +#! /bin/sh
 +# Guess values for system-dependent variables and create Makefiles.
@@ -4815,7 +4815,7 @@ Index: gdal/frmts/ecw/pkg/configure
 Index: gdal/frmts/ecw/pkg/configure.in
 ===================================================================
 --- /dev/null	1970-01-01 00:00:00.000000000 +0000
-+++ gdal/frmts/ecw/pkg/configure.in	2011-02-18 16:49:18.000000000 +0100
++++ gdal/frmts/ecw/pkg/configure.in	2011-09-26 13:20:22.000000000 +0200
 @@ -0,0 +1,186 @@
 +dnl ***************************************************************************
 +dnl $Id: configure.in 9971 2006-08-23 20:06:02Z fwarmerdam $

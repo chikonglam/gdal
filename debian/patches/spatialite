@@ -1,8 +1,8 @@
 Index: gdal/configure
 ===================================================================
---- gdal.orig/configure	2011-05-12 11:09:37.000000000 +0200
-+++ gdal/configure	2011-05-12 11:12:03.000000000 +0200
-@@ -22282,7 +22282,7 @@
+--- gdal.orig/configure	2011-09-26 13:20:01.000000000 +0200
++++ gdal/configure	2011-09-26 13:20:49.000000000 +0200
+@@ -22284,7 +22284,7 @@
  
      if test "$SPATIALITE_INIT_FOUND" = "yes"; then
          HAVE_SPATIALITE=yes
@@ -11,7 +11,7 @@ Index: gdal/configure
          HAVE_SQLITE3=yes
      fi
  else
-@@ -22341,7 +22341,7 @@
+@@ -22343,7 +22343,7 @@
          # as there's a spatialite.h file in it, which we don't want to include.
          # We want to include include/spatialite.h instead !
          SQLITE3_CFLAGS="-I$with_spatialite/include"

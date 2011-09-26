@@ -1,7 +1,7 @@
 Index: gdal/GDALmake.opt.in
 ===================================================================
---- gdal.orig/GDALmake.opt.in	2011-03-15 17:54:02.000000000 +0100
-+++ gdal/GDALmake.opt.in	2011-03-15 18:07:27.000000000 +0100
+--- gdal.orig/GDALmake.opt.in	2011-09-26 13:18:55.000000000 +0200
++++ gdal/GDALmake.opt.in	2011-09-26 13:19:03.000000000 +0200
 @@ -92,7 +92,7 @@
  			-I$(GDAL_ROOT)/ogr -I$(GDAL_ROOT)/ogr/ogrsf_frmts
  
@@ -9,7 +9,7 @@ Index: gdal/GDALmake.opt.in
 -LIBGDAL	:=		libgdal.la
 +LIBGDAL	:=		libgdal1.8.0.la
  LIBGDAL_CURRENT	:=	16
- LIBGDAL_REVISION	:=	0
+ LIBGDAL_REVISION	:=	1
  LIBGDAL_AGE	:=	15
 @@ -105,9 +105,9 @@
  GDAL_VERSION_MINOR =    @GDAL_VERSION_MINOR@
@@ -50,8 +50,8 @@ Index: gdal/GDALmake.opt.in
  else
 Index: gdal/swig/perl/Makefile.PL
 ===================================================================
---- gdal.orig/swig/perl/Makefile.PL	2011-02-24 16:10:17.000000000 +0100
-+++ gdal/swig/perl/Makefile.PL	2011-03-15 18:03:50.000000000 +0100
+--- gdal.orig/swig/perl/Makefile.PL	2011-09-26 13:18:55.000000000 +0200
++++ gdal/swig/perl/Makefile.PL	2011-09-26 13:19:03.000000000 +0200
 @@ -24,7 +24,7 @@
      die "can't find gdal-config";
  }
