@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gh5_convenience.cpp 17985 2009-11-10 13:39:46Z rouault $
+ * $Id: gh5_convenience.cpp 21651 2011-02-08 19:22:03Z warmerdam $
  *
  * Project:  Hierarchical Data Format Release 5 (HDF5)
  * Purpose:  HDF5 convenience functions.
@@ -29,7 +29,7 @@
 
 #include "gh5_convenience.h"
 
-CPL_CVSID("$Id: gh5_convenience.cpp 17985 2009-11-10 13:39:46Z rouault $");
+CPL_CVSID("$Id: gh5_convenience.cpp 21651 2011-02-08 19:22:03Z warmerdam $");
 
 /************************************************************************/
 /*                    GH5_FetchAttribute(CPLString)                     */
@@ -39,6 +39,8 @@ bool GH5_FetchAttribute( hid_t loc_id, const char *pszAttrName,
                         CPLString &osResult, bool bReportError )
 
 {
+    bool retVal = false;
+
     hid_t hAttr = H5Aopen_name( loc_id, pszAttrName );
 
     osResult.clear();
@@ -64,7 +66,7 @@ bool GH5_FetchAttribute( hid_t loc_id, const char *pszAttrName,
         osResult = pachBuffer;
         CPLFree( pachBuffer );
 
-        return true;
+        retVal = true;
     }
 
     else
@@ -74,8 +76,12 @@ bool GH5_FetchAttribute( hid_t loc_id, const char *pszAttrName,
                       "Attribute %s of unsupported type for conversion to string.",
                       pszAttrName );
 
-        return false;
+        retVal = false;
     }
+
+    H5Tclose( hAttrTypeID );
+    H5Aclose( hAttr );
+    return retVal;
 }
 
 /************************************************************************/
@@ -121,6 +127,9 @@ bool GH5_FetchAttribute( hid_t loc_id, const char *pszAttrName,
             CPLError( CE_Failure, CPLE_AppDefined,
                       "Attempt to read attribute %s failed, count=%d, not 1.",
                       pszAttrName, nAttrElements );
+
+        H5Tclose( hAttrTypeID );
+        H5Aclose( hAttr );
         return false;
     }
     
@@ -146,11 +155,17 @@ bool GH5_FetchAttribute( hid_t loc_id, const char *pszAttrName,
                       "Attribute %s of unsupported type for conversion to double.",
                       pszAttrName );
         CPLFree( buf );
+
+        H5Tclose( hAttrTypeID );
+        H5Aclose( hAttr );
+
         return false;
     }
 
     CPLFree( buf );
 
+    H5Tclose( hAttrTypeID );
+    H5Aclose( hAttr );
     return true;
 }
 

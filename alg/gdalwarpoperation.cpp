@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdalwarpoperation.cpp 21188 2010-12-02 20:18:16Z rouault $
+ * $Id: gdalwarpoperation.cpp 22162 2011-04-14 20:22:35Z rouault $
  *
  * Project:  High Performance Image Reprojector
  * Purpose:  Implementation of the GDALWarpOperation class.
@@ -32,7 +32,7 @@
 #include "cpl_multiproc.h"
 #include "ogr_api.h"
 
-CPL_CVSID("$Id: gdalwarpoperation.cpp 21188 2010-12-02 20:18:16Z rouault $");
+CPL_CVSID("$Id: gdalwarpoperation.cpp 22162 2011-04-14 20:22:35Z rouault $");
 
 /* Defined in gdalwarpkernel.cpp */
 int GWKGetFilterRadius(GDALResampleAlg eResampleAlg);
@@ -990,8 +990,15 @@ CPLErr GDALWarpOperation::CollectChunkList(
     if( psOptions->pfnSrcDensityMaskFunc != NULL )
         nSrcPixelCostInBits += 32; /* ?? float mask */
 
+    GDALRasterBandH hSrcBand = NULL;
+    if( psOptions->nBandCount > 0 )
+        hSrcBand = GDALGetRasterBand(psOptions->hSrcDS,
+                                     psOptions->panSrcBands[0]);
+
     if( psOptions->nSrcAlphaBand > 0 || psOptions->hCutline != NULL )
         nSrcPixelCostInBits += 32; /* UnifiedSrcDensity float mask */
+    else if (hSrcBand != NULL && (GDALGetMaskFlags(hSrcBand) & GMF_PER_DATASET))
+        nSrcPixelCostInBits += 1; /* UnifiedSrcValid bit mask */
 
     if( psOptions->papfnSrcPerBandValidityMaskFunc != NULL 
         || psOptions->padfSrcNoDataReal != NULL )
@@ -1015,6 +1022,9 @@ CPLErr GDALWarpOperation::CollectChunkList(
     if( psOptions->padfDstNoDataReal != NULL
         || psOptions->pfnDstValidityMaskFunc != NULL )
         nDstPixelCostInBits += psOptions->nBandCount;
+
+    if( psOptions->nDstAlphaBand > 0 )
+        nDstPixelCostInBits += 32; /* DstDensity float mask */
 
 /* -------------------------------------------------------------------- */
 /*      Does the cost of the current rectangle exceed our memory        */

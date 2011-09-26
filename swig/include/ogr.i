@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr.i 21367 2011-01-01 18:34:43Z rouault $
+ * $Id: ogr.i 21660 2011-02-08 21:37:51Z rouault $
  *
  * Project:  OGR Core SWIG Interface declarations.
  * Purpose:  OGR declarations.
@@ -322,9 +322,9 @@ public:
 #ifndef SWIGJAVA
 %feature( "kwargs" ) CreateDataSource;
 #endif
-  OGRDataSourceShadow *CreateDataSource( const char *name, 
+  OGRDataSourceShadow *CreateDataSource( const char *utf8_path, 
                                     char **options = 0 ) {
-    OGRDataSourceShadow *ds = (OGRDataSourceShadow*) OGR_Dr_CreateDataSource( self, name, options);
+    OGRDataSourceShadow *ds = (OGRDataSourceShadow*) OGR_Dr_CreateDataSource( self, utf8_path, options);
     return ds;
   }
   
@@ -350,11 +350,11 @@ public:
   }
 
 #ifdef SWIGJAVA
-  OGRErr DeleteDataSource( const char *name ) {
+  OGRErr DeleteDataSource( const char *utf8_path ) {
 #else
-  int DeleteDataSource( const char *name ) {
+  int DeleteDataSource( const char *utf8_path ) {
 #endif
-    return OGR_Dr_DeleteDataSource( self, name );
+    return OGR_Dr_DeleteDataSource( self, utf8_path );
   }
 
 %apply Pointer NONNULL {const char * cap};
@@ -1905,9 +1905,9 @@ const char * OGR_GetFieldTypeName(OGRFieldType type);
 %feature( "kwargs" ) Open;
 #endif
 %inline %{
-  OGRDataSourceShadow* Open( const char *filename, int update =0 ) {
+  OGRDataSourceShadow* Open( const char *utf8_path, int update =0 ) {
     CPLErrorReset();
-    OGRDataSourceShadow* ds = (OGRDataSourceShadow*)OGROpen(filename,update,NULL);
+    OGRDataSourceShadow* ds = (OGRDataSourceShadow*)OGROpen(utf8_path,update,NULL);
     if( CPLGetLastErrorType() == CE_Failure && ds != NULL )
     {
         CPLDebug( "SWIG", 

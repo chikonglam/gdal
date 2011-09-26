@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ehdrdataset.cpp 21298 2010-12-20 10:58:34Z rouault $
+ * $Id: ehdrdataset.cpp 21623 2011-02-02 18:53:34Z warmerdam $
  *
  * Project:  ESRI .hdr Driver
  * Purpose:  Implementation of EHdrDataset
@@ -31,7 +31,7 @@
 #include "ogr_spatialref.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: ehdrdataset.cpp 21298 2010-12-20 10:58:34Z rouault $");
+CPL_CVSID("$Id: ehdrdataset.cpp 21623 2011-02-02 18:53:34Z warmerdam $");
 
 CPL_C_START
 void	GDALRegister_EHdr(void);
@@ -968,7 +968,7 @@ GDALDataset *EHdrDataset::Open( GDALOpenInfo * poOpenInfo )
     if( poOpenInfo->papszSiblingFiles )
     {
         int iFile = CSLFindString(poOpenInfo->papszSiblingFiles, 
-                              CPLFormFilename( NULL, osName, "hdr" ) );
+                                  CPLFormFilename( NULL, osName, "hdr" ) );
         if( iFile < 0 ) // return if there is no corresponding .hdr file
             return NULL;
         
@@ -1127,14 +1127,6 @@ GDALDataset *EHdrDataset::Open( GDALOpenInfo * poOpenInfo )
 
     VSIFCloseL( fp );
 
-    /* If we have a negative nodata value, let's assume that the */
-    /* pixel type is signed. This is necessary for datasets from */
-    /* http://www.worldclim.org/futdown.htm */
-    if( bNoDataSet && dfNoData < 0 && chPixelType == 'N' )
-    {
-        chPixelType = 'S';
-    }
-
 /* -------------------------------------------------------------------- */
 /*      Did we get the required keywords?  If not we return with        */
 /*      this never having been considered to be a match. This isn't     */
@@ -1169,6 +1161,11 @@ GDALDataset *EHdrDataset::Open( GDALOpenInfo * poOpenInfo )
         return NULL;
     }
 
+/* -------------------------------------------------------------------- */
+/*      If we aren't sure of the file type, check the data file         */
+/*      size.  If it is 4 bytes or more per pixel then we assume it     */
+/*      is floating point data.                                         */
+/* -------------------------------------------------------------------- */
     if( nBits == -1 && chPixelType == 'N' )
     {
         VSIStatBufL sStatBuf;
@@ -1181,6 +1178,25 @@ GDALDataset *EHdrDataset::Open( GDALOpenInfo * poOpenInfo )
             if( nBytes == 4 )
                 chPixelType = 'F';
         }
+    }
+
+/* -------------------------------------------------------------------- */
+/*      If the extension is FLT it is likely a floating point file.     */
+/* -------------------------------------------------------------------- */
+    if( chPixelType == 'N' )
+    {
+        if( EQUAL( CPLGetExtension( poOpenInfo->pszFilename ), "FLT" ) )
+            chPixelType = 'F';
+    }
+
+/* -------------------------------------------------------------------- */
+/*      If we have a negative nodata value, let's assume that the       */
+/*      pixel type is signed. This is necessary for datasets from       */
+/*      http://www.worldclim.org/futdown.htm                            */
+/* -------------------------------------------------------------------- */
+    if( bNoDataSet && dfNoData < 0 && chPixelType == 'N' )
+    {
+        chPixelType = 'S';
     }
 
 /* -------------------------------------------------------------------- */
@@ -1216,12 +1232,6 @@ GDALDataset *EHdrDataset::Open( GDALOpenInfo * poOpenInfo )
 
     poDS->eAccess = poOpenInfo->eAccess;
 
-    if( chPixelType == 'N' )
-    {
-      if( EQUAL( CPLGetExtension( poOpenInfo->pszFilename ), "FLT" ) )
-        chPixelType = 'F';
-    }
-
 /* -------------------------------------------------------------------- */
 /*      Figure out the data type.                                       */
 /* -------------------------------------------------------------------- */
@@ -1250,16 +1260,16 @@ GDALDataset *EHdrDataset::Open( GDALOpenInfo * poOpenInfo )
         eDataType = GDT_Byte;
     else if( nBits == -1 )
     {
-      if( chPixelType == 'F' )
-      {
-        eDataType = GDT_Float32;
-        nBits = 32;
-      }
-      else
-      {
-        eDataType = GDT_Byte;
-        nBits = 8;
-      }
+        if( chPixelType == 'F' )
+        {
+            eDataType = GDT_Float32;
+            nBits = 32;
+        }
+        else
+        {
+            eDataType = GDT_Byte;
+            nBits = 8;
+        }
     }
     else
     {

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: typemaps_csharp.i 20641 2010-09-18 11:35:15Z rouault $
+ * $Id: typemaps_csharp.i 21594 2011-01-27 20:15:39Z tamas $
  *
  * Name:     typemaps_csharp.i
  * Project:  GDAL CSharp Interface
@@ -380,6 +380,11 @@ OPTIONAL_POD(int, int);
 }
 
 %apply (int inout[ANY]) {int *pList};
+
+/*
+ * Typemap for const char *utf8_path. 
+ */
+%typemap(csin) (const char *utf8_path)  "System.Text.Encoding.Default.GetString(System.Text.Encoding.UTF8.GetBytes($csinput))" 
 
 /*
  * Typemap for double *defaultval. 

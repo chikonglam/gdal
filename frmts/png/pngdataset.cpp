@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: pngdataset.cpp 21032 2010-10-31 20:58:34Z warmerdam $
+ * $Id: pngdataset.cpp 21526 2011-01-17 19:32:03Z rouault $
  *
  * Project:  PNG Driver
  * Purpose:  Implement GDAL PNG Support
@@ -49,7 +49,7 @@
 #include "cpl_string.h"
 #include <setjmp.h>
 
-CPL_CVSID("$Id: pngdataset.cpp 21032 2010-10-31 20:58:34Z warmerdam $");
+CPL_CVSID("$Id: pngdataset.cpp 21526 2011-01-17 19:32:03Z rouault $");
 
 CPL_C_START
 void	GDALRegister_PNG(void);
@@ -1315,7 +1315,7 @@ png_vsi_read_data(png_structp png_ptr, png_bytep data, png_size_t length)
     * instead of an int, which is what fread() actually returns.
     */
    check = (png_size_t)VSIFReadL(data, (png_size_t)1, length,
-                                 (VSILFILE*)png_ptr->io_ptr);
+                                 (VSILFILE*)png_get_io_ptr(png_ptr));
 
    if (check != length)
       png_error(png_ptr, "Read Error");
@@ -1330,7 +1330,7 @@ png_vsi_write_data(png_structp png_ptr, png_bytep data, png_size_t length)
 {
    png_uint_32 check;
 
-   check = VSIFWriteL(data, 1, length, (VSILFILE*)(png_ptr->io_ptr));
+   check = VSIFWriteL(data, 1, length, (VSILFILE*)png_get_io_ptr(png_ptr));
 
    if (check != length)
       png_error(png_ptr, "Write Error");
@@ -1341,7 +1341,7 @@ png_vsi_write_data(png_structp png_ptr, png_bytep data, png_size_t length)
 /************************************************************************/
 static void png_vsi_flush(png_structp png_ptr)
 {
-    VSIFFlushL( (VSILFILE*)(png_ptr->io_ptr) );
+    VSIFFlushL( (VSILFILE*)png_get_io_ptr(png_ptr) );
 }
 
 /************************************************************************/
@@ -1357,7 +1357,7 @@ static void png_gdal_error( png_structp png_ptr, const char *error_message )
     // libpng is generally not built as C++ and so won't honour unwind
     // semantics.  Ugg. 
 
-    jmp_buf* psSetJmpContext = (jmp_buf*) png_ptr->error_ptr;
+    jmp_buf* psSetJmpContext = (jmp_buf*) png_get_error_ptr(png_ptr);
     if (psSetJmpContext)
     {
         longjmp( *psSetJmpContext, 1 );

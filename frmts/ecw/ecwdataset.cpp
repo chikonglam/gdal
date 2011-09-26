@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ecwdataset.cpp 21399 2011-01-05 00:15:19Z warmerdam $
+ * $Id: ecwdataset.cpp 22589 2011-06-25 21:02:42Z rouault $
  *
  * Project:  GDAL 
  * Purpose:  ECW (ERDAS Wavelet Compression Format) Driver
@@ -38,7 +38,7 @@
 #include "ogr_api.h"
 #include "ogr_geometry.h"
 
-CPL_CVSID("$Id: ecwdataset.cpp 21399 2011-01-05 00:15:19Z warmerdam $");
+CPL_CVSID("$Id: ecwdataset.cpp 22589 2011-06-25 21:02:42Z rouault $");
 
 #undef NOISY_DEBUG
 
@@ -1409,7 +1409,7 @@ try_again:
 /* -------------------------------------------------------------------- */
     GDALJP2Metadata oJP2Geo;
 
-    if( oJP2Geo.ReadAndParse( poOpenInfo->pszFilename ) )
+    if( bIsJPEG2000 && oJP2Geo.ReadAndParse( poOpenInfo->pszFilename ) )
     {
         poDS->pszProjection = CPLStrdup(oJP2Geo.pszProjection);
         poDS->bGeoTransformValid = oJP2Geo.bHaveGeoTransform;
@@ -1521,25 +1521,22 @@ const char *ECWDataset::GetProjectionRef()
 /************************************************************************/
 /*                          GetGeoTransform()                           */
 /*                                                                      */
-/*      Only return the native geotransform if we appear to be          */
-/*      returning the native coordinate system, otherwise defer to      */
-/*      the PAM geotransform.                                           */
+/*      Let the PAM geotransform override the native one if it is       */
+/*      available.                                                      */
 /************************************************************************/
 
 CPLErr ECWDataset::GetGeoTransform( double * padfTransform )
 
 {
-    if( (GetProjectionRef() != pszProjection  
-         && strlen(GetProjectionRef()) > 0)
-        || !bGeoTransformValid )
-    {
-        return GDALPamDataset::GetGeoTransform( padfTransform );
-    }
-    else
+    CPLErr eErr = GDALPamDataset::GetGeoTransform( padfTransform );
+
+    if( eErr != CE_None && bGeoTransformValid )
     {
         memcpy( padfTransform, adfGeoTransform, sizeof(double) * 6 );
         return( CE_None );
     }
+    else
+        return eErr;
 }
 
 /************************************************************************/
@@ -1596,7 +1593,7 @@ void ECWDataset::ECW2WKTProjection()
         
         adfGeoTransform[3] = psFileInfo->fOriginY;
         adfGeoTransform[4] = 0.0;
-        adfGeoTransform[5] = psFileInfo->fCellIncrementY;
+        adfGeoTransform[5] = -fabs(psFileInfo->fCellIncrementY);
     }
 
 /* -------------------------------------------------------------------- */

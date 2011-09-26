@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrpgtablelayer.cpp 21329 2010-12-29 18:10:26Z rouault $
+ * $Id: ogrpgtablelayer.cpp 22158 2011-04-14 18:10:01Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implements OGRPGTableLayer class, access to an existing table.
@@ -33,7 +33,7 @@
 #include "cpl_string.h"
 #include "cpl_error.h"
 
-CPL_CVSID("$Id: ogrpgtablelayer.cpp 21329 2010-12-29 18:10:26Z rouault $");
+CPL_CVSID("$Id: ogrpgtablelayer.cpp 22158 2011-04-14 18:10:01Z rouault $");
 
 #define USE_COPY_UNSET  -10
 static CPLString OGRPGEscapeStringList(PGconn *hPGConn,
@@ -964,14 +964,13 @@ void OGRPGTableLayer::AppendFieldValue(PGconn *hPGConn, CPLString& osCommand,
                 strcat( pszNeedToFree+nOff, "," );
 
             nOff += strlen(pszNeedToFree+nOff);
-            sprintf( pszNeedToFree+nOff, "%.16g", padfItems[j] );
             //Check for special values. They need to be quoted.
-            if( strcmp( pszNeedToFree+nOff, "nan" ) == 0 )
+            if( CPLIsNan(padfItems[j]) )
                 sprintf( pszNeedToFree+nOff, "NaN" );
-            else if( strcmp( pszNeedToFree+nOff, "inf" ) == 0 )
-                sprintf( pszNeedToFree+nOff, "Infinity" );
-            else if( strcmp( pszNeedToFree+nOff, "-inf" ) == 0 )
-                sprintf( pszNeedToFree+nOff, "-Infinity" );
+            else if( CPLIsInf(padfItems[j]) )
+                sprintf( pszNeedToFree+nOff, (padfItems[j] > 0) ? "Infinity" : "-Infinity" );
+            else
+                sprintf( pszNeedToFree+nOff, "%.16g", padfItems[j] );
 
             char* pszComma = strchr(pszNeedToFree+nOff, ',');
             if (pszComma)
@@ -1033,12 +1032,11 @@ void OGRPGTableLayer::AppendFieldValue(PGconn *hPGConn, CPLString& osCommand,
         if (pszComma)
             *pszComma = '.';
         //Check for special values. They need to be quoted.
-        if( strcmp( pszStrValue, "nan" ) == 0 )
+        double dfVal = poFeature->GetFieldAsDouble(i);
+        if( CPLIsNan(dfVal) )
             pszStrValue = "'NaN'";
-        else if( strcmp( pszStrValue, "inf" ) == 0 )
-            pszStrValue = "'Infinity'";
-        else if( strcmp( pszStrValue, "-inf" ) == 0 )
-            pszStrValue = "'-Infinity'";
+        else if( CPLIsInf(dfVal) )
+            pszStrValue = (dfVal > 0) ? "'Infinity'" : "'-Infinity'";
     }
 
     if( nOGRFieldType != OFTInteger && nOGRFieldType != OFTReal
@@ -1439,7 +1437,7 @@ OGRErr OGRPGTableLayer::CreateFeatureViaInsert( OGRFeature *poFeature )
     osCommand += ") VALUES (";
 
     /* Set the geometry */
-    bNeedComma = poGeom != NULL;
+    bNeedComma = FALSE;
     if( (bHasPostGISGeometry || bHasPostGISGeography) && poGeom != NULL)
     {
         char    *pszWKT = NULL;
@@ -1469,6 +1467,8 @@ OGRErr OGRPGTableLayer::CreateFeatureViaInsert( OGRFeature *poFeature )
         }
         else
             osCommand += "''";
+            
+        bNeedComma = TRUE;
     }
     else if( bHasWkb && !bWkbAsOid && poGeom != NULL )
     {
@@ -1481,6 +1481,8 @@ OGRErr OGRPGTableLayer::CreateFeatureViaInsert( OGRFeature *poFeature )
         }
         else
             osCommand += "''";
+            
+        bNeedComma = TRUE;
     }
     else if( bHasWkb && bWkbAsOid && poGeom != NULL )
     {
@@ -1492,6 +1494,8 @@ OGRErr OGRPGTableLayer::CreateFeatureViaInsert( OGRFeature *poFeature )
         }
         else
             osCommand += "''";
+            
+        bNeedComma = TRUE;
     }
 
     /* REMOVE ME ? */
@@ -1638,7 +1642,7 @@ OGRErr OGRPGTableLayer::CreateFeatureViaCopy( OGRFeature *poFeature )
         const char *pszStrValue = poFeature->GetFieldAsString(i);
         char *pszNeedToFree = NULL;
 
-        if (osCommand.size() > 0)
+        if (i > 0 || osCommand.size() > 0)
             osCommand += "\t";
             
         if( !poFeature->IsFieldSet( i ) )
@@ -1684,14 +1688,13 @@ OGRErr OGRPGTableLayer::CreateFeatureViaCopy( OGRFeature *poFeature )
                     strcat( pszNeedToFree+nOff, "," );
 
                 nOff += strlen(pszNeedToFree+nOff);
-                sprintf( pszNeedToFree+nOff, "%.16g", padfItems[j] );
                 //Check for special values. They need to be quoted.
-                if( strcmp( pszNeedToFree+nOff, "nan" ) == 0 )
-                    sprintf( pszNeedToFree+nOff, "'NaN'" );
-                else if( strcmp( pszNeedToFree+nOff, "inf" ) == 0 )
-                    sprintf( pszNeedToFree+nOff, "'Infinity'" );
-                else if( strcmp( pszNeedToFree+nOff, "-inf" ) == 0 )
-                    sprintf( pszNeedToFree+nOff, "'-Infinity'" );
+                if( CPLIsNan(padfItems[j]) )
+                    sprintf( pszNeedToFree+nOff, "NaN" );
+                else if( CPLIsInf(padfItems[j]) )
+                    sprintf( pszNeedToFree+nOff, (padfItems[j] > 0) ? "Infinity" : "-Infinity" );
+                else
+                    sprintf( pszNeedToFree+nOff, "%.16g", padfItems[j] );
 
                 char* pszComma = strchr(pszNeedToFree+nOff, ',');
                 if (pszComma)
@@ -1727,12 +1730,11 @@ OGRErr OGRPGTableLayer::CreateFeatureViaCopy( OGRFeature *poFeature )
             if (pszComma)
                 *pszComma = '.';
             //Check for special values. They need to be quoted.
-            if( strcmp( pszStrValue, "nan" ) == 0 )
-                pszStrValue = "'NaN'";
-            else if( strcmp( pszStrValue, "inf" ) == 0 )
-                pszStrValue = "'Infinity'";
-            else if( strcmp( pszStrValue, "-inf" ) == 0 )
-                pszStrValue = "'-Infinity'";
+            double dfVal = poFeature->GetFieldAsDouble(i);
+            if( CPLIsNan(dfVal) )
+                pszStrValue = "NaN";
+            else if( CPLIsInf(dfVal) )
+                pszStrValue = (dfVal > 0) ? "Infinity" : "-Infinity";
         }
 
         if( nOGRFieldType != OFTIntegerList &&

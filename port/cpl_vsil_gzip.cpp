@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: cpl_vsil_gzip.cpp 20996 2010-10-28 18:38:15Z rouault $
+ * $Id: cpl_vsil_gzip.cpp 21502 2011-01-15 15:28:54Z rouault $
  *
  * Project:  CPL - Common Portability Library
  * Purpose:  Implement VSI large file api for gz/zip files (.gz and .zip).
@@ -84,7 +84,7 @@
 #include "cpl_minizip_unzip.h"
 #include "cpl_time.h"
 
-CPL_CVSID("$Id: cpl_vsil_gzip.cpp 20996 2010-10-28 18:38:15Z rouault $");
+CPL_CVSID("$Id: cpl_vsil_gzip.cpp 21502 2011-01-15 15:28:54Z rouault $");
 
 #define Z_BUFSIZE 65536  /* original size is 16384 */
 static int const gz_magic[2] = {0x1f, 0x8b}; /* gzip magic header */
@@ -572,7 +572,7 @@ int VSIGZipHandle::gzseek( vsi_l_offset offset, int whence )
         }
 
         in = out = offset - startOff;
-        if (ENABLE_DEBUG) CPLDebug("GZIP", "return " CPL_FRMT_GUIB, offset);
+        if (ENABLE_DEBUG) CPLDebug("GZIP", "return " CPL_FRMT_GUIB, in);
         return (int) in;
     }
 
@@ -770,6 +770,7 @@ size_t VSIGZipHandle::Read( void *buf, size_t nSize, size_t nMemb )
 
         if  (transparent) {
             /* Copy first the lookahead bytes: */
+            uInt nRead = 0;
             uInt n = stream.avail_in;
             if (n > stream.avail_out) n = stream.avail_out;
             if (n > 0) {
@@ -779,17 +780,20 @@ size_t VSIGZipHandle::Read( void *buf, size_t nSize, size_t nMemb )
                 stream.next_in   += n;
                 stream.avail_out -= n;
                 stream.avail_in  -= n;
+                nRead += n;
             }
             if  (stream.avail_out > 0) {
-                stream.avail_out -=
-                    (uInt)VSIFReadL(next_out, 1, stream.avail_out, (VSILFILE*)poBaseHandle);
+                uInt nToRead = (uInt) MIN(compressed_size - (in + nRead), stream.avail_out);
+                uInt nReadFromFile =
+                    (uInt)VSIFReadL(next_out, 1, nToRead, (VSILFILE*)poBaseHandle);
+                stream.avail_out -= nReadFromFile;
+                nRead += nReadFromFile;
             }
-            len -= stream.avail_out;
-            in  += len;
-            out += len;
-            if (len == 0) z_eof = 1;
-            if (ENABLE_DEBUG) CPLDebug("GZIP", "Read return %d", (int)(len / nSize));
-            return (int)len / nSize;
+            in  += nRead;
+            out += nRead;
+            if (nRead < len) z_eof = 1;
+            if (ENABLE_DEBUG) CPLDebug("GZIP", "Read return %d", (int)(nRead / nSize));
+            return (int)nRead / nSize;
         }
         if  (stream.avail_in == 0 && !z_eof)
         {

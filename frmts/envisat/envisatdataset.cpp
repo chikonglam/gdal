@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: envisatdataset.cpp 17664 2009-09-21 21:16:45Z rouault $
+ * $Id: envisatdataset.cpp 22404 2011-05-19 15:16:06Z warmerdam $
  *
  * Project:  APP ENVISAT Support
  * Purpose:  Reader for ENVISAT format image data.
@@ -31,7 +31,7 @@
 #include "cpl_string.h"
 #include "ogr_srs_api.h"					       
 
-CPL_CVSID("$Id: envisatdataset.cpp 17664 2009-09-21 21:16:45Z rouault $");
+CPL_CVSID("$Id: envisatdataset.cpp 22404 2011-05-19 15:16:06Z warmerdam $");
 
 CPL_C_START
 #include "EnvisatFile.h"
@@ -181,7 +181,7 @@ void EnvisatDataset::ScanForGCPs_ASAR()
 /*      Collect the first GCP set from each record.			*/
 /* -------------------------------------------------------------------- */
     GByte	abyRecord[521];
-    int  	nRange=0, nSample, iGCP;
+    int  	nRange=0, nSample, iGCP, nRangeOffset=0;
     GUInt32 	unValue;
 
     nGCPCount = 0;
@@ -194,7 +194,15 @@ void EnvisatDataset::ScanForGCPs_ASAR()
             continue;
 
         memcpy( &unValue, abyRecord + 13, 4 );
-        nRange = CPL_MSBWORD32( unValue );
+        nRange = CPL_MSBWORD32( unValue ) + nRangeOffset;
+
+        if((iRecord>1) && (int(pasGCPList[nGCPCount-1].dfGCPLine+0.5) > nRange))
+        {
+            int delta = pasGCPList[nGCPCount-1].dfGCPLine -
+                        pasGCPList[nGCPCount-12].dfGCPLine;
+            nRange = int(pasGCPList[nGCPCount-1].dfGCPLine+0.5) + delta;
+            nRangeOffset = nRange-1;
+        }
 
         for( iGCP = 0; iGCP < 11; iGCP++ )
         {
@@ -309,11 +317,11 @@ void EnvisatDataset::ScanForGCPs_MERIS()
     nTPPerLine = (GetRasterXSize() + nSamplesPerTiePoint - 1) 
         / nSamplesPerTiePoint;
 
-    if( (GetRasterXSize() + nSamplesPerTiePoint - 1) 
-        / nSamplesPerTiePoint  != nTPPerColumn )
+    if( (GetRasterYSize() + nLinesPerTiePoint - 1) 
+        / nLinesPerTiePoint != nTPPerColumn )
     {
         CPLDebug( "EnvisatDataset", "Got %d instead of %d nTPPerColumn.", 
-                  (GetRasterXSize()+nSamplesPerTiePoint-1)/nSamplesPerTiePoint,
+                  (GetRasterYSize()+nLinesPerTiePoint-1)/nLinesPerTiePoint,
                   nTPPerColumn );
         return;
     }

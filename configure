@@ -19852,8 +19852,9 @@ $as_echo "found MrSID DSDK version 7.x or newer." >&6; };
     if test -r "$with_mrsid/lib/libltiesdk.a" ; then # v8+ esdk contains dsdk
       _LIBPART=lib
       MRSID_LIBS="-lltiesdk $MRSID_LIBS"
-    elif test -r "$with_mrsid/lib/libltidsdk.a" \
-           -o -L "$with_mrsid/lib/libltidsdk.so" ; then
+    elif test -e "$with_mrsid/lib/libltidsdk.a" \
+           -o -e "$with_mrsid/lib/libltidsdk.so" \
+           -o -e "$with_mrsid/lib/libltidsdk.dylib" ; then
       _LIBPART=lib
       MRSID_LIBS="-lltidsdk $MRSID_LIBS"
     else
@@ -19966,7 +19967,8 @@ $as_echo "not found." >&6; }
   fi
 
   if test $HAVE_MRSID_LIDAR = yes ; then
-    if test -L "$MRSID_LIDAR_BASE/lib/liblti_lidar_dsdk.so"; then
+    if test -e "$MRSID_LIDAR_BASE/lib/liblti_lidar_dsdk.so" \
+         -o -e "$MRSID_LIDAR_BASE/lib/liblti_lidar_dsdk.dylib"; then
       MRSID_LIDAR_LIBS="-L$MRSID_LIDAR_BASE/lib -llti_lidar_dsdk"
       MRSID_LIDAR_INCLUDE="-I$MRSID_LIDAR_BASE/include"
     else
@@ -21317,9 +21319,9 @@ fi
         libkml_include_dir2="$libkml_prefix/include/kml"
         libkml_include_dir3="$libkml_prefix/include/kml/third_party/boost_1_34_1"
         if test "$libkml_prefix" = "/usr"; then
-            libkml_lib_flags="-lkmlengine -lkmldom -lkmlbase -lkmlconvenience"
+            libkml_lib_flags="-lkmlengine -lkmldom -lkmlbase -lkmlconvenience -lminizip -luriparser"
         else
-            libkml_lib_flags="-L$libkml_prefix/lib -lkmlengine -lkmldom -lkmlbase -lkmlconvenience"
+            libkml_lib_flags="-L$libkml_prefix/lib -lkmlengine -lkmldom -lkmlbase -lkmlconvenience -lminizip -luriparser"
         fi
         run_libkml_test="yes"
     elif test "$libkml_requested" = "yes"; then
@@ -21337,8 +21339,8 @@ fi
         saved_CPPFLAGS="$CPPFLAGS"
         CPPFLAGS="$CPPFLAGS -I$libkml_include_dir -I$libkml_include_dir2 -I$libkml_include_dir3"
 
-        saved_LDFLAGS="$LDFLAGS"
-        LDFLAGS="$LDFLAGS $libkml_lib_flags"
+        saved_LIBS="$LIBS"
+        LIBS="$LIBS $libkml_lib_flags"
 
                                 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for Google libkml headers in $libkml_include_dir, $libkml_include_dir2, and $libkml_include_dir3" >&5
 $as_echo_n "checking for Google libkml headers in $libkml_include_dir, $libkml_include_dir2, and $libkml_include_dir3... " >&6; }
@@ -21441,7 +21443,7 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
         fi
 
         CPPFLAGS="$saved_CPPFLAGS"
-        LDFLAGS="$saved_LDFLAGS"
+        LIBS="$saved_LIBS"
     fi
 
     { $as_echo "$as_me:${as_lineno-$LINENO}: checking for Google libkml" >&5

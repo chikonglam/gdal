@@ -109,34 +109,9 @@ struct hNoDataItem {
 
 #include "oci_wrapper.h"
 
-class GeoRasterDriver;
 class GeoRasterDataset;
 class GeoRasterRasterBand;
 class GeoRasterWrapper;
-
-//  ---------------------------------------------------------------------------
-//  GeoRasterDriver, extends GDALDriver to support GeoRaster Server Connections
-//  ---------------------------------------------------------------------------
-
-class GeoRasterDriver : public GDALDriver
-{
-    friend class GeoRasterDataset;
-
-public:
-                        GeoRasterDriver();
-    virtual            ~GeoRasterDriver();
-
-private:
-
-    OWConnection**      papoConnection;
-    int                 nRefCount;
-
-public:
-
-    OWConnection*       GetConnection( const char* pszUser,
-                            const char* pszPassword,
-                            const char* pszServer );
-};
 
 //  ---------------------------------------------------------------------------
 //  GeoRasterDataset, extends GDALDataset to support GeoRaster Datasets
@@ -306,12 +281,13 @@ private:
     OWStatement*        poBlockStmt;
     OWStatement*        poStmtWrite;
 
-    long                nCurrentBlock;
-    long                nCacheBlockIn;
-    long                nCacheBlockOut;
     int                 nCurrentLevel;
     long                nLevelOffset;
+
+    long                nCacheBlockId;
     bool                bFlushBlock;
+    unsigned long       nFlushBlockSize;
+
     bool                bWriteOnly;
 
     hLevelDetails*      pahLevels;
@@ -462,7 +438,6 @@ public:
     bool                bUniqueFound;
     
     int                 eModelCoordLocation;
-    int                 eForceCoordLocation;
     unsigned int        anULTCoordinate[3];
 };
 

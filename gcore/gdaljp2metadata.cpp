@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdaljp2metadata.cpp 21102 2010-11-08 20:47:38Z rouault $
+ * $Id: gdaljp2metadata.cpp 22650 2011-07-06 00:59:22Z warmerdam $
  *
  * Project:  GDAL 
  * Purpose:  GDALJP2Metadata - Read GeoTIFF and/or GML georef info.
@@ -35,7 +35,7 @@
 #include "ogr_api.h"
 #include "gt_wkt_srs_for_gdal.h"
 
-CPL_CVSID("$Id: gdaljp2metadata.cpp 21102 2010-11-08 20:47:38Z rouault $");
+CPL_CVSID("$Id: gdaljp2metadata.cpp 22650 2011-07-06 00:59:22Z warmerdam $");
 
 static const unsigned char msi_uuid2[16] =
 {0xb1,0x4b,0xf8,0xbd,0x08,0x3d,0x4b,0x43,
@@ -265,6 +265,65 @@ int GDALJP2Metadata::ReadBoxes( VSILFILE *fpVSIL )
             papszGMLMetadata = CSLSetNameValue( papszGMLMetadata, 
                                                 osBoxName, pszXML );
             CPLFree( pszXML );
+        }
+
+/* -------------------------------------------------------------------- */
+/*      Check for a resd box in jp2h.                                   */
+/* -------------------------------------------------------------------- */
+        if( EQUAL(oBox.GetType(),"jp2h") )
+        {
+            GDALJP2Box oSubBox( fpVSIL );
+
+            for( oSubBox.ReadFirstChild( &oBox );
+                 strlen(oSubBox.GetType()) > 0;
+                 oSubBox.ReadNextChild( &oBox ) )
+            {
+                if( EQUAL(oSubBox.GetType(),"res ") )
+                {
+                    GDALJP2Box oResBox( fpVSIL );
+
+                    oResBox.ReadFirstChild( &oSubBox );
+                    
+                    // we will use either the resd or resc box, which ever
+                    // happens to be first.  Should we prefer resd?
+                    if( oResBox.GetDataLength() == 10 )
+                    {
+                        unsigned char *pabyResData = oResBox.ReadBoxData();
+                        int nVertNum, nVertDen, nVertExp;
+                        int nHorzNum, nHorzDen, nHorzExp;
+                        
+                        nVertNum = pabyResData[0] * 256 + pabyResData[1];
+                        nVertDen = pabyResData[2] * 256 + pabyResData[3];
+                        nHorzNum = pabyResData[4] * 256 + pabyResData[5];
+                        nHorzDen = pabyResData[6] * 256 + pabyResData[7];
+                        nVertExp = pabyResData[8];
+                        nHorzExp = pabyResData[9];
+                        
+                        // compute in pixels/cm 
+                        double dfVertRes = 
+                            (nVertNum/(double)nVertDen) * pow(10.0,nVertExp)/100;
+                        double dfHorzRes = 
+                            (nHorzNum/(double)nHorzDen) * pow(10.0,nHorzExp)/100;
+                        CPLString osFormatter;
+
+                        papszGMLMetadata = CSLSetNameValue( 
+                            papszGMLMetadata, 
+                            "TIFFTAG_XRESOLUTION",
+                            osFormatter.Printf("%g",dfHorzRes) );
+                        
+                        papszGMLMetadata = CSLSetNameValue( 
+                            papszGMLMetadata, 
+                            "TIFFTAG_YRESOLUTION",
+                            osFormatter.Printf("%g",dfVertRes) );
+                        papszGMLMetadata = CSLSetNameValue( 
+                            papszGMLMetadata, 
+                            "TIFFTAG_RESOLUTIONUNIT", 
+                            "3 (pixels/cm)" );
+                        
+                        CPLFree( pabyResData );
+                    }
+                }
+            }
         }
 
         oBox.ReadNext();

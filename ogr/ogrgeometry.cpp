@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrgeometry.cpp 21072 2010-11-06 17:31:02Z rouault $
+ * $Id: ogrgeometry.cpp 21919 2011-03-09 19:40:15Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implements a few base methods on OGRGeometry.
@@ -34,7 +34,7 @@
 #include "cpl_multiproc.h"
 #include <assert.h>
 
-CPL_CVSID("$Id: ogrgeometry.cpp 21072 2010-11-06 17:31:02Z rouault $");
+CPL_CVSID("$Id: ogrgeometry.cpp 21919 2011-03-09 19:40:15Z rouault $");
 
 int OGRGeometry::bGenerate_DB2_V72_BYTE_ORDER = FALSE;
 
@@ -2542,7 +2542,7 @@ OGRGeometry *OGRGeometry::UnionCascaded() const
     return NULL;
 
 /* GEOS >= 3.1.0 */
-#elif GEOS_CAPI_VERSION_MAJOR >= 2 || (GEOS_CAPI_VERSION_MAJOR == 1 && GEOS_CAPI_VERSION_MINOR >= 5)
+#elif GEOS_VERSION_MAJOR > 3 || (GEOS_VERSION_MAJOR == 3 && GEOS_VERSION_MINOR >= 1)
 
     GEOSGeom hThisGeosGeom = NULL;
     GEOSGeom hGeosProduct = NULL;

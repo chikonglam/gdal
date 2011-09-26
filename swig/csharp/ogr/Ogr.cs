@@ -148,15 +148,15 @@ public delegate void GDALErrorHandlerDelegate(int eclass, int code, IntPtr msg);
     return ret;
   }
 
-  public static DataSource Open(string filename, int update) {
-    IntPtr cPtr = OgrPINVOKE.Open(filename, update);
+  public static DataSource Open(string utf8_path, int update) {
+    IntPtr cPtr = OgrPINVOKE.Open(System.Text.Encoding.Default.GetString(System.Text.Encoding.UTF8.GetBytes(utf8_path)), update);
     DataSource ret = (cPtr == IntPtr.Zero) ? null : new DataSource(cPtr, true, ThisOwn_true());
     if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
     return ret;
   }
 
   public static DataSource OpenShared(string utf8_path, int update) {
-    IntPtr cPtr = OgrPINVOKE.OpenShared(utf8_path, update);
+    IntPtr cPtr = OgrPINVOKE.OpenShared(System.Text.Encoding.Default.GetString(System.Text.Encoding.UTF8.GetBytes(utf8_path)), update);
     DataSource ret = (cPtr == IntPtr.Zero) ? null : new DataSource(cPtr, true, ThisOwn_true());
     if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
     return ret;

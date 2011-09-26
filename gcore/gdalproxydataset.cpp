@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdalproxydataset.cpp 15193 2008-08-23 12:22:48Z rouault $
+ * $Id: gdalproxydataset.cpp 21867 2011-02-26 21:05:35Z rouault $
  *
  * Project:  GDAL Core
  * Purpose:  A dataset and raster band classes that act as proxy for underlying
@@ -30,7 +30,7 @@
 
 #include "gdal_proxy.h"
 
-CPL_CVSID("$Id: gdalproxydataset.cpp 15193 2008-08-23 12:22:48Z rouault $");
+CPL_CVSID("$Id: gdalproxydataset.cpp 21867 2011-02-26 21:05:35Z rouault $");
 
 /* ******************************************************************** */
 /*                        GDALProxyDataset                              */
@@ -151,10 +151,31 @@ retType GDALProxyRasterBand::methodName argList \
     return ret; \
 }
 
-RB_PROXY_METHOD_WITH_RET(CPLErr, CE_Failure, IReadBlock,
+
+#define RB_PROXY_METHOD_WITH_RET_WITH_INIT_BLOCK(retType, retErrValue, methodName, argList, argParams) \
+retType GDALProxyRasterBand::methodName argList \
+{ \
+    retType ret; \
+    GDALRasterBand* poSrcBand = RefUnderlyingRasterBand(); \
+    if (poSrcBand) \
+    { \
+        if( !poSrcBand->InitBlockInfo() ) \
+            ret = CE_Failure; \
+        else \
+            ret = poSrcBand->methodName argParams; \
+        UnrefUnderlyingRasterBand(poSrcBand); \
+    } \
+    else \
+    { \
+        ret = retErrValue; \
+    } \
+    return ret; \
+}
+
+RB_PROXY_METHOD_WITH_RET_WITH_INIT_BLOCK(CPLErr, CE_Failure, IReadBlock,
                                 ( int nXBlockOff, int nYBlockOff, void* pImage), 
                                 (nXBlockOff, nYBlockOff, pImage) )
-RB_PROXY_METHOD_WITH_RET(CPLErr, CE_Failure, IWriteBlock,
+RB_PROXY_METHOD_WITH_RET_WITH_INIT_BLOCK(CPLErr, CE_Failure, IWriteBlock,
                                 ( int nXBlockOff, int nYBlockOff, void* pImage), 
                                 (nXBlockOff, nYBlockOff, pImage) )
 RB_PROXY_METHOD_WITH_RET(CPLErr, CE_Failure, IRasterIO,

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: aigrid.h 20996 2010-10-28 18:38:15Z rouault $
+ * $Id: aigrid.h 22160 2011-04-14 18:19:58Z warmerdam $
  *
  * Project:  Arc/Info Binary Grid Translator
  * Purpose:  Grid file access include file.
@@ -62,16 +62,17 @@ typedef struct {
 
     char	*pszCoverName; /* path of coverage directory */
 
-    int		nCellType;
+    GInt32	nCellType;
+    GInt32      bCompressed;
 
 #define AIG_CELLTYPE_INT		1
 #define AIG_CELLTYPE_FLOAT		2    
     
-    int		nBlockXSize;
-    int		nBlockYSize;
+    GInt32	nBlockXSize;
+    GInt32	nBlockYSize;
     
-    int		nBlocksPerRow;
-    int		nBlocksPerColumn;
+    GInt32	nBlocksPerRow;
+    GInt32	nBlocksPerColumn;
 
     int         nTileXSize;
     int         nTileYSize;
@@ -104,7 +105,7 @@ typedef struct {
 CPLErr AIGAccessTile( AIGInfo_t *psInfo, int iTileX, int iTileY );
 CPLErr AIGReadBlock( VSILFILE * fp, GUInt32 nBlockOffset, int nBlockSize,
                      int nBlockXSize, int nBlockYSize, GInt32 * panData,
-                     int nCellType );
+                     int nCellType, int bCompressed );
 
 CPLErr AIGReadHeader( const char *, AIGInfo_t * );
 CPLErr AIGReadBlockIndex( AIGInfo_t *, AIGTileInfo *, 

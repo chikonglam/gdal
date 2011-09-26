@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_gensql.cpp 20900 2010-10-19 19:53:57Z rouault $
+ * $Id: ogr_gensql.cpp 22519 2011-06-08 19:36:29Z warmerdam $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implements OGRGenSQLResultsLayer.
@@ -33,7 +33,7 @@
 #include "cpl_string.h"
 #include <vector>
 
-CPL_CVSID("$Id: ogr_gensql.cpp 20900 2010-10-19 19:53:57Z rouault $");
+CPL_CVSID("$Id: ogr_gensql.cpp 22519 2011-06-08 19:36:29Z warmerdam $");
 
 /************************************************************************/
 /*                       OGRGenSQLResultsLayer()                        */
@@ -1422,8 +1422,8 @@ void OGRGenSQLResultsLayer::SetIgnoredFields()
     for( int iJoin = 0; iJoin < psSelectInfo->join_count; iJoin++ )
     {
         swq_join_def *psJoinDef = psSelectInfo->join_defs + iJoin;
-        AddFieldDefnToSet(psJoinDef->primary_field, 0, hSet);
-        AddFieldDefnToSet(psJoinDef->secondary_field, psJoinDef->secondary_table, hSet);
+        AddFieldDefnToSet(0, psJoinDef->primary_field, hSet);
+        AddFieldDefnToSet(psJoinDef->secondary_table, psJoinDef->secondary_field, hSet);
     }
 
     for( int iOrder = 0; iOrder < psSelectInfo->order_specs; iOrder++ )

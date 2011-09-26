@@ -110,7 +110,8 @@ swq_expr_node *SWQGeneralEvaluator( swq_expr_node *node,
 
         if( sub_node_values[0]->field_type == SWQ_INTEGER )
             sub_node_values[0]->float_value = sub_node_values[0]->int_value;
-        if( sub_node_values[1]->field_type == SWQ_INTEGER )
+        if( node->nSubExprCount > 1 &&
+            sub_node_values[1]->field_type == SWQ_INTEGER )
             sub_node_values[1]->float_value = sub_node_values[1]->int_value;
 
         switch( (swq_op) node->nOperation )
@@ -449,7 +450,7 @@ swq_expr_node *SWQGeneralEvaluator( swq_expr_node *node,
                   nSize = 0;
 
               int nSrcStrLen = (int)strlen(pszSrcStr);
-              if( nOffset > nSrcStrLen )
+              if( nOffset < 0 || nSize < 0 || nOffset > nSrcStrLen )
               {
                   nOffset = 0;
                   nSize = 0;
@@ -834,7 +835,11 @@ swq_field_type SWQCastChecker( swq_expr_node *poNode )
     else if( strcasecmp(pszTypeName,"time") == 0 )
         eType = SWQ_TIME;
     else
-        CPLAssert( FALSE );
+    {
+        CPLError( CE_Failure, CPLE_AppDefined,
+                    "Unrecognized typename %s in CAST operator.",
+                    pszTypeName );
+    }
 
     poNode->field_type = eType;
 

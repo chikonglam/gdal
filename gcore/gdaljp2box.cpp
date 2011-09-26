@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdaljp2box.cpp 21430 2011-01-07 22:22:40Z warmerdam $
+ * $Id: gdaljp2box.cpp 22592 2011-06-27 12:27:36Z warmerdam $
  *
  * Project:  GDAL 
  * Purpose:  GDALJP2Box Implementation - Low level JP2 box reader.
@@ -30,7 +30,7 @@
 #include "gdaljp2metadata.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: gdaljp2box.cpp 21430 2011-01-07 22:22:40Z warmerdam $");
+CPL_CVSID("$Id: gdaljp2box.cpp 22592 2011-06-27 12:27:36Z warmerdam $");
 
 /************************************************************************/
 /*                             GDALJP2Box()                             */
@@ -193,7 +193,8 @@ int GDALJP2Box::ReadBox()
 int GDALJP2Box::IsSuperBox()
 
 {
-    if( EQUAL(GetType(),"asoc") || EQUAL(GetType(),"jp2h") )
+    if( EQUAL(GetType(),"asoc") || EQUAL(GetType(),"jp2h")
+        || EQUAL(GetType(),"res ") )
         return TRUE;
     else
         return FALSE;

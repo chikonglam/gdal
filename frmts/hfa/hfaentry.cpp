@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: hfaentry.cpp 21476 2011-01-13 00:58:39Z warmerdam $
+ * $Id: hfaentry.cpp 22538 2011-06-15 15:53:17Z warmerdam $
  *
  * Project:  Erdas Imagine (.img) Translator
  * Purpose:  Implementation of the HFAEntry class for reading and relating
@@ -37,7 +37,7 @@
 #include "hfa_p.h"
 #include "cpl_conv.h"
 
-CPL_CVSID("$Id: hfaentry.cpp 21476 2011-01-13 00:58:39Z warmerdam $");
+CPL_CVSID("$Id: hfaentry.cpp 22538 2011-06-15 15:53:17Z warmerdam $");
 
 /************************************************************************/
 /*                              HFAEntry()                              */
@@ -541,6 +541,8 @@ GByte *HFAEntry::MakeData( int nSize )
             if (poParent != NULL) poParent->MarkDirty(); 
         }
     }
+    else
+        LoadData(); // make sure the data is loaded before we return pointer.
 
     return pabyData;
 }

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: nitfimage.c 21298 2010-12-20 10:58:34Z rouault $
+ * $Id: nitfimage.c 22076 2011-03-30 15:00:46Z warmerdam $
  *
  * Project:  NITF Read/Write Library
  * Purpose:  Module responsible for implementation of most NITFImage 
@@ -35,7 +35,7 @@
 #include "cpl_conv.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: nitfimage.c 21298 2010-12-20 10:58:34Z rouault $");
+CPL_CVSID("$Id: nitfimage.c 22076 2011-03-30 15:00:46Z warmerdam $");
 
 static char *NITFTrimWhite( char * );
 #ifdef CPL_LSB
@@ -2754,8 +2754,6 @@ static void NITFLoadAttributeSection( NITFImage *psImage )
         {
             nASSOffset = psImage->pasLocations[i].nLocOffset;
             nASSSize = psImage->pasLocations[i].nLocSize;
-            if (i + 1 < psImage->nLocCount)
-                nNextOffset = psImage->pasLocations[i + 1].nLocOffset;
         }
     }
 
@@ -2771,6 +2769,9 @@ static void NITFLoadAttributeSection( NITFImage *psImage )
     CPL_MSBPTR16( &nAttrCount );
 
     
+/* -------------------------------------------------------------------- */
+/*      nASSSize Hack                                                   */
+/* -------------------------------------------------------------------- */
     /* OK, now, as often with RPF/CADRG, here is the necessary dirty hack */
     /* -- Begin of lengthy explanation -- */
     /* A lot of CADRG files have a nASSSize value that reports a size */
@@ -2787,11 +2788,24 @@ static void NITFLoadAttributeSection( NITFImage *psImage )
     /* I have observed that nowhere in the NITF driver we make use of the .nLocSize field */
     /* -- End of lengthy explanation -- */
 
+    for( i = 0; i < psImage->nLocCount; i++ )
+    {
+        if( psImage->pasLocations[i].nLocOffset > nASSOffset )
+        {
+            if( nNextOffset == 0 
+                || nNextOffset > psImage->pasLocations[i].nLocOffset )
+                nNextOffset = psImage->pasLocations[i].nLocOffset;
+        }
+    }
+
     if (nNextOffset > 0 && nNextOffset - nASSOffset > nASSSize)
         nASSSize = nNextOffset - nASSOffset;
 
-    /* Be sure that the attribute subsection is large enough to hold the */
-    /* offset table (otherwise NITFFetchAttribute coud read out of the buffer) */
+/* -------------------------------------------------------------------- */
+/*      Be sure that the attribute subsection is large enough to        */
+/*      hold the offset table (otherwise NITFFetchAttribute coud        */
+/*      read out of the buffer)                                         */
+/* -------------------------------------------------------------------- */
     if (nASSSize < 8 * nAttrCount)
     {
         CPLError( CE_Warning, CPLE_AppDefined,
@@ -2811,7 +2825,7 @@ static void NITFLoadAttributeSection( NITFImage *psImage )
                   nASSSize );
         return;
     }
-
+    
     VSIFSeekL( psImage->psFile->fp, nASSOffset, SEEK_SET );
     VSIFReadL( pabyAttributeSubsection, nASSSize, 1, psImage->psFile->fp );
 
@@ -3235,7 +3249,11 @@ static void NITFLoadLocationTable( NITFImage *psImage )
         VSIFReadL( achHeaderChunk, 1, sizeof(achHeaderChunk), 
                    psImage->psFile->fp );
 
-        if( !EQUALN(achHeaderChunk,"RPFHDR",6) )
+        /* You can define NITF_DISABLE_RPF_LOCATION_TABLE_SANITY_TESTS to TRUE */
+        /* to blindly trust the RPF location table even if it doesn't look */
+        /* sane. Necessary for dataset attached to http://trac.osgeo.org/gdal/ticket/3930 */
+        if( !EQUALN(achHeaderChunk,"RPFHDR",6) &&
+            !CSLTestBoolean(CPLGetConfigOption("NITF_DISABLE_RPF_LOCATION_TABLE_SANITY_TESTS", "FALSE")) )
         {
             /* Image of http://trac.osgeo.org/gdal/ticket/3848 has incorrect */
             /* RPFHDR offset, but all other locations are correct... */

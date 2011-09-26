@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: vrtrasterband.cpp 21290 2010-12-19 10:41:00Z rouault $
+ * $Id: vrtrasterband.cpp 21714 2011-02-13 18:37:57Z rouault $
  *
  * Project:  Virtual GDAL Datasets
  * Purpose:  Implementation of VRTRasterBand
@@ -31,7 +31,7 @@
 #include "cpl_minixml.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: vrtrasterband.cpp 21290 2010-12-19 10:41:00Z rouault $");
+CPL_CVSID("$Id: vrtrasterband.cpp 21714 2011-02-13 18:37:57Z rouault $");
 
 /************************************************************************/
 /* ==================================================================== */
@@ -595,13 +595,19 @@ CPLXMLNode *VRTRasterBand::SerializeToXML( const char *pszVRTPath )
     {
         CPLXMLNode *psCT_XML = CPLCreateXMLNode( psTree, CXT_Element, 
                                                  "ColorTable" );
+        CPLXMLNode* psLastChild = NULL;
 
         for( int iEntry=0; iEntry < poColorTable->GetColorEntryCount(); 
              iEntry++ )
         {
             GDALColorEntry sEntry;
-            CPLXMLNode *psEntry_XML = CPLCreateXMLNode( psCT_XML, CXT_Element, 
+            CPLXMLNode *psEntry_XML = CPLCreateXMLNode( NULL, CXT_Element,
                                                         "Entry" );
+            if( psLastChild == NULL )
+                psCT_XML->psChild = psEntry_XML;
+            else
+                psLastChild->psNext = psEntry_XML;
+            psLastChild = psEntry_XML;
 
             poColorTable->GetColorEntryAsRGB( iEntry, &sEntry );
             

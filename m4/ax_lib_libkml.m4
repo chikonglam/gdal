@@ -1,4 +1,4 @@
-dnl $Id: ax_lib_libkml.m4 20303 2010-08-15 10:35:05Z rouault $
+dnl $Id: ax_lib_libkml.m4 21506 2011-01-15 19:35:36Z rouault $
 dnl
 dnl @synopsis AX_LIB_LIBKML([MINIMUM-VERSION])
 dnl
@@ -31,7 +31,7 @@ dnl
 dnl @category InstalledPackages
 dnl @category Cxx
 dnl @author Mateusz Loskot <mateusz@loskot.net>
-dnl @version $Date: 2010-08-15 03:35:05 -0700 (Sun, 15 Aug 2010) $
+dnl @version $Date: 2011-01-15 11:35:36 -0800 (Sat, 15 Jan 2011) $
 dnl @license AllPermissive
 dnl          Copying and distribution of this file, with or without modification,
 dnl          are permitted in any medium without royalty provided the copyright notice and
@@ -102,9 +102,9 @@ AC_DEFUN([AX_LIB_LIBKML],
         libkml_include_dir2="$libkml_prefix/include/kml"
         libkml_include_dir3="$libkml_prefix/include/kml/third_party/boost_1_34_1"
         if test "$libkml_prefix" = "/usr"; then
-            libkml_lib_flags="-lkmlengine -lkmldom -lkmlbase -lkmlconvenience"
+            libkml_lib_flags="-lkmlengine -lkmldom -lkmlbase -lkmlconvenience -lminizip -luriparser"
         else
-            libkml_lib_flags="-L$libkml_prefix/lib -lkmlengine -lkmldom -lkmlbase -lkmlconvenience"
+            libkml_lib_flags="-L$libkml_prefix/lib -lkmlengine -lkmldom -lkmlbase -lkmlconvenience -lminizip -luriparser"
         fi
         run_libkml_test="yes"
     elif test "$libkml_requested" = "yes"; then
@@ -125,8 +125,8 @@ AC_DEFUN([AX_LIB_LIBKML],
         saved_CPPFLAGS="$CPPFLAGS"
         CPPFLAGS="$CPPFLAGS -I$libkml_include_dir -I$libkml_include_dir2 -I$libkml_include_dir3"
 
-        saved_LDFLAGS="$LDFLAGS"
-        LDFLAGS="$LDFLAGS $libkml_lib_flags"
+        saved_LIBS="$LIBS"
+        LIBS="$LIBS $libkml_lib_flags"
 
         dnl
         dnl Check headers
@@ -184,7 +184,7 @@ kmldom::KmlFactory* factory = kmldom::KmlFactory::GetFactory();
         fi
 
         CPPFLAGS="$saved_CPPFLAGS"
-        LDFLAGS="$saved_LDFLAGS"
+        LIBS="$saved_LIBS"
     fi
 
     AC_MSG_CHECKING([for Google libkml])

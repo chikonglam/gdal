@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: hdf5imagedataset.cpp 21169 2010-11-24 15:57:11Z warmerdam $
+ * $Id: hdf5imagedataset.cpp 22341 2011-05-09 16:54:11Z warmerdam $
  *
  * Project:  Hierarchical Data Format Release 5 (HDF5)
  * Purpose:  Read subdatasets of HDF5 file.
@@ -37,7 +37,7 @@
 #include "hdf5dataset.h"
 #include "ogr_spatialref.h"
 
-CPL_CVSID("$Id: hdf5imagedataset.cpp 21169 2010-11-24 15:57:11Z warmerdam $");
+CPL_CVSID("$Id: hdf5imagedataset.cpp 22341 2011-05-09 16:54:11Z warmerdam $");
 
 CPL_C_START
 void    GDALRegister_HDF5Image(void);
@@ -648,7 +648,10 @@ CPLErr HDF5ImageDataset::CreateProjections()
 const char *HDF5ImageDataset::GetProjectionRef( )
     
 {
-    return pszProjection;
+    if( pszProjection )
+        return pszProjection;
+    else
+        return GDALPamDataset::GetProjectionRef();
 }
 
 /************************************************************************/

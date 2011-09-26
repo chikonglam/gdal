@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: sagadataset.cpp 21420 2011-01-06 19:09:20Z rouault $
+ * $Id: sagadataset.cpp 22479 2011-06-02 10:41:56Z rouault $
  * Project:  SAGA GIS Binary Driver
  * Purpose:  Implements the SAGA GIS Binary Grid Format.
  * Author:   Volker Wichmann, wichmann@laserdata.at
@@ -35,7 +35,7 @@
 
 #include "gdal_pam.h"
 
-CPL_CVSID("$Id: sagadataset.cpp 21420 2011-01-06 19:09:20Z rouault $");
+CPL_CVSID("$Id: sagadataset.cpp 22479 2011-06-02 10:41:56Z rouault $");
 
 #ifndef INT_MAX
 # define INT_MAX 2147483647
@@ -220,8 +220,9 @@ CPLErr SAGARasterBand::IReadBlock( int nBlockXOff, int nBlockYOff,
 		return CE_Failure;
 
     SAGADataset *poGDS = dynamic_cast<SAGADataset *>(poDS);
+    vsi_l_offset offset = (vsi_l_offset) (m_nBits / 8) * nRasterXSize * (nRasterYSize - nBlockYOff - 1);
 
-    if( VSIFSeekL( poGDS->fp, (m_nBits / 8) * nRasterXSize * (nRasterYSize - nBlockYOff - 1), SEEK_SET ) != 0 )
+    if( VSIFSeekL( poGDS->fp, offset, SEEK_SET ) != 0 )
     {
         CPLError( CE_Failure, CPLE_FileIO,
               "Unable to seek to beginning of grid row.\n" );
@@ -258,10 +259,11 @@ CPLErr SAGARasterBand::IWriteBlock( int nBlockXOff, int nBlockYOff,
     if( nBlockYOff < 0 || nBlockYOff > nRasterYSize - 1 || nBlockXOff != 0 )
 		return CE_Failure;
 
+    vsi_l_offset offset = (vsi_l_offset) (m_nBits / 8) * nRasterXSize * (nRasterYSize - nBlockYOff - 1);
     SAGADataset *poGDS = dynamic_cast<SAGADataset *>(poDS);
     assert( poGDS != NULL );
 
-    if( VSIFSeekL( poGDS->fp, (m_nBits / 8) * nRasterXSize * (nRasterYSize - nBlockYOff - 1), SEEK_SET ) != 0 )
+    if( VSIFSeekL( poGDS->fp, offset, SEEK_SET ) != 0 )
     {
         CPLError( CE_Failure, CPLE_FileIO,
               "Unable to seek to beginning of grid row.\n" );

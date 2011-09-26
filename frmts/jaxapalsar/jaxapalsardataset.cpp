@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: jaxapalsardataset.cpp 20996 2010-10-28 18:38:15Z rouault $
+ * $Id: jaxapalsardataset.cpp 22632 2011-07-02 11:49:27Z antonio $
  *
  * Project:  PALSAR JAXA imagery reader
  * Purpose:  Support for PALSAR L1.1/1.5 imagery and appropriate metadata from
@@ -31,7 +31,7 @@
 
 #include "gdal_pam.h"
 
-CPL_CVSID("$Id: jaxapalsardataset.cpp 20996 2010-10-28 18:38:15Z rouault $");
+CPL_CVSID("$Id: jaxapalsardataset.cpp 22632 2011-07-02 11:49:27Z antonio $");
 
 CPL_C_START
 void	GDALRegister_PALSARJaxa(void);
@@ -232,7 +232,7 @@ PALSARJaxaRasterBand::PALSARJaxaRasterBand( PALSARJaxaDataset *poDS,
         nFileType = level_11;
     }
     else {
-        eDataType = GDT_Int16;
+        eDataType = GDT_UInt16;
         nFileType = level_15;
     }
 

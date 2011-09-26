@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogresrijsonreader.cpp 21348 2010-12-30 12:37:28Z rouault $
+ * $Id: ogresrijsonreader.cpp 22282 2011-05-01 17:58:03Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implementation of OGRESRIJSONReader class (OGR ESRIJSON Driver)
@@ -125,7 +125,11 @@ OGRGeoJSONLayer* OGRESRIJSONReader::ReadLayer( const char* pszName,
 
     OGRGeoJSONLayer* poThisLayer = NULL;
     poThisLayer = ReadFeatureCollection( poGJObject_ );
-    CPLAssert( poLayer_ == poThisLayer );
+    if (poThisLayer == NULL)
+    {
+        delete poLayer_;
+        return NULL;
+    }
 
     OGRSpatialReference* poSRS = NULL;
     poSRS = OGRESRIJSONReadSpatialReference( poGJObject_ );

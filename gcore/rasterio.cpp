@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: rasterio.cpp 21058 2010-11-03 13:41:58Z dron $
+ * $Id: rasterio.cpp 22421 2011-05-23 21:24:30Z rouault $
  *
  * Project:  GDAL Core
  * Purpose:  Contains default implementation of GDALRasterBand::IRasterIO()
@@ -47,7 +47,7 @@
 #endif
 
 
-CPL_CVSID("$Id: rasterio.cpp 21058 2010-11-03 13:41:58Z dron $");
+CPL_CVSID("$Id: rasterio.cpp 22421 2011-05-23 21:24:30Z rouault $");
 
 /************************************************************************/
 /*                             IRasterIO()                              */
@@ -1072,7 +1072,8 @@ void GDALReplicateWord(void *pSrcData, GDALDataType eSrcType,
         {
             if (nDstPixelOffset == 1)
             {
-                memset(pabyDstWord, *(GByte*)pDstData, nWordCount - 1);
+                if (nWordCount > 0)
+                    memset(pabyDstWord, *(GByte*)pDstData, nWordCount);
             }
             else
             {

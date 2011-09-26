@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: hdf5dataset.cpp 20437 2010-08-25 17:20:02Z chaitanya $
+ * $Id: hdf5dataset.cpp 22531 2011-06-13 21:06:11Z warmerdam $
  *
  * Project:  Hierarchical Data Format Release 5 (HDF5)
  * Purpose:  HDF5 Datasets. Open HDF5 file, fetch metadata and list of
@@ -39,7 +39,7 @@
 #include "cpl_string.h"
 #include "hdf5dataset.h"
 
-CPL_CVSID("$Id: hdf5dataset.cpp 20437 2010-08-25 17:20:02Z chaitanya $");
+CPL_CVSID("$Id: hdf5dataset.cpp 22531 2011-06-13 21:06:11Z warmerdam $");
 
 CPL_C_START
 void	GDALRegister_HDF5(void);
@@ -621,9 +621,8 @@ herr_t HDF5AttrIterate( hid_t hH5ObjID,
     hAttrSpace       = H5Aget_space( hAttrID );
     nAttrDims        = H5Sget_simple_extent_dims( hAttrSpace, nSize, NULL );
 
-
     if( H5Tget_class( hAttrNativeType ) == H5T_STRING ) {
-	nAttrSize = H5Tget_size( hAttrTypeID );
+        nAttrSize = H5Aget_storage_size( hAttrID );
 	szData = (char*) CPLMalloc(nAttrSize+1);
 	szValue = (char*) CPLMalloc(nAttrSize+1);
 	H5Aread( hAttrID, hAttrNativeType, szData  );
@@ -711,7 +710,7 @@ herr_t HDF5AttrIterate( hid_t hH5ObjID,
 	}
 	else if( H5Tequal( H5T_NATIVE_FLOAT,  hAttrNativeType ) ) {
 	    for( i=0; i < nAttrElmts; i++ ) {
-		sprintf( szData, "%f ",  ((float *)buf)[i] );
+		sprintf( szData, "%.8g ",  ((float *)buf)[i] );
 		if( CPLStrlcat(szValue,szData,MAX_METADATA_LEN) >= MAX_METADATA_LEN )
 		    CPLError( CE_Warning, CPLE_OutOfMemory,
 			      "Header data too long. Truncated\n");
@@ -719,7 +718,7 @@ herr_t HDF5AttrIterate( hid_t hH5ObjID,
 	}
 	else if( H5Tequal( H5T_NATIVE_DOUBLE, hAttrNativeType ) ) {
 	    for( i=0; i < nAttrElmts; i++ ) {
-		sprintf( szData, "%g ",  ((double *)buf)[i] );
+		sprintf( szData, "%.15g ",  ((double *)buf)[i] );
 		if( CPLStrlcat(szValue,szData,MAX_METADATA_LEN) >= MAX_METADATA_LEN )
 		    CPLError( CE_Warning, CPLE_OutOfMemory,
 			      "Header data too long. Truncated\n");
@@ -728,6 +727,9 @@ herr_t HDF5AttrIterate( hid_t hH5ObjID,
 	CPLFree( buf );
 
     }
+    H5Sclose(hAttrSpace);
+    H5Tclose(hAttrNativeType);
+    H5Tclose(hAttrTypeID);
     H5Aclose( hAttrID );
     //printf( "%s = %s\n",szTemp, szValue );
     poDS->papszMetadata =

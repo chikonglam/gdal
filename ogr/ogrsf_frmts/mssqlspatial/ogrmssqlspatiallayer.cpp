@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrmssqlspatiallayer.cpp 20830 2010-10-14 21:07:57Z tamas $
+ * $Id: ogrmssqlspatiallayer.cpp 22661 2011-07-07 14:16:02Z tamas $
  *
  * Project:  MSSQL Spatial driver
  * Purpose:  Definition of classes for OGR MSSQL Spatial driver.
@@ -29,7 +29,7 @@
 
 #include "ogr_mssqlspatial.h"
 
-CPL_CVSID("$Id: ogrmssqlspatiallayer.cpp 20830 2010-10-14 21:07:57Z tamas $");
+CPL_CVSID("$Id: ogrmssqlspatiallayer.cpp 22661 2011-07-07 14:16:02Z tamas $");
 /************************************************************************/
 /*                        OGRMSSQLSpatialLayer()                        */
 /************************************************************************/
@@ -315,7 +315,8 @@ OGRFeature *OGRMSSQLSpatialLayer::GetNextRawFeature()
             int nLength = poStmt->GetColDataLength( iField );
 
             if ( nGeomColumnType == MSSQLCOLTYPE_GEOMETRY || 
-                 nGeomColumnType == MSSQLCOLTYPE_GEOGRAPHY )
+                 nGeomColumnType == MSSQLCOLTYPE_GEOGRAPHY ||
+                 nGeomColumnType == MSSQLCOLTYPE_BINARY)
             {
                 switch ( poDS->GetGeometryFormat() )
                 {
@@ -342,11 +343,6 @@ OGRFeature *OGRMSSQLSpatialLayer::GetNextRawFeature()
                 eErr = OGRGeometryFactory::createFromWkt((char **) &pszGeomText,
                                                       NULL, &poGeom);
             }
-            else if (nGeomColumnType == MSSQLCOLTYPE_BINARY)
-            {
-                eErr = OGRGeometryFactory::createFromWkb((unsigned char *) pszGeomText,
-                                                      NULL, &poGeom, nLength);
-            }      
         }
         
         if ( eErr != OGRERR_NONE )

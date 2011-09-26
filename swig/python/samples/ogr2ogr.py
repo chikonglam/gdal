@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #/******************************************************************************
-# * $Id: ogr2ogr.py 21368 2011-01-01 18:38:35Z rouault $
+# * $Id: ogr2ogr.py 22027 2011-03-25 19:28:44Z rouault $
 # *
 # * Project:  OpenGIS Simple Features Reference Implementation
 # * Purpose:  Python port of a simple client for translating between formats.
@@ -620,7 +620,7 @@ def main(args = None, progress_func = TermProgress, progress_data = None):
                                 poSourceSRS, papszSelFields, bAppend, eGType, \
                                 bOverwrite, dfMaxSegmentLength, papszFieldTypesToString, \
                                 nCountLayerFeatures, poClipSrc, poClipDst, bExplodeCollections, \
-                                pszZField, pfnProgress, pProgressData ):
+                                pszZField, pszWHERE, pfnProgress, pProgressData ):
                 print(
                         "Terminating translation prematurely after failed\n" + \
                         "translation from sql statement." )
@@ -724,7 +724,7 @@ def main(args = None, progress_func = TermProgress, progress_data = None):
                                 poSourceSRS, papszSelFields, bAppend, eGType, \
                                 bOverwrite, dfMaxSegmentLength, papszFieldTypesToString, \
                                 panLayerCountFeatures[iLayer], poClipSrc, poClipDst, bExplodeCollections, \
-                                pszZField, pfnProgress, pProgressData)  \
+                                pszZField, pszWHERE, pfnProgress, pProgressData)  \
                 and not bSkipFailures:
                 print(
                         "Terminating translation prematurely after failed\n" + \
@@ -907,7 +907,8 @@ def TranslateLayer( poSrcDS, poSrcLayer, poDstDS, papszLCO, pszNewLayerName, \
                     bTransform,  poOutputSRS, poSourceSRS, papszSelFields, \
                     bAppend, eGType, bOverwrite, dfMaxSegmentLength, \
                     papszFieldTypesToString, nCountLayerFeatures, \
-                    poClipSrc, poClipDst, bExplodeCollections, pszZField, pfnProgress, pProgressData) :
+                    poClipSrc, poClipDst, bExplodeCollections, pszZField, pszWHERE, \
+                    pfnProgress, pProgressData) :
 
     bForceToPolygon = False
     bForceToMultiPolygon = False
@@ -969,6 +970,15 @@ def TranslateLayer( poSrcDS, poSrcLayer, poDstDS, papszLCO, pszNewLayerName, \
 #/* -------------------------------------------------------------------- */
     iLayer = -1
     poDstLayer = None
+
+    #/* GetLayerByName() can instanciate layers that would have been */
+    #*/ 'hidden' otherwise, for example, non-spatial tables in a */
+    #*/ Postgis-enabled database, so this apparently useless command is */
+    #/* not useless... (#4012) */
+    gdal.PushErrorHandler('CPLQuietErrorHandler')
+    poDstDS.GetLayerByName(pszNewLayerName)
+    gdal.PopErrorHandler()
+    gdal.ErrorReset()
 
     for iLayer in range(poDstDS.GetLayerCount()):
         poLayer = poDstDS.GetLayer(iLayer)
@@ -1099,7 +1109,11 @@ def TranslateLayer( poSrcDS, poSrcLayer, poDstDS, papszLCO, pszNewLayerName, \
         #/* -------------------------------------------------------------------- */
         #/* Use SetIgnoredFields() on source layer if available                  */
         #/* -------------------------------------------------------------------- */
-        if poSrcLayer.TestCapability(ogr.OLCIgnoreFields):
+
+        # Here we differ from the ogr2ogr.cpp implementation since the OGRFeatureQuery
+        # isn't mapped to swig. So in that case just don't use SetIgnoredFields()
+        # to avoid issue raised in #4015
+        if poSrcLayer.TestCapability(ogr.OLCIgnoreFields) and pszWHERE is None:
             papszIgnoredFields = []
             for iSrcField in range(nSrcFieldCount):
                 pszFieldName = poSrcFDefn.GetFieldDefn(iSrcField).GetNameRef()

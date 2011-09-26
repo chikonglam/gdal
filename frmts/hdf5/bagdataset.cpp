@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: bagdataset.cpp 19430 2010-04-17 00:49:53Z warmerdam $
+ * $Id: bagdataset.cpp 21651 2011-02-08 19:22:03Z warmerdam $
  *
  * Project:  Hierarchical Data Format Release 5 (HDF5)
  * Purpose:  Read BAG datasets.
@@ -34,7 +34,7 @@
 #include "ogr_spatialref.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: bagdataset.cpp 19430 2010-04-17 00:49:53Z warmerdam $");
+CPL_CVSID("$Id: bagdataset.cpp 21651 2011-02-08 19:22:03Z warmerdam $");
 
 CPL_C_START
 void    GDALRegister_BAG(void);
@@ -303,6 +303,7 @@ CPLErr BAGRasterBand::IReadBlock( int nBlockXOff, int nBlockYOff,
                        H5P_DEFAULT, 
                        pImage );
 
+    H5Sclose(memspace);
     return CE_None;
 }
 
@@ -433,6 +434,8 @@ GDALDataset *BAGDataset::Open( GDALOpenInfo * poOpenInfo )
     if( GH5_FetchAttribute( hBagRoot, "Bag Version", osVersion ) )
         poDS->SetMetadataItem( "BagVersion", osVersion );
 
+    H5Gclose( hBagRoot );
+
 /* -------------------------------------------------------------------- */
 /*      Fetch the elevation dataset and attach as a band.               */
 /* -------------------------------------------------------------------- */
@@ -530,6 +533,8 @@ void BAGDataset::LoadMetadata()
 
     H5Dread( hMDDS, native, H5S_ALL, dataspace, H5P_DEFAULT, pszXMLMetadata );
 
+    H5Sclose( dataspace );
+    H5Tclose( datatype );
     H5Dclose( hMDDS );
 
     if( strlen(pszXMLMetadata) == 0 )

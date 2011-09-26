@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: vrtwarped.cpp 20078 2010-07-16 21:21:29Z rouault $
+ * $Id: vrtwarped.cpp 22647 2011-07-05 17:18:18Z rouault $
  *
  * Project:  Virtual GDAL Datasets
  * Purpose:  Implementation of VRTWarpedRasterBand *and VRTWarpedDataset.
@@ -34,7 +34,7 @@
 #include "gdal_alg_priv.h"
 #include <cassert>
 
-CPL_CVSID("$Id: vrtwarped.cpp 20078 2010-07-16 21:21:29Z rouault $");
+CPL_CVSID("$Id: vrtwarped.cpp 22647 2011-07-05 17:18:18Z rouault $");
 
 /************************************************************************/
 /*                      GDALAutoCreateWarpedVRT()                       */
@@ -270,8 +270,8 @@ VRTWarpedDataset::VRTWarpedDataset( int nXSize, int nYSize )
 
 {
     poWarper = NULL;
-    nBlockXSize = 512;
-    nBlockYSize = 128;
+    nBlockXSize = MIN(nXSize, 512);
+    nBlockYSize = MIN(nYSize, 128);
     eAccess = GA_Update;
 
     nOverviewCount = 0;
