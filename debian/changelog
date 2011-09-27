@@ -26,8 +26,9 @@ gdal (1.8.1-1) experimental; urgency=low
     geotiff and gdal. That should have no impact against netcdf, hdf5 and 
     other common formats.
     (closes: #558733)
+  * Merged a lintian override from 1.7 series for TIFF library embedding.
 
- -- Francesco Paolo Lovergine <frankie@debian.org>  Tue, 27 Sep 2011 11:49:23 +0200
+ -- Francesco Paolo Lovergine <frankie@debian.org>  Tue, 27 Sep 2011 12:59:27 +0200
 
 gdal (1.8.0-2) experimental; urgency=low
 
