@@ -1295,7 +1295,7 @@ libgdal1.8.0.so.1 libgdal1-1.8.0 #MINVER# 1.8.0
  NITFWriteImageLine@GDAL_1.8 1.8.0
  NITFWriteLUT@GDAL_1.8 1.8.0
  NITF_WGS84_Geocentric_Latitude_To_Geodetic_Latitude@GDAL_1.8 1.8.0
- NativeToCeos@GDAL_1.8 1.8.0
+ (arch=!powerpc !s390 !mips)NativeToCeos@GDAL_1.8 1.8.0
  OCTDestroyCoordinateTransformation@GDAL_1.8 1.8.0
  OCTNewCoordinateTransformation@GDAL_1.8 1.8.0
  OCTProj4Normalize@GDAL_1.8 1.8.0
@@ -15456,7 +15456,7 @@ libgdal1.8.0.so.1 libgdal1-1.8.0 #MINVER# 1.8.0
  strcmpNoCase@GDAL_1.8 1.8.0
  strndup@GDAL_1.8 1.8.0
  subCenterLookup@GDAL_1.8 1.8.0
- swapbyte@GDAL_1.8 1.8.0
+ (arch=!powerpc !s390 !mips)swapbyte@GDAL_1.8 1.8.0
  unpk_g2ncep@GDAL_1.8 1.8.0
  unpk_grib2@GDAL_1.8 1.8.0
  unpk_grib2__@GDAL_1.8 1.8.0
