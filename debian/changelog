@@ -1,3 +1,9 @@
+gdal (1.8.1-2~exp1) experimental; urgency=low
+
+  * Managed to adapt the generic .symbol file to various archs.
+
+ -- Francesco Paolo Lovergine <frankie@debian.org>  Wed, 28 Sep 2011 00:22:42 +0200
+
 gdal (1.8.1-1) experimental; urgency=low
 
   [ Aron Xu ]
