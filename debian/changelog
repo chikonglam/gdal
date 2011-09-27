@@ -17,11 +17,17 @@ gdal (1.8.1-1) experimental; urgency=low
     inner use in swing-enabled bindings.
   * Updated debian/watch file to cope with release-candidate versions which
     results newer than final ones.
-  * Added symbol file to track changes in exported symbols. 
-    The -fvisibility=hidden has been removed.
-  * 
+  * Added symbol file to track changes in exported symbols from now on.
+  * The -fvisibility=hidden has been removed.
+  * Now linking uses a version script to include symbolic versions to all
+    global symbols.
+  * Added -Bsymbolic to force binding of global symbols to definition within
+    the library. This should solve problems in linking against both tiff,
+    geotiff and gdal. That should have no impact against netcdf, hdf5 and 
+    other common formats.
+    (closes: #558733)
 
- -- Francesco Paolo Lovergine <frankie@debian.org>  Mon, 26 Sep 2011 17:32:44 +0200
+ -- Francesco Paolo Lovergine <frankie@debian.org>  Tue, 27 Sep 2011 11:49:23 +0200
 
 gdal (1.8.0-2) experimental; urgency=low
 
