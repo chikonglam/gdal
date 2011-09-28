@@ -1295,7 +1295,7 @@ libgdal1.8.0.so.1 libgdal1-1.8.0 #MINVER#
  NITFWriteImageLine@GDAL_1.8 1.8.0
  NITFWriteLUT@GDAL_1.8 1.8.0
  NITF_WGS84_Geocentric_Latitude_To_Geodetic_Latitude@GDAL_1.8 1.8.0
-#MISSING: 1.8.1-1# NativeToCeos@GDAL_1.8 1.8.0
+ NativeToCeos@GDAL_1.8 1.8.0
  OCTDestroyCoordinateTransformation@GDAL_1.8 1.8.0
  OCTNewCoordinateTransformation@GDAL_1.8 1.8.0
  OCTProj4Normalize@GDAL_1.8 1.8.0
@@ -2325,7 +2325,6 @@ libgdal1.8.0.so.1 libgdal1-1.8.0 #MINVER#
  _Z11GetCoordDimP10iom_basketP10iom_object@GDAL_1.8 1.8.0
  _Z11GetFilePathP10CPLXMLNodePPc@GDAL_1.8 1.8.0
  _Z11GetTypeNameP10iom_basketP10iom_object@GDAL_1.8 1.8.0
- _Z11HFAStandardiPv@GDAL_1.8 1.8.1-1
  _Z11INGR_Decode11INGR_FormatPhS0_jjPj@GDAL_1.8 1.8.0
  _Z11OGRFastAtofPKc@GDAL_1.8 1.8.0
  _Z11PamGetProxyPKc@GDAL_1.8 1.8.0
@@ -2338,7 +2337,8 @@ libgdal1.8.0.so.1 libgdal1-1.8.0 #MINVER#
  _Z11appendUCharPvh@GDAL_1.8 1.8.0
  _Z11countonbitsj@GDAL_1.8 1.8.0
  _Z11cvs_MD5InitP14cvs_MD5Context@GDAL_1.8 1.8.0
- _Z11fileBitReadPvjtP8_IO_FILEPhPa@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _Z11fileBitReadPvjtP8_IO_FILEPhPa@GDAL_1.8 1.8.0
+ _Z11fileBitReadPvmtP8_IO_FILEPhPa@GDAL_1.8 1.8.0
  _Z11freqComparePKvS0_@GDAL_1.8 1.8.0
  _Z11getBoundaryPN11xercesc_2_810DOMElementE@GDAL_1.8 1.8.0
  _Z11getObjValuePN11xercesc_2_810DOMElementE@GDAL_1.8 1.8.0
@@ -2365,11 +2365,13 @@ libgdal1.8.0.so.1 libgdal1-1.8.0 #MINVER#
  _Z12WriteElementSsSsSsd@GDAL_1.8 1.8.0
  _Z12WriteElementSsSsSsi@GDAL_1.8 1.8.0
  _Z12_FindNumBitsj@GDAL_1.8 1.8.0
- _Z12alterToStdMVPvj6CSF_CRd@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _Z12alterToStdMVPvj6CSF_CRd@GDAL_1.8 1.8.0
+ _Z12alterToStdMVPvm6CSF_CRd@GDAL_1.8 1.8.0
  _Z12appendDoublePvd@GDAL_1.8 1.8.0
  _Z12appendUShortPvt@GDAL_1.8 1.8.0
  _Z12cvs_MD5FinalPhP14cvs_MD5Context@GDAL_1.8 1.8.0
- _Z12fileBitWritePvjtP8_IO_FILEPhPa@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _Z12fileBitWritePvjtP8_IO_FILEPhPa@GDAL_1.8 1.8.0
+ _Z12fileBitWritePvmtP8_IO_FILEPhPa@GDAL_1.8 1.8.0
  _Z12getARCCenterP8OGRPointS0_S0_@GDAL_1.8 1.8.0
  _Z12iom_fromUTF8PKc@GDAL_1.8 1.8.0
  _Z12matrixInvertiPdS_@GDAL_1.8 1.8.0
@@ -2408,14 +2410,16 @@ libgdal1.8.0.so.1 libgdal1-1.8.0 #MINVER#
  _Z14TDLP_InventoryR10DataSourceiP13inventoryType@GDAL_1.8 1.8.0
  _Z14WFS_AddKVToURLPKcS0_S0_@GDAL_1.8 1.8.0
  _Z14WritePolyConicSs19OGRSpatialReference@GDAL_1.8 1.8.0
- _Z14alterFromStdMVPvj6CSF_CRd@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _Z14alterFromStdMVPvj6CSF_CRd@GDAL_1.8 1.8.0
+ _Z14alterFromStdMVPvm6CSF_CRd@GDAL_1.8 1.8.0
  _Z14findfirstonbitj@GDAL_1.8 1.8.0
  _Z14gvBurnScanlinePviiid@GDAL_1.8 1.8.0
  _Z14interpolateArcP13OGRLineStringP8OGRPointS2_S2_d@GDAL_1.8 1.8.0
  _Z14jpeg_vsiio_srcP22jpeg_decompress_structP8_IO_FILE@GDAL_1.8 1.8.0
  _Z14nwt_LoadColorsP7NWT_RGBiP8NWT_GRID@GDAL_1.8 1.8.0
  _Z14zipWithMinizipSt6vectorISsSaISsEESsSs@GDAL_1.8 1.8.0
- _Z15BufferToVSIFilePhj@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _Z15BufferToVSIFilePhj@GDAL_1.8 1.8.0
+ _Z15BufferToVSIFilePhm@GDAL_1.8 1.8.0
  _Z15CreateGMLReaderv@GDAL_1.8 1.8.0
  _Z15CreateNASReaderv@GDAL_1.8 1.8.0
  _Z15CreateVFKReaderv@GDAL_1.8 1.8.0
@@ -2476,8 +2480,8 @@ libgdal1.8.0.so.1 libgdal1-1.8.0 #MINVER#
  _Z17FWRITE_ODDINT_BIGPihP8_IO_FILE@GDAL_1.8 1.8.0
  _Z17FWRITE_ODDINT_LITPihP8_IO_FILE@GDAL_1.8 1.8.0
  _Z17GDALReplicateWordPv12GDALDataTypeS_S0_ii@GDAL_1.8 1.8.0
+ _Z17GTiffErrorHandlerPKcS0_P13__va_list_tag@GDAL_1.8 1.8.0
 #MISSING: 1.8.1-1# _Z17GTiffErrorHandlerPKcS0_Pc@GDAL_1.8 1.8.0
- _Z17GTiffErrorHandlerPKcS0_Pv@GDAL_1.8 1.8.1-1
  _Z17OGRDODSGetVarPathPN6libdap8BaseTypeE@GDAL_1.8 1.8.0
  _Z17OGRGeoJSONGetTypeP11json_object@GDAL_1.8 1.8.0
  _Z17OGRGetXMLDateTimeiiiiiii@GDAL_1.8 1.8.0
@@ -2527,8 +2531,8 @@ libgdal1.8.0.so.1 libgdal1-1.8.0 #MINVER#
  _Z19GDALType2ValueScale12GDALDataType@GDAL_1.8 1.8.0
  _Z19GTIFFSetJpegQualityPvi@GDAL_1.8 1.8.0
  _Z19GTIFFWriteDirectoryP4tiffiiiiiiiiiiiiiPtS1_S1_iS1_PKc@GDAL_1.8 1.8.0
+ _Z19GTiffWarningHandlerPKcS0_P13__va_list_tag@GDAL_1.8 1.8.0
 #MISSING: 1.8.1-1# _Z19GTiffWarningHandlerPKcS0_Pc@GDAL_1.8 1.8.0
- _Z19GTiffWarningHandlerPKcS0_Pv@GDAL_1.8 1.8.1-1
  _Z19HDF5CreateGroupObjsiPKcPv@GDAL_1.8 1.8.0
  _Z19HFACreateSpillStackP7hfainfoiiiiiPxS1_@GDAL_1.8 1.8.0
  _Z19HFAReadBFUniqueBinsP8HFAEntryi@GDAL_1.8 1.8.0
@@ -2634,7 +2638,8 @@ libgdal1.8.0.so.1 libgdal1-1.8.0 #MINVER#
  _Z24OGRXPlane_ExtendPositionddddPdS_@GDAL_1.8 1.8.0
  _Z24PamFindMatchingHistogramP10CPLXMLNodeddiii@GDAL_1.8 1.8.0
  _Z24SDTSScanModuleReferencesP9DDFModulePKc@GDAL_1.8 1.8.0
- _Z24castValuesToBooleanRangePvj6CSF_CR@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _Z24castValuesToBooleanRangePvj6CSF_CR@GDAL_1.8 1.8.0
+ _Z24castValuesToBooleanRangePvm6CSF_CR@GDAL_1.8 1.8.0
  _Z25DeleteParamBasedOnPrjNameP19OGRSpatialReferencePKcPPc@GDAL_1.8 1.8.0
  _Z25GTIFFGetCompressionMethodPKcS0_@GDAL_1.8 1.8.0
  _Z25GTIFFGetOverviewBlockSizePiS_@GDAL_1.8 1.8.0
@@ -2730,10 +2735,12 @@ libgdal1.8.0.so.1 libgdal1-1.8.0 #MINVER#
  _Z8WriteUTMSs19OGRSpatialReference@GDAL_1.8 1.8.0
  _Z8createIPihhhP7NWT_RGBPi@GDAL_1.8 1.8.0
  _Z8getPointPN11xercesc_2_810DOMElementE@GDAL_1.8 1.8.0
- _Z8norfreadPvjjR10DataSource@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _Z8norfreadPvjjR10DataSource@GDAL_1.8 1.8.0
+ _Z8norfreadPvmmR10DataSource@GDAL_1.8 1.8.0
  _Z8rbsplineiiiPdS_S_@GDAL_1.8 1.8.0
  _Z8rbsplinuiiiPdS_S_@GDAL_1.8 1.8.0
- _Z8revfreadPvjjR10DataSource@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _Z8revfreadPvjjR10DataSource@GDAL_1.8 1.8.0
+ _Z8revfreadPvmmR10DataSource@GDAL_1.8 1.8.0
  _Z8swqparseP17swq_parse_context@GDAL_1.8 1.8.0
  _Z8writeIntP8_IO_FILEi@GDAL_1.8 1.8.0
  _Z9HFARemovePKc@GDAL_1.8 1.8.0
@@ -2745,7 +2752,8 @@ libgdal1.8.0.so.1 libgdal1-1.8.0 #MINVER#
  _Z9appendIntPvi@GDAL_1.8 1.8.0
  _Z9fieldNamePN11xercesc_2_810DOMElementE@GDAL_1.8 1.8.0
  _Z9nwtGetRowP8NWT_GRID@GDAL_1.8 1.8.0
- _Z9revfwritePvjjP8_IO_FILE@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _Z9revfwritePvjjP8_IO_FILE@GDAL_1.8 1.8.0
+ _Z9revfwritePvmmP8_IO_FILE@GDAL_1.8 1.8.0
  _Z9tr_strcmpPKcPKt@GDAL_1.8 1.8.0
  _Z9tr_strcpyPcPKt@GDAL_1.8 1.8.0
  _Z9tr_strcpyPtPKc@GDAL_1.8 1.8.0
@@ -4050,16 +4058,23 @@ libgdal1.8.0.so.1 libgdal1-1.8.0 #MINVER#
  _ZN11GSBGDatasetD0Ev@GDAL_1.8 1.8.0
  _ZN11GSBGDatasetD1Ev@GDAL_1.8 1.8.0
  _ZN11GSBGDatasetD2Ev@GDAL_1.8 1.8.0
- _ZN11HDF4Dataset11GetDataTypeEl@GDAL_1.8 1.8.0
+ _ZN11HDF4Dataset11GetDataTypeEi@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZN11HDF4Dataset11GetDataTypeEl@GDAL_1.8 1.8.0
  _ZN11HDF4Dataset11GetMetadataEPKc@GDAL_1.8 1.8.0
- _ZN11HDF4Dataset15AnyTypeToDoubleElPv@GDAL_1.8 1.8.0
- _ZN11HDF4Dataset15GetDataTypeNameEl@GDAL_1.8 1.8.0
- _ZN11HDF4Dataset15GetDataTypeSizeEl@GDAL_1.8 1.8.0
+ _ZN11HDF4Dataset15AnyTypeToDoubleEiPv@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZN11HDF4Dataset15AnyTypeToDoubleElPv@GDAL_1.8 1.8.0
+ _ZN11HDF4Dataset15GetDataTypeNameEi@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZN11HDF4Dataset15GetDataTypeNameEl@GDAL_1.8 1.8.0
+ _ZN11HDF4Dataset15GetDataTypeSizeEi@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZN11HDF4Dataset15GetDataTypeSizeEl@GDAL_1.8 1.8.0
  _ZN11HDF4Dataset16HDF4EOSGetObjectEPPcS1_S1_@GDAL_1.8 1.8.0
  _ZN11HDF4Dataset20HDF4EOSTokenizeAttrsEPKc@GDAL_1.8 1.8.0
- _ZN11HDF4Dataset20ReadGlobalAttributesEl@GDAL_1.8 1.8.0
- _ZN11HDF4Dataset23TranslateHDF4AttributesEllPcllPS0_@GDAL_1.8 1.8.0
- _ZN11HDF4Dataset26TranslateHDF4EOSAttributesElllPPc@GDAL_1.8 1.8.0
+ _ZN11HDF4Dataset20ReadGlobalAttributesEi@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZN11HDF4Dataset20ReadGlobalAttributesEl@GDAL_1.8 1.8.0
+ _ZN11HDF4Dataset23TranslateHDF4AttributesEiiPciiPS0_@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZN11HDF4Dataset23TranslateHDF4AttributesEllPcllPS0_@GDAL_1.8 1.8.0
+ _ZN11HDF4Dataset26TranslateHDF4EOSAttributesEiiiPPc@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZN11HDF4Dataset26TranslateHDF4EOSAttributesElllPPc@GDAL_1.8 1.8.0
  _ZN11HDF4Dataset4OpenEP12GDALOpenInfo@GDAL_1.8 1.8.0
  _ZN11HDF4Dataset8IdentifyEP12GDALOpenInfo@GDAL_1.8 1.8.0
  _ZN11HDF4DatasetC1Ev@GDAL_1.8 1.8.0
@@ -4817,7 +4832,8 @@ libgdal1.8.0.so.1 libgdal1-1.8.0 #MINVER#
  _ZN11xercesc_2_812SAXExceptionD0Ev@GDAL_1.8 1.8.0
  _ZN11xercesc_2_812SAXExceptionD1Ev@GDAL_1.8 1.8.0
  _ZN11xercesc_2_812SAXExceptionD2Ev@GDAL_1.8 1.8.0
- _ZN11xercesc_2_813SAX2XMLReader18setInputBufferSizeEj@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZN11xercesc_2_813SAX2XMLReader18setInputBufferSizeEj@GDAL_1.8 1.8.0
+ _ZN11xercesc_2_813SAX2XMLReader18setInputBufferSizeEm@GDAL_1.8 1.8.0
  _ZN11xercesc_2_813SAX2XMLReaderD0Ev@GDAL_1.8 1.8.0
  _ZN11xercesc_2_813SAX2XMLReaderD1Ev@GDAL_1.8 1.8.0
  _ZN11xercesc_2_813SAX2XMLReaderD2Ev@GDAL_1.8 1.8.0
@@ -5508,11 +5524,13 @@ libgdal1.8.0.so.1 libgdal1-1.8.0 #MINVER#
  _ZN12VFKDataBlockD1Ev@GDAL_1.8 1.8.0
  _ZN12VFKDataBlockD2Ev@GDAL_1.8 1.8.0
  _ZN12VSIMemHandle3EofEv@GDAL_1.8 1.8.0
- _ZN12VSIMemHandle4ReadEPvjj@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZN12VSIMemHandle4ReadEPvjj@GDAL_1.8 1.8.0
+ _ZN12VSIMemHandle4ReadEPvmm@GDAL_1.8 1.8.0
  _ZN12VSIMemHandle4SeekEyi@GDAL_1.8 1.8.0
  _ZN12VSIMemHandle4TellEv@GDAL_1.8 1.8.0
  _ZN12VSIMemHandle5CloseEv@GDAL_1.8 1.8.0
- _ZN12VSIMemHandle5WriteEPKvjj@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZN12VSIMemHandle5WriteEPKvjj@GDAL_1.8 1.8.0
+ _ZN12VSIMemHandle5WriteEPKvmm@GDAL_1.8 1.8.0
  _ZN12VSIMemHandleD0Ev@GDAL_1.8 1.8.0
  _ZN12VSIMemHandleD1Ev@GDAL_1.8 1.8.0
  _ZN12VSIMemHandleD2Ev@GDAL_1.8 1.8.0
@@ -6168,9 +6186,11 @@ libgdal1.8.0.so.1 libgdal1-1.8.0 #MINVER#
  _ZN13RawRasterBand16StoreNoDataValueEd@GDAL_1.8 1.8.0
  _ZN13RawRasterBand22GetColorInterpretationEv@GDAL_1.8 1.8.0
  _ZN13RawRasterBand22SetColorInterpretationE15GDALColorInterp@GDAL_1.8 1.8.0
- _ZN13RawRasterBand4ReadEPvjj@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZN13RawRasterBand4ReadEPvjj@GDAL_1.8 1.8.0
+ _ZN13RawRasterBand4ReadEPvmm@GDAL_1.8 1.8.0
  _ZN13RawRasterBand4SeekEyi@GDAL_1.8 1.8.0
- _ZN13RawRasterBand5WriteEPvjj@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZN13RawRasterBand5WriteEPvjj@GDAL_1.8 1.8.0
+ _ZN13RawRasterBand5WriteEPvmm@GDAL_1.8 1.8.0
  _ZN13RawRasterBand9IRasterIOE10GDALRWFlagiiiiPvii12GDALDataTypeii@GDAL_1.8 1.8.0
  _ZN13RawRasterBand9SetAccessE10GDALAccess@GDAL_1.8 1.8.0
  _ZN13RawRasterBandC1EP11GDALDatasetiPvyii12GDALDataTypeiii@GDAL_1.8 1.8.0
@@ -6350,12 +6370,14 @@ libgdal1.8.0.so.1 libgdal1-1.8.0 #MINVER#
  _ZN13VSICurlHandle11GetFileSizeEv@GDAL_1.8 1.8.0
  _ZN13VSICurlHandle14DownloadRegionEyi@GDAL_1.8 1.8.0
  _ZN13VSICurlHandle3EofEv@GDAL_1.8 1.8.0
- _ZN13VSICurlHandle4ReadEPvjj@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZN13VSICurlHandle4ReadEPvjj@GDAL_1.8 1.8.0
+ _ZN13VSICurlHandle4ReadEPvmm@GDAL_1.8 1.8.0
  _ZN13VSICurlHandle4SeekEyi@GDAL_1.8 1.8.0
  _ZN13VSICurlHandle4TellEv@GDAL_1.8 1.8.0
  _ZN13VSICurlHandle5CloseEv@GDAL_1.8 1.8.0
  _ZN13VSICurlHandle5FlushEv@GDAL_1.8 1.8.0
- _ZN13VSICurlHandle5WriteEPKvjj@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZN13VSICurlHandle5WriteEPKvjj@GDAL_1.8 1.8.0
+ _ZN13VSICurlHandle5WriteEPKvmm@GDAL_1.8 1.8.0
  _ZN13VSICurlHandle6ExistsEv@GDAL_1.8 1.8.0
  _ZN13VSICurlHandleC1EP24VSICurlFilesystemHandlerPKc@GDAL_1.8 1.8.0
  _ZN13VSICurlHandleC2EP24VSICurlFilesystemHandlerPKc@GDAL_1.8 1.8.0
@@ -6365,12 +6387,14 @@ libgdal1.8.0.so.1 libgdal1-1.8.0 #MINVER#
  _ZN13VSIGZipHandle12check_headerEv@GDAL_1.8 1.8.0
  _ZN13VSIGZipHandle15CloseBaseHandleEv@GDAL_1.8 1.8.0
  _ZN13VSIGZipHandle3EofEv@GDAL_1.8 1.8.0
- _ZN13VSIGZipHandle4ReadEPvjj@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZN13VSIGZipHandle4ReadEPvjj@GDAL_1.8 1.8.0
+ _ZN13VSIGZipHandle4ReadEPvmm@GDAL_1.8 1.8.0
  _ZN13VSIGZipHandle4SeekEyi@GDAL_1.8 1.8.0
  _ZN13VSIGZipHandle4TellEv@GDAL_1.8 1.8.0
  _ZN13VSIGZipHandle5CloseEv@GDAL_1.8 1.8.0
  _ZN13VSIGZipHandle5FlushEv@GDAL_1.8 1.8.0
- _ZN13VSIGZipHandle5WriteEPKvjj@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZN13VSIGZipHandle5WriteEPKvjj@GDAL_1.8 1.8.0
+ _ZN13VSIGZipHandle5WriteEPKvmm@GDAL_1.8 1.8.0
  _ZN13VSIGZipHandle6gzseekEyi@GDAL_1.8 1.8.0
  _ZN13VSIGZipHandle7getLongEv@GDAL_1.8 1.8.0
  _ZN13VSIGZipHandle8get_byteEv@GDAL_1.8 1.8.0
@@ -6397,7 +6421,8 @@ libgdal1.8.0.so.1 libgdal1-1.8.0 #MINVER#
  _ZN13XYZRasterBandD0Ev@GDAL_1.8 1.8.0
  _ZN13XYZRasterBandD1Ev@GDAL_1.8 1.8.0
  _ZN13XYZRasterBandD2Ev@GDAL_1.8 1.8.0
- _ZN13netCDFDataset10SafeStrcatEPPcS0_Pj@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZN13netCDFDataset10SafeStrcatEPPcS0_Pj@GDAL_1.8 1.8.0
+ _ZN13netCDFDataset10SafeStrcatEPPcS0_Pm@GDAL_1.8 1.8.0
  _ZN13netCDFDataset11GetMetadataEPKc@GDAL_1.8 1.8.0
  _ZN13netCDFDataset13FetchCopyParmEPKcS1_d@GDAL_1.8 1.8.0
  _ZN13netCDFDataset13SetProjectionEi@GDAL_1.8 1.8.0
@@ -6566,7 +6591,8 @@ libgdal1.8.0.so.1 libgdal1-1.8.0 #MINVER#
  _ZN14FASTRasterBandD2Ev@GDAL_1.8 1.8.0
  _ZN14FileDataSource14DataSourceFeofEv@GDAL_1.8 1.8.0
  _ZN14FileDataSource15DataSourceFgetcEv@GDAL_1.8 1.8.0
- _ZN14FileDataSource15DataSourceFreadEPvjj@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZN14FileDataSource15DataSourceFreadEPvjj@GDAL_1.8 1.8.0
+ _ZN14FileDataSource15DataSourceFreadEPvmm@GDAL_1.8 1.8.0
  _ZN14FileDataSource15DataSourceFseekEli@GDAL_1.8 1.8.0
  _ZN14FileDataSource15DataSourceFtellEv@GDAL_1.8 1.8.0
  _ZN14FileDataSource16DataSourceUngetcEi@GDAL_1.8 1.8.0
@@ -7248,11 +7274,13 @@ libgdal1.8.0.so.1 libgdal1-1.8.0 #MINVER#
  _ZN14VSIFileManagerD1Ev@GDAL_1.8 1.8.0
  _ZN14VSIFileManagerD2Ev@GDAL_1.8 1.8.0
  _ZN14VSIStdinHandle3EofEv@GDAL_1.8 1.8.0
- _ZN14VSIStdinHandle4ReadEPvjj@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZN14VSIStdinHandle4ReadEPvjj@GDAL_1.8 1.8.0
+ _ZN14VSIStdinHandle4ReadEPvmm@GDAL_1.8 1.8.0
  _ZN14VSIStdinHandle4SeekEyi@GDAL_1.8 1.8.0
  _ZN14VSIStdinHandle4TellEv@GDAL_1.8 1.8.0
  _ZN14VSIStdinHandle5CloseEv@GDAL_1.8 1.8.0
- _ZN14VSIStdinHandle5WriteEPKvjj@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZN14VSIStdinHandle5WriteEPKvjj@GDAL_1.8 1.8.0
+ _ZN14VSIStdinHandle5WriteEPKvmm@GDAL_1.8 1.8.0
  _ZN14VSIStdinHandleC1Ev@GDAL_1.8 1.8.0
  _ZN14VSIStdinHandleC2Ev@GDAL_1.8 1.8.0
  _ZN14VSIStdinHandleD0Ev@GDAL_1.8 1.8.0
@@ -7456,8 +7484,10 @@ libgdal1.8.0.so.1 libgdal1-1.8.0 #MINVER#
  _ZN15JPEG2000DatasetD0Ev@GDAL_1.8 1.8.0
  _ZN15JPEG2000DatasetD1Ev@GDAL_1.8 1.8.0
  _ZN15JPEG2000DatasetD2Ev@GDAL_1.8 1.8.0
- _ZN15LevellerDataset10write_byteEj@GDAL_1.8 1.8.0
- _ZN15LevellerDataset11locate_dataERyRjP8_IO_FILEPKc@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZN15LevellerDataset10write_byteEj@GDAL_1.8 1.8.0
+ _ZN15LevellerDataset10write_byteEm@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZN15LevellerDataset11locate_dataERyRjP8_IO_FILEPKc@GDAL_1.8 1.8.0
+ _ZN15LevellerDataset11locate_dataERyRmP8_IO_FILEPKc@GDAL_1.8 1.8.0
  _ZN15LevellerDataset11raw_to_projEddRdS0_@GDAL_1.8 1.8.0
  _ZN15LevellerDataset12write_headerEv@GDAL_1.8 1.8.0
  _ZN15LevellerDataset13SetProjectionEPKc@GDAL_1.8 1.8.0
@@ -7465,24 +7495,28 @@ libgdal1.8.0.so.1 libgdal1-1.8.0 #MINVER#
  _ZN15LevellerDataset15GetGeoTransformEPd@GDAL_1.8 1.8.0
  _ZN15LevellerDataset15SetGeoTransformEPd@GDAL_1.8 1.8.0
  _ZN15LevellerDataset15convert_measureEdRdPKc@GDAL_1.8 1.8.0
- _ZN15LevellerDataset15write_tag_startEPKcj@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZN15LevellerDataset15write_tag_startEPKcj@GDAL_1.8 1.8.0
+ _ZN15LevellerDataset15write_tag_startEPKcm@GDAL_1.8 1.8.0
  _ZN15LevellerDataset16GetProjectionRefEv@GDAL_1.8 1.8.0
  _ZN15LevellerDataset19make_local_coordsysEPKc9UNITLABEL@GDAL_1.8 1.8.0
  _ZN15LevellerDataset19make_local_coordsysEPKcS1_@GDAL_1.8 1.8.0
  _ZN15LevellerDataset20compute_elev_scalingERK19OGRSpatialReference@GDAL_1.8 1.8.0
- _ZN15LevellerDataset3getEPcjP8_IO_FILEPKc@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZN15LevellerDataset3getEPcjP8_IO_FILEPKc@GDAL_1.8 1.8.0
+ _ZN15LevellerDataset3getEPcmP8_IO_FILEPKc@GDAL_1.8 1.8.0
  _ZN15LevellerDataset3getERdP8_IO_FILEPKc@GDAL_1.8 1.8.0
  _ZN15LevellerDataset3getERiP8_IO_FILEPKc@GDAL_1.8 1.8.0
  _ZN15LevellerDataset4OpenEP12GDALOpenInfo@GDAL_1.8 1.8.0
  _ZN15LevellerDataset5writeEd@GDAL_1.8 1.8.0
  _ZN15LevellerDataset5writeEi@GDAL_1.8 1.8.0
- _ZN15LevellerDataset5writeEj@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZN15LevellerDataset5writeEj@GDAL_1.8 1.8.0
+ _ZN15LevellerDataset5writeEm@GDAL_1.8 1.8.0
  _ZN15LevellerDataset6CreateEPKciii12GDALDataTypePPc@GDAL_1.8 1.8.0
  _ZN15LevellerDataset8IdentifyEP12GDALOpenInfo@GDAL_1.8 1.8.0
  _ZN15LevellerDataset9write_tagEPKcS1_@GDAL_1.8 1.8.0
  _ZN15LevellerDataset9write_tagEPKcd@GDAL_1.8 1.8.0
  _ZN15LevellerDataset9write_tagEPKci@GDAL_1.8 1.8.0
- _ZN15LevellerDataset9write_tagEPKcj@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZN15LevellerDataset9write_tagEPKcj@GDAL_1.8 1.8.0
+ _ZN15LevellerDataset9write_tagEPKcm@GDAL_1.8 1.8.0
  _ZN15LevellerDatasetC1Ev@GDAL_1.8 1.8.0
  _ZN15LevellerDatasetC2Ev@GDAL_1.8 1.8.0
  _ZN15LevellerDatasetD0Ev@GDAL_1.8 1.8.0
@@ -7810,12 +7844,14 @@ libgdal1.8.0.so.1 libgdal1-1.8.0 #MINVER#
  _ZN15VRTSimpleSourceD1Ev@GDAL_1.8 1.8.0
  _ZN15VRTSimpleSourceD2Ev@GDAL_1.8 1.8.0
  _ZN15VSIStdoutHandle3EofEv@GDAL_1.8 1.8.0
- _ZN15VSIStdoutHandle4ReadEPvjj@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZN15VSIStdoutHandle4ReadEPvjj@GDAL_1.8 1.8.0
+ _ZN15VSIStdoutHandle4ReadEPvmm@GDAL_1.8 1.8.0
  _ZN15VSIStdoutHandle4SeekEyi@GDAL_1.8 1.8.0
  _ZN15VSIStdoutHandle4TellEv@GDAL_1.8 1.8.0
  _ZN15VSIStdoutHandle5CloseEv@GDAL_1.8 1.8.0
  _ZN15VSIStdoutHandle5FlushEv@GDAL_1.8 1.8.0
- _ZN15VSIStdoutHandle5WriteEPKvjj@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZN15VSIStdoutHandle5WriteEPKvjj@GDAL_1.8 1.8.0
+ _ZN15VSIStdoutHandle5WriteEPKvmm@GDAL_1.8 1.8.0
  _ZN15VSIStdoutHandleD0Ev@GDAL_1.8 1.8.0
  _ZN15VSIStdoutHandleD1Ev@GDAL_1.8 1.8.0
  _ZN15VSIStdoutHandleD2Ev@GDAL_1.8 1.8.0
@@ -7948,8 +7984,10 @@ libgdal1.8.0.so.1 libgdal1-1.8.0 #MINVER#
  _ZN16GTiffOddBitsBandD2Ev@GDAL_1.8 1.8.0
  _ZN16HDF4ImageDataset10FlushCacheEv@GDAL_1.8 1.8.0
  _ZN16HDF4ImageDataset11GetGCPCountEv@GDAL_1.8 1.8.0
- _ZN16HDF4ImageDataset12GetGridAttrsEl@GDAL_1.8 1.8.0
- _ZN16HDF4ImageDataset12GetSwatAttrsEl@GDAL_1.8 1.8.0
+ _ZN16HDF4ImageDataset12GetGridAttrsEi@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZN16HDF4ImageDataset12GetGridAttrsEl@GDAL_1.8 1.8.0
+ _ZN16HDF4ImageDataset12GetSwatAttrsEi@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZN16HDF4ImageDataset12GetSwatAttrsEl@GDAL_1.8 1.8.0
  _ZN16HDF4ImageDataset13SetProjectionEPKc@GDAL_1.8 1.8.0
  _ZN16HDF4ImageDataset15GetGeoTransformEPd@GDAL_1.8 1.8.0
  _ZN16HDF4ImageDataset15ReadCoordinatesEPKcPdS2_@GDAL_1.8 1.8.0
@@ -7960,7 +7998,8 @@ libgdal1.8.0.so.1 libgdal1-1.8.0 #MINVER#
  _ZN16HDF4ImageDataset18GetImageDimensionsEPc@GDAL_1.8 1.8.0
  _ZN16HDF4ImageDataset18USGSMnemonicToCodeEPKc@GDAL_1.8 1.8.0
  _ZN16HDF4ImageDataset22CaptureNRLGeoTransformEv@GDAL_1.8 1.8.0
- _ZN16HDF4ImageDataset23ProcessSwathGeolocationElPPc@GDAL_1.8 1.8.0
+ _ZN16HDF4ImageDataset23ProcessSwathGeolocationEiPPc@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZN16HDF4ImageDataset23ProcessSwathGeolocationElPPc@GDAL_1.8 1.8.0
  _ZN16HDF4ImageDataset25CaptureCoastwatchGCTPInfoEv@GDAL_1.8 1.8.0
  _ZN16HDF4ImageDataset26ProcessModisSDSGeolocationEv@GDAL_1.8 1.8.0
  _ZN16HDF4ImageDataset4OpenEP12GDALOpenInfo@GDAL_1.8 1.8.0
@@ -8012,7 +8051,8 @@ libgdal1.8.0.so.1 libgdal1-1.8.0 #MINVER#
  _ZN16IdrisiRasterBandD2Ev@GDAL_1.8 1.8.0
  _ZN16MemoryDataSource14DataSourceFeofEv@GDAL_1.8 1.8.0
  _ZN16MemoryDataSource15DataSourceFgetcEv@GDAL_1.8 1.8.0
- _ZN16MemoryDataSource15DataSourceFreadEPvjj@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZN16MemoryDataSource15DataSourceFreadEPvjj@GDAL_1.8 1.8.0
+ _ZN16MemoryDataSource15DataSourceFreadEPvmm@GDAL_1.8 1.8.0
  _ZN16MemoryDataSource15DataSourceFseekEli@GDAL_1.8 1.8.0
  _ZN16MemoryDataSource15DataSourceFtellEv@GDAL_1.8 1.8.0
  _ZN16MemoryDataSource16DataSourceUngetcEi@GDAL_1.8 1.8.0
@@ -8519,11 +8559,13 @@ libgdal1.8.0.so.1 libgdal1-1.8.0 #MINVER#
  _ZN16VSIArchiveReaderD1Ev@GDAL_1.8 1.8.0
  _ZN16VSIArchiveReaderD2Ev@GDAL_1.8 1.8.0
  _ZN16VSISubFileHandle3EofEv@GDAL_1.8 1.8.0
- _ZN16VSISubFileHandle4ReadEPvjj@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZN16VSISubFileHandle4ReadEPvjj@GDAL_1.8 1.8.0
+ _ZN16VSISubFileHandle4ReadEPvmm@GDAL_1.8 1.8.0
  _ZN16VSISubFileHandle4SeekEyi@GDAL_1.8 1.8.0
  _ZN16VSISubFileHandle4TellEv@GDAL_1.8 1.8.0
  _ZN16VSISubFileHandle5CloseEv@GDAL_1.8 1.8.0
- _ZN16VSISubFileHandle5WriteEPKvjj@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZN16VSISubFileHandle5WriteEPKvjj@GDAL_1.8 1.8.0
+ _ZN16VSISubFileHandle5WriteEPKvmm@GDAL_1.8 1.8.0
  _ZN16VSISubFileHandleD0Ev@GDAL_1.8 1.8.0
  _ZN16VSISubFileHandleD1Ev@GDAL_1.8 1.8.0
  _ZN16VSISubFileHandleD2Ev@GDAL_1.8 1.8.0
@@ -9089,12 +9131,14 @@ libgdal1.8.0.so.1 libgdal1-1.8.0 #MINVER#
  _ZN17VSIZipWriteHandle12StartNewFileEPS_@GDAL_1.8 1.8.0
  _ZN17VSIZipWriteHandle15StopCurrentFileEv@GDAL_1.8 1.8.0
  _ZN17VSIZipWriteHandle3EofEv@GDAL_1.8 1.8.0
- _ZN17VSIZipWriteHandle4ReadEPvjj@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZN17VSIZipWriteHandle4ReadEPvjj@GDAL_1.8 1.8.0
+ _ZN17VSIZipWriteHandle4ReadEPvmm@GDAL_1.8 1.8.0
  _ZN17VSIZipWriteHandle4SeekEyi@GDAL_1.8 1.8.0
  _ZN17VSIZipWriteHandle4TellEv@GDAL_1.8 1.8.0
  _ZN17VSIZipWriteHandle5CloseEv@GDAL_1.8 1.8.0
  _ZN17VSIZipWriteHandle5FlushEv@GDAL_1.8 1.8.0
- _ZN17VSIZipWriteHandle5WriteEPKvjj@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZN17VSIZipWriteHandle5WriteEPKvjj@GDAL_1.8 1.8.0
+ _ZN17VSIZipWriteHandle5WriteEPKvmm@GDAL_1.8 1.8.0
  _ZN17VSIZipWriteHandleC1EP23VSIZipFilesystemHandlerPvPS_@GDAL_1.8 1.8.0
  _ZN17VSIZipWriteHandleC2EP23VSIZipFilesystemHandlerPvPS_@GDAL_1.8 1.8.0
  _ZN17VSIZipWriteHandleD0Ev@GDAL_1.8 1.8.0
@@ -9482,24 +9526,28 @@ libgdal1.8.0.so.1 libgdal1-1.8.0 #MINVER#
  _ZN18TigerPolyChainLinkD1Ev@GDAL_1.8 1.8.0
  _ZN18TigerPolyChainLinkD2Ev@GDAL_1.8 1.8.0
  _ZN18VSIGZipWriteHandle3EofEv@GDAL_1.8 1.8.0
- _ZN18VSIGZipWriteHandle4ReadEPvjj@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZN18VSIGZipWriteHandle4ReadEPvjj@GDAL_1.8 1.8.0
+ _ZN18VSIGZipWriteHandle4ReadEPvmm@GDAL_1.8 1.8.0
  _ZN18VSIGZipWriteHandle4SeekEyi@GDAL_1.8 1.8.0
  _ZN18VSIGZipWriteHandle4TellEv@GDAL_1.8 1.8.0
  _ZN18VSIGZipWriteHandle5CloseEv@GDAL_1.8 1.8.0
  _ZN18VSIGZipWriteHandle5FlushEv@GDAL_1.8 1.8.0
- _ZN18VSIGZipWriteHandle5WriteEPKvjj@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZN18VSIGZipWriteHandle5WriteEPKvjj@GDAL_1.8 1.8.0
+ _ZN18VSIGZipWriteHandle5WriteEPKvmm@GDAL_1.8 1.8.0
  _ZN18VSIGZipWriteHandleC1EP16VSIVirtualHandle@GDAL_1.8 1.8.0
  _ZN18VSIGZipWriteHandleC2EP16VSIVirtualHandle@GDAL_1.8 1.8.0
  _ZN18VSIGZipWriteHandleD0Ev@GDAL_1.8 1.8.0
  _ZN18VSIGZipWriteHandleD1Ev@GDAL_1.8 1.8.0
  _ZN18VSIGZipWriteHandleD2Ev@GDAL_1.8 1.8.0
  _ZN18VSIUnixStdioHandle3EofEv@GDAL_1.8 1.8.0
- _ZN18VSIUnixStdioHandle4ReadEPvjj@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZN18VSIUnixStdioHandle4ReadEPvjj@GDAL_1.8 1.8.0
+ _ZN18VSIUnixStdioHandle4ReadEPvmm@GDAL_1.8 1.8.0
  _ZN18VSIUnixStdioHandle4SeekEyi@GDAL_1.8 1.8.0
  _ZN18VSIUnixStdioHandle4TellEv@GDAL_1.8 1.8.0
  _ZN18VSIUnixStdioHandle5CloseEv@GDAL_1.8 1.8.0
  _ZN18VSIUnixStdioHandle5FlushEv@GDAL_1.8 1.8.0
- _ZN18VSIUnixStdioHandle5WriteEPKvjj@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZN18VSIUnixStdioHandle5WriteEPKvjj@GDAL_1.8 1.8.0
+ _ZN18VSIUnixStdioHandle5WriteEPKvmm@GDAL_1.8 1.8.0
  _ZN18VSIUnixStdioHandleD0Ev@GDAL_1.8 1.8.0
  _ZN18VSIUnixStdioHandleD1Ev@GDAL_1.8 1.8.0
  _ZN18VSIUnixStdioHandleD2Ev@GDAL_1.8 1.8.0
@@ -9919,11 +9967,13 @@ libgdal1.8.0.so.1 libgdal1-1.8.0 #MINVER#
  _ZN19VRTWarpedRasterBandD1Ev@GDAL_1.8 1.8.0
  _ZN19VRTWarpedRasterBandD2Ev@GDAL_1.8 1.8.0
  _ZN19VSISparseFileHandle3EofEv@GDAL_1.8 1.8.0
- _ZN19VSISparseFileHandle4ReadEPvjj@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZN19VSISparseFileHandle4ReadEPvjj@GDAL_1.8 1.8.0
+ _ZN19VSISparseFileHandle4ReadEPvmm@GDAL_1.8 1.8.0
  _ZN19VSISparseFileHandle4SeekEyi@GDAL_1.8 1.8.0
  _ZN19VSISparseFileHandle4TellEv@GDAL_1.8 1.8.0
  _ZN19VSISparseFileHandle5CloseEv@GDAL_1.8 1.8.0
- _ZN19VSISparseFileHandle5WriteEPKvjj@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZN19VSISparseFileHandle5WriteEPKvjj@GDAL_1.8 1.8.0
+ _ZN19VSISparseFileHandle5WriteEPKvmm@GDAL_1.8 1.8.0
  _ZN19VSISparseFileHandleD0Ev@GDAL_1.8 1.8.0
  _ZN19VSISparseFileHandleD1Ev@GDAL_1.8 1.8.0
  _ZN19VSISparseFileHandleD2Ev@GDAL_1.8 1.8.0
@@ -10527,12 +10577,14 @@ libgdal1.8.0.so.1 libgdal1-1.8.0 #MINVER#
  _ZN23VRTKernelFilteredSourceD1Ev@GDAL_1.8 1.8.0
  _ZN23VRTKernelFilteredSourceD2Ev@GDAL_1.8 1.8.0
  _ZN23VSIBufferedReaderHandle3EofEv@GDAL_1.8 1.8.0
- _ZN23VSIBufferedReaderHandle4ReadEPvjj@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZN23VSIBufferedReaderHandle4ReadEPvjj@GDAL_1.8 1.8.0
+ _ZN23VSIBufferedReaderHandle4ReadEPvmm@GDAL_1.8 1.8.0
  _ZN23VSIBufferedReaderHandle4SeekEyi@GDAL_1.8 1.8.0
  _ZN23VSIBufferedReaderHandle4TellEv@GDAL_1.8 1.8.0
  _ZN23VSIBufferedReaderHandle5CloseEv@GDAL_1.8 1.8.0
  _ZN23VSIBufferedReaderHandle5FlushEv@GDAL_1.8 1.8.0
- _ZN23VSIBufferedReaderHandle5WriteEPKvjj@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZN23VSIBufferedReaderHandle5WriteEPKvjj@GDAL_1.8 1.8.0
+ _ZN23VSIBufferedReaderHandle5WriteEPKvmm@GDAL_1.8 1.8.0
  _ZN23VSIBufferedReaderHandleC1EP16VSIVirtualHandle@GDAL_1.8 1.8.0
  _ZN23VSIBufferedReaderHandleC2EP16VSIVirtualHandle@GDAL_1.8 1.8.0
  _ZN23VSIBufferedReaderHandleD0Ev@GDAL_1.8 1.8.0
@@ -10642,7 +10694,8 @@ libgdal1.8.0.so.1 libgdal1-1.8.0 #MINVER#
  _ZN24VSICurlFilesystemHandler6UnlinkEPKc@GDAL_1.8 1.8.0
  _ZN24VSICurlFilesystemHandler7ReadDirEPKc@GDAL_1.8 1.8.0
  _ZN24VSICurlFilesystemHandler7ReadDirEPKcPi@GDAL_1.8 1.8.0
- _ZN24VSICurlFilesystemHandler9AddRegionEPKcyjS1_@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZN24VSICurlFilesystemHandler9AddRegionEPKcyjS1_@GDAL_1.8 1.8.0
+ _ZN24VSICurlFilesystemHandler9AddRegionEPKcymS1_@GDAL_1.8 1.8.0
  _ZN24VSICurlFilesystemHandler9GetRegionEPKcy@GDAL_1.8 1.8.0
  _ZN24VSICurlFilesystemHandlerC1Ev@GDAL_1.8 1.8.0
  _ZN24VSICurlFilesystemHandlerC2Ev@GDAL_1.8 1.8.0
@@ -11010,14 +11063,16 @@ libgdal1.8.0.so.1 libgdal1-1.8.0 #MINVER#
  _ZN3GTM4OpenEPKc@GDAL_1.8 1.8.0
  _ZN3GTM7isValidEv@GDAL_1.8 1.8.0
  _ZN3GTM8getNWptsEv@GDAL_1.8 1.8.0
- _ZN3GTM8readFileEPvjj@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZN3GTM8readFileEPvjj@GDAL_1.8 1.8.0
+ _ZN3GTM8readFileEPvmm@GDAL_1.8 1.8.0
  _ZN3GTMC1Ev@GDAL_1.8 1.8.0
  _ZN3GTMC2Ev@GDAL_1.8 1.8.0
  _ZN3GTMD1Ev@GDAL_1.8 1.8.0
  _ZN3GTMD2Ev@GDAL_1.8 1.8.0
  _ZN3KML10endElementEPvPKc@GDAL_1.8 1.8.0
  _ZN3KML10findLayersEP7KMLNode@GDAL_1.8 1.8.0
- _ZN3KML10getFeatureEjRiS0_@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZN3KML10getFeatureEjRiS0_@GDAL_1.8 1.8.0
+ _ZN3KML10getFeatureEmRiS0_@GDAL_1.8 1.8.0
  _ZN3KML11dataHandlerEPvPKci@GDAL_1.8 1.8.0
  _ZN3KML11selectLayerEi@GDAL_1.8 1.8.0
  _ZN3KML12startElementEPvPKcPS2_@GDAL_1.8 1.8.0
@@ -11124,10 +11179,11 @@ libgdal1.8.0.so.1 libgdal1-1.8.0 #MINVER#
  _ZN6PCIDSK10PCIDSK_TEXD0Ev@GDAL_1.8 1.8.0
  _ZN6PCIDSK10PCIDSK_TEXD1Ev@GDAL_1.8 1.8.0
  _ZN6PCIDSK10PCIDSK_TEXD2Ev@GDAL_1.8 1.8.0
- _ZN6PCIDSK10ShapeField5ClearEv@GDAL_1.8 1.8.1-1
+ _ZN6PCIDSK10ShapeField5ClearEv@GDAL_1.8 1.8.0
 #MISSING: 1.8.1-1# _ZN6PCIDSK10ShapeFieldD1Ev@GDAL_1.8 1.8.0
 #MISSING: 1.8.1-1# _ZN6PCIDSK10ShapeFieldD2Ev@GDAL_1.8 1.8.0
- _ZN6PCIDSK10SwapPixelsEPvNS_9eChanTypeEj@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZN6PCIDSK10SwapPixelsEPvNS_9eChanTypeEj@GDAL_1.8 1.8.0
+ _ZN6PCIDSK10SwapPixelsEPvNS_9eChanTypeEm@GDAL_1.8 1.8.0
  _ZN6PCIDSK11CPCIDSKFile10ExtendFileEyb@GDAL_1.8 1.8.0
  _ZN6PCIDSK11CPCIDSKFile10FlushBlockEv@GDAL_1.8 1.8.0
  _ZN6PCIDSK11CPCIDSKFile10GetChannelEi@GDAL_1.8 1.8.0
@@ -11331,7 +11387,8 @@ libgdal1.8.0.so.1 libgdal1-1.8.0 #MINVER#
  _ZN6PCIDSK14SysVirtualFile12ReadFromFileEPvyy@GDAL_1.8 1.8.0
  _ZN6PCIDSK14SysVirtualFile14LoadBMEntrysToEi@GDAL_1.8 1.8.0
  _ZN6PCIDSK14SysVirtualFile15FlushDirtyBlockEv@GDAL_1.8 1.8.0
- _ZN6PCIDSK14SysVirtualFile15GrowVirtualFileEi@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZN6PCIDSK14SysVirtualFile15GrowVirtualFileEi@GDAL_1.8 1.8.0
+ _ZN6PCIDSK14SysVirtualFile15GrowVirtualFileEl@GDAL_1.8 1.8.0
  _ZN6PCIDSK14SysVirtualFile9LoadBlockEi@GDAL_1.8 1.8.0
  _ZN6PCIDSK14SysVirtualFileC1EPNS_11CPCIDSKFileEiyPNS_11SysBlockMapEi@GDAL_1.8 1.8.0
  _ZN6PCIDSK14SysVirtualFileC2EPNS_11CPCIDSKFileEiyPNS_11SysBlockMapEi@GDAL_1.8 1.8.0
@@ -11349,8 +11406,8 @@ libgdal1.8.0.so.1 libgdal1-1.8.0 #MINVER#
  _ZN6PCIDSK15MetadataSegmentD0Ev@GDAL_1.8 1.8.0
  _ZN6PCIDSK15MetadataSegmentD1Ev@GDAL_1.8 1.8.0
  _ZN6PCIDSK15MetadataSegmentD2Ev@GDAL_1.8 1.8.0
+ _ZN6PCIDSK15PCIDSKException7vPrintfEPKcP13__va_list_tag@GDAL_1.8 1.8.0
 #MISSING: 1.8.1-1# _ZN6PCIDSK15PCIDSKException7vPrintfEPKcPc@GDAL_1.8 1.8.0
- _ZN6PCIDSK15PCIDSKException7vPrintfEPKcPv@GDAL_1.8 1.8.1-1
  _ZN6PCIDSK15PCIDSKExceptionC1EPKcz@GDAL_1.8 1.8.0
  _ZN6PCIDSK15PCIDSKExceptionC1ERKS0_@GDAL_1.8 1.8.0
  _ZN6PCIDSK15PCIDSKExceptionC2EPKcz@GDAL_1.8 1.8.0
@@ -11591,14 +11648,16 @@ libgdal1.8.0.so.1 libgdal1-1.8.0 #MINVER#
  _ZN7IomFileD2Ev@GDAL_1.8 1.8.0
  _ZN7IomFileaSERKS_@GDAL_1.8 1.8.0
  _ZN7KMLNode10addContentERKSs@GDAL_1.8 1.8.0
- _ZN7KMLNode10getFeatureEjRiS0_@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZN7KMLNode10getFeatureEjRiS0_@GDAL_1.8 1.8.0
+ _ZN7KMLNode10getFeatureEmRiS0_@GDAL_1.8 1.8.0
  _ZN7KMLNode10numContentEv@GDAL_1.8 1.8.0
  _ZN7KMLNode11addChildrenEPS_@GDAL_1.8 1.8.0
  _ZN7KMLNode11getGeometryE8Nodetype@GDAL_1.8 1.8.0
  _ZN7KMLNode12addAttributeEP9Attribute@GDAL_1.8 1.8.0
  _ZN7KMLNode13appendContentERKSs@GDAL_1.8 1.8.0
  _ZN7KMLNode13countChildrenEv@GDAL_1.8 1.8.0
- _ZN7KMLNode13deleteContentEj@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZN7KMLNode13deleteContentEj@GDAL_1.8 1.8.0
+ _ZN7KMLNode13deleteContentEm@GDAL_1.8 1.8.0
  _ZN7KMLNode14eliminateEmptyEP3KML@GDAL_1.8 1.8.0
  _ZN7KMLNode14getNumFeaturesEv@GDAL_1.8 1.8.0
  _ZN7KMLNode14setLayerNumberEi@GDAL_1.8 1.8.0
@@ -11606,7 +11665,8 @@ libgdal1.8.0.so.1 libgdal1-1.8.0 #MINVER#
  _ZN7KMLNode7setNameERKSs@GDAL_1.8 1.8.0
  _ZN7KMLNode7setTypeE8Nodetype@GDAL_1.8 1.8.0
  _ZN7KMLNode8classifyEP3KML@GDAL_1.8 1.8.0
- _ZN7KMLNode8setLevelEj@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZN7KMLNode8setLevelEj@GDAL_1.8 1.8.0
+ _ZN7KMLNode8setLevelEm@GDAL_1.8 1.8.0
  _ZN7KMLNode9setParentEPS_@GDAL_1.8 1.8.0
  _ZN7KMLNodeC1Ev@GDAL_1.8 1.8.0
  _ZN7KMLNodeC2Ev@GDAL_1.8 1.8.0
@@ -12006,8 +12066,8 @@ libgdal1.8.0.so.1 libgdal1-1.8.0 #MINVER#
  _ZN9CPLString6PrintfEPKcz@GDAL_1.8 1.8.0
  _ZN9CPLString6RecodeEPKcS1_@GDAL_1.8 1.8.0
  _ZN9CPLString7FormatCEdPKc@GDAL_1.8 1.8.0
+ _ZN9CPLString7vPrintfEPKcP13__va_list_tag@GDAL_1.8 1.8.0
 #MISSING: 1.8.1-1# _ZN9CPLString7vPrintfEPKcPc@GDAL_1.8 1.8.0
- _ZN9CPLString7vPrintfEPKcPv@GDAL_1.8 1.8.1-1
  _ZN9CPLStringC1EPKc@GDAL_1.8 1.8.0
  _ZN9CPLStringC2EPKc@GDAL_1.8 1.8.0
  _ZN9DDFModule10InitializeEcccccPKciii@GDAL_1.8 1.8.0
@@ -12623,13 +12683,15 @@ libgdal1.8.0.so.1 libgdal1-1.8.0 #MINVER#
  _ZNK6PCIDSK23PCIDSKAPModelMiscParams6GetRFFEv@GDAL_1.8 1.8.0
  _ZNK6PCIDSK23PCIDSKAPModelMiscParams9GetRadiusEv@GDAL_1.8 1.8.0
  _ZNK6PCIDSK23PCIDSKAPModelMiscParams9HasRadiusEv@GDAL_1.8 1.8.0
- _ZNK7KMLNode10getContentEj@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZNK7KMLNode10getContentEj@GDAL_1.8 1.8.0
+ _ZNK7KMLNode10getContentEm@GDAL_1.8 1.8.0
  _ZNK7KMLNode14getLayerNumberEv@GDAL_1.8 1.8.0
  _ZNK7KMLNode14getNameElementEv@GDAL_1.8 1.8.0
  _ZNK7KMLNode21getDescriptionElementEv@GDAL_1.8 1.8.0
  _ZNK7KMLNode7getNameEv@GDAL_1.8 1.8.0
  _ZNK7KMLNode7getTypeEv@GDAL_1.8 1.8.0
- _ZNK7KMLNode8getChildEj@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZNK7KMLNode8getChildEj@GDAL_1.8 1.8.0
+ _ZNK7KMLNode8getChildEm@GDAL_1.8 1.8.0
  _ZNK7KMLNode8getLevelEv@GDAL_1.8 1.8.0
  _ZNK7KMLNode9getParentEv@GDAL_1.8 1.8.0
  _ZNK8OGRCurve12get_IsClosedEv@GDAL_1.8 1.8.0
@@ -12644,8 +12706,10 @@ libgdal1.8.0.so.1 libgdal1-1.8.0 #MINVER#
  _ZNK8OGRPoint6EqualsEP11OGRGeometry@GDAL_1.8 1.8.0
  _ZNK8OGRPoint7IsEmptyEv@GDAL_1.8 1.8.0
  _ZNK8OGRPoint7WkbSizeEv@GDAL_1.8 1.8.0
- _ZNK9CPLString5ifindEPKcj@GDAL_1.8 1.8.0
- _ZNK9CPLString5ifindERKSsj@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZNK9CPLString5ifindEPKcj@GDAL_1.8 1.8.0
+ _ZNK9CPLString5ifindEPKcm@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZNK9CPLString5ifindERKSsj@GDAL_1.8 1.8.0
+ _ZNK9CPLString5ifindERKSsm@GDAL_1.8 1.8.0
  _ZNK9GMLReader13GetClassCountEv@GDAL_1.8 1.8.0
  _ZNK9GMLReader17IsClassListLockedEv@GDAL_1.8 1.8.0
  _ZNK9GMLReader8GetClassEPKc@GDAL_1.8 1.8.0
@@ -12665,13 +12729,16 @@ libgdal1.8.0.so.1 libgdal1-1.8.0 #MINVER#
  _ZNKSt3mapI9CPLStringS0_St4lessIS0_ESaISt4pairIKS0_S0_EEE5countERS4_@GDAL_1.8 1.8.0
  _ZNSsC1IPcEET_S1_RKSaIcE@GDAL_1.8 1.8.0
  _ZNSsC2IPcEET_S1_RKSaIcE@GDAL_1.8 1.8.0
- _ZNSt11_Deque_baseI7ElementSaIS0_EE17_M_initialize_mapEj@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZNSt11_Deque_baseI7ElementSaIS0_EE17_M_initialize_mapEj@GDAL_1.8 1.8.0
+ _ZNSt11_Deque_baseI7ElementSaIS0_EE17_M_initialize_mapEm@GDAL_1.8 1.8.0
  _ZNSt11_Deque_baseI7ElementSaIS0_EED1Ev@GDAL_1.8 1.8.0
  _ZNSt11_Deque_baseI7ElementSaIS0_EED2Ev@GDAL_1.8 1.8.0
- _ZNSt11_Deque_baseIP10OGRFeatureSaIS1_EE17_M_initialize_mapEj@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZNSt11_Deque_baseIP10OGRFeatureSaIS1_EE17_M_initialize_mapEj@GDAL_1.8 1.8.0
+ _ZNSt11_Deque_baseIP10OGRFeatureSaIS1_EE17_M_initialize_mapEm@GDAL_1.8 1.8.0
  _ZNSt11_Deque_baseIP10OGRFeatureSaIS1_EED1Ev@GDAL_1.8 1.8.0
  _ZNSt11_Deque_baseIP10OGRFeatureSaIS1_EED2Ev@GDAL_1.8 1.8.0
- _ZNSt11_Deque_baseIiSaIiEE17_M_initialize_mapEj@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZNSt11_Deque_baseIiSaIiEE17_M_initialize_mapEj@GDAL_1.8 1.8.0
+ _ZNSt11_Deque_baseIiSaIiEE17_M_initialize_mapEm@GDAL_1.8 1.8.0
  _ZNSt11_Deque_baseIiSaIiEED1Ev@GDAL_1.8 1.8.0
  _ZNSt11_Deque_baseIiSaIiEED2Ev@GDAL_1.8 1.8.0
  _ZNSt15basic_stringbufIcSt11char_traitsIcESaIcEED0Ev@GDAL_1.8 1.8.0
@@ -12695,23 +12762,29 @@ libgdal1.8.0.so.1 libgdal1-1.8.0 #MINVER#
  _ZNSt4pairIKSsSsED1Ev@GDAL_1.8 1.8.0
  _ZNSt4pairIKSsSsED2Ev@GDAL_1.8 1.8.0
  _ZNSt5dequeI7ElementSaIS0_EE16_M_push_back_auxERKS0_@GDAL_1.8 1.8.0
- _ZNSt5dequeI7ElementSaIS0_EE17_M_reallocate_mapEjb@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZNSt5dequeI7ElementSaIS0_EE17_M_reallocate_mapEjb@GDAL_1.8 1.8.0
+ _ZNSt5dequeI7ElementSaIS0_EE17_M_reallocate_mapEmb@GDAL_1.8 1.8.0
  _ZNSt5dequeI7ElementSaIS0_EE19_M_destroy_data_auxESt15_Deque_iteratorIS0_RS0_PS0_ES6_@GDAL_1.8 1.8.0
  _ZNSt5dequeI7ElementSaIS0_EED1Ev@GDAL_1.8 1.8.0
  _ZNSt5dequeI7ElementSaIS0_EED2Ev@GDAL_1.8 1.8.0
- _ZNSt5dequeIP10OGRFeatureSaIS1_EE17_M_reallocate_mapEjb@GDAL_1.8 1.8.0
- _ZNSt5dequeIiSaIiEE17_M_reallocate_mapEjb@GDAL_1.8 1.8.0
- _ZNSt5stackI7ElementSt5dequeIS0_SaIS0_EEE3popEv@GDAL_1.8 1.8.1-1
+#MISSING: 1.8.1-1# _ZNSt5dequeIP10OGRFeatureSaIS1_EE17_M_reallocate_mapEjb@GDAL_1.8 1.8.0
+ _ZNSt5dequeIP10OGRFeatureSaIS1_EE17_M_reallocate_mapEmb@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZNSt5dequeIiSaIiEE17_M_reallocate_mapEjb@GDAL_1.8 1.8.0
+ _ZNSt5dequeIiSaIiEE17_M_reallocate_mapEmb@GDAL_1.8 1.8.0
  _ZNSt5stackI7ElementSt5dequeIS0_SaIS0_EEE4pushERKS0_@GDAL_1.8 1.8.0
- _ZNSt6vectorI11VFKPropertySaIS0_EE14_M_fill_assignEjRKS0_@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZNSt6vectorI11VFKPropertySaIS0_EE14_M_fill_assignEjRKS0_@GDAL_1.8 1.8.0
+ _ZNSt6vectorI11VFKPropertySaIS0_EE14_M_fill_assignEmRKS0_@GDAL_1.8 1.8.0
  _ZNSt6vectorI11VFKPropertySaIS0_EED1Ev@GDAL_1.8 1.8.0
  _ZNSt6vectorI11VFKPropertySaIS0_EED2Ev@GDAL_1.8 1.8.0
- _ZNSt6vectorI14GDALColorEntrySaIS0_EE14_M_fill_insertEN9__gnu_cxx17__normal_iteratorIPS0_S2_EEjRKS0_@GDAL_1.8 1.8.0
- _ZNSt6vectorI15VRTOverviewInfoSaIS0_EE14_M_fill_insertEN9__gnu_cxx17__normal_iteratorIPS0_S2_EEjRKS0_@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZNSt6vectorI14GDALColorEntrySaIS0_EE14_M_fill_insertEN9__gnu_cxx17__normal_iteratorIPS0_S2_EEjRKS0_@GDAL_1.8 1.8.0
+ _ZNSt6vectorI14GDALColorEntrySaIS0_EE14_M_fill_insertEN9__gnu_cxx17__normal_iteratorIPS0_S2_EEmRKS0_@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZNSt6vectorI15VRTOverviewInfoSaIS0_EE14_M_fill_insertEN9__gnu_cxx17__normal_iteratorIPS0_S2_EEjRKS0_@GDAL_1.8 1.8.0
+ _ZNSt6vectorI15VRTOverviewInfoSaIS0_EE14_M_fill_insertEN9__gnu_cxx17__normal_iteratorIPS0_S2_EEmRKS0_@GDAL_1.8 1.8.0
  _ZNSt6vectorI15VRTOverviewInfoSaIS0_EED1Ev@GDAL_1.8 1.8.0
  _ZNSt6vectorI15VRTOverviewInfoSaIS0_EED2Ev@GDAL_1.8 1.8.0
  _ZNSt6vectorI23DXFSmoothPolylineVertexSaIS0_EE13_M_insert_auxEN9__gnu_cxx17__normal_iteratorIPS0_S2_EERKS0_@GDAL_1.8 1.8.0
- _ZNSt6vectorI24GDALRasterAttributeFieldSaIS0_EE14_M_fill_insertEN9__gnu_cxx17__normal_iteratorIPS0_S2_EEjRKS0_@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZNSt6vectorI24GDALRasterAttributeFieldSaIS0_EE14_M_fill_insertEN9__gnu_cxx17__normal_iteratorIPS0_S2_EEjRKS0_@GDAL_1.8 1.8.0
+ _ZNSt6vectorI24GDALRasterAttributeFieldSaIS0_EE14_M_fill_insertEN9__gnu_cxx17__normal_iteratorIPS0_S2_EEmRKS0_@GDAL_1.8 1.8.0
  _ZNSt6vectorI24GDALRasterAttributeFieldSaIS0_EED1Ev@GDAL_1.8 1.8.0
  _ZNSt6vectorI24GDALRasterAttributeFieldSaIS0_EED2Ev@GDAL_1.8 1.8.0
  _ZNSt6vectorI24GDALRasterAttributeFieldSaIS0_EEaSERKS2_@GDAL_1.8 1.8.0
@@ -12720,7 +12793,8 @@ libgdal1.8.0.so.1 libgdal1-1.8.0 #MINVER#
  _ZNSt6vectorI8OGRPointSaIS0_EE15_M_range_insertISt16reverse_iteratorIN9__gnu_cxx17__normal_iteratorIPS0_S2_EEEEEvS8_T_SA_St20forward_iterator_tag@GDAL_1.8 1.8.0
  _ZNSt6vectorI8SFRegionSaIS0_EE13_M_insert_auxEN9__gnu_cxx17__normal_iteratorIPS0_S2_EERKS0_@GDAL_1.8 1.8.0
  _ZNSt6vectorI9CPLStringSaIS0_EE13_M_insert_auxEN9__gnu_cxx17__normal_iteratorIPS0_S2_EERKS0_@GDAL_1.8 1.8.0
- _ZNSt6vectorI9CPLStringSaIS0_EE14_M_fill_insertEN9__gnu_cxx17__normal_iteratorIPS0_S2_EEjRKS0_@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZNSt6vectorI9CPLStringSaIS0_EE14_M_fill_insertEN9__gnu_cxx17__normal_iteratorIPS0_S2_EEjRKS0_@GDAL_1.8 1.8.0
+ _ZNSt6vectorI9CPLStringSaIS0_EE14_M_fill_insertEN9__gnu_cxx17__normal_iteratorIPS0_S2_EEmRKS0_@GDAL_1.8 1.8.0
  _ZNSt6vectorI9CPLStringSaIS0_EED1Ev@GDAL_1.8 1.8.0
  _ZNSt6vectorI9CPLStringSaIS0_EED2Ev@GDAL_1.8 1.8.0
  _ZNSt6vectorI9CPLStringSaIS0_EEaSERKS2_@GDAL_1.8 1.8.0
@@ -12731,11 +12805,13 @@ libgdal1.8.0.so.1 libgdal1-1.8.0 #MINVER#
  _ZNSt6vectorI9iom_valueSaIS0_EED2Ev@GDAL_1.8 1.8.0
  _ZNSt6vectorI9iom_valueSaIS0_EEaSERKS2_@GDAL_1.8 1.8.0
  _ZNSt6vectorIN6PCIDSK10ShapeFieldESaIS1_EE13_M_insert_auxEN9__gnu_cxx17__normal_iteratorIPS1_S3_EERKS1_@GDAL_1.8 1.8.0
- _ZNSt6vectorIN6PCIDSK10ShapeFieldESaIS1_EE14_M_fill_insertEN9__gnu_cxx17__normal_iteratorIPS1_S3_EEjRKS1_@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZNSt6vectorIN6PCIDSK10ShapeFieldESaIS1_EE14_M_fill_insertEN9__gnu_cxx17__normal_iteratorIPS1_S3_EEjRKS1_@GDAL_1.8 1.8.0
+ _ZNSt6vectorIN6PCIDSK10ShapeFieldESaIS1_EE14_M_fill_insertEN9__gnu_cxx17__normal_iteratorIPS1_S3_EEmRKS1_@GDAL_1.8 1.8.0
  _ZNSt6vectorIN6PCIDSK10ShapeFieldESaIS1_EED1Ev@GDAL_1.8 1.8.0
  _ZNSt6vectorIN6PCIDSK10ShapeFieldESaIS1_EED2Ev@GDAL_1.8 1.8.0
  _ZNSt6vectorIN6PCIDSK10ShapeFieldESaIS1_EEaSERKS3_@GDAL_1.8 1.8.0
- _ZNSt6vectorIN6PCIDSK11ShapeVertexESaIS1_EE14_M_fill_insertEN9__gnu_cxx17__normal_iteratorIPS1_S3_EEjRKS1_@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZNSt6vectorIN6PCIDSK11ShapeVertexESaIS1_EE14_M_fill_insertEN9__gnu_cxx17__normal_iteratorIPS1_S3_EEjRKS1_@GDAL_1.8 1.8.0
+ _ZNSt6vectorIN6PCIDSK11ShapeVertexESaIS1_EE14_M_fill_insertEN9__gnu_cxx17__normal_iteratorIPS1_S3_EEmRKS1_@GDAL_1.8 1.8.0
  _ZNSt6vectorIN6PCIDSK13ProtectedFileESaIS1_EE13_M_insert_auxEN9__gnu_cxx17__normal_iteratorIPS1_S3_EERKS1_@GDAL_1.8 1.8.0
  _ZNSt6vectorIN6PCIDSK13ProtectedFileESaIS1_EED1Ev@GDAL_1.8 1.8.0
  _ZNSt6vectorIN6PCIDSK13ProtectedFileESaIS1_EED2Ev@GDAL_1.8 1.8.0
@@ -12747,7 +12823,8 @@ libgdal1.8.0.so.1 libgdal1-1.8.0 #MINVER#
  _ZNSt6vectorIN6PCIDSK3GCPESaIS1_EED1Ev@GDAL_1.8 1.8.0
  _ZNSt6vectorIN6PCIDSK3GCPESaIS1_EED2Ev@GDAL_1.8 1.8.0
  _ZNSt6vectorIN6PCIDSK3GCPESaIS1_EEaSERKS3_@GDAL_1.8 1.8.0
- _ZNSt6vectorIN6PCIDSK9eChanTypeESaIS1_EE14_M_fill_insertEN9__gnu_cxx17__normal_iteratorIPS1_S3_EEjRKS1_@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZNSt6vectorIN6PCIDSK9eChanTypeESaIS1_EE14_M_fill_insertEN9__gnu_cxx17__normal_iteratorIPS1_S3_EEjRKS1_@GDAL_1.8 1.8.0
+ _ZNSt6vectorIN6PCIDSK9eChanTypeESaIS1_EE14_M_fill_insertEN9__gnu_cxx17__normal_iteratorIPS1_S3_EEmRKS1_@GDAL_1.8 1.8.0
  _ZNSt6vectorIP10OGRFeatureSaIS1_EE13_M_insert_auxEN9__gnu_cxx17__normal_iteratorIPS1_S3_EERKS1_@GDAL_1.8 1.8.0
  _ZNSt6vectorIP10OGRFeatureSaIS1_EEaSERKS3_@GDAL_1.8 1.8.0
  _ZNSt6vectorIP10VFKFeatureSaIS1_EE13_M_insert_auxEN9__gnu_cxx17__normal_iteratorIPS1_S3_EERKS1_@GDAL_1.8 1.8.0
@@ -12770,38 +12847,51 @@ libgdal1.8.0.so.1 libgdal1-1.8.0 #MINVER#
  _ZNSt6vectorIP9AttributeSaIS1_EE13_M_insert_auxEN9__gnu_cxx17__normal_iteratorIPS1_S3_EERKS1_@GDAL_1.8 1.8.0
  _ZNSt6vectorIPN6PCIDSK13CTiledChannelESaIS2_EE13_M_insert_auxEN9__gnu_cxx17__normal_iteratorIPS2_S4_EERKS2_@GDAL_1.8 1.8.0
  _ZNSt6vectorIPN6PCIDSK13PCIDSKChannelESaIS2_EE13_M_insert_auxEN9__gnu_cxx17__normal_iteratorIPS2_S4_EERKS2_@GDAL_1.8 1.8.0
- _ZNSt6vectorIPN6PCIDSK13PCIDSKSegmentESaIS2_EE14_M_fill_insertEN9__gnu_cxx17__normal_iteratorIPS2_S4_EEjRKS2_@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZNSt6vectorIPN6PCIDSK13PCIDSKSegmentESaIS2_EE14_M_fill_insertEN9__gnu_cxx17__normal_iteratorIPS2_S4_EEjRKS2_@GDAL_1.8 1.8.0
+ _ZNSt6vectorIPN6PCIDSK13PCIDSKSegmentESaIS2_EE14_M_fill_insertEN9__gnu_cxx17__normal_iteratorIPS2_S4_EEmRKS2_@GDAL_1.8 1.8.0
  _ZNSt6vectorIPN6PCIDSK14SysVirtualFileESaIS2_EE13_M_insert_auxEN9__gnu_cxx17__normal_iteratorIPS2_S4_EERKS2_@GDAL_1.8 1.8.0
- _ZNSt6vectorIPN6PCIDSK14SysVirtualFileESaIS2_EE14_M_fill_insertEN9__gnu_cxx17__normal_iteratorIPS2_S4_EEjRKS2_@GDAL_1.8 1.8.0
- _ZNSt6vectorIPPcSaIS1_EE14_M_fill_insertEN9__gnu_cxx17__normal_iteratorIPS1_S3_EEjRKS1_@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZNSt6vectorIPN6PCIDSK14SysVirtualFileESaIS2_EE14_M_fill_insertEN9__gnu_cxx17__normal_iteratorIPS2_S4_EEjRKS2_@GDAL_1.8 1.8.0
+ _ZNSt6vectorIPN6PCIDSK14SysVirtualFileESaIS2_EE14_M_fill_insertEN9__gnu_cxx17__normal_iteratorIPS2_S4_EEmRKS2_@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZNSt6vectorIPPcSaIS1_EE14_M_fill_insertEN9__gnu_cxx17__normal_iteratorIPS1_S3_EEjRKS1_@GDAL_1.8 1.8.0
+ _ZNSt6vectorIPPcSaIS1_EE14_M_fill_insertEN9__gnu_cxx17__normal_iteratorIPS1_S3_EEmRKS1_@GDAL_1.8 1.8.0
  _ZNSt6vectorIPS_I8OGRPointSaIS0_EESaIS3_EE13_M_insert_auxEN9__gnu_cxx17__normal_iteratorIPS3_S5_EERKS3_@GDAL_1.8 1.8.0
  _ZNSt6vectorIPcSaIS0_EE13_M_insert_auxEN9__gnu_cxx17__normal_iteratorIPS0_S2_EERKS0_@GDAL_1.8 1.8.0
  _ZNSt6vectorIPhSaIS0_EE13_M_insert_auxEN9__gnu_cxx17__normal_iteratorIPS0_S2_EERKS0_@GDAL_1.8 1.8.0
- _ZNSt6vectorIS_IiSaIiEESaIS1_EE14_M_fill_insertEN9__gnu_cxx17__normal_iteratorIPS1_S3_EEjRKS1_@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZNSt6vectorIS_IiSaIiEESaIS1_EE14_M_fill_insertEN9__gnu_cxx17__normal_iteratorIPS1_S3_EEjRKS1_@GDAL_1.8 1.8.0
+ _ZNSt6vectorIS_IiSaIiEESaIS1_EE14_M_fill_insertEN9__gnu_cxx17__normal_iteratorIPS1_S3_EEmRKS1_@GDAL_1.8 1.8.0
  _ZNSt6vectorISsSaISsEE13_M_insert_auxEN9__gnu_cxx17__normal_iteratorIPSsS1_EERKSs@GDAL_1.8 1.8.0
- _ZNSt6vectorISsSaISsEE14_M_fill_insertEN9__gnu_cxx17__normal_iteratorIPSsS1_EEjRKSs@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZNSt6vectorISsSaISsEE14_M_fill_insertEN9__gnu_cxx17__normal_iteratorIPSsS1_EEjRKSs@GDAL_1.8 1.8.0
+ _ZNSt6vectorISsSaISsEE14_M_fill_insertEN9__gnu_cxx17__normal_iteratorIPSsS1_EEmRKSs@GDAL_1.8 1.8.0
  _ZNSt6vectorISsSaISsEED1Ev@GDAL_1.8 1.8.0
  _ZNSt6vectorISsSaISsEED2Ev@GDAL_1.8 1.8.0
  _ZNSt6vectorISt4pairIiiESaIS1_EE13_M_insert_auxEN9__gnu_cxx17__normal_iteratorIPS1_S3_EERKS1_@GDAL_1.8 1.8.0
  _ZNSt6vectorISt4pairIiiESaIS1_EEaSERKS3_@GDAL_1.8 1.8.0
  _ZNSt6vectorIdSaIdEE13_M_insert_auxEN9__gnu_cxx17__normal_iteratorIPdS1_EERKd@GDAL_1.8 1.8.0
- _ZNSt6vectorIdSaIdEE14_M_fill_insertEN9__gnu_cxx17__normal_iteratorIPdS1_EEjRKd@GDAL_1.8 1.8.0
- _ZNSt6vectorIdSaIdEE7reserveEj@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZNSt6vectorIdSaIdEE14_M_fill_insertEN9__gnu_cxx17__normal_iteratorIPdS1_EEjRKd@GDAL_1.8 1.8.0
+ _ZNSt6vectorIdSaIdEE14_M_fill_insertEN9__gnu_cxx17__normal_iteratorIPdS1_EEmRKd@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZNSt6vectorIdSaIdEE7reserveEj@GDAL_1.8 1.8.0
+ _ZNSt6vectorIdSaIdEE7reserveEm@GDAL_1.8 1.8.0
  _ZNSt6vectorIdSaIdEED1Ev@GDAL_1.8 1.8.0
  _ZNSt6vectorIdSaIdEED2Ev@GDAL_1.8 1.8.0
  _ZNSt6vectorIdSaIdEEaSERKS1_@GDAL_1.8 1.8.0
- _ZNSt6vectorIhSaIhEE14_M_fill_insertEN9__gnu_cxx17__normal_iteratorIPhS1_EEjRKh@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZNSt6vectorIhSaIhEE14_M_fill_insertEN9__gnu_cxx17__normal_iteratorIPhS1_EEjRKh@GDAL_1.8 1.8.0
+ _ZNSt6vectorIhSaIhEE14_M_fill_insertEN9__gnu_cxx17__normal_iteratorIPhS1_EEmRKh@GDAL_1.8 1.8.0
  _ZNSt6vectorIiSaIiEE13_M_insert_auxEN9__gnu_cxx17__normal_iteratorIPiS1_EERKi@GDAL_1.8 1.8.0
- _ZNSt6vectorIiSaIiEE14_M_fill_insertEN9__gnu_cxx17__normal_iteratorIPiS1_EEjRKi@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZNSt6vectorIiSaIiEE14_M_fill_insertEN9__gnu_cxx17__normal_iteratorIPiS1_EEjRKi@GDAL_1.8 1.8.0
+ _ZNSt6vectorIiSaIiEE14_M_fill_insertEN9__gnu_cxx17__normal_iteratorIPiS1_EEmRKi@GDAL_1.8 1.8.0
  _ZNSt6vectorIiSaIiEEaSERKS1_@GDAL_1.8 1.8.0
  _ZNSt6vectorIjSaIjEE13_M_insert_auxEN9__gnu_cxx17__normal_iteratorIPjS1_EERKj@GDAL_1.8 1.8.0
- _ZNSt6vectorIjSaIjEE14_M_fill_insertEN9__gnu_cxx17__normal_iteratorIPjS1_EEjRKj@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZNSt6vectorIjSaIjEE14_M_fill_insertEN9__gnu_cxx17__normal_iteratorIPjS1_EEjRKj@GDAL_1.8 1.8.0
+ _ZNSt6vectorIjSaIjEE14_M_fill_insertEN9__gnu_cxx17__normal_iteratorIPjS1_EEmRKj@GDAL_1.8 1.8.0
  _ZNSt6vectorIjSaIjEE6insertEN9__gnu_cxx17__normal_iteratorIPjS1_EERKj@GDAL_1.8 1.8.0
  _ZNSt6vectorItSaItEE13_M_insert_auxEN9__gnu_cxx17__normal_iteratorIPtS1_EERKt@GDAL_1.8 1.8.0
- _ZNSt6vectorItSaItEE14_M_fill_insertEN9__gnu_cxx17__normal_iteratorIPtS1_EEjRKt@GDAL_1.8 1.8.0
- _ZNSt6vectorItSaItEE6resizeEjt@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZNSt6vectorItSaItEE14_M_fill_insertEN9__gnu_cxx17__normal_iteratorIPtS1_EEjRKt@GDAL_1.8 1.8.0
+ _ZNSt6vectorItSaItEE14_M_fill_insertEN9__gnu_cxx17__normal_iteratorIPtS1_EEmRKt@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZNSt6vectorItSaItEE6resizeEjt@GDAL_1.8 1.8.0
+ _ZNSt6vectorItSaItEE6resizeEmt@GDAL_1.8 1.8.0
  _ZNSt6vectorIySaIyEE13_M_insert_auxEN9__gnu_cxx17__normal_iteratorIPyS1_EERKy@GDAL_1.8 1.8.0
- _ZNSt6vectorIySaIyEE14_M_fill_insertEN9__gnu_cxx17__normal_iteratorIPyS1_EEjRKy@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZNSt6vectorIySaIyEE14_M_fill_insertEN9__gnu_cxx17__normal_iteratorIPyS1_EEjRKy@GDAL_1.8 1.8.0
+ _ZNSt6vectorIySaIyEE14_M_fill_insertEN9__gnu_cxx17__normal_iteratorIPyS1_EEmRKy@GDAL_1.8 1.8.0
  _ZNSt8_Rb_treeI9CPLStringS0_St9_IdentityIS0_ESt4lessIS0_ESaIS0_EE10_M_insert_EPKSt18_Rb_tree_node_baseS9_RKS0_@GDAL_1.8 1.8.0
  _ZNSt8_Rb_treeI9CPLStringS0_St9_IdentityIS0_ESt4lessIS0_ESaIS0_EE16_M_insert_uniqueERKS0_@GDAL_1.8 1.8.0
  _ZNSt8_Rb_treeI9CPLStringS0_St9_IdentityIS0_ESt4lessIS0_ESaIS0_EE8_M_eraseEPSt13_Rb_tree_nodeIS0_E@GDAL_1.8 1.8.0
@@ -12882,10 +12972,12 @@ libgdal1.8.0.so.1 libgdal1-1.8.0 #MINVER#
  _ZNSt8_Rb_treeImSt4pairIKmP14CachedFilePropESt10_Select1stIS4_ESt4lessImESaIS4_EE16_M_insert_uniqueERKS4_@GDAL_1.8 1.8.0
  _ZNSt8_Rb_treeImSt4pairIKmP14CachedFilePropESt10_Select1stIS4_ESt4lessImESaIS4_EE17_M_insert_unique_ESt23_Rb_tree_const_iteratorIS4_ERKS4_@GDAL_1.8 1.8.0
  _ZNSt8_Rb_treeImSt4pairIKmP14CachedFilePropESt10_Select1stIS4_ESt4lessImESaIS4_EE8_M_eraseEPSt13_Rb_tree_nodeIS4_E@GDAL_1.8 1.8.0
- _ZSt13__adjust_heapIN9__gnu_cxx17__normal_iteratorIPSt4pairIiiESt6vectorIS3_SaIS3_EEEEiS3_EvT_T0_SA_T1_@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZSt13__adjust_heapIN9__gnu_cxx17__normal_iteratorIPSt4pairIiiESt6vectorIS3_SaIS3_EEEEiS3_EvT_T0_SA_T1_@GDAL_1.8 1.8.0
+ _ZSt13__adjust_heapIN9__gnu_cxx17__normal_iteratorIPSt4pairIiiESt6vectorIS3_SaIS3_EEEElS3_EvT_T0_SA_T1_@GDAL_1.8 1.8.0
  _ZSt13__heap_selectIN9__gnu_cxx17__normal_iteratorIPSt4pairIiiESt6vectorIS3_SaIS3_EEEEEvT_S9_S9_@GDAL_1.8 1.8.0
  _ZSt16__insertion_sortIN9__gnu_cxx17__normal_iteratorIPSt4pairIiiESt6vectorIS3_SaIS3_EEEEEvT_S9_@GDAL_1.8 1.8.0
- _ZSt16__introsort_loopIN9__gnu_cxx17__normal_iteratorIPSt4pairIiiESt6vectorIS3_SaIS3_EEEEiEvT_S9_T0_@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZSt16__introsort_loopIN9__gnu_cxx17__normal_iteratorIPSt4pairIiiESt6vectorIS3_SaIS3_EEEEiEvT_S9_T0_@GDAL_1.8 1.8.0
+ _ZSt16__introsort_loopIN9__gnu_cxx17__normal_iteratorIPSt4pairIiiESt6vectorIS3_SaIS3_EEEElEvT_S9_T0_@GDAL_1.8 1.8.0
  _ZSt19__move_median_firstIN9__gnu_cxx17__normal_iteratorIPSt4pairIiiESt6vectorIS3_SaIS3_EEEEEvT_S9_S9_@GDAL_1.8 1.8.0
  _ZSt25__unguarded_linear_insertIN9__gnu_cxx17__normal_iteratorIPSt4pairIiiESt6vectorIS3_SaIS3_EEEEEvT_@GDAL_1.8 1.8.0
  _ZSt6__findIN9__gnu_cxx17__normal_iteratorIPcSsEEcET_S4_S4_RKT0_St26random_access_iterator_tag@GDAL_1.8 1.8.0
@@ -12899,18 +12991,22 @@ libgdal1.8.0.so.1 libgdal1-1.8.0 #MINVER#
  _ZStplIcSt11char_traitsIcESaIcEESbIT_T0_T1_EPKS3_RKS6_@GDAL_1.8 1.8.0
  _ZStplIcSt11char_traitsIcESaIcEESbIT_T0_T1_ERKS6_S8_@GDAL_1.8 1.8.0
 #MISSING: 1.8.1-1# _ZTCN6PCIDSK11CPCIDSK_PCTE4_NS_14CPCIDSKSegmentE@GDAL_1.8 1.8.0
- _ZTCN6PCIDSK11CPCIDSK_PCTE8_NS_14CPCIDSKSegmentE@GDAL_1.8 1.8.1-1
+ _ZTCN6PCIDSK11CPCIDSK_PCTE8_NS_14CPCIDSKSegmentE@GDAL_1.8 1.8.0
 #MISSING: 1.8.1-1# _ZTCN6PCIDSK11CPCIDSK_TEXE4_NS_14CPCIDSKSegmentE@GDAL_1.8 1.8.0
- _ZTCN6PCIDSK11CPCIDSK_TEXE8_NS_14CPCIDSKSegmentE@GDAL_1.8 1.8.1-1
- _ZTCN6PCIDSK11SysBlockMapE56_NS_14CPCIDSKSegmentE@GDAL_1.8 1.8.0
- _ZTCN6PCIDSK13CPCIDSKBitmapE24_NS_14CPCIDSKSegmentE@GDAL_1.8 1.8.0
+ _ZTCN6PCIDSK11CPCIDSK_TEXE8_NS_14CPCIDSKSegmentE@GDAL_1.8 1.8.0
+ _ZTCN6PCIDSK11SysBlockMapE104_NS_14CPCIDSKSegmentE@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZTCN6PCIDSK11SysBlockMapE56_NS_14CPCIDSKSegmentE@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZTCN6PCIDSK13CPCIDSKBitmapE24_NS_14CPCIDSKSegmentE@GDAL_1.8 1.8.0
+ _ZTCN6PCIDSK13CPCIDSKBitmapE32_NS_14CPCIDSKSegmentE@GDAL_1.8 1.8.0
 #MISSING: 1.8.1-1# _ZTCN6PCIDSK13CPCIDSKGeorefE72_NS_14CPCIDSKSegmentE@GDAL_1.8 1.8.0
- _ZTCN6PCIDSK13CPCIDSKGeorefE80_NS_14CPCIDSKSegmentE@GDAL_1.8 1.8.1-1
+ _ZTCN6PCIDSK13CPCIDSKGeorefE96_NS_14CPCIDSKSegmentE@GDAL_1.8 1.8.0
 #MISSING: 1.8.1-1# _ZTCN6PCIDSK15MetadataSegmentE44_NS_14CPCIDSKSegmentE@GDAL_1.8 1.8.0
- _ZTCN6PCIDSK15MetadataSegmentE48_NS_14CPCIDSKSegmentE@GDAL_1.8 1.8.1-1
+ _ZTCN6PCIDSK15MetadataSegmentE88_NS_14CPCIDSKSegmentE@GDAL_1.8 1.8.0
  _ZTCN6PCIDSK18CPCIDSKGCP2SegmentE0_NS_14CPCIDSKSegmentE@GDAL_1.8 1.8.0
- _ZTCN6PCIDSK20CPCIDSKVectorSegmentE352_NS_14CPCIDSKSegmentE@GDAL_1.8 1.8.0
- _ZTCN6PCIDSK21CPCIDSKAPModelSegmentE64_NS_14CPCIDSKSegmentE@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZTCN6PCIDSK20CPCIDSKVectorSegmentE352_NS_14CPCIDSKSegmentE@GDAL_1.8 1.8.0
+ _ZTCN6PCIDSK20CPCIDSKVectorSegmentE568_NS_14CPCIDSKSegmentE@GDAL_1.8 1.8.0
+ _ZTCN6PCIDSK21CPCIDSKAPModelSegmentE112_NS_14CPCIDSKSegmentE@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZTCN6PCIDSK21CPCIDSKAPModelSegmentE64_NS_14CPCIDSKSegmentE@GDAL_1.8 1.8.0
  _ZTCN6PCIDSK22CPCIDSKRPCModelSegmentE0_NS_14CPCIDSKSegmentE@GDAL_1.8 1.8.0
  _ZTI10AIGDataset@GDAL_1.8 1.8.0
  _ZTI10BAGDataset@GDAL_1.8 1.8.0
@@ -14904,201 +15000,372 @@ libgdal1.8.0.so.1 libgdal1-1.8.0 #MINVER#
  _ZTVN6PCIDSK24CPixelInterleavedChannelE@GDAL_1.8 1.8.0
  _ZTVN6PCIDSK5MutexE@GDAL_1.8 1.8.0
  _ZTVN6PCIDSK7EDBFileE@GDAL_1.8 1.8.0
- _ZThn12_N10NASHandler10fatalErrorERKN11xercesc_2_817SAXParseExceptionE@GDAL_1.8 1.8.0
- _ZThn12_N10NASHandlerD0Ev@GDAL_1.8 1.8.0
- _ZThn12_N10NASHandlerD1Ev@GDAL_1.8 1.8.0
- _ZThn12_N11ILI2Handler10fatalErrorERKN11xercesc_2_817SAXParseExceptionE@GDAL_1.8 1.8.0
- _ZThn12_N11ILI2HandlerD0Ev@GDAL_1.8 1.8.0
- _ZThn12_N11ILI2HandlerD1Ev@GDAL_1.8 1.8.0
- _ZThn12_N11xercesc_2_814DefaultHandler10fatalErrorERKNS_17SAXParseExceptionE@GDAL_1.8 1.8.0
- _ZThn12_N11xercesc_2_814DefaultHandler11resetErrorsEv@GDAL_1.8 1.8.0
- _ZThn12_N11xercesc_2_814DefaultHandler5errorERKNS_17SAXParseExceptionE@GDAL_1.8 1.8.0
- _ZThn12_N11xercesc_2_814DefaultHandler7warningERKNS_17SAXParseExceptionE@GDAL_1.8 1.8.0
- _ZThn12_N11xercesc_2_814DefaultHandlerD0Ev@GDAL_1.8 1.8.0
- _ZThn12_N11xercesc_2_814DefaultHandlerD1Ev@GDAL_1.8 1.8.0
- _ZThn12_N13ParserHandler10fatalErrorERKN11xercesc_2_817SAXParseExceptionE@GDAL_1.8 1.8.0
- _ZThn12_N13ParserHandler5errorERKN11xercesc_2_817SAXParseExceptionE@GDAL_1.8 1.8.0
- _ZThn12_N13ParserHandler7warningERKN11xercesc_2_817SAXParseExceptionE@GDAL_1.8 1.8.0
- _ZThn12_N13ParserHandlerD0Ev@GDAL_1.8 1.8.0
- _ZThn12_N13ParserHandlerD1Ev@GDAL_1.8 1.8.0
- _ZThn12_N16GMLXercesHandler10fatalErrorERKN11xercesc_2_817SAXParseExceptionE@GDAL_1.8 1.8.0
- _ZThn12_N16GMLXercesHandlerD0Ev@GDAL_1.8 1.8.0
- _ZThn12_N16GMLXercesHandlerD1Ev@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZThn12_N10NASHandler10fatalErrorERKN11xercesc_2_817SAXParseExceptionE@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZThn12_N10NASHandlerD0Ev@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZThn12_N10NASHandlerD1Ev@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZThn12_N11ILI2Handler10fatalErrorERKN11xercesc_2_817SAXParseExceptionE@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZThn12_N11ILI2HandlerD0Ev@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZThn12_N11ILI2HandlerD1Ev@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZThn12_N11xercesc_2_814DefaultHandler10fatalErrorERKNS_17SAXParseExceptionE@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZThn12_N11xercesc_2_814DefaultHandler11resetErrorsEv@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZThn12_N11xercesc_2_814DefaultHandler5errorERKNS_17SAXParseExceptionE@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZThn12_N11xercesc_2_814DefaultHandler7warningERKNS_17SAXParseExceptionE@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZThn12_N11xercesc_2_814DefaultHandlerD0Ev@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZThn12_N11xercesc_2_814DefaultHandlerD1Ev@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZThn12_N13ParserHandler10fatalErrorERKN11xercesc_2_817SAXParseExceptionE@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZThn12_N13ParserHandler5errorERKN11xercesc_2_817SAXParseExceptionE@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZThn12_N13ParserHandler7warningERKN11xercesc_2_817SAXParseExceptionE@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZThn12_N13ParserHandlerD0Ev@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZThn12_N13ParserHandlerD1Ev@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZThn12_N16GMLXercesHandler10fatalErrorERKN11xercesc_2_817SAXParseExceptionE@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZThn12_N16GMLXercesHandlerD0Ev@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZThn12_N16GMLXercesHandlerD1Ev@GDAL_1.8 1.8.0
+ _ZThn16_N10NASHandler10charactersEPKtj@GDAL_1.8 1.8.0
+ _ZThn16_N10NASHandler10endElementEPKtS1_S1_@GDAL_1.8 1.8.0
+ _ZThn16_N10NASHandler12startElementEPKtS1_S1_RKN11xercesc_2_810AttributesE@GDAL_1.8 1.8.0
  _ZThn16_N10NASHandlerD0Ev@GDAL_1.8 1.8.0
  _ZThn16_N10NASHandlerD1Ev@GDAL_1.8 1.8.0
- _ZThn16_N11ILI2Handler11startEntityEPKt@GDAL_1.8 1.8.0
+ _ZThn16_N11ILI2Handler10charactersEPKtj@GDAL_1.8 1.8.0
+ _ZThn16_N11ILI2Handler10endElementEPKtS1_S1_@GDAL_1.8 1.8.0
+ _ZThn16_N11ILI2Handler11endDocumentEv@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZThn16_N11ILI2Handler11startEntityEPKt@GDAL_1.8 1.8.0
+ _ZThn16_N11ILI2Handler12startElementEPKtS1_S1_RKN11xercesc_2_810AttributesE@GDAL_1.8 1.8.0
+ _ZThn16_N11ILI2Handler13startDocumentEv@GDAL_1.8 1.8.0
  _ZThn16_N11ILI2HandlerD0Ev@GDAL_1.8 1.8.0
  _ZThn16_N11ILI2HandlerD1Ev@GDAL_1.8 1.8.0
- _ZThn16_N11xercesc_2_814DefaultHandler10startCDATAEv@GDAL_1.8 1.8.0
- _ZThn16_N11xercesc_2_814DefaultHandler11startEntityEPKt@GDAL_1.8 1.8.0
- _ZThn16_N11xercesc_2_814DefaultHandler6endDTDEv@GDAL_1.8 1.8.0
- _ZThn16_N11xercesc_2_814DefaultHandler7commentEPKtj@GDAL_1.8 1.8.0
- _ZThn16_N11xercesc_2_814DefaultHandler8endCDATAEv@GDAL_1.8 1.8.0
- _ZThn16_N11xercesc_2_814DefaultHandler8startDTDEPKtS2_S2_@GDAL_1.8 1.8.0
- _ZThn16_N11xercesc_2_814DefaultHandler9endEntityEPKt@GDAL_1.8 1.8.0
+ _ZThn16_N11xercesc_2_814DefaultHandler10charactersEPKtj@GDAL_1.8 1.8.0
+ _ZThn16_N11xercesc_2_814DefaultHandler10endElementEPKtS2_S2_@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZThn16_N11xercesc_2_814DefaultHandler10startCDATAEv@GDAL_1.8 1.8.0
+ _ZThn16_N11xercesc_2_814DefaultHandler11endDocumentEv@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZThn16_N11xercesc_2_814DefaultHandler11startEntityEPKt@GDAL_1.8 1.8.0
+ _ZThn16_N11xercesc_2_814DefaultHandler12startElementEPKtS2_S2_RKNS_10AttributesE@GDAL_1.8 1.8.0
+ _ZThn16_N11xercesc_2_814DefaultHandler13skippedEntityEPKt@GDAL_1.8 1.8.0
+ _ZThn16_N11xercesc_2_814DefaultHandler13startDocumentEv@GDAL_1.8 1.8.0
+ _ZThn16_N11xercesc_2_814DefaultHandler16endPrefixMappingEPKt@GDAL_1.8 1.8.0
+ _ZThn16_N11xercesc_2_814DefaultHandler18setDocumentLocatorEPKNS_7LocatorE@GDAL_1.8 1.8.0
+ _ZThn16_N11xercesc_2_814DefaultHandler18startPrefixMappingEPKtS2_@GDAL_1.8 1.8.0
+ _ZThn16_N11xercesc_2_814DefaultHandler19ignorableWhitespaceEPKtj@GDAL_1.8 1.8.0
+ _ZThn16_N11xercesc_2_814DefaultHandler21processingInstructionEPKtS2_@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZThn16_N11xercesc_2_814DefaultHandler6endDTDEv@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZThn16_N11xercesc_2_814DefaultHandler7commentEPKtj@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZThn16_N11xercesc_2_814DefaultHandler8endCDATAEv@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZThn16_N11xercesc_2_814DefaultHandler8startDTDEPKtS2_S2_@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZThn16_N11xercesc_2_814DefaultHandler9endEntityEPKt@GDAL_1.8 1.8.0
  _ZThn16_N11xercesc_2_814DefaultHandlerD0Ev@GDAL_1.8 1.8.0
  _ZThn16_N11xercesc_2_814DefaultHandlerD1Ev@GDAL_1.8 1.8.0
- _ZThn16_N13ParserHandler11startEntityEPKt@GDAL_1.8 1.8.0
+ _ZThn16_N13ParserHandler10charactersEPKtj@GDAL_1.8 1.8.0
+ _ZThn16_N13ParserHandler10endElementEPKtS1_S1_@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZThn16_N13ParserHandler11startEntityEPKt@GDAL_1.8 1.8.0
+ _ZThn16_N13ParserHandler12startElementEPKtS1_S1_RKN11xercesc_2_810AttributesE@GDAL_1.8 1.8.0
+ _ZThn16_N13ParserHandler18setDocumentLocatorEPKN11xercesc_2_87LocatorE@GDAL_1.8 1.8.0
  _ZThn16_N13ParserHandlerD0Ev@GDAL_1.8 1.8.0
  _ZThn16_N13ParserHandlerD1Ev@GDAL_1.8 1.8.0
- _ZThn16_N16GMLXercesHandler11startEntityEPKt@GDAL_1.8 1.8.0
+ _ZThn16_N16GMLXercesHandler10charactersEPKtj@GDAL_1.8 1.8.0
+ _ZThn16_N16GMLXercesHandler10endElementEPKtS1_S1_@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZThn16_N16GMLXercesHandler11startEntityEPKt@GDAL_1.8 1.8.0
+ _ZThn16_N16GMLXercesHandler12startElementEPKtS1_S1_RKN11xercesc_2_810AttributesE@GDAL_1.8 1.8.0
  _ZThn16_N16GMLXercesHandlerD0Ev@GDAL_1.8 1.8.0
  _ZThn16_N16GMLXercesHandlerD1Ev@GDAL_1.8 1.8.0
- _ZThn20_N10NASHandlerD0Ev@GDAL_1.8 1.8.0
- _ZThn20_N10NASHandlerD1Ev@GDAL_1.8 1.8.0
- _ZThn20_N11ILI2HandlerD0Ev@GDAL_1.8 1.8.0
- _ZThn20_N11ILI2HandlerD1Ev@GDAL_1.8 1.8.0
- _ZThn20_N11xercesc_2_814DefaultHandler11elementDeclEPKtS2_@GDAL_1.8 1.8.0
- _ZThn20_N11xercesc_2_814DefaultHandler13attributeDeclEPKtS2_S2_S2_S2_@GDAL_1.8 1.8.0
- _ZThn20_N11xercesc_2_814DefaultHandler18externalEntityDeclEPKtS2_S2_@GDAL_1.8 1.8.0
- _ZThn20_N11xercesc_2_814DefaultHandler18internalEntityDeclEPKtS2_@GDAL_1.8 1.8.0
- _ZThn20_N11xercesc_2_814DefaultHandlerD0Ev@GDAL_1.8 1.8.0
- _ZThn20_N11xercesc_2_814DefaultHandlerD1Ev@GDAL_1.8 1.8.0
- _ZThn20_N13ParserHandlerD0Ev@GDAL_1.8 1.8.0
- _ZThn20_N13ParserHandlerD1Ev@GDAL_1.8 1.8.0
- _ZThn20_N16GMLXercesHandlerD0Ev@GDAL_1.8 1.8.0
- _ZThn20_N16GMLXercesHandlerD1Ev@GDAL_1.8 1.8.0
- _ZThn24_N16GMLXercesHandler13GetAttributesEPv@GDAL_1.8 1.8.0
- _ZThn24_N16GMLXercesHandler17GetAttributeValueEPvPKc@GDAL_1.8 1.8.0
- _ZThn24_N16GMLXercesHandler6GetFIDEPv@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZThn20_N10NASHandlerD0Ev@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZThn20_N10NASHandlerD1Ev@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZThn20_N11ILI2HandlerD0Ev@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZThn20_N11ILI2HandlerD1Ev@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZThn20_N11xercesc_2_814DefaultHandler11elementDeclEPKtS2_@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZThn20_N11xercesc_2_814DefaultHandler13attributeDeclEPKtS2_S2_S2_S2_@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZThn20_N11xercesc_2_814DefaultHandler18externalEntityDeclEPKtS2_S2_@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZThn20_N11xercesc_2_814DefaultHandler18internalEntityDeclEPKtS2_@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZThn20_N11xercesc_2_814DefaultHandlerD0Ev@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZThn20_N11xercesc_2_814DefaultHandlerD1Ev@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZThn20_N13ParserHandlerD0Ev@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZThn20_N13ParserHandlerD1Ev@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZThn20_N16GMLXercesHandlerD0Ev@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZThn20_N16GMLXercesHandlerD1Ev@GDAL_1.8 1.8.0
+ _ZThn24_N10NASHandler10fatalErrorERKN11xercesc_2_817SAXParseExceptionE@GDAL_1.8 1.8.0
+ _ZThn24_N10NASHandlerD0Ev@GDAL_1.8 1.8.0
+ _ZThn24_N10NASHandlerD1Ev@GDAL_1.8 1.8.0
+ _ZThn24_N11ILI2Handler10fatalErrorERKN11xercesc_2_817SAXParseExceptionE@GDAL_1.8 1.8.0
+ _ZThn24_N11ILI2HandlerD0Ev@GDAL_1.8 1.8.0
+ _ZThn24_N11ILI2HandlerD1Ev@GDAL_1.8 1.8.0
+ _ZThn24_N11xercesc_2_814DefaultHandler10fatalErrorERKNS_17SAXParseExceptionE@GDAL_1.8 1.8.0
+ _ZThn24_N11xercesc_2_814DefaultHandler11resetErrorsEv@GDAL_1.8 1.8.0
+ _ZThn24_N11xercesc_2_814DefaultHandler5errorERKNS_17SAXParseExceptionE@GDAL_1.8 1.8.0
+ _ZThn24_N11xercesc_2_814DefaultHandler7warningERKNS_17SAXParseExceptionE@GDAL_1.8 1.8.0
+ _ZThn24_N11xercesc_2_814DefaultHandlerD0Ev@GDAL_1.8 1.8.0
+ _ZThn24_N11xercesc_2_814DefaultHandlerD1Ev@GDAL_1.8 1.8.0
+ _ZThn24_N13ParserHandler10fatalErrorERKN11xercesc_2_817SAXParseExceptionE@GDAL_1.8 1.8.0
+ _ZThn24_N13ParserHandler5errorERKN11xercesc_2_817SAXParseExceptionE@GDAL_1.8 1.8.0
+ _ZThn24_N13ParserHandler7warningERKN11xercesc_2_817SAXParseExceptionE@GDAL_1.8 1.8.0
+ _ZThn24_N13ParserHandlerD0Ev@GDAL_1.8 1.8.0
+ _ZThn24_N13ParserHandlerD1Ev@GDAL_1.8 1.8.0
+ _ZThn24_N16GMLXercesHandler10fatalErrorERKN11xercesc_2_817SAXParseExceptionE@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZThn24_N16GMLXercesHandler13GetAttributesEPv@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZThn24_N16GMLXercesHandler17GetAttributeValueEPvPKc@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZThn24_N16GMLXercesHandler6GetFIDEPv@GDAL_1.8 1.8.0
  _ZThn24_N16GMLXercesHandlerD0Ev@GDAL_1.8 1.8.0
  _ZThn24_N16GMLXercesHandlerD1Ev@GDAL_1.8 1.8.0
- _ZThn4_N10NASHandlerD0Ev@GDAL_1.8 1.8.0
- _ZThn4_N10NASHandlerD1Ev@GDAL_1.8 1.8.0
- _ZThn4_N11ILI2HandlerD0Ev@GDAL_1.8 1.8.0
- _ZThn4_N11ILI2HandlerD1Ev@GDAL_1.8 1.8.0
- _ZThn4_N11xercesc_2_814DefaultHandler12notationDeclEPKtS2_S2_@GDAL_1.8 1.8.0
- _ZThn4_N11xercesc_2_814DefaultHandler12resetDocTypeEv@GDAL_1.8 1.8.0
- _ZThn4_N11xercesc_2_814DefaultHandler18unparsedEntityDeclEPKtS2_S2_S2_@GDAL_1.8 1.8.0
- _ZThn4_N11xercesc_2_814DefaultHandlerD0Ev@GDAL_1.8 1.8.0
- _ZThn4_N11xercesc_2_814DefaultHandlerD1Ev@GDAL_1.8 1.8.0
- _ZThn4_N13ParserHandlerD0Ev@GDAL_1.8 1.8.0
- _ZThn4_N13ParserHandlerD1Ev@GDAL_1.8 1.8.0
- _ZThn4_N16GMLXercesHandlerD0Ev@GDAL_1.8 1.8.0
- _ZThn4_N16GMLXercesHandlerD1Ev@GDAL_1.8 1.8.0
- _ZThn8_N10NASHandler10charactersEPKtj@GDAL_1.8 1.8.0
- _ZThn8_N10NASHandler10endElementEPKtS1_S1_@GDAL_1.8 1.8.0
- _ZThn8_N10NASHandler12startElementEPKtS1_S1_RKN11xercesc_2_810AttributesE@GDAL_1.8 1.8.0
+ _ZThn32_N10NASHandlerD0Ev@GDAL_1.8 1.8.0
+ _ZThn32_N10NASHandlerD1Ev@GDAL_1.8 1.8.0
+ _ZThn32_N11ILI2Handler11startEntityEPKt@GDAL_1.8 1.8.0
+ _ZThn32_N11ILI2HandlerD0Ev@GDAL_1.8 1.8.0
+ _ZThn32_N11ILI2HandlerD1Ev@GDAL_1.8 1.8.0
+ _ZThn32_N11xercesc_2_814DefaultHandler10startCDATAEv@GDAL_1.8 1.8.0
+ _ZThn32_N11xercesc_2_814DefaultHandler11startEntityEPKt@GDAL_1.8 1.8.0
+ _ZThn32_N11xercesc_2_814DefaultHandler6endDTDEv@GDAL_1.8 1.8.0
+ _ZThn32_N11xercesc_2_814DefaultHandler7commentEPKtj@GDAL_1.8 1.8.0
+ _ZThn32_N11xercesc_2_814DefaultHandler8endCDATAEv@GDAL_1.8 1.8.0
+ _ZThn32_N11xercesc_2_814DefaultHandler8startDTDEPKtS2_S2_@GDAL_1.8 1.8.0
+ _ZThn32_N11xercesc_2_814DefaultHandler9endEntityEPKt@GDAL_1.8 1.8.0
+ _ZThn32_N11xercesc_2_814DefaultHandlerD0Ev@GDAL_1.8 1.8.0
+ _ZThn32_N11xercesc_2_814DefaultHandlerD1Ev@GDAL_1.8 1.8.0
+ _ZThn32_N13ParserHandler11startEntityEPKt@GDAL_1.8 1.8.0
+ _ZThn32_N13ParserHandlerD0Ev@GDAL_1.8 1.8.0
+ _ZThn32_N13ParserHandlerD1Ev@GDAL_1.8 1.8.0
+ _ZThn32_N16GMLXercesHandler11startEntityEPKt@GDAL_1.8 1.8.0
+ _ZThn32_N16GMLXercesHandlerD0Ev@GDAL_1.8 1.8.0
+ _ZThn32_N16GMLXercesHandlerD1Ev@GDAL_1.8 1.8.0
+ _ZThn40_N10NASHandlerD0Ev@GDAL_1.8 1.8.0
+ _ZThn40_N10NASHandlerD1Ev@GDAL_1.8 1.8.0
+ _ZThn40_N11ILI2HandlerD0Ev@GDAL_1.8 1.8.0
+ _ZThn40_N11ILI2HandlerD1Ev@GDAL_1.8 1.8.0
+ _ZThn40_N11xercesc_2_814DefaultHandler11elementDeclEPKtS2_@GDAL_1.8 1.8.0
+ _ZThn40_N11xercesc_2_814DefaultHandler13attributeDeclEPKtS2_S2_S2_S2_@GDAL_1.8 1.8.0
+ _ZThn40_N11xercesc_2_814DefaultHandler18externalEntityDeclEPKtS2_S2_@GDAL_1.8 1.8.0
+ _ZThn40_N11xercesc_2_814DefaultHandler18internalEntityDeclEPKtS2_@GDAL_1.8 1.8.0
+ _ZThn40_N11xercesc_2_814DefaultHandlerD0Ev@GDAL_1.8 1.8.0
+ _ZThn40_N11xercesc_2_814DefaultHandlerD1Ev@GDAL_1.8 1.8.0
+ _ZThn40_N13ParserHandlerD0Ev@GDAL_1.8 1.8.0
+ _ZThn40_N13ParserHandlerD1Ev@GDAL_1.8 1.8.0
+ _ZThn40_N16GMLXercesHandlerD0Ev@GDAL_1.8 1.8.0
+ _ZThn40_N16GMLXercesHandlerD1Ev@GDAL_1.8 1.8.0
+ _ZThn48_N16GMLXercesHandler13GetAttributesEPv@GDAL_1.8 1.8.0
+ _ZThn48_N16GMLXercesHandler17GetAttributeValueEPvPKc@GDAL_1.8 1.8.0
+ _ZThn48_N16GMLXercesHandler6GetFIDEPv@GDAL_1.8 1.8.0
+ _ZThn48_N16GMLXercesHandlerD0Ev@GDAL_1.8 1.8.0
+ _ZThn48_N16GMLXercesHandlerD1Ev@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZThn4_N10NASHandlerD0Ev@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZThn4_N10NASHandlerD1Ev@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZThn4_N11ILI2HandlerD0Ev@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZThn4_N11ILI2HandlerD1Ev@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZThn4_N11xercesc_2_814DefaultHandler12notationDeclEPKtS2_S2_@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZThn4_N11xercesc_2_814DefaultHandler12resetDocTypeEv@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZThn4_N11xercesc_2_814DefaultHandler18unparsedEntityDeclEPKtS2_S2_S2_@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZThn4_N11xercesc_2_814DefaultHandlerD0Ev@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZThn4_N11xercesc_2_814DefaultHandlerD1Ev@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZThn4_N13ParserHandlerD0Ev@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZThn4_N13ParserHandlerD1Ev@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZThn4_N16GMLXercesHandlerD0Ev@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZThn4_N16GMLXercesHandlerD1Ev@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZThn8_N10NASHandler10charactersEPKtj@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZThn8_N10NASHandler10endElementEPKtS1_S1_@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZThn8_N10NASHandler12startElementEPKtS1_S1_RKN11xercesc_2_810AttributesE@GDAL_1.8 1.8.0
  _ZThn8_N10NASHandlerD0Ev@GDAL_1.8 1.8.0
  _ZThn8_N10NASHandlerD1Ev@GDAL_1.8 1.8.0
- _ZThn8_N11ILI2Handler10charactersEPKtj@GDAL_1.8 1.8.0
- _ZThn8_N11ILI2Handler10endElementEPKtS1_S1_@GDAL_1.8 1.8.0
- _ZThn8_N11ILI2Handler11endDocumentEv@GDAL_1.8 1.8.0
- _ZThn8_N11ILI2Handler12startElementEPKtS1_S1_RKN11xercesc_2_810AttributesE@GDAL_1.8 1.8.0
- _ZThn8_N11ILI2Handler13startDocumentEv@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZThn8_N11ILI2Handler10charactersEPKtj@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZThn8_N11ILI2Handler10endElementEPKtS1_S1_@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZThn8_N11ILI2Handler11endDocumentEv@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZThn8_N11ILI2Handler12startElementEPKtS1_S1_RKN11xercesc_2_810AttributesE@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZThn8_N11ILI2Handler13startDocumentEv@GDAL_1.8 1.8.0
  _ZThn8_N11ILI2HandlerD0Ev@GDAL_1.8 1.8.0
  _ZThn8_N11ILI2HandlerD1Ev@GDAL_1.8 1.8.0
- _ZThn8_N11xercesc_2_814DefaultHandler10charactersEPKtj@GDAL_1.8 1.8.0
- _ZThn8_N11xercesc_2_814DefaultHandler10endElementEPKtS2_S2_@GDAL_1.8 1.8.0
- _ZThn8_N11xercesc_2_814DefaultHandler11endDocumentEv@GDAL_1.8 1.8.0
- _ZThn8_N11xercesc_2_814DefaultHandler12startElementEPKtS2_S2_RKNS_10AttributesE@GDAL_1.8 1.8.0
- _ZThn8_N11xercesc_2_814DefaultHandler13skippedEntityEPKt@GDAL_1.8 1.8.0
- _ZThn8_N11xercesc_2_814DefaultHandler13startDocumentEv@GDAL_1.8 1.8.0
- _ZThn8_N11xercesc_2_814DefaultHandler16endPrefixMappingEPKt@GDAL_1.8 1.8.0
- _ZThn8_N11xercesc_2_814DefaultHandler18setDocumentLocatorEPKNS_7LocatorE@GDAL_1.8 1.8.0
- _ZThn8_N11xercesc_2_814DefaultHandler18startPrefixMappingEPKtS2_@GDAL_1.8 1.8.0
- _ZThn8_N11xercesc_2_814DefaultHandler19ignorableWhitespaceEPKtj@GDAL_1.8 1.8.0
- _ZThn8_N11xercesc_2_814DefaultHandler21processingInstructionEPKtS2_@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZThn8_N11xercesc_2_814DefaultHandler10charactersEPKtj@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZThn8_N11xercesc_2_814DefaultHandler10endElementEPKtS2_S2_@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZThn8_N11xercesc_2_814DefaultHandler11endDocumentEv@GDAL_1.8 1.8.0
+ _ZThn8_N11xercesc_2_814DefaultHandler12notationDeclEPKtS2_S2_@GDAL_1.8 1.8.0
+ _ZThn8_N11xercesc_2_814DefaultHandler12resetDocTypeEv@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZThn8_N11xercesc_2_814DefaultHandler12startElementEPKtS2_S2_RKNS_10AttributesE@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZThn8_N11xercesc_2_814DefaultHandler13skippedEntityEPKt@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZThn8_N11xercesc_2_814DefaultHandler13startDocumentEv@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZThn8_N11xercesc_2_814DefaultHandler16endPrefixMappingEPKt@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZThn8_N11xercesc_2_814DefaultHandler18setDocumentLocatorEPKNS_7LocatorE@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZThn8_N11xercesc_2_814DefaultHandler18startPrefixMappingEPKtS2_@GDAL_1.8 1.8.0
+ _ZThn8_N11xercesc_2_814DefaultHandler18unparsedEntityDeclEPKtS2_S2_S2_@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZThn8_N11xercesc_2_814DefaultHandler19ignorableWhitespaceEPKtj@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZThn8_N11xercesc_2_814DefaultHandler21processingInstructionEPKtS2_@GDAL_1.8 1.8.0
  _ZThn8_N11xercesc_2_814DefaultHandlerD0Ev@GDAL_1.8 1.8.0
  _ZThn8_N11xercesc_2_814DefaultHandlerD1Ev@GDAL_1.8 1.8.0
- _ZThn8_N13ParserHandler10charactersEPKtj@GDAL_1.8 1.8.0
- _ZThn8_N13ParserHandler10endElementEPKtS1_S1_@GDAL_1.8 1.8.0
- _ZThn8_N13ParserHandler12startElementEPKtS1_S1_RKN11xercesc_2_810AttributesE@GDAL_1.8 1.8.0
- _ZThn8_N13ParserHandler18setDocumentLocatorEPKN11xercesc_2_87LocatorE@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZThn8_N13ParserHandler10charactersEPKtj@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZThn8_N13ParserHandler10endElementEPKtS1_S1_@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZThn8_N13ParserHandler12startElementEPKtS1_S1_RKN11xercesc_2_810AttributesE@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZThn8_N13ParserHandler18setDocumentLocatorEPKN11xercesc_2_87LocatorE@GDAL_1.8 1.8.0
  _ZThn8_N13ParserHandlerD0Ev@GDAL_1.8 1.8.0
  _ZThn8_N13ParserHandlerD1Ev@GDAL_1.8 1.8.0
- _ZThn8_N16GMLXercesHandler10charactersEPKtj@GDAL_1.8 1.8.0
- _ZThn8_N16GMLXercesHandler10endElementEPKtS1_S1_@GDAL_1.8 1.8.0
- _ZThn8_N16GMLXercesHandler12startElementEPKtS1_S1_RKN11xercesc_2_810AttributesE@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZThn8_N16GMLXercesHandler10charactersEPKtj@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZThn8_N16GMLXercesHandler10endElementEPKtS1_S1_@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZThn8_N16GMLXercesHandler12startElementEPKtS1_S1_RKN11xercesc_2_810AttributesE@GDAL_1.8 1.8.0
  _ZThn8_N16GMLXercesHandlerD0Ev@GDAL_1.8 1.8.0
  _ZThn8_N16GMLXercesHandlerD1Ev@GDAL_1.8 1.8.0
- _ZTv0_n12_N6PCIDSK11CPCIDSK_PCTD0Ev@GDAL_1.8 1.8.0
- _ZTv0_n12_N6PCIDSK11CPCIDSK_PCTD1Ev@GDAL_1.8 1.8.0
- _ZTv0_n12_N6PCIDSK11CPCIDSK_TEXD0Ev@GDAL_1.8 1.8.0
- _ZTv0_n12_N6PCIDSK11CPCIDSK_TEXD1Ev@GDAL_1.8 1.8.0
- _ZTv0_n12_N6PCIDSK11SysBlockMapD0Ev@GDAL_1.8 1.8.0
- _ZTv0_n12_N6PCIDSK11SysBlockMapD1Ev@GDAL_1.8 1.8.0
- _ZTv0_n12_N6PCIDSK13CPCIDSKBitmapD0Ev@GDAL_1.8 1.8.0
- _ZTv0_n12_N6PCIDSK13CPCIDSKBitmapD1Ev@GDAL_1.8 1.8.0
- _ZTv0_n12_N6PCIDSK13CPCIDSKGeorefD0Ev@GDAL_1.8 1.8.0
- _ZTv0_n12_N6PCIDSK13CPCIDSKGeorefD1Ev@GDAL_1.8 1.8.0
- _ZTv0_n12_N6PCIDSK14CPCIDSKSegmentD0Ev@GDAL_1.8 1.8.0
- _ZTv0_n12_N6PCIDSK14CPCIDSKSegmentD1Ev@GDAL_1.8 1.8.0
- _ZTv0_n12_N6PCIDSK15MetadataSegmentD0Ev@GDAL_1.8 1.8.0
- _ZTv0_n12_N6PCIDSK15MetadataSegmentD1Ev@GDAL_1.8 1.8.0
- _ZTv0_n12_N6PCIDSK18CPCIDSKGCP2SegmentD0Ev@GDAL_1.8 1.8.0
- _ZTv0_n12_N6PCIDSK18CPCIDSKGCP2SegmentD1Ev@GDAL_1.8 1.8.0
- _ZTv0_n12_N6PCIDSK20CPCIDSKVectorSegmentD0Ev@GDAL_1.8 1.8.0
- _ZTv0_n12_N6PCIDSK20CPCIDSKVectorSegmentD1Ev@GDAL_1.8 1.8.0
- _ZTv0_n12_N6PCIDSK21CPCIDSKAPModelSegmentD0Ev@GDAL_1.8 1.8.0
- _ZTv0_n12_N6PCIDSK21CPCIDSKAPModelSegmentD1Ev@GDAL_1.8 1.8.0
- _ZTv0_n12_N6PCIDSK22CPCIDSKRPCModelSegmentD0Ev@GDAL_1.8 1.8.0
- _ZTv0_n12_N6PCIDSK22CPCIDSKRPCModelSegmentD1Ev@GDAL_1.8 1.8.0
- _ZTv0_n12_NK6PCIDSK18CPCIDSKGCP2Segment7GetGCPsEv@GDAL_1.8 1.8.0
- _ZTv0_n12_NK6PCIDSK22CPCIDSKRPCModelSegment13GetXNumeratorEv@GDAL_1.8 1.8.0
- _ZTv0_n16_N6PCIDSK11SysBlockMap10InitializeEv@GDAL_1.8 1.8.0
- _ZTv0_n16_N6PCIDSK13CPCIDSKBitmap10InitializeEv@GDAL_1.8 1.8.0
- _ZTv0_n16_N6PCIDSK13CPCIDSKGeoref10InitializeEv@GDAL_1.8 1.8.0
- _ZTv0_n16_N6PCIDSK18CPCIDSKGCP2Segment7SetGCPsERKSt6vectorINS_3GCPESaIS2_EE@GDAL_1.8 1.8.0
- _ZTv0_n16_N6PCIDSK20CPCIDSKVectorSegment10InitializeEv@GDAL_1.8 1.8.0
- _ZTv0_n16_NK6PCIDSK22CPCIDSKRPCModelSegment15GetXDenominatorEv@GDAL_1.8 1.8.0
- _ZTv0_n20_N6PCIDSK14CPCIDSKSegment11WriteToFileEPKvyy@GDAL_1.8 1.8.0
- _ZTv0_n20_NK6PCIDSK18CPCIDSKGCP2Segment11GetGCPCountEv@GDAL_1.8 1.8.0
- _ZTv0_n20_NK6PCIDSK22CPCIDSKRPCModelSegment13GetYNumeratorEv@GDAL_1.8 1.8.0
- _ZTv0_n24_N6PCIDSK14CPCIDSKSegment12ReadFromFileEPvyy@GDAL_1.8 1.8.0
- _ZTv0_n24_N6PCIDSK18CPCIDSKGCP2Segment9ClearGCPsEv@GDAL_1.8 1.8.0
- _ZTv0_n24_NK6PCIDSK22CPCIDSKRPCModelSegment15GetYDenominatorEv@GDAL_1.8 1.8.0
- _ZTv0_n28_N6PCIDSK14CPCIDSKSegment14GetSegmentTypeEv@GDAL_1.8 1.8.0
- _ZTv0_n28_N6PCIDSK18CPCIDSKGCP2SegmentD0Ev@GDAL_1.8 1.8.0
- _ZTv0_n28_N6PCIDSK18CPCIDSKGCP2SegmentD1Ev@GDAL_1.8 1.8.0
- _ZTv0_n28_N6PCIDSK22CPCIDSKRPCModelSegment15SetCoefficientsERKSt6vectorIdSaIdEES5_S5_S5_@GDAL_1.8 1.8.0
- _ZTv0_n32_N6PCIDSK14CPCIDSKSegment7GetNameEv@GDAL_1.8 1.8.0
- _ZTv0_n32_NK6PCIDSK22CPCIDSKRPCModelSegment23GetRPCTranslationCoeffsERdS1_S1_S1_S1_S1_S1_S1_S1_S1_@GDAL_1.8 1.8.0
- _ZTv0_n36_N6PCIDSK13CPCIDSKBitmap14GetDescriptionEv@GDAL_1.8 1.8.0
- _ZTv0_n36_N6PCIDSK14CPCIDSKSegment14GetDescriptionEv@GDAL_1.8 1.8.0
- _ZTv0_n36_N6PCIDSK22CPCIDSKRPCModelSegment23SetRPCTranslationCoeffsEdddddddddd@GDAL_1.8 1.8.0
- _ZTv0_n40_N6PCIDSK14CPCIDSKSegment16GetSegmentNumberEv@GDAL_1.8 1.8.0
- _ZTv0_n40_NK6PCIDSK22CPCIDSKRPCModelSegment13GetAdjXValuesEv@GDAL_1.8 1.8.0
- _ZTv0_n44_N6PCIDSK14CPCIDSKSegment14GetContentSizeEv@GDAL_1.8 1.8.0
- _ZTv0_n44_NK6PCIDSK22CPCIDSKRPCModelSegment13GetAdjYValuesEv@GDAL_1.8 1.8.0
- _ZTv0_n48_N6PCIDSK14CPCIDSKSegment7IsAtEOFEv@GDAL_1.8 1.8.0
- _ZTv0_n48_N6PCIDSK22CPCIDSKRPCModelSegment17SetAdjCoordValuesERKSt6vectorIdSaIdEES5_@GDAL_1.8 1.8.0
- _ZTv0_n52_N6PCIDSK13CPCIDSKBitmap14SetDescriptionERKSs@GDAL_1.8 1.8.0
- _ZTv0_n52_N6PCIDSK14CPCIDSKSegment14SetDescriptionERKSs@GDAL_1.8 1.8.0
- _ZTv0_n52_NK6PCIDSK22CPCIDSKRPCModelSegment15IsUserGeneratedEv@GDAL_1.8 1.8.0
- _ZTv0_n56_N6PCIDSK22CPCIDSKRPCModelSegment16SetUserGeneratedEb@GDAL_1.8 1.8.0
- _ZTv0_n56_NK6PCIDSK13CPCIDSKBitmap16GetMetadataValueERKSs@GDAL_1.8 1.8.0
- _ZTv0_n56_NK6PCIDSK14CPCIDSKSegment16GetMetadataValueERKSs@GDAL_1.8 1.8.0
- _ZTv0_n60_N6PCIDSK13CPCIDSKBitmap16SetMetadataValueERKSsS2_@GDAL_1.8 1.8.0
- _ZTv0_n60_N6PCIDSK14CPCIDSKSegment16SetMetadataValueERKSsS2_@GDAL_1.8 1.8.0
- _ZTv0_n60_NK6PCIDSK22CPCIDSKRPCModelSegment14IsNominalModelEv@GDAL_1.8 1.8.0
- _ZTv0_n64_N6PCIDSK22CPCIDSKRPCModelSegment17SetIsNominalModelEb@GDAL_1.8 1.8.0
- _ZTv0_n64_NK6PCIDSK13CPCIDSKBitmap15GetMetadataKeysEv@GDAL_1.8 1.8.0
- _ZTv0_n64_NK6PCIDSK14CPCIDSKSegment15GetMetadataKeysEv@GDAL_1.8 1.8.0
- _ZTv0_n68_NK6PCIDSK13CPCIDSKBitmap17GetHistoryEntriesEv@GDAL_1.8 1.8.0
- _ZTv0_n68_NK6PCIDSK14CPCIDSKSegment17GetHistoryEntriesEv@GDAL_1.8 1.8.0
- _ZTv0_n68_NK6PCIDSK22CPCIDSKRPCModelSegment13GetSensorNameEv@GDAL_1.8 1.8.0
- _ZTv0_n72_N6PCIDSK13CPCIDSKBitmap17SetHistoryEntriesERKSt6vectorISsSaISsEE@GDAL_1.8 1.8.0
- _ZTv0_n72_N6PCIDSK14CPCIDSKSegment17SetHistoryEntriesERKSt6vectorISsSaISsEE@GDAL_1.8 1.8.0
- _ZTv0_n72_N6PCIDSK22CPCIDSKRPCModelSegment13SetSensorNameERKSs@GDAL_1.8 1.8.0
- _ZTv0_n76_N6PCIDSK13CPCIDSKBitmap11PushHistoryERKSsS2_@GDAL_1.8 1.8.0
- _ZTv0_n76_N6PCIDSK14CPCIDSKSegment11PushHistoryERKSsS2_@GDAL_1.8 1.8.0
- _ZTv0_n76_NK6PCIDSK22CPCIDSKRPCModelSegment15GetGeosysStringEv@GDAL_1.8 1.8.0
- _ZTv0_n80_N6PCIDSK11SysBlockMap11SynchronizeEv@GDAL_1.8 1.8.0
- _ZTv0_n80_N6PCIDSK13CPCIDSKBitmap11SynchronizeEv@GDAL_1.8 1.8.0
- _ZTv0_n80_N6PCIDSK14CPCIDSKSegment11SynchronizeEv@GDAL_1.8 1.8.0
- _ZTv0_n80_N6PCIDSK15MetadataSegment11SynchronizeEv@GDAL_1.8 1.8.0
- _ZTv0_n80_N6PCIDSK20CPCIDSKVectorSegment11SynchronizeEv@GDAL_1.8 1.8.0
- _ZTv0_n80_N6PCIDSK22CPCIDSKRPCModelSegment15SetGeosysStringERKSs@GDAL_1.8 1.8.0
- _ZTv0_n84_N6PCIDSK14CPCIDSKSegment16ConsistencyCheckEv@GDAL_1.8 1.8.0
- _ZTv0_n84_N6PCIDSK20CPCIDSKVectorSegment16ConsistencyCheckEv@GDAL_1.8 1.8.0
- _ZTv0_n84_NK6PCIDSK22CPCIDSKRPCModelSegment8GetLinesEv@GDAL_1.8 1.8.0
- _ZTv0_n88_NK6PCIDSK22CPCIDSKRPCModelSegment9GetPixelsEv@GDAL_1.8 1.8.0
- _ZTv0_n92_N6PCIDSK22CPCIDSKRPCModelSegment13SetRasterSizeEjj@GDAL_1.8 1.8.0
- _ZTv0_n96_N6PCIDSK22CPCIDSKRPCModelSegmentD0Ev@GDAL_1.8 1.8.0
- _ZTv0_n96_N6PCIDSK22CPCIDSKRPCModelSegmentD1Ev@GDAL_1.8 1.8.0
- _ZZN14OCSTransformerC1EPdE5adfWY@GDAL_1.8 1.8.0
- _ZZN14OCSTransformerC1EPdE5adfWZ@GDAL_1.8 1.8.0
+ _ZTv0_n104_N6PCIDSK13CPCIDSKBitmap14SetDescriptionERKSs@GDAL_1.8 1.8.0
+ _ZTv0_n104_N6PCIDSK14CPCIDSKSegment14SetDescriptionERKSs@GDAL_1.8 1.8.0
+ _ZTv0_n104_NK6PCIDSK22CPCIDSKRPCModelSegment15IsUserGeneratedEv@GDAL_1.8 1.8.0
+ _ZTv0_n112_N6PCIDSK22CPCIDSKRPCModelSegment16SetUserGeneratedEb@GDAL_1.8 1.8.0
+ _ZTv0_n112_NK6PCIDSK13CPCIDSKBitmap16GetMetadataValueERKSs@GDAL_1.8 1.8.0
+ _ZTv0_n112_NK6PCIDSK14CPCIDSKSegment16GetMetadataValueERKSs@GDAL_1.8 1.8.0
+ _ZTv0_n120_N6PCIDSK13CPCIDSKBitmap16SetMetadataValueERKSsS2_@GDAL_1.8 1.8.0
+ _ZTv0_n120_N6PCIDSK14CPCIDSKSegment16SetMetadataValueERKSsS2_@GDAL_1.8 1.8.0
+ _ZTv0_n120_NK6PCIDSK22CPCIDSKRPCModelSegment14IsNominalModelEv@GDAL_1.8 1.8.0
+ _ZTv0_n128_N6PCIDSK22CPCIDSKRPCModelSegment17SetIsNominalModelEb@GDAL_1.8 1.8.0
+ _ZTv0_n128_NK6PCIDSK13CPCIDSKBitmap15GetMetadataKeysEv@GDAL_1.8 1.8.0
+ _ZTv0_n128_NK6PCIDSK14CPCIDSKSegment15GetMetadataKeysEv@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZTv0_n12_N6PCIDSK11CPCIDSK_PCTD0Ev@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZTv0_n12_N6PCIDSK11CPCIDSK_PCTD1Ev@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZTv0_n12_N6PCIDSK11CPCIDSK_TEXD0Ev@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZTv0_n12_N6PCIDSK11CPCIDSK_TEXD1Ev@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZTv0_n12_N6PCIDSK11SysBlockMapD0Ev@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZTv0_n12_N6PCIDSK11SysBlockMapD1Ev@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZTv0_n12_N6PCIDSK13CPCIDSKBitmapD0Ev@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZTv0_n12_N6PCIDSK13CPCIDSKBitmapD1Ev@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZTv0_n12_N6PCIDSK13CPCIDSKGeorefD0Ev@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZTv0_n12_N6PCIDSK13CPCIDSKGeorefD1Ev@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZTv0_n12_N6PCIDSK14CPCIDSKSegmentD0Ev@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZTv0_n12_N6PCIDSK14CPCIDSKSegmentD1Ev@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZTv0_n12_N6PCIDSK15MetadataSegmentD0Ev@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZTv0_n12_N6PCIDSK15MetadataSegmentD1Ev@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZTv0_n12_N6PCIDSK18CPCIDSKGCP2SegmentD0Ev@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZTv0_n12_N6PCIDSK18CPCIDSKGCP2SegmentD1Ev@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZTv0_n12_N6PCIDSK20CPCIDSKVectorSegmentD0Ev@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZTv0_n12_N6PCIDSK20CPCIDSKVectorSegmentD1Ev@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZTv0_n12_N6PCIDSK21CPCIDSKAPModelSegmentD0Ev@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZTv0_n12_N6PCIDSK21CPCIDSKAPModelSegmentD1Ev@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZTv0_n12_N6PCIDSK22CPCIDSKRPCModelSegmentD0Ev@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZTv0_n12_N6PCIDSK22CPCIDSKRPCModelSegmentD1Ev@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZTv0_n12_NK6PCIDSK18CPCIDSKGCP2Segment7GetGCPsEv@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZTv0_n12_NK6PCIDSK22CPCIDSKRPCModelSegment13GetXNumeratorEv@GDAL_1.8 1.8.0
+ _ZTv0_n136_NK6PCIDSK13CPCIDSKBitmap17GetHistoryEntriesEv@GDAL_1.8 1.8.0
+ _ZTv0_n136_NK6PCIDSK14CPCIDSKSegment17GetHistoryEntriesEv@GDAL_1.8 1.8.0
+ _ZTv0_n136_NK6PCIDSK22CPCIDSKRPCModelSegment13GetSensorNameEv@GDAL_1.8 1.8.0
+ _ZTv0_n144_N6PCIDSK13CPCIDSKBitmap17SetHistoryEntriesERKSt6vectorISsSaISsEE@GDAL_1.8 1.8.0
+ _ZTv0_n144_N6PCIDSK14CPCIDSKSegment17SetHistoryEntriesERKSt6vectorISsSaISsEE@GDAL_1.8 1.8.0
+ _ZTv0_n144_N6PCIDSK22CPCIDSKRPCModelSegment13SetSensorNameERKSs@GDAL_1.8 1.8.0
+ _ZTv0_n152_N6PCIDSK13CPCIDSKBitmap11PushHistoryERKSsS2_@GDAL_1.8 1.8.0
+ _ZTv0_n152_N6PCIDSK14CPCIDSKSegment11PushHistoryERKSsS2_@GDAL_1.8 1.8.0
+ _ZTv0_n152_NK6PCIDSK22CPCIDSKRPCModelSegment15GetGeosysStringEv@GDAL_1.8 1.8.0
+ _ZTv0_n160_N6PCIDSK11SysBlockMap11SynchronizeEv@GDAL_1.8 1.8.0
+ _ZTv0_n160_N6PCIDSK13CPCIDSKBitmap11SynchronizeEv@GDAL_1.8 1.8.0
+ _ZTv0_n160_N6PCIDSK14CPCIDSKSegment11SynchronizeEv@GDAL_1.8 1.8.0
+ _ZTv0_n160_N6PCIDSK15MetadataSegment11SynchronizeEv@GDAL_1.8 1.8.0
+ _ZTv0_n160_N6PCIDSK20CPCIDSKVectorSegment11SynchronizeEv@GDAL_1.8 1.8.0
+ _ZTv0_n160_N6PCIDSK22CPCIDSKRPCModelSegment15SetGeosysStringERKSs@GDAL_1.8 1.8.0
+ _ZTv0_n168_N6PCIDSK14CPCIDSKSegment16ConsistencyCheckEv@GDAL_1.8 1.8.0
+ _ZTv0_n168_N6PCIDSK20CPCIDSKVectorSegment16ConsistencyCheckEv@GDAL_1.8 1.8.0
+ _ZTv0_n168_NK6PCIDSK22CPCIDSKRPCModelSegment8GetLinesEv@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZTv0_n16_N6PCIDSK11SysBlockMap10InitializeEv@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZTv0_n16_N6PCIDSK13CPCIDSKBitmap10InitializeEv@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZTv0_n16_N6PCIDSK13CPCIDSKGeoref10InitializeEv@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZTv0_n16_N6PCIDSK18CPCIDSKGCP2Segment7SetGCPsERKSt6vectorINS_3GCPESaIS2_EE@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZTv0_n16_N6PCIDSK20CPCIDSKVectorSegment10InitializeEv@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZTv0_n16_NK6PCIDSK22CPCIDSKRPCModelSegment15GetXDenominatorEv@GDAL_1.8 1.8.0
+ _ZTv0_n176_NK6PCIDSK22CPCIDSKRPCModelSegment9GetPixelsEv@GDAL_1.8 1.8.0
+ _ZTv0_n184_N6PCIDSK22CPCIDSKRPCModelSegment13SetRasterSizeEjj@GDAL_1.8 1.8.0
+ _ZTv0_n192_N6PCIDSK22CPCIDSKRPCModelSegmentD0Ev@GDAL_1.8 1.8.0
+ _ZTv0_n192_N6PCIDSK22CPCIDSKRPCModelSegmentD1Ev@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZTv0_n20_N6PCIDSK14CPCIDSKSegment11WriteToFileEPKvyy@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZTv0_n20_NK6PCIDSK18CPCIDSKGCP2Segment11GetGCPCountEv@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZTv0_n20_NK6PCIDSK22CPCIDSKRPCModelSegment13GetYNumeratorEv@GDAL_1.8 1.8.0
+ _ZTv0_n24_N6PCIDSK11CPCIDSK_PCTD0Ev@GDAL_1.8 1.8.0
+ _ZTv0_n24_N6PCIDSK11CPCIDSK_PCTD1Ev@GDAL_1.8 1.8.0
+ _ZTv0_n24_N6PCIDSK11CPCIDSK_TEXD0Ev@GDAL_1.8 1.8.0
+ _ZTv0_n24_N6PCIDSK11CPCIDSK_TEXD1Ev@GDAL_1.8 1.8.0
+ _ZTv0_n24_N6PCIDSK11SysBlockMapD0Ev@GDAL_1.8 1.8.0
+ _ZTv0_n24_N6PCIDSK11SysBlockMapD1Ev@GDAL_1.8 1.8.0
+ _ZTv0_n24_N6PCIDSK13CPCIDSKBitmapD0Ev@GDAL_1.8 1.8.0
+ _ZTv0_n24_N6PCIDSK13CPCIDSKBitmapD1Ev@GDAL_1.8 1.8.0
+ _ZTv0_n24_N6PCIDSK13CPCIDSKGeorefD0Ev@GDAL_1.8 1.8.0
+ _ZTv0_n24_N6PCIDSK13CPCIDSKGeorefD1Ev@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZTv0_n24_N6PCIDSK14CPCIDSKSegment12ReadFromFileEPvyy@GDAL_1.8 1.8.0
+ _ZTv0_n24_N6PCIDSK14CPCIDSKSegmentD0Ev@GDAL_1.8 1.8.0
+ _ZTv0_n24_N6PCIDSK14CPCIDSKSegmentD1Ev@GDAL_1.8 1.8.0
+ _ZTv0_n24_N6PCIDSK15MetadataSegmentD0Ev@GDAL_1.8 1.8.0
+ _ZTv0_n24_N6PCIDSK15MetadataSegmentD1Ev@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZTv0_n24_N6PCIDSK18CPCIDSKGCP2Segment9ClearGCPsEv@GDAL_1.8 1.8.0
+ _ZTv0_n24_N6PCIDSK18CPCIDSKGCP2SegmentD0Ev@GDAL_1.8 1.8.0
+ _ZTv0_n24_N6PCIDSK18CPCIDSKGCP2SegmentD1Ev@GDAL_1.8 1.8.0
+ _ZTv0_n24_N6PCIDSK20CPCIDSKVectorSegmentD0Ev@GDAL_1.8 1.8.0
+ _ZTv0_n24_N6PCIDSK20CPCIDSKVectorSegmentD1Ev@GDAL_1.8 1.8.0
+ _ZTv0_n24_N6PCIDSK21CPCIDSKAPModelSegmentD0Ev@GDAL_1.8 1.8.0
+ _ZTv0_n24_N6PCIDSK21CPCIDSKAPModelSegmentD1Ev@GDAL_1.8 1.8.0
+ _ZTv0_n24_N6PCIDSK22CPCIDSKRPCModelSegmentD0Ev@GDAL_1.8 1.8.0
+ _ZTv0_n24_N6PCIDSK22CPCIDSKRPCModelSegmentD1Ev@GDAL_1.8 1.8.0
+ _ZTv0_n24_NK6PCIDSK18CPCIDSKGCP2Segment7GetGCPsEv@GDAL_1.8 1.8.0
+ _ZTv0_n24_NK6PCIDSK22CPCIDSKRPCModelSegment13GetXNumeratorEv@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZTv0_n24_NK6PCIDSK22CPCIDSKRPCModelSegment15GetYDenominatorEv@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZTv0_n28_N6PCIDSK14CPCIDSKSegment14GetSegmentTypeEv@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZTv0_n28_N6PCIDSK18CPCIDSKGCP2SegmentD0Ev@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZTv0_n28_N6PCIDSK18CPCIDSKGCP2SegmentD1Ev@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZTv0_n28_N6PCIDSK22CPCIDSKRPCModelSegment15SetCoefficientsERKSt6vectorIdSaIdEES5_S5_S5_@GDAL_1.8 1.8.0
+ _ZTv0_n32_N6PCIDSK11SysBlockMap10InitializeEv@GDAL_1.8 1.8.0
+ _ZTv0_n32_N6PCIDSK13CPCIDSKBitmap10InitializeEv@GDAL_1.8 1.8.0
+ _ZTv0_n32_N6PCIDSK13CPCIDSKGeoref10InitializeEv@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZTv0_n32_N6PCIDSK14CPCIDSKSegment7GetNameEv@GDAL_1.8 1.8.0
+ _ZTv0_n32_N6PCIDSK18CPCIDSKGCP2Segment7SetGCPsERKSt6vectorINS_3GCPESaIS2_EE@GDAL_1.8 1.8.0
+ _ZTv0_n32_N6PCIDSK20CPCIDSKVectorSegment10InitializeEv@GDAL_1.8 1.8.0
+ _ZTv0_n32_NK6PCIDSK22CPCIDSKRPCModelSegment15GetXDenominatorEv@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZTv0_n32_NK6PCIDSK22CPCIDSKRPCModelSegment23GetRPCTranslationCoeffsERdS1_S1_S1_S1_S1_S1_S1_S1_S1_@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZTv0_n36_N6PCIDSK13CPCIDSKBitmap14GetDescriptionEv@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZTv0_n36_N6PCIDSK14CPCIDSKSegment14GetDescriptionEv@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZTv0_n36_N6PCIDSK22CPCIDSKRPCModelSegment23SetRPCTranslationCoeffsEdddddddddd@GDAL_1.8 1.8.0
+ _ZTv0_n40_N6PCIDSK14CPCIDSKSegment11WriteToFileEPKvyy@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZTv0_n40_N6PCIDSK14CPCIDSKSegment16GetSegmentNumberEv@GDAL_1.8 1.8.0
+ _ZTv0_n40_NK6PCIDSK18CPCIDSKGCP2Segment11GetGCPCountEv@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZTv0_n40_NK6PCIDSK22CPCIDSKRPCModelSegment13GetAdjXValuesEv@GDAL_1.8 1.8.0
+ _ZTv0_n40_NK6PCIDSK22CPCIDSKRPCModelSegment13GetYNumeratorEv@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZTv0_n44_N6PCIDSK14CPCIDSKSegment14GetContentSizeEv@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZTv0_n44_NK6PCIDSK22CPCIDSKRPCModelSegment13GetAdjYValuesEv@GDAL_1.8 1.8.0
+ _ZTv0_n48_N6PCIDSK14CPCIDSKSegment12ReadFromFileEPvyy@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZTv0_n48_N6PCIDSK14CPCIDSKSegment7IsAtEOFEv@GDAL_1.8 1.8.0
+ _ZTv0_n48_N6PCIDSK18CPCIDSKGCP2Segment9ClearGCPsEv@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZTv0_n48_N6PCIDSK22CPCIDSKRPCModelSegment17SetAdjCoordValuesERKSt6vectorIdSaIdEES5_@GDAL_1.8 1.8.0
+ _ZTv0_n48_NK6PCIDSK22CPCIDSKRPCModelSegment15GetYDenominatorEv@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZTv0_n52_N6PCIDSK13CPCIDSKBitmap14SetDescriptionERKSs@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZTv0_n52_N6PCIDSK14CPCIDSKSegment14SetDescriptionERKSs@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZTv0_n52_NK6PCIDSK22CPCIDSKRPCModelSegment15IsUserGeneratedEv@GDAL_1.8 1.8.0
+ _ZTv0_n56_N6PCIDSK14CPCIDSKSegment14GetSegmentTypeEv@GDAL_1.8 1.8.0
+ _ZTv0_n56_N6PCIDSK18CPCIDSKGCP2SegmentD0Ev@GDAL_1.8 1.8.0
+ _ZTv0_n56_N6PCIDSK18CPCIDSKGCP2SegmentD1Ev@GDAL_1.8 1.8.0
+ _ZTv0_n56_N6PCIDSK22CPCIDSKRPCModelSegment15SetCoefficientsERKSt6vectorIdSaIdEES5_S5_S5_@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZTv0_n56_N6PCIDSK22CPCIDSKRPCModelSegment16SetUserGeneratedEb@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZTv0_n56_NK6PCIDSK13CPCIDSKBitmap16GetMetadataValueERKSs@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZTv0_n56_NK6PCIDSK14CPCIDSKSegment16GetMetadataValueERKSs@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZTv0_n60_N6PCIDSK13CPCIDSKBitmap16SetMetadataValueERKSsS2_@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZTv0_n60_N6PCIDSK14CPCIDSKSegment16SetMetadataValueERKSsS2_@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZTv0_n60_NK6PCIDSK22CPCIDSKRPCModelSegment14IsNominalModelEv@GDAL_1.8 1.8.0
+ _ZTv0_n64_N6PCIDSK14CPCIDSKSegment7GetNameEv@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZTv0_n64_N6PCIDSK22CPCIDSKRPCModelSegment17SetIsNominalModelEb@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZTv0_n64_NK6PCIDSK13CPCIDSKBitmap15GetMetadataKeysEv@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZTv0_n64_NK6PCIDSK14CPCIDSKSegment15GetMetadataKeysEv@GDAL_1.8 1.8.0
+ _ZTv0_n64_NK6PCIDSK22CPCIDSKRPCModelSegment23GetRPCTranslationCoeffsERdS1_S1_S1_S1_S1_S1_S1_S1_S1_@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZTv0_n68_NK6PCIDSK13CPCIDSKBitmap17GetHistoryEntriesEv@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZTv0_n68_NK6PCIDSK14CPCIDSKSegment17GetHistoryEntriesEv@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZTv0_n68_NK6PCIDSK22CPCIDSKRPCModelSegment13GetSensorNameEv@GDAL_1.8 1.8.0
+ _ZTv0_n72_N6PCIDSK13CPCIDSKBitmap14GetDescriptionEv@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZTv0_n72_N6PCIDSK13CPCIDSKBitmap17SetHistoryEntriesERKSt6vectorISsSaISsEE@GDAL_1.8 1.8.0
+ _ZTv0_n72_N6PCIDSK14CPCIDSKSegment14GetDescriptionEv@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZTv0_n72_N6PCIDSK14CPCIDSKSegment17SetHistoryEntriesERKSt6vectorISsSaISsEE@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZTv0_n72_N6PCIDSK22CPCIDSKRPCModelSegment13SetSensorNameERKSs@GDAL_1.8 1.8.0
+ _ZTv0_n72_N6PCIDSK22CPCIDSKRPCModelSegment23SetRPCTranslationCoeffsEdddddddddd@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZTv0_n76_N6PCIDSK13CPCIDSKBitmap11PushHistoryERKSsS2_@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZTv0_n76_N6PCIDSK14CPCIDSKSegment11PushHistoryERKSsS2_@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZTv0_n76_NK6PCIDSK22CPCIDSKRPCModelSegment15GetGeosysStringEv@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZTv0_n80_N6PCIDSK11SysBlockMap11SynchronizeEv@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZTv0_n80_N6PCIDSK13CPCIDSKBitmap11SynchronizeEv@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZTv0_n80_N6PCIDSK14CPCIDSKSegment11SynchronizeEv@GDAL_1.8 1.8.0
+ _ZTv0_n80_N6PCIDSK14CPCIDSKSegment16GetSegmentNumberEv@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZTv0_n80_N6PCIDSK15MetadataSegment11SynchronizeEv@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZTv0_n80_N6PCIDSK20CPCIDSKVectorSegment11SynchronizeEv@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZTv0_n80_N6PCIDSK22CPCIDSKRPCModelSegment15SetGeosysStringERKSs@GDAL_1.8 1.8.0
+ _ZTv0_n80_NK6PCIDSK22CPCIDSKRPCModelSegment13GetAdjXValuesEv@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZTv0_n84_N6PCIDSK14CPCIDSKSegment16ConsistencyCheckEv@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZTv0_n84_N6PCIDSK20CPCIDSKVectorSegment16ConsistencyCheckEv@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZTv0_n84_NK6PCIDSK22CPCIDSKRPCModelSegment8GetLinesEv@GDAL_1.8 1.8.0
+ _ZTv0_n88_N6PCIDSK14CPCIDSKSegment14GetContentSizeEv@GDAL_1.8 1.8.0
+ _ZTv0_n88_NK6PCIDSK22CPCIDSKRPCModelSegment13GetAdjYValuesEv@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZTv0_n88_NK6PCIDSK22CPCIDSKRPCModelSegment9GetPixelsEv@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZTv0_n92_N6PCIDSK22CPCIDSKRPCModelSegment13SetRasterSizeEjj@GDAL_1.8 1.8.0
+ _ZTv0_n96_N6PCIDSK14CPCIDSKSegment7IsAtEOFEv@GDAL_1.8 1.8.0
+ _ZTv0_n96_N6PCIDSK22CPCIDSKRPCModelSegment17SetAdjCoordValuesERKSt6vectorIdSaIdEES5_@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZTv0_n96_N6PCIDSK22CPCIDSKRPCModelSegmentD0Ev@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZTv0_n96_N6PCIDSK22CPCIDSKRPCModelSegmentD1Ev@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZZN14OCSTransformerC1EPdE5adfWY@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# _ZZN14OCSTransformerC1EPdE5adfWZ@GDAL_1.8 1.8.0
  __pure_virtual@GDAL_1.8 1.8.0
  _gtiff_size@GDAL_1.8 1.8.0
  array_list_add@GDAL_1.8 1.8.0
@@ -15467,7 +15734,7 @@ libgdal1.8.0.so.1 libgdal1-1.8.0 #MINVER#
  strcmpNoCase@GDAL_1.8 1.8.0
  strndup@GDAL_1.8 1.8.0
  subCenterLookup@GDAL_1.8 1.8.0
-#MISSING: 1.8.1-1# swapbyte@GDAL_1.8 1.8.0
+ swapbyte@GDAL_1.8 1.8.0
  unpk_g2ncep@GDAL_1.8 1.8.0
  unpk_grib2@GDAL_1.8 1.8.0
  unpk_grib2__@GDAL_1.8 1.8.0
