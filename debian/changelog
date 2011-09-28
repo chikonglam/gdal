@@ -1,6 +1,7 @@
 gdal (1.8.1-2~exp1) experimental; urgency=low
 
-  * Managed to adapt the generic .symbol file to various archs.
+  * Introduced per arch symbol files with demangled C++ symbols.
+    They are all included by the main symbol file after the C symbols.
 
  -- Francesco Paolo Lovergine <frankie@debian.org>  Wed, 28 Sep 2011 00:22:42 +0200
 

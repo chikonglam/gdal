@@ -2685,3 +2685,4 @@ libgdal1.8.0.so.1 libgdal1-1.8.0 #MINVER#
  (arch=ia64)#include "libgdal.symbols-ia64"
  (arch=s390)#include "libgdal.symbols-s390"
  (arch=mips)#include "libgdal.symbols-mips"
+ (arch=armel)#include "libgdal.symbols-armel"
