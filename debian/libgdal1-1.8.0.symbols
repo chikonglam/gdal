@@ -2680,8 +2680,10 @@ libgdal1.8.0.so.1 libgdal1-1.8.0 #MINVER#
  viz_llz2xy@GDAL_1.8 1.8.0
  viz_xy2llz@GDAL_1.8 1.8.0
  wlon@GDAL_1.8 1.8.0
- (arch=i386 kfreebsd-i386)#include "libgdal.symbols-i386"
- (arch=amd64 kfreebsd-amd64)#include "libgdal.symbols-amd64"
+ (arch=i386)#include "libgdal.symbols-i386"
+ (arch=kfreebsd-i386)#include "libgdal.symbols-i386"
+ (arch=amd64)#include "libgdal.symbols-amd64"
+ (arch=kfreebsd-amd64)#include "libgdal.symbols-amd64"
  (arch=ia64)#include "libgdal.symbols-ia64"
  (arch=s390)#include "libgdal.symbols-s390"
  (arch=mips)#include "libgdal.symbols-mips"
