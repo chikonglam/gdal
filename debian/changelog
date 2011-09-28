@@ -1,3 +1,9 @@
+gdal (1.8.1-2~exp2) experimental; urgency=low
+
+  * Now including per arch symbol files truly. 
+
+ -- Francesco Paolo Lovergine <frankie@debian.org>  Wed, 28 Sep 2011 20:07:22 +0200
+
 gdal (1.8.1-2~exp1) experimental; urgency=low
 
   * Introduced per arch symbol files with demangled C++ symbols.
