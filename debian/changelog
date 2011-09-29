@@ -1,6 +1,7 @@
 gdal (1.8.1-2~exp2) experimental; urgency=low
 
-  * Added mandatory header line in per arch included symbol files.
+  * Changed organization of symbol files in one common file and
+    multiple .symbols.arch file.
   * Now normalized to conventional GDAL library name and dropping the Debian 
     specific versioned naming scheme for the library. 
     Dropped patch: libname, python.
