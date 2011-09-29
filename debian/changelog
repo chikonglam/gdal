@@ -1,3 +1,9 @@
+gdal (1.8.1-2~exp2) experimental; urgency=low
+
+  * Added mandatory header line in per arch included symbol files.
+
+ -- Francesco Paolo Lovergine <frankie@debian.org>  Thu, 29 Sep 2011 15:01:20 +0200
+
 gdal (1.8.1-2~exp1) experimental; urgency=low
 
   * Introduced per arch symbol files with demangled C++ symbols.
