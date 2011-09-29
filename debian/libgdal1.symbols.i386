@@ -1,4 +1,5 @@
 libgdal.so.1 libgdal1 #MINVER# 
+#include "libgdal1.symbols.common"
  (c++)"CheckASCII(unsigned char*, int)@GDAL_1.8" 1.8.0
  (c++)"CreatePath(HDF5GroupObjects*)@GDAL_1.8" 1.8.0
  (c++)"DDFScanInt(char const*, int)@GDAL_1.8" 1.8.0
@@ -33,7 +34,7 @@ libgdal.so.1 libgdal1 #MINVER#
  (c++)"appendUChar(void*, unsigned char)@GDAL_1.8" 1.8.0
  (c++)"countonbits(unsigned int)@GDAL_1.8" 1.8.0
  (c++)"cvs_MD5Init(cvs_MD5Context*)@GDAL_1.8" 1.8.0
- (c++)"fileBitRead(void*, unsigned long, unsigned short, _IO_FILE*, unsigned char*, signed char*)@GDAL_1.8" 1.8.0
+ (c++)"fileBitRead(void*, unsigned int, unsigned short, _IO_FILE*, unsigned char*, signed char*)@GDAL_1.8" 1.8.0
  (c++)"freqCompare(void const*, void const*)@GDAL_1.8" 1.8.0
  (c++)"getBoundary(xercesc_2_8::DOMElement*)@GDAL_1.8" 1.8.0
  (c++)"getObjValue(xercesc_2_8::DOMElement*)@GDAL_1.8" 1.8.0
@@ -60,11 +61,11 @@ libgdal.so.1 libgdal1 #MINVER#
  (c++)"WriteElement(std::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::basic_string<char, std::char_traits<char>, std::allocator<char> >, double)@GDAL_1.8" 1.8.0
  (c++)"WriteElement(std::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::basic_string<char, std::char_traits<char>, std::allocator<char> >, int)@GDAL_1.8" 1.8.0
  (c++)"_FindNumBits(unsigned int)@GDAL_1.8" 1.8.0
- (c++)"alterToStdMV(void*, unsigned long, CSF_CR, double)@GDAL_1.8" 1.8.0
+ (c++)"alterToStdMV(void*, unsigned int, CSF_CR, double)@GDAL_1.8" 1.8.0
  (c++)"appendDouble(void*, double)@GDAL_1.8" 1.8.0
  (c++)"appendUShort(void*, unsigned short)@GDAL_1.8" 1.8.0
  (c++)"cvs_MD5Final(unsigned char*, cvs_MD5Context*)@GDAL_1.8" 1.8.0
- (c++)"fileBitWrite(void*, unsigned long, unsigned short, _IO_FILE*, unsigned char*, signed char*)@GDAL_1.8" 1.8.0
+ (c++)"fileBitWrite(void*, unsigned int, unsigned short, _IO_FILE*, unsigned char*, signed char*)@GDAL_1.8" 1.8.0
  (c++)"getARCCenter(OGRPoint*, OGRPoint*, OGRPoint*)@GDAL_1.8" 1.8.0
  (c++)"iom_fromUTF8(char const*)@GDAL_1.8" 1.8.0
  (c++)"matrixInvert(int, double*, double*)@GDAL_1.8" 1.8.0
@@ -103,14 +104,14 @@ libgdal.so.1 libgdal1 #MINVER#
  (c++)"TDLP_Inventory(DataSource&, int, inventoryType*)@GDAL_1.8" 1.8.0
  (c++)"WFS_AddKVToURL(char const*, char const*, char const*)@GDAL_1.8" 1.8.0
  (c++)"WritePolyConic(std::basic_string<char, std::char_traits<char>, std::allocator<char> >, OGRSpatialReference)@GDAL_1.8" 1.8.0
- (c++)"alterFromStdMV(void*, unsigned long, CSF_CR, double)@GDAL_1.8" 1.8.0
+ (c++)"alterFromStdMV(void*, unsigned int, CSF_CR, double)@GDAL_1.8" 1.8.0
  (c++)"findfirstonbit(unsigned int)@GDAL_1.8" 1.8.0
  (c++)"gvBurnScanline(void*, int, int, int, double)@GDAL_1.8" 1.8.0
  (c++)"interpolateArc(OGRLineString*, OGRPoint*, OGRPoint*, OGRPoint*, double)@GDAL_1.8" 1.8.0
  (c++)"jpeg_vsiio_src(jpeg_decompress_struct*, _IO_FILE*)@GDAL_1.8" 1.8.0
  (c++)"nwt_LoadColors(NWT_RGB*, int, NWT_GRID*)@GDAL_1.8" 1.8.0
  (c++)"zipWithMinizip(std::vector<std::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::basic_string<char, std::char_traits<char>, std::allocator<char> > > >, std::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::basic_string<char, std::char_traits<char>, std::allocator<char> >)@GDAL_1.8" 1.8.0
- (c++)"BufferToVSIFile(unsigned char*, unsigned long)@GDAL_1.8" 1.8.0
+ (c++)"BufferToVSIFile(unsigned char*, unsigned int)@GDAL_1.8" 1.8.0
  (c++)"CreateGMLReader()@GDAL_1.8" 1.8.0
  (c++)"CreateNASReader()@GDAL_1.8" 1.8.0
  (c++)"CreateVFKReader()@GDAL_1.8" 1.8.0
@@ -171,7 +172,8 @@ libgdal.so.1 libgdal1 #MINVER#
  (c++)"FWRITE_ODDINT_BIG(int*, unsigned char, _IO_FILE*)@GDAL_1.8" 1.8.0
  (c++)"FWRITE_ODDINT_LIT(int*, unsigned char, _IO_FILE*)@GDAL_1.8" 1.8.0
  (c++)"GDALReplicateWord(void*, GDALDataType, void*, GDALDataType, int, int)@GDAL_1.8" 1.8.0
- (c++)"GTiffErrorHandler(char const*, char const*, __va_list_tag*)@GDAL_1.8" 1.8.0
+ (c++)"GTiffErrorHandler(char const*, char const*, char*)@GDAL_1.8" 1.8.0
+ (c++|arch=ia64)"GTiffErrorHandler(char const*, char const*, void*)@GDAL_1.8" 1.8.0
  (c++)"OGRDODSGetVarPath(libdap::BaseType*)@GDAL_1.8" 1.8.0
  (c++)"OGRGeoJSONGetType(json_object*)@GDAL_1.8" 1.8.0
  (c++)"OGRGetXMLDateTime(int, int, int, int, int, int, int)@GDAL_1.8" 1.8.0
@@ -221,7 +223,8 @@ libgdal.so.1 libgdal1 #MINVER#
  (c++)"GDALType2ValueScale(GDALDataType)@GDAL_1.8" 1.8.0
  (c++)"GTIFFSetJpegQuality(void*, int)@GDAL_1.8" 1.8.0
  (c++)"GTIFFWriteDirectory(tiff*, int, int, int, int, int, int, int, int, int, int, int, int, int, unsigned short*, unsigned short*, unsigned short*, int, unsigned short*, char const*)@GDAL_1.8" 1.8.0
- (c++)"GTiffWarningHandler(char const*, char const*, __va_list_tag*)@GDAL_1.8" 1.8.0
+ (c++)"GTiffWarningHandler(char const*, char const*, char*)@GDAL_1.8" 1.8.0
+ (c++|arch=ia64)"GTiffWarningHandler(char const*, char const*, void*)@GDAL_1.8" 1.8.0
  (c++)"HDF5CreateGroupObjs(int, char const*, void*)@GDAL_1.8" 1.8.0
  (c++)"HFACreateSpillStack(hfainfo*, int, int, int, int, int, long long*, long long*)@GDAL_1.8" 1.8.0
  (c++)"HFAReadBFUniqueBins(HFAEntry*, int)@GDAL_1.8" 1.8.0
@@ -327,7 +330,7 @@ libgdal.so.1 libgdal1 #MINVER#
  (c++)"OGRXPlane_ExtendPosition(double, double, double, double, double*, double*)@GDAL_1.8" 1.8.0
  (c++)"PamFindMatchingHistogram(CPLXMLNode*, double, double, int, int, int)@GDAL_1.8" 1.8.0
  (c++)"SDTSScanModuleReferences(DDFModule*, char const*)@GDAL_1.8" 1.8.0
- (c++)"castValuesToBooleanRange(void*, unsigned long, CSF_CR)@GDAL_1.8" 1.8.0
+ (c++)"castValuesToBooleanRange(void*, unsigned int, CSF_CR)@GDAL_1.8" 1.8.0
  (c++)"DeleteParamBasedOnPrjName(OGRSpatialReference*, char const*, char**)@GDAL_1.8" 1.8.0
  (c++)"GTIFFGetCompressionMethod(char const*, char const*)@GDAL_1.8" 1.8.0
  (c++)"GTIFFGetOverviewBlockSize(int*, int*)@GDAL_1.8" 1.8.0
@@ -423,10 +426,10 @@ libgdal.so.1 libgdal1 #MINVER#
  (c++)"WriteUTM(std::basic_string<char, std::char_traits<char>, std::allocator<char> >, OGRSpatialReference)@GDAL_1.8" 1.8.0
  (c++)"createIP(int, unsigned char, unsigned char, unsigned char, NWT_RGB*, int*)@GDAL_1.8" 1.8.0
  (c++)"getPoint(xercesc_2_8::DOMElement*)@GDAL_1.8" 1.8.0
- (c++)"norfread(void*, unsigned long, unsigned long, DataSource&)@GDAL_1.8" 1.8.0
+ (c++)"norfread(void*, unsigned int, unsigned int, DataSource&)@GDAL_1.8" 1.8.0
  (c++)"rbspline(int, int, int, double*, double*, double*)@GDAL_1.8" 1.8.0
  (c++)"rbsplinu(int, int, int, double*, double*, double*)@GDAL_1.8" 1.8.0
- (c++)"revfread(void*, unsigned long, unsigned long, DataSource&)@GDAL_1.8" 1.8.0
+ (c++)"revfread(void*, unsigned int, unsigned int, DataSource&)@GDAL_1.8" 1.8.0
  (c++)"swqparse(swq_parse_context*)@GDAL_1.8" 1.8.0
  (c++)"writeInt(_IO_FILE*, int)@GDAL_1.8" 1.8.0
  (c++)"HFARemove(char const*)@GDAL_1.8" 1.8.0
@@ -438,7 +441,7 @@ libgdal.so.1 libgdal1 #MINVER#
  (c++)"appendInt(void*, int)@GDAL_1.8" 1.8.0
  (c++)"fieldName(xercesc_2_8::DOMElement*)@GDAL_1.8" 1.8.0
  (c++)"nwtGetRow(NWT_GRID*)@GDAL_1.8" 1.8.0
- (c++)"revfwrite(void*, unsigned long, unsigned long, _IO_FILE*)@GDAL_1.8" 1.8.0
+ (c++)"revfwrite(void*, unsigned int, unsigned int, _IO_FILE*)@GDAL_1.8" 1.8.0
  (c++)"tr_strcmp(char const*, unsigned short const*)@GDAL_1.8" 1.8.0
  (c++)"tr_strcpy(char*, unsigned short const*)@GDAL_1.8" 1.8.0
  (c++)"tr_strcpy(unsigned short*, char const*)@GDAL_1.8" 1.8.0
@@ -1743,16 +1746,16 @@ libgdal.so.1 libgdal1 #MINVER#
  (c++)"GSBGDataset::~GSBGDataset()@GDAL_1.8" 1.8.0
  (c++)"GSBGDataset::~GSBGDataset()@GDAL_1.8" 1.8.0
  (c++)"GSBGDataset::~GSBGDataset()@GDAL_1.8" 1.8.0
- (c++)"HDF4Dataset::GetDataType(int)@GDAL_1.8" 1.8.0
+ (c++)"HDF4Dataset::GetDataType(long)@GDAL_1.8" 1.8.0
  (c++)"HDF4Dataset::GetMetadata(char const*)@GDAL_1.8" 1.8.0
- (c++)"HDF4Dataset::AnyTypeToDouble(int, void*)@GDAL_1.8" 1.8.0
- (c++)"HDF4Dataset::GetDataTypeName(int)@GDAL_1.8" 1.8.0
- (c++)"HDF4Dataset::GetDataTypeSize(int)@GDAL_1.8" 1.8.0
+ (c++)"HDF4Dataset::AnyTypeToDouble(long, void*)@GDAL_1.8" 1.8.0
+ (c++)"HDF4Dataset::GetDataTypeName(long)@GDAL_1.8" 1.8.0
+ (c++)"HDF4Dataset::GetDataTypeSize(long)@GDAL_1.8" 1.8.0
  (c++)"HDF4Dataset::HDF4EOSGetObject(char**, char**, char**)@GDAL_1.8" 1.8.0
  (c++)"HDF4Dataset::HDF4EOSTokenizeAttrs(char const*)@GDAL_1.8" 1.8.0
- (c++)"HDF4Dataset::ReadGlobalAttributes(int)@GDAL_1.8" 1.8.0
- (c++)"HDF4Dataset::TranslateHDF4Attributes(int, int, char*, int, int, char**)@GDAL_1.8" 1.8.0
- (c++)"HDF4Dataset::TranslateHDF4EOSAttributes(int, int, int, char**)@GDAL_1.8" 1.8.0
+ (c++)"HDF4Dataset::ReadGlobalAttributes(long)@GDAL_1.8" 1.8.0
+ (c++)"HDF4Dataset::TranslateHDF4Attributes(long, long, char*, long, long, char**)@GDAL_1.8" 1.8.0
+ (c++)"HDF4Dataset::TranslateHDF4EOSAttributes(long, long, long, char**)@GDAL_1.8" 1.8.0
  (c++)"HDF4Dataset::Open(GDALOpenInfo*)@GDAL_1.8" 1.8.0
  (c++)"HDF4Dataset::Identify(GDALOpenInfo*)@GDAL_1.8" 1.8.0
  (c++)"HDF4Dataset::HDF4Dataset()@GDAL_1.8" 1.8.0
@@ -2510,7 +2513,7 @@ libgdal.so.1 libgdal1 #MINVER#
  (c++)"xercesc_2_8::SAXException::~SAXException()@GDAL_1.8" 1.8.0
  (c++)"xercesc_2_8::SAXException::~SAXException()@GDAL_1.8" 1.8.0
  (c++)"xercesc_2_8::SAXException::~SAXException()@GDAL_1.8" 1.8.0
- (c++)"xercesc_2_8::SAX2XMLReader::setInputBufferSize(unsigned long)@GDAL_1.8" 1.8.0
+ (c++)"xercesc_2_8::SAX2XMLReader::setInputBufferSize(unsigned int)@GDAL_1.8" 1.8.0
  (c++)"xercesc_2_8::SAX2XMLReader::~SAX2XMLReader()@GDAL_1.8" 1.8.0
  (c++)"xercesc_2_8::SAX2XMLReader::~SAX2XMLReader()@GDAL_1.8" 1.8.0
  (c++)"xercesc_2_8::SAX2XMLReader::~SAX2XMLReader()@GDAL_1.8" 1.8.0
@@ -3201,11 +3204,11 @@ libgdal.so.1 libgdal1 #MINVER#
  (c++)"VFKDataBlock::~VFKDataBlock()@GDAL_1.8" 1.8.0
  (c++)"VFKDataBlock::~VFKDataBlock()@GDAL_1.8" 1.8.0
  (c++)"VSIMemHandle::Eof()@GDAL_1.8" 1.8.0
- (c++)"VSIMemHandle::Read(void*, unsigned long, unsigned long)@GDAL_1.8" 1.8.0
+ (c++)"VSIMemHandle::Read(void*, unsigned int, unsigned int)@GDAL_1.8" 1.8.0
  (c++)"VSIMemHandle::Seek(unsigned long long, int)@GDAL_1.8" 1.8.0
  (c++)"VSIMemHandle::Tell()@GDAL_1.8" 1.8.0
  (c++)"VSIMemHandle::Close()@GDAL_1.8" 1.8.0
- (c++)"VSIMemHandle::Write(void const*, unsigned long, unsigned long)@GDAL_1.8" 1.8.0
+ (c++)"VSIMemHandle::Write(void const*, unsigned int, unsigned int)@GDAL_1.8" 1.8.0
  (c++)"VSIMemHandle::~VSIMemHandle()@GDAL_1.8" 1.8.0
  (c++)"VSIMemHandle::~VSIMemHandle()@GDAL_1.8" 1.8.0
  (c++)"VSIMemHandle::~VSIMemHandle()@GDAL_1.8" 1.8.0
@@ -3861,9 +3864,9 @@ libgdal.so.1 libgdal1 #MINVER#
  (c++)"RawRasterBand::StoreNoDataValue(double)@GDAL_1.8" 1.8.0
  (c++)"RawRasterBand::GetColorInterpretation()@GDAL_1.8" 1.8.0
  (c++)"RawRasterBand::SetColorInterpretation(GDALColorInterp)@GDAL_1.8" 1.8.0
- (c++)"RawRasterBand::Read(void*, unsigned long, unsigned long)@GDAL_1.8" 1.8.0
+ (c++)"RawRasterBand::Read(void*, unsigned int, unsigned int)@GDAL_1.8" 1.8.0
  (c++)"RawRasterBand::Seek(unsigned long long, int)@GDAL_1.8" 1.8.0
- (c++)"RawRasterBand::Write(void*, unsigned long, unsigned long)@GDAL_1.8" 1.8.0
+ (c++)"RawRasterBand::Write(void*, unsigned int, unsigned int)@GDAL_1.8" 1.8.0
  (c++)"RawRasterBand::IRasterIO(GDALRWFlag, int, int, int, int, void*, int, int, GDALDataType, int, int)@GDAL_1.8" 1.8.0
  (c++)"RawRasterBand::SetAccess(GDALAccess)@GDAL_1.8" 1.8.0
  (c++)"RawRasterBand::RawRasterBand(GDALDataset*, int, void*, unsigned long long, int, int, GDALDataType, int, int, int)@GDAL_1.8" 1.8.0
@@ -4043,12 +4046,12 @@ libgdal.so.1 libgdal1 #MINVER#
  (c++)"VSICurlHandle::GetFileSize()@GDAL_1.8" 1.8.0
  (c++)"VSICurlHandle::DownloadRegion(unsigned long long, int)@GDAL_1.8" 1.8.0
  (c++)"VSICurlHandle::Eof()@GDAL_1.8" 1.8.0
- (c++)"VSICurlHandle::Read(void*, unsigned long, unsigned long)@GDAL_1.8" 1.8.0
+ (c++)"VSICurlHandle::Read(void*, unsigned int, unsigned int)@GDAL_1.8" 1.8.0
  (c++)"VSICurlHandle::Seek(unsigned long long, int)@GDAL_1.8" 1.8.0
  (c++)"VSICurlHandle::Tell()@GDAL_1.8" 1.8.0
  (c++)"VSICurlHandle::Close()@GDAL_1.8" 1.8.0
  (c++)"VSICurlHandle::Flush()@GDAL_1.8" 1.8.0
- (c++)"VSICurlHandle::Write(void const*, unsigned long, unsigned long)@GDAL_1.8" 1.8.0
+ (c++)"VSICurlHandle::Write(void const*, unsigned int, unsigned int)@GDAL_1.8" 1.8.0
  (c++)"VSICurlHandle::Exists()@GDAL_1.8" 1.8.0
  (c++)"VSICurlHandle::VSICurlHandle(VSICurlFilesystemHandler*, char const*)@GDAL_1.8" 1.8.0
  (c++)"VSICurlHandle::VSICurlHandle(VSICurlFilesystemHandler*, char const*)@GDAL_1.8" 1.8.0
@@ -4058,12 +4061,12 @@ libgdal.so.1 libgdal1 #MINVER#
  (c++)"VSIGZipHandle::check_header()@GDAL_1.8" 1.8.0
  (c++)"VSIGZipHandle::CloseBaseHandle()@GDAL_1.8" 1.8.0
  (c++)"VSIGZipHandle::Eof()@GDAL_1.8" 1.8.0
- (c++)"VSIGZipHandle::Read(void*, unsigned long, unsigned long)@GDAL_1.8" 1.8.0
+ (c++)"VSIGZipHandle::Read(void*, unsigned int, unsigned int)@GDAL_1.8" 1.8.0
  (c++)"VSIGZipHandle::Seek(unsigned long long, int)@GDAL_1.8" 1.8.0
  (c++)"VSIGZipHandle::Tell()@GDAL_1.8" 1.8.0
  (c++)"VSIGZipHandle::Close()@GDAL_1.8" 1.8.0
  (c++)"VSIGZipHandle::Flush()@GDAL_1.8" 1.8.0
- (c++)"VSIGZipHandle::Write(void const*, unsigned long, unsigned long)@GDAL_1.8" 1.8.0
+ (c++)"VSIGZipHandle::Write(void const*, unsigned int, unsigned int)@GDAL_1.8" 1.8.0
  (c++)"VSIGZipHandle::gzseek(unsigned long long, int)@GDAL_1.8" 1.8.0
  (c++)"VSIGZipHandle::getLong()@GDAL_1.8" 1.8.0
  (c++)"VSIGZipHandle::get_byte()@GDAL_1.8" 1.8.0
@@ -4090,7 +4093,7 @@ libgdal.so.1 libgdal1 #MINVER#
  (c++)"XYZRasterBand::~XYZRasterBand()@GDAL_1.8" 1.8.0
  (c++)"XYZRasterBand::~XYZRasterBand()@GDAL_1.8" 1.8.0
  (c++)"XYZRasterBand::~XYZRasterBand()@GDAL_1.8" 1.8.0
- (c++)"netCDFDataset::SafeStrcat(char**, char*, unsigned long*)@GDAL_1.8" 1.8.0
+ (c++)"netCDFDataset::SafeStrcat(char**, char*, unsigned int*)@GDAL_1.8" 1.8.0
  (c++)"netCDFDataset::GetMetadata(char const*)@GDAL_1.8" 1.8.0
  (c++)"netCDFDataset::FetchCopyParm(char const*, char const*, double)@GDAL_1.8" 1.8.0
  (c++)"netCDFDataset::SetProjection(int)@GDAL_1.8" 1.8.0
@@ -4259,7 +4262,7 @@ libgdal.so.1 libgdal1 #MINVER#
  (c++)"FASTRasterBand::~FASTRasterBand()@GDAL_1.8" 1.8.0
  (c++)"FileDataSource::DataSourceFeof()@GDAL_1.8" 1.8.0
  (c++)"FileDataSource::DataSourceFgetc()@GDAL_1.8" 1.8.0
- (c++)"FileDataSource::DataSourceFread(void*, unsigned long, unsigned long)@GDAL_1.8" 1.8.0
+ (c++)"FileDataSource::DataSourceFread(void*, unsigned int, unsigned int)@GDAL_1.8" 1.8.0
  (c++)"FileDataSource::DataSourceFseek(long, int)@GDAL_1.8" 1.8.0
  (c++)"FileDataSource::DataSourceFtell()@GDAL_1.8" 1.8.0
  (c++)"FileDataSource::DataSourceUngetc(int)@GDAL_1.8" 1.8.0
@@ -4941,11 +4944,11 @@ libgdal.so.1 libgdal1 #MINVER#
  (c++)"VSIFileManager::~VSIFileManager()@GDAL_1.8" 1.8.0
  (c++)"VSIFileManager::~VSIFileManager()@GDAL_1.8" 1.8.0
  (c++)"VSIStdinHandle::Eof()@GDAL_1.8" 1.8.0
- (c++)"VSIStdinHandle::Read(void*, unsigned long, unsigned long)@GDAL_1.8" 1.8.0
+ (c++)"VSIStdinHandle::Read(void*, unsigned int, unsigned int)@GDAL_1.8" 1.8.0
  (c++)"VSIStdinHandle::Seek(unsigned long long, int)@GDAL_1.8" 1.8.0
  (c++)"VSIStdinHandle::Tell()@GDAL_1.8" 1.8.0
  (c++)"VSIStdinHandle::Close()@GDAL_1.8" 1.8.0
- (c++)"VSIStdinHandle::Write(void const*, unsigned long, unsigned long)@GDAL_1.8" 1.8.0
+ (c++)"VSIStdinHandle::Write(void const*, unsigned int, unsigned int)@GDAL_1.8" 1.8.0
  (c++)"VSIStdinHandle::VSIStdinHandle()@GDAL_1.8" 1.8.0
  (c++)"VSIStdinHandle::VSIStdinHandle()@GDAL_1.8" 1.8.0
  (c++)"VSIStdinHandle::~VSIStdinHandle()@GDAL_1.8" 1.8.0
@@ -5149,8 +5152,8 @@ libgdal.so.1 libgdal1 #MINVER#
  (c++)"JPEG2000Dataset::~JPEG2000Dataset()@GDAL_1.8" 1.8.0
  (c++)"JPEG2000Dataset::~JPEG2000Dataset()@GDAL_1.8" 1.8.0
  (c++)"JPEG2000Dataset::~JPEG2000Dataset()@GDAL_1.8" 1.8.0
- (c++)"LevellerDataset::write_byte(unsigned long)@GDAL_1.8" 1.8.0
- (c++)"LevellerDataset::locate_data(unsigned long long&, unsigned long&, _IO_FILE*, char const*)@GDAL_1.8" 1.8.0
+ (c++)"LevellerDataset::write_byte(unsigned int)@GDAL_1.8" 1.8.0
+ (c++)"LevellerDataset::locate_data(unsigned long long&, unsigned int&, _IO_FILE*, char const*)@GDAL_1.8" 1.8.0
  (c++)"LevellerDataset::raw_to_proj(double, double, double&, double&)@GDAL_1.8" 1.8.0
  (c++)"LevellerDataset::write_header()@GDAL_1.8" 1.8.0
  (c++)"LevellerDataset::SetProjection(char const*)@GDAL_1.8" 1.8.0
@@ -5158,24 +5161,24 @@ libgdal.so.1 libgdal1 #MINVER#
  (c++)"LevellerDataset::GetGeoTransform(double*)@GDAL_1.8" 1.8.0
  (c++)"LevellerDataset::SetGeoTransform(double*)@GDAL_1.8" 1.8.0
  (c++)"LevellerDataset::convert_measure(double, double&, char const*)@GDAL_1.8" 1.8.0
- (c++)"LevellerDataset::write_tag_start(char const*, unsigned long)@GDAL_1.8" 1.8.0
+ (c++)"LevellerDataset::write_tag_start(char const*, unsigned int)@GDAL_1.8" 1.8.0
  (c++)"LevellerDataset::GetProjectionRef()@GDAL_1.8" 1.8.0
  (c++)"LevellerDataset::make_local_coordsys(char const*, UNITLABEL)@GDAL_1.8" 1.8.0
  (c++)"LevellerDataset::make_local_coordsys(char const*, char const*)@GDAL_1.8" 1.8.0
  (c++)"LevellerDataset::compute_elev_scaling(OGRSpatialReference const&)@GDAL_1.8" 1.8.0
- (c++)"LevellerDataset::get(char*, unsigned long, _IO_FILE*, char const*)@GDAL_1.8" 1.8.0
+ (c++)"LevellerDataset::get(char*, unsigned int, _IO_FILE*, char const*)@GDAL_1.8" 1.8.0
  (c++)"LevellerDataset::get(double&, _IO_FILE*, char const*)@GDAL_1.8" 1.8.0
  (c++)"LevellerDataset::get(int&, _IO_FILE*, char const*)@GDAL_1.8" 1.8.0
  (c++)"LevellerDataset::Open(GDALOpenInfo*)@GDAL_1.8" 1.8.0
  (c++)"LevellerDataset::write(double)@GDAL_1.8" 1.8.0
  (c++)"LevellerDataset::write(int)@GDAL_1.8" 1.8.0
- (c++)"LevellerDataset::write(unsigned long)@GDAL_1.8" 1.8.0
+ (c++)"LevellerDataset::write(unsigned int)@GDAL_1.8" 1.8.0
  (c++)"LevellerDataset::Create(char const*, int, int, int, GDALDataType, char**)@GDAL_1.8" 1.8.0
  (c++)"LevellerDataset::Identify(GDALOpenInfo*)@GDAL_1.8" 1.8.0
  (c++)"LevellerDataset::write_tag(char const*, char const*)@GDAL_1.8" 1.8.0
  (c++)"LevellerDataset::write_tag(char const*, double)@GDAL_1.8" 1.8.0
  (c++)"LevellerDataset::write_tag(char const*, int)@GDAL_1.8" 1.8.0
- (c++)"LevellerDataset::write_tag(char const*, unsigned long)@GDAL_1.8" 1.8.0
+ (c++)"LevellerDataset::write_tag(char const*, unsigned int)@GDAL_1.8" 1.8.0
  (c++)"LevellerDataset::LevellerDataset()@GDAL_1.8" 1.8.0
  (c++)"LevellerDataset::LevellerDataset()@GDAL_1.8" 1.8.0
  (c++)"LevellerDataset::~LevellerDataset()@GDAL_1.8" 1.8.0
@@ -5503,12 +5506,12 @@ libgdal.so.1 libgdal1 #MINVER#
  (c++)"VRTSimpleSource::~VRTSimpleSource()@GDAL_1.8" 1.8.0
  (c++)"VRTSimpleSource::~VRTSimpleSource()@GDAL_1.8" 1.8.0
  (c++)"VSIStdoutHandle::Eof()@GDAL_1.8" 1.8.0
- (c++)"VSIStdoutHandle::Read(void*, unsigned long, unsigned long)@GDAL_1.8" 1.8.0
+ (c++)"VSIStdoutHandle::Read(void*, unsigned int, unsigned int)@GDAL_1.8" 1.8.0
  (c++)"VSIStdoutHandle::Seek(unsigned long long, int)@GDAL_1.8" 1.8.0
  (c++)"VSIStdoutHandle::Tell()@GDAL_1.8" 1.8.0
  (c++)"VSIStdoutHandle::Close()@GDAL_1.8" 1.8.0
  (c++)"VSIStdoutHandle::Flush()@GDAL_1.8" 1.8.0
- (c++)"VSIStdoutHandle::Write(void const*, unsigned long, unsigned long)@GDAL_1.8" 1.8.0
+ (c++)"VSIStdoutHandle::Write(void const*, unsigned int, unsigned int)@GDAL_1.8" 1.8.0
  (c++)"VSIStdoutHandle::~VSIStdoutHandle()@GDAL_1.8" 1.8.0
  (c++)"VSIStdoutHandle::~VSIStdoutHandle()@GDAL_1.8" 1.8.0
  (c++)"VSIStdoutHandle::~VSIStdoutHandle()@GDAL_1.8" 1.8.0
@@ -5641,8 +5644,8 @@ libgdal.so.1 libgdal1 #MINVER#
  (c++)"GTiffOddBitsBand::~GTiffOddBitsBand()@GDAL_1.8" 1.8.0
  (c++)"HDF4ImageDataset::FlushCache()@GDAL_1.8" 1.8.0
  (c++)"HDF4ImageDataset::GetGCPCount()@GDAL_1.8" 1.8.0
- (c++)"HDF4ImageDataset::GetGridAttrs(int)@GDAL_1.8" 1.8.0
- (c++)"HDF4ImageDataset::GetSwatAttrs(int)@GDAL_1.8" 1.8.0
+ (c++)"HDF4ImageDataset::GetGridAttrs(long)@GDAL_1.8" 1.8.0
+ (c++)"HDF4ImageDataset::GetSwatAttrs(long)@GDAL_1.8" 1.8.0
  (c++)"HDF4ImageDataset::SetProjection(char const*)@GDAL_1.8" 1.8.0
  (c++)"HDF4ImageDataset::GetGeoTransform(double*)@GDAL_1.8" 1.8.0
  (c++)"HDF4ImageDataset::ReadCoordinates(char const*, double*, double*)@GDAL_1.8" 1.8.0
@@ -5653,7 +5656,7 @@ libgdal.so.1 libgdal1 #MINVER#
  (c++)"HDF4ImageDataset::GetImageDimensions(char*)@GDAL_1.8" 1.8.0
  (c++)"HDF4ImageDataset::USGSMnemonicToCode(char const*)@GDAL_1.8" 1.8.0
  (c++)"HDF4ImageDataset::CaptureNRLGeoTransform()@GDAL_1.8" 1.8.0
- (c++)"HDF4ImageDataset::ProcessSwathGeolocation(int, char**)@GDAL_1.8" 1.8.0
+ (c++)"HDF4ImageDataset::ProcessSwathGeolocation(long, char**)@GDAL_1.8" 1.8.0
  (c++)"HDF4ImageDataset::CaptureCoastwatchGCTPInfo()@GDAL_1.8" 1.8.0
  (c++)"HDF4ImageDataset::ProcessModisSDSGeolocation()@GDAL_1.8" 1.8.0
  (c++)"HDF4ImageDataset::Open(GDALOpenInfo*)@GDAL_1.8" 1.8.0
@@ -5705,7 +5708,7 @@ libgdal.so.1 libgdal1 #MINVER#
  (c++)"IdrisiRasterBand::~IdrisiRasterBand()@GDAL_1.8" 1.8.0
  (c++)"MemoryDataSource::DataSourceFeof()@GDAL_1.8" 1.8.0
  (c++)"MemoryDataSource::DataSourceFgetc()@GDAL_1.8" 1.8.0
- (c++)"MemoryDataSource::DataSourceFread(void*, unsigned long, unsigned long)@GDAL_1.8" 1.8.0
+ (c++)"MemoryDataSource::DataSourceFread(void*, unsigned int, unsigned int)@GDAL_1.8" 1.8.0
  (c++)"MemoryDataSource::DataSourceFseek(long, int)@GDAL_1.8" 1.8.0
  (c++)"MemoryDataSource::DataSourceFtell()@GDAL_1.8" 1.8.0
  (c++)"MemoryDataSource::DataSourceUngetc(int)@GDAL_1.8" 1.8.0
@@ -6212,11 +6215,11 @@ libgdal.so.1 libgdal1 #MINVER#
  (c++)"VSIArchiveReader::~VSIArchiveReader()@GDAL_1.8" 1.8.0
  (c++)"VSIArchiveReader::~VSIArchiveReader()@GDAL_1.8" 1.8.0
  (c++)"VSISubFileHandle::Eof()@GDAL_1.8" 1.8.0
- (c++)"VSISubFileHandle::Read(void*, unsigned long, unsigned long)@GDAL_1.8" 1.8.0
+ (c++)"VSISubFileHandle::Read(void*, unsigned int, unsigned int)@GDAL_1.8" 1.8.0
  (c++)"VSISubFileHandle::Seek(unsigned long long, int)@GDAL_1.8" 1.8.0
  (c++)"VSISubFileHandle::Tell()@GDAL_1.8" 1.8.0
  (c++)"VSISubFileHandle::Close()@GDAL_1.8" 1.8.0
- (c++)"VSISubFileHandle::Write(void const*, unsigned long, unsigned long)@GDAL_1.8" 1.8.0
+ (c++)"VSISubFileHandle::Write(void const*, unsigned int, unsigned int)@GDAL_1.8" 1.8.0
  (c++)"VSISubFileHandle::~VSISubFileHandle()@GDAL_1.8" 1.8.0
  (c++)"VSISubFileHandle::~VSISubFileHandle()@GDAL_1.8" 1.8.0
  (c++)"VSISubFileHandle::~VSISubFileHandle()@GDAL_1.8" 1.8.0
@@ -6782,12 +6785,12 @@ libgdal.so.1 libgdal1 #MINVER#
  (c++)"VSIZipWriteHandle::StartNewFile(VSIZipWriteHandle*)@GDAL_1.8" 1.8.0
  (c++)"VSIZipWriteHandle::StopCurrentFile()@GDAL_1.8" 1.8.0
  (c++)"VSIZipWriteHandle::Eof()@GDAL_1.8" 1.8.0
- (c++)"VSIZipWriteHandle::Read(void*, unsigned long, unsigned long)@GDAL_1.8" 1.8.0
+ (c++)"VSIZipWriteHandle::Read(void*, unsigned int, unsigned int)@GDAL_1.8" 1.8.0
  (c++)"VSIZipWriteHandle::Seek(unsigned long long, int)@GDAL_1.8" 1.8.0
  (c++)"VSIZipWriteHandle::Tell()@GDAL_1.8" 1.8.0
  (c++)"VSIZipWriteHandle::Close()@GDAL_1.8" 1.8.0
  (c++)"VSIZipWriteHandle::Flush()@GDAL_1.8" 1.8.0
- (c++)"VSIZipWriteHandle::Write(void const*, unsigned long, unsigned long)@GDAL_1.8" 1.8.0
+ (c++)"VSIZipWriteHandle::Write(void const*, unsigned int, unsigned int)@GDAL_1.8" 1.8.0
  (c++)"VSIZipWriteHandle::VSIZipWriteHandle(VSIZipFilesystemHandler*, void*, VSIZipWriteHandle*)@GDAL_1.8" 1.8.0
  (c++)"VSIZipWriteHandle::VSIZipWriteHandle(VSIZipFilesystemHandler*, void*, VSIZipWriteHandle*)@GDAL_1.8" 1.8.0
  (c++)"VSIZipWriteHandle::~VSIZipWriteHandle()@GDAL_1.8" 1.8.0
@@ -7175,24 +7178,24 @@ libgdal.so.1 libgdal1 #MINVER#
  (c++)"TigerPolyChainLink::~TigerPolyChainLink()@GDAL_1.8" 1.8.0
  (c++)"TigerPolyChainLink::~TigerPolyChainLink()@GDAL_1.8" 1.8.0
  (c++)"VSIGZipWriteHandle::Eof()@GDAL_1.8" 1.8.0
- (c++)"VSIGZipWriteHandle::Read(void*, unsigned long, unsigned long)@GDAL_1.8" 1.8.0
+ (c++)"VSIGZipWriteHandle::Read(void*, unsigned int, unsigned int)@GDAL_1.8" 1.8.0
  (c++)"VSIGZipWriteHandle::Seek(unsigned long long, int)@GDAL_1.8" 1.8.0
  (c++)"VSIGZipWriteHandle::Tell()@GDAL_1.8" 1.8.0
  (c++)"VSIGZipWriteHandle::Close()@GDAL_1.8" 1.8.0
  (c++)"VSIGZipWriteHandle::Flush()@GDAL_1.8" 1.8.0
- (c++)"VSIGZipWriteHandle::Write(void const*, unsigned long, unsigned long)@GDAL_1.8" 1.8.0
+ (c++)"VSIGZipWriteHandle::Write(void const*, unsigned int, unsigned int)@GDAL_1.8" 1.8.0
  (c++)"VSIGZipWriteHandle::VSIGZipWriteHandle(VSIVirtualHandle*)@GDAL_1.8" 1.8.0
  (c++)"VSIGZipWriteHandle::VSIGZipWriteHandle(VSIVirtualHandle*)@GDAL_1.8" 1.8.0
  (c++)"VSIGZipWriteHandle::~VSIGZipWriteHandle()@GDAL_1.8" 1.8.0
  (c++)"VSIGZipWriteHandle::~VSIGZipWriteHandle()@GDAL_1.8" 1.8.0
  (c++)"VSIGZipWriteHandle::~VSIGZipWriteHandle()@GDAL_1.8" 1.8.0
  (c++)"VSIUnixStdioHandle::Eof()@GDAL_1.8" 1.8.0
- (c++)"VSIUnixStdioHandle::Read(void*, unsigned long, unsigned long)@GDAL_1.8" 1.8.0
+ (c++)"VSIUnixStdioHandle::Read(void*, unsigned int, unsigned int)@GDAL_1.8" 1.8.0
  (c++)"VSIUnixStdioHandle::Seek(unsigned long long, int)@GDAL_1.8" 1.8.0
  (c++)"VSIUnixStdioHandle::Tell()@GDAL_1.8" 1.8.0
  (c++)"VSIUnixStdioHandle::Close()@GDAL_1.8" 1.8.0
  (c++)"VSIUnixStdioHandle::Flush()@GDAL_1.8" 1.8.0
- (c++)"VSIUnixStdioHandle::Write(void const*, unsigned long, unsigned long)@GDAL_1.8" 1.8.0
+ (c++)"VSIUnixStdioHandle::Write(void const*, unsigned int, unsigned int)@GDAL_1.8" 1.8.0
  (c++)"VSIUnixStdioHandle::~VSIUnixStdioHandle()@GDAL_1.8" 1.8.0
  (c++)"VSIUnixStdioHandle::~VSIUnixStdioHandle()@GDAL_1.8" 1.8.0
  (c++)"VSIUnixStdioHandle::~VSIUnixStdioHandle()@GDAL_1.8" 1.8.0
@@ -7612,11 +7615,11 @@ libgdal.so.1 libgdal1 #MINVER#
  (c++)"VRTWarpedRasterBand::~VRTWarpedRasterBand()@GDAL_1.8" 1.8.0
  (c++)"VRTWarpedRasterBand::~VRTWarpedRasterBand()@GDAL_1.8" 1.8.0
  (c++)"VSISparseFileHandle::Eof()@GDAL_1.8" 1.8.0
- (c++)"VSISparseFileHandle::Read(void*, unsigned long, unsigned long)@GDAL_1.8" 1.8.0
+ (c++)"VSISparseFileHandle::Read(void*, unsigned int, unsigned int)@GDAL_1.8" 1.8.0
  (c++)"VSISparseFileHandle::Seek(unsigned long long, int)@GDAL_1.8" 1.8.0
  (c++)"VSISparseFileHandle::Tell()@GDAL_1.8" 1.8.0
  (c++)"VSISparseFileHandle::Close()@GDAL_1.8" 1.8.0
- (c++)"VSISparseFileHandle::Write(void const*, unsigned long, unsigned long)@GDAL_1.8" 1.8.0
+ (c++)"VSISparseFileHandle::Write(void const*, unsigned int, unsigned int)@GDAL_1.8" 1.8.0
  (c++)"VSISparseFileHandle::~VSISparseFileHandle()@GDAL_1.8" 1.8.0
  (c++)"VSISparseFileHandle::~VSISparseFileHandle()@GDAL_1.8" 1.8.0
  (c++)"VSISparseFileHandle::~VSISparseFileHandle()@GDAL_1.8" 1.8.0
@@ -8220,12 +8223,12 @@ libgdal.so.1 libgdal1 #MINVER#
  (c++)"VRTKernelFilteredSource::~VRTKernelFilteredSource()@GDAL_1.8" 1.8.0
  (c++)"VRTKernelFilteredSource::~VRTKernelFilteredSource()@GDAL_1.8" 1.8.0
  (c++)"VSIBufferedReaderHandle::Eof()@GDAL_1.8" 1.8.0
- (c++)"VSIBufferedReaderHandle::Read(void*, unsigned long, unsigned long)@GDAL_1.8" 1.8.0
+ (c++)"VSIBufferedReaderHandle::Read(void*, unsigned int, unsigned int)@GDAL_1.8" 1.8.0
  (c++)"VSIBufferedReaderHandle::Seek(unsigned long long, int)@GDAL_1.8" 1.8.0
  (c++)"VSIBufferedReaderHandle::Tell()@GDAL_1.8" 1.8.0
  (c++)"VSIBufferedReaderHandle::Close()@GDAL_1.8" 1.8.0
  (c++)"VSIBufferedReaderHandle::Flush()@GDAL_1.8" 1.8.0
- (c++)"VSIBufferedReaderHandle::Write(void const*, unsigned long, unsigned long)@GDAL_1.8" 1.8.0
+ (c++)"VSIBufferedReaderHandle::Write(void const*, unsigned int, unsigned int)@GDAL_1.8" 1.8.0
  (c++)"VSIBufferedReaderHandle::VSIBufferedReaderHandle(VSIVirtualHandle*)@GDAL_1.8" 1.8.0
  (c++)"VSIBufferedReaderHandle::VSIBufferedReaderHandle(VSIVirtualHandle*)@GDAL_1.8" 1.8.0
  (c++)"VSIBufferedReaderHandle::~VSIBufferedReaderHandle()@GDAL_1.8" 1.8.0
@@ -8335,7 +8338,7 @@ libgdal.so.1 libgdal1 #MINVER#
  (c++)"VSICurlFilesystemHandler::Unlink(char const*)@GDAL_1.8" 1.8.0
  (c++)"VSICurlFilesystemHandler::ReadDir(char const*)@GDAL_1.8" 1.8.0
  (c++)"VSICurlFilesystemHandler::ReadDir(char const*, int*)@GDAL_1.8" 1.8.0
- (c++)"VSICurlFilesystemHandler::AddRegion(char const*, unsigned long long, unsigned long, char const*)@GDAL_1.8" 1.8.0
+ (c++)"VSICurlFilesystemHandler::AddRegion(char const*, unsigned long long, unsigned int, char const*)@GDAL_1.8" 1.8.0
  (c++)"VSICurlFilesystemHandler::GetRegion(char const*, unsigned long long)@GDAL_1.8" 1.8.0
  (c++)"VSICurlFilesystemHandler::VSICurlFilesystemHandler()@GDAL_1.8" 1.8.0
  (c++)"VSICurlFilesystemHandler::VSICurlFilesystemHandler()@GDAL_1.8" 1.8.0
@@ -8703,14 +8706,14 @@ libgdal.so.1 libgdal1 #MINVER#
  (c++)"GTM::Open(char const*)@GDAL_1.8" 1.8.0
  (c++)"GTM::isValid()@GDAL_1.8" 1.8.0
  (c++)"GTM::getNWpts()@GDAL_1.8" 1.8.0
- (c++)"GTM::readFile(void*, unsigned long, unsigned long)@GDAL_1.8" 1.8.0
+ (c++)"GTM::readFile(void*, unsigned int, unsigned int)@GDAL_1.8" 1.8.0
  (c++)"GTM::GTM()@GDAL_1.8" 1.8.0
  (c++)"GTM::GTM()@GDAL_1.8" 1.8.0
  (c++)"GTM::~GTM()@GDAL_1.8" 1.8.0
  (c++)"GTM::~GTM()@GDAL_1.8" 1.8.0
  (c++)"KML::endElement(void*, char const*)@GDAL_1.8" 1.8.0
  (c++)"KML::findLayers(KMLNode*)@GDAL_1.8" 1.8.0
- (c++)"KML::getFeature(unsigned long, int&, int&)@GDAL_1.8" 1.8.0
+ (c++)"KML::getFeature(unsigned int, int&, int&)@GDAL_1.8" 1.8.0
  (c++)"KML::dataHandler(void*, char const*, int)@GDAL_1.8" 1.8.0
  (c++)"KML::selectLayer(int)@GDAL_1.8" 1.8.0
  (c++)"KML::startElement(void*, char const*, char const**)@GDAL_1.8" 1.8.0
@@ -8817,8 +8820,9 @@ libgdal.so.1 libgdal1 #MINVER#
  (c++)"PCIDSK::PCIDSK_TEX::~PCIDSK_TEX()@GDAL_1.8" 1.8.0
  (c++)"PCIDSK::PCIDSK_TEX::~PCIDSK_TEX()@GDAL_1.8" 1.8.0
  (c++)"PCIDSK::PCIDSK_TEX::~PCIDSK_TEX()@GDAL_1.8" 1.8.0
- (c++)"PCIDSK::ShapeField::Clear()@GDAL_1.8" 1.8.0
- (c++)"PCIDSK::SwapPixels(void*, PCIDSK::eChanType, unsigned long)@GDAL_1.8" 1.8.0
+ (c++)"PCIDSK::ShapeField::~ShapeField()@GDAL_1.8" 1.8.0
+ (c++)"PCIDSK::ShapeField::~ShapeField()@GDAL_1.8" 1.8.0
+ (c++)"PCIDSK::SwapPixels(void*, PCIDSK::eChanType, unsigned int)@GDAL_1.8" 1.8.0
  (c++)"PCIDSK::CPCIDSKFile::ExtendFile(unsigned long long, bool)@GDAL_1.8" 1.8.0
  (c++)"PCIDSK::CPCIDSKFile::FlushBlock()@GDAL_1.8" 1.8.0
  (c++)"PCIDSK::CPCIDSKFile::GetChannel(int)@GDAL_1.8" 1.8.0
@@ -9022,7 +9026,7 @@ libgdal.so.1 libgdal1 #MINVER#
  (c++)"PCIDSK::SysVirtualFile::ReadFromFile(void*, unsigned long long, unsigned long long)@GDAL_1.8" 1.8.0
  (c++)"PCIDSK::SysVirtualFile::LoadBMEntrysTo(int)@GDAL_1.8" 1.8.0
  (c++)"PCIDSK::SysVirtualFile::FlushDirtyBlock()@GDAL_1.8" 1.8.0
- (c++)"PCIDSK::SysVirtualFile::GrowVirtualFile(long)@GDAL_1.8" 1.8.0
+ (c++)"PCIDSK::SysVirtualFile::GrowVirtualFile(int)@GDAL_1.8" 1.8.0
  (c++)"PCIDSK::SysVirtualFile::LoadBlock(int)@GDAL_1.8" 1.8.0
  (c++)"PCIDSK::SysVirtualFile::SysVirtualFile(PCIDSK::CPCIDSKFile*, int, unsigned long long, PCIDSK::SysBlockMap*, int)@GDAL_1.8" 1.8.0
  (c++)"PCIDSK::SysVirtualFile::SysVirtualFile(PCIDSK::CPCIDSKFile*, int, unsigned long long, PCIDSK::SysBlockMap*, int)@GDAL_1.8" 1.8.0
@@ -9040,7 +9044,8 @@ libgdal.so.1 libgdal1 #MINVER#
  (c++)"PCIDSK::MetadataSegment::~MetadataSegment()@GDAL_1.8" 1.8.0
  (c++)"PCIDSK::MetadataSegment::~MetadataSegment()@GDAL_1.8" 1.8.0
  (c++)"PCIDSK::MetadataSegment::~MetadataSegment()@GDAL_1.8" 1.8.0
- (c++)"PCIDSK::PCIDSKException::vPrintf(char const*, __va_list_tag*)@GDAL_1.8" 1.8.0
+ (c++)"PCIDSK::PCIDSKException::vPrintf(char const*, char*)@GDAL_1.8" 1.8.0
+ (c++|arch=ia64)"PCIDSK::PCIDSKException::vPrintf(char const*, void*)@GDAL_1.8" 1.8.0
  (c++)"PCIDSK::PCIDSKException::PCIDSKException(char const*, ...)@GDAL_1.8" 1.8.0
  (c++)"PCIDSK::PCIDSKException::PCIDSKException(PCIDSK::PCIDSKException const&)@GDAL_1.8" 1.8.0
  (c++)"PCIDSK::PCIDSKException::PCIDSKException(char const*, ...)@GDAL_1.8" 1.8.0
@@ -9281,14 +9286,14 @@ libgdal.so.1 libgdal1 #MINVER#
  (c++)"IomFile::~IomFile()@GDAL_1.8" 1.8.0
  (c++)"IomFile::operator=(IomFile const&)@GDAL_1.8" 1.8.0
  (c++)"KMLNode::addContent(std::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)@GDAL_1.8" 1.8.0
- (c++)"KMLNode::getFeature(unsigned long, int&, int&)@GDAL_1.8" 1.8.0
+ (c++)"KMLNode::getFeature(unsigned int, int&, int&)@GDAL_1.8" 1.8.0
  (c++)"KMLNode::numContent()@GDAL_1.8" 1.8.0
  (c++)"KMLNode::addChildren(KMLNode*)@GDAL_1.8" 1.8.0
  (c++)"KMLNode::getGeometry(Nodetype)@GDAL_1.8" 1.8.0
  (c++)"KMLNode::addAttribute(Attribute*)@GDAL_1.8" 1.8.0
  (c++)"KMLNode::appendContent(std::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)@GDAL_1.8" 1.8.0
  (c++)"KMLNode::countChildren()@GDAL_1.8" 1.8.0
- (c++)"KMLNode::deleteContent(unsigned long)@GDAL_1.8" 1.8.0
+ (c++)"KMLNode::deleteContent(unsigned int)@GDAL_1.8" 1.8.0
  (c++)"KMLNode::eliminateEmpty(KML*)@GDAL_1.8" 1.8.0
  (c++)"KMLNode::getNumFeatures()@GDAL_1.8" 1.8.0
  (c++)"KMLNode::setLayerNumber(int)@GDAL_1.8" 1.8.0
@@ -9296,7 +9301,7 @@ libgdal.so.1 libgdal1 #MINVER#
  (c++)"KMLNode::setName(std::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)@GDAL_1.8" 1.8.0
  (c++)"KMLNode::setType(Nodetype)@GDAL_1.8" 1.8.0
  (c++)"KMLNode::classify(KML*)@GDAL_1.8" 1.8.0
- (c++)"KMLNode::setLevel(unsigned long)@GDAL_1.8" 1.8.0
+ (c++)"KMLNode::setLevel(unsigned int)@GDAL_1.8" 1.8.0
  (c++)"KMLNode::setParent(KMLNode*)@GDAL_1.8" 1.8.0
  (c++)"KMLNode::KMLNode()@GDAL_1.8" 1.8.0
  (c++)"KMLNode::KMLNode()@GDAL_1.8" 1.8.0
@@ -9696,7 +9701,8 @@ libgdal.so.1 libgdal1 #MINVER#
  (c++)"CPLString::Printf(char const*, ...)@GDAL_1.8" 1.8.0
  (c++)"CPLString::Recode(char const*, char const*)@GDAL_1.8" 1.8.0
  (c++)"CPLString::FormatC(double, char const*)@GDAL_1.8" 1.8.0
- (c++)"CPLString::vPrintf(char const*, __va_list_tag*)@GDAL_1.8" 1.8.0
+ (c++)"CPLString::vPrintf(char const*, char*)@GDAL_1.8" 1.8.0
+ (c++|arch=ia64)"CPLString::vPrintf(char const*, void*)@GDAL_1.8" 1.8.0
  (c++)"CPLString::CPLString(char const*)@GDAL_1.8" 1.8.0
  (c++)"CPLString::CPLString(char const*)@GDAL_1.8" 1.8.0
  (c++)"DDFModule::Initialize(char, char, char, char, char, char const*, int, int, int)@GDAL_1.8" 1.8.0
@@ -10312,13 +10318,13 @@ libgdal.so.1 libgdal1 #MINVER#
  (c++)"PCIDSK::PCIDSKAPModelMiscParams::GetRFF() const@GDAL_1.8" 1.8.0
  (c++)"PCIDSK::PCIDSKAPModelMiscParams::GetRadius() const@GDAL_1.8" 1.8.0
  (c++)"PCIDSK::PCIDSKAPModelMiscParams::HasRadius() const@GDAL_1.8" 1.8.0
- (c++)"KMLNode::getContent(unsigned long) const@GDAL_1.8" 1.8.0
+ (c++)"KMLNode::getContent(unsigned int) const@GDAL_1.8" 1.8.0
  (c++)"KMLNode::getLayerNumber() const@GDAL_1.8" 1.8.0
  (c++)"KMLNode::getNameElement() const@GDAL_1.8" 1.8.0
  (c++)"KMLNode::getDescriptionElement() const@GDAL_1.8" 1.8.0
  (c++)"KMLNode::getName() const@GDAL_1.8" 1.8.0
  (c++)"KMLNode::getType() const@GDAL_1.8" 1.8.0
- (c++)"KMLNode::getChild(unsigned long) const@GDAL_1.8" 1.8.0
+ (c++)"KMLNode::getChild(unsigned int) const@GDAL_1.8" 1.8.0
  (c++)"KMLNode::getLevel() const@GDAL_1.8" 1.8.0
  (c++)"KMLNode::getParent() const@GDAL_1.8" 1.8.0
  (c++)"OGRCurve::get_IsClosed() const@GDAL_1.8" 1.8.0
@@ -10333,8 +10339,8 @@ libgdal.so.1 libgdal1 #MINVER#
  (c++)"OGRPoint::Equals(OGRGeometry*) const@GDAL_1.8" 1.8.0
  (c++)"OGRPoint::IsEmpty() const@GDAL_1.8" 1.8.0
  (c++)"OGRPoint::WkbSize() const@GDAL_1.8" 1.8.0
- (c++)"CPLString::ifind(char const*, unsigned long) const@GDAL_1.8" 1.8.0
- (c++)"CPLString::ifind(std::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, unsigned long) const@GDAL_1.8" 1.8.0
+ (c++)"CPLString::ifind(char const*, unsigned int) const@GDAL_1.8" 1.8.0
+ (c++)"CPLString::ifind(std::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, unsigned int) const@GDAL_1.8" 1.8.0
  (c++)"GMLReader::GetClassCount() const@GDAL_1.8" 1.8.0
  (c++)"GMLReader::IsClassListLocked() const@GDAL_1.8" 1.8.0
  (c++)"GMLReader::GetClass(char const*) const@GDAL_1.8" 1.8.0
@@ -10354,13 +10360,13 @@ libgdal.so.1 libgdal1 #MINVER#
  (c++)"std::map<CPLString, CPLString, std::less<CPLString>, std::allocator<std::pair<CPLString const, CPLString> > >::count(CPLString const&) const@GDAL_1.8" 1.8.0
  (c++)"std::basic_string<char, std::char_traits<char>, std::allocator<char> >::basic_string<char*>(char*, char*, std::allocator<char> const&)@GDAL_1.8" 1.8.0
  (c++)"std::basic_string<char, std::char_traits<char>, std::allocator<char> >::basic_string<char*>(char*, char*, std::allocator<char> const&)@GDAL_1.8" 1.8.0
- (c++)"std::_Deque_base<Element, std::allocator<Element> >::_M_initialize_map(unsigned long)@GDAL_1.8" 1.8.0
+ (c++)"std::_Deque_base<Element, std::allocator<Element> >::_M_initialize_map(unsigned int)@GDAL_1.8" 1.8.0
  (c++)"std::_Deque_base<Element, std::allocator<Element> >::~_Deque_base()@GDAL_1.8" 1.8.0
  (c++)"std::_Deque_base<Element, std::allocator<Element> >::~_Deque_base()@GDAL_1.8" 1.8.0
- (c++)"std::_Deque_base<OGRFeature*, std::allocator<OGRFeature*> >::_M_initialize_map(unsigned long)@GDAL_1.8" 1.8.0
+ (c++)"std::_Deque_base<OGRFeature*, std::allocator<OGRFeature*> >::_M_initialize_map(unsigned int)@GDAL_1.8" 1.8.0
  (c++)"std::_Deque_base<OGRFeature*, std::allocator<OGRFeature*> >::~_Deque_base()@GDAL_1.8" 1.8.0
  (c++)"std::_Deque_base<OGRFeature*, std::allocator<OGRFeature*> >::~_Deque_base()@GDAL_1.8" 1.8.0
- (c++)"std::_Deque_base<int, std::allocator<int> >::_M_initialize_map(unsigned long)@GDAL_1.8" 1.8.0
+ (c++)"std::_Deque_base<int, std::allocator<int> >::_M_initialize_map(unsigned int)@GDAL_1.8" 1.8.0
  (c++)"std::_Deque_base<int, std::allocator<int> >::~_Deque_base()@GDAL_1.8" 1.8.0
  (c++)"std::_Deque_base<int, std::allocator<int> >::~_Deque_base()@GDAL_1.8" 1.8.0
  (c++)"std::basic_stringbuf<char, std::char_traits<char>, std::allocator<char> >::~basic_stringbuf()@GDAL_1.8" 1.8.0
@@ -10384,22 +10390,22 @@ libgdal.so.1 libgdal1 #MINVER#
  (c++)"std::pair<std::basic_string<char, std::char_traits<char>, std::allocator<char> > const, std::basic_string<char, std::char_traits<char>, std::allocator<char> > >::~pair()@GDAL_1.8" 1.8.0
  (c++)"std::pair<std::basic_string<char, std::char_traits<char>, std::allocator<char> > const, std::basic_string<char, std::char_traits<char>, std::allocator<char> > >::~pair()@GDAL_1.8" 1.8.0
  (c++)"std::deque<Element, std::allocator<Element> >::_M_push_back_aux(Element const&)@GDAL_1.8" 1.8.0
- (c++)"std::deque<Element, std::allocator<Element> >::_M_reallocate_map(unsigned long, bool)@GDAL_1.8" 1.8.0
+ (c++)"std::deque<Element, std::allocator<Element> >::_M_reallocate_map(unsigned int, bool)@GDAL_1.8" 1.8.0
  (c++)"std::deque<Element, std::allocator<Element> >::_M_destroy_data_aux(std::_Deque_iterator<Element, Element&, Element*>, std::_Deque_iterator<Element, Element&, Element*>)@GDAL_1.8" 1.8.0
  (c++)"std::deque<Element, std::allocator<Element> >::~deque()@GDAL_1.8" 1.8.0
  (c++)"std::deque<Element, std::allocator<Element> >::~deque()@GDAL_1.8" 1.8.0
- (c++)"std::deque<OGRFeature*, std::allocator<OGRFeature*> >::_M_reallocate_map(unsigned long, bool)@GDAL_1.8" 1.8.0
- (c++)"std::deque<int, std::allocator<int> >::_M_reallocate_map(unsigned long, bool)@GDAL_1.8" 1.8.0
+ (c++)"std::deque<OGRFeature*, std::allocator<OGRFeature*> >::_M_reallocate_map(unsigned int, bool)@GDAL_1.8" 1.8.0
+ (c++)"std::deque<int, std::allocator<int> >::_M_reallocate_map(unsigned int, bool)@GDAL_1.8" 1.8.0
  (c++)"std::stack<Element, std::deque<Element, std::allocator<Element> > >::push(Element const&)@GDAL_1.8" 1.8.0
- (c++)"std::vector<VFKProperty, std::allocator<VFKProperty> >::_M_fill_assign(unsigned long, VFKProperty const&)@GDAL_1.8" 1.8.0
+ (c++)"std::vector<VFKProperty, std::allocator<VFKProperty> >::_M_fill_assign(unsigned int, VFKProperty const&)@GDAL_1.8" 1.8.0
  (c++)"std::vector<VFKProperty, std::allocator<VFKProperty> >::~vector()@GDAL_1.8" 1.8.0
  (c++)"std::vector<VFKProperty, std::allocator<VFKProperty> >::~vector()@GDAL_1.8" 1.8.0
- (c++)"std::vector<GDALColorEntry, std::allocator<GDALColorEntry> >::_M_fill_insert(__gnu_cxx::__normal_iterator<GDALColorEntry*, std::vector<GDALColorEntry, std::allocator<GDALColorEntry> > >, unsigned long, GDALColorEntry const&)@GDAL_1.8" 1.8.0
- (c++)"std::vector<VRTOverviewInfo, std::allocator<VRTOverviewInfo> >::_M_fill_insert(__gnu_cxx::__normal_iterator<VRTOverviewInfo*, std::vector<VRTOverviewInfo, std::allocator<VRTOverviewInfo> > >, unsigned long, VRTOverviewInfo const&)@GDAL_1.8" 1.8.0
+ (c++)"std::vector<GDALColorEntry, std::allocator<GDALColorEntry> >::_M_fill_insert(__gnu_cxx::__normal_iterator<GDALColorEntry*, std::vector<GDALColorEntry, std::allocator<GDALColorEntry> > >, unsigned int, GDALColorEntry const&)@GDAL_1.8" 1.8.0
+ (c++)"std::vector<VRTOverviewInfo, std::allocator<VRTOverviewInfo> >::_M_fill_insert(__gnu_cxx::__normal_iterator<VRTOverviewInfo*, std::vector<VRTOverviewInfo, std::allocator<VRTOverviewInfo> > >, unsigned int, VRTOverviewInfo const&)@GDAL_1.8" 1.8.0
  (c++)"std::vector<VRTOverviewInfo, std::allocator<VRTOverviewInfo> >::~vector()@GDAL_1.8" 1.8.0
  (c++)"std::vector<VRTOverviewInfo, std::allocator<VRTOverviewInfo> >::~vector()@GDAL_1.8" 1.8.0
  (c++)"std::vector<DXFSmoothPolylineVertex, std::allocator<DXFSmoothPolylineVertex> >::_M_insert_aux(__gnu_cxx::__normal_iterator<DXFSmoothPolylineVertex*, std::vector<DXFSmoothPolylineVertex, std::allocator<DXFSmoothPolylineVertex> > >, DXFSmoothPolylineVertex const&)@GDAL_1.8" 1.8.0
- (c++)"std::vector<GDALRasterAttributeField, std::allocator<GDALRasterAttributeField> >::_M_fill_insert(__gnu_cxx::__normal_iterator<GDALRasterAttributeField*, std::vector<GDALRasterAttributeField, std::allocator<GDALRasterAttributeField> > >, unsigned long, GDALRasterAttributeField const&)@GDAL_1.8" 1.8.0
+ (c++)"std::vector<GDALRasterAttributeField, std::allocator<GDALRasterAttributeField> >::_M_fill_insert(__gnu_cxx::__normal_iterator<GDALRasterAttributeField*, std::vector<GDALRasterAttributeField, std::allocator<GDALRasterAttributeField> > >, unsigned int, GDALRasterAttributeField const&)@GDAL_1.8" 1.8.0
  (c++)"std::vector<GDALRasterAttributeField, std::allocator<GDALRasterAttributeField> >::~vector()@GDAL_1.8" 1.8.0
  (c++)"std::vector<GDALRasterAttributeField, std::allocator<GDALRasterAttributeField> >::~vector()@GDAL_1.8" 1.8.0
  (c++)"std::vector<GDALRasterAttributeField, std::allocator<GDALRasterAttributeField> >::operator=(std::vector<GDALRasterAttributeField, std::allocator<GDALRasterAttributeField> > const&)@GDAL_1.8" 1.8.0
@@ -10408,7 +10414,7 @@ libgdal.so.1 libgdal1 #MINVER#
  (c++)"void std::vector<OGRPoint, std::allocator<OGRPoint> >::_M_range_insert<std::reverse_iterator<__gnu_cxx::__normal_iterator<OGRPoint*, std::vector<OGRPoint, std::allocator<OGRPoint> > > > >(__gnu_cxx::__normal_iterator<OGRPoint*, std::vector<OGRPoint, std::allocator<OGRPoint> > >, std::reverse_iterator<__gnu_cxx::__normal_iterator<OGRPoint*, std::vector<OGRPoint, std::allocator<OGRPoint> > > >, std::reverse_iterator<__gnu_cxx::__normal_iterator<OGRPoint*, std::vector<OGRPoint, std::allocator<OGRPoint> > > >, std::forward_iterator_tag)@GDAL_1.8" 1.8.0
  (c++)"std::vector<SFRegion, std::allocator<SFRegion> >::_M_insert_aux(__gnu_cxx::__normal_iterator<SFRegion*, std::vector<SFRegion, std::allocator<SFRegion> > >, SFRegion const&)@GDAL_1.8" 1.8.0
  (c++)"std::vector<CPLString, std::allocator<CPLString> >::_M_insert_aux(__gnu_cxx::__normal_iterator<CPLString*, std::vector<CPLString, std::allocator<CPLString> > >, CPLString const&)@GDAL_1.8" 1.8.0
- (c++)"std::vector<CPLString, std::allocator<CPLString> >::_M_fill_insert(__gnu_cxx::__normal_iterator<CPLString*, std::vector<CPLString, std::allocator<CPLString> > >, unsigned long, CPLString const&)@GDAL_1.8" 1.8.0
+ (c++)"std::vector<CPLString, std::allocator<CPLString> >::_M_fill_insert(__gnu_cxx::__normal_iterator<CPLString*, std::vector<CPLString, std::allocator<CPLString> > >, unsigned int, CPLString const&)@GDAL_1.8" 1.8.0
  (c++)"std::vector<CPLString, std::allocator<CPLString> >::~vector()@GDAL_1.8" 1.8.0
  (c++)"std::vector<CPLString, std::allocator<CPLString> >::~vector()@GDAL_1.8" 1.8.0
  (c++)"std::vector<CPLString, std::allocator<CPLString> >::operator=(std::vector<CPLString, std::allocator<CPLString> > const&)@GDAL_1.8" 1.8.0
@@ -10419,11 +10425,11 @@ libgdal.so.1 libgdal1 #MINVER#
  (c++)"std::vector<iom_value, std::allocator<iom_value> >::~vector()@GDAL_1.8" 1.8.0
  (c++)"std::vector<iom_value, std::allocator<iom_value> >::operator=(std::vector<iom_value, std::allocator<iom_value> > const&)@GDAL_1.8" 1.8.0
  (c++)"std::vector<PCIDSK::ShapeField, std::allocator<PCIDSK::ShapeField> >::_M_insert_aux(__gnu_cxx::__normal_iterator<PCIDSK::ShapeField*, std::vector<PCIDSK::ShapeField, std::allocator<PCIDSK::ShapeField> > >, PCIDSK::ShapeField const&)@GDAL_1.8" 1.8.0
- (c++)"std::vector<PCIDSK::ShapeField, std::allocator<PCIDSK::ShapeField> >::_M_fill_insert(__gnu_cxx::__normal_iterator<PCIDSK::ShapeField*, std::vector<PCIDSK::ShapeField, std::allocator<PCIDSK::ShapeField> > >, unsigned long, PCIDSK::ShapeField const&)@GDAL_1.8" 1.8.0
+ (c++)"std::vector<PCIDSK::ShapeField, std::allocator<PCIDSK::ShapeField> >::_M_fill_insert(__gnu_cxx::__normal_iterator<PCIDSK::ShapeField*, std::vector<PCIDSK::ShapeField, std::allocator<PCIDSK::ShapeField> > >, unsigned int, PCIDSK::ShapeField const&)@GDAL_1.8" 1.8.0
  (c++)"std::vector<PCIDSK::ShapeField, std::allocator<PCIDSK::ShapeField> >::~vector()@GDAL_1.8" 1.8.0
  (c++)"std::vector<PCIDSK::ShapeField, std::allocator<PCIDSK::ShapeField> >::~vector()@GDAL_1.8" 1.8.0
  (c++)"std::vector<PCIDSK::ShapeField, std::allocator<PCIDSK::ShapeField> >::operator=(std::vector<PCIDSK::ShapeField, std::allocator<PCIDSK::ShapeField> > const&)@GDAL_1.8" 1.8.0
- (c++)"std::vector<PCIDSK::ShapeVertex, std::allocator<PCIDSK::ShapeVertex> >::_M_fill_insert(__gnu_cxx::__normal_iterator<PCIDSK::ShapeVertex*, std::vector<PCIDSK::ShapeVertex, std::allocator<PCIDSK::ShapeVertex> > >, unsigned long, PCIDSK::ShapeVertex const&)@GDAL_1.8" 1.8.0
+ (c++)"std::vector<PCIDSK::ShapeVertex, std::allocator<PCIDSK::ShapeVertex> >::_M_fill_insert(__gnu_cxx::__normal_iterator<PCIDSK::ShapeVertex*, std::vector<PCIDSK::ShapeVertex, std::allocator<PCIDSK::ShapeVertex> > >, unsigned int, PCIDSK::ShapeVertex const&)@GDAL_1.8" 1.8.0
  (c++)"std::vector<PCIDSK::ProtectedFile, std::allocator<PCIDSK::ProtectedFile> >::_M_insert_aux(__gnu_cxx::__normal_iterator<PCIDSK::ProtectedFile*, std::vector<PCIDSK::ProtectedFile, std::allocator<PCIDSK::ProtectedFile> > >, PCIDSK::ProtectedFile const&)@GDAL_1.8" 1.8.0
  (c++)"std::vector<PCIDSK::ProtectedFile, std::allocator<PCIDSK::ProtectedFile> >::~vector()@GDAL_1.8" 1.8.0
  (c++)"std::vector<PCIDSK::ProtectedFile, std::allocator<PCIDSK::ProtectedFile> >::~vector()@GDAL_1.8" 1.8.0
@@ -10435,7 +10441,7 @@ libgdal.so.1 libgdal1 #MINVER#
  (c++)"std::vector<PCIDSK::GCP, std::allocator<PCIDSK::GCP> >::~vector()@GDAL_1.8" 1.8.0
  (c++)"std::vector<PCIDSK::GCP, std::allocator<PCIDSK::GCP> >::~vector()@GDAL_1.8" 1.8.0
  (c++)"std::vector<PCIDSK::GCP, std::allocator<PCIDSK::GCP> >::operator=(std::vector<PCIDSK::GCP, std::allocator<PCIDSK::GCP> > const&)@GDAL_1.8" 1.8.0
- (c++)"std::vector<PCIDSK::eChanType, std::allocator<PCIDSK::eChanType> >::_M_fill_insert(__gnu_cxx::__normal_iterator<PCIDSK::eChanType*, std::vector<PCIDSK::eChanType, std::allocator<PCIDSK::eChanType> > >, unsigned long, PCIDSK::eChanType const&)@GDAL_1.8" 1.8.0
+ (c++)"std::vector<PCIDSK::eChanType, std::allocator<PCIDSK::eChanType> >::_M_fill_insert(__gnu_cxx::__normal_iterator<PCIDSK::eChanType*, std::vector<PCIDSK::eChanType, std::allocator<PCIDSK::eChanType> > >, unsigned int, PCIDSK::eChanType const&)@GDAL_1.8" 1.8.0
  (c++)"std::vector<OGRFeature*, std::allocator<OGRFeature*> >::_M_insert_aux(__gnu_cxx::__normal_iterator<OGRFeature**, std::vector<OGRFeature*, std::allocator<OGRFeature*> > >, OGRFeature* const&)@GDAL_1.8" 1.8.0
  (c++)"std::vector<OGRFeature*, std::allocator<OGRFeature*> >::operator=(std::vector<OGRFeature*, std::allocator<OGRFeature*> > const&)@GDAL_1.8" 1.8.0
  (c++)"std::vector<VFKFeature*, std::allocator<VFKFeature*> >::_M_insert_aux(__gnu_cxx::__normal_iterator<VFKFeature**, std::vector<VFKFeature*, std::allocator<VFKFeature*> > >, VFKFeature* const&)@GDAL_1.8" 1.8.0
@@ -10458,38 +10464,38 @@ libgdal.so.1 libgdal1 #MINVER#
  (c++)"std::vector<Attribute*, std::allocator<Attribute*> >::_M_insert_aux(__gnu_cxx::__normal_iterator<Attribute**, std::vector<Attribute*, std::allocator<Attribute*> > >, Attribute* const&)@GDAL_1.8" 1.8.0
  (c++)"std::vector<PCIDSK::CTiledChannel*, std::allocator<PCIDSK::CTiledChannel*> >::_M_insert_aux(__gnu_cxx::__normal_iterator<PCIDSK::CTiledChannel**, std::vector<PCIDSK::CTiledChannel*, std::allocator<PCIDSK::CTiledChannel*> > >, PCIDSK::CTiledChannel* const&)@GDAL_1.8" 1.8.0
  (c++)"std::vector<PCIDSK::PCIDSKChannel*, std::allocator<PCIDSK::PCIDSKChannel*> >::_M_insert_aux(__gnu_cxx::__normal_iterator<PCIDSK::PCIDSKChannel**, std::vector<PCIDSK::PCIDSKChannel*, std::allocator<PCIDSK::PCIDSKChannel*> > >, PCIDSK::PCIDSKChannel* const&)@GDAL_1.8" 1.8.0
- (c++)"std::vector<PCIDSK::PCIDSKSegment*, std::allocator<PCIDSK::PCIDSKSegment*> >::_M_fill_insert(__gnu_cxx::__normal_iterator<PCIDSK::PCIDSKSegment**, std::vector<PCIDSK::PCIDSKSegment*, std::allocator<PCIDSK::PCIDSKSegment*> > >, unsigned long, PCIDSK::PCIDSKSegment* const&)@GDAL_1.8" 1.8.0
+ (c++)"std::vector<PCIDSK::PCIDSKSegment*, std::allocator<PCIDSK::PCIDSKSegment*> >::_M_fill_insert(__gnu_cxx::__normal_iterator<PCIDSK::PCIDSKSegment**, std::vector<PCIDSK::PCIDSKSegment*, std::allocator<PCIDSK::PCIDSKSegment*> > >, unsigned int, PCIDSK::PCIDSKSegment* const&)@GDAL_1.8" 1.8.0
  (c++)"std::vector<PCIDSK::SysVirtualFile*, std::allocator<PCIDSK::SysVirtualFile*> >::_M_insert_aux(__gnu_cxx::__normal_iterator<PCIDSK::SysVirtualFile**, std::vector<PCIDSK::SysVirtualFile*, std::allocator<PCIDSK::SysVirtualFile*> > >, PCIDSK::SysVirtualFile* const&)@GDAL_1.8" 1.8.0
- (c++)"std::vector<PCIDSK::SysVirtualFile*, std::allocator<PCIDSK::SysVirtualFile*> >::_M_fill_insert(__gnu_cxx::__normal_iterator<PCIDSK::SysVirtualFile**, std::vector<PCIDSK::SysVirtualFile*, std::allocator<PCIDSK::SysVirtualFile*> > >, unsigned long, PCIDSK::SysVirtualFile* const&)@GDAL_1.8" 1.8.0
- (c++)"std::vector<char**, std::allocator<char**> >::_M_fill_insert(__gnu_cxx::__normal_iterator<char***, std::vector<char**, std::allocator<char**> > >, unsigned long, char** const&)@GDAL_1.8" 1.8.0
+ (c++)"std::vector<PCIDSK::SysVirtualFile*, std::allocator<PCIDSK::SysVirtualFile*> >::_M_fill_insert(__gnu_cxx::__normal_iterator<PCIDSK::SysVirtualFile**, std::vector<PCIDSK::SysVirtualFile*, std::allocator<PCIDSK::SysVirtualFile*> > >, unsigned int, PCIDSK::SysVirtualFile* const&)@GDAL_1.8" 1.8.0
+ (c++)"std::vector<char**, std::allocator<char**> >::_M_fill_insert(__gnu_cxx::__normal_iterator<char***, std::vector<char**, std::allocator<char**> > >, unsigned int, char** const&)@GDAL_1.8" 1.8.0
  (c++)"std::vector<std::vector<OGRPoint, std::allocator<OGRPoint> >*, std::allocator<std::vector<OGRPoint, std::allocator<OGRPoint> >*> >::_M_insert_aux(__gnu_cxx::__normal_iterator<std::vector<OGRPoint, std::allocator<OGRPoint> >**, std::vector<std::vector<OGRPoint, std::allocator<OGRPoint> >*, std::allocator<std::vector<OGRPoint, std::allocator<OGRPoint> >*> > >, std::vector<OGRPoint, std::allocator<OGRPoint> >* const&)@GDAL_1.8" 1.8.0
  (c++)"std::vector<char*, std::allocator<char*> >::_M_insert_aux(__gnu_cxx::__normal_iterator<char**, std::vector<char*, std::allocator<char*> > >, char* const&)@GDAL_1.8" 1.8.0
  (c++)"std::vector<unsigned char*, std::allocator<unsigned char*> >::_M_insert_aux(__gnu_cxx::__normal_iterator<unsigned char**, std::vector<unsigned char*, std::allocator<unsigned char*> > >, unsigned char* const&)@GDAL_1.8" 1.8.0
- (c++)"std::vector<std::vector<int, std::allocator<int> >, std::allocator<std::vector<int, std::allocator<int> > > >::_M_fill_insert(__gnu_cxx::__normal_iterator<std::vector<int, std::allocator<int> >*, std::vector<std::vector<int, std::allocator<int> >, std::allocator<std::vector<int, std::allocator<int> > > > >, unsigned long, std::vector<int, std::allocator<int> > const&)@GDAL_1.8" 1.8.0
+ (c++)"std::vector<std::vector<int, std::allocator<int> >, std::allocator<std::vector<int, std::allocator<int> > > >::_M_fill_insert(__gnu_cxx::__normal_iterator<std::vector<int, std::allocator<int> >*, std::vector<std::vector<int, std::allocator<int> >, std::allocator<std::vector<int, std::allocator<int> > > > >, unsigned int, std::vector<int, std::allocator<int> > const&)@GDAL_1.8" 1.8.0
  (c++)"std::vector<std::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::basic_string<char, std::char_traits<char>, std::allocator<char> > > >::_M_insert_aux(__gnu_cxx::__normal_iterator<std::basic_string<char, std::char_traits<char>, std::allocator<char> >*, std::vector<std::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::basic_string<char, std::char_traits<char>, std::allocator<char> > > > >, std::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)@GDAL_1.8" 1.8.0
- (c++)"std::vector<std::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::basic_string<char, std::char_traits<char>, std::allocator<char> > > >::_M_fill_insert(__gnu_cxx::__normal_iterator<std::basic_string<char, std::char_traits<char>, std::allocator<char> >*, std::vector<std::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::basic_string<char, std::char_traits<char>, std::allocator<char> > > > >, unsigned long, std::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)@GDAL_1.8" 1.8.0
+ (c++)"std::vector<std::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::basic_string<char, std::char_traits<char>, std::allocator<char> > > >::_M_fill_insert(__gnu_cxx::__normal_iterator<std::basic_string<char, std::char_traits<char>, std::allocator<char> >*, std::vector<std::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::basic_string<char, std::char_traits<char>, std::allocator<char> > > > >, unsigned int, std::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)@GDAL_1.8" 1.8.0
  (c++)"std::vector<std::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::basic_string<char, std::char_traits<char>, std::allocator<char> > > >::~vector()@GDAL_1.8" 1.8.0
  (c++)"std::vector<std::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::basic_string<char, std::char_traits<char>, std::allocator<char> > > >::~vector()@GDAL_1.8" 1.8.0
  (c++)"std::vector<std::pair<int, int>, std::allocator<std::pair<int, int> > >::_M_insert_aux(__gnu_cxx::__normal_iterator<std::pair<int, int>*, std::vector<std::pair<int, int>, std::allocator<std::pair<int, int> > > >, std::pair<int, int> const&)@GDAL_1.8" 1.8.0
  (c++)"std::vector<std::pair<int, int>, std::allocator<std::pair<int, int> > >::operator=(std::vector<std::pair<int, int>, std::allocator<std::pair<int, int> > > const&)@GDAL_1.8" 1.8.0
  (c++)"std::vector<double, std::allocator<double> >::_M_insert_aux(__gnu_cxx::__normal_iterator<double*, std::vector<double, std::allocator<double> > >, double const&)@GDAL_1.8" 1.8.0
- (c++)"std::vector<double, std::allocator<double> >::_M_fill_insert(__gnu_cxx::__normal_iterator<double*, std::vector<double, std::allocator<double> > >, unsigned long, double const&)@GDAL_1.8" 1.8.0
- (c++)"std::vector<double, std::allocator<double> >::reserve(unsigned long)@GDAL_1.8" 1.8.0
+ (c++)"std::vector<double, std::allocator<double> >::_M_fill_insert(__gnu_cxx::__normal_iterator<double*, std::vector<double, std::allocator<double> > >, unsigned int, double const&)@GDAL_1.8" 1.8.0
+ (c++)"std::vector<double, std::allocator<double> >::reserve(unsigned int)@GDAL_1.8" 1.8.0
  (c++)"std::vector<double, std::allocator<double> >::~vector()@GDAL_1.8" 1.8.0
  (c++)"std::vector<double, std::allocator<double> >::~vector()@GDAL_1.8" 1.8.0
  (c++)"std::vector<double, std::allocator<double> >::operator=(std::vector<double, std::allocator<double> > const&)@GDAL_1.8" 1.8.0
- (c++)"std::vector<unsigned char, std::allocator<unsigned char> >::_M_fill_insert(__gnu_cxx::__normal_iterator<unsigned char*, std::vector<unsigned char, std::allocator<unsigned char> > >, unsigned long, unsigned char const&)@GDAL_1.8" 1.8.0
+ (c++)"std::vector<unsigned char, std::allocator<unsigned char> >::_M_fill_insert(__gnu_cxx::__normal_iterator<unsigned char*, std::vector<unsigned char, std::allocator<unsigned char> > >, unsigned int, unsigned char const&)@GDAL_1.8" 1.8.0
  (c++)"std::vector<int, std::allocator<int> >::_M_insert_aux(__gnu_cxx::__normal_iterator<int*, std::vector<int, std::allocator<int> > >, int const&)@GDAL_1.8" 1.8.0
- (c++)"std::vector<int, std::allocator<int> >::_M_fill_insert(__gnu_cxx::__normal_iterator<int*, std::vector<int, std::allocator<int> > >, unsigned long, int const&)@GDAL_1.8" 1.8.0
+ (c++)"std::vector<int, std::allocator<int> >::_M_fill_insert(__gnu_cxx::__normal_iterator<int*, std::vector<int, std::allocator<int> > >, unsigned int, int const&)@GDAL_1.8" 1.8.0
  (c++)"std::vector<int, std::allocator<int> >::operator=(std::vector<int, std::allocator<int> > const&)@GDAL_1.8" 1.8.0
  (c++)"std::vector<unsigned int, std::allocator<unsigned int> >::_M_insert_aux(__gnu_cxx::__normal_iterator<unsigned int*, std::vector<unsigned int, std::allocator<unsigned int> > >, unsigned int const&)@GDAL_1.8" 1.8.0
- (c++)"std::vector<unsigned int, std::allocator<unsigned int> >::_M_fill_insert(__gnu_cxx::__normal_iterator<unsigned int*, std::vector<unsigned int, std::allocator<unsigned int> > >, unsigned long, unsigned int const&)@GDAL_1.8" 1.8.0
+ (c++)"std::vector<unsigned int, std::allocator<unsigned int> >::_M_fill_insert(__gnu_cxx::__normal_iterator<unsigned int*, std::vector<unsigned int, std::allocator<unsigned int> > >, unsigned int, unsigned int const&)@GDAL_1.8" 1.8.0
  (c++)"std::vector<unsigned int, std::allocator<unsigned int> >::insert(__gnu_cxx::__normal_iterator<unsigned int*, std::vector<unsigned int, std::allocator<unsigned int> > >, unsigned int const&)@GDAL_1.8" 1.8.0
  (c++)"std::vector<unsigned short, std::allocator<unsigned short> >::_M_insert_aux(__gnu_cxx::__normal_iterator<unsigned short*, std::vector<unsigned short, std::allocator<unsigned short> > >, unsigned short const&)@GDAL_1.8" 1.8.0
- (c++)"std::vector<unsigned short, std::allocator<unsigned short> >::_M_fill_insert(__gnu_cxx::__normal_iterator<unsigned short*, std::vector<unsigned short, std::allocator<unsigned short> > >, unsigned long, unsigned short const&)@GDAL_1.8" 1.8.0
- (c++)"std::vector<unsigned short, std::allocator<unsigned short> >::resize(unsigned long, unsigned short)@GDAL_1.8" 1.8.0
+ (c++)"std::vector<unsigned short, std::allocator<unsigned short> >::_M_fill_insert(__gnu_cxx::__normal_iterator<unsigned short*, std::vector<unsigned short, std::allocator<unsigned short> > >, unsigned int, unsigned short const&)@GDAL_1.8" 1.8.0
+ (c++)"std::vector<unsigned short, std::allocator<unsigned short> >::resize(unsigned int, unsigned short)@GDAL_1.8" 1.8.0
  (c++)"std::vector<unsigned long long, std::allocator<unsigned long long> >::_M_insert_aux(__gnu_cxx::__normal_iterator<unsigned long long*, std::vector<unsigned long long, std::allocator<unsigned long long> > >, unsigned long long const&)@GDAL_1.8" 1.8.0
- (c++)"std::vector<unsigned long long, std::allocator<unsigned long long> >::_M_fill_insert(__gnu_cxx::__normal_iterator<unsigned long long*, std::vector<unsigned long long, std::allocator<unsigned long long> > >, unsigned long, unsigned long long const&)@GDAL_1.8" 1.8.0
+ (c++)"std::vector<unsigned long long, std::allocator<unsigned long long> >::_M_fill_insert(__gnu_cxx::__normal_iterator<unsigned long long*, std::vector<unsigned long long, std::allocator<unsigned long long> > >, unsigned int, unsigned long long const&)@GDAL_1.8" 1.8.0
  (c++)"std::_Rb_tree<CPLString, CPLString, std::_Identity<CPLString>, std::less<CPLString>, std::allocator<CPLString> >::_M_insert_(std::_Rb_tree_node_base const*, std::_Rb_tree_node_base const*, CPLString const&)@GDAL_1.8" 1.8.0
  (c++)"std::_Rb_tree<CPLString, CPLString, std::_Identity<CPLString>, std::less<CPLString>, std::allocator<CPLString> >::_M_insert_unique(CPLString const&)@GDAL_1.8" 1.8.0
  (c++)"std::_Rb_tree<CPLString, CPLString, std::_Identity<CPLString>, std::less<CPLString>, std::allocator<CPLString> >::_M_erase(std::_Rb_tree_node<CPLString>*)@GDAL_1.8" 1.8.0
@@ -10570,10 +10576,10 @@ libgdal.so.1 libgdal1 #MINVER#
  (c++)"std::_Rb_tree<unsigned long, std::pair<unsigned long const, CachedFileProp*>, std::_Select1st<std::pair<unsigned long const, CachedFileProp*> >, std::less<unsigned long>, std::allocator<std::pair<unsigned long const, CachedFileProp*> > >::_M_insert_unique(std::pair<unsigned long const, CachedFileProp*> const&)@GDAL_1.8" 1.8.0
  (c++)"std::_Rb_tree<unsigned long, std::pair<unsigned long const, CachedFileProp*>, std::_Select1st<std::pair<unsigned long const, CachedFileProp*> >, std::less<unsigned long>, std::allocator<std::pair<unsigned long const, CachedFileProp*> > >::_M_insert_unique_(std::_Rb_tree_const_iterator<std::pair<unsigned long const, CachedFileProp*> >, std::pair<unsigned long const, CachedFileProp*> const&)@GDAL_1.8" 1.8.0
  (c++)"std::_Rb_tree<unsigned long, std::pair<unsigned long const, CachedFileProp*>, std::_Select1st<std::pair<unsigned long const, CachedFileProp*> >, std::less<unsigned long>, std::allocator<std::pair<unsigned long const, CachedFileProp*> > >::_M_erase(std::_Rb_tree_node<std::pair<unsigned long const, CachedFileProp*> >*)@GDAL_1.8" 1.8.0
- (c++)"void std::__adjust_heap<__gnu_cxx::__normal_iterator<std::pair<int, int>*, std::vector<std::pair<int, int>, std::allocator<std::pair<int, int> > > >, long, std::pair<int, int> >(__gnu_cxx::__normal_iterator<std::pair<int, int>*, std::vector<std::pair<int, int>, std::allocator<std::pair<int, int> > > >, long, long, std::pair<int, int>)@GDAL_1.8" 1.8.0
+ (c++)"void std::__adjust_heap<__gnu_cxx::__normal_iterator<std::pair<int, int>*, std::vector<std::pair<int, int>, std::allocator<std::pair<int, int> > > >, int, std::pair<int, int> >(__gnu_cxx::__normal_iterator<std::pair<int, int>*, std::vector<std::pair<int, int>, std::allocator<std::pair<int, int> > > >, int, int, std::pair<int, int>)@GDAL_1.8" 1.8.0
  (c++)"void std::__heap_select<__gnu_cxx::__normal_iterator<std::pair<int, int>*, std::vector<std::pair<int, int>, std::allocator<std::pair<int, int> > > > >(__gnu_cxx::__normal_iterator<std::pair<int, int>*, std::vector<std::pair<int, int>, std::allocator<std::pair<int, int> > > >, __gnu_cxx::__normal_iterator<std::pair<int, int>*, std::vector<std::pair<int, int>, std::allocator<std::pair<int, int> > > >, __gnu_cxx::__normal_iterator<std::pair<int, int>*, std::vector<std::pair<int, int>, std::allocator<std::pair<int, int> > > >)@GDAL_1.8" 1.8.0
  (c++)"void std::__insertion_sort<__gnu_cxx::__normal_iterator<std::pair<int, int>*, std::vector<std::pair<int, int>, std::allocator<std::pair<int, int> > > > >(__gnu_cxx::__normal_iterator<std::pair<int, int>*, std::vector<std::pair<int, int>, std::allocator<std::pair<int, int> > > >, __gnu_cxx::__normal_iterator<std::pair<int, int>*, std::vector<std::pair<int, int>, std::allocator<std::pair<int, int> > > >)@GDAL_1.8" 1.8.0
- (c++)"void std::__introsort_loop<__gnu_cxx::__normal_iterator<std::pair<int, int>*, std::vector<std::pair<int, int>, std::allocator<std::pair<int, int> > > >, long>(__gnu_cxx::__normal_iterator<std::pair<int, int>*, std::vector<std::pair<int, int>, std::allocator<std::pair<int, int> > > >, __gnu_cxx::__normal_iterator<std::pair<int, int>*, std::vector<std::pair<int, int>, std::allocator<std::pair<int, int> > > >, long)@GDAL_1.8" 1.8.0
+ (c++)"void std::__introsort_loop<__gnu_cxx::__normal_iterator<std::pair<int, int>*, std::vector<std::pair<int, int>, std::allocator<std::pair<int, int> > > >, int>(__gnu_cxx::__normal_iterator<std::pair<int, int>*, std::vector<std::pair<int, int>, std::allocator<std::pair<int, int> > > >, __gnu_cxx::__normal_iterator<std::pair<int, int>*, std::vector<std::pair<int, int>, std::allocator<std::pair<int, int> > > >, int)@GDAL_1.8" 1.8.0
  (c++)"void std::__move_median_first<__gnu_cxx::__normal_iterator<std::pair<int, int>*, std::vector<std::pair<int, int>, std::allocator<std::pair<int, int> > > > >(__gnu_cxx::__normal_iterator<std::pair<int, int>*, std::vector<std::pair<int, int>, std::allocator<std::pair<int, int> > > >, __gnu_cxx::__normal_iterator<std::pair<int, int>*, std::vector<std::pair<int, int>, std::allocator<std::pair<int, int> > > >, __gnu_cxx::__normal_iterator<std::pair<int, int>*, std::vector<std::pair<int, int>, std::allocator<std::pair<int, int> > > >)@GDAL_1.8" 1.8.0
  (c++)"void std::__unguarded_linear_insert<__gnu_cxx::__normal_iterator<std::pair<int, int>*, std::vector<std::pair<int, int>, std::allocator<std::pair<int, int> > > > >(__gnu_cxx::__normal_iterator<std::pair<int, int>*, std::vector<std::pair<int, int>, std::allocator<std::pair<int, int> > > >)@GDAL_1.8" 1.8.0
  (c++)"__gnu_cxx::__normal_iterator<char*, std::basic_string<char, std::char_traits<char>, std::allocator<char> > > std::__find<__gnu_cxx::__normal_iterator<char*, std::basic_string<char, std::char_traits<char>, std::allocator<char> > >, char>(__gnu_cxx::__normal_iterator<char*, std::basic_string<char, std::char_traits<char>, std::allocator<char> > >, __gnu_cxx::__normal_iterator<char*, std::basic_string<char, std::char_traits<char>, std::allocator<char> > >, char const&, std::random_access_iterator_tag)@GDAL_1.8" 1.8.0
@@ -12588,42 +12594,6 @@ libgdal.so.1 libgdal1 #MINVER#
  (c++)"vtable for PCIDSK::CPixelInterleavedChannel@GDAL_1.8" 1.8.0
  (c++)"vtable for PCIDSK::Mutex@GDAL_1.8" 1.8.0
  (c++)"vtable for PCIDSK::EDBFile@GDAL_1.8" 1.8.0
- (c++)"non-virtual thunk to NASHandler::characters(unsigned short const*, unsigned int)@GDAL_1.8" 1.8.0
- (c++)"non-virtual thunk to NASHandler::endElement(unsigned short const*, unsigned short const*, unsigned short const*)@GDAL_1.8" 1.8.0
- (c++)"non-virtual thunk to NASHandler::startElement(unsigned short const*, unsigned short const*, unsigned short const*, xercesc_2_8::Attributes const&)@GDAL_1.8" 1.8.0
- (c++)"non-virtual thunk to NASHandler::~NASHandler()@GDAL_1.8" 1.8.0
- (c++)"non-virtual thunk to NASHandler::~NASHandler()@GDAL_1.8" 1.8.0
- (c++)"non-virtual thunk to ILI2Handler::characters(unsigned short const*, unsigned int)@GDAL_1.8" 1.8.0
- (c++)"non-virtual thunk to ILI2Handler::endElement(unsigned short const*, unsigned short const*, unsigned short const*)@GDAL_1.8" 1.8.0
- (c++)"non-virtual thunk to ILI2Handler::endDocument()@GDAL_1.8" 1.8.0
- (c++)"non-virtual thunk to ILI2Handler::startElement(unsigned short const*, unsigned short const*, unsigned short const*, xercesc_2_8::Attributes const&)@GDAL_1.8" 1.8.0
- (c++)"non-virtual thunk to ILI2Handler::startDocument()@GDAL_1.8" 1.8.0
- (c++)"non-virtual thunk to ILI2Handler::~ILI2Handler()@GDAL_1.8" 1.8.0
- (c++)"non-virtual thunk to ILI2Handler::~ILI2Handler()@GDAL_1.8" 1.8.0
- (c++)"non-virtual thunk to xercesc_2_8::DefaultHandler::characters(unsigned short const*, unsigned int)@GDAL_1.8" 1.8.0
- (c++)"non-virtual thunk to xercesc_2_8::DefaultHandler::endElement(unsigned short const*, unsigned short const*, unsigned short const*)@GDAL_1.8" 1.8.0
- (c++)"non-virtual thunk to xercesc_2_8::DefaultHandler::endDocument()@GDAL_1.8" 1.8.0
- (c++)"non-virtual thunk to xercesc_2_8::DefaultHandler::startElement(unsigned short const*, unsigned short const*, unsigned short const*, xercesc_2_8::Attributes const&)@GDAL_1.8" 1.8.0
- (c++)"non-virtual thunk to xercesc_2_8::DefaultHandler::skippedEntity(unsigned short const*)@GDAL_1.8" 1.8.0
- (c++)"non-virtual thunk to xercesc_2_8::DefaultHandler::startDocument()@GDAL_1.8" 1.8.0
- (c++)"non-virtual thunk to xercesc_2_8::DefaultHandler::endPrefixMapping(unsigned short const*)@GDAL_1.8" 1.8.0
- (c++)"non-virtual thunk to xercesc_2_8::DefaultHandler::setDocumentLocator(xercesc_2_8::Locator const*)@GDAL_1.8" 1.8.0
- (c++)"non-virtual thunk to xercesc_2_8::DefaultHandler::startPrefixMapping(unsigned short const*, unsigned short const*)@GDAL_1.8" 1.8.0
- (c++)"non-virtual thunk to xercesc_2_8::DefaultHandler::ignorableWhitespace(unsigned short const*, unsigned int)@GDAL_1.8" 1.8.0
- (c++)"non-virtual thunk to xercesc_2_8::DefaultHandler::processingInstruction(unsigned short const*, unsigned short const*)@GDAL_1.8" 1.8.0
- (c++)"non-virtual thunk to xercesc_2_8::DefaultHandler::~DefaultHandler()@GDAL_1.8" 1.8.0
- (c++)"non-virtual thunk to xercesc_2_8::DefaultHandler::~DefaultHandler()@GDAL_1.8" 1.8.0
- (c++)"non-virtual thunk to ParserHandler::characters(unsigned short const*, unsigned int)@GDAL_1.8" 1.8.0
- (c++)"non-virtual thunk to ParserHandler::endElement(unsigned short const*, unsigned short const*, unsigned short const*)@GDAL_1.8" 1.8.0
- (c++)"non-virtual thunk to ParserHandler::startElement(unsigned short const*, unsigned short const*, unsigned short const*, xercesc_2_8::Attributes const&)@GDAL_1.8" 1.8.0
- (c++)"non-virtual thunk to ParserHandler::setDocumentLocator(xercesc_2_8::Locator const*)@GDAL_1.8" 1.8.0
- (c++)"non-virtual thunk to ParserHandler::~ParserHandler()@GDAL_1.8" 1.8.0
- (c++)"non-virtual thunk to ParserHandler::~ParserHandler()@GDAL_1.8" 1.8.0
- (c++)"non-virtual thunk to GMLXercesHandler::characters(unsigned short const*, unsigned int)@GDAL_1.8" 1.8.0
- (c++)"non-virtual thunk to GMLXercesHandler::endElement(unsigned short const*, unsigned short const*, unsigned short const*)@GDAL_1.8" 1.8.0
- (c++)"non-virtual thunk to GMLXercesHandler::startElement(unsigned short const*, unsigned short const*, unsigned short const*, xercesc_2_8::Attributes const&)@GDAL_1.8" 1.8.0
- (c++)"non-virtual thunk to GMLXercesHandler::~GMLXercesHandler()@GDAL_1.8" 1.8.0
- (c++)"non-virtual thunk to GMLXercesHandler::~GMLXercesHandler()@GDAL_1.8" 1.8.0
  (c++)"non-virtual thunk to NASHandler::fatalError(xercesc_2_8::SAXParseException const&)@GDAL_1.8" 1.8.0
  (c++)"non-virtual thunk to NASHandler::~NASHandler()@GDAL_1.8" 1.8.0
  (c++)"non-virtual thunk to NASHandler::~NASHandler()@GDAL_1.8" 1.8.0
@@ -12696,40 +12666,42 @@ libgdal.so.1 libgdal1 #MINVER#
  (c++)"non-virtual thunk to ParserHandler::~ParserHandler()@GDAL_1.8" 1.8.0
  (c++)"non-virtual thunk to GMLXercesHandler::~GMLXercesHandler()@GDAL_1.8" 1.8.0
  (c++)"non-virtual thunk to GMLXercesHandler::~GMLXercesHandler()@GDAL_1.8" 1.8.0
- (c++)"virtual thunk to PCIDSK::CPCIDSKBitmap::SetDescription(std::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)@GDAL_1.8" 1.8.0
- (c++)"virtual thunk to PCIDSK::CPCIDSKSegment::SetDescription(std::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)@GDAL_1.8" 1.8.0
- (c++)"virtual thunk to PCIDSK::CPCIDSKRPCModelSegment::IsUserGenerated() const@GDAL_1.8" 1.8.0
- (c++)"virtual thunk to PCIDSK::CPCIDSKRPCModelSegment::SetUserGenerated(bool)@GDAL_1.8" 1.8.0
- (c++)"virtual thunk to PCIDSK::CPCIDSKBitmap::GetMetadataValue(std::basic_string<char, std::char_traits<char>, std::allocator<char> > const&) const@GDAL_1.8" 1.8.0
- (c++)"virtual thunk to PCIDSK::CPCIDSKSegment::GetMetadataValue(std::basic_string<char, std::char_traits<char>, std::allocator<char> > const&) const@GDAL_1.8" 1.8.0
- (c++)"virtual thunk to PCIDSK::CPCIDSKBitmap::SetMetadataValue(std::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, std::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)@GDAL_1.8" 1.8.0
- (c++)"virtual thunk to PCIDSK::CPCIDSKSegment::SetMetadataValue(std::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, std::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)@GDAL_1.8" 1.8.0
- (c++)"virtual thunk to PCIDSK::CPCIDSKRPCModelSegment::IsNominalModel() const@GDAL_1.8" 1.8.0
- (c++)"virtual thunk to PCIDSK::CPCIDSKRPCModelSegment::SetIsNominalModel(bool)@GDAL_1.8" 1.8.0
- (c++)"virtual thunk to PCIDSK::CPCIDSKBitmap::GetMetadataKeys() const@GDAL_1.8" 1.8.0
- (c++)"virtual thunk to PCIDSK::CPCIDSKSegment::GetMetadataKeys() const@GDAL_1.8" 1.8.0
- (c++)"virtual thunk to PCIDSK::CPCIDSKBitmap::GetHistoryEntries() const@GDAL_1.8" 1.8.0
- (c++)"virtual thunk to PCIDSK::CPCIDSKSegment::GetHistoryEntries() const@GDAL_1.8" 1.8.0
- (c++)"virtual thunk to PCIDSK::CPCIDSKRPCModelSegment::GetSensorName() const@GDAL_1.8" 1.8.0
- (c++)"virtual thunk to PCIDSK::CPCIDSKBitmap::SetHistoryEntries(std::vector<std::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::basic_string<char, std::char_traits<char>, std::allocator<char> > > > const&)@GDAL_1.8" 1.8.0
- (c++)"virtual thunk to PCIDSK::CPCIDSKSegment::SetHistoryEntries(std::vector<std::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::basic_string<char, std::char_traits<char>, std::allocator<char> > > > const&)@GDAL_1.8" 1.8.0
- (c++)"virtual thunk to PCIDSK::CPCIDSKRPCModelSegment::SetSensorName(std::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)@GDAL_1.8" 1.8.0
- (c++)"virtual thunk to PCIDSK::CPCIDSKBitmap::PushHistory(std::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, std::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)@GDAL_1.8" 1.8.0
- (c++)"virtual thunk to PCIDSK::CPCIDSKSegment::PushHistory(std::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, std::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)@GDAL_1.8" 1.8.0
- (c++)"virtual thunk to PCIDSK::CPCIDSKRPCModelSegment::GetGeosysString() const@GDAL_1.8" 1.8.0
- (c++)"virtual thunk to PCIDSK::SysBlockMap::Synchronize()@GDAL_1.8" 1.8.0
- (c++)"virtual thunk to PCIDSK::CPCIDSKBitmap::Synchronize()@GDAL_1.8" 1.8.0
- (c++)"virtual thunk to PCIDSK::CPCIDSKSegment::Synchronize()@GDAL_1.8" 1.8.0
- (c++)"virtual thunk to PCIDSK::MetadataSegment::Synchronize()@GDAL_1.8" 1.8.0
- (c++)"virtual thunk to PCIDSK::CPCIDSKVectorSegment::Synchronize()@GDAL_1.8" 1.8.0
- (c++)"virtual thunk to PCIDSK::CPCIDSKRPCModelSegment::SetGeosysString(std::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)@GDAL_1.8" 1.8.0
- (c++)"virtual thunk to PCIDSK::CPCIDSKSegment::ConsistencyCheck()@GDAL_1.8" 1.8.0
- (c++)"virtual thunk to PCIDSK::CPCIDSKVectorSegment::ConsistencyCheck()@GDAL_1.8" 1.8.0
- (c++)"virtual thunk to PCIDSK::CPCIDSKRPCModelSegment::GetLines() const@GDAL_1.8" 1.8.0
- (c++)"virtual thunk to PCIDSK::CPCIDSKRPCModelSegment::GetPixels() const@GDAL_1.8" 1.8.0
- (c++)"virtual thunk to PCIDSK::CPCIDSKRPCModelSegment::SetRasterSize(unsigned int, unsigned int)@GDAL_1.8" 1.8.0
- (c++)"virtual thunk to PCIDSK::CPCIDSKRPCModelSegment::~CPCIDSKRPCModelSegment()@GDAL_1.8" 1.8.0
- (c++)"virtual thunk to PCIDSK::CPCIDSKRPCModelSegment::~CPCIDSKRPCModelSegment()@GDAL_1.8" 1.8.0
+ (c++)"non-virtual thunk to NASHandler::characters(unsigned short const*, unsigned int)@GDAL_1.8" 1.8.0
+ (c++)"non-virtual thunk to NASHandler::endElement(unsigned short const*, unsigned short const*, unsigned short const*)@GDAL_1.8" 1.8.0
+ (c++)"non-virtual thunk to NASHandler::startElement(unsigned short const*, unsigned short const*, unsigned short const*, xercesc_2_8::Attributes const&)@GDAL_1.8" 1.8.0
+ (c++)"non-virtual thunk to NASHandler::~NASHandler()@GDAL_1.8" 1.8.0
+ (c++)"non-virtual thunk to NASHandler::~NASHandler()@GDAL_1.8" 1.8.0
+ (c++)"non-virtual thunk to ILI2Handler::characters(unsigned short const*, unsigned int)@GDAL_1.8" 1.8.0
+ (c++)"non-virtual thunk to ILI2Handler::endElement(unsigned short const*, unsigned short const*, unsigned short const*)@GDAL_1.8" 1.8.0
+ (c++)"non-virtual thunk to ILI2Handler::endDocument()@GDAL_1.8" 1.8.0
+ (c++)"non-virtual thunk to ILI2Handler::startElement(unsigned short const*, unsigned short const*, unsigned short const*, xercesc_2_8::Attributes const&)@GDAL_1.8" 1.8.0
+ (c++)"non-virtual thunk to ILI2Handler::startDocument()@GDAL_1.8" 1.8.0
+ (c++)"non-virtual thunk to ILI2Handler::~ILI2Handler()@GDAL_1.8" 1.8.0
+ (c++)"non-virtual thunk to ILI2Handler::~ILI2Handler()@GDAL_1.8" 1.8.0
+ (c++)"non-virtual thunk to xercesc_2_8::DefaultHandler::characters(unsigned short const*, unsigned int)@GDAL_1.8" 1.8.0
+ (c++)"non-virtual thunk to xercesc_2_8::DefaultHandler::endElement(unsigned short const*, unsigned short const*, unsigned short const*)@GDAL_1.8" 1.8.0
+ (c++)"non-virtual thunk to xercesc_2_8::DefaultHandler::endDocument()@GDAL_1.8" 1.8.0
+ (c++)"non-virtual thunk to xercesc_2_8::DefaultHandler::startElement(unsigned short const*, unsigned short const*, unsigned short const*, xercesc_2_8::Attributes const&)@GDAL_1.8" 1.8.0
+ (c++)"non-virtual thunk to xercesc_2_8::DefaultHandler::skippedEntity(unsigned short const*)@GDAL_1.8" 1.8.0
+ (c++)"non-virtual thunk to xercesc_2_8::DefaultHandler::startDocument()@GDAL_1.8" 1.8.0
+ (c++)"non-virtual thunk to xercesc_2_8::DefaultHandler::endPrefixMapping(unsigned short const*)@GDAL_1.8" 1.8.0
+ (c++)"non-virtual thunk to xercesc_2_8::DefaultHandler::setDocumentLocator(xercesc_2_8::Locator const*)@GDAL_1.8" 1.8.0
+ (c++)"non-virtual thunk to xercesc_2_8::DefaultHandler::startPrefixMapping(unsigned short const*, unsigned short const*)@GDAL_1.8" 1.8.0
+ (c++)"non-virtual thunk to xercesc_2_8::DefaultHandler::ignorableWhitespace(unsigned short const*, unsigned int)@GDAL_1.8" 1.8.0
+ (c++)"non-virtual thunk to xercesc_2_8::DefaultHandler::processingInstruction(unsigned short const*, unsigned short const*)@GDAL_1.8" 1.8.0
+ (c++)"non-virtual thunk to xercesc_2_8::DefaultHandler::~DefaultHandler()@GDAL_1.8" 1.8.0
+ (c++)"non-virtual thunk to xercesc_2_8::DefaultHandler::~DefaultHandler()@GDAL_1.8" 1.8.0
+ (c++)"non-virtual thunk to ParserHandler::characters(unsigned short const*, unsigned int)@GDAL_1.8" 1.8.0
+ (c++)"non-virtual thunk to ParserHandler::endElement(unsigned short const*, unsigned short const*, unsigned short const*)@GDAL_1.8" 1.8.0
+ (c++)"non-virtual thunk to ParserHandler::startElement(unsigned short const*, unsigned short const*, unsigned short const*, xercesc_2_8::Attributes const&)@GDAL_1.8" 1.8.0
+ (c++)"non-virtual thunk to ParserHandler::setDocumentLocator(xercesc_2_8::Locator const*)@GDAL_1.8" 1.8.0
+ (c++)"non-virtual thunk to ParserHandler::~ParserHandler()@GDAL_1.8" 1.8.0
+ (c++)"non-virtual thunk to ParserHandler::~ParserHandler()@GDAL_1.8" 1.8.0
+ (c++)"non-virtual thunk to GMLXercesHandler::characters(unsigned short const*, unsigned int)@GDAL_1.8" 1.8.0
+ (c++)"non-virtual thunk to GMLXercesHandler::endElement(unsigned short const*, unsigned short const*, unsigned short const*)@GDAL_1.8" 1.8.0
+ (c++)"non-virtual thunk to GMLXercesHandler::startElement(unsigned short const*, unsigned short const*, unsigned short const*, xercesc_2_8::Attributes const&)@GDAL_1.8" 1.8.0
+ (c++)"non-virtual thunk to GMLXercesHandler::~GMLXercesHandler()@GDAL_1.8" 1.8.0
+ (c++)"non-virtual thunk to GMLXercesHandler::~GMLXercesHandler()@GDAL_1.8" 1.8.0
  (c++)"virtual thunk to PCIDSK::CPCIDSK_PCT::~CPCIDSK_PCT()@GDAL_1.8" 1.8.0
  (c++)"virtual thunk to PCIDSK::CPCIDSK_PCT::~CPCIDSK_PCT()@GDAL_1.8" 1.8.0
  (c++)"virtual thunk to PCIDSK::CPCIDSK_TEX::~CPCIDSK_TEX()@GDAL_1.8" 1.8.0
@@ -12781,3 +12753,39 @@ libgdal.so.1 libgdal1 #MINVER#
  (c++)"virtual thunk to PCIDSK::CPCIDSKRPCModelSegment::GetAdjYValues() const@GDAL_1.8" 1.8.0
  (c++)"virtual thunk to PCIDSK::CPCIDSKSegment::IsAtEOF()@GDAL_1.8" 1.8.0
  (c++)"virtual thunk to PCIDSK::CPCIDSKRPCModelSegment::SetAdjCoordValues(std::vector<double, std::allocator<double> > const&, std::vector<double, std::allocator<double> > const&)@GDAL_1.8" 1.8.0
+ (c++)"virtual thunk to PCIDSK::CPCIDSKBitmap::SetDescription(std::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)@GDAL_1.8" 1.8.0
+ (c++)"virtual thunk to PCIDSK::CPCIDSKSegment::SetDescription(std::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)@GDAL_1.8" 1.8.0
+ (c++)"virtual thunk to PCIDSK::CPCIDSKRPCModelSegment::IsUserGenerated() const@GDAL_1.8" 1.8.0
+ (c++)"virtual thunk to PCIDSK::CPCIDSKRPCModelSegment::SetUserGenerated(bool)@GDAL_1.8" 1.8.0
+ (c++)"virtual thunk to PCIDSK::CPCIDSKBitmap::GetMetadataValue(std::basic_string<char, std::char_traits<char>, std::allocator<char> > const&) const@GDAL_1.8" 1.8.0
+ (c++)"virtual thunk to PCIDSK::CPCIDSKSegment::GetMetadataValue(std::basic_string<char, std::char_traits<char>, std::allocator<char> > const&) const@GDAL_1.8" 1.8.0
+ (c++)"virtual thunk to PCIDSK::CPCIDSKBitmap::SetMetadataValue(std::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, std::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)@GDAL_1.8" 1.8.0
+ (c++)"virtual thunk to PCIDSK::CPCIDSKSegment::SetMetadataValue(std::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, std::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)@GDAL_1.8" 1.8.0
+ (c++)"virtual thunk to PCIDSK::CPCIDSKRPCModelSegment::IsNominalModel() const@GDAL_1.8" 1.8.0
+ (c++)"virtual thunk to PCIDSK::CPCIDSKRPCModelSegment::SetIsNominalModel(bool)@GDAL_1.8" 1.8.0
+ (c++)"virtual thunk to PCIDSK::CPCIDSKBitmap::GetMetadataKeys() const@GDAL_1.8" 1.8.0
+ (c++)"virtual thunk to PCIDSK::CPCIDSKSegment::GetMetadataKeys() const@GDAL_1.8" 1.8.0
+ (c++)"virtual thunk to PCIDSK::CPCIDSKBitmap::GetHistoryEntries() const@GDAL_1.8" 1.8.0
+ (c++)"virtual thunk to PCIDSK::CPCIDSKSegment::GetHistoryEntries() const@GDAL_1.8" 1.8.0
+ (c++)"virtual thunk to PCIDSK::CPCIDSKRPCModelSegment::GetSensorName() const@GDAL_1.8" 1.8.0
+ (c++)"virtual thunk to PCIDSK::CPCIDSKBitmap::SetHistoryEntries(std::vector<std::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::basic_string<char, std::char_traits<char>, std::allocator<char> > > > const&)@GDAL_1.8" 1.8.0
+ (c++)"virtual thunk to PCIDSK::CPCIDSKSegment::SetHistoryEntries(std::vector<std::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::basic_string<char, std::char_traits<char>, std::allocator<char> > > > const&)@GDAL_1.8" 1.8.0
+ (c++)"virtual thunk to PCIDSK::CPCIDSKRPCModelSegment::SetSensorName(std::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)@GDAL_1.8" 1.8.0
+ (c++)"virtual thunk to PCIDSK::CPCIDSKBitmap::PushHistory(std::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, std::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)@GDAL_1.8" 1.8.0
+ (c++)"virtual thunk to PCIDSK::CPCIDSKSegment::PushHistory(std::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, std::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)@GDAL_1.8" 1.8.0
+ (c++)"virtual thunk to PCIDSK::CPCIDSKRPCModelSegment::GetGeosysString() const@GDAL_1.8" 1.8.0
+ (c++)"virtual thunk to PCIDSK::SysBlockMap::Synchronize()@GDAL_1.8" 1.8.0
+ (c++)"virtual thunk to PCIDSK::CPCIDSKBitmap::Synchronize()@GDAL_1.8" 1.8.0
+ (c++)"virtual thunk to PCIDSK::CPCIDSKSegment::Synchronize()@GDAL_1.8" 1.8.0
+ (c++)"virtual thunk to PCIDSK::MetadataSegment::Synchronize()@GDAL_1.8" 1.8.0
+ (c++)"virtual thunk to PCIDSK::CPCIDSKVectorSegment::Synchronize()@GDAL_1.8" 1.8.0
+ (c++)"virtual thunk to PCIDSK::CPCIDSKRPCModelSegment::SetGeosysString(std::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)@GDAL_1.8" 1.8.0
+ (c++)"virtual thunk to PCIDSK::CPCIDSKSegment::ConsistencyCheck()@GDAL_1.8" 1.8.0
+ (c++)"virtual thunk to PCIDSK::CPCIDSKVectorSegment::ConsistencyCheck()@GDAL_1.8" 1.8.0
+ (c++)"virtual thunk to PCIDSK::CPCIDSKRPCModelSegment::GetLines() const@GDAL_1.8" 1.8.0
+ (c++)"virtual thunk to PCIDSK::CPCIDSKRPCModelSegment::GetPixels() const@GDAL_1.8" 1.8.0
+ (c++)"virtual thunk to PCIDSK::CPCIDSKRPCModelSegment::SetRasterSize(unsigned int, unsigned int)@GDAL_1.8" 1.8.0
+ (c++)"virtual thunk to PCIDSK::CPCIDSKRPCModelSegment::~CPCIDSKRPCModelSegment()@GDAL_1.8" 1.8.0
+ (c++)"virtual thunk to PCIDSK::CPCIDSKRPCModelSegment::~CPCIDSKRPCModelSegment()@GDAL_1.8" 1.8.0
+ (c++)"OCSTransformer::OCSTransformer(double*)::adfWY@GDAL_1.8" 1.8.0
+ (c++)"OCSTransformer::OCSTransformer(double*)::adfWZ@GDAL_1.8" 1.8.0

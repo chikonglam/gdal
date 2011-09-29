@@ -1,4 +1,5 @@
 libgdal.so.1 libgdal1 #MINVER# 
+#include "libgdal1.symbols.common"
  (c++)"CheckASCII(unsigned char*, int)@GDAL_1.8" 1.8.0
  (c++)"CreatePath(HDF5GroupObjects*)@GDAL_1.8" 1.8.0
  (c++)"DDFScanInt(char const*, int)@GDAL_1.8" 1.8.0
@@ -21,6 +22,7 @@ libgdal.so.1 libgdal1 #MINVER#
  (c++)"GetCoordDim(iom_basket*, iom_object*)@GDAL_1.8" 1.8.0
  (c++)"GetFilePath(CPLXMLNode*, char**)@GDAL_1.8" 1.8.0
  (c++)"GetTypeName(iom_basket*, iom_object*)@GDAL_1.8" 1.8.0
+ (c++)"HFAStandard(int, void*)@GDAL_1.8 1.8.0
  (c++)"INGR_Decode(INGR_Format, unsigned char*, unsigned char*, unsigned int, unsigned int, unsigned int*)@GDAL_1.8" 1.8.0
  (c++)"OGRFastAtof(char const*)@GDAL_1.8" 1.8.0
  (c++)"PamGetProxy(char const*)@GDAL_1.8" 1.8.0
@@ -171,8 +173,7 @@ libgdal.so.1 libgdal1 #MINVER#
  (c++)"FWRITE_ODDINT_BIG(int*, unsigned char, _IO_FILE*)@GDAL_1.8" 1.8.0
  (c++)"FWRITE_ODDINT_LIT(int*, unsigned char, _IO_FILE*)@GDAL_1.8" 1.8.0
  (c++)"GDALReplicateWord(void*, GDALDataType, void*, GDALDataType, int, int)@GDAL_1.8" 1.8.0
- (c++)"GTiffErrorHandler(char const*, char const*, char*)@GDAL_1.8" 1.8.0
- (c++|arch=ia64)"GTiffErrorHandler(char const*, char const*, void*)@GDAL_1.8" 1.8.0
+ (c++)"GTiffErrorHandler(char const*, char const*, void*)@GDAL_1.8 1.8.0
  (c++)"OGRDODSGetVarPath(libdap::BaseType*)@GDAL_1.8" 1.8.0
  (c++)"OGRGeoJSONGetType(json_object*)@GDAL_1.8" 1.8.0
  (c++)"OGRGetXMLDateTime(int, int, int, int, int, int, int)@GDAL_1.8" 1.8.0
@@ -222,8 +223,7 @@ libgdal.so.1 libgdal1 #MINVER#
  (c++)"GDALType2ValueScale(GDALDataType)@GDAL_1.8" 1.8.0
  (c++)"GTIFFSetJpegQuality(void*, int)@GDAL_1.8" 1.8.0
  (c++)"GTIFFWriteDirectory(tiff*, int, int, int, int, int, int, int, int, int, int, int, int, int, unsigned short*, unsigned short*, unsigned short*, int, unsigned short*, char const*)@GDAL_1.8" 1.8.0
- (c++)"GTiffWarningHandler(char const*, char const*, char*)@GDAL_1.8" 1.8.0
- (c++|arch=ia64)"GTiffWarningHandler(char const*, char const*, void*)@GDAL_1.8" 1.8.0
+ (c++)"GTiffWarningHandler(char const*, char const*, void*)@GDAL_1.8 1.8.0
  (c++)"HDF5CreateGroupObjs(int, char const*, void*)@GDAL_1.8" 1.8.0
  (c++)"HFACreateSpillStack(hfainfo*, int, int, int, int, int, long long*, long long*)@GDAL_1.8" 1.8.0
  (c++)"HFAReadBFUniqueBins(HFAEntry*, int)@GDAL_1.8" 1.8.0
@@ -8819,8 +8819,7 @@ libgdal.so.1 libgdal1 #MINVER#
  (c++)"PCIDSK::PCIDSK_TEX::~PCIDSK_TEX()@GDAL_1.8" 1.8.0
  (c++)"PCIDSK::PCIDSK_TEX::~PCIDSK_TEX()@GDAL_1.8" 1.8.0
  (c++)"PCIDSK::PCIDSK_TEX::~PCIDSK_TEX()@GDAL_1.8" 1.8.0
- (c++)"PCIDSK::ShapeField::~ShapeField()@GDAL_1.8" 1.8.0
- (c++)"PCIDSK::ShapeField::~ShapeField()@GDAL_1.8" 1.8.0
+ (c++)"PCIDSK::ShapeField::Clear()@GDAL_1.8 1.8.0
  (c++)"PCIDSK::SwapPixels(void*, PCIDSK::eChanType, unsigned int)@GDAL_1.8" 1.8.0
  (c++)"PCIDSK::CPCIDSKFile::ExtendFile(unsigned long long, bool)@GDAL_1.8" 1.8.0
  (c++)"PCIDSK::CPCIDSKFile::FlushBlock()@GDAL_1.8" 1.8.0
@@ -9043,8 +9042,7 @@ libgdal.so.1 libgdal1 #MINVER#
  (c++)"PCIDSK::MetadataSegment::~MetadataSegment()@GDAL_1.8" 1.8.0
  (c++)"PCIDSK::MetadataSegment::~MetadataSegment()@GDAL_1.8" 1.8.0
  (c++)"PCIDSK::MetadataSegment::~MetadataSegment()@GDAL_1.8" 1.8.0
- (c++)"PCIDSK::PCIDSKException::vPrintf(char const*, char*)@GDAL_1.8" 1.8.0
- (c++|arch=ia64)"PCIDSK::PCIDSKException::vPrintf(char const*, void*)@GDAL_1.8" 1.8.0
+ (c++)"PCIDSK::PCIDSKException::vPrintf(char const*, void*)@GDAL_1.8 1.8.0
  (c++)"PCIDSK::PCIDSKException::PCIDSKException(char const*, ...)@GDAL_1.8" 1.8.0
  (c++)"PCIDSK::PCIDSKException::PCIDSKException(PCIDSK::PCIDSKException const&)@GDAL_1.8" 1.8.0
  (c++)"PCIDSK::PCIDSKException::PCIDSKException(char const*, ...)@GDAL_1.8" 1.8.0
@@ -9700,8 +9698,7 @@ libgdal.so.1 libgdal1 #MINVER#
  (c++)"CPLString::Printf(char const*, ...)@GDAL_1.8" 1.8.0
  (c++)"CPLString::Recode(char const*, char const*)@GDAL_1.8" 1.8.0
  (c++)"CPLString::FormatC(double, char const*)@GDAL_1.8" 1.8.0
- (c++)"CPLString::vPrintf(char const*, char*)@GDAL_1.8" 1.8.0
- (c++|arch=ia64)"CPLString::vPrintf(char const*, void*)@GDAL_1.8" 1.8.0
+ (c++)"CPLString::vPrintf(char const*, void*)@GDAL_1.8 1.8.0
  (c++)"CPLString::CPLString(char const*)@GDAL_1.8" 1.8.0
  (c++)"CPLString::CPLString(char const*)@GDAL_1.8" 1.8.0
  (c++)"DDFModule::Initialize(char, char, char, char, char, char const*, int, int, int)@GDAL_1.8" 1.8.0
@@ -10395,6 +10392,7 @@ libgdal.so.1 libgdal1 #MINVER#
  (c++)"std::deque<Element, std::allocator<Element> >::~deque()@GDAL_1.8" 1.8.0
  (c++)"std::deque<OGRFeature*, std::allocator<OGRFeature*> >::_M_reallocate_map(unsigned int, bool)@GDAL_1.8" 1.8.0
  (c++)"std::deque<int, std::allocator<int> >::_M_reallocate_map(unsigned int, bool)@GDAL_1.8" 1.8.0
+ (c++)"std::stack<Element, std::deque<Element, std::allocator<Element> > >::pop()@GDAL_1.8 1.8.0
  (c++)"std::stack<Element, std::deque<Element, std::allocator<Element> > >::push(Element const&)@GDAL_1.8" 1.8.0
  (c++)"std::vector<VFKProperty, std::allocator<VFKProperty> >::_M_fill_assign(unsigned int, VFKProperty const&)@GDAL_1.8" 1.8.0
  (c++)"std::vector<VFKProperty, std::allocator<VFKProperty> >::~vector()@GDAL_1.8" 1.8.0
@@ -10591,12 +10589,12 @@ libgdal.so.1 libgdal1 #MINVER#
  (c++)"void std::_Destroy<std::vector<int, std::allocator<int> >*>(std::vector<int, std::allocator<int> >*, std::vector<int, std::allocator<int> >*)@GDAL_1.8" 1.8.0
  (c++)"std::basic_string<char, std::char_traits<char>, std::allocator<char> > std::operator+<char, std::char_traits<char>, std::allocator<char> >(char const*, std::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)@GDAL_1.8" 1.8.0
  (c++)"std::basic_string<char, std::char_traits<char>, std::allocator<char> > std::operator+<char, std::char_traits<char>, std::allocator<char> >(std::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, std::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)@GDAL_1.8" 1.8.0
- (c++)"construction vtable for PCIDSK::CPCIDSKSegment-in-PCIDSK::CPCIDSK_PCT@GDAL_1.8" 1.8.0
- (c++)"construction vtable for PCIDSK::CPCIDSKSegment-in-PCIDSK::CPCIDSK_TEX@GDAL_1.8" 1.8.0
+ (c++)"construction vtable for PCIDSK::CPCIDSKSegment-in-PCIDSK::CPCIDSK_PCT@GDAL_1.8 1.8.0
+ (c++)"construction vtable for PCIDSK::CPCIDSKSegment-in-PCIDSK::CPCIDSK_TEX@GDAL_1.8 1.8.0
  (c++)"construction vtable for PCIDSK::CPCIDSKSegment-in-PCIDSK::SysBlockMap@GDAL_1.8" 1.8.0
  (c++)"construction vtable for PCIDSK::CPCIDSKSegment-in-PCIDSK::CPCIDSKBitmap@GDAL_1.8" 1.8.0
- (c++)"construction vtable for PCIDSK::CPCIDSKSegment-in-PCIDSK::CPCIDSKGeoref@GDAL_1.8" 1.8.0
- (c++)"construction vtable for PCIDSK::CPCIDSKSegment-in-PCIDSK::MetadataSegment@GDAL_1.8" 1.8.0
+ (c++)"construction vtable for PCIDSK::CPCIDSKSegment-in-PCIDSK::CPCIDSKGeoref@GDAL_1.8 1.8.0
+ (c++)"construction vtable for PCIDSK::CPCIDSKSegment-in-PCIDSK::MetadataSegment@GDAL_1.8 1.8.0
  (c++)"construction vtable for PCIDSK::CPCIDSKSegment-in-PCIDSK::CPCIDSKGCP2Segment@GDAL_1.8" 1.8.0
  (c++)"construction vtable for PCIDSK::CPCIDSKSegment-in-PCIDSK::CPCIDSKVectorSegment@GDAL_1.8" 1.8.0
  (c++)"construction vtable for PCIDSK::CPCIDSKSegment-in-PCIDSK::CPCIDSKAPModelSegment@GDAL_1.8" 1.8.0
