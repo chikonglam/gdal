@@ -1,5 +1,5 @@
 usr/bin/gdal-config
 usr/include
-usr/lib/libgdal1.8.0.a
-usr/lib/libgdal1.8.0.so
+usr/lib/libgdal.a
+usr/lib/libgdal.so
 usr/share/man/man1/gdal-config.1

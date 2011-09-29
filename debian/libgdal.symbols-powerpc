@@ -1,4 +1,4 @@
-libgdal1.8.0.so.1 libgdal1-1.8.0 #MINVER#
+libgdal.so.1 libgdal1 #MINVER# 
  (c++)"CheckASCII(unsigned char*, int)@GDAL_1.8" 1.8.0
  (c++)"CreatePath(HDF5GroupObjects*)@GDAL_1.8" 1.8.0
  (c++)"DDFScanInt(char const*, int)@GDAL_1.8" 1.8.0

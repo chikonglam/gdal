@@ -1,4 +1,4 @@
-libgdal1.8.0.so.1 libgdal1-1.8.0 #MINVER# 
+libgdal.so.1 libgdal1-1.8.0 #MINVER# 
  AIGAccessTile@GDAL_1.8 1.8.0
  AIGClose@GDAL_1.8 1.8.0
  AIGLLOpen@GDAL_1.8 1.8.0

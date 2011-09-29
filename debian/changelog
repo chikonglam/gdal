@@ -1,8 +1,11 @@
 gdal (1.8.1-2~exp2) experimental; urgency=low
 
   * Added mandatory header line in per arch included symbol files.
+  * Now normalized to conventional GDAL library name and dropping the Debian 
+    specific versioned naming scheme for the library. 
+    Dropped patch: libname, python.
 
- -- Francesco Paolo Lovergine <frankie@debian.org>  Thu, 29 Sep 2011 15:01:20 +0200
+ -- Francesco Paolo Lovergine <frankie@debian.org>  Thu, 29 Sep 2011 15:16:52 +0200
 
 gdal (1.8.1-2~exp1) experimental; urgency=low
 
