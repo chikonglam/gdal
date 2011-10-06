@@ -6,8 +6,9 @@ gdal (1.8.1-2~exp2) experimental; urgency=low
     specific versioned naming scheme for the library. 
     Dropped patch: libname, python.
   * Added sparc symbols.
+  * Updated NEWS file with basic information about changes in the package.
 
- -- Francesco Paolo Lovergine <frankie@debian.org>  Wed, 05 Oct 2011 22:50:35 +0200
+ -- Francesco Paolo Lovergine <frankie@debian.org>  Thu, 06 Oct 2011 11:46:59 +0200
 
 gdal (1.8.1-2~exp1) experimental; urgency=low
 
