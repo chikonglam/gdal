@@ -7,8 +7,10 @@ gdal (1.8.1-2~exp2) experimental; urgency=low
     Dropped patch: libname, python.
   * Added sparc and mipsel symbol files.
   * Updated NEWS file with basic information about changes in the package.
+  * Removed now obsolete libtool build-dep.
+    (closes: #639887)
 
- -- Francesco Paolo Lovergine <frankie@debian.org>  Thu, 06 Oct 2011 12:29:50 +0200
+ -- Francesco Paolo Lovergine <frankie@debian.org>  Thu, 06 Oct 2011 17:45:24 +0200
 
 gdal (1.8.1-2~exp1) experimental; urgency=low
 
