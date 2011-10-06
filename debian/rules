@@ -142,7 +142,7 @@ install: build
 	
 	cp `ls GDALmake.opt-*|tail -1` GDALmake.opt
 	$(MAKE) install BINDINGS="perl ruby" DESTDIR=$(CURDIR)/debian/tmp \
-			INST_DATA="\$$(prefix)/share/gdal/1.8" 
+			INST_DATA="\$$(prefix)/share/gdal/$(GDAL_MAJOR).$(GDAL_MINOR)" 
 	$(MAKE) install-docs DESTDIR=$(CURDIR)/debian/tmp \
 		"INST_DOCS=\$$(prefix)/share/doc/libgdal-doc"\
 		"INST_MAN=\$$(prefix)/share/man" 
@@ -156,7 +156,7 @@ install: build
 	install -o root -g root -m 755 $(CURDIR)/swig/python/scripts/*.py $(CURDIR)/debian/tmp/usr/bin/.                                        
 	
 	# removing license file
-	rm -f $(CURDIR)/debian/tmp/usr/share/gdal/1.8/LICENSE.TXT
+	rm -f $(CURDIR)/debian/tmp/usr/share/gdal/$(GDAL_MAJOR).$(GDAL_MINOR)/LICENSE.TXT
 	# removing empty packlist MakeMaker files 
 	-find $(CURDIR)/debian/tmp$(PERL_PATH) -type f -name .packlist -exec rm -f {} \;
 	# removing embedded rpath in perl shlibs
@@ -174,8 +174,8 @@ install: build
 	install -o root -g root -d $(CURDIR)/debian/tmp/usr/share/doc/python-gdal/examples
 	install -o root -g root -m 755 $(CURDIR)/swig/python/samples/*.py $(CURDIR)/debian/tmp/usr/share/doc/python-gdal/examples/.
 	# create lintian overrides file
-	echo "libgdal1-1.8.0: embedded-library usr/lib/libgdal1.8.0.so.$$(basename debian/tmp/usr/lib/libgdal1.8.0.so.*.*.*|cut -d. -f5,6,7): tiff" \
-		>$(CURDIR)/debian/libgdal1-1.8.0.lintian-overrides
+	echo "libgdal1: embedded-library usr/lib/libgdal.so.$$(basename debian/tmp/usr/lib/libgdal.so.*.*.*|cut -d. -f3,4,5): tiff" \
+		>$(CURDIR)/debian/libgdal1.lintian-overrides
 
 binary-common: 
 	dh_testdir
@@ -191,9 +191,10 @@ binary-common:
 	dh_lintian
 	dh_python2 -X.info
 	dh_perl
+	ln libgdal1
 	dh_makeshlibs
 	dh_installdeb
-	dh_shlibdeps -L libgdal1-1.8.0 -l debian/libgdal1-1.8.0/usr/lib
+	dh_shlibdeps -L libgdal1 -l debian/libgdal1/usr/lib
 	dh_gencontrol
 	dh_md5sums
 	dh_builddeb
