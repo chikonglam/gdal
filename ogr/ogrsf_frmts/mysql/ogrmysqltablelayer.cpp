@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrmysqltablelayer.cpp 20460 2010-08-27 20:06:26Z rouault $
+ * $Id: ogrmysqltablelayer.cpp 22123 2011-04-05 19:41:27Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implements OGRMySQLTableLayer class.
@@ -32,7 +32,7 @@
 #include "cpl_string.h"
 #include "ogr_mysql.h"
 
-CPL_CVSID("$Id: ogrmysqltablelayer.cpp 20460 2010-08-27 20:06:26Z rouault $");
+CPL_CVSID("$Id: ogrmysqltablelayer.cpp 22123 2011-04-05 19:41:27Z rouault $");
 
 /************************************************************************/
 /*                         OGRMySQLTableLayer()                         */
@@ -129,6 +129,7 @@ OGRFeatureDefn *OGRMySQLTableLayer::ReadTableDefinition( const char *pszTable )
 /* -------------------------------------------------------------------- */
     OGRFeatureDefn *poDefn = new OGRFeatureDefn( pszTable );
     char           **papszRow;
+    OGRwkbGeometryType eForcedGeomType = wkbUnknown;
 
     poDefn->Reference();
 
@@ -136,20 +137,23 @@ OGRFeatureDefn *OGRMySQLTableLayer::ReadTableDefinition( const char *pszTable )
     {
         const char      *pszType;
         OGRFieldDefn    oField( papszRow[0], OFTString);
+        int             nLenType;
 
         pszType = papszRow[1];
 
         if( pszType == NULL )
             continue;
 
+        nLenType = (int)strlen(pszType);
+
         if( EQUAL(pszType,"varbinary")
-            || (strlen(pszType)>3 && EQUAL(pszType+strlen(pszType)-4,"blob")))
+            || (nLenType>=4 && EQUAL(pszType+nLenType-4,"blob")))
         {
             oField.SetType( OFTBinary );
         }
         else if( EQUAL(pszType,"varchar") 
-                 || EQUAL(pszType+strlen(pszType)-4,"enum") 
-                 || EQUAL(pszType+strlen(pszType)-4,"set") )
+                 || (nLenType>=4 && EQUAL(pszType+nLenType-4,"enum"))
+                 || (nLenType>=3 && EQUAL(pszType+nLenType-3,"set")) )
         {
             oField.SetType( OFTString );
 
@@ -160,16 +164,18 @@ OGRFeatureDefn *OGRMySQLTableLayer::ReadTableDefinition( const char *pszTable )
             char ** papszTokens;
 
             papszTokens = CSLTokenizeString2(pszType,"(),",0);
-            
-            /* width is the second */
-            oField.SetWidth(atoi(papszTokens[1]));
+            if (CSLCount(papszTokens) >= 2)
+            {
+                /* width is the second */
+                oField.SetWidth(atoi(papszTokens[1]));
+            }
 
             CSLDestroy( papszTokens );
             oField.SetType( OFTString );
 
         }
         
-        if(strlen(pszType)>3 && EQUAL(pszType+strlen(pszType)-4,"text"))
+        if(nLenType>=4 && EQUAL(pszType+nLenType-4,"text"))
         {
             oField.SetType( OFTString );            
         }
@@ -184,9 +190,11 @@ OGRFeatureDefn *OGRMySQLTableLayer::ReadTableDefinition( const char *pszTable )
             char ** papszTokens;
 
             papszTokens = CSLTokenizeString2(pszType,"(),",0);
-            
-            /* width is the second */
-            oField.SetWidth(atoi(papszTokens[1]));
+            if (CSLCount(papszTokens) >= 2)
+            {
+                /* width is the second */
+                oField.SetWidth(atoi(papszTokens[1]));
+            }
 
             CSLDestroy( papszTokens );
             oField.SetType( OFTString );
@@ -221,10 +229,12 @@ OGRFeatureDefn *OGRMySQLTableLayer::ReadTableDefinition( const char *pszTable )
             char ** papszTokens;
 
             papszTokens = CSLTokenizeString2(pszType,"(),",0);
-            
-            /* width is the second and precision is the third */
-            oField.SetWidth(atoi(papszTokens[1]));
-            oField.SetPrecision(atoi(papszTokens[2]));
+            if (CSLCount(papszTokens) >= 3)
+            {
+                /* width is the second and precision is the third */
+                oField.SetWidth(atoi(papszTokens[1]));
+                oField.SetPrecision(atoi(papszTokens[2]));
+            }
             CSLDestroy( papszTokens );
 
 
@@ -246,9 +256,12 @@ OGRFeatureDefn *OGRMySQLTableLayer::ReadTableDefinition( const char *pszTable )
             
             char ** papszTokens=NULL;
             papszTokens = CSLTokenizeString2(pszType,"(),",0);
-            /* width is the second and precision is the third */
-            oField.SetWidth(atoi(papszTokens[1]));
-            oField.SetPrecision(atoi(papszTokens[2]));
+            if (CSLCount(papszTokens) >= 3)
+            {
+                /* width is the second and precision is the third */
+                oField.SetWidth(atoi(papszTokens[1]));
+                oField.SetPrecision(atoi(papszTokens[2]));
+            }
             CSLDestroy( papszTokens );  
 
             oField.SetType( OFTReal );
@@ -275,10 +288,20 @@ OGRFeatureDefn *OGRMySQLTableLayer::ReadTableDefinition( const char *pszTable )
             oField.SetType( OFTString );
             oField.SetWidth( 10 );
         }
-        else if( EQUAL(pszType, "geometry") ) 
+        else if( EQUAL(pszType, "geometry") ||
+                 OGRFromOGCGeomType(pszType) != wkbUnknown)
         {
             if (pszGeomColumn == NULL)
+            {
                 pszGeomColumn = CPLStrdup(papszRow[0]);
+                eForcedGeomType = OGRFromOGCGeomType(pszType);
+            }
+            else
+            {
+                CPLDebug("MYSQL",
+                         "Ignoring %s as geometry column. Another one(%s) has already been found before",
+                         papszRow[0], pszGeomColumn);
+            }
             continue;
         }
         // Is this an integer primary key field?
@@ -341,7 +364,9 @@ OGRFeatureDefn *OGRMySQLTableLayer::ReadTableDefinition( const char *pszTable )
 
             poDefn->SetGeomType( nGeomType );
 
-        } 
+        }
+        else if (eForcedGeomType != wkbUnknown)
+            poDefn->SetGeomType(eForcedGeomType);
 
         if( hResult != NULL )
             mysql_free_result( hResult );   //Free our query results for finding type.

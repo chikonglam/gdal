@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrdgndatasource.cpp 12822 2007-11-16 22:52:15Z rouault $
+ * $Id: ogrdgndatasource.cpp 23431 2011-11-27 15:02:24Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implements OGRPGDataSource class.
@@ -31,7 +31,7 @@
 #include "cpl_conv.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: ogrdgndatasource.cpp 12822 2007-11-16 22:52:15Z rouault $");
+CPL_CVSID("$Id: ogrdgndatasource.cpp 23431 2011-11-27 15:02:24Z rouault $");
 
 /************************************************************************/
 /*                         OGRDGNDataSource()                           */
@@ -224,7 +224,7 @@ OGRLayer *OGRDGNDataSource::CreateLayer( const char *pszLayerName,
 /* -------------------------------------------------------------------- */
 /*      Parse out various creation options.                             */
 /* -------------------------------------------------------------------- */
-    CSLInsertStrings( papszOptions, 0, papszExtraOptions );
+    papszOptions = CSLInsertStrings( papszOptions, 0, papszExtraOptions );
 
     b3DRequested = CSLFetchBoolean( papszOptions, "3D", 
                                     (((int) eGeomType) & wkb25DBit) );

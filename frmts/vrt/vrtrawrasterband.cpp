@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: vrtrawrasterband.cpp 20996 2010-10-28 18:38:15Z rouault $
+ * $Id: vrtrawrasterband.cpp 22776 2011-07-23 18:07:58Z rouault $
  *
  * Project:  Virtual GDAL Datasets
  * Purpose:  Implementation of VRTRawRasterBand
@@ -32,7 +32,7 @@
 #include "cpl_string.h"
 #include "rawdataset.h"
 
-CPL_CVSID("$Id: vrtrawrasterband.cpp 20996 2010-10-28 18:38:15Z rouault $");
+CPL_CVSID("$Id: vrtrawrasterband.cpp 22776 2011-07-23 18:07:58Z rouault $");
 
 /************************************************************************/
 /* ==================================================================== */
@@ -199,6 +199,11 @@ CPLErr VRTRawRasterBand::SetRawLink( const char *pszFilename,
 
     if( fp == NULL )
         fp = CPLOpenShared( pszExpandedFilename, "rb", TRUE );
+
+    if( fp == NULL && ((VRTDataset *)poDS)->GetAccess() == GA_Update )
+    {
+        fp = CPLOpenShared( pszExpandedFilename, "wb+", TRUE );
+    }
 
     if( fp == NULL )
     {

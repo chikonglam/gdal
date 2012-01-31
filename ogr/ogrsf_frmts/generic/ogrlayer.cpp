@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrlayer.cpp 20885 2010-10-19 00:16:08Z warmerdam $
+ * $Id: ogrlayer.cpp 23554 2011-12-12 18:10:25Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  The generic portions of the OGRSFLayer class.
@@ -31,8 +31,9 @@
 #include "ogr_api.h"
 #include "ogr_p.h"
 #include "ogr_attrind.h"
+#include "swq.h"
 
-CPL_CVSID("$Id: ogrlayer.cpp 20885 2010-10-19 00:16:08Z warmerdam $");
+CPL_CVSID("$Id: ogrlayer.cpp 23554 2011-12-12 18:10:25Z rouault $");
 
 /************************************************************************/
 /*                              OGRLayer()                              */
@@ -306,6 +307,51 @@ OGRErr OGRLayer::SetAttributeFilter( const char *pszQuery )
 }
 
 /************************************************************************/
+/*                        ContainGeomSpecialField()                     */
+/************************************************************************/
+
+static int ContainGeomSpecialField(swq_expr_node* expr,
+                                   int nLayerFieldCount)
+{
+    if (expr->eNodeType == SNT_COLUMN)
+    {
+        if( expr->table_index == 0 && expr->field_index != -1 )
+        {
+            int nSpecialFieldIdx = expr->field_index -
+                                    nLayerFieldCount;
+            return nSpecialFieldIdx == SPF_OGR_GEOMETRY ||
+                   nSpecialFieldIdx == SPF_OGR_GEOM_WKT ||
+                   nSpecialFieldIdx == SPF_OGR_GEOM_AREA;
+        }
+    }
+    else if (expr->eNodeType == SNT_OPERATION)
+    {
+        for( int i = 0; i < expr->nSubExprCount; i++ )
+        {
+            if (ContainGeomSpecialField(expr->papoSubExpr[i],
+                                        nLayerFieldCount))
+                return TRUE;
+        }
+    }
+    return FALSE;
+}
+
+/************************************************************************/
+/*                AttributeFilterEvaluationNeedsGeometry()              */
+/************************************************************************/
+
+int OGRLayer::AttributeFilterEvaluationNeedsGeometry()
+{
+    if( !m_poAttrQuery )
+        return FALSE;
+
+    swq_expr_node* expr = (swq_expr_node *) m_poAttrQuery->GetSWGExpr();
+    int nLayerFieldCount = GetLayerDefn()->GetFieldCount();
+
+    return ContainGeomSpecialField(expr, nLayerFieldCount);
+}
+
+/************************************************************************/
 /*                      OGR_L_SetAttributeFilter()                      */
 /************************************************************************/
 
@@ -482,6 +528,162 @@ OGRErr OGR_L_CreateField( OGRLayerH hLayer, OGRFieldDefnH hField,
 
     return ((OGRLayer *) hLayer)->CreateField( (OGRFieldDefn *) hField, 
                                                bApproxOK );
+}
+
+/************************************************************************/
+/*                            DeleteField()                             */
+/************************************************************************/
+
+OGRErr OGRLayer::DeleteField( int iField )
+
+{
+    (void) iField;
+
+    CPLError( CE_Failure, CPLE_NotSupported,
+              "DeleteField() not supported by this layer.\n" );
+
+    return OGRERR_UNSUPPORTED_OPERATION;
+}
+
+/************************************************************************/
+/*                         OGR_L_DeleteField()                          */
+/************************************************************************/
+
+OGRErr OGR_L_DeleteField( OGRLayerH hLayer, int iField )
+
+{
+    VALIDATE_POINTER1( hLayer, "OGR_L_DeleteField", OGRERR_INVALID_HANDLE );
+
+    return ((OGRLayer *) hLayer)->DeleteField( iField );
+}
+
+/************************************************************************/
+/*                           ReorderFields()                            */
+/************************************************************************/
+
+OGRErr OGRLayer::ReorderFields( int* panMap )
+
+{
+    (void) panMap;
+
+    CPLError( CE_Failure, CPLE_NotSupported,
+              "ReorderFields() not supported by this layer.\n" );
+
+    return OGRERR_UNSUPPORTED_OPERATION;
+}
+
+/************************************************************************/
+/*                       OGR_L_ReorderFields()                          */
+/************************************************************************/
+
+OGRErr OGR_L_ReorderFields( OGRLayerH hLayer, int* panMap )
+
+{
+    VALIDATE_POINTER1( hLayer, "OGR_L_ReorderFields", OGRERR_INVALID_HANDLE );
+
+    return ((OGRLayer *) hLayer)->ReorderFields( panMap );
+}
+
+/************************************************************************/
+/*                            ReorderField()                            */
+/************************************************************************/
+
+OGRErr OGRLayer::ReorderField( int iOldFieldPos, int iNewFieldPos )
+
+{
+    OGRErr eErr;
+
+    int nFieldCount = GetLayerDefn()->GetFieldCount();
+
+    if (iOldFieldPos < 0 || iOldFieldPos >= nFieldCount)
+    {
+        CPLError( CE_Failure, CPLE_NotSupported,
+                  "Invalid field index");
+        return OGRERR_FAILURE;
+    }
+    if (iNewFieldPos < 0 || iNewFieldPos >= nFieldCount)
+    {
+        CPLError( CE_Failure, CPLE_NotSupported,
+                  "Invalid field index");
+        return OGRERR_FAILURE;
+    }
+    if (iNewFieldPos == iOldFieldPos)
+        return OGRERR_NONE;
+
+    int* panMap = (int*) CPLMalloc(sizeof(int) * nFieldCount);
+    int i;
+    if (iOldFieldPos < iNewFieldPos)
+    {
+        /* "0","1","2","3","4" (1,3) -> "0","2","3","1","4" */
+        for(i=0;i<iOldFieldPos;i++)
+            panMap[i] = i;
+        for(;i<iNewFieldPos;i++)
+            panMap[i] = i + 1;
+        panMap[iNewFieldPos] = iOldFieldPos;
+        for(i=iNewFieldPos+1;i<nFieldCount;i++)
+            panMap[i] = i;
+    }
+    else
+    {
+        /* "0","1","2","3","4" (3,1) -> "0","3","1","2","4" */
+        for(i=0;i<iNewFieldPos;i++)
+            panMap[i] = i;
+        panMap[iNewFieldPos] = iOldFieldPos;
+        for(i=iNewFieldPos+1;i<=iOldFieldPos;i++)
+            panMap[i] = i - 1;
+        for(;i<nFieldCount;i++)
+            panMap[i] = i;
+    }
+
+    eErr = ReorderFields(panMap);
+
+    CPLFree(panMap);
+
+    return eErr;
+}
+
+/************************************************************************/
+/*                        OGR_L_ReorderField()                          */
+/************************************************************************/
+
+OGRErr OGR_L_ReorderField( OGRLayerH hLayer, int iOldFieldPos, int iNewFieldPos )
+
+{
+    VALIDATE_POINTER1( hLayer, "OGR_L_ReorderField", OGRERR_INVALID_HANDLE );
+
+    return ((OGRLayer *) hLayer)->ReorderField( iOldFieldPos, iNewFieldPos );
+}
+
+/************************************************************************/
+/*                           AlterFieldDefn()                           */
+/************************************************************************/
+
+OGRErr OGRLayer::AlterFieldDefn( int iField, OGRFieldDefn* poNewFieldDefn,
+                                 int nFlags )
+
+{
+    (void) iField;
+    (void) poNewFieldDefn;
+    (void) nFlags;
+
+    CPLError( CE_Failure, CPLE_NotSupported,
+              "AlterFieldDefn() not supported by this layer.\n" );
+
+    return OGRERR_UNSUPPORTED_OPERATION;
+}
+
+/************************************************************************/
+/*                        OGR_L_AlterFieldDefn()                        */
+/************************************************************************/
+
+OGRErr OGR_L_AlterFieldDefn( OGRLayerH hLayer, int iField, OGRFieldDefnH hNewFieldDefn,
+                             int nFlags )
+
+{
+    VALIDATE_POINTER1( hLayer, "OGR_L_AlterFieldDefn", OGRERR_INVALID_HANDLE );
+    VALIDATE_POINTER1( hNewFieldDefn, "OGR_L_AlterFieldDefn", OGRERR_INVALID_HANDLE );
+
+    return ((OGRLayer *) hLayer)->AlterFieldDefn( iField, (OGRFieldDefn*) hNewFieldDefn, nFlags );
 }
 
 /************************************************************************/
@@ -839,6 +1041,9 @@ OGRErr OGRLayer::InitializeIndexSupport( const char *pszFilename )
 {
     OGRErr eErr;
 
+    if (m_poAttrIndex != NULL)
+        return OGRERR_NONE;
+
     m_poAttrIndex = OGRCreateDefaultLayerIndex();
 
     eErr = m_poAttrIndex->Initialize( pszFilename, this );
@@ -1124,7 +1329,7 @@ OGRErr OGRLayer::SetIgnoredFields( const char **papszFields )
 OGRErr OGR_L_SetIgnoredFields( OGRLayerH hLayer, const char **papszFields )
 
 {
-    VALIDATE_POINTER1( hLayer, "OGR_L_SetIgnoredFields", NULL );
+    VALIDATE_POINTER1( hLayer, "OGR_L_SetIgnoredFields", OGRERR_INVALID_HANDLE );
 
     return ((OGRLayer *) hLayer)->SetIgnoredFields( papszFields );
 }

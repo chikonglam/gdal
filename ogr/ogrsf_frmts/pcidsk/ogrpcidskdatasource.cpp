@@ -34,6 +34,8 @@
 
 CPL_CVSID("$Id: ogrcsvdatasource.cpp 17806 2009-10-13 17:27:54Z rouault $");
 
+const PCIDSK::PCIDSKInterfaces *PCIDSK2GetInterfaces(void);
+
 /************************************************************************/
 /*                        OGRPCIDSKDataSource()                         */
 /************************************************************************/
@@ -102,7 +104,10 @@ int OGRPCIDSKDataSource::Open( const char * pszFilename, int bUpdateIn )
         return FALSE;
 
     osName = pszFilename;
-    bUpdate = bUpdateIn;
+    if( bUpdateIn )
+        bUpdate = true;
+    else
+        bUpdate = false;
 
 /* -------------------------------------------------------------------- */
 /*      Open the file, and create layer for each vector segment.        */
@@ -115,7 +120,8 @@ int OGRPCIDSKDataSource::Open( const char * pszFilename, int bUpdateIn )
         if( bUpdateIn )
             pszAccess = "r+";
 
-        poFile = PCIDSK::Open( pszFilename, pszAccess, NULL );
+        poFile = PCIDSK::Open( pszFilename, pszAccess,
+                               PCIDSK2GetInterfaces() );
 
         for( segobj = poFile->GetSegment( PCIDSK::SEG_VEC, "" );
              segobj != NULL;
@@ -124,6 +130,10 @@ int OGRPCIDSKDataSource::Open( const char * pszFilename, int bUpdateIn )
         {
             apoLayers.push_back( new OGRPCIDSKLayer( segobj, bUpdate ) );
         }
+
+        /* Check if this is a raster-only PCIDSK file */
+        if ( !bUpdate && apoLayers.size() == 0 && poFile->GetChannels() != 0 )
+            return FALSE;
     }
 
 /* -------------------------------------------------------------------- */
@@ -142,10 +152,6 @@ int OGRPCIDSKDataSource::Open( const char * pszFilename, int bUpdateIn )
         return FALSE;
     }
 
-/* -------------------------------------------------------------------- */
-/*      We presume that this is indeed intended to be a PCIDSK          */
-/*      datasource if over half the files were .csv files.              */
-/* -------------------------------------------------------------------- */
     return TRUE;
 }
 

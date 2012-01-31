@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdalwarper.cpp 21167 2010-11-24 15:19:51Z warmerdam $
+ * $Id: gdalwarper.cpp 22888 2011-08-07 13:06:36Z rouault $
  *
  * Project:  High Performance Image Reprojector
  * Purpose:  Implementation of high level convenience APIs for warper.
@@ -33,7 +33,7 @@
 #include "ogr_api.h"
 #include "gdal_priv.h"
 
-CPL_CVSID("$Id: gdalwarper.cpp 21167 2010-11-24 15:19:51Z warmerdam $");
+CPL_CVSID("$Id: gdalwarper.cpp 22888 2011-08-07 13:06:36Z rouault $");
 
 /************************************************************************/
 /*                         GDALReprojectImage()                         */
@@ -429,7 +429,7 @@ GDALWarpNoDataMasker( void *pMaskFuncArg, int nBandCount, GDALDataType eType,
           for( iOffset = nXSize*nYSize-1; iOffset >= 0; iOffset-- )
           {
               float fVal = pafData[iOffset];
-              if( (bIsNoDataNan && CPLIsNan(fVal)) || EQUAL_TO_NODATA(fVal, fNoData) )
+              if( (bIsNoDataNan && CPLIsNan(fVal)) || (!bIsNoDataNan && ARE_REAL_EQUAL(fVal, fNoData)) )
               {
                   panValidityMask[iOffset>>5] &= ~(0x01 << (iOffset & 0x1f));
               }
@@ -451,7 +451,7 @@ GDALWarpNoDataMasker( void *pMaskFuncArg, int nBandCount, GDALDataType eType,
           for( iOffset = nXSize*nYSize-1; iOffset >= 0; iOffset-- )
           {
               double dfVal = padfData[iOffset];
-              if( (bIsNoDataNan && CPLIsNan(dfVal)) || EQUAL_TO_NODATA(dfVal, dfNoData) )
+              if( (bIsNoDataNan && CPLIsNan(dfVal)) || (!bIsNoDataNan && ARE_REAL_EQUAL(dfVal, dfNoData)) )
               {
                   panValidityMask[iOffset>>5] &= ~(0x01 << (iOffset & 0x1f));
               }
@@ -478,9 +478,9 @@ GDALWarpNoDataMasker( void *pMaskFuncArg, int nBandCount, GDALDataType eType,
               for( iPixel = 0; iPixel < nXSize; iPixel++ )
               {
                   if( ((bIsNoDataRealNan && CPLIsNan(padfWrk[iPixel*2])) ||
-                        EQUAL_TO_NODATA(padfWrk[iPixel*2], padfNoData[0]))
+                       (!bIsNoDataRealNan && ARE_REAL_EQUAL(padfWrk[iPixel*2], padfNoData[0])))
                       && ((bIsNoDataImagNan && CPLIsNan(padfWrk[iPixel*2+1])) ||
-                        EQUAL_TO_NODATA(padfWrk[iPixel*2+1], padfNoData[1])) )
+                          (!bIsNoDataImagNan && ARE_REAL_EQUAL(padfWrk[iPixel*2+1], padfNoData[1]))) )
                   {
                       int iOffset = iPixel + iLine * nXSize;
                       
@@ -884,12 +884,14 @@ void CPL_STDCALL GDALDestroyWarpOptions( GDALWarpOptions *psOptions )
 
 
 #define COPY_MEM(target,type,count)					\
-   if( (psSrcOptions->target) != NULL && (count) != 0 ) 		\
+   do { if( (psSrcOptions->target) != NULL && (count) != 0 ) 		\
    { 									\
-       (psDstOptions->target) = (type *) CPLMalloc(sizeof(type)*count); \
+       (psDstOptions->target) = (type *) CPLMalloc(sizeof(type)*(count)); \
        memcpy( (psDstOptions->target), (psSrcOptions->target),		\
- 	       sizeof(type) * count ); 	        			\
-   }
+ 	       sizeof(type) * (count) ); 	        			\
+   } \
+   else \
+       (psDstOptions->target) = NULL; } while(0)
 
 /************************************************************************/
 /*                        GDALCloneWarpOptions()                        */
@@ -915,6 +917,7 @@ GDALCloneWarpOptions( const GDALWarpOptions *psSrcOptions )
     COPY_MEM( padfDstNoDataImag, double, psSrcOptions->nBandCount );
     COPY_MEM( papfnSrcPerBandValidityMaskFunc, GDALMaskFunc, 
               psSrcOptions->nBandCount );
+    psDstOptions->papSrcPerBandValidityMaskFuncArg = NULL;
 
     if( psSrcOptions->hCutline != NULL )
         psDstOptions->hCutline = 

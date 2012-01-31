@@ -63,6 +63,9 @@ void GenerateTiles(std::string filename,
    
     GByte* pafScanline = new GByte[dxsize];
     bool* hadnoData = new bool[dxsize];
+
+    if (isJpegDriver && bands == 4)
+        bands = 3;
    
     poTmpDataset = poMemDriver->Create("", dxsize, dysize, bands, GDT_Byte, NULL);
    
@@ -181,7 +184,8 @@ void GenerateTiles(std::string filename,
     GDALDataset* outDs = poOutputTileDriver->CreateCopy(filename.c_str(), poTmpDataset, FALSE, NULL, NULL, NULL);
 
     GDALClose(poTmpDataset);
-    GDALClose(outDs);
+    if (outDs)
+        GDALClose(outDs);
 }
 
 /************************************************************************/
@@ -351,10 +355,10 @@ int  GenerateChildKml(std::string filename,
     VSIFPrintfL(fp, "\t\t\t</Icon>\n");
     VSIFPrintfL(fp, "\t\t\t<gx:LatLonQuad>\n");
     VSIFPrintfL(fp, "\t\t\t\t<coordinates>\n");
-    VSIFPrintfL(fp, "\t\t\t\t\t%f, %f, 0\n", lowerleftT, leftbottomT);
-    VSIFPrintfL(fp, "\t\t\t\t\t%f, %f, 0\n", lowerrightT, rightbottomT);
-    VSIFPrintfL(fp, "\t\t\t\t\t%f, %f, 0\n", upperrightT, righttopT);
-    VSIFPrintfL(fp, "\t\t\t\t\t%f, %f, 0\n", upperleftT, lefttopT);
+    VSIFPrintfL(fp, "\t\t\t\t\t%f,%f,0\n", lowerleftT, leftbottomT);
+    VSIFPrintfL(fp, "\t\t\t\t\t%f,%f,0\n", lowerrightT, rightbottomT);
+    VSIFPrintfL(fp, "\t\t\t\t\t%f,%f,0\n", upperrightT, righttopT);
+    VSIFPrintfL(fp, "\t\t\t\t\t%f,%f,0\n", upperleftT, lefttopT);
     VSIFPrintfL(fp, "\t\t\t\t</coordinates>\n");
     VSIFPrintfL(fp, "\t\t\t</gx:LatLonQuad>\n");
     VSIFPrintfL(fp, "\t\t</GroundOverlay>\n");
@@ -578,6 +582,10 @@ GDALDataset *KmlSuperOverlayDataset::CreateCopy( const char * pszFilename, GDALD
                                                  int bStrict, char ** papszOptions, GDALProgressFunc pfnProgress, void * pProgressData)
 {
     bool isKmz = false;
+
+    int bands = poSrcDS->GetRasterCount();
+    if (bands != 1 && bands != 3 && bands != 4)
+        return NULL;
    
     //correct the file and get the directory
     char* output_dir = NULL;
@@ -647,7 +655,6 @@ GDALDataset *KmlSuperOverlayDataset::CreateCopy( const char * pszFilename, GDALD
         return NULL;
     }
 
-    int bands = poSrcDS->GetRasterCount();
     int xsize = poSrcDS->GetRasterXSize();
     int ysize = poSrcDS->GetRasterYSize();
 
@@ -719,6 +726,7 @@ GDALDataset *KmlSuperOverlayDataset::CreateCopy( const char * pszFilename, GDALD
         tileysize = (int)dtileysize;
         tilexsize = (int)( (double)(dtileysize * xsize) / ysize );
     }
+    maxzoom = 0;
 
     std::vector<double> zoomxpixels;
     std::vector<double> zoomypixels;
@@ -730,7 +738,6 @@ GDALDataset *KmlSuperOverlayDataset::CreateCopy( const char * pszFilename, GDALD
     }
 
     std::string tmpFileName; 
-    std::vector<std::string> dirVector;
     std::vector<std::string> fileVector;
     int nRet;
     if (isKmz)
@@ -784,17 +791,13 @@ GDALDataset *KmlSuperOverlayDataset::CreateCopy( const char * pszFilename, GDALD
                 ixStr << ix;
                 iyStr << iy;
 
-                std::string zoomDir = outDir + "/" + zoomStr.str();
+                std::string zoomDir = outDir;
+                zoomDir+= "/" + zoomStr.str();
                 VSIMkdir(zoomDir.c_str(), 0775);
         
 
                 zoomDir = zoomDir + "/" + ixStr.str();
                 VSIMkdir(zoomDir.c_str(), 0775);
-
-                if (isKmz)
-                {
-                    dirVector.push_back(zoomDir);
-                }
 
                 std::string fileExt = ".jpg";
                 if (isJpegDriver == false)

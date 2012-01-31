@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: EnvisatFile.c 20600 2010-09-12 22:56:55Z rouault $
+ * $Id: EnvisatFile.c 22619 2011-06-29 20:54:01Z rouault $
  *
  * Project:  APP ENVISAT Support
  * Purpose:  Low Level Envisat file access (read/write) API.
@@ -32,7 +32,7 @@
 #  include "cpl_conv.h"
 #  include "EnvisatFile.h"
 
-CPL_CVSID("$Id: EnvisatFile.c 20600 2010-09-12 22:56:55Z rouault $");
+CPL_CVSID("$Id: EnvisatFile.c 22619 2011-06-29 20:54:01Z rouault $");
 
 #else
 #  include "APP/app.h"
@@ -1213,7 +1213,8 @@ int EnvisatFile_GetDatasetIndex( EnvisatFile *self, const char *ds_name )
      * be 28 characters, I try to pad more than this incase the specification
      * is changed. 
      */
-    strcpy( padded_ds_name, ds_name );
+    strncpy( padded_ds_name, ds_name, sizeof(padded_ds_name) );
+    padded_ds_name[sizeof(padded_ds_name)-1] = 0;
     for( i = strlen(padded_ds_name); i < sizeof(padded_ds_name)-1; i++ )
     {
         padded_ds_name[i] = ' ';

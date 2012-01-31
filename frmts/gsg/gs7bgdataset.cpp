@@ -1,5 +1,5 @@
 /****************************************************************************
- * $Id: gs7bgdataset.cpp 20996 2010-10-28 18:38:15Z rouault $
+ * $Id: gs7bgdataset.cpp 23060 2011-09-05 17:58:30Z rouault $
  *
  * Project:  GDAL
  * Purpose:  Implements the Golden Software Surfer 7 Binary Grid Format.
@@ -59,7 +59,7 @@
 # define SHRT_MAX 32767
 #endif /* SHRT_MAX */
 
-CPL_CVSID("$Id: gs7bgdataset.cpp 20996 2010-10-28 18:38:15Z rouault $");
+CPL_CVSID("$Id: gs7bgdataset.cpp 23060 2011-09-05 17:58:30Z rouault $");
 
 CPL_C_START
 void	GDALRegister_GS7BG(void);
@@ -134,7 +134,7 @@ class GS7BGRasterBand : public GDALPamRasterBand
 GS7BGRasterBand::GS7BGRasterBand( GS7BGDataset *poDS, int nBand )
 {
     this->poDS = poDS;
-    nBand = nBand;
+    this->nBand = nBand;
 
     eDataType = GDT_Float64;
 
@@ -503,14 +503,18 @@ GDALDataset *GS7BGDataset::Open( GDALOpenInfo * poOpenInfo )
         return NULL;
     }
 
-    poDS->nData_Position =  VSIFTellL(poDS->fp);
-
+    poDS->nData_Position =  (size_t) VSIFTellL(poDS->fp);
 
     /* --------------------------------------------------------------------*/
     /*      Initialize any PAM information.                                */
     /* --------------------------------------------------------------------*/
     poDS->SetDescription( poOpenInfo->pszFilename );
     poDS->TryLoadXML();
+
+/* -------------------------------------------------------------------- */
+/*      Check for external overviews.                                   */
+/* -------------------------------------------------------------------- */
+    poDS->oOvManager.Initialize( poDS, poOpenInfo->pszFilename, poOpenInfo->papszSiblingFiles );
 
     return poDS;
 }
@@ -580,6 +584,7 @@ void GDALRegister_GS7BG()
         poDriver->SetMetadataItem( GDAL_DMD_EXTENSION, "grd" );
         poDriver->SetMetadataItem( GDAL_DMD_CREATIONDATATYPES,
             "Byte Int16 UInt16 Float32 Float64" );
+        poDriver->SetMetadataItem( GDAL_DCAP_VIRTUALIO, "YES" );
 
         poDriver->pfnOpen = GS7BGDataset::Open;
 

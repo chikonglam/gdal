@@ -661,7 +661,19 @@ int OGRLIBKMLDataSource::ParseLayers (
 
             std::string oKmlFeatName;
             if ( poKmlFeat->has_name (  ) ) {
-                oKmlFeatName = poKmlFeat->get_name (  );
+                /* Strip leading and trailing spaces */
+                const char* pszName = poKmlFeat->get_name (  ).c_str();
+                while(*pszName == ' ' || *pszName == '\n' || *pszName == '\r' || *pszName == '\t' )
+                    pszName ++;
+                oKmlFeatName = pszName;
+                int nSize = (int)oKmlFeatName.size();
+                while (nSize > 0 &&
+                       (oKmlFeatName[nSize-1] == ' ' || oKmlFeatName[nSize-1] == '\n' ||
+                        oKmlFeatName[nSize-1] == '\r' || oKmlFeatName[nSize-1] == '\t'))
+                {
+                    nSize --;
+                    oKmlFeatName.resize(nSize);
+                }
             }
 
             /***** use the feature index number as the name *****/
@@ -699,8 +711,8 @@ int OGRLIBKMLDataSource::ParseLayers (
 
 ******************************************************************************/
 
-ContainerPtr GetContainerFromRoot (
-    ElementPtr poKmlRoot )
+static ContainerPtr GetContainerFromRoot (
+    KmlFactory *m_poKmlFactory, ElementPtr poKmlRoot )
 {
     ContainerPtr poKmlContainer = NULL;
 
@@ -717,6 +729,12 @@ ContainerPtr GetContainerFromRoot (
 
                 if ( poKmlFeat->IsA ( kmldom::Type_Container ) )
                     poKmlContainer = AsContainer ( poKmlFeat );
+                else if ( poKmlFeat->IsA ( kmldom::Type_Placemark ) )
+                {
+                    poKmlContainer = m_poKmlFactory->CreateDocument (  );
+                    poKmlContainer->add_feature ( kmldom::AsFeature(kmlengine::Clone(poKmlFeat)) );
+                }
+
             }
 
         }
@@ -751,7 +769,7 @@ int OGRLIBKMLDataSource::ParseIntoStyleTable (
     
     ContainerPtr poKmlContainer;
 
-    if ( !( poKmlContainer = GetContainerFromRoot ( poKmlRoot ) ) ) {
+    if ( !( poKmlContainer = GetContainerFromRoot ( m_poKmlFactory, poKmlRoot ) ) ) {
         return false;
     }
     
@@ -825,7 +843,7 @@ int OGRLIBKMLDataSource::OpenKml (
 
     /***** get the container from root  *****/
 
-    if ( !( m_poKmlDSContainer = GetContainerFromRoot ( poKmlRoot ) ) ) {
+    if ( !( m_poKmlDSContainer = GetContainerFromRoot ( m_poKmlFactory, poKmlRoot ) ) ) {
         CPLError ( CE_Failure, CPLE_OpenFailed,
                    "ERROR Parseing kml %s :%s %s",
                    pszFilename, "This file does not fit the OGR model,",
@@ -941,7 +959,7 @@ int OGRLIBKMLDataSource::OpenKmz (
 
     ContainerPtr poKmlContainer;
 
-    if (!(poKmlContainer = GetContainerFromRoot ( poKmlDocKmlRoot ))) {
+    if (!(poKmlContainer = GetContainerFromRoot ( m_poKmlFactory, poKmlDocKmlRoot ))) {
         CPLError ( CE_Failure, CPLE_OpenFailed,
                    "ERROR Parseing %s from %s :%s",
                    oKmlKmlPath.c_str (  ),
@@ -1011,7 +1029,7 @@ int OGRLIBKMLDataSource::OpenKmz (
                 /***** get the container from root  *****/
 
                 ContainerPtr poKmlLyrContainer =
-                    GetContainerFromRoot ( poKmlLyrRoot );
+                    GetContainerFromRoot ( m_poKmlFactory, poKmlLyrRoot );
 
                 if ( !poKmlLyrContainer )
                 {
@@ -1174,7 +1192,7 @@ int OGRLIBKMLDataSource::OpenDir (
 
         ContainerPtr poKmlContainer;
 
-        if ( !( poKmlContainer = GetContainerFromRoot ( poKmlRoot ) ) ) {
+        if ( !( poKmlContainer = GetContainerFromRoot ( m_poKmlFactory, poKmlRoot ) ) ) {
             CPLError ( CE_Failure, CPLE_OpenFailed,
                        "ERROR Parseing kml %s :%s %s",
                        pszFilename,
@@ -1262,7 +1280,7 @@ int OGRLIBKMLDataSource::Open (
     /***** dir *****/
 
     VSIStatBufL sStatBuf = { };
-    if ( !VSIStatL ( pszFilename, &sStatBuf ) &&
+    if ( !VSIStatExL ( pszFilename, &sStatBuf, VSI_STAT_NATURE_FLAG ) &&
          VSI_ISDIR ( sStatBuf.st_mode ) )
         return OpenDir ( pszFilename, bUpdate );
 
@@ -1423,12 +1441,17 @@ int OGRLIBKMLDataSource::Create (
 
     int bResult = FALSE;
 
+    if (strcmp(pszFilename, "/dev/stdout") == 0)
+        pszFilename = "/vsistdout/";
+
     pszName = CPLStrdup ( pszFilename );
     bUpdate = TRUE;
 
     /***** kml *****/
 
-    if ( EQUAL ( CPLGetExtension ( pszFilename ), "kml" ) )
+    if ( strcmp(pszFilename, "/vsistdout/") == 0 ||
+         strncmp(pszFilename, "/vsigzip/", 9) == 0 ||
+         EQUAL ( CPLGetExtension ( pszFilename ), "kml" ) )
         bResult = CreateKml ( pszFilename, papszOptions );
 
     /***** kmz *****/

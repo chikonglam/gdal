@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdaltransformer.cpp 21167 2010-11-24 15:19:51Z warmerdam $
+ * $Id: gdaltransformer.cpp 23156 2011-10-01 15:34:16Z rouault $
  *
  * Project:  Mapinfo Image Warper
  * Purpose:  Implementation of one or more GDALTrasformerFunc types, including
@@ -37,7 +37,7 @@
 #include "cpl_list.h"
 #include "cpl_multiproc.h"
 
-CPL_CVSID("$Id: gdaltransformer.cpp 21167 2010-11-24 15:19:51Z warmerdam $");
+CPL_CVSID("$Id: gdaltransformer.cpp 23156 2011-10-01 15:34:16Z rouault $");
 CPL_C_START
 void *GDALDeserializeGCPTransformer( CPLXMLNode *psTree );
 void *GDALDeserializeTPSTransformer( CPLXMLNode *psTree );
@@ -50,6 +50,8 @@ static void *GDALDeserializeReprojectionTransformer( CPLXMLNode *psTree );
 
 static CPLXMLNode *GDALSerializeGenImgProjTransformer( void *pTransformArg );
 static void *GDALDeserializeGenImgProjTransformer( CPLXMLNode *psTree );
+
+static void GDALRefreshGenImgProjTransformer(void* hTransformArg);
 
 /************************************************************************/
 /*                          GDALTransformFunc                           */
@@ -347,6 +349,12 @@ GDALSuggestedWarpOutput2( GDALDatasetH hSrcDS,
     int    nSamplePoints = 0;
     int    nInXSize = GDALGetRasterXSize( hSrcDS );
     int    nInYSize = GDALGetRasterYSize( hSrcDS );
+
+    if (pfnTransformer == GDALGenImgProjTransform)
+    {
+        /* In case CHECK_WITH_INVERT_PROJ has been modified */
+        GDALRefreshGenImgProjTransformer(pTransformArg);
+    }
 
 #define N_PIXELSTEP 50
     int nSteps = (int) (double(MIN(nInYSize, nInXSize)) / N_PIXELSTEP + .5);
@@ -1000,6 +1008,8 @@ static CPLString InsertCenterLong( GDALDatasetH hDS, CPLString osWKT )
  * <li> SRC_SRS: WKT SRS to be used as an override for hSrcDS.
  * <li> DST_SRS: WKT SRS to be used as an override for hDstDS.
  * <li> GCPS_OK: If false, GCPs will not be used, default is TRUE. 
+ * <li> REFINE_MINIMUM_GCPS: The minimum amount of GCPs that should be available after the refinement.
+ * <li> REFINE_TOLERANCE: The tolernace that specifies when a GCP will be eliminated.
  * <li> MAX_GCP_ORDER: the maximum order to use for GCP derived polynomials if
  * possible.  The default is to autoselect based on the number of GCPs.  
  * A value of -1 triggers use of Thin Plate Spline instead of polynomials.
@@ -1008,10 +1018,14 @@ static CPLString InsertCenterLong( GDALDatasetH hDS, CPLString osWKT )
  * considered on the source dataset. 
  * <li> RPC_HEIGHT: A fixed height to be used with RPC calculations.
  * <li> RPC_DEM: The name of a DEM file to be used with RPC calculations.
+ * <li> INSERT_CENTER_LONG: May be set to FALSE to disable setting up a 
+ * CENTER_LONG value on the coordinate system to rewrap things around the
+ * center of the image.  
  * </ul>
  * 
  * @param hSrcDS source dataset, or NULL.
- * @param hDstDS destination dataset (or NULL). 
+ * @param hDstDS destination dataset (or NULL).
+ * @param papszOptions NULL-terminated list of string options (or NULL).
  * 
  * @return handle suitable for use GDALGenImgProjTransform(), and to be
  * deallocated with GDALDestroyGenImgProjTransformer() or NULL on failure.
@@ -1027,7 +1041,8 @@ GDALCreateGenImgProjTransformer2( GDALDatasetH hSrcDS, GDALDatasetH hDstDS,
     GDALRPCInfo sRPCInfo;
     const char *pszMethod = CSLFetchNameValue( papszOptions, "METHOD" );
     const char *pszValue;
-    int nOrder = 0, bGCPUseOK = TRUE;
+    int nOrder = 0, bGCPUseOK = TRUE, nMinimumGcps = -1, bRefine = FALSE;
+    double dfTolerance = 0.0;
     const char *pszSrcWKT = CSLFetchNameValue( papszOptions, "SRC_SRS" );
     const char *pszDstWKT = CSLFetchNameValue( papszOptions, "DST_SRS" );
 
@@ -1038,6 +1053,20 @@ GDALCreateGenImgProjTransformer2( GDALDatasetH hSrcDS, GDALDatasetH hDstDS,
     pszValue = CSLFetchNameValue( papszOptions, "GCPS_OK" );
     if( pszValue )
         bGCPUseOK = CSLTestBoolean(pszValue);
+
+    pszValue = CSLFetchNameValue( papszOptions, "REFINE_MINIMUM_GCPS" );
+    if( pszValue )
+    {
+        if( atoi(pszValue) != -1)
+            nMinimumGcps = atoi(pszValue);
+    }
+
+    pszValue = CSLFetchNameValue( papszOptions, "REFINE_TOLERANCE" );
+    if( pszValue )
+    {
+        dfTolerance = atof(pszValue);
+        bRefine = TRUE;
+    }
 
 /* -------------------------------------------------------------------- */
 /*      Initialize the transform info.                                  */
@@ -1086,10 +1115,20 @@ GDALCreateGenImgProjTransformer2( GDALDatasetH hSrcDS, GDALDatasetH hDstDS,
              && (pszMethod == NULL || EQUAL(pszMethod,"GCP_POLYNOMIAL") )
              && GDALGetGCPCount( hSrcDS ) > 0 && nOrder >= 0 )
     {
-        psInfo->pSrcGCPTransformArg = 
-            GDALCreateGCPTransformer( GDALGetGCPCount( hSrcDS ),
-                                      GDALGetGCPs( hSrcDS ), nOrder, 
-                                      FALSE );
+        if(bRefine)
+        {
+                psInfo->pSrcGCPTransformArg = 
+                    GDALCreateGCPRefineTransformer( GDALGetGCPCount( hSrcDS ),
+                                                    GDALGetGCPs( hSrcDS ), nOrder, 
+                                                    FALSE, dfTolerance, nMinimumGcps );
+        }
+        else
+        {
+            psInfo->pSrcGCPTransformArg = 
+                GDALCreateGCPTransformer( GDALGetGCPCount( hSrcDS ),
+                                          GDALGetGCPs( hSrcDS ), nOrder, 
+                                          FALSE );
+        }
 
         if( psInfo->pSrcGCPTransformArg == NULL )
         {
@@ -1183,7 +1222,8 @@ GDALCreateGenImgProjTransformer2( GDALDatasetH hSrcDS, GDALDatasetH hDstDS,
         && !EQUAL(pszSrcWKT,pszDstWKT) )
     {
         CPLString osSrcWKT = pszSrcWKT;
-        if (hSrcDS)
+        if (hSrcDS 
+            && CSLFetchBoolean( papszOptions, "INSERT_CENTER_LONG", TRUE ) )
             osSrcWKT = InsertCenterLong( hSrcDS, osSrcWKT );
         
         psInfo->pReprojectArg = 
@@ -1213,6 +1253,24 @@ GDALCreateGenImgProjTransformer2( GDALDatasetH hSrcDS, GDALDatasetH hDstDS,
     }
     
     return psInfo;
+}
+
+/************************************************************************/
+/*                  GDALRefreshGenImgProjTransformer()                  */
+/************************************************************************/
+
+void GDALRefreshGenImgProjTransformer(void* hTransformArg)
+{
+    GDALGenImgProjTransformInfo *psInfo =
+        static_cast<GDALGenImgProjTransformInfo *>( hTransformArg );
+
+    if (psInfo->pReprojectArg)
+    {
+        CPLXMLNode* psXML = GDALSerializeReprojectionTransformer(psInfo->pReprojectArg);
+        GDALDestroyReprojectionTransformer(psInfo->pReprojectArg);
+        psInfo->pReprojectArg = GDALDeserializeReprojectionTransformer(psXML);
+        CPLDestroyXMLNode(psXML);
+    }
 }
 
 /************************************************************************/
@@ -1247,8 +1305,10 @@ GDALCreateGenImgProjTransformer2( GDALDatasetH hSrcDS, GDALDatasetH hDstDS,
  * GDALGCPTransform().  This stage is skipped if hDstDS is NULL when the
  * transformation is created. 
  *
- * @param hSrcDS source dataset, or NULL.
- * @param hDstDS destination dataset (or NULL). 
+ * @param pszSrcWKT source WKT (or NULL).
+ * @param padfSrcGeoTransform source geotransform (or NULL).
+ * @param pszDstWKT destination WKT (or NULL).
+ * @param padfDstGeoTransform destination geotransform (or NULL).
  * 
  * @return handle suitable for use GDALGenImgProjTransform(), and to be
  * deallocated with GDALDestroyGenImgProjTransformer() or NULL on failure.
@@ -1987,19 +2047,19 @@ void *GDALCreateReprojectionTransformer( const char *pszSrcWKT,
  * GDALCreateReprojectionTransformer().
  */
 
-void GDALDestroyReprojectionTransformer( void *pTransformAlg )
+void GDALDestroyReprojectionTransformer( void *pTransformArg )
 
 {
-    VALIDATE_POINTER0( pTransformAlg, "GDALDestroyReprojectionTransformer" );
+    VALIDATE_POINTER0( pTransformArg, "GDALDestroyReprojectionTransformer" );
 
     GDALReprojectionTransformInfo *psInfo = 
-        (GDALReprojectionTransformInfo *) pTransformAlg;		
+        (GDALReprojectionTransformInfo *) pTransformArg;		
 
     if( psInfo->poForwardTransform )
         delete psInfo->poForwardTransform;
 
     if( psInfo->poReverseTransform )
-    delete psInfo->poReverseTransform;
+        delete psInfo->poReverseTransform;
 
     CPLFree( psInfo );
 }

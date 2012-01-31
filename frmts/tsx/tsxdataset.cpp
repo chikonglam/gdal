@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: tsxdataset.cpp 19617 2010-05-04 23:21:04Z pvachon $
+ * $Id: tsxdataset.cpp 23569 2011-12-13 21:53:07Z rouault $
  *
  * Project:     TerraSAR-X XML Product Support
  * Purpose:     Support for TerraSAR-X XML Metadata files
@@ -35,7 +35,7 @@
 
 #define MAX_GCPS 5000    //this should be more than enough ground control points
 
-CPL_CVSID("$Id: tsxdataset.cpp 19617 2010-05-04 23:21:04Z pvachon $");
+CPL_CVSID("$Id: tsxdataset.cpp 23569 2011-12-13 21:53:07Z rouault $");
 
 CPL_C_START
 void GDALRegister_TSX(void);
@@ -64,18 +64,18 @@ enum eProductType {
 /* GetFilePath: return a relative path to a file within an XML node.
  * Returns Null on failure
  */
-const char *GetFilePath(CPLXMLNode *psXMLNode, char **pszNodeType) {
+const char *GetFilePath(CPLXMLNode *psXMLNode, const char **pszNodeType) {
     const char *pszDirectory, *pszFilename;
 
     pszDirectory = CPLGetXMLValue( psXMLNode, "file.location.path", "" );
     pszFilename = CPLGetXMLValue( psXMLNode, "file.location.filename", "" );
-    *pszNodeType = strdup(CPLGetXMLValue (psXMLNode, "type", " " ));
+    *pszNodeType = CPLGetXMLValue (psXMLNode, "type", " " );
 
     if (pszDirectory == NULL || pszFilename == NULL) {
         return NULL;
     }
 
-    return strdup( CPLFormFilename( pszDirectory, pszFilename, "" ) );
+    return CPLFormFilename( pszDirectory, pszFilename, "" );
 }
 
 /************************************************************************/
@@ -95,7 +95,6 @@ class TSXDataset : public GDALPamDataset {
     bool bHaveGeoTransform;
 
     char *pszGeorefFile;
-    FILE *fp;
 
     eProductType nProduct;
 public:
@@ -256,12 +255,31 @@ TSXDataset::~TSXDataset() {
 /*                              Identify()                              */
 /************************************************************************/
 
-int TSXDataset::Identify( GDALOpenInfo *poOpenInfo ) {
+int TSXDataset::Identify( GDALOpenInfo *poOpenInfo )
+{
     if (poOpenInfo->fp == NULL || poOpenInfo->nHeaderBytes < 260)
-        return 0;
+    {
+        if( poOpenInfo->bIsDirectory )
+        {
+            CPLString osFilename =
+                CPLFormCIFilename( poOpenInfo->pszFilename, CPLGetFilename( poOpenInfo->pszFilename ), "xml" );
 
-    /* Check if the filename contains TSX1_SAR */
-    if (!EQUALN(CPLGetBasename( poOpenInfo->pszFilename ), "TSX1_SAR", 8))
+            /* Check if the filename contains TSX1_SAR (TerraSAR-X) or TDX1_SAR (TanDEM-X) */
+            if (!(EQUALN(CPLGetBasename( osFilename ), "TSX1_SAR", 8) ||
+                  EQUALN(CPLGetBasename( osFilename ), "TDX1_SAR", 8)))
+                return 0;
+
+            VSIStatBufL sStat;
+            if( VSIStatL( osFilename, &sStat ) == 0 )
+                return 1;
+
+            return 0;
+        }
+    }
+
+    /* Check if the filename contains TSX1_SAR (TerraSAR-X) or TDX1_SAR (TanDEM-X) */
+    if (!(EQUALN(CPLGetBasename( poOpenInfo->pszFilename ), "TSX1_SAR", 8) ||
+          EQUALN(CPLGetBasename( poOpenInfo->pszFilename ), "TDX1_SAR", 8)))
         return 0;
 
     /* finally look for the <level1Product tag */
@@ -317,7 +335,10 @@ bool TSXDataset::getGCPsFromGEOREF_XML(char *pszGeorefFilename)
     CPLXMLNode *psNode;
     CPLXMLNode *psGeolocationGrid = CPLGetXMLNode( psGeorefData, "=geoReference.geolocationGrid" );
     if (psGeolocationGrid==NULL)
+    {
+        CPLDestroyXMLNode( psGeorefData );
         return false;
+    }
     nGCPCount = atoi(CPLGetXMLValue( psGeolocationGrid, "numberOfGridPoints.total", "0" ));
     //count the gcps if the given count value is invalid
     if (nGCPCount<=0)
@@ -328,7 +349,11 @@ bool TSXDataset::getGCPsFromGEOREF_XML(char *pszGeorefFilename)
     }
     //if there are no gcps, fail
     if(nGCPCount<=0)
+    {
+        CPLDestroyXMLNode( psGeorefData );
         return false;
+    }
+
     //put some reasonable limits of the number of gcps
     if (nGCPCount>MAX_GCPS )
         nGCPCount=MAX_GCPS;
@@ -349,7 +374,10 @@ bool TSXDataset::getGCPsFromGEOREF_XML(char *pszGeorefFilename)
                  !strcmp(CPLGetXMLValue(psNode,"row","error"), "error") ||
                  !strcmp(CPLGetXMLValue(psNode,"lon","error"), "error") ||
                  !strcmp(CPLGetXMLValue(psNode,"lat","error"), "error"))
-             return false;
+        {
+            CPLDestroyXMLNode( psGeorefData );
+            return false;
+        }
     }
     for( psNode = psGeolocationGrid->psChild; psNode != NULL; psNode = psNode->psNext )
     {
@@ -382,10 +410,12 @@ bool TSXDataset::getGCPsFromGEOREF_XML(char *pszGeorefFilename)
          //looks like height is in meters - should it be converted so xyz are all on the same scale??
          psGCP->dfGCPZ = 0;
              //atof(CPLGetXMLValue(psNode,"height",""));
-
     }
 
+    CPLFree(pszGCPProjection);
     osr.exportToWkt( &(pszGCPProjection) );
+
+    CPLDestroyXMLNode( psGeorefData );
 
     return true;
 }
@@ -398,7 +428,8 @@ GDALDataset *TSXDataset::Open( GDALOpenInfo *poOpenInfo ) {
 /* -------------------------------------------------------------------- */
 /*      Is this a TerraSAR-X product file?                              */
 /* -------------------------------------------------------------------- */
-    if (!TSXDataset::Identify( poOpenInfo )) {
+    if (!TSXDataset::Identify( poOpenInfo ))
+    {
         return NULL; /* nope */
     }
 
@@ -413,23 +444,37 @@ GDALDataset *TSXDataset::Open( GDALOpenInfo *poOpenInfo ) {
         return NULL;
     }
 
+    CPLString osFilename;
+
+    if( poOpenInfo->bIsDirectory )
+    {
+        osFilename =
+                CPLFormCIFilename( poOpenInfo->pszFilename, CPLGetFilename( poOpenInfo->pszFilename ), "xml" );
+    }
+    else
+        osFilename = poOpenInfo->pszFilename;
+
     /* Ingest the XML */
     CPLXMLNode *psData, *psComponents, *psProductInfo;
-    psData = CPLParseXMLFile( poOpenInfo->pszFilename );
+    psData = CPLParseXMLFile( osFilename );
+    if (psData == NULL)
+        return NULL;
 
     /* find the product components */
     psComponents = CPLGetXMLNode( psData, "=level1Product.productComponents" );
     if (psComponents == NULL) {
         CPLError( CE_Failure, CPLE_OpenFailed,
             "Unable to find <productComponents> tag in file.\n" );
+        CPLDestroyXMLNode(psData);
         return NULL;
     }
 
     /* find the product info tag */
     psProductInfo = CPLGetXMLNode( psData, "=level1Product.productInfo" );
-    if (psComponents == NULL) {
+    if (psProductInfo == NULL) {
         CPLError( CE_Failure, CPLE_OpenFailed,
             "Unable to find <productInfo> tag in file.\n" );
+        CPLDestroyXMLNode(psData);
         return NULL;
     }
 
@@ -438,8 +483,6 @@ GDALDataset *TSXDataset::Open( GDALOpenInfo *poOpenInfo ) {
 /* -------------------------------------------------------------------- */
 
     TSXDataset *poDS = new TSXDataset();
-    poDS->fp = poOpenInfo->fp;
-    poOpenInfo->fp = NULL;
 
 /* -------------------------------------------------------------------- */
 /*      Read in product info.                                           */
@@ -459,7 +502,7 @@ GDALDataset *TSXDataset::Open( GDALOpenInfo *poOpenInfo ) {
         "acquisitionInfo.imagingMode", "unknown" ) );
     poDS->SetMetadataItem( "PRODUCT_VARIANT", CPLGetXMLValue( psProductInfo,
         "productVariantInfo.productVariant", "unknown" ) );
-    char *pszDataType = strdup( CPLGetXMLValue( psProductInfo,
+    char *pszDataType = CPLStrdup( CPLGetXMLValue( psProductInfo,
         "imageDataInfo.imageDataType", "unknown" ) );
     poDS->SetMetadataItem( "IMAGE_TYPE", pszDataType );
 
@@ -511,9 +554,9 @@ GDALDataset *TSXDataset::Open( GDALOpenInfo *poOpenInfo ) {
     for (psComponent = psComponents->psChild; psComponent != NULL;
          psComponent = psComponent->psNext)
     {
-        char *pszType;
+        const char *pszType = NULL;
         pszPath = CPLFormFilename(
-                CPLGetDirname( poOpenInfo->pszFilename ),
+                CPLGetDirname( osFilename ),
                 GetFilePath(psComponent, &pszType),
                 "" );
         const char *pszPolLayer = CPLGetXMLValue(psComponent, "polLayer", " ");
@@ -525,9 +568,8 @@ GDALDataset *TSXDataset::Open( GDALOpenInfo *poOpenInfo ) {
             }
             else if (EQUALN(pszType, "GEOREF", 6)) {
                 /* save the path to the georef data for later use */
-                pszGeorefFile = strdup( pszPath );
+                pszGeorefFile = CPLStrdup( pszPath );
             }
-            CPLFree(pszType);
         }
         else if( !EQUALN(pszPolLayer, " ", 1) &&
             EQUALN(psComponent->pszValue, "imageData", 9) ) {
@@ -558,14 +600,14 @@ GDALDataset *TSXDataset::Open( GDALOpenInfo *poOpenInfo ) {
                 poBand = new TSXRasterBand( poDS, eDataType, ePol,
                     poBandData );
                 poDS->SetBand( poDS->GetRasterCount() + 1, poBand );
-            }
 
-            //copy georeferencing info from the band
-            //need error checking??
-            //it will just save the info from the last band
-            CPLFree( poDS->pszProjection );
-            poDS->pszProjection = CPLStrdup(poBandData->GetProjectionRef());
-            geoTransformErr = poBandData->GetGeoTransform(poDS->adfGeoTransform);
+                //copy georeferencing info from the band
+                //need error checking??
+                //it will just save the info from the last band
+                CPLFree( poDS->pszProjection );
+                poDS->pszProjection = CPLStrdup(poBandData->GetProjectionRef());
+                geoTransformErr = poBandData->GetGeoTransform(poDS->adfGeoTransform);
+            }
         }
     }
 
@@ -619,7 +661,6 @@ GDALDataset *TSXDataset::Open( GDALOpenInfo *poOpenInfo ) {
             int nGCP = 0;
             double dfAvgHeight = atof(CPLGetXMLValue(psSceneInfo,
                 "sceneAverageHeight", "0.0"));
-            char szID[3];
 
             //count and allocate gcps - there should be five - 4 corners and a centre
             poDS->nGCPCount = 0;
@@ -644,15 +685,13 @@ GDALDataset *TSXDataset::Open( GDALOpenInfo *poOpenInfo ) {
                         !EQUAL(psNode->pszValue, "sceneCornerCoord"))
                         continue;
 
-                    CPLSPrintf( szID, "%d", nGCP );
-
                     psGCP->dfGCPPixel = atof(CPLGetXMLValue(psNode, "refColumn",
                         "0.0"));
                     psGCP->dfGCPLine = atof(CPLGetXMLValue(psNode, "refRow", "0.0"));
                     psGCP->dfGCPX = atof(CPLGetXMLValue(psNode, "lon", "0.0"));
                     psGCP->dfGCPY = atof(CPLGetXMLValue(psNode, "lat", "0.0"));
                     psGCP->dfGCPZ = dfAvgHeight;
-                    psGCP->pszId = CPLStrdup( szID );
+                    psGCP->pszId = CPLStrdup( CPLSPrintf( "%d", nGCP ) );
                     psGCP->pszInfo = CPLStrdup("");
 
                     nGCP++;
@@ -661,6 +700,7 @@ GDALDataset *TSXDataset::Open( GDALOpenInfo *poOpenInfo ) {
                 //set the projection string - the fields are lat/long - seems to be WGS84 datum
                 OGRSpatialReference osr;
                 osr.SetWellKnownGeogCS( "WGS84" );
+                CPLFree(poDS->pszGCPProjection);
                 osr.exportToWkt( &(poDS->pszGCPProjection) );
             }
         }
@@ -685,6 +725,8 @@ GDALDataset *TSXDataset::Open( GDALOpenInfo *poOpenInfo ) {
             "Unable to find sceneInfo tag in XML document. "
             "Proceeding with caution.");
     }
+
+    CPLFree(pszGeorefFile);
 
 /* -------------------------------------------------------------------- */
 /*      Initialize any PAM information.                                 */
@@ -762,6 +804,8 @@ void GDALRegister_TSX() {
         poDriver->SetMetadataItem( GDAL_DMD_LONGNAME,
                                    "TerraSAR-X Product" );
 /*        poDriver->SetMetadataItem( GDAL_DMD_HELPTOPIC, "frmt_tsx.html" ); */
+
+        poDriver->SetMetadataItem( GDAL_DCAP_VIRTUALIO, "YES" );
 
         poDriver->pfnOpen = TSXDataset::Open;
         poDriver->pfnIdentify = TSXDataset::Identify;

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrvrtdatasource.cpp 17506 2009-08-02 17:09:10Z rouault $
+ * $Id: ogrvrtdatasource.cpp 23575 2011-12-14 20:24:08Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implements OGRVRTDataSource class.
@@ -31,7 +31,8 @@
 #include "cpl_conv.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: ogrvrtdatasource.cpp 17506 2009-08-02 17:09:10Z rouault $");
+CPL_CVSID("$Id: ogrvrtdatasource.cpp 23575 2011-12-14 20:24:08Z rouault $");
+
 /************************************************************************/
 /*                          OGRVRTDataSource()                          */
 /************************************************************************/
@@ -42,6 +43,8 @@ OGRVRTDataSource::OGRVRTDataSource()
     pszName = NULL;
     papoLayers = NULL;
     nLayers = 0;
+    psTree = NULL;
+    nCallLevel = 0;
 }
 
 /************************************************************************/
@@ -59,6 +62,9 @@ OGRVRTDataSource::~OGRVRTDataSource()
         delete papoLayers[i];
     
     CPLFree( papoLayers );
+
+    if( psTree != NULL)
+        CPLDestroyXMLNode( psTree );
 }
 
 /************************************************************************/
@@ -70,6 +76,8 @@ int OGRVRTDataSource::Initialize( CPLXMLNode *psTree, const char *pszNewName,
 
 {
     CPLAssert( nLayers == 0 );
+
+    this->psTree = psTree;
 
 /* -------------------------------------------------------------------- */
 /*      Set name, and capture the directory path so we can use it       */
@@ -95,9 +103,9 @@ int OGRVRTDataSource::Initialize( CPLXMLNode *psTree, const char *pszNewName,
 /* -------------------------------------------------------------------- */
         OGRVRTLayer  *poLayer;
         
-        poLayer = new OGRVRTLayer();
+        poLayer = new OGRVRTLayer(this);
         
-        if( !poLayer->Initialize( psLTree, pszVRTDirectory, bUpdate ) )
+        if( !poLayer->FastInitialize( psLTree, pszVRTDirectory, bUpdate ) )
         {
             CPLFree( pszVRTDirectory );
             delete poLayer;
@@ -137,4 +145,22 @@ OGRLayer *OGRVRTDataSource::GetLayer( int iLayer )
         return NULL;
     else
         return papoLayers[iLayer];
+}
+
+/************************************************************************/
+/*                         AddForbiddenNames()                          */
+/************************************************************************/
+
+void OGRVRTDataSource::AddForbiddenNames(const char* pszOtherDSName)
+{
+    aosOtherDSNameSet.insert(pszOtherDSName);
+}
+
+/************************************************************************/
+/*                         IsInForbiddenNames()                         */
+/************************************************************************/
+
+int OGRVRTDataSource::IsInForbiddenNames(const char* pszOtherDSName)
+{
+    return aosOtherDSNameSet.find(pszOtherDSName) != aosOtherDSNameSet.end();
 }

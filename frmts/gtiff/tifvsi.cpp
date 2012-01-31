@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: tifvsi.cpp 21102 2010-11-08 20:47:38Z rouault $
+ * $Id: tifvsi.cpp 22639 2011-07-03 15:51:39Z rouault $
  *
  * Project:  GeoTIFF Driver
  * Purpose:  Implement system hook functions for libtiff on top of CPL/VSI,
@@ -37,6 +37,10 @@
 
 // We avoid including xtiffio.h since it drags in the libgeotiff version
 // of the VSI functions.
+
+#ifdef RENAME_INTERNAL_LIBGEOTIFF_SYMBOLS
+#include "gdal_libgeotiff_symbol_rename.h"
+#endif
 
 CPL_C_START
 extern TIFF CPL_DLL * XTIFFClientOpen(const char* name, const char* mode, 

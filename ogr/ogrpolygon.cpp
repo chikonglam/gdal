@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrpolygon.cpp 20260 2010-08-11 20:39:54Z rouault $
+ * $Id: ogrpolygon.cpp 22466 2011-05-30 09:24:55Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  The OGRPolygon geometry class.
@@ -32,7 +32,7 @@
 #include "ogr_geos.h"
 #include "ogr_api.h"
 
-CPL_CVSID("$Id: ogrpolygon.cpp 20260 2010-08-11 20:39:54Z rouault $");
+CPL_CVSID("$Id: ogrpolygon.cpp 22466 2011-05-30 09:24:55Z rouault $");
 
 /************************************************************************/
 /*                             OGRPolygon()                             */
@@ -522,19 +522,11 @@ OGRErr OGRPolygon::importFromWkt( char ** ppszInput )
 {
     char        szToken[OGR_WKT_TOKEN_MAX];
     const char  *pszInput = *ppszInput;
-    int         iRing;
 
 /* -------------------------------------------------------------------- */
 /*      Clear existing rings.                                           */
 /* -------------------------------------------------------------------- */
-    if( nRingCount > 0 )
-    {
-        for( iRing = 0; iRing < nRingCount; iRing++ )
-            delete papoRings[iRing];
-        
-        nRingCount = 0;
-        CPLFree( papoRings );
-    }
+    empty();
 
 /* -------------------------------------------------------------------- */
 /*      Read and verify the ``POLYGON'' keyword token.                  */
@@ -869,7 +861,7 @@ int OGRPolygon::PointOnSurface( OGRPoint *poPoint ) const
 /************************************************************************/
 /*                            getEnvelope()                             */
 /************************************************************************/
- 
+
 void OGRPolygon::getEnvelope( OGREnvelope * psEnvelope ) const
 
 {
@@ -905,6 +897,53 @@ void OGRPolygon::getEnvelope( OGREnvelope * psEnvelope ) const
     {
         psEnvelope->MinX = psEnvelope->MinY = 0;
         psEnvelope->MaxX = psEnvelope->MaxY = 0;
+    }
+}
+
+/************************************************************************/
+/*                            getEnvelope()                             */
+/************************************************************************/
+ 
+void OGRPolygon::getEnvelope( OGREnvelope3D * psEnvelope ) const
+
+{
+    OGREnvelope3D       oRingEnv;
+    int                 bExtentSet = FALSE;
+
+    for( int iRing = 0; iRing < nRingCount; iRing++ )
+    {
+        if (!papoRings[iRing]->IsEmpty())
+        {
+            if (!bExtentSet)
+            {
+                papoRings[iRing]->getEnvelope( psEnvelope );
+                bExtentSet = TRUE;
+            }
+            else
+            {
+                papoRings[iRing]->getEnvelope( &oRingEnv );
+
+                if( psEnvelope->MinX > oRingEnv.MinX )
+                    psEnvelope->MinX = oRingEnv.MinX;
+                if( psEnvelope->MinY > oRingEnv.MinY )
+                    psEnvelope->MinY = oRingEnv.MinY;
+                if( psEnvelope->MaxX < oRingEnv.MaxX )
+                    psEnvelope->MaxX = oRingEnv.MaxX;
+                if( psEnvelope->MaxY < oRingEnv.MaxY )
+                    psEnvelope->MaxY = oRingEnv.MaxY;
+
+                if( psEnvelope->MinZ > oRingEnv.MinZ )
+                    psEnvelope->MinZ = oRingEnv.MinZ;
+                if( psEnvelope->MaxZ < oRingEnv.MaxZ )
+                    psEnvelope->MaxZ = oRingEnv.MaxZ;
+            }
+        }
+    }
+
+    if (!bExtentSet)
+    {
+        psEnvelope->MinX = psEnvelope->MinY = psEnvelope->MinZ = 0;
+        psEnvelope->MaxX = psEnvelope->MaxY = psEnvelope->MaxZ = 0;
     }
 }
 

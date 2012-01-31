@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: rmfdataset.cpp 19798 2010-06-04 10:44:58Z dron $
+ * $Id: rmfdataset.cpp 22766 2011-07-23 10:14:28Z rouault $
  *
  * Project:  Raster Matrix Format
  * Purpose:  Read/write raster files used in GIS "Integratsia"
@@ -32,7 +32,7 @@
 
 #include "rmfdataset.h"
 
-CPL_CVSID("$Id: rmfdataset.cpp 19798 2010-06-04 10:44:58Z dron $");
+CPL_CVSID("$Id: rmfdataset.cpp 22766 2011-07-23 10:14:28Z rouault $");
 
 CPL_C_START
 void    GDALRegister_RMF(void);
@@ -78,7 +78,7 @@ RMFRasterBand::RMFRasterBand( RMFDataset *poDS, int nBand,
         (poDS->GetRasterXSize() % poDS->sHeader.nTileWidth) * nDataSize;
     nLastTileHeight = poDS->GetRasterYSize() % poDS->sHeader.nTileHeight;
 
-#if DEBUG
+#ifdef DEBUG
     CPLDebug( "RMF",
               "Band %d: tile width is %d, tile height is %d, "
               " last tile width %d, last tile height %d, "
@@ -1056,7 +1056,7 @@ void RMFDataset::FlushCache()
 int RMFDataset::Identify( GDALOpenInfo *poOpenInfo )
 
 {
-    if( poOpenInfo->fp == NULL )
+    if( poOpenInfo->pabyHeader == NULL)
         return FALSE;
 
     if( memcmp(poOpenInfo->pabyHeader, RMF_SigRSW, sizeof(RMF_SigRSW)) != 0
@@ -1312,7 +1312,7 @@ do {                                                                    \
     }
 #endif
 
-#if DEBUG
+#ifdef DEBUG
     CPLDebug( "RMF", "List of block offsets/sizes:" );
 
     for ( i = 0; i < poDS->sHeader.nTileTblSize / sizeof(GUInt32); i += 2 )
@@ -1430,7 +1430,7 @@ do {                                                                    \
     poDS->nYTiles = ( poDS->nRasterYSize + poDS->sHeader.nTileHeight - 1 ) /
         poDS->sHeader.nTileHeight;
 
-#if DEBUG
+#ifdef DEBUG
     CPLDebug( "RMF", "Image is %d tiles wide, %d tiles long",
               poDS->nXTiles, poDS->nYTiles );
 #endif
@@ -1627,6 +1627,7 @@ GDALDataset *RMFDataset::Create( const char * pszFilename,
     {
         CPLError( CE_Failure, CPLE_OpenFailed, "Unable to create file %s.\n",
                   pszFilename );
+        delete poDS;
         return NULL;
     }
 
@@ -1695,10 +1696,25 @@ GDALDataset *RMFDataset::Create( const char * pszFilename,
     {
         GUInt32 i;
 
+        if ( poDS->sHeader.nBitDepth > 8 )
+        {
+            CPLError( CE_Failure, CPLE_AppDefined,
+                      "Cannot create color table of RSW with nBitDepth = %d. Retry with MTW ?",
+                      poDS->sHeader.nBitDepth );
+            delete poDS;
+            return NULL;
+        }
+
         poDS->sHeader.nClrTblOffset = nCurPtr;
         poDS->nColorTableSize = 1 << poDS->sHeader.nBitDepth;
         poDS->sHeader.nClrTblSize = poDS->nColorTableSize * 4;
-        poDS->pabyColorTable = (GByte *) CPLMalloc( poDS->sHeader.nClrTblSize );
+        poDS->pabyColorTable = (GByte *) VSIMalloc( poDS->sHeader.nClrTblSize );
+        if (poDS->pabyColorTable == NULL)
+        {
+            CPLError( CE_Failure, CPLE_OutOfMemory, "Out of memory");
+            delete poDS;
+            return NULL;
+        }
         for ( i = 0; i < poDS->nColorTableSize; i++ )
         {
             poDS->pabyColorTable[i * 4] =
@@ -1804,6 +1820,7 @@ void GDALRegister_RMF()
 "   <Option name='BLOCKXSIZE' type='int' description='Tile Width'/>"
 "   <Option name='BLOCKYSIZE' type='int' description='Tile Height'/>"
 "</CreationOptionList>" );
+        poDriver->SetMetadataItem( GDAL_DCAP_VIRTUALIO, "YES" );
 
         poDriver->pfnIdentify = RMFDataset::Identify;
         poDriver->pfnOpen = RMFDataset::Open;

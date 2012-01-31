@@ -30,7 +30,7 @@
 #include "ogr_xplane_apt_reader.h"
 #include "ogr_xplane_geo_utils.h"
 
-CPL_CVSID("$Id: ogr_xplane_apt_reader.cpp 21298 2010-12-20 10:58:34Z rouault $");
+CPL_CVSID("$Id: ogr_xplane_apt_reader.cpp 22627 2011-07-01 19:36:15Z rouault $");
 
 /************************************************************************/
 /*                   OGRXPlaneCreateAptFileReader                       */
@@ -147,7 +147,7 @@ OGRXPlaneReader* OGRXPlaneAptReader::CloneForLayer(OGRXPlaneLayer* poLayer)
     if (pszFilename)
     {
         poReader->pszFilename = CPLStrdup(pszFilename);
-        poReader->fp = VSIFOpen( pszFilename, "rt" );
+        poReader->fp = VSIFOpenL( pszFilename, "rb" );
     }
 
     return poReader;
@@ -198,7 +198,7 @@ void OGRXPlaneAptReader::Read()
         CPLAssert(papszTokens == NULL);
     }
 
-    while(bResumeLine || (pszLine = CPLReadLine(fp)) != NULL)
+    while(bResumeLine || (pszLine = CPLReadLineL(fp)) != NULL)
     {
         int nType;
         if (!bResumeLine)
@@ -389,7 +389,7 @@ void    OGRXPlaneAptReader::ParseRunwayTaxiwayV810Record()
     double adfDisplacedThresholdLength[2];
     double adfStopwayLength[2];
     const char* pszRwyNum;
-    int aeVisualApproachLightingCode[2], aeRunwayLightingCode[2], aeApproachLightingCode[2];
+    int /*aeVisualApproachLightingCode[2], */ aeRunwayLightingCode[2], aeApproachLightingCode[2];
     int eSurfaceCode, eShoulderCode, eMarkings;
     double dfSmoothness;
     double adfVisualGlidePathAngle[2];
@@ -412,12 +412,19 @@ void    OGRXPlaneAptReader::ParseRunwayTaxiwayV810Record()
     dfWidth *= FEET_TO_METER;
     if (strlen(papszTokens[9]) == 6)
     {
-        aeVisualApproachLightingCode[0] = papszTokens[9][0] - '0';
+        /*aeVisualApproachLightingCode[0] = papszTokens[9][0] - '0'; */
         aeRunwayLightingCode[0] = papszTokens[9][1] - '0';
         aeApproachLightingCode[0] = papszTokens[9][2] - '0';
-        aeVisualApproachLightingCode[1] = papszTokens[9][3] - '0';
+        /* aeVisualApproachLightingCode[1] = papszTokens[9][3] - '0'; */
         aeRunwayLightingCode[1] = papszTokens[9][4] - '0';
         aeApproachLightingCode[1] = papszTokens[9][5] - '0';
+    }
+    else
+    {
+        aeRunwayLightingCode[0] = 0;
+        aeApproachLightingCode[0] = 0;
+        aeRunwayLightingCode[1] = 0;
+        aeApproachLightingCode[1] = 0;
     }
     eSurfaceCode = atoi(papszTokens[10]);
     eShoulderCode = atoi(papszTokens[11]);
@@ -429,6 +436,13 @@ void    OGRXPlaneAptReader::ParseRunwayTaxiwayV810Record()
         adfVisualGlidePathAngle[0] = atoi(papszTokens[15]) / 100.;
         if (strchr(papszTokens[15], '.') != NULL)
             adfVisualGlidePathAngle[1] = atoi(strchr(papszTokens[15], '.') + 1) / 100.;
+        else
+            adfVisualGlidePathAngle[1] = 0;
+    }
+    else
+    {
+        adfVisualGlidePathAngle[0] = 0;
+        adfVisualGlidePathAngle[1] = 0;
     }
 
     if (strcmp(pszRwyNum, "xxx") == 000)
@@ -1027,7 +1041,7 @@ int OGRXPlaneAptReader::ParsePolygonalGeometry(OGRGeometry** ppoGeom)
 
     *ppoGeom = NULL;
 
-    while((pszLine = CPLReadLine(fp)) != NULL)
+    while((pszLine = CPLReadLineL(fp)) != NULL)
     {
         int nType = -1;
         papszTokens = CSLTokenizeString(pszLine);
@@ -1354,7 +1368,7 @@ int OGRXPlaneAptReader::ParseLinearGeometry(OGRMultiLineString& multilinestring,
 
     OGRLineString lineString;
 
-    while((pszLine = CPLReadLine(fp)) != NULL)
+    while((pszLine = CPLReadLineL(fp)) != NULL)
     {
         int nType = -1;
         papszTokens = CSLTokenizeString(pszLine);

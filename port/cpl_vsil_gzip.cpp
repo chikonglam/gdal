@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: cpl_vsil_gzip.cpp 21502 2011-01-15 15:28:54Z rouault $
+ * $Id: cpl_vsil_gzip.cpp 23588 2011-12-17 13:36:47Z rouault $
  *
  * Project:  CPL - Common Portability Library
  * Purpose:  Implement VSI large file api for gz/zip files (.gz and .zip).
@@ -84,7 +84,7 @@
 #include "cpl_minizip_unzip.h"
 #include "cpl_time.h"
 
-CPL_CVSID("$Id: cpl_vsil_gzip.cpp 21502 2011-01-15 15:28:54Z rouault $");
+CPL_CVSID("$Id: cpl_vsil_gzip.cpp 23588 2011-12-17 13:36:47Z rouault $");
 
 #define Z_BUFSIZE 65536  /* original size is 16384 */
 static int const gz_magic[2] = {0x1f, 0x8b}; /* gzip magic header */
@@ -187,6 +187,7 @@ class VSIGZipFilesystemHandler : public VSIFilesystemHandler
 {
     void* hMutex;
     VSIGZipHandle* poHandleLastGZipFile;
+    int            bInSaveInfo;
 
 public:
     VSIGZipFilesystemHandler();
@@ -530,7 +531,7 @@ int VSIGZipHandle::gzseek( vsi_l_offset offset, int whence )
         stream.next_in = inbuf;
         if (whence == SEEK_CUR)
         {
-            if (out + offset < 0 || out + offset > compressed_size)
+            if (out + offset > compressed_size)
             {
                 CPL_VSIL_GZ_RETURN_MINUS_ONE();
                 return -1L;
@@ -540,7 +541,7 @@ int VSIGZipHandle::gzseek( vsi_l_offset offset, int whence )
         }
         else if (whence == SEEK_SET)
         {
-            if (offset < 0 || offset > compressed_size)
+            if (offset > compressed_size)
             {
                 CPL_VSIL_GZ_RETURN_MINUS_ONE();
                 return -1L;
@@ -612,10 +613,6 @@ int VSIGZipHandle::gzseek( vsi_l_offset offset, int whence )
     /* compute absolute position */
     if (whence == SEEK_CUR) {
         offset += out;
-    }
-    if (offset < 0) {
-        CPL_VSIL_GZ_RETURN_MINUS_ONE();
-        return -1L;
     }
 
     /* For a negative seek, rewind and use positive seek */
@@ -799,7 +796,7 @@ size_t VSIGZipHandle::Read( void *buf, size_t nSize, size_t nMemb )
         {
             vsi_l_offset uncompressed_pos = VSIFTellL((VSILFILE*)poBaseHandle);
             GZipSnapshot* snapshot = &snapshots[(uncompressed_pos - startOff) / snapshot_byte_interval];
-            if (uncompressed_pos >= 0 && snapshot->uncompressed_pos == 0)
+            if (snapshot->uncompressed_pos == 0)
             {
                 snapshot->crc = crc32 (crc, pStart, (uInt) (stream.next_out - pStart));
                 if (ENABLE_DEBUG)
@@ -1219,6 +1216,7 @@ VSIGZipFilesystemHandler::VSIGZipFilesystemHandler()
     hMutex = NULL;
 
     poHandleLastGZipFile = NULL;
+    bInSaveInfo = FALSE;
 }
 
 /************************************************************************/
@@ -1242,6 +1240,10 @@ VSIGZipFilesystemHandler::~VSIGZipFilesystemHandler()
 void VSIGZipFilesystemHandler::SaveInfo(  VSIGZipHandle* poHandle )
 {
     CPLMutexHolder oHolder(&hMutex);
+
+    if (bInSaveInfo)
+        return;
+    bInSaveInfo = TRUE;
     
     CPLAssert(poHandle->GetBaseFileName() != NULL);
 
@@ -1250,17 +1252,23 @@ void VSIGZipFilesystemHandler::SaveInfo(  VSIGZipHandle* poHandle )
     {
         if (poHandle->GetLastReadOffset() > poHandleLastGZipFile->GetLastReadOffset())
         {
-            delete poHandleLastGZipFile;
+            VSIGZipHandle* poTmp = poHandleLastGZipFile;
+            poHandleLastGZipFile = NULL;
+            delete poTmp;
             poHandleLastGZipFile = poHandle->Duplicate();
             poHandleLastGZipFile->CloseBaseHandle();
         }
     }
     else
     {
-        delete poHandleLastGZipFile;
+        VSIGZipHandle* poTmp = poHandleLastGZipFile;
+        poHandleLastGZipFile = NULL;
+        delete poTmp;
         poHandleLastGZipFile = poHandle->Duplicate();
         poHandleLastGZipFile->CloseBaseHandle();
     }
+
+    bInSaveInfo = FALSE;
 }
 
 /************************************************************************/
@@ -1511,6 +1519,7 @@ char** VSIGZipFilesystemHandler::ReadDir( const char *pszDirname )
  *
  * Additional documentation is to be found at http://trac.osgeo.org/gdal/wiki/UserDocs/ReadInZip
  *
+ * @since GDAL 1.6.0
  */
 
 void VSIInstallGZipFileHandler(void)
@@ -1610,7 +1619,7 @@ void VSIZipReader::SetInfo()
     brokendowntime.tm_hour = file_info.tmu_date.tm_hour;
     brokendowntime.tm_mday = file_info.tmu_date.tm_mday;
     brokendowntime.tm_mon = file_info.tmu_date.tm_mon;
-    brokendowntime.tm_year = file_info.tmu_date.tm_year;
+    brokendowntime.tm_year = file_info.tmu_date.tm_year - 1900; /* the minizip conventions differs from the Unix one */
     nModifiedTime = CPLYMDHMSToUnixTime(&brokendowntime);
 
     cpl_unzGetFilePos(unzF, &this->file_pos);
@@ -1849,13 +1858,17 @@ VSIVirtualHandle* VSIZipFilesystemHandler::Open( const char *pszFilename,
 
     delete poReader;
 
-    return new VSIGZipHandle(poVirtualHandle,
+    VSIGZipHandle* poGZIPHandle = new VSIGZipHandle(poVirtualHandle,
                              NULL,
                              pos,
                              file_info.compressed_size,
                              file_info.uncompressed_size,
                              file_info.crc,
                              file_info.compression_method == 0);
+    /* Wrap the VSIGZipHandle inside a buffered reader that will */
+    /* improve dramatically performance when doing small backward */
+    /* seeks */
+    return VSICreateBufferedReaderHandle(poGZIPHandle);
 }
 
 /************************************************************************/
@@ -1976,8 +1989,6 @@ VSIVirtualHandle* VSIZipFilesystemHandler::OpenForWrite( const char *pszFilename
     std::map<CPLString,VSIArchiveContent*>::iterator iter = oFileList.find(osZipFilename);
     if (iter != oFileList.end())
     {
-        oFileList.erase(iter);
-
         VSIArchiveContent* content = iter->second;
         int i;
         for(i=0;i<content->nEntries;i++)
@@ -1987,6 +1998,8 @@ VSIVirtualHandle* VSIZipFilesystemHandler::OpenForWrite( const char *pszFilename
         }
         CPLFree(content->entries);
         delete content;
+
+        oFileList.erase(iter);
     }
 
     VSIZipWriteHandle* poZIPHandle;
@@ -2219,12 +2232,36 @@ void  VSIZipWriteHandle::StartNewFile(VSIZipWriteHandle* poSubFile)
 /**
  * \brief Install ZIP file system handler. 
  *
- * A special file handler is installed that allows reading on-the-fly in ZIP (.zip) archives.
- * All portions of the file system underneath the base
- * path "/vsizip/" will be handled by this driver.
+ * A special file handler is installed that allows reading on-the-fly in ZIP
+ * (.zip) archives.
+ *
+ * All portions of the file system underneath the base path "/vsizip/" will be
+ * handled by this driver.
+ *
+ * The syntax to open a file inside a zip file is /vsizip/path/to/the/file.zip/path/inside/the/zip/file
+ * were path/to/the/file.zip is relative or absolute and path/inside/the/zip/file
+ * is the relative path to the file inside the archive.
+ * 
+ * If the path is absolute, it should begin with a / on a Unix-like OS (or C:\ on Windows),
+ * so the line looks like /vsizip//home/gdal/...
+ * For example gdalinfo /vsizip/myarchive.zip/subdir1/file1.tif
+ *
+ * Syntaxic sugar : if the .zip file contains only one file located at its root,
+ * just mentionning "/vsizip/path/to/the/file.zip" will work
+ *
+ * VSIStatL() will return the uncompressed size in st_size member and file
+ * nature- file or directory - in st_mode member.
+ *
+ * Directory listing is available through VSIReadDir().
+ *
+ * Since GDAL 1.8.0, write capabilities are available. They allow creating
+ * a new zip file and adding new files to an already existing (or just created)
+ * zip file. Read and write operations cannot be interleaved : the new zip must
+ * be closed before being re-opened for read.
  *
  * Additional documentation is to be found at http://trac.osgeo.org/gdal/wiki/UserDocs/ReadInZip
  *
+ * @since GDAL 1.6.0
  */
 
 void VSIInstallZipFileHandler(void)

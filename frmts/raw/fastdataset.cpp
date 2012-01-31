@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: fastdataset.cpp 20996 2010-10-28 18:38:15Z rouault $
+ * $Id: fastdataset.cpp 22610 2011-06-28 21:20:06Z rouault $
  *
  * Project:  EOSAT FAST Format reader
  * Purpose:  Reads Landsat FAST-L7A, IRS 1C/1D
@@ -32,7 +32,7 @@
 #include "ogr_spatialref.h"
 #include "rawdataset.h"
 
-CPL_CVSID("$Id: fastdataset.cpp 20996 2010-10-28 18:38:15Z rouault $");
+CPL_CVSID("$Id: fastdataset.cpp 22610 2011-06-28 21:20:06Z rouault $");
 
 CPL_C_START
 void	GDALRegister_FAST(void);
@@ -110,7 +110,7 @@ class FASTDataset : public GDALPamDataset
     double      adfGeoTransform[6];
     char        *pszProjection;
 
-    FILE	*fpHeader;
+    VSILFILE	*fpHeader;
     CPLString apoChannelFilenames[7];
     VSILFILE	*fpChannels[7];
     const char	*pszFilename;
@@ -209,7 +209,7 @@ FASTDataset::~FASTDataset()
 	if ( fpChannels[i] )
 	    VSIFCloseL( fpChannels[i] );
     if( fpHeader != NULL )
-        VSIFClose( fpHeader );
+        VSIFCloseL( fpHeader );
 }
 
 /************************************************************************/
@@ -463,7 +463,8 @@ void FASTDataset::TryEuromap_IRS_1C_1D_ChannelNameConvention()
             for (int j = 0; j < 2; j ++)
             {
                 char* pszChannelFilename = CPLStrdup(pszFilename);
-                pszChannelFilename[strlen(pszChannelFilename)-1] = '1' + j;
+                pszChannelFilename[strlen(pszChannelFilename)-1] 
+                    = (char) ('1' + j);
                 if (OpenChannel( pszChannelFilename, nBands ))
                     nBands++;
                 else
@@ -591,8 +592,8 @@ GDALDataset *FASTDataset::Open( GDALOpenInfo * poOpenInfo )
 
 {
     int		i;
-	
-    if( poOpenInfo->fp == NULL )
+
+    if( poOpenInfo->nHeaderBytes < 1024)
         return NULL;
 
     if( !EQUALN((const char *) poOpenInfo->pabyHeader + 52,
@@ -608,8 +609,13 @@ GDALDataset *FASTDataset::Open( GDALOpenInfo * poOpenInfo )
 
     poDS = new FASTDataset();
 
-    poDS->fpHeader = poOpenInfo->fp;
-    poOpenInfo->fp = NULL;
+    poDS->fpHeader = VSIFOpenL(poOpenInfo->pszFilename, "rb");
+    if (poDS->fpHeader == NULL)
+    {
+        delete poDS;
+        return NULL;
+    }
+
     poDS->pszFilename = poOpenInfo->pszFilename;
     poDS->pszDirname = CPLStrdup( CPLGetDirname( poOpenInfo->pszFilename ) );
     
@@ -620,8 +626,8 @@ GDALDataset *FASTDataset::Open( GDALOpenInfo * poOpenInfo )
     char	*pszHeader = (char *) CPLMalloc( ADM_HEADER_SIZE + 1 );
     size_t      nBytesRead;
  
-    VSIFSeek( poDS->fpHeader, 0, SEEK_SET );
-    nBytesRead = VSIFRead( pszHeader, 1, ADM_HEADER_SIZE, poDS->fpHeader );
+    VSIFSeekL( poDS->fpHeader, 0, SEEK_SET );
+    nBytesRead = VSIFReadL( pszHeader, 1, ADM_HEADER_SIZE, poDS->fpHeader );
     if ( nBytesRead < ADM_MIN_HEADER_SIZE )
     {
 	CPLDebug( "FAST", "Header file too short. Reading failed" );
@@ -669,7 +675,6 @@ GDALDataset *FASTDataset::Open( GDALOpenInfo * poOpenInfo )
     CPLFree( pszTemp );
 
     // Read filenames
-    pszTemp = pszHeader;
     poDS->nBands = 0;
     
     if (strstr( pszHeader, FILENAME ) == NULL)
@@ -728,10 +733,10 @@ GDALDataset *FASTDataset::Open( GDALOpenInfo * poOpenInfo )
     /* the usual patterns like bandX.dat, etc... */
     if ( !poDS->nBands )
     {
+        pszTemp = pszHeader;
         for ( i = 0; i < 7; i++ )
         {
             char *pszFilename = NULL ;
-    
             if ( pszTemp )
                 pszTemp = strstr( pszTemp, FILENAME );
             if ( pszTemp )
@@ -1129,6 +1134,7 @@ void GDALRegister_FAST()
                                    "EOSAT FAST Format" );
         poDriver->SetMetadataItem( GDAL_DMD_HELPTOPIC, 
                                    "frmt_fast.html" );
+        poDriver->SetMetadataItem( GDAL_DCAP_VIRTUALIO, "YES" );
 
         poDriver->pfnOpen = FASTDataset::Open;
 

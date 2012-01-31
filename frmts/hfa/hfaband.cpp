@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: hfaband.cpp 21672 2011-02-10 17:24:28Z warmerdam $
+ * $Id: hfaband.cpp 23498 2011-12-08 22:06:39Z rouault $
  *
  * Project:  Erdas Imagine (.img) Translator
  * Purpose:  Implementation of the HFABand, for accessing one Eimg_Layer.
@@ -32,7 +32,7 @@
 
 /* include the compression code */
 
-CPL_CVSID("$Id: hfaband.cpp 21672 2011-02-10 17:24:28Z warmerdam $");
+CPL_CVSID("$Id: hfaband.cpp 23498 2011-12-08 22:06:39Z rouault $");
 
 /************************************************************************/
 /*                              HFABand()                               */
@@ -609,9 +609,9 @@ static CPLErr UncompressBlock( GByte *pabyCData, int nSrcBytes,
             }
             else
             {
-                printf( "nNumBits = %d\n", nNumBits );
-                CPLAssert( FALSE );
-                nRawValue = 0;
+                CPLError(CE_Failure, CPLE_NotSupported,
+                         "Unsupported nNumBits value : %d", nNumBits);
+                return CE_Failure;
             }
 
 /* -------------------------------------------------------------------- */
@@ -829,7 +829,7 @@ static CPLErr UncompressBlock( GByte *pabyCData, int nSrcBytes,
             
             for( i = 0; i < nRepeatCount; i++ )
             {
-                CPLAssert( nDataValue < 256 );
+                //CPLAssert( nDataValue < 256 );
                 ((GByte *) pabyDest)[nPixelsOutput++] = (GByte)nDataValue;
             }
         }
@@ -848,7 +848,7 @@ static CPLErr UncompressBlock( GByte *pabyCData, int nSrcBytes,
             
             for( i = 0; i < nRepeatCount; i++ )
             {
-                CPLAssert( nDataValue < 256 );
+                //CPLAssert( nDataValue < 256 );
                 ((GByte *) pabyDest)[nPixelsOutput++] = (GByte)nDataValue;
             }
         }
@@ -894,7 +894,7 @@ static CPLErr UncompressBlock( GByte *pabyCData, int nSrcBytes,
         {
             int		i;
 
-            CPLAssert( nDataValue == 0 || nDataValue == 1 );
+            //CPLAssert( nDataValue == 0 || nDataValue == 1 );
             
             if( nDataValue == 1 )
             {
@@ -917,7 +917,7 @@ static CPLErr UncompressBlock( GByte *pabyCData, int nSrcBytes,
         {
             int		i;
 
-            CPLAssert( nDataValue >= 0 && nDataValue < 4 );
+            //CPLAssert( nDataValue >= 0 && nDataValue < 4 );
 
             for( i = 0; i < nRepeatCount; i++ )
             {
@@ -936,7 +936,7 @@ static CPLErr UncompressBlock( GByte *pabyCData, int nSrcBytes,
         {
             int		i;
 
-            CPLAssert( nDataValue >= 0 && nDataValue < 16 );
+            //CPLAssert( nDataValue >= 0 && nDataValue < 16 );
             
             for( i = 0; i < nRepeatCount; i++ )
             {
@@ -974,15 +974,24 @@ static CPLErr UncompressBlock( GByte *pabyCData, int nSrcBytes,
 void HFABand::NullBlock( void *pData )
 
 {
+    int nChunkSize = MAX(1,HFAGetDataTypeBits(nDataType)/8);
+    int nWords = nBlockXSize * nBlockYSize;
+
     if( !bNoDataSet )
-        memset( pData, 0, 
-                HFAGetDataTypeBits(nDataType)*nBlockXSize*nBlockYSize/8 );
+    {
+#ifdef ESRI_BUILD
+        // We want special defaulting for 1 bit data in ArcGIS.
+        if ( nDataType >= EPT_u2 )
+            memset( pData,   0, nChunkSize*nWords );
+        else
+            memset( pData, 255, nChunkSize*nWords );
+#else
+        memset( pData,   0, nChunkSize*nWords );
+#endif
+    }
     else
-            
     {
         double adfND[2];
-        int nChunkSize = MAX(1,HFAGetDataTypeBits(nDataType)/8);
-        int nWords = nBlockXSize * nBlockYSize;
         int i;
 
         switch( nDataType )
@@ -1362,6 +1371,12 @@ CPLErr HFABand::SetRasterBlock( int nXBlock, int nYBlock, void * pData )
 
         /* create the compressor object */
         HFACompress compress( pData, nInBlockSize, nDataType );
+        if( compress.getCounts() == NULL ||
+            compress.getValues() == NULL)
+        {
+            CPLError( CE_Failure, CPLE_OutOfMemory, "Out of memory");
+            return CE_Failure;
+        }
      
         /* compress the data */
         if( compress.compressBlock() )

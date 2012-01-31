@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdalgrid.cpp 21167 2010-11-24 15:19:51Z warmerdam $
+ * $Id: gdalgrid.cpp 22889 2011-08-07 13:07:14Z rouault $
  *
  * Project:  GDAL Gridding API.
  * Purpose:  Implementation of GDAL scattered data gridder.
@@ -30,10 +30,20 @@
 #include "cpl_vsi.h"
 #include "cpl_string.h"
 #include "gdalgrid.h"
+#include <float.h>
+#include <limits.h>
 
-CPL_CVSID("$Id: gdalgrid.cpp 21167 2010-11-24 15:19:51Z warmerdam $");
+CPL_CVSID("$Id: gdalgrid.cpp 22889 2011-08-07 13:07:14Z rouault $");
 
 #define TO_RADIANS (3.14159265358979323846 / 180.0)
+
+#ifndef DBL_MAX
+# ifdef __DBL_MAX__
+#  define DBL_MAX __DBL_MAX__
+# else
+#  define DBL_MAX 1.7976931348623157E+308
+# endif /* __DBL_MAX__ */
+#endif /* DBL_MAX */
 
 /************************************************************************/
 /*                   GDALGridInverseDistanceToAPower()                  */
@@ -409,8 +419,7 @@ GDALGridNearestNeighbor( const void *poOptions, GUInt32 nPoints,
         ((GDALGridNearestNeighborOptions *)poOptions)->dfNoDataValue;
     // Nearest distance will be initialized with the distance to the first
     // point in array.
-    double      dfNearestR = (padfX[0] - dfXPoint) * (padfX[0] - dfXPoint)
-        + (padfY[0] - dfYPoint) * (padfY[0] - dfYPoint);
+    double      dfNearestR = DBL_MAX;
     GUInt32 i = 0;
 
     while ( i < nPoints )
@@ -1131,7 +1140,7 @@ GDALGridDataMetricAverageDistancePts( const void *poOptions, GUInt32 nPoints,
 /**
  * Create regular grid from the scattered data.
  *
- * This fucntion takes the arrays of X and Y coordinates and corresponding Z
+ * This function takes the arrays of X and Y coordinates and corresponding Z
  * values as input and computes regular grid (or call it a raster) from these
  * scattered data. You should supply geometry and extent of the output grid
  * and allocate array sufficient to hold such a grid.
@@ -1296,6 +1305,11 @@ CPLErr ParseAlgorithmAndOptions( const char *pszAlgoritm,
                                  GDALGridAlgorithm *peAlgorithm,
                                  void **ppOptions )
 {
+    CPLAssert( pszAlgoritm );
+    CPLAssert( peAlgorithm );
+    CPLAssert( ppOptions );
+
+    *ppOptions = NULL;
 
     char **papszParms = CSLTokenizeString2( pszAlgoritm, ":", FALSE );
 

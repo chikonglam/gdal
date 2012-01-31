@@ -82,6 +82,20 @@ system "rm -rf tmp_ds_*" unless $^O eq 'MSWin32';
 }
 
 {
+    # test the Points method
+    my $g = Geo::OGR::Geometry->create( WKT => 'POINT(1.1 2.2)');
+    my $p = $g->Points;
+    $g->Points($p);
+    my $q = $g->Points;
+    is_deeply($p, $q, "Points with a point");
+    $g = Geo::OGR::Geometry->create(wkt => "linestring(1 1, 1 2, 2 2)");
+    $p = $g->Points;
+    $g->Points($p);
+    $q = $g->Points;
+    is_deeply($p, $q, "Points with a linestring");
+}
+
+{
     my $g = Geo::OGR::Geometry->create(wkt => "linestring(1 1, 1 2, 2 2)");
     ok ($g->Length == 2, "Length 1");
 }
@@ -168,9 +182,11 @@ system "rm -rf tmp_ds_*" unless $^O eq 'MSWin32';
     ok(is_deeply(\@cap, ['CreateLayer','DeleteLayer']), "data source capabilities");
     
     my $layer = $datasource->CreateLayer('a', undef, 'Point');
-    @cap = $layer->Capabilities;
-    ok(is_deeply(\@cap, [qw/RandomRead SequentialWrite RandomWrite 
-	  FastFeatureCount CreateField DeleteFeature FastSetNextByIndex/]), "layer capabilities");
+    my %cap = map { $_ => 1 } $layer->Capabilities;
+    for (qw/RandomRead SequentialWrite RandomWrite	
+	  FastFeatureCount CreateField DeleteFeature FastSetNextByIndex/) {
+	ok($cap{$_}, "layer has capability: $_");
+    }
     $datasource->CreateLayer('b', undef, 'Point');
     $datasource->CreateLayer('c', undef, 'Point');
     my @layers = $datasource->Layers;

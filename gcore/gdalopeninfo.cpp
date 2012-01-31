@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdalopeninfo.cpp 21447 2011-01-09 16:02:28Z rouault $
+ * $Id: gdalopeninfo.cpp 21991 2011-03-20 16:45:19Z rouault $
  *
  * Project:  GDAL Core
  * Purpose:  Implementation of GDALOpenInfo class.
@@ -34,7 +34,7 @@
 #include <unistd.h>
 #endif
 
-CPL_CVSID("$Id: gdalopeninfo.cpp 21447 2011-01-09 16:02:28Z rouault $");
+CPL_CVSID("$Id: gdalopeninfo.cpp 21991 2011-03-20 16:45:19Z rouault $");
 
 /************************************************************************/
 /* ==================================================================== */
@@ -163,8 +163,13 @@ retry:
     }
     else if( bStatOK && !bIsDirectory )
     {
-        if( CSLTestBoolean( 
-                CPLGetConfigOption( "GDAL_DISABLE_READDIR_ON_OPEN", "NO" )) )
+        const char* pszOptionVal =
+            CPLGetConfigOption( "GDAL_DISABLE_READDIR_ON_OPEN", "NO" );
+        if (EQUAL(pszOptionVal, "EMPTY_DIR"))
+        {
+            papszSiblingFiles = CSLAddString( NULL, CPLGetFilename(pszFilename) );
+        }
+        else if( CSLTestBoolean(pszOptionVal) )
         {
             /* skip reading the directory */
             papszSiblingFiles = NULL;

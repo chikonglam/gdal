@@ -1,5 +1,5 @@
 /**********************************************************************
- * $Id: cpl_minixml.cpp 20996 2010-10-28 18:38:15Z rouault $
+ * $Id: cpl_minixml.cpp 22178 2011-04-16 20:07:53Z rouault $
  *
  * Project:  CPL - Common Portability Library
  * Purpose:  Implementation of MiniXML Parser and handling.
@@ -44,7 +44,7 @@
 #include "cpl_string.h"
 #include <ctype.h>
 
-CPL_CVSID("$Id: cpl_minixml.cpp 20996 2010-10-28 18:38:15Z rouault $");
+CPL_CVSID("$Id: cpl_minixml.cpp 22178 2011-04-16 20:07:53Z rouault $");
 
 typedef enum {
     TNone,
@@ -252,9 +252,11 @@ static XMLTokenType ReadToken( ParseContext *psContext )
                 do
                 {
                     chNext = ReadChar( psContext );
+                    if (chNext == ']')
+                        break;
                     AddToToken( psContext, chNext );
                 }
-                while( chNext != ']' && chNext != '\0'
+                while( chNext != '\0'
                     && !EQUALN(psContext->pszInput+psContext->nInputOffset,"]>", 2) );
                     
                 if (chNext == '\0')
@@ -266,11 +268,14 @@ static XMLTokenType ReadToken( ParseContext *psContext )
                     break;
                 }
 
-                chNext = ReadChar( psContext );
-                AddToToken( psContext, chNext );
+                if (chNext != ']')
+                {
+                    chNext = ReadChar( psContext );
+                    AddToToken( psContext, chNext );
 
-                // Skip ">" character, will be consumed below
-                chNext = ReadChar( psContext );
+                    // Skip ">" character, will be consumed below
+                    chNext = ReadChar( psContext );
+                }
             }
 
 
@@ -654,6 +659,20 @@ CPLXMLNode *CPLParseXMLString( const char *pszString )
                 }
                 else
                 {
+                    if (strcmp(sContext.pszToken+1,
+                         sContext.papsStack[sContext.nStackSize-1].psFirstNode->pszValue) != 0)
+                    {
+                        /* TODO: at some point we could just error out like any other */
+                        /* sane XML parser would do */
+                        CPLError( CE_Warning, CPLE_AppDefined,
+                                "Line %d: <%.500s> matches <%.500s>, but the case isn't the same. "
+                                "Going on, but this is invalid XML that might be rejected in "
+                                "future versions.",
+                                sContext.nInputLine,
+                                sContext.papsStack[sContext.nStackSize-1].psFirstNode->pszValue,
+                                sContext.pszToken );
+                    }
+
                     if( ReadToken(&sContext) != TClose )
                     {
                         CPLError( CE_Failure, CPLE_AppDefined, 
@@ -688,8 +707,17 @@ CPLXMLNode *CPLParseXMLString( const char *pszString )
                 break;
             }
 
-            if( ReadToken(&sContext) != TString 
-                && sContext.eTokenType != TToken )
+            if( ReadToken(&sContext) == TToken )
+            {
+                /* TODO: at some point we could just error out like any other */
+                /* sane XML parser would do */
+                CPLError( CE_Warning, CPLE_AppDefined,
+                          "Line %d: Attribute value should be single or double quoted. "
+                          "Going on, but this is invalid XML that might be rejected in "
+                          "future versions.",
+                          sContext.nInputLine );
+            }
+            else if( sContext.eTokenType != TString )
             {
                 CPLError( CE_Failure, CPLE_AppDefined, 
                           "Line %d: Didn't find expected attribute value.",
@@ -807,7 +835,7 @@ CPLXMLNode *CPLParseXMLString( const char *pszString )
 /* -------------------------------------------------------------------- */
 /*      Did we pop all the way out of our stack?                        */
 /* -------------------------------------------------------------------- */
-    if( CPLGetLastErrorType() == CE_None && sContext.nStackSize != 0 )
+    if( CPLGetLastErrorType() != CE_Failure && sContext.nStackSize != 0 )
     {
         CPLError( CE_Failure, CPLE_AppDefined, 
                   "Parse error at EOF, not all elements have been closed,\n"
@@ -822,7 +850,7 @@ CPLXMLNode *CPLParseXMLString( const char *pszString )
     if( sContext.papsStack != NULL )
         CPLFree( sContext.papsStack );
 
-    if( CPLGetLastErrorType() != CE_None )
+    if( CPLGetLastErrorType() == CE_Failure )
     {
         CPLDestroyXMLNode( sContext.psFirstNode );
         sContext.psFirstNode = NULL;

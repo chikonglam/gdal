@@ -1,5 +1,5 @@
 /**********************************************************************
- * $Id: cpl_multiproc.cpp 21055 2010-11-03 11:36:59Z dron $
+ * $Id: cpl_multiproc.cpp 22648 2011-07-05 23:14:50Z warmerdam $
  *
  * Project:  CPL - Common Portability Library
  * Purpose:  CPL Multi-Threading, and process handling portability functions.
@@ -40,7 +40,7 @@
 #  include <wce_time.h>
 #endif
 
-CPL_CVSID("$Id: cpl_multiproc.cpp 21055 2010-11-03 11:36:59Z dron $");
+CPL_CVSID("$Id: cpl_multiproc.cpp 22648 2011-07-05 23:14:50Z warmerdam $");
 
 #if defined(CPL_MULTIPROC_STUB) && !defined(DEBUG)
 #  define MUTEX_NONE
@@ -449,6 +449,9 @@ void CPLCleanupTLS()
   /* ==================================================================== */
   /************************************************************************/
 
+/* InitializeCriticalSectionAndSpinCount requires _WIN32_WINNT >= 0x403 */
+#define _WIN32_WINNT 0x0500
+
 #include <windows.h>
 
 /* windows.h header must be included above following lines. */
@@ -456,7 +459,6 @@ void CPLCleanupTLS()
 #  include "cpl_win32ce_api.h"
 #  define TLS_OUT_OF_INDEXES ((DWORD)0xFFFFFFFF)
 #endif
-
 
 /************************************************************************/
 /*                        CPLGetThreadingModel()                        */
@@ -475,11 +477,26 @@ const char *CPLGetThreadingModel()
 void *CPLCreateMutex()
 
 {
+#ifdef USE_WIN32_MUTEX
     HANDLE hMutex;
 
     hMutex = CreateMutex( NULL, TRUE, NULL );
 
     return (void *) hMutex;
+#else
+    CRITICAL_SECTION *pcs;
+
+	/* Do not use CPLMalloc() since its debugging infrastructure */
+	/* can call the CPL*Mutex functions... */
+    pcs = (CRITICAL_SECTION *)malloc(sizeof(*pcs));
+    if( pcs )
+    {
+      InitializeCriticalSectionAndSpinCount(pcs, 4000);
+      EnterCriticalSection(pcs);
+    }
+
+    return (void *) pcs;
+#endif
 }
 
 /************************************************************************/
@@ -489,12 +506,25 @@ void *CPLCreateMutex()
 int CPLAcquireMutex( void *hMutexIn, double dfWaitInSeconds )
 
 {
+#ifdef USE_WIN32_MUTEX
     HANDLE hMutex = (HANDLE) hMutexIn;
     DWORD  hr;
 
     hr = WaitForSingleObject( hMutex, (int) (dfWaitInSeconds * 1000) );
     
     return hr != WAIT_TIMEOUT;
+#else
+    CRITICAL_SECTION *pcs = (CRITICAL_SECTION *)hMutexIn;
+    BOOL ret;
+
+    while( (ret = TryEnterCriticalSection(pcs)) == 0 && dfWaitInSeconds > 0.0 )
+    {
+        CPLSleep( MIN(dfWaitInSeconds,0.125) );
+        dfWaitInSeconds -= 0.125;
+    }
+    
+    return ret;
+#endif
 }
 
 /************************************************************************/
@@ -504,9 +534,15 @@ int CPLAcquireMutex( void *hMutexIn, double dfWaitInSeconds )
 void CPLReleaseMutex( void *hMutexIn )
 
 {
+#ifdef USE_WIN32_MUTEX
     HANDLE hMutex = (HANDLE) hMutexIn;
 
     ReleaseMutex( hMutex );
+#else
+    CRITICAL_SECTION *pcs = (CRITICAL_SECTION *)hMutexIn;
+
+    LeaveCriticalSection(pcs);
+#endif
 }
 
 /************************************************************************/
@@ -516,9 +552,16 @@ void CPLReleaseMutex( void *hMutexIn )
 void CPLDestroyMutex( void *hMutexIn )
 
 {
+#ifdef USE_WIN32_MUTEX
     HANDLE hMutex = (HANDLE) hMutexIn;
 
     CloseHandle( hMutex );
+#else
+    CRITICAL_SECTION *pcs = (CRITICAL_SECTION *)hMutexIn;
+
+    DeleteCriticalSection( pcs );
+    free( pcs );
+#endif
 }
 
 /************************************************************************/

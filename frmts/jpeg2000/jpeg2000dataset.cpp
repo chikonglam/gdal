@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: jpeg2000dataset.cpp 20599 2010-09-12 22:13:18Z rouault $
+ * $Id: jpeg2000dataset.cpp 22678 2011-07-09 19:47:12Z rouault $
  *
  * Project:  JPEG-2000
  * Purpose:  Partial implementation of the ISO/IEC 15444-1 standard
@@ -34,7 +34,7 @@
 #include <jasper/jasper.h>
 #include "jpeg2000_vsil_io.h"
 
-CPL_CVSID("$Id: jpeg2000dataset.cpp 20599 2010-09-12 22:13:18Z rouault $");
+CPL_CVSID("$Id: jpeg2000dataset.cpp 22678 2011-07-09 19:47:12Z rouault $");
 
 CPL_C_START
 void    GDALRegister_JPEG2000(void);
@@ -847,6 +847,14 @@ GDALDataset *JPEG2000Dataset::Open( GDALOpenInfo * poOpenInfo )
         poDS->nGCPCount = oJP2Geo.nGCPCount;
         poDS->pasGCPList =
             GDALDuplicateGCPs( oJP2Geo.nGCPCount, oJP2Geo.pasGCPList );
+    }
+
+    if (oJP2Geo.pszXMPMetadata)
+    {
+        char *apszMDList[2];
+        apszMDList[0] = (char *) oJP2Geo.pszXMPMetadata;
+        apszMDList[1] = NULL;
+        poDS->SetMetadata(apszMDList, "xml:XMP");
     }
 
 /* -------------------------------------------------------------------- */

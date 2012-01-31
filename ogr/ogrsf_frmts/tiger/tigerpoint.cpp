@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: tigerpoint.cpp 12745 2007-11-13 14:18:11Z dron $
+ * $Id: tigerpoint.cpp 22961 2011-08-20 17:09:59Z rouault $
  *
  * Project:  TIGER/Line Translator
  * Purpose:  Implements TigerPoint class.
@@ -30,36 +30,21 @@
 #include "ogr_tiger.h"
 #include "cpl_conv.h"
 
-CPL_CVSID("$Id: tigerpoint.cpp 12745 2007-11-13 14:18:11Z dron $");
+CPL_CVSID("$Id: tigerpoint.cpp 22961 2011-08-20 17:09:59Z rouault $");
 
 /************************************************************************/
 /*                             TigerPoint()                             */
 /************************************************************************/
-TigerPoint::TigerPoint( int bRequireGeom )
+TigerPoint::TigerPoint( int bRequireGeom, const TigerRecordInfo *psRTInfoIn,
+                        const char            *m_pszFileCodeIn ) : TigerFileBase(psRTInfoIn, m_pszFileCodeIn)
 {
     this->bRequireGeom = bRequireGeom;
-}
-
-TigerPoint::~TigerPoint()
-{
-}
-
-/************************************************************************/
-/*                             SetModule()                              */
-/************************************************************************/
-int TigerPoint::SetModule( const char * pszModule, const char *pszFileCode )
-{
-    if( !OpenFile( pszModule, pszFileCode ) )
-        return FALSE;
-    EstablishFeatureCount();
-    return TRUE;
 }
 
 /************************************************************************/
 /*                             GetFeature()                             */
 /************************************************************************/
 OGRFeature *TigerPoint::GetFeature( int nRecordId,
-                                    TigerRecordInfo *psRTInfo,
                                     int nX0, int nX1,
                                     int nY0, int nY1 )
 {
@@ -121,15 +106,13 @@ OGRFeature *TigerPoint::GetFeature( int nRecordId,
 /*                           CreateFeature()                            */
 /************************************************************************/
 OGRErr TigerPoint::CreateFeature( OGRFeature *poFeature, 
-                                  TigerRecordInfo *psRTInfo,
-                                  int pointIndex,
-                                  const char *pszFileCode)
+                                  int pointIndex)
 
 {
     char        szRecord[OGR_TIGER_RECBUF_LEN];
     OGRPoint    *poPoint = (OGRPoint *) poFeature->GetGeometryRef();
 
-    if( !SetWriteModule( pszFileCode, psRTInfo->nRecordLength+2, poFeature ) )
+    if( !SetWriteModule( m_pszFileCode, psRTInfo->nRecordLength+2, poFeature ) )
         return OGRERR_FAILURE;
 
     memset( szRecord, ' ', psRTInfo->nRecordLength );
@@ -146,7 +129,7 @@ OGRErr TigerPoint::CreateFeature( OGRFeature *poFeature,
         }
     }
 
-    WriteRecord( szRecord, psRTInfo->nRecordLength, pszFileCode );
+    WriteRecord( szRecord, psRTInfo->nRecordLength, m_pszFileCode );
 
     return OGRERR_NONE;
 }

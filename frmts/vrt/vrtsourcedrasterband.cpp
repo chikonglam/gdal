@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: vrtsourcedrasterband.cpp 21179 2010-11-28 16:18:00Z rouault $
+ * $Id: vrtsourcedrasterband.cpp 23574 2011-12-14 19:29:48Z rouault $
  *
  * Project:  Virtual GDAL Datasets
  * Purpose:  Implementation of VRTSourcedRasterBand
@@ -31,7 +31,7 @@
 #include "cpl_minixml.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: vrtsourcedrasterband.cpp 21179 2010-11-28 16:18:00Z rouault $");
+CPL_CVSID("$Id: vrtsourcedrasterband.cpp 23574 2011-12-14 19:29:48Z rouault $");
 
 /************************************************************************/
 /* ==================================================================== */
@@ -94,7 +94,7 @@ void VRTSourcedRasterBand::Initialize( int nXSize, int nYSize )
     nSources = 0;
     papoSources = NULL;
     bEqualAreas = FALSE;
-    bAlreadyInIRasterIO = FALSE;
+    bAntiRecursionFlag = FALSE;
 }
 
 /************************************************************************/
@@ -104,11 +104,7 @@ void VRTSourcedRasterBand::Initialize( int nXSize, int nYSize )
 VRTSourcedRasterBand::~VRTSourcedRasterBand()
 
 {
-    for( int i = 0; i < nSources; i++ )
-        delete papoSources[i];
-
-    CPLFree( papoSources );
-    nSources = 0;
+    CloseDependentDatasets();
 }
 
 /************************************************************************/
@@ -135,7 +131,7 @@ CPLErr VRTSourcedRasterBand::IRasterIO( GDALRWFlag eRWFlag,
     /* When using GDALProxyPoolDataset for sources, the recusion will not be */
     /* detected at VRT opening but when doing RasterIO. As the proxy pool will */
     /* return the already opened dataset, we can just test a member variable. */
-    if ( bAlreadyInIRasterIO )
+    if ( bAntiRecursionFlag )
     {
         CPLError( CE_Failure, CPLE_AppDefined, 
                   "VRTSourcedRasterBand::IRasterIO() called recursively on the same band. "
@@ -161,7 +157,7 @@ CPLErr VRTSourcedRasterBand::IRasterIO( GDALRWFlag eRWFlag,
 /*      nodata value if available.                                      */
 /* -------------------------------------------------------------------- */
     if ( nPixelSpace == GDALGetDataTypeSize(eBufType)/8 &&
-         (!bNoDataValueSet || dfNoDataValue == 0) )
+         (!bNoDataValueSet || (!CPLIsNan(dfNoDataValue) && dfNoDataValue == 0)) )
     {
         if (nLineSpace == nBufXSize * nPixelSpace)
         {
@@ -206,7 +202,7 @@ CPLErr VRTSourcedRasterBand::IRasterIO( GDALRWFlag eRWFlag,
             return CE_None;
     }
     
-    bAlreadyInIRasterIO = TRUE;
+    bAntiRecursionFlag = TRUE;
 
 /* -------------------------------------------------------------------- */
 /*      Overlay each source in turn over top this.                      */
@@ -219,7 +215,7 @@ CPLErr VRTSourcedRasterBand::IRasterIO( GDALRWFlag eRWFlag,
                                             eBufType, nPixelSpace, nLineSpace);
     }
     
-    bAlreadyInIRasterIO = FALSE;
+    bAntiRecursionFlag = FALSE;
     
     return eErr;
 }
@@ -251,6 +247,109 @@ CPLErr VRTSourcedRasterBand::IReadBlock( int nBlockXOff, int nBlockYOff,
                       pImage, nReadXSize, nReadYSize, eDataType, 
                       nPixelSize, nPixelSize * nBlockXSize );
 }
+
+/************************************************************************/
+/*                             GetMinimum()                             */
+/************************************************************************/
+
+double VRTSourcedRasterBand::GetMinimum( int *pbSuccess )
+{
+    const char *pszValue = NULL;
+
+    if( (pszValue = GetMetadataItem("STATISTICS_MINIMUM")) != NULL )
+    {
+        if( pbSuccess != NULL )
+            *pbSuccess = TRUE;
+
+        return CPLAtofM(pszValue);
+    }
+
+    if ( bAntiRecursionFlag )
+    {
+        CPLError( CE_Failure, CPLE_AppDefined,
+                  "VRTSourcedRasterBand::GetMinimum() called recursively on the same band. "
+                  "It looks like the VRT is referencing itself." );
+        if( pbSuccess != NULL )
+            *pbSuccess = FALSE;
+        return 0.0;
+    }
+    bAntiRecursionFlag = TRUE;
+
+    double dfMin = 0;
+    for( int iSource = 0; iSource < nSources; iSource++ )
+    {
+        int bSuccess = FALSE;
+        double dfSourceMin = papoSources[iSource]->GetMinimum(GetXSize(), GetYSize(), &bSuccess);
+        if (!bSuccess)
+        {
+            dfMin = GDALRasterBand::GetMinimum(pbSuccess);
+            bAntiRecursionFlag = FALSE;
+            return dfMin;
+        }
+
+        if (iSource == 0 || dfSourceMin < dfMin)
+            dfMin = dfSourceMin;
+    }
+
+    bAntiRecursionFlag = FALSE;
+
+    if( pbSuccess != NULL )
+        *pbSuccess = TRUE;
+
+    return dfMin;
+}
+
+/************************************************************************/
+/*                             GetMaximum()                             */
+/************************************************************************/
+
+double VRTSourcedRasterBand::GetMaximum(int *pbSuccess )
+{
+    const char *pszValue = NULL;
+
+    if( (pszValue = GetMetadataItem("STATISTICS_MAXIMUM")) != NULL )
+    {
+        if( pbSuccess != NULL )
+            *pbSuccess = TRUE;
+
+        return CPLAtofM(pszValue);
+    }
+
+    if ( bAntiRecursionFlag )
+    {
+        CPLError( CE_Failure, CPLE_AppDefined,
+                  "VRTSourcedRasterBand::GetMaximum() called recursively on the same band. "
+                  "It looks like the VRT is referencing itself." );
+        if( pbSuccess != NULL )
+            *pbSuccess = FALSE;
+        return 0.0;
+    }
+    bAntiRecursionFlag = TRUE;
+
+    double dfMax = 0;
+    for( int iSource = 0; iSource < nSources; iSource++ )
+    {
+        int bSuccess = FALSE;
+        double dfSourceMax = papoSources[iSource]->GetMaximum(GetXSize(), GetYSize(), &bSuccess);
+        if (!bSuccess)
+        {
+            dfMax = GDALRasterBand::GetMaximum(pbSuccess);
+            bAntiRecursionFlag = FALSE;
+            return dfMax;
+        }
+
+        if (iSource == 0 || dfSourceMax > dfMax)
+            dfMax = dfSourceMax;
+    }
+
+    bAntiRecursionFlag = FALSE;
+
+    if( pbSuccess != NULL )
+        *pbSuccess = TRUE;
+
+    return dfMax;
+}
+
 
 /************************************************************************/
 /*                             AddSource()                              */
@@ -753,6 +852,10 @@ const char *VRTSourcedRasterBand::GetMetadataItem( const char * pszName,
         {
             int nReqXOff, nReqYOff, nReqXSize, nReqYSize;
             int nOutXOff, nOutYOff, nOutXSize, nOutYSize;
+
+            if (!papoSources[iSource]->IsSimpleSource())
+                continue;
+
             VRTSimpleSource *poSrc = (VRTSimpleSource *) papoSources[iSource];
 
             if( !poSrc->GetSrcDstWindow( iPixel, iLine, 1, 1, 1, 1,
@@ -977,4 +1080,23 @@ void VRTSourcedRasterBand::GetFileList(char*** ppapszFileList, int *pnSize,
 
     VRTRasterBand::GetFileList( ppapszFileList, pnSize,
                                 pnMaxSize, hSetFiles);
+}
+
+/************************************************************************/
+/*                        CloseDependentDatasets()                      */
+/************************************************************************/
+
+int VRTSourcedRasterBand::CloseDependentDatasets()
+{
+    if (nSources == 0)
+        return FALSE;
+
+    for( int i = 0; i < nSources; i++ )
+        delete papoSources[i];
+
+    CPLFree( papoSources );
+    papoSources = NULL;
+    nSources = 0;
+
+    return TRUE;
 }

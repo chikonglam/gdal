@@ -46,6 +46,7 @@ using kmlengine::KmlFile;
 using kmlengine::Bbox;
 using kmldom::ExtendedDataPtr;
 using kmldom::SchemaDataPtr;
+using kmldom::DataPtr;
 
 #include "ogrlibkmlfeature.h"
 #include "ogrlibkmlfield.h"
@@ -244,10 +245,27 @@ OGRLIBKMLLayer::OGRLIBKMLLayer ( const char *pszLayerName,
                             kml2FeatureDef ( m_poKmlSchema,
                                              m_poOgrFeatureDefn );
                         }
-
-
-
-
+                    }
+                }
+                else if ( poKmlExtendedData->get_data_array_size() > 0 )
+                {
+                    /* Use the <Data> of the first placemark to build the feature definition */
+                    /* If others have different fields, too bad... */
+                    int bLaunderFieldNames =
+                        CSLTestBoolean(CPLGetConfigOption("LIBKML_LAUNDER_FIELD_NAMES", "YES"));
+                    size_t nDataArraySize = poKmlExtendedData->get_data_array_size();
+                    for(size_t i=0; i < nDataArraySize; i++)
+                    {
+                        const DataPtr& data = poKmlExtendedData->get_data_array_at(i);
+                        if (data->has_name())
+                        {
+                            CPLString osName = data->get_name();
+                            if (bLaunderFieldNames)
+                                osName = LaunderFieldNames(osName);
+                            OGRFieldDefn oOgrField ( osName,
+                                                    OFTString );
+                            m_poOgrFeatureDefn->AddFieldDefn ( &oOgrField );
+                        }
                     }
                 }
             }
@@ -304,7 +322,7 @@ OGRLIBKMLLayer::~OGRLIBKMLLayer (  )
 
     CPLFree ( ( void * )m_pszName );
     CPLFree ( ( void * )m_pszFileName );
-    delete m_poOgrSRS;
+    m_poOgrSRS->Release();
 
     m_poOgrFeatureDefn->Release (  );
 
@@ -638,18 +656,41 @@ int OGRLIBKMLLayer::TestCapability (
 
     if ( EQUAL ( pszCap, OLCRandomRead ) )
         result = FALSE;
-    if ( EQUAL ( pszCap, OLCSequentialWrite ) )
+    else if ( EQUAL ( pszCap, OLCSequentialWrite ) )
         result = bUpdate;
-    if ( EQUAL ( pszCap, OLCRandomWrite ) )
+    else if ( EQUAL ( pszCap, OLCRandomWrite ) )
         result = FALSE;
-    if ( EQUAL ( pszCap, OLCFastFeatureCount ) )
+    else if ( EQUAL ( pszCap, OLCFastFeatureCount ) )
         result = FALSE;
-    if ( EQUAL ( pszCap, OLCFastSetNextByIndex ) )
+    else if ( EQUAL ( pszCap, OLCFastSetNextByIndex ) )
         result = FALSE;
-    if ( EQUAL ( pszCap, OLCCreateField ) )
+    else if ( EQUAL ( pszCap, OLCCreateField ) )
         result = bUpdate;
-    if ( EQUAL ( pszCap, OLCDeleteFeature ) )
+    else if ( EQUAL ( pszCap, OLCDeleteFeature ) )
         result = FALSE;
+    else if ( EQUAL(pszCap, OLCStringsAsUTF8) )
+        result = TRUE;
 
     return result;
+}
+
+/************************************************************************/
+/*                        LaunderFieldNames()                           */
+/************************************************************************/
+
+CPLString OGRLIBKMLLayer::LaunderFieldNames(CPLString osName)
+{
+    CPLString osLaunderedName;
+    for(int i=0;i<(int)osName.size();i++)
+    {
+        char ch = osName[i];
+        if ((ch >= '0' && ch <= '9') ||
+            (ch >= 'a' && ch <= 'z') ||
+            (ch >= 'A' && ch <= 'Z') ||
+            (ch == '_'))
+            osLaunderedName += ch;
+        else
+            osLaunderedName += "_";
+    }
+    return osLaunderedName;
 }

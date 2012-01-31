@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrocidatasource.cpp 20120 2010-07-23 02:41:07Z ilucena $
+ * $Id: ogrocidatasource.cpp 22299 2011-05-04 21:23:02Z warmerdam $
  *
  * Project:  Oracle Spatial Driver
  * Purpose:  Implementation of the OGROCIDataSource class.
@@ -31,7 +31,7 @@
 #include "cpl_conv.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: ogrocidatasource.cpp 20120 2010-07-23 02:41:07Z ilucena $");
+CPL_CVSID("$Id: ogrocidatasource.cpp 22299 2011-05-04 21:23:02Z warmerdam $");
 
 static int anEPSGOracleMapping[] = 
 {
@@ -351,7 +351,52 @@ void OGROCIDataSource::ValidateLayer( const char *pszLayerName )
 }
 
 /************************************************************************/
-/*                            DeleteLayer()                             */
+/*                           DeleteLayer(int)                           */
+/************************************************************************/
+
+OGRErr OGROCIDataSource::DeleteLayer( int iLayer )
+
+{
+/* -------------------------------------------------------------------- */
+/*      Blow away our OGR structures related to the layer.  This is     */
+/*      pretty dangerous if anything has a reference to this layer!     */
+/* -------------------------------------------------------------------- */
+    CPLString osLayerName = 
+        papoLayers[iLayer]->GetLayerDefn()->GetName();
+
+    CPLDebug( "OCI", "DeleteLayer(%s)", osLayerName.c_str() );
+
+    delete papoLayers[iLayer];
+    memmove( papoLayers + iLayer, papoLayers + iLayer + 1, 
+             sizeof(void *) * (nLayers - iLayer - 1) );
+    nLayers--;
+
+/* -------------------------------------------------------------------- */
+/*      Remove from the database.                                       */
+/* -------------------------------------------------------------------- */
+    OGROCIStatement oCommand( poSession );
+    CPLString       osCommand;
+    int             nFailures = 0;
+
+    osCommand.Printf( "DROP TABLE \"%s\"", osLayerName.c_str() );
+    if( oCommand.Execute( osCommand ) != CE_None )
+        nFailures++;
+
+    osCommand.Printf( 
+        "DELETE FROM USER_SDO_GEOM_METADATA WHERE TABLE_NAME = UPPER('%s')",
+        osLayerName.c_str() );
+
+    if( oCommand.Execute( osCommand ) != CE_None )
+        nFailures++;
+
+    if( nFailures == 0 )
+        return OGRERR_NONE;
+    else
+        return OGRERR_FAILURE;
+}
+
+/************************************************************************/
+/*                      DeleteLayer(const char *)                       */
 /************************************************************************/
 
 void OGROCIDataSource::DeleteLayer( const char *pszLayerName )
@@ -378,32 +423,30 @@ void OGROCIDataSource::DeleteLayer( const char *pszLayerName )
         return;
     }
 
-/* -------------------------------------------------------------------- */
-/*      Blow away our OGR structures related to the layer.  This is     */
-/*      pretty dangerous if anything has a reference to this layer!     */
-/* -------------------------------------------------------------------- */
-    CPLDebug( "OCI", "DeleteLayer(%s)", pszLayerName );
+    DeleteLayer( iLayer );
+}
 
-    delete papoLayers[iLayer];
-    memmove( papoLayers + iLayer, papoLayers + iLayer + 1, 
-             sizeof(void *) * (nLayers - iLayer - 1) );
-    nLayers--;
+/************************************************************************/
+/*                           TruncateLayer()                            */
+/************************************************************************/
+
+void OGROCIDataSource::TruncateLayer( const char *pszLayerName )
+
+{
 
 /* -------------------------------------------------------------------- */
-/*      Remove from the database.                                       */
+/*      Set OGR Debug statement explaining what is happening            */
+/* -------------------------------------------------------------------- */
+    CPLDebug( "OCI", "Truncate TABLE %s", pszLayerName );
+    
+/* -------------------------------------------------------------------- */
+/*      Truncate the layer in the database.                             */
 /* -------------------------------------------------------------------- */
     OGROCIStatement oCommand( poSession );
-    char            szCommand[1024];
+    CPLString       osCommand;
 
-    sprintf( szCommand, "DROP TABLE \"%s\"", pszLayerName );
-    oCommand.Execute( szCommand );
-
-    sprintf( szCommand, 
-             "DELETE FROM USER_SDO_GEOM_METADATA WHERE TABLE_NAME = UPPER('%s')",
-             pszLayerName );
-    oCommand.Execute( szCommand );
-
-    CPLFree( (char *) pszLayerName );
+    osCommand.Printf( "TRUNCATE TABLE \"%s\"", pszLayerName );
+    oCommand.Execute( osCommand );
 }
 
 /************************************************************************/
@@ -421,35 +464,45 @@ OGROCIDataSource::CreateLayer( const char * pszLayerName,
     char               *pszSafeLayerName = CPLStrdup(pszLayerName);
 
     poSession->CleanName( pszSafeLayerName );
+    CPLDebug( "OCI", "In Create Layer ..." );
+              
 
 /* -------------------------------------------------------------------- */
 /*      Do we already have this layer?  If so, should we blow it        */
 /*      away?                                                           */
 /* -------------------------------------------------------------------- */
     int iLayer;
-
-    for( iLayer = 0; iLayer < nLayers; iLayer++ )
+    
+    if( CSLFetchBoolean( papszOptions, "TRUNCATE", FALSE ) )
     {
-        if( EQUAL(pszSafeLayerName,
-                  papoLayers[iLayer]->GetLayerDefn()->GetName()) )
+        CPLDebug( "OCI", "Calling TruncateLayer for %s", pszLayerName );
+        TruncateLayer( pszSafeLayerName );
+    }
+    else
+    {  
+        for( iLayer = 0; iLayer < nLayers; iLayer++ )
         {
-            if( CSLFetchNameValue( papszOptions, "OVERWRITE" ) != NULL
-                && !EQUAL(CSLFetchNameValue(papszOptions,"OVERWRITE"),"NO") )
+            if( EQUAL(pszSafeLayerName,
+                      papoLayers[iLayer]->GetLayerDefn()->GetName()) )
             {
-                DeleteLayer( pszSafeLayerName );
-            }
-            else
-            {
-                CPLError( CE_Failure, CPLE_AppDefined, 
-                          "Layer %s already exists, CreateLayer failed.\n"
-                          "Use the layer creation option OVERWRITE=YES to "
-                          "replace it.",
-                          pszSafeLayerName );
-                CPLFree( pszSafeLayerName );
-                return NULL;
+                if( CSLFetchNameValue( papszOptions, "OVERWRITE" ) != NULL
+                    && !EQUAL(CSLFetchNameValue(papszOptions,"OVERWRITE"),"NO") )
+                {
+                    DeleteLayer( pszSafeLayerName );
+                }
+                else
+                {
+                    CPLError( CE_Failure, CPLE_AppDefined, 
+                              "Layer %s already exists, CreateLayer failed.\n"
+                              "Use the layer creation option OVERWRITE=YES to "
+                              "replace it.",
+                              pszSafeLayerName );
+                    CPLFree( pszSafeLayerName );
+                    return NULL;
+                }              
             }
         }
-    }
+    } 
 
 /* -------------------------------------------------------------------- */
 /*      Try to get the SRS Id of this spatial reference system,         */
@@ -485,27 +538,30 @@ OGROCIDataSource::CreateLayer( const char * pszLayerName,
 /*      If geometry type is wkbNone, do not create a geoemtry column    */
 /* -------------------------------------------------------------------- */
 
-    if (eType == wkbNone)
+    if ( CSLFetchNameValue( papszOptions, "TRUNCATE" ) == NULL  )
     {
-        sprintf( szCommand,
-             "CREATE TABLE \"%s\" ( "
-             "%s INTEGER)",
-             pszSafeLayerName, pszExpectedFIDName);
-    }
-    else
-    {
-        sprintf( szCommand,
-             "CREATE TABLE \"%s\" ( "
-             "%s INTEGER, "
-             "%s %s )",
-             pszSafeLayerName, pszExpectedFIDName, pszGeometryName, SDO_GEOMETRY );
-    }
+        if (eType == wkbNone)
+        {
+            sprintf( szCommand,
+                     "CREATE TABLE \"%s\" ( "
+                     "%s INTEGER)",
+                     pszSafeLayerName, pszExpectedFIDName);
+        }
+        else
+        {
+            sprintf( szCommand,
+                     "CREATE TABLE \"%s\" ( "
+                     "%s INTEGER, "
+                     "%s %s )",
+                     pszSafeLayerName, pszExpectedFIDName, pszGeometryName, SDO_GEOMETRY );
+        }
 
-    if( oStatement.Execute( szCommand ) != CE_None )
-    {
-        CPLFree( pszSafeLayerName );
-        return NULL;
-    }
+        if( oStatement.Execute( szCommand ) != CE_None )
+        {
+            CPLFree( pszSafeLayerName );
+            return NULL;
+        }
+    }  
 
 /* -------------------------------------------------------------------- */
 /*      Create the layer object.                                        */
@@ -556,6 +612,8 @@ int OGROCIDataSource::TestCapability( const char * pszCap )
 
 {
     if( EQUAL(pszCap,ODsCCreateLayer) && bDSUpdate )
+        return TRUE;
+    else if( EQUAL(pszCap,ODsCDeleteLayer) && bDSUpdate )
         return TRUE;
     else
         return FALSE;

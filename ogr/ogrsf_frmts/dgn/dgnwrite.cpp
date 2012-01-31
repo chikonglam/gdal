@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: dgnwrite.cpp 19572 2010-04-29 13:44:07Z warmerdam $
+ * $Id: dgnwrite.cpp 22623 2011-06-29 21:44:00Z rouault $
  *
  * Project:  Microstation DGN Access Library
  * Purpose:  DGN Access functions related to writing DGN elements.
@@ -29,7 +29,7 @@
 
 #include "dgnlibp.h"
 
-CPL_CVSID("$Id: dgnwrite.cpp 19572 2010-04-29 13:44:07Z warmerdam $");
+CPL_CVSID("$Id: dgnwrite.cpp 22623 2011-06-29 21:44:00Z rouault $");
 
 static void DGNPointToInt( DGNInfo *psDGN, DGNPoint *psPoint, 
                            unsigned char *pabyTarget );
@@ -1593,7 +1593,7 @@ DGNCreateColorTableElem( DGNHandle hDGN, int nScreenFlag,
 /* -------------------------------------------------------------------- */
 /*      Setup Raw data for the color table specific portion.            */
 /* -------------------------------------------------------------------- */
-    psCore->raw_bytes = 806;
+    psCore->raw_bytes = 806; /* FIXME: this is invalid : 806 < 41 + 783 (see below lines) */
     psCore->raw_data = (unsigned char*) CPLCalloc(psCore->raw_bytes,1);
 
     psCore->raw_data[36] = (unsigned char) (nScreenFlag % 256);

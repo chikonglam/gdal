@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ozidataset.cpp 21424 2011-01-06 21:26:25Z rouault $
+ * $Id: ozidataset.cpp 21930 2011-03-11 13:27:22Z dron $
  *
  * Project:   OZF2 and OZFx3 binary files driver
  * Purpose:  GDALDataset driver for OZF2 and OZFx3 binary files.
@@ -32,7 +32,7 @@
 
 /* g++ -fPIC -g -Wall frmts/ozi/ozidataset.cpp -shared -o gdal_OZI.so -Iport -Igcore -Iogr -L. -lgdal  */
 
-CPL_CVSID("$Id: ozidataset.cpp 21424 2011-01-06 21:26:25Z rouault $");
+CPL_CVSID("$Id: ozidataset.cpp 21930 2011-03-11 13:27:22Z dron $");
 
 CPL_C_START
 void    GDALRegister_OZI(void);
@@ -142,7 +142,7 @@ static int ReadInt(GByte**pptr)
     return nVal;
 }
 
-static int ReadShort(GByte**pptr)
+static short ReadShort(GByte**pptr)
 {
     short nVal;
     memcpy(&nVal, *pptr, 2);
@@ -155,16 +155,16 @@ static int ReadInt(VSILFILE* fp, int bOzi3 = FALSE, int nKeyInit = 0)
 {
     int nVal;
     VSIFReadL(&nVal, 1, 4, fp);
-    if (bOzi3) OZIDecrypt(&nVal, 4, nKeyInit);
+    if (bOzi3) OZIDecrypt(&nVal, 4, (GByte) nKeyInit);
     CPL_LSBPTR32(&nVal);
     return nVal;
 }
 
-static int ReadShort(VSILFILE* fp, int bOzi3 = FALSE, int nKeyInit = 0)
+static short ReadShort(VSILFILE* fp, int bOzi3 = FALSE, int nKeyInit = 0)
 {
     short nVal;
     VSIFReadL(&nVal, 1, 2, fp);
-    if (bOzi3) OZIDecrypt(&nVal, 2, nKeyInit);
+    if (bOzi3) OZIDecrypt(&nVal, 2, (GByte) nKeyInit);
     CPL_LSBPTR16(&nVal);
     return nVal;
 }
@@ -806,7 +806,7 @@ void GDALRegister_OZI()
 
         poDriver->SetDescription( "OZI" );
         poDriver->SetMetadataItem( GDAL_DMD_LONGNAME,
-                                   "OZI" );
+                                   "OziExplorer Image File" );
         poDriver->SetMetadataItem( GDAL_DMD_HELPTOPIC,
                                    "frmt_ozi.html" );
 

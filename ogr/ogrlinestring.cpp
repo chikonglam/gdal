@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrlinestring.cpp 20652 2010-09-19 21:52:52Z rouault $
+ * $Id: ogrlinestring.cpp 22464 2011-05-29 21:33:41Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  The OGRLineString geometry class.
@@ -31,7 +31,7 @@
 #include "ogr_p.h"
 #include <assert.h>
 
-CPL_CVSID("$Id: ogrlinestring.cpp 20652 2010-09-19 21:52:52Z rouault $");
+CPL_CVSID("$Id: ogrlinestring.cpp 22464 2011-05-29 21:33:41Z rouault $");
 
 /************************************************************************/
 /*                           OGRLineString()                            */
@@ -447,7 +447,10 @@ void OGRLineString::setPoint( int iPoint, double xIn, double yIn )
 void OGRLineString::addPoint( OGRPoint * poPoint )
 
 {
-    setPoint( nPointCount, poPoint->getX(), poPoint->getY(), poPoint->getZ() );
+    if ( poPoint->getCoordinateDimension() < 3 )
+        setPoint( nPointCount, poPoint->getX(), poPoint->getY() );
+    else
+        setPoint( nPointCount, poPoint->getX(), poPoint->getY(), poPoint->getZ() );
 }
 
 /************************************************************************/
@@ -607,6 +610,64 @@ void OGRLineString::getPoints( OGRRawPoint * paoPointsOut, double * padfZ ) cons
     }
 }
 
+
+/************************************************************************/
+/*                          getPoints()                                 */
+/************************************************************************/
+
+/**
+ * \brief Returns all points of line string.
+ *
+ * This method copies all points into user arrays. The user provides the
+ * stride between 2 consecutives elements of the array.
+ *
+ * On some CPU architectures, care must be taken so that the arrays are properly aligned.
+ *
+ * There is no SFCOM analog to this method.
+ *
+ * @param pabyX a buffer of at least (sizeof(double) * nXStride * nPointCount) bytes, may be NULL.
+ * @param nXStride the number of bytes between 2 elements of pabyX.
+ * @param pabyY a buffer of at least (sizeof(double) * nYStride * nPointCount) bytes, may be NULL.
+ * @param nYStride the number of bytes between 2 elements of pabyY.
+ * @param pabyZ a buffer of at last size (sizeof(double) * nZStride * nPointCount) bytes, may be NULL.
+ * @param nZStride the number of bytes between 2 elements of pabyZ.
+ *
+ * @since OGR 1.9.0
+ */
+
+void OGRLineString::getPoints( void* pabyX, int nXStride,
+                               void* pabyY, int nYStride,
+                               void* pabyZ, int nZStride)  const
+{
+    int i;
+    if (pabyX != NULL && nXStride == 0)
+        return;
+    if (pabyY != NULL && nYStride == 0)
+        return;
+    if (pabyZ != NULL && nZStride == 0)
+        return;
+    if (nXStride == 2 * sizeof(double) &&
+        nYStride == 2 * sizeof(double) &&
+        (char*)pabyY == (char*)pabyX + sizeof(double) &&
+        (pabyZ == NULL || nZStride == sizeof(double)))
+    {
+        getPoints((OGRRawPoint *)pabyX, (double*)pabyZ);
+        return;
+    }
+    for(i=0;i<nPointCount;i++)
+    {
+        if (pabyX) *(double*)((char*)pabyX + i * nXStride) = paoPoints[i].x;
+        if (pabyY) *(double*)((char*)pabyY + i * nYStride) = paoPoints[i].y;
+    }
+
+    if (pabyZ)
+    {
+        for(i=0;i<nPointCount;i++)
+        {
+            *(double*)((char*)pabyZ + i * nZStride) = (padfZ) ? padfZ[i] : 0.0;
+        }
+    }
+}
 
 /************************************************************************/
 /*                          addSubLineString()                          */
@@ -902,16 +963,7 @@ OGRErr OGRLineString::importFromWkt( char ** ppszInput )
     char        szToken[OGR_WKT_TOKEN_MAX];
     const char  *pszInput = *ppszInput;
 
-    if( paoPoints != NULL )
-    {
-        nPointCount = 0;
-
-        CPLFree( paoPoints );
-        paoPoints = NULL;
-        
-        CPLFree( padfZ );
-        padfZ = NULL;
-    }
+    empty();
 
 /* -------------------------------------------------------------------- */
 /*      Read and verify the ``LINESTRING'' keyword token.               */
@@ -1227,6 +1279,39 @@ void OGRLineString::getEnvelope( OGREnvelope * psEnvelope ) const
     psEnvelope->MaxX = dfMaxX;
     psEnvelope->MinY = dfMinY;
     psEnvelope->MaxY = dfMaxY;
+}
+
+
+/************************************************************************/
+/*                            getEnvelope()                             */
+/************************************************************************/
+
+void OGRLineString::getEnvelope( OGREnvelope3D * psEnvelope ) const
+
+{
+    getEnvelope((OGREnvelope*)psEnvelope);
+
+    double      dfMinZ, dfMaxZ;
+
+    if( nPointCount == 0 || padfZ == NULL )
+    {
+        psEnvelope->MinZ = 0;
+        psEnvelope->MaxZ = 0;
+        return;
+    }
+
+    dfMinZ = dfMaxZ = padfZ[0];
+
+    for( int iPoint = 1; iPoint < nPointCount; iPoint++ )
+    {
+        if( dfMinZ > padfZ[iPoint] )
+            dfMinZ = padfZ[iPoint];
+        if( dfMaxZ < padfZ[iPoint] )
+            dfMaxZ = padfZ[iPoint];
+    }
+
+    psEnvelope->MinZ = dfMinZ;
+    psEnvelope->MaxZ = dfMaxZ;
 }
 
 /************************************************************************/

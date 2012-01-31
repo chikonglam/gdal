@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdaldriver.cpp 21431 2011-01-07 22:24:09Z warmerdam $
+ * $Id: gdaldriver.cpp 22294 2011-05-03 18:38:45Z rouault $
  *
  * Project:  GDAL Core
  * Purpose:  Implementation of GDALDriver class (and C wrappers)
@@ -29,7 +29,7 @@
 
 #include "gdal_priv.h"
 
-CPL_CVSID("$Id: gdaldriver.cpp 21431 2011-01-07 22:24:09Z warmerdam $");
+CPL_CVSID("$Id: gdaldriver.cpp 22294 2011-05-03 18:38:45Z rouault $");
 
 /************************************************************************/
 /*                             GDALDriver()                             */
@@ -240,23 +240,26 @@ CPLErr GDALDriver::DefaultCopyMasks( GDALDataset *poSrcDS,
          iBand++ )
     {
         GDALRasterBand *poSrcBand = poSrcDS->GetRasterBand( iBand+1 );
-        GDALRasterBand *poDstBand = poDstDS->GetRasterBand( iBand+1 );
 
         int nMaskFlags = poSrcBand->GetMaskFlags();
         if( eErr == CE_None
             && !(nMaskFlags & (GMF_ALL_VALID|GMF_PER_DATASET|GMF_ALPHA|GMF_NODATA) ) )
         {
-            eErr = poDstBand->CreateMaskBand( nMaskFlags );
-            if( eErr == CE_None )
+            GDALRasterBand *poDstBand = poDstDS->GetRasterBand( iBand+1 );
+            if (poDstBand != NULL)
             {
-                eErr = GDALRasterBandCopyWholeRaster(
-                    poSrcBand->GetMaskBand(),
-                    poDstBand->GetMaskBand(),
-                    (char**)papszOptions,
-                    GDALDummyProgress, NULL);
+                eErr = poDstBand->CreateMaskBand( nMaskFlags );
+                if( eErr == CE_None )
+                {
+                    eErr = GDALRasterBandCopyWholeRaster(
+                        poSrcBand->GetMaskBand(),
+                        poDstBand->GetMaskBand(),
+                        (char**)papszOptions,
+                        GDALDummyProgress, NULL);
+                }
+                else if( !bStrict )
+                    eErr = CE_None;
             }
-            else if( !bStrict )
-                eErr = CE_None;
         }
     }
 

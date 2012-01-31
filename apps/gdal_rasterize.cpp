@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdal_rasterize.cpp 21298 2010-12-20 10:58:34Z rouault $
+ * $Id: gdal_rasterize.cpp 23285 2011-10-27 21:39:19Z rouault $
  *
  * Project:  GDAL Utilities
  * Purpose:  Rasterize OGR shapes into a GDAL raster.
@@ -33,9 +33,10 @@
 #include "ogr_api.h"
 #include "ogr_srs_api.h"
 #include "cpl_string.h"
+#include "commonutils.h"
 #include <vector>
 
-CPL_CVSID("$Id: gdal_rasterize.cpp 21298 2010-12-20 10:58:34Z rouault $");
+CPL_CVSID("$Id: gdal_rasterize.cpp 23285 2011-10-27 21:39:19Z rouault $");
 
 /************************************************************************/
 /*                            ArgIsNumeric()                            */
@@ -280,7 +281,7 @@ static void ProcessLayer(
 /* -------------------------------------------------------------------- */
 /*      If we are in inverse mode, we add one extra ring around the     */
 /*      whole dataset to invert the concept of insideness and then      */
-/*      merge everything into one geomtry collection.                   */
+/*      merge everything into one geometry collection.                  */
 /* -------------------------------------------------------------------- */
     if( bInverse )
     {
@@ -333,10 +334,22 @@ GDALDatasetH CreateOutputDataset(std::vector<OGRLayerH> ahLayers,
         {
             OGREnvelope sLayerEnvelop;
 
-            if (OGR_L_GetExtent(hLayer, &sLayerEnvelop, FALSE) != OGRERR_NONE)
+            if (OGR_L_GetExtent(hLayer, &sLayerEnvelop, TRUE) != OGRERR_NONE)
             {
                 fprintf(stderr, "Cannot get layer extent\n");
                 exit(2);
+            }
+
+            /* When rasterizing point layers and that the bounds have */
+            /* not been explicitely set, voluntary increase the extent by */
+            /* a half-pixel size to avoid missing points on the border */
+            if (wkbFlatten(OGR_L_GetGeomType(hLayer)) == wkbPoint &&
+                !bTargetAlignedPixels && dfXRes != 0 && dfYRes != 0)
+            {
+                sLayerEnvelop.MinX -= dfXRes / 2;
+                sLayerEnvelop.MaxX += dfXRes / 2;
+                sLayerEnvelop.MinY -= dfYRes / 2;
+                sLayerEnvelop.MaxY += dfYRes / 2;
             }
 
             if (bFirstLayer)
@@ -371,7 +384,6 @@ GDALDatasetH CreateOutputDataset(std::vector<OGRLayerH> ahLayers,
         }
     }
 
-    double adfProjection[6];
     if (dfXRes == 0 && dfYRes == 0)
     {
         dfXRes = (sEnvelop.MaxX - sEnvelop.MinX) / nXSize;
@@ -385,6 +397,7 @@ GDALDatasetH CreateOutputDataset(std::vector<OGRLayerH> ahLayers,
         sEnvelop.MaxY = ceil(sEnvelop.MaxY / dfYRes) * dfYRes;
     }
 
+    double adfProjection[6];
     adfProjection[0] = sEnvelop.MinX;
     adfProjection[1] = dfXRes;
     adfProjection[2] = 0;
@@ -466,6 +479,7 @@ int main( int argc, char ** argv )
     double dfXRes = 0, dfYRes = 0;
     int bCreateOutput = FALSE;
     const char* pszFormat = "GTiff";
+    int bFormatExplicitelySet = FALSE;
     char **papszCreateOptions = NULL;
     GDALDriverH hDriver = NULL;
     GDALDataType eOutputType = GDT_Float64;
@@ -593,6 +607,7 @@ int main( int argc, char ** argv )
         else if( EQUAL(argv[i],"-of") && i < argc-1 )
         {
             pszFormat = argv[++i];
+            bFormatExplicitelySet = TRUE;
             bCreateOutput = TRUE;
         }
         else if( EQUAL(argv[i],"-init") && i < argc - 1 )
@@ -730,12 +745,6 @@ int main( int argc, char ** argv )
         fprintf( stderr, "Missing source or destination.\n\n" );
         Usage();
     }
-    
-    if( pszSQL == NULL && papszLayers == NULL )
-    {
-        fprintf( stderr, "At least one of -l or -sql required.\n\n" );
-        Usage();
-    }
 
     if( adfBurnValues.size() == 0 && pszBurnAttribute == NULL && !b3D )
     {
@@ -800,6 +809,19 @@ int main( int argc, char ** argv )
         exit( 1 );
     }
 
+    if( pszSQL == NULL && papszLayers == NULL )
+    {
+        if( OGR_DS_GetLayerCount(hSrcDS) == 1 )
+        {
+            papszLayers = CSLAddString(NULL, OGR_L_GetName(OGR_DS_GetLayer(hSrcDS, 0)));
+        }
+        else
+        {
+            fprintf( stderr, "At least one of -l or -sql required.\n\n" );
+            Usage();
+        }
+    }
+
 /* -------------------------------------------------------------------- */
 /*      Open target raster file.  Eventually we will add optional       */
 /*      creation.                                                       */
@@ -836,6 +858,9 @@ int main( int argc, char ** argv )
             printf( "\n" );
             exit( 1 );
         }
+
+        if (!bQuiet && !bFormatExplicitelySet)
+            CheckExtensionConsistency(pszDstFilename, pszFormat);
     }
     else
     {

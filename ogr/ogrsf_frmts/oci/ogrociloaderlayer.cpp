@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrociloaderlayer.cpp 19871 2010-06-15 04:32:45Z ilucena $
+ * $Id: ogrociloaderlayer.cpp 22346 2011-05-10 03:02:15Z warmerdam $
  *
  * Project:  Oracle Spatial Driver
  * Purpose:  Implementation of the OGROCILoaderLayer class.  This implements
@@ -32,7 +32,7 @@
 #include "cpl_conv.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: ogrociloaderlayer.cpp 19871 2010-06-15 04:32:45Z ilucena $");
+CPL_CVSID("$Id: ogrociloaderlayer.cpp 22346 2011-05-10 03:02:15Z warmerdam $");
 
 /************************************************************************/
 /*                         OGROCILoaderLayer()                          */
@@ -494,7 +494,7 @@ OGRErr OGROCILoaderLayer::WriteFeatureVariableMode( OGRFeature *poFeature )
     char szLength[9]; 
     size_t  nStringLen = strlen(oLine.GetString());
 
-    sprintf( szLength, "%08d", nStringLen-8 );
+    sprintf( szLength, "%08d", (int) (nStringLen-8) );
     strncpy( oLine.GetString(), szLength, 8 );
 
     if( VSIFWrite( oLine.GetString(), 1, nStringLen, fpData ) != nStringLen )

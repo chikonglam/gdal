@@ -93,15 +93,24 @@ SELECT MIN(prop_value), MAX(prop_value), AVG(prop_value), SUM(prop_value),
        COUNT(prop_value) FROM polylayer WHERE prov_name = "Ontario"
 \endcode
 
-As a special case, the COUNT() operator can be given a "*" argument instead
-of a field name which is a short form for count all the records though it
-would get the same result as giving it any of the column names.   It is
-also possible to apply the COUNT() operator to a DISTINCT SELECT to get
+It is also possible to apply the COUNT() operator to a DISTINCT SELECT to get
 a count of distinct values, for instance:
 
 \code
 SELECT COUNT(DISTINCT areacode) FROM polylayer
 \endcode
+
+Note: prior to OGR 1.9.0, null values were counted in COUNT(column_name) or
+COUNT(DISTINCT column_name), which was not conformant with the SQL standard. Since
+OGR 1.9.0, only non-null values are counted.
+
+As a special case, the COUNT() operator can be given a "*" argument instead
+of a field name which is a short form for count all the records.
+
+\code
+SELECT COUNT(*) FROM polylayer
+\endcode
+
 
 Field names can also be prefixed by a table name though this is only 
 really meaningful when performing joins.  It is further demonstrated in 
@@ -119,6 +128,25 @@ or
 
 \code
 SELECT CONCAT(owner_first_name,' ',owner_last_name) from properties
+\endcode
+
+\subsubsection ogr_sql_functions Functions
+
+Starting with OGR 1.8.2, the SUBSTR function can be used to extract a substring from a string.
+Its syntax is the following one : SUBSTR(string_expr, start_offset [, length]). It extracts a substring of string_expr,
+starting at offset start_offset (1 being the first character of string_expr, 2 the second one, etc...).
+If start_offset is a negative value, the substring is extracted from the end of the string (-1 is the
+last character of the string, -2 the character before the last character, ...).
+If length is specified, up to length characters are extracted from the string. Otherwise the
+remainder of the string is extracted.
+
+Note: for the time being, the character as considered to be equivalent to bytes, which may not be
+appropriate for multi-byte encodings like UTF-8.
+
+\code
+SELECT SUBSTR('abcdef',1,2) FROM xxx   --> 'ab'
+SELECT SUBSTR('abcdef',4)   FROM xxx   --> 'def'
+SELECT SUBSTR('abcdef',-2)  FROM xxx   --> 'ef'
 \endcode
 
 \subsubsection ogr_sql_fname_alias Using the field name alias
@@ -202,7 +230,9 @@ case insensitive, but the <b>&lt;</b>, <b>&gt;</b>, <b>&lt;=</b> and <b>&gt;=</b
 
 The value argument to the <b>LIKE</b> operator is a pattern against which
 the value string is matched.  In this pattern percent (%) matches any number of
-characters, and underscore ( _ ) matches any one character.
+characters, and underscore ( _ ) matches any one character. An optional ESCAPE escape_char
+clause can be added so that the percent or underscore characters can be searched
+as regular characters, by being preceded with the escape_char.
 
 \code
     String             Pattern       Matches?
@@ -500,6 +530,39 @@ DROP INDEX ON nation USING nation_id
 DROP INDEX ON nation
 \endcode
 
+\section ogr_sql_alter_table ALTER TABLE
+
+(OGR >= 1.9.0)
+
+The following OGR SQL ALTER TABLE commands can be used.
+
+<ol>
+<li>"ALTER TABLE tablename ADD [COLUMN] columnname columntype" to add a new field. Supported if the layer declares the OLCCreateField capability.
+<li>"ALTER TABLE tablename RENAME [COLUMN] oldcolumnname TO newcolumnname" to rename an existing field. Supported if the layer declares the OLCAlterFieldDefn capability.
+<li>"ALTER TABLE tablename ALTER [COLUMN] columnname TYPE columntype" to change the type of an existing field. Supported if the layer declares the OLCAlterFieldDefn capability.
+<li>"ALTER TABLE tablename DROP [COLUMN] columnname" to delete an existing field. Supported if the layer declares the OLCDeleteField capability.
+</ol>
+
+The columntype value follows the syntax of the types supported by the CAST operator descrived above.
+
+\code
+ALTER TABLE nation ADD COLUMN myfield integer
+ALTER TABLE nation RENAME COLUMN myfield TO myfield2
+ALTER TABLE nation ALTER COLUMN myfield2 TYPE character(15)
+ALTER TABLE nation DROP COLUMN myfield2
+\endcode
+
+\section ogr_sql_drop_table DROP TABLE
+
+(OGR >= 1.9.0)
+
+The OGR SQL DROP TABLE command can be used to delete a table. This is only
+supported on datasources that declare the ODsCDeleteLayer capability.
+
+\code
+DROP TABLE nation
+\endcode
+
 \section ogr_sql_exec_sql ExecuteSQL()
 
 SQL is executed against an OGRDataSource, not against a specific layer.  The
@@ -532,8 +595,9 @@ All OGR drivers for database systems: <a href="/ogr/drv_mysql.html">MySQL</a>,
 PostgreSQL and PostGIS (<a href="/ogr/drv_pg.html">PG</a>), 
 Oracle (<a href="/ogr/drv_oci.html">OCI</a>), 
 <a href="/ogr/drv_sqlite.html">SQLite</a>, 
-<a href="/ogr/drv_odbc.html">ODBC</a> 
-and ESRI Personal Geodatabase (<a href="/ogr/drv_pgeo.html">PGeo</a>) 
+<a href="/ogr/drv_odbc.html">ODBC</a>,
+ESRI Personal Geodatabase (<a href="/ogr/drv_pgeo.html">PGeo</a>) and
+MS SQL Spatial (<a href="/ogr/drv_mssqlspatial.html">MSSQLSpatial</a>),
 override the OGRDataSource::ExecuteSQL() function with dedicated implementation 
 and, by default, pass the SQL statements directly to the underlying RDBMS. 
 In these cases the SQL syntax varies in some particulars from OGR SQL.

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: lcpdataset.cpp 20996 2010-10-28 18:38:15Z rouault $
+ * $Id: lcpdataset.cpp 23060 2011-09-05 17:58:30Z rouault $
  *
  * Project:  LCP Driver
  * Purpose:  FARSITE v.4 Landscape file (.lcp) reader for GDAL
@@ -31,7 +31,7 @@
 #include "cpl_string.h"
 #include "ogr_spatialref.h"
 
-CPL_CVSID("$Id: lcpdataset.cpp 20996 2010-10-28 18:38:15Z rouault $");
+CPL_CVSID("$Id: lcpdataset.cpp 23060 2011-09-05 17:58:30Z rouault $");
 
 CPL_C_START
 void    GDALRegister_LCP(void);
@@ -727,6 +727,11 @@ GDALDataset *LCPDataset::Open( GDALOpenInfo * poOpenInfo )
 /* -------------------------------------------------------------------- */
     poDS->SetDescription( poOpenInfo->pszFilename );
     poDS->TryLoadXML();
+
+/* -------------------------------------------------------------------- */
+/*      Check for external overviews.                                   */
+/* -------------------------------------------------------------------- */
+    poDS->oOvManager.Initialize( poDS, poOpenInfo->pszFilename, poOpenInfo->papszSiblingFiles );
 
     CPLFree(pszList);
 

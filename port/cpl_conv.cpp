@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: cpl_conv.cpp 21474 2011-01-13 00:09:06Z warmerdam $
+ * $Id: cpl_conv.cpp 23504 2011-12-09 20:43:50Z rouault $
  *
  * Project:  CPL - Common Portability Library
  * Purpose:  Convenience functions.
@@ -34,7 +34,7 @@
 #include "cpl_vsi.h"
 #include "cpl_multiproc.h"
 
-CPL_CVSID("$Id: cpl_conv.cpp 21474 2011-01-13 00:09:06Z warmerdam $");
+CPL_CVSID("$Id: cpl_conv.cpp 23504 2011-12-09 20:43:50Z rouault $");
 
 #if defined(WIN32CE)
 #  include "cpl_wince.h"
@@ -77,14 +77,8 @@ void *CPLCalloc( size_t nCount, size_t nSize )
     if( nSize * nCount == 0 )
         return NULL;
     
-    pReturn = VSICalloc( nCount, nSize );
-    if( pReturn == NULL )
-    {
-        CPLError( CE_Fatal, CPLE_OutOfMemory,
-                  "CPLCalloc(): Out of memory allocating %ld bytes.\n",
-                  (long) (nSize * nCount) );
-    }
-
+    pReturn = CPLMalloc( nCount * nSize );
+    memset( pReturn, 0, nCount * nSize );
     return pReturn;
 }
 
@@ -117,7 +111,7 @@ void *CPLMalloc( size_t nSize )
     if( nSize == 0 )
         return NULL;
 
-    if( nSize < 0 )
+    if( long(nSize) < 0 )
     {
         CPLError( CE_Failure, CPLE_AppDefined,
                   "CPLMalloc(%ld): Silly size requested.\n",
@@ -128,9 +122,19 @@ void *CPLMalloc( size_t nSize )
     pReturn = VSIMalloc( nSize );
     if( pReturn == NULL )
     {
-        CPLError( CE_Fatal, CPLE_OutOfMemory,
-                  "CPLMalloc(): Out of memory allocating %ld bytes.\n",
-                  (long) nSize );
+        if( nSize > 0 && nSize < 2000 )
+        {
+            char szSmallMsg[60];
+
+            sprintf( szSmallMsg, 
+                     "CPLMalloc(): Out of memory allocating %ld bytes.", 
+                     (long) nSize );
+            CPLEmergencyError( szSmallMsg ); 
+        }
+        else
+            CPLError( CE_Fatal, CPLE_OutOfMemory,
+                      "CPLMalloc(): Out of memory allocating %ld bytes.\n",
+                      (long) nSize );
     }
 
     return pReturn;
@@ -171,7 +175,7 @@ void * CPLRealloc( void * pData, size_t nNewSize )
         return NULL;
     }
 
-    if( nNewSize < 0 )
+    if( long(nNewSize) < 0 )
     {
         CPLError( CE_Failure, CPLE_AppDefined,
                   "CPLRealloc(%ld): Silly size requested.\n",
@@ -186,9 +190,19 @@ void * CPLRealloc( void * pData, size_t nNewSize )
     
     if( pReturn == NULL )
     {
-        CPLError( CE_Fatal, CPLE_OutOfMemory,
-                  "CPLRealloc(): Out of memory allocating %ld bytes.\n",
-                  (long)nNewSize );
+        if( nNewSize > 0 && nNewSize < 2000 )
+        {
+            char szSmallMsg[60];
+
+            sprintf( szSmallMsg, 
+                     "CPLRealloc(): Out of memory allocating %ld bytes.", 
+                     (long) nNewSize );
+            CPLEmergencyError( szSmallMsg ); 
+        }
+        else
+            CPLError( CE_Fatal, CPLE_OutOfMemory,
+                      "CPLRealloc(): Out of memory allocating %ld bytes.\n",
+                      (long) nNewSize );
     }
 
     return pReturn;
@@ -224,8 +238,7 @@ char *CPLStrdup( const char * pszString )
     if( pszString == NULL )
         pszString = "";
 
-    pszReturn = VSIStrdup( pszString );
-        
+    pszReturn = (char *) CPLMalloc(strlen(pszString)+1);
     if( pszReturn == NULL )
     {
         CPLError( CE_Fatal, CPLE_OutOfMemory,
@@ -233,7 +246,8 @@ char *CPLStrdup( const char * pszString )
                   (long) strlen(pszString) );
         
     }
-    
+
+    strcpy( pszReturn, pszString );
     return( pszReturn );
 }
 
@@ -394,6 +408,9 @@ char *CPLFGets( char *pszBuffer, int nBufferSize, FILE * fp )
 /*      Fetch readline buffer, and ensure it is the desired size,       */
 /*      reallocating if needed.  Manages TLS (thread local storage)     */
 /*      issues for the buffer.                                          */
+/*      We use a special trick to track the actual size of the buffer   */
+/*      The first 4 bytes are reserved to store it as a int, hence the  */
+/*      -4 / +4 hacks with the size and pointer.                        */
 /************************************************************************/
 static char *CPLReadLineBuffer( int nRequiredSize )
 
@@ -427,15 +444,26 @@ static char *CPLReadLineBuffer( int nRequiredSize )
 /* -------------------------------------------------------------------- */
 /*      If it is too small, grow it bigger.                             */
 /* -------------------------------------------------------------------- */
-    if( (int) *pnAlloc < nRequiredSize+1 )
+    if( ((int) *pnAlloc) -1 < nRequiredSize )
     {
         int nNewSize = nRequiredSize + 4 + 500;
+        if (nNewSize <= 0)
+        {
+            VSIFree( pnAlloc );
+            CPLSetTLS( CTLS_RLBUFFERINFO, NULL, FALSE );
+            CPLError( CE_Failure, CPLE_OutOfMemory,
+                      "CPLReadLineBuffer(): Trying to allocate more than 2 GB." );
+            return NULL;
+        }
 
         GUInt32* pnAllocNew = (GUInt32 *) VSIRealloc(pnAlloc,nNewSize);
         if( pnAllocNew == NULL )
         {
             VSIFree( pnAlloc );
             CPLSetTLS( CTLS_RLBUFFERINFO, NULL, FALSE );
+            CPLError( CE_Failure, CPLE_OutOfMemory,
+                      "CPLReadLineBuffer(): Out of memory allocating %ld bytes.",
+                      (long) nNewSize );
             return NULL;
         }
         pnAlloc = pnAllocNew;
@@ -591,7 +619,17 @@ const char *CPLReadLine2L( VSILFILE * fp, int nMaxCars, char** papszOptions )
 /* -------------------------------------------------------------------- */
 /*      Read a chunk from the input file.                               */
 /* -------------------------------------------------------------------- */
+        if ( nBufLength > INT_MAX - nChunkSize - 1 )
+        {
+            CPLError( CE_Failure, CPLE_AppDefined,
+                      "Too big line : more than 2 billion characters!." );
+            CPLReadLineBuffer( -1 );
+            return NULL;
+        }
+
         pszRLBuffer = CPLReadLineBuffer( nBufLength + nChunkSize + 1 );
+        if( pszRLBuffer == NULL )
+            return NULL;
 
         if( nChunkBytesRead == nChunkBytesConsumed + 1 )
         {
@@ -1391,6 +1429,69 @@ void CPLVerifyConfiguration()
                   "CPLVerifyConfiguration(): byte order set wrong.\n" );
 }
 
+/* Uncomment to get list of options that have been fetched and set */
+//#define DEBUG_CONFIG_OPTIONS
+
+#ifdef DEBUG_CONFIG_OPTIONS
+
+#include <set>
+#include "cpl_multiproc.h"
+
+static void* hRegisterConfigurationOptionMutex = 0;
+static std::set<CPLString>* paoGetKeys = NULL;
+static std::set<CPLString>* paoSetKeys = NULL;
+
+/************************************************************************/
+/*                      CPLShowAccessedOptions()                        */
+/************************************************************************/
+
+static void CPLShowAccessedOptions()
+{
+    std::set<CPLString>::iterator aoIter;
+
+    printf("Configuration options accessed in reading : "),
+    aoIter = paoGetKeys->begin();
+    while(aoIter != paoGetKeys->end())
+    {
+        printf("%s, ", (*aoIter).c_str());
+        aoIter ++;
+    }
+    printf("\n");
+
+    printf("Configuration options accessed in writing : "),
+    aoIter = paoSetKeys->begin();
+    while(aoIter != paoSetKeys->end())
+    {
+        printf("%s, ", (*aoIter).c_str());
+        aoIter ++;
+    }
+    printf("\n");
+
+    delete paoGetKeys;
+    delete paoSetKeys;
+    paoGetKeys = paoSetKeys = NULL;
+}
+
+/************************************************************************/
+/*                       CPLAccessConfigOption()                        */
+/************************************************************************/
+
+static void CPLAccessConfigOption(const char* pszKey, int bGet)
+{
+    CPLMutexHolderD(&hRegisterConfigurationOptionMutex);
+    if (paoGetKeys == NULL)
+    {
+        paoGetKeys = new std::set<CPLString>;
+        paoSetKeys = new std::set<CPLString>;
+        atexit(CPLShowAccessedOptions);
+    }
+    if (bGet)
+        paoGetKeys->insert(pszKey);
+    else
+        paoSetKeys->insert(pszKey);
+}
+#endif
+
 /************************************************************************/
 /*                         CPLGetConfigOption()                         */
 /************************************************************************/
@@ -1412,6 +1513,10 @@ const char * CPL_STDCALL
 CPLGetConfigOption( const char *pszKey, const char *pszDefault )
 
 {
+#ifdef DEBUG_CONFIG_OPTIONS
+    CPLAccessConfigOption(pszKey, TRUE);
+#endif
+
     const char *pszResult = NULL;
 
     char **papszTLConfigOptions = (char **) CPLGetTLS( CTLS_CONFIGOPTIONS );
@@ -1458,7 +1563,7 @@ CPLGetConfigOption( const char *pszKey, const char *pszDefault )
   * ogrinfo --config CPL_DEBUG ON ~/data/test/point.shp
   *
   * @param pszKey the key of the option
-  * @param pszValue the value of the option
+  * @param pszValue the value of the option, or NULL to clear a setting.
   * 
   * @see http://trac.osgeo.org/gdal/wiki/ConfigOptions
   */
@@ -1466,6 +1571,9 @@ void CPL_STDCALL
 CPLSetConfigOption( const char *pszKey, const char *pszValue )
 
 {
+#ifdef DEBUG_CONFIG_OPTIONS
+    CPLAccessConfigOption(pszKey, FALSE);
+#endif
     CPLMutexHolderD( &hConfigMutex );
 
     papszConfigOptions = (volatile char **) 
@@ -1487,13 +1595,17 @@ CPLSetConfigOption( const char *pszKey, const char *pszValue )
   * that applies on all threads.
   *
   * @param pszKey the key of the option
-  * @param pszValue the value of the option
+  * @param pszValue the value of the option, or NULL to clear a setting.
   */
 
 void CPL_STDCALL 
 CPLSetThreadLocalConfigOption( const char *pszKey, const char *pszValue )
 
 {
+#ifdef DEBUG_CONFIG_OPTIONS
+    CPLAccessConfigOption(pszKey, FALSE);
+#endif
+
     char **papszTLConfigOptions = (char **) CPLGetTLS( CTLS_CONFIGOPTIONS );
 
     papszTLConfigOptions = 
@@ -1509,17 +1621,21 @@ CPLSetThreadLocalConfigOption( const char *pszKey, const char *pszValue )
 void CPL_STDCALL CPLFreeConfig()
 
 {
-    CPLMutexHolderD( &hConfigMutex );
-
-    CSLDestroy( (char **) papszConfigOptions);
-    papszConfigOptions = NULL;
-
-    char **papszTLConfigOptions = (char **) CPLGetTLS( CTLS_CONFIGOPTIONS );
-    if( papszTLConfigOptions != NULL )
     {
-        CSLDestroy( papszTLConfigOptions );
-        CPLSetTLS( CTLS_CONFIGOPTIONS, NULL, FALSE );
+        CPLMutexHolderD( &hConfigMutex );
+
+        CSLDestroy( (char **) papszConfigOptions);
+        papszConfigOptions = NULL;
+        
+        char **papszTLConfigOptions = (char **) CPLGetTLS( CTLS_CONFIGOPTIONS );
+        if( papszTLConfigOptions != NULL )
+        {
+            CSLDestroy( papszTLConfigOptions );
+            CPLSetTLS( CTLS_CONFIGOPTIONS, NULL, FALSE );
+        }
     }
+    CPLDestroyMutex( hConfigMutex );
+    hConfigMutex = NULL;
 }
 
 /************************************************************************/
@@ -1805,7 +1921,7 @@ void CPL_DLL CPLStringToComplex( const char *pszString,
     while( *pszString == ' ' )
         pszString++;
 
-    *pdfReal = atof(pszString);
+    *pdfReal = CPLAtof(pszString);
     *pdfImag = 0.0;
 
     for( i = 0; pszString[i] != '\0' && pszString[i] != ' ' && i < 100; i++ )
@@ -1820,7 +1936,7 @@ void CPL_DLL CPLStringToComplex( const char *pszString,
 
     if( iPlus > -1 && iImagEnd > -1 && iPlus < iImagEnd )
     {
-        *pdfImag = atof(pszString + iPlus);
+        *pdfImag = CPLAtof(pszString + iPlus);
     }
 
     return;
@@ -2171,7 +2287,7 @@ int CPLCopyFile( const char *pszNewPath, const char *pszOldPath )
 /* -------------------------------------------------------------------- */
     do { 
         nBytesRead = VSIFReadL( pabyBuffer, 1, nBufferSize, fpOld );
-        if( nBytesRead < 0 )
+        if( long(nBytesRead) < 0 )
             nRet = -1;
 
         if( nRet == 0
@@ -2223,7 +2339,10 @@ int CPLMoveFile( const char *pszNewPath, const char *pszOldPath )
 CPLLocaleC::CPLLocaleC() : pszOldLocale(CPLStrdup(setlocale(LC_NUMERIC,NULL)))
 
 {
-    if( setlocale(LC_NUMERIC,"C") == NULL )
+    if( CSLTestBoolean(CPLGetConfigOption("GDAL_DISABLE_CPLLOCALEC","NO"))
+        || EQUAL(pszOldLocale,"C")
+        || EQUAL(pszOldLocale,"POSIX")
+        || setlocale(LC_NUMERIC,"C") == NULL )
     {
         CPLFree( pszOldLocale );
         pszOldLocale = NULL;

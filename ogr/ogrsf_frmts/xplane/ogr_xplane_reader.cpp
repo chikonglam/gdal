@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_xplane_reader.cpp 18548 2010-01-14 22:01:35Z rouault $
+ * $Id: ogr_xplane_reader.cpp 21634 2011-02-06 14:45:00Z rouault $
  *
  * Project:  X-Plane aeronautical data reader
  * Purpose:  Definition of classes for OGR X-Plane aeronautical data driver.
@@ -27,9 +27,11 @@
  * DEALINGS IN THE SOFTWARE.
  ****************************************************************************/
 
+#include "cpl_vsi_virtual.h"
+
 #include "ogr_xplane_reader.h"
 
-CPL_CVSID("$Id: ogr_xplane_reader.cpp 18548 2010-01-14 22:01:35Z rouault $");
+CPL_CVSID("$Id: ogr_xplane_reader.cpp 21634 2011-02-06 14:45:00Z rouault $");
 
 /***********************************************************************/
 /*                       OGRXPlaneReader()                             */
@@ -59,7 +61,7 @@ OGRXPlaneReader::~OGRXPlaneReader()
     papszTokens = NULL;
 
     if (fp != NULL)
-        VSIFClose(fp);
+        VSIFCloseL(fp);
     fp = NULL;
 }
 
@@ -69,23 +71,25 @@ OGRXPlaneReader::~OGRXPlaneReader()
 
 int OGRXPlaneReader::StartParsing( const char * pszFilename )
 {
-    fp = VSIFOpen( pszFilename, "rt" );
+    fp = VSIFOpenL( pszFilename, "rb" );
     if (fp == NULL)
         return FALSE;
 
-    const char* pszLine = CPLReadLine(fp);
+    fp = (VSILFILE*) VSICreateBufferedReaderHandle ( (VSIVirtualHandle*) fp );
+
+    const char* pszLine = CPLReadLineL(fp);
     if (!pszLine || (strcmp(pszLine, "I") != 0 &&
                      strcmp(pszLine, "A") != 0))
     {
-        VSIFClose(fp);
+        VSIFCloseL(fp);
         fp = NULL;
         return FALSE;
     }
 
-    pszLine = CPLReadLine(fp);
+    pszLine = CPLReadLineL(fp);
     if (!pszLine || IsRecognizedVersion(pszLine) == FALSE)
     {
-        VSIFClose(fp);
+        VSIFCloseL(fp);
         fp = NULL;
         return FALSE;
     }
@@ -109,9 +113,9 @@ void OGRXPlaneReader::Rewind()
 {
     if (fp != NULL)
     {
-        VSIRewind(fp);
-        CPLReadLine(fp);
-        CPLReadLine(fp);
+        VSIRewindL(fp);
+        CPLReadLineL(fp);
+        CPLReadLineL(fp);
 
         nLineNumber = 2;
 

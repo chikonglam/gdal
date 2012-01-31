@@ -1,5 +1,5 @@
 /**********************************************************************
- * $Id: gmlhandler.cpp 21390 2011-01-03 22:43:07Z rouault $
+ * $Id: gmlhandler.cpp 23566 2011-12-13 20:51:04Z rouault $
  *
  * Project:  GML Reader
  * Purpose:  Implementation of GMLHandler class.
@@ -31,8 +31,9 @@
 #include "gmlreaderp.h"
 #include "cpl_conv.h"
 #include "cpl_string.h"
+#include "cpl_hash_set.h"
 
-#if HAVE_XERCES == 1
+#ifdef HAVE_XERCES
 
 /* Must be a multiple of 4 */
 #define MAX_TOKEN_SIZE  1000
@@ -78,7 +79,7 @@ void GMLXercesHandler::startElement(const XMLCh* const    uri,
     else
         tr_strcpy( szElementName, localname );
 
-    if (GMLHandler::startElement(szElementName, (void*) &attrs) == CE_Failure)
+    if (GMLHandler::startElement(szElementName, strlen(szElementName), (void*) &attrs) == OGRERR_NOT_ENOUGH_MEMORY)
     {
         throw SAXNotSupportedException("Out of memory");
     }
@@ -92,65 +93,36 @@ void GMLXercesHandler::endElement(const   XMLCh* const    uri,
                                   const   XMLCh* const    qname )
 
 {
-    char        szElementName[MAX_TOKEN_SIZE];
-
     m_nEntityCounter = 0;
 
-    /* A XMLCh character can expand to 4 bytes in UTF-8 */
-    if (4 * tr_strlen( localname ) >= MAX_TOKEN_SIZE)
-    {
-        XMLCh* tempBuffer = (XMLCh*) CPLMalloc(sizeof(XMLCh) * (MAX_TOKEN_SIZE / 4 + 1));
-        memcpy(tempBuffer, localname, sizeof(XMLCh) * (MAX_TOKEN_SIZE / 4));
-        tempBuffer[MAX_TOKEN_SIZE / 4] = 0;
-        tr_strcpy( szElementName, tempBuffer );
-        CPLFree(tempBuffer);
-    }
-    else
-        tr_strcpy( szElementName, localname );
-
-    if (GMLHandler::endElement(szElementName) == CE_Failure)
+    if (GMLHandler::endElement() == OGRERR_NOT_ENOUGH_MEMORY)
     {
         throw SAXNotSupportedException("Out of memory");
     }
 }
 
+/************************************************************************/
+/*                             characters()                             */
+/************************************************************************/
+
+void GMLXercesHandler::characters(const XMLCh* const chars_in,
 #if XERCES_VERSION_MAJOR >= 3
-/************************************************************************/
-/*                             characters() (xerces 3 version)          */
-/************************************************************************/
-
-void GMLXercesHandler::characters(const XMLCh* const chars_in,
-                                  const XMLSize_t length )
-{
-    char* utf8String = tr_strdup(chars_in);
-    int nLen = strlen(utf8String);
-    OGRErr eErr = GMLHandler::dataHandler(utf8String, nLen);
-    CPLFree(utf8String);
-    if (eErr == CE_Failure)
-    {
-        throw SAXNotSupportedException("Out of memory");
-    }
-}
-
+                                  const XMLSize_t length
 #else
-/************************************************************************/
-/*                             characters() (xerces 2 version)          */
-/************************************************************************/
-
-void GMLXercesHandler::characters(const XMLCh* const chars_in,
-                                  const unsigned int length )
+                                  const unsigned int length
+#endif
+                                  )
 
 {
     char* utf8String = tr_strdup(chars_in);
     int nLen = strlen(utf8String);
     OGRErr eErr = GMLHandler::dataHandler(utf8String, nLen);
     CPLFree(utf8String);
-    if (eErr == CE_Failure)
+    if (eErr == OGRERR_NOT_ENOUGH_MEMORY)
     {
         throw SAXNotSupportedException("Out of memory");
     }
 }
-#endif
 
 /************************************************************************/
 /*                             fatalError()                             */
@@ -186,7 +158,7 @@ void GMLXercesHandler::startEntity (const XMLCh *const name)
 /*                               GetFID()                               */
 /************************************************************************/
 
-char* GMLXercesHandler::GetFID(void* attr)
+const char* GMLXercesHandler::GetFID(void* attr)
 {
     const Attributes* attrs = (const Attributes*) attr;
     int nFIDIndex;
@@ -195,41 +167,58 @@ char* GMLXercesHandler::GetFID(void* attr)
     tr_strcpy( anFID, "fid" );
     nFIDIndex = attrs->getIndex( anFID );
     if( nFIDIndex != -1 )
-        return tr_strdup( attrs->getValue( nFIDIndex ) );
+    {
+        char* pszValue = tr_strdup( attrs->getValue( nFIDIndex ) );
+        osFID.assign(pszValue);
+        CPLFree(pszValue);
+        return osFID.c_str();
+    }
     else
     {
         tr_strcpy( anFID, "gml:id" );
         nFIDIndex = attrs->getIndex( anFID );
         if( nFIDIndex != -1 )
-            return tr_strdup( attrs->getValue( nFIDIndex ) );
+        {
+            char* pszValue = tr_strdup( attrs->getValue( nFIDIndex ) );
+            osFID.assign(pszValue);
+            CPLFree(pszValue);
+            return osFID.c_str();
+        }
     }
 
+    osFID.resize(0);
     return NULL;
 }
 
 /************************************************************************/
-/*                        GetAttributes()                               */
+/*                        AddAttributes()                               */
 /************************************************************************/
 
-char* GMLXercesHandler::GetAttributes(void* attr)
+CPLXMLNode* GMLXercesHandler::AddAttributes(CPLXMLNode* psNode, void* attr)
 {
     const Attributes* attrs = (const Attributes*) attr;
-    CPLString osRes;
-    char *pszString;
+
+    CPLXMLNode* psLastChild = NULL;
 
     for(unsigned int i=0; i < attrs->getLength(); i++)
     {
-        osRes += " ";
-        pszString = tr_strdup(attrs->getQName(i));
-        osRes += pszString;
-        CPLFree( pszString );
-        osRes += "=\"";
-        pszString = tr_strdup(attrs->getValue(i));
-        osRes += pszString;
-        CPLFree( pszString );
-        osRes += "\"";
+        char* pszName = tr_strdup(attrs->getQName(i));
+        char* pszValue = tr_strdup(attrs->getValue(i));
+
+        CPLXMLNode* psChild = CPLCreateXMLNode(NULL, CXT_Attribute, pszName);
+        CPLCreateXMLNode(psChild, CXT_Text, pszValue);
+
+        CPLFree(pszName);
+        CPLFree(pszValue);
+
+        if (psLastChild == NULL)
+            psNode->psChild = psChild;
+        else
+            psLastChild->psNext = psChild;
+        psLastChild = psChild;
     }
-    return CPLStrdup(osRes);
+
+    return psLastChild;
 }
 
 /************************************************************************/
@@ -252,8 +241,9 @@ char* GMLXercesHandler::GetAttributeValue(void* attr, const char* pszAttributeNa
     return NULL;
 }
 
-#else
+#endif
 
+#ifdef HAVE_EXPAT
 
 /************************************************************************/
 /*                            GMLExpatHandler()                         */
@@ -268,105 +258,102 @@ GMLExpatHandler::GMLExpatHandler( GMLReader *poReader, XML_Parser oParser ) : GM
 }
 
 /************************************************************************/
-/*                            startElement()                            */
+/*                           startElementCbk()                          */
 /************************************************************************/
 
-OGRErr GMLExpatHandler::startElement(const char *pszName, void* attr )
+void XMLCALL GMLExpatHandler::startElementCbk(void *pUserData, const char *pszName,
+                                              const char **ppszAttr)
 
 {
-    if (m_bStopParsing)
-        return CE_Failure;
+    GMLExpatHandler* pThis = ((GMLExpatHandler*)pUserData);
+    if (pThis->m_bStopParsing)
+        return;
 
-    const char* pszColon = strchr(pszName, ':');
-    if (pszColon)
-        pszName = pszColon + 1;
-
-    if (GMLHandler::startElement(pszName, attr) == CE_Failure)
+    const char* pszIter = pszName;
+    char ch;
+    while((ch = *pszIter) != '\0')
     {
-        CPLError(CE_Failure, CPLE_OutOfMemory, "Out of memory");
-        m_bStopParsing = TRUE;
-        XML_StopParser(m_oParser, XML_FALSE);
-        return CE_Failure;
+        if (ch == ':')
+            pszName = pszIter + 1;
+        pszIter ++;
     }
 
-    return CE_None;
+    if (pThis->GMLHandler::startElement(pszName, (int)(pszIter - pszName), ppszAttr) == OGRERR_NOT_ENOUGH_MEMORY)
+    {
+        CPLError(CE_Failure, CPLE_OutOfMemory, "Out of memory");
+        pThis->m_bStopParsing = TRUE;
+        XML_StopParser(pThis->m_oParser, XML_FALSE);
+    }
+
 }
 
 /************************************************************************/
-/*                             endElement()                             */
+/*                            endElementCbk()                           */
 /************************************************************************/
-OGRErr GMLExpatHandler::endElement(const char* pszName )
+void XMLCALL GMLExpatHandler::endElementCbk(void *pUserData, const char* pszName )
 
 {
-    if (m_bStopParsing)
-        return CE_Failure;
+    GMLExpatHandler* pThis = ((GMLExpatHandler*)pUserData);
+    if (pThis->m_bStopParsing)
+        return;
 
-    const char* pszColon = strchr(pszName, ':');
-    if (pszColon)
-        pszName = pszColon + 1;
-
-    if (GMLHandler::endElement(pszName) == CE_Failure)
+    if (pThis->GMLHandler::endElement() == OGRERR_NOT_ENOUGH_MEMORY)
     {
         CPLError(CE_Failure, CPLE_OutOfMemory, "Out of memory");
-        m_bStopParsing = TRUE;
-        XML_StopParser(m_oParser, XML_FALSE);
-        return CE_Failure;
+        pThis->m_bStopParsing = TRUE;
+        XML_StopParser(pThis->m_oParser, XML_FALSE);
     }
-
-    return CE_None;
 }
 
 /************************************************************************/
-/*                             characters()                             */
+/*                            dataHandlerCbk()                          */
 /************************************************************************/
 
-OGRErr GMLExpatHandler::dataHandler(const char *data, int nLen)
+void XMLCALL GMLExpatHandler::dataHandlerCbk(void *pUserData, const char *data, int nLen)
 
 {
-    if (m_bStopParsing)
-        return CE_Failure;
+    GMLExpatHandler* pThis = ((GMLExpatHandler*)pUserData);
+    if (pThis->m_bStopParsing)
+        return;
 
-    m_nDataHandlerCounter ++;
-    if (m_nDataHandlerCounter >= BUFSIZ)
+    pThis->m_nDataHandlerCounter ++;
+    /* The size of the buffer that is fetched and that Expat parses is */
+    /* PARSER_BUF_SIZE bytes. If the dataHandlerCbk() callback is called */
+    /* more than PARSER_BUF_SIZE times, this means that one byte in the */
+    /* file expands to more XML text fragments, which is the sign of a */
+    /* likely abuse of <!ENTITY> */
+    /* Note: the counter is zeroed by ResetDataHandlerCounter() before each */
+    /* new XML parsing. */
+    if (pThis->m_nDataHandlerCounter >= PARSER_BUF_SIZE)
     {
         CPLError(CE_Failure, CPLE_AppDefined, "File probably corrupted (million laugh pattern)");
-        m_bStopParsing = TRUE;
-        XML_StopParser(m_oParser, XML_FALSE);
-        return CE_Failure;
+        pThis->m_bStopParsing = TRUE;
+        XML_StopParser(pThis->m_oParser, XML_FALSE);
+        return;
     }
 
-    if (GMLHandler::dataHandler(data, nLen) == CE_Failure)
+    if (pThis->GMLHandler::dataHandler(data, nLen) == OGRERR_NOT_ENOUGH_MEMORY)
     {
         CPLError(CE_Failure, CPLE_OutOfMemory, "Out of memory");
-        m_bStopParsing = TRUE;
-        XML_StopParser(m_oParser, XML_FALSE);
-        return CE_Failure;
+        pThis->m_bStopParsing = TRUE;
+        XML_StopParser(pThis->m_oParser, XML_FALSE);
+        return;
     }
-
-    return CE_None;
 }
 
 /************************************************************************/
 /*                               GetFID()                               */
 /************************************************************************/
 
-char* GMLExpatHandler::GetFID(void* attr)
+const char* GMLExpatHandler::GetFID(void* attr)
 {
     const char** papszIter = (const char** )attr;
     while(*papszIter)
     {
-        if (strcmp(*papszIter, "fid") == 0)
+        if (strcmp(*papszIter, "fid") == 0 ||
+            strcmp(*papszIter, "gml:id") == 0)
         {
-            return CPLStrdup(papszIter[1]);
-        }
-        papszIter += 2;
-    }
-    papszIter = (const char** )attr;
-    while(*papszIter)
-    {
-        if (strcmp(*papszIter, "gml:id") == 0)
-        {
-            return CPLStrdup(papszIter[1]);
+            return papszIter[1];
         }
         papszIter += 2;
     }
@@ -374,24 +361,30 @@ char* GMLExpatHandler::GetFID(void* attr)
 }
 
 /************************************************************************/
-/*                        GetAttributes()                               */
+/*                        AddAttributes()                               */
 /************************************************************************/
 
-char* GMLExpatHandler::GetAttributes(void* attr)
+CPLXMLNode* GMLExpatHandler::AddAttributes(CPLXMLNode* psNode, void* attr)
 {
     const char** papszIter = (const char** )attr;
-    CPLString osRes;
+
+    CPLXMLNode* psLastChild = NULL;
+
     while(*papszIter)
     {
-        osRes += " ";
-        osRes += *papszIter;
-        osRes += "=\"";
-        osRes += papszIter[1];
-        osRes += "\"";
+        CPLXMLNode* psChild = CPLCreateXMLNode(NULL, CXT_Attribute, papszIter[0]);
+        CPLCreateXMLNode(psChild, CXT_Text, papszIter[1]);
+
+        if (psLastChild == NULL)
+            psNode->psChild = psChild;
+        else
+            psLastChild->psNext = psChild;
+        psLastChild = psChild;
 
         papszIter += 2;
     }
-    return CPLStrdup( osRes );
+
+    return psLastChild;
 }
 
 /************************************************************************/
@@ -415,6 +408,49 @@ char* GMLExpatHandler::GetAttributeValue(void* attr, const char* pszAttributeNam
 #endif
 
 
+static const char* const apszGMLGeometryElements[] =
+{
+    "CompositeSurface",
+    "Curve",
+    "GeometryCollection", /* OGR < 1.8.0 bug... */
+    "LineString",
+    "MultiCurve",
+    "MultiGeometry",
+    "MultiLineString",
+    "MultiPoint",
+    "MultiPolygon",
+    "MultiSurface",
+    "Point",
+    "Polygon",
+    "PolygonPatch",
+    "Solid",
+    "Surface",
+    "TopoCurve",
+    "TopoSurface"
+};
+
+#define GML_GEOMETRY_TYPE_COUNT  \
+    (int)(sizeof(apszGMLGeometryElements) / sizeof(apszGMLGeometryElements[0]))
+
+struct _GeometryNamesStruct {
+    unsigned long nHash;
+    const char   *pszName;
+} ;
+
+/************************************************************************/
+/*                    GMLHandlerSortGeometryElements()                  */
+/************************************************************************/
+
+static int GMLHandlerSortGeometryElements(const void *_pA, const void *_pB)
+{
+    GeometryNamesStruct* pA = (GeometryNamesStruct*)_pA;
+    GeometryNamesStruct* pB = (GeometryNamesStruct*)_pB;
+    CPLAssert(pA->nHash != pB->nHash);
+    if (pA->nHash < pB->nHash)
+        return -1;
+    else
+        return 1;
+}
 
 /************************************************************************/
 /*                            GMLHandler()                              */
@@ -424,15 +460,20 @@ GMLHandler::GMLHandler( GMLReader *poReader )
 
 {
     m_poReader = poReader;
+    m_bInCurField = FALSE;
+    m_nCurFieldAlloc = 0;
+    m_nCurFieldLen = 0;
     m_pszCurField = NULL;
+    m_nAttributeIndex = -1;
+    m_nAttributeDepth = 0;
+
     m_pszGeometry = NULL;
-    m_nGeomAlloc = m_nGeomLen = 0;
-    m_nDepthFeature = m_nDepth = 0;
-    m_bIgnoreFeature = FALSE;
+    m_nGeomAlloc = 0;
+    m_nGeomLen = 0;
     m_nGeometryDepth = 0;
-    m_bInBoundedBy = FALSE;
+
+    m_nDepthFeature = m_nDepth = 0;
     m_inBoundedByDepth = 0;
-    m_bInCityGMLGenericAttr = FALSE;
     m_pszCityGMLGenericAttrName = NULL;
     m_inCityGMLGenericAttrDepth = 0;
     m_bIsCityGML = FALSE;
@@ -441,6 +482,21 @@ GMLHandler::GMLHandler( GMLReader *poReader )
     m_pszHref = NULL;
     m_pszUom = NULL;
     m_pszValue = NULL;
+
+    pasGeometryNames = (GeometryNamesStruct*)CPLMalloc(
+        GML_GEOMETRY_TYPE_COUNT * sizeof(GeometryNamesStruct));
+    for(int i=0; i<GML_GEOMETRY_TYPE_COUNT; i++)
+    {
+        pasGeometryNames[i].pszName = apszGMLGeometryElements[i];
+        pasGeometryNames[i].nHash =
+                    CPLHashSetHashStr(pasGeometryNames[i].pszName);
+    }
+    qsort(pasGeometryNames, GML_GEOMETRY_TYPE_COUNT,
+          sizeof(GeometryNamesStruct),
+          GMLHandlerSortGeometryElements);
+
+    nStackDepth = 0;
+    stateStack[0] = STATE_TOP;
 }
 
 /************************************************************************/
@@ -450,222 +506,285 @@ GMLHandler::GMLHandler( GMLReader *poReader )
 GMLHandler::~GMLHandler()
 
 {
+    if (apsXMLNode.size() >= 2 && apsXMLNode[1].psNode != NULL)
+        CPLDestroyXMLNode(apsXMLNode[1].psNode);
+
     CPLFree( m_pszCurField );
     CPLFree( m_pszGeometry );
     CPLFree( m_pszCityGMLGenericAttrName );
     CPLFree( m_pszHref );
     CPLFree( m_pszUom );
     CPLFree( m_pszValue );
+    CPLFree( pasGeometryNames );
 }
 
 
 /************************************************************************/
-/*                            startElement()                            */
+/*                             startElement()                           */
 /************************************************************************/
 
-OGRErr GMLHandler::startElement(const char *pszName, void* attr )
-
+OGRErr GMLHandler::startElement(const char *pszName, int nLenName, void* attr)
 {
+    OGRErr eRet;
+    switch(stateStack[nStackDepth])
+    {
+        case STATE_TOP:                 eRet = startElementTop(pszName, nLenName, attr); break;
+        case STATE_DEFAULT:             eRet = startElementDefault(pszName, nLenName, attr); break;
+        case STATE_FEATURE:             eRet = startElementFeatureAttribute(pszName, nLenName, attr); break;
+        case STATE_PROPERTY:            eRet = startElementFeatureAttribute(pszName, nLenName, attr); break;
+        case STATE_GEOMETRY:            eRet = startElementGeometry(pszName, nLenName, attr); break;
+        case STATE_IGNORED_FEATURE:     eRet = OGRERR_NONE; break;
+        case STATE_BOUNDED_BY:          eRet = startElementBoundedBy(pszName, nLenName, attr); break;
+        case STATE_CITYGML_ATTRIBUTE:   eRet = startElementCityGMLGenericAttr(pszName, nLenName, attr); break;
+        default:                        eRet = OGRERR_NONE; break;
+    }
+    m_nDepth++;
+    return eRet;
+}
+
+/************************************************************************/
+/*                              endElement()                            */
+/************************************************************************/
+
+OGRErr GMLHandler::endElement()
+{
+    m_nDepth--;
+    switch(stateStack[nStackDepth])
+    {
+        case STATE_TOP:                 return OGRERR_NONE; break;
+        case STATE_DEFAULT:             return endElementDefault(); break;
+        case STATE_FEATURE:             return endElementFeature(); break;
+        case STATE_PROPERTY:            return endElementAttribute(); break;
+        case STATE_GEOMETRY:            return endElementGeometry(); break;
+        case STATE_IGNORED_FEATURE:     return endElementIgnoredFeature(); break;
+        case STATE_BOUNDED_BY:          return endElementBoundedBy(); break;
+        case STATE_CITYGML_ATTRIBUTE:   return endElementCityGMLGenericAttr(); break;
+        default:                        return OGRERR_NONE; break;
+    }
+}
+
+/************************************************************************/
+/*                              dataHandler()                           */
+/************************************************************************/
+
+OGRErr GMLHandler::dataHandler(const char *data, int nLen)
+{
+    switch(stateStack[nStackDepth])
+    {
+        case STATE_TOP:                 return OGRERR_NONE; break;
+        case STATE_DEFAULT:             return OGRERR_NONE; break;
+        case STATE_FEATURE:             return OGRERR_NONE; break;
+        case STATE_PROPERTY:            return dataHandlerAttribute(data, nLen); break;
+        case STATE_GEOMETRY:            return dataHandlerGeometry(data, nLen); break;
+        case STATE_IGNORED_FEATURE:     return OGRERR_NONE; break;
+        case STATE_BOUNDED_BY:          return OGRERR_NONE; break;
+        case STATE_CITYGML_ATTRIBUTE:   return dataHandlerAttribute(data, nLen); break;
+        default:                        return OGRERR_NONE; break;
+    }
+}
+
+#define PUSH_STATE(val) do { nStackDepth ++; CPLAssert(nStackDepth < STACK_SIZE); stateStack[nStackDepth] = val; } while(0)
+#define POP_STATE()     nStackDepth --
+
+/************************************************************************/
+/*                       startElementBoundedBy()                        */
+/************************************************************************/
+
+OGRErr GMLHandler::startElementBoundedBy(const char *pszName, int nLenName, void* attr )
+{
+    if ( m_nDepth == 2 && strcmp(pszName, "Envelope") == 0 )
+    {
+        char* pszGlobalSRSName = GetAttributeValue(attr, "srsName");
+        m_poReader->SetGlobalSRSName(pszGlobalSRSName);
+        CPLFree(pszGlobalSRSName);
+    }
+
+    return OGRERR_NONE;
+}
+
+/************************************************************************/
+/*                       startElementGeometry()                         */
+/************************************************************************/
+
+OGRErr GMLHandler::startElementGeometry(const char *pszName, int nLenName, void* attr )
+{
+    if( nLenName == 9 && strcmp(pszName, "boundedBy") == 0 )
+    {
+        m_inBoundedByDepth = m_nDepth;
+
+        PUSH_STATE(STATE_BOUNDED_BY);
+
+        return OGRERR_NONE;
+    }
+
+    /* Create new XML Element */
+    CPLXMLNode* psCurNode = (CPLXMLNode *) CPLCalloc(sizeof(CPLXMLNode),1);
+    psCurNode->eType = CXT_Element;
+    psCurNode->pszValue = (char*) CPLMalloc( nLenName+1 );
+    memcpy(psCurNode->pszValue, pszName, nLenName+1);
+
+    /* Attach element as the last child of its parent */
+    NodeLastChild& sNodeLastChild = apsXMLNode[apsXMLNode.size()-1];
+    CPLXMLNode* psLastChildParent = sNodeLastChild.psLastChild;
+
+    if (psLastChildParent == NULL)
+    {
+        CPLXMLNode* psParent = sNodeLastChild.psNode;
+        if (psParent)
+            psParent->psChild = psCurNode;
+    }
+    else
+    {
+        psLastChildParent->psNext = psCurNode;
+    }
+    sNodeLastChild.psLastChild = psCurNode;
+
+    /* Add attributes to the element */
+    CPLXMLNode* psLastChildCurNode = AddAttributes(psCurNode, attr);
+
+    /* Some CityGML lack a srsDimension="3" in posList, such as in */
+    /* http://www.citygml.org/fileadmin/count.php?f=fileadmin%2Fcitygml%2Fdocs%2FFrankfurt_Street_Setting_LOD3.zip */
+    /* So we have to add it manually */
+    if (m_bIsCityGML && nLenName == 7 &&
+        strcmp(pszName, "posList") == 0 &&
+        CPLGetXMLValue(psCurNode, "srsDimension", NULL) == NULL)
+    {
+        CPLXMLNode* psChild = CPLCreateXMLNode(NULL, CXT_Attribute, "srsDimension");
+        CPLCreateXMLNode(psChild, CXT_Text, "3");
+
+        if (psLastChildCurNode == NULL)
+            psCurNode->psChild = psChild;
+        else
+            psLastChildCurNode->psNext = psChild;
+        psLastChildCurNode = psChild;
+    }
+
+    /* Push the element on the stack */
+    NodeLastChild sNewNodeLastChild;
+    sNewNodeLastChild.psNode = psCurNode;
+    sNewNodeLastChild.psLastChild = psLastChildCurNode;
+    apsXMLNode.push_back(sNewNodeLastChild);
+
+    if (m_pszGeometry)
+    {
+        CPLFree(m_pszGeometry);
+        m_pszGeometry = NULL;
+        m_nGeomAlloc = 0;
+        m_nGeomLen = 0;
+    }
+
+    return OGRERR_NONE;
+}
+
+/************************************************************************/
+/*                    startElementCityGMLGenericAttr()                  */
+/************************************************************************/
+
+OGRErr GMLHandler::startElementCityGMLGenericAttr(const char *pszName, int nLenName, void* attr )
+{
+    if( strcmp(pszName, "value") == 0 )
+    {
+        if(m_pszCurField)
+        {
+            CPLFree(m_pszCurField);
+            m_pszCurField = NULL;
+            m_nCurFieldLen = m_nCurFieldAlloc = 0;
+        }
+        m_bInCurField = TRUE;
+    }
+
+    return OGRERR_NONE;
+}
+/************************************************************************/
+/*                      startElementFeatureAttribute()                  */
+/************************************************************************/
+
+OGRErr GMLHandler::startElementFeatureAttribute(const char *pszName, int nLenName, void* attr )
+{
+    /* Reset flag */
+    m_bInCurField = FALSE;
+
     GMLReadState *poState = m_poReader->GetState();
-
-    if (m_bIgnoreFeature && m_nDepth >= m_nDepthFeature)
-    {
-        m_nDepth ++;
-        return CE_None;
-    }
-
-    if ( m_nDepth == 0 )
-    {
-        if (strcmp(pszName, "CityModel") == 0 )
-        {
-            m_bIsCityGML = TRUE;
-        }
-        else if (strcmp(pszName, "AIXMBasicMessage") == 0)
-        {
-            m_bIsAIXM = m_bReportHref = TRUE;
-        }
-    }
-    else if ( m_nDepth == 2 && m_bInBoundedBy )
-    {
-        if ( strcmp(pszName, "Envelope") == 0 )
-        {
-            char* pszGlobalSRSName = GetAttributeValue(attr, "srsName");
-            if (pszGlobalSRSName != NULL &&
-                strncmp(pszGlobalSRSName, "EPSG:", 5) == 0 &&
-                CSLTestBoolean(CPLGetConfigOption("GML_CONSIDER_EPSG_AS_URN", "NO")))
-            {
-                char* pszNew = CPLStrdup(CPLSPrintf("urn:ogc:def:crs:EPSG::%s", pszGlobalSRSName+5));
-                CPLFree(pszGlobalSRSName);
-                pszGlobalSRSName = pszNew;
-            }
-            m_poReader->SetGlobalSRSName(pszGlobalSRSName);
-            CPLFree(pszGlobalSRSName);
-        }
-    }
-
-/* -------------------------------------------------------------------- */
-/*      If we are in the midst of collecting a feature attribute        */
-/*      value, then this must be a complex attribute which we don't     */
-/*      try to collect for now, so just terminate the field             */
-/*      collection.                                                     */
-/* -------------------------------------------------------------------- */
-    if( m_pszCurField != NULL )
-    {
-        CPLFree( m_pszCurField );
-        m_pszCurField = NULL;
-    }
-
-    if ( m_bInCityGMLGenericAttr )
-    {
-        if( strcmp(pszName, "value") == 0 )
-        {
-            CPLFree( m_pszCurField );
-            m_pszCurField = CPLStrdup("");
-        }
-    }
 
 /* -------------------------------------------------------------------- */
 /*      If we are collecting geometry, or if we determine this is a     */
 /*      geometry element then append to the geometry info.              */
 /* -------------------------------------------------------------------- */
-    else if( poState->m_poFeature != NULL &&
-             (m_pszGeometry != NULL
-              || IsGeometryElement( pszName )
-              || (m_bIsAIXM && strcmp( pszName, "ElevatedPoint") == 0)) )
+    if( IsGeometryElement( pszName ) )
     {
         int bReadGeometry;
 
-        if( m_pszGeometry == NULL )
-        {
-            /* If the <GeometryElementPath> is defined in the .gfs, use it */
-            /* to read the appropriate geometry element */
-            const char* pszGeometryElement = (poState->m_poFeature) ?
-                    poState->m_poFeature->GetClass()->GetGeometryElement() : NULL;
-            if (pszGeometryElement != NULL)
-                bReadGeometry = strcmp(poState->m_pszPath, pszGeometryElement) == 0;
-            else
-            {
-                /* AIXM special case: for RouteSegment, we only want to read Curve geometries */
-                /* not 'start' and 'end' geometries */
-                if (m_bIsAIXM &&
-                    strcmp(poState->m_poFeature->GetClass()->GetName(), "RouteSegment") == 0)
-                    bReadGeometry = strcmp( pszName, "Curve") == 0;
-                else
-                    bReadGeometry = TRUE;
-            }
-            CPLAssert(m_nGeometryDepth == 0);
-            m_nGeometryDepth = m_nDepth;
-        }
+        /* If the <GeometryElementPath> is defined in the .gfs, use it */
+        /* to read the appropriate geometry element */
+        const char* pszGeometryElement = poState->m_poFeature->GetClass()->GetGeometryElement();
+        if (pszGeometryElement != NULL)
+            bReadGeometry = strcmp(poState->osPath.c_str(), pszGeometryElement) == 0;
         else
-            bReadGeometry = TRUE;
-
+        {
+            /* AIXM special case: for RouteSegment, we only want to read Curve geometries */
+            /* not 'start' and 'end' geometries */
+            if (m_bIsAIXM &&
+                strcmp(poState->m_poFeature->GetClass()->GetName(), "RouteSegment") == 0)
+                bReadGeometry = strcmp( pszName, "Curve") == 0;
+            else
+                bReadGeometry = TRUE;
+        }
         if (bReadGeometry)
         {
-            char* pszAttributes = GetAttributes(attr);
-            size_t nLNLenBytes = strlen(pszName);
+            m_nGeometryDepth = m_nDepth;
 
-            /* Some CityGML lack a srsDimension="3" in posList, such as in */
-            /* http://www.citygml.org/fileadmin/count.php?f=fileadmin%2Fcitygml%2Fdocs%2FFrankfurt_Street_Setting_LOD3.zip */
-            /* So we have to add it manually */
-            if (m_bIsCityGML && strcmp(pszName, "posList") == 0 &&
-                strstr(pszAttributes, "srsDimension") == NULL)
-            {
-                CPLFree(pszAttributes);
-                pszAttributes = CPLStrdup(" srsDimension=\"3\"");
-            }
+            CPLAssert(apsXMLNode.size() == 0);
 
-            if( m_nGeomLen + nLNLenBytes + 4 + strlen( pszAttributes ) >
-                m_nGeomAlloc )
-            {
-                m_nGeomAlloc = (size_t) (m_nGeomAlloc * 1.3 + nLNLenBytes + 1000 +
-                                    strlen( pszAttributes ));
-                char* pszNewGeometry = (char *)
-                    VSIRealloc( m_pszGeometry, m_nGeomAlloc);
-                if (pszNewGeometry == NULL)
-                {
-                    CPLFree(pszAttributes);
-                    return CE_Failure;
-                }
-                m_pszGeometry = pszNewGeometry;
-            }
+            NodeLastChild sNodeLastChild;
+            sNodeLastChild.psNode = NULL;
+            sNodeLastChild.psLastChild = NULL;
+            apsXMLNode.push_back(sNodeLastChild);
 
-            strcpy( m_pszGeometry+m_nGeomLen++, "<" );
-            strcpy( m_pszGeometry+m_nGeomLen, pszName );
-            m_nGeomLen += nLNLenBytes;
-            /* saving attributes */
-            strcat( m_pszGeometry + m_nGeomLen, pszAttributes );
-            m_nGeomLen += strlen( pszAttributes );
-            CPLFree(pszAttributes);
-            strcat( m_pszGeometry + (m_nGeomLen++), ">" );
+            PUSH_STATE(STATE_GEOMETRY);
+
+            return startElementGeometry(pszName, nLenName, attr);
         }
     }
 
-    else if (m_nGeometryDepth != 0 && m_nDepth > m_nGeometryDepth)
+
+    else if( nLenName == 9 && strcmp(pszName, "boundedBy") == 0 )
     {
-        ;
-    }
-
-    else if( m_bInBoundedBy)
-    {
-        ;
-    }
-
-/* -------------------------------------------------------------------- */
-/*      Is it a feature?  If so push a whole new state, and return.     */
-/* -------------------------------------------------------------------- */
-    else if( m_nDepthFeature == 0 &&
-             m_poReader->IsFeatureElement( pszName ) )
-    {
-        const char* pszFilteredClassName = m_poReader->GetFilteredClassName();
-        if ( pszFilteredClassName != NULL &&
-             strcmp(pszName, pszFilteredClassName) != 0 )
-        {
-            m_bIgnoreFeature = TRUE;
-            m_nDepthFeature = m_nDepth;
-            m_nDepth ++;
-
-            return CE_None;
-        }
-
-        m_bIgnoreFeature = FALSE;
-
-        char* pszFID = GetFID(attr);
-
-        m_poReader->PushFeature( pszName, pszFID);
-
-        CPLFree(pszFID);
-
-        m_nDepthFeature = m_nDepth;
-        m_nDepth ++;
-
-        return CE_None;
-    }
-
-    else if( strcmp(pszName, "boundedBy") == 0 )
-    {
-        m_bInBoundedBy = TRUE;
         m_inBoundedByDepth = m_nDepth;
+
+        PUSH_STATE(STATE_BOUNDED_BY);
+
+        return OGRERR_NONE;
     }
 
 /* -------------------------------------------------------------------- */
 /*      Is it a CityGML generic attribute ?                             */
 /* -------------------------------------------------------------------- */
-    else if( m_poReader->IsCityGMLGenericAttributeElement( pszName, attr ) )
+    else if( m_bIsCityGML &&
+             m_poReader->IsCityGMLGenericAttributeElement( pszName, attr ) )
     {
-        m_bInCityGMLGenericAttr = TRUE;
         CPLFree(m_pszCityGMLGenericAttrName);
         m_pszCityGMLGenericAttrName = GetAttributeValue(attr, "name");
         m_inCityGMLGenericAttrDepth = m_nDepth;
+
+        PUSH_STATE(STATE_CITYGML_ATTRIBUTE);
+
+        return OGRERR_NONE;
     }
 
 /* -------------------------------------------------------------------- */
 /*      If it is (or at least potentially is) a simple attribute,       */
 /*      then start collecting it.                                       */
 /* -------------------------------------------------------------------- */
-    else if( m_poReader->IsAttributeElement( pszName ) )
+    else if( (m_nAttributeIndex =
+                m_poReader->GetAttributeElementIndex( pszName, nLenName )) != -1 )
     {
-        CPLFree( m_pszCurField );
-        m_pszCurField = CPLStrdup("");
+        if(m_pszCurField)
+        {
+            CPLFree(m_pszCurField);
+            m_pszCurField = NULL;
+            m_nCurFieldLen = m_nCurFieldAlloc = 0;
+        }
+        m_bInCurField = TRUE;
         if (m_bReportHref)
         {
             CPLFree(m_pszHref);
@@ -675,247 +794,370 @@ OGRErr GMLHandler::startElement(const char *pszName, void* attr )
         m_pszUom = GetAttributeValue(attr, "uom");
         CPLFree(m_pszValue);
         m_pszValue = GetAttributeValue(attr, "value");
+
+        if (stateStack[nStackDepth] != STATE_PROPERTY)
+        {
+            m_nAttributeDepth = m_nDepth;
+            PUSH_STATE(STATE_PROPERTY);
+        }
+
     }
-    else if( m_bReportHref && m_poReader->IsAttributeElement( CPLSPrintf("%s_href", pszName ) ) )
+    else if( m_bReportHref && (m_nAttributeIndex =
+                m_poReader->GetAttributeElementIndex( CPLSPrintf("%s_href", pszName ),
+                                                      nLenName + 5 )) != -1 )
     {
-        CPLFree( m_pszCurField );
-        m_pszCurField = CPLStrdup("");
+        if(m_pszCurField)
+        {
+            CPLFree(m_pszCurField);
+            m_pszCurField = NULL;
+            m_nCurFieldLen = m_nCurFieldAlloc = 0;
+        }
+        m_bInCurField = TRUE;
         CPLFree(m_pszHref);
         m_pszHref = GetAttributeValue(attr, "xlink:href");
+
+        if (stateStack[nStackDepth] != STATE_PROPERTY)
+        {
+            m_nAttributeDepth = m_nDepth;
+            PUSH_STATE(STATE_PROPERTY);
+        }
+    }
+
+    poState->PushPath( pszName, nLenName );
+
+    return OGRERR_NONE;
+}
+
+/************************************************************************/
+/*                         startElementTop()                            */
+/************************************************************************/
+
+OGRErr GMLHandler::startElementTop(const char *pszName, int nLenName, void* attr )
+
+{
+    if (strcmp(pszName, "CityModel") == 0 )
+    {
+        m_bIsCityGML = TRUE;
+    }
+    else if (strcmp(pszName, "AIXMBasicMessage") == 0)
+    {
+        m_bIsAIXM = m_bReportHref = TRUE;
+    }
+
+    stateStack[0] = STATE_DEFAULT;
+
+    return OGRERR_NONE;
+}
+
+/************************************************************************/
+/*                        startElementDefault()                         */
+/************************************************************************/
+
+OGRErr GMLHandler::startElementDefault(const char *pszName, int nLenName, void* attr )
+
+{
+/* -------------------------------------------------------------------- */
+/*      Is it a feature?  If so push a whole new state, and return.     */
+/* -------------------------------------------------------------------- */
+    int nClassIndex;
+    if( (nClassIndex = m_poReader->GetFeatureElementIndex( pszName, nLenName )) != -1 )
+    {
+        const char* pszFilteredClassName = m_poReader->GetFilteredClassName();
+        if ( pszFilteredClassName != NULL &&
+             strcmp(pszName, pszFilteredClassName) != 0 )
+        {
+            m_nDepthFeature = m_nDepth;
+
+            PUSH_STATE(STATE_IGNORED_FEATURE);
+
+            return OGRERR_NONE;
+        }
+        else
+        {
+            m_poReader->PushFeature( pszName, GetFID(attr), nClassIndex );
+
+            m_nDepthFeature = m_nDepth;
+
+            PUSH_STATE(STATE_FEATURE);
+
+            return OGRERR_NONE;
+        }
+    }
+
+    else if( nLenName == 9 && strcmp(pszName, "boundedBy") == 0 )
+    {
+        m_inBoundedByDepth = m_nDepth;
+
+        PUSH_STATE(STATE_BOUNDED_BY);
+
+        return OGRERR_NONE;
     }
 
 /* -------------------------------------------------------------------- */
 /*      Push the element onto the current state's path.                 */
 /* -------------------------------------------------------------------- */
-    poState->PushPath( pszName );
+    m_poReader->GetState()->PushPath( pszName, nLenName );
 
-    m_nDepth ++;
-
-    return CE_None;
+    return OGRERR_NONE;
 }
 
 /************************************************************************/
-/*                             endElement()                             */
+/*                      endElementIgnoredFeature()                      */
 /************************************************************************/
-OGRErr GMLHandler::endElement(const char* pszName )
+
+OGRErr GMLHandler::endElementIgnoredFeature()
 
 {
-    m_nDepth --;
-
-    if (m_bIgnoreFeature && m_nDepth >= m_nDepthFeature)
+    if (m_nDepth == m_nDepthFeature)
     {
-        if (m_nDepth == m_nDepthFeature)
-        {
-             m_bIgnoreFeature = FALSE;
-             m_nDepthFeature = 0;
-        }
-        return CE_None;
+        POP_STATE();
+    }
+    return OGRERR_NONE;
+}
+
+/************************************************************************/
+/*                         endElementBoundedBy()                        */
+/************************************************************************/
+OGRErr GMLHandler::endElementBoundedBy()
+
+{
+    if( m_inBoundedByDepth == m_nDepth)
+    {
+        POP_STATE();
     }
 
+    return OGRERR_NONE;
+}
+
+/************************************************************************/
+/*                       ParseAIXMElevationPoint()                      */
+/************************************************************************/
+
+CPLXMLNode* GMLHandler::ParseAIXMElevationPoint(CPLXMLNode *psGML)
+{
+    const char* pszElevation =
+        CPLGetXMLValue( psGML, "elevation", NULL );
+    if (pszElevation)
+    {
+        m_poReader->SetFeaturePropertyDirectly( "elevation",
+                                        CPLStrdup(pszElevation), -1 );
+        const char* pszElevationUnit =
+            CPLGetXMLValue( psGML, "elevation.uom", NULL );
+        if (pszElevationUnit)
+        {
+            m_poReader->SetFeaturePropertyDirectly( "elevation_uom",
+                                            CPLStrdup(pszElevationUnit), -1 );
+        }
+    }
+
+    const char* pszGeoidUndulation =
+        CPLGetXMLValue( psGML, "geoidUndulation", NULL );
+    if (pszGeoidUndulation)
+    {
+        m_poReader->SetFeaturePropertyDirectly( "geoidUndulation",
+                                        CPLStrdup(pszGeoidUndulation), -1 );
+        const char* pszGeoidUndulationUnit =
+            CPLGetXMLValue( psGML, "geoidUndulation.uom", NULL );
+        if (pszGeoidUndulationUnit)
+        {
+            m_poReader->SetFeaturePropertyDirectly( "geoidUndulation_uom",
+                                            CPLStrdup(pszGeoidUndulationUnit), -1 );
+        }
+    }
+
+    const char* pszPos =
+                    CPLGetXMLValue( psGML, "pos", NULL );
+    const char* pszCoordinates =
+                CPLGetXMLValue( psGML, "coordinates", NULL );
+    if (pszPos != NULL)
+    {
+        char* pszGeometry = CPLStrdup(CPLSPrintf(
+            "<gml:Point><gml:pos>%s</gml:pos></gml:Point>",
+                                                    pszPos));
+        CPLDestroyXMLNode(psGML);
+        psGML = CPLParseXMLString(pszGeometry);
+        CPLFree(pszGeometry);
+    }
+    else if (pszCoordinates != NULL)
+    {
+        char* pszGeometry = CPLStrdup(CPLSPrintf(
+            "<gml:Point><gml:coordinates>%s</gml:coordinates></gml:Point>",
+                                            pszCoordinates));
+        CPLDestroyXMLNode(psGML);
+        psGML = CPLParseXMLString(pszGeometry);
+        CPLFree(pszGeometry);
+    }
+    else
+    {
+        CPLDestroyXMLNode(psGML);
+        psGML = NULL;
+    }
+
+    return psGML;
+}
+
+/************************************************************************/
+/*                         endElementGeometry()                         */
+/************************************************************************/
+OGRErr GMLHandler::endElementGeometry()
+
+{
+    if (m_nGeomLen)
+    {
+        CPLXMLNode* psNode = (CPLXMLNode *) CPLCalloc(sizeof(CPLXMLNode),1);
+        psNode->eType = CXT_Text;
+        psNode->pszValue = m_pszGeometry;
+
+        NodeLastChild& sNodeLastChild = apsXMLNode[apsXMLNode.size()-1];
+        CPLXMLNode* psLastChildParent = sNodeLastChild.psLastChild;
+        if (psLastChildParent == NULL)
+        {
+            CPLXMLNode* psParent = sNodeLastChild.psNode;
+            if (psParent)
+                psParent->psChild = psNode;
+        }
+        else
+            psLastChildParent->psNext = psNode;
+        sNodeLastChild.psLastChild = psNode;
+
+        m_pszGeometry = NULL;
+        m_nGeomAlloc = 0;
+        m_nGeomLen = 0;
+    }
+
+    if( m_nDepth == m_nGeometryDepth )
+    {
+        CPLXMLNode* psInterestNode = apsXMLNode[apsXMLNode.size()-1].psNode;
+
+        /*char* pszXML = CPLSerializeXMLTree(psInterestNode);
+        CPLDebug("GML", "geometry = %s", pszXML);
+        CPLFree(pszXML);*/
+
+        apsXMLNode.pop_back();
+
+        /* AIXM ElevatedPoint. We want to parse this */
+        /* a bit specially because ElevatedPoint is aixm: stuff and */
+        /* the srsDimension of the <gml:pos> can be set to TRUE although */
+        /* they are only 2 coordinates in practice */
+        if ( m_bIsAIXM && psInterestNode != NULL &&
+            strcmp(psInterestNode->pszValue, "ElevatedPoint") == 0 )
+        {
+            psInterestNode = ParseAIXMElevationPoint(psInterestNode);
+        }
+
+        if (m_poReader->FetchAllGeometries())
+            m_poReader->GetState()->m_poFeature->AddGeometry(psInterestNode);
+        else
+            m_poReader->GetState()->m_poFeature->SetGeometryDirectly(psInterestNode);
+
+        POP_STATE();
+    }
+
+    apsXMLNode.pop_back();
+
+    return OGRERR_NONE;
+}
+
+/************************************************************************/
+/*                    endElementCityGMLGenericAttr()                    */
+/************************************************************************/
+OGRErr GMLHandler::endElementCityGMLGenericAttr()
+
+{
+    if( m_pszCityGMLGenericAttrName != NULL && m_bInCurField )
+    {
+        m_poReader->SetFeaturePropertyDirectly( m_pszCityGMLGenericAttrName,
+                                        m_pszCurField, -1 );
+        m_pszCurField = NULL;
+        m_nCurFieldLen = m_nCurFieldAlloc = 0;
+        m_bInCurField = FALSE;
+        CPLFree(m_pszCityGMLGenericAttrName);
+        m_pszCityGMLGenericAttrName = NULL;
+    }
+
+    if( m_inCityGMLGenericAttrDepth == m_nDepth )
+    {
+        POP_STATE();
+    }
+
+    return OGRERR_NONE;
+}
+
+/************************************************************************/
+/*                        endElementAttribute()                         */
+/************************************************************************/
+OGRErr GMLHandler::endElementAttribute()
+
+{
     GMLReadState *poState = m_poReader->GetState();
 
-    if( m_bInBoundedBy && strcmp(pszName, "boundedBy") == 0 &&
-        m_inBoundedByDepth == m_nDepth)
+    if (m_bInCurField)
     {
-        m_bInBoundedBy = FALSE;
-    }
-
-    else if( m_bInCityGMLGenericAttr )
-    {
-        if( m_pszCityGMLGenericAttrName != NULL && m_pszCurField != NULL )
+        if (m_pszCurField == NULL)
         {
-            CPLAssert( poState->m_poFeature != NULL );
-
-            m_poReader->SetFeatureProperty( m_pszCityGMLGenericAttrName, m_pszCurField );
-            CPLFree( m_pszCurField );
-            m_pszCurField = NULL;
-            CPLFree(m_pszCityGMLGenericAttrName);
-            m_pszCityGMLGenericAttrName = NULL;
-        }
-
-        if( m_inCityGMLGenericAttrDepth == m_nDepth )
-        {
-            m_bInCityGMLGenericAttr = FALSE;
-        }
-    }
-
-/* -------------------------------------------------------------------- */
-/*      Is this closing off an attribute value?  We assume so if        */
-/*      we are collecting an attribute value and got to this point.     */
-/*      We don't bother validating that the closing tag matches the     */
-/*      opening tag.                                                    */
-/* -------------------------------------------------------------------- */
-    else if( m_pszCurField != NULL )
-    {
-        CPLAssert( poState->m_poFeature != NULL );
-
-        if ( m_pszHref != NULL && (m_pszCurField == NULL || EQUAL(m_pszCurField, "")))
-        {
-            CPLString osPropNameHref = CPLSPrintf("%s_href", poState->m_pszPath);
-            m_poReader->SetFeatureProperty( osPropNameHref, m_pszHref );
+            if (m_pszValue != NULL)
+            {
+                m_poReader->SetFeaturePropertyDirectly( poState->osPath.c_str(),
+                                                m_pszValue, -1 );
+                m_pszValue = NULL;
+            }
         }
         else
         {
-            if (EQUAL(m_pszCurField, "") && m_pszValue != NULL)
-                m_poReader->SetFeatureProperty( poState->m_pszPath, m_pszValue );
-            else
-                m_poReader->SetFeatureProperty( poState->m_pszPath, m_pszCurField );
-
-            if (m_pszHref != NULL)
-            {
-                CPLString osPropNameHref = CPLSPrintf("%s_href", poState->m_pszPath);
-                m_poReader->SetFeatureProperty( osPropNameHref, m_pszHref );
-            }
+            m_poReader->SetFeaturePropertyDirectly( poState->osPath.c_str(),
+                                            m_pszCurField,
+                                            m_nAttributeIndex );
+            m_pszCurField = NULL;
         }
+
+        if (m_pszHref != NULL)
+        {
+            CPLString osPropNameHref = poState->osPath + "_href";
+            m_poReader->SetFeaturePropertyDirectly( osPropNameHref, m_pszHref, -1 );
+            m_pszHref = NULL;
+        }
+
         if (m_pszUom != NULL)
         {
-            CPLString osPropNameUom = CPLSPrintf("%s_uom", poState->m_pszPath);
-            m_poReader->SetFeatureProperty( osPropNameUom, m_pszUom );
+            CPLString osPropNameUom = poState->osPath + "_uom";
+            m_poReader->SetFeaturePropertyDirectly( osPropNameUom, m_pszUom, -1 );
+            m_pszUom = NULL;
         }
 
-        CPLFree( m_pszCurField );
-        m_pszCurField = NULL;
-        CPLFree( m_pszHref );
-        m_pszHref = NULL;
-        CPLFree( m_pszUom );
-        m_pszUom = NULL;
+        m_nCurFieldLen = m_nCurFieldAlloc = 0;
+        m_bInCurField = FALSE;
+        m_nAttributeIndex = -1;
+
         CPLFree( m_pszValue );
         m_pszValue = NULL;
     }
 
-/* -------------------------------------------------------------------- */
-/*      If we are collecting Geometry than store it, and consider if    */
-/*      this is the end of the geometry.                                */
-/* -------------------------------------------------------------------- */
-    if( m_pszGeometry != NULL )
+    poState->PopPath();
+
+    if( m_nAttributeDepth == m_nDepth )
     {
-        /* should save attributes too! */
-
-        size_t nLNLenBytes = strlen(pszName);
-
-        if( m_nGeomLen + nLNLenBytes + 4 > m_nGeomAlloc )
-        {
-            m_nGeomAlloc = (size_t) (m_nGeomAlloc * 1.3 + nLNLenBytes + 1000);
-            char* pszNewGeometry = (char *)
-                VSIRealloc( m_pszGeometry, m_nGeomAlloc);
-            if (pszNewGeometry == NULL)
-            {
-                return CE_Failure;
-            }
-            m_pszGeometry = pszNewGeometry;
-        }
-
-        strcat( m_pszGeometry+m_nGeomLen, "</" );
-        strcpy( m_pszGeometry+m_nGeomLen+2, pszName );
-        strcat( m_pszGeometry+m_nGeomLen+nLNLenBytes+2, ">" );
-        m_nGeomLen += nLNLenBytes + 3;
-
-        if( m_nDepth == m_nGeometryDepth )
-        {
-            if( poState->m_poFeature != NULL )
-            {
-                /* AIXM ElevatedPoint. We want to parse this */
-                /* a bit specially because ElevatedPoint is aixm: stuff and */
-                /* the srsDimension of the <gml:pos> can be set to TRUE although */
-                /* they are only 2 coordinates in practice */
-                if ( m_bIsAIXM && strcmp(pszName, "ElevatedPoint") == 0 )
-                {
-                    CPLXMLNode *psGML = CPLParseXMLString( m_pszGeometry );
-                    if (psGML)
-                    {
-                        const char* pszElevation =
-                            CPLGetXMLValue( psGML, "elevation", NULL );
-                        if (pszElevation)
-                        {
-                            m_poReader->SetFeatureProperty( "elevation",
-                                                            pszElevation );
-                            const char* pszElevationUnit =
-                                CPLGetXMLValue( psGML, "elevation.uom", NULL );
-                            if (pszElevationUnit)
-                            {
-                                m_poReader->SetFeatureProperty( "elevation_uom",
-                                                             pszElevationUnit );
-                            }
-                        }
-
-                        const char* pszGeoidUndulation =
-                            CPLGetXMLValue( psGML, "geoidUndulation", NULL );
-                        if (pszGeoidUndulation)
-                        {
-                            m_poReader->SetFeatureProperty( "geoidUndulation",
-                                                            pszGeoidUndulation );
-                            const char* pszGeoidUndulationUnit =
-                                CPLGetXMLValue( psGML, "geoidUndulation.uom", NULL );
-                            if (pszGeoidUndulationUnit)
-                            {
-                                m_poReader->SetFeatureProperty( "geoidUndulation_uom",
-                                                             pszGeoidUndulationUnit );
-                            }
-                        }
-
-                        const char* pszPos =
-                                        CPLGetXMLValue( psGML, "pos", NULL );
-                        const char* pszCoordinates =
-                                  CPLGetXMLValue( psGML, "coordinates", NULL );
-                        if (pszPos != NULL)
-                        {
-                            char* pszNewGeometry = CPLStrdup(CPLSPrintf(
-                                "<gml:Point><gml:pos>%s</gml:pos></gml:Point>",
-                                                                      pszPos));
-                            CPLFree(m_pszGeometry);
-                            m_pszGeometry = pszNewGeometry;
-                        }
-                        else if (pszCoordinates != NULL)
-                        {
-                            char* pszNewGeometry = CPLStrdup(CPLSPrintf(
-                                "<gml:Point><gml:coordinates>%s</gml:coordinates></gml:Point>",
-                                                              pszCoordinates));
-                            CPLFree(m_pszGeometry);
-                            m_pszGeometry = pszNewGeometry;
-                        }
-                        else
-                        {
-                            CPLFree(m_pszGeometry);
-                            m_pszGeometry = NULL;
-                        }
-                        CPLDestroyXMLNode( psGML );
-                    }
-                    else
-                    {
-                        CPLFree(m_pszGeometry);
-                        m_pszGeometry = NULL;
-                    }
-                }
-                if (m_pszGeometry)
-                {
-                    if (m_poReader->FetchAllGeometries())
-                        poState->m_poFeature->AddGeometry( m_pszGeometry );
-                    else
-                        poState->m_poFeature->SetGeometryDirectly( m_pszGeometry );
-                }
-            }
-            else
-                CPLFree( m_pszGeometry );
-
-            m_pszGeometry = NULL;
-            m_nGeomAlloc = m_nGeomLen = 0;
-        }
+        POP_STATE();
     }
 
-    if ( m_nGeometryDepth != 0 && m_nDepth == m_nGeometryDepth )
-        m_nGeometryDepth = 0;
+    return OGRERR_NONE;
+}
 
+/************************************************************************/
+/*                          endElementFeature()                         */
+/************************************************************************/
+OGRErr GMLHandler::endElementFeature()
+
+{
 /* -------------------------------------------------------------------- */
 /*      If we are collecting a feature, and this element tag matches    */
 /*      element name for the class, then we have finished the           */
 /*      feature, and we pop the feature read state.                     */
 /* -------------------------------------------------------------------- */
-    if( m_nDepth == m_nDepthFeature && poState->m_poFeature != NULL
-        && strcmp(pszName,
-                 poState->m_poFeature->GetClass()->GetElementName()) == 0 )
+    if( m_nDepth == m_nDepthFeature )
     {
-        m_nDepthFeature = 0;
         m_poReader->PopState();
+
+        POP_STATE();
     }
 
 /* -------------------------------------------------------------------- */
@@ -924,83 +1166,109 @@ OGRErr GMLHandler::endElement(const char* pszName )
 /* -------------------------------------------------------------------- */
     else
     {
-        if( strcmp(pszName,poState->GetLastComponent()) == 0 )
-            poState->PopPath();
-        else
-        {
-            CPLAssert( FALSE );
-        }
+        m_poReader->GetState()->PopPath();
     }
 
-    return CE_None;
+    return OGRERR_NONE;
 }
 
 /************************************************************************/
-/*                             characters()                             */
+/*                          endElementDefault()                         */
+/************************************************************************/
+OGRErr GMLHandler::endElementDefault()
+
+{
+    if (m_nDepth > 0)
+        m_poReader->GetState()->PopPath();
+
+    return OGRERR_NONE;
+}
+
+/************************************************************************/
+/*                         dataHandlerAttribute()                       */
 /************************************************************************/
 
-OGRErr GMLHandler::dataHandler(const char *data, int nLen)
+OGRErr GMLHandler::dataHandlerAttribute(const char *data, int nLen)
 
 {
     int nIter = 0;
 
-    if( m_pszCurField != NULL )
+    if( m_bInCurField )
     {
-        int     nCurFieldLength = strlen(m_pszCurField);
-
         // Ignore white space
-        if (nCurFieldLength == 0)
+        if (m_nCurFieldLen == 0)
         {
-            while (nIter < nLen &&
-                   ( data[nIter] == ' ' || data[nIter] == 10 || data[nIter]== 13 || data[nIter] == '\t') )
+            while (nIter < nLen)
+            {
+                char ch = data[nIter];
+                if( !(ch == ' ' || ch == 10 || ch == 13 || ch == '\t') )
+                    break;
                 nIter ++;
+            }
         }
 
-        size_t nCharsLen = nLen - nIter;
+        int nCharsLen = nLen - nIter;
 
-        char *pszNewCurField = (char *)
-            VSIRealloc( m_pszCurField,
-                        nCurFieldLength+ nCharsLen +1 );
-        if (pszNewCurField == NULL)
+        if (m_nCurFieldLen + nCharsLen + 1 > m_nCurFieldAlloc)
         {
-            return CE_Failure;
+            m_nCurFieldAlloc = m_nCurFieldAlloc * 4 / 3 + nCharsLen + 1;
+            char *pszNewCurField = (char *)
+                VSIRealloc( m_pszCurField, m_nCurFieldAlloc );
+            if (pszNewCurField == NULL)
+            {
+                return OGRERR_NOT_ENOUGH_MEMORY;
+            }
+            m_pszCurField = pszNewCurField;
         }
-        m_pszCurField = pszNewCurField;
-        memcpy( m_pszCurField + nCurFieldLength, data + nIter, nCharsLen);
-        nCurFieldLength += nCharsLen;
-
-        m_pszCurField[nCurFieldLength] = '\0';
+        memcpy( m_pszCurField + m_nCurFieldLen, data + nIter, nCharsLen);
+        m_nCurFieldLen += nCharsLen;
+        m_pszCurField[m_nCurFieldLen] = '\0';
     }
-    else if( m_pszGeometry != NULL )
+
+    return OGRERR_NONE;
+}
+
+/************************************************************************/
+/*                         dataHandlerGeometry()                        */
+/************************************************************************/
+
+OGRErr GMLHandler::dataHandlerGeometry(const char *data, int nLen)
+
+{
+    int nIter = 0;
+
+    // Ignore white space
+    if (m_nGeomLen == 0)
     {
-        // Ignore white space
-        if (m_nGeomLen == 0)
+        while (nIter < nLen)
         {
-            while (nIter < nLen &&
-                   ( data[nIter] == ' ' || data[nIter] == 10 || data[nIter]== 13 || data[nIter] == '\t') )
-                nIter ++;
+            char ch = data[nIter];
+            if( !(ch == ' ' || ch == 10 || ch == 13 || ch == '\t') )
+                break;
+            nIter ++;
         }
+    }
 
-        size_t nCharsLen = nLen - nIter;
-
-        if( m_nGeomLen + nCharsLen + 4 > m_nGeomAlloc )
+    int nCharsLen = nLen - nIter;
+    if (nCharsLen)
+    {
+        if( m_nGeomLen + nCharsLen + 1 > m_nGeomAlloc )
         {
-            m_nGeomAlloc = (size_t) (m_nGeomAlloc * 1.3 + nCharsLen + 1000);
+            m_nGeomAlloc = m_nGeomAlloc * 4 / 3 + nCharsLen + 1;
             char* pszNewGeometry = (char *)
                 VSIRealloc( m_pszGeometry, m_nGeomAlloc);
             if (pszNewGeometry == NULL)
             {
-                return CE_Failure;
+                return OGRERR_NOT_ENOUGH_MEMORY;
             }
             m_pszGeometry = pszNewGeometry;
         }
-
         memcpy( m_pszGeometry+m_nGeomLen, data + nIter, nCharsLen);
         m_nGeomLen += nCharsLen;
         m_pszGeometry[m_nGeomLen] = '\0';
     }
 
-    return CE_None;
+    return OGRERR_NONE;
 }
 
 
@@ -1011,21 +1279,22 @@ OGRErr GMLHandler::dataHandler(const char *data, int nLen)
 int GMLHandler::IsGeometryElement( const char *pszElement )
 
 {
-    return strcmp(pszElement,"Polygon") == 0
-        || strcmp(pszElement,"MultiPolygon") == 0
-        || strcmp(pszElement,"MultiPoint") == 0
-        || strcmp(pszElement,"MultiLineString") == 0
-        || strcmp(pszElement,"MultiSurface") == 0
-        || strcmp(pszElement,"MultiGeometry") == 0
-        || strcmp(pszElement,"GeometryCollection") == 0 /* OGR < 1.8.0 bug... */
-        || strcmp(pszElement,"Point") == 0
-        || strcmp(pszElement,"Curve") == 0
-        || strcmp(pszElement,"MultiCurve") == 0
-        || strcmp(pszElement,"TopoCurve") == 0
-        || strcmp(pszElement,"Surface") == 0
-        || strcmp(pszElement,"TopoSurface") == 0
-        || strcmp(pszElement,"PolygonPatch") == 0
-        || strcmp(pszElement,"LineString") == 0
-        || strcmp(pszElement,"CompositeSurface") == 0
-        || strcmp(pszElement,"Solid") == 0;
+    int nFirst = 0;
+    int nLast = GML_GEOMETRY_TYPE_COUNT- 1;
+    unsigned long nHash = CPLHashSetHashStr(pszElement);
+    do
+    {
+        int nMiddle = (nFirst + nLast) / 2;
+        if (nHash == pasGeometryNames[nMiddle].nHash)
+            return strcmp(pszElement, pasGeometryNames[nMiddle].pszName) == 0;
+        if (nHash < pasGeometryNames[nMiddle].nHash)
+            nLast = nMiddle - 1;
+        else
+            nFirst = nMiddle + 1;
+    } while(nFirst <= nLast);
+
+    if (m_bIsAIXM && strcmp( pszElement, "ElevatedPoint") == 0)
+        return TRUE;
+
+    return FALSE;
 }

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: bagdataset.cpp 21651 2011-02-08 19:22:03Z warmerdam $
+ * $Id: bagdataset.cpp 22145 2011-04-12 15:42:18Z warmerdam $
  *
  * Project:  Hierarchical Data Format Release 5 (HDF5)
  * Purpose:  Read BAG datasets.
@@ -34,7 +34,7 @@
 #include "ogr_spatialref.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: bagdataset.cpp 21651 2011-02-08 19:22:03Z warmerdam $");
+CPL_CVSID("$Id: bagdataset.cpp 22145 2011-04-12 15:42:18Z warmerdam $");
 
 CPL_C_START
 void    GDALRegister_BAG(void);
@@ -116,6 +116,8 @@ BAGRasterBand::BAGRasterBand( BAGDataset *poDS, int nBand )
     this->nBand      = nBand;
     
     hDatasetID = -1;
+    dataspace = -1;
+    native = -1;
     bMinMaxSet = false;
 }
 
@@ -125,6 +127,14 @@ BAGRasterBand::BAGRasterBand( BAGDataset *poDS, int nBand )
 
 BAGRasterBand::~BAGRasterBand()
 {
+  if( dataspace > 0 )
+    H5Sclose(dataspace);
+
+  if( native > 0 )
+    H5Tclose( native );
+
+  if( hDatasetID > 0 )
+    H5Dclose( hDatasetID );
 }
 
 /************************************************************************/
@@ -150,8 +160,8 @@ bool BAGRasterBand::Initialize( hid_t hDatasetID, const char *pszName )
     {
         H5Sget_simple_extent_dims( dataspace, dims, maxdims );
 
-        nRasterXSize = dims[1];
-        nRasterYSize = dims[0];
+        nRasterXSize = (int) dims[1];
+        nRasterYSize = (int) dims[0];
     }
     else
     {
@@ -174,8 +184,8 @@ bool BAGRasterBand::Initialize( hid_t hDatasetID, const char *pszName )
         {
             hsize_t panChunkDims[3];
             int nDimSize = H5Pget_chunk(listid, 3, panChunkDims);
-            nBlockXSize   = panChunkDims[nDimSize-1];
-            nBlockYSize   = panChunkDims[nDimSize-2];
+            nBlockXSize  = (int) panChunkDims[nDimSize-1];
+            nBlockYSize  = (int) panChunkDims[nDimSize-2];
         }
         H5Pclose(listid);
     }
@@ -289,7 +299,7 @@ CPLErr BAGRasterBand::IReadBlock( int nBlockXOff, int nBlockYOff,
 /* -------------------------------------------------------------------- */
     col_dims[0]=nBlockYSize;
     col_dims[1]=nBlockXSize;
-    memspace = H5Screate_simple( rank, col_dims, NULL );
+    memspace = H5Screate_simple( (int) rank, col_dims, NULL );
     H5OFFSET_TYPE mem_offset[3] = {0, 0, 0};
     status =  H5Sselect_hyperslab(memspace,
                                   H5S_SELECT_SET,
@@ -529,10 +539,11 @@ void BAGDataset::LoadMetadata()
 
     H5Sget_simple_extent_dims( dataspace, dims, maxdims );
 
-    pszXMLMetadata = (char *) CPLCalloc(dims[0]+1,1);
+    pszXMLMetadata = (char *) CPLCalloc((int) (dims[0]+1),1);
 
     H5Dread( hMDDS, native, H5S_ALL, dataspace, H5P_DEFAULT, pszXMLMetadata );
 
+    H5Tclose( native );
     H5Sclose( dataspace );
     H5Tclose( datatype );
     H5Dclose( hMDDS );

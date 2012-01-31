@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gt_overview.cpp 21103 2010-11-08 20:49:08Z rouault $
+ * $Id: gt_overview.cpp 23497 2011-12-08 20:50:57Z rouault $
  *
  * Project:  GeoTIFF Driver
  * Purpose:  Code to build overviews of external databases as a TIFF file. 
@@ -31,11 +31,12 @@
 #include "gdal_priv.h"
 #define CPL_SERV_H_INCLUDED
 
+#include "tifvsi.h"
 #include "xtiffio.h"
 #include "gt_overview.h"
 #include "gtiff.h"
 
-CPL_CVSID("$Id: gt_overview.cpp 21103 2010-11-08 20:49:08Z rouault $");
+CPL_CVSID("$Id: gt_overview.cpp 23497 2011-12-08 20:50:57Z rouault $");
 
 /************************************************************************/
 /*                         GTIFFWriteDirectory()                        */
@@ -335,8 +336,18 @@ GTIFFBuildOverviews( const char * pszFilename,
             return CE_Failure;
     }
     
-    if( nCompression == COMPRESSION_JPEG && nBitsPerPixel == 16 )
+    if( nCompression == COMPRESSION_JPEG && nBitsPerPixel > 8 )
+    {  
+        if( nBitsPerPixel > 16 )
+        {
+            CPLError( CE_Failure, CPLE_NotSupported, 
+                      "GTIFFBuildOverviews() doesn't support building"
+                      " JPEG compressed overviews of nBitsPerPixel > 16." );
+            return CE_Failure;
+        }
+
         nBitsPerPixel = 12;
+    }
 
 /* -------------------------------------------------------------------- */
 /*      Figure out the planar configuration to use.                     */
@@ -550,13 +561,13 @@ GTIFFBuildOverviews( const char * pszFilename,
         if( bCreateBigTIFF )
             CPLDebug( "GTiff", "File being created as a BigTIFF." );
 
-        hOTIFF = XTIFFOpen( pszFilename, (bCreateBigTIFF) ? "w+8" : "w+" );
+        hOTIFF = VSI_TIFFOpen( pszFilename, (bCreateBigTIFF) ? "w+8" : "w+" );
         if( hOTIFF == NULL )
         {
             if( CPLGetLastErrorNo() == 0 )
                 CPLError( CE_Failure, CPLE_OpenFailed,
                           "Attempt to create new tiff file `%s'\n"
-                          "failed in XTIFFOpen().\n",
+                          "failed in VSI_TIFFOpen().\n",
                           pszFilename );
 
             return CE_Failure;
@@ -567,13 +578,13 @@ GTIFFBuildOverviews( const char * pszFilename,
 /* -------------------------------------------------------------------- */
     else 
     {
-        hOTIFF = XTIFFOpen( pszFilename, "r+" );
+        hOTIFF = VSI_TIFFOpen( pszFilename, "r+" );
         if( hOTIFF == NULL )
         {
             if( CPLGetLastErrorNo() == 0 )
                 CPLError( CE_Failure, CPLE_OpenFailed,
                           "Attempt to create new tiff file `%s'\n"
-                          "failed in XTIFFOpen().\n",
+                          "failed in VSI_TIFFOpen().\n",
                           pszFilename );
 
             return CE_Failure;

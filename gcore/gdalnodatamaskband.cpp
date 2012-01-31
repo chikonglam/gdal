@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdalnodatamaskband.cpp 19692 2010-05-13 17:16:55Z rouault $
+ * $Id: gdalnodatamaskband.cpp 22857 2011-08-02 18:17:45Z rouault $
  *
  * Project:  GDAL Core
  * Purpose:  Implementation of GDALNoDataMaskBand, a class implementing all
@@ -30,7 +30,7 @@
 
 #include "gdal_priv.h"
 
-CPL_CVSID("$Id: gdalnodatamaskband.cpp 19692 2010-05-13 17:16:55Z rouault $");
+CPL_CVSID("$Id: gdalnodatamaskband.cpp 22857 2011-08-02 18:17:45Z rouault $");
 
 /************************************************************************/
 /*                        GDALNoDataMaskBand()                          */
@@ -143,7 +143,10 @@ CPLErr GDALNoDataMaskBand::IReadBlock( int nXBlockOff, int nYBlockOff,
                                pabySrc, nXSizeRequest, nYSizeRequest,
                                eWrkDT, 0, nBlockXSize * (GDALGetDataTypeSize(eWrkDT)/8) );
     if( eErr != CE_None )
+    {
+        CPLFree(pabySrc);
         return eErr;
+    }
 
     int bIsNoDataNan = CPLIsNan(dfNoDataValue);
 
@@ -204,7 +207,7 @@ CPLErr GDALNoDataMaskBand::IReadBlock( int nXBlockOff, int nYBlockOff,
               float fVal =((float *)pabySrc)[i];
               if( bIsNoDataNan && CPLIsNan(fVal))
                   ((GByte *) pImage)[i] = 0;
-              else if( EQUAL_TO_NODATA(fVal, fNoData) )
+              else if( ARE_REAL_EQUAL(fVal, fNoData) )
                   ((GByte *) pImage)[i] = 0;
               else
                   ((GByte *) pImage)[i] = 255;
@@ -219,7 +222,7 @@ CPLErr GDALNoDataMaskBand::IReadBlock( int nXBlockOff, int nYBlockOff,
               double dfVal =((double *)pabySrc)[i];
               if( bIsNoDataNan && CPLIsNan(dfVal))
                   ((GByte *) pImage)[i] = 0;
-              else if( EQUAL_TO_NODATA(dfVal, dfNoDataValue) )
+              else if( ARE_REAL_EQUAL(dfVal, dfNoDataValue) )
                   ((GByte *) pImage)[i] = 0;
               else
                   ((GByte *) pImage)[i] = 255;

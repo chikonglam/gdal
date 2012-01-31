@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_gensql.h 20897 2010-10-19 19:15:58Z rouault $
+ * $Id: ogr_gensql.h 23531 2011-12-11 19:11:56Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Classes related to generic implementation of ExecuteSQL().
@@ -74,15 +74,17 @@ class CPL_DLL OGRGenSQLResultsLayer : public OGRLayer
 
     void        ClearFilters();
 
-    void        SetIgnoredFields();
+    void        FindAndSetIgnoredFields();
     void        ExploreExprForIgnoredFields(swq_expr_node* expr, CPLHashSet* hSet);
     void        AddFieldDefnToSet(int iTable, int iColumn, CPLHashSet* hSet);
-    
+
+    int         ContainGeomSpecialField(swq_expr_node* expr);
   public:
                 OGRGenSQLResultsLayer( OGRDataSource *poSrcDS, 
                                        void *pSelectInfo, 
                                        OGRGeometry *poSpatFilter,
-                                       const char *pszWHERE );
+                                       const char *pszWHERE,
+                                       const char *pszDialect );
     virtual     ~OGRGenSQLResultsLayer();
 
     virtual OGRGeometry *GetSpatialFilter();

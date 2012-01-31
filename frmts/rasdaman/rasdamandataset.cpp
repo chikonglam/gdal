@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: rasdamandataset.cpp 20597 2010-09-12 22:03:49Z rouault $
+ * $Id: rasdamandataset.cpp 23362 2011-11-11 11:11:52Z rouault $
  * Project:  rasdaman Driver
  * Purpose:  Implement Rasdaman GDAL driver 
  * Author:   Constantin Jucovschi, jucovschi@yahoo.com
@@ -42,7 +42,7 @@
 
 #include "rasodmg/database.hh"
 
-CPL_CVSID("$Id: rasdamandataset.cpp 20597 2010-09-12 22:03:49Z rouault $");
+CPL_CVSID("$Id: rasdamandataset.cpp 23362 2011-11-11 11:11:52Z rouault $");
 
 
 CPL_C_START
@@ -68,8 +68,6 @@ class RasdamanDataset : public GDALPamDataset
 		~RasdamanDataset();
     
     static GDALDataset *Open( GDALOpenInfo * );
-
-    CPLErr 	GetGeoTransform( double * padfTransform );
 
 private:
   void getTypes(const r_Base_Type* baseType, int &counter, int pos);
@@ -216,22 +214,6 @@ CPLErr RasdamanRasterBand::IReadBlock( int nBlockXOff, int nBlockYOff,
 RasdamanDataset::~RasdamanDataset()
 {
   FlushCache();
-}
-
-/************************************************************************/
-/*                          GetGeoTransform()                           */
-/************************************************************************/
-
-CPLErr RasdamanDataset::GetGeoTransform( double * padfTransform )
-
-{
-    padfTransform[0] = 0.0;
-    padfTransform[1] = 1.0;
-    padfTransform[2] = 0.0;
-    padfTransform[3] = 0.0;
-    padfTransform[4] = 0.0;
-    padfTransform[5] = 1.0;
-    return CE_None;
 }
 
 /************************************************************************/

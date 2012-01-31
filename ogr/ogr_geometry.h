@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_geometry.h 21023 2010-10-30 19:48:23Z rouault $
+ * $Id: ogr_geometry.h 23638 2011-12-22 21:02:56Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Classes for manipulating simple features that is not specific
@@ -96,6 +96,7 @@ class CPL_DLL OGRGeometry
     virtual void        empty() = 0;
     virtual OGRGeometry *clone() const = 0;
     virtual void getEnvelope( OGREnvelope * psEnvelope ) const = 0;
+    virtual void getEnvelope( OGREnvelope3D * psEnvelope ) const = 0;
 
     // IWks Interface
     virtual int WkbSize() const = 0;
@@ -147,6 +148,9 @@ class CPL_DLL OGRGeometry
     virtual OGRGeometry *SymDifference( const OGRGeometry * ) const;
     virtual OGRErr       Centroid( OGRPoint * poPoint ) const;
     virtual OGRGeometry *Simplify(double dTolerance) const;
+    OGRGeometry *SimplifyPreserveTopology(double dTolerance) const;
+
+    virtual OGRGeometry *Polygonize() const;
 
     // backward compatibility to non-standard method names. 
     OGRBoolean  Intersect( OGRGeometry * ) const;
@@ -194,6 +198,7 @@ class CPL_DLL OGRPoint : public OGRGeometry
     virtual OGRGeometry *clone() const;
     virtual void empty();
     virtual void getEnvelope( OGREnvelope * psEnvelope ) const;
+    virtual void getEnvelope( OGREnvelope3D * psEnvelope ) const;
     virtual OGRBoolean  IsEmpty() const;
 
     // IPoint
@@ -275,6 +280,7 @@ class CPL_DLL OGRLineString : public OGRCurve
     virtual OGRGeometry *clone() const;
     virtual void empty();
     virtual void getEnvelope( OGREnvelope * psEnvelope ) const;
+    virtual void getEnvelope( OGREnvelope3D * psEnvelope ) const;
     virtual OGRBoolean  IsEmpty() const;
 
     // ICurve methods
@@ -307,6 +313,9 @@ class CPL_DLL OGRLineString : public OGRCurve
     void        addPoint( double, double, double );
 
     void        getPoints( OGRRawPoint *, double * = NULL ) const;
+    void        getPoints( void* pabyX, int nXStride,
+                           void* pabyY, int nYStride,
+                           void* pabyZ = NULL, int nZStride = 0 ) const;
 
     void        addSubLineString( const OGRLineString *, 
                                   int nStartVertex = 0, int nEndVertex = -1 );
@@ -439,6 +448,7 @@ class CPL_DLL OGRPolygon : public OGRSurface
     // IGeometry
     virtual int getDimension() const;
     virtual void getEnvelope( OGREnvelope * psEnvelope ) const;
+    virtual void getEnvelope( OGREnvelope3D * psEnvelope ) const;
 
     // ISpatialRelation
     virtual OGRBoolean  Equals( OGRGeometry * ) const;
@@ -478,6 +488,9 @@ class CPL_DLL OGRGeometryCollection : public OGRGeometry
     int         nGeomCount;
     OGRGeometry **papoGeoms;
 
+    OGRErr      importFromWkbInternal( unsigned char * pabyData, int nSize, int nRecLevel );
+    OGRErr      importFromWktInternal( char **ppszInput, int nRecLevel );
+
   public:
                 OGRGeometryCollection();
     virtual     ~OGRGeometryCollection();
@@ -505,6 +518,7 @@ class CPL_DLL OGRGeometryCollection : public OGRGeometry
     // IGeometry methods
     virtual int getDimension() const;
     virtual void getEnvelope( OGREnvelope * psEnvelope ) const;
+    virtual void getEnvelope( OGREnvelope3D * psEnvelope ) const;
 
     // IGeometryCollection
     int         getNumGeometries() const;
@@ -614,6 +628,12 @@ class CPL_DLL OGRMultiLineString : public OGRGeometryCollection
 
 class CPL_DLL OGRGeometryFactory
 {
+    static OGRErr createFromFgfInternal( unsigned char *pabyData,
+                                         OGRSpatialReference * poSR,
+                                         OGRGeometry **ppoReturn,
+                                         int nBytes,
+                                         int *pnBytesConsumed,
+                                         int nRecLevel );
   public:
     static OGRErr createFromWkb( unsigned char *, OGRSpatialReference *,
                                  OGRGeometry **, int = -1 );

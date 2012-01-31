@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrinfo.java 16314 2009-02-13 20:18:32Z rouault $
+ * $Id: ogrinfo.java 23139 2011-09-29 19:52:45Z rouault $
  *
  * Name:     ogrinfo.java
  * Project:  GDAL SWIG Interface
@@ -59,6 +59,8 @@ public class ogrinfo
         boolean bAllLayers = false;
         String pszSQLStatement = null;
         String pszDialect = null;
+
+        ogr.DontUseExceptions();
 
 /* -------------------------------------------------------------------- */
 /*      Register format(s).                                             */
@@ -205,7 +207,13 @@ public class ogrinfo
             if( poResultSet != null )
             {
                 if( pszWHERE != null )
-                    poResultSet.SetAttributeFilter( pszWHERE );
+                {
+                    if( poResultSet.SetAttributeFilter( pszWHERE ) != ogr.OGRERR_NONE )
+                    {
+                        System.err.println("FAILURE: SetAttributeFilter(" + pszWHERE + ") failed.");
+                        return;
+                    }
+                }
     
                 ReportOnLayer( poResultSet, null, null );
                 poDS.ReleaseResultSet( poResultSet );
@@ -219,34 +227,61 @@ public class ogrinfo
     
         for( int iRepeat = 0; iRepeat < nRepeatCount; iRepeat++ )
         {
-            for( int iLayer = 0; iLayer < poDS.GetLayerCount(); iLayer++ )
+            if (papszLayers.size() == 0)
             {
-                Layer        poLayer = poDS.GetLayer(iLayer);
-    
-                if( poLayer == null )
+/* -------------------------------------------------------------------- */
+/*      Process each data source layer.                                 */
+/* -------------------------------------------------------------------- */
+                for( int iLayer = 0; iLayer < poDS.GetLayerCount(); iLayer++ )
                 {
-                    System.out.println( "FAILURE: Couldn't fetch advertised layer " + iLayer + "!");
-                    return;
+                    Layer        poLayer = poDS.GetLayer(iLayer);
+
+                    if( poLayer == null )
+                    {
+                        System.out.println( "FAILURE: Couldn't fetch advertised layer " + iLayer + "!");
+                        return;
+                    }
+
+                    if (!bAllLayers)
+                    {
+                        System.out.print(
+                                (iLayer+1) + ": " + poLayer.GetLayerDefn().GetName() );
+
+                        if( poLayer.GetLayerDefn().GetGeomType() != ogrConstants.wkbUnknown )
+                            System.out.print( " (" +
+                                    ogr.GeometryTypeToName(
+                                        poLayer.GetLayerDefn().GetGeomType()) + ")" );
+
+                        System.out.println();
+                    }
+                    else
+                    {
+                        if( iRepeat != 0 )
+                            poLayer.ResetReading();
+
+                        ReportOnLayer( poLayer, pszWHERE, poSpatialFilter );
+                    }
                 }
-    
-                if( papszLayers.size() == 0 && !bAllLayers )
+            }
+            else
+            {
+/* -------------------------------------------------------------------- */
+/*      Process specified data source layers.                           */
+/* -------------------------------------------------------------------- */
+                for(int i = 0; i < papszLayers.size(); i++)
                 {
-                    System.out.print(
-                            (iLayer+1) + ": " + poLayer.GetLayerDefn().GetName() );
-    
-                    if( poLayer.GetLayerDefn().GetGeomType() != ogrConstants.wkbUnknown )
-                        System.out.print( " (" +
-                                ogr.GeometryTypeToName( 
-                                    poLayer.GetLayerDefn().GetGeomType()) + ")" );
-    
-                    System.out.println();
-                }
-                else if( bAllLayers 
-                        || papszLayers.contains(poLayer.GetLayerDefn().GetName() ) )
-                {
+                    Layer poLayer = poDS.GetLayerByName((String)papszLayers.get(i));
+
+                    if( poLayer == null )
+                    {
+                        System.out.println( "FAILURE: Couldn't fetch requested layer " +
+                                            (String)papszLayers.get(i) + "!");
+                        return;
+                    }
+
                     if( iRepeat != 0 )
                         poLayer.ResetReading();
-    
+
                     ReportOnLayer( poLayer, pszWHERE, poSpatialFilter );
                 }
             }
@@ -279,7 +314,13 @@ public class ogrinfo
 /*      Set filters if provided.                                        */
 /* -------------------------------------------------------------------- */
         if( pszWHERE != null )
-            poLayer.SetAttributeFilter( pszWHERE );
+        {
+            if( poLayer.SetAttributeFilter( pszWHERE ) != ogr.OGRERR_NONE )
+            {
+                System.err.println("FAILURE: SetAttributeFilter(" + pszWHERE + ") failed.");
+                return;
+            }
+        }
     
         if( poSpatialFilter != null )
             poLayer.SetSpatialFilter( poSpatialFilter );

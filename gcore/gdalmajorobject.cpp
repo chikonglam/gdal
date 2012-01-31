@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdalmajorobject.cpp 18719 2010-02-04 16:42:38Z mloskot $
+ * $Id: gdalmajorobject.cpp 23156 2011-10-01 15:34:16Z rouault $
  *
  * Project:  GDAL Core
  * Purpose:  Base class for objects with metadata, etc.
@@ -30,7 +30,7 @@
 #include "gdal_priv.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: gdalmajorobject.cpp 18719 2010-02-04 16:42:38Z mloskot $");
+CPL_CVSID("$Id: gdalmajorobject.cpp 23156 2011-10-01 15:34:16Z rouault $");
 
 /************************************************************************/
 /*                          GDALMajorObject()                           */
@@ -192,7 +192,7 @@ GDALGetMetadata( GDALMajorObjectH hObject, const char * pszDomain )
  *
  * The C function GDALSetMetadata() does the same thing as this method.
  *
- * @param papszMetadata the metadata in name=value string list format to 
+ * @param papszMetadataIn the metadata in name=value string list format to
  * apply.  
  * @param pszDomain the domain of interest.  Use "" or NULL for the default
  * domain. 

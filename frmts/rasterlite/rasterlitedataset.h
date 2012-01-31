@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: rasterlitedataset.h 17720 2009-09-30 22:32:20Z rouault $
+ * $Id: rasterlitedataset.h 21723 2011-02-15 19:52:18Z rouault $
  *
  * Project:  GDAL Rasterlite driver
  * Purpose:  Implement GDAL Rasterlite support using OGR SQLite driver
@@ -65,7 +65,10 @@ class RasterliteDataset : public GDALPamDataset
 
     static GDALDataset *Open( GDALOpenInfo * );
     static int          Identify( GDALOpenInfo * );
-    
+
+  protected:
+    virtual int         CloseDependentDatasets();
+
   private:
   
     int bMustFree;

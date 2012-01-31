@@ -33,6 +33,14 @@
 
 CPL_CVSID("$Id: ogrgmldatasource.cpp 12743 2007-11-13 13:59:37Z dron $");
 
+static const char *apszURNNames[] = 
+{ 
+    "DE_DHDN_3GK2_*", "EPSG:31466", 
+    "DE_DHDN_3GK3_*", "EPSG:31467", 
+    "ETRS89_UTM32", "EPSG:25832", 
+    NULL, NULL 
+};
+
 /************************************************************************/
 /*                         OGRNASDataSource()                         */
 /************************************************************************/
@@ -183,7 +191,10 @@ int OGRNASDataSource::Open( const char * pszNewName, int bTestOpen )
 /*      will have mechanisms for remembering the schema and related     */
 /*      information.                                                    */
 /* -------------------------------------------------------------------- */
-    if( !bHaveSchema && !poReader->PrescanForSchema( TRUE ) )
+    CPLErrorReset();
+    if( !bHaveSchema 
+        && !poReader->PrescanForSchema( TRUE ) 
+        && CPLGetLastErrorType() == CE_Failure )
     {
         // we assume an errors have been reported.
         return FALSE;
@@ -193,7 +204,7 @@ int OGRNASDataSource::Open( const char * pszNewName, int bTestOpen )
 /*      Save the schema file if possible.  Don't make a fuss if we      */
 /*      can't ... could be read-only directory or something.            */
 /* -------------------------------------------------------------------- */
-    if( !bHaveSchema )
+    if( !bHaveSchema && poReader->GetClassCount() > 0 )
     {
         FILE    *fp = NULL;
 
@@ -246,9 +257,52 @@ OGRNASLayer *OGRNASDataSource::TranslateNASSchema( GMLFeatureClass *poClass )
         eGType = wkbUnknown;
 
 /* -------------------------------------------------------------------- */
+/*      Translate SRS.                                                  */
+/* -------------------------------------------------------------------- */
+    const char* pszSRSName = poClass->GetSRSName();
+    OGRSpatialReference* poSRS = NULL;
+    if (pszSRSName)
+    {
+        int i;
+
+        poSRS = new OGRSpatialReference();
+        
+        const char *pszHandle = strrchr( pszSRSName, ':' );
+        if( pszHandle != NULL )
+            pszHandle += 1;
+
+        for( i = 0; apszURNNames[i*2+0] != NULL; i++ )
+        {
+            const char *pszTarget = apszURNNames[i*2+0];
+            int nTLen = strlen(pszTarget);
+
+            // Are we just looking for a prefix match?
+            if( pszTarget[nTLen-1] == '*' )
+            {
+                if( EQUALN(pszTarget,pszHandle,nTLen-1) )
+                    pszSRSName = apszURNNames[i*2+1];
+            }
+            else
+            {
+                if( EQUAL(pszTarget,pszHandle) )
+                    pszSRSName = apszURNNames[i*2+1];
+            }
+        }
+        
+        if (poSRS->SetFromUserInput(pszSRSName) != OGRERR_NONE)
+        {
+            CPLDebug( "NAS", "Failed to translate srsName='%s'", 
+                      pszSRSName );
+            delete poSRS;
+            poSRS = NULL;
+        }
+    }
+
+/* -------------------------------------------------------------------- */
 /*      Create an empty layer.                                          */
 /* -------------------------------------------------------------------- */
-    poLayer = new OGRNASLayer( poClass->GetName(), NULL, eGType, this );
+    poLayer = new OGRNASLayer( poClass->GetName(), poSRS, eGType, this );
+    delete poSRS;
 
 /* -------------------------------------------------------------------- */
 /*      Added attributes (properties).                                  */
@@ -328,7 +382,8 @@ void OGRNASDataSource::PopulateRelations()
         for( i = 0; papszOBProperties != NULL && papszOBProperties[i] != NULL;
              i++ )
         {
-            const GMLProperty *psGMLId = poFeature->GetProperty( "gml_id" );
+            int nGMLIdIndex = poFeature->GetClass()->GetPropertyIndex( "gml_id" );
+            const GMLProperty *psGMLId = (nGMLIdIndex >= 0) ? poFeature->GetProperty(nGMLIdIndex ) : NULL;
             char *pszName = NULL;
             const char *pszValue = CPLParseNameValue( papszOBProperties[i], 
                                                       &pszName );

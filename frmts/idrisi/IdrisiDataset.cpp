@@ -1,5 +1,5 @@
 /*****************************************************************************
-* $Id: IdrisiDataset.cpp 22446 2011-05-28 15:05:57Z rouault $
+* $Id: IdrisiDataset.cpp 23431 2011-11-27 15:02:24Z rouault $
 *
 * Project:  Idrisi Raster Image File Driver
 * Purpose:  Read/write Idrisi Raster Image Format RST
@@ -35,8 +35,9 @@
 #include "gdal_pam.h"
 #include "gdal_alg.h"
 #include "gdal_rat.h"
+#include "idrisi.h"
 
-CPL_CVSID( "$Id: IdrisiDataset.cpp 22446 2011-05-28 15:05:57Z rouault $" );
+CPL_CVSID( "$Id: IdrisiDataset.cpp 23431 2011-11-27 15:02:24Z rouault $" );
 
 CPL_C_START
 void GDALRegister_IDRISI( void);
@@ -275,10 +276,6 @@ private:
     char **papszCategories;
     char *pszUnitType;
 
-    CPLErr GeoReference2Wkt( const char *pszRefSystem,
-        const char *pszRefUnits,
-        char **pszProjString );
-
     CPLErr Wkt2GeoReference( const char *pszProjString,
         char **pszRefSystem, 
         char **pszRefUnit );
@@ -427,8 +424,7 @@ IdrisiDataset::~IdrisiDataset()
 
 GDALDataset *IdrisiDataset::Open( GDALOpenInfo *poOpenInfo )
 {
-    if( ( poOpenInfo->fp == NULL ) || 
-        ( EQUAL( CPLGetExtension( poOpenInfo->pszFilename ), extRST ) == FALSE ) )
+    if( EQUAL( CPLGetExtension( poOpenInfo->pszFilename ), extRST ) == FALSE )
         return NULL;
 
     // --------------------------------------------------------------------
@@ -481,6 +477,7 @@ GDALDataset *IdrisiDataset::Open( GDALOpenInfo *poOpenInfo )
     if( poDS->fp == NULL )
     {
         CSLDestroy( papszLRDC );
+        delete poDS;
         return NULL;
     }
 
@@ -980,13 +977,18 @@ GDALDataset *IdrisiDataset::CreateCopy( const char *pszFilename,
     }
     else
     {
-        CSLSetNameValue( poDS->papszRDC, rdcMIN_X, CPLSPrintf( "%.1f", -0.5 ));
-        CSLSetNameValue( poDS->papszRDC, rdcMAX_X, CPLSPrintf( "%.1f", 
+        poDS->papszRDC =
+            CSLSetNameValue( poDS->papszRDC, rdcMIN_X, CPLSPrintf( "%.1f", -0.5 ));
+        poDS->papszRDC =
+            CSLSetNameValue( poDS->papszRDC, rdcMAX_X, CPLSPrintf( "%.1f",
             poSrcDS->GetRasterXSize() - 0.5 ) );
-        CSLSetNameValue( poDS->papszRDC, rdcMIN_Y, CPLSPrintf( "%.1f", 
+        poDS->papszRDC =
+            CSLSetNameValue( poDS->papszRDC, rdcMIN_Y, CPLSPrintf( "%.1f",
             poSrcDS->GetRasterYSize() + 0.5 ) );
-        CSLSetNameValue( poDS->papszRDC, rdcMAX_Y, CPLSPrintf( "%.1f", 0.5 ));
-        CSLSetNameValue( poDS->papszRDC, rdcRESOLUTION, "1" );
+        poDS->papszRDC =
+            CSLSetNameValue( poDS->papszRDC, rdcMAX_Y, CPLSPrintf( "%.1f", 0.5 ));
+        poDS->papszRDC =
+            CSLSetNameValue( poDS->papszRDC, rdcRESOLUTION, "1" );
     }
 
     // --------------------------------------------------------------------
@@ -1171,11 +1173,11 @@ CPLErr  IdrisiDataset::SetGeoTransform( double * padfTransform )
         dfMinY   = padfTransform[3];
     }
 
-    CSLSetNameValue( papszRDC, rdcMIN_X,      CPLSPrintf( "%.7f", dfMinX ) );
-    CSLSetNameValue( papszRDC, rdcMAX_X,      CPLSPrintf( "%.7f", dfMaxX ) );
-    CSLSetNameValue( papszRDC, rdcMIN_Y,      CPLSPrintf( "%.7f", dfMinY ) );
-    CSLSetNameValue( papszRDC, rdcMAX_Y,      CPLSPrintf( "%.7f", dfMaxY ) );
-    CSLSetNameValue( papszRDC, rdcRESOLUTION, CPLSPrintf( "%.7f", fabs( dfYPixSz ) ) );
+    papszRDC = CSLSetNameValue( papszRDC, rdcMIN_X,      CPLSPrintf( "%.7f", dfMinX ) );
+    papszRDC = CSLSetNameValue( papszRDC, rdcMAX_X,      CPLSPrintf( "%.7f", dfMaxX ) );
+    papszRDC = CSLSetNameValue( papszRDC, rdcMIN_Y,      CPLSPrintf( "%.7f", dfMinY ) );
+    papszRDC = CSLSetNameValue( papszRDC, rdcMAX_Y,      CPLSPrintf( "%.7f", dfMaxY ) );
+    papszRDC = CSLSetNameValue( papszRDC, rdcRESOLUTION, CPLSPrintf( "%.7f", fabs( dfYPixSz ) ) );
 
     // --------------------------------------------------------------------
     // Update the Dataset attribute
@@ -1203,7 +1205,7 @@ const char *IdrisiDataset::GetProjectionRef( void )
         const char *pszRefUnit = CSLFetchNameValue( papszRDC, rdcREF_UNITS );
 
         if (pszRefSystem != NULL && pszRefUnit != NULL)
-            GeoReference2Wkt( pszRefSystem, pszRefUnit, &pszProjection );
+            IdrisiGeoReference2Wkt( pszFilename, pszRefSystem, pszRefUnit, &pszProjection );
         else
             pszProjection = CPLStrdup("");
     }
@@ -1225,8 +1227,8 @@ CPLErr IdrisiDataset::SetProjection( const char *pszProjString )
 
     eResult = Wkt2GeoReference( pszProjString, &pszRefSystem, &pszRefUnit );
 
-    CSLSetNameValue( papszRDC, rdcREF_SYSTEM, pszRefSystem );
-    CSLSetNameValue( papszRDC, rdcREF_UNITS,  pszRefUnit );
+    papszRDC = CSLSetNameValue( papszRDC, rdcREF_SYSTEM, pszRefSystem );
+    papszRDC = CSLSetNameValue( papszRDC, rdcREF_UNITS,  pszRefUnit );
 
     CPLFree( pszRefSystem );
     CPLFree( pszRefUnit );
@@ -1636,7 +1638,7 @@ CPLErr IdrisiRasterBand::SetCategoryNames( char **papszCategoryNames )
         }
     }
 
-    CSLSetNameValue( poGDS->papszRDC, rdcLEGEND_CATS, CPLSPrintf( "%d", nCount ) );
+    poGDS->papszRDC = CSLSetNameValue( poGDS->papszRDC, rdcLEGEND_CATS, CPLSPrintf( "%d", nCount ) );
 
     return CE_None;
 }
@@ -2085,7 +2087,7 @@ const GDALRasterAttributeTable *IdrisiRasterBand::GetDefaultRAT()
 }
 
 /************************************************************************/
-/*                       GeoReference2Wkt()                             */
+/*                       IdrisiGeoReference2Wkt()                       */
 /************************************************************************/
 
 /***
@@ -2095,7 +2097,7 @@ const GDALRasterAttributeTable *IdrisiRasterBand::GetDefaultRAT()
 * geographic reference, RefSystem and RefUnit. 
 * 
 * RefSystem can contains the world "plane" or the name of a georeference 
-* file <refsystem>.ref that details the geographic reference  
+* file <refsystem>.ref that details the geographic reference
 * system( coordinate system and projection parameters ). RefUnits 
 * indicates the unit of the image bounds. 
 * 
@@ -2116,11 +2118,14 @@ const GDALRasterAttributeTable *IdrisiRasterBand::GetDefaultRAT()
 * need to be read then the projection string will result as unknown. 
 ***/
 
-CPLErr IdrisiDataset::GeoReference2Wkt( const char *pszRefSystem,
-                                        const char *pszRefUnits,
-                                        char **pszProjString )
+CPLErr IdrisiGeoReference2Wkt( const char* pszFilename,
+                               const char *pszRefSystem,
+                               const char *pszRefUnits,
+                               char **ppszProjString )
 {
     OGRSpatialReference oSRS;
+
+    *ppszProjString = NULL;
 
     // ---------------------------------------------------------
     //  Plane 
@@ -2136,7 +2141,7 @@ CPLErr IdrisiDataset::GeoReference2Wkt( const char *pszRefSystem,
             oSRS.SetLinearUnits( aoLinearUnitsConv[nDeft].pszName,
                 aoLinearUnitsConv[nDeft].dfConv );
         }
-        oSRS.exportToWkt( pszProjString );
+        oSRS.exportToWkt( ppszProjString );
         return CE_None;
     }
 
@@ -2148,7 +2153,7 @@ CPLErr IdrisiDataset::GeoReference2Wkt( const char *pszRefSystem,
         EQUAL( pszRefSystem, rstLATLONG2 ) )
     {
         oSRS.SetWellKnownGeogCS( "WGS84" );
-        oSRS.exportToWkt( pszProjString );
+        oSRS.exportToWkt( ppszProjString );
         return CE_None;
     }
 
@@ -2171,7 +2176,7 @@ CPLErr IdrisiDataset::GeoReference2Wkt( const char *pszRefSystem,
         sscanf( pszRefSystemLower, rstUTM, &nZone, &cNorth );
         oSRS.SetWellKnownGeogCS( "WGS84" );
         oSRS.SetUTM( nZone,( cNorth == 'n' ) );
-        oSRS.exportToWkt( pszProjString );
+        oSRS.exportToWkt( ppszProjString );
         CPLFree( pszRefSystemLower );
         return CE_None;
     }
@@ -2193,7 +2198,7 @@ CPLErr IdrisiDataset::GeoReference2Wkt( const char *pszRefSystem,
 
             if( oSRS.SetStatePlane( nZone, ( nNAD == 83 ) ) != OGRERR_FAILURE )
             {
-                oSRS.exportToWkt( pszProjString );
+                oSRS.exportToWkt( ppszProjString );
                 CPLFree( pszRefSystemLower );
                 return CE_None;
             }
@@ -2252,7 +2257,7 @@ CPLErr IdrisiDataset::GeoReference2Wkt( const char *pszRefSystem,
                     aoLinearUnitsConv[nDeft].dfConv );
             }
         }
-        oSRS.exportToWkt( pszProjString );
+        oSRS.exportToWkt( ppszProjString );
         return CE_Failure;
     }
 
@@ -2370,7 +2375,7 @@ CPLErr IdrisiDataset::GeoReference2Wkt( const char *pszRefSystem,
 
     if( EQUAL( pszProjName, "none" ) )
     {
-        oSRS.exportToWkt( pszProjString );
+        oSRS.exportToWkt( ppszProjString );
         
         CPLFree( pszGeorefName );
         CPLFree( pszProjName );
@@ -2468,7 +2473,7 @@ CPLErr IdrisiDataset::GeoReference2Wkt( const char *pszRefSystem,
             "[\"%s\" in georeference file \"%s\"]",
             pszProjName, pszFName );
         oSRS.Clear();
-        oSRS.exportToWkt( pszProjString );
+        oSRS.exportToWkt( ppszProjString );
         
         CPLFree( pszGeorefName );
         CPLFree( pszProjName );
@@ -2500,7 +2505,7 @@ CPLErr IdrisiDataset::GeoReference2Wkt( const char *pszRefSystem,
 
     oSRS.SetProjCS( pszGeorefName );
 
-    oSRS.exportToWkt( pszProjString );
+    oSRS.exportToWkt( ppszProjString );
         
     CPLFree( pszGeorefName );
     CPLFree( pszProjName );
@@ -2837,9 +2842,9 @@ CPLErr IdrisiDataset::Wkt2GeoReference( const char *pszProjString,
 
 bool FileExists( const char *pszPath )
 {
-    VSIStatBuf  sStat;
+    VSIStatBufL  sStat;
 
-    return (bool) ( CPLStat( pszPath, &sStat ) == 0 );
+    return (bool) ( VSIStatL( pszPath, &sStat ) == 0 );
 }
 
 /************************************************************************/
@@ -2991,6 +2996,7 @@ int  SaveAsCRLF(char **papszStrList, const char *pszFname)
 /************************************************************************/
 /*                        GDALRegister_IDRISI()                         */
 /************************************************************************/
+
 void GDALRegister_IDRISI()
 {
     GDALDriver  *poDriver;
@@ -3004,6 +3010,9 @@ void GDALRegister_IDRISI()
         poDriver->SetMetadataItem( GDAL_DMD_HELPTOPIC, "frmt_Idrisi.html" );
         poDriver->SetMetadataItem( GDAL_DMD_EXTENSION, extRST );
         poDriver->SetMetadataItem( GDAL_DMD_CREATIONDATATYPES, "Byte Int16 Float32" );
+
+        poDriver->SetMetadataItem( GDAL_DCAP_VIRTUALIO, "YES" );
+
         poDriver->pfnOpen = IdrisiDataset::Open;
         poDriver->pfnCreate = IdrisiDataset::Create;
         poDriver->pfnCreateCopy = IdrisiDataset::CreateCopy;

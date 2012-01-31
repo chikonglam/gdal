@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gtmwaypointlayer.cpp 20996 2010-10-28 18:38:15Z rouault $
+ * $Id: gtmwaypointlayer.cpp 21684 2011-02-11 22:14:01Z warmerdam $
  *
  * Project:  GTM Driver
  * Purpose:  Implementation of gtmwaypoint class.
@@ -187,14 +187,14 @@ void GTMWaypointLayer::WriteFeatureAttributes( OGRFeature *poFeature, float alti
 
     /* Write waypoint string comment size to buffer */
     pBufferAux = (char*)pBuffer+10;
-    appendUShort(pBufferAux, commentLength);
+    appendUShort(pBufferAux, (unsigned short) commentLength);
 
     /* Write waypoint string comment to buffer */
     strncpy((char*)pBuffer+12, pszcomment, commentLength);
 
     /* Write icon to buffer */
     pBufferAux = (char*)pBuffer+12+commentLength;
-    appendUShort(pBufferAux, icon);
+    appendUShort(pBufferAux, (unsigned short) icon);
 
     /* Write dslp to buffer */
     pBufferAux = (char*)pBufferAux + 2;

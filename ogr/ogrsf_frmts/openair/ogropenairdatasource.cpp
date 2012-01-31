@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogropenairdatasource.cpp 20996 2010-10-28 18:38:15Z rouault $
+ * $Id: ogropenairdatasource.cpp 23042 2011-09-04 15:07:22Z rouault $
  *
  * Project:  OpenAir Translator
  * Purpose:  Implements OGROpenAirDataSource class
@@ -31,7 +31,7 @@
 #include "cpl_conv.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: ogropenairdatasource.cpp 20996 2010-10-28 18:38:15Z rouault $");
+CPL_CVSID("$Id: ogropenairdatasource.cpp 23042 2011-09-04 15:07:22Z rouault $");
 
 /************************************************************************/
 /*                        OGROpenAirDataSource()                        */
@@ -97,15 +97,6 @@ int OGROpenAirDataSource::Open( const char * pszFilename, int bUpdateIn)
 
     pszName = CPLStrdup( pszFilename );
 
-/* -------------------------------------------------------------------- */
-/*      Determine what sort of object this is.                          */
-/* -------------------------------------------------------------------- */
-    VSIStatBufL sStatBuf;
-
-    if( VSIStatL( pszFilename, &sStatBuf ) != 0 ||
-        !VSI_ISREG(sStatBuf.st_mode) )
-        return FALSE;
-    
 // -------------------------------------------------------------------- 
 //      Does this appear to be an openair file?
 // --------------------------------------------------------------------

@@ -54,6 +54,19 @@ if (0) {
 }
 
 {
+    # test memory files
+    my $fp = Geo::GDAL::VSIFOpenL('/vsimem/x', 'w');
+    my $c = Geo::GDAL::VSIFWriteL("hello world!\n", $fp);
+    ok($c == 13, 'Wrote 13 characters to a memory file.');
+    Geo::GDAL::VSIFCloseL($fp);
+    $fp = Geo::GDAL::VSIFOpenL('/vsimem/x', 'r');
+    my $b = Geo::GDAL::VSIFReadL(40, $fp);
+    ok($b eq "hello world!\n", 'Read back what I Wrote to a memory file.');
+    Geo::GDAL::VSIFCloseL($fp);
+    Geo::GDAL::Unlink('/vsimem/x');
+}
+
+{
     my $driver = Geo::GDAL::GetDriver('MEM');
     my $dataset = $driver->Create('tmp', 10, 10, 3 , 'Int32', []);
     ok($dataset->isa('Geo::GDAL::Dataset'), 'Geo::GDAL::Dataset');
@@ -223,14 +236,10 @@ ok(is_deeply($a, $b), "xml parsing");
 
 my @tmp = sort keys %available_driver;
 
-if (@fails) {
-    print STDERR "\nUnexpected failures:\n",@fails;
-    print STDERR "\nAvailable drivers were ",join(', ',@tmp),"\n";
-    print STDERR "Drivers used in tests were: ",join(', ',@tested_drivers),"\n";
-} else {
-    print STDERR "\nAvailable drivers were ",join(', ',@tmp),"\n";
-    print STDERR "Drivers used in tests were: ",join(', ',@tested_drivers),"\n";
-}
+print STDERR "\nGDAL version: ",Geo::GDAL::VersionInfo,"\n";
+print STDERR "Unexpected failures:\n",@fails,"\n" if @fails;
+print STDERR "Available drivers were ",join(', ',@tmp),"\n";
+print STDERR "Drivers used in tests were: ",join(', ',@tested_drivers),"\n";
 
 system "rm -rf tmp_ds_*" unless $^O eq 'MSWin32';
 

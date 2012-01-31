@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_feature.h 20885 2010-10-19 00:16:08Z warmerdam $
+ * $Id: ogr_feature.h 22368 2011-05-13 17:59:41Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Class for representing a whole feature, and layer schemas.
@@ -141,6 +141,8 @@ class CPL_DLL OGRFeatureDefn
     int         GetFieldIndex( const char * );
 
     void        AddFieldDefn( OGRFieldDefn * );
+    OGRErr      DeleteFieldDefn( int iField );
+    OGRErr      ReorderFieldDefns( int* panMap );
 
     OGRwkbGeometryType GetGeomType() { return eGeomType; }
     void        SetGeomType( OGRwkbGeometryType );

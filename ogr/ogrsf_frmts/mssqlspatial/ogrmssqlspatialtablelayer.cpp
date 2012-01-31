@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrmssqlspatialtablelayer.cpp 21942 2011-03-12 18:24:09Z tamas $
+ * $Id: ogrmssqlspatialtablelayer.cpp 21943 2011-03-12 18:25:22Z tamas $
  *
  * Project:  MSSQL Spatial driver
  * Purpose:  Implements OGRMSSQLSpatialTableLayer class, access to an existing table.
@@ -30,7 +30,7 @@
 #include "cpl_conv.h"
 #include "ogr_mssqlspatial.h"
 
-CPL_CVSID("$Id: ogrmssqlspatialtablelayer.cpp 21942 2011-03-12 18:24:09Z tamas $");
+CPL_CVSID("$Id: ogrmssqlspatialtablelayer.cpp 21943 2011-03-12 18:25:22Z tamas $");
 
 /************************************************************************/
 /*                         OGRMSSQLAppendEscaped( )                     */

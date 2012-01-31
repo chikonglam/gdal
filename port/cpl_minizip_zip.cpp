@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: cpl_minizip_zip.cpp 21167 2010-11-24 15:19:51Z warmerdam $
+ * $Id: cpl_minizip_zip.cpp 23425 2011-11-26 19:14:25Z rouault $
  *
  * Project:  CPL - Common Portability Library
  * Author:   Frank Warmerdam, warmerdam@pobox.com
@@ -746,9 +746,9 @@ extern int ZEXPORT cpl_zipOpenNewFileInZip3 (
     zi->ci.flag = 0;
     if ((level==8) || (level==9))
       zi->ci.flag |= 2;
-    if ((level==2))
+    if (level==2)
       zi->ci.flag |= 4;
-    if ((level==1))
+    if (level==1)
       zi->ci.flag |= 6;
     if (password != NULL)
       zi->ci.flag |= 1;

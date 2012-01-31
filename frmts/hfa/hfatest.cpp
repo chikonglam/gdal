@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: hfatest.cpp 18624 2010-01-24 02:54:43Z warmerdam $
+ * $Id: hfatest.cpp 22802 2011-07-24 14:16:58Z rouault $
  *
  * Project:  Erdas Imagine (.img) Translator
  * Purpose:  Testing mainline for HFA services - transitory.
@@ -28,8 +28,9 @@
  ****************************************************************************/
 
 #include "hfa_p.h"
+#include "cpl_multiproc.h"
 
-CPL_CVSID("$Id: hfatest.cpp 18624 2010-01-24 02:54:43Z warmerdam $");
+CPL_CVSID("$Id: hfatest.cpp 22802 2011-07-24 14:16:58Z rouault $");
 
 /************************************************************************/
 /*                               Usage()                                */
@@ -218,6 +219,9 @@ int main( int argc, char ** argv )
     psDatum = HFAGetDatum( hHFA );
     
     HFAClose( hHFA );
+
+    VSICleanupFileManager();
+    CPLCleanupTLS();
 
 #ifdef DBMALLOC
     malloc_dump(1);

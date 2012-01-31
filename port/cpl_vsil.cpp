@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: cpl_vsil.cpp 20996 2010-10-28 18:38:15Z rouault $
+ * $Id: cpl_vsil.cpp 23506 2011-12-10 13:43:59Z rouault $
  *
  * Project:  VSI Virtual File System
  * Purpose:  Implementation VSI*L File API and other file system access
@@ -32,7 +32,7 @@
 #include "cpl_string.h"
 #include <string>
 
-CPL_CVSID("$Id: cpl_vsil.cpp 20996 2010-10-28 18:38:15Z rouault $");
+CPL_CVSID("$Id: cpl_vsil.cpp 23506 2011-12-10 13:43:59Z rouault $");
 
 /************************************************************************/
 /*                             VSIReadDir()                             */
@@ -326,9 +326,13 @@ int VSIIsCaseSensitiveFS( const char * pszFilename )
  * than 2GB) should be supported.  Binary access is always implied and
  * the "b" does not need to be included in the pszAccess string.
  *
- * Note that the "VSILFILE *" returned since GDAL 1.8.0 by this function is *NOT* a
- * standard C library FILE *, and cannot be used with any functions other
- * than the "VSI*L" family of functions.  They aren't "real" FILE objects.
+ * Note that the "VSILFILE *" returned since GDAL 1.8.0 by this function is 
+ * *NOT* a standard C library FILE *, and cannot be used with any functions 
+ * other than the "VSI*L" family of functions.  They aren't "real" FILE objects.
+ *
+ * On windows it is possible to define the configuration option 
+ * GDAL_FILE_IS_UTF8 to have pszFilename treated as being in the local
+ * encoding instead of UTF-8, retoring the pre-1.8.0 behavior of VSIFOpenL().
  *
  * This method goes through the VSIFileHandler virtualization and may
  * work on unusual filesystems such as in memory.
@@ -514,6 +518,43 @@ size_t VSIFReadL( void * pBuffer, size_t nSize, size_t nCount, VSILFILE * fp )
     return poFileHandle->Read( pBuffer, nSize, nCount );
 }
 
+
+/************************************************************************/
+/*                       VSIFReadMultiRangeL()                          */
+/************************************************************************/
+
+/**
+ * \brief Read several ranges of bytes from file.
+ *
+ * Reads nRanges objects of panSizes[i] bytes from the indicated file at the
+ * offset panOffsets[i] into the buffer ppData[i].
+ *
+ * Ranges must be sorted in ascending start offset, and must not overlap each
+ * other.
+ *
+ * This method goes through the VSIFileHandler virtualization and may
+ * work on unusual filesystems such as in memory or /vsicurl/.
+ *
+ * @param nRanges number of ranges to read.
+ * @param ppData array of nRanges buffer into which the data should be read
+ *               (ppData[i] must be at list panSizes[i] bytes).
+ * @param panOffsets array of nRanges offsets at which the data should be read.
+ * @param panSizes array of nRanges sizes of objects to read (in bytes).
+ * @param fp file handle opened with VSIFOpenL().
+ *
+ * @return 0 in case of success, -1 otherwise.
+ * @since GDAL 1.9.0
+ */
+
+int VSIFReadMultiRangeL( int nRanges, void ** ppData,
+                         const vsi_l_offset* panOffsets,
+                         const size_t* panSizes, VSILFILE * fp )
+{
+    VSIVirtualHandle *poFileHandle = (VSIVirtualHandle *) fp;
+
+    return poFileHandle->ReadMultiRange( nRanges, ppData, panOffsets, panSizes );
+}
+
 /************************************************************************/
 /*                             VSIFWriteL()                             */
 /************************************************************************/
@@ -553,8 +594,9 @@ size_t VSIFWriteL( const void *pBuffer, size_t nSize, size_t nCount, VSILFILE *f
 /**
  * \brief Test for end of file.
  *
- * Returns TRUE (non-zero) if the file read/write offset is currently at the
- * end of the file. 
+ * Returns TRUE (non-zero) if an end-of-file condition occured during the
+ * previous read operation. The end-of-file flag is cleared by a successfull
+ * VSIFSeekL() call.
  *
  * This method goes through the VSIFileHandler virtualization and may
  * work on unusual filesystems such as in memory.
@@ -572,6 +614,33 @@ int VSIFEofL( VSILFILE * fp )
     VSIVirtualHandle *poFileHandle = (VSIVirtualHandle *) fp;
     
     return poFileHandle->Eof();
+}
+
+/************************************************************************/
+/*                            VSIFTruncateL()                           */
+/************************************************************************/
+
+/**
+ * \brief Truncate/expand the file to the specified size
+
+ * This method goes through the VSIFileHandler virtualization and may
+ * work on unusual filesystems such as in memory.
+ *
+ * Analog of the POSIX ftruncate() call.
+ *
+ * @param fp file handle opened with VSIFOpenL().
+ * @param nNewSize new size in bytes.
+ *
+ * @return 0 on success
+ * @since GDAL 1.9.0
+ */
+
+int VSIFTruncateL( VSILFILE * fp, vsi_l_offset nNewSize )
+
+{
+    VSIVirtualHandle *poFileHandle = (VSIVirtualHandle *) fp;
+
+    return poFileHandle->Truncate(nNewSize);
 }
 
 /************************************************************************/
@@ -753,4 +822,35 @@ void VSICleanupFileManager()
         delete poManager;
         poManager = NULL;
     }
+}
+
+/************************************************************************/
+/*                           ReadMultiRange()                           */
+/************************************************************************/
+
+int VSIVirtualHandle::ReadMultiRange( int nRanges, void ** ppData,
+                                      const vsi_l_offset* panOffsets,
+                                      const size_t* panSizes )
+{
+    int nRet = 0;
+    vsi_l_offset nCurOffset = Tell();
+    for(int i=0;i<nRanges;i++)
+    {
+        if (Seek(panOffsets[i], SEEK_SET) < 0)
+        {
+            nRet = -1;
+            break;
+        }
+
+        size_t nRead = Read(ppData[i], 1, panSizes[i]);
+        if (panSizes[i] != nRead)
+        {
+            nRet = -1;
+            break;
+        }
+    }
+
+    Seek(nCurOffset, SEEK_SET);
+
+    return nRet;
 }

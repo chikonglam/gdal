@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s57classregistrar.cpp 10645 2007-01-18 02:22:39Z warmerdam $
+ * $Id: s57classregistrar.cpp 22616 2011-06-29 19:19:03Z rouault $
  *
  * Project:  S-57 Translator
  * Purpose:  Implements S57ClassRegistrar class for keeping track of
@@ -32,7 +32,7 @@
 #include "cpl_conv.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: s57classregistrar.cpp 10645 2007-01-18 02:22:39Z warmerdam $");
+CPL_CVSID("$Id: s57classregistrar.cpp 22616 2011-06-29 19:19:03Z rouault $");
 
 
 #ifdef S57_BUILTIN_CLASSES
@@ -199,7 +199,7 @@ int S57ClassRegistrar::LoadInfo( const char * pszDirectory,
     }
     else if( strlen(pszProfile) > 0 )
     {
-       sprintf( szTargetFile, "s57objectclasses_%s.csv", pszProfile );
+       snprintf( szTargetFile, sizeof(szTargetFile), "s57objectclasses_%s.csv", pszProfile );
     }
     else
     {
@@ -220,6 +220,8 @@ int S57ClassRegistrar::LoadInfo( const char * pszDirectory,
     {
         CPLError( CE_Failure, CPLE_AppDefined,
                   "s57objectclasses columns don't match expected format!\n" );
+        if( fp != NULL )
+            VSIFClose( fp );
         return FALSE;
     }
 
@@ -270,7 +272,7 @@ int S57ClassRegistrar::LoadInfo( const char * pszDirectory,
     }
     else if( strlen(pszProfile) > 0 )
     {
-       sprintf( szTargetFile, "s57attributes_%s.csv", pszProfile );
+       snprintf( szTargetFile, sizeof(szTargetFile), "s57attributes_%s.csv", pszProfile );
     }
     else
     {
@@ -290,6 +292,8 @@ int S57ClassRegistrar::LoadInfo( const char * pszDirectory,
     {
         CPLError( CE_Failure, CPLE_AppDefined,
                   "s57attributes columns don't match expected format!\n" );
+        if( fp != NULL )
+            VSIFClose( fp );
         return FALSE;
     }
     
@@ -302,12 +306,12 @@ int S57ClassRegistrar::LoadInfo( const char * pszDirectory,
     //papapszAttrValues = (char ***) CPLCalloc(sizeof(char **),MAX_ATTRIBUTES);
     pachAttrType = (char *) CPLCalloc(sizeof(char),MAX_ATTRIBUTES);
     pachAttrClass = (char *) CPLCalloc(sizeof(char),MAX_ATTRIBUTES);
-    panAttrIndex = (int *) CPLCalloc(sizeof(int),MAX_ATTRIBUTES);
+    panAttrIndex = (GUInt16 *) CPLCalloc(sizeof(GUInt16),MAX_ATTRIBUTES);
     
 /* -------------------------------------------------------------------- */
 /*      Read and form string list.                                      */
 /* -------------------------------------------------------------------- */
-    int         iAttr;
+    GUInt16         iAttr;
     
     while( (pszLine = ReadLine(fp)) != NULL )
     {
@@ -320,7 +324,7 @@ int S57ClassRegistrar::LoadInfo( const char * pszDirectory,
             continue;
         }
         
-        iAttr = atoi(papszTokens[0]);
+        iAttr = (GUInt16) atoi(papszTokens[0]);
         if( iAttr < 0 || iAttr >= nAttrMax
             || papszAttrNames[iAttr] != NULL )
         {
@@ -363,7 +367,7 @@ int S57ClassRegistrar::LoadInfo( const char * pszDirectory,
             if( strcmp(papszAttrAcronym[panAttrIndex[iAttr]],
                        papszAttrAcronym[panAttrIndex[iAttr+1]]) > 0 )
             {
-                int     nTemp;
+                GInt16     nTemp;
 
                 nTemp = panAttrIndex[iAttr];
                 panAttrIndex[iAttr] = panAttrIndex[iAttr+1];
@@ -572,7 +576,7 @@ char **S57ClassRegistrar::GetPrimitives()
 /*                         FindAttrByAcronym()                          */
 /************************************************************************/
 
-int     S57ClassRegistrar::FindAttrByAcronym( const char * pszName )
+GInt16    S57ClassRegistrar::FindAttrByAcronym( const char * pszName )
 
 {
     int         iStart, iEnd, iCandidate;

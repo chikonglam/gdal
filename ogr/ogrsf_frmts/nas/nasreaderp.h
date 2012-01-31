@@ -33,6 +33,7 @@
 #include "gmlreader.h"
 #include "gmlreaderp.h"
 #include "ogr_api.h"
+#include "cpl_string.h"
 
 IGMLReader *CreateNASReader();
 
@@ -63,6 +64,8 @@ class NASHandler : public DefaultHandler
     int        m_nDepthFeature;
     int        m_bIgnoreFeature;
 
+    CPLString  m_osLastTypeName;
+
 public:
     NASHandler( NASReader *poReader );
     virtual ~NASHandler();
@@ -87,6 +90,8 @@ public:
 #endif
 
     void fatalError(const SAXParseException&);
+
+    CPLString GetAttributes( const Attributes* attr );
 };
 
 /************************************************************************/
@@ -172,6 +177,7 @@ public:
     int              SaveClasses( const char *pszFile = NULL );
 
     int              PrescanForSchema(int bGetExtents = TRUE );
+    int              PrescanForTemplate( void );
     void             ResetReading();
 
     int              ParseXSD( const char *pszFile ) { return FALSE; }
@@ -180,6 +186,10 @@ public:
                                     int* pbOutIsTempFile,
                                     char **papszSkip = NULL,
                                     const int bStrict = FALSE );
+
+    int              HugeFileResolver( const char *pszFile,
+                                       int bSqliteIsTempFile,
+                                       int iSqliteCacheMB );
 
 // --- 
 
@@ -193,11 +203,12 @@ public:
     void        PushFeature( const char *pszElement, 
                              const Attributes &attrs );
 
-    void        SetFeatureProperty( const char *pszElement,
-                                    const char *pszValue );
+    void        SetFeaturePropertyDirectly( const char *pszElement,
+                                    char *pszValue );
 
     int         HasStoppedParsing() { return FALSE; }
 
+    void        CheckForFID( const Attributes &attrs, char **ppszCurField );
     void        CheckForRelations( const char *pszElement, 
                                    const Attributes &attrs );
 

@@ -37,7 +37,7 @@
 /*      Does input match pattern?                                       */
 /************************************************************************/
 
-int swq_test_like( const char *input, const char *pattern )
+int swq_test_like( const char *input, const char *pattern, char chEscape )
 
 {
     if( input == NULL || pattern == NULL )
@@ -47,6 +47,20 @@ int swq_test_like( const char *input, const char *pattern )
     {
         if( *pattern == '\0' )
             return 0;
+
+        else if( *pattern == chEscape )
+        {
+            pattern++;
+            if( *pattern == '\0' )
+                return 0;
+            if( tolower(*pattern) != tolower(*input) )
+                return 0;
+            else
+            {
+                input++;
+                pattern++;
+            }
+        }
 
         else if( *pattern == '_' )
         {
@@ -63,7 +77,7 @@ int swq_test_like( const char *input, const char *pattern )
             /* try eating varying amounts of the input till we get a positive*/
             for( eat = 0; input[eat] != '\0'; eat++ )
             {
-                if( swq_test_like(input+eat,pattern+1) )
+                if( swq_test_like(input+eat,pattern+1, chEscape) )
                     return 1;
             }
 
@@ -407,9 +421,15 @@ swq_expr_node *SWQGeneralEvaluator( swq_expr_node *node,
             break;
 
           case SWQ_LIKE:
+          {
+            char chEscape = '\0';
+            if( node->nSubExprCount == 3 )
+                chEscape = sub_node_values[2]->string_value[0];
             poRet->int_value = swq_test_like(sub_node_values[0]->string_value,
-                                             sub_node_values[1]->string_value);
+                                             sub_node_values[1]->string_value,
+                                             chEscape);
             break;
+          }
 
           case SWQ_ISNULL:
             poRet->int_value = sub_node_values[0]->is_null;
@@ -425,6 +445,7 @@ swq_expr_node *SWQGeneralEvaluator( swq_expr_node *node,
                   osResult += sub_node_values[i]->string_value;
               
               poRet->string_value = CPLStrdup(osResult);
+              poRet->is_null = sub_node_values[0]->is_null;
               break;
           }
             
@@ -450,7 +471,23 @@ swq_expr_node *SWQGeneralEvaluator( swq_expr_node *node,
                   nSize = 0;
 
               int nSrcStrLen = (int)strlen(pszSrcStr);
-              if( nOffset < 0 || nSize < 0 || nOffset > nSrcStrLen )
+
+
+              /* In SQL, the first character is at offset 1 */
+              /* And 0 is considered as 1 */
+              if (nOffset > 0)
+                  nOffset --;
+              /* Some implementations allow negative offsets, to start */
+              /* from the end of the string */
+              else if( nOffset < 0 )
+              {
+                  if( nSrcStrLen + nOffset >= 0 )
+                      nOffset = nSrcStrLen + nOffset;
+                  else
+                      nOffset = 0;
+              }
+
+              if( nSize < 0 || nOffset > nSrcStrLen )
               {
                   nOffset = 0;
                   nSize = 0;
@@ -463,6 +500,7 @@ swq_expr_node *SWQGeneralEvaluator( swq_expr_node *node,
                   osResult.resize( nSize );
               
               poRet->string_value = CPLStrdup(osResult);
+              poRet->is_null = sub_node_values[0]->is_null;
               break;
           }
 
@@ -561,6 +599,67 @@ static void SWQAutoPromoteStringToDateTime( swq_expr_node *poNode )
 }
 
 /************************************************************************/
+/*                    SWQAutoConvertStringToNumeric()                   */
+/*                                                                      */
+/*      Convert string constants to integer or float constants          */
+/*      when there is a mix of arguments of type numeric and string     */
+/************************************************************************/
+
+static void SWQAutoConvertStringToNumeric( swq_expr_node *poNode )
+
+{
+    if( poNode->nSubExprCount < 2 )
+        return;
+
+    swq_field_type eArgType = poNode->papoSubExpr[0]->field_type;
+    int i;
+
+    for( i = 1; i < poNode->nSubExprCount; i++ )
+    {
+        swq_expr_node *poSubNode = poNode->papoSubExpr[i];
+
+        /* identify the mixture of the argument type */
+        if( (eArgType == SWQ_STRING
+            && (poSubNode->field_type == SWQ_INTEGER
+               || poSubNode->field_type == SWQ_FLOAT)) ||
+            (eArgType == SWQ_INTEGER
+            && poSubNode->field_type == SWQ_STRING) )
+        {
+            eArgType = SWQ_FLOAT;
+            break;
+        }
+    }
+    
+    for( i = 0; i < poNode->nSubExprCount; i++ )
+    {
+        swq_expr_node *poSubNode = poNode->papoSubExpr[i];
+
+        if( eArgType == SWQ_FLOAT
+            && poSubNode->field_type == SWQ_STRING )
+        {
+            if( poSubNode->eNodeType == SNT_CONSTANT )
+            {
+                /* apply the string to numeric conversion */
+                char* endPtr = NULL;
+                poSubNode->float_value = CPLStrtod(poSubNode->string_value, &endPtr);
+                if ( !(endPtr == NULL || *endPtr == '\0') )
+                {
+                    CPLError(CE_Warning, CPLE_NotSupported,
+                             "Conversion failed when converting the string value '%s' to data type float.",
+                             poSubNode->string_value);
+                    continue;
+                }
+                                
+                poSubNode->float_value = atof(poSubNode->string_value);
+                /* we should also fill the integer value in this case */
+                poSubNode->int_value = (int)poSubNode->float_value;
+                poSubNode->field_type = SWQ_FLOAT;
+            }
+        }
+    }
+}
+
+/************************************************************************/
 /*                         SWQGeneralChecker()                          */
 /*                                                                      */
 /*      Check the general purpose functions have appropriate types,     */
@@ -592,6 +691,7 @@ swq_field_type SWQGeneralChecker( swq_expr_node *poNode )
       case SWQ_IN:
       case SWQ_BETWEEN:
         eRetType = SWQ_BOOLEAN;
+        SWQAutoConvertStringToNumeric( poNode );
         SWQAutoPromoteIntegerToFloat( poNode );
         SWQAutoPromoteStringToDateTime( poNode );
         eArgType = poNode->papoSubExpr[0]->field_type;
@@ -732,6 +832,7 @@ swq_expr_node *SWQCastEvaluator( swq_expr_node *node,
         case SWQ_INTEGER:
         {
             poRetNode = new swq_expr_node( 0 );
+            poRetNode->is_null = poSrcNode->is_null;
 
             switch( poSrcNode->field_type )
             {
@@ -754,6 +855,7 @@ swq_expr_node *SWQCastEvaluator( swq_expr_node *node,
         case SWQ_FLOAT:
         {
             poRetNode = new swq_expr_node( 0.0 );
+            poRetNode->is_null = poSrcNode->is_null;
 
             switch( poSrcNode->field_type )
             {
@@ -804,6 +906,7 @@ swq_expr_node *SWQCastEvaluator( swq_expr_node *node,
             }
 
             poRetNode = new swq_expr_node( osRet.c_str() );
+            poRetNode->is_null = poSrcNode->is_null;
         }
     }
 
