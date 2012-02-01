@@ -1,16 +1,16 @@
 --- a/swig/ruby/RubyMakefile.mk
 +++ b/swig/ruby/RubyMakefile.mk
-@@ -37,7 +37,9 @@
- 
- ifeq ("$(shell uname -s)", "Darwin")
- RUBY_MODULES=$(RUBY_MODULES_MAC)
--LDFLAGS += -Xcompiler -bundle -L$(RUBY_LIB_DIR)
-+LDFLAGS += -fPIC -DPIC -Xcompiler -bundle -L$(RUBY_LIB_DIR)
-+CFLAGS += -fPIC -DPIC
-+CXXFLAGS += -fPIC -DPIC
+@@ -41,7 +41,9 @@
  RUBY_LIB := -l$(RUBY_SO_NAME)
  else
  RUBY_MODULES=$(RUBY_MODULES_LIN)
+-LDFLAGS += -Xcompiler -shared -L$(RUBY_LIB_DIR)
++LDFLAGS += -fPIC -DPIC -Xcompiler -L$(RUBY_LIB_DIR)
++CFLAGS += -fPIC -DPIC
++CXXFLAGS += -fPIC -DPIC
+ RUBY_LIB := -l$(RUBY_SO_NAME)
+ endif
+ 
 @@ -59,7 +61,7 @@
  $(INSTALL_DIR):
  	mkdir -p $(DESTDIR)$(INSTALL_DIR)
