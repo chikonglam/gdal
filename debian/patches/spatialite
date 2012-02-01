@@ -1,22 +1,20 @@
-Index: gdal/configure
-===================================================================
---- gdal.orig/configure	2011-09-26 13:20:01.000000000 +0200
-+++ gdal/configure	2011-09-26 13:20:49.000000000 +0200
-@@ -22284,7 +22284,7 @@
+--- a/configure
++++ b/configure
+@@ -24463,7 +24463,7 @@
  
-     if test "$SPATIALITE_INIT_FOUND" = "yes"; then
-         HAVE_SPATIALITE=yes
--        LIBS="$LIBS -lspatialite"
-+        LIBS="$LIBS -lspatialite -lsqlite3"
-         HAVE_SQLITE3=yes
-     fi
- else
-@@ -22343,7 +22343,7 @@
+             if test "$SPATIALITE_INIT_FOUND" = "yes"; then
+                 HAVE_SPATIALITE=yes
+-                LIBS="$LIBS -lspatialite"
++                LIBS="$LIBS -lspatialite -lsqlite3"
+                 HAVE_SQLITE3=yes
+             fi
+         else
+@@ -24528,7 +24528,7 @@
          # as there's a spatialite.h file in it, which we don't want to include.
          # We want to include include/spatialite.h instead !
          SQLITE3_CFLAGS="-I$with_spatialite/include"
 -        LIBS="$LIBS -L$with_spatialite/lib -lspatialite"
 +        LIBS="$LIBS -L$with_spatialite/lib -lspatialite -lsqlite3"
          HAVE_SQLITE3=yes
-     else
-         { $as_echo "$as_me:${as_lineno-$LINENO}: result: disabled" >&5
+ 
+     elif test -f "$with_spatialite/include/spatialite.h" -a \
