@@ -1,3 +1,11 @@
+gdal (1.9.0-1~exp1) experimental; urgency=low
+
+  * New upstream release.
+  * Patchset update for the current major release.
+  * Dropped patch: epsilon.
+
+ -- Alan Boudreault <aboudreault@mapgears.com>  Wed, 01 Feb 2012 02:32:30 +0000
+
 gdal (1.8.1-2~exp2) experimental; urgency=low
 
   * Changed organization of symbol files in one common file and
