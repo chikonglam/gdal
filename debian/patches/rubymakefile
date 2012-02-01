@@ -5,7 +5,7 @@
  else
  RUBY_MODULES=$(RUBY_MODULES_LIN)
 -LDFLAGS += -Xcompiler -shared -L$(RUBY_LIB_DIR)
-+LDFLAGS += -fPIC -DPIC -Xcompiler -L$(RUBY_LIB_DIR)
++LDFLAGS += -fPIC -DPIC -Xcompiler -shared -L$(RUBY_LIB_DIR)
 +CFLAGS += -fPIC -DPIC
 +CXXFLAGS += -fPIC -DPIC
  RUBY_LIB := -l$(RUBY_SO_NAME)
