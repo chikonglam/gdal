@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: vfkdatablock.cpp 20142 2010-07-27 18:43:49Z rouault $
+ * $Id: vfkdatablock.cpp 22873 2011-08-06 20:33:55Z rouault $
  *
  * Project:  VFK Reader - Data block definition
  * Purpose:  Implements VFKDataBlock class.
@@ -890,7 +890,7 @@ long VFKDataBlock::LoadGeometry()
     end = clock();
     
     CPLDebug("OGR_VFK", "VFKDataBlock::LoadGeometry(): name=%s nfeatures=%ld sec=%ld",
-	     m_pszName, nfeatures, (end - start) / CLOCKS_PER_SEC);
+	     m_pszName, nfeatures, (long)((end - start) / CLOCKS_PER_SEC));
     
     return nfeatures;
 }

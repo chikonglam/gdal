@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: rasterlitedataset.cpp 20996 2010-10-28 18:38:15Z rouault $
+ * $Id: rasterlitedataset.cpp 23661 2011-12-29 22:54:32Z rouault $
  *
  * Project:  GDAL Rasterlite driver
  * Purpose:  Implement GDAL Rasterlite support using OGR SQLite driver
@@ -34,7 +34,7 @@
 
 #include "rasterlitedataset.h"
 
-CPL_CVSID("$Id: rasterlitedataset.cpp 20996 2010-10-28 18:38:15Z rouault $");
+CPL_CVSID("$Id: rasterlitedataset.cpp 23661 2011-12-29 22:54:32Z rouault $");
 
 /************************************************************************/
 /*                            RasterliteBand()                          */
@@ -119,6 +119,13 @@ CPLErr RasterliteBand::IReadBlock( int nBlockXOff, int nBlockYOff, void * pImage
     while( (hFeat = OGR_L_GetNextFeature(hSQLLyr)) != NULL )
     {
         OGRGeometryH hGeom = OGR_F_GetGeometryRef(hFeat);
+        if (hGeom == NULL)
+        {
+            CPLError(CE_Failure, CPLE_AppDefined, "null geometry found");
+            OGR_F_Destroy(hFeat);
+            OGR_DS_ReleaseResultSet(poGDS->hDS, hSQLLyr);
+            return CE_Failure;
+        }
         
         OGREnvelope oEnvelope;
         OGR_G_GetEnvelope(hGeom, &oEnvelope);
@@ -570,34 +577,66 @@ RasterliteDataset::RasterliteDataset(RasterliteDataset* poMainDS, int nLevel)
 
 RasterliteDataset::~RasterliteDataset()
 {
-    if (poMainDS == NULL)
+    CloseDependentDatasets();
+}
+
+/************************************************************************/
+/*                      CloseDependentDatasets()                        */
+/************************************************************************/
+
+int RasterliteDataset::CloseDependentDatasets()
+{
+    int bRet = GDALPamDataset::CloseDependentDatasets();
+
+    if (poMainDS == NULL && !bMustFree)
     {
         CSLDestroy(papszMetadata);
+        papszMetadata = NULL;
         CSLDestroy(papszSubDatasets);
+        papszSubDatasets = NULL;
         CSLDestroy(papszImageStructure);
+        papszImageStructure = NULL;
         CPLFree(pszSRS);
+        pszSRS = NULL;
 
         if (papoOverviews)
         {
             int i;
             for(i=1;i<nResolutions;i++)
+            {
+                if (papoOverviews[i-1] != NULL &&
+                    papoOverviews[i-1]->bMustFree)
+                {
+                    papoOverviews[i-1]->poMainDS = NULL;
+                }
                 delete papoOverviews[i-1];
+            }
             CPLFree(papoOverviews);
+            papoOverviews = NULL;
+            nResolutions = 0;
+            bRet = TRUE;
         }
 
         if (hDS != NULL)
             OGRReleaseDataSource(hDS);
-            
+        hDS = NULL;
+
         CPLFree(padfXResolutions);
         CPLFree(padfYResolutions);
-        
+        padfXResolutions = padfYResolutions = NULL;
+
         delete poCT;
+        poCT = NULL;
     }
-    else if (bMustFree)
+    else if (poMainDS != NULL && bMustFree)
     {
         poMainDS->papoOverviews[nLevel-1] = NULL;
         delete poMainDS;
+        poMainDS = NULL;
+        bRet = TRUE;
     }
+
+    return bRet;
 }
 
 /************************************************************************/
@@ -932,7 +971,7 @@ GDALDataset* RasterliteDataset::Open(GDALOpenInfo* poOpenInfo)
     /* fetch non spatial tables */
     CPLString osOldVal = CPLGetConfigOption("SQLITE_LIST_ALL_TABLES", "FALSE");
     CPLSetThreadLocalConfigOption("SQLITE_LIST_ALL_TABLES", "TRUE");
-    OGRDataSourceH hDS = OGROpen(osFileName.c_str(), TRUE, NULL);
+    OGRDataSourceH hDS = OGROpen(osFileName.c_str(), (poOpenInfo->eAccess == GA_Update) ? TRUE : FALSE, NULL);
     CPLSetThreadLocalConfigOption("SQLITE_LIST_ALL_TABLES", osOldVal.c_str());
     CPLDebug("RASTERLITE", "SQLite DB Open");
     
@@ -1099,7 +1138,10 @@ GDALDataset* RasterliteDataset::Open(GDALOpenInfo* poOpenInfo)
         }
         else
         {
+            CPLString osOldVal = CPLGetConfigOption("OGR_SQLITE_EXACT_EXTENT", "NO");
+            CPLSetThreadLocalConfigOption("OGR_SQLITE_EXACT_EXTENT", "YES");
             OGR_L_GetExtent(hMetadataLyr, &oEnvelope, TRUE);
+            CPLSetThreadLocalConfigOption("OGR_SQLITE_EXACT_EXTENT", osOldVal.c_str());
             //printf("minx=%.15f miny=%.15f maxx=%.15f maxy=%.15f\n",
             //       oEnvelope.MinX, oEnvelope.MinY, oEnvelope.MaxX, oEnvelope.MaxY);
         }
@@ -1315,7 +1357,7 @@ void GDALRegister_Rasterlite()
 "   <Option name='BLOCKYSIZE' type='int' default='256' description='Tile Height'/>"
 "   <Option name='DRIVER' type='string' default='GTiff' description='GDAL driver to use for storing tiles' default='GTiff'/>"
 "   <Option name='COMPRESS' type='string' default='(GTiff driver) Compression method' default='NONE'/>"
-"   <Option name='QUALITY' type='int' description='(GTiff / JPEG drivers) JPEG quality 1-100' default='75'/>"
+"   <Option name='QUALITY' type='int' description='(JPEG-compressed GTiff, JPEG and WEBP drivers) JPEG/WEBP Quality 1-100' default='75'/>"
 "   <Option name='PHOTOMETRIC' type='string-select' description='(GTiff driver) Photometric interpretation'>"
 "       <Value>MINISBLACK</Value>"
 "       <Value>MINISWHITE</Value>"

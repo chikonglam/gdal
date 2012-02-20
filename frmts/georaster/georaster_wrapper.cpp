@@ -140,6 +140,11 @@ GeoRasterWrapper::~GeoRasterWrapper()
     {
         jpeg_destroy_compress( &sCInfo );
     }
+
+    if( poConnection )
+    {
+        delete poConnection;
+    }
 }
 
 //  ---------------------------------------------------------------------------
@@ -646,13 +651,11 @@ bool GeoRasterWrapper::Create( char* pszDescription,
 
         if( pszInsert )
         {
-            if( ! EQUALN( pszInsert, "VALUES", 6 ) )
+            sValues = pszInsert;
+
+            if( pszInsert[0] == '(' && sValues.ifind( "VALUES" ) == std::string::npos )
             {
                 sValues = CPLSPrintf( "VALUES %s", pszInsert );
-            }
-            else
-            {
-                sValues = pszInsert;
             }
         }
         else
@@ -1278,10 +1281,10 @@ void GeoRasterWrapper::GetRasterInfo( void )
     //  -------------------------------------------------------------------
 
     anULTCoordinate[0] = atoi(CPLGetXMLValue( 
-            phMetadata, "rasterInfo.ULTCoordinate.row", "0"));
+            phMetadata, "rasterInfo.ULTCoordinate.column", "0"));
 
     anULTCoordinate[1] = atoi(CPLGetXMLValue( 
-            phMetadata, "rasterInfo.ULTCoordinate.column", "0"));
+            phMetadata, "rasterInfo.ULTCoordinate.row", "0"));
 
     anULTCoordinate[2] = atoi(CPLGetXMLValue( 
             phMetadata, "rasterInfo.ULTCoordinate.band", "0"));
@@ -1346,6 +1349,11 @@ void GeoRasterWrapper::GetRasterInfo( void )
     {
         nCompressQuality = atoi( CPLGetXMLValue( phMetadata,
                             "rasterInfo.compression.quality", "75" ) );
+    }
+
+    if( EQUALN( sCompressionType.c_str(), "JPEG", 4 ) )
+    {
+        sInterleaving = "BIP";
     }
 
     //  -------------------------------------------------------------------
@@ -2564,14 +2572,14 @@ char* GeoRasterWrapper::GetVAT( int nBand )
 
 bool GeoRasterWrapper::FlushMetadata()
 {
+    if( bFlushBlock )
+    {
+        FlushBlock( nCacheBlockId );
+    }
+
     if( ! bFlushMetadata )
     {
         return true;
-    }
-
-    if( bFlushBlock ) // Flush the block in cache
-    {
-        FlushBlock( nCacheBlockId );
     }
 
     bFlushMetadata = false;

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: fitdataset.cpp 20996 2010-10-28 18:38:15Z rouault $
+ * $Id: fitdataset.cpp 23060 2011-09-05 17:58:30Z rouault $
  *
  * Project:  FIT Driver
  * Purpose:  Implement FIT Support - not using the SGI iflFIT library.
@@ -32,7 +32,7 @@
 #include "gdal_pam.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: fitdataset.cpp 20996 2010-10-28 18:38:15Z rouault $");
+CPL_CVSID("$Id: fitdataset.cpp 23060 2011-09-05 17:58:30Z rouault $");
 
 CPL_C_START
  
@@ -1064,6 +1064,11 @@ GDALDataset *FITDataset::Open( GDALOpenInfo * poOpenInfo )
 /* -------------------------------------------------------------------- */
     poDS->SetDescription( poOpenInfo->pszFilename );
     poDS->TryLoadXML();
+
+/* -------------------------------------------------------------------- */
+/*      Check for external overviews.                                   */
+/* -------------------------------------------------------------------- */
+    poDS->oOvManager.Initialize( poDS, poOpenInfo->pszFilename, poOpenInfo->papszSiblingFiles );
 
     return guard.take();
 }

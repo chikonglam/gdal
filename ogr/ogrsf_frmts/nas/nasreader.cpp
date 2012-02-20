@@ -30,6 +30,7 @@
 #include "gmlreader.h"
 #include "cpl_error.h"
 #include "cpl_string.h"
+#include "gmlutils.h"
 
 #define SUPPORT_GEOMETRY
 
@@ -91,6 +92,9 @@ NASReader::~NASReader()
     CPLFree( m_pszFilename );
 
     CleanupParser();
+
+    if (CSLTestBoolean(CPLGetConfigOption("NAS_XERCES_TERMINATE", "FALSE")))
+        XMLPlatformUtils::Terminate();
 
     CPLFree( m_pszFilteredClassName );
 }
@@ -331,8 +335,7 @@ void NASReader::PushFeature( const char *pszElement,
     if( nFIDIndex != -1 )
     {
         char *pszFID = tr_strdup( attrs.getValue( nFIDIndex ) );
-        SetFeatureProperty( "gml_id", pszFID );
-        CPLFree( pszFID );
+        SetFeaturePropertyDirectly( "gml_id", pszFID );
     }
 
 }
@@ -356,7 +359,8 @@ int NASReader::IsFeatureElement( const char *pszElement )
     // -- either a wfs:Insert or a gml:featureMember. 
 
     if( (nLen < 6 || !EQUAL(pszLast+nLen-6,"Insert")) 
-        && (nLen < 13 || !EQUAL(pszLast+nLen-13,"featureMember")) )
+        && (nLen < 13 || !EQUAL(pszLast+nLen-13,"featureMember"))
+        && (nLen < 6 || !EQUAL(pszLast+nLen-7,"Replace")) )
         return FALSE;
 
     // If the class list isn't locked, any element that is a featureMember
@@ -399,7 +403,7 @@ int NASReader::IsAttributeElement( const char *pszElement )
         osElemPath = pszElement;
     else
     {
-        osElemPath = m_poState->m_pszPath;
+        osElemPath = m_poState->osPath;
         osElemPath += "|";
         osElemPath += pszElement;
     }
@@ -512,12 +516,11 @@ void NASReader::ClearClasses()
 /*                                                                      */
 /*      Set the property value on the current feature, adding the       */
 /*      property name to the GMLFeatureClass if required.               */
-/*      Eventually this function may also "refine" the property         */
-/*      type based on what is encountered.                              */
+/*      The pszValue ownership is passed to this function.              */
 /************************************************************************/
 
-void NASReader::SetFeatureProperty( const char *pszElement, 
-                                    const char *pszValue )
+void NASReader::SetFeaturePropertyDirectly( const char *pszElement,
+                                            char *pszValue )
 
 {
     GMLFeature *poFeature = GetState()->m_poFeature;
@@ -543,6 +546,7 @@ void NASReader::SetFeatureProperty( const char *pszElement,
         if( poClass->IsSchemaLocked() )
         {
             CPLDebug("GML","Encountered property missing from class schema.");
+            CPLFree(pszValue);
             return;
         }
 
@@ -572,17 +576,57 @@ void NASReader::SetFeatureProperty( const char *pszElement,
     }
 
 /* -------------------------------------------------------------------- */
+/*      We want to handle <lage> specially to ensure it is zero         */
+/*      filled, and treated as a string depspite the numeric            */
+/*      content. https://trac.wheregroup.com/PostNAS/ticket/9           */
+/* -------------------------------------------------------------------- */
+    if( strcmp(poClass->GetProperty(iProperty)->GetName(),"lage") == 0 )
+    {
+        if( strlen(pszValue) < 5 )
+        {
+            CPLString osValue = "00000";
+            osValue += pszValue;
+            poFeature->SetPropertyDirectly( iProperty, CPLStrdup(osValue + osValue.size() - 5) );
+            CPLFree(pszValue);
+        }
+        else
+            poFeature->SetPropertyDirectly( iProperty, pszValue );
+
+        
+        if( !poClass->IsSchemaLocked() )
+        {
+            poClass->GetProperty(iProperty)->SetWidth( 5 );
+            poClass->GetProperty(iProperty)->SetType( GMLPT_String );
+        }
+        return;
+    }
+
+/* -------------------------------------------------------------------- */
 /*      Set the property                                                */
 /* -------------------------------------------------------------------- */
-    poFeature->SetProperty( iProperty, pszValue );
+    poFeature->SetPropertyDirectly( iProperty, pszValue );
 
 /* -------------------------------------------------------------------- */
 /*      Do we need to update the property type?                         */
 /* -------------------------------------------------------------------- */
     if( !poClass->IsSchemaLocked() )
     {
-        poClass->GetProperty(iProperty)->AnalysePropertyValue(
-                             poFeature->GetProperty(iProperty));
+        // Special handling for punktkennung per NAS #12
+        if( strcmp(poClass->GetProperty(iProperty)->GetName(),
+                   "punktkennung") == 0)
+        {
+            poClass->GetProperty(iProperty)->SetWidth( 15 );
+            poClass->GetProperty(iProperty)->SetType( GMLPT_String );
+        }
+        // Special handling for artDerFlurstuecksgrenze per http://trac.osgeo.org/gdal/ticket/4255
+        else if( strcmp(poClass->GetProperty(iProperty)->GetName(),
+                   "artDerFlurstuecksgrenze") == 0)
+        {
+            poClass->GetProperty(iProperty)->SetType( GMLPT_IntegerList );
+        }
+        else
+            poClass->GetProperty(iProperty)->AnalysePropertyValue(
+                poFeature->GetProperty(iProperty));
     }
 }
 
@@ -776,6 +820,8 @@ int NASReader::PrescanForSchema( int bGetExtents )
     if( !SetupParser() )
         return FALSE;
 
+    std::string osWork;
+
     while( (poFeature = NextFeature()) != NULL )
     {
         GMLFeatureClass *poClass = poFeature->GetClass();
@@ -790,11 +836,10 @@ int NASReader::PrescanForSchema( int bGetExtents )
         {
             OGRGeometry *poGeometry = NULL;
 
-            if( poFeature->GetGeometry() != NULL 
-                && strlen(poFeature->GetGeometry()) != 0 )
+            const CPLXMLNode* const * papsGeometry = poFeature->GetGeometryList();
+            if( papsGeometry[0] != NULL )
             {
-                poGeometry = (OGRGeometry *) OGR_G_CreateFromGML( 
-                    poFeature->GetGeometry() );
+                poGeometry = (OGRGeometry*) OGR_G_CreateFromGMLTree(papsGeometry[0]);
             }
 
             if( poGeometry != NULL )
@@ -803,6 +848,12 @@ int NASReader::PrescanForSchema( int bGetExtents )
                 OGREnvelope sEnvelope;
                 OGRwkbGeometryType eGType = (OGRwkbGeometryType) 
                     poClass->GetGeometryType();
+
+                // Merge SRSName into layer.
+                const char* pszSRSName = GML_ExtractSrsNameFromGeometry(papsGeometry, osWork, FALSE);
+//                if (pszSRSName != NULL)
+//                    m_bCanUseGlobalSRSName = FALSE;
+                poClass->MergeSRSName(pszSRSName);
 
                 // Merge geometry type into layer.
                 if( poClass->GetFeatureCount() == 1 && eGType == wkbUnknown )
@@ -861,6 +912,35 @@ void NASReader::ResetReading()
 }
 
 /************************************************************************/
+/*                            CheckForFID()                             */
+/*                                                                      */
+/*      Merge the fid attribute into the current field text.            */
+/************************************************************************/
+
+void NASReader::CheckForFID( const Attributes &attrs,
+                             char **ppszCurField )
+
+{
+    int nIndex;
+    XMLCh  Name[100];
+
+    tr_strcpy( Name, "fid" );
+    nIndex = attrs.getIndex( Name );
+
+    if( nIndex != -1 )
+    {
+        char *pszFID = tr_strdup( attrs.getValue( nIndex ) );
+        CPLString osCurField = *ppszCurField;
+
+        osCurField += pszFID;
+        CPLFree( pszFID );
+
+        CPLFree( *ppszCurField );
+        *ppszCurField = CPLStrdup(osCurField);
+    }
+}
+
+/************************************************************************/
 /*                         CheckForRelations()                          */
 /************************************************************************/
 
@@ -887,6 +967,32 @@ void NASReader::CheckForRelations( const char *pszElement,
 
         CPLFree( pszHRef );
     }
+}
+
+/************************************************************************/
+/*                         HugeFileResolver()                           */
+/*      Returns TRUE for success                                        */
+/************************************************************************/
+
+int NASReader::HugeFileResolver( const char *pszFile,
+                              int bSqliteIsTempFile,
+                              int iSqliteCacheMB )
+
+{
+    CPLDebug( "NAS", "HugeFileResolver() not currently implemented for NAS." );
+    return FALSE;
+}
+
+/************************************************************************/
+/*                         PrescanForTemplate()                         */
+/*      Returns TRUE for success                                        */
+/************************************************************************/
+
+int NASReader::PrescanForTemplate( void )
+
+{
+    CPLDebug( "NAS", "PrescanForTemplate() not currently implemented for NAS." );
+    return FALSE;
 }
 
 /************************************************************************/

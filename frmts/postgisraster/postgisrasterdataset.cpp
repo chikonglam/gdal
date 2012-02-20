@@ -1,32 +1,32 @@
 /*************************************************************************
  * File :    postgisrasterdataset.cpp
  * Project:  PostGIS Raster driver
- * Purpose:  GDAL Dataset implementation for PostGIS Raster driver 
+ * Purpose:  GDAL Dataset implementation for PostGIS Raster driver
  * Author:   Jorge Arevalo, jorge.arevalo@deimos-space.com
- * 
+ *
  * Last changes:
  * $Id:$
  *
  ************************************************************************
- * Copyright (c) 2010, Jorge Arevalo, jorge.arevalo@deimos-space.com
+ * Copyright (c) 2009 - 2011, Jorge Arevalo, jorge.arevalo@deimos-space.com
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the 
- * "Software"), to deal in the Software without restriction, including 
- * without limitation the rights to use, copy, modify, merge, publish, 
- * distribute, sublicense, and/or sell copies of the Software, and to 
- * permit persons to whom the Software is furnished to do so, subject to 
+ * copy of this software and associated documentation files (the
+ * "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish,
+ * distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to
  * the following conditions:
  *
  * The above copyright notice and this permission notice shall be included
  * in all copies or substantial portions of the Software.
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
- * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF 
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. 
- * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY 
- * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, 
- * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
+ * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+ * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+ * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+ * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  ************************************************************************/
 
@@ -71,12 +71,24 @@ PostGISRasterDataset::PostGISRasterDataset() {
     poDriver = NULL;
     nBlockXSize = 0;
     nBlockYSize = 0;
-    adfGeoTransform[0] = 0.0;     /* X Origin (top left corner) */
-    adfGeoTransform[1] = 1.0;     /* X Pixel size */
+    adfGeoTransform[0] = 0.0; /* X Origin (top left corner) */
+    adfGeoTransform[1] = 1.0; /* X Pixel size */
     adfGeoTransform[2] = 0.0;
-    adfGeoTransform[3] = 0.0;     /* Y Origin (top left corner) */
+    adfGeoTransform[3] = 0.0; /* Y Origin (top left corner) */
     adfGeoTransform[4] = 0.0;
-    adfGeoTransform[5] = 1.0;     /* Y Pixel Size */
+    adfGeoTransform[5] = 1.0; /* Y Pixel Size */
+    bBlocksCached = false;
+    bRegularBlocking = false;
+    bAllTilesSnapToSameGrid = false;
+
+    /**
+     * TODO: Parametrize bAllTilesSnapToSameGrid. It controls if all the
+     * raster rows, in ONE_RASTER_PER_TABLE mode, must be checked to test if
+     * they snap to the same grid and have the same srid. It can be the user
+     * decission, if he/she's sure all the rows pass the test and want more
+     * speed.
+     **/
+
 }
 
 /************************
@@ -129,7 +141,6 @@ char * ReplaceSingleQuotes(const char * pszInput, int nLength) {
     return pszOutput;
 }
 
-
 /**************************************************************
  * \brief Replace the quotes by single quotes in the input string
  *
@@ -145,7 +156,7 @@ char * ReplaceQuotes(const char * pszInput, int nLength) {
 
     pszOutput = (char*) CPLCalloc(nLength + 1, sizeof (char));
 
-    for(i = 0; i < nLength; i++) {
+    for (i = 0; i < nLength; i++) {
         if (pszInput[i] == '"')
             pszOutput[i] = '\'';
         else
@@ -253,8 +264,7 @@ GBool PostGISRasterDataset::BrowseDatabase(const char* pszCurrentSchema,
 
         PQclear(poResult);
 
-    }
-        /**********************************************************************
+    }        /**********************************************************************
          * Fetch all the schema's raster tables and store them as subdatasets
          **********************************************************************/
     else {
@@ -314,33 +324,34 @@ GBool PostGISRasterDataset::BrowseDatabase(const char* pszCurrentSchema,
  * table are related or not</b>. It's user's responsibility. The only
  * thing driver can do is to suppose all the rows of a table are from
  * the same raster coverage if the user has queried for one table, without
- * specifying a where clause. 
+ * specifying a where clause.
  *
- * The user is responsible to ensure that the raster layer meets the minimum 
- * topological requirements for analysis. The ideal case is when all the raster 
- * tiles of a continuous layer are the same size, snap to the same grid and do 
+ * The user is responsible to ensure that the raster layer meets the minimum
+ * topological requirements for analysis. The ideal case is when all the raster
+ * tiles of a continuous layer are the same size, snap to the same grid and do
  * not overlap.
  *
  * So, when we query for a raster table, we have 3 different cases:
  *	- If the result is only one row, we can gather the raster properties
  *	  from the returned object, regardless is a tile or a whole raster
- *	- If the result are several rows of a table, and the working mode is 
- *    ONE_RASTER_PER_TABLE, we assume all the rows are from the same raster 
- *    coverage. The rows are ordered by upper left y, upper left x, growing way, 
+ *	- If the result are several rows of a table, and the working mode is
+ *    ONE_RASTER_PER_TABLE, we assume all the rows are from the same raster
+ *    coverage. The rows are ordered by upper left y, upper left x, growing way,
  *    and we can get raster size from the first and last elements.
  *  - If the result are several rows of a table, and the working mode is
  *    ONE_RASTER_PER_ROW, we assume each row is a different raster object,
  *    and is reported as a subdataset. If you want only one of the raster rows,
  *    you must specify a where clause to restrict the number of rows returned.
  **************************************************************************/
-GBool PostGISRasterDataset::SetRasterProperties(const char* pszValidConnectionString) {
+GBool PostGISRasterDataset::SetRasterProperties
+    (const char * pszValidConnectionString)
+{
     PGresult* poResult = NULL;
     CPLString osCommand;
     CPLString osCommand2;
     PGresult* poResult2 = NULL;
     int i = 0;
     int nTuples = 0;
-    int nRid = -1;
     GBool bRetValue = false;
     OGRSpatialReference * poSR = NULL;
     OGRGeometry* poGeom = NULL;
@@ -348,17 +359,28 @@ GBool PostGISRasterDataset::SetRasterProperties(const char* pszValidConnectionSt
     OGREnvelope* poE = NULL;
     char* pszExtent;
     char* pszProjectionRef;
+    int nTmpSrid = -1;
+    double dfTmpScaleX = 0.0;
+    double dfTmpScaleY = 0.0;
+    double dfTmpSkewX = 0.0;
+    double dfTmpSkewY = 0.0;
+    int nWidth = 0;
+    int nHeight = 0;
+    int nTmpWidth = 0;
+    int nTmpHeight = 0;
+
 
     /* Execute the query to fetch raster data from db */
     if (pszWhere == NULL) {
         osCommand.Printf("select (foo.md).*, foo.rid from (select rid, st_metadata(%s) as md \
                         from %s.%s) as foo", pszColumn, pszSchema, pszTable);
-    }
-    else {
+    } else {
         osCommand.Printf("select (foo.md).*, foo.rid from (select rid, st_metadata(%s) as md \
                         from %s.%s where %s) as foo", pszColumn, pszSchema, pszTable, pszWhere);
     }
 
+    CPLDebug("PostGIS_Raster", "PostGISRasterDataset::SetRasterProperties(): "
+            "Query: %s", osCommand.c_str());
     poResult = PQexec(poConn, osCommand.c_str());
     if (
             poResult == NULL ||
@@ -394,35 +416,33 @@ GBool PostGISRasterDataset::SetRasterProperties(const char* pszValidConnectionSt
 
         /**
          * Not tiled dataset: The whole raster.
-         * TODO: This is a bad idea, but there're some problems getting one
-         * scanline per round (nBlockYSize = 1). Probably, the problem is in
-         * IReadBlock method. Review it and fix it.
+         * TODO: 'invent' a good block size.
          */
         nBlockXSize = nRasterXSize;
         nBlockYSize = nRasterYSize;
 
         bRetValue = true;
-    }
-    else {
+    } else {
         switch (nMode) {
                 /**
                  * Each row is a different raster. Create subdatasets, one per row
                  **/
 
             case ONE_RASTER_PER_ROW:
+                {
 
                 for (i = 0; i < nTuples; i++) {
-                    nRid = atoi(PQgetvalue(poResult, i, 10));
-        
+                    nSrid = atoi(PQgetvalue(poResult, i, 10));
+
                     papszSubdatasets = CSLSetNameValue(papszSubdatasets,
                             CPLSPrintf("SUBDATASET_%d_NAME", (i + 1)),
                             CPLSPrintf("PG:%s schema=%s table=%s column=%s where='rid = %d'",
-                            pszValidConnectionString, pszSchema, pszTable, pszColumn, nRid));
+                            pszValidConnectionString, pszSchema, pszTable, pszColumn, nSrid));
 
                     papszSubdatasets = CSLSetNameValue(papszSubdatasets,
                             CPLSPrintf("SUBDATASET_%d_DESC", (i + 1)),
                             CPLSPrintf("PostGIS Raster at %s.%s (%s), rid = %d", pszSchema,
-                            pszTable, pszColumn, nRid));
+                            pszTable, pszColumn, nSrid));
                 }
 
                 /* Not a single raster fetched */
@@ -430,12 +450,79 @@ GBool PostGISRasterDataset::SetRasterProperties(const char* pszValidConnectionSt
                 nRasterYSize = 0;
 
                 bRetValue = true;
+
+                }
                 break;
 
                 /************************************************************
-                 * All rows form a whole raster coverage. So, all rows must:
-                 *  - have the same srid
-                 *  - snap to the same grid
+                 * All rows form a whole raster coverage
+                ************************************************************/
+            case ONE_RASTER_PER_TABLE:
+                {
+
+                /**
+                 * Get the rest of raster properties from this object
+                 */
+                nSrid = atoi(PQgetvalue(poResult, 0, 8));
+
+                nBands = atoi(PQgetvalue(poResult, 0, 9));
+                adfGeoTransform[0] = atof(PQgetvalue(poResult, 0, 0)); //upperleft x
+                adfGeoTransform[1] = atof(PQgetvalue(poResult, 0, 4)); //pixelsize x
+                adfGeoTransform[2] = atof(PQgetvalue(poResult, 0, 6)); //skew x
+                adfGeoTransform[3] = atof(PQgetvalue(poResult, 0, 1)); //upperleft y
+                adfGeoTransform[4] = atof(PQgetvalue(poResult, 0, 7)); //skew y
+                adfGeoTransform[5] = atof(PQgetvalue(poResult, 0, 5)); //pixelsize y
+                nWidth = atoi(PQgetvalue(poResult, 0, 2));
+                nHeight = atoi(PQgetvalue(poResult, 0, 3));
+
+                /**
+                 * Now check if all tiles have the same dimensions.
+                 *
+                 * NOTE: If bRegularBlocking is 'true', this is not checked.
+                 * It's user responsibility
+                 *
+                 * TODO: Find a good block size, that works in any situation.
+                 **/
+                if (!bRegularBlocking) 
+                {
+                    for(i = 1; i < nTuples; i++)
+                    {
+                        nTmpWidth = atoi(PQgetvalue(poResult, i, 2));
+                        nTmpHeight = atoi(PQgetvalue(poResult, i, 3));
+
+                        if (nWidth != nTmpWidth || nHeight != nTmpHeight)
+                        {
+                            // Not supported until the above TODO is implemented
+                            CPLError(CE_Failure, CPLE_AppDefined,
+                                "Error, the table %s.%s contains tiles with "
+                                "different size, and irregular blocking is "
+                                "not supported yet", pszSchema, pszTable);
+
+                            PQclear(poResult);
+                            return false;                             
+                        }
+                    }
+
+                    // Now, we can ensure this
+                    bRegularBlocking = true;
+                    nBlockXSize = nWidth;
+                    nBlockYSize = nHeight;
+                }
+
+                // The user ensures this...
+                else
+                {                                        
+                    nBlockXSize = nWidth;
+                    nBlockYSize = nHeight;
+                }
+
+                /**
+                 * Check all the raster tiles have the same srid and snap to the
+                 * same grid. If not, return an error
+                 *
+                 * NOTE: If bAllTilesSnapToSameGrid is 'true', this is not
+                 * checked. It's user responsibility.
+                 *
                  * TODO: Work even if this requisites are  not complained. For
                  * example, by:
                  *  - Resampling all the rows to the grid of the first one
@@ -444,27 +531,51 @@ GBool PostGISRasterDataset::SetRasterProperties(const char* pszValidConnectionSt
                  *    skewx, skewy or a minimum of 3 parameters: ulx, uly,
                  *    pixelsize (x and y pixel sizes are equal and both skew are
                  *    0).
-                 ************************************************************/
-            case ONE_RASTER_PER_TABLE:
+                 **/
+                if (!bAllTilesSnapToSameGrid)
+                {
+                    for(i = 1; i < nTuples; i++)
+                    {
+                        nTmpSrid = atoi(PQgetvalue(poResult, i, 8));
+                        dfTmpScaleX = atof(PQgetvalue(poResult, i, 4));
+                        dfTmpScaleY = atof(PQgetvalue(poResult, i, 5));
+                        dfTmpSkewX = atof(PQgetvalue(poResult, i, 6));
+                        dfTmpSkewY = atof(PQgetvalue(poResult, i, 7));
+
+                        if (nTmpSrid != nSrid ||
+                                FLT_NEQ(dfTmpScaleX, adfGeoTransform[1]) ||
+                                FLT_NEQ(dfTmpScaleY, adfGeoTransform[5]) ||
+                                FLT_NEQ(dfTmpSkewX, adfGeoTransform[2]) ||
+                                FLT_NEQ(dfTmpSkewY, adfGeoTransform[4]))
+                        {
+                            /**
+                             * In this mode, it is not allowed this situation,
+                             * unless while the above TODO is not implemented
+                             **/
+                            CPLError(CE_Failure, CPLE_AppDefined,
+                                "Error, the table %s.%s contains tiles with "
+                                "different SRID or snapping to different grids",
+                                pszSchema, pszTable);
+
+                            PQclear(poResult);
+                            return false;
+                        }
+                    }
+
+                    // Now, we can ensure this
+                    bAllTilesSnapToSameGrid = true;
+                }
 
                 /**
-                 * Get the rest of raster properties from this object
-                 */
-                nSrid = atoi(PQgetvalue(poResult, 0, 8));
-                    
-                nBands = atoi(PQgetvalue(poResult, 0, 9));
-                adfGeoTransform[0] = atof(PQgetvalue(poResult, 0, 0)); //upperleft x
-                adfGeoTransform[1] = atof(PQgetvalue(poResult, 0, 4)); //pixelsize x
-                adfGeoTransform[2] = atof(PQgetvalue(poResult, 0, 6)); //skew x
-                adfGeoTransform[3] = atof(PQgetvalue(poResult, 0, 1)); //upperleft y
-                adfGeoTransform[4] = atof(PQgetvalue(poResult, 0, 7)); //skew y
-                adfGeoTransform[5] = atof(PQgetvalue(poResult, 0, 5)); //pixelsize y
+                 * Now, if there's irregular blocking and/or the blocks don't
+                 * snap to the same grid or don't have the same srid, we should
+                 * fix these situations. Assuming that we don't return an error
+                 * in that cases, of course.
+                 **/
 
-                /* WARNING: Only valid in case of regular blocking */
-                nBlockXSize = atoi(PQgetvalue(poResult, 0, 2));
-                nBlockYSize = atoi(PQgetvalue(poResult, 0, 3));
-               
-                /** 
+
+
+                /**
                  * Get whole raster extent
                  **/
                 if (pszWhere == NULL)
@@ -473,7 +584,7 @@ GBool PostGISRasterDataset::SetRasterProperties(const char* pszValidConnectionSt
                 else
                     osCommand2.Printf("select st_astext(st_setsrid(st_extent(%s::geometry),%d)) from %s.%s where %s",
                         pszColumn, nSrid, pszSchema, pszTable, pszWhere);
-                
+
 
                 poResult2 = PQexec(poConn, osCommand2.c_str());
                 if (poResult2 == NULL ||
@@ -494,7 +605,7 @@ GBool PostGISRasterDataset::SetRasterProperties(const char* pszValidConnectionSt
 
                 /* Construct an OGR object with the raster extent */
                 pszExtent = PQgetvalue(poResult2, 0, 0);
-                
+
                 pszProjectionRef = (char*) GetProjectionRef();
                 poSR = new OGRSpatialReference(pszProjectionRef);
                 OgrErr = OGRGeometryFactory::createFromWkt(&pszExtent,
@@ -510,15 +621,10 @@ GBool PostGISRasterDataset::SetRasterProperties(const char* pszValidConnectionSt
                         PQclear(poResult);
 
                     return false;
-                }               
+                }
 
                 poE = new OGREnvelope();
                 poGeom->getEnvelope(poE);
-
-                nRasterXSize = (int)
-                        fabs(rint((poE->MaxX - poE->MinX) / adfGeoTransform[1]));
-                nRasterYSize = (int)
-                        fabs(rint((poE->MaxY - poE->MinY) / adfGeoTransform[5]));
 
                 /* Correction for upper left y coord*/
 
@@ -530,29 +636,57 @@ GBool PostGISRasterDataset::SetRasterProperties(const char* pszValidConnectionSt
                  * is un upper-left corner. In this case, the upper left Y value
                  * will be MaxY from the envelope. Otherwise, it will be MinY.
                  **/
+                /*
                 adfGeoTransform[0] = poE->MinX;
                 if (adfGeoTransform[5] >= 0.0)
                     adfGeoTransform[3] = poE->MinY;
                 else
                     adfGeoTransform[3] = poE->MaxY;
+                */
+
+                /**
+                 * The raster size is the extent covered for all the raster's
+                 * columns
+                 **/
+                nRasterXSize = (int)
+                        fabs(rint((poE->MaxX - poE->MinX) / adfGeoTransform[1]));
+                nRasterYSize = (int)
+                        fabs(rint((poE->MaxY - poE->MinY) / adfGeoTransform[5]));
+
 
                 /* Free resources */
                 OGRGeometryFactory::destroyGeometry(poGeom);
-                delete poE;                                
+                delete poE;
                 delete poSR;
                 PQclear(poResult2);
 
                 bRetValue = true;
+
+                }
                 break;
 
                 /* TODO: take into account more cases, if applies */
             default:
+                {
                 CPLError(CE_Failure, CPLE_AppDefined,
                         "Error, incorrect working mode");
 
                 bRetValue = false;
+                }
         }
     }
+
+    CPLDebug("PostGIS_Raster", "PostGISRasterDataset::SetRasterProperties(): "
+            "adfGeoTransform = {%f, %f, %f, %f, %f,%f}", adfGeoTransform[0],
+            adfGeoTransform[1], adfGeoTransform[2], adfGeoTransform[3],
+            adfGeoTransform[4], adfGeoTransform[5]);
+
+    CPLDebug("PostGIS_Raster", "PostGISRasterDataset::SetRasterProperties(): "
+            "Raster size = (%d, %d)", nRasterXSize, nRasterYSize);
+
+
+    CPLDebug("PostGIS_Raster", "PostGISRasterDataset::SetRasterProperties(): "
+            "Block dimensions = (%d x %d)", nBlockXSize, nBlockYSize);
 
     PQclear(poResult);
     return bRetValue;
@@ -577,11 +711,10 @@ GBool PostGISRasterDataset::SetRasterBands() {
     for (iBand = 0; iBand < nBands; iBand++) {
         /* Create query to fetch metadata from db */
         if (pszWhere == NULL) {
-            osCommand.Printf("select (foo.md).* from (select" 
+            osCommand.Printf("select (foo.md).* from (select"
                     " distinct st_bandmetadata( %s, %d) as md from %s. %s) as foo",
                     pszColumn, iBand + 1, pszSchema, pszTable);
-        }
-        else {
+        } else {
 
             osCommand.Printf("select (foo.md).* from (select"
                     " distinct st_bandmetadata( %s, %d) as md from %s. %s where %s) as foo",
@@ -606,9 +739,15 @@ GBool PostGISRasterDataset::SetRasterBands() {
         /**
          * If we have more than one record here is because there are several
          * rows, belonging to the same raster coverage, with different band
-         * metadata values. An error must be raised. TODO: Is there any way
-         * to fix this problem?
+         * metadata values. An error must be raised.
+         *
+         * TODO: Is there any way to fix this problem?
+         *
+         * TODO: Even when the difference between metadata values are only a
+         * few decimal numbers (for example: 3.0000000 and 3.0000001) they're
+         * different tuples. And in that case, they must be the same
          **/
+        /*
         if (nTuples > 1) {
             CPLError(CE_Failure, CPLE_AppDefined, "Error, the \
                     ONE_RASTER_PER_TABLE mode can't be applied if the raster \
@@ -617,6 +756,7 @@ GBool PostGISRasterDataset::SetRasterBands() {
             PQclear(poResult);
             return false;
         }
+         */
 
 
         /* Get metadata and create raster band objects */
@@ -627,20 +767,16 @@ GBool PostGISRasterDataset::SetRasterBands() {
         if (EQUALN(pszDataType, "1BB", 3 * sizeof (char))) {
             hDataType = GDT_Byte;
             nBitDepth = 1;
-        }
-        else if (EQUALN(pszDataType, "2BUI", 4 * sizeof (char))) {
+        } else if (EQUALN(pszDataType, "2BUI", 4 * sizeof (char))) {
             hDataType = GDT_Byte;
             nBitDepth = 2;
-        }
-        else if (EQUALN(pszDataType, "4BUI", 4 * sizeof (char))) {
+        } else if (EQUALN(pszDataType, "4BUI", 4 * sizeof (char))) {
             hDataType = GDT_Byte;
             nBitDepth = 4;
-        }
-        else if (EQUALN(pszDataType, "8BUI", 4 * sizeof (char))) {
+        } else if (EQUALN(pszDataType, "8BUI", 4 * sizeof (char))) {
             hDataType = GDT_Byte;
             nBitDepth = 8;
-        }
-        else if (EQUALN(pszDataType, "8BSI", 4 * sizeof (char))) {
+        } else if (EQUALN(pszDataType, "8BSI", 4 * sizeof (char))) {
             hDataType = GDT_Byte;
             /**
              * To indicate the unsigned byte values between 128 and 255
@@ -652,28 +788,22 @@ GBool PostGISRasterDataset::SetRasterBands() {
         } else if (EQUALN(pszDataType, "16BSI", 5 * sizeof (char))) {
             hDataType = GDT_Int16;
             nBitDepth = 16;
-        }
-        else if (EQUALN(pszDataType, "16BUI", 5 * sizeof (char))) {
+        } else if (EQUALN(pszDataType, "16BUI", 5 * sizeof (char))) {
             hDataType = GDT_UInt16;
             nBitDepth = 16;
-        }
-        else if (EQUALN(pszDataType, "32BSI", 5 * sizeof (char))) {
+        } else if (EQUALN(pszDataType, "32BSI", 5 * sizeof (char))) {
             hDataType = GDT_Int32;
             nBitDepth = 32;
-        }
-        else if (EQUALN(pszDataType, "32BUI", 5 * sizeof (char))) {
+        } else if (EQUALN(pszDataType, "32BUI", 5 * sizeof (char))) {
             hDataType = GDT_UInt32;
             nBitDepth = 32;
-        }
-        else if (EQUALN(pszDataType, "32BF", 4 * sizeof (char))) {
+        } else if (EQUALN(pszDataType, "32BF", 4 * sizeof (char))) {
             hDataType = GDT_Float32;
             nBitDepth = 32;
-        }
-        else if (EQUALN(pszDataType, "64BF", 4 * sizeof (char))) {
+        } else if (EQUALN(pszDataType, "64BF", 4 * sizeof (char))) {
             hDataType = GDT_Float64;
             nBitDepth = 64;
-        }
-        else {
+        } else {
             hDataType = GDT_Byte;
             nBitDepth = 8;
         }
@@ -689,8 +819,408 @@ GBool PostGISRasterDataset::SetRasterBands() {
     return true;
 }
 
+/**
+ * Read/write a region of image data from multiple bands.
+ *
+ * This method allows reading a region of one or more PostGISRasterBands from
+ * this dataset into a buffer. The write support is still under development
+ *
+ * The function fetches all the raster data that intersects with the region
+ * provided, and store the data in the GDAL cache.
+ *
+ * TODO: This only works in case of regular blocking rasters. A more
+ * general approach to allow non-regular blocking rasters is under development.
+ *
+ * It automatically takes care of data type translation if the data type
+ * (eBufType) of the buffer is different than that of the
+ * PostGISRasterRasterBand.
+ *
+ * TODO: The method should take care of image decimation / replication if the
+ * buffer size (nBufXSize x nBufYSize) is different than the size of the region
+ * being accessed (nXSize x nYSize).
+ *
+ * The nPixelSpace, nLineSpace and nBandSpace parameters allow reading into or
+ * writing from various organization of buffers.
+ *
+ * @param eRWFlag Either GF_Read to read a region of data, or GF_Write to write
+ * a region of data.
+ *
+ * @param nXOff The pixel offset to the top left corner of the region of the
+ * band to be accessed. This would be zero to start from the left side.
+ *
+ * @param nYOff The line offset to the top left corner of the region of the band
+ * to be accessed. This would be zero to start from the top.
+ *
+ * @param nXSize The width of the region of the band to be accessed in pixels.
+ *
+ * @param nYSize The height of the region of the band to be accessed in lines.
+ *
+ * @param pData The buffer into which the data should be read, or from which it
+ * should be written. This buffer must contain at least
+ * nBufXSize * nBufYSize * nBandCount words of type eBufType. It is organized in
+ * left to right,top to bottom pixel order. Spacing is controlled by the
+ * nPixelSpace, and nLineSpace parameters.
+ *
+ * @param nBufXSize the width of the buffer image into which the desired region
+ * is to be read, or from which it is to be written.
+ *
+ * @param nBufYSize the height of the buffer image into which the desired region
+ * is to be read, or from which it is to be written.
+ *
+ * @param eBufType the type of the pixel values in the pData data buffer. The
+ * pixel values will automatically be translated to/from the
+ * PostGISRasterRasterBand data type as needed.
+ *
+ * @param nBandCount the number of bands being read or written.
+ *
+ * @param panBandMap the list of nBandCount band numbers being read/written.
+ * Note band numbers are 1 based. This may be NULL to select the first
+ * nBandCount bands.
+ *
+ * @param nPixelSpace The byte offset from the start of one pixel value in pData
+ * to the start of the next pixel value within a scanline. If defaulted (0) the
+ * size of the datatype eBufType is used.
+ *
+ * @param nLineSpace The byte offset from the start of one scanline in pData to
+ * the start of the next. If defaulted (0) the size of the datatype
+ * eBufType * nBufXSize is used.
+ *
+ * @param nBandSpace the byte offset from the start of one bands data to the
+ * start of the next. If defaulted (0) the value will be nLineSpace * nBufYSize
+ * implying band sequential organization of the data buffer.
+ *
+ * @return CE_Failure if the access fails, otherwise CE_None.
+ */
+CPLErr PostGISRasterDataset::IRasterIO(GDALRWFlag eRWFlag,
+        int nXOff, int nYOff, int nXSize, int nYSize,
+        void * pData, int nBufXSize, int nBufYSize,
+        GDALDataType eBufType,
+        int nBandCount, int *panBandMap,
+        int nPixelSpace, int nLineSpace, int nBandSpace)
+{
+    double adfTransform[6];
+    double adfProjWin[8];
+    int ulx, uly, lrx, lry;
+    CPLString osCommand;
+    PGresult* poResult = NULL;
+    int nTuples = 0;
+    int iTuplesIndex = 0;
+    GByte* pbyData = NULL;
+    int nWKBLength = 0;
+    int iBandIndex;
+    GDALRasterBlock * poBlock = NULL;
+    int iBlockXOff, iBlockYOff;
+    int nBandDataSize, nBandDataLength;
+    char * pBandData = NULL;
+    PostGISRasterRasterBand * poBand = NULL;
+    GByte * pabySrcBlock = NULL;
+    int nBlocksPerRow, nBlocksPerColumn;
+    char orderByY[4];
+    char orderByX[3];
+    int rid;
+
+
+    /**
+     * TODO: Write support not implemented yet
+     **/
+    if (eRWFlag == GF_Write)
+    {
+        CPLError(CE_Failure, CPLE_NotSupported,
+                "PostGIS Raster does not support writing");
+        return CE_Failure;
+    }
+
+    /**
+     * TODO: Data decimation / replication needed
+     */
+    if (nBufXSize != nXSize || nBufYSize != nYSize)
+    {
+        /**
+         * This will cause individual IReadBlock calls
+         *
+         */
+        return GDALDataset::IRasterIO(eRWFlag, nXOff, nYOff, nXSize, nYSize,
+                pData, nBufXSize, nBufYSize, eBufType, nBandCount,
+                panBandMap, nPixelSpace, nLineSpace, nBandSpace);
+    }
+        
+    CPLDebug("PostGIS_Raster", "PostGISRasterDataset::IRasterIO: "
+            "nBandSpace = %d, nLineSpace = %d, nPixelSpace = %d",
+            nBandSpace, nLineSpace, nPixelSpace);
+
+    /**************************************************************************
+     * In the first call, we fetch the data from database and store it as
+     * 'blocks' in the cache.
+     *
+     * TODO: If the data is not cached, we must 'invent' a good block size, and
+     * divide the data in blocks. To get a proper block size, we should rewrite
+     * the GetBlockSize function at band level.
+     ***************************************************************************/
+    if (!bBlocksCached)
+    {
+        CPLDebug("PostGIS_Raster", "PostGISRasterDataset::IRasterIO: "
+                "Buffer size = (%d, %d), Region size = (%d, %d)",
+                nBufXSize, nBufYSize, nXSize, nYSize);
+
+        /*******************************************************************
+         * Construct a projected window to intersect the band data
+         *******************************************************************/
+        GetGeoTransform(adfTransform);
+        ulx = nXOff;
+        uly = nYOff;
+        lrx = nXOff + nXSize;
+        lry = nYOff + nYSize;
+
+        /* Calculate the intersection polygon */
+        adfProjWin[0] = adfTransform[0] +
+            ulx * adfTransform[1] +
+            uly * adfTransform[2];
+
+        adfProjWin[1] = adfTransform[3] +
+            ulx * adfTransform[4] +
+            uly * adfTransform[5];
+
+        adfProjWin[2] = adfTransform[0] +
+            lrx * adfTransform[1] +
+            uly * adfTransform[2];
+
+        adfProjWin[3] = adfTransform[3] +
+            lrx * adfTransform[4] +
+            uly * adfTransform[5];
+
+        adfProjWin[4] = adfTransform[0] +
+            lrx * adfTransform[1] +
+            lry * adfTransform[2];
+
+        adfProjWin[5] = adfTransform[3] +
+            lrx * adfTransform[4] +
+            lry * adfTransform[5];
+
+        adfProjWin[6] = adfTransform[0] +
+            ulx * adfTransform[1] +
+            lry * adfTransform[2];
+
+        adfProjWin[7] = adfTransform[3] +
+            ulx * adfTransform[4] +
+            lry * adfTransform[5];
+
+
+        /* Construct order by for the query */
+        memset(orderByX, 0, 3);
+        memset(orderByY, 0, 4);
+
+        strcpy(orderByX, "asc");
+        if (nSrid == -1)
+            strcpy(orderByY, "asc"); // Y starts at 0 and grows
+        else
+            strcpy(orderByY, "desc");// Y starts at max and decreases
+ 
+
+        /*********************************************************************
+        * We first get the data from database (ordered from upper left pixel
+        * to lower right one)
+        *********************************************************************/
+        if (pszWhere == NULL)
+        {
+            osCommand.Printf("SELECT rid, %s, ST_ScaleX(%s), ST_SkewY(%s), "
+                "ST_SkewX(%s), ST_ScaleY(%s), ST_UpperLeftX(%s), "
+                "ST_UpperLeftY(%s), ST_Width(%s), ST_Height(%s) FROM %s.%s WHERE "
+                "ST_Intersects(%s, ST_PolygonFromText('POLYGON((%f %f, %f %f, %f %f"
+                ", %f %f, %f %f))', %d)) ORDER BY ST_UpperLeftY(%s) %s, "
+                "ST_UpperLeftX(%s) %s", pszColumn, pszColumn,
+                pszColumn, pszColumn, pszColumn, pszColumn, pszColumn, pszColumn,
+                pszColumn, pszSchema, pszTable, pszColumn, adfProjWin[0],
+                adfProjWin[1], adfProjWin[2], adfProjWin[3], adfProjWin[4],
+                adfProjWin[5], adfProjWin[6], adfProjWin[7], adfProjWin[0],
+                adfProjWin[1], nSrid, pszColumn, orderByY, pszColumn, orderByX);
+        }
+
+
+        else
+        {
+            osCommand.Printf("SELECT rid, %s ST_ScaleX(%s), ST_SkewY(%s), "
+                "ST_SkewX(%s), ST_ScaleY(%s), ST_UpperLeftX(%s), "
+                "ST_UpperLeftY(%s), ST_Width(%s), ST_Height(%s) FROM %s.%s WHERE %s AND "
+                "ST_Intersects(%s, ST_PolygonFromText('POLYGON((%f %f, %f %f, %f %f"
+                ", %f %f, %f %f))', %d)) ORDER BY ST_UpperLeftY(%s) %s, "
+                "ST_UpperLeftX(%s) %s", pszColumn, pszColumn,
+                pszColumn, pszColumn, pszColumn, pszColumn, pszColumn, pszColumn,
+                pszColumn,pszSchema, pszTable, pszWhere, pszColumn, adfProjWin[0],
+                adfProjWin[1], adfProjWin[2], adfProjWin[3], adfProjWin[4],
+                adfProjWin[5], adfProjWin[6], adfProjWin[7], adfProjWin[0],
+                adfProjWin[1], nSrid, pszColumn, orderByY, pszColumn, orderByX);
+        }
+
+        CPLDebug("PostGIS_Raster", "PostGISRasterDataset::IRasterIO(): Query = %s",
+            osCommand.c_str());
+
+        poResult = PQexec(poConn, osCommand.c_str());
+        if (poResult == NULL || PQresultStatus(poResult) != PGRES_TUPLES_OK ||
+            PQntuples(poResult) <= 0)
+        {
+            if (poResult)
+                PQclear(poResult);
+
+            /**
+             * This will cause individual IReadBlock calls
+             *
+             */
+            return GDALDataset::IRasterIO(eRWFlag, nXOff, nYOff, nXSize, nYSize,
+                    pData, nBufXSize, nBufYSize, eBufType, nBandCount,
+                    panBandMap, nPixelSpace, nLineSpace, nBandSpace);
+        }
+
+        /**
+         * NOTE: In case of any of the raster columns have different SRID, the
+         * query will fail. So, if we don't fail, we can assume all the rows
+         * have the same SRID. We don't need to check it
+         **/
+
+
+        nTuples = PQntuples(poResult);
+        CPLDebug("PostGIS_Raster", "PostGISRasterDataset::IRasterIO(): nTuples = %d",
+            nTuples);
+
+        CPLDebug("PostGIS_Raster", "PostGISRasterDataset::IRasterIO(): "
+            "Raster size = (%d, %d)", nRasterXSize, nRasterYSize);
+
+
+
+        /**************************************************************************
+         * This is the simplest case: all the rows have the same dimensions
+         * (regularly blocked raster)
+         *
+         * Now we'll cache each tuple as a data block. More accurately, we must
+         * access each tuple, get the band data, and store this data as a block. So,
+         * each tuple contains the data for nBands blocks (and nBandCount <=
+         * nBands)
+         *************************************************************************/
+        for(iBandIndex = 0; iBandIndex < nBandCount; iBandIndex++)
+        {
+            poBand = (PostGISRasterRasterBand *)GetRasterBand(iBandIndex + 1);
+
+            nBandDataSize = GDALGetDataTypeSize(poBand->eDataType) / 8;
+
+            nBandDataLength = poBand->nBlockXSize * poBand->nBlockYSize *
+                nBandDataSize;
+
+            CPLDebug("PostGIS_Raster", "PostGISRasterDataset::IRasterIO(): "
+                "Block size (%d, %d) for band %d", poBand->nBlockXSize,
+                poBand->nBlockYSize, poBand->nBand);
+
+            /* Enables block caching, if it wasn't enabled */
+            if (!poBand->InitBlockInfo())
+                continue;
+
+            /**
+             * This can be different from poBand->nBlocksPerRow and
+             * poBand->nBlocksPerColumn, if the region size is different than
+             * the raster size. So, we calculate these values for this case.
+             */
+            nBlocksPerRow =
+                    (nXSize + poBand->nBlockXSize - 1) / poBand->nBlockXSize;
+
+            nBlocksPerColumn =
+                    (nYSize + poBand->nBlockYSize - 1) / poBand->nBlockYSize;
+
+            CPLDebug("PostGIS_Raster", "PostGISRasterDataset::IRasterIO(): "
+                "Number of blocks: %dx%d", nBlocksPerRow, nBlocksPerColumn);
+
+            for(iBlockYOff = 0; iBlockYOff < nBlocksPerColumn;
+                    iBlockYOff++)
+            {
+                for(iBlockXOff = 0; iBlockXOff < nBlocksPerRow;
+                        iBlockXOff++)
+                {
+                    iTuplesIndex = (iBlockYOff * nBlocksPerRow) +
+                        iBlockXOff;
+
+                    CPLDebug("PostGIS_Raster", "PostGISRasterDataset::IRasterIO(): "
+                            "iBlockXOff = %d, iBlockYOff = %d, "
+                            "iTuplesIndex = %d", iBlockXOff, iBlockYOff,
+                            iTuplesIndex);
+
+                    pbyData = CPLHexToBinary(PQgetvalue(poResult, iTuplesIndex,
+                            1), &nWKBLength);
+
+                    pBandData = (char *)GET_BAND_DATA(pbyData, poBand->nBand,
+                            nBandDataSize, nBandDataLength);
+
+                    CPLDebug("PostGIS_Raster", "PostGISRasterDataset::IRasterIO(): "
+                        "Block data length for band %d: %d", poBand->nBand,
+                        nBandDataLength);
+
+                    CPLDebug("PostGIS_Raster", "PostGISRasterDataset::IRasterIO(): "
+                        "Block (%d, %d)", iBlockXOff, iBlockYOff);
+
+                    /* Create a new block */
+                    poBlock = new GDALRasterBlock(poBand, iBlockXOff,
+                            iBlockYOff);
+
+                    poBlock->AddLock();
+
+                    /* Allocate data space */
+                    if (poBlock->Internalize() != CE_None)
+                    {
+                        poBlock->DropLock();
+                        delete poBlock;
+                        continue;
+                    }
+
+                    /* Add the block to the block matrix */
+                    if (poBand->AdoptBlock(iBlockXOff, iBlockYOff, poBlock) !=
+                            CE_None)
+                    {
+                        poBlock->DropLock();
+                        delete poBlock;
+                        continue;
+                    }
+
+                    /**
+                     * Copy data to block
+                     *
+                     * TODO: Enable write mode too (mark the block as dirty and
+                     * create IWriteBlock in PostGISRasterRasterBand)
+                     */
+                    pabySrcBlock = (GByte *)poBlock->GetDataRef();
+
+                    if (poBand->eDataType == eBufType)
+                    {
+                        memcpy(pabySrcBlock, pBandData, nBandDataLength);
+                    }
+
+                    /**
+                     * As in GDALDataset class... expensive way of handling
+                     * single words
+                     */
+                    else
+                    {
+                        GDALCopyWords(pBandData, poBand->eDataType, 0,
+                                pabySrcBlock, eBufType, 0, 1);
+                    }
+
+                    poBlock->DropLock();
+
+                    CPLFree(pbyData);
+                    pbyData = NULL;
+                }
+
+            }
+
+        }
+
+        PQclear(poResult);
+        bBlocksCached = true;
+    }
+
+    /* Once the blocks are cached, we delegate in GDAL I/O system */
+    return GDALDataset::IRasterIO(eRWFlag, nXOff, nYOff, nXSize, nYSize, pData,
+            nBufXSize, nBufYSize, eBufType, nBandCount, panBandMap, nPixelSpace,
+            nLineSpace, nBandSpace);
+}
+
 /******************************************************************************
- * \brief Open a connection with PostgreSQL. The connection string will have 
+ * \brief Open a connection with PostgreSQL. The connection string will have
  * the PostgreSQL accepted format, plus the next key=value pairs:
  *	schema = <schema_name>
  *	table = <table_name>
@@ -726,9 +1256,9 @@ GDALDataset* PostGISRasterDataset::Open(GDALOpenInfo* poOpenInfo) {
             !EQUALN(poOpenInfo->pszFilename, "PG:", 3) ||
             (papszParams = ParseConnectionString(poOpenInfo->pszFilename)) == NULL) {
         /**
-         * Drivers must quietly return NULL if the passed file is not of 
-         * their format. They should only produce an error if the file 
-         * does appear to be of their supported format, but for some 
+         * Drivers must quietly return NULL if the passed file is not of
+         * their format. They should only produce an error if the file
+         * does appear to be of their supported format, but for some
          * reason, unsupported or corrupt
          */
         return NULL;
@@ -744,7 +1274,7 @@ GDALDataset* PostGISRasterDataset::Open(GDALOpenInfo* poOpenInfo) {
                 "PostGIS Raster driver not registered");
         return NULL;
     }
-    */
+     */
 
     /***************************************************************
      * Now check existence of db, schema, table, column and where.
@@ -763,7 +1293,7 @@ GDALDataset* PostGISRasterDataset::Open(GDALOpenInfo* poOpenInfo) {
     nPos = CSLFindName(papszParams, "mode");
     if (nPos != -1) {
         nMode = atoi(CPLParseNameValue(papszParams[nPos], NULL));
-        
+
         if (nMode != ONE_RASTER_PER_ROW && nMode != ONE_RASTER_PER_TABLE) {
             /* Unrecognized mode, using default one */
             /*
@@ -771,15 +1301,14 @@ GDALDataset* PostGISRasterDataset::Open(GDALOpenInfo* poOpenInfo) {
                     " Valid working modes are 1 (ONE_RASTER_PER_ROW) and 2"
                     " (ONE_RASTER_PER_TABLE). Using ONE_RASTER_PER_TABLE"
                     " by default", nMode);
-            */
+             */
             nMode = ONE_RASTER_PER_ROW;
         }
 
         /* Remove the mode from connection string */
         papszParams = CSLRemoveStrings(papszParams, nPos, 1, NULL);
     }
-
-    /* Default mode */
+        /* Default mode */
     else
         nMode = ONE_RASTER_PER_ROW;
 
@@ -826,8 +1355,7 @@ GDALDataset* PostGISRasterDataset::Open(GDALOpenInfo* poOpenInfo) {
             /* Delete this pair from params array */
             papszParams = CSLRemoveStrings(papszParams, nPos, 1, NULL);
         }
-    }
-    else {
+    } else {
         pszTable = CPLStrdup(CPLParseNameValue(papszParams[nPos], NULL));
         /* Delete this pair from params array */
         papszParams = CSLRemoveStrings(papszParams, nPos, 1, NULL);
@@ -840,8 +1368,7 @@ GDALDataset* PostGISRasterDataset::Open(GDALOpenInfo* poOpenInfo) {
         nPos = CSLFindName(papszParams, "column");
         if (nPos == -1) {
             pszColumn = CPLStrdup(DEFAULT_COLUMN);
-        }
-            /**
+        }            /**
              * Case 4: There's database, table and column name: Use the table to
              * create a dataset
              **/
@@ -855,8 +1382,7 @@ GDALDataset* PostGISRasterDataset::Open(GDALOpenInfo* poOpenInfo) {
         nPos = CSLFindName(papszParams, "schema");
         if (nPos == -1) {
             pszSchema = CPLStrdup(DEFAULT_SCHEMA);
-        }
-        else {
+        } else {
             pszSchema = CPLStrdup(CPLParseNameValue(papszParams[nPos], NULL));
             /* Delete this pair from params array */
             papszParams = CSLRemoveStrings(papszParams, nPos, 1, NULL);
@@ -928,7 +1454,7 @@ GDALDataset* PostGISRasterDataset::Open(GDALOpenInfo* poOpenInfo) {
 
         return NULL;
     }
-    */
+     */
 
 
     /* Frees no longer needed memory */
@@ -940,10 +1466,9 @@ GDALDataset* PostGISRasterDataset::Open(GDALOpenInfo* poOpenInfo) {
      * TODO: Try to get connection from poDriver
      **/
     poConn = PQconnectdb(pszValidConnectionString);
-    if (poConn == NULL)
-    {
+    if (poConn == NULL) {
         CPLError(CE_Failure, CPLE_AppDefined,
-                "Couldn't establish a database connection");        
+                "Couldn't establish a database connection");
         if (pszSchema)
             CPLFree(pszSchema);
         if (pszTable)
@@ -954,9 +1479,9 @@ GDALDataset* PostGISRasterDataset::Open(GDALOpenInfo* poOpenInfo) {
             CPLFree(pszWhere);
 
         return NULL;
-        
+
     }
-    
+
     /* Check geometry type existence */
     poResult = PQexec(poConn, "SELECT oid FROM pg_type WHERE typname = 'geometry'");
     if (
@@ -977,7 +1502,7 @@ GDALDataset* PostGISRasterDataset::Open(GDALOpenInfo* poOpenInfo) {
             CPLFree(pszColumn);
         if (pszWhere)
             CPLFree(pszWhere);
-        
+
         PQfinish(poConn);
 
         //delete poDriver;
@@ -1074,7 +1599,10 @@ GDALDataset* PostGISRasterDataset::Open(GDALOpenInfo* poOpenInfo) {
         poDS->pszColumn = pszColumn;
         poDS->pszWhere = pszWhere;
 
-        /* Fetch basic raster metadata from db */
+        /**
+         * Fetch basic raster metadata from db
+         **/
+
         if (!poDS->SetRasterProperties(pszValidConnectionString)) {
             CPLFree(pszValidConnectionString);
             delete poDS;
@@ -1087,7 +1615,7 @@ GDALDataset* PostGISRasterDataset::Open(GDALOpenInfo* poOpenInfo) {
             delete poDS;
             return NULL;
         }
-        
+
     }
 
     CPLFree(pszValidConnectionString);
@@ -1108,9 +1636,9 @@ char** PostGISRasterDataset::GetMetadata(const char *pszDomain) {
 }
 
 /*****************************************************
- * \brief Fetch the projection definition string 
- * for this dataset in OpenGIS WKT format. It should 
- * be suitable for use with the OGRSpatialReference 
+ * \brief Fetch the projection definition string
+ * for this dataset in OpenGIS WKT format. It should
+ * be suitable for use with the OGRSpatialReference
  * class.
  *****************************************************/
 const char* PostGISRasterDataset::GetProjectionRef() {
@@ -1148,8 +1676,7 @@ const char* PostGISRasterDataset::GetProjectionRef() {
  * \brief Set projection definition. The input string must
  * be in OGC WKT or PROJ.4 format
  **********************************************************/
-CPLErr PostGISRasterDataset::SetProjection(const char * pszProjectionRef)
-{
+CPLErr PostGISRasterDataset::SetProjection(const char * pszProjectionRef) {
     VALIDATE_POINTER1(pszProjectionRef, "SetProjection", CE_Failure);
 
     CPLString osCommand;
@@ -1200,23 +1727,22 @@ CPLErr PostGISRasterDataset::SetProjection(const char * pszProjectionRef)
 
         return CE_None;
     }
-
-    // If not, proj4 text
+        // If not, proj4 text
     else {
         osCommand.Printf(
                 "SELECT srid FROM spatial_ref_sys where proj4text='%s'",
-            pszProjectionRef);
+                pszProjectionRef);
         poResult = PQexec(poConn, osCommand.c_str());
 
         if (poResult && PQresultStatus(poResult) == PGRES_TUPLES_OK
-            && PQntuples(poResult) > 0) {
+                && PQntuples(poResult) > 0) {
 
             nFetchedSrid = atoi(PQgetvalue(poResult, 0, 0));
 
             // update class attribute
             nSrid = nFetchedSrid;
 
-            // update raster_columns table            
+            // update raster_columns table
             osCommand.Printf("UPDATE raster_columns SET srid=%d WHERE \
                     r_table_name = '%s' AND r_column = '%s'",
                     nSrid, pszTable, pszColumn);
@@ -1234,7 +1760,6 @@ CPLErr PostGISRasterDataset::SetProjection(const char * pszProjectionRef)
 
             return CE_None;
         }
-
         else {
             CPLError(CE_Failure, CPLE_WrongFormat,
                     "Couldn't find WKT neither proj4 definition");
@@ -1278,6 +1803,7 @@ CPLErr PostGISRasterDataset::GetGeoTransform(double * padfTransform) {
 
 /************************************************************************/
 /*                          GDALRegister_PostGISRaster()                    */
+
 /************************************************************************/
 void GDALRegister_PostGISRaster() {
     GDALDriver *poDriver;

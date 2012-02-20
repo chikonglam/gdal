@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: cpl.i 20996 2010-10-28 18:38:15Z rouault $
+ * $Id: cpl.i 23398 2011-11-20 14:01:47Z ajolma $
  *
  * Name:     cpl.i
  * Project:  GDAL Python Interface
@@ -186,7 +186,7 @@ char* EscapeString(int len, char *bin_string , int scheme=CPLES_SQL) {
 %clear (int len, char *bin_string);
 #endif
 
-#if defined(SWIGPYTHON)
+#if defined(SWIGPYTHON) || defined(SWIGCSHARP)
 /* We don't want errors to be cleared or thrown by this */
 /* call */
 %exception CPLGetLastErrorNo
@@ -196,7 +196,7 @@ char* EscapeString(int len, char *bin_string , int scheme=CPLES_SQL) {
 #endif
 int CPLGetLastErrorNo();
 
-#if defined(SWIGPYTHON)
+#if defined(SWIGPYTHON) || defined(SWIGCSHARP)
 /* We don't want errors to be cleared or thrown by this */
 /* call */
 %exception CPLGetLastErrorType
@@ -208,7 +208,7 @@ int CPLGetLastErrorType();
 CPLErr CPLGetLastErrorType();
 #endif
 
-#if defined(SWIGPYTHON)
+#if defined(SWIGPYTHON) || defined(SWIGCSHARP)
 /* We don't want errors to be cleared or thrown by this */
 /* call */
 %exception CPLGetLastErrorMsg
@@ -248,6 +248,10 @@ retStringAndCPLFree* CPLBinaryToHex( int nBytes, const GByte *pabyData );
 %clear ( int nBytes, const GByte *pabyData );
 #elif defined(SWIGCSHARP)
 retStringAndCPLFree* CPLBinaryToHex( int nBytes, const GByte *pabyData );
+#elif defined(SWIGPYTHON)
+%apply (int nLen, char *pBuf) {( int nBytes, const GByte *pabyData )};
+retStringAndCPLFree* CPLBinaryToHex( int nBytes, const GByte *pabyData );
+%clear ( int nBytes, const GByte *pabyData );
 #else
 /* FIXME : wrong typemap. The string should be freed */
 char * CPLBinaryToHex( int nBytes, const GByte *pabyData );
@@ -287,7 +291,7 @@ void wrapper_VSIFileFromMemBuffer( const char* utf8_path, int nBytes, const GByt
 #endif
 
 /* Added in GDAL 1.7.0 */
-int VSIUnlink(const char * pszFilename );
+int VSIUnlink(const char * utf8_path );
 
 /* Added in GDAL 1.7.0 */
 /* Thread support is necessary for binding languages with threaded GC */
@@ -319,14 +323,107 @@ typedef void VSILFILE;
 %apply RETURN_NONE_TRUE_IS_ERROR {RETURN_NONE};
 RETURN_NONE VSIStatL( const char * utf8_path, VSIStatBufL *psStatBuf );
 %clear RETURN_NONE;
+
+#elif defined(SWIGPYTHON)
+
+%{
+typedef struct
+{
+  int     mode;
+  GIntBig size;
+  GIntBig mtime;
+} StatBuf;
+%}
+
+#define VSI_STAT_EXISTS_FLAG    0x1
+#define VSI_STAT_NATURE_FLAG    0x2
+#define VSI_STAT_SIZE_FLAG      0x4
+
+struct StatBuf
+{
+%apply (GIntBig bigint) { GIntBig };
+%immutable;
+  int         mode;
+  GIntBig     size;
+  GIntBig     mtime;
+%mutable;
+%clear (GIntBig bigint);
+
+%extend {
+  StatBuf( StatBuf *psStatBuf ) {
+    StatBuf *self = (StatBuf*) CPLMalloc( sizeof( StatBuf ) );
+    self->mode = psStatBuf->mode;
+    self->size = psStatBuf->size;
+    self->mtime = psStatBuf->mtime;
+    return self;
+  }
+
+  ~StatBuf() {
+    CPLFree(self);
+  }
+
+  int IsDirectory()
+  {
+     return (self->mode & S_IFDIR) != 0;
+  }
+
+} /* extend */
+} /* StatBuf */ ;
+
+%rename (VSIStatL) wrapper_VSIStatL;
+%inline {
+int wrapper_VSIStatL( const char * utf8_path, StatBuf *psStatBufOut, int nFlags = 0 )
+{
+    VSIStatBufL sStat;
+    memset(&sStat, 0, sizeof(sStat));
+    memset(psStatBufOut, 0, sizeof(StatBuf));
+    int nRet = VSIStatExL(utf8_path, &sStat, nFlags);
+    psStatBufOut->mode = sStat.st_mode;
+    psStatBufOut->size = (GIntBig)sStat.st_size;
+    psStatBufOut->mtime = (GIntBig)sStat.st_mtime;
+    return nRet;
+}
+}
+
 #endif
 
 VSILFILE   *VSIFOpenL( const char *utf8_path, const char *pszMode );
 void    VSIFCloseL( VSILFILE * );
+
+#if defined(SWIGPYTHON)
+%apply (GIntBig bigint) { GIntBig };
+int     VSIFSeekL( VSILFILE *, GIntBig, int );
+GIntBig    VSIFTellL( VSILFILE * );
+int     VSIFTruncateL( VSILFILE *, GIntBig );
+%clear (GIntBig bigint);
+#else
 int     VSIFSeekL( VSILFILE *, long, int );
 long    VSIFTellL( VSILFILE * );
-int     VSIFWriteL( const char *, int, int, VSILFILE * );
+int     VSIFTruncateL( VSILFILE *, long );
+#endif
 
+#if defined(SWIGPYTHON)
+%rename (VSIFWriteL) wrapper_VSIFWriteL;
+%inline {
+int wrapper_VSIFWriteL( int nLen, char *pBuf, int size, int memb, VSILFILE * f)
+{
+    if (nLen < size * memb)
+    {
+        CPLError(CE_Failure, CPLE_AppDefined, "Inconsistant buffer size with 'size' and 'memb' values");
+        return 0;
+    }
+    return VSIFWriteL(pBuf, size, memb, f);
+}
+}
+#elif defined(SWIGPERL)
+size_t VSIFWriteL(const void *pBuffer, size_t nSize, size_t nCount, VSILFILE *fp);
+#else
+int     VSIFWriteL( const char *, int, int, VSILFILE * );
+#endif
+
+#if defined(SWIGPERL)
+size_t VSIFReadL(void *pBuffer, size_t nSize, size_t nCount, VSILFILE *fp);
+#endif
 /* VSIFReadL() handled specially in python/gdal_python.i */
 
 #endif

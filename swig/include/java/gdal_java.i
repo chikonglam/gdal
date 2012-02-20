@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdal_java.i 20085 2010-07-17 18:00:47Z rouault $
+ * $Id: gdal_java.i 21579 2011-01-24 21:57:24Z rouault $
  *
  * Name:     gdal_java.i
  * Project:  GDAL SWIG Interface
@@ -42,6 +42,9 @@
   }
 %}
 
+/* This hacks turns the gdalJNI class into a package private class */
+%pragma(java) jniclassimports=%{
+%}
 
 %pragma(java) modulecode=%{
 

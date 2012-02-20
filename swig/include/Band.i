@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: Band.i 20085 2010-07-17 18:00:47Z rouault $
+ * $Id: Band.i 21773 2011-02-21 19:28:07Z rouault $
  *
  * Name:     Band.i
  * Project:  GDAL Python Interface
@@ -529,6 +529,19 @@ CPLErr SetDefaultHistogram( double min, double max,
   bool HasArbitraryOverviews() {
       return (GDALHasArbitraryOverviews( self ) != 0) ? true : false;
   }
+
+  /* Interface method added for GDAL 1.9.0 */
+%apply (char **options) {char **};
+  char **GetCategoryNames() {
+    return GDALGetRasterCategoryNames( self );
+  }
+%clear char **;
+
+%apply (char **options) { char ** papszCategoryNames };
+  CPLErr SetCategoryNames( char ** papszCategoryNames ) {
+    return GDALSetRasterCategoryNames( self, papszCategoryNames );
+  }
+%clear char **papszMetadata;
 
 } /* %extend */
 

@@ -26,7 +26,7 @@ The same applies for SHPT_POLYGON shapefiles, reported as layers of type
 wkbPolygon, but depending on the number of parts of each geometry, the
 actual type can be either OGRPolygon or OGRMultiPolygon.</p>
 
-<p>The new ESRI measure values are discarded if encountered.  MultiPatch 
+<p>ESRI measure values (XYM) are read as XYZ geometries. MultiPatch
 files are read and each patch geometry is turned into a multi-polygon 
 representation with one polygon per triangle in triangle fans and meshes.</p>
 
@@ -41,6 +41,14 @@ configuration option OGR_ORGANIZE_POLYGONS=DEFAULT to proceed to a full
 analysis based on topological relationships of the parts of the polygons so 
 that the resulting polygons are correctly
 defined in the OGC Simple Feature convention. </p>
+
+<p>An attempt is made to read the LDID/codepage setting from the .dbf file 
+and use it to translate string fields to UTF-8 on read, and back when writing.
+LDID "87 / 0x57" is treated as ISO8859_1 which may not be appropriate.  
+The SHAPE_ENCODING <a href="http://trac.osgeo.org/gdal/wiki/ConfigOptions">
+configuration option</a> may be used to override the encoding interpretation
+of the shapefile with any encoding supported by CPLRecode or to "" to avoid
+any recoding. (Recoding support is new for GDAL/OGR 1.9.0)</p>
 
 <h2>Spatial and Attribute Indexing</h2>
 
@@ -147,6 +155,18 @@ the .dbf file, and then ignored by OGR.  To actually remove them permanently
 (resulting in renumbering of FIDs) invoke the SQL 'REPACK &lt;tablename&gt;' via
 the datasource ExecuteSQL() method.</p>
 
+<h2>Spatial extent</h2>
+
+<p>Shapefiles store the layer spatial extent in the .SHP file. The layer spatial extent
+is automatically updated when inserting a new feature in a shapefile. However when
+updating an existing feature, if its previous shape was touching the bounding box of the
+layer extent but the updated shape does not touch the new extent, the computed extent
+will not be correct. It is then necessary to force a recomputation by invoking the
+SQL 'RECOMPUTE EXTENT ON &lt;tablename&gt;' via the datasource ExecuteSQL() method. The
+same applies for the deletion of a shape.</p>
+
+<p>Note: RECOMPUTE EXTENT ON is available in OGR >= 1.9.0.</p>
+
 <h2>Size Issues</h2>
 
 <p>Geometry: The Shapefile format explicitly uses 32bit offsets and so cannot
@@ -169,7 +189,16 @@ NULL for a simple .dbf file with no .shp file,
  POINT, ARC, POLYGON or MULTIPOINT for 2D, or 
 POINTZ, ARCZ, POLYGONZ or MULTIPOINTZ for 3D.  Shapefiles with <i>measure</i>
 values are not supported, nor are MULTIPATCH files.</li>
+
+<li> <b>ENCODING=</b><i>value</i>: set the encoding value in the DBF file. The
+default value is "LDID/87".  It is not clear what other values may be
+appropriate.</li>
 </ul>
+
+<h3>VSI Virtual File System API support</h3>
+
+The driver supports reading from files managed by VSI Virtual File System API, which include
+"regular" files, as well as files in the /vsizip/, /vsigzip/ , /vsicurl/ domains.<p>
 
 <h3>Examples</h3>
 

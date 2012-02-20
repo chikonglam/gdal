@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdaljp2metadata.h 22650 2011-07-06 00:59:22Z warmerdam $
+ * $Id: gdaljp2metadata.h 22678 2011-07-09 19:47:12Z rouault $
  *
  * Project:  GDAL 
  * Purpose:  JP2 Box Reader (and GMLJP2 Interpreter)
@@ -121,6 +121,9 @@ public:
 
     int         nGCPCount;
     GDAL_GCP    *pasGCPList;
+
+    char  **papszMetadata;
+    char   *pszXMPMetadata;
 
 public:
             GDALJP2Metadata();

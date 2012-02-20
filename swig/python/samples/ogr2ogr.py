@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #/******************************************************************************
-# * $Id: ogr2ogr.py 22027 2011-03-25 19:28:44Z rouault $
+# * $Id: ogr2ogr.py 23515 2011-12-10 21:14:02Z rouault $
 # *
 # * Project:  OpenGIS Simple Features Reference Implementation
 # * Purpose:  Python port of a simple client for translating between formats.
@@ -115,6 +115,14 @@ nGroupTransactions = 200
 bPreserveFID = False
 nFIDToFetch = ogr.NullFID
 
+class Enum(set):
+    def __getattr__(self, name):
+        if name in self:
+            return name
+        raise AttributeError
+
+GeomOperation = Enum(["NONE", "SEGMENTIZE", "SIMPLIFY_PRESERVE_TOPOLOGY"])
+
 def main(args = None, progress_func = TermProgress, progress_data = None):
     
     global bSkipFailures
@@ -140,10 +148,11 @@ def main(args = None, progress_func = TermProgress, progress_data = None):
     pszWHERE = None
     poSpatialFilter = None
     pszSelect = None
-    papszSelFields = []
+    papszSelFields = None
     pszSQLStatement = None
     eGType = -2
-    dfMaxSegmentLength = 0
+    eGeomOp = GeomOperation.NONE
+    dfGeomOpParam = 0
     papszFieldTypesToString = []
     bDisplayProgress = False
     pfnProgress = None
@@ -305,10 +314,18 @@ def main(args = None, progress_func = TermProgress, progress_data = None):
                 papszSelFields = pszSelect.split(',')
             else:
                 papszSelFields = pszSelect.split(' ')
+            if papszSelFields[0] == '':
+                papszSelFields = []
+
+        elif EQUAL(args[iArg],"-simplify") and iArg < nArgc-1:
+            iArg = iArg + 1
+            eGeomOp = GeomOperation.SIMPLIFY_PRESERVE_TOPOLOGY
+            dfGeomOpParam = float(args[iArg])
 
         elif EQUAL(args[iArg],"-segmentize") and iArg < nArgc-1:
             iArg = iArg + 1
-            dfMaxSegmentLength = float(args[iArg])
+            eGeomOp = GeomOperation.SEGMENTIZE
+            dfGeomOpParam = float(args[iArg])
 
         elif EQUAL(args[iArg],"-fieldTypeToString") and iArg < nArgc-1:
             iArg = iArg + 1
@@ -533,11 +550,7 @@ def main(args = None, progress_func = TermProgress, progress_data = None):
 #/*      Find the output driver.                                         */
 #/* -------------------------------------------------------------------- */
     if not bUpdate:
-        for iDriver in range(ogr.GetDriverCount()):
-            if EQUAL(ogr.GetDriver(iDriver).GetName(),pszFormat):
-                poDriver = ogr.GetDriver(iDriver)
-                break
-
+        poDriver = ogr.GetDriverByName(pszFormat)
         if poDriver is None:
             print("Unable to find driver `%s'." % pszFormat)
             print( "The following drivers are available:" )
@@ -550,6 +563,33 @@ def main(args = None, progress_func = TermProgress, progress_data = None):
         if poDriver.TestCapability( ogr.ODrCCreateDataSource ) == False:
             print( "%s driver does not support data source creation." % pszFormat)
             return False
+
+#/* -------------------------------------------------------------------- */
+#/*      Special case to improve user experience when translating        */
+#/*      a datasource with multiple layers into a shapefile. If the      */
+#/*      user gives a target datasource with .shp and it does not exist, */
+#/*      the shapefile driver will try to create a file, but this is not */
+#/*      appropriate because here we have several layers, so create      */
+#/*      a directory instead.                                            */
+#/* -------------------------------------------------------------------- */
+        if EQUAL(poDriver.GetName(), "ESRI Shapefile") and \
+           pszSQLStatement is None and \
+           (len(papszLayers) > 1 or \
+            (len(papszLayers) == 0 and poDS.GetLayerCount() > 1)) and \
+            pszNewLayerName is None and \
+            EQUAL(os.path.splitext(pszDestDataSource)[1], ".SHP") :
+
+            try:
+                os.stat(pszDestDataSource)
+            except:
+                try:
+                    # decimal 493 = octal 0755. Python 3 needs 0o755, but
+                    # this syntax is only supported by Python >= 2.6
+                    os.mkdir(pszDestDataSource, 493)
+                except:
+                    print("Failed to create directory %s\n"
+                          "for shapefile datastore.\n" % pszDestDataSource )
+                    return False
 
 #/* -------------------------------------------------------------------- */
 #/*      Create the output data source.                                  */
@@ -618,7 +658,7 @@ def main(args = None, progress_func = TermProgress, progress_data = None):
             if not TranslateLayer( poDS, poResultSet, poODS, papszLCO, \
                                 pszNewLayerName, bTransform, poOutputSRS, \
                                 poSourceSRS, papszSelFields, bAppend, eGType, \
-                                bOverwrite, dfMaxSegmentLength, papszFieldTypesToString, \
+                                bOverwrite, eGeomOp, dfGeomOpParam, papszFieldTypesToString, \
                                 nCountLayerFeatures, poClipSrc, poClipDst, bExplodeCollections, \
                                 pszZField, pszWHERE, pfnProgress, pProgressData ):
                 print(
@@ -679,7 +719,10 @@ def main(args = None, progress_func = TermProgress, progress_data = None):
             poLayer = papoLayers[iLayer]
 
             if pszWHERE is not None:
-                poLayer.SetAttributeFilter( pszWHERE )
+                if poLayer.SetAttributeFilter( pszWHERE ) != 0:
+                    print("FAILURE: SetAttributeFilter(%s) failed." % pszWHERE)
+                    if not bSkipFailures:
+                        return False
 
             if poSpatialFilter is not None:
                 poLayer.SetSpatialFilter( poSpatialFilter )
@@ -722,7 +765,7 @@ def main(args = None, progress_func = TermProgress, progress_data = None):
             if not TranslateLayer( poDS, poLayer, poODS, papszLCO,  \
                                 pszNewLayerName, bTransform, poOutputSRS, \
                                 poSourceSRS, papszSelFields, bAppend, eGType, \
-                                bOverwrite, dfMaxSegmentLength, papszFieldTypesToString, \
+                                bOverwrite, eGeomOp, dfGeomOpParam, papszFieldTypesToString, \
                                 panLayerCountFeatures[iLayer], poClipSrc, poClipDst, bExplodeCollections, \
                                 pszZField, pszWHERE, pfnProgress, pProgressData)  \
                 and not bSkipFailures:
@@ -754,6 +797,7 @@ def Usage():
             "               [-spat xmin ymin xmax ymax] [-preserve_fid] [-fid FID]\n" + \
             "               [-a_srs srs_def] [-t_srs srs_def] [-s_srs srs_def]\n" + \
             "               [-f format_name] [-overwrite] [[-dsco NAME=VALUE] ...]\n" + \
+            "               [-simplify tolerance]\n" + \
             #// "               [-segmentize max_dist] [-fieldTypeToString All|(type1[,type2]*)]\n" + \
             "               [-fieldTypeToString All|(type1[,type2]*)] [-explodecollections] \n" + \
             "               dst_datasource_name src_datasource_name\n" + \
@@ -778,6 +822,7 @@ def Usage():
             " -skipfailures: skip features or layers that fail to convert\n" + \
             " -gt n: group n features per transaction (default 200)\n" + \
             " -spat xmin ymin xmax ymax: spatial query extents\n" + \
+            " -simplify tolerance: distance tolerance for simplification.\n" + \
             #//" -segmentize max_dist: maximum distance between 2 nodes.\n" + \
             #//"                       Used to create intermediate points\n" + \
             " -dsco NAME=VALUE: Dataset creation option (format specific)\n" + \
@@ -905,7 +950,7 @@ def SetZ (poGeom, dfZ ):
 
 def TranslateLayer( poSrcDS, poSrcLayer, poDstDS, papszLCO, pszNewLayerName, \
                     bTransform,  poOutputSRS, poSourceSRS, papszSelFields, \
-                    bAppend, eGType, bOverwrite, dfMaxSegmentLength, \
+                    bAppend, eGType, bOverwrite, eGeomOp, dfGeomOpParam, \
                     papszFieldTypesToString, nCountLayerFeatures, \
                     poClipSrc, poClipDst, bExplodeCollections, pszZField, pszWHERE, \
                     pfnProgress, pProgressData) :
@@ -968,25 +1013,30 @@ def TranslateLayer( poSrcDS, poSrcLayer, poDstDS, papszLCO, pszNewLayerName, \
 #/* -------------------------------------------------------------------- */
 #/*      Find the layer.                                                 */
 #/* -------------------------------------------------------------------- */
-    iLayer = -1
-    poDstLayer = None
 
     #/* GetLayerByName() can instanciate layers that would have been */
     #*/ 'hidden' otherwise, for example, non-spatial tables in a */
     #*/ Postgis-enabled database, so this apparently useless command is */
     #/* not useless... (#4012) */
     gdal.PushErrorHandler('CPLQuietErrorHandler')
-    poDstDS.GetLayerByName(pszNewLayerName)
+    poDstLayer = poDstDS.GetLayerByName(pszNewLayerName)
     gdal.PopErrorHandler()
     gdal.ErrorReset()
 
-    for iLayer in range(poDstDS.GetLayerCount()):
-        poLayer = poDstDS.GetLayer(iLayer)
+    iLayer = -1
+    if poDstLayer is not None:
+        nLayerCount = poDstDS.GetLayerCount()
+        for iLayer in range(nLayerCount):
+            poLayer = poDstDS.GetLayer(iLayer)
+            # The .cpp version compares on pointers directly, but we cannot
+            # do this with swig object, so just compare the names.
+            if poLayer is not None \
+                and poLayer.GetName() == poDstLayer.GetName():
+                break
 
-        if poLayer is not None \
-            and EQUAL(poLayer.GetLayerDefn().GetName(), pszNewLayerName):
-            poDstLayer = poLayer
-            break
+        if (iLayer == nLayerCount):
+            # /* shouldn't happen with an ideal driver */
+            poDstLayer = None
 
 #/* -------------------------------------------------------------------- */
 #/*      If the user requested overwrite, and we have the layer in       */
@@ -1017,7 +1067,8 @@ def TranslateLayer( poSrcDS, poSrcLayer, poDstDS, papszLCO, pszNewLayerName, \
                     eGType = ogr.wkbPolygon | n25DBit
                 elif wkbFlatten(eGType) == ogr.wkbGeometryCollection:
                     eGType = ogr.wkbUnknown | n25DBit
-            elif pszZField is not None:
+
+            if pszZField is not None:
                 eGType = eGType | ogr.wkb25DBit
 
         if poDstDS.TestCapability( ogr.ODsCCreateLayer ) == False:
@@ -1059,7 +1110,7 @@ def TranslateLayer( poSrcDS, poSrcLayer, poDstDS, papszLCO, pszNewLayerName, \
 
     poDstFDefn = poDstLayer.GetLayerDefn()
 
-    if len(papszSelFields) > 0 and not bAppend:
+    if papszSelFields is not None and not bAppend:
 
         nDstFieldCount = 0
         if poDstFDefn is not None:
@@ -1122,6 +1173,9 @@ def TranslateLayer( poSrcDS, poSrcLayer, poDstDS, papszLCO, pszNewLayerName, \
                     if pszFieldName == papszSelFields[iField]:
                         bFieldRequested = True
                         break
+
+                if pszZField is not None and pszFieldName == pszZField:
+                    bFieldRequested = True
 
                 #/* If source field not requested, add it to ignored files list */
                 if not bFieldRequested:
@@ -1251,9 +1305,6 @@ def TranslateLayer( poSrcDS, poSrcLayer, poDstDS, papszLCO, pszNewLayerName, \
             if bPreserveFID:
                 poDstFeature.SetFID( poFeature.GetFID() )
 
-            #/*if (poDstFeature.GetGeometryRef() is not None and dfMaxSegmentLength > 0)
-            #    poDstFeature.GetGeometryRef().segmentize(dfMaxSegmentLength);*/
-
             poDstGeometry = poDstFeature.GetGeometryRef()
             if poDstGeometry is not None:
 
@@ -1265,6 +1316,20 @@ def TranslateLayer( poSrcDS, poSrcLayer, poDstDS, papszLCO, pszNewLayerName, \
 
                 if iSrcZField != -1:
                     SetZ(poDstGeometry, poFeature.GetFieldAsDouble(iSrcZField))
+                    # /* This will correct the coordinate dimension to 3 */
+                    poDupGeometry = poDstGeometry.Clone()
+                    poDstFeature.SetGeometryDirectly(poDupGeometry)
+                    poDstGeometry = poDupGeometry
+
+                if eGeomOp == GeomOperation.SEGMENTIZE:
+                    pass
+                    #/*if (poDstFeature.GetGeometryRef() is not None and dfGeomOpParam > 0)
+                    #    poDstFeature.GetGeometryRef().segmentize(dfGeomOpParam);*/
+                elif eGeomOp == GeomOperation.SIMPLIFY_PRESERVE_TOPOLOGY and dfGeomOpParam > 0:
+                    poNewGeom = poDstGeometry.SimplifyPreserveTopology(dfGeomOpParam)
+                    if poNewGeom is not None:
+                        poDstFeature.SetGeometryDirectly(poNewGeom)
+                        poDstGeometry = poNewGeom
 
                 if poClipSrc is not None:
                     poClipped = poDstGeometry.Intersection(poClipSrc)

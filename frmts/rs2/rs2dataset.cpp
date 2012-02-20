@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: rs2dataset.cpp 22066 2011-03-29 17:09:16Z warmerdam $
+ * $Id: rs2dataset.cpp 23570 2011-12-13 22:23:32Z rouault $
  *
  * Project:  Polarimetric Workstation
  * Purpose:  Radarsat 2 - XML Products (product.xml) driver
@@ -31,7 +31,7 @@
 #include "cpl_minixml.h"
 #include "ogr_spatialref.h"
 
-CPL_CVSID("$Id: rs2dataset.cpp 22066 2011-03-29 17:09:16Z warmerdam $");
+CPL_CVSID("$Id: rs2dataset.cpp 23570 2011-12-13 22:23:32Z rouault $");
 
 CPL_C_START
 void    GDALRegister_RS2(void);
@@ -88,6 +88,9 @@ class RS2Dataset : public GDALPamDataset
     bool        bHaveGeoTransform;
 
     char        **papszExtraFiles;
+
+  protected:
+    virtual int         CloseDependentDatasets();
 
   public:
             RS2Dataset();
@@ -564,9 +567,31 @@ RS2Dataset::~RS2Dataset()
         GDALDeinitGCPs( nGCPCount, pasGCPList );
         CPLFree( pasGCPList );
     }
+
+    CloseDependentDatasets();
     
     CSLDestroy( papszSubDatasets );
     CSLDestroy( papszExtraFiles );
+}
+
+/************************************************************************/
+/*                      CloseDependentDatasets()                        */
+/************************************************************************/
+
+int RS2Dataset::CloseDependentDatasets()
+{
+    int bHasDroppedRef = GDALPamDataset::CloseDependentDatasets();
+
+    if (nBands != 0)
+        bHasDroppedRef = TRUE;
+
+    for( int iBand = 0; iBand < nBands; iBand++ )
+    {
+       delete papoBands[iBand];
+    }
+    nBands = 0;
+
+    return bHasDroppedRef;
 }
 
 /************************************************************************/
@@ -670,16 +695,20 @@ GDALDataset *RS2Dataset::Open( GDALOpenInfo * poOpenInfo )
         if (*pszFilename == ':')
             pszFilename++;
 
-        osMDFilename = pszFilename;
+        //need to redo the directory check:
+        //the GDALOpenInfo check would have failed because of the calibration string on the filename
+        VSIStatBufL  sStat;
+        if( VSIStatL( pszFilename, &sStat ) == 0 )
+        	poOpenInfo->bIsDirectory = VSI_ISDIR( sStat.st_mode );
     }
 
-    else if( poOpenInfo->bIsDirectory )
+    if( poOpenInfo->bIsDirectory )
     {
         osMDFilename = 
-            CPLFormCIFilename( poOpenInfo->pszFilename, "product.xml", NULL );
+            CPLFormCIFilename( pszFilename, "product.xml", NULL );
     }
     else
-        osMDFilename = poOpenInfo->pszFilename;
+        osMDFilename = pszFilename;
 
 /* -------------------------------------------------------------------- */
 /*      Ingest the Product.xml file.                                    */

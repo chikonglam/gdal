@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrlinearring.cpp 22556 2011-06-22 12:17:11Z rouault $
+ * $Id: ogrlinearring.cpp 22555 2011-06-22 12:16:54Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  The OGRLinearRing geometry class.
@@ -30,7 +30,7 @@
 #include "ogr_geometry.h"
 #include "ogr_p.h"
 
-CPL_CVSID("$Id: ogrlinearring.cpp 22556 2011-06-22 12:17:11Z rouault $");
+CPL_CVSID("$Id: ogrlinearring.cpp 22555 2011-06-22 12:16:54Z rouault $");
 
 /************************************************************************/
 /*                           OGRLinearRing()                            */

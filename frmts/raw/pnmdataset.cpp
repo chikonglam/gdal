@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: pnmdataset.cpp 20996 2010-10-28 18:38:15Z rouault $
+ * $Id: pnmdataset.cpp 21696 2011-02-12 20:35:50Z rouault $
  *
  * Project:  PNM Driver
  * Purpose:  Portable anymap file format imlementation
@@ -31,7 +31,7 @@
 #include "cpl_string.h"
 #include <ctype.h>
 
-CPL_CVSID("$Id: pnmdataset.cpp 20996 2010-10-28 18:38:15Z rouault $");
+CPL_CVSID("$Id: pnmdataset.cpp 21696 2011-02-12 20:35:50Z rouault $");
 
 CPL_C_START
 void    GDALRegister_PNM(void);
@@ -119,7 +119,7 @@ int PNMDataset::Identify( GDALOpenInfo * poOpenInfo )
 /*      Verify that this is a _raw_ ppm or pgm file.  Note, we don't    */
 /*      support ascii files, or pbm (1bit) files.                       */
 /* -------------------------------------------------------------------- */
-    if( poOpenInfo->nHeaderBytes < 10 || poOpenInfo->fp == NULL )
+    if( poOpenInfo->nHeaderBytes < 10 )
         return FALSE;
 
     if( poOpenInfo->pabyHeader[0] != 'P'  ||
@@ -217,10 +217,8 @@ GDALDataset *PNMDataset::Open( GDALOpenInfo * poOpenInfo )
     poDS->nRasterYSize = nHeight;
 
 /* -------------------------------------------------------------------- */
-/*      Assume ownership of the file handled from the GDALOpenInfo.     */
+/*      Open file                                                       */
 /* -------------------------------------------------------------------- */
-    VSIFClose( poOpenInfo->fp );
-    poOpenInfo->fp = NULL;
 
     if( poOpenInfo->eAccess == GA_Update )
         poDS->fpImage = VSIFOpenL( poOpenInfo->pszFilename, "rb+" );
@@ -428,6 +426,7 @@ void GDALRegister_PNM()
 "<CreationOptionList>"
 "   <Option name='MAXVAL' type='unsigned int' description='Maximum color value'/>"
 "</CreationOptionList>" );
+        poDriver->SetMetadataItem( GDAL_DCAP_VIRTUALIO, "YES" );
 
         poDriver->pfnOpen = PNMDataset::Open;
         poDriver->pfnCreate = PNMDataset::Create;

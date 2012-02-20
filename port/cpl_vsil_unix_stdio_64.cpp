@@ -1,5 +1,5 @@
 /**********************************************************************
- * $Id: cpl_vsil_unix_stdio_64.cpp 20774 2010-10-05 20:41:05Z rouault $
+ * $Id: cpl_vsil_unix_stdio_64.cpp 23506 2011-12-10 13:43:59Z rouault $
  *
  * Project:  CPL - Common Portability Library
  * Purpose:  Implement VSI large file api for Unix platforms with fseek64()
@@ -48,7 +48,7 @@
 #include <dirent.h>
 #include <errno.h>
 
-CPL_CVSID("$Id: cpl_vsil_unix_stdio_64.cpp 20774 2010-10-05 20:41:05Z rouault $");
+CPL_CVSID("$Id: cpl_vsil_unix_stdio_64.cpp 23506 2011-12-10 13:43:59Z rouault $");
 
 #if defined(UNIX_STDIO_64)
 
@@ -67,6 +67,9 @@ CPL_CVSID("$Id: cpl_vsil_unix_stdio_64.cpp 20774 2010-10-05 20:41:05Z rouault $"
 #ifndef VSI_STAT64_T
 #define VSI_STAT64_T stat64
 #endif
+#ifndef VSI_FTRUNCATE64
+#define VSI_FTRUNCATE64 ftruncate64
+#endif
 
 #else /* not UNIX_STDIO_64 */
 
@@ -84,6 +87,9 @@ CPL_CVSID("$Id: cpl_vsil_unix_stdio_64.cpp 20774 2010-10-05 20:41:05Z rouault $"
 #endif
 #ifndef VSI_STAT64_T
 #define VSI_STAT64_T stat
+#endif
+#ifndef VSI_FTRUNCATE64
+#define VSI_FTRUNCATE64 ftruncate
 #endif
 
 #endif /* ndef UNIX_STDIO_64 */
@@ -129,6 +135,7 @@ class VSIUnixStdioHandle : public VSIVirtualHandle
     virtual int       Eof();
     virtual int       Flush();
     virtual int       Close();
+    virtual int       Truncate( vsi_l_offset nNewSize );
 };
 
 /************************************************************************/
@@ -153,9 +160,6 @@ int VSIUnixStdioHandle::Seek( vsi_l_offset nOffset, int nWhence )
     // seeks that do nothing are still surprisingly expensive with MSVCRT.
     // try and short circuit if possible.
     if( nWhence == SEEK_SET && nOffset == this->nOffset )
-        return 0;
-
-    if( nWhence == SEEK_END && nOffset == 0 && bAtEOF )
         return 0;
 
     int     nResult = VSI_FSEEK64( fp, nOffset, nWhence );
@@ -191,22 +195,20 @@ int VSIUnixStdioHandle::Seek( vsi_l_offset nOffset, int nWhence )
         if( nWhence == SEEK_SET )
         {
             this->nOffset = nOffset;
-            bAtEOF = FALSE;
         }
         else if( nWhence == SEEK_END )
         {
             this->nOffset = VSI_FTELL64( fp );
-            bAtEOF = TRUE;
         }
         else if( nWhence == SEEK_CUR )
         {
             this->nOffset += nOffset;
-            bAtEOF = FALSE;
         }
     }
         
     bLastOpWrite = FALSE;
     bLastOpRead = FALSE;
+    bAtEOF = FALSE;
 
     errno = nError;
     return nResult;
@@ -277,6 +279,9 @@ size_t VSIUnixStdioHandle::Read( void * pBuffer, size_t nSize, size_t nCount )
     nOffset += nSize * nResult;
     bLastOpWrite = FALSE;
     bLastOpRead = TRUE;
+
+    if (nResult != nCount)
+        bAtEOF = feof(fp);
     
     return nResult;
 }
@@ -327,14 +332,23 @@ size_t VSIUnixStdioHandle::Write( const void * pBuffer, size_t nSize,
 int VSIUnixStdioHandle::Eof()
 
 {
-    if( !bAtEOF )
-        bAtEOF = feof(fp);
-
     if( bAtEOF )
         return 1;
     else
         return 0;
 }
+
+/************************************************************************/
+/*                             Truncate()                               */
+/************************************************************************/
+
+int VSIUnixStdioHandle::Truncate( vsi_l_offset nNewSize )
+{
+    fflush(fp);
+    int nRet = VSI_FTRUNCATE64(fileno(fp), nNewSize);
+    return nRet;
+}
+
 
 /************************************************************************/
 /* ==================================================================== */
@@ -372,7 +386,20 @@ VSIUnixStdioFilesystemHandler::Open( const char *pszFilename,
     poHandle->bAtEOF = FALSE;
 
     errno = nError;
-    return poHandle;
+
+/* -------------------------------------------------------------------- */
+/*      If VSI_CACHE is set we want to use a cached reader instead      */
+/*      of more direct io on the underlying file.                       */
+/* -------------------------------------------------------------------- */
+    if( (EQUAL(pszAccess,"r") || EQUAL(pszAccess,"rb"))
+        && CSLTestBoolean( CPLGetConfigOption( "VSI_CACHE", "FALSE" ) ) )
+    {
+        return VSICreateCachedFile( poHandle );
+    }
+    else
+    {
+        return poHandle;
+    }
 }
 
 /************************************************************************/
@@ -438,36 +465,18 @@ char **VSIUnixStdioFilesystemHandler::ReadDir( const char *pszPath )
 {
     DIR           *hDir;
     struct dirent *psDirEntry;
-    char          **papszDir = NULL;
+    CPLStringList  oDir;
 
     if (strlen(pszPath) == 0)
         pszPath = ".";
 
     if ( (hDir = opendir(pszPath)) != NULL )
     {
-        /* In case of really big number of files in the directory, CSLAddString */
-        /* can be slow (see #2158). We then directly build the list. */
-        int nItems=0;
-        int nAllocatedItems=0;
+        // we want to avoid returning NULL for an empty list.
+        oDir.Assign( (char**) CPLCalloc(2,sizeof(char*)) );
+
         while( (psDirEntry = readdir(hDir)) != NULL )
-        {
-            if (nItems == 0)
-            {
-                papszDir = (char**) CPLCalloc(2,sizeof(char*));
-                nAllocatedItems = 1;
-            }
-            else if (nItems >= nAllocatedItems)
-            {
-                nAllocatedItems = nAllocatedItems * 2;
-                papszDir = (char**)CPLRealloc(papszDir, 
-                                              (nAllocatedItems+2)*sizeof(char*));
-            }
-
-            papszDir[nItems] = CPLStrdup(psDirEntry->d_name);
-            papszDir[nItems+1] = NULL;
-
-            nItems++;
-        }
+            oDir.AddString( psDirEntry->d_name );
 
         closedir( hDir );
     }
@@ -478,7 +487,7 @@ char **VSIUnixStdioFilesystemHandler::ReadDir( const char *pszPath )
          */
     }
 
-    return papszDir;
+    return oDir.StealList();
 }
 
 /************************************************************************/

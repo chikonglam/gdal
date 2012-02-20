@@ -1,9 +1,9 @@
 /******************************************************************************
  * File :    postgisraster.h
  * Project:  PostGIS Raster driver
- * Purpose:  Main header file for PostGIS Raster Driver 
+ * Purpose:  Main header file for PostGIS Raster Driver
  * Author:   Jorge Arevalo, jorge.arevalo@deimos-space.com
- * 
+ *
  * Last changes: $Id: $
  *
  ******************************************************************************
@@ -29,6 +29,7 @@
  ******************************************************************************/
 #include "gdal_priv.h"
 #include "libpq-fe.h"
+#include <float.h>
 //#include "liblwgeom.h"
 
 // General defines
@@ -42,11 +43,15 @@
 
 #define POSTGIS_RASTER_VERSION         (GUInt16)0
 #define RASTER_HEADER_SIZE              61
-#define RASTER_BAND_HEADER_FIXED_SIZE   1  
+#define RASTER_BAND_HEADER_FIXED_SIZE   1
+
+#define BAND_SIZE(nodatasize, datasize) \
+        (RASTER_BAND_HEADER_FIXED_SIZE + nodatasize + datasize)
 
 #define GET_BAND_DATA(raster, nband, nodatasize, datasize) \
-    (raster + RASTER_HEADER_SIZE + ((RASTER_BAND_HEADER_FIXED_SIZE + nodatasize)\
-     * nband) + ((nband - 1) * datasize))
+    (raster + RASTER_HEADER_SIZE + nband * BAND_SIZE(nodatasize, datasize) - datasize)
+
+#define FLT_NEQ(x, y) (fabs(x - y) > FLT_EPSILON)
 
 
 /* Working modes */
@@ -85,6 +90,7 @@ private:
     int nSrid;
     PGconn* poConn;
     GBool bRegularBlocking;
+    GBool bAllTilesSnapToSameGrid;
     GBool bRegisteredInRasterColumns;
     char* pszSchema;
     char* pszTable;
@@ -94,6 +100,7 @@ private:
     int nMode;
     int nBlockXSize;
     int nBlockYSize;
+    GBool bBlocksCached;
     GBool SetRasterProperties(const char *);
     GBool BrowseDatabase(const char *, char *);
     GBool SetRasterBands();
@@ -108,6 +115,9 @@ public:
     CPLErr SetProjection(const char*);
     CPLErr SetGeoTransform(double *);
     CPLErr GetGeoTransform(double *);
+
+    virtual CPLErr IRasterIO( GDALRWFlag, int, int, int, int,
+        void *, int, int, GDALDataType, int, int *, int, int, int );
 };
 
 /******************************************************************************
@@ -124,14 +134,14 @@ private:
     char* pszTable;
     char* pszColumn;
     char* pszWhere;
-    PostGISRasterRasterBand ** papoOverviews; 
+    PostGISRasterRasterBand ** papoOverviews;
     void NullBlock(void *);
 
 public:
-    
-    PostGISRasterRasterBand(PostGISRasterDataset *poDS, int nBand, GDALDataType hDataType, 
-            double dfNodata, GBool bSignedByte, int nBitDepth, int nFactor, 
-            GBool bIsOffline, char * pszSchema = NULL, char * pszTable = NULL, 
+
+    PostGISRasterRasterBand(PostGISRasterDataset *poDS, int nBand, GDALDataType hDataType,
+            double dfNodata, GBool bSignedByte, int nBitDepth, int nFactor,
+            GBool bIsOffline, char * pszSchema = NULL, char * pszTable = NULL,
             char * pszColumn = NULL);
 
     virtual ~PostGISRasterRasterBand();

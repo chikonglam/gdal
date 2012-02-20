@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gsagdataset.cpp 20996 2010-10-28 18:38:15Z rouault $
+ * $Id: gsagdataset.cpp 23060 2011-09-05 17:58:30Z rouault $
  *
  * Project:  GDAL
  * Purpose:  Implements the Golden Software ASCII Grid Format.
@@ -49,7 +49,7 @@
 # define INT_MAX 2147483647
 #endif /* INT_MAX */
 
-CPL_CVSID("$Id: gsagdataset.cpp 20996 2010-10-28 18:38:15Z rouault $");
+CPL_CVSID("$Id: gsagdataset.cpp 23060 2011-09-05 17:58:30Z rouault $");
 
 CPL_C_START
 void	GDALRegister_GSAG(void);
@@ -171,7 +171,7 @@ GSAGRasterBand::GSAGRasterBand( GSAGDataset *poDS, int nBand,
 
 {
     this->poDS = poDS;
-    nBand = nBand;
+    this->nBand = nBand;
     
     eDataType = GDT_Float64;
 
@@ -335,8 +335,8 @@ CPLErr GSAGRasterBand::IReadBlock( int nBlockXOff, int nBlockYOff,
     if( (nBlockYOff > 0) && ( panLineOffset[nBlockYOff-1] != 0 ) )
     {
 	assert(panLineOffset[nBlockYOff-1] > panLineOffset[nBlockYOff]);
-	nLineBufSize = panLineOffset[nBlockYOff-1]
-            - panLineOffset[nBlockYOff] + 1;
+	nLineBufSize = (size_t) (panLineOffset[nBlockYOff-1]
+                                 - panLineOffset[nBlockYOff] + 1);
     }
     else
     {
@@ -626,8 +626,8 @@ CPLErr GSAGRasterBand::IWriteBlock( int nBlockXOff, int nBlockYOff,
     CPLString sOut = ssOutBuf.str();
     if( sOut.length() != panLineOffset[nBlockYOff+1]-panLineOffset[nBlockYOff] )
     {
-	int nShiftSize = sOut.length() - (panLineOffset[nBlockYOff+1]
-					  - panLineOffset[nBlockYOff]);
+	int nShiftSize = (int) (sOut.length() - (panLineOffset[nBlockYOff+1]
+                                                 - panLineOffset[nBlockYOff]));
 	if( nBlockYOff != poGDS->nRasterYSize
 	    && GSAGDataset::ShiftFileContents( poGDS->fp,
 					       panLineOffset[nBlockYOff+1],
@@ -1048,6 +1048,11 @@ GDALDataset *GSAGDataset::Open( GDALOpenInfo * poOpenInfo )
     poDS->SetDescription( poOpenInfo->pszFilename );
     poDS->TryLoadXML();
 
+/* -------------------------------------------------------------------- */
+/*      Check for external overviews.                                   */
+/* -------------------------------------------------------------------- */
+    poDS->oOvManager.Initialize( poDS, poOpenInfo->pszFilename, poOpenInfo->papszSiblingFiles );
+
     return( poDS );
 
 error:
@@ -1309,7 +1314,10 @@ CPLErr GSAGDataset::ShiftFileContents( VSILFILE *fp, vsi_l_offset nShiftStart,
 	nRead = VSIFReadL( (void *)(pabyBuffer+nOverlap), 1,
 			   nBufferSize - nOverlap, fp );
 
-	bEOF = VSIFEofL( fp );
+        if( VSIFEofL( fp ) )
+            bEOF = true;
+        else 
+            bEOF = false;
 
 	if( nRead == 0 && !bEOF )
 	{
@@ -1440,7 +1448,7 @@ CPLErr GSAGDataset::UpdateHeader()
     CPLString sOut = ssOutBuf.str();
     if( sOut.length() != poBand->panLineOffset[0] )
     {
-	int nShiftSize = sOut.length() - poBand->panLineOffset[0];
+	int nShiftSize = (int) (sOut.length() - poBand->panLineOffset[0]);
 	if( ShiftFileContents( fp, poBand->panLineOffset[0], nShiftSize,
 			       szEOL ) != CE_None )
 	{
@@ -1830,6 +1838,7 @@ void GDALRegister_GSAG()
 	poDriver->SetMetadataItem( GDAL_DMD_CREATIONDATATYPES,
 				   "Byte Int16 UInt16 Int32 UInt32 "
 				   "Float32 Float64" );
+        poDriver->SetMetadataItem( GDAL_DCAP_VIRTUALIO, "YES" );
 
     poDriver->pfnOpen = GSAGDataset::Open;
 	poDriver->pfnCreateCopy = GSAGDataset::CreateCopy;

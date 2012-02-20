@@ -1,5 +1,5 @@
 #ifndef DOXYGEN_SKIP
-/* $Id: sponsorship.dox 10411 2006-11-29 02:35:53Z fwarmerdam $ */
+/* $Id: sponsorship.dox 23132 2011-09-29 18:18:54Z warmerdam $ */
 #endif /* DOXYGEN_SKIP */
 
 /*!
@@ -82,12 +82,12 @@ and  sponsorships will be eligible as a charitable contribution for US
 taxpayers.  Appropriate receipts can be issued when needed.
 
 Organizations or individuals interested in sponsoring the GDAL/OGR project
-should contact Frank Warmerdam (warmerdam@pobox.com, +1 613 754 2041) with 
+should contact Frank Warmerdam (warmerdam@pobox.com, +1 650 701-7823) with 
 questions, or to make arrangements.  
 
 \htmlonly
 <p>
-$Id: sponsorship.dox 10411 2006-11-29 02:35:53Z fwarmerdam $
+$Id: sponsorship.dox 23132 2011-09-29 18:18:54Z warmerdam $
 </p>
 \endhtmlonly
 

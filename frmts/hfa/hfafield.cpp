@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: hfafield.cpp 21184 2010-12-01 03:11:03Z warmerdam $
+ * $Id: hfafield.cpp 22913 2011-08-08 20:47:11Z rouault $
  *
  * Project:  Erdas Imagine (.img) Translator
  * Purpose:  Implementation of the HFAField class for managing information
@@ -30,7 +30,7 @@
 
 #include "hfa_p.h"
 
-CPL_CVSID("$Id: hfafield.cpp 21184 2010-12-01 03:11:03Z warmerdam $");
+CPL_CVSID("$Id: hfafield.cpp 22913 2011-08-08 20:47:11Z rouault $");
 
 #define MAX_ENTRY_REPORT   16
                            
@@ -181,13 +181,18 @@ const char *HFAField::Initialize( const char * pszInput )
         int	nEnumCount = atoi(pszInput);
         int	iEnum;
 
+        if (nEnumCount < 0 || nEnumCount > 100000)
+            return NULL;
+
         pszInput = strchr(pszInput,':');
         if( pszInput == NULL )
             return NULL;
 
         pszInput++;
 
-        papszEnumNames = (char **) CPLCalloc(sizeof(char *), nEnumCount+1);
+        papszEnumNames = (char **) VSICalloc(sizeof(char *), nEnumCount+1);
+        if (papszEnumNames == NULL)
+            return NULL;
         
         for( iEnum = 0; iEnum < nEnumCount; iEnum++ )
         {
@@ -676,7 +681,7 @@ HFAField::SetInstValue( const char * pszField, int nIndexValue,
         // or type?
         
         if( nIndexValue == -3 )
-            nBaseItemType = nIntValue;
+            nBaseItemType = (GInt16) nIntValue;
         else if( nIndexValue == -2 )
             nColumns = nIntValue;
         else if( nIndexValue == -1 )

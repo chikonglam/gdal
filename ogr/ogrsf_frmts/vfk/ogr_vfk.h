@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_vfk.h 18483 2010-01-08 23:59:26Z mloskot $
+ * $Id: ogr_vfk.h 23423 2011-11-26 18:40:30Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Private definitions for OGR/VFK driver.
@@ -100,7 +100,7 @@ private:
     IVFKReader    *poReader;
 
     /* private methods */
-    OGRVFKLayer   *CreateLayer(const VFKDataBlock *);
+    OGRVFKLayer   *CreateLayerFromBlock(const VFKDataBlock *);
 
 public:
     OGRVFKDataSource();

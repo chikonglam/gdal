@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: dgnread.cpp 20117 2010-07-22 14:07:43Z dron $
+ * $Id: dgnread.cpp 21684 2011-02-11 22:14:01Z warmerdam $
  *
  * Project:  Microstation DGN Access Library
  * Purpose:  DGN Access Library element reading code.
@@ -29,7 +29,7 @@
 
 #include "dgnlibp.h"
 
-CPL_CVSID("$Id: dgnread.cpp 20117 2010-07-22 14:07:43Z dron $");
+CPL_CVSID("$Id: dgnread.cpp 21684 2011-02-11 22:14:01Z warmerdam $");
 
 static DGNElemCore *DGNParseTCB( DGNInfo * );
 static DGNElemCore *DGNParseColorTable( DGNInfo * );
@@ -926,7 +926,7 @@ static DGNElemCore *DGNProcessElement( DGNInfo *psDGN, int nType, int nLevel )
       case DGNT_BSPLINE_SURFACE_BOUNDARY:
         {
           DGNElemBSplineSurfaceBoundary *psBounds;
-          int numverts = psDGN->abyElem[38] + psDGN->abyElem[39]*256;
+          short numverts = psDGN->abyElem[38] + psDGN->abyElem[39]*256;
 
           psBounds = (DGNElemBSplineSurfaceBoundary *)
             CPLCalloc(sizeof(DGNElemBSplineSurfaceBoundary)+

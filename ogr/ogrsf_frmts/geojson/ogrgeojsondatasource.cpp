@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrgeojsondatasource.cpp 21345 2010-12-30 11:37:54Z rouault $
+ * $Id: ogrgeojsondatasource.cpp 23367 2011-11-12 22:46:13Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implementation of OGRGeoJSONDataSource class (OGR GeoJSON Driver).
@@ -43,7 +43,9 @@ OGRGeoJSONDataSource::OGRGeoJSONDataSource()
     : pszName_(NULL), pszGeoData_(NULL),
         papoLayers_(NULL), nLayers_(0), fpOut_(NULL),
         flTransGeom_( OGRGeoJSONDataSource::eGeometryPreserve ),
-        flTransAttrs_( OGRGeoJSONDataSource::eAtributesPreserve )
+        flTransAttrs_( OGRGeoJSONDataSource::eAtributesPreserve ),
+        bFpOutputIsSeekable_( FALSE ),
+        nBBOXInsertLocation_(0)
 {
     // I've got constructed. Lunch time!
 }
@@ -115,7 +117,11 @@ int OGRGeoJSONDataSource::Open( const char* pszName )
 /*      Construct OGR layer and feature objects from                    */
 /*      GeoJSON text tree.                                              */
 /* -------------------------------------------------------------------- */
-    if( NULL == pszGeoData_ )
+    if( NULL == pszGeoData_ ||
+        strncmp(pszGeoData_, "{\"couchdb\":\"Welcome\"", strlen("{\"couchdb\":\"Welcome\"")) == 0 ||
+        strncmp(pszGeoData_, "{\"db_name\":\"", strlen("{\"db_name\":\"")) == 0 ||
+        strncmp(pszGeoData_, "{\"total_rows\":", strlen("{\"total_rows\":")) == 0 ||
+        strncmp(pszGeoData_, "{\"rows\":[", strlen("{\"rows\":[")) == 0)
     {
         Clear();
         return FALSE;
@@ -218,7 +224,19 @@ OGRLayer* OGRGeoJSONDataSource::CreateLayer( const char* pszName_,
 
     if( NULL != fpOut_ )
     {
-        VSIFPrintfL( fpOut_, "{\n\"type\": \"FeatureCollection\",\n\"features\": [\n" );
+        VSIFPrintfL( fpOut_, "{\n\"type\": \"FeatureCollection\",\n" );
+
+        if (bFpOutputIsSeekable_)
+        {
+            nBBOXInsertLocation_ = (int) VSIFTellL( fpOut_ );
+
+            char szSpaceForBBOX[SPACE_FOR_BBOX+1];
+            memset(szSpaceForBBOX, ' ', SPACE_FOR_BBOX);
+            szSpaceForBBOX[SPACE_FOR_BBOX] = '\0';
+            VSIFPrintfL( fpOut_, "%s\n", szSpaceForBBOX);
+        }
+
+        VSIFPrintfL( fpOut_, "\"features\": [\n" );
     }
 
     return poLayer;
@@ -244,6 +262,13 @@ int OGRGeoJSONDataSource::Create( const char* pszName, char** papszOptions )
 
     CPLAssert( NULL == fpOut_ );
 
+    if (strcmp(pszName, "/dev/stdout") == 0)
+        pszName = "/vsistdout/";
+
+    bFpOutputIsSeekable_ =  !(strcmp(pszName,"/vsistdout/") == 0 ||
+                              strncmp(pszName,"/vsigzip/", 9) == 0 ||
+                              strncmp(pszName,"/vsizip/", 8) == 0);
+
 /* -------------------------------------------------------------------- */
 /*     File overwrite not supported.                                    */
 /* -------------------------------------------------------------------- */
@@ -258,11 +283,7 @@ int OGRGeoJSONDataSource::Create( const char* pszName, char** papszOptions )
 /* -------------------------------------------------------------------- */
 /*      Create the output file.                                         */
 /* -------------------------------------------------------------------- */
-    if( EQUAL( pszName, "stdout" ) )
-        fpOut_ = VSIFOpenL( "/vsistdout/", "w" );
-    else
-        fpOut_ = VSIFOpenL( pszName, "w" );
-
+    fpOut_ = VSIFOpenL( pszName, "w" );
     if( NULL == fpOut_)
     {
         CPLError( CE_Failure, CPLE_OpenFailed, 
@@ -362,7 +383,7 @@ int OGRGeoJSONDataSource::ReadFromFile( const char* pszSource )
 
     VSIFSeekL( fp, 0, SEEK_SET );
 
-    pszGeoData_ = (char*)VSIMalloc(nDataLen + 1);
+    pszGeoData_ = (char*)VSIMalloc((size_t)(nDataLen + 1));
     if( NULL == pszGeoData_ )
     {
         VSIFCloseL(fp);
@@ -370,7 +391,7 @@ int OGRGeoJSONDataSource::ReadFromFile( const char* pszSource )
     }
 
     pszGeoData_[nDataLen] = '\0';
-    if( ( nDataLen != VSIFReadL( pszGeoData_, 1, nDataLen, fp ) ) )
+    if( ( nDataLen != VSIFReadL( pszGeoData_, 1, (size_t)nDataLen, fp ) ) )
     {
         Clear();
         VSIFCloseL( fp );

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: btdataset.cpp 20996 2010-10-28 18:38:15Z rouault $
+ * $Id: btdataset.cpp 23033 2011-09-03 18:46:11Z rouault $
  *
  * Project:  VTP .bt Driver
  * Purpose:  Implementation of VTP .bt elevation format read/write support.
@@ -31,7 +31,7 @@
 #include "rawdataset.h"
 #include "ogr_spatialref.h"
 
-CPL_CVSID("$Id: btdataset.cpp 20996 2010-10-28 18:38:15Z rouault $");
+CPL_CVSID("$Id: btdataset.cpp 23033 2011-09-03 18:46:11Z rouault $");
 
 CPL_C_START
 void    GDALRegister_BT(void);
@@ -87,7 +87,7 @@ class BTDataset : public GDALPamDataset
 /* ==================================================================== */
 /************************************************************************/
 
-class BTRasterBand : public GDALRasterBand
+class BTRasterBand : public GDALPamRasterBand
 {
     VSILFILE          *fpImage;
 
@@ -102,6 +102,7 @@ class BTRasterBand : public GDALRasterBand
     virtual const char* GetUnitType();
     virtual CPLErr SetUnitType(const char*);
 	virtual double GetNoDataValue( int* = NULL );
+    virtual CPLErr SetNoDataValue( double );
 };
 
 
@@ -258,6 +259,11 @@ double BTRasterBand::GetNoDataValue( int* pbSuccess /*= NULL */ )
 	return -32768;
 }
 
+CPLErr BTRasterBand::SetNoDataValue( double )
+
+{
+    return CE_None;
+}
 
 /************************************************************************/
 /*                            GetUnitType()                             */
@@ -490,7 +496,7 @@ CPLErr BTDataset::SetProjection( const char *pszNewProjection )
 /* -------------------------------------------------------------------- */
     int bNorth;
 
-    nShortTemp = oSRS.GetUTMZone( &bNorth );
+    nShortTemp = (GInt16) oSRS.GetUTMZone( &bNorth );
     if( bNorth )
         nShortTemp = -nShortTemp;
 
@@ -502,7 +508,7 @@ CPLErr BTDataset::SetProjection( const char *pszNewProjection )
 /* -------------------------------------------------------------------- */
     if( oSRS.GetAuthorityName( "GEOGCS|DATUM" ) != NULL
         && EQUAL(oSRS.GetAuthorityName( "GEOGCS|DATUM" ),"EPSG") )
-        nShortTemp = atoi(oSRS.GetAuthorityCode( "GEOGCS|DATUM" )) + 2000;
+        nShortTemp = (GInt16) (atoi(oSRS.GetAuthorityCode( "GEOGCS|DATUM" )) + 2000);
     else
         nShortTemp = -2;
     nShortTemp = CPL_LSBWORD16( nShortTemp ); /* datum unknown */
@@ -629,7 +635,7 @@ GDALDataset *BTDataset::Open( GDALOpenInfo * poOpenInfo )
         if( fp != NULL )
         {
             char *pszBuffer, *pszBufPtr;
-            int  nBufMax = 100000;
+            int  nBufMax = 10000;
             int nBytes;
 
             pszBuffer = (char *) CPLMalloc(nBufMax);
@@ -863,7 +869,7 @@ GDALDataset *BTDataset::Create( const char * pszFilename,
     nTemp = CPL_LSBWORD32( nYSize );
     memcpy( abyHeader+14, &nTemp, 4 );
 
-    nShortTemp = CPL_LSBWORD16( GDALGetDataTypeSize( eType ) / 8 );
+    nShortTemp = (GInt16) (CPL_LSBWORD16( GDALGetDataTypeSize( eType ) / 8 ));
     memcpy( abyHeader + 18, &nShortTemp, 2 );
     
     if( eType == GDT_Float32 )
@@ -946,6 +952,8 @@ void GDALRegister_BT()
         poDriver->SetMetadataItem( GDAL_DMD_EXTENSION, "bt" );
         poDriver->SetMetadataItem( GDAL_DMD_CREATIONDATATYPES,
                                    "Int16 Int32 Float32" );
+        poDriver->SetMetadataItem( GDAL_DCAP_VIRTUALIO, "YES" );
+
         poDriver->pfnOpen = BTDataset::Open;
         poDriver->pfnCreate = BTDataset::Create;
 

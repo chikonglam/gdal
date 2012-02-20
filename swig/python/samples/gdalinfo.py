@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #/******************************************************************************
-# * $Id: gdalinfo.py 21320 2010-12-27 15:31:50Z rouault $
+# * $Id: gdalinfo.py 22986 2011-08-27 14:20:16Z rouault $
 # *
 # * Project:  GDAL Utilities
 # * Purpose:  Python port of Commandline application to list info about a file.
@@ -45,7 +45,7 @@ except:
 
 def Usage():
     print( "Usage: gdalinfo [--help-general] [-mm] [-stats] [-hist] [-nogcp] [-nomd]\n" + \
-            "                [-norat] [-noct] [-checksum] [-mdd domain]* datasetname" )
+            "                [-norat] [-noct] [-nofl] [-checksum] [-mdd domain]* datasetname" )
     return 1
 
 
@@ -72,6 +72,7 @@ def main( argv = None ):
     papszExtraMDDomains = [ ]
     pszProjection = None
     hTransform = None
+    bShowFileList = True
 
     #/* Must process GDAL_SKIP before GDALAllRegister(), but we can't call */
     #/* GDALGeneralCmdLineProcessor before it needs the drivers to be registered */
@@ -132,6 +133,8 @@ def main( argv = None ):
         elif EQUAL(argv[i], "-mdd") and i < nArgc-1:
             i = i + 1
             papszExtraMDDomains.append( argv[i] )
+        elif EQUAL(argv[i], "-nofl"):
+            bShowFileList = False
         elif argv[i][0] == '-':
             return Usage()
         elif pszFilename is None:
@@ -168,8 +171,9 @@ def main( argv = None ):
         print( "Files: none associated" )
     else:
         print( "Files: %s" % papszFileList[0] )
-        for i in range(1, len(papszFileList)):
-            print( "       %s" % papszFileList[i] )
+        if bShowFileList:
+            for i in range(1, len(papszFileList)):
+                print( "       %s" % papszFileList[i] )
 
     print( "Size is %d, %d" % (hDataset.RasterXSize, hDataset.RasterYSize))
 

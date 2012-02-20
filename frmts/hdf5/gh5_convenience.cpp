@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gh5_convenience.cpp 21651 2011-02-08 19:22:03Z warmerdam $
+ * $Id: gh5_convenience.cpp 22145 2011-04-12 15:42:18Z warmerdam $
  *
  * Project:  Hierarchical Data Format Release 5 (HDF5)
  * Purpose:  HDF5 convenience functions.
@@ -29,7 +29,7 @@
 
 #include "gh5_convenience.h"
 
-CPL_CVSID("$Id: gh5_convenience.cpp 21651 2011-02-08 19:22:03Z warmerdam $");
+CPL_CVSID("$Id: gh5_convenience.cpp 22145 2011-04-12 15:42:18Z warmerdam $");
 
 /************************************************************************/
 /*                    GH5_FetchAttribute(CPLString)                     */
@@ -79,6 +79,7 @@ bool GH5_FetchAttribute( hid_t loc_id, const char *pszAttrName,
         retVal = false;
     }
 
+    H5Tclose( hAttrNativeType );
     H5Tclose( hAttrTypeID );
     H5Aclose( hAttr );
     return retVal;
@@ -118,7 +119,7 @@ bool GH5_FetchAttribute( hid_t loc_id, const char *pszAttrName,
     int i, nAttrElements = 1;
 
     for( i=0; i < nAttrDims; i++ ) {
-        nAttrElements *= anSize[i];
+        nAttrElements *= (int) anSize[i];
     }
 
     if( nAttrElements != 1 )
@@ -128,6 +129,8 @@ bool GH5_FetchAttribute( hid_t loc_id, const char *pszAttrName,
                       "Attempt to read attribute %s failed, count=%d, not 1.",
                       pszAttrName, nAttrElements );
 
+        H5Sclose( hAttrSpace );
+        H5Tclose( hAttrNativeType );
         H5Tclose( hAttrTypeID );
         H5Aclose( hAttr );
         return false;
@@ -156,6 +159,8 @@ bool GH5_FetchAttribute( hid_t loc_id, const char *pszAttrName,
                       pszAttrName );
         CPLFree( buf );
 
+        H5Sclose( hAttrSpace );
+        H5Tclose( hAttrNativeType );
         H5Tclose( hAttrTypeID );
         H5Aclose( hAttr );
 
@@ -164,6 +169,8 @@ bool GH5_FetchAttribute( hid_t loc_id, const char *pszAttrName,
 
     CPLFree( buf );
 
+    H5Sclose( hAttrSpace );
+    H5Tclose( hAttrNativeType );
     H5Tclose( hAttrTypeID );
     H5Aclose( hAttr );
     return true;

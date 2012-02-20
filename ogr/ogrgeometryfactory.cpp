@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrgeometryfactory.cpp 21322 2010-12-27 17:54:52Z rouault $
+ * $Id: ogrgeometryfactory.cpp 23589 2011-12-17 14:21:01Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Factory for converting geometry to and from well known binary
@@ -33,7 +33,7 @@
 #include "ogr_p.h"
 #include "ogr_geos.h"
 
-CPL_CVSID("$Id: ogrgeometryfactory.cpp 21322 2010-12-27 17:54:52Z rouault $");
+CPL_CVSID("$Id: ogrgeometryfactory.cpp 23589 2011-12-17 14:21:01Z rouault $");
 
 #ifndef PI
 #define PI  3.14159265358979323846
@@ -218,7 +218,7 @@ OGRErr CPL_DLL OGR_G_CreateFromWkb( unsigned char *pabyData,
  *    const char* wkt= "POINT(0 0)";
  *  
  *    // cast because OGR_G_CreateFromWkt will move the pointer 
- *    char* pszWkt = (char*) wkt.c_str(); 
+ *    char* pszWkt = (char*) wkt;
  *    OGRSpatialReferenceH ref = OSRNewSpatialReference(NULL);
  *    OGRGeometryH new_geom;
  *    OGRErr err = OGR_G_CreateFromWkt(&pszWkt, ref, &new_geom);
@@ -1588,6 +1588,22 @@ OGRErr OGRGeometryFactory::createFromFgf( unsigned char *pabyData,
                                           int *pnBytesConsumed )
 
 {
+    return createFromFgfInternal(pabyData, poSR, ppoReturn, nBytes,
+                                 pnBytesConsumed, 0);
+}
+
+
+/************************************************************************/
+/*                       createFromFgfInternal()                        */
+/************************************************************************/
+
+OGRErr OGRGeometryFactory::createFromFgfInternal( unsigned char *pabyData,
+                                                  OGRSpatialReference * poSR,
+                                                  OGRGeometry **ppoReturn,
+                                                  int nBytes,
+                                                  int *pnBytesConsumed,
+                                                  int nRecLevel )
+{
     OGRErr       eErr = OGRERR_NONE;
     OGRGeometry *poGeom = NULL;
     GInt32       nGType, nGDim;
@@ -1595,6 +1611,15 @@ OGRErr OGRGeometryFactory::createFromFgf( unsigned char *pabyData,
     int          iOrdinal = 0;
     
     (void) iOrdinal;
+
+    /* Arbitrary value, but certainly large enough for reasonable usages ! */
+    if( nRecLevel == 32 )
+    {
+        CPLError( CE_Failure, CPLE_AppDefined,
+                    "Too many recursiong level (%d) while parsing FGF geometry.",
+                    nRecLevel );
+        return OGRERR_CORRUPT_DATA;
+    }
 
     *ppoReturn = NULL;
 
@@ -1837,8 +1862,8 @@ OGRErr OGRGeometryFactory::createFromFgf( unsigned char *pabyData,
             int nThisGeomSize;
             OGRGeometry *poThisGeom = NULL;
          
-            eErr = createFromFgf( pabyData + nBytesUsed, poSR, &poThisGeom,
-                                  nBytes - nBytesUsed, &nThisGeomSize);
+            eErr = createFromFgfInternal( pabyData + nBytesUsed, poSR, &poThisGeom,
+                                  nBytes - nBytesUsed, &nThisGeomSize, nRecLevel + 1);
             if( eErr != OGRERR_NONE )
             {
                 delete poGC;

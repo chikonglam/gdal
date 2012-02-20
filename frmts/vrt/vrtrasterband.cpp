@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: vrtrasterband.cpp 21714 2011-02-13 18:37:57Z rouault $
+ * $Id: vrtrasterband.cpp 22761 2011-07-21 18:53:58Z rouault $
  *
  * Project:  Virtual GDAL Datasets
  * Purpose:  Implementation of VRTRasterBand
@@ -31,7 +31,7 @@
 #include "cpl_minixml.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: vrtrasterband.cpp 21714 2011-02-13 18:37:57Z rouault $");
+CPL_CVSID("$Id: vrtrasterband.cpp 22761 2011-07-21 18:53:58Z rouault $");
 
 /************************************************************************/
 /* ==================================================================== */
@@ -350,6 +350,8 @@ CPLErr VRTRasterBand::XMLInit( CPLXMLNode * psTree,
         CSLDestroy( papszCategoryNames );
         papszCategoryNames = NULL;
 
+        CPLStringList oCategoryNames;
+
         for( psEntry = CPLGetXMLNode( psTree, "CategoryNames" )->psChild;
              psEntry != NULL; psEntry = psEntry->psNext )
         {
@@ -358,9 +360,11 @@ CPLErr VRTRasterBand::XMLInit( CPLXMLNode * psTree,
                 || (psEntry->psChild != NULL && psEntry->psChild->eType != CXT_Text) )
                 continue;
             
-            papszCategoryNames = CSLAddString( papszCategoryNames, 
+            oCategoryNames.AddString(
                                 (psEntry->psChild) ? psEntry->psChild->pszValue : "");
         }
+
+        papszCategoryNames = oCategoryNames.StealList();
     }
 
 /* -------------------------------------------------------------------- */
@@ -574,11 +578,17 @@ CPLXMLNode *VRTRasterBand::SerializeToXML( const char *pszVRTPath )
     {
         CPLXMLNode *psCT_XML = CPLCreateXMLNode( psTree, CXT_Element, 
                                                  "CategoryNames" );
+        CPLXMLNode* psLastChild = NULL;
 
         for( int iEntry=0; papszCategoryNames[iEntry] != NULL; iEntry++ )
         {
-            CPLCreateXMLElementAndValue( psCT_XML, "Category", 
+            CPLXMLNode *psNode = CPLCreateXMLElementAndValue( NULL, "Category",
                                          papszCategoryNames[iEntry] );
+            if( psLastChild == NULL )
+                psCT_XML->psChild = psNode;
+            else
+                psLastChild->psNext = psNode;
+            psLastChild = psNode;
         }
     }
 
@@ -1116,4 +1126,13 @@ void VRTRasterBand::SetIsMaskBand()
 {
     nBand = 0;
     bIsMaskBand = TRUE;
+}
+
+/************************************************************************/
+/*                        CloseDependentDatasets()                      */
+/************************************************************************/
+
+int VRTRasterBand::CloseDependentDatasets()
+{
+    return FALSE;
 }

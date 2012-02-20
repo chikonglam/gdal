@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: hfatype.cpp 18895 2010-02-23 19:30:01Z warmerdam $
+ * $Id: hfatype.cpp 23495 2011-12-08 00:16:33Z rouault $
  *
  * Project:  Erdas Imagine (.img) Translator
  * Purpose:  Implementation of the HFAType class, for managing one type
@@ -30,7 +30,7 @@
 
 #include "hfa_p.h"
 
-CPL_CVSID("$Id: hfatype.cpp 18895 2010-02-23 19:30:01Z warmerdam $");
+CPL_CVSID("$Id: hfatype.cpp 23495 2011-12-08 00:16:33Z rouault $");
 
 /************************************************************************/
 /* ==================================================================== */
@@ -49,6 +49,7 @@ HFAType::HFAType()
     nFields = 0;
     papoFields = NULL;
     pszTypeName = NULL;
+    bInCompleteDefn = FALSE;
 }
 
 /************************************************************************/
@@ -150,7 +151,16 @@ void HFAType::CompleteDefn( HFADictionary * poDict )
 /* -------------------------------------------------------------------- */
     if( nBytes != 0 )
         return;
-    
+
+
+    if( bInCompleteDefn )
+    {
+        CPLError(CE_Failure, CPLE_AppDefined,
+                 "Recursion detected in HFAType::CompleteDefn()");
+        return;
+    }
+    bInCompleteDefn = TRUE;
+
 /* -------------------------------------------------------------------- */
 /*      Complete each of the fields, totaling up the sizes.  This       */
 /*      isn't really accurate for object with variable sized            */
@@ -164,6 +174,8 @@ void HFAType::CompleteDefn( HFADictionary * poDict )
         else
             nBytes += papoFields[i]->nBytes;
     }
+
+    bInCompleteDefn = FALSE;
 }
 
 /************************************************************************/

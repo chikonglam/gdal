@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: biggifdataset.cpp 20996 2010-10-28 18:38:15Z rouault $
+ * $Id: biggifdataset.cpp 22684 2011-07-10 19:30:49Z rouault $
  *
  * Project:  BIGGIF Driver
  * Purpose:  Implement GDAL support for reading large GIF files in a 
@@ -31,12 +31,9 @@
 
 #include "gdal_pam.h"
 #include "cpl_string.h"
+#include "gifabstractdataset.h"
 
-CPL_CVSID("$Id: biggifdataset.cpp 20996 2010-10-28 18:38:15Z rouault $");
-
-CPL_C_START
-#include "gif_lib.h"
-CPL_C_END
+CPL_CVSID("$Id: biggifdataset.cpp 22684 2011-07-10 19:30:49Z rouault $");
 
 CPL_C_START
 void	GDALRegister_BIGGIF(void);
@@ -49,35 +46,30 @@ static int VSIGIFReadFunc( GifFileType *, GifByteType *, int);
 
 /************************************************************************/
 /* ==================================================================== */
-/*				BIGGIFDataset				*/
+/*                          BIGGIFDataset                               */
 /* ==================================================================== */
 /************************************************************************/
 
 class BIGGifRasterBand;
 
-class BIGGIFDataset : public GDALPamDataset
+class BIGGIFDataset : public GIFAbstractDataset
 {
     friend class BIGGifRasterBand;
 
-    VSILFILE *fp;
-
-    GifFileType *hGifFile;
     int         nLastLineRead;
-
-    int	   bGeoTransformValid;
-    double adfGeoTransform[6];
 
     GDALDataset *poWorkDS;
 
     CPLErr       ReOpen();
 
+  protected:
+    virtual int         CloseDependentDatasets();
+
   public:
                  BIGGIFDataset();
                  ~BIGGIFDataset();
 
-    virtual CPLErr GetGeoTransform( double * );
     static GDALDataset *Open( GDALOpenInfo * );
-    static int          Identify( GDALOpenInfo * );
 };
 
 /************************************************************************/
@@ -289,15 +281,6 @@ GDALColorTable *BIGGifRasterBand::GetColorTable()
 BIGGIFDataset::BIGGIFDataset()
 
 {
-    hGifFile = NULL;
-    fp = NULL;
-    bGeoTransformValid = FALSE;
-    adfGeoTransform[0] = 0.0;
-    adfGeoTransform[1] = 1.0;
-    adfGeoTransform[2] = 0.0;
-    adfGeoTransform[3] = 0.0;
-    adfGeoTransform[4] = 0.0;
-    adfGeoTransform[5] = 1.0;
     nLastLineRead = -1;
     poWorkDS = NULL;
 }
@@ -310,13 +293,22 @@ BIGGIFDataset::~BIGGIFDataset()
 
 {
     FlushCache();
-    if( hGifFile )
-        DGifCloseFile( hGifFile );
-    if( fp != NULL )
-        VSIFCloseL( fp );
+
+    CloseDependentDatasets();
+}
+
+/************************************************************************/
+/*                      CloseDependentDatasets()                        */
+/************************************************************************/
+
+int BIGGIFDataset::CloseDependentDatasets()
+{
+    int bHasDroppedRef = GDALPamDataset::CloseDependentDatasets();
 
     if( poWorkDS != NULL )
     {
+        bHasDroppedRef = TRUE;
+
         CPLString osTempFilename = poWorkDS->GetDescription();
 
         GDALClose( (GDALDatasetH) poWorkDS );
@@ -324,40 +316,11 @@ BIGGIFDataset::~BIGGIFDataset()
 
         GDALDriver *poGTiff = (GDALDriver *) GDALGetDriverByName( "GTiff" );
         poGTiff->Delete( osTempFilename );
+
+        poWorkDS = NULL;
     }
-}
 
-/************************************************************************/
-/*                          GetGeoTransform()                           */
-/************************************************************************/
-
-CPLErr BIGGIFDataset::GetGeoTransform( double * padfTransform )
-
-{
-    if( bGeoTransformValid )
-    {
-        memcpy( padfTransform, adfGeoTransform, sizeof(double)*6 );
-        return CE_None;
-    }
-    else
-        return GDALPamDataset::GetGeoTransform( padfTransform );
-}
-
-/************************************************************************/
-/*                                Open()                                */
-/************************************************************************/
-
-int BIGGIFDataset::Identify( GDALOpenInfo * poOpenInfo )
-
-{
-    if( poOpenInfo->nHeaderBytes < 8 )
-        return FALSE;
-
-    if( strncmp((const char *) poOpenInfo->pabyHeader, "GIF87a",5) != 0
-        && strncmp((const char *) poOpenInfo->pabyHeader, "GIF89a",5) != 0 )
-        return FALSE;
-
-    return TRUE;
+    return bHasDroppedRef;
 }
 
 /************************************************************************/
@@ -424,7 +387,22 @@ CPLErr BIGGIFDataset::ReOpen()
 
     while( DGifGetRecordType(hGifFile, &RecordType) != GIF_ERROR
            && RecordType != TERMINATE_RECORD_TYPE
-           && RecordType != IMAGE_DESC_RECORD_TYPE ) {}
+           && RecordType != IMAGE_DESC_RECORD_TYPE )
+    {
+        /* Skip extension records found before IMAGE_DESC_RECORD_TYPE */
+        if (RecordType == EXTENSION_RECORD_TYPE)
+        {
+            int nFunction;
+            GifByteType *pExtData;
+            if (DGifGetExtension(hGifFile, &nFunction, &pExtData) == GIF_ERROR)
+                break;
+            while (pExtData != NULL)
+            {
+                if (DGifGetExtensionNext(hGifFile, &pExtData) == GIF_ERROR)
+                    break;
+            }
+        }
+    }
 
     if( RecordType != IMAGE_DESC_RECORD_TYPE )
     {
@@ -507,13 +485,9 @@ GDALDataset *BIGGIFDataset::Open( GDALOpenInfo * poOpenInfo )
                                          poDS->hGifFile->SBackGroundColor ));
 
 /* -------------------------------------------------------------------- */
-/*      Check for world file.                                           */
+/*      Check for georeferencing.                                       */
 /* -------------------------------------------------------------------- */
-    poDS->bGeoTransformValid = 
-        GDALReadWorldFile( poOpenInfo->pszFilename, NULL, 
-                           poDS->adfGeoTransform )
-        || GDALReadWorldFile( poOpenInfo->pszFilename, ".wld", 
-                              poDS->adfGeoTransform );
+    poDS->DetectGeoreferencing(poOpenInfo);
 
 /* -------------------------------------------------------------------- */
 /*      Initialize any PAM information.                                 */
@@ -566,7 +540,7 @@ void GDALRegister_BIGGIF()
         poDriver->SetMetadataItem( GDAL_DCAP_VIRTUALIO, "YES" );
 
         poDriver->pfnOpen = BIGGIFDataset::Open;
-        poDriver->pfnIdentify = BIGGIFDataset::Identify;
+        poDriver->pfnIdentify = GIFAbstractDataset::Identify;
 
         GetGDALDriverManager()->RegisterDriver( poDriver );
     }

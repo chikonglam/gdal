@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: rikdataset.cpp 20246 2010-08-10 17:24:28Z rouault $
+ * $Id: rikdataset.cpp 23060 2011-09-05 17:58:30Z rouault $
  *
  * Project:  RIK Reader
  * Purpose:  All code for RIK Reader
@@ -31,7 +31,7 @@
 #include <zlib.h>
 #include "gdal_pam.h"
 
-CPL_CVSID("$Id: rikdataset.cpp 20246 2010-08-10 17:24:28Z rouault $");
+CPL_CVSID("$Id: rikdataset.cpp 23060 2011-09-05 17:58:30Z rouault $");
 
 CPL_C_START
 void	GDALRegister_RIK(void);
@@ -1130,7 +1130,12 @@ GDALDataset *RIKDataset::Open( GDALOpenInfo * poOpenInfo )
 
     poDS->SetDescription( poOpenInfo->pszFilename );
     poDS->TryLoadXML();
-    
+
+/* -------------------------------------------------------------------- */
+/*      Check for external overviews.                                   */
+/* -------------------------------------------------------------------- */
+    poDS->oOvManager.Initialize( poDS, poOpenInfo->pszFilename, poOpenInfo->papszSiblingFiles );
+
 /* -------------------------------------------------------------------- */
 /*      Confirm the requested access is supported.                      */
 /* -------------------------------------------------------------------- */

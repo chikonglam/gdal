@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: cpl_vsil_abstract_archive.cpp 20958 2010-10-25 19:24:01Z rouault $
+ * $Id: cpl_vsil_abstract_archive.cpp 22980 2011-08-25 22:29:12Z rouault $
  *
  * Project:  CPL - Common Portability Library
  * Purpose:  Implement VSI large file api for archive files.
@@ -35,7 +35,7 @@
 
 #define ENABLE_DEBUG 0
 
-CPL_CVSID("$Id: cpl_vsil_abstract_archive.cpp 20958 2010-10-25 19:24:01Z rouault $");
+CPL_CVSID("$Id: cpl_vsil_abstract_archive.cpp 22980 2011-08-25 22:29:12Z rouault $");
 
 /************************************************************************/
 /*                    ~VSIArchiveEntryFileOffset()                      */
@@ -129,6 +129,14 @@ const VSIArchiveContent* VSIArchiveFilesystemHandler::GetContentOfArchive
     {
         CPLString osFileName = poReader->GetFileName();
         const char* fileName = osFileName.c_str();
+
+        /* Remove ./ pattern at the beginning of a filename */
+        if (fileName[0] == '.' && fileName[1] == '/')
+        {
+            fileName += 2;
+            if (fileName[0] == '\0')
+                continue;
+        }
 
         char* pszStrippedFileName = CPLStrdup(fileName);
         int bIsDir = strlen(fileName) > 0 &&

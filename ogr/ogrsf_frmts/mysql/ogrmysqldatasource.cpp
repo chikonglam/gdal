@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrmysqldatasource.cpp 20460 2010-08-27 20:06:26Z rouault $
+ * $Id: ogrmysqldatasource.cpp 22607 2011-06-28 20:43:27Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implements OGRMySQLDataSource class.
@@ -36,7 +36,7 @@
 #include "cpl_conv.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: ogrmysqldatasource.cpp 20460 2010-08-27 20:06:26Z rouault $");
+CPL_CVSID("$Id: ogrmysqldatasource.cpp 22607 2011-06-28 20:43:27Z rouault $");
 /************************************************************************/
 /*                         OGRMySQLDataSource()                         */
 /************************************************************************/
@@ -500,7 +500,6 @@ OGRSpatialReference *OGRMySQLDataSource::FetchSRS( int nId )
     if( pszWKT == NULL || poSRS->importFromWkt( &pszWKT ) != OGRERR_NONE )
     {
         delete poSRS;
-        CPLFree(pszWKTOri);
         poSRS = NULL;
     }
 

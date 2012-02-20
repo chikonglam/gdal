@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogresrijsonreader.cpp 22282 2011-05-01 17:58:03Z rouault $
+ * $Id: ogresrijsonreader.cpp 22281 2011-05-01 17:57:55Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implementation of OGRESRIJSONReader class (OGR ESRIJSON Driver)

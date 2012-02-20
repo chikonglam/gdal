@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrocisession.cpp 19000 2010-03-03 04:28:00Z ilucena $
+ * $Id: ogrocisession.cpp 22346 2011-05-10 03:02:15Z warmerdam $
  *
  * Project:  Oracle Spatial Driver
  * Purpose:  Implementation of OGROCISession, which encapsulates much of the
@@ -31,7 +31,7 @@
 #include "ogr_oci.h"
 #include "cpl_conv.h"
 
-CPL_CVSID("$Id: ogrocisession.cpp 19000 2010-03-03 04:28:00Z ilucena $");
+CPL_CVSID("$Id: ogrocisession.cpp 22346 2011-05-10 03:02:15Z warmerdam $");
 
 /************************************************************************/
 /*                          OGRGetOCISession()                          */
@@ -384,7 +384,7 @@ OGROCISession::GetParmInfo( OCIParam *hParmDesc, OGRFieldDefn *poOGRDefn,
         CPLError( CE_Failure, CPLE_AppDefined, 
                   "Column length (%d) longer than column name buffer (%d) in\n"
                   "OGROCISession::GetParmInfo()", 
-                  nColLen, sizeof(szTermColName) );
+                  nColLen, (int) sizeof(szTermColName) );
         return CE_Failure;
     }
 

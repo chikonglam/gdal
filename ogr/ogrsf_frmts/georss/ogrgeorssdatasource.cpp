@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrgeorssdatasource.cpp 20996 2010-10-28 18:38:15Z rouault $
+ * $Id: ogrgeorssdatasource.cpp 23557 2011-12-12 22:08:17Z rouault $
  *
  * Project:  GeoRSS Translator
  * Purpose:  Implements OGRGeoRSSDataSource class
@@ -32,7 +32,7 @@
 #include "cpl_string.h"
 #include "cpl_csv.h"
 
-CPL_CVSID("$Id: ogrgeorssdatasource.cpp 20996 2010-10-28 18:38:15Z rouault $");
+CPL_CVSID("$Id: ogrgeorssdatasource.cpp 23557 2011-12-12 22:08:17Z rouault $");
 
 /************************************************************************/
 /*                          OGRGeoRSSDataSource()                          */
@@ -229,16 +229,8 @@ int OGRGeoRSSDataSource::Open( const char * pszFilename, int bUpdateIn)
     pszName = CPLStrdup( pszFilename );
 
 /* -------------------------------------------------------------------- */
-/*      Determine what sort of object this is.                          */
+/*      Try to open the file.                                           */
 /* -------------------------------------------------------------------- */
-    VSIStatBufL sStatBuf;
-
-    if( VSIStatL( pszFilename, &sStatBuf ) != 0 )
-        return FALSE;
-    
-    if( VSI_ISDIR(sStatBuf.st_mode) )
-        return FALSE;
-
     VSILFILE* fp = VSIFOpenL(pszFilename, "r");
     if (fp == NULL)
         return FALSE;
@@ -346,6 +338,9 @@ int OGRGeoRSSDataSource::Create( const char *pszFilename,
         return FALSE;
     }
 
+    if (strcmp(pszFilename, "/dev/stdout") == 0)
+        pszFilename = "/vsistdout/";
+
 /* -------------------------------------------------------------------- */
 /*     Do not override exiting file.                                    */
 /* -------------------------------------------------------------------- */
@@ -364,10 +359,7 @@ int OGRGeoRSSDataSource::Create( const char *pszFilename,
 /* -------------------------------------------------------------------- */
     pszName = CPLStrdup( pszFilename );
 
-    if( EQUAL(pszFilename,"stdout") )
-        fpOutput = VSIFOpenL( "/vsistdout/", "w" );
-    else
-        fpOutput = VSIFOpenL( pszFilename, "w" );
+    fpOutput = VSIFOpenL( pszFilename, "w" );
     if( fpOutput == NULL )
     {
         CPLError( CE_Failure, CPLE_OpenFailed, 

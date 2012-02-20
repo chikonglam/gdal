@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrgpxdatasource.cpp 20996 2010-10-28 18:38:15Z rouault $
+ * $Id: ogrgpxdatasource.cpp 23557 2011-12-12 22:08:17Z rouault $
  *
  * Project:  GPX Translator
  * Purpose:  Implements OGRGPXDataSource class
@@ -32,7 +32,7 @@
 #include "cpl_string.h"
 #include "cpl_csv.h"
 
-CPL_CVSID("$Id: ogrgpxdatasource.cpp 20996 2010-10-28 18:38:15Z rouault $");
+CPL_CVSID("$Id: ogrgpxdatasource.cpp 23557 2011-12-12 22:08:17Z rouault $");
 
 #define SPACE_FOR_METADATA 160
 
@@ -280,16 +280,8 @@ int OGRGPXDataSource::Open( const char * pszFilename, int bUpdateIn)
     pszName = CPLStrdup( pszFilename );
 
 /* -------------------------------------------------------------------- */
-/*      Determine what sort of object this is.                          */
+/*      Try to open the file.                                           */
 /* -------------------------------------------------------------------- */
-    VSIStatBufL sStatBuf;
-
-    if( VSIStatL( pszFilename, &sStatBuf ) != 0 )
-        return FALSE;
-    
-    if( VSI_ISDIR(sStatBuf.st_mode) )
-        return FALSE;
-
     VSILFILE* fp = VSIFOpenL(pszFilename, "r");
     if (fp == NULL)
         return FALSE;
@@ -431,6 +423,9 @@ int OGRGPXDataSource::Create( const char *pszFilename,
         return FALSE;
     }
 
+    if (strcmp(pszFilename, "/dev/stdout") == 0)
+        pszFilename = "/vsistdout/";
+
 /* -------------------------------------------------------------------- */
 /*     Do not override exiting file.                                    */
 /* -------------------------------------------------------------------- */
@@ -447,12 +442,13 @@ int OGRGPXDataSource::Create( const char *pszFilename,
 /* -------------------------------------------------------------------- */
 /*      Create the output file.                                         */
 /* -------------------------------------------------------------------- */
+
     pszName = CPLStrdup( pszFilename );
 
-    if( EQUAL(pszFilename,"stdout") || EQUAL(pszFilename,"/vsistdout/"))
+    if( strcmp(pszName, "/vsistdout/") == 0 )
     {
         bIsBackSeekable = FALSE;
-        fpOutput = VSIFOpenL( "/vsistdout/", "w" );
+        fpOutput = VSIFOpenL( pszFilename, "w" );
     }
     else
         fpOutput = VSIFOpenL( pszFilename, "w+" );
@@ -534,7 +530,7 @@ int OGRGPXDataSource::Create( const char *pszFilename,
       char szMetadata[SPACE_FOR_METADATA+1];
       memset(szMetadata, ' ', SPACE_FOR_METADATA);
       szMetadata[SPACE_FOR_METADATA] = '\0';
-      nOffsetBounds = VSIFTellL(fpOutput);
+      nOffsetBounds = (int) VSIFTellL(fpOutput);
       PrintLine("%s", szMetadata);
     }
 

@@ -1,15 +1,16 @@
 #!/bin/sh
 #
-# $Id: mkgdaldist.sh 18972 2010-02-28 20:17:58Z warmerdam $
+# $Id: mkgdaldist.sh 22675 2011-07-09 16:34:23Z warmerdam $
 #
 # mkgdaldist.sh - prepares GDAL source distribution package
 #
 if [ $# -lt 1 ] ; then
-  echo "Usage: mkgdaldist.sh <version> [-date date] [-branch branch]"
+  echo "Usage: mkgdaldist.sh <version> [-date date] [-branch branch] [-rc n]"
   echo " <version> - version number used in name of generated archive."
   echo " -date     - date of package generation, current date used if not provided"
   echo " -branch   - path to SVN branch, trunk is used if not provided"
-  echo "Example: mkgdaldist.sh 1.1.4"
+  echo " -rc       - gives a release candidate id to embed in filenames"
+  echo "Example: mkgdaldist.sh 1.1.4 -branch branches/1.8 -rc RC2"
   exit
 fi
 
@@ -29,8 +30,18 @@ fi
 
 if test "$2" = "-branch"; then
   forcebranch=$3
+  shift
+  shift
 else
   forcebranch="trunk"
+fi
+ 
+if test "$2" = "-rc"; then
+  RC=$3
+  shift
+  shift
+else
+  RC=""
 fi
  
 #
@@ -106,8 +117,11 @@ cd ${CWD}
 echo "* Generating SWIG Perl interfaces..."
 CWD=${PWD}
 cd gdal/swig/perl
+
 rm *wrap*
+touch ../../GDALmake.opt
 make generate
+rm -f ../../GDALmake.opt
 cd ${CWD}
 
 #
@@ -122,11 +136,11 @@ echo $GDAL_VERSION > gdal/VERSION
 
 mv gdal gdal-${GDAL_VERSION}
 
-rm -f ../gdal-${GDAL_VERSION}.tar.gz ../gdal${COMPRESSED_VERSION}.zip
+rm -f ../gdal-${GDAL_VERSION}${RC}.tar.gz ../gdal${COMPRESSED_VERSION}${RC}.zip
 
-tar cf ../gdal-${GDAL_VERSION}.tar gdal-${GDAL_VERSION}
-gzip -9 ../gdal-${GDAL_VERSION}.tar
-zip -r ../gdal${COMPRESSED_VERSION}.zip gdal-${GDAL_VERSION}
+tar cf ../gdal-${GDAL_VERSION}${RC}.tar gdal-${GDAL_VERSION}
+gzip -9 ../gdal-${GDAL_VERSION}${RC}.tar
+zip -r ../gdal${COMPRESSED_VERSION}${RC}.zip gdal-${GDAL_VERSION}
 
 echo "* Generating MD5 sums ..."
 
@@ -137,8 +151,8 @@ else
 MD5=md5sum
 fi
 
-$MD5 ../gdal-${GDAL_VERSION}.tar.gz > ../gdal-${GDAL_VERSION}.tar.gz.md5
-$MD5 ../gdal${COMPRESSED_VERSION}.zip > ../gdal${COMPRESSED_VERSION}.zip.md5
+$MD5 ../gdal-${GDAL_VERSION}${RC}.tar.gz > ../gdal-${GDAL_VERSION}${RC}.tar.gz.md5
+$MD5 ../gdal${COMPRESSED_VERSION}${RC}.zip > ../gdal${COMPRESSED_VERSION}${RC}.zip.md5
 
 echo "* Cleaning..."
 cd ..

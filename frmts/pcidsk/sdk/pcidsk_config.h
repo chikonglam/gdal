@@ -31,6 +31,8 @@
 namespace PCIDSK {
 
     typedef unsigned char  uint8;
+
+#ifndef _PCI_TYPES
     typedef int            int32;
     typedef unsigned int   uint32;
     typedef short          int16;
@@ -43,6 +45,8 @@ namespace PCIDSK {
     typedef long long          int64;
     typedef unsigned long long uint64;
 #endif
+
+#endif // _PCI_TYPES
 
 }
 

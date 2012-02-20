@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrogdilayer.cpp 20207 2010-08-06 22:07:29Z rouault $
+ * $Id: ogrogdilayer.cpp 23014 2011-08-31 18:40:35Z rouault $
  *
  * Project:  OGDI Bridge
  * Purpose:  Implements OGROGDILayer class.
@@ -56,7 +56,7 @@
 #include "cpl_conv.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: ogrogdilayer.cpp 20207 2010-08-06 22:07:29Z rouault $");
+CPL_CVSID("$Id: ogrogdilayer.cpp 23014 2011-08-31 18:40:35Z rouault $");
 
 /************************************************************************/
 /*                           OGROGDILayer()                            */
@@ -381,7 +381,14 @@ OGRFeature *OGROGDILayer::GetFeature( long nFeatureId )
     if (m_nTotalShapeCount != -1 && nFeatureId > m_nTotalShapeCount)
         return NULL;
 
-    if (m_iNextShapeId > nFeatureId )
+    /* Reset reading if we are not the current layer */
+    /* WARNING : this does not allow interleaved reading of layers */
+    if( m_poODS->GetCurrentLayer() != this )
+    {
+        m_poODS->SetCurrentLayer(this);
+        ResetReading();
+    }
+    else if ( nFeatureId < m_iNextShapeId )
         ResetReading();
 
     while(m_iNextShapeId != nFeatureId)

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: usgsdem_create.cpp 17551 2009-08-21 11:49:27Z rouault $
+ * $Id: usgsdem_create.cpp 21680 2011-02-11 21:12:07Z warmerdam $
  *
  * Project:  USGS DEM Driver
  * Purpose:  CreateCopy() implementation.
@@ -36,7 +36,7 @@
 #include "gdalwarper.h"
 #include "cpl_csv.h"
 
-CPL_CVSID("$Id: usgsdem_create.cpp 17551 2009-08-21 11:49:27Z rouault $");
+CPL_CVSID("$Id: usgsdem_create.cpp 21680 2011-02-11 21:12:07Z warmerdam $");
 
 typedef struct 
 {
@@ -61,7 +61,7 @@ typedef struct
     char 	**papszOptions;
     int         bStrict;
 
-    FILE       *fp;
+    VSILFILE  *fp;
 
     GInt16     *panData;
     
@@ -80,7 +80,7 @@ static void USGSDEMWriteCleanup( USGSDEMWriteInfo *psWInfo )
     CPLFree( psWInfo->pszDstSRS );
     CPLFree( psWInfo->pszFilename );
     if( psWInfo->fp != NULL )
-        VSIFClose( psWInfo->fp );
+        VSIFCloseL( psWInfo->fp );
     if( psWInfo->panData != NULL )
         VSIFree( psWInfo->panData );
 }
@@ -282,9 +282,9 @@ static int USGSDEMWriteARecord( USGSDEMWriteInfo *psWInfo )
         CSLFetchNameValue( psWInfo->papszOptions, "TEMPLATE" );
     if( pszTemplate != NULL )
     {
-        FILE *fpTemplate;
+        VSILFILE *fpTemplate;
 
-        fpTemplate = VSIFOpen( pszTemplate, "rb" );
+        fpTemplate = VSIFOpenL( pszTemplate, "rb" );
         if( fpTemplate == NULL )
         {
             CPLError( CE_Failure, CPLE_OpenFailed,
@@ -293,14 +293,14 @@ static int USGSDEMWriteARecord( USGSDEMWriteInfo *psWInfo )
             return FALSE;
         }
 
-        if( VSIFRead( achARec, 1, 1024, fpTemplate ) != 1024 )
+        if( VSIFReadL( achARec, 1, 1024, fpTemplate ) != 1024 )
         {
             CPLError( CE_Failure, CPLE_FileIO, 
                       "Unable to read 1024 byte A Record from template file '%s'.\n%s",
                       pszTemplate, VSIStrerror( errno ) );
             return FALSE;
         }
-        VSIFClose( fpTemplate );
+        VSIFCloseL( fpTemplate );
     }
     
 /* -------------------------------------------------------------------- */
@@ -528,8 +528,8 @@ static int USGSDEMWriteARecord( USGSDEMWriteInfo *psWInfo )
     }
 
     /* take into account z resolutions that are not 1.0 */
-    nMin = (int) floor(nMin * psWInfo->dfElevStepSize);
-    nMax = (int) ceil(nMax * psWInfo->dfElevStepSize);
+    nMin = (GInt16) floor(nMin * psWInfo->dfElevStepSize);
+    nMax = (GInt16) ceil(nMax * psWInfo->dfElevStepSize);
     
     USGSDEMPrintDouble( achARec + 738, (double) nMin );
     USGSDEMPrintDouble( achARec + 762, (double) nMax );
@@ -690,7 +690,7 @@ static int USGSDEMWriteARecord( USGSDEMWriteInfo *psWInfo )
 /* -------------------------------------------------------------------- */
 /*      Write to file.                                                  */
 /* -------------------------------------------------------------------- */
-    if( VSIFWrite( achARec, 1, 1024, psWInfo->fp ) != 1024 )
+    if( VSIFWriteL( achARec, 1, 1024, psWInfo->fp ) != 1024 )
     {
         CPLError( CE_Failure, CPLE_FileIO, 
                   "Error writing DEM/CDED A record.\n%s", 
@@ -787,8 +787,8 @@ static int USGSDEMWriteProfile( USGSDEMWriteInfo *psWInfo, int iProfile )
     }
     
     /* take into account z resolutions that are not 1.0 */
-    nMin = (int) floor(nMin * psWInfo->dfElevStepSize);
-    nMax = (int) ceil(nMax * psWInfo->dfElevStepSize);
+    nMin = (GInt16) floor(nMin * psWInfo->dfElevStepSize);
+    nMax = (GInt16) ceil(nMax * psWInfo->dfElevStepSize);
 
     USGSDEMPrintDouble( achBuffer +  96, (double) nMin );
     USGSDEMPrintDouble( achBuffer +  120, (double) nMax );
@@ -806,7 +806,7 @@ static int USGSDEMWriteProfile( USGSDEMWriteInfo *psWInfo, int iProfile )
 
         if( iOffset + 6 > 1024 )
         {
-            if( VSIFWrite( achBuffer, 1, 1024, psWInfo->fp ) != 1024 )
+            if( VSIFWriteL( achBuffer, 1, 1024, psWInfo->fp ) != 1024 )
             {
                 CPLError( CE_Failure, CPLE_FileIO, 
                           "Failure writing profile to disk.\n%s", 
@@ -826,7 +826,7 @@ static int USGSDEMWriteProfile( USGSDEMWriteInfo *psWInfo, int iProfile )
 /* -------------------------------------------------------------------- */
 /*      Flush final partial block.                                      */
 /* -------------------------------------------------------------------- */
-    if( VSIFWrite( achBuffer, 1, 1024, psWInfo->fp ) != 1024 )
+    if( VSIFWriteL( achBuffer, 1, 1024, psWInfo->fp ) != 1024 )
     {
         CPLError( CE_Failure, CPLE_FileIO, 
                   "Failure writing profile to disk.\n%s", 
@@ -1523,7 +1523,7 @@ USGSDEMCreateCopy( const char *pszFilename, GDALDataset *poSrcDS,
 /* -------------------------------------------------------------------- */
 /*      Create the output file.                                         */
 /* -------------------------------------------------------------------- */
-    sWInfo.fp = VSIFOpen( pszFilename, "wb" );
+    sWInfo.fp = VSIFOpenL( pszFilename, "wb" );
     if( sWInfo.fp == NULL )
     {
         CPLError( CE_Failure, CPLE_OpenFailed, 

@@ -1,5 +1,5 @@
 /*****************************************************************************
- * $Id: IngrTypes.cpp 20996 2010-10-28 18:38:15Z rouault $
+ * $Id: IngrTypes.cpp 21680 2011-02-11 21:12:07Z warmerdam $
  *
  * Project:  Intergraph Raster Format support
  * Purpose:  Types support function
@@ -760,7 +760,7 @@ uint32 CPL_STDCALL INGR_GetDataBlockSize( const char *pszFilename,
 
         VSIStatBufL  sStat;
         VSIStatL( pszFilename, &sStat );
-        return sStat.st_size - nDataOffset;
+        return (uint32) (sStat.st_size - nDataOffset);
     }
     else
     {

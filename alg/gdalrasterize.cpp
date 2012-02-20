@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdalrasterize.cpp 21236 2010-12-11 17:28:32Z rouault $
+ * $Id: gdalrasterize.cpp 23250 2011-10-18 19:05:02Z rouault $
  *
  * Project:  GDAL
  * Purpose:  Vector rasterization.
@@ -81,25 +81,27 @@ void gvBurnScanline( void *pCBData, int nY, int nXStart, int nXEnd,
             memset( pabyInsert, nBurnValue, nXEnd - nXStart + 1 );
         }
     }
-    else
+    else if( psInfo->eType == GDT_Float64 )
     {
         for( iBand = 0; iBand < psInfo->nBands; iBand++ )
         {
             int	nPixels = nXEnd - nXStart + 1;
-            float   *pafInsert;
-            float   fBurnValue = (float)
+            double   *padfInsert;
+            double   dfBurnValue = 
                 ( psInfo->padfBurnValue[iBand] +
                   ( (psInfo->eBurnValueSource == GBV_UserBurnValue)?
                              0 : dfVariant ) );
             
-            pafInsert = ((float *) psInfo->pabyChunkBuf) 
+            padfInsert = ((double *) psInfo->pabyChunkBuf)
                 + iBand * psInfo->nXSize * psInfo->nYSize
                 + nY * psInfo->nXSize + nXStart;
 
             while( nPixels-- > 0 )
-                *(pafInsert++) = fBurnValue;
+                *(padfInsert++) = dfBurnValue;
         }
     }
+    else
+        CPLAssert(0);
 }
 
 /************************************************************************/
@@ -128,19 +130,21 @@ void gvBurnPoint( void *pCBData, int nY, int nX, double dfVariant )
                              0 : dfVariant ) );
         }
     }
-    else
+    else if( psInfo->eType == GDT_Float64 )
     {
         for( iBand = 0; iBand < psInfo->nBands; iBand++ )
         {
-            float   *pfInsert = ((float *) psInfo->pabyChunkBuf) 
+            double   *pdfInsert = ((double *) psInfo->pabyChunkBuf)
                                 + iBand * psInfo->nXSize * psInfo->nYSize
                                 + nY * psInfo->nXSize + nX;
 
-            *pfInsert = (float)( psInfo->padfBurnValue[iBand] +
+            *pdfInsert = ( psInfo->padfBurnValue[iBand] +
                          ( (psInfo->eBurnValueSource == GBV_UserBurnValue)?
                             0 : dfVariant ) );
         }
     }
+    else
+        CPLAssert(0);
 }
 
 /************************************************************************/
@@ -450,7 +454,7 @@ gv_rasterize_one_shape( unsigned char *pabyChunkBuf, int nYOff,
  * @param pfnTransformer transformation to apply to geometries to put into 
  * pixel/line coordinates on raster.  If NULL a geotransform based one will
  * be created internally.
- * @param pTransformerArg callback data for transformer.
+ * @param pTransformArg callback data for transformer.
  * @param padfGeomBurnValue the array of values to burn into the raster.  
  * There should be nBandCount values for each geometry. 
  * @param papszOptions special options controlling rasterization
@@ -540,7 +544,7 @@ CPLErr GDALRasterizeGeometries( GDALDatasetH hDS,
     if( poBand->GetRasterDataType() == GDT_Byte )
         eType = GDT_Byte;
     else
-        eType = GDT_Float32;
+        eType = GDT_Float64;
 
     nScanlineBytes = nBandCount * poDS->GetRasterXSize()
         * (GDALGetDataTypeSize(eType)/8);
@@ -649,10 +653,10 @@ CPLErr GDALRasterizeGeometries( GDALDatasetH hDS,
  * @param pfnTransformer transformation to apply to geometries to put into 
  * pixel/line coordinates on raster.  If NULL a geotransform based one will
  * be created internally.
- * @param pTransformerArg callback data for transformer.
+ * @param pTransformArg callback data for transformer.
  * @param padfLayerBurnValues the array of values to burn into the raster.  
  * There should be nBandCount values for each layer. 
- * @param papszOption special options controlling rasterization:
+ * @param papszOptions special options controlling rasterization:
  * <dl>
  * <dt>"ATTRIBUTE":</dt> <dd>Identifies an attribute field on the features to be
  * used for a burn in value. The value will be burned into all output
@@ -735,7 +739,7 @@ CPLErr GDALRasterizeLayers( GDALDatasetH hDS,
     if( poBand->GetRasterDataType() == GDT_Byte )
         eType = GDT_Byte;
     else
-        eType = GDT_Float32;
+        eType = GDT_Float64;
 
     nScanlineBytes = nBandCount * poDS->GetRasterXSize()
         * (GDALGetDataTypeSize(eType)/8);
@@ -1021,11 +1025,11 @@ CPLErr GDALRasterizeLayers( GDALDatasetH hDS,
  * pixel/line coordinates on raster.  If NULL a geotransform based one will
  * be created internally.
  *
- * @param pTransformerArg callback data for transformer.
+ * @param pTransformArg callback data for transformer.
  *
  * @param dfBurnValue the value to burn into the raster.  
  *
- * @param papszOption special options controlling rasterization:
+ * @param papszOptions special options controlling rasterization:
  * <dl>
  * <dt>"ATTRIBUTE":</dt> <dd>Identifies an attribute field on the features to be
  * used for a burn in value. The value will be burned into all output

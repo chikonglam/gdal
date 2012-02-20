@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrfeature.cpp 21270 2010-12-15 22:48:30Z warmerdam $
+ * $Id: ogrfeature.cpp 23606 2011-12-19 23:55:18Z warmerdam $
  * 
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  The OGRFeature class implementation. 
@@ -32,7 +32,7 @@
 #include "ogr_p.h"
 #include <vector>
 
-CPL_CVSID("$Id: ogrfeature.cpp 21270 2010-12-15 22:48:30Z warmerdam $");
+CPL_CVSID("$Id: ogrfeature.cpp 23606 2011-12-19 23:55:18Z warmerdam $");
 
 /************************************************************************/
 /*                             OGRFeature()                             */
@@ -763,7 +763,6 @@ void OGRFeature::UnsetField( int iField )
 {
     OGRFieldDefn        *poFDefn = poDefn->GetFieldDefn( iField );
 
-    CPLAssert( poFDefn != NULL || iField == -1 );
     if( poFDefn == NULL || !IsFieldSet(iField) )
         return;
     
@@ -898,7 +897,6 @@ int OGRFeature::GetFieldAsInteger( int iField )
     
     OGRFieldDefn        *poFDefn = poDefn->GetFieldDefn( iField );
     
-    CPLAssert( poFDefn != NULL || iField == -1 );
     if( poFDefn == NULL )
         return 0;
     
@@ -989,7 +987,6 @@ double OGRFeature::GetFieldAsDouble( int iField )
     
     OGRFieldDefn        *poFDefn = poDefn->GetFieldDefn( iField );
     
-    CPLAssert( poFDefn != NULL || iField == -1 );
     if( poFDefn == NULL )
         return 0.0;
 
@@ -1114,7 +1111,6 @@ const char *OGRFeature::GetFieldAsString( int iField )
     
     OGRFieldDefn        *poFDefn = poDefn->GetFieldDefn( iField );
     
-    CPLAssert( poFDefn != NULL || iField == -1 );
     if( poFDefn == NULL )
         return "";
     
@@ -1375,7 +1371,6 @@ const int *OGRFeature::GetFieldAsIntegerList( int iField, int *pnCount )
 {
     OGRFieldDefn        *poFDefn = poDefn->GetFieldDefn( iField );
 
-    CPLAssert( poFDefn != NULL || iField == -1 );
     if( poFDefn != NULL && IsFieldSet(iField) &&
         poFDefn->GetType() == OFTIntegerList )
     {
@@ -1447,7 +1442,6 @@ const double *OGRFeature::GetFieldAsDoubleList( int iField, int *pnCount )
 {
     OGRFieldDefn        *poFDefn = poDefn->GetFieldDefn( iField );
 
-    CPLAssert( poFDefn != NULL || iField == -1 );
     if( poFDefn != NULL && IsFieldSet(iField) &&
         poFDefn->GetType() == OFTRealList )
     {
@@ -1520,7 +1514,6 @@ char **OGRFeature::GetFieldAsStringList( int iField ) const
 {
     OGRFieldDefn        *poFDefn = poDefn->GetFieldDefn( iField );
 
-    CPLAssert( poFDefn != NULL || iField == -1 );
     if( poFDefn == NULL )
         return NULL;
     
@@ -1592,7 +1585,6 @@ GByte *OGRFeature::GetFieldAsBinary( int iField, int *pnBytes )
 
     *pnBytes = 0;
 
-    CPLAssert( poFDefn != NULL || iField == -1 );
     if( poFDefn == NULL )
         return NULL;
     
@@ -1670,7 +1662,6 @@ int OGRFeature::GetFieldAsDateTime( int iField,
 {
     OGRFieldDefn        *poFDefn = poDefn->GetFieldDefn( iField );
 
-    CPLAssert( poFDefn != NULL || iField == -1 );
     if( poFDefn == NULL )
         return FALSE;
     
@@ -1767,10 +1758,9 @@ void OGRFeature::SetField( int iField, int nValue )
 {
     OGRFieldDefn        *poFDefn = poDefn->GetFieldDefn( iField );
 
-    CPLAssert( poFDefn != NULL || iField == -1 );
     if( poFDefn == NULL )
         return;
-    
+
     if( poFDefn->GetType() == OFTInteger )
     {
         pauFields[iField].Integer = nValue;
@@ -1779,6 +1769,15 @@ void OGRFeature::SetField( int iField, int nValue )
     else if( poFDefn->GetType() == OFTReal )
     {
         pauFields[iField].Real = nValue;
+    }
+    else if( poFDefn->GetType() == OFTIntegerList )
+    {
+        SetField( iField, 1, &nValue );
+    }
+    else if( poFDefn->GetType() == OFTRealList )
+    {
+        double dfValue = nValue;
+        SetField( iField, 1, &dfValue );
     }
     else if( poFDefn->GetType() == OFTString )
     {
@@ -1845,7 +1844,6 @@ void OGRFeature::SetField( int iField, double dfValue )
 {
     OGRFieldDefn        *poFDefn = poDefn->GetFieldDefn( iField );
 
-    CPLAssert( poFDefn != NULL || iField == -1 );
     if( poFDefn == NULL )
         return;
     
@@ -1857,6 +1855,15 @@ void OGRFeature::SetField( int iField, double dfValue )
     {
         pauFields[iField].Integer = (int) dfValue;
         pauFields[iField].Set.nMarker2 = 0;
+    }
+    else if( poFDefn->GetType() == OFTRealList )
+    {
+        SetField( iField, 1, &dfValue );
+    }
+    else if( poFDefn->GetType() == OFTIntegerList )
+    {
+        int nValue = (int) dfValue;
+        SetField( iField, 1, &nValue );
     }
     else if( poFDefn->GetType() == OFTString )
     {
@@ -1922,7 +1929,6 @@ void OGRFeature::SetField( int iField, const char * pszValue )
 {
     OGRFieldDefn        *poFDefn = poDefn->GetFieldDefn( iField );
 
-    CPLAssert( poFDefn != NULL || iField == -1 );
     if( poFDefn == NULL )
         return;
     
@@ -1982,7 +1988,7 @@ void OGRFeature::SetField( int iField, const char * pszValue )
             std::vector<double> adfValues;
 
             for( i=0; i < nCount; i++ )
-                adfValues.push_back( atoi(papszValueList[i+1]) );
+                adfValues.push_back( atof(papszValueList[i+1]) );
             SetField( iField, nCount, &(adfValues[0]) );
         }
 
@@ -2039,7 +2045,6 @@ void OGRFeature::SetField( int iField, int nCount, int *panValues )
 {
     OGRFieldDefn        *poFDefn = poDefn->GetFieldDefn( iField );
 
-    CPLAssert( poFDefn != NULL || iField == -1 );
     if( poFDefn == NULL )
         return;
     
@@ -2052,6 +2057,20 @@ void OGRFeature::SetField( int iField, int nCount, int *panValues )
         uField.IntegerList.paList = panValues;
 
         SetField( iField, &uField );
+    }
+    else if( poFDefn->GetType() == OFTRealList )
+    {
+        std::vector<double> adfValues;
+
+        for( int i=0; i < nCount; i++ )
+            adfValues.push_back( (double) panValues[i] );
+
+        SetField( iField, nCount, &adfValues[0] );
+    }
+    else if( (poFDefn->GetType() == OFTInteger || poFDefn->GetType() == OFTReal)
+             && nCount == 1 )
+    {
+        SetField( iField, panValues[0] );
     }
 }
 
@@ -2102,7 +2121,6 @@ void OGRFeature::SetField( int iField, int nCount, double * padfValues )
 {
     OGRFieldDefn        *poFDefn = poDefn->GetFieldDefn( iField );
 
-    CPLAssert( poFDefn != NULL || iField == -1 );
     if( poFDefn == NULL )
         return;
     
@@ -2115,6 +2133,20 @@ void OGRFeature::SetField( int iField, int nCount, double * padfValues )
         uField.RealList.paList = padfValues;
         
         SetField( iField, &uField );
+    }
+    else if( poFDefn->GetType() == OFTIntegerList )
+    {
+        std::vector<int> anValues;
+
+        for( int i=0; i < nCount; i++ )
+            anValues.push_back( (int) padfValues[i] );
+
+        SetField( iField, nCount, &anValues[0] );
+    }
+    else if( (poFDefn->GetType() == OFTInteger || poFDefn->GetType() == OFTReal)
+             && nCount == 1 )
+    {
+        SetField( iField, padfValues[0] );
     }
 }
 
@@ -2164,7 +2196,6 @@ void OGRFeature::SetField( int iField, char ** papszValues )
 {
     OGRFieldDefn        *poFDefn = poDefn->GetFieldDefn( iField );
 
-    CPLAssert( poFDefn != NULL || iField == -1 );
     if( poFDefn == NULL )
         return;
     
@@ -2226,7 +2257,6 @@ void OGRFeature::SetField( int iField, int nBytes, GByte *pabyData )
 {
     OGRFieldDefn        *poFDefn = poDefn->GetFieldDefn( iField );
 
-    CPLAssert( poFDefn != NULL || iField == -1 );
     if( poFDefn == NULL )
         return;
     
@@ -2297,7 +2327,6 @@ void OGRFeature::SetField( int iField, int nYear, int nMonth, int nDay,
 {
     OGRFieldDefn        *poFDefn = poDefn->GetFieldDefn( iField );
 
-    CPLAssert( poFDefn != NULL || iField == -1 );
     if( poFDefn == NULL )
         return;
     
@@ -2372,7 +2401,6 @@ void OGRFeature::SetField( int iField, OGRField * puValue )
 {
     OGRFieldDefn        *poFDefn = poDefn->GetFieldDefn( iField );
 
-    CPLAssert( poFDefn != NULL || iField == -1 );
     if( poFDefn == NULL )
         return;
     
@@ -3065,7 +3093,7 @@ OGRErr OGRFeature::SetFrom( OGRFeature * poSrcFeature, int *panMap ,
 
         if( iDstField < 0 )
             continue;
-            
+
         if( GetFieldCount() <= iDstField )
             return OGRERR_FAILURE;
 
@@ -3088,6 +3116,36 @@ OGRErr OGRFeature::SetFrom( OGRFeature * poSrcFeature, int *panMap ,
           case OFTString:
             SetField( iDstField, poSrcFeature->GetFieldAsString( iField ) );
             break;
+
+          case OFTIntegerList:
+          {
+              if (GetFieldDefnRef(iDstField)->GetType() == OFTString)
+              {
+                  SetField( iDstField, poSrcFeature->GetFieldAsString(iField) );
+              }
+              else
+              {
+                  int nCount;
+                  const int *panValues = poSrcFeature->GetFieldAsIntegerList( iField, &nCount);
+                  SetField( iDstField, nCount, (int*) panValues );
+              }
+          }
+          break;
+
+          case OFTRealList:
+          {
+              if (GetFieldDefnRef(iDstField)->GetType() == OFTString)
+              {
+                  SetField( iDstField, poSrcFeature->GetFieldAsString(iField) );
+              }
+              else
+              {
+                  int nCount;
+                  const double *padfValues = poSrcFeature->GetFieldAsDoubleList( iField, &nCount);
+                  SetField( iDstField, nCount, (double*) padfValues );
+              }
+          }
+          break;
 
           case OFTDate:
           case OFTDateTime:
@@ -3188,16 +3246,16 @@ OGRErr OGR_F_SetFromWithMap( OGRFeatureH hFeat, OGRFeatureH hOtherFeat,
 
 const char *OGRFeature::GetStyleString()
 {
-	int  iStyleFieldIndex;
+    int  iStyleFieldIndex;
 
-	if (m_pszStyleString)
-       return m_pszStyleString;
+    if (m_pszStyleString)
+        return m_pszStyleString;
 
-	iStyleFieldIndex = GetFieldIndex("OGR_STYLE");
-	if (iStyleFieldIndex >= 0)
-       return GetFieldAsString(iStyleFieldIndex);
+    iStyleFieldIndex = GetFieldIndex("OGR_STYLE");
+    if (iStyleFieldIndex >= 0)
+        return GetFieldAsString(iStyleFieldIndex);
 
-	return NULL;
+    return NULL;
 }
 
 /************************************************************************/

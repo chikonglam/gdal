@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: jp2userbox.cpp 21325 2010-12-28 23:44:31Z warmerdam $
+ * $Id: jp2userbox.cpp 21514 2011-01-16 23:49:42Z warmerdam $
  *
  * Project:  GDAL ECW Driver
  * Purpose:  JP2UserBox implementation - arbitrary box read/write.
@@ -27,9 +27,9 @@
  * DEALINGS IN THE SOFTWARE.
  ****************************************************************************/
 
-#include "jp2userbox.h"
+#include "gdal_ecw.h"
 
-CPL_CVSID("$Id: jp2userbox.cpp 21325 2010-12-28 23:44:31Z warmerdam $");
+CPL_CVSID("$Id: jp2userbox.cpp 21514 2011-01-16 23:49:42Z warmerdam $");
 
 #if defined(HAVE_COMPRESS)
 

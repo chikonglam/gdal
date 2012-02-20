@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: typemaps_csharp.i 21594 2011-01-27 20:15:39Z tamas $
+ * $Id: typemaps_csharp.i 21588 2011-01-27 15:42:24Z tamas $
  *
  * Name:     typemaps_csharp.i
  * Project:  GDAL CSharp Interface

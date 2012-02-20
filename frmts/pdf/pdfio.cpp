@@ -27,6 +27,8 @@
  * DEALINGS IN THE SOFTWARE.
  ****************************************************************************/
 
+#ifdef USE_POPPLER
+
 /* hack for PDF driver and poppler >= 0.15.0 that defines incompatible "typedef bool GBool" */
 /* in include/poppler/goo/gtypes.h with the one defined in cpl_port.h */
 #define CPL_GBOOL_DEFINED
@@ -35,7 +37,7 @@
 
 #include "cpl_vsi.h"
 
-CPL_CVSID("$Id: pdfio.cpp 21328 2010-12-29 17:34:21Z rouault $");
+CPL_CVSID("$Id: pdfio.cpp 22491 2011-06-03 16:04:53Z rouault $");
 
 /************************************************************************/
 /*                         VSIPDFFileStream()                           */
@@ -305,3 +307,5 @@ void VSIPDFFileStream::moveStart(int delta)
     VSIFSeekL(f, nCurrentPos = nStart, SEEK_SET);
     nPosInBuffer = nBufferLength = -1;
 }
+
+#endif

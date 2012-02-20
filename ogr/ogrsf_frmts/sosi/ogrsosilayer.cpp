@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrsosilayer.cpp 21065 2010-11-05 18:47:30Z rouault $
+ * $Id: ogrsosilayer.cpp 21826 2011-02-24 15:25:13Z warmerdam $
  *
  * Project:  SOSI Translator
  * Purpose:  Implements OGRSOSILayer.
@@ -295,6 +295,9 @@ void OGRSOSILayer::ResetReading() {
 /************************************************************************/
 
 int OGRSOSILayer::TestCapability( const char * pszCap ) {
-    CPLDebug( "[TestCapability]","Capability %s not supported by SOSI layer", pszCap);
-    return FALSE;
+
+    if( EQUAL(pszCap,OLCStringsAsUTF8) )
+        return TRUE;
+    else
+        return FALSE;
 }

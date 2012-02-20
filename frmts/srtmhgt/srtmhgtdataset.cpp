@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: srtmhgtdataset.cpp 20996 2010-10-28 18:38:15Z rouault $
+ * $Id: srtmhgtdataset.cpp 22163 2011-04-14 21:26:21Z rouault $
  *
  * Project:  SRTM HGT Driver
  * Purpose:  SRTM HGT File Read Support.
@@ -37,7 +37,7 @@
 
 #define SRTMHG_NODATA_VALUE -32768
 
-CPL_CVSID("$Id: srtmhgtdataset.cpp 20996 2010-10-28 18:38:15Z rouault $");
+CPL_CVSID("$Id: srtmhgtdataset.cpp 22163 2011-04-14 21:26:21Z rouault $");
 
 CPL_C_START
 void	GDALRegister_SRTMHGT(void);
@@ -299,14 +299,14 @@ GDALDataset* SRTMHGTDataset::Open(GDALOpenInfo* poOpenInfo)
   int southWestLon = atoi(latLonValueString);
 
   if(fileName[0] == 'N' || fileName[0] == 'n')
-    southWestLat = southWestLat;
+    /*southWestLat = southWestLat */;
   else if(fileName[0] == 'S' || fileName[0] == 's')
     southWestLat = southWestLat * -1;
   else
     return NULL;
 
   if(fileName[3] == 'E' || fileName[3] == 'e')
-    southWestLon = southWestLon;
+    /*southWestLon = southWestLon */;
   else if(fileName[3] == 'W' || fileName[3] == 'w')
     southWestLon = southWestLon * -1;
   else
@@ -486,6 +486,12 @@ GDALDataset * SRTMHGTDataset::CreateCopy( const char * pszFilename, GDALDataset 
 /*      Write output file.                                              */
 /* -------------------------------------------------------------------- */
     VSILFILE* fp = VSIFOpenL(pszFilename, "wb");
+    if (fp == NULL)
+    {
+        CPLError( CE_Failure, CPLE_FileIO,
+                  "Cannot create file %s", pszFilename );
+        return NULL;
+    }
 
     GInt16* panData = (GInt16*) CPLMalloc(sizeof(GInt16) * nXSize);
     GDALRasterBand* poSrcBand = poSrcDS->GetRasterBand(1);

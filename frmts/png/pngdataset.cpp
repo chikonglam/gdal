@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: pngdataset.cpp 21526 2011-01-17 19:32:03Z rouault $
+ * $Id: pngdataset.cpp 23033 2011-09-03 18:46:11Z rouault $
  *
  * Project:  PNG Driver
  * Purpose:  Implement GDAL PNG Support
@@ -49,7 +49,7 @@
 #include "cpl_string.h"
 #include <setjmp.h>
 
-CPL_CVSID("$Id: pngdataset.cpp 21526 2011-01-17 19:32:03Z rouault $");
+CPL_CVSID("$Id: pngdataset.cpp 23033 2011-09-03 18:46:11Z rouault $");
 
 CPL_C_START
 void	GDALRegister_PNG(void);
@@ -64,6 +64,10 @@ CPL_C_END
 // at the same time. Do NOT use it unless you're ready to fix it
 //#define SUPPORT_CREATE
 
+// we believe it is ok to use setjmp() in this situation.
+#ifdef _MSC_VER
+#  pragma warning(disable:4611)
+#endif
 
 static void
 png_vsi_read_data(png_structp png_ptr, png_bytep data, png_size_t length);
@@ -107,9 +111,17 @@ class PNGDataset : public GDALPamDataset
 
 
     void        CollectMetadata();
+
+    int         bHasReadXMPMetadata;
+    void        CollectXMPMetadata();
+
     CPLErr      LoadScanline( int );
     CPLErr      LoadInterlacedChunk( int );
     void        Restart();
+
+    int         bHasTriedLoadWorldFile;
+    void        LoadWorldFile();
+    CPLString   osWldFilename;
 
   public:
                  PNGDataset();
@@ -117,9 +129,20 @@ class PNGDataset : public GDALPamDataset
 
     static GDALDataset *Open( GDALOpenInfo * );
     static int          Identify( GDALOpenInfo * );
+    static GDALDataset* CreateCopy( const char * pszFilename,
+                                    GDALDataset *poSrcDS,
+                                    int bStrict, char ** papszOptions,
+                                    GDALProgressFunc pfnProgress,
+                                    void * pProgressData );
+
+    virtual char **GetFileList(void);
 
     virtual CPLErr GetGeoTransform( double * );
     virtual void FlushCache( void );
+
+    virtual char  **GetMetadata( const char * pszDomain = "" );
+    virtual const char *GetMetadataItem( const char * pszName,
+                                         const char * pszDomain = "" );
 
     // semi-private.
     jmp_buf     sSetJmpContext;
@@ -227,13 +250,21 @@ CPLErr PNGRasterBand::IReadBlock( int nBlockXOff, int nBlockYOff,
     CPLErr      eErr;
     GByte       *pabyScanline;
     int         i, nPixelSize, nPixelOffset, nXSize = GetXSize();
-    
+
     CPLAssert( nBlockXOff == 0 );
 
     if( poGDS->nBitDepth == 16 )
         nPixelSize = 2;
     else
         nPixelSize = 1;
+
+
+    if (poGDS->fpImage == NULL)
+    {
+        memset( pImage, 0, nPixelSize * nXSize );
+        return CE_None;
+    }
+
     nPixelOffset = poGDS->nBands * nPixelSize;
 
 /* -------------------------------------------------------------------- */
@@ -277,7 +308,8 @@ CPLErr PNGRasterBand::IReadBlock( int nBlockXOff, int nBlockYOff,
 
         poBlock = 
             poGDS->GetRasterBand(iBand+1)->GetLockedBlockRef(nBlockXOff,nBlockYOff);
-        poBlock->DropLock();
+        if( poBlock != NULL )
+            poBlock->DropLock();
     }
 
     return CE_None;
@@ -383,6 +415,7 @@ double PNGRasterBand::GetNoDataValue( int *pbSuccess )
 PNGDataset::PNGDataset()
 
 {
+    fpImage = NULL;
     hPNG = NULL;
     psPNGInfo = NULL;
     pabyBuffer = NULL;
@@ -390,6 +423,7 @@ PNGDataset::PNGDataset()
     nBufferLines = 0;
     nLastLineRead = -1;
     poColorTable = NULL;
+    nBitDepth = 8;
 
     bGeoTransformValid = FALSE;
     adfGeoTransform[0] = 0.0;
@@ -398,6 +432,9 @@ PNGDataset::PNGDataset()
     adfGeoTransform[3] = 0.0;
     adfGeoTransform[4] = 0.0;
     adfGeoTransform[5] = 1.0;
+
+    bHasTriedLoadWorldFile = FALSE;
+    bHasReadXMPMetadata = FALSE;
 }
 
 /************************************************************************/
@@ -426,6 +463,7 @@ PNGDataset::~PNGDataset()
 CPLErr PNGDataset::GetGeoTransform( double * padfTransform )
 
 {
+    LoadWorldFile();
 
     if( bGeoTransformValid )
     {
@@ -702,6 +740,120 @@ void PNGDataset::CollectMetadata()
 }
 
 /************************************************************************/
+/*                       CollectXMPMetadata()                           */
+/************************************************************************/
+
+/* See §2.1.5 of http://wwwimages.adobe.com/www.adobe.com/content/dam/Adobe/en/devnet/xmp/pdfs/XMPSpecificationPart3.pdf */
+
+void PNGDataset::CollectXMPMetadata()
+
+{
+    if (fpImage == NULL || bHasReadXMPMetadata)
+        return;
+
+    /* Save current position to avoid disturbing PNG stream decoding */
+    vsi_l_offset nCurOffset = VSIFTellL(fpImage);
+
+    vsi_l_offset nOffset = 8;
+    VSIFSeekL( fpImage, nOffset, SEEK_SET );
+
+    /* Loop over chunks */
+    while(TRUE)
+    {
+        int nLength;
+        char pszChunkType[5];
+        int nCRC;
+
+        if (VSIFReadL( &nLength, 4, 1, fpImage ) != 1)
+            break;
+        nOffset += 4;
+        CPL_MSBPTR32(&nLength);
+        if (nLength <= 0)
+            break;
+        if (VSIFReadL( pszChunkType, 4, 1, fpImage ) != 1)
+            break;
+        nOffset += 4;
+        pszChunkType[4] = 0;
+
+        if (strcmp(pszChunkType, "iTXt") == 0 && nLength > 22)
+        {
+            char* pszContent = (char*)VSIMalloc(nLength + 1);
+            if (pszContent == NULL)
+                break;
+            if (VSIFReadL( pszContent, nLength, 1, fpImage) != 1)
+            {
+                VSIFree(pszContent);
+                break;
+            }
+            nOffset += nLength;
+            pszContent[nLength] = '\0';
+            if (memcmp(pszContent, "XML:com.adobe.xmp\0\0\0\0\0", 22) == 0)
+            {
+                /* Avoid setting the PAM dirty bit just for that */
+                int nOldPamFlags = nPamFlags;
+
+                char *apszMDList[2];
+                apszMDList[0] = pszContent + 22;
+                apszMDList[1] = NULL;
+                SetMetadata(apszMDList, "xml:XMP");
+
+                nPamFlags = nOldPamFlags;
+
+                VSIFree(pszContent);
+
+                break;
+            }
+            else
+            {
+                VSIFree(pszContent);
+            }
+        }
+        else
+        {
+            nOffset += nLength;
+            VSIFSeekL( fpImage, nOffset, SEEK_SET );
+        }
+
+        nOffset += 4;
+        if (VSIFReadL( &nCRC, 4, 1, fpImage ) != 1)
+            break;
+    }
+
+    VSIFSeekL( fpImage, nCurOffset, SEEK_SET );
+
+    bHasReadXMPMetadata = TRUE;
+}
+
+/************************************************************************/
+/*                           GetMetadata()                              */
+/************************************************************************/
+
+char  **PNGDataset::GetMetadata( const char * pszDomain )
+{
+    if (fpImage == NULL)
+        return NULL;
+    if (eAccess == GA_ReadOnly && !bHasReadXMPMetadata &&
+        (pszDomain != NULL && EQUAL(pszDomain, "xml:XMP")))
+        CollectXMPMetadata();
+    return GDALPamDataset::GetMetadata(pszDomain);
+}
+
+/************************************************************************/
+/*                       GetMetadataItem()                              */
+/************************************************************************/
+
+const char *PNGDataset::GetMetadataItem( const char * pszName,
+                                         const char * pszDomain )
+{
+    if (fpImage == NULL)
+        return NULL;
+    if (eAccess == GA_ReadOnly && !bHasReadXMPMetadata &&
+        (pszDomain != NULL && EQUAL(pszDomain, "xml:XMP")))
+        CollectXMPMetadata();
+    return GDALPamDataset::GetMetadataItem(pszName, pszDomain);
+}
+
+/************************************************************************/
 /*                              Identify()                              */
 /************************************************************************/
 
@@ -936,6 +1088,8 @@ GDALDataset *PNGDataset::Open( GDALOpenInfo * poOpenInfo )
 /* -------------------------------------------------------------------- */
     poDS->CollectMetadata();
 
+    poDS->CollectXMPMetadata();
+
 /* -------------------------------------------------------------------- */
 /*      More metadata.                                                  */
 /* -------------------------------------------------------------------- */
@@ -948,7 +1102,7 @@ GDALDataset *PNGDataset::Open( GDALOpenInfo * poOpenInfo )
 /*      Initialize any PAM information.                                 */
 /* -------------------------------------------------------------------- */
     poDS->SetDescription( poOpenInfo->pszFilename );
-    poDS->TryLoadXML();
+    poDS->TryLoadXML( poOpenInfo->papszSiblingFiles );
 
 /* -------------------------------------------------------------------- */
 /*      Open overviews.                                                 */
@@ -956,27 +1110,64 @@ GDALDataset *PNGDataset::Open( GDALOpenInfo * poOpenInfo )
     poDS->oOvManager.Initialize( poDS, poOpenInfo->pszFilename,
                                  poOpenInfo->papszSiblingFiles );
 
-/* -------------------------------------------------------------------- */
-/*      Check for world file.                                           */
-/* -------------------------------------------------------------------- */
-    poDS->bGeoTransformValid = 
-        GDALReadWorldFile( poOpenInfo->pszFilename, NULL, 
-                           poDS->adfGeoTransform );
-
-    if( !poDS->bGeoTransformValid )
-        poDS->bGeoTransformValid = 
-            GDALReadWorldFile( poOpenInfo->pszFilename, ".wld", 
-                               poDS->adfGeoTransform );
-
     return poDS;
 }
 
 /************************************************************************/
-/*                           PNGCreateCopy()                            */
+/*                        LoadWorldFile()                               */
 /************************************************************************/
 
-static GDALDataset *
-PNGCreateCopy( const char * pszFilename, GDALDataset *poSrcDS, 
+void PNGDataset::LoadWorldFile()
+{
+    if (bHasTriedLoadWorldFile)
+        return;
+    bHasTriedLoadWorldFile = TRUE;
+
+    char* pszWldFilename = NULL;
+    bGeoTransformValid =
+        GDALReadWorldFile2( GetDescription(), NULL,
+                            adfGeoTransform, oOvManager.GetSiblingFiles(),
+                            &pszWldFilename);
+
+    if( !bGeoTransformValid )
+        bGeoTransformValid =
+            GDALReadWorldFile2( GetDescription(), ".wld",
+                                adfGeoTransform, oOvManager.GetSiblingFiles(),
+                                &pszWldFilename);
+
+    if (pszWldFilename)
+    {
+        osWldFilename = pszWldFilename;
+        CPLFree(pszWldFilename);
+    }
+}
+
+/************************************************************************/
+/*                            GetFileList()                             */
+/************************************************************************/
+
+char **PNGDataset::GetFileList()
+
+{
+    char **papszFileList = GDALPamDataset::GetFileList();
+
+    LoadWorldFile();
+
+    if (osWldFilename.size() != 0 &&
+        CSLFindString(papszFileList, osWldFilename) == -1)
+    {
+        papszFileList = CSLAddString( papszFileList, osWldFilename );
+    }
+
+    return papszFileList;
+}
+
+/************************************************************************/
+/*                             CreateCopy()                             */
+/************************************************************************/
+
+GDALDataset *
+PNGDataset::CreateCopy( const char * pszFilename, GDALDataset *poSrcDS, 
                int bStrict, char ** papszOptions, 
                GDALProgressFunc pfnProgress, void * pProgressData )
 
@@ -1292,12 +1483,28 @@ PNGCreateCopy( const char * pszFilename, GDALDataset *poSrcDS,
 /* -------------------------------------------------------------------- */
 /*      Re-open dataset, and copy any auxilary pam information.         */
 /* -------------------------------------------------------------------- */
-    PNGDataset *poDS = (PNGDataset *) GDALOpen( pszFilename, GA_ReadOnly );
+    GDALOpenInfo oOpenInfo(pszFilename, GA_ReadOnly);
 
+    /* If outputing to stdout, we can't reopen it, so we'll return */
+    /* a fake dataset to make the caller happy */
+    CPLPushErrorHandler(CPLQuietErrorHandler);
+    PNGDataset *poDS = (PNGDataset*) PNGDataset::Open( &oOpenInfo );
+    CPLPopErrorHandler();
     if( poDS )
+    {
         poDS->CloneInfo( poSrcDS, GCIF_PAM_DEFAULT );
+        return poDS;
+    }
 
-    return poDS;
+    CPLErrorReset();
+
+    PNGDataset* poPNG_DS = new PNGDataset();
+    poPNG_DS->nRasterXSize = nXSize;
+    poPNG_DS->nRasterYSize = nYSize;
+    poPNG_DS->nBitDepth = nBitDepth;
+    for(int i=0;i<nBands;i++)
+        poPNG_DS->SetBand( i+1, new PNGRasterBand( poPNG_DS, i+1) );
+    return poPNG_DS;
 }
 
 /************************************************************************/
@@ -1406,7 +1613,7 @@ void GDALRegister_PNG()
         poDriver->SetMetadataItem( GDAL_DCAP_VIRTUALIO, "YES" );
 
         poDriver->pfnOpen = PNGDataset::Open;
-        poDriver->pfnCreateCopy = PNGCreateCopy;
+        poDriver->pfnCreateCopy = PNGDataset::CreateCopy;
         poDriver->pfnIdentify = PNGDataset::Identify;
 #ifdef SUPPORT_CREATE
         poDriver->pfnCreate = PNGDataset::Create;

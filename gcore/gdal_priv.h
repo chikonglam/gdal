@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdal_priv.h 21431 2011-01-07 22:24:09Z warmerdam $
+ * $Id: gdal_priv.h 23431 2011-11-27 15:02:24Z rouault $
  *
  * Name:     gdal_priv.h
  * Project:  GDAL Core
@@ -73,7 +73,7 @@ class CPL_DLL GDALMultiDomainMetadata
 {
 private:
     char **papszDomainList;
-    char ***papapszMetadataLists;
+    CPLStringList **papoMetadataLists;
 
 public:
     GDALMultiDomainMetadata();
@@ -171,6 +171,8 @@ class CPL_DLL GDALDefaultOverviews
 
     int        IsInitialized();
 
+    int        CloseDependentDatasets();
+
     // Overview Related
 
     int        GetOverviewCount(int);
@@ -201,6 +203,35 @@ class CPL_DLL GDALDefaultOverviews
     int        HaveMaskFile( char **papszSiblings = NULL, 
                              const char *pszBasename = NULL );
 
+    char**     GetSiblingFiles() { return papszInitSiblingFiles; }
+};
+
+/* ******************************************************************** */
+/*                             GDALOpenInfo                             */
+/*                                                                      */
+/*      Structure of data about dataset for open functions.             */
+/* ******************************************************************** */
+
+class CPL_DLL GDALOpenInfo
+{
+  public:
+                GDALOpenInfo( const char * pszFile, GDALAccess eAccessIn,
+                              char **papszSiblingFiles = NULL );
+                ~GDALOpenInfo( void );
+
+    char        *pszFilename;
+    char        **papszSiblingFiles;
+
+    GDALAccess  eAccess;
+
+    int         bStatOK;
+    int         bIsDirectory;
+
+    FILE        *fp;
+
+    int         nHeaderBytes;
+    GByte       *pabyHeader;
+
 };
 
 /* ******************************************************************** */
@@ -209,6 +240,8 @@ class CPL_DLL GDALDefaultOverviews
 
 /* Internal method for now. Might be subject to later revisions */
 GDALDatasetH GDALOpenInternal( const char * pszFilename, GDALAccess eAccess,
+                               const char* const * papszAllowedDrivers);
+GDALDatasetH GDALOpenInternal( GDALOpenInfo& oOpenInfo,
                                const char* const * papszAllowedDrivers);
 
 //! A set of associated raster bands, usually from one file.
@@ -220,10 +253,13 @@ class CPL_DLL GDALDataset : public GDALMajorObject
 
     /* Internal method for now. Might be subject to later revisions */
     friend GDALDatasetH GDALOpenInternal( const char *, GDALAccess, const char* const * papszAllowedDrivers);
+    friend GDALDatasetH GDALOpenInternal( GDALOpenInfo& oOpenInfo,
+                                          const char* const * papszAllowedDrivers);
 
     friend class GDALDriver;
     friend class GDALDefaultOverviews;
     friend class GDALProxyDataset;
+    friend class GDALDriverManager;
 
   protected:
     GDALDriver  *poDriver;
@@ -257,6 +293,8 @@ class CPL_DLL GDALDataset : public GDALMajorObject
                                void *, int, int, GDALDataType,
                                int, int *, int, int, int );
     void   BlockBasedFlushCache();
+
+    virtual int         CloseDependentDatasets();
 
     friend class GDALRasterBand;
     
@@ -321,6 +359,8 @@ class CPL_DLL GDALDataset : public GDALMajorObject
 
     CPLErr BuildOverviews( const char *, int, int *,
                            int, int *, GDALProgressFunc, void * );
+
+    void ReportError(CPLErr eErrClass, int err_no, const char *fmt, ...)  CPL_PRINT_FUNC_FORMAT (4, 5);
 };
 
 /* ******************************************************************** */
@@ -563,6 +603,8 @@ class CPL_DLL GDALRasterBand : public GDALMajorObject
     virtual GDALRasterBand *GetMaskBand();
     virtual int             GetMaskFlags();
     virtual CPLErr          CreateMaskBand( int nFlags );
+
+    void ReportError(CPLErr eErrClass, int err_no, const char *fmt, ...)  CPL_PRINT_FUNC_FORMAT (4, 5);
 };
 
 /* ******************************************************************** */
@@ -616,34 +658,6 @@ class CPL_DLL GDALNoDataValuesMaskBand : public GDALRasterBand
 };
 
 /* ******************************************************************** */
-/*                             GDALOpenInfo                             */
-/*                                                                      */
-/*      Structure of data about dataset for open functions.             */
-/* ******************************************************************** */
-
-class CPL_DLL GDALOpenInfo
-{
-  public:
-                GDALOpenInfo( const char * pszFile, GDALAccess eAccessIn,
-                              char **papszSiblingFiles = NULL );
-                ~GDALOpenInfo( void );
-    
-    char        *pszFilename;
-    char        **papszSiblingFiles;
-
-    GDALAccess  eAccess;
-
-    int         bStatOK;
-    int         bIsDirectory;
-
-    FILE        *fp;
-
-    int         nHeaderBytes;
-    GByte       *pabyHeader;
-
-};
-
-/* ******************************************************************** */
 /*                              GDALDriver                              */
 /* ******************************************************************** */
 
@@ -670,7 +684,7 @@ class CPL_DLL GDALDriver : public GDALMajorObject
 /* -------------------------------------------------------------------- */
     GDALDataset         *Create( const char * pszName,
                                  int nXSize, int nYSize, int nBands,
-                                 GDALDataType eType, char ** papszOptions );
+                                 GDALDataType eType, char ** papszOptions ) CPL_WARN_UNUSED_RESULT;
 
     CPLErr              Delete( const char * pszName );
     CPLErr              Rename( const char * pszNewName,
@@ -681,7 +695,7 @@ class CPL_DLL GDALDriver : public GDALMajorObject
     GDALDataset         *CreateCopy( const char *, GDALDataset *, 
                                      int, char **,
                                      GDALProgressFunc pfnProgress, 
-                                     void * pProgressData );
+                                     void * pProgressData ) CPL_WARN_UNUSED_RESULT;
     
 /* -------------------------------------------------------------------- */
 /*      The following are semiprivate, not intended to be accessed      */
@@ -719,7 +733,7 @@ class CPL_DLL GDALDriver : public GDALMajorObject
     GDALDataset         *DefaultCreateCopy( const char *, GDALDataset *, 
                                             int, char **,
                                             GDALProgressFunc pfnProgress, 
-                                            void * pProgressData );
+                                            void * pProgressData ) CPL_WARN_UNUSED_RESULT;
     static CPLErr        DefaultCopyMasks( GDALDataset *poSrcDS, 
                                            GDALDataset *poDstDS, 
                                            int bStrict );
@@ -895,13 +909,23 @@ int CPL_DLL GDALCheckDatasetDimensions( int nXSize, int nYSize );
 int CPL_DLL GDALCheckBandCount( int nBands, int bIsZeroAllowed );
 
 
-// Test if pixel value matches nodata value. Avoid using strict comparison as
-// the stored nodata value in GeoTIFF files is stored as a string, so there might
-// be numerical imprecision when reading it back. See #3573
-#define EQUAL_TO_NODATA(dfValue, dfNoDataValue) \
- (dfValue == dfNoDataValue || (dfNoDataValue != 0 && fabs(1 - dfValue / dfNoDataValue) < 1e-10 ))
+// Test if 2 floating point values match. Usefull when comparing values
+// stored as a string at some point. See #3573, #4183
+#define ARE_REAL_EQUAL(dfVal1, dfVal2) \
+ (fabs(dfVal1 - dfVal2) < 1e-10 || (dfVal2 != 0 && fabs(1 - dfVal1 / dfVal2) < 1e-10 ))
 
+/* Internal use only */
+int GDALReadWorldFile2( const char *pszBaseFilename, const char *pszExtension,
+                        double *padfGeoTransform, char** papszSiblingFiles,
+                        char** ppszWorldFileNameOut);
+int GDALReadTabFile2( const char * pszBaseFilename,
+                      double *padfGeoTransform, char **ppszWKT,
+                      int *pnGCPCount, GDAL_GCP **ppasGCPs,
+                      char** papszSiblingFiles, char** ppszTabFileNameOut );
 
 CPL_C_END
+
+CPLString GDALFindAssociatedFile( const char *pszBasename, const char *pszExt,
+                                  char **papszSiblingFiles, int nFlags );
 
 #endif /* ndef GDAL_PRIV_H_INCLUDED */
