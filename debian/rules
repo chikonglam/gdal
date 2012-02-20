@@ -123,7 +123,8 @@ clean:
 	dh_testroot
 	
 	[ ! -f GDALmake.opt ] || $(MAKE) distclean
-	rm -rf $(CURDIR)/swig/ruby/.libs $(CURDIR)/swig/perl/*.bs
+	rm -rf $(curdir)/swig/ruby/.libs $(CURDIR)/swig/perl/*.bs
+	rm -rf $(curdir)/.libs
 	rm -f GDALmake.opt-*
 	rm -rf $(CURDIR)/man/man1
 	rm -rf $(CURDIR)/debian/tmp $(CURDIR)/debian/python-tmp
