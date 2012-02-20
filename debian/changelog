@@ -1,3 +1,10 @@
+gdal (1.9.0-1~exp1) experimental; urgency=low
+
+  * New upstream release.
+  * New tool: gdalsrsinfo.
+
+ -- Francesco Paolo Lovergine <frankie@debian.org>  Mon, 20 Feb 2012 11:27:29 +0100
+
 gdal (1.8.1-2~exp3) experimental; urgency=low
 
   * Fixed .common symbol file to drop conditionals.

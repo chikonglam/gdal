@@ -29,7 +29,6 @@ versions:
 	@echo Python versions: $(PYVERS)
 	@echo Ruby default: $(RUBYDEF)
 	@echo Perl default: $(PERLDEF)
-	@echo GDAL version: $(GDAL_MAJOR).$(GDAL_MINOR).$(GDAL_PATCH)
 
 #
 # The following targets are useful to autogen independent plugins sources
