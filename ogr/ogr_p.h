@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_p.h 20616 2010-09-15 01:20:36Z warmerdam $
+ * $Id: ogr_p.h 23638 2011-12-22 21:02:56Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Some private helper functions and stuff for OGR implementation.
@@ -37,8 +37,10 @@
 
 #include "cpl_string.h"
 #include "cpl_conv.h"
+#include "cpl_minixml.h"
 
 #include "ogr_core.h"
+#include "ogr_geometry.h"
 
 #ifdef CPL_MSB 
 #  define OGR_SWAP(x)   (x == wkbNDR)
@@ -116,5 +118,16 @@ OGRErr CPL_DLL OSRGetEllipsoidInfo( int, char **, double *, double *);
 
 /* Fast atof function */
 double OGRFastAtof(const char* pszStr);
+
+OGRErr CPL_DLL OGRCheckPermutation(int* panPermutation, int nSize);
+
+/* GML related */
+
+OGRGeometry *GML2OGRGeometry_XMLNode( const CPLXMLNode *psNode,
+                                      int bGetSecondaryGeometryOption,
+                                      int nRecLevel = 0,
+                                      int bIgnoreGSG = FALSE,
+                                      int bOrientation = TRUE,
+                                      int bFaceHoleNegative = FALSE );
 
 #endif /* ndef OGR_P_H_INCLUDED */

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdaljp2box.cpp 22592 2011-06-27 12:27:36Z warmerdam $
+ * $Id: gdaljp2box.cpp 23076 2011-09-07 18:28:51Z rouault $
  *
  * Project:  GDAL 
  * Purpose:  GDALJP2Box Implementation - Low level JP2 box reader.
@@ -30,7 +30,7 @@
 #include "gdaljp2metadata.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: gdaljp2box.cpp 22592 2011-06-27 12:27:36Z warmerdam $");
+CPL_CVSID("$Id: gdaljp2box.cpp 23076 2011-09-07 18:28:51Z rouault $");
 
 /************************************************************************/
 /*                             GDALJP2Box()                             */
@@ -291,10 +291,7 @@ void GDALJP2Box::SetType( const char *pszType )
 {
     CPLAssert( strlen(pszType) == 4 );
 
-    szBoxType[0] = pszType[3];
-    szBoxType[1] = pszType[2];
-    szBoxType[2] = pszType[1];
-    szBoxType[3] = pszType[0];
+    memcpy(szBoxType, pszType, 4);
     szBoxType[4] = '\0';
 }
 
@@ -365,15 +362,13 @@ GDALJP2Box *GDALJP2Box::CreateAsocBox( int nCount, GDALJP2Box **papoBoxes )
 /* -------------------------------------------------------------------- */
     for( iBox = 0; iBox < nCount; iBox++ )
     {
-        GUInt32   nLBox, nTBox;
+        GUInt32   nLBox;
 
         nLBox = CPL_MSBWORD32(papoBoxes[iBox]->nBoxLength);
         memcpy( pabyNext, &nLBox, 4 );
         pabyNext += 4;
 
-        memcpy( &nTBox, papoBoxes[iBox]->szBoxType, 4 );
-        nTBox = CPL_MSBWORD32( nTBox );
-        memcpy( pabyNext, &nTBox, 4 );
+        memcpy( pabyNext, papoBoxes[iBox]->szBoxType, 4 );
         pabyNext += 4;
 
         memcpy( pabyNext, papoBoxes[iBox]->pabyData, 

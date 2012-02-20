@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: rasterlitecreatecopy.cpp 20090 2010-07-17 22:18:37Z rouault $
+ * $Id: rasterlitecreatecopy.cpp 22035 2011-03-25 23:57:59Z rouault $
  *
  * Project:  GDAL Rasterlite driver
  * Purpose:  Implement GDAL Rasterlite support using OGR SQLite driver
@@ -33,7 +33,7 @@
 
 #include "rasterlitedataset.h"
 
-CPL_CVSID("$Id: rasterlitecreatecopy.cpp 20090 2010-07-17 22:18:37Z rouault $");
+CPL_CVSID("$Id: rasterlitecreatecopy.cpp 22035 2011-03-25 23:57:59Z rouault $");
 
 /************************************************************************/
 /*                  RasterliteGetTileDriverOptions ()                   */
@@ -85,7 +85,7 @@ static char** RasterliteGetTileDriverOptions(char** papszOptions)
             papszTileDriverOptions =
                 CSLSetNameValue(papszTileDriverOptions, "JPEG_QUALITY", pszQuality);
         }
-        else if (EQUAL(pszDriverName, "JPEG"))
+        else if (EQUAL(pszDriverName, "JPEG") || EQUAL(pszDriverName, "WEBP"))
         {
             papszTileDriverOptions =
                 CSLSetNameValue(papszTileDriverOptions, "QUALITY", pszQuality);
@@ -332,6 +332,13 @@ RasterliteCreateCopy( const char * pszFilename, GDALDataset *poSrcDS,
     }
     
     const char* pszDriverName = CSLFetchNameValueDef(papszOptions, "DRIVER", "GTiff");
+    if (EQUAL(pszDriverName, "MEM") || EQUAL(pszDriverName, "VRT"))
+    {
+        CPLError(CE_Failure, CPLE_AppDefined, "GDAL %s driver cannot be used as underlying driver",
+                 pszDriverName);
+        return NULL;
+    }
+
     GDALDriverH hTileDriver = GDALGetDriverByName(pszDriverName);
     if ( hTileDriver == NULL)
     {
@@ -646,7 +653,7 @@ RasterliteCreateCopy( const char * pszFilename, GDALDataset *poSrcDS,
 /*      Insert new entry into raster table                              */
 /* -------------------------------------------------------------------- */
 
-            vsi_l_offset nDataLength;
+            vsi_l_offset nDataLength = 0;
             GByte *pabyData = VSIGetMemFileBuffer( osTempFileName.c_str(),
                                                    &nDataLength, FALSE);
 

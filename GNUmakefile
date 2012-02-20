@@ -74,7 +74,7 @@ else
 swig-target:    swig-modules;
 endif
 
-swig-modules:
+swig-modules:	lib-target
 	(cd swig; $(MAKE) build)
 
 clean:	lclean
@@ -127,6 +127,7 @@ docs:
 	cp doc/grid/*.png html
 	cp frmts/*.html frmts/*/frmt_*.html html
 	cp frmts/wms/frmt_wms_*.xml html
+	cp frmts/wms/frmt_twms_*.xml html
 
 man:
 # Generate man pages

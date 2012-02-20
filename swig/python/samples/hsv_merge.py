@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #******************************************************************************
-#  $Id: hsv_merge.py 21244 2010-12-13 18:32:06Z rouault $
+#  $Id: hsv_merge.py 22986 2011-08-27 14:20:16Z rouault $
 # 
 #  Project:  GDAL Python Interface
 #  Purpose:  Script to merge greyscale as intensity into an RGB(A) image, for

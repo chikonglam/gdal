@@ -3,11 +3,14 @@ GDAL_ROOT	=	..\..
 DIRLIST		=	generic geojson shape ntf sdts tiger s57 dgn mitab gml \
 			avc rec mem vrt csv gmt bna kml gpx \
 			geoconcept xplane georss gtm dxf vfk pgdump gpsbabel \
-			sua openair pds htf aeronavfaa $(ARCOBJECTS_DIR) \
+			sua openair pds htf aeronavfaa edigeo svg idrisi arcgen \
+			segukooa segy \
+			$(ARCOBJECTS_DIR) \
 			$(OGDIDIR) $(FMEDIR) $(OCIDIR) $(PG_DIR) $(DWGDIR) \
 			$(ODBCDIR) $(SQLITE_DIR) $(MYSQL_DIR) $(ILI_DIR) \
 			$(SDE_DIR) $(IDB_DIR) $(NAS_DIR) $(DODSDIR) \
-			$(PCIDSK_DIR) $(LIBKMLDIR) $(WFSDIR) $(SOSIDIR)
+			$(PCIDSK_DIR) $(LIBKMLDIR) $(WFSDIR) $(SOSIDIR) $(GFTDIR) \
+			$(COUCHDBDIR) $(FGDB_DIR) $(XLSDIR)
 
 !INCLUDE $(GDAL_ROOT)\nmake.opt
 
@@ -26,8 +29,8 @@ OGDIOBJ =	ogdi\*.obj
 !ENDIF
 
 !IFDEF ODBC_SUPPORTED
-ODBCDIR	=	odbc pgeo mssqlspatial
-ODBCOBJ =	odbc\*.obj pgeo\*.obj mssqlspatial\*.obj
+ODBCDIR	=	odbc pgeo mssqlspatial geomedia
+ODBCOBJ =	odbc\*.obj pgeo\*.obj mssqlspatial\*.obj geomedia\*.obj
 !ENDIF
 
 !IFDEF SQLITE_LIB
@@ -59,6 +62,14 @@ DWG_OBJ = dxfdwg\*.obj
 SDE_DIR = sde
 SDE_OBJ = sde\*.obj
 !ENDIF
+
+!IFDEF FGDB_LIB
+!IF "$(FGDB_PLUGIN)" != "YES"
+FGDB_DIR = filegdb
+FGDB_OBJ = filegdb\*.obj
+!ENDIF
+!ENDIF
+
 
 !IFDEF HAS_ARCOBJECTS
 ARCOBJECTS_DIR = arcobjects
@@ -106,6 +117,21 @@ SOSIDIR = sosi
 SOSI_OBJ = sosi\*.obj
 !ENDIF
 
+!IFDEF CURL_LIB
+GFTDIR = gft
+GFT_OBJ = gft\*.obj
+!ENDIF
+
+!IFDEF CURL_LIB
+COUCHDBDIR = couchdb
+COUCHDB_OBJ = couchdb\*.obj
+!ENDIF
+
+!IFDEF FREEXL_LIBS
+XLSDIR = xls
+XLS_OBJ = xls\*.obj
+!ENDIF
+
 default:
 	for %d in ( $(DIRLIST) ) do \
 		cd %d \
@@ -122,12 +148,13 @@ default:
 				 gpx\*.obj xplane\*.obj georss\*.obj gtm\*.obj \
 				 dxf\*.obj vfk\*.obj pgdump\*.obj gpsbabel\*.obj \
 				 sua\*.obj openair\*.obj pds\*.obj htf\*.obj \
-				 aeronavfaa\*.obj \
+				 aeronavfaa\*.obj edigeo\*.obj svg\*.obj idrisi\*.obj \
+				 arcgen\*.obj segukooa\*.obj segy\*.obj \
 				$(OGDIOBJ) $(ODBCOBJ) $(SQLITE_OBJ) \
 				$(FMEOBJ) $(OCIOBJ) $(PG_OBJ) $(MYSQL_OBJ) \
-				$(ILI_OBJ) $(DWG_OBJ) $(SDE_OBJ) $(ARCDRIVER_OBJ) $(IDB_OBJ) \
+				$(ILI_OBJ) $(DWG_OBJ) $(SDE_OBJ) $(FGDB_OBJ) $(ARCDRIVER_OBJ) $(IDB_OBJ) \
 				$(DODS_OBJ) $(NAS_OBJ) $(PCIDSKOBJ) $(LIBKMLOBJ) $(WFS_OBJ) \
-				$(SOSI_OBJ)
+				$(SOSI_OBJ) $(GFT_OBJ) $(COUCHDB_OBJ) $(XLS_OBJ)
 	lib /out:ogrsf_frmts_sup.lib \
 				 ..\..\frmts\iso8211\*.obj \
 				 ..\..\frmts\sdts\sdtsattrreader.obj \

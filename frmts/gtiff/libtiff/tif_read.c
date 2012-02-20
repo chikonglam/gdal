@@ -1,4 +1,4 @@
-/* $Id: tif_read.c,v 1.33 2011-01-06 05:51:13 fwarmerdam Exp $ */
+/* $Id: tif_read.c,v 1.38 2011-12-09 03:29:10 fwarmerdam Exp $ */
 
 /*
  * Copyright (c) 1988-1997 Sam Leffler
@@ -50,15 +50,18 @@ TIFFFillStripPartial( TIFF *tif, int strip, tmsize_t read_ahead, int restart )
         uint64 unused_data;
         uint64 read_offset;
         tmsize_t cc, to_read;
+        tmsize_t bytecountm;
+        
+        if (!_TIFFFillStriles( tif ) || !tif->tif_dir.td_stripbytecount)
+            return 0;
         
         /*
          * Expand raw data buffer, if needed, to hold data
          * strip coming from file (perhaps should set upper
          * bound on the size of a buffer we'll use?).
          */
-        tmsize_t bytecountm;
+
         bytecountm=(tmsize_t) td->td_stripbytecount[strip];
-                        
         if (read_ahead*2 > tif->tif_rawdatasize) {
                 assert( restart );
                 
@@ -120,7 +123,7 @@ TIFFFillStripPartial( TIFF *tif, int strip, tmsize_t read_ahead, int restart )
         cc = TIFFReadFile(tif, tif->tif_rawdata + unused_data, to_read);
 
         if (cc != to_read) {
-#if defined(__WIN32__) && defined(_MSC_VER)
+#if defined(__WIN32__) && (defined(_MSC_VER) || defined(__MINGW32__))
                 TIFFErrorExt(tif->tif_clientdata, module,
                              "Read error at scanline %lu; got %I64u bytes, expected %I64u",
                              (unsigned long) tif->tif_row,
@@ -196,7 +199,9 @@ TIFFSeek(TIFF* tif, uint32 row, uint16 sample )
          * Do we want to treat this strip as one whole chunk or
          * read it a few lines at a time?
          */
-#if defined(CHUNKY_STRIP_READ_SUPPORT)        
+#if defined(CHUNKY_STRIP_READ_SUPPORT)
+        if (!_TIFFFillStriles( tif ) || !tif->tif_dir.td_stripbytecount)
+            return 0;
         whole_strip = tif->tif_dir.td_stripbytecount[strip] < 10
                 || isMapped(tif);
 #else
@@ -357,6 +362,9 @@ TIFFReadRawStrip1(TIFF* tif, uint32 strip, void* buf, tmsize_t size,
 {
 	TIFFDirectory *td = &tif->tif_dir;
 
+    if (!_TIFFFillStriles( tif ))
+        return ((tmsize_t)(-1));
+        
 	assert((tif->tif_flags&TIFF_NOREADRAW)==0);
 	if (!isMapped(tif)) {
 		tmsize_t cc;
@@ -369,7 +377,7 @@ TIFFReadRawStrip1(TIFF* tif, uint32 strip, void* buf, tmsize_t size,
 		}
 		cc = TIFFReadFile(tif, buf, size);
 		if (cc != size) {
-#if defined(__WIN32__) && defined(_MSC_VER)
+#if defined(__WIN32__) && (defined(_MSC_VER) || defined(__MINGW32__))
 			TIFFErrorExt(tif->tif_clientdata, module,
 		"Read error at scanline %lu; got %I64u bytes, expected %I64u",
 				     (unsigned long) tif->tif_row,
@@ -396,7 +404,7 @@ TIFFReadRawStrip1(TIFF* tif, uint32 strip, void* buf, tmsize_t size,
 		else
 			n=size;
 		if (n!=size) {
-#if defined(__WIN32__) && defined(_MSC_VER)
+#if defined(__WIN32__) && (defined(_MSC_VER) || defined(__MINGW32__))
 			TIFFErrorExt(tif->tif_clientdata, module,
 	"Read error at scanline %lu, strip %lu; got %I64u bytes, expected %I64u",
 				     (unsigned long) tif->tif_row,
@@ -447,7 +455,7 @@ TIFFReadRawStrip(TIFF* tif, uint32 strip, void* buf, tmsize_t size)
 	}
 	bytecount = td->td_stripbytecount[strip];
 	if (bytecount <= 0) {
-#if defined(__WIN32__) && defined(_MSC_VER)
+#if defined(__WIN32__) && (defined(_MSC_VER) || defined(__MINGW32__))
 		TIFFErrorExt(tif->tif_clientdata, module,
 			     "%I64u: Invalid strip byte count, strip %lu",
 			     (unsigned __int64) bytecount,
@@ -480,11 +488,14 @@ TIFFFillStrip(TIFF* tif, uint32 strip)
 	static const char module[] = "TIFFFillStrip";
 	TIFFDirectory *td = &tif->tif_dir;
 
+    if (!_TIFFFillStriles( tif ) || !tif->tif_dir.td_stripbytecount)
+        return 0;
+        
 	if ((tif->tif_flags&TIFF_NOREADRAW)==0)
 	{
 		uint64 bytecount = td->td_stripbytecount[strip];
 		if (bytecount <= 0) {
-#if defined(__WIN32__) && defined(_MSC_VER)
+#if defined(__WIN32__) && (defined(_MSC_VER) || defined(__MINGW32__))
 			TIFFErrorExt(tif->tif_clientdata, module,
 				"Invalid strip byte count %I64u, strip %lu",
 				     (unsigned __int64) bytecount,
@@ -530,7 +541,7 @@ TIFFFillStrip(TIFF* tif, uint32 strip)
 				 * it's what would happen if a read were done
 				 * instead.
 				 */
-#if defined(__WIN32__) && defined(_MSC_VER)
+#if defined(__WIN32__) && (defined(_MSC_VER) || defined(__MINGW32__))
 				TIFFErrorExt(tif->tif_clientdata, module,
 
 					"Read error on strip %lu; "
@@ -647,6 +658,9 @@ TIFFReadRawTile1(TIFF* tif, uint32 tile, void* buf, tmsize_t size, const char* m
 {
 	TIFFDirectory *td = &tif->tif_dir;
 
+    if (!_TIFFFillStriles( tif ))
+        return ((tmsize_t)(-1));
+
 	assert((tif->tif_flags&TIFF_NOREADRAW)==0);
 	if (!isMapped(tif)) {
 		tmsize_t cc;
@@ -661,7 +675,7 @@ TIFFReadRawTile1(TIFF* tif, uint32 tile, void* buf, tmsize_t size, const char* m
 		}
 		cc = TIFFReadFile(tif, buf, size);
 		if (cc != size) {
-#if defined(__WIN32__) && defined(_MSC_VER)
+#if defined(__WIN32__) && (defined(_MSC_VER) || defined(__MINGW32__))
 			TIFFErrorExt(tif->tif_clientdata, module,
 	"Read error at row %lu, col %lu; got %I64u bytes, expected %I64u",
 				     (unsigned long) tif->tif_row,
@@ -690,7 +704,7 @@ TIFFReadRawTile1(TIFF* tif, uint32 tile, void* buf, tmsize_t size, const char* m
 		else
 			n=size;
 		if (n!=size) {
-#if defined(__WIN32__) && defined(_MSC_VER)
+#if defined(__WIN32__) && (defined(_MSC_VER) || defined(__MINGW32__))
 			TIFFErrorExt(tif->tif_clientdata, module,
 "Read error at row %lu, col %lu, tile %lu; got %I64u bytes, expected %I64u",
 				     (unsigned long) tif->tif_row,
@@ -761,11 +775,14 @@ TIFFFillTile(TIFF* tif, uint32 tile)
 	static const char module[] = "TIFFFillTile";
 	TIFFDirectory *td = &tif->tif_dir;
 
+    if (!_TIFFFillStriles( tif ) || !tif->tif_dir.td_stripbytecount)
+        return 0;
+        
 	if ((tif->tif_flags&TIFF_NOREADRAW)==0)
 	{
 		uint64 bytecount = td->td_stripbytecount[tile];
 		if (bytecount <= 0) {
-#if defined(__WIN32__) && defined(_MSC_VER)
+#if defined(__WIN32__) && (defined(_MSC_VER) || defined(__MINGW32__))
 			TIFFErrorExt(tif->tif_clientdata, module,
 				"%I64u: Invalid tile byte count, tile %lu",
 				     (unsigned __int64) bytecount,
@@ -904,6 +921,9 @@ TIFFStartStrip(TIFF* tif, uint32 strip)
 {
 	TIFFDirectory *td = &tif->tif_dir;
 
+    if (!_TIFFFillStriles( tif ) || !tif->tif_dir.td_stripbytecount)
+        return 0;
+
 	if ((tif->tif_flags & TIFF_CODERSETUP) == 0) {
 		if (!(*tif->tif_setupdecode)(tif))
 			return (0);
@@ -935,6 +955,9 @@ static int
 TIFFStartTile(TIFF* tif, uint32 tile)
 {
 	TIFFDirectory *td = &tif->tif_dir;
+
+    if (!_TIFFFillStriles( tif ) || !tif->tif_dir.td_stripbytecount)
+        return 0;
 
 	if ((tif->tif_flags & TIFF_CODERSETUP) == 0) {
 		if (!(*tif->tif_setupdecode)(tif))

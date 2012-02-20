@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_java.i 19751 2010-05-22 11:29:53Z rouault $
+ * $Id: ogr_java.i 23330 2011-11-05 21:10:20Z rouault $
  *
  * Name:     ogr_java.i
  * Project:  GDAL SWIG Interface
@@ -129,8 +129,8 @@ import org.gdal.osr.SpatialReference;
       double[] argout = new double[4];
       try
       {
-          GetExtent(argout, (force) ? 1 : 0);
-          return argout;
+          int ret = GetExtent(argout, (force) ? 1 : 0);
+          return (ret == 0) ? argout : null;
       }
       catch(RuntimeException e)
       {

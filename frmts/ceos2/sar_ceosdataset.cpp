@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: sar_ceosdataset.cpp 22663 2011-07-07 15:08:47Z warmerdam $
+ * $Id: sar_ceosdataset.cpp 22708 2011-07-11 21:42:50Z rouault $
  *
  * Project:  ASI CEOS Translator
  * Purpose:  GDALDataset driver for CEOS translator.
@@ -33,7 +33,7 @@
 #include "cpl_string.h"
 #include "ogr_srs_api.h"
 
-CPL_CVSID("$Id: sar_ceosdataset.cpp 22663 2011-07-07 15:08:47Z warmerdam $");
+CPL_CVSID("$Id: sar_ceosdataset.cpp 22708 2011-07-11 21:42:50Z rouault $");
 
 CPL_C_START
 void	GDALRegister_SAR_CEOS(void);
@@ -1617,6 +1617,7 @@ GDALDataset *SAR_CEOSDataset::Open( GDALOpenInfo * poOpenInfo )
     if( ProcessData( fp, __CEOS_IMAGRY_OPT_FILE, psVolume, 4, -1) != CE_None )
     {
         delete poDS;
+        VSIFCloseL(fp);
         return NULL;
     }
 
@@ -1761,6 +1762,8 @@ GDALDataset *SAR_CEOSDataset::Open( GDALOpenInfo * poOpenInfo )
                   "Unable to extract CEOS image description\n"
                   "from %s.", 
                   poOpenInfo->pszFilename );
+
+        VSIFCloseL(fp);
 
         return NULL;
     }
@@ -2011,6 +2014,8 @@ ProcessData( VSILFILE *fp, int fileid, CeosSARVolume_t *sar, int max_records,
             if( fileid == __CEOS_IMAGRY_OPT_FILE && iThisRecord == 2 )
             {
                 CPLDebug( "SAR_CEOS", "Ignoring CEOS file with wrong second record sequence number - likely it has padded records." );
+                CPLFree(record);
+                CPLFree(temp_body);
                 return CE_Warning;
             }
             else
@@ -2018,6 +2023,8 @@ ProcessData( VSILFILE *fp, int fileid, CeosSARVolume_t *sar, int max_records,
                 CPLError( CE_Failure, CPLE_AppDefined, 
                           "Corrupt CEOS File - got record seq# %d instead of the expected %d.",
                           record->Sequence, iThisRecord );
+                CPLFree(record);
+                CPLFree(temp_body);
                 return CE_Failure;
             }
         }

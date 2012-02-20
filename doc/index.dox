@@ -1,10 +1,10 @@
 #ifndef DOXYGEN_SKIP                                                            
-/* $Id: index.dox 21116 2010-11-11 11:52:10Z rouault $ */               
+/* $Id: index.dox 23318 2011-11-04 21:06:43Z rouault $ */               
 #endif /* DOXYGEN_SKIP */                                                       
 
 /*! \mainpage GDAL - Geospatial Data Abstraction Library
 
-<center><b>Select language</b>: [English]<a href="index_ru.html">[Russian]</a><a href="index_br.html">[Portuguese]</a><a href="http://georezo.net/wiki/main:logiciels:gdal_ogr">[French/Francais]</a></center>
+<center><b>Select language</b>: [English]<a href="index_ru.html">[Russian]</a><a href="index_br.html">[Portuguese]</a><a href="http://gdal.gloobe.org/">[French/Francais]</a></center>
 
 \htmlonly<img src="gdalicon.png" alt="GDAL">\endhtmlonly \latexonly GDAL \endlatexonly
 is a translator library for raster geospatial data formats
@@ -16,8 +16,8 @@ Geospatial Foundation</a>.  As a library, it presents a
 to the calling application for all supported formats.  It also comes with a variety
 of useful \link gdal_utilities.html commandline utilities\endlink
 for data translation and processing.  The 
-<a href="http://trac.osgeo.org/gdal/wiki/Release/1.7.3-News">NEWS</a>
-page describes the November 2010 GDAL/OGR 1.7.3 release.
+<a href="http://trac.osgeo.org/gdal/wiki/Release/1.8.1-News">NEWS</a>
+page describes the July 2011 GDAL/OGR 1.8.1 release.
 
 The related <a href="ogr/index.html">OGR</a> library (which lives within the GDAL source tree) 
 provides a similar capability for simple features vector data.
@@ -59,24 +59,6 @@ Download:
 <li> <a href="wince.html">GDAL for Windows CE</a>
 </ul>
 
-\section foss4g Conference 
- 
-\htmlonly 
-<table border="0" cellspacing="4" cellpadding="4"> 
- 
-<tr><td><a href="http://2010.foss4g.org/"> 
-<img src="http://2010.foss4g.org/images/logo_125x125.jpg" alt="" border="0" width="125" height="125"> 
-</a></td> 
- 
-<td><a href="http://2010.foss4g.org">FOSS4G 2010</a> is the leading annual  
-conference for free and open source geospatial software.  It will include  
-workshops and presentations related to GDAL/OGR, and some of the GDAL/OGR  
-development community will be attending.  It is <i>the</i> event for those  
-interested in GDAL/OGR, other FOSS geospatial technologies and the community  
-around them.</td> 
-</table> 
-\endhtmlonly
-
 \section index_maillist Mailing List
 
 A gdal-announce mailing list <a href="http://lists.osgeo.org/mailman/listinfo/gdal-announce/">subscription</a> is a low volume way of keeping track of major
@@ -89,7 +71,8 @@ reviewed <a href="http://lists.osgeo.org/mailman/listinfo/gdal-dev/">on
 the web</a>.  The mailing list is also available in read-only format by NNTP at
 <a href="news://news.gmane.org/gmane.comp.gis.gdal.devel">news://news.gmane.org/gmane.comp.gis.gdal.devel</a>
 and by HTTP at
-<a href="http://news.gmane.org/gmane.comp.gis.gdal.devel">http://news.gmane.org/gmane.comp.gis.gdal.devel</a>.<p>
+<a href="http://news.gmane.org/gmane.comp.gis.gdal.devel">http://news.gmane.org/gmane.comp.gis.gdal.devel</a>.
+Archives since 2005 are searchable on <a href="http://osgeo-org.1803224.n2.nabble.com/GDAL-Dev-f2022644.html">Nabble</a>.<p>
 
 Some GDAL/OGR users and developers can also often be found in the 
 <a href="irc://irc.freenode.net/#gdal">#gdal</a> IRC channel on irc.freenode.net.<p>

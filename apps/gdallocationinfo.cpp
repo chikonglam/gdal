@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdallocationinfo.cpp 21298 2010-12-20 10:58:34Z rouault $
+ * $Id: gdallocationinfo.cpp 23155 2011-10-01 15:03:13Z rouault $
  *
  * Project:  GDAL
  * Purpose:  Commandline raster query tool.
@@ -33,14 +33,14 @@
 #include "cpl_minixml.h"
 #include <vector>
 
-CPL_CVSID("$Id: gdallocationinfo.cpp 21298 2010-12-20 10:58:34Z rouault $");
+CPL_CVSID("$Id: gdallocationinfo.cpp 23155 2011-10-01 15:03:13Z rouault $");
 
 /******************************************************************************/
 /*! \page gdallocationinfo gdallocationinfo
 
 raster query tool
 
-\section wsynopsis SYNOPSIS
+\section gdallocationinfo_synopsis SYNOPSIS
 
 \htmlonly
 Usage: 
@@ -52,7 +52,7 @@ Usage: gdallocationinfo [--help-general] [-xml] [-lifonly] [-valonly]
                         srcfile [x y]
 \endverbatim
 
-\section wdescription DESCRIPTION
+\section gdallocationinfo_description DESCRIPTION
 
 <p>
 The gdallocationinfo utility provide a mechanism to query information about
@@ -124,7 +124,7 @@ It is anticipated that additional reporting capabilities will be added to
 gdallocationinfo in the future. 
 
 <p>
-\section wexample EXAMPLE
+\section gdallocationinfo_example EXAMPLE
 
 Simple example reporting on pixel (256,256) on the file utm.tif.
 
@@ -151,7 +151,7 @@ $ gdallocationinfo -xml -wgs84 utm.vrt -117.5 33.75
 \endverbatim
 
 \if man
-\section wauthor AUTHORS
+\section gdallocationinfo_author AUTHORS
 Frank Warmerdam <warmerdam@pobox.com>
 \endif
 */
@@ -384,7 +384,9 @@ int main( int argc, char ** argv )
             printf( "Report:\n" );
             printf( "  Location: (%dP,%dL)\n", iPixel, iLine );
         }
-    
+
+        int bPixelReport = TRUE;
+
         if( iPixel < 0 || iLine < 0 
             || iPixel >= GDALGetRasterXSize( hSrcDS )
             || iLine  >= GDALGetRasterYSize( hSrcDS ) )
@@ -395,13 +397,13 @@ int main( int argc, char ** argv )
                 printf("\n");
             else if( !bQuiet )
                 printf( "\nLocation is off this file! No further details to report.\n");
-            anBandList.clear();
+            bPixelReport = FALSE;
         }
         
     /* -------------------------------------------------------------------- */
     /*      Process each band.                                              */
     /* -------------------------------------------------------------------- */
-        for( i = 0; i < (int) anBandList.size(); i++ )
+        for( i = 0; bPixelReport && i < (int) anBandList.size(); i++ )
         {
             GDALRasterBandH hBand = GDALGetRasterBand( hSrcDS, anBandList[i] );
             if (hBand == NULL)

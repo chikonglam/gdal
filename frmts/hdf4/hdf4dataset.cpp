@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: hdf4dataset.cpp 19769 2010-05-25 00:39:46Z ilucena $
+ * $Id: hdf4dataset.cpp 22838 2011-07-30 17:55:35Z rouault $
  *
  * Project:  Hierarchical Data Format Release 4 (HDF4)
  * Purpose:  HDF4 Datasets. Open HDF4 file, fetch metadata and list of
@@ -39,7 +39,7 @@
 #include "hdf4compat.h"
 #include "hdf4dataset.h"
 
-CPL_CVSID("$Id: hdf4dataset.cpp 19769 2010-05-25 00:39:46Z ilucena $");
+CPL_CVSID("$Id: hdf4dataset.cpp 22838 2011-07-30 17:55:35Z rouault $");
 
 CPL_C_START
 void	GDALRegister_HDF4(void);
@@ -771,6 +771,12 @@ GDALDataset *HDF4Dataset::Open( GDALOpenInfo * poOpenInfo )
 /*  Process swath layers.                                               */
 /* -------------------------------------------------------------------- */
         hHDF4 = SWopen( poOpenInfo->pszFilename, DFACC_READ );
+        if( hHDF4 < 0)
+        {
+            delete poDS;
+            CPLError( CE_Failure, CPLE_OpenFailed, "Failed to open HDF4 `%s'.\n", poOpenInfo->pszFilename );
+            return NULL;
+        } 
         nSubDatasets = SWinqswath(poOpenInfo->pszFilename, NULL, &nStrBufSize);
 #if DEBUG
         CPLDebug( "HDF4", "Number of HDF-EOS swaths: %d", (int)nSubDatasets );
@@ -1093,8 +1099,17 @@ GDALDataset *HDF4Dataset::Open( GDALOpenInfo * poOpenInfo )
         pszSDSName = CPLStrdup( CSLFetchNameValue( poDS->papszSubDatasets,
                             "SUBDATASET_1_NAME" ));
         delete poDS;
-        poDS = (HDF4Dataset *) GDALOpen( pszSDSName, poOpenInfo->eAccess );
+        poDS = NULL;
+
+        GDALDataset* poRetDS = (GDALDataset*) GDALOpen( pszSDSName, poOpenInfo->eAccess );
         CPLFree( pszSDSName );
+
+        if (poRetDS)
+        {
+            poRetDS->SetDescription(poOpenInfo->pszFilename);
+        }
+
+        return poRetDS;
     }
     else
     {

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gifdataset.cpp 20996 2010-10-28 18:38:15Z rouault $
+ * $Id: gifdataset.cpp 23621 2011-12-20 23:26:56Z rouault $
  *
  * Project:  GIF Driver
  * Purpose:  Implement GDAL GIF Support using libungif code.  
@@ -29,12 +29,9 @@
 
 #include "gdal_pam.h"
 #include "cpl_string.h"
+#include "gifabstractdataset.h"
 
-CPL_CVSID("$Id: gifdataset.cpp 20996 2010-10-28 18:38:15Z rouault $");
-
-CPL_C_START
-#include "gif_lib.h"
-CPL_C_END
+CPL_CVSID("$Id: gifdataset.cpp 23621 2011-12-20 23:26:56Z rouault $");
 
 CPL_C_START
 void	GDALRegister_GIF(void);
@@ -51,38 +48,27 @@ static int VSIGIFWriteFunc( GifFileType *, const GifByteType *, int );
 
 /************************************************************************/
 /* ==================================================================== */
-/*				GIFDataset				*/
+/*	                            GIFDataset                              */
 /* ==================================================================== */
 /************************************************************************/
 
 class GIFRasterBand;
 
-class GIFDataset : public GDALPamDataset
+class GIFDataset : public GIFAbstractDataset
 {
     friend class GIFRasterBand;
 
-    VSILFILE        *fp;
-
-    GifFileType *hGifFile;
-
-    char        *pszProjection;
-    int	        bGeoTransformValid;
-    double      adfGeoTransform[6];
-
-    int         nGCPCount;
-    GDAL_GCP	*pasGCPList;
-
   public:
                  GIFDataset();
-                 ~GIFDataset();
 
-    virtual const char *GetProjectionRef();
-    virtual CPLErr GetGeoTransform( double * );
-    virtual int    GetGCPCount();
-    virtual const char *GetGCPProjection();
-    virtual const GDAL_GCP *GetGCPs();
     static GDALDataset *Open( GDALOpenInfo * );
-    static int          Identify( GDALOpenInfo * );
+
+    static GDALDataset* CreateCopy( const char * pszFilename,
+                                    GDALDataset *poSrcDS,
+                                    int bStrict, char ** papszOptions,
+                                    GDALProgressFunc pfnProgress,
+                                    void * pProgressData );
+
 };
 
 /************************************************************************/
@@ -132,6 +118,13 @@ GIFRasterBand::GIFRasterBand( GIFDataset *poDS, int nBand,
     nBlockYSize = 1;
 
     psImage = psSavedImage;
+
+    poColorTable = NULL;
+    panInterlaceMap = NULL;
+    nTransparentColor = 0;
+
+    if (psImage == NULL)
+        return;
 
 /* -------------------------------------------------------------------- */
 /*      Setup interlacing map if required.                              */
@@ -237,6 +230,12 @@ CPLErr GIFRasterBand::IReadBlock( int nBlockXOff, int nBlockYOff,
 {
     CPLAssert( nBlockXOff == 0 );
 
+    if (psImage == NULL)
+    {
+        memset(pImage, 0, nBlockXSize);
+        return CE_None;
+    }
+
     if( panInterlaceMap != NULL )
         nBlockYOff = panInterlaceMap[nBlockYOff];
 
@@ -291,132 +290,7 @@ double GIFRasterBand::GetNoDataValue( int *pbSuccess )
 /************************************************************************/
 
 GIFDataset::GIFDataset()
-
 {
-    hGifFile = NULL;
-    fp = NULL;
-
-    pszProjection = NULL;
-    bGeoTransformValid = FALSE;
-    adfGeoTransform[0] = 0.0;
-    adfGeoTransform[1] = 1.0;
-    adfGeoTransform[2] = 0.0;
-    adfGeoTransform[3] = 0.0;
-    adfGeoTransform[4] = 0.0;
-    adfGeoTransform[5] = 1.0;
-
-    nGCPCount = 0;
-    pasGCPList = NULL;
-}
-
-/************************************************************************/
-/*                           ~GIFDataset()                            */
-/************************************************************************/
-
-GIFDataset::~GIFDataset()
-
-{
-    FlushCache();
-
-    if ( pszProjection )
-        CPLFree( pszProjection );
-
-    if ( nGCPCount > 0 )
-    {
-        GDALDeinitGCPs( nGCPCount, pasGCPList );
-        CPLFree( pasGCPList );
-    }
-
-    if( hGifFile )
-        DGifCloseFile( hGifFile );
-
-    if( fp != NULL )
-        VSIFCloseL( fp );
-}
-
-/************************************************************************/
-/*                        GetProjectionRef()                            */
-/************************************************************************/
-
-const char *GIFDataset::GetProjectionRef()
-
-{
-    if ( pszProjection && bGeoTransformValid )
-        return pszProjection;
-    else
-        return GDALPamDataset::GetProjectionRef();
-}
-
-/************************************************************************/
-/*                          GetGeoTransform()                           */
-/************************************************************************/
-
-CPLErr GIFDataset::GetGeoTransform( double * padfTransform )
-
-{
-    if( bGeoTransformValid )
-    {
-        memcpy( padfTransform, adfGeoTransform, sizeof(double)*6 );
-        return CE_None;
-    }
-    else
-        return GDALPamDataset::GetGeoTransform( padfTransform );
-}
-
-/************************************************************************/
-/*                            GetGCPCount()                             */
-/************************************************************************/
-
-int GIFDataset::GetGCPCount()
-
-{
-    if (nGCPCount > 0)
-        return nGCPCount;
-    else
-        return GDALPamDataset::GetGCPCount();
-}
-
-/************************************************************************/
-/*                          GetGCPProjection()                          */
-/************************************************************************/
-
-const char *GIFDataset::GetGCPProjection()
-
-{
-    if ( pszProjection && nGCPCount > 0 )
-        return pszProjection;
-    else
-        return GDALPamDataset::GetGCPProjection();
-}
-
-/************************************************************************/
-/*                               GetGCPs()                              */
-/************************************************************************/
-
-const GDAL_GCP *GIFDataset::GetGCPs()
-
-{
-    if (nGCPCount > 0)
-        return pasGCPList;
-    else
-        return GDALPamDataset::GetGCPs();
-}
-
-/************************************************************************/
-/*                                Open()                                */
-/************************************************************************/
-
-int GIFDataset::Identify( GDALOpenInfo * poOpenInfo )
-
-{
-    if( poOpenInfo->nHeaderBytes < 8 )
-        return FALSE;
-
-    if( strncmp((const char *) poOpenInfo->pabyHeader, "GIF87a",5) != 0
-        && strncmp((const char *) poOpenInfo->pabyHeader, "GIF89a",5) != 0 )
-        return FALSE;
-
-    return TRUE;
 }
 
 /************************************************************************/
@@ -470,7 +344,22 @@ GDALDataset *GIFDataset::Open( GDALOpenInfo * poOpenInfo )
 
     while( DGifGetRecordType(hGifFile, &RecordType) != GIF_ERROR
         && RecordType != TERMINATE_RECORD_TYPE
-        && RecordType != IMAGE_DESC_RECORD_TYPE ) {}
+        && RecordType != IMAGE_DESC_RECORD_TYPE )
+    {
+        /* Skip extension records found before IMAGE_DESC_RECORD_TYPE */
+        if (RecordType == EXTENSION_RECORD_TYPE)
+        {
+            int nFunction;
+            GifByteType *pExtData;
+            if (DGifGetExtension(hGifFile, &nFunction, &pExtData) == GIF_ERROR)
+                break;
+            while (pExtData != NULL)
+            {
+                if (DGifGetExtensionNext(hGifFile, &pExtData) == GIF_ERROR)
+                    break;
+            }
+        }
+    }
 
     if( RecordType == IMAGE_DESC_RECORD_TYPE  &&
         DGifGetImageDesc(hGifFile) != GIF_ERROR)
@@ -505,7 +394,7 @@ GDALDataset *GIFDataset::Open( GDALOpenInfo * poOpenInfo )
 
     nGifErr = DGifSlurp( hGifFile );
 
-    if( nGifErr != GIF_OK )
+    if( nGifErr != GIF_OK || hGifFile->SavedImages == NULL )
     {
         VSIFCloseL( fp );
         DGifCloseFile(hGifFile);
@@ -562,29 +451,9 @@ GDALDataset *GIFDataset::Open( GDALOpenInfo * poOpenInfo )
     }
 
 /* -------------------------------------------------------------------- */
-/*      Check for world file.                                           */
+/*      Check for georeferencing.                                       */
 /* -------------------------------------------------------------------- */
-    poDS->bGeoTransformValid = 
-        GDALReadWorldFile( poOpenInfo->pszFilename, NULL, 
-                           poDS->adfGeoTransform );
-    if ( !poDS->bGeoTransformValid )
-    {
-        poDS->bGeoTransformValid =
-            GDALReadWorldFile( poOpenInfo->pszFilename, ".wld", 
-                               poDS->adfGeoTransform );
-
-        if ( !poDS->bGeoTransformValid )
-        {
-            int bOziFileOK = 
-                GDALReadOziMapFile( poOpenInfo->pszFilename,
-                                    poDS->adfGeoTransform, 
-                                    &poDS->pszProjection,
-                                    &poDS->nGCPCount, &poDS->pasGCPList );
-
-            if ( bOziFileOK && poDS->nGCPCount == 0 )
-                 poDS->bGeoTransformValid = TRUE;
-        }
-    }
+    poDS->DetectGeoreferencing(poOpenInfo);
 
 /* -------------------------------------------------------------------- */
 /*      Initialize any PAM information.                                 */
@@ -601,11 +470,11 @@ GDALDataset *GIFDataset::Open( GDALOpenInfo * poOpenInfo )
 }
 
 /************************************************************************/
-/*                           GIFCreateCopy()                            */
+/*                             CreateCopy()                             */
 /************************************************************************/
 
-static GDALDataset *
-GIFCreateCopy( const char * pszFilename, GDALDataset *poSrcDS, 
+GDALDataset *
+GIFDataset::CreateCopy( const char * pszFilename, GDALDataset *poSrcDS, 
                int bStrict, char ** papszOptions, 
                GDALProgressFunc pfnProgress, void * pProgressData )
 
@@ -657,7 +526,7 @@ GIFCreateCopy( const char * pszFilename, GDALDataset *poSrcDS,
     GifFileType *hGifFile;
     VSILFILE *fp;
 
-    fp = VSIFOpenL( pszFilename, "w" );
+    fp = VSIFOpenL( pszFilename, "wb" );
     if( fp == NULL )
     {
         CPLError( CE_Failure, CPLE_OpenFailed, 
@@ -848,23 +717,6 @@ GIFCreateCopy( const char * pszFilename, GDALDataset *poSrcDS,
     }
     hGifFile = NULL;
 
-    /* This is a hack to write a GIF89a instead of GIF87a */
-    /* (we have to, since we are using graphical extension block) */
-    /* EGifSpew would write GIF89a when it detects an extension block if we were using it */
-    /* As we don't, we could have used EGifSetGifVersion instead, but the version of libungif */
-    /* in GDAL has a bug : it writes on read-only memory ! */
-    /* (this is a well-known problem. Just google for "EGifSetGifVersion segfault") */
-    /* Most readers don't even care if it is GIF87a or GIF89a, but it is */
-    /* better to write the right version */
-
-    VSIFSeekL(fp, 0, SEEK_SET);
-    if (VSIFWriteL("GIF89a", 1, 6, fp) != 6)
-    {
-        CPLError( CE_Failure, CPLE_AppDefined, 
-                  "Error writing gif file." );
-        goto error;
-    }
-
     VSIFCloseL( fp );
     fp = NULL;
 
@@ -882,13 +734,28 @@ GIFCreateCopy( const char * pszFilename, GDALDataset *poSrcDS,
 /* -------------------------------------------------------------------- */
 /*      Re-open dataset, and copy any auxilary pam information.         */
 /* -------------------------------------------------------------------- */
-    poDS = (GDALPamDataset *) 
-        GDALOpen( pszFilename, GA_ReadOnly );
 
-    if( poDS )
+    /* If outputing to stdout, we can't reopen it, so we'll return */
+    /* a fake dataset to make the caller happy */
+    CPLPushErrorHandler(CPLQuietErrorHandler);
+    poDS = (GDALPamDataset*) GDALOpen(pszFilename, GA_ReadOnly);
+    CPLPopErrorHandler();
+    if (poDS)
+    {
         poDS->CloneInfo( poSrcDS, GCIF_PAM_DEFAULT );
+        return poDS;
+    }
+    else
+    {
+        CPLErrorReset();
 
-    return poDS;
+        GIFDataset* poGIF_DS = new GIFDataset();
+        poGIF_DS->nRasterXSize = nXSize;
+        poGIF_DS->nRasterYSize = nYSize;
+        for(int i=0;i<nBands;i++)
+            poGIF_DS->SetBand( i+1, new GIFRasterBand( poGIF_DS, i+1, NULL, 0 ) );
+        return poGIF_DS;
+    }
 
 error:
     if (hGifFile)
@@ -924,8 +791,25 @@ static int VSIGIFWriteFunc( GifFileType *psGFile,
                             const GifByteType *pabyBuffer, int nBytesToWrite )
 
 {
-    return VSIFWriteL( (void *) pabyBuffer, 1, nBytesToWrite, 
-                       (VSILFILE *) psGFile->UserData );
+    VSILFILE* fp = (VSILFILE *) psGFile->UserData;
+    if ( VSIFTellL(fp) == 0 && nBytesToWrite >= 6 &&
+         memcmp(pabyBuffer, "GIF87a", 6) == 0 )
+    {
+        /* This is a hack to write a GIF89a instead of GIF87a */
+        /* (we have to, since we are using graphical extension block) */
+        /* EGifSpew would write GIF89a when it detects an extension block if we were using it */
+        /* As we don't, we could have used EGifSetGifVersion instead, but the version of libungif */
+        /* in GDAL has a bug : it writes on read-only memory ! */
+        /* (this is a well-known problem. Just google for "EGifSetGifVersion segfault") */
+        /* Most readers don't even care if it is GIF87a or GIF89a, but it is */
+        /* better to write the right version */
+
+        int nRet = VSIFWriteL("GIF89a", 1, 6, fp);
+        nRet += VSIFWriteL( (char *) pabyBuffer + 6, 1, nBytesToWrite - 6, fp );
+        return nRet;
+    }
+    else
+        return VSIFWriteL( (void *) pabyBuffer, 1, nBytesToWrite, fp );
 }
 
 /************************************************************************/
@@ -960,8 +844,8 @@ void GDALRegister_GIF()
         poDriver->SetMetadataItem( GDAL_DCAP_VIRTUALIO, "YES" );
 
         poDriver->pfnOpen = GIFDataset::Open;
-        poDriver->pfnCreateCopy = GIFCreateCopy;
-        poDriver->pfnIdentify = GIFDataset::Identify;
+        poDriver->pfnCreateCopy = GIFDataset::CreateCopy;
+        poDriver->pfnIdentify = GIFAbstractDataset::Identify;
 
         GetGDALDriverManager()->RegisterDriver( poDriver );
     }

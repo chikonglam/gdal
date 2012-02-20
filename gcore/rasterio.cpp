@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: rasterio.cpp 22421 2011-05-23 21:24:30Z rouault $
+ * $Id: rasterio.cpp 22420 2011-05-23 21:23:29Z rouault $
  *
  * Project:  GDAL Core
  * Purpose:  Contains default implementation of GDALRasterBand::IRasterIO()
@@ -47,7 +47,7 @@
 #endif
 
 
-CPL_CVSID("$Id: rasterio.cpp 22421 2011-05-23 21:24:30Z rouault $");
+CPL_CVSID("$Id: rasterio.cpp 22420 2011-05-23 21:23:29Z rouault $");
 
 /************************************************************************/
 /*                             IRasterIO()                              */
@@ -69,6 +69,15 @@ CPLErr GDALRasterBand::IRasterIO( GDALRWFlag eRWFlag,
     GByte       *pabySrcBlock = NULL;
     GDALRasterBlock *poBlock = NULL;
     int         nLBlockX=-1, nLBlockY=-1, iBufYOff, iBufXOff, iSrcY;
+
+    if( eRWFlag == GF_Write && eFlushBlockErr != CE_None )
+    {
+        CPLError(eFlushBlockErr, CPLE_AppDefined,
+                 "An error occured while writing a dirty block");
+        CPLErr eErr = eFlushBlockErr;
+        eFlushBlockErr = CE_None;
+        return eErr;
+    }
 
 /* ==================================================================== */
 /*      A common case is the data requested with the destination        */
@@ -167,10 +176,21 @@ CPLErr GDALRasterBand::IRasterIO( GDALRWFlag eRWFlag,
     if( (nBufXSize < nXSize || nBufYSize < nYSize)
         && GetOverviewCount() > 0 && eRWFlag == GF_Read )
     {
-        if( OverviewRasterIO( eRWFlag, nXOff, nYOff, nXSize, nYSize, 
-                              pData, nBufXSize, nBufYSize, 
-                              eBufType, nPixelSpace, nLineSpace ) == CE_None )
-            return CE_None;
+        int         nOverview;
+
+        nOverview =
+            GDALBandGetBestOverviewLevel(this, nXOff, nYOff, nXSize, nYSize,
+                                        nBufXSize, nBufYSize);
+        if (nOverview >= 0)
+        {
+            GDALRasterBand* poOverviewBand = GetOverview(nOverview);
+            if (poOverviewBand == NULL)
+                return CE_Failure;
+
+            return poOverviewBand->RasterIO( eRWFlag, nXOff, nYOff, nXSize, nYSize,
+                                            pData, nBufXSize, nBufYSize, eBufType,
+                                            nPixelSpace, nLineSpace );
+        }
     }
 
 /* ==================================================================== */

@@ -178,6 +178,8 @@ int swqlex( YYSTYPE *ppNode, swq_parse_context *context )
             nReturn = SWQT_LIKE;
         else if( EQUAL(osToken,"ILIKE") )
             nReturn = SWQT_LIKE;
+        else if( EQUAL(osToken,"ESCAPE") )
+            nReturn = SWQT_ESCAPE;
         else if( EQUAL(osToken,"NULL") )
             nReturn = SWQT_NULL;
         else if( EQUAL(osToken,"IS") )
@@ -263,7 +265,7 @@ swq_select_summarize( swq_select *select_info,
 /*      Create the summary information if this is the first row         */
 /*      being processed.                                                */
 /* -------------------------------------------------------------------- */
-    if( select_info->column_summary == NULL )
+    if( select_info->column_summary == NULL && value != NULL )
     {
         int i;
 
@@ -292,7 +294,13 @@ swq_select_summarize( swq_select *select_info,
            data structure to achieve any sort of efficiency. */
         for( i = 0; i < summary->count; i++ )
         {
-            if( strcmp(value,summary->distinct_list[i]) == 0 )
+            if( value == NULL )
+            {
+                if (summary->distinct_list[i] == NULL)
+                    break;
+            }
+            else if( summary->distinct_list[i] != NULL &&
+                     strcmp(value,summary->distinct_list[i]) == 0 )
                 break;
         }
         
@@ -305,7 +313,7 @@ swq_select_summarize( swq_select *select_info,
             memcpy( summary->distinct_list, old_list, 
                     sizeof(char *) * summary->count );
             summary->distinct_list[(summary->count)++] = 
-                CPLStrdup( value );
+                (value != NULL) ? CPLStrdup( value ) : NULL;
 
             CPLFree(old_list);
         }
@@ -367,8 +375,15 @@ static int FORCE_CDECL swq_compare_int( const void *item1, const void *item2 )
 {
     int  v1, v2;
 
-    v1 = atoi(*((const char **) item1));
-    v2 = atoi(*((const char **) item2));
+    const char* pszStr1 = *((const char **) item1);
+    const char* pszStr2 = *((const char **) item2);
+    if (pszStr1 == NULL)
+        return (pszStr2 == NULL) ? 0 : -1;
+    else if (pszStr2 == NULL)
+        return 1;
+
+    v1 = atoi(pszStr1);
+    v2 = atoi(pszStr2);
 
     if( v1 < v2 )
         return -1;
@@ -382,8 +397,15 @@ static int FORCE_CDECL swq_compare_real( const void *item1, const void *item2 )
 {
     double  v1, v2;
 
-    v1 = CPLAtof(*((const char **) item1));
-    v2 = CPLAtof(*((const char **) item2));
+    const char* pszStr1 = *((const char **) item1);
+    const char* pszStr2 = *((const char **) item2);
+    if (pszStr1 == NULL)
+        return (pszStr2 == NULL) ? 0 : -1;
+    else if (pszStr2 == NULL)
+        return 1;
+
+    v1 = CPLAtof(pszStr1);
+    v2 = CPLAtof(pszStr2);
 
     if( v1 < v2 )
         return -1;
@@ -395,7 +417,14 @@ static int FORCE_CDECL swq_compare_real( const void *item1, const void *item2 )
 
 static int FORCE_CDECL swq_compare_string( const void *item1, const void *item2 )
 {
-    return strcmp( *((const char **) item1), *((const char **) item2) );
+    const char* pszStr1 = *((const char **) item1);
+    const char* pszStr2 = *((const char **) item2);
+    if (pszStr1 == NULL)
+        return (pszStr2 == NULL) ? 0 : -1;
+    else if (pszStr2 == NULL)
+        return 1;
+
+    return strcmp( pszStr1, pszStr2 );
 }
 
 /************************************************************************/
@@ -608,4 +637,43 @@ CPLErr swq_expr_compile2( const char *where_clause,
         *expr_out = NULL;
         return CE_Failure;
     }
+}
+
+/************************************************************************/
+/*                        swq_is_reserved_keyword()                     */
+/************************************************************************/
+
+static const char* apszSQLReservedKeywords[] = {
+    "OR",
+    "AND",
+    "NOT",
+    "LIKE",
+    "IS",
+    "NULL",
+    "IN",
+    "BETWEEN",
+    "CAST",
+    "DISTINCT",
+    "ESCAPE",
+    "SELECT",
+    "LEFT",
+    "JOIN",
+    "WHERE",
+    "ON",
+    "ORDER",
+    "BY",
+    "FROM",
+    "AS",
+    "ASC",
+    "DESC"
+};
+
+int swq_is_reserved_keyword(const char* pszStr)
+{
+    for(int i = 0; i < (int)(sizeof(apszSQLReservedKeywords)/sizeof(char*)); i++)
+    {
+        if (EQUAL(pszStr, apszSQLReservedKeywords[i]))
+            return TRUE;
+    }
+    return FALSE;
 }

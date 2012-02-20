@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrregisterall.cpp 21372 2011-01-01 23:53:54Z rouault $
+ * $Id: ogrregisterall.cpp 23381 2011-11-17 21:55:45Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Function to register all known OGR drivers.
@@ -29,7 +29,7 @@
 
 #include "ogrsf_frmts.h"
 
-CPL_CVSID("$Id: ogrregisterall.cpp 21372 2011-01-01 23:53:54Z rouault $");
+CPL_CVSID("$Id: ogrregisterall.cpp 23381 2011-11-17 21:55:45Z rouault $");
 
 /************************************************************************/
 /*                           OGRRegisterAll()                           */
@@ -108,7 +108,14 @@ void OGRRegisterAll()
 #endif
 #ifdef ODBC_ENABLED
     RegisterOGRODBC();
-#endif    
+#endif
+
+/* Register before PGeo and Geomedia drivers */
+/* that don't work well on Linux */
+#ifdef MDB_ENABLED
+    RegisterOGRMDB();
+#endif
+
 #ifdef PGEO_ENABLED
     RegisterOGRPGeo();
 #endif
@@ -135,6 +142,9 @@ void OGRRegisterAll()
 #endif
 #ifdef SDE_ENABLED
     RegisterOGRSDE();
+#endif
+#ifdef FGDB_ENABLED
+    RegisterOGRFileGDB();
 #endif
 #ifdef XPLANE_ENABLED
     RegisterOGRXPlane();
@@ -196,5 +206,35 @@ void OGRRegisterAll()
 #endif
 #ifdef AERONAVFAA_ENABLED
     RegisterOGRAeronavFAA();
+#endif
+#ifdef GEOMEDIA_ENABLED
+    RegisterOGRGeomedia();
+#endif
+#ifdef EDIGEO_ENABLED
+    RegisterOGREDIGEO();
+#endif
+#ifdef GFT_ENABLED
+    RegisterOGRGFT();
+#endif
+#ifdef SVG_ENABLED
+    RegisterOGRSVG();
+#endif
+#ifdef COUCHDB_ENABLED
+    RegisterOGRCouchDB();
+#endif
+#ifdef IDRISI_ENABLED
+    RegisterOGRIdrisi();
+#endif
+#ifdef ARCGEN_ENABLED
+    RegisterOGRARCGEN();
+#endif
+#ifdef SEGUKOOA_ENABLED
+    RegisterOGRSEGUKOOA();
+#endif
+#ifdef SEGY_ENABLED
+    RegisterOGRSEGY();
+#endif
+#ifdef FREEXL_ENABLED
+    RegisterOGRXLS();
 #endif
 } /* OGRRegisterAll */

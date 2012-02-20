@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gmlreader.h 21390 2011-01-03 22:43:07Z rouault $
+ * $Id: gmlreader.h 23547 2011-12-12 16:29:27Z rouault $
  *
  * Project:  GML Reader
  * Purpose:  Public Declarations for OGR free GML Reader code.
@@ -33,6 +33,8 @@
 #include "cpl_port.h"
 #include "cpl_minixml.h"
 
+#include <vector>
+
 typedef enum {
     GMLPT_Untyped = 0,
     GMLPT_String = 1,
@@ -52,6 +54,7 @@ typedef struct
 {
     int     nSubProperties;
     char**  papszSubProperties;
+    char*   aszSubProperties[2]; /* Optimization in the case of nSubProperties == 1 */
 } GMLProperty;
 
 class CPL_DLL GMLPropertyDefn
@@ -61,6 +64,7 @@ class CPL_DLL GMLPropertyDefn
     int               m_nWidth;
     int               m_nPrecision;
     char             *m_pszSrcElement;
+    size_t            m_nSrcElementLen;
     int               m_nIndex;
 
 public:
@@ -73,13 +77,14 @@ public:
     GMLPropertyType GetType() const { return m_eType; } 
     void        SetType( GMLPropertyType eType ) { m_eType = eType; }
     void        SetWidth( int nWidth) { m_nWidth = nWidth; }
-    int         GetWidth() { return m_nWidth; }
+    int         GetWidth() const { return m_nWidth; }
     void        SetPrecision( int nPrecision) { m_nPrecision = nPrecision; }
-    int         GetPrecision() { return m_nPrecision; }
+    int         GetPrecision() const { return m_nPrecision; }
     void        SetSrcElement( const char *pszSrcElement );
-    const char *GetSrcElement() { return m_pszSrcElement; }
+    const char *GetSrcElement() const { return m_pszSrcElement; }
+    size_t      GetSrcElementLen() const { return m_nSrcElementLen; }
     void        SetAttributeIndex( int nIndex ) { m_nIndex = nIndex; }
-    int         GetAttributeIndex() { return m_nIndex; }
+    int         GetAttributeIndex() const { return m_nIndex; }
 
     void        AnalysePropertyValue( const GMLProperty* psGMLProperty );
 };
@@ -91,6 +96,8 @@ class CPL_DLL GMLFeatureClass
 {
     char        *m_pszName;
     char        *m_pszElementName;
+    int          n_nNameLen;
+    int          n_nElementNameLen;
     char        *m_pszGeometryElement;
     int         m_nPropertyCount;
     GMLPropertyDefn **m_papoProperty;
@@ -118,6 +125,7 @@ public:
            ~GMLFeatureClass();
 
     const char *GetElementName() const;
+    size_t      GetElementNameLen() const;
     void        SetElementName( const char *pszElementName );
 
     const char *GetGeometryElement() const { return m_pszGeometryElement; }
@@ -129,6 +137,7 @@ public:
     int GetPropertyIndex( const char *pszName ) const;
     GMLPropertyDefn *GetProperty( const char *pszName ) const 
         { return GetProperty( GetPropertyIndex(pszName) ); }
+    int         GetPropertyIndexBySrcElement( const char *pszElement, int nLen ) const;
 
     int         AddProperty( GMLPropertyDefn * );
 
@@ -171,30 +180,26 @@ class CPL_DLL GMLFeature
     int              m_nPropertyCount;
     GMLProperty     *m_pasProperties;
 
-    char           **m_papszGeometryList;
+    int              m_nGeometryCount;
+    CPLXMLNode     **m_papsGeometry; /* NULL-terminated. Alias to m_apsGeometry if m_nGeometryCount <= 1 */
+    CPLXMLNode      *m_apsGeometry[2]; /* NULL-terminated */
 
     // string list of named non-schema properties - used by NAS driver.
-    char           **m_papszOBProperties; 
-    
+    char           **m_papszOBProperties;
+
 public:
                     GMLFeature( GMLFeatureClass * );
                    ~GMLFeature();
 
     GMLFeatureClass*GetClass() const { return m_poClass; }
 
-    void            SetGeometryDirectly( char * );
-    const char     *GetGeometry() const { return (m_papszGeometryList) ? m_papszGeometryList[0] : NULL; }
+    void            SetGeometryDirectly( CPLXMLNode* psGeom );
+    void            AddGeometry( CPLXMLNode* psGeom );
+    const CPLXMLNode* const * GetGeometryList() const { return m_papsGeometry; }
 
-    void            AddGeometry( char * );
-    char**          GetGeometryList() { return m_papszGeometryList; }
+    void            SetPropertyDirectly( int i, char *pszValue );
 
-    void            SetProperty( int i, const char *pszValue );
-    void            SetProperty( const char *pszName, const char *pszValue )
-        { SetProperty( m_poClass->GetPropertyIndex(pszName), pszValue ); }
-
-    const GMLProperty*GetProperty( int i ) const;
-    const GMLProperty*GetProperty( const char *pszName ) const
-        { return GetProperty( m_poClass->GetPropertyIndex(pszName) ); }
+    const GMLProperty*GetProperty( int i ) const { return (i < m_nPropertyCount) ? &m_pasProperties[i] : NULL; }
 
     const char      *GetFID() const { return m_pszFID; }
     void             SetFID( const char *pszFID );
@@ -239,7 +244,12 @@ public:
                                 char **papszSkip = NULL,
                                 const int bStrict = FALSE ) = 0;
 
+    virtual int  HugeFileResolver( const char *pszFile,
+                                   int pbSqlitIsTempFile,
+                                   int iSqliteCacheMB ) = 0;
+
     virtual int PrescanForSchema( int bGetExtents = TRUE ) = 0;
+    virtual int PrescanForTemplate( void ) = 0;
 
     virtual int HasStoppedParsing() = 0;
 
@@ -248,9 +258,14 @@ public:
 
     virtual int SetFilteredClassName(const char* pszClassName) = 0;
     virtual const char* GetFilteredClassName() = 0;
+
+    virtual int IsSequentialLayers() const { return FALSE; }
 };
 
-IGMLReader *CreateGMLReader();
+IGMLReader *CreateGMLReader(int bUseExpatParserPreferably,
+                            int bInvertAxisOrderIfLatLong,
+                            int bConsiderEPSGAsURN,
+                            int bGetSecondaryGeometryOption);
 
 
 #endif /* _GMLREADER_H_INCLUDED */

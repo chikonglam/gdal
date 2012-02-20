@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrkmldatasource.cpp 20841 2010-10-16 15:22:05Z rouault $
+ * $Id: ogrkmldatasource.cpp 23589 2011-12-17 14:21:01Z rouault $
  *
  * Project:  KML Driver
  * Purpose:  Implementation of OGRKMLDataSource class.
@@ -134,7 +134,12 @@ int OGRKMLDataSource::Open( const char * pszNewName, int bTestOpen )
 /* -------------------------------------------------------------------- */
 /*      Classify the nodes                                              */
 /* -------------------------------------------------------------------- */
-    poKMLFile_->classifyNodes();
+    if( !poKMLFile_->classifyNodes() )
+    {
+        delete poKMLFile_;
+        poKMLFile_ = NULL;
+        return FALSE;
+    }
 
 /* -------------------------------------------------------------------- */
 /*      Eliminate the empty containers                                  */
@@ -279,10 +284,11 @@ int OGRKMLDataSource::Create( const char* pszName, char** papszOptions )
 /* -------------------------------------------------------------------- */
 /*      Create the output file.                                         */
 /* -------------------------------------------------------------------- */
-    pszName_ = CPLStrdup( pszName );
 
-    if( EQUAL(pszName, "stdout") || EQUAL(pszName, "/vsistdout/") )
+    if (strcmp(pszName, "/dev/stdout") == 0)
         pszName = "/vsistdout/";
+
+    pszName_ = CPLStrdup( pszName );
 
     fpOutput_ = VSIFOpenL( pszName, "wb" );
     if( fpOutput_ == NULL )
@@ -296,8 +302,6 @@ int OGRKMLDataSource::Create( const char* pszName, char** papszOptions )
 /*      Write out "standard" header.                                    */
 /* -------------------------------------------------------------------- */
     VSIFPrintfL( fpOutput_, "<?xml version=\"1.0\" encoding=\"utf-8\" ?>\n" );	
-
-    nSchemaInsertLocation_ = VSIFTellL( fpOutput_ );
     
     VSIFPrintfL( fpOutput_, "<kml xmlns=\"http://www.opengis.net/kml/2.2\">\n<Document>" );
 
@@ -335,6 +339,7 @@ OGRKMLDataSource::CreateLayer( const char * pszLayerName,
     if (GetLayerCount() > 0)
     {
         VSIFPrintfL( fpOutput_, "</Folder>\n");
+        ((OGRKMLLayer*)GetLayer(GetLayerCount()-1))->SetClosedForWriting();
     }
     
 /* -------------------------------------------------------------------- */

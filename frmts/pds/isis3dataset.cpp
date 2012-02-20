@@ -401,10 +401,10 @@ GDALDataset *ISIS3Dataset::Open( GDALOpenInfo * poOpenInfo )
     double semi_major = 0.0;
     double semi_minor = 0.0;
     double iflattening = 0.0;
-    float center_lat = 0.0;
-    float center_lon = 0.0;
-    float first_std_parallel = 0.0;
-    float second_std_parallel = 0.0;
+    double center_lat = 0.0;
+    double center_lon = 0.0;
+    double first_std_parallel = 0.0;
+    double second_std_parallel = 0.0;
     double radLat, localRadius;
     VSILFILE	*fp;
 
@@ -913,7 +913,7 @@ void GDALRegister_ISIS3()
         poDriver->SetMetadataItem( GDAL_DMD_LONGNAME, 
                                    "USGS Astrogeology ISIS cube (Version 3)" );
         poDriver->SetMetadataItem( GDAL_DMD_HELPTOPIC, 
-                                   "frmt_various.html#ISIS3" );
+                                   "frmt_isis3.html" );
         poDriver->SetMetadataItem( GDAL_DCAP_VIRTUALIO, "YES" );
 
         poDriver->pfnOpen = ISIS3Dataset::Open;

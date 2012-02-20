@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: northwood.cpp 21298 2010-12-20 10:58:34Z rouault $
+ * $Id: northwood.cpp 23577 2011-12-15 19:45:36Z rouault $
  *
  * Project:  GRC/GRD Reader
  * Purpose:  Northwood Format basic implementation
@@ -141,7 +141,7 @@ int nwt_ParseHeader( NWT_GRID * pGrd, char *nwtHeader )
     if (pGrd->iNumColorInflections > 32)
     {
         CPLError(CE_Failure, CPLE_AppDefined, "Corrupt header");
-        pGrd->iNumColorInflections = i;
+        pGrd->iNumColorInflections = (unsigned short)i;
         return FALSE;
     }
     
@@ -183,11 +183,11 @@ int nwt_ParseHeader( NWT_GRID * pGrd, char *nwtHeader )
 
     if( pGrd->cFormat & 0x80 )        // if is GRC load the Dictionary
     {
-        fseek( pGrd->fp,
+        VSIFSeekL( pGrd->fp,
                1024 + (pGrd->nXSide * pGrd->nYSide) * pGrd->nBitsPerPixel / 8,
                SEEK_SET );
 
-        if( !fread( &usTmp, 2, 1, pGrd->fp) )
+        if( !VSIFReadL( &usTmp, 2, 1, pGrd->fp) )
             return FALSE;
         CPL_LSBPTR16(&usTmp);
         pGrd->stClassDict =
@@ -206,7 +206,7 @@ int nwt_ParseHeader( NWT_GRID * pGrd, char *nwtHeader )
         {
             pGrd->stClassDict->stClassifedItem[usTmp] =
               (NWT_CLASSIFIED_ITEM *) calloc( sizeof(NWT_CLASSIFIED_ITEM), 1 );
-            if( !fread( &cTmp, 9, 1, pGrd->fp ) )
+            if( !VSIFReadL( &cTmp, 9, 1, pGrd->fp ) )
                 return FALSE;
             memcpy( (void *) &pGrd->stClassDict->
                     stClassifedItem[usTmp]->usPixVal, (void *) &cTmp[0], 2 );
@@ -228,7 +228,7 @@ int nwt_ParseHeader( NWT_GRID * pGrd, char *nwtHeader )
             if ( pGrd->stClassDict->stClassifedItem[usTmp]->usLen > 256)
                 return FALSE;
 
-            if( !fread( &pGrd->stClassDict->stClassifedItem[usTmp]->szClassName,
+            if( !VSIFReadL( &pGrd->stClassDict->stClassifedItem[usTmp]->szClassName,
                         pGrd->stClassDict->stClassifedItem[usTmp]->usLen,
                         1, pGrd->fp ) )
                 return FALSE;
@@ -294,7 +294,7 @@ int nwt_LoadColors( NWT_RGB * pMap, int mapSize, NWT_GRID * pGrd )
             {
                 // then we must be between i and i-1
                 linearColor( &sColor, &pGrd->stInflection[i - 1],
-                                      &pGrd->stInflection[i], pGrd->fZMin );
+                                      &pGrd->stInflection[i], pGrd->fZMax );
                 index = mapSize - 1;
                 createIP( index, sColor.r, sColor.g, sColor.b, pMap,
                            &nWarkerMark );
@@ -410,15 +410,15 @@ NWT_GRID *nwtOpenGrid( char *filename )
 {
     NWT_GRID *pGrd;
     char nwtHeader[1024];
-    FILE *fp;
+    VSILFILE *fp;
 
-    if( (fp = fopen( filename, "rb" )) == NULL )
+    if( (fp = VSIFOpenL( filename, "rb" )) == NULL )
     {
         fprintf( stderr, "\nCan't open %s\n", filename );
         return NULL;
     }
 
-    if( !fread( nwtHeader, 1024, 1, fp ) )
+    if( !VSIFReadL( nwtHeader, 1024, 1, fp ) )
         return NULL;
 
     if( nwtHeader[0] != 'H' ||
@@ -464,7 +464,7 @@ void nwtCloseGrid( NWT_GRID * pGrd )
         free( pGrd->stClassDict );
     }
     if( pGrd->fp )
-        fclose( pGrd->fp );
+        VSIFCloseL( pGrd->fp );
     free( pGrd );
         return;
 }
@@ -574,8 +574,8 @@ HLS RGBtoHLS( NWT_RGB rgb )
     B = rgb.b;
 
     /* calculate lightness */
-    cMax = MAX( MAX(R,G), B );
-    cMin = MIN( MIN(R,G), B );
+    cMax = (unsigned char) MAX( MAX(R,G), B );
+    cMin = (unsigned char) MIN( MIN(R,G), B );
     hls.l = (((cMax + cMin) * HLSMAX) + RGBMAX) / (2 * RGBMAX);
 
     if( cMax == cMin )
@@ -647,7 +647,7 @@ NWT_RGB HLStoRGB( HLS hls )
 
     if( hls.s == 0 )
     {                            /* achromatic case */
-        rgb.r = rgb.g = rgb.b = (hls.l * RGBMAX) / HLSMAX;
+        rgb.r = rgb.g = rgb.b = (unsigned char) ((hls.l * RGBMAX) / HLSMAX);
         if( hls.h != UNDEFINED )
         {
             /* ERROR */
@@ -663,12 +663,9 @@ NWT_RGB HLStoRGB( HLS hls )
         Magic1 = 2 * hls.l - Magic2;
 
         /* get RGB, change units from HLSMAX to RGBMAX */
-        rgb.r = (HueToRGB (Magic1, Magic2, hls.h + (HLSMAX / 3)) * RGBMAX +
-                 (HLSMAX / 2)) / HLSMAX;
-        rgb.g = (HueToRGB (Magic1, Magic2, hls.h) * RGBMAX + (HLSMAX / 2)) /
-                  HLSMAX;
-        rgb.b = (HueToRGB (Magic1, Magic2, hls.h - (HLSMAX / 3)) * RGBMAX +
-                 (HLSMAX / 2)) / HLSMAX;
+        rgb.r = (unsigned char) ((HueToRGB (Magic1, Magic2, hls.h + (HLSMAX / 3)) * RGBMAX + (HLSMAX / 2)) / HLSMAX);
+        rgb.g = (unsigned char) ((HueToRGB (Magic1, Magic2, hls.h) * RGBMAX + (HLSMAX / 2)) / HLSMAX);
+        rgb.b = (unsigned char) ((HueToRGB (Magic1, Magic2, hls.h - (HLSMAX / 3)) * RGBMAX + (HLSMAX / 2)) / HLSMAX);
     }
 
     return rgb;

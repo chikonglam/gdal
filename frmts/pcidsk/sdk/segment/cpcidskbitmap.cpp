@@ -479,4 +479,57 @@ void CPCIDSKBitmap::PushHistory( const std::string &app,
     CPCIDSKSegment::PushHistory( app, message );
 }
                                  
+/************************************************************************/
+/*                            GetChanInfo()                             */
+/************************************************************************/
+void CPCIDSKBitmap::GetChanInfo( std::string &filename, uint64 &image_offset, 
+                                 uint64 &pixel_offset, uint64 &line_offset, 
+                                 bool &little_endian ) const
 
+{
+    image_offset = 0;
+    pixel_offset = 0;
+    line_offset = 0;
+    little_endian = true;
+    filename = "";
+}
+
+/************************************************************************/
+/*                            SetChanInfo()                             */
+/************************************************************************/
+
+void CPCIDSKBitmap::SetChanInfo( std::string filename, uint64 image_offset, 
+                                  uint64 pixel_offset, uint64 line_offset, 
+                                  bool little_endian )
+
+{
+    ThrowPCIDSKException( "Attempt to SetChanInfo() on a bitmap." );
+}
+
+/************************************************************************/
+/*                            GetEChanInfo()                            */
+/************************************************************************/
+void CPCIDSKBitmap::GetEChanInfo( std::string &filename, int &echannel,
+                                  int &exoff, int &eyoff, 
+                                  int &exsize, int &eysize ) const
+    
+{
+    echannel = 0;
+    exoff = 0;
+    eyoff = 0;
+    exsize = 0;
+    eysize = 0;
+    filename = "";
+}
+
+/************************************************************************/
+/*                            SetEChanInfo()                            */
+/************************************************************************/
+
+void CPCIDSKBitmap::SetEChanInfo( std::string filename, int echannel,
+                                  int exoff, int eyoff, 
+                                  int exsize, int eysize )
+
+{
+    ThrowPCIDSKException( "Attempt to SetEChanInfo() on a bitmap." );
+}

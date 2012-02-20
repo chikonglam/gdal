@@ -31,7 +31,7 @@
   the PGEO_DRIVER_TEMPLATE Config Option was added to provide a way to 
   programmatically set the DSN programmatically with the filename as 
   an argument.   In cases where the driver name is known, this allows for
-  the construction of the DNS based on that information in a manner similar
+  the construction of the DSN based on that information in a manner similar
   to the default (used for Windows access to the Microsoft Access Driver).</p>
   
   <p>OGR treats all feature tables as layers. Most geometry types
@@ -50,6 +50,9 @@ by passing <strong>"OGRSQL"</strong> string to the ExecuteSQL()
 method, as name of the SQL dialect.</p>
 
   <h2>How to use PGeo driver with unixODBC and MDB Tools (on Unix and Linux)</h2>
+
+  <p>Starting with GDAL/OGR 1.9.0, the <a href="drv_mdb.html">MDB</a> driver is an alternate
+     way of reading ESRI Personal GeoDatabase .mdb files without requiring unixODBC and MDB Tools</p>
 
   <p>This article gives step-by-step explanation of how to use OGR
   with unixODBC package and how to access Personal Geodatabase with
@@ -204,13 +207,15 @@ Layer name: ...
 
   <ul>
       <li><a href="http://www.esri.com/software/arcgis/geodatabase/index.html">About ESRI Geodatabase</a></li>
-      <li><a href="http://sourceforge.net/mailarchive/forum.php?thread_id=10463538&forum_id=5183">[mdbtools-dev] DSN-less connection not supported?</a></li>
+      <li><a href="http://sourceforge.net/mailarchive/message.php?msg_id=5998236">[mdbtools-dev] DSN-less connection not supported?</a></li>
   </ul>
 
-  <p>If you have any comments or questions, don't hesitate to post
-  them on the <a href=
-  "mailto:gdal-dev@lists.maptools.org">gdal-dev@lists.maptools.org</a>
-  mailing list.</p>
+  <h2>See also</h2>
+
+  <ul>
+  <li><a href="drv_mdb.html">MDB</a> driver page</li>
+  </ul>
+
 </body>
 </html>
 

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: vrtsources.cpp 21809 2011-02-23 21:01:09Z rouault $
+ * $Id: vrtsources.cpp 23465 2011-12-04 15:54:52Z rouault $
  *
  * Project:  Virtual GDAL Datasets
  * Purpose:  Implementation of VRTSimpleSource, VRTFuncSource and 
@@ -35,7 +35,7 @@
 
 #include <algorithm>
 
-CPL_CVSID("$Id: vrtsources.cpp 21809 2011-02-23 21:01:09Z rouault $");
+CPL_CVSID("$Id: vrtsources.cpp 23465 2011-12-04 15:54:52Z rouault $");
 
 /************************************************************************/
 /* ==================================================================== */
@@ -72,6 +72,7 @@ VRTSimpleSource::VRTSimpleSource()
     poRasterBand = NULL;
     poMaskBandMainBand = NULL;
     bNoDataSet = FALSE;
+    dfNoDataValue = VRT_NODATA_UNSET;
 }
 
 /************************************************************************/
@@ -203,12 +204,20 @@ CPLXMLNode *VRTSimpleSource::SerializeToXML( const char *pszVRTPath )
     psSrc = CPLCreateXMLNode( NULL, CXT_Element, "SimpleSource" );
 
     VSIStatBufL sStat;
+    if ( strstr(poDS->GetDescription(), "/vsicurl/http") != NULL ||
+         strstr(poDS->GetDescription(), "/vsicurl/ftp") != NULL )
+    {
+        /* Testing the existence of remote ressources can be excruciating */
+        /* slow, so let's just suppose they exist */
+        pszRelativePath = poDS->GetDescription();
+        bRelativeToVRT = FALSE;
+    }
     /* If this isn't actually a file, don't even try to know if it is */
     /* a relative path. It can't be !, and unfortunately */
     /* CPLIsFilenameRelative() can only work with strings that are filenames */
     /* To be clear NITF_TOC_ENTRY:CADRG_JOG-A_250K_1_0:some_path isn't a relative */
     /* file path */
-    if( VSIStatExL( poDS->GetDescription(), &sStat, VSI_STAT_EXISTS_FLAG ) != 0 )
+    else if( VSIStatExL( poDS->GetDescription(), &sStat, VSI_STAT_EXISTS_FLAG ) != 0 )
     {
         pszRelativePath = poDS->GetDescription();
         bRelativeToVRT = FALSE;
@@ -322,7 +331,7 @@ CPLErr VRTSimpleSource::XMLInit( CPLXMLNode *psSrc, const char *pszVRTPath )
     }
     else
         nSrcBand = atoi(pszSourceBand);
-    if (nSrcBand <= 0)
+    if (!GDALCheckBandCount(nSrcBand, 0))
     {
         CPLError( CE_Warning, CPLE_AppDefined,
                   "Invalid <SourceBand> element in VRTRasterBand." );
@@ -457,9 +466,18 @@ void VRTSimpleSource::GetFileList(char*** ppapszFileList, int *pnSize,
 /* -------------------------------------------------------------------- */
 /*      Is the filename even a real filesystem object?                  */
 /* -------------------------------------------------------------------- */
-        VSIStatBufL  sStat;
-        if( VSIStatExL( pszFilename, &sStat, VSI_STAT_EXISTS_FLAG ) != 0 )
-            return;
+        if ( strstr(pszFilename, "/vsicurl/http") != NULL ||
+             strstr(pszFilename, "/vsicurl/ftp") != NULL )
+        {
+            /* Testing the existence of remote ressources can be excruciating */
+            /* slow, so let's just suppose they exist */
+        }
+        else
+        {
+            VSIStatBufL  sStat;
+            if( VSIStatExL( pszFilename, &sStat, VSI_STAT_EXISTS_FLAG ) != 0 )
+                return;
+        }
             
 /* -------------------------------------------------------------------- */
 /*      Is it already in the list ?                                     */
@@ -486,6 +504,38 @@ void VRTSimpleSource::GetFileList(char*** ppapszFileList, int *pnSize,
         
         (*pnSize) ++;
     }
+}
+
+/************************************************************************/
+/*                             GetBand()                                */
+/************************************************************************/
+
+GDALRasterBand* VRTSimpleSource::GetBand()
+{
+    return poMaskBandMainBand ? NULL : poRasterBand;
+}
+
+/************************************************************************/
+/*                       IsSameExceptBandNumber()                       */
+/************************************************************************/
+
+int VRTSimpleSource::IsSameExceptBandNumber(VRTSimpleSource* poOtherSource)
+{
+    return nSrcXOff == poOtherSource->nSrcXOff &&
+           nSrcYOff == poOtherSource->nSrcYOff &&
+           nSrcXSize == poOtherSource->nSrcXSize &&
+           nSrcYSize == poOtherSource->nSrcYSize &&
+           nDstXOff == poOtherSource->nDstXOff &&
+           nDstYOff == poOtherSource->nDstYOff &&
+           nDstXSize == poOtherSource->nDstXSize &&
+           nDstYSize == poOtherSource->nDstYSize &&
+           bNoDataSet == poOtherSource->bNoDataSet &&
+           dfNoDataValue == poOtherSource->dfNoDataValue &&
+           GetBand() != NULL && poOtherSource->GetBand() != NULL &&
+           GetBand()->GetDataset() != NULL &&
+           poOtherSource->GetBand()->GetDataset() != NULL &&
+           EQUAL(GetBand()->GetDataset()->GetDescription(),
+                 poOtherSource->GetBand()->GetDataset()->GetDescription());
 }
 
 /************************************************************************/
@@ -757,6 +807,107 @@ VRTSimpleSource::RasterIO( int nXOff, int nYOff, int nXSize, int nYSize,
 }
 
 /************************************************************************/
+/*                             GetMinimum()                             */
+/************************************************************************/
+
+double VRTSimpleSource::GetMinimum( int nXSize, int nYSize, int *pbSuccess )
+{
+    // The window we will actually request from the source raster band.
+    int nReqXOff, nReqYOff, nReqXSize, nReqYSize;
+
+    // The window we will actual set _within_ the pData buffer.
+    int nOutXOff, nOutYOff, nOutXSize, nOutYSize;
+
+    if( !GetSrcDstWindow( 0, 0, nXSize, nYSize,
+                          nXSize, nYSize,
+                          &nReqXOff, &nReqYOff, &nReqXSize, &nReqYSize,
+                          &nOutXOff, &nOutYOff, &nOutXSize, &nOutYSize ) ||
+        nReqXOff != 0 || nReqYOff != 0 ||
+        nReqXSize != poRasterBand->GetXSize() ||
+        nReqYSize != poRasterBand->GetYSize())
+    {
+        *pbSuccess = FALSE;
+        return 0;
+    }
+
+    return poRasterBand->GetMinimum(pbSuccess);
+}
+
+/************************************************************************/
+/*                             GetMaximum()                             */
+/************************************************************************/
+
+double VRTSimpleSource::GetMaximum( int nXSize, int nYSize, int *pbSuccess )
+{
+    // The window we will actually request from the source raster band.
+    int nReqXOff, nReqYOff, nReqXSize, nReqYSize;
+
+    // The window we will actual set _within_ the pData buffer.
+    int nOutXOff, nOutYOff, nOutXSize, nOutYSize;
+
+    if( !GetSrcDstWindow( 0, 0, nXSize, nYSize,
+                          nXSize, nYSize,
+                          &nReqXOff, &nReqYOff, &nReqXSize, &nReqYSize,
+                          &nOutXOff, &nOutYOff, &nOutXSize, &nOutYSize ) ||
+        nReqXOff != 0 || nReqYOff != 0 ||
+        nReqXSize != poRasterBand->GetXSize() ||
+        nReqYSize != poRasterBand->GetYSize())
+    {
+        *pbSuccess = FALSE;
+        return 0;
+    }
+
+    return poRasterBand->GetMaximum(pbSuccess);
+}
+
+
+/************************************************************************/
+/*                          DatasetRasterIO()                           */
+/************************************************************************/
+
+CPLErr VRTSimpleSource::DatasetRasterIO(
+                               int nXOff, int nYOff, int nXSize, int nYSize,
+                               void * pData, int nBufXSize, int nBufYSize,
+                               GDALDataType eBufType,
+                               int nBandCount, int *panBandMap,
+                               int nPixelSpace, int nLineSpace, int nBandSpace)
+{
+    if (!EQUAL(GetType(), "SimpleSource"))
+    {
+        CPLError(CE_Failure, CPLE_NotSupported,
+                 "DatasetRasterIO() not implemented for %s", GetType());
+        return CE_Failure;
+    }
+
+    // The window we will actually request from the source raster band.
+    int nReqXOff, nReqYOff, nReqXSize, nReqYSize;
+
+    // The window we will actual set _within_ the pData buffer.
+    int nOutXOff, nOutYOff, nOutXSize, nOutYSize;
+
+    if( !GetSrcDstWindow( nXOff, nYOff, nXSize, nYSize,
+                          nBufXSize, nBufYSize,
+                          &nReqXOff, &nReqYOff, &nReqXSize, &nReqYSize,
+                          &nOutXOff, &nOutYOff, &nOutXSize, &nOutYSize ) )
+    {
+        return CE_None;
+    }
+
+    GDALDataset* poDS = poRasterBand->GetDataset();
+    if (poDS == NULL)
+        return CE_Failure;
+
+    return poDS->RasterIO( GF_Read,
+                           nReqXOff, nReqYOff, nReqXSize, nReqYSize,
+                           ((unsigned char *) pData)
+                           + nOutXOff * nPixelSpace
+                           + nOutYOff * nLineSpace,
+                           nOutXSize, nOutYSize,
+                           eBufType, nBandCount, panBandMap,
+                           nPixelSpace, nLineSpace, nBandSpace );
+}
+
+/************************************************************************/
 /* ==================================================================== */
 /*                         VRTAveragedSource                            */
 /* ==================================================================== */
@@ -912,7 +1063,7 @@ VRTAveragedSource::RasterIO( int nXOff, int nYOff, int nXSize, int nYSize,
                     if (CPLIsNan(fSampledValue))
                         continue;
 
-                    if( bNoDataSet && EQUAL_TO_NODATA(fSampledValue, dfNoDataValue))
+                    if( bNoDataSet && ARE_REAL_EQUAL(fSampledValue, dfNoDataValue))
                         continue;
 
                     nPixelCount++;
@@ -944,6 +1095,26 @@ VRTAveragedSource::RasterIO( int nXOff, int nYOff, int nXSize, int nYSize,
     VSIFree( pafSrc );
 
     return CE_None;
+}
+
+/************************************************************************/
+/*                             GetMinimum()                             */
+/************************************************************************/
+
+double VRTAveragedSource::GetMinimum( int nXSize, int nYSize, int *pbSuccess )
+{
+    *pbSuccess = FALSE;
+    return 0;
+}
+
+/************************************************************************/
+/*                             GetMaximum()                             */
+/************************************************************************/
+
+double VRTAveragedSource::GetMaximum( int nXSize, int nYSize, int *pbSuccess )
+{
+    *pbSuccess = FALSE;
+    return 0;
 }
 
 /************************************************************************/
@@ -1191,6 +1362,7 @@ VRTComplexSource::RasterIO( int nXOff, int nYOff, int nXSize, int nYSize,
     int bIsComplex = GDALDataTypeIsComplex(eBufType);
     GDALDataType eWrkDataType = (bIsComplex) ? GDT_CFloat32 : GDT_Float32;
     int nWordSize = GDALGetDataTypeSize(eWrkDataType) / 8;
+    int bNoDataSetAndNotNan = bNoDataSet && !CPLIsNan(dfNoDataValue);
 
     if( bDoScaling && bNoDataSet == FALSE && dfScaleRatio == 0)
     {
@@ -1252,7 +1424,7 @@ VRTComplexSource::RasterIO( int nXOff, int nYOff, int nXSize, int nYSize,
                 float fResult = pafData[iX + iY * nOutXSize];
                 if( CPLIsNan(dfNoDataValue) && CPLIsNan(fResult) )
                     continue;
-                if( bNoDataSet && EQUAL_TO_NODATA(fResult, dfNoDataValue) )
+                if( bNoDataSetAndNotNan && ARE_REAL_EQUAL(fResult, dfNoDataValue) )
                     continue;
 
                 if (nColorTableComponent)
@@ -1339,6 +1511,38 @@ VRTComplexSource::RasterIO( int nXOff, int nYOff, int nXSize, int nYSize,
 }
 
 /************************************************************************/
+/*                             GetMinimum()                             */
+/************************************************************************/
+
+double VRTComplexSource::GetMinimum( int nXSize, int nYSize, int *pbSuccess )
+{
+    if (dfScaleOff == 0.0 && dfScaleRatio == 1.0 &&
+        nLUTItemCount == 0 && nColorTableComponent == 0)
+    {
+        return VRTSimpleSource::GetMinimum(nXSize, nYSize, pbSuccess);
+    }
+
+    *pbSuccess = FALSE;
+    return 0;
+}
+
+/************************************************************************/
+/*                             GetMaximum()                             */
+/************************************************************************/
+
+double VRTComplexSource::GetMaximum( int nXSize, int nYSize, int *pbSuccess )
+{
+    if (dfScaleOff == 0.0 && dfScaleRatio == 1.0 &&
+        nLUTItemCount == 0 && nColorTableComponent == 0)
+    {
+        return VRTSimpleSource::GetMaximum(nXSize, nYSize, pbSuccess);
+    }
+
+    *pbSuccess = FALSE;
+    return 0;
+}
+
+/************************************************************************/
 /* ==================================================================== */
 /*                          VRTFuncSource                               */
 /* ==================================================================== */
@@ -1408,6 +1612,26 @@ VRTFuncSource::RasterIO( int nXOff, int nYOff, int nXSize, int nYSize,
                   "VRTFuncSource::RasterIO() - Irregular request." );
         return CE_Failure;
     }
+}
+
+/************************************************************************/
+/*                             GetMinimum()                             */
+/************************************************************************/
+
+double VRTFuncSource::GetMinimum( int nXSize, int nYSize, int *pbSuccess )
+{
+    *pbSuccess = FALSE;
+    return 0;
+}
+
+/************************************************************************/
+/*                             GetMaximum()                             */
+/************************************************************************/
+
+double VRTFuncSource::GetMaximum( int nXSize, int nYSize, int *pbSuccess )
+{
+    *pbSuccess = FALSE;
+    return 0;
 }
 
 /************************************************************************/

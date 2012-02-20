@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_dxf.h 21245 2010-12-13 18:32:46Z warmerdam $
+ * $Id: ogr_dxf.h 22527 2011-06-13 03:58:34Z warmerdam $
  *
  * Project:  DXF Translator
  * Purpose:  Definition of classes for OGR .dxf driver.
@@ -31,6 +31,7 @@
 #define _OGR_DXF_H_INCLUDED
 
 #include "ogrsf_frmts.h"
+#include "ogr_autocad_services.h"
 #include "cpl_conv.h"
 #include <vector>
 #include <map>
@@ -94,6 +95,8 @@ class OGRDXFLayer : public OGRLayer
     OGRFeatureDefn     *poFeatureDefn;
     int                 iNextFID;
 
+    std::set<CPLString> oIgnoredEntities;
+
     std::queue<OGRFeature*> apoPendingFeatures;
     void                ClearPendingFeatures();
 
@@ -120,8 +123,9 @@ class OGRDXFLayer : public OGRLayer
 
     void                FormatDimension( CPLString &osText, double dfValue );
     OGRErr              CollectBoundaryPath( OGRGeometryCollection * );
+    OGRErr              CollectPolylinePath( OGRGeometryCollection * );
 
-    static CPLString    TextUnescape( const char * );
+    CPLString           TextUnescape( const char * );
 
   public:
     OGRDXFLayer( OGRDXFDataSource *poDS );
@@ -184,6 +188,8 @@ class OGRDXFDataSource : public OGRDataSource
     std::map<CPLString,DXFBlockDefinition> oBlockMap;
     std::map<CPLString,CPLString> oHeaderVariables;
 
+    CPLString           osEncoding;
+
     // indexed by layer name, then by property name.
     std::map< CPLString, std::map<CPLString,CPLString> > 
                         oLayerTable;
@@ -231,6 +237,8 @@ class OGRDXFDataSource : public OGRDataSource
     const char         *GetVariable(const char *pszName, 
                                     const char *pszDefault=NULL );
 
+    const char         *GetEncoding() { return osEncoding; }
+
     // reader related.
     int  ReadValue( char *pszValueBuffer, int nValueBufferSize = 81 )
         { return oReader.ReadValue( pszValueBuffer, nValueBufferSize ); }
@@ -263,6 +271,7 @@ class OGRDXFWriterLayer : public OGRLayer
     OGRErr              WritePOINT( OGRFeature* );
     OGRErr              WriteTEXT( OGRFeature* );
     OGRErr              WritePOLYLINE( OGRFeature*, OGRGeometry* = NULL );
+    OGRErr              WriteHATCH( OGRFeature*, OGRGeometry* = NULL );
     OGRErr              WriteINSERT( OGRFeature* );
 
     static CPLString    TextEscape( const char * );
@@ -389,8 +398,6 @@ class OGRDXFDriver : public OGRSFDriver
 {
   public:
                 ~OGRDXFDriver();
-
-    static const unsigned char *GetDXFColorTable();
 
     const char *GetName();
     OGRDataSource *Open( const char *, int );

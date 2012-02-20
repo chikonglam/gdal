@@ -15,6 +15,30 @@ but in some cases coordinate systems may not translate.<p>
 Support for the ECW driver in GDAL is optional, and requires linking
 in external ECW SDK libraries provided by ERDAS.<p>
 
+In addition to ECW files, this driver also supports access to network
+image services using the "ECWP" protocol.  Use the full ecwp:// url of 
+the service as the dataset name.  When built with SDK 4.1 or newer it
+is also possible to take advantage of 
+<a href="http://trac.osgeo.org/gdal/wiki/rfc24_progressive_data_support">
+RFC 24</a> style asynchronous access to ECWP services.<p>
+
+Starting with GDAL 1.9.0, XMP metadata can be extracted from JPEG2000 files, and will be
+stored as XML raw content in the xml:XMP metadata domain.<p>
+
+<h2>ECW metadata domain / Georeferencing update</h2>
+
+(Starting with GDAL 1.9.0)<p>
+
+The PROJ, DATUM and UNITS found in the ECW header are
+reported in the ECW metadata domain. They can also be set with the SetMetadataItem()
+method, in order to update the header information of an existing ECW file,
+opened in update mode, without modifying the imagery.<p>
+
+The geotransform and projection can also be modified with the SetGeoTransform()
+and SetProjection() methods. If the projection is set with SetProjection() and
+the PROJ, DATUM or UNITS with SetMetadataItem(), the later values will override the values
+built from the projection string.<p>
+
 <h2>Creation Issues</h2>
 
 The ECW 4.x SDK from ERDAS is only free for image decompression.  To 
@@ -46,6 +70,9 @@ Common examples are NUTM11, or GEODETIC.<p>
 
 <li> <b>DATUM=name</b>: Name of the ECW datum string to use. 
 Common examples are WGS84 or NAD83.<p>
+
+<li> <b>UNITS=name</b>: (GDAL >= 1.9.0) Name of the ECW projection units to use :
+METERS (default) or FEET (us-foot).<p>
 
 <li> <b>LARGE_OK=YES</b>: When built with the ECW 3.x SDK this option can be 
 set to allow compressing files larger than 500MB.  It is the users 
@@ -86,6 +113,15 @@ ECWP results.  If unset ECWP caching will not be enabled.<p>
 number of megabytes of space in the ECWP_CACHE_LOCATION to be used for 
 caching ECWP results.<p>
 
+<li> <b>ECWP_BLOCKING_TIME_MS</b>: time an ecwp:// blocking read will wait
+before returning - default 10000 ms.<p>
+
+<li> <b>ECWP_REFRESH_TIME_MS</b>: time delay between blocks arriving and the 
+next refresh callback - default 10000 ms.  For the purposes of GDAL this is
+the amount of time the driver will wait for more data on an ecwp connection 
+for which the final result has not yet been returned.  If set small then 
+RasterIO() requests will often produce low resolution results.<p>
+
 <li> <b>ECW_TEXTURE_DITHER=TRUE/FALSE</b>: This may be set to FALSE to disable
 dithering when decompressing ECW files.  Defaults to TRUE.<p>
 
@@ -105,13 +141,12 @@ in an error.<p>
 in the creation options, may also be set as configuration options. See above.
 <p>
 
-
 </ul>
 
 <h2>See Also:</h2>
 
 <ul>
-<li> Implemented as <tt>gdal/frmts/ecw/ecwdataset.cpp</tt>.
+<li> Implemented in <tt>gdal/frmts/ecw</tt>.
 
 <li> ECW SDK available at <a href="http://www.erdas.com/products/ERDASECWJPEG2000SDK/Details.aspx">erdas.com</a>.
 

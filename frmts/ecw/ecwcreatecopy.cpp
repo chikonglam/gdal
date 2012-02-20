@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ecwcreatecopy.cpp 21492 2011-01-14 04:54:09Z warmerdam $
+ * $Id: ecwcreatecopy.cpp 23601 2011-12-19 20:04:51Z rouault $
  *
  * Project:  GDAL ECW Driver
  * Purpose:  ECW CreateCopy method implementation.
@@ -27,19 +27,10 @@
  * DEALINGS IN THE SOFTWARE.
  ****************************************************************************/
 
-#include "gdal_pam.h"
+#include "gdal_ecw.h"
 #include "ogr_spatialref.h"
-#include "cpl_string.h"
-#include "cpl_conv.h"
-#include "vsiiostream.h"
-#include "jp2userbox.h"
-#include "gdaljp2metadata.h"
 
-CPL_CVSID("$Id: ecwcreatecopy.cpp 21492 2011-01-14 04:54:09Z warmerdam $");
-
-void ECWInitialize( void );
-
-GDALDataset* ECWDatasetOpenJPEG2000(GDALOpenInfo* poOpenInfo);
+CPL_CVSID("$Id: ecwcreatecopy.cpp 23601 2011-12-19 20:04:51Z rouault $");
 
 #if defined(FRMT_ecw) && defined(HAVE_COMPRESS)
 
@@ -130,6 +121,7 @@ CPLErr GDALECWCompressor::CloseDown()
     CPLFree( sFileInfo.pBands );
 
     Close( true );
+    m_OStream.Close();
 
     return CE_None;
 }
@@ -356,7 +348,7 @@ CPLErr  GDALECWCompressor::PrepareCoverageBox( const char *pszWKT,
     poAssoc->m_OwnedBoxes.push_back( poLabel );
 
     poGMLData = new JP2UserBox();
-    poGMLData->m_nTBox = 'xml ';
+    poGMLData->m_nTBox = 'xml '; /* Is it correct on a big-endian host ? Does ECW work on big-endian hosts ;-) */
     poGMLData->SetData( strlen( szDoc ), (unsigned char *) szDoc );
     poAssoc->m_OtherBoxes.push_back( poGMLData );
     poAssoc->m_OwnedBoxes.push_back( poGMLData );
@@ -375,7 +367,7 @@ CPLErr  GDALECWCompressor::PrepareCoverageBox( const char *pszWKT,
         poAssoc->m_OwnedBoxes.push_back( poLabel );
 
         poGMLData = new JP2UserBox();
-        poGMLData->m_nTBox = 'xml ';
+        poGMLData->m_nTBox = 'xml '; /* Is it correct on a big-endian host ? Does ECW work on big-endian hosts ;-) */
         poGMLData->SetData( strlen(pszDictBox), 
                             (unsigned char *) pszDictBox );
         poAssoc->m_OtherBoxes.push_back( poGMLData );
@@ -405,6 +397,7 @@ CPLErr GDALECWCompressor::WriteJP2Box( GDALJP2Box * poBox )
 
     poECWBox = new JP2UserBox();
     memcpy( &(poECWBox->m_nTBox), poBox->GetType(), 4 );
+    CPL_MSBPTR32( &(poECWBox->m_nTBox) );
 
     poECWBox->SetData( (int) poBox->GetDataLength(), 
                        poBox->GetWritableData() );
@@ -421,90 +414,6 @@ CPLErr GDALECWCompressor::WriteJP2Box( GDALJP2Box * poBox )
     return CE_None;
 }
 
-/************************************************************************/
-/*                        ECWTranslateFromWKT()                         */
-/************************************************************************/
-
-static int ECWTranslateFromWKT( const char *pszWKT, 
-                                char *pszProjection,
-                                int nProjectionLen,
-                                char *pszDatum,
-                                int nDatumLen)
-
-{
-    OGRSpatialReference oSRS;
-    char *pszWKTIn = (char *) pszWKT;
-
-    strcpy( pszProjection, "RAW" );
-    strcpy( pszDatum, "RAW" );
-
-    if( pszWKT == NULL || strlen(pszWKT) == 0 )
-        return FALSE;
-    
-    oSRS.importFromWkt( &pszWKTIn );
-    
-    if( oSRS.IsLocal() )
-        return TRUE;
-
-/* -------------------------------------------------------------------- */
-/*      Do we have an overall EPSG number for this coordinate system?   */
-/* -------------------------------------------------------------------- */
-    const char *pszAuthorityCode = NULL;
-    const char *pszAuthorityName = NULL;
-    UINT32 nEPSGCode = 0;
-
-    if( oSRS.IsProjected() )
-    {
-        pszAuthorityCode =  oSRS.GetAuthorityCode( "PROJCS" );
-        pszAuthorityName =  oSRS.GetAuthorityName( "PROJCS" );
-    }
-    else if( oSRS.IsGeographic() )
-    {
-        pszAuthorityCode =  oSRS.GetAuthorityCode( "GEOGCS" );
-        pszAuthorityName =  oSRS.GetAuthorityName( "GEOGCS" );
-    }
-
-    if( pszAuthorityName != NULL && EQUAL(pszAuthorityName,"EPSG") 
-        && pszAuthorityCode != NULL && atoi(pszAuthorityCode) > 0 )
-        nEPSGCode = (UINT32) atoi(pszAuthorityCode);
-
-    if( nEPSGCode != 0 )
-    {
-        char *pszEPSGProj = NULL, *pszEPSGDatum = NULL;
-        CNCSError oErr;
-
-        oErr = 
-            CNCSJP2FileView::GetProjectionAndDatum( atoi(pszAuthorityCode), 
-                                                 &pszEPSGProj, &pszEPSGDatum );
-
-        CPLDebug( "ECW", "GetGDTProjDat(%d) = %s/%s", 
-                  atoi(pszAuthorityCode), pszEPSGProj, pszEPSGDatum );
-
-        if( oErr.GetErrorNumber() == NCS_SUCCESS
-            && pszEPSGProj != NULL && pszEPSGDatum != NULL )
-        {
-            strncpy( pszProjection, pszEPSGProj, nProjectionLen );
-            strncpy( pszDatum, pszEPSGDatum, nDatumLen );
-            pszProjection[nProjectionLen - 1] = 0;
-            pszDatum[nDatumLen - 1] = 0;
-            NCSFree( pszEPSGProj );
-            NCSFree( pszEPSGDatum );
-            return TRUE;
-        }
-
-        NCSFree( pszEPSGProj );
-        NCSFree( pszEPSGDatum );
-
-    }
-
-/* -------------------------------------------------------------------- */
-/*      Fallback to translating based on the ecw_cs.wkt file, and       */
-/*      various jiffy rules.                                            */
-/* -------------------------------------------------------------------- */
-    char szUnits[32];
-
-    return oSRS.exportToERM( pszProjection, pszDatum, szUnits ) == OGRERR_NONE;
-}
 
 /************************************************************************/
 /*                             Initialize()                             */
@@ -521,6 +430,34 @@ CPLErr GDALECWCompressor::Initialize(
     int bIsJPEG2000 )
 
 {
+/* -------------------------------------------------------------------- */
+/*      For 4.x and beyond you need a license key to compress data.     */
+/*      Check for it as a configuration option or a creation option.    */
+/* -------------------------------------------------------------------- */
+#if ECWSDK_VERSION >= 40 
+    const char* pszECWKey = CSLFetchNameValue( papszOptions, "ECW_ENCODE_KEY");
+    if( pszECWKey == NULL )
+        pszECWKey = CPLGetConfigOption( "ECW_ENCODE_KEY", NULL );
+    
+    const char* pszECWCompany = 
+        CSLFetchNameValue( papszOptions, "ECW_ENCODE_COMPANY");
+    if( pszECWCompany == NULL )
+        pszECWCompany = CPLGetConfigOption( "ECW_ENCODE_COMPANY", NULL );
+    
+    if( pszECWKey && pszECWCompany)
+    {
+        CPLDebug( "ECW", "SetOEMKey(%s,%s)", pszECWCompany, pszECWKey );
+        CNCSFile::SetOEMKey( (char *) pszECWCompany, (char *)pszECWKey );
+    }
+    else if( pszECWKey || pszECWCompany )
+    {
+        CPLError( CE_Failure, CPLE_AppDefined,
+                  "Only one of ECW_ENCODE_KEY and ECW_ENCODE_COMPANY were provided.\nBoth are required." );
+        return CE_Failure;
+    }
+
+#endif /* ECWSDK_VERSION >= 40 */
+
 /* -------------------------------------------------------------------- */
 /*      Do some rudimentary checking in input.                          */
 /* -------------------------------------------------------------------- */
@@ -546,12 +483,16 @@ CPLErr GDALECWCompressor::Initialize(
     {
         fTargetCompression = (float) 
             atof(CSLFetchNameValue(papszOptions, "TARGET"));
-        
-        if( fTargetCompression < 0.0 || fTargetCompression > 99.0 )
+
+        /* The max allowed value should be 100 - 100 / 65535 = 99.9984740978 */
+        /* so that nCompressionRate fits on a uint16 (see below) */
+        /* No need to be so pedantic, so we will limit to 99.99 % */
+        /* (compression rate = 10 000) */
+        if( fTargetCompression < 0.0 || fTargetCompression > 99.99 )
         {
             CPLError( CE_Failure, CPLE_NotSupported, 
                       "TARGET compression of %.3f invalid, should be a\n"
-                      "value between 0 and 99 percent.\n", 
+                      "value between 0 and 99.99 percent.\n",
                       (double) fTargetCompression );
             return CE_Failure;
         }
@@ -795,6 +736,7 @@ CPLErr GDALECWCompressor::Initialize(
 /* -------------------------------------------------------------------- */
     char szProjection[128];
     char szDatum[128];
+    char szUnits[128];
 
     strcpy( szProjection, "RAW" );
     strcpy( szDatum, "RAW" );
@@ -814,16 +756,23 @@ CPLErr GDALECWCompressor::Initialize(
             strcpy( szProjection, "GEODETIC" );
     }
 
+    const char* pszUnits = CSLFetchNameValue(papszOptions, "UNITS");
+    if( pszUnits != NULL )
+    {
+        psClient->eCellSizeUnits = ECWTranslateToCellSizeUnits(pszUnits);
+    }
+
     if( EQUAL(szProjection,"RAW") && pszWKT != NULL )
     {
-        ECWTranslateFromWKT( pszWKT, szProjection, sizeof(szProjection), szDatum, sizeof(szDatum) );
+        ECWTranslateFromWKT( pszWKT, szProjection, sizeof(szProjection), szDatum, sizeof(szDatum), szUnits );
+        psClient->eCellSizeUnits = ECWTranslateToCellSizeUnits(szUnits);
     }
 
     psClient->szDatum = szDatum;
     psClient->szProjection = szProjection;
 
-    CPLDebug( "ECW", "Writing with PROJ=%s, DATUM=%s", 
-              szProjection, szDatum );
+    CPLDebug( "ECW", "Writing with PROJ=%s, DATUM=%s, UNITS=%s", 
+              szProjection, szDatum, ECWTranslateFromCellSizeUnits(psClient->eCellSizeUnits) );
 
 /* -------------------------------------------------------------------- */
 /*      Setup GML and GeoTIFF information.                              */
@@ -840,46 +789,23 @@ CPLErr GDALECWCompressor::Initialize(
         WriteJP2Box( oJP2MD.CreateJP2GeoTIFF() );
 
 /* -------------------------------------------------------------------- */
-/*      Handle special case of a JPEG2000 data stream in another file.  */
+/*      We handle all jpeg2000 files via the VSIIOStream, but ECW       */
+/*      files cannot be done this way for some reason.                  */
 /* -------------------------------------------------------------------- */
     VSILFILE *fpVSIL = NULL;
 
-    if( EQUALN(pszFilename,"J2K_SUBFILE:",12) )
+    if( bIsJPEG2000 )
     {
-        int  subfile_offset=-1, subfile_size=-1;
-        const char *real_filename = NULL;
-
-        if( sscanf( pszFilename, "J2K_SUBFILE:%d,%d", 
-                    &subfile_offset, &subfile_size ) != 2 )
-        {
-            CPLError( CE_Failure, CPLE_OpenFailed, 
-                      "Failed to parse J2K_SUBFILE specification." );
-            return CE_Failure;
-        }
-
-        real_filename = strstr(pszFilename,",");
-        if( real_filename != NULL )
-            real_filename = strstr(real_filename+1,",");
-        if( real_filename != NULL )
-            real_filename++;
-        else
-        {
-            CPLError( CE_Failure, CPLE_OpenFailed, 
-                      "Failed to parse J2K_SUBFILE specification." );
-            return CE_Failure;
-        }
-
-        fpVSIL = VSIFOpenL( real_filename, "rb+" );
+        fpVSIL = VSIFOpenL( pszFilename, "wb+" );
         if( fpVSIL == NULL )
         {
             CPLError( CE_Failure, CPLE_OpenFailed, 
-                      "Failed to open %s.",  real_filename );
+                      "Failed to open %s.", pszFilename );
             return CE_Failure;
         }
 
-        m_OStream.Access( fpVSIL, TRUE, real_filename,
-                          subfile_offset, subfile_size );
-    }
+        m_OStream.Access( fpVSIL, TRUE, pszFilename, 0, -1 );
+    }    
 
 /* -------------------------------------------------------------------- */
 /*      Check if we can enable large files.  This option should only    */
@@ -950,34 +876,6 @@ ECWCreateCopy( const char * pszFilename, GDALDataset *poSrcDS,
     ECWInitialize();
 
 /* -------------------------------------------------------------------- */
-/*      For 4.x and beyond you need a license key to compress data.     */
-/*      Check for it as a configuration option or a creation option.    */
-/* -------------------------------------------------------------------- */
-#if ECWSDK_VERSION >= 40 
-    const char* pszECWKey = CSLFetchNameValue( papszOptions, "ECW_ENCODE_KEY");
-    if( pszECWKey == NULL )
-        pszECWKey = CPLGetConfigOption( "ECW_ENCODE_KEY", NULL );
-    
-    const char* pszECWCompany = 
-        CSLFetchNameValue( papszOptions, "ECW_ENCODE_COMPANY");
-    if( pszECWCompany == NULL )
-        pszECWCompany = CPLGetConfigOption( "ECW_ENCODE_COMPANY", NULL );
-    
-    if( pszECWKey && pszECWCompany)
-    {
-        CPLDebug( "ECW", "SetOEMKey(%s,%s)", pszECWCompany, pszECWKey );
-        CNCSFile::SetOEMKey( (char *) pszECWCompany, (char *)pszECWKey );
-    }
-    else if( pszECWKey || pszECWCompany )
-    {
-        CPLError( CE_Failure, CPLE_AppDefined,
-                  "Only one of ECW_ENCODE_KEY and ECW_ENCODE_COMPANY were provided.\nBoth are required." );
-        return NULL;
-    }
-
-#endif /* ECWSDK_VERSION >= 40
-
-/* -------------------------------------------------------------------- */
 /*      Get various values from the source dataset.                     */
 /* -------------------------------------------------------------------- */
     int  nBands = poSrcDS->GetRasterCount();
@@ -1038,6 +936,7 @@ ECWCreateCopy( const char * pszFilename, GDALDataset *poSrcDS,
 /*      Setup the compressor.                                           */
 /* -------------------------------------------------------------------- */
     GDALECWCompressor         oCompressor;
+    CNCSError oErr;
 
     oCompressor.pfnProgress = pfnProgress;
     oCompressor.pProgressData = pProgressData;
@@ -1058,7 +957,17 @@ ECWCreateCopy( const char * pszFilename, GDALDataset *poSrcDS,
 /* -------------------------------------------------------------------- */
 /*      Start the compression.                                          */
 /* -------------------------------------------------------------------- */
-    oCompressor.Write();
+    oErr = oCompressor.Write();
+
+    if( oErr.GetErrorNumber() != NCS_SUCCESS )
+    {
+        char* pszErrorMessage = oErr.GetErrorMessage();
+        CPLError( CE_Failure, CPLE_AppDefined, 
+                  "%s", pszErrorMessage );
+        NCSFree(pszErrorMessage);
+        
+        return NULL;
+    }
 
 /* -------------------------------------------------------------------- */
 /*      Cleanup, and return read-only handle.                           */
@@ -1309,6 +1218,8 @@ ECWWriteDataset::ECWWriteDataset( const char *pszFilename,
     bCrystalized = FALSE;
     pabyBILBuffer = NULL;
     nLoadedLine = -1;
+
+    eAccess = GA_Update;
 
     this->bIsJPEG2000 = bIsJPEG2000;
     this->eDataType = eType;

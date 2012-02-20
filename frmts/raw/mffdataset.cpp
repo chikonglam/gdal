@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: mffdataset.cpp 20996 2010-10-28 18:38:15Z rouault $
+ * $Id: mffdataset.cpp 23425 2011-11-26 19:14:25Z rouault $
  *
  * Project:  GView
  * Purpose:  Implementation of Atlantis MFF Support
@@ -33,7 +33,7 @@
 #include "ogr_spatialref.h"
 #include "atlsci_spheroid.h"
 
-CPL_CVSID("$Id: mffdataset.cpp 20996 2010-10-28 18:38:15Z rouault $");
+CPL_CVSID("$Id: mffdataset.cpp 23425 2011-11-26 19:14:25Z rouault $");
 
 CPL_C_START
 void	GDALRegister_MFF(void);
@@ -543,7 +543,7 @@ void MFFDataset::ScanForProjectionInfo()
     if (pszOriginLong != NULL)
         oLL.SetProjParm(SRS_PP_LONGITUDE_OF_ORIGIN,atof(pszOriginLong));
 
-    if ((pszSpheroidName == NULL))
+    if (pszSpheroidName == NULL)
     {
         CPLError(CE_Warning,CPLE_AppDefined,
             "Warning- unspecified ellipsoid.  Using wgs-84 parameters.\n");

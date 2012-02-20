@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_srs_ozi.cpp 21264 2010-12-14 22:55:01Z rouault $
+ * $Id: ogr_srs_ozi.cpp 22510 2011-06-07 13:33:40Z warmerdam $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  OGRSpatialReference translation from OziExplorer
@@ -32,7 +32,7 @@
 #include "cpl_conv.h"
 #include "cpl_csv.h"
 
-CPL_CVSID("$Id: ogr_srs_ozi.cpp 21264 2010-12-14 22:55:01Z rouault $");
+CPL_CVSID("$Id: ogr_srs_ozi.cpp 22510 2011-06-07 13:33:40Z warmerdam $");
 
 /************************************************************************/
 /*  Correspondence between Ozi and EPSG datum codes.                    */
@@ -51,6 +51,7 @@ static const OZIDatums aoDatums[] =
     { "Pulkovo 1942 (1)", 4284 },   // Pulkovo 1942
     { "Pulkovo 1942 (2)", 4284 },   // Pulkovo 1942, XXX: What is a difference
                                     // with the previous one?
+    { "Potsdam Rauenberg DHDN", 31467 }, // Gauss-Krueger GK3 Central_Meridian 9 deg
     { NULL, 0 }
 };
 

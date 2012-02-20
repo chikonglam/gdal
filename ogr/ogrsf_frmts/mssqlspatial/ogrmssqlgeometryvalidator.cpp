@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrmssqlgeometryvalidator.cpp 20863 2010-10-17 15:48:40Z tamas $
+ * $Id: ogrmssqlgeometryvalidator.cpp 21933 2011-03-11 16:50:10Z tamas $
  *
  * Project:  MSSQL Spatial driver
  * Purpose:  Implements OGRMSSQLGeometryValidator class to create valid SqlGeometries.
@@ -30,7 +30,7 @@
 #include "cpl_conv.h"
 #include "ogr_mssqlspatial.h"
 
-CPL_CVSID("$Id: ogrmssqlgeometryvalidator.cpp 20863 2010-10-17 15:48:40Z tamas $");
+CPL_CVSID("$Id: ogrmssqlgeometryvalidator.cpp 21933 2011-03-11 16:50:10Z tamas $");
 
 /************************************************************************/
 /*                   OGRMSSQLGeometryValidator()                        */
@@ -107,9 +107,17 @@ int OGRMSSQLGeometryValidator::ValidateLineString(OGRLineString * poGeom)
         // create a compatible geometry
         if (poPoint0 != NULL)
         {
+            CPLError( CE_Warning, CPLE_NotSupported,
+                      "Linestring has no distinct points constructing point geometry instead." );
+            
             // create a point
             poValidGeometry = poPoint0;
             poPoint0 = NULL;
+        }
+        else
+        {
+            CPLError( CE_Warning, CPLE_NotSupported,
+                      "Linestring has no points. Removing the geometry from the output." );
         }
     }
 
@@ -168,6 +176,9 @@ int OGRMSSQLGeometryValidator::ValidateLinearRing(OGRLinearRing * poGeom)
         // create a compatible geometry
         if (poPoint1 != NULL)
         {
+            CPLError( CE_Warning, CPLE_NotSupported,
+                      "Linear ring has only 2 distinct points constructing linestring geometry instead." );
+            
             // create a linestring
             poValidGeometry = new OGRLineString();
             ((OGRLineString*)poValidGeometry)->setNumPoints( 2 );
@@ -176,9 +187,17 @@ int OGRMSSQLGeometryValidator::ValidateLinearRing(OGRLinearRing * poGeom)
         }
         else if (poPoint0 != NULL)
         {
+            CPLError( CE_Warning, CPLE_NotSupported,
+                      "Linear ring has no distinct points constructing point geometry instead." );
+            
             // create a point
             poValidGeometry = poPoint0;
             poPoint0 = NULL;
+        }
+        else
+        {
+            CPLError( CE_Warning, CPLE_NotSupported,
+                      "Linear ring has no points. Removing the geometry from the output." );
         }
     }
 

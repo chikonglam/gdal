@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: doq1dataset.cpp 17664 2009-09-21 21:16:45Z rouault $
+ * $Id: doq1dataset.cpp 21717 2011-02-13 20:16:30Z rouault $
  *
  * Project:  USGS DOQ Driver (First Generation Format)
  * Purpose:  Implementation of DOQ1Dataset
@@ -30,7 +30,7 @@
 #include "rawdataset.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: doq1dataset.cpp 17664 2009-09-21 21:16:45Z rouault $");
+CPL_CVSID("$Id: doq1dataset.cpp 21717 2011-02-13 20:16:30Z rouault $");
 
 static double DOQGetField( unsigned char *, int );
 static void DOQGetDescription( GDALDataset *, unsigned char * );
@@ -62,7 +62,7 @@ CPL_C_END
 
 class DOQ1Dataset : public RawDataset
 {
-    FILE	*fpImage;	// image data file.
+    VSILFILE	*fpImage;	// image data file.
     
     double	dfULX, dfULY;
     double	dfXPixelSize, dfYPixelSize;
@@ -100,7 +100,7 @@ DOQ1Dataset::~DOQ1Dataset()
 
     CPLFree( pszProjection );
     if( fpImage != NULL )
-        VSIFClose( fpImage );
+        VSIFCloseL( fpImage );
 }
 
 /************************************************************************/
@@ -142,7 +142,7 @@ GDALDataset *DOQ1Dataset::Open( GDALOpenInfo * poOpenInfo )
 /* -------------------------------------------------------------------- */
 /*	We assume the user is pointing to the binary (ie. .bil) file.	*/
 /* -------------------------------------------------------------------- */
-    if( poOpenInfo->nHeaderBytes < 212 || poOpenInfo->fp == NULL )
+    if( poOpenInfo->nHeaderBytes < 212 )
         return NULL;
 
 /* -------------------------------------------------------------------- */
@@ -199,11 +199,12 @@ GDALDataset *DOQ1Dataset::Open( GDALOpenInfo * poOpenInfo )
     poDS->nRasterXSize = nWidth;
     poDS->nRasterYSize = nHeight;
     
-/* -------------------------------------------------------------------- */
-/*      Assume ownership of the file handled from the GDALOpenInfo.     */
-/* -------------------------------------------------------------------- */
-    poDS->fpImage = poOpenInfo->fp;
-    poOpenInfo->fp = NULL;
+    poDS->fpImage = VSIFOpenL(poOpenInfo->pszFilename, "rb");
+    if (poDS->fpImage == NULL)
+    {
+        delete poDS;
+        return NULL;
+    }
 
 /* -------------------------------------------------------------------- */
 /*      Compute layout of data.                                         */
@@ -227,7 +228,7 @@ GDALDataset *DOQ1Dataset::Open( GDALOpenInfo * poOpenInfo )
         poDS->SetBand( i+1, 
             new RawRasterBand( poDS, i+1, poDS->fpImage,
                                nSkipBytes + i, nBytesPerPixel, nBytesPerLine,
-                               GDT_Byte, TRUE ) );
+                               GDT_Byte, TRUE, TRUE ) );
     }
 
 /* -------------------------------------------------------------------- */
@@ -291,8 +292,8 @@ GDALDataset *DOQ1Dataset::Open( GDALOpenInfo * poOpenInfo )
 /* -------------------------------------------------------------------- */
     unsigned char	abyRecordData[500];
     
-    if( VSIFSeek( poDS->fpImage, nBytesPerLine * 2, SEEK_SET ) != 0
-        || VSIFRead(abyRecordData,sizeof(abyRecordData),1,poDS->fpImage) != 1 )
+    if( VSIFSeekL( poDS->fpImage, nBytesPerLine * 2, SEEK_SET ) != 0
+        || VSIFReadL(abyRecordData,sizeof(abyRecordData),1,poDS->fpImage) != 1 )
     {
         CPLError( CE_Failure, CPLE_FileIO,
                   "Header read error on %s.\n",
@@ -304,8 +305,8 @@ GDALDataset *DOQ1Dataset::Open( GDALOpenInfo * poOpenInfo )
     poDS->dfULX = DOQGetField( abyRecordData + 288, 24 );
     poDS->dfULY = DOQGetField( abyRecordData + 312, 24 );
 
-    if( VSIFSeek( poDS->fpImage, nBytesPerLine * 3, SEEK_SET ) != 0
-        || VSIFRead(abyRecordData,sizeof(abyRecordData),1,poDS->fpImage) != 1 )
+    if( VSIFSeekL( poDS->fpImage, nBytesPerLine * 3, SEEK_SET ) != 0
+        || VSIFReadL(abyRecordData,sizeof(abyRecordData),1,poDS->fpImage) != 1 )
     {
         CPLError( CE_Failure, CPLE_FileIO,
                   "Header read error on %s.\n",
@@ -349,6 +350,7 @@ void GDALRegister_DOQ1()
                                    "USGS DOQ (Old Style)" );
         poDriver->SetMetadataItem( GDAL_DMD_HELPTOPIC, 
                                    "frmt_various.html#DOQ1" );
+        poDriver->SetMetadataItem( GDAL_DCAP_VIRTUALIO, "YES" );
         
         poDriver->pfnOpen = DOQ1Dataset::Open;
 

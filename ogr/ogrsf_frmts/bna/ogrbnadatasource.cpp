@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrbnadatasource.cpp 20996 2010-10-28 18:38:15Z rouault $
+ * $Id: ogrbnadatasource.cpp 23244 2011-10-16 21:52:16Z rouault $
  *
  * Project:  BNA Translator
  * Purpose:  Implements OGRBNADataSource class
@@ -163,7 +163,7 @@ int OGRBNADataSource::Open( const char * pszFilename, int bUpdateIn)
 /* -------------------------------------------------------------------- */
     VSIStatBufL sStatBuf;
 
-    if( VSIStatL( pszFilename, &sStatBuf ) != 0 )
+    if( VSIStatExL( pszFilename, &sStatBuf, VSI_STAT_NATURE_FLAG ) != 0 )
         return FALSE;
     
 // -------------------------------------------------------------------- 
@@ -204,7 +204,7 @@ int OGRBNADataSource::Open( const char * pszFilename, int bUpdateIn)
 
         while(1)
         {
-            int offset = VSIFTellL(fp);
+            int offset = (int) VSIFTellL(fp);
             int line = curLine;
             record =  BNA_GetNextRecord(fp, &ok, &curLine, FALSE, BNA_READ_NONE);
             if (ok == FALSE)
@@ -278,6 +278,9 @@ int OGRBNADataSource::Create( const char *pszFilename,
         return FALSE;
     }
 
+    if( strcmp(pszFilename,"/dev/stdout") == 0 )
+        pszFilename = "/vsistdout/";
+
 /* -------------------------------------------------------------------- */
 /*     Do not override exiting file.                                    */
 /* -------------------------------------------------------------------- */
@@ -291,10 +294,7 @@ int OGRBNADataSource::Create( const char *pszFilename,
 /* -------------------------------------------------------------------- */
     pszName = CPLStrdup( pszFilename );
 
-    if( EQUAL(pszFilename,"stdout") )
-        fpOutput = VSIFOpenL( "/vsistdout/", "wb" );
-    else
-        fpOutput = VSIFOpenL( pszFilename, "wb" );
+    fpOutput = VSIFOpenL( pszFilename, "wb" );
     if( fpOutput == NULL )
     {
         CPLError( CE_Failure, CPLE_OpenFailed, 

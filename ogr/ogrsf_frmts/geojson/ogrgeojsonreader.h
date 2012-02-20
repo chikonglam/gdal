@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrgeojsonreader.h 21346 2010-12-30 11:59:00Z rouault $
+ * $Id: ogrgeojsonreader.h 23325 2011-11-05 17:19:38Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Defines GeoJSON reader within OGR OGRGeoJSON Driver.
@@ -102,6 +102,9 @@ private:
     OGRGeoJSONLayer* poLayer_;
     bool bGeometryPreserve_;
     bool bAttributesSkip_;
+
+    int bFlattenGeocouchSpatiallistFormat;
+    bool bFoundId, bFoundRev, bFoundTypeFeature, bIsGeocouchSpatiallistFormat;
 
     //
     // Copy operations not supported.

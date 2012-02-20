@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #/******************************************************************************
-# * $Id: ogrinfo.py 21660 2011-02-08 21:37:51Z rouault $
+# * $Id: ogrinfo.py 23329 2011-11-05 21:09:07Z rouault $
 # *
 # * Project:  OpenGIS Simple Features Reference Implementation
 # * Purpose:  Python port of a simple client for viewing OGR driver data.
@@ -216,7 +216,9 @@ def main(argv = None):
 
         if poResultSet is not None:
             if pszWHERE is not None:
-                poResultSet.SetAttributeFilter( pszWHERE )
+                if poResultSet.SetAttributeFilter( pszWHERE ) != 0:
+                    print("FAILURE: SetAttributeFilter(%s) failed." % pszWHERE)
+                    return 1
 
             ReportOnLayer( poResultSet, None, None, options )
             poDS.ReleaseResultSet( poResultSet )
@@ -296,7 +298,9 @@ def ReportOnLayer( poLayer, pszWHERE, poSpatialFilter, options ):
 #/*      Set filters if provided.                                        */
 #/* -------------------------------------------------------------------- */
     if pszWHERE is not None:
-        poLayer.SetAttributeFilter( pszWHERE )
+        if poLayer.SetAttributeFilter( pszWHERE ) != 0:
+            print("FAILURE: SetAttributeFilter(%s) failed." % pszWHERE)
+            return
 
     if poSpatialFilter is not None:
         poLayer.SetSpatialFilter( poSpatialFilter )
@@ -313,7 +317,7 @@ def ReportOnLayer( poLayer, pszWHERE, poSpatialFilter, options ):
         
         print( "Feature Count: %d" % poLayer.GetFeatureCount() )
         
-        oExt = poLayer.GetExtent(True)
+        oExt = poLayer.GetExtent(True, can_return_null = True)
         if oExt is not None:
             print("Extent: (%f, %f) - (%f, %f)" % (oExt[0], oExt[1], oExt[2], oExt[3]))
 

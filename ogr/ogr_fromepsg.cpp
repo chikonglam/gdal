@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_fromepsg.cpp 21298 2010-12-20 10:58:34Z rouault $
+ * $Id: ogr_fromepsg.cpp 23396 2011-11-19 19:52:17Z etourigny $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Generate an OGRSpatialReference object based on an EPSG
@@ -32,11 +32,13 @@
 #include "ogr_p.h"
 #include "cpl_csv.h"
 
-CPL_CVSID("$Id: ogr_fromepsg.cpp 21298 2010-12-20 10:58:34Z rouault $");
+CPL_CVSID("$Id: ogr_fromepsg.cpp 23396 2011-11-19 19:52:17Z etourigny $");
 
 #ifndef PI
 #  define PI 3.14159265358979323846
 #endif
+
+void OGRPrintDouble( char * pszStrBuf, double dfValue );
 
 static const char *papszDatumEquiv[] =
 {
@@ -267,6 +269,15 @@ int EPSGGetUOMAngleInfo( int nUOMAngleCode,
           case 9101:
             pszUOMName = "radian";
             dfInDegrees = 180.0 / PI;
+            break;
+
+          case 9102:
+          case 9107:
+          case 9108:
+          case 9110:
+          case 9122:
+            pszUOMName = "degree";
+            dfInDegrees = 1.0;
             break;
 
           case 9103:
@@ -750,6 +761,7 @@ OSRGetEllipsoidInfo( int nCode, char ** ppszName,
     return OGRERR_NONE;
 }
 
+#define CoLatConeAxis        1036 /* see #4223 */
 #define NatOriginLat         8801
 #define NatOriginLong        8802
 #define NatOriginScaleFactor 8805
@@ -869,7 +881,9 @@ EPSGGetProjTRFInfo( int nPCS, int * pnProjMethod,
         else /* really we should consider looking up other scaling factors */
         {
             if( nUOM != 9201 )
-                CPLDebug( "OGR", "Non-unity scale factor units!" );
+                CPLDebug( "OGR", 
+                          "Non-unity scale factor units! (UOM=%d, PCS=%d)",
+                          nUOM, nPCS );
             adfProjParms[i] = CPLAtof(pszValue);
         }
 
@@ -1562,8 +1576,12 @@ static OGRErr SetEPSGProjCS( OGRSpatialReference * poSRS, int nPCSCode )
           if( dfCenterLong == 0.0 ) // See ticket #2559
               dfCenterLong = OGR_FP( PolarLongOrigin );
 
+          double dfAzimuth = OGR_FP( CoLatConeAxis ); // See ticket #4223
+          if( dfAzimuth == 0.0 ) 
+              dfAzimuth = OGR_FP( Azimuth );
+
           poSRS->SetKrovak( OGR_FP( ProjCenterLat ), dfCenterLong,
-                            OGR_FP( Azimuth ), 
+                            dfAzimuth, 
                             OGR_FP( PseudoStdParallelLat ),
                             OGR_FP( PseudoStdParallelScaleFactor ),
                             OGR_FP( ProjCenterEasting ), 
@@ -1572,14 +1590,15 @@ static OGRErr SetEPSGProjCS( OGRSpatialReference * poSRS, int nPCSCode )
       break;
 
       case 9820:
+      case 1027: /* used by EPSG:2163, 3408, 3409, 3973 and 3974 */
         poSRS->SetLAEA( OGR_FP( NatOriginLat ), OGR_FP( NatOriginLong ),
                         OGR_FP( FalseEasting ), OGR_FP( FalseNorthing ) );
         break;
 
-      case 9821: /* this is the spherical form, and really needs different
+      case 9821: /* DEPREACTED : this is the spherical form, and really needs different
                     equations which give different results but PROJ.4 doesn't
                     seem to support the spherical form. */
-        poSRS->SetLAEA( OGR_FP( SphericalOriginLat ), 
+        poSRS->SetLAEA( OGR_FP( SphericalOriginLat ),
                         OGR_FP( SphericalOriginLong ),
                         OGR_FP( FalseEasting ), OGR_FP( FalseNorthing ) );
         break;
@@ -1663,24 +1682,20 @@ static OGRErr SetEPSGVertCS( OGRSpatialReference * poSRS, int nVertCSCode )
     if( papszRecord == NULL )
         return OGRERR_UNSUPPORTED_SRS;
 
-/* -------------------------------------------------------------------- */
-/*      Set the VERT_CS node with a name.                               */
-/* -------------------------------------------------------------------- */
-    poSRS->SetNode( "VERT_CS", 
-                    CSLGetField( papszRecord,
-                                 CSVGetFileFieldId(pszFilename,
-                                                   "COORD_REF_SYS_NAME")) );
 
+/* -------------------------------------------------------------------- */
+/*      Setup the basic VERT_CS.                                        */
+/* -------------------------------------------------------------------- */
+    poSRS->SetVertCS( 
+        CSLGetField( papszRecord,
+                     CSVGetFileFieldId(pszFilename,
+                                       "COORD_REF_SYS_NAME")),
+        CSLGetField( papszRecord,
+                     CSVGetFileFieldId(pszFilename,
+                                       "DATUM_NAME")) );
 /* -------------------------------------------------------------------- */
 /*      Setup the VERT_DATUM node.                                      */
 /* -------------------------------------------------------------------- */
-    poSRS->SetNode( "VERT_CS|VERT_DATUM", 
-                    CSLGetField( papszRecord,
-                                 CSVGetFileFieldId(pszFilename,
-                                                   "DATUM_NAME")) );
-    poSRS->GetAttrNode( "VERT_CS|VERT_DATUM" )->
-        AddChild( new OGR_SRSNode( "2005" ) );
-
     poSRS->SetAuthority( "VERT_CS|VERT_DATUM", "EPSG",
                          atoi(CSLGetField( papszRecord,
                                            CSVGetFileFieldId(pszFilename,
@@ -1717,22 +1732,12 @@ static OGRErr SetEPSGVertCS( OGRSpatialReference * poSRS, int nVertCSCode )
     }
     else
     {
-        poSRS->SetLinearUnits( pszUOMLengthName, dfInMeters );
+        poSRS->SetTargetLinearUnits( "VERT_CS", pszUOMLengthName, dfInMeters );
         poSRS->SetAuthority( "VERT_CS|UNIT", "EPSG", nUOM_CODE );
 
         CPLFree( pszUOMLengthName );
     }
 
-/* -------------------------------------------------------------------- */
-/*      Set axes                                                        */
-/* -------------------------------------------------------------------- */
-    OGR_SRSNode *poAxis = new OGR_SRSNode( "AXIS" );
-
-    poAxis->AddChild( new OGR_SRSNode( "Up" ) );
-    poAxis->AddChild( new OGR_SRSNode( "UP" ) );
-
-    poSRS->GetRoot()->AddChild( poAxis );
-    
 /* -------------------------------------------------------------------- */
 /*      Set overall authority code.                                     */
 /* -------------------------------------------------------------------- */
@@ -1834,6 +1839,218 @@ static OGRErr SetEPSGCompdCS( OGRSpatialReference * poSRS, int nCCSCode )
 }
 
 /************************************************************************/
+/*                           SetEPSGGeocCS()                            */
+/************************************************************************/
+
+static OGRErr SetEPSGGeocCS( OGRSpatialReference * poSRS, int nGCSCode )
+
+{
+/* -------------------------------------------------------------------- */
+/*      Fetch record from the geoccs.csv or override file.              */
+/* -------------------------------------------------------------------- */
+    char        **papszRecord = NULL;
+    char        szSearchKey[24];
+    const char  *pszFilename;
+    
+    sprintf( szSearchKey, "%d", nGCSCode );
+
+// So far no override file needed.    
+//    pszFilename = CSVFilename( "compdcs.override.csv" );
+//    papszRecord = CSVScanFileByName( pszFilename, "COORD_REF_SYS_CODE",
+//                                     szSearchKey, CC_Integer );
+
+    //if( papszRecord == NULL )
+    {
+        pszFilename = CSVFilename( "geoccs.csv" );
+        papszRecord = CSVScanFileByName( pszFilename, "COORD_REF_SYS_CODE",
+                                         szSearchKey, CC_Integer );
+        
+    }
+
+    if( papszRecord == NULL )
+        return OGRERR_UNSUPPORTED_SRS;
+
+/* -------------------------------------------------------------------- */
+/*      Set the GEOCCS node with a name.                                */
+/* -------------------------------------------------------------------- */
+    poSRS->Clear();
+    poSRS->SetGeocCS( CSLGetField( papszRecord,
+                                   CSVGetFileFieldId(pszFilename,
+                                                     "COORD_REF_SYS_NAME")) );
+
+/* -------------------------------------------------------------------- */
+/*      Get datum related information.                                  */
+/* -------------------------------------------------------------------- */
+    int nDatumCode, nEllipsoidCode, nPMCode;
+    char *pszDatumName;
+    
+    nDatumCode = atoi(CSLGetField( papszRecord,
+                                   CSVGetFileFieldId(pszFilename,
+                                                     "DATUM_CODE")));
+    
+    pszDatumName = 
+        CPLStrdup( CSLGetField( papszRecord,
+                                CSVGetFileFieldId(pszFilename,"DATUM_NAME") ) );
+    OGREPSGDatumNameMassage( &pszDatumName );
+
+
+    nEllipsoidCode = atoi(CSLGetField( papszRecord,
+                                   CSVGetFileFieldId(pszFilename,
+                                                     "ELLIPSOID_CODE")));
+    
+    nPMCode = atoi(CSLGetField( papszRecord,
+                                CSVGetFileFieldId(pszFilename,
+                                                  "PRIME_MERIDIAN_CODE")));
+    
+/* -------------------------------------------------------------------- */
+/*      Get prime meridian information.                                 */
+/* -------------------------------------------------------------------- */
+    char *pszPMName = NULL;
+    double dfPMOffset = 0.0;
+
+    if( !EPSGGetPMInfo( nPMCode, &pszPMName, &dfPMOffset ) )
+    {
+        CPLFree( pszDatumName );
+        return OGRERR_UNSUPPORTED_SRS;
+    }
+
+/* -------------------------------------------------------------------- */
+/*      Get the ellipsoid information.                                  */
+/* -------------------------------------------------------------------- */
+    char *pszEllipsoidName = NULL;
+    double dfSemiMajor, dfInvFlattening; 
+
+    if( OSRGetEllipsoidInfo( nEllipsoidCode, &pszEllipsoidName, 
+                             &dfSemiMajor, &dfInvFlattening ) != OGRERR_NONE )
+    {
+        CPLFree( pszDatumName );
+        CPLFree( pszPMName );
+        return OGRERR_UNSUPPORTED_SRS;
+    }
+
+/* -------------------------------------------------------------------- */
+/*      Setup the spheroid.                                             */
+/* -------------------------------------------------------------------- */
+    char                szValue[128];
+
+    OGR_SRSNode *poSpheroid = new OGR_SRSNode( "SPHEROID" );
+    poSpheroid->AddChild( new OGR_SRSNode( pszEllipsoidName ) );
+
+    OGRPrintDouble( szValue, dfSemiMajor );
+    poSpheroid->AddChild( new OGR_SRSNode(szValue) );
+
+    OGRPrintDouble( szValue, dfInvFlattening );
+    poSpheroid->AddChild( new OGR_SRSNode(szValue) );
+
+    CPLFree( pszEllipsoidName );
+
+/* -------------------------------------------------------------------- */
+/*      Setup the Datum.                                                */
+/* -------------------------------------------------------------------- */
+    OGR_SRSNode *poDatum = new OGR_SRSNode( "DATUM" );
+    poDatum->AddChild( new OGR_SRSNode(pszDatumName) );
+    poDatum->AddChild( poSpheroid );
+
+    poSRS->GetRoot()->AddChild( poDatum );
+
+    CPLFree( pszDatumName );
+
+/* -------------------------------------------------------------------- */
+/*      Setup the prime meridian.                                       */
+/* -------------------------------------------------------------------- */
+    if( dfPMOffset == 0.0 )
+        strcpy( szValue, "0" );
+    else
+        OGRPrintDouble( szValue, dfPMOffset );
+    
+    OGR_SRSNode *poPM = new OGR_SRSNode( "PRIMEM" );
+    poPM->AddChild( new OGR_SRSNode( pszPMName ) );
+    poPM->AddChild( new OGR_SRSNode( szValue ) );
+
+    poSRS->GetRoot()->AddChild( poPM );
+
+    CPLFree( pszPMName );
+
+/* -------------------------------------------------------------------- */
+/*      Should we try to lookup a datum transform?                      */
+/* -------------------------------------------------------------------- */
+#ifdef notdef
+    if( EPSGGetWGS84Transform( nGeogCS, adfBursaTransform ) )
+    {
+        OGR_SRSNode     *poWGS84;
+        char            szValue[100];
+
+        poWGS84 = new OGR_SRSNode( "TOWGS84" );
+
+        for( int iCoeff = 0; iCoeff < 7; iCoeff++ )
+        {
+            sprintf( szValue, "%g", adfBursaTransform[iCoeff] );
+            poWGS84->AddChild( new OGR_SRSNode( szValue ) );
+        }
+
+        poSRS->GetAttrNode( "DATUM" )->AddChild( poWGS84 );
+    }
+#endif
+
+/* -------------------------------------------------------------------- */
+/*      Set linear units.                                               */
+/* -------------------------------------------------------------------- */
+    char *pszUOMLengthName = NULL;
+    double dfInMeters = 1.0;
+    int nUOMLength = atoi(CSLGetField( papszRecord,
+                                       CSVGetFileFieldId(pszFilename,
+                                                         "UOM_CODE")));
+    
+    if( !EPSGGetUOMLengthInfo( nUOMLength, &pszUOMLengthName, &dfInMeters ) )
+    {
+        return OGRERR_UNSUPPORTED_SRS;
+    }
+
+    poSRS->SetLinearUnits( pszUOMLengthName, dfInMeters );
+    poSRS->SetAuthority( "GEOCCS|UNIT", "EPSG", nUOMLength );
+
+    CPLFree( pszUOMLengthName );
+
+/* -------------------------------------------------------------------- */
+/*      Set axes                                                        */
+/* -------------------------------------------------------------------- */
+    OGR_SRSNode *poAxis = new OGR_SRSNode( "AXIS" );
+
+    poAxis->AddChild( new OGR_SRSNode( "Geocentric X" ) );
+    poAxis->AddChild( new OGR_SRSNode( OSRAxisEnumToName(OAO_Other) ) );
+
+    poSRS->GetRoot()->AddChild( poAxis );
+    
+    poAxis = new OGR_SRSNode( "AXIS" );
+
+    poAxis->AddChild( new OGR_SRSNode( "Geocentric Y" ) );
+    poAxis->AddChild( new OGR_SRSNode( OSRAxisEnumToName(OAO_Other) ) );
+
+    poSRS->GetRoot()->AddChild( poAxis );
+    
+    poAxis = new OGR_SRSNode( "AXIS" );
+
+    poAxis->AddChild( new OGR_SRSNode( "Geocentric Z" ) );
+    poAxis->AddChild( new OGR_SRSNode( OSRAxisEnumToName(OAO_North) ) );
+
+    poSRS->GetRoot()->AddChild( poAxis );
+
+/* -------------------------------------------------------------------- */
+/*      Set the authority codes.                                        */
+/* -------------------------------------------------------------------- */
+    poSRS->SetAuthority( "DATUM", "EPSG", nDatumCode );
+    poSRS->SetAuthority( "SPHEROID", "EPSG", nEllipsoidCode );
+    poSRS->SetAuthority( "PRIMEM", "EPSG", nPMCode );
+
+//    if( nUOMAngle > 0 )
+//        poSRS->SetAuthority( "GEOGCS|UNIT", "EPSG", nUOMAngle );
+
+    poSRS->SetAuthority( "GEOCCS", "EPSG", nGCSCode );
+
+    return OGRERR_NONE;
+}
+
+/************************************************************************/
 /*                           importFromEPSG()                           */
 /************************************************************************/
 
@@ -1928,6 +2145,7 @@ OGRErr OGRSpatialReference::importFromEPSGA( int nCode )
 
 {
     OGRErr  eErr;
+    CPLLocaleC  oLocaleForcer;
 
     bNormInfoSet = FALSE;
 
@@ -1965,6 +2183,8 @@ OGRErr OGRSpatialReference::importFromEPSGA( int nCode )
         eErr = SetEPSGVertCS( this, nCode );
     if( eErr == OGRERR_UNSUPPORTED_SRS )
         eErr = SetEPSGCompdCS( this, nCode );
+    if( eErr == OGRERR_UNSUPPORTED_SRS )
+        eErr = SetEPSGGeocCS( this, nCode );
 
 /* -------------------------------------------------------------------- */
 /*      If we get it as an unsupported code, try looking it up in       */
@@ -2014,8 +2234,6 @@ OGRErr OGRSpatialReference::importFromEPSGA( int nCode )
             SetAuthority( "PROJCS", "EPSG", nCode );
         else if( IsGeographic() )
             SetAuthority( "GEOGCS", "EPSG", nCode );
-
-        eErr = FixupOrdering();
     }
 
 /* -------------------------------------------------------------------- */
@@ -2026,6 +2244,16 @@ OGRErr OGRSpatialReference::importFromEPSGA( int nCode )
         CPLError( CE_Failure, CPLE_NotSupported,
                   "EPSG PCS/GCS code %d not found in EPSG support files.  Is this a valid\nEPSG coordinate system?", 
                   nCode );
+    }
+
+/* -------------------------------------------------------------------- */
+/*      To the extent possible, we want to return the results in as     */
+/*      close to standard OGC format as possible, so we fixup the       */
+/*      ordering.                                                       */
+/* -------------------------------------------------------------------- */
+    if( eErr == OGRERR_NONE )
+    {    
+        eErr = FixupOrdering();
     }
 
     return eErr;

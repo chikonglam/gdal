@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdalhttp.cpp 21304 2010-12-21 09:44:03Z nowakpl $
+ * $Id: gdalhttp.cpp 22007 2011-03-21 20:44:14Z rouault $
  *
  * Project:  WMS Client Driver
  * Purpose:  Implementation of Dataset and RasterBand classes for WMS
@@ -86,6 +86,11 @@ void CPLHTTPInitializeRequest(CPLHTTPRequest *psRequest, const char *pszURL, con
     if (pszUserAgent == NULL)
         pszUserAgent = "GDAL WMS driver (http://www.gdal.org/frmt_wms.html)";
     curl_easy_setopt(psRequest->m_curl_handle, CURLOPT_USERAGENT, pszUserAgent);
+
+    /* Set Referer */
+    const char *pszReferer = CSLFetchNameValue(const_cast<char **>(psRequest->papszOptions), "REFERER");
+    if (pszReferer != NULL)
+        curl_easy_setopt(psRequest->m_curl_handle, CURLOPT_REFERER, pszReferer);
 
     /* Set URL */
     curl_easy_setopt(psRequest->m_curl_handle, CURLOPT_URL, psRequest->pszURL);
@@ -252,9 +257,17 @@ CPLErr CPLHTTPFetchMulti(CPLHTTPRequest *pasRequest, int nRequestCount, const ch
         if ((psRequest->pszError == NULL) && (psRequest->m_curl_error != NULL) && (psRequest->m_curl_error[0] != '\0')) {
             psRequest->pszError = CPLStrdup(psRequest->m_curl_error);
         }
-        
+
+        /* In the case of a file:// URL, curl will return a status == 0, so if there's no */
+        /* error returned, patch the status code to be 200, as it would be for http:// */
+        if (strncmp(psRequest->pszURL, "file://", 7) == 0 && psRequest->nStatus == 0 &&
+            psRequest->pszError == NULL)
+        {
+            psRequest->nStatus = 200;
+        }
+
         CPLDebug("HTTP", "Request [%d] %s : status = %d, content type = %s, error = %s",
-                 conn_i, psRequest->pszURL, psRequest->nStatus,
+                 i, psRequest->pszURL, psRequest->nStatus,
                  (psRequest->pszContentType) ? psRequest->pszContentType : "(null)",
                  (psRequest->pszError) ? psRequest->pszError : "(null)");
 

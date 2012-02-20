@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdalwarpoperation.cpp 22162 2011-04-14 20:22:35Z rouault $
+ * $Id: gdalwarpoperation.cpp 22888 2011-08-07 13:06:36Z rouault $
  *
  * Project:  High Performance Image Reprojector
  * Purpose:  Implementation of the GDALWarpOperation class.
@@ -32,7 +32,7 @@
 #include "cpl_multiproc.h"
 #include "ogr_api.h"
 
-CPL_CVSID("$Id: gdalwarpoperation.cpp 22162 2011-04-14 20:22:35Z rouault $");
+CPL_CVSID("$Id: gdalwarpoperation.cpp 22888 2011-08-07 13:06:36Z rouault $");
 
 /* Defined in gdalwarpkernel.cpp */
 int GWKGetFilterRadius(GDALResampleAlg eResampleAlg);
@@ -1203,6 +1203,8 @@ CPLErr GDALWarpOperation::WarpRegion( int nDstXOff, int nDstYOff,
         CPLError( CE_Failure, CPLE_AppDefined,
                   "Integer overflow : nDstXSize=%d, nDstYSize=%d",
                   nDstXSize, nDstYSize);
+        if( hIOMutex != NULL )
+            CPLReleaseMutex( hIOMutex );
         return CE_Failure;
     }
 
@@ -1212,6 +1214,8 @@ CPLErr GDALWarpOperation::WarpRegion( int nDstXOff, int nDstYOff,
         CPLError( CE_Failure, CPLE_OutOfMemory,
                   "Out of memory allocating %d byte destination buffer.",
                   nBandSize * psOptions->nBandCount );
+        if( hIOMutex != NULL )
+            CPLReleaseMutex( hIOMutex );
         return CE_Failure;
     }
 
@@ -1257,11 +1261,12 @@ CPLErr GDALWarpOperation::WarpRegion( int nDstXOff, int nDstYOff,
                 memset( pBandData, 
                         MAX(0,MIN(255,(int)adfInitRealImag[0])), 
                         nBandSize);
-            else if( adfInitRealImag[0] == 0.0 && adfInitRealImag[1] == 0 )
+            else if( !CPLIsNan(adfInitRealImag[0]) && adfInitRealImag[0] == 0.0 &&
+                     !CPLIsNan(adfInitRealImag[1]) && adfInitRealImag[1] == 0.0 )
             {
                 memset( pBandData, 0, nBandSize );
             }
-            else if( adfInitRealImag[1] == 0.0 )
+            else if( !CPLIsNan(adfInitRealImag[1]) && adfInitRealImag[1] == 0.0 )
             {
                 GDALCopyWords( &adfInitRealImag, GDT_Float64, 0, 
                                pBandData,psOptions->eWorkingDataType,nWordSize,
@@ -1295,6 +1300,8 @@ CPLErr GDALWarpOperation::WarpRegion( int nDstXOff, int nDstYOff,
         if( eErr != CE_None )
         {
             CPLFree( pDstBuffer );
+            if( hIOMutex != NULL )
+                CPLReleaseMutex( hIOMutex );
             return eErr;
         }
 

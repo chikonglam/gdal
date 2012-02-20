@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_vrt.h 20475 2010-08-28 12:45:57Z rouault $
+ * $Id: ogr_vrt.h 23575 2011-12-14 20:24:08Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Private definitions for OGR/VRT driver.
@@ -30,10 +30,13 @@
 #ifndef _OGR_VRT_H_INCLUDED
 #define _OGR_VRT_H_INCLUDED
 
-#include <vector>
 #include "ogrsf_frmts.h"
 #include "cpl_error.h"
 #include "cpl_minixml.h"
+
+#include <vector>
+#include <string>
+#include <set>
 
 typedef enum { 
     VGS_None,
@@ -48,9 +51,19 @@ typedef enum {
 /*                            OGRVRTLayer                                */
 /************************************************************************/
 
+class OGRVRTDataSource;
+
 class OGRVRTLayer : public OGRLayer
 {
   protected:
+    OGRVRTDataSource*   poDS;
+
+    int                 bHasFullInitialized;
+    CPLString           osName;
+    OGRwkbGeometryType  eGeomType;
+    CPLXMLNode         *psLTree;
+    CPLString           osVRTDirectory;
+
     OGRFeatureDefn      *poFeatureDefn;
 
     OGRDataSource       *poSrcDS;
@@ -72,7 +85,7 @@ class OGRVRTLayer : public OGRLayer
     int                 iStyleField; // -1 means pass through.
 
     // Geometry interpretation related.
-    OGRVRTGeometryStyle eGeometryType;
+    OGRVRTGeometryStyle eGeometryStyle;
     
     int                 iGeomField; 
 
@@ -94,14 +107,24 @@ class OGRVRTLayer : public OGRLayer
 
     int                 ResetSourceReading();
 
+    int                 FullInitialize();
+
   public:
-                        OGRVRTLayer();
+                        OGRVRTLayer(OGRVRTDataSource* poDSIn);
     virtual             ~OGRVRTLayer();
 
-    virtual int         Initialize( CPLXMLNode *psLTree, 
+    int                FastInitialize( CPLXMLNode *psLTree,
                                     const char *pszVRTDirectory,
                                     int bUpdate);
 
+    virtual const char  *GetName() { return osName.c_str(); }
+    virtual OGRwkbGeometryType GetGeomType();
+
+/* -------------------------------------------------------------------- */
+/*      Caution : all the below methods should care of calling          */
+/*      FullInitialize() if not already done                            */
+/* -------------------------------------------------------------------- */
+    
     virtual void        ResetReading();
     virtual OGRFeature *GetNextFeature();
 
@@ -109,7 +132,7 @@ class OGRVRTLayer : public OGRLayer
 
     virtual OGRErr      SetNextByIndex( long nIndex );
 
-    virtual OGRFeatureDefn *GetLayerDefn() { return poFeatureDefn; }
+    virtual OGRFeatureDefn *GetLayerDefn();
 
     virtual OGRSpatialReference *GetSpatialRef();
 
@@ -143,6 +166,12 @@ class OGRVRTDataSource : public OGRDataSource
     
     char               *pszName;
 
+    CPLXMLNode         *psTree;
+
+    int                 nCallLevel;
+
+    std::set<std::string> aosOtherDSNameSet;
+
   public:
                         OGRVRTDataSource();
                         ~OGRVRTDataSource();
@@ -155,6 +184,14 @@ class OGRVRTDataSource : public OGRDataSource
     OGRLayer            *GetLayer( int );
 
     int                 TestCapability( const char * );
+
+    /* Anti-recursion mechanism for standard Open */
+    void                SetCallLevel(int nCallLevelIn) { nCallLevel = nCallLevelIn; }
+    int                 GetCallLevel() { return nCallLevel; }
+
+    /* Anti-recursion mechanism for shared Open */
+    void                AddForbiddenNames(const char* pszOtherDSName);
+    int                 IsInForbiddenNames(const char* pszOtherDSName);
 };
 
 /************************************************************************/

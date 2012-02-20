@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: vfkfeature.cpp 19643 2010-05-08 21:56:18Z rouault $
+ * $Id: vfkfeature.cpp 21684 2011-02-11 22:14:01Z warmerdam $
  *
  * Project:  VFK Reader - Feature definition
  * Purpose:  Implements VFKFeature class.
@@ -237,7 +237,7 @@ bool VFKFeature::LoadGeometry()
         idxBp_Id = m_poDataBlock->GetPropertyIndex("BP_ID");
         idxPCB   = m_poDataBlock->GetPropertyIndex("PORADOVE_CISLO_BODU");
         if (idxId < 0 || idxBp_Id < 0 || idxPCB < 0)
-            return -1;
+            return false;
         
         poLine = this;
         while (TRUE)

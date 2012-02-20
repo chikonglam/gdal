@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrpglayer.cpp 20698 2010-09-26 13:38:41Z rouault $
+ * $Id: ogrpglayer.cpp 23565 2011-12-13 20:33:20Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implements OGRPGLayer class  which implements shared handling
@@ -58,13 +58,13 @@ PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 */
 
 #include "ogr_pg.h"
-#include "ogrpgutility.h"
 #include "ogr_p.h"
 #include "cpl_conv.h"
 #include "cpl_string.h"
-#include "cpl_base64.h"
 
-CPL_CVSID("$Id: ogrpglayer.cpp 20698 2010-09-26 13:38:41Z rouault $");
+#define PQexec this_is_an_error
+
+CPL_CVSID("$Id: ogrpglayer.cpp 23565 2011-12-13 20:33:20Z rouault $");
 
 #define CURSOR_PAGE     500
 
@@ -106,12 +106,11 @@ OGRPGLayer::OGRPGLayer()
     nCoordDimension = 2; // initialize in case PostGIS is not available
 
     poSRS = NULL;
-    nSRSId = -2; // we haven't even queried the database for it yet.
+    nSRSId = UNDETERMINED_SRID; // we haven't even queried the database for it yet.
 
     pszCursorName = CPLStrdup(CPLSPrintf("OGRPGLayerReader%p", this));
     
     hCursorResult = NULL;
-    bCursorActive = FALSE;
 
     bCanUseBinaryCursor = TRUE;
 
@@ -149,35 +148,41 @@ OGRPGLayer::~OGRPGLayer()
 }
 
 /************************************************************************/
+/*                            CloseCursor()                             */
+/************************************************************************/
+
+void OGRPGLayer::CloseCursor()
+{
+    PGconn      *hPGConn = poDS->GetPGConn();
+
+    if( hCursorResult != NULL )
+    {
+        OGRPGClearResult( hCursorResult );
+
+        CPLString    osCommand;
+        osCommand.Printf("CLOSE %s", pszCursorName );
+
+        hCursorResult = OGRPG_PQexec(hPGConn, osCommand.c_str());
+        OGRPGClearResult( hCursorResult );
+
+        poDS->FlushSoftTransaction();
+
+        hCursorResult = NULL;
+    }
+}
+
+/************************************************************************/
 /*                            ResetReading()                            */
 /************************************************************************/
 
 void OGRPGLayer::ResetReading()
 
 {
-    PGconn      *hPGConn = poDS->GetPGConn();
-    CPLString    osCommand;
-
     GetLayerDefn();
 
     iNextShapeId = 0;
 
-    if( hCursorResult != NULL )
-    {
-        OGRPGClearResult( hCursorResult );
-
-        if( bCursorActive )
-        {
-            osCommand.Printf("CLOSE %s", pszCursorName );
-
-            hCursorResult = PQexec(hPGConn, osCommand.c_str());
-            OGRPGClearResult( hCursorResult );
-        }
-
-        poDS->FlushSoftTransaction();
-
-        hCursorResult = NULL;
-    }
+    CloseCursor();
 }
 
 /************************************************************************/
@@ -265,18 +270,18 @@ OGRPGGetStrFromBinaryNumeric(NumericVar *var)
                                 dig -= d1 * 1000;
                                 putit |= (d1 > 0);
                                 if (putit)
-                                        *cp++ = d1 + '0';
+                                        *cp++ = (char)(d1 + '0');
                                 d1 = dig / 100;
                                 dig -= d1 * 100;
                                 putit |= (d1 > 0);
                                 if (putit)
-                                        *cp++ = d1 + '0';
+                                        *cp++ = (char)(d1 + '0');
                                 d1 = dig / 10;
                                 dig -= d1 * 10;
                                 putit |= (d1 > 0);
                                 if (putit)
-                                        *cp++ = d1 + '0';
-                                *cp++ = dig + '0';
+                                        *cp++ = (char)(d1 + '0');
+                                *cp++ = (char)(dig + '0');
                         }
                 }
         }
@@ -296,14 +301,14 @@ OGRPGGetStrFromBinaryNumeric(NumericVar *var)
                         CPL_MSBPTR16(&dig);
                         d1 = dig / 1000;
                         dig -= d1 * 1000;
-                        *cp++ = d1 + '0';
+                        *cp++ = (char)(d1 + '0');
                         d1 = dig / 100;
                         dig -= d1 * 100;
-                        *cp++ = d1 + '0';
+                        *cp++ = (char)(d1 + '0');
                         d1 = dig / 10;
                         dig -= d1 * 10;
-                        *cp++ = d1 + '0';
-                        *cp++ = dig + '0';
+                        *cp++ = (char)(d1 + '0');
+                        *cp++ = (char)(dig + '0');
                 }
                 cp = endcp;
         }
@@ -375,7 +380,7 @@ OGRPGdt2timeInt8(GIntBig jd, int *hour, int *min, int *sec, double *fsec)
 	*min = (int) (time / USECS_PER_MIN);
 	time -=  (GIntBig) (*min) * USECS_PER_MIN;
 	*sec = (int)time / USECS_PER_SEC;
-	*fsec = time - *sec * USECS_PER_SEC;
+	*fsec = (double)(time - *sec * USECS_PER_SEC);
 }	/* dt2time() */
 
 static
@@ -1320,13 +1325,16 @@ void OGRPGLayer::SetInitialQueryCursor()
         osCommand.Printf( "DECLARE %s CURSOR for %s",
                             pszCursorName, pszQueryStatement );
 
-    hCursorResult = PQexec(hPGConn, osCommand );
+    hCursorResult = OGRPG_PQexec(hPGConn, osCommand );
+    if ( !hCursorResult || PQresultStatus(hCursorResult) != PGRES_COMMAND_OK )
+    {
+        CPLError( CE_Failure, CPLE_AppDefined,
+                  "%s", PQerrorMessage( hPGConn ) );
+    }
     OGRPGClearResult( hCursorResult );
 
     osCommand.Printf( "FETCH %d in %s", CURSOR_PAGE, pszCursorName );
-    hCursorResult = PQexec(hPGConn, osCommand );
-
-    bCursorActive = TRUE;
+    hCursorResult = OGRPG_PQexec(hPGConn, osCommand );
 
     CreateMapFromFieldNameToIndex();
 
@@ -1368,14 +1376,16 @@ OGRFeature *OGRPGLayer::GetNextRawFeature()
 /* -------------------------------------------------------------------- */
 /*      Do we need to fetch more records?                               */
 /* -------------------------------------------------------------------- */
-    if( PQntuples(hCursorResult) > 0 &&
-        nResultOffset >= PQntuples(hCursorResult)
-        && bCursorActive )
+
+    /* We test for PQntuples(hCursorResult) == 1 in the case the previous */
+    /* request was a SetNextByIndex() */
+    if( (PQntuples(hCursorResult) == 1 || PQntuples(hCursorResult) == CURSOR_PAGE) &&
+        nResultOffset == PQntuples(hCursorResult) )
     {
         OGRPGClearResult( hCursorResult );
         
         osCommand.Printf( "FETCH %d in %s", CURSOR_PAGE, pszCursorName );
-        hCursorResult = PQexec(hPGConn, osCommand );
+        hCursorResult = OGRPG_PQexec(hPGConn, osCommand );
 
         nResultOffset = 0;
     }
@@ -1384,22 +1394,9 @@ OGRFeature *OGRPGLayer::GetNextRawFeature()
 /*      Are we out of results?  If so complete the transaction, and     */
 /*      cleanup, but don't reset the next shapeid.                      */
 /* -------------------------------------------------------------------- */
-    if( nResultOffset >= PQntuples(hCursorResult) )
+    if( nResultOffset == PQntuples(hCursorResult) )
     {
-        OGRPGClearResult( hCursorResult );
-
-        if( bCursorActive )
-        {
-            osCommand.Printf( "CLOSE %s", pszCursorName );
-
-            hCursorResult = PQexec(hPGConn, osCommand);
-            OGRPGClearResult( hCursorResult );
-        }
-
-        poDS->FlushSoftTransaction();
-
-        hCursorResult = NULL;
-        bCursorActive = FALSE;
+        CloseCursor();
 
         iNextShapeId = MAX(1,iNextShapeId);
 
@@ -1458,28 +1455,15 @@ OGRErr OGRPGLayer::SetNextByIndex( long nIndex )
     OGRPGClearResult( hCursorResult );
     
     osCommand.Printf( "FETCH ABSOLUTE %ld in %s", nIndex+1, pszCursorName );
-    hCursorResult = PQexec(hPGConn, osCommand );
-    
+    hCursorResult = OGRPG_PQexec(hPGConn, osCommand );
+
     if (PQresultStatus(hCursorResult) != PGRES_TUPLES_OK ||
         PQntuples(hCursorResult) != 1)
     {
         CPLError( CE_Failure, CPLE_AppDefined,
                   "Attempt to read feature at invalid index (%ld).", nIndex );
-                  
-        OGRPGClearResult( hCursorResult );
 
-        if( bCursorActive )
-        {
-            osCommand.Printf( "CLOSE %s", pszCursorName );
-
-            hCursorResult = PQexec(hPGConn, osCommand);
-            OGRPGClearResult( hCursorResult );
-        }
-
-        poDS->FlushSoftTransaction();
-
-        hCursorResult = NULL;
-        bCursorActive = FALSE;
+        CloseCursor();
 
         iNextShapeId = 0;
 
@@ -1615,7 +1599,7 @@ char *OGRPGLayer::GeometryToHex( OGRGeometry * poGeometry, int nSRSId )
     memcpy( &geomType, pabyWKB+1, 4 );
 
     /* Now add the SRID flag if an SRID is provided */
-    if (nSRSId != -1)
+    if (nSRSId > 0)
     {
         /* Change the flag to wkbNDR (little) endianess */
         GUInt32 nGSrsFlag = CPL_LSBWORD32( WKBSRIDFLAG );
@@ -1630,7 +1614,7 @@ char *OGRPGLayer::GeometryToHex( OGRGeometry * poGeometry, int nSRSId )
     pszTextBufCurrent += 8;
 
     /* Now include SRID if provided */
-    if (nSRSId != -1)
+    if (nSRSId > 0)
     {
         /* Force the srsid to wkbNDR (little) endianess */
         GUInt32 nGSRSId = CPL_LSBWORD32( nSRSId );
@@ -1890,16 +1874,14 @@ OGRErr OGRPGLayer::RollbackTransaction()
 OGRSpatialReference *OGRPGLayer::GetSpatialRef()
 
 {
-    if (nSRSId == -2)
+    if (nSRSId == UNDETERMINED_SRID)
         GetLayerDefn();
 
-    if( poSRS == NULL && nSRSId > -1 )
+    if( poSRS == NULL && nSRSId > 0 )
     {
         poSRS = poDS->FetchSRS( nSRSId );
         if( poSRS != NULL )
             poSRS->Reference();
-        else
-            nSRSId = -1;
     }
 
     return poSRS;
@@ -1950,7 +1932,7 @@ OGRErr OGRPGLayer::RunGetExtentRequest( OGREnvelope *psExtent, int bForce,
         PGconn      *hPGConn = poDS->GetPGConn();
         PGresult    *hResult = NULL;
 
-        hResult = PQexec( hPGConn, osCommand );
+        hResult = OGRPG_PQexec( hPGConn, osCommand );
         if( ! hResult || PQresultStatus(hResult) != PGRES_TUPLES_OK || PQgetisnull(hResult,0,0) )
         {
             OGRPGClearResult( hResult );
@@ -2019,4 +2001,189 @@ OGRErr OGRPGLayer::RunGetExtentRequest( OGREnvelope *psExtent, int bForce,
 OGRFeatureDefn * OGRPGLayer::GetLayerDefn()
 {
     return poFeatureDefn;
+}
+
+/************************************************************************/
+/*                        ReadResultDefinition()                        */
+/*                                                                      */
+/*      Build a schema from the current resultset.                      */
+/************************************************************************/
+
+OGRFeatureDefn *OGRPGLayer::ReadResultDefinition(PGresult *hInitialResultIn)
+
+{
+    PGresult            *hResult = hInitialResultIn;
+
+/* -------------------------------------------------------------------- */
+/*      Parse the returned table information.                           */
+/* -------------------------------------------------------------------- */
+    OGRFeatureDefn *poDefn = new OGRFeatureDefn( "sql_statement" );
+    int            iRawField;
+
+    poDefn->Reference();
+
+    for( iRawField = 0; iRawField < PQnfields(hResult); iRawField++ )
+    {
+        OGRFieldDefn    oField( PQfname(hResult,iRawField), OFTString);
+        Oid             nTypeOID;
+
+        nTypeOID = PQftype(hResult,iRawField);
+
+        if( EQUAL(oField.GetNameRef(),"ogc_fid") )
+        {
+            if (bHasFid)
+            {
+                CPLError(CE_Warning, CPLE_AppDefined,
+                         "More than one ogc_fid column was found in the result of the SQL request. Only last one will be used");
+            }
+            bHasFid = TRUE;
+            CPLFree(pszFIDColumn);
+            pszFIDColumn = CPLStrdup(oField.GetNameRef());
+            continue;
+        }
+        else if( nTypeOID == poDS->GetGeometryOID()  ||
+                 nTypeOID == poDS->GetGeographyOID()  ||
+                 EQUAL(oField.GetNameRef(),"ST_AsBinary") ||
+                 EQUAL(oField.GetNameRef(),"BinaryBase64") ||
+                 EQUAL(oField.GetNameRef(),"ST_AsEWKT") ||
+                 EQUAL(oField.GetNameRef(),"ST_AsEWKB") ||
+                 EQUAL(oField.GetNameRef(),"EWKBBase64") ||
+                 EQUAL(oField.GetNameRef(),"ST_AsText") ||
+                 EQUAL(oField.GetNameRef(),"AsBinary") ||
+                 EQUAL(oField.GetNameRef(),"asEWKT") ||
+                 EQUAL(oField.GetNameRef(),"asEWKB") ||
+                 EQUAL(oField.GetNameRef(),"asText") )
+        {
+            if (bHasPostGISGeometry || bHasPostGISGeography )
+            {
+                CPLError(CE_Warning, CPLE_AppDefined,
+                         "More than one geometry column was found in the result of the SQL request. Only last one will be used");
+            }
+            if (nTypeOID == poDS->GetGeographyOID())
+                bHasPostGISGeography = TRUE;
+            else
+                bHasPostGISGeometry = TRUE;
+            CPLFree(pszGeomColumn);
+            pszGeomColumn = CPLStrdup(oField.GetNameRef());
+            continue;
+        }
+        else if( EQUAL(oField.GetNameRef(),"WKB_GEOMETRY") )
+        {
+            bHasWkb = TRUE;
+            if( nTypeOID == OIDOID )
+                bWkbAsOid = TRUE;
+            continue;
+        }
+
+        if( nTypeOID == BYTEAOID )
+        {
+            oField.SetType( OFTBinary );
+        }
+        else if( nTypeOID == CHAROID ||
+                 nTypeOID == TEXTOID ||
+                 nTypeOID == BPCHAROID ||
+                 nTypeOID == VARCHAROID )
+        {
+            oField.SetType( OFTString );
+
+            /* See http://www.mail-archive.com/pgsql-hackers@postgresql.org/msg57726.html */
+            /* nTypmod = width + 4 */
+            int nTypmod = PQfmod(hResult, iRawField);
+            if (nTypmod >= 4 && (nTypeOID == BPCHAROID ||
+                               nTypeOID == VARCHAROID ) )
+            {
+                oField.SetWidth( nTypmod - 4);
+            }
+        }
+        else if( nTypeOID == BOOLOID )
+        {
+            oField.SetType( OFTInteger );
+            oField.SetWidth( 1 );
+        }
+        else if (nTypeOID == INT2OID )
+        {
+            oField.SetType( OFTInteger );
+            oField.SetWidth( 5 );
+        }
+        else if (nTypeOID == INT4OID )
+        {
+            oField.SetType( OFTInteger );
+        }
+        else if ( nTypeOID == INT8OID )
+        {
+            /* FIXME: OFTInteger can not handle 64bit integers */
+            oField.SetType( OFTInteger );
+        }
+        else if( nTypeOID == FLOAT4OID ||
+                 nTypeOID == FLOAT8OID )
+        {
+            oField.SetType( OFTReal );
+        }
+        else if( nTypeOID == NUMERICOID )
+        {
+            /* See http://www.mail-archive.com/pgsql-hackers@postgresql.org/msg57726.html */
+            /* typmod = (width << 16) + precision + 4 */
+            int nTypmod = PQfmod(hResult, iRawField);
+            if (nTypmod >= 4)
+            {
+                int nWidth = (nTypmod - 4) >> 16;
+                int nPrecision = (nTypmod - 4) & 0xFFFF;
+                if (nWidth <= 10 && nPrecision == 0)
+                {
+                    oField.SetType( OFTInteger );
+                    oField.SetWidth( nWidth );
+                }
+                else
+                {
+                    oField.SetType( OFTReal );
+                    oField.SetWidth( nWidth );
+                    oField.SetPrecision( nPrecision );
+                }
+            }
+            else
+                oField.SetType( OFTReal );
+        }
+        else if ( nTypeOID == INT4ARRAYOID )
+        {
+            oField.SetType ( OFTIntegerList );
+        }
+        else if ( nTypeOID == FLOAT4ARRAYOID ||
+                  nTypeOID == FLOAT8ARRAYOID )
+        {
+            oField.SetType ( OFTRealList );
+        }
+        else if ( nTypeOID == TEXTARRAYOID ||
+                  nTypeOID == BPCHARARRAYOID ||
+                  nTypeOID == VARCHARARRAYOID )
+        {
+            oField.SetType ( OFTStringList );
+        }
+        else if ( nTypeOID == DATEOID )
+        {
+            oField.SetType( OFTDate );
+        }
+        else if ( nTypeOID == TIMEOID )
+        {
+            oField.SetType( OFTTime );
+        }
+        else if ( nTypeOID == TIMESTAMPOID ||
+                  nTypeOID == TIMESTAMPTZOID )
+        {
+            /* We can't deserialize properly timestamp with time zone */
+            /* with binary cursors */
+            if (nTypeOID == TIMESTAMPTZOID)
+                bCanUseBinaryCursor = FALSE;
+
+            oField.SetType( OFTDateTime );
+        }
+        else /* unknown type */
+        {
+            CPLDebug("PG", "Unhandled OID (%d) for column %d. Defaulting to String.", nTypeOID, iRawField);
+            oField.SetType( OFTString );
+        }
+
+        poDefn->AddFieldDefn( &oField );
+    }
+
+    return poDefn;
 }

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrinfo.cpp 20589 2010-09-12 16:47:56Z rouault $
+ * $Id: ogrinfo.cpp 23119 2011-09-24 16:15:21Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Simple client for viewing OGR driver data.
@@ -34,7 +34,7 @@
 #include "cpl_string.h"
 #include "cpl_multiproc.h"
 
-CPL_CVSID("$Id: ogrinfo.cpp 20589 2010-09-12 16:47:56Z rouault $");
+CPL_CVSID("$Id: ogrinfo.cpp 23119 2011-09-24 16:15:21Z rouault $");
 
 int     bReadOnly = FALSE;
 int     bVerbose = TRUE;
@@ -238,7 +238,13 @@ int main( int nArgc, char ** papszArgv )
         if( poResultSet != NULL )
         {
             if( pszWHERE != NULL )
-                poResultSet->SetAttributeFilter( pszWHERE );
+            {
+                if (poResultSet->SetAttributeFilter( pszWHERE ) != OGRERR_NONE )
+                {
+                    printf( "FAILURE: SetAttributeFilter(%s) failed.\n", pszWHERE );
+                    exit(1);
+                }
+            }
 
             ReportOnLayer( poResultSet, NULL, NULL );
             poDS->ReleaseResultSet( poResultSet );
@@ -357,7 +363,13 @@ static void ReportOnLayer( OGRLayer * poLayer, const char *pszWHERE,
 /*      Set filters if provided.                                        */
 /* -------------------------------------------------------------------- */
     if( pszWHERE != NULL )
-        poLayer->SetAttributeFilter( pszWHERE );
+    {
+        if (poLayer->SetAttributeFilter( pszWHERE ) != OGRERR_NONE )
+        {
+            printf( "FAILURE: SetAttributeFilter(%s) failed.\n", pszWHERE );
+            exit(1);
+        }
+    }
 
     if( poSpatialFilter != NULL )
         poLayer->SetSpatialFilter( poSpatialFilter );

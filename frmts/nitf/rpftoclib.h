@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: rpftoclib.h rouault $
+ * $Id: rpftoclib.h 21951 2011-03-12 22:02:07Z warmerdam $
  *
  * Project:  RPF A.TOC read Library
  * Purpose:  Main GDAL independent include file for RPF TOC support.  

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: cpl_vsil_buffered_reader.cpp 21358 2010-12-31 17:28:26Z rouault $
+ * $Id: cpl_vsil_buffered_reader.cpp 22109 2011-04-03 18:39:59Z rouault $
  *
  * Project:  VSI Virtual File System
  * Purpose:  Implementation of buffered reader IO functions.
@@ -37,7 +37,7 @@
 
 #define MAX_BUFFER_SIZE 65536
 
-CPL_CVSID("$Id: cpl_vsil_buffered_reader.cpp 21358 2010-12-31 17:28:26Z rouault $");
+CPL_CVSID("$Id: cpl_vsil_buffered_reader.cpp 22109 2011-04-03 18:39:59Z rouault $");
 
 class VSIBufferedReaderHandle : public VSIVirtualHandle
 {
@@ -47,6 +47,7 @@ class VSIBufferedReaderHandle : public VSIVirtualHandle
     int               nBufferSize;
     GUIntBig          nCurOffset;
     int               bNeedBaseHandleSeek;
+    int               bEOF;
 
   public:
 
@@ -82,6 +83,7 @@ VSIBufferedReaderHandle::VSIBufferedReaderHandle(VSIVirtualHandle* poBaseHandle)
     nBufferSize = 0;
     nCurOffset = 0;
     bNeedBaseHandleSeek = FALSE;
+    bEOF = FALSE;
 }
 
 /************************************************************************/
@@ -100,6 +102,7 @@ VSIBufferedReaderHandle::~VSIBufferedReaderHandle()
 int VSIBufferedReaderHandle::Seek( vsi_l_offset nOffset, int nWhence )
 {
     //CPLDebug( "BUFFERED", "Seek(%d,%d)", (int)nOffset, (int)nWhence);
+    bEOF = FALSE;
     if (nWhence == SEEK_CUR)
         nCurOffset += nOffset;
     else if (nWhence == SEEK_END)
@@ -162,6 +165,8 @@ size_t VSIBufferedReaderHandle::Read( void *pBuffer, size_t nSize, size_t nMemb 
             //CPLAssert(poBaseHandle->Tell() == nBufferOffset + nBufferSize);
             //CPLAssert(poBaseHandle->Tell() == nCurOffset);
 
+            bEOF = poBaseHandle->Eof();
+
             return nRead / nSize;
         }
         else
@@ -184,6 +189,8 @@ size_t VSIBufferedReaderHandle::Read( void *pBuffer, size_t nSize, size_t nMemb 
         nCurOffset += nReadInFile;
         //CPLAssert(poBaseHandle->Tell() == nBufferOffset + nBufferSize);
         //CPLAssert(poBaseHandle->Tell() == nCurOffset);
+
+        bEOF = poBaseHandle->Eof();
 
         return nReadInFile / nSize;
     }
@@ -208,7 +215,7 @@ size_t VSIBufferedReaderHandle::Write( const void *pBuffer, size_t nSize, size_t
 
 int VSIBufferedReaderHandle::Eof()
 {
-    return poBaseHandle->Eof();
+    return bEOF;
 }
 
 /************************************************************************/

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: kml.h 20996 2010-10-28 18:38:15Z rouault $
+ * $Id: kml.h 23589 2011-12-17 14:21:01Z rouault $
  *
  * Project:  KML Driver
  * Purpose:  Class for reading, parsing and handling a kmlfile.
@@ -76,7 +76,7 @@ public:
 	void parse();
 	void print(unsigned short what = 3);
     std::string getError() const;
-	void classifyNodes();
+	int classifyNodes();
 	void eliminateEmpty();
 	int getNumLayers() const;
     bool selectLayer(int);

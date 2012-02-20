@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdaldem.cpp 21298 2010-12-20 10:58:34Z rouault $
+ * $Id: gdaldem.cpp 22857 2011-08-02 18:17:45Z rouault $
  *
  * Project:  GDAL DEM Utilities
  * Purpose:  
@@ -89,14 +89,15 @@
 #include "cpl_string.h"
 #include "gdal.h"
 #include "gdal_priv.h"
+#include "commonutils.h"
 
-CPL_CVSID("$Id: gdaldem.cpp 21298 2010-12-20 10:58:34Z rouault $");
+CPL_CVSID("$Id: gdaldem.cpp 22857 2011-08-02 18:17:45Z rouault $");
 
 #ifndef M_PI
 # define M_PI  3.1415926535897932384626433832795
 #endif
 
-#define INTERPOL(a,b) ((bSrcHasNoData && (EQUAL_TO_NODATA(a, fSrcNoDataValue) || EQUAL_TO_NODATA(b, fSrcNoDataValue))) ? fSrcNoDataValue : 2 * (a) - (b))
+#define INTERPOL(a,b) ((bSrcHasNoData && (ARE_REAL_EQUAL(a, fSrcNoDataValue) || ARE_REAL_EQUAL(b, fSrcNoDataValue))) ? fSrcNoDataValue : 2 * (a) - (b))
 
 /************************************************************************/
 /*                               Usage()                                */
@@ -162,7 +163,7 @@ static float ComputeVal(int bSrcHasNoData, float fSrcNoDataValue,
                         void* pData,
                         int bComputeAtEdges)
 {
-    if (bSrcHasNoData && EQUAL_TO_NODATA(afWin[4], fSrcNoDataValue))
+    if (bSrcHasNoData && ARE_REAL_EQUAL(afWin[4], fSrcNoDataValue))
     {
         return fDstNoDataValue;
     }
@@ -171,7 +172,7 @@ static float ComputeVal(int bSrcHasNoData, float fSrcNoDataValue,
         int k;
         for(k=0;k<9;k++)
         {
-            if (EQUAL_TO_NODATA(afWin[k], fSrcNoDataValue))
+            if (ARE_REAL_EQUAL(afWin[k], fSrcNoDataValue))
             {
                 if (bComputeAtEdges)
                     afWin[k] = afWin[4];
@@ -2119,7 +2120,7 @@ typedef enum
 int main( int argc, char ** argv )
 
 {
-    Algorithm eUtilityMode;
+    Algorithm eUtilityMode = HILL_SHADE;
     double z = 1.0;
     double scale = 1.0;
     double az = 315.0;
@@ -2138,6 +2139,7 @@ int main( int argc, char ** argv )
     const char *pszDstFilename = NULL;
     const char *pszColorFilename = NULL;
     const char *pszFormat = "GTiff";
+    int bFormatExplicitelySet = FALSE;
     char **papszCreateOptions = NULL;
     
     GDALDatasetH hSrcDataset = NULL;
@@ -2153,6 +2155,8 @@ int main( int argc, char ** argv )
     
     int bComputeAtEdges = FALSE;
     int bZevenbergenThorne = FALSE;
+
+    int bQuiet = FALSE;
     
     /* Check strict compilation and runtime library version as we use C++ API */
     if (! GDAL_CHECK_VERSION(argv[0]))
@@ -2294,6 +2298,7 @@ int main( int argc, char ** argv )
         else if ( EQUAL(argv[i], "-q") || EQUAL(argv[i], "-quiet") )
         {
             pfnProgress = GDALDummyProgress;
+            bQuiet = TRUE;
         }
         else if( EQUAL(argv[i],"-co") && i < argc-1 )
         {
@@ -2302,6 +2307,7 @@ int main( int argc, char ** argv )
         else if( EQUAL(argv[i],"-of") && i < argc-1 )
         {
             pszFormat = argv[++i];
+            bFormatExplicitelySet = TRUE;
         }
         else if( argv[i][0] == '-' )
         {
@@ -2396,6 +2402,9 @@ int main( int argc, char ** argv )
         GDALDestroyDriverManager();
         exit( 1 );
     }
+
+    if (!bQuiet && !bFormatExplicitelySet)
+        CheckExtensionConsistency(pszDstFilename, pszFormat);
 
     double dfDstNoDataValue = 0;
     int bDstHasNoData = FALSE;

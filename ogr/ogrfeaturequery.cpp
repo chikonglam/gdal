@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrfeaturequery.cpp 21298 2010-12-20 10:58:34Z rouault $
+ * $Id: ogrfeaturequery.cpp 23309 2011-11-03 20:58:33Z rouault $
  * 
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implementation of simple SQL WHERE style attributes queries
@@ -34,7 +34,7 @@
 #include "ogr_p.h"
 #include "ogr_attrind.h"
 
-CPL_CVSID("$Id: ogrfeaturequery.cpp 21298 2010-12-20 10:58:34Z rouault $");
+CPL_CVSID("$Id: ogrfeaturequery.cpp 23309 2011-11-03 20:58:33Z rouault $");
 
 /************************************************************************/
 /*     Support for special attributes (feature query and selection)     */
@@ -293,7 +293,10 @@ long *OGRFeatureQuery::EvaluateAgainstIndices( OGRLayer *poLayer,
             switch( poFieldDefn->GetType() )
             {
               case OFTInteger:
-                sValue.Integer = psExpr->papoSubExpr[iIN]->int_value;
+                if (psExpr->papoSubExpr[iIN]->field_type == SWQ_FLOAT)
+                    sValue.Integer = (int) psExpr->papoSubExpr[iIN]->float_value;
+                else
+                    sValue.Integer = psExpr->papoSubExpr[iIN]->int_value;
                 break;
 
               case OFTReal:
@@ -326,7 +329,10 @@ long *OGRFeatureQuery::EvaluateAgainstIndices( OGRLayer *poLayer,
     switch( poFieldDefn->GetType() )
     {
       case OFTInteger:
-        sValue.Integer = poValue->int_value;
+        if (poValue->field_type == SWQ_FLOAT)
+            sValue.Integer = (int) poValue->float_value;
+        else
+            sValue.Integer = poValue->int_value;
         break;
         
       case OFTReal:

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gxfdataset.cpp 21085 2010-11-07 17:54:54Z warmerdam $
+ * $Id: gxfdataset.cpp 22401 2011-05-18 22:20:45Z warmerdam $
  *
  * Project:  GXF Reader
  * Purpose:  GDAL binding for GXF reader.
@@ -30,7 +30,7 @@
 #include "gxfopen.h"
 #include "gdal_pam.h"
 
-CPL_CVSID("$Id: gxfdataset.cpp 21085 2010-11-07 17:54:54Z warmerdam $");
+CPL_CVSID("$Id: gxfdataset.cpp 22401 2011-05-18 22:20:45Z warmerdam $");
 
 #ifndef PI
 #  define PI 3.14159265358979323846
@@ -362,6 +362,11 @@ GDALDataset *GXFDataset::Open( GDALOpenInfo * poOpenInfo )
 /* -------------------------------------------------------------------- */
     poDS->SetDescription( poOpenInfo->pszFilename );
     poDS->TryLoadXML();
+
+/* -------------------------------------------------------------------- */
+/*      Check for external overviews.                                   */
+/* -------------------------------------------------------------------- */
+    poDS->oOvManager.Initialize( poDS, poOpenInfo->pszFilename, poOpenInfo->papszSiblingFiles );
 
     return( poDS );
 }

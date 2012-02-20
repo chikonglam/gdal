@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: xpmdataset.cpp 20996 2010-10-28 18:38:15Z rouault $
+ * $Id: xpmdataset.cpp 21680 2011-02-11 21:12:07Z warmerdam $
  *
  * Project:  XPM Driver
  * Purpose:  Implement GDAL XPM Support
@@ -33,7 +33,7 @@
 #include "gdal_frmts.h"						      
 
 
-CPL_CVSID("$Id: xpmdataset.cpp 20996 2010-10-28 18:38:15Z rouault $");
+CPL_CVSID("$Id: xpmdataset.cpp 21680 2011-02-11 21:12:07Z warmerdam $");
 
 static unsigned char *ParseXPM( const char *pszInput,
                                 int *pnXSize, int *pnYSize, 
@@ -110,7 +110,7 @@ GDALDataset *XPMDataset::Open( GDALOpenInfo * poOpenInfo )
         return NULL;
 
     VSIFSeekL( fp, 0, SEEK_END );
-    nFileSize = VSIFTellL( fp );
+    nFileSize = (unsigned int) VSIFTellL( fp );
     
     pszFileContents = (char *) VSIMalloc(nFileSize+1);
     if( pszFileContents == NULL )

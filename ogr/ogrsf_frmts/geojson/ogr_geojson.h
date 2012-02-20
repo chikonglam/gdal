@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_geojson.h 20996 2010-10-28 18:38:15Z rouault $
+ * $Id: ogr_geojson.h 23367 2011-11-12 22:46:13Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Definitions of OGR OGRGeoJSON driver types.
@@ -32,6 +32,8 @@
 #include <ogrsf_frmts.h>
 #include <cstdio>
 #include <vector> // used by OGRGeoJSONLayer
+
+#define SPACE_FOR_BBOX  80
 
 class OGRGeoJSONDataSource;
 
@@ -88,6 +90,12 @@ private:
     OGRSpatialReference* poSRS_;
     CPLString sFIDColumn_;
     int nOutCounter_;
+
+    int bWriteBBOX;
+    int bBBOX3D;
+    OGREnvelope3D sEnvelopeLayer;
+
+    int nCoordPrecision;
 };
 
 /************************************************************************/
@@ -136,6 +144,9 @@ public:
 
     void SetAttributesTranslation( AttributesTranslation type );
 
+    int  GetFpOutputIsSeekable() const { return bFpOutputIsSeekable_; }
+    int  GetBBOXInsertLocation() const { return nBBOXInsertLocation_; }
+
 private:
 
     //
@@ -152,6 +163,9 @@ private:
     // 
     GeometryTranslation flTransGeom_;
     AttributesTranslation flTransAttrs_;
+
+    int bFpOutputIsSeekable_;
+    int nBBOXInsertLocation_;
 
     //
     // Priavte utility functions
@@ -186,7 +200,7 @@ public:
     //
     // OGRGeoJSONDriver Interface
     //
-    // NOTE: New version of Open() based on Andrey's RCF 10.
+    // NOTE: New version of Open() based on Andrey's RFC 10.
     OGRDataSource* Open( const char* pszName, int bUpdate,
                          char** papszOptions );
 

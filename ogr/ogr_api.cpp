@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_api.cpp 20555 2010-09-10 18:54:34Z rouault $
+ * $Id: ogr_api.cpp 22416 2011-05-22 20:19:45Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  C API Functions that don't correspond one-to-one with C++ 
@@ -205,6 +205,65 @@ double OGR_G_GetZ( OGRGeometryH hGeom, int i )
           return 0.0;
     }
 }
+
+/************************************************************************/
+/*                          OGR_G_GetPoints()                           */
+/************************************************************************/
+
+/**
+ * \brief Returns all points of line string.
+ *
+ * This method copies all points into user arrays. The user provides the
+ * stride between 2 consecutives elements of the array.
+ *
+ * On some CPU architectures, care must be taken so that the arrays are properly aligned.
+ *
+ * @param hGeom handle to the geometry from which to get the coordinates.
+ * @param pabyX a buffer of at least (sizeof(double) * nXStride * nPointCount) bytes, may be NULL.
+ * @param nXStride the number of bytes between 2 elements of pabyX.
+ * @param pabyY a buffer of at least (sizeof(double) * nYStride * nPointCount) bytes, may be NULL.
+ * @param nYStride the number of bytes between 2 elements of pabyY.
+ * @param pabyZ a buffer of at last size (sizeof(double) * nZStride * nPointCount) bytes, may be NULL.
+ * @param nZStride the number of bytes between 2 elements of pabyZ.
+ *
+ * @return the number of points
+ *
+ * @since OGR 1.9.0
+ */
+
+int OGR_G_GetPoints( OGRGeometryH hGeom,
+                     void* pabyX, int nXStride,
+                     void* pabyY, int nYStride,
+                     void* pabyZ, int nZStride)
+{
+    VALIDATE_POINTER1( hGeom, "OGR_G_GetPoints", 0 );
+
+    switch( wkbFlatten(((OGRGeometry *) hGeom)->getGeometryType()) )
+    {
+      case wkbPoint:
+      {
+        if (pabyX) *((double*)pabyX) = ((OGRPoint *)hGeom)->getX();
+        if (pabyY) *((double*)pabyY) = ((OGRPoint *)hGeom)->getY();
+        if (pabyZ) *((double*)pabyZ) = ((OGRPoint *)hGeom)->getZ();
+        return 1;
+      }
+      break;
+
+      case wkbLineString:
+      {
+          OGRLineString* poLS = (OGRLineString *) hGeom;
+          poLS->getPoints(pabyX, nXStride, pabyY, nYStride, pabyZ, nZStride);
+          return poLS->getNumPoints();
+      }
+      break;
+
+      default:
+        CPLError(CE_Failure, CPLE_NotSupported, "Incompatible geometry for operation");
+        return 0;
+        break;
+    }
+}
+
 
 /************************************************************************/
 /*                           OGR_G_GetPoint()                           */

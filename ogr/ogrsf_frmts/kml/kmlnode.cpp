@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: kmlnode.cpp 20602 2010-09-13 18:37:20Z rouault $
+ * $Id: kmlnode.cpp 23589 2011-12-17 14:21:01Z rouault $
  *
  * Project:  KML Driver
  * Purpose:  Class for building up the node structure of the kml file.
@@ -200,11 +200,20 @@ void KMLNode::print(unsigned int what)
 //    return spaces;
 //}
 
-void KMLNode::classify(KML* poKML)
+int KMLNode::classify(KML* poKML, int nRecLevel)
 {
     Nodetype curr = Unknown;
     Nodetype all = Empty;
-    
+
+    /* Arbitrary value, but certainly large enough for reasonable usages ! */
+    if( nRecLevel == 32 )
+    {
+        CPLError( CE_Failure, CPLE_AppDefined,
+                    "Too many recursiong level (%d) while parsing KML geometry.",
+                    nRecLevel );
+        return NULL;
+    }
+
     //CPLDebug("KML", "%s<%s>", genSpaces(), sName_.c_str());
     //nDepth ++;
     
@@ -245,7 +254,8 @@ void KMLNode::classify(KML* poKML)
         //CPLDebug("KML", "%s[%d] %s", genSpaces(), z, (*pvpoChildren_)[z]->sName_.c_str());
 
         // Classify pvpoChildren_
-        (*pvpoChildren_)[z]->classify(poKML);
+        if (!(*pvpoChildren_)[z]->classify(poKML, nRecLevel + 1))
+            return FALSE;
 
         curr = (*pvpoChildren_)[z]->eType_;
         b25D_ |= (*pvpoChildren_)[z]->b25D_;
@@ -283,6 +293,8 @@ void KMLNode::classify(KML* poKML)
 
     //nDepth --;
     //CPLDebug("KML", "%s</%s> --> eType=%s", genSpaces(), sName_.c_str(), Nodetype2String(eType_).c_str());
+
+    return TRUE;
 }
 
 void KMLNode::eliminateEmpty(KML* poKML)

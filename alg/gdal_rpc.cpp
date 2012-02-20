@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdal_rpc.cpp 21167 2010-11-24 15:19:51Z warmerdam $
+ * $Id: gdal_rpc.cpp 22903 2011-08-07 22:20:48Z rouault $
  *
  * Project:  Image Warper
  * Purpose:  Implements a rational polynomail (RPC) based transformer. 
@@ -32,7 +32,7 @@
 #include "ogr_spatialref.h"
 #include "cpl_minixml.h"
 
-CPL_CVSID("$Id: gdal_rpc.cpp 21167 2010-11-24 15:19:51Z warmerdam $");
+CPL_CVSID("$Id: gdal_rpc.cpp 22903 2011-08-07 22:20:48Z rouault $");
 
 CPL_C_START
 CPLXMLNode *GDALSerializeRPCTransformer( void *pTransformArg );
@@ -856,7 +856,8 @@ void *GDALDeserializeRPCTransformer( CPLXMLNode *psTree )
 
     psMetadata = CPLGetXMLNode( psTree, "Metadata" );
 
-    if( psMetadata->eType != CXT_Element
+    if( psMetadata == NULL
+        || psMetadata->eType != CXT_Element
         || !EQUAL(psMetadata->pszValue,"Metadata") )
         return NULL;
     

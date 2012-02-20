@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdalproxypool.cpp 21211 2010-12-08 13:38:25Z rouault $
+ * $Id: gdalproxypool.cpp 21669 2011-02-10 00:49:16Z rouault $
  *
  * Project:  GDAL Core
  * Purpose:  A dataset and raster band classes that differ the opening of the
@@ -31,7 +31,7 @@
 #include "gdal_proxy.h"
 #include "cpl_multiproc.h"
 
-CPL_CVSID("$Id: gdalproxypool.cpp 21211 2010-12-08 13:38:25Z rouault $");
+CPL_CVSID("$Id: gdalproxypool.cpp 21669 2011-02-10 00:49:16Z rouault $");
 
 /* Functions shared between gdalproxypool.cpp and gdaldataset.cpp */
 void** GDALGetphDLMutex();
@@ -102,6 +102,9 @@ class GDALDatasetPool
         static void Unref();
         static GDALProxyPoolCacheEntry* RefDataset(const char* pszFileName, GDALAccess eAccess);
         static void UnrefDataset(GDALProxyPoolCacheEntry* cacheEntry);
+
+        static void PreventDestroy();
+        static void ForceDestroy();
 };
 
 
@@ -319,6 +322,22 @@ void GDALDatasetPool::Ref()
       singleton->refCount++;
 }
 
+/* keep that in sync with gdaldrivermanager.cpp */
+void GDALDatasetPool::PreventDestroy()
+{
+    CPLMutexHolderD( GDALGetphDLMutex() );
+    if (! singleton)
+        return;
+    singleton->refCountOfDisableRefCount ++;
+}
+
+/* keep that in sync with gdaldrivermanager.cpp */
+void GDALDatasetPoolPreventDestroy()
+{
+    GDALDatasetPool::PreventDestroy();
+}
+
+
 /************************************************************************/
 /*                               Unref()                                */
 /************************************************************************/
@@ -340,6 +359,25 @@ void GDALDatasetPool::Unref()
           singleton = NULL;
       }
     }
+}
+
+/* keep that in sync with gdaldrivermanager.cpp */
+void GDALDatasetPool::ForceDestroy()
+{
+    CPLMutexHolderD( GDALGetphDLMutex() );
+    if (! singleton)
+        return;
+    singleton->refCountOfDisableRefCount --;
+    CPLAssert(singleton->refCountOfDisableRefCount == 0);
+    singleton->refCount = 0;
+    delete singleton;
+    singleton = NULL;
+}
+
+/* keep that in sync with gdaldrivermanager.cpp */
+void GDALDatasetPoolForceDestroy()
+{
+    GDALDatasetPool::ForceDestroy();
 }
 
 /************************************************************************/

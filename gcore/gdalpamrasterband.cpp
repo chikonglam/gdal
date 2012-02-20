@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdalpamrasterband.cpp 21714 2011-02-13 18:37:57Z rouault $
+ * $Id: gdalpamrasterband.cpp 22858 2011-08-02 18:18:19Z rouault $
  *
  * Project:  GDAL Core
  * Purpose:  Implementation of GDALPamRasterBand, a raster band base class
@@ -33,7 +33,7 @@
 #include "gdal_rat.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: gdalpamrasterband.cpp 21714 2011-02-13 18:37:57Z rouault $");
+CPL_CVSID("$Id: gdalpamrasterband.cpp 22858 2011-08-02 18:18:19Z rouault $");
 
 /************************************************************************/
 /*                         GDALPamRasterBand()                          */
@@ -130,11 +130,17 @@ CPLXMLNode *GDALPamRasterBand::SerializeToXML( const char *pszUnused )
     {
         CPLXMLNode *psCT_XML = CPLCreateXMLNode( psTree, CXT_Element, 
                                                  "CategoryNames" );
+        CPLXMLNode* psLastChild = NULL;
 
         for( int iEntry=0; psPam->papszCategoryNames[iEntry] != NULL; iEntry++)
         {
-            CPLCreateXMLElementAndValue( psCT_XML, "Category", 
+            CPLXMLNode *psNode = CPLCreateXMLElementAndValue( NULL, "Category",
                                          psPam->papszCategoryNames[iEntry] );
+            if( psLastChild == NULL )
+                psCT_XML->psChild = psNode;
+            else
+                psLastChild->psNext = psNode;
+            psLastChild = psNode;
         }
     }
 
@@ -361,7 +367,7 @@ CPLErr GDALPamRasterBand::XMLInit( CPLXMLNode *psTree, const char *pszUnused )
     if( CPLGetXMLNode( psTree, "CategoryNames" ) != NULL )
     {
         CPLXMLNode *psEntry;
-        char **papszCategoryNames = NULL;
+        CPLStringList oCategoryNames;
 
         for( psEntry = CPLGetXMLNode( psTree, "CategoryNames" )->psChild;
              psEntry != NULL; psEntry = psEntry->psNext )
@@ -372,11 +378,11 @@ CPLErr GDALPamRasterBand::XMLInit( CPLXMLNode *psTree, const char *pszUnused )
                 || (psEntry->psChild != NULL && psEntry->psChild->eType != CXT_Text) )
                 continue;
             
-            papszCategoryNames = CSLAddString( papszCategoryNames, 
+            oCategoryNames.AddString( 
                                  (psEntry->psChild) ? psEntry->psChild->pszValue : "" );
         }
         
-        GDALPamRasterBand::SetCategoryNames( papszCategoryNames );
+        GDALPamRasterBand::SetCategoryNames( oCategoryNames.List() );
     }
 
 /* -------------------------------------------------------------------- */
@@ -509,6 +515,18 @@ CPLErr GDALPamRasterBand::CloneInfo( GDALRasterBand *poSrcBand,
                 || GetNoDataValue( &bSuccess ) != dfNoData 
                 || !bSuccess )
                 GDALPamRasterBand::SetNoDataValue( dfNoData );
+        }
+    }
+
+/* -------------------------------------------------------------------- */
+/*      Category names                                                  */
+/* -------------------------------------------------------------------- */
+    if( nCloneFlags & GCIF_CATEGORYNAMES )
+    {
+        if( poSrcBand->GetCategoryNames() != NULL )
+        {
+            if( !bOnlyIfMissing || GetCategoryNames() == NULL )
+                GDALPamRasterBand::SetCategoryNames( poSrcBand->GetCategoryNames() );
         }
     }
 
@@ -1008,10 +1026,11 @@ PamFindMatchingHistogram( CPLXMLNode *psSavedHistograms,
             || !EQUAL(psXMLHist->pszValue,"HistItem") )
             continue;
 
-        // should try and make min/max test a bit fuzzy.
+        double dfHistMin = atof(CPLGetXMLValue( psXMLHist, "HistMin", "0"));
+        double dfHistMax = atof(CPLGetXMLValue( psXMLHist, "HistMax", "0"));
 
-        if( atof(CPLGetXMLValue( psXMLHist, "HistMin", "0")) != dfMin 
-            || atof(CPLGetXMLValue( psXMLHist, "HistMax", "0")) != dfMax
+        if( !(ARE_REAL_EQUAL(dfHistMin, dfMin))
+            || !(ARE_REAL_EQUAL(dfHistMax, dfMax))
             || atoi(CPLGetXMLValue( psXMLHist, 
                                     "BucketCount","0")) != nBuckets
             || !atoi(CPLGetXMLValue( psXMLHist, 

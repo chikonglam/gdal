@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrcsvdriver.cpp 20869 2010-10-17 20:03:01Z rouault $
+ * $Id: ogrcsvdriver.cpp 23016 2011-08-31 21:24:12Z rouault $
  *
  * Project:  CSV Translator
  * Purpose:  Implements OGRCSVDriver.
@@ -30,7 +30,7 @@
 #include "ogr_csv.h"
 #include "cpl_conv.h"
 
-CPL_CVSID("$Id: ogrcsvdriver.cpp 20869 2010-10-17 20:03:01Z rouault $");
+CPL_CVSID("$Id: ogrcsvdriver.cpp 23016 2011-08-31 21:24:12Z rouault $");
 
 /************************************************************************/
 /*                           ~OGRCSVDriver()                            */
@@ -81,6 +81,9 @@ OGRDataSource *OGRCSVDriver::CreateDataSource( const char * pszName,
 /*      First, ensure there isn't any such file yet.                    */
 /* -------------------------------------------------------------------- */
     VSIStatBufL sStatBuf;
+
+    if (strcmp(pszName, "/dev/stdout") == 0)
+        pszName = "/vsistdout/";
 
     if( VSIStatL( pszName, &sStatBuf ) == 0 )
     {

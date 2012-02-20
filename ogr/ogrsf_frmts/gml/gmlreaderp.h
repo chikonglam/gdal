@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gmlreaderp.h 21390 2011-01-03 22:43:07Z rouault $
+ * $Id: gmlreaderp.h 23638 2011-12-22 21:02:56Z rouault $
  *
  * Project:  GML Reader
  * Purpose:  Private Declarations for OGR free GML Reader code.
@@ -34,29 +34,85 @@
 #include "ogr_api.h"
 #include "cpl_vsi.h"
 
+#include <string>
+#include <vector>
+
+#define PARSER_BUF_SIZE (10*8192)
+
 class GMLReader;
+
+typedef struct _GeometryNamesStruct GeometryNamesStruct;
+
+/************************************************************************/
+/*                        GFSTemplateList                               */
+/************************************************************************/
+
+class GFSTemplateItem;
+
+class GFSTemplateList
+{
+private:
+    int             m_bSequentialLayers;
+    GFSTemplateItem *pFirst;
+    GFSTemplateItem *pLast;
+    GFSTemplateItem *Insert( const char *pszName );
+public:
+                    GFSTemplateList( void );
+                    ~GFSTemplateList();
+    void            Update( const char *pszName, int bHasGeom );
+    GFSTemplateItem *GetFirst() { return pFirst; }
+    int             HaveSequentialLayers() { return m_bSequentialLayers; }
+    int             GetClassCount();
+};
+
+void gmlUpdateFeatureClasses ( GFSTemplateList *pCC,
+                               GMLReader *pReader,
+                               int *pbSequentialLayers );
 
 /************************************************************************/
 /*                              GMLHandler                              */
 /************************************************************************/
+
+#define STACK_SIZE 5
+
+typedef enum
+{
+    STATE_TOP,
+    STATE_DEFAULT,
+    STATE_FEATURE,
+    STATE_PROPERTY,
+    STATE_GEOMETRY,
+    STATE_IGNORED_FEATURE,
+    STATE_BOUNDED_BY,
+    STATE_CITYGML_ATTRIBUTE
+} HandlerState;
+
+typedef struct
+{
+    CPLXMLNode* psNode;
+    CPLXMLNode* psLastChild;
+} NodeLastChild;
+
 class GMLHandler
 {
-    char       *m_pszCurField;
+    char      *m_pszCurField;
+    size_t     m_nCurFieldAlloc;
+    size_t     m_nCurFieldLen;
+    int        m_bInCurField;
+    int        m_nAttributeIndex;
+    int        m_nAttributeDepth;
 
-    char       *m_pszGeometry;
-    size_t     m_nGeomAlloc;
-    size_t     m_nGeomLen;
 
+    char      *m_pszGeometry;
+    int        m_nGeomAlloc;
+    int        m_nGeomLen;
     int        m_nGeometryDepth;
 
     int        m_nDepth;
     int        m_nDepthFeature;
-    int        m_bIgnoreFeature;
 
-    int        m_bInBoundedBy;
     int        m_inBoundedByDepth;
 
-    int        m_bInCityGMLGenericAttr;
     char      *m_pszCityGMLGenericAttrName;
     int        m_inCityGMLGenericAttrDepth;
     int        m_bIsCityGML;
@@ -67,25 +123,60 @@ class GMLHandler
     char      *m_pszUom;
     char      *m_pszValue;
 
+    GeometryNamesStruct* pasGeometryNames;
+
+    std::vector<NodeLastChild> apsXMLNode;
+
+    OGRErr     startElementTop(const char *pszName, int nLenName, void* attr);
+
+    OGRErr     endElementIgnoredFeature();
+
+    OGRErr     startElementBoundedBy(const char *pszName, int nLenName, void* attr);
+    OGRErr     endElementBoundedBy();
+
+    OGRErr     startElementFeatureAttribute(const char *pszName, int nLenName, void* attr);
+    OGRErr     endElementFeature();
+
+    OGRErr     startElementCityGMLGenericAttr(const char *pszName, int nLenName, void* attr);
+    OGRErr     endElementCityGMLGenericAttr();
+
+    OGRErr     startElementGeometry(const char *pszName, int nLenName, void* attr);
+    CPLXMLNode* ParseAIXMElevationPoint(CPLXMLNode*);
+    OGRErr     endElementGeometry();
+    OGRErr     dataHandlerGeometry(const char *data, int nLen);
+
+    OGRErr     endElementAttribute();
+    OGRErr     dataHandlerAttribute(const char *data, int nLen);
+
+    OGRErr     startElementDefault(const char *pszName, int nLenName, void* attr);
+    OGRErr     endElementDefault();
+
 protected:
     GMLReader  *m_poReader;
+
+    int              nStackDepth;
+    HandlerState     stateStack[STACK_SIZE];
+
+    std::string      osFID;
+    virtual const char* GetFID(void* attr) = 0;
+
+    virtual CPLXMLNode* AddAttributes(CPLXMLNode* psNode, void* attr) = 0;
+
+    OGRErr      startElement(const char *pszName, int nLenName, void* attr);
+    OGRErr      endElement();
+    OGRErr      dataHandler(const char *data, int nLen);
+
+    int         IsGeometryElement( const char *pszElement );
 
 public:
     GMLHandler( GMLReader *poReader );
     virtual ~GMLHandler();
 
-    virtual OGRErr      startElement(const char *pszName, void* attr);
-    virtual OGRErr      endElement(const char *pszName);
-    virtual OGRErr      dataHandler(const char *data, int nLen);
-    virtual char*       GetFID(void* attr) = 0;
-    virtual char*       GetAttributes(void* attr) = 0;
     virtual char*       GetAttributeValue(void* attr, const char* pszAttributeName) = 0;
-
-    int         IsGeometryElement( const char *pszElement );
 };
 
 
-#if HAVE_XERCES == 1
+#if defined(HAVE_XERCES)
 
 // This works around problems with math.h on some platforms #defining INFINITY
 #ifdef INFINITY
@@ -188,12 +279,15 @@ public:
 
     void startEntity (const XMLCh *const name);
 
-    virtual char*       GetFID(void* attr);
-    virtual char*       GetAttributes(void* attr);
+    virtual const char* GetFID(void* attr);
+    virtual CPLXMLNode* AddAttributes(CPLXMLNode* psNode, void* attr);
     virtual char*       GetAttributeValue(void* attr, const char* pszAttributeName);
 };
 
-#elif defined(HAVE_EXPAT)
+#endif
+
+
+#if defined(HAVE_EXPAT)
 
 #include "ogr_expat.h"
 
@@ -209,18 +303,20 @@ class GMLExpatHandler : public GMLHandler
 public:
     GMLExpatHandler( GMLReader *poReader, XML_Parser oParser );
 
-    virtual OGRErr      startElement(const char *pszName, void* attr);
-    virtual OGRErr      endElement(const char *pszName);
-    virtual OGRErr      dataHandler(const char *data, int nLen);
-
     int         HasStoppedParsing() { return m_bStopParsing; }
 
     void        ResetDataHandlerCounter() { m_nDataHandlerCounter = 0; }
-    int         GetDataHandlerCounter() { return m_nDataHandlerCounter; }
 
-    virtual char*       GetFID(void* attr);
-    virtual char*       GetAttributes(void* attr);
+    virtual const char* GetFID(void* attr);
+    virtual CPLXMLNode* AddAttributes(CPLXMLNode* psNode, void* attr);
     virtual char*       GetAttributeValue(void* attr, const char* pszAttributeName);
+
+    static void XMLCALL startElementCbk(void *pUserData, const char *pszName,
+                                        const char **ppszAttr);
+
+    static void XMLCALL endElementCbk(void *pUserData, const char *pszName);
+
+    static void XMLCALL dataHandlerCbk(void *pUserData, const char *data, int nLen);
 };
 
 #endif
@@ -231,26 +327,31 @@ public:
 
 class GMLReadState
 {
-    void        RebuildPath();
+    std::vector<std::string> aosPathComponents;
 
 public:
     GMLReadState();
     ~GMLReadState();
 
-    void        PushPath( const char *pszElement );
+    void        PushPath( const char *pszElement, int nLen = -1 );
     void        PopPath();
 
-    int         MatchPath( const char *pszPathInput );
-    const char  *GetPath() const { return m_pszPath; }
-    const char  *GetLastComponent() const;
+    const char  *GetLastComponent() const {
+        return ( m_nPathLength == 0 ) ? "" : aosPathComponents[m_nPathLength-1].c_str();
+    }
+
+
+    size_t GetLastComponentLen() const {
+        return ( m_nPathLength == 0 ) ? 0: aosPathComponents[m_nPathLength-1].size();
+    }
+
+    void        Reset();
 
     GMLFeature  *m_poFeature;
     GMLReadState *m_poParentState;
 
-    char        *m_pszPath; // element path ... | as separator.
-
-    int         m_nPathLength;
-    char        **m_papszPathComponents;
+    std::string  osPath; // element path ... | as separator.
+    int          m_nPathLength;
 };
 
 /************************************************************************/
@@ -269,23 +370,36 @@ private:
 
     char          *m_pszFilename;
 
-#if HAVE_XERCES == 1
-    GMLXercesHandler    *m_poGMLHandler;
+    int            bUseExpatReader;
+
+    GMLHandler    *m_poGMLHandler;
+
+#if defined(HAVE_XERCES)
     SAX2XMLReader *m_poSAXReader;
     XMLPScanToken m_oToFill;
     GMLFeature   *m_poCompleteFeature;
     GMLInputSource *m_GMLInputSource;
-#else
-    GMLExpatHandler    *m_poGMLHandler;
+    int           m_bEOF;
+    int           SetupParserXerces();
+    GMLFeature   *NextFeatureXerces();
+#endif
+
+#if defined(HAVE_EXPAT)
     XML_Parser    oParser;
     GMLFeature ** ppoFeatureTab;
     int           nFeatureTabLength;
     int           nFeatureTabIndex;
+    int           nFeatureTabAlloc;
+    int           SetupParserExpat();
+    GMLFeature   *NextFeatureExpat();
+    char         *pabyBuf;
 #endif
+
     VSILFILE*     fpGML;
     int           m_bReadStarted;
 
     GMLReadState *m_poState;
+    GMLReadState *m_poRecycledState;
 
     int           m_bStopParsing;
 
@@ -295,6 +409,8 @@ private:
     int           m_bFetchAllGeometries;
 
     int           m_bInvertAxisOrderIfLatLong;
+    int           m_bConsiderEPSGAsURN;
+    int           m_bGetSecondaryGeometryOption;
 
     int           ParseFeatureType(CPLXMLNode *psSchemaNode,
                                 const char* pszName,
@@ -305,8 +421,20 @@ private:
 
     char         *m_pszFilteredClassName;
 
+    int           m_bSequentialLayers;
+
+    std::string   osElemPath;
+
+    int           m_bFaceHoleNegative;
+
+    int           ParseXMLHugeFile( const char *pszOutputFilename, 
+                                    const int bSqliteIsTempFile,
+                                    const int iSqliteCacheMB );
+                               
+
 public:
-                GMLReader();
+                GMLReader(int bExpatReader, int bInvertAxisOrderIfLatLong,
+                          int bConsiderEPSGAsURN, int bGetSecondaryGeometryOption);
     virtual     ~GMLReader();
 
     int              IsClassListLocked() const { return m_bClassListLocked; }
@@ -332,8 +460,14 @@ public:
                                     int* pbOutIsTempFile,
                                     char **papszSkip = NULL,
                                     const int bStrict = FALSE );
+ 
+    int              HugeFileResolver( const char *pszFile,
+                                       int pbSqliteIsTempFile,
+                                       int iSqliteCacheMB );
 
     int              PrescanForSchema(int bGetExtents = TRUE );
+    int              PrescanForTemplate( void );
+    int              ReArrangeTemplateClasses( GFSTemplateList *pCC );
     void             ResetReading();
 
 // --- 
@@ -342,15 +476,17 @@ public:
     void             PopState();
     void             PushState( GMLReadState * );
 
-    int         IsFeatureElement( const char *pszElement );
-    int         IsAttributeElement( const char *pszElement );
+    int         GetFeatureElementIndex( const char *pszElement, int nLen );
+    int         GetAttributeElementIndex( const char *pszElement, int nLen );
     int         IsCityGMLGenericAttributeElement( const char *pszElement, void* attr );
 
     void        PushFeature( const char *pszElement, 
-                             const char *pszFID );
+                             const char *pszFID,
+                             int nClassIndex );
 
-    void        SetFeatureProperty( const char *pszElement,
-                                    const char *pszValue );
+    void        SetFeaturePropertyDirectly( const char *pszElement,
+                                    char *pszValue,
+                                    int iPropertyIn );
 
     int         HasStoppedParsing() { return m_bStopParsing; }
 
@@ -363,6 +499,8 @@ public:
 
     int         SetFilteredClassName(const char* pszClassName);
     const char* GetFilteredClassName() { return m_pszFilteredClassName; }
+
+    int         IsSequentialLayers() const { return m_bSequentialLayers == TRUE; }
 };
 
 #endif /* _CPL_GMLREADERP_H_INCLUDED */

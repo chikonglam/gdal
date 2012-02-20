@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrutils.cpp 20483 2010-08-29 18:42:23Z rouault $
+ * $Id: ogrutils.cpp 23584 2011-12-17 09:43:03Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Utility functions for OGR classes, including some related to
@@ -37,7 +37,7 @@
 # include "ogrsf_frmts.h"
 #endif /* OGR_ENABLED */
 
-CPL_CVSID("$Id: ogrutils.cpp 20483 2010-08-29 18:42:23Z rouault $");
+CPL_CVSID("$Id: ogrutils.cpp 23584 2011-12-17 09:43:03Z rouault $");
 
 /************************************************************************/
 /*                        OGRFormatDouble()                             */
@@ -388,9 +388,11 @@ const char * OGRWktReadPoints( const char * pszInput,
             }
 
             (*ppadfZ)[*pnPointsRead] = CPLAtof(szDelim);
-            
+
             pszInput = OGRWktReadToken( pszInput, szDelim );
         }
+        else if ( *ppadfZ != NULL )
+            (*ppadfZ)[*pnPointsRead] = 0.0;
         
         (*pnPointsRead)++;
 
@@ -476,10 +478,14 @@ void OGRFree( void * pMemory )
  * options for all OGR commandline utilities.  It takes care of the following
  * commandline options:
  *  
+ *  --version: report version of GDAL in use. 
+ *  --license: report GDAL license info.
  *  --formats: report all format drivers configured.
  *  --optfile filename: expand an option file into the argument list. 
  *  --config key value: set system configuration option. 
  *  --debug [on/off/value]: set debug level.
+ *  --pause: Pause for user input (allows time to attach debugger)
+ *  --locale [locale]: Install a locale using setlocale() (debugging)
  *  --help-general: report detailed help on general options. 
  *
  * The argument array is replaced "in place" and should be freed with 
@@ -713,10 +719,8 @@ int OGRGeneralCmdLineProcessor( int nArgc, char ***ppapszArgv, int nOptions )
 /* -------------------------------------------------------------------- */
         else if( EQUAL(papszArgv[iArg],"--pause") )
         {
-            char szLine[81];
-
-            printf( "Hit <ENTER> to continue.\n" );
-            fgets( szLine, sizeof(szLine), stdin );
+            printf( "Hit <ENTER> to Continue.\n" );
+            CPLReadLine( stdin );
         }
 
 /* -------------------------------------------------------------------- */
@@ -733,6 +737,8 @@ int OGRGeneralCmdLineProcessor( int nArgc, char ***ppapszArgv, int nOptions )
             printf( "  --optfile filename: expand an option file into the argument list.\n" );
             printf( "  --config key value: set system configuration option.\n" );
             printf( "  --debug [on/off/value]: set debug level.\n" );
+            printf( "  --pause: wait for user input, time to attach debugger\n" );
+            printf( "  --locale [locale]: install locale for debugging (ie. en_US.UTF-8)\n" );
             printf( "  --help-general: report detailed help on general options.\n" );
             CSLDestroy( papszReturn );
             return 0;
@@ -1271,6 +1277,7 @@ double OGRCallAtofOnShortString(const char* pszStr)
     while(*p == '+'  ||
           *p == '-'  ||
           (*p >= '0' && *p <= '9') ||
+          *p == '.'  ||
           (*p == 'e' || *p == 'E' || *p == 'd' || *p == 'D'))
     {
         szTemp[nCounter++] = *(p++);
@@ -1349,4 +1356,39 @@ double OGRFastAtof(const char* pszStr)
                 return OGRCallAtofOnShortString(pszStr);
         }
     }
+}
+
+/**
+ * Check that panPermutation is a permutation of [0,nSize-1].
+ * @param panPermutation an array of nSize elements.
+ * @param nSize size of the array.
+ * @return OGRERR_NONE if panPermutation is a permutation of [0,nSize-1].
+ * @since OGR 1.9.0
+ */
+OGRErr OGRCheckPermutation(int* panPermutation, int nSize)
+{
+    OGRErr eErr = OGRERR_NONE;
+    int* panCheck = (int*)CPLCalloc(nSize, sizeof(int));
+    int i;
+    for(i=0;i<nSize;i++)
+    {
+        if (panPermutation[i] < 0 || panPermutation[i] >= nSize)
+        {
+            CPLError(CE_Failure, CPLE_IllegalArg,
+                     "Bad value for element %d", i);
+            eErr = OGRERR_FAILURE;
+            break;
+        }
+        if (panCheck[panPermutation[i]] != 0)
+        {
+            CPLError(CE_Failure, CPLE_IllegalArg,
+                     "Array is not a permutation of [0,%d]",
+                     nSize - 1);
+            eErr = OGRERR_FAILURE;
+            break;
+        }
+        panCheck[panPermutation[i]] = 1;
+    }
+    CPLFree(panCheck);
+    return eErr;
 }

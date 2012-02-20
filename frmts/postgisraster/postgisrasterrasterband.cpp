@@ -8,7 +8,7 @@
  * $Id: $
  *
  ******************************************************************************
- * Copyright (c) 2010, Jorge Arevalo, jorgearevalo@gis4free.org
+ * Copyright (c) 2009 - 2011, Jorge Arevalo, jorge.arevalo@deimos-space.com
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -185,6 +185,8 @@ PostGISRasterRasterBand::PostGISRasterRasterBand(PostGISRasterDataset *poDS,
         nRasterYSize = (int) floor((double)poDS->GetRasterYSize() / nOverviewFactor);        
     }
 
+    CPLDebug("PostGIS_Raster", "PostGISRasterRasterBand constructor: Band "
+            "created (srid = %d)", poDS->nSrid);
 }
 
 /***********************************************
@@ -379,7 +381,7 @@ CPLErr PostGISRasterRasterBand::IReadBlock(int nBlockXOff, int nBlockYOff, void*
     /* Get pixel and block size */
     nPixelSize = MAX(1,GDALGetDataTypeSize(eDataType)/8);
     GetBlockSize(&nNaturalBlockXSize, &nNaturalBlockYSize);
-
+    
     /* Get pixel,line coordinates of the block */
     /**
      * TODO: What if the georaster is rotated? Following the gdal_translate
@@ -438,9 +440,9 @@ CPLErr PostGISRasterRasterBand::IReadBlock(int nBlockXOff, int nBlockYOff, void*
      **/
     if (poPostGISRasterDS->pszWhere != NULL)
     {
-        osCommand.Printf("select rid, %s from %s.%s where %s ~"
-                "st_setsrid(st_makebox2d(st_point(%f, %f), st_point(%f, %f)),%d)"
-                " and %s", pszColumn, pszSchema, pszTable, pszColumn, 
+        osCommand.Printf("select rid, %s from %s.%s where %s ~ "
+                "st_setsrid(st_makebox2d(st_point(%f, %f), st_point(%f,"
+                "%f)),%d) and %s", pszColumn, pszSchema, pszTable, pszColumn, 
                 dfProjLowerLeftX, dfProjLowerLeftY, dfProjUpperRightX,
                 dfProjUpperRightY, poPostGISRasterDS->nSrid, pszWhere);
     }
@@ -448,11 +450,14 @@ CPLErr PostGISRasterRasterBand::IReadBlock(int nBlockXOff, int nBlockYOff, void*
     else
     {
         osCommand.Printf("select rid, %s from %s.%s where %s ~ "
-                "st_setsrid(st_makebox2d(st_point(%f, %f), st_point(%f, %f)),%d)",
-                pszColumn, pszSchema, pszTable, pszColumn, dfProjLowerLeftX, 
-                dfProjLowerLeftY, dfProjUpperRightX, dfProjUpperRightY, 
-                poPostGISRasterDS->nSrid);
+                "st_setsrid(st_makebox2d(st_point(%f, %f), st_point(%f,"
+                "%f)),%d)", pszColumn, pszSchema, pszTable, pszColumn, 
+                dfProjLowerLeftX, dfProjLowerLeftY, dfProjUpperRightX, 
+                dfProjUpperRightY, poPostGISRasterDS->nSrid);
     }
+
+    CPLDebug("PostGIS_Raster", "PostGISRasterRasterBand::IReadBlock: "
+            "The query = %s", osCommand.c_str());
 
     poResult = PQexec(poPostGISRasterDS->poConn, osCommand.c_str());
     if (poResult == NULL || PQresultStatus(poResult) != PGRES_TUPLES_OK ||
@@ -462,6 +467,8 @@ CPLErr PostGISRasterRasterBand::IReadBlock(int nBlockXOff, int nBlockYOff, void*
             PQclear(poResult);
 
         /* TODO: Raise an error and exit? */
+        CPLDebug("PostGIS_Raster", "PostGISRasterRasterBand::IReadBlock: "
+                "The block (%d, %d) is empty", nBlockXOff, nBlockYOff);
         NullBlock(pImage);
         return CE_None;
     }
@@ -482,6 +489,8 @@ CPLErr PostGISRasterRasterBand::IReadBlock(int nBlockXOff, int nBlockYOff, void*
             return CE_Failure;
         }
 
+        int nRid = atoi(PQgetvalue(poResult, 0, 0));
+        
         /* Only data size, without payload */
         nExpectedDataSize = nNaturalBlockXSize * nNaturalBlockYSize *
             nPixelSize;
@@ -490,6 +499,10 @@ CPLErr PostGISRasterRasterBand::IReadBlock(int nBlockXOff, int nBlockYOff, void*
                 nExpectedDataSize);
 
         memcpy(pImage, pbyDataToRead, nExpectedDataSize * sizeof(char));
+        
+        CPLDebug("PostGIS_Raster", "IReadBlock: Copied %d bytes from block "
+                "(%d, %d) (rid = %d) to %p", nExpectedDataSize, nBlockXOff, 
+                nBlockYOff, nRid, pImage);
 
         CPLFree(pbyData);
         PQclear(poResult);
@@ -504,8 +517,8 @@ CPLErr PostGISRasterRasterBand::IReadBlock(int nBlockXOff, int nBlockYOff, void*
     else
     {
         CPLError(CE_Failure, CPLE_AppDefined,
-                "Overlapping raster data. Feature under development, not available"
-                "yet");
+                "Overlapping raster data. Feature under development, not "
+                "available yet");
         if (poResult)
             PQclear(poResult);
 

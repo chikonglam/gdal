@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdalsievefilter.cpp 21213 2010-12-08 16:43:11Z warmerdam $
+ * $Id: gdalsievefilter.cpp 23156 2011-10-01 15:34:16Z rouault $
  *
  * Project:  GDAL
  * Purpose:  Raster to Polygon Converter
@@ -31,7 +31,7 @@
 #include "cpl_conv.h"
 #include <vector>
 
-CPL_CVSID("$Id: gdalsievefilter.cpp 21213 2010-12-08 16:43:11Z warmerdam $");
+CPL_CVSID("$Id: gdalsievefilter.cpp 23156 2011-10-01 15:34:16Z rouault $");
 
 #define GP_NODATA_MARKER -51502112
 #define MY_MAX_INT 2147483647
@@ -169,7 +169,7 @@ static inline void CompareNeighbour( int nPolyId1, int nPolyId2,
  * @param nConnectedness either 4 indicating that diagonal pixels are not
  * considered directly adjacent for polygon membership purposes or 8
  * indicating they are. 
- * @param papszOption algorithm options in name=value list form.  None currently
+ * @param papszOptions algorithm options in name=value list form.  None currently
  * supported.
  * @param pfnProgress callback for reporting algorithm progress matching the
  * GDALProgressFunc() semantics.  May be NULL.

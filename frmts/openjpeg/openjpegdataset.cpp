@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: openjpegdataset.cpp 20996 2010-10-28 18:38:15Z rouault $
+ * $Id: openjpegdataset.cpp 23033 2011-09-03 18:46:11Z rouault $
  *
  * Project:  JPEG2000 driver based on OpenJPEG library
  * Purpose:  JPEG2000 driver based on OpenJPEG library
@@ -44,7 +44,7 @@
 #include "cpl_string.h"
 #include "gdaljp2metadata.h"
 
-CPL_CVSID("$Id: openjpegdataset.cpp 20996 2010-10-28 18:38:15Z rouault $");
+CPL_CVSID("$Id: openjpegdataset.cpp 23033 2011-09-03 18:46:11Z rouault $");
 
 /************************************************************************/
 /*                  JP2OpenJPEGDataset_ErrorCallback()                  */
@@ -121,12 +121,12 @@ static GDAL_OPENJPEG_BOOL JP2OpenJPEGDataset_Seek(OPJ_SIZE_T nBytes, void * pUse
 
 static OPJ_SIZE_T JP2OpenJPEGDataset_Skip(OPJ_SIZE_T nBytes, void * pUserData)
 {
-    int nOffset = VSIFTellL((VSILFILE*)pUserData) + nBytes;
+    vsi_l_offset nOffset = VSIFTellL((VSILFILE*)pUserData);
+    nOffset += nBytes;
 #ifdef DEBUG
-    CPLDebug("OPENJPEG", "JP2OpenJPEGDataset_Skip(%d -> %d)", nBytes, nOffset);
+    CPLDebug("OPENJPEG", "JP2OpenJPEGDataset_Skip(%d -> " CPL_FRMT_GUIB ")",
+             nBytes, (GUIntBig)nOffset);
 #endif
-    if (nOffset < 0)
-        return -1;
     VSIFSeekL((VSILFILE*)pUserData, nOffset, SEEK_SET);
     return nBytes;
 }
@@ -154,6 +154,7 @@ class JP2OpenJPEGDataset : public GDALPamDataset
 
     int         bLoadingOtherBands;
     int         bIs420;
+    OPJ_BYTE *  pFullBuffer;
 
   public:
                 JP2OpenJPEGDataset();
@@ -230,7 +231,7 @@ static CPL_INLINE GByte CLAMP_0_255(int val)
     else if (val > 255)
         return 255;
     else
-        return val;
+        return (GByte)val;
 }
 
 static void CopySrcToDst(int nWidthToRead, int nHeightToRead,
@@ -251,11 +252,11 @@ static void CopySrcToDst(int nWidthToRead, int nHeightToRead,
                 int Cb = pSrc[nHeightToRead * nWidthToRead + ((j/2) * (nWidthToRead/2) + i/2) ];
                 int Cr = pSrc[5 * nHeightToRead * nWidthToRead / 4 + ((j/2) * (nWidthToRead/2) + i/2) ];
                 if (nBand == 1)
-                    pDst[j * nBlockXSize + i] = CLAMP_0_255(Y + 1.402 * (Cr - 128));
+                    pDst[j * nBlockXSize + i] = CLAMP_0_255((int)(Y + 1.402 * (Cr - 128)));
                 else if (nBand == 2)
-                    pDst[j * nBlockXSize + i] = CLAMP_0_255(Y - 0.34414 * (Cb - 128) - 0.71414 * (Cr - 128));
+                    pDst[j * nBlockXSize + i] = CLAMP_0_255((int)(Y - 0.34414 * (Cb - 128) - 0.71414 * (Cr - 128)));
                 else
-                    pDst[j * nBlockXSize + i] = CLAMP_0_255(Y + 1.772 * (Cb - 128));
+                    pDst[j * nBlockXSize + i] = CLAMP_0_255((int)(Y + 1.772 * (Cb - 128)));
             }
         }
     }
@@ -286,6 +287,15 @@ CPLErr JP2OpenJPEGRasterBand::IReadBlock( int nBlockXOff, int nBlockYOff,
 
     int nWidthToRead = MIN(nBlockXSize, poGDS->nRasterXSize - nBlockXOff * nBlockXSize);
     int nHeightToRead = MIN(nBlockYSize, poGDS->nRasterYSize - nBlockYOff * nBlockYSize);
+
+    if (poGDS->pFullBuffer)
+    {
+        CopySrcToDst(nWidthToRead, nHeightToRead, poGDS->pFullBuffer,
+                     nBlockXSize, nBlockYSize, nDataTypeSize, pImage,
+                     nBand, poGDS->bIs420);
+        return CE_None;
+    }
+
     if (nWidthToRead != nBlockXSize || nHeightToRead != nBlockYSize)
     {
         memset(pImage, 0, nBlockXSize * nBlockYSize * nDataTypeSize);
@@ -423,7 +433,8 @@ CPLErr JP2OpenJPEGRasterBand::IReadBlock( int nBlockXOff, int nBlockYOff,
                  nBand, poGDS->bIs420);
 
     /* Let's cache other bands */
-    if( poGDS->nBands != 1 && !poGDS->bLoadingOtherBands)
+    if( poGDS->nBands != 1 && !poGDS->bLoadingOtherBands &&
+        poGDS->nBands * nWidthToRead * nHeightToRead * nDataTypeSize <= GDALGetCacheMax64())
     {
         int iOtherBand;
 
@@ -457,7 +468,15 @@ CPLErr JP2OpenJPEGRasterBand::IReadBlock( int nBlockXOff, int nBlockYOff,
         poGDS->bLoadingOtherBands = FALSE;
     }
 
-    CPLFree(pTempBuffer);
+    if (nBlockXSize == nRasterXSize && nBlockYSize == nRasterYSize &&
+        poGDS->nBands * nWidthToRead * nHeightToRead * nDataTypeSize > GDALGetCacheMax64())
+    {
+        poGDS->pFullBuffer = pTempBuffer;
+    }
+    else
+    {
+        CPLFree(pTempBuffer);
+    }
 
     opj_end_decompress(pCodec,pStream);
     opj_stream_destroy(pStream);
@@ -525,6 +544,7 @@ JP2OpenJPEGDataset::JP2OpenJPEGDataset()
     eCodecFormat = CODEC_UNKNOWN;
     eColorSpace = CLRSPC_UNKNOWN;
     bIs420 = FALSE;
+    pFullBuffer = NULL;
 }
 
 /************************************************************************/
@@ -545,6 +565,7 @@ JP2OpenJPEGDataset::~JP2OpenJPEGDataset()
     }
     if( fp != NULL )
         VSIFCloseL( fp );
+    VSIFree(pFullBuffer);
 }
 
 /************************************************************************/
@@ -554,7 +575,10 @@ JP2OpenJPEGDataset::~JP2OpenJPEGDataset()
 const char *JP2OpenJPEGDataset::GetProjectionRef()
 
 {
-    return( pszProjection );
+    if ( pszProjection && pszProjection[0] != 0 )
+        return( pszProjection );
+    else
+        return GDALPamDataset::GetProjectionRef();
 }
 
 /************************************************************************/
@@ -569,7 +593,7 @@ CPLErr JP2OpenJPEGDataset::GetGeoTransform( double * padfTransform )
         return CE_None;
     }
     else
-        return CE_Failure;
+        return GDALPamDataset::GetGeoTransform(padfTransform);
 }
 
 /************************************************************************/
@@ -579,7 +603,10 @@ CPLErr JP2OpenJPEGDataset::GetGeoTransform( double * padfTransform )
 int JP2OpenJPEGDataset::GetGCPCount()
 
 {
-    return nGCPCount;
+    if( nGCPCount > 0 )
+        return nGCPCount;
+    else
+        return GDALPamDataset::GetGCPCount();
 }
 
 /************************************************************************/
@@ -592,7 +619,7 @@ const char *JP2OpenJPEGDataset::GetGCPProjection()
     if( nGCPCount > 0 )
         return pszProjection;
     else
-        return "";
+        return GDALPamDataset::GetGCPProjection();
 }
 
 /************************************************************************/
@@ -602,7 +629,10 @@ const char *JP2OpenJPEGDataset::GetGCPProjection()
 const GDAL_GCP *JP2OpenJPEGDataset::GetGCPs()
 
 {
-    return pasGCPList;
+    if( nGCPCount > 0 )
+        return pasGCPList;
+    else
+        return GDALPamDataset::GetGCPs();
 }
 
 /************************************************************************/
@@ -836,6 +866,13 @@ GDALDataset *JP2OpenJPEGDataset::Open( GDALOpenInfo * poOpenInfo )
             GDALDuplicateGCPs( oJP2Geo.nGCPCount, oJP2Geo.pasGCPList );
     }
 
+    if (oJP2Geo.pszXMPMetadata)
+    {
+        char *apszMDList[2];
+        apszMDList[0] = (char *) oJP2Geo.pszXMPMetadata;
+        apszMDList[1] = NULL;
+        poDS->SetMetadata(apszMDList, "xml:XMP");
+    }
 /* -------------------------------------------------------------------- */
 /*      Initialize any PAM information.                                 */
 /* -------------------------------------------------------------------- */
@@ -1012,7 +1049,7 @@ GDALDataset * JP2OpenJPEGDataset::CreateCopy( const char * pszFilename,
         parameters.csty |= 0x04;
     parameters.cp_disto_alloc = 1;
     parameters.tcp_numlayers = 1;
-    parameters.tcp_rates[0] = dfRate;
+    parameters.tcp_rates[0] = (float) dfRate;
     parameters.cp_tx0 = 0;
     parameters.cp_ty0 = 0;
     parameters.tile_size_on = TRUE;
@@ -1184,12 +1221,12 @@ GDALDataset * JP2OpenJPEGDataset::CreateCopy( const char * pszFilename,
                             int R = pTempBuffer[j*nWidthToRead+i];
                             int G = pTempBuffer[nHeightToRead*nWidthToRead + j*nWidthToRead+i];
                             int B = pTempBuffer[2*nHeightToRead*nWidthToRead + j*nWidthToRead+i];
-                            int Y = 0.299 * R + 0.587 * G + 0.114 * B;
-                            int Cb = CLAMP_0_255(-0.1687 * R - 0.3313 * G + 0.5 * B  + 128);
-                            int Cr = CLAMP_0_255(0.5 * R - 0.4187 * G - 0.0813 * B  + 128);
-                            pYUV420Buffer[j*nWidthToRead+i] = Y;
-                            pYUV420Buffer[nHeightToRead * nWidthToRead + ((j/2) * ((nWidthToRead)/2) + i/2) ] = Cb;
-                            pYUV420Buffer[5 * nHeightToRead * nWidthToRead / 4 + ((j/2) * ((nWidthToRead)/2) + i/2) ] = Cr;
+                            int Y = (int) (0.299 * R + 0.587 * G + 0.114 * B);
+                            int Cb = CLAMP_0_255((int) (-0.1687 * R - 0.3313 * G + 0.5 * B  + 128));
+                            int Cr = CLAMP_0_255((int) (0.5 * R - 0.4187 * G - 0.0813 * B  + 128));
+                            pYUV420Buffer[j*nWidthToRead+i] = (GByte) Y;
+                            pYUV420Buffer[nHeightToRead * nWidthToRead + ((j/2) * ((nWidthToRead)/2) + i/2) ] = (GByte) Cb;
+                            pYUV420Buffer[5 * nHeightToRead * nWidthToRead / 4 + ((j/2) * ((nWidthToRead)/2) + i/2) ] = (GByte) Cr;
                         }
                     }
 
@@ -1298,11 +1335,11 @@ void GDALRegister_JP2OpenJPEG()
 "       <Value>JP2</Value>"
 "       <Value>J2K</Value>"
 "   </Option>"
-"   <Option name='QUALITY' type='float' description='Quality. 0-100' default=25/>"
+"   <Option name='QUALITY' type='float' description='Quality. 0-100' default='25'/>"
 "   <Option name='REVERSIBLE' type='boolean' description='True if the compression is reversible' default='false'/>"
-"   <Option name='RESOLUTIONS' type='int' description='Number of resolutions. 1-7' default=6/>"
-"   <Option name='BLOCKXSIZE' type='int' description='Tile Width' default=1024/>"
-"   <Option name='BLOCKYSIZE' type='int' description='Tile Height' default=1024/>"
+"   <Option name='RESOLUTIONS' type='int' description='Number of resolutions. 1-7' default='6'/>"
+"   <Option name='BLOCKXSIZE' type='int' description='Tile Width' default='1024'/>"
+"   <Option name='BLOCKYSIZE' type='int' description='Tile Height' default='1024'/>"
 "   <Option name='PROGRESSION' type='string-select' default='LRCP'>"
 "       <Value>LRCP</Value>"
 "       <Value>RLCP</Value>"

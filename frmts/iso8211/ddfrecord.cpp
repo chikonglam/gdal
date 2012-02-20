@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ddfrecord.cpp 20996 2010-10-28 18:38:15Z rouault $
+ * $Id: ddfrecord.cpp 23598 2011-12-18 23:40:29Z rouault $
  *
  * Project:  ISO 8211 Access
  * Purpose:  Implements the DDFRecord class.
@@ -30,9 +30,9 @@
 #include "iso8211.h"
 #include "cpl_conv.h"
 
-CPL_CVSID("$Id: ddfrecord.cpp 20996 2010-10-28 18:38:15Z rouault $");
+CPL_CVSID("$Id: ddfrecord.cpp 23598 2011-12-18 23:40:29Z rouault $");
 
-static const size_t nLeaderSize = 24;
+static const int nLeaderSize = 24;
 
 /************************************************************************/
 /*                             DDFRecord()                              */
@@ -409,6 +409,15 @@ int DDFRecord::ReadHeader()
                 return FALSE;
             }
 
+            if (_fieldAreaStart + nFieldPos - nLeaderSize < 0 ||
+                nDataSize - (_fieldAreaStart + nFieldPos - nLeaderSize) < nFieldLength)
+            {
+                CPLError( CE_Failure, CPLE_AppDefined,
+                          "Not enough byte to initialize field `%s'.",
+                          szTag );
+                return FALSE;
+            }
+
 /* -------------------------------------------------------------------- */
 /*      Assign info the DDFField.                                       */
 /* -------------------------------------------------------------------- */
@@ -444,6 +453,15 @@ int DDFRecord::ReadHeader()
         int nFieldEntryWidth = _sizeFieldLength + _sizeFieldPos + _sizeFieldTag;
         nFieldCount = 0;
         int i=0;
+
+        if (nFieldEntryWidth == 0)
+        {
+            CPLError( CE_Failure, CPLE_OutOfMemory,
+                      "Invalid record buffer size : %d.",
+                      nFieldEntryWidth );
+            return FALSE;
+        }
+        
         char *tmpBuf = (char*)VSIMalloc(nFieldEntryWidth);
 
         if( tmpBuf == NULL )
@@ -549,6 +567,15 @@ int DDFRecord::ReadHeader()
             {
                 CPLError( CE_Failure, CPLE_AppDefined,
                           "Undefined field `%s' encountered in data record.",
+                          szTag );
+                return FALSE;
+            }
+
+            if (_fieldAreaStart + nFieldPos - nLeaderSize < 0 ||
+                nDataSize - (_fieldAreaStart + nFieldPos - nLeaderSize) < nFieldLength)
+            {
+                CPLError( CE_Failure, CPLE_AppDefined,
+                          "Not enough byte to initialize field `%s'.",
                           szTag );
                 return FALSE;
             }

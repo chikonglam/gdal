@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: nitfwritejpeg.cpp 20996 2010-10-28 18:38:15Z rouault $
+ * $Id: nitfwritejpeg.cpp 21951 2011-03-12 22:02:07Z warmerdam $
  *
  * Project:  NITF Read/Write Translator
  * Purpose:  GDALDataset/GDALRasterBand implementation on top of "nitflib".

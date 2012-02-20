@@ -37,6 +37,7 @@ using kmldom::ExtendedDataPtr;
 using kmldom::SchemaPtr;
 using kmldom::SchemaDataPtr;
 using kmldom::SimpleDataPtr;
+using kmldom::DataPtr;
 
 using kmldom::TimeStampPtr;
 using kmldom::TimeSpanPtr;
@@ -219,6 +220,37 @@ void ogr2tessellate_rec (
     }
 }
 
+
+/************************************************************************/
+/*                 OGRLIBKMLSanitizeUTF8String()                        */
+/************************************************************************/
+
+static char* OGRLIBKMLSanitizeUTF8String(const char* pszString)
+{
+    if (!CPLIsUTF8(pszString, -1) &&
+         CSLTestBoolean(CPLGetConfigOption("OGR_FORCE_ASCII", "YES")))
+    {
+        static int bFirstTime = TRUE;
+        if (bFirstTime)
+        {
+            bFirstTime = FALSE;
+            CPLError(CE_Warning, CPLE_AppDefined,
+                    "%s is not a valid UTF-8 string. Forcing it to ASCII.\n"
+                    "If you still want the original string and change the XML file encoding\n"
+                    "afterwards, you can define OGR_FORCE_ASCII=NO as configuration option.\n"
+                    "This warning won't be issued anymore", pszString);
+        }
+        else
+        {
+            CPLDebug("OGR", "%s is not a valid UTF-8 string. Forcing it to ASCII",
+                    pszString);
+        }
+        return CPLForceToASCII(pszString, -1, '?');
+    }
+    else
+        return CPLStrdup(pszString);
+}
+
 /******************************************************************************
  function to output ogr fields in kml
 
@@ -318,28 +350,28 @@ void field2kml (
 
         case OFTString:        //     String of ASCII chars
             {
-
+                char* pszUTF8String = OGRLIBKMLSanitizeUTF8String(
+                                        poOgrFeat->GetFieldAsString ( i ));
                 /***** name *****/
 
                 if ( EQUAL ( name, namefield ) ) {
-                    poKmlPlacemark->set_name ( poOgrFeat->
-                                               GetFieldAsString ( i ) );
+                    poKmlPlacemark->set_name ( pszUTF8String );
+                    CPLFree( pszUTF8String );
                     continue;
                 }
 
                 /***** description *****/
 
                 else if ( EQUAL ( name, descfield ) ) {
-                    poKmlPlacemark->set_description ( poOgrFeat->
-                                                      GetFieldAsString ( i ) );
+                    poKmlPlacemark->set_description ( pszUTF8String );
+                    CPLFree( pszUTF8String );
                     continue;
                 }
 
                 /***** altitudemode *****/
 
                 else if ( EQUAL ( name, altitudeModefield ) ) {
-                    const char *pszAltitudeMode =
-                        poOgrFeat->GetFieldAsString ( i );
+                    const char *pszAltitudeMode = pszUTF8String ;
 
                     int isGX = FALSE;
                     int iAltitudeMode = kmldom::ALTITUDEMODE_CLAMPTOGROUND;
@@ -375,6 +407,8 @@ void field2kml (
 
                     }
 
+                    CPLFree( pszUTF8String );
+
                     continue;
                 }
                 
@@ -384,8 +418,10 @@ void field2kml (
 
                     TimeStampPtr poKmlTimeStamp =
                         poKmlFactory->CreateTimeStamp (  );
-                    poKmlTimeStamp->set_when ( poOgrFeat->GetFieldAsString ( i )  );
+                    poKmlTimeStamp->set_when ( pszUTF8String  );
                     poKmlPlacemark->set_timeprimitive ( poKmlTimeStamp );
+
+                    CPLFree( pszUTF8String );
 
                     continue;
                 }
@@ -399,7 +435,9 @@ void field2kml (
                         poKmlPlacemark->set_timeprimitive ( poKmlTimeSpan );
                     }
 
-                    poKmlTimeSpan->set_begin ( poOgrFeat->GetFieldAsString ( i ) );
+                    poKmlTimeSpan->set_begin ( pszUTF8String );
+
+                    CPLFree( pszUTF8String );
 
                     continue;
 
@@ -414,7 +452,9 @@ void field2kml (
                         poKmlPlacemark->set_timeprimitive ( poKmlTimeSpan );
                     }
 
-                    poKmlTimeSpan->set_end ( poOgrFeat->GetFieldAsString ( i ) );
+                    poKmlTimeSpan->set_end ( pszUTF8String );
+
+                    CPLFree( pszUTF8String );
 
                     continue;
                 }
@@ -423,8 +463,9 @@ void field2kml (
 
                 poKmlSimpleData = poKmlFactory->CreateSimpleData (  );
                 poKmlSimpleData->set_name ( name );
-                poKmlSimpleData->set_text ( poOgrFeat->
-                                            GetFieldAsString ( i ) );
+                poKmlSimpleData->set_text ( pszUTF8String );
+
+                CPLFree( pszUTF8String );
 
                 break;
             }
@@ -1205,6 +1246,28 @@ void kml2field (
                 }
             }
         }
+
+        if (nSchemaData == 0 &&  poKmlExtendedData->get_data_array_size() > 0 )
+        {
+            int bLaunderFieldNames =
+                        CSLTestBoolean(CPLGetConfigOption("LIBKML_LAUNDER_FIELD_NAMES", "YES"));
+            size_t nDataArraySize = poKmlExtendedData->get_data_array_size();
+            for(size_t i=0; i < nDataArraySize; i++)
+            {
+                const DataPtr& data = poKmlExtendedData->get_data_array_at(i);
+                if (data->has_name() && data->has_value())
+                {
+                    CPLString osName = data->get_name();
+                    if (bLaunderFieldNames)
+                        osName = OGRLIBKMLLayer::LaunderFieldNames(osName);
+                    int iField = poOgrFeat->GetFieldIndex ( osName );
+                    if (iField >= 0)
+                    {
+                        poOgrFeat->SetField ( iField, data->get_value().c_str() );
+                    }
+                }
+            }
+        }
     }
 
 }
@@ -1311,47 +1374,47 @@ void kml2FeatureDef (
             pszType = oType.c_str (  );
         }
 
-        if ( poKmlSimpleField->has_displayname (  ) ) {
+        /* FIXME? We cannot set displayname as the field name because in kml2field() we make the */
+        /* lookup on fields based on their name. We would need some map if we really */
+        /* want to use displayname, but that might not be a good idea because displayname */
+        /* may have HTML formatting, which makes it impractical when converting to other */
+        /* drivers or to make requests */
+        /* Example: http://www.jasonbirch.com/files/newt_combined.kml */
+        /*if ( poKmlSimpleField->has_displayname (  ) ) {
             const string oName = poKmlSimpleField->get_displayname (  );
 
             pszName = oName.c_str (  );
         }
 
-        else if ( poKmlSimpleField->has_name (  ) ) {
+        else*/ if ( poKmlSimpleField->has_name (  ) ) {
             const string oName = poKmlSimpleField->get_name (  );
 
             pszName = oName.c_str (  );
         }
 
-        if ( EQUAL ( pszType, "string" ) ) {
-            OGRFieldDefn oOgrFieldName (
-    pszName,
-    OFTString );
+        if ( EQUAL ( pszType, "bool" ) ||
+             EQUAL ( pszType, "int" ) ||
+             EQUAL ( pszType, "short" ) ||
+             EQUAL ( pszType, "ushort" ) ) {
+            OGRFieldDefn oOgrFieldName ( pszName, OFTInteger );
 
             poOgrFeatureDefn->AddFieldDefn ( &oOgrFieldName );
         }
-        if ( EQUAL ( pszType, "int" ) ) {
-            OGRFieldDefn oOgrFieldName (
-    pszName,
-    OFTInteger );
+        else if ( EQUAL ( pszType, "float" ) ||
+                  EQUAL ( pszType, "double" ) ||
+
+                  /* a too big uint wouldn't fit in a int, so we map it to OFTReal for now ... */
+                  EQUAL ( pszType, "uint" ) ) {
+            OGRFieldDefn oOgrFieldName ( pszName, OFTReal );
 
             poOgrFeatureDefn->AddFieldDefn ( &oOgrFieldName );
         }
-        if ( EQUAL ( pszType, "float" ) ) {
-            OGRFieldDefn oOgrFieldName (
-    pszName,
-    OFTReal );
+        else /* string, or any other unrecognized type */
+        {
+            OGRFieldDefn oOgrFieldName ( pszName, OFTString );
 
             poOgrFeatureDefn->AddFieldDefn ( &oOgrFieldName );
         }
-        if ( EQUAL ( pszType, "bool" ) ) {
-            OGRFieldDefn oOgrFieldName (
-    pszName,
-    OFTBinary );
-
-            poOgrFeatureDefn->AddFieldDefn ( &oOgrFieldName );
-        }
-
 
     }
 

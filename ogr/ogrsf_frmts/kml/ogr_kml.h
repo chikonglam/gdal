@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_kml.h 20996 2010-10-28 18:38:15Z rouault $
+ * $Id: ogr_kml.h 23022 2011-09-01 19:10:17Z rouault $
  *
  * Project:  KML Driver
  * Purpose:  Declarations for OGR wrapper classes for KML, and OGR->KML
@@ -72,6 +72,8 @@ public:
     //
     void SetLayerNumber( int nLayer );
 
+    void SetClosedForWriting() { bClosedForWriting = TRUE; }
+
 private:
     OGRKMLDataSource* poDS_;
     OGRSpatialReference* poSRS_;
@@ -84,6 +86,7 @@ private:
     int bWriter_;
     int nLayerNumber_;
     int nWroteFeatureCount_;
+    int bClosedForWriting;
     char* pszName_;
 
     int nLastAsked;
@@ -153,7 +156,6 @@ private:
     VSILFILE* fpOutput_;
 
     OGREnvelope oEnvelope_;
-    int nSchemaInsertLocation_;
 	
 	//Have we issued a coordinate transformation already for this datasource
 	bool bIssuedCTError_;		

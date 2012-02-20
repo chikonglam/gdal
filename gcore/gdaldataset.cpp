@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdaldataset.cpp 21440 2011-01-08 17:06:36Z rouault $
+ * $Id: gdaldataset.cpp 23156 2011-10-01 15:34:16Z rouault $
  *
  * Project:  GDAL Core
  * Purpose:  Base class for raster file formats.  
@@ -32,7 +32,7 @@
 #include "cpl_hash_set.h"
 #include "cpl_multiproc.h"
 
-CPL_CVSID("$Id: gdaldataset.cpp 21440 2011-01-08 17:06:36Z rouault $");
+CPL_CVSID("$Id: gdaldataset.cpp 23156 2011-10-01 15:34:16Z rouault $");
 
 CPL_C_START
 GDALAsyncReader *
@@ -475,7 +475,7 @@ CPLErr GDALDataset::AddBand( GDALDataType eType, char ** papszOptions )
     (void) eType;
     (void) papszOptions;
 
-    CPLError( CE_Failure, CPLE_NotSupported, 
+    ReportError( CE_Failure, CPLE_NotSupported,
               "Dataset does not support the AddBand() method." );
 
     return CE_Failure;
@@ -526,7 +526,7 @@ void GDALDataset::SetBand( int nNewBand, GDALRasterBand * poBand )
                            MAX(nNewBand,nBands));
         if (papoNewBands == NULL)
         {
-            CPLError(CE_Failure, CPLE_OutOfMemory,
+            ReportError(CE_Failure, CPLE_OutOfMemory,
                      "Cannot allocate band array");
             return;
         }
@@ -543,7 +543,7 @@ void GDALDataset::SetBand( int nNewBand, GDALRasterBand * poBand )
 /* -------------------------------------------------------------------- */
     if( papoBands[nNewBand-1] != NULL )
     {
-        CPLError(CE_Failure, CPLE_NotSupported,
+        ReportError(CE_Failure, CPLE_NotSupported,
                  "Cannot set band %d as it is already set", nNewBand);
         return;
     }
@@ -663,7 +663,7 @@ GDALRasterBand * GDALDataset::GetRasterBand( int nBandId )
     {
         if( nBandId < 1 || nBandId > nBands )
         {
-            CPLError( CE_Failure, CPLE_IllegalArg,
+            ReportError( CE_Failure, CPLE_IllegalArg,
                       "GDALDataset::GetRasterBand(%d) - Illegal band #\n",
                       nBandId );
             return NULL;
@@ -792,11 +792,11 @@ const char * CPL_STDCALL GDALGetProjectionRef( GDALDatasetH hDS )
  * @return CE_Failure if an error occurs, otherwise CE_None.
  */
 
-CPLErr GDALDataset::SetProjection( const char * )
+CPLErr GDALDataset::SetProjection( const char * pszProjection )
 
 {
     if( !(GetMOFlags() & GMO_IGNORE_UNIMPLEMENTED) )
-        CPLError( CE_Failure, CPLE_NotSupported, 
+        ReportError( CE_Failure, CPLE_NotSupported,
                   "Dataset does not support the SetProjection() method." );
     return CE_Failure;
 }
@@ -908,11 +908,11 @@ CPLErr CPL_STDCALL GDALGetGeoTransform( GDALDatasetH hDS, double * padfTransform
  * written.
  */
 
-CPLErr GDALDataset::SetGeoTransform( double * )
+CPLErr GDALDataset::SetGeoTransform( double * padfTransform )
 
 {
     if( !(GetMOFlags() & GMO_IGNORE_UNIMPLEMENTED) )
-        CPLError( CE_Failure, CPLE_NotSupported,
+        ReportError( CE_Failure, CPLE_NotSupported,
                   "SetGeoTransform() not supported for this dataset." );
     
     return( CE_Failure );
@@ -1138,7 +1138,7 @@ void GDALDataset::MarkAsShared()
     if(CPLHashSetLookup(phSharedDatasetSet, psStruct) != NULL)
     {
         CPLFree(psStruct);
-        CPLError(CE_Failure, CPLE_AppDefined,
+        ReportError(CE_Failure, CPLE_AppDefined,
                  "An existing shared dataset has already this description. This should not happen");
     }
     else
@@ -1304,7 +1304,7 @@ CPLErr GDALDataset::SetGCPs( int nGCPCount,
     (void) pszGCPProjection;
 
     if( !(GetMOFlags() & GMO_IGNORE_UNIMPLEMENTED) )
-        CPLError( CE_Failure, CPLE_NotSupported, 
+        ReportError( CE_Failure, CPLE_NotSupported,
                   "Dataset does not support the SetGCPs() method." );
 
     return CE_Failure;
@@ -1348,7 +1348,7 @@ CPLErr CPL_STDCALL GDALSetGCPs( GDALDatasetH hDS, int nGCPCount,
  * "AVERAGE_MAGPHASE" or "NONE" controlling the downsampling method applied.
  * @param nOverviews number of overviews to build. 
  * @param panOverviewList the list of overview decimation factors to build. 
- * @param nBand number of bands to build overviews for in panBandList.  Build
+ * @param nListBands number of bands to build overviews for in panBandList.  Build
  * for all bands if this is 0. 
  * @param panBandList list of band numbers. 
  * @param pfnProgress a function to call to report progress, or NULL.
@@ -1445,7 +1445,7 @@ CPLErr GDALDataset::IBuildOverviews( const char *pszResampling,
                                           pfnProgress, pProgressData );
     else
     {
-        CPLError( CE_Failure, CPLE_NotSupported,
+        ReportError( CE_Failure, CPLE_NotSupported,
                   "BuildOverviews() not supported for this dataset." );
         
         return( CE_Failure );
@@ -1490,6 +1490,12 @@ CPLErr GDALDataset::IRasterIO( GDALRWFlag eRWFlag,
     {
         GDALRasterBand *poBand = GetRasterBand(panBandMap[iBandIndex]);
         GByte *pabyBandData;
+
+        if (poBand == NULL)
+        {
+            eErr = CE_Failure;
+            break;
+        }
 
         pabyBandData = ((GByte *) pData) + iBandIndex * nBandSpace;
         
@@ -1592,7 +1598,7 @@ CPLErr GDALDataset::RasterIO( GDALRWFlag eRWFlag,
 
     if( NULL == pData )
     {
-        CPLError( CE_Failure, CPLE_AppDefined, 
+        ReportError( CE_Failure, CPLE_AppDefined,
                   "The buffer into which the data should be read is null" );
             return CE_Failure;
     }
@@ -1624,7 +1630,7 @@ CPLErr GDALDataset::RasterIO( GDALRWFlag eRWFlag,
     {
         if (nPixelSpace > INT_MAX / nBufXSize)
         {
-            CPLError( CE_Failure, CPLE_AppDefined, 
+            ReportError( CE_Failure, CPLE_AppDefined,
                       "Int overflow : %d x %d", nPixelSpace, nBufXSize );
             return CE_Failure;
         }
@@ -1638,7 +1644,7 @@ CPLErr GDALDataset::RasterIO( GDALRWFlag eRWFlag,
     {
         if (nLineSpace > INT_MAX / nBufYSize)
         {
-            CPLError( CE_Failure, CPLE_AppDefined, 
+            ReportError( CE_Failure, CPLE_AppDefined,
                       "Int overflow : %d x %d", nLineSpace, nBufYSize );
             return CE_Failure;
         }
@@ -1649,7 +1655,7 @@ CPLErr GDALDataset::RasterIO( GDALRWFlag eRWFlag,
     {
         if (nBandCount > GetRasterCount())
         {
-            CPLError( CE_Failure, CPLE_IllegalArg, 
+            ReportError( CE_Failure, CPLE_IllegalArg,
                       "nBandCount cannot be greater than %d",
                       GetRasterCount() );
             return CE_Failure;
@@ -1657,7 +1663,7 @@ CPLErr GDALDataset::RasterIO( GDALRWFlag eRWFlag,
         panBandMap = (int *) VSIMalloc2(sizeof(int), nBandCount);
         if (panBandMap == NULL)
         {
-            CPLError( CE_Failure, CPLE_OutOfMemory, 
+            ReportError( CE_Failure, CPLE_OutOfMemory,
                       "Out of memory while allocating band map array" );
             return CE_Failure;
         }
@@ -1673,7 +1679,7 @@ CPLErr GDALDataset::RasterIO( GDALRWFlag eRWFlag,
     if( nXOff < 0 || nXOff > INT_MAX - nXSize || nXOff + nXSize > nRasterXSize
         || nYOff < 0 || nYOff > INT_MAX - nYSize || nYOff + nYSize > nRasterYSize )
     {
-        CPLError( CE_Failure, CPLE_IllegalArg,
+        ReportError( CE_Failure, CPLE_IllegalArg,
                   "Access window out of range in RasterIO().  Requested\n"
                   "(%d,%d) of size %dx%d on raster of %dx%d.",
                   nXOff, nYOff, nXSize, nYSize, nRasterXSize, nRasterYSize );
@@ -1682,7 +1688,7 @@ CPLErr GDALDataset::RasterIO( GDALRWFlag eRWFlag,
 
     if( eRWFlag != GF_Read && eRWFlag != GF_Write )
     {
-        CPLError( CE_Failure, CPLE_IllegalArg,
+        ReportError( CE_Failure, CPLE_IllegalArg,
                   "eRWFlag = %d, only GF_Read (0) and GF_Write (1) are legal.",
                   eRWFlag );
         eErr = CE_Failure;
@@ -1692,7 +1698,7 @@ CPLErr GDALDataset::RasterIO( GDALRWFlag eRWFlag,
     {
         if( panBandMap[i] < 1 || panBandMap[i] > GetRasterCount() )
         {
-            CPLError( CE_Failure, CPLE_IllegalArg, 
+            ReportError( CE_Failure, CPLE_IllegalArg,
                       "panBandMap[%d] = %d, this band does not exist on dataset.",
                       i, panBandMap[i] );
             eErr = CE_Failure;
@@ -1700,7 +1706,7 @@ CPLErr GDALDataset::RasterIO( GDALRWFlag eRWFlag,
 
         if( eErr == CE_None && GetRasterBand( panBandMap[i] ) == NULL )
         {
-            CPLError( CE_Failure, CPLE_IllegalArg, 
+            ReportError( CE_Failure, CPLE_IllegalArg,
                       "panBandMap[%d]=%d, this band should exist but is NULL!",
                       i, panBandMap[i] );
             eErr = CE_Failure;
@@ -1906,7 +1912,7 @@ int CPL_STDCALL GDALGetAccess( GDALDatasetH hDS )
 
 CPLErr GDALDataset::AdviseRead( int nXOff, int nYOff, int nXSize, int nYSize,
                                 int nBufXSize, int nBufYSize, 
-                                GDALDataType eDT, 
+                                GDALDataType eBufType, 
                                 int nBandCount, int *panBandMap,
                                 char **papszOptions )
 
@@ -1924,7 +1930,7 @@ CPLErr GDALDataset::AdviseRead( int nXOff, int nYOff, int nXSize, int nYSize,
             poBand = GetRasterBand(panBandMap[iBand]);
 
         eErr = poBand->AdviseRead( nXOff, nYOff, nXSize, nYSize,
-                                   nBufXSize, nBufYSize, eDT, papszOptions );
+                                   nBufXSize, nBufYSize, eBufType, papszOptions );
 
         if( eErr != CE_None )
             return eErr;
@@ -1972,7 +1978,7 @@ GDALDatasetAdviseRead( GDALDatasetH hDS,
  * 
  * The returned filenames will normally be relative or absolute paths 
  * depending on the path used to originally open the dataset.  The strings
- * will be UTF8 encoded.
+ * will be UTF-8 encoded.
  *
  * This method is the same as the C GDALGetFileList() function.
  *
@@ -2034,8 +2040,20 @@ char **GDALDataset::GetFileList()
             szDerivedExtension[2] = 'w';
             szDerivedExtension[3] = '\0';
             CPLString osWorldFilename = CPLResetExtension( osMainFilename, szDerivedExtension );
-            
-            if( VSIStatExL( osWorldFilename, &sStat, VSI_STAT_EXISTS_FLAG ) == 0 )
+
+            if (oOvManager.papszInitSiblingFiles)
+            {
+                int iSibling = CSLFindString(oOvManager.papszInitSiblingFiles,
+                                             CPLGetFilename(osWorldFilename));
+                if (iSibling >= 0)
+                {
+                    osWorldFilename.resize(strlen(osWorldFilename) -
+                                           strlen(oOvManager.papszInitSiblingFiles[iSibling]));
+                    osWorldFilename += oOvManager.papszInitSiblingFiles[iSibling];
+                    papszList = CSLAddString( papszList, osWorldFilename );
+                }
+            }
+            else if( VSIStatExL( osWorldFilename, &sStat, VSI_STAT_EXISTS_FLAG ) == 0 )
                 papszList = CSLAddString( papszList, osWorldFilename );
         }
     }
@@ -2111,7 +2129,7 @@ CPLErr GDALDataset::CreateMaskBand( int nFlags )
         return CE_None;
     }
 
-    CPLError( CE_Failure, CPLE_NotSupported,
+    ReportError( CE_Failure, CPLE_NotSupported,
               "CreateMaskBand() not supported for this dataset." );
     
     return( CE_Failure );
@@ -2156,11 +2174,15 @@ CPLErr CPL_STDCALL GDALCreateDatasetMaskBand( GDALDatasetH hDS, int nFlags )
  * use.) </li>
  * </ul>
  *
+ * For drivers supporting the VSI virtual file API, it is possible to open
+ * a file in a .zip archive (see VSIInstallZipFileHandler()), in a .tar/.tar.gz/.tgz archive
+ * (see VSIInstallTarFileHandler()) or on a HTTP / FTP server (see VSIInstallCurlFileHandler())
+ *
  * \sa GDALOpenShared()
  *
  * @param pszFilename the name of the file to access.  In the case of
  * exotic drivers this may not refer to a physical file, but instead contain
- * information for the driver on how to access a dataset.  It should be in UTF8
+ * information for the driver on how to access a dataset.  It should be in UTF-8
  * encoding.
  *
  * @param eAccess the desired access, either GA_Update or GA_ReadOnly.  Many
@@ -2182,11 +2204,18 @@ GDALOpen( const char * pszFilename, GDALAccess eAccess )
 GDALDatasetH GDALOpenInternal( const char * pszFilename, GDALAccess eAccess,
                                const char* const * papszAllowedDrivers)
 {
-    VALIDATE_POINTER1( pszFilename, "GDALOpen", NULL );
+    GDALOpenInfo oOpenInfo( pszFilename, eAccess );
+    return GDALOpenInternal(oOpenInfo, papszAllowedDrivers);
+}
+
+GDALDatasetH GDALOpenInternal( GDALOpenInfo& oOpenInfo,
+                               const char* const * papszAllowedDrivers)
+{
+
+    VALIDATE_POINTER1( oOpenInfo.pszFilename, "GDALOpen", NULL );
 
     int         iDriver;
     GDALDriverManager *poDM = GetGDALDriverManager();
-    GDALOpenInfo oOpenInfo( pszFilename, eAccess );
     CPLLocaleC  oLocaleForcer;
 
     CPLErrorReset();
@@ -2216,11 +2245,11 @@ GDALDatasetH GDALOpenInternal( const char * pszFilename, GDALAccess eAccess,
 
             if( CPLGetPID() != GDALGetResponsiblePIDForCurrentThread() )
                 CPLDebug( "GDAL", "GDALOpen(%s, this=%p) succeeds as %s (pid=%d, responsiblePID=%d).",
-                          pszFilename, poDS, poDriver->GetDescription(),
+                          oOpenInfo.pszFilename, poDS, poDriver->GetDescription(),
                           (int)CPLGetPID(), (int)GDALGetResponsiblePIDForCurrentThread() );
             else
                 CPLDebug( "GDAL", "GDALOpen(%s, this=%p) succeeds as %s.",
-                          pszFilename, poDS, poDriver->GetDescription() );
+                          oOpenInfo.pszFilename, poDS, poDriver->GetDescription() );
 
             return (GDALDatasetH) poDS;
         }
@@ -2232,12 +2261,12 @@ GDALDatasetH GDALOpenInternal( const char * pszFilename, GDALAccess eAccess,
     if( oOpenInfo.bStatOK )
         CPLError( CE_Failure, CPLE_OpenFailed,
                   "`%s' not recognised as a supported file format.\n",
-                  pszFilename );
+                  oOpenInfo.pszFilename );
     else
         CPLError( CE_Failure, CPLE_OpenFailed,
                   "`%s' does not exist in the file system,\n"
                   "and is not recognised as a supported dataset name.\n",
-                  pszFilename );
+                  oOpenInfo.pszFilename );
 
     return NULL;
 }
@@ -2262,12 +2291,16 @@ GDALDatasetH GDALOpenInternal( const char * pszFilename, GDALAccess eAccess,
  * it is not safe to use the same dataset from different threads, unless the user
  * does explicitely use mutexes in its code.
  *
+ * For drivers supporting the VSI virtual file API, it is possible to open
+ * a file in a .zip archive (see VSIInstallZipFileHandler()), in a .tar/.tar.gz/.tgz archive
+ * (see VSIInstallTarFileHandler()) or on a HTTP / FTP server (see VSIInstallCurlFileHandler())
+ *
  * \sa GDALOpen()
  *
  * @param pszFilename the name of the file to access.  In the case of
  * exotic drivers this may not refer to a physical file, but instead contain
  * information for the driver on how to access a dataset.  It should be in 
- * UTF8 encoding.
+ * UTF-8 encoding.
  *
  * @param eAccess the desired access, either GA_Update or GA_ReadOnly.  Many
  * drivers support only read only access.
@@ -2630,3 +2663,79 @@ void CPL_STDCALL GDALEndAsyncReader(GDALDatasetH hDS, GDALAsyncReaderH hAsyncRea
     ((GDALDataset *) hDS) -> EndAsyncReader((GDALAsyncReader *)hAsyncReaderH);	
 }
 
+/************************************************************************/
+/*                       CloseDependentDatasets()                       */
+/************************************************************************/
+
+/**
+ * Drop references to any other datasets referenced by this dataset.
+ *
+ * This method should release any reference to other datasets (e.g. a VRT
+ * dataset to its sources), but not close the current dataset itself.
+ *
+ * If at least, one reference to a dependant dataset has been dropped,
+ * this method should return TRUE. Otherwise it *should* return FALSE.
+ * (Failure to return the proper value might result in infinite loop)
+ *
+ * This method can be called several times on a given dataset. After
+ * the first time, it should not do anything and return FALSE.
+ *
+ * The driver implementation may choose to destroy its raster bands,
+ * so be careful not to call any method on the raster bands afterwards.
+ *
+ * Basically the only safe action you can do after calling CloseDependantDatasets()
+ * is to call the destructor.
+ *
+ * Note: the only legitimate caller of CloseDependantDatasets() is
+ * GDALDriverManager::~GDALDriverManager()
+ *
+ * @return TRUE if at least one reference to another dataset has been dropped.
+ */
+int GDALDataset::CloseDependentDatasets()
+{
+    return oOvManager.CloseDependentDatasets();
+}
+
+/************************************************************************/
+/*                            ReportError()                             */
+/************************************************************************/
+
+/**
+ * \brief Emits an error related to a dataset.
+ *
+ * This function is a wrapper for regular CPLError(). The only difference
+ * with CPLError() is that it prepends the error message with the dataset
+ * name.
+ *
+ * @param eErrClass one of CE_Warning, CE_Failure or CE_Fatal.
+ * @param err_no the error number (CPLE_*) from cpl_error.h.
+ * @param fmt a printf() style format string.  Any additional arguments
+ * will be treated as arguments to fill in this format in a manner
+ * similar to printf().
+ *
+ * @since GDAL 1.9.0
+ */
+
+void GDALDataset::ReportError(CPLErr eErrClass, int err_no, const char *fmt, ...)
+{
+    va_list args;
+
+    va_start(args, fmt);
+
+    char szNewFmt[256];
+    const char* pszDSName = GetDescription();
+    if (strlen(fmt) + strlen(pszDSName) + 3 >= sizeof(szNewFmt) - 1)
+        pszDSName = CPLGetFilename(pszDSName);
+    if (pszDSName[0] != '\0' &&
+        strlen(fmt) + strlen(pszDSName) + 3 < sizeof(szNewFmt) - 1)
+    {
+        snprintf(szNewFmt, sizeof(szNewFmt), "%s: %s",
+                 pszDSName, fmt);
+        CPLErrorV( eErrClass, err_no, szNewFmt, args );
+    }
+    else
+    {
+        CPLErrorV( eErrClass, err_no, fmt, args );
+    }
+    va_end(args);
+}

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gmlutils.h 21272 2010-12-16 00:38:34Z rouault $
+ * $Id: gmlutils.h 23638 2011-12-22 21:02:56Z rouault $
  *
  * Project:  GML Utils
  * Purpose:  GML reader
@@ -30,16 +30,29 @@
 #ifndef _CPL_GMLUTILS_H_INCLUDED
 #define _CPL_GMLUTILS_H_INCLUDED
 
+#include <vector>
+#include <string>
+#include "cpl_minixml.h"
+
 #include "ogr_geometry.h"
 
-char* GML_ExtractSrsNameFromGeometry(char** papszGeometryList);
+const char* GML_ExtractSrsNameFromGeometry(const CPLXMLNode* const * papsGeometry,
+                                     std::string& osWork,
+                                     int bConsiderEPSGAsURN);
 
 int GML_IsSRSLatLongOrder(const char* pszSRSName);
 
-OGRGeometry* GML_BuildOGRGeometryFromList(char** papszGeometryList,
+void* GML_BuildOGRGeometryFromList_CreateCache();
+void GML_BuildOGRGeometryFromList_DestroyCache(void* hCacheSRS);
+
+OGRGeometry* GML_BuildOGRGeometryFromList(const CPLXMLNode* const * papsGeometry,
                                           int bTryToMakeMultipolygons,
                                           int bInvertAxisOrderIfLatLong,
-                                          const char* pszDefaultSRSName);
+                                          const char* pszDefaultSRSName,
+                                          int bConsiderEPSGAsURN,
+                                          int bGetSecondaryGeometryOption,
+                                          void* hCacheSRS,
+                                          int bFaceHoleNegative = FALSE );
 
 char* GML_GetSRSName(const OGRSpatialReference* poSRS, int bLongSRS, int *pbCoordSwap);
 
