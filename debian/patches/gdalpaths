@@ -7,7 +7,7 @@ Index: gdal/gcore/gdaldrivermanager.cpp
                                          GDAL_PREFIX "/PlugIns");
      #else
 -                                        GDAL_PREFIX "/lib/gdalplugins" );
-+                                        GDAL_PREFIX "/lib/gdalplugins/1.8" );
++                                        GDAL_PREFIX "/lib/gdalplugins/1.9" );
      #endif
  #else
          char szExecPath[1024];
@@ -20,7 +20,7 @@ Index: gdal/ogr/ogrsf_frmts/generic/ogrsfdriverregistrar.cpp
                                          GDAL_PREFIX "/PlugIns");
      #else
 -                                        GDAL_PREFIX "/lib/gdalplugins" );
-+                                        GDAL_PREFIX "/lib/gdalplugins/1.8" );
++                                        GDAL_PREFIX "/lib/gdalplugins/1.9" );
      #endif
  #else
          char szExecPath[1024];
@@ -33,7 +33,7 @@ Index: gdal/port/cpl_findfile.cpp
              CPLPushFinderLocation( GDAL_PREFIX "/Resources/gdal" );
    #else
 -            CPLPushFinderLocation( GDAL_PREFIX "/share/gdal" );
-+            CPLPushFinderLocation( GDAL_PREFIX "/share/gdal/1.8" );
++            CPLPushFinderLocation( GDAL_PREFIX "/share/gdal/1.9" );
    #endif
  #else
              CPLPushFinderLocation( "/usr/local/share/gdal" );
