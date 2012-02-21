@@ -3,6 +3,15 @@ gdal (1.9.0-1~exp1) experimental; urgency=low
   * New upstream release.
   * New tool: gdalsrsinfo.
   * Dropped patch epsilon.
+  * All patches refreshed for current version.
+  * Regenerating all symfiles from scratch. But for the usual stock of
+    internal C++ changes (with both adding and removing of methods) a couple
+    of TIFF related C functions have been dropped:
+       TIFFFindFieldInfo
+       TIFFFindFieldInfoByName
+    which is due to Tiff/GeoTiff resyncing against upstream. This is ignored,
+    but we already introduced a SONAME change, and it will not impact sid
+    builds and library use.
 
  -- Francesco Paolo Lovergine <frankie@debian.org>  Mon, 20 Feb 2012 11:45:16 +0100
 
