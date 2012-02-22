@@ -1,3 +1,9 @@
+gdal (1.9.0-1~exp2) experimental; urgency=low
+
+  * Fixed mipsel, mips, powerpc and s390 files for syntax errors.
+
+ -- Francesco Paolo Lovergine <frankie@debian.org>  Thu, 23 Feb 2012 00:34:08 +0100
+
 gdal (1.9.0-1~exp1) experimental; urgency=low
 
   * New upstream release.
