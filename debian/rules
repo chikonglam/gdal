@@ -85,6 +85,11 @@ configure-stamp:
 			--with-static-proj4=yes \
 			--with-spatialite=/usr \
 			--with-cfitsio=no \
+			--with-ecw=no \
+			--with-mrsid=no \
+			--with-poppler=yes \
+			--with-openjpeg=yes \
+			--with-freexl=yes \
 			--with-epsilon=/usr; \
 		mv GDALmake.opt GDALmake.opt-$$V; \
 	done

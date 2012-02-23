@@ -1,3 +1,10 @@
+gdal (1.9.0-1~exp3) experimental; urgency=low
+
+  * Added b-deps and enabled a few new supports: 
+    Poppler, Armadillo, OpenJPEG, FreeXL and libZMA.
+
+ -- Francesco Paolo Lovergine <frankie@debian.org>  Thu, 23 Feb 2012 12:40:19 +0100
+
 gdal (1.9.0-1~exp2) experimental; urgency=low
 
   * Fixed mipsel, mips, powerpc and s390 files for syntax errors that caused
