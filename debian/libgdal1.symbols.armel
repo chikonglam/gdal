@@ -1,3 +1,5 @@
+libgdal.so.1 libgdal1 #MINVER# 
+#include "libgdal1.symbols.common"
  (c++)"CheckASCII(unsigned char*, int)@GDAL_1.8" 1.8.0
  (c++)"CreatePath(HDF5GroupObjects*)@GDAL_1.8" 1.8.0
  (c++)"DDFScanInt(char const*, int)@GDAL_1.8" 1.8.0
@@ -20,7 +22,6 @@
  (c++)"GetCoordDim(iom_basket*, iom_object*)@GDAL_1.8" 1.8.0
  (c++)"GetFilePath(CPLXMLNode*, char**)@GDAL_1.8" 1.8.0
  (c++)"GetTypeName(iom_basket*, iom_object*)@GDAL_1.8" 1.8.0
- (c++)"HFAStandard(int, void*)@GDAL_1.8 1.8.0
  (c++)"INGR_Decode(INGR_Format, unsigned char*, unsigned char*, unsigned int, unsigned int, unsigned int*)@GDAL_1.8" 1.8.0
  (c++)"OGRFastAtof(char const*)@GDAL_1.8" 1.8.0
  (c++)"PamGetProxy(char const*)@GDAL_1.8" 1.8.0
@@ -171,7 +172,8 @@
  (c++)"FWRITE_ODDINT_BIG(int*, unsigned char, _IO_FILE*)@GDAL_1.8" 1.8.0
  (c++)"FWRITE_ODDINT_LIT(int*, unsigned char, _IO_FILE*)@GDAL_1.8" 1.8.0
  (c++)"GDALReplicateWord(void*, GDALDataType, void*, GDALDataType, int, int)@GDAL_1.8" 1.8.0
- (c++)"GTiffErrorHandler(char const*, char const*, void*)@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# GTiffErrorHandler(char const*, char const*, char*)@GDAL_1.8" 1.8.0
+ (c++)"GTiffErrorHandler(char const*, char const*, std::__va_list)@GDAL_1.8 1.8.1-1
  (c++)"OGRDODSGetVarPath(libdap::BaseType*)@GDAL_1.8" 1.8.0
  (c++)"OGRGeoJSONGetType(json_object*)@GDAL_1.8" 1.8.0
  (c++)"OGRGetXMLDateTime(int, int, int, int, int, int, int)@GDAL_1.8" 1.8.0
@@ -221,7 +223,8 @@
  (c++)"GDALType2ValueScale(GDALDataType)@GDAL_1.8" 1.8.0
  (c++)"GTIFFSetJpegQuality(void*, int)@GDAL_1.8" 1.8.0
  (c++)"GTIFFWriteDirectory(tiff*, int, int, int, int, int, int, int, int, int, int, int, int, int, unsigned short*, unsigned short*, unsigned short*, int, unsigned short*, char const*)@GDAL_1.8" 1.8.0
- (c++)"GTiffWarningHandler(char const*, char const*, void*)@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# GTiffWarningHandler(char const*, char const*, char*)@GDAL_1.8" 1.8.0
+ (c++)"GTiffWarningHandler(char const*, char const*, std::__va_list)@GDAL_1.8 1.8.1-1
  (c++)"HDF5CreateGroupObjs(int, char const*, void*)@GDAL_1.8" 1.8.0
  (c++)"HFACreateSpillStack(hfainfo*, int, int, int, int, int, long long*, long long*)@GDAL_1.8" 1.8.0
  (c++)"HFAReadBFUniqueBins(HFAEntry*, int)@GDAL_1.8" 1.8.0
@@ -2497,9 +2500,9 @@
  (c++)"xercesc_2_8::DTDHandler::~DTDHandler()@GDAL_1.8" 1.8.0
  (c++)"xercesc_2_8::DTDHandler::~DTDHandler()@GDAL_1.8" 1.8.0
  (c++)"xercesc_2_8::DTDHandler::~DTDHandler()@GDAL_1.8" 1.8.0
- (c++)"xercesc_2_8::XMLDeleter::~XMLDeleter()@GDAL_1.8" 1.8.0
- (c++)"xercesc_2_8::XMLDeleter::~XMLDeleter()@GDAL_1.8" 1.8.0
- (c++)"xercesc_2_8::XMLDeleter::~XMLDeleter()@GDAL_1.8" 1.8.0
+#MISSING: 1.8.1-1# xercesc_2_8::XMLDeleter::~XMLDeleter()@GDAL_1.8" 1.8.0
+#MISSING: 1.8.1-1# xercesc_2_8::XMLDeleter::~XMLDeleter()@GDAL_1.8" 1.8.0
+#MISSING: 1.8.1-1# xercesc_2_8::XMLDeleter::~XMLDeleter()@GDAL_1.8" 1.8.0
  (c++)"xercesc_2_8::DeclHandler::~DeclHandler()@GDAL_1.8" 1.8.0
  (c++)"xercesc_2_8::DeclHandler::~DeclHandler()@GDAL_1.8" 1.8.0
  (c++)"xercesc_2_8::DeclHandler::~DeclHandler()@GDAL_1.8" 1.8.0
@@ -2510,10 +2513,10 @@
  (c++)"xercesc_2_8::SAXException::~SAXException()@GDAL_1.8" 1.8.0
  (c++)"xercesc_2_8::SAXException::~SAXException()@GDAL_1.8" 1.8.0
  (c++)"xercesc_2_8::SAXException::~SAXException()@GDAL_1.8" 1.8.0
- (c++)"xercesc_2_8::SAX2XMLReader::setInputBufferSize(unsigned int)@GDAL_1.8" 1.8.0
- (c++)"xercesc_2_8::SAX2XMLReader::~SAX2XMLReader()@GDAL_1.8" 1.8.0
- (c++)"xercesc_2_8::SAX2XMLReader::~SAX2XMLReader()@GDAL_1.8" 1.8.0
- (c++)"xercesc_2_8::SAX2XMLReader::~SAX2XMLReader()@GDAL_1.8" 1.8.0
+#MISSING: 1.8.1-1# xercesc_2_8::SAX2XMLReader::setInputBufferSize(unsigned int)@GDAL_1.8" 1.8.0
+#MISSING: 1.8.1-1# xercesc_2_8::SAX2XMLReader::~SAX2XMLReader()@GDAL_1.8" 1.8.0
+#MISSING: 1.8.1-1# xercesc_2_8::SAX2XMLReader::~SAX2XMLReader()@GDAL_1.8" 1.8.0
+#MISSING: 1.8.1-1# xercesc_2_8::SAX2XMLReader::~SAX2XMLReader()@GDAL_1.8" 1.8.0
  (c++)"xercesc_2_8::ContentHandler::~ContentHandler()@GDAL_1.8" 1.8.0
  (c++)"xercesc_2_8::ContentHandler::~ContentHandler()@GDAL_1.8" 1.8.0
  (c++)"xercesc_2_8::ContentHandler::~ContentHandler()@GDAL_1.8" 1.8.0
@@ -8817,7 +8820,9 @@
  (c++)"PCIDSK::PCIDSK_TEX::~PCIDSK_TEX()@GDAL_1.8" 1.8.0
  (c++)"PCIDSK::PCIDSK_TEX::~PCIDSK_TEX()@GDAL_1.8" 1.8.0
  (c++)"PCIDSK::PCIDSK_TEX::~PCIDSK_TEX()@GDAL_1.8" 1.8.0
- (c++)"PCIDSK::ShapeField::Clear()@GDAL_1.8 1.8.0
+ (c++)"PCIDSK::ShapeField::Clear()@GDAL_1.8 1.8.1-1
+#MISSING: 1.8.1-1# PCIDSK::ShapeField::~ShapeField()@GDAL_1.8" 1.8.0
+#MISSING: 1.8.1-1# PCIDSK::ShapeField::~ShapeField()@GDAL_1.8" 1.8.0
  (c++)"PCIDSK::SwapPixels(void*, PCIDSK::eChanType, unsigned int)@GDAL_1.8" 1.8.0
  (c++)"PCIDSK::CPCIDSKFile::ExtendFile(unsigned long long, bool)@GDAL_1.8" 1.8.0
  (c++)"PCIDSK::CPCIDSKFile::FlushBlock()@GDAL_1.8" 1.8.0
@@ -9040,7 +9045,8 @@
  (c++)"PCIDSK::MetadataSegment::~MetadataSegment()@GDAL_1.8" 1.8.0
  (c++)"PCIDSK::MetadataSegment::~MetadataSegment()@GDAL_1.8" 1.8.0
  (c++)"PCIDSK::MetadataSegment::~MetadataSegment()@GDAL_1.8" 1.8.0
- (c++)"PCIDSK::PCIDSKException::vPrintf(char const*, void*)@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# PCIDSK::PCIDSKException::vPrintf(char const*, char*)@GDAL_1.8" 1.8.0
+ (c++)"PCIDSK::PCIDSKException::vPrintf(char const*, std::__va_list)@GDAL_1.8 1.8.1-1
  (c++)"PCIDSK::PCIDSKException::PCIDSKException(char const*, ...)@GDAL_1.8" 1.8.0
  (c++)"PCIDSK::PCIDSKException::PCIDSKException(PCIDSK::PCIDSKException const&)@GDAL_1.8" 1.8.0
  (c++)"PCIDSK::PCIDSKException::PCIDSKException(char const*, ...)@GDAL_1.8" 1.8.0
@@ -9220,6 +9226,9 @@
  (c++)"TABArc::~TABArc()@GDAL_1.8" 1.8.0
  (c++)"TABArc::~TABArc()@GDAL_1.8" 1.8.0
  (c++)"TABArc::~TABArc()@GDAL_1.8" 1.8.0
+ (c++)"libdap::DataDDS::~DataDDS()@GDAL_1.8 1.8.1-1
+ (c++)"libdap::DataDDS::~DataDDS()@GDAL_1.8 1.8.1-1
+ (c++)"libdap::DataDDS::~DataDDS()@GDAL_1.8 1.8.1-1
  (c++)"Element::getOrderPos()@GDAL_1.8" 1.8.0
  (c++)"Element::setOrderPos(unsigned int)@GDAL_1.8" 1.8.0
  (c++)"Element::getBid()@GDAL_1.8" 1.8.0
@@ -9696,9 +9705,10 @@
  (c++)"CPLString::Printf(char const*, ...)@GDAL_1.8" 1.8.0
  (c++)"CPLString::Recode(char const*, char const*)@GDAL_1.8" 1.8.0
  (c++)"CPLString::FormatC(double, char const*)@GDAL_1.8" 1.8.0
- (c++)"CPLString::vPrintf(char const*, void*)@GDAL_1.8 1.8.0
- (c++)"CPLString::CPLString(char const*)@GDAL_1.8" 1.8.0
- (c++)"CPLString::CPLString(char const*)@GDAL_1.8" 1.8.0
+#MISSING: 1.8.1-1# CPLString::vPrintf(char const*, char*)@GDAL_1.8" 1.8.0
+ (c++)"CPLString::vPrintf(char const*, std::__va_list)@GDAL_1.8 1.8.1-1
+#MISSING: 1.8.1-1# CPLString::CPLString(char const*)@GDAL_1.8" 1.8.0
+#MISSING: 1.8.1-1# CPLString::CPLString(char const*)@GDAL_1.8" 1.8.0
  (c++)"DDFModule::Initialize(char, char, char, char, char, char const*, int, int, int)@GDAL_1.8" 1.8.0
  (c++)"DDFModule::ReadRecord()@GDAL_1.8" 1.8.0
  (c++)"DDFModule::FindFieldDefn(char const*)@GDAL_1.8" 1.8.0
@@ -10368,11 +10378,11 @@
  (c++)"std::basic_stringbuf<char, std::char_traits<char>, std::allocator<char> >::~basic_stringbuf()@GDAL_1.8" 1.8.0
  (c++)"std::map<CPLString, void*, std::less<CPLString>, std::allocator<std::pair<CPLString const, void*> > >::~map()@GDAL_1.8" 1.8.0
  (c++)"std::map<CPLString, void*, std::less<CPLString>, std::allocator<std::pair<CPLString const, void*> > >::~map()@GDAL_1.8" 1.8.0
- (c++)"std::map<CPLString, CPLString, std::less<CPLString>, std::allocator<std::pair<CPLString const, CPLString> > >::~map()@GDAL_1.8" 1.8.0
- (c++)"std::map<CPLString, CPLString, std::less<CPLString>, std::allocator<std::pair<CPLString const, CPLString> > >::~map()@GDAL_1.8" 1.8.0
+#MISSING: 1.8.1-1# std::map<CPLString, CPLString, std::less<CPLString>, std::allocator<std::pair<CPLString const, CPLString> > >::~map()@GDAL_1.8" 1.8.0
+#MISSING: 1.8.1-1# std::map<CPLString, CPLString, std::less<CPLString>, std::allocator<std::pair<CPLString const, CPLString> > >::~map()@GDAL_1.8" 1.8.0
  (c++)"std::map<CPLString, CPLString, std::less<CPLString>, std::allocator<std::pair<CPLString const, CPLString> > >::operator[](CPLString const&)@GDAL_1.8" 1.8.0
- (c++)"std::map<int, int, std::less<int>, std::allocator<std::pair<int const, int> > >::~map()@GDAL_1.8" 1.8.0
- (c++)"std::map<int, int, std::less<int>, std::allocator<std::pair<int const, int> > >::~map()@GDAL_1.8" 1.8.0
+#MISSING: 1.8.1-1# std::map<int, int, std::less<int>, std::allocator<std::pair<int const, int> > >::~map()@GDAL_1.8" 1.8.0
+#MISSING: 1.8.1-1# std::map<int, int, std::less<int>, std::allocator<std::pair<int const, int> > >::~map()@GDAL_1.8" 1.8.0
  (c++)"std::list<OGRLayer*, std::allocator<OGRLayer*> >::operator=(std::list<OGRLayer*, std::allocator<OGRLayer*> > const&)@GDAL_1.8" 1.8.0
  (c++)"std::list<std::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::basic_string<char, std::char_traits<char>, std::allocator<char> > > >::sort()@GDAL_1.8" 1.8.0
  (c++)"std::list<std::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::basic_string<char, std::char_traits<char>, std::allocator<char> > > >::merge(std::list<std::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::basic_string<char, std::char_traits<char>, std::allocator<char> > > >&)@GDAL_1.8" 1.8.0
@@ -10381,16 +10391,17 @@
  (c++)"std::list<std::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::basic_string<char, std::char_traits<char>, std::allocator<char> > > >::~list()@GDAL_1.8" 1.8.0
  (c++)"std::pair<CPLString const, DXFBlockDefinition>::~pair()@GDAL_1.8" 1.8.0
  (c++)"std::pair<CPLString const, DXFBlockDefinition>::~pair()@GDAL_1.8" 1.8.0
+ (c++)"std::pair<CPLString const, CPLString>::~pair()@GDAL_1.8 1.8.1-1
+ (c++)"std::pair<CPLString const, CPLString>::~pair()@GDAL_1.8 1.8.1-1
  (c++)"std::pair<std::basic_string<char, std::char_traits<char>, std::allocator<char> > const, std::basic_string<char, std::char_traits<char>, std::allocator<char> > >::~pair()@GDAL_1.8" 1.8.0
  (c++)"std::pair<std::basic_string<char, std::char_traits<char>, std::allocator<char> > const, std::basic_string<char, std::char_traits<char>, std::allocator<char> > >::~pair()@GDAL_1.8" 1.8.0
  (c++)"std::deque<Element, std::allocator<Element> >::_M_push_back_aux(Element const&)@GDAL_1.8" 1.8.0
  (c++)"std::deque<Element, std::allocator<Element> >::_M_reallocate_map(unsigned int, bool)@GDAL_1.8" 1.8.0
- (c++)"std::deque<Element, std::allocator<Element> >::_M_destroy_data_aux(std::_Deque_iterator<Element, Element&, Element*>, std::_Deque_iterator<Element, Element&, Element*>)@GDAL_1.8" 1.8.0
+#MISSING: 1.8.1-1# std::deque<Element, std::allocator<Element> >::_M_destroy_data_aux(std::_Deque_iterator<Element, Element&, Element*>, std::_Deque_iterator<Element, Element&, Element*>)@GDAL_1.8" 1.8.0
  (c++)"std::deque<Element, std::allocator<Element> >::~deque()@GDAL_1.8" 1.8.0
  (c++)"std::deque<Element, std::allocator<Element> >::~deque()@GDAL_1.8" 1.8.0
  (c++)"std::deque<OGRFeature*, std::allocator<OGRFeature*> >::_M_reallocate_map(unsigned int, bool)@GDAL_1.8" 1.8.0
  (c++)"std::deque<int, std::allocator<int> >::_M_reallocate_map(unsigned int, bool)@GDAL_1.8" 1.8.0
- (c++)"std::stack<Element, std::deque<Element, std::allocator<Element> > >::pop()@GDAL_1.8 1.8.0
  (c++)"std::stack<Element, std::deque<Element, std::allocator<Element> > >::push(Element const&)@GDAL_1.8" 1.8.0
  (c++)"std::vector<VFKProperty, std::allocator<VFKProperty> >::_M_fill_assign(unsigned int, VFKProperty const&)@GDAL_1.8" 1.8.0
  (c++)"std::vector<VFKProperty, std::allocator<VFKProperty> >::~vector()@GDAL_1.8" 1.8.0
@@ -10401,8 +10412,8 @@
  (c++)"std::vector<VRTOverviewInfo, std::allocator<VRTOverviewInfo> >::~vector()@GDAL_1.8" 1.8.0
  (c++)"std::vector<DXFSmoothPolylineVertex, std::allocator<DXFSmoothPolylineVertex> >::_M_insert_aux(__gnu_cxx::__normal_iterator<DXFSmoothPolylineVertex*, std::vector<DXFSmoothPolylineVertex, std::allocator<DXFSmoothPolylineVertex> > >, DXFSmoothPolylineVertex const&)@GDAL_1.8" 1.8.0
  (c++)"std::vector<GDALRasterAttributeField, std::allocator<GDALRasterAttributeField> >::_M_fill_insert(__gnu_cxx::__normal_iterator<GDALRasterAttributeField*, std::vector<GDALRasterAttributeField, std::allocator<GDALRasterAttributeField> > >, unsigned int, GDALRasterAttributeField const&)@GDAL_1.8" 1.8.0
- (c++)"std::vector<GDALRasterAttributeField, std::allocator<GDALRasterAttributeField> >::~vector()@GDAL_1.8" 1.8.0
- (c++)"std::vector<GDALRasterAttributeField, std::allocator<GDALRasterAttributeField> >::~vector()@GDAL_1.8" 1.8.0
+#MISSING: 1.8.1-1# std::vector<GDALRasterAttributeField, std::allocator<GDALRasterAttributeField> >::~vector()@GDAL_1.8" 1.8.0
+#MISSING: 1.8.1-1# std::vector<GDALRasterAttributeField, std::allocator<GDALRasterAttributeField> >::~vector()@GDAL_1.8" 1.8.0
  (c++)"std::vector<GDALRasterAttributeField, std::allocator<GDALRasterAttributeField> >::operator=(std::vector<GDALRasterAttributeField, std::allocator<GDALRasterAttributeField> > const&)@GDAL_1.8" 1.8.0
  (c++)"std::vector<OGRPoint, std::allocator<OGRPoint> >::_M_insert_aux(__gnu_cxx::__normal_iterator<OGRPoint*, std::vector<OGRPoint, std::allocator<OGRPoint> > >, OGRPoint const&)@GDAL_1.8" 1.8.0
  (c++)"void std::vector<OGRPoint, std::allocator<OGRPoint> >::_M_range_insert<__gnu_cxx::__normal_iterator<OGRPoint*, std::vector<OGRPoint, std::allocator<OGRPoint> > > >(__gnu_cxx::__normal_iterator<OGRPoint*, std::vector<OGRPoint, std::allocator<OGRPoint> > >, __gnu_cxx::__normal_iterator<OGRPoint*, std::vector<OGRPoint, std::allocator<OGRPoint> > >, __gnu_cxx::__normal_iterator<OGRPoint*, std::vector<OGRPoint, std::allocator<OGRPoint> > >, std::forward_iterator_tag)@GDAL_1.8" 1.8.0
@@ -10433,8 +10444,8 @@
  (c++)"std::vector<PCIDSK::ProtectedEDBFile, std::allocator<PCIDSK::ProtectedEDBFile> >::~vector()@GDAL_1.8" 1.8.0
  (c++)"std::vector<PCIDSK::ProtectedEDBFile, std::allocator<PCIDSK::ProtectedEDBFile> >::~vector()@GDAL_1.8" 1.8.0
  (c++)"std::vector<PCIDSK::GCP, std::allocator<PCIDSK::GCP> >::_M_insert_aux(__gnu_cxx::__normal_iterator<PCIDSK::GCP*, std::vector<PCIDSK::GCP, std::allocator<PCIDSK::GCP> > >, PCIDSK::GCP const&)@GDAL_1.8" 1.8.0
- (c++)"std::vector<PCIDSK::GCP, std::allocator<PCIDSK::GCP> >::~vector()@GDAL_1.8" 1.8.0
- (c++)"std::vector<PCIDSK::GCP, std::allocator<PCIDSK::GCP> >::~vector()@GDAL_1.8" 1.8.0
+#MISSING: 1.8.1-1# std::vector<PCIDSK::GCP, std::allocator<PCIDSK::GCP> >::~vector()@GDAL_1.8" 1.8.0
+#MISSING: 1.8.1-1# std::vector<PCIDSK::GCP, std::allocator<PCIDSK::GCP> >::~vector()@GDAL_1.8" 1.8.0
  (c++)"std::vector<PCIDSK::GCP, std::allocator<PCIDSK::GCP> >::operator=(std::vector<PCIDSK::GCP, std::allocator<PCIDSK::GCP> > const&)@GDAL_1.8" 1.8.0
  (c++)"std::vector<PCIDSK::eChanType, std::allocator<PCIDSK::eChanType> >::_M_fill_insert(__gnu_cxx::__normal_iterator<PCIDSK::eChanType*, std::vector<PCIDSK::eChanType, std::allocator<PCIDSK::eChanType> > >, unsigned int, PCIDSK::eChanType const&)@GDAL_1.8" 1.8.0
  (c++)"std::vector<OGRFeature*, std::allocator<OGRFeature*> >::_M_insert_aux(__gnu_cxx::__normal_iterator<OGRFeature**, std::vector<OGRFeature*, std::allocator<OGRFeature*> > >, OGRFeature* const&)@GDAL_1.8" 1.8.0
@@ -10452,8 +10463,8 @@
  (c++)"std::vector<GDALWMSRasterBand*, std::allocator<GDALWMSRasterBand*> >::_M_insert_aux(__gnu_cxx::__normal_iterator<GDALWMSRasterBand**, std::vector<GDALWMSRasterBand*, std::allocator<GDALWMSRasterBand*> > >, GDALWMSRasterBand* const&)@GDAL_1.8" 1.8.0
  (c++)"std::vector<KMLNode*, std::allocator<KMLNode*> >::_M_insert_aux(__gnu_cxx::__normal_iterator<KMLNode**, std::vector<KMLNode*, std::allocator<KMLNode*> > >, KMLNode* const&)@GDAL_1.8" 1.8.0
  (c++)"std::vector<HFAEntry*, std::allocator<HFAEntry*> >::_M_insert_aux(__gnu_cxx::__normal_iterator<HFAEntry**, std::vector<HFAEntry*, std::allocator<HFAEntry*> > >, HFAEntry* const&)@GDAL_1.8" 1.8.0
- (c++)"std::vector<HFAEntry*, std::allocator<HFAEntry*> >::~vector()@GDAL_1.8" 1.8.0
- (c++)"std::vector<HFAEntry*, std::allocator<HFAEntry*> >::~vector()@GDAL_1.8" 1.8.0
+#MISSING: 1.8.1-1# std::vector<HFAEntry*, std::allocator<HFAEntry*> >::~vector()@GDAL_1.8" 1.8.0
+#MISSING: 1.8.1-1# std::vector<HFAEntry*, std::allocator<HFAEntry*> >::~vector()@GDAL_1.8" 1.8.0
  (c++)"std::vector<HFAEntry*, std::allocator<HFAEntry*> >::operator=(std::vector<HFAEntry*, std::allocator<HFAEntry*> > const&)@GDAL_1.8" 1.8.0
  (c++)"std::vector<OGRLayer*, std::allocator<OGRLayer*> >::_M_insert_aux(__gnu_cxx::__normal_iterator<OGRLayer**, std::vector<OGRLayer*, std::allocator<OGRLayer*> > >, OGRLayer* const&)@GDAL_1.8" 1.8.0
  (c++)"std::vector<Attribute*, std::allocator<Attribute*> >::_M_insert_aux(__gnu_cxx::__normal_iterator<Attribute**, std::vector<Attribute*, std::allocator<Attribute*> > >, Attribute* const&)@GDAL_1.8" 1.8.0
@@ -10578,6 +10589,7 @@
  (c++)"void std::__move_median_first<__gnu_cxx::__normal_iterator<std::pair<int, int>*, std::vector<std::pair<int, int>, std::allocator<std::pair<int, int> > > > >(__gnu_cxx::__normal_iterator<std::pair<int, int>*, std::vector<std::pair<int, int>, std::allocator<std::pair<int, int> > > >, __gnu_cxx::__normal_iterator<std::pair<int, int>*, std::vector<std::pair<int, int>, std::allocator<std::pair<int, int> > > >, __gnu_cxx::__normal_iterator<std::pair<int, int>*, std::vector<std::pair<int, int>, std::allocator<std::pair<int, int> > > >)@GDAL_1.8" 1.8.0
  (c++)"void std::__unguarded_linear_insert<__gnu_cxx::__normal_iterator<std::pair<int, int>*, std::vector<std::pair<int, int>, std::allocator<std::pair<int, int> > > > >(__gnu_cxx::__normal_iterator<std::pair<int, int>*, std::vector<std::pair<int, int>, std::allocator<std::pair<int, int> > > >)@GDAL_1.8" 1.8.0
  (c++)"__gnu_cxx::__normal_iterator<char*, std::basic_string<char, std::char_traits<char>, std::allocator<char> > > std::__find<__gnu_cxx::__normal_iterator<char*, std::basic_string<char, std::char_traits<char>, std::allocator<char> > >, char>(__gnu_cxx::__normal_iterator<char*, std::basic_string<char, std::char_traits<char>, std::allocator<char> > >, __gnu_cxx::__normal_iterator<char*, std::basic_string<char, std::char_traits<char>, std::allocator<char> > >, char const&, std::random_access_iterator_tag)@GDAL_1.8" 1.8.0
+ (c++)"void std::_Destroy<VRTOverviewInfo*>(VRTOverviewInfo*, VRTOverviewInfo*)@GDAL_1.8 1.8.1-1
  (c++)"void std::_Destroy<GDALRasterAttributeField*>(GDALRasterAttributeField*, GDALRasterAttributeField*)@GDAL_1.8" 1.8.0
  (c++)"void std::_Destroy<CPLString*>(CPLString*, CPLString*)@GDAL_1.8" 1.8.0
  (c++)"void std::_Destroy<iom_value*>(iom_value*, iom_value*)@GDAL_1.8" 1.8.0
@@ -10587,12 +10599,16 @@
  (c++)"void std::_Destroy<std::vector<int, std::allocator<int> >*>(std::vector<int, std::allocator<int> >*, std::vector<int, std::allocator<int> >*)@GDAL_1.8" 1.8.0
  (c++)"std::basic_string<char, std::char_traits<char>, std::allocator<char> > std::operator+<char, std::char_traits<char>, std::allocator<char> >(char const*, std::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)@GDAL_1.8" 1.8.0
  (c++)"std::basic_string<char, std::char_traits<char>, std::allocator<char> > std::operator+<char, std::char_traits<char>, std::allocator<char> >(std::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, std::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)@GDAL_1.8" 1.8.0
- (c++)"construction vtable for PCIDSK::CPCIDSKSegment-in-PCIDSK::CPCIDSK_PCT@GDAL_1.8 1.8.0
- (c++)"construction vtable for PCIDSK::CPCIDSKSegment-in-PCIDSK::CPCIDSK_TEX@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# construction vtable for PCIDSK::CPCIDSKSegment-in-PCIDSK::CPCIDSK_PCT@GDAL_1.8" 1.8.0
+ (c++)"construction vtable for PCIDSK::CPCIDSKSegment-in-PCIDSK::CPCIDSK_PCT@GDAL_1.8 1.8.1-1
+#MISSING: 1.8.1-1# construction vtable for PCIDSK::CPCIDSKSegment-in-PCIDSK::CPCIDSK_TEX@GDAL_1.8" 1.8.0
+ (c++)"construction vtable for PCIDSK::CPCIDSKSegment-in-PCIDSK::CPCIDSK_TEX@GDAL_1.8 1.8.1-1
  (c++)"construction vtable for PCIDSK::CPCIDSKSegment-in-PCIDSK::SysBlockMap@GDAL_1.8" 1.8.0
  (c++)"construction vtable for PCIDSK::CPCIDSKSegment-in-PCIDSK::CPCIDSKBitmap@GDAL_1.8" 1.8.0
- (c++)"construction vtable for PCIDSK::CPCIDSKSegment-in-PCIDSK::CPCIDSKGeoref@GDAL_1.8 1.8.0
- (c++)"construction vtable for PCIDSK::CPCIDSKSegment-in-PCIDSK::MetadataSegment@GDAL_1.8 1.8.0
+#MISSING: 1.8.1-1# construction vtable for PCIDSK::CPCIDSKSegment-in-PCIDSK::CPCIDSKGeoref@GDAL_1.8" 1.8.0
+ (c++)"construction vtable for PCIDSK::CPCIDSKSegment-in-PCIDSK::CPCIDSKGeoref@GDAL_1.8 1.8.1-1
+#MISSING: 1.8.1-1# construction vtable for PCIDSK::CPCIDSKSegment-in-PCIDSK::MetadataSegment@GDAL_1.8" 1.8.0
+ (c++)"construction vtable for PCIDSK::CPCIDSKSegment-in-PCIDSK::MetadataSegment@GDAL_1.8 1.8.1-1
  (c++)"construction vtable for PCIDSK::CPCIDSKSegment-in-PCIDSK::CPCIDSKGCP2Segment@GDAL_1.8" 1.8.0
  (c++)"construction vtable for PCIDSK::CPCIDSKSegment-in-PCIDSK::CPCIDSKVectorSegment@GDAL_1.8" 1.8.0
  (c++)"construction vtable for PCIDSK::CPCIDSKSegment-in-PCIDSK::CPCIDSKAPModelSegment@GDAL_1.8" 1.8.0
@@ -11216,11 +11232,11 @@
  (c++)"typeinfo for VRTDriver@GDAL_1.8" 1.8.0
  (c++)"typeinfo for VRTSource@GDAL_1.8" 1.8.0
  (c++)"typeinfo for xercesc_2_8::DTDHandler@GDAL_1.8" 1.8.0
- (c++)"typeinfo for xercesc_2_8::XMLDeleter@GDAL_1.8" 1.8.0
+#MISSING: 1.8.1-1# typeinfo for xercesc_2_8::XMLDeleter@GDAL_1.8" 1.8.0
  (c++)"typeinfo for xercesc_2_8::DeclHandler@GDAL_1.8" 1.8.0
  (c++)"typeinfo for xercesc_2_8::ErrorHandler@GDAL_1.8" 1.8.0
  (c++)"typeinfo for xercesc_2_8::SAXException@GDAL_1.8" 1.8.0
- (c++)"typeinfo for xercesc_2_8::SAX2XMLReader@GDAL_1.8" 1.8.0
+#MISSING: 1.8.1-1# typeinfo for xercesc_2_8::SAX2XMLReader@GDAL_1.8" 1.8.0
  (c++)"typeinfo for xercesc_2_8::ContentHandler@GDAL_1.8" 1.8.0
  (c++)"typeinfo for xercesc_2_8::DefaultHandler@GDAL_1.8" 1.8.0
  (c++)"typeinfo for xercesc_2_8::EntityResolver@GDAL_1.8" 1.8.0
@@ -11878,11 +11894,11 @@
  (c++)"typeinfo name for VRTDriver@GDAL_1.8" 1.8.0
  (c++)"typeinfo name for VRTSource@GDAL_1.8" 1.8.0
  (c++)"typeinfo name for xercesc_2_8::DTDHandler@GDAL_1.8" 1.8.0
- (c++)"typeinfo name for xercesc_2_8::XMLDeleter@GDAL_1.8" 1.8.0
+#MISSING: 1.8.1-1# typeinfo name for xercesc_2_8::XMLDeleter@GDAL_1.8" 1.8.0
  (c++)"typeinfo name for xercesc_2_8::DeclHandler@GDAL_1.8" 1.8.0
  (c++)"typeinfo name for xercesc_2_8::ErrorHandler@GDAL_1.8" 1.8.0
  (c++)"typeinfo name for xercesc_2_8::SAXException@GDAL_1.8" 1.8.0
- (c++)"typeinfo name for xercesc_2_8::SAX2XMLReader@GDAL_1.8" 1.8.0
+#MISSING: 1.8.1-1# typeinfo name for xercesc_2_8::SAX2XMLReader@GDAL_1.8" 1.8.0
  (c++)"typeinfo name for xercesc_2_8::ContentHandler@GDAL_1.8" 1.8.0
  (c++)"typeinfo name for xercesc_2_8::DefaultHandler@GDAL_1.8" 1.8.0
  (c++)"typeinfo name for xercesc_2_8::EntityResolver@GDAL_1.8" 1.8.0
@@ -12547,11 +12563,11 @@
  (c++)"vtable for VRTDriver@GDAL_1.8" 1.8.0
  (c++)"vtable for VRTSource@GDAL_1.8" 1.8.0
  (c++)"vtable for xercesc_2_8::DTDHandler@GDAL_1.8" 1.8.0
- (c++)"vtable for xercesc_2_8::XMLDeleter@GDAL_1.8" 1.8.0
+#MISSING: 1.8.1-1# vtable for xercesc_2_8::XMLDeleter@GDAL_1.8" 1.8.0
  (c++)"vtable for xercesc_2_8::DeclHandler@GDAL_1.8" 1.8.0
  (c++)"vtable for xercesc_2_8::ErrorHandler@GDAL_1.8" 1.8.0
  (c++)"vtable for xercesc_2_8::SAXException@GDAL_1.8" 1.8.0
- (c++)"vtable for xercesc_2_8::SAX2XMLReader@GDAL_1.8" 1.8.0
+#MISSING: 1.8.1-1# vtable for xercesc_2_8::SAX2XMLReader@GDAL_1.8" 1.8.0
  (c++)"vtable for xercesc_2_8::ContentHandler@GDAL_1.8" 1.8.0
  (c++)"vtable for xercesc_2_8::DefaultHandler@GDAL_1.8" 1.8.0
  (c++)"vtable for xercesc_2_8::EntityResolver@GDAL_1.8" 1.8.0

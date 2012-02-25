@@ -1,3 +1,16 @@
+gdal (1.8.0-2) unstable; urgency=low
+
+   Starting from this version GDAL follows the regular SONAME of the C API
+   interface which has to be considered the only officially supported.
+   The library still exports C++ symbols but the Debian package has introduced
+   symbol files and symbol versioning in order to track changes and possibly
+   introduce ad hoc patches whenever required in order to minimize the number
+   of manual rebuilds of reverse dependencies.
+   The use of symbol versioning could possibly introduce breakages against
+   third parties binaries not built against the Debian version. Be warned.
+
+ -- Francesco Paolo Lovergine <frankie@debian.org>  Thu, 06 Oct 2011 11:41:44 +0200
+
 gdal (1.5.0-3) unstable; urgency=low
 
    GDAL deprecated the old-style Python binding starting from 1.5 branch, so

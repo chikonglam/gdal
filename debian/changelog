@@ -1,8 +1,23 @@
 gdal (1.8.1-2~exp2) experimental; urgency=low
 
+<<<<<<< HEAD
   * Now including per arch symbol files truly. 
 
  -- Francesco Paolo Lovergine <frankie@debian.org>  Wed, 28 Sep 2011 20:07:22 +0200
+=======
+  * Changed organization of symbol files in one common file and
+    multiple .symbols.arch file.
+  * Now normalized to conventional GDAL library name and dropping the Debian 
+    specific versioned naming scheme for the library. 
+    Dropped patch: libname, python.
+  * Added sparc and mipsel symbol files.
+  * Updated NEWS file with basic information about changes in the package.
+  * Removed now obsolete libtool build-dep.
+    (closes: #639887)
+  * Now avoid installing superfluous stuff in libgdal-perl. Thanks lintian.
+
+ -- Francesco Paolo Lovergine <frankie@debian.org>  Tue, 11 Oct 2011 14:41:31 +0200
+>>>>>>> 72ed289fc96f87ebdc3af15373cb4d3dc2d855bf
 
 gdal (1.8.1-2~exp1) experimental; urgency=low
 

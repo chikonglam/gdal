@@ -1,10 +1,8 @@
-libname
 ogdi
 doc
 rubymakefile
 man
 gdalpaths
-python
 hdf4
 gdal-grass
 ecw-plugin
