@@ -29,7 +29,6 @@ versions:
 	@echo Python versions: $(PYVERS)
 	@echo Ruby default: $(RUBYDEF)
 	@echo Perl default: $(PERLDEF)
-	@echo GDAL version: $(GDAL_MAJOR).$(GDAL_MINOR).$(GDAL_PATCH)
 
 #
 # The following targets are useful to autogen independent plugins sources
@@ -86,6 +85,11 @@ configure-stamp:
 			--with-static-proj4=yes \
 			--with-spatialite=/usr \
 			--with-cfitsio=no \
+			--with-ecw=no \
+			--with-mrsid=no \
+			--with-poppler=yes \
+			--with-openjpeg=yes \
+			--with-freexl=yes \
 			--with-epsilon=/usr; \
 		mv GDALmake.opt GDALmake.opt-$$V; \
 	done
@@ -125,6 +129,7 @@ clean:
 	
 	[ ! -f GDALmake.opt ] || $(MAKE) distclean
 	rm -rf $(CURDIR)/swig/ruby/.libs $(CURDIR)/swig/perl/*.bs
+	rm -rf $(CURDIR)/.libs
 	rm -f GDALmake.opt-*
 	rm -rf $(CURDIR)/man/man1
 	rm -rf $(CURDIR)/debian/tmp $(CURDIR)/debian/python-tmp
@@ -195,7 +200,10 @@ binary-common:
 	# Adds per arch symbols for compatible archs
 	ln -f $(CURDIR)/debian/libgdal*.symbols.i386 $(CURDIR)/debian/libgdal1.symbols.kfreebsd-i386
 	ln -f $(CURDIR)/debian/libgdal*.symbols.amd64 $(CURDIR)/debian/libgdal1.symbols.kfreebsd-amd64
-	dh_makeshlibs
+	# Forces failure ignoring to collect new symbols on all archs
+	dh_makeshlibs -- -c0
+	# Forces failure when symbols change
+	#dh_makeshlibs
 	dh_installdeb
 	dh_shlibdeps -L libgdal1 -l debian/libgdal1/usr/lib
 	dh_gencontrol

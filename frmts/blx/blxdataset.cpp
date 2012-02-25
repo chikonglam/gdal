@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: blxdataset.cpp 20482 2010-08-28 22:30:42Z rouault $
+ * $Id: blxdataset.cpp 23619 2011-12-20 22:40:19Z rouault $
  *
  * Project:  BLX Driver
  * Purpose:  GDAL BLX support.
@@ -32,7 +32,7 @@
 #include "gdal_pam.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: blxdataset.cpp 20482 2010-08-28 22:30:42Z rouault $");
+CPL_CVSID("$Id: blxdataset.cpp 23619 2011-12-20 22:40:19Z rouault $");
 
 CPL_C_START
 #include <blx.h>
@@ -42,7 +42,7 @@ CPL_C_START
 void    GDALRegister_BLX(void);
 CPL_C_END
 
-class BLXDataset : public GDALDataset
+class BLXDataset : public GDALPamDataset
 {
     friend class BLXRasterBand;
 
@@ -62,7 +62,7 @@ class BLXDataset : public GDALDataset
     static GDALDataset *Open( GDALOpenInfo * );
 };
 
-class BLXRasterBand : public GDALRasterBand
+class BLXRasterBand : public GDALPamRasterBand
 {
     int overviewLevel;
   public:
@@ -99,11 +99,17 @@ GDALDataset *BLXDataset::Open( GDALOpenInfo * poOpenInfo )
     //      Open BLX file
     // -------------------------------------------------------------------- 
     poDS->blxcontext = blx_create_context();
-    blxopen(poDS->blxcontext, poOpenInfo->pszFilename, "rb");
-
     if(poDS->blxcontext==NULL)
-	return NULL;
-    
+    {
+        delete poDS;
+        return NULL;
+    }
+    if (blxopen(poDS->blxcontext, poOpenInfo->pszFilename, "rb") != 0)
+    {
+        delete poDS;
+        return NULL;
+    }
+
     if ((poDS->blxcontext->cell_xsize % (1 << (1+BLX_OVERVIEWLEVELS))) != 0 ||
         (poDS->blxcontext->cell_ysize % (1 << (1+BLX_OVERVIEWLEVELS))) != 0)
     {
@@ -144,6 +150,12 @@ GDALDataset *BLXDataset::Open( GDALOpenInfo * poOpenInfo )
                   " datasets.\n" );
         return NULL;
     }
+
+/* -------------------------------------------------------------------- */
+/*      Initialize any PAM information.                                 */
+/* -------------------------------------------------------------------- */
+    poDS->SetDescription( poOpenInfo->pszFilename );
+    poDS->TryLoadXML();
 
     return( poDS );
 }

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrgeojsonreader.cpp 22358 2011-05-11 18:11:29Z rouault $
+ * $Id: ogrgeojsonreader.cpp 23654 2011-12-29 16:19:38Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implementation of OGRGeoJSONReader class (OGR GeoJSON Driver).
@@ -40,7 +40,8 @@
 OGRGeoJSONReader::OGRGeoJSONReader()
     : poGJObject_( NULL ), poLayer_( NULL ),
         bGeometryPreserve_( true ),
-        bAttributesSkip_( false )
+        bAttributesSkip_( false ),
+        bFlattenGeocouchSpatiallistFormat (-1), bFoundId (false), bFoundRev(false), bFoundTypeFeature(false), bIsGeocouchSpatiallistFormat(false)
 {
     // Take a deep breath and get to work.
 }
@@ -425,6 +426,16 @@ bool OGRGeoJSONReader::GenerateFeatureDefn( json_object* poObj )
     if( NULL != poObjProps &&
         json_object_get_type(poObjProps) == json_type_object )
     {
+        if (bIsGeocouchSpatiallistFormat)
+        {
+            poObjProps = json_object_object_get(poObjProps, "properties");
+            if( NULL == poObjProps ||
+                json_object_get_type(poObjProps) != json_type_object )
+            {
+                return true;
+            }
+        }
+
         json_object_iter it;
         it.key = NULL;
         it.val = NULL;
@@ -434,6 +445,30 @@ bool OGRGeoJSONReader::GenerateFeatureDefn( json_object* poObj )
             int nFldIndex = poDefn->GetFieldIndex( it.key );
             if( -1 == nFldIndex )
             {
+                /* Detect the special kind of GeoJSON output by a spatiallist of GeoCouch */
+                /* such as http://gd.iriscouch.com/cphosm/_design/geo/_rewrite/data?bbox=12.53%2C55.73%2C12.54%2C55.73 */
+                if (strcmp(it.key, "_id") == 0)
+                    bFoundId = true;
+                else if (bFoundId && strcmp(it.key, "_rev") == 0)
+                    bFoundRev = true;
+                else if (bFoundRev && strcmp(it.key, "type") == 0 &&
+                         it.val != NULL && json_object_get_type(it.val) == json_type_string &&
+                         strcmp(json_object_get_string(it.val), "Feature") == 0)
+                    bFoundTypeFeature = true;
+                else if (bFoundTypeFeature && strcmp(it.key, "properties") == 0 &&
+                         it.val != NULL && json_object_get_type(it.val) == json_type_object)
+                {
+                    if (bFlattenGeocouchSpatiallistFormat < 0)
+                        bFlattenGeocouchSpatiallistFormat = CSLTestBoolean(
+                            CPLGetConfigOption("GEOJSON_FLATTEN_GEOCOUCH", "TRUE"));
+                    if (bFlattenGeocouchSpatiallistFormat)
+                    {
+                        poDefn->DeleteFieldDefn(poDefn->GetFieldIndex("type"));
+                        bIsGeocouchSpatiallistFormat = true;
+                        return GenerateFeatureDefn(poObj);
+                    }
+                }
+
                 OGRFieldDefn fldDefn( it.key,
                     GeoJSONPropertyToFieldType( it.val ) );
                 poDefn->AddFieldDefn( &fldDefn );
@@ -446,7 +481,7 @@ bool OGRGeoJSONReader::GenerateFeatureDefn( json_object* poObj )
                 {
                     OGRFieldType eNewType = GeoJSONPropertyToFieldType( it.val );
                     if( eNewType == OFTReal )
-                        poFDefn->SetType(OFTReal);
+                        poFDefn->SetType(eNewType);
                 }
             }
         }
@@ -558,6 +593,24 @@ OGRFeature* OGRGeoJSONReader::ReadFeature( json_object* poObj )
     if( !bAttributesSkip_ && NULL != poObjProps &&
         json_object_get_type(poObjProps) == json_type_object )
     {
+        if (bIsGeocouchSpatiallistFormat)
+        {
+            json_object* poId = json_object_object_get(poObjProps, "_id");
+            if (poId != NULL && json_object_get_type(poId) == json_type_string)
+                poFeature->SetField( "_id", json_object_get_string(poId) );
+
+            json_object* poRev = json_object_object_get(poObjProps, "_rev");
+            if (poRev != NULL && json_object_get_type(poRev) == json_type_string)
+                poFeature->SetField( "_rev", json_object_get_string(poRev) );
+
+            poObjProps = json_object_object_get(poObjProps, "properties");
+            if( NULL == poObjProps ||
+                json_object_get_type(poObjProps) != json_type_object )
+            {
+                return poFeature;
+            }
+        }
+
         int nField = -1;
         OGRFieldDefn* poFieldDefn = NULL;
         json_object_iter it;
@@ -569,11 +622,13 @@ OGRFeature* OGRGeoJSONReader::ReadFeature( json_object* poObj )
             nField = poFeature->GetFieldIndex(it.key);
             poFieldDefn = poFeature->GetFieldDefnRef(nField);
             CPLAssert( NULL != poFieldDefn );
+            OGRFieldType eType = poFieldDefn->GetType();
 
-			/* Unset FID. */
-			poFeature->SetFID( -1 );
-
-            if( OFTInteger == poFieldDefn->GetType() )
+            if( it.val == NULL)
+            {
+                /* nothing to do */
+            }
+            else if( OFTInteger == eType )
 			{
                 poFeature->SetField( nField, json_object_get_int(it.val) );
 				
@@ -581,10 +636,60 @@ OGRFeature* OGRGeoJSONReader::ReadFeature( json_object* poObj )
 				if( EQUAL( it.key, poLayer_->GetFIDColumn() ) )
 					poFeature->SetFID( json_object_get_int(it.val) );
 			}
-            else if( OFTReal == poFieldDefn->GetType() )
+            else if( OFTReal == eType )
 			{
                 poFeature->SetField( nField, json_object_get_double(it.val) );
 			}
+            else if( OFTIntegerList == eType )
+            {
+                if ( json_object_get_type(it.val) == json_type_array )
+                {
+                    int nLength = json_object_array_length(it.val);
+                    int* panVal = (int*)CPLMalloc(sizeof(int) * nLength);
+                    for(int i=0;i<nLength;i++)
+                    {
+                        json_object* poRow = json_object_array_get_idx(it.val, i);
+                        panVal[i] = json_object_get_int(poRow);
+                    }
+                    poFeature->SetField( nField, nLength, panVal );
+                    CPLFree(panVal);
+                }
+            }
+            else if( OFTRealList == eType )
+            {
+                if ( json_object_get_type(it.val) == json_type_array )
+                {
+                    int nLength = json_object_array_length(it.val);
+                    double* padfVal = (double*)CPLMalloc(sizeof(double) * nLength);
+                    for(int i=0;i<nLength;i++)
+                    {
+                        json_object* poRow = json_object_array_get_idx(it.val, i);
+                        padfVal[i] = json_object_get_double(poRow);
+                    }
+                    poFeature->SetField( nField, nLength, padfVal );
+                    CPLFree(padfVal);
+                }
+            }
+            else if( OFTStringList == eType )
+            {
+                if ( json_object_get_type(it.val) == json_type_array )
+                {
+                    int nLength = json_object_array_length(it.val);
+                    char** papszVal = (char**)CPLMalloc(sizeof(char*) * (nLength+1));
+                    int i;
+                    for(i=0;i<nLength;i++)
+                    {
+                        json_object* poRow = json_object_array_get_idx(it.val, i);
+                        const char* pszVal = json_object_get_string(poRow);
+                        if (pszVal == NULL)
+                            break;
+                        papszVal[i] = CPLStrdup(pszVal);
+                    }
+                    papszVal[i] = NULL;
+                    poFeature->SetField( nField, papszVal );
+                    CSLDestroy(papszVal);
+                }
+            }
             else
 			{
                 poFeature->SetField( nField, json_object_get_string(it.val) );
@@ -722,10 +827,9 @@ json_object* OGRGeoJSONFindMemberByName( json_object* poObj,
     it.key = NULL;
     it.val = NULL;
     it.entry = NULL;
-    if( NULL != json_object_get_object(poTmp) )
+    if( NULL != json_object_get_object(poTmp) &&
+        NULL != json_object_get_object(poTmp)->head )
     {
-        CPLAssert( NULL != json_object_get_object(poTmp)->head );
-
         for( it.entry = json_object_get_object(poTmp)->head;
              ( it.entry ?
                ( it.key = (char*)it.entry->k,

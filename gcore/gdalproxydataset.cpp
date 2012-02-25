@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdalproxydataset.cpp 21867 2011-02-26 21:05:35Z rouault $
+ * $Id: gdalproxydataset.cpp 21866 2011-02-26 21:04:58Z rouault $
  *
  * Project:  GDAL Core
  * Purpose:  A dataset and raster band classes that act as proxy for underlying
@@ -30,7 +30,7 @@
 
 #include "gdal_proxy.h"
 
-CPL_CVSID("$Id: gdalproxydataset.cpp 21867 2011-02-26 21:05:35Z rouault $");
+CPL_CVSID("$Id: gdalproxydataset.cpp 21866 2011-02-26 21:04:58Z rouault $");
 
 /* ******************************************************************** */
 /*                        GDALProxyDataset                              */

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: srpdataset.cpp 21640 2011-02-06 18:54:11Z warmerdam $
+ * $Id: srpdataset.cpp 23124 2011-09-27 16:55:26Z rouault $
  * Purpose:  ASRP/USRP Reader
  * Author:   Frank Warmerdam (warmerdam@pobox.com)
  *
@@ -33,7 +33,7 @@
 #include "cpl_string.h"
 #include "iso8211.h"
 
-CPL_CVSID("$Id: srpdataset.cpp 21640 2011-02-06 18:54:11Z warmerdam $");
+CPL_CVSID("$Id: srpdataset.cpp 23124 2011-09-27 16:55:26Z rouault $");
 
 class SRPDataset : public GDALPamDataset
 {
@@ -306,7 +306,7 @@ CPLErr SRPRasterBand::IReadBlock( int nBlockXOff, int nBlockYOff,
 
             while( nCount > 0 )
             {
-                ((GByte *) pImage)[iPixel++] = nValue;
+                ((GByte *) pImage)[iPixel++] = (GByte) nValue;
                 nCount--;
             }
         }
@@ -644,7 +644,7 @@ int SRPDataset::GetFromRecord(const char* pszFileName, DDFRecord * record)
                 {
                     return FALSE;
                 }
-                while(c ==' ' || c== '^')
+                while( c != 30 )
                 {
                     offsetInIMG ++;
                     if (VSIFReadL(&c, 1, 1, fdIMG) != 1)
@@ -719,9 +719,9 @@ int SRPDataset::GetFromRecord(const char* pszFileName, DDFRecord * record)
                 nNSG = record->GetIntSubfield( "COL", 0, "NSG", iColor );
                 nNSB = record->GetIntSubfield( "COL", 0, "NSB", iColor );
 
-                sEntry.c1 = nNSR;
-                sEntry.c2 = nNSG;
-                sEntry.c3 = nNSB;
+                sEntry.c1 = (short) nNSR;
+                sEntry.c2 = (short) nNSG;
+                sEntry.c3 = (short) nNSB;
                 sEntry.c4 = 255;
 
                 oCT.SetColorEntry( nCCD, &sEntry );

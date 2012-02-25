@@ -1,5 +1,5 @@
 /**********************************************************************
- * $Id: cpl_string.cpp 21449 2011-01-09 21:58:17Z warmerdam $
+ * $Id: cpl_string.cpp 23407 2011-11-21 19:35:16Z rouault $
  *
  * Name:     cpl_string.cpp
  * Project:  CPL - Common Portability Library
@@ -54,7 +54,7 @@
 #  include <wce_string.h>
 #endif
 
-CPL_CVSID("$Id: cpl_string.cpp 21449 2011-01-09 21:58:17Z warmerdam $");
+CPL_CVSID("$Id: cpl_string.cpp 23407 2011-11-21 19:35:16Z rouault $");
 
 /*=====================================================================
                     StringList manipulation functions.
@@ -338,10 +338,13 @@ char **CSLLoad2(const char *pszFname, int nMaxLines, int nMaxCols, char** papszO
     }
     else
     {
-        /* Unable to open file */
-        CPLError( CE_Failure, CPLE_OpenFailed,
-                  "CSLLoad2(\"%s\") failed: unable to open output file.",
-                  pszFname );
+        if (CSLFetchBoolean(papszOptions, "EMIT_ERROR_IF_CANNOT_OPEN_FILE", TRUE))
+        {
+            /* Unable to open file */
+            CPLError( CE_Failure, CPLE_OpenFailed,
+                    "CSLLoad2(\"%s\") failed: unable to open file.",
+                    pszFname );
+        }
     }
 
     return papszStrList;
@@ -788,8 +791,7 @@ char ** CSLTokenizeString2( const char * pszString,
 {
     if( pszString == NULL )
         return (char **) CPLCalloc(sizeof(char *),1);
-    char        **papszRetList = NULL;
-    int         nRetMax = 0, nRetLen = 0;
+    CPLStringList oRetList;
     char        *pszToken;
     int         nTokenMax, nTokenLen;
     int         bHonourStrings = (nCSLTFlags & CSLT_HONOURSTRINGS);
@@ -897,43 +899,29 @@ char ** CSLTokenizeString2( const char * pszString,
          * Add the token.
          */
         if( pszToken[0] != '\0' || bAllowEmptyTokens )
-        {
-            if( nRetLen >= nRetMax - 1 )
-            {
-                nRetMax = nRetMax * 2 + 10;
-                papszRetList = (char **) 
-                    CPLRealloc(papszRetList, sizeof(char*) * nRetMax );
-            }
-
-            papszRetList[nRetLen++] = CPLStrdup( pszToken );
-            papszRetList[nRetLen] = NULL;
-        }
+            oRetList.AddString( pszToken );
     }
 
     /*
      * If the last token was empty, then we need to capture
      * it now, as the loop would skip it.
      */
-    if( *pszString == '\0' && bAllowEmptyTokens && nRetLen > 0 
+    if( *pszString == '\0' && bAllowEmptyTokens && oRetList.Count() > 0 
         && strchr(pszDelimiters,*(pszString-1)) != NULL )
     {
-        if( nRetLen >= nRetMax - 1 )
-        {
-            nRetMax = nRetMax * 2 + 10;
-            papszRetList = (char **) 
-                CPLRealloc(papszRetList, sizeof(char*) * nRetMax );
-        }
-
-        papszRetList[nRetLen++] = CPLStrdup("");
-        papszRetList[nRetLen] = NULL;
+        oRetList.AddString( "" );
     }
-
-    if( papszRetList == NULL )
-        papszRetList = (char **) CPLCalloc(sizeof(char *),1);
 
     CPLFree( pszToken );
 
-    return papszRetList;
+    if( oRetList.List() == NULL )
+    {
+        // we prefer to return empty lists as a pointer to 
+        // a null pointer since some client code might depend on this.
+        oRetList.Assign( (char**) CPLCalloc(sizeof(char**),1) );
+    }
+
+    return oRetList.StealList();
 }
 
 /**********************************************************************
@@ -1027,7 +1015,7 @@ int CPLVASPrintf( char **buf, const char *fmt, va_list ap )
     osWork.vPrintf( fmt, ap );
 
     if( buf )
-        *buf = strdup(osWork.c_str());
+        *buf = CPLStrdup(osWork.c_str());
 
     return strlen(osWork);
 }
@@ -1458,8 +1446,8 @@ void CSLSetNameValueSeparator( char ** papszList, const char *pszSeparator )
  * The backslash, quote, '\\0' and newline characters are all escaped in 
  * the usual C style. 
  *
- * CPLES_XML(1): This scheme converts the '<', '<' and '&' characters into
- * their XML/HTML equivelent (&gt;, &lt; and &amp;) making a string safe
+ * CPLES_XML(1): This scheme converts the '<', '>', '"' and '&' characters into
+ * their XML/HTML equivelent (&lt;, &gt;, &quot; and &amp;) making a string safe
  * to embed as CDATA within an XML element.  The '\\0' is not escaped and 
  * should not be included in the input.
  *
@@ -1539,13 +1527,13 @@ char *CPLEscapeString( const char *pszInput, int nLength,
             if( (pszInput[iIn] >= 'a' && pszInput[iIn] <= 'z')
                 || (pszInput[iIn] >= 'A' && pszInput[iIn] <= 'Z')
                 || (pszInput[iIn] >= '0' && pszInput[iIn] <= '9')
-                || pszInput[iIn] == '_' )
+                || pszInput[iIn] == '_' || pszInput[iIn] == '.' )
             {
                 pszOutput[iOut++] = pszInput[iIn];
             }
             else
             {
-                sprintf( pszOutput+iOut, "%%%02X", pszInput[iIn] );
+                sprintf( pszOutput+iOut, "%%%02X", ((unsigned char*)pszInput)[iIn] );
                 iOut += 3;
             }
         }
@@ -1587,6 +1575,14 @@ char *CPLEscapeString( const char *pszInput, int nLength,
                 pszOutput[iOut++] = 'o';
                 pszOutput[iOut++] = 't';
                 pszOutput[iOut++] = ';';
+            }
+            else if( ((GByte*)pszInput)[iIn] < 0x20 
+                     && pszInput[iIn] != 0x9
+                     && pszInput[iIn] != 0xA 
+                     && pszInput[iIn] != 0xD ) 
+            {
+                // These control characters are unrepresentable in XML format, 
+                // so we just drop them.  #4117
             }
             else
                 pszOutput[iOut++] = pszInput[iIn];
@@ -1683,14 +1679,19 @@ char *CPLUnescapeString( const char *pszInput, int *pnLength, int nScheme )
     char *pszOutput;
     int iOut=0, iIn;
 
-    pszOutput = (char *) CPLMalloc(strlen(pszInput)+1);
+    pszOutput = (char *) CPLMalloc(4 * strlen(pszInput)+1);
     pszOutput[0] = '\0';
 
     if( nScheme == CPLES_XML )
     {
-        for( iIn = 0; pszInput[iIn] != '\0'; iIn++ )
+        char ch;
+        for( iIn = 0; (ch = pszInput[iIn]) != '\0'; iIn++ )
         {
-            if( EQUALN(pszInput+iIn,"&lt;",4) )
+            if( ch != '&' )
+            {
+                pszOutput[iOut++] = ch;
+            }
+            else if( EQUALN(pszInput+iIn,"&lt;",4) )
             {
                 pszOutput[iOut++] = '<';
                 iIn += 3;
@@ -1705,14 +1706,73 @@ char *CPLUnescapeString( const char *pszInput, int *pnLength, int nScheme )
                 pszOutput[iOut++] = '&';
                 iIn += 4;
             }
+            else if( EQUALN(pszInput+iIn,"&apos;",6) )
+            {
+                pszOutput[iOut++] = '\'';
+                iIn += 5;
+            }
             else if( EQUALN(pszInput+iIn,"&quot;",6) )
             {
                 pszOutput[iOut++] = '"';
                 iIn += 5;
             }
+            else if( EQUALN(pszInput+iIn,"&#x",3) )
+            {
+                wchar_t anVal[2] = {0 , 0};
+                iIn += 3;
+
+                while(TRUE)
+                {
+                    ch = pszInput[iIn ++];
+                    if (ch >= 'a' && ch <= 'f')
+                        anVal[0] = anVal[0] * 16 + ch - 'a' + 10;
+                    else if (ch >= 'A' && ch <= 'A')
+                        anVal[0] = anVal[0] * 16 + ch - 'A' + 10;
+                    else if (ch >= '0' && ch <= '9')
+                        anVal[0] = anVal[0] * 16 + ch - '0';
+                    else
+                        break;
+                }
+                if (ch != ';')
+                    break;
+                iIn --;
+
+                char * pszUTF8 = CPLRecodeFromWChar( anVal, "WCHAR_T", CPL_ENC_UTF8);
+                int nLen = strlen(pszUTF8);
+                memcpy(pszOutput + iOut, pszUTF8, nLen);
+                CPLFree(pszUTF8);
+                iOut += nLen;
+            }
+            else if( EQUALN(pszInput+iIn,"&#",2) )
+            {
+                char ch;
+                wchar_t anVal[2] = {0 , 0};
+                iIn += 2;
+
+                while(TRUE)
+                {
+                    ch = pszInput[iIn ++];
+                    if (ch >= '0' && ch <= '9')
+                        anVal[0] = anVal[0] * 10 + ch - '0';
+                    else
+                        break;
+                }
+                if (ch != ';')
+                    break;
+                iIn --;
+
+                char * pszUTF8 = CPLRecodeFromWChar( anVal, "WCHAR_T", CPL_ENC_UTF8);
+                int nLen = strlen(pszUTF8);
+                memcpy(pszOutput + iOut, pszUTF8, nLen);
+                CPLFree(pszUTF8);
+                iOut += nLen;
+            }
             else
             {
-                pszOutput[iOut++] = pszInput[iIn];
+                /* illegal escape sequence */
+                CPLDebug( "CPL",
+                          "Error unescaping CPLES_XML text, '&' character followed by unhandled escape sequence." );
+                break;
             }
         }
     }
@@ -1907,6 +1967,10 @@ GByte *CPLHexToBinary( const char *pszHex, int *pnBytes )
  * Detect the type of the value contained in a string, whether it is
  * a real, an integer or a string
  * Leading and trailing spaces are skipped in the analysis.
+ *
+ * Note: in the context of this function, integer must be understood in a
+ * broad sense. It does not mean that the value can fit into a 32 bit integer
+ * for example. It might be larger.
  *
  * @param pszValue the string to analyze
  *

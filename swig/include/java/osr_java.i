@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: osr_java.i 19751 2010-05-22 11:29:53Z rouault $
+ * $Id: osr_java.i 21579 2011-01-24 21:57:24Z rouault $
  *
  * Name:     osr_java.i
  * Project:  GDAL SWIG Interface
@@ -46,6 +46,10 @@
     private osr()
     {
     }
+%}
+
+/* This hacks turns the osrJNI class into a package private class */
+%pragma(java) jniclassimports=%{
 %}
 
 /*

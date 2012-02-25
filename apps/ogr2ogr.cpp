@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr2ogr.cpp 22027 2011-03-25 19:28:44Z rouault $
+ * $Id: ogr2ogr.cpp 23530 2011-12-11 17:13:55Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Simple client for translating between formats.
@@ -34,7 +34,7 @@
 #include "ogr_api.h"
 #include "gdal.h"
 
-CPL_CVSID("$Id: ogr2ogr.cpp 22027 2011-03-25 19:28:44Z rouault $");
+CPL_CVSID("$Id: ogr2ogr.cpp 23530 2011-12-11 17:13:55Z rouault $");
 
 static int bSkipFailures = FALSE;
 static int nGroupTransactions = 200;
@@ -42,6 +42,13 @@ static int bPreserveFID = FALSE;
 static int nFIDToFetch = OGRNullFID;
 
 static void Usage(int bShort = TRUE);
+
+typedef enum
+{
+    NONE,
+    SEGMENTIZE,
+    SIMPLIFY_PRESERVE_TOPOLOGY,
+} GeomOperation;
 
 static int TranslateLayer( OGRDataSource *poSrcDS, 
                            OGRLayer * poSrcLayer,
@@ -55,7 +62,8 @@ static int TranslateLayer( OGRDataSource *poSrcDS,
                            char **papszSelFields,
                            int bAppend, int eGType,
                            int bOverwrite,
-                           double dfMaxSegmentLength,
+                           GeomOperation eGeomOp,
+                           double dfGeomOpParam,
                            char** papszFieldTypesToString,
                            long nCountLayerFeatures,
                            int bWrapDateline,
@@ -67,6 +75,83 @@ static int TranslateLayer( OGRDataSource *poSrcDS,
                            GDALProgressFunc pfnProgress,
                            void *pProgressArg);
 
+
+/* -------------------------------------------------------------------- */
+/*                  CheckDestDataSourceNameConsistency()                */
+/* -------------------------------------------------------------------- */
+
+static
+void CheckDestDataSourceNameConsistency(const char* pszDestFilename,
+                                        const char* pszDriverName)
+{
+    int i;
+    char* pszDestExtension = CPLStrdup(CPLGetExtension(pszDestFilename));
+
+    /* TODO: Would be good to have driver metadata like for GDAL drivers ! */
+    static const char* apszExtensions[][2] = { { "shp"    , "ESRI Shapefile" },
+                                               { "dbf"    , "ESRI Shapefile" },
+                                               { "sqlite" , "SQLite" },
+                                               { "db"     , "SQLite" },
+                                               { "mif"    , "MapInfo File" },
+                                               { "tab"    , "MapInfo File" },
+                                               { "s57"    , "S57" },
+                                               { "bna"    , "BNA" },
+                                               { "csv"    , "CSV" },
+                                               { "gml"    , "GML" },
+                                               { "kml"    , "KML/LIBKML" },
+                                               { "kmz"    , "LIBKML" },
+                                               { "json"   , "GeoJSON" },
+                                               { "geojson", "GeoJSON" },
+                                               { "dxf"    , "DXF" },
+                                               { "gdb"    , "FileGDB" },
+                                               { "pix"    , "PCIDSK" },
+                                               { "sql"    , "PGDump" },
+                                               { "gtm"    , "GPSTrackMaker" },
+                                               { "gmt"    , "GMT" },
+                                               { NULL, NULL }
+                                              };
+    static const char* apszBeginName[][2] =  { { "PG:"      , "PG" },
+                                               { "MySQL:"   , "MySQL" },
+                                               { "CouchDB:" , "CouchDB" },
+                                               { "GFT:"     , "GFT" },
+                                               { "MSSQL:"   , "MSSQLSpatial" },
+                                               { "ODBC:"    , "ODBC" },
+                                               { "OCI:"     , "OCI" },
+                                               { "SDE:"     , "SDE" },
+                                               { "WFS:"     , "WFS" },
+                                               { NULL, NULL }
+                                             };
+
+    for(i=0; apszExtensions[i][0] != NULL; i++)
+    {
+        if (EQUAL(pszDestExtension, apszExtensions[i][0]) && !EQUAL(pszDriverName, apszExtensions[i][1]))
+        {
+            fprintf(stderr,
+                    "Warning: The target file has a '%s' extension, which is normally used by the %s driver,\n"
+                    "but the requested output driver is %s. Is it really what you want ?\n",
+                    pszDestExtension,
+                    apszExtensions[i][1],
+                    pszDriverName);
+            break;
+        }
+    }
+
+    for(i=0; apszBeginName[i][0] != NULL; i++)
+    {
+        if (EQUALN(pszDestFilename, apszBeginName[i][0], strlen(apszBeginName[i][0])) &&
+            !EQUAL(pszDriverName, apszBeginName[i][1]))
+        {
+            fprintf(stderr,
+                    "Warning: The target file has a name which is normally recognized by the %s driver,\n"
+                    "but the requested output driver is %s. Is it really what you want ?\n",
+                    apszBeginName[i][1],
+                    pszDriverName);
+            break;
+        }
+    }
+
+    CPLFree(pszDestExtension);
+}
 
 /************************************************************************/
 /*                            IsNumber()                               */
@@ -199,9 +284,9 @@ class OGRSplitListFieldLayer : public OGRLayer
     virtual void                 ResetReading() { poSrcLayer->ResetReading(); }
     virtual int                  TestCapability(const char*) { return FALSE; }
 
-    virtual int                  GetFeatureCount()
+    virtual int                  GetFeatureCount( int bForce = TRUE )
     {
-        return poSrcLayer->GetFeatureCount();
+        return poSrcLayer->GetFeatureCount(bForce);
     }
 
     virtual OGRSpatialReference *GetSpatialRef()
@@ -526,6 +611,8 @@ OGRFeatureDefn* OGRSplitListFieldLayer::GetLayerDefn()
 int main( int nArgc, char ** papszArgv )
 
 {
+    int          bQuiet = FALSE;
+    int          bFormatExplicitelySet = FALSE;
     const char  *pszFormat = "ESRI Shapefile";
     const char  *pszDataSource = NULL;
     const char  *pszDestDataSource = NULL;
@@ -546,7 +633,8 @@ int main( int nArgc, char ** papszArgv )
     const char  *pszSQLStatement = NULL;
     const char  *pszDialect = NULL;
     int         eGType = -2;
-    double       dfMaxSegmentLength = 0;
+    GeomOperation eGeomOp = NONE;
+    double       dfGeomOpParam = 0;
     char        **papszFieldTypesToString = NULL;
     int          bDisplayProgress = FALSE;
     GDALProgressFunc pfnProgress = NULL;
@@ -596,8 +684,14 @@ int main( int nArgc, char ** papszArgv )
         {
             Usage(FALSE);
         }
+
+        else if( EQUAL(papszArgv[iArg],"-q") || EQUAL(papszArgv[iArg],"-quiet") )
+        {
+            bQuiet = TRUE;
+        }
         else if( EQUAL(papszArgv[iArg],"-f") && iArg < nArgc-1 )
         {
+            bFormatExplicitelySet = TRUE;
             pszFormat = papszArgv[++iArg];
         }
         else if( EQUAL(papszArgv[iArg],"-dsco") && iArg < nArgc-1 )
@@ -730,7 +824,13 @@ int main( int nArgc, char ** papszArgv )
         }
         else if( EQUAL(papszArgv[iArg],"-segmentize") && iArg < nArgc-1 )
         {
-            dfMaxSegmentLength = atof(papszArgv[++iArg]);
+            eGeomOp = SEGMENTIZE;
+            dfGeomOpParam = atof(papszArgv[++iArg]);
+        }
+        else if( EQUAL(papszArgv[iArg],"-simplify") && iArg < nArgc-1 )
+        {
+            eGeomOp = SIMPLIFY_PRESERVE_TOPOLOGY;
+            dfGeomOpParam = atof(papszArgv[++iArg]);
         }
         else if( EQUAL(papszArgv[iArg],"-fieldTypeToString") && iArg < nArgc-1 )
         {
@@ -962,7 +1062,7 @@ int main( int nArgc, char ** papszArgv )
             Usage();
         }
     }
-    
+
 /* -------------------------------------------------------------------- */
 /*      Open data source.                                               */
 /* -------------------------------------------------------------------- */
@@ -994,10 +1094,43 @@ int main( int nArgc, char ** papszArgv )
 /* -------------------------------------------------------------------- */
     OGRDataSource       *poODS = NULL;
     OGRSFDriver          *poDriver = NULL;
+    int                  bCloseODS = TRUE;
 
     if( bUpdate )
     {
-        poODS = OGRSFDriverRegistrar::Open( pszDestDataSource, TRUE, &poDriver );
+        /* Special case for FileGDB that doesn't like updating if the same */
+        /* GDB is opened twice. It stalls at datasource closing. So use just */
+        /* one single connection. This could also TRUE for other drivers. */
+        if (EQUAL(poDS->GetDriver()->GetName(), "FileGDB") &&
+            strcmp(pszDestDataSource, pszDataSource) == 0)
+        {
+            poODS = poDS;
+            poDriver = poODS->GetDriver();
+            bCloseODS = FALSE;
+            if (bOverwrite || bAppend)
+            {
+                /* Various tests to avoid overwriting the source layer(s) */
+                /* or to avoid appending a layer to itself */
+                int bError = FALSE;
+                if (pszNewLayerName == NULL)
+                    bError = TRUE;
+                else if (CSLCount(papszLayers) == 1)
+                    bError = strcmp(pszNewLayerName, papszLayers[0]) == 0;
+                else if (pszSQLStatement == NULL)
+                    bError = TRUE;
+                if (bError)
+                {
+                    fprintf( stderr,
+                             "ERROR: -nln name must be specified combined with "
+                             "a single source layer name,\nor a -sql statement, and "
+                             "name must be different from an existing layer.\n");
+                    exit(1);
+                }
+            }
+        }
+        else
+            poODS = OGRSFDriverRegistrar::Open( pszDestDataSource, TRUE, &poDriver );
+
         if( poODS == NULL )
         {
             if (bOverwrite || bAppend)
@@ -1035,19 +1168,13 @@ int main( int nArgc, char ** papszArgv )
 /* -------------------------------------------------------------------- */
     if( !bUpdate )
     {
+        if (!bQuiet && !bFormatExplicitelySet)
+            CheckDestDataSourceNameConsistency(pszDestDataSource, pszFormat);
+
         OGRSFDriverRegistrar *poR = OGRSFDriverRegistrar::GetRegistrar();
         int                  iDriver;
 
-        for( iDriver = 0;
-             iDriver < poR->GetDriverCount() && poDriver == NULL;
-             iDriver++ )
-        {
-            if( EQUAL(poR->GetDriver(iDriver)->GetName(),pszFormat) )
-            {
-                poDriver = poR->GetDriver(iDriver);
-            }
-        }
-
+        poDriver = poR->GetDriverByName(pszFormat);
         if( poDriver == NULL )
         {
             fprintf( stderr, "Unable to find driver `%s'.\n", pszFormat );
@@ -1065,6 +1192,33 @@ int main( int nArgc, char ** papszArgv )
             fprintf( stderr,  "%s driver does not support data source creation.\n",
                     pszFormat );
             exit( 1 );
+        }
+
+/* -------------------------------------------------------------------- */
+/*      Special case to improve user experience when translating        */
+/*      a datasource with multiple layers into a shapefile. If the      */
+/*      user gives a target datasource with .shp and it does not exist, */
+/*      the shapefile driver will try to create a file, but this is not */
+/*      appropriate because here we have several layers, so create      */
+/*      a directory instead.                                            */
+/* -------------------------------------------------------------------- */
+        VSIStatBufL  sStat;
+        if (EQUAL(poDriver->GetName(), "ESRI Shapefile") &&
+            pszSQLStatement == NULL &&
+            (CSLCount(papszLayers) > 1 ||
+             (CSLCount(papszLayers) == 0 && poDS->GetLayerCount() > 1)) &&
+            pszNewLayerName == NULL &&
+            EQUAL(CPLGetExtension(pszDestDataSource), "SHP") &&
+            VSIStatL(pszDestDataSource, &sStat) != 0)
+        {
+            if (VSIMkdir(pszDestDataSource, 0755) != 0)
+            {
+                CPLError( CE_Failure, CPLE_AppDefined,
+                      "Failed to create directory %s\n"
+                      "for shapefile datastore.\n",
+                      pszDestDataSource );
+                exit(1);
+            }
         }
 
 /* -------------------------------------------------------------------- */
@@ -1167,7 +1321,7 @@ int main( int nArgc, char ** papszArgv )
             if( !TranslateLayer( poDS, poPassedLayer, poODS, papszLCO, 
                                  pszNewLayerName, bTransform, poOutputSRS, bNullifyOutputSRS,
                                  poSourceSRS, papszSelFields, bAppend, eGType,
-                                 bOverwrite, dfMaxSegmentLength, papszFieldTypesToString,
+                                 bOverwrite, eGeomOp, dfGeomOpParam, papszFieldTypesToString,
                                  nCountLayerFeatures, bWrapDateline, poClipSrc, poClipDst,
                                  bExplodeCollections, pszZField, pszWHERE, pfnProgress, pProgressArg))
             {
@@ -1268,7 +1422,14 @@ int main( int nArgc, char ** papszArgv )
                 continue;
 
             if( pszWHERE != NULL )
-                poLayer->SetAttributeFilter( pszWHERE );
+            {
+                if( poLayer->SetAttributeFilter( pszWHERE ) != OGRERR_NONE )
+                {
+                    fprintf( stderr, "FAILURE: SetAttributeFilter(%s) failed.\n", pszWHERE );
+                    if (!bSkipFailures)
+                        exit( 1 );
+                }
+            }
 
             if( poSpatialFilter != NULL )
                 poLayer->SetSpatialFilter( poSpatialFilter );
@@ -1348,7 +1509,7 @@ int main( int nArgc, char ** papszArgv )
             if( !TranslateLayer( poDS, poPassedLayer, poODS, papszLCO, 
                                 pszNewLayerName, bTransform, poOutputSRS, bNullifyOutputSRS,
                                 poSourceSRS, papszSelFields, bAppend, eGType,
-                                bOverwrite, dfMaxSegmentLength, papszFieldTypesToString,
+                                bOverwrite, eGeomOp, dfGeomOpParam, papszFieldTypesToString,
                                 panLayerCountFeatures[iLayer], bWrapDateline, poClipSrc, poClipDst,
                                 bExplodeCollections, pszZField, pszWHERE, pfnProgress, pProgressArg)
                 && !bSkipFailures )
@@ -1382,7 +1543,8 @@ int main( int nArgc, char ** papszArgv )
 /* -------------------------------------------------------------------- */
     OGRSpatialReference::DestroySpatialReference(poOutputSRS);
     OGRSpatialReference::DestroySpatialReference(poSourceSRS);
-    OGRDataSource::DestroyDataSource(poODS);
+    if (bCloseODS)
+        OGRDataSource::DestroyDataSource(poODS);
     OGRDataSource::DestroyDataSource(poDS);
     OGRGeometryFactory::destroyGeometry(poSpatialFilter);
     OGRGeometryFactory::destroyGeometry(poClipSrc);
@@ -1434,7 +1596,8 @@ static void Usage(int bShort)
             "               [-clipdstsql sql_statement] [-clipdstlayer layer]\n"
             "               [-clipdstwhere expression]\n"
             "               [-wrapdateline]\n"
-            "               [-segmentize max_dist] [-fieldTypeToString All|(type1[,type2]*)]\n"
+            "               [[-simplify tolerance] | [-segmentize max_dist]]\n"
+            "               [-fieldTypeToString All|(type1[,type2]*)]\n"
             "               [-splitlistfields] [-maxsubfields val]\n"
             "               [-explodecollections] [-zfield field_name]\n");
 
@@ -1469,6 +1632,7 @@ static void Usage(int bShort)
             " -skipfailures: skip features or layers that fail to convert\n"
             " -gt n: group n features per transaction (default 200)\n"
             " -spat xmin ymin xmax ymax: spatial query extents\n"
+            " -simplify tolerance: distance tolerance for simplification.\n"
             " -segmentize max_dist: maximum distance between 2 nodes.\n"
             "                       Used to create intermediate points\n"
             " -dsco NAME=VALUE: Dataset creation option (format specific)\n"
@@ -1560,7 +1724,8 @@ static int TranslateLayer( OGRDataSource *poSrcDS,
                            OGRSpatialReference *poSourceSRS,
                            char **papszSelFields,
                            int bAppend, int eGType, int bOverwrite,
-                           double dfMaxSegmentLength,
+                           GeomOperation eGeomOp,
+                           double dfGeomOpParam,
                            char** papszFieldTypesToString,
                            long nCountLayerFeatures,
                            int bWrapDateline,
@@ -1663,30 +1828,32 @@ static int TranslateLayer( OGRDataSource *poSrcDS,
 /* -------------------------------------------------------------------- */
 /*      Find the layer.                                                 */
 /* -------------------------------------------------------------------- */
-    int iLayer = -1;
-    poDstLayer = NULL;
 
     /* GetLayerByName() can instanciate layers that would have been */
     /* 'hidden' otherwise, for example, non-spatial tables in a */
     /* Postgis-enabled database, so this apparently useless command is */
     /* not useless... (#4012) */
     CPLPushErrorHandler(CPLQuietErrorHandler);
-    poDstDS->GetLayerByName(pszNewLayerName);
+    poDstLayer = poDstDS->GetLayerByName(pszNewLayerName);
     CPLPopErrorHandler();
     CPLErrorReset();
 
-    for( iLayer = 0; iLayer < poDstDS->GetLayerCount(); iLayer++ )
+    int iLayer = -1;
+    if (poDstLayer != NULL)
     {
-        OGRLayer        *poLayer = poDstDS->GetLayer(iLayer);
-
-        if( poLayer != NULL 
-            && EQUAL(poLayer->GetName(),pszNewLayerName) )
+        int nLayerCount = poDstDS->GetLayerCount();
+        for( iLayer = 0; iLayer < nLayerCount; iLayer++ )
         {
-            poDstLayer = poLayer;
-            break;
+            OGRLayer        *poLayer = poDstDS->GetLayer(iLayer);
+            if (poLayer == poDstLayer)
+                break;
         }
+
+        if (iLayer == nLayerCount)
+            /* shouldn't happen with an ideal driver */
+            poDstLayer = NULL;
     }
-    
+
 /* -------------------------------------------------------------------- */
 /*      If the user requested overwrite, and we have the layer in       */
 /*      question we need to delete it now so it will get recreated      */
@@ -1733,7 +1900,8 @@ static int TranslateLayer( OGRDataSource *poSrcDS,
                     eGType = wkbUnknown | n25DBit;
                 }
             }
-            else if ( pszZField )
+
+            if ( pszZField )
                 eGType |= wkb25DBit;
         }
 
@@ -1903,6 +2071,7 @@ static int TranslateLayer( OGRDataSource *poSrcDS,
                     }
                 }
                 bFieldRequested |= CSLFindString(papszWHEREUsedFields, pszFieldName) >= 0;
+                bFieldRequested |= (pszZField != NULL && strcmp(pszFieldName, pszZField) == 0);
 
                 /* If source field not requested, add it to ignored files list */
                 if (!bFieldRequested)
@@ -1988,7 +2157,8 @@ static int TranslateLayer( OGRDataSource *poSrcDS,
 /* -------------------------------------------------------------------- */
     OGRFeature  *poFeature;
     int         nFeaturesInTransaction = 0;
-    long        nCount = 0;
+    GIntBig      nCount = 0; /* written + failed */
+    GIntBig      nFeaturesWritten = 0;
 
     int iSrcZField = -1;
     if (pszZField != NULL)
@@ -2086,10 +2256,31 @@ static int TranslateLayer( OGRDataSource *poSrcDS,
                 }
 
                 if (iSrcZField != -1)
+                {
                     SetZ(poDstGeometry, poFeature->GetFieldAsDouble(iSrcZField));
+                    /* This will correct the coordinate dimension to 3 */
+                    OGRGeometry* poDupGeometry = poDstGeometry->clone();
+                    poDstFeature->SetGeometryDirectly(poDupGeometry);
+                    poDstGeometry = poDupGeometry;
+                }
 
-                if (dfMaxSegmentLength > 0)
-                    poDstGeometry->segmentize(dfMaxSegmentLength);
+                if (eGeomOp == SEGMENTIZE)
+                {
+                    if (dfGeomOpParam > 0)
+                        poDstGeometry->segmentize(dfGeomOpParam);
+                }
+                else if (eGeomOp == SIMPLIFY_PRESERVE_TOPOLOGY)
+                {
+                    if (dfGeomOpParam > 0)
+                    {
+                        OGRGeometry* poNewGeom = poDstGeometry->SimplifyPreserveTopology(dfGeomOpParam);
+                        if (poNewGeom)
+                        {
+                            poDstFeature->SetGeometryDirectly(poNewGeom);
+                            poDstGeometry = poNewGeom;
+                        }
+                    }
+                }
 
                 if (poClipSrc)
                 {
@@ -2166,8 +2357,11 @@ static int TranslateLayer( OGRDataSource *poSrcDS,
             }
 
             CPLErrorReset();
-            if( poDstLayer->CreateFeature( poDstFeature ) != OGRERR_NONE
-                && !bSkipFailures )
+            if( poDstLayer->CreateFeature( poDstFeature ) == OGRERR_NONE )
+            {
+                nFeaturesWritten ++;
+            }
+            else if( !bSkipFailures )
             {
                 if( nGroupTransactions )
                     poDstLayer->RollbackTransaction();
@@ -2193,6 +2387,9 @@ end_loop:
 
     if( nGroupTransactions )
         poDstLayer->CommitTransaction();
+
+    CPLDebug("OGR2OGR", CPL_FRMT_GIB " features written in layer '%s'",
+             nFeaturesWritten, pszNewLayerName);
 
 /* -------------------------------------------------------------------- */
 /*      Cleaning                                                        */

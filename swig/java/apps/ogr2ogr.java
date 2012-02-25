@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr2ogr.java 22027 2011-03-25 19:28:44Z rouault $
+ * $Id: ogr2ogr.java 23515 2011-12-10 21:14:02Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Java port of a simple client for translating between formats.
@@ -82,6 +82,14 @@ public class ogr2ogr
     static final int OGRNullFID = -1;
     static int nFIDToFetch = OGRNullFID;
 
+    static class GeomOperation
+    {
+        private GeomOperation() {}
+        public static GeomOperation NONE = new GeomOperation();
+        public static GeomOperation SEGMENTIZE = new GeomOperation();
+        public static GeomOperation SIMPLIFY_PRESERVE_TOPOLOGY = new GeomOperation();
+    }
+
 /************************************************************************/
 /*                                main()                                */
 /************************************************************************/
@@ -103,10 +111,11 @@ public class ogr2ogr
         String pszWHERE = null;
         Geometry poSpatialFilter = null;
         String pszSelect;
-        Vector papszSelFields = new Vector();
+        Vector papszSelFields = null;
         String pszSQLStatement = null;
         int    eGType = -2;
-        double dfMaxSegmentLength = 0;
+        GeomOperation eGeomOp = GeomOperation.NONE;
+        double dfGeomOpParam = 0;
         Vector papszFieldTypesToString = new Vector();
         boolean bDisplayProgress = false;
         ProgressCallback pfnProgress = null;
@@ -125,6 +134,8 @@ public class ogr2ogr
         String pszDstEncoding = null;
         boolean bExplodeCollections = false;
         String pszZField = null;
+
+        ogr.DontUseExceptions();
 
     /* -------------------------------------------------------------------- */
     /*      Register format(s).                                             */
@@ -276,12 +287,19 @@ public class ogr2ogr
             {
                 pszSelect = args[++iArg];
                 StringTokenizer tokenizer = new StringTokenizer(pszSelect, " ,");
+                papszSelFields = new Vector();
                 while(tokenizer.hasMoreElements())
                     papszSelFields.addElement(tokenizer.nextToken());
             }
+            else if( args[iArg].equalsIgnoreCase("-simplify") && iArg < args.length-1 )
+            {
+                eGeomOp = GeomOperation.SIMPLIFY_PRESERVE_TOPOLOGY;
+                dfGeomOpParam = new Double(args[++iArg]).doubleValue();
+            }
             else if( args[iArg].equalsIgnoreCase("-segmentize") && iArg < args.length-1 )
             {
-                dfMaxSegmentLength = new Double(args[++iArg]).doubleValue();
+                eGeomOp = GeomOperation.SEGMENTIZE;
+                dfGeomOpParam = new Double(args[++iArg]).doubleValue();
             }
             else if( args[iArg].equalsIgnoreCase("-fieldTypeToString") && iArg < args.length-1 )
             {
@@ -567,16 +585,7 @@ public class ogr2ogr
         {
             int                  iDriver;
     
-            for( iDriver = 0;
-                iDriver < ogr.GetDriverCount() && poDriver == null;
-                iDriver++ )
-            {
-                if( ogr.GetDriver(iDriver).GetName().equalsIgnoreCase(pszFormat) )
-                {
-                    poDriver = ogr.GetDriver(iDriver);
-                }
-            }
-    
+            poDriver = ogr.GetDriverByName(pszFormat);
             if( poDriver == null )
             {
                 System.err.println("Unable to find driver `" + pszFormat +"'." );
@@ -594,7 +603,35 @@ public class ogr2ogr
                 System.err.println( pszFormat + " driver does not support data source creation.");
                 System.exit( 1 );
             }
-    
+
+    /* -------------------------------------------------------------------- */
+    /*      Special case to improve user experience when translating        */
+    /*      a datasource with multiple layers into a shapefile. If the      */
+    /*      user gives a target datasource with .shp and it does not exist, */
+    /*      the shapefile driver will try to create a file, but this is not */
+    /*      appropriate because here we have several layers, so create      */
+    /*      a directory instead.                                            */
+    /* -------------------------------------------------------------------- */
+            if (poDriver.GetName().equalsIgnoreCase("ESRI Shapefile") &&
+                pszSQLStatement == null &&
+                (papszLayers.size() > 1 ||
+                 (papszLayers.size() == 0 && poDS.GetLayerCount() > 1)) &&
+                pszNewLayerName == null &&
+                (pszDestDataSource.endsWith(".shp") || pszDestDataSource.endsWith(".SHP")))
+            {
+                File f = new File(pszDestDataSource);
+                if (!f.exists())
+                {
+                    if (!f.mkdir())
+                    {
+                        System.err.println(
+                            "Failed to create directory " + pszDestDataSource + "\n" +
+                            "for shapefile datastore.");
+                        System.exit(1);
+                    }
+                }
+            }
+
     /* -------------------------------------------------------------------- */
     /*      Create the output data source.                                  */
     /* -------------------------------------------------------------------- */
@@ -669,7 +706,8 @@ public class ogr2ogr
 /*      single file shapefile and source has only one layer, and that   */
 /*      the layer name isn't specified                                  */
 /* -------------------------------------------------------------------- */
-                if (poDriver.GetName().equals("ESRI Shapefile") && pszNewLayerName == null)
+                if (poDriver.GetName().equalsIgnoreCase("ESRI Shapefile") &&
+                    pszNewLayerName == null)
                 {
                     File f = new File(pszDestDataSource);
                     if (f.exists() && f.listFiles() == null)
@@ -684,7 +722,7 @@ public class ogr2ogr
                 if( !TranslateLayer( poDS, poResultSet, poODS, papszLCO, 
                                     pszNewLayerName, bTransform, poOutputSRS,
                                     poSourceSRS, papszSelFields, bAppend, eGType,
-                                    bOverwrite, dfMaxSegmentLength, papszFieldTypesToString,
+                                    bOverwrite, eGeomOp, dfGeomOpParam, papszFieldTypesToString,
                                     nCountLayerFeatures, poClipSrc, poClipDst, bExplodeCollections,
                                     pszZField, pszWHERE, pfnProgress ))
                 {
@@ -754,7 +792,8 @@ public class ogr2ogr
 /*      single file shapefile and source has only one layer, and that   */
 /*      the layer name isn't specified                                  */
 /* -------------------------------------------------------------------- */
-            if (poDriver.GetName().equals("ESRI Shapefile") && nLayerCount == 1 && pszNewLayerName == null)
+            if (poDriver.GetName().equalsIgnoreCase("ESRI Shapefile") &&
+                nLayerCount == 1 && pszNewLayerName == null)
             {
                 File f = new File(pszDestDataSource);
                 if (f.exists() && f.listFiles() == null)
@@ -778,7 +817,14 @@ public class ogr2ogr
                 Layer        poLayer = papoLayers[iLayer];
 
                 if( pszWHERE != null )
-                    poLayer.SetAttributeFilter( pszWHERE );
+                {
+                    if( poLayer.SetAttributeFilter( pszWHERE ) != ogr.OGRERR_NONE )
+                    {
+                        System.err.println("FAILURE: SetAttributeFilter(" + pszWHERE + ") failed.");
+                        if (!bSkipFailures)
+                            System.exit( 1 );
+                    }
+                }
 
                 if( poSpatialFilter != null )
                     poLayer.SetSpatialFilter( poSpatialFilter );
@@ -818,7 +864,7 @@ public class ogr2ogr
                 if( !TranslateLayer( poDS, poLayer, poODS, papszLCO, 
                                     pszNewLayerName, bTransform, poOutputSRS,
                                     poSourceSRS, papszSelFields, bAppend, eGType,
-                                    bOverwrite, dfMaxSegmentLength, papszFieldTypesToString,
+                                    bOverwrite, eGeomOp, dfGeomOpParam, papszFieldTypesToString,
                                     panLayerCountFeatures[iLayer], poClipSrc, poClipDst, bExplodeCollections,
                                     pszZField, pszWHERE, pfnProgress) 
                     && !bSkipFailures )
@@ -854,6 +900,7 @@ public class ogr2ogr
                 "               [-spat xmin ymin xmax ymax] [-preserve_fid] [-fid FID]\n" +
                 "               [-a_srs srs_def] [-t_srs srs_def] [-s_srs srs_def]\n" +
                 "               [-f format_name] [-overwrite] [[-dsco NAME=VALUE] ...]\n" +
+                "               [-simplify tolerance]\n" +
                 // "               [-segmentize max_dist] [-fieldTypeToString All|(type1[,type2]*)]\n" +
                 "               [-fieldTypeToString All|(type1[,type2]*)] [-explodecollections]\n" +
                 "               dst_datasource_name src_datasource_name\n" +
@@ -880,6 +927,7 @@ public class ogr2ogr
                 " -skipfailures: skip features or layers that fail to convert\n" +
                 " -gt n: group n features per transaction (default 200)\n" +
                 " -spat xmin ymin xmax ymax: spatial query extents\n" +
+                " -simplify tolerance: distance tolerance for simplification.\n" +
                 //" -segmentize max_dist: maximum distance between 2 nodes.\n" +
                 //"                       Used to create intermediate points\n" +
                 " -dsco NAME=VALUE: Dataset creation option (format specific)\n" +
@@ -1064,7 +1112,8 @@ public class ogr2ogr
                             SpatialReference poSourceSRS,
                             Vector papszSelFields,
                             boolean bAppend, int eGType, boolean bOverwrite,
-                            double dfMaxSegmentLength,
+                            GeomOperation eGeomOp,
+                            double dfGeomOpParam,
                             Vector papszFieldTypesToString,
                             long nCountLayerFeatures,
                             Geometry poClipSrc,
@@ -1142,30 +1191,36 @@ public class ogr2ogr
     /* -------------------------------------------------------------------- */
     /*      Find the layer.                                                 */
     /* -------------------------------------------------------------------- */
-        int iLayer = -1;
-        poDstLayer = null;
 
         /* GetLayerByName() can instanciate layers that would have been */
         /* 'hidden' otherwise, for example, non-spatial tables in a */
         /* Postgis-enabled database, so this apparently useless command is */
         /* not useless... (#4012) */
         gdal.PushErrorHandler("CPLQuietErrorHandler");
-        poDstDS.GetLayerByName(pszNewLayerName);
+        poDstLayer = poDstDS.GetLayerByName(pszNewLayerName);
         gdal.PopErrorHandler();
         gdal.ErrorReset();
 
-        for( iLayer = 0; iLayer < poDstDS.GetLayerCount(); iLayer++ )
+        int iLayer = -1;
+        if( poDstLayer != null )
         {
-            Layer        poLayer = poDstDS.GetLayer(iLayer);
-    
-            if( poLayer != null 
-                && poLayer.GetLayerDefn().GetName().equalsIgnoreCase(pszNewLayerName) )
+            int nLayerCount = poDstDS.GetLayerCount();
+            for( iLayer = 0; iLayer < nLayerCount; iLayer++ )
             {
-                poDstLayer = poLayer;
-                break;
+                Layer        poLayer = poDstDS.GetLayer(iLayer);
+
+                if( poLayer != null
+                    && poLayer.GetName().equals(poDstLayer.GetName()) )
+                {
+                    break;
+                }
             }
+
+            if (iLayer == nLayerCount)
+                /* shouldn't happen with an ideal driver */
+                poDstLayer = null;
         }
-        
+
     /* -------------------------------------------------------------------- */
     /*      If the user requested overwrite, and we have the layer in       */
     /*      question we need to delete it now so it will get recreated      */
@@ -1211,7 +1266,8 @@ public class ogr2ogr
                         eGType = ogr.wkbUnknown | n25DBit;
                     }
                 }
-                else if ( pszZField != null )
+
+                if ( pszZField != null )
                     eGType |= ogr.wkb25DBit;
             }
     
@@ -1267,7 +1323,7 @@ public class ogr2ogr
 
         FeatureDefn poDstFDefn = poDstLayer.GetLayerDefn();
 
-        if (papszSelFields.size() > 0 && !bAppend )
+        if (papszSelFields != null && !bAppend )
         {
             int  nDstFieldCount = 0;
             if (poDstFDefn != null)
@@ -1351,6 +1407,10 @@ public class ogr2ogr
                             break;
                         }
                     }
+
+                    if (pszZField != null && pszFieldName.equals(pszZField))
+                        bFieldRequested = true;
+
                     /* If source field not requested, add it to ignored files list */
                     if (!bFieldRequested)
                         papszIgnoredFields.addElement(pszFieldName);
@@ -1516,9 +1576,6 @@ public class ogr2ogr
                 if( bPreserveFID )
                     poDstFeature.SetFID( poFeature.GetFID() );
 
-                /*if (poDstFeature.GetGeometryRef() != null && dfMaxSegmentLength > 0)
-                    poDstFeature.GetGeometryRef().segmentize(dfMaxSegmentLength);*/
-
                 Geometry poDstGeometry = poDstFeature.GetGeometryRef();
                 if (poDstGeometry != null)
                 {
@@ -1531,7 +1588,28 @@ public class ogr2ogr
                     }
 
                     if (iSrcZField != -1)
+                    {
                         SetZ(poDstGeometry, poFeature.GetFieldAsDouble(iSrcZField));
+                        /* This will correct the coordinate dimension to 3 */
+                        Geometry poDupGeometry = poDstGeometry.Clone();
+                        poDstFeature.SetGeometryDirectly(poDupGeometry);
+                        poDstGeometry = poDupGeometry;
+                    }
+
+                    if (eGeomOp == GeomOperation.SEGMENTIZE)
+                    {
+                /*if (poDstFeature.GetGeometryRef() != null && dfGeomOpParam > 0)
+                    poDstFeature.GetGeometryRef().segmentize(dfGeomOpParam);*/
+                    }
+                    else if (eGeomOp == GeomOperation.SIMPLIFY_PRESERVE_TOPOLOGY && dfGeomOpParam > 0)
+                    {
+                        Geometry poNewGeom = poDstGeometry.SimplifyPreserveTopology(dfGeomOpParam);
+                        if (poNewGeom != null)
+                        {
+                            poDstFeature.SetGeometryDirectly(poNewGeom);
+                            poDstGeometry = poNewGeom;
+                        }
+                    }
 
                     if (poClipSrc != null)
                     {

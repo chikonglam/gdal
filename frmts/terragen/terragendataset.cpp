@@ -106,7 +106,7 @@
 #include "gdal_pam.h"
 #include "ogr_spatialref.h"
 
-// CPL_CVSID("$Id: terragendataset.cpp 20996 2010-10-28 18:38:15Z rouault $");
+// CPL_CVSID("$Id: terragendataset.cpp 21680 2011-02-11 21:12:07Z warmerdam $");
 
 CPL_C_START
 void	GDALRegister_Terragen(void);
@@ -621,7 +621,7 @@ bool TerragenDataset::write_header()
 	// Increase the heightscale until the physical span
 	// fits within a 16-bit range. The smaller the logical span,
 	// the more necessary this becomes.
-	int hs, bh;
+	int hs, bh=0;
 	for(hs = m_nHeightScale; hs <= 32767; hs++)
 	{
 		double prevdelta = 1.0e30;
@@ -659,8 +659,8 @@ bool TerragenDataset::write_header()
         return false;
 	}
 		
-	m_nHeightScale = hs;
-	m_nBaseHeight = bh;
+	m_nHeightScale = (GInt16) hs;
+	m_nBaseHeight = (GInt16) bh;
 
 
 	// m_nHeightScale is the one that gives us the 

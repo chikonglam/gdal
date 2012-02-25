@@ -1,8 +1,8 @@
 /******************************************************************************
- * $Id: ogr_wfs.h 21195 2010-12-04 22:04:16Z rouault $
+ * $Id: ogr_wfs.h 23164 2011-10-02 16:31:52Z rouault $
  *
  * Project:  WFS Translator
- * Purpose:  Definition of classes for OGR .sua driver.
+ * Purpose:  Definition of classes for OGR WFS driver.
  * Author:   Even Rouault, even dot rouault at mines dash paris dot org
  *
  ******************************************************************************
@@ -31,6 +31,7 @@
 #define _OGR_WFS_H_INCLUDED
 
 #include <vector>
+#include <set>
 
 #include "cpl_minixml.h"
 #include "ogrsf_frmts.h"
@@ -38,8 +39,6 @@
 #include "cpl_http.h"
 
 CPLXMLNode* WFSFindNode(CPLXMLNode* psXML, const char* pszRootName);
-CPLString WFS_FetchValueFromURL(const char* pszURL, const char* pszKey);
-CPLString WFS_AddKVToURL(const char* pszURL, const char* pszKey, const char* pszValue);
 CPLString WFS_TurnSQLFilterToOGCFilter( const char * pszFilter,
                                     int nVersion,
                                     int bPropertyIsNotEqualToSupported,
@@ -94,7 +93,6 @@ class OGRWFSLayer : public OGRLayer
     CPLString           osSQLWhere;
     CPLString           osWFSWhere;
 
-    const char         *GetShortName();
     CPLString           osTargetNamespace;
     CPLString           GetDescribeFeatureTypeURL(int bWithNS);
 
@@ -106,14 +104,14 @@ class OGRWFSLayer : public OGRLayer
 
     CPLString           GetPostHeader();
 
-    OGRFeatureDefn*     ParseSchema(CPLXMLNode* psSchema);
-
     int                 bUseFeatureIdAtLayerLevel;
 
     int                 bPagingActive;
     int                 nPagingStartIndex;
     int                 nFeatureRead;
     int                 nFeatureCountRequested;
+
+    OGRFeatureDefn*     BuildLayerDefnFromFeatureClass(GMLFeatureClass* poClass);
 
   public:
                         OGRWFSLayer(OGRWFSDataSource* poDS,
@@ -156,11 +154,16 @@ class OGRWFSLayer : public OGRLayer
     virtual OGRErr      CommitTransaction();
     virtual OGRErr      RollbackTransaction();
 
-    OGRFeatureDefn*     BuildLayerDefn(CPLXMLNode* psSchema = NULL);
+    int                 HasLayerDefn() { return poFeatureDefn != NULL; }
+
+    OGRFeatureDefn*     ParseSchema(CPLXMLNode* psSchema);
+    OGRFeatureDefn*     BuildLayerDefn(OGRFeatureDefn* poSrcFDefn = NULL);
 
     OGRErr              DeleteFromFilter( CPLString osOGCFilter );
 
     const std::vector<CPLString>& GetLastInsertedFIDList() { return aosFIDList; }
+
+    const char         *GetShortName();
 };
 
 /************************************************************************/
@@ -186,6 +189,8 @@ class OGRWFSDataSource : public OGRDataSource
     int                 bPropertyIsNotEqualToSupported;
     int                 bUseFeatureId;
     int                 bGmlObjectIdNeedsGMLPrefix;
+    int                 bRequiresEnvelopeSpatialFilter;
+    int                 DetectRequiresEnvelopeSpatialFilter(CPLXMLNode* psRoot);
 
     int                 bTransactionSupport;
     char**              papszIdGenMethods;
@@ -206,6 +211,24 @@ class OGRWFSDataSource : public OGRDataSource
     int                 bPagingAllowed;
     int                 nPageSize;
 
+    int                 bIsGEOSERVER;
+
+    int                 bLoadMultipleLayerDefn;
+    std::set<CPLString> aoSetAlreadyTriedLayers;
+
+    CPLString           osLayerMetadataCSV;
+    CPLString           osLayerMetadataTmpFileName;
+    OGRDataSource      *poLayerMetadataDS;
+    OGRLayer           *poLayerMetadataLayer;
+
+    CPLString           osGetCapabilities;
+    OGRDataSource      *poLayerGetCapabilitiesDS;
+    OGRLayer           *poLayerGetCapabilitiesLayer;
+
+    int                 bKeepLayerNamePrefix;
+
+    CPLHTTPResult*      SendGetCapabilities(const char* pszBaseURL,
+                                            CPLString& osTypeName);
   public:
                         OGRWFSDataSource();
                         ~OGRWFSDataSource();
@@ -237,6 +260,7 @@ class OGRWFSDataSource : public OGRDataSource
     int                         HasMinOperators() { return bHasMinOperators; }
     int                         HasNullCheck() { return bHasNullCheck; }
     int                         UseFeatureId() { return bUseFeatureId; }
+    int                         RequiresEnvelopeSpatialFilter() { return bRequiresEnvelopeSpatialFilter; }
     void                        SetGmlObjectIdNeedsGMLPrefix() { bGmlObjectIdNeedsGMLPrefix = TRUE; }
     int                         DoesGmlObjectIdNeedGMLPrefix() { return bGmlObjectIdNeedsGMLPrefix; }
 
@@ -253,6 +277,11 @@ class OGRWFSDataSource : public OGRDataSource
     int                         GetPageSize() { return nPageSize; }
 
     const char*                 GetRequiredOutputFormat() { return (osRequiredOutputFormat.size() != 0) ? osRequiredOutputFormat.c_str() : NULL; }
+
+    void                        LoadMultipleLayerDefn(const char* pszLayerName,
+                                                      char* pszNS, char* pszNSVal);
+
+    int                         GetKeepLayerNamePrefix() { return bKeepLayerNamePrefix; }
 };
 
 /************************************************************************/

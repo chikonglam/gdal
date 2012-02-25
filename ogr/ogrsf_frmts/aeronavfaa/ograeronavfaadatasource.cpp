@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ograeronavfaadatasource.cpp 21376 2011-01-02 18:28:40Z rouault $
+ * $Id: ograeronavfaadatasource.cpp 23042 2011-09-04 15:07:22Z rouault $
  *
  * Project:  AeronavFAA Translator
  * Purpose:  Implements OGRAeronavFAADataSource class
@@ -31,7 +31,7 @@
 #include "cpl_conv.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: ograeronavfaadatasource.cpp 21376 2011-01-02 18:28:40Z rouault $");
+CPL_CVSID("$Id: ograeronavfaadatasource.cpp 23042 2011-09-04 15:07:22Z rouault $");
 
 /************************************************************************/
 /*                      OGRAeronavFAADataSource()                       */
@@ -97,19 +97,11 @@ int OGRAeronavFAADataSource::Open( const char * pszFilename, int bUpdateIn)
 
     pszName = CPLStrdup( pszFilename );
 
-/* -------------------------------------------------------------------- */
-/*      Determine what sort of object this is.                          */
-/* -------------------------------------------------------------------- */
-    VSIStatBufL sStatBuf;
-
-    if( VSIStatL( pszFilename, &sStatBuf ) != 0 ||
-        !VSI_ISREG(sStatBuf.st_mode) ||
-        !EQUAL(CPLGetExtension(pszFilename), "dat") )
-        return FALSE;
-    
-// -------------------------------------------------------------------- 
+// --------------------------------------------------------------------
 //      Does this appear to be a .dat file?
 // --------------------------------------------------------------------
+    if( !EQUAL(CPLGetExtension(pszFilename), "dat") )
+        return FALSE;
 
     VSILFILE* fp = VSIFOpenL(pszFilename, "rb");
     if (fp == NULL)

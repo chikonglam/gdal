@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_srs_pci.cpp 21468 2011-01-12 20:35:14Z warmerdam $
+ * $Id: ogr_srs_pci.cpp 22898 2011-08-07 20:31:33Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  OGRSpatialReference translation to/from PCI georeferencing
@@ -33,7 +33,7 @@
 #include "cpl_conv.h"
 #include "cpl_csv.h"
 
-CPL_CVSID("$Id: ogr_srs_pci.cpp 21468 2011-01-12 20:35:14Z warmerdam $");
+CPL_CVSID("$Id: ogr_srs_pci.cpp 22898 2011-08-07 20:31:33Z rouault $");
 
 typedef struct 
 {
@@ -630,6 +630,7 @@ OGRErr OGRSpatialReference::importFromPCI( const char *pszProj,
                         }
                         CSLDestroy( papszLineItems );
                     }
+                    CSLDestroy( papszLineItems );
                     
                     VSIFClose( fp );
                 }
@@ -718,6 +719,8 @@ OGRErr OGRSpatialReference::importFromPCI( const char *pszProj,
                             CPLAtof(papszDatumDefn[5]) );
             }
         }
+
+        CSLDestroy(papszDatumDefn);
     }
 
 /* -------------------------------------------------------------------- */
@@ -1208,6 +1211,8 @@ OGRErr OGRSpatialReference::exportToPCI( char **ppszProj, char **ppszUnits,
                         strncpy( szEarthModel, papszLineItems[0], 5 );
                         break;
                     }
+
+                    CSLDestroy( papszLineItems );
                 }
 
                 CSLDestroy( papszLineItems );

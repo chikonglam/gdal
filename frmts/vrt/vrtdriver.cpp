@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: vrtdriver.cpp 20996 2010-10-28 18:38:15Z rouault $
+ * $Id: vrtdriver.cpp 21945 2011-03-12 21:11:37Z warmerdam $
  *
  * Project:  Virtual GDAL Datasets
  * Purpose:  Implementation of VRTDriver
@@ -32,7 +32,7 @@
 #include "cpl_string.h"
 #include "gdal_alg_priv.h"
 
-CPL_CVSID("$Id: vrtdriver.cpp 20996 2010-10-28 18:38:15Z rouault $");
+CPL_CVSID("$Id: vrtdriver.cpp 21945 2011-03-12 21:11:37Z warmerdam $");
 
 /************************************************************************/
 /*                             VRTDriver()                              */
@@ -159,7 +159,8 @@ VRTCreateCopy( const char * pszFilename, GDALDataset *poSrcDS,
 /*      it to disk as a special case to avoid extra layers of           */
 /*      indirection.                                                    */
 /* -------------------------------------------------------------------- */
-    if( EQUAL(poSrcDS->GetDriver()->GetDescription(),"VRT") )
+    if( poSrcDS->GetDriver() != NULL &&
+        EQUAL(poSrcDS->GetDriver()->GetDescription(),"VRT") )
     {
 
     /* -------------------------------------------------------------------- */
@@ -217,6 +218,8 @@ VRTCreateCopy( const char * pszFilename, GDALDataset *poSrcDS,
                             poSrcDS->GetRasterXSize(),
                             poSrcDS->GetRasterYSize(),
                             0, GDT_Byte, NULL );
+    if (poVRTDS == NULL)
+        return NULL;
 
 /* -------------------------------------------------------------------- */
 /*      Do we have a geotransform?                                      */
@@ -250,6 +253,10 @@ VRTCreateCopy( const char * pszFilename, GDALDataset *poSrcDS,
     papszMD = poSrcDS->GetMetadata( "IMD" );
     if( papszMD )
         poVRTDS->SetMetadata( papszMD, "IMD" );
+
+    papszMD = poSrcDS->GetMetadata( "GEOLOCATION" );
+    if( papszMD )
+        poVRTDS->SetMetadata( papszMD, "GEOLOCATION" );
 
 /* -------------------------------------------------------------------- */
 /*      GCPs                                                            */

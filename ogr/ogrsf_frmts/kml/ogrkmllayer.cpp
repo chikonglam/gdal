@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrkmllayer.cpp 21194 2010-12-04 18:01:45Z rouault $
+ * $Id: ogrkmllayer.cpp 22872 2011-08-06 20:32:14Z rouault $
  *
  * Project:  KML Driver
  * Purpose:  Implementation of OGRKMLLayer class.
@@ -102,6 +102,7 @@ OGRKMLLayer::OGRKMLLayer( const char * pszName,
 
     bWriter_ = bWriterIn;
     nWroteFeatureCount_ = 0;
+    bClosedForWriting = (bWriterIn == FALSE);
 
     pszName_ = CPLStrdup(pszName);
 }
@@ -242,6 +243,13 @@ OGRErr OGRKMLLayer::CreateFeature( OGRFeature* poFeature )
 
     if( !bWriter_ )
         return OGRERR_FAILURE;
+
+    if( bClosedForWriting )
+    {
+        CPLError(CE_Failure, CPLE_NotSupported,
+                 "Interleaved feature adding to different layers is not supported");
+        return OGRERR_FAILURE;
+    }
 
     VSILFILE *fp = poDS_->GetOutputFP();
     CPLAssert( NULL != fp );
@@ -528,6 +536,9 @@ int OGRKMLLayer::TestCapability( const char * pszCap )
 
 //        return poFClass->GetFeatureCount() != -1;
     }
+
+    else if (EQUAL(pszCap, OLCStringsAsUTF8))
+        return TRUE;
 
     return FALSE;
 }

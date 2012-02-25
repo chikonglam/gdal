@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrdxfdatasource.cpp 20676 2010-09-23 09:56:24Z rouault $
+ * $Id: ogrdxfdatasource.cpp 22527 2011-06-13 03:58:34Z warmerdam $
  *
  * Project:  DXF Translator
  * Purpose:  Implements OGRDXFDataSource class
@@ -31,7 +31,7 @@
 #include "cpl_conv.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: ogrdxfdatasource.cpp 20676 2010-09-23 09:56:24Z rouault $");
+CPL_CVSID("$Id: ogrdxfdatasource.cpp 22527 2011-06-13 03:58:34Z warmerdam $");
 
 /************************************************************************/
 /*                          OGRDXFDataSource()                          */
@@ -102,6 +102,8 @@ int OGRDXFDataSource::Open( const char * pszFilename, int bHeaderOnly )
 {
     if( !EQUAL(CPLGetExtension(pszFilename),"dxf") )
         return FALSE;
+
+    osEncoding = CPL_ENC_ISO8859_1;
 
     osName = pszFilename;
 
@@ -279,25 +281,33 @@ void OGRDXFDataSource::ReadLayerDefinition()
     std::map<CPLString,CPLString> oLayerProperties;
     CPLString osLayerName = "";
 
+    oLayerProperties["Hidden"] = "0";
+
     while( (nCode = ReadValue( szLineBuf, sizeof(szLineBuf) )) > 0 )
     {
         switch( nCode )
         {
           case 2:
-            osLayerName = szLineBuf;
+            osLayerName = ACTextUnescape(szLineBuf,GetEncoding());
             oLayerProperties["Exists"] = "1";
             break;
 
           case 6:
-            oLayerProperties["Linetype"] = szLineBuf;
+            oLayerProperties["Linetype"] = ACTextUnescape(szLineBuf,
+                                                          GetEncoding());
             break;
             
           case 62:
             oLayerProperties["Color"] = szLineBuf;
+
+            if( atoi(szLineBuf) < 0 ) // Is layer off?
+                oLayerProperties["Hidden"] = "1";
             break;
             
           case 70:
             oLayerProperties["Flags"] = szLineBuf;
+            if( atoi(szLineBuf) & 0x01 ) // Is layer frozen?
+                oLayerProperties["Hidden"] = "1";
             break;
 
           case 370:
@@ -351,7 +361,7 @@ void OGRDXFDataSource::ReadLineTypeDefinition()
         switch( nCode )
         {
           case 2:
-            osLineTypeName = szLineBuf;
+            osLineTypeName = ACTextUnescape(szLineBuf,GetEncoding());
             break;
 
           case 49:
@@ -419,6 +429,33 @@ void OGRDXFDataSource::ReadHeaderSection()
 
     CPLDebug( "DXF", "Read %d header variables.", 
               (int) oHeaderVariables.size() );
+
+/* -------------------------------------------------------------------- */
+/*      Decide on what CPLRecode() name to use for the files            */
+/*      encoding or allow the encoding to be overridden.                */
+/* -------------------------------------------------------------------- */
+    CPLString osCodepage = GetVariable( "$DWGCODEPAGE", "ANSI_1252" );
+
+    // not strictly accurate but works even without iconv.
+    if( osCodepage == "ANSI_1252" )
+        osEncoding = CPL_ENC_ISO8859_1; 
+    else if( EQUALN(osCodepage,"ANSI_",5) )
+    {
+        osEncoding = "CP";
+        osEncoding += osCodepage + 5;
+    }
+    else
+    {
+        // fallback to the default 
+        osEncoding = CPL_ENC_ISO8859_1;
+    }
+                                       
+    if( CPLGetConfigOption( "DXF_ENCODING", NULL ) != NULL )
+        osEncoding = CPLGetConfigOption( "DXF_ENCODING", NULL );
+
+    if( osEncoding != CPL_ENC_ISO8859_1 )
+        CPLDebug( "DXF", "Treating DXF as encoding '%s', $DWGCODEPAGE='%s'", 
+                  osEncoding.c_str(), osCodepage.c_str() );
 }
 
 /************************************************************************/

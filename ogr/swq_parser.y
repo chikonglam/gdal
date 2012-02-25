@@ -35,6 +35,13 @@
 
 #define YYSTYPE  swq_expr_node*
 
+/* Defining YYSTYPE_IS_TRIVIAL is needed because the parser is generated as a C++ file. */ 
+/* See http://www.gnu.org/s/bison/manual/html_node/Memory-Management.html that suggests */ 
+/* increase YYINITDEPTH instead, but this will consume memory. */ 
+/* Setting YYSTYPE_IS_TRIVIAL overcomes this limitation, but might be fragile because */ 
+/* it appears to be a non documented feature of Bison */ 
+#define YYSTYPE_IS_TRIVIAL 1
+
 static void swqerror( swq_parse_context *context, const char *msg )
 {
     CPLError( CE_Failure, CPLE_AppDefined, 
@@ -54,6 +61,7 @@ static void swqerror( swq_parse_context *context, const char *msg )
 %token SWQT_IDENTIFIER
 %token SWQT_IN
 %token SWQT_LIKE
+%token SWQT_ESCAPE
 %token SWQT_BETWEEN
 %token SWQT_NULL
 %token SWQT_IS
@@ -228,6 +236,29 @@ logical_expr:
 			$$->PushSubExpression( like );
 		     }
 
+    | value_expr SWQT_LIKE value_expr SWQT_ESCAPE value_expr
+      {
+            $$ = new swq_expr_node( SWQ_LIKE );
+            $$->field_type = SWQ_BOOLEAN;
+            $$->PushSubExpression( $1 );
+            $$->PushSubExpression( $3 );
+            $$->PushSubExpression( $5 );
+       }
+
+    | value_expr SWQT_NOT SWQT_LIKE value_expr SWQT_ESCAPE value_expr
+      {
+                swq_expr_node *like;
+            like = new swq_expr_node( SWQ_LIKE );
+            like->field_type = SWQ_BOOLEAN;
+            like->PushSubExpression( $1 );
+            like->PushSubExpression( $4 );
+            like->PushSubExpression( $6 );
+
+            $$ = new swq_expr_node( SWQ_NOT );
+            $$->field_type = SWQ_BOOLEAN;
+            $$->PushSubExpression( like );
+      }
+
 	| value_expr SWQT_IN '(' value_expr_list ')'
 	             {
 			$$ = $4;
@@ -313,14 +344,14 @@ field_value:
 		{
 		        $$ = $1;  // validation deferred.
 			$$->eNodeType = SNT_COLUMN;
-			$$->field_index = -1; 
+			$$->field_index = $$->table_index = -1;
 		}
 
 	| SWQT_IDENTIFIER '.' SWQT_IDENTIFIER
 		{
 		        $$ = $1;  // validation deferred.
 			$$->eNodeType = SNT_COLUMN;
-			$$->field_index = -1; 
+			$$->field_index = $$->table_index = -1;
 			$$->string_value = (char *) 
                             CPLRealloc( $$->string_value, 
                                         strlen($$->string_value) 
@@ -350,6 +381,11 @@ value_expr:
 		{
 			$$ = $2;
 		}
+
+    | SWQT_NULL
+        {
+            $$ = new swq_expr_node((const char*)NULL);
+        }
 
     | '-' value_expr %prec SWQT_UMINUS
         {

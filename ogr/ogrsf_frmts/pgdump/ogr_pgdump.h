@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_pgdump.h 20996 2010-10-28 18:38:15Z rouault $
+ * $Id: ogr_pgdump.h 22821 2011-07-28 17:54:47Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Private definitions for OGR/PostgreSQL dump driver.
@@ -32,6 +32,10 @@
 
 #include "ogrsf_frmts.h"
 #include "cpl_string.h"
+
+CPLString OGRPGDumpEscapeColumnName(const char* pszColumnName);
+CPLString OGRPGDumpEscapeString(   const char* pszStrValue, int nMaxLength,
+                                   const char* pszFieldName);
 
 /************************************************************************/
 /*                          OGRPGDumpLayer                              */

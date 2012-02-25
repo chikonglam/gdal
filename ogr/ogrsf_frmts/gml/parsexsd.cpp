@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: parsexsd.cpp 20428 2010-08-24 20:39:50Z rouault $
+ * $Id: parsexsd.cpp 23686 2012-01-02 20:59:38Z rouault $
  *
  * Project:  GML Reader
  * Purpose:  Implementation of GMLParseXSD()
@@ -163,6 +163,23 @@ static const AssocNameType apsPropertyTypes [] =
     {NULL, wkbUnknown},
 };
 
+/* Found in FME .xsd  (e.g. <element ref="gml:curveProperty" minOccurs="0"/>) */
+static const AssocNameType apsRefTypes [] =
+{
+    {"pointProperty", wkbPoint},
+    {"curveProperty", wkbLineString},
+    {"surfaceProperty", wkbPolygon},
+    {"multiPointProperty", wkbMultiPoint},
+    {"multiCurveProperty", wkbMultiLineString},
+    {"multiSurfaceProperty", wkbMultiPolygon},
+    {NULL, wkbUnknown},
+};
+
+static
+GMLFeatureClass* GMLParseFeatureType(CPLXMLNode *psSchemaNode,
+                                     const char* pszName,
+                                     CPLXMLNode *psThis);
+
 static
 GMLFeatureClass* GMLParseFeatureType(CPLXMLNode *psSchemaNode,
                                 const char* pszName,
@@ -182,11 +199,21 @@ GMLFeatureClass* GMLParseFeatureType(CPLXMLNode *psSchemaNode,
     if (psThis == NULL)
         return NULL;
 
+    return GMLParseFeatureType(psSchemaNode, pszName, psThis);
+}
+
+
+static
+GMLFeatureClass* GMLParseFeatureType(CPLXMLNode *psSchemaNode,
+                                     const char* pszName,
+                                     CPLXMLNode *psComplexType)
+{
+
 /* -------------------------------------------------------------------- */
 /*      Grab the sequence of extensions greatgrandchild.                */
 /* -------------------------------------------------------------------- */
     CPLXMLNode *psAttrSeq =
-        CPLGetXMLNode( psThis,
+        CPLGetXMLNode( psComplexType,
                         "complexContent.extension.sequence" );
 
     if( psAttrSeq == NULL )
@@ -207,16 +234,26 @@ GMLFeatureClass* GMLParseFeatureType(CPLXMLNode *psSchemaNode,
     CPLXMLNode *psAttrDef;
     int nAttributeIndex = 0;
 
+    int bGotUnrecognizedType = FALSE;
+
     for( psAttrDef = psAttrSeq->psChild;
             psAttrDef != NULL;
             psAttrDef = psAttrDef->psNext )
     {
+        if( strcmp(psAttrDef->pszValue,"group") == 0 )
+        {
+            /* Too complex schema for us. Aborts parsing */
+            delete poClass;
+            return NULL;
+        }
+
         if( !EQUAL(psAttrDef->pszValue,"element") )
             continue;
 
         /* MapServer WFS writes element type as an attribute of element */
         /* not as a simpleType definition */
         const char* pszType = CPLGetXMLValue( psAttrDef, "type", NULL );
+        const char* pszElementName = CPLGetXMLValue( psAttrDef, "name", NULL );
         if (pszType != NULL)
         {
             const char* pszStrippedNSType = StripNS(pszType);
@@ -249,7 +286,7 @@ GMLFeatureClass* GMLParseFeatureType(CPLXMLNode *psSchemaNode,
                         }
                         else
                         {
-                            poClass->SetGeometryElement(CPLGetXMLValue( psAttrDef, "name", NULL ));
+                            poClass->SetGeometryElement(pszElementName);
                             poClass->SetGeometryType(psIter->eType);
                             poClass->SetGeometryAttributeIndex( nAttributeIndex );
 
@@ -261,6 +298,18 @@ GMLFeatureClass* GMLParseFeatureType(CPLXMLNode *psSchemaNode,
 
                     psIter ++;
                 }
+
+                if (psIter->pszName == NULL)
+                {
+                    /* Can be a non geometry gml type */
+                    /* Too complex schema for us. Aborts parsing */
+                    delete poClass;
+                    return NULL;
+                }
+
+                if (poClass->GetGeometryAttributeIndex() == -1)
+                    bGotUnrecognizedType = TRUE;
+
                 continue;
             }
 
@@ -268,7 +317,7 @@ GMLFeatureClass* GMLParseFeatureType(CPLXMLNode *psSchemaNode,
             else if (strcmp(pszType, "G:Point_MultiPointPropertyType") == 0 ||
                      strcmp(pszType, "gmgml:Point_MultiPointPropertyType") == 0)
             {
-                poClass->SetGeometryElement(CPLGetXMLValue( psAttrDef, "name", NULL ));
+                poClass->SetGeometryElement(pszElementName);
                 poClass->SetGeometryType(wkbMultiPoint);
                 poClass->SetGeometryAttributeIndex( nAttributeIndex );
 
@@ -278,7 +327,7 @@ GMLFeatureClass* GMLParseFeatureType(CPLXMLNode *psSchemaNode,
             else if (strcmp(pszType, "G:LineString_MultiLineStringPropertyType") == 0 ||
                      strcmp(pszType, "gmgml:LineString_MultiLineStringPropertyType") == 0)
             {
-                poClass->SetGeometryElement(CPLGetXMLValue( psAttrDef, "name", NULL ));
+                poClass->SetGeometryElement(pszElementName);
                 poClass->SetGeometryType(wkbMultiLineString);
                 poClass->SetGeometryAttributeIndex( nAttributeIndex );
 
@@ -289,7 +338,7 @@ GMLFeatureClass* GMLParseFeatureType(CPLXMLNode *psSchemaNode,
                      strcmp(pszType, "gmgml:Polygon_MultiPolygonPropertyType") == 0 ||
                      strcmp(pszType, "gmgml:Polygon_Surface_MultiSurface_CompositeSurfacePropertyType") == 0)
             {
-                poClass->SetGeometryElement(CPLGetXMLValue( psAttrDef, "name", NULL ));
+                poClass->SetGeometryElement(pszElementName);
                 poClass->SetGeometryType(wkbMultiPolygon);
                 poClass->SetGeometryAttributeIndex( nAttributeIndex );
 
@@ -300,7 +349,7 @@ GMLFeatureClass* GMLParseFeatureType(CPLXMLNode *psSchemaNode,
             /* ERDAS Apollo stuff (like in http://apollo.erdas.com/erdas-apollo/vector/WORLDWIDE?SERVICE=WFS&VERSION=1.0.0&REQUEST=DescribeFeatureType&TYPENAME=wfs:cntry98) */
             else if (strcmp(pszType, "wfs:MixedPolygonPropertyType") == 0)
             {
-                poClass->SetGeometryElement(CPLGetXMLValue( psAttrDef, "name", NULL ));
+                poClass->SetGeometryElement(pszElementName);
                 poClass->SetGeometryType(wkbMultiPolygon);
                 poClass->SetGeometryAttributeIndex( nAttributeIndex );
 
@@ -314,13 +363,16 @@ GMLFeatureClass* GMLParseFeatureType(CPLXMLNode *psSchemaNode,
                 if ( ! LookForSimpleType(psSchemaNode, pszStrippedNSType,
                                          &gmlType, &nWidth, &nPrecision) )
                 {
-                    //CPLDebug("GML", "Unknown type (%s).", pszType);
+                    /* Too complex schema for us. Aborts parsing */
+                    delete poClass;
+                    return NULL;
                 }
             }
 
+            if (pszElementName == NULL)
+                pszElementName = "unnamed";
             GMLPropertyDefn *poProp = new GMLPropertyDefn(
-                CPLGetXMLValue( psAttrDef, "name", "unnamed" ),
-                CPLGetXMLValue( psAttrDef, "name", "unnamed" ) );
+                pszElementName, pszElementName );
 
             poProp->SetType( gmlType );
             poProp->SetAttributeIndex( nAttributeIndex );
@@ -338,12 +390,72 @@ GMLFeatureClass* GMLParseFeatureType(CPLXMLNode *psSchemaNode,
         // For now we skip geometries .. fixup later.
         CPLXMLNode* psSimpleType = CPLGetXMLNode( psAttrDef, "simpleType" );
         if( psSimpleType == NULL )
-            continue;
+        {
+            const char* pszRef = CPLGetXMLValue( psAttrDef, "ref", NULL );
 
+            /* FME .xsd */
+            if (pszRef != NULL && strncmp(pszRef, "gml:", 4) == 0)
+            {
+                const AssocNameType* psIter = apsRefTypes;
+                while(psIter->pszName)
+                {
+                    if (strncmp(pszRef + 4, psIter->pszName, strlen(psIter->pszName)) == 0)
+                    {
+                        if (poClass->GetGeometryAttributeIndex() != -1)
+                        {
+                            OGRwkbGeometryType eNewType = psIter->eType;
+                            OGRwkbGeometryType eOldType = (OGRwkbGeometryType)poClass->GetGeometryType();
+                            if ((eNewType == wkbMultiPoint && eOldType == wkbPoint) ||
+                                (eNewType == wkbMultiLineString && eOldType == wkbLineString) ||
+                                (eNewType == wkbMultiPolygon && eOldType == wkbPolygon))
+                            {
+                                poClass->SetGeometryType(eNewType);
+                            }
+                            else
+                            {
+                                CPLDebug("GML", "Geometry field already found ! Ignoring the following ones");
+                            }
+                        }
+                        else
+                        {
+                            poClass->SetGeometryElement(pszElementName);
+                            poClass->SetGeometryType(psIter->eType);
+                            poClass->SetGeometryAttributeIndex( nAttributeIndex );
+
+                            nAttributeIndex ++;
+                        }
+
+                        break;
+                    }
+
+                    psIter ++;
+                }
+
+                if (psIter->pszName == NULL)
+                {
+                    /* Can be a non geometry gml type */
+                    /* Too complex schema for us. Aborts parsing */
+                    delete poClass;
+                    return NULL;
+                }
+
+                if (poClass->GetGeometryAttributeIndex() == -1)
+                    bGotUnrecognizedType = TRUE;
+
+                continue;
+            }
+            else
+            {
+                /* Too complex schema for us. Aborts parsing */
+                delete poClass;
+                return NULL;
+            }
+        }
+
+        if (pszElementName == NULL)
+            pszElementName = "unnamed";
         GMLPropertyDefn *poProp = new GMLPropertyDefn(
-            CPLGetXMLValue( psAttrDef, "name", "unnamed" ),
-            CPLGetXMLValue( psAttrDef, "name", "unnamed" ) );
-
+            pszElementName, pszElementName );
 
         GMLPropertyType eType = GMLPT_Untyped;
         int nWidth = 0, nPrecision = 0;
@@ -357,6 +469,15 @@ GMLFeatureClass* GMLParseFeatureType(CPLXMLNode *psSchemaNode,
             delete poProp;
         else
             nAttributeIndex ++;
+    }
+
+    /* Only report wkbNone if we didn't find a known geometry type */
+    /* and there were not any unknown types (in case this unknown type */
+    /* would be a geometry type) */
+    if (poClass->GetGeometryAttributeIndex() == -1 &&
+        !bGotUnrecognizedType)
+    {
+        poClass->SetGeometryType(wkbNone);
     }
 
 /* -------------------------------------------------------------------- */
@@ -426,7 +547,8 @@ int GMLParseXSD( const char *pszFile,
         if( EQUAL(pszSubGroup, "_FeatureCollection") )
             continue;
 
-        if( !EQUAL(pszSubGroup, "_Feature") )
+        if( !EQUAL(pszSubGroup, "_Feature") &&
+            !EQUAL(pszSubGroup, "AbstractFeature") /* AbstractFeature used by GML 3.2 */ )
         {
             continue;
         }
@@ -449,7 +571,17 @@ int GMLParseXSD( const char *pszFile,
 
         pszType = CPLGetXMLValue( psThis, "type", NULL );
         if (pszType == NULL)
+        {
+            CPLXMLNode *psComplexType = CPLGetXMLNode( psThis, "complexType" );
+            if (psComplexType)
+            {
+                GMLFeatureClass* poClass =
+                        GMLParseFeatureType(psSchemaNode, pszName, psComplexType);
+                if (poClass)
+                    aosClasses.push_back(poClass);
+            }
             continue;
+        }
         if( strstr( pszType, ":" ) != NULL )
             pszType = strstr( pszType, ":" ) + 1;
         if( EQUAL(pszType, pszName) )
@@ -464,6 +596,12 @@ int GMLParseXSD( const char *pszFile,
         {
             continue;
         }
+
+        /* CanVec .xsd contains weird types that are not used in the related GML */
+        if (strncmp(pszName, "XyZz", 4) == 0 ||
+            strncmp(pszName, "XyZ1", 4) == 0 ||
+            strncmp(pszName, "XyZ2", 4) == 0)
+            continue;
 
         GMLFeatureClass* poClass =
                 GMLParseFeatureType(psSchemaNode, pszName, pszType);

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: fitsdataset.cpp 21104 2010-11-08 22:17:58Z rouault $
+ * $Id: fitsdataset.cpp 23060 2011-09-05 17:58:30Z rouault $
  *
  * Project:  FITS Driver
  * Purpose:  Implement FITS raster read/write support
@@ -33,7 +33,7 @@
 #include "cpl_string.h"
 #include <string.h>
 
-CPL_CVSID("$Id: fitsdataset.cpp 21104 2010-11-08 22:17:58Z rouault $");
+CPL_CVSID("$Id: fitsdataset.cpp 23060 2011-09-05 17:58:30Z rouault $");
 
 CPL_C_START
 #include <fitsio.h>
@@ -507,6 +507,11 @@ GDALDataset* FITSDataset::Open(GDALOpenInfo* poOpenInfo) {
 /* -------------------------------------------------------------------- */
       dataset->SetDescription( poOpenInfo->pszFilename );
       dataset->TryLoadXML();
+
+/* -------------------------------------------------------------------- */
+/*      Check for external overviews.                                   */
+/* -------------------------------------------------------------------- */
+      dataset->oOvManager.Initialize( dataset, poOpenInfo->pszFilename, poOpenInfo->papszSiblingFiles );
 
       return dataset;
   }

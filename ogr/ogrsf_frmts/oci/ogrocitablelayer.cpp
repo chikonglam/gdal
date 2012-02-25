@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrocitablelayer.cpp 22298 2011-05-04 21:18:48Z warmerdam $
+ * $Id: ogrocitablelayer.cpp 23102 2011-09-22 16:12:14Z ilucena $
  *
  * Project:  Oracle Spatial Driver
  * Purpose:  Implementation of the OGROCITableLayer class.  This class provides
@@ -33,7 +33,7 @@
 #include "cpl_conv.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: ogrocitablelayer.cpp 22298 2011-05-04 21:18:48Z warmerdam $");
+CPL_CVSID("$Id: ogrocitablelayer.cpp 23102 2011-09-22 16:12:14Z ilucena $");
 
 static int nDiscarded = 0;
 static int nHits = 0;
@@ -106,10 +106,7 @@ OGROCITableLayer::~OGROCITableLayer()
 {
     int   i;
 
-    if( bNewLayer )
-        FinalizeNewLayer();
-    else
-        FlushPendingFeatures();
+    SyncToDisk();
 
     CPLFree( panWriteFIDs );
     if( papWriteFields != NULL )
@@ -160,15 +157,15 @@ OGRFeatureDefn *OGROCITableLayer::ReadTableDefinition( const char * pszTable )
 /* -------------------------------------------------------------------- */
 /*      Split out the owner if available.                               */
 /* -------------------------------------------------------------------- */
-    const char *pszTableName = pszTable;
-    char *pszOwner = NULL;
-
-    if( strstr(pszTableName,".") != NULL )
+    if( strstr(pszTable,".") != NULL )
     {
-        pszOwner = CPLStrdup(pszTableName);
-        pszTableName = strstr(pszTableName,".") + 1;
-
-        *(strstr(pszOwner,".")) = '\0';
+        osTableName = strstr(pszTable,".") + 1;
+        osOwner.assign( pszTable, strlen(pszTable)-osTableName.size() - 1 );
+    }
+    else
+    {
+        osTableName = pszTable;
+        osOwner = "";
     }
 
 /* -------------------------------------------------------------------- */
@@ -267,11 +264,13 @@ OGRFeatureDefn *OGROCITableLayer::ReadTableDefinition( const char * pszTable )
         char **papszResult;
         int iDim = -1;
 
-        oDimCmd.Append( "SELECT a." );
-        oDimCmd.Append( pszGeomName  );
-        oDimCmd.Append( ".GET_DIMS() DIM FROM " );
-        oDimCmd.Append( pszTableName );
-        oDimCmd.Append( " a WHERE ROWNUM = 1" );
+		oDimCmd.Append( "SELECT COUNT(*) FROM ALL_SDO_GEOM_METADATA u," );
+		oDimCmd.Append( "  TABLE(u.diminfo) t" );
+		oDimCmd.Append( "  WHERE u.table_name = '" );
+		oDimCmd.Append( osTableName );
+		oDimCmd.Append( "' AND u.column_name = '" );
+		oDimCmd.Append( pszGeomName  );
+		oDimCmd.Append( "'" );
 
         oDimStatement.Execute( oDimCmd.GetString() );
 
@@ -283,13 +282,15 @@ OGRFeatureDefn *OGROCITableLayer::ReadTableDefinition( const char * pszTable )
             OGROCIStatement oDimStatement2( poSession );
             char **papszResult2;
 
+            CPLErrorReset();
+			
             oDimCmd2.Appendf( 1024,
                 "select m.sdo_index_dims\n"
                 "from   all_sdo_index_metadata m, all_sdo_index_info i\n"
                 "where  i.index_name = m.sdo_index_name\n"
                 "   and i.sdo_index_owner = m.sdo_index_owner\n"
                 "   and i.table_name = upper('%s')",
-                pszTableName );
+                osTableName.c_str() );
 
             oDimStatement2.Execute( oDimCmd2.GetString() );
 
@@ -298,6 +299,11 @@ OGRFeatureDefn *OGROCITableLayer::ReadTableDefinition( const char * pszTable )
             if( CSLCount( papszResult2 ) > 0 )
             {
                 iDim = atoi( papszResult2[0] );
+            }
+            else
+            {
+            	// we want to clear any errors to avoid confusing the application.
+            	CPLErrorReset();
             }
         }
         else
@@ -758,12 +764,17 @@ OGRErr OGROCITableLayer::CreateFeature( OGRFeature *poFeature )
 /* -------------------------------------------------------------------- */
 /*      Add extents of this geometry to the existing layer extents.     */
 /* -------------------------------------------------------------------- */
-   if( poFeature->GetGeometryRef() != NULL )
+    if( poFeature->GetGeometryRef() != NULL )
     {
         OGREnvelope  sThisExtent;
         
         poFeature->GetGeometryRef()->getEnvelope( &sThisExtent );
-        sExtent.Merge( sThisExtent );
+
+        if( !sExtent.Contains( sThisExtent ) )				
+        {
+            sExtent.Merge( sThisExtent );
+            bExtentUpdated = true;
+        }
     }
 
 /* -------------------------------------------------------------------- */
@@ -1161,20 +1172,6 @@ OGRErr OGROCITableLayer::GetExtent(OGREnvelope *psExtent, int bForce)
     }
 
 /* -------------------------------------------------------------------- */
-/*      Split out the owner if available.                               */
-/* -------------------------------------------------------------------- */
-    const char *pszTableName = GetLayerDefn()->GetName();
-    char *pszOwner = NULL;
-
-    if( strstr(pszTableName,".") != NULL )
-    {
-        pszOwner = CPLStrdup(pszTableName);
-        pszTableName = strstr(pszTableName,".") + 1;
-
-        *(strstr(pszOwner,".")) = '\0';
-    }
-
-/* -------------------------------------------------------------------- */
 /*      Build query command.                                        */
 /* -------------------------------------------------------------------- */
     CPLAssert( NULL != pszGeomName );
@@ -1188,24 +1185,23 @@ OGRErr OGROCITableLayer::GetExtent(OGREnvelope *psExtent, int bForce)
                       "FROM ALL_SDO_GEOM_METADATA m, ",
                       pszGeomName, pszGeomName, pszGeomName, pszGeomName );
 
-    if( pszOwner != NULL )
+    if( osOwner != "" )
     {
         oCommand.Appendf( 500, " %s.%s t ",
-                          pszOwner, pszTableName );
+                          osOwner.c_str(), osTableName.c_str() );
     }
     else
     {
         oCommand.Appendf( 500, " %s t ",
-                          pszTableName );
+                          osTableName.c_str() );
     }
 
     oCommand.Appendf( 500, "WHERE m.TABLE_NAME = UPPER('%s') AND m.COLUMN_NAME = UPPER('%s')",
-                      pszTableName, pszGeomName );
+                      osTableName.c_str(), pszGeomName );
 
-    if( pszOwner != NULL )
+    if( osOwner != "" )
     {
-        oCommand.Appendf( 500, " AND OWNER = UPPER('%s')", pszOwner );
-        CPLFree( pszOwner );
+        oCommand.Appendf( 500, " AND OWNER = UPPER('%s')", osOwner.c_str() );
     }
 
 /* -------------------------------------------------------------------- */
@@ -1242,7 +1238,7 @@ OGRErr OGROCITableLayer::GetExtent(OGREnvelope *psExtent, int bForce)
         err = OGRLayer::GetExtent( psExtent, bForce );
         CPLDebug( "OCI", 
                   "Failing to query extent of %s using default GetExtent",
-                  pszTableName );
+                  osTableName.c_str() );
     }
 
     return err;
@@ -1313,34 +1309,77 @@ int OGROCITableLayer::GetFeatureCount( int bForce )
 }
 
 /************************************************************************/
-/*                          FinalizeNewLayer()                          */
-/*                                                                      */
-/*      Our main job here is to update the USER_SDO_GEOM_METADATA       */
-/*      table to include the correct array of dimension object with     */
-/*      the appropriate extents for this layer.  We may also do         */
-/*      spatial indexing at this point.                                 */
+/*                         UpdateLayerExtents()                         */
 /************************************************************************/
 
-void OGROCITableLayer::FinalizeNewLayer()
+void OGROCITableLayer::UpdateLayerExtents()
 
 {
-    OGROCIStringBuf  sDimUpdate;
-
-    FlushPendingFeatures();
-
-/* -------------------------------------------------------------------- */
-/*      If the dimensions are degenerate (all zeros) then we assume     */
-/*      there were no geometries, and we don't bother setting the       */
-/*      dimensions.                                                     */
-/* -------------------------------------------------------------------- */
-    if( sExtent.MaxX == 0 && sExtent.MinX == 0
-        && sExtent.MaxY == 0 && sExtent.MinY == 0 )
-    {
-        CPLError( CE_Warning, CPLE_AppDefined, 
-                  "Layer %s appears to have no geometry ... not setting SDO DIMINFO metadata.", 
-                  poFeatureDefn->GetName() );
+    if( !bExtentUpdated )
         return;
-                  
+
+    bExtentUpdated = false;
+
+/* -------------------------------------------------------------------- */
+/*      Do we have existing layer extents we need to merge in to the    */
+/*      ones we collected as we created features?                       */
+/* -------------------------------------------------------------------- */
+    bool bHaveOldExtent = false;
+
+    if( !bNewLayer && pszGeomName )
+    {
+        OGROCIStringBuf oCommand;
+
+        oCommand.Appendf(1000, 
+                          "select min(case when r=1 then sdo_lb else null end) minx, min(case when r=2 then sdo_lb else null end) miny, " 
+                          "min(case when r=1 then sdo_ub else null end) maxx, min(case when r=2 then sdo_ub else null end) maxy" 
+                          " from (SELECT d.sdo_dimname, d.sdo_lb, sdo_ub, sdo_tolerance, rownum r" 
+                          " FROM ALL_SDO_GEOM_METADATA m, table(m.diminfo) d"  
+                          " where m.table_name = UPPER('%s') and m.COLUMN_NAME = UPPER('%s')", 
+                          osTableName.c_str(), pszGeomName ); 
+ 		 
+        if( osOwner != "" ) 
+        { 
+            oCommand.Appendf(500, " AND OWNER = UPPER('%s')", osOwner.c_str() ); 
+        } 
+ 		 
+        oCommand.Append(" ) ");
+
+        OGROCISession *poSession = poDS->GetSession();
+        CPLAssert( NULL != poSession );
+        
+        OGROCIStatement oGetExtent( poSession );
+        
+        if( oGetExtent.Execute( oCommand.GetString() ) == CE_None )
+        {
+            char **papszRow = oGetExtent.SimpleFetchRow();
+            
+            if( papszRow != NULL
+                && papszRow[0] != NULL && papszRow[1] != NULL
+                && papszRow[2] != NULL && papszRow[3] != NULL )
+            {
+                OGREnvelope sOldExtent;
+
+                bHaveOldExtent = true;
+
+                sOldExtent.MinX = CPLAtof(papszRow[0]);
+                sOldExtent.MinY = CPLAtof(papszRow[1]);
+                sOldExtent.MaxX = CPLAtof(papszRow[2]);
+                sOldExtent.MaxY = CPLAtof(papszRow[3]);
+
+                if( sOldExtent.Contains( sExtent ) )
+                {
+                    // nothing to do!
+                    sExtent = sOldExtent;
+                    bExtentUpdated = false;
+                    return;
+                }
+                else
+                {
+                    sExtent.Merge( sOldExtent );
+                }
+            }
+        }
     }
 
 /* -------------------------------------------------------------------- */
@@ -1370,107 +1409,157 @@ void OGROCITableLayer::FinalizeNewLayer()
     dfZMax = 100000.0;
     dfZRes = 0.002;
     ParseDIMINFO( "DIMINFO_Z", &dfZMin, &dfZMax, &dfZRes );
+
+/* -------------------------------------------------------------------- */
+/*      If we already have an extent in the table, we will need to      */
+/*      update it in place.                                             */
+/* -------------------------------------------------------------------- */
+    OGROCIStringBuf  sDimUpdate;
+
+    if( bHaveOldExtent )
+    {
+        sDimUpdate.Append( "UPDATE USER_SDO_GEOM_METADATA " );
+        sDimUpdate.Append( "SET DIMINFO =" );
+        sDimUpdate.Append( "MDSYS.SDO_DIM_ARRAY(" );
+        sDimUpdate.Appendf(200,
+                           "MDSYS.SDO_DIM_ELEMENT('X',%.16g,%.16g,%.12g)",
+                           dfXMin, dfXMax, dfXRes );
+        sDimUpdate.Appendf(200,
+                           ",MDSYS.SDO_DIM_ELEMENT('Y',%.16g,%.16g,%.12g)",
+                           dfYMin, dfYMax, dfYRes );
+
+        if( nDimension == 3 )
+        {
+            sDimUpdate.Appendf(200,
+                               ",MDSYS.SDO_DIM_ELEMENT('Z',%.16g,%.16g,%.12g)",
+                               dfZMin, dfZMax, dfZRes );
+        }      
     
+        sDimUpdate.Appendf(strlen(poFeatureDefn->GetName()) + 100,") WHERE TABLE_NAME = '%s'", poFeatureDefn->GetName());    
+        
+    } 
+    else
+    {	  
 /* -------------------------------------------------------------------- */
 /*      Prepare dimension update statement.                             */
 /* -------------------------------------------------------------------- */
-    sDimUpdate.Append( "INSERT INTO USER_SDO_GEOM_METADATA VALUES " );
-    sDimUpdate.Appendf( strlen(poFeatureDefn->GetName()) + 100,
-                        "('%s', '%s', ",
-                        poFeatureDefn->GetName(),
-                        pszGeomName );
+        sDimUpdate.Append( "INSERT INTO USER_SDO_GEOM_METADATA VALUES " );
+        sDimUpdate.Appendf( strlen(poFeatureDefn->GetName()) + 100,
+                            "('%s', '%s', ",
+                            poFeatureDefn->GetName(),
+                            pszGeomName );
 
-    sDimUpdate.Append( "MDSYS.SDO_DIM_ARRAY(" );
-    sDimUpdate.Appendf(200,
-                       "MDSYS.SDO_DIM_ELEMENT('X',%.16g,%.16g,%.12g)",
-                       dfXMin, dfXMax, dfXRes );
-    sDimUpdate.Appendf(200,
-                       ",MDSYS.SDO_DIM_ELEMENT('Y',%.16g,%.16g,%.12g)",
-                       dfYMin, dfYMax, dfYRes );
-
-    if( nDimension == 3 )
-    {
+        sDimUpdate.Append( "MDSYS.SDO_DIM_ARRAY(" );
         sDimUpdate.Appendf(200,
-                           ",MDSYS.SDO_DIM_ELEMENT('Z',%.16g,%.16g,%.12g)",
-                           dfZMin, dfZMax, dfZRes );
+                           "MDSYS.SDO_DIM_ELEMENT('X',%.16g,%.16g,%.12g)",
+                           dfXMin, dfXMax, dfXRes );
+        sDimUpdate.Appendf(200,
+                           ",MDSYS.SDO_DIM_ELEMENT('Y',%.16g,%.16g,%.12g)",
+                           dfYMin, dfYMax, dfYRes );
+
+        if( nDimension == 3 )
+        {
+            sDimUpdate.Appendf(200,
+                               ",MDSYS.SDO_DIM_ELEMENT('Z',%.16g,%.16g,%.12g)",
+                               dfZMin, dfZMax, dfZRes );
+        }
+
+        if( nSRID == -1 )
+            sDimUpdate.Append( "), NULL)" );
+        else
+            sDimUpdate.Appendf( 100, "), %d)", nSRID );
     }
 
-    if( nSRID == -1 )
-        sDimUpdate.Append( "), NULL)" );
-    else
-        sDimUpdate.Appendf( 100, "), %d)", nSRID );
-
 /* -------------------------------------------------------------------- */
-/*      Execute the metadata update.                                    */
+/*      Run the update/insert command.                                  */
 /* -------------------------------------------------------------------- */
     OGROCIStatement oExecStatement( poDS->GetSession() );
+    
+    oExecStatement.Execute( sDimUpdate.GetString() );
+}
 
-    if( oExecStatement.Execute( sDimUpdate.GetString() ) != CE_None )
-        return;
+/************************************************************************/
+/*                          FinalizeNewLayer()                          */
+/*                                                                      */
+/*      Our main job here is to update the USER_SDO_GEOM_METADATA       */
+/*      table to include the correct array of dimension object with     */
+/*      the appropriate extents for this layer.  We may also do         */
+/*      spatial indexing at this point.                                 */
+/************************************************************************/
 
+void OGROCITableLayer::FinalizeNewLayer()
+
+{
+    UpdateLayerExtents();
+
+/* -------------------------------------------------------------------- */
+/*      For new layers we try to create a spatial index.                */
+/* -------------------------------------------------------------------- */
+    if( bNewLayer && sExtent.IsInit() )
+    {
 /* -------------------------------------------------------------------- */
 /*      If the user has disabled INDEX support then don't create the    */
 /*      index.                                                          */
 /* -------------------------------------------------------------------- */
-    if( !CSLFetchBoolean( papszOptions, "INDEX", TRUE ) )
-        return;
+        if( !CSLFetchBoolean( papszOptions, "INDEX", TRUE ) )
+            return;
 
 /* -------------------------------------------------------------------- */
 /*      Establish an index name.  For some reason Oracle 8.1.7 does     */
 /*      not support spatial index names longer than 18 characters so    */
 /*      we magic up an index name if it would be too long.              */
 /* -------------------------------------------------------------------- */
-    char  szIndexName[20];
+        char  szIndexName[20];
 
-    if( strlen(poFeatureDefn->GetName()) < 15 )
-        sprintf( szIndexName, "%s_idx", poFeatureDefn->GetName() );
-    else if( strlen(poFeatureDefn->GetName()) < 17 )
-        sprintf( szIndexName, "%si", poFeatureDefn->GetName() );
-    else
-    {
-        int i, nHash = 0;
-        const char *pszSrcName = poFeatureDefn->GetName();
+        if( strlen(poFeatureDefn->GetName()) < 15 )
+            sprintf( szIndexName, "%s_idx", poFeatureDefn->GetName() );
+        else if( strlen(poFeatureDefn->GetName()) < 17 )
+            sprintf( szIndexName, "%si", poFeatureDefn->GetName() );
+        else
+        {
+            int i, nHash = 0;
+            const char *pszSrcName = poFeatureDefn->GetName();
 
-        for( i = 0; pszSrcName[i] != '\0'; i++ )
-            nHash = (nHash + i * pszSrcName[i]) % 987651;
+            for( i = 0; pszSrcName[i] != '\0'; i++ )
+                nHash = (nHash + i * pszSrcName[i]) % 987651;
         
-        sprintf( szIndexName, "OSI_%d", nHash );
-    }
+            sprintf( szIndexName, "OSI_%d", nHash );
+        }
 
-    poDS->GetSession()->CleanName( szIndexName );
+        poDS->GetSession()->CleanName( szIndexName );
 
 /* -------------------------------------------------------------------- */
 /*      Try creating an index on the table now.  Use a simple 5         */
 /*      level quadtree based index.  Would R-tree be a better default?  */
 /* -------------------------------------------------------------------- */
+        OGROCIStringBuf  sIndexCmd;
+        OGROCIStatement oExecStatement( poDS->GetSession() );
+    
 
-// Disable for now, spatial index creation always seems to cause me to 
-// lose my connection to the database!
-    OGROCIStringBuf  sIndexCmd;
+        sIndexCmd.Appendf( 10000, "CREATE INDEX \"%s\" ON %s(\"%s\") "
+                           "INDEXTYPE IS MDSYS.SPATIAL_INDEX ",
+                           szIndexName, 
+                           poFeatureDefn->GetName(), 
+                           pszGeomName );
 
-    sIndexCmd.Appendf( 10000, "CREATE INDEX \"%s\" ON %s(\"%s\") "
-                       "INDEXTYPE IS MDSYS.SPATIAL_INDEX ",
-                       szIndexName, 
-                       poFeatureDefn->GetName(), 
-                       pszGeomName );
+        if( CSLFetchNameValue( papszOptions, "INDEX_PARAMETERS" ) != NULL )
+        {
+            sIndexCmd.Append( " PARAMETERS( '" );
+            sIndexCmd.Append( CSLFetchNameValue(papszOptions,"INDEX_PARAMETERS") );
+            sIndexCmd.Append( "' )" );
+        }
 
-    if( CSLFetchNameValue( papszOptions, "INDEX_PARAMETERS" ) != NULL )
-    {
-        sIndexCmd.Append( " PARAMETERS( '" );
-        sIndexCmd.Append( CSLFetchNameValue(papszOptions,"INDEX_PARAMETERS") );
-        sIndexCmd.Append( "' )" );
-    }
-
-    if( oExecStatement.Execute( sIndexCmd.GetString() ) != CE_None )
-    {
-        char szDropCommand[2000];
-        sprintf( szDropCommand, "DROP INDEX \"%s\"", szIndexName );
-        oExecStatement.Execute( szDropCommand );
-    }
+        if( oExecStatement.Execute( sIndexCmd.GetString() ) != CE_None )
+        {
+            CPLString osDropCommand;
+            osDropCommand.Printf( "DROP INDEX \"%s\"", szIndexName );
+            oExecStatement.Execute( osDropCommand );
+        }
+    }  
 }
 
 /************************************************************************/
-/*                        AllocAndBindForWrite(int eType)                        */
+/*                   AllocAndBindForWrite(int eType)                    */
 /************************************************************************/
 
 /* -------------------------------------------------------------------- */
@@ -1905,6 +1994,10 @@ OGRErr OGROCITableLayer::FlushPendingFeatures()
 OGRErr OGROCITableLayer::SyncToDisk()
 
 {
-    return FlushPendingFeatures();
+    OGRErr eErr = FlushPendingFeatures();
+
+    UpdateLayerExtents();
+
+    return eErr;
 }
 

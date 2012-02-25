@@ -1,4 +1,4 @@
-# $Id: nmake.opt 22529 2011-06-13 15:32:56Z warmerdam $
+# $Id: nmake.opt 23610 2011-12-20 01:17:29Z warmerdam $
 #
 # nmake.opt - main configuration file for NMAKE makefiles.
 #
@@ -25,6 +25,8 @@
 # Check version of Visual C++ compiler:
 # nmake -f makefile.vc MSVC_VER=xxxx
 # where xxxx is one of following:
+# 1700 = 11.0(2011)
+# 1600 = 10.0(2010)
 # 1500 = 9.0 (2008)
 # 1400 = 8.0 (2005) - specific compilation flags, different from older VC++
 # 1310 = 7.1 (2003)
@@ -33,7 +35,7 @@
 #
 !IFNDEF MSVC_VER
 #assume msvc VS2008.
-MSVC_VER=1600
+MSVC_VER=1500
 !ENDIF
 
 ###############################################################################
@@ -107,18 +109,31 @@ CXX_ANALYZE_FLAGS=
 !IFNDEF OPTFLAGS
 !IF $(MSVC_VER) >= 1400
 !IFNDEF DEBUG
-OPTFLAGS= $(CXX_ANALYZE_FLAGS) /nologo /MD /EHsc /Ox /W3 /D_CRT_SECURE_NO_DEPRECATE /D_CRT_NONSTDC_NO_DEPRECATE /DNDEBUG
+OPTFLAGS= $(CXX_ANALYZE_FLAGS) /nologo /MD /EHsc /Ox /D_CRT_SECURE_NO_DEPRECATE /D_CRT_NONSTDC_NO_DEPRECATE /DNDEBUG
 !ELSE
-OPTFLAGS= $(CXX_ANALYZE_FLAGS) /nologo /MD /EHsc /Zi /W4 /D_CRT_SECURE_NO_DEPRECATE /D_CRT_NONSTDC_NO_DEPRECATE /Fd$(GDAL_ROOT)\gdal$(VERSION).pdb /DDEBUG
+OPTFLAGS= $(CXX_ANALYZE_FLAGS) /nologo /MD /EHsc /Zi /D_CRT_SECURE_NO_DEPRECATE /D_CRT_NONSTDC_NO_DEPRECATE /Fd$(GDAL_ROOT)\gdal$(VERSION).pdb /DDEBUG
 !ENDIF
 !ELSE
 !IFNDEF DEBUG
-OPTFLAGS=	/nologo /MD /EHsc /GR /Ox /W3 /DNDEBUG
+OPTFLAGS=	/nologo /MD /EHsc /GR /Ox /DNDEBUG
 !ELSE
-OPTFLAGS=	/nologo /MD /EHsc /GR /Zi /W4 /Fd$(GDAL_ROOT)\gdal$(VERSION).pdb  /DDEBUG
+OPTFLAGS=	/nologo /MD /EHsc /GR /Zi /Fd$(GDAL_ROOT)\gdal$(VERSION).pdb  /DDEBUG
 !ENDIF
 !ENDIF  #MSVC_VER
 !ENDIF  # OPTFLAGS
+
+# 
+# Set flags controlling warnings level, and supression of some warnings.
+# 
+!IFNDEF WARNFLAGS
+WARNFLAGS =	/W4 /wd4127 /wd4251 /wd4275 /wd4786 /wd4100 /wd4245 /wd4206 /wd4018 /wd4389
+!ENDIF
+
+# The followin are extra disables that can be applied to external source
+# not under our control that we wish to use less stringent warnings with.
+!IFNDEF SOFTWARNFLAGS
+SOFTWARNFLAGS= /wd4244 /wd4702 /wd4701 /wd4013 /wd4706 /wd4057 /wd4210 /wd4305
+!ENDIF
 
 # Linker debug options
 !IFDEF DEBUG
@@ -136,7 +151,7 @@ LDEBUG= /debug
 STDCALL=YES
 
 # Version number embedded in DLL name. 
-VERSION =	18
+VERSION =	19
 
 # Comment the following out if you want PAM supported disabled
 # by default.  
@@ -156,6 +171,18 @@ INCLUDE_OGR_FRMTS = YES
 # Enable the following if VCDIR set properly, and you want the utility
 # programs to be able to expand wildcards. 
 #SETARGV =	$(VCDIR)\lib\setargv.obj
+
+# Uncomment to build with libiconv library to support extended character
+# recoding capabilities. GDAL's internal stub implementation supports
+# latin1<->utf-8 translations only.
+# Depending on your libiconv build you may need to set ICONV_CONST macro to
+# const or leave it empty. Take a look on your iconv() declaration in iconv.h.
+# If the second parameter declared as const char** then you need to define
+# ICONV_CONST=const otherwise leave it empty.
+#LIBICONV_DIR = "C:\Program Files\GnuWin32"
+#LIBICONV_INCLUDE = -I$(LIBICONV_DIR)\include
+#LIBICONV_LIBRARY = $(LIBICONV_DIR)\lib\libiconv.lib
+#LIBICONV_CFLAGS = -DICONV_CONST=const
 
 # Comment out the following to disable BSB support.
 BSB_SUPPORTED = 1
@@ -211,8 +238,8 @@ JPEG12_SUPPORTED = 1
 #ECWDIR  = 	"c:/Program Files/ERDAS/ERDAS ECW JPEG2000 Read SDK"
 #ECWFLAGS =	-DECWSDK_VERSION=41 \
 #		-I$(ECWDIR)\include \
-#		-I$(ECWDIR)\include/ecw/api -I$(ECWDIR)\include/ecw/jp2 \
-#		-I$(ECWDIR)\include/ecw/ecw
+#		-I$(ECWDIR)\include/NCSECW/api -I$(ECWDIR)\include/NCSECW/jp2 \
+#		-I$(ECWDIR)\include/NCSECW/ecw
 #ECWLIB  = 	$(ECWDIR)\lib\vc90\win32\NCSEcw4_RO.lib \
 #		$(ECWDIR)\lib\vc90\win32\NCSUtil4.lib \
 #		$(ECWDIR)\lib\vc90\win32\NCScnet4.lib
@@ -234,6 +261,13 @@ JPEG12_SUPPORTED = 1
 #		-I$(ECWDIR)\include -I$(ECWDIR)/Source/include \
 #		/D_MBCS /D_UNICODE /DUNICODE /D_WINDOWS \
 #		/DLIBECWJ2 /DWIN32 /D_WINDLL -DNO_X86_MMI
+
+# DWG support using the Open Design Alliance Teigha Libraries
+
+#TD_BASE = C:\warmerda\pkg\td_vc9
+#TD_FLAGS = -D_TOOLKIT_IN_DLL_
+#TD_INCLUDE = -I$(TD_BASE)\TD\Include -I$(TD_BASE)\TD\Extensions\ExServices
+#TD_LIBDIR = $(TD_BASE)\lib\vc9dll
 
 # DWG/DXF support via DWGdirect from Open Design Alliance
 
@@ -322,7 +356,9 @@ PCIDSK_SETTING=INTERNAL
 #SQLITE_INC=-IN:\pkg\sqlite-win32
 #SQLITE_LIB=N:\pkg\sqlite-win32\sqlite3_i.lib
 # For spatialite support, try this instead (assuming you grab the libspatialite-amalgamation-2.3.1 and installed it in osgeo4w):
-#SQLITE_INC=-IC:\osgeo4w\include -DHAVE_SPATIALITE
+# The -DSPATIALITE_AMALGAMATION, which cause "spatialite/sqlite3.h" to be included instead of "sqlite3.h" might not be necessary
+# depending on the layout of the include directories. In case of compilation errors, remove it.
+#SQLITE_INC=-IC:\osgeo4w\include -DHAVE_SPATIALITE -DSPATIALITE_AMALGAMATION
 #SQLITE_LIB=C:\osgeo4w\lib\spatialite_i.lib
 
 # Informix Data Blade
@@ -348,6 +384,11 @@ GRIB_SETTING=yes
 #NETCDF_SETTING=yes
 #NETCDF_LIB=C:\Software\netcdf\lib\netcdf.lib
 #NETCDF_INC_DIR=C:\Software\netcdf\include
+
+# Uncomment the following to add NC4 and HDF4 support
+#NETCDF_HAS_NC4 = yes
+#NETCDF_HAS_HDF4 = yes
+
 # PROJ.4 stuff
 # Uncomment the following lines to link PROJ.4 library statically. Otherwise
 # it will be linked dynamically during runtime.
@@ -375,6 +416,14 @@ OCI_INCLUDE =	-I$(ORACLE_HOME)\oci\include
 #SDE_LIB = $(SDE_SDK)\lib\pe$(SDE_VERSION).lib \
 #          $(SDE_SDK)\lib\sde$(SDE_VERSION).lib $(SDE_SDK)\lib\sg$(SDE_VERSION).lib      
 
+
+#FGDB_ENABLED = YES
+#FGDB_PLUGIN = YES
+#FGDB_SDK = C:\Users\rburhum\Desktop\FileGDB_API_VS2008_1_0beta3
+#FGDB_INC = $(FGDB_SDK)\include 
+#FGDB_LIB = $(FGDB_SDK)\lib\FileGDBAPI.lib
+
+
 #uncomment to use ArcObjects
 #ARCOBJECTS_ENABLED = YES
 #ARCOBJECTS_PLUGIN = YES
@@ -387,7 +436,7 @@ OCI_INCLUDE =	-I$(ORACLE_HOME)\oci\include
 
 
 # Uncomment to use libcurl (DLL by default)
-# The cURL library is used for WCS, WMS, GeoJSON, SRS call importFromUrl(), etc.
+# The cURL library is used for WCS, WMS, GeoJSON, SRS call importFromUrl(), WFS, GFT, CouchDB, /vsicurl/ etc.
 #CURL_DIR=C:\curl-7.15.0
 #CURL_INC = -I$(CURL_DIR)/include
 # Uncoment following line to use libcurl as dynamic library
@@ -425,9 +474,34 @@ OCI_INCLUDE =	-I$(ORACLE_HOME)\oci\include
 #POPPLER_BASE_STREAM_HAS_TWO_ARGS = YES
 #POPPLER_LIBS = e:/kde/lib/poppler.lib e:/kde/lib/freetype.lib e:/kde/lib/liblcms-1.lib advapi32.lib gdi32.lib
 
+# Uncomment for PDF support
+#PODOFO_ENABLED = YES
+#PODOFO_CFLAGS = -Ie:/podofo-svn/install/include -Ie:/podofo-svn/install/include/podofo
+#PODOFO_LIBS = e:/podofo-svn/install/lib/podofo.lib E:/release-1500-dev/release-1500/lib/freetype239.lib gdi32.lib
+
 # Uncomment for LZMA TIFF support
 #LZMA_CFLAGS = -IC:/gdal_trunk/xz-5.0.0-windows/include
 #LZMA_LIBS = C:/gdal_trunk/xz-5.0.0-windows/bin_i486/liblzma.lib
+
+# Uncomment for WEBP support
+#WEBP_ENABLED = YES
+#WEBP_CFLAGS = -IE:/libwebp-0.1-windows/dev/Include
+#WEBP_LIBS = e:/libwebp-0.1-windows/dev/lib/libwebp_a.lib
+
+# Uncomment for freexl support
+#
+# Note: Currently there is no MSVC makefile to build freexl.
+# Here's the procedure I've followed (from root of freexl source tree)
+# cl /c src/freexl.c /Iheaders /IE:\release-1500-dev\release-1500\include /DDLL_EXPORT
+# link /dll E:\release-1500-dev\release-1500\lib\iconv.lib freexl.obj /out:freexl.dll /implib:freexl_i.lib
+#
+#FREEXL_CFLAGS = -Ie:/freexl-1.0.0a/headers
+#FREEXL_LIBS = e:/freexl-1.0.0a/freexl_i.lib
+
+# Uncomment for libgta support
+#
+#GTA_CFLAGS = -IC:/gdal_trunk/libgta-1.0.0-w32/include -IC:/gdal_trunk/libgta-1.0.0-w32/include/gta
+#GTA_LIBS = C:/gdal_trunk/libgta-1.0.0-w32/lib/libgta.dll.a
 
 # Any extra libraries needed on this platform?
 ADD_LIBS	= 
@@ -462,7 +536,7 @@ OGR_FLAG = -DOGR_ENABLED
 LINKER_FLAGS = $(MSVC_VLD_LIB) $(LDEBUG)
 
 
-CFLAGS	=	$(OPTFLAGS) $(INC) $(EXTRAFLAGS) $(OGR_FLAG) $(MSVC_VLD_FLAGS)
+CFLAGS	=	$(OPTFLAGS) $(WARNFLAGS) $(INC) $(EXTRAFLAGS) $(OGR_FLAG) $(MSVC_VLD_FLAGS)
 MAKE	=	nmake /nologo
 
 CC	=	cl
@@ -529,6 +603,14 @@ HDF5_LIB_LINK =
 !ENDIF
 !ENDIF
 
+!IFDEF FGDB_LIB
+!IF "$(FGDB_PLUGIN)" != "YES"
+FGDB_LIB_LINK = $(FGDB_LIB)
+!ELSE
+FGDB_LIB_LINK =
+!ENDIF
+!ENDIF
+
 !IFDEF XERCES_DIR
 NAS_ENABLED = YES
 !ENDIF
@@ -548,7 +630,8 @@ EXTERNAL_LIBS =	$(OGDILIB) $(XERCES_LIB) $(EXPAT_LIB) $(OCI_LIB) $(PG_LIB) \
 	$(MYSQL_LIB) $(GEOS_LIB) $(HDF5_LIB_LINK) $(SDE_LIB) $(ARCOBJECTS_LIB) $(DWG_LIB) \
 	$(IDB_LIB) $(CURL_LIB) $(DODS_LIB) $(KAKLIB) $(PCIDSK_LIB) \
 	$(ODBCLIB) $(JASPER_LIB) $(PNG_LIB) $(ADD_LIBS) $(OPENJPEG_LIB) \
-	$(MRSID_LIDAR_LIB) $(LIBKML_LIBS) $(SOSI_LIBS) $(POPPLER_LIBS) $(LZMA_LIBS)
+	$(MRSID_LIDAR_LIB) $(LIBKML_LIBS) $(SOSI_LIBS) $(POPPLER_LIBS) $(PODOFO_LIBS) $(LZMA_LIBS) \
+	$(LIBICONV_LIBRARY) $(WEBP_LIBS) $(FGDB_LIB_LINK) $(FREEXL_LIBS) $(GTA_LIBS)
 		
 .c.obj:	
 	$(CC) $(CFLAGS) /c $*.c

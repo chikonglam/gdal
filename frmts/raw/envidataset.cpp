@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: envidataset.cpp 22304 2011-05-05 15:18:06Z warmerdam $
+ * $Id: envidataset.cpp 23170 2011-10-03 09:35:21Z rprinceley $
  *
  * Project:  ENVI .hdr Driver
  * Purpose:  Implementation of ENVI .hdr labelled raw raster support.
@@ -32,7 +32,7 @@
 #include "ogr_spatialref.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: envidataset.cpp 22304 2011-05-05 15:18:06Z warmerdam $");
+CPL_CVSID("$Id: envidataset.cpp 23170 2011-10-03 09:35:21Z rprinceley $");
 
 CPL_C_START
 void GDALRegister_ENVI(void);
@@ -1784,7 +1784,19 @@ GDALDataset *ENVIDataset::Open( GDALOpenInfo * poOpenInfo )
 
     pszInterleave = CSLFetchNameValue(poDS->papszHeader,"interleave");
 
-    
+    /* In case, there is no interleave keyword, we try to derive it from the */
+    /* file extension, if it matches one of the expected interleaving mode */
+    if( pszInterleave == NULL )
+    {
+        const char* pszExtension = CPLGetExtension(poOpenInfo->pszFilename);
+        if ( EQUAL(pszExtension, "BSQ") ||
+             EQUAL(pszExtension, "BIP") ||
+             EQUAL(pszExtension, "BIL") )
+        {
+            pszInterleave = pszExtension;
+        }
+    }
+
     if (!GDALCheckDatasetDimensions(nSamples, nLines) || !GDALCheckBandCount(nBands, FALSE) ||
         pszInterleave == NULL )
     {
@@ -1876,11 +1888,27 @@ GDALDataset *ENVIDataset::Open( GDALOpenInfo * poOpenInfo )
 /* -------------------------------------------------------------------- */
     if( CSLFetchNameValue(poDS->papszHeader,"file_type" ) != NULL )
     {
+        // when the file type is one of these we return an invalid file type err
+            //'envi meta file'
+            //'envi virtual mosaic'
+            //'envi spectral library'
+            //'envi fft result'
+
+        // when the file type is one of these we open it 
+            //'envi standard'
+            //'envi classification' 
+
+        // when the file type is anything else we attempt to open it as a raster.
+
         const char * pszEnviFileType;
         pszEnviFileType = CSLFetchNameValue(poDS->papszHeader,"file_type");
-        if(!EQUAL(pszEnviFileType, "ENVI Standard") &&
-           !EQUAL(pszEnviFileType, "ENVI") &&
-           !EQUAL(pszEnviFileType, "ENVI Classification"))
+
+        // envi gdal does not support any of these
+        // all others we will attempt to open
+        if(EQUAL(pszEnviFileType, "envi meta file") ||
+           EQUAL(pszEnviFileType, "envi virtual mosaic") ||
+           EQUAL(pszEnviFileType, "envi spectral library") ||
+           EQUAL(pszEnviFileType, "envi fft result"))
         {
             CPLError( CE_Failure, CPLE_OpenFailed, 
                       "File %s contains an invalid file type in the ENVI .hdr\n"
@@ -2101,9 +2129,9 @@ GDALDataset *ENVIDataset::Open( GDALOpenInfo * poOpenInfo )
         {
             GDALColorEntry sEntry;
 
-            sEntry.c1 = atoi(papszClassColors[i*3+0]);
-            sEntry.c2 = atoi(papszClassColors[i*3+1]);
-            sEntry.c3 = atoi(papszClassColors[i*3+2]);
+            sEntry.c1 = (short) atoi(papszClassColors[i*3+0]);
+            sEntry.c2 = (short) atoi(papszClassColors[i*3+1]);
+            sEntry.c3 = (short) atoi(papszClassColors[i*3+2]);
             sEntry.c4 = 255;
             oCT.SetColorEntry( i, &sEntry );
         }

@@ -1,3 +1,43 @@
+gdal (1.9.0-1~exp3) experimental; urgency=low
+
+  * Added b-deps and enabled a few new supports: 
+    Poppler, Armadillo, OpenJPEG, FreeXL and libZMA.
+
+ -- Francesco Paolo Lovergine <frankie@debian.org>  Thu, 23 Feb 2012 12:40:19 +0100
+
+gdal (1.9.0-1~exp2) experimental; urgency=low
+
+  * Fixed mipsel, mips, powerpc and s390 files for syntax errors that caused
+    FTBS on all those archs.
+  * Updated sparc, amd64 and ia64 symbol files to 1.9 series.
+  * Updated README.source to document symbol versioning and script.
+
+ -- Francesco Paolo Lovergine <frankie@debian.org>  Thu, 23 Feb 2012 11:53:59 +0100
+
+gdal (1.9.0-1~exp1) experimental; urgency=low
+
+  * New upstream release.
+  * New tool: gdalsrsinfo.
+  * Dropped patch epsilon.
+  * All patches refreshed for current version.
+  * Regenerating all symfiles from scratch. But for the usual stock of
+    internal C++ changes (with both adding and removing of methods) a couple
+    of TIFF related C functions have been dropped:
+       TIFFFindFieldInfo
+       TIFFFindFieldInfoByName
+    which is due to Tiff/GeoTiff resyncing against upstream. This is ignored,
+    but we already introduced a SONAME change, and it will not impact sid
+    builds and library use.
+  * Removed superfluous break/replaces against libgdal1-<version> package.
+
+ -- Francesco Paolo Lovergine <frankie@debian.org>  Tue, 21 Feb 2012 15:28:45 +0100
+
+gdal (1.8.1-2~exp3) experimental; urgency=low
+
+  * Fixed .common symbol file to drop conditionals.
+
+ -- Francesco Paolo Lovergine <frankie@debian.org>  Wed, 23 Nov 2011 14:23:29 +0100
+
 gdal (1.8.1-2~exp2) experimental; urgency=low
 
 <<<<<<< HEAD

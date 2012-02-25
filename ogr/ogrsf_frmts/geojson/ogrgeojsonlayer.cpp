@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrgeojsonlayer.cpp 21338 2010-12-29 22:45:03Z rouault $
+ * $Id: ogrgeojsonlayer.cpp 23367 2011-11-12 22:46:13Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implementation of OGRGeoJSONLayer class (OGR GeoJSON Driver).
@@ -55,7 +55,8 @@ OGRGeoJSONLayer::OGRGeoJSONLayer( const char* pszName,
                                   OGRGeoJSONDataSource* poDS )
     : iterCurrent_( seqFeatures_.end() ), poDS_( poDS ), poFeatureDefn_(new OGRFeatureDefn( pszName ) ), poSRS_( NULL ), nOutCounter_( 0 )
 {
-    UNREFERENCED_PARAM(papszOptions);
+    bWriteBBOX = CSLTestBoolean(CSLFetchNameValueDef(papszOptions, "WRITE_BBOX", "FALSE"));
+    bBBOX3D = FALSE;
 
     CPLAssert( NULL != poDS_ );
     CPLAssert( NULL != poFeatureDefn_ );
@@ -67,6 +68,8 @@ OGRGeoJSONLayer::OGRGeoJSONLayer( const char* pszName,
     {
         SetSpatialRef( poSRSIn );
     }
+
+    nCoordPrecision = atoi(CSLFetchNameValueDef(papszOptions, "COORDINATE_PRECISION", "-1"));
 }
 
 /************************************************************************/
@@ -78,7 +81,43 @@ OGRGeoJSONLayer::~OGRGeoJSONLayer()
     VSILFILE* fp = poDS_->GetOutputFile();
     if( NULL != fp )
     {
-        VSIFPrintfL( fp, "\n]\n}\n" );
+        VSIFPrintfL( fp, "\n]" );
+
+        if( bWriteBBOX && sEnvelopeLayer.IsInit() )
+        {
+            json_object* poObjBBOX = json_object_new_array();
+            json_object_array_add(poObjBBOX,
+                            json_object_new_double_with_precision(sEnvelopeLayer.MinX, nCoordPrecision));
+            json_object_array_add(poObjBBOX,
+                            json_object_new_double_with_precision(sEnvelopeLayer.MinY, nCoordPrecision));
+            if( bBBOX3D )
+                json_object_array_add(poObjBBOX,
+                            json_object_new_double_with_precision(sEnvelopeLayer.MinZ, nCoordPrecision));
+            json_object_array_add(poObjBBOX,
+                            json_object_new_double_with_precision(sEnvelopeLayer.MaxX, nCoordPrecision));
+            json_object_array_add(poObjBBOX,
+                            json_object_new_double_with_precision(sEnvelopeLayer.MaxY, nCoordPrecision));
+            if( bBBOX3D )
+                json_object_array_add(poObjBBOX,
+                            json_object_new_double_with_precision(sEnvelopeLayer.MaxZ, nCoordPrecision));
+
+            const char* pszBBOX = json_object_to_json_string( poObjBBOX );
+            if( poDS_->GetFpOutputIsSeekable() )
+            {
+                VSIFSeekL(fp, poDS_->GetBBOXInsertLocation(), SEEK_SET);
+                if (strlen(pszBBOX) + 9 < SPACE_FOR_BBOX)
+                    VSIFPrintfL( fp, "\"bbox\": %s,", pszBBOX );
+                VSIFSeekL(fp, 0, SEEK_END);
+            }
+            else
+            {
+                VSIFPrintfL( fp, ",\n\"bbox\": %s", pszBBOX );
+            }
+
+            json_object_put( poObjBBOX );
+        }
+
+        VSIFPrintfL( fp, "\n}\n" );
     }
 
     std::for_each(seqFeatures_.begin(), seqFeatures_.end(),
@@ -215,7 +254,7 @@ OGRErr OGRGeoJSONLayer::CreateFeature( OGRFeature* poFeature )
         return OGRERR_INVALID_HANDLE;
     }
 
-    json_object* poObj = OGRGeoJSONWriteFeature( poFeature );
+    json_object* poObj = OGRGeoJSONWriteFeature( poFeature, bWriteBBOX, nCoordPrecision );
     CPLAssert( NULL != poObj );
 
     if( nOutCounter_ > 0 )
@@ -228,6 +267,18 @@ OGRErr OGRGeoJSONLayer::CreateFeature( OGRFeature* poFeature )
     json_object_put( poObj );
 
     ++nOutCounter_;
+
+    OGRGeometry* poGeometry = poFeature->GetGeometryRef();
+    if ( bWriteBBOX && !poGeometry->IsEmpty() )
+    {
+        OGREnvelope3D sEnvelope;
+        poGeometry->getEnvelope(&sEnvelope);
+
+        if( poGeometry->getCoordinateDimension() == 3 )
+            bBBOX3D = TRUE;
+
+        sEnvelopeLayer.Merge(sEnvelope);
+    }
 
     return OGRERR_NONE;
 }

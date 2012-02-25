@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_sde.h 14242 2008-04-09 20:51:50Z hobu $
+ * $Id: ogr_sde.h 22263 2011-04-30 02:51:52Z warmerdam $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Private definitions for OGR SDE driver.
@@ -88,6 +88,8 @@ class OGRSDELayer : public OGRLayer
 
     int                 iShapeColumn;
 
+    int                 bUseNSTRING; 
+
 
     char              **papszAllColumns;
     std::vector<int>    anFieldMap;     // SDE index of OGR field.
@@ -146,6 +148,8 @@ class OGRSDELayer : public OGRLayer
                                 { nFIDColumnType = nType; }
     void                SetPrecisionFlag( int bFlag )
                                 { bPreservePrecision = bFlag; }
+    void                SetUseNSTRING( int bFlag )
+                                { bUseNSTRING = bFlag; }
 };
 
 /************************************************************************/

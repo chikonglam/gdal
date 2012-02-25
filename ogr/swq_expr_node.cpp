@@ -77,7 +77,8 @@ swq_expr_node::swq_expr_node( const char *pszValueIn )
     Initialize();
 
     field_type = SWQ_STRING;
-    string_value = CPLStrdup(pszValueIn);
+    string_value = CPLStrdup( pszValueIn ? pszValueIn : "" );
+    is_null = pszValueIn == NULL;
 }
 
 /************************************************************************/
@@ -302,22 +303,25 @@ void swq_expr_node::Dump( FILE * fp, int depth )
 /*      Add quoting necessary to unparse a string.                      */
 /************************************************************************/
 
-void swq_expr_node::Quote( CPLString &osTarget )
+void swq_expr_node::Quote( CPLString &osTarget, char chQuote )
 
 {
     CPLString osNew;
     int i;
 
-    osNew = "'";
+    osNew += chQuote;
 
     for( i = 0; i < (int) osTarget.size(); i++ )
     {
-        if( osTarget[i] == '\'' )
-            osNew += "''";
+        if( osTarget[i] == chQuote )
+        {
+            osNew += chQuote;
+            osNew += chQuote;
+        }
         else
             osNew += osTarget[i];
     }
-    osNew += "'";
+    osNew += chQuote;
 
     osTarget = osNew;
 }
@@ -326,7 +330,7 @@ void swq_expr_node::Quote( CPLString &osTarget )
 /*                              Unparse()                               */
 /************************************************************************/
 
-char *swq_expr_node::Unparse( swq_field_list *field_list )
+char *swq_expr_node::Unparse( swq_field_list *field_list, char chColumnQuote )
 
 {
     CPLString osExpr;
@@ -336,6 +340,9 @@ char *swq_expr_node::Unparse( swq_field_list *field_list )
 /* -------------------------------------------------------------------- */
     if( eNodeType == SNT_CONSTANT )
     {
+        if (is_null)
+            return CPLStrdup("NULL");
+
         if( field_type == SWQ_INTEGER || field_type == SWQ_BOOLEAN )
             osExpr.Printf( "%d", int_value );
         else if( field_type == SWQ_FLOAT )
@@ -363,8 +370,24 @@ char *swq_expr_node::Unparse( swq_field_list *field_list )
         else if( field_index != -1 )
             osExpr.Printf( "%s", field_list->names[field_index] );
 
-        Quote( osExpr );
 
+        for( int i = 0; i < (int) osExpr.size(); i++ )
+        {
+            char ch = osExpr[i];
+            if (!(isalnum((int)ch) || ch == '_'))
+            {
+                Quote( osExpr, chColumnQuote );
+                return CPLStrdup(osExpr.c_str());
+            }
+        }
+
+        if (swq_is_reserved_keyword(osExpr))
+        {
+            Quote( osExpr, chColumnQuote );
+            return CPLStrdup(osExpr.c_str());
+        }
+
+        /* The string is just alphanum and not a reserved SQL keyword, no needs to quote and escape */
         return CPLStrdup(osExpr.c_str());
     }
 
@@ -375,7 +398,7 @@ char *swq_expr_node::Unparse( swq_field_list *field_list )
     int i;
 
     for( i = 0; i < nSubExprCount; i++ )
-        apszSubExpr.push_back( papoSubExpr[i]->Unparse(field_list) );
+        apszSubExpr.push_back( papoSubExpr[i]->Unparse(field_list, chColumnQuote) );
 
 /* -------------------------------------------------------------------- */
 /*      Put things together in a fashion depending on the operator.     */
@@ -406,11 +429,34 @@ char *swq_expr_node::Unparse( swq_field_list *field_list )
       case SWQ_MULTIPLY:
       case SWQ_DIVIDE:
       case SWQ_MODULUS:
-        CPLAssert( nSubExprCount == 2 );
-        osExpr.Printf( "(%s) %s (%s)", 
-                       apszSubExpr[0],
-                       poOp->osName.c_str(),
-                       apszSubExpr[1] );
+        CPLAssert( nSubExprCount >= 2 );
+        if (papoSubExpr[0]->eNodeType == SNT_COLUMN ||
+            papoSubExpr[0]->eNodeType == SNT_CONSTANT)
+        {
+            osExpr += apszSubExpr[0];
+        }
+        else
+        {
+            osExpr += "(";
+            osExpr += apszSubExpr[0];
+            osExpr += ")";
+        }
+        osExpr += " ";
+        osExpr += poOp->osName;
+        osExpr += " ";
+        if (papoSubExpr[1]->eNodeType == SNT_COLUMN ||
+            papoSubExpr[1]->eNodeType == SNT_CONSTANT)
+        {
+            osExpr += apszSubExpr[1];
+        }
+        else
+        {
+            osExpr += "(";
+            osExpr += apszSubExpr[1];
+            osExpr += ")";
+        }
+        if( nOperation == SWQ_LIKE && nSubExprCount == 3 )
+            osExpr += CPLSPrintf( " ESCAPE (%s)", apszSubExpr[2] );
         break;
 
       case SWQ_NOT:
@@ -494,6 +540,8 @@ swq_expr_node *swq_expr_node::Evaluate( swq_field_fetcher pfnFetcher,
             poRetNode->string_value = CPLStrdup(string_value);
         else
             poRetNode->string_value = NULL;
+
+        poRetNode->is_null = is_null;
 
         return poRetNode;
     }

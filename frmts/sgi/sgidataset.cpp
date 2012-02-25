@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: sgidataset.cpp 20996 2010-10-28 18:38:15Z rouault $
+ * $Id: sgidataset.cpp 21680 2011-02-11 21:12:07Z warmerdam $
  *
  * Project:  SGI Image Driver
  * Purpose:  Implement SGI Image Support based on Paul Bourke's SGI Image code.
@@ -35,7 +35,7 @@
 #include "cpl_port.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: sgidataset.cpp 20996 2010-10-28 18:38:15Z rouault $");
+CPL_CVSID("$Id: sgidataset.cpp 21680 2011-02-11 21:12:07Z warmerdam $");
 
 CPL_C_START
 void	GDALRegister_SGI(void);
@@ -334,7 +334,7 @@ CPLErr SGIRasterBand::IWriteBlock(int nBlockXOff, int nBlockYOff,
                 && pabyRawBuf[iX + nRepeatCount + 1] 
                 == pabyRawBuf[iX + nRepeatCount + 3]) )
         { // encode a constant run.
-            pabyRLEBuf[nRLEBytes++] = nRepeatCount; 
+            pabyRLEBuf[nRLEBytes++] = (GByte) nRepeatCount; 
             pabyRLEBuf[nRLEBytes++] = pabyRawBuf[iX];
             iX += nRepeatCount;
         }
@@ -357,7 +357,7 @@ CPLErr SGIRasterBand::IWriteBlock(int nBlockXOff, int nBlockYOff,
                     break;
             }
 
-            pabyRLEBuf[nRLEBytes++] = 0x80 | nRepeatCount; 
+            pabyRLEBuf[nRLEBytes++] = (GByte) (0x80 | nRepeatCount); 
             memcpy( pabyRLEBuf + nRLEBytes, 
                     pabyRawBuf + iX, 
                     nRepeatCount );
@@ -758,7 +758,7 @@ GDALDataset *SGIDataset::Create( const char * pszFilename,
     
     while( nPixelsRemaining > 0 )
     {
-        pabyRLELine[nRLEBytes] = MIN(127,nPixelsRemaining);
+        pabyRLELine[nRLEBytes] = (GByte) MIN(127,nPixelsRemaining);
         pabyRLELine[nRLEBytes+1] = 0;
         nPixelsRemaining -= pabyRLELine[nRLEBytes];
 

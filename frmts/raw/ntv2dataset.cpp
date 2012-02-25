@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ntv2dataset.cpp 20996 2010-10-28 18:38:15Z rouault $
+ * $Id: ntv2dataset.cpp 21682 2011-02-11 21:25:05Z warmerdam $
  *
  * Project:  Horizontal Datum Formats
  * Purpose:  Implementation of NTv2 datum shift format used in Canada, France, 
@@ -33,7 +33,7 @@
 #include "cpl_string.h"
 #include "ogr_srs_api.h"
 
-CPL_CVSID("$Id: ntv2dataset.cpp 20996 2010-10-28 18:38:15Z rouault $");
+CPL_CVSID("$Id: ntv2dataset.cpp 21682 2011-02-11 21:25:05Z warmerdam $");
 
 /** 
  * The header for the file, and each grid consists of 11 16byte records.
@@ -86,7 +86,7 @@ class NTv2Dataset : public RawDataset
     VSILFILE	*fpImage;	// image data file.
 
     int         nRecordLength;
-    int         nGridOffset;
+    vsi_l_offset nGridOffset;
     
     double      adfGeoTransform[6];
 
@@ -824,10 +824,10 @@ GDALDataset *NTv2Dataset::Create( const char * pszFilename,
     memset( achHeader, 0, 16 );
 
     // Use -1 (0x000080bf) as the default error value.
-    achHeader[10] = 0x80;
-    achHeader[11] = 0xbf;
-    achHeader[14] = 0x80;
-    achHeader[15] = 0xbf;
+    memset( achHeader + 10, 0x80, 1 );
+    memset( achHeader + 11, 0xbf, 1 );
+    memset( achHeader + 14, 0x80, 1 );
+    memset( achHeader + 15, 0xbf, 1 );
 
     for( i = 0; i < nXSize * nYSize; i++ )
         VSIFWriteL( achHeader, 1, 16, fp );

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: aigopen.c 22160 2011-04-14 18:19:58Z warmerdam $
+ * $Id: aigopen.c 22159 2011-04-14 18:18:54Z warmerdam $
  *
  * Project:  Arc/Info Binary Grid Translator
  * Purpose:  Grid file access cover API for non-GDAL use.
@@ -29,7 +29,7 @@
 
 #include "aigrid.h"
 
-CPL_CVSID("$Id: aigopen.c 22160 2011-04-14 18:19:58Z warmerdam $");
+CPL_CVSID("$Id: aigopen.c 22159 2011-04-14 18:18:54Z warmerdam $");
 
 /************************************************************************/
 /*                              AIGOpen()                               */

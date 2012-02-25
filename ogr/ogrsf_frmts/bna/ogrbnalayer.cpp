@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrbnalayer.cpp 20996 2010-10-28 18:38:15Z rouault $
+ * $Id: ogrbnalayer.cpp 21684 2011-02-11 22:14:01Z warmerdam $
  *
  * Project:  BNA Translator
  * Purpose:  Implements OGRBNALayer class.
@@ -169,7 +169,7 @@ OGRFeature *OGRBNALayer::GetNextFeature()
     while(1)
     {
         int ok = FALSE;
-        offset = VSIFTellL(fpBNA);
+        offset = (int) VSIFTellL(fpBNA);
         line = curLine;
         if (nNextFID < nFeatures)
         {
@@ -787,7 +787,7 @@ void OGRBNALayer::FastParseUntil ( int interestFID)
         while(1)
         {
             int ok = FALSE;
-            int offset = VSIFTellL(fpBNA);
+            int offset = (int) VSIFTellL(fpBNA);
             int line = curLine;
             record =  BNA_GetNextRecord(fpBNA, &ok, &curLine, TRUE, BNA_READ_NONE);
             if (ok == FALSE)

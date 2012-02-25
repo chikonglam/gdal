@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrdxfwriterlayer.cpp 21298 2010-12-20 10:58:34Z rouault $
+ * $Id: ogrdxfwriterlayer.cpp 22779 2011-07-23 18:53:29Z warmerdam $
  *
  * Project:  DXF Translator
  * Purpose:  Implements OGRDXFWriterLayer - the OGRLayer class used for
@@ -33,7 +33,7 @@
 #include "cpl_string.h"
 #include "ogr_featurestyle.h"
 
-CPL_CVSID("$Id: ogrdxfwriterlayer.cpp 21298 2010-12-20 10:58:34Z rouault $");
+CPL_CVSID("$Id: ogrdxfwriterlayer.cpp 22779 2011-07-23 18:53:29Z warmerdam $");
 
 #ifndef PI
 #define PI  3.14159265358979323846
@@ -112,7 +112,9 @@ void OGRDXFWriterLayer::ResetFP( VSILFILE *fpNew )
 int OGRDXFWriterLayer::TestCapability( const char * pszCap )
 
 {
-    if( EQUAL(pszCap,OLCSequentialWrite) )
+    if( EQUAL(pszCap,OLCStringsAsUTF8) )
+        return TRUE;
+    else if( EQUAL(pszCap,OLCSequentialWrite) )
         return TRUE;
     else 
         return FALSE;
@@ -646,11 +648,13 @@ OGRErr OGRDXFWriterLayer::WritePOLYLINE( OGRFeature *poFeature,
 
         if( poPen->Color(bDefault) != NULL && !bDefault )
             WriteValue( 62, ColorStringToDXFColor( poPen->Color(bDefault) ) );
-        
-        double dfWidthInMM = poPen->Width(bDefault);
+
+        // we want to fetch the width in ground units. 
+        poPen->SetUnit( OGRSTUGround, 1.0 );
+        double dfWidth = poPen->Width(bDefault);
 
         if( !bDefault )
-            WriteValue( 370, (int) floor(dfWidthInMM * 100 + 0.5) );
+            WriteValue( 370, (int) floor(dfWidth * 100 + 0.5) );
     }
 
 /* -------------------------------------------------------------------- */
@@ -766,6 +770,214 @@ OGRErr OGRDXFWriterLayer::WritePOLYLINE( OGRFeature *poFeature,
 }
 
 /************************************************************************/
+/*                             WriteHATCH()                             */
+/************************************************************************/
+
+OGRErr OGRDXFWriterLayer::WriteHATCH( OGRFeature *poFeature,
+                                      OGRGeometry *poGeom )
+
+{
+/* -------------------------------------------------------------------- */
+/*      For now we handle multipolygons by writing a series of          */
+/*      entities.                                                       */
+/* -------------------------------------------------------------------- */
+    if( poGeom == NULL )
+        poGeom = poFeature->GetGeometryRef();
+
+    if ( poGeom->IsEmpty() )
+    {
+        return OGRERR_NONE;
+    }
+            
+    if( wkbFlatten(poGeom->getGeometryType()) == wkbMultiPolygon )
+    {
+        OGRGeometryCollection *poGC = (OGRGeometryCollection *) poGeom;
+        int iGeom;
+        OGRErr eErr = OGRERR_NONE;
+
+        for( iGeom = 0; 
+             eErr == OGRERR_NONE && iGeom < poGC->getNumGeometries(); 
+             iGeom++ )
+        {
+            eErr = WriteHATCH( poFeature, poGC->getGeometryRef( iGeom ) );
+        }
+
+        return eErr;
+    }
+
+/* -------------------------------------------------------------------- */
+/*      Do we now have a geometry we can work with?                     */
+/* -------------------------------------------------------------------- */
+    if( wkbFlatten(poGeom->getGeometryType()) != wkbPolygon )
+        return OGRERR_UNSUPPORTED_GEOMETRY_TYPE;
+
+/* -------------------------------------------------------------------- */
+/*      Write as a hatch.                                               */
+/* -------------------------------------------------------------------- */
+    WriteValue( 0, "HATCH" );
+    WriteCore( poFeature );
+    WriteValue( 100, "AcDbEntity" );
+    WriteValue( 100, "AcDbHatch" );
+    WriteValue( 2, "SOLID" ); // fill pattern
+    WriteValue( 70, 1 ); // solid fill
+    WriteValue( 71, 0 ); // associativity 
+
+/* -------------------------------------------------------------------- */
+/*      Do we have styling information?                                 */
+/* -------------------------------------------------------------------- */
+    OGRStyleTool *poTool = NULL;
+    OGRStyleMgr oSM;
+
+    if( poFeature->GetStyleString() != NULL )
+    {
+        oSM.InitFromFeature( poFeature );
+
+        if( oSM.GetPartCount() > 0 )
+            poTool = oSM.GetPart(0);
+    }
+
+/* -------------------------------------------------------------------- */
+/*      Handle a PEN tool to control drawing color and width.           */
+/*      Perhaps one day also dottedness, etc.                           */
+/* -------------------------------------------------------------------- */
+#ifdef notdef
+    if( poTool && poTool->GetType() == OGRSTCPen )
+    {
+        OGRStylePen *poPen = (OGRStylePen *) poTool;
+        GBool  bDefault;
+
+        if( poPen->Color(bDefault) != NULL && !bDefault )
+            WriteValue( 62, ColorStringToDXFColor( poPen->Color(bDefault) ) );
+        
+        double dfWidthInMM = poPen->Width(bDefault);
+
+        if( !bDefault )
+            WriteValue( 370, (int) floor(dfWidthInMM * 100 + 0.5) );
+    }
+
+/* -------------------------------------------------------------------- */
+/*      Do we have a Linetype for the feature?                          */
+/* -------------------------------------------------------------------- */
+    CPLString osLineType = poFeature->GetFieldAsString( "Linetype" );
+
+    if( osLineType.size() > 0 
+        && (poDS->oHeaderDS.LookupLineType( osLineType ) != NULL 
+            || oNewLineTypes.count(osLineType) > 0 ) )
+    {
+        // Already define -> just reference it.
+        WriteValue( 6, osLineType );
+    }
+    else if( poTool != NULL && poTool->GetType() == OGRSTCPen )
+    {
+        CPLString osDefinition = PrepareLineTypeDefinition( poFeature, 
+                                                            poTool );
+
+        if( osDefinition != "" && osLineType == "" )
+        {
+            // Is this definition already created and named?
+            std::map<CPLString,CPLString>::iterator it;
+
+            for( it = oNewLineTypes.begin();
+                 it != oNewLineTypes.end();
+                 it++ )
+            {
+                if( (*it).second == osDefinition )
+                {
+                    osLineType = (*it).first;
+                    break;
+                }
+            }
+
+            // create an automatic name for it.
+            if( osLineType == "" )
+            {
+                do 
+                { 
+                    osLineType.Printf( "AutoLineType-%d", nNextAutoID++ );
+                }
+                while( poDS->oHeaderDS.LookupLineType(osLineType) != NULL );
+            }
+        }
+
+        // If it isn't already defined, add it now.
+        if( osDefinition != "" && oNewLineTypes.count(osLineType) == 0 )
+        {
+            oNewLineTypes[osLineType] = osDefinition;
+            WriteValue( 6, osLineType );
+        }
+    }
+    delete poTool;
+#endif
+
+/* -------------------------------------------------------------------- */
+/*      Process the loops (rings).                                      */
+/* -------------------------------------------------------------------- */
+    OGRPolygon *poPoly = (OGRPolygon *) poGeom;
+
+    WriteValue( 91, poPoly->getNumInteriorRings() + 1 );
+
+    for( int iRing = -1; iRing < poPoly->getNumInteriorRings(); iRing++ )
+    {
+        OGRLinearRing *poLR;
+
+        if( iRing == -1 )
+            poLR = poPoly->getExteriorRing();
+        else
+            poLR = poPoly->getInteriorRing( iRing );
+
+        WriteValue( 92, 2 ); // Polyline
+        WriteValue( 72, 0 ); // has bulge
+        WriteValue( 73, 1 ); // is closed
+        WriteValue( 93, poLR->getNumPoints() );
+        
+        for( int iVert = 0; iVert < poLR->getNumPoints(); iVert++ )
+        {
+            WriteValue( 10, poLR->getX(iVert) );
+            WriteValue( 20, poLR->getY(iVert) );
+        }
+    }
+    
+    return OGRERR_NONE;
+
+#ifdef notdef
+/* -------------------------------------------------------------------- */
+/*      Alternate unmaintained implementation as a polyline entity.     */
+/* -------------------------------------------------------------------- */
+    WriteValue( 0, "POLYLINE" );
+    WriteCore( poFeature );
+    WriteValue( 100, "AcDbEntity" );
+    WriteValue( 100, "AcDbPolyline" );
+    if( EQUAL( poGeom->getGeometryName(), "LINEARRING" ) )
+        WriteValue( 70, 1 );
+    else
+        WriteValue( 70, 0 );
+    WriteValue( 66, "1" );
+
+    int iVert;
+
+    for( iVert = 0; iVert < poLS->getNumPoints(); iVert++ )
+    {
+        WriteValue( 0, "VERTEX" );
+        WriteValue( 8, "0" );
+        WriteValue( 10, poLS->getX(iVert) );
+        if( !WriteValue( 20, poLS->getY(iVert) ) ) 
+            return OGRERR_FAILURE;
+
+        if( poLS->getGeometryType() == wkbLineString25D )
+        {
+            if( !WriteValue( 30, poLS->getZ(iVert) ) )
+                return OGRERR_FAILURE;
+        }
+    }
+
+    WriteValue( 0, "SEQEND" );
+    WriteValue( 8, "0" );
+    
+    return OGRERR_NONE;
+#endif
+}
+
+/************************************************************************/
 /*                           CreateFeature()                            */
 /************************************************************************/
 
@@ -807,10 +1019,12 @@ OGRErr OGRDXFWriterLayer::CreateFeature( OGRFeature *poFeature )
             return WritePOINT( poFeature );
     }
     else if( eGType == wkbLineString 
-             || eGType == wkbMultiLineString 
-             || eGType == wkbPolygon 
-             || eGType == wkbMultiPolygon )
+             || eGType == wkbMultiLineString )
         return WritePOLYLINE( poFeature );
+
+    else if( eGType == wkbPolygon 
+             || eGType == wkbMultiPolygon )
+        return WriteHATCH( poFeature );
 
     // Explode geometry collections into multiple entities.
     else if( eGType == wkbGeometryCollection )
@@ -866,7 +1080,7 @@ int OGRDXFWriterLayer::ColorStringToDXFColor( const char *pszRGB )
 /* -------------------------------------------------------------------- */
 /*      Find near color in DXF palette.                                 */
 /* -------------------------------------------------------------------- */
-    const unsigned char *pabyDXFColors = OGRDXFDriver::GetDXFColorTable();
+    const unsigned char *pabyDXFColors = ACGetColorTable();
     int i;
     int nMinDist = 768;
     int nBestColor = -1;

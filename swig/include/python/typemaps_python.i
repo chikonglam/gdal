@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: typemaps_python.i 20716 2010-09-30 22:27:35Z rouault $
+ * $Id: typemaps_python.i 23329 2011-11-05 21:09:07Z rouault $
  *
  * Name:     typemaps_python.i
  * Project:  GDAL Python Interface
@@ -92,6 +92,29 @@
   }
   $result = t_output_helper($result,r);
 }
+
+
+%typemap(in,numinputs=0) (double argout[4], int* isvalid) ( double argout[6], int isvalid )
+{
+  /* %typemap(in) (double argout[4], int* isvalid) */
+  $1 = argout;
+  $2 = &isvalid;
+}
+
+%typemap(argout) (double argout[4], int* isvalid)
+{
+   /* %typemap(argout) (double argout[4], int* isvalid)  */
+  PyObject *r;
+  if ( !*$2 ) {
+    Py_INCREF(Py_None);
+    r = Py_None;
+  }
+  else {
+    r = CreateTupleFromDoubleArray($1, 4);
+  }
+  $result = t_output_helper($result,r);
+}
+
 
 /*
  *
@@ -699,6 +722,7 @@ CreateTupleFromDoubleArray( int *first, unsigned int size ) {
         $1 = CSLAddNameValue( $1, nm, val );
         Py_DECREF(it);
       }
+      Py_DECREF(item_list);
     }
   }
   else {
@@ -945,11 +969,33 @@ static CPLXMLNode *PyListToXMLTree( PyObject *pyList )
     if( nChildCount < 0 )
     {
         PyErr_SetString(PyExc_TypeError,"Error in input XMLTree." );
-	return NULL;
+        return NULL;
     }
 
     PyArg_Parse( PyList_GET_ITEM(pyList,0), "i", &nType );
     PyArg_Parse( PyList_GET_ITEM(pyList,1), "s", &pszText );
+
+    /* Detect "pseudo" root */
+    if (nType == CXT_Element && pszText != NULL && strlen(pszText) == 0 && nChildCount == 2)
+    {
+        PyObject *pyFirst = PyList_GET_ITEM(pyList, 2);
+        if (PyList_Size(pyFirst) < 2)
+        {
+            PyErr_SetString(PyExc_TypeError,"Error in input XMLTree." );
+            return NULL;
+        }
+        int nTypeFirst = 0;
+        char* pszTextFirst = NULL;
+        PyArg_Parse( PyList_GET_ITEM(pyFirst,0), "i", &nTypeFirst );
+        PyArg_Parse( PyList_GET_ITEM(pyFirst,1), "s", &pszTextFirst );
+        if (nTypeFirst == CXT_Element && pszTextFirst != NULL && pszTextFirst[0] == '?')
+        {
+            psThisNode = PyListToXMLTree( PyList_GET_ITEM(pyList,2) );
+            psThisNode->psNext = PyListToXMLTree( PyList_GET_ITEM(pyList,3) );
+            return psThisNode;
+        }
+    }
+
     psThisNode = CPLCreateXMLNode( NULL, (CPLXMLNodeType) nType, pszText );
 
     for( iChild = 0; iChild < nChildCount; iChild++ )
@@ -1035,33 +1081,6 @@ static PyObject *XMLTreeToPyList( CPLXMLNode *psTree )
   /* %typemap(ret) (CPLXMLNode*) */
   if ( $1 ) CPLDestroyXMLNode( $1 );
 }
-
-/* Check inputs to ensure they are not NULL but instead empty #1775 */
-%define CHECK_NOT_UNDEF(type, param, msg)
-%typemap(check) (const char *pszNewDesc)
-{
-    /* %typemap(check) (type *param) */
-    if ( bUseExceptions && !$1) {
-        PyErr_SetString( PyExc_RuntimeError, "Description cannot be None" );
-        SWIG_fail;
-    }
-}
-%enddef
-
-//CHECK_NOT_UNDEF(char, method, method)
-//CHECK_NOT_UNDEF(const char, name, name)
-//CHECK_NOT_UNDEF(const char, request, request)
-//CHECK_NOT_UNDEF(const char, cap, capability)
-//CHECK_NOT_UNDEF(const char, statement, statement)
-CHECK_NOT_UNDEF(const char, pszNewDesc, description)
-CHECK_NOT_UNDEF(OSRCoordinateTransformationShadow, , coordinate transformation)
-CHECK_NOT_UNDEF(OGRGeometryShadow, other, other geometry)
-CHECK_NOT_UNDEF(OGRGeometryShadow, other_disown, other geometry)
-CHECK_NOT_UNDEF(OGRGeometryShadow, geom, geometry)
-CHECK_NOT_UNDEF(OGRFieldDefnShadow, defn, field definition)
-CHECK_NOT_UNDEF(OGRFieldDefnShadow, field_defn, field definition)
-CHECK_NOT_UNDEF(OGRFeatureShadow, feature, feature)
-
 
 /* ==================================================================== */
 /*	Support function for progress callbacks to python.                  */
@@ -1513,6 +1532,51 @@ DecomposeSequenceOfCoordinates( PyObject *seq, int nCount, double *x, double *y,
     VSIFree($5);
 }
 
+
+/***************************************************
+ * Typemaps for Gemetry.GetPoints()
+ ***************************************************/
+%typemap(in,numinputs=0) (int* pnCount, double** ppadfXY, double** ppadfZ) ( int nPoints = 0, double* padfXY = NULL, double* padfZ = NULL )
+{
+  /* %typemap(in,numinputs=0) (int* pnCount, double** ppadfXY, double** ppadfZ) */
+  $1 = &nPoints;
+  $2 = &padfXY;
+  $3 = &padfZ;
+}
+
+%typemap(argout)  (int* pnCount, double** ppadfXY, double** ppadfZ)
+{
+  /* %typemap(argout)  (int* pnCount, double** ppadfXY, double** ppadfZ) */
+  Py_DECREF($result);
+  int nPointCount = *($1);
+  if (nPointCount == 0)
+  {
+    $result = Py_None;
+  }
+  else
+  {
+    PyObject *xyz = PyList_New( nPointCount );
+    int nDimensions = (*$3 != NULL) ? 3 : 2;
+    for( int i=0; i< nPointCount; i++ ) {
+        PyObject *tuple = PyTuple_New( nDimensions );
+        PyTuple_SetItem( tuple, 0, PyFloat_FromDouble( (*$2)[2*i] ) );
+        PyTuple_SetItem( tuple, 1, PyFloat_FromDouble( (*$2)[2*i+1] ) );
+        if (nDimensions == 3)
+            PyTuple_SetItem( tuple, 2, PyFloat_FromDouble( (*$3)[i] ) );
+        PyList_SetItem( xyz, i, tuple );
+    }
+    $result = xyz;
+  }
+}
+
+%typemap(freearg)  (int* pnCount, double** ppadfXY, double** ppadfZ)
+{
+    /* %typemap(freearg)  (int* pnCount, double** ppadfXY, double** ppadfZ) */
+    VSIFree(*$2);
+    VSIFree(*$3);
+}
+
+
 %typemap(in) (const char *utf8_path) (int bToFree = 0)
 {
     /* %typemap(in) (const char *utf8_path) */
@@ -1528,4 +1592,22 @@ DecomposeSequenceOfCoordinates( PyObject *seq, int nCount, double *x, double *y,
 {
     /* %typemap(freearg) (const char *utf8_path) */
     GDALPythonFreeCStr($1, bToFree$argnum);
+}
+
+/*
+ * Typemap argout of StatBuf * used in VSIStatL( )
+ */
+%typemap(in,numinputs=0) (StatBuf *psStatBufOut) (StatBuf sStatBuf )
+{
+  /* %typemap(in,numinputs=0) (StatBuf *psStatBufOut) (StatBuf sStatBuf ) */
+  $1 = &sStatBuf;
+}
+%typemap(argout) (StatBuf *psStatBufOut)
+{
+  /* %typemap(argout) (StatBuf *psStatBufOut)*/
+  Py_DECREF($result);
+  if (result == 0)
+    $result = SWIG_NewPointerObj((void*)new_StatBuf( $1 ),SWIGTYPE_p_StatBuf,1);
+  else
+    $result = Py_None;
 }

@@ -3,13 +3,18 @@
 include ../../../GDALmake.opt
 
 OBJ	=	ogrsqlitedatasource.o ogrsqlitelayer.o ogrsqlitedriver.o \
-		ogrsqlitetablelayer.o ogrsqliteselectlayer.o ogrsqlitesinglefeaturelayer.o
+		ogrsqlitetablelayer.o ogrsqliteviewlayer.o ogrsqliteselectlayer.o ogrsqlitesinglefeaturelayer.o \
+		ogrsqlitevfs.o
 
 ifeq ($(HAVE_SPATIALITE),yes)
 CPPFLAGS +=  -DHAVE_SPATIALITE
 endif
 
-CPPFLAGS	:=	-I.. $(GDAL_INCLUDE) $(SQLITE_INC) $(CPPFLAGS)
+ifeq ($(SPATIALITE_AMALGAMATION),yes)
+CPPFLAGS +=  -DSPATIALITE_AMALGAMATION
+endif
+
+CPPFLAGS	:=	-I.. $(GDAL_INCLUDE) $(SQLITE_INC) $(SPATIALITE_INC) $(CPPFLAGS)
 
 default:	$(O_OBJ:.o=.$(OBJ_EXT))
 

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrpoint.cpp 20260 2010-08-11 20:39:54Z rouault $
+ * $Id: ogrpoint.cpp 22448 2011-05-28 18:49:54Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  The Point geometry class.
@@ -30,7 +30,7 @@
 #include "ogr_geometry.h"
 #include "ogr_p.h"
 
-CPL_CVSID("$Id: ogrpoint.cpp 20260 2010-08-11 20:39:54Z rouault $");
+CPL_CVSID("$Id: ogrpoint.cpp 22448 2011-05-28 18:49:54Z rouault $");
 
 /************************************************************************/
 /*                              OGRPoint()                              */
@@ -487,6 +487,17 @@ void OGRPoint::getEnvelope( OGREnvelope * psEnvelope ) const
     psEnvelope->MinY = psEnvelope->MaxY = getY();
 }
 
+/************************************************************************/
+/*                            getEnvelope()                             */
+/************************************************************************/
+
+void OGRPoint::getEnvelope( OGREnvelope3D * psEnvelope ) const
+
+{
+    psEnvelope->MinX = psEnvelope->MaxX = getX();
+    psEnvelope->MinY = psEnvelope->MaxY = getY();
+    psEnvelope->MinZ = psEnvelope->MaxZ = getZ();
+}
 
 
 /**

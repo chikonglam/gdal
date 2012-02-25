@@ -34,7 +34,7 @@
 #include "gdal_pam.h"
 #include "ogr_spatialref.h"
 
-CPL_CVSID("$Id: levellerdataset.cpp 21298 2010-12-20 10:58:34Z rouault $");
+CPL_CVSID("$Id: levellerdataset.cpp 23060 2011-09-05 17:58:30Z rouault $");
 
 CPL_C_START
 void	GDALRegister_Leveller(void);
@@ -488,8 +488,8 @@ CPLErr LevellerRasterBand::IWriteBlock
 		for(size_t x = 0; x < (size_t)nBlockXSize; x++)
 		{
 			// Convert logical elevations to physical.
-			m_pLine[x] = 
-				(pfImage[x] - ds.m_dElevBase) / ds.m_dElevScale;
+                    m_pLine[x] = (float) 
+				((pfImage[x] - ds.m_dElevBase) / ds.m_dElevScale);
 		}
 
 #ifdef CPL_MSB 
@@ -1566,6 +1566,11 @@ GDALDataset *LevellerDataset::Open( GDALOpenInfo * poOpenInfo )
 /* -------------------------------------------------------------------- */
     poDS->SetDescription( poOpenInfo->pszFilename );
     poDS->TryLoadXML();
+
+/* -------------------------------------------------------------------- */
+/*      Check for external overviews.                                   */
+/* -------------------------------------------------------------------- */
+    poDS->oOvManager.Initialize( poDS, poOpenInfo->pszFilename, poOpenInfo->papszSiblingFiles );
 
     return( poDS );
 }

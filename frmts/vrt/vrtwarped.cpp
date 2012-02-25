@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: vrtwarped.cpp 22647 2011-07-05 17:18:18Z rouault $
+ * $Id: vrtwarped.cpp 23545 2011-12-12 00:50:37Z rouault $
  *
  * Project:  Virtual GDAL Datasets
  * Purpose:  Implementation of VRTWarpedRasterBand *and VRTWarpedDataset.
@@ -34,7 +34,7 @@
 #include "gdal_alg_priv.h"
 #include <cassert>
 
-CPL_CVSID("$Id: vrtwarped.cpp 22647 2011-07-05 17:18:18Z rouault $");
+CPL_CVSID("$Id: vrtwarped.cpp 23545 2011-12-12 00:50:37Z rouault $");
 
 /************************************************************************/
 /*                      GDALAutoCreateWarpedVRT()                       */
@@ -76,7 +76,7 @@ CPL_CVSID("$Id: vrtwarped.cpp 22647 2011-07-05 17:18:18Z rouault $");
  * @param dfMaxError Maximum error measured in input pixels that is allowed in 
  * approximating the transformation (0.0 for exact calculations).
  *
- * @param psOptions Additional warp options, normally NULL.
+ * @param psOptionsIn Additional warp options, normally NULL.
  *
  * @return NULL on failure, or a new virtual dataset handle on success.
  */
@@ -164,6 +164,7 @@ GDALAutoCreateWarpedVRT( GDALDatasetH hSrcDS,
                                          psWO->pTransformerArg, 
                                          dfMaxError );
         psWO->pfnTransformer = GDALApproxTransform;
+        GDALApproxTransformerOwnsSubtransformer(psWO->pTransformerArg, TRUE);
     }
 
 /* -------------------------------------------------------------------- */
@@ -285,7 +286,18 @@ VRTWarpedDataset::VRTWarpedDataset( int nXSize, int nYSize )
 VRTWarpedDataset::~VRTWarpedDataset()
 
 {
+    CloseDependentDatasets();
+}
+
+/************************************************************************/
+/*                        CloseDependentDatasets()                      */
+/************************************************************************/
+
+int VRTWarpedDataset::CloseDependentDatasets()
+{
     FlushCache();
+
+    int bHasDroppedRef = VRTDataset::CloseDependentDatasets();
 
 /* -------------------------------------------------------------------- */
 /*      Cleanup overviews.                                              */
@@ -300,10 +312,13 @@ VRTWarpedDataset::~VRTWarpedDataset()
         {
             GDALReferenceDataset( hDS );
             GDALClose( hDS );
+            bHasDroppedRef = TRUE;
         }
     }
 
     CPLFree( papoOverviews );
+    nOverviewCount = 0;
+    papoOverviews = NULL;
 
 /* -------------------------------------------------------------------- */
 /*      Cleanup warper if one is in effect.                             */
@@ -326,6 +341,7 @@ VRTWarpedDataset::~VRTWarpedDataset()
             {
                 GDALReferenceDataset( psWO->hSrcDS );
                 GDALClose( psWO->hSrcDS );
+                bHasDroppedRef = TRUE;
             }
         }
 
@@ -336,7 +352,19 @@ VRTWarpedDataset::~VRTWarpedDataset()
             GDALDestroyTransformer( psWO->pTransformerArg );
 
         delete poWarper;
+        poWarper = NULL;
     }
+
+/* -------------------------------------------------------------------- */
+/*      Destroy the raster bands if they exist.                         */
+/* -------------------------------------------------------------------- */
+    for( int iBand = 0; iBand < nBands; iBand++ )
+    {
+       delete papoBands[iBand];
+    }
+    nBands = 0;
+
+    return bHasDroppedRef;
 }
 
 /************************************************************************/
@@ -1089,11 +1117,12 @@ CPLErr VRTWarpedDataset::ProcessBlock( int iBlockX, int iBlockY )
                 memset( pBandData, 
                         MAX(0,MIN(255,(int)adfInitRealImag[0])), 
                         nBandSize);
-            else if( adfInitRealImag[0] == 0.0 && adfInitRealImag[1] == 0 )
+            else if( !CPLIsNan(adfInitRealImag[0]) && adfInitRealImag[0] == 0.0 &&
+                     !CPLIsNan(adfInitRealImag[1]) && adfInitRealImag[1] == 0.0 )
             {
                 memset( pBandData, 0, nBandSize );
             }
-            else if( adfInitRealImag[1] == 0.0 )
+            else if( !CPLIsNan(adfInitRealImag[1]) && adfInitRealImag[1] == 0.0 )
             {
                 GDALCopyWords( &adfInitRealImag, GDT_Float64, 0, 
                                pBandData,psWO->eWorkingDataType,nWordSize,
@@ -1224,6 +1253,8 @@ CPLErr VRTWarpedRasterBand::IReadBlock( int nBlockXOff, int nBlockYOff,
     GDALRasterBlock *poBlock;
 
     poBlock = GetLockedBlockRef( nBlockXOff, nBlockYOff, TRUE );
+    if( poBlock == NULL )
+        return CE_Failure;
 
     eErr = poWDS->ProcessBlock( nBlockXOff, nBlockYOff );
 

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrpgeotablelayer.cpp 20579 2010-09-12 11:43:35Z rouault $
+ * $Id: ogrpgeotablelayer.cpp 22155 2011-04-13 19:52:57Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implements OGRPGeoTableLayer class, access to an existing table.
@@ -29,8 +29,9 @@
 
 #include "cpl_conv.h"
 #include "ogr_pgeo.h"
+#include "ogrpgeogeometry.h"
 
-CPL_CVSID("$Id: ogrpgeotablelayer.cpp 20579 2010-09-12 11:43:35Z rouault $");
+CPL_CVSID("$Id: ogrpgeotablelayer.cpp 22155 2011-04-13 19:52:57Z rouault $");
 
 /************************************************************************/
 /*                          OGRPGeoTableLayer()                         */
@@ -100,33 +101,34 @@ CPLErr OGRPGeoTableLayer::Initialize( const char *pszTableName,
 
     switch( nShapeType )
     {
-        case SHPT_POINT:
-        case SHPT_POINTM:
-        case SHPT_POINTZ:
-        case SHPT_POINTZM:
+        case ESRI_LAYERGEOMTYPE_NULL:
+            eOGRType = wkbNone;
+            break;
+
+        case ESRI_LAYERGEOMTYPE_POINT:
             eOGRType = wkbPoint;
             break;
 
-        case SHPT_ARC:
-        case SHPT_ARCZ:
-        case SHPT_ARCM:
-        case SHPT_ARCZM:
-            eOGRType = wkbLineString;
-            break;
-            
-        case SHPT_MULTIPOINT:
-        case SHPT_MULTIPOINTZ:
-        case SHPT_MULTIPOINTM:
-        case SHPT_MULTIPOINTZM:
+        case ESRI_LAYERGEOMTYPE_MULTIPOINT:
             eOGRType = wkbMultiPoint;
             break;
 
+        case ESRI_LAYERGEOMTYPE_POLYLINE:
+            eOGRType = wkbLineString;
+            break;
+
+        case ESRI_LAYERGEOMTYPE_POLYGON:
+        case ESRI_LAYERGEOMTYPE_MULTIPATCH:
+            eOGRType = wkbPolygon;
+            break;
+
         default:
+            CPLDebug("PGeo", "Unexpected value for shape type : %d", nShapeType);
             eOGRType = wkbUnknown;
             break;
     }
 
-    if( eOGRType != wkbUnknown && bHasZ )
+    if( eOGRType != wkbUnknown && eOGRType != wkbNone && bHasZ )
         eOGRType = (OGRwkbGeometryType)(((int) eOGRType) | wkb25DBit);
 
 /* -------------------------------------------------------------------- */

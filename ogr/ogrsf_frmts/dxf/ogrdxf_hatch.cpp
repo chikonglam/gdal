@@ -32,7 +32,13 @@
 #include "cpl_conv.h"
 #include "ogr_api.h"
 
+#include "ogrdxf_polyline_smooth.h"
+
 CPL_CVSID("$Id: ogrdxf_dimension.cpp 19643 2010-05-08 21:56:18Z rouault $");
+
+#ifndef PI
+#define PI  3.14159265358979323846
+#endif 
 
 /************************************************************************/
 /*                           TranslateHATCH()                           */
@@ -99,9 +105,40 @@ OGRFeature *OGRDXFLayer::TranslateHATCH()
     poFeature->SetGeometryDirectly( (OGRGeometry *) hFinalGeom );
 
 /* -------------------------------------------------------------------- */
-/*      We ought to try and make some useful translation of the fill    */
-/*      style but I'll leave that for another time.                     */
+/*      Work out the color for this feature.  For now we just assume    */
+/*      solid fill.  We cannot trivially translate the various sorts    */
+/*      of hatching.                                                    */
 /* -------------------------------------------------------------------- */
+    CPLString osLayer = poFeature->GetFieldAsString("Layer");
+
+    int nColor = 256;
+
+    if( oStyleProperties.count("Color") > 0 )
+        nColor = atoi(oStyleProperties["Color"]);
+
+    // Use layer color? 
+    if( nColor < 1 || nColor > 255 )
+    {
+        const char *pszValue = poDS->LookupLayerProperty( osLayer, "Color" );
+        if( pszValue != NULL )
+            nColor = atoi(pszValue);
+    }
+        
+/* -------------------------------------------------------------------- */
+/*      Setup the style string.                                         */
+/* -------------------------------------------------------------------- */
+    if( nColor >= 1 && nColor <= 255 )
+    {
+        CPLString osStyle;
+        const unsigned char *pabyDXFColors = ACGetColorTable();
+        
+        osStyle.Printf( "BRUSH(fc:#%02x%02x%02x)",
+                        pabyDXFColors[nColor*3+0],
+                        pabyDXFColors[nColor*3+1],
+                        pabyDXFColors[nColor*3+2] );
+        
+        poFeature->SetStyleString( osStyle );
+    }
 
     return poFeature;
 }
@@ -119,25 +156,21 @@ OGRErr OGRDXFLayer::CollectBoundaryPath( OGRGeometryCollection *poGC )
 /* -------------------------------------------------------------------- */
 /*      Read the boundary path type.                                    */
 /* -------------------------------------------------------------------- */
-#define BPT_DEFAULT    0
-#define BPT_EXTERNAL   1
-#define BPT_POLYLINE   2
-#define BPT_DERIVED    3
-#define BPT_TEXTBOX    4
-#define BPT_OUTERMOST  5
-
     nCode = poDS->ReadValue(szLineBuf,sizeof(szLineBuf));
     if( nCode != 92 )
         return NULL;
 
     int  nBoundaryPathType = atoi(szLineBuf);
-    
-    // for now we don't implement polyline support.
-    if( nBoundaryPathType == BPT_POLYLINE )
-    {
-        CPLDebug( "DXF", "HATCH polyline boundaries not yet supported." );
-        return OGRERR_UNSUPPORTED_OPERATION;
-    }
+
+/* ==================================================================== */
+/*      Handle polyline loops.                                          */
+/* ==================================================================== */
+    if( nBoundaryPathType & 0x02 )
+        return CollectPolylinePath( poGC );
+
+/* ==================================================================== */
+/*      Handle non-polyline loops.                                      */
+/* ==================================================================== */
 
 /* -------------------------------------------------------------------- */
 /*      Read number of edges.                                           */
@@ -267,6 +300,86 @@ OGRErr OGRDXFLayer::CollectBoundaryPath( OGRGeometryCollection *poGC )
 
             poGC->addGeometryDirectly( poArc );
         }
+
+/* -------------------------------------------------------------------- */
+/*      Process an elliptical arc.                                      */
+/* -------------------------------------------------------------------- */
+        else if( nEdgeType == ET_ELLIPTIC_ARC )
+        {
+            double dfCenterX;
+            double dfCenterY;
+            double dfMajorRadius, dfMinorRadius;
+            double dfMajorX, dfMajorY;
+            double dfStartAngle;
+            double dfEndAngle;
+            double dfRotation;
+            double dfRatio;
+            int    bCounterClockwise = FALSE;
+
+            if( poDS->ReadValue(szLineBuf,sizeof(szLineBuf)) == 10 )
+                dfCenterX = atof(szLineBuf);
+            else
+                break;
+
+            if( poDS->ReadValue(szLineBuf,sizeof(szLineBuf)) == 20 )
+                dfCenterY = atof(szLineBuf);
+            else
+                break;
+
+            if( poDS->ReadValue(szLineBuf,sizeof(szLineBuf)) == 11 )
+                dfMajorX = atof(szLineBuf);
+            else
+                break;
+
+            if( poDS->ReadValue(szLineBuf,sizeof(szLineBuf)) == 21 )
+                dfMajorY = atof(szLineBuf);
+            else
+                break;
+
+            if( poDS->ReadValue(szLineBuf,sizeof(szLineBuf)) == 40 )
+                dfRatio = atof(szLineBuf) / 100.0;
+            else
+                break;
+
+            if( poDS->ReadValue(szLineBuf,sizeof(szLineBuf)) == 50 )
+                dfStartAngle = -1 * atof(szLineBuf);
+            else
+                break;
+
+            if( poDS->ReadValue(szLineBuf,sizeof(szLineBuf)) == 51 )
+                dfEndAngle = -1 * atof(szLineBuf);
+            else
+                break;
+
+            if( poDS->ReadValue(szLineBuf,sizeof(szLineBuf)) == 73 )
+                bCounterClockwise = atoi(szLineBuf);
+            else
+                poDS->UnreadValue();
+
+            if( bCounterClockwise )
+            {
+                double dfTemp = dfStartAngle;
+                dfStartAngle = dfEndAngle;
+                dfEndAngle = dfTemp;
+            }
+
+            if( dfStartAngle > dfEndAngle )
+                dfEndAngle += 360.0;
+
+            dfMajorRadius = sqrt( dfMajorX * dfMajorX + dfMajorY * dfMajorY );
+            dfMinorRadius = dfMajorRadius * dfRatio;
+
+            dfRotation = -1 * atan2( dfMajorY, dfMajorX ) * 180 / PI;
+
+            OGRGeometry *poArc = OGRGeometryFactory::approximateArcAngles( 
+                dfCenterX, dfCenterY, 0.0,
+                dfMajorRadius, dfMinorRadius, dfRotation,
+                dfStartAngle, dfEndAngle, 0.0 );
+
+            poArc->flattenTo2D();
+
+            poGC->addGeometryDirectly( poArc );
+        }
         else
         {
             CPLDebug( "DXF", "Unsupported HATCH boundary line type:%d",
@@ -276,19 +389,130 @@ OGRErr OGRDXFLayer::CollectBoundaryPath( OGRGeometryCollection *poGC )
     }
 
 /* -------------------------------------------------------------------- */
-/*      Number of source boundary objects.                              */
+/*      Skip through source boundary objects if present.                */
 /* -------------------------------------------------------------------- */
     nCode = poDS->ReadValue(szLineBuf,sizeof(szLineBuf));
     if( nCode != 97 )
         poDS->UnreadValue();
     else
     {
-        if( atoi(szLineBuf) != 0 )
-        {
-            CPLDebug( "DXF", "got unsupported HATCH boundary object references." );
-            return OGRERR_UNSUPPORTED_OPERATION;
-        }
+        int iObj, nObjCount = atoi(szLineBuf);
+
+        for( iObj = 0; iObj < nObjCount; iObj++ )
+            poDS->ReadValue( szLineBuf, sizeof(szLineBuf) );
     }
 
     return OGRERR_NONE;
 }
+
+/************************************************************************/
+/*                        CollectPolylinePath()                         */
+/************************************************************************/
+
+OGRErr OGRDXFLayer::CollectPolylinePath( OGRGeometryCollection *poGC )
+
+{
+    int  nCode;
+    char szLineBuf[257];
+    DXFSmoothPolyline oSmoothPolyline;
+    double dfBulge = 0.0;
+    double dfX = 0.0, dfY = 0.0;
+    int bHaveX = FALSE, bHaveY = FALSE;
+    int bIsClosed = FALSE;
+    int nVertexCount = -1;
+    int bHaveBulges = FALSE;
+
+/* -------------------------------------------------------------------- */
+/*      Read the boundary path type.                                    */
+/* -------------------------------------------------------------------- */
+    while( (nCode = poDS->ReadValue(szLineBuf,sizeof(szLineBuf))) > 0 )
+    {
+        if( nVertexCount > 0 && (int) oSmoothPolyline.size() == nVertexCount )
+            break;
+
+        switch( nCode )
+        {
+          case 93:
+            nVertexCount = atoi(szLineBuf);
+            break;
+
+          case 72:
+            bHaveBulges = atoi(szLineBuf);
+            break;
+
+          case 73:
+            bIsClosed = atoi(szLineBuf);
+            break;
+
+          case 10:
+            if( bHaveX && bHaveY )
+            {
+                oSmoothPolyline.AddPoint(dfX, dfY, 0.0, dfBulge);
+                dfBulge = 0.0;
+                bHaveY = FALSE;
+            }
+            dfX = CPLAtof(szLineBuf);
+            bHaveX = TRUE;
+            break;
+
+          case 20:
+            if( bHaveX && bHaveY )
+            {
+                oSmoothPolyline.AddPoint( dfX, dfY, 0.0, dfBulge );
+                dfBulge = 0.0;
+                bHaveX = bHaveY = FALSE;
+            }
+            dfY = CPLAtof(szLineBuf);
+            bHaveY = TRUE;
+            if( bHaveX && bHaveY && !bHaveBulges )
+            {
+                oSmoothPolyline.AddPoint( dfX, dfY, 0.0, dfBulge );
+                dfBulge = 0.0;
+                bHaveX = bHaveY = FALSE;
+            }
+            break;
+
+          case 42:
+            dfBulge = CPLAtof(szLineBuf);
+            if( bHaveX && bHaveY )
+            {
+                oSmoothPolyline.AddPoint( dfX, dfY, 0.0, dfBulge );
+                dfBulge = 0.0;
+                bHaveX = bHaveY = FALSE;
+            }
+            break;
+
+          default:
+            break;
+        }
+    }
+
+    if( nCode != 10 && nCode != 20 && nCode != 42 )
+        poDS->UnreadValue();
+
+    if( bHaveX && bHaveY )
+        oSmoothPolyline.AddPoint(dfX, dfY, 0.0, dfBulge);
+
+    if( bIsClosed )
+        oSmoothPolyline.Close();
+
+    poGC->addGeometryDirectly( oSmoothPolyline.Tesselate() );
+
+/* -------------------------------------------------------------------- */
+/*      Skip through source boundary objects if present.                */
+/* -------------------------------------------------------------------- */
+    nCode = poDS->ReadValue(szLineBuf,sizeof(szLineBuf));
+    if( nCode != 97 )
+        poDS->UnreadValue();
+    else
+    {
+        int iObj, nObjCount = atoi(szLineBuf);
+
+        for( iObj = 0; iObj < nObjCount; iObj++ )
+            poDS->ReadValue( szLineBuf, sizeof(szLineBuf) );
+    }
+
+    return OGRERR_NONE;
+}
+
+    

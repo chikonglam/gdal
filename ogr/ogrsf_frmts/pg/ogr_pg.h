@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_pg.h 21037 2010-11-01 12:59:54Z rouault $
+ * $Id: ogr_pg.h 23652 2011-12-29 09:33:53Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Private definitions for OGR/PostgreSQL driver.
@@ -34,10 +34,7 @@
 #include "libpq-fe.h"
 #include "cpl_string.h"
 
-#ifdef DEBUG
-PGresult *OGRPG_PQexec_dbg(PGconn *conn, const char *query);
-#define PQexec OGRPG_PQexec_dbg
-#endif
+#include "ogrpgutility.h"
 
 /* These are the OIDs for some builtin types, as returned by PQftype(). */
 /* They were copied from pg_type.h in src/include/catalog/pg_type.h */
@@ -76,6 +73,9 @@ PGresult *OGRPG_PQexec_dbg(PGconn *conn, const char *query);
 CPLString OGRPGEscapeString(PGconn *hPGConn,
                             const char* pszStrValue, int nMaxLength,
                             const char* pszFieldName);
+CPLString OGRPGEscapeColumnName(const char* pszColumnName);
+
+#define UNDETERMINED_SRID       -2 /* Special value when we haven't yet looked for SRID */
 
 /************************************************************************/
 /*                            OGRPGLayer                                */
@@ -112,7 +112,6 @@ class OGRPGLayer : public OGRLayer
 
     char               *pszCursorName;
     PGresult           *hCursorResult;
-    int                 bCursorActive;
 
     int                 nResultOffset;
 
@@ -131,10 +130,16 @@ class OGRPGLayer : public OGRLayer
     int                 ParsePGDate( const char *, OGRField * );
 
     void                SetInitialQueryCursor();
+    void                CloseCursor();
 
     OGRErr              RunGetExtentRequest( OGREnvelope *psExtent, int bForce,
                                              CPLString osCommand);
     void                CreateMapFromFieldNameToIndex();
+
+    OGRFeatureDefn     *ReadResultDefinition(PGresult *hInitialResultIn);
+
+    OGRFeature         *RecordToFeature( int iRecord );
+    OGRFeature         *GetNextRawFeature();
 
   public:
                         OGRPGLayer();
@@ -154,10 +159,6 @@ class OGRPGLayer : public OGRLayer
     virtual const char *GetGeometryColumn();
 
     virtual OGRErr      SetNextByIndex( long nIndex );
-
-    /* custom methods */
-    virtual OGRFeature *RecordToFeature( int iRecord );
-    virtual OGRFeature *GetNextRawFeature();
 };
 
 /************************************************************************/
@@ -224,7 +225,7 @@ public:
                                          const char * pszGeomColumnIn,
                                          int bUpdate,
                                          int bAdvertizeGeomColumn,
-                                         int nSRSId = -2 );
+                                         int nSRSId = UNDETERMINED_SRID );
                         ~OGRPGTableLayer();
 
     void                SetGeometryInformation(const char* pszGeomType,
@@ -252,6 +253,8 @@ public:
 
     virtual OGRErr      CreateField( OGRFieldDefn *poField,
                                      int bApproxOK = TRUE );
+    virtual OGRErr      DeleteField( int iField );
+    virtual OGRErr      AlterFieldDefn( int iField, OGRFieldDefn* poNewFieldDefn, int nFlags );
 
     virtual OGRSpatialReference *GetSpatialRef();
 
@@ -285,8 +288,6 @@ class OGRPGResultLayer : public OGRPGLayer
     char                *pszRawStatement;
 
     CPLString           osWHERE;
-
-    OGRFeatureDefn     *ReadResultDefinition(PGresult *hInitialResultIn);
 
   public:
                         OGRPGResultLayer( OGRPGDataSource *,
@@ -349,12 +350,17 @@ class OGRPGDataSource : public OGRDataSource
 
     CPLString           GetCurrentSchema();
 
+    int                 nUndefinedSRID;
+
   public:
     PGver               sPostgreSQLVersion;
     PGver               sPostGISVersion;
 
     int                 bUseBinaryCursor;
     int                 bBinaryTimeFormatIsInt8;
+    int                 bUseEscapeStringSyntax;
+
+    int                GetUndefinedSRID() const { return nUndefinedSRID; }
 
   public:
                         OGRPGDataSource();

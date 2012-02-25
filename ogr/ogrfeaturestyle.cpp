@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrfeaturestyle.cpp 21193 2010-12-04 17:13:26Z rouault $
+ * $Id: ogrfeaturestyle.cpp 23051 2011-09-04 17:59:02Z winkey $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Feature Representation string API
@@ -33,7 +33,7 @@
 #include "ogr_featurestyle.h"
 #include "ogr_api.h"
 
-CPL_CVSID("$Id: ogrfeaturestyle.cpp 21193 2010-12-04 17:13:26Z rouault $");
+CPL_CVSID("$Id: ogrfeaturestyle.cpp 23051 2011-09-04 17:59:02Z winkey $");
 
 CPL_C_START
 void OGRFeatureStylePuller() {}
@@ -435,7 +435,7 @@ GBool OGRStyleMgr::AddStyle(const char *pszStyleName,
 /************************************************************************/
 
 /**
- * Add a style to the current style table.
+ * \brief Add a style to the current style table.
  *
  * This function is the same as the C++ method OGRStyleMgr::AddStyle().
  *
@@ -462,6 +462,19 @@ int OGR_SM_AddStyle(OGRStyleMgrH hSM, const char *pszStyleName,
 /*                                                                          */
 /****************************************************************************/
 
+/**
+ * \brief Get the style string from the style manager.
+ *
+ * @param poFeature feature object from which to read the style or NULL to
+ *                  get the style string stored in the manager.
+ *
+ * @return the style string stored in the feature or the style string stored
+ *          in the style manager if poFeature is NULL
+ *
+ * NOTE: this method will call OGRStyleMgr::InitFromFeature() if poFeature is
+ *       not NULL and replace the style string stored in the style manager
+ */
+
 const char *OGRStyleMgr::GetStyleString(OGRFeature *poFeature)
 {
     if (poFeature == NULL)
@@ -469,6 +482,19 @@ const char *OGRStyleMgr::GetStyleString(OGRFeature *poFeature)
     else
       return InitFromFeature(poFeature);
 }
+
+/****************************************************************************/
+/*            GBool OGRStyleMgr::AddPart(const char *pszPart)               */
+/*            Add a new part in the current style                           */
+/****************************************************************************/
+
+/**
+ * \brief Add a part (style string) to the current style.
+ *
+ * @param pszPart the style string defining the part to add.
+ *
+ * @return TRUE on success, FALSE on errors. 
+ */
 
 GBool OGRStyleMgr::AddPart(const char *pszPart)
 {
@@ -1755,9 +1781,12 @@ GBool OGRStyleTool::Parse(const OGRStyleParamId *pasStyle,
     for ( i = 0; i < nElements; i++ )
     {
         char    **papszStylePair =
-            CSLTokenizeString2( papszToken2[i], ":", CSLT_HONOURSTRINGS
-                                                     | CSLT_STRIPLEADSPACES
-                                                     | CSLT_STRIPENDSPACES );
+            CSLTokenizeString2( papszToken2[i], ":", 
+                                CSLT_HONOURSTRINGS 
+                                | CSLT_STRIPLEADSPACES
+                                | CSLT_STRIPENDSPACES 
+                                | CSLT_ALLOWEMPTYTOKENS );
+
         int     j, nTokens = CSLCount(papszStylePair);
 
         if ( nTokens < 1 || nTokens > 2 )

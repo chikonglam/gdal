@@ -15,9 +15,7 @@ toolkit:
 
 lists information about an OGR supported data source
 
-\if man
-\section synopsis SYNOPSIS
-\endif
+\section ogrinfo_synopsis SYNOPSIS
 
 \htmlonly
 Usage:
@@ -32,9 +30,7 @@ ogrinfo [--help-general] [-ro] [-q] [-where restricted_where]
 
 \endverbatim
 
-\if man
-\section description DESCRIPTION
-\endif
+\section ogrinfo_description DESCRIPTION
 
 The ogrinfo program lists various information about an OGR supported data
 source to stdout (the terminal). 
@@ -83,9 +79,7 @@ If no query parameters are provided, all features are reported.
 
 Geometries are reported in OGC WKT format.
 
-\if man
-\section example EXAMPLE
-\endif
+\section ogrinfo_example EXAMPLE
 
 Example reporting all layers in an NTF file:
 \verbatim
@@ -156,7 +150,7 @@ OGRFeature(BL2000_LINK):2
 \endverbatim
 
 \if man
-\section author AUTHORS
+\section ogrinfo_author AUTHORS
 Frank Warmerdam <warmerdam@pobox.com>, Silke Reimer <silke@intevation.de>
 \endif
 */
@@ -165,9 +159,7 @@ Frank Warmerdam <warmerdam@pobox.com>, Silke Reimer <silke@intevation.de>
 
 converts simple features data between file formats
 
-\if man
-\section synopsis SYNOPSIS
-\endif
+\section ogr2ogr_synopsis SYNOPSIS
 
 \htmlonly
 Usage:
@@ -193,15 +185,14 @@ Advanced options :
                [-clipdstsql sql_statement] [-clipdstlayer layer]
                [-clipdstwhere expression]
                [-wrapdateline]
-               [-segmentize max_dist] [-fieldTypeToString All|(type1[,type2]*)]
+               [[-simplify tolerance] | [-segmentize max_dist]]
+               [-fieldTypeToString All|(type1[,type2]*)]
                [-splitlistfields] [-maxsubfields val]
                [-explodecollections] [-zfield field_name]
 
 \endverbatim
 
-\if man
-\section description DESCRIPTION
-\endif
+\section ogr2ogr_description DESCRIPTION
 
 This program can be used to convert simple features data between file formats
 performing various operations during the process such as spatial or attribute
@@ -245,6 +236,7 @@ Add "25D" to the name to get 2.5D versions.</dd>
 <dt> <b>-a_srs</b><em> srs_def</em>:</dt><dd> Assign an output SRS</dd>
 <dt> <b>-t_srs</b><em> srs_def</em>:</dt><dd> Reproject/transform to this SRS on output</dd>
 <dt> <b>-s_srs</b><em> srs_def</em>:</dt><dd> Override source SRS</dd>
+<dt> <b>-preserve_fid</b>:</dt><dd>Use the FID of the source features instead of letting the output driver to automatically assign a new one.</dd>
 <dt> <b>-fid</b> <i>fid</i>:</dt><dd> If provided, only the feature with this feature
 id will be reported.  Operates exclusive of the spatial or attribute 
 queries.  Note: if you want to select several features based on their feature id, you can
@@ -258,7 +250,8 @@ known definition (ie. EPSG:4326) or a file with a WKT definition.
 Advanced options :
 
 <dl>
-<dt> <b>-gt</b> <em>n</em>:</dt><dd> group <em>n</em> features per transaction (default 200)</dd>
+<dt> <b>-gt</b> <em>n</em>:</dt><dd> group <em>n</em> features per transaction (default 200). Increase the value
+for better performance when writing into DBMS drivers that have transaction support.</dd>
 <dt> <b>-clipsrc</b><em> [xmin ymin xmax ymax]|WKT|datasource|spat_extent</em>:
 </dt><dd> (starting with GDAL 1.7.0) clip geometries to the specified bounding
 box (expressed in source SRS), WKT geometry (POLYGON or MULTIPOLYGON), from a
@@ -276,8 +269,10 @@ you will generally want to use it in combination of the -clipdstlayer, -clipdstw
 <dt> <b>-clipdstlayer</b> <em>layername</em>:</dt><dd>Select the named layer from the destination clip datasource.</dd>
 <dt> <b>-clipdstwhere</b> <em>expression</em>:</dt><dd>Restrict desired geometries based on attribute query.</dd>
 <dt> <b>-wrapdateline</b>:</dt><dd> (starting with GDAL 1.7.0) split geometries crossing the dateline meridian (long. = +/- 180deg)</dd>
+<dt> <b>-simplify</b><em> tolerance</em>:</dt><dd> (starting with GDAL 1.9.0) distance tolerance for simplification.
+This method will preserve topology, in particular for polygon geometries.</dd>
 <dt> <b>-segmentize</b><em> max_dist</em>:</dt><dd> (starting with GDAL 1.6.0) maximum distance between 2 nodes.
-Used to create intermediate pointsspatial query extents</dd>
+Used to create intermediate points</dd>
 <dt> <b>-fieldTypeToString</b><em> type1, ...</em>:</dt><dd> (starting with GDAL 1.7.0) converts any field of the
 specified type to a field of type string in the destination layer. Valid types are : Integer, Real, String, Date, Time,
 DateTime, Binary, IntegerList, RealList, StringList. Special value <b>All</b> can be used to convert all fields to strings.
@@ -288,9 +283,23 @@ This is an alternate way to using the CAST operator of OGR SQL, that may avoid t
 <dt> <b>-zfield</b> <em>field_name</em>:</dt><dd>(starting with GDAL 1.8.0) Uses the specified field to fill the Z coordinate of geometries</dd>
 </dl>
 
-\if man
-\section example EXAMPLE
-\endif
+\section ogr2ogr_performance PERFORMANCE HINTS
+
+When writing into transactional DBMS (SQLite/PostgreSQL,MySQL, etc...),
+it might be beneficial to increase the number
+of INSERT statements executed between BEGIN TRANSACTION and COMMIT TRANSACTION statements.
+This number is specified with the -gt option. For example, for SQLite, explicitly defining
+<b>-gt 1024</b> usually ensures a noticeable performance boost;
+defining an even bigger <b>-gt 65536</b> ensures optimal performance while
+populating some table containing many hundredth thousand or million rows. However, note that
+if there are failed insertions, the scope of -skipfailures is a whole transaction.
+
+For PostgreSQL, the PG_USE_COPY config option can be set to YES for significantly insertion
+performance boot. See the PG driver documentation page.
+
+More generally, consult the documentation page of the input and output drivers for performance hints.
+
+\section ogr2ogr_example EXAMPLE
 
 Example appending to an existing layer (both flags need to be used):
 
@@ -307,7 +316,7 @@ Example reprojecting from ETRS_1989_LAEA_52N_10E to EPSG:4326 and clipping to a 
 More examples are given in the individual format pages.
 
 \if man
-\section author AUTHOR
+\section ogr2ogr_author AUTHOR
 Frank Warmerdam <warmerdam@pobox.com>, Silke Reimer <silke@intevation.de>
 \endif
 */
@@ -316,9 +325,7 @@ Frank Warmerdam <warmerdam@pobox.com>, Silke Reimer <silke@intevation.de>
 
 creates a tileindex
 
-\if man
-\section synopsis SYNOPSIS
-\endif
+\section ogrtindex_synopsis SYNOPSIS
 
 \htmlonly
 Usage:
@@ -330,9 +337,7 @@ ogrtindex [-lnum n]... [-lname name]... [-f output_format]
                  output_dataset src_dataset...
 \endverbatim
 
-\if man
-\section description DESCRIPTION
-\endif
+\section ogrtindex_description DESCRIPTION
 
 The ogrtindex program can be used to create a tileindex - a file containing
 a list of the identities of a bunch of other files along with there spatial
@@ -365,9 +370,7 @@ It is a flaw of the current ogrtindex program that no attempt is made to
 copy the coordinate system definition from the source datasets to the tile
 index (as is expected by MapServer when PROJECTION AUTO is in use).   
 
-\if man
-\section example EXAMPLE
-\endif
+\section ogrtindex_example EXAMPLE
 
 This example would create a shapefile (tindex.shp) containing a tile index
 of the BL2000_LINK layers in all the NTF files in the wrk directory:
@@ -376,7 +379,7 @@ of the BL2000_LINK layers in all the NTF files in the wrk directory:
 \endverbatim
 
 \if man
-\section author AUTHORS
+\section ogrtindex_author AUTHORS
 Frank Warmerdam <warmerdam@pobox.com>, Silke Reimer <silke@intevation.de>
 
 \endif

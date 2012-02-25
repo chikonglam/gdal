@@ -1,15 +1,15 @@
 /******************************************************************************
- * $Id: gt_wkt_srs.h 21102 2010-11-08 20:47:38Z rouault $
+ * $Id: gt_wkt_srs.h 21929 2011-03-11 03:58:42Z warmerdam $
  *
  * Project:  GeoTIFF Driver
  * Purpose:  Implements translation between GeoTIFF normalized projection
  *           definitions and OpenGIS WKT SRS format.  This code is
  *           deliberately GDAL free, and it is intended to be moved into
  *           libgeotiff someday if possible.
- * Author:   Frank Warmerdam, warmerdam@pobox.com
+ * Author:   Even Rouault
  *
  ******************************************************************************
- * Copyright (c) 1999, Frank Warmerdam
+ * Copyright (c) 2010, Even Rouault
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -41,6 +41,6 @@
 CPL_C_START
 char CPL_DLL *  GTIFGetOGISDefn( GTIF *, GTIFDefn * );
 int  CPL_DLL   GTIFSetFromOGISDefn( GTIF *, const char * );
-CPL_C_END;
+CPL_C_END
 
 #endif // GT_WKT_SRS_H_INCLUDED

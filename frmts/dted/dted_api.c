@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: dted_api.c 20996 2010-10-28 18:38:15Z rouault $
+ * $Id: dted_api.c 22606 2011-06-28 20:31:23Z rouault $
  *
  * Project:  DTED Translator
  * Purpose:  Implementation of DTED/CDED access functions.
@@ -30,7 +30,7 @@
 #include "dted_api.h"
 
 #ifndef AVOID_CPL
-CPL_CVSID("$Id: dted_api.c 20996 2010-10-28 18:38:15Z rouault $");
+CPL_CVSID("$Id: dted_api.c 22606 2011-06-28 20:31:23Z rouault $");
 #endif
 
 static int bWarnedTwoComplement = FALSE;
@@ -563,7 +563,6 @@ int DTEDWriteProfile( DTEDInfo * psDInfo, int nColumnOffset,
     if( VSIFSeekL( psDInfo->fp, nOffset, SEEK_SET ) != 0
         || VSIFWriteL( pabyRecord,(12+psDInfo->nYSize*2),1,psDInfo->fp ) != 1)
     {
-        CPLFree( pabyRecord );
 #ifndef AVOID_CPL
         CPLError( CE_Failure, CPLE_FileIO,
 #else

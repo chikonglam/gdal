@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrsualayer.cpp 20996 2010-10-28 18:38:15Z rouault $
+ * $Id: ogrsualayer.cpp 23066 2011-09-05 21:10:19Z rouault $
  *
  * Project:  SUA Translator
  * Purpose:  Implements OGRSUALayer class.
@@ -34,7 +34,7 @@
 #include "ogr_xplane_geo_utils.h"
 #include "ogr_srs_api.h"
 
-CPL_CVSID("$Id: ogrsualayer.cpp 20996 2010-10-28 18:38:15Z rouault $");
+CPL_CVSID("$Id: ogrsualayer.cpp 23066 2011-09-05 21:10:19Z rouault $");
 
 /************************************************************************/
 /*                            OGRSUALayer()                             */
@@ -348,6 +348,7 @@ OGRFeature *OGRSUALayer::GetNextRawFeature()
     poFeature->SetField(4, osBASE.c_str());
 
     OGRPolygon* poPoly = new OGRPolygon();
+    poPoly->assignSpatialReference(poSRS);
     oLR.closeRings();
     poPoly->addRing(&oLR);
     poFeature->SetGeometryDirectly(poPoly);

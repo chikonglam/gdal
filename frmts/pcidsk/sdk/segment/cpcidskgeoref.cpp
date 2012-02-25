@@ -155,6 +155,8 @@ void CPCIDSKGeoref::Load()
         ThrowPCIDSKException( "Unexpected GEO segment type: %s", 
                               seg_data.Get(0,16) );
     }
+
+    loaded = true;
 }
 
 /************************************************************************/
@@ -997,7 +999,8 @@ void CPCIDSKGeoref::PrepareGCTPFields()
 /* -------------------------------------------------------------------- */
 /*	Projection 0: Geographic (no projection)			*/
 /* -------------------------------------------------------------------- */
-    if( strncmp(geosys_clean.c_str(),"LONG ",5) == 0 )
+    if( strncmp(geosys_clean.c_str(),"LON",3) == 0 
+        || strncmp(geosys_clean.c_str(),"LAT",3) == 0 )
     {
         gsys = 0;
         UnitsCode = GCTP_UNIT_DEGREE;

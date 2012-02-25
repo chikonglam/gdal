@@ -1,4 +1,4 @@
-dnl $Id: ax_lib_xerces.m4 20303 2010-08-15 10:35:05Z rouault $
+dnl $Id: ax_lib_xerces.m4 23370 2011-11-13 13:21:30Z rouault $
 dnl
 dnl @synopsis AX_LIB_XERCES([MINIMUM-VERSION])
 dnl
@@ -28,7 +28,7 @@ dnl
 dnl @category InstalledPackages
 dnl @category Cxx
 dnl @author Mateusz Loskot <mateusz@loskot.net>
-dnl @version $Date: 2010-08-15 03:35:05 -0700 (Sun, 15 Aug 2010) $
+dnl @version $Date: 2011-11-13 05:21:30 -0800 (Sun, 13 Nov 2011) $
 dnl @license AllPermissive
 dnl          Copying and distribution of this file, with or without modification,
 dnl          are permitted in any medium without royalty provided the copyright notice and
@@ -120,8 +120,8 @@ AC_DEFUN([AX_LIB_XERCES],
         saved_CPPFLAGS="$CPPFLAGS"
         CPPFLAGS="$CPPFLAGS -I$xerces_include_dir -I$xerces_include_dir2"
 
-        saved_LDFLAGS="$LDFLAGS"
-        LDFLAGS="$LDFLAGS $xerces_lib_flags"
+        saved_LIBS="$LIBS"
+        LIBS="$LIBS $xerces_lib_flags"
 
         dnl
         dnl Check Xerces headers
@@ -184,7 +184,7 @@ XMLPlatformUtils::Initialize();
         fi
 
         CPPFLAGS="$saved_CPPFLAGS"
-        LDFLAGS="$saved_LDFLAGS"
+        LIBS="$saved_LIBS"
     fi
 
     AC_MSG_CHECKING([for Xerces C++ Parser])
@@ -196,7 +196,8 @@ XMLPlatformUtils::Initialize();
             AC_SUBST([XERCES_LDFLAGS])
 
             HAVE_XERCES="yes"
-        else 
+        else
+            XERCES_CFLAGS=""
             HAVE_XERCES="no"
         fi
 

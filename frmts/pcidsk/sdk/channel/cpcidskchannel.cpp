@@ -344,7 +344,6 @@ std::string CPCIDSKChannel::GetDescription()
     ih_1.Get(0,64,ret);
 
     return ret;
-
 }
 
 /************************************************************************/
@@ -460,4 +459,59 @@ void CPCIDSKChannel::PushHistory( const std::string &app,
     history_entries.resize(8);
 
     SetHistoryEntries( history_entries );
+}
+
+/************************************************************************/
+/*                            GetChanInfo()                             */
+/************************************************************************/
+void CPCIDSKChannel::GetChanInfo( std::string &filename, uint64 &image_offset, 
+                                  uint64 &pixel_offset, uint64 &line_offset, 
+                                  bool &little_endian ) const
+
+{
+    image_offset = 0;
+    pixel_offset = 0;
+    line_offset = 0;
+    little_endian = true;
+    filename = "";
+}
+
+/************************************************************************/
+/*                            SetChanInfo()                             */
+/************************************************************************/
+
+void CPCIDSKChannel::SetChanInfo( std::string filename, uint64 image_offset, 
+                                  uint64 pixel_offset, uint64 line_offset, 
+                                  bool little_endian )
+
+{
+    ThrowPCIDSKException( "Attempt to SetChanInfo() on a channel that is not FILE interleaved." );
+}
+
+/************************************************************************/
+/*                            GetEChanInfo()                            */
+/************************************************************************/
+void CPCIDSKChannel::GetEChanInfo( std::string &filename, int &echannel,
+                                   int &exoff, int &eyoff, 
+                                   int &exsize, int &eysize ) const
+
+{
+    echannel = 0;
+    exoff = 0;
+    eyoff = 0;
+    exsize = 0;
+    eysize = 0;
+    filename = "";
+}
+
+/************************************************************************/
+/*                            SetEChanInfo()                            */
+/************************************************************************/
+
+void CPCIDSKChannel::SetEChanInfo( std::string filename, int echannel,
+                                   int exoff, int eyoff, 
+                                   int exsize, int eysize )
+
+{
+    ThrowPCIDSKException( "Attempt to SetEChanInfo() on a channel that is not FILE interleaved." );
 }

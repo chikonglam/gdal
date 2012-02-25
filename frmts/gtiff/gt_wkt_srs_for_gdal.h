@@ -1,12 +1,12 @@
 /******************************************************************************
- * $Id: gt_wkt_srs_for_gdal.h 21102 2010-11-08 20:47:38Z rouault $
+ * $Id: gt_wkt_srs_for_gdal.h 21595 2011-01-28 04:21:40Z warmerdam $
  *
  * Project:  GeoTIFF Driver
  * Purpose:  Read/Write in-memory GeoTIFF file
- * Author:   Frank Warmerdam, warmerdam@pobox.com
+ * Author:   Even Rouault
  *
  ******************************************************************************
- * Copyright (c) 1999, Frank Warmerdam
+ * Copyright (c) 2010, Even Rouault
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),

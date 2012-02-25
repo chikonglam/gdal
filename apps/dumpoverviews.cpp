@@ -1,5 +1,5 @@
 /* ****************************************************************************
- * $Id: dumpoverviews.cpp 20991 2010-10-27 20:13:47Z rouault $
+ * $Id: dumpoverviews.cpp 23484 2011-12-07 03:34:10Z warmerdam $
  *
  * Project:  GDAL Utilities
  * Purpose:  Dump overviews to external files.
@@ -32,10 +32,20 @@
 #include "gdal_priv.h"
 #include "ogr_spatialref.h"
 
-CPL_CVSID("$Id: dumpoverviews.cpp 20991 2010-10-27 20:13:47Z rouault $");
+CPL_CVSID("$Id: dumpoverviews.cpp 23484 2011-12-07 03:34:10Z warmerdam $");
 
 static void DumpBand( GDALDatasetH hBaseDS, GDALRasterBandH hBand,
                       const char *pszName );
+
+/************************************************************************/
+/*                               Usage()                                */
+/************************************************************************/
+static void Usage() 
+
+{
+    printf( "Usage: dumpoverviews [-masks] <filename> [overview]*\n" );
+    exit( 1 );
+}
 
 /************************************************************************/
 /*                                main()                                */
@@ -75,16 +85,12 @@ int main( int argc, char ** argv )
         }
         else
         {
-            printf( "Usage: dumpoverviews [-masks] <filename> [overview]*\n" );
-            exit( 1 );
+            Usage();
         }
     }
 
     if( pszSrcFilename == NULL )
-    {
-        printf( "Usage: dumpoverviews <filename> [overview]*\n" );
-        exit( 1 );
-    }
+        Usage();
 
 /* -------------------------------------------------------------------- */
 /*      Open the input file.                                            */

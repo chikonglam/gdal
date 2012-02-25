@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrgeometry.cpp 21919 2011-03-09 19:40:15Z rouault $
+ * $Id: ogrgeometry.cpp 23638 2011-12-22 21:02:56Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implements a few base methods on OGRGeometry.
@@ -34,7 +34,7 @@
 #include "cpl_multiproc.h"
 #include <assert.h>
 
-CPL_CVSID("$Id: ogrgeometry.cpp 21919 2011-03-09 19:40:15Z rouault $");
+CPL_CVSID("$Id: ogrgeometry.cpp 23638 2011-12-22 21:02:56Z rouault $");
 
 int OGRGeometry::bGenerate_DB2_V72_BYTE_ORDER = FALSE;
 
@@ -337,24 +337,19 @@ OGRBoolean OGRGeometry::Intersects( OGRGeometry *poOtherGeom ) const
     hThisGeosGeom = exportToGEOS();
     hOtherGeosGeom = poOtherGeom->exportToGEOS();
     
+    OGRBoolean bResult = FALSE;
     if( hThisGeosGeom != NULL && hOtherGeosGeom != NULL )
     {
-        OGRBoolean bResult;
-        
         if( GEOSIntersects( hThisGeosGeom, hOtherGeosGeom ) != 0 )
             bResult = TRUE;
         else
             bResult = FALSE;
-        
-        GEOSGeom_destroy( hThisGeosGeom );
-        GEOSGeom_destroy( hOtherGeosGeom );
+    }
 
-        return bResult;
-    }
-    else
-    {
-        return TRUE;
-    }
+    GEOSGeom_destroy( hThisGeosGeom );
+    GEOSGeom_destroy( hOtherGeosGeom );
+
+    return bResult;
 #endif /* HAVE_GEOS */
 }
 
@@ -656,8 +651,8 @@ int OGR_G_GetDimension( OGRGeometryH hGeom )
  *
  * This method is the same as the C function OGR_G_GetCoordinateDimension().
  *
- * @return in practice this always returns 2 indicating that coordinates are
- * specified within a two dimensional space.
+ * @return in practice this will return 2 or 3. It can also return 0 in the
+ * case of an empty point.
  */
 
 int OGRGeometry::getCoordinateDimension() const
@@ -680,8 +675,9 @@ int OGRGeometry::getCoordinateDimension() const
  *
  * @param hGeom handle on the geometry to get the dimension of the 
  * coordinates from.
- * @return in practice this always returns 2 indicating that coordinates are
- * specified within a two dimensional space.
+ *
+ * @return in practice this will return 2 or 3. It can also return 0 in the
+ * case of an empty point.
  */
 
 int OGR_G_GetCoordinateDimension( OGRGeometryH hGeom )
@@ -873,6 +869,40 @@ void OGR_G_GetEnvelope( OGRGeometryH hGeom, OGREnvelope *psEnvelope )
 
 {
     VALIDATE_POINTER0( hGeom, "OGR_G_GetEnvelope" );
+
+    ((OGRGeometry *) hGeom)->getEnvelope( psEnvelope );
+}
+
+/**
+ * \fn void OGRGeometry::getEnvelope(OGREnvelope3D *psEnvelope) const;
+ *
+ * \brief Computes and returns the bounding envelope (3D) for this geometry in the passed psEnvelope structure.
+ *
+ * This method is the same as the C function OGR_G_GetEnvelope3D().
+ *
+ * @param psEnvelope the structure in which to place the results.
+ *
+ * @since OGR 1.9.0
+ */
+
+/************************************************************************/
+/*                        OGR_G_GetEnvelope3D()                         */
+/************************************************************************/
+/**
+ * \brief Computes and returns the bounding envelope (3D) for this geometry in the passed psEnvelope structure.
+ *
+ * This function is the same as the CPP method OGRGeometry::getEnvelope().
+ *
+ * @param hGeom handle of the geometry to get envelope from.
+ * @param psEnvelope the structure in which to place the results.
+ *
+ * @since OGR 1.9.0
+ */
+
+void OGR_G_GetEnvelope3D( OGRGeometryH hGeom, OGREnvelope3D *psEnvelope )
+
+{
+    VALIDATE_POINTER0( hGeom, "OGR_G_GetEnvelope3D" );
 
     ((OGRGeometry *) hGeom)->getEnvelope( psEnvelope );
 }
@@ -2374,8 +2404,6 @@ OGRGeometry *OGRGeometry::Intersection( const OGRGeometry *poOtherGeom ) const
     if( hThisGeosGeom != NULL && hOtherGeosGeom != NULL )
     {
         hGeosProduct = GEOSIntersection( hThisGeosGeom, hOtherGeosGeom );
-        GEOSGeom_destroy( hThisGeosGeom );
-        GEOSGeom_destroy( hOtherGeosGeom );
 
         if( hGeosProduct != NULL )
         {
@@ -2383,6 +2411,8 @@ OGRGeometry *OGRGeometry::Intersection( const OGRGeometry *poOtherGeom ) const
             GEOSGeom_destroy( hGeosProduct );
         }
     }
+    GEOSGeom_destroy( hThisGeosGeom );
+    GEOSGeom_destroy( hOtherGeosGeom );
 
     return poOGRProduct;
 
@@ -2466,8 +2496,6 @@ OGRGeometry *OGRGeometry::Union( const OGRGeometry *poOtherGeom ) const
     if( hThisGeosGeom != NULL && hOtherGeosGeom != NULL )
     {
         hGeosProduct = GEOSUnion( hThisGeosGeom, hOtherGeosGeom );
-        GEOSGeom_destroy( hThisGeosGeom );
-        GEOSGeom_destroy( hOtherGeosGeom );
 
         if( hGeosProduct != NULL )
         {
@@ -2475,6 +2503,8 @@ OGRGeometry *OGRGeometry::Union( const OGRGeometry *poOtherGeom ) const
             GEOSGeom_destroy( hGeosProduct );
         }
     }
+    GEOSGeom_destroy( hThisGeosGeom );
+    GEOSGeom_destroy( hOtherGeosGeom );
 
     return poOGRProduct;
 
@@ -2642,8 +2672,6 @@ OGRGeometry *OGRGeometry::Difference( const OGRGeometry *poOtherGeom ) const
     if( hThisGeosGeom != NULL && hOtherGeosGeom != NULL )
     {
         hGeosProduct = GEOSDifference( hThisGeosGeom, hOtherGeosGeom );
-        GEOSGeom_destroy( hThisGeosGeom );
-        GEOSGeom_destroy( hOtherGeosGeom );
 
         if( hGeosProduct != NULL )
         {
@@ -2651,6 +2679,8 @@ OGRGeometry *OGRGeometry::Difference( const OGRGeometry *poOtherGeom ) const
             GEOSGeom_destroy( hGeosProduct );
         }
     }
+    GEOSGeom_destroy( hThisGeosGeom );
+    GEOSGeom_destroy( hOtherGeosGeom );
 
     return poOGRProduct;
 
@@ -2737,8 +2767,6 @@ OGRGeometry::SymDifference( const OGRGeometry *poOtherGeom ) const
     if( hThisGeosGeom != NULL && hOtherGeosGeom != NULL )
     {
         hGeosProduct = GEOSSymDifference( hThisGeosGeom, hOtherGeosGeom );
-        GEOSGeom_destroy( hThisGeosGeom );
-        GEOSGeom_destroy( hOtherGeosGeom );
 
         if( hGeosProduct != NULL )
         {
@@ -2746,6 +2774,8 @@ OGRGeometry::SymDifference( const OGRGeometry *poOtherGeom ) const
             GEOSGeom_destroy( hGeosProduct );
         }
     }
+    GEOSGeom_destroy( hThisGeosGeom );
+    GEOSGeom_destroy( hOtherGeosGeom );
 
     return poOGRProduct;
 
@@ -2860,9 +2890,9 @@ OGRGeometry::Disjoint( const OGRGeometry *poOtherGeom ) const
     if( hThisGeosGeom != NULL && hOtherGeosGeom != NULL )
     {
         bResult = GEOSDisjoint( hThisGeosGeom, hOtherGeosGeom );
-        GEOSGeom_destroy( hThisGeosGeom );
-        GEOSGeom_destroy( hOtherGeosGeom );
     }
+    GEOSGeom_destroy( hThisGeosGeom );
+    GEOSGeom_destroy( hOtherGeosGeom );
 
     return bResult;
 
@@ -2941,9 +2971,9 @@ OGRGeometry::Touches( const OGRGeometry *poOtherGeom ) const
     if( hThisGeosGeom != NULL && hOtherGeosGeom != NULL )
     {
         bResult = GEOSTouches( hThisGeosGeom, hOtherGeosGeom );
-        GEOSGeom_destroy( hThisGeosGeom );
-        GEOSGeom_destroy( hOtherGeosGeom );
     }
+    GEOSGeom_destroy( hThisGeosGeom );
+    GEOSGeom_destroy( hOtherGeosGeom );
 
     return bResult;
 
@@ -3022,9 +3052,9 @@ OGRGeometry::Crosses( const OGRGeometry *poOtherGeom ) const
     if( hThisGeosGeom != NULL && hOtherGeosGeom != NULL )
     {
         bResult = GEOSCrosses( hThisGeosGeom, hOtherGeosGeom );
-        GEOSGeom_destroy( hThisGeosGeom );
-        GEOSGeom_destroy( hOtherGeosGeom );
     }
+    GEOSGeom_destroy( hThisGeosGeom );
+    GEOSGeom_destroy( hOtherGeosGeom );
 
     return bResult;
 
@@ -3102,9 +3132,9 @@ OGRGeometry::Within( const OGRGeometry *poOtherGeom ) const
     if( hThisGeosGeom != NULL && hOtherGeosGeom != NULL )
     {
         bResult = GEOSWithin( hThisGeosGeom, hOtherGeosGeom );
-        GEOSGeom_destroy( hThisGeosGeom );
-        GEOSGeom_destroy( hOtherGeosGeom );
     }
+    GEOSGeom_destroy( hThisGeosGeom );
+    GEOSGeom_destroy( hOtherGeosGeom );
 
     return bResult;
 
@@ -3182,9 +3212,9 @@ OGRGeometry::Contains( const OGRGeometry *poOtherGeom ) const
     if( hThisGeosGeom != NULL && hOtherGeosGeom != NULL )
     {
         bResult = GEOSContains( hThisGeosGeom, hOtherGeosGeom );
-        GEOSGeom_destroy( hThisGeosGeom );
-        GEOSGeom_destroy( hOtherGeosGeom );
     }
+    GEOSGeom_destroy( hThisGeosGeom );
+    GEOSGeom_destroy( hOtherGeosGeom );
 
     return bResult;
 
@@ -3263,9 +3293,9 @@ OGRGeometry::Overlaps( const OGRGeometry *poOtherGeom ) const
     if( hThisGeosGeom != NULL && hOtherGeosGeom != NULL )
     {
         bResult = GEOSOverlaps( hThisGeosGeom, hOtherGeosGeom );
-        GEOSGeom_destroy( hThisGeosGeom );
-        GEOSGeom_destroy( hOtherGeosGeom );
     }
+    GEOSGeom_destroy( hThisGeosGeom );
+    GEOSGeom_destroy( hOtherGeosGeom );
 
     return bResult;
 
@@ -3514,13 +3544,13 @@ OGRGeometry *OGRGeometry::Simplify(double dTolerance) const
     hThisGeosGeom = exportToGEOS();
     if( hThisGeosGeom != NULL ) 
     {
-	hGeosProduct = GEOSSimplify( hThisGeosGeom, dTolerance );
-	GEOSGeom_destroy( hThisGeosGeom );
-	if( hGeosProduct != NULL )
-	{
-	    poOGRProduct = OGRGeometryFactory::createFromGEOS( hGeosProduct );
+        hGeosProduct = GEOSSimplify( hThisGeosGeom, dTolerance );
+        GEOSGeom_destroy( hThisGeosGeom );
+        if( hGeosProduct != NULL )
+        {
+            poOGRProduct = OGRGeometryFactory::createFromGEOS( hGeosProduct );
             GEOSGeom_destroy( hGeosProduct );
-	}
+        }
     }
     return poOGRProduct;
 
@@ -3559,6 +3589,222 @@ OGRGeometryH OGR_G_Simplify( OGRGeometryH hThis, double dTolerance )
 {
     VALIDATE_POINTER1( hThis, "OGR_G_Simplify", NULL );
     return (OGRGeometryH) ((OGRGeometry *) hThis)->Simplify( dTolerance );
+}
+
+/************************************************************************/
+/*                         SimplifyPreserveTopology()                   */
+/************************************************************************/
+
+/**
+ * \brief Simplify the geometry while preserving topology.
+ *
+ * This function is the same as the C function OGR_G_SimplifyPreserveTopology().
+ *
+ * This function is built on the GEOS library, check it for the definition
+ * of the geometry operation.
+ * If OGR is built without the GEOS library, this function will always fail,
+ * issuing a CPLE_NotSupported error.
+ *
+ * @param dTolerance the distance tolerance for the simplification.
+ *
+ * @return the simplified geometry or NULL if an error occurs.
+ *
+ * @since OGR 1.9.0
+ */
+
+OGRGeometry *OGRGeometry::SimplifyPreserveTopology(double dTolerance) const
+
+{
+#ifndef HAVE_GEOS
+
+    CPLError( CE_Failure, CPLE_NotSupported,
+              "GEOS support not enabled." );
+    return NULL;
+
+/* GEOS >= 3.0.0 */
+#elif GEOS_CAPI_VERSION_MAJOR >= 2 || (GEOS_CAPI_VERSION_MAJOR == 1 && GEOS_CAPI_VERSION_MINOR >= 4)
+
+    GEOSGeom hThisGeosGeom = NULL;
+    GEOSGeom hGeosProduct = NULL;
+    OGRGeometry *poOGRProduct = NULL;
+
+    hThisGeosGeom = exportToGEOS();
+    if( hThisGeosGeom != NULL )
+    {
+        hGeosProduct = GEOSTopologyPreserveSimplify( hThisGeosGeom, dTolerance );
+        GEOSGeom_destroy( hThisGeosGeom );
+        if( hGeosProduct != NULL )
+        {
+            poOGRProduct = OGRGeometryFactory::createFromGEOS( hGeosProduct );
+            GEOSGeom_destroy( hGeosProduct );
+        }
+    }
+    return poOGRProduct;
+
+#else
+    CPLError( CE_Failure, CPLE_NotSupported,
+              "GEOS >= 3.0.0 required for SimplifyPreserveTopology() support." );
+    return NULL;
+#endif /* HAVE_GEOS */
+
+}
+
+/************************************************************************/
+/*                     OGR_G_SimplifyPreserveTopology()                 */
+/************************************************************************/
+
+/**
+ * \brief Simplify the geometry while preserving topology.
+ *
+ * This function is the same as the C++ method OGRGeometry::SimplifyPreserveTopology().
+ *
+ * This function is built on the GEOS library, check it for the definition
+ * of the geometry operation.
+ * If OGR is built without the GEOS library, this function will always fail,
+ * issuing a CPLE_NotSupported error.
+ *
+ * @param hThis the geometry.
+ * @param dTolerance the distance tolerance for the simplification.
+ *
+ * @return the simplified geometry or NULL if an error occurs.
+ *
+ * @since OGR 1.9.0
+ */
+
+OGRGeometryH OGR_G_SimplifyPreserveTopology( OGRGeometryH hThis, double dTolerance )
+
+{
+    VALIDATE_POINTER1( hThis, "OGR_G_SimplifyPreserveTopology", NULL );
+    return (OGRGeometryH) ((OGRGeometry *) hThis)->SimplifyPreserveTopology( dTolerance );
+}
+
+/************************************************************************/
+/*                             Polygonize()                             */
+/************************************************************************/
+/* Contributor: Alessandro Furieri, a.furieri@lqt.it                    */
+/* Developed for Faunalia (http://www.faunalia.it) with funding from    */
+/* Regione Toscana - Settore SISTEMA INFORMATIVO TERRITORIALE ED        */
+/*                   AMBIENTALE                                         */
+/************************************************************************/
+
+/**
+ * \brief Polygonizes a set of sparse edges.
+ *
+ * A new geometry object is created and returned containing a collection
+ * of reassembled Polygons: NULL will be returned if the input collection
+ * doesn't corresponds to a MultiLinestring, or when reassembling Edges
+ * into Polygons is impossible due to topogical inconsistencies.
+ *
+ * This method is the same as the C function OGR_G_Polygonize().
+ *
+ * This method is built on the GEOS library, check it for the definition
+ * of the geometry operation.
+ * If OGR is built without the GEOS library, this method will always fail, 
+ * issuing a CPLE_NotSupported error. 
+ *
+ * @return a newly allocated geometry now owned by the caller, or NULL on failure.
+ *
+ * @since OGR 1.9.0
+ */
+
+OGRGeometry *OGRGeometry::Polygonize() const
+
+{
+#ifndef HAVE_GEOS
+
+    CPLError( CE_Failure, CPLE_NotSupported, 
+              "GEOS support not enabled." );
+    return NULL;
+
+#else
+
+    OGRGeometryCollection *poColl = NULL;
+    if( wkbFlatten(getGeometryType()) == wkbGeometryCollection ||
+        wkbFlatten(getGeometryType()) == wkbMultiLineString )
+        poColl = (OGRGeometryCollection *)this;
+    else
+        return NULL;
+
+    int iCount = poColl->getNumGeometries();
+
+    GEOSGeom *hGeosGeomList = NULL;
+    GEOSGeom hGeosPolygs = NULL;
+    OGRGeometry *poPolygsOGRGeom = NULL;
+    int bError = FALSE;
+
+    hGeosGeomList = new GEOSGeom [iCount];
+    for ( int ig = 0; ig < iCount; ig++)
+    {
+        GEOSGeom hGeosGeom = NULL;
+        OGRGeometry * poChild = (OGRGeometry*)poColl->getGeometryRef(ig);
+        if( poChild == NULL ||
+            wkbFlatten(poChild->getGeometryType()) != wkbLineString )
+            bError = TRUE;
+        else
+        {
+            hGeosGeom = poChild->exportToGEOS();
+            if( hGeosGeom == NULL)
+                bError = TRUE;
+        }
+        *(hGeosGeomList + ig) = hGeosGeom;
+    }
+
+    if( bError == FALSE )
+    {
+        hGeosPolygs = GEOSPolygonize( hGeosGeomList, iCount );
+
+        if( hGeosPolygs != NULL )
+        {
+            poPolygsOGRGeom = OGRGeometryFactory::createFromGEOS(hGeosPolygs);
+            GEOSGeom_destroy( hGeosPolygs);
+        }
+    }
+
+    for ( int ig = 0; ig < iCount; ig++)
+    {
+        GEOSGeom hGeosGeom = *(hGeosGeomList + ig);
+        if( hGeosGeom != NULL)
+            GEOSGeom_destroy( hGeosGeom );
+    }
+    delete [] hGeosGeomList;
+
+    return poPolygsOGRGeom;
+
+#endif /* HAVE_GEOS */
+}
+
+/************************************************************************/
+/*                          OGR_G_Polygonize()                          */
+/************************************************************************/
+/**
+ * \brief Polygonizes a set of sparse edges.
+ *
+ * A new geometry object is created and returned containing a collection
+ * of reassembled Polygons: NULL will be returned if the input collection
+ * doesn't corresponds to a MultiLinestring, or when reassembling Edges
+ * into Polygons is impossible due to topogical inconsistencies.  
+ *
+ * This function is the same as the C++ method OGRGeometry::Polygonize().
+ *
+ * This function is built on the GEOS library, check it for the definition
+ * of the geometry operation.
+ * If OGR is built without the GEOS library, this function will always fail, 
+ * issuing a CPLE_NotSupported error. 
+ *
+ * @param hTarget The Geometry to be polygonized.
+ *
+ * @return a handle to a newly allocated geometry now owned by the caller,
+ *         or NULL on failure.
+ *
+ * @since OGR 1.9.0
+ */
+
+OGRGeometryH OGR_G_Polygonize( OGRGeometryH hTarget )
+
+{
+    VALIDATE_POINTER1( hTarget, "OGR_G_Polygonize", NULL );
+
+    return (OGRGeometryH) ((OGRGeometry *) hTarget)->Polygonize();
 }
 
 /************************************************************************/

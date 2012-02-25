@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_srsnode.cpp 20835 2010-10-15 20:00:50Z rouault $
+ * $Id: ogr_srsnode.cpp 23521 2011-12-10 23:04:17Z etourigny $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  The OGR_SRSNode class.
@@ -30,7 +30,7 @@
 #include "ogr_spatialref.h"
 #include "ogr_p.h"
 
-CPL_CVSID("$Id: ogr_srsnode.cpp 20835 2010-10-15 20:00:50Z rouault $");
+CPL_CVSID("$Id: ogr_srsnode.cpp 23521 2011-12-10 23:04:17Z etourigny $");
 
 /************************************************************************/
 /*                            OGR_SRSNode()                             */
@@ -646,6 +646,10 @@ OGRErr OGR_SRSNode::importFromWkt( char ** ppszInput )
 
             AddChild( poNewChild );
             
+            // swallow whitespace
+            while( isspace(*pszInput) ) 
+                pszInput++;
+
         } while( *pszInput == ',' );
 
         if( *pszInput != ')' && *pszInput != ']' )
@@ -765,7 +769,8 @@ OGRErr OGR_SRSNode::applyRemapper( const char *pszNode,
     {
         for( i = 0; papszSrcValues[i] != NULL; i += nStepSize )
         {
-            if( EQUAL(papszSrcValues[i],pszValue) )
+            if( EQUAL(papszSrcValues[i],pszValue) && 
+                ! EQUAL(papszDstValues[i],"") )
             {
                 SetValue( papszDstValues[i] );
                 break;
@@ -850,8 +855,11 @@ static const char * const apszDATUMRule[] =
 static const char * const apszGEOGCSRule[] = 
 { "GEOGCS", "DATUM", "PRIMEM", "UNIT", "AXIS", "AUTHORITY", NULL };
 
+static const char * const apszGEOCCSRule[] = 
+{ "GEOCCS", "DATUM", "PRIMEM", "UNIT", "AXIS", "AUTHORITY", NULL };
+
 static const char * const *apszOrderingRules[] = {
-    apszPROJCSRule, apszGEOGCSRule, apszDATUMRule, NULL };
+    apszPROJCSRule, apszGEOGCSRule, apszDATUMRule, apszGEOCCSRule, NULL };
 
 OGRErr OGR_SRSNode::FixupOrdering()
 

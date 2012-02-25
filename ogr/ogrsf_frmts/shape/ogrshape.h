@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrshape.h 21257 2010-12-14 20:23:13Z rouault $
+ * $Id: ogrshape.h 23534 2011-12-11 22:35:51Z warmerdam $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Private definitions within the Shapefile driver to implement
@@ -39,21 +39,27 @@
 /* ==================================================================== */
 OGRFeature *SHPReadOGRFeature( SHPHandle hSHP, DBFHandle hDBF,
                                OGRFeatureDefn * poDefn, int iShape, 
-                               SHPObject *psShape );
+                               SHPObject *psShape, const char *pszSHPEncoding );
 OGRGeometry *SHPReadOGRObject( SHPHandle hSHP, int iShape, SHPObject *psShape );
 OGRFeatureDefn *SHPReadOGRFeatureDefn( const char * pszName,
-                                       SHPHandle hSHP, DBFHandle hDBF );
+                                       SHPHandle hSHP, DBFHandle hDBF,
+                                       const char *pszSHPEncoding );
 OGRErr SHPWriteOGRFeature( SHPHandle hSHP, DBFHandle hDBF,
                            OGRFeatureDefn *poFeatureDefn,
-                           OGRFeature *poFeature );
+                           OGRFeature *poFeature, const char *pszSHPEncoding,
+                           int* pbTruncationWarningEmitted );
 
 /************************************************************************/
 /*                            OGRShapeLayer                             */
 /************************************************************************/
 
+class OGRShapeDataSource;
+
 class OGRShapeLayer : public OGRLayer
 {
-    OGRSpatialReference *poSRS;
+    OGRShapeDataSource  *poDS;
+    OGRSpatialReference *poSRS; /* lazy loaded --> use GetSpatialRef() */
+    int                 bSRSSet;
     OGRFeatureDefn     *poFeatureDefn;
     int                 iNextShapeId;
     int                 nTotalShapeCount;
@@ -76,29 +82,55 @@ class OGRShapeLayer : public OGRLayer
     int                 bHeaderDirty;
 
     int                 bCheckedForQIX;
-    FILE                *fpQIX;
+    SHPTreeDiskHandle   hQIX;
 
     int                 CheckForQIX();
 
     int                 bSbnSbxDeleted;
 
+    CPLString           ConvertCodePage( const char * );
+    CPLString           osEncoding;
+
+    int                 bTruncationWarningEmitted;
+
+    int                 bHSHPWasNonNULL; /* to know if we must try to reopen a .shp */
+    int                 bHDBFWasNonNULL; /* to know if we must try to reopen a .dbf */
+    int                 eFileDescriptorsState; /* current state of opening of file descriptor to .shp and .dbf */
+    int                 TouchLayer();
+    int                 ReopenFileDescriptors();
+
+/* WARNING: each of the below public methods should start with a call to */
+/* TouchLayer() and test its return value, so as to make sure that */
+/* the layer is properly re-opened if necessary */
+
   public:
     OGRErr              CreateSpatialIndex( int nMaxDepth );
     OGRErr              DropSpatialIndex();
     OGRErr              Repack();
+    OGRErr              RecomputeExtent();
 
     const char         *GetFullName() { return pszFullName; }
 
+    void                CloseFileDescriptors();
+
+    /* The 2 following members should not be used by OGRShapeLayer, except */
+    /* in its constructor */
+    OGRShapeLayer      *poPrevLayer; /* Chain to a layer that was used more recently */
+    OGRShapeLayer      *poNextLayer; /* Chain to a layer that was used less recently */
+
+    OGRFeature *        FetchShape(int iShapeId);
+    int                 GetFeatureCountWithSpatialFilterOnly();
+
   public:
-                        OGRShapeLayer( const char * pszName,
+                        OGRShapeLayer( OGRShapeDataSource* poDSIn,
+                                       const char * pszName,
                                        SHPHandle hSHP, DBFHandle hDBF,
-                                       OGRSpatialReference *poSRS,
+                                       OGRSpatialReference *poSRS, int bSRSSet,
                                        int bUpdate, 
                                        OGRwkbGeometryType eReqType );
                         ~OGRShapeLayer();
 
     void                ResetReading();
-    OGRFeature *        FetchShape(int iShapeId);
     OGRFeature *        GetNextFeature();
     virtual OGRErr      SetNextByIndex( long nIndex );
 
@@ -115,10 +147,14 @@ class OGRShapeLayer : public OGRLayer
 
     virtual OGRErr      CreateField( OGRFieldDefn *poField,
                                      int bApproxOK = TRUE );
+    virtual OGRErr      DeleteField( int iField );
+    virtual OGRErr      ReorderFields( int* panMap );
+    virtual OGRErr      AlterFieldDefn( int iField, OGRFieldDefn* poNewFieldDefn, int nFlags );
 
     virtual OGRSpatialReference *GetSpatialRef();
     
     int                 TestCapability( const char * );
+
 };
 
 /************************************************************************/
@@ -135,6 +171,12 @@ class OGRShapeDataSource : public OGRDataSource
     int                 bDSUpdate;
 
     int                 bSingleFileDataSource;
+
+    OGRShapeLayer      *poMRULayer; /* the most recently used layer */
+    OGRShapeLayer      *poLRULayer; /* the least recently used layer (still opened) */
+    int                 nMRUListSize; /* the size of the list */
+
+    void                AddLayer(OGRShapeLayer* poLayer);
 
   public:
                         OGRShapeDataSource();
@@ -159,6 +201,9 @@ class OGRShapeDataSource : public OGRDataSource
 
     virtual int          TestCapability( const char * );
     virtual OGRErr       DeleteLayer( int iLayer );
+
+    void                 SetLastUsedLayer( OGRShapeLayer* poLayer );
+    void                 UnchainLayer( OGRShapeLayer* poLayer );
 };
 
 /************************************************************************/

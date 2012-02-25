@@ -1,5 +1,5 @@
 /**********************************************************************
- * $Id: cpl_vsil_stdin.cpp 20794 2010-10-08 16:58:27Z warmerdam $
+ * $Id: cpl_vsil_stdin.cpp 21689 2011-02-12 12:18:14Z rouault $
  *
  * Project:  CPL - Common Portability Library
  * Purpose:  Implement VSI large file api for stdin
@@ -38,7 +38,7 @@
 #include <fcntl.h>
 #endif
 
-CPL_CVSID("$Id: cpl_vsil_stdin.cpp 20794 2010-10-08 16:58:27Z warmerdam $");
+CPL_CVSID("$Id: cpl_vsil_stdin.cpp 21689 2011-02-12 12:18:14Z rouault $");
 
 /* We buffer the first 1MB of standard input to enable drivers */
 /* to autodetect data. In the first MB, backward and forward seeking */
@@ -357,9 +357,20 @@ int VSIStdinFilesystemHandler::Stat( const char * pszFilename,
 }
 
 /************************************************************************/
-/*                       VSIInstallStdinHandler()                      */
+/*                       VSIInstallStdinHandler()                       */
 /************************************************************************/
 
+/**
+ * \brief Install /vsistdin/ file system handler
+ *
+ * A special file handler is installed that allows reading from the standard
+ * input steam.
+ *
+ * The file operations available are of course limited to Read() and
+ * forward Seek() (full seek in the first MB of a file).
+ *
+ * @since GDAL 1.8.0
+ */
 void VSIInstallStdinHandler()
 
 {

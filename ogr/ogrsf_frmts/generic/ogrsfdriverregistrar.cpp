@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrsfdriverregistrar.cpp 21447 2011-01-09 16:02:28Z rouault $
+ * $Id: ogrsfdriverregistrar.cpp 22812 2011-07-25 04:50:23Z warmerdam $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  The OGRSFDriverRegistrar class implementation.
@@ -37,7 +37,7 @@
 #include <unistd.h>
 #endif
 
-CPL_CVSID("$Id: ogrsfdriverregistrar.cpp 21447 2011-01-09 16:02:28Z rouault $");
+CPL_CVSID("$Id: ogrsfdriverregistrar.cpp 22812 2011-07-25 04:50:23Z warmerdam $");
 
 static void *hDRMutex = NULL;
 static OGRSFDriverRegistrar * volatile poRegistrar = NULL;
@@ -149,6 +149,9 @@ void OGRCleanupAll()
         OSRCleanup();
         swq_op_registrar::DeInitialize();
     }
+
+    CPLDestroyMutex( hDRMutex );
+    hDRMutex = NULL;
 
     CPLFinderClean();
     VSICleanupFileManager();
@@ -835,11 +838,26 @@ void OGRSFDriverRegistrar::AutoLoadDrivers()
     }
 
 /* -------------------------------------------------------------------- */
-/*      Scan each directory looking for files starting with gdal_       */
+/*      Format the ABI version specific subdirectory to look in.        */
+/* -------------------------------------------------------------------- */
+    CPLString osABIVersion;
+
+    osABIVersion.Printf( "%d.%d", GDAL_VERSION_MAJOR, GDAL_VERSION_MINOR );
+
+/* -------------------------------------------------------------------- */
+/*      Scan each directory looking for files starting with ogr_        */
 /* -------------------------------------------------------------------- */
     for( int iDir = 0; iDir < CSLCount(papszSearchPath); iDir++ )
     {
-        char  **papszFiles = CPLReadDir( papszSearchPath[iDir] );
+        char **papszFiles = NULL;
+        VSIStatBufL sStatBuf;
+        CPLString osABISpecificDir =
+            CPLFormFilename( papszSearchPath[iDir], osABIVersion, NULL );
+        
+        if( VSIStatL( osABISpecificDir, &sStatBuf ) != 0 )
+            osABISpecificDir = papszSearchPath[iDir];
+
+        papszFiles = CPLReadDir( osABISpecificDir );
 
         for( int iFile = 0; iFile < CSLCount(papszFiles); iFile++ )
         {
@@ -861,7 +879,7 @@ void OGRSFDriverRegistrar::AutoLoadDrivers()
                      CPLGetBasename(papszFiles[iFile]) + 4 );
             
             pszFilename = 
-                CPLFormFilename( papszSearchPath[iDir], 
+                CPLFormFilename( osABISpecificDir,
                                  papszFiles[iFile], NULL );
 
             pRegister = CPLGetSymbol( pszFilename, pszFuncName );

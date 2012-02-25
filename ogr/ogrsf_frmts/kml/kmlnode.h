@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: kmlnode.h 17512 2009-08-03 20:12:58Z rouault $
+ * $Id: kmlnode.h 23589 2011-12-17 14:21:01Z rouault $
  *
  * Project:  KML Driver
  * Purpose:  Class for building up the node structure of the kml file.
@@ -47,7 +47,7 @@ public:
     ~KMLNode();
 
     void print(unsigned int what = 3);
-    void classify(KML* poKML);
+    int classify(KML* poKML, int nRecLevel = 0);
     void eliminateEmpty(KML* poKML);
     
     void setType(Nodetype type);

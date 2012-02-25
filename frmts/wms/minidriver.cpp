@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: minidriver.cpp 18020 2009-11-14 14:33:20Z rouault $
+ * $Id: minidriver.cpp 21702 2011-02-13 01:30:30Z warmerdam $
  *
  * Project:  WMS Client Driver
  * Purpose:  Implementation of Dataset and RasterBand classes for WMS
@@ -64,9 +64,9 @@ GDALWMSMiniDriverFactory::~GDALWMSMiniDriverFactory() {
 }
 
 GDALWMSMiniDriverManager *GetGDALWMSMiniDriverManager() {
-    if (g_mini_driver_manager == 0) {
+    if (g_mini_driver_manager == NULL) {
         CPLMutexHolderD(&g_mini_driver_manager_mutex);
-        if (g_mini_driver_manager == 0) {
+        if (g_mini_driver_manager == NULL) {
             g_mini_driver_manager = new GDALWMSMiniDriverManager();
         }
         CPLAssert(g_mini_driver_manager != NULL);

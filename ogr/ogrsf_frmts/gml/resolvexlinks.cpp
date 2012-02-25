@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: resolvexlinks.cpp 21298 2010-12-20 10:58:34Z rouault $
+ * $Id: resolvexlinks.cpp 22205 2011-04-18 21:17:30Z rouault $
  *
  * Project:  GML Reader
  * Purpose:  Implementation of GMLReader::ResolveXlinks() method.
@@ -30,9 +30,7 @@
 #include "gmlreader.h"
 #include "cpl_error.h"
 
-CPL_CVSID("$Id: resolvexlinks.cpp 21298 2010-12-20 10:58:34Z rouault $");
-
-#if HAVE_XERCES != 0 || defined(HAVE_EXPAT)
+CPL_CVSID("$Id: resolvexlinks.cpp 22205 2011-04-18 21:17:30Z rouault $");
 
 #include "gmlreaderp.h"
 #include "cpl_conv.h"
@@ -629,5 +627,3 @@ int GMLReader::ResolveXlinks( const char *pszFile,
 
     return bReturn;
 }
-
-#endif /* HAVE_XERCES == 1  || defined(HAVE_EXPAT) */

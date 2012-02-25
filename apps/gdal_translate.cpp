@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdal_translate.cpp 21386 2011-01-03 20:17:11Z rouault $
+ * $Id: gdal_translate.cpp 22783 2011-07-23 19:28:16Z rouault $
  *
  * Project:  GDAL Utilities
  * Purpose:  GDAL Image Translator Program
@@ -33,8 +33,9 @@
 #include "gdal_priv.h"
 #include "ogr_spatialref.h"
 #include "vrt/vrtdataset.h"
+#include "commonutils.h"
 
-CPL_CVSID("$Id: gdal_translate.cpp 21386 2011-01-03 20:17:11Z rouault $");
+CPL_CVSID("$Id: gdal_translate.cpp 22783 2011-07-23 19:28:16Z rouault $");
 
 static int ArgIsNumeric( const char * );
 static void AttachMetadata( GDALDatasetH, char ** );
@@ -99,6 +100,7 @@ static int ProxyMain( int argc, char ** argv )
     int			i;
     int			nRasterXSize, nRasterYSize;
     const char		*pszSource=NULL, *pszDest=NULL, *pszFormat = "GTiff";
+    int bFormatExplicitelySet = FALSE;
     GDALDriverH		hDriver;
     int			*panBandList = NULL; /* negative value of panBandList[i] means mask band of ABS(panBandList[i]) */
     int         nBandCount = 0, bDefBands = TRUE;
@@ -177,7 +179,10 @@ static int ProxyMain( int argc, char ** argv )
             return 0;
         }
         else if( EQUAL(argv[i],"-of") && i < argc-1 )
+        {
             pszFormat = argv[++i];
+            bFormatExplicitelySet = TRUE;
+        }
 
         else if( EQUAL(argv[i],"-q") || EQUAL(argv[i],"-quiet") )
         {
@@ -490,6 +495,15 @@ static int ProxyMain( int argc, char ** argv )
         GDALDestroyDriverManager();
         exit( 1 );
     }
+
+    if( strcmp(pszDest, "/vsistdout/") == 0)
+    {
+        bQuiet = TRUE;
+        pfnProgress = GDALDummyProgress;
+    }
+
+    if (!bQuiet && !bFormatExplicitelySet)
+        CheckExtensionConsistency(pszDest, pszFormat);
 
 /* -------------------------------------------------------------------- */
 /*      Attempt to open source file.                                    */
@@ -869,8 +883,31 @@ static int ProxyMain( int argc, char ** argv )
 /* -------------------------------------------------------------------- */
 /*      Transfer generally applicable metadata.                         */
 /* -------------------------------------------------------------------- */
-    poVDS->SetMetadata( ((GDALDataset*)hDataset)->GetMetadata() );
+    char** papszMetadata = CSLDuplicate(((GDALDataset*)hDataset)->GetMetadata());
+    if ( bScale || bUnscale || eOutputType != GDT_Unknown )
+    {
+        /* Remove TIFFTAG_MINSAMPLEVALUE and TIFFTAG_MAXSAMPLEVALUE */
+        /* if the data range may change because of options */
+        char** papszIter = papszMetadata;
+        while(papszIter && *papszIter)
+        {
+            if (EQUALN(*papszIter, "TIFFTAG_MINSAMPLEVALUE=", 23) ||
+                EQUALN(*papszIter, "TIFFTAG_MAXSAMPLEVALUE=", 23))
+            {
+                CPLFree(*papszIter);
+                memmove(papszIter, papszIter+1, sizeof(char*) * (CSLCount(papszIter+1)+1));
+            }
+            else
+                papszIter++;
+        }
+    }
+    poVDS->SetMetadata( papszMetadata );
+    CSLDestroy( papszMetadata );
     AttachMetadata( (GDALDatasetH) poVDS, papszMetadataOptions );
+
+    const char* pszInterleave = GDALGetMetadataItem(hDataset, "INTERLEAVE", "IMAGE_STRUCTURE");
+    if (pszInterleave)
+        poVDS->SetMetadataItem("INTERLEAVE", pszInterleave, "IMAGE_STRUCTURE");
 
 /* -------------------------------------------------------------------- */
 /*      Transfer metadata that remains valid if the spatial             */
