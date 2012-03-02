@@ -90,6 +90,7 @@ configure-stamp:
 			--with-poppler=yes \
 			--with-openjpeg=yes \
 			--with-freexl=yes \
+			--with-libkml=yes \
 			--with-epsilon=/usr; \
 		mv GDALmake.opt GDALmake.opt-$$V; \
 	done

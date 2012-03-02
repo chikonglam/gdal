@@ -1,3 +1,9 @@
+gdal (1.9.0-1~exp4) experimental; urgency=low
+
+  * Moving from old KML to new libkml based.
+
+ -- Francesco Paolo Lovergine <frankie@debian.org>  Fri, 02 Mar 2012 14:44:23 +0100
+
 gdal (1.9.0-1~exp3) experimental; urgency=low
 
   * Added b-deps and enabled a few new supports: 
