@@ -1,3 +1,10 @@
+gdal (1.9.0-1~exp4) experimental; urgency=low
+
+  * Moved to new LIBKML driver instead of the old KML one. It has a much
+    better support for complex KML files.
+
+ -- Francesco Paolo Lovergine <frankie@debian.org>  Sun, 04 Mar 2012 11:39:57 +0100
+
 gdal (1.9.0-1~exp3) experimental; urgency=low
 
   * Added b-deps and enabled a few new supports: 
@@ -41,11 +48,6 @@ gdal (1.8.1-2~exp3) experimental; urgency=low
 
 gdal (1.8.1-2~exp2) experimental; urgency=low
 
-<<<<<<< HEAD
-  * Now including per arch symbol files truly. 
-
- -- Francesco Paolo Lovergine <frankie@debian.org>  Wed, 28 Sep 2011 20:07:22 +0200
-=======
   * Changed organization of symbol files in one common file and
     multiple .symbols.arch file.
   * Now normalized to conventional GDAL library name and dropping the Debian 
@@ -58,7 +60,6 @@ gdal (1.8.1-2~exp2) experimental; urgency=low
   * Now avoid installing superfluous stuff in libgdal-perl. Thanks lintian.
 
  -- Francesco Paolo Lovergine <frankie@debian.org>  Tue, 11 Oct 2011 14:41:31 +0200
->>>>>>> 72ed289fc96f87ebdc3af15373cb4d3dc2d855bf
 
 gdal (1.8.1-2~exp1) experimental; urgency=low
 
