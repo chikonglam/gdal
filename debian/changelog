@@ -1,6 +1,10 @@
 gdal (1.9.0-1~exp5) experimental; urgency=low
 
-  * Added a build-dep on liburiparser-dev to satisfy configure test.
+  * Added a build-dep on liburiparser-dev to satisfy configure test. Without
+    that GDAL reverts to the old KML support anyway :-(.
+  * Explicitly enabled Armadillo and LZMA supports.
+  * OpenJPEG is enabled in debian/rules, but still unsupported because current
+    library is obsolete. GDAL requires at least 1.4.
 
  -- Francesco Paolo Lovergine <frankie@debian.org>  Mon, 05 Mar 2012 17:44:59 +0100
 
