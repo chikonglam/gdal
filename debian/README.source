@@ -62,7 +62,7 @@ So:
         - run manually dpkg-gensymbols to collect differences and check
           that all is ok. If not, solve the situation in a creative manner :)
 
-          wget http://ftp.it.debian.org/debian/pool/main/g/gdal/libgdal1_<ver>_amd64.deb
+          wget http://ftp.it.debian.org/debian/pool/main/g/gdal/libgdal1_<ver>_armel.deb
           dpkg --extract libgdal1_<ver>_armel.deb /tmp
           dpkg-gensymbols -plibgdal1 -aarmel -v<upstream_ver> \
             -Idebian/libgdal1.symbols.armel -O/tmp/libgdal1.symbols.armel \

@@ -1,3 +1,10 @@
+gdal (1.9.0-1) unstable; urgency=low
+
+  * Ready for sid, starting transition.
+  * All symfiles updated to latest builds.
+
+ -- Francesco Paolo Lovergine <frankie@debian.org>  Mon, 07 May 2012 11:25:50 +0200
+
 gdal (1.9.0-1~exp5) experimental; urgency=low
 
   * Added a build-dep on liburiparser-dev to satisfy configure test. Without
