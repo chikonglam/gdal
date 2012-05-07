@@ -199,6 +199,7 @@ binary-common:
 	dh_fixperms
 	dh_lintian
 	dh_python2 -X.info
+	dh_numpy
 	dh_perl
 	# Adds per arch symbols for compatible archs
 	ln -f $(CURDIR)/debian/libgdal*.symbols.i386 $(CURDIR)/debian/libgdal1.symbols.kfreebsd-i386

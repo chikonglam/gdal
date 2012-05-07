@@ -13,7 +13,7 @@ Build-Depends: debhelper (>= 8), zlib1g-dev, libnetcdf-dev (>= 1:4.0.0),
  libpoppler-dev, liblzma-dev, libopenjpeg-dev, libarmadillo-dev, libfreexl-dev (>= 1.0.0),
  libkml-dev, liburiparser-dev
 Build-Conflicts: python-setuptools
-Standards-Version: 3.9.2
+Standards-Version: 3.9.3
 XS-Python-Version: all
 Homepage: http://www.gdal.org/
 Vcs-Browser: http://git.debian.org/?p=pkg-grass/gdal.git
