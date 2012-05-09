@@ -1,3 +1,16 @@
+gdal (1.9.0-2~precise1) precise; urgency=low
+
+  * Launchpad build for precise.
+  * Remove freexl support.
+
+ -- Alan Boudreault <aboudreault@mapgears.com>  Tue, 08 May 2012 11:42:03 +0000
+
+gdal (1.9.0-2~precise1) precise; urgency=low
+
+  * Launchpad build for precise.
+
+ -- Alan Boudreault <aboudreault@mapgears.com>  Tue, 08 May 2012 11:42:03 +0000
+
 gdal (1.9.0-1) unstable; urgency=low
 
   * Ready for sid, starting transition.
