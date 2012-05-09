@@ -1,3 +1,10 @@
+gdal (1.9.0-2) unstable; urgency=low
+
+  * Reintroducing libgdal1-dev as a transitional package to allow r-deps
+    to build in any environment.
+
+ -- Francesco Paolo Lovergine <frankie@debian.org>  Wed, 09 May 2012 13:00:22 +0200
+
 gdal (1.9.0-1) unstable; urgency=low
 
   * Ready for sid, starting transition.
