@@ -74,7 +74,7 @@ Architecture: any
 Depends: libgdal1 (=${binary:Version}), libc6-dev, libnetcdf-dev, 
  libjasper-dev|libjasper-1.701-dev, libpng-dev, libjpeg-dev, libgif-dev, libhdf4-alt-dev, 
  libpq-dev, libxerces-c2-dev, unixodbc-dev, libsqlite3-dev, libgeos-dev,
- libmysqlclient-dev, libhdf5-serial-dev, libltdl3-dev, libcurl4-dev|libcurl3-dev,
+ libmysqlclient-dev, libhdf5-serial-dev, libltdl3-dev, libcurl4-gnutls-dev|libcurl4-dev,
  libspatialite-dev, libdap-dev, ${misc:Depends}
 Suggests: libgdal-doc
 Description: Geospatial Data Abstraction Library - Development files
