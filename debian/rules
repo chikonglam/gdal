@@ -225,4 +225,4 @@ binary-indep: build install
 
 binary: binary-arch binary-indep
 
-.PHONY: build clean binary-arch binary-indep binary-common binary install gdal-grass-dist versions
+.PHONY: build clean binary-arch binary-indep binary-common binary install gdal-grass-dist versions build-arch build-indep
