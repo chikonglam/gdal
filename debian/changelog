@@ -1,3 +1,9 @@
+gdal (1.9.1-1) unstable; urgency=low
+
+  * New upstream release
+
+ -- Jerome Villeneuve Larouche <jlarouche@mapgears.com>  Fri, 25 May 2012 13:04:34 +0000
+
 gdal (1.9.0-1) unstable; urgency=low
 
   * Ready for sid, starting transition.
