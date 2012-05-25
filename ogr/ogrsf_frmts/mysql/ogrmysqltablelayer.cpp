@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrmysqltablelayer.cpp 22123 2011-04-05 19:41:27Z rouault $
+ * $Id: ogrmysqltablelayer.cpp 23943 2012-02-11 13:55:37Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implements OGRMySQLTableLayer class.
@@ -32,7 +32,7 @@
 #include "cpl_string.h"
 #include "ogr_mysql.h"
 
-CPL_CVSID("$Id: ogrmysqltablelayer.cpp 22123 2011-04-05 19:41:27Z rouault $");
+CPL_CVSID("$Id: ogrmysqltablelayer.cpp 23943 2012-02-11 13:55:37Z rouault $");
 
 /************************************************************************/
 /*                         OGRMySQLTableLayer()                         */
@@ -438,7 +438,7 @@ void OGRMySQLTableLayer::BuildWhere()
         if( strlen(pszWHERE) == 0 )
             sprintf( pszWHERE, "WHERE %s ", pszQuery  );
         else
-            sprintf( pszWHERE+strlen(pszWHERE), "&& %s ", pszQuery );
+            sprintf( pszWHERE+strlen(pszWHERE), "&& (%s) ", pszQuery );
     }
 }
 

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogringrestablelayer.cpp 19516 2010-04-24 16:03:45Z warmerdam $
+ * $Id: ogringrestablelayer.cpp 24349 2012-04-29 22:50:58Z warmerdam $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implements OGRIngresTableLayer class.
@@ -30,9 +30,8 @@
 #include "cpl_conv.h"
 #include "cpl_string.h"
 #include "ogr_ingres.h"
-#include <geos_c.h> 
 
-CPL_CVSID("$Id: ogringrestablelayer.cpp 19516 2010-04-24 16:03:45Z warmerdam $");
+CPL_CVSID("$Id: ogringrestablelayer.cpp 24349 2012-04-29 22:50:58Z warmerdam $");
 
 /************************************************************************/
 /*                         OGRIngresTableLayer()                         */

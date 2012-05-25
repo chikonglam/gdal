@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_dxf.h 22527 2011-06-13 03:58:34Z warmerdam $
+ * $Id: ogr_dxf.h 24360 2012-05-01 17:01:54Z rouault $
  *
  * Project:  DXF Translator
  * Purpose:  Definition of classes for OGR .dxf driver.
@@ -366,6 +366,8 @@ class OGRDXFWriterDS : public OGRDataSource
     int                 TransferUpdateTrailer( VSILFILE * );
     int                 FixupHANDSEED( VSILFILE * );
 
+    OGREnvelope         oGlobalEnvelope;
+
   public:
                         OGRDXFWriterDS();
                         ~OGRDXFWriterDS();
@@ -388,6 +390,8 @@ class OGRDXFWriterDS : public OGRDataSource
     int                 CheckEntityID( const char *pszEntityID );
     long                WriteEntityID( VSILFILE * fp,
                                        long nPreferredFID = OGRNullFID );
+
+    void                UpdateExtent( OGREnvelope* psEnvelope );
 };
 
 /************************************************************************/

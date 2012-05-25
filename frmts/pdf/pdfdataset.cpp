@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: pdfdataset.cpp 23033 2011-09-03 18:46:11Z rouault $
+ * $Id: pdfdataset.cpp 23986 2012-02-15 23:54:41Z rouault $
  *
  * Project:  PDF driver
  * Purpose:  GDALDataset driver for PDF dataset.
@@ -45,7 +45,7 @@
 
 /* g++ -fPIC -g -Wall frmts/pdf/pdfdataset.cpp -shared -o gdal_PDF.so -Iport -Igcore -Iogr -L. -lgdal -lpoppler -I/usr/include/poppler */
 
-CPL_CVSID("$Id: pdfdataset.cpp 23033 2011-09-03 18:46:11Z rouault $");
+CPL_CVSID("$Id: pdfdataset.cpp 23986 2012-02-15 23:54:41Z rouault $");
 
 CPL_C_START
 void    GDALRegister_PDF(void);
@@ -319,10 +319,6 @@ CPLErr PDFRasterBand::IReadBlock( int nBlockXOff, int nBlockYOff,
 
 #ifdef USE_POPPLER
 
-        /* poppler global variable */
-        if (globalParams == NULL)
-            globalParams = new GlobalParams();
-
         SplashColor sColor;
         sColor[0] = 255;
         sColor[1] = 255;
@@ -571,6 +567,10 @@ GDALDataset *PDFDataset::Open( GDALOpenInfo * poOpenInfo )
 
     /* Set custom error handler for poppler errors */
     setErrorFunction(PDFDatasetErrorFunction);
+
+    /* poppler global variable */
+    if (globalParams == NULL)
+        globalParams = new GlobalParams();
 
     PDFDoc* poDoc = NULL;
     ObjectAutoFree oObj;

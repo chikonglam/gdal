@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: jpgdataset.cpp 22847 2011-08-01 13:26:16Z rouault $
+ * $Id: jpgdataset.cpp 24182 2012-03-31 16:22:56Z rouault $
  *
  * Project:  JPEG JFIF Driver
  * Purpose:  Implement GDAL JPEG Support based on IJG libjpeg.
@@ -38,7 +38,7 @@
 #include <setjmp.h>
 
 
-CPL_CVSID("$Id: jpgdataset.cpp 22847 2011-08-01 13:26:16Z rouault $");
+CPL_CVSID("$Id: jpgdataset.cpp 24182 2012-03-31 16:22:56Z rouault $");
 
 CPL_C_START
 #ifdef LIBJPEG_12_PATH 
@@ -290,7 +290,7 @@ void JPGDataset::ReadXMPMetadata()
 /* -------------------------------------------------------------------- */
     GByte abyChunkHeader[2+2+29];
     int nChunkLoc = 2;
-    int bFoundXMP = TRUE;
+    int bFoundXMP = FALSE;
 
     for( ; TRUE; )
     {

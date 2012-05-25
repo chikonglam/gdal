@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrpgeogeometry.cpp 22752 2011-07-18 17:42:07Z rouault $
+ * $Id: ogrpgeogeometry.cpp 23753 2012-01-13 00:34:27Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implements decoder of shapebin geometry for PGeo
@@ -34,7 +34,7 @@
 #include "cpl_string.h"
 #include "zlib.h"
 
-CPL_CVSID("$Id: ogrpgeogeometry.cpp 22752 2011-07-18 17:42:07Z rouault $");
+CPL_CVSID("$Id: ogrpgeogeometry.cpp 23753 2012-01-13 00:34:27Z rouault $");
 
 #define SHPP_TRISTRIP   0
 #define SHPP_TRIFAN     1
@@ -1294,7 +1294,8 @@ OGRErr OGRCreateFromShapeBin( GByte *pabyShape,
         CPLFree( padfY );
         CPLFree( padfZ );
 
-        (*ppoGeom)->setCoordinateDimension( bHasZ ? 3 : 2 );
+        if (*ppoGeom != NULL)
+            (*ppoGeom)->setCoordinateDimension( bHasZ ? 3 : 2 );
 
         return OGRERR_NONE;
     }

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrshapelayer.cpp 23555 2011-12-12 20:30:46Z rouault $
+ * $Id: ogrshapelayer.cpp 23904 2012-02-04 20:00:49Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implements OGRShapeLayer class.
@@ -40,7 +40,7 @@
 #define FD_CLOSED           1
 #define FD_CANNOT_REOPEN    2
 
-CPL_CVSID("$Id: ogrshapelayer.cpp 23555 2011-12-12 20:30:46Z rouault $");
+CPL_CVSID("$Id: ogrshapelayer.cpp 23904 2012-02-04 20:00:49Z rouault $");
 
 /************************************************************************/
 /*                           OGRShapeLayer()                            */
@@ -891,10 +891,10 @@ int OGRShapeLayer::GetFeatureCountWithSpatialFilterOnly()
                     memcpy(&(sShape.dfYMin), abyBuf + 12, 8);
                     memcpy(&(sShape.dfXMax), abyBuf + 20, 8);
                     memcpy(&(sShape.dfYMax), abyBuf + 28, 8);
-                    CPL_MSBPTR32(&(sShape.dfXMin));
-                    CPL_MSBPTR32(&(sShape.dfYMin));
-                    CPL_MSBPTR32(&(sShape.dfXMax));
-                    CPL_MSBPTR32(&(sShape.dfYMax));
+                    CPL_LSBPTR64(&(sShape.dfXMin));
+                    CPL_LSBPTR64(&(sShape.dfYMin));
+                    CPL_LSBPTR64(&(sShape.dfXMax));
+                    CPL_LSBPTR64(&(sShape.dfYMax));
                 }
             }
             else

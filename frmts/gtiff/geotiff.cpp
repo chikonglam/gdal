@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: geotiff.cpp 23561 2011-12-13 05:47:58Z warmerdam $
+ * $Id: geotiff.cpp 23802 2012-01-26 00:58:20Z warmerdam $
  *
  * Project:  GeoTIFF Driver
  * Purpose:  GDAL GeoTIFF support.
@@ -52,7 +52,7 @@
 #include "tifvsi.h"
 #include "cpl_multiproc.h"
 
-CPL_CVSID("$Id: geotiff.cpp 23561 2011-12-13 05:47:58Z warmerdam $");
+CPL_CVSID("$Id: geotiff.cpp 23802 2012-01-26 00:58:20Z warmerdam $");
 
 /************************************************************************/
 /* ==================================================================== */
@@ -3344,7 +3344,7 @@ int  GTiffDataset::WriteEncodedStrip(uint32 strip, GByte* pabyData,
 /*      amount of valid data we have. (#2748)                           */
 /* -------------------------------------------------------------------- */
     int nStripWithinBand = strip % nBlocksPerBand;
-    
+
     if( (int) ((nStripWithinBand+1) * nRowsPerStrip) > GetRasterYSize() )
     {
         cc = (cc / nRowsPerStrip)
@@ -5956,8 +5956,14 @@ CPLErr GTiffDataset::OpenOffset( TIFF *hTIFFIn,
             nRowsPerStrip = nYSize; /* dummy value */
         }
 
+        // If the rows per strip is larger than the file we will get
+        // confused.  libtiff internally will treat the rowsperstrip as
+        // the image height and it is best if we do too. (#4468)
+        if (nRowsPerStrip > nRasterYSize)
+            nRowsPerStrip = nRasterYSize;
+
         nBlockXSize = nRasterXSize;
-        nBlockYSize = MIN(nRowsPerStrip,nYSize);
+        nBlockYSize = nRowsPerStrip;
     }
         
     nBlocksPerBand =
