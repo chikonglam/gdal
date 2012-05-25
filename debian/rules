@@ -89,8 +89,8 @@ configure-stamp:
 			--with-mrsid=no \
 			--with-poppler=yes \
 			--with-openjpeg=yes \
-			--with-freexl=yes \
 			--with-libkml=yes \
+			--with-freexl=yes \
 			--with-armadillo=yes \
 			--with-liblzma=yes \
 			--with-epsilon=/usr; \

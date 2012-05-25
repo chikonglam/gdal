@@ -1,3 +1,9 @@
+gdal (1.9.1-2~oneiric2) oneiric; urgency=low
+
+  * Launchpad release for oneiric
+
+ -- Jerome Villeneuve Larouche <jlarouche@mapgears.com>  Fri, 25 May 2012 18:16:09 +0000
+
 gdal (1.9.1-1) unstable; urgency=low
 
   * New upstream release
