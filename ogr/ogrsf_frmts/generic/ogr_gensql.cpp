@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_gensql.cpp 23683 2012-01-01 23:53:00Z rouault $
+ * $Id: ogr_gensql.cpp 24290 2012-04-22 09:57:08Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implements OGRGenSQLResultsLayer.
@@ -33,7 +33,7 @@
 #include "cpl_string.h"
 #include <vector>
 
-CPL_CVSID("$Id: ogr_gensql.cpp 23683 2012-01-01 23:53:00Z rouault $");
+CPL_CVSID("$Id: ogr_gensql.cpp 24290 2012-04-22 09:57:08Z rouault $");
 
 
 /************************************************************************/
@@ -605,14 +605,38 @@ int OGRGenSQLResultsLayer::PrepareSummary()
 
 /* -------------------------------------------------------------------- */
 /*      Ignore geometry reading if no spatial filter in place and that  */
-/*      the where clause doesn't include OGR_GEOMETRY, OGR_GEOM_WKT or  */
-/*      OGR_GEOM_AREA special fields.                                   */
+/*      the where clause and no column references OGR_GEOMETRY,         */
+/*      OGR_GEOM_WKT or OGR_GEOM_AREA special fields.                   */
 /* -------------------------------------------------------------------- */
     int bSaveIsGeomIgnored = poSrcLayer->GetLayerDefn()->IsGeometryIgnored();
     if ( m_poFilterGeom == NULL && ( psSelectInfo->where_expr == NULL ||
                 !ContainGeomSpecialField(psSelectInfo->where_expr) ) )
     {
-        poSrcLayer->GetLayerDefn()->SetGeometryIgnored(TRUE);
+        int bFoundGeomExpr = FALSE;
+        for( int iField = 0; iField < psSelectInfo->result_columns; iField++ )
+        {
+            swq_col_def *psColDef = psSelectInfo->column_defs + iField;
+            if (psColDef->table_index != -1 && psColDef->field_index != -1)
+            {
+                OGRLayer* poLayer = papoTableLayers[psColDef->table_index];
+                int nSpecialFieldIdx = psColDef->field_index -
+                                poLayer->GetLayerDefn()->GetFieldCount();
+                if (nSpecialFieldIdx == SPF_OGR_GEOMETRY ||
+                    nSpecialFieldIdx == SPF_OGR_GEOM_WKT ||
+                    nSpecialFieldIdx == SPF_OGR_GEOM_AREA)
+                {
+                    bFoundGeomExpr = TRUE;
+                    break;
+                }
+            }
+            if (psColDef->expr != NULL && ContainGeomSpecialField(psColDef->expr))
+            {
+                bFoundGeomExpr = TRUE;
+                break;
+            }
+        }
+        if (!bFoundGeomExpr)
+            poSrcLayer->GetLayerDefn()->SetGeometryIgnored(TRUE);
     }
 
 /* -------------------------------------------------------------------- */
@@ -834,6 +858,12 @@ OGRFeature *OGRGenSQLResultsLayer::TranslateFeature( OGRFeature *poSrcFeat )
         CPLString osFilter;
 
         swq_join_def *psJoinInfo = psSelectInfo->join_defs + iJoin;
+
+        /* OGRMultiFeatureFetcher assumes that the features are pushed in */
+        /* apoFeatures with increasing secondary_table, so make sure */
+        /* we have taken care of this */
+        CPLAssert(psJoinInfo->secondary_table == iJoin + 1);
+
         OGRLayer *poJoinLayer = papoTableLayers[psJoinInfo->secondary_table];
         
         // if source key is null, we can't do join.

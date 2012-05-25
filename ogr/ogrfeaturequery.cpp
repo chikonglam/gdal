@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrfeaturequery.cpp 23309 2011-11-03 20:58:33Z rouault $
+ * $Id: ogrfeaturequery.cpp 23940 2012-02-11 10:19:28Z rouault $
  * 
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implementation of simple SQL WHERE style attributes queries
@@ -34,7 +34,7 @@
 #include "ogr_p.h"
 #include "ogr_attrind.h"
 
-CPL_CVSID("$Id: ogrfeaturequery.cpp 23309 2011-11-03 20:58:33Z rouault $");
+CPL_CVSID("$Id: ogrfeaturequery.cpp 23940 2012-02-11 10:19:28Z rouault $");
 
 /************************************************************************/
 /*     Support for special attributes (feature query and selection)     */
@@ -389,9 +389,9 @@ char **OGRFeatureQuery::FieldCollector( void *pBareOp,
         const char *pszFieldName;
 
         if( op->field_index >= poTargetDefn->GetFieldCount()
-            && op->field_index < poTargetDefn->GetFieldCount() + SPECIAL_FIELD_COUNT) 
-            pszFieldName = SpecialFieldNames[op->field_index];
-        else if( op->field_index >= 0 
+            && op->field_index < poTargetDefn->GetFieldCount() + SPECIAL_FIELD_COUNT)
+            pszFieldName = SpecialFieldNames[op->field_index - poTargetDefn->GetFieldCount()];
+        else if( op->field_index >= 0
                  && op->field_index < poTargetDefn->GetFieldCount() )
             pszFieldName = 
                 poTargetDefn->GetFieldDefn(op->field_index)->GetNameRef();

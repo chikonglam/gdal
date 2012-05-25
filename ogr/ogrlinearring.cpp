@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrlinearring.cpp 22555 2011-06-22 12:16:54Z rouault $
+ * $Id: ogrlinearring.cpp 24285 2012-04-21 17:32:07Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  The OGRLinearRing geometry class.
@@ -30,7 +30,7 @@
 #include "ogr_geometry.h"
 #include "ogr_p.h"
 
-CPL_CVSID("$Id: ogrlinearring.cpp 22555 2011-06-22 12:16:54Z rouault $");
+CPL_CVSID("$Id: ogrlinearring.cpp 24285 2012-04-21 17:32:07Z rouault $");
 
 /************************************************************************/
 /*                           OGRLinearRing()                            */
@@ -430,9 +430,17 @@ void OGRLinearRing::reverseWindingOrder()
     for( int i = 0; i < nPointCount / 2; i++ ) 
     { 
         getPoint( i, &tempPoint ); 
-        pos = nPointCount - i - 1; 
-        setPoint( i, getX(pos), getY(pos), getZ(pos) ); 
-        setPoint( pos, tempPoint.getX(), tempPoint.getY(), tempPoint.getZ() ); 
+        pos = nPointCount - i - 1;
+        if( getCoordinateDimension() == 2 )
+        {
+            setPoint( i, getX(pos), getY(pos) );
+            setPoint( pos, tempPoint.getX(), tempPoint.getY() );
+        }
+        else
+        {
+            setPoint( i, getX(pos), getY(pos), getZ(pos) );
+            setPoint( pos, tempPoint.getX(), tempPoint.getY(), tempPoint.getZ() );
+        }
     } 
 } 
 

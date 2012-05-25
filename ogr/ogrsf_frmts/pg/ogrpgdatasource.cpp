@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrpgdatasource.cpp 23652 2011-12-29 09:33:53Z rouault $
+ * $Id: ogrpgdatasource.cpp 24261 2012-04-19 07:27:37Z chaitanya $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implements OGRPGDataSource class.
@@ -35,7 +35,7 @@
 
 #define PQexec this_is_an_error
 
-CPL_CVSID("$Id: ogrpgdatasource.cpp 23652 2011-12-29 09:33:53Z rouault $");
+CPL_CVSID("$Id: ogrpgdatasource.cpp 24261 2012-04-19 07:27:37Z chaitanya $");
 
 static void OGRPGNoticeProcessor( void *arg, const char * pszMessage );
 
@@ -559,11 +559,19 @@ int OGRPGDataSource::Open( const char * pszNewName, int bUpdate,
         if( !hResult || PQresultStatus(hResult) != PGRES_COMMAND_OK )
         {
             OGRPGClearResult( hResult );
+            CPLDebug("PG","Command \"%s\" failed. Trying without 'public'.",osCommand.c_str());
+            osCommand.Printf("SET search_path='%s'", osActiveSchema.c_str());
+            PGresult    *hResult2 = OGRPG_PQexec(hPGConn, osCommand );
 
-            CPLError( CE_Failure, CPLE_AppDefined,
-                    "%s", PQerrorMessage(hPGConn) );
+            if( !hResult2 || PQresultStatus(hResult2) != PGRES_COMMAND_OK )
+            {
+                OGRPGClearResult( hResult2 );
 
-            goto end;
+                CPLError( CE_Failure, CPLE_AppDefined,
+                        "%s", PQerrorMessage(hPGConn) );
+
+                goto end;
+            }
         }
 
         OGRPGClearResult(hResult);

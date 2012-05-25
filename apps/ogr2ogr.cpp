@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr2ogr.cpp 23530 2011-12-11 17:13:55Z rouault $
+ * $Id: ogr2ogr.cpp 24203 2012-04-06 19:10:30Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Simple client for translating between formats.
@@ -34,7 +34,7 @@
 #include "ogr_api.h"
 #include "gdal.h"
 
-CPL_CVSID("$Id: ogr2ogr.cpp 23530 2011-12-11 17:13:55Z rouault $");
+CPL_CVSID("$Id: ogr2ogr.cpp 24203 2012-04-06 19:10:30Z rouault $");
 
 static int bSkipFailures = FALSE;
 static int nGroupTransactions = 200;
@@ -879,6 +879,7 @@ int main( int nArgc, char ** papszArgv )
         }
         else if( EQUAL(papszArgv[iArg],"-clipsrc") && iArg < nArgc-1 )
         {
+            VSIStatBufL  sStat;
             bClipSrc = TRUE;
             if ( IsNumber(papszArgv[iArg+1])
                  && papszArgv[iArg+2] != NULL 
@@ -897,8 +898,9 @@ int main( int nArgc, char ** papszArgv )
                 ((OGRPolygon *) poClipSrc)->addRing( &oRing );
                 iArg += 4;
             }
-            else if (EQUALN(papszArgv[iArg+1], "POLYGON", 7) ||
-                     EQUALN(papszArgv[iArg+1], "MULTIPOLYGON", 12))
+            else if ((EQUALN(papszArgv[iArg+1], "POLYGON", 7) ||
+                      EQUALN(papszArgv[iArg+1], "MULTIPOLYGON", 12)) &&
+                      VSIStatL(papszArgv[iArg+1], &sStat) != 0)
             {
                 char* pszTmp = (char*) papszArgv[iArg+1];
                 OGRGeometryFactory::createFromWkt(&pszTmp, NULL, &poClipSrc);
@@ -936,6 +938,7 @@ int main( int nArgc, char ** papszArgv )
         }
         else if( EQUAL(papszArgv[iArg],"-clipdst") && iArg < nArgc-1 )
         {
+            VSIStatBufL  sStat;
             if ( IsNumber(papszArgv[iArg+1])
                  && papszArgv[iArg+2] != NULL 
                  && papszArgv[iArg+3] != NULL 
@@ -953,8 +956,9 @@ int main( int nArgc, char ** papszArgv )
                 ((OGRPolygon *) poClipDst)->addRing( &oRing );
                 iArg += 4;
             }
-            else if (EQUALN(papszArgv[iArg+1], "POLYGON", 7) ||
-                     EQUALN(papszArgv[iArg+1], "MULTIPOLYGON", 12))
+            else if ((EQUALN(papszArgv[iArg+1], "POLYGON", 7) ||
+                      EQUALN(papszArgv[iArg+1], "MULTIPOLYGON", 12)) &&
+                      VSIStatL(papszArgv[iArg+1], &sStat) != 0)
             {
                 char* pszTmp = (char*) papszArgv[iArg+1];
                 OGRGeometryFactory::createFromWkt(&pszTmp, NULL, &poClipDst);
@@ -2064,14 +2068,14 @@ static int TranslateLayer( OGRDataSource *poSrcDS,
                 int bFieldRequested = FALSE;
                 for( iField=0; papszSelFields[iField] != NULL; iField++)
                 {
-                    if (strcmp(pszFieldName, papszSelFields[iField]) == 0)
+                    if (EQUAL(pszFieldName, papszSelFields[iField]))
                     {
                         bFieldRequested = TRUE;
                         break;
                     }
                 }
                 bFieldRequested |= CSLFindString(papszWHEREUsedFields, pszFieldName) >= 0;
-                bFieldRequested |= (pszZField != NULL && strcmp(pszFieldName, pszZField) == 0);
+                bFieldRequested |= (pszZField != NULL && EQUAL(pszFieldName, pszZField));
 
                 /* If source field not requested, add it to ignored files list */
                 if (!bFieldRequested)

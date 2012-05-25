@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrmssqlspatialdatasource.cpp 23571 2011-12-14 11:06:58Z tamas $
+ * $Id: ogrmssqlspatialdatasource.cpp 23828 2012-01-29 16:56:05Z tamas $
  *
  * Project:  MSSQL Spatial driver
  * Purpose:  Implements OGRMSSQLSpatialDataSource class..
@@ -29,7 +29,7 @@
 
 #include "ogr_mssqlspatial.h"
 
-CPL_CVSID("$Id: ogrmssqlspatialdatasource.cpp 23571 2011-12-14 11:06:58Z tamas $");
+CPL_CVSID("$Id: ogrmssqlspatialdatasource.cpp 23828 2012-01-29 16:56:05Z tamas $");
 
 /************************************************************************/
 /*                          OGRMSSQLSpatialDataSource()                 */
@@ -83,7 +83,7 @@ OGRMSSQLSpatialDataSource::~OGRMSSQLSpatialDataSource()
 int OGRMSSQLSpatialDataSource::TestCapability( const char * pszCap )
 
 {
-    if( EQUAL(pszCap,ODsCCreateLayer) )
+    if( EQUAL(pszCap,ODsCCreateLayer) || EQUAL(pszCap,ODsCDeleteLayer) )
         return TRUE;
     else
         return FALSE;

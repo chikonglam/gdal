@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrmssqlgeometryparser.cpp 20591 2010-09-12 17:27:42Z tamas $
+ * $Id: ogrmssqlgeometryparser.cpp 24331 2012-04-28 11:49:05Z tamas $
  *
  * Project:  MSSQL Spatial driver
  * Purpose:  Implements OGRMSSQLGeometryParser class to parse native SqlGeometries.
@@ -30,7 +30,7 @@
 #include "cpl_conv.h"
 #include "ogr_mssqlspatial.h"
 
-CPL_CVSID("$Id: ogrmssqlgeometryparser.cpp 20591 2010-09-12 17:27:42Z tamas $");
+CPL_CVSID("$Id: ogrmssqlgeometryparser.cpp 24331 2012-04-28 11:49:05Z tamas $");
 
 /************************************************************************/
 /*                         Geometry parser macros                       */
@@ -77,8 +77,9 @@ CPL_CVSID("$Id: ogrmssqlgeometryparser.cpp 20591 2010-09-12 17:27:42Z tamas $");
 /*                   OGRMSSQLGeometryParser()                           */
 /************************************************************************/
 
-OGRMSSQLGeometryParser::OGRMSSQLGeometryParser()
+OGRMSSQLGeometryParser::OGRMSSQLGeometryParser(int nGeomColumnType)
 {
+    nColType = nGeomColumnType;
 }
 
 /************************************************************************/
@@ -93,10 +94,20 @@ OGRPoint* OGRMSSQLGeometryParser::ReadPoint(int iShape)
         int iPoint = PointOffset(iFigure);
         if ( iPoint < nNumPoints )
         {
-            if ( chProps & SP_HASZVALUES )
-                return new OGRPoint( ReadX(iPoint), ReadY(iPoint), ReadZ(iPoint) );
+            if (nColType == MSSQLCOLTYPE_GEOGRAPHY)
+            {
+                if ( chProps & SP_HASZVALUES )
+                    return new OGRPoint( ReadY(iPoint), ReadX(iPoint), ReadZ(iPoint) );
+                else
+                    return new OGRPoint( ReadY(iPoint), ReadX(iPoint) );
+            }
             else
-                return new OGRPoint( ReadX(iPoint), ReadY(iPoint) );
+            {
+                if ( chProps & SP_HASZVALUES )
+                    return new OGRPoint( ReadX(iPoint), ReadY(iPoint), ReadZ(iPoint) );
+                else
+                    return new OGRPoint( ReadX(iPoint), ReadY(iPoint) );
+            }
         }
     }
     return NULL;
@@ -117,10 +128,20 @@ OGRMultiPoint* OGRMSSQLGeometryParser::ReadMultiPoint(int iShape)
     {
         OGRPoint* poPoint;
         
-        if ( chProps & SP_HASZVALUES )
-            poPoint = new OGRPoint( ReadX(iPoint), ReadY(iPoint), ReadZ(iPoint) );
+        if (nColType == MSSQLCOLTYPE_GEOGRAPHY)
+        {
+            if ( chProps & SP_HASZVALUES )
+                poPoint = new OGRPoint( ReadY(iPoint), ReadX(iPoint), ReadZ(iPoint) );
+            else
+                poPoint = new OGRPoint( ReadY(iPoint), ReadX(iPoint) );
+        }
         else
-            poPoint = new OGRPoint( ReadX(iPoint), ReadY(iPoint) );
+        {
+            if ( chProps & SP_HASZVALUES )
+                poPoint = new OGRPoint( ReadX(iPoint), ReadY(iPoint), ReadZ(iPoint) );
+            else
+                poPoint = new OGRPoint( ReadX(iPoint), ReadY(iPoint) );
+        }
 
         if ( poPoint )
             poMultiPoint->addGeometryDirectly( poPoint );
@@ -145,10 +166,20 @@ OGRLineString* OGRMSSQLGeometryParser::ReadLineString(int iShape)
     i = 0;
     while (iPoint < iNextPoint)
     {
-        if ( chProps & SP_HASZVALUES )
-            poLineString->setPoint(i, ReadX(iPoint), ReadY(iPoint), ReadZ(iPoint) );
+        if (nColType == MSSQLCOLTYPE_GEOGRAPHY)
+        {
+            if ( chProps & SP_HASZVALUES )
+                poLineString->setPoint(i, ReadY(iPoint), ReadX(iPoint), ReadZ(iPoint) );
+            else
+                poLineString->setPoint(i, ReadY(iPoint), ReadX(iPoint) );
+        }
         else
-            poLineString->setPoint(i, ReadX(iPoint), ReadY(iPoint) );
+        {
+            if ( chProps & SP_HASZVALUES )
+                poLineString->setPoint(i, ReadX(iPoint), ReadY(iPoint), ReadZ(iPoint) );
+            else
+                poLineString->setPoint(i, ReadX(iPoint), ReadY(iPoint) );
+        }
         
         ++iPoint;
         ++i;
@@ -201,10 +232,20 @@ OGRPolygon* OGRMSSQLGeometryParser::ReadPolygon(int iShape)
         i = 0;
         while (iPoint < iNextPoint)
         {
-            if ( chProps & SP_HASZVALUES )
-                poRing->setPoint(i, ReadX(iPoint), ReadY(iPoint), ReadZ(iPoint) );
+            if (nColType == MSSQLCOLTYPE_GEOGRAPHY)
+            {  
+                if ( chProps & SP_HASZVALUES )
+                    poRing->setPoint(i, ReadY(iPoint), ReadX(iPoint), ReadZ(iPoint) );
+                else
+                    poRing->setPoint(i, ReadY(iPoint), ReadX(iPoint) );
+            }
             else
-                poRing->setPoint(i, ReadX(iPoint), ReadY(iPoint) );
+            {
+                if ( chProps & SP_HASZVALUES )
+                    poRing->setPoint(i, ReadX(iPoint), ReadY(iPoint), ReadZ(iPoint) );
+                else
+                    poRing->setPoint(i, ReadX(iPoint), ReadY(iPoint) );
+            }
 
             ++iPoint;
             ++i;
@@ -326,10 +367,20 @@ OGRErr OGRMSSQLGeometryParser::ParseSqlGeometry(unsigned char* pszInput,
             return OGRERR_NOT_ENOUGH_DATA;
         }
 
-        if (chProps & SP_HASZVALUES)
-            *poGeom = new OGRPoint(ReadX(0), ReadY(0), ReadZ(0));
+        if (nColType == MSSQLCOLTYPE_GEOGRAPHY)
+        {
+            if (chProps & SP_HASZVALUES)
+                *poGeom = new OGRPoint(ReadY(0), ReadX(0), ReadZ(0));
+            else
+                *poGeom = new OGRPoint(ReadY(0), ReadX(0));
+        }
         else
-            *poGeom = new OGRPoint(ReadX(0), ReadY(0));
+        {
+            if (chProps & SP_HASZVALUES)
+                *poGeom = new OGRPoint(ReadX(0), ReadY(0), ReadZ(0));
+            else
+                *poGeom = new OGRPoint(ReadX(0), ReadY(0));
+        }
     }
     else if ( chProps & SP_ISSINGLELINESEGMENT )
     {
@@ -344,15 +395,31 @@ OGRErr OGRMSSQLGeometryParser::ParseSqlGeometry(unsigned char* pszInput,
         OGRLineString* line = new OGRLineString();
         line->setNumPoints(2);
         
-        if ( chProps & SP_HASZVALUES )
+        if (nColType == MSSQLCOLTYPE_GEOGRAPHY)
         {
-            line->setPoint(0, ReadX(0), ReadY(0), ReadZ(0));
-            line->setPoint(1, ReadX(1), ReadY(1), ReadZ(1));
+            if ( chProps & SP_HASZVALUES )
+            {
+                line->setPoint(0, ReadY(0), ReadX(0), ReadZ(0));
+                line->setPoint(1, ReadY(1), ReadX(1), ReadZ(1));
+            }
+            else
+            {
+                line->setPoint(0, ReadY(0), ReadX(0));
+                line->setPoint(1, ReadY(1), ReadX(1));
+            }
         }
         else
         {
-            line->setPoint(0, ReadX(0), ReadY(0));
-            line->setPoint(1, ReadX(1), ReadY(1));
+            if ( chProps & SP_HASZVALUES )
+            {
+                line->setPoint(0, ReadX(0), ReadY(0), ReadZ(0));
+                line->setPoint(1, ReadX(1), ReadY(1), ReadZ(1));
+            }
+            else
+            {
+                line->setPoint(0, ReadX(0), ReadY(0));
+                line->setPoint(1, ReadX(1), ReadY(1));
+            }
         }
         
         *poGeom = line;

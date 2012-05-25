@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrcsvlayer.cpp 23503 2011-12-09 20:40:35Z rouault $
+ * $Id: ogrcsvlayer.cpp 24382 2012-05-04 15:45:19Z rouault $
  *
  * Project:  CSV Translator
  * Purpose:  Implements OGRCSVLayer class.
@@ -33,7 +33,7 @@
 #include "cpl_csv.h"
 #include "ogr_p.h"
 
-CPL_CVSID("$Id: ogrcsvlayer.cpp 23503 2011-12-09 20:40:35Z rouault $");
+CPL_CVSID("$Id: ogrcsvlayer.cpp 24382 2012-05-04 15:45:19Z rouault $");
 
 
 
@@ -276,10 +276,20 @@ OGRCSVLayer::OGRCSVLayer( const char *pszLayerNameIn,
         pszLine = CPLReadLineL( fpCSV );
         if ( pszLine != NULL )
         {
+            /* Detect and remove UTF-8 BOM marker if found (#4623) */
+            if (pszLine[0] == (char)0xEF &&
+                pszLine[1] == (char)0xBB &&
+                pszLine[2] == (char)0xBF)
+            {
+                pszLine += 3;
+            }
+
             /* tokenize the strings and preserve quotes, so we can separate string from numeric */
             /* this is only used in the test for bHasFeldNames (bug #4361) */
             papszTokens = CSLTokenizeString2( pszLine, szDelimiter, 
-                                              CSLT_HONOURSTRINGS | CSLT_PRESERVEQUOTES );
+                                              (CSLT_HONOURSTRINGS |
+                                               CSLT_ALLOWEMPTYTOKENS |
+                                               CSLT_PRESERVEQUOTES) );
             nFieldCount = CSLCount( papszTokens );
             bHasFieldNames = TRUE;
 
@@ -297,7 +307,8 @@ OGRCSVLayer::OGRCSVLayer( const char *pszLayerNameIn,
             CSLDestroy( papszTokens );
             // papszTokens = OGRCSVReadParseLineL( fpCSV, chDelimiter, FALSE );   
             papszTokens = CSLTokenizeString2( pszLine, szDelimiter, 
-                                              CSLT_HONOURSTRINGS);
+                                              (CSLT_HONOURSTRINGS |
+                                               CSLT_ALLOWEMPTYTOKENS));
             nFieldCount = CSLCount( papszTokens );
         }
     }

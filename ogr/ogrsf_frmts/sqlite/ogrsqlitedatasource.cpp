@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrsqlitedatasource.cpp 23676 2012-01-01 16:10:36Z rouault $
+ * $Id: ogrsqlitedatasource.cpp 24282 2012-04-21 16:41:46Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implements OGRSQLiteDataSource class.
@@ -46,7 +46,7 @@
 
 static int bSpatialiteLoaded = FALSE;
 
-CPL_CVSID("$Id: ogrsqlitedatasource.cpp 23676 2012-01-01 16:10:36Z rouault $");
+CPL_CVSID("$Id: ogrsqlitedatasource.cpp 24282 2012-04-21 16:41:46Z rouault $");
 
 /************************************************************************/
 /*                      OGRSQLiteInitSpatialite()                       */
@@ -139,6 +139,7 @@ OGRSQLiteDataSource::~OGRSQLiteDataSource()
     if (pMyVFS)
     {
         sqlite3_vfs_unregister(pMyVFS);
+        CPLFree(pMyVFS->pAppData);
         CPLFree(pMyVFS);
     }
 #endif
@@ -817,8 +818,7 @@ int OGRSQLiteDataSource::Open( const char * pszNewName, int bUpdateIn )
             if( papszRow[4] != NULL )
                 nSRID = atoi(papszRow[4]);
 
-            /* Only look for presence of a spatial index if linked against SpatiaLite */
-            if( bSpatialiteLoaded && papszRow[5] != NULL )
+            if( papszRow[5] != NULL )
                 bHasSpatialIndex = atoi(papszRow[5]);
 
             OpenTable( papszRow[0], papszRow[1], eGeomType, "SpatiaLite",

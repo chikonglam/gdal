@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gt_wkt_srs.cpp 23272 2011-10-23 19:37:12Z etourigny $
+ * $Id: gt_wkt_srs.cpp 24426 2012-05-17 03:28:18Z warmerdam $
  *
  * Project:  GeoTIFF Driver
  * Purpose:  Implements translation between GeoTIFF normalized projection
@@ -44,7 +44,7 @@
 #include "gt_wkt_srs_for_gdal.h"
 #include "gt_citation.h"
 
-CPL_CVSID("$Id: gt_wkt_srs.cpp 23272 2011-10-23 19:37:12Z etourigny $")
+CPL_CVSID("$Id: gt_wkt_srs.cpp 24426 2012-05-17 03:28:18Z warmerdam $")
 
 #define ProjLinearUnitsInterpCorrectGeoKey   3059
 
@@ -216,11 +216,11 @@ static void WKTMassageDatum( char ** ppszDatum )
 /************************************************************************/
 
 /* For example:
-   GTCitationGeoKey (Ascii,215): "IMAGINE GeoTIFF Support\nCopyright 1991 - 2001 by ERDAS, Inc. All Rights Reserved\n@(#)$RCSfile$ $Revision: 23272 $ $Date: 2011-10-23 12:37:12 -0700 (Sun, 23 Oct 2011) $\nProjection Name = UTM\nUnits = meters\nGeoTIFF Units = meters"
+   GTCitationGeoKey (Ascii,215): "IMAGINE GeoTIFF Support\nCopyright 1991 - 2001 by ERDAS, Inc. All Rights Reserved\n@(#)$RCSfile$ $Revision: 24426 $ $Date: 2012-05-16 20:28:18 -0700 (Wed, 16 May 2012) $\nProjection Name = UTM\nUnits = meters\nGeoTIFF Units = meters"
 
-   GeogCitationGeoKey (Ascii,267): "IMAGINE GeoTIFF Support\nCopyright 1991 - 2001 by ERDAS, Inc. All Rights Reserved\n@(#)$RCSfile$ $Revision: 23272 $ $Date: 2011-10-23 12:37:12 -0700 (Sun, 23 Oct 2011) $\nUnable to match Ellipsoid (Datum) to a GeographicTypeGeoKey value\nEllipsoid = Clarke 1866\nDatum = NAD27 (CONUS)"
+   GeogCitationGeoKey (Ascii,267): "IMAGINE GeoTIFF Support\nCopyright 1991 - 2001 by ERDAS, Inc. All Rights Reserved\n@(#)$RCSfile$ $Revision: 24426 $ $Date: 2012-05-16 20:28:18 -0700 (Wed, 16 May 2012) $\nUnable to match Ellipsoid (Datum) to a GeographicTypeGeoKey value\nEllipsoid = Clarke 1866\nDatum = NAD27 (CONUS)"
 
-   PCSCitationGeoKey (Ascii,214): "IMAGINE GeoTIFF Support\nCopyright 1991 - 2001 by ERDAS, Inc. All Rights Reserved\n@(#)$RCSfile$ $Revision: 23272 $ $Date: 2011-10-23 12:37:12 -0700 (Sun, 23 Oct 2011) $\nUTM Zone 10N\nEllipsoid = Clarke 1866\nDatum = NAD27 (CONUS)"
+   PCSCitationGeoKey (Ascii,214): "IMAGINE GeoTIFF Support\nCopyright 1991 - 2001 by ERDAS, Inc. All Rights Reserved\n@(#)$RCSfile$ $Revision: 24426 $ $Date: 2012-05-16 20:28:18 -0700 (Wed, 16 May 2012) $\nUTM Zone 10N\nEllipsoid = Clarke 1866\nDatum = NAD27 (CONUS)"
  
 */
 
@@ -1236,7 +1236,10 @@ int GTIFSetFromOGISDefn( GTIF * psGTIF, const char *pszOGCWKT )
     double	dfLinearUOM = poSRS->GetLinearUnits( &pszLinearUOMName );
     int         nUOMLengthCode = 9001; /* meters */
 
-    if( (pszLinearUOMName != NULL
+    if( poSRS->GetAuthorityName("PROJCS|UNIT") != NULL 
+        && EQUAL(poSRS->GetAuthorityName("PROJCS|UNIT"),"EPSG") )
+        nUOMLengthCode = atoi(poSRS->GetAuthorityCode("PROJCS|UNIT"));
+    else if( (pszLinearUOMName != NULL
          && EQUAL(pszLinearUOMName,SRS_UL_FOOT))
         || fabs(dfLinearUOM-GTIFAtof(SRS_UL_FOOT_CONV)) < 0.0000001 )
         nUOMLengthCode = 9002; /* international foot */

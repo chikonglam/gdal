@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ili1readerp.h 16865 2009-04-27 12:49:49Z chaitanya $
+ * $Id: ili1readerp.h 24077 2012-03-05 21:52:04Z pka $
  *
  * Project:  Interlis 1 Reader
  * Purpose:  Private Declarations for Reader code.
@@ -51,6 +51,9 @@ private:
     OGRILI1Layer *curLayer;
     OGRILI1Layer *metaLayer;
     double       arcIncr;
+    char         codeBlank;
+    char         codeUndefined;
+    char         codeContinue;
 
 public:
                  ILI1Reader();

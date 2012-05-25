@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrgmllayer.cpp 23638 2011-12-22 21:02:56Z rouault $
+ * $Id: ogrgmllayer.cpp 23706 2012-01-06 15:48:17Z rouault $
  *
  * Project:  OGR
  * Purpose:  Implements OGRGMLLayer class.
@@ -35,7 +35,7 @@
 #include "ogr_p.h"
 #include "ogr_api.h"
 
-CPL_CVSID("$Id: ogrgmllayer.cpp 23638 2011-12-22 21:02:56Z rouault $");
+CPL_CVSID("$Id: ogrgmllayer.cpp 23706 2012-01-06 15:48:17Z rouault $");
 
 /************************************************************************/
 /*                           OGRGMLLayer()                              */
@@ -402,6 +402,11 @@ OGRFeature *OGRGMLLayer::GetNextFeature()
             }
         }
 
+        /* Assign the geometry before the attribute filter because */
+        /* the attribute filter may use a special field like OGR_GEOMETRY */
+        poOGRFeature->SetGeometryDirectly( poGeom );
+        poGeom = NULL;
+
 /* -------------------------------------------------------------------- */
 /*      Test against the attribute query.                               */
 /* -------------------------------------------------------------------- */
@@ -416,8 +421,6 @@ OGRFeature *OGRGMLLayer::GetNextFeature()
 /*      Wow, we got our desired feature. Return it.                     */
 /* -------------------------------------------------------------------- */
         delete poGMLFeature;
-
-        poOGRFeature->SetGeometryDirectly( poGeom );
 
         return poOGRFeature;
     }

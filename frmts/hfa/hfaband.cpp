@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: hfaband.cpp 23498 2011-12-08 22:06:39Z rouault $
+ * $Id: hfaband.cpp 24205 2012-04-07 15:35:55Z rouault $
  *
  * Project:  Erdas Imagine (.img) Translator
  * Purpose:  Implementation of the HFABand, for accessing one Eimg_Layer.
@@ -32,7 +32,7 @@
 
 /* include the compression code */
 
-CPL_CVSID("$Id: hfaband.cpp 23498 2011-12-08 22:06:39Z rouault $");
+CPL_CVSID("$Id: hfaband.cpp 24205 2012-04-07 15:35:55Z rouault $");
 
 /************************************************************************/
 /*                              HFABand()                               */
@@ -432,7 +432,6 @@ CPLErr	HFABand::LoadExternalBlockInfo()
 
     if( strncmp( szHeader, "ERDAS_IMG_EXTERNAL_RASTER", 26 ) != 0 )
     {
-        VSIFCloseL( fpExternal );
         CPLError( CE_Failure, CPLE_AppDefined,
                   "Raw data file %s appears to be corrupt.\n",
                   pszFullFilename );

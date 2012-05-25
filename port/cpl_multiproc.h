@@ -1,5 +1,5 @@
 /**********************************************************************
- * $Id: cpl_multiproc.h 20088 2010-07-17 20:41:29Z rouault $
+ * $Id: cpl_multiproc.h 23729 2012-01-08 01:11:14Z rouault $
  *
  * Project:  CPL - Common Portability Library
  * Purpose:  CPL Multi-Threading, and process handling portability functions.
@@ -41,6 +41,9 @@
 
 #if defined(WIN32) && !defined(CPL_MULTIPROC_STUB)
 #  define CPL_MULTIPROC_WIN32
+/* MinGW can have pthread support, so disable it to avoid issues */
+/* in cpl_multiproc.cpp */
+#  undef  CPL_MULTIPROC_PTHREAD
 #endif
 
 #if !defined(CPL_MULTIPROC_WIN32) && !defined(CPL_MULTIPROC_PTHREAD) \

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: parsexsd.cpp 23686 2012-01-02 20:59:38Z rouault $
+ * $Id: parsexsd.cpp 23749 2012-01-12 23:35:03Z rouault $
  *
  * Project:  GML Reader
  * Purpose:  Implementation of GMLParseXSD()
@@ -105,6 +105,13 @@ int GetSimpleTypeProperties(CPLXMLNode *psTypeNode,
         return TRUE;
     }
 
+    /* TODO: Would be nice to have a proper date type */
+    else if( EQUAL(pszBase,"date") ||
+             EQUAL(pszBase,"dateTime") )
+    {
+        *pGMLType = GMLPT_String;
+        return TRUE;
+    }
     return FALSE;
 }
 
@@ -262,6 +269,10 @@ GMLFeatureClass* GMLParseFeatureType(CPLXMLNode *psSchemaNode,
             GMLPropertyType gmlType = GMLPT_Untyped;
             if (EQUAL(pszStrippedNSType, "string") ||
                 EQUAL(pszStrippedNSType, "Character"))
+                gmlType = GMLPT_String;
+            /* TODO: Would be nice to have a proper date type */
+            else if (EQUAL(pszStrippedNSType, "date") ||
+                     EQUAL(pszStrippedNSType, "dateTime"))
                 gmlType = GMLPT_String;
             else if (EQUAL(pszStrippedNSType, "real") ||
                      EQUAL(pszStrippedNSType, "double") ||

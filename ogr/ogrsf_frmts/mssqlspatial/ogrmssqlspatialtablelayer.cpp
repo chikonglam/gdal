@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrmssqlspatialtablelayer.cpp 21943 2011-03-12 18:25:22Z tamas $
+ * $Id: ogrmssqlspatialtablelayer.cpp 23943 2012-02-11 13:55:37Z rouault $
  *
  * Project:  MSSQL Spatial driver
  * Purpose:  Implements OGRMSSQLSpatialTableLayer class, access to an existing table.
@@ -30,7 +30,7 @@
 #include "cpl_conv.h"
 #include "ogr_mssqlspatial.h"
 
-CPL_CVSID("$Id: ogrmssqlspatialtablelayer.cpp 21943 2011-03-12 18:25:22Z tamas $");
+CPL_CVSID("$Id: ogrmssqlspatialtablelayer.cpp 23943 2012-02-11 13:55:37Z rouault $");
 
 /************************************************************************/
 /*                         OGRMSSQLAppendEscaped( )                     */
@@ -479,7 +479,7 @@ CPLODBCStatement* OGRMSSQLSpatialTableLayer::BuildStatement(const char* pszColum
 
     /* Append attribute query if we have it */
     if( pszQuery != NULL )
-        poStatement->Appendf( " where %s", pszQuery );
+        poStatement->Appendf( " where (%s)", pszQuery );
 
     /* If we have a spatial filter, query on it */
     if ( m_poFilterGeom != NULL )
@@ -602,7 +602,8 @@ int OGRMSSQLSpatialTableLayer::TestCapability( const char * pszCap )
 {
     if ( bUpdateAccess )
     {
-        if( EQUAL(pszCap,OLCSequentialWrite) || EQUAL(pszCap,OLCCreateField) )
+        if( EQUAL(pszCap,OLCSequentialWrite) || EQUAL(pszCap,OLCCreateField)
+            || EQUAL(pszCap,OLCDeleteFeature) )
             return TRUE;
 
         else if( EQUAL(pszCap,OLCRandomWrite) )
