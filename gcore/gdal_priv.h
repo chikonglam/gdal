@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdal_priv.h 23431 2011-11-27 15:02:24Z rouault $
+ * $Id: gdal_priv.h 23936 2012-02-10 15:35:27Z rouault $
  *
  * Name:     gdal_priv.h
  * Project:  GDAL Core
@@ -910,9 +910,9 @@ int CPL_DLL GDALCheckBandCount( int nBands, int bIsZeroAllowed );
 
 
 // Test if 2 floating point values match. Usefull when comparing values
-// stored as a string at some point. See #3573, #4183
+// stored as a string at some point. See #3573, #4183, #4506
 #define ARE_REAL_EQUAL(dfVal1, dfVal2) \
- (fabs(dfVal1 - dfVal2) < 1e-10 || (dfVal2 != 0 && fabs(1 - dfVal1 / dfVal2) < 1e-10 ))
+ (dfVal1 == dfVal2 || fabs(dfVal1 - dfVal2) < 1e-10 || (dfVal2 != 0 && fabs(1 - dfVal1 / dfVal2) < 1e-10 ))
 
 /* Internal use only */
 int GDALReadWorldFile2( const char *pszBaseFilename, const char *pszExtension,

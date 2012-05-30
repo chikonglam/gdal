@@ -1,12 +1,16 @@
-gdal (1.9.0-2) unstable; urgency=low
+gdal (1.9.1-1) unstable; urgency=low
 
+  [ Jerome Villeneuve Larouche ]
+  * New upstream release.
+
+  [ Francesco Paolo Lovergine ]
   * Reintroducing libgdal1-dev as a transitional package to allow r-deps
     to build in any environment.
   * Removed old depndency on libcurl3-dev for libgdal-dev and added a 
     preferred dep on libcurl4-gnutls-dev to make lintian happy.
   * Added build-{arch|indep} targets in debian/rules.
 
- -- Francesco Paolo Lovergine <frankie@debian.org>  Wed, 09 May 2012 13:00:22 +0200
+ -- Jerome Villeneuve Larouche <jlarouche@mapgears.com>  Fri, 25 May 2012 13:04:34 +0000
 
 gdal (1.9.0-1) unstable; urgency=low
 

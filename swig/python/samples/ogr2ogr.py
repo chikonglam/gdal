@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #/******************************************************************************
-# * $Id: ogr2ogr.py 23515 2011-12-10 21:14:02Z rouault $
+# * $Id: ogr2ogr.py 23934 2012-02-09 19:49:18Z rouault $
 # *
 # * Project:  OpenGIS Simple Features Reference Implementation
 # * Purpose:  Python port of a simple client for translating between formats.
@@ -1170,11 +1170,11 @@ def TranslateLayer( poSrcDS, poSrcLayer, poDstDS, papszLCO, pszNewLayerName, \
                 pszFieldName = poSrcFDefn.GetFieldDefn(iSrcField).GetNameRef()
                 bFieldRequested = False
                 for iField in range(len(papszSelFields)):
-                    if pszFieldName == papszSelFields[iField]:
+                    if EQUAL(pszFieldName, papszSelFields[iField]):
                         bFieldRequested = True
                         break
 
-                if pszZField is not None and pszFieldName == pszZField:
+                if pszZField is not None and EQUAL(pszFieldName, pszZField):
                     bFieldRequested = True
 
                 #/* If source field not requested, add it to ignored files list */

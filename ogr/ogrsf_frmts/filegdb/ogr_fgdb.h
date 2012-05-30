@@ -1,5 +1,5 @@
 /******************************************************************************
-* $Id: ogr_fgdb.h 23027 2011-09-02 22:19:29Z rouault $
+* $Id: ogr_fgdb.h 23778 2012-01-21 12:52:04Z rouault $
 *
 * Project:  OpenGIS Simple Features Reference Implementation
 * Purpose:  Standard includes and class definitions ArcObjects OGR driver.
@@ -147,6 +147,7 @@ protected:
   
   bool  m_supressColumnMappingError;
   bool  m_forceMulti;
+  bool  m_bLaunderReservedKeywords;
 
 };
 
