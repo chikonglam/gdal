@@ -1,3 +1,12 @@
+gdal (1.9.1-2~lucid1) lucid; urgency=low
+
+  * Launchpad release for Lucid
+  * Removed dods support in debian/rules
+  * Changed dh_python2 for dh_pycentral in debian/rules
+  * Removed dh_numpy in debian/rules
+
+ -- Jerome Villeneuve Larouche <jlarouche@mapgears.com>  Fri, 25 May 2012 18:35:23 +0000
+
 gdal (1.9.1-1) unstable; urgency=low
 
   * New upstream release
