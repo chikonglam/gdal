@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_fromepsg.cpp 23396 2011-11-19 19:52:17Z etourigny $
+ * $Id: ogr_fromepsg.cpp 24169 2012-03-28 18:05:17Z warmerdam $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Generate an OGRSpatialReference object based on an EPSG
@@ -32,7 +32,7 @@
 #include "ogr_p.h"
 #include "cpl_csv.h"
 
-CPL_CVSID("$Id: ogr_fromepsg.cpp 23396 2011-11-19 19:52:17Z etourigny $");
+CPL_CVSID("$Id: ogr_fromepsg.cpp 24169 2012-03-28 18:05:17Z warmerdam $");
 
 #ifndef PI
 #  define PI 3.14159265358979323846
@@ -1613,6 +1613,8 @@ static OGRErr SetEPSGProjCS( OGRSpatialReference * poSRS, int nPCSCode )
         break;
 
       case 9823: /* Equidistant Cylindrical / Plate Carre / Equirectangular */
+      case 1028:
+      case 1029:
         poSRS->SetEquirectangular( OGR_FP( NatOriginLat ),
                                    OGR_FP( NatOriginLong ), 
                                    0.0, 0.0 );

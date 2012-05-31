@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrpgtablelayer.cpp 23674 2012-01-01 14:32:18Z rouault $
+ * $Id: ogrpgtablelayer.cpp 23943 2012-02-11 13:55:37Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implements OGRPGTableLayer class, access to an existing table.
@@ -34,7 +34,7 @@
 
 #define PQexec this_is_an_error
 
-CPL_CVSID("$Id: ogrpgtablelayer.cpp 23674 2012-01-01 14:32:18Z rouault $");
+CPL_CVSID("$Id: ogrpgtablelayer.cpp 23943 2012-02-11 13:55:37Z rouault $");
 
 #define USE_COPY_UNSET  -10
 static CPLString OGRPGEscapeStringList(PGconn *hPGConn,
@@ -631,8 +631,9 @@ void OGRPGTableLayer::BuildWhere()
         }
         else	
         {
-            osWHERE += "AND ";
+            osWHERE += "AND (";
             osWHERE += osQuery;
+            osWHERE += ")";
         }
     }
 }

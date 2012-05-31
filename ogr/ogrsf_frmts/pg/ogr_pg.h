@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_pg.h 23652 2011-12-29 09:33:53Z rouault $
+ * $Id: ogr_pg.h 24335 2012-04-28 14:32:46Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Private definitions for OGR/PostgreSQL driver.
@@ -305,6 +305,8 @@ class OGRPGResultLayer : public OGRPGLayer
     virtual int         TestCapability( const char * );
 
     virtual OGRFeature *GetNextFeature();
+
+    virtual OGRSpatialReference *GetSpatialRef();
 };
 
 /************************************************************************/

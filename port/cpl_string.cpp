@@ -1,5 +1,5 @@
 /**********************************************************************
- * $Id: cpl_string.cpp 23407 2011-11-21 19:35:16Z rouault $
+ * $Id: cpl_string.cpp 24382 2012-05-04 15:45:19Z rouault $
  *
  * Name:     cpl_string.cpp
  * Project:  CPL - Common Portability Library
@@ -54,7 +54,7 @@
 #  include <wce_string.h>
 #endif
 
-CPL_CVSID("$Id: cpl_string.cpp 23407 2011-11-21 19:35:16Z rouault $");
+CPL_CVSID("$Id: cpl_string.cpp 24382 2012-05-04 15:45:19Z rouault $");
 
 /*=====================================================================
                     StringList manipulation functions.
@@ -1999,6 +1999,9 @@ CPLValueType CPLGetValueType(const char* pszValue)
     /* Skip leading spaces */
     while( isspace( (unsigned char)*pszValue ) )
         pszValue ++;
+        
+    if (*pszValue == '\0')
+        return CPL_VALUE_STRING;
 
     for(; *pszValue != '\0'; pszValue++ )
     {

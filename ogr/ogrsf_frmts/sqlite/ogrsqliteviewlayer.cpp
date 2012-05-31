@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrsqliteviewlayer.cpp 23015 2011-08-31 19:48:00Z rouault $
+ * $Id: ogrsqliteviewlayer.cpp 23943 2012-02-11 13:55:37Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implements OGRSQLiteViewLayer class, access to an existing spatialite view.
@@ -32,7 +32,7 @@
 #include "ogr_sqlite.h"
 #include <string>
 
-CPL_CVSID("$Id: ogrsqliteviewlayer.cpp 23015 2011-08-31 19:48:00Z rouault $");
+CPL_CVSID("$Id: ogrsqliteviewlayer.cpp 23943 2012-02-11 13:55:37Z rouault $");
 
 /************************************************************************/
 /*                        OGRSQLiteViewLayer()                         */
@@ -392,8 +392,9 @@ void OGRSQLiteViewLayer::BuildWhere()
         }
         else	
         {
-            osWHERE += "AND ";
+            osWHERE += "AND (";
             osWHERE += osQuery;
+            osWHERE += ")";
         }
     }
 }

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrdxfwriterlayer.cpp 22779 2011-07-23 18:53:29Z warmerdam $
+ * $Id: ogrdxfwriterlayer.cpp 24360 2012-05-01 17:01:54Z rouault $
  *
  * Project:  DXF Translator
  * Purpose:  Implements OGRDXFWriterLayer - the OGRLayer class used for
@@ -33,7 +33,7 @@
 #include "cpl_string.h"
 #include "ogr_featurestyle.h"
 
-CPL_CVSID("$Id: ogrdxfwriterlayer.cpp 22779 2011-07-23 18:53:29Z warmerdam $");
+CPL_CVSID("$Id: ogrdxfwriterlayer.cpp 24360 2012-05-01 17:01:54Z rouault $");
 
 #ifndef PI
 #define PI  3.14159265358979323846
@@ -988,7 +988,15 @@ OGRErr OGRDXFWriterLayer::CreateFeature( OGRFeature *poFeature )
     OGRwkbGeometryType eGType = wkbNone;
     
     if( poGeom != NULL )
+    {
+        if( !poGeom->IsEmpty() )
+        {
+            OGREnvelope sEnvelope;
+            poGeom->getEnvelope(&sEnvelope);
+            poDS->UpdateExtent(&sEnvelope);
+        }
         eGType = wkbFlatten(poGeom->getGeometryType());
+    }
 
     if( eGType == wkbPoint )
     {

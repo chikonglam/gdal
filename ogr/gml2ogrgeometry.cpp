@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gml2ogrgeometry.cpp 23638 2011-12-22 21:02:56Z rouault $
+ * $Id: gml2ogrgeometry.cpp 23891 2012-02-03 18:42:47Z rouault $
  *
  * Project:  GML Reader
  * Purpose:  Code to translate between GML and OGR geometry forms.
@@ -269,9 +269,8 @@ static int ParseGMLCoordinates( const CPLXMLNode *psGeomNode, OGRGeometry *poGeo
 
         if( pszCoordString == NULL )
         {
-            CPLError( CE_Failure, CPLE_AppDefined, 
-                      "<coordinates> element missing value." );
-            return FALSE;
+            poGeometry->empty();
+            return TRUE;
         }
 
         while( *pszCoordString != '\0' )
@@ -387,6 +386,12 @@ static int ParseGMLCoordinates( const CPLXMLNode *psGeomNode, OGRGeometry *poGeo
             continue;
 
         const char* pszPos = GetElementText( psPos );
+        if (pszPos == NULL)
+        {
+            poGeometry->empty();
+            return TRUE;
+        }
+
         const char* pszCur = pszPos;
         const char* pszX = (pszCur != NULL) ?
                             GMLGetCoordTokenPos(pszCur, &pszCur) : NULL;
@@ -457,11 +462,8 @@ static int ParseGMLCoordinates( const CPLXMLNode *psGeomNode, OGRGeometry *poGeo
         const char* pszPosList = GetElementText( psPosList );
         if (pszPosList == NULL)
         {
-            CPLError( CE_Failure, CPLE_AppDefined,
-                      "Did not get at least %d values or invalid number of \n"
-                      "set of coordinates <gml:posList>%s</gml:posList>",
-                      nDimension, pszPosList ? pszPosList : "");
-            return FALSE;
+            poGeometry->empty();
+            return TRUE;
         }
 
         const char* pszCur = pszPosList;
@@ -671,10 +673,8 @@ OGRGeometry *GML2OGRGeometry_XMLNode( const CPLXMLNode *psNode,
 
         if( psChild == NULL || psChild->psChild == NULL )
         {
-            CPLError( CE_Failure, CPLE_AppDefined, 
-                      "Missing outerBoundaryIs property on %s.", pszBaseGeometry );
-            delete poPolygon;
-            return NULL;
+            /* <gml:Polygon/> is invalid GML2, but valid GML3, so be tolerant */
+            return poPolygon;
         }
 
         // Translate outer ring and add to polygon.
@@ -885,11 +885,16 @@ OGRGeometry *GML2OGRGeometry_XMLNode( const CPLXMLNode *psNode,
 
         dfStep *= nSign;
 
-        for(alpha = alpha0; (alpha - alpha1) * nSign < 0; alpha += dfStep)
+        poLine->addPoint(x0, y0);
+
+        for(alpha = alpha0 + dfStep; (alpha - alpha1) * nSign < 0; alpha += dfStep)
         {
             poLine->addPoint(cx + R * cos(alpha), cy + R * sin(alpha));
         }
-        for(alpha = alpha1; (alpha - alpha2) * nSign < 0; alpha += dfStep)
+
+        poLine->addPoint(x1, y1);
+
+        for(alpha = alpha1 + dfStep; (alpha - alpha2) * nSign < 0; alpha += dfStep)
         {
             poLine->addPoint(cx + R * cos(alpha), cy + R * sin(alpha));
         }
@@ -900,11 +905,11 @@ OGRGeometry *GML2OGRGeometry_XMLNode( const CPLXMLNode *psNode,
             {
                 poLine->addPoint(cx + R * cos(alpha), cy + R * sin(alpha));
             }
-            poLine->addPoint(cx + R * cos(alpha3), cy + R * sin(alpha3));
+            poLine->addPoint(x0, y0);
         }
         else
         {
-            poLine->addPoint(cx + R * cos(alpha2), cy + R * sin(alpha2));
+            poLine->addPoint(x2, y2);
         }
 
         return poLine;
@@ -1342,7 +1347,24 @@ OGRGeometry *GML2OGRGeometry_XMLNode( const CPLXMLNode *psNode,
                 }
                 if( poGeom != NULL )
                 {
-                    poLS->addSubLineString( (OGRLineString *)poGeom );
+                    OGRLineString *poAddLS = (OGRLineString *)poGeom;
+                    if( poLS->getNumPoints() > 0 && poAddLS->getNumPoints() > 0
+                        && fabs(poLS->getX(poLS->getNumPoints()-1)
+                                - poAddLS->getX(0)) < 1e-14
+                        && fabs(poLS->getY(poLS->getNumPoints()-1)
+                                - poAddLS->getY(0)) < 1e-14
+                        && fabs(poLS->getZ(poLS->getNumPoints()-1)
+                                - poAddLS->getZ(0)) < 1e-14) 
+                    {
+                        // Skip the first point of the new linestring to avoid
+                        // invalidate duplicate points (#4451)
+                        poLS->addSubLineString( poAddLS, 1 );
+                    }
+                    else
+                    {
+                        // Add the whole new line string
+                        poLS->addSubLineString( poAddLS );
+                    }
                     delete poGeom;
                 }
             }
@@ -1951,9 +1973,8 @@ OGRGeometry *GML2OGRGeometry_XMLNode( const CPLXMLNode *psNode,
 
         if( psChild == NULL || psChild->psChild == NULL )
         {
-            CPLError( CE_Failure, CPLE_AppDefined, 
-                      "Missing <patches> for Surface." );
-            return NULL;
+            /* <gml:Surface/> and <gml:Surface><gml:patches/></gml:Surface> are valid GML */
+            return new OGRPolygon();
         }
 
         for( psChild = psChild->psChild; 
@@ -2054,9 +2075,8 @@ OGRGeometry *GML2OGRGeometry_XMLNode( const CPLXMLNode *psNode,
 
         if( psChild == NULL || psChild->psChild == NULL )
         {
-            CPLError( CE_Failure, CPLE_AppDefined,
-                      "Missing exterior property on Solid." );
-            return NULL;
+            /* <gml:Solid/> and <gml:Solid><gml:exterior/></gml:Solid> are valid GML */
+            return new OGRPolygon();
         }
 
         // Get the geometry inside <exterior>

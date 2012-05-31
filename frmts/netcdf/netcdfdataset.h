@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: netcdfdataset.h 23627 2011-12-22 02:40:39Z etourigny $
+ * $Id: netcdfdataset.h 23973 2012-02-14 15:00:44Z etourigny $
  *
  * Project:  netCDF read/write Driver
  * Purpose:  GDAL bindings over netCDF library.
