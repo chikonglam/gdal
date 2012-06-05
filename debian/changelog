@@ -1,4 +1,14 @@
+<<<<<<< HEAD
 gdal (1.9.1-2) unstable; urgency=low
+=======
+gdal (1.9.0-3) UNRELEASED; urgency=low
+
+  * New package for Python 3 bindings
+
+ -- Antonio Valentino <antonio.valentino@tiscali.it>  Wed, 30 May 2012 19:15:21 +0200
+
+gdal (1.9.0-2) unstable; urgency=low
+>>>>>>> d1ddee88eeedac0f87e3fc4ea117a138fbb43af6
 
   * Fixed debian/control to b-depend on ruby 1.8. 
     (closes: #675972)
