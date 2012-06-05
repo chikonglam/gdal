@@ -1,3 +1,12 @@
+gdal (1.9.0-3) unstable; urgency=low
+
+  * Now b-depending on Ruby 1.8 explicitly. 
+    (closes: #675972)
+  * Now b-depending on poppler-private package.
+    (closes: #672405)
+
+ -- Francesco Paolo Lovergine <frankie@debian.org>  Tue, 05 Jun 2012 14:27:39 +0200
+
 gdal (1.9.0-2) unstable; urgency=low
 
   * Reintroducing libgdal1-dev as a transitional package to allow r-deps
