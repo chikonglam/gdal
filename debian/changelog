@@ -1,15 +1,25 @@
-gdal (1.9.1-2~lucid1) lucid; urgency=low
+gdal (1.9.1-2~lucid3) lucid; urgency=low
 
   * Launchpad release for Lucid
   * Removed dods support in debian/rules
   * Changed dh_python2 for dh_pycentral in debian/rules
   * Removed dh_numpy in debian/rules
+  * Lowered Depends version of libnetcdf-dev to 1:3.6.0 (down from 1:4.0.0)
+  * Lowered Depends version of python-all-dev to 2.6.5
 
- -- Jerome Villeneuve Larouche <jlarouche@mapgears.com>  Fri, 25 May 2012 18:35:23 +0000
+ -- Jerome Villeneuve Larouche <jlarouche@mapgears.com>  Thu, 31 May 2012 17:51:14 +0000
 
 gdal (1.9.1-1) unstable; urgency=low
 
-  * New upstream release
+  [ Jerome Villeneuve Larouche ]
+  * New upstream release.
+
+  [ Francesco Paolo Lovergine ]
+  * Reintroducing libgdal1-dev as a transitional package to allow r-deps
+    to build in any environment.
+  * Removed old depndency on libcurl3-dev for libgdal-dev and added a 
+    preferred dep on libcurl4-gnutls-dev to make lintian happy.
+  * Added build-{arch|indep} targets in debian/rules.
 
  -- Jerome Villeneuve Larouche <jlarouche@mapgears.com>  Fri, 25 May 2012 13:04:34 +0000
 
