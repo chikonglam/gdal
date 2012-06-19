@@ -4,6 +4,7 @@ gdal (1.9.0-3) unstable; urgency=low
     (closes: #675972)
   * Now b-depending on poppler-private package.
     (closes: #672405)
+  * New package for Python 3 bindings
 
  -- Francesco Paolo Lovergine <frankie@debian.org>  Tue, 05 Jun 2012 14:27:39 +0200
 
