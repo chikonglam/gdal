@@ -1,3 +1,9 @@
+gdal (1.9.1-2~lucid4) lucid; urgency=medium
+
+  * Fix gdal internal TIFF symbols issue
+
+ -- Jerome Villeneuve Larouche <jlarouche@mapgears.com>  Thu, 06 Sep 2012 20:35:34 +0000
+
 gdal (1.9.1-2~lucid3) lucid; urgency=low
 
   * Launchpad release for Lucid

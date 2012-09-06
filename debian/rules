@@ -92,6 +92,8 @@ configure-stamp:
 			--with-libkml=yes \
 			--with-armadillo=yes \
 			--with-liblzma=yes \
+			--with-rename-internal-libtiff-symbols=yes \
+			--with-rename-internal-libgeotiff-symbols=yes \
 			--with-epsilon=/usr; \
 		mv GDALmake.opt GDALmake.opt-$$V; \
 	done
