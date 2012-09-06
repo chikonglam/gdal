@@ -1,3 +1,9 @@
+gdal (1.9.1-2~precise4) precise; urgency=medium
+
+  * Fix gdal internal TIFF symbols issue
+
+ -- Jerome Villeneuve Larouche <jlarouche@mapgears.com>  Thu, 06 Sep 2012 15:02:07 +0000
+
 gdal (1.9.1-2~precise3) precise; urgency=low
 
   * Launchpad build for precise
