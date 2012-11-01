@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrcsvdatasource.cpp 23244 2011-10-16 21:52:16Z rouault $
+ * $Id: ogrcsvdatasource.cpp 25039 2012-10-03 21:32:21Z rcoup $
  *
  * Project:  CSV Translator
  * Purpose:  Implements OGRCSVDataSource class
@@ -33,7 +33,7 @@
 #include "cpl_csv.h"
 #include "cpl_vsi_virtual.h"
 
-CPL_CVSID("$Id: ogrcsvdatasource.cpp 23244 2011-10-16 21:52:16Z rouault $");
+CPL_CVSID("$Id: ogrcsvdatasource.cpp 25039 2012-10-03 21:32:21Z rcoup $");
 
 /************************************************************************/
 /*                          OGRCSVDataSource()                          */
@@ -279,9 +279,9 @@ int OGRCSVDataSource::Open( const char * pszFilename, int bUpdateIn,
         {
             if( !OpenTable( oSubFilename ) )
             {
-                CSLDestroy( papszNames );
+                CPLDebug("CSV", "Cannot open %s", oSubFilename.c_str());
                 nNotCSVCount++;
-                return FALSE;
+                continue;
             }
         }
 
@@ -294,9 +294,9 @@ int OGRCSVDataSource::Open( const char * pszFilename, int bUpdateIn,
             bRet |= OpenTable( oSubFilename, NULL, "SOURCE");
             if ( !bRet )
             {
-                CSLDestroy( papszNames );
+                CPLDebug("CSV", "Cannot open %s", oSubFilename.c_str());
                 nNotCSVCount++;
-                return FALSE;
+                continue;
             }
         }
         /* GNIS specific */
@@ -306,9 +306,9 @@ int OGRCSVDataSource::Open( const char * pszFilename, int bUpdateIn,
         {
             if ( !OpenTable( oSubFilename, NULL, "PRIMARY") )
             {
-                CSLDestroy( papszNames );
+                CPLDebug("CSV", "Cannot open %s", oSubFilename.c_str());
                 nNotCSVCount++;
-                return FALSE;
+                continue;
             }
         }
         else
@@ -589,6 +589,14 @@ OGRCSVDataSource::CreateLayer( const char *pszLayerName,
     const char *pszCreateCSVT = CSLFetchNameValue( papszOptions, "CREATE_CSVT");
     if (pszCreateCSVT)
         papoLayers[nLayers-1]->SetCreateCSVT(CSLTestBoolean(pszCreateCSVT));
+
+/* -------------------------------------------------------------------- */
+/*      Should we write a UTF8 BOM ?                                    */
+/* -------------------------------------------------------------------- */
+
+    const char *pszWriteBOM = CSLFetchNameValue( papszOptions, "WRITE_BOM");
+    if (pszWriteBOM)
+        papoLayers[nLayers-1]->SetWriteBOM(CSLTestBoolean(pszWriteBOM));
 
     return papoLayers[nLayers-1];
 }

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdal_rasterize.cpp 23285 2011-10-27 21:39:19Z rouault $
+ * $Id: gdal_rasterize.cpp 24683 2012-07-20 15:14:41Z rouault $
  *
  * Project:  GDAL Utilities
  * Purpose:  Rasterize OGR shapes into a GDAL raster.
@@ -36,7 +36,7 @@
 #include "commonutils.h"
 #include <vector>
 
-CPL_CVSID("$Id: gdal_rasterize.cpp 23285 2011-10-27 21:39:19Z rouault $");
+CPL_CVSID("$Id: gdal_rasterize.cpp 24683 2012-07-20 15:14:41Z rouault $");
 
 /************************************************************************/
 /*                            ArgIsNumeric()                            */
@@ -285,6 +285,18 @@ static void ProcessLayer(
 /* -------------------------------------------------------------------- */
     if( bInverse )
     {
+        if( ahGeometries.size() == 0 )
+        {
+            for( unsigned int iBand = 0; iBand < anBandList.size(); iBand++ )
+            {
+                if( adfBurnValues.size() > 0 )
+                    adfFullBurnValues.push_back(
+                        adfBurnValues[MIN(iBand,adfBurnValues.size()-1)] );
+                else /* FIXME? Not sure what to do exactly in the else case, but we must insert a value */
+                    adfFullBurnValues.push_back( 0.0 );
+            }
+        }
+
         InvertGeometries( hDstDS, ahGeometries );
     }
 

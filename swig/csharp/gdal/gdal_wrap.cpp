@@ -2710,10 +2710,10 @@ SWIGEXPORT char * SWIGSTDCALL CSharp_XMLNode_Value_get(void * jarg1) {
 SWIGEXPORT void * SWIGSTDCALL CSharp_XMLNode_Next_get(void * jarg1) {
   void * jresult ;
   CPLXMLNode *arg1 = (CPLXMLNode *) 0 ;
-  _CPLXMLNode *result = 0 ;
+  CPLXMLNode *result = 0 ;
   
   arg1 = (CPLXMLNode *)jarg1; 
-  result = (_CPLXMLNode *) ((arg1)->psNext);
+  result = (CPLXMLNode *) ((arg1)->psNext);
   jresult = (void *)result; 
   return jresult;
 }
@@ -2722,10 +2722,10 @@ SWIGEXPORT void * SWIGSTDCALL CSharp_XMLNode_Next_get(void * jarg1) {
 SWIGEXPORT void * SWIGSTDCALL CSharp_XMLNode_Child_get(void * jarg1) {
   void * jresult ;
   CPLXMLNode *arg1 = (CPLXMLNode *) 0 ;
-  _CPLXMLNode *result = 0 ;
+  CPLXMLNode *result = 0 ;
   
   arg1 = (CPLXMLNode *)jarg1; 
-  result = (_CPLXMLNode *) ((arg1)->psChild);
+  result = (CPLXMLNode *) ((arg1)->psChild);
   jresult = (void *)result; 
   return jresult;
 }

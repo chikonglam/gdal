@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_srs_proj4.cpp 23620 2011-12-20 23:14:29Z rouault $
+ * $Id: ogr_srs_proj4.cpp 24775 2012-08-13 00:34:07Z etourigny $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  OGRSpatialReference interface to PROJ.4.
@@ -33,7 +33,7 @@
 
 extern int EPSGGetWGS84Transform( int nGeogCS, double *padfTransform );
 
-CPL_CVSID("$Id: ogr_srs_proj4.cpp 23620 2011-12-20 23:14:29Z rouault $");
+CPL_CVSID("$Id: ogr_srs_proj4.cpp 24775 2012-08-13 00:34:07Z etourigny $");
 
 /* -------------------------------------------------------------------- */
 /*      The following list comes from osrs/proj/src/pj_ellps.c          */
@@ -1054,8 +1054,10 @@ OGRErr OGRSpatialReference::importFromProj4( const char * pszProj4 )
         }
         else if( (pszValue = CSLFetchNameValue(papszNV, "units")) != NULL )
         {
-            if( EQUAL(pszValue,"meter" ) || EQUAL(pszValue,"m") )
+            if( EQUAL(pszValue,"meter" ) || EQUAL(pszValue,"m") || EQUAL(pszValue,"metre") )
                 SetLinearUnits( SRS_UL_METER, 1.0 );
+            else if( EQUAL(pszValue,"km") )
+                SetLinearUnits( "kilometre", 1000.0 );
             else if( EQUAL(pszValue,"us-ft" ) )
                 SetLinearUnits( SRS_UL_US_FOOT, CPLAtof(SRS_UL_US_FOOT_CONV) );
             else if( EQUAL(pszValue,"ft" ) )
@@ -1168,7 +1170,7 @@ OGRErr OGRSpatialReference::importFromProj4( const char * pszProj4 )
         }
         else if( (pszValue = CSLFetchNameValue(papszNV, "vunits")) != NULL )
         {
-            if( EQUAL(pszValue,"meter" ) || EQUAL(pszValue,"m") )
+            if( EQUAL(pszValue,"meter" ) || EQUAL(pszValue,"m") || EQUAL(pszValue,"metre") )
             {
                 pszUnitName = SRS_UL_METER;
                 pszUnitConv = "1.0";

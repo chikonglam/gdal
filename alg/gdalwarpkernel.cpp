@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdalwarpkernel.cpp 22887 2011-08-07 13:01:45Z rouault $
+ * $Id: gdalwarpkernel.cpp 25070 2012-10-07 14:18:54Z rouault $
  *
  * Project:  High Performance Image Reprojector
  * Purpose:  Implementation of the GDALWarpKernel class.  Implements the actual
@@ -33,7 +33,7 @@
 #include "cpl_string.h"
 #include "gdalwarpkernel_opencl.h"
 
-CPL_CVSID("$Id: gdalwarpkernel.cpp 22887 2011-08-07 13:01:45Z rouault $");
+CPL_CVSID("$Id: gdalwarpkernel.cpp 25070 2012-10-07 14:18:54Z rouault $");
 
 static const int anGWKFilterRadius[] =
 {
@@ -2559,7 +2559,7 @@ static CPLErr GWKOpenCLCase( GDALWarpKernel *poWK )
                                          poWK->pafUnifiedSrcDensity,
                                          poWK->panUnifiedSrcValid,
                                          poWK->pafDstDensity,
-                                         poWK->panUnifiedSrcValid,
+                                         poWK->panDstValid,
                                          poWK->dfXScale, poWK->dfYScale,
                                          poWK->dfXFilter, poWK->dfYFilter,
                                          poWK->nXRadius, poWK->nYRadius,

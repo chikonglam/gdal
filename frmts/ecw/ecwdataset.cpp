@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ecwdataset.cpp 23321 2011-11-05 13:20:20Z rouault $
+ * $Id: ecwdataset.cpp 24841 2012-08-24 20:36:09Z rouault $
  *
  * Project:  GDAL 
  * Purpose:  ECW (ERDAS Wavelet Compression Format) Driver
@@ -33,7 +33,7 @@
 #include "ogr_api.h"
 #include "ogr_geometry.h"
 
-CPL_CVSID("$Id: ecwdataset.cpp 23321 2011-11-05 13:20:20Z rouault $");
+CPL_CVSID("$Id: ecwdataset.cpp 24841 2012-08-24 20:36:09Z rouault $");
 
 #undef NOISY_DEBUG
 
@@ -246,8 +246,10 @@ CPLErr ECWRasterBand::IRasterIO( GDALRWFlag eRWFlag,
 /*      We will drop down to the block oriented API if only a single    */
 /*      scanline was requested. This is based on the assumption that    */
 /*      doing lots of single scanline windows is expensive.             */
+/*      Except for reading a 1x1 window when reading a scanline might   */
+/*      be longer.                                                      */
 /* -------------------------------------------------------------------- */
-    if( nYSize == 1 )
+    if( nYSize == 1 && nXSize != 1 )
     {
 #ifdef NOISY_DEBUG
         CPLDebug( "ECWRasterBand", 
@@ -1037,8 +1039,15 @@ CPLErr ECWDataset::IRasterIO( GDALRWFlag eRWFlag,
 /* -------------------------------------------------------------------- */
 /*      If we are requesting a single line at 1:1, we do a multi-band   */
 /*      AdviseRead() and then TryWinRasterIO() again.                   */
+/*                                                                      */
+/*      Except for reading a 1x1 window when reading a scanline might   */
+/*      be longer.                                                      */
 /* -------------------------------------------------------------------- */
-    if( nYSize == 1 && nBufYSize == 1 && nBandCount > 1 )
+    if( nXSize == 1 && nYSize == 1 && nBufXSize == 1 && nBufYSize == 1 )
+    {
+        /* do nothing */
+    }
+    else if( nYSize == 1 && nBufYSize == 1 && nBandCount > 1 )
     {
         CPLErr eErr;
 
@@ -1063,8 +1072,15 @@ CPLErr ECWDataset::IRasterIO( GDALRWFlag eRWFlag,
 /*      should eventually have some logic similiar to the band by       */
 /*      band case where we post a big window for the view, and allow    */
 /*      sequential reads.                                               */
+/*                                                                      */
+/*      Except for reading a 1x1 window when reading a scanline might   */
+/*      be longer.                                                      */
 /* -------------------------------------------------------------------- */
-    if( nXSize < nBufXSize || nYSize < nBufYSize || nYSize == 1 
+    if( nXSize == 1 && nYSize == 1 && nBufXSize == 1 && nBufYSize == 1 )
+    {
+        /* do nothing */
+    }
+    else if( nXSize < nBufXSize || nYSize < nBufYSize || nYSize == 1 
         || nBandCount > 100 || nBandCount == 1 || nBufYSize == 1 
         || nBandCount > GetRasterCount() )
     {

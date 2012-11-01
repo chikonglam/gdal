@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrmssqlgeometryparser.cpp 24331 2012-04-28 11:49:05Z tamas $
+ * $Id: ogrmssqlgeometryparser.cpp 24917 2012-09-07 12:00:46Z tamas $
  *
  * Project:  MSSQL Spatial driver
  * Purpose:  Implements OGRMSSQLGeometryParser class to parse native SqlGeometries.
@@ -30,7 +30,57 @@
 #include "cpl_conv.h"
 #include "ogr_mssqlspatial.h"
 
-CPL_CVSID("$Id: ogrmssqlgeometryparser.cpp 24331 2012-04-28 11:49:05Z tamas $");
+CPL_CVSID("$Id: ogrmssqlgeometryparser.cpp 24917 2012-09-07 12:00:46Z tamas $");
+
+/*   SqlGeometry serialization format
+
+Simple Point (SerializationProps & IsSinglePoint)
+  [SRID][0x01][SerializationProps][Point][z][m]
+
+Simple Line Segment (SerializationProps & IsSingleLineSegment)
+  [SRID][0x01][SerializationProps][Point1][Point2][z1][z2][m1][m2]
+
+Complex Geometries
+  [SRID][0x01][SerializationProps][NumPoints][Point1]..[PointN][z1]..[zN][m1]..[mN]
+  [NumFigures][Figure]..[Figure][NumShapes][Shape]..[Shape]
+
+SRID
+  Spatial Reference Id (4 bytes)
+
+SerializationProps (bitmask) 1 byte
+  0x01 = HasZValues
+  0x02 = HasMValues
+  0x04 = IsValid
+  0x08 = IsSinglePoint
+  0x10 = IsSingleLineSegment
+  0x20 = IsWholeGlobe
+
+Point (2-4)x8 bytes, size depends on SerializationProps & HasZValues & HasMValues
+  [x][y]                  - SqlGeometry
+  [latitude][longitude]   - SqlGeography
+
+Figure
+  [FigureAttribute][PointOffset]
+
+FigureAttribute (1 byte)
+  0x00 = Interior Ring
+  0x01 = Stroke
+  0x02 = Exterior Ring
+
+Shape
+  [ParentFigureOffset][FigureOffset][ShapeType]
+
+ShapeType (1 byte)
+  0x00 = Unknown
+  0x01 = Point
+  0x02 = LineString
+  0x03 = Polygon
+  0x04 = MultiPoint
+  0x05 = MultiLineString
+  0x06 = MultiPolygon
+  0x07 = GeometryCollection
+
+*/
 
 /************************************************************************/
 /*                         Geometry parser macros                       */
@@ -69,9 +119,10 @@ CPL_CVSID("$Id: ogrmssqlgeometryparser.cpp 24331 2012-04-28 11:49:05Z tamas $");
 #define PointOffset(iFigure) (ReadInt32(nFigurePos + (iFigure) * 5 + 1))
 #define NextPointOffset(iFigure) (iFigure + 1 < nNumFigures? PointOffset((iFigure) +1) : nNumPoints)
 
-#define ReadX(iPoint) (ReadDouble(nPointPos + nPointSize * (iPoint)))
-#define ReadY(iPoint) (ReadDouble(nPointPos + nPointSize * (iPoint) + 8))
-#define ReadZ(iPoint) (ReadDouble(nPointPos + nPointSize * (iPoint) + 16))
+#define ReadX(iPoint) (ReadDouble(nPointPos + 16 * (iPoint)))
+#define ReadY(iPoint) (ReadDouble(nPointPos + 16 * (iPoint) + 8))
+#define ReadZ(iPoint) (ReadDouble(nPointPos + 16 * nNumPoints + 8 * (iPoint)))
+#define ReadM(iPoint) (ReadDouble(nPointPos + 24 * nNumPoints + 8 * (iPoint)))
 
 /************************************************************************/
 /*                   OGRMSSQLGeometryParser()                           */
@@ -119,32 +170,20 @@ OGRPoint* OGRMSSQLGeometryParser::ReadPoint(int iShape)
 
 OGRMultiPoint* OGRMSSQLGeometryParser::ReadMultiPoint(int iShape)
 {
-    int iFigure, iPoint, iNextPoint;
-    iFigure = FigureOffset(iShape);
-
+    int i;
     OGRMultiPoint* poMultiPoint = new OGRMultiPoint();
-    iNextPoint = NextPointOffset(iFigure);
-    for (iPoint = PointOffset(iFigure); iPoint < iNextPoint; iPoint++)
-    {
-        OGRPoint* poPoint;
-        
-        if (nColType == MSSQLCOLTYPE_GEOGRAPHY)
-        {
-            if ( chProps & SP_HASZVALUES )
-                poPoint = new OGRPoint( ReadY(iPoint), ReadX(iPoint), ReadZ(iPoint) );
-            else
-                poPoint = new OGRPoint( ReadY(iPoint), ReadX(iPoint) );
-        }
-        else
-        {
-            if ( chProps & SP_HASZVALUES )
-                poPoint = new OGRPoint( ReadX(iPoint), ReadY(iPoint), ReadZ(iPoint) );
-            else
-                poPoint = new OGRPoint( ReadX(iPoint), ReadY(iPoint) );
-        }
+    OGRGeometry* poGeom;
 
-        if ( poPoint )
-            poMultiPoint->addGeometryDirectly( poPoint );
+    for (i = iShape + 1; i < nNumShapes; i++)
+    {
+        poGeom = NULL;
+        if (ParentOffset(i) == (unsigned int)iShape)
+        {
+            if  ( ShapeType(i) == ST_POINT )
+                poGeom = ReadPoint(i);
+        }
+        if ( poGeom )
+            poMultiPoint->addGeometryDirectly( poGeom );
     }
 
     return poMultiPoint;
@@ -360,6 +399,7 @@ OGRErr OGRMSSQLGeometryParser::ParseSqlGeometry(unsigned char* pszInput,
     if ( chProps & SP_ISSINGLEPOINT )
     {
         // single point geometry
+        nNumPoints = 1;
         nPointPos = 6;
 
         if (nLen < 6 + nPointSize)
@@ -385,6 +425,7 @@ OGRErr OGRMSSQLGeometryParser::ParseSqlGeometry(unsigned char* pszInput,
     else if ( chProps & SP_ISSINGLELINESEGMENT )
     {
         // single line segment with 2 points
+        nNumPoints = 2;
         nPointPos = 6;
 
         if (nLen < 6 + 2 * nPointSize)
