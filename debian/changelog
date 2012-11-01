@@ -1,3 +1,9 @@
+gdal (1.9.2-2~precise2) precise; urgency=high
+
+  * Removed ogdi
+
+ -- Jerome Villeneuve Larouche <jlarouche@mapgears.com>  Thu, 01 Nov 2012 20:45:42 +0000
+
 gdal (1.9.2-2~precise1) precise; urgency=medium
 
   * Launchpad build for Precise
