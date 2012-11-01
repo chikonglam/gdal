@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdalwarpoperation.cpp 22888 2011-08-07 13:06:36Z rouault $
+ * $Id: gdalwarpoperation.cpp 24880 2012-08-30 04:33:05Z warmerdam $
  *
  * Project:  High Performance Image Reprojector
  * Purpose:  Implementation of the GDALWarpOperation class.
@@ -32,7 +32,7 @@
 #include "cpl_multiproc.h"
 #include "ogr_api.h"
 
-CPL_CVSID("$Id: gdalwarpoperation.cpp 22888 2011-08-07 13:06:36Z rouault $");
+CPL_CVSID("$Id: gdalwarpoperation.cpp 24880 2012-08-30 04:33:05Z warmerdam $");
 
 /* Defined in gdalwarpkernel.cpp */
 int GWKGetFilterRadius(GDALResampleAlg eResampleAlg);
@@ -840,8 +840,8 @@ CPLErr GDALWarpOperation::ChunkAndWarpMulti(
 
     int iChunk;
     double dfPixelsProcessed=0.0, dfTotalPixels = nDstXSize*(double)nDstYSize;
-    CPLErr eErr = CE_None;
 
+    CPLErr eErr = CE_None;
     for( iChunk = 0; iChunk < nChunkListCount+1; iChunk++ )
     {
         int    iThread = iChunk % 2;
@@ -967,7 +967,12 @@ CPLErr GDALWarpOperation::CollectChunkList(
                                 &nSrcXOff, &nSrcYOff, &nSrcXSize, &nSrcYSize );
     
     if( eErr != CE_None )
+    {
+        CPLError( CE_Warning, CPLE_AppDefined, 
+                  "Unable to compute source region for output window %d,%d,%d,%d, skipping.", 
+                  nDstXOff, nDstYOff, nDstXSize, nDstYSize );
         return eErr;
+    }
 
 /* -------------------------------------------------------------------- */
 /*      If we are allowed to drop no-source regons, do so now if       */
@@ -1048,6 +1053,8 @@ CPLErr GDALWarpOperation::CollectChunkList(
     if( dfTotalMemoryUse > psOptions->dfWarpMemoryLimit 
         && (nDstXSize > 2 || nDstYSize > 2) )
     {
+        CPLErr eErr2;
+
         int bOptimizeSize =
                 CSLFetchBoolean( psOptions->papszWarpOptions, "OPTIMIZE_SIZE", FALSE );
 
@@ -1070,11 +1077,8 @@ CPLErr GDALWarpOperation::CollectChunkList(
             eErr = CollectChunkList( nDstXOff, nDstYOff, 
                                      nChunk1, nDstYSize );
 
-            if( eErr == CE_None )
-            {
-                eErr = CollectChunkList( nDstXOff+nChunk1, nDstYOff, 
-                                         nChunk2, nDstYSize );
-            }
+            eErr2 = CollectChunkList( nDstXOff+nChunk1, nDstYOff, 
+                                      nChunk2, nDstYSize );
         }
         else
         {
@@ -1089,14 +1093,14 @@ CPLErr GDALWarpOperation::CollectChunkList(
             eErr = CollectChunkList( nDstXOff, nDstYOff, 
                                      nDstXSize, nChunk1 );
 
-            if( eErr == CE_None )
-            {
-                eErr = CollectChunkList( nDstXOff, nDstYOff+nChunk1, 
-                                         nDstXSize, nChunk2 );
-            }
+            eErr2 = CollectChunkList( nDstXOff, nDstYOff+nChunk1, 
+                                      nDstXSize, nChunk2 );
         }
 
-        return eErr;
+        if( eErr == CE_None )
+            return eErr2;
+        else
+            return eErr;
     }
 
 /* -------------------------------------------------------------------- */

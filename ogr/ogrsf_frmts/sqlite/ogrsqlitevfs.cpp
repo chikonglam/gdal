@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrsqlitevfs.cpp 23976 2012-02-14 19:41:16Z rouault $
+ * $Id: ogrsqlitevfs.cpp 24808 2012-08-19 20:15:28Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implements SQLite VFS
@@ -29,7 +29,7 @@
 
 #include "ogr_sqlite.h"
 
-CPL_CVSID("$Id: ogrsqlitevfs.cpp 23976 2012-02-14 19:41:16Z rouault $");
+CPL_CVSID("$Id: ogrsqlitevfs.cpp 24808 2012-08-19 20:15:28Z rouault $");
 
 //#define DEBUG_IO 1
 
@@ -160,9 +160,9 @@ static int OGRSQLiteIOFileControl(sqlite3_file* pFile, int op, void *pArg)
 {
 #ifdef DEBUG_IO
     OGRSQLiteFileStruct* pMyFile = (OGRSQLiteFileStruct*) pFile;
-    CPLDebug("SQLITE", "OGRSQLiteIOFileControl(%p)", pMyFile->fp);
+    CPLDebug("SQLITE", "OGRSQLiteIOFileControl(%p, %d)", pMyFile->fp, op);
 #endif
-    return SQLITE_OK;
+    return SQLITE_NOTFOUND;
 }
 
 static int OGRSQLiteIOSectorSize(sqlite3_file* pFile)

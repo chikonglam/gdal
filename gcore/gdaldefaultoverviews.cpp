@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdaldefaultoverviews.cpp 22381 2011-05-16 21:14:22Z rouault $
+ * $Id: gdaldefaultoverviews.cpp 24990 2012-09-27 22:42:55Z rouault $
  *
  * Project:  GDAL Core
  * Purpose:  Helper code to implement overview and mask support for many 
@@ -31,7 +31,7 @@
 #include "gdal_priv.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: gdaldefaultoverviews.cpp 22381 2011-05-16 21:14:22Z rouault $");
+CPL_CVSID("$Id: gdaldefaultoverviews.cpp 24990 2012-09-27 22:42:55Z rouault $");
 
 /************************************************************************/
 /*                        GDALDefaultOverviews()                        */
@@ -614,7 +614,15 @@ GDALDefaultOverviews::BuildOverviews(
 
     if( bOvrIsAux )
     {
-        eErr = HFAAuxBuildOverviews( osOvrFilename, poDS, &poODS,
+        if( nNewOverviews == 0 )
+        {
+            /* if we call HFAAuxBuildOverviews() with nNewOverviews == 0 */
+            /* because that there's no new, this will wipe existing */
+            /* overviews (#4831) */
+            eErr = CE_None;
+        }
+        else
+            eErr = HFAAuxBuildOverviews( osOvrFilename, poDS, &poODS,
                                      nBands, panBandList,
                                      nNewOverviews, panNewOverviewList, 
                                      pszResampling, 

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: bagdataset.cpp 22145 2011-04-12 15:42:18Z warmerdam $
+ * $Id: bagdataset.cpp 24974 2012-09-25 18:19:33Z warmerdam $
  *
  * Project:  Hierarchical Data Format Release 5 (HDF5)
  * Purpose:  Read BAG datasets.
@@ -34,7 +34,7 @@
 #include "ogr_spatialref.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: bagdataset.cpp 22145 2011-04-12 15:42:18Z warmerdam $");
+CPL_CVSID("$Id: bagdataset.cpp 24974 2012-09-25 18:19:33Z warmerdam $");
 
 CPL_C_START
 void    GDALRegister_BAG(void);
@@ -277,23 +277,38 @@ CPLErr BAGRasterBand::IReadBlock( int nBlockXOff, int nBlockYOff,
     herr_t      status;
     hsize_t     count[3];
     H5OFFSET_TYPE offset[3];
+    int         nSizeOfData;
     hid_t       memspace;
     hsize_t     col_dims[3];
-    hsize_t     rank = 2;
+    hsize_t     rank;
 
-    offset[0] = nRasterYSize - nBlockYOff*nBlockYSize - 1;
+    rank=2;
+
+    offset[0] = MAX(0,nRasterYSize - (nBlockYOff+1)*nBlockYSize);
     offset[1] = nBlockXOff*nBlockXSize;
     count[0]  = nBlockYSize;
     count[1]  = nBlockXSize;
+
+    nSizeOfData = H5Tget_size( native );
+    memset( pImage,0,nBlockXSize*nBlockYSize*nSizeOfData );
+
+/*  blocksize may not be a multiple of imagesize */
+    count[0]  = MIN( size_t(nBlockYSize), GetYSize() - offset[0]);
+    count[1]  = MIN( size_t(nBlockXSize), GetXSize() - offset[1]);
+
+    if( nRasterYSize - (nBlockYOff+1)*nBlockYSize < 0 )
+    {
+        count[0] += (nRasterYSize - (nBlockYOff+1)*nBlockYSize);
+    }
 
 /* -------------------------------------------------------------------- */
 /*      Select block from file space                                    */
 /* -------------------------------------------------------------------- */
     status =  H5Sselect_hyperslab( dataspace,
-                                   H5S_SELECT_SET, 
-                                   offset, NULL, 
+                                   H5S_SELECT_SET,
+                                   offset, NULL,
                                    count, NULL );
-   
+
 /* -------------------------------------------------------------------- */
 /*      Create memory space to receive the data                         */
 /* -------------------------------------------------------------------- */
@@ -310,11 +325,44 @@ CPLErr BAGRasterBand::IReadBlock( int nBlockXOff, int nBlockYOff,
                        native,
                        memspace,
                        dataspace,
-                       H5P_DEFAULT, 
+                       H5P_DEFAULT,
                        pImage );
 
-    H5Sclose(memspace);
-    return CE_None;
+    H5Sclose( memspace );
+
+/* -------------------------------------------------------------------- */
+/*      Y flip the data.                                                */
+/* -------------------------------------------------------------------- */
+    int nLinesToFlip = count[0];
+    int nLineSize = nSizeOfData * nBlockXSize;
+    GByte *pabyTemp = (GByte *) CPLMalloc(nLineSize);
+
+    for( int iY = 0; iY < nLinesToFlip/2; iY++ )
+    {
+        memcpy( pabyTemp, 
+                ((GByte *)pImage) + iY * nLineSize,
+                nLineSize );
+        memcpy( ((GByte *)pImage) + iY * nLineSize,
+                ((GByte *)pImage) + (nLinesToFlip-iY-1) * nLineSize,
+                nLineSize );
+        memcpy( ((GByte *)pImage) + (nLinesToFlip-iY-1) * nLineSize,
+                pabyTemp,
+                nLineSize );
+    }
+
+    CPLFree( pabyTemp );
+
+/* -------------------------------------------------------------------- */
+/*      Return success or failure.                                      */
+/* -------------------------------------------------------------------- */
+    if( status < 0 )
+    {
+        CPLError( CE_Failure, CPLE_AppDefined,
+                  "H5Dread() failed for block." );
+        return CE_Failure;
+    }
+    else
+        return CE_None;
 }
 
 /************************************************************************/

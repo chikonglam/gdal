@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_dxf.h 24360 2012-05-01 17:01:54Z rouault $
+ * $Id: ogr_dxf.h 24992 2012-09-29 10:13:50Z rouault $
  *
  * Project:  DXF Translator
  * Purpose:  Definition of classes for OGR .dxf driver.
@@ -280,6 +280,7 @@ class OGRDXFWriterLayer : public OGRLayer
 
     std::map<CPLString,CPLString> oNewLineTypes;
     int                 nNextAutoID;
+    int                 bWriteHatch;
 
   public:
     OGRDXFWriterLayer( OGRDXFWriterDS *poDS, VSILFILE *fp );

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogresrijsonreader.cpp 22281 2011-05-01 17:57:55Z rouault $
+ * $Id: ogresrijsonreader.cpp 24924 2012-09-16 09:47:14Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implementation of OGRESRIJSONReader class (OGR ESRIJSON Driver)
@@ -325,7 +325,10 @@ OGRFeature* OGRESRIJSONReader::ReadFeature( json_object* poObj )
             {
                 if ( EQUAL( it.key,  poLayer_->GetFIDColumn() ) )
                     poFeature->SetFID( json_object_get_int( it.val ) );
-                poFeature->SetField( nField, json_object_get_string(it.val) );
+                if ( poLayer_->GetLayerDefn()->GetFieldDefn(nField)->GetType() == OFTReal )
+                    poFeature->SetField( nField, CPLAtofM(json_object_get_string(it.val)) );
+                else
+                    poFeature->SetField( nField, json_object_get_string(it.val) );
             }
         }
     }

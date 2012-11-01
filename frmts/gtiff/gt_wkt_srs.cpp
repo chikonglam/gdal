@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gt_wkt_srs.cpp 24426 2012-05-17 03:28:18Z warmerdam $
+ * $Id: gt_wkt_srs.cpp 25087 2012-10-09 00:28:53Z warmerdam $
  *
  * Project:  GeoTIFF Driver
  * Purpose:  Implements translation between GeoTIFF normalized projection
@@ -44,7 +44,7 @@
 #include "gt_wkt_srs_for_gdal.h"
 #include "gt_citation.h"
 
-CPL_CVSID("$Id: gt_wkt_srs.cpp 24426 2012-05-17 03:28:18Z warmerdam $")
+CPL_CVSID("$Id: gt_wkt_srs.cpp 25087 2012-10-09 00:28:53Z warmerdam $")
 
 #define ProjLinearUnitsInterpCorrectGeoKey   3059
 
@@ -216,11 +216,11 @@ static void WKTMassageDatum( char ** ppszDatum )
 /************************************************************************/
 
 /* For example:
-   GTCitationGeoKey (Ascii,215): "IMAGINE GeoTIFF Support\nCopyright 1991 - 2001 by ERDAS, Inc. All Rights Reserved\n@(#)$RCSfile$ $Revision: 24426 $ $Date: 2012-05-16 20:28:18 -0700 (Wed, 16 May 2012) $\nProjection Name = UTM\nUnits = meters\nGeoTIFF Units = meters"
+   GTCitationGeoKey (Ascii,215): "IMAGINE GeoTIFF Support\nCopyright 1991 - 2001 by ERDAS, Inc. All Rights Reserved\n@(#)$RCSfile$ $Revision: 25087 $ $Date: 2012-10-08 17:28:53 -0700 (Mon, 08 Oct 2012) $\nProjection Name = UTM\nUnits = meters\nGeoTIFF Units = meters"
 
-   GeogCitationGeoKey (Ascii,267): "IMAGINE GeoTIFF Support\nCopyright 1991 - 2001 by ERDAS, Inc. All Rights Reserved\n@(#)$RCSfile$ $Revision: 24426 $ $Date: 2012-05-16 20:28:18 -0700 (Wed, 16 May 2012) $\nUnable to match Ellipsoid (Datum) to a GeographicTypeGeoKey value\nEllipsoid = Clarke 1866\nDatum = NAD27 (CONUS)"
+   GeogCitationGeoKey (Ascii,267): "IMAGINE GeoTIFF Support\nCopyright 1991 - 2001 by ERDAS, Inc. All Rights Reserved\n@(#)$RCSfile$ $Revision: 25087 $ $Date: 2012-10-08 17:28:53 -0700 (Mon, 08 Oct 2012) $\nUnable to match Ellipsoid (Datum) to a GeographicTypeGeoKey value\nEllipsoid = Clarke 1866\nDatum = NAD27 (CONUS)"
 
-   PCSCitationGeoKey (Ascii,214): "IMAGINE GeoTIFF Support\nCopyright 1991 - 2001 by ERDAS, Inc. All Rights Reserved\n@(#)$RCSfile$ $Revision: 24426 $ $Date: 2012-05-16 20:28:18 -0700 (Wed, 16 May 2012) $\nUTM Zone 10N\nEllipsoid = Clarke 1866\nDatum = NAD27 (CONUS)"
+   PCSCitationGeoKey (Ascii,214): "IMAGINE GeoTIFF Support\nCopyright 1991 - 2001 by ERDAS, Inc. All Rights Reserved\n@(#)$RCSfile$ $Revision: 25087 $ $Date: 2012-10-08 17:28:53 -0700 (Mon, 08 Oct 2012) $\nUTM Zone 10N\nEllipsoid = Clarke 1866\nDatum = NAD27 (CONUS)"
  
 */
 
@@ -621,7 +621,7 @@ char *GTIFGetOGISDefn( GTIF *hGTIF, GTIFDefn * psDefn )
     CPLFree( pszPMName );
     CPLFree( pszAngularUnits );
 
-#if LIBGEOTIFF_VERSION >= 1310
+#if LIBGEOTIFF_VERSION >= 1310 && !defined(GEO_NORMALIZE_DISABLE_TOWGS84)
     if( psDefn->TOWGS84Count > 0 )
         oSRS.SetTOWGS84( psDefn->TOWGS84[0],
                          psDefn->TOWGS84[1],
@@ -1037,7 +1037,7 @@ char *GTIFGetOGISDefn( GTIF *hGTIF, GTIFDefn * psDefn )
             dfFactorC = GTIFAtof(
                 CSVGetField( pszFilename, 
                              "uom_code", szSearchKey, CC_Integer,
-                             "factor_b" ));
+                             "factor_c" ));
             if( dfFactorB != 0.0 && dfFactorC != 0.0 )
                 sprintf( szInMeters, "%.16g", dfFactorB / dfFactorC );
             else
@@ -1237,7 +1237,8 @@ int GTIFSetFromOGISDefn( GTIF * psGTIF, const char *pszOGCWKT )
     int         nUOMLengthCode = 9001; /* meters */
 
     if( poSRS->GetAuthorityName("PROJCS|UNIT") != NULL 
-        && EQUAL(poSRS->GetAuthorityName("PROJCS|UNIT"),"EPSG") )
+        && EQUAL(poSRS->GetAuthorityName("PROJCS|UNIT"),"EPSG")
+        && poSRS->GetAttrNode( "PROJCS|UNIT" ) != poSRS->GetAttrNode("GEOGCS|UNIT") )
         nUOMLengthCode = atoi(poSRS->GetAuthorityCode("PROJCS|UNIT"));
     else if( (pszLinearUOMName != NULL
          && EQUAL(pszLinearUOMName,SRS_UL_FOOT))
@@ -2217,7 +2218,7 @@ int GTIFSetFromOGISDefn( GTIF * psGTIF, const char *pszOGCWKT )
 /*      Do we have TOWGS84 parameters?                                  */
 /* -------------------------------------------------------------------- */
 
-#if LIBGEOTIFF_VERSION >= 1310
+#if LIBGEOTIFF_VERSION >= 1310 && !defined(GEO_NORMALIZE_DISABLE_TOWGS84)
     double adfTOWGS84[7];
 
     if( poSRS->GetTOWGS84( adfTOWGS84 ) == OGRERR_NONE )

@@ -1,16 +1,16 @@
-gdal (1.9.1-2~oneiric4) oneiric; urgency=low
+gdal (1.9.2-2~oneiric2) oneiric; urgency=medium
 
-  * Fix gdal internal TIFF symbols issue
+  * Launchpad build for Oneiric
 
- -- Jerome Villeneuve Larouche <jlarouche@mapgears.com>  Thu, 06 Sep 2012 18:00:59 +0000
+ -- Jerome Villeneuve Larouche <jlarouche@mapgears.com>  Thu, 01 Nov 2012 18:54:35 +0000
 
-gdal (1.9.1-2~oneiric3) oneiric; urgency=low
+gdal (1.9.2-1) unstable; urgency=low
 
-  * Launchpad release for Oneiric
+  * New Upstream release
 
- -- Jerome Villeneuve Larouche <jlarouche@mapgears.com>  Thu, 31 May 2012 17:44:59 +0000
+ -- Jerome Villeneuve Larouche <jlarouche@mapgears.com>  Thu, 01 Nov 2012 18:52:53 +0000
 
-gdal (1.9.1-1) unstable; urgency=low
+gdal (1.9.1-2) unstable; urgency=low
 
   [ Jerome Villeneuve Larouche ]
   * New upstream release.

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: hdf4imagedataset.cpp 22765 2011-07-23 09:56:53Z rouault $
+ * $Id: hdf4imagedataset.cpp 24448 2012-05-18 18:28:26Z warmerdam $
  *
  * Project:  Hierarchical Data Format Release 4 (HDF4)
  * Purpose:  Read subdatasets of HDF4 file.
@@ -45,7 +45,7 @@
 
 #include "nasakeywordhandler.h"
 
-CPL_CVSID("$Id: hdf4imagedataset.cpp 22765 2011-07-23 09:56:53Z rouault $");
+CPL_CVSID("$Id: hdf4imagedataset.cpp 24448 2012-05-18 18:28:26Z warmerdam $");
 
 CPL_C_START
 void    GDALRegister_HDF4(void);
@@ -237,6 +237,16 @@ HDF4ImageRasterBand::HDF4ImageRasterBand( HDF4ImageDataset *poDS, int nBand,
         {
             nBlockYSize = poDS->nBlockPreferredYSize;
         }
+    }
+
+/* -------------------------------------------------------------------- */
+/*      We need to avoid using the tile based api if we aren't          */
+/*      matching the tile size. (#4672)                                 */
+/* -------------------------------------------------------------------- */
+    if( nBlockXSize != poDS->nBlockPreferredXSize
+        || nBlockYSize != poDS->nBlockPreferredYSize ) 
+    {
+        poDS->bReadTile = FALSE;
     }
 }
 

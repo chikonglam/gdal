@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: vrtsourcedrasterband.cpp 23574 2011-12-14 19:29:48Z rouault $
+ * $Id: vrtsourcedrasterband.cpp 24940 2012-09-18 20:45:50Z rouault $
  *
  * Project:  Virtual GDAL Datasets
  * Purpose:  Implementation of VRTSourcedRasterBand
@@ -31,7 +31,7 @@
 #include "cpl_minixml.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: vrtsourcedrasterband.cpp 23574 2011-12-14 19:29:48Z rouault $");
+CPL_CVSID("$Id: vrtsourcedrasterband.cpp 24940 2012-09-18 20:45:50Z rouault $");
 
 /************************************************************************/
 /* ==================================================================== */
@@ -161,14 +161,14 @@ CPLErr VRTSourcedRasterBand::IRasterIO( GDALRWFlag eRWFlag,
     {
         if (nLineSpace == nBufXSize * nPixelSpace)
         {
-             memset( pData, 0, nBufYSize * nLineSpace );
+             memset( pData, 0, (GIntBig)nBufYSize * nLineSpace );
         }
         else
         {
             int    iLine;
             for( iLine = 0; iLine < nBufYSize; iLine++ )
             {
-                memset( ((GByte*)pData) + iLine * nLineSpace, 0, nBufXSize * nPixelSpace );
+                memset( ((GByte*)pData) + (GIntBig)iLine * nLineSpace, 0, nBufXSize * nPixelSpace );
             }
         }
     }
@@ -183,7 +183,7 @@ CPLErr VRTSourcedRasterBand::IRasterIO( GDALRWFlag eRWFlag,
         for( iLine = 0; iLine < nBufYSize; iLine++ )
         {
             GDALCopyWords( &dfWriteValue, GDT_Float64, 0, 
-                           ((GByte *)pData) + nLineSpace * iLine, 
+                           ((GByte *)pData) + (GIntBig)nLineSpace * iLine, 
                            eBufType, nPixelSpace, nBufXSize );
         }
     }
