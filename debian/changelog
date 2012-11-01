@@ -1,22 +1,59 @@
-gdal (1.9.2-1) unstable; urgency=low
+gdal (1.9.2-2~quantal2) quantal; urgency=high
 
-  * New Upstream release
+  * Launchpad build for Quantal
 
- -- Jerome Villeneuve Larouche <jlarouche@mapgears.com>  Thu, 01 Nov 2012 18:52:53 +0000
+ -- Jerome Villeneuve Larouche <jlarouche@mapgears.com>  Thu, 01 Nov 2012 20:07:16 +0000
 
-gdal (1.9.1-2) unstable; urgency=low
+gdal (1.9.2-2~quantal1) quantal; urgency=high
+
+  * New upstream release.
+
+ -- Alan Boudreault <aboudreault@mapgears.com>  Wed, 24 Oct 2012 19:16:14 +0000
+
+gdal (1.9.1-2~quantal1) quantal; urgency=low
+
+  * Launchpad build for quantal.
+
+ -- Alan Boudreault <aboudreault@mapgears.com>  Wed, 24 Oct 2012 14:20:42 +0000
+
+gdal (1.9.1-2~precise4) precise; urgency=medium
+
+  * Fix gdal internal TIFF symbols issue
+
+ -- Jerome Villeneuve Larouche <jlarouche@mapgears.com>  Thu, 06 Sep 2012 15:02:07 +0000
+
+gdal (1.9.1-2~precise3) precise; urgency=low
+
+  * Launchpad build for precise
+
+ -- Jerome Villeneuve Larouche <jlarouche@mapgears.com>  Thu, 31 May 2012 17:36:09 +0000
+
+gdal (1.9.1-1) unstable; urgency=low
 
   [ Jerome Villeneuve Larouche ]
   * New upstream release.
 
   [ Francesco Paolo Lovergine ]
   * Reintroducing libgdal1-dev as a transitional package to allow r-deps
-    to build in any environment.
-  * Removed old depndency on libcurl3-dev for libgdal-dev and added a 
-    preferred dep on libcurl4-gnutls-dev to make lintian happy.
+  to build in any environment.
+  * Removed old depndency on libcurl3-dev for libgdal-dev and
+  added a preferred dep on libcurl4-gnutls-dev to make lintian happy.
   * Added build-{arch|indep} targets in debian/rules.
 
  -- Jerome Villeneuve Larouche <jlarouche@mapgears.com>  Fri, 25 May 2012 13:04:34 +0000
+
+gdal (1.9.0-2~precise1) precise; urgency=low
+
+  * Launchpad build for precise.
+  * Remove freexl support.
+
+ -- Alan Boudreault <aboudreault@mapgears.com>  Tue, 08 May 2012 11:42:03 +0000
+
+gdal (1.9.0-2~precise1) precise; urgency=low
+
+  * Launchpad build for precise.
+
+ -- Alan Boudreault <aboudreault@mapgears.com>  Tue, 08 May 2012 11:42:03 +0000
 
 gdal (1.9.0-1) unstable; urgency=low
 
