@@ -1,6 +1,7 @@
 gdal (1.9.2-1) unstable; urgency=low
 
   * New Upstream release
+  * Removed OGDI
 
  -- Jerome Villeneuve Larouche <jlarouche@mapgears.com>  Thu, 01 Nov 2012 18:52:53 +0000
 
