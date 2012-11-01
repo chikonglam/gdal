@@ -1,5 +1,5 @@
 /**********************************************************************
- * $Id: cpl_recode_iconv.cpp 23653 2011-12-29 14:27:11Z rouault $
+ * $Id: cpl_recode_iconv.cpp 24556 2012-06-10 09:50:10Z rouault $
  *
  * Name:     cpl_recode_iconv.cpp
  * Project:  CPL - Common Portability Library
@@ -25,7 +25,7 @@
 
 #include "cpl_port.h"
 
-CPL_CVSID("$Id: cpl_recode_iconv.cpp 23653 2011-12-29 14:27:11Z rouault $");
+CPL_CVSID("$Id: cpl_recode_iconv.cpp 24556 2012-06-10 09:50:10Z rouault $");
 
 #ifdef CPL_RECODE_ICONV
 
@@ -37,6 +37,19 @@ CPL_CVSID("$Id: cpl_recode_iconv.cpp 23653 2011-12-29 14:27:11Z rouault $");
 #endif
 
 #define CPL_RECODE_DSTBUF_SIZE 32768
+
+/************************************************************************/
+/*                 CPLClearRecodeIconvWarningFlags()                    */
+/************************************************************************/
+
+static int bHaveWarned1 = FALSE;
+static int bHaveWarned2 = FALSE;
+
+void CPLClearRecodeIconvWarningFlags()
+{
+    bHaveWarned1 = FALSE;
+    bHaveWarned2 = FALSE;
+}
 
 /************************************************************************/
 /*                          CPLRecodeIconv()                            */
@@ -96,10 +109,9 @@ char *CPLRecodeIconv( const char *pszSource,
             if ( errno == EILSEQ )
             {
                 // Skip the invalid sequence in the input string.
-                static int bHasWarned = FALSE;
-                if (!bHasWarned)
+                if (!bHaveWarned1)
                 {
-                    bHasWarned = TRUE;
+                    bHaveWarned1 = TRUE;
                     CPLError(CE_Warning, CPLE_AppDefined,
                             "One or several characters couldn't be converted correctly from %s to %s.\n"
                             "This warning will not be emitted anymore",
@@ -249,10 +261,9 @@ char *CPLRecodeFromWCharIconv( const wchar_t *pwszSource,
                 // Skip the invalid sequence in the input string.
                 nSrcLen--;
                 pszSrcBuf += sizeof(wchar_t);
-                static int bHasWarned = FALSE;
-                if (!bHasWarned)
+                if (!bHaveWarned2)
                 {
-                    bHasWarned = TRUE;
+                    bHaveWarned2 = TRUE;
                     CPLError(CE_Warning, CPLE_AppDefined,
                             "One or several characters couldn't be converted correctly from %s to %s.\n"
                             "This warning will not be emitted anymore",

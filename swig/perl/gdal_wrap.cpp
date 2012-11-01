@@ -22276,7 +22276,7 @@ XS(SWIG_init) {
   SWIG_TypeClientData(SWIGTYPE_p_GDALRasterBandShadow, (void*) "Geo::GDAL::Band");
   SWIG_TypeClientData(SWIGTYPE_p_GDALColorTableShadow, (void*) "Geo::GDAL::ColorTable");
   SWIG_TypeClientData(SWIGTYPE_p_GDALRasterAttributeTableShadow, (void*) "Geo::GDAL::RasterAttributeTable");
-  /*@SWIG:/usr/share/swig1.3/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+  /*@SWIG:/usr/local/swig-1.3.40/share/swig/1.3.40/perl5/perltypemaps.swg,65,%set_constant@*/ do {
     SV *sv = get_sv((char*) SWIG_prefix "TermProgress", TRUE | 0x2 | GV_ADDMULTI);
     sv_setsv(sv, SWIG_NewFunctionPtrObj((void *)(int (*)(double,char const *,void *))(GDALTermProgress), SWIGTYPE_p_f_double_p_q_const__char_p_void__int));
     SvREADONLY_on(sv);

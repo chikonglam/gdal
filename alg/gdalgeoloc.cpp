@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdalgeoloc.cpp 21167 2010-11-24 15:19:51Z warmerdam $
+ * $Id: gdalgeoloc.cpp 24876 2012-08-30 01:41:33Z warmerdam $
  *
  * Project:  GDAL
  * Purpose:  Implements Geolocation array based transformer.
@@ -37,7 +37,7 @@ SHPHandle hSHP = NULL;
 DBFHandle hDBF = NULL;
 #endif
 
-CPL_CVSID("$Id: gdalgeoloc.cpp 21167 2010-11-24 15:19:51Z warmerdam $");
+CPL_CVSID("$Id: gdalgeoloc.cpp 24876 2012-08-30 01:41:33Z warmerdam $");
 
 CPL_C_START
 CPLXMLNode *GDALSerializeGeoLocTransformer( void *pTransformArg );
@@ -907,9 +907,6 @@ int GDALGeoLocTransform( void *pTransformArg, int bDstToSrc,
 
         for( i = 0; i < nPointCount; i++ )
         {
-            if( !panSuccess[i] )
-                continue;
-
             if( padfX[i] == HUGE_VAL || padfY[i] == HUGE_VAL )
             {
                 panSuccess[i] = FALSE;
@@ -954,9 +951,6 @@ int GDALGeoLocTransform( void *pTransformArg, int bDstToSrc,
 
         for( i = 0; i < nPointCount; i++ )
         {
-            if( !panSuccess[i] )
-                continue;
-
             if( padfX[i] == HUGE_VAL || padfY[i] == HUGE_VAL )
             {
                 panSuccess[i] = FALSE;
@@ -1007,9 +1001,6 @@ int GDALGeoLocTransform( void *pTransformArg, int bDstToSrc,
         for( i = 0; i < nPointCount; i++ )
         {
             double dfGeoLocX, dfGeoLocY;
-
-            if( !panSuccess[i] )
-                continue;
 
             if( padfX[i] == HUGE_VAL || padfY[i] == HUGE_VAL )
             {

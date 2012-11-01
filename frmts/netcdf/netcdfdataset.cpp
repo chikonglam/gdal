@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: netcdfdataset.cpp 23973 2012-02-14 15:00:44Z etourigny $
+ * $Id: netcdfdataset.cpp 24775 2012-08-13 00:34:07Z etourigny $
  *
  * Project:  netCDF read/write Driver
  * Purpose:  GDAL bindings over netCDF library.
@@ -29,7 +29,7 @@
 
 #include "netcdfdataset.h"
 #include "cpl_error.h"
-CPL_CVSID("$Id: netcdfdataset.cpp 23973 2012-02-14 15:00:44Z etourigny $");
+CPL_CVSID("$Id: netcdfdataset.cpp 24775 2012-08-13 00:34:07Z etourigny $");
 
 #include <map> //for NCDFWriteProjAttribs()
 
@@ -964,7 +964,7 @@ void  netCDFRasterBand::CheckValidData ( void * pImage, int bCheckIsNan )
             /* check for nodata and nan */
             if ( CPLIsEqual( (double) ((T *)pImage)[i], dfNoDataValue ) )
                 continue;
-            if( bCheckIsNan && CPLIsNan( ( (T *) pImage)[i] ) ) {
+            if( bCheckIsNan && CPLIsNan( (double) (( (T *) pImage))[i] ) ) { 
                 ( (T *)pImage )[i] = (T)dfNoDataValue;
                 continue;
             }
@@ -2426,14 +2426,14 @@ void netCDFDataset::SetProjectionFromVar( int var )
             const char *pszUnitsX = NULL;
             const char *pszUnitsY = NULL;
 
-            strcpy( szTemp, "x" );
+            strcpy( szTemp, poDS->papszDimName[nXDimID] );
             strcat( szTemp, "#units" );
             pszValue = CSLFetchNameValue( poDS->papszMetadata, 
                                           szTemp );
             if( pszValue != NULL ) 
                 pszUnitsX = pszValue;
 
-            strcpy( szTemp, "y" );
+            strcpy( szTemp, poDS->papszDimName[nYDimID] );
             strcat( szTemp, "#units" );
             pszValue = CSLFetchNameValue( poDS->papszMetadata, 
                                           szTemp );
@@ -2447,13 +2447,15 @@ void netCDFDataset::SetProjectionFromVar( int var )
 
             /* add units to PROJCS */
             if ( pszUnits != NULL && ! EQUAL(pszUnits,"") ) {
+                CPLDebug( "GDAL_netCDF", 
+                          "units=%s", pszUnits );
                 if ( EQUAL(pszUnits,"m") ) {
-                    oSRS.SetLinearUnits( CF_UNITS_M, 1.0 );
+                    oSRS.SetLinearUnits( "metre", 1.0 );
                     oSRS.SetAuthority( "PROJCS|UNIT", "EPSG", 9001 );
                 }
                 else if ( EQUAL(pszUnits,"km") ) {
-                    oSRS.SetLinearUnits( CF_UNITS_M, 1000.0 );
-                    oSRS.SetAuthority( "PROJCS|UNIT", "EPSG", 9001 );
+                    oSRS.SetLinearUnits( "kilometre", 1000.0 );
+                    oSRS.SetAuthority( "PROJCS|UNIT", "EPSG", 9036 );
                 }
                 /* TODO check for other values */
                 // else 
@@ -4414,6 +4416,7 @@ netCDFDataset::CreateCopy( const char * pszFilename, GDALDataset *poSrcDS,
     nBands = poSrcDS->GetRasterCount();
     nXSize = poSrcDS->GetRasterXSize();
     nYSize = poSrcDS->GetRasterYSize();
+    pszWKT = poSrcDS->GetProjectionRef();
   
 /* -------------------------------------------------------------------- */
 /*      Check input bands for errors                                    */
@@ -4530,7 +4533,6 @@ netCDFDataset::CreateCopy( const char * pszFilename, GDALDataset *poSrcDS,
         poDS->bSetGeoTransform = FALSE;
     }
 
-    pszWKT = poSrcDS->GetProjectionRef( );
     if ( pszWKT ) {
         poDS->SetProjection( pszWKT );
         /* now we can call AddProjectionVars() directly */
@@ -4539,7 +4541,6 @@ netCDFDataset::CreateCopy( const char * pszFilename, GDALDataset *poSrcDS,
                                                     pProgressData );
         poDS->AddProjectionVars( GDALScaledProgress, pScaledProgress );
         GDALDestroyScaledProgress( pScaledProgress );
-
     }
 
     pfnProgress( 0.5, NULL, pProgressData );
@@ -4908,9 +4909,10 @@ void NCDFAddGDALHistory( int fpImage,
     nc_put_att_text( fpImage, NC_GLOBAL, "Conventions", 
                      strlen(NCDF_CONVENTIONS_CF),
                      NCDF_CONVENTIONS_CF ); 
-    
+
+    const char* pszNCDF_GDAL = GDALVersionInfo("--version");
     nc_put_att_text( fpImage, NC_GLOBAL, "GDAL", 
-                     strlen(NCDF_GDAL), NCDF_GDAL ); 
+                     strlen(pszNCDF_GDAL), pszNCDF_GDAL );
 
     /* Add history */
 #ifdef GDAL_SET_CMD_LINE_DEFINED_TMP
