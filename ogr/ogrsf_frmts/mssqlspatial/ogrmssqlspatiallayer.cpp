@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrmssqlspatiallayer.cpp 24331 2012-04-28 11:49:05Z tamas $
+ * $Id: ogrmssqlspatiallayer.cpp 24968 2012-09-24 21:52:21Z tamas $
  *
  * Project:  MSSQL Spatial driver
  * Purpose:  Definition of classes for OGR MSSQL Spatial driver.
@@ -29,7 +29,7 @@
 
 #include "ogr_mssqlspatial.h"
 
-CPL_CVSID("$Id: ogrmssqlspatiallayer.cpp 24331 2012-04-28 11:49:05Z tamas $");
+CPL_CVSID("$Id: ogrmssqlspatiallayer.cpp 24968 2012-09-24 21:52:21Z tamas $");
 /************************************************************************/
 /*                        OGRMSSQLSpatialLayer()                        */
 /************************************************************************/
@@ -329,6 +329,7 @@ OGRFeature *OGRMSSQLSpatialLayer::GetNextRawFeature()
                     }
                     break;
                 case MSSQLGEOMETRY_WKB:
+                case MSSQLGEOMETRY_WKBZM:
                     eErr = OGRGeometryFactory::createFromWkb((unsigned char *) pszGeomText,
                                                       NULL, &poGeom, nLength);
                     break;

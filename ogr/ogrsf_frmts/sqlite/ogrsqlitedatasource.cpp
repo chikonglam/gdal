@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrsqlitedatasource.cpp 24282 2012-04-21 16:41:46Z rouault $
+ * $Id: ogrsqlitedatasource.cpp 24509 2012-05-27 20:50:48Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implements OGRSQLiteDataSource class.
@@ -46,7 +46,7 @@
 
 static int bSpatialiteLoaded = FALSE;
 
-CPL_CVSID("$Id: ogrsqlitedatasource.cpp 24282 2012-04-21 16:41:46Z rouault $");
+CPL_CVSID("$Id: ogrsqlitedatasource.cpp 24509 2012-05-27 20:50:48Z rouault $");
 
 /************************************************************************/
 /*                      OGRSQLiteInitSpatialite()                       */
@@ -1185,6 +1185,9 @@ OGRLayer * OGRSQLiteDataSource::ExecuteSQL( const char *pszSQLCommand,
             CPLError( CE_Failure, CPLE_AppDefined, 
                   "In ExecuteSQL(): sqlite3_step(%s):\n  %s", 
                   pszSQLCommand, sqlite3_errmsg(GetDB()) );
+
+            sqlite3_finalize( hSQLStmt );
+            return NULL;
         }
 
         if( EQUALN(pszSQLCommand, "CREATE ", 7) )
@@ -1197,10 +1200,16 @@ OGRLayer * OGRSQLiteDataSource::ExecuteSQL( const char *pszSQLCommand,
                 OpenVirtualTable(papszTokens[3], pszSQLCommand);
             }
             CSLDestroy(papszTokens);
+
+            sqlite3_finalize( hSQLStmt );
+            return NULL;
         }
 
-        sqlite3_finalize( hSQLStmt );
-        return NULL;
+        if( !EQUALN(pszSQLCommand, "SELECT ", 7) )
+        {
+            sqlite3_finalize( hSQLStmt );
+            return NULL;
+        }
     }
     
 /* -------------------------------------------------------------------- */
