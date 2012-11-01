@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_pg.h 24335 2012-04-28 14:32:46Z rouault $
+ * $Id: ogr_pg.h 24546 2012-06-07 21:28:52Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Private definitions for OGR/PostgreSQL driver.
@@ -159,6 +159,8 @@ class OGRPGLayer : public OGRLayer
     virtual const char *GetGeometryColumn();
 
     virtual OGRErr      SetNextByIndex( long nIndex );
+
+    int                 GetSRID();
 };
 
 /************************************************************************/
@@ -287,6 +289,9 @@ class OGRPGResultLayer : public OGRPGLayer
 
     char                *pszRawStatement;
 
+    char                *pszGeomTableName;
+    char                *pszGeomTableSchemaName;
+
     CPLString           osWHERE;
 
   public:
@@ -350,6 +355,7 @@ class OGRPGDataSource : public OGRDataSource
 
     void                OGRPGDecodeVersionString(PGver* psVersion, const char* pszVer);
 
+    CPLString           osCurrentSchema;
     CPLString           GetCurrentSchema();
 
     int                 nUndefinedSRID;

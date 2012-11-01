@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdalconst.i 20604 2010-09-13 21:02:41Z rouault $
+ * $Id: gdalconst.i 24976 2012-09-26 07:27:34Z rouault $
  *
  * Name:     gdalconst.i
  * Project:  GDAL Python Interface
@@ -130,7 +130,7 @@
 %constant CPLE_NoWriteAccess              = CPLE_NoWriteAccess;
 %constant CPLE_UserInterrupt              = CPLE_UserInterrupt;
 
-#ifndef SWIGCSHARP
+#if !defined(SWIGCSHARP) && !defined(SWIGJAVA)
 
 %constant char *DMD_LONGNAME           = GDAL_DMD_LONGNAME;
 %constant char *DMD_HELPTOPIC          = GDAL_DMD_HELPTOPIC;

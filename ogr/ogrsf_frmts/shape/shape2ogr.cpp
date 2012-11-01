@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: shape2ogr.cpp 23599 2011-12-19 00:54:21Z warmerdam $
+ * $Id: shape2ogr.cpp 24687 2012-07-20 16:13:51Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implements translation of Shapefile shapes into OGR
@@ -31,7 +31,7 @@
 #include "ogrshape.h"
 #include "cpl_conv.h"
 
-CPL_CVSID("$Id: shape2ogr.cpp 23599 2011-12-19 00:54:21Z warmerdam $");
+CPL_CVSID("$Id: shape2ogr.cpp 24687 2012-07-20 16:13:51Z rouault $");
 
 /************************************************************************/
 /*                        RingStartEnd                                  */
@@ -1009,21 +1009,28 @@ OGRFeature *SHPReadOGRFeature( SHPHandle hSHP, DBFHandle hDBF,
 /* -------------------------------------------------------------------- */
 /*      Fetch geometry from Shapefile to OGRFeature.                    */
 /* -------------------------------------------------------------------- */
-    if( hSHP != NULL && !poDefn->IsGeometryIgnored() )
+    if( hSHP != NULL )
     {
-        OGRGeometry* poGeometry = NULL;
-        poGeometry = SHPReadOGRObject( hSHP, iShape, psShape );
+        if( !poDefn->IsGeometryIgnored() )
+        {
+            OGRGeometry* poGeometry = NULL;
+            poGeometry = SHPReadOGRObject( hSHP, iShape, psShape );
 
-        /*
-         * NOTE - mloskot:
-         * Two possibilities are expected here (bot hare tested by GDAL Autotests):
-         * 1. Read valid geometry and assign it directly.
-         * 2. Read and assign null geometry if it can not be read correctly from a shapefile
-         *
-         * It's NOT required here to test poGeometry == NULL.
-         */
+            /*
+            * NOTE - mloskot:
+            * Two possibilities are expected here (bot hare tested by GDAL Autotests):
+            * 1. Read valid geometry and assign it directly.
+            * 2. Read and assign null geometry if it can not be read correctly from a shapefile
+            *
+            * It's NOT required here to test poGeometry == NULL.
+            */
 
-        poFeature->SetGeometryDirectly( poGeometry );
+            poFeature->SetGeometryDirectly( poGeometry );
+        }
+        else if( psShape != NULL )
+        {
+            SHPDestroyObject( psShape );
+        }
     }
 
 /* -------------------------------------------------------------------- */

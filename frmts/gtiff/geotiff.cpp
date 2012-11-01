@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: geotiff.cpp 23802 2012-01-26 00:58:20Z warmerdam $
+ * $Id: geotiff.cpp 24936 2012-09-17 20:50:34Z rouault $
  *
  * Project:  GeoTIFF Driver
  * Purpose:  GDAL GeoTIFF support.
@@ -52,7 +52,7 @@
 #include "tifvsi.h"
 #include "cpl_multiproc.h"
 
-CPL_CVSID("$Id: geotiff.cpp 23802 2012-01-26 00:58:20Z warmerdam $");
+CPL_CVSID("$Id: geotiff.cpp 24936 2012-09-17 20:50:34Z rouault $");
 
 /************************************************************************/
 /* ==================================================================== */
@@ -4834,6 +4834,11 @@ static void WriteMDMetadata( GDALMultiDomainMetadata *poMDMD, TIFF *hTIFF,
             else
             {
                 pszItemValue = CPLParseNameValue( papszMD[iItem], &pszItemName);
+                if( pszItemName == NULL )
+                {
+                    CPLDebug("GTiff", "Invalid metadata item : %s", papszMD[iItem]);
+                    continue;
+                }
             }
             
 /* -------------------------------------------------------------------- */

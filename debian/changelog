@@ -1,21 +1,16 @@
-gdal (1.9.1-2~lucid4) lucid; urgency=medium
+gdal (1.9.2-2~lucid2) lucid; urgency=medium
 
-  * Fix gdal internal TIFF symbols issue
+  * Launchpad build for Lucid
 
- -- Jerome Villeneuve Larouche <jlarouche@mapgears.com>  Thu, 06 Sep 2012 20:35:34 +0000
+ -- Jerome Villeneuve Larouche <jlarouche@mapgears.com>  Thu, 01 Nov 2012 19:07:00 +0000
 
-gdal (1.9.1-2~lucid3) lucid; urgency=low
+gdal (1.9.2-1) unstable; urgency=low
 
-  * Launchpad release for Lucid
-  * Removed dods support in debian/rules
-  * Changed dh_python2 for dh_pycentral in debian/rules
-  * Removed dh_numpy in debian/rules
-  * Lowered Depends version of libnetcdf-dev to 1:3.6.0 (down from 1:4.0.0)
-  * Lowered Depends version of python-all-dev to 2.6.5
+  * New Upstream release
 
- -- Jerome Villeneuve Larouche <jlarouche@mapgears.com>  Thu, 31 May 2012 17:51:14 +0000
+ -- Jerome Villeneuve Larouche <jlarouche@mapgears.com>  Thu, 01 Nov 2012 18:52:53 +0000
 
-gdal (1.9.1-1) unstable; urgency=low
+gdal (1.9.1-2) unstable; urgency=low
 
   [ Jerome Villeneuve Larouche ]
   * New upstream release.

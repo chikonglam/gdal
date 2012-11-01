@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrgeometry.cpp 23638 2011-12-22 21:02:56Z rouault $
+ * $Id: ogrgeometry.cpp 25043 2012-10-03 21:57:33Z warmerdam $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implements a few base methods on OGRGeometry.
@@ -34,7 +34,7 @@
 #include "cpl_multiproc.h"
 #include <assert.h>
 
-CPL_CVSID("$Id: ogrgeometry.cpp 23638 2011-12-22 21:02:56Z rouault $");
+CPL_CVSID("$Id: ogrgeometry.cpp 25043 2012-10-03 21:57:33Z warmerdam $");
 
 int OGRGeometry::bGenerate_DB2_V72_BYTE_ORDER = FALSE;
 
@@ -1607,55 +1607,57 @@ const char * OGRToOGCGeomType( OGRwkbGeometryType eGeomType )
 const char *OGRGeometryTypeToName( OGRwkbGeometryType eType )
 
 {
-    switch( (int)eType )
+    bool b25D = wkbFlatten(eType) != eType;
+
+    switch( wkbFlatten(eType) )
     {
       case wkbUnknown:
-        return "Unknown (any)";
-
-      case (wkbUnknown | wkb25DBit):
-        return "3D Unknown (any)";
+        if( b25D )
+            return "Unknown (any)";
+        else
+            return "3D Unknown (any)";
 
       case wkbPoint:
-        return "Point";
-
-      case wkbPoint25D:
-        return "3D Point";
+        if( b25D )
+            return "Point";
+        else
+            return "3D Point";
 
       case wkbLineString:
-        return "Line String";
-
-      case wkbLineString25D:
-        return "3D Line String";
+        if( b25D )
+            return "Line String";
+        else
+            return "3D Line String";
 
       case wkbPolygon:
-        return "Polygon";
-
-      case wkbPolygon25D:
-        return "3D Polygon";
+        if( b25D )
+            return "Polygon";
+        else
+            return "3D Polygon";
 
       case wkbMultiPoint:
-        return "Multi Point";
-
-      case wkbMultiPoint25D:
-        return "3D Multi Point";
+        if( b25D )
+            return "Multi Point";
+        else
+            return "3D Multi Point";
 
       case wkbMultiLineString:
-        return "Multi Line String";
-
-      case wkbMultiLineString25D:
-        return "3D Multi Line String";
+        if( b25D )
+            return "Multi Line String";
+        else
+            return "3D Multi Line String";
 
       case wkbMultiPolygon:
-        return "Multi Polygon";
-
-      case wkbMultiPolygon25D:
-        return "3D Multi Polygon";
+        if( b25D )
+            return "Multi Polygon";
+        else
+            return "3D Multi Polygon";
 
       case wkbGeometryCollection:
-        return "Geometry Collection";
-
-      case wkbGeometryCollection25D:
-        return "3D Geometry Collection";
+        if( b25D )
+            return "Geometry Collection";
+        else
+            return "3D Geometry Collection";
 
       case wkbNone:
         return "None";

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrfeature.cpp 23606 2011-12-19 23:55:18Z warmerdam $
+ * $Id: ogrfeature.cpp 25049 2012-10-04 11:27:54Z rcoup $
  * 
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  The OGRFeature class implementation. 
@@ -32,7 +32,7 @@
 #include "ogr_p.h"
 #include <vector>
 
-CPL_CVSID("$Id: ogrfeature.cpp 23606 2011-12-19 23:55:18Z warmerdam $");
+CPL_CVSID("$Id: ogrfeature.cpp 25049 2012-10-04 11:27:54Z rcoup $");
 
 /************************************************************************/
 /*                             OGRFeature()                             */
