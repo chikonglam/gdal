@@ -76,7 +76,6 @@ configure-stamp:
 			--with-curl \
 			--with-pg \
 			--with-ogdi \
-			--with-mysql \
 			--with-perl \
 			--with-ruby \
 			--with-python \
