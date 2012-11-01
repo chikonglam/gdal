@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: dted_api.c 22606 2011-06-28 20:31:23Z rouault $
+ * $Id: dted_api.c 24518 2012-05-30 21:09:39Z rouault $
  *
  * Project:  DTED Translator
  * Purpose:  Implementation of DTED/CDED access functions.
@@ -30,7 +30,7 @@
 #include "dted_api.h"
 
 #ifndef AVOID_CPL
-CPL_CVSID("$Id: dted_api.c 22606 2011-06-28 20:31:23Z rouault $");
+CPL_CVSID("$Id: dted_api.c 24518 2012-05-30 21:09:39Z rouault $");
 #endif
 
 static int bWarnedTwoComplement = FALSE;
@@ -752,6 +752,14 @@ static void DTEDGetMetadataLocation( DTEDInfo *psDInfo,
         else
             *ppszLocation = psDInfo->pachDSIRecord + 59;
         *pnLength = 5;
+        break;
+
+     case DTEDMD_PARTIALCELL_DSI:
+        if (bIsWeirdDTED)
+           *ppszLocation = NULL;
+        else
+           *ppszLocation = psDInfo->pachDSIRecord + 289;
+        *pnLength = 2;
         break;
 
       default:

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: dteddataset.cpp 21837 2011-02-24 21:16:42Z rouault $
+ * $Id: dteddataset.cpp 24518 2012-05-30 21:09:39Z rouault $
  *
  * Project:  DTED Translator
  * Purpose:  GDALDataset driver for DTED translator.
@@ -31,7 +31,7 @@
 #include "gdal_pam.h"
 #include "ogr_spatialref.h"
 
-CPL_CVSID("$Id: dteddataset.cpp 21837 2011-02-24 21:16:42Z rouault $");
+CPL_CVSID("$Id: dteddataset.cpp 24518 2012-05-30 21:09:39Z rouault $");
 
 CPL_C_START
 void    GDALRegister_DTED(void);
@@ -788,7 +788,7 @@ DTEDCreateCopy( const char * pszFilename, GDALDataset *poSrcDS,
            iPartialCell=1;
     }
     sprintf(szPartialCell,"%02d",iPartialCell);
-    strncpy((char *) (psDTED->pachDSIRecord+289), szPartialCell, 2 );
+    DTEDSetMetadata(psDTED, DTEDMD_PARTIALCELL_DSI, szPartialCell); 
 
 /* -------------------------------------------------------------------- */
 /*      Try to copy any matching available metadata.                    */

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrgmldatasource.cpp 23573 2011-12-14 12:13:48Z rouault $
+ * $Id: ogrgmldatasource.cpp 24981 2012-09-26 18:40:03Z rouault $
  *
  * Project:  OGR
  * Purpose:  Implements OGRGMLDataSource class.
@@ -43,7 +43,7 @@
 
 #include <vector>
 
-CPL_CVSID("$Id: ogrgmldatasource.cpp 23573 2011-12-14 12:13:48Z rouault $");
+CPL_CVSID("$Id: ogrgmldatasource.cpp 24981 2012-09-26 18:40:03Z rouault $");
 
 /************************************************************************/
 /*                         OGRGMLDataSource()                         */
@@ -291,7 +291,8 @@ int OGRGMLDataSource::Open( const char * pszNewName, int bTestOpen )
         if (pszEncoding)
             bExpatCompatibleEncoding = (pszEncoding[9] == '\'' || pszEncoding[9] == '"') &&
                                        (EQUALN(pszEncoding + 10, "UTF-8", 5) ||
-                                        EQUALN(pszEncoding + 10, "ISO-8859-1", 10));
+                                        (EQUALN(pszEncoding + 10, "ISO-8859-1", 10) &&
+                                         pszEncoding[20] == pszEncoding[9])) ;
         else
             bExpatCompatibleEncoding = TRUE; /* utf-8 is the default */
 
@@ -1362,7 +1363,7 @@ void OGRGMLDataSource::InsertHeader()
                 break;
             case wkbMultiLineString:
                 if (IsGML3Output())
-                    pszGeometryTypeName = "MutliCurvePropertyType";
+                    pszGeometryTypeName = "MultiCurvePropertyType";
                 else
                     pszGeometryTypeName = "MultiLineStringPropertyType";
                 break;

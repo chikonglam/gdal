@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrmssqlspatialtablelayer.cpp 23943 2012-02-11 13:55:37Z rouault $
+ * $Id: ogrmssqlspatialtablelayer.cpp 24968 2012-09-24 21:52:21Z tamas $
  *
  * Project:  MSSQL Spatial driver
  * Purpose:  Implements OGRMSSQLSpatialTableLayer class, access to an existing table.
@@ -30,7 +30,7 @@
 #include "cpl_conv.h"
 #include "ogr_mssqlspatial.h"
 
-CPL_CVSID("$Id: ogrmssqlspatialtablelayer.cpp 23943 2012-02-11 13:55:37Z rouault $");
+CPL_CVSID("$Id: ogrmssqlspatialtablelayer.cpp 24968 2012-09-24 21:52:21Z tamas $");
 
 /************************************************************************/
 /*                         OGRMSSQLAppendEscaped( )                     */
@@ -396,7 +396,13 @@ CPLString OGRMSSQLSpatialTableLayer::BuildFields()
             }
             else if ( poDS->GetGeometryFormat() == MSSQLGEOMETRY_WKT )
             {
-                osFieldList += "].STAsText() as [";
+                osFieldList += "].AsTextZM() as [";
+                osFieldList += pszGeomColumn;
+            }
+            else if ( poDS->GetGeometryFormat() == MSSQLGEOMETRY_WKBZM )
+            {
+                /* SQL Server 2012 */
+                osFieldList += "].AsBinaryZM() as [";
                 osFieldList += pszGeomColumn;
             }
         }

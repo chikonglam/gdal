@@ -6,15 +6,17 @@ Uploaders: Francesco Paolo Lovergine <frankie@debian.org>
 Build-Depends: debhelper (>= 8), zlib1g-dev, libnetcdf-dev (>= 1:4.0.0),
  libjasper-dev, libpng-dev, libjpeg-dev, libgif-dev,
  libhdf4-alt-dev, libhdf5-serial-dev (>= 1.6.6), libpq-dev, libxerces-c2-dev, unixodbc-dev (>= 2.2.11),
- python-numpy, doxygen, d-shlibs, libgeos-dev, libmysqlclient-dev, python-all-dev (>= 2.6.6-3~), 
+ python-numpy, doxygen, d-shlibs, libgeos-dev, libmysqlclient-dev, python-all-dev (>= 2.6.6-3~),
  libcurl4-gnutls-dev, libsqlite3-dev, libogdi3.2-dev,
- ruby, ruby1.8-dev, chrpath, swig, patch, libexpat1-dev, libproj-dev,
+ ruby1.8, ruby1.8-dev, chrpath, swig, patch, libexpat1-dev, libproj-dev,
  libdap-dev, libxml2-dev, libspatialite-dev (>= 2.4.0~rc2-4), libepsilon-dev (>= 0.9.1),
- libpoppler-dev, liblzma-dev, libopenjpeg-dev, libarmadillo-dev,
- libkml-dev, liburiparser-dev
+ libpoppler-private-dev, liblzma-dev, libopenjpeg-dev, libarmadillo-dev, libfreexl-dev (>= 1.0.0),
+ libkml-dev, liburiparser-dev,
+ python3-all-dev, python3-numpy
 Build-Conflicts: python-setuptools
 Standards-Version: 3.9.3
 XS-Python-Version: all
+X-Python3-Version: >= 3.2
 Homepage: http://www.gdal.org/
 Vcs-Browser: http://git.debian.org/?p=pkg-grass/gdal.git
 Vcs-Git: git://git.debian.org/git/pkg-grass/gdal.git
@@ -103,7 +105,7 @@ Package: libgdal-doc
 Section: doc
 Architecture: all
 Suggests: libgdal1
-Depends: ${misc:Depends} 
+Depends: ${misc:Depends}
 Homepage: http://www.gdal.org/#index_userdocs
 Description: Documentation for the Geospatial Data Abstraction Library
  GDAL is a translator library for raster geospatial data formats.
@@ -176,6 +178,33 @@ Description: Python bindings to the Geospatial Data Abstraction Library
  TIGER data, S57, MapInfo File, DGN, GML and more.
  .
  This package contains Python bindings for GDAL/OGR library and
+ a set of additional command line tools.
+
+Package: python3-gdal
+Section: python
+Architecture: any
+Depends: ${shlibs:Depends}, ${python3:Depends}, python3-numpy, ${misc:Depends}
+Provides: ${python3:Provides}
+Homepage: http://trac.osgeo.org/gdal/wiki/GdalOgrInPython
+XB-Python-Version: ${python3:Versions}
+Description: Python 3 bindings to the Geospatial Data Abstraction Library
+ GDAL is a translator library for raster geospatial data formats.
+ As a library, it presents a single abstract data model to the
+ calling application for all supported formats. The related OGR
+ library (which lives within the GDAL source tree) provides
+ a similar capability for simple features vector data.
+ .
+ GDAL supports 40+ popular data formats, including commonly used
+ ones (GeoTIFF, JPEG, PNG and more) as well as the ones used in
+ GIS and remote sensing software packages (ERDAS Imagine,
+ ESRI Arc/Info, ENVI, PCI Geomatics). Also supported many remote
+ sensing and scientific data distribution formats such as HDF,
+ EOS FAST, NOAA L1B, NetCDF, FITS.
+ .
+ OGR library supports popular vector formats like ESRI Shapefile,
+ TIGER data, S57, MapInfo File, DGN, GML and more.
+ .
+ This package contains Python 3 bindings for GDAL/OGR library and
  a set of additional command line tools.
 
 Package: libgdal-perl

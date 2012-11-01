@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_mssqlspatial.h 24331 2012-04-28 11:49:05Z tamas $
+ * $Id: ogr_mssqlspatial.h 24968 2012-09-24 21:52:21Z tamas $
  *
  * Project:  MSSQL Spatial driver
  * Purpose:  Definition of classes for OGR MSSQL Spatial driver.
@@ -40,6 +40,7 @@ class OGRMSSQLSpatialDataSource;
 #define MSSQLGEOMETRY_NATIVE 0
 #define MSSQLGEOMETRY_WKB 1
 #define MSSQLGEOMETRY_WKT 2
+#define MSSQLGEOMETRY_WKBZM 3  /* SQL Server 2012 */
 
 /* geometry column types */
 #define MSSQLCOLTYPE_GEOMETRY  0

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: netcdfdataset.h 23973 2012-02-14 15:00:44Z etourigny $
+ * $Id: netcdfdataset.h 24589 2012-06-16 16:31:13Z rouault $
  *
  * Project:  netCDF read/write Driver
  * Purpose:  GDAL bindings over netCDF library.
@@ -52,7 +52,6 @@
 /* NETCDF driver defs */
 #define NCDF_MAX_STR_LEN     8192
 #define NCDF_CONVENTIONS_CF  "CF-1.5"
-#define NCDF_GDAL             GDALVersionInfo("--version")
 #define NCDF_NBDIM           2
 #define NCDF_SPATIAL_REF     "spatial_ref"
 #define NCDF_GEOTRANSFORM    "GeoTransform"

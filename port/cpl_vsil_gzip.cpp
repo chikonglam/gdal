@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: cpl_vsil_gzip.cpp 23588 2011-12-17 13:36:47Z rouault $
+ * $Id: cpl_vsil_gzip.cpp 24685 2012-07-20 15:53:33Z rouault $
  *
  * Project:  CPL - Common Portability Library
  * Purpose:  Implement VSI large file api for gz/zip files (.gz and .zip).
@@ -84,7 +84,7 @@
 #include "cpl_minizip_unzip.h"
 #include "cpl_time.h"
 
-CPL_CVSID("$Id: cpl_vsil_gzip.cpp 23588 2011-12-17 13:36:47Z rouault $");
+CPL_CVSID("$Id: cpl_vsil_gzip.cpp 24685 2012-07-20 15:53:33Z rouault $");
 
 #define Z_BUFSIZE 65536  /* original size is 16384 */
 static int const gz_magic[2] = {0x1f, 0x8b}; /* gzip magic header */
@@ -753,8 +753,9 @@ size_t VSIGZipHandle::Read( void *buf, size_t nSize, size_t nMemb )
         CPL_VSIL_GZ_RETURN_MINUS_ONE();
         return 0;
     }
-    if  (z_err == Z_STREAM_END)
+    if  (z_eof || z_err == Z_STREAM_END)
     {
+        z_eof = 1;
         if (ENABLE_DEBUG) CPLDebug("GZIP", "Read: Eof");
         return 0;  /* EOF */
     }
@@ -936,8 +937,7 @@ size_t VSIGZipHandle::Write( const void *pBuffer, size_t nSize, size_t nMemb )
 int VSIGZipHandle::Eof()
 {
     if (ENABLE_DEBUG) CPLDebug("GZIP", "Eof()");
-    if (z_eof) return 1;
-    return z_err == Z_STREAM_END;
+    return z_eof;
 }
 
 /************************************************************************/
