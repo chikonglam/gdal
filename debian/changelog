@@ -1,3 +1,9 @@
+gdal (1.9.2-2~quantal3) quantal; urgency=high
+
+  * Removed ogdi
+
+ -- Jerome Villeneuve Larouche <jlarouche@mapgears.com>  Thu, 01 Nov 2012 20:43:07 +0000
+
 gdal (1.9.2-2~quantal2) quantal; urgency=high
 
   * Launchpad build for Quantal
