@@ -179,6 +179,33 @@ Description: Python bindings to the Geospatial Data Abstraction Library
  This package contains Python bindings for GDAL/OGR library and
  a set of additional command line tools.
 
+Package: python3-gdal
+Section: python
+Architecture: any
+Depends: ${shlibs:Depends}, ${python3:Depends}, python3-numpy, ${misc:Depends}
+Provides: ${python3:Provides}
+Homepage: http://trac.osgeo.org/gdal/wiki/GdalOgrInPython
+XB-Python-Version: ${python3:Versions}
+Description: Python 3 bindings to the Geospatial Data Abstraction Library
+ GDAL is a translator library for raster geospatial data formats.
+ As a library, it presents a single abstract data model to the
+ calling application for all supported formats. The related OGR
+ library (which lives within the GDAL source tree) provides
+ a similar capability for simple features vector data.
+ .
+ GDAL supports 40+ popular data formats, including commonly used
+ ones (GeoTIFF, JPEG, PNG and more) as well as the ones used in
+ GIS and remote sensing software packages (ERDAS Imagine,
+ ESRI Arc/Info, ENVI, PCI Geomatics). Also supported many remote
+ sensing and scientific data distribution formats such as HDF,
+ EOS FAST, NOAA L1B, NetCDF, FITS.
+ .
+ OGR library supports popular vector formats like ESRI Shapefile,
+ TIGER data, S57, MapInfo File, DGN, GML and more.
+ .
+ This package contains Python 3 bindings for GDAL/OGR library and
+ a set of additional command line tools.
+
 Package: libgdal-perl
 Section: perl
 Architecture: any
