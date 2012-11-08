@@ -1,7 +1,6 @@
 gdal (1.9.2-2~oneiric6) oneiric; urgency=low
 
   * Launchpad build for Oneiric
-  * Removed Python3-gdal because of a bug
   * Changed ruby dependency to ruby1.8
 
  -- Jerome Villeneuve Larouche <jlarouche@mapgears.com>  Thu, 08 Nov 2012 14:01:29 +0000
