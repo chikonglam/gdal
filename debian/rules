@@ -8,7 +8,10 @@
 # Uncomment this to turn on verbose mode.
 #export DH_VERBOSE=1
 
-PYVERS=$(shell pyversions -v -r debian/control) $(shell py3versions -v -r)
+# Setting the Python3 version manually for Lucid as there is no 
+# py3versions available
+PYVERS=2.6 3.1
+
 PYDEF=$(shell pyversions -dv)
 RUBYDEF=$(shell ruby --version|cut -d' ' -f2|cut -d. -f1,2)
 PERLDEF=$(shell perl -V:version|cut -d\' -f2)

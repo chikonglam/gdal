@@ -1,7 +1,8 @@
-gdal (1.9.2-2~lucid6) lucid; urgency=low
+gdal (1.9.2-2~lucid7) lucid; urgency=low
 
   * Launchpad build for Lucid
   * Changed ruby1.8 dependency to ruby
+  * Changed debian/rules to manually set the python3 version for lucid
 
  -- Jerome Villeneuve Larouche <jlarouche@mapgears.com>  Thu, 08 Nov 2012 14:04:28 +0000
 
