@@ -80,6 +80,7 @@ configure-stamp:
 			--with-ruby \
 			--with-python \
 			--with-odbc \
+			--with-ogdi \
 			--with-dods-root=/usr \
 			--with-static-proj4=yes \
 			--with-spatialite=/usr \
