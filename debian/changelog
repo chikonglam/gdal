@@ -1,4 +1,4 @@
-gdal (1.9.2-2~quantal4) quantal; urgency=high
+gdal (1.9.2-2~quantal6) quantal; urgency=high
 
   * Rebuild for libproj 4.8.0
 
