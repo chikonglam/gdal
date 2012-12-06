@@ -1,3 +1,9 @@
+gdal (1.9.2-2~quantal4) quantal; urgency=high
+
+  * Rebuild for libproj 4.8.0
+
+ -- Jerome Villeneuve Larouche <jlarouche@mapgears.com>  Thu, 06 Dec 2012 09:17:01 -0500
+
 gdal (1.9.2-2~quantal3) quantal; urgency=high
 
   * Removed ogdi
