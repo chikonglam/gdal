@@ -1,3 +1,9 @@
+gdal (1.9.2-2~precise3) precise; urgency=high
+
+  * Rebuild for libproj 4.8.0
+
+ -- Jerome Villeneuve Larouche <jlarouche@mapgears.com>  Thu, 06 Dec 2012 09:37:27 -0500
+
 gdal (1.9.2-2~precise2) precise; urgency=high
 
   * Removed ogdi
