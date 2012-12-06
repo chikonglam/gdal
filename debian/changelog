@@ -1,3 +1,9 @@
+gdal (1.9.2-2~oneiric7) oneiric; urgency=high
+
+  * Rebuild for libproj 4.8.0
+
+ -- Jerome Villeneuve Larouche <jlarouche@mapgears.com>  Thu, 06 Dec 2012 09:55:57 -0500
+
 gdal (1.9.2-2~oneiric6) oneiric; urgency=low
 
   * Launchpad build for Oneiric
