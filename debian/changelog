@@ -1,4 +1,4 @@
-gdal (1.9.2-1) unstable; urgency=low
+gdal (1.9.2-1) UNRELEASED; urgency=low
 
   * New Upstream release
   * Removed OGDI
