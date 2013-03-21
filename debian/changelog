@@ -2,7 +2,7 @@ gdal (1.9.2-1) unstable; urgency=low
 
   * New Upstream release
 
- -- Jerome Villeneuve Larouche <jlarouche@mapgears.com>  Thu, 01 Nov 2012 18:52:53 +0000
+ -- Jerome Villeneuve Larouche <jlarouche@mapgears.com>  Thu, 21 Mar 2013 10:08:00 -0400
 
 gdal (1.9.1-2) unstable; urgency=low
 
