@@ -1,7 +1,15 @@
-gdal (1.9.2-1~exp2) experimental; urgency=low
+gdal (1.9.2-1~exp2) UNRELEASED; urgency=low
 
   * Moved to new LIBKML driver instead of the old KML one. It has a much
     better support for complex KML files.
+  * Merged NMU 1.9.0-3.1:
+    Fix "FTBFS when ruby1.9.1 installed": force building with ruby1.8:
+    set variables in debian/rules and new patch force-ruby1.8 to ruby1.8.
+    Thanks to Cédric Boutillier for reviewing and testing this patch.
+    (Closes: #684433)
+  * Added libarmadillo support.
+  * Restored hidden symbols to better manage conflicts in linking both 
+    libgeotiff and gdal. Fix working for Orfeotoolbox.
 
  -- Francesco Paolo Lovergine <frankie@debian.org>  Sun, 04 Mar 2012 11:39:57 +0100
 
