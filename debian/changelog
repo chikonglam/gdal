@@ -1,4 +1,4 @@
-gdal (1.9.2-1exp1) experimental; urgency=low
+gdal (1.9.2-1~exp1) experimental; urgency=low
 
   [ Jerome Villeneuve Larouche ]
   * New upstream release
