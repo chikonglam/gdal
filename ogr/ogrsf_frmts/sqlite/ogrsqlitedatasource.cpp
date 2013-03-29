@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrsqlitedatasource.cpp 23676 2012-01-01 16:10:36Z rouault $
+ * $Id: ogrsqlitedatasource.cpp 24509 2012-05-27 20:50:48Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implements OGRSQLiteDataSource class.
@@ -46,7 +46,7 @@
 
 static int bSpatialiteLoaded = FALSE;
 
-CPL_CVSID("$Id: ogrsqlitedatasource.cpp 23676 2012-01-01 16:10:36Z rouault $");
+CPL_CVSID("$Id: ogrsqlitedatasource.cpp 24509 2012-05-27 20:50:48Z rouault $");
 
 /************************************************************************/
 /*                      OGRSQLiteInitSpatialite()                       */
@@ -139,6 +139,7 @@ OGRSQLiteDataSource::~OGRSQLiteDataSource()
     if (pMyVFS)
     {
         sqlite3_vfs_unregister(pMyVFS);
+        CPLFree(pMyVFS->pAppData);
         CPLFree(pMyVFS);
     }
 #endif
@@ -817,8 +818,7 @@ int OGRSQLiteDataSource::Open( const char * pszNewName, int bUpdateIn )
             if( papszRow[4] != NULL )
                 nSRID = atoi(papszRow[4]);
 
-            /* Only look for presence of a spatial index if linked against SpatiaLite */
-            if( bSpatialiteLoaded && papszRow[5] != NULL )
+            if( papszRow[5] != NULL )
                 bHasSpatialIndex = atoi(papszRow[5]);
 
             OpenTable( papszRow[0], papszRow[1], eGeomType, "SpatiaLite",
@@ -1185,6 +1185,9 @@ OGRLayer * OGRSQLiteDataSource::ExecuteSQL( const char *pszSQLCommand,
             CPLError( CE_Failure, CPLE_AppDefined, 
                   "In ExecuteSQL(): sqlite3_step(%s):\n  %s", 
                   pszSQLCommand, sqlite3_errmsg(GetDB()) );
+
+            sqlite3_finalize( hSQLStmt );
+            return NULL;
         }
 
         if( EQUALN(pszSQLCommand, "CREATE ", 7) )
@@ -1197,10 +1200,16 @@ OGRLayer * OGRSQLiteDataSource::ExecuteSQL( const char *pszSQLCommand,
                 OpenVirtualTable(papszTokens[3], pszSQLCommand);
             }
             CSLDestroy(papszTokens);
+
+            sqlite3_finalize( hSQLStmt );
+            return NULL;
         }
 
-        sqlite3_finalize( hSQLStmt );
-        return NULL;
+        if( !EQUALN(pszSQLCommand, "SELECT ", 7) )
+        {
+            sqlite3_finalize( hSQLStmt );
+            return NULL;
+        }
     }
     
 /* -------------------------------------------------------------------- */

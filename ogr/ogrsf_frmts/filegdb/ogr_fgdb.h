@@ -1,5 +1,5 @@
 /******************************************************************************
-* $Id: ogr_fgdb.h 23027 2011-09-02 22:19:29Z rouault $
+* $Id: ogr_fgdb.h 25013 2012-09-30 11:16:33Z rouault $
 *
 * Project:  OpenGIS Simple Features Reference Implementation
 * Purpose:  Standard includes and class definitions ArcObjects OGR driver.
@@ -63,6 +63,14 @@ class FGdbDataSource;
 
 class FGdbLayer : public OGRLayer
 {
+  int                 m_bBulkLoadAllowed;
+  int                 m_bBulkLoadInProgress;
+
+  void                StartBulkLoad();
+  void                EndBulkLoad();
+
+  OGRErr              PopulateRowWithFeature( Row& row, OGRFeature *poFeature );
+
 public:
 
   FGdbLayer();
@@ -147,6 +155,7 @@ protected:
   
   bool  m_supressColumnMappingError;
   bool  m_forceMulti;
+  bool  m_bLaunderReservedKeywords;
 
 };
 

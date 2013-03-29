@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrpgdatasource.cpp 23652 2011-12-29 09:33:53Z rouault $
+ * $Id: ogrpgdatasource.cpp 24546 2012-06-07 21:28:52Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implements OGRPGDataSource class.
@@ -35,7 +35,7 @@
 
 #define PQexec this_is_an_error
 
-CPL_CVSID("$Id: ogrpgdatasource.cpp 23652 2011-12-29 09:33:53Z rouault $");
+CPL_CVSID("$Id: ogrpgdatasource.cpp 24546 2012-06-07 21:28:52Z rouault $");
 
 static void OGRPGNoticeProcessor( void *arg, const char * pszMessage );
 
@@ -112,7 +112,6 @@ OGRPGDataSource::~OGRPGDataSource()
 
 CPLString OGRPGDataSource::GetCurrentSchema()
 {
-    CPLString osCurrentSchema;
     /* -------------------------------------------- */
     /*          Get the current schema              */
     /* -------------------------------------------- */
@@ -559,11 +558,19 @@ int OGRPGDataSource::Open( const char * pszNewName, int bUpdate,
         if( !hResult || PQresultStatus(hResult) != PGRES_COMMAND_OK )
         {
             OGRPGClearResult( hResult );
+            CPLDebug("PG","Command \"%s\" failed. Trying without 'public'.",osCommand.c_str());
+            osCommand.Printf("SET search_path='%s'", osActiveSchema.c_str());
+            PGresult    *hResult2 = OGRPG_PQexec(hPGConn, osCommand );
 
-            CPLError( CE_Failure, CPLE_AppDefined,
-                    "%s", PQerrorMessage(hPGConn) );
+            if( !hResult2 || PQresultStatus(hResult2) != PGRES_COMMAND_OK )
+            {
+                OGRPGClearResult( hResult2 );
 
-            goto end;
+                CPLError( CE_Failure, CPLE_AppDefined,
+                        "%s", PQerrorMessage(hPGConn) );
+
+                goto end;
+            }
         }
 
         OGRPGClearResult(hResult);
@@ -1303,8 +1310,6 @@ OGRPGDataSource::CreateLayer( const char * pszLayerName,
         pszSchemaName = CPLStrdup(CSLFetchNameValue( papszOptions, "SCHEMA" ));
     }
 
-    CPLString osCurrentSchema = GetCurrentSchema();
-
     if ( pszSchemaName == NULL && strlen(osCurrentSchema) > 0)
     {
       pszSchemaName = CPLStrdup(osCurrentSchema);
@@ -1716,10 +1721,21 @@ OGRLayer *OGRPGDataSource::GetLayerByName( const char *pszName )
     CPLFree(pszNameWithoutBracket);
     pszNameWithoutBracket = NULL;
 
-    CPLString osCurrentSchema = GetCurrentSchema();
-    OGRPGTableLayer* poLayer = OpenTable( osCurrentSchema, pszTableName,
-                                          pszSchemaName,
-                                          pszGeomColumnName, TRUE, TRUE, TRUE );
+    OGRLayer* poLayer = NULL;
+
+    if (pszSchemaName != NULL && osCurrentSchema == pszSchemaName &&
+        pszGeomColumnName == NULL )
+    {
+        poLayer = GetLayerByName(pszTableName);
+    }
+    else
+    {
+        poLayer = OpenTable( osCurrentSchema, pszTableName,
+                             pszSchemaName,
+                             pszGeomColumnName,
+                             TRUE, TRUE, TRUE );
+    }
+
     CPLFree(pszTableName);
     CPLFree(pszSchemaName);
     CPLFree(pszGeomColumnName);

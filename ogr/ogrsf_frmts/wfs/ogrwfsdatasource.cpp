@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrwfsdatasource.cpp 23165 2011-10-02 17:27:02Z rouault $
+ * $Id: ogrwfsdatasource.cpp 24884 2012-08-30 18:26:48Z rouault $
  *
  * Project:  WFS Translator
  * Purpose:  Implements OGRWFSDataSource class
@@ -35,7 +35,7 @@
 #include "gmlutils.h"
 #include "parsexsd.h"
 
-CPL_CVSID("$Id: ogrwfsdatasource.cpp 23165 2011-10-02 17:27:02Z rouault $");
+CPL_CVSID("$Id: ogrwfsdatasource.cpp 24884 2012-08-30 18:26:48Z rouault $");
 
 
 /************************************************************************/
@@ -1240,22 +1240,25 @@ int OGRWFSDataSource::Open( const char * pszFilename, int bUpdateIn)
                     }
                 }
 
-                osLayerMetadataCSV += "\"";
-                osLayerMetadataCSV += pszName;
-                osLayerMetadataCSV += "\"";
+                char* pszCSVEscaped;
+
+                pszCSVEscaped = CPLEscapeString(pszName, -1, CPLES_CSV);
+                osLayerMetadataCSV += pszCSVEscaped;
+                CPLFree(pszCSVEscaped);
+
                 osLayerMetadataCSV += ",";
                 if (pszTitle)
                 {
-                    osLayerMetadataCSV += "\"";
-                    osLayerMetadataCSV += pszTitle;
-                    osLayerMetadataCSV += "\"";
+                    pszCSVEscaped = CPLEscapeString(pszTitle, -1, CPLES_CSV);
+                    osLayerMetadataCSV += pszCSVEscaped;
+                    CPLFree(pszCSVEscaped);
                 }
                 osLayerMetadataCSV += ",";
                 if (pszAbstract)
                 {
-                    osLayerMetadataCSV += "\"";
-                    osLayerMetadataCSV += pszAbstract;
-                    osLayerMetadataCSV += "\"";
+                    pszCSVEscaped = CPLEscapeString(pszAbstract, -1, CPLES_CSV);
+                    osLayerMetadataCSV += pszCSVEscaped;
+                    CPLFree(pszCSVEscaped);
                 }
                 osLayerMetadataCSV += "\n";
 

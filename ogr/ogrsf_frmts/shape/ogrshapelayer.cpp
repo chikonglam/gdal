@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrshapelayer.cpp 23555 2011-12-12 20:30:46Z rouault $
+ * $Id: ogrshapelayer.cpp 24681 2012-07-20 14:56:13Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implements OGRShapeLayer class.
@@ -40,7 +40,7 @@
 #define FD_CLOSED           1
 #define FD_CANNOT_REOPEN    2
 
-CPL_CVSID("$Id: ogrshapelayer.cpp 23555 2011-12-12 20:30:46Z rouault $");
+CPL_CVSID("$Id: ogrshapelayer.cpp 24681 2012-07-20 14:56:13Z rouault $");
 
 /************************************************************************/
 /*                           OGRShapeLayer()                            */
@@ -90,7 +90,14 @@ OGRShapeLayer::OGRShapeLayer( OGRShapeDataSource* poDSIn,
 
     bTruncationWarningEmitted = FALSE;
 
-    
+    /* Init info for the LRU layer mechanism */
+    poPrevLayer = NULL;
+    poNextLayer = NULL;
+    bHSHPWasNonNULL = hSHPIn != NULL;
+    bHDBFWasNonNULL = hDBFIn != NULL;
+    eFileDescriptorsState = FD_OPENED;
+    TouchLayer();
+
     if( hDBF != NULL && hDBF->pszCodePage != NULL )
     {
         CPLDebug( "Shape", "DBF Codepage = %s for %s", 
@@ -104,18 +111,18 @@ OGRShapeLayer::OGRShapeLayer( OGRShapeDataSource* poDSIn,
         osEncoding = CPLGetConfigOption( "SHAPE_ENCODING", "" );
 
     if( osEncoding != "" )
+    {
         CPLDebug( "Shape", "Treating as encoding '%s'.", osEncoding.c_str() );
+
+        if (!TestCapability(OLCStringsAsUTF8))
+        {
+            CPLDebug( "Shape", "Cannot recode from '%s'. Disabling recoding", osEncoding.c_str() );
+            osEncoding = "";
+        }
+    }
 
     poFeatureDefn = SHPReadOGRFeatureDefn( CPLGetBasename(pszName),
                                            hSHP, hDBF, osEncoding );
-
-    /* Init info for the LRU layer mechanism */
-    poPrevLayer = NULL;
-    poNextLayer = NULL;
-    bHSHPWasNonNULL = hSHPIn != NULL;
-    bHDBFWasNonNULL = hDBFIn != NULL;
-    eFileDescriptorsState = FD_OPENED;
-    TouchLayer();
 }
 
 /************************************************************************/
@@ -259,7 +266,10 @@ CPLString OGRShapeLayer::ConvertCodePage( const char *pszCodePage )
     }
     if( EQUALN(pszCodePage,"8859",4) )
     {
-        osEncoding.Printf( "ISO%s", pszCodePage );
+        if( pszCodePage[4] == '-' )
+            osEncoding.Printf( "ISO-8859-%s", pszCodePage + 5 );
+        else
+            osEncoding.Printf( "ISO-8859-%s", pszCodePage + 4 );
         return osEncoding;
     }
     if( EQUALN(pszCodePage,"UTF-8",5) )
@@ -636,6 +646,17 @@ OGRErr OGRShapeLayer::SetFeature( OGRFeature *poFeature )
         return OGRERR_FAILURE;
     }
 
+    long nFID = poFeature->GetFID();
+    if( nFID < 0
+        || (hSHP != NULL && nFID >= hSHP->nRecords)
+        || (hDBF != NULL && nFID >= hDBF->nRecords) )
+    {
+        CPLError( CE_Failure, CPLE_AppDefined,
+                  "Attempt to set shape with feature id (%ld) which does "
+                  "not exist.", nFID );
+        return OGRERR_FAILURE;
+    }
+
     bHeaderDirty = TRUE;
     if( CheckForQIX() )
         DropSpatialIndex();
@@ -891,10 +912,10 @@ int OGRShapeLayer::GetFeatureCountWithSpatialFilterOnly()
                     memcpy(&(sShape.dfYMin), abyBuf + 12, 8);
                     memcpy(&(sShape.dfXMax), abyBuf + 20, 8);
                     memcpy(&(sShape.dfYMax), abyBuf + 28, 8);
-                    CPL_MSBPTR32(&(sShape.dfXMin));
-                    CPL_MSBPTR32(&(sShape.dfYMin));
-                    CPL_MSBPTR32(&(sShape.dfXMax));
-                    CPL_MSBPTR32(&(sShape.dfYMax));
+                    CPL_LSBPTR64(&(sShape.dfXMin));
+                    CPL_LSBPTR64(&(sShape.dfYMin));
+                    CPL_LSBPTR64(&(sShape.dfXMax));
+                    CPL_LSBPTR64(&(sShape.dfYMax));
                 }
             }
             else
@@ -1135,8 +1156,39 @@ int OGRShapeLayer::TestCapability( const char * pszCap )
         return TRUE;
 
     else if( EQUAL(pszCap,OLCStringsAsUTF8) )
-        return strlen(osEncoding) > 0; /* if encoding is defined, we are able to convert to UTF-8 */
+    {
+        /* No encoding defined : we don't know */
+        if( osEncoding.size() == 0)
+            return FALSE;
 
+        if( hDBF == NULL || DBFGetFieldCount( hDBF ) == 0 )
+            return TRUE;
+
+        CPLClearRecodeWarningFlags();
+
+        /* Otherwise test that we can re-encode field names to UTF-8 */
+        int nFieldCount = DBFGetFieldCount( hDBF );
+        for(int i=0;i<nFieldCount;i++)
+        {
+            char            szFieldName[20];
+            int             nWidth, nPrecision;
+
+            DBFGetFieldInfo( hDBF, i, szFieldName,
+                            &nWidth, &nPrecision );
+
+            CPLErrorReset();
+            CPLPushErrorHandler(CPLQuietErrorHandler);
+            char *pszUTF8Field = CPLRecode( szFieldName,
+                                            osEncoding, CPL_ENC_UTF8);
+            CPLPopErrorHandler();
+            CPLFree( pszUTF8Field );
+
+            if (CPLGetLastErrorType() != 0)
+                return FALSE;
+        }
+
+        return TRUE;
+    }
     else 
         return FALSE;
 }

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrsqlitetablelayer.cpp 23676 2012-01-01 16:10:36Z rouault $
+ * $Id: ogrsqlitetablelayer.cpp 24282 2012-04-21 16:41:46Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implements OGRSQLiteTableLayer class, access to an existing table.
@@ -33,7 +33,7 @@
 #include "ogr_p.h"
 #include <string>
 
-CPL_CVSID("$Id: ogrsqlitetablelayer.cpp 23676 2012-01-01 16:10:36Z rouault $");
+CPL_CVSID("$Id: ogrsqlitetablelayer.cpp 24282 2012-04-21 16:41:46Z rouault $");
 
 /************************************************************************/
 /*                        OGRSQLiteTableLayer()                         */
@@ -363,9 +363,10 @@ int OGRSQLiteTableLayer::CheckSpatialIndexTable()
         char *pszErrMsg = NULL;
 
         CPLString osSQL;
-        osSQL.Printf("SELECT name FROM sqlite_master "
-                    "WHERE name='idx_%s_%s'",
-                    pszEscapedTableName, osGeomColumn.c_str());
+
+        /* This will ensure that RTree support is available */
+        osSQL.Printf("SELECT pkid FROM 'idx_%s_%s' WHERE xmax > 0 AND xmin < 0 AND ymax > 0 AND ymin < 0",
+                     pszEscapedTableName, osGeomColumn.c_str());
 
         int  rc = sqlite3_get_table( poDS->GetDB(), osSQL.c_str(),
                                     &papszResult, &nRowCount,
@@ -373,20 +374,13 @@ int OGRSQLiteTableLayer::CheckSpatialIndexTable()
 
         if( rc != SQLITE_OK )
         {
-            CPLError( CE_Failure, CPLE_AppDefined, "Error: %s",
-                    pszErrMsg );
+            CPLDebug("SQLITE", "Count not find or use idx_%s_%s layer (%s). Disabling spatial index",
+                        pszEscapedTableName, osGeomColumn.c_str(), pszErrMsg);
             sqlite3_free( pszErrMsg );
             bHasSpatialIndex = FALSE;
         }
         else
         {
-            if (nRowCount != 1)
-            {
-                bHasSpatialIndex = FALSE;
-                CPLDebug("SQLITE", "Count not find idx_%s_%s layer. Disabling spatial index",
-                        pszEscapedTableName, osGeomColumn.c_str());
-            }
-
             sqlite3_free_table(papszResult);
         }
     }
@@ -410,6 +404,8 @@ void OGRSQLiteTableLayer::BuildWhere()
     {
         OGREnvelope  sEnvelope;
 
+        CPLLocaleC  oLocaleEnforcer;
+
         m_poFilterGeom->getEnvelope( &sEnvelope );
 
         osWHERE.Printf("WHERE ROWID IN ( SELECT pkid FROM 'idx_%s_%s' WHERE "
@@ -422,6 +418,8 @@ void OGRSQLiteTableLayer::BuildWhere()
     if( m_poFilterGeom != NULL && bSpatialiteLoaded && !bHasSpatialIndex)
     {
         OGREnvelope  sEnvelope;
+
+        CPLLocaleC  oLocaleEnforcer;
 
         m_poFilterGeom->getEnvelope( &sEnvelope );
 
@@ -441,8 +439,9 @@ void OGRSQLiteTableLayer::BuildWhere()
         }
         else	
         {
-            osWHERE += "AND ";
+            osWHERE += "AND (";
             osWHERE += osQuery;
+            osWHERE += ")";
         }
     }
 }

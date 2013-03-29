@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrmssqlspatialtablelayer.cpp 21943 2011-03-12 18:25:22Z tamas $
+ * $Id: ogrmssqlspatialtablelayer.cpp 24968 2012-09-24 21:52:21Z tamas $
  *
  * Project:  MSSQL Spatial driver
  * Purpose:  Implements OGRMSSQLSpatialTableLayer class, access to an existing table.
@@ -30,7 +30,7 @@
 #include "cpl_conv.h"
 #include "ogr_mssqlspatial.h"
 
-CPL_CVSID("$Id: ogrmssqlspatialtablelayer.cpp 21943 2011-03-12 18:25:22Z tamas $");
+CPL_CVSID("$Id: ogrmssqlspatialtablelayer.cpp 24968 2012-09-24 21:52:21Z tamas $");
 
 /************************************************************************/
 /*                         OGRMSSQLAppendEscaped( )                     */
@@ -396,7 +396,13 @@ CPLString OGRMSSQLSpatialTableLayer::BuildFields()
             }
             else if ( poDS->GetGeometryFormat() == MSSQLGEOMETRY_WKT )
             {
-                osFieldList += "].STAsText() as [";
+                osFieldList += "].AsTextZM() as [";
+                osFieldList += pszGeomColumn;
+            }
+            else if ( poDS->GetGeometryFormat() == MSSQLGEOMETRY_WKBZM )
+            {
+                /* SQL Server 2012 */
+                osFieldList += "].AsBinaryZM() as [";
                 osFieldList += pszGeomColumn;
             }
         }
@@ -479,7 +485,7 @@ CPLODBCStatement* OGRMSSQLSpatialTableLayer::BuildStatement(const char* pszColum
 
     /* Append attribute query if we have it */
     if( pszQuery != NULL )
-        poStatement->Appendf( " where %s", pszQuery );
+        poStatement->Appendf( " where (%s)", pszQuery );
 
     /* If we have a spatial filter, query on it */
     if ( m_poFilterGeom != NULL )
@@ -602,7 +608,8 @@ int OGRMSSQLSpatialTableLayer::TestCapability( const char * pszCap )
 {
     if ( bUpdateAccess )
     {
-        if( EQUAL(pszCap,OLCSequentialWrite) || EQUAL(pszCap,OLCCreateField) )
+        if( EQUAL(pszCap,OLCSequentialWrite) || EQUAL(pszCap,OLCCreateField)
+            || EQUAL(pszCap,OLCDeleteFeature) )
             return TRUE;
 
         else if( EQUAL(pszCap,OLCRandomWrite) )

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_oci.h 22346 2011-05-10 03:02:15Z warmerdam $
+ * $Id: ogr_oci.h 23928 2012-02-09 00:58:29Z hobu $
  *
  * Project:  Oracle Spatial Driver
  * Purpose:  Oracle Spatial OGR Driver Declarations. 
@@ -412,6 +412,7 @@ class OGROCITableLayer : public OGROCIWritableLayer
 
     void                UpdateLayerExtents();
     void                FinalizeNewLayer();
+    void                CreateSpatialIndex();
 
     void                TestForSpatialIndex( const char * );
 

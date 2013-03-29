@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrcsvlayer.cpp 23503 2011-12-09 20:40:35Z rouault $
+ * $Id: ogrcsvlayer.cpp 25039 2012-10-03 21:32:21Z rcoup $
  *
  * Project:  CSV Translator
  * Purpose:  Implements OGRCSVLayer class.
@@ -33,7 +33,7 @@
 #include "cpl_csv.h"
 #include "ogr_p.h"
 
-CPL_CVSID("$Id: ogrcsvlayer.cpp 23503 2011-12-09 20:40:35Z rouault $");
+CPL_CVSID("$Id: ogrcsvlayer.cpp 25039 2012-10-03 21:32:21Z rcoup $");
 
 
 
@@ -234,6 +234,7 @@ OGRCSVLayer::OGRCSVLayer( const char *pszLayerNameIn,
 
     bCreateCSVT = FALSE;
     bDontHonourStrings = FALSE;
+    bWriteBOM = FALSE;
 
     nTotalFeatures = -1;
 
@@ -276,10 +277,20 @@ OGRCSVLayer::OGRCSVLayer( const char *pszLayerNameIn,
         pszLine = CPLReadLineL( fpCSV );
         if ( pszLine != NULL )
         {
+            /* Detect and remove UTF-8 BOM marker if found (#4623) */
+            if (pszLine[0] == (char)0xEF &&
+                pszLine[1] == (char)0xBB &&
+                pszLine[2] == (char)0xBF)
+            {
+                pszLine += 3;
+            }
+
             /* tokenize the strings and preserve quotes, so we can separate string from numeric */
             /* this is only used in the test for bHasFeldNames (bug #4361) */
             papszTokens = CSLTokenizeString2( pszLine, szDelimiter, 
-                                              CSLT_HONOURSTRINGS | CSLT_PRESERVEQUOTES );
+                                              (CSLT_HONOURSTRINGS |
+                                               CSLT_ALLOWEMPTYTOKENS |
+                                               CSLT_PRESERVEQUOTES) );
             nFieldCount = CSLCount( papszTokens );
             bHasFieldNames = TRUE;
 
@@ -297,7 +308,8 @@ OGRCSVLayer::OGRCSVLayer( const char *pszLayerNameIn,
             CSLDestroy( papszTokens );
             // papszTokens = OGRCSVReadParseLineL( fpCSV, chDelimiter, FALSE );   
             papszTokens = CSLTokenizeString2( pszLine, szDelimiter, 
-                                              CSLT_HONOURSTRINGS);
+                                              (CSLT_HONOURSTRINGS |
+                                               CSLT_ALLOWEMPTYTOKENS));
             nFieldCount = CSLCount( papszTokens );
         }
     }
@@ -407,6 +419,13 @@ OGRCSVLayer::OGRCSVLayer( const char *pszLayerNameIn,
 
         if (pszFieldName == NULL)
         {
+            /* Re-read single column CSV files that have a trailing comma */
+            /* in the header line */
+            if( iField == 1 && nFieldCount == 2 && papszTokens[1][0] == '\0' )
+            {
+                nFieldCount = 1;
+                break;
+            }
             pszFieldName = szFieldNameBuffer;
             sprintf( szFieldNameBuffer, "field_%d", iField+1 );
         }
@@ -858,6 +877,11 @@ OGRErr OGRCSVLayer::CreateFeature( OGRFeature *poNewFeature )
             }
         }
 
+        if (bWriteBOM && fpCSV)
+        {
+            VSIFWriteL("\xEF\xBB\xBF", 1, 3, fpCSV);
+        }
+
         if (eGeometryFormat == OGR_CSV_GEOM_AS_WKT)
         {
             if (fpCSV) VSIFPrintfL( fpCSV, "%s", "WKT");
@@ -939,6 +963,14 @@ OGRErr OGRCSVLayer::CreateFeature( OGRFeature *poNewFeature )
                 }
             }
         }
+
+        /* The CSV driver will not recognize single column tables, so add */
+        /* a fake second blank field */
+        if( poFeatureDefn->GetFieldCount() == 1 )
+        {
+            if (fpCSV) VSIFPrintfL( fpCSV, "%c", chDelimiter );
+        }
+
         if( bUseCRLF )
         {
             if (fpCSV) VSIFPutcL( 13, fpCSV );
@@ -1036,6 +1068,7 @@ OGRErr OGRCSVLayer::CreateFeature( OGRFeature *poNewFeature )
 /* -------------------------------------------------------------------- */
 /*      Write out all the field values.                                 */
 /* -------------------------------------------------------------------- */
+    int bNonEmptyLine = FALSE;
     for( iField = 0; iField < poFeatureDefn->GetFieldCount(); iField++ )
     {
         char *pszEscaped;
@@ -1043,22 +1076,30 @@ OGRErr OGRCSVLayer::CreateFeature( OGRFeature *poNewFeature )
         if( iField > 0 )
             VSIFPrintfL( fpCSV, "%c", chDelimiter );
         
-        pszEscaped = 
-            CPLEscapeString( poNewFeature->GetFieldAsString(iField),
-                            -1, CPLES_CSV );
-
         if (poFeatureDefn->GetFieldDefn(iField)->GetType() == OFTReal)
         {
+            pszEscaped = CPLStrdup(poNewFeature->GetFieldAsString(iField));
             /* Use point as decimal separator */
             char* pszComma = strchr(pszEscaped, ',');
             if (pszComma)
                 *pszComma = '.';
         }
+        else
+        {
+            pszEscaped =
+                CPLEscapeString( poNewFeature->GetFieldAsString(iField),
+                                -1, CPLES_CSV );
+        }
 
-        VSIFWriteL( pszEscaped, 1, strlen(pszEscaped), fpCSV );
+        int nLen = (int)strlen(pszEscaped);
+        bNonEmptyLine |= (nLen != 0);
+        VSIFWriteL( pszEscaped, 1, nLen, fpCSV );
         CPLFree( pszEscaped );
     }
-    
+
+    if(  poFeatureDefn->GetFieldCount() == 1 && !bNonEmptyLine )
+        VSIFPrintfL( fpCSV, "%c", chDelimiter );
+
     if( bUseCRLF )
         VSIFPutcL( 13, fpCSV );
     VSIFPutcL( '\n', fpCSV );
@@ -1092,6 +1133,15 @@ void OGRCSVLayer::SetWriteGeometry(OGRCSVGeometryFormat eGeometryFormat)
 void OGRCSVLayer::SetCreateCSVT(int bCreateCSVT)
 {
     this->bCreateCSVT = bCreateCSVT;
+}
+
+/************************************************************************/
+/*                          SetWriteBOM()                               */
+/************************************************************************/
+
+void OGRCSVLayer::SetWriteBOM(int bWriteBOM)
+{
+    this->bWriteBOM = bWriteBOM;
 }
 
 /************************************************************************/

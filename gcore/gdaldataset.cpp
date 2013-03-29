@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdaldataset.cpp 23156 2011-10-01 15:34:16Z rouault $
+ * $Id: gdaldataset.cpp 25004 2012-09-29 20:00:27Z rouault $
  *
  * Project:  GDAL Core
  * Purpose:  Base class for raster file formats.  
@@ -31,8 +31,9 @@
 #include "cpl_string.h"
 #include "cpl_hash_set.h"
 #include "cpl_multiproc.h"
+#include <map>
 
-CPL_CVSID("$Id: gdaldataset.cpp 23156 2011-10-01 15:34:16Z rouault $");
+CPL_CVSID("$Id: gdaldataset.cpp 25004 2012-09-29 20:00:27Z rouault $");
 
 CPL_C_START
 GDALAsyncReader *
@@ -2208,11 +2209,25 @@ GDALDatasetH GDALOpenInternal( const char * pszFilename, GDALAccess eAccess,
     return GDALOpenInternal(oOpenInfo, papszAllowedDrivers);
 }
 
+static std::map<GIntBig, int> oRecProtectorMap;
+
 GDALDatasetH GDALOpenInternal( GDALOpenInfo& oOpenInfo,
                                const char* const * papszAllowedDrivers)
 {
 
     VALIDATE_POINTER1( oOpenInfo.pszFilename, "GDALOpen", NULL );
+
+    GIntBig nPID = CPLGetPID();
+    {
+        CPLMutexHolderD( &hDLMutex );
+        if( oRecProtectorMap[nPID] == 100 )
+        {
+            CPLError(CE_Failure, CPLE_AppDefined,
+                     "GDALOpen() called with too many recursion levels");
+            return NULL;
+        }
+        oRecProtectorMap[nPID] ++;
+    }
 
     int         iDriver;
     GDALDriverManager *poDM = GetGDALDriverManager();
@@ -2251,11 +2266,21 @@ GDALDatasetH GDALOpenInternal( GDALOpenInfo& oOpenInfo,
                 CPLDebug( "GDAL", "GDALOpen(%s, this=%p) succeeds as %s.",
                           oOpenInfo.pszFilename, poDS, poDriver->GetDescription() );
 
+            {
+                CPLMutexHolderD( &hDLMutex );
+                oRecProtectorMap[nPID] --;
+            }
             return (GDALDatasetH) poDS;
         }
 
         if( CPLGetLastErrorNo() != 0 )
+        {
+            {
+                CPLMutexHolderD( &hDLMutex );
+                oRecProtectorMap[nPID] --;
+            }
             return NULL;
+        }
     }
 
     if( oOpenInfo.bStatOK )
@@ -2268,6 +2293,10 @@ GDALDatasetH GDALOpenInternal( GDALOpenInfo& oOpenInfo,
                   "and is not recognised as a supported dataset name.\n",
                   oOpenInfo.pszFilename );
 
+    {
+        CPLMutexHolderD( &hDLMutex );
+        oRecProtectorMap[nPID] --;
+    }
     return NULL;
 }
 

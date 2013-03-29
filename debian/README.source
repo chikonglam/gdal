@@ -47,7 +47,7 @@ So:
 
  - Use and maintain a versioning script (debian/gdal.symver). The version
    currently used there is `GDAL_1.8', and it should be maintained from one
-   version to another, until an hack would be required for some specific
+   version to another, until an hack will be required for some specific
    future release.
  - Use and maintain ai single arch-indep C-only symbol file as libgdal*.symbols.common
    and an arch-dep C++ demangled symbol file for each arch. They are expected to 
@@ -60,16 +60,17 @@ So:
           ignoring of symbol changes (-c0 arg in dh_makeshlibs).
         - collect all resulting shlib on all architectures.
         - run manually dpkg-gensymbols to collect differences and check
-          that all is ok. If not solve the situation in a creative manner :)
+          that all is ok. If not, solve the situation in a creative manner :)
 
-          wget http://ftp.it.debian.org/debian/pool/main/g/gdal/libgdal1_<ver>_amd64.deb
+          wget http://ftp.it.debian.org/debian/pool/main/g/gdal/libgdal1_<ver>_armel.deb
           dpkg --extract libgdal1_<ver>_armel.deb /tmp
           dpkg-gensymbols -plibgdal1 -aarmel -v<upstream_ver> \
             -Idebian/libgdal1.symbols.armel -O/tmp/libgdal1.symbols.armel \
             -e/tmp/usr/lib/libgdal.so.1.16.0
 
         - update symbol files to ignore uninfluent changes in C++ API on
-          all archs.
+          all archs. You will need c++filt to demangle C++ symbols and
+          a bit of vi/sed magics.
         - re-upload in unstable if possible with new symbols and after
           removing the -c0 arg.
 

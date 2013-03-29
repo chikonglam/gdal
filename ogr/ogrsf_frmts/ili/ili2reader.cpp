@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ili2reader.cpp 15947 2008-12-13 22:53:24Z rouault $
+ * $Id: ili2reader.cpp 24409 2012-05-11 21:53:56Z pka $
  *
  * Project:  Interlis 2 Reader
  * Purpose:  Implementation of ILI2Reader class.
@@ -38,7 +38,7 @@
 
 using namespace std;
 
-CPL_CVSID("$Id: ili2reader.cpp 15947 2008-12-13 22:53:24Z rouault $");
+CPL_CVSID("$Id: ili2reader.cpp 24409 2012-05-11 21:53:56Z pka $");
 
 //
 // constants
@@ -88,6 +88,7 @@ string ltrim(string tmpstr) {
 }
 
 string rtrim(string tmpstr) {
+  if (tmpstr.length() == 0) return tmpstr;
   unsigned int i = tmpstr.length() - 1;
   while (i >= 0 && (tmpstr[i] == ' ' || tmpstr[i] == '\t' || tmpstr[i] == '\r' || tmpstr[i] == '\n')) --i;
   return i < tmpstr.length() - 1 ? tmpstr.substr(0, i+1) : tmpstr;
@@ -203,18 +204,29 @@ OGRLineString *ILI2Reader::getArc(DOMElement *elem) {
   ptEnd->flattenTo2D();
   ptOnArc->flattenTo2D();
   interpolateArc(ls, ptStart, ptOnArc, ptEnd, arcIncr);
+  delete ptStart;
+  delete ptOnArc;
+  delete ptEnd;
   return ls;
 }
 
-OGRLineString *getLineString(DOMElement *elem) {
+OGRLineString *getLineString(DOMElement *elem, int bAsLinearRing) {
   // elem -> POLYLINE
-  OGRLineString *ls = new OGRLineString();
+  OGRLineString *ls;
+  if (bAsLinearRing)
+      ls = new OGRLinearRing();
+  else
+      ls = new OGRLineString();
 
   DOMElement *lineElem = (DOMElement *)elem->getFirstChild();
   while (lineElem != NULL) {
     char* pszTagName = XMLString::transcode(lineElem->getTagName());
     if (cmpStr(ILI2_COORD, pszTagName) == 0)
-      ls->addPoint(getPoint(lineElem));
+    {
+      OGRPoint* poPoint = getPoint(lineElem);
+      ls->addPoint(poPoint);
+      delete poPoint;
+    }
     else if (cmpStr(ILI2_ARC, pszTagName) == 0) {
       // end point
       OGRPoint *ptEnd = new OGRPoint();
@@ -251,6 +263,10 @@ OGRLineString *getLineString(DOMElement *elem) {
       ptOnArc->flattenTo2D();
       OGRPoint *ptStart = getPoint((DOMElement *)lineElem->getPreviousSibling()); // COORD or ARC
       interpolateArc(ls, ptStart, ptOnArc, ptEnd, PI/180);
+
+      delete ptStart;
+      delete ptEnd;
+      delete ptOnArc;
     } /* else { // FIXME StructureValue in Polyline not yet supported
     } */
     XMLString::release(&pszTagName);
@@ -261,7 +277,7 @@ OGRLineString *getLineString(DOMElement *elem) {
   return ls;
 }
 
-OGRLineString *getBoundary(DOMElement *elem) {
+OGRLinearRing *getBoundary(DOMElement *elem) {
 
   DOMElement *lineElem = (DOMElement *)elem->getFirstChild();
   if (lineElem != NULL)
@@ -270,12 +286,12 @@ OGRLineString *getBoundary(DOMElement *elem) {
     if (cmpStr(ILI2_POLYLINE, pszTagName) == 0)
     {
       XMLString::release(&pszTagName);
-      return getLineString(lineElem);
+      return (OGRLinearRing*) getLineString(lineElem, TRUE);
     }
     XMLString::release(&pszTagName);
   }
 
-  return new OGRLineString;
+  return new OGRLinearRing();
 }
 
 OGRPolygon *getPolygon(DOMElement *elem) {
@@ -285,7 +301,7 @@ OGRPolygon *getPolygon(DOMElement *elem) {
   while (boundaryElem != NULL) {
     char* pszTagName = XMLString::transcode(boundaryElem->getTagName());
     if (cmpStr(ILI2_BOUNDARY, pszTagName) == 0)
-      pg->addRing((OGRLinearRing *)getBoundary(boundaryElem));
+      pg->addRingDirectly(getBoundary(boundaryElem));
     XMLString::release(&pszTagName);
     boundaryElem = (DOMElement *)boundaryElem->getNextSibling(); // inner boundaries
   }
@@ -322,7 +338,7 @@ OGRGeometry *ILI2Reader::getGeometry(DOMElement *elem, int type) {
         {
           delete gm;
           XMLString::release(&pszTagName);
-          return getLineString(childElem);
+          return getLineString(childElem, FALSE);
         }
         break;
       case ILI2_BOUNDARY_TYPE :
@@ -330,7 +346,7 @@ OGRGeometry *ILI2Reader::getGeometry(DOMElement *elem, int type) {
         {
           delete gm;
           XMLString::release(&pszTagName);
-          return getLineString(childElem);
+          return getLineString(childElem, FALSE);
         }
         break;
       case ILI2_AREA_TYPE :
@@ -533,6 +549,7 @@ void ILI2Reader::SetFieldValues(OGRFeature *feature, DOMElement* elem) {
           feature->SetField(fIndex, objVal);
           CPLFree(objVal);
         } else {
+          CPLDebug( "OGR_ILI","Attribute '%s' not found", fName);
           m_missAttrs.push_back(fName);
         }
         CPLFree(fName);
@@ -670,6 +687,7 @@ int ILI2Reader::SaveClasses( const char *pszFile = NULL ) {
     // parse and create layers and features
     try
     {
+        CPLDebug( "OGR_ILI", "Parsing %s", pszFile);
         m_poSAXReader->parse(pszFile);
     }
     catch (const SAXException& toCatch)
@@ -686,7 +704,7 @@ int ILI2Reader::SaveClasses( const char *pszFile = NULL ) {
     m_missAttrs.sort();
     m_missAttrs.unique();
     string attrs = "";
-    list<string>::const_iterator it = m_missAttrs.begin();
+    list<string>::const_iterator it;
     for (it = m_missAttrs.begin(); it != m_missAttrs.end(); ++it)
       attrs += *it + ", ";
 
@@ -738,7 +756,7 @@ int ILI2Reader::AddFeature(DOMElement *elem) {
   // the feature and field definition
   OGRFeatureDefn *featureDef = curLayer->GetLayerDefn();
   if (newLayer) {
-    // the TID feature
+    // add TID field
     OGRFieldDefn ofieldDefn (ILI2_TID, OFTString);
     featureDef->AddFieldDefn(&ofieldDefn);
 
@@ -748,13 +766,17 @@ int ILI2Reader::AddFeature(DOMElement *elem) {
   // add the features
   OGRFeature *feature = new OGRFeature(featureDef);
 
-  // the TID feature
+  // assign TID
   int fIndex = feature->GetFieldIndex(ILI2_TID);
-  XMLCh *pszIli2_tid = XMLString::transcode(ILI2_TID);
-  char *fChVal = XMLString::transcode(elem->getAttribute(pszIli2_tid));
-  feature->SetField(fIndex, fChVal);
-  XMLString::release (&pszIli2_tid);
-  XMLString::release (&fChVal);
+  if (fIndex != -1) {
+      XMLCh *pszIli2_tid = XMLString::transcode(ILI2_TID);
+      char *fChVal = XMLString::transcode(elem->getAttribute(pszIli2_tid));
+      feature->SetField(fIndex, fChVal);
+      XMLString::release (&pszIli2_tid);
+      XMLString::release (&fChVal);
+  } else {
+      CPLDebug( "OGR_ILI","'%s' not found", ILI2_TID);
+  }
 
   SetFieldValues(feature, elem);
   curLayer->SetFeature(feature);

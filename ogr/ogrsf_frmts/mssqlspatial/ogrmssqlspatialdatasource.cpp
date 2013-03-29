@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrmssqlspatialdatasource.cpp 23571 2011-12-14 11:06:58Z tamas $
+ * $Id: ogrmssqlspatialdatasource.cpp 24968 2012-09-24 21:52:21Z tamas $
  *
  * Project:  MSSQL Spatial driver
  * Purpose:  Implements OGRMSSQLSpatialDataSource class..
@@ -29,7 +29,7 @@
 
 #include "ogr_mssqlspatial.h"
 
-CPL_CVSID("$Id: ogrmssqlspatialdatasource.cpp 23571 2011-12-14 11:06:58Z tamas $");
+CPL_CVSID("$Id: ogrmssqlspatialdatasource.cpp 24968 2012-09-24 21:52:21Z tamas $");
 
 /************************************************************************/
 /*                          OGRMSSQLSpatialDataSource()                 */
@@ -83,7 +83,7 @@ OGRMSSQLSpatialDataSource::~OGRMSSQLSpatialDataSource()
 int OGRMSSQLSpatialDataSource::TestCapability( const char * pszCap )
 
 {
-    if( EQUAL(pszCap,ODsCCreateLayer) )
+    if( EQUAL(pszCap,ODsCCreateLayer) || EQUAL(pszCap,ODsCDeleteLayer) )
         return TRUE;
     else
         return FALSE;
@@ -478,11 +478,13 @@ int OGRMSSQLSpatialDataSource::Open( const char * pszNewName, int bUpdate,
         if (ParseValue(&pszGeometryFormat, pszConnectionName, 
             "geometryformat=", nCurrent, nNext, nTerm, TRUE))
         {
-            if (EQUALN(pszGeometryFormat, "wkb",3))
+            if (EQUALN(pszGeometryFormat,"wkbzm",5))
+                nGeometryFormat = MSSQLGEOMETRY_WKBZM;
+            else if (EQUALN(pszGeometryFormat, "wkb",3))
                 nGeometryFormat = MSSQLGEOMETRY_WKB;
             else if (EQUALN(pszGeometryFormat,"wkt",3))
                 nGeometryFormat = MSSQLGEOMETRY_WKT;
-            else if (EQUALN(pszGeometryFormat,"native",3))
+            else if (EQUALN(pszGeometryFormat,"native",6))
                 nGeometryFormat = MSSQLGEOMETRY_NATIVE;
             else
             {

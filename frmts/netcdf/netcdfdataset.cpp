@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: netcdfdataset.cpp 23644 2011-12-23 03:18:40Z etourigny $
+ * $Id: netcdfdataset.cpp 24775 2012-08-13 00:34:07Z etourigny $
  *
  * Project:  netCDF read/write Driver
  * Purpose:  GDAL bindings over netCDF library.
@@ -29,7 +29,7 @@
 
 #include "netcdfdataset.h"
 #include "cpl_error.h"
-CPL_CVSID("$Id: netcdfdataset.cpp 23644 2011-12-23 03:18:40Z etourigny $");
+CPL_CVSID("$Id: netcdfdataset.cpp 24775 2012-08-13 00:34:07Z etourigny $");
 
 #include <map> //for NCDFWriteProjAttribs()
 
@@ -710,6 +710,8 @@ CPLErr netCDFRasterBand::SetNoDataValue( double dfNoData )
     bNoDataSet = TRUE;
     dfNoDataValue = dfNoData;
 
+    CPLDebug( "GDAL_netCDF", "SetNoDataValue( %.18g )", dfNoData );
+
     /* write value if in update mode */
     if ( poDS->GetAccess() == GA_Update ) {
 
@@ -962,7 +964,7 @@ void  netCDFRasterBand::CheckValidData ( void * pImage, int bCheckIsNan )
             /* check for nodata and nan */
             if ( CPLIsEqual( (double) ((T *)pImage)[i], dfNoDataValue ) )
                 continue;
-            if( bCheckIsNan && CPLIsNan( ( (T *) pImage)[i] ) ) {
+            if( bCheckIsNan && CPLIsNan( (double) (( (T *) pImage))[i] ) ) { 
                 ( (T *)pImage )[i] = (T)dfNoDataValue;
                 continue;
             }
@@ -995,6 +997,10 @@ CPLErr netCDFRasterBand::IReadBlock( int nBlockXOff, int nBlockYOff,
     int    Sum=-1;
     int    Taken=-1;
     int    nd;
+
+    if ( (nBlockYOff == 0) || (nBlockYOff == nRasterYSize-1) )
+        CPLDebug( "GDAL_netCDF", "netCDFRasterBand::IReadBlock( %d, %d, ... )",
+                  nBlockXOff, nBlockYOff );
 
     *pszName='\0';
     memset( start, 0, sizeof( start ) );
@@ -1051,6 +1057,10 @@ CPLErr netCDFRasterBand::IReadBlock( int nBlockXOff, int nBlockYOff,
         }
     }
 
+    /* make sure we are in data mode */
+    ( ( netCDFDataset * ) poDS )->SetDefineMode( FALSE );
+
+    /* read data according to type */
     if( eDataType == GDT_Byte ) 
     {
         if (this->bSignedData) 
@@ -1129,6 +1139,10 @@ CPLErr netCDFRasterBand::IWriteBlock( int nBlockXOff, int nBlockYOff,
     int    Sum=-1;
     int    Taken=-1;
     int    nd;
+
+    if ( (nBlockYOff == 0) || (nBlockYOff == nRasterYSize-1) )
+        CPLDebug( "GDAL_netCDF", "netCDFRasterBand::IReadBlock( %d, %d, ... )",
+                  nBlockXOff, nBlockYOff );
 
     *pszName='\0';
     memset( start, 0, sizeof( start ) );
@@ -1293,7 +1307,7 @@ netCDFDataset::~netCDFDataset()
 
 {
     /* make sure projection is written if GeoTransform OR Projection are missing */
-        if( (GetAccess() == GA_Update) && (! bAddedProjectionVars) ) {
+    if( (GetAccess() == GA_Update) && (! bAddedProjectionVars) ) {
         if ( bSetProjection && ! bSetGeoTransform )
             AddProjectionVars();
         else if ( bSetGeoTransform && ! bSetProjection )
@@ -1319,8 +1333,11 @@ netCDFDataset::~netCDFDataset()
 /************************************************************************/
 int netCDFDataset::SetDefineMode( int bNewDefineMode )
 {
-    /* do nothing, already in same mode */
-    if ( bDefineMode == bNewDefineMode ) return CE_None;
+    /* do nothing if already in new define mode
+       or if dataset is in read-only mode */
+    if ( ( bDefineMode == bNewDefineMode ) || 
+         ( GetAccess() == GA_ReadOnly ) ) 
+        return CE_None;
 
     CPLDebug( "GDAL_netCDF", "SetDefineMode(%d) old=%d",
               bNewDefineMode, bDefineMode );
@@ -2409,14 +2426,14 @@ void netCDFDataset::SetProjectionFromVar( int var )
             const char *pszUnitsX = NULL;
             const char *pszUnitsY = NULL;
 
-            strcpy( szTemp, "x" );
+            strcpy( szTemp, poDS->papszDimName[nXDimID] );
             strcat( szTemp, "#units" );
             pszValue = CSLFetchNameValue( poDS->papszMetadata, 
                                           szTemp );
             if( pszValue != NULL ) 
                 pszUnitsX = pszValue;
 
-            strcpy( szTemp, "y" );
+            strcpy( szTemp, poDS->papszDimName[nYDimID] );
             strcat( szTemp, "#units" );
             pszValue = CSLFetchNameValue( poDS->papszMetadata, 
                                           szTemp );
@@ -2430,13 +2447,15 @@ void netCDFDataset::SetProjectionFromVar( int var )
 
             /* add units to PROJCS */
             if ( pszUnits != NULL && ! EQUAL(pszUnits,"") ) {
+                CPLDebug( "GDAL_netCDF", 
+                          "units=%s", pszUnits );
                 if ( EQUAL(pszUnits,"m") ) {
-                    oSRS.SetLinearUnits( CF_UNITS_M, 1.0 );
+                    oSRS.SetLinearUnits( "metre", 1.0 );
                     oSRS.SetAuthority( "PROJCS|UNIT", "EPSG", 9001 );
                 }
                 else if ( EQUAL(pszUnits,"km") ) {
-                    oSRS.SetLinearUnits( CF_UNITS_M, 1000.0 );
-                    oSRS.SetAuthority( "PROJCS|UNIT", "EPSG", 9001 );
+                    oSRS.SetLinearUnits( "kilometre", 1000.0 );
+                    oSRS.SetAuthority( "PROJCS|UNIT", "EPSG", 9036 );
                 }
                 /* TODO check for other values */
                 // else 
@@ -4397,6 +4416,7 @@ netCDFDataset::CreateCopy( const char * pszFilename, GDALDataset *poSrcDS,
     nBands = poSrcDS->GetRasterCount();
     nXSize = poSrcDS->GetRasterXSize();
     nYSize = poSrcDS->GetRasterYSize();
+    pszWKT = poSrcDS->GetProjectionRef();
   
 /* -------------------------------------------------------------------- */
 /*      Check input bands for errors                                    */
@@ -4513,7 +4533,6 @@ netCDFDataset::CreateCopy( const char * pszFilename, GDALDataset *poSrcDS,
         poDS->bSetGeoTransform = FALSE;
     }
 
-    pszWKT = poSrcDS->GetProjectionRef( );
     if ( pszWKT ) {
         poDS->SetProjection( pszWKT );
         /* now we can call AddProjectionVars() directly */
@@ -4522,7 +4541,6 @@ netCDFDataset::CreateCopy( const char * pszFilename, GDALDataset *poSrcDS,
                                                     pProgressData );
         poDS->AddProjectionVars( GDALScaledProgress, pScaledProgress );
         GDALDestroyScaledProgress( pScaledProgress );
-
     }
 
     pfnProgress( 0.5, NULL, pProgressData );
@@ -4891,9 +4909,10 @@ void NCDFAddGDALHistory( int fpImage,
     nc_put_att_text( fpImage, NC_GLOBAL, "Conventions", 
                      strlen(NCDF_CONVENTIONS_CF),
                      NCDF_CONVENTIONS_CF ); 
-    
+
+    const char* pszNCDF_GDAL = GDALVersionInfo("--version");
     nc_put_att_text( fpImage, NC_GLOBAL, "GDAL", 
-                     strlen(NCDF_GDAL), NCDF_GDAL ); 
+                     strlen(pszNCDF_GDAL), pszNCDF_GDAL );
 
     /* Add history */
 #ifdef GDAL_SET_CMD_LINE_DEFINED_TMP

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_mssqlspatial.h 21939 2011-03-11 21:55:49Z tamas $
+ * $Id: ogr_mssqlspatial.h 24968 2012-09-24 21:52:21Z tamas $
  *
  * Project:  MSSQL Spatial driver
  * Purpose:  Definition of classes for OGR MSSQL Spatial driver.
@@ -40,6 +40,7 @@ class OGRMSSQLSpatialDataSource;
 #define MSSQLGEOMETRY_NATIVE 0
 #define MSSQLGEOMETRY_WKB 1
 #define MSSQLGEOMETRY_WKT 2
+#define MSSQLGEOMETRY_WKBZM 3  /* SQL Server 2012 */
 
 /* geometry column types */
 #define MSSQLCOLTYPE_GEOMETRY  0
@@ -103,6 +104,8 @@ protected:
     int nShapePos;
     int nNumShapes;
     int nSRSId;
+    /* geometry or geography */
+    int nColType;
 
 protected:
     OGRPoint*           ReadPoint(int iShape);
@@ -114,7 +117,7 @@ protected:
     OGRGeometryCollection* ReadGeometryCollection(int iShape);
 
 public:
-                        OGRMSSQLGeometryParser();
+                        OGRMSSQLGeometryParser( int nGeomColumnType );
     OGRErr              ParseSqlGeometry(unsigned char* pszInput, int nLen,
                                                         OGRGeometry **poGeom);
     int                 GetSRSId() { return nSRSId; };

@@ -1,5 +1,5 @@
 /**********************************************************************
- * $Id: cpl_vsil_unix_stdio_64.cpp 23506 2011-12-10 13:43:59Z rouault $
+ * $Id: cpl_vsil_unix_stdio_64.cpp 24271 2012-04-20 22:01:20Z rouault $
  *
  * Project:  CPL - Common Portability Library
  * Purpose:  Implement VSI large file api for Unix platforms with fseek64()
@@ -48,7 +48,7 @@
 #include <dirent.h>
 #include <errno.h>
 
-CPL_CVSID("$Id: cpl_vsil_unix_stdio_64.cpp 23506 2011-12-10 13:43:59Z rouault $");
+CPL_CVSID("$Id: cpl_vsil_unix_stdio_64.cpp 24271 2012-04-20 22:01:20Z rouault $");
 
 #if defined(UNIX_STDIO_64)
 
@@ -281,8 +281,11 @@ size_t VSIUnixStdioHandle::Read( void * pBuffer, size_t nSize, size_t nCount )
     bLastOpRead = TRUE;
 
     if (nResult != nCount)
+    {
+        nOffset = VSI_FTELL64( fp );
         bAtEOF = feof(fp);
-    
+    }
+
     return nResult;
 }
 

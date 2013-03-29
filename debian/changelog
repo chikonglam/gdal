@@ -1,9 +1,51 @@
-gdal (1.9.0-1~exp4) experimental; urgency=low
+gdal (1.9.2-1~exp2) experimental; urgency=low
 
   * Moved to new LIBKML driver instead of the old KML one. It has a much
     better support for complex KML files.
 
  -- Francesco Paolo Lovergine <frankie@debian.org>  Sun, 04 Mar 2012 11:39:57 +0100
+
+gdal (1.9.2-1~exp1) experimental; urgency=low
+
+  [ Jerome Villeneuve Larouche ]
+  * New upstream release
+
+  [ Francesco Paolo Lovergine ]
+  * Reintroducing libgdal1-dev as a transitional package to allow r-deps
+    to build in any environment.
+  * Removed old dependency on libcurl3-dev for libgdal-dev and added a 
+    preferred dep on libcurl4-gnutls-dev to make lintian happy.
+  * Added build-{arch|indep} targets in debian/rules.
+  * Fixed a bit debian/changelog for latest changes. 
+  * Now using libxerces-c-dev as dependency for current library version.
+  * Policy bumped to 3.9.4. No special changes required.
+
+ -- Francesco Paolo Lovergine <frankie@debian.org>  Fri, 29 Mar 2013 10:38:40 +0100
+
+gdal (1.9.0-1) unstable; urgency=low
+
+  * Ready for sid, starting transition.
+  * All symfiles updated to latest builds.
+  * Added dh_numpy call in debian/rules to depend on numpy ABI.
+  * Policy bumped to 3.9.3, no changes required.
+
+ -- Francesco Paolo Lovergine <frankie@debian.org>  Mon, 07 May 2012 15:04:42 +0200
+
+gdal (1.9.0-1~exp5) experimental; urgency=low
+
+  * Added a build-dep on liburiparser-dev to satisfy configure test. Without
+    that GDAL reverts to the old KML support anyway :-(.
+  * Explicitly enabled Armadillo and LZMA supports.
+  * OpenJPEG is enabled in debian/rules, but still unsupported because current
+    library is obsolete. GDAL requires at least 1.4.
+
+ -- Francesco Paolo Lovergine <frankie@debian.org>  Mon, 05 Mar 2012 17:44:59 +0100
+
+gdal (1.9.0-1~exp4) experimental; urgency=low
+
+  * Moving from old KML to new libkml based.
+
+ -- Francesco Paolo Lovergine <frankie@debian.org>  Fri, 02 Mar 2012 14:44:23 +0100
 
 gdal (1.9.0-1~exp3) experimental; urgency=low
 

@@ -1,5 +1,5 @@
 /**********************************************************************
- * $Id: cpl_recode_stub.cpp 23024 2011-09-02 19:45:20Z rouault $
+ * $Id: cpl_recode_stub.cpp 24558 2012-06-10 10:22:57Z rouault $
  *
  * Name:     cpl_recode_stub.cpp
  * Project:  CPL - Common Portability Library
@@ -31,7 +31,7 @@
 
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: cpl_recode_stub.cpp 23024 2011-09-02 19:45:20Z rouault $");
+CPL_CVSID("$Id: cpl_recode_stub.cpp 24558 2012-06-10 10:22:57Z rouault $");
 
 #ifdef CPL_RECODE_STUB 
 
@@ -58,6 +58,23 @@ static int utf8bytes(unsigned ucs);
 /*	Stub Implementation not depending on iconv() or WIN32 API.	*/
 /* ==================================================================== */
 /************************************************************************/
+
+static int bHaveWarned1 = FALSE;
+static int bHaveWarned2 = FALSE;
+static int bHaveWarned3 = FALSE;
+static int bHaveWarned4 = FALSE;
+
+/************************************************************************/
+/*                 CPLClearRecodeStubWarningFlags()                     */
+/************************************************************************/
+
+void CPLClearRecodeStubWarningFlags()
+{
+    bHaveWarned1 = FALSE;
+    bHaveWarned2 = FALSE;
+    bHaveWarned3 = FALSE;
+    bHaveWarned4 = FALSE;
+}
 
 /************************************************************************/
 /*                           CPLRecodeStub()                            */
@@ -136,11 +153,10 @@ char *CPLRecodeStub( const char *pszSource,
     {
         int nCharCount = strlen(pszSource);
         char *pszResult = (char *) CPLCalloc(1,nCharCount*2+1);
-        static int bHaveWarned = FALSE;
 
-        if( !bHaveWarned )
+        if( !bHaveWarned1 )
         {
-            bHaveWarned = 1;
+            bHaveWarned1 = 1;
             CPLError( CE_Warning, CPLE_AppDefined, 
                       "Recode from %s to UTF-8 not supported, treated as ISO8859-1 to UTF-8.", 
                       pszSrcEncoding );
@@ -160,11 +176,10 @@ char *CPLRecodeStub( const char *pszSource,
     {
         int nCharCount = strlen(pszSource);
         char *pszResult = (char *) CPLCalloc(1,nCharCount+1);
-        static int bHaveWarned = FALSE;
 
-        if( !bHaveWarned )
+        if( !bHaveWarned2 )
         {
-            bHaveWarned = 1;
+            bHaveWarned2 = 1;
             CPLError( CE_Warning, CPLE_AppDefined, 
                       "Recode from UTF-8 to %s not supported, treated as UTF-8 to ISO8859-1.", 
                       pszDstEncoding );
@@ -179,11 +194,9 @@ char *CPLRecodeStub( const char *pszSource,
 /*      Everything else is treated as a no-op with a warning.           */
 /* -------------------------------------------------------------------- */
     {
-        static int bHaveWarned = FALSE;
-
-        if( !bHaveWarned )
+        if( !bHaveWarned3 )
         {
-            bHaveWarned = 1;
+            bHaveWarned3 = 1;
             CPLError( CE_Warning, CPLE_AppDefined, 
                       "Recode from %s to %s not supported, no change applied.", 
                       pszSrcEncoding, pszDstEncoding );
@@ -814,10 +827,9 @@ static unsigned utf8toa(const char* src, unsigned srclen,
       if (ucs < 0x100) dst[count] = (char)ucs;
       else
       {
-          static int bHasWarned = FALSE;
-          if (!bHasWarned)
+          if (!bHaveWarned4)
           {
-              bHasWarned = TRUE;
+              bHaveWarned4 = TRUE;
               CPLError(CE_Warning, CPLE_AppDefined,
                        "One or several characters couldn't be converted correctly from UTF-8 to ISO-8859-1.\n"
                        "This warning will not be emitted anymore");
