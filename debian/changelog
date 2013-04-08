@@ -1,3 +1,11 @@
+gdal (1.9.2-1~exp2) experimental; urgency=low
+
+  * Reintroduced internal symbols hiding for better compatibility 
+    against mixing external geotiff and gdal. See Orfeotoolbox case:
+    See #558733 again.
+
+ -- Francesco Paolo Lovergine <frankie@debian.org>  Fri, 29 Mar 2013 14:07:43 +0100
+
 gdal (1.9.2-1~exp1) experimental; urgency=low
 
   [ Jerome Villeneuve Larouche ]
