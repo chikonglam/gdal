@@ -11,8 +11,7 @@ Build-Depends: debhelper (>= 8), zlib1g-dev, libnetcdf-dev (>= 1:4.0.0),
  ruby1.8, ruby1.8-dev, chrpath, swig, patch, libexpat1-dev, libproj-dev,
  libdap-dev, libxml2-dev, libspatialite-dev (>= 2.4.0~rc2-4), libepsilon-dev (>= 0.9.1),
  libpoppler-private-dev, liblzma-dev, libopenjpeg-dev, libarmadillo-dev, libfreexl-dev (>= 1.0.0),
- libkml-dev, liburiparser-dev,
- python3-all-dev, python3-numpy
+ libkml-dev (>= 1.3.0~), liburiparser-dev, python3-all-dev, python3-numpy
 Build-Conflicts: python-setuptools
 Standards-Version: 3.9.3
 XS-Python-Version: all
