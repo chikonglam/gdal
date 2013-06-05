@@ -9,3 +9,4 @@ ecw-plugin
 mrsid-plugin
 symver
 spatialite
+force-ruby1.8
