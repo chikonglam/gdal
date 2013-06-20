@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gxfdataset.cpp 25051 2012-10-05 21:58:02Z warmerdam $
+ * $Id: gxfdataset.cpp 25164 2012-10-20 13:42:32Z rouault $
  *
  * Project:  GXF Reader
  * Purpose:  GDAL binding for GXF reader.
@@ -30,7 +30,7 @@
 #include "gxfopen.h"
 #include "gdal_pam.h"
 
-CPL_CVSID("$Id: gxfdataset.cpp 25051 2012-10-05 21:58:02Z warmerdam $");
+CPL_CVSID("$Id: gxfdataset.cpp 25164 2012-10-20 13:42:32Z rouault $");
 
 #ifndef PI
 #  define PI 3.14159265358979323846
@@ -137,7 +137,9 @@ CPLErr GXFRasterBand::IReadBlock( int nBlockXOff, int nBlockYOff,
 
     if (eDataType == GDT_Float32)
     {
-        padfBuffer = (double *) CPLMalloc(sizeof(double) * nBlockXSize);
+        padfBuffer = (double *) VSIMalloc2(sizeof(double), nBlockXSize);
+        if( padfBuffer == NULL )
+            return CE_Failure;
         eErr = GXFGetScanline( poGXF_DS->hGXF, nBlockYOff, padfBuffer );
         
         for( i = 0; i < nBlockXSize; i++ )

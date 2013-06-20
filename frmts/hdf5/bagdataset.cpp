@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: bagdataset.cpp 24974 2012-09-25 18:19:33Z warmerdam $
+ * $Id: bagdataset.cpp 25774 2013-03-20 20:19:13Z rouault $
  *
  * Project:  Hierarchical Data Format Release 5 (HDF5)
  * Purpose:  Read BAG datasets.
@@ -34,7 +34,7 @@
 #include "ogr_spatialref.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: bagdataset.cpp 24974 2012-09-25 18:19:33Z warmerdam $");
+CPL_CVSID("$Id: bagdataset.cpp 25774 2013-03-20 20:19:13Z rouault $");
 
 CPL_C_START
 void    GDALRegister_BAG(void);
@@ -73,6 +73,8 @@ public:
 
     static GDALDataset  *Open( GDALOpenInfo * );
     static int          Identify( GDALOpenInfo * );
+
+    OGRErr ParseWKTFromXML( const char *pszISOXML );
 };
 
 /************************************************************************/
@@ -187,6 +189,27 @@ bool BAGRasterBand::Initialize( hid_t hDatasetID, const char *pszName )
             nBlockXSize  = (int) panChunkDims[nDimSize-1];
             nBlockYSize  = (int) panChunkDims[nDimSize-2];
         }
+
+        int nfilters = H5Pget_nfilters( listid );
+
+        H5Z_filter_t filter;
+        char         name[120];
+        size_t       cd_nelmts = 20;
+        unsigned int cd_values[20];
+        unsigned int flags;
+        for (int i = 0; i < nfilters; i++) 
+        {
+          filter = H5Pget_filter(listid, i, &flags, (size_t *)&cd_nelmts, cd_values, 120, name);
+          if (filter == H5Z_FILTER_DEFLATE)
+            poDS->SetMetadataItem( "COMPRESSION", "DEFLATE", "IMAGE_STRUCTURE" );
+          else if (filter == H5Z_FILTER_NBIT)
+            poDS->SetMetadataItem( "COMPRESSION", "NBIT", "IMAGE_STRUCTURE" );
+          else if (filter == H5Z_FILTER_SCALEOFFSET)
+            poDS->SetMetadataItem( "COMPRESSION", "SCALEOFFSET", "IMAGE_STRUCTURE" );
+          else if (filter == H5Z_FILTER_SZIP)
+            poDS->SetMetadataItem( "COMPRESSION", "SZIP", "IMAGE_STRUCTURE" );
+        }
+
         H5Pclose(listid);
     }
 
@@ -636,8 +659,6 @@ void BAGDataset::LoadMetadata()
         CSLDestroy( papszCornerTokens );
     }
 
-    CPLDestroyXMLNode( psRoot );
-
 /* -------------------------------------------------------------------- */
 /*      Try to get the coordinate system.                               */
 /* -------------------------------------------------------------------- */
@@ -647,7 +668,125 @@ void BAGDataset::LoadMetadata()
         == OGRERR_NONE )
     {
         oSRS.exportToWkt( &pszProjection );
+    } 
+    else
+    {
+        ParseWKTFromXML( pszXMLMetadata );
     }
+
+/* -------------------------------------------------------------------- */
+/*      Fetch acquisition date.                                         */
+/* -------------------------------------------------------------------- */
+    CPLXMLNode *psDateTime = CPLSearchXMLNode( psRoot, "=dateTime" );
+    if( psDateTime != NULL )
+    {
+        const char *pszDateTimeValue = CPLGetXMLValue( psDateTime, NULL, "" );
+        if( pszDateTimeValue )
+            SetMetadataItem( "BAG_DATETIME", pszDateTimeValue );
+    }
+
+    CPLDestroyXMLNode( psRoot );
+}
+
+/************************************************************************/
+/*                          ParseWKTFromXML()                           */
+/************************************************************************/
+OGRErr BAGDataset::ParseWKTFromXML( const char *pszISOXML )
+{
+    OGRSpatialReference oSRS;
+    CPLXMLNode *psRoot = CPLParseXMLString( pszISOXML );
+    OGRErr eOGRErr = OGRERR_FAILURE;
+
+    if( psRoot == NULL )
+        return eOGRErr;
+
+    CPLStripXMLNamespace( psRoot, NULL, TRUE ); 
+
+    CPLXMLNode *psRSI = CPLSearchXMLNode( psRoot, "=referenceSystemInfo" );
+    if( psRSI == NULL )
+    {
+        CPLError( CE_Failure, CPLE_AppDefined,
+          "Unable to find <referenceSystemInfo> in metadata." );
+        CPLDestroyXMLNode( psRoot );
+        return eOGRErr;
+    }
+
+    oSRS.Clear();
+
+    const char *pszSRCodeString = 
+        CPLGetXMLValue( psRSI, "MD_ReferenceSystem.referenceSystemIdentifier.RS_Identifier.code.CharacterString", NULL );
+    if( pszSRCodeString == NULL )
+    {
+        CPLDebug("BAG",
+          "Unable to find /MI_Metadata/referenceSystemInfo[1]/MD_ReferenceSystem[1]/referenceSystemIdentifier[1]/RS_Identifier[1]/code[1]/CharacterString[1] in metadata." );
+        CPLDestroyXMLNode( psRoot );
+        return eOGRErr;
+    }
+    
+    const char *pszSRCodeSpace = 
+        CPLGetXMLValue( psRSI, "MD_ReferenceSystem.referenceSystemIdentifier.RS_Identifier.codeSpace.CharacterString", "" );
+    if( !EQUAL( pszSRCodeSpace, "WKT" ) )
+    {
+        CPLError( CE_Failure, CPLE_AppDefined,
+            "Spatial reference string is not in WKT." );
+        CPLDestroyXMLNode( psRoot );
+        return eOGRErr;
+    }
+
+    char* pszWKT = const_cast< char* >( pszSRCodeString );
+    if( oSRS.importFromWkt( &pszWKT ) != OGRERR_NONE )
+    {
+        CPLError( CE_Failure, CPLE_AppDefined,
+          "Failed parsing WKT string \"%s\".", pszSRCodeString );
+        CPLDestroyXMLNode( psRoot );
+        return eOGRErr;
+    }
+
+    oSRS.exportToWkt( &pszProjection );
+    eOGRErr = OGRERR_NONE;
+
+    psRSI = CPLSearchXMLNode( psRSI->psNext, "=referenceSystemInfo" );
+    if( psRSI == NULL )
+    {
+        CPLError( CE_Failure, CPLE_AppDefined,
+            "Unable to find second instance of <referenceSystemInfo> in metadata." );
+        CPLDestroyXMLNode( psRoot );
+        return eOGRErr;
+    }
+
+    pszSRCodeString = 
+      CPLGetXMLValue( psRSI, "MD_ReferenceSystem.referenceSystemIdentifier.RS_Identifier.code.CharacterString", NULL );
+    if( pszSRCodeString == NULL )
+    {
+        CPLError( CE_Failure, CPLE_AppDefined,
+            "Unable to find /MI_Metadata/referenceSystemInfo[2]/MD_ReferenceSystem[1]/referenceSystemIdentifier[1]/RS_Identifier[1]/code[1]/CharacterString[1] in metadata." );
+        CPLDestroyXMLNode( psRoot );
+        return eOGRErr;
+    }
+
+    pszSRCodeSpace = 
+        CPLGetXMLValue( psRSI, "MD_ReferenceSystem.referenceSystemIdentifier.RS_Identifier.codeSpace.CharacterString", "" );
+    if( !EQUAL( pszSRCodeSpace, "WKT" ) )
+    {
+        CPLError( CE_Failure, CPLE_AppDefined,
+            "Spatial reference string is not in WKT." );
+        CPLDestroyXMLNode( psRoot );
+        return eOGRErr;
+    }
+
+    if( EQUALN(pszSRCodeString, "VERTCS", 6 ) )
+    {
+        CPLString oString( pszProjection );
+        oString += ",";
+        oString += pszSRCodeString;
+        if ( pszProjection )
+            CPLFree( pszProjection );
+        pszProjection = CPLStrdup( oString );
+    }
+
+    CPLDestroyXMLNode( psRoot );
+    
+    return eOGRErr;
 }
 
 /************************************************************************/

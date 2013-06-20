@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrili1layer.cpp 24077 2012-03-05 21:52:04Z pka $
+ * $Id: ogrili1layer.cpp 24611 2012-06-25 15:21:48Z pka $
  *
  * Project:  Interlis 1 Translator
  * Purpose:  Implements OGRILI1Layer class.
@@ -32,7 +32,7 @@
 #include "cpl_string.h"
 #include "ogr_geos.h"
 
-CPL_CVSID("$Id: ogrili1layer.cpp 24077 2012-03-05 21:52:04Z pka $");
+CPL_CVSID("$Id: ogrili1layer.cpp 24611 2012-06-25 15:21:48Z pka $");
 
 /************************************************************************/
 /*                           OGRILI1Layer()                              */
@@ -116,7 +116,7 @@ OGRFeature *OGRILI1Layer::GetNextFeature()
     OGRFeature *poFeature;
 
     if (poSurfacePolyLayer != 0) JoinSurfaceLayer();
-    if (poAreaLineLayer != 0) PolygonizeAreaLayer();
+    if (poAreaLineLayer != 0) PolygonizeAreaLayer(); //TODO: polygonize only when polygon layer is reqested
 
     while(nFeatureIdx < nFeatures)
     {
@@ -507,6 +507,7 @@ void OGRILI1Layer::PolygonizeAreaLayer()
 
     //polygonize lines
     CPLDebug( "OGR_ILI", "Polygonizing layer %s with %d multilines", poAreaLineLayer->GetLayerDefn()->GetName(), gc->getNumGeometries());
+    poAreaLineLayer = 0;
     OGRMultiPolygon* polys = Polygonize( gc , false);
     CPLDebug( "OGR_ILI", "Resulting polygons: %d", polys->getNumGeometries());
     if (polys->getNumGeometries() != poAreaReferenceLayer->GetFeatureCount())
@@ -562,7 +563,6 @@ void OGRILI1Layer::PolygonizeAreaLayer()
         GEOSGeom_destroy( ahInGeoms[i] );
     CPLFree( ahInGeoms );
 #endif
-    poAreaReferenceLayer = 0;
     poAreaLineLayer = 0;
     delete polys;
 }

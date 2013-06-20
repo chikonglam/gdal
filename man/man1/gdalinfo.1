@@ -1,8 +1,8 @@
-.TH "gdalinfo" 1 "Mon Oct 8 2012" "GDAL" \" -*- nroff -*-
+.TH "gdalinfo" 1 "Wed Apr 24 2013" "GDAL" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
-gdalinfo \- .TH "gdalinfo" 1 "Mon Oct 8 2012" "GDAL" \" -*- nroff -*-
+gdalinfo \- .TH "gdalinfo" 1 "Wed Apr 24 2013" "GDAL" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -13,7 +13,7 @@ gdalinfo \- lists information about a raster dataset
 .nf
 
 gdalinfo [--help-general] [-mm] [-stats] [-hist] [-nogcp] [-nomd]
-         [-noct] [-nofl] [-checksum] [-proj4] [-mdd domain]*
+         [-norat] [-noct] [-nofl] [-checksum] [-proj4] [-mdd domain]*
 	 [-sd subdataset] datasetname
 .fi
 .PP
@@ -32,6 +32,8 @@ Report histogram information for all bands.
 Suppress ground control points list printing. It may be useful for datasets with huge amount of GCPs, such as L1B AVHRR or HDF4 MODIS which contain thousands of them. 
 .IP "\fB\fB-nomd\fP\fP" 1c
 Suppress metadata printing. Some datasets may contain a lot of metadata strings. 
+.IP "\fB\fB-nrat\fP\fP" 1c
+Suppress printing of raster attribute table. 
 .IP "\fB\fB-noct\fP\fP" 1c
 Suppress printing of color table. 
 .IP "\fB\fB-checksum\fP\fP" 1c

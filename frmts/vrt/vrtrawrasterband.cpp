@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: vrtrawrasterband.cpp 22776 2011-07-23 18:07:58Z rouault $
+ * $Id: vrtrawrasterband.cpp 25567 2013-01-26 21:55:28Z rouault $
  *
  * Project:  Virtual GDAL Datasets
  * Purpose:  Implementation of VRTRawRasterBand
@@ -32,7 +32,7 @@
 #include "cpl_string.h"
 #include "rawdataset.h"
 
-CPL_CVSID("$Id: vrtrawrasterband.cpp 22776 2011-07-23 18:07:58Z rouault $");
+CPL_CVSID("$Id: vrtrawrasterband.cpp 25567 2013-01-26 21:55:28Z rouault $");
 
 /************************************************************************/
 /* ==================================================================== */
@@ -415,8 +415,11 @@ CPLXMLNode *VRTRawRasterBand::SerializeToXML( const char *pszVRTPath )
         psTree, "LineOffset", 
         CPLSPrintf("%d",(int) poRawRaster->GetLineOffset()) );
 
-    if( (poRawRaster->GetNativeOrder() && CPL_IS_LSB)
-        || (!poRawRaster->GetNativeOrder() && !CPL_IS_LSB) )
+#if CPL_IS_LSB == 1
+    if( poRawRaster->GetNativeOrder() )
+#else
+    if( !poRawRaster->GetNativeOrder() )
+#endif
         CPLCreateXMLElementAndValue( psTree, "ByteOrder", "LSB" );
     else
         CPLCreateXMLElementAndValue( psTree, "ByteOrder", "MSB" );

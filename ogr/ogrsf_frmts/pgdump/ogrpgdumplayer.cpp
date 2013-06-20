@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrpgdumplayer.cpp 22969 2011-08-23 20:43:21Z rouault $
+ * $Id: ogrpgdumplayer.cpp 25366 2012-12-27 18:38:53Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implements OGRPGDumpLayer class
@@ -31,7 +31,7 @@
 #include "cpl_conv.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: ogrpgdumplayer.cpp 22969 2011-08-23 20:43:21Z rouault $");
+CPL_CVSID("$Id: ogrpgdumplayer.cpp 25366 2012-12-27 18:38:53Z rouault $");
 
 #define USE_COPY_UNSET -1
 
@@ -73,8 +73,10 @@ OGRPGDumpLayer::OGRPGDumpLayer(OGRPGDumpDataSource* poDS,
     bLaunderColumnNames = TRUE;
     bPreservePrecision = TRUE;
     bUseCopy = USE_COPY_UNSET;
+    bFIDColumnInCopyFields = FALSE;
     bWriteAsHex = bWriteAsHexIn;
     bCopyActive = FALSE;
+    papszOverrideColumnTypes = NULL;
 }
 
 /************************************************************************/
@@ -89,6 +91,7 @@ OGRPGDumpLayer::~OGRPGDumpLayer()
     CPLFree(pszSqlTableName);
     CPLFree(pszGeomColumn);
     CPLFree(pszFIDColumn);
+    CSLDestroy(papszOverrideColumnTypes);
 }
 
 /************************************************************************/
@@ -153,7 +156,7 @@ char *OGRPGDumpLayer::GeometryToHex( OGRGeometry * poGeometry, int nSRSId )
     memcpy( &geomType, pabyWKB+1, 4 );
 
     /* Now add the SRID flag if an SRID is provided */
-    if (nSRSId != -1)
+    if (nSRSId > 0)
     {
         /* Change the flag to wkbNDR (little) endianess */
         GUInt32 nGSrsFlag = CPL_LSBWORD32( WKBSRIDFLAG );
@@ -168,7 +171,7 @@ char *OGRPGDumpLayer::GeometryToHex( OGRGeometry * poGeometry, int nSRSId )
     pszTextBufCurrent += 8;
 
     /* Now include SRID if provided */
-    if (nSRSId != -1)
+    if (nSRSId > 0)
     {
         /* Force the srsid to wkbNDR (little) endianess */
         GUInt32 nGSRSId = CPL_LSBWORD32( nSRSId );
@@ -215,7 +218,13 @@ OGRErr OGRPGDumpLayer::CreateFeature( OGRFeature *poFeature )
     else
     {
         if ( !bCopyActive )
-            StartCopy();
+        {
+            /* This is a heuristics. If the first feature to be copied has a */ 
+            /* FID set (and that a FID column has been identified), then we will */ 
+            /* try to copy FID values from features. Otherwise, we will not */ 
+            /* do and assume that the FID column is an autoincremented column. */ 
+            StartCopy(poFeature->GetFID() != OGRNullFID); 
+        }
 
         return CreateFeatureViaCopy( poFeature );
     }
@@ -393,11 +402,14 @@ OGRErr OGRPGDumpLayer::CreateFeatureViaCopy( OGRFeature *poFeature )
     }
 
     /* Next process the field id column */
-    if( /*bHasFid &&*/ poFeatureDefn->GetFieldIndex( pszFIDColumn ) != -1 )
+    int nFIDIndex = -1;
+    if( bFIDColumnInCopyFields )
     {
         if (osCommand.size() > 0)
             osCommand += "\t";
-            
+
+        nFIDIndex = poFeatureDefn->GetFieldIndex( pszFIDColumn ); 
+
         /* Set the FID */
         if( poFeature->GetFID() != OGRNullFID )
         {
@@ -413,14 +425,20 @@ OGRErr OGRPGDumpLayer::CreateFeatureViaCopy( OGRFeature *poFeature )
     /* Now process the remaining fields */
 
     int nFieldCount = poFeatureDefn->GetFieldCount();
+    int bAddTab = osCommand.size() > 0; 
+
     for( int i = 0; i < nFieldCount;  i++ )
     {
+        if (i == nFIDIndex)
+            continue;
+
         const char *pszStrValue = poFeature->GetFieldAsString(i);
         char *pszNeedToFree = NULL;
 
-        if (i > 0 || osCommand.size() > 0)
+        if (bAddTab)
             osCommand += "\t";
-            
+        bAddTab = TRUE; 
+
         if( !poFeature->IsFieldSet( i ) )
         {
             osCommand += "\\N" ;
@@ -570,13 +588,13 @@ OGRErr OGRPGDumpLayer::CreateFeatureViaCopy( OGRFeature *poFeature )
 /*                             StartCopy()                              */
 /************************************************************************/
 
-OGRErr OGRPGDumpLayer::StartCopy()
+OGRErr OGRPGDumpLayer::StartCopy(int bSetFID)
 
 {
     /* Tell the datasource we are now planning to copy data */
     poDS->StartCopy( this ); 
 
-    CPLString osFields = BuildCopyFields();
+    CPLString osFields = BuildCopyFields(bSetFID);
 
     int size = strlen(osFields) +  strlen(pszSqlTableName) + 100;
     char *pszCommand = (char *) CPLMalloc(size);
@@ -617,29 +635,36 @@ OGRErr OGRPGDumpLayer::EndCopy()
 /*                          BuildCopyFields()                           */
 /************************************************************************/
 
-CPLString OGRPGDumpLayer::BuildCopyFields()
+CPLString OGRPGDumpLayer::BuildCopyFields(int bSetFID)
 {
     int     i = 0;
+    int     nFIDIndex = -1; 
     CPLString osFieldList;
 
-    if( /*bHasFid &&*/ poFeatureDefn->GetFieldIndex( pszFIDColumn ) != -1 )
+    if( pszGeomColumn != NULL )
     {
-        osFieldList += OGRPGDumpEscapeColumnName(pszFIDColumn);
+        osFieldList = OGRPGDumpEscapeColumnName(pszGeomColumn);
     }
 
-    if( pszGeomColumn )
+    bFIDColumnInCopyFields = (pszFIDColumn != NULL && bSetFID);
+    if( bFIDColumnInCopyFields )
     {
-        if( strlen(osFieldList) > 0 )
+        if( osFieldList.size() > 0 )
             osFieldList += ", ";
 
-        osFieldList += OGRPGDumpEscapeColumnName(pszGeomColumn);
+        nFIDIndex = poFeatureDefn->GetFieldIndex( pszFIDColumn );
+
+        osFieldList += OGRPGDumpEscapeColumnName(pszFIDColumn); 
     }
 
     for( i = 0; i < poFeatureDefn->GetFieldCount(); i++ )
     {
+        if (i == nFIDIndex)
+            continue;
+
         const char *pszName = poFeatureDefn->GetFieldDefn(i)->GetNameRef();
 
-        if( strlen(osFieldList) > 0 )
+       if( osFieldList.size() > 0 )
             osFieldList += ", ";
 
         osFieldList += OGRPGDumpEscapeColumnName(pszName);
@@ -971,41 +996,14 @@ char* OGRPGDumpLayer::GByteArrayToBYTEA( const GByte* pabyData, int nLen)
 }
 
 /************************************************************************/
-/*                           GetNextFeature()                           */
+/*                        OGRPGTableLayerGetType()                      */
 /************************************************************************/
 
-OGRErr OGRPGDumpLayer::CreateField( OGRFieldDefn *poFieldIn,
-                                     int bApproxOK )
+static CPLString OGRPGTableLayerGetType(OGRFieldDefn& oField,
+                                        int bPreservePrecision,
+                                        int bApproxOK)
 {
-    if (nFeatures != 0)
-    {
-        CPLError(CE_Failure, CPLE_NotSupported,
-                 "Cannot create field after first feature has been written");
-        return OGRERR_FAILURE;
-    }
-    
-    CPLString           osCommand;
     char                szFieldType[256];
-    OGRFieldDefn        oField( poFieldIn );
-
-/* -------------------------------------------------------------------- */
-/*      Do we want to "launder" the column names into Postgres          */
-/*      friendly format?                                                */
-/* -------------------------------------------------------------------- */
-    if( bLaunderColumnNames )
-    {
-        char    *pszSafeName = poDS->LaunderName( oField.GetNameRef() );
-
-        oField.SetName( pszSafeName );
-        CPLFree( pszSafeName );
-
-        if( EQUAL(oField.GetNameRef(),"oid") )
-        {
-            CPLError( CE_Warning, CPLE_AppDefined,
-                      "Renaming field 'oid' to 'oid_' to avoid conflict with internal oid field." );
-            oField.SetName( "oid_" );
-        }
-    }
 
 /* -------------------------------------------------------------------- */
 /*      Work out the PostgreSQL type.                                   */
@@ -1075,8 +1073,57 @@ OGRErr OGRPGDumpLayer::CreateField( OGRFieldDefn *poFieldIn,
                   "Can't create field %s with type %s on PostgreSQL layers.",
                   oField.GetNameRef(),
                   OGRFieldDefn::GetFieldTypeName(oField.GetType()) );
+        strcpy( szFieldType, "");
+    }
 
+    return szFieldType;
+}
+
+/************************************************************************/
+/*                           GetNextFeature()                           */
+/************************************************************************/
+
+OGRErr OGRPGDumpLayer::CreateField( OGRFieldDefn *poFieldIn,
+                                     int bApproxOK )
+{
+    if (nFeatures != 0)
+    {
+        CPLError(CE_Failure, CPLE_NotSupported,
+                 "Cannot create field after first feature has been written");
         return OGRERR_FAILURE;
+    }
+    
+    CPLString           osCommand;
+    CPLString           osFieldType;
+    OGRFieldDefn        oField( poFieldIn );
+
+/* -------------------------------------------------------------------- */
+/*      Do we want to "launder" the column names into Postgres          */
+/*      friendly format?                                                */
+/* -------------------------------------------------------------------- */
+    if( bLaunderColumnNames )
+    {
+        char    *pszSafeName = poDS->LaunderName( oField.GetNameRef() );
+
+        oField.SetName( pszSafeName );
+        CPLFree( pszSafeName );
+
+        if( EQUAL(oField.GetNameRef(),"oid") )
+        {
+            CPLError( CE_Warning, CPLE_AppDefined,
+                      "Renaming field 'oid' to 'oid_' to avoid conflict with internal oid field." );
+            oField.SetName( "oid_" );
+        }
+    }
+
+    const char* pszOverrideType = CSLFetchNameValue(papszOverrideColumnTypes, oField.GetNameRef());
+    if( pszOverrideType != NULL )
+        osFieldType = pszOverrideType;
+    else
+    {
+        osFieldType = OGRPGTableLayerGetType(oField, bPreservePrecision, bApproxOK);
+        if (osFieldType.size() == 0)
+            return OGRERR_FAILURE;
     }
 
 /* -------------------------------------------------------------------- */
@@ -1084,11 +1131,55 @@ OGRErr OGRPGDumpLayer::CreateField( OGRFieldDefn *poFieldIn,
 /* -------------------------------------------------------------------- */
     osCommand.Printf( "ALTER TABLE %s ADD COLUMN %s %s",
                       pszSqlTableName, OGRPGDumpEscapeColumnName(oField.GetNameRef()).c_str(),
-                      szFieldType );
+                      osFieldType.c_str() );
     if (bCreateTable)
         poDS->Log(osCommand);
 
     poFeatureDefn->AddFieldDefn( &oField );
     
     return OGRERR_NONE;
+}
+
+/************************************************************************/
+/*                        SetOverrideColumnTypes()                      */
+/************************************************************************/
+
+void OGRPGDumpLayer::SetOverrideColumnTypes( const char* pszOverrideColumnTypes )
+{
+    if( pszOverrideColumnTypes == NULL )
+        return;
+
+    const char* pszIter = pszOverrideColumnTypes;
+    CPLString osCur;
+    while(*pszIter != '\0')
+    {
+        if( *pszIter == '(' )
+        {
+            /* Ignore commas inside ( ) pair */
+            while(*pszIter != '\0')
+            {
+                if( *pszIter == ')' )
+                {
+                    osCur += *pszIter;
+                    pszIter ++;
+                    break;
+                }
+                osCur += *pszIter;
+                pszIter ++;
+            }
+            if( *pszIter == '\0')
+                break;
+        }
+
+        if( *pszIter == ',' )
+        {
+            papszOverrideColumnTypes = CSLAddString(papszOverrideColumnTypes, osCur);
+            osCur = "";
+        }
+        else
+            osCur += *pszIter;
+        pszIter ++;
+    }
+    if( osCur.size() )
+        papszOverrideColumnTypes = CSLAddString(papszOverrideColumnTypes, osCur);
 }

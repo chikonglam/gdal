@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: cpl_conv.cpp 25042 2012-10-03 21:49:50Z rouault $
+ * $Id: cpl_conv.cpp 25795 2013-03-24 13:16:52Z rouault $
  *
  * Project:  CPL - Common Portability Library
  * Purpose:  Convenience functions.
@@ -34,7 +34,7 @@
 #include "cpl_vsi.h"
 #include "cpl_multiproc.h"
 
-CPL_CVSID("$Id: cpl_conv.cpp 25042 2012-10-03 21:49:50Z rouault $");
+CPL_CVSID("$Id: cpl_conv.cpp 25795 2013-03-24 13:16:52Z rouault $");
 
 #if defined(WIN32CE)
 #  include "cpl_wince.h"
@@ -538,6 +538,8 @@ const char *CPLReadLine( FILE * fp )
 /*      of read line if we can't reallocate it big enough (for          */
 /*      instance for a _very large_ file with no newlines).             */
 /* -------------------------------------------------------------------- */
+        if( nReadSoFar > 100 * 1024 * 1024 )
+            return NULL; /* it is dubious that we need to read a line longer than 100 MB ! */
         pszRLBuffer = CPLReadLineBuffer( nReadSoFar + 129 );
         if( pszRLBuffer == NULL )
             return NULL;
@@ -629,7 +631,7 @@ const char *CPLReadLine2L( VSILFILE * fp, int nMaxCars, char** papszOptions )
 /* -------------------------------------------------------------------- */
 /*      Read a chunk from the input file.                               */
 /* -------------------------------------------------------------------- */
-        if ( nBufLength > INT_MAX - nChunkSize - 1 )
+        if ( nBufLength > INT_MAX - (int)nChunkSize - 1 )
         {
             CPLError( CE_Failure, CPLE_AppDefined,
                       "Too big line : more than 2 billion characters!." );
@@ -1513,6 +1515,24 @@ static void CPLAccessConfigOption(const char* pszKey, int bGet)
   * If the given option was no defined with CPLSetConfigOption(), it tries to find
   * it in environment variables.
   *
+  * Note: the string returned by CPLGetConfigOption() might be short-lived, and in
+  * particular it will become invalid after a call to CPLSetConfigOption() with the
+  * same key.
+  *
+  * To override temporary a potentially existing option with a new value, you can
+  * use the following snippet :
+  * <pre>
+  *     // backup old value
+  *     const char* pszOldValTmp = CPLGetConfigOption(pszKey, NULL);
+  *     char* pszOldVal = pszOldValTmp ? CPLStrdup(pszOldValTmp) : NULL;
+  *     // override with new value
+  *     CPLSetConfigOption(pszKey, pszNewVal);
+  *     // do something usefull
+  *     // restore old value
+  *     CPLSetConfigOption(pszKey, pszOldVal);
+  *     CPLFree(pszOldVal);
+  * </pre>
+  *
   * @param pszKey the key of the option to retrieve
   * @param pszDefault a default value if the key does not match existing defined options (may be NULL)
   * @return the value associated to the key, or the default value if not found
@@ -1572,6 +1592,10 @@ CPLGetConfigOption( const char *pszKey, const char *pszDefault )
   * with the with '--config KEY VALUE'. For example,
   * ogrinfo --config CPL_DEBUG ON ~/data/test/point.shp
   *
+  * This function can also be used to clear a setting by passing NULL as the
+  * value (note: passing NULL will not unset an existing environment variable;
+  * it will just unset a value previously set by CPLSetConfigOption()).
+  *
   * @param pszKey the key of the option
   * @param pszValue the value of the option, or NULL to clear a setting.
   * 
@@ -1603,6 +1627,10 @@ CPLSetConfigOption( const char *pszKey, const char *pszValue )
   * This function sets the configuration option that only applies in the
   * current thread, as opposed to CPLSetConfigOption() which sets an option
   * that applies on all threads.
+  *
+  * This function can also be used to clear a setting by passing NULL as the
+  * value (note: passing NULL will not unset an existing environment variable;
+  * it will just unset a value previously set by CPLSetThreadLocalConfigOption()).
   *
   * @param pszKey the key of the option
   * @param pszValue the value of the option, or NULL to clear a setting.
@@ -2109,6 +2137,20 @@ void CPLCloseShared( FILE * fp )
     }
 }
 
+
+/************************************************************************/
+/*                   CPLCleanupSharedFileMutex()                        */
+/************************************************************************/
+
+void CPLCleanupSharedFileMutex()
+{
+    if( hSharedFileMutex != NULL )
+    {
+        CPLDestroyMutex(hSharedFileMutex);
+        hSharedFileMutex = NULL;
+    }
+}
+
 /************************************************************************/
 /*                          CPLGetSharedList()                          */
 /************************************************************************/
@@ -2481,6 +2523,24 @@ CPLErr CPLCloseZip( void *hZip )
 
 {
     return CE_Failure;
+}
+
+void* CPLZLibDeflate( const void* ptr, size_t nBytes, int nLevel,
+                      void* outptr, size_t nOutAvailableBytes,
+                      size_t* pnOutBytes )
+{
+    if( pnOutBytes != NULL )
+        *pnOutBytes = 0;
+    return NULL;
+}
+
+void* CPLZLibInflate( const void* ptr, size_t nBytes,
+                      void* outptr, size_t nOutAvailableBytes,
+                      size_t* pnOutBytes )
+{
+    if( pnOutBytes != NULL )
+        *pnOutBytes = 0;
+    return NULL;
 }
 
 #endif /* !defined(HAVE_LIBZ) */

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrdxfwriterlayer.cpp 24992 2012-09-29 10:13:50Z rouault $
+ * $Id: ogrdxfwriterlayer.cpp 24991 2012-09-29 10:13:28Z rouault $
  *
  * Project:  DXF Translator
  * Purpose:  Implements OGRDXFWriterLayer - the OGRLayer class used for
@@ -33,7 +33,7 @@
 #include "cpl_string.h"
 #include "ogr_featurestyle.h"
 
-CPL_CVSID("$Id: ogrdxfwriterlayer.cpp 24992 2012-09-29 10:13:50Z rouault $");
+CPL_CVSID("$Id: ogrdxfwriterlayer.cpp 24991 2012-09-29 10:13:28Z rouault $");
 
 #ifndef PI
 #define PI  3.14159265358979323846

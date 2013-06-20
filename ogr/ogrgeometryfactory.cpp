@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrgeometryfactory.cpp 23589 2011-12-17 14:21:01Z rouault $
+ * $Id: ogrgeometryfactory.cpp 25642 2013-02-12 10:57:34Z bishop $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Factory for converting geometry to and from well known binary
@@ -33,7 +33,7 @@
 #include "ogr_p.h"
 #include "ogr_geos.h"
 
-CPL_CVSID("$Id: ogrgeometryfactory.cpp 23589 2011-12-17 14:21:01Z rouault $");
+CPL_CVSID("$Id: ogrgeometryfactory.cpp 25642 2013-02-12 10:57:34Z bishop $");
 
 #ifndef PI
 #define PI  3.14159265358979323846
@@ -63,7 +63,8 @@ CPL_CVSID("$Id: ogrgeometryfactory.cpp 23589 2011-12-17 14:21:01Z rouault $");
  *             created geometry object.  This may be NULL.
  * @param ppoReturn the newly created geometry object will be assigned to the
  *                  indicated pointer on return.  This will be NULL in case
- *                  of failure.
+ *                  of failure. If not NULL, *ppoReturn should be freed with
+ *                  OGRGeometryFactory::destroyGeometry() after use.
  * @param nBytes the number of bytes available in pabyData, or -1 if it isn't
  *               known.
  *
@@ -173,7 +174,8 @@ OGRErr OGRGeometryFactory::createFromWkb(unsigned char *pabyData,
  *             created geometry object.  This may be NULL.
  * @param phGeometry the newly created geometry object will 
  * be assigned to the indicated handle on return.  This will be NULL in case
- * of failure.
+ * of failure. If not NULL, *phGeometry should be freed with
+ * OGR_G_DestroyGeometry() after use.
  * @param nBytes the number of bytes of data available in pabyData, or -1
  * if it is not known, but assumed to be sufficient.
  *
@@ -210,7 +212,8 @@ OGRErr CPL_DLL OGR_G_CreateFromWkb( unsigned char *pabyData,
  *             created geometry object.  This may be NULL.
  * @param ppoReturn the newly created geometry object will be assigned to the
  *                  indicated pointer on return.  This will be NULL if the
- *                  method fails. 
+ *                  method fails. If not NULL, *ppoReturn should be freed with
+ *                  OGRGeometryFactory::destroyGeometry() after use.
  *
  *  <b>Example:</b>
  *
@@ -330,7 +333,8 @@ OGRErr OGRGeometryFactory::createFromWkt(char **ppszData,
  *             created geometry object.  This may be NULL.
  * @param phGeometry the newly created geometry object will be assigned to the
  *                  indicated handle on return.  This will be NULL if the
- *                  method fails. 
+ *                  method fails. If not NULL, *phGeometry should be freed with
+ *                  OGR_G_DestroyGeometry() after use.
  *
  * @return OGRERR_NONE if all goes well, otherwise any of
  * OGRERR_NOT_ENOUGH_DATA, OGRERR_UNSUPPORTED_GEOMETRY_TYPE, or
@@ -354,7 +358,7 @@ OGRErr CPL_DLL OGR_G_CreateFromWkt( char **ppszData,
 /** 
  * \brief Create an empty geometry of desired type.
  *
- * This is equivelent to allocating the desired geometry with new, but
+ * This is equivalent to allocating the desired geometry with new, but
  * the allocation is guaranteed to take place in the context of the 
  * GDAL/OGR heap. 
  *
@@ -362,7 +366,8 @@ OGRErr CPL_DLL OGR_G_CreateFromWkt( char **ppszData,
  *
  * @param eGeometryType the type code of the geometry class to be instantiated.
  *
- * @return the newly create geometry or NULL on failure.
+ * @return the newly create geometry or NULL on failure. Should be freed with
+ *          OGRGeometryFactory::destroyGeometry() after use.
  */
 
 OGRGeometry *
@@ -406,7 +411,7 @@ OGRGeometryFactory::createGeometry( OGRwkbGeometryType eGeometryType )
 /** 
  * \brief Create an empty geometry of desired type.
  *
- * This is equivelent to allocating the desired geometry with new, but
+ * This is equivalent to allocating the desired geometry with new, but
  * the allocation is guaranteed to take place in the context of the 
  * GDAL/OGR heap. 
  *
@@ -415,7 +420,8 @@ OGRGeometryFactory::createGeometry( OGRwkbGeometryType eGeometryType )
  *
  * @param eGeometryType the type code of the geometry to be created.
  *
- * @return handle to the newly create geometry or NULL on failure.
+ * @return handle to the newly create geometry or NULL on failure. Should be freed with
+ *         OGR_G_DestroyGeometry() after use.
  */
 
 OGRGeometryH OGR_G_CreateGeometry( OGRwkbGeometryType eGeometryType )
@@ -498,6 +504,8 @@ OGRGeometry *OGRGeometryFactory::forceToPolygon( OGRGeometry *poGeom )
     // build an aggregated polygon from all the polygon rings in the container.
     OGRPolygon *poPolygon = new OGRPolygon();
     OGRGeometryCollection *poGC = (OGRGeometryCollection *) poGeom;
+    if( poGeom->getSpatialReference() != NULL )
+        poPolygon->assignSpatialReference(poGeom->getSpatialReference());
     int iGeom;
 
     for( iGeom = 0; iGeom < poGC->getNumGeometries(); iGeom++ )
@@ -597,6 +605,8 @@ OGRGeometry *OGRGeometryFactory::forceToMultiPolygon( OGRGeometry *poGeom )
             return poGeom;
         
         OGRMultiPolygon *poMP = new OGRMultiPolygon();
+        if( poGeom->getSpatialReference() != NULL )
+            poMP->assignSpatialReference(poGeom->getSpatialReference());
 
         while( poGC->getNumGeometries() > 0 )
         {
@@ -617,6 +627,8 @@ OGRGeometry *OGRGeometryFactory::forceToMultiPolygon( OGRGeometry *poGeom )
         return poGeom;
 
     OGRMultiPolygon *poMP = new OGRMultiPolygon();
+    if( poGeom->getSpatialReference() != NULL )
+        poMP->assignSpatialReference(poGeom->getSpatialReference());
     poMP->addGeometryDirectly( poGeom );
 
     return poMP;
@@ -696,6 +708,8 @@ OGRGeometry *OGRGeometryFactory::forceToMultiPoint( OGRGeometry *poGeom )
             return poGeom;
         
         OGRMultiPoint *poMP = new OGRMultiPoint();
+        if( poGeom->getSpatialReference() != NULL )
+            poMP->assignSpatialReference(poGeom->getSpatialReference());
 
         while( poGC->getNumGeometries() > 0 )
         {
@@ -712,6 +726,8 @@ OGRGeometry *OGRGeometryFactory::forceToMultiPoint( OGRGeometry *poGeom )
         return poGeom;
 
     OGRMultiPoint *poMP = new OGRMultiPoint();
+    if( poGeom->getSpatialReference() != NULL )
+        poMP->assignSpatialReference(poGeom->getSpatialReference());
     poMP->addGeometryDirectly( poGeom );
 
     return poMP;
@@ -797,6 +813,8 @@ OGRGeometry *OGRGeometryFactory::forceToMultiLineString( OGRGeometry *poGeom )
             return poGeom;
         
         OGRMultiLineString *poMP = new OGRMultiLineString();
+        if( poGeom->getSpatialReference() != NULL )
+            poMP->assignSpatialReference(poGeom->getSpatialReference());
 
         while( poGC->getNumGeometries() > 0 )
         {
@@ -815,6 +833,8 @@ OGRGeometry *OGRGeometryFactory::forceToMultiLineString( OGRGeometry *poGeom )
     if( eGeomType == wkbLineString )
     {
         OGRMultiLineString *poMP = new OGRMultiLineString();
+        if( poGeom->getSpatialReference() != NULL )
+            poMP->assignSpatialReference(poGeom->getSpatialReference());
         poMP->addGeometryDirectly( poGeom );
         return poMP;
     }
@@ -827,6 +847,9 @@ OGRGeometry *OGRGeometryFactory::forceToMultiLineString( OGRGeometry *poGeom )
         OGRMultiLineString *poMP = new OGRMultiLineString();
         OGRPolygon *poPoly = (OGRPolygon *) poGeom;
         int iRing;
+
+        if( poGeom->getSpatialReference() != NULL )
+            poMP->assignSpatialReference(poGeom->getSpatialReference());
 
         for( iRing = 0; iRing < poPoly->getNumInteriorRings()+1; iRing++ )
         {
@@ -862,6 +885,9 @@ OGRGeometry *OGRGeometryFactory::forceToMultiLineString( OGRGeometry *poGeom )
         OGRMultiLineString *poMP = new OGRMultiLineString();
         OGRMultiPolygon *poMPoly = (OGRMultiPolygon *) poGeom;
         int iPoly;
+
+        if( poGeom->getSpatialReference() != NULL )
+            poMP->assignSpatialReference(poGeom->getSpatialReference());
 
         for( iPoly = 0; iPoly < poMPoly->getNumGeometries(); iPoly++ )
         {
@@ -1935,8 +1961,13 @@ OGRErr CPL_DLL OGR_G_CreateFromFgf( unsigned char *pabyData,
 #define SWAP_DBL(a,b) do { double tmp = a; a = b; b = tmp; } while(0)
 
 static void SplitLineStringAtDateline(OGRGeometryCollection* poMulti,
-                                      const OGRLineString* poLS)
+                                      const OGRLineString* poLS,
+                                      double dfDateLineOffset)
 {
+    double dfLeftBorderX = 180 - dfDateLineOffset;
+    double dfRightBorderX = -180 + dfDateLineOffset;
+    double dfDiffSpace = 360 - dfDateLineOffset;
+
     int i;
     int bIs3D = poLS->getCoordinateDimension() == 3;
     OGRLineString* poNewLS = new OGRLineString();
@@ -1944,7 +1975,7 @@ static void SplitLineStringAtDateline(OGRGeometryCollection* poMulti,
     for(i=0;i<poLS->getNumPoints();i++)
     {
         double dfX = poLS->getX(i);
-        if (i > 0 && fabs(dfX - poLS->getX(i-1)) > 350)
+        if (i > 0 && fabs(dfX - poLS->getX(i-1)) > dfDiffSpace)
         {
             double dfX1 = poLS->getX(i-1);
             double dfY1 = poLS->getY(i-1);
@@ -1953,9 +1984,9 @@ static void SplitLineStringAtDateline(OGRGeometryCollection* poMulti,
             double dfY2 = poLS->getY(i);
             double dfZ2 = poLS->getY(i);
 
-            if (dfX1 > -180 && dfX1 < -170 && dfX2 == 180 &&
+            if (dfX1 > -180 && dfX1 < dfRightBorderX && dfX2 == 180 &&
                 i+1 < poLS->getNumPoints() &&
-                poLS->getX(i+1) > -180 && poLS->getX(i+1) < -170)
+                poLS->getX(i+1) > -180 && poLS->getX(i+1) < dfRightBorderX)
             {
                 if( bIs3D )
                     poNewLS->addPoint(-180, poLS->getY(i), poLS->getZ(i));
@@ -1970,9 +2001,9 @@ static void SplitLineStringAtDateline(OGRGeometryCollection* poMulti,
                     poNewLS->addPoint(poLS->getX(i), poLS->getY(i));
                 continue;
             }
-            else if (dfX1 > 170 && dfX1 < 180 && dfX2 == -180 &&
+            else if (dfX1 > dfLeftBorderX && dfX1 < 180 && dfX2 == -180 &&
                      i+1 < poLS->getNumPoints() &&
-                     poLS->getX(i+1) > 170 && poLS->getX(i+1) < 180)
+                     poLS->getX(i+1) > dfLeftBorderX && poLS->getX(i+1) < 180)
             {
                 if( bIs3D )
                     poNewLS->addPoint(180, poLS->getY(i), poLS->getZ(i));
@@ -1988,13 +2019,13 @@ static void SplitLineStringAtDateline(OGRGeometryCollection* poMulti,
                 continue;
             }
 
-            if (dfX1 < -170 && dfX2 > 170)
+            if (dfX1 < dfRightBorderX && dfX2 > dfLeftBorderX)
             {
                 SWAP_DBL(dfX1, dfX2);
                 SWAP_DBL(dfY1, dfY2);
                 SWAP_DBL(dfZ1, dfZ2);
             }
-            if (dfX1 > 170 && dfX2 < -170)
+            if (dfX1 > dfLeftBorderX && dfX2 < dfRightBorderX)
                 dfX2 += 360;
 
             if (dfX1 <= 180 && dfX2 >= 180 && dfX1 < dfX2)
@@ -2003,14 +2034,14 @@ static void SplitLineStringAtDateline(OGRGeometryCollection* poMulti,
                 double dfY = dfRatio * dfY2 + (1 - dfRatio) * dfY1;
                 double dfZ = dfRatio * dfZ2 + (1 - dfRatio) * dfZ1;
                 if( bIs3D )
-                    poNewLS->addPoint(poLS->getX(i-1) > 170 ? 180 : -180, dfY, dfZ);
+                    poNewLS->addPoint(poLS->getX(i-1) > dfLeftBorderX ? 180 : -180, dfY, dfZ);
                 else
-                    poNewLS->addPoint(poLS->getX(i-1) > 170 ? 180 : -180, dfY);
+                    poNewLS->addPoint(poLS->getX(i-1) > dfLeftBorderX ? 180 : -180, dfY);
                 poNewLS = new OGRLineString();
                 if( bIs3D )
-                    poNewLS->addPoint(poLS->getX(i-1) > 170 ? -180 : 180, dfY, dfZ);
+                    poNewLS->addPoint(poLS->getX(i-1) > dfLeftBorderX ? -180 : 180, dfY, dfZ);
                 else
-                    poNewLS->addPoint(poLS->getX(i-1) > 170 ? -180 : 180, dfY);
+                    poNewLS->addPoint(poLS->getX(i-1) > dfLeftBorderX ? -180 : 180, dfY);
                 poMulti->addGeometryDirectly(poNewLS);
             }
             else
@@ -2031,8 +2062,12 @@ static void SplitLineStringAtDateline(OGRGeometryCollection* poMulti,
 /************************************************************************/
 
 #ifdef HAVE_GEOS
-static void FixPolygonCoordinatesAtDateLine(OGRPolygon* poPoly)
+static void FixPolygonCoordinatesAtDateLine(OGRPolygon* poPoly, double dfDateLineOffset)
 {
+    double dfLeftBorderX = 180 - dfDateLineOffset;
+    double dfRightBorderX = -180 + dfDateLineOffset;
+    double dfDiffSpace = 360 - dfDateLineOffset;
+
     int i, iPart;
     for(iPart = 0; iPart < 1 + poPoly->getNumInteriorRings(); iPart++)
     {
@@ -2045,9 +2080,9 @@ static void FixPolygonCoordinatesAtDateLine(OGRPolygon* poPoly)
             double dfX = poLS->getX(i);
             double dfPrevX = poLS->getX(i-1);
             double dfDiffLong = fabs(dfX - dfPrevX);
-            if (dfDiffLong > 350)
+            if (dfDiffLong > dfDiffSpace)
             {
-                if ((dfPrevX > 170 && dfX < -170) || (dfX < 0 && bGoEast))
+                if ((dfPrevX > dfLeftBorderX && dfX < dfRightBorderX) || (dfX < 0 && bGoEast))
                 {
                     dfX += 360;
                     bGoEast = TRUE;
@@ -2056,7 +2091,7 @@ static void FixPolygonCoordinatesAtDateLine(OGRPolygon* poPoly)
                     else
                         poLS->setPoint(i, dfX, poLS->getY(i));
                 }
-                else if (dfPrevX < -170 && dfX > 170)
+                else if (dfPrevX < dfRightBorderX && dfX > dfLeftBorderX)
                 {
                     int j;
                     for(j=i-1;j>=0;j--)
@@ -2168,7 +2203,8 @@ static void AddSimpleGeomToMulti(OGRGeometryCollection* poMulti,
 /************************************************************************/
 
 static void CutGeometryOnDateLineAndAddToMulti(OGRGeometryCollection* poMulti,
-                                               const OGRGeometry* poGeom)
+                                               const OGRGeometry* poGeom,
+                                               double dfDateLineOffset)
 {
     OGRwkbGeometryType eGeomType = wkbFlatten(poGeom->getGeometryType());
     switch (eGeomType)
@@ -2185,7 +2221,11 @@ static void CutGeometryOnDateLineAndAddToMulti(OGRGeometryCollection* poMulti,
             /* Naive heuristics... Place to improvement... */
             OGRGeometry* poDupGeom = NULL;
             
-            if (oEnvelope.MinX > 170 && oEnvelope.MaxX > 180)
+            double dfLeftBorderX = 180 - dfDateLineOffset;
+            double dfRightBorderX = -180 + dfDateLineOffset;
+            double dfDiffSpace = 360 - dfDateLineOffset;
+            
+            if (oEnvelope.MinX > dfLeftBorderX && oEnvelope.MaxX > 180)
             {
 #ifndef HAVE_GEOS
                 CPLError( CE_Failure, CPLE_NotSupported, 
@@ -2212,13 +2252,13 @@ static void CutGeometryOnDateLineAndAddToMulti(OGRGeometryCollection* poMulti,
                         double dfPrevX = poLS->getX(i-1);
                         double dfX = poLS->getX(i);
                         double dfDiffLong = fabs(dfX - dfPrevX);
-                        if (dfDiffLong > 350 &&
-                            ((dfX > 170 && dfPrevX < -170) || (dfPrevX > 170 && dfX < -170)))
+                        if (dfDiffLong > dfDiffSpace &&
+                            ((dfX > dfLeftBorderX && dfPrevX < dfRightBorderX) || (dfPrevX > dfLeftBorderX && dfX < dfRightBorderX)))
                             bHasBigDiff = TRUE;
                         else if (dfDiffLong > dfMaxSmallDiffLong)
                             dfMaxSmallDiffLong = dfDiffLong;
                     }
-                    if (bHasBigDiff && dfMaxSmallDiffLong < 10)
+                    if (bHasBigDiff && dfMaxSmallDiffLong < dfDateLineOffset)
                     {
                         if (eGeomType == wkbLineString)
                             bSplitLineStringAtDateline = TRUE;
@@ -2230,7 +2270,7 @@ static void CutGeometryOnDateLineAndAddToMulti(OGRGeometryCollection* poMulti,
 #else
                             bWrapDateline = TRUE;
                             poDupGeom = poGeom->clone();
-                            FixPolygonCoordinatesAtDateLine((OGRPolygon*)poDupGeom);
+                            FixPolygonCoordinatesAtDateLine((OGRPolygon*)poDupGeom, dfDateLineOffset);
 #endif
                         }
                     }
@@ -2239,7 +2279,7 @@ static void CutGeometryOnDateLineAndAddToMulti(OGRGeometryCollection* poMulti,
 
             if (bSplitLineStringAtDateline)
             {
-                SplitLineStringAtDateline(poMulti, (OGRLineString*)poGeom);
+                SplitLineStringAtDateline(poMulti, (OGRLineString*)poGeom, dfDateLineOffset);
             }
             else if (bWrapDateline)
             {
@@ -2286,7 +2326,7 @@ static void CutGeometryOnDateLineAndAddToMulti(OGRGeometryCollection* poMulti,
             {
                 OGRGeometry* poSubGeom =
                     (OGRGeometry*)OGR_G_GetGeometryRef((OGRGeometryH)poGeom, iGeom);
-                CutGeometryOnDateLineAndAddToMulti(poMulti, poSubGeom);
+                CutGeometryOnDateLineAndAddToMulti(poMulti, poSubGeom, dfDateLineOffset);
             }
             break;
         }
@@ -2329,7 +2369,11 @@ OGRGeometry* OGRGeometryFactory::transformWithOptions( const OGRGeometry* poSrcG
         OGRGeometryCollection* poMulti =
             (OGRGeometryCollection* )createGeometry(eNewType);
             
-        CutGeometryOnDateLineAndAddToMulti(poMulti, poDstGeom);
+        double dfDateLineOffset = CPLAtofM(CSLFetchNameValueDef(papszOptions, "DATELINEOFFSET", "10"));
+        if(dfDateLineOffset <= 0 || dfDateLineOffset >= 360)
+            dfDateLineOffset = 10;
+
+        CutGeometryOnDateLineAndAddToMulti(poMulti, poDstGeom, dfDateLineOffset);
         
         if (poMulti->getNumGeometries() == 0)
         {
@@ -2485,4 +2529,134 @@ OGR_G_ApproximateArcAngles(
         dfCenterX, dfCenterY, dfZ, 
         dfPrimaryRadius, dfSecondaryRadius, dfRotation,
         dfStartAngle, dfEndAngle, dfMaxAngleStepSizeDegrees );
+}
+
+/************************************************************************/
+/*                           forceToLineString()                        */
+/************************************************************************/
+
+/**
+ * \brief Convert to line string.
+ *
+ * Tries to force the provided geometry to be a line string.  Currently
+ * this just effects a change on multilinestrings.  The passed in geometry is
+ * consumed and a new one returned (or potentially the same one).
+ *
+ * @param poGeom the input geometry - ownership is passed to the method.
+ * @return new geometry.
+ */
+
+OGRGeometry *OGRGeometryFactory::forceToLineString( OGRGeometry *poGeom, bool bOnlyInOrder )
+
+{
+    if( poGeom == NULL )
+        return NULL;
+
+    OGRwkbGeometryType eGeomType = wkbFlatten(poGeom->getGeometryType());
+
+    if( eGeomType != wkbGeometryCollection
+        && eGeomType != wkbMultiLineString )
+        return poGeom;
+
+    // build an aggregated linestring from all the linestrings in the container.
+    OGRGeometryCollection *poGC = (OGRGeometryCollection *) poGeom;
+
+    int iGeom0 = 0;
+    while( iGeom0 < poGC->getNumGeometries() )
+    {
+        if( wkbFlatten(poGC->getGeometryRef(iGeom0)->getGeometryType())
+            != wkbLineString )
+        {
+            iGeom0++;
+            continue;
+        }
+
+        OGRLineString *poLineString0 = (OGRLineString *) poGC->getGeometryRef(iGeom0);
+        if( poLineString0->getNumPoints() < 2 )
+        {
+            iGeom0++;
+            continue;
+        }
+
+        OGRPoint pointStart0, pointEnd0;
+        poLineString0->StartPoint( &pointStart0 );
+        poLineString0->EndPoint( &pointEnd0 );
+
+        int iGeom1;
+        for( iGeom1 = iGeom0 + 1; iGeom1 < poGC->getNumGeometries(); iGeom1++ )
+        {
+            if( wkbFlatten(poGC->getGeometryRef(iGeom1)->getGeometryType())
+                != wkbLineString )
+                continue;
+
+            OGRLineString *poLineString1 = (OGRLineString *) poGC->getGeometryRef(iGeom1);
+            if( poLineString1->getNumPoints() < 2 )
+                continue;
+
+            OGRPoint pointStart1, pointEnd1;
+            poLineString1->StartPoint( &pointStart1 );
+            poLineString1->EndPoint( &pointEnd1 );
+
+            if ( !bOnlyInOrder &&
+                 ( pointEnd0.Equals( &pointEnd1 ) || pointStart0.Equals( &pointStart1 ) ) )
+            {
+                poLineString1->reversePoints();
+                poLineString1->StartPoint( &pointStart1 );
+                poLineString1->EndPoint( &pointEnd1 );
+            }
+
+            if ( pointEnd0.Equals( &pointStart1 ) )
+            {
+                poLineString0->addSubLineString( poLineString1, 1 );
+                poGC->removeGeometry( iGeom1 );
+                break;
+            }
+
+            if( pointEnd1.Equals( &pointStart0 ) )
+            {
+                poLineString1->addSubLineString( poLineString0, 1 );
+                poGC->removeGeometry( iGeom0 );
+                break;
+            }
+        }
+
+        if ( iGeom1 == poGC->getNumGeometries() )
+        {
+            iGeom0++;
+        }
+    }
+
+    if ( poGC->getNumGeometries() == 1 )
+    {
+        OGRLineString *poLineString = (OGRLineString *) poGC->getGeometryRef(0);
+        poGC->removeGeometry( 0, FALSE );
+        delete poGC;
+
+        return poLineString;
+    }
+
+    return poGC;
+}
+
+/************************************************************************/
+/*                      OGR_G_ForceToLineString()                       */
+/************************************************************************/
+
+/**
+ * \brief Convert to line string.
+ *
+ * This function is the same as the C++ method
+ * OGRGeometryFactory::forceToLineString().
+ *
+ * @param hGeom handle to the geometry to convert (ownership surrendered).
+ * @return the converted geometry (ownership to caller).
+ *
+ * @since GDAL/OGR 1.10.0
+ */
+
+OGRGeometryH OGR_G_ForceToLineString( OGRGeometryH hGeom )
+
+{
+    return (OGRGeometryH)
+        OGRGeometryFactory::forceToLineString( (OGRGeometry *) hGeom );
 }

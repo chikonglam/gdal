@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: cpl_vsil_curl.cpp 23506 2011-12-10 13:43:59Z rouault $
+ * $Id: cpl_vsil_curl.cpp 25696 2013-03-02 17:55:51Z rouault $
  *
  * Project:  CPL - Common Portability Library
  * Purpose:  Implement VSI large file api for HTTP/FTP files
@@ -32,8 +32,9 @@
 #include "cpl_multiproc.h"
 #include "cpl_hash_set.h"
 #include "cpl_time.h"
+#include "cpl_vsil_curl_priv.h"
 
-CPL_CVSID("$Id: cpl_vsil_curl.cpp 23506 2011-12-10 13:43:59Z rouault $");
+CPL_CVSID("$Id: cpl_vsil_curl.cpp 25696 2013-03-02 17:55:51Z rouault $");
 
 #ifndef HAVE_CURL
 
@@ -42,9 +43,34 @@ void VSIInstallCurlFileHandler(void)
     /* not supported */
 }
 
+/************************************************************************/
+/*                      VSICurlInstallReadCbk()                         */
+/************************************************************************/
+
+int VSICurlInstallReadCbk (VSILFILE* fp,
+                           VSICurlReadCbkFunc pfnReadCbk,
+                           void* pfnUserData,
+                           int bStopOnInterrruptUntilUninstall)
+{
+    return FALSE;
+}
+
+
+/************************************************************************/
+/*                    VSICurlUninstallReadCbk()                         */
+/************************************************************************/
+
+int VSICurlUninstallReadCbk(VSILFILE* fp)
+{
+    return FALSE;
+}
+
 #else
 
 #include <curl/curl.h>
+
+void CPLHTTPSetOptions(CURL *http_handle, char** papszOptions);
+void VSICurlSetOptions(CURL* hCurlHandle, const char* pszURL);
 
 #include <map>
 
@@ -231,7 +257,6 @@ class VSICurlHandle : public VSIVirtualHandle
     VSICurlFilesystemHandler* poFS;
 
     char*           pszURL;
-    unsigned long   pszURLHash;
 
     vsi_l_offset    curOffset;
     vsi_l_offset    fileSize;
@@ -245,6 +270,11 @@ class VSICurlHandle : public VSIVirtualHandle
     int             bEOF;
 
     int             DownloadRegion(vsi_l_offset startOffset, int nBlocks);
+
+    VSICurlReadCbkFunc  pfnReadCbk;
+    void               *pReadCbkUserData;
+    int                 bStopOnInterrruptUntilUninstall;
+    int                 bInterrupted;
 
   public:
 
@@ -266,6 +296,11 @@ class VSICurlHandle : public VSIVirtualHandle
     int                  Exists();
     int                  IsDirectory() const { return bIsDirectory; }
     time_t               GetMTime() const { return mTime; }
+
+    int                  InstallReadCbk(VSICurlReadCbkFunc pfnReadCbk,
+                                        void* pfnUserData,
+                                        int bStopOnInterrruptUntilUninstall);
+    int                  UninstallReadCbk();
 };
 
 /************************************************************************/
@@ -289,6 +324,11 @@ VSICurlHandle::VSICurlHandle(VSICurlFilesystemHandler* poFS, const char* pszURL)
     lastDownloadedOffset = -1;
     nBlocksToDownload = 1;
     bEOF = FALSE;
+
+    pfnReadCbk = NULL;
+    pReadCbkUserData = NULL;
+    bStopOnInterrruptUntilUninstall = FALSE;
+    bInterrupted = FALSE;
 }
 
 /************************************************************************/
@@ -300,6 +340,39 @@ VSICurlHandle::~VSICurlHandle()
     CPLFree(pszURL);
 }
 
+/************************************************************************/
+/*                          InstallReadCbk()                            */
+/************************************************************************/
+
+int   VSICurlHandle::InstallReadCbk(VSICurlReadCbkFunc pfnReadCbkIn,
+                                    void* pfnUserDataIn,
+                                    int bStopOnInterrruptUntilUninstallIn)
+{
+    if (pfnReadCbk != NULL)
+        return FALSE;
+
+    pfnReadCbk = pfnReadCbkIn;
+    pReadCbkUserData = pfnUserDataIn;
+    bStopOnInterrruptUntilUninstall = bStopOnInterrruptUntilUninstallIn;
+    bInterrupted = FALSE;
+    return TRUE;
+}
+
+/************************************************************************/
+/*                         UninstallReadCbk()                           */
+/************************************************************************/
+
+int VSICurlHandle::UninstallReadCbk()
+{
+    if (pfnReadCbk == NULL)
+        return FALSE;
+
+    pfnReadCbk = NULL;
+    pReadCbkUserData = NULL;
+    bStopOnInterrruptUntilUninstall = FALSE;
+    bInterrupted = FALSE;
+    return TRUE;
+}
 
 /************************************************************************/
 /*                                Seek()                                */
@@ -327,24 +400,11 @@ int VSICurlHandle::Seek( vsi_l_offset nOffset, int nWhence )
 /*                       VSICurlSetOptions()                            */
 /************************************************************************/
 
-static void VSICurlSetOptions(CURL* hCurlHandle, const char* pszURL)
+void VSICurlSetOptions(CURL* hCurlHandle, const char* pszURL)
 {
     curl_easy_setopt(hCurlHandle, CURLOPT_URL, pszURL);
-    if (CSLTestBoolean(CPLGetConfigOption("CPL_CURL_VERBOSE", "NO")))
-        curl_easy_setopt(hCurlHandle, CURLOPT_VERBOSE, 1);
 
-    /* Set Proxy parameters */
-    const char* pszProxy = CPLGetConfigOption("GDAL_HTTP_PROXY", NULL);
-    if (pszProxy)
-        curl_easy_setopt(hCurlHandle,CURLOPT_PROXY,pszProxy);
-
-    const char* pszProxyUserPwd = CPLGetConfigOption("GDAL_HTTP_PROXYUSERPWD", NULL);
-    if (pszProxyUserPwd)
-        curl_easy_setopt(hCurlHandle,CURLOPT_PROXYUSERPWD,pszProxyUserPwd);
-        
-    /* Enable following redirections.  Requires libcurl 7.10.1 at least */
-    curl_easy_setopt(hCurlHandle, CURLOPT_FOLLOWLOCATION, 1);
-    curl_easy_setopt(hCurlHandle, CURLOPT_MAXREDIRS, 10);
+    CPLHTTPSetOptions(hCurlHandle, NULL);
 
 /* 7.16 */
 #if LIBCURL_VERSION_NUM >= 0x071000
@@ -356,15 +416,6 @@ static void VSICurlSetOptions(CURL* hCurlHandle, const char* pszURL)
 #if LIBCURL_VERSION_NUM > 0x070C03
     /* ftp://ftp2.cits.rncan.gc.ca/pub/cantopo/250k_tif/ doesn't like EPSV command */
     curl_easy_setopt(hCurlHandle, CURLOPT_FTP_USE_EPSV, 0);
-#endif
-
-    /* NOSIGNAL should be set to true for timeout to work in multithread
-    environments on Unix, requires libcurl 7.10 or more recent.
-    (this force avoiding the use of sgnal handlers) */
-
-/* 7.10 */
-#if LIBCURL_VERSION_NUM >= 0x070A00
-    curl_easy_setopt(hCurlHandle, CURLOPT_NOSIGNAL, 1);
 #endif
 
     curl_easy_setopt(hCurlHandle, CURLOPT_NOBODY, 0);
@@ -396,13 +447,22 @@ typedef struct
     vsi_l_offset    nContentLength;
     int             bFoundContentRange;
     int             bError;
+    int             bDownloadHeaderOnly;
+
+    VSILFILE           *fp; 
+    VSICurlReadCbkFunc  pfnReadCbk;
+    void               *pReadCbkUserData;
+    int                 bInterrupted;
 } WriteFuncStruct;
 
 /************************************************************************/
 /*                    VSICURLInitWriteFuncStruct()                      */
 /************************************************************************/
 
-static void VSICURLInitWriteFuncStruct(WriteFuncStruct* psStruct)
+static void VSICURLInitWriteFuncStruct(WriteFuncStruct   *psStruct,
+                                       VSILFILE          *fp,
+                                       VSICurlReadCbkFunc pfnReadCbk,
+                                       void              *pReadCbkUserData)
 {
     psStruct->pBuffer = NULL;
     psStruct->nSize = 0;
@@ -415,6 +475,12 @@ static void VSICURLInitWriteFuncStruct(WriteFuncStruct* psStruct)
     psStruct->nContentLength = 0;
     psStruct->bFoundContentRange = FALSE;
     psStruct->bError = FALSE;
+    psStruct->bDownloadHeaderOnly = FALSE;
+
+    psStruct->fp = fp;
+    psStruct->pfnReadCbk = pfnReadCbk;
+    psStruct->pReadCbkUserData = pReadCbkUserData;
+    psStruct->bInterrupted = FALSE;
 }
 
 /************************************************************************/
@@ -455,18 +521,39 @@ static int VSICurlHandleWriteFunc(void *buffer, size_t count, size_t nmemb, void
 
             if (pszLine[0] == '\r' || pszLine[0] == '\n')
             {
-                psStruct->bIsInHeader = FALSE;
-
-                /* Detect servers that don't support range downloading */
-                if (psStruct->nHTTPCode == 200 &&
-                    !psStruct->bMultiRange &&
-                    !psStruct->bFoundContentRange &&
-                    (psStruct->nStartOffset != 0 || psStruct->nContentLength > 10 *
-                        (psStruct->nEndOffset - psStruct->nStartOffset + 1)))
+                if (psStruct->bDownloadHeaderOnly)
                 {
-                    CPLError(CE_Failure, CPLE_AppDefined,
-                             "Range downloading not supported by this server !");
-                    psStruct->bError = TRUE;
+                    /* If moved permanently/temporarily, go on. Otherwise stop now*/
+                    if (!(psStruct->nHTTPCode == 301 || psStruct->nHTTPCode == 302))
+                        return 0;
+                }
+                else
+                {
+                    psStruct->bIsInHeader = FALSE;
+
+                    /* Detect servers that don't support range downloading */
+                    if (psStruct->nHTTPCode == 200 &&
+                        !psStruct->bMultiRange &&
+                        !psStruct->bFoundContentRange &&
+                        (psStruct->nStartOffset != 0 || psStruct->nContentLength > 10 *
+                            (psStruct->nEndOffset - psStruct->nStartOffset + 1)))
+                    {
+                        CPLError(CE_Failure, CPLE_AppDefined,
+                                "Range downloading not supported by this server !");
+                        psStruct->bError = TRUE;
+                        return 0;
+                    }
+                }
+            }
+        }
+        else
+        {
+            if (psStruct->pfnReadCbk)
+            {
+                if ( ! psStruct->pfnReadCbk(psStruct->fp, buffer, nSize,
+                                            psStruct->pReadCbkUserData) )
+                {
+                    psStruct->bInterrupted = TRUE;
                     return 0;
                 }
             }
@@ -488,6 +575,7 @@ static int VSICurlHandleWriteFunc(void *buffer, size_t count, size_t nmemb, void
 vsi_l_offset VSICurlHandle::GetFileSize()
 {
     WriteFuncStruct sWriteFuncData;
+    WriteFuncStruct sWriteFuncHeaderData;
 
     if (bHastComputedFileSize)
         return fileSize;
@@ -544,16 +632,33 @@ vsi_l_offset VSICurlHandle::GetFileSize()
     CURL* hCurlHandle = poFS->GetCurlHandleFor(pszURL);
 
     VSICurlSetOptions(hCurlHandle, pszURL);
-    curl_easy_setopt(hCurlHandle, CURLOPT_NOBODY, 1);
-    curl_easy_setopt(hCurlHandle, CURLOPT_HTTPGET, 0); 
-    curl_easy_setopt(hCurlHandle, CURLOPT_HEADER, 1);
+
+    VSICURLInitWriteFuncStruct(&sWriteFuncHeaderData, NULL, NULL, NULL);
+
+    /* HACK for mbtiles driver: proper fix would be to auto-detect servers that don't accept HEAD */
+    /* http://a.tiles.mapbox.com/v3/ doesn't accept HEAD, so let's start a GET */
+    /* and interrupt is as soon as the header is found */
+    if (strstr(pszURL, ".tiles.mapbox.com/") != NULL)
+    {
+        curl_easy_setopt(hCurlHandle, CURLOPT_HEADERDATA, &sWriteFuncHeaderData);
+        curl_easy_setopt(hCurlHandle, CURLOPT_HEADERFUNCTION, VSICurlHandleWriteFunc);
+
+        sWriteFuncHeaderData.bIsHTTP = strncmp(pszURL, "http", 4) == 0;
+        sWriteFuncHeaderData.bDownloadHeaderOnly = TRUE;
+    }
+    else
+    {
+        curl_easy_setopt(hCurlHandle, CURLOPT_NOBODY, 1);
+        curl_easy_setopt(hCurlHandle, CURLOPT_HTTPGET, 0);
+        curl_easy_setopt(hCurlHandle, CURLOPT_HEADER, 1);
+    }
 
     /* We need that otherwise OSGEO4W's libcurl issue a dummy range request */
     /* when doing a HEAD when recycling connections */
     curl_easy_setopt(hCurlHandle, CURLOPT_RANGE, NULL);
 
     /* Bug with older curl versions (<=7.16.4) and FTP. See http://curl.haxx.se/mail/lib-2007-08/0312.html */
-    VSICURLInitWriteFuncStruct(&sWriteFuncData);
+    VSICURLInitWriteFuncStruct(&sWriteFuncData, NULL, NULL, NULL);
     curl_easy_setopt(hCurlHandle, CURLOPT_WRITEDATA, &sWriteFuncData);
     curl_easy_setopt(hCurlHandle, CURLOPT_WRITEFUNCTION, VSICurlHandleWriteFunc);
 
@@ -624,6 +729,7 @@ vsi_l_offset VSICurlHandle::GetFileSize()
     }
 
     CPLFree(sWriteFuncData.pBuffer);
+    CPLFree(sWriteFuncHeaderData.pBuffer);
 
     CachedFileProp* cachedFileProp = poFS->GetCachedFileProp(pszURL);
     cachedFileProp->bHastComputedFileSize = TRUE;
@@ -663,6 +769,9 @@ int VSICurlHandle::DownloadRegion(vsi_l_offset startOffset, int nBlocks)
     WriteFuncStruct sWriteFuncData;
     WriteFuncStruct sWriteFuncHeaderData;
 
+    if (bInterrupted && bStopOnInterrruptUntilUninstall)
+        return FALSE;
+
     CachedFileProp* cachedFileProp = poFS->GetCachedFileProp(pszURL);
     if (cachedFileProp->eExists == EXIST_NO)
         return FALSE;
@@ -670,11 +779,11 @@ int VSICurlHandle::DownloadRegion(vsi_l_offset startOffset, int nBlocks)
     CURL* hCurlHandle = poFS->GetCurlHandleFor(pszURL);
     VSICurlSetOptions(hCurlHandle, pszURL);
 
-    VSICURLInitWriteFuncStruct(&sWriteFuncData);
+    VSICURLInitWriteFuncStruct(&sWriteFuncData, (VSILFILE*)this, pfnReadCbk, pReadCbkUserData);
     curl_easy_setopt(hCurlHandle, CURLOPT_WRITEDATA, &sWriteFuncData);
     curl_easy_setopt(hCurlHandle, CURLOPT_WRITEFUNCTION, VSICurlHandleWriteFunc);
 
-    VSICURLInitWriteFuncStruct(&sWriteFuncHeaderData);
+    VSICURLInitWriteFuncStruct(&sWriteFuncHeaderData, NULL, NULL, NULL);
     curl_easy_setopt(hCurlHandle, CURLOPT_HEADERDATA, &sWriteFuncHeaderData);
     curl_easy_setopt(hCurlHandle, CURLOPT_HEADERFUNCTION, VSICurlHandleWriteFunc);
     sWriteFuncHeaderData.bIsHTTP = strncmp(pszURL, "http", 4) == 0;
@@ -699,6 +808,16 @@ int VSICurlHandle::DownloadRegion(vsi_l_offset startOffset, int nBlocks)
     curl_easy_setopt(hCurlHandle, CURLOPT_WRITEFUNCTION, NULL);
     curl_easy_setopt(hCurlHandle, CURLOPT_HEADERDATA, NULL);
     curl_easy_setopt(hCurlHandle, CURLOPT_HEADERFUNCTION, NULL);
+
+    if (sWriteFuncData.bInterrupted)
+    {
+        bInterrupted = TRUE;
+
+        CPLFree(sWriteFuncData.pBuffer);
+        CPLFree(sWriteFuncHeaderData.pBuffer);
+
+        return FALSE;
+    }
 
     long response_code = 0;
     curl_easy_getinfo(hCurlHandle, CURLINFO_HTTP_CODE, &response_code);
@@ -874,7 +993,8 @@ size_t VSICurlHandle::Read( void *pBuffer, size_t nSize, size_t nMemb )
 
             if (DownloadRegion(nOffsetToDownload, nBlocksToDownload) == FALSE)
             {
-                bEOF = TRUE;
+                if (!bInterrupted)
+                    bEOF = TRUE;
                 return 0;
             }
             psRegion = poFS->GetRegion(pszURL, iterOffset);
@@ -916,6 +1036,9 @@ int VSICurlHandle::ReadMultiRange( int nRanges, void ** ppData,
 {
     WriteFuncStruct sWriteFuncData;
     WriteFuncStruct sWriteFuncHeaderData;
+
+    if (bInterrupted && bStopOnInterrruptUntilUninstall)
+        return FALSE;
 
     CachedFileProp* cachedFileProp = poFS->GetCachedFileProp(pszURL);
     if (cachedFileProp->eExists == EXIST_NO)
@@ -963,11 +1086,11 @@ int VSICurlHandle::ReadMultiRange( int nRanges, void ** ppData,
     CURL* hCurlHandle = poFS->GetCurlHandleFor(pszURL);
     VSICurlSetOptions(hCurlHandle, pszURL);
 
-    VSICURLInitWriteFuncStruct(&sWriteFuncData);
+    VSICURLInitWriteFuncStruct(&sWriteFuncData, (VSILFILE*)this, pfnReadCbk, pReadCbkUserData);
     curl_easy_setopt(hCurlHandle, CURLOPT_WRITEDATA, &sWriteFuncData);
     curl_easy_setopt(hCurlHandle, CURLOPT_WRITEFUNCTION, VSICurlHandleWriteFunc);
 
-    VSICURLInitWriteFuncStruct(&sWriteFuncHeaderData);
+    VSICURLInitWriteFuncStruct(&sWriteFuncHeaderData, NULL, NULL, NULL);
     curl_easy_setopt(hCurlHandle, CURLOPT_HEADERDATA, &sWriteFuncHeaderData);
     curl_easy_setopt(hCurlHandle, CURLOPT_HEADERFUNCTION, VSICurlHandleWriteFunc);
     sWriteFuncHeaderData.bIsHTTP = strncmp(pszURL, "http", 4) == 0;
@@ -1000,6 +1123,16 @@ int VSICurlHandle::ReadMultiRange( int nRanges, void ** ppData,
     curl_easy_setopt(hCurlHandle, CURLOPT_HEADERDATA, NULL);
     curl_easy_setopt(hCurlHandle, CURLOPT_HEADERFUNCTION, NULL);
 
+    if (sWriteFuncData.bInterrupted)
+    {
+        bInterrupted = TRUE;
+
+        CPLFree(sWriteFuncData.pBuffer);
+        CPLFree(sWriteFuncHeaderData.pBuffer);
+
+        return -1;
+    }
+    
     long response_code = 0;
     curl_easy_getinfo(hCurlHandle, CURLINFO_HTTP_CODE, &response_code);
 
@@ -1623,7 +1756,11 @@ VSIVirtualHandle* VSICurlFilesystemHandler::Open( const char *pszFilename,
             poHandle = NULL;
         }
     }
-    return poHandle;
+
+    if( CSLTestBoolean( CPLGetConfigOption( "VSI_CACHE", "FALSE" ) ) )
+        return VSICreateCachedFile( poHandle );
+    else
+        return poHandle;
 }
 
 /************************************************************************/
@@ -2138,6 +2275,10 @@ char** VSICurlFilesystemHandler::GetFileList(const char *pszDirname, int* pbGotF
 
     *pbGotFileList = FALSE;
 
+    /* HACK (optimization in fact) for MBTiles driver */
+    if (strstr(pszDirname, ".tiles.mapbox.com") != NULL)
+        return NULL;
+
     if (strncmp(pszDirname, "/vsicurl/ftp", strlen("/vsicurl/ftp")) == 0)
     {
         WriteFuncStruct sWriteFuncData;
@@ -2166,7 +2307,7 @@ char** VSICurlFilesystemHandler::GetFileList(const char *pszDirname, int* pbGotF
         #endif
             }
 
-            VSICURLInitWriteFuncStruct(&sWriteFuncData);
+            VSICURLInitWriteFuncStruct(&sWriteFuncData, NULL, NULL, NULL);
             curl_easy_setopt(hCurlHandle, CURLOPT_WRITEDATA, &sWriteFuncData);
             curl_easy_setopt(hCurlHandle, CURLOPT_WRITEFUNCTION, VSICurlHandleWriteFunc);
 
@@ -2303,7 +2444,7 @@ char** VSICurlFilesystemHandler::GetFileList(const char *pszDirname, int* pbGotF
 
         curl_easy_setopt(hCurlHandle, CURLOPT_RANGE, NULL);
 
-        VSICURLInitWriteFuncStruct(&sWriteFuncData);
+        VSICURLInitWriteFuncStruct(&sWriteFuncData, NULL, NULL, NULL);
         curl_easy_setopt(hCurlHandle, CURLOPT_WRITEDATA, &sWriteFuncData);
         curl_easy_setopt(hCurlHandle, CURLOPT_WRITEFUNCTION, VSICurlHandleWriteFunc);
 
@@ -2360,7 +2501,9 @@ int VSICurlFilesystemHandler::Stat( const char *pszFilename, VSIStatBufL *pStatB
         return -1;
     }
     else if (strchr(CPLGetFilename(osFilename), '.') != NULL &&
-             strncmp(CPLGetExtension(osFilename), "zip", 3) != 0 &&
+             !EQUALN(CPLGetExtension(osFilename), "zip", 3) &&
+             strstr(osFilename, ".zip.") != NULL &&
+             strstr(osFilename, ".ZIP.") != NULL &&
              !bSkipReadDir)
     {
         int bGotFileList;
@@ -2496,9 +2639,13 @@ char** VSICurlFilesystemHandler::ReadDir( const char *pszDirname )
  * it will progressively increase the chunk size up to 2 MB to improve download
  * performance.
  *
- * The GDAL_HTTP_PROXY and GDAL_HTTP_PROXYUSERPWD configuration options can be
- * used to define a proxy server. The syntax to use is the one of Curl CURLOPT_PROXY
- * and CURLOPT_PROXYUSERPWD options.
+ * The GDAL_HTTP_PROXY, GDAL_HTTP_PROXYUSERPWD and GDAL_PROXY_AUTH configuration options can be
+ * used to define a proxy server. The syntax to use is the one of Curl CURLOPT_PROXY,
+ * CURLOPT_PROXYUSERPWD and CURLOPT_PROXYAUTH options.
+ *
+ * Starting with GDAL 1.10, the file can be cached in RAM by setting the configuration option
+ * VSI_CACHE to TRUE. The cache size defaults to 25 MB, but can be modified by setting
+ * the configuration option VSI_CACHE_SIZE (in bytes).
  *
  * VSIStatL() will return the size in st_size member and file
  * nature- file or directory - in st_mode member (the later only reliable with FTP
@@ -2517,5 +2664,27 @@ void VSIInstallCurlFileHandler(void)
     VSIFileManager::InstallHandler( "/vsicurl/", new VSICurlFilesystemHandler );
 }
 
+/************************************************************************/
+/*                      VSICurlInstallReadCbk()                         */
+/************************************************************************/
+
+int VSICurlInstallReadCbk (VSILFILE* fp,
+                           VSICurlReadCbkFunc pfnReadCbk,
+                           void* pfnUserData,
+                           int bStopOnInterrruptUntilUninstall)
+{
+    return ((VSICurlHandle*)fp)->InstallReadCbk(pfnReadCbk, pfnUserData,
+                                                bStopOnInterrruptUntilUninstall);
+}
+
+
+/************************************************************************/
+/*                    VSICurlUninstallReadCbk()                         */
+/************************************************************************/
+
+int VSICurlUninstallReadCbk(VSILFILE* fp)
+{
+    return ((VSICurlHandle*)fp)->UninstallReadCbk();
+}
 
 #endif /* HAVE_CURL */

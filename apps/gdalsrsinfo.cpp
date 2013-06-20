@@ -34,10 +34,11 @@
 #include "ogr_spatialref.h"
 #include "ogr_api.h"
 #include "ogrsf_frmts.h"
+#include "commonutils.h"
 
 CPL_CVSID("$Id$");
 
-int FindSRS( const char *pszInput, OGRSpatialReference &oSRS, int bDebug );
+int FindSRS( const char *pszInput, OGRSpatialReference &oSRS );
 CPLErr PrintSRS( const OGRSpatialReference &oSRS, 
                  const char * pszOutputType, 
                  int bPretty, int bPrintSep );
@@ -50,7 +51,7 @@ int SearchCSVForWKT( const char *pszFileCSV, const char *pszTarget );
 /*                               Usage()                                */
 /************************************************************************/
 
-void Usage()
+void Usage(const char* pszErrorMsg = NULL)
 
 {
     printf( "\nUsage: gdalsrsinfo [options] srs_def\n"
@@ -69,6 +70,10 @@ void Usage()
             "                                        proj4, epsg,\n"
             "                                        wkt, wkt_simple, wkt_noct, wkt_esri,\n"
             "                                        mapinfo, xml }\n\n" ); 
+
+    if( pszErrorMsg != NULL )
+        fprintf(stderr, "\nFAILURE: %s\n", pszErrorMsg);
+
     exit( 1 );
 }
 
@@ -77,6 +82,10 @@ void Usage()
 /*                                main()                                */
 /************************************************************************/
 
+#define CHECK_HAS_ENOUGH_ADDITIONAL_ARGS(nExtraArg) \
+    do { if (i + nExtraArg >= argc) \
+        Usage(CPLSPrintf("%s option requires %d argument(s)", argv[i], nExtraArg)); } while(0)
+
 int main( int argc, char ** argv ) 
 
 {
@@ -84,7 +93,6 @@ int main( int argc, char ** argv )
     int            bGotSRS = FALSE;
     int            bPretty = FALSE;
     int            bValidate = FALSE;
-    int            bDebug = FALSE;
     int            bFindEPSG = FALSE;
     int            nEPSGCode = -1;
     const char     *pszInput = NULL;
@@ -95,18 +103,7 @@ int main( int argc, char ** argv )
     if (! GDAL_CHECK_VERSION(argv[0]))
         exit(1);
 
-    /* Must process GDAL_SKIP before GDALAllRegister(), but we can't call */
-    /* GDALGeneralCmdLineProcessor before it needs the drivers to be registered */
-    /* for the --format or --formats options */
-    for( i = 1; i < argc; i++ )
-    {
-        if( EQUAL(argv[i],"--config") && i + 2 < argc && EQUAL(argv[i + 1], "GDAL_SKIP") )
-        {
-            CPLSetConfigOption( argv[i+1], argv[i+2] );
-
-            i += 2;
-        }
-    }
+    EarlySetConfigOptions(argc, argv);
 
 /* -------------------------------------------------------------------- */
 /*      Register standard GDAL and OGR drivers.                         */
@@ -199,12 +196,15 @@ int main( int argc, char ** argv )
                    argv[0], GDAL_RELEASE_NAME, GDALVersionInfo("RELEASE_NAME"));
             return 0;
         }
-        else if( EQUAL(argv[i], "-h") )
+        else if( EQUAL(argv[i], "-h") || EQUAL(argv[i], "--help") )
             Usage();
         else if( EQUAL(argv[i], "-e") )
             bFindEPSG = TRUE;
-        else if( EQUAL(argv[i], "-o") && i < argc - 1)
+        else if( EQUAL(argv[i], "-o") )
+        {
+            CHECK_HAS_ENOUGH_ADDITIONAL_ARGS(1);
             pszOutputType = argv[++i];
+        }
         else if( EQUAL(argv[i], "-p") )
             bPretty = TRUE;
         else if( EQUAL(argv[i], "-V") )
@@ -212,7 +212,7 @@ int main( int argc, char ** argv )
         else if( argv[i][0] == '-' )
         {
             CSLDestroy( argv );
-            Usage();
+            Usage(CPLSPrintf("Unkown option name '%s'", argv[i]));
         }
         else  
             pszInput = argv[i];
@@ -220,11 +220,11 @@ int main( int argc, char ** argv )
 
     if ( pszInput == NULL ) {
         CSLDestroy( argv );
-        Usage();
+        Usage("No input specified.");
     }
 
     /* Search for SRS */
-    bGotSRS = FindSRS( pszInput, oSRS, bDebug );
+    bGotSRS = FindSRS( pszInput, oSRS );
 
     CPLDebug( "gdalsrsinfo", 
               "bGotSRS: %d bValidate: %d pszOutputType: %s bPretty: %d",
@@ -320,7 +320,7 @@ int main( int argc, char ** argv )
 /*                                                                      */
 /*      Search for SRS from pszInput, update oSRS.                      */
 /************************************************************************/
-int FindSRS( const char *pszInput, OGRSpatialReference &oSRS, int bDebug )
+int FindSRS( const char *pszInput, OGRSpatialReference &oSRS )
 
 {
     int            bGotSRS = FALSE;
@@ -332,8 +332,10 @@ int FindSRS( const char *pszInput, OGRSpatialReference &oSRS, int bDebug )
     CPLErrorHandler oErrorHandler = NULL;
     int bIsFile = FALSE;
     OGRErr eErr = CE_None;
-      
+    int bDebug  = FALSE;
+
     /* temporarily supress error messages we may get from xOpen() */
+    bDebug = CSLTestBoolean(CPLGetConfigOption("CPL_DEBUG", "OFF"));
     if ( ! bDebug )
         oErrorHandler = CPLSetErrorHandler ( CPLQuietErrorHandler );
 

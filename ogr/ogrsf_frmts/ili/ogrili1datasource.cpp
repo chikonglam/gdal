@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrili1datasource.cpp 24077 2012-03-05 21:52:04Z pka $
+ * $Id: ogrili1datasource.cpp 23890 2012-02-03 16:30:23Z pka $
  *
  * Project:  Interlis 1 Translator
  * Purpose:  Implements OGRILI1DataSource class.
@@ -38,7 +38,7 @@
 
 #include <string>
 
-CPL_CVSID("$Id: ogrili1datasource.cpp 24077 2012-03-05 21:52:04Z pka $");
+CPL_CVSID("$Id: ogrili1datasource.cpp 23890 2012-02-03 16:30:23Z pka $");
 
 /************************************************************************/
 /*                         OGRILI1DataSource()                         */

@@ -1,5 +1,5 @@
 /**********************************************************************
- * $Id: gmlhandler.cpp 23566 2011-12-13 20:51:04Z rouault $
+ * $Id: gmlhandler.cpp 25579 2013-01-29 18:53:52Z rouault $
  *
  * Project:  GML Reader
  * Purpose:  Implementation of GMLHandler class.
@@ -135,8 +135,8 @@ void GMLXercesHandler::fatalError( const SAXParseException &exception)
 
     pszErrorMessage = tr_strdup( exception.getMessage() );
     CPLError( CE_Failure, CPLE_AppDefined, 
-              "XML Parsing Error: %s\n", 
-              pszErrorMessage );
+              "XML Parsing Error: %s at line %d, column %d\n", 
+              pszErrorMessage, (int)exception.getLineNumber(), (int)exception.getColumnNumber() );
 
     CPLFree( pszErrorMessage );
 }
@@ -410,6 +410,7 @@ char* GMLExpatHandler::GetAttributeValue(void* attr, const char* pszAttributeNam
 
 static const char* const apszGMLGeometryElements[] =
 {
+    "CompositeCurve",
     "CompositeSurface",
     "Curve",
     "GeometryCollection", /* OGR < 1.8.0 bug... */
@@ -423,6 +424,10 @@ static const char* const apszGMLGeometryElements[] =
     "Point",
     "Polygon",
     "PolygonPatch",
+    "SimplePolygon", /* GML 3.3 compact encoding */
+    "SimpleRectangle", /* GML 3.3 compact encoding */
+    "SimpleTriangle", /* GML 3.3 compact encoding */
+    "SimpleMultiPoint", /* GML 3.3 compact encoding */
     "Solid",
     "Surface",
     "TopoCurve",
@@ -471,6 +476,7 @@ GMLHandler::GMLHandler( GMLReader *poReader )
     m_nGeomAlloc = 0;
     m_nGeomLen = 0;
     m_nGeometryDepth = 0;
+    m_bAlreadyFoundGeometry = FALSE;
 
     m_nDepthFeature = m_nDepth = 0;
     m_inBoundedByDepth = 0;
@@ -719,6 +725,10 @@ OGRErr GMLHandler::startElementFeatureAttribute(const char *pszName, int nLenNam
         const char* pszGeometryElement = poState->m_poFeature->GetClass()->GetGeometryElement();
         if (pszGeometryElement != NULL)
             bReadGeometry = strcmp(poState->osPath.c_str(), pszGeometryElement) == 0;
+        else if( m_poReader->FetchAllGeometries() )
+        {
+            bReadGeometry = TRUE;
+        }
         else
         {
             /* AIXM special case: for RouteSegment, we only want to read Curve geometries */
@@ -726,6 +736,16 @@ OGRErr GMLHandler::startElementFeatureAttribute(const char *pszName, int nLenNam
             if (m_bIsAIXM &&
                 strcmp(poState->m_poFeature->GetClass()->GetName(), "RouteSegment") == 0)
                 bReadGeometry = strcmp( pszName, "Curve") == 0;
+
+            /* For Inspire objects : the "main" geometry is in a <geometry> element */
+            else if (m_bAlreadyFoundGeometry)
+                bReadGeometry = FALSE;
+            else if (strcmp( poState->osPath.c_str(), "geometry") == 0)
+            {
+                m_bAlreadyFoundGeometry = TRUE;
+                bReadGeometry = TRUE;
+            }
+
             else
                 bReadGeometry = TRUE;
         }
@@ -862,6 +882,8 @@ OGRErr GMLHandler::startElementDefault(const char *pszName, int nLenName, void* 
     int nClassIndex;
     if( (nClassIndex = m_poReader->GetFeatureElementIndex( pszName, nLenName )) != -1 )
     {
+        m_bAlreadyFoundGeometry = FALSE;
+
         const char* pszFilteredClassName = m_poReader->GetFilteredClassName();
         if ( pszFilteredClassName != NULL &&
              strcmp(pszName, pszFilteredClassName) != 0 )
@@ -1066,8 +1088,11 @@ OGRErr GMLHandler::endElementCityGMLGenericAttr()
 {
     if( m_pszCityGMLGenericAttrName != NULL && m_bInCurField )
     {
-        m_poReader->SetFeaturePropertyDirectly( m_pszCityGMLGenericAttrName,
-                                        m_pszCurField, -1 );
+        if( m_pszCurField != NULL )
+        {
+            m_poReader->SetFeaturePropertyDirectly( m_pszCityGMLGenericAttrName,
+                                            m_pszCurField, -1 );
+        }
         m_pszCurField = NULL;
         m_nCurFieldLen = m_nCurFieldAlloc = 0;
         m_bInCurField = FALSE;

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #******************************************************************************
-#  $Id: gdalident.py 24065 2012-03-04 00:35:26Z warmerdam $
+#  $Id: gdalident.py 24064 2012-03-04 00:34:19Z warmerdam $
 # 
 #  Project:  GDAL
 #  Purpose:  Application to identify files by format.

@@ -1,8 +1,8 @@
-.TH "rgb2pct" 1 "Mon Oct 8 2012" "GDAL" \" -*- nroff -*-
+.TH "rgb2pct" 1 "Wed Apr 24 2013" "GDAL" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
-rgb2pct \- .TH "rgb2pct" 1 "Mon Oct 8 2012" "GDAL" \" -*- nroff -*-
+rgb2pct \- .TH "rgb2pct" 1 "Wed Apr 24 2013" "GDAL" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -22,7 +22,7 @@ This utility will compute an optimal pseudo-color table for a given RGB image us
 .IP "\fB\fB-n\fP \fIcolors\fP:\fP" 1c
 Select the number of colors in the generated color table. Defaults to 256. Must be between 2 and 256.  
 .IP "\fB\fB-pct\fP \fIpalette_file\fP:\fP" 1c
-Extract the color table from \fIpalette_file\fP instead of computing it. Can be used to have a consistant color table for multiple files. The \fIpalette_file\fP must be a raster file in a GDAL supported format with a palette. 
+Extract the color table from \fIpalette_file\fP instead of computing it. Can be used to have a consistent color table for multiple files. The \fIpalette_file\fP must be a raster file in a GDAL supported format with a palette. 
 .IP "\fB\fB-of\fP \fIformat\fP:\fP" 1c
 Format to generated (defaults to GeoTIFF). Same semantics as the \fB-of\fP flag for gdal_translate. Only output formats supporting pseudocolor tables should be used.  
 .IP "\fB\fIsource_file\fP:\fP" 1c
@@ -34,7 +34,7 @@ The output pseudo-colored file that will be created.
 NOTE: rgb2pct.py is a Python script, and will only work if GDAL was built with Python support.
 .SH "EXAMPLE"
 .PP
-If it is desired to hand create the palette, likely the simpliest text format is the GDAL VRT format. In the following example a VRT was created in a text editor with a small 4 color palette with the RGBA colors 238/238/238/255, 237/237/237/255, 236/236/236/255 and 229/229/229/255.
+If it is desired to hand create the palette, likely the simplest text format is the GDAL VRT format. In the following example a VRT was created in a text editor with a small 4 color palette with the RGBA colors 238/238/238/255, 237/237/237/255, 236/236/236/255 and 229/229/229/255.
 .PP
 .PP
 .nf

@@ -51,6 +51,8 @@ public class GdalConst {
   public static readonly int GRA_Cubic = GdalConstPINVOKE.GRA_Cubic_get();
   public static readonly int GRA_CubicSpline = GdalConstPINVOKE.GRA_CubicSpline_get();
   public static readonly int GRA_Lanczos = GdalConstPINVOKE.GRA_Lanczos_get();
+  public static readonly int GRA_Average = GdalConstPINVOKE.GRA_Average_get();
+  public static readonly int GRA_Mode = GdalConstPINVOKE.GRA_Mode_get();
   public static readonly int GPI_Gray = GdalConstPINVOKE.GPI_Gray_get();
   public static readonly int GPI_RGB = GdalConstPINVOKE.GPI_RGB_get();
   public static readonly int GPI_CMYK = GdalConstPINVOKE.GPI_CMYK_get();
@@ -81,6 +83,7 @@ public class GdalConst {
   public static readonly string GDAL_DMD_EXTENSION = GdalConstPINVOKE.GDAL_DMD_EXTENSION_get();
   public static readonly string GDAL_DMD_CREATIONOPTIONLIST = GdalConstPINVOKE.GDAL_DMD_CREATIONOPTIONLIST_get();
   public static readonly string GDAL_DMD_CREATIONDATATYPES = GdalConstPINVOKE.GDAL_DMD_CREATIONDATATYPES_get();
+  public static readonly string GDAL_DMD_SUBDATASETS = GdalConstPINVOKE.GDAL_DMD_SUBDATASETS_get();
   public static readonly string GDAL_DCAP_CREATE = GdalConstPINVOKE.GDAL_DCAP_CREATE_get();
   public static readonly string GDAL_DCAP_CREATECOPY = GdalConstPINVOKE.GDAL_DCAP_CREATECOPY_get();
   public static readonly string GDAL_DCAP_VIRTUALIO = GdalConstPINVOKE.GDAL_DCAP_VIRTUALIO_get();

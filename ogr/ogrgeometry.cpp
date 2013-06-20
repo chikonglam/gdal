@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrgeometry.cpp 25043 2012-10-03 21:57:33Z warmerdam $
+ * $Id: ogrgeometry.cpp 25268 2012-11-29 20:21:41Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implements a few base methods on OGRGeometry.
@@ -34,7 +34,7 @@
 #include "cpl_multiproc.h"
 #include <assert.h>
 
-CPL_CVSID("$Id: ogrgeometry.cpp 25043 2012-10-03 21:57:33Z warmerdam $");
+CPL_CVSID("$Id: ogrgeometry.cpp 25268 2012-11-29 20:21:41Z rouault $");
 
 int OGRGeometry::bGenerate_DB2_V72_BYTE_ORDER = FALSE;
 
@@ -1071,7 +1071,8 @@ OGRErr OGR_G_ImportFromWkt( OGRGeometryH hGeom, char ** ppszSrcText )
  * This method is the same as the C function OGR_G_ExportToWkt().
  *
  * @param ppszDstText a text buffer is allocated by the program, and assigned
- *                    to the passed pointer.
+ *                    to the passed pointer. After use, *ppszDstText should be
+ *                    freed with OGRFree().
  *
  * @return Currently OGRERR_NONE is always returned.
  */
@@ -1088,7 +1089,8 @@ OGRErr OGR_G_ImportFromWkt( OGRGeometryH hGeom, char ** ppszSrcText )
  *
  * @param hGeom handle on the geometry to convert to a text format from.
  * @param ppszSrcText a text buffer is allocated by the program, and assigned
-                       to the passed pointer.
+ *                    to the passed pointer. After use, *ppszDstText should be
+ *                    freed with OGRFree().
  *
  * @return Currently OGRERR_NONE is always returned.
  */
@@ -1607,54 +1609,54 @@ const char * OGRToOGCGeomType( OGRwkbGeometryType eGeomType )
 const char *OGRGeometryTypeToName( OGRwkbGeometryType eType )
 
 {
-    bool b25D = wkbFlatten(eType) != eType;
+    bool b2D = wkbFlatten(eType) == eType;
 
     switch( wkbFlatten(eType) )
     {
       case wkbUnknown:
-        if( b25D )
+        if( b2D )
             return "Unknown (any)";
         else
             return "3D Unknown (any)";
 
       case wkbPoint:
-        if( b25D )
+        if( b2D )
             return "Point";
         else
             return "3D Point";
 
       case wkbLineString:
-        if( b25D )
+        if( b2D )
             return "Line String";
         else
             return "3D Line String";
 
       case wkbPolygon:
-        if( b25D )
+        if( b2D )
             return "Polygon";
         else
             return "3D Polygon";
 
       case wkbMultiPoint:
-        if( b25D )
+        if( b2D )
             return "Multi Point";
         else
             return "3D Multi Point";
 
       case wkbMultiLineString:
-        if( b25D )
+        if( b2D )
             return "Multi Line String";
         else
             return "3D Multi Line String";
 
       case wkbMultiPolygon:
-        if( b25D )
+        if( b2D )
             return "Multi Polygon";
         else
             return "3D Multi Polygon";
 
       case wkbGeometryCollection:
-        if( b25D )
+        if( b2D )
             return "Geometry Collection";
         else
             return "3D Geometry Collection";
@@ -2099,6 +2101,8 @@ OGRGeometry *OGRGeometry::ConvexHull() const
         if( hGeosHull != NULL )
         {
             poHullOGRGeom = OGRGeometryFactory::createFromGEOS(hGeosHull);
+            if( poHullOGRGeom != NULL && getSpatialReference() != NULL )
+                poHullOGRGeom->assignSpatialReference(getSpatialReference());
             GEOSGeom_destroy( hGeosHull);
         }
     }
@@ -2184,6 +2188,8 @@ OGRGeometry *OGRGeometry::Boundary() const
         if( hGeosProduct != NULL )
         {
             poOGRProduct = OGRGeometryFactory::createFromGEOS(hGeosProduct);
+            if( poOGRProduct != NULL && getSpatialReference() != NULL )
+                poOGRProduct->assignSpatialReference(getSpatialReference());
             GEOSGeom_destroy( hGeosProduct );
         }
     }
@@ -2310,6 +2316,8 @@ OGRGeometry *OGRGeometry::Buffer( double dfDist, int nQuadSegs ) const
         if( hGeosProduct != NULL )
         {
             poOGRProduct = OGRGeometryFactory::createFromGEOS(hGeosProduct);
+            if( poOGRProduct != NULL && getSpatialReference() != NULL )
+                poOGRProduct->assignSpatialReference(getSpatialReference());
             GEOSGeom_destroy( hGeosProduct );
         }
     }
@@ -2410,6 +2418,12 @@ OGRGeometry *OGRGeometry::Intersection( const OGRGeometry *poOtherGeom ) const
         if( hGeosProduct != NULL )
         {
             poOGRProduct = OGRGeometryFactory::createFromGEOS(hGeosProduct);
+            if( poOGRProduct != NULL && getSpatialReference() != NULL &&
+                poOtherGeom->getSpatialReference() != NULL &&
+                poOtherGeom->getSpatialReference()->IsSame(getSpatialReference()) )
+            {
+                poOGRProduct->assignSpatialReference(getSpatialReference());
+            }
             GEOSGeom_destroy( hGeosProduct );
         }
     }
@@ -2502,6 +2516,12 @@ OGRGeometry *OGRGeometry::Union( const OGRGeometry *poOtherGeom ) const
         if( hGeosProduct != NULL )
         {
             poOGRProduct = OGRGeometryFactory::createFromGEOS(hGeosProduct);
+            if( poOGRProduct != NULL && getSpatialReference() != NULL &&
+                poOtherGeom->getSpatialReference() != NULL &&
+                poOtherGeom->getSpatialReference()->IsSame(getSpatialReference()) )
+            {
+                poOGRProduct->assignSpatialReference(getSpatialReference());
+            }
             GEOSGeom_destroy( hGeosProduct );
         }
     }
@@ -2589,6 +2609,8 @@ OGRGeometry *OGRGeometry::UnionCascaded() const
         if( hGeosProduct != NULL )
         {
             poOGRProduct = OGRGeometryFactory::createFromGEOS(hGeosProduct);
+            if( poOGRProduct != NULL && getSpatialReference() != NULL )
+                poOGRProduct->assignSpatialReference(getSpatialReference());
             GEOSGeom_destroy( hGeosProduct );
         }
     }
@@ -2678,6 +2700,12 @@ OGRGeometry *OGRGeometry::Difference( const OGRGeometry *poOtherGeom ) const
         if( hGeosProduct != NULL )
         {
             poOGRProduct = OGRGeometryFactory::createFromGEOS(hGeosProduct);
+            if( poOGRProduct != NULL && getSpatialReference() != NULL &&
+                poOtherGeom->getSpatialReference() != NULL &&
+                poOtherGeom->getSpatialReference()->IsSame(getSpatialReference()) )
+            {
+                poOGRProduct->assignSpatialReference(getSpatialReference());
+            }
             GEOSGeom_destroy( hGeosProduct );
         }
     }
@@ -2773,6 +2801,12 @@ OGRGeometry::SymDifference( const OGRGeometry *poOtherGeom ) const
         if( hGeosProduct != NULL )
         {
             poOGRProduct = OGRGeometryFactory::createFromGEOS(hGeosProduct);
+            if( poOGRProduct != NULL && getSpatialReference() != NULL &&
+                poOtherGeom->getSpatialReference() != NULL &&
+                poOtherGeom->getSpatialReference()->IsSame(getSpatialReference()) )
+            {
+                poOGRProduct->assignSpatialReference(getSpatialReference());
+            }
             GEOSGeom_destroy( hGeosProduct );
         }
     }
@@ -3442,9 +3476,19 @@ int OGRGeometry::Centroid( OGRPoint *poPoint ) const
             return OGRERR_FAILURE;
         }
 
+        if( poCentroidGeom != NULL && getSpatialReference() != NULL )
+            poCentroidGeom->assignSpatialReference(getSpatialReference());
+
         OGRPoint *poCentroid = (OGRPoint *) poCentroidGeom;
-	poPoint->setX( poCentroid->getX() );
-	poPoint->setY( poCentroid->getY() );
+        if( !poCentroid->IsEmpty() )
+        {
+            poPoint->setX( poCentroid->getX() );
+            poPoint->setY( poCentroid->getY() );
+        }
+        else
+        {
+            poPoint->empty();
+        }
 
         delete poCentroidGeom;
 
@@ -3507,6 +3551,79 @@ int OGR_G_Centroid( OGRGeometryH hGeom, OGRGeometryH hCentroidPoint )
 }
 
 /************************************************************************/
+/*                        OGR_G_PointOnSurface()                        */
+/************************************************************************/
+
+/**
+ * \brief Returns a point guaranteed to lie on the surface.
+ *
+ * This method relates to the SFCOM ISurface::get_PointOnSurface() method
+ * however the current implementation based on GEOS can operate on other
+ * geometry types than the types that are supported by SQL/MM-Part 3 :
+ * surfaces (polygons) and multisurfaces (multipolygons).
+ *
+ * This method is built on the GEOS library, check it for the definition
+ * of the geometry operation.
+ * If OGR is built without the GEOS library, this method will always fail, 
+ * issuing a CPLE_NotSupported error. 
+ *
+ * @param hGeom the geometry to operate on. 
+ * @return a point guaranteed to lie on the surface or NULL if an error
+ *         occured.
+ *
+ * @since OGR 1.10
+ */
+
+OGRGeometryH OGR_G_PointOnSurface( OGRGeometryH hGeom )
+
+{
+    VALIDATE_POINTER1( hGeom, "OGR_G_PointOnSurface", NULL );
+
+#ifndef HAVE_GEOS
+    CPLError( CE_Failure, CPLE_NotSupported, 
+              "GEOS support not enabled." );
+    return NULL;
+#else
+    GEOSGeom hThisGeosGeom = NULL;
+    GEOSGeom hOtherGeosGeom = NULL;
+    OGRGeometry* poThis = (OGRGeometry*) hGeom;
+
+    hThisGeosGeom = poThis->exportToGEOS();
+ 
+    if( hThisGeosGeom != NULL )
+    {
+        hOtherGeosGeom = GEOSPointOnSurface( hThisGeosGeom );
+        GEOSGeom_destroy( hThisGeosGeom );
+
+        if( hOtherGeosGeom == NULL )
+            return NULL;
+
+        OGRGeometry *poInsidePointGeom = (OGRGeometry *) 
+            OGRGeometryFactory::createFromGEOS( hOtherGeosGeom );
+ 
+        GEOSGeom_destroy( hOtherGeosGeom );
+
+        if (poInsidePointGeom == NULL)
+            return NULL;
+        if (wkbFlatten(poInsidePointGeom->getGeometryType()) != wkbPoint)
+        {
+            delete poInsidePointGeom;
+            return NULL;
+        }
+
+        if( poInsidePointGeom != NULL && poThis->getSpatialReference() != NULL )
+            poInsidePointGeom->assignSpatialReference(poThis->getSpatialReference());
+
+        return (OGRGeometryH) poInsidePointGeom;
+    }
+    else
+    {
+        return NULL;
+    }
+#endif
+}
+
+/************************************************************************/
 /*                              Simplify()                              */
 /************************************************************************/
 
@@ -3551,6 +3668,8 @@ OGRGeometry *OGRGeometry::Simplify(double dTolerance) const
         if( hGeosProduct != NULL )
         {
             poOGRProduct = OGRGeometryFactory::createFromGEOS( hGeosProduct );
+            if( poOGRProduct != NULL && getSpatialReference() != NULL )
+                poOGRProduct->assignSpatialReference(getSpatialReference());
             GEOSGeom_destroy( hGeosProduct );
         }
     }
@@ -3638,6 +3757,8 @@ OGRGeometry *OGRGeometry::SimplifyPreserveTopology(double dTolerance) const
         if( hGeosProduct != NULL )
         {
             poOGRProduct = OGRGeometryFactory::createFromGEOS( hGeosProduct );
+            if( poOGRProduct != NULL && getSpatialReference() != NULL )
+                poOGRProduct->assignSpatialReference(getSpatialReference());
             GEOSGeom_destroy( hGeosProduct );
         }
     }
@@ -3758,6 +3879,8 @@ OGRGeometry *OGRGeometry::Polygonize() const
         if( hGeosPolygs != NULL )
         {
             poPolygsOGRGeom = OGRGeometryFactory::createFromGEOS(hGeosPolygs);
+            if( poPolygsOGRGeom != NULL && getSpatialReference() != NULL )
+                poPolygsOGRGeom->assignSpatialReference(getSpatialReference());
             GEOSGeom_destroy( hGeosPolygs);
         }
     }
@@ -3822,4 +3945,102 @@ OGRGeometryH OGR_G_Polygonize( OGRGeometryH hTarget )
 void OGRGeometry::swapXY()
 
 {
+}
+
+/************************************************************************/
+/*                        Prepared geometry API                         */
+/************************************************************************/
+
+/* GEOS >= 3.1.0 for prepared geometries */
+#if defined(HAVE_GEOS) && (GEOS_VERSION_MAJOR > 3 || (GEOS_VERSION_MAJOR == 3 && GEOS_VERSION_MINOR >= 1))
+#define HAVE_GEOS_PREPARED_GEOMETRY
+#endif
+
+#ifdef HAVE_GEOS_PREPARED_GEOMETRY
+struct _OGRPreparedGeometry
+{
+    GEOSGeom                      hGEOSGeom;
+    const GEOSPreparedGeometry*   poPreparedGEOSGeom;
+};
+#endif
+
+/************************************************************************/
+/*                       OGRHasPreparedGeometrySupport()                */
+/************************************************************************/
+
+int OGRHasPreparedGeometrySupport()
+{
+#ifdef HAVE_GEOS_PREPARED_GEOMETRY
+    return TRUE;
+#else
+    return FALSE;
+#endif
+}
+
+/************************************************************************/
+/*                         OGRCreatePreparedGeometry()                  */
+/************************************************************************/
+
+OGRPreparedGeometry* OGRCreatePreparedGeometry( const OGRGeometry* poGeom )
+{
+#ifdef HAVE_GEOS_PREPARED_GEOMETRY
+    GEOSGeom hGEOSGeom = poGeom->exportToGEOS();
+    if( hGEOSGeom == NULL )
+        return NULL;
+    const GEOSPreparedGeometry* poPreparedGEOSGeom = GEOSPrepare(hGEOSGeom);
+    if( poPreparedGEOSGeom == NULL )
+    {
+        GEOSGeom_destroy( hGEOSGeom );
+        return NULL;
+    }
+
+    OGRPreparedGeometry* poPreparedGeom = new OGRPreparedGeometry;
+    poPreparedGeom->hGEOSGeom = hGEOSGeom;
+    poPreparedGeom->poPreparedGEOSGeom = poPreparedGEOSGeom;
+
+    return poPreparedGeom;
+#else
+    return NULL;
+#endif
+}
+
+/************************************************************************/
+/*                        OGRDestroyPreparedGeometry()                  */
+/************************************************************************/
+
+void OGRDestroyPreparedGeometry( OGRPreparedGeometry* poPreparedGeom )
+{
+#ifdef HAVE_GEOS_PREPARED_GEOMETRY
+    if( poPreparedGeom != NULL )
+    {
+        GEOSPreparedGeom_destroy(poPreparedGeom->poPreparedGEOSGeom);
+        GEOSGeom_destroy( poPreparedGeom->hGEOSGeom );
+        delete poPreparedGeom;
+    }
+#endif
+}
+
+/************************************************************************/
+/*                      OGRPreparedGeometryIntersects()                 */
+/************************************************************************/
+
+int OGRPreparedGeometryIntersects( const OGRPreparedGeometry* poPreparedGeom,
+                                   const OGRGeometry* poOtherGeom )
+{
+#ifdef HAVE_GEOS_PREPARED_GEOMETRY
+    if( poPreparedGeom == NULL || poOtherGeom == NULL )
+        return FALSE;
+
+    GEOSGeom hGEOSOtherGeom = poOtherGeom->exportToGEOS();
+    if( hGEOSOtherGeom == NULL )
+        return FALSE;
+
+    int bRet = GEOSPreparedIntersects(poPreparedGeom->poPreparedGEOSGeom,
+                                      hGEOSOtherGeom);
+    GEOSGeom_destroy( hGEOSOtherGeom );
+
+    return bRet;
+#else
+    return FALSE;
+#endif
 }

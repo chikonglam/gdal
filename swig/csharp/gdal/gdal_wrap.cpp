@@ -303,6 +303,7 @@ using namespace std;
 #include "cpl_port.h"
 #include "cpl_string.h"
 #include "cpl_multiproc.h"
+#include "cpl_http.h"
 
 #include "gdal.h"
 #include "gdal_priv.h"
@@ -393,6 +394,25 @@ typedef char retStringAndCPLFree;
     CPLDebug( msg_class, "%s", message );
   }
 
+  CPLErr SetErrorHandler( char const * pszCallbackName = NULL )
+  {
+    CPLErrorHandler pfnHandler = NULL;
+    if( pszCallbackName == NULL || EQUAL(pszCallbackName,"CPLQuietErrorHandler") )
+      pfnHandler = CPLQuietErrorHandler;
+    else if( EQUAL(pszCallbackName,"CPLDefaultErrorHandler") )
+      pfnHandler = CPLDefaultErrorHandler;
+    else if( EQUAL(pszCallbackName,"CPLLoggingErrorHandler") )
+      pfnHandler = CPLLoggingErrorHandler;
+
+    if ( pfnHandler == NULL )
+      return CE_Fatal;
+
+    CPLSetErrorHandler( pfnHandler );
+
+    return CE_None;
+  }
+
+
   CPLErr PushErrorHandler( char const * pszCallbackName = NULL ) {
     CPLErrorHandler pfnHandler = NULL;
     if( pszCallbackName == NULL || EQUAL(pszCallbackName,"CPLQuietErrorHandler") )
@@ -409,7 +429,6 @@ typedef char retStringAndCPLFree;
 
     return CE_None;
   }
-
 
 
   void Error( CPLErr msg_class = CE_Failure, int err_code = 0, const char* msg = "error" ) {
@@ -1556,6 +1575,14 @@ SWIGINTERN int GDALTransformerInfoShadow_TransformPoints(GDALTransformerInfoShad
 
     return nRet;
   }
+SWIGINTERN int GDALTransformerInfoShadow_TransformGeolocations(GDALTransformerInfoShadow *self,GDALRasterBandShadow *xBand,GDALRasterBandShadow *yBand,GDALRasterBandShadow *zBand,GDALProgressFunc callback=NULL,void *callback_data=NULL,char **options=NULL){
+
+    CPLErrorReset();
+
+    return GDALTransformGeolocations( xBand, yBand, zBand, 
+                                      GDALUseTransformer, self,
+                            	      callback, callback_data, options );
+  }
 
 int wrapper_GDALGetCacheMax()
 {
@@ -1731,6 +1758,39 @@ SWIGEXPORT void SWIGSTDCALL CSharp_Debug(char * jarg1, char * jarg2) {
 }
 
 
+SWIGEXPORT int SWIGSTDCALL CSharp_SetErrorHandler(char * jarg1) {
+  int jresult ;
+  char *arg1 = (char *) NULL ;
+  CPLErr result;
+  
+  arg1 = (char *)jarg1; 
+  {
+    CPLErrorReset();
+    result = (CPLErr)SetErrorHandler((char const *)arg1);
+    CPLErr eclass = CPLGetLastErrorType();
+    if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+      SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
+      
+      
+      
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+  }
+  jresult = result; 
+  return jresult;
+}
+
+
 SWIGEXPORT int SWIGSTDCALL CSharp_PushErrorHandler__SWIG_0(char * jarg1) {
   int jresult ;
   char *arg1 = (char *) NULL ;
@@ -1794,6 +1854,142 @@ SWIGEXPORT void SWIGSTDCALL CSharp_Error(int jarg1, int jarg2, char * jarg3) {
     
     
   }
+}
+
+
+SWIGEXPORT char * SWIGSTDCALL CSharp_GOA2GetAuthorizationURL(char * jarg1) {
+  char * jresult ;
+  char *arg1 = (char *) 0 ;
+  retStringAndCPLFree *result = 0 ;
+  
+  arg1 = (char *)jarg1; 
+  {
+    CPLErrorReset();
+    result = (retStringAndCPLFree *)GOA2GetAuthorizationURL((char const *)arg1);
+    CPLErr eclass = CPLGetLastErrorType();
+    if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+      SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
+      
+      
+      
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+  }
+  
+  /* %typemap(out) (retStringAndCPLFree*) */
+  if(result)
+  {
+    jresult = SWIG_csharp_string_callback((const char *)result);
+    CPLFree(result);
+  }
+  else
+  {
+    jresult = NULL;
+  }
+  
+  return jresult;
+}
+
+
+SWIGEXPORT char * SWIGSTDCALL CSharp_GOA2GetRefreshToken(char * jarg1, char * jarg2) {
+  char * jresult ;
+  char *arg1 = (char *) 0 ;
+  char *arg2 = (char *) 0 ;
+  retStringAndCPLFree *result = 0 ;
+  
+  arg1 = (char *)jarg1; 
+  arg2 = (char *)jarg2; 
+  {
+    CPLErrorReset();
+    result = (retStringAndCPLFree *)GOA2GetRefreshToken((char const *)arg1,(char const *)arg2);
+    CPLErr eclass = CPLGetLastErrorType();
+    if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+      SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
+      
+      
+      
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+  }
+  
+  /* %typemap(out) (retStringAndCPLFree*) */
+  if(result)
+  {
+    jresult = SWIG_csharp_string_callback((const char *)result);
+    CPLFree(result);
+  }
+  else
+  {
+    jresult = NULL;
+  }
+  
+  return jresult;
+}
+
+
+SWIGEXPORT char * SWIGSTDCALL CSharp_GOA2GetAccessToken(char * jarg1, char * jarg2) {
+  char * jresult ;
+  char *arg1 = (char *) 0 ;
+  char *arg2 = (char *) 0 ;
+  retStringAndCPLFree *result = 0 ;
+  
+  arg1 = (char *)jarg1; 
+  arg2 = (char *)jarg2; 
+  {
+    CPLErrorReset();
+    result = (retStringAndCPLFree *)GOA2GetAccessToken((char const *)arg1,(char const *)arg2);
+    CPLErr eclass = CPLGetLastErrorType();
+    if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+      SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
+      
+      
+      
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+  }
+  
+  /* %typemap(out) (retStringAndCPLFree*) */
+  if(result)
+  {
+    jresult = SWIG_csharp_string_callback((const char *)result);
+    CPLFree(result);
+  }
+  else
+  {
+    jresult = NULL;
+  }
+  
+  return jresult;
 }
 
 
@@ -2087,6 +2283,39 @@ SWIGEXPORT void * SWIGSTDCALL CSharp_ReadDir(char * jarg1) {
   {
     CPLErrorReset();
     result = (char **)VSIReadDir((char const *)arg1);
+    CPLErr eclass = CPLGetLastErrorType();
+    if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+      SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
+      
+      
+      
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+  }
+  jresult = result; 
+  return jresult;
+}
+
+
+SWIGEXPORT void * SWIGSTDCALL CSharp_ReadDirRecursive(char * jarg1) {
+  void * jresult ;
+  char *arg1 = (char *) 0 ;
+  char **result = 0 ;
+  
+  arg1 = (char *)jarg1; 
+  {
+    CPLErrorReset();
+    result = (char **)VSIReadDirRecursive((char const *)arg1);
     CPLErr eclass = CPLGetLastErrorType();
     if ( eclass == CE_Failure || eclass == CE_Fatal ) {
       SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
@@ -10582,6 +10811,72 @@ SWIGEXPORT int SWIGSTDCALL CSharp_Transformer_TransformPoints(void * jarg1, int 
   {
     CPLErrorReset();
     result = (int)GDALTransformerInfoShadow_TransformPoints(arg1,arg2,arg3,arg4,arg5,arg6,arg7);
+    CPLErr eclass = CPLGetLastErrorType();
+    if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+      SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
+      
+      
+      
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+  }
+  jresult = result; 
+  return jresult;
+}
+
+
+SWIGEXPORT int SWIGSTDCALL CSharp_Transformer_TransformGeolocations(void * jarg1, void * jarg2, void * jarg3, void * jarg4, void * jarg5, void * jarg6, void * jarg7) {
+  int jresult ;
+  GDALTransformerInfoShadow *arg1 = (GDALTransformerInfoShadow *) 0 ;
+  GDALRasterBandShadow *arg2 = (GDALRasterBandShadow *) 0 ;
+  GDALRasterBandShadow *arg3 = (GDALRasterBandShadow *) 0 ;
+  GDALRasterBandShadow *arg4 = (GDALRasterBandShadow *) 0 ;
+  GDALProgressFunc arg5 = (GDALProgressFunc) NULL ;
+  void *arg6 = (void *) NULL ;
+  char **arg7 = (char **) NULL ;
+  int result;
+  
+  arg1 = (GDALTransformerInfoShadow *)jarg1; 
+  arg2 = (GDALRasterBandShadow *)jarg2; 
+  arg3 = (GDALRasterBandShadow *)jarg3; 
+  arg4 = (GDALRasterBandShadow *)jarg4; 
+  arg5 = (GDALProgressFunc)jarg5; 
+  arg6 = (void *)jarg6; 
+  arg7 = (char **)jarg7; 
+  {
+    if (!arg2) {
+      {
+        SWIG_CSharpException(SWIG_ValueError, "Received a NULL pointer."); return 0; 
+      };
+    }
+  }
+  {
+    if (!arg3) {
+      {
+        SWIG_CSharpException(SWIG_ValueError, "Received a NULL pointer."); return 0; 
+      };
+    }
+  }
+  {
+    if (!arg4) {
+      {
+        SWIG_CSharpException(SWIG_ValueError, "Received a NULL pointer."); return 0; 
+      };
+    }
+  }
+  {
+    CPLErrorReset();
+    result = (int)GDALTransformerInfoShadow_TransformGeolocations(arg1,arg2,arg3,arg4,arg5,arg6,arg7);
     CPLErr eclass = CPLGetLastErrorType();
     if ( eclass == CE_Failure || eclass == CE_Fatal ) {
       SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());

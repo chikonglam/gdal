@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: parsexsd.cpp 23749 2012-01-12 23:35:03Z rouault $
+ * $Id: parsexsd.cpp 25731 2013-03-11 13:08:34Z tamas $
  *
  * Project:  GML Reader
  * Purpose:  Implementation of GMLParseXSD()
@@ -144,6 +144,54 @@ int LookForSimpleType(CPLXMLNode *psSchemaNode,
 }
 
 /************************************************************************/
+/*                      GetSingleChildElement()                         */
+/************************************************************************/
+
+/* Returns the child element whose name is pszExpectedValue only if */
+/* there is only one child that is an element. */
+static
+CPLXMLNode* GetSingleChildElement(CPLXMLNode* psNode, const char* pszExpectedValue)
+{
+    CPLXMLNode* psChild = NULL;
+    CPLXMLNode* psIter;
+
+    if( psNode == NULL )
+        return NULL;
+
+    psIter = psNode->psChild;
+    if( psIter == NULL )
+        return NULL;
+    while( psIter != NULL )
+    {
+        if( psIter->eType == CXT_Element )
+        {
+            if( psChild != NULL )
+                return NULL;
+            if( pszExpectedValue != NULL &&
+                strcmp(psIter->pszValue, pszExpectedValue) != 0 )
+                return NULL;
+            psChild = psIter;
+        }
+        psIter = psIter->psNext;
+    }
+    return psChild;
+}
+
+/************************************************************************/
+/*                      CheckMinMaxOccursCardinality()                  */
+/************************************************************************/
+
+static int CheckMinMaxOccursCardinality(CPLXMLNode* psNode)
+{
+    const char* pszMinOccurs = CPLGetXMLValue( psNode, "minOccurs", NULL );
+    const char* pszMaxOccurs = CPLGetXMLValue( psNode, "maxOccurs", NULL );
+    return (pszMinOccurs == NULL || EQUAL(pszMinOccurs, "0") ||
+            EQUAL(pszMinOccurs, "1")) &&
+           (pszMaxOccurs == NULL || EQUAL(pszMaxOccurs, "1"));
+}
+
+
+/************************************************************************/
 /*                      ParseFeatureType()                              */
 /************************************************************************/
 
@@ -167,6 +215,7 @@ static const AssocNameType apsPropertyTypes [] =
     {"MultiPolygonPropertyType", wkbMultiPolygon},
     {"MultiSurfacePropertyType", wkbMultiPolygon},
     {"MultiGeometryPropertyType", wkbGeometryCollection},
+    {"GeometryAssociationType", wkbUnknown},
     {NULL, wkbUnknown},
 };
 
@@ -452,6 +501,34 @@ GMLFeatureClass* GMLParseFeatureType(CPLXMLNode *psSchemaNode,
 
                 if (poClass->GetGeometryAttributeIndex() == -1)
                     bGotUnrecognizedType = TRUE;
+
+                continue;
+            }
+
+            /* Parse stuff like the following found in http://199.29.1.81:8181/miwfs/GetFeature.ashx?REQUEST=GetFeature&MAXFEATURES=1&SERVICE=WFS&VERSION=1.0.0&TYPENAME=miwfs:World :
+            <xs:element name="Obj" minOccurs="0" maxOccurs="1">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element ref="gml:_Geometry"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            */
+            CPLXMLNode* psComplexType = GetSingleChildElement( psAttrDef, "complexType" );
+            CPLXMLNode* psComplexTypeSequence = GetSingleChildElement( psComplexType, "sequence" );
+            CPLXMLNode* psComplexTypeSequenceElement = GetSingleChildElement( psComplexTypeSequence, "element" );
+
+            if( pszElementName != NULL &&
+                CheckMinMaxOccursCardinality(psAttrDef) &&
+                psComplexTypeSequenceElement != NULL &&
+                CheckMinMaxOccursCardinality(psComplexTypeSequence) &&
+                strcmp(CPLGetXMLValue( psComplexTypeSequenceElement, "ref", "" ), "gml:_Geometry") == 0 )
+            {
+                poClass->SetGeometryElement(pszElementName);
+                poClass->SetGeometryType(wkbUnknown);
+                poClass->SetGeometryAttributeIndex( nAttributeIndex );
+
+                nAttributeIndex ++;
 
                 continue;
             }

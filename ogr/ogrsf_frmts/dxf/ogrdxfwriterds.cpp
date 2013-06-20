@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrdxfwriterds.cpp 24360 2012-05-01 17:01:54Z rouault $
+ * $Id: ogrdxfwriterds.cpp 24359 2012-05-01 17:01:22Z rouault $
  *
  * Project:  DXF Translator
  * Purpose:  Implements OGRDXFWriterDS - the OGRDataSource class used for
@@ -32,7 +32,7 @@
 #include "cpl_conv.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: ogrdxfwriterds.cpp 24360 2012-05-01 17:01:54Z rouault $");
+CPL_CVSID("$Id: ogrdxfwriterds.cpp 24359 2012-05-01 17:01:22Z rouault $");
 
 /************************************************************************/
 /*                          OGRDXFWriterDS()                          */

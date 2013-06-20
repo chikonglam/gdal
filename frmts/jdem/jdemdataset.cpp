@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: jdemdataset.cpp 21837 2011-02-24 21:16:42Z rouault $
+ * $Id: jdemdataset.cpp 25143 2012-10-16 18:49:32Z rouault $
  *
  * Project:  JDEM Reader
  * Purpose:  All code for Japanese DEM Reader
@@ -29,7 +29,7 @@
 
 #include "gdal_pam.h"
 
-CPL_CVSID("$Id: jdemdataset.cpp 21837 2011-02-24 21:16:42Z rouault $");
+CPL_CVSID("$Id: jdemdataset.cpp 25143 2012-10-16 18:49:32Z rouault $");
 
 CPL_C_START
 void	GDALRegister_JDEM(void);
@@ -111,6 +111,7 @@ class JDEMRasterBand : public GDALPamRasterBand
 
     int          nRecordSize;
     char*        pszRecord;
+    int          bBufferAllocFailed;
     
   public:
 
@@ -139,6 +140,7 @@ JDEMRasterBand::JDEMRasterBand( JDEMDataset *poDS, int nBand )
     /* Cannot overflow as nBlockXSize <= 999 */
     nRecordSize = nBlockXSize*5 + 9 + 2;
     pszRecord = NULL;
+    bBufferAllocFailed = FALSE;
 }
 
 /************************************************************************/
@@ -163,7 +165,7 @@ CPLErr JDEMRasterBand::IReadBlock( int nBlockXOff, int nBlockYOff,
     
     if (pszRecord == NULL)
     {
-        if (nRecordSize < 0)
+        if (bBufferAllocFailed)
             return CE_Failure;
 
         pszRecord = (char *) VSIMalloc(nRecordSize);
@@ -171,7 +173,7 @@ CPLErr JDEMRasterBand::IReadBlock( int nBlockXOff, int nBlockYOff,
         {
             CPLError(CE_Failure, CPLE_OutOfMemory,
                      "Cannot allocate scanline buffer");
-            nRecordSize = -1;
+            bBufferAllocFailed = TRUE;
             return CE_Failure;
         }
     }

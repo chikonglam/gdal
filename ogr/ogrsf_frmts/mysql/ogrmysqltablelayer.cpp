@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrmysqltablelayer.cpp 23943 2012-02-11 13:55:37Z rouault $
+ * $Id: ogrmysqltablelayer.cpp 25513 2013-01-16 19:04:39Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implements OGRMySQLTableLayer class.
@@ -32,7 +32,7 @@
 #include "cpl_string.h"
 #include "ogr_mysql.h"
 
-CPL_CVSID("$Id: ogrmysqltablelayer.cpp 23943 2012-02-11 13:55:37Z rouault $");
+CPL_CVSID("$Id: ogrmysqltablelayer.cpp 25513 2013-01-16 19:04:39Z rouault $");
 
 /************************************************************************/
 /*                         OGRMySQLTableLayer()                         */
@@ -946,6 +946,8 @@ OGRErr OGRMySQLTableLayer::CreateField( OGRFieldDefn *poFieldIn, int bApproxOK )
                   oField.GetNameRef(),
                   OGRFieldDefn::GetFieldTypeName(oField.GetType()) );
         strcpy( szFieldType, "TEXT" );
+        oField.SetWidth(0);
+        oField.SetPrecision(0);
     }
     else
     {

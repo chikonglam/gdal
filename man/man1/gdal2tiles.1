@@ -1,8 +1,8 @@
-.TH "gdal2tiles" 1 "Mon Oct 8 2012" "GDAL" \" -*- nroff -*-
+.TH "gdal2tiles" 1 "Wed Apr 24 2013" "GDAL" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
-gdal2tiles \- .TH "gdal2tiles" 1 "Mon Oct 8 2012" "GDAL" \" -*- nroff -*-
+gdal2tiles \- .TH "gdal2tiles" 1 "Wed Apr 24 2013" "GDAL" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -12,19 +12,19 @@ gdal2tiles \- generates directory with TMS tiles, KMLs and simple web viewers
 .PP
 .nf
 
-gdal2tiles.py [-title "Title"] [-publishurl http://yourserver/dir/]
-              [-nogooglemaps] [-noopenlayers] [-nokml]
-              [-googlemapskey KEY] [-forcekml] [-v]
-              input_file [output_dir]
+gdal2tiles.py [-p profile] [-r resampling] [-s srs] [-z zoom]
+              [-e] [-a nodata] [-v] [-h] [-k] [-n] [-u url]
+              [-w webviewer] [-t title] [-c copyright]
+              [-g googlekey] [-b bingkey] input_file [output_dir]
 .fi
 .PP
 .SH "DESCRIPTION"
 .PP
-This utility generates a directory with small tiles and metadata, following OSGeo Tile Map Service Specification. Simple web pages with viewers based on Google Maps and OpenLayers are generated as well - so anybody can comfortably explore your maps on-line and you do not need to install or configure any special software (like mapserver) and the map displays very fast in the webbrowser. You only need to upload generated directory into a web server.
+This utility generates a directory with small tiles and metadata, following the OSGeo Tile Map Service Specification. Simple web pages with viewers based on Google Maps and OpenLayers are generated as well - so anybody can comfortably explore your maps on-line and you do not need to install or configure any special software (like MapServer) and the map displays very fast in the web browser. You only need to upload the generated directory onto a web server.
 .PP
-GDAL2Tiles creates also necessary metadata for Google Earth (KML SuperOverlay), in case the supplied map uses EPSG:4326 projection.
+GDAL2Tiles also creates the necessary metadata for Google Earth (KML SuperOverlay), in case the supplied map uses EPSG:4326 projection.
 .PP
-World files and embedded georeference is used during tile generation, but you can publish a picture without proper georeference too.
+World files and embedded georeferencing is used during tile generation, but you can publish a picture without proper georeferencing too.
 .PP
 .IP "\fB\fB-p\fP \fIPROFILE\fP, --profile=\fIPROFILE\fP: \fP" 1c
 Tile cutting profile (mercator,geodetic,raster) - default 'mercator' (Google Maps compatible). 
@@ -68,8 +68,9 @@ Title of the map.
 Copyright for the map. 
 .IP "\fB\fB-g\fP \fIGOOGLEKEY\fP, --googlekey=\fIGOOGLEKEY\fP: \fP" 1c
 Google Maps API key from http://code.google.com/apis/maps/signup.html. 
-.IP "\fB\fB-y\fP \fIYAHOOKEY\fP, --yahookey=\fIYAHOOKEY\fP: \fP" 1c
-Yahoo Application ID from http://developer.yahoo.com/wsregapp/. 
+.IP "\fB\fB-b\fP \fIBINGKEY\fP, --bingkey=\fIBINGKEY\fP: \fP" 1c
+Bing Maps API key from https://www.bingmapsportal.com/
+.PP
 .PP
 .PP
 NOTE: gdal2tiles.py is a Python script that needs to be run against 'new generation' Python GDAL binding.

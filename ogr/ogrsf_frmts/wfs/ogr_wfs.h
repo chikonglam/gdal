@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_wfs.h 23164 2011-10-02 16:31:52Z rouault $
+ * $Id: ogr_wfs.h 25517 2013-01-17 21:10:41Z rouault $
  *
  * Project:  WFS Translator
  * Purpose:  Definition of classes for OGR WFS driver.
@@ -32,6 +32,7 @@
 
 #include <vector>
 #include <set>
+#include <map>
 
 #include "cpl_minixml.h"
 #include "ogrsf_frmts.h"
@@ -40,14 +41,17 @@
 
 CPLXMLNode* WFSFindNode(CPLXMLNode* psXML, const char* pszRootName);
 CPLString WFS_TurnSQLFilterToOGCFilter( const char * pszFilter,
-                                    int nVersion,
-                                    int bPropertyIsNotEqualToSupported,
-                                    int bUseFeatureId,
-                                    int bGmlObjectIdNeedsGMLPrefix,
-                                    int* pbOutNeedsNullCheck );
+                                        OGRFeatureDefn* poFDefn,
+                                        int nVersion,
+                                        int bPropertyIsNotEqualToSupported,
+                                        int bUseFeatureId,
+                                        int bGmlObjectIdNeedsGMLPrefix,
+                                        int* pbOutNeedsNullCheck );
 
 const char* FindSubStringInsensitive(const char* pszStr,
                                      const char* pszSubStr);
+
+CPLString WFS_EscapeURL(const char* pszURL);
 
 /************************************************************************/
 /*                             OGRWFSLayer                              */
@@ -71,6 +75,7 @@ class OGRWFSLayer : public OGRLayer
     char*               pszNS;
     char*               pszNSVal;
 
+    int                 bStreamingDS;
     OGRDataSource      *poBaseDS;
     OGRLayer           *poBaseLayer;
     int                 bHasFetched;
@@ -78,9 +83,13 @@ class OGRWFSLayer : public OGRLayer
 
     CPLString           osGeometryColumnName;
     OGRwkbGeometryType  eGeomType;
-    int nFeatures;
+    int                 nFeatures;
+    int                 bCountFeaturesInGetNextFeature;
+
+    int                 CanRunGetFeatureCountAndGetExtentTogether();
 
     CPLString           MakeGetFeatureURL(int nMaxFeatures, int bRequestHits);
+    int                 MustRetryIfNonCompliantServer(const char* pszServerAnswer);
     OGRDataSource*      FetchGetFeature(int nMaxFeatures);
     OGRFeatureDefn*     DescribeFeatureType();
     int                 ExecuteGetFeatureResultTypeHits();
@@ -113,6 +122,11 @@ class OGRWFSLayer : public OGRLayer
 
     OGRFeatureDefn*     BuildLayerDefnFromFeatureClass(GMLFeatureClass* poClass);
 
+    char                *pszRequiredOutputFormat;
+
+    CPLString            osFieldToSort;
+    int                  bAscFlag;
+
   public:
                         OGRWFSLayer(OGRWFSDataSource* poDS,
                                     OGRSpatialReference* poSRS,
@@ -121,7 +135,11 @@ class OGRWFSLayer : public OGRLayer
                                     const char* pszName,
                                     const char* pszNS,
                                     const char* pszNSVal);
+
                         ~OGRWFSLayer();
+
+    OGRWFSLayer*                Clone();
+
 
     const char                 *GetName() { return pszName; }
 
@@ -164,6 +182,13 @@ class OGRWFSLayer : public OGRLayer
     const std::vector<CPLString>& GetLastInsertedFIDList() { return aosFIDList; }
 
     const char         *GetShortName();
+
+    void                SetRequiredOutputFormat(const char* pszRequiredOutputFormatIn);
+
+    const char         *GetRequiredOutputFormat() { return pszRequiredOutputFormat; };
+
+    void                SetOrderBy(const char* pszFieldToSort, int bAscFlag);
+    int                 HasGotApproximateLayerDefn() { GetLayerDefn(); return bGotApproximateLayerDefn; }
 };
 
 /************************************************************************/
@@ -178,6 +203,7 @@ class OGRWFSDataSource : public OGRDataSource
 
     OGRWFSLayer**       papoLayers;
     int                 nLayers;
+    std::map<OGRLayer*, OGRLayer*> oMap;
 
     int                 bUpdate;
 
@@ -196,9 +222,6 @@ class OGRWFSDataSource : public OGRDataSource
     char**              papszIdGenMethods;
     int                 DetectTransactionSupport(CPLXMLNode* psRoot);
 
-    CPLString           osRequiredOutputFormat;
-    CPLString           DetectRequiredOutputFormat(CPLXMLNode* psRoot);
-
     CPLString           osBaseURL;
     CPLString           osPostTransactionURL;
 
@@ -210,6 +233,7 @@ class OGRWFSDataSource : public OGRDataSource
 
     int                 bPagingAllowed;
     int                 nPageSize;
+    int                 nBaseStartIndex;
 
     int                 bIsGEOSERVER;
 
@@ -229,6 +253,9 @@ class OGRWFSDataSource : public OGRDataSource
 
     CPLHTTPResult*      SendGetCapabilities(const char* pszBaseURL,
                                             CPLString& osTypeName);
+
+    int                 GetLayerIndex(const char* pszName);
+
   public:
                         OGRWFSDataSource();
                         ~OGRWFSDataSource();
@@ -273,10 +300,9 @@ class OGRWFSDataSource : public OGRDataSource
 
     CPLHTTPResult*              HTTPFetch( const char* pszURL, char** papszOptions );
 
-    int                         IsPagingAllowed() { return bPagingAllowed; }
-    int                         GetPageSize() { return nPageSize; }
-
-    const char*                 GetRequiredOutputFormat() { return (osRequiredOutputFormat.size() != 0) ? osRequiredOutputFormat.c_str() : NULL; }
+    int                         IsPagingAllowed() const { return bPagingAllowed; }
+    int                         GetPageSize() const { return nPageSize; }
+    int                         GetBaseStartIndex() const { return nBaseStartIndex; }
 
     void                        LoadMultipleLayerDefn(const char* pszLayerName,
                                                       char* pszNS, char* pszNSVal);

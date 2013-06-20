@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_dxf.h 24992 2012-09-29 10:13:50Z rouault $
+ * $Id: ogr_dxf.h 25811 2013-03-29 22:16:56Z rouault $
  *
  * Project:  DXF Translator
  * Purpose:  Definition of classes for OGR .dxf driver.
@@ -161,8 +161,9 @@ public:
     int                 nSrcBufferBytes;
     int                 iSrcBufferFileOffset;
     char                achSrcBuffer[1025];
-    
+
     int                 nLastValueSize;
+    int                 nLineNumber;
 
     int                 ReadValue( char *pszValueBuffer, 
                                    int nValueBufferSize = 81 );

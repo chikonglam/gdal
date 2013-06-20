@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_srs_esri.cpp 24463 2012-05-19 02:58:42Z etourigny $
+ * $Id: ogr_srs_esri.cpp 25575 2013-01-28 20:33:32Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  OGRSpatialReference translation to/from ESRI .prj definitions.
@@ -30,10 +30,11 @@
 #include "ogr_spatialref.h"
 #include "ogr_p.h"
 #include "cpl_csv.h"
+#include "cpl_multiproc.h"
 
 #include "ogr_srs_esri_names.h"
 
-CPL_CVSID("$Id: ogr_srs_esri.cpp 24463 2012-05-19 02:58:42Z etourigny $");
+CPL_CVSID("$Id: ogr_srs_esri.cpp 25575 2013-01-28 20:33:32Z rouault $");
 
 void  SetNewName( OGRSpatialReference* pOgr, const char* keyName, const char* newName );
 int   RemapImgWGSProjcsName(OGRSpatialReference* pOgr, const char* pszProjCSName, 
@@ -63,8 +64,6 @@ static const char *apszProjMapping[] = {
     "Equidistant_Cylindrical", SRS_PT_EQUIRECTANGULAR,
     "Plate_Carree", SRS_PT_EQUIRECTANGULAR,
     "Hotine_Oblique_Mercator_Azimuth_Natural_Origin", 
-                                        SRS_PT_HOTINE_OBLIQUE_MERCATOR,
-    "Hotine_Oblique_Mercator_Azimuth_Center", 
                                         SRS_PT_HOTINE_OBLIQUE_MERCATOR,
     "Lambert_Conformal_Conic", SRS_PT_LAMBERT_CONFORMAL_CONIC_2SP,
     "Lambert_Conformal_Conic", SRS_PT_LAMBERT_CONFORMAL_CONIC_1SP,
@@ -99,6 +98,7 @@ static const char *apszOrthographicMapping[] = {
     NULL, NULL };
 
 static char **papszDatumMapping = NULL;
+static void* hDatumMappingMutex = NULL;
  
 static const char *apszDefaultDatumMapping[] = {
     "6267", "North_American_1927", SRS_DN_NAD27,
@@ -378,6 +378,8 @@ void CleanupESRIDatumMappingTable()
         CSLDestroy( papszDatumMapping );
         papszDatumMapping = NULL;
     }
+
+    CPLDestroyMutex(hDatumMappingMutex);
 }
 CPL_C_END
 
@@ -388,6 +390,7 @@ CPL_C_END
 static void InitDatumMappingTable()
 
 {
+    CPLMutexHolderD(&hDatumMappingMutex);
     if( papszDatumMapping != NULL )
         return;
 
@@ -1098,6 +1101,20 @@ OGRErr OGRSpatialReference::morphToESRI()
             poGeogCS->GetChild(0)->SetValue( "GCS_North_American_1983" );
             pszUTMPrefix = "NAD_1983";
         }
+        else if( nGCSCode == 4167
+                 || EQUAL(pszGeogCSName,"NZGD2000")
+                 || EQUAL(pszGeogCSName,"NZGD 2000") )
+        {
+            poGeogCS->GetChild(0)->SetValue( "GCS_NZGD_2000" );
+            pszUTMPrefix = "NZGD_2000";
+        }
+        else if( nGCSCode == 4272
+                 || EQUAL(pszGeogCSName,"NZGD49")
+                 || EQUAL(pszGeogCSName,"NZGD 49") )
+        {
+            poGeogCS->GetChild(0)->SetValue( "GCS_New_Zealand_1949" );
+            pszUTMPrefix = "NZGD_1949";
+        }
 
 /* -------------------------------------------------------------------- */
 /*      Force Unnamed to Unknown for most common locations.             */
@@ -1455,14 +1472,14 @@ OGRErr OSRMorphToESRI( OGRSpatialReferenceH hSRS )
  * recommended for proper datum shift calculations):
  *
  * <b>GDAL_FIX_ESRI_WKT values</b>
- * <table border=0>
+ * <table border="0">
  * <tr><td>&nbsp;&nbsp;</td><td><b>TOWGS84</b></td><td>&nbsp;&nbsp;</td><td>
  * Adds missing TOWGS84 parameters (necessary for datum transformations),
  * based on named datum and spheroid values.</td></tr>
  * <tr><td>&nbsp;&nbsp;</td><td><b>DATUM</b></td><td>&nbsp;&nbsp;</td><td>
- * Adds ESPG AUTHORITY nodes and sets SPHEROID name to OGR spec.</td></tr>
+ * Adds EPSG AUTHORITY nodes and sets SPHEROID name to OGR spec.</td></tr>
  * <tr><td>&nbsp;&nbsp;</td><td><b>GEOGCS</b></td><td>&nbsp;&nbsp;</td><td>
- * Adds ESPG AUTHORITY nodes and sets GEOGCS, DATUM and SPHEROID
+ * Adds EPSG AUTHORITY nodes and sets GEOGCS, DATUM and SPHEROID
  * names to OGR spec. Effectively replaces GEOGCS node with the result of
  * importFromEPSG(n), using EPSG code n corresponding to the existing GEOGCS. 
  * Does not impact PROJCS values.</td></tr>
@@ -1688,6 +1705,8 @@ OGRErr OGRSpatialReference::morphFromESRI()
                     // int bDeprecated = atoi( CSLGetField( papszRecord,
                     //                                      CSVGetFileFieldId(pszFilename,"DEPRECATED")) );
                     
+                    CPLDebug( "OGR_ESRI", "morphFromESRI() got GEOGCS node #%d", nGeogCS );
+
                     // if ( nGeogCS >= 1 && bDeprecated == 0 )
                     if ( nGeogCS >= 1 )
                     {
@@ -1697,12 +1716,18 @@ OGRErr OGRSpatialReference::morphFromESRI()
                             /* make clone of GEOGCS and strip CT parms for testing */
                             OGRSpatialReference *poSRSTemp2 = NULL;
                             int bIsSame = FALSE;
+                            char *pszOtherValue = NULL;
                             double dfThisValue, dfOtherValue;
                             OGR_SRSNode *poNode = NULL;
 
                             poSRSTemp2 = oSRSTemp.CloneGeogCS();
                             poSRSTemp2->StripCTParms();
                             bIsSame = this->IsSameGeogCS( poSRSTemp2 );
+                            exportToWkt ( &pszOtherValue );
+                            CPLDebug( "OGR_ESRI", 
+                                      "morphFromESRI() got SRS %s, matching: %d", 
+                                      pszOtherValue, bIsSame );
+                            CPLFree( pszOtherValue );
                             delete poSRSTemp2;
 
                             /* clone GEOGCS from original if they match and if allowed */
@@ -1732,10 +1757,16 @@ OGRErr OGRSpatialReference::morphFromESRI()
                                 dfOtherValue = oSRSTemp.GetSemiMajor();
                                 if ( ABS( dfThisValue - dfOtherValue ) > 0.01 )
                                     bIsSame = FALSE;
+                                CPLDebug( "OGR_ESRI", 
+                                          "morphFromESRI() SemiMajor: this = %.15g other = %.15g", 
+                                          dfThisValue, dfOtherValue );
                                 dfThisValue = this->GetInvFlattening();
                                 dfOtherValue = oSRSTemp.GetInvFlattening();
                                 if ( ABS( dfThisValue - dfOtherValue ) > 0.0001 )
                                     bIsSame = FALSE;
+                                CPLDebug( "OGR_ESRI", 
+                                          "morphFromESRI() InvFlattening: this = %g other = %g", 
+                                          dfThisValue, dfOtherValue );
 
                                 if ( bIsSame )
                                 {
@@ -1745,6 +1776,9 @@ OGRErr OGRSpatialReference::morphFromESRI()
                                        for matching value - see bug #4673 */
                                     dfThisValue = this->GetPrimeMeridian();
                                     dfOtherValue = oSRSTemp.GetPrimeMeridian();
+                                    CPLDebug( "OGR_ESRI", 
+                                              "morphFromESRI() PRIMEM: this = %.15g other = %.15g", 
+                                              dfThisValue, dfOtherValue );
                                     if ( ABS( dfThisValue - dfOtherValue ) > 0.0001 )
                                         bIsSame = FALSE;
                                 }

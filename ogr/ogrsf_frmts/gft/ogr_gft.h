@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_gft.h 22268 2011-04-30 13:10:40Z rouault $
+ * $Id: ogr_gft.h 25483 2013-01-10 17:06:59Z warmerdam $
  *
  * Project:  GFT Translator
  * Purpose:  Definition of classes for OGR Google Fusion Tables driver.
@@ -198,12 +198,17 @@ class OGRGFTDataSource : public OGRDataSource
     int                 bReadWrite;
 
     int                 bUseHTTPS;
+
     CPLString           osAuth;
-    int                 FetchAuth(const char* pszEmail, const char* pszPassword);
+    CPLString           osAccessToken;
+    CPLString           osRefreshToken;
+    CPLString           osAPIKey;
 
     void                DeleteLayer( const char *pszLayerName );
 
     int                 bMustCleanPersistant;
+
+    static CPLStringList ParseSimpleJson(const char *pszJSon);
 
   public:
                         OGRGFTDataSource();
@@ -231,7 +236,7 @@ class OGRGFTDataSource : public OGRDataSource
                                    const char *pszDialect );
     virtual void       ReleaseResultSet( OGRLayer * poLayer );
 
-    const CPLString&            GetAuth() const { return osAuth; }
+    const CPLString&            GetAccessToken() const { return osAccessToken;}
     const char*                 GetAPIURL() const;
     int                         IsReadWrite() const { return bReadWrite; }
     char**                      AddHTTPOptions(char** papszOptions = NULL);

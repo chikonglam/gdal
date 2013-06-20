@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdal_tps.cpp 23156 2011-10-01 15:34:16Z rouault $
+ * $Id: gdal_tps.cpp 25304 2012-12-13 21:03:58Z rouault $
  *
  * Project:  High Performance Image Reprojector
  * Purpose:  Thin Plate Spline transformer (GDAL wrapper portion)
@@ -31,8 +31,9 @@
 #include "gdal_alg.h"
 #include "cpl_conv.h"
 #include "cpl_string.h"
+#include "cpl_atomic_ops.h"
 
-CPL_CVSID("$Id: gdal_tps.cpp 23156 2011-10-01 15:34:16Z rouault $");
+CPL_CVSID("$Id: gdal_tps.cpp 25304 2012-12-13 21:03:58Z rouault $");
 
 CPL_C_START
 CPLXMLNode *GDALSerializeTPSTransformer( void *pTransformArg );
@@ -51,7 +52,27 @@ typedef struct
     int       nGCPCount;
     GDAL_GCP *pasGCPList;
     
+    volatile int nRefCount;
+    
 } TPSTransformInfo;
+
+/************************************************************************/
+/*                       GDALCloneTPSTransformer()                      */
+/************************************************************************/
+
+void* GDALCloneTPSTransformer( void *hTransformArg )
+{
+    VALIDATE_POINTER1( hTransformArg, "GDALCloneTPSTransformer", NULL );
+
+    TPSTransformInfo *psInfo = 
+        (TPSTransformInfo *) hTransformArg;
+
+    /* We can just use a ref count, since using the source transformation */
+    /* is thread-safe */
+    CPLAtomicInc(&(psInfo->nRefCount));
+
+    return psInfo;
+}
 
 /************************************************************************/
 /*                      GDALCreateTPSTransformer()                      */
@@ -135,6 +156,8 @@ void *GDALCreateTPSTransformer( int nGCPCount, const GDAL_GCP *pasGCPList,
         }
     }
 
+    psInfo->nRefCount = 1;
+
     psInfo->poForward->solve();
     psInfo->poReverse->solve();
 
@@ -162,13 +185,16 @@ void GDALDestroyTPSTransformer( void *pTransformArg )
 
     TPSTransformInfo *psInfo = (TPSTransformInfo *) pTransformArg;
 
-    delete psInfo->poForward;
-    delete psInfo->poReverse;
+    if( CPLAtomicDec(&(psInfo->nRefCount)) == 0 )
+    {
+        delete psInfo->poForward;
+        delete psInfo->poReverse;
 
-    GDALDeinitGCPs( psInfo->nGCPCount, psInfo->pasGCPList );
-    CPLFree( psInfo->pasGCPList );
-    
-    CPLFree( pTransformArg );
+        GDALDeinitGCPs( psInfo->nGCPCount, psInfo->pasGCPList );
+        CPLFree( psInfo->pasGCPList );
+        
+        CPLFree( pTransformArg );
+    }
 }
 
 /************************************************************************/

@@ -1,8 +1,8 @@
-.TH "gdalbuildvrt" 1 "Mon Oct 8 2012" "GDAL" \" -*- nroff -*-
+.TH "gdalbuildvrt" 1 "Wed Apr 24 2013" "GDAL" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
-gdalbuildvrt \- .TH "gdalbuildvrt" 1 "Mon Oct 8 2012" "GDAL" \" -*- nroff -*-
+gdalbuildvrt \- .TH "gdalbuildvrt" 1 "Wed Apr 24 2013" "GDAL" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -12,16 +12,20 @@ gdalbuildvrt \- Builds a VRT from a list of datasets. (compiled by default since
 .PP
 .nf
 
-gdalbuildvrt [-tileindex field_name] [-resolution {highest|lowest|average|user}]
-             [-tr xres yres] [-tap] [-separate] [-allow_projection_difference] [-q]
-             [-te xmin ymin xmax ymax] [-addalpha] [-hidenodata]
-             [-srcnodata "value [value...]"] [-vrtnodata "value [value...]"]
+gdalbuildvrt [-tileindex field_name]
+             [-resolution {highest|lowest|average|user}]
+             [-te xmin ymin xmax ymax] [-tr xres yres] [-tap]
+             [-separate] [-b band] [-sd subdataset]
+             [-allow_projection_difference] [-q]
+             [-addalpha] [-hidenodata]
+             [-srcnodata "value [value...]"] [-vrtnodata "value [value...]"] 
+             [-a_srs srs_def]
              [-input_file_list my_liste.txt] [-overwrite] output.vrt [gdalfile]*
 .fi
 .PP
 .SH "DESCRIPTION"
 .PP
-This program builds a VRT (Virtual Dataset) that is a mosaic of the list of input gdal datasets. The list of input gdal datasets can be specified at the end of the command line, or put in a text file (one filename per line) for very long lists, or it can be a MapServer tileindex (see \fBgdaltindex\fP utility). In the later case, all entries in the tile index will be added to the VRT.
+This program builds a VRT (Virtual Dataset) that is a mosaic of the list of input GDAL datasets. The list of input GDAL datasets can be specified at the end of the command line, or put in a text file (one filename per line) for very long lists, or it can be a MapServer tileindex (see \fBgdaltindex\fP utility). In the later case, all entries in the tile index will be added to the VRT.
 .PP
 With -separate, each files goes into a separate \fIstacked\fP band in the VRT band. Otherwise, the files are considered as tiles of a larger mosaic and the VRT file has as many bands as one of the input files.
 .PP
@@ -55,16 +59,25 @@ In case the resolution of all input files is not the same, the -resolution flag 
 (starting with GDAL 1.7.0) Even if any band contains nodata value, giving this option makes the VRT band not report the NoData. Useful when you want to control the background color of the dataset. By using along with the -addalpha option, you can prepare a dataset which doesn't report nodata value but is transparent in areas with no data.
 .PP
 .IP "\fB\fB-srcnodata\fP \fIvalue [value...]\fP:\fP" 1c
-(starting with GDAL 1.7.0) Set nodata values for input bands (different values can be supplied for each band). If more than one value is supplied all values should be quoted to keep them together as a single operating system argument. If the option is not specified, the instrinsic nodata settings on the source datasets will be used (if they exist). The value set by this option is written in the NODATA element of each ComplexSource element. Use a value of \fCNone\fP to ignore intrinsic nodata settings on the source datasets.
+(starting with GDAL 1.7.0) Set nodata values for input bands (different values can be supplied for each band). If more than one value is supplied all values should be quoted to keep them together as a single operating system argument. If the option is not specified, the intrinsic nodata settings on the source datasets will be used (if they exist). The value set by this option is written in the NODATA element of each ComplexSource element. Use a value of \fCNone\fP to ignore intrinsic nodata settings on the source datasets.
+.PP
+.IP "\fB\fB-b\fP \fIband\fP:\fP" 1c
+(GDAL >= 1.10.0) Select an input \fIband\fP to be processed. Bands are numbered from 1. If input bands not set all bands will be added to vrt
+.PP
+.IP "\fB\fB-sd\fP \fIsubdataset\fP\fP" 1c
+(GDAL >= 1.10.0) If the input dataset contains several subdatasets use a subdataset with the specified number (starting from 1). This is an alternative of giving the full subdataset name as an input.
 .PP
 .IP "\fB\fB-vrtnodata\fP \fIvalue [value...]\fP:\fP" 1c
-(starting with GDAL 1.7.0) Set nodata values at the VRT band level (different values can be supplied for each band). If more than one value is supplied all values should be quoted to keep them together as a single operating system argument. If the option is not specified, instrinsic nodata settings on the first dataset will be used (if they exist). The value set by this option is written in the NoDataValue element of each VRTRasterBand element. Use a value of \fCNone\fP to ignore intrinsic nodata settings on the source datasets.
+(starting with GDAL 1.7.0) Set nodata values at the VRT band level (different values can be supplied for each band). If more than one value is supplied all values should be quoted to keep them together as a single operating system argument. If the option is not specified, intrinsic nodata settings on the first dataset will be used (if they exist). The value set by this option is written in the NoDataValue element of each VRTRasterBand element. Use a value of \fCNone\fP to ignore intrinsic nodata settings on the source datasets.
 .PP
 .IP "\fB\fB-separate\fP:\fP" 1c
 (starting with GDAL 1.7.0) Place each input file into a separate \fIstacked\fP band. In that case, only the first band of each dataset will be placed into a new band. Contrary to the default mode, it is not required that all bands have the same datatype. 
 .PP
 .IP "\fB\fB-allow_projection_difference\fP:\fP" 1c
 (starting with GDAL 1.7.0) When this option is specified, the utility will accept to make a VRT even if the input datasets have not the same projection. Note: this does not mean that they will be reprojected. Their projection will just be ignored. 
+.PP
+.IP "\fB\fB-a_srs\fP \fIsrs_def\fP:\fP" 1c
+(starting with GDAL 1.10) Override the projection for the output file. The \fIsrs_def\fP may be any of the usual GDAL/OGR forms, complete WKT, PROJ.4, EPSG:n or a file containing the WKT. 
 .PP
 .IP "\fB\fB-input_file_list\fP:\fP" 1c
 To specify a text file with an input filename on each line 
@@ -79,13 +92,39 @@ Overwrite the VRT if it already exists.
 .SH "EXAMPLE"
 .PP
 .PP
+Make a virtual mosaic from all TIFF files contained in a directory : 
 .PP
 .nf
 
 gdalbuildvrt doq_index.vrt doq/*.tif
+
+.fi
+.PP
+.PP
+Make a virtual mosaic from files whose name is specified in a text file : 
+.PP
+.nf
+
 gdalbuildvrt -input_file_list my_liste.txt doq_index.vrt
+
+.fi
+.PP
+.PP
+Make a RGB virtual mosaic from 3 single-band input files : 
+.PP
+.nf
+
 gdalbuildvrt -separate rgb.vrt red.tif green.tif blue.tif
+
+.fi
+.PP
+.PP
+Make a virtual mosaic with blue background colour (RGB: 0 0 255) : 
+.PP
+.nf
+
 gdalbuildvrt -hidenodata -vrtnodata "0 0 255" doq_index.vrt doq/*.tif
+
 .fi
 .PP
 .SH "AUTHOR"

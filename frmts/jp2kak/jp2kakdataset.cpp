@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: jp2kakdataset.cpp 23582 2011-12-17 00:15:35Z warmerdam $
+ * $Id: jp2kakdataset.cpp 25764 2013-03-18 20:29:55Z warmerdam $
  *
  * Project:  JPEG-2000
  * Purpose:  Implementation of the ISO/IEC 15444-1 standard based on Kakadu.
@@ -66,7 +66,7 @@
 
 // #define KAKADU_JPX	1
 
-CPL_CVSID("$Id: jp2kakdataset.cpp 23582 2011-12-17 00:15:35Z warmerdam $");
+CPL_CVSID("$Id: jp2kakdataset.cpp 25764 2013-03-18 20:29:55Z warmerdam $");
 
 static int kakadu_initialized = FALSE;
 
@@ -76,6 +76,11 @@ static unsigned char jp2_header[] =
 static unsigned char jpc_header[] = 
 {0xff,0x4f};
 
+/* -------------------------------------------------------------------- */
+/*      The number of tiles at a time we will push through the          */
+/*      encoder per flush when writing jpeg2000 streams.                */
+/* -------------------------------------------------------------------- */
+#define TILE_CHUNK_SIZE  1024
 
 /************************************************************************/
 /* ==================================================================== */
@@ -204,7 +209,7 @@ class JP2KAKRasterBand : public GDALPamRasterBand
 /* ==================================================================== */
 /************************************************************************/
 
-class kdu_cpl_error_message : public kdu_message 
+class kdu_cpl_error_message : public kdu_thread_safe_message 
 {
 public: // Member classes
     kdu_cpl_error_message( CPLErr eErrClass ) 
@@ -231,6 +236,8 @@ public: // Member classes
 
     void flush(bool end_of_message=false) 
     {
+        kdu_thread_safe_message::flush(end_of_message);
+
         if( m_pszError == NULL )
             return;
         if( m_pszError[strlen(m_pszError)-1] == '\n' )
@@ -294,6 +301,10 @@ JP2KAKRasterBand::JP2KAKRasterBand( int nBand, int nDiscardLevels,
 
     this->nRasterXSize = band_dims.size.x;
     this->nRasterYSize = band_dims.size.y;
+
+/* -------------------------------------------------------------------- */
+/*      Capture some useful metadata.                                   */
+/* -------------------------------------------------------------------- */
     if( oCodeStream.get_bit_depth(nBand-1) % 8 != 0 )
     {
         
@@ -547,7 +558,12 @@ CPLErr JP2KAKRasterBand::IReadBlock( int nBlockXOff, int nBlockYOff,
     int iBand;
 
     for( iBand = 0; iBand < poBaseDS->GetRasterCount(); iBand++ )
+    {
+        GDALRasterBand* poBand = poBaseDS->GetRasterBand(iBand+1);
+        if ( poBand->GetRasterDataType() != eDataType )
+          continue;
         anBands.push_back(iBand+1);
+    }
 
     GByte *pabyWrkBuffer = (GByte *) 
         VSIMalloc3( nWordSize * anBands.size(), nBlockXSize, nBlockYSize );
@@ -566,14 +582,17 @@ CPLErr JP2KAKRasterBand::IReadBlock( int nBlockXOff, int nBlockYOff,
         int nBandStart = 0;
         for( iBand = 0; iBand < (int) anBands.size(); iBand++ )
         {
-            if( iBand+1 == nBand )
+            if( anBands[iBand] == nBand )
             {
+                // application requested band.
                 memcpy( pImage, pabyWrkBuffer + nBandStart, 
                         nWordSize * nBlockXSize * nBlockYSize );
             }
             else
             {
-                GDALRasterBand *poBaseBand = poBaseDS->GetRasterBand(iBand+1);
+                // all others are pushed into cache.
+                GDALRasterBand *poBaseBand = 
+                    poBaseDS->GetRasterBand(anBands[iBand]);
                 JP2KAKRasterBand *poBand = NULL;
 
                 if( nDiscardLevels == 0 )
@@ -1339,17 +1358,34 @@ GDALDataset *JP2KAKDataset::Open( GDALOpenInfo * poOpenInfo )
         cod->get(Corder,0,0,order);
         
         if( order == Corder_LRCP )
+        {
             CPLDebug( "JP2KAK", "order=LRCP" );
+            poDS->SetMetadataItem("Corder","LRCP");
+        }
         else if( order == Corder_RLCP )
+        {
             CPLDebug( "JP2KAK", "order=RLCP" );
+            poDS->SetMetadataItem("Corder","RLCP");
+        }
         else if( order == Corder_RPCL )
+        {
             CPLDebug( "JP2KAK", "order=RPCL" );
+            poDS->SetMetadataItem("Corder","RPCL");
+        }
         else if( order == Corder_PCRL )
+        {
             CPLDebug( "JP2KAK", "order=PCRL" );
+            poDS->SetMetadataItem("Corder","PCRL");
+        }
         else if( order == Corder_CPRL )
+        {
             CPLDebug( "JP2KAK", "order=CPRL" );
+            poDS->SetMetadataItem("Corder","CPRL");
+        }
         else
+        {
             CPLDebug( "JP2KAK", "order=%d, not recognized.", order );
+        }
 
         poDS->bUseYCC = false;
         cod->get(Cycc,0,0,poDS->bUseYCC);
@@ -1444,7 +1480,7 @@ GDALDataset *JP2KAKDataset::Open( GDALOpenInfo * poOpenInfo )
 /* -------------------------------------------------------------------- */
             if( oJP2Geo.papszMetadata != NULL )
             {
-                char **papszMD = poDS->GDALPamDataset::GetMetadata();
+                char **papszMD = CSLDuplicate(poDS->GDALPamDataset::GetMetadata());
 
                 papszMD = CSLMerge( papszMD, oJP2Geo.papszMetadata );
                 poDS->GDALPamDataset::SetMetadata( papszMD );
@@ -1703,6 +1739,11 @@ JP2KAKDataset::DirectRasterIO( GDALRWFlag eRWFlag,
                     sample_offsets[i] = i * nBandSpace / 2;
                     sample_gaps[i] = nPixelSpace / 2;
                     row_gaps[i] = nLineSpace / 2;
+                    if( precisions[i] == 12 )
+                    {
+                      CPLDebug( "JP2KAK", "16bit extend 12 bit data." );
+                      precisions[i] = 16;
+                    }
                 }
                 
             }
@@ -2037,14 +2078,13 @@ JP2KAKCreateCopy_WriteTile( GDALDataset *poSrcDS, kdu_tile &oTile,
 /*      computing machine all components to make good estimates.        */
 /* -------------------------------------------------------------------- */
     int  iLine, iLinesWritten = 0;
-#define CHUNK_SIZE  1024
 
     GByte *pabyBuffer = (GByte *) 
         CPLMalloc(nXSize * (GDALGetDataTypeSize(eType)/8) );
 
     CPLAssert( !oTile.get_ycc() );
 
-    for( iLine = 0; iLine < nYSize; iLine += CHUNK_SIZE )
+    for( iLine = 0; iLine < nYSize; iLine += TILE_CHUNK_SIZE )
     {
         for (c=0; c < num_components; c++)
         {
@@ -2052,7 +2092,7 @@ JP2KAKCreateCopy_WriteTile( GDALDataset *poSrcDS, kdu_tile &oTile,
             int iSubline = 0;
         
             for( iSubline = iLine; 
-                 iSubline < iLine+CHUNK_SIZE && iSubline < nYSize;
+                 iSubline < iLine+TILE_CHUNK_SIZE && iSubline < nYSize;
                  iSubline++ )
             {
                 if( poBand->RasterIO( GF_Read, 
@@ -2143,7 +2183,7 @@ JP2KAKCreateCopy_WriteTile( GDALDataset *poSrcDS, kdu_tile &oTile,
         {
             CPLDebug( "JP2KAK", 
                       "Calling oCodeStream.flush() at line %d",
-                      MIN(nYSize,iLine+CHUNK_SIZE) );
+                      MIN(nYSize,iLine+TILE_CHUNK_SIZE) );
             
             oCodeStream.flush( layer_bytes, layer_count, NULL,
                                true, bComseg );
@@ -2311,6 +2351,16 @@ JP2KAKCreateCopy( const char * pszFilename, GDALDataset *poSrcDS,
         nTileXSize = 20000;
     }
 
+    if( (nTileYSize / TILE_CHUNK_SIZE) > 253) 
+    {
+        // We don't want to process a tile in more than 255 chunks as there
+        // is a limit on the number of tile parts in a tile and we are likely
+        // to flush out a tile part for each processing chunk.  If we might
+        // go over try trimming our Y tile size such that we will get about
+        // 200 tile parts. 
+        nTileYSize = 200 * TILE_CHUNK_SIZE;
+    }
+
     if( CSLFetchNameValue( papszOptions, "BLOCKXSIZE" ) != NULL )
         nTileXSize = atoi(CSLFetchNameValue( papszOptions, "BLOCKXSIZE"));
 
@@ -2331,6 +2381,9 @@ JP2KAKCreateCopy( const char * pszFilename, GDALDataset *poSrcDS,
 
     if( nTileXSize > nXSize ) nTileXSize = nXSize;
     if( nTileYSize > nYSize ) nTileYSize = nYSize;
+
+    CPLDebug( "JP2KAK", "Final JPEG2000 Tile Size is %dP x %dL.", 
+              nTileXSize, nTileYSize );
       
 /* -------------------------------------------------------------------- */
 /*      Do we want a comment segment emitted?                           */
@@ -2565,7 +2618,7 @@ JP2KAKCreateCopy( const char * pszFilename, GDALDataset *poSrcDS,
             double dfXRes = 
                 CPLAtof(poSrcDS->GetMetadataItem("TIFFTAG_XRESOLUTION"));
             double dfYRes = 
-                CPLAtof(poSrcDS->GetMetadataItem("TIFFTAG_XRESOLUTION"));
+                CPLAtof(poSrcDS->GetMetadataItem("TIFFTAG_YRESOLUTION"));
 
             if( atoi(poSrcDS->GetMetadataItem("TIFFTAG_RESOLUTIONUNIT")) == 2 )
             {
