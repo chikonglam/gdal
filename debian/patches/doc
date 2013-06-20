@@ -1,0 +1,26 @@
+Index: gdal/doc/index.dox
+===================================================================
+--- gdal.orig/doc/index.dox	2012-02-20 11:45:37.000000000 +0100
++++ gdal/doc/index.dox	2012-02-20 11:56:28.000000000 +0100
+@@ -19,7 +19,7 @@
+ <a href="http://trac.osgeo.org/gdal/wiki/Release/1.8.1-News">NEWS</a>
+ page describes the July 2011 GDAL/OGR 1.8.1 release.
+ 
+-The related <a href="ogr/index.html">OGR</a> library (which lives within the GDAL source tree) 
++The related <a href="../ogr/index.html">OGR</a> library (which lives within the GDAL source tree) 
+ provides a similar capability for simple features vector data.
+ 
+ Master: http://www.gdal.org<br>
+Index: gdal/ogr/index.dox
+===================================================================
+--- gdal.orig/ogr/index.dox	2012-02-20 11:45:37.000000000 +0100
++++ gdal/ogr/index.dox	2012-02-20 11:56:28.000000000 +0100
+@@ -6,7 +6,7 @@
+ formats including ESRI Shapefiles, S-57, SDTS, PostGIS, Oracle Spatial, 
+ and Mapinfo mid/mif and TAB formats.<p>
+ 
+-OGR is a part of the <a href="http://www.gdal.org/">GDAL</a> library.<p>
++OGR is a part of the <a href="../gdal/index.html">GDAL</a> library.<p>
+ 
+ <h2>Resources</h2>
+ 

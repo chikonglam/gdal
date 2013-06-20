@@ -1,0 +1,13 @@
+Index: gdal/GDALmake.opt.in
+===================================================================
+--- gdal.orig/GDALmake.opt.in	2012-01-04 08:03:42.000000000 +0100
++++ gdal/GDALmake.opt.in	2012-02-20 11:29:36.000000000 +0100
+@@ -348,7 +348,7 @@
+ # PCRaster support
+ PCRASTER_SETTING	=	@PCRASTER_SETTING@
+ 
+-OGDI_INCLUDE	=	@OGDI_INCLUDE@
++OGDI_INCLUDE	=	-I/usr/include/ogdi
+ 
+ PNG_SETTING     =	@PNG_SETTING@
+ JPEG_SETTING	=	@JPEG_SETTING@

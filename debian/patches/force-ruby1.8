@@ -1,0 +1,34 @@
+Description: force building with ruby 1.8
+Origin: vendor
+Bug-Debian: http://bugs.debian.org/684433
+Forwarded: no
+Author: gregor herrmann <gregoa@debian.org>
+Last-Update: 2012-09-18
+
+--- a/swig/ruby/RubyMakefile.mk
++++ b/swig/ruby/RubyMakefile.mk
+@@ -13,18 +13,18 @@
+ 
+ BINDING = ruby
+ GDAL_ROOT = ../..
+-RUBY = ruby
++RUBY = ruby1.8
+ 
+ include $(GDAL_ROOT)/GDALmake.opt
+ 
+ RUBY_MODULES_LIN = gdal.so ogr.so gdalconst.so osr.so  # Linux, Solaris, ...
+ RUBY_MODULES_MAC = gdal.bundle ogr.bundle gdalconst.bundle osr.bundle # Darwin
+ 
+-RUBY_INCLUDE_DIR := $(shell ruby -rrbconfig -e "puts Config::CONFIG['rubyhdrdir'] || Config::CONFIG['archdir']")
+-RUBY_ARCH_INCLUDE_DIR := $(shell ruby -rrbconfig -e "puts Config::CONFIG['rubyhdrdir'] + '/' + Config::CONFIG['arch'] unless Config::CONFIG['rubyhdrdir'].nil?")
+-RUBY_LIB_DIR := $(shell ruby -rrbconfig -e "puts Config::CONFIG['libdir']")
+-RUBY_SO_NAME := $(shell ruby -rrbconfig -e "puts Config::CONFIG['RUBY_SO_NAME']")
+-RUBY_EXTENSIONS_DIR := $(shell ruby -rrbconfig -e "puts Config::CONFIG['sitearchdir']")
++RUBY_INCLUDE_DIR := $(shell $(RUBY) -rrbconfig -e "puts Config::CONFIG['rubyhdrdir'] || Config::CONFIG['archdir']")
++RUBY_ARCH_INCLUDE_DIR := $(shell $(RUBY) -rrbconfig -e "puts Config::CONFIG['rubyhdrdir'] + '/' + Config::CONFIG['arch'] unless Config::CONFIG['rubyhdrdir'].nil?")
++RUBY_LIB_DIR := $(shell $(RUBY) -rrbconfig -e "puts Config::CONFIG['libdir']")
++RUBY_SO_NAME := $(shell $(RUBY) -rrbconfig -e "puts Config::CONFIG['RUBY_SO_NAME']")
++RUBY_EXTENSIONS_DIR := $(shell $(RUBY) -rrbconfig -e "puts Config::CONFIG['sitearchdir']")
+ INSTALL_DIR := $(RUBY_EXTENSIONS_DIR)/gdal
+ 
+ ifeq ($(RUBY_ARCH_INCLUDE_DIR),)

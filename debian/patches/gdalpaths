@@ -1,0 +1,39 @@
+Index: gdal/gcore/gdaldrivermanager.cpp
+===================================================================
+--- gdal.orig/gcore/gdaldrivermanager.cpp	2012-01-04 08:03:38.000000000 +0100
++++ gdal/gcore/gdaldrivermanager.cpp	2012-02-20 11:33:23.000000000 +0100
+@@ -629,7 +629,7 @@
+     #ifdef MACOSX_FRAMEWORK
+                                         GDAL_PREFIX "/PlugIns");
+     #else
+-                                        GDAL_PREFIX "/lib/gdalplugins" );
++                                        GDAL_PREFIX "/lib/gdalplugins/1.9" );
+     #endif
+ #else
+         char szExecPath[1024];
+Index: gdal/ogr/ogrsf_frmts/generic/ogrsfdriverregistrar.cpp
+===================================================================
+--- gdal.orig/ogr/ogrsf_frmts/generic/ogrsfdriverregistrar.cpp	2012-01-04 08:03:20.000000000 +0100
++++ gdal/ogr/ogrsf_frmts/generic/ogrsfdriverregistrar.cpp	2012-02-20 11:33:23.000000000 +0100
+@@ -807,7 +807,7 @@
+     #ifdef MACOSX_FRAMEWORK
+                                         GDAL_PREFIX "/PlugIns");
+     #else
+-                                        GDAL_PREFIX "/lib/gdalplugins" );
++                                        GDAL_PREFIX "/lib/gdalplugins/1.9" );
+     #endif
+ #else
+         char szExecPath[1024];
+Index: gdal/port/cpl_findfile.cpp
+===================================================================
+--- gdal.orig/port/cpl_findfile.cpp	2012-01-04 08:03:15.000000000 +0100
++++ gdal/port/cpl_findfile.cpp	2012-02-20 11:33:23.000000000 +0100
+@@ -104,7 +104,7 @@
+   #ifdef MACOSX_FRAMEWORK
+             CPLPushFinderLocation( GDAL_PREFIX "/Resources/gdal" );
+   #else
+-            CPLPushFinderLocation( GDAL_PREFIX "/share/gdal" );
++            CPLPushFinderLocation( GDAL_PREFIX "/share/gdal/1.9" );
+   #endif
+ #else
+             CPLPushFinderLocation( "/usr/local/share/gdal" );

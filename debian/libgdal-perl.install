@@ -1,0 +1,5 @@
+usr/lib/perl5/auto/Geo/OGR
+usr/lib/perl5/auto/Geo/OSR
+usr/lib/perl5/auto/Geo/GDAL
+usr/lib/perl5/Geo/*.pm
+usr/lib/perl5/Geo/GDAL/Const.pm

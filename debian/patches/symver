@@ -1,0 +1,17 @@
+Index: gdal/GNUmakefile
+===================================================================
+--- gdal.orig/GNUmakefile	2011-09-22 17:36:29.000000000 +0200
++++ gdal/GNUmakefile	2011-09-22 17:37:11.000000000 +0200
+@@ -39,9 +39,10 @@
+ 
+ $(LIBGDAL):	$(GDAL_OBJ:.o=.lo)
+ 	$(LD) $(LDFLAGS) $(LIBS) -o $@ $(GDAL_OBJ:.o=.lo) \
+-	    -rpath $(INST_LIB) \
++		-rpath $(INST_LIB) \
+ 	    -no-undefined \
+-	    -version-info $(LIBGDAL_CURRENT):$(LIBGDAL_REVISION):$(LIBGDAL_AGE)
++	    -version-info $(LIBGDAL_CURRENT):$(LIBGDAL_REVISION):$(LIBGDAL_AGE) \
++		-Wl,-Bsymbolic -Wl,--version-script,$(GDAL_ROOT)/debian/gdal.ver
+ ifeq ($(MACOSX_FRAMEWORK),yes)
+ 	install_name_tool -id ${OSX_VERSION_FRAMEWORK_PREFIX}/GDAL .libs/libgdal.dylib
+ endif
