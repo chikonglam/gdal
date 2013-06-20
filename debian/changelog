@@ -1,4 +1,4 @@
-gdal (1.9.2-1~exp3) experimental; urgency=low
+gdal (1.10.0-0~exp1) experimental; urgency=low
 
   * Moved to new LIBKML driver instead of the old KML one. It has a much
     better support for complex KML files.
@@ -13,6 +13,7 @@ gdal (1.9.2-1~exp3) experimental; urgency=low
     This choice implies that the API does not include anymore any *tiff
     related functions: changed API declaration.
   * Policy bumped to 3.9.4. No changes required.
+  * New upstream version with many fixes. 
 
  -- Francesco Paolo Lovergine <frankie@debian.org>  Sun, 04 Apr 2013 11:39:57 +0100
 
