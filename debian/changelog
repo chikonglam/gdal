@@ -8,6 +8,11 @@ gdal (1.9.2-1~exp3) experimental; urgency=low
     Thanks to Cédric Boutillier for reviewing and testing this patch.
     (Closes: #684433)
   * Added libarmadillo support.
+  * Added TIFF/GEOTIFF symbols rename to definitively solve problem of
+    symbol collisions for programs that both links geotiff/tiff libraries.
+    This choice implies that the API does not include anymore any *tiff
+    related functions: changed API declaration.
+  * Policy bumped to 3.9.4. No changes required.
 
  -- Francesco Paolo Lovergine <frankie@debian.org>  Sun, 04 Apr 2013 11:39:57 +0100
 
