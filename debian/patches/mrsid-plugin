@@ -1,8 +1,8 @@
 Index: gdal/frmts/mrsid/GNUmakefile
 ===================================================================
---- gdal.orig/frmts/mrsid/GNUmakefile	2011-02-18 15:52:35.000000000 +0100
-+++ gdal/frmts/mrsid/GNUmakefile	2011-02-18 16:49:37.000000000 +0100
-@@ -28,3 +28,10 @@
+--- gdal.orig/frmts/mrsid/GNUmakefile	2013-06-20 10:05:16.000000000 +0200
++++ gdal/frmts/mrsid/GNUmakefile	2013-06-20 10:05:16.000000000 +0200
+@@ -31,3 +31,10 @@
  #	    -rpath $(INST_LIB) \
  #	    -no-undefined -export-dynamic
  
@@ -16,7 +16,7 @@ Index: gdal/frmts/mrsid/GNUmakefile
 Index: gdal/frmts/mrsid/pkg/Makefile.in
 ===================================================================
 --- /dev/null	1970-01-01 00:00:00.000000000 +0000
-+++ gdal/frmts/mrsid/pkg/Makefile.in	2011-02-18 16:49:37.000000000 +0100
++++ gdal/frmts/mrsid/pkg/Makefile.in	2013-06-20 10:05:16.000000000 +0200
 @@ -0,0 +1,36 @@
 +CC	=	@CC@
 +CXX	=	@CXX@
@@ -57,7 +57,7 @@ Index: gdal/frmts/mrsid/pkg/Makefile.in
 Index: gdal/frmts/mrsid/pkg/README
 ===================================================================
 --- /dev/null	1970-01-01 00:00:00.000000000 +0000
-+++ gdal/frmts/mrsid/pkg/README	2011-02-18 16:49:37.000000000 +0100
++++ gdal/frmts/mrsid/pkg/README	2013-06-20 10:05:16.000000000 +0200
 @@ -0,0 +1,34 @@
 +	Standalone MrSID Drivers for GDAL
 +	===================================
@@ -96,7 +96,7 @@ Index: gdal/frmts/mrsid/pkg/README
 Index: gdal/frmts/mrsid/pkg/aclocal.m4
 ===================================================================
 --- /dev/null	1970-01-01 00:00:00.000000000 +0000
-+++ gdal/frmts/mrsid/pkg/aclocal.m4	2011-02-18 16:49:37.000000000 +0100
++++ gdal/frmts/mrsid/pkg/aclocal.m4	2013-06-20 10:05:16.000000000 +0200
 @@ -0,0 +1,202 @@
 +AC_DEFUN(AC_COMPILER_LOCALHACK,
 +[
@@ -303,7 +303,7 @@ Index: gdal/frmts/mrsid/pkg/aclocal.m4
 Index: gdal/frmts/mrsid/pkg/configure
 ===================================================================
 --- /dev/null	1970-01-01 00:00:00.000000000 +0000
-+++ gdal/frmts/mrsid/pkg/configure	2011-02-18 16:49:37.000000000 +0100
++++ gdal/frmts/mrsid/pkg/configure	2013-06-20 10:05:16.000000000 +0200
 @@ -0,0 +1,4680 @@
 +#! /bin/sh
 +# Guess values for system-dependent variables and create Makefiles.
@@ -4988,7 +4988,7 @@ Index: gdal/frmts/mrsid/pkg/configure
 Index: gdal/frmts/mrsid/pkg/configure.in
 ===================================================================
 --- /dev/null	1970-01-01 00:00:00.000000000 +0000
-+++ gdal/frmts/mrsid/pkg/configure.in	2011-02-18 16:49:37.000000000 +0100
++++ gdal/frmts/mrsid/pkg/configure.in	2013-06-20 10:05:16.000000000 +0200
 @@ -0,0 +1,280 @@
 +dnl ***************************************************************************
 +dnl $Id: configure.in 9971 2006-08-23 20:06:02Z fwarmerdam $
