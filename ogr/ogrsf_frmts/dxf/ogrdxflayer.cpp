@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrdxflayer.cpp 25031 2012-10-02 22:08:48Z rouault $
+ * $Id: ogrdxflayer.cpp 25030 2012-10-02 22:08:36Z rouault $
  *
  * Project:  DXF Translator
  * Purpose:  Implements OGRDXFLayer class.
@@ -31,7 +31,7 @@
 #include "cpl_conv.h"
 #include "ogrdxf_polyline_smooth.h"
 
-CPL_CVSID("$Id: ogrdxflayer.cpp 25031 2012-10-02 22:08:48Z rouault $");
+CPL_CVSID("$Id: ogrdxflayer.cpp 25030 2012-10-02 22:08:36Z rouault $");
 
 #ifndef PI
 #define PI  3.14159265358979323846
@@ -958,7 +958,8 @@ OGRFeature *OGRDXFLayer::TranslateLWPOLYLINE()
         }
     }
 
-    poDS->UnreadValue();
+    if( nCode == 0 )
+        poDS->UnreadValue();
 
     if( bHaveX && bHaveY )
         smoothPolyline.AddPoint(dfX, dfY, dfZ, dfBulge);

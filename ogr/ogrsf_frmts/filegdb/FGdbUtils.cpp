@@ -1,5 +1,5 @@
 /******************************************************************************
-* $Id: FGdbUtils.cpp 23983 2012-02-15 05:19:11Z rcoup $
+* $Id: FGdbUtils.cpp 23984 2012-02-15 05:19:25Z rcoup $
 *
 * Project:  OpenGIS Simple Features Reference Implementation
 * Purpose:  Different utility functions used in FileGDB OGR driver.
@@ -35,7 +35,7 @@
 #include "ogr_api.h"
 #include "ogrpgeogeometry.h"
 
-CPL_CVSID("$Id: FGdbUtils.cpp 23983 2012-02-15 05:19:11Z rcoup $");
+CPL_CVSID("$Id: FGdbUtils.cpp 23984 2012-02-15 05:19:25Z rcoup $");
 
 using std::string;
 

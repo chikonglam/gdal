@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdalbuildvrt.cpp 21185 2010-12-01 20:32:25Z rouault $
+ * $Id: gdalbuildvrt.cpp 25846 2013-04-03 06:13:31Z dron $
  *
  * Project:  GDAL Utilities
  * Purpose:  Commandline application to build VRT datasets from raster products or content of SHP tile index
@@ -37,7 +37,7 @@
 #endif
 #include "ogr_srs_api.h"
 
-CPL_CVSID("$Id: gdalbuildvrt.cpp 21185 2010-12-01 20:32:25Z rouault $");
+CPL_CVSID("$Id: gdalbuildvrt.cpp 25846 2013-04-03 06:13:31Z dron $");
 
 #define GEOTRSFRM_TOPLEFT_X            0
 #define GEOTRSFRM_WE_RES               1
@@ -83,14 +83,18 @@ typedef struct
 /*                               Usage()                                */
 /************************************************************************/
 
-static void Usage()
+static void Usage(const char* pszErrorMsg = NULL)
 
 {
     fprintf(stdout, "%s", 
-            "Usage: gdalbuildvrt [-tileindex field_name] [-resolution {highest|lowest|average|user}]\n"
-            "                    [-tr xres yres] [-tap] [-separate] [-allow_projection_difference] [-q]\n"
-            "                    [-te xmin ymin xmax ymax] [-addalpha] [-hidenodata] \n"
+            "Usage: gdalbuildvrt [-tileindex field_name]\n"
+            "                    [-resolution {highest|lowest|average|user}]\n"
+            "                    [-te xmin ymin xmax ymax] [-tr xres yres] [-tap]\n"
+            "                    [-separate] [-b band] [-sd subdataset]\n"
+            "                    [-allow_projection_difference] [-q]\n"
+            "                    [-addalpha] [-hidenodata]\n"
             "                    [-srcnodata \"value [value...]\"] [-vrtnodata \"value [value...]\"] \n"
+            "                    [-a_srs srs_def]\n"
             "                    [-input_file_list my_liste.txt] [-overwrite] output.vrt [gdalfile]*\n"
             "\n"
             "eg.\n"
@@ -98,17 +102,27 @@ static void Usage()
             "  % gdalbuildvrt -input_file_list my_liste.txt doq_index.vrt\n"
             "\n"
             "NOTES:\n"
-            "  o With -separate, each files goes into a separate band in the VRT band. Otherwise,\n"
-            "    the files are considered as tiles of a larger mosaic.\n"
-            "  o The default tile index field is 'location' unless otherwise specified by -tileindex.\n"
-            "  o In case the resolution of all input files is not the same, the -resolution flag.\n"
-            "    enable the user to control the way the output resolution is computed. average is the default.\n"
+            "  o With -separate, each files goes into a separate band in the VRT band.\n"
+            "    Otherwise, the files are considered as tiles of a larger mosaic.\n"
+            "  o -b option selects a band to add into vrt.  Multiple bands can be listed.\n"
+            "    By default all bands are queried.\n"
+            "  o The default tile index field is 'location' unless otherwise specified by\n"
+            "    -tileindex.\n"
+            "  o In case the resolution of all input files is not the same, the -resolution\n"
+            "    flag enable the user to control the way the output resolution is computed.\n"
+            "    Average is the default.\n"
             "  o Input files may be any valid GDAL dataset or a GDAL raster tile index.\n"
             "  o For a GDAL raster tile index, all entries will be added to the VRT.\n"
-            "  o If one GDAL dataset is made of several subdatasets and has 0 raster bands, its\n"
-            "    datasets will be added to the VRT rather than the dataset itself.\n"
-            "  o By default, only datasets of same projection and band characteristics may be added to the VRT.\n"
+            "  o If one GDAL dataset is made of several subdatasets and has 0 raster bands,\n"
+            "    its datasets will be added to the VRT rather than the dataset itself.\n"
+            "    Single subdataset could be selected by its number using the -sd option.\n"
+            "  o By default, only datasets of same projection and band characteristics\n"
+            "    may be added to the VRT.\n"
             );
+
+    if( pszErrorMsg != NULL )
+        fprintf(stderr, "\nFAILURE: %s\n", pszErrorMsg);
+
     exit( 1 );
 }
 
@@ -183,6 +197,9 @@ class VRTBuilder
     char               *pszOutputFilename;
     int                 nInputFiles;
     char              **ppszInputFilenames;
+    int                 nBands;
+    int                *panBandList;   
+    int                 nMaxBandNo;
     ResolutionStrategy  resolutionStrategy;
     double              we_res;
     double              ns_res;
@@ -195,12 +212,13 @@ class VRTBuilder
     int                 bAllowProjectionDifference;
     int                 bAddAlpha;
     int                 bHideNoData;
+    int                 nSubdataset;
     char               *pszSrcNoData;
     char               *pszVRTNoData;
+    char               *pszOutputSRS;
 
     /* Internal variables */
     char               *pszProjectionRef;
-    int                 nBands;
     BandProperty       *pasBandProperties;
     int                 bFirst;
     int                 bHasGeoTransform;
@@ -226,13 +244,15 @@ class VRTBuilder
     public:
                 VRTBuilder(const char* pszOutputFilename,
                            int nInputFiles, const char* const * ppszInputFilenames,
+                           int *panBandList, int nBandCount, int nMaxBandNo,
                            ResolutionStrategy resolutionStrategy,
                            double we_res, double ns_res,
                            int bTargetAlignedPixels,
                            double minX, double minY, double maxX, double maxY,
                            int bSeparate, int bAllowProjectionDifference,
-                           int bAddAlpha, int bHideNoData,
-                           const char* pszSrcNoData, const char* pszVRTNoData);
+                           int bAddAlpha, int bHideNoData, int nSubdataset,
+                           const char* pszSrcNoData, const char* pszVRTNoData,
+                           const char* pszOutputSRS);
 
                ~VRTBuilder();
 
@@ -246,13 +266,15 @@ class VRTBuilder
 
 VRTBuilder::VRTBuilder(const char* pszOutputFilename,
                        int nInputFiles, const char* const * ppszInputFilenames,
+                       int *panBandList, int nBandCount, int nMaxBandNo,
                        ResolutionStrategy resolutionStrategy,
                        double we_res, double ns_res,
                        int bTargetAlignedPixels,
                        double minX, double minY, double maxX, double maxY,
                        int bSeparate, int bAllowProjectionDifference,
-                       int bAddAlpha, int bHideNoData,
-                       const char* pszSrcNoData, const char* pszVRTNoData)
+                       int bAddAlpha, int bHideNoData, int nSubdataset,
+                       const char* pszSrcNoData, const char* pszVRTNoData,
+                       const char* pszOutputSRS)
 {
     this->pszOutputFilename = CPLStrdup(pszOutputFilename);
     this->nInputFiles = nInputFiles;
@@ -263,6 +285,10 @@ VRTBuilder::VRTBuilder(const char* pszOutputFilename,
     {
         this->ppszInputFilenames[i] = CPLStrdup(ppszInputFilenames[i]);
     }
+
+    this->nBands = nBandCount;
+    this->panBandList = panBandList;    
+    this->nMaxBandNo = nMaxBandNo;    
 
     this->resolutionStrategy = resolutionStrategy;
     this->we_res = we_res;
@@ -276,12 +302,13 @@ VRTBuilder::VRTBuilder(const char* pszOutputFilename,
     this->bAllowProjectionDifference = bAllowProjectionDifference;
     this->bAddAlpha = bAddAlpha;
     this->bHideNoData = bHideNoData;
+    this->nSubdataset = nSubdataset;
     this->pszSrcNoData = (pszSrcNoData) ? CPLStrdup(pszSrcNoData) : NULL;
     this->pszVRTNoData = (pszVRTNoData) ? CPLStrdup(pszVRTNoData) : NULL;
+    this->pszOutputSRS = (pszOutputSRS) ? CPLStrdup(pszOutputSRS) : NULL;
 
     bUserExtent = FALSE;
     pszProjectionRef = NULL;
-    nBands = 0;
     pasBandProperties = NULL;
     bFirst = TRUE;
     bHasGeoTransform = FALSE;
@@ -307,6 +334,8 @@ VRTBuilder::~VRTBuilder()
     CPLFree(pszOutputFilename);
     CPLFree(pszSrcNoData);
     CPLFree(pszVRTNoData);
+    if (panBandList)
+        delete[] panBandList;
 
     int i;
     for(i=0;i<nInputFiles;i++)
@@ -338,6 +367,7 @@ VRTBuilder::~VRTBuilder()
     CPLFree(pszProjectionRef);
     CPLFree(padfSrcNoData);
     CPLFree(padfVRTNoData);
+    CPLFree(pszOutputSRS);
 }
 
 /************************************************************************/
@@ -378,20 +408,37 @@ int VRTBuilder::AnalyseRaster( GDALDatasetH hDS, const char* dsFileName,
 
         ppszInputFilenames = (char**)CPLRealloc(ppszInputFilenames,
                                 sizeof(char*) * (nInputFiles+CSLCount(papszMetadata)));
-        int count = 1;
-        char subdatasetNameKey[256];
-        sprintf(subdatasetNameKey, "SUBDATASET_%d_NAME", count);
-        while(*papszMetadata != NULL)
+        if ( nSubdataset < 0 )
         {
-            if (EQUALN(*papszMetadata, subdatasetNameKey, strlen(subdatasetNameKey)))
+            int count = 1;
+            char subdatasetNameKey[256];
+            sprintf(subdatasetNameKey, "SUBDATASET_%d_NAME", count);
+            while(*papszMetadata != NULL)
             {
-                memset(&pasDatasetProperties[nInputFiles], 0, sizeof(DatasetProperty));
-                ppszInputFilenames[nInputFiles++] =
-                        CPLStrdup(*papszMetadata+strlen(subdatasetNameKey)+1);
-                count++;
-                sprintf(subdatasetNameKey, "SUBDATASET_%d_NAME", count);
+                if (EQUALN(*papszMetadata, subdatasetNameKey, strlen(subdatasetNameKey)))
+                {
+                    memset(&pasDatasetProperties[nInputFiles], 0, sizeof(DatasetProperty));
+                    ppszInputFilenames[nInputFiles++] =
+                            CPLStrdup(*papszMetadata+strlen(subdatasetNameKey)+1);
+                    count++;
+                    sprintf(subdatasetNameKey, "SUBDATASET_%d_NAME", count);
+                }
+                papszMetadata++;
             }
-            papszMetadata++;
+        }
+        else
+        {
+            char        subdatasetNameKey[256];
+            const char  *pszSubdatasetName;
+
+            snprintf( subdatasetNameKey, sizeof(subdatasetNameKey),
+                      "SUBDATASET_%d_NAME", nSubdataset );
+            pszSubdatasetName = CSLFetchNameValue( papszMetadata, subdatasetNameKey );
+            if ( pszSubdatasetName )
+            {
+                memset( &pasDatasetProperties[nInputFiles], 0, sizeof(DatasetProperty) );
+                ppszInputFilenames[nInputFiles++] = CPLStrdup( pszSubdatasetName );
+            }
         }
         return FALSE;
     }
@@ -488,6 +535,22 @@ int VRTBuilder::AnalyseRaster( GDALDatasetH hDS, const char* dsFileName,
                         &psDatasetProperties->nBlockYSize);
 
     int _nBands = GDALGetRasterCount(hDS);
+
+    //if provided band list 
+    if(nBands != 0 && _nBands != 0 && nMaxBandNo != 0 && _nBands >= nMaxBandNo)
+    {
+        if(_nBands < nMaxBandNo)
+        {
+            CPLError(CE_Warning, CPLE_AppDefined,
+                        "Skipping %s as it has no sush bands", dsFileName);
+            return FALSE;
+        }
+        else
+        {
+            _nBands = nMaxBandNo;
+        }
+    }
+
     if (_nBands == 0)
     {
         CPLError(CE_Warning, CPLE_AppDefined,
@@ -545,12 +608,25 @@ int VRTBuilder::AnalyseRaster( GDALDatasetH hDS, const char* dsFileName,
             maxX = ds_maxX;
             maxY = ds_maxY;
         }
-        nBands = _nBands;
 
+        //if provided band list
+        if(nBands == 0)
+        {
+            nBands = _nBands;
+            if(panBandList != NULL)
+                CPLFree(panBandList);
+            panBandList = new int[nBands];
+            for(j=0;j<nBands;j++)
+            {
+                panBandList[j] = j + 1;
+                if(nMaxBandNo < j + 1)
+                    nMaxBandNo = j + 1;
+            }
+        }
         if (!bSeparate)
         {
-            pasBandProperties = (BandProperty*)CPLMalloc(nBands*sizeof(BandProperty));
-            for(j=0;j<nBands;j++)
+            pasBandProperties = (BandProperty*)CPLMalloc(nMaxBandNo*sizeof(BandProperty));
+            for(j=0;j<nMaxBandNo;j++)
             {
                 GDALRasterBandH hRasterBand = GDALGetRasterBand( hDS, j+1 );
                 pasBandProperties[j].colorInterpretation =
@@ -601,14 +677,14 @@ int VRTBuilder::AnalyseRaster( GDALDatasetH hDS, const char* dsFileName,
         }
         if (!bSeparate)
         {
-            if (nBands != _nBands)
+            if (nMaxBandNo > _nBands)
             {
                 CPLError(CE_Warning, CPLE_NotSupported,
                             "gdalbuildvrt does not support heterogenous band numbers. Skipping %s",
                         dsFileName);
                 return FALSE;
             }
-            for(j=0;j<nBands;j++)
+            for(j=0;j<nMaxBandNo;j++)
             {
                 GDALRasterBandH hRasterBand = GDALGetRasterBand( hDS, j+1 );
                 if (pasBandProperties[j].colorInterpretation != GDALGetRasterColorInterpretation(hRasterBand) ||
@@ -785,15 +861,16 @@ void VRTBuilder::CreateVRTNonSeparate(VRTDatasetH hVRTDS)
     for(j=0;j<nBands;j++)
     {
         GDALRasterBandH hBand;
-        GDALAddBand(hVRTDS, pasBandProperties[j].dataType, NULL);
+        int nSelBand = panBandList[j]-1;
+        GDALAddBand(hVRTDS, pasBandProperties[nSelBand].dataType, NULL);
         hBand = GDALGetRasterBand(hVRTDS, j+1);
-        GDALSetRasterColorInterpretation(hBand, pasBandProperties[j].colorInterpretation);
-        if (pasBandProperties[j].colorInterpretation == GCI_PaletteIndex)
+        GDALSetRasterColorInterpretation(hBand, pasBandProperties[nSelBand].colorInterpretation);
+        if (pasBandProperties[nSelBand].colorInterpretation == GCI_PaletteIndex)
         {
-            GDALSetRasterColorTable(hBand, pasBandProperties[j].colorTable);
+            GDALSetRasterColorTable(hBand, pasBandProperties[nSelBand].colorTable);
         }
-        if (bAllowVRTNoData && pasBandProperties[j].bHasNoData)
-            GDALSetRasterNoDataValue(hBand, pasBandProperties[j].noDataValue);
+        if (bAllowVRTNoData && pasBandProperties[nSelBand].bHasNoData)
+            GDALSetRasterNoDataValue(hBand, pasBandProperties[nSelBand].noDataValue);
         if ( bHideNoData )
             GDALSetMetadataItem(hBand,"HideNoDataValue","1",NULL);
     }
@@ -837,7 +914,7 @@ void VRTBuilder::CreateVRTNonSeparate(VRTDatasetH hVRTDS)
                                         GA_ReadOnly, TRUE, pszProjectionRef,
                                         psDatasetProperties->adfGeoTransform);
 
-        for(j=0;j<nBands;j++)
+        for(j=0;j<nMaxBandNo;j++)
         {
             GDALProxyPoolDatasetAddSrcBandDescription(hProxyDS,
                                             pasBandProperties[j].dataType,
@@ -858,13 +935,14 @@ void VRTBuilder::CreateVRTNonSeparate(VRTDatasetH hVRTDS)
                     (VRTSourcedRasterBandH)GDALGetRasterBand(hVRTDS, j + 1);
 
             /* Place the raster band at the right position in the VRT */
-            if (bAllowSrcNoData && psDatasetProperties->panHasNoData[j])
-                VRTAddComplexSource(hVRTBand, GDALGetRasterBand((GDALDatasetH)hProxyDS, j + 1),
+            int nSelBand = panBandList[j] - 1;
+            if (bAllowSrcNoData && psDatasetProperties->panHasNoData[nSelBand])
+                VRTAddComplexSource(hVRTBand, GDALGetRasterBand((GDALDatasetH)hProxyDS, nSelBand + 1),
                                 nSrcXOff, nSrcYOff, nSrcXSize, nSrcYSize,
                                 nDstXOff, nDstYOff, nDstXSize, nDstYSize,
-                                0, 1, psDatasetProperties->padfNoDataValues[j]);
+                                0, 1, psDatasetProperties->padfNoDataValues[nSelBand]);
             else
-                VRTAddSimpleSource(hVRTBand, GDALGetRasterBand((GDALDatasetH)hProxyDS, j + 1),
+                VRTAddSimpleSource(hVRTBand, GDALGetRasterBand((GDALDatasetH)hProxyDS, nSelBand + 1),
                                 nSrcXOff, nSrcYOff, nSrcXSize, nSrcYSize,
                                 nDstXOff, nDstYOff, nDstXSize, nDstYSize,
                                 "near", VRT_NODATA_UNSET);
@@ -1033,7 +1111,11 @@ int VRTBuilder::Build(GDALProgressFunc pfnProgress, void * pProgressData)
     VRTDatasetH hVRTDS = VRTCreate(nRasterXSize, nRasterYSize);
     GDALSetDescription(hVRTDS, pszOutputFilename);
 
-    if (pszProjectionRef)
+    if( pszOutputSRS )
+    {
+        GDALSetProjection(hVRTDS, pszOutputSRS);
+    }
+    else if (pszProjectionRef)
     {
         GDALSetProjection(hVRTDS, pszProjectionRef);
     }
@@ -1159,6 +1241,10 @@ static void add_file_to_list(const char* filename, const char* tile_index,
 /*                                main()                                */
 /************************************************************************/
 
+#define CHECK_HAS_ENOUGH_ADDITIONAL_ARGS(nExtraArg) \
+    do { if (iArg + nExtraArg >= nArgc) \
+        Usage(CPLSPrintf("%s option requires %d argument(s)", papszArgv[iArg], nExtraArg)); } while(0)
+
 int main( int nArgc, char ** papszArgv )
 
 {
@@ -1178,9 +1264,13 @@ int main( int nArgc, char ** papszArgv )
     int bAddAlpha = FALSE;
     int bForceOverwrite = FALSE;
     int bHideNoData = FALSE;
+    int nSubdataset = -1;
     const char* pszSrcNoData = NULL;
     const char* pszVRTNoData = NULL;
-
+    char* pszOutputSRS = NULL;
+    int *panBandList = NULL;
+    int nBandCount = 0;
+    int nMaxBandNo = 0;
     /* Check strict compilation and runtime library version as we use C++ API */
     if (! GDAL_CHECK_VERSION(papszArgv[0]))
         exit(1);
@@ -1202,19 +1292,21 @@ int main( int nArgc, char ** papszArgv )
                    papszArgv[0], GDAL_RELEASE_NAME, GDALVersionInfo("RELEASE_NAME"));
             return 0;
         }
-        else if( EQUAL(papszArgv[iArg],"-tileindex") &&
-                 iArg + 1 < nArgc)
+        else if( EQUAL(papszArgv[iArg],"--help") )
+            Usage();
+        else if( EQUAL(papszArgv[iArg],"-tileindex") )
         {
+            CHECK_HAS_ENOUGH_ADDITIONAL_ARGS(1);
             tile_index = papszArgv[++iArg];
         }
-        else if( EQUAL(papszArgv[iArg],"-resolution") &&
-                 iArg + 1 < nArgc)
+        else if( EQUAL(papszArgv[iArg],"-resolution") )
         {
+            CHECK_HAS_ENOUGH_ADDITIONAL_ARGS(1);
             resolution = papszArgv[++iArg];
         }
-        else if( EQUAL(papszArgv[iArg],"-input_file_list") &&
-                 iArg + 1 < nArgc)
+        else if( EQUAL(papszArgv[iArg],"-input_file_list") )
         {
+            CHECK_HAS_ENOUGH_ADDITIONAL_ARGS(1);
             const char* input_file_list = papszArgv[++iArg];
             FILE* f = VSIFOpen(input_file_list, "r");
             if (f)
@@ -1238,18 +1330,24 @@ int main( int nArgc, char ** papszArgv )
         {
             bAllowProjectionDifference = TRUE;
         }
-        /* Alternate syntax for output file */
-        else if( EQUAL(papszArgv[iArg],"-o")  &&
-                 iArg + 1 < nArgc)
+        else if( EQUAL(papszArgv[iArg], "-sd") )
         {
+            CHECK_HAS_ENOUGH_ADDITIONAL_ARGS(1);
+            nSubdataset = atoi(papszArgv[++iArg]);
+        }
+        /* Alternate syntax for output file */
+        else if( EQUAL(papszArgv[iArg],"-o") )
+        {
+            CHECK_HAS_ENOUGH_ADDITIONAL_ARGS(1);
             pszOutputFilename = papszArgv[++iArg];
         }
         else if ( EQUAL(papszArgv[iArg],"-q") || EQUAL(papszArgv[iArg],"-quiet") )
         {
             bQuiet = TRUE;
         }
-        else if ( EQUAL(papszArgv[iArg],"-tr") && iArg + 2 < nArgc)
+        else if ( EQUAL(papszArgv[iArg],"-tr") )
         {
+            CHECK_HAS_ENOUGH_ADDITIONAL_ARGS(2);
             we_res = CPLAtofM(papszArgv[++iArg]);
             ns_res = CPLAtofM(papszArgv[++iArg]);
         }
@@ -1257,8 +1355,9 @@ int main( int nArgc, char ** papszArgv )
         {
             bTargetAlignedPixels = TRUE;
         }
-        else if ( EQUAL(papszArgv[iArg],"-te") && iArg + 4 < nArgc)
+        else if ( EQUAL(papszArgv[iArg],"-te") )
         {
+            CHECK_HAS_ENOUGH_ADDITIONAL_ARGS(4);
             xmin = CPLAtofM(papszArgv[++iArg]);
             ymin = CPLAtofM(papszArgv[++iArg]);
             xmax = CPLAtofM(papszArgv[++iArg]);
@@ -1268,6 +1367,29 @@ int main( int nArgc, char ** papszArgv )
         {
             bAddAlpha = TRUE;
         }
+        else if( EQUAL(papszArgv[iArg],"-b"))
+        {
+            CHECK_HAS_ENOUGH_ADDITIONAL_ARGS(1);
+            const char* pszBand = papszArgv[++iArg];
+            int nBand = atoi(pszBand);
+            if( nBand < 1 )
+            {
+                printf( "Unrecognizable band number (%s).\n", papszArgv[iArg+1] );
+                Usage();
+                GDALDestroyDriverManager();
+                exit( 1 );
+            }
+            
+            if(nBand > nMaxBandNo)
+            {
+                nMaxBandNo = nBand;
+            }
+
+            nBandCount++;
+            panBandList = (int *) 
+                CPLRealloc(panBandList, sizeof(int) * nBandCount);
+            panBandList[nBandCount-1] = nBand;
+        }
         else if ( EQUAL(papszArgv[iArg],"-hidenodata") )
         {
             bHideNoData = TRUE;
@@ -1276,18 +1398,36 @@ int main( int nArgc, char ** papszArgv )
         {
             bForceOverwrite = TRUE;
         }
-        else if ( EQUAL(papszArgv[iArg],"-srcnodata") && iArg + 1 < nArgc)
+        else if ( EQUAL(papszArgv[iArg],"-srcnodata") )
         {
+            CHECK_HAS_ENOUGH_ADDITIONAL_ARGS(1);
             pszSrcNoData = papszArgv[++iArg];
         }
-        else if ( EQUAL(papszArgv[iArg],"-vrtnodata") && iArg + 1 < nArgc)
+        else if ( EQUAL(papszArgv[iArg],"-vrtnodata") )
         {
+            CHECK_HAS_ENOUGH_ADDITIONAL_ARGS(1);
             pszVRTNoData = papszArgv[++iArg];
+        }
+        else if( EQUAL(papszArgv[iArg],"-a_srs") )
+        {
+            CHECK_HAS_ENOUGH_ADDITIONAL_ARGS(1);
+            OGRSpatialReferenceH hOutputSRS = OSRNewSpatialReference(NULL);
+
+            if( OSRSetFromUserInput( hOutputSRS, papszArgv[iArg+1] ) != OGRERR_NONE )
+            {
+                fprintf( stderr, "Failed to process SRS definition: %s\n", 
+                         papszArgv[iArg+1] );
+                GDALDestroyDriverManager();
+                exit( 1 );
+            }
+
+            OSRExportToWkt( hOutputSRS, &pszOutputSRS );
+            OSRDestroySpatialReference( hOutputSRS );
+            iArg++;
         }
         else if ( papszArgv[iArg][0] == '-' )
         {
-            printf("Unrecognized option : %s\n", papszArgv[iArg]);
-            exit(-1);
+            Usage(CPLSPrintf("Unkown option name '%s'", papszArgv[iArg]));
         }
         else if( pszOutputFilename == NULL )
         {
@@ -1300,8 +1440,10 @@ int main( int nArgc, char ** papszArgv )
         }
     }
 
-    if( pszOutputFilename == NULL || nInputFiles == 0 )
-        Usage();
+    if( pszOutputFilename == NULL )
+        Usage("No output filename specified.");
+    if( nInputFiles == 0 )
+        Usage("No input filenames specified.");
 
     if (!bQuiet)
         pfnProgress = GDALTermProgress;
@@ -1315,7 +1457,9 @@ int main( int nArgc, char ** papszArgv )
         if (bExists)
         {
             GDALDriverH hDriver = GDALIdentifyDriver( pszOutputFilename, NULL );
-            if (hDriver && !EQUAL(GDALGetDriverShortName(hDriver), "VRT"))
+            if (hDriver && !(EQUAL(GDALGetDriverShortName(hDriver), "VRT") ||
+                   (EQUAL(GDALGetDriverShortName(hDriver), "API_PROXY") &&
+                    EQUAL(CPLGetExtension(pszOutputFilename), "VRT"))) )
             {
                 fprintf(stderr,
                         "'%s' is an existing GDAL dataset managed by %s driver.\n"
@@ -1330,20 +1474,17 @@ int main( int nArgc, char ** papszArgv )
     if (we_res != 0 && ns_res != 0 &&
         resolution != NULL && !EQUAL(resolution, "user"))
     {
-        fprintf(stderr, "-tr option is not compatible with -resolution %s\n", resolution);
-        Usage();
+        Usage(CPLSPrintf("-tr option is not compatible with -resolution %s", resolution));
     }
     
     if (bTargetAlignedPixels && we_res == 0 && ns_res == 0)
     {
-        fprintf( stderr, "-tap option cannot be used without using -tr\n");
-        Usage();
+        Usage("-tap option cannot be used without using -tr");
     }
     
     if (bAddAlpha && bSeparate)
     {
-        fprintf(stderr, "-addalpha option is not compatible with -separate\n");
-        Usage();
+        Usage("-addalpha option is not compatible with -separate.");
     }
         
     ResolutionStrategy eStrategy = AVERAGE_RESOLUTION;
@@ -1353,8 +1494,7 @@ int main( int nArgc, char ** papszArgv )
             eStrategy = USER_RESOLUTION;
         else if ( resolution != NULL && EQUAL(resolution, "user") )
         {
-            fprintf(stderr, "-tr option must be used with -resolution user\n");
-            Usage();
+            Usage("-tr option must be used with -resolution user.");
         }
     }
     else if ( EQUAL(resolution, "average") )
@@ -1365,8 +1505,7 @@ int main( int nArgc, char ** papszArgv )
         eStrategy = LOWEST_RESOLUTION;
     else
     {
-        fprintf(stderr, "invalid value (%s) for -resolution\n", resolution);
-        Usage();
+        Usage(CPLSPrintf("invalid value (%s) for -resolution", resolution));
     }
     
     /* If -srcnodata is specified, use it as the -vrtnodata if the latter is not */
@@ -1375,9 +1514,10 @@ int main( int nArgc, char ** papszArgv )
         pszVRTNoData = pszSrcNoData;
 
     VRTBuilder oBuilder(pszOutputFilename, nInputFiles, ppszInputFilenames,
+                        panBandList, nBandCount, nMaxBandNo,
                         eStrategy, we_res, ns_res, bTargetAlignedPixels, xmin, ymin, xmax, ymax,
-                        bSeparate, bAllowProjectionDifference, bAddAlpha, bHideNoData,
-                        pszSrcNoData, pszVRTNoData);
+                        bSeparate, bAllowProjectionDifference, bAddAlpha, bHideNoData, nSubdataset,
+                        pszSrcNoData, pszVRTNoData, pszOutputSRS);
 
     oBuilder.Build(pfnProgress, NULL);
     
@@ -1386,8 +1526,8 @@ int main( int nArgc, char ** papszArgv )
         CPLFree(ppszInputFilenames[i]);
     }
     CPLFree(ppszInputFilenames);
-
-
+    CPLFree(pszOutputSRS);
+    CPLFree( panBandList );
     CSLDestroy( papszArgv );
     GDALDumpOpenDatasets( stderr );
     GDALDestroyDriverManager();

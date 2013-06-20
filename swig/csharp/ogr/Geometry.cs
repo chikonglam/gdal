@@ -497,6 +497,13 @@ public int ExportToWkb( byte[] buffer, wkbByteOrder byte_order ) {
     return ret;
   }
 
+  public Geometry PointOnSurface() {
+    IntPtr cPtr = OgrPINVOKE.Geometry_PointOnSurface(swigCPtr);
+    Geometry ret = (cPtr == IntPtr.Zero) ? null : new Geometry(cPtr, true, ThisOwn_true());
+    if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
+    return ret;
+  }
+
   public int WkbSize() {
     int ret = OgrPINVOKE.Geometry_WkbSize(swigCPtr);
     if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();

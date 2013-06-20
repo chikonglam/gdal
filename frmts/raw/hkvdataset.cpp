@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: hkvdataset.cpp 20996 2010-10-28 18:38:15Z rouault $
+ * $Id: hkvdataset.cpp 24590 2012-06-16 16:34:48Z rouault $
  *
  * Project:  GView
  * Purpose:  Implementation of Atlantis HKV labelled blob support
@@ -33,7 +33,7 @@
 #include "ogr_spatialref.h"
 #include "atlsci_spheroid.h"
 
-CPL_CVSID("$Id: hkvdataset.cpp 20996 2010-10-28 18:38:15Z rouault $");
+CPL_CVSID("$Id: hkvdataset.cpp 24590 2012-06-16 16:34:48Z rouault $");
 
 CPL_C_START
 void	GDALRegister_HKV(void);
@@ -1795,6 +1795,7 @@ HKVDataset::CreateCopy( const char * pszFilename, GDALDataset *poSrcDS,
                     CPLError( CE_Failure, CPLE_UserInterrupt, 
                               "User terminated" );
                     delete poDS;
+                    CPLFree(pData);
 
                     GDALDriver *poHKVDriver = 
                         (GDALDriver *) GDALGetDriverByName( "MFF2" );
@@ -1812,6 +1813,8 @@ HKVDataset::CreateCopy( const char * pszFilename, GDALDataset *poSrcDS,
                                             eType, 0, 0 );
                 if( eErr != CE_None )
                 {
+                    delete poDS;
+                    CPLFree(pData);
                     return NULL;
                 }
             
@@ -1823,6 +1826,8 @@ HKVDataset::CreateCopy( const char * pszFilename, GDALDataset *poSrcDS,
 
                 if( eErr != CE_None )
                 {
+                    delete poDS;
+                    CPLFree(pData);
                     return NULL;
                 }
             }

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrsqlitesinglefeaturelayer.cpp 19205 2010-03-26 22:48:37Z rouault $
+ * $Id: ogrsqlitesinglefeaturelayer.cpp 23736 2012-01-09 19:05:02Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implements OGRSQLiteSingleFeatureLayer class.
@@ -31,7 +31,7 @@
 #include "cpl_string.h"
 #include "ogr_sqlite.h"
 
-CPL_CVSID("$Id: ogrsqlitesinglefeaturelayer.cpp 19205 2010-03-26 22:48:37Z rouault $");
+CPL_CVSID("$Id: ogrsqlitesinglefeaturelayer.cpp 23736 2012-01-09 19:05:02Z rouault $");
 
 /************************************************************************/
 /*                    OGRSQLiteSingleFeatureLayer()                     */
@@ -48,6 +48,25 @@ OGRSQLiteSingleFeatureLayer::OGRSQLiteSingleFeatureLayer(
 
     iNextShapeId = 0;
     this->nVal = nVal;
+    pszVal = NULL;
+}
+
+/************************************************************************/
+/*                    OGRSQLiteSingleFeatureLayer()                     */
+/************************************************************************/
+
+OGRSQLiteSingleFeatureLayer::OGRSQLiteSingleFeatureLayer(
+                                                     const char* pszLayerName,
+                                                     const char *pszVal )
+{
+    poFeatureDefn = new OGRFeatureDefn( "SELECT" );
+    poFeatureDefn->Reference();
+    OGRFieldDefn oField( pszLayerName, OFTString );
+    poFeatureDefn->AddFieldDefn( &oField );
+
+    iNextShapeId = 0;
+    nVal = 0;
+    this->pszVal = CPLStrdup(pszVal);
 }
 
 /************************************************************************/
@@ -61,6 +80,7 @@ OGRSQLiteSingleFeatureLayer::~OGRSQLiteSingleFeatureLayer()
         poFeatureDefn->Release();
         poFeatureDefn = NULL;
     }
+    CPLFree(pszVal);
 }
 
 /************************************************************************/
@@ -82,7 +102,10 @@ OGRFeature * OGRSQLiteSingleFeatureLayer::GetNextFeature()
         return NULL;
 
     OGRFeature* poFeature = new OGRFeature(poFeatureDefn);
-    poFeature->SetField(0, nVal);
+    if (pszVal)
+        poFeature->SetField(0, pszVal);
+    else
+        poFeature->SetField(0, nVal);
     poFeature->SetFID(iNextShapeId ++);
     return poFeature;
 }

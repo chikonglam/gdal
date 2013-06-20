@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ace2dataset.cpp 23773 2012-01-21 08:31:33Z rouault $
+ * $Id: ace2dataset.cpp 23772 2012-01-21 08:31:07Z rouault $
  *
  * Project:  ACE2 Driver
  * Purpose:  Implementation of ACE2 elevation format read support.
@@ -31,7 +31,7 @@
 #include "rawdataset.h"
 #include "ogr_spatialref.h"
 
-CPL_CVSID("$Id: ace2dataset.cpp 23773 2012-01-21 08:31:33Z rouault $");
+CPL_CVSID("$Id: ace2dataset.cpp 23772 2012-01-21 08:31:07Z rouault $");
 
 CPL_C_START
 void    GDALRegister_ACE2(void);

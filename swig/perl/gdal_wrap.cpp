@@ -1533,14 +1533,13 @@ SWIG_Perl_SetModule(swig_module_info *module) {
 #define SWIGTYPE_p_VSIStatBufL swig_types[15]
 #define SWIGTYPE_p_char swig_types[16]
 #define SWIGTYPE_p_double swig_types[17]
-#define SWIGTYPE_p_f_double_p_q_const__char_p_void__int swig_types[18]
-#define SWIGTYPE_p_int swig_types[19]
-#define SWIGTYPE_p_p_GDAL_GCP swig_types[20]
-#define SWIGTYPE_p_p_char swig_types[21]
-#define SWIGTYPE_p_p_int swig_types[22]
-#define SWIGTYPE_p_void swig_types[23]
-static swig_type_info *swig_types[25];
-static swig_module_info swig_module = {swig_types, 24, 0, 0, 0, 0};
+#define SWIGTYPE_p_int swig_types[18]
+#define SWIGTYPE_p_p_GDAL_GCP swig_types[19]
+#define SWIGTYPE_p_p_char swig_types[20]
+#define SWIGTYPE_p_p_int swig_types[21]
+#define SWIGTYPE_p_void swig_types[22]
+static swig_type_info *swig_types[24];
+static swig_module_info swig_module = {swig_types, 23, 0, 0, 0, 0};
 #define SWIG_TypeQuery(name) SWIG_TypeQueryModule(&swig_module, &swig_module, name)
 #define SWIG_MangledTypeQuery(name) SWIG_MangledTypeQueryModule(&swig_module, &swig_module, name)
 
@@ -1582,6 +1581,7 @@ using namespace std;
 #include "cpl_port.h"
 #include "cpl_string.h"
 #include "cpl_multiproc.h"
+#include "cpl_http.h"
 
 #include "gdal.h"
 #include "gdal_priv.h"
@@ -1766,6 +1766,25 @@ typedef char retStringAndCPLFree;
     CPLDebug( msg_class, "%s", message );
   }
 
+  CPLErr SetErrorHandler( char const * pszCallbackName = NULL )
+  {
+    CPLErrorHandler pfnHandler = NULL;
+    if( pszCallbackName == NULL || EQUAL(pszCallbackName,"CPLQuietErrorHandler") )
+      pfnHandler = CPLQuietErrorHandler;
+    else if( EQUAL(pszCallbackName,"CPLDefaultErrorHandler") )
+      pfnHandler = CPLDefaultErrorHandler;
+    else if( EQUAL(pszCallbackName,"CPLLoggingErrorHandler") )
+      pfnHandler = CPLLoggingErrorHandler;
+
+    if ( pfnHandler == NULL )
+      return CE_Fatal;
+
+    CPLSetErrorHandler( pfnHandler );
+
+    return CE_None;
+  }
+
+
   CPLErr PushErrorHandler( char const * pszCallbackName = NULL ) {
     CPLErrorHandler pfnHandler = NULL;
     if( pszCallbackName == NULL || EQUAL(pszCallbackName,"CPLQuietErrorHandler") )
@@ -1782,7 +1801,6 @@ typedef char retStringAndCPLFree;
 
     return CE_None;
   }
-
 
 
   void Error( CPLErr msg_class = CE_Failure, int err_code = 0, const char* msg = "error" ) {
@@ -2217,7 +2235,7 @@ CreateArrayFromDoubleArray( double *first, unsigned int size ) {
     av_store(av,i,newSVnv(*first));
     ++first;
   }
-  return newRV_noinc((SV*)av);
+  return sv_2mortal(newRV((SV*)av));
 }
 
 
@@ -2867,7 +2885,7 @@ CreateArrayFromIntArray( int *first, unsigned int size ) {
     av_store(av,i,newSViv(*first));
     ++first;
   }
-  return newRV_noinc((SV*)av);
+  return sv_2mortal(newRV((SV*)av));
 }
 
 SWIGINTERN CPLErr GDALRasterBandShadow_GetHistogram(GDALRasterBandShadow *self,double min=-0.5,double max=255.5,int buckets=256,int *panHistogram=NULL,int include_out_of_range=0,int approx_ok=1,GDALProgressFunc callback=NULL,void *callback_data=NULL){
@@ -3306,6 +3324,14 @@ SWIGINTERN int GDALTransformerInfoShadow_TransformPoints(GDALTransformerInfoShad
 
     return nRet;
   }
+SWIGINTERN int GDALTransformerInfoShadow_TransformGeolocations(GDALTransformerInfoShadow *self,GDALRasterBandShadow *xBand,GDALRasterBandShadow *yBand,GDALRasterBandShadow *zBand,GDALProgressFunc callback=NULL,void *callback_data=NULL,char **options=NULL){
+
+    CPLErrorReset();
+
+    return GDALTransformGeolocations( xBand, yBand, zBand, 
+                                      GDALUseTransformer, self,
+                            	      callback, callback_data, options );
+  }
 
 int wrapper_GDALGetCacheMax()
 {
@@ -3350,7 +3376,7 @@ static AV *XMLTreeToAV( CPLXMLNode *psTree )
          psChild != NULL; 
          psChild = psChild->psNext, iChild++ )
     {
-	SV *s = newRV_inc((SV*)XMLTreeToAV(psChild));
+	SV *s = newRV((SV*)XMLTreeToAV(psChild));
 	if (!av_store(av, iChild, s))
 	    SvREFCNT_dec(s);
     }
@@ -3620,13 +3646,71 @@ XS(_wrap_Debug) {
       
       
     }
-    ST(argvi) = sv_newmortal();
+    {
+      /* %typemap(out) void */
+    }
     if (alloc1 == SWIG_NEWOBJ) delete[] buf1;
     if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
     XSRETURN(argvi);
   fail:
     if (alloc1 == SWIG_NEWOBJ) delete[] buf1;
     if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
+    SWIG_croak_null();
+  }
+}
+
+
+XS(_wrap_SetErrorHandler) {
+  {
+    char *arg1 = (char *) NULL ;
+    int res1 ;
+    char *buf1 = 0 ;
+    int alloc1 = 0 ;
+    int argvi = 0;
+    CPLErr result;
+    dXSARGS;
+    
+    if ((items < 0) || (items > 1)) {
+      SWIG_croak("Usage: SetErrorHandler(pszCallbackName);");
+    }
+    if (items > 0) {
+      res1 = SWIG_AsCharPtrAndSize(ST(0), &buf1, NULL, &alloc1);
+      if (!SWIG_IsOK(res1)) {
+        SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "SetErrorHandler" "', argument " "1"" of type '" "char const *""'");
+      }
+      arg1 = reinterpret_cast< char * >(buf1);
+    }
+    {
+      CPLErrorReset();
+      result = (CPLErr)SetErrorHandler((char const *)arg1);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /* 
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
+    {
+      /* %typemap(out) CPLErr */
+    }
+    if (alloc1 == SWIG_NEWOBJ) delete[] buf1;
+    XSRETURN(argvi);
+  fail:
+    if (alloc1 == SWIG_NEWOBJ) delete[] buf1;
     SWIG_croak_null();
   }
 }
@@ -3751,7 +3835,9 @@ XS(_wrap_Error) {
       
       
     }
-    ST(argvi) = sv_newmortal();
+    {
+      /* %typemap(out) void */
+    }
     
     
     if (alloc3 == SWIG_NEWOBJ) delete[] buf3;
@@ -3760,6 +3846,220 @@ XS(_wrap_Error) {
     
     
     if (alloc3 == SWIG_NEWOBJ) delete[] buf3;
+    SWIG_croak_null();
+  }
+}
+
+
+XS(_wrap_GOA2GetAuthorizationURL) {
+  {
+    char *arg1 = (char *) 0 ;
+    int res1 ;
+    char *buf1 = 0 ;
+    int alloc1 = 0 ;
+    int argvi = 0;
+    retStringAndCPLFree *result = 0 ;
+    dXSARGS;
+    
+    if ((items < 1) || (items > 1)) {
+      SWIG_croak("Usage: GOA2GetAuthorizationURL(pszScope);");
+    }
+    res1 = SWIG_AsCharPtrAndSize(ST(0), &buf1, NULL, &alloc1);
+    if (!SWIG_IsOK(res1)) {
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "GOA2GetAuthorizationURL" "', argument " "1"" of type '" "char const *""'");
+    }
+    arg1 = reinterpret_cast< char * >(buf1);
+    {
+      CPLErrorReset();
+      result = (retStringAndCPLFree *)GOA2GetAuthorizationURL((char const *)arg1);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /* 
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
+    
+    /* %typemap(out) (retStringAndCPLFree*) */
+    if(result)
+    {
+      ST(argvi) = SWIG_FromCharPtr((const char *)result);
+      CPLFree(result);
+    }
+    else
+    {
+      ST(argvi) = &PL_sv_undef;
+    }
+    argvi++ ;
+    
+    if (alloc1 == SWIG_NEWOBJ) delete[] buf1;
+    XSRETURN(argvi);
+  fail:
+    if (alloc1 == SWIG_NEWOBJ) delete[] buf1;
+    SWIG_croak_null();
+  }
+}
+
+
+XS(_wrap_GOA2GetRefreshToken) {
+  {
+    char *arg1 = (char *) 0 ;
+    char *arg2 = (char *) 0 ;
+    int res1 ;
+    char *buf1 = 0 ;
+    int alloc1 = 0 ;
+    int res2 ;
+    char *buf2 = 0 ;
+    int alloc2 = 0 ;
+    int argvi = 0;
+    retStringAndCPLFree *result = 0 ;
+    dXSARGS;
+    
+    if ((items < 2) || (items > 2)) {
+      SWIG_croak("Usage: GOA2GetRefreshToken(pszAuthToken,pszScope);");
+    }
+    res1 = SWIG_AsCharPtrAndSize(ST(0), &buf1, NULL, &alloc1);
+    if (!SWIG_IsOK(res1)) {
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "GOA2GetRefreshToken" "', argument " "1"" of type '" "char const *""'");
+    }
+    arg1 = reinterpret_cast< char * >(buf1);
+    res2 = SWIG_AsCharPtrAndSize(ST(1), &buf2, NULL, &alloc2);
+    if (!SWIG_IsOK(res2)) {
+      SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "GOA2GetRefreshToken" "', argument " "2"" of type '" "char const *""'");
+    }
+    arg2 = reinterpret_cast< char * >(buf2);
+    {
+      CPLErrorReset();
+      result = (retStringAndCPLFree *)GOA2GetRefreshToken((char const *)arg1,(char const *)arg2);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /* 
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
+    
+    /* %typemap(out) (retStringAndCPLFree*) */
+    if(result)
+    {
+      ST(argvi) = SWIG_FromCharPtr((const char *)result);
+      CPLFree(result);
+    }
+    else
+    {
+      ST(argvi) = &PL_sv_undef;
+    }
+    argvi++ ;
+    
+    if (alloc1 == SWIG_NEWOBJ) delete[] buf1;
+    if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
+    XSRETURN(argvi);
+  fail:
+    if (alloc1 == SWIG_NEWOBJ) delete[] buf1;
+    if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
+    SWIG_croak_null();
+  }
+}
+
+
+XS(_wrap_GOA2GetAccessToken) {
+  {
+    char *arg1 = (char *) 0 ;
+    char *arg2 = (char *) 0 ;
+    int res1 ;
+    char *buf1 = 0 ;
+    int alloc1 = 0 ;
+    int res2 ;
+    char *buf2 = 0 ;
+    int alloc2 = 0 ;
+    int argvi = 0;
+    retStringAndCPLFree *result = 0 ;
+    dXSARGS;
+    
+    if ((items < 2) || (items > 2)) {
+      SWIG_croak("Usage: GOA2GetAccessToken(pszRefreshToken,pszScope);");
+    }
+    res1 = SWIG_AsCharPtrAndSize(ST(0), &buf1, NULL, &alloc1);
+    if (!SWIG_IsOK(res1)) {
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "GOA2GetAccessToken" "', argument " "1"" of type '" "char const *""'");
+    }
+    arg1 = reinterpret_cast< char * >(buf1);
+    res2 = SWIG_AsCharPtrAndSize(ST(1), &buf2, NULL, &alloc2);
+    if (!SWIG_IsOK(res2)) {
+      SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "GOA2GetAccessToken" "', argument " "2"" of type '" "char const *""'");
+    }
+    arg2 = reinterpret_cast< char * >(buf2);
+    {
+      CPLErrorReset();
+      result = (retStringAndCPLFree *)GOA2GetAccessToken((char const *)arg1,(char const *)arg2);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /* 
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
+    
+    /* %typemap(out) (retStringAndCPLFree*) */
+    if(result)
+    {
+      ST(argvi) = SWIG_FromCharPtr((const char *)result);
+      CPLFree(result);
+    }
+    else
+    {
+      ST(argvi) = &PL_sv_undef;
+    }
+    argvi++ ;
+    
+    if (alloc1 == SWIG_NEWOBJ) delete[] buf1;
+    if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
+    XSRETURN(argvi);
+  fail:
+    if (alloc1 == SWIG_NEWOBJ) delete[] buf1;
+    if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
     SWIG_croak_null();
   }
 }
@@ -3811,7 +4111,9 @@ XS(_wrap_PushErrorHandler__SWIG_1) {
       
       
     }
-    ST(argvi) = sv_newmortal();
+    {
+      /* %typemap(out) void */
+    }
     XSRETURN(argvi);
   fail:
     SWIG_croak_null();
@@ -3914,7 +4216,9 @@ XS(_wrap_PopErrorHandler) {
       
       
     }
-    ST(argvi) = sv_newmortal();
+    {
+      /* %typemap(out) void */
+    }
     XSRETURN(argvi);
   fail:
     SWIG_croak_null();
@@ -3954,7 +4258,9 @@ XS(_wrap_ErrorReset) {
       
       
     }
-    ST(argvi) = sv_newmortal();
+    {
+      /* %typemap(out) void */
+    }
     XSRETURN(argvi);
   fail:
     SWIG_croak_null();
@@ -4029,7 +4335,7 @@ XS(_wrap_EscapeString) {
     }
     else
     {
-      ST(argvi) = sv_newmortal();
+      ST(argvi) = &PL_sv_undef;
     }
     argvi++ ;
     
@@ -4179,13 +4485,19 @@ XS(_wrap_PushFinderLocation) {
     int argvi = 0;
     dXSARGS;
     
-    if ((items < 1) || (items > 1)) {
+    {
+      /* %typemap(default) const char * utf8_path */
+      arg1 = (const char *)"";
+    }
+    if ((items < 0) || (items > 1)) {
       SWIG_croak("Usage: PushFinderLocation(utf8_path);");
     }
-    {
-      /* %typemap(in,numinputs=1) (const char* utf8_path) */
-      sv_utf8_upgrade(ST(0));
-      arg1 = SvPV_nolen(ST(0));
+    if (items > 0) {
+      {
+        /* %typemap(in,numinputs=1) (const char* utf8_path) */
+        sv_utf8_upgrade(ST(0));
+        arg1 = SvPV_nolen(ST(0));
+      }
     }
     {
       if (!arg1) {
@@ -4216,7 +4528,9 @@ XS(_wrap_PushFinderLocation) {
       
       
     }
-    ST(argvi) = sv_newmortal();
+    {
+      /* %typemap(out) void */
+    }
     XSRETURN(argvi);
   fail:
     SWIG_croak_null();
@@ -4256,7 +4570,9 @@ XS(_wrap_PopFinderLocation) {
       
       
     }
-    ST(argvi) = sv_newmortal();
+    {
+      /* %typemap(out) void */
+    }
     XSRETURN(argvi);
   fail:
     SWIG_croak_null();
@@ -4296,7 +4612,9 @@ XS(_wrap_FinderClean) {
       
       
     }
-    ST(argvi) = sv_newmortal();
+    {
+      /* %typemap(out) void */
+    }
     XSRETURN(argvi);
   fail:
     SWIG_croak_null();
@@ -4304,7 +4622,7 @@ XS(_wrap_FinderClean) {
 }
 
 
-XS(_wrap__FindFile) {
+XS(_wrap_FindFile) {
   {
     char *arg1 = (char *) 0 ;
     char *arg2 = (char *) 0 ;
@@ -4315,18 +4633,24 @@ XS(_wrap__FindFile) {
     char *result = 0 ;
     dXSARGS;
     
-    if ((items < 2) || (items > 2)) {
-      SWIG_croak("Usage: _FindFile(pszClass,utf8_path);");
+    {
+      /* %typemap(default) const char * utf8_path */
+      arg2 = (const char *)"";
+    }
+    if ((items < 1) || (items > 2)) {
+      SWIG_croak("Usage: FindFile(pszClass,utf8_path);");
     }
     res1 = SWIG_AsCharPtrAndSize(ST(0), &buf1, NULL, &alloc1);
     if (!SWIG_IsOK(res1)) {
-      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "_FindFile" "', argument " "1"" of type '" "char const *""'");
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "FindFile" "', argument " "1"" of type '" "char const *""'");
     }
     arg1 = reinterpret_cast< char * >(buf1);
-    {
-      /* %typemap(in,numinputs=1) (const char* utf8_path) */
-      sv_utf8_upgrade(ST(1));
-      arg2 = SvPV_nolen(ST(1));
+    if (items > 1) {
+      {
+        /* %typemap(in,numinputs=1) (const char* utf8_path) */
+        sv_utf8_upgrade(ST(1));
+        arg2 = SvPV_nolen(ST(1));
+      }
     }
     {
       if (!arg2) {
@@ -4373,20 +4697,26 @@ XS(_wrap__FindFile) {
 }
 
 
-XS(_wrap__ReadDir) {
+XS(_wrap_ReadDir) {
   {
     char *arg1 = (char *) 0 ;
     int argvi = 0;
     char **result = 0 ;
     dXSARGS;
     
-    if ((items < 1) || (items > 1)) {
-      SWIG_croak("Usage: _ReadDir(utf8_path);");
-    }
     {
-      /* %typemap(in,numinputs=1) (const char* utf8_path) */
-      sv_utf8_upgrade(ST(0));
-      arg1 = SvPV_nolen(ST(0));
+      /* %typemap(default) const char * utf8_path */
+      arg1 = (const char *)"";
+    }
+    if ((items < 0) || (items > 1)) {
+      SWIG_croak("Usage: ReadDir(utf8_path);");
+    }
+    if (items > 0) {
+      {
+        /* %typemap(in,numinputs=1) (const char* utf8_path) */
+        sv_utf8_upgrade(ST(0));
+        arg1 = SvPV_nolen(ST(0));
+      }
     }
     {
       if (!arg1) {
@@ -4442,7 +4772,95 @@ XS(_wrap__ReadDir) {
           }
           CSLDestroy(result);
         }
-        ST(argvi) = newRV_noinc((SV*)av);
+        ST(argvi) = newRV((SV*)av);
+        sv_2mortal(ST(argvi));
+        argvi++;
+      }
+    }
+    XSRETURN(argvi);
+  fail:
+    SWIG_croak_null();
+  }
+}
+
+
+XS(_wrap_ReadDirRecursive) {
+  {
+    char *arg1 = (char *) 0 ;
+    int argvi = 0;
+    char **result = 0 ;
+    dXSARGS;
+    
+    {
+      /* %typemap(default) const char * utf8_path */
+      arg1 = (const char *)"";
+    }
+    if ((items < 0) || (items > 1)) {
+      SWIG_croak("Usage: ReadDirRecursive(utf8_path);");
+    }
+    if (items > 0) {
+      {
+        /* %typemap(in,numinputs=1) (const char* utf8_path) */
+        sv_utf8_upgrade(ST(0));
+        arg1 = SvPV_nolen(ST(0));
+      }
+    }
+    {
+      if (!arg1) {
+        SWIG_exception(SWIG_ValueError,"Received a NULL pointer.");
+      }
+    }
+    {
+      CPLErrorReset();
+      result = (char **)VSIReadDirRecursive((char const *)arg1);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /* 
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
+    {
+      /* %typemap(out) char **CSL */
+      if (GIMME_V == G_ARRAY) {
+        if (result) {
+          int i;
+          for (i = 0; result[i]; i++) {
+            if (argvi > items-1) EXTEND(SP, 1);
+            SV *sv = newSVpv(result[i], 0);
+            SvUTF8_on(sv); /* expecting GDAL to give us UTF-8 */
+            ST(argvi++) = sv_2mortal(sv);
+          }
+          CSLDestroy(result);
+        }
+      } else {
+        AV *av = (AV*)sv_2mortal((SV*)newAV());
+        if (result) {
+          int i;
+          for (i = 0; result[i]; i++) {
+            SV *sv = newSVpv(result[i], 0);
+            SvUTF8_on(sv); /* expecting GDAL to give us UTF-8 */
+            if (!av_store(av, i, sv))
+            SvREFCNT_dec(sv);
+          }
+          CSLDestroy(result);
+        }
+        ST(argvi) = newRV((SV*)av);
+        sv_2mortal(ST(argvi));
         argvi++;
       }
     }
@@ -4508,7 +4926,9 @@ XS(_wrap_SetConfigOption) {
       
       
     }
-    ST(argvi) = sv_newmortal();
+    {
+      /* %typemap(out) void */
+    }
     if (alloc1 == SWIG_NEWOBJ) delete[] buf1;
     if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
     XSRETURN(argvi);
@@ -4611,7 +5031,7 @@ XS(_wrap_CPLBinaryToHex) {
       /* %typemap(in,numinputs=1) (int nLen, unsigned char *pBuf ) */
       if (SvOK(ST(0))) {
         if (!SvPOK(ST(0)))
-        SWIG_croak("expected binary data as input");
+        SWIG_croak("expected binary data as input to a Geo::GDAL method");
         STRLEN len = SvCUR(ST(0));
         arg2 = (unsigned char *)SvPV_nolen(ST(0));
         arg1 = len;
@@ -4653,7 +5073,7 @@ XS(_wrap_CPLBinaryToHex) {
     }
     else
     {
-      ST(argvi) = sv_newmortal();
+      ST(argvi) = &PL_sv_undef;
     }
     argvi++ ;
     
@@ -4738,24 +5158,34 @@ XS(_wrap_FileFromMemBuffer) {
     int argvi = 0;
     dXSARGS;
     
-    if ((items < 3) || (items > 3)) {
+    {
+      /* %typemap(default) const char * utf8_path */
+      arg1 = (const char *)"";
+    }
+    if ((items < 0) || (items > 3)) {
       SWIG_croak("Usage: FileFromMemBuffer(utf8_path,nBytes,pabyData);");
     }
-    {
-      /* %typemap(in,numinputs=1) (const char* utf8_path) */
-      sv_utf8_upgrade(ST(0));
-      arg1 = SvPV_nolen(ST(0));
+    if (items > 0) {
+      {
+        /* %typemap(in,numinputs=1) (const char* utf8_path) */
+        sv_utf8_upgrade(ST(0));
+        arg1 = SvPV_nolen(ST(0));
+      }
     }
-    ecode2 = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(1), &val2);
-    if (!SWIG_IsOK(ecode2)) {
-      SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "FileFromMemBuffer" "', argument " "2"" of type '" "int""'");
-    } 
-    arg2 = static_cast< int >(val2);
-    res3 = SWIG_ConvertPtr(ST(2), &argp3,SWIGTYPE_p_GByte, 0 |  0 );
-    if (!SWIG_IsOK(res3)) {
-      SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "FileFromMemBuffer" "', argument " "3"" of type '" "GByte const *""'"); 
+    if (items > 1) {
+      ecode2 = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(1), &val2);
+      if (!SWIG_IsOK(ecode2)) {
+        SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "FileFromMemBuffer" "', argument " "2"" of type '" "int""'");
+      } 
+      arg2 = static_cast< int >(val2);
     }
-    arg3 = reinterpret_cast< GByte * >(argp3);
+    if (items > 2) {
+      res3 = SWIG_ConvertPtr(ST(2), &argp3,SWIGTYPE_p_GByte, 0 |  0 );
+      if (!SWIG_IsOK(res3)) {
+        SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "FileFromMemBuffer" "', argument " "3"" of type '" "GByte const *""'"); 
+      }
+      arg3 = reinterpret_cast< GByte * >(argp3);
+    }
     {
       if (!arg1) {
         SWIG_exception(SWIG_ValueError,"Received a NULL pointer.");
@@ -4785,7 +5215,9 @@ XS(_wrap_FileFromMemBuffer) {
       
       
     }
-    ST(argvi) = sv_newmortal();
+    {
+      /* %typemap(out) void */
+    }
     
     
     XSRETURN(argvi);
@@ -4804,13 +5236,19 @@ XS(_wrap_Unlink) {
     int result;
     dXSARGS;
     
-    if ((items < 1) || (items > 1)) {
+    {
+      /* %typemap(default) const char * utf8_path */
+      arg1 = (const char *)"";
+    }
+    if ((items < 0) || (items > 1)) {
       SWIG_croak("Usage: Unlink(utf8_path);");
     }
-    {
-      /* %typemap(in,numinputs=1) (const char* utf8_path) */
-      sv_utf8_upgrade(ST(0));
-      arg1 = SvPV_nolen(ST(0));
+    if (items > 0) {
+      {
+        /* %typemap(in,numinputs=1) (const char* utf8_path) */
+        sv_utf8_upgrade(ST(0));
+        arg1 = SvPV_nolen(ST(0));
+      }
     }
     {
       if (!arg1) {
@@ -4900,19 +5338,27 @@ XS(_wrap_Mkdir) {
     int result;
     dXSARGS;
     
-    if ((items < 2) || (items > 2)) {
+    {
+      /* %typemap(default) const char * utf8_path */
+      arg1 = (const char *)"";
+    }
+    if ((items < 0) || (items > 2)) {
       SWIG_croak("Usage: Mkdir(utf8_path,mode);");
     }
-    {
-      /* %typemap(in,numinputs=1) (const char* utf8_path) */
-      sv_utf8_upgrade(ST(0));
-      arg1 = SvPV_nolen(ST(0));
+    if (items > 0) {
+      {
+        /* %typemap(in,numinputs=1) (const char* utf8_path) */
+        sv_utf8_upgrade(ST(0));
+        arg1 = SvPV_nolen(ST(0));
+      }
     }
-    ecode2 = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(1), &val2);
-    if (!SWIG_IsOK(ecode2)) {
-      SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "Mkdir" "', argument " "2"" of type '" "int""'");
-    } 
-    arg2 = static_cast< int >(val2);
+    if (items > 1) {
+      ecode2 = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(1), &val2);
+      if (!SWIG_IsOK(ecode2)) {
+        SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "Mkdir" "', argument " "2"" of type '" "int""'");
+      } 
+      arg2 = static_cast< int >(val2);
+    }
     {
       if (!arg1) {
         SWIG_exception(SWIG_ValueError,"Received a NULL pointer.");
@@ -4959,13 +5405,19 @@ XS(_wrap_Rmdir) {
     int result;
     dXSARGS;
     
-    if ((items < 1) || (items > 1)) {
+    {
+      /* %typemap(default) const char * utf8_path */
+      arg1 = (const char *)"";
+    }
+    if ((items < 0) || (items > 1)) {
       SWIG_croak("Usage: Rmdir(utf8_path);");
     }
-    {
-      /* %typemap(in,numinputs=1) (const char* utf8_path) */
-      sv_utf8_upgrade(ST(0));
-      arg1 = SvPV_nolen(ST(0));
+    if (items > 0) {
+      {
+        /* %typemap(in,numinputs=1) (const char* utf8_path) */
+        sv_utf8_upgrade(ST(0));
+        arg1 = SvPV_nolen(ST(0));
+      }
     }
     {
       if (!arg1) {
@@ -5077,16 +5529,22 @@ XS(_wrap_Stat) {
     dXSARGS;
     
     {
+      /* %typemap(default) const char * utf8_path */
+      arg1 = (const char *)"";
+    }
+    {
       /* %typemap(in,numinputs=0) (VSIStatBufL *) (VSIStatBufL sStatBuf2) */
       arg2 = &sStatBuf2;
     }
-    if ((items < 1) || (items > 1)) {
+    if ((items < 0) || (items > 1)) {
       SWIG_croak("Usage: Stat(utf8_path);");
     }
-    {
-      /* %typemap(in,numinputs=1) (const char* utf8_path) */
-      sv_utf8_upgrade(ST(0));
-      arg1 = SvPV_nolen(ST(0));
+    if (items > 0) {
+      {
+        /* %typemap(in,numinputs=1) (const char* utf8_path) */
+        sv_utf8_upgrade(ST(0));
+        arg1 = SvPV_nolen(ST(0));
+      }
     }
     {
       if (!arg1) {
@@ -5144,7 +5602,7 @@ XS(_wrap_Stat) {
     {
       /* %typemap(ret) RETURN_NONE_TRUE_IS_ERROR */
       if (result != 0 ) {
-        SWIG_croak("unexpected error in Stat");
+        SWIG_croak("unexpected error in 'Stat'");
       }
     }
     XSRETURN(argvi);
@@ -5166,19 +5624,27 @@ XS(_wrap_VSIFOpenL) {
     VSILFILE *result = 0 ;
     dXSARGS;
     
-    if ((items < 2) || (items > 2)) {
+    {
+      /* %typemap(default) const char * utf8_path */
+      arg1 = (const char *)"";
+    }
+    if ((items < 0) || (items > 2)) {
       SWIG_croak("Usage: VSIFOpenL(utf8_path,pszMode);");
     }
-    {
-      /* %typemap(in,numinputs=1) (const char* utf8_path) */
-      sv_utf8_upgrade(ST(0));
-      arg1 = SvPV_nolen(ST(0));
+    if (items > 0) {
+      {
+        /* %typemap(in,numinputs=1) (const char* utf8_path) */
+        sv_utf8_upgrade(ST(0));
+        arg1 = SvPV_nolen(ST(0));
+      }
     }
-    res2 = SWIG_AsCharPtrAndSize(ST(1), &buf2, NULL, &alloc2);
-    if (!SWIG_IsOK(res2)) {
-      SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "VSIFOpenL" "', argument " "2"" of type '" "char const *""'");
+    if (items > 1) {
+      res2 = SWIG_AsCharPtrAndSize(ST(1), &buf2, NULL, &alloc2);
+      if (!SWIG_IsOK(res2)) {
+        SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "VSIFOpenL" "', argument " "2"" of type '" "char const *""'");
+      }
+      arg2 = reinterpret_cast< char * >(buf2);
     }
-    arg2 = reinterpret_cast< char * >(buf2);
     {
       if (!arg1) {
         SWIG_exception(SWIG_ValueError,"Received a NULL pointer.");
@@ -5256,7 +5722,9 @@ XS(_wrap_VSIFCloseL) {
       
       
     }
-    ST(argvi) = sv_newmortal();
+    {
+      /* %typemap(out) void */
+    }
     
     XSRETURN(argvi);
   fail:
@@ -5559,8 +6027,7 @@ XS(_wrap_VSIFReadL) {
     {
       /* %typemap(argout) (void *pBuffer, size_t nSize, size_t nCount) */
       if (result) {
-        ST(argvi) = newSVpvn((char*)arg1, result);
-        sv_2mortal(ST(argvi));
+        ST(argvi) = sv_2mortal(newSVpvn((char*)arg1, result));
       } else {
         ST(argvi) = &PL_sv_undef;
       }
@@ -5686,7 +6153,9 @@ XS(_wrap_MajorObject_SetDescription) {
       
       
     }
-    ST(argvi) = sv_newmortal();
+    {
+      /* %typemap(out) void */
+    }
     
     if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
     XSRETURN(argvi);
@@ -5766,7 +6235,8 @@ XS(_wrap_MajorObject_GetMetadata) {
           stringarray++;
         }
       }
-      ST(argvi) = newRV_noinc((SV*)hv);
+      ST(argvi) = newRV((SV*)hv);
+      sv_2mortal(ST(argvi));
       argvi++;
     }
     
@@ -6417,7 +6887,11 @@ XS(_wrap_Driver__Create) {
     GDALDatasetShadow *result = 0 ;
     dXSARGS;
     
-    if ((items < 4) || (items > 7)) {
+    {
+      /* %typemap(default) const char * utf8_path */
+      arg2 = (const char *)"";
+    }
+    if ((items < 1) || (items > 7)) {
       SWIG_croak("Usage: Driver__Create(self,utf8_path,xsize,ysize,bands,eType,options);");
     }
     res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_GDALDriverShadow, 0 |  0 );
@@ -6425,21 +6899,27 @@ XS(_wrap_Driver__Create) {
       SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Driver__Create" "', argument " "1"" of type '" "GDALDriverShadow *""'"); 
     }
     arg1 = reinterpret_cast< GDALDriverShadow * >(argp1);
-    {
-      /* %typemap(in,numinputs=1) (const char* utf8_path) */
-      sv_utf8_upgrade(ST(1));
-      arg2 = SvPV_nolen(ST(1));
+    if (items > 1) {
+      {
+        /* %typemap(in,numinputs=1) (const char* utf8_path) */
+        sv_utf8_upgrade(ST(1));
+        arg2 = SvPV_nolen(ST(1));
+      }
     }
-    ecode3 = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(2), &val3);
-    if (!SWIG_IsOK(ecode3)) {
-      SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "Driver__Create" "', argument " "3"" of type '" "int""'");
-    } 
-    arg3 = static_cast< int >(val3);
-    ecode4 = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(3), &val4);
-    if (!SWIG_IsOK(ecode4)) {
-      SWIG_exception_fail(SWIG_ArgError(ecode4), "in method '" "Driver__Create" "', argument " "4"" of type '" "int""'");
-    } 
-    arg4 = static_cast< int >(val4);
+    if (items > 2) {
+      ecode3 = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(2), &val3);
+      if (!SWIG_IsOK(ecode3)) {
+        SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "Driver__Create" "', argument " "3"" of type '" "int""'");
+      } 
+      arg3 = static_cast< int >(val3);
+    }
+    if (items > 3) {
+      ecode4 = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(3), &val4);
+      if (!SWIG_IsOK(ecode4)) {
+        SWIG_exception_fail(SWIG_ArgError(ecode4), "in method '" "Driver__Create" "', argument " "4"" of type '" "int""'");
+      } 
+      arg4 = static_cast< int >(val4);
+    }
     if (items > 4) {
       ecode5 = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(4), &val5);
       if (!SWIG_IsOK(ecode5)) {
@@ -6479,9 +6959,9 @@ XS(_wrap_Driver__Create) {
                 arg7 = CSLAddNameValue( arg7, key, SvPV_nolen(sv) );
               }
             } else
-            SWIG_croak("'options' is not a reference to an array or hash");
+            SWIG_croak("the 'options' argument to a Geo::GDAL method is not a reference to an array or hash");
           } else
-          SWIG_croak("'options' is not a reference");   
+          SWIG_croak("the 'options' argument to a Geo::GDAL method is not a reference");   
         }
       }
     }
@@ -6559,11 +7039,16 @@ XS(_wrap_Driver_CreateCopy) {
     GDALDatasetShadow *result = 0 ;
     dXSARGS;
     
+    /* %typemap(arginit, noblock=1) ( void* callback_data = NULL) */
     SavedEnv saved_env;
     saved_env.fct = NULL;
     saved_env.data = &PL_sv_undef;
     arg7 = (void *)(&saved_env);
-    if ((items < 3) || (items > 7)) {
+    {
+      /* %typemap(default) const char * utf8_path */
+      arg2 = (const char *)"";
+    }
+    if ((items < 1) || (items > 7)) {
       SWIG_croak("Usage: Driver_CreateCopy(self,utf8_path,src,strict,options,callback,callback_data);");
     }
     res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_GDALDriverShadow, 0 |  0 );
@@ -6571,16 +7056,20 @@ XS(_wrap_Driver_CreateCopy) {
       SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Driver_CreateCopy" "', argument " "1"" of type '" "GDALDriverShadow *""'"); 
     }
     arg1 = reinterpret_cast< GDALDriverShadow * >(argp1);
-    {
-      /* %typemap(in,numinputs=1) (const char* utf8_path) */
-      sv_utf8_upgrade(ST(1));
-      arg2 = SvPV_nolen(ST(1));
+    if (items > 1) {
+      {
+        /* %typemap(in,numinputs=1) (const char* utf8_path) */
+        sv_utf8_upgrade(ST(1));
+        arg2 = SvPV_nolen(ST(1));
+      }
     }
-    res3 = SWIG_ConvertPtr(ST(2), &argp3,SWIGTYPE_p_GDALDatasetShadow, 0 |  0 );
-    if (!SWIG_IsOK(res3)) {
-      SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "Driver_CreateCopy" "', argument " "3"" of type '" "GDALDatasetShadow *""'"); 
+    if (items > 2) {
+      res3 = SWIG_ConvertPtr(ST(2), &argp3,SWIGTYPE_p_GDALDatasetShadow, 0 |  0 );
+      if (!SWIG_IsOK(res3)) {
+        SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "Driver_CreateCopy" "', argument " "3"" of type '" "GDALDatasetShadow *""'"); 
+      }
+      arg3 = reinterpret_cast< GDALDatasetShadow * >(argp3);
     }
-    arg3 = reinterpret_cast< GDALDatasetShadow * >(argp3);
     if (items > 3) {
       ecode4 = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(3), &val4);
       if (!SWIG_IsOK(ecode4)) {
@@ -6613,9 +7102,9 @@ XS(_wrap_Driver_CreateCopy) {
                 arg5 = CSLAddNameValue( arg5, key, SvPV_nolen(sv) );
               }
             } else
-            SWIG_croak("'options' is not a reference to an array or hash");
+            SWIG_croak("the 'options' argument to a Geo::GDAL method is not a reference to an array or hash");
           } else
-          SWIG_croak("'options' is not a reference");   
+          SWIG_croak("the 'options' argument to a Geo::GDAL method is not a reference");   
         }
       }
     }
@@ -6625,13 +7114,13 @@ XS(_wrap_Driver_CreateCopy) {
         if (SvOK(ST(5))) {
           if (SvROK(ST(5))) {
             if (SvTYPE(SvRV(ST(5))) != SVt_PVCV) {
-              SWIG_croak("the callback arg must be a reference to a subroutine\n");
+              SWIG_croak("the callback argument of a Geo::GDAL method must be a reference to a subroutine");
             } else {
               saved_env.fct = (SV *)ST(5);
               arg6 = &callback_d_cp_vp;
             }
           } else {
-            SWIG_croak("the callback arg must be a reference to a subroutine\n");
+            SWIG_croak("the callback argument of a Geo::GDAL method must be a reference to a subroutine");
           }
         }
       }
@@ -6711,7 +7200,11 @@ XS(_wrap_Driver_Delete) {
     int result;
     dXSARGS;
     
-    if ((items < 2) || (items > 2)) {
+    {
+      /* %typemap(default) const char * utf8_path */
+      arg2 = (const char *)"";
+    }
+    if ((items < 1) || (items > 2)) {
       SWIG_croak("Usage: Driver_Delete(self,utf8_path);");
     }
     res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_GDALDriverShadow, 0 |  0 );
@@ -6719,10 +7212,12 @@ XS(_wrap_Driver_Delete) {
       SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Driver_Delete" "', argument " "1"" of type '" "GDALDriverShadow *""'"); 
     }
     arg1 = reinterpret_cast< GDALDriverShadow * >(argp1);
-    {
-      /* %typemap(in,numinputs=1) (const char* utf8_path) */
-      sv_utf8_upgrade(ST(1));
-      arg2 = SvPV_nolen(ST(1));
+    if (items > 1) {
+      {
+        /* %typemap(in,numinputs=1) (const char* utf8_path) */
+        sv_utf8_upgrade(ST(1));
+        arg2 = SvPV_nolen(ST(1));
+      }
     }
     {
       if (!arg2) {
@@ -7020,7 +7515,9 @@ XS(_wrap_Driver_Deregister) {
       
       
     }
-    ST(argvi) = sv_newmortal();
+    {
+      /* %typemap(out) void */
+    }
     
     XSRETURN(argvi);
   fail:
@@ -7078,7 +7575,9 @@ XS(_wrap_GCP_GCPX_set) {
       
       
     }
-    ST(argvi) = sv_newmortal();
+    {
+      /* %typemap(out) void */
+    }
     
     
     XSRETURN(argvi);
@@ -7189,7 +7688,9 @@ XS(_wrap_GCP_GCPY_set) {
       
       
     }
-    ST(argvi) = sv_newmortal();
+    {
+      /* %typemap(out) void */
+    }
     
     
     XSRETURN(argvi);
@@ -7300,7 +7801,9 @@ XS(_wrap_GCP_GCPZ_set) {
       
       
     }
-    ST(argvi) = sv_newmortal();
+    {
+      /* %typemap(out) void */
+    }
     
     
     XSRETURN(argvi);
@@ -7411,7 +7914,9 @@ XS(_wrap_GCP_GCPPixel_set) {
       
       
     }
-    ST(argvi) = sv_newmortal();
+    {
+      /* %typemap(out) void */
+    }
     
     
     XSRETURN(argvi);
@@ -7522,7 +8027,9 @@ XS(_wrap_GCP_GCPLine_set) {
       
       
     }
-    ST(argvi) = sv_newmortal();
+    {
+      /* %typemap(out) void */
+    }
     
     
     XSRETURN(argvi);
@@ -7637,7 +8144,9 @@ XS(_wrap_GCP_Info_set) {
       
       
     }
-    ST(argvi) = sv_newmortal();
+    {
+      /* %typemap(out) void */
+    }
     
     if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
     XSRETURN(argvi);
@@ -7752,7 +8261,9 @@ XS(_wrap_GCP_Id_set) {
       
       
     }
-    ST(argvi) = sv_newmortal();
+    {
+      /* %typemap(out) void */
+    }
     
     if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
     XSRETURN(argvi);
@@ -7982,7 +8493,9 @@ XS(_wrap_delete_GCP) {
       
       
     }
-    ST(argvi) = sv_newmortal();
+    {
+      /* %typemap(out) void */
+    }
     
     XSRETURN(argvi);
   fail:
@@ -8101,7 +8614,9 @@ XS(_wrap_GDAL_GCP_GCPX_set) {
       
       
     }
-    ST(argvi) = sv_newmortal();
+    {
+      /* %typemap(out) void */
+    }
     
     
     XSRETURN(argvi);
@@ -8222,7 +8737,9 @@ XS(_wrap_GDAL_GCP_GCPY_set) {
       
       
     }
-    ST(argvi) = sv_newmortal();
+    {
+      /* %typemap(out) void */
+    }
     
     
     XSRETURN(argvi);
@@ -8343,7 +8860,9 @@ XS(_wrap_GDAL_GCP_GCPZ_set) {
       
       
     }
-    ST(argvi) = sv_newmortal();
+    {
+      /* %typemap(out) void */
+    }
     
     
     XSRETURN(argvi);
@@ -8464,7 +8983,9 @@ XS(_wrap_GDAL_GCP_GCPPixel_set) {
       
       
     }
-    ST(argvi) = sv_newmortal();
+    {
+      /* %typemap(out) void */
+    }
     
     
     XSRETURN(argvi);
@@ -8585,7 +9106,9 @@ XS(_wrap_GDAL_GCP_GCPLine_set) {
       
       
     }
-    ST(argvi) = sv_newmortal();
+    {
+      /* %typemap(out) void */
+    }
     
     
     XSRETURN(argvi);
@@ -8713,7 +9236,9 @@ XS(_wrap_GDAL_GCP_Info_set) {
       
       
     }
-    ST(argvi) = sv_newmortal();
+    {
+      /* %typemap(out) void */
+    }
     
     if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
     XSRETURN(argvi);
@@ -8841,7 +9366,9 @@ XS(_wrap_GDAL_GCP_Id_set) {
       
       
     }
-    ST(argvi) = sv_newmortal();
+    {
+      /* %typemap(out) void */
+    }
     
     if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
     XSRETURN(argvi);
@@ -8962,7 +9489,9 @@ XS(_wrap_GDAL_GCP_set_GCPX) {
       
       
     }
-    ST(argvi) = sv_newmortal();
+    {
+      /* %typemap(out) void */
+    }
     
     
     XSRETURN(argvi);
@@ -9083,7 +9612,9 @@ XS(_wrap_GDAL_GCP_set_GCPY) {
       
       
     }
-    ST(argvi) = sv_newmortal();
+    {
+      /* %typemap(out) void */
+    }
     
     
     XSRETURN(argvi);
@@ -9204,7 +9735,9 @@ XS(_wrap_GDAL_GCP_set_GCPZ) {
       
       
     }
-    ST(argvi) = sv_newmortal();
+    {
+      /* %typemap(out) void */
+    }
     
     
     XSRETURN(argvi);
@@ -9325,7 +9858,9 @@ XS(_wrap_GDAL_GCP_set_GCPPixel) {
       
       
     }
-    ST(argvi) = sv_newmortal();
+    {
+      /* %typemap(out) void */
+    }
     
     
     XSRETURN(argvi);
@@ -9446,7 +9981,9 @@ XS(_wrap_GDAL_GCP_set_GCPLine) {
       
       
     }
-    ST(argvi) = sv_newmortal();
+    {
+      /* %typemap(out) void */
+    }
     
     
     XSRETURN(argvi);
@@ -9574,7 +10111,9 @@ XS(_wrap_GDAL_GCP_set_Info) {
       
       
     }
-    ST(argvi) = sv_newmortal();
+    {
+      /* %typemap(out) void */
+    }
     
     if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
     XSRETURN(argvi);
@@ -9702,7 +10241,9 @@ XS(_wrap_GDAL_GCP_set_Id) {
       
       
     }
-    ST(argvi) = sv_newmortal();
+    {
+      /* %typemap(out) void */
+    }
     
     if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
     XSRETURN(argvi);
@@ -9738,7 +10279,7 @@ XS(_wrap_GCPsToGeoTransform) {
     {
       /* %typemap(in,numinputs=1) (int nGCPs, GDAL_GCP const *pGCPs ) */
       if (!(SvROK(ST(0)) && (SvTYPE(SvRV(ST(0)))==SVt_PVAV)))
-      SWIG_croak("expected a reference to an array");
+      SWIG_croak("expected a reference to an array as an argument to a Geo::GDAL method");
       AV *av = (AV*)(SvRV(ST(0)));
       arg1 = av_len(av)+1;
       tmpGCPList1 = (GDAL_GCP*) malloc(arg1*sizeof(GDAL_GCP));
@@ -9810,7 +10351,7 @@ XS(_wrap_GCPsToGeoTransform) {
     {
       /* %typemap(ret) IF_FALSE_RETURN_NONE */
       if (result == 0 ) {
-        SWIG_croak("unexpected error in GCPsToGeoTransform");
+        SWIG_croak("unexpected error in 'GCPsToGeoTransform'");
       }
     }
     XSRETURN(argvi);
@@ -9867,7 +10408,9 @@ XS(_wrap_delete_AsyncReader) {
       
       
     }
-    ST(argvi) = sv_newmortal();
+    {
+      /* %typemap(out) void */
+    }
     
     XSRETURN(argvi);
   fail:
@@ -10087,7 +10630,9 @@ XS(_wrap_AsyncReader_UnlockBuffer) {
       
       
     }
-    ST(argvi) = sv_newmortal();
+    {
+      /* %typemap(out) void */
+    }
     
     XSRETURN(argvi);
   fail:
@@ -10290,7 +10835,9 @@ XS(_wrap_delete_Dataset) {
       
       
     }
-    ST(argvi) = sv_newmortal();
+    {
+      /* %typemap(out) void */
+    }
     
     XSRETURN(argvi);
   fail:
@@ -10641,7 +11188,9 @@ XS(_wrap_Dataset_GetGeoTransform) {
       
       
     }
-    ST(argvi) = sv_newmortal();
+    {
+      /* %typemap(out) void */
+    }
     {
       /* %typemap(argout) (double argout[ANY]) */
       if (GIMME_V == G_ARRAY) {
@@ -10688,7 +11237,7 @@ XS(_wrap_Dataset_SetGeoTransform) {
     {
       /* %typemap(in) (double argin2[ANY]) */
       if (!(SvROK(ST(1)) && (SvTYPE(SvRV(ST(1)))==SVt_PVAV)))
-      SWIG_croak("expected a reference to an array");
+      SWIG_croak("expected a reference to an array as an argument to a Geo::GDAL method");
       arg2 = argin2;
       AV *av = (AV*)(SvRV(ST(1)));
       for (unsigned int i=0; i<6; i++) {
@@ -10751,6 +11300,7 @@ XS(_wrap_Dataset_BuildOverviews) {
     int result;
     dXSARGS;
     
+    /* %typemap(arginit, noblock=1) ( void* callback_data = NULL) */
     SavedEnv saved_env;
     saved_env.fct = NULL;
     saved_env.data = &PL_sv_undef;
@@ -10774,7 +11324,7 @@ XS(_wrap_Dataset_BuildOverviews) {
       {
         /* %typemap(in,numinputs=1) (int nList, int* pList) */
         if (!(SvROK(ST(2)) && (SvTYPE(SvRV(ST(2)))==SVt_PVAV)))
-        SWIG_croak("expected a reference to an array");
+        SWIG_croak("expected a reference to an array as an argument to a Geo::GDAL method");
         AV *av = (AV*)(SvRV(ST(2)));
         arg3 = av_len(av)+1;
         arg4 = (int*) malloc(arg3*sizeof(int));
@@ -10790,13 +11340,13 @@ XS(_wrap_Dataset_BuildOverviews) {
         if (SvOK(ST(3))) {
           if (SvROK(ST(3))) {
             if (SvTYPE(SvRV(ST(3))) != SVt_PVCV) {
-              SWIG_croak("the callback arg must be a reference to a subroutine\n");
+              SWIG_croak("the callback argument of a Geo::GDAL method must be a reference to a subroutine");
             } else {
               saved_env.fct = (SV *)ST(3);
               arg5 = &callback_d_cp_vp;
             }
           } else {
-            SWIG_croak("the callback arg must be a reference to a subroutine\n");
+            SWIG_croak("the callback argument of a Geo::GDAL method must be a reference to a subroutine");
           }
         }
       }
@@ -11013,7 +11563,9 @@ XS(_wrap_Dataset_GetGCPs) {
       
       
     }
-    ST(argvi) = sv_newmortal();
+    {
+      /* %typemap(out) void */
+    }
     {
       /* %typemap(argout) (int *nGCPs, GDAL_GCP const **pGCPs ) */
       AV *dict = (AV*)sv_2mortal((SV*)newAV());
@@ -11029,7 +11581,7 @@ XS(_wrap_Dataset_GetGCPs) {
         SWIG_MakePtr( sv, (void*)o, SWIGTYPE_p_GDAL_GCP, SWIG_SHADOW|SWIG_OWNER);
         av_store(dict, i, sv);
       }
-      ST(argvi) = newRV_noinc((SV*)dict);
+      ST(argvi) = sv_2mortal(newRV((SV*)dict));
       argvi++;
     }
     
@@ -11068,7 +11620,7 @@ XS(_wrap_Dataset_SetGCPs) {
     {
       /* %typemap(in,numinputs=1) (int nGCPs, GDAL_GCP const *pGCPs ) */
       if (!(SvROK(ST(1)) && (SvTYPE(SvRV(ST(1)))==SVt_PVAV)))
-      SWIG_croak("expected a reference to an array");
+      SWIG_croak("expected a reference to an array as an argument to a Geo::GDAL method");
       AV *av = (AV*)(SvRV(ST(1)));
       arg2 = av_len(av)+1;
       tmpGCPList2 = (GDAL_GCP*) malloc(arg2*sizeof(GDAL_GCP));
@@ -11176,7 +11728,9 @@ XS(_wrap_Dataset_FlushCache) {
       
       
     }
-    ST(argvi) = sv_newmortal();
+    {
+      /* %typemap(out) void */
+    }
     
     XSRETURN(argvi);
   fail:
@@ -11239,9 +11793,9 @@ XS(_wrap_Dataset__AddBand) {
                 arg3 = CSLAddNameValue( arg3, key, SvPV_nolen(sv) );
               }
             } else
-            SWIG_croak("'options' is not a reference to an array or hash");
+            SWIG_croak("the 'options' argument to a Geo::GDAL method is not a reference to an array or hash");
           } else
-          SWIG_croak("'options' is not a reference");   
+          SWIG_croak("the 'options' argument to a Geo::GDAL method is not a reference");   
         }
       }
     }
@@ -11420,7 +11974,8 @@ XS(_wrap_Dataset_GetFileList) {
           }
           CSLDestroy(result);
         }
-        ST(argvi) = newRV_noinc((SV*)av);
+        ST(argvi) = newRV((SV*)av);
+        sv_2mortal(ST(argvi));
         argvi++;
       }
     }
@@ -11551,7 +12106,7 @@ XS(_wrap_Dataset_WriteRaster) {
       {
         /* %typemap(in,numinputs=1) (int nList, int* pList) */
         if (!(SvROK(ST(9)) && (SvTYPE(SvRV(ST(9)))==SVt_PVAV)))
-        SWIG_croak("expected a reference to an array");
+        SWIG_croak("expected a reference to an array as an argument to a Geo::GDAL method");
         AV *av = (AV*)(SvRV(ST(9)));
         arg11 = av_len(av)+1;
         arg12 = (int*) malloc(arg11*sizeof(int));
@@ -11775,7 +12330,7 @@ XS(_wrap_Dataset_ReadRaster) {
       {
         /* %typemap(in,numinputs=1) (int nList, int* pList) */
         if (!(SvROK(ST(8)) && (SvTYPE(SvRV(ST(8)))==SVt_PVAV)))
-        SWIG_croak("expected a reference to an array");
+        SWIG_croak("expected a reference to an array as an argument to a Geo::GDAL method");
         AV *av = (AV*)(SvRV(ST(8)));
         arg11 = av_len(av)+1;
         arg12 = (int*) malloc(arg11*sizeof(int));
@@ -12156,7 +12711,9 @@ XS(_wrap_Band_GetBlockSize) {
       
       
     }
-    ST(argvi) = sv_newmortal();
+    {
+      /* %typemap(out) void */
+    }
     if (SWIG_IsTmpObj(res2)) {
       if (argvi >= items) EXTEND(sp,1);  ST(argvi) = SWIG_From_int  SWIG_PERL_CALL_ARGS_1((*arg2)); argvi++  ;
     } else {
@@ -12459,7 +13016,9 @@ XS(_wrap_Band_GetNoDataValue) {
       
       
     }
-    ST(argvi) = sv_newmortal();
+    {
+      /* %typemap(out) void */
+    }
     {
       /* %typemap(argout) (double *val, int *hasval) */
       ST(argvi) = sv_newmortal();
@@ -12714,7 +13273,8 @@ XS(_wrap_Band_GetRasterCategoryNames) {
           SvREFCNT_dec(sv);
         }
       }
-      ST(argvi) = newRV_noinc((SV*)av);
+      ST(argvi) = newRV((SV*)av);
+      sv_2mortal(ST(argvi));
       argvi++;
     }
     
@@ -12768,9 +13328,9 @@ XS(_wrap_Band_SetRasterCategoryNames) {
               arg2 = CSLAddNameValue( arg2, key, SvPV_nolen(sv) );
             }
           } else
-          SWIG_croak("'options' is not a reference to an array or hash");
+          SWIG_croak("the 'options' argument to a Geo::GDAL method is not a reference to an array or hash");
         } else
-        SWIG_croak("'options' is not a reference");   
+        SWIG_croak("the 'options' argument to a Geo::GDAL method is not a reference");   
       }
     }
     {
@@ -12866,7 +13426,9 @@ XS(_wrap_Band_GetMinimum) {
       
       
     }
-    ST(argvi) = sv_newmortal();
+    {
+      /* %typemap(out) void */
+    }
     {
       /* %typemap(argout) (double *val, int *hasval) */
       ST(argvi) = sv_newmortal();
@@ -12932,7 +13494,9 @@ XS(_wrap_Band_GetMaximum) {
       
       
     }
-    ST(argvi) = sv_newmortal();
+    {
+      /* %typemap(out) void */
+    }
     {
       /* %typemap(argout) (double *val, int *hasval) */
       ST(argvi) = sv_newmortal();
@@ -12998,7 +13562,9 @@ XS(_wrap_Band_GetOffset) {
       
       
     }
-    ST(argvi) = sv_newmortal();
+    {
+      /* %typemap(out) void */
+    }
     {
       /* %typemap(argout) (double *val, int *hasval) */
       ST(argvi) = sv_newmortal();
@@ -13064,7 +13630,9 @@ XS(_wrap_Band_GetScale) {
       
       
     }
-    ST(argvi) = sv_newmortal();
+    {
+      /* %typemap(out) void */
+    }
     {
       /* %typemap(argout) (double *val, int *hasval) */
       ST(argvi) = sv_newmortal();
@@ -13354,6 +13922,7 @@ XS(_wrap_Band_ComputeStatistics) {
     CPLErr result;
     dXSARGS;
     
+    /* %typemap(arginit, noblock=1) ( void* callback_data = NULL) */
     SavedEnv saved_env;
     saved_env.fct = NULL;
     saved_env.data = &PL_sv_undef;
@@ -13381,13 +13950,13 @@ XS(_wrap_Band_ComputeStatistics) {
         if (SvOK(ST(2))) {
           if (SvROK(ST(2))) {
             if (SvTYPE(SvRV(ST(2))) != SVt_PVCV) {
-              SWIG_croak("the callback arg must be a reference to a subroutine\n");
+              SWIG_croak("the callback argument of a Geo::GDAL method must be a reference to a subroutine");
             } else {
               saved_env.fct = (SV *)ST(2);
               arg7 = &callback_d_cp_vp;
             }
           } else {
-            SWIG_croak("the callback arg must be a reference to a subroutine\n");
+            SWIG_croak("the callback argument of a Geo::GDAL method must be a reference to a subroutine");
           }
         }
       }
@@ -13837,7 +14406,9 @@ XS(_wrap_Band_ComputeRasterMinMax) {
       
       
     }
-    ST(argvi) = sv_newmortal();
+    {
+      /* %typemap(out) void */
+    }
     {
       /* %typemap(argout) (double argout[ANY]) */
       if (GIMME_V == G_ARRAY) {
@@ -13920,7 +14491,9 @@ XS(_wrap_Band_ComputeBandStats) {
       
       
     }
-    ST(argvi) = sv_newmortal();
+    {
+      /* %typemap(out) void */
+    }
     {
       /* %typemap(argout) (double argout[ANY]) */
       if (GIMME_V == G_ARRAY) {
@@ -14443,7 +15016,9 @@ XS(_wrap_Band_FlushCache) {
       
       
     }
-    ST(argvi) = sv_newmortal();
+    {
+      /* %typemap(out) void */
+    }
     
     XSRETURN(argvi);
   fail:
@@ -14978,6 +15553,7 @@ XS(_wrap_Band__GetHistogram) {
     CPLErr result;
     dXSARGS;
     
+    /* %typemap(arginit, noblock=1) ( void* callback_data = NULL) */
     SavedEnv saved_env;
     saved_env.fct = NULL;
     saved_env.data = &PL_sv_undef;
@@ -15030,13 +15606,13 @@ XS(_wrap_Band__GetHistogram) {
         if (SvOK(ST(6))) {
           if (SvROK(ST(6))) {
             if (SvTYPE(SvRV(ST(6))) != SVt_PVCV) {
-              SWIG_croak("the callback arg must be a reference to a subroutine\n");
+              SWIG_croak("the callback argument of a Geo::GDAL method must be a reference to a subroutine");
             } else {
               saved_env.fct = (SV *)ST(6);
               arg8 = &callback_d_cp_vp;
             }
           } else {
-            SWIG_croak("the callback arg must be a reference to a subroutine\n");
+            SWIG_croak("the callback argument of a Geo::GDAL method must be a reference to a subroutine");
           }
         }
       }
@@ -15146,6 +15722,7 @@ XS(_wrap_Band_GetDefaultHistogram) {
     CPLErr result;
     dXSARGS;
     
+    /* %typemap(arginit, noblock=1) ( void* callback_data = NULL) */
     SavedEnv saved_env;
     saved_env.fct = NULL;
     saved_env.data = &PL_sv_undef;
@@ -15178,13 +15755,13 @@ XS(_wrap_Band_GetDefaultHistogram) {
         if (SvOK(ST(2))) {
           if (SvROK(ST(2))) {
             if (SvTYPE(SvRV(ST(2))) != SVt_PVCV) {
-              SWIG_croak("the callback arg must be a reference to a subroutine\n");
+              SWIG_croak("the callback argument of a Geo::GDAL method must be a reference to a subroutine");
             } else {
               saved_env.fct = (SV *)ST(2);
               arg7 = &callback_d_cp_vp;
             }
           } else {
-            SWIG_croak("the callback arg must be a reference to a subroutine\n");
+            SWIG_croak("the callback argument of a Geo::GDAL method must be a reference to a subroutine");
           }
         }
       }
@@ -15295,7 +15872,7 @@ XS(_wrap_Band_SetDefaultHistogram) {
     {
       /* %typemap(in,numinputs=1) (int nList, int* pList) */
       if (!(SvROK(ST(3)) && (SvTYPE(SvRV(ST(3)))==SVt_PVAV)))
-      SWIG_croak("expected a reference to an array");
+      SWIG_croak("expected a reference to an array as an argument to a Geo::GDAL method");
       AV *av = (AV*)(SvRV(ST(3)));
       arg4 = av_len(av)+1;
       arg5 = (int*) malloc(arg4*sizeof(int));
@@ -15457,7 +16034,8 @@ XS(_wrap_Band_GetCategoryNames) {
           SvREFCNT_dec(sv);
         }
       }
-      ST(argvi) = newRV_noinc((SV*)av);
+      ST(argvi) = newRV((SV*)av);
+      sv_2mortal(ST(argvi));
       argvi++;
     }
     
@@ -15511,9 +16089,9 @@ XS(_wrap_Band_SetCategoryNames) {
               arg2 = CSLAddNameValue( arg2, key, SvPV_nolen(sv) );
             }
           } else
-          SWIG_croak("'options' is not a reference to an array or hash");
+          SWIG_croak("the 'options' argument to a Geo::GDAL method is not a reference to an array or hash");
         } else
-        SWIG_croak("'options' is not a reference");   
+        SWIG_croak("the 'options' argument to a Geo::GDAL method is not a reference");   
       }
     }
     {
@@ -15588,6 +16166,7 @@ XS(_wrap_Band_ContourGenerate) {
     CPLErr result;
     dXSARGS;
     
+    /* %typemap(arginit, noblock=1) ( void* callback_data = NULL) */
     SavedEnv saved_env;
     saved_env.fct = NULL;
     saved_env.data = &PL_sv_undef;
@@ -15613,7 +16192,7 @@ XS(_wrap_Band_ContourGenerate) {
     {
       /* %typemap(in,numinputs=1) (int nList, double* pList) */
       if (!(SvROK(ST(3)) && (SvTYPE(SvRV(ST(3)))==SVt_PVAV)))
-      SWIG_croak("expected a reference to an array");
+      SWIG_croak("expected a reference to an array as an argument to a Geo::GDAL method");
       AV *av = (AV*)(SvRV(ST(3)));
       arg4 = av_len(av)+1;
       arg5 = (double*) malloc(arg4*sizeof(double));
@@ -15648,13 +16227,13 @@ XS(_wrap_Band_ContourGenerate) {
         if (SvOK(ST(8))) {
           if (SvROK(ST(8))) {
             if (SvTYPE(SvRV(ST(8))) != SVt_PVCV) {
-              SWIG_croak("the callback arg must be a reference to a subroutine\n");
+              SWIG_croak("the callback argument of a Geo::GDAL method must be a reference to a subroutine");
             } else {
               saved_env.fct = (SV *)ST(8);
               arg11 = &callback_d_cp_vp;
             }
           } else {
-            SWIG_croak("the callback arg must be a reference to a subroutine\n");
+            SWIG_croak("the callback argument of a Geo::GDAL method must be a reference to a subroutine");
           }
         }
       }
@@ -15815,7 +16394,9 @@ XS(_wrap_delete_ColorTable) {
       
       
     }
-    ST(argvi) = sv_newmortal();
+    {
+      /* %typemap(out) void */
+    }
     
     XSRETURN(argvi);
   fail:
@@ -16165,7 +16746,7 @@ XS(_wrap_ColorTable__SetColorEntry) {
       /* %typemap(in,numinputs=1) const GDALColorEntry*(GDALColorEntry e3) */
       arg3 = &e3;
       if (!(SvROK(ST(2)) && (SvTYPE(SvRV(ST(2)))==SVt_PVAV)))
-      SWIG_croak("expected a reference to an array");
+      SWIG_croak("expected a reference to an array as an argument to a Geo::GDAL method");
       AV *av = (AV*)(SvRV(ST(2)));
       SV **sv = av_fetch(av, 0, 0);
       arg3->c1 =  SvIV(*sv);
@@ -16201,7 +16782,9 @@ XS(_wrap_ColorTable__SetColorEntry) {
       
       
     }
-    ST(argvi) = sv_newmortal();
+    {
+      /* %typemap(out) void */
+    }
     {
       /* %typemap(argout) const GDALColorEntry* */
     }
@@ -16254,7 +16837,7 @@ XS(_wrap_ColorTable_CreateColorRamp) {
       /* %typemap(in,numinputs=1) const GDALColorEntry*(GDALColorEntry e3) */
       arg3 = &e3;
       if (!(SvROK(ST(2)) && (SvTYPE(SvRV(ST(2)))==SVt_PVAV)))
-      SWIG_croak("expected a reference to an array");
+      SWIG_croak("expected a reference to an array as an argument to a Geo::GDAL method");
       AV *av = (AV*)(SvRV(ST(2)));
       SV **sv = av_fetch(av, 0, 0);
       arg3->c1 =  SvIV(*sv);
@@ -16274,7 +16857,7 @@ XS(_wrap_ColorTable_CreateColorRamp) {
       /* %typemap(in,numinputs=1) const GDALColorEntry*(GDALColorEntry e5) */
       arg5 = &e3;
       if (!(SvROK(ST(4)) && (SvTYPE(SvRV(ST(4)))==SVt_PVAV)))
-      SWIG_croak("expected a reference to an array");
+      SWIG_croak("expected a reference to an array as an argument to a Geo::GDAL method");
       AV *av = (AV*)(SvRV(ST(4)));
       SV **sv = av_fetch(av, 0, 0);
       arg5->c1 =  SvIV(*sv);
@@ -16311,7 +16894,9 @@ XS(_wrap_ColorTable_CreateColorRamp) {
       
       
     }
-    ST(argvi) = sv_newmortal();
+    {
+      /* %typemap(out) void */
+    }
     {
       /* %typemap(argout) const GDALColorEntry* */
     }
@@ -16416,7 +17001,9 @@ XS(_wrap_delete_RasterAttributeTable) {
       
       
     }
-    ST(argvi) = sv_newmortal();
+    {
+      /* %typemap(out) void */
+    }
     
     XSRETURN(argvi);
   fail:
@@ -17110,7 +17697,9 @@ XS(_wrap_RasterAttributeTable_SetValueAsString) {
       
       
     }
-    ST(argvi) = sv_newmortal();
+    {
+      /* %typemap(out) void */
+    }
     
     
     
@@ -17188,7 +17777,9 @@ XS(_wrap_RasterAttributeTable_SetValueAsInt) {
       
       
     }
-    ST(argvi) = sv_newmortal();
+    {
+      /* %typemap(out) void */
+    }
     
     
     
@@ -17268,7 +17859,9 @@ XS(_wrap_RasterAttributeTable_SetValueAsDouble) {
       
       
     }
-    ST(argvi) = sv_newmortal();
+    {
+      /* %typemap(out) void */
+    }
     
     
     
@@ -17332,7 +17925,9 @@ XS(_wrap_RasterAttributeTable_SetRowCount) {
       
       
     }
-    ST(argvi) = sv_newmortal();
+    {
+      /* %typemap(out) void */
+    }
     
     
     XSRETURN(argvi);
@@ -17633,80 +18228,6 @@ XS(_wrap_RasterAttributeTable_GetRowOfValue) {
 }
 
 
-XS(_wrap_TermProgress_nocb) {
-  {
-    double arg1 ;
-    char *arg2 = (char *) NULL ;
-    void *arg3 = (void *) NULL ;
-    double val1 ;
-    int ecode1 = 0 ;
-    int res2 ;
-    char *buf2 = 0 ;
-    int alloc2 = 0 ;
-    int res3 ;
-    int argvi = 0;
-    int result;
-    dXSARGS;
-    
-    if ((items < 1) || (items > 3)) {
-      SWIG_croak("Usage: TermProgress_nocb(dfProgress,pszMessage,pData);");
-    }
-    ecode1 = SWIG_AsVal_double SWIG_PERL_CALL_ARGS_2(ST(0), &val1);
-    if (!SWIG_IsOK(ecode1)) {
-      SWIG_exception_fail(SWIG_ArgError(ecode1), "in method '" "TermProgress_nocb" "', argument " "1"" of type '" "double""'");
-    } 
-    arg1 = static_cast< double >(val1);
-    if (items > 1) {
-      res2 = SWIG_AsCharPtrAndSize(ST(1), &buf2, NULL, &alloc2);
-      if (!SWIG_IsOK(res2)) {
-        SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "TermProgress_nocb" "', argument " "2"" of type '" "char const *""'");
-      }
-      arg2 = reinterpret_cast< char * >(buf2);
-    }
-    if (items > 2) {
-      res3 = SWIG_ConvertPtr(ST(2),SWIG_as_voidptrptr(&arg3), 0, 0);
-      if (!SWIG_IsOK(res3)) {
-        SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "TermProgress_nocb" "', argument " "3"" of type '" "void *""'"); 
-      }
-    }
-    {
-      CPLErrorReset();
-      result = (int)GDALTermProgress_nocb(arg1,(char const *)arg2,arg3);
-      CPLErr eclass = CPLGetLastErrorType();
-      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
-        
-        
-        
-        
-        
-      }
-      
-      
-      /* 
-          Make warnings regular Perl warnings. This duplicates the warning
-          message if DontUseExceptions() is in effect (it is not by default).
-          */
-      if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg(), "%s" );
-      }
-      
-      
-    }
-    ST(argvi) = SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(result)); argvi++ ;
-    
-    if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
-    
-    XSRETURN(argvi);
-  fail:
-    
-    if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
-    
-    SWIG_croak_null();
-  }
-}
-
-
 XS(_wrap__ComputeMedianCutPCT) {
   {
     GDALRasterBandShadow *arg1 = (GDALRasterBandShadow *) 0 ;
@@ -17730,6 +18251,7 @@ XS(_wrap__ComputeMedianCutPCT) {
     int result;
     dXSARGS;
     
+    /* %typemap(arginit, noblock=1) ( void* callback_data = NULL) */
     SavedEnv saved_env;
     saved_env.fct = NULL;
     saved_env.data = &PL_sv_undef;
@@ -17768,13 +18290,13 @@ XS(_wrap__ComputeMedianCutPCT) {
         if (SvOK(ST(5))) {
           if (SvROK(ST(5))) {
             if (SvTYPE(SvRV(ST(5))) != SVt_PVCV) {
-              SWIG_croak("the callback arg must be a reference to a subroutine\n");
+              SWIG_croak("the callback argument of a Geo::GDAL method must be a reference to a subroutine");
             } else {
               saved_env.fct = (SV *)ST(5);
               arg6 = &callback_d_cp_vp;
             }
           } else {
-            SWIG_croak("the callback arg must be a reference to a subroutine\n");
+            SWIG_croak("the callback argument of a Geo::GDAL method must be a reference to a subroutine");
           }
         }
       }
@@ -17873,6 +18395,7 @@ XS(_wrap__DitherRGB2PCT) {
     int result;
     dXSARGS;
     
+    /* %typemap(arginit, noblock=1) ( void* callback_data = NULL) */
     SavedEnv saved_env;
     saved_env.fct = NULL;
     saved_env.data = &PL_sv_undef;
@@ -17911,13 +18434,13 @@ XS(_wrap__DitherRGB2PCT) {
         if (SvOK(ST(5))) {
           if (SvROK(ST(5))) {
             if (SvTYPE(SvRV(ST(5))) != SVt_PVCV) {
-              SWIG_croak("the callback arg must be a reference to a subroutine\n");
+              SWIG_croak("the callback argument of a Geo::GDAL method must be a reference to a subroutine");
             } else {
               saved_env.fct = (SV *)ST(5);
               arg6 = &callback_d_cp_vp;
             }
           } else {
-            SWIG_croak("the callback arg must be a reference to a subroutine\n");
+            SWIG_croak("the callback argument of a Geo::GDAL method must be a reference to a subroutine");
           }
         }
       }
@@ -18029,6 +18552,7 @@ XS(_wrap__ReprojectImage) {
     CPLErr result;
     dXSARGS;
     
+    /* %typemap(arginit, noblock=1) ( void* callback_data = NULL) */
     SavedEnv saved_env;
     saved_env.fct = NULL;
     saved_env.data = &PL_sv_undef;
@@ -18087,13 +18611,13 @@ XS(_wrap__ReprojectImage) {
         if (SvOK(ST(7))) {
           if (SvROK(ST(7))) {
             if (SvTYPE(SvRV(ST(7))) != SVt_PVCV) {
-              SWIG_croak("the callback arg must be a reference to a subroutine\n");
+              SWIG_croak("the callback argument of a Geo::GDAL method must be a reference to a subroutine");
             } else {
               saved_env.fct = (SV *)ST(7);
               arg8 = &callback_d_cp_vp;
             }
           } else {
-            SWIG_croak("the callback arg must be a reference to a subroutine\n");
+            SWIG_croak("the callback argument of a Geo::GDAL method must be a reference to a subroutine");
           }
         }
       }
@@ -18178,6 +18702,7 @@ XS(_wrap__ComputeProximity) {
     int result;
     dXSARGS;
     
+    /* %typemap(arginit, noblock=1) ( void* callback_data = NULL) */
     SavedEnv saved_env;
     saved_env.fct = NULL;
     saved_env.data = &PL_sv_undef;
@@ -18220,9 +18745,9 @@ XS(_wrap__ComputeProximity) {
                 arg3 = CSLAddNameValue( arg3, key, SvPV_nolen(sv) );
               }
             } else
-            SWIG_croak("'options' is not a reference to an array or hash");
+            SWIG_croak("the 'options' argument to a Geo::GDAL method is not a reference to an array or hash");
           } else
-          SWIG_croak("'options' is not a reference");   
+          SWIG_croak("the 'options' argument to a Geo::GDAL method is not a reference");   
         }
       }
     }
@@ -18232,13 +18757,13 @@ XS(_wrap__ComputeProximity) {
         if (SvOK(ST(3))) {
           if (SvROK(ST(3))) {
             if (SvTYPE(SvRV(ST(3))) != SVt_PVCV) {
-              SWIG_croak("the callback arg must be a reference to a subroutine\n");
+              SWIG_croak("the callback argument of a Geo::GDAL method must be a reference to a subroutine");
             } else {
               saved_env.fct = (SV *)ST(3);
               arg4 = &callback_d_cp_vp;
             }
           } else {
-            SWIG_croak("the callback arg must be a reference to a subroutine\n");
+            SWIG_croak("the callback argument of a Geo::GDAL method must be a reference to a subroutine");
           }
         }
       }
@@ -18329,6 +18854,7 @@ XS(_wrap__RasterizeLayer) {
     int result;
     dXSARGS;
     
+    /* %typemap(arginit, noblock=1) ( void* callback_data = NULL) */
     SavedEnv saved_env;
     saved_env.fct = NULL;
     saved_env.data = &PL_sv_undef;
@@ -18344,7 +18870,7 @@ XS(_wrap__RasterizeLayer) {
     {
       /* %typemap(in,numinputs=1) (int nList, int* pList) */
       if (!(SvROK(ST(1)) && (SvTYPE(SvRV(ST(1)))==SVt_PVAV)))
-      SWIG_croak("expected a reference to an array");
+      SWIG_croak("expected a reference to an array as an argument to a Geo::GDAL method");
       AV *av = (AV*)(SvRV(ST(1)));
       arg2 = av_len(av)+1;
       arg3 = (int*) malloc(arg2*sizeof(int));
@@ -18374,7 +18900,7 @@ XS(_wrap__RasterizeLayer) {
       {
         /* %typemap(in,numinputs=1) (int nList, double* pList) */
         if (!(SvROK(ST(5)) && (SvTYPE(SvRV(ST(5)))==SVt_PVAV)))
-        SWIG_croak("expected a reference to an array");
+        SWIG_croak("expected a reference to an array as an argument to a Geo::GDAL method");
         AV *av = (AV*)(SvRV(ST(5)));
         arg7 = av_len(av)+1;
         arg8 = (double*) malloc(arg7*sizeof(double));
@@ -18409,9 +18935,9 @@ XS(_wrap__RasterizeLayer) {
                 arg9 = CSLAddNameValue( arg9, key, SvPV_nolen(sv) );
               }
             } else
-            SWIG_croak("'options' is not a reference to an array or hash");
+            SWIG_croak("the 'options' argument to a Geo::GDAL method is not a reference to an array or hash");
           } else
-          SWIG_croak("'options' is not a reference");   
+          SWIG_croak("the 'options' argument to a Geo::GDAL method is not a reference");   
         }
       }
     }
@@ -18421,13 +18947,13 @@ XS(_wrap__RasterizeLayer) {
         if (SvOK(ST(7))) {
           if (SvROK(ST(7))) {
             if (SvTYPE(SvRV(ST(7))) != SVt_PVCV) {
-              SWIG_croak("the callback arg must be a reference to a subroutine\n");
+              SWIG_croak("the callback argument of a Geo::GDAL method must be a reference to a subroutine");
             } else {
               saved_env.fct = (SV *)ST(7);
               arg10 = &callback_d_cp_vp;
             }
           } else {
-            SWIG_croak("the callback arg must be a reference to a subroutine\n");
+            SWIG_croak("the callback argument of a Geo::GDAL method must be a reference to a subroutine");
           }
         }
       }
@@ -18540,6 +19066,7 @@ XS(_wrap__Polygonize) {
     int result;
     dXSARGS;
     
+    /* %typemap(arginit, noblock=1) ( void* callback_data = NULL) */
     SavedEnv saved_env;
     saved_env.fct = NULL;
     saved_env.data = &PL_sv_undef;
@@ -18592,9 +19119,9 @@ XS(_wrap__Polygonize) {
                 arg5 = CSLAddNameValue( arg5, key, SvPV_nolen(sv) );
               }
             } else
-            SWIG_croak("'options' is not a reference to an array or hash");
+            SWIG_croak("the 'options' argument to a Geo::GDAL method is not a reference to an array or hash");
           } else
-          SWIG_croak("'options' is not a reference");   
+          SWIG_croak("the 'options' argument to a Geo::GDAL method is not a reference");   
         }
       }
     }
@@ -18604,13 +19131,13 @@ XS(_wrap__Polygonize) {
         if (SvOK(ST(5))) {
           if (SvROK(ST(5))) {
             if (SvTYPE(SvRV(ST(5))) != SVt_PVCV) {
-              SWIG_croak("the callback arg must be a reference to a subroutine\n");
+              SWIG_croak("the callback argument of a Geo::GDAL method must be a reference to a subroutine");
             } else {
               saved_env.fct = (SV *)ST(5);
               arg6 = &callback_d_cp_vp;
             }
           } else {
-            SWIG_croak("the callback arg must be a reference to a subroutine\n");
+            SWIG_croak("the callback argument of a Geo::GDAL method must be a reference to a subroutine");
           }
         }
       }
@@ -18703,6 +19230,7 @@ XS(_wrap_FillNodata) {
     int result;
     dXSARGS;
     
+    /* %typemap(arginit, noblock=1) ( void* callback_data = NULL) */
     SavedEnv saved_env;
     saved_env.fct = NULL;
     saved_env.data = &PL_sv_undef;
@@ -18755,9 +19283,9 @@ XS(_wrap_FillNodata) {
                 arg5 = CSLAddNameValue( arg5, key, SvPV_nolen(sv) );
               }
             } else
-            SWIG_croak("'options' is not a reference to an array or hash");
+            SWIG_croak("the 'options' argument to a Geo::GDAL method is not a reference to an array or hash");
           } else
-          SWIG_croak("'options' is not a reference");   
+          SWIG_croak("the 'options' argument to a Geo::GDAL method is not a reference");   
         }
       }
     }
@@ -18767,13 +19295,13 @@ XS(_wrap_FillNodata) {
         if (SvOK(ST(5))) {
           if (SvROK(ST(5))) {
             if (SvTYPE(SvRV(ST(5))) != SVt_PVCV) {
-              SWIG_croak("the callback arg must be a reference to a subroutine\n");
+              SWIG_croak("the callback argument of a Geo::GDAL method must be a reference to a subroutine");
             } else {
               saved_env.fct = (SV *)ST(5);
               arg6 = &callback_d_cp_vp;
             }
           } else {
-            SWIG_croak("the callback arg must be a reference to a subroutine\n");
+            SWIG_croak("the callback argument of a Geo::GDAL method must be a reference to a subroutine");
           }
         }
       }
@@ -18864,6 +19392,7 @@ XS(_wrap__SieveFilter) {
     int result;
     dXSARGS;
     
+    /* %typemap(arginit, noblock=1) ( void* callback_data = NULL) */
     SavedEnv saved_env;
     saved_env.fct = NULL;
     saved_env.data = &PL_sv_undef;
@@ -18923,9 +19452,9 @@ XS(_wrap__SieveFilter) {
                 arg6 = CSLAddNameValue( arg6, key, SvPV_nolen(sv) );
               }
             } else
-            SWIG_croak("'options' is not a reference to an array or hash");
+            SWIG_croak("the 'options' argument to a Geo::GDAL method is not a reference to an array or hash");
           } else
-          SWIG_croak("'options' is not a reference");   
+          SWIG_croak("the 'options' argument to a Geo::GDAL method is not a reference");   
         }
       }
     }
@@ -18935,13 +19464,13 @@ XS(_wrap__SieveFilter) {
         if (SvOK(ST(6))) {
           if (SvROK(ST(6))) {
             if (SvTYPE(SvRV(ST(6))) != SVt_PVCV) {
-              SWIG_croak("the callback arg must be a reference to a subroutine\n");
+              SWIG_croak("the callback argument of a Geo::GDAL method must be a reference to a subroutine");
             } else {
               saved_env.fct = (SV *)ST(6);
               arg7 = &callback_d_cp_vp;
             }
           } else {
-            SWIG_croak("the callback arg must be a reference to a subroutine\n");
+            SWIG_croak("the callback argument of a Geo::GDAL method must be a reference to a subroutine");
           }
         }
       }
@@ -19033,6 +19562,7 @@ XS(_wrap__RegenerateOverview) {
     int result;
     dXSARGS;
     
+    /* %typemap(arginit, noblock=1) ( void* callback_data = NULL) */
     SavedEnv saved_env;
     saved_env.fct = NULL;
     saved_env.data = &PL_sv_undef;
@@ -19063,13 +19593,13 @@ XS(_wrap__RegenerateOverview) {
         if (SvOK(ST(3))) {
           if (SvROK(ST(3))) {
             if (SvTYPE(SvRV(ST(3))) != SVt_PVCV) {
-              SWIG_croak("the callback arg must be a reference to a subroutine\n");
+              SWIG_croak("the callback argument of a Geo::GDAL method must be a reference to a subroutine");
             } else {
               saved_env.fct = (SV *)ST(3);
               arg4 = &callback_d_cp_vp;
             }
           } else {
-            SWIG_croak("the callback arg must be a reference to a subroutine\n");
+            SWIG_croak("the callback argument of a Geo::GDAL method must be a reference to a subroutine");
           }
         }
       }
@@ -19165,6 +19695,7 @@ XS(_wrap_ContourGenerate) {
     int result;
     dXSARGS;
     
+    /* %typemap(arginit, noblock=1) ( void* callback_data = NULL) */
     SavedEnv saved_env;
     saved_env.fct = NULL;
     saved_env.data = &PL_sv_undef;
@@ -19190,7 +19721,7 @@ XS(_wrap_ContourGenerate) {
     {
       /* %typemap(in,numinputs=1) (int nList, double* pList) */
       if (!(SvROK(ST(3)) && (SvTYPE(SvRV(ST(3)))==SVt_PVAV)))
-      SWIG_croak("expected a reference to an array");
+      SWIG_croak("expected a reference to an array as an argument to a Geo::GDAL method");
       AV *av = (AV*)(SvRV(ST(3)));
       arg4 = av_len(av)+1;
       arg5 = (double*) malloc(arg4*sizeof(double));
@@ -19230,13 +19761,13 @@ XS(_wrap_ContourGenerate) {
         if (SvOK(ST(9))) {
           if (SvROK(ST(9))) {
             if (SvTYPE(SvRV(ST(9))) != SVt_PVCV) {
-              SWIG_croak("the callback arg must be a reference to a subroutine\n");
+              SWIG_croak("the callback argument of a Geo::GDAL method must be a reference to a subroutine");
             } else {
               saved_env.fct = (SV *)ST(9);
               arg11 = &callback_d_cp_vp;
             }
           } else {
-            SWIG_croak("the callback arg must be a reference to a subroutine\n");
+            SWIG_croak("the callback argument of a Geo::GDAL method must be a reference to a subroutine");
           }
         }
       }
@@ -19474,9 +20005,9 @@ XS(_wrap_new_Transformer) {
               arg3 = CSLAddNameValue( arg3, key, SvPV_nolen(sv) );
             }
           } else
-          SWIG_croak("'options' is not a reference to an array or hash");
+          SWIG_croak("the 'options' argument to a Geo::GDAL method is not a reference to an array or hash");
         } else
-        SWIG_croak("'options' is not a reference");   
+        SWIG_croak("the 'options' argument to a Geo::GDAL method is not a reference");   
       }
     }
     {
@@ -19563,7 +20094,9 @@ XS(_wrap_delete_Transformer) {
       
       
     }
-    ST(argvi) = sv_newmortal();
+    {
+      /* %typemap(out) void */
+    }
     
     XSRETURN(argvi);
   fail:
@@ -19604,7 +20137,7 @@ XS(_wrap_Transformer_TransformPoint__SWIG_0) {
     {
       /* %typemap(in) (double argin3[ANY]) */
       if (!(SvROK(ST(2)) && (SvTYPE(SvRV(ST(2)))==SVt_PVAV)))
-      SWIG_croak("expected a reference to an array");
+      SWIG_croak("expected a reference to an array as an argument to a Geo::GDAL method");
       arg3 = argin3;
       AV *av = (AV*)(SvRV(ST(2)));
       for (unsigned int i=0; i<3; i++) {
@@ -19938,18 +20471,18 @@ XS(_wrap_Transformer__TransformPoints) {
       /* %typemap(in) (int nCount, double *x, double *y, double *z) */
       /* ST(2) is a ref to a list of refs to point lists */
       if (! (SvROK(ST(2)) && (SvTYPE(SvRV(ST(2)))==SVt_PVAV)))
-      SWIG_croak("expected a reference to an array");
+      SWIG_croak("expected a reference to an array as an argument to a Geo::GDAL method");
       AV *av = (AV*)(SvRV(ST(2)));
       arg3 = av_len(av)+1;
       arg4 = (double*) malloc(arg3*sizeof(double));
       arg5 = (double*) malloc(arg3*sizeof(double));
       arg6 = (double*) malloc(arg3*sizeof(double));
       if (!arg4 or !arg5 or !arg6)
-      SWIG_croak("out of memory");
+      SWIG_croak("out of memory in Geo::GDAL");
       for (int i = 0; i < arg3; i++) {
         SV **sv = av_fetch(av, i, 0); /* ref to one point list */
         if (!(SvROK(*sv) && (SvTYPE(SvRV(*sv))==SVt_PVAV)))
-        SWIG_croak("expected a reference to a list of coordinates");
+        SWIG_croak("expected a reference to a list of coordinates as an argument to a Geo::GDAL method");
         AV *ac = (AV*)(SvRV(*sv));
         int n = av_len(ac)+1;
         SV **c = av_fetch(ac, 0, 0);
@@ -20038,6 +20571,175 @@ XS(_wrap_Transformer__TransformPoints) {
 }
 
 
+XS(_wrap_Transformer_TransformGeolocations) {
+  {
+    GDALTransformerInfoShadow *arg1 = (GDALTransformerInfoShadow *) 0 ;
+    GDALRasterBandShadow *arg2 = (GDALRasterBandShadow *) 0 ;
+    GDALRasterBandShadow *arg3 = (GDALRasterBandShadow *) 0 ;
+    GDALRasterBandShadow *arg4 = (GDALRasterBandShadow *) 0 ;
+    GDALProgressFunc arg5 = (GDALProgressFunc) NULL ;
+    void *arg6 = (void *) NULL ;
+    char **arg7 = (char **) NULL ;
+    void *argp1 = 0 ;
+    int res1 = 0 ;
+    void *argp2 = 0 ;
+    int res2 = 0 ;
+    void *argp3 = 0 ;
+    int res3 = 0 ;
+    void *argp4 = 0 ;
+    int res4 = 0 ;
+    int argvi = 0;
+    int result;
+    dXSARGS;
+    
+    /* %typemap(arginit, noblock=1) ( void* callback_data = NULL) */
+    SavedEnv saved_env;
+    saved_env.fct = NULL;
+    saved_env.data = &PL_sv_undef;
+    arg6 = (void *)(&saved_env);
+    if ((items < 4) || (items > 7)) {
+      SWIG_croak("Usage: Transformer_TransformGeolocations(self,xBand,yBand,zBand,callback,callback_data,options);");
+    }
+    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_GDALTransformerInfoShadow, 0 |  0 );
+    if (!SWIG_IsOK(res1)) {
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Transformer_TransformGeolocations" "', argument " "1"" of type '" "GDALTransformerInfoShadow *""'"); 
+    }
+    arg1 = reinterpret_cast< GDALTransformerInfoShadow * >(argp1);
+    res2 = SWIG_ConvertPtr(ST(1), &argp2,SWIGTYPE_p_GDALRasterBandShadow, 0 |  0 );
+    if (!SWIG_IsOK(res2)) {
+      SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "Transformer_TransformGeolocations" "', argument " "2"" of type '" "GDALRasterBandShadow *""'"); 
+    }
+    arg2 = reinterpret_cast< GDALRasterBandShadow * >(argp2);
+    res3 = SWIG_ConvertPtr(ST(2), &argp3,SWIGTYPE_p_GDALRasterBandShadow, 0 |  0 );
+    if (!SWIG_IsOK(res3)) {
+      SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "Transformer_TransformGeolocations" "', argument " "3"" of type '" "GDALRasterBandShadow *""'"); 
+    }
+    arg3 = reinterpret_cast< GDALRasterBandShadow * >(argp3);
+    res4 = SWIG_ConvertPtr(ST(3), &argp4,SWIGTYPE_p_GDALRasterBandShadow, 0 |  0 );
+    if (!SWIG_IsOK(res4)) {
+      SWIG_exception_fail(SWIG_ArgError(res4), "in method '" "Transformer_TransformGeolocations" "', argument " "4"" of type '" "GDALRasterBandShadow *""'"); 
+    }
+    arg4 = reinterpret_cast< GDALRasterBandShadow * >(argp4);
+    if (items > 4) {
+      {
+        /* %typemap(in) (GDALProgressFunc callback = NULL) */
+        if (SvOK(ST(4))) {
+          if (SvROK(ST(4))) {
+            if (SvTYPE(SvRV(ST(4))) != SVt_PVCV) {
+              SWIG_croak("the callback argument of a Geo::GDAL method must be a reference to a subroutine");
+            } else {
+              saved_env.fct = (SV *)ST(4);
+              arg5 = &callback_d_cp_vp;
+            }
+          } else {
+            SWIG_croak("the callback argument of a Geo::GDAL method must be a reference to a subroutine");
+          }
+        }
+      }
+    }
+    if (items > 5) {
+      {
+        /* %typemap(in) (void* callback_data=NULL) */
+        if (SvOK(ST(5)))
+        saved_env.data = (SV *)ST(5);
+      }
+    }
+    if (items > 6) {
+      {
+        /* %typemap(in) char **options */
+        if (SvOK(ST(6))) {
+          if (SvROK(ST(6))) {
+            if (SvTYPE(SvRV(ST(6)))==SVt_PVAV) {
+              AV *av = (AV*)(SvRV(ST(6)));
+              for (int i = 0; i < av_len(av)+1; i++) {
+                SV *sv = *(av_fetch(av, i, 0));
+                sv_utf8_upgrade(sv); /* GDAL expects UTF-8 */
+                char *pszItem = SvPV_nolen(sv);
+                arg7 = CSLAddString( arg7, pszItem );
+              }
+            } else if (SvTYPE(SvRV(ST(6)))==SVt_PVHV) {
+              HV *hv = (HV*)SvRV(ST(6));
+              SV *sv;
+              char *key;
+              I32 klen;
+              arg7 = NULL;
+              hv_iterinit(hv);
+              while(sv = hv_iternextsv(hv,&key,&klen)) {
+                sv_utf8_upgrade(sv); /* GDAL expects UTF-8 */
+                arg7 = CSLAddNameValue( arg7, key, SvPV_nolen(sv) );
+              }
+            } else
+            SWIG_croak("the 'options' argument to a Geo::GDAL method is not a reference to an array or hash");
+          } else
+          SWIG_croak("the 'options' argument to a Geo::GDAL method is not a reference");   
+        }
+      }
+    }
+    {
+      if (!arg2) {
+        SWIG_exception(SWIG_ValueError,"Received a NULL pointer.");
+      }
+    }
+    {
+      if (!arg3) {
+        SWIG_exception(SWIG_ValueError,"Received a NULL pointer.");
+      }
+    }
+    {
+      if (!arg4) {
+        SWIG_exception(SWIG_ValueError,"Received a NULL pointer.");
+      }
+    }
+    {
+      CPLErrorReset();
+      result = (int)GDALTransformerInfoShadow_TransformGeolocations(arg1,arg2,arg3,arg4,arg5,arg6,arg7);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /* 
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
+    ST(argvi) = SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(result)); argvi++ ;
+    
+    
+    
+    
+    
+    {
+      /* %typemap(freearg) char **options */
+      if (arg7) CSLDestroy( arg7 );
+    }
+    XSRETURN(argvi);
+  fail:
+    
+    
+    
+    
+    
+    {
+      /* %typemap(freearg) char **options */
+      if (arg7) CSLDestroy( arg7 );
+    }
+    SWIG_croak_null();
+  }
+}
+
+
 XS(_wrap_ApplyGeoTransform) {
   {
     double *arg1 ;
@@ -20065,7 +20767,7 @@ XS(_wrap_ApplyGeoTransform) {
     {
       /* %typemap(in) (double argin1[ANY]) */
       if (!(SvROK(ST(0)) && (SvTYPE(SvRV(ST(0)))==SVt_PVAV)))
-      SWIG_croak("expected a reference to an array");
+      SWIG_croak("expected a reference to an array as an argument to a Geo::GDAL method");
       arg1 = argin1;
       AV *av = (AV*)(SvRV(ST(0)));
       for (unsigned int i=0; i<6; i++) {
@@ -20107,7 +20809,9 @@ XS(_wrap_ApplyGeoTransform) {
       
       
     }
-    ST(argvi) = sv_newmortal();
+    {
+      /* %typemap(out) void */
+    }
     if (SWIG_IsTmpObj(res4)) {
       if (argvi >= items) EXTEND(sp,1);  ST(argvi) = SWIG_From_double  SWIG_PERL_CALL_ARGS_1((*arg4)); argvi++  ;
     } else {
@@ -20157,7 +20861,7 @@ XS(_wrap_InvGeoTransform) {
     {
       /* %typemap(in) (double argin1[ANY]) */
       if (!(SvROK(ST(0)) && (SvTYPE(SvRV(ST(0)))==SVt_PVAV)))
-      SWIG_croak("expected a reference to an array");
+      SWIG_croak("expected a reference to an array as an argument to a Geo::GDAL method");
       arg1 = argin1;
       AV *av = (AV*)(SvRV(ST(0)));
       for (unsigned int i=0; i<6; i++) {
@@ -20237,7 +20941,7 @@ XS(_wrap_VersionInfo) {
     {
       /* %typemap(check) (const char *request) */
       if (!arg1)
-      SWIG_croak("The request must not be undefined");
+      SWIG_croak("The request must not be undefined when it is an argument to a Geo::GDAL method");
     }
     {
       CPLErrorReset();
@@ -20311,7 +21015,9 @@ XS(_wrap_AllRegister) {
       
       
     }
-    ST(argvi) = sv_newmortal();
+    {
+      /* %typemap(out) void */
+    }
     XSRETURN(argvi);
   fail:
     SWIG_croak_null();
@@ -20351,7 +21057,9 @@ XS(_wrap_GDALDestroyDriverManager) {
       
       
     }
-    ST(argvi) = sv_newmortal();
+    {
+      /* %typemap(out) void */
+    }
     XSRETURN(argvi);
   fail:
     SWIG_croak_null();
@@ -20481,7 +21189,9 @@ XS(_wrap_SetCacheMax) {
       
       
     }
-    ST(argvi) = sv_newmortal();
+    {
+      /* %typemap(out) void */
+    }
     
     XSRETURN(argvi);
   fail:
@@ -21042,7 +21752,8 @@ XS(_wrap_ParseXMLString) {
     }
     {
       /* %typemap(out) (CPLXMLNode*) */
-      ST(argvi) = newRV_noinc((SV*)XMLTreeToAV( result ));
+      ST(argvi) = newRV((SV*)XMLTreeToAV( result ));
+      sv_2mortal(ST(argvi));
       argvi++;
     }
     if (alloc1 == SWIG_NEWOBJ) delete[] buf1;
@@ -21071,10 +21782,10 @@ XS(_wrap_SerializeXMLTree) {
     {
       /* %typemap(in) (CPLXMLNode* xmlnode ) */
       if (!(SvROK(ST(0)) && (SvTYPE(SvRV(ST(0)))==SVt_PVAV)))
-      SWIG_croak("expected a reference to an array");
+      SWIG_croak("expected a reference to an array as an argument to a Geo::GDAL method");
       AV *av = (AV*)(SvRV(ST(0)));
       arg1 = AVToXMLTree( av );
-      if ( !arg1 ) SWIG_croak("Conversion Perl array to XMLTree failed");
+      if ( !arg1 ) SWIG_croak("conversion of a Perl array to XMLTree failed entering a Geo::GDAL method");
     }
     {
       CPLErrorReset();
@@ -21109,7 +21820,7 @@ XS(_wrap_SerializeXMLTree) {
     }
     else
     {
-      ST(argvi) = sv_newmortal();
+      ST(argvi) = &PL_sv_undef;
     }
     argvi++ ;
     
@@ -21287,13 +21998,19 @@ XS(_wrap__Open__SWIG_1) {
     GDALDatasetShadow *result = 0 ;
     dXSARGS;
     
-    if ((items < 1) || (items > 2)) {
+    {
+      /* %typemap(default) const char * utf8_path */
+      arg1 = (const char *)"";
+    }
+    if ((items < 0) || (items > 2)) {
       SWIG_croak("Usage: _Open(utf8_path,eAccess);");
     }
-    {
-      /* %typemap(in,numinputs=1) (const char* utf8_path) */
-      sv_utf8_upgrade(ST(0));
-      arg1 = SvPV_nolen(ST(0));
+    if (items > 0) {
+      {
+        /* %typemap(in,numinputs=1) (const char* utf8_path) */
+        sv_utf8_upgrade(ST(0));
+        arg1 = SvPV_nolen(ST(0));
+      }
     }
     if (items > 1) {
       ecode2 = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(1), &val2);
@@ -21347,30 +22064,32 @@ XS(_wrap__Open) {
   {
     unsigned long _index = 0;
     SWIG_TypeRank _rank = 0; 
-    if ((items >= 1) && (items <= 2)) {
+    if ((items >= 0) && (items <= 2)) {
       SWIG_TypeRank _ranki = 0;
       SWIG_TypeRank _rankm = 0;
       SWIG_TypeRank _pi = 1;
       int _v = 0;
-      {
-        int res = SWIG_AsCharPtrAndSize(ST(0), 0, NULL, 0);
-        _v = SWIG_CheckState(res);
-      }
-      if (!_v) goto check_1;
-      _ranki += _v*_pi;
-      _rankm += _pi;
-      _pi *= SWIG_MAXCASTRANK;
-      if (items > 1) {
+      if (items > 0) {
         {
-          {
-            int res = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(1), NULL);
-            _v = SWIG_CheckState(res);
-          }
+          int res = SWIG_AsCharPtrAndSize(ST(0), 0, NULL, 0);
+          _v = SWIG_CheckState(res);
         }
         if (!_v) goto check_1;
         _ranki += _v*_pi;
         _rankm += _pi;
         _pi *= SWIG_MAXCASTRANK;
+        if (items > 1) {
+          {
+            {
+              int res = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(1), NULL);
+              _v = SWIG_CheckState(res);
+            }
+          }
+          if (!_v) goto check_1;
+          _ranki += _v*_pi;
+          _rankm += _pi;
+          _pi *= SWIG_MAXCASTRANK;
+        }
       }
       if (!_index || (_ranki < _rank)) {
         _rank = _ranki; _index = 1;
@@ -21401,13 +22120,19 @@ XS(_wrap__OpenShared__SWIG_1) {
     GDALDatasetShadow *result = 0 ;
     dXSARGS;
     
-    if ((items < 1) || (items > 2)) {
+    {
+      /* %typemap(default) const char * utf8_path */
+      arg1 = (const char *)"";
+    }
+    if ((items < 0) || (items > 2)) {
       SWIG_croak("Usage: _OpenShared(utf8_path,eAccess);");
     }
-    {
-      /* %typemap(in,numinputs=1) (const char* utf8_path) */
-      sv_utf8_upgrade(ST(0));
-      arg1 = SvPV_nolen(ST(0));
+    if (items > 0) {
+      {
+        /* %typemap(in,numinputs=1) (const char* utf8_path) */
+        sv_utf8_upgrade(ST(0));
+        arg1 = SvPV_nolen(ST(0));
+      }
     }
     if (items > 1) {
       ecode2 = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(1), &val2);
@@ -21461,30 +22186,32 @@ XS(_wrap__OpenShared) {
   {
     unsigned long _index = 0;
     SWIG_TypeRank _rank = 0; 
-    if ((items >= 1) && (items <= 2)) {
+    if ((items >= 0) && (items <= 2)) {
       SWIG_TypeRank _ranki = 0;
       SWIG_TypeRank _rankm = 0;
       SWIG_TypeRank _pi = 1;
       int _v = 0;
-      {
-        int res = SWIG_AsCharPtrAndSize(ST(0), 0, NULL, 0);
-        _v = SWIG_CheckState(res);
-      }
-      if (!_v) goto check_1;
-      _ranki += _v*_pi;
-      _rankm += _pi;
-      _pi *= SWIG_MAXCASTRANK;
-      if (items > 1) {
+      if (items > 0) {
         {
-          {
-            int res = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(1), NULL);
-            _v = SWIG_CheckState(res);
-          }
+          int res = SWIG_AsCharPtrAndSize(ST(0), 0, NULL, 0);
+          _v = SWIG_CheckState(res);
         }
         if (!_v) goto check_1;
         _ranki += _v*_pi;
         _rankm += _pi;
         _pi *= SWIG_MAXCASTRANK;
+        if (items > 1) {
+          {
+            {
+              int res = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(1), NULL);
+              _v = SWIG_CheckState(res);
+            }
+          }
+          if (!_v) goto check_1;
+          _ranki += _v*_pi;
+          _rankm += _pi;
+          _pi *= SWIG_MAXCASTRANK;
+        }
       }
       if (!_index || (_ranki < _rank)) {
         _rank = _ranki; _index = 1;
@@ -21513,13 +22240,19 @@ XS(_wrap_IdentifyDriver) {
     GDALDriverShadow *result = 0 ;
     dXSARGS;
     
-    if ((items < 1) || (items > 2)) {
+    {
+      /* %typemap(default) const char * utf8_path */
+      arg1 = (const char *)"";
+    }
+    if ((items < 0) || (items > 2)) {
       SWIG_croak("Usage: IdentifyDriver(utf8_path,papszSiblings);");
     }
-    {
-      /* %typemap(in,numinputs=1) (const char* utf8_path) */
-      sv_utf8_upgrade(ST(0));
-      arg1 = SvPV_nolen(ST(0));
+    if (items > 0) {
+      {
+        /* %typemap(in,numinputs=1) (const char* utf8_path) */
+        sv_utf8_upgrade(ST(0));
+        arg1 = SvPV_nolen(ST(0));
+      }
     }
     if (items > 1) {
       {
@@ -21546,9 +22279,9 @@ XS(_wrap_IdentifyDriver) {
                 arg2 = CSLAddNameValue( arg2, key, SvPV_nolen(sv) );
               }
             } else
-            SWIG_croak("'options' is not a reference to an array or hash");
+            SWIG_croak("the 'options' argument to a Geo::GDAL method is not a reference to an array or hash");
           } else
-          SWIG_croak("'options' is not a reference");   
+          SWIG_croak("the 'options' argument to a Geo::GDAL method is not a reference");   
         }
       }
     }
@@ -21627,7 +22360,6 @@ static swig_type_info _swigt__p_OGRLayerShadow = {"_p_OGRLayerShadow", "OGRLayer
 static swig_type_info _swigt__p_VSIStatBufL = {"_p_VSIStatBufL", "VSIStatBufL *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_char = {"_p_char", "char *|retStringAndCPLFree *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_double = {"_p_double", "double *", 0, 0, (void*)0, 0};
-static swig_type_info _swigt__p_f_double_p_q_const__char_p_void__int = {"_p_f_double_p_q_const__char_p_void__int", "int (*)(double,char const *,void *)", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_int = {"_p_int", "OGRFieldType *|GDALRATFieldType *|GDALAccess *|int *|OGRwkbByteOrder *|CPLErr *|GDALRATFieldUsage *|OGRJustification *|GDALPaletteInterp *|GDALColorInterp *|GDALResampleAlg *|OGRErr *|OGRwkbGeometryType *|GDALDataType *|GDALAsyncStatusType *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_p_GDAL_GCP = {"_p_p_GDAL_GCP", "GDAL_GCP **", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_p_char = {"_p_p_char", "char **", 0, 0, (void*)0, 0};
@@ -21653,7 +22385,6 @@ static swig_type_info *swig_type_initial[] = {
   &_swigt__p_VSIStatBufL,
   &_swigt__p_char,
   &_swigt__p_double,
-  &_swigt__p_f_double_p_q_const__char_p_void__int,
   &_swigt__p_int,
   &_swigt__p_p_GDAL_GCP,
   &_swigt__p_p_char,
@@ -21679,7 +22410,6 @@ static swig_cast_info _swigc__p_OGRLayerShadow[] = {  {&_swigt__p_OGRLayerShadow
 static swig_cast_info _swigc__p_VSIStatBufL[] = {  {&_swigt__p_VSIStatBufL, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_char[] = {  {&_swigt__p_char, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_double[] = {  {&_swigt__p_double, 0, 0, 0},{0, 0, 0, 0}};
-static swig_cast_info _swigc__p_f_double_p_q_const__char_p_void__int[] = {  {&_swigt__p_f_double_p_q_const__char_p_void__int, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_int[] = {  {&_swigt__p_int, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_p_GDAL_GCP[] = {  {&_swigt__p_p_GDAL_GCP, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_p_char[] = {  {&_swigt__p_p_char, 0, 0, 0},{0, 0, 0, 0}};
@@ -21705,7 +22435,6 @@ static swig_cast_info *swig_cast_initial[] = {
   _swigc__p_VSIStatBufL,
   _swigc__p_char,
   _swigc__p_double,
-  _swigc__p_f_double_p_q_const__char_p_void__int,
   _swigc__p_int,
   _swigc__p_p_GDAL_GCP,
   _swigc__p_p_char,
@@ -21730,7 +22459,11 @@ static swig_command_info swig_commands[] = {
 {"Geo::GDALc::UseExceptions", _wrap_UseExceptions},
 {"Geo::GDALc::DontUseExceptions", _wrap_DontUseExceptions},
 {"Geo::GDALc::Debug", _wrap_Debug},
+{"Geo::GDALc::SetErrorHandler", _wrap_SetErrorHandler},
 {"Geo::GDALc::Error", _wrap_Error},
+{"Geo::GDALc::GOA2GetAuthorizationURL", _wrap_GOA2GetAuthorizationURL},
+{"Geo::GDALc::GOA2GetRefreshToken", _wrap_GOA2GetRefreshToken},
+{"Geo::GDALc::GOA2GetAccessToken", _wrap_GOA2GetAccessToken},
 {"Geo::GDALc::PushErrorHandler", _wrap_PushErrorHandler},
 {"Geo::GDALc::PopErrorHandler", _wrap_PopErrorHandler},
 {"Geo::GDALc::ErrorReset", _wrap_ErrorReset},
@@ -21741,8 +22474,9 @@ static swig_command_info swig_commands[] = {
 {"Geo::GDALc::PushFinderLocation", _wrap_PushFinderLocation},
 {"Geo::GDALc::PopFinderLocation", _wrap_PopFinderLocation},
 {"Geo::GDALc::FinderClean", _wrap_FinderClean},
-{"Geo::GDALc::_FindFile", _wrap__FindFile},
-{"Geo::GDALc::_ReadDir", _wrap__ReadDir},
+{"Geo::GDALc::FindFile", _wrap_FindFile},
+{"Geo::GDALc::ReadDir", _wrap_ReadDir},
+{"Geo::GDALc::ReadDirRecursive", _wrap_ReadDirRecursive},
 {"Geo::GDALc::SetConfigOption", _wrap_SetConfigOption},
 {"Geo::GDALc::GetConfigOption", _wrap_GetConfigOption},
 {"Geo::GDALc::CPLBinaryToHex", _wrap_CPLBinaryToHex},
@@ -21926,7 +22660,6 @@ static swig_command_info swig_commands[] = {
 {"Geo::GDALc::RasterAttributeTable_GetLinearBinning", _wrap_RasterAttributeTable_GetLinearBinning},
 {"Geo::GDALc::RasterAttributeTable_SetLinearBinning", _wrap_RasterAttributeTable_SetLinearBinning},
 {"Geo::GDALc::RasterAttributeTable_GetRowOfValue", _wrap_RasterAttributeTable_GetRowOfValue},
-{"Geo::GDALc::TermProgress_nocb", _wrap_TermProgress_nocb},
 {"Geo::GDALc::_ComputeMedianCutPCT", _wrap__ComputeMedianCutPCT},
 {"Geo::GDALc::_DitherRGB2PCT", _wrap__DitherRGB2PCT},
 {"Geo::GDALc::_ReprojectImage", _wrap__ReprojectImage},
@@ -21942,6 +22675,7 @@ static swig_command_info swig_commands[] = {
 {"Geo::GDALc::delete_Transformer", _wrap_delete_Transformer},
 {"Geo::GDALc::Transformer_TransformPoint", _wrap_Transformer_TransformPoint},
 {"Geo::GDALc::Transformer__TransformPoints", _wrap_Transformer__TransformPoints},
+{"Geo::GDALc::Transformer_TransformGeolocations", _wrap_Transformer_TransformGeolocations},
 {"Geo::GDALc::ApplyGeoTransform", _wrap_ApplyGeoTransform},
 {"Geo::GDALc::InvGeoTransform", _wrap_InvGeoTransform},
 {"Geo::GDALc::VersionInfo", _wrap_VersionInfo},
@@ -22276,11 +23010,6 @@ XS(SWIG_init) {
   SWIG_TypeClientData(SWIGTYPE_p_GDALRasterBandShadow, (void*) "Geo::GDAL::Band");
   SWIG_TypeClientData(SWIGTYPE_p_GDALColorTableShadow, (void*) "Geo::GDAL::ColorTable");
   SWIG_TypeClientData(SWIGTYPE_p_GDALRasterAttributeTableShadow, (void*) "Geo::GDAL::RasterAttributeTable");
-  /*@SWIG:/usr/local/swig-1.3.40/share/swig/1.3.40/perl5/perltypemaps.swg,65,%set_constant@*/ do {
-    SV *sv = get_sv((char*) SWIG_prefix "TermProgress", TRUE | 0x2 | GV_ADDMULTI);
-    sv_setsv(sv, SWIG_NewFunctionPtrObj((void *)(int (*)(double,char const *,void *))(GDALTermProgress), SWIGTYPE_p_f_double_p_q_const__char_p_void__int));
-    SvREADONLY_on(sv);
-  } while(0) /*@SWIG@*/;
   SWIG_TypeClientData(SWIGTYPE_p_GDALTransformerInfoShadow, (void*) "Geo::GDAL::Transformer");
   ST(0) = &PL_sv_yes;
   XSRETURN(1);

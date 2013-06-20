@@ -79,7 +79,8 @@ OGRFeature *OGRDXFLayer::TranslateHATCH()
 
               for( iBoundary = 0; iBoundary < nBoundaryPathCount; iBoundary++ )
               {
-                  CollectBoundaryPath( &oGC );
+                  if (CollectBoundaryPath( &oGC ) != OGRERR_NONE)
+                      break;
               }
           }
           break;
@@ -159,7 +160,7 @@ OGRErr OGRDXFLayer::CollectBoundaryPath( OGRGeometryCollection *poGC )
 /* -------------------------------------------------------------------- */
     nCode = poDS->ReadValue(szLineBuf,sizeof(szLineBuf));
     if( nCode != 92 )
-        return NULL;
+        return OGRERR_FAILURE;
 
     int  nBoundaryPathType = atoi(szLineBuf);
 
@@ -277,9 +278,9 @@ OGRErr OGRDXFLayer::CollectBoundaryPath( OGRGeometryCollection *poGC )
             else
                 break;
 
-            if( poDS->ReadValue(szLineBuf,sizeof(szLineBuf)) == 73 )
+            if( (nCode = poDS->ReadValue(szLineBuf,sizeof(szLineBuf))) == 73 )
                 bCounterClockwise = atoi(szLineBuf);
-            else
+            else if (nCode >= 0)
                 poDS->UnreadValue();
 
             if( bCounterClockwise )
@@ -352,9 +353,9 @@ OGRErr OGRDXFLayer::CollectBoundaryPath( OGRGeometryCollection *poGC )
             else
                 break;
 
-            if( poDS->ReadValue(szLineBuf,sizeof(szLineBuf)) == 73 )
+            if( (nCode = poDS->ReadValue(szLineBuf,sizeof(szLineBuf))) == 73 )
                 bCounterClockwise = atoi(szLineBuf);
-            else
+            else if (nCode >= 0)
                 poDS->UnreadValue();
 
             if( bCounterClockwise )
@@ -394,13 +395,20 @@ OGRErr OGRDXFLayer::CollectBoundaryPath( OGRGeometryCollection *poGC )
 /* -------------------------------------------------------------------- */
     nCode = poDS->ReadValue(szLineBuf,sizeof(szLineBuf));
     if( nCode != 97 )
+    {
+        if (nCode < 0)
+            return OGRERR_FAILURE;
         poDS->UnreadValue();
+    }
     else
     {
         int iObj, nObjCount = atoi(szLineBuf);
 
         for( iObj = 0; iObj < nObjCount; iObj++ )
-            poDS->ReadValue( szLineBuf, sizeof(szLineBuf) );
+        {
+            if (poDS->ReadValue( szLineBuf, sizeof(szLineBuf) ) < 0)
+                return OGRERR_FAILURE;
+        }
     }
 
     return OGRERR_NONE;
@@ -488,7 +496,7 @@ OGRErr OGRDXFLayer::CollectPolylinePath( OGRGeometryCollection *poGC )
         }
     }
 
-    if( nCode != 10 && nCode != 20 && nCode != 42 )
+    if( nCode != 10 && nCode != 20 && nCode != 42 && nCode >= 0)
         poDS->UnreadValue();
 
     if( bHaveX && bHaveY )
@@ -504,15 +512,21 @@ OGRErr OGRDXFLayer::CollectPolylinePath( OGRGeometryCollection *poGC )
 /* -------------------------------------------------------------------- */
     nCode = poDS->ReadValue(szLineBuf,sizeof(szLineBuf));
     if( nCode != 97 )
+    {
+        if (nCode < 0)
+            return OGRERR_FAILURE;
         poDS->UnreadValue();
+    }
     else
     {
         int iObj, nObjCount = atoi(szLineBuf);
 
         for( iObj = 0; iObj < nObjCount; iObj++ )
-            poDS->ReadValue( szLineBuf, sizeof(szLineBuf) );
+        {
+            if (poDS->ReadValue( szLineBuf, sizeof(szLineBuf) ) < 0)
+                return OGRERR_FAILURE;
+        }
     }
-
     return OGRERR_NONE;
 }
 

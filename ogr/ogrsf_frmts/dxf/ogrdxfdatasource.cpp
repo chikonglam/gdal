@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrdxfdatasource.cpp 22527 2011-06-13 03:58:34Z warmerdam $
+ * $Id: ogrdxfdatasource.cpp 25811 2013-03-29 22:16:56Z rouault $
  *
  * Project:  DXF Translator
  * Purpose:  Implements OGRDXFDataSource class
@@ -31,7 +31,7 @@
 #include "cpl_conv.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: ogrdxfdatasource.cpp 22527 2011-06-13 03:58:34Z warmerdam $");
+CPL_CVSID("$Id: ogrdxfdatasource.cpp 25811 2013-03-29 22:16:56Z rouault $");
 
 /************************************************************************/
 /*                          OGRDXFDataSource()                          */
@@ -323,7 +323,8 @@ void OGRDXFDataSource::ReadLayerDefinition()
     if( oLayerProperties.size() > 0 )
         oLayerTable[osLayerName] = oLayerProperties;
     
-    UnreadValue();
+    if( nCode == 0 )
+        UnreadValue();
 }
 
 /************************************************************************/
@@ -386,7 +387,8 @@ void OGRDXFDataSource::ReadLineTypeDefinition()
     if( osLineTypeDef != "" )
         oLineTypeTable[osLineTypeName] = osLineTypeDef;
     
-    UnreadValue();
+    if( nCode == 0 )
+        UnreadValue();
 }
 
 /************************************************************************/
@@ -425,6 +427,33 @@ void OGRDXFDataSource::ReadHeaderSection()
         CPLString osValue = szLineBuf;
 
         oHeaderVariables[osName] = osValue;
+    }
+
+    if (nCode != -1)
+    {
+        nCode = ReadValue( szLineBuf, sizeof(szLineBuf) );
+        UnreadValue();
+    }
+
+    /* Unusual DXF files produced by dxflib */
+    /* such as http://www.ribbonsoft.com/library/architecture/plants/decd5.dxf */
+    /* where there is a spurious ENDSEC in the middle of the header variables */
+    if (nCode == 9 && EQUALN(szLineBuf,"$", 1) )
+    {
+        while( (nCode = ReadValue( szLineBuf, sizeof(szLineBuf) )) > -1
+            && !EQUAL(szLineBuf,"ENDSEC") )
+        {
+            if( nCode != 9 )
+                continue;
+
+            CPLString osName = szLineBuf;
+
+            ReadValue( szLineBuf, sizeof(szLineBuf) );
+
+            CPLString osValue = szLineBuf;
+
+            oHeaderVariables[osName] = osValue;
+        }
     }
 
     CPLDebug( "DXF", "Read %d header variables.", 

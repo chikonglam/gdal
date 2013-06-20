@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrsdtslayer.cpp 19952 2010-07-02 05:44:18Z warmerdam $
+ * $Id: ogrsdtslayer.cpp 25839 2013-04-02 18:54:20Z rouault $
  *
  * Project:  SDTSReader
  * Purpose:  Implements OGRSDTSLayer class.
@@ -31,7 +31,7 @@
 #include "cpl_conv.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: ogrsdtslayer.cpp 19952 2010-07-02 05:44:18Z warmerdam $");
+CPL_CVSID("$Id: ogrsdtslayer.cpp 25839 2013-04-02 18:54:20Z rouault $");
 
 /************************************************************************/
 /*                            OGRSDTSLayer()                            */
@@ -389,8 +389,8 @@ OGRFeature * OGRSDTSLayer::GetNextUnfilteredFeature()
         DDFField        *poSR;
 
         poSR = poTransfer->GetAttr( poSDTSFeature->paoATID+iAttrRecord );
-          
-        AssignAttrRecordToFeature( poFeature, poTransfer, poSR );
+        if( poSR != NULL )
+            AssignAttrRecordToFeature( poFeature, poTransfer, poSR );
     }
 
 /* -------------------------------------------------------------------- */

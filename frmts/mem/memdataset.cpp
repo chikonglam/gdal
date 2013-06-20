@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: memdataset.cpp 21803 2011-02-22 22:12:22Z warmerdam $
+ * $Id: memdataset.cpp 25873 2013-04-07 11:06:58Z rouault $
  *
  * Project:  Memory Array Translator
  * Purpose:  Complete implementation.
@@ -30,7 +30,7 @@
 #include "memdataset.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: memdataset.cpp 21803 2011-02-22 22:12:22Z warmerdam $");
+CPL_CVSID("$Id: memdataset.cpp 25873 2013-04-07 11:06:58Z rouault $");
 
 /************************************************************************/
 /*                        MEMCreateRasterBand()                         */
@@ -116,6 +116,9 @@ MEMRasterBand::~MEMRasterBand()
 
     CPLFree( pszUnitType );
     CSLDestroy( papszCategoryNames );
+
+    if (psSavedHistograms != NULL)
+        CPLDestroyXMLNode(psSavedHistograms);
 }
 
 
@@ -393,6 +396,8 @@ CPLErr MEMRasterBand::SetDefaultHistogram( double dfMin, double dfMax,
 
     psHistItem = PamHistogramToXMLTree( dfMin, dfMax, nBuckets, 
                                         panHistogram, TRUE, FALSE );
+    if( psHistItem == NULL )
+        return CE_Failure;
 
 /* -------------------------------------------------------------------- */
 /*      Insert our new default histogram at the front of the            */

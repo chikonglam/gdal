@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdalinfo.java 22688 2011-07-10 22:00:30Z rouault $
+ * $Id: gdalinfo.java 25229 2012-11-16 19:06:58Z rouault $
  *
  * Name:     gdalinfo.java
  * Project:  GDAL SWIG Interface
@@ -649,13 +649,9 @@ public class gdalinfo {
 				hLatLong = hProj.CloneGeogCS();
 
 			if (hLatLong != null) {
-				gdal.PushErrorHandler( "CPLQuietErrorHandler" );
-				hTransform = new CoordinateTransformation(hProj, hLatLong);
-				gdal.PopErrorHandler();
-				hLatLong.delete();
-				if (gdal.GetLastErrorMsg().indexOf("Unable to load PROJ.4 library") != -1)
-					hTransform = null;
-			}
+				/* New in GDAL 1.10. Before was "new CoordinateTransformation(srs,dst)". */
+				hTransform = CoordinateTransformation.CreateCoordinateTransformation(hProj, hLatLong);
+            }
 
 			if (hProj != null)
 				hProj.delete();

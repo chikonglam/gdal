@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ili2reader.cpp 24409 2012-05-11 21:53:56Z pka $
+ * $Id: ili2reader.cpp 24408 2012-05-11 21:31:45Z pka $
  *
  * Project:  Interlis 2 Reader
  * Purpose:  Implementation of ILI2Reader class.
@@ -38,7 +38,7 @@
 
 using namespace std;
 
-CPL_CVSID("$Id: ili2reader.cpp 24409 2012-05-11 21:53:56Z pka $");
+CPL_CVSID("$Id: ili2reader.cpp 24408 2012-05-11 21:31:45Z pka $");
 
 //
 // constants

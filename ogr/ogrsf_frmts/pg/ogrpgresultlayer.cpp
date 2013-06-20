@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrpgresultlayer.cpp 24546 2012-06-07 21:28:52Z rouault $
+ * $Id: ogrpgresultlayer.cpp 25647 2013-02-12 18:40:15Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implements OGRPGResultLayer class, access the resultset from
@@ -31,7 +31,7 @@
 #include "cpl_conv.h"
 #include "ogr_pg.h"
 
-CPL_CVSID("$Id: ogrpgresultlayer.cpp 24546 2012-06-07 21:28:52Z rouault $");
+CPL_CVSID("$Id: ogrpgresultlayer.cpp 25647 2013-02-12 18:40:15Z rouault $");
 
 #define PQexec this_is_an_error
 
@@ -73,6 +73,7 @@ OGRPGResultLayer::OGRPGResultLayer( OGRPGDataSource *poDSIn,
         }
     }
 
+#ifndef PG_PRE74
     /* Determine the table from which the geometry column is extracted */
     if (iGeomCol != -1)
     {
@@ -94,6 +95,7 @@ OGRPGResultLayer::OGRPGResultLayer( OGRPGDataSource *poDSIn,
             OGRPGClearResult( hTableNameResult );
         }
     }
+#endif
 
     if (bHasPostGISGeography)
     {
@@ -210,8 +212,7 @@ int OGRPGResultLayer::TestCapability( const char * pszCap )
 OGRFeature *OGRPGResultLayer::GetNextFeature()
 
 {
-    if( m_poFilterGeom != NULL &&
-        (bHasPostGISGeometry || bHasPostGISGeography) && nSRSId == UNDETERMINED_SRID )
+    if( (bHasPostGISGeometry || bHasPostGISGeography) && nSRSId == UNDETERMINED_SRID )
     {
         GetSpatialRef(); /* make sure that we fetch the SRID if not already done */
     }

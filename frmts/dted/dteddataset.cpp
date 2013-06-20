@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: dteddataset.cpp 24518 2012-05-30 21:09:39Z rouault $
+ * $Id: dteddataset.cpp 24517 2012-05-30 21:07:47Z rouault $
  *
  * Project:  DTED Translator
  * Purpose:  GDALDataset driver for DTED translator.
@@ -31,7 +31,7 @@
 #include "gdal_pam.h"
 #include "ogr_spatialref.h"
 
-CPL_CVSID("$Id: dteddataset.cpp 24518 2012-05-30 21:09:39Z rouault $");
+CPL_CVSID("$Id: dteddataset.cpp 24517 2012-05-30 21:07:47Z rouault $");
 
 CPL_C_START
 void    GDALRegister_DTED(void);
@@ -458,7 +458,11 @@ GDALDataset *DTEDDataset::Open( GDALOpenInfo * poOpenInfo )
     pszValue = DTEDGetMetadata( psDTED, DTEDMD_NIMA_DESIGNATOR ); 
     poDS->SetMetadataItem( "DTED_NimaDesignator", pszValue ); 
     free( pszValue );
-    
+
+    pszValue = DTEDGetMetadata( psDTED, DTEDMD_PARTIALCELL_DSI );
+    poDS->SetMetadataItem( "DTED_PartialCellIndicator", pszValue );
+    free( pszValue ); 
+
     poDS->SetMetadataItem( GDALMD_AREA_OR_POINT, GDALMD_AOP_POINT );
 
 /* -------------------------------------------------------------------- */

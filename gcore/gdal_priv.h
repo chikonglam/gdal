@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdal_priv.h 23936 2012-02-10 15:35:27Z rouault $
+ * $Id: gdal_priv.h 25615 2013-02-08 22:24:32Z rouault $
  *
  * Name:     gdal_priv.h
  * Project:  GDAL Core
@@ -635,6 +635,9 @@ class CPL_DLL GDALNoDataMaskBand : public GDALRasterBand
 
   protected:
     virtual CPLErr IReadBlock( int, int, void * );
+    virtual CPLErr IRasterIO( GDALRWFlag, int, int, int, int,
+                              void *, int, int, GDALDataType,
+                              int, int );
 
   public:
                 GDALNoDataMaskBand( GDALRasterBand * );
@@ -915,9 +918,11 @@ int CPL_DLL GDALCheckBandCount( int nBands, int bIsZeroAllowed );
  (dfVal1 == dfVal2 || fabs(dfVal1 - dfVal2) < 1e-10 || (dfVal2 != 0 && fabs(1 - dfVal1 / dfVal2) < 1e-10 ))
 
 /* Internal use only */
-int GDALReadWorldFile2( const char *pszBaseFilename, const char *pszExtension,
-                        double *padfGeoTransform, char** papszSiblingFiles,
-                        char** ppszWorldFileNameOut);
+
+/* CPL_DLL exported, but only for in-tree drivers that can be built as plugins */
+int CPL_DLL GDALReadWorldFile2( const char *pszBaseFilename, const char *pszExtension,
+                                double *padfGeoTransform, char** papszSiblingFiles,
+                                char** ppszWorldFileNameOut);
 int GDALReadTabFile2( const char * pszBaseFilename,
                       double *padfGeoTransform, char **ppszWKT,
                       int *pnGCPCount, GDAL_GCP **ppasGCPs,
@@ -925,7 +930,26 @@ int GDALReadTabFile2( const char * pszBaseFilename,
 
 CPL_C_END
 
+void GDALNullifyOpenDatasetsList();
+void** GDALGetphDMMutex();
+void** GDALGetphDLMutex();
+void GDALNullifyProxyPoolSingleton();
+GDALDriver* GDALGetAPIPROXYDriver();
+void GDALSetResponsiblePIDForCurrentThread(GIntBig responsiblePID);
+GIntBig GDALGetResponsiblePIDForCurrentThread();
+
 CPLString GDALFindAssociatedFile( const char *pszBasename, const char *pszExt,
                                   char **papszSiblingFiles, int nFlags );
+
+CPLErr EXIFExtractMetadata(char**& papszMetadata,
+                           void *fpL, int nOffset,
+                           int bSwabflag, int nTIFFHEADER,
+                           int& nExifOffset, int& nInterOffset, int& nGPSOffset);
+
+#define DIV_ROUND_UP(a, b) ( ((a) % (b)) == 0 ? ((a) / (b)) : (((a) / (b)) + 1) )
+
+// Number of data samples that will be used to compute approximate statistics
+// (minimum value, maximum value, etc.)
+#define GDALSTAT_APPROX_NUMSAMPLES 2500
 
 #endif /* ndef GDAL_PRIV_H_INCLUDED */

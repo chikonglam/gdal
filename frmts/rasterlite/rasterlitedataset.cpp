@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: rasterlitedataset.cpp 24662 2012-07-06 19:49:43Z rouault $
+ * $Id: rasterlitedataset.cpp 25494 2013-01-13 12:55:17Z etourigny $
  *
  * Project:  GDAL Rasterlite driver
  * Purpose:  Implement GDAL Rasterlite support using OGR SQLite driver
@@ -34,7 +34,7 @@
 
 #include "rasterlitedataset.h"
 
-CPL_CVSID("$Id: rasterlitedataset.cpp 24662 2012-07-06 19:49:43Z rouault $");
+CPL_CVSID("$Id: rasterlitedataset.cpp 25494 2013-01-13 12:55:17Z etourigny $");
 
 /************************************************************************/
 /*                            RasterliteBand()                          */
@@ -869,7 +869,8 @@ end:
 
 int RasterliteDataset::Identify(GDALOpenInfo* poOpenInfo)
 {
-    if (poOpenInfo->nHeaderBytes >= 1024 &&
+    if (!EQUAL(CPLGetExtension(poOpenInfo->pszFilename), "MBTILES") &&
+        poOpenInfo->nHeaderBytes >= 1024 &&
         EQUALN((const char*)poOpenInfo->pabyHeader, "SQLite Format 3", 15))
     {
         return TRUE;
@@ -895,7 +896,10 @@ GDALDataset* RasterliteDataset::Open(GDALOpenInfo* poOpenInfo)
     double minx = 0, miny = 0, maxx = 0, maxy = 0;
     int bMinXSet = FALSE, bMinYSet = FALSE, bMaxXSet = FALSE, bMaxYSet = FALSE;
     int nReqBands = 0;
-    
+
+    if (!Identify(poOpenInfo))
+        return NULL;
+
 /* -------------------------------------------------------------------- */
 /*      Parse "file name"                                               */
 /* -------------------------------------------------------------------- */
@@ -903,10 +907,6 @@ GDALDataset* RasterliteDataset::Open(GDALOpenInfo* poOpenInfo)
         EQUALN((const char*)poOpenInfo->pabyHeader, "SQLite Format 3", 15))
     {
         osFileName = poOpenInfo->pszFilename;
-    }
-    else if (!EQUALN(poOpenInfo->pszFilename, "RASTERLITE:", 11))
-    {
-        return NULL;
     }
     else
     {
@@ -967,12 +967,7 @@ GDALDataset* RasterliteDataset::Open(GDALOpenInfo* poOpenInfo)
 /*      Open underlying OGR DB                                          */
 /* -------------------------------------------------------------------- */
 
-    /* Set SQLITE_LIST_ALL_TABLES option as we wan't to be able to */
-    /* fetch non spatial tables */
-    CPLString osOldVal = CPLGetConfigOption("SQLITE_LIST_ALL_TABLES", "FALSE");
-    CPLSetThreadLocalConfigOption("SQLITE_LIST_ALL_TABLES", "TRUE");
     OGRDataSourceH hDS = OGROpen(osFileName.c_str(), (poOpenInfo->eAccess == GA_Update) ? TRUE : FALSE, NULL);
-    CPLSetThreadLocalConfigOption("SQLITE_LIST_ALL_TABLES", osOldVal.c_str());
     CPLDebug("RASTERLITE", "SQLite DB Open");
     
     RasterliteDataset* poDS = NULL;
@@ -992,15 +987,15 @@ GDALDataset* RasterliteDataset::Open(GDALOpenInfo* poOpenInfo)
         {   
             OGRLayerH hLyr = OGR_DS_GetLayer(hDS, i);
             const char* pszLayerName = OGR_FD_GetName(OGR_L_GetLayerDefn(hLyr));
-            if (strstr(pszLayerName, "_rasters"))
+            if (strstr(pszLayerName, "_metadata"))
             {
                 char* pszShortName = CPLStrdup(pszLayerName);
-                *strstr(pszShortName, "_rasters") = '\0';
+                *strstr(pszShortName, "_metadata") = '\0';
                 
-                CPLString osMetadataTableName = pszShortName;
-                osMetadataTableName += "_metadata";
-                
-                if (OGR_DS_GetLayerByName(hDS, osMetadataTableName.c_str()) != NULL)
+                CPLString osRasterTableName = pszShortName;
+                osRasterTableName += "_rasters";
+
+                if (OGR_DS_GetLayerByName(hDS, osRasterTableName.c_str()) != NULL)
                 {
                     if (poDS == NULL)
                     {
@@ -1348,6 +1343,7 @@ void GDALRegister_Rasterlite()
         poDriver->SetMetadataItem( GDAL_DMD_HELPTOPIC, 
                                    "frmt_rasterlite.html" );
         poDriver->SetMetadataItem( GDAL_DMD_EXTENSION, "sqlite" );
+        poDriver->SetMetadataItem( GDAL_DMD_SUBDATASETS, "YES" );
         poDriver->SetMetadataItem( GDAL_DMD_CREATIONDATATYPES, 
                                    "Byte UInt16 Int16 UInt32 Int32 Float32 "
                                    "Float64 CInt16 CInt32 CFloat32 CFloat64" );

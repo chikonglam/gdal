@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: tigeraltname.cpp 22961 2011-08-20 17:09:59Z rouault $
+ * $Id: tigeraltname.cpp 23871 2012-02-02 03:24:07Z warmerdam $
  *
  * Project:  TIGER/Line Translator
  * Purpose:  Implements TigerAltName, providing access to RT4 files.
@@ -30,7 +30,7 @@
 #include "ogr_tiger.h"
 #include "cpl_conv.h"
 
-CPL_CVSID("$Id: tigeraltname.cpp 22961 2011-08-20 17:09:59Z rouault $");
+CPL_CVSID("$Id: tigeraltname.cpp 23871 2012-02-02 03:24:07Z warmerdam $");
 
 #define FILE_CODE "4"
 
@@ -98,7 +98,7 @@ OGRFeature *TigerAltName::GetFeature( int nRecordId )
     if( fpPrimary == NULL )
         return NULL;
 
-    if( VSIFSeek( fpPrimary, nRecordId * nRecordLength, SEEK_SET ) != 0 )
+    if( VSIFSeekL( fpPrimary, nRecordId * nRecordLength, SEEK_SET ) != 0 )
     {
         CPLError( CE_Failure, CPLE_FileIO,
                   "Failed to seek to %d of %s4",
@@ -106,7 +106,7 @@ OGRFeature *TigerAltName::GetFeature( int nRecordId )
         return NULL;
     }
 
-    if( VSIFRead( achRecord, psRTInfo->nRecordLength, 1, fpPrimary ) != 1 )
+    if( VSIFReadL( achRecord, psRTInfo->nRecordLength, 1, fpPrimary ) != 1 )
     {
         CPLError( CE_Failure, CPLE_FileIO,
                   "Failed to read record %d of %s4",

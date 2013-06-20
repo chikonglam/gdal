@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: pdfio.h 20996 2010-10-28 18:38:15Z rouault $
+ * $Id: pdfio.h 25562 2013-01-26 18:36:03Z rouault $
  *
  * Project:  PDF driver
  * Purpose:  GDALDataset driver for PDF dataset.
@@ -44,21 +44,43 @@
 
 #define BUFFER_SIZE 1024
 
+
+#ifdef POPPLER_0_23_OR_LATER
+#define getPos_ret_type Goffset
+#define getStart_ret_type Goffset
+#define makeSubStream_offset_type Goffset
+#define setPos_offset_type Goffset
+#define moveStart_delta_type Goffset
+#else
+#define getPos_ret_type int
+#define getStart_ret_type Guint
+#define makeSubStream_offset_type Guint
+#define setPos_offset_type Guint
+#define moveStart_delta_type int
+#endif
+
+
 class VSIPDFFileStream: public BaseStream
 {
     public:
-        VSIPDFFileStream(VSILFILE* f, const char* pszFilename,
-                         Guint startA, GBool limitedA,
-                         Guint lengthA, Object *dictA);
+        VSIPDFFileStream(VSILFILE* f, const char* pszFilename, Object *dictA);
         VSIPDFFileStream(VSIPDFFileStream* poParent,
-                         Guint startA, GBool limitedA,
-                         Guint lengthA, Object *dictA);
+                         vsi_l_offset startA, GBool limitedA,
+                         vsi_l_offset lengthA, Object *dictA);
         virtual ~VSIPDFFileStream();
 
-        virtual Stream *   makeSubStream(Guint startA, GBool limitedA,
-                                         Guint lengthA, Object *dictA);
-        virtual int        getPos();
-        virtual Guint      getStart();
+#ifdef POPPLER_0_23_OR_LATER
+        virtual BaseStream* copy();
+#endif
+
+        virtual Stream *   makeSubStream(makeSubStream_offset_type startA, GBool limitedA,
+                                         makeSubStream_offset_type lengthA, Object *dictA);
+        virtual getPos_ret_type      getPos();
+        virtual getStart_ret_type    getStart();
+
+        virtual void       setPos(setPos_offset_type pos, int dir = 0);
+        virtual void       moveStart(moveStart_delta_type delta);
+
         virtual StreamKind getKind();
         virtual GooString *getFileName();
 
@@ -69,19 +91,18 @@ class VSIPDFFileStream: public BaseStream
         virtual void       reset();
         virtual void       unfilteredReset ();
         virtual void       close();
-        virtual void       setPos(Guint pos, int dir = 0);
-        virtual void       moveStart(int delta);
 
     private:
         VSIPDFFileStream  *poParent;
         GooString         *poFilename;
         VSILFILE          *f;
-        int                nStart;
+        vsi_l_offset       nStart;
         int                bLimited;
-        int                nLength;
+        vsi_l_offset       nLength;
 
-        int                nCurrentPos;
-        int                nSavedPos;
+        vsi_l_offset       nCurrentPos;
+        int                bHasSavedPos;
+        vsi_l_offset       nSavedPos;
 
         GByte              abyBuffer[BUFFER_SIZE];
         int                nPosInBuffer;

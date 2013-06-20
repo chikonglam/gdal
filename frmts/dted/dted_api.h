@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: dted_api.h 24518 2012-05-30 21:09:39Z rouault $
+ * $Id: dted_api.h 24601 2012-06-19 20:29:36Z rouault $
  *
  * Project:  DTED Translator
  * Purpose:  Public (C callable) interface for DTED/CDED reading.
@@ -119,6 +119,10 @@ typedef struct {
   char          *pachACCRecord;
 
   int           nDataOffset;
+
+  int           bRewriteHeaders;
+
+  int           *panMapLogicalColsToOffsets; /* size of nXSize elements. Might be NULL */
 
 } DTEDInfo;
 

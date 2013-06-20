@@ -1,8 +1,8 @@
-.TH "ogrinfo" 1 "Mon Oct 8 2012" "GDAL" \" -*- nroff -*-
+.TH "ogrinfo" 1 "Wed Apr 24 2013" "GDAL" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
-ogrinfo \- .TH "ogrinfo" 1 "Mon Oct 8 2012" "GDAL" \" -*- nroff -*-
+ogrinfo \- .TH "ogrinfo" 1 "Wed Apr 24 2013" "GDAL" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -38,7 +38,7 @@ An attribute query in a restricted form of the queries used in the SQL WHERE sta
 .IP "\fB\fB-sql\fP \fIstatement\fP:\fP" 1c
 Execute the indicated SQL statement and return the result. 
 .IP "\fB\fB-dialect\fP \fIdialect\fP:\fP" 1c
-SQL dialect. In some cases can be used to use (unoptimized) OGR SQL instead of the native SQL of an RDBMS by passing OGRSQL.  
+SQL dialect. In some cases can be used to use (unoptimized) OGR SQL instead of the native SQL of an RDBMS by passing OGRSQL. Starting with GDAL 1.10, the 'SQLITE' dialect can also be used with any datasource. 
 .IP "\fB\fB-spat\fP \fIxmin ymin xmax ymax\fP:\fP" 1c
 The area of interest. Only features within the rectangle will be reported. 
 .IP "\fB\fB-fid\fP \fIfid\fP:\fP" 1c

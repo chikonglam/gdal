@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrpglayer.cpp 24546 2012-06-07 21:28:52Z rouault $
+ * $Id: ogrpglayer.cpp 24545 2012-06-07 21:28:38Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implements OGRPGLayer class  which implements shared handling
@@ -64,7 +64,7 @@ PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 
 #define PQexec this_is_an_error
 
-CPL_CVSID("$Id: ogrpglayer.cpp 24546 2012-06-07 21:28:52Z rouault $");
+CPL_CVSID("$Id: ogrpglayer.cpp 24545 2012-06-07 21:28:38Z rouault $");
 
 #define CURSOR_PAGE     500
 

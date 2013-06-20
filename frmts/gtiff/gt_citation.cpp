@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gt_citation.cpp 24345 2012-04-29 21:34:00Z warmerdam $
+ * $Id: gt_citation.cpp 25773 2013-03-20 20:13:40Z rouault $
  *
  * Project:  GeoTIFF Driver
  * Purpose:  Implements special parsing of Imagine citation strings, and
@@ -34,7 +34,7 @@
 #include "geovalues.h"
 #include "gt_citation.h"
 
-CPL_CVSID("$Id: gt_citation.cpp 24345 2012-04-29 21:34:00Z warmerdam $");
+CPL_CVSID("$Id: gt_citation.cpp 25773 2013-03-20 20:13:40Z rouault $");
 
 static const char *apszUnitMap[] = {
     "meters", "1.0",
@@ -72,9 +72,9 @@ static const char *apszUnitMap[] = {
     "indian_feet", "0.3047995142",
     "indian_foot", "0.3047995142",
     "Yard_Indian", "0.9143985307444408", 
-    "Foot_Clarke", "0.304797265",
+    "Foot_Clarke", "0.30479726540",
     "Foot_Gold_Coast", "0.3047997101815088",
-    "Link_Clarke", "0.2011661949", 
+    "Link_Clarke", "0.2011661951640", 
     "Yard_Sears", "0.9143984146160287", 
     "50_Kilometers", "50000.0", 
     "150_Kilometers", "150000.0", 

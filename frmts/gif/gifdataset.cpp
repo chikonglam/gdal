@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gifdataset.cpp 24627 2012-06-30 19:51:15Z rouault $
+ * $Id: gifdataset.cpp 24608 2012-06-24 21:55:29Z rouault $
  *
  * Project:  GIF Driver
  * Purpose:  Implement GDAL GIF Support using libungif code.  
@@ -31,7 +31,7 @@
 #include "cpl_string.h"
 #include "gifabstractdataset.h"
 
-CPL_CVSID("$Id: gifdataset.cpp 24627 2012-06-30 19:51:15Z rouault $");
+CPL_CVSID("$Id: gifdataset.cpp 24608 2012-06-24 21:55:29Z rouault $");
 
 CPL_C_START
 void	GDALRegister_GIF(void);

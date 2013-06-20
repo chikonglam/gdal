@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: kmlvector.h 12868 2007-11-19 22:21:21Z mloskot $
+ * $Id: kmlvector.h 23978 2012-02-14 20:42:34Z rouault $
  *
  * Project:  KML Driver
  * Purpose:  Specialization of the kml class, only for vectors in kml files.
@@ -45,7 +45,7 @@ public:
     bool isContainer(std::string const& sIn) const;
     bool isLeaf(std::string const& sIn) const;
     bool isRest(std::string const& sIn) const;
-    void findLayers(KMLNode* poNode);
+    void findLayers(KMLNode* poNode, int bKeepEmptyContainers);
 };
 
 #endif /* OGR_KMLVECTOR_H_INCLUDED */

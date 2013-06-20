@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ddfsubfielddefn.cpp 23595 2011-12-18 22:58:47Z rouault $
+ * $Id: ddfsubfielddefn.cpp 25697 2013-03-02 18:44:32Z rouault $
  *
  * Project:  ISO 8211 Access
  * Purpose:  Implements the DDFSubfieldDefn class.
@@ -30,7 +30,7 @@
 #include "iso8211.h"
 #include "cpl_conv.h"
 
-CPL_CVSID("$Id: ddfsubfielddefn.cpp 23595 2011-12-18 22:58:47Z rouault $");
+CPL_CVSID("$Id: ddfsubfielddefn.cpp 25697 2013-03-02 18:44:32Z rouault $");
 
 /************************************************************************/
 /*                          DDFSubfieldDefn()                           */
@@ -448,6 +448,7 @@ DDFSubfieldDefn::ExtractFloatData( const char * pachSourceData,
       case 'b':
       {
           unsigned char   abyData[8];
+          void* pabyData = abyData;
 
           if( nFormatWidth > nMaxBytes )
           {
@@ -485,9 +486,9 @@ DDFSubfieldDefn::ExtractFloatData( const char * pachSourceData,
               if( nFormatWidth == 1 )
                   return( abyData[0] );
               else if( nFormatWidth == 2 )
-                  return( *((GUInt16 *) abyData) );
+                  return( *((GUInt16 *) pabyData) );
               else if( nFormatWidth == 4 )
-                  return( *((GUInt32 *) abyData) );
+                  return( *((GUInt32 *) pabyData) );
               else
               {
                   //CPLAssert( FALSE );
@@ -498,9 +499,9 @@ DDFSubfieldDefn::ExtractFloatData( const char * pachSourceData,
               if( nFormatWidth == 1 )
                   return( *((signed char *) abyData) );
               else if( nFormatWidth == 2 )
-                  return( *((GInt16 *) abyData) );
+                  return( *((GInt16 *) pabyData) );
               else if( nFormatWidth == 4 )
-                  return( *((GInt32 *) abyData) );
+                  return( *((GInt32 *) pabyData) );
               else
               {
                   //CPLAssert( FALSE );
@@ -509,9 +510,9 @@ DDFSubfieldDefn::ExtractFloatData( const char * pachSourceData,
             
             case FloatReal:
               if( nFormatWidth == 4 )
-                  return( *((float *) abyData) );
+                  return( *((float *) pabyData) );
               else if( nFormatWidth == 8 )
-                  return( *((double *) abyData) );
+                  return( *((double *) pabyData) );
               else
               {
                   //CPLAssert( FALSE );
@@ -583,13 +584,14 @@ DDFSubfieldDefn::ExtractIntData( const char * pachSourceData,
       case 'b':
       {
           unsigned char   abyData[8];
+          void* pabyData = abyData;
 
-          if( nFormatWidth > nMaxBytes )
+          if( nFormatWidth > nMaxBytes || nFormatWidth >= (int)sizeof(abyData) )
           {
               CPLError( CE_Warning, CPLE_AppDefined, 
                         "Attempt to extract int subfield %s with format %s\n"
                         "failed as only %d bytes available.  Using zero.",
-                        pszName, pszFormatString, nMaxBytes );
+                        pszName, pszFormatString, MIN(nMaxBytes, (int)sizeof(abyData)) );
               return 0;
           }
 
@@ -618,11 +620,11 @@ DDFSubfieldDefn::ExtractIntData( const char * pachSourceData,
           {
             case UInt:
               if( nFormatWidth == 4 )
-                  return( (int) *((GUInt32 *) abyData) );
+                  return( (int) *((GUInt32 *) pabyData) );
               else if( nFormatWidth == 1 )
                   return( abyData[0] );
               else if( nFormatWidth == 2 )
-                  return( *((GUInt16 *) abyData) );
+                  return( *((GUInt16 *) pabyData) );
               else
               {
                   //CPLAssert( FALSE );
@@ -631,11 +633,11 @@ DDFSubfieldDefn::ExtractIntData( const char * pachSourceData,
             
             case SInt:
               if( nFormatWidth == 4 )
-                  return( *((GInt32 *) abyData) );
+                  return( *((GInt32 *) pabyData) );
               else if( nFormatWidth == 1 )
                   return( *((signed char *) abyData) );
               else if( nFormatWidth == 2 )
-                  return( *((GInt16 *) abyData) );
+                  return( *((GInt16 *) pabyData) );
               else
               {
                   //CPLAssert( FALSE );
@@ -644,9 +646,9 @@ DDFSubfieldDefn::ExtractIntData( const char * pachSourceData,
             
             case FloatReal:
               if( nFormatWidth == 4 )
-                  return( (int) *((float *) abyData) );
+                  return( (int) *((float *) pabyData) );
               else if( nFormatWidth == 8 )
-                  return( (int) *((double *) abyData) );
+                  return( (int) *((double *) pabyData) );
               else
               {
                   //CPLAssert( FALSE );

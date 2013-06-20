@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gmlreader.cpp 10645 2007-01-18 02:22:39Z warmerdam $
+ * $Id: nasreader.cpp 25656 2013-02-19 15:40:20Z ilucena $
  *
  * Project:  NAS Reader
  * Purpose:  Implementation of NASReader class.
@@ -263,7 +263,7 @@ GMLFeature *NASReader::NextFeature()
     }
     catch (const XMLException& toCatch)
     {
-        CPLDebug( "GML", 
+        CPLDebug( "NAS", 
                   "Error during NextFeature()! Message:\n%s", 
                   tr_strdup( toCatch.getMessage() ) );
     }
@@ -306,7 +306,7 @@ void NASReader::PushFeature( const char *pszElement,
 
         GMLFeatureClass *poNewClass = new GMLFeatureClass( pszElement );
 
-        AddClass( poNewClass );
+        iClass = AddClass( poNewClass );
     }
 
 /* -------------------------------------------------------------------- */
@@ -360,11 +360,11 @@ int NASReader::IsFeatureElement( const char *pszElement )
 
     if( (nLen < 6 || !EQUAL(pszLast+nLen-6,"Insert")) 
         && (nLen < 13 || !EQUAL(pszLast+nLen-13,"featureMember"))
-        && (nLen < 6 || !EQUAL(pszLast+nLen-7,"Replace")) )
+        && (nLen < 7 || !EQUAL(pszLast+nLen-7,"Replace")) )
         return FALSE;
 
     // If the class list isn't locked, any element that is a featureMember
-    // will do. 
+    // will do.
     if( !IsClassListLocked() )
         return TRUE;
 
@@ -433,7 +433,7 @@ void NASReader::PopState()
         GMLReadState *poParent;
 
         poParent = m_poState->m_poParentState;
-        
+
         delete m_poState;
         m_poState = poParent;
     }
@@ -489,11 +489,21 @@ int NASReader::AddClass( GMLFeatureClass *poNewClass )
     CPLAssert( GetClass( poNewClass->GetName() ) == NULL );
 
     m_nClassCount++;
-    m_papoClass = (GMLFeatureClass **) 
+    m_papoClass = (GMLFeatureClass **)
         CPLRealloc( m_papoClass, sizeof(void*) * m_nClassCount );
-    m_papoClass[m_nClassCount-1] = poNewClass;
 
-    return m_nClassCount-1;
+    // keep delete the last entry
+    if( m_nClassCount > 1 && EQUAL( m_papoClass[m_nClassCount-2]->GetName(), "Delete" ) )
+    {
+      m_papoClass[m_nClassCount-1] = m_papoClass[m_nClassCount-2];
+      m_papoClass[m_nClassCount-2] = poNewClass;
+      return m_nClassCount-2;
+    }
+    else
+    {
+      m_papoClass[m_nClassCount-1] = poNewClass;
+      return m_nClassCount-1;
+    }
 }
 
 /************************************************************************/
@@ -540,18 +550,18 @@ void NASReader::SetFeaturePropertyDirectly( const char *pszElement,
                   pszElement ) )
             break;
     }
-    
+
     if( iProperty == poClass->GetPropertyCount() )
     {
         if( poClass->IsSchemaLocked() )
         {
-            CPLDebug("GML","Encountered property missing from class schema.");
+            CPLDebug("NAS", "Encountered property missing from class schema.");
             CPLFree(pszValue);
             return;
         }
 
         CPLString osFieldName;
-        
+
         if( strchr(pszElement,'|') == NULL )
             osFieldName = pszElement;
         else
@@ -561,7 +571,7 @@ void NASReader::SetFeaturePropertyDirectly( const char *pszElement,
                 osFieldName = pszElement;
         }
 
-        // Does this conflict with an existing property name? 
+        // Does this conflict with an existing property name?
         while( poClass->GetProperty(osFieldName) != NULL )
         {
             osFieldName += "_";
@@ -573,6 +583,22 @@ void NASReader::SetFeaturePropertyDirectly( const char *pszElement,
             poPDefn->SetType( GMLPT_String );
 
         poClass->AddProperty( poPDefn );
+    }
+
+    if ( GMLPropertyDefn::IsSimpleType( poClass->GetProperty( iProperty )->GetType() ) )
+    {
+        const GMLProperty *poProp = poFeature->GetProperty(iProperty);
+        if ( poProp && poProp->nSubProperties > 0 )
+        {
+            int iId = poClass->GetPropertyIndex( "gml_id" );
+            const GMLProperty *poIdProp = poFeature->GetProperty(iId);
+
+            CPLDebug("NAS",
+                     "Overwriting existing property %s.%s of value '%s' with '%s' (gml_id: %s).",
+                     poClass->GetName(), pszElement,
+                     poProp->papszSubProperties[0], pszValue,
+                     poIdProp && poIdProp->nSubProperties>0 && poIdProp->papszSubProperties[0] ? poIdProp->papszSubProperties[0] : "(null)" );
+        }
     }
 
 /* -------------------------------------------------------------------- */
@@ -592,11 +618,23 @@ void NASReader::SetFeaturePropertyDirectly( const char *pszElement,
         else
             poFeature->SetPropertyDirectly( iProperty, pszValue );
 
-        
         if( !poClass->IsSchemaLocked() )
         {
             poClass->GetProperty(iProperty)->SetWidth( 5 );
             poClass->GetProperty(iProperty)->SetType( GMLPT_String );
+        }
+        return;
+    }
+    else if( strcmp(poClass->GetProperty(iProperty)->GetName(),"kartendarstellung") == 0 ||
+             strcmp(poClass->GetProperty(iProperty)->GetName(),"rechtsbehelfsverfahren") == 0 )
+    {
+        poFeature->SetPropertyDirectly( iProperty,
+                                        CPLStrdup( EQUAL( pszValue, "true" ) ? "1" : "0" ) );
+        CPLFree(pszValue);
+
+        if( !poClass->IsSchemaLocked() )
+        {
+            poClass->GetProperty(iProperty)->SetType( GMLPT_Integer );
         }
         return;
     }
@@ -637,7 +675,7 @@ void NASReader::SetFeaturePropertyDirectly( const char *pszElement,
 int NASReader::LoadClasses( const char *pszFile )
 
 {
-    // Add logic later to determine reasonable default schema file. 
+    // Add logic later to determine reasonable default schema file.
     if( pszFile == NULL )
         return FALSE;
 
@@ -652,7 +690,7 @@ int NASReader::LoadClasses( const char *pszFile )
 
     if( fp == NULL )
     {
-        CPLError( CE_Failure, CPLE_OpenFailed, 
+        CPLError( CE_Failure, CPLE_OpenFailed,
                   "Failed to open file %s.", pszFile );
         return FALSE;
     }
@@ -664,19 +702,19 @@ int NASReader::LoadClasses( const char *pszFile )
     pszWholeText = (char *) VSIMalloc(nLength+1);
     if( pszWholeText == NULL )
     {
-        CPLError( CE_Failure, CPLE_AppDefined, 
+        CPLError( CE_Failure, CPLE_AppDefined,
                   "Failed to allocate %d byte buffer for %s,\n"
                   "is this really a GMLFeatureClassList file?",
                   nLength, pszFile );
         VSIFClose( fp );
         return FALSE;
     }
-    
+
     if( VSIFRead( pszWholeText, nLength, 1, fp ) != 1 )
     {
         VSIFree( pszWholeText );
         VSIFClose( fp );
-        CPLError( CE_Failure, CPLE_AppDefined, 
+        CPLError( CE_Failure, CPLE_AppDefined,
                   "Read failed on %s.", pszFile );
         return FALSE;
     }
@@ -687,7 +725,7 @@ int NASReader::LoadClasses( const char *pszFile )
     if( strstr( pszWholeText, "<GMLFeatureClassList>" ) == NULL )
     {
         VSIFree( pszWholeText );
-        CPLError( CE_Failure, CPLE_AppDefined, 
+        CPLError( CE_Failure, CPLE_AppDefined,
                   "File %s does not contain a GMLFeatureClassList tree.",
                   pszFile );
         return FALSE;
@@ -705,11 +743,11 @@ int NASReader::LoadClasses( const char *pszFile )
     if( psRoot == NULL )
         return FALSE;
 
-    if( psRoot->eType != CXT_Element 
+    if( psRoot->eType != CXT_Element
         || !EQUAL(psRoot->pszValue,"GMLFeatureClassList") )
     {
         CPLDestroyXMLNode(psRoot);
-        CPLError( CE_Failure, CPLE_AppDefined, 
+        CPLError( CE_Failure, CPLE_AppDefined,
                   "File %s is not a GMLFeatureClassList document.",
                   pszFile );
         return FALSE;
@@ -722,7 +760,7 @@ int NASReader::LoadClasses( const char *pszFile )
 
     for( psThis = psRoot->psChild; psThis != NULL; psThis = psThis->psNext )
     {
-        if( psThis->eType == CXT_Element 
+        if( psThis->eType == CXT_Element
             && EQUAL(psThis->pszValue,"GMLFeatureClass") )
         {
             GMLFeatureClass   *poClass;
@@ -743,7 +781,7 @@ int NASReader::LoadClasses( const char *pszFile )
     }
 
     CPLDestroyXMLNode( psRoot );
-    
+
     SetClassListLocked( TRUE );
 
     return TRUE;
@@ -756,7 +794,7 @@ int NASReader::LoadClasses( const char *pszFile )
 int NASReader::SaveClasses( const char *pszFile )
 
 {
-    // Add logic later to determine reasonable default schema file. 
+    // Add logic later to determine reasonable default schema file.
     if( pszFile == NULL )
         return FALSE;
 
@@ -770,7 +808,7 @@ int NASReader::SaveClasses( const char *pszFile )
     for( int iClass = 0; iClass < GetClassCount(); iClass++ )
     {
         GMLFeatureClass *poClass = GetClass( iClass );
-        
+
         CPLAddXMLChild( psRoot, poClass->SerializeToXML() );
     }
 
@@ -780,11 +818,11 @@ int NASReader::SaveClasses( const char *pszFile )
     FILE        *fp;
     int         bSuccess = TRUE;
     char        *pszWholeText = CPLSerializeXMLTree( psRoot );
-    
+
     CPLDestroyXMLNode( psRoot );
  
     fp = VSIFOpen( pszFile, "wb" );
-    
+
     if( fp == NULL )
         bSuccess = FALSE;
     else if( VSIFWrite( pszWholeText, strlen(pszWholeText), 1, fp ) != 1 )
@@ -846,7 +884,7 @@ int NASReader::PrescanForSchema( int bGetExtents )
             {
                 double  dfXMin, dfXMax, dfYMin, dfYMax;
                 OGREnvelope sEnvelope;
-                OGRwkbGeometryType eGType = (OGRwkbGeometryType) 
+                OGRwkbGeometryType eGType = (OGRwkbGeometryType)
                     poClass->GetGeometryType();
 
                 // Merge SRSName into layer.
@@ -859,7 +897,7 @@ int NASReader::PrescanForSchema( int bGetExtents )
                 if( poClass->GetFeatureCount() == 1 && eGType == wkbUnknown )
                     eGType = wkbNone;
 
-                poClass->SetGeometryType( 
+                poClass->SetGeometryType(
                     (int) OGRMergeGeometryTypes(
                         eGType, poGeometry->getGeometryType() ) );
 
@@ -883,15 +921,15 @@ int NASReader::PrescanForSchema( int bGetExtents )
 
                 poClass->SetExtents( dfXMin, dfXMax, dfYMin, dfYMax );
             }
-            else 
+            else
             {
-                if( poClass->GetGeometryType() == (int) wkbUnknown 
+                if( poClass->GetGeometryType() == (int) wkbUnknown
                     && poClass->GetFeatureCount() == 1 )
                     poClass->SetGeometryType( wkbNone );
             }
 #endif /* def SUPPORT_GEOMETRY */
         }
-        
+
         delete poFeature;
     }
 
@@ -944,7 +982,7 @@ void NASReader::CheckForFID( const Attributes &attrs,
 /*                         CheckForRelations()                          */
 /************************************************************************/
 
-void NASReader::CheckForRelations( const char *pszElement, 
+void NASReader::CheckForRelations( const char *pszElement,
                                    const Attributes &attrs )
 
 {

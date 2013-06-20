@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: rmfdataset.cpp 24732 2012-08-03 17:03:09Z rouault $
+ * $Id: rmfdataset.cpp 24731 2012-08-03 17:02:56Z rouault $
  *
  * Project:  Raster Matrix Format
  * Purpose:  Read/write raster files used in GIS "Integratsia"
@@ -32,7 +32,7 @@
 
 #include "rmfdataset.h"
 
-CPL_CVSID("$Id: rmfdataset.cpp 24732 2012-08-03 17:03:09Z rouault $");
+CPL_CVSID("$Id: rmfdataset.cpp 24731 2012-08-03 17:02:56Z rouault $");
 
 CPL_C_START
 void    GDALRegister_RMF(void);

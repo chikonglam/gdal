@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrsdelayer.cpp 24944 2012-09-20 12:13:26Z tamas $
+ * $Id: ogrsdelayer.cpp 24943 2012-09-20 12:03:38Z tamas $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implements OGRSDELayer class.
@@ -33,7 +33,7 @@
 #include "cpl_conv.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: ogrsdelayer.cpp 24944 2012-09-20 12:13:26Z tamas $");
+CPL_CVSID("$Id: ogrsdelayer.cpp 24943 2012-09-20 12:03:38Z tamas $");
 
 /************************************************************************/
 /*                            OGRSDELayer()                             */
@@ -1888,7 +1888,7 @@ OGRFeature *OGRSDELayer::TranslateSDERecord()
           {
               SE_CLOB_INFO sClobVal;
 
-              memset(&sClobVal, 0, sizeof(sClobVal)); /* to prevent from the crash in SE_stream_get_nclob */
+              memset(&sClobVal, 0, sizeof(sClobVal)); /* to prevent from the crash in SE_stream_get_clob */
               nSDEErr = SE_stream_get_clob( hStream, anFieldMap[i]+1, 
                                             &sClobVal );
               if( nSDEErr == SE_SUCCESS )
