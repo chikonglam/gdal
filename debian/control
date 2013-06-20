@@ -26,6 +26,7 @@ Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Recommends: proj-bin
 Provides: libgdal1
+Replaces: libgdal1
 Conflicts: libgdal1 (<= 1.10.0-0~)
 Description: Geospatial Data Abstraction Library
  GDAL is a translator library for raster geospatial data formats.
