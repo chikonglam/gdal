@@ -190,7 +190,7 @@ install: build
 	install -o root -g root -m 755 $(CURDIR)/swig/python/samples/*.py $(CURDIR)/debian/tmp/usr/share/doc/python-gdal/examples/.
 	# create lintian overrides file
 	echo "libgdal1: embedded-library usr/lib/libgdal.so.$$(basename debian/tmp/usr/lib/libgdal.so.*.*.*|cut -d. -f3,4,5): tiff" \
-		>$(CURDIR)/debian/libgdal1.lintian-overrides
+		>$(CURDIR)/debian/libgdal1h.lintian-overrides
 
 binary-common:
 	dh_testdir
@@ -209,8 +209,8 @@ binary-common:
 	dh_numpy
 	dh_perl
 	# Adds per arch symbols for compatible archs
-	ln -f $(CURDIR)/debian/libgdal*.symbols.i386 $(CURDIR)/debian/libgdal1.symbols.kfreebsd-i386
-	ln -f $(CURDIR)/debian/libgdal*.symbols.amd64 $(CURDIR)/debian/libgdal1.symbols.kfreebsd-amd64
+	ln -f $(CURDIR)/debian/libgdal*.symbols.i386 $(CURDIR)/debian/libgdal1h.symbols.kfreebsd-i386
+	ln -f $(CURDIR)/debian/libgdal*.symbols.amd64 $(CURDIR)/debian/libgdal1h.symbols.kfreebsd-amd64
 	# Forces failure ignoring to collect new symbols on all archs
 	dh_makeshlibs -- -c0
 	# Forces failure when symbols change

@@ -1,5 +1,11 @@
 gdal (1.10.0-0~exp1) experimental; urgency=low
 
+  [ Jerome Villeneuve Larouche ]
+  * Renamed libgdal1 files to libgdal1h.
+  * Updated version in libgdal1h install path.
+  * Removed doc patch.
+
+  [ Francesco Paolo Lovergine ]
   * Moved to new LIBKML driver instead of the old KML one. It has a much
     better support for complex KML files.
   * Merged NMU 1.9.0-3.1:
@@ -13,9 +19,9 @@ gdal (1.10.0-0~exp1) experimental; urgency=low
     This choice implies that the API does not include anymore any *tiff
     related functions: changed API declaration.
   * Policy bumped to 3.9.4. No changes required.
-  * New upstream version with many fixes. 
+  * New upstream version with many fixes.
 
- -- Francesco Paolo Lovergine <frankie@debian.org>  Sun, 04 Apr 2013 11:39:57 +0100
+ -- Jerome Villeneuve Larouche <jlarouche@mapgears.com>  Thu, 20 Jun 2013 13:35:03 -0400
 
 gdal (1.9.2-1~exp2) experimental; urgency=low
 
