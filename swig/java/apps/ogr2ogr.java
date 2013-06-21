@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr2ogr.java 23934 2012-02-09 19:49:18Z rouault $
+ * $Id: ogr2ogr.java 25229 2012-11-16 19:06:58Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Java port of a simple client for translating between formats.
@@ -140,7 +140,8 @@ public class ogr2ogr
     /* -------------------------------------------------------------------- */
     /*      Register format(s).                                             */
     /* -------------------------------------------------------------------- */
-        ogr.RegisterAll();
+        if( ogr.GetDriverCount() == 0 )
+            ogr.RegisterAll();
     
     /* -------------------------------------------------------------------- */
     /*      Processing command line arguments.                              */
@@ -1161,7 +1162,8 @@ public class ogr2ogr
             /*CPLAssert( null != poSourceSRS );
             CPLAssert( null != poOutputSRS );*/
     
-            poCT = new CoordinateTransformation( poSourceSRS, poOutputSRS );
+            /* New in GDAL 1.10. Before was "new CoordinateTransformation(srs,dst)". */
+            poCT = CoordinateTransformation.CreateCoordinateTransformation( poSourceSRS, poOutputSRS );
             if( poCT == null )
             {
                 String pszWKT = null;

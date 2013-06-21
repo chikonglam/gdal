@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrpgeodriver.cpp 23932 2012-02-09 13:48:06Z rouault $
+ * $Id: ogrpgeodriver.cpp 23931 2012-02-09 13:41:13Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implements Personal Geodatabase driver.
@@ -30,7 +30,7 @@
 #include "ogr_pgeo.h"
 #include "cpl_conv.h"
 
-CPL_CVSID("$Id: ogrpgeodriver.cpp 23932 2012-02-09 13:48:06Z rouault $");
+CPL_CVSID("$Id: ogrpgeodriver.cpp 23931 2012-02-09 13:41:13Z rouault $");
 
 /************************************************************************/
 /*                            ~OGRODBCDriver()                            */

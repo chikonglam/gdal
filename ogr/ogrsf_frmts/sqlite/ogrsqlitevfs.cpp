@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrsqlitevfs.cpp 24808 2012-08-19 20:15:28Z rouault $
+ * $Id: ogrsqlitevfs.cpp 24807 2012-08-19 20:14:37Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implements SQLite VFS
@@ -27,9 +27,10 @@
  * DEALINGS IN THE SOFTWARE.
  ****************************************************************************/
 
+#include "cpl_atomic_ops.h"
 #include "ogr_sqlite.h"
 
-CPL_CVSID("$Id: ogrsqlitevfs.cpp 24808 2012-08-19 20:15:28Z rouault $");
+CPL_CVSID("$Id: ogrsqlitevfs.cpp 24807 2012-08-19 20:14:37Z rouault $");
 
 //#define DEBUG_IO 1
 
@@ -39,6 +40,8 @@ typedef struct
 {
     char                       szVFSName[64];
     sqlite3_vfs               *pDefaultVFS;
+    pfnNotifyFileOpenedType    pfn;
+    void                      *pfnUserData;
     int                        nCounter;
 } OGRSQLiteVFSAppDataStruct;
 
@@ -68,11 +71,11 @@ static int OGRSQLiteIOClose(sqlite3_file* pFile)
 static int OGRSQLiteIORead(sqlite3_file* pFile, void* pBuffer, int iAmt, sqlite3_int64 iOfst)
 {
     OGRSQLiteFileStruct* pMyFile = (OGRSQLiteFileStruct*) pFile;
-#ifdef DEBUG_IO
-    CPLDebug("SQLITE", "OGRSQLiteIORead(%p, %d, %d)", pMyFile->fp, iAmt, (int)iOfst);
-#endif
     VSIFSeekL(pMyFile->fp, (vsi_l_offset) iOfst, SEEK_SET);
     int nRead = (int)VSIFReadL(pBuffer, 1, iAmt, pMyFile->fp);
+#ifdef DEBUG_IO
+    CPLDebug("SQLITE", "OGRSQLiteIORead(%p, %d, %d) = %d", pMyFile->fp, iAmt, (int)iOfst, nRead);
+#endif
     if (nRead < iAmt)
     {
         memset(((char*)pBuffer) + nRead, 0, iAmt - nRead);
@@ -84,11 +87,11 @@ static int OGRSQLiteIORead(sqlite3_file* pFile, void* pBuffer, int iAmt, sqlite3
 static int OGRSQLiteIOWrite(sqlite3_file* pFile, const void* pBuffer, int iAmt, sqlite3_int64 iOfst)
 {
     OGRSQLiteFileStruct* pMyFile = (OGRSQLiteFileStruct*) pFile;
-#ifdef DEBUG_IO
-    CPLDebug("SQLITE", "OGRSQLiteIOWrite(%p, %d, %d)", pMyFile->fp, iAmt, (int)iOfst);
-#endif
     VSIFSeekL(pMyFile->fp, (vsi_l_offset) iOfst, SEEK_SET);
     int nWritten = (int)VSIFWriteL(pBuffer, 1, iAmt, pMyFile->fp);
+#ifdef DEBUG_IO
+    CPLDebug("SQLITE", "OGRSQLiteIOWrite(%p, %d, %d) = %d", pMyFile->fp, iAmt, (int)iOfst, nWritten);
+#endif
     if (nWritten < iAmt)
     {
         return SQLITE_IOERR_WRITE;
@@ -100,7 +103,7 @@ static int OGRSQLiteIOTruncate(sqlite3_file* pFile, sqlite3_int64 size)
 {
     OGRSQLiteFileStruct* pMyFile = (OGRSQLiteFileStruct*) pFile;
 #ifdef DEBUG_IO
-    CPLDebug("SQLITE", "OGRSQLiteIOTruncate(%p)", pMyFile->fp);
+    CPLDebug("SQLITE", "OGRSQLiteIOTruncate(%p, " CPL_FRMT_GIB ")", pMyFile->fp, size);
 #endif
     int nRet = VSIFTruncateL(pMyFile->fp, size);
     return (nRet == 0) ? SQLITE_OK : SQLITE_IOERR_TRUNCATE;
@@ -118,13 +121,13 @@ static int OGRSQLiteIOSync(sqlite3_file* pFile, int flags)
 static int OGRSQLiteIOFileSize(sqlite3_file* pFile, sqlite3_int64 *pSize)
 {
     OGRSQLiteFileStruct* pMyFile = (OGRSQLiteFileStruct*) pFile;
-#ifdef DEBUG_IO
-    CPLDebug("SQLITE", "OGRSQLiteIOFileSize(%p)", pMyFile->fp);
-#endif
     vsi_l_offset nCurOffset = VSIFTellL(pMyFile->fp);
     VSIFSeekL(pMyFile->fp, 0, SEEK_END);
     *pSize = VSIFTellL(pMyFile->fp);
     VSIFSeekL(pMyFile->fp, nCurOffset, SEEK_SET);
+#ifdef DEBUG_IO
+    CPLDebug("SQLITE", "OGRSQLiteIOFileSize(%p) = " CPL_FRMT_GIB, pMyFile->fp, *pSize);
+#endif
     return SQLITE_OK;
 }
 
@@ -238,6 +241,12 @@ static int OGRSQLiteVFSOpen(sqlite3_vfs* pVFS,
     CPLDebug("SQLITE", "OGRSQLiteVFSOpen() = %p", pMyFile->fp);
 #endif
 
+    pfnNotifyFileOpenedType pfn = pAppData->pfn;
+    if (pfn)
+    {
+        pfn(pAppData->pfnUserData, zName, pMyFile->fp);
+    }
+
     pMyFile->pMethods = &OGRSQLiteIOMethods;
     pMyFile->bDeleteOnClose = ( flags & SQLITE_OPEN_DELETEONCLOSE );
     pMyFile->pszFilename = CPLStrdup(zName);
@@ -265,7 +274,15 @@ static int OGRSQLiteVFSAccess (sqlite3_vfs* pVFS, const char *zName, int flags, 
     VSIStatBufL sStatBufL;
     int nRet;
     if (flags == SQLITE_ACCESS_EXISTS)
-        nRet = VSIStatExL(zName, &sStatBufL, VSI_STAT_EXISTS_FLAG);
+    {
+        /* Do not try to check the presence of a journal on /vsicurl ! */
+        if ( strncmp(zName, "/vsicurl/", 9) == 0 &&
+             strlen(zName) > strlen("-journal") &&
+             strcmp(zName + strlen(zName) - strlen("-journal"), "-journal") == 0 )
+            nRet = -1;
+        else
+            nRet = VSIStatExL(zName, &sStatBufL, VSI_STAT_EXISTS_FLAG);
+    }
     else if (flags == SQLITE_ACCESS_READ)
     {
         VSILFILE* fp = VSIFOpenL(zName, "rb");
@@ -364,7 +381,7 @@ static int OGRSQLiteVFSGetLastError (sqlite3_vfs* pVFS, int p1, char *p2)
     return pUnderlyingVFS->xGetLastError(pUnderlyingVFS, p1, p2);
 }
 
-sqlite3_vfs* OGRSQLiteCreateVFS()
+sqlite3_vfs* OGRSQLiteCreateVFS(pfnNotifyFileOpenedType pfn, void* pfnUserData)
 {
     sqlite3_vfs* pDefaultVFS = sqlite3_vfs_find(NULL);
     sqlite3_vfs* pMyVFS = (sqlite3_vfs*) CPLCalloc(1, sizeof(sqlite3_vfs));
@@ -373,6 +390,8 @@ sqlite3_vfs* OGRSQLiteCreateVFS()
         (OGRSQLiteVFSAppDataStruct*) CPLCalloc(1, sizeof(OGRSQLiteVFSAppDataStruct));
     sprintf(pVFSAppData->szVFSName, "OGRSQLITEVFS_%p", pVFSAppData);
     pVFSAppData->pDefaultVFS = pDefaultVFS;
+    pVFSAppData->pfn = pfn;
+    pVFSAppData->pfnUserData = pfnUserData;
     pVFSAppData->nCounter = 0;
 
     pMyVFS->iVersion = 1;

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: northwood.cpp 24121 2012-03-15 19:42:45Z warmerdam $
+ * $Id: northwood.cpp 24120 2012-03-15 19:41:49Z warmerdam $
  *
  * Project:  GRC/GRD Reader
  * Purpose:  Northwood Format basic implementation

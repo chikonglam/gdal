@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdaljp2metadata.cpp 24406 2012-05-11 19:51:29Z aboudreault $
+ * $Id: gdaljp2metadata.cpp 25727 2013-03-10 14:56:33Z rouault $
  *
  * Project:  GDAL 
  * Purpose:  GDALJP2Metadata - Read GeoTIFF and/or GML georef info.
@@ -35,7 +35,7 @@
 #include "ogr_api.h"
 #include "gt_wkt_srs_for_gdal.h"
 
-CPL_CVSID("$Id: gdaljp2metadata.cpp 24406 2012-05-11 19:51:29Z aboudreault $");
+CPL_CVSID("$Id: gdaljp2metadata.cpp 25727 2013-03-10 14:56:33Z rouault $");
 
 static const unsigned char msi_uuid2[16] =
 {0xb1,0x4b,0xf8,0xbd,0x08,0x3d,0x4b,0x43,
@@ -210,10 +210,16 @@ int GDALJP2Metadata::ReadBoxes( VSILFILE *fpVSIL )
     GDALJP2Box oBox( fpVSIL );
     int iBox = 0;
 
-    oBox.ReadFirst(); 
+    if (!oBox.ReadFirst())
+        return FALSE;
 
     while( strlen(oBox.GetType()) > 0 )
     {
+#ifdef DEBUG
+        if (CSLTestBoolean(CPLGetConfigOption("DUMP_JP2_BOXES", "NO")))
+            oBox.DumpReadable(stderr);
+#endif
+
 /* -------------------------------------------------------------------- */
 /*      Collect geotiff box.                                            */
 /* -------------------------------------------------------------------- */
@@ -222,6 +228,11 @@ int GDALJP2Metadata::ReadBoxes( VSILFILE *fpVSIL )
         {
             nGeoTIFFSize = (int) oBox.GetDataLength();
             pabyGeoTIFFData = oBox.ReadBoxData();
+            if (pabyGeoTIFFData == NULL)
+            {
+                CPLDebug("GDALJP2", "Cannot read data for UUID GeoTIFF box");
+                nGeoTIFFSize = 0;
+            }
         }
 
 /* -------------------------------------------------------------------- */
@@ -233,7 +244,8 @@ int GDALJP2Metadata::ReadBoxes( VSILFILE *fpVSIL )
             nMSIGSize = (int) oBox.GetDataLength();
             pabyMSIGData = oBox.ReadBoxData();
 
-            if( nMSIGSize < 70 
+            if( nMSIGSize < 70
+                || pabyMSIGData == NULL
                 || memcmp( pabyMSIGData, "MSIG/", 5 ) != 0 )
             {
                 CPLFree( pabyMSIGData );
@@ -263,7 +275,7 @@ int GDALJP2Metadata::ReadBoxes( VSILFILE *fpVSIL )
             if( EQUAL(oSubBox.GetType(),"lbl ") )
             {
                 char *pszLabel = (char *) oSubBox.ReadBoxData();
-                if( EQUAL(pszLabel,"gml.data") )
+                if( pszLabel != NULL && EQUAL(pszLabel,"gml.data") )
                 {
                     CollectGMLData( &oBox );
                 }
@@ -305,9 +317,10 @@ int GDALJP2Metadata::ReadBoxes( VSILFILE *fpVSIL )
                     
                     // we will use either the resd or resc box, which ever
                     // happens to be first.  Should we prefer resd?
-                    if( oResBox.GetDataLength() == 10 )
+                    unsigned char *pabyResData = NULL;
+                    if( oResBox.GetDataLength() == 10 &&
+                        (pabyResData = oResBox.ReadBoxData()) != NULL )
                     {
-                        unsigned char *pabyResData = oResBox.ReadBoxData();
                         int nVertNum, nVertDen, nVertExp;
                         int nHorzNum, nHorzDen, nHorzExp;
                         
@@ -345,9 +358,10 @@ int GDALJP2Metadata::ReadBoxes( VSILFILE *fpVSIL )
             }
         }
 
-        oBox.ReadNext();
+        if (!oBox.ReadNext())
+            break;
     }
-    
+
     return TRUE;
 }
 
@@ -731,12 +745,10 @@ int GDALJP2Metadata::ParseGMLCoverageDesc()
                  && strstr(pszSRSName,":def:") != NULL
                  && oSRS.importFromURN(pszSRSName) == OGRERR_NONE )
         {
-            const char *pszCode = strrchr(pszSRSName,':') + 1;
-
             oSRS.exportToWkt( &pszProjection );
 
             // Per #2131
-            if( atoi(pszCode) >= 4000 && atoi(pszCode) <= 4999 )
+            if( oSRS.EPSGTreatsAsLatLong() || oSRS.EPSGTreatsAsNorthingEasting() )
             {
                 CPLDebug( "GMLJP2", "Request axis flip for SRS=%s",
                           pszSRSName );

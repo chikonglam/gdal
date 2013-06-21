@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrgeomediageometry.cpp 24657 2012-07-03 17:36:26Z rouault $
+ * $Id: ogrgeomediageometry.cpp 24656 2012-07-03 17:35:34Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implements decoder of geomedia geometry blobs
@@ -30,7 +30,7 @@
 #include "ogrgeomediageometry.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: ogrgeomediageometry.cpp 24657 2012-07-03 17:36:26Z rouault $");
+CPL_CVSID("$Id: ogrgeomediageometry.cpp 24656 2012-07-03 17:35:34Z rouault $");
 
 #define GEOMEDIA_POINT          0xC0
 #define GEOMEDIA_ORIENTED_POINT 0xC8

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_gml.h 23638 2011-12-22 21:02:56Z rouault $
+ * $Id: ogr_gml.h 24481 2012-05-20 12:50:29Z rouault $
  *
  * Project:  GML Reader
  * Purpose:  Declarations for OGR wrapper classes for GML, and GML<->OGR
@@ -129,6 +129,9 @@ class OGRGMLDataSource : public OGRDataSource
     int                 bWriteSpaceIndentation;
 
     // input related parameters.
+    CPLString           osFilename;
+    CPLString           osXSDFilename;
+
     IGMLReader          *poReader;
     int                 bOutIsTempFile;
 
@@ -147,6 +150,9 @@ class OGRGMLDataSource : public OGRDataSource
     ReadMode            eReadMode;
     GMLFeature         *poStoredGMLFeature;
     OGRGMLLayer        *poLastReadLayer;
+
+    void                FindAndParseBoundedBy(VSILFILE* fp);
+    void                SetExtents(double dfMinX, double dfMinY, double dfMaxX, double dfMaxY);
 
   public:
                         OGRGMLDataSource();
@@ -192,6 +198,13 @@ class OGRGMLDataSource : public OGRDataSource
 
     OGRGMLLayer*        GetLastReadLayer() const { return poLastReadLayer; }
     void                SetLastReadLayer(OGRGMLLayer* poLayer) { poLastReadLayer = poLayer; }
+
+    const char         *GetAppPrefix();
+
+    virtual OGRLayer *          ExecuteSQL( const char *pszSQLCommand,
+                                            OGRGeometry *poSpatialFilter,
+                                            const char *pszDialect );
+    virtual void                ReleaseResultSet( OGRLayer * poResultsSet );
 };
 
 /************************************************************************/

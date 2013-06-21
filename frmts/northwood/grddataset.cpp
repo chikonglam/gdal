@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: grddataset.cpp 24356 2012-05-01 10:53:16Z rouault $
+ * $Id: grddataset.cpp 24355 2012-05-01 10:52:54Z rouault $
  *
  * Project:  GRD Reader
  * Purpose:  GDAL driver for Northwood Grid Format

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: kmlnode.cpp 24178 2012-03-31 10:22:43Z rouault $
+ * $Id: kmlnode.cpp 25309 2012-12-15 12:14:44Z rouault $
  *
  * Project:  KML Driver
  * Purpose:  Class for building up the node structure of the kml file.
@@ -211,7 +211,7 @@ int KMLNode::classify(KML* poKML, int nRecLevel)
         CPLError( CE_Failure, CPLE_AppDefined,
                     "Too many recursiong level (%d) while parsing KML geometry.",
                     nRecLevel );
-        return NULL;
+        return FALSE;
     }
 
     //CPLDebug("KML", "%s<%s>", genSpaces(), sName_.c_str());
@@ -314,6 +314,24 @@ void KMLNode::eliminateEmpty(KML* poKML)
             (*pvpoChildren_)[z]->eliminateEmpty(poKML);
         }
     }
+}
+
+bool KMLNode::hasOnlyEmpty() const
+{
+    for(kml_nodes_t::size_type z = 0; z < pvpoChildren_->size(); z++)
+    {
+        if((*pvpoChildren_)[z]->eType_ != Empty)
+        {
+            return false;
+        }
+        else
+        {
+            if (!(*pvpoChildren_)[z]->hasOnlyEmpty())
+                return false;
+        }
+    }
+
+    return true;
 }
 
 void KMLNode::setType(Nodetype oNotet)

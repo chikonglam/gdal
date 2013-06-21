@@ -39,6 +39,7 @@ using kmldom::Placemark;
 using kmldom::DocumentPtr;
 using kmldom::ContainerPtr;
 using kmldom::FeaturePtr;
+using kmldom::GroundOverlayPtr;
 using kmldom::KmlPtr;
 using kmldom::Kml;
 using kmlengine::KmzFile;
@@ -106,86 +107,73 @@ OGRLIBKMLLayer::OGRLIBKMLLayer ( const char *pszLayerName,
 
     /***** was the layer created from a DS::Open *****/
 
+    m_bReadGroundOverlay = CSLTestBoolean(CPLGetConfigOption("LIBKML_READ_GROUND_OVERLAY", "YES"));
+
     if ( !bNew ) {
 
         /***** get the number of features on the layer *****/
 
         nFeatures = m_poKmlLayer->get_feature_array_size (  );
 
-        /***** add the name and desc fields *****/
+        /***** get the field config *****/
+        
+        struct fieldconfig oFC;
+        get_fieldconfig( &oFC );
 
-        const char *namefield =
-            CPLGetConfigOption ( "LIBKML_NAME_FIELD", "Name" );
-        const char *descfield =
-            CPLGetConfigOption ( "LIBKML_DESCRIPTION_FIELD", "description" );
-        const char *tsfield =
-            CPLGetConfigOption ( "LIBKML_TIMESTAMP_FIELD", "timestamp" );
-        const char *beginfield =
-            CPLGetConfigOption ( "LIBKML_BEGIN_FIELD", "begin" );
-        const char *endfield =
-            CPLGetConfigOption ( "LIBKML_END_FIELD", "end" );
-        const char *altitudeModefield =
-            CPLGetConfigOption ( "LIBKML_ALTITUDEMODE_FIELD", "altitudeMode" );
-        const char *tessellatefield =
-            CPLGetConfigOption ( "LIBKML_TESSELLATE_FIELD", "tessellate" );
-        const char *extrudefield =
-            CPLGetConfigOption ( "LIBKML_EXTRUDE_FIELD", "extrude" );
-        const char *visibilityfield =
-            CPLGetConfigOption ( "LIBKML_VISIBILITY_FIELD", "visibility" );
-
-        OGRFieldDefn oOgrFieldName (
-    namefield,
-    OFTString );
-
+        /***** name field *****/
+        
+        OGRFieldDefn oOgrFieldName ( oFC.namefield,OFTString );
         m_poOgrFeatureDefn->AddFieldDefn ( &oOgrFieldName );
 
-        OGRFieldDefn oOgrFieldDesc (
-    descfield,
-    OFTString );
-
+        /***** descripton field *****/
+        
+        OGRFieldDefn oOgrFieldDesc ( oFC.descfield, OFTString );
         m_poOgrFeatureDefn->AddFieldDefn ( &oOgrFieldDesc );
 
-        OGRFieldDefn oOgrFieldTs (
-    tsfield,
-    OFTDateTime );
+        /***** timestamp field *****/
 
+        OGRFieldDefn oOgrFieldTs ( oFC.tsfield, OFTDateTime );
         m_poOgrFeatureDefn->AddFieldDefn ( &oOgrFieldTs );
 
-        OGRFieldDefn oOgrFieldBegin (
-    beginfield,
-    OFTDateTime );
+        /*****  timespan begin field *****/
 
+        OGRFieldDefn oOgrFieldBegin ( oFC.beginfield, OFTDateTime );
         m_poOgrFeatureDefn->AddFieldDefn ( &oOgrFieldBegin );
 
-        OGRFieldDefn oOgrFieldEnd (
-    endfield,
-    OFTDateTime );
+        /*****  timespan end field *****/
 
+        OGRFieldDefn oOgrFieldEnd ( oFC.endfield, OFTDateTime );
         m_poOgrFeatureDefn->AddFieldDefn ( &oOgrFieldEnd );
 
-        OGRFieldDefn oOgrFieldAltitudeMode (
-    altitudeModefield,
-    OFTString );
+        /*****  altitudeMode field *****/
 
+        OGRFieldDefn oOgrFieldAltitudeMode ( oFC.altitudeModefield, OFTString );
         m_poOgrFeatureDefn->AddFieldDefn ( &oOgrFieldAltitudeMode );
 
-        OGRFieldDefn oOgrFieldTessellate (
-    tessellatefield,
-    OFTInteger );
+        /***** tessellate field *****/
 
+        OGRFieldDefn oOgrFieldTessellate ( oFC.tessellatefield, OFTInteger );
         m_poOgrFeatureDefn->AddFieldDefn ( &oOgrFieldTessellate );
 
-        OGRFieldDefn oOgrFieldExtrude (
-    extrudefield,
-    OFTInteger );
+        /***** extrude field *****/
 
+        OGRFieldDefn oOgrFieldExtrude ( oFC.extrudefield, OFTInteger );
         m_poOgrFeatureDefn->AddFieldDefn ( &oOgrFieldExtrude );
 
-        OGRFieldDefn oOgrFieldVisibility (
-    visibilityfield,
-    OFTInteger );
+        /***** visibility field *****/
 
+        OGRFieldDefn oOgrFieldVisibility ( oFC.visibilityfield, OFTInteger );
         m_poOgrFeatureDefn->AddFieldDefn ( &oOgrFieldVisibility );
+
+        /***** draw order field *****/
+
+        OGRFieldDefn oOgrFieldDrawOrder ( oFC.drawOrderfield, OFTInteger );
+        m_poOgrFeatureDefn->AddFieldDefn ( &oOgrFieldDrawOrder );
+
+        /***** icon field *****/
+
+        OGRFieldDefn oOgrFieldIcon ( oFC.iconfield, OFTString );
+        m_poOgrFeatureDefn->AddFieldDefn ( &oOgrFieldIcon );
 
         /***** get the styles *****/
 
@@ -376,23 +364,48 @@ OGRFeature *OGRLIBKMLLayer::GetNextRawFeature (
     FeaturePtr poKmlFeature;
     OGRFeature *poOgrFeature = NULL;
 
+    /***** loop over the kml features to find the next placemark *****/
+
     do {
         if ( iFeature >= nFeatures )
             break;
 
+        /***** get the next kml feature in the container *****/
+        
         poKmlFeature = m_poKmlLayer->get_feature_array_at ( iFeature++ );
 
-    } while ( poKmlFeature->Type (  ) != kmldom::Type_Placemark );
+        /***** what type of kml feature in the container? *****/
 
+        switch (poKmlFeature->Type (  )) {
 
-    if ( iFeature <= nFeatures && poKmlFeature
-         && poKmlFeature->Type (  ) == kmldom::Type_Placemark ) {
-        poOgrFeature =
-            kml2feat ( AsPlacemark ( poKmlFeature ), m_poOgrDS, this,
-                       m_poOgrFeatureDefn, m_poOgrSRS );
+            case kmldom::Type_Placemark:
+                poOgrFeature = kml2feat ( AsPlacemark ( poKmlFeature ),
+                                          m_poOgrDS, this,
+                                          m_poOgrFeatureDefn, m_poOgrSRS );
+                break;    
+
+            case kmldom::Type_GroundOverlay:
+                if (m_bReadGroundOverlay) {
+                    poOgrFeature =
+                        kmlgroundoverlay2feat ( AsGroundOverlay ( poKmlFeature ),
+                                                m_poOgrDS, this,
+                                                m_poOgrFeatureDefn,
+                                                m_poOgrSRS );
+                }
+                break;
+                
+            default:
+                break;
+
+        }
+
+    } while ( !poOgrFeature );
+
+    /***** set the FID on the ogr feature *****/
+    
+    if (poOgrFeature)
         poOgrFeature->SetFID(nFID ++);
-    }
-
+    
     return poOgrFeature;
 }
 
@@ -418,6 +431,10 @@ OGRErr OGRLIBKMLLayer::CreateFeature (
 
     m_poKmlLayer->add_feature ( poKmlPlacemark );
 
+    /***** update the layer class count of features  *****/
+
+    nFeatures++;
+    
     /***** mark the layer as updated *****/
 
     bUpdated = TRUE;
@@ -431,7 +448,7 @@ OGRErr OGRLIBKMLLayer::CreateFeature (
 
  Args:          bForce      no effect as of now
  
- Returns:       the number of feateres on the layer
+ Returns:       the number of features on the layer
 
  Note:          the result can include links, folders and other items that are
                 not supported by OGR
@@ -439,7 +456,7 @@ OGRErr OGRLIBKMLLayer::CreateFeature (
 ******************************************************************************/
 
 int OGRLIBKMLLayer::GetFeatureCount (
-    int bForce )
+                                     int bForce )
 {
 
 
@@ -450,16 +467,34 @@ int OGRLIBKMLLayer::GetFeatureCount (
 
     else {
         size_t iKmlFeature; 
-     	size_t nKmlFeatures = m_poKmlLayer->get_feature_array_size (  ); 
-     	 
-     	for ( iKmlFeature = 0; iKmlFeature < nKmlFeatures; iKmlFeature++ ) { 
- 	        if ( m_poKmlLayer->get_feature_array_at ( iKmlFeature )-> 
- 	             IsA ( kmldom::Type_Placemark ) ) { 
- 	            i++; 
- 	        } 
- 	    }
+        size_t nKmlFeatures = m_poKmlLayer->get_feature_array_size (  );
+        FeaturePtr poKmlFeature;
+
+        /***** loop over the kml features in the container *****/
+
+        for ( iKmlFeature = 0; iKmlFeature < nKmlFeatures; iKmlFeature++ ) {
+            poKmlFeature = m_poKmlLayer->get_feature_array_at ( iKmlFeature );
+
+            /***** what type of kml feature? *****/
+
+            switch (poKmlFeature->Type (  )) {
+
+                case kmldom::Type_Placemark:
+                    i++;
+                    break;
+
+                case kmldom::Type_GroundOverlay:
+                    if (m_bReadGroundOverlay)
+                        i++;
+                    break;
+
+                default:
+                    break;
+
+            } 
+        }
     }
-    
+
     return i;
 }
 
@@ -488,8 +523,8 @@ OGRErr OGRLIBKMLLayer::GetExtent (
 
         return OGRERR_NONE;
     }
-
-    return OGRERR_FAILURE;
+    else
+        return OGRLayer::GetExtent(psExtent, bForce);
 }
 
 

@@ -1,8 +1,8 @@
-.TH "gdal_translate" 1 "Mon Oct 8 2012" "GDAL" \" -*- nroff -*-
+.TH "gdal_translate" 1 "Wed Apr 24 2013" "GDAL" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
-gdal_translate \- .TH "gdal_translate" 1 "Mon Oct 8 2012" "GDAL" \" -*- nroff -*-
+gdal_translate \- .TH "gdal_translate" 1 "Wed Apr 24 2013" "GDAL" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -18,7 +18,7 @@ gdal_translate [--help-general]
        [-of format] [-b band] [-mask band] [-expand {gray|rgb|rgba}]
        [-outsize xsize[%] ysize[%]]
        [-unscale] [-scale [src_min src_max [dst_min dst_max]]]
-       [-srcwin xoff yoff xsize ysize] [-projwin ulx uly lrx lry]
+       [-srcwin xoff yoff xsize ysize] [-projwin ulx uly lrx lry] [-epo] [-eco]
        [-a_srs srs_def] [-a_ullr ulx uly lrx lry] [-a_nodata value]
        [-gcp pixel line easting northing [elevation]]*
        [-mo "META-TAG=VALUE"]* [-q] [-sds]
@@ -33,15 +33,15 @@ The gdal_translate utility can be used to convert raster data between different 
 .IP "\fB\fB-ot\fP: \fItype\fP\fP" 1c
 For the output bands to be of the indicated data type. 
 .IP "\fB\fB-strict\fP:\fP" 1c
-Do'nt be forgiving of mismatches and lost data when translating to the output format. 
+Don't be forgiving of mismatches and lost data when translating to the output format. 
 .IP "\fB\fB-of\fP \fIformat\fP:\fP" 1c
 Select the output format. The default is GeoTIFF (GTiff). Use the short format name. 
 .IP "\fB\fB-b\fP \fIband\fP:\fP" 1c
-Select an input band \fIband\fP for output. Bands are numbered from 1. Multiple \fB-b\fP switches may be used to select a set of input bands to write to the output file, or to reorder bands. Starting with GDAL 1.8.0, \fIband\fP can also be set to 'mask,1' (or just 'mask') to mean the mask band of the 1st band of the input dataset. 
+Select an input band \fIband\fP for output. Bands are numbered from 1. Multiple \fB-b\fP switches may be used to select a set of input bands to write to the output file, or to reorder bands. Starting with GDAL 1.8.0, \fIband\fP can also be set to 'mask,1' (or just 'mask') to mean the mask band of the first band of the input dataset. 
 .IP "\fB\fB-mask\fP \fIband\fP:\fP" 1c
-(GDAL >= 1.8.0) Select an input band \fIband\fP to create output dataset mask band. Bands are numbered from 1. \fIband\fP can be set to 'none' to avoid copying the global mask of the input dataset if it exists. Otherwise it is copied by default ('auto'), unless the mask is an alpha channel, or if it is explicitely used to ben a regular band of the output dataset ('-b mask'). \fIband\fP can also be set to 'mask,1' (or just 'mask') to mean the mask band of the 1st band of the input dataset. 
+(GDAL >= 1.8.0) Select an input band \fIband\fP to create output dataset mask band. Bands are numbered from 1. \fIband\fP can be set to 'none' to avoid copying the global mask of the input dataset if it exists. Otherwise it is copied by default ('auto'), unless the mask is an alpha channel, or if it is explicitly used to be a regular band of the output dataset ('-b mask'). \fIband\fP can also be set to 'mask,1' (or just 'mask') to mean the mask band of the 1st band of the input dataset. 
 .IP "\fB\fB-expand\fP \fIgray|rgb|rgba\fP:\fP" 1c
-(From GDAL 1.6.0) To expose a dataset with 1 band with a color table as a dataset with 3 (RGB) or 4 (RGBA) bands. Usefull for output drivers such as JPEG, JPEG2000, MrSID, ECW that don't support color indexed datasets. The 'gray' value (from GDAL 1.7.0) enables to expand a dataset with a color table that only contains gray levels to a gray indexed dataset. 
+(From GDAL 1.6.0) To expose a dataset with 1 band with a color table as a dataset with 3 (RGB) or 4 (RGBA) bands. Useful for output drivers such as JPEG, JPEG2000, MrSID, ECW that don't support color indexed datasets. The 'gray' value (from GDAL 1.7.0) enables to expand a dataset with a color table that only contains gray levels to a gray indexed dataset. 
 .IP "\fB\fB-outsize\fP \fIxsize[%] ysize[%]\fP:\fP" 1c
 Set the size of the output file. Outsize is in pixels and lines unless '%' is attached in which case it is as a fraction of the input image size. 
 .IP "\fB\fB-scale\fP \fI[src_min src_max [dst_min dst_max]]\fP:\fP" 1c
@@ -52,6 +52,10 @@ Apply the scale/offset metadata for the bands to convert scaled values to unscal
 Selects a subwindow from the source image for copying based on pixel/line location.  
 .IP "\fB\fB-projwin\fP \fIulx uly lrx lry\fP:\fP" 1c
 Selects a subwindow from the source image for copying (like \fB-srcwin\fP) but with the corners given in georeferenced coordinates.  
+.IP "\fB\fB-epo\fP: (Error when Partially Outside)\fP" 1c
+(GDAL >= 1.10) If this option is set, \fB-srcwin\fP or \fB-projwin\fP values that falls partially outside the source raster extent will be considered as an error. The default behaviour starting with GDAL 1.10 is to accept such requests, when they were considered as an error before. 
+.IP "\fB\fB-eco\fP: (Error when Completely Outside)\fP" 1c
+(GDAL >= 1.10) Same as \fB-epo\fP, except that the criterion for erroring out is when the request falls completely outside the source raster extent. 
 .IP "\fB\fB-a_srs\fP \fIsrs_def\fP:\fP" 1c
 Override the projection for the output file. The \fIsrs_def\fP may be any of the usual GDAL/OGR forms, complete WKT, PROJ.4, EPSG:n or a file containing the WKT.  
 .IP "\fB\fB-a_ullr\fP \fIulx uly lrx lry\fP:\fP" 1c

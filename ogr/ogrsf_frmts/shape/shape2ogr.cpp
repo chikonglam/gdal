@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: shape2ogr.cpp 24687 2012-07-20 16:13:51Z rouault $
+ * $Id: shape2ogr.cpp 25900 2013-04-11 20:24:31Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implements translation of Shapefile shapes into OGR
@@ -31,7 +31,7 @@
 #include "ogrshape.h"
 #include "cpl_conv.h"
 
-CPL_CVSID("$Id: shape2ogr.cpp 24687 2012-07-20 16:13:51Z rouault $");
+CPL_CVSID("$Id: shape2ogr.cpp 25900 2013-04-11 20:24:31Z rouault $");
 
 /************************************************************************/
 /*                        RingStartEnd                                  */
@@ -1039,46 +1039,52 @@ OGRFeature *SHPReadOGRFeature( SHPHandle hSHP, DBFHandle hDBF,
 
     for( int iField = 0; iField < poDefn->GetFieldCount(); iField++ )
     {
-        if ( poDefn->GetFieldDefn(iField)->IsIgnored() )
-            continue;
-        
-        // Skip null fields.
-        if( DBFIsAttributeNULL( hDBF, iShape, iField ) )
+        OGRFieldDefn* poFieldDefn = poDefn->GetFieldDefn(iField);
+        if (poFieldDefn->IsIgnored() )
             continue;
 
-        switch( poDefn->GetFieldDefn(iField)->GetType() )
+        switch( poFieldDefn->GetType() )
         {
           case OFTString:
           {
               const char *pszFieldVal = 
                   DBFReadStringAttribute( hDBF, iShape, iField );
-              if( strlen(pszSHPEncoding) > 0 )
+              if( pszFieldVal != NULL && pszFieldVal[0] != '\0' )
               {
-                  char *pszUTF8Field = CPLRecode( pszFieldVal, 
-                                                  pszSHPEncoding, CPL_ENC_UTF8);
-                  poFeature->SetField( iField, pszUTF8Field );
-                  CPLFree( pszUTF8Field );
+                if( pszSHPEncoding[0] != '\0' )
+                {
+                    char *pszUTF8Field = CPLRecode( pszFieldVal,
+                                                    pszSHPEncoding, CPL_ENC_UTF8);
+                    poFeature->SetField( iField, pszUTF8Field );
+                    CPLFree( pszUTF8Field );
+                }
+                else
+                    poFeature->SetField( iField, pszFieldVal );
               }
-              else
-                  poFeature->SetField( iField, pszFieldVal );
           }
           break;
 
           case OFTInteger:
-            poFeature->SetField( iField,
-                                 DBFReadIntegerAttribute( hDBF, iShape,
-                                                          iField ) );
+
+            if( !DBFIsAttributeNULL( hDBF, iShape, iField ) )
+                poFeature->SetField( iField,
+                                    DBFReadIntegerAttribute( hDBF, iShape,
+                                                             iField ) );
             break;
 
           case OFTReal:
-            poFeature->SetField( iField,
-                                 DBFReadDoubleAttribute( hDBF, iShape,
-                                                         iField ) );
+            if( !DBFIsAttributeNULL( hDBF, iShape, iField ) )
+                poFeature->SetField( iField,
+                                    DBFReadDoubleAttribute( hDBF, iShape,
+                                                            iField ) );
             break;
 
           case OFTDate:
           {
               OGRField sFld;
+              if( DBFIsAttributeNULL( hDBF, iShape, iField ) )
+                  continue;
+
               const char* pszDateValue = 
                   DBFReadStringAttribute(hDBF,iShape,iField);
 
@@ -1118,6 +1124,40 @@ OGRFeature *SHPReadOGRFeature( SHPHandle hSHP, DBFHandle hDBF,
         poFeature->SetFID( iShape );
 
     return( poFeature );
+}
+
+/************************************************************************/
+/*                             GrowField()                              */
+/************************************************************************/
+
+static OGRErr GrowField(DBFHandle hDBF, int iField, OGRFieldDefn* poFieldDefn,
+                        int nNewSize)
+{
+    char            szFieldName[20];
+    int             nOriWidth, nPrecision;
+    char            chNativeType;
+    DBFFieldType    eDBFType;
+
+    chNativeType = DBFGetNativeFieldType( hDBF, iField );
+    eDBFType = DBFGetFieldInfo( hDBF, iField, szFieldName,
+                                &nOriWidth, &nPrecision );
+
+    CPLDebug("SHAPE", "Extending field %d (%s) from %d to %d characters",
+                iField, poFieldDefn->GetNameRef(), nOriWidth, nNewSize);
+
+    if ( !DBFAlterFieldDefn( hDBF, iField, szFieldName,
+                             chNativeType, nNewSize, nPrecision ) )
+    {
+        CPLError(CE_Failure, CPLE_AppDefined,
+                    "Extending field %d (%s) from %d to %d characters failed",
+                    iField, poFieldDefn->GetNameRef(), nOriWidth, nNewSize);
+        return OGRERR_FAILURE;
+    }
+    else
+    {
+        poFieldDefn->SetWidth(nNewSize);
+        return OGRERR_NONE;
+    }
 }
 
 /************************************************************************/
@@ -1214,34 +1254,76 @@ OGRErr SHPWriteOGRFeature( SHPHandle hSHP, DBFHandle hDBF,
             continue;
         }
 
-        int nRet = FALSE;
+        OGRFieldDefn* poFieldDefn = poDefn->GetFieldDefn(iField);
 
-        switch( poDefn->GetFieldDefn(iField)->GetType() )
+        switch( poFieldDefn->GetType() )
         {
           case OFTString:
           {
               const char *pszStr = poFeature->GetFieldAsString(iField);
+              char *pszEncoded = NULL;
               if( strlen(pszSHPEncoding) > 0 )
               {
-                  char *pszEncoded = 
+                  pszEncoded =
                       CPLRecode( pszStr, CPL_ENC_UTF8, pszSHPEncoding );
-                  nRet = DBFWriteStringAttribute( hDBF, poFeature->GetFID(), iField,
-                                           pszEncoded );
-                  CPLFree( pszEncoded );
+                  pszStr = pszEncoded;
               }
-              else
-                  nRet = DBFWriteStringAttribute( hDBF, poFeature->GetFID(), iField, 
-                                           pszStr );
+
+              int nStrLen = (int) strlen(pszStr);
+              if (nStrLen > OGR_DBF_MAX_FIELD_WIDTH)
+              {
+                if (!(*pbTruncationWarningEmitted))
+                {
+                    *pbTruncationWarningEmitted = TRUE;
+                    CPLError(CE_Warning, CPLE_AppDefined,
+                            "Value '%s' of field %s has been truncated to %d characters.\n"
+                            "This warning will not be emitted any more for that layer.",
+                            poFeature->GetFieldAsString(iField),
+                            poFieldDefn->GetNameRef(),
+                            OGR_DBF_MAX_FIELD_WIDTH);
+                }
+                nStrLen = OGR_DBF_MAX_FIELD_WIDTH;
+              }
+
+              if ( nStrLen > poFieldDefn->GetWidth() )
+              {
+                  if (GrowField(hDBF, iField, poFieldDefn, nStrLen) != OGRERR_NONE)
+                  {
+                      CPLFree( pszEncoded );
+                      return OGRERR_FAILURE;
+                  }
+              }
+
+              DBFWriteStringAttribute( hDBF, poFeature->GetFID(), iField,
+                                              pszStr );
+
+              CPLFree( pszEncoded );
           }
           break;
 
           case OFTInteger:
-            nRet = DBFWriteIntegerAttribute( hDBF, poFeature->GetFID(), iField, 
-                                      poFeature->GetFieldAsInteger(iField) );
+          {
+              char szFormat[20];
+              char szValue[20];
+              int nFieldWidth = poFieldDefn->GetWidth();
+              sprintf(szFormat, "%%%dd", nFieldWidth);
+              sprintf(szValue, szFormat, poFeature->GetFieldAsInteger(iField) );
+              int nStrLen = strlen(szValue);
+              if( nStrLen > nFieldWidth )
+              {
+                  if (GrowField(hDBF, iField, poFieldDefn, nStrLen) != OGRERR_NONE)
+                  {
+                      return OGRERR_FAILURE;
+                  }
+              }
+
+              DBFWriteAttributeDirectly( hDBF, poFeature->GetFID(), iField, 
+                                                szValue );
             break;
+          }
 
           case OFTReal:
-            nRet = DBFWriteDoubleAttribute( hDBF, poFeature->GetFID(), iField, 
+            DBFWriteDoubleAttribute( hDBF, poFeature->GetFID(), iField, 
                                      poFeature->GetFieldAsDouble(iField) );
             break;
 
@@ -1252,7 +1334,13 @@ OGRErr SHPWriteOGRFeature( SHPHandle hSHP, DBFHandle hDBF,
               if( poFeature->GetFieldAsDateTime( iField, &nYear, &nMonth, &nDay,
                                                  NULL, NULL, NULL, NULL ) )
               {
-                  nRet = DBFWriteIntegerAttribute( hDBF, poFeature->GetFID(), iField, 
+                  if( nYear < 0 || nYear > 9999 )
+                  {
+                      CPLError(CE_Warning, CPLE_NotSupported,
+                               "Year < 0 or > 9999 is not a valid date for shapefile");
+                  }
+                  else
+                      DBFWriteIntegerAttribute( hDBF, poFeature->GetFID(), iField, 
                                             nYear*10000 + nMonth*100 + nDay );
               }
           }
@@ -1265,17 +1353,6 @@ OGRErr SHPWriteOGRFeature( SHPHandle hSHP, DBFHandle hDBF,
           }
         }
 
-        if (!nRet && !(*pbTruncationWarningEmitted) &&
-            strstr(CPLGetLastErrorMsg(), "Failure writing DBF") == NULL)
-        {
-            *pbTruncationWarningEmitted = TRUE;
-            CPLError(CE_Warning, CPLE_AppDefined,
-                     "Value '%s' of field %s has been truncated to %d characters.\n"
-                     "This warning will not be emitted any more for that layer.",
-                     poFeature->GetFieldAsString(iField),
-                     poDefn->GetFieldDefn(iField)->GetNameRef(),
-                     poDefn->GetFieldDefn(iField)->GetWidth());
-        }
     }
 
     return OGRERR_NONE;

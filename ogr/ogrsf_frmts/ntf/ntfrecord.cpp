@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ntfrecord.cpp 10645 2007-01-18 02:22:39Z warmerdam $
+ * $Id: ntfrecord.cpp 25504 2013-01-14 22:18:55Z rouault $
  *
  * Project:  NTF Translator
  * Purpose:  NTFRecord class implementation.
@@ -30,7 +30,7 @@
 #include "ntf.h"
 #include "cpl_conv.h"
 
-CPL_CVSID("$Id: ntfrecord.cpp 10645 2007-01-18 02:22:39Z warmerdam $");
+CPL_CVSID("$Id: ntfrecord.cpp 25504 2013-01-14 22:18:55Z rouault $");
 
 static int nFieldBufSize = 0;
 static char *pszFieldBuf = NULL;
@@ -80,15 +80,35 @@ NTFRecord::NTFRecord( FILE * fp )
         if( pszData == NULL )
         {
             nLength = nNewLength - 2;
-            pszData = (char *) CPLMalloc(nLength+1);
+            pszData = (char *) VSIMalloc(nLength+1);
+            if (pszData == NULL)
+            {
+                CPLError( CE_Failure, CPLE_OutOfMemory, "Out of memory");
+                return;
+            }
             memcpy( pszData, szLine, nLength );
             pszData[nLength] = '\0';
         }
         else
         {
-            pszData = (char *) CPLRealloc(pszData,nLength+(nNewLength-4)+1);
-            
-            CPLAssert( EQUALN(szLine,"00",2) );
+            if( !EQUALN(szLine,"00",2) )
+            {
+                CPLError( CE_Failure, CPLE_AppDefined, "Invalid line");
+                VSIFree(pszData);
+                pszData = NULL;
+                return;
+            }
+
+            char* pszNewData = (char *) VSIRealloc(pszData,nLength+(nNewLength-4)+1);
+            if (pszNewData == NULL)
+            {
+                CPLError( CE_Failure, CPLE_OutOfMemory, "Out of memory");
+                VSIFree(pszData);
+                pszData = NULL;
+                return;
+            }
+
+            pszData = pszNewData;
             memcpy( pszData+nLength, szLine+2, nNewLength-4 );
             nLength += nNewLength-4;
             pszData[nLength] = '\0';

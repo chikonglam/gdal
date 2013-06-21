@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: hfafield.cpp 24045 2012-03-01 18:46:25Z warmerdam $
+ * $Id: hfafield.cpp 24044 2012-03-01 18:45:30Z warmerdam $
  *
  * Project:  Erdas Imagine (.img) Translator
  * Purpose:  Implementation of the HFAField class for managing information
@@ -30,7 +30,7 @@
 
 #include "hfa_p.h"
 
-CPL_CVSID("$Id: hfafield.cpp 24045 2012-03-01 18:46:25Z warmerdam $");
+CPL_CVSID("$Id: hfafield.cpp 24044 2012-03-01 18:45:30Z warmerdam $");
 
 #define MAX_ENTRY_REPORT   16
                            

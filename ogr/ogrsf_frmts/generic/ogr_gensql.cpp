@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_gensql.cpp 24290 2012-04-22 09:57:08Z rouault $
+ * $Id: ogr_gensql.cpp 24289 2012-04-22 09:53:41Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implements OGRGenSQLResultsLayer.
@@ -33,7 +33,7 @@
 #include "cpl_string.h"
 #include <vector>
 
-CPL_CVSID("$Id: ogr_gensql.cpp 24290 2012-04-22 09:57:08Z rouault $");
+CPL_CVSID("$Id: ogr_gensql.cpp 24289 2012-04-22 09:53:41Z rouault $");
 
 
 /************************************************************************/
@@ -81,6 +81,7 @@ OGRGenSQLResultsLayer::OGRGenSQLResultsLayer( OGRDataSource *poSrcDS,
     poDefn = NULL;
     poSummaryFeature = NULL;
     panFIDIndex = NULL;
+    bOrderByValid = FALSE;
     nIndexSize = 0;
     nNextIndexFID = 0;
     nExtraDSCount = 0;
@@ -302,13 +303,6 @@ OGRGenSQLResultsLayer::OGRGenSQLResultsLayer( OGRDataSource *poSrcDS,
 
     poDefn->SetGeomType( poSrcLayer->GetLayerDefn()->GetGeomType() );
 
-/* -------------------------------------------------------------------- */
-/*      If an ORDER BY is in effect, apply it now.                      */
-/* -------------------------------------------------------------------- */
-    if( psSelectInfo->order_specs > 0 
-        && psSelectInfo->query_mode == SWQM_RECORDSET )
-        CreateOrderByIndex();
-
     ResetReading();
 
     FindAndSetIgnoredFields();
@@ -444,6 +438,8 @@ OGRErr OGRGenSQLResultsLayer::SetNextByIndex( long nIndex )
 {
     swq_select *psSelectInfo = (swq_select *) pSelectInfo;
 
+    CreateOrderByIndex();
+
     if( psSelectInfo->query_mode == SWQM_SUMMARY_RECORD 
         || psSelectInfo->query_mode == SWQM_DISTINCT_LIST 
         || panFIDIndex != NULL )
@@ -496,6 +492,8 @@ int OGRGenSQLResultsLayer::GetFeatureCount( int bForce )
 
 {
     swq_select *psSelectInfo = (swq_select *) pSelectInfo;
+
+    CreateOrderByIndex();
 
     if( psSelectInfo->query_mode == SWQM_DISTINCT_LIST )
     {
@@ -1077,6 +1075,8 @@ OGRFeature *OGRGenSQLResultsLayer::GetNextFeature()
 {
     swq_select *psSelectInfo = (swq_select *) pSelectInfo;
 
+    CreateOrderByIndex();
+
 /* -------------------------------------------------------------------- */
 /*      Handle summary sets.                                            */
 /* -------------------------------------------------------------------- */
@@ -1125,6 +1125,8 @@ OGRFeature *OGRGenSQLResultsLayer::GetFeature( long nFID )
 
 {
     swq_select *psSelectInfo = (swq_select *) pSelectInfo;
+
+    CreateOrderByIndex();
 
 /* -------------------------------------------------------------------- */
 /*      Handle request for summary record.                              */
@@ -1236,42 +1238,68 @@ void OGRGenSQLResultsLayer::CreateOrderByIndex()
     int      i, nOrderItems = psSelectInfo->order_specs;
     long     *panFIDList;
 
-    if( nOrderItems == 0 )
+    if( ! (psSelectInfo->order_specs > 0
+           && psSelectInfo->query_mode == SWQM_RECORDSET
+           && nOrderItems != 0 ) )
         return;
+
+    if( bOrderByValid )
+        return;
+
+    bOrderByValid = TRUE;
 
     ResetReading();
 
 /* -------------------------------------------------------------------- */
 /*      Allocate set of key values, and the output index.               */
 /* -------------------------------------------------------------------- */
-    nIndexSize = poSrcLayer->GetFeatureCount();
+    int nFeaturesAlloc = 100;
 
+    panFIDIndex = NULL;
     pasIndexFields = (OGRField *) 
-        CPLCalloc(sizeof(OGRField), nOrderItems * nIndexSize);
-    panFIDIndex = (long *) CPLCalloc(sizeof(long),nIndexSize);
-    panFIDList = (long *) CPLCalloc(sizeof(long),nIndexSize);
-
-    for( i = 0; i < nIndexSize; i++ )
-        panFIDIndex[i] = i;
+        CPLCalloc(sizeof(OGRField), nOrderItems * nFeaturesAlloc);
+    panFIDList = (long *) CPLMalloc(sizeof(long) * nFeaturesAlloc);
 
 /* -------------------------------------------------------------------- */
 /*      Read in all the key values.                                     */
 /* -------------------------------------------------------------------- */
     OGRFeature *poSrcFeat;
-    int         iFeature = 0;
+    nIndexSize = 0;
 
     while( (poSrcFeat = poSrcLayer->GetNextFeature()) != NULL )
     {
         int iKey;
 
-        if (iFeature == nIndexSize)
+        if (nIndexSize == nFeaturesAlloc)
         {
-            /* Should not happen theoretically. GetFeatureCount() may sometimes */
-            /* overestimate the number of features, but should *never* under-estimate it */
-            CPLError(CE_Failure, CPLE_AppDefined,
-                     "GetFeatureCount() reported less features than there are when iterating over the layer. "
-                     "Not all features will be listed.");
-            break;
+            int nNewFeaturesAlloc = (nFeaturesAlloc * 4) / 3;
+            OGRField* pasNewIndexFields = (OGRField *)
+                VSIRealloc(pasIndexFields,
+                           sizeof(OGRField) * nOrderItems * nNewFeaturesAlloc);
+            if (pasNewIndexFields == NULL)
+            {
+                VSIFree(pasIndexFields);
+                VSIFree(panFIDList);
+                nIndexSize = 0;
+                return;
+            }
+            pasIndexFields = pasNewIndexFields;
+
+            long* panNewFIDList = (long *)
+                VSIRealloc(panFIDList, sizeof(long) *  nNewFeaturesAlloc);
+            if (panNewFIDList == NULL)
+            {
+                VSIFree(pasIndexFields);
+                VSIFree(panFIDList);
+                nIndexSize = 0;
+                return;
+            }
+            panFIDList = panNewFIDList;
+
+            memset(pasIndexFields + nFeaturesAlloc, 0,
+                   sizeof(OGRField) * nOrderItems * (nNewFeaturesAlloc - nFeaturesAlloc));
+
+            nFeaturesAlloc = nNewFeaturesAlloc;
         }
 
         for( iKey = 0; iKey < nOrderItems; iKey++ )
@@ -1280,7 +1308,7 @@ void OGRGenSQLResultsLayer::CreateOrderByIndex()
             OGRFieldDefn *poFDefn;
             OGRField *psSrcField, *psDstField;
 
-            psDstField = pasIndexFields + iFeature * nOrderItems + iKey;
+            psDstField = pasIndexFields + nIndexSize * nOrderItems + iKey;
 
             if ( psKeyDef->field_index >= iFIDFieldIndex)
             {
@@ -1324,16 +1352,20 @@ void OGRGenSQLResultsLayer::CreateOrderByIndex()
             }
         }
 
-        panFIDList[iFeature] = poSrcFeat->GetFID();
+        panFIDList[nIndexSize] = poSrcFeat->GetFID();
         delete poSrcFeat;
 
-        iFeature++;
+        nIndexSize++;
     }
 
-    /* Adjust the number of features in case GetFeatureCount() has */
-    /* overestimated the number of features, which may be the case */
-    /* for a shapefile with deleted records */
-    nIndexSize = iFeature;
+    //CPLDebug("GenSQL", "CreateOrderByIndex() = %d features", nIndexSize);
+
+/* -------------------------------------------------------------------- */
+/*      Initialize panFIDIndex                                          */
+/* -------------------------------------------------------------------- */
+    panFIDIndex = (long *) CPLMalloc(sizeof(long) * nIndexSize);
+    for( i = 0; i < nIndexSize; i++ )
+        panFIDIndex[i] = i;
 
 /* -------------------------------------------------------------------- */
 /*      Quick sort the records.                                         */
@@ -1343,8 +1375,13 @@ void OGRGenSQLResultsLayer::CreateOrderByIndex()
 /* -------------------------------------------------------------------- */
 /*      Rework the FID map to map to real FIDs.                         */
 /* -------------------------------------------------------------------- */
+    int bAlreadySorted = TRUE;
     for( i = 0; i < nIndexSize; i++ )
+    {
+        if (panFIDIndex[i] != i)
+            bAlreadySorted = FALSE;
         panFIDIndex[i] = panFIDList[panFIDIndex[i]];
+    }
 
     CPLFree( panFIDList );
 
@@ -1388,6 +1425,21 @@ void OGRGenSQLResultsLayer::CreateOrderByIndex()
     }
 
     CPLFree( pasIndexFields );
+
+    /* If it is already sorted, then free than panFIDIndex array */
+    /* so that GetNextFeature() can call a sequential GetNextFeature() */
+    /* on the source array. Very usefull for layers where random access */
+    /* is slow. */
+    /* Use case: the GML result of a WFS GetFeature with a SORTBY */
+    if (bAlreadySorted)
+    {
+        CPLFree( panFIDIndex );
+        panFIDIndex = NULL;
+
+        nIndexSize = 0;
+    }
+
+    ResetReading();
 }
 
 /************************************************************************/
@@ -1637,4 +1689,37 @@ void OGRGenSQLResultsLayer::FindAndSetIgnoredFields()
     }
 
     CPLHashSetDestroy(hSet);
+}
+
+/************************************************************************/
+/*                       InvalidateOrderByIndex()                       */
+/************************************************************************/
+
+void OGRGenSQLResultsLayer::InvalidateOrderByIndex()
+{
+    CPLFree( panFIDIndex );
+    panFIDIndex = NULL;
+
+    nIndexSize = 0;
+    bOrderByValid = FALSE;
+}
+
+/************************************************************************/
+/*                       SetAttributeFilter()                           */
+/************************************************************************/
+
+OGRErr OGRGenSQLResultsLayer::SetAttributeFilter( const char* pszAttributeFilter )
+{
+    InvalidateOrderByIndex();
+    return OGRLayer::SetAttributeFilter(pszAttributeFilter);
+}
+
+/************************************************************************/
+/*                       SetSpatialFilter()                             */
+/************************************************************************/
+
+void OGRGenSQLResultsLayer::SetSpatialFilter( OGRGeometry * poGeom )
+{
+    InvalidateOrderByIndex();
+    OGRLayer::SetSpatialFilter(poGeom);
 }

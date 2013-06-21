@@ -1,8 +1,8 @@
-.TH "gdallocationinfo" 1 "Mon Oct 8 2012" "GDAL" \" -*- nroff -*-
+.TH "gdallocationinfo" 1 "Wed Apr 24 2013" "GDAL" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
-gdallocationinfo \- .TH "gdallocationinfo" 1 "Mon Oct 8 2012" "GDAL" \" -*- nroff -*-
+gdallocationinfo \- .TH "gdallocationinfo" 1 "Wed Apr 24 2013" "GDAL" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -14,7 +14,8 @@ gdallocationinfo \- raster query tool
 .nf
 
 Usage: gdallocationinfo [--help-general] [-xml] [-lifonly] [-valonly]
-                        [-b band]* [-l_srs srs_def] [-geoloc] [-wgs84]
+                        [-b band]* [-overview overview_level]
+                        [-l_srs srs_def] [-geoloc] [-wgs84]
                         srcfile [x y]
 .fi
 .PP
@@ -33,6 +34,9 @@ The only output is the pixel values of the selected pixel on each of the selecte
 .PP
 .IP "\fB\fB-b\fP \fIband\fP: \fP" 1c
 Selects a band to query. Multiple bands can be listed. By default all bands are queried.
+.PP
+.IP "\fB\fB-overview\fP \fIoverview_level\fP: \fP" 1c
+Query the (overview_level)th overview (overview_level=1 is the 1st overview), instead of the base band. Note that the x,y location (if the coordinate system is pixel/line) must still be given with respect to the base band.
 .PP
 .IP "\fB\fB-l_srs\fP \fIsrs def\fP: \fP" 1c
 The coordinate system of the input x, y location.

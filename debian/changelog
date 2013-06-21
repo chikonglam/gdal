@@ -1,18 +1,41 @@
-gdal (1.9.2-1) experimental; urgency=low
+gdal (1.10.0-0~exp1) experimental; urgency=low
+
+  * Moved to new LIBKML driver instead of the old KML one. It has a much
+    better support for complex KML files. (closes: #685695)
+  * Merged NMU 1.9.0-3.1:
+    Fix "FTBFS when ruby1.9.1 installed": force building with ruby1.8:
+    set variables in debian/rules and new patch force-ruby1.8 to ruby1.8.
+    Thanks to Cédric Boutillier for reviewing and testing this patch.
+    (closes: #684433)
+  * Added libarmadillo support.
+  * Added TIFF/GEOTIFF symbols rename to definitively solve problem of
+    symbol collisions for programs that both links geotiff/tiff libraries.
+    This choice implies that the API does not include anymore any *tiff
+    related functions: changed API declaration.
+  * Policy bumped to 3.9.4. No changes required.
+  * New upstream version with many fixes. All patches refreshed.
+  	(closes: #679887)
+  * Added a Breaks: libgdal1-1.6.0. I don't know if it still makes sense, 
+    but for sure it does not hurt. (closes: #677403)
+  * Now debian/rules should be parallel-safe for making. Thanks Gregor Hermann
+    for the patch. (closes: #686014)
+  * Now it depends explicitly on epsilon >= 0.9.1 by upstream.
+    (closes: #672738)
+
+ -- Francesco Paolo Lovergine <frankie@debian.org>  Sun, 04 Apr 2013 11:39:57 +0100
+
+gdal (1.9.2-1~exp2) experimental; urgency=low
+
+  * Reintroduced internal symbols hiding for better compatibility 
+    against mixing external geotiff and gdal. See Orfeotoolbox case:
+    See #558733 again.
+
+ -- Francesco Paolo Lovergine <frankie@debian.org>  Fri, 29 Mar 2013 14:07:43 +0100
+
+gdal (1.9.2-1~exp1) experimental; urgency=low
 
   [ Jerome Villeneuve Larouche ]
-  * New upstream release.
-
-  [ Francesco Paolo Lovergine ]
-  * Fixed changelog. 
-  * Merged NMU from 1.9.0-3.1
-
- -- Jerome Villeneuve Larouche <jlarouche@mapgears.com>  Thu, 01 Nov 2012 18:52:53 +0000
-
-gdal (1.9.1-2) UNRELEASED; urgency=low
-
-  [ Jerome Villeneuve Larouche ]
-  * New upstream release.
+  * New upstream release
 
   [ Francesco Paolo Lovergine ]
   * Reintroducing libgdal1-dev as a transitional package to allow r-deps
@@ -20,8 +43,11 @@ gdal (1.9.1-2) UNRELEASED; urgency=low
   * Removed old dependency on libcurl3-dev for libgdal-dev and added a 
     preferred dep on libcurl4-gnutls-dev to make lintian happy.
   * Added build-{arch|indep} targets in debian/rules.
+  * Fixed a bit debian/changelog for latest changes. 
+  * Now using libxerces-c-dev as dependency for current library version.
+  * Policy bumped to 3.9.4. No special changes required.
 
- -- Jerome Villeneuve Larouche <jlarouche@mapgears.com>  Fri, 25 May 2012 13:04:34 +0000
+ -- Francesco Paolo Lovergine <frankie@debian.org>  Fri, 29 Mar 2013 10:38:40 +0100
 
 gdal (1.9.0-1) unstable; urgency=low
 

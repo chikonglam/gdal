@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogravce00layer.cpp 10645 2007-01-18 02:22:39Z warmerdam $
+ * $Id: ogravce00layer.cpp 23907 2012-02-04 23:04:59Z rouault $
  *
  * Project:  OGR
  * Purpose:  Implements OGRAVCE00Layer class.
@@ -34,7 +34,7 @@
 #include "cpl_conv.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: ogravce00layer.cpp 10645 2007-01-18 02:22:39Z warmerdam $");
+CPL_CVSID("$Id: ogravce00layer.cpp 23907 2012-02-04 23:04:59Z rouault $");
 
 /************************************************************************/
 /*                           OGRAVCE00Layer()                           */
@@ -524,6 +524,9 @@ int OGRAVCE00Layer::AppendTableFields( OGRFeature *poFeature )
 
 int OGRAVCE00Layer::GetFeatureCount(int bForce)
 {
+    if (m_poAttrQuery != NULL || m_poFilterGeom != NULL)
+        return OGRAVCLayer::GetFeatureCount(bForce);
+
     if (bForce && nFeatureCount < 0)
     {
         if (psSection->nFeatureCount < 0)

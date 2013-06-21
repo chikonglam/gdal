@@ -1,8 +1,8 @@
 Index: gdal/configure
 ===================================================================
---- gdal.orig/configure	2012-02-20 11:36:33.000000000 +0100
-+++ gdal/configure	2012-02-20 11:41:37.000000000 +0100
-@@ -24425,7 +24425,7 @@
+--- gdal.orig/configure	2013-06-20 10:05:31.000000000 +0200
++++ gdal/configure	2013-06-20 10:05:31.000000000 +0200
+@@ -24910,7 +24910,7 @@
    $as_echo_n "(cached) " >&6
  else
    ac_check_lib_save_LIBS=$LIBS
@@ -11,7 +11,7 @@ Index: gdal/configure
  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
  /* end confdefs.h.  */
  
-@@ -24463,7 +24463,7 @@
+@@ -24948,7 +24948,7 @@
  
              if test "$SPATIALITE_INIT_FOUND" = "yes"; then
                  HAVE_SPATIALITE=yes
@@ -20,7 +20,7 @@ Index: gdal/configure
                  HAVE_SQLITE3=yes
              fi
          else
-@@ -24478,7 +24478,7 @@
+@@ -24963,7 +24963,7 @@
    $as_echo_n "(cached) " >&6
  else
    ac_check_lib_save_LIBS=$LIBS
@@ -29,7 +29,7 @@ Index: gdal/configure
  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
  /* end confdefs.h.  */
  
-@@ -24528,7 +24528,7 @@
+@@ -25013,7 +25013,7 @@
          # as there's a spatialite.h file in it, which we don't want to include.
          # We want to include include/spatialite.h instead !
          SQLITE3_CFLAGS="-I$with_spatialite/include"

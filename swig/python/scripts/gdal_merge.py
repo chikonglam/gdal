@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 ###############################################################################
-# $Id: gdal_merge.py 24065 2012-03-04 00:35:26Z warmerdam $
+# $Id: gdal_merge.py 24064 2012-03-04 00:34:19Z warmerdam $
 #
 # Project:  InSAR Peppers
 # Purpose:  Module to extract data from many rasters into one output.

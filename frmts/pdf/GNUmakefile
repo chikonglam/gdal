@@ -1,10 +1,10 @@
 
-OBJ	=	pdfdataset.o pdfio.o pdfobject.o
+OBJ	=	pdfdataset.o pdfio.o pdfobject.o pdfcreatecopy.o
 
 include ../../GDALmake.opt
 
 ifeq ($(HAVE_POPPLER),yes)
-CPPFLAGS +=  -DUSE_POPPLER
+CPPFLAGS +=  -DHAVE_POPPLER
 endif
 
 ifeq ($(POPPLER_HAS_OPTCONTENT),yes)
@@ -19,8 +19,17 @@ ifeq ($(POPPLER_0_20_OR_LATER),yes)
 CPPFLAGS +=  -DPOPPLER_0_20_OR_LATER
 endif
 
+ifeq ($(POPPLER_0_23_OR_LATER),yes)
+CPPFLAGS +=  -DPOPPLER_0_23_OR_LATER
+endif
 
-CPPFLAGS	:=	$(GDAL_INCLUDE) $(CPPFLAGS) $(POPPLER_INC) $(PODOFO_INC)
+ifeq ($(HAVE_PODOFO),yes)
+CPPFLAGS +=  -DHAVE_PODOFO
+endif
+
+$(O_OBJ):       pdfobject.h pdfio.h pdfcreatecopy.h
+
+CPPFLAGS	:=	$(GDAL_INCLUDE) $(CPPFLAGS) $(POPPLER_INC) $(PODOFO_INC) -I..
 
 default:	$(OBJ:.o=.$(OBJ_EXT))
 

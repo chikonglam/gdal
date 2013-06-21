@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrpgtablelayer.cpp 23943 2012-02-11 13:55:37Z rouault $
+ * $Id: ogrpgtablelayer.cpp 25366 2012-12-27 18:38:53Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implements OGRPGTableLayer class, access to an existing table.
@@ -34,11 +34,13 @@
 
 #define PQexec this_is_an_error
 
-CPL_CVSID("$Id: ogrpgtablelayer.cpp 23943 2012-02-11 13:55:37Z rouault $");
+CPL_CVSID("$Id: ogrpgtablelayer.cpp 25366 2012-12-27 18:38:53Z rouault $");
 
 #define USE_COPY_UNSET  -10
 static CPLString OGRPGEscapeStringList(PGconn *hPGConn,
                                        char** papszItems, int bForInsertOrUpdate);
+
+#define UNSUPPORTED_OP_READ_ONLY "%s : unsupported operation on a read-only datasource."
 
 /************************************************************************/
 /*                          OGRPGTableLayer()                           */
@@ -70,6 +72,7 @@ OGRPGTableLayer::OGRPGTableLayer( OGRPGDataSource *poDSIn,
     bPreservePrecision = TRUE;
     bCopyActive = FALSE;
     bUseCopy = USE_COPY_UNSET;  // unknown
+    bFIDColumnInCopyFields = FALSE;
 
     pszTableName = CPLStrdup( pszTableNameIn );
     if (pszGeomColumnIn)
@@ -117,6 +120,8 @@ OGRPGTableLayer::OGRPGTableLayer( OGRPGDataSource *poDSIn,
     }
 
     osPrimaryKey = CPLGetConfigOption( "PGSQL_OGR_FID", "ogc_fid" );
+
+    papszOverrideColumnTypes = NULL;
 }
 
 //************************************************************************/
@@ -131,6 +136,7 @@ OGRPGTableLayer::~OGRPGTableLayer()
     CPLFree( pszTableName );
     CPLFree( pszSqlGeomParentTableName );
     CPLFree( pszSchemaName );
+    CSLDestroy( papszOverrideColumnTypes );
 }
 
 /************************************************************************/
@@ -204,7 +210,7 @@ OGRFeatureDefn *OGRPGTableLayer::ReadTableDefinition()
     else
         pszTypnameEqualsAnyClause = "ANY(ARRAY['int2','int4','serial'])";
 
-    CPLString osEscapedTableNameSingleQuote = OGRPGEscapeString(hPGConn, pszTableName, -1, "");
+    CPLString osEscapedTableNameSingleQuote = OGRPGEscapeString(hPGConn, pszTableName);
     const char* pszEscapedTableNameSingleQuote = osEscapedTableNameSingleQuote.c_str();
 
     /* See #1889 for why we don't use 'AND a.attnum = ANY(i.indkey)' */
@@ -524,7 +530,7 @@ OGRFeatureDefn *OGRPGTableLayer::ReadTableDefinition()
         else
         {
             CPLString osEscapedTableNameSingleQuote = OGRPGEscapeString(hPGConn,
-                    (pszSqlGeomParentTableName) ? pszSqlGeomParentTableName : pszTableName, -1, "");
+                    (pszSqlGeomParentTableName) ? pszSqlGeomParentTableName : pszTableName);
             const char* pszEscapedTableNameSingleQuote = osEscapedTableNameSingleQuote.c_str();
 
             /* Fetch the name of the parent table */
@@ -629,7 +635,7 @@ void OGRPGTableLayer::BuildWhere()
         {
             osWHERE.Printf( "WHERE %s ", osQuery.c_str()  );
         }
-        else	
+        else
         {
             osWHERE += "AND (";
             osWHERE += osQuery;
@@ -862,6 +868,14 @@ OGRErr OGRPGTableLayer::DeleteFeature( long nFID )
 
     GetLayerDefn();
 
+    if( !bUpdateAccess )
+    {
+        CPLError( CE_Failure, CPLE_NotSupported,
+                  UNSUPPORTED_OP_READ_ONLY,
+                  "DeleteFeature");
+        return OGRERR_FAILURE;
+    }
+
 /* -------------------------------------------------------------------- */
 /*      We can only delete features if we have a well defined FID       */
 /*      column to target.                                               */
@@ -1049,6 +1063,7 @@ void OGRPGTableLayer::AppendFieldValue(PGconn *hPGConn, CPLString& osCommand,
     {
         osCommand += OGRPGEscapeString(hPGConn, pszStrValue,
                                         poFeatureDefn->GetFieldDefn(i)->GetWidth(),
+                                        poFeatureDefn->GetName(),
                                         poFeatureDefn->GetFieldDefn(i)->GetNameRef() );
     }
     else
@@ -1074,6 +1089,14 @@ OGRErr OGRPGTableLayer::SetFeature( OGRFeature *poFeature )
     OGRErr              eErr = OGRERR_FAILURE;
 
     GetLayerDefn();
+
+    if( !bUpdateAccess )
+    {
+        CPLError( CE_Failure, CPLE_NotSupported,
+                  UNSUPPORTED_OP_READ_ONLY,
+                  "SetFeature");
+        return OGRERR_FAILURE;
+    }
 
     if( NULL == poFeature )
     {
@@ -1258,6 +1281,14 @@ OGRErr OGRPGTableLayer::CreateFeature( OGRFeature *poFeature )
 {
     GetLayerDefn();
 
+    if( !bUpdateAccess )
+    {
+        CPLError( CE_Failure, CPLE_NotSupported,
+                  UNSUPPORTED_OP_READ_ONLY,
+                  "CreateFeature");
+        return OGRERR_FAILURE;
+    }
+
     if( NULL == poFeature )
     {
         CPLError( CE_Failure, CPLE_AppDefined,
@@ -1276,7 +1307,13 @@ OGRErr OGRPGTableLayer::CreateFeature( OGRFeature *poFeature )
     else
     {
         if ( !bCopyActive )
-            StartCopy();
+        {
+            /* This is a heuristics. If the first feature to be copied has a */
+            /* FID set (and that a FID column has been identified), then we will */
+            /* try to copy FID values from features. Otherwise, we will not */
+            /* do and assume that the FID column is an autoincremented column. */
+            StartCopy(poFeature->GetFID() != OGRNullFID);
+        }
 
         return CreateFeatureViaCopy( poFeature );
     }
@@ -1311,7 +1348,8 @@ CPLString OGRPGEscapeColumnName(const char* pszColumnName)
 
 CPLString OGRPGEscapeString(PGconn *hPGConn,
                             const char* pszStrValue, int nMaxLength,
-                            const char* pszFieldName)
+                            const char* pszTableName,
+                            const char* pszFieldName )
 {
     CPLString osCommand;
 
@@ -1322,8 +1360,8 @@ CPLString OGRPGEscapeString(PGconn *hPGConn,
     if (nMaxLength > 0 && nSrcLen > nMaxLength)
     {
         CPLDebug( "PG",
-                  "Truncated %s field value, it was too long.",
-                  pszFieldName );
+                  "Truncated %s.%s field value '%s' to %d characters.",
+                  pszTableName, pszFieldName, pszStrValue, nMaxLength );
         nSrcLen = nMaxLength;
         
         while( nSrcLen > 0 && ((unsigned char *) pszStrValue)[nSrcLen-1] > 127 )
@@ -1389,7 +1427,7 @@ static CPLString OGRPGEscapeStringList(PGconn *hPGConn,
         if (*pszStr != '\0')
         {
             if (bForInsertOrUpdate)
-                osStr += OGRPGEscapeString(hPGConn, pszStr, -1, "");
+                osStr += OGRPGEscapeString(hPGConn, pszStr);
             else
             {
                 osStr += '"';
@@ -1493,12 +1531,10 @@ OGRErr OGRPGTableLayer::CreateFeatureViaInsert( OGRFeature *poFeature )
     bNeedComma = FALSE;
     if( (bHasPostGISGeometry || bHasPostGISGeography) && poGeom != NULL)
     {
-        
         CheckGeomTypeCompatibility(poGeom);
 
         poGeom->closeRings();
         poGeom->setCoordinateDimension( nCoordDimension );
-
 
         if ( !CSLTestBoolean(CPLGetConfigOption("PG_USE_TEXT", "NO")) )
         {
@@ -1661,10 +1697,10 @@ OGRErr OGRPGTableLayer::CreateFeatureViaCopy( OGRFeature *poFeature )
     char *pszGeom = NULL;
     if ( NULL != poGeometry && (bHasWkb || bHasPostGISGeometry || bHasPostGISGeography))
     {
+        CheckGeomTypeCompatibility(poGeometry);
+
         poGeometry->closeRings();
         poGeometry->setCoordinateDimension( nCoordDimension );
-        
-        CheckGeomTypeCompatibility(poGeometry);
 
         if (bHasWkb)
             pszGeom = GeometryToBYTEA( poGeometry );
@@ -1683,11 +1719,14 @@ OGRErr OGRPGTableLayer::CreateFeatureViaCopy( OGRFeature *poFeature )
     }
 
     /* Next process the field id column */
-    if( bHasFid && poFeatureDefn->GetFieldIndex( pszFIDColumn ) != -1 )
+    int nFIDIndex = -1;
+    if( bFIDColumnInCopyFields )
     {
         if (osCommand.size() > 0)
             osCommand += "\t";
-            
+
+        nFIDIndex = poFeatureDefn->GetFieldIndex( pszFIDColumn );
+
         /* Set the FID */
         if( poFeature->GetFID() != OGRNullFID )
         {
@@ -1703,14 +1742,20 @@ OGRErr OGRPGTableLayer::CreateFeatureViaCopy( OGRFeature *poFeature )
     /* Now process the remaining fields */
 
     int nFieldCount = poFeatureDefn->GetFieldCount();
+    int bAddTab = osCommand.size() > 0;
+
     for( int i = 0; i < nFieldCount;  i++ )
     {
+        if (i == nFIDIndex)
+            continue;
+
         const char *pszStrValue = poFeature->GetFieldAsString(i);
         char *pszNeedToFree = NULL;
 
-        if (i > 0 || osCommand.size() > 0)
+        if (bAddTab)
             osCommand += "\t";
-            
+        bAddTab = TRUE;
+
         if( !poFeature->IsFieldSet( i ) )
         {
             osCommand += "\\N" ;
@@ -1817,8 +1862,11 @@ OGRErr OGRPGTableLayer::CreateFeatureViaCopy( OGRFeature *poFeature )
                     && iChar == poFeatureDefn->GetFieldDefn(i)->GetWidth() )
                 {
                     CPLDebug( "PG",
-                              "Truncated %s field value, it was too long.",
-                              poFeatureDefn->GetFieldDefn(i)->GetNameRef() );
+                              "Truncated %s.%s field value '%s' to %d characters.",
+                              poFeatureDefn->GetName(),
+                              poFeatureDefn->GetFieldDefn(i)->GetNameRef(),
+                              pszStrValue,
+                              poFeatureDefn->GetFieldDefn(i)->GetWidth() );
                     break;
                 }
 
@@ -2028,6 +2076,14 @@ OGRErr OGRPGTableLayer::CreateField( OGRFieldDefn *poFieldIn, int bApproxOK )
 
     GetLayerDefn();
 
+    if( !bUpdateAccess )
+    {
+        CPLError( CE_Failure, CPLE_NotSupported,
+                  UNSUPPORTED_OP_READ_ONLY,
+                  "CreateField");
+        return OGRERR_FAILURE;
+    }
+
 /* -------------------------------------------------------------------- */
 /*      Do we want to "launder" the column names into Postgres          */
 /*      friendly format?                                                */
@@ -2047,9 +2103,16 @@ OGRErr OGRPGTableLayer::CreateField( OGRFieldDefn *poFieldIn, int bApproxOK )
         }
     }
 
-    osFieldType = OGRPGTableLayerGetType(oField, bPreservePrecision, bApproxOK);
-    if (osFieldType.size() == 0)
-        return OGRERR_FAILURE;
+
+    const char* pszOverrideType = CSLFetchNameValue(papszOverrideColumnTypes, oField.GetNameRef());
+    if( pszOverrideType != NULL )
+        osFieldType = pszOverrideType;
+    else
+    {
+        osFieldType = OGRPGTableLayerGetType(oField, bPreservePrecision, bApproxOK);
+        if (osFieldType.size() == 0)
+            return OGRERR_FAILURE;
+    }
 
 /* -------------------------------------------------------------------- */
 /*      Create the new field.                                           */
@@ -2102,7 +2165,8 @@ OGRErr OGRPGTableLayer::DeleteField( int iField )
     if( !bUpdateAccess )
     {
         CPLError( CE_Failure, CPLE_NotSupported,
-                  "Can't delete fields on a read-only datasource.");
+                  UNSUPPORTED_OP_READ_ONLY,
+                  "DeleteField");
         return OGRERR_FAILURE;
     }
 
@@ -2160,7 +2224,8 @@ OGRErr OGRPGTableLayer::AlterFieldDefn( int iField, OGRFieldDefn* poNewFieldDefn
     if( !bUpdateAccess )
     {
         CPLError( CE_Failure, CPLE_NotSupported,
-                  "Can't alter field definition on a read-only datasource.");
+                  UNSUPPORTED_OP_READ_ONLY,
+                  "AlterFieldDefn");
         return OGRERR_FAILURE;
     }
 
@@ -2499,15 +2564,13 @@ OGRErr OGRPGTableLayer::GetExtent( OGREnvelope *psExtent, int bForce )
 /*                             StartCopy()                              */
 /************************************************************************/
 
-OGRErr OGRPGTableLayer::StartCopy()
+OGRErr OGRPGTableLayer::StartCopy(int bSetFID)
 
 {
-    OGRErr result = OGRERR_NONE;
-
     /* Tell the datasource we are now planning to copy data */
     poDS->StartCopy( this ); 
 
-    CPLString osFields = BuildCopyFields();
+    CPLString osFields = BuildCopyFields(bSetFID);
 
     int size = strlen(osFields) +  strlen(pszSqlTableName) + 100;
     char *pszCommand = (char *) CPLMalloc(size);
@@ -2523,7 +2586,6 @@ OGRErr OGRPGTableLayer::StartCopy()
     {
         CPLError( CE_Failure, CPLE_AppDefined,
                   "%s", PQerrorMessage(hPGConn) );
-        result = OGRERR_FAILURE;
     }
     else
         bCopyActive = TRUE;
@@ -2603,29 +2665,36 @@ OGRErr OGRPGTableLayer::EndCopy()
 /*                          BuildCopyFields()                           */
 /************************************************************************/
 
-CPLString OGRPGTableLayer::BuildCopyFields()
+CPLString OGRPGTableLayer::BuildCopyFields(int bSetFID)
 {
     int     i = 0;
+    int     nFIDIndex = -1;
     CPLString osFieldList;
 
-    if( bHasFid && poFeatureDefn->GetFieldIndex( pszFIDColumn ) != -1 )
+    if( pszGeomColumn != NULL )
     {
-        osFieldList += OGRPGEscapeColumnName(pszFIDColumn);
+        osFieldList = OGRPGEscapeColumnName(pszGeomColumn);
     }
 
-    if( pszGeomColumn )
+    bFIDColumnInCopyFields = (pszFIDColumn != NULL && bSetFID);
+    if( bFIDColumnInCopyFields )
     {
-        if( strlen(osFieldList) > 0 )
+        if( osFieldList.size() > 0 )
             osFieldList += ", ";
 
-        osFieldList += OGRPGEscapeColumnName(pszGeomColumn);
+        nFIDIndex = poFeatureDefn->GetFieldIndex( pszFIDColumn );
+
+        osFieldList += OGRPGEscapeColumnName(pszFIDColumn);
     }
 
     for( i = 0; i < poFeatureDefn->GetFieldCount(); i++ )
     {
+        if (i == nFIDIndex)
+            continue;
+
         const char *pszName = poFeatureDefn->GetFieldDefn(i)->GetNameRef();
 
-        if( strlen(osFieldList) > 0 )
+        if( osFieldList.size() > 0 )
             osFieldList += ", ";
 
         osFieldList += OGRPGEscapeColumnName(pszName);
@@ -2701,4 +2770,48 @@ OGRFeatureDefn * OGRPGTableLayer::GetLayerDefn()
         poFeatureDefn->Reference();
     }
     return poFeatureDefn;
+}
+
+/************************************************************************/
+/*                        SetOverrideColumnTypes()                      */
+/************************************************************************/
+
+void OGRPGTableLayer::SetOverrideColumnTypes( const char* pszOverrideColumnTypes )
+{
+    if( pszOverrideColumnTypes == NULL )
+        return;
+
+    const char* pszIter = pszOverrideColumnTypes;
+    CPLString osCur;
+    while(*pszIter != '\0')
+    {
+        if( *pszIter == '(' )
+        {
+            /* Ignore commas inside ( ) pair */
+            while(*pszIter != '\0')
+            {
+                if( *pszIter == ')' )
+                {
+                    osCur += *pszIter;
+                    pszIter ++;
+                    break;
+                }
+                osCur += *pszIter;
+                pszIter ++;
+            }
+            if( *pszIter == '\0')
+                break;
+        }
+
+        if( *pszIter == ',' )
+        {
+            papszOverrideColumnTypes = CSLAddString(papszOverrideColumnTypes, osCur);
+            osCur = "";
+        }
+        else
+            osCur += *pszIter;
+        pszIter ++;
+    }
+    if( osCur.size() )
+        papszOverrideColumnTypes = CSLAddString(papszOverrideColumnTypes, osCur);
 }

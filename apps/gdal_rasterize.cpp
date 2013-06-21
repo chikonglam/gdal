@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdal_rasterize.cpp 24683 2012-07-20 15:14:41Z rouault $
+ * $Id: gdal_rasterize.cpp 24682 2012-07-20 15:14:28Z rouault $
  *
  * Project:  GDAL Utilities
  * Purpose:  Rasterize OGR shapes into a GDAL raster.
@@ -36,7 +36,7 @@
 #include "commonutils.h"
 #include <vector>
 
-CPL_CVSID("$Id: gdal_rasterize.cpp 24683 2012-07-20 15:14:41Z rouault $");
+CPL_CVSID("$Id: gdal_rasterize.cpp 24682 2012-07-20 15:14:28Z rouault $");
 
 /************************************************************************/
 /*                            ArgIsNumeric()                            */
@@ -45,20 +45,7 @@ CPL_CVSID("$Id: gdal_rasterize.cpp 24683 2012-07-20 15:14:41Z rouault $");
 static int ArgIsNumeric( const char *pszArg )
 
 {
-    if( pszArg[0] == '-' )
-        pszArg++;
-
-    if( *pszArg == '\0' )
-        return FALSE;
-
-    while( *pszArg != '\0' )
-    {
-        if( (*pszArg < '0' || *pszArg > '9') && *pszArg != '.' )
-            return FALSE;
-        pszArg++;
-    }
-        
-    return TRUE;
+    return CPLGetValueType(pszArg) != CPL_VALUE_STRING;
 }
 
 /************************************************************************/

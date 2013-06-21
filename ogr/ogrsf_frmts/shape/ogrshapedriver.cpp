@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrshapedriver.cpp 19457 2010-04-19 18:53:53Z rouault $
+ * $Id: ogrshapedriver.cpp 25881 2013-04-08 20:34:55Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implements OGRShapeDriver class.
@@ -31,7 +31,7 @@
 #include "cpl_conv.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: ogrshapedriver.cpp 19457 2010-04-19 18:53:53Z rouault $");
+CPL_CVSID("$Id: ogrshapedriver.cpp 25881 2013-04-08 20:34:55Z rouault $");
 
 /************************************************************************/
 /*                          ~OGRShapeDriver()                           */
@@ -64,11 +64,7 @@ OGRDataSource *OGRShapeDriver::Open( const char * pszFilename,
 
     poDS = new OGRShapeDataSource();
 
-    /* If no layer was found, return NULL otherwise how will we allow any other driver */
-    /* that is directory oriented to work? I just don't see how we can know the */
-    /* directory is for shapefiles if there aren't any in it (#2686) */
-    if( !poDS->Open( pszFilename, bUpdate, TRUE )
-        || poDS->GetLayerCount() == 0 )
+    if( !poDS->Open( pszFilename, bUpdate, TRUE ) )
     {
         delete poDS;
         return NULL;
@@ -156,7 +152,7 @@ OGRErr OGRShapeDriver::DeleteDataSource( const char *pszDataSource )
     VSIStatBufL sStatBuf;
     static const char *apszExtensions[] = 
         { "shp", "shx", "dbf", "sbn", "sbx", "prj", "idm", "ind", 
-          "qix", NULL };
+          "qix", "cpg", NULL };
 
     if( VSIStatL( pszDataSource, &sStatBuf ) != 0 )
     {

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdal_alg.h 22655 2011-07-06 18:29:28Z rouault $
+ * $Id: gdal_alg.h 25741 2013-03-13 19:19:16Z ilucena $
  *
  * Project:  GDAL Image Processing Algorithms
  * Purpose:  Prototypes, and definitions for various GDAL based algorithms.
@@ -120,6 +120,7 @@ typedef struct {
     GDALTransformerFunc pfnTransform;
     void (*pfnCleanup)( void * );
     CPLXMLNode *(*pfnSerialize)( void * );
+    /* TODO GDAL 2.0 : add a void* (*pfnClone) (void *) member */
 } GDALTransformerInfo;
 
 void CPL_DLL GDALDestroyTransformer( void *pTransformerArg );
@@ -185,6 +186,8 @@ void CPL_DLL GDALDestroyTPSTransformer( void *pTransformArg );
 int CPL_DLL GDALTPSTransform( 
     void *pTransformArg, int bDstToSrc, int nPointCount,
     double *x, double *y, double *z, int *panSuccess );
+
+char CPL_DLL ** RPCInfoToMD( GDALRPCInfo *psRPCInfo );
 
 /* RPC based transformer ... src is pixel/line/elev, dst is long/lat/elev */
 
@@ -252,7 +255,16 @@ GDALSerializeTransformer( GDALTransformerFunc pfnFunc, void *pTransformArg );
 CPLErr CPL_DLL GDALDeserializeTransformer( CPLXMLNode *psTree, 
                                            GDALTransformerFunc *ppfnFunc, 
                                            void **ppTransformArg );
-                                      
+
+CPLErr CPL_DLL
+GDALTransformGeolocations( GDALRasterBandH hXBand, 
+                           GDALRasterBandH hYBand, 
+                           GDALRasterBandH hZBand,
+                           GDALTransformerFunc pfnTransformer, 
+                           void *pTransformArg, 
+                           GDALProgressFunc pfnProgress, 
+                           void *pProgressArg,
+                           char **papszOptions );
 
 /* -------------------------------------------------------------------- */
 /*      Contour Line Generation                                         */
@@ -452,6 +464,12 @@ GDALGridCreate( GDALGridAlgorithm, const void *, GUInt32,
                 double, double, double, double,
                 GUInt32, GUInt32, GDALDataType, void *,
                 GDALProgressFunc, void *);
+
+GDAL_GCP CPL_DLL *
+GDALComputeMatchingPoints( GDALDatasetH hFirstImage,
+                           GDALDatasetH hSecondImage,
+                           char **papszOptions,
+                           int *pnGCPCount ); 
 CPL_C_END
                             
 #endif /* ndef GDAL_ALG_H_INCLUDED */

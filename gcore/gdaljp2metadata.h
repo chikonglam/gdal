@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdaljp2metadata.h 22678 2011-07-09 19:47:12Z rouault $
+ * $Id: gdaljp2metadata.h 24221 2012-04-12 20:02:38Z rouault $
  *
  * Project:  GDAL 
  * Purpose:  JP2 Box Reader (and GMLJP2 Interpreter)
@@ -74,7 +74,7 @@ public:
 
     int         IsSuperBox();
 
-    int         DumpReadable( FILE * );
+    int         DumpReadable( FILE *, int nIndentLevel = 0 );
 
     VSILFILE   *GetFILE() { return fpVSIL; }
 

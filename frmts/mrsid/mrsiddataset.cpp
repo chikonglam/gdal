@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: mrsiddataset.cpp 22753 2011-07-18 19:53:26Z rouault $
+ * $Id: mrsiddataset.cpp 25659 2013-02-19 22:51:46Z warmerdam $
  *
  * Project:  Multi-resolution Seamless Image Database (MrSID)
  * Purpose:  Read/write LizardTech's MrSID file format - Version 4+ SDK.
@@ -38,10 +38,11 @@
 #include <geo_normalize.h>
 #include <geovalues.h>
 
-CPL_CVSID("$Id: mrsiddataset.cpp 22753 2011-07-18 19:53:26Z rouault $");
+CPL_CVSID("$Id: mrsiddataset.cpp 25659 2013-02-19 22:51:46Z warmerdam $");
 
 CPL_C_START
 double GTIFAngleToDD( double dfAngle, int nUOMAngle );
+void CPL_DLL LibgeotiffOneTimeInit();
 CPL_C_END
 
 // Key Macros from Makefile:
@@ -1306,11 +1307,9 @@ CPLErr MrSIDDataset::OpenZoomLevel( lt_int32 iZoom )
     else if( iZoom == 0 )
     {
         bHasGeoTransform = 
-            GDALReadWorldFile( GetDescription(), ".sdw",  
+            GDALReadWorldFile( GetDescription(), NULL,
                                adfGeoTransform )
-            || GDALReadWorldFile( GetDescription(), ".sidw", 
-                                  adfGeoTransform )
-            || GDALReadWorldFile( GetDescription(), ".wld", 
+            || GDALReadWorldFile( GetDescription(), ".wld",
                                   adfGeoTransform );
     }
     
@@ -1499,6 +1498,11 @@ GDALDataset *MrSIDDataset::Open( GDALOpenInfo * poOpenInfo, int bIsJP2 )
         VSIFClose( poOpenInfo->fp );
         poOpenInfo->fp = NULL;
     }
+
+/* -------------------------------------------------------------------- */
+/*      Make sure we have hooked CSV lookup for GDAL_DATA.              */
+/* -------------------------------------------------------------------- */
+    LibgeotiffOneTimeInit();
 
 /* -------------------------------------------------------------------- */
 /*      Create a corresponding GDALDataset.                             */
@@ -2441,6 +2445,11 @@ void MrSIDDataset::FetchProjParms()
 void MrSIDDataset::GetGTIFDefn()
 {
     double      dfInvFlattening;
+
+/* -------------------------------------------------------------------- */
+/*      Make sure we have hooked CSV lookup for GDAL_DATA.              */
+/* -------------------------------------------------------------------- */
+    LibgeotiffOneTimeInit();
 
 /* -------------------------------------------------------------------- */
 /*      Initially we default all the information we can.                */
@@ -3709,4 +3718,3 @@ void TIFFSetField() {}
 
 }
 #endif
-

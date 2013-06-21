@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrfeaturequery.cpp 23940 2012-02-11 10:19:28Z rouault $
+ * $Id: ogrfeaturequery.cpp 24849 2012-08-25 12:22:05Z rouault $
  * 
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implementation of simple SQL WHERE style attributes queries
@@ -34,7 +34,7 @@
 #include "ogr_p.h"
 #include "ogr_attrind.h"
 
-CPL_CVSID("$Id: ogrfeaturequery.cpp 23940 2012-02-11 10:19:28Z rouault $");
+CPL_CVSID("$Id: ogrfeaturequery.cpp 24849 2012-08-25 12:22:05Z rouault $");
 
 /************************************************************************/
 /*     Support for special attributes (feature query and selection)     */
@@ -221,6 +221,63 @@ int OGRFeatureQuery::Evaluate( OGRFeature *poFeature )
 }
 
 /************************************************************************/
+/*                            CanUseIndex()                             */
+/************************************************************************/
+
+int OGRFeatureQuery::CanUseIndex( OGRLayer *poLayer )
+{
+    swq_expr_node *psExpr = (swq_expr_node *) pSWQExpr;
+
+/* -------------------------------------------------------------------- */
+/*      Do we have an index on the targetted layer?                     */
+/* -------------------------------------------------------------------- */
+    if ( poLayer->GetIndex() == FALSE )
+        return FALSE;
+
+    return CanUseIndex( psExpr, poLayer );
+}
+
+int OGRFeatureQuery::CanUseIndex( swq_expr_node *psExpr,
+                                  OGRLayer *poLayer )
+{
+    OGRAttrIndex *poIndex;
+
+/* -------------------------------------------------------------------- */
+/*      Does the expression meet our requirements?                      */
+/* -------------------------------------------------------------------- */
+    if( psExpr == NULL ||
+        psExpr->eNodeType != SNT_OPERATION )
+        return FALSE;
+
+    if ((psExpr->nOperation == SWQ_OR || psExpr->nOperation == SWQ_AND) &&
+         psExpr->nSubExprCount == 2)
+    {
+        return CanUseIndex( psExpr->papoSubExpr[0], poLayer ) &&
+               CanUseIndex( psExpr->papoSubExpr[1], poLayer );
+    }
+
+    if( !(psExpr->nOperation == SWQ_EQ || psExpr->nOperation == SWQ_IN)
+        || psExpr->nSubExprCount < 2 )
+        return FALSE;
+
+    swq_expr_node *poColumn = psExpr->papoSubExpr[0];
+    swq_expr_node *poValue = psExpr->papoSubExpr[1];
+    
+    if( poColumn->eNodeType != SNT_COLUMN
+        || poValue->eNodeType != SNT_CONSTANT )
+        return FALSE;
+
+    poIndex = poLayer->GetIndex()->GetFieldIndex( poColumn->field_index );
+    if( poIndex == NULL )
+        return FALSE;
+
+/* -------------------------------------------------------------------- */
+/*      OK, we have an index                                            */
+/* -------------------------------------------------------------------- */
+    return TRUE;
+}
+
+/************************************************************************/
 /*                       EvaluateAgainstIndices()                       */
 /*                                                                      */
 /*      Attempt to return a list of FIDs matching the given             */
@@ -244,19 +301,180 @@ long *OGRFeatureQuery::EvaluateAgainstIndices( OGRLayer *poLayer,
 
 {
     swq_expr_node *psExpr = (swq_expr_node *) pSWQExpr;
-    OGRAttrIndex *poIndex;
 
     if( peErr != NULL )
         *peErr = OGRERR_NONE;
 
 /* -------------------------------------------------------------------- */
-/*      Does the expression meet our requirements?  Do we have an       */
-/*      index on the targetted field?                                   */
+/*      Do we have an index on the targetted layer?                     */
 /* -------------------------------------------------------------------- */
-    if( psExpr == NULL 
-        || psExpr->eNodeType != SNT_OPERATION
-        || !(psExpr->nOperation == SWQ_EQ || psExpr->nOperation == SWQ_IN) 
-        || poLayer->GetIndex() == NULL
+    if ( poLayer->GetIndex() == NULL )
+        return NULL;
+
+    int nFIDCount = 0;
+    return EvaluateAgainstIndices(psExpr, poLayer, nFIDCount);
+}
+
+/* The input arrays must be sorted ! */
+static
+long* OGRORLongArray(long panFIDList1[], int nFIDCount1,
+                     long panFIDList2[], int nFIDCount2, int& nFIDCount)
+{
+    int nMaxCount = nFIDCount1 + nFIDCount2;
+    long* panFIDList = (long*) CPLMalloc((nMaxCount+1) * sizeof(long));
+    nFIDCount = 0;
+
+    int i1 = 0, i2 =0;
+    for(;i1<nFIDCount1 || i2<nFIDCount2;)
+    {
+        if (i1 < nFIDCount1 && i2 < nFIDCount2)
+        {
+            long nVal1 = panFIDList1[i1];
+            long nVal2 = panFIDList2[i2];
+            if (nVal1 < nVal2)
+            {
+                if (i1+1 < nFIDCount1 && panFIDList1[i1+1] <= nVal2)
+                {
+                    panFIDList[nFIDCount ++] = nVal1;
+                    i1 ++;
+                }
+                else
+                {
+                    panFIDList[nFIDCount ++] = nVal1;
+                    panFIDList[nFIDCount ++] = nVal2;
+                    i1 ++;
+                    i2 ++;
+                }
+            }
+            else if (nVal1 == nVal2)
+            {
+                panFIDList[nFIDCount ++] = nVal1;
+                i1 ++;
+                i2 ++;
+            }
+            else
+            {
+                if (i2+1 < nFIDCount2 && panFIDList2[i2+1] <= nVal1)
+                {
+                    panFIDList[nFIDCount ++] = nVal2;
+                    i2 ++;
+                }
+                else
+                {
+                    panFIDList[nFIDCount ++] = nVal2;
+                    panFIDList[nFIDCount ++] = nVal1;
+                    i1 ++;
+                    i2 ++;
+                }
+            }
+        }
+        else if (i1 < nFIDCount1)
+        {
+            long nVal1 = panFIDList1[i1];
+            panFIDList[nFIDCount ++] = nVal1;
+            i1 ++;
+        }
+        else if (i2 < nFIDCount2)
+        {
+            long nVal2 = panFIDList2[i2];
+            panFIDList[nFIDCount ++] = nVal2;
+            i2 ++;
+        }
+    }
+
+    panFIDList[nFIDCount] = OGRNullFID;
+
+    return panFIDList;
+}
+
+/* The input arrays must be sorted ! */
+static
+long* OGRANDLongArray(long panFIDList1[], int nFIDCount1,
+                      long panFIDList2[], int nFIDCount2, int& nFIDCount)
+{
+    int nMaxCount = MAX(nFIDCount1, nFIDCount2);
+    long* panFIDList = (long*) CPLMalloc((nMaxCount+1) * sizeof(long));
+    nFIDCount = 0;
+
+    int i1 = 0, i2 =0;
+    for(;i1<nFIDCount1 && i2<nFIDCount2;)
+    {
+        long nVal1 = panFIDList1[i1];
+        long nVal2 = panFIDList2[i2];
+        if (nVal1 < nVal2)
+        {
+            if (i1+1 < nFIDCount1 && panFIDList1[i1+1] <= nVal2)
+            {
+                i1 ++;
+            }
+            else
+            {
+                i1 ++;
+                i2 ++;
+            }
+        }
+        else if (nVal1 == nVal2)
+        {
+            panFIDList[nFIDCount ++] = nVal1;
+            i1 ++;
+            i2 ++;
+        }
+        else
+        {
+            if (i2+1 < nFIDCount2 && panFIDList2[i2+1] <= nVal1)
+            {
+                i2 ++;
+            }
+            else
+            {
+                i1 ++;
+                i2 ++;
+            }
+        }
+    }
+
+    panFIDList[nFIDCount] = OGRNullFID;
+
+    return panFIDList;
+}
+
+long *OGRFeatureQuery::EvaluateAgainstIndices( swq_expr_node *psExpr,
+                                               OGRLayer *poLayer,
+                                               int& nFIDCount )
+{
+    OGRAttrIndex *poIndex;
+
+/* -------------------------------------------------------------------- */
+/*      Does the expression meet our requirements?                      */
+/* -------------------------------------------------------------------- */
+    if( psExpr == NULL ||
+        psExpr->eNodeType != SNT_OPERATION )
+        return NULL;
+
+    if ((psExpr->nOperation == SWQ_OR || psExpr->nOperation == SWQ_AND) &&
+         psExpr->nSubExprCount == 2)
+    {
+        int nFIDCount1 = 0, nFIDCount2 = 0;
+        long* panFIDList1 = EvaluateAgainstIndices( psExpr->papoSubExpr[0], poLayer, nFIDCount1 );
+        long* panFIDList2 = panFIDList1 == NULL ? NULL :
+                            EvaluateAgainstIndices( psExpr->papoSubExpr[1], poLayer, nFIDCount2 );
+        long* panFIDList = NULL;
+        if (panFIDList1 != NULL && panFIDList2 != NULL)
+        {
+            if (psExpr->nOperation == SWQ_OR )
+                panFIDList = OGRORLongArray(panFIDList1, nFIDCount1,
+                                            panFIDList2, nFIDCount2, nFIDCount);
+            else if (psExpr->nOperation == SWQ_AND )
+                panFIDList = OGRANDLongArray(panFIDList1, nFIDCount1,
+                                            panFIDList2, nFIDCount2, nFIDCount);
+
+        }
+        CPLFree(panFIDList1);
+        CPLFree(panFIDList2);
+        return panFIDList;
+    }
+
+    if( !(psExpr->nOperation == SWQ_EQ || psExpr->nOperation == SWQ_IN)
         || psExpr->nSubExprCount < 2 )
         return NULL;
 
@@ -284,7 +502,7 @@ long *OGRFeatureQuery::EvaluateAgainstIndices( OGRLayer *poLayer,
 /* -------------------------------------------------------------------- */
     if (psExpr->nOperation == SWQ_IN)
     {
-        int nFIDCount = 0, nLength;
+        int nLength;
         long *panFIDs = NULL;
         int iIN;
 
@@ -348,7 +566,7 @@ long *OGRFeatureQuery::EvaluateAgainstIndices( OGRLayer *poLayer,
         return NULL;
     }
 
-    int nFIDCount = 0, nLength = 0;
+    int nLength = 0;
     long *panFIDs = poIndex->GetAllMatches( &sValue, NULL, &nFIDCount, &nLength );
     if (nFIDCount > 1)
     {
