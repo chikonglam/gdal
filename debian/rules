@@ -216,7 +216,7 @@ binary-common:
 	# Forces failure when symbols change
 	#dh_makeshlibs
 	dh_installdeb
-	dh_shlibdeps -L libgdal1 -l debian/libgdal1h/usr/lib
+	dh_shlibdeps -L libgdal1h -l debian/libgdal1h/usr/lib
 	dh_gencontrol
 	dh_md5sums
 	dh_builddeb
