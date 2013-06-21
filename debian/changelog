@@ -1,27 +1,28 @@
 gdal (1.10.0-0~exp1) experimental; urgency=low
 
-  [ Jerome Villeneuve Larouche ]
-  * Renamed libgdal1 files to libgdal1h.
-  * Updated version in libgdal1h install path.
-  * Removed doc patch.
-
-  [ Francesco Paolo Lovergine ]
   * Moved to new LIBKML driver instead of the old KML one. It has a much
-    better support for complex KML files.
+    better support for complex KML files. (closes: #685695)
   * Merged NMU 1.9.0-3.1:
     Fix "FTBFS when ruby1.9.1 installed": force building with ruby1.8:
     set variables in debian/rules and new patch force-ruby1.8 to ruby1.8.
     Thanks to Cédric Boutillier for reviewing and testing this patch.
-    (Closes: #684433)
+    (closes: #684433)
   * Added libarmadillo support.
   * Added TIFF/GEOTIFF symbols rename to definitively solve problem of
     symbol collisions for programs that both links geotiff/tiff libraries.
     This choice implies that the API does not include anymore any *tiff
     related functions: changed API declaration.
   * Policy bumped to 3.9.4. No changes required.
-  * New upstream version with many fixes.
+  * New upstream version with many fixes. All patches refreshed.
+  	(closes: #679887)
+  * Added a Breaks: libgdal1-1.6.0. I don't know if it still makes sense, 
+    but for sure it does not hurt. (closes: #677403)
+  * Now debian/rules should be parallel-safe for making. Thanks Gregor Hermann
+    for the patch. (closes: #686014)
+  * Now it depends explicitly on epsilon >= 0.9.1 by upstream.
+    (closes: #672738)
 
- -- Jerome Villeneuve Larouche <jlarouche@mapgears.com>  Thu, 20 Jun 2013 13:35:03 -0400
+ -- Francesco Paolo Lovergine <frankie@debian.org>  Sun, 04 Apr 2013 11:39:57 +0100
 
 gdal (1.9.2-1~exp2) experimental; urgency=low
 

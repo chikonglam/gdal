@@ -105,8 +105,8 @@ configure-stamp:
 build-arch: build
 build-indep: build
 
-build: configure-stamp build-stamp
-build-stamp:
+build: build-stamp
+build-stamp: configure-stamp
 	dh_testdir
 
 	cp `ls GDALmake.opt-*|tail -1` GDALmake.opt
@@ -189,7 +189,7 @@ install: build
 	install -o root -g root -d $(CURDIR)/debian/tmp/usr/share/doc/python-gdal/examples
 	install -o root -g root -m 755 $(CURDIR)/swig/python/samples/*.py $(CURDIR)/debian/tmp/usr/share/doc/python-gdal/examples/.
 	# create lintian overrides file
-	echo "libgdal1: embedded-library usr/lib/libgdal.so.$$(basename debian/tmp/usr/lib/libgdal.so.*.*.*|cut -d. -f3,4,5): tiff" \
+	echo "libgdal1h: embedded-library usr/lib/libgdal.so.$$(basename debian/tmp/usr/lib/libgdal.so.*.*.*|cut -d. -f3,4,5): tiff" \
 		>$(CURDIR)/debian/libgdal1h.lintian-overrides
 
 binary-common:
@@ -216,7 +216,7 @@ binary-common:
 	# Forces failure when symbols change
 	#dh_makeshlibs
 	dh_installdeb
-	dh_shlibdeps -L libgdal1 -l debian/libgdal1/usr/lib
+	dh_shlibdeps -L libgdal1h -l debian/libgdal1h/usr/lib
 	dh_gencontrol
 	dh_md5sums
 	dh_builddeb
