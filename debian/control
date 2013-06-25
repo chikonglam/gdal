@@ -25,7 +25,6 @@ Section: libs
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Recommends: proj-bin
-Provides: libgdal1
 Replaces: libgdal1
 Conflicts: libgdal1 (<= 1.10.0-0~)
 Breaks: libgdal1-1.6.0
