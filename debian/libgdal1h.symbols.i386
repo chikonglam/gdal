@@ -1,5 +1,5 @@
-libgdal.so.1 libgdal1 #MINVER# 
-#include "libgdal1.symbols.common"
+libgdal.so.1 libgdal1h #MINVER# 
+#include "libgdal1h.symbols.common"
  (c++)"CheckASCII(unsigned char*, int)@GDAL_1.8" 1.9.0
  (c++)"CreatePath(HDF5GroupObjects*)@GDAL_1.8" 1.9.0
  (c++)"DDFScanInt(char const*, int)@GDAL_1.8" 1.9.0
