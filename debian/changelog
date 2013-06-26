@@ -1,3 +1,15 @@
+gdal (1.10.0-0~exp3) UNRELEASED; urgency=low
+
+  * Added netcdf-bin build-dep to get nc-config, as required by current config.
+
+ -- Francesco Paolo Lovergine <frankie@debian.org>  Wed, 26 Jun 2013 11:19:15 +0200
+
+gdal (1.10.0-0~exp2) experimental; urgency=low
+
+  * Removed Provides: libgdal1 in debian/control.
+
+ -- Francesco Paolo Lovergine <frankie@debian.org>  Tue, 25 Jun 2013 16:30:39 +0200
+
 gdal (1.10.0-0~exp1) experimental; urgency=low
 
   * Moved to new LIBKML driver instead of the old KML one. It has a much
