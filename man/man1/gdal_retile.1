@@ -1,8 +1,8 @@
-.TH "gdal_retile" 1 "Mon Oct 8 2012" "GDAL" \" -*- nroff -*-
+.TH "gdal_retile" 1 "Wed Apr 24 2013" "GDAL" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
-gdal_retile \- .TH "gdal_retile" 1 "Mon Oct 8 2012" "GDAL" \" -*- nroff -*-
+gdal_retile \- .TH "gdal_retile" 1 "Wed Apr 24 2013" "GDAL" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -35,7 +35,7 @@ This utility will retile a set of input tile(s). All the input tile(s) must be g
 If your number of input tiles exhausts the command line buffer, use the general --optfile option
 .PP
 .IP "\fB\fB-targetDir\fP \fIdirectory\fP:\fP" 1c
-The directory where the tile result is created. Pyramids are stored in subdirs numbered from 1. Created tile names have a numbering schema and contain the name of the source tiles(s)  
+The directory where the tile result is created. Pyramids are stored in subdirectories numbered from 1. Created tile names have a numbering schema and contain the name of the source tiles(s)  
 .IP "\fB\fB-of\fP \fIformat\fP:\fP" 1c
 Output format, defaults to GeoTIFF (GTiff).  
 .IP "\fB\fB-co\fP \fINAME=VALUE\fP:\fP" 1c
@@ -53,7 +53,7 @@ No retiling, build only the pyramids
 .IP "\fB\fB-r\fP \fIalgorithm\fP:\fP" 1c
 Resampling algorithm, default is near  
 .IP "\fB\fB-s_srs\fP \fIsrs_def\fP:\fP" 1c
-Source spatial reference to use. The coordinate systems that can be passed are anything supported by the OGRSpatialReference.SetFro‐mUserInput() call, which includes EPSG PCS and GCSes (ie.EPSG:4296), PROJ.4 declarations (as above), or the name of a .prf file containing well known text. If no srs_def is given, the srs_def of the source tiles is used (if there is any). The srs_def will be propageted to created tiles (if possible) and to the optional shape file(s)  
+Source spatial reference to use. The coordinate systems that can be passed are anything supported by the OGRSpatialReference.SetFro‐mUserInput() call, which includes EPSG PCS and GCSes (ie.EPSG:4296), PROJ.4 declarations (as above), or the name of a .prf file containing well known text. If no srs_def is given, the srs_def of the source tiles is used (if there is any). The srs_def will be propagated to created tiles (if possible) and to the optional shape file(s)  
 .IP "\fB\fB-tileIndex\fP \fItileIndexName\fP:\fP" 1c
 The name of shape file containing the result tile(s) index  
 .IP "\fB\fB-tileIndexField\fP \fItileIndexFieldName\fP:\fP" 1c

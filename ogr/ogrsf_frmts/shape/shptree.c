@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: shptree.c,v 1.16 2011-12-11 22:26:46 fwarmerdam Exp $
+ * $Id: shptree.c,v 1.17 2012-01-27 21:09:26 fwarmerdam Exp $
  *
  * Project:  Shapelib
  * Purpose:  Implementation of quadtree building and searching functions.
@@ -34,6 +34,9 @@
  ******************************************************************************
  *
  * $Log: shptree.c,v $
+ * Revision 1.17  2012-01-27 21:09:26  fwarmerdam
+ * optimize .qix output (gdal #4472)
+ *
  * Revision 1.16  2011-12-11 22:26:46  fwarmerdam
  * upgrade .qix access code to use SAHooks (gdal #3365)
  *
@@ -95,7 +98,7 @@
 #include "cpl_error.h"
 #endif
 
-SHP_CVSID("$Id: shptree.c,v 1.16 2011-12-11 22:26:46 fwarmerdam Exp $")
+SHP_CVSID("$Id: shptree.c,v 1.17 2012-01-27 21:09:26 fwarmerdam Exp $")
 
 #ifndef TRUE
 #  define TRUE 1
@@ -726,6 +729,29 @@ static int SHPTreeNodeTrim( SHPTreeNode * psTreeNode )
     }
 
 /* -------------------------------------------------------------------- */
+/*      If the current node has 1 subnode and no shapes, promote that   */
+/*      subnode to the current node position.                           */
+/* -------------------------------------------------------------------- */
+    if( psTreeNode->nSubNodes == 1 && psTreeNode->nShapeCount == 0)
+    {
+        SHPTreeNode* psSubNode = psTreeNode->apsSubNode[0];
+
+        memcpy(psTreeNode->adfBoundsMin, psSubNode->adfBoundsMin,
+               sizeof(psSubNode->adfBoundsMin));
+        memcpy(psTreeNode->adfBoundsMax, psSubNode->adfBoundsMax,
+               sizeof(psSubNode->adfBoundsMax));
+        psTreeNode->nShapeCount = psSubNode->nShapeCount;
+        assert(psTreeNode->panShapeIds == NULL);
+        psTreeNode->panShapeIds = psSubNode->panShapeIds;
+        assert(psTreeNode->papsShapeObj == NULL);
+        psTreeNode->papsShapeObj = psSubNode->papsShapeObj;
+        psTreeNode->nSubNodes = psSubNode->nSubNodes;
+        for( i = 0; i < psSubNode->nSubNodes; i++ )
+            psTreeNode->apsSubNode[i] = psSubNode->apsSubNode[i];
+        free(psSubNode);
+    }
+
+/* -------------------------------------------------------------------- */
 /*      We should be trimmed if we have no subnodes, and no shapes.     */
 /* -------------------------------------------------------------------- */
     return( psTreeNode->nSubNodes == 0 && psTreeNode->nShapeCount == 0 );
@@ -818,22 +844,23 @@ void SHPCloseDiskTree( SHPTreeDiskHandle hDiskTree )
 static int
 SHPSearchDiskTreeNode( SHPTreeDiskHandle hDiskTree, double *padfBoundsMin, double *padfBoundsMax,
                        int **ppanResultBuffer, int *pnBufferMax, 
-                       int *pnResultCount, int bNeedSwap )
+                       int *pnResultCount, int bNeedSwap, int nRecLevel )
 
 {
-    int i;
-    int offset;
-    int numshapes, numsubnodes;
+    unsigned int i;
+    unsigned int offset;
+    unsigned int numshapes, numsubnodes;
     double adfNodeBoundsMin[2], adfNodeBoundsMax[2];
+    int nFReadAcc;
 
 /* -------------------------------------------------------------------- */
 /*      Read and unswap first part of node info.                        */
 /* -------------------------------------------------------------------- */
-    hDiskTree->sHooks.FRead( &offset, 4, 1, hDiskTree->fpQIX );
+    nFReadAcc = (int)hDiskTree->sHooks.FRead( &offset, 4, 1, hDiskTree->fpQIX );
     if ( bNeedSwap ) SwapWord ( 4, &offset );
 
-    hDiskTree->sHooks.FRead( adfNodeBoundsMin, sizeof(double), 2, hDiskTree->fpQIX );
-    hDiskTree->sHooks.FRead( adfNodeBoundsMax, sizeof(double), 2, hDiskTree->fpQIX );
+    nFReadAcc += (int)hDiskTree->sHooks.FRead( adfNodeBoundsMin, sizeof(double), 2, hDiskTree->fpQIX );
+    nFReadAcc += (int)hDiskTree->sHooks.FRead( adfNodeBoundsMax, sizeof(double), 2, hDiskTree->fpQIX );
     if ( bNeedSwap )
     {
         SwapWord( 8, adfNodeBoundsMin + 0 );
@@ -842,8 +869,29 @@ SHPSearchDiskTreeNode( SHPTreeDiskHandle hDiskTree, double *padfBoundsMin, doubl
         SwapWord( 8, adfNodeBoundsMax + 1 );
     }
       
-    hDiskTree->sHooks.FRead( &numshapes, 4, 1, hDiskTree->fpQIX );
+    nFReadAcc += (int)hDiskTree->sHooks.FRead( &numshapes, 4, 1, hDiskTree->fpQIX );
     if ( bNeedSwap ) SwapWord ( 4, &numshapes );
+
+    /* Check that we could read all previous values */
+    if( nFReadAcc != 1 + 2 + 2 + 1 )
+    {
+        hDiskTree->sHooks.Error("I/O error");
+        return FALSE;
+    }
+
+    /* Sanity checks to avoid int overflows in later computation */
+    if( offset > INT_MAX - sizeof(int) )
+    {
+        hDiskTree->sHooks.Error("Invalid value for offset");
+        return FALSE;
+    }
+
+    if( numshapes > (INT_MAX - offset - sizeof(int)) / sizeof(int) ||
+        numshapes > INT_MAX / sizeof(int) - *pnResultCount )
+    {
+        hDiskTree->sHooks.Error("Invalid value for numshapes");
+        return FALSE;
+    }
 
 /* -------------------------------------------------------------------- */
 /*      If we don't overlap this node at all, we can just fseek()       */
@@ -864,13 +912,31 @@ SHPSearchDiskTreeNode( SHPTreeDiskHandle hDiskTree, double *padfBoundsMin, doubl
     {
         if( *pnResultCount + numshapes > *pnBufferMax )
         {
-            *pnBufferMax = (int) ((*pnResultCount + numshapes + 100) * 1.25);
-            *ppanResultBuffer = (int *) 
+            int* pNewBuffer;
+
+            *pnBufferMax = (*pnResultCount + numshapes + 100) * 5 / 4;
+
+            if( *pnBufferMax > INT_MAX / sizeof(int) )
+                *pnBufferMax = *pnResultCount + numshapes;
+
+            pNewBuffer = (int *)
                 SfRealloc( *ppanResultBuffer, *pnBufferMax * sizeof(int) );
+
+            if( pNewBuffer == NULL )
+            {
+                hDiskTree->sHooks.Error("Out of memory error");
+                return FALSE;
+            }
+
+            *ppanResultBuffer = pNewBuffer;
         }
 
-        hDiskTree->sHooks.FRead( *ppanResultBuffer + *pnResultCount, 
-               sizeof(int), numshapes, hDiskTree->fpQIX );
+        if( hDiskTree->sHooks.FRead( *ppanResultBuffer + *pnResultCount,
+                    sizeof(int), numshapes, hDiskTree->fpQIX ) != numshapes )
+        {
+            hDiskTree->sHooks.Error("I/O error");
+            return FALSE;
+        }
 
         if (bNeedSwap )
         {
@@ -884,14 +950,23 @@ SHPSearchDiskTreeNode( SHPTreeDiskHandle hDiskTree, double *padfBoundsMin, doubl
 /* -------------------------------------------------------------------- */
 /*      Process the subnodes.                                           */
 /* -------------------------------------------------------------------- */
-    hDiskTree->sHooks.FRead( &numsubnodes, 4, 1, hDiskTree->fpQIX );
+    if( hDiskTree->sHooks.FRead( &numsubnodes, 4, 1, hDiskTree->fpQIX ) != 1 )
+    {
+        hDiskTree->sHooks.Error("I/O error");
+        return FALSE;
+    }
     if ( bNeedSwap  ) SwapWord ( 4, &numsubnodes );
+    if( numsubnodes > 0 && nRecLevel == 32 )
+    {
+        hDiskTree->sHooks.Error("Shape tree is too deep");
+        return FALSE;
+    }
 
     for(i=0; i<numsubnodes; i++)
     {
         if( !SHPSearchDiskTreeNode( hDiskTree, padfBoundsMin, padfBoundsMax, 
                                     ppanResultBuffer, pnBufferMax, 
-                                    pnResultCount, bNeedSwap ) )
+                                    pnResultCount, bNeedSwap, nRecLevel + 1 ) )
             return FALSE;
     }
 
@@ -988,7 +1063,7 @@ int* SHPSearchDiskTreeEx( SHPTreeDiskHandle hDiskTree,
 /* -------------------------------------------------------------------- */
     if( !SHPSearchDiskTreeNode( hDiskTree, padfBoundsMin, padfBoundsMax, 
                                 &panResultBuffer, &nBufferMax, 
-                                pnShapeCount, bNeedSwap ) )
+                                pnShapeCount, bNeedSwap, 0 ) )
     {
         if( panResultBuffer != NULL )
             free( panResultBuffer );
@@ -999,6 +1074,10 @@ int* SHPSearchDiskTreeEx( SHPTreeDiskHandle hDiskTree,
 /*      Sort the id array                                               */
 /* -------------------------------------------------------------------- */
     qsort(panResultBuffer, *pnShapeCount, sizeof(int), compare_ints);
+
+    /* To distinguish between empty intersection from error case */
+    if( panResultBuffer == NULL )
+        panResultBuffer = (int*) calloc(1, sizeof(int));
     
     return panResultBuffer;
 }

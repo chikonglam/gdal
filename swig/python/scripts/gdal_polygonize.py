@@ -1,6 +1,7 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 #******************************************************************************
-#  $Id: gdal_polygonize.py 19392 2010-04-12 18:27:09Z rouault $
+#  $Id: gdal_polygonize.py 25664 2013-02-22 15:43:33Z rouault $
 # 
 #  Project:  GDAL Python Interface
 #  Purpose:  Application for converting raster data to a vector polygon layer.
@@ -38,7 +39,7 @@ import os.path
 
 def Usage():
     print("""
-gdal_polygonize [-o name=value] [-nomask] [-mask filename] raster_file [-b band]
+gdal_polygonize [-8] [-nomask] [-mask filename] raster_file [-b band]
                 [-q] [-f ogr_format] out_file [layer] [fieldname]
 """)
     sys.exit(1)
@@ -76,6 +77,9 @@ while i < len(argv):
 
     elif arg == '-q' or arg == '-quiet':
         quiet_flag = 1
+
+    elif arg == '-8':
+        options.append('8CONNECTED=8')
         
     elif arg == '-nomask':
         mask = 'none'
@@ -148,7 +152,7 @@ else:
 # =============================================================================
 
 try:
-    gdal.PushErrorHandler( 'QuietErrorHandler' )
+    gdal.PushErrorHandler( 'CPLQuietErrorHandler' )
     dst_ds = ogr.Open( dst_filename, update=1 )
     gdal.PopErrorHandler()
 except:

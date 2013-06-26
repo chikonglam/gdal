@@ -1,8 +1,8 @@
-.TH "gdal_contour" 1 "Mon Oct 8 2012" "GDAL" \" -*- nroff -*-
+.TH "gdal_contour" 1 "Wed Apr 24 2013" "GDAL" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
-gdal_contour \- .TH "gdal_contour" 1 "Mon Oct 8 2012" "GDAL" \" -*- nroff -*-
+gdal_contour \- .TH "gdal_contour" 1 "Wed Apr 24 2013" "GDAL" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -13,7 +13,8 @@ gdal_contour \- builds vector contour lines from a raster elevation model
 .nf
 
 Usage: gdal_contour [-b <band>] [-a <attribute_name>] [-3d] [-inodata]
-                    [-snodata n] [-f <formatname>] [-i <interval>]
+                    [-snodata n] [-i <interval>]
+                    [-f <formatname>] [[-dsco NAME=VALUE] ...] [[-lco NAME=VALUE] ...]
                     [-off <offset>] [-fl <level> <level>...]
                     [-nln <outlayername>]
                     <src_filename> <dst_filename> 
@@ -41,6 +42,11 @@ Input pixel value to treat as 'nodata'.
 .PP
 .IP "\fB\fB-f\fP \fIformat\fP: \fP" 1c
 create output in a particular format, default is shapefiles.
+.PP
+.IP "\fB\fB-dsco\fP \fINAME=VALUE\fP:\fP" 1c
+Dataset creation option (format specific) 
+.IP "\fB\fB-lco\fP \fINAME=VALUE\fP:\fP" 1c
+Layer creation option (format specific)
 .PP
 .IP "\fB\fB-i\fP \fIinterval\fP:\fP" 1c
 elevation interval between contours.

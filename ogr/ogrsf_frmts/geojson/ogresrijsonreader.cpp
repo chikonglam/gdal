@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogresrijsonreader.cpp 24924 2012-09-16 09:47:14Z rouault $
+ * $Id: ogresrijsonreader.cpp 24923 2012-09-16 09:46:59Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implementation of OGRESRIJSONReader class (OGR ESRIJSON Driver)
@@ -112,7 +112,7 @@ OGRGeoJSONLayer* OGRESRIJSONReader::ReadLayer( const char* pszName,
         
     poLayer_ = new OGRGeoJSONLayer( pszName, NULL,
                                     OGRESRIJSONGetGeometryType(poGJObject_),
-                                    NULL, poDS );
+                                    poDS );
 
     if( !GenerateLayerDefn() )
     {
@@ -177,7 +177,8 @@ bool OGRESRIJSONReader::GenerateLayerDefn()
     else
     {
         poObjFeatures = OGRGeoJSONFindMemberByName( poGJObject_, "fieldAliases" );
-        if( NULL != poObjFeatures )
+        if( NULL != poObjFeatures &&
+            json_object_get_type(poObjFeatures) == json_type_object )
         {
             OGRFeatureDefn* poDefn = poLayer_->GetLayerDefn();
             json_object_iter it;
@@ -309,7 +310,8 @@ OGRFeature* OGRESRIJSONReader::ReadFeature( json_object* poObj )
 
     json_object* poObjProps = NULL;
     poObjProps = OGRGeoJSONFindMemberByName( poObj, "attributes" );
-    if( NULL != poObjProps )
+    if( NULL != poObjProps &&
+        json_object_get_type(poObjProps) == json_type_object )
     {
         int nField = -1;
         OGRFieldDefn* poFieldDefn = NULL;
@@ -408,8 +410,12 @@ OGRESRIJSONReader::ReadFeatureCollection( json_object* poObj )
         for( int i = 0; i < nFeatures; ++i )
         {
             poObjFeature = json_object_array_get_idx( poObjFeatures, i );
-            poFeature = OGRESRIJSONReader::ReadFeature( poObjFeature );
-            bAdded = AddFeature( poFeature );
+            if (poObjFeature != NULL &&
+                json_object_get_type(poObjFeature) == json_type_object)
+            {
+                poFeature = OGRESRIJSONReader::ReadFeature( poObjFeature );
+                bAdded = AddFeature( poFeature );
+            }
             //CPLAssert( bAdded );
         }
         //CPLAssert( nFeatures == poLayer_->GetFeatureCount() );

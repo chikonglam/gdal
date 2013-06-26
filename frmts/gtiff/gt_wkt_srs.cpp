@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gt_wkt_srs.cpp 25087 2012-10-09 00:28:53Z warmerdam $
+ * $Id: gt_wkt_srs.cpp 25659 2013-02-19 22:51:46Z warmerdam $
  *
  * Project:  GeoTIFF Driver
  * Purpose:  Implements translation between GeoTIFF normalized projection
@@ -44,12 +44,22 @@
 #include "gt_wkt_srs_for_gdal.h"
 #include "gt_citation.h"
 
-CPL_CVSID("$Id: gt_wkt_srs.cpp 25087 2012-10-09 00:28:53Z warmerdam $")
+CPL_CVSID("$Id: gt_wkt_srs.cpp 25659 2013-02-19 22:51:46Z warmerdam $")
 
 #define ProjLinearUnitsInterpCorrectGeoKey   3059
 
+#ifndef CT_HotineObliqueMercatorAzimuthCenter
+#  define CT_HotineObliqueMercatorAzimuthCenter 9815
+#endif
+
 
 CPL_C_START
+void CPL_DLL LibgeotiffOneTimeInit();
+void    LibgeotiffOneTimeCleanupMutex();
+
+// replicated from gdal_csv.h. 
+const char * GDALDefaultCSVFilename( const char *pszBasename );
+
 #ifndef CPL_SERV_H_INTERNAL
 /* Make VSIL_STRICT_ENFORCE active in DEBUG builds */
 #ifdef DEBUG
@@ -107,6 +117,9 @@ void CPL_DLL CPL_STDCALL CPLDebug( const char *, const char *, ... );
 
 CPL_C_END
 
+// To remind myself not to use CPLString in this file!
+#define CPLString Please_do_not_use_CPLString_in_this_file
+
 static const char *papszDatumEquiv[] =
 {
     "Militar_Geographische_Institut",
@@ -126,6 +139,40 @@ static const char *papszDatumEquiv[] =
 #ifndef CT_CylindricalEqualArea
 # define CT_CylindricalEqualArea 28
 #endif
+
+/************************************************************************/
+/*                       LibgeotiffOneTimeInit()                        */
+/************************************************************************/
+
+static void* hMutex = NULL;
+
+void LibgeotiffOneTimeInit() 
+{
+    static int bOneTimeInitDone = FALSE;
+    CPLMutexHolder oHolder( &hMutex);
+
+    if (bOneTimeInitDone)
+        return;
+
+    bOneTimeInitDone = TRUE;
+
+    // If linking with an external libgeotiff we hope this will call the
+    // SetCSVFilenameHook() in libgeotiff, not the one in gdal/port!
+    SetCSVFilenameHook( GDALDefaultCSVFilename );
+}
+
+/************************************************************************/
+/*                   LibgeotiffOneTimeCleanupMutex()                    */
+/************************************************************************/
+
+void LibgeotiffOneTimeCleanupMutex() 
+{
+    if( hMutex != NULL )
+    {
+        CPLDestroyMutex(hMutex);
+        hMutex = NULL;
+    }
+}
 
 /************************************************************************/
 /*                       GTIFToCPLRecyleString()                        */
@@ -216,11 +263,11 @@ static void WKTMassageDatum( char ** ppszDatum )
 /************************************************************************/
 
 /* For example:
-   GTCitationGeoKey (Ascii,215): "IMAGINE GeoTIFF Support\nCopyright 1991 - 2001 by ERDAS, Inc. All Rights Reserved\n@(#)$RCSfile$ $Revision: 25087 $ $Date: 2012-10-08 17:28:53 -0700 (Mon, 08 Oct 2012) $\nProjection Name = UTM\nUnits = meters\nGeoTIFF Units = meters"
+   GTCitationGeoKey (Ascii,215): "IMAGINE GeoTIFF Support\nCopyright 1991 - 2001 by ERDAS, Inc. All Rights Reserved\n@(#)$RCSfile$ $Revision: 25659 $ $Date: 2013-02-19 14:51:46 -0800 (Tue, 19 Feb 2013) $\nProjection Name = UTM\nUnits = meters\nGeoTIFF Units = meters"
 
-   GeogCitationGeoKey (Ascii,267): "IMAGINE GeoTIFF Support\nCopyright 1991 - 2001 by ERDAS, Inc. All Rights Reserved\n@(#)$RCSfile$ $Revision: 25087 $ $Date: 2012-10-08 17:28:53 -0700 (Mon, 08 Oct 2012) $\nUnable to match Ellipsoid (Datum) to a GeographicTypeGeoKey value\nEllipsoid = Clarke 1866\nDatum = NAD27 (CONUS)"
+   GeogCitationGeoKey (Ascii,267): "IMAGINE GeoTIFF Support\nCopyright 1991 - 2001 by ERDAS, Inc. All Rights Reserved\n@(#)$RCSfile$ $Revision: 25659 $ $Date: 2013-02-19 14:51:46 -0800 (Tue, 19 Feb 2013) $\nUnable to match Ellipsoid (Datum) to a GeographicTypeGeoKey value\nEllipsoid = Clarke 1866\nDatum = NAD27 (CONUS)"
 
-   PCSCitationGeoKey (Ascii,214): "IMAGINE GeoTIFF Support\nCopyright 1991 - 2001 by ERDAS, Inc. All Rights Reserved\n@(#)$RCSfile$ $Revision: 25087 $ $Date: 2012-10-08 17:28:53 -0700 (Mon, 08 Oct 2012) $\nUTM Zone 10N\nEllipsoid = Clarke 1866\nDatum = NAD27 (CONUS)"
+   PCSCitationGeoKey (Ascii,214): "IMAGINE GeoTIFF Support\nCopyright 1991 - 2001 by ERDAS, Inc. All Rights Reserved\n@(#)$RCSfile$ $Revision: 25659 $ $Date: 2013-02-19 14:51:46 -0800 (Tue, 19 Feb 2013) $\nUTM Zone 10N\nEllipsoid = Clarke 1866\nDatum = NAD27 (CONUS)"
  
 */
 
@@ -266,6 +313,11 @@ char *GTIFGetOGISDefn( GTIF *hGTIF, GTIFDefn * psDefn )
 
 {
     OGRSpatialReference	oSRS;
+
+/* -------------------------------------------------------------------- */
+/*      Make sure we have hooked CSVFilename().                         */
+/* -------------------------------------------------------------------- */
+    LibgeotiffOneTimeInit();
 
 /* -------------------------------------------------------------------- */
 /*  Handle non-standard coordinate systems where GTModelTypeGeoKey      */
@@ -714,6 +766,13 @@ char *GTIFGetOGISDefn( GTIF *hGTIF, GTIFDefn * psDefn )
                          adfParm[5], adfParm[6] );
             break;
         
+          case CT_HotineObliqueMercatorAzimuthCenter:
+            oSRS.SetHOMAC( adfParm[0], adfParm[1],
+                           adfParm[2], adfParm[3],
+                           adfParm[4],
+                           adfParm[5], adfParm[6] );
+            break;
+        
           case CT_EquidistantConic: 
             oSRS.SetEC( adfParm[0], adfParm[1],
                         adfParm[2], adfParm[3],
@@ -876,6 +935,16 @@ char *GTIFGetOGISDefn( GTIF *hGTIF, GTIFDefn * psDefn )
             verticalCSType = verticalDatum + 600;
         }
 
+/* -------------------------------------------------------------------- */
+/*      This addresses another case where the EGM96 Vertical Datum code */
+/*      is mis-used as a Vertical CS code (#4922)                       */
+/* -------------------------------------------------------------------- */
+        if( verticalCSType == 5171 )
+        {
+            verticalDatum = 5171;
+            verticalCSType = 5773;
+        }
+ 
 /* -------------------------------------------------------------------- */
 /*      Somewhat similarly, codes 5001 to 5033 were treated as          */
 /*      vertical coordinate systems based on ellipsoidal heights.       */
@@ -1545,6 +1614,40 @@ int GTIFSetFromOGISDefn( GTIF * psGTIF, const char *pszOGCWKT )
 
         GTIFKeySet(psGTIF, ProjCoordTransGeoKey, TYPE_SHORT, 1, 
                    CT_ObliqueMercator );
+
+        GTIFKeySet(psGTIF, ProjCenterLatGeoKey, TYPE_DOUBLE, 1,
+                   poSRS->GetNormProjParm( SRS_PP_LATITUDE_OF_CENTER, 0.0 ) );
+
+        GTIFKeySet(psGTIF, ProjCenterLongGeoKey, TYPE_DOUBLE, 1,
+                   poSRS->GetNormProjParm( SRS_PP_LONGITUDE_OF_CENTER, 0.0 ) );
+        
+        GTIFKeySet(psGTIF, ProjAzimuthAngleGeoKey, TYPE_DOUBLE, 1,
+                   poSRS->GetNormProjParm( SRS_PP_AZIMUTH, 0.0 ) );
+        
+        GTIFKeySet(psGTIF, ProjRectifiedGridAngleGeoKey, TYPE_DOUBLE, 1,
+                   poSRS->GetNormProjParm( SRS_PP_RECTIFIED_GRID_ANGLE, 0.0 ) );
+        
+        GTIFKeySet(psGTIF, ProjScaleAtCenterGeoKey, TYPE_DOUBLE, 1,
+                   poSRS->GetNormProjParm( SRS_PP_SCALE_FACTOR, 1.0 ) );
+        
+        GTIFKeySet(psGTIF, ProjFalseEastingGeoKey, TYPE_DOUBLE, 1,
+                   poSRS->GetProjParm( SRS_PP_FALSE_EASTING, 0.0 ) );
+        
+        GTIFKeySet(psGTIF, ProjFalseNorthingGeoKey, TYPE_DOUBLE, 1,
+                   poSRS->GetProjParm( SRS_PP_FALSE_NORTHING, 0.0 ) );
+    }
+    
+    else if( EQUAL(pszProjection,SRS_PT_HOTINE_OBLIQUE_MERCATOR_AZIMUTH_CENTER) )
+    {
+        GTIFKeySet(psGTIF, GTModelTypeGeoKey, TYPE_SHORT, 1,
+                   ModelTypeProjected);
+        GTIFKeySet(psGTIF, ProjectedCSTypeGeoKey, TYPE_SHORT, 1,
+                   KvUserDefined );
+        GTIFKeySet(psGTIF, ProjectionGeoKey, TYPE_SHORT, 1,
+                   KvUserDefined );
+
+        GTIFKeySet(psGTIF, ProjCoordTransGeoKey, TYPE_SHORT, 1, 
+                   CT_HotineObliqueMercatorAzimuthCenter );
 
         GTIFKeySet(psGTIF, ProjCenterLatGeoKey, TYPE_DOUBLE, 1,
                    poSRS->GetNormProjParm( SRS_PP_LATITUDE_OF_CENTER, 0.0 ) );
@@ -2283,13 +2386,15 @@ CPLErr GTIFWktFromMemBuf( int nSize, unsigned char *pabyBuffer,
                           int *pnGCPCount, GDAL_GCP **ppasGCPList )
 
 {
-    TIFF        *hTIFF;
-    GTIF 	*hGTIF;
-    GTIFDefn	sGTIFDefn;
-    char        szFilename[100];
+    char szFilename[100];
 
-    sprintf( szFilename, "/vsimem/wkt_from_mem_buf_%ld.tif", 
+    sprintf( szFilename, "/vsimem/wkt_from_mem_buf_%ld.tif",
              (long) CPLGetPID() );
+
+/* -------------------------------------------------------------------- */
+/*      Make sure we have hooked CSVFilename().                         */
+/* -------------------------------------------------------------------- */
+    LibgeotiffOneTimeInit();
 
 /* -------------------------------------------------------------------- */
 /*      Create a memory file from the buffer.                           */
@@ -2302,7 +2407,8 @@ CPLErr GTIFWktFromMemBuf( int nSize, unsigned char *pabyBuffer,
 /* -------------------------------------------------------------------- */
 /*      Initialize access to the memory geotiff structure.              */
 /* -------------------------------------------------------------------- */
-    hTIFF = VSI_TIFFOpen( szFilename, "r" );
+    TIFF        *hTIFF;
+    hTIFF = VSI_TIFFOpen( szFilename, "rc" );
 
     if( hTIFF == NULL )
     {
@@ -2315,15 +2421,30 @@ CPLErr GTIFWktFromMemBuf( int nSize, unsigned char *pabyBuffer,
 /* -------------------------------------------------------------------- */
 /*      Get the projection definition.                                  */
 /* -------------------------------------------------------------------- */
+    GTIF 	*hGTIF;
+    GTIFDefn    *psGTIFDefn;
+
     hGTIF = GTIFNew(hTIFF);
 
-    if( hGTIF != NULL && GTIFGetDefn( hGTIF, &sGTIFDefn ) )
-        *ppszWKT = GTIFGetOGISDefn( hGTIF, &sGTIFDefn );
+#if LIBGEOTIFF_VERSION >= 1410
+    psGTIFDefn = GTIFAllocDefn();
+#else
+    psGTIFDefn = (GTIFDefn *) CPLCalloc(1,sizeof(GTIFDefn));
+#endif    
+
+    if( hGTIF != NULL && GTIFGetDefn( hGTIF, psGTIFDefn ) )
+        *ppszWKT = GTIFGetOGISDefn( hGTIF, psGTIFDefn );
     else
         *ppszWKT = NULL;
     
     if( hGTIF )
         GTIFFree( hGTIF );
+    
+#if LIBGEOTIFF_VERSION >= 1410
+    GTIFFreeDefn(psGTIFDefn);
+#else
+    CPLFree(psGTIFDefn);
+#endif    
 
 /* -------------------------------------------------------------------- */
 /*      Get geotransform or tiepoints.                                  */
@@ -2418,6 +2539,11 @@ CPLErr GTIFMemBufFromWkt( const char *pszWKT, const double *padfGeoTransform,
 
     sprintf( szFilename, "/vsimem/wkt_from_mem_buf_%ld.tif", 
              (long) CPLGetPID() );
+
+/* -------------------------------------------------------------------- */
+/*      Make sure we have hooked CSVFilename().                         */
+/* -------------------------------------------------------------------- */
+    LibgeotiffOneTimeInit();
 
 /* -------------------------------------------------------------------- */
 /*      Initialize access to the memory geotiff structure.              */
@@ -2546,4 +2672,3 @@ CPLErr GTIFMemBufFromWkt( const char *pszWKT, const double *padfGeoTransform,
 
     return CE_None;
 }
-

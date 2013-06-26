@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: jpgdataset_12.cpp 24159 2012-03-24 14:51:28Z rouault $
+ * $Id: jpgdataset_12.cpp 25458 2013-01-05 20:32:43Z rouault $
  *
  * Project:  JPEG JFIF Driver
  * Purpose:  Implement GDAL JPEG Support based on IJG libjpeg.
@@ -30,13 +30,13 @@
 #if defined(JPEG_DUAL_MODE_8_12)
 #define LIBJPEG_12_PATH   "libjpeg12/jpeglib.h" 
 #define JPGDataset        JPGDataset12
-#define JPGRasterBand     JPGRasterBand12
-#define JPGMaskBand       JPGMaskBand12
 #include "jpgdataset.cpp"
 
-GDALDataset* JPEGDataset12Open(GDALOpenInfo* poOpenInfo)
+GDALDataset* JPEGDataset12Open(const char* pszFilename,
+                               char** papszSiblingFiles,
+                               int nScaleFactor)
 {
-    return JPGDataset12::Open(poOpenInfo);
+    return JPGDataset12::Open(pszFilename, papszSiblingFiles, nScaleFactor);
 }
 
 GDALDataset* JPEGDataset12CreateCopy( const char * pszFilename,

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrcsvlayer.cpp 25039 2012-10-03 21:32:21Z rcoup $
+ * $Id: ogrcsvlayer.cpp 25807 2013-03-26 18:56:05Z rouault $
  *
  * Project:  CSV Translator
  * Purpose:  Implements OGRCSVLayer class.
@@ -33,7 +33,7 @@
 #include "cpl_csv.h"
 #include "ogr_p.h"
 
-CPL_CVSID("$Id: ogrcsvlayer.cpp 25039 2012-10-03 21:32:21Z rcoup $");
+CPL_CVSID("$Id: ogrcsvlayer.cpp 25807 2013-03-26 18:56:05Z rouault $");
 
 
 
@@ -236,6 +236,9 @@ OGRCSVLayer::OGRCSVLayer( const char *pszLayerNameIn,
     bDontHonourStrings = FALSE;
     bWriteBOM = FALSE;
 
+    bIsEurostatTSV = FALSE;
+    nEurostatDims = 0;
+
     nTotalFeatures = -1;
 
 /* -------------------------------------------------------------------- */
@@ -302,6 +305,16 @@ OGRCSVLayer::OGRCSVLayer( const char *pszLayerNameIn,
                     /* we have a numeric field, therefore do not consider the first line as field names */
                     bHasFieldNames = FALSE;
                 }
+            }
+
+            CPLString osExt = OGRCSVDataSource::GetRealExtension(pszFilename);
+
+            /* Eurostat .tsv files */
+            if( EQUAL(osExt, "tsv") && nFieldCount > 1 &&
+                strchr(papszTokens[0], ',') != NULL && strchr(papszTokens[0], '\\') != NULL )
+            {
+                bHasFieldNames = TRUE;
+                bIsEurostatTSV = TRUE;
             }
 
             /* tokenize without quotes to get the actual values */
@@ -396,7 +409,7 @@ OGRCSVLayer::OGRCSVLayer( const char *pszLayerNameIn,
 /* -------------------------------------------------------------------- */
 /*      Build field definitions.                                        */
 /* -------------------------------------------------------------------- */
-    for( iField = 0; iField < nFieldCount; iField++ )
+    for( iField = 0; !bIsEurostatTSV && iField < nFieldCount; iField++ )
     {
         char *pszFieldName = NULL;
         char szFieldNameBuffer[100];
@@ -522,7 +535,45 @@ OGRCSVLayer::OGRCSVLayer( const char *pszLayerNameIn,
     {
         poFeatureDefn->SetGeomType( wkbPoint );
     }
-    
+
+/* -------------------------------------------------------------------- */
+/*      Build field definitions for Eurostat TSV files.                 */
+/* -------------------------------------------------------------------- */
+
+    CPLString osSeqDim;
+    for( iField = 0; bIsEurostatTSV && iField < nFieldCount; iField++ )
+    {
+        if( iField == 0 )
+        {
+            char** papszDims = CSLTokenizeString2( papszTokens[0], ",\\", 0 );
+            nEurostatDims = CSLCount(papszDims) - 1;
+            for(int iSubField = 0; iSubField < nEurostatDims; iSubField++)
+            {
+                OGRFieldDefn oField(papszDims[iSubField], OFTString);
+                poFeatureDefn->AddFieldDefn( &oField );
+            }
+
+            osSeqDim = papszDims[nEurostatDims];
+            CSLDestroy(papszDims);
+        }
+        else
+        {
+            if( papszTokens[iField][0] != '\0' 
+                && papszTokens[iField][strlen(papszTokens[iField])-1] == ' ' )
+                papszTokens[iField][strlen(papszTokens[iField])-1] = '\0';
+
+            OGRFieldDefn oField(CPLSPrintf("%s_%s", osSeqDim.c_str(), papszTokens[iField]), OFTReal);
+            poFeatureDefn->AddFieldDefn( &oField );
+
+            OGRFieldDefn oField2(CPLSPrintf("%s_%s_flag", osSeqDim.c_str(), papszTokens[iField]), OFTString);
+            poFeatureDefn->AddFieldDefn( &oField2 );
+        }
+    }
+
+/* -------------------------------------------------------------------- */
+/*      Cleanup.                                                        */
+/* -------------------------------------------------------------------- */
+
     CSLDestroy( papszTokens );
     CSLDestroy( papszFieldTypes );
 }
@@ -540,6 +591,10 @@ OGRCSVLayer::~OGRCSVLayer()
                   (int) m_nFeaturesRead, 
                   poFeatureDefn->GetName() );
     }
+
+    // Make sure the header file is written even if no features are written.
+    if (bInWriteMode)
+        WriteHeader();
 
     poFeatureDefn->Release();
     CPLFree(pszFilename);
@@ -608,7 +663,7 @@ OGRFeature * OGRCSVLayer::GetNextUnfilteredFeature()
                                  poFeatureDefn->GetFieldCount() );
     CPLValueType eType;
     
-    for( iAttr = 0; iAttr < nAttrCount; iAttr++)
+    for( iAttr = 0; !bIsEurostatTSV && iAttr < nAttrCount; iAttr++)
     {
         if( iAttr == iWktGeomReadField && papszTokens[iAttr][0] != '\0' )
         {
@@ -630,10 +685,12 @@ OGRFeature * OGRCSVLayer::GetNextUnfilteredFeature()
                     *chComma = '.';
             }
             eType = CPLGetValueType(papszTokens[iAttr]);
-            if ( (papszTokens[iAttr][0] != '\0') &&
+            if ( (papszTokens[iAttr][0] != '\0')  &&
                  ( eType == CPL_VALUE_INTEGER ||
                    eType == CPL_VALUE_REAL ) )
-                poFeature->SetField( iAttr, CPLAtof(papszTokens[iAttr]) );
+            {
+                poFeature->SetField( iAttr, papszTokens[iAttr] );
+            }
         }
         else if (eFieldType != OFTString)
         {
@@ -643,6 +700,44 @@ OGRFeature * OGRCSVLayer::GetNextUnfilteredFeature()
         else
             poFeature->SetField( iAttr, papszTokens[iAttr] );
 
+    }
+
+/* -------------------------------------------------------------------- */
+/*      Eurostat TSV files.                                             */
+/* -------------------------------------------------------------------- */
+
+    for( iAttr = 0; bIsEurostatTSV && iAttr < nAttrCount; iAttr++)
+    {
+        if( iAttr == 0 )
+        {
+            char** papszDims = CSLTokenizeString2( papszTokens[0], ",", 0 );
+            if( CSLCount(papszDims) != nEurostatDims )
+            {
+                CSLDestroy(papszDims);
+                break;
+            }
+            for( int iSubAttr = 0; iSubAttr < nEurostatDims; iSubAttr ++ )
+            {
+                poFeature->SetField( iSubAttr, papszDims[iSubAttr] );
+            }
+            CSLDestroy(papszDims);
+        }
+        else
+        {
+            char** papszVals = CSLTokenizeString2( papszTokens[iAttr], " ", 0 );
+            eType = CPLGetValueType(papszVals[0]);
+            if ( (papszVals[0][0] != '\0')  &&
+                 ( eType == CPL_VALUE_INTEGER ||
+                   eType == CPL_VALUE_REAL ) )
+            {
+                poFeature->SetField( nEurostatDims + 2 * (iAttr - 1), papszVals[0] );
+            }
+            if( CSLCount(papszVals) == 2 )
+            {
+                poFeature->SetField( nEurostatDims + 2 * (iAttr - 1) + 1, papszVals[1] );
+            }
+            CSLDestroy(papszVals);
+        }
     }
 
 /* -------------------------------------------------------------------- */
@@ -818,39 +913,25 @@ OGRErr OGRCSVLayer::CreateField( OGRFieldDefn *poNewField, int bApproxOK )
 }
 
 /************************************************************************/
-/*                           CreateFeature()                            */
+/*                            WriteHeader()                             */
+/*                                                                      */
+/*      Write the header, and possibly the .csvt file if they           */
+/*      haven't already been written.                                   */
 /************************************************************************/
 
-OGRErr OGRCSVLayer::CreateFeature( OGRFeature *poNewFeature )
-
+OGRErr OGRCSVLayer::WriteHeader()
 {
-    int iField;
-
-    if( !bInWriteMode )
-    {
-        CPLError( CE_Failure, CPLE_AppDefined, 
-            "The CreateFeature() operation is not permitted on a read-only CSV." );
-        return OGRERR_FAILURE;
-    }
-
-    /* If we need rewind, it means that we have just written a feature before */
-    /* so there's no point seeking to the end of the file, as we're already */
-    /* at the end */
-    int bNeedSeekEnd = !bNeedRewindBeforeRead;
-
-    bNeedRewindBeforeRead = TRUE;
+    if( bHasFieldNames )
+        return OGRERR_NONE;
 
 /* -------------------------------------------------------------------- */
 /*      Write field names if we haven't written them yet.               */
 /*      Write .csvt file if needed                                      */
 /* -------------------------------------------------------------------- */
-    if( !bHasFieldNames )
-    {
-      bHasFieldNames = TRUE;
-      bNeedSeekEnd = FALSE;
+    bHasFieldNames = TRUE;
 
-      for(int iFile=0;iFile<((bCreateCSVT) ? 2 : 1);iFile++)
-      {
+    for(int iFile=0;iFile<((bCreateCSVT) ? 2 : 1);iFile++)
+    {
         VSILFILE* fpCSVT = NULL;
         if (bCreateCSVT && iFile == 0)
         {
@@ -871,8 +952,8 @@ OGRErr OGRCSVLayer::CreateFeature( OGRFeature *poNewFeature )
             if( fpCSV == NULL )
             {
                 CPLError( CE_Failure, CPLE_OpenFailed,
-                        "Failed to create %s:\n%s",
-                        pszFilename, VSIStrerror( errno ) );
+                          "Failed to create %s:\n%s",
+                          pszFilename, VSIStrerror( errno ) );
                 return OGRERR_FAILURE;
             }
         }
@@ -923,7 +1004,7 @@ OGRErr OGRCSVLayer::CreateFeature( OGRFeature *poNewFeature )
             }
         }
 
-        for( iField = 0; iField < poFeatureDefn->GetFieldCount(); iField++ )
+        for( int iField = 0; iField < poFeatureDefn->GetFieldCount(); iField++ )
         {
             char *pszEscaped;
 
@@ -944,12 +1025,12 @@ OGRErr OGRCSVLayer::CreateFeature( OGRFeature *poNewFeature )
             {
                 switch( poFeatureDefn->GetFieldDefn(iField)->GetType() )
                 {
-                    case OFTInteger:  VSIFPrintfL( fpCSVT, "%s", "Integer"); break;
-                    case OFTReal:     VSIFPrintfL( fpCSVT, "%s", "Real"); break;
-                    case OFTDate:     VSIFPrintfL( fpCSVT, "%s", "Date"); break;
-                    case OFTTime:     VSIFPrintfL( fpCSVT, "%s", "Time"); break;
-                    case OFTDateTime: VSIFPrintfL( fpCSVT, "%s", "DateTime"); break;
-                    default:          VSIFPrintfL( fpCSVT, "%s", "String"); break;
+                  case OFTInteger:  VSIFPrintfL( fpCSVT, "%s", "Integer"); break;
+                  case OFTReal:     VSIFPrintfL( fpCSVT, "%s", "Real"); break;
+                  case OFTDate:     VSIFPrintfL( fpCSVT, "%s", "Date"); break;
+                  case OFTTime:     VSIFPrintfL( fpCSVT, "%s", "Time"); break;
+                  case OFTDateTime: VSIFPrintfL( fpCSVT, "%s", "DateTime"); break;
+                  default:          VSIFPrintfL( fpCSVT, "%s", "String"); break;
                 }
 
                 int nWidth = poFeatureDefn->GetFieldDefn(iField)->GetWidth();
@@ -979,7 +1060,47 @@ OGRErr OGRCSVLayer::CreateFeature( OGRFeature *poNewFeature )
         if (fpCSV) VSIFPutcL( '\n', fpCSV );
         if (fpCSVT) VSIFPutcL( '\n', fpCSVT );
         if (fpCSVT) VSIFCloseL(fpCSVT);
-      }
+    }
+
+    if (fpCSV == NULL) 
+        return OGRERR_FAILURE;
+    else
+        return OGRERR_NONE;
+}
+
+/************************************************************************/
+/*                           CreateFeature()                            */
+/************************************************************************/
+
+OGRErr OGRCSVLayer::CreateFeature( OGRFeature *poNewFeature )
+
+{
+    int iField;
+
+    if( !bInWriteMode )
+    {
+        CPLError( CE_Failure, CPLE_AppDefined, 
+            "The CreateFeature() operation is not permitted on a read-only CSV." );
+        return OGRERR_FAILURE;
+    }
+
+    /* If we need rewind, it means that we have just written a feature before */
+    /* so there's no point seeking to the end of the file, as we're already */
+    /* at the end */
+    int bNeedSeekEnd = !bNeedRewindBeforeRead;
+
+    bNeedRewindBeforeRead = TRUE;
+
+/* -------------------------------------------------------------------- */
+/*      Write field names if we haven't written them yet.               */
+/*      Write .csvt file if needed                                      */
+/* -------------------------------------------------------------------- */
+    if( !bHasFieldNames )
+    {
+        OGRErr eErr = WriteHeader();
+        if (eErr != OGRERR_NONE)
+            return eErr;
+        bNeedSeekEnd = FALSE;
     }
 
     if (fpCSV == NULL)

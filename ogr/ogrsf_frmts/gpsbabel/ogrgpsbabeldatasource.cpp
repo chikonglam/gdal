@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrgpsbabeldatasource.cpp 23557 2011-12-12 22:08:17Z rouault $
+ * $Id: ogrgpsbabeldatasource.cpp 25598 2013-02-05 22:24:35Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implements OGRGPSBabelDataSource class.
@@ -31,10 +31,11 @@
 #include "cpl_conv.h"
 #include "cpl_string.h"
 #include "cpl_error.h"
+#include "cpl_spawn.h"
 
 #include <string.h>
 
-CPL_CVSID("$Id: ogrgpsbabeldatasource.cpp 23557 2011-12-12 22:08:17Z rouault $");
+CPL_CVSID("$Id: ogrgpsbabeldatasource.cpp 25598 2013-02-05 22:24:35Z rouault $");
 
 /************************************************************************/
 /*                      OGRGPSBabelDataSource()                         */
@@ -257,14 +258,14 @@ int OGRGPSBabelDataSource::Open( const char * pszDatasourceName, int bUpdateIn)
     else
         osTmpFileName.Printf("/vsimem/ogrgpsbabeldatasource_%p", this);
 
-    int nRet = FALSE;
+    int bRet = FALSE;
     if (IsSpecialFile(pszFilename))
     {
         /* Special file : don't try to open it */
         char** argv = GetArgv(bExplicitFeatures, bWaypoints, bRoutes,
                               bTracks, pszGPSBabelDriverName, pszFilename);
         VSILFILE* tmpfp = VSIFOpenL(osTmpFileName.c_str(), "wb");
-        nRet = ForkAndPipe(argv, NULL, tmpfp);
+        bRet = (CPLSpawn(argv, NULL, tmpfp, TRUE) == 0);
         VSIFCloseL(tmpfp);
         tmpfp = NULL;
         CSLDestroy(argv);
@@ -286,7 +287,7 @@ int OGRGPSBabelDataSource::Open( const char * pszDatasourceName, int bUpdateIn)
         VSILFILE* tmpfp = VSIFOpenL(osTmpFileName.c_str(), "wb");
 
         CPLPushErrorHandler(CPLQuietErrorHandler);
-        nRet = ForkAndPipe(argv, fp, tmpfp);
+        bRet = (CPLSpawn(argv, fp, tmpfp, TRUE) == 0);
         CPLPopErrorHandler();
 
         CSLDestroy(argv);
@@ -302,7 +303,7 @@ int OGRGPSBabelDataSource::Open( const char * pszDatasourceName, int bUpdateIn)
         VSIFCloseL(fp);
         fp = NULL;
 
-        if (!nRet)
+        if (!bRet)
         {
             if (strstr(osLastErrorMsg.c_str(), "This format cannot be used in piped commands") == NULL)
             {
@@ -322,7 +323,7 @@ int OGRGPSBabelDataSource::Open( const char * pszDatasourceName, int bUpdateIn)
                 argv = GetArgv(bExplicitFeatures, bWaypoints, bRoutes,
                               bTracks, pszGPSBabelDriverName, pszFilename);
                 tmpfp = VSIFOpenL(osTmpFileName.c_str(), "wb");
-                nRet = ForkAndPipe(argv, NULL, tmpfp);
+                bRet = (CPLSpawn(argv, NULL, tmpfp, TRUE) == 0);
                 VSIFCloseL(tmpfp);
                 tmpfp = NULL;
 
@@ -333,7 +334,7 @@ int OGRGPSBabelDataSource::Open( const char * pszDatasourceName, int bUpdateIn)
     }
 
 
-    if (nRet)
+    if (bRet)
     {
         poGPXDS = OGRSFDriverRegistrar::Open(osTmpFileName.c_str());
         if (poGPXDS)

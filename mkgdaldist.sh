@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $Id: mkgdaldist.sh 24266 2012-04-20 03:57:38Z warmerdam $
+# $Id: mkgdaldist.sh 24265 2012-04-20 03:55:40Z warmerdam $
 #
 # mkgdaldist.sh - prepares GDAL source distribution package
 #

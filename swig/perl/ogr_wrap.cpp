@@ -1515,24 +1515,26 @@ SWIG_Perl_SetModule(swig_module_info *module) {
 
 /* -------- TYPES TABLE (BEGIN) -------- */
 
-#define SWIGTYPE_p_OGRDataSourceShadow swig_types[0]
-#define SWIGTYPE_p_OGRDriverShadow swig_types[1]
-#define SWIGTYPE_p_OGRFeatureDefnShadow swig_types[2]
-#define SWIGTYPE_p_OGRFeatureShadow swig_types[3]
-#define SWIGTYPE_p_OGRFieldDefnShadow swig_types[4]
-#define SWIGTYPE_p_OGRGeometryShadow swig_types[5]
-#define SWIGTYPE_p_OGRLayerShadow swig_types[6]
-#define SWIGTYPE_p_OSRCoordinateTransformationShadow swig_types[7]
-#define SWIGTYPE_p_OSRSpatialReferenceShadow swig_types[8]
-#define SWIGTYPE_p_char swig_types[9]
-#define SWIGTYPE_p_double swig_types[10]
-#define SWIGTYPE_p_int swig_types[11]
-#define SWIGTYPE_p_p_char swig_types[12]
-#define SWIGTYPE_p_p_double swig_types[13]
-#define SWIGTYPE_p_p_int swig_types[14]
-#define SWIGTYPE_p_p_p_char swig_types[15]
-static swig_type_info *swig_types[17];
-static swig_module_info swig_module = {swig_types, 16, 0, 0, 0, 0};
+#define SWIGTYPE_p_GDALProgressFunc swig_types[0]
+#define SWIGTYPE_p_OGRDataSourceShadow swig_types[1]
+#define SWIGTYPE_p_OGRDriverShadow swig_types[2]
+#define SWIGTYPE_p_OGRFeatureDefnShadow swig_types[3]
+#define SWIGTYPE_p_OGRFeatureShadow swig_types[4]
+#define SWIGTYPE_p_OGRFieldDefnShadow swig_types[5]
+#define SWIGTYPE_p_OGRGeometryShadow swig_types[6]
+#define SWIGTYPE_p_OGRLayerShadow swig_types[7]
+#define SWIGTYPE_p_OSRCoordinateTransformationShadow swig_types[8]
+#define SWIGTYPE_p_OSRSpatialReferenceShadow swig_types[9]
+#define SWIGTYPE_p_char swig_types[10]
+#define SWIGTYPE_p_double swig_types[11]
+#define SWIGTYPE_p_f_double_p_q_const__char_p_void__int swig_types[12]
+#define SWIGTYPE_p_int swig_types[13]
+#define SWIGTYPE_p_p_char swig_types[14]
+#define SWIGTYPE_p_p_double swig_types[15]
+#define SWIGTYPE_p_p_int swig_types[16]
+#define SWIGTYPE_p_p_p_char swig_types[17]
+static swig_type_info *swig_types[19];
+static swig_module_info swig_module = {swig_types, 18, 0, 0, 0, 0};
 #define SWIG_TypeQuery(name) SWIG_TypeQueryModule(&swig_module, &swig_module, name)
 #define SWIG_MangledTypeQuery(name) SWIG_MangledTypeQueryModule(&swig_module, &swig_module, name)
 
@@ -1641,22 +1643,66 @@ SWIG_FromCharPtr(const char *cptr)
 }
 
 
-void VeryQuiteErrorHandler(CPLErr eclass, int code, const char *msg ) {
-  /* If the error class is CE_Fatal, we want to have a message issued
-     because the CPL support code does an abort() before any exception
-     can be generated */
-  if (eclass == CE_Fatal ) {
-    CPLDefaultErrorHandler(eclass, code, msg );
+    #ifndef SWIG
+    typedef struct
+    {
+	SV *fct;
+	SV *data;
+    } SavedEnv;
+    #endif
+    int callback_d_cp_vp(double d, const char *cp, void *vp)
+    {
+	int count, ret;
+	SavedEnv *env_ptr = (SavedEnv *)vp;
+	dSP;
+	ENTER;
+	SAVETMPS;
+	PUSHMARK(SP);
+	XPUSHs(sv_2mortal(newSVnv(d)));
+	XPUSHs(sv_2mortal(newSVpv(cp, 0)));
+	if (env_ptr->data)
+	    XPUSHs(env_ptr->data);
+	PUTBACK;
+	count = call_sv(env_ptr->fct, G_SCALAR);
+	SPAGAIN;
+	if (count != 1) {
+	    fprintf(stderr, "The callback must return only one value.\n");
+	    return 0; /* interrupt */
+	}
+	ret = POPi;
+	PUTBACK;
+	FREETMPS;
+	LEAVE;
+	return ret;
+    }
+
+
+SWIGINTERN int
+SWIG_AsVal_double SWIG_PERL_DECL_ARGS_2(SV *obj, double *val)
+{
+  if (SvNIOK(obj)) {
+    if (val) *val = SvNV(obj);
+    return SWIG_OK;
+  } else if (SvIOK(obj)) {
+    if (val) *val = (double) SvIV(obj);
+    return SWIG_AddCast(SWIG_OK);
+  } else {
+    const char *nptr = SvPV_nolen(obj);
+    if (nptr) {
+      char *endptr;
+      double v = strtod(nptr, &endptr);
+      if (errno == ERANGE) {
+	errno = 0;
+	return SWIG_OverflowError;
+      } else {
+	if (*endptr == '\0') {
+	  if (val) *val = v;
+	  return SWIG_Str2NumCast(SWIG_OK);
+	}
+      }
+    }
   }
-}
-
-
-void UseExceptions() {
-  CPLSetErrorHandler( (CPLErrorHandler) VeryQuiteErrorHandler );
-}
-
-void DontUseExceptions() {
-  CPLSetErrorHandler( CPLDefaultErrorHandler );
+  return SWIG_TypeError;
 }
 
 
@@ -1715,6 +1761,25 @@ SWIG_AsCharPtrAndSize(SV *obj, char** cptr, size_t* psize, int *alloc)
 
 
 
+
+void VeryQuiteErrorHandler(CPLErr eclass, int code, const char *msg ) {
+  /* If the error class is CE_Fatal, we want to have a message issued
+     because the CPL support code does an abort() before any exception
+     can be generated */
+  if (eclass == CE_Fatal ) {
+    CPLDefaultErrorHandler(eclass, code, msg );
+  }
+}
+
+
+void UseExceptions() {
+  CPLSetErrorHandler( (CPLErrorHandler) VeryQuiteErrorHandler );
+}
+
+void DontUseExceptions() {
+  CPLSetErrorHandler( CPLDefaultErrorHandler );
+}
+
 SWIGINTERN OGRDataSourceShadow *OGRDriverShadow_CreateDataSource(OGRDriverShadow *self,char const *utf8_path,char **options=0){
     OGRDataSourceShadow *ds = (OGRDataSourceShadow*) OGR_Dr_CreateDataSource( self, utf8_path, options);
     return ds;
@@ -1732,35 +1797,6 @@ SWIGINTERN OGRDataSourceShadow *OGRDriverShadow_CopyDataSource(OGRDriverShadow *
 #   define ULLONG_MAX (LLONG_MAX * 2ULL + 1ULL)
 # endif
 #endif
-
-
-SWIGINTERN int
-SWIG_AsVal_double SWIG_PERL_DECL_ARGS_2(SV *obj, double *val)
-{
-  if (SvNIOK(obj)) {
-    if (val) *val = SvNV(obj);
-    return SWIG_OK;
-  } else if (SvIOK(obj)) {
-    if (val) *val = (double) SvIV(obj);
-    return SWIG_AddCast(SWIG_OK);
-  } else {
-    const char *nptr = SvPV_nolen(obj);
-    if (nptr) {
-      char *endptr;
-      double v = strtod(nptr, &endptr);
-      if (errno == ERANGE) {
-	errno = 0;
-	return SWIG_OverflowError;
-      } else {
-	if (*endptr == '\0') {
-	  if (val) *val = v;
-	  return SWIG_Str2NumCast(SWIG_OK);
-	}
-      }
-    }
-  }
-  return SWIG_TypeError;
-}
 
 
 #include <float.h>
@@ -1852,12 +1888,15 @@ SWIG_AsVal_int SWIG_PERL_DECL_ARGS_2(SV * obj, int *val)
 }
 
 SWIGINTERN OGRDataSourceShadow *OGRDriverShadow_Open(OGRDriverShadow *self,char const *utf8_path,int update=0){
+    CPLErrorReset();
     OGRDataSourceShadow* ds = (OGRDataSourceShadow*) OGR_Dr_Open(self, utf8_path, update);
     if( CPLGetLastErrorType() == CE_Failure && ds != NULL )
     {
-        CPLDebug( "SWIG",
-          "OGR_Dr_Open() succeeded, but an error is posted, so we destroy"
-          " the datasource and fail at swig level." );
+        CPLDebug(
+            "SWIG",
+            "OGR_Dr_Open() succeeded, but an error is posted, so we destroy"
+            " the datasource and fail at swig level.\nError:%s",
+            CPLGetLastErrorMsg() );
         OGRReleaseDataSource(ds);
         ds = NULL;
     }
@@ -2047,7 +2086,7 @@ CreateArrayFromDoubleArray( double *first, unsigned int size ) {
     av_store(av,i,newSVnv(*first));
     ++first;
   }
-  return newRV_noinc((SV*)av);
+  return sv_2mortal(newRV((SV*)av));
 }
 
 SWIGINTERN OGRErr OGRLayerShadow_GetExtent(OGRLayerShadow *self,double argout[4],int force=1){
@@ -2101,6 +2140,27 @@ SWIGINTERN GIntBig OGRLayerShadow_GetFeaturesRead(OGRLayerShadow *self){
   }
 SWIGINTERN OGRErr OGRLayerShadow_SetIgnoredFields(OGRLayerShadow *self,char const **options){
     return OGR_L_SetIgnoredFields( self, options );
+  }
+SWIGINTERN OGRErr OGRLayerShadow_Intersection(OGRLayerShadow *self,OGRLayerShadow *method_layer,OGRLayerShadow *result_layer,char **options=NULL,GDALProgressFunc callback=NULL,void *callback_data=NULL){
+    return OGR_L_Intersection( self, method_layer, result_layer, options, callback, callback_data );
+  }
+SWIGINTERN OGRErr OGRLayerShadow_Union(OGRLayerShadow *self,OGRLayerShadow *method_layer,OGRLayerShadow *result_layer,char **options=NULL,GDALProgressFunc callback=NULL,void *callback_data=NULL){
+    return OGR_L_Union( self, method_layer, result_layer, options, callback, callback_data );
+  }
+SWIGINTERN OGRErr OGRLayerShadow_SymDifference(OGRLayerShadow *self,OGRLayerShadow *method_layer,OGRLayerShadow *result_layer,char **options=NULL,GDALProgressFunc callback=NULL,void *callback_data=NULL){
+    return OGR_L_SymDifference( self, method_layer, result_layer, options, callback, callback_data );
+  }
+SWIGINTERN OGRErr OGRLayerShadow_Identity(OGRLayerShadow *self,OGRLayerShadow *method_layer,OGRLayerShadow *result_layer,char **options=NULL,GDALProgressFunc callback=NULL,void *callback_data=NULL){
+    return OGR_L_Identity( self, method_layer, result_layer, options, callback, callback_data );
+  }
+SWIGINTERN OGRErr OGRLayerShadow_Update(OGRLayerShadow *self,OGRLayerShadow *method_layer,OGRLayerShadow *result_layer,char **options=NULL,GDALProgressFunc callback=NULL,void *callback_data=NULL){
+    return OGR_L_Update( self, method_layer, result_layer, options, callback, callback_data );
+  }
+SWIGINTERN OGRErr OGRLayerShadow_Clip(OGRLayerShadow *self,OGRLayerShadow *method_layer,OGRLayerShadow *result_layer,char **options=NULL,GDALProgressFunc callback=NULL,void *callback_data=NULL){
+    return OGR_L_Clip( self, method_layer, result_layer, options, callback, callback_data );
+  }
+SWIGINTERN OGRErr OGRLayerShadow_Erase(OGRLayerShadow *self,OGRLayerShadow *method_layer,OGRLayerShadow *result_layer,char **options=NULL,GDALProgressFunc callback=NULL,void *callback_data=NULL){
+    return OGR_L_Erase( self, method_layer, result_layer, options, callback, callback_data );
   }
 SWIGINTERN void delete_OGRFeatureShadow(OGRFeatureShadow *self){
     OGR_F_Destroy(self);
@@ -2171,7 +2231,7 @@ CreateArrayFromIntArray( int *first, unsigned int size ) {
     av_store(av,i,newSViv(*first));
     ++first;
   }
-  return newRV_noinc((SV*)av);
+  return sv_2mortal(newRV((SV*)av));
 }
 
 SWIGINTERN void OGRFeatureShadow_GetFieldAsIntegerList(OGRFeatureShadow *self,int id,int *nLen,int const **pList){
@@ -2190,7 +2250,7 @@ CreateArrayFromStringArray( char **first ) {
     av_store(av,i,sv);
     ++first;
   }
-  return newRV_noinc((SV*)av);
+  return sv_2mortal(newRV((SV*)av));
 }
 
 SWIGINTERN void OGRFeatureShadow_GetFieldAsStringList(OGRFeatureShadow *self,int id,char ***pList){
@@ -2485,6 +2545,13 @@ OGRGeometryShadow* ForceToPolygon( OGRGeometryShadow *geom_in ) {
 }
 
 
+OGRGeometryShadow* ForceToLineString( OGRGeometryShadow *geom_in ) {
+ if (geom_in == NULL)
+     return NULL;
+ return (OGRGeometryShadow* )OGR_G_ForceToLineString( OGR_G_Clone(geom_in) );
+}
+
+
 OGRGeometryShadow* ForceToMultiPolygon( OGRGeometryShadow *geom_in ) {
  if (geom_in == NULL)
      return NULL;
@@ -2725,6 +2792,9 @@ SWIGINTERN OGRGeometryShadow *OGRGeometryShadow_Centroid(OGRGeometryShadow *self
     OGR_G_Centroid( self, pt );
     return pt;
   }
+SWIGINTERN OGRGeometryShadow *OGRGeometryShadow_PointOnSurface(OGRGeometryShadow *self){
+    return (OGRGeometryShadow*) OGR_G_PointOnSurface( self );
+  }
 SWIGINTERN int OGRGeometryShadow_WkbSize(OGRGeometryShadow *self){
     return OGR_G_WkbSize(self);
   }
@@ -2747,11 +2817,19 @@ SWIGINTERN void OGRGeometryShadow_Move(OGRGeometryShadow *self,double dx,double 
 	    }
 	} else {
 	    int i;
+	    int d = OGR_G_GetCoordinateDimension(self);
 	    for (i = 0; i < OGR_G_GetPointCount(self); i++) {
-		double x = OGR_G_GetX(self, i);
-		double y = OGR_G_GetY(self, i);
-		double z = OGR_G_GetZ(self, i);
-		OGR_G_SetPoint(self, i, x+dx, y+dy, z+dz);
+                if (d == 0) {
+                } else {
+                    double x = OGR_G_GetX(self, i);
+                    double y = OGR_G_GetY(self, i);
+                    if (d == 2) {
+                        OGR_G_SetPoint_2D(self, i, x+dx, y+dy);
+                    } else {
+                        double z = OGR_G_GetZ(self, i);
+                        OGR_G_SetPoint(self, i, x+dx, y+dy, z+dz);
+                    }
+                }
 	    }
 	}
     }
@@ -2829,6 +2907,11 @@ OGRDriverShadow* GetDriver(int driver_number) {
         return papszArgv;
   }
 
+
+int GDALTermProgress_nocb( double dfProgress, const char * pszMessage=NULL, void *pData=NULL ) {
+  return GDALTermProgress( dfProgress, pszMessage, pData);
+}
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -2858,6 +2941,53 @@ SWIGCLASS_STATIC int swig_magic_readonly(pTHX_ SV *SWIGUNUSEDPARM(sv), MAGIC *SW
 #ifdef __cplusplus
 extern "C" {
 #endif
+XS(_wrap_callback_d_cp_vp) {
+  {
+    double arg1 ;
+    char *arg2 = (char *) 0 ;
+    void *arg3 = (void *) 0 ;
+    double val1 ;
+    int ecode1 = 0 ;
+    int res2 ;
+    char *buf2 = 0 ;
+    int alloc2 = 0 ;
+    int res3 ;
+    int argvi = 0;
+    int result;
+    dXSARGS;
+    
+    if ((items < 3) || (items > 3)) {
+      SWIG_croak("Usage: callback_d_cp_vp(d,cp,vp);");
+    }
+    ecode1 = SWIG_AsVal_double SWIG_PERL_CALL_ARGS_2(ST(0), &val1);
+    if (!SWIG_IsOK(ecode1)) {
+      SWIG_exception_fail(SWIG_ArgError(ecode1), "in method '" "callback_d_cp_vp" "', argument " "1"" of type '" "double""'");
+    } 
+    arg1 = static_cast< double >(val1);
+    res2 = SWIG_AsCharPtrAndSize(ST(1), &buf2, NULL, &alloc2);
+    if (!SWIG_IsOK(res2)) {
+      SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "callback_d_cp_vp" "', argument " "2"" of type '" "char const *""'");
+    }
+    arg2 = reinterpret_cast< char * >(buf2);
+    res3 = SWIG_ConvertPtr(ST(2),SWIG_as_voidptrptr(&arg3), 0, 0);
+    if (!SWIG_IsOK(res3)) {
+      SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "callback_d_cp_vp" "', argument " "3"" of type '" "void *""'"); 
+    }
+    result = (int)callback_d_cp_vp(arg1,(char const *)arg2,arg3);
+    ST(argvi) = SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(result)); argvi++ ;
+    
+    if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
+    
+    XSRETURN(argvi);
+  fail:
+    
+    if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
+    
+    SWIG_croak_null();
+  }
+}
+
+
 XS(_wrap_UseExceptions) {
   {
     int argvi = 0;
@@ -2960,7 +3090,11 @@ XS(_wrap_Driver_CreateDataSource) {
     OGRDataSourceShadow *result = 0 ;
     dXSARGS;
     
-    if ((items < 2) || (items > 3)) {
+    {
+      /* %typemap(default) const char * utf8_path */
+      arg2 = (const char *)"";
+    }
+    if ((items < 1) || (items > 3)) {
       SWIG_croak("Usage: Driver_CreateDataSource(self,utf8_path,options);");
     }
     res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OGRDriverShadow, 0 |  0 );
@@ -2968,10 +3102,12 @@ XS(_wrap_Driver_CreateDataSource) {
       SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Driver_CreateDataSource" "', argument " "1"" of type '" "OGRDriverShadow *""'"); 
     }
     arg1 = reinterpret_cast< OGRDriverShadow * >(argp1);
-    {
-      /* %typemap(in,numinputs=1) (const char* utf8_path) */
-      sv_utf8_upgrade(ST(1));
-      arg2 = SvPV_nolen(ST(1));
+    if (items > 1) {
+      {
+        /* %typemap(in,numinputs=1) (const char* utf8_path) */
+        sv_utf8_upgrade(ST(1));
+        arg2 = SvPV_nolen(ST(1));
+      }
     }
     if (items > 2) {
       {
@@ -2998,16 +3134,11 @@ XS(_wrap_Driver_CreateDataSource) {
                 arg3 = CSLAddNameValue( arg3, key, SvPV_nolen(sv) );
               }
             } else
-            SWIG_croak("'options' is not a reference to an array or hash");
+            SWIG_croak("the 'options' argument to a Geo::GDAL method is not a reference to an array or hash");
           } else
-          SWIG_croak("'options' is not a reference");   
+          SWIG_croak("the 'options' argument to a Geo::GDAL method is not a reference");   
         }
       }
-    }
-    {
-      /* %typemap(check) (const char *utf8_path) */
-      if (!arg2)
-      SWIG_croak("The path must not be undefined");
     }
     {
       CPLErrorReset();
@@ -3065,7 +3196,11 @@ XS(_wrap_Driver_CopyDataSource) {
     OGRDataSourceShadow *result = 0 ;
     dXSARGS;
     
-    if ((items < 3) || (items > 4)) {
+    {
+      /* %typemap(default) const char * utf8_path */
+      arg3 = (const char *)"";
+    }
+    if ((items < 2) || (items > 4)) {
       SWIG_croak("Usage: Driver_CopyDataSource(self,copy_ds,utf8_path,options);");
     }
     res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OGRDriverShadow, 0 |  0 );
@@ -3078,10 +3213,12 @@ XS(_wrap_Driver_CopyDataSource) {
       SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "Driver_CopyDataSource" "', argument " "2"" of type '" "OGRDataSourceShadow *""'"); 
     }
     arg2 = reinterpret_cast< OGRDataSourceShadow * >(argp2);
-    {
-      /* %typemap(in,numinputs=1) (const char* utf8_path) */
-      sv_utf8_upgrade(ST(2));
-      arg3 = SvPV_nolen(ST(2));
+    if (items > 2) {
+      {
+        /* %typemap(in,numinputs=1) (const char* utf8_path) */
+        sv_utf8_upgrade(ST(2));
+        arg3 = SvPV_nolen(ST(2));
+      }
     }
     if (items > 3) {
       {
@@ -3108,16 +3245,11 @@ XS(_wrap_Driver_CopyDataSource) {
                 arg4 = CSLAddNameValue( arg4, key, SvPV_nolen(sv) );
               }
             } else
-            SWIG_croak("'options' is not a reference to an array or hash");
+            SWIG_croak("the 'options' argument to a Geo::GDAL method is not a reference to an array or hash");
           } else
-          SWIG_croak("'options' is not a reference");   
+          SWIG_croak("the 'options' argument to a Geo::GDAL method is not a reference");   
         }
       }
-    }
-    {
-      /* %typemap(check) (const char *utf8_path) */
-      if (!arg3)
-      SWIG_croak("The path must not be undefined");
     }
     {
       CPLErrorReset();
@@ -3176,7 +3308,11 @@ XS(_wrap_Driver_Open) {
     OGRDataSourceShadow *result = 0 ;
     dXSARGS;
     
-    if ((items < 2) || (items > 3)) {
+    {
+      /* %typemap(default) const char * utf8_path */
+      arg2 = (const char *)"";
+    }
+    if ((items < 1) || (items > 3)) {
       SWIG_croak("Usage: Driver_Open(self,utf8_path,update);");
     }
     res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OGRDriverShadow, 0 |  0 );
@@ -3184,10 +3320,12 @@ XS(_wrap_Driver_Open) {
       SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Driver_Open" "', argument " "1"" of type '" "OGRDriverShadow *""'"); 
     }
     arg1 = reinterpret_cast< OGRDriverShadow * >(argp1);
-    {
-      /* %typemap(in,numinputs=1) (const char* utf8_path) */
-      sv_utf8_upgrade(ST(1));
-      arg2 = SvPV_nolen(ST(1));
+    if (items > 1) {
+      {
+        /* %typemap(in,numinputs=1) (const char* utf8_path) */
+        sv_utf8_upgrade(ST(1));
+        arg2 = SvPV_nolen(ST(1));
+      }
     }
     if (items > 2) {
       ecode3 = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(2), &val3);
@@ -3195,11 +3333,6 @@ XS(_wrap_Driver_Open) {
         SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "Driver_Open" "', argument " "3"" of type '" "int""'");
       } 
       arg3 = static_cast< int >(val3);
-    }
-    {
-      /* %typemap(check) (const char *utf8_path) */
-      if (!arg2)
-      SWIG_croak("The path must not be undefined");
     }
     {
       CPLErrorReset();
@@ -3247,7 +3380,11 @@ XS(_wrap_Driver_DeleteDataSource) {
     int result;
     dXSARGS;
     
-    if ((items < 2) || (items > 2)) {
+    {
+      /* %typemap(default) const char * utf8_path */
+      arg2 = (const char *)"";
+    }
+    if ((items < 1) || (items > 2)) {
       SWIG_croak("Usage: Driver_DeleteDataSource(self,utf8_path);");
     }
     res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OGRDriverShadow, 0 |  0 );
@@ -3255,15 +3392,12 @@ XS(_wrap_Driver_DeleteDataSource) {
       SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Driver_DeleteDataSource" "', argument " "1"" of type '" "OGRDriverShadow *""'"); 
     }
     arg1 = reinterpret_cast< OGRDriverShadow * >(argp1);
-    {
-      /* %typemap(in,numinputs=1) (const char* utf8_path) */
-      sv_utf8_upgrade(ST(1));
-      arg2 = SvPV_nolen(ST(1));
-    }
-    {
-      /* %typemap(check) (const char *utf8_path) */
-      if (!arg2)
-      SWIG_croak("The path must not be undefined");
+    if (items > 1) {
+      {
+        /* %typemap(in,numinputs=1) (const char* utf8_path) */
+        sv_utf8_upgrade(ST(1));
+        arg2 = SvPV_nolen(ST(1));
+      }
     }
     {
       CPLErrorReset();
@@ -3463,7 +3597,9 @@ XS(_wrap_Driver_Register) {
       
       
     }
-    ST(argvi) = sv_newmortal();
+    {
+      /* %typemap(out) void */
+    }
     
     XSRETURN(argvi);
   fail:
@@ -3513,7 +3649,9 @@ XS(_wrap_Driver_Deregister) {
       
       
     }
-    ST(argvi) = sv_newmortal();
+    {
+      /* %typemap(out) void */
+    }
     
     XSRETURN(argvi);
   fail:
@@ -3620,7 +3758,9 @@ XS(_wrap_delete_DataSource) {
       
       
     }
-    ST(argvi) = sv_newmortal();
+    {
+      /* %typemap(out) void */
+    }
     
     XSRETURN(argvi);
   fail:
@@ -4086,9 +4226,9 @@ XS(_wrap_DataSource__CreateLayer) {
                 arg5 = CSLAddNameValue( arg5, key, SvPV_nolen(sv) );
               }
             } else
-            SWIG_croak("'options' is not a reference to an array or hash");
+            SWIG_croak("the 'options' argument to a Geo::GDAL method is not a reference to an array or hash");
           } else
-          SWIG_croak("'options' is not a reference");   
+          SWIG_croak("the 'options' argument to a Geo::GDAL method is not a reference");   
         }
       }
     }
@@ -4203,9 +4343,9 @@ XS(_wrap_DataSource_CopyLayer) {
                 arg4 = CSLAddNameValue( arg4, key, SvPV_nolen(sv) );
               }
             } else
-            SWIG_croak("'options' is not a reference to an array or hash");
+            SWIG_croak("the 'options' argument to a Geo::GDAL method is not a reference to an array or hash");
           } else
-          SWIG_croak("'options' is not a reference");   
+          SWIG_croak("the 'options' argument to a Geo::GDAL method is not a reference");   
         }
       }
     }
@@ -4447,7 +4587,7 @@ XS(_wrap_DataSource__TestCapability) {
 }
 
 
-XS(_wrap_DataSource_ExecuteSQL) {
+XS(_wrap_DataSource__ExecuteSQL) {
   {
     OGRDataSourceShadow *arg1 = (OGRDataSourceShadow *) 0 ;
     char *arg2 = (char *) 0 ;
@@ -4468,29 +4608,29 @@ XS(_wrap_DataSource_ExecuteSQL) {
     dXSARGS;
     
     if ((items < 2) || (items > 4)) {
-      SWIG_croak("Usage: DataSource_ExecuteSQL(self,statement,spatialFilter,dialect);");
+      SWIG_croak("Usage: DataSource__ExecuteSQL(self,statement,spatialFilter,dialect);");
     }
     res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OGRDataSourceShadow, 0 |  0 );
     if (!SWIG_IsOK(res1)) {
-      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "DataSource_ExecuteSQL" "', argument " "1"" of type '" "OGRDataSourceShadow *""'"); 
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "DataSource__ExecuteSQL" "', argument " "1"" of type '" "OGRDataSourceShadow *""'"); 
     }
     arg1 = reinterpret_cast< OGRDataSourceShadow * >(argp1);
     res2 = SWIG_AsCharPtrAndSize(ST(1), &buf2, NULL, &alloc2);
     if (!SWIG_IsOK(res2)) {
-      SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "DataSource_ExecuteSQL" "', argument " "2"" of type '" "char const *""'");
+      SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "DataSource__ExecuteSQL" "', argument " "2"" of type '" "char const *""'");
     }
     arg2 = reinterpret_cast< char * >(buf2);
     if (items > 2) {
       res3 = SWIG_ConvertPtr(ST(2), &argp3,SWIGTYPE_p_OGRGeometryShadow, 0 |  0 );
       if (!SWIG_IsOK(res3)) {
-        SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "DataSource_ExecuteSQL" "', argument " "3"" of type '" "OGRGeometryShadow *""'"); 
+        SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "DataSource__ExecuteSQL" "', argument " "3"" of type '" "OGRGeometryShadow *""'"); 
       }
       arg3 = reinterpret_cast< OGRGeometryShadow * >(argp3);
     }
     if (items > 3) {
       res4 = SWIG_AsCharPtrAndSize(ST(3), &buf4, NULL, &alloc4);
       if (!SWIG_IsOK(res4)) {
-        SWIG_exception_fail(SWIG_ArgError(res4), "in method '" "DataSource_ExecuteSQL" "', argument " "4"" of type '" "char const *""'");
+        SWIG_exception_fail(SWIG_ArgError(res4), "in method '" "DataSource__ExecuteSQL" "', argument " "4"" of type '" "char const *""'");
       }
       arg4 = reinterpret_cast< char * >(buf4);
     }
@@ -4585,7 +4725,9 @@ XS(_wrap_DataSource_ReleaseResultSet) {
       
       
     }
-    ST(argvi) = sv_newmortal();
+    {
+      /* %typemap(out) void */
+    }
     
     
     XSRETURN(argvi);
@@ -4696,7 +4838,9 @@ XS(_wrap_Layer_SetSpatialFilter) {
       
       
     }
-    ST(argvi) = sv_newmortal();
+    {
+      /* %typemap(out) void */
+    }
     
     
     XSRETURN(argvi);
@@ -4780,7 +4924,9 @@ XS(_wrap_Layer_SetSpatialFilterRect) {
       
       
     }
-    ST(argvi) = sv_newmortal();
+    {
+      /* %typemap(out) void */
+    }
     
     
     
@@ -4958,7 +5104,9 @@ XS(_wrap_Layer_ResetReading) {
       
       
     }
-    ST(argvi) = sv_newmortal();
+    {
+      /* %typemap(out) void */
+    }
     
     XSRETURN(argvi);
   fail:
@@ -5914,7 +6062,7 @@ XS(_wrap_Layer__TestCapability) {
 }
 
 
-XS(_wrap_Layer_CreateField) {
+XS(_wrap_Layer__CreateField) {
   {
     OGRLayerShadow *arg1 = (OGRLayerShadow *) 0 ;
     OGRFieldDefnShadow *arg2 = (OGRFieldDefnShadow *) 0 ;
@@ -5930,22 +6078,22 @@ XS(_wrap_Layer_CreateField) {
     dXSARGS;
     
     if ((items < 2) || (items > 3)) {
-      SWIG_croak("Usage: Layer_CreateField(self,field_def,approx_ok);");
+      SWIG_croak("Usage: Layer__CreateField(self,field_def,approx_ok);");
     }
     res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OGRLayerShadow, 0 |  0 );
     if (!SWIG_IsOK(res1)) {
-      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Layer_CreateField" "', argument " "1"" of type '" "OGRLayerShadow *""'"); 
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Layer__CreateField" "', argument " "1"" of type '" "OGRLayerShadow *""'"); 
     }
     arg1 = reinterpret_cast< OGRLayerShadow * >(argp1);
     res2 = SWIG_ConvertPtr(ST(1), &argp2,SWIGTYPE_p_OGRFieldDefnShadow, 0 |  0 );
     if (!SWIG_IsOK(res2)) {
-      SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "Layer_CreateField" "', argument " "2"" of type '" "OGRFieldDefnShadow *""'"); 
+      SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "Layer__CreateField" "', argument " "2"" of type '" "OGRFieldDefnShadow *""'"); 
     }
     arg2 = reinterpret_cast< OGRFieldDefnShadow * >(argp2);
     if (items > 2) {
       ecode3 = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(2), &val3);
       if (!SWIG_IsOK(ecode3)) {
-        SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "Layer_CreateField" "', argument " "3"" of type '" "int""'");
+        SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "Layer__CreateField" "', argument " "3"" of type '" "int""'");
       } 
       arg3 = static_cast< int >(val3);
     }
@@ -5999,7 +6147,7 @@ XS(_wrap_Layer_CreateField) {
 }
 
 
-XS(_wrap_Layer_DeleteField) {
+XS(_wrap_Layer__DeleteField) {
   {
     OGRLayerShadow *arg1 = (OGRLayerShadow *) 0 ;
     int arg2 ;
@@ -6012,16 +6160,16 @@ XS(_wrap_Layer_DeleteField) {
     dXSARGS;
     
     if ((items < 2) || (items > 2)) {
-      SWIG_croak("Usage: Layer_DeleteField(self,iField);");
+      SWIG_croak("Usage: Layer__DeleteField(self,iField);");
     }
     res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OGRLayerShadow, 0 |  0 );
     if (!SWIG_IsOK(res1)) {
-      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Layer_DeleteField" "', argument " "1"" of type '" "OGRLayerShadow *""'"); 
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Layer__DeleteField" "', argument " "1"" of type '" "OGRLayerShadow *""'"); 
     }
     arg1 = reinterpret_cast< OGRLayerShadow * >(argp1);
     ecode2 = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(1), &val2);
     if (!SWIG_IsOK(ecode2)) {
-      SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "Layer_DeleteField" "', argument " "2"" of type '" "int""'");
+      SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "Layer__DeleteField" "', argument " "2"" of type '" "int""'");
     } 
     arg2 = static_cast< int >(val2);
     {
@@ -6167,7 +6315,7 @@ XS(_wrap_Layer_ReorderFields) {
     {
       /* %typemap(in,numinputs=1) (int nList, int* pList) */
       if (!(SvROK(ST(1)) && (SvTYPE(SvRV(ST(1)))==SVt_PVAV)))
-      SWIG_croak("expected a reference to an array");
+      SWIG_croak("expected a reference to an array as an argument to a Geo::GDAL method");
       AV *av = (AV*)(SvRV(ST(1)));
       arg2 = av_len(av)+1;
       arg3 = (int*) malloc(arg2*sizeof(int));
@@ -6643,9 +6791,9 @@ XS(_wrap_Layer_SetIgnoredFields) {
               arg2 = CSLAddNameValue( arg2, key, SvPV_nolen(sv) );
             }
           } else
-          SWIG_croak("'options' is not a reference to an array or hash");
+          SWIG_croak("the 'options' argument to a Geo::GDAL method is not a reference to an array or hash");
         } else
-        SWIG_croak("'options' is not a reference");   
+        SWIG_croak("the 'options' argument to a Geo::GDAL method is not a reference");   
       }
     }
     {
@@ -6697,6 +6845,1063 @@ XS(_wrap_Layer_SetIgnoredFields) {
 }
 
 
+XS(_wrap_Layer_Intersection) {
+  {
+    OGRLayerShadow *arg1 = (OGRLayerShadow *) 0 ;
+    OGRLayerShadow *arg2 = (OGRLayerShadow *) 0 ;
+    OGRLayerShadow *arg3 = (OGRLayerShadow *) 0 ;
+    char **arg4 = (char **) NULL ;
+    GDALProgressFunc arg5 = (GDALProgressFunc) NULL ;
+    void *arg6 = (void *) NULL ;
+    void *argp1 = 0 ;
+    int res1 = 0 ;
+    void *argp2 = 0 ;
+    int res2 = 0 ;
+    void *argp3 = 0 ;
+    int res3 = 0 ;
+    int argvi = 0;
+    OGRErr result;
+    dXSARGS;
+    
+    /* %typemap(arginit, noblock=1) ( void* callback_data = NULL) */
+    SavedEnv saved_env;
+    saved_env.fct = NULL;
+    saved_env.data = &PL_sv_undef;
+    arg6 = (void *)(&saved_env);
+    if ((items < 3) || (items > 6)) {
+      SWIG_croak("Usage: Layer_Intersection(self,method_layer,result_layer,options,callback,callback_data);");
+    }
+    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OGRLayerShadow, 0 |  0 );
+    if (!SWIG_IsOK(res1)) {
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Layer_Intersection" "', argument " "1"" of type '" "OGRLayerShadow *""'"); 
+    }
+    arg1 = reinterpret_cast< OGRLayerShadow * >(argp1);
+    res2 = SWIG_ConvertPtr(ST(1), &argp2,SWIGTYPE_p_OGRLayerShadow, 0 |  0 );
+    if (!SWIG_IsOK(res2)) {
+      SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "Layer_Intersection" "', argument " "2"" of type '" "OGRLayerShadow *""'"); 
+    }
+    arg2 = reinterpret_cast< OGRLayerShadow * >(argp2);
+    res3 = SWIG_ConvertPtr(ST(2), &argp3,SWIGTYPE_p_OGRLayerShadow, 0 |  0 );
+    if (!SWIG_IsOK(res3)) {
+      SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "Layer_Intersection" "', argument " "3"" of type '" "OGRLayerShadow *""'"); 
+    }
+    arg3 = reinterpret_cast< OGRLayerShadow * >(argp3);
+    if (items > 3) {
+      {
+        /* %typemap(in) char **options */
+        if (SvOK(ST(3))) {
+          if (SvROK(ST(3))) {
+            if (SvTYPE(SvRV(ST(3)))==SVt_PVAV) {
+              AV *av = (AV*)(SvRV(ST(3)));
+              for (int i = 0; i < av_len(av)+1; i++) {
+                SV *sv = *(av_fetch(av, i, 0));
+                sv_utf8_upgrade(sv); /* GDAL expects UTF-8 */
+                char *pszItem = SvPV_nolen(sv);
+                arg4 = CSLAddString( arg4, pszItem );
+              }
+            } else if (SvTYPE(SvRV(ST(3)))==SVt_PVHV) {
+              HV *hv = (HV*)SvRV(ST(3));
+              SV *sv;
+              char *key;
+              I32 klen;
+              arg4 = NULL;
+              hv_iterinit(hv);
+              while(sv = hv_iternextsv(hv,&key,&klen)) {
+                sv_utf8_upgrade(sv); /* GDAL expects UTF-8 */
+                arg4 = CSLAddNameValue( arg4, key, SvPV_nolen(sv) );
+              }
+            } else
+            SWIG_croak("the 'options' argument to a Geo::GDAL method is not a reference to an array or hash");
+          } else
+          SWIG_croak("the 'options' argument to a Geo::GDAL method is not a reference");   
+        }
+      }
+    }
+    if (items > 4) {
+      {
+        /* %typemap(in) (GDALProgressFunc callback = NULL) */
+        if (SvOK(ST(4))) {
+          if (SvROK(ST(4))) {
+            if (SvTYPE(SvRV(ST(4))) != SVt_PVCV) {
+              SWIG_croak("the callback argument of a Geo::GDAL method must be a reference to a subroutine");
+            } else {
+              saved_env.fct = (SV *)ST(4);
+              arg5 = &callback_d_cp_vp;
+            }
+          } else {
+            SWIG_croak("the callback argument of a Geo::GDAL method must be a reference to a subroutine");
+          }
+        }
+      }
+    }
+    if (items > 5) {
+      {
+        /* %typemap(in) (void* callback_data=NULL) */
+        if (SvOK(ST(5)))
+        saved_env.data = (SV *)ST(5);
+      }
+    }
+    {
+      CPLErrorReset();
+      result = (OGRErr)OGRLayerShadow_Intersection(arg1,arg2,arg3,arg4,arg5,arg6);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /* 
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
+    {
+      /* %typemap(out) OGRErr */
+      if ( result != 0 ) {
+        const char *err = CPLGetLastErrorMsg();
+        if (err and *err) SWIG_croak(err); /* this is usually better */
+        SWIG_croak( OGRErrMessages(result) );
+      }
+    }
+    
+    
+    
+    {
+      /* %typemap(freearg) char **options */
+      if (arg4) CSLDestroy( arg4 );
+    }
+    
+    XSRETURN(argvi);
+  fail:
+    
+    
+    
+    {
+      /* %typemap(freearg) char **options */
+      if (arg4) CSLDestroy( arg4 );
+    }
+    
+    SWIG_croak_null();
+  }
+}
+
+
+XS(_wrap_Layer_Union) {
+  {
+    OGRLayerShadow *arg1 = (OGRLayerShadow *) 0 ;
+    OGRLayerShadow *arg2 = (OGRLayerShadow *) 0 ;
+    OGRLayerShadow *arg3 = (OGRLayerShadow *) 0 ;
+    char **arg4 = (char **) NULL ;
+    GDALProgressFunc arg5 = (GDALProgressFunc) NULL ;
+    void *arg6 = (void *) NULL ;
+    void *argp1 = 0 ;
+    int res1 = 0 ;
+    void *argp2 = 0 ;
+    int res2 = 0 ;
+    void *argp3 = 0 ;
+    int res3 = 0 ;
+    int argvi = 0;
+    OGRErr result;
+    dXSARGS;
+    
+    /* %typemap(arginit, noblock=1) ( void* callback_data = NULL) */
+    SavedEnv saved_env;
+    saved_env.fct = NULL;
+    saved_env.data = &PL_sv_undef;
+    arg6 = (void *)(&saved_env);
+    if ((items < 3) || (items > 6)) {
+      SWIG_croak("Usage: Layer_Union(self,method_layer,result_layer,options,callback,callback_data);");
+    }
+    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OGRLayerShadow, 0 |  0 );
+    if (!SWIG_IsOK(res1)) {
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Layer_Union" "', argument " "1"" of type '" "OGRLayerShadow *""'"); 
+    }
+    arg1 = reinterpret_cast< OGRLayerShadow * >(argp1);
+    res2 = SWIG_ConvertPtr(ST(1), &argp2,SWIGTYPE_p_OGRLayerShadow, 0 |  0 );
+    if (!SWIG_IsOK(res2)) {
+      SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "Layer_Union" "', argument " "2"" of type '" "OGRLayerShadow *""'"); 
+    }
+    arg2 = reinterpret_cast< OGRLayerShadow * >(argp2);
+    res3 = SWIG_ConvertPtr(ST(2), &argp3,SWIGTYPE_p_OGRLayerShadow, 0 |  0 );
+    if (!SWIG_IsOK(res3)) {
+      SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "Layer_Union" "', argument " "3"" of type '" "OGRLayerShadow *""'"); 
+    }
+    arg3 = reinterpret_cast< OGRLayerShadow * >(argp3);
+    if (items > 3) {
+      {
+        /* %typemap(in) char **options */
+        if (SvOK(ST(3))) {
+          if (SvROK(ST(3))) {
+            if (SvTYPE(SvRV(ST(3)))==SVt_PVAV) {
+              AV *av = (AV*)(SvRV(ST(3)));
+              for (int i = 0; i < av_len(av)+1; i++) {
+                SV *sv = *(av_fetch(av, i, 0));
+                sv_utf8_upgrade(sv); /* GDAL expects UTF-8 */
+                char *pszItem = SvPV_nolen(sv);
+                arg4 = CSLAddString( arg4, pszItem );
+              }
+            } else if (SvTYPE(SvRV(ST(3)))==SVt_PVHV) {
+              HV *hv = (HV*)SvRV(ST(3));
+              SV *sv;
+              char *key;
+              I32 klen;
+              arg4 = NULL;
+              hv_iterinit(hv);
+              while(sv = hv_iternextsv(hv,&key,&klen)) {
+                sv_utf8_upgrade(sv); /* GDAL expects UTF-8 */
+                arg4 = CSLAddNameValue( arg4, key, SvPV_nolen(sv) );
+              }
+            } else
+            SWIG_croak("the 'options' argument to a Geo::GDAL method is not a reference to an array or hash");
+          } else
+          SWIG_croak("the 'options' argument to a Geo::GDAL method is not a reference");   
+        }
+      }
+    }
+    if (items > 4) {
+      {
+        /* %typemap(in) (GDALProgressFunc callback = NULL) */
+        if (SvOK(ST(4))) {
+          if (SvROK(ST(4))) {
+            if (SvTYPE(SvRV(ST(4))) != SVt_PVCV) {
+              SWIG_croak("the callback argument of a Geo::GDAL method must be a reference to a subroutine");
+            } else {
+              saved_env.fct = (SV *)ST(4);
+              arg5 = &callback_d_cp_vp;
+            }
+          } else {
+            SWIG_croak("the callback argument of a Geo::GDAL method must be a reference to a subroutine");
+          }
+        }
+      }
+    }
+    if (items > 5) {
+      {
+        /* %typemap(in) (void* callback_data=NULL) */
+        if (SvOK(ST(5)))
+        saved_env.data = (SV *)ST(5);
+      }
+    }
+    {
+      CPLErrorReset();
+      result = (OGRErr)OGRLayerShadow_Union(arg1,arg2,arg3,arg4,arg5,arg6);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /* 
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
+    {
+      /* %typemap(out) OGRErr */
+      if ( result != 0 ) {
+        const char *err = CPLGetLastErrorMsg();
+        if (err and *err) SWIG_croak(err); /* this is usually better */
+        SWIG_croak( OGRErrMessages(result) );
+      }
+    }
+    
+    
+    
+    {
+      /* %typemap(freearg) char **options */
+      if (arg4) CSLDestroy( arg4 );
+    }
+    
+    XSRETURN(argvi);
+  fail:
+    
+    
+    
+    {
+      /* %typemap(freearg) char **options */
+      if (arg4) CSLDestroy( arg4 );
+    }
+    
+    SWIG_croak_null();
+  }
+}
+
+
+XS(_wrap_Layer_SymDifference) {
+  {
+    OGRLayerShadow *arg1 = (OGRLayerShadow *) 0 ;
+    OGRLayerShadow *arg2 = (OGRLayerShadow *) 0 ;
+    OGRLayerShadow *arg3 = (OGRLayerShadow *) 0 ;
+    char **arg4 = (char **) NULL ;
+    GDALProgressFunc arg5 = (GDALProgressFunc) NULL ;
+    void *arg6 = (void *) NULL ;
+    void *argp1 = 0 ;
+    int res1 = 0 ;
+    void *argp2 = 0 ;
+    int res2 = 0 ;
+    void *argp3 = 0 ;
+    int res3 = 0 ;
+    int argvi = 0;
+    OGRErr result;
+    dXSARGS;
+    
+    /* %typemap(arginit, noblock=1) ( void* callback_data = NULL) */
+    SavedEnv saved_env;
+    saved_env.fct = NULL;
+    saved_env.data = &PL_sv_undef;
+    arg6 = (void *)(&saved_env);
+    if ((items < 3) || (items > 6)) {
+      SWIG_croak("Usage: Layer_SymDifference(self,method_layer,result_layer,options,callback,callback_data);");
+    }
+    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OGRLayerShadow, 0 |  0 );
+    if (!SWIG_IsOK(res1)) {
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Layer_SymDifference" "', argument " "1"" of type '" "OGRLayerShadow *""'"); 
+    }
+    arg1 = reinterpret_cast< OGRLayerShadow * >(argp1);
+    res2 = SWIG_ConvertPtr(ST(1), &argp2,SWIGTYPE_p_OGRLayerShadow, 0 |  0 );
+    if (!SWIG_IsOK(res2)) {
+      SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "Layer_SymDifference" "', argument " "2"" of type '" "OGRLayerShadow *""'"); 
+    }
+    arg2 = reinterpret_cast< OGRLayerShadow * >(argp2);
+    res3 = SWIG_ConvertPtr(ST(2), &argp3,SWIGTYPE_p_OGRLayerShadow, 0 |  0 );
+    if (!SWIG_IsOK(res3)) {
+      SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "Layer_SymDifference" "', argument " "3"" of type '" "OGRLayerShadow *""'"); 
+    }
+    arg3 = reinterpret_cast< OGRLayerShadow * >(argp3);
+    if (items > 3) {
+      {
+        /* %typemap(in) char **options */
+        if (SvOK(ST(3))) {
+          if (SvROK(ST(3))) {
+            if (SvTYPE(SvRV(ST(3)))==SVt_PVAV) {
+              AV *av = (AV*)(SvRV(ST(3)));
+              for (int i = 0; i < av_len(av)+1; i++) {
+                SV *sv = *(av_fetch(av, i, 0));
+                sv_utf8_upgrade(sv); /* GDAL expects UTF-8 */
+                char *pszItem = SvPV_nolen(sv);
+                arg4 = CSLAddString( arg4, pszItem );
+              }
+            } else if (SvTYPE(SvRV(ST(3)))==SVt_PVHV) {
+              HV *hv = (HV*)SvRV(ST(3));
+              SV *sv;
+              char *key;
+              I32 klen;
+              arg4 = NULL;
+              hv_iterinit(hv);
+              while(sv = hv_iternextsv(hv,&key,&klen)) {
+                sv_utf8_upgrade(sv); /* GDAL expects UTF-8 */
+                arg4 = CSLAddNameValue( arg4, key, SvPV_nolen(sv) );
+              }
+            } else
+            SWIG_croak("the 'options' argument to a Geo::GDAL method is not a reference to an array or hash");
+          } else
+          SWIG_croak("the 'options' argument to a Geo::GDAL method is not a reference");   
+        }
+      }
+    }
+    if (items > 4) {
+      {
+        /* %typemap(in) (GDALProgressFunc callback = NULL) */
+        if (SvOK(ST(4))) {
+          if (SvROK(ST(4))) {
+            if (SvTYPE(SvRV(ST(4))) != SVt_PVCV) {
+              SWIG_croak("the callback argument of a Geo::GDAL method must be a reference to a subroutine");
+            } else {
+              saved_env.fct = (SV *)ST(4);
+              arg5 = &callback_d_cp_vp;
+            }
+          } else {
+            SWIG_croak("the callback argument of a Geo::GDAL method must be a reference to a subroutine");
+          }
+        }
+      }
+    }
+    if (items > 5) {
+      {
+        /* %typemap(in) (void* callback_data=NULL) */
+        if (SvOK(ST(5)))
+        saved_env.data = (SV *)ST(5);
+      }
+    }
+    {
+      CPLErrorReset();
+      result = (OGRErr)OGRLayerShadow_SymDifference(arg1,arg2,arg3,arg4,arg5,arg6);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /* 
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
+    {
+      /* %typemap(out) OGRErr */
+      if ( result != 0 ) {
+        const char *err = CPLGetLastErrorMsg();
+        if (err and *err) SWIG_croak(err); /* this is usually better */
+        SWIG_croak( OGRErrMessages(result) );
+      }
+    }
+    
+    
+    
+    {
+      /* %typemap(freearg) char **options */
+      if (arg4) CSLDestroy( arg4 );
+    }
+    
+    XSRETURN(argvi);
+  fail:
+    
+    
+    
+    {
+      /* %typemap(freearg) char **options */
+      if (arg4) CSLDestroy( arg4 );
+    }
+    
+    SWIG_croak_null();
+  }
+}
+
+
+XS(_wrap_Layer_Identity) {
+  {
+    OGRLayerShadow *arg1 = (OGRLayerShadow *) 0 ;
+    OGRLayerShadow *arg2 = (OGRLayerShadow *) 0 ;
+    OGRLayerShadow *arg3 = (OGRLayerShadow *) 0 ;
+    char **arg4 = (char **) NULL ;
+    GDALProgressFunc arg5 = (GDALProgressFunc) NULL ;
+    void *arg6 = (void *) NULL ;
+    void *argp1 = 0 ;
+    int res1 = 0 ;
+    void *argp2 = 0 ;
+    int res2 = 0 ;
+    void *argp3 = 0 ;
+    int res3 = 0 ;
+    int argvi = 0;
+    OGRErr result;
+    dXSARGS;
+    
+    /* %typemap(arginit, noblock=1) ( void* callback_data = NULL) */
+    SavedEnv saved_env;
+    saved_env.fct = NULL;
+    saved_env.data = &PL_sv_undef;
+    arg6 = (void *)(&saved_env);
+    if ((items < 3) || (items > 6)) {
+      SWIG_croak("Usage: Layer_Identity(self,method_layer,result_layer,options,callback,callback_data);");
+    }
+    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OGRLayerShadow, 0 |  0 );
+    if (!SWIG_IsOK(res1)) {
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Layer_Identity" "', argument " "1"" of type '" "OGRLayerShadow *""'"); 
+    }
+    arg1 = reinterpret_cast< OGRLayerShadow * >(argp1);
+    res2 = SWIG_ConvertPtr(ST(1), &argp2,SWIGTYPE_p_OGRLayerShadow, 0 |  0 );
+    if (!SWIG_IsOK(res2)) {
+      SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "Layer_Identity" "', argument " "2"" of type '" "OGRLayerShadow *""'"); 
+    }
+    arg2 = reinterpret_cast< OGRLayerShadow * >(argp2);
+    res3 = SWIG_ConvertPtr(ST(2), &argp3,SWIGTYPE_p_OGRLayerShadow, 0 |  0 );
+    if (!SWIG_IsOK(res3)) {
+      SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "Layer_Identity" "', argument " "3"" of type '" "OGRLayerShadow *""'"); 
+    }
+    arg3 = reinterpret_cast< OGRLayerShadow * >(argp3);
+    if (items > 3) {
+      {
+        /* %typemap(in) char **options */
+        if (SvOK(ST(3))) {
+          if (SvROK(ST(3))) {
+            if (SvTYPE(SvRV(ST(3)))==SVt_PVAV) {
+              AV *av = (AV*)(SvRV(ST(3)));
+              for (int i = 0; i < av_len(av)+1; i++) {
+                SV *sv = *(av_fetch(av, i, 0));
+                sv_utf8_upgrade(sv); /* GDAL expects UTF-8 */
+                char *pszItem = SvPV_nolen(sv);
+                arg4 = CSLAddString( arg4, pszItem );
+              }
+            } else if (SvTYPE(SvRV(ST(3)))==SVt_PVHV) {
+              HV *hv = (HV*)SvRV(ST(3));
+              SV *sv;
+              char *key;
+              I32 klen;
+              arg4 = NULL;
+              hv_iterinit(hv);
+              while(sv = hv_iternextsv(hv,&key,&klen)) {
+                sv_utf8_upgrade(sv); /* GDAL expects UTF-8 */
+                arg4 = CSLAddNameValue( arg4, key, SvPV_nolen(sv) );
+              }
+            } else
+            SWIG_croak("the 'options' argument to a Geo::GDAL method is not a reference to an array or hash");
+          } else
+          SWIG_croak("the 'options' argument to a Geo::GDAL method is not a reference");   
+        }
+      }
+    }
+    if (items > 4) {
+      {
+        /* %typemap(in) (GDALProgressFunc callback = NULL) */
+        if (SvOK(ST(4))) {
+          if (SvROK(ST(4))) {
+            if (SvTYPE(SvRV(ST(4))) != SVt_PVCV) {
+              SWIG_croak("the callback argument of a Geo::GDAL method must be a reference to a subroutine");
+            } else {
+              saved_env.fct = (SV *)ST(4);
+              arg5 = &callback_d_cp_vp;
+            }
+          } else {
+            SWIG_croak("the callback argument of a Geo::GDAL method must be a reference to a subroutine");
+          }
+        }
+      }
+    }
+    if (items > 5) {
+      {
+        /* %typemap(in) (void* callback_data=NULL) */
+        if (SvOK(ST(5)))
+        saved_env.data = (SV *)ST(5);
+      }
+    }
+    {
+      CPLErrorReset();
+      result = (OGRErr)OGRLayerShadow_Identity(arg1,arg2,arg3,arg4,arg5,arg6);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /* 
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
+    {
+      /* %typemap(out) OGRErr */
+      if ( result != 0 ) {
+        const char *err = CPLGetLastErrorMsg();
+        if (err and *err) SWIG_croak(err); /* this is usually better */
+        SWIG_croak( OGRErrMessages(result) );
+      }
+    }
+    
+    
+    
+    {
+      /* %typemap(freearg) char **options */
+      if (arg4) CSLDestroy( arg4 );
+    }
+    
+    XSRETURN(argvi);
+  fail:
+    
+    
+    
+    {
+      /* %typemap(freearg) char **options */
+      if (arg4) CSLDestroy( arg4 );
+    }
+    
+    SWIG_croak_null();
+  }
+}
+
+
+XS(_wrap_Layer_Update) {
+  {
+    OGRLayerShadow *arg1 = (OGRLayerShadow *) 0 ;
+    OGRLayerShadow *arg2 = (OGRLayerShadow *) 0 ;
+    OGRLayerShadow *arg3 = (OGRLayerShadow *) 0 ;
+    char **arg4 = (char **) NULL ;
+    GDALProgressFunc arg5 = (GDALProgressFunc) NULL ;
+    void *arg6 = (void *) NULL ;
+    void *argp1 = 0 ;
+    int res1 = 0 ;
+    void *argp2 = 0 ;
+    int res2 = 0 ;
+    void *argp3 = 0 ;
+    int res3 = 0 ;
+    int argvi = 0;
+    OGRErr result;
+    dXSARGS;
+    
+    /* %typemap(arginit, noblock=1) ( void* callback_data = NULL) */
+    SavedEnv saved_env;
+    saved_env.fct = NULL;
+    saved_env.data = &PL_sv_undef;
+    arg6 = (void *)(&saved_env);
+    if ((items < 3) || (items > 6)) {
+      SWIG_croak("Usage: Layer_Update(self,method_layer,result_layer,options,callback,callback_data);");
+    }
+    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OGRLayerShadow, 0 |  0 );
+    if (!SWIG_IsOK(res1)) {
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Layer_Update" "', argument " "1"" of type '" "OGRLayerShadow *""'"); 
+    }
+    arg1 = reinterpret_cast< OGRLayerShadow * >(argp1);
+    res2 = SWIG_ConvertPtr(ST(1), &argp2,SWIGTYPE_p_OGRLayerShadow, 0 |  0 );
+    if (!SWIG_IsOK(res2)) {
+      SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "Layer_Update" "', argument " "2"" of type '" "OGRLayerShadow *""'"); 
+    }
+    arg2 = reinterpret_cast< OGRLayerShadow * >(argp2);
+    res3 = SWIG_ConvertPtr(ST(2), &argp3,SWIGTYPE_p_OGRLayerShadow, 0 |  0 );
+    if (!SWIG_IsOK(res3)) {
+      SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "Layer_Update" "', argument " "3"" of type '" "OGRLayerShadow *""'"); 
+    }
+    arg3 = reinterpret_cast< OGRLayerShadow * >(argp3);
+    if (items > 3) {
+      {
+        /* %typemap(in) char **options */
+        if (SvOK(ST(3))) {
+          if (SvROK(ST(3))) {
+            if (SvTYPE(SvRV(ST(3)))==SVt_PVAV) {
+              AV *av = (AV*)(SvRV(ST(3)));
+              for (int i = 0; i < av_len(av)+1; i++) {
+                SV *sv = *(av_fetch(av, i, 0));
+                sv_utf8_upgrade(sv); /* GDAL expects UTF-8 */
+                char *pszItem = SvPV_nolen(sv);
+                arg4 = CSLAddString( arg4, pszItem );
+              }
+            } else if (SvTYPE(SvRV(ST(3)))==SVt_PVHV) {
+              HV *hv = (HV*)SvRV(ST(3));
+              SV *sv;
+              char *key;
+              I32 klen;
+              arg4 = NULL;
+              hv_iterinit(hv);
+              while(sv = hv_iternextsv(hv,&key,&klen)) {
+                sv_utf8_upgrade(sv); /* GDAL expects UTF-8 */
+                arg4 = CSLAddNameValue( arg4, key, SvPV_nolen(sv) );
+              }
+            } else
+            SWIG_croak("the 'options' argument to a Geo::GDAL method is not a reference to an array or hash");
+          } else
+          SWIG_croak("the 'options' argument to a Geo::GDAL method is not a reference");   
+        }
+      }
+    }
+    if (items > 4) {
+      {
+        /* %typemap(in) (GDALProgressFunc callback = NULL) */
+        if (SvOK(ST(4))) {
+          if (SvROK(ST(4))) {
+            if (SvTYPE(SvRV(ST(4))) != SVt_PVCV) {
+              SWIG_croak("the callback argument of a Geo::GDAL method must be a reference to a subroutine");
+            } else {
+              saved_env.fct = (SV *)ST(4);
+              arg5 = &callback_d_cp_vp;
+            }
+          } else {
+            SWIG_croak("the callback argument of a Geo::GDAL method must be a reference to a subroutine");
+          }
+        }
+      }
+    }
+    if (items > 5) {
+      {
+        /* %typemap(in) (void* callback_data=NULL) */
+        if (SvOK(ST(5)))
+        saved_env.data = (SV *)ST(5);
+      }
+    }
+    {
+      CPLErrorReset();
+      result = (OGRErr)OGRLayerShadow_Update(arg1,arg2,arg3,arg4,arg5,arg6);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /* 
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
+    {
+      /* %typemap(out) OGRErr */
+      if ( result != 0 ) {
+        const char *err = CPLGetLastErrorMsg();
+        if (err and *err) SWIG_croak(err); /* this is usually better */
+        SWIG_croak( OGRErrMessages(result) );
+      }
+    }
+    
+    
+    
+    {
+      /* %typemap(freearg) char **options */
+      if (arg4) CSLDestroy( arg4 );
+    }
+    
+    XSRETURN(argvi);
+  fail:
+    
+    
+    
+    {
+      /* %typemap(freearg) char **options */
+      if (arg4) CSLDestroy( arg4 );
+    }
+    
+    SWIG_croak_null();
+  }
+}
+
+
+XS(_wrap_Layer_Clip) {
+  {
+    OGRLayerShadow *arg1 = (OGRLayerShadow *) 0 ;
+    OGRLayerShadow *arg2 = (OGRLayerShadow *) 0 ;
+    OGRLayerShadow *arg3 = (OGRLayerShadow *) 0 ;
+    char **arg4 = (char **) NULL ;
+    GDALProgressFunc arg5 = (GDALProgressFunc) NULL ;
+    void *arg6 = (void *) NULL ;
+    void *argp1 = 0 ;
+    int res1 = 0 ;
+    void *argp2 = 0 ;
+    int res2 = 0 ;
+    void *argp3 = 0 ;
+    int res3 = 0 ;
+    int argvi = 0;
+    OGRErr result;
+    dXSARGS;
+    
+    /* %typemap(arginit, noblock=1) ( void* callback_data = NULL) */
+    SavedEnv saved_env;
+    saved_env.fct = NULL;
+    saved_env.data = &PL_sv_undef;
+    arg6 = (void *)(&saved_env);
+    if ((items < 3) || (items > 6)) {
+      SWIG_croak("Usage: Layer_Clip(self,method_layer,result_layer,options,callback,callback_data);");
+    }
+    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OGRLayerShadow, 0 |  0 );
+    if (!SWIG_IsOK(res1)) {
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Layer_Clip" "', argument " "1"" of type '" "OGRLayerShadow *""'"); 
+    }
+    arg1 = reinterpret_cast< OGRLayerShadow * >(argp1);
+    res2 = SWIG_ConvertPtr(ST(1), &argp2,SWIGTYPE_p_OGRLayerShadow, 0 |  0 );
+    if (!SWIG_IsOK(res2)) {
+      SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "Layer_Clip" "', argument " "2"" of type '" "OGRLayerShadow *""'"); 
+    }
+    arg2 = reinterpret_cast< OGRLayerShadow * >(argp2);
+    res3 = SWIG_ConvertPtr(ST(2), &argp3,SWIGTYPE_p_OGRLayerShadow, 0 |  0 );
+    if (!SWIG_IsOK(res3)) {
+      SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "Layer_Clip" "', argument " "3"" of type '" "OGRLayerShadow *""'"); 
+    }
+    arg3 = reinterpret_cast< OGRLayerShadow * >(argp3);
+    if (items > 3) {
+      {
+        /* %typemap(in) char **options */
+        if (SvOK(ST(3))) {
+          if (SvROK(ST(3))) {
+            if (SvTYPE(SvRV(ST(3)))==SVt_PVAV) {
+              AV *av = (AV*)(SvRV(ST(3)));
+              for (int i = 0; i < av_len(av)+1; i++) {
+                SV *sv = *(av_fetch(av, i, 0));
+                sv_utf8_upgrade(sv); /* GDAL expects UTF-8 */
+                char *pszItem = SvPV_nolen(sv);
+                arg4 = CSLAddString( arg4, pszItem );
+              }
+            } else if (SvTYPE(SvRV(ST(3)))==SVt_PVHV) {
+              HV *hv = (HV*)SvRV(ST(3));
+              SV *sv;
+              char *key;
+              I32 klen;
+              arg4 = NULL;
+              hv_iterinit(hv);
+              while(sv = hv_iternextsv(hv,&key,&klen)) {
+                sv_utf8_upgrade(sv); /* GDAL expects UTF-8 */
+                arg4 = CSLAddNameValue( arg4, key, SvPV_nolen(sv) );
+              }
+            } else
+            SWIG_croak("the 'options' argument to a Geo::GDAL method is not a reference to an array or hash");
+          } else
+          SWIG_croak("the 'options' argument to a Geo::GDAL method is not a reference");   
+        }
+      }
+    }
+    if (items > 4) {
+      {
+        /* %typemap(in) (GDALProgressFunc callback = NULL) */
+        if (SvOK(ST(4))) {
+          if (SvROK(ST(4))) {
+            if (SvTYPE(SvRV(ST(4))) != SVt_PVCV) {
+              SWIG_croak("the callback argument of a Geo::GDAL method must be a reference to a subroutine");
+            } else {
+              saved_env.fct = (SV *)ST(4);
+              arg5 = &callback_d_cp_vp;
+            }
+          } else {
+            SWIG_croak("the callback argument of a Geo::GDAL method must be a reference to a subroutine");
+          }
+        }
+      }
+    }
+    if (items > 5) {
+      {
+        /* %typemap(in) (void* callback_data=NULL) */
+        if (SvOK(ST(5)))
+        saved_env.data = (SV *)ST(5);
+      }
+    }
+    {
+      CPLErrorReset();
+      result = (OGRErr)OGRLayerShadow_Clip(arg1,arg2,arg3,arg4,arg5,arg6);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /* 
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
+    {
+      /* %typemap(out) OGRErr */
+      if ( result != 0 ) {
+        const char *err = CPLGetLastErrorMsg();
+        if (err and *err) SWIG_croak(err); /* this is usually better */
+        SWIG_croak( OGRErrMessages(result) );
+      }
+    }
+    
+    
+    
+    {
+      /* %typemap(freearg) char **options */
+      if (arg4) CSLDestroy( arg4 );
+    }
+    
+    XSRETURN(argvi);
+  fail:
+    
+    
+    
+    {
+      /* %typemap(freearg) char **options */
+      if (arg4) CSLDestroy( arg4 );
+    }
+    
+    SWIG_croak_null();
+  }
+}
+
+
+XS(_wrap_Layer_Erase) {
+  {
+    OGRLayerShadow *arg1 = (OGRLayerShadow *) 0 ;
+    OGRLayerShadow *arg2 = (OGRLayerShadow *) 0 ;
+    OGRLayerShadow *arg3 = (OGRLayerShadow *) 0 ;
+    char **arg4 = (char **) NULL ;
+    GDALProgressFunc arg5 = (GDALProgressFunc) NULL ;
+    void *arg6 = (void *) NULL ;
+    void *argp1 = 0 ;
+    int res1 = 0 ;
+    void *argp2 = 0 ;
+    int res2 = 0 ;
+    void *argp3 = 0 ;
+    int res3 = 0 ;
+    int argvi = 0;
+    OGRErr result;
+    dXSARGS;
+    
+    /* %typemap(arginit, noblock=1) ( void* callback_data = NULL) */
+    SavedEnv saved_env;
+    saved_env.fct = NULL;
+    saved_env.data = &PL_sv_undef;
+    arg6 = (void *)(&saved_env);
+    if ((items < 3) || (items > 6)) {
+      SWIG_croak("Usage: Layer_Erase(self,method_layer,result_layer,options,callback,callback_data);");
+    }
+    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OGRLayerShadow, 0 |  0 );
+    if (!SWIG_IsOK(res1)) {
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Layer_Erase" "', argument " "1"" of type '" "OGRLayerShadow *""'"); 
+    }
+    arg1 = reinterpret_cast< OGRLayerShadow * >(argp1);
+    res2 = SWIG_ConvertPtr(ST(1), &argp2,SWIGTYPE_p_OGRLayerShadow, 0 |  0 );
+    if (!SWIG_IsOK(res2)) {
+      SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "Layer_Erase" "', argument " "2"" of type '" "OGRLayerShadow *""'"); 
+    }
+    arg2 = reinterpret_cast< OGRLayerShadow * >(argp2);
+    res3 = SWIG_ConvertPtr(ST(2), &argp3,SWIGTYPE_p_OGRLayerShadow, 0 |  0 );
+    if (!SWIG_IsOK(res3)) {
+      SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "Layer_Erase" "', argument " "3"" of type '" "OGRLayerShadow *""'"); 
+    }
+    arg3 = reinterpret_cast< OGRLayerShadow * >(argp3);
+    if (items > 3) {
+      {
+        /* %typemap(in) char **options */
+        if (SvOK(ST(3))) {
+          if (SvROK(ST(3))) {
+            if (SvTYPE(SvRV(ST(3)))==SVt_PVAV) {
+              AV *av = (AV*)(SvRV(ST(3)));
+              for (int i = 0; i < av_len(av)+1; i++) {
+                SV *sv = *(av_fetch(av, i, 0));
+                sv_utf8_upgrade(sv); /* GDAL expects UTF-8 */
+                char *pszItem = SvPV_nolen(sv);
+                arg4 = CSLAddString( arg4, pszItem );
+              }
+            } else if (SvTYPE(SvRV(ST(3)))==SVt_PVHV) {
+              HV *hv = (HV*)SvRV(ST(3));
+              SV *sv;
+              char *key;
+              I32 klen;
+              arg4 = NULL;
+              hv_iterinit(hv);
+              while(sv = hv_iternextsv(hv,&key,&klen)) {
+                sv_utf8_upgrade(sv); /* GDAL expects UTF-8 */
+                arg4 = CSLAddNameValue( arg4, key, SvPV_nolen(sv) );
+              }
+            } else
+            SWIG_croak("the 'options' argument to a Geo::GDAL method is not a reference to an array or hash");
+          } else
+          SWIG_croak("the 'options' argument to a Geo::GDAL method is not a reference");   
+        }
+      }
+    }
+    if (items > 4) {
+      {
+        /* %typemap(in) (GDALProgressFunc callback = NULL) */
+        if (SvOK(ST(4))) {
+          if (SvROK(ST(4))) {
+            if (SvTYPE(SvRV(ST(4))) != SVt_PVCV) {
+              SWIG_croak("the callback argument of a Geo::GDAL method must be a reference to a subroutine");
+            } else {
+              saved_env.fct = (SV *)ST(4);
+              arg5 = &callback_d_cp_vp;
+            }
+          } else {
+            SWIG_croak("the callback argument of a Geo::GDAL method must be a reference to a subroutine");
+          }
+        }
+      }
+    }
+    if (items > 5) {
+      {
+        /* %typemap(in) (void* callback_data=NULL) */
+        if (SvOK(ST(5)))
+        saved_env.data = (SV *)ST(5);
+      }
+    }
+    {
+      CPLErrorReset();
+      result = (OGRErr)OGRLayerShadow_Erase(arg1,arg2,arg3,arg4,arg5,arg6);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /* 
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
+    {
+      /* %typemap(out) OGRErr */
+      if ( result != 0 ) {
+        const char *err = CPLGetLastErrorMsg();
+        if (err and *err) SWIG_croak(err); /* this is usually better */
+        SWIG_croak( OGRErrMessages(result) );
+      }
+    }
+    
+    
+    
+    {
+      /* %typemap(freearg) char **options */
+      if (arg4) CSLDestroy( arg4 );
+    }
+    
+    XSRETURN(argvi);
+  fail:
+    
+    
+    
+    {
+      /* %typemap(freearg) char **options */
+      if (arg4) CSLDestroy( arg4 );
+    }
+    
+    SWIG_croak_null();
+  }
+}
+
+
 XS(_wrap_delete_Feature) {
   {
     OGRFeatureShadow *arg1 = (OGRFeatureShadow *) 0 ;
@@ -6737,7 +7942,9 @@ XS(_wrap_delete_Feature) {
       
       
     }
-    ST(argvi) = sv_newmortal();
+    {
+      /* %typemap(out) void */
+    }
     
     XSRETURN(argvi);
   fail:
@@ -6882,7 +8089,7 @@ XS(_wrap_Feature_SetGeometry) {
     {
       /* %typemap(check) (OGRGeometryShadow *geom) */
       if (!arg2)
-      SWIG_croak("The geometry must not be undefined");
+      SWIG_croak("The geometry must not be undefined when it is an argument to a Geo::GDAL method");
     }
     {
       CPLErrorReset();
@@ -6953,7 +8160,7 @@ XS(_wrap_Feature__SetGeometryDirectly) {
     {
       /* %typemap(check) (OGRGeometryShadow *geom) */
       if (!arg2)
-      SWIG_croak("The geometry must not be undefined");
+      SWIG_croak("The geometry must not be undefined when it is an argument to a Geo::GDAL method");
     }
     {
       CPLErrorReset();
@@ -7685,7 +8892,9 @@ XS(_wrap_Feature_GetFieldAsDateTime) {
       
       
     }
-    ST(argvi) = sv_newmortal();
+    {
+      /* %typemap(out) void */
+    }
     if (SWIG_IsTmpObj(res3)) {
       if (argvi >= items) EXTEND(sp,1);  ST(argvi) = SWIG_From_int  SWIG_PERL_CALL_ARGS_1((*arg3)); argvi++  ;
     } else {
@@ -7810,7 +9019,9 @@ XS(_wrap_Feature_GetFieldAsIntegerList) {
       
       
     }
-    ST(argvi) = sv_newmortal();
+    {
+      /* %typemap(out) void */
+    }
     {
       /* %typemap(argout) (int *nLen, const int **pList) */
       ST(argvi) = CreateArrayFromIntArray( *(arg4), *(arg3) );
@@ -7884,7 +9095,9 @@ XS(_wrap_Feature_GetFieldAsDoubleList) {
       
       
     }
-    ST(argvi) = sv_newmortal();
+    {
+      /* %typemap(out) void */
+    }
     {
       /* %typemap(argout) (int *nLen, const double **pList) */
       ST(argvi) = CreateArrayFromDoubleArray( *(arg4), *(arg3) );
@@ -7955,7 +9168,9 @@ XS(_wrap_Feature_GetFieldAsStringList) {
       
       
     }
-    ST(argvi) = sv_newmortal();
+    {
+      /* %typemap(out) void */
+    }
     {
       /* %typemap(argout) (char ***pList) */
       ST(argvi) = CreateArrayFromStringArray( *(arg3) );
@@ -8398,7 +9613,9 @@ XS(_wrap_Feature_DumpReadable) {
       
       
     }
-    ST(argvi) = sv_newmortal();
+    {
+      /* %typemap(out) void */
+    }
     
     XSRETURN(argvi);
   fail:
@@ -8456,7 +9673,9 @@ XS(_wrap_Feature__UnsetField) {
       
       
     }
-    ST(argvi) = sv_newmortal();
+    {
+      /* %typemap(out) void */
+    }
     
     
     XSRETURN(argvi);
@@ -8522,7 +9741,9 @@ XS(_wrap_Feature__SetField__SWIG_0) {
       
       
     }
-    ST(argvi) = sv_newmortal();
+    {
+      /* %typemap(out) void */
+    }
     
     
     XSRETURN(argvi);
@@ -8590,7 +9811,9 @@ XS(_wrap_Feature__SetField__SWIG_1) {
       
       
     }
-    ST(argvi) = sv_newmortal();
+    {
+      /* %typemap(out) void */
+    }
     
     
     
@@ -8660,7 +9883,9 @@ XS(_wrap_Feature__SetField__SWIG_2) {
       
       
     }
-    ST(argvi) = sv_newmortal();
+    {
+      /* %typemap(out) void */
+    }
     
     
     
@@ -8778,7 +10003,9 @@ XS(_wrap_Feature__SetField__SWIG_3) {
       
       
     }
-    ST(argvi) = sv_newmortal();
+    {
+      /* %typemap(out) void */
+    }
     
     
     
@@ -9081,7 +10308,7 @@ XS(_wrap_Feature_SetFieldIntegerList) {
     {
       /* %typemap(in,numinputs=1) (int nList, int* pList) */
       if (!(SvROK(ST(2)) && (SvTYPE(SvRV(ST(2)))==SVt_PVAV)))
-      SWIG_croak("expected a reference to an array");
+      SWIG_croak("expected a reference to an array as an argument to a Geo::GDAL method");
       AV *av = (AV*)(SvRV(ST(2)));
       arg3 = av_len(av)+1;
       arg4 = (int*) malloc(arg3*sizeof(int));
@@ -9114,7 +10341,9 @@ XS(_wrap_Feature_SetFieldIntegerList) {
       
       
     }
-    ST(argvi) = sv_newmortal();
+    {
+      /* %typemap(out) void */
+    }
     
     
     {
@@ -9165,7 +10394,7 @@ XS(_wrap_Feature_SetFieldDoubleList) {
     {
       /* %typemap(in,numinputs=1) (int nList, double* pList) */
       if (!(SvROK(ST(2)) && (SvTYPE(SvRV(ST(2)))==SVt_PVAV)))
-      SWIG_croak("expected a reference to an array");
+      SWIG_croak("expected a reference to an array as an argument to a Geo::GDAL method");
       AV *av = (AV*)(SvRV(ST(2)));
       arg3 = av_len(av)+1;
       arg4 = (double*) malloc(arg3*sizeof(double));
@@ -9198,7 +10427,9 @@ XS(_wrap_Feature_SetFieldDoubleList) {
       
       
     }
-    ST(argvi) = sv_newmortal();
+    {
+      /* %typemap(out) void */
+    }
     
     
     {
@@ -9269,9 +10500,9 @@ XS(_wrap_Feature_SetFieldStringList) {
               arg3 = CSLAddNameValue( arg3, key, SvPV_nolen(sv) );
             }
           } else
-          SWIG_croak("'options' is not a reference to an array or hash");
+          SWIG_croak("the 'options' argument to a Geo::GDAL method is not a reference to an array or hash");
         } else
-        SWIG_croak("'options' is not a reference");   
+        SWIG_croak("the 'options' argument to a Geo::GDAL method is not a reference");   
       }
     }
     {
@@ -9298,7 +10529,9 @@ XS(_wrap_Feature_SetFieldStringList) {
       
       
     }
-    ST(argvi) = sv_newmortal();
+    {
+      /* %typemap(out) void */
+    }
     
     
     {
@@ -9441,7 +10674,7 @@ XS(_wrap_Feature_SetFromWithMap) {
     {
       /* %typemap(in,numinputs=1) (int nList, int* pList) */
       if (!(SvROK(ST(3)) && (SvTYPE(SvRV(ST(3)))==SVt_PVAV)))
-      SWIG_croak("expected a reference to an array");
+      SWIG_croak("expected a reference to an array as an argument to a Geo::GDAL method");
       AV *av = (AV*)(SvRV(ST(3)));
       arg4 = av_len(av)+1;
       arg5 = (int*) malloc(arg4*sizeof(int));
@@ -9616,7 +10849,9 @@ XS(_wrap_Feature_SetStyleString) {
       
       
     }
-    ST(argvi) = sv_newmortal();
+    {
+      /* %typemap(out) void */
+    }
     
     if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
     XSRETURN(argvi);
@@ -9871,7 +11106,9 @@ XS(_wrap_delete_FeatureDefn) {
       
       
     }
-    ST(argvi) = sv_newmortal();
+    {
+      /* %typemap(out) void */
+    }
     
     XSRETURN(argvi);
   fail:
@@ -10219,7 +11456,9 @@ XS(_wrap_FeatureDefn_AddFieldDefn) {
       
       
     }
-    ST(argvi) = sv_newmortal();
+    {
+      /* %typemap(out) void */
+    }
     
     
     XSRETURN(argvi);
@@ -10330,7 +11569,9 @@ XS(_wrap_FeatureDefn_SetGeomType) {
       
       
     }
-    ST(argvi) = sv_newmortal();
+    {
+      /* %typemap(out) void */
+    }
     
     
     XSRETURN(argvi);
@@ -10492,7 +11733,9 @@ XS(_wrap_FeatureDefn_SetGeometryIgnored) {
       
       
     }
-    ST(argvi) = sv_newmortal();
+    {
+      /* %typemap(out) void */
+    }
     
     
     XSRETURN(argvi);
@@ -10603,7 +11846,9 @@ XS(_wrap_FeatureDefn_SetStyleIgnored) {
       
       
     }
-    ST(argvi) = sv_newmortal();
+    {
+      /* %typemap(out) void */
+    }
     
     
     XSRETURN(argvi);
@@ -10655,7 +11900,9 @@ XS(_wrap_delete_FieldDefn) {
       
       
     }
-    ST(argvi) = sv_newmortal();
+    {
+      /* %typemap(out) void */
+    }
     
     XSRETURN(argvi);
   fail:
@@ -10896,7 +12143,9 @@ XS(_wrap_FieldDefn_SetName) {
       
       
     }
-    ST(argvi) = sv_newmortal();
+    {
+      /* %typemap(out) void */
+    }
     
     XSRETURN(argvi);
   fail:
@@ -11005,7 +12254,9 @@ XS(_wrap_FieldDefn_SetType) {
       
       
     }
-    ST(argvi) = sv_newmortal();
+    {
+      /* %typemap(out) void */
+    }
     
     
     XSRETURN(argvi);
@@ -11116,7 +12367,9 @@ XS(_wrap_FieldDefn_SetJustify) {
       
       
     }
-    ST(argvi) = sv_newmortal();
+    {
+      /* %typemap(out) void */
+    }
     
     
     XSRETURN(argvi);
@@ -11227,7 +12480,9 @@ XS(_wrap_FieldDefn_SetWidth) {
       
       
     }
-    ST(argvi) = sv_newmortal();
+    {
+      /* %typemap(out) void */
+    }
     
     
     XSRETURN(argvi);
@@ -11338,7 +12593,9 @@ XS(_wrap_FieldDefn_SetPrecision) {
       
       
     }
-    ST(argvi) = sv_newmortal();
+    {
+      /* %typemap(out) void */
+    }
     
     
     XSRETURN(argvi);
@@ -11573,7 +12830,9 @@ XS(_wrap_FieldDefn_SetIgnored) {
       
       
     }
-    ST(argvi) = sv_newmortal();
+    {
+      /* %typemap(out) void */
+    }
     
     
     XSRETURN(argvi);
@@ -12089,6 +13348,57 @@ XS(_wrap_ForceToPolygon) {
 }
 
 
+XS(_wrap_ForceToLineString) {
+  {
+    OGRGeometryShadow *arg1 = (OGRGeometryShadow *) 0 ;
+    void *argp1 = 0 ;
+    int res1 = 0 ;
+    int argvi = 0;
+    OGRGeometryShadow *result = 0 ;
+    dXSARGS;
+    
+    if ((items < 1) || (items > 1)) {
+      SWIG_croak("Usage: ForceToLineString(geom_in);");
+    }
+    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OGRGeometryShadow, 0 |  0 );
+    if (!SWIG_IsOK(res1)) {
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "ForceToLineString" "', argument " "1"" of type '" "OGRGeometryShadow *""'"); 
+    }
+    arg1 = reinterpret_cast< OGRGeometryShadow * >(argp1);
+    {
+      CPLErrorReset();
+      result = (OGRGeometryShadow *)ForceToLineString(arg1);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /* 
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
+    ST(argvi) = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_OGRGeometryShadow, SWIG_OWNER | SWIG_SHADOW); argvi++ ;
+    
+    XSRETURN(argvi);
+  fail:
+    
+    SWIG_croak_null();
+  }
+}
+
+
 XS(_wrap_ForceToMultiPolygon) {
   {
     OGRGeometryShadow *arg1 = (OGRGeometryShadow *) 0 ;
@@ -12282,7 +13592,9 @@ XS(_wrap_delete_Geometry) {
       
       
     }
-    ST(argvi) = sv_newmortal();
+    {
+      /* %typemap(out) void */
+    }
     
     XSRETURN(argvi);
   fail:
@@ -12610,9 +13922,9 @@ XS(_wrap_Geometry_ExportToGML) {
                 arg2 = CSLAddNameValue( arg2, key, SvPV_nolen(sv) );
               }
             } else
-            SWIG_croak("'options' is not a reference to an array or hash");
+            SWIG_croak("the 'options' argument to a Geo::GDAL method is not a reference to an array or hash");
           } else
-          SWIG_croak("'options' is not a reference");   
+          SWIG_croak("the 'options' argument to a Geo::GDAL method is not a reference");   
         }
       }
     }
@@ -12649,7 +13961,7 @@ XS(_wrap_Geometry_ExportToGML) {
     }
     else
     {
-      ST(argvi) = sv_newmortal();
+      ST(argvi) = &PL_sv_undef;
     }
     argvi++ ;
     
@@ -12731,7 +14043,7 @@ XS(_wrap_Geometry_ExportToKML) {
     }
     else
     {
-      ST(argvi) = sv_newmortal();
+      ST(argvi) = &PL_sv_undef;
     }
     argvi++ ;
     
@@ -12789,9 +14101,9 @@ XS(_wrap_Geometry_ExportToJson) {
                 arg2 = CSLAddNameValue( arg2, key, SvPV_nolen(sv) );
               }
             } else
-            SWIG_croak("'options' is not a reference to an array or hash");
+            SWIG_croak("the 'options' argument to a Geo::GDAL method is not a reference to an array or hash");
           } else
-          SWIG_croak("'options' is not a reference");   
+          SWIG_croak("the 'options' argument to a Geo::GDAL method is not a reference");   
         }
       }
     }
@@ -12828,7 +14140,7 @@ XS(_wrap_Geometry_ExportToJson) {
     }
     else
     {
-      ST(argvi) = sv_newmortal();
+      ST(argvi) = &PL_sv_undef;
     }
     argvi++ ;
     
@@ -12915,7 +14227,9 @@ XS(_wrap_Geometry_AddPoint_3D) {
       
       
     }
-    ST(argvi) = sv_newmortal();
+    {
+      /* %typemap(out) void */
+    }
     
     
     
@@ -12987,7 +14301,9 @@ XS(_wrap_Geometry_AddPoint_2D) {
       
       
     }
-    ST(argvi) = sv_newmortal();
+    {
+      /* %typemap(out) void */
+    }
     
     
     
@@ -13753,7 +15069,9 @@ XS(_wrap_Geometry_GetPoint_3D) {
       
       
     }
-    ST(argvi) = sv_newmortal();
+    {
+      /* %typemap(out) void */
+    }
     {
       /* %typemap(argout) (double argout[ANY]) */
       if (GIMME_V == G_ARRAY) {
@@ -13836,7 +15154,9 @@ XS(_wrap_Geometry_GetPoint_2D) {
       
       
     }
-    ST(argvi) = sv_newmortal();
+    {
+      /* %typemap(out) void */
+    }
     {
       /* %typemap(argout) (double argout[ANY]) */
       if (GIMME_V == G_ARRAY) {
@@ -13988,7 +15308,9 @@ XS(_wrap_Geometry_SetPoint_3D) {
       
       
     }
-    ST(argvi) = sv_newmortal();
+    {
+      /* %typemap(out) void */
+    }
     
     
     
@@ -14070,7 +15392,9 @@ XS(_wrap_Geometry_SetPoint_2D) {
       
       
     }
-    ST(argvi) = sv_newmortal();
+    {
+      /* %typemap(out) void */
+    }
     
     
     
@@ -14982,7 +16306,9 @@ XS(_wrap_Geometry_Empty) {
       
       
     }
-    ST(argvi) = sv_newmortal();
+    {
+      /* %typemap(out) void */
+    }
     
     XSRETURN(argvi);
   fail:
@@ -16101,7 +17427,9 @@ XS(_wrap_Geometry_AssignSpatialReference) {
       
       
     }
-    ST(argvi) = sv_newmortal();
+    {
+      /* %typemap(out) void */
+    }
     
     
     XSRETURN(argvi);
@@ -16153,7 +17481,9 @@ XS(_wrap_Geometry_CloseRings) {
       
       
     }
-    ST(argvi) = sv_newmortal();
+    {
+      /* %typemap(out) void */
+    }
     
     XSRETURN(argvi);
   fail:
@@ -16203,7 +17533,9 @@ XS(_wrap_Geometry_FlattenTo2D) {
       
       
     }
-    ST(argvi) = sv_newmortal();
+    {
+      /* %typemap(out) void */
+    }
     
     XSRETURN(argvi);
   fail:
@@ -16261,7 +17593,9 @@ XS(_wrap_Geometry_Segmentize) {
       
       
     }
-    ST(argvi) = sv_newmortal();
+    {
+      /* %typemap(out) void */
+    }
     
     
     XSRETURN(argvi);
@@ -16319,7 +17653,9 @@ XS(_wrap_Geometry_GetEnvelope) {
       
       
     }
-    ST(argvi) = sv_newmortal();
+    {
+      /* %typemap(out) void */
+    }
     {
       /* %typemap(argout) (double argout[ANY]) */
       if (GIMME_V == G_ARRAY) {
@@ -16390,7 +17726,9 @@ XS(_wrap_Geometry_GetEnvelope3D) {
       
       
     }
-    ST(argvi) = sv_newmortal();
+    {
+      /* %typemap(out) void */
+    }
     {
       /* %typemap(argout) (double argout[ANY]) */
       if (GIMME_V == G_ARRAY) {
@@ -16435,6 +17773,57 @@ XS(_wrap_Geometry_Centroid) {
     {
       CPLErrorReset();
       result = (OGRGeometryShadow *)OGRGeometryShadow_Centroid(arg1);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /* 
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
+    ST(argvi) = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_OGRGeometryShadow, SWIG_OWNER | SWIG_SHADOW); argvi++ ;
+    
+    XSRETURN(argvi);
+  fail:
+    
+    SWIG_croak_null();
+  }
+}
+
+
+XS(_wrap_Geometry_PointOnSurface) {
+  {
+    OGRGeometryShadow *arg1 = (OGRGeometryShadow *) 0 ;
+    void *argp1 = 0 ;
+    int res1 = 0 ;
+    int argvi = 0;
+    OGRGeometryShadow *result = 0 ;
+    dXSARGS;
+    
+    if ((items < 1) || (items > 1)) {
+      SWIG_croak("Usage: Geometry_PointOnSurface(self);");
+    }
+    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OGRGeometryShadow, 0 |  0 );
+    if (!SWIG_IsOK(res1)) {
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Geometry_PointOnSurface" "', argument " "1"" of type '" "OGRGeometryShadow *""'"); 
+    }
+    arg1 = reinterpret_cast< OGRGeometryShadow * >(argp1);
+    {
+      CPLErrorReset();
+      result = (OGRGeometryShadow *)OGRGeometryShadow_PointOnSurface(arg1);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
         SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
@@ -16616,7 +18005,9 @@ XS(_wrap_Geometry_SetCoordinateDimension) {
       
       
     }
-    ST(argvi) = sv_newmortal();
+    {
+      /* %typemap(out) void */
+    }
     
     
     XSRETURN(argvi);
@@ -16745,7 +18136,9 @@ XS(_wrap_Geometry_Move) {
       
       
     }
-    ST(argvi) = sv_newmortal();
+    {
+      /* %typemap(out) void */
+    }
     
     
     
@@ -16933,7 +18326,9 @@ XS(_wrap_RegisterAll) {
       
       
     }
-    ST(argvi) = sv_newmortal();
+    {
+      /* %typemap(out) void */
+    }
     XSRETURN(argvi);
   fail:
     SWIG_croak_null();
@@ -17116,13 +18511,19 @@ XS(_wrap_Open) {
     OGRDataSourceShadow *result = 0 ;
     dXSARGS;
     
-    if ((items < 1) || (items > 2)) {
+    {
+      /* %typemap(default) const char * utf8_path */
+      arg1 = (const char *)"";
+    }
+    if ((items < 0) || (items > 2)) {
       SWIG_croak("Usage: Open(utf8_path,update);");
     }
-    {
-      /* %typemap(in,numinputs=1) (const char* utf8_path) */
-      sv_utf8_upgrade(ST(0));
-      arg1 = SvPV_nolen(ST(0));
+    if (items > 0) {
+      {
+        /* %typemap(in,numinputs=1) (const char* utf8_path) */
+        sv_utf8_upgrade(ST(0));
+        arg1 = SvPV_nolen(ST(0));
+      }
     }
     if (items > 1) {
       ecode2 = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(1), &val2);
@@ -17130,11 +18531,6 @@ XS(_wrap_Open) {
         SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "Open" "', argument " "2"" of type '" "int""'");
       } 
       arg2 = static_cast< int >(val2);
-    }
-    {
-      /* %typemap(check) (const char *utf8_path) */
-      if (!arg1)
-      SWIG_croak("The path must not be undefined");
     }
     {
       CPLErrorReset();
@@ -17180,13 +18576,19 @@ XS(_wrap_OpenShared) {
     OGRDataSourceShadow *result = 0 ;
     dXSARGS;
     
-    if ((items < 1) || (items > 2)) {
+    {
+      /* %typemap(default) const char * utf8_path */
+      arg1 = (const char *)"";
+    }
+    if ((items < 0) || (items > 2)) {
       SWIG_croak("Usage: OpenShared(utf8_path,update);");
     }
-    {
-      /* %typemap(in,numinputs=1) (const char* utf8_path) */
-      sv_utf8_upgrade(ST(0));
-      arg1 = SvPV_nolen(ST(0));
+    if (items > 0) {
+      {
+        /* %typemap(in,numinputs=1) (const char* utf8_path) */
+        sv_utf8_upgrade(ST(0));
+        arg1 = SvPV_nolen(ST(0));
+      }
     }
     if (items > 1) {
       ecode2 = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(1), &val2);
@@ -17194,11 +18596,6 @@ XS(_wrap_OpenShared) {
         SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "OpenShared" "', argument " "2"" of type '" "int""'");
       } 
       arg2 = static_cast< int >(val2);
-    }
-    {
-      /* %typemap(check) (const char *utf8_path) */
-      if (!arg1)
-      SWIG_croak("The path must not be undefined");
     }
     {
       CPLErrorReset();
@@ -17374,9 +18771,9 @@ XS(_wrap_GeneralCmdLineProcessor) {
               arg1 = CSLAddNameValue( arg1, key, SvPV_nolen(sv) );
             }
           } else
-          SWIG_croak("'options' is not a reference to an array or hash");
+          SWIG_croak("the 'options' argument to a Geo::GDAL method is not a reference to an array or hash");
         } else
-        SWIG_croak("'options' is not a reference");   
+        SWIG_croak("the 'options' argument to a Geo::GDAL method is not a reference");   
       }
     }
     if (items > 1) {
@@ -17423,7 +18820,8 @@ XS(_wrap_GeneralCmdLineProcessor) {
           SvREFCNT_dec(sv);
         }
       }
-      ST(argvi) = newRV_noinc((SV*)av);
+      ST(argvi) = newRV((SV*)av);
+      sv_2mortal(ST(argvi));
       argvi++;
     }
     {
@@ -17443,9 +18841,84 @@ XS(_wrap_GeneralCmdLineProcessor) {
 }
 
 
+XS(_wrap_TermProgress_nocb) {
+  {
+    double arg1 ;
+    char *arg2 = (char *) NULL ;
+    void *arg3 = (void *) NULL ;
+    double val1 ;
+    int ecode1 = 0 ;
+    int res2 ;
+    char *buf2 = 0 ;
+    int alloc2 = 0 ;
+    int res3 ;
+    int argvi = 0;
+    int result;
+    dXSARGS;
+    
+    if ((items < 1) || (items > 3)) {
+      SWIG_croak("Usage: TermProgress_nocb(dfProgress,pszMessage,pData);");
+    }
+    ecode1 = SWIG_AsVal_double SWIG_PERL_CALL_ARGS_2(ST(0), &val1);
+    if (!SWIG_IsOK(ecode1)) {
+      SWIG_exception_fail(SWIG_ArgError(ecode1), "in method '" "TermProgress_nocb" "', argument " "1"" of type '" "double""'");
+    } 
+    arg1 = static_cast< double >(val1);
+    if (items > 1) {
+      res2 = SWIG_AsCharPtrAndSize(ST(1), &buf2, NULL, &alloc2);
+      if (!SWIG_IsOK(res2)) {
+        SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "TermProgress_nocb" "', argument " "2"" of type '" "char const *""'");
+      }
+      arg2 = reinterpret_cast< char * >(buf2);
+    }
+    if (items > 2) {
+      res3 = SWIG_ConvertPtr(ST(2),SWIG_as_voidptrptr(&arg3), 0, 0);
+      if (!SWIG_IsOK(res3)) {
+        SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "TermProgress_nocb" "', argument " "3"" of type '" "void *""'"); 
+      }
+    }
+    {
+      CPLErrorReset();
+      result = (int)GDALTermProgress_nocb(arg1,(char const *)arg2,arg3);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /* 
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
+    ST(argvi) = SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(result)); argvi++ ;
+    
+    if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
+    
+    XSRETURN(argvi);
+  fail:
+    
+    if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
+    
+    SWIG_croak_null();
+  }
+}
+
+
 
 /* -------- TYPE CONVERSION AND EQUIVALENCE RULES (BEGIN) -------- */
 
+static swig_type_info _swigt__p_GDALProgressFunc = {"_p_GDALProgressFunc", "GDALProgressFunc *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_OGRDataSourceShadow = {"_p_OGRDataSourceShadow", "OGRDataSourceShadow *", 0, 0, (void*)"Geo::OGR::DataSource", 0};
 static swig_type_info _swigt__p_OGRDriverShadow = {"_p_OGRDriverShadow", "OGRDriverShadow *", 0, 0, (void*)"Geo::OGR::Driver", 0};
 static swig_type_info _swigt__p_OGRFeatureDefnShadow = {"_p_OGRFeatureDefnShadow", "OGRFeatureDefnShadow *", 0, 0, (void*)"Geo::OGR::FeatureDefn", 0};
@@ -17457,6 +18930,7 @@ static swig_type_info _swigt__p_OSRCoordinateTransformationShadow = {"_p_OSRCoor
 static swig_type_info _swigt__p_OSRSpatialReferenceShadow = {"_p_OSRSpatialReferenceShadow", "OSRSpatialReferenceShadow *", 0, 0, (void*)"Geo::OSR::SpatialReference", 0};
 static swig_type_info _swigt__p_char = {"_p_char", "char *|retStringAndCPLFree *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_double = {"_p_double", "double *", 0, 0, (void*)0, 0};
+static swig_type_info _swigt__p_f_double_p_q_const__char_p_void__int = {"_p_f_double_p_q_const__char_p_void__int", "int (*)(double,char const *,void *)", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_int = {"_p_int", "OGRFieldType *|int *|OGRwkbGeometryType *|OGRJustification *|OGRwkbByteOrder *|OGRErr *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_p_char = {"_p_p_char", "char **", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_p_double = {"_p_p_double", "double **", 0, 0, (void*)0, 0};
@@ -17464,6 +18938,7 @@ static swig_type_info _swigt__p_p_int = {"_p_p_int", "int **", 0, 0, (void*)0, 0
 static swig_type_info _swigt__p_p_p_char = {"_p_p_p_char", "char ***", 0, 0, (void*)0, 0};
 
 static swig_type_info *swig_type_initial[] = {
+  &_swigt__p_GDALProgressFunc,
   &_swigt__p_OGRDataSourceShadow,
   &_swigt__p_OGRDriverShadow,
   &_swigt__p_OGRFeatureDefnShadow,
@@ -17475,6 +18950,7 @@ static swig_type_info *swig_type_initial[] = {
   &_swigt__p_OSRSpatialReferenceShadow,
   &_swigt__p_char,
   &_swigt__p_double,
+  &_swigt__p_f_double_p_q_const__char_p_void__int,
   &_swigt__p_int,
   &_swigt__p_p_char,
   &_swigt__p_p_double,
@@ -17482,6 +18958,7 @@ static swig_type_info *swig_type_initial[] = {
   &_swigt__p_p_p_char,
 };
 
+static swig_cast_info _swigc__p_GDALProgressFunc[] = {  {&_swigt__p_GDALProgressFunc, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_OGRDataSourceShadow[] = {  {&_swigt__p_OGRDataSourceShadow, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_OGRDriverShadow[] = {  {&_swigt__p_OGRDriverShadow, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_OGRFeatureDefnShadow[] = {  {&_swigt__p_OGRFeatureDefnShadow, 0, 0, 0},{0, 0, 0, 0}};
@@ -17493,6 +18970,7 @@ static swig_cast_info _swigc__p_OSRCoordinateTransformationShadow[] = {  {&_swig
 static swig_cast_info _swigc__p_OSRSpatialReferenceShadow[] = {  {&_swigt__p_OSRSpatialReferenceShadow, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_char[] = {  {&_swigt__p_char, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_double[] = {  {&_swigt__p_double, 0, 0, 0},{0, 0, 0, 0}};
+static swig_cast_info _swigc__p_f_double_p_q_const__char_p_void__int[] = {  {&_swigt__p_f_double_p_q_const__char_p_void__int, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_int[] = {  {&_swigt__p_int, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_p_char[] = {  {&_swigt__p_p_char, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_p_double[] = {  {&_swigt__p_p_double, 0, 0, 0},{0, 0, 0, 0}};
@@ -17500,6 +18978,7 @@ static swig_cast_info _swigc__p_p_int[] = {  {&_swigt__p_p_int, 0, 0, 0},{0, 0, 
 static swig_cast_info _swigc__p_p_p_char[] = {  {&_swigt__p_p_p_char, 0, 0, 0},{0, 0, 0, 0}};
 
 static swig_cast_info *swig_cast_initial[] = {
+  _swigc__p_GDALProgressFunc,
   _swigc__p_OGRDataSourceShadow,
   _swigc__p_OGRDriverShadow,
   _swigc__p_OGRFeatureDefnShadow,
@@ -17511,6 +18990,7 @@ static swig_cast_info *swig_cast_initial[] = {
   _swigc__p_OSRSpatialReferenceShadow,
   _swigc__p_char,
   _swigc__p_double,
+  _swigc__p_f_double_p_q_const__char_p_void__int,
   _swigc__p_int,
   _swigc__p_p_char,
   _swigc__p_p_double,
@@ -17531,6 +19011,7 @@ static swig_variable_info swig_variables[] = {
 {0,0,0,0}
 };
 static swig_command_info swig_commands[] = {
+{"Geo::OGRc::callback_d_cp_vp", _wrap_callback_d_cp_vp},
 {"Geo::OGRc::UseExceptions", _wrap_UseExceptions},
 {"Geo::OGRc::DontUseExceptions", _wrap_DontUseExceptions},
 {"Geo::OGRc::Driver_name_get", _wrap_Driver_name_get},
@@ -17556,7 +19037,7 @@ static swig_command_info swig_commands[] = {
 {"Geo::OGRc::DataSource__GetLayerByIndex", _wrap_DataSource__GetLayerByIndex},
 {"Geo::OGRc::DataSource__GetLayerByName", _wrap_DataSource__GetLayerByName},
 {"Geo::OGRc::DataSource__TestCapability", _wrap_DataSource__TestCapability},
-{"Geo::OGRc::DataSource_ExecuteSQL", _wrap_DataSource_ExecuteSQL},
+{"Geo::OGRc::DataSource__ExecuteSQL", _wrap_DataSource__ExecuteSQL},
 {"Geo::OGRc::DataSource_ReleaseResultSet", _wrap_DataSource_ReleaseResultSet},
 {"Geo::OGRc::Layer_GetRefCount", _wrap_Layer_GetRefCount},
 {"Geo::OGRc::Layer_SetSpatialFilter", _wrap_Layer_SetSpatialFilter},
@@ -17579,8 +19060,8 @@ static swig_command_info swig_commands[] = {
 {"Geo::OGRc::Layer_GetFeatureCount", _wrap_Layer_GetFeatureCount},
 {"Geo::OGRc::Layer_GetExtent", _wrap_Layer_GetExtent},
 {"Geo::OGRc::Layer__TestCapability", _wrap_Layer__TestCapability},
-{"Geo::OGRc::Layer_CreateField", _wrap_Layer_CreateField},
-{"Geo::OGRc::Layer_DeleteField", _wrap_Layer_DeleteField},
+{"Geo::OGRc::Layer__CreateField", _wrap_Layer__CreateField},
+{"Geo::OGRc::Layer__DeleteField", _wrap_Layer__DeleteField},
 {"Geo::OGRc::Layer_ReorderField", _wrap_Layer_ReorderField},
 {"Geo::OGRc::Layer_ReorderFields", _wrap_Layer_ReorderFields},
 {"Geo::OGRc::Layer_AlterFieldDefn", _wrap_Layer_AlterFieldDefn},
@@ -17590,6 +19071,13 @@ static swig_command_info swig_commands[] = {
 {"Geo::OGRc::Layer_GetSpatialRef", _wrap_Layer_GetSpatialRef},
 {"Geo::OGRc::Layer_GetFeaturesRead", _wrap_Layer_GetFeaturesRead},
 {"Geo::OGRc::Layer_SetIgnoredFields", _wrap_Layer_SetIgnoredFields},
+{"Geo::OGRc::Layer_Intersection", _wrap_Layer_Intersection},
+{"Geo::OGRc::Layer_Union", _wrap_Layer_Union},
+{"Geo::OGRc::Layer_SymDifference", _wrap_Layer_SymDifference},
+{"Geo::OGRc::Layer_Identity", _wrap_Layer_Identity},
+{"Geo::OGRc::Layer_Update", _wrap_Layer_Update},
+{"Geo::OGRc::Layer_Clip", _wrap_Layer_Clip},
+{"Geo::OGRc::Layer_Erase", _wrap_Layer_Erase},
 {"Geo::OGRc::delete_Feature", _wrap_delete_Feature},
 {"Geo::OGRc::new_Feature", _wrap_new_Feature},
 {"Geo::OGRc::Feature_GetDefnRef", _wrap_Feature_GetDefnRef},
@@ -17660,6 +19148,7 @@ static swig_command_info swig_commands[] = {
 {"Geo::OGRc::BuildPolygonFromEdges", _wrap_BuildPolygonFromEdges},
 {"Geo::OGRc::ApproximateArcAngles", _wrap_ApproximateArcAngles},
 {"Geo::OGRc::ForceToPolygon", _wrap_ForceToPolygon},
+{"Geo::OGRc::ForceToLineString", _wrap_ForceToLineString},
 {"Geo::OGRc::ForceToMultiPolygon", _wrap_ForceToMultiPolygon},
 {"Geo::OGRc::ForceToMultiPoint", _wrap_ForceToMultiPoint},
 {"Geo::OGRc::ForceToMultiLineString", _wrap_ForceToMultiLineString},
@@ -17728,6 +19217,7 @@ static swig_command_info swig_commands[] = {
 {"Geo::OGRc::Geometry_GetEnvelope", _wrap_Geometry_GetEnvelope},
 {"Geo::OGRc::Geometry_GetEnvelope3D", _wrap_Geometry_GetEnvelope3D},
 {"Geo::OGRc::Geometry_Centroid", _wrap_Geometry_Centroid},
+{"Geo::OGRc::Geometry_PointOnSurface", _wrap_Geometry_PointOnSurface},
 {"Geo::OGRc::Geometry_WkbSize", _wrap_Geometry_WkbSize},
 {"Geo::OGRc::Geometry_GetCoordinateDimension", _wrap_Geometry_GetCoordinateDimension},
 {"Geo::OGRc::Geometry_SetCoordinateDimension", _wrap_Geometry_SetCoordinateDimension},
@@ -17745,6 +19235,7 @@ static swig_command_info swig_commands[] = {
 {"Geo::OGRc::GetDriverByName", _wrap_GetDriverByName},
 {"Geo::OGRc::_GetDriver", _wrap__GetDriver},
 {"Geo::OGRc::GeneralCmdLineProcessor", _wrap_GeneralCmdLineProcessor},
+{"Geo::OGRc::TermProgress_nocb", _wrap_TermProgress_nocb},
 {0,0}
 };
 /* -----------------------------------------------------------------------------
@@ -18039,302 +19530,302 @@ XS(SWIG_init) {
     SvREADONLY_on(sv);
   }
   
-  /*@SWIG:/usr/local/swig-1.3.40/share/swig/1.3.40/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+  /*@SWIG:/usr/share/swig1.3/perl5/perltypemaps.swg,65,%set_constant@*/ do {
     SV *sv = get_sv((char*) SWIG_prefix "wkb25DBit", TRUE | 0x2 | GV_ADDMULTI);
     sv_setsv(sv, SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(0x80000000)));
     SvREADONLY_on(sv);
   } while(0) /*@SWIG@*/;
-  /*@SWIG:/usr/local/swig-1.3.40/share/swig/1.3.40/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+  /*@SWIG:/usr/share/swig1.3/perl5/perltypemaps.swg,65,%set_constant@*/ do {
     SV *sv = get_sv((char*) SWIG_prefix "wkb25Bit", TRUE | 0x2 | GV_ADDMULTI);
     sv_setsv(sv, SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(0x80000000)));
     SvREADONLY_on(sv);
   } while(0) /*@SWIG@*/;
-  /*@SWIG:/usr/local/swig-1.3.40/share/swig/1.3.40/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+  /*@SWIG:/usr/share/swig1.3/perl5/perltypemaps.swg,65,%set_constant@*/ do {
     SV *sv = get_sv((char*) SWIG_prefix "wkbUnknown", TRUE | 0x2 | GV_ADDMULTI);
     sv_setsv(sv, SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(0)));
     SvREADONLY_on(sv);
   } while(0) /*@SWIG@*/;
-  /*@SWIG:/usr/local/swig-1.3.40/share/swig/1.3.40/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+  /*@SWIG:/usr/share/swig1.3/perl5/perltypemaps.swg,65,%set_constant@*/ do {
     SV *sv = get_sv((char*) SWIG_prefix "wkbPoint", TRUE | 0x2 | GV_ADDMULTI);
     sv_setsv(sv, SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(1)));
     SvREADONLY_on(sv);
   } while(0) /*@SWIG@*/;
-  /*@SWIG:/usr/local/swig-1.3.40/share/swig/1.3.40/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+  /*@SWIG:/usr/share/swig1.3/perl5/perltypemaps.swg,65,%set_constant@*/ do {
     SV *sv = get_sv((char*) SWIG_prefix "wkbLineString", TRUE | 0x2 | GV_ADDMULTI);
     sv_setsv(sv, SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(2)));
     SvREADONLY_on(sv);
   } while(0) /*@SWIG@*/;
-  /*@SWIG:/usr/local/swig-1.3.40/share/swig/1.3.40/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+  /*@SWIG:/usr/share/swig1.3/perl5/perltypemaps.swg,65,%set_constant@*/ do {
     SV *sv = get_sv((char*) SWIG_prefix "wkbPolygon", TRUE | 0x2 | GV_ADDMULTI);
     sv_setsv(sv, SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(3)));
     SvREADONLY_on(sv);
   } while(0) /*@SWIG@*/;
-  /*@SWIG:/usr/local/swig-1.3.40/share/swig/1.3.40/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+  /*@SWIG:/usr/share/swig1.3/perl5/perltypemaps.swg,65,%set_constant@*/ do {
     SV *sv = get_sv((char*) SWIG_prefix "wkbMultiPoint", TRUE | 0x2 | GV_ADDMULTI);
     sv_setsv(sv, SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(4)));
     SvREADONLY_on(sv);
   } while(0) /*@SWIG@*/;
-  /*@SWIG:/usr/local/swig-1.3.40/share/swig/1.3.40/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+  /*@SWIG:/usr/share/swig1.3/perl5/perltypemaps.swg,65,%set_constant@*/ do {
     SV *sv = get_sv((char*) SWIG_prefix "wkbMultiLineString", TRUE | 0x2 | GV_ADDMULTI);
     sv_setsv(sv, SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(5)));
     SvREADONLY_on(sv);
   } while(0) /*@SWIG@*/;
-  /*@SWIG:/usr/local/swig-1.3.40/share/swig/1.3.40/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+  /*@SWIG:/usr/share/swig1.3/perl5/perltypemaps.swg,65,%set_constant@*/ do {
     SV *sv = get_sv((char*) SWIG_prefix "wkbMultiPolygon", TRUE | 0x2 | GV_ADDMULTI);
     sv_setsv(sv, SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(6)));
     SvREADONLY_on(sv);
   } while(0) /*@SWIG@*/;
-  /*@SWIG:/usr/local/swig-1.3.40/share/swig/1.3.40/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+  /*@SWIG:/usr/share/swig1.3/perl5/perltypemaps.swg,65,%set_constant@*/ do {
     SV *sv = get_sv((char*) SWIG_prefix "wkbGeometryCollection", TRUE | 0x2 | GV_ADDMULTI);
     sv_setsv(sv, SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(7)));
     SvREADONLY_on(sv);
   } while(0) /*@SWIG@*/;
-  /*@SWIG:/usr/local/swig-1.3.40/share/swig/1.3.40/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+  /*@SWIG:/usr/share/swig1.3/perl5/perltypemaps.swg,65,%set_constant@*/ do {
     SV *sv = get_sv((char*) SWIG_prefix "wkbNone", TRUE | 0x2 | GV_ADDMULTI);
     sv_setsv(sv, SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(100)));
     SvREADONLY_on(sv);
   } while(0) /*@SWIG@*/;
-  /*@SWIG:/usr/local/swig-1.3.40/share/swig/1.3.40/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+  /*@SWIG:/usr/share/swig1.3/perl5/perltypemaps.swg,65,%set_constant@*/ do {
     SV *sv = get_sv((char*) SWIG_prefix "wkbLinearRing", TRUE | 0x2 | GV_ADDMULTI);
     sv_setsv(sv, SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(101)));
     SvREADONLY_on(sv);
   } while(0) /*@SWIG@*/;
-  /*@SWIG:/usr/local/swig-1.3.40/share/swig/1.3.40/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+  /*@SWIG:/usr/share/swig1.3/perl5/perltypemaps.swg,65,%set_constant@*/ do {
     SV *sv = get_sv((char*) SWIG_prefix "wkbPoint25D", TRUE | 0x2 | GV_ADDMULTI);
     sv_setsv(sv, SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(wkbPoint+wkb25DBit)));
     SvREADONLY_on(sv);
   } while(0) /*@SWIG@*/;
-  /*@SWIG:/usr/local/swig-1.3.40/share/swig/1.3.40/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+  /*@SWIG:/usr/share/swig1.3/perl5/perltypemaps.swg,65,%set_constant@*/ do {
     SV *sv = get_sv((char*) SWIG_prefix "wkbLineString25D", TRUE | 0x2 | GV_ADDMULTI);
     sv_setsv(sv, SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(wkbLineString+wkb25DBit)));
     SvREADONLY_on(sv);
   } while(0) /*@SWIG@*/;
-  /*@SWIG:/usr/local/swig-1.3.40/share/swig/1.3.40/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+  /*@SWIG:/usr/share/swig1.3/perl5/perltypemaps.swg,65,%set_constant@*/ do {
     SV *sv = get_sv((char*) SWIG_prefix "wkbPolygon25D", TRUE | 0x2 | GV_ADDMULTI);
     sv_setsv(sv, SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(wkbPolygon+wkb25DBit)));
     SvREADONLY_on(sv);
   } while(0) /*@SWIG@*/;
-  /*@SWIG:/usr/local/swig-1.3.40/share/swig/1.3.40/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+  /*@SWIG:/usr/share/swig1.3/perl5/perltypemaps.swg,65,%set_constant@*/ do {
     SV *sv = get_sv((char*) SWIG_prefix "wkbMultiPoint25D", TRUE | 0x2 | GV_ADDMULTI);
     sv_setsv(sv, SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(wkbMultiPoint+wkb25DBit)));
     SvREADONLY_on(sv);
   } while(0) /*@SWIG@*/;
-  /*@SWIG:/usr/local/swig-1.3.40/share/swig/1.3.40/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+  /*@SWIG:/usr/share/swig1.3/perl5/perltypemaps.swg,65,%set_constant@*/ do {
     SV *sv = get_sv((char*) SWIG_prefix "wkbMultiLineString25D", TRUE | 0x2 | GV_ADDMULTI);
     sv_setsv(sv, SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(wkbMultiLineString+wkb25DBit)));
     SvREADONLY_on(sv);
   } while(0) /*@SWIG@*/;
-  /*@SWIG:/usr/local/swig-1.3.40/share/swig/1.3.40/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+  /*@SWIG:/usr/share/swig1.3/perl5/perltypemaps.swg,65,%set_constant@*/ do {
     SV *sv = get_sv((char*) SWIG_prefix "wkbMultiPolygon25D", TRUE | 0x2 | GV_ADDMULTI);
     sv_setsv(sv, SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(wkbMultiPolygon+wkb25DBit)));
     SvREADONLY_on(sv);
   } while(0) /*@SWIG@*/;
-  /*@SWIG:/usr/local/swig-1.3.40/share/swig/1.3.40/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+  /*@SWIG:/usr/share/swig1.3/perl5/perltypemaps.swg,65,%set_constant@*/ do {
     SV *sv = get_sv((char*) SWIG_prefix "wkbGeometryCollection25D", TRUE | 0x2 | GV_ADDMULTI);
     sv_setsv(sv, SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(wkbGeometryCollection+wkb25DBit)));
     SvREADONLY_on(sv);
   } while(0) /*@SWIG@*/;
-  /*@SWIG:/usr/local/swig-1.3.40/share/swig/1.3.40/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+  /*@SWIG:/usr/share/swig1.3/perl5/perltypemaps.swg,65,%set_constant@*/ do {
     SV *sv = get_sv((char*) SWIG_prefix "OFTInteger", TRUE | 0x2 | GV_ADDMULTI);
     sv_setsv(sv, SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(0)));
     SvREADONLY_on(sv);
   } while(0) /*@SWIG@*/;
-  /*@SWIG:/usr/local/swig-1.3.40/share/swig/1.3.40/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+  /*@SWIG:/usr/share/swig1.3/perl5/perltypemaps.swg,65,%set_constant@*/ do {
     SV *sv = get_sv((char*) SWIG_prefix "OFTIntegerList", TRUE | 0x2 | GV_ADDMULTI);
     sv_setsv(sv, SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(1)));
     SvREADONLY_on(sv);
   } while(0) /*@SWIG@*/;
-  /*@SWIG:/usr/local/swig-1.3.40/share/swig/1.3.40/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+  /*@SWIG:/usr/share/swig1.3/perl5/perltypemaps.swg,65,%set_constant@*/ do {
     SV *sv = get_sv((char*) SWIG_prefix "OFTReal", TRUE | 0x2 | GV_ADDMULTI);
     sv_setsv(sv, SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(2)));
     SvREADONLY_on(sv);
   } while(0) /*@SWIG@*/;
-  /*@SWIG:/usr/local/swig-1.3.40/share/swig/1.3.40/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+  /*@SWIG:/usr/share/swig1.3/perl5/perltypemaps.swg,65,%set_constant@*/ do {
     SV *sv = get_sv((char*) SWIG_prefix "OFTRealList", TRUE | 0x2 | GV_ADDMULTI);
     sv_setsv(sv, SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(3)));
     SvREADONLY_on(sv);
   } while(0) /*@SWIG@*/;
-  /*@SWIG:/usr/local/swig-1.3.40/share/swig/1.3.40/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+  /*@SWIG:/usr/share/swig1.3/perl5/perltypemaps.swg,65,%set_constant@*/ do {
     SV *sv = get_sv((char*) SWIG_prefix "OFTString", TRUE | 0x2 | GV_ADDMULTI);
     sv_setsv(sv, SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(4)));
     SvREADONLY_on(sv);
   } while(0) /*@SWIG@*/;
-  /*@SWIG:/usr/local/swig-1.3.40/share/swig/1.3.40/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+  /*@SWIG:/usr/share/swig1.3/perl5/perltypemaps.swg,65,%set_constant@*/ do {
     SV *sv = get_sv((char*) SWIG_prefix "OFTStringList", TRUE | 0x2 | GV_ADDMULTI);
     sv_setsv(sv, SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(5)));
     SvREADONLY_on(sv);
   } while(0) /*@SWIG@*/;
-  /*@SWIG:/usr/local/swig-1.3.40/share/swig/1.3.40/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+  /*@SWIG:/usr/share/swig1.3/perl5/perltypemaps.swg,65,%set_constant@*/ do {
     SV *sv = get_sv((char*) SWIG_prefix "OFTWideString", TRUE | 0x2 | GV_ADDMULTI);
     sv_setsv(sv, SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(6)));
     SvREADONLY_on(sv);
   } while(0) /*@SWIG@*/;
-  /*@SWIG:/usr/local/swig-1.3.40/share/swig/1.3.40/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+  /*@SWIG:/usr/share/swig1.3/perl5/perltypemaps.swg,65,%set_constant@*/ do {
     SV *sv = get_sv((char*) SWIG_prefix "OFTWideStringList", TRUE | 0x2 | GV_ADDMULTI);
     sv_setsv(sv, SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(7)));
     SvREADONLY_on(sv);
   } while(0) /*@SWIG@*/;
-  /*@SWIG:/usr/local/swig-1.3.40/share/swig/1.3.40/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+  /*@SWIG:/usr/share/swig1.3/perl5/perltypemaps.swg,65,%set_constant@*/ do {
     SV *sv = get_sv((char*) SWIG_prefix "OFTBinary", TRUE | 0x2 | GV_ADDMULTI);
     sv_setsv(sv, SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(8)));
     SvREADONLY_on(sv);
   } while(0) /*@SWIG@*/;
-  /*@SWIG:/usr/local/swig-1.3.40/share/swig/1.3.40/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+  /*@SWIG:/usr/share/swig1.3/perl5/perltypemaps.swg,65,%set_constant@*/ do {
     SV *sv = get_sv((char*) SWIG_prefix "OFTDate", TRUE | 0x2 | GV_ADDMULTI);
     sv_setsv(sv, SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(9)));
     SvREADONLY_on(sv);
   } while(0) /*@SWIG@*/;
-  /*@SWIG:/usr/local/swig-1.3.40/share/swig/1.3.40/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+  /*@SWIG:/usr/share/swig1.3/perl5/perltypemaps.swg,65,%set_constant@*/ do {
     SV *sv = get_sv((char*) SWIG_prefix "OFTTime", TRUE | 0x2 | GV_ADDMULTI);
     sv_setsv(sv, SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(10)));
     SvREADONLY_on(sv);
   } while(0) /*@SWIG@*/;
-  /*@SWIG:/usr/local/swig-1.3.40/share/swig/1.3.40/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+  /*@SWIG:/usr/share/swig1.3/perl5/perltypemaps.swg,65,%set_constant@*/ do {
     SV *sv = get_sv((char*) SWIG_prefix "OFTDateTime", TRUE | 0x2 | GV_ADDMULTI);
     sv_setsv(sv, SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(11)));
     SvREADONLY_on(sv);
   } while(0) /*@SWIG@*/;
-  /*@SWIG:/usr/local/swig-1.3.40/share/swig/1.3.40/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+  /*@SWIG:/usr/share/swig1.3/perl5/perltypemaps.swg,65,%set_constant@*/ do {
     SV *sv = get_sv((char*) SWIG_prefix "OJUndefined", TRUE | 0x2 | GV_ADDMULTI);
     sv_setsv(sv, SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(0)));
     SvREADONLY_on(sv);
   } while(0) /*@SWIG@*/;
-  /*@SWIG:/usr/local/swig-1.3.40/share/swig/1.3.40/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+  /*@SWIG:/usr/share/swig1.3/perl5/perltypemaps.swg,65,%set_constant@*/ do {
     SV *sv = get_sv((char*) SWIG_prefix "OJLeft", TRUE | 0x2 | GV_ADDMULTI);
     sv_setsv(sv, SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(1)));
     SvREADONLY_on(sv);
   } while(0) /*@SWIG@*/;
-  /*@SWIG:/usr/local/swig-1.3.40/share/swig/1.3.40/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+  /*@SWIG:/usr/share/swig1.3/perl5/perltypemaps.swg,65,%set_constant@*/ do {
     SV *sv = get_sv((char*) SWIG_prefix "OJRight", TRUE | 0x2 | GV_ADDMULTI);
     sv_setsv(sv, SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(2)));
     SvREADONLY_on(sv);
   } while(0) /*@SWIG@*/;
-  /*@SWIG:/usr/local/swig-1.3.40/share/swig/1.3.40/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+  /*@SWIG:/usr/share/swig1.3/perl5/perltypemaps.swg,65,%set_constant@*/ do {
     SV *sv = get_sv((char*) SWIG_prefix "wkbXDR", TRUE | 0x2 | GV_ADDMULTI);
     sv_setsv(sv, SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(0)));
     SvREADONLY_on(sv);
   } while(0) /*@SWIG@*/;
-  /*@SWIG:/usr/local/swig-1.3.40/share/swig/1.3.40/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+  /*@SWIG:/usr/share/swig1.3/perl5/perltypemaps.swg,65,%set_constant@*/ do {
     SV *sv = get_sv((char*) SWIG_prefix "wkbNDR", TRUE | 0x2 | GV_ADDMULTI);
     sv_setsv(sv, SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(1)));
     SvREADONLY_on(sv);
   } while(0) /*@SWIG@*/;
-  /*@SWIG:/usr/local/swig-1.3.40/share/swig/1.3.40/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+  /*@SWIG:/usr/share/swig1.3/perl5/perltypemaps.swg,65,%set_constant@*/ do {
     SV *sv = get_sv((char*) SWIG_prefix "NullFID", TRUE | 0x2 | GV_ADDMULTI);
     sv_setsv(sv, SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(-1)));
     SvREADONLY_on(sv);
   } while(0) /*@SWIG@*/;
-  /*@SWIG:/usr/local/swig-1.3.40/share/swig/1.3.40/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+  /*@SWIG:/usr/share/swig1.3/perl5/perltypemaps.swg,65,%set_constant@*/ do {
     SV *sv = get_sv((char*) SWIG_prefix "ALTER_NAME_FLAG", TRUE | 0x2 | GV_ADDMULTI);
     sv_setsv(sv, SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(1)));
     SvREADONLY_on(sv);
   } while(0) /*@SWIG@*/;
-  /*@SWIG:/usr/local/swig-1.3.40/share/swig/1.3.40/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+  /*@SWIG:/usr/share/swig1.3/perl5/perltypemaps.swg,65,%set_constant@*/ do {
     SV *sv = get_sv((char*) SWIG_prefix "ALTER_TYPE_FLAG", TRUE | 0x2 | GV_ADDMULTI);
     sv_setsv(sv, SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(2)));
     SvREADONLY_on(sv);
   } while(0) /*@SWIG@*/;
-  /*@SWIG:/usr/local/swig-1.3.40/share/swig/1.3.40/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+  /*@SWIG:/usr/share/swig1.3/perl5/perltypemaps.swg,65,%set_constant@*/ do {
     SV *sv = get_sv((char*) SWIG_prefix "ALTER_WIDTH_PRECISION_FLAG", TRUE | 0x2 | GV_ADDMULTI);
     sv_setsv(sv, SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(4)));
     SvREADONLY_on(sv);
   } while(0) /*@SWIG@*/;
-  /*@SWIG:/usr/local/swig-1.3.40/share/swig/1.3.40/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+  /*@SWIG:/usr/share/swig1.3/perl5/perltypemaps.swg,65,%set_constant@*/ do {
     SV *sv = get_sv((char*) SWIG_prefix "ALTER_ALL_FLAG", TRUE | 0x2 | GV_ADDMULTI);
     sv_setsv(sv, SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(1+2+4)));
     SvREADONLY_on(sv);
   } while(0) /*@SWIG@*/;
-  /*@SWIG:/usr/local/swig-1.3.40/share/swig/1.3.40/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+  /*@SWIG:/usr/share/swig1.3/perl5/perltypemaps.swg,65,%set_constant@*/ do {
     SV *sv = get_sv((char*) SWIG_prefix "OLCRandomRead", TRUE | 0x2 | GV_ADDMULTI);
     sv_setsv(sv, SWIG_FromCharPtr("RandomRead"));
     SvREADONLY_on(sv);
   } while(0) /*@SWIG@*/;
-  /*@SWIG:/usr/local/swig-1.3.40/share/swig/1.3.40/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+  /*@SWIG:/usr/share/swig1.3/perl5/perltypemaps.swg,65,%set_constant@*/ do {
     SV *sv = get_sv((char*) SWIG_prefix "OLCSequentialWrite", TRUE | 0x2 | GV_ADDMULTI);
     sv_setsv(sv, SWIG_FromCharPtr("SequentialWrite"));
     SvREADONLY_on(sv);
   } while(0) /*@SWIG@*/;
-  /*@SWIG:/usr/local/swig-1.3.40/share/swig/1.3.40/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+  /*@SWIG:/usr/share/swig1.3/perl5/perltypemaps.swg,65,%set_constant@*/ do {
     SV *sv = get_sv((char*) SWIG_prefix "OLCRandomWrite", TRUE | 0x2 | GV_ADDMULTI);
     sv_setsv(sv, SWIG_FromCharPtr("RandomWrite"));
     SvREADONLY_on(sv);
   } while(0) /*@SWIG@*/;
-  /*@SWIG:/usr/local/swig-1.3.40/share/swig/1.3.40/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+  /*@SWIG:/usr/share/swig1.3/perl5/perltypemaps.swg,65,%set_constant@*/ do {
     SV *sv = get_sv((char*) SWIG_prefix "OLCFastSpatialFilter", TRUE | 0x2 | GV_ADDMULTI);
     sv_setsv(sv, SWIG_FromCharPtr("FastSpatialFilter"));
     SvREADONLY_on(sv);
   } while(0) /*@SWIG@*/;
-  /*@SWIG:/usr/local/swig-1.3.40/share/swig/1.3.40/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+  /*@SWIG:/usr/share/swig1.3/perl5/perltypemaps.swg,65,%set_constant@*/ do {
     SV *sv = get_sv((char*) SWIG_prefix "OLCFastFeatureCount", TRUE | 0x2 | GV_ADDMULTI);
     sv_setsv(sv, SWIG_FromCharPtr("FastFeatureCount"));
     SvREADONLY_on(sv);
   } while(0) /*@SWIG@*/;
-  /*@SWIG:/usr/local/swig-1.3.40/share/swig/1.3.40/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+  /*@SWIG:/usr/share/swig1.3/perl5/perltypemaps.swg,65,%set_constant@*/ do {
     SV *sv = get_sv((char*) SWIG_prefix "OLCFastGetExtent", TRUE | 0x2 | GV_ADDMULTI);
     sv_setsv(sv, SWIG_FromCharPtr("FastGetExtent"));
     SvREADONLY_on(sv);
   } while(0) /*@SWIG@*/;
-  /*@SWIG:/usr/local/swig-1.3.40/share/swig/1.3.40/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+  /*@SWIG:/usr/share/swig1.3/perl5/perltypemaps.swg,65,%set_constant@*/ do {
     SV *sv = get_sv((char*) SWIG_prefix "OLCCreateField", TRUE | 0x2 | GV_ADDMULTI);
     sv_setsv(sv, SWIG_FromCharPtr("CreateField"));
     SvREADONLY_on(sv);
   } while(0) /*@SWIG@*/;
-  /*@SWIG:/usr/local/swig-1.3.40/share/swig/1.3.40/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+  /*@SWIG:/usr/share/swig1.3/perl5/perltypemaps.swg,65,%set_constant@*/ do {
     SV *sv = get_sv((char*) SWIG_prefix "OLCDeleteField", TRUE | 0x2 | GV_ADDMULTI);
     sv_setsv(sv, SWIG_FromCharPtr("DeleteField"));
     SvREADONLY_on(sv);
   } while(0) /*@SWIG@*/;
-  /*@SWIG:/usr/local/swig-1.3.40/share/swig/1.3.40/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+  /*@SWIG:/usr/share/swig1.3/perl5/perltypemaps.swg,65,%set_constant@*/ do {
     SV *sv = get_sv((char*) SWIG_prefix "OLCReorderFields", TRUE | 0x2 | GV_ADDMULTI);
     sv_setsv(sv, SWIG_FromCharPtr("ReorderFields"));
     SvREADONLY_on(sv);
   } while(0) /*@SWIG@*/;
-  /*@SWIG:/usr/local/swig-1.3.40/share/swig/1.3.40/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+  /*@SWIG:/usr/share/swig1.3/perl5/perltypemaps.swg,65,%set_constant@*/ do {
     SV *sv = get_sv((char*) SWIG_prefix "OLCAlterFieldDefn", TRUE | 0x2 | GV_ADDMULTI);
     sv_setsv(sv, SWIG_FromCharPtr("AlterFieldDefn"));
     SvREADONLY_on(sv);
   } while(0) /*@SWIG@*/;
-  /*@SWIG:/usr/local/swig-1.3.40/share/swig/1.3.40/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+  /*@SWIG:/usr/share/swig1.3/perl5/perltypemaps.swg,65,%set_constant@*/ do {
     SV *sv = get_sv((char*) SWIG_prefix "OLCTransactions", TRUE | 0x2 | GV_ADDMULTI);
     sv_setsv(sv, SWIG_FromCharPtr("Transactions"));
     SvREADONLY_on(sv);
   } while(0) /*@SWIG@*/;
-  /*@SWIG:/usr/local/swig-1.3.40/share/swig/1.3.40/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+  /*@SWIG:/usr/share/swig1.3/perl5/perltypemaps.swg,65,%set_constant@*/ do {
     SV *sv = get_sv((char*) SWIG_prefix "OLCDeleteFeature", TRUE | 0x2 | GV_ADDMULTI);
     sv_setsv(sv, SWIG_FromCharPtr("DeleteFeature"));
     SvREADONLY_on(sv);
   } while(0) /*@SWIG@*/;
-  /*@SWIG:/usr/local/swig-1.3.40/share/swig/1.3.40/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+  /*@SWIG:/usr/share/swig1.3/perl5/perltypemaps.swg,65,%set_constant@*/ do {
     SV *sv = get_sv((char*) SWIG_prefix "OLCFastSetNextByIndex", TRUE | 0x2 | GV_ADDMULTI);
     sv_setsv(sv, SWIG_FromCharPtr("FastSetNextByIndex"));
     SvREADONLY_on(sv);
   } while(0) /*@SWIG@*/;
-  /*@SWIG:/usr/local/swig-1.3.40/share/swig/1.3.40/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+  /*@SWIG:/usr/share/swig1.3/perl5/perltypemaps.swg,65,%set_constant@*/ do {
     SV *sv = get_sv((char*) SWIG_prefix "OLCStringsAsUTF8", TRUE | 0x2 | GV_ADDMULTI);
     sv_setsv(sv, SWIG_FromCharPtr("StringsAsUTF8"));
     SvREADONLY_on(sv);
   } while(0) /*@SWIG@*/;
-  /*@SWIG:/usr/local/swig-1.3.40/share/swig/1.3.40/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+  /*@SWIG:/usr/share/swig1.3/perl5/perltypemaps.swg,65,%set_constant@*/ do {
     SV *sv = get_sv((char*) SWIG_prefix "OLCIgnoreFields", TRUE | 0x2 | GV_ADDMULTI);
     sv_setsv(sv, SWIG_FromCharPtr("IgnoreFields"));
     SvREADONLY_on(sv);
   } while(0) /*@SWIG@*/;
-  /*@SWIG:/usr/local/swig-1.3.40/share/swig/1.3.40/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+  /*@SWIG:/usr/share/swig1.3/perl5/perltypemaps.swg,65,%set_constant@*/ do {
     SV *sv = get_sv((char*) SWIG_prefix "ODsCCreateLayer", TRUE | 0x2 | GV_ADDMULTI);
     sv_setsv(sv, SWIG_FromCharPtr("CreateLayer"));
     SvREADONLY_on(sv);
   } while(0) /*@SWIG@*/;
-  /*@SWIG:/usr/local/swig-1.3.40/share/swig/1.3.40/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+  /*@SWIG:/usr/share/swig1.3/perl5/perltypemaps.swg,65,%set_constant@*/ do {
     SV *sv = get_sv((char*) SWIG_prefix "ODsCDeleteLayer", TRUE | 0x2 | GV_ADDMULTI);
     sv_setsv(sv, SWIG_FromCharPtr("DeleteLayer"));
     SvREADONLY_on(sv);
   } while(0) /*@SWIG@*/;
-  /*@SWIG:/usr/local/swig-1.3.40/share/swig/1.3.40/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+  /*@SWIG:/usr/share/swig1.3/perl5/perltypemaps.swg,65,%set_constant@*/ do {
     SV *sv = get_sv((char*) SWIG_prefix "ODrCCreateDataSource", TRUE | 0x2 | GV_ADDMULTI);
     sv_setsv(sv, SWIG_FromCharPtr("CreateDataSource"));
     SvREADONLY_on(sv);
   } while(0) /*@SWIG@*/;
-  /*@SWIG:/usr/local/swig-1.3.40/share/swig/1.3.40/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+  /*@SWIG:/usr/share/swig1.3/perl5/perltypemaps.swg,65,%set_constant@*/ do {
     SV *sv = get_sv((char*) SWIG_prefix "ODrCDeleteDataSource", TRUE | 0x2 | GV_ADDMULTI);
     sv_setsv(sv, SWIG_FromCharPtr("DeleteDataSource"));
     SvREADONLY_on(sv);
@@ -18354,6 +19845,11 @@ XS(SWIG_init) {
   SWIG_TypeClientData(SWIGTYPE_p_OGRFeatureDefnShadow, (void*) "Geo::OGR::FeatureDefn");
   SWIG_TypeClientData(SWIGTYPE_p_OGRFieldDefnShadow, (void*) "Geo::OGR::FieldDefn");
   SWIG_TypeClientData(SWIGTYPE_p_OGRGeometryShadow, (void*) "Geo::OGR::Geometry");
+  /*@SWIG:/usr/share/swig1.3/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+    SV *sv = get_sv((char*) SWIG_prefix "TermProgress", TRUE | 0x2 | GV_ADDMULTI);
+    sv_setsv(sv, SWIG_NewFunctionPtrObj((void *)(int (*)(double,char const *,void *))(GDALTermProgress), SWIGTYPE_p_f_double_p_q_const__char_p_void__int));
+    SvREADONLY_on(sv);
+  } while(0) /*@SWIG@*/;
   ST(0) = &PL_sv_yes;
   XSRETURN(1);
 }

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrct.cpp 20079 2010-07-16 21:28:02Z rouault $
+ * $Id: ogrct.cpp 25627 2013-02-10 10:17:19Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  The OGRSCoordinateTransformation class.
@@ -38,7 +38,7 @@
 #include "proj_api.h"
 #endif
 
-CPL_CVSID("$Id: ogrct.cpp 20079 2010-07-16 21:28:02Z rouault $");
+CPL_CVSID("$Id: ogrct.cpp 25627 2013-02-10 10:17:19Z rouault $");
 
 /* ==================================================================== */
 /*      PROJ.4 interface stuff.                                         */
@@ -93,6 +93,19 @@ static void    (*pfn_pj_ctx_free)( projCtx ) = NULL;
 #else
 #  define LIBNAME      "libproj.so"
 #endif
+
+/************************************************************************/
+/*                         OCTCleanupProjMutex()                        */
+/************************************************************************/
+
+void OCTCleanupProjMutex()
+{
+    if( hPROJMutex != NULL )
+    {
+        CPLDestroyMutex(hPROJMutex);
+        hPROJMutex = NULL;
+    }
+}
 
 /************************************************************************/
 /*                              OGRProj4CT                              */
@@ -797,6 +810,8 @@ int CPL_STDCALL OCTTransform( OGRCoordinateTransformationH hTransform,
                               int nCount, double *x, double *y, double *z )
 
 {
+    VALIDATE_POINTER1( hTransform, "OCTTransform", FALSE );
+
     return ((OGRCoordinateTransformation*) hTransform)->
         Transform( nCount, x, y,z );
 }
@@ -1005,6 +1020,8 @@ int CPL_STDCALL OCTTransformEx( OGRCoordinateTransformationH hTransform,
                                 int *pabSuccess )
 
 {
+    VALIDATE_POINTER1( hTransform, "OCTTransformEx", FALSE );
+
     return ((OGRCoordinateTransformation*) hTransform)->
         TransformEx( nCount, x, y, z, pabSuccess );
 }

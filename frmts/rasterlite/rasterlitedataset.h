@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: rasterlitedataset.h 21723 2011-02-15 19:52:18Z rouault $
+ * $Id: rasterlitedataset.h 24674 2012-07-10 20:41:35Z rouault $
  *
  * Project:  GDAL Rasterlite driver
  * Purpose:  Implement GDAL Rasterlite support using OGR SQLite driver
@@ -31,6 +31,8 @@
 #define RASTERLITE_DATASET_INCLUDED
 
 #include "gdal_pam.h"
+
+char** RasterliteGetTileDriverOptions(char** papszOptions);
 
 class RasterliteBand;
 
@@ -105,7 +107,9 @@ class RasterliteDataset : public GDALPamDataset
     CPLErr CleanOverviews();
     CPLErr CleanOverviewLevel(int nOvrFactor);
     CPLErr ReloadOverviews();
-    CPLErr CreateOverviewLevel(int nOvrFactor,
+    CPLErr CreateOverviewLevel(const char * pszResampling,
+                               int nOvrFactor,
+                               char** papszOptions,
                                GDALProgressFunc pfnProgress,
                                void * pProgressData);
 };

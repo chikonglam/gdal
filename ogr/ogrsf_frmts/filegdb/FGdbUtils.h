@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: FGdbUtils.h 23797 2012-01-24 19:10:53Z rouault $
+ * $Id: FGdbUtils.h 23796 2012-01-24 19:10:16Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Various FileGDB OGR Datasource utility functions

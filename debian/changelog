@@ -1,17 +1,48 @@
-gdal (1.9.2-1~exp2) UNRELEASED; urgency=low
+gdal (1.10.0-0~exp3) UNRELEASED; urgency=low
+
+  * Added netcdf-bin build-dep to get nc-config, as required by current config.
+
+ -- Francesco Paolo Lovergine <frankie@debian.org>  Wed, 26 Jun 2013 11:19:15 +0200
+
+gdal (1.10.0-0~exp2) experimental; urgency=low
+
+  * Removed Provides: libgdal1 in debian/control.
+
+ -- Francesco Paolo Lovergine <frankie@debian.org>  Tue, 25 Jun 2013 16:30:39 +0200
+
+gdal (1.10.0-0~exp1) experimental; urgency=low
 
   * Moved to new LIBKML driver instead of the old KML one. It has a much
-    better support for complex KML files.
+    better support for complex KML files. (closes: #685695)
   * Merged NMU 1.9.0-3.1:
     Fix "FTBFS when ruby1.9.1 installed": force building with ruby1.8:
     set variables in debian/rules and new patch force-ruby1.8 to ruby1.8.
     Thanks to Cédric Boutillier for reviewing and testing this patch.
-    (Closes: #684433)
+    (closes: #684433)
   * Added libarmadillo support.
-  * Restored hidden symbols to better manage conflicts in linking both 
-    libgeotiff and gdal. Fix working for Orfeotoolbox.
+  * Added TIFF/GEOTIFF symbols rename to definitively solve problem of
+    symbol collisions for programs that both links geotiff/tiff libraries.
+    This choice implies that the API does not include anymore any *tiff
+    related functions: changed API declaration.
+  * Policy bumped to 3.9.4. No changes required.
+  * New upstream version with many fixes. All patches refreshed.
+  	(closes: #679887)
+  * Added a Breaks: libgdal1-1.6.0. I don't know if it still makes sense, 
+    but for sure it does not hurt. (closes: #677403)
+  * Now debian/rules should be parallel-safe for making. Thanks Gregor Hermann
+    for the patch. (closes: #686014)
+  * Now it depends explicitly on epsilon >= 0.9.1 by upstream.
+    (closes: #672738)
 
- -- Francesco Paolo Lovergine <frankie@debian.org>  Sun, 04 Mar 2012 11:39:57 +0100
+ -- Francesco Paolo Lovergine <frankie@debian.org>  Sun, 04 Apr 2013 11:39:57 +0100
+
+gdal (1.9.2-1~exp2) experimental; urgency=low
+
+  * Reintroduced internal symbols hiding for better compatibility 
+    against mixing external geotiff and gdal. See Orfeotoolbox case:
+    See #558733 again.
+
+ -- Francesco Paolo Lovergine <frankie@debian.org>  Fri, 29 Mar 2013 14:07:43 +0100
 
 gdal (1.9.2-1~exp1) experimental; urgency=low
 

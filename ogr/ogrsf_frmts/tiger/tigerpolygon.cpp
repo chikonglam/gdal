@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: tigerpolygon.cpp 22961 2011-08-20 17:09:59Z rouault $
+ * $Id: tigerpolygon.cpp 23871 2012-02-02 03:24:07Z warmerdam $
  *
  * Project:  TIGER/Line Translator
  * Purpose:  Implements TigerPolygon, providing access to .RTA files.
@@ -30,7 +30,7 @@
 #include "ogr_tiger.h"
 #include "cpl_conv.h"
 
-CPL_CVSID("$Id: tigerpolygon.cpp 22961 2011-08-20 17:09:59Z rouault $");
+CPL_CVSID("$Id: tigerpolygon.cpp 23871 2012-02-02 03:24:07Z warmerdam $");
 
 static const TigerFieldInfo rtA_2002_fields[] = {
   // fieldname    fmt  type OFTType      beg  end  len  bDefine bSet bWrite
@@ -433,7 +433,7 @@ TigerPolygon::~TigerPolygon()
 
 {
     if( fpRTS != NULL )
-        VSIFClose( fpRTS );
+        VSIFCloseL( fpRTS );
 }
 
 /************************************************************************/
@@ -455,7 +455,7 @@ int TigerPolygon::SetModule( const char * pszModule )
     {
         if( fpRTS != NULL )
         {
-            VSIFClose( fpRTS );
+            VSIFCloseL( fpRTS );
             fpRTS = NULL;
         }
 
@@ -465,7 +465,7 @@ int TigerPolygon::SetModule( const char * pszModule )
         
             pszFilename = poDS->BuildFilename( pszModule, "S" );
 
-            fpRTS = VSIFOpen( pszFilename, "rb" );
+            fpRTS = VSIFOpenL( pszFilename, "rb" );
 
             CPLFree( pszFilename );
 
@@ -499,7 +499,7 @@ OGRFeature *TigerPolygon::GetFeature( int nRecordId )
     if( fpPrimary == NULL )
         return NULL;
 
-    if( VSIFSeek( fpPrimary, nRecordId * nRecordLength, SEEK_SET ) != 0 )
+    if( VSIFSeekL( fpPrimary, nRecordId * nRecordLength, SEEK_SET ) != 0 )
     {
         CPLError( CE_Failure, CPLE_FileIO,
                   "Failed to seek to %d of %sA",
@@ -507,7 +507,7 @@ OGRFeature *TigerPolygon::GetFeature( int nRecordId )
         return NULL;
     }
 
-    if( VSIFRead( achRecord, nRecordLength, 1, fpPrimary ) != 1 )
+    if( VSIFReadL( achRecord, nRecordLength, 1, fpPrimary ) != 1 )
     {
         CPLError( CE_Failure, CPLE_FileIO,
                   "Failed to read record %d of %sA",
@@ -531,7 +531,7 @@ OGRFeature *TigerPolygon::GetFeature( int nRecordId )
     {
         char    achRTSRec[OGR_TIGER_RECBUF_LEN];
 
-        if( VSIFSeek( fpRTS, nRecordId * nRTSRecLen, SEEK_SET ) != 0 )
+        if( VSIFSeekL( fpRTS, nRecordId * nRTSRecLen, SEEK_SET ) != 0 )
         {
             CPLError( CE_Failure, CPLE_FileIO,
                       "Failed to seek to %d of %sS",
@@ -539,7 +539,7 @@ OGRFeature *TigerPolygon::GetFeature( int nRecordId )
             return NULL;
         }
 
-        if( VSIFRead( achRTSRec, psRTSInfo->nRecordLength, 1, fpRTS ) != 1 )
+        if( VSIFReadL( achRTSRec, psRTSInfo->nRecordLength, 1, fpRTS ) != 1 )
         {
             CPLError( CE_Failure, CPLE_FileIO,
                       "Failed to read record %d of %sS",
@@ -575,7 +575,7 @@ int TigerPolygon::SetWriteModule( const char *pszFileCode, int nRecLen,
     {
         if( fpRTS != NULL )
         {
-            VSIFClose( fpRTS );
+            VSIFCloseL( fpRTS );
             fpRTS = NULL;
         }
 
@@ -585,7 +585,7 @@ int TigerPolygon::SetWriteModule( const char *pszFileCode, int nRecLen,
         
             pszFilename = poDS->BuildFilename( pszModule, "S" );
 
-            fpRTS = VSIFOpen( pszFilename, "ab" );
+            fpRTS = VSIFOpenL( pszFilename, "ab" );
 
             CPLFree( pszFilename );
         }

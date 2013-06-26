@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: hfaband.cpp 24205 2012-04-07 15:35:55Z rouault $
+ * $Id: hfaband.cpp 24206 2012-04-07 15:43:21Z rouault $
  *
  * Project:  Erdas Imagine (.img) Translator
  * Purpose:  Implementation of the HFABand, for accessing one Eimg_Layer.
@@ -32,7 +32,7 @@
 
 /* include the compression code */
 
-CPL_CVSID("$Id: hfaband.cpp 24205 2012-04-07 15:35:55Z rouault $");
+CPL_CVSID("$Id: hfaband.cpp 24206 2012-04-07 15:43:21Z rouault $");
 
 /************************************************************************/
 /*                              HFABand()                               */
@@ -410,6 +410,12 @@ CPLErr	HFABand::LoadExternalBlockInfo()
 /*      Open raw data file.                                             */
 /* -------------------------------------------------------------------- */
     const char *pszFullFilename = HFAGetIGEFilename( psInfo );
+    if (pszFullFilename == NULL)
+    {
+        CPLError( CE_Failure, CPLE_OpenFailed,
+                  "Cannot find external data file name" );
+        return CE_Failure;
+    }
 
     if( psInfo->eAccess == HFA_ReadOnly )
 	fpExternal = VSIFOpenL( pszFullFilename, "rb" );

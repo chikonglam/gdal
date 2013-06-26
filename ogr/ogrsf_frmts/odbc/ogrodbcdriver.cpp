@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrodbcdriver.cpp 10645 2007-01-18 02:22:39Z warmerdam $
+ * $Id: ogrodbcdriver.cpp 24957 2012-09-23 17:03:30Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implements OGRODBCDriver class.
@@ -30,7 +30,7 @@
 #include "ogr_odbc.h"
 #include "cpl_conv.h"
 
-CPL_CVSID("$Id: ogrodbcdriver.cpp 10645 2007-01-18 02:22:39Z warmerdam $");
+CPL_CVSID("$Id: ogrodbcdriver.cpp 24957 2012-09-23 17:03:30Z rouault $");
 
 /************************************************************************/
 /*                            ~OGRODBCDriver()                            */
@@ -61,7 +61,11 @@ OGRDataSource *OGRODBCDriver::Open( const char * pszFilename,
 {
     OGRODBCDataSource     *poDS;
 
-    if( !EQUALN(pszFilename,"ODBC:",5) )
+    if( !EQUALN(pszFilename,"ODBC:",5) 
+#ifdef WIN32
+        && !EQUAL(CPLGetExtension(pszFilename), "MDB")
+#endif
+        )
         return NULL;
 
     poDS = new OGRODBCDataSource();

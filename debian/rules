@@ -67,6 +67,8 @@ configure-stamp:
 			--with-threads \
 			--with-grass=no \
 			--with-hide-internal-symbols=yes \
+			--with-rename-internal-libtiff-symbols=yes \
+			--with-rename-internal-libgeotiff-symbols=yes \
 			--with-libtiff=internal \
 			--with-geotiff=internal \
 			--with-jasper \
@@ -103,8 +105,8 @@ configure-stamp:
 build-arch: build
 build-indep: build
 
-build: configure-stamp build-stamp
-build-stamp:
+build: build-stamp
+build-stamp: configure-stamp
 	dh_testdir
 
 	cp `ls GDALmake.opt-*|tail -1` GDALmake.opt
@@ -187,8 +189,8 @@ install: build
 	install -o root -g root -d $(CURDIR)/debian/tmp/usr/share/doc/python-gdal/examples
 	install -o root -g root -m 755 $(CURDIR)/swig/python/samples/*.py $(CURDIR)/debian/tmp/usr/share/doc/python-gdal/examples/.
 	# create lintian overrides file
-	echo "libgdal1: embedded-library usr/lib/libgdal.so.$$(basename debian/tmp/usr/lib/libgdal.so.*.*.*|cut -d. -f3,4,5): tiff" \
-		>$(CURDIR)/debian/libgdal1.lintian-overrides
+	echo "libgdal1h: embedded-library usr/lib/libgdal.so.$$(basename debian/tmp/usr/lib/libgdal.so.*.*.*|cut -d. -f3,4,5): tiff" \
+		>$(CURDIR)/debian/libgdal1h.lintian-overrides
 
 binary-common:
 	dh_testdir
@@ -207,14 +209,14 @@ binary-common:
 	dh_numpy
 	dh_perl
 	# Adds per arch symbols for compatible archs
-	ln -f $(CURDIR)/debian/libgdal*.symbols.i386 $(CURDIR)/debian/libgdal1.symbols.kfreebsd-i386
-	ln -f $(CURDIR)/debian/libgdal*.symbols.amd64 $(CURDIR)/debian/libgdal1.symbols.kfreebsd-amd64
+	ln -f $(CURDIR)/debian/libgdal*.symbols.i386 $(CURDIR)/debian/libgdal1h.symbols.kfreebsd-i386
+	ln -f $(CURDIR)/debian/libgdal*.symbols.amd64 $(CURDIR)/debian/libgdal1h.symbols.kfreebsd-amd64
 	# Forces failure ignoring to collect new symbols on all archs
 	dh_makeshlibs -- -c0
 	# Forces failure when symbols change
 	#dh_makeshlibs
 	dh_installdeb
-	dh_shlibdeps -L libgdal1 -l debian/libgdal1/usr/lib
+	dh_shlibdeps -L libgdal1h -l debian/libgdal1h/usr/lib
 	dh_gencontrol
 	dh_md5sums
 	dh_builddeb

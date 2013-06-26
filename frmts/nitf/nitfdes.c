@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: nitfdes.c 24915 2012-09-05 21:27:27Z hobu $
+ * $Id: nitfdes.c 24916 2012-09-05 21:30:41Z hobu $
  *
  * Project:  NITF Read/Write Library
  * Purpose:  Module responsible for implementation of DE segments.
@@ -33,7 +33,7 @@
 #include "cpl_conv.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: nitfdes.c 24915 2012-09-05 21:27:27Z hobu $");
+CPL_CVSID("$Id: nitfdes.c 24916 2012-09-05 21:30:41Z hobu $");
 
 /************************************************************************/
 /*                          NITFDESAccess()                             */
@@ -291,6 +291,7 @@ retry:
             psDES->papszMetadata = CSLSetNameValue( psDES->papszMetadata,
                                                     "NITF_DESDATA_LENGTH",
                                                     pszSize);
+            
         }
         else
         {

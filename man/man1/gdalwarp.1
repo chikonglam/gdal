@@ -1,8 +1,8 @@
-.TH "gdalwarp" 1 "Mon Oct 8 2012" "GDAL" \" -*- nroff -*-
+.TH "gdalwarp" 1 "Wed Apr 24 2013" "GDAL" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
-gdalwarp \- .TH "gdalwarp" 1 "Mon Oct 8 2012" "GDAL" \" -*- nroff -*-
+gdalwarp \- .TH "gdalwarp" 1 "Wed Apr 24 2013" "GDAL" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -24,6 +24,7 @@ gdalwarp [--help-general] [--formats]
     [-cutline datasource] [-cl layer] [-cwhere expression]
     [-csql statement] [-cblend dist_in_pixels] [-crop_to_cutline]
     [-of format] [-co "NAME=VALUE"]* [-overwrite]
+    [-nomd] [-cvmd meta_conflict_value] [-setci]
     srcfile* dstfile
 .fi
 .PP
@@ -75,6 +76,10 @@ cubic resampling.
 cubic spline resampling. 
 .IP "\fB\fBlanczos\fP: \fP" 1c
 Lanczos windowed sinc resampling. 
+.IP "\fB\fBaverage\fP: \fP" 1c
+average resampling, computes the average of all non-NODATA contributing pixels. (GDAL >= 1.10.0) 
+.IP "\fB\fBmode\fP: \fP" 1c
+mode resampling, selects the value which appears most often of all the sampled points. (GDAL >= 1.10.0) 
 .PP
 .IP "\fB\fB-srcnodata\fP \fIvalue [value...]\fP:\fP" 1c
 Set nodata masking values for input bands (different values can be supplied for each band). If more than one value is supplied all values should be quoted to keep them together as a single operating system argument. Masked values will not be used in interpolation. Use a value of \fCNone\fP to ignore intrinsic nodata settings on the source dataset. 
@@ -106,7 +111,13 @@ Set a blend distance to use to blend over cutlines (in pixels).
 .IP "\fB\fB-crop_to_cutline\fP:\fP" 1c
 (GDAL >= 1.8.0) Crop the extent of the target dataset to the extent of the cutline. 
 .IP "\fB\fB-overwrite\fP:\fP" 1c
-(GDAL >= 1.8.0) Overwrite the target dataset if it already exists.
+(GDAL >= 1.8.0) Overwrite the target dataset if it already exists. 
+.IP "\fB\fB-nomd\fP:\fP" 1c
+(GDAL >= 1.10.0) Do not copy metadata. Without this option, dataset and band metadata (as well as some band information) will be copied from the first source dataset. Items that differ between source datasets will be set to * (see -cvmd option). 
+.IP "\fB\fB-cvmd\fP \fImeta_conflict_value\fP:\fP" 1c
+(GDAL >= 1.10.0) Value to set metadata items that conflict between source datasets (default is '*'). Use '' to remove conflicting items.  
+.IP "\fB\fB-setci\fP:\fP" 1c
+(GDAL >= 1.10.0) Set the color interpretation of the bands of the target dataset from the source dataset.
 .PP
 .IP "\fB\fIsrcfile\fP:\fP" 1c
 The source file name(s).  

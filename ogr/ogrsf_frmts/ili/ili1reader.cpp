@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ili1reader.cpp 24410 2012-05-11 21:54:08Z pka $
+ * $Id: ili1reader.cpp 24610 2012-06-25 15:21:32Z pka $
  *
  * Project:  Interlis 1 Reader
  * Purpose:  Implementation of ILI1Reader class.
@@ -50,7 +50,7 @@
 #  endif
 #endif
 
-CPL_CVSID("$Id: ili1reader.cpp 24410 2012-05-11 21:54:08Z pka $");
+CPL_CVSID("$Id: ili1reader.cpp 24610 2012-06-25 15:21:32Z pka $");
 
 //
 // ILI1Reader

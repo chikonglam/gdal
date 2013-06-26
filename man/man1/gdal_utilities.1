@@ -1,8 +1,8 @@
-.TH "gdal_utilities" 1 "Mon Oct 8 2012" "GDAL" \" -*- nroff -*-
+.TH "gdal_utilities" 1 "Wed Apr 24 2013" "GDAL" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
-gdal_utilities \- .TH "gdal_utilities" 1 "Mon Oct 8 2012" "GDAL" \" -*- nroff -*-
+gdal_utilities \- .TH "gdal_utilities" 1 "Wed Apr 24 2013" "GDAL" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -44,9 +44,9 @@ gdal_utilities \- The following utility programs are distributed with GDAL.
 .IP "\(bu" 2
 \fBgdal_grid\fP - Create raster from the scattered data. 
 .IP "\(bu" 2
-\fBgdal_proximity\fP - Compute a raster proximity map. 
+\fBgdal_proximity.py\fP - Compute a raster proximity map. 
 .IP "\(bu" 2
-\fBgdal_polygonize\fP - Generate polygons from raster. 
+\fBgdal_polygonize.py\fP - Generate polygons from raster. 
 .IP "\(bu" 2
 \fBgdal_sieve.py\fP - Raster Sieve filter. 
 .IP "\(bu" 2
@@ -56,7 +56,13 @@ gdal_utilities \- The following utility programs are distributed with GDAL.
 .IP "\(bu" 2
 \fBgdalsrsinfo\fP - Report a given SRS in different formats. (GDAL >= 1.9.0) 
 .IP "\(bu" 2
+\fBgdalmove.py\fP - Transform the coordinate system of a file (GDAL >= 1.10) 
+.IP "\(bu" 2
+\fBgdal_edit.py\fP - Edit in place various information of an existing GDAL dataset (projection, geotransform, nodata, metadata) 
+.IP "\(bu" 2
 \fBgdal-config\fP - Get options required to build software using GDAL. 
+.IP "\(bu" 2
+\fBgdalmanage\fP - Identify, copy, rename and delete raster. 
 .PP
 .SH "Creating New Files"
 .PP
@@ -123,7 +129,7 @@ All GDAL command line utility programs support the following 'general' options.
 Report the version of GDAL and exit.
 .PP
 .IP "\fB\fB--formats\fP\fP" 1c
-List all raster formats supported by this GDAL build (read-only and read-write) and exit. The format support is indicated as follows: 'ro' is read-only driver; 'rw' is read or write (ie. supports CreateCopy); 'rw+' is read, write and update (ie. supports Create). A 'v' is appended for formats supporting virtual IO (/vsimem, /vsigzip, /vsizip, etc). Note: The valid formats for the output of gdalwarp are formats that support the Create() method (marked as rw+), not just the CreateCopy() method. 
+List all raster formats supported by this GDAL build (read-only and read-write) and exit. The format support is indicated as follows: 'ro' is read-only driver; 'rw' is read or write (ie. supports CreateCopy); 'rw+' is read, write and update (ie. supports Create). A 'v' is appended for formats supporting virtual IO (/vsimem, /vsigzip, /vsizip, etc). A 's' is appended for formats supporting subdatasets. Note: The valid formats for the output of gdalwarp are formats that support the Create() method (marked as rw+), not just the CreateCopy() method. 
 .PP
 .IP "\fB\fB--format\fP \fIformat\fP\fP" 1c
 List detailed information about a single format driver. The \fIformat\fP should be the short name reported in the \fB--formats\fP list, such as GTiff.

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_mem.h 22369 2011-05-13 18:00:27Z rouault $
+ * $Id: ogr_mem.h 25311 2012-12-15 12:48:14Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Private definitions within the OGR Memory driver.
@@ -48,7 +48,10 @@ class OGRMemLayer : public OGRLayer
     int                 iNextReadFID;
     int                 iNextCreateFID;
 
-    OGRwkbGeometryType  eWkbType;
+    int                 bUpdatable;
+    int                 bAdvertizeUTF8;
+
+    int                 bHasHoles;
 
   public:
                         OGRMemLayer( const char * pszName,
@@ -78,6 +81,11 @@ class OGRMemLayer : public OGRLayer
     virtual OGRSpatialReference *GetSpatialRef();
     
     int                 TestCapability( const char * );
+
+    void                SetUpdatable(int bUpdatableIn) { bUpdatable = bUpdatableIn; }
+    void                SetAdvertizeUTF8(int bAdvertizeUTF8In) { bAdvertizeUTF8 = bAdvertizeUTF8In; }
+
+    int                 GetNextReadFID() { return iNextReadFID; }
 };
 
 /************************************************************************/

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrdatasource.cpp 24493 2012-05-21 22:22:10Z rouault $
+ * $Id: ogrdatasource.cpp 24813 2012-08-20 21:08:33Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  The generic portions of the OGRDataSource class.
@@ -34,8 +34,13 @@
 #include "ogr_gensql.h"
 #include "ogr_attrind.h"
 #include "cpl_multiproc.h"
+#include "ogrunionlayer.h"
 
-CPL_CVSID("$Id: ogrdatasource.cpp 24493 2012-05-21 22:22:10Z rouault $");
+#ifdef SQLITE_ENABLED
+#include "../sqlite/ogrsqliteexecutesql.h"
+#endif
+
+CPL_CVSID("$Id: ogrdatasource.cpp 24813 2012-08-20 21:08:33Z rouault $");
 
 /************************************************************************/
 /*                           ~OGRDataSource()                           */
@@ -1115,7 +1120,7 @@ OGRErr OGRDataSource::ProcessSQLAlterTableRenameColumn( const char *pszSQLComman
         CPLError( CE_Failure, CPLE_AppDefined,
                   "Syntax error in ALTER TABLE RENAME COLUMN command.\n"
                   "Was '%s'\n"
-                  "Should be of form 'ALTER TABLE <layername> RENAME [COLUMN] <columnname> <columntype>'",
+                  "Should be of form 'ALTER TABLE <layername> RENAME [COLUMN] <columnname> TO <newname>'",
                   pszSQLCommand );
         return OGRERR_FAILURE;
     }
@@ -1297,14 +1302,16 @@ OGRLayer * OGRDataSource::ExecuteSQL( const char *pszStatement,
 {
     swq_select *psSelectInfo = NULL;
 
-    (void) pszDialect;
-
-    swq_field_list sFieldList;
-    int            nFIDIndex = 0;
-    OGRGenSQLResultsLayer *poResults = NULL;
-    char *pszWHERE = NULL;
-
-    memset( &sFieldList, 0, sizeof(sFieldList) );
+    if( pszDialect != NULL && EQUAL(pszDialect, "SQLite") )
+    {
+#ifdef SQLITE_ENABLED
+        return OGRSQLiteExecuteSQL( this, pszStatement, poSpatialFilter, pszDialect );
+#else
+        CPLError(CE_Failure, CPLE_NotSupported,
+                 "The SQLite driver needs to be compiled to support the SQLite SQL dialect");
+        return NULL;
+#endif
+    }
 
 /* -------------------------------------------------------------------- */
 /*      Handle CREATE INDEX statements specially.                       */
@@ -1386,6 +1393,77 @@ OGRLayer * OGRDataSource::ExecuteSQL( const char *pszStatement,
         delete psSelectInfo;
         return NULL;
     }
+
+/* -------------------------------------------------------------------- */
+/*      If there is no UNION ALL, build result layer.                   */
+/* -------------------------------------------------------------------- */
+    if( psSelectInfo->poOtherSelect == NULL )
+    {
+        return BuildLayerFromSelectInfo(psSelectInfo,
+                                        poSpatialFilter,
+                                        pszDialect);
+    }
+
+/* -------------------------------------------------------------------- */
+/*      Build result union layer.                                       */
+/* -------------------------------------------------------------------- */
+    int nSrcLayers = 0;
+    OGRLayer** papoSrcLayers = NULL;
+
+    do
+    {
+        swq_select* psNextSelectInfo = psSelectInfo->poOtherSelect;
+        psSelectInfo->poOtherSelect = NULL;
+
+        OGRLayer* poLayer = BuildLayerFromSelectInfo(psSelectInfo,
+                                                     poSpatialFilter,
+                                                     pszDialect);
+        if( poLayer == NULL )
+        {
+            /* Each source layer owns an independant select info */
+            for(int i=0;i<nSrcLayers;i++)
+                delete papoSrcLayers[i];
+            CPLFree(papoSrcLayers);
+
+            /* So we just have to destroy the remaining select info */
+            delete psNextSelectInfo;
+
+            return NULL;
+        }
+        else
+        {
+            papoSrcLayers = (OGRLayer**) CPLRealloc(papoSrcLayers,
+                                sizeof(OGRLayer*) * (nSrcLayers + 1));
+            papoSrcLayers[nSrcLayers] = poLayer;
+            nSrcLayers ++;
+
+            psSelectInfo = psNextSelectInfo;
+        }
+    }
+    while( psSelectInfo != NULL );
+
+    return new OGRUnionLayer("SELECT",
+                                nSrcLayers,
+                                papoSrcLayers,
+                                TRUE);
+}
+
+/************************************************************************/
+/*                        BuildLayerFromSelectInfo()                    */
+/************************************************************************/
+
+OGRLayer* OGRDataSource::BuildLayerFromSelectInfo(void* psSelectInfoIn,
+                                                  OGRGeometry *poSpatialFilter,
+                                                  const char *pszDialect)
+{
+    swq_select* psSelectInfo = (swq_select*) psSelectInfoIn;
+
+    swq_field_list sFieldList;
+    int            nFIDIndex = 0;
+    OGRGenSQLResultsLayer *poResults = NULL;
+    char *pszWHERE = NULL;
+
+    memset( &sFieldList, 0, sizeof(sFieldList) );
 
 /* -------------------------------------------------------------------- */
 /*      Validate that all the source tables are recognised, count       */
@@ -1540,7 +1618,7 @@ OGRLayer * OGRDataSource::ExecuteSQL( const char *pszStatement,
 /*      Everything seems OK, try to instantiate a results layer.        */
 /* -------------------------------------------------------------------- */
 
-    poResults = new OGRGenSQLResultsLayer( this, psSelectInfo, 
+    poResults = new OGRGenSQLResultsLayer( this, psSelectInfo,
                                            poSpatialFilter,
                                            pszWHERE,
                                            pszDialect );

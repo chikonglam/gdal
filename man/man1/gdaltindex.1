@@ -1,8 +1,8 @@
-.TH "gdaltindex" 1 "Mon Oct 8 2012" "GDAL" \" -*- nroff -*-
+.TH "gdaltindex" 1 "Wed Apr 24 2013" "GDAL" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
-gdaltindex \- .TH "gdaltindex" 1 "Mon Oct 8 2012" "GDAL" \" -*- nroff -*-
+gdaltindex \- .TH "gdaltindex" 1 "Wed Apr 24 2013" "GDAL" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -12,7 +12,7 @@ gdaltindex \- builds a shapefile as a raster tileindex
 .PP
 .nf
 
-gdaltindex [-tileindex field_name] [-write_absolute_path] [-skip_different_projection] index_file [gdal_file]*
+gdaltindex [-tileindex field_name] [-write_absolute_path] [-skip_different_projection] [-t_srs target_srs] index_file [gdal_file]*
 .fi
 .PP
 .SH "DESCRIPTION"
@@ -27,9 +27,11 @@ The default tile index field is 'location'.
 .IP "\(bu" 2
 Raster filenames will be put in the file exactly as they are specified on the commandline unless the option -write_absolute_path is used. 
 .IP "\(bu" 2
-If -skip_different_projection is specified, only files with same projection ref as files already inserted in the tileindex will be inserted. 
+If -skip_different_projection is specified, only files with same projection ref as files already inserted in the tileindex will be inserted (unless t_srs is specified). 
 .IP "\(bu" 2
-Simple rectangular polygons are generated in the same coordinate system as the rasters. 
+If -t_srs is specified, geometries of input files will be transformed to the desired target coordinate reference system. Note that using this option generates files that are NOT compatible with MapServer. 
+.IP "\(bu" 2
+Simple rectangular polygons are generated in the same coordinate reference system as the rasters, or in target reference system if the -t_srs option is used. 
 .PP
 .SH "EXAMPLE"
 .PP

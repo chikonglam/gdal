@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrkmldatasource.cpp 23589 2011-12-17 14:21:01Z rouault $
+ * $Id: ogrkmldatasource.cpp 23978 2012-02-14 20:42:34Z rouault $
  *
  * Project:  KML Driver
  * Purpose:  Implementation of OGRKMLDataSource class.
@@ -141,15 +141,21 @@ int OGRKMLDataSource::Open( const char * pszNewName, int bTestOpen )
         return FALSE;
     }
 
+
 /* -------------------------------------------------------------------- */
-/*      Eliminate the empty containers                                  */
+/*      Eliminate the empty containers (if there is at least one        */
+/*      valid container !)                                              */
 /* -------------------------------------------------------------------- */
-    poKMLFile_->eliminateEmpty();
+    int bHasOnlyEmpty = poKMLFile_->hasOnlyEmpty();
+    if (bHasOnlyEmpty)
+        CPLDebug("KML", "Has only empty containers");
+    else
+        poKMLFile_->eliminateEmpty();
 
 /* -------------------------------------------------------------------- */
 /*      Find layers to use in the KML structure                         */
 /* -------------------------------------------------------------------- */
-    poKMLFile_->findLayers(NULL);
+    poKMLFile_->findLayers(NULL, bHasOnlyEmpty);
 
 /* -------------------------------------------------------------------- */
 /*      Print the structure                                             */
