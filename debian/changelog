@@ -1,3 +1,10 @@
+gdal (1.10.0-0~exp4) UNRELEASED; urgency=low
+
+  * Fix libgdal1h symbols file to use libgdal1h instead of libgdal1
+    that way packages like gdal-bin don't depend on libgdal1 anymore.
+
+ -- Jerome Villeneuve Larouche <jlarouche@mapgears.com>  Wed, 26 Jun 2013 11:09:09 -0400
+
 gdal (1.10.0-0~exp3) UNRELEASED; urgency=low
 
   * Added netcdf-bin build-dep to get nc-config, as required by current config.
