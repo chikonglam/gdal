@@ -3,7 +3,8 @@ gdal (1.10.0-0~exp3) experimental; urgency=low
   * Added netcdf-bin build-dep to get nc-config, as required by current config.
   * Fixed gdalpaths patch for version 1.10.
   * Fixed symbols files to manage correctly library dependencies.
-  * Added java support. Thanks Ezequiel Lara Gómez for initial patch.
+  * Added java support. Thanks Ezequiel Lara Gómez for the initial patch.
+    Added a pair of new b-deps for that, along with two new patches java*.
     (closes: #628022)
 
  -- Francesco Paolo Lovergine <frankie@debian.org>  Wed, 26 Jun 2013 11:19:15 +0200

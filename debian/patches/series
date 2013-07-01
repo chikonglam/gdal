@@ -11,3 +11,4 @@ symver
 spatialite
 force-ruby1.8
 java.opt
+java-make

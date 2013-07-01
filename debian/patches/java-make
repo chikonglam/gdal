@@ -1,0 +1,13 @@
+Index: gdal/swig/java/GNUmakefile
+===================================================================
+--- gdal.orig/swig/java/GNUmakefile	2013-07-01 13:38:05.000000000 +0200
++++ gdal/swig/java/GNUmakefile	2013-07-01 13:38:19.000000000 +0200
+@@ -35,7 +35,7 @@
+ 
+ clean:
+ 	-rm -f ${JAVA_MODULES}
+-	-rm *.$(OBJ_EXT)
++	-rm -f *.$(OBJ_EXT)
+ 	ant clean
+ 
+ veryclean: clean
