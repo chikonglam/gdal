@@ -1,0 +1,13 @@
+Index: gdal/swig/java/java.opt
+===================================================================
+--- gdal.orig/swig/java/java.opt	2013-07-01 12:07:30.000000000 +0200
++++ gdal/swig/java/java.opt	2013-07-01 12:07:50.000000000 +0200
+@@ -1,7 +1,7 @@
+ #
+ # Java Stuff
+ #JAVA_HOME = "C:\Program Files\Java\jdk1.6.0_16"
+-JAVA_HOME = /usr/lib/jvm/java-6-openjdk/
++JAVA_HOME = /usr/lib/jvm/default-java/
+ JAVADOC=$(JAVA_HOME)/bin/javadoc
+ JAVAC=$(JAVA_HOME)/bin/javac
+ JAVA=$(JAVA_HOME)/bin/java

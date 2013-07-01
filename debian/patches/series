@@ -10,3 +10,4 @@ mrsid-plugin
 symver
 spatialite
 force-ruby1.8
+java.opt

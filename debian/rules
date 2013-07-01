@@ -81,6 +81,7 @@ configure-stamp:
 			--with-mysql \
 			--with-perl \
 			--with-ruby \
+			--with-java=/usr/lib/jvm/default-java \
 			--with-python \
 			--with-odbc \
 			--with-ogdi \
@@ -114,6 +115,7 @@ build-stamp: configure-stamp
 	rm -rf $(CURDIR)/swig/perl/*.c  $(CURDIR)/swig/perl/*.cpp
 	$(MAKE) -C $(CURDIR)/swig/perl generate build
 	$(MAKE) -C $(CURDIR)/swig/ruby generate build
+	$(MAKE) -C $(CURDIR)/swig/java clean generate build
 
 	# It needs pre-installing just after the building due to intermediate cleaning.
 	# Apply conditionally an on-fly patch for pre 1.3.38 swig versions.
@@ -138,6 +140,7 @@ clean:
 
 	[ ! -f GDALmake.opt ] || $(MAKE) distclean
 	rm -rf $(CURDIR)/swig/ruby/.libs $(CURDIR)/swig/perl/*.bs
+	rm -rf $(CURDIR)/swig/java/*.so $(CURDIR)/swig/java/*.o $(CURDIR)/swig/java/build/ $(CURDIR)/swig/java/*.jar $(CURDIR)/swig/java/.libs
 	rm -rf $(CURDIR)/.libs
 	rm -f GDALmake.opt-*
 	rm -rf $(CURDIR)/man/man1
@@ -156,7 +159,7 @@ install: build
 	dh_installdirs
 
 	cp `ls GDALmake.opt-*|tail -1` GDALmake.opt
-	$(MAKE) install BINDINGS="perl ruby" DESTDIR=$(CURDIR)/debian/tmp \
+	$(MAKE) install BINDINGS="perl ruby java" DESTDIR=$(CURDIR)/debian/tmp \
 			INST_DATA="\$$(prefix)/share/gdal/$(GDAL_MAJOR).$(GDAL_MINOR)"
 	$(MAKE) install-docs DESTDIR=$(CURDIR)/debian/tmp \
 		"INST_DOCS=\$$(prefix)/share/doc/libgdal-doc"\
@@ -169,6 +172,11 @@ install: build
 	cp -a $(CURDIR)/debian/python-tmp/usr/lib/* $(CURDIR)/debian/tmp/usr/lib/.
 	install -o root -g root -d $(CURDIR)/debian/tmp/usr/bin
 	install -o root -g root -m 755 $(CURDIR)/swig/python/scripts/*.py $(CURDIR)/debian/tmp/usr/bin/.
+
+	# java stuff
+	mkdir -p $(CURDIR)/debian/tmp/usr/share/java $(CURDIR)/debian/tmp/usr/lib/jni
+	install -o root -g root $(CURDIR)/swig/java/gdal.jar $(CURDIR)/debian/tmp/usr/share/java/.
+	install -o root -g root $(CURDIR)/swig/java/*jni.so* $(CURDIR)/debian/tmp/usr/lib/jni
 
 	# removing license file
 	rm -f $(CURDIR)/debian/tmp/usr/share/gdal/$(GDAL_MAJOR).$(GDAL_MINOR)/LICENSE.TXT
