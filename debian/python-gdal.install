@@ -4,7 +4,6 @@ usr/share/man/man1/gdal_merge.1
 usr/share/man/man1/pct2rgb.1
 usr/share/man/man1/rgb2pct.1
 usr/share/man/man1/gdalmove.1
-usr/share/man/man1/gdalimport.1
 usr/share/man/man1/gdalident.1
 usr/share/man/man1/gdalchksum.1
 usr/share/man/man1/gdal_sieve.1
