@@ -1,3 +1,9 @@
+gdal (1.10.0-0~exp4) UNRELEASED; urgency=low
+
+  * Added some missing manpages to python-gdal.
+
+ -- Francesco Paolo Lovergine <frankie@debian.org>  Tue, 02 Jul 2013 12:18:14 +0200
+
 gdal (1.10.0-0~exp3) experimental; urgency=low
 
   * Added netcdf-bin build-dep to get nc-config, as required by current config.
