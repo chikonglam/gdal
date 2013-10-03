@@ -3,6 +3,7 @@ Section: science
 Priority: extra
 Maintainer: Debian GIS Project <pkg-grass-devel@lists.alioth.debian.org>
 Uploaders: Francesco Paolo Lovergine <frankie@debian.org>
+ , Bas Couwenberg <sebastic@xs4all.nl>
 Build-Depends: debhelper (>= 8), zlib1g-dev, libnetcdf-dev (>= 1:4.0.0),
  libjasper-dev, libpng-dev, libjpeg-dev, libgif-dev,
  libhdf4-alt-dev, libhdf5-serial-dev (>= 1.6.6), libpq-dev, libxerces-c-dev, unixodbc-dev (>= 2.2.11),

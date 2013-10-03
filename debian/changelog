@@ -1,3 +1,9 @@
+gdal (1.10.0-0~exp4) UNRELEASED; urgency=low
+
+  * Add myself to Uploaders.
+
+ -- Bas Couwenberg <sebastic@xs4all.nl>  Thu, 03 Oct 2013 23:19:27 +0200
+
 gdal (1.10.0-0~exp3) experimental; urgency=low
 
   * Added netcdf-bin build-dep to get nc-config, as required by current config.
