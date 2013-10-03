@@ -1,8 +1,6 @@
-Index: gdal/gcore/gdaldrivermanager.cpp
-===================================================================
---- gdal.orig/gcore/gdaldrivermanager.cpp	2013-06-20 10:04:36.000000000 +0200
-+++ gdal/gcore/gdaldrivermanager.cpp	2013-06-20 10:04:36.000000000 +0200
-@@ -667,7 +667,7 @@
+--- a/gcore/gdaldrivermanager.cpp
++++ b/gcore/gdaldrivermanager.cpp
+@@ -667,7 +667,7 @@ void GDALDriverManager::AutoLoadDrivers(
      #ifdef MACOSX_FRAMEWORK
                                          GDAL_PREFIX "/PlugIns");
      #else
@@ -11,11 +9,9 @@ Index: gdal/gcore/gdaldrivermanager.cpp
      #endif
  #else
          char szExecPath[1024];
-Index: gdal/ogr/ogrsf_frmts/generic/ogrsfdriverregistrar.cpp
-===================================================================
---- gdal.orig/ogr/ogrsf_frmts/generic/ogrsfdriverregistrar.cpp	2013-06-20 10:04:36.000000000 +0200
-+++ gdal/ogr/ogrsf_frmts/generic/ogrsfdriverregistrar.cpp	2013-06-20 10:04:36.000000000 +0200
-@@ -807,7 +807,7 @@
+--- a/ogr/ogrsf_frmts/generic/ogrsfdriverregistrar.cpp
++++ b/ogr/ogrsf_frmts/generic/ogrsfdriverregistrar.cpp
+@@ -807,7 +807,7 @@ void OGRSFDriverRegistrar::AutoLoadDrive
      #ifdef MACOSX_FRAMEWORK
                                          GDAL_PREFIX "/PlugIns");
      #else
@@ -24,11 +20,9 @@ Index: gdal/ogr/ogrsf_frmts/generic/ogrsfdriverregistrar.cpp
      #endif
  #else
          char szExecPath[1024];
-Index: gdal/port/cpl_findfile.cpp
-===================================================================
---- gdal.orig/port/cpl_findfile.cpp	2013-06-20 10:04:36.000000000 +0200
-+++ gdal/port/cpl_findfile.cpp	2013-06-20 10:04:36.000000000 +0200
-@@ -104,7 +104,7 @@
+--- a/port/cpl_findfile.cpp
++++ b/port/cpl_findfile.cpp
+@@ -104,7 +104,7 @@ static FindFileTLS* CPLFinderInit()
    #ifdef MACOSX_FRAMEWORK
              CPLPushFinderLocation( GDAL_PREFIX "/Resources/gdal" );
    #else

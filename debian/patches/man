@@ -1,8 +1,6 @@
-Index: gdal/GNUmakefile
-===================================================================
---- gdal.orig/GNUmakefile	2013-06-20 10:04:22.000000000 +0200
-+++ gdal/GNUmakefile	2013-06-20 10:04:22.000000000 +0200
-@@ -235,3 +235,4 @@
+--- a/GNUmakefile
++++ b/GNUmakefile
+@@ -235,3 +235,4 @@ endif # HAVE_LD_SHARED=no
  
  endif # HAVE_LIBTOOL=no 
  

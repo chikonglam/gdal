@@ -1,8 +1,6 @@
-Index: gdal/swig/java/GNUmakefile
-===================================================================
---- gdal.orig/swig/java/GNUmakefile	2013-07-01 13:38:05.000000000 +0200
-+++ gdal/swig/java/GNUmakefile	2013-07-01 13:38:19.000000000 +0200
-@@ -35,7 +35,7 @@
+--- a/swig/java/GNUmakefile
++++ b/swig/java/GNUmakefile
+@@ -35,7 +35,7 @@ JAVA_OBJECTS = gdalconst_wrap.$(OBJ_EXT)
  
  clean:
  	-rm -f ${JAVA_MODULES}
