@@ -1,7 +1,9 @@
-gdal (1.10.0-0~exp4) UNRELEASED; urgency=low
+gdal (1.10.0+dfsg-0~exp4) UNRELEASED; urgency=low
 
   * Add myself to Uploaders.
   * Update watch file.
+  * Remove data files with unclear rights.
+    (closes: #721343)
 
  -- Bas Couwenberg <sebastic@xs4all.nl>  Thu, 03 Oct 2013 23:19:27 +0200
 

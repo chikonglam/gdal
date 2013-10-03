@@ -2,6 +2,24 @@ Format: http://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
 Upstream-Name: GDAL/OGR
 Upstream-Contact: The GDAL/OGR project team, Frank Warmerdam <warmerdam@pobox.com>
 Source: http://www.gdal.org/
+Comment: Several data files with unclear rights are removed to create
+ the +dfsg version.
+ .
+ gdal/data/cubewerx_extra.wkt
+ Derived from definitions distributed by Cubewerx.
+ See http://trac.osgeo.org/gdal/ticket/2165
+ . 
+ gdal/data/ecw_cs.wkt
+ Derived via much processing from ERMapper GDT definitions.
+ See http://trac.osgeo.org/gdal/ticket/2162
+ .
+ gdal/data/esri_extra.wkt
+ Derived with some processing from projections definitions in ArcGIS.
+ See http://trac.osgeo.org/gdal/ticket/2163
+ .
+Files-Excluded: data/cubewerx_extra.wkt
+ data/ecw_cs.wkt
+ data/esri_extra.wkt
 
 File: *
 Copyright: 2000, Frank Warmerdam <warmerdam@pobox.com>
