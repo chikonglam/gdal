@@ -1,5 +1,6 @@
-gdal (1.10.0+dfsg-0~exp4) UNRELEASED; urgency=low
+gdal (1.10.1+dfsg-0~exp1) UNRELEASED; urgency=low
 
+  * New upstream release.
   * Add myself to Uploaders.
   * Update watch file.
   * Remove data files with unclear rights.
