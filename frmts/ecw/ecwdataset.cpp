@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ecwdataset.cpp 25924 2013-04-18 18:16:41Z rouault $
+ * $Id: ecwdataset.cpp 26371 2013-08-26 18:42:34Z rouault $
  *
  * Project:  GDAL 
  * Purpose:  ECW (ERDAS Wavelet Compression Format) Driver
@@ -33,7 +33,7 @@
 #include "ogr_api.h"
 #include "ogr_geometry.h"
 
-CPL_CVSID("$Id: ecwdataset.cpp 25924 2013-04-18 18:16:41Z rouault $");
+CPL_CVSID("$Id: ecwdataset.cpp 26371 2013-08-26 18:42:34Z rouault $");
 
 #undef NOISY_DEBUG
 
@@ -47,6 +47,8 @@ static void *hECWDatasetMutex = NULL;
 static int    bNCSInitialized = FALSE;
 
 void ECWInitialize( void );
+
+extern "C" int CPL_DLL GDALIsInGlobalDestructor(void);
 
 #define BLOCK_SIZE 256
 
@@ -988,12 +990,12 @@ ECWDataset::~ECWDataset()
 
     CPLMutexHolder oHolder( &hECWDatasetMutex );
 
-    // GDAL_CLOSE_JP2ECW_RESOURCE is set to NO by gdaldllmain.cpp/GDALDestroy() so as
+    // bInGDALGlobalDestructor is set to TRUE by gdaldllmain.cpp/GDALDestroy() so as
     // to avoid an issue with the ECW SDK 3.3 where the destructor of CNCSJP2File::CNCSJP2FileVector CNCSJP2File::sm_Files;
     // static ressource allocated in NCJP2File.cpp can be called before GDALDestroy(), causing
     // ECW SDK resources ( CNCSJP2File files ) to be closed before we get here.
     if( poFileView != NULL &&
-        (!bIsJPEG2000 || CSLTestBoolean(CPLGetConfigOption("GDAL_CLOSE_JP2ECW_RESOURCE", "YES"))) )
+        (!bIsJPEG2000 || !GDALIsInGlobalDestructor()) )
     {
         VSIIOStream *poUnderlyingIOStream = (VSIIOStream *)NULL;
 
@@ -3151,7 +3153,10 @@ void GDALDeregister_ECW( GDALDriver * )
     if( bNCSInitialized )
     {
         bNCSInitialized = FALSE;
-        NCSecwShutdown();
+        if( !GDALIsInGlobalDestructor() )
+        {
+            NCSecwShutdown();
+        }
     }
 #endif
 #endif

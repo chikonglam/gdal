@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrpgdatasource.cpp 25366 2012-12-27 18:38:53Z rouault $
+ * $Id: ogrpgdatasource.cpp 26100 2013-06-20 19:35:09Z warmerdam $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implements OGRPGDataSource class.
@@ -35,7 +35,7 @@
 
 #define PQexec this_is_an_error
 
-CPL_CVSID("$Id: ogrpgdatasource.cpp 25366 2012-12-27 18:38:53Z rouault $");
+CPL_CVSID("$Id: ogrpgdatasource.cpp 26100 2013-06-20 19:35:09Z warmerdam $");
 
 static void OGRPGNoticeProcessor( void *arg, const char * pszMessage );
 
@@ -1443,11 +1443,11 @@ OGRPGDataSource::CreateLayer( const char * pszLayerName,
                  "%s ( "
                  "    %s SERIAL, "
                  "   WKB_GEOMETRY %s, "
-                 "   CONSTRAINT \"%s_pk\" PRIMARY KEY (%s) )",
+                 "   PRIMARY KEY (%s) )",
                  osCreateTable.c_str(),
                  pszFIDColumnName,
                  pszGeomType,
-                 pszTableName, pszFIDColumnName);
+                 pszFIDColumnName);
     }
     else if ( eType != wkbNone && EQUAL(pszGeomType, "geography") )
     {
@@ -1458,24 +1458,24 @@ OGRPGDataSource::CreateLayer( const char * pszLayerName,
         
         if (nSRSId)
             osCommand.Printf(
-                     "%s ( %s SERIAL, %s geography(%s%s,%d), CONSTRAINT \"%s_pk\" PRIMARY KEY (%s) )",
+                     "%s ( %s SERIAL, %s geography(%s%s,%d), PRIMARY KEY (%s) )",
                      osCreateTable.c_str(), pszFIDColumnName,
                      OGRPGEscapeColumnName(pszGFldName).c_str(), pszGeometryType,
-                     nDimension == 2 ? "" : "Z", nSRSId, pszTableName,
+                     nDimension == 2 ? "" : "Z", nSRSId, 
                      pszFIDColumnName);
         else
             osCommand.Printf(
-                     "%s ( %s SERIAL, %s geography(%s%s), CONSTRAINT \"%s_pk\" PRIMARY KEY (%s) )",
+                     "%s ( %s SERIAL, %s geography(%s%s), PRIMARY KEY (%s) )",
                      osCreateTable.c_str(), pszFIDColumnName,
                      OGRPGEscapeColumnName(pszGFldName).c_str(), pszGeometryType,
-                     nDimension == 2 ? "" : "Z", pszTableName,
+                     nDimension == 2 ? "" : "Z", 
                      pszFIDColumnName);
     }
     else
     {
         osCommand.Printf(
-                 "%s ( %s SERIAL, CONSTRAINT \"%s_pk\" PRIMARY KEY (%s) )",
-                 osCreateTable.c_str(), pszFIDColumnName, pszTableName, pszFIDColumnName );
+                 "%s ( %s SERIAL, PRIMARY KEY (%s) )",
+                 osCreateTable.c_str(), pszFIDColumnName, pszFIDColumnName );
     }
 
     hResult = OGRPG_PQexec(hPGConn, osCommand.c_str());

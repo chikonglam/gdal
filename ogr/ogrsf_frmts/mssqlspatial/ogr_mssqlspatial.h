@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_mssqlspatial.h 25860 2013-04-05 07:20:37Z tamas $
+ * $Id: ogr_mssqlspatial.h 25988 2013-05-05 14:09:05Z tamas $
  *
  * Project:  MSSQL Spatial driver
  * Purpose:  Definition of classes for OGR MSSQL Spatial driver.
@@ -215,6 +215,7 @@ class OGRMSSQLSpatialTableLayer : public OGRMSSQLSpatialLayer
                                     const char *pszGeomCol, 
                                     int nCoordDimension, 
                                     int nSRId,
+                                    const char *pszSRText,
                                     OGRwkbGeometryType eType);
 
     OGRErr              CreateSpatialIndex();
@@ -320,7 +321,8 @@ class OGRMSSQLSpatialDataSource : public OGRDataSource
     int                 Open( const char *, int bUpdate, int bTestOpen );
     int                 OpenTable( const char *pszSchemaName, const char *pszTableName, 
                                    const char *pszGeomCol,int nCoordDimension,
-                                   int nSRID, OGRwkbGeometryType eType, int bUpdate );
+                                   int nSRID, const char *pszSRText,
+                                   OGRwkbGeometryType eType, int bUpdate );
 
     const char          *GetName() { return pszName; }
     int                 GetLayerCount();

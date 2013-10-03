@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: cpl.i 25687 2013-02-25 17:41:30Z rouault $
+ * $Id: cpl.i 26276 2013-08-08 19:15:31Z rouault $
  *
  * Name:     cpl.i
  * Project:  GDAL Python Interface
@@ -93,6 +93,17 @@ void CPL_STDCALL PyCPLErrorHandler(CPLErr eErrClass, int err_no, const char* psz
     return CE_None;
   }
 %}
+
+%inline %{
+  void PopErrorHandler()
+  {
+     void* user_data = CPLGetErrorHandlerUserData();
+     if( user_data != NULL )
+       Py_XDECREF((PyObject*)user_data);
+     CPLPopErrorHandler();
+  }
+%}
+
 #else
 %inline %{
   CPLErr PushErrorHandler( char const * pszCallbackName = NULL ) {
@@ -189,7 +200,9 @@ GOA2GetAccessToken( const char *pszRefreshToken, const char *pszScope );
 void CPLPushErrorHandler( CPLErrorHandler );
 #endif
 
+#if !defined(SWIGPYTHON)
 void CPLPopErrorHandler();
+#endif
 
 void CPLErrorReset();
 

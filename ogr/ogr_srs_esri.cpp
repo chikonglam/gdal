@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_srs_esri.cpp 25575 2013-01-28 20:33:32Z rouault $
+ * $Id: ogr_srs_esri.cpp 26258 2013-07-31 22:41:28Z kyle $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  OGRSpatialReference translation to/from ESRI .prj definitions.
@@ -34,7 +34,7 @@
 
 #include "ogr_srs_esri_names.h"
 
-CPL_CVSID("$Id: ogr_srs_esri.cpp 25575 2013-01-28 20:33:32Z rouault $");
+CPL_CVSID("$Id: ogr_srs_esri.cpp 26258 2013-07-31 22:41:28Z kyle $");
 
 void  SetNewName( OGRSpatialReference* pOgr, const char* keyName, const char* newName );
 int   RemapImgWGSProjcsName(OGRSpatialReference* pOgr, const char* pszProjCSName, 
@@ -95,6 +95,10 @@ static const char *apszPolarStereographicMapping[] = {
 static const char *apszOrthographicMapping[] = {
     "Longitude_Of_Center", SRS_PP_CENTRAL_MERIDIAN,
     "Latitude_Of_Center", SRS_PP_LATITUDE_OF_ORIGIN,
+    NULL, NULL };
+
+static const char *apszLambertConformalConicMapping[] = {
+    "Central_Parallel", SRS_PP_LATITUDE_OF_ORIGIN,
     NULL, NULL };
 
 static char **papszDatumMapping = NULL;
@@ -379,7 +383,11 @@ void CleanupESRIDatumMappingTable()
         papszDatumMapping = NULL;
     }
 
-    CPLDestroyMutex(hDatumMappingMutex);
+    if( hDatumMappingMutex != NULL )
+    {
+        CPLDestroyMutex(hDatumMappingMutex);
+        hDatumMappingMutex = NULL;
+    }
 }
 CPL_C_END
 
@@ -1295,7 +1303,7 @@ OGRErr OGRSpatialReference::morphToESRI()
                     FindProjParm( SRS_PP_LATITUDE_OF_ORIGIN ) );
         }
     }
-    
+
 /* -------------------------------------------------------------------- */
 /*      Convert SPHEROID name to use underscores instead of spaces.     */
 /* -------------------------------------------------------------------- */
@@ -1650,6 +1658,19 @@ OGRErr OGRSpatialReference::morphFromESRI()
             (char **)apszPolarStereographicMapping + 0, 
             (char **)apszPolarStereographicMapping + 1, 2 );
 #endif
+
+    /*
+    ** Handle the value of Central_Parallel -> latitude_of_center.
+    ** See ticket #3191.  Other mappings probably need to be added.
+    */
+    if( pszProjection != NULL &&
+        ( EQUAL( pszProjection, SRS_PT_LAMBERT_CONFORMAL_CONIC_1SP ) ||
+          EQUAL( pszProjection, SRS_PT_LAMBERT_CONFORMAL_CONIC_2SP ) ) )
+    {
+        GetRoot()->applyRemapper( 
+            "PARAMETER", (char **)apszLambertConformalConicMapping + 0,
+            (char **)apszLambertConformalConicMapping + 1, 2 );
+    }
 
 /* -------------------------------------------------------------------- */
 /*      Translate PROJECTION keywords that are misnamed.                */

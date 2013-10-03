@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: lcpdataset.cpp 23060 2011-09-05 17:58:30Z rouault $
+ * $Id: lcpdataset.cpp 26210 2013-07-26 02:26:38Z kyle $
  *
  * Project:  LCP Driver
  * Purpose:  FARSITE v.4 Landscape file (.lcp) reader for GDAL
@@ -31,7 +31,7 @@
 #include "cpl_string.h"
 #include "ogr_spatialref.h"
 
-CPL_CVSID("$Id: lcpdataset.cpp 23060 2011-09-05 17:58:30Z rouault $");
+CPL_CVSID("$Id: lcpdataset.cpp 26210 2013-07-26 02:26:38Z kyle $");
 
 CPL_C_START
 void    GDALRegister_LCP(void);
@@ -63,8 +63,10 @@ class LCPDataset : public RawDataset
 
     static int          Identify( GDALOpenInfo * );
     static GDALDataset *Open( GDALOpenInfo * );
-    
+
     virtual const char *GetProjectionRef(void);
+
+    int bHaveProjection;
 };
 
 /************************************************************************/
@@ -74,7 +76,8 @@ class LCPDataset : public RawDataset
 LCPDataset::LCPDataset()
 {
     fpImage = NULL;
-    pszProjection = NULL;
+    pszProjection = CPLStrdup( "" );
+    bHaveProjection = FALSE;
 }
 
 /************************************************************************/
@@ -158,8 +161,10 @@ char **LCPDataset::GetFileList()
 {
     char **papszFileList = GDALPamDataset::GetFileList();
 
-    if( pszProjection != NULL )
+    if( bHaveProjection )
+    {
         papszFileList = CSLAddString( papszFileList, osPrjFilename );
+    }
 
     return papszFileList;
 }
@@ -713,9 +718,11 @@ GDALDataset *LCPDataset::Open( GDALOpenInfo * poOpenInfo )
 
         if( oSRS.importFromESRI( papszPrj ) == OGRERR_NONE )
         {
+            CPLFree( poDS->pszProjection );
             oSRS.exportToWkt( &(poDS->pszProjection) );
+            poDS->bHaveProjection = TRUE;
         }
-        
+
         CSLDestroy(papszPrj);
     }
 

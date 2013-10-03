@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrlayer.cpp 25470 2013-01-06 19:52:19Z rouault $
+ * $Id: ogrlayer.cpp 26015 2013-05-20 08:19:40Z warmerdam $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  The generic portions of the OGRSFLayer class.
@@ -33,7 +33,7 @@
 #include "ogr_attrind.h"
 #include "swq.h"
 
-CPL_CVSID("$Id: ogrlayer.cpp 25470 2013-01-06 19:52:19Z rouault $");
+CPL_CVSID("$Id: ogrlayer.cpp 26015 2013-05-20 08:19:40Z warmerdam $");
 
 /************************************************************************/
 /*                              OGRLayer()                              */
@@ -1458,7 +1458,7 @@ OGRErr set_result_schema(OGRLayer *pLayerResult,
         }
         if (!mapMethod) return ret;
         for( int iField = 0; iField < poDefnMethod->GetFieldCount(); iField++ ) {
-            CPLString osName(poDefnInput->GetFieldDefn(iField)->GetNameRef());
+            CPLString osName(poDefnMethod->GetFieldDefn(iField)->GetNameRef());
             if( pszMethodPrefix != NULL )
                 osName = pszMethodPrefix + osName;
             mapMethod[iField] = poDefnResult->GetFieldIndex(osName);

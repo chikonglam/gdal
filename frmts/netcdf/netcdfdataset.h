@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: netcdfdataset.h 24588 2012-06-16 16:31:05Z rouault $
+ * $Id: netcdfdataset.h 26007 2013-05-16 15:03:22Z etourigny $
  *
  * Project:  netCDF read/write Driver
  * Purpose:  GDAL bindings over netCDF library.
@@ -698,6 +698,7 @@ class netCDFDataset : public GDALPamDataset
     char         **papszCreationOptions;
     int          nCompress;
     int          nZLevel;
+    int          bChunking;
     int          nCreateMode;
     int          bSignedData;
 
@@ -709,7 +710,7 @@ class netCDFDataset : public GDALPamDataset
     char **      FetchStandardParallels( const char *pszGridMappingValue );
 
     void ProcessCreationOptions( );
-    int DefVarDeflate( int nVarId, int bChunking=TRUE );
+    int DefVarDeflate( int nVarId, int bChunkingArg=TRUE );
     CPLErr AddProjectionVars( GDALProgressFunc pfnProgress=GDALDummyProgress, 
                               void * pProgressData=NULL );
     void AddGridMappingRef(); 

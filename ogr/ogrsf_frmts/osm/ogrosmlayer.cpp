@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrosmlayer.cpp 24950 2012-09-22 13:54:36Z rouault $
+ * $Id: ogrosmlayer.cpp 26051 2013-05-27 20:41:34Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implements OGROSMLayer class
@@ -33,7 +33,7 @@
 #include "cpl_time.h"
 #include "ogr_p.h"
 
-CPL_CVSID("$Id: ogrosmlayer.cpp 24950 2012-09-22 13:54:36Z rouault $");
+CPL_CVSID("$Id: ogrosmlayer.cpp 26051 2013-05-27 20:41:34Z rouault $");
 
 #define SWITCH_THRESHOLD   10000
 #define MAX_THRESHOLD      100000
@@ -461,24 +461,10 @@ int OGROSMLayer::AddInOtherTag(const char* pszK)
 static int OGROSMFormatForHSTORE(const char* pszV, char* pszAllTags)
 {
     int k;
-    int bMustAddDoubleQuotes = FALSE;
-    
+
     int nAllTagsOff = 0;
 
-    /* Follow the quoting rules of http://www.postgresql.org/docs/9.0/static/hstore.html */
-    for(k=0;pszV[k] != '\0'; k++)
-    {
-        if( pszV[k] == ' ' || pszV[k] == ','||
-            pszV[k] == '=' || pszV[k] == '>' )
-        {
-            bMustAddDoubleQuotes = TRUE;
-            break;
-        }
-    }
-    if( bMustAddDoubleQuotes )
-    {
-        pszAllTags[nAllTagsOff++] = '"';
-    }
+    pszAllTags[nAllTagsOff++] = '"';
 
     for(k=0;pszV[k] != '\0'; k++)
     {
@@ -487,10 +473,7 @@ static int OGROSMFormatForHSTORE(const char* pszV, char* pszAllTags)
         pszAllTags[nAllTagsOff++] = pszV[k];
     }
 
-    if( bMustAddDoubleQuotes )
-    {
-        pszAllTags[nAllTagsOff++] = '"';
-    }
+    pszAllTags[nAllTagsOff++] = '"';
 
     return nAllTagsOff;
 }

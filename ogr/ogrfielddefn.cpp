@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrfielddefn.cpp 24286 2012-04-21 19:17:26Z rouault $
+ * $Id: ogrfielddefn.cpp 26202 2013-07-24 18:47:00Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  The OGRFieldDefn class implementation.
@@ -31,7 +31,7 @@
 #include "ogr_api.h"
 #include "ogr_p.h"
 
-CPL_CVSID("$Id: ogrfielddefn.cpp 24286 2012-04-21 19:17:26Z rouault $");
+CPL_CVSID("$Id: ogrfielddefn.cpp 26202 2013-07-24 18:47:00Z rouault $");
 
 /************************************************************************/
 /*                            OGRFieldDefn()                            */
@@ -71,7 +71,6 @@ OGRFieldDefn::OGRFieldDefn( OGRFieldDefn *poPrototype )
     SetWidth( poPrototype->GetWidth() );
     SetPrecision( poPrototype->GetPrecision() );
 //    SetDefault( poPrototype->GetDefaultRef() );
-    bIgnore = FALSE;
 }
 
 /************************************************************************/
@@ -108,6 +107,7 @@ void OGRFieldDefn::Initialize( const char * pszNameIn, OGRFieldType eTypeIn )
     nPrecision = 0;     // for numbers?
 
     memset( &uDefault, 0, sizeof(OGRField) );
+    bIgnore = FALSE;
 }
 
 /************************************************************************/

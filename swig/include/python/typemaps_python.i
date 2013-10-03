@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: typemaps_python.i 25663 2013-02-22 15:07:39Z rouault $
+ * $Id: typemaps_python.i 26276 2013-08-08 19:15:31Z rouault $
  *
  * Name:     typemaps_python.i
  * Project:  GDAL Python Interface
@@ -1206,6 +1206,7 @@ static PyObject *XMLTreeToPyList( CPLXMLNode *psTree )
     }
     else
     {
+        Py_INCREF($input);
         $1 = PyCPLErrorHandler;
         $2 = $input;
     }

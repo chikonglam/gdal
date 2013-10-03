@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: shape2ogr.cpp 25900 2013-04-11 20:24:31Z rouault $
+ * $Id: shape2ogr.cpp 26116 2013-06-29 18:57:36Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implements translation of Shapefile shapes into OGR
@@ -31,7 +31,7 @@
 #include "ogrshape.h"
 #include "cpl_conv.h"
 
-CPL_CVSID("$Id: shape2ogr.cpp 25900 2013-04-11 20:24:31Z rouault $");
+CPL_CVSID("$Id: shape2ogr.cpp 26116 2013-06-29 18:57:36Z rouault $");
 
 /************************************************************************/
 /*                        RingStartEnd                                  */
@@ -1304,9 +1304,9 @@ OGRErr SHPWriteOGRFeature( SHPHandle hSHP, DBFHandle hDBF,
           case OFTInteger:
           {
               char szFormat[20];
-              char szValue[20];
+              char szValue[32];
               int nFieldWidth = poFieldDefn->GetWidth();
-              sprintf(szFormat, "%%%dd", nFieldWidth);
+              sprintf(szFormat, "%%%dd", MIN(nFieldWidth, (int)sizeof(szValue)-1));
               sprintf(szValue, szFormat, poFeature->GetFieldAsInteger(iField) );
               int nStrLen = strlen(szValue);
               if( nStrLen > nFieldWidth )
