@@ -19,8 +19,8 @@ Standards-Version: 3.9.4
 XS-Python-Version: all
 X-Python3-Version: >= 3.2
 Homepage: http://www.gdal.org/
-Vcs-Browser: http://git.debian.org/?p=pkg-grass/gdal.git
-Vcs-Git: git://git.debian.org/git/pkg-grass/gdal.git
+Vcs-Browser: http://anonscm.debian.org/gitweb/?p=pkg-grass/gdal.git
+Vcs-Git: git://anonscm.debian.org/pkg-grass/gdal.git
 
 Package: libgdal1h
 Section: libs
