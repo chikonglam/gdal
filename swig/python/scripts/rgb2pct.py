@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #******************************************************************************
-#  $Id: rgb2pct.py 18952 2010-02-28 11:59:53Z rouault $
+#  $Id: rgb2pct.py 26002 2013-05-14 03:33:55Z warmerdam $
 # 
 #  Name:     rgb2pct
 #  Project:  GDAL Python Interface
@@ -126,7 +126,8 @@ else:
 if format == 'GTiff':
     tif_filename = dst_filename
 else:
-    tif_filename = 'temp.tif'
+    import tempfile
+    tif_filedesc,tif_filename = tempfile.mkstemp(suffix='.tif')
 
 gtiff_driver = gdal.GetDriverByName( 'GTiff' )
 
@@ -161,5 +162,6 @@ if tif_filename != dst_filename:
     dst_driver.CreateCopy( dst_filename, tif_ds )
     tif_ds = None
 
+    os.close(tif_filedesc)
     gtiff_driver.Delete( tif_filename )
 

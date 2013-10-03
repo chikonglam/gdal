@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: nitfimage.c 25777 2013-03-20 21:12:02Z rouault $
+ * $Id: nitfimage.c 26189 2013-07-20 07:43:42Z rouault $
  *
  * Project:  NITF Read/Write Library
  * Purpose:  Module responsible for implementation of most NITFImage 
@@ -35,7 +35,7 @@
 #include "cpl_conv.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: nitfimage.c 25777 2013-03-20 21:12:02Z rouault $");
+CPL_CVSID("$Id: nitfimage.c 26189 2013-07-20 07:43:42Z rouault $");
 
 static int NITFReadIMRFCA( NITFImage *psImage, NITFRPC00BInfo *psRPC );
 static char *NITFTrimWhite( char * );
@@ -567,8 +567,7 @@ NITFImage *NITFImageAccess( NITFFile *psFile, int iSegment )
             atoi(NITFGetField(szTemp, pachHeader, nOffset+14, 4));
             
         /* See MIL-STD-2500-C, paragraph 5.4.2.2-d (#3263) */
-        if (EQUAL(psImage->szIC, "NC") &&
-            (psImage->nCols > 8192 || psImage->nRows > 8192))
+        if (EQUAL(psImage->szIC, "NC"))
         {
             if (psImage->nBlocksPerRow == 1 &&
                 psImage->nBlockWidth == 0)

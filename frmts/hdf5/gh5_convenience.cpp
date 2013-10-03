@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gh5_convenience.cpp 22145 2011-04-12 15:42:18Z warmerdam $
+ * $Id: gh5_convenience.cpp 26011 2013-05-17 23:39:30Z warmerdam $
  *
  * Project:  Hierarchical Data Format Release 5 (HDF5)
  * Purpose:  HDF5 convenience functions.
@@ -29,7 +29,7 @@
 
 #include "gh5_convenience.h"
 
-CPL_CVSID("$Id: gh5_convenience.cpp 22145 2011-04-12 15:42:18Z warmerdam $");
+CPL_CVSID("$Id: gh5_convenience.cpp 26011 2013-05-17 23:39:30Z warmerdam $");
 
 /************************************************************************/
 /*                    GH5_FetchAttribute(CPLString)                     */
@@ -184,6 +184,8 @@ bool GH5_FetchAttribute( hid_t loc_id, const char *pszAttrName,
 GDALDataType GH5_GetDataType(hid_t TypeID) 
 {
     if( H5Tequal( H5T_NATIVE_CHAR,        TypeID ) )
+	return GDT_Byte;
+    else if( H5Tequal( H5T_NATIVE_SCHAR,  TypeID ) ) 
 	return GDT_Byte;
     else if( H5Tequal( H5T_NATIVE_UCHAR,  TypeID ) ) 
 	return GDT_Byte;

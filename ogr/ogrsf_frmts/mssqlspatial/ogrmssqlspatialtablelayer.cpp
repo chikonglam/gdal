@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrmssqlspatialtablelayer.cpp 25860 2013-04-05 07:20:37Z tamas $
+ * $Id: ogrmssqlspatialtablelayer.cpp 25988 2013-05-05 14:09:05Z tamas $
  *
  * Project:  MSSQL Spatial driver
  * Purpose:  Implements OGRMSSQLSpatialTableLayer class, access to an existing table.
@@ -30,7 +30,7 @@
 #include "cpl_conv.h"
 #include "ogr_mssqlspatial.h"
 
-CPL_CVSID("$Id: ogrmssqlspatialtablelayer.cpp 25860 2013-04-05 07:20:37Z tamas $");
+CPL_CVSID("$Id: ogrmssqlspatialtablelayer.cpp 25988 2013-05-05 14:09:05Z tamas $");
 
 /************************************************************************/
 /*                         OGRMSSQLAppendEscaped( )                     */
@@ -230,6 +230,7 @@ CPLErr OGRMSSQLSpatialTableLayer::Initialize( const char *pszSchema,
                                               const char *pszGeomCol,
                                               int nCoordDimension, 
                                               int nSRId,
+                                              const char *pszSRText,
                                               OGRwkbGeometryType eType )
 
 {
@@ -273,10 +274,24 @@ CPLErr OGRMSSQLSpatialTableLayer::Initialize( const char *pszSchema,
     
     nSRSId = nSRId;
 
-    if (nSRSId < 0)
-        nSRSId = FetchSRSId();
+    if (pszSRText)
+    {
+        /* Process srtext directly if specified */
+        poSRS = new OGRSpatialReference();
+        if( poSRS->importFromWkt( (char**)&pszSRText ) != OGRERR_NONE )
+        {
+            delete poSRS;
+            poSRS = NULL;
+        }
+    }
+    
+    if (!poSRS)
+    {
+        if (nSRSId < 0)
+            nSRSId = FetchSRSId();
 
-    GetSpatialRef();
+        GetSpatialRef();
+    }
 
     return CE_None;
 }

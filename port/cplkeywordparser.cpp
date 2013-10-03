@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: cplkeywordparser.cpp 20996 2010-10-28 18:38:15Z rouault $
+ * $Id: cplkeywordparser.cpp 26085 2013-06-14 20:25:21Z warmerdam $
  *
  * Project:  Common Portability Library
  * Purpose:  Implementation of CPLKeywordParser - a class for parsing
@@ -252,7 +252,7 @@ int CPLKeywordParser::ReadWord( CPLString &osWord )
 
     SkipWhite();
 
-    if( pszHeaderNext == '\0' )
+    if( *pszHeaderNext == '\0' )
         return FALSE;
 
     while( *pszHeaderNext != '\0' 
@@ -365,4 +365,3 @@ const char *CPLKeywordParser::GetKeyword( const char *pszPath,
     else
         return pszResult;
 }
-

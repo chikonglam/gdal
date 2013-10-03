@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdal_translate.cpp 25582 2013-01-29 21:13:43Z rouault $
+ * $Id: gdal_translate.cpp 26091 2013-06-18 19:24:25Z rouault $
  *
  * Project:  GDAL Utilities
  * Purpose:  GDAL Image Translator Program
@@ -35,7 +35,7 @@
 #include "vrt/vrtdataset.h"
 #include "commonutils.h"
 
-CPL_CVSID("$Id: gdal_translate.cpp 25582 2013-01-29 21:13:43Z rouault $");
+CPL_CVSID("$Id: gdal_translate.cpp 26091 2013-06-18 19:24:25Z rouault $");
 
 static int ArgIsNumeric( const char * );
 static void AttachMetadata( GDALDatasetH, char ** );
@@ -1215,7 +1215,11 @@ static int ProxyMain( int argc, char ** argv )
         poVRTBand = (VRTSourcedRasterBand *) poVDS->GetRasterBand( i+1 );
         if (nSrcBand < 0)
         {
-            poVRTBand->AddMaskBandSource(poSrcBand);
+            poVRTBand->AddMaskBandSource(poSrcBand,
+                                         anSrcWin[0], anSrcWin[1],
+                                         anSrcWin[2], anSrcWin[3],
+                                         anDstWin[0], anDstWin[1],
+                                         anDstWin[2], anDstWin[3]);
             continue;
         }
 

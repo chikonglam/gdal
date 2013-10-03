@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrpgdumplayer.cpp 25366 2012-12-27 18:38:53Z rouault $
+ * $Id: ogrpgdumplayer.cpp 26197 2013-07-23 22:16:13Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implements OGRPGDumpLayer class
@@ -31,7 +31,7 @@
 #include "cpl_conv.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: ogrpgdumplayer.cpp 25366 2012-12-27 18:38:53Z rouault $");
+CPL_CVSID("$Id: ogrpgdumplayer.cpp 26197 2013-07-23 22:16:13Z rouault $");
 
 #define USE_COPY_UNSET -1
 
@@ -755,6 +755,9 @@ CPLString OGRPGDumpEscapeString(
             pszDestStr[j++] = '\'';
             pszDestStr[j++] = '\'';
         }
+        /* FIXME: at some point (when we drop PostgreSQL < 9.1 support, remove
+           the escaping of backslash and remove 'SET standard_conforming_strings = OFF'
+           in CreateLayer() */
         else if (pszStrValue[i] == '\\')
         {
             pszDestStr[j++] = '\\';

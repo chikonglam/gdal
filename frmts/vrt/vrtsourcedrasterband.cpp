@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: vrtsourcedrasterband.cpp 25569 2013-01-26 22:32:26Z rouault $
+ * $Id: vrtsourcedrasterband.cpp 26091 2013-06-18 19:24:25Z rouault $
  *
  * Project:  Virtual GDAL Datasets
  * Purpose:  Implementation of VRTSourcedRasterBand
@@ -31,7 +31,7 @@
 #include "cpl_minixml.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: vrtsourcedrasterband.cpp 25569 2013-01-26 22:32:26Z rouault $");
+CPL_CVSID("$Id: vrtsourcedrasterband.cpp 26091 2013-06-18 19:24:25Z rouault $");
 
 /************************************************************************/
 /* ==================================================================== */
@@ -802,8 +802,8 @@ CPLErr VRTSourcedRasterBand::AddMaskBandSource( GDALRasterBand *poSrcBand,
 /* -------------------------------------------------------------------- */
     VRTSimpleSource* poSimpleSource = new VRTSimpleSource();
     poSimpleSource->SetSrcMaskBand( poSrcBand );
-    poSimpleSource->SetSrcWindow( 0, 0, poSrcBand->GetXSize(), poSrcBand->GetYSize() );
-    poSimpleSource->SetDstWindow( 0, 0, nRasterXSize, nRasterYSize );
+    poSimpleSource->SetSrcWindow( nSrcXOff, nSrcYOff, nSrcXSize, nSrcYSize );
+    poSimpleSource->SetDstWindow( nDstXOff, nDstYOff, nDstXSize, nDstYSize );
 
 /* -------------------------------------------------------------------- */
 /*      Default source and dest rectangles.                             */

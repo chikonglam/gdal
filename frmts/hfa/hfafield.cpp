@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: hfafield.cpp 24044 2012-03-01 18:45:30Z warmerdam $
+ * $Id: hfafield.cpp 26254 2013-07-31 19:49:54Z rouault $
  *
  * Project:  Erdas Imagine (.img) Translator
  * Purpose:  Implementation of the HFAField class for managing information
@@ -30,7 +30,7 @@
 
 #include "hfa_p.h"
 
-CPL_CVSID("$Id: hfafield.cpp 24044 2012-03-01 18:45:30Z warmerdam $");
+CPL_CVSID("$Id: hfafield.cpp 26254 2013-07-31 19:49:54Z rouault $");
 
 #define MAX_ENTRY_REPORT   16
                            
@@ -721,6 +721,11 @@ HFAField::SetInstValue( const char * pszField, int nIndexValue,
 
                 HFAStandard( 8, &dfNumber ); 
                 memcpy( pabyData + 12 + nIndexValue * 8, &dfNumber, 8 ); 
+            }
+            else if (nBaseItemType == EPT_u8)
+            {
+                unsigned char nNumber = (unsigned char)dfDoubleValue;
+                memcpy( pabyData + 12 + nIndexValue, &nNumber, 1);
             }
             else
             {

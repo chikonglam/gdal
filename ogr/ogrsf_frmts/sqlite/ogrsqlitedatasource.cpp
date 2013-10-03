@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrsqlitedatasource.cpp 25944 2013-04-21 21:29:14Z rouault $
+ * $Id: ogrsqlitedatasource.cpp 26252 2013-07-30 21:07:00Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implements OGRSQLiteDataSource class.
@@ -47,7 +47,7 @@
 
 static int bSpatialiteLoaded = FALSE;
 
-CPL_CVSID("$Id: ogrsqlitedatasource.cpp 25944 2013-04-21 21:29:14Z rouault $");
+CPL_CVSID("$Id: ogrsqlitedatasource.cpp 26252 2013-07-30 21:07:00Z rouault $");
 
 /************************************************************************/
 /*                      OGRSQLiteInitSpatialite()                       */
@@ -2731,6 +2731,20 @@ int OGRSQLiteDataSource::FetchSRSId( OGRSpatialReference * poSRS )
     }
 
     sqlite3_finalize( hSelectStmt );
+
+/* -------------------------------------------------------------------- */
+/*      Translate SRS to PROJ.4 string (if not already done)            */
+/* -------------------------------------------------------------------- */
+    if( osProj4.size() == 0 )
+    {
+        char* pszProj4 = NULL;
+        if( oSRS.exportToProj4( &pszProj4 ) == OGRERR_NONE )
+        {
+            osProj4 = pszProj4;
+            CPLFree( pszProj4 );
+            pszProj4 = NULL;
+        }
+    }
 
 /* -------------------------------------------------------------------- */
 /*      If we have an authority code try to assign SRS ID the same      */

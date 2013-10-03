@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: bagdataset.cpp 25774 2013-03-20 20:19:13Z rouault $
+ * $Id: bagdataset.cpp 26062 2013-06-04 21:16:21Z rouault $
  *
  * Project:  Hierarchical Data Format Release 5 (HDF5)
  * Purpose:  Read BAG datasets.
@@ -34,7 +34,7 @@
 #include "ogr_spatialref.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: bagdataset.cpp 25774 2013-03-20 20:19:13Z rouault $");
+CPL_CVSID("$Id: bagdataset.cpp 26062 2013-06-04 21:16:21Z rouault $");
 
 CPL_C_START
 void    GDALRegister_BAG(void);
@@ -152,7 +152,7 @@ bool BAGRasterBand::Initialize( hid_t hDatasetID, const char *pszName )
 
     hid_t datatype     = H5Dget_type( hDatasetID );
     dataspace          = H5Dget_space( hDatasetID );
-    hid_t n_dims       = H5Sget_simple_extent_ndims( dataspace );
+    int n_dims         = H5Sget_simple_extent_ndims( dataspace );
     native             = H5Tget_native_type( datatype, H5T_DIR_ASCEND );
     hsize_t dims[3], maxdims[3];
 
@@ -495,6 +495,8 @@ GDALDataset *BAGDataset::Open( GDALOpenInfo * poOpenInfo )
 
     if( hVersion < 0 )
     {
+        if( hBagRoot >= 0 )
+            H5Gclose( hBagRoot );
         H5Fclose( hHDF5 );
         return NULL;
     }

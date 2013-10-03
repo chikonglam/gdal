@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: FGdbDatasource.cpp 25025 2012-10-01 21:06:59Z rouault $
+ * $Id: FGdbDatasource.cpp 26310 2013-08-13 19:54:26Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implements FileGDB OGR Datasource.
@@ -35,7 +35,7 @@
 #include "gdal.h"
 #include "FGdbUtils.h"
 
-CPL_CVSID("$Id: FGdbDatasource.cpp 25025 2012-10-01 21:06:59Z rouault $");
+CPL_CVSID("$Id: FGdbDatasource.cpp 26310 2013-08-13 19:54:26Z rouault $");
 
 using std::vector;
 using std::wstring;
@@ -44,9 +44,9 @@ using std::wstring;
 /*                          FGdbDataSource()                           */
 /************************************************************************/
 
-FGdbDataSource::FGdbDataSource():
+FGdbDataSource::FGdbDataSource(FGdbDriver* poDriver):
 OGRDataSource(),
-m_pszName(0), m_pGeodatabase(NULL)
+m_poDriver(poDriver), m_pszName(0), m_pGeodatabase(NULL)
 {
 }
 
@@ -55,18 +55,13 @@ m_pszName(0), m_pGeodatabase(NULL)
 /************************************************************************/
 
 FGdbDataSource::~FGdbDataSource()
-{   
-    CPLFree( m_pszName );
-
+{
     size_t count = m_layers.size();
     for(size_t i = 0; i < count; ++i )
         delete m_layers[i];
 
-    if (m_pGeodatabase)
-    {
-        ::CloseGeodatabase(*m_pGeodatabase);
-        delete m_pGeodatabase;
-    }
+    m_poDriver->Release( m_pszName );
+    CPLFree( m_pszName );
 }
 
 

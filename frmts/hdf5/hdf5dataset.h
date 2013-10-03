@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: hdf5dataset.h 25775 2013-03-20 20:38:14Z rouault $
+ * $Id: hdf5dataset.h 26062 2013-06-04 21:16:21Z rouault $
  *
  * Project:  Hierarchical Data Format Release 5 (HDF5)
  * Purpose:  Header file for HDF5 datasets reader.
@@ -64,7 +64,6 @@ class HDF5Dataset : public GDALPamDataset
   protected:
 
   hid_t            hHDF5;
-  hid_t            hDatasetID;
   hid_t            hGroupID; /* H handler interface */
   char             **papszSubDatasets;
   int              bIsHDFEOS;

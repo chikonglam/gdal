@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_spatialref.h 25727 2013-03-10 14:56:33Z rouault $
+ * $Id: ogr_spatialref.h 26289 2013-08-10 18:05:31Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Classes for manipulating spatial reference systems in a
@@ -66,6 +66,7 @@ class CPL_DLL OGR_SRSNode
     int         nChildren;
 
     int         NeedsQuoting() const;
+    OGRErr      importFromWkt( char **, int nRecLevel, int* pnNodes );
     
   public:
                 OGR_SRSNode(const char * = NULL);
