@@ -6,7 +6,7 @@ source. Changes are stored in the source package as diffs in
 debian/patches and applied during the build.
 
 To get detailed instructions on how to apply the series of patches
-and modify them, please read /usr/share/doc/dpatch/README.source.
+and modify them, please read /usr/share/doc/quilt/README.source.
 
 Most of applied patches are due to Debian Policy requirements and
 the need of avoiding hidden breakages at every new release, due
@@ -47,9 +47,9 @@ So:
 
  - Use and maintain a versioning script (debian/gdal.symver). The version
    currently used there is `GDAL_1.8', and it should be maintained from one
-   version to another, until an hack will be required for some specific
+   version to another, until a hack will be required for some specific
    future release.
- - Use and maintain ai single arch-indep C-only symbol file as libgdal*.symbols.common
+ - Use and maintain a single arch-indep C-only symbol file as libgdal*.symbols.common
    and an arch-dep C++ demangled symbol file for each arch. They are expected to 
    change at every new upstream release, but can be used to do general checks
    on possible API/ABI violations. Files can be updated by running
