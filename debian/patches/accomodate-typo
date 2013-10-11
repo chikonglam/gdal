@@ -1,0 +1,234 @@
+--- a/NEWS
++++ b/NEWS
+@@ -3106,7 +3106,7 @@ GeoTIFF driver :
+  * Use official value for inverse flattening of the WGS84 ellipsoid (#2787)
+  * Add metadata domain for XML documents (#2786)
+  * Make GTiff driver friendly with files with huge number of bands and pixel interleaving (#2838)
+- * Avoid precaching other bands if block cache size is not big enough to accomodate them (#2838)
++ * Avoid precaching other bands if block cache size is not big enough to accommodate them (#2838)
+  * Internal libtiff (4.0.0beta5) and libgeotiff (1.3.0beta) upgraded
+  * use the SetCitationToSRS call for the PCSCitationGeoKey in a similar fashion to the GTCitationGeoKey (#2933)
+  * NBITS set for GTiffOddBits.  YCbCr JPEG added as a compression type.
+--- a/frmts/grib/degrib18/g2clib-1.0.4/simpack.c
++++ b/frmts/grib/degrib18/g2clib-1.0.4/simpack.c
+@@ -112,7 +112,7 @@ void simpack(g2float *fld,g2int ndpts,g2
+         else if (nbits!=0 && idrstmpl[1]==0) {
+            //
+            //  Use minimum number of bits specified by user and
+-           //  adjust binary scaling factor to accomodate data.
++           //  adjust binary scaling factor to accommodate data.
+            //
+            rmin=rmin*dscale;
+            rmax=rmax*dscale;
+--- a/frmts/gtiff/geotiff.cpp
++++ b/frmts/gtiff/geotiff.cpp
+@@ -1188,7 +1188,7 @@ CPLErr GTiffRasterBand::FillCacheForOthe
+ /*      and O(nBands^2) performance !                                   */
+ /*                                                                      */
+ /*      If there are many bands and the block cache size is not big     */
+-/*      enough to accomodate the size of all the blocks, don't enter    */
++/*      enough to accommodate the size of all the blocks, don't enter   */
+ /* -------------------------------------------------------------------- */
+     if( poGDS->nBands != 1 && !poGDS->bLoadingOtherBands &&
+         nBlockXSize * nBlockYSize * (GDALGetDataTypeSize(eDataType) / 8) < GDALGetCacheMax64() / poGDS->nBands)
+--- a/frmts/gtiff/gt_wkt_srs.cpp
++++ b/frmts/gtiff/gt_wkt_srs.cpp
+@@ -487,7 +487,7 @@ char *GTIFGetOGISDefn( GTIF *hGTIF, GTIF
+                     && psDefn->UOMLengthInMeters != 1.0 )
+                 {
+                     psDefn->ProjParm[iParm] /= psDefn->UOMLengthInMeters;
+-                    CPLDebug( "GTIFF", "converting geokey to accomodate old broken file due to GTIFF_LINEAR_UNITS=BROKEN setting." );
++                    CPLDebug( "GTIFF", "converting geokey to accommodate old broken file due to GTIFF_LINEAR_UNITS=BROKEN setting." );
+                 }
+                 break;
+ 
+--- a/frmts/gtiff/libtiff/tif_getimage.c
++++ b/frmts/gtiff/libtiff/tif_getimage.c
+@@ -2541,7 +2541,7 @@ PickContigCase(TIFFRGBAImage* img)
+ 					 * must always be <= horizontal subsampling; so
+ 					 * there are only a few possibilities and we just
+ 					 * enumerate the cases.
+-					 * Joris: added support for the [1,2] case, nonetheless, to accomodate
++					 * Joris: added support for the [1,2] case, nonetheless, to accommodate
+ 					 * some OJPEG files
+ 					 */
+ 					uint16 SubsamplingHor;
+--- a/frmts/gtiff/libtiff/tif_ojpeg.c
++++ b/frmts/gtiff/libtiff/tif_ojpeg.c
+@@ -141,7 +141,7 @@
+  * OJPEG_BUFFER: Define the size of the desired buffer here. Should be small enough so as to guarantee
+  * 	instant processing, optimal streaming and optimal use of processor cache, but also big
+  * 	enough so as to not result in significant call overhead. It should be at least a few
+- * 	bytes to accomodate some structures (this is verified in asserts), but it would not be
++ * 	bytes to accommodate some structures (this is verified in asserts), but it would not be
+  * 	sensible to make it this small anyway, and it should be at most 64K since it is indexed
+  * 	with uint16. We recommend 2K.
+  * EGYPTIANWALK: You could also define EGYPTIANWALK here, but it is not used anywhere and has
+--- a/man/man1/gdalwarp.1
++++ b/man/man1/gdalwarp.1
+@@ -125,7 +125,7 @@ The source file name(s).
+ The destination file name.  
+ .PP
+ .PP
+-Mosaicing into an existing output file is supported if the output file already exists. The spatial extent of the existing file will not be modified to accomodate new data, so you may have to remove it in that case, or use the -overwrite option.
++Mosaicing into an existing output file is supported if the output file already exists. The spatial extent of the existing file will not be modified to accommodate new data, so you may have to remove it in that case, or use the -overwrite option.
+ .PP
+ Polygon cutlines may be used as a mask to restrict the area of the destination file that may be updated, including blending. If the OGR layer containing the cutline features has no explicit SRS, the cutline features must be in the georeferenced units of the destination file. When outputing to a not yet existing target dataset, its extent will be the one of the original raster unless -te or -crop_to_cutline are specified.
+ .SH "EXAMPLE"
+--- a/ogr/ogr_api.cpp
++++ b/ogr/ogr_api.cpp
+@@ -337,7 +337,7 @@ void OGR_G_GetPoint( OGRGeometryH hGeom,
+  *
+  * If iPoint is larger than the number of existing
+  * points in the linestring, the point count will be increased to
+- * accomodate the request.
++ * accommodate the request.
+  *
+  * @param hGeom handle to the geometry to add a vertex to.
+  * @param i the index of the vertex to assign (zero based) or
+@@ -395,7 +395,7 @@ void OGR_G_SetPoint( OGRGeometryH hGeom,
+  *
+  * If iPoint is larger than the number of existing
+  * points in the linestring, the point count will be increased to
+- * accomodate the request.
++ * accommodate the request.
+  *
+  * @param hGeom handle to the geometry to add a vertex to.
+  * @param i the index of the vertex to assign (zero based) or
+--- a/ogr/ogrlinestring.cpp
++++ b/ogr/ogrlinestring.cpp
+@@ -355,7 +355,7 @@ void OGRLineString::setNumPoints( int nN
+  *
+  * If iPoint is larger than the number of necessary the number of existing
+  * points in the line string, the point count will be increased to
+- * accomodate the request.
++ * accommodate the request.
+  *
+  * There is no SFCOM analog to this method.
+  * 
+@@ -381,7 +381,7 @@ void OGRLineString::setPoint( int iPoint
+  *
+  * If iPoint is larger than the number of necessary the number of existing
+  * points in the line string, the point count will be increased to
+- * accomodate the request.
++ * accommodate the request.
+  * 
+  * There is no SFCOM analog to this method.
+  *
+--- a/ogr/ogrsf_frmts/avc/avc_e00write.c
++++ b/ogr/ogrsf_frmts/avc/avc_e00write.c
+@@ -78,7 +78,7 @@
+  * Accept '-' cahracter in new coverage name
+  *
+  * Revision 1.6  2000/01/10 02:57:44  daniel
+- * Little changes to accomodate read support for "weird" coverages
++ * Little changes to accommodate read support for "weird" coverages
+  *
+  * Revision 1.5  1999/12/24 07:18:34  daniel
+  * Added PC Arc/Info coverages support
+--- a/ogr/ogrsf_frmts/shape/drv_shapefile.html
++++ b/ogr/ogrsf_frmts/shape/drv_shapefile.html
+@@ -155,7 +155,7 @@ the datasource ExecuteSQL() method.</p>
+ <h2>Field sizes</h2>
+ 
+ <p>Starting with GDAL/OGR 1.10, the driver knows to auto-extend string and integer fields
+-(up to the 255 bytes limit imposed by the DBF format) to dynamically accomodate for
++(up to the 255 bytes limit imposed by the DBF format) to dynamically accommodate for
+ the length of the data to be inserted.</p>
+ 
+ <p>It is also possible to force a resize of the fields to the optimal width by issuing a
+--- a/swig/include/php/gdal_php.i
++++ b/swig/include/php/gdal_php.i
+@@ -7,7 +7,7 @@
+ /*
+  * $Log$
+  * Revision 1.1  2005/09/02 16:19:23  kruland
+- * Major reorganization to accomodate multiple language bindings.
++ * Major reorganization to accommodate multiple language bindings.
+  * Each language binding can define renames and supplemental code without
+  * having to have a lot of conditionals in the main interface definition files.
+  *
+--- a/swig/include/php/ogr_php.i
++++ b/swig/include/php/ogr_php.i
+@@ -7,7 +7,7 @@
+ /*
+  * $Log$
+  * Revision 1.1  2005/09/02 16:19:23  kruland
+- * Major reorganization to accomodate multiple language bindings.
++ * Major reorganization to accommodate multiple language bindings.
+  * Each language binding can define renames and supplemental code without
+  * having to have a lot of conditionals in the main interface definition files.
+  *
+--- a/swig/include/ruby/gdal_ruby.i
++++ b/swig/include/ruby/gdal_ruby.i
+@@ -10,7 +10,7 @@
+  * Copied over code from the Python version of gdal_ruby.i.  Will have to port the code to Ruby.
+  *
+  * Revision 1.1  2005/09/02 16:19:23  kruland
+- * Major reorganization to accomodate multiple language bindings.
++ * Major reorganization to accommodate multiple language bindings.
+  * Each language binding can define renames and supplemental code without
+  * having to have a lot of conditionals in the main interface definition files.
+  *
+--- a/swig/include/ruby/ogr_ruby.i
++++ b/swig/include/ruby/ogr_ruby.i
+@@ -16,7 +16,7 @@
+  * Added support for exceptions, removed some outdated code.
+  *
+  * Revision 1.1  2005/09/02 16:19:23  kruland
+- * Major reorganization to accomodate multiple language bindings.
++ * Major reorganization to accommodate multiple language bindings.
+  * Each language binding can define renames and supplemental code without
+  * having to have a lot of conditionals in the main interface definition files.
+  *
+--- a/swig/include/ruby/typemaps_ruby.i
++++ b/swig/include/ruby/typemaps_ruby.i
+@@ -39,7 +39,7 @@
+  * Significantly updated typemaps for Ruby - resynced with the Python typemaps file.
+  *
+  * Revision 1.5  2005/09/02 16:19:23  kruland
+- * Major reorganization to accomodate multiple language bindings.
++ * Major reorganization to accommodate multiple language bindings.
+  * Each language binding can define renames and supplemental code without
+  * having to have a lot of conditionals in the main interface definition files.
+  *
+--- a/swig/java/javadoc.java
++++ b/swig/java/javadoc.java
+@@ -9103,7 +9103,7 @@ public class Geometry:public void SetCoo
+  * <p>
+  * If ipoint is larger than the number of existing
+  * points in the linestring, the point count will be increased to
+- * accomodate the request.
++ * accommodate the request.
+  *
+  * @param ipoint the index of the vertex to assign (zero based) or
+  *  zero for a point.
+@@ -9117,7 +9117,7 @@ public class Geometry:public void SetPoi
+  * <p>
+  * If ipoint is larger than the number of existing
+  * points in the linestring, the point count will be increased to
+- * accomodate the request.
++ * accommodate the request.
+  *
+  * @param ipoint the index of the vertex to assign (zero based) or
+  *  zero for a point.
+@@ -9132,7 +9132,7 @@ public class Geometry:public void SetPoi
+  * <p>
+  * If ipoint is larger than the number of existing
+  * points in the linestring, the point count will be increased to
+- * accomodate the request.
++ * accommodate the request.
+  *
+  * @param ipoint the index of the vertex to assign (zero based) or
+  *  zero for a point.
+--- a/apps/gdalwarp.cpp
++++ b/apps/gdalwarp.cpp
+@@ -204,7 +204,7 @@ Set the color interpretation of the band
+ 
+ Mosaicing into an existing output file is supported if the output file 
+ already exists. The spatial extent of the existing file will not
+-be modified to accomodate new data, so you may have to remove it in that case, or
++be modified to accommodate new data, so you may have to remove it in that case, or
+ use the -overwrite option.
+ 
+ Polygon cutlines may be used as a mask to restrict the area of the destination file

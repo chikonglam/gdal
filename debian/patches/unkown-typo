@@ -1,0 +1,198 @@
+--- a/apps/gdal_grid.cpp
++++ b/apps/gdal_grid.cpp
+@@ -803,7 +803,7 @@ int main( int argc, char ** argv )
+ 
+         else if( argv[i][0] == '-' )
+         {
+-            Usage(CPLSPrintf("Unkown option name '%s'", argv[i]));
++            Usage(CPLSPrintf("Unknown option name '%s'", argv[i]));
+         }
+ 
+         else if( pszSource == NULL )
+--- a/apps/gdal_translate.cpp
++++ b/apps/gdal_translate.cpp
+@@ -633,7 +633,7 @@ static int ProxyMain( int argc, char **
+ 
+         else if( argv[i][0] == '-' )
+         {
+-            Usage(CPLSPrintf("Unkown option name '%s'", argv[i]));
++            Usage(CPLSPrintf("Unknown option name '%s'", argv[i]));
+         }
+         else if( pszSource == NULL )
+         {
+--- a/apps/gdaladdo.cpp
++++ b/apps/gdaladdo.cpp
+@@ -153,7 +153,7 @@ int main( int nArgc, char ** papszArgv )
+             panBandList[nBandCount-1] = nBand;
+         }
+         else if( papszArgv[iArg][0] == '-' )
+-            Usage(CPLSPrintf("Unkown option name '%s'", papszArgv[iArg]));
++            Usage(CPLSPrintf("Unknown option name '%s'", papszArgv[iArg]));
+         else if( pszFilename == NULL )
+             pszFilename = papszArgv[iArg];
+         else if( atoi(papszArgv[iArg]) > 0 )
+--- a/apps/gdalbuildvrt.cpp
++++ b/apps/gdalbuildvrt.cpp
+@@ -1427,7 +1427,7 @@ int main( int nArgc, char ** papszArgv )
+         }
+         else if ( papszArgv[iArg][0] == '-' )
+         {
+-            Usage(CPLSPrintf("Unkown option name '%s'", papszArgv[iArg]));
++            Usage(CPLSPrintf("Unknown option name '%s'", papszArgv[iArg]));
+         }
+         else if( pszOutputFilename == NULL )
+         {
+--- a/apps/gdaldem.cpp
++++ b/apps/gdaldem.cpp
+@@ -2409,7 +2409,7 @@ int main( int argc, char ** argv )
+         }
+         else if( argv[i][0] == '-' )
+         {
+-            Usage(CPLSPrintf("Unkown option name '%s'", argv[i]));
++            Usage(CPLSPrintf("Unknown option name '%s'", argv[i]));
+         }
+         else if( pszSrcFilename == NULL )
+         {
+--- a/apps/gdalinfo.c
++++ b/apps/gdalinfo.c
+@@ -162,7 +162,7 @@ int main( int argc, char ** argv )
+             nSubdataset = atoi(argv[++i]);
+         }
+         else if( argv[i][0] == '-' )
+-            Usage(CPLSPrintf("Unkown option name '%s'", argv[i]));
++            Usage(CPLSPrintf("Unknown option name '%s'", argv[i]));
+         else if( pszFilename == NULL )
+             pszFilename = argv[i];
+         else
+--- a/apps/gdalserver.c
++++ b/apps/gdalserver.c
+@@ -574,7 +574,7 @@ int main(int argc, char* argv[])
+         else if( EQUAL(argv[i], "-daemonize") )
+             ;
+         else if( argv[i][0] == '-' )
+-            Usage(CPLSPrintf("Unkown option name '%s'", argv[i]));
++            Usage(CPLSPrintf("Unknown option name '%s'", argv[i]));
+         else
+             Usage("Too many command options.");
+     }
+--- a/apps/gdalsrsinfo.cpp
++++ b/apps/gdalsrsinfo.cpp
+@@ -212,7 +212,7 @@ int main( int argc, char ** argv )
+         else if( argv[i][0] == '-' )
+         {
+             CSLDestroy( argv );
+-            Usage(CPLSPrintf("Unkown option name '%s'", argv[i]));
++            Usage(CPLSPrintf("Unknown option name '%s'", argv[i]));
+         }
+         else  
+             pszInput = argv[i];
+--- a/apps/gdaltindex.c
++++ b/apps/gdaltindex.c
+@@ -151,7 +151,7 @@ int main(int argc, char *argv[])
+             skip_different_projection = TRUE;
+         }
+         else if( argv[i_arg][0] == '-' )
+-            Usage(CPLSPrintf("Unkown option name '%s'", argv[i_arg]));
++            Usage(CPLSPrintf("Unknown option name '%s'", argv[i_arg]));
+         else if( index_filename == NULL )
+         {
+             index_filename = argv[i_arg];
+--- a/apps/gdaltransform.cpp
++++ b/apps/gdaltransform.cpp
+@@ -202,7 +202,7 @@ int main( int argc, char ** argv )
+         }   
+ 
+         else if( argv[i][0] == '-' )
+-            Usage(CPLSPrintf("Unkown option name '%s'", argv[i]));
++            Usage(CPLSPrintf("Unknown option name '%s'", argv[i]));
+ 
+         else if( pszSrcFilename == NULL )
+             pszSrcFilename = argv[i];
+--- a/apps/gdalwarp.cpp
++++ b/apps/gdalwarp.cpp
+@@ -690,7 +690,7 @@ int main( int argc, char ** argv )
+             bSetColorInterpretation = TRUE;
+ 
+         else if( argv[i][0] == '-' )
+-            Usage(CPLSPrintf("Unkown option name '%s'", argv[i]));
++            Usage(CPLSPrintf("Unknown option name '%s'", argv[i]));
+ 
+         else 
+             papszSrcFiles = CSLAddString( papszSrcFiles, argv[i] );
+--- a/apps/nearblack.cpp
++++ b/apps/nearblack.cpp
+@@ -222,7 +222,7 @@ int main( int argc, char ** argv )
+             papszCreationOptions = CSLAddString(papszCreationOptions, argv[++i]);
+         }
+         else if( argv[i][0] == '-' )
+-            Usage(CPLSPrintf("Unkown option name '%s'", argv[i]));
++            Usage(CPLSPrintf("Unknown option name '%s'", argv[i]));
+         else if( pszInFile == NULL )
+             pszInFile = argv[i];
+         else
+--- a/apps/ogr2ogr.cpp
++++ b/apps/ogr2ogr.cpp
+@@ -1309,7 +1309,7 @@ int main( int nArgc, char ** papszArgv )
+         }
+         else if( papszArgv[iArg][0] == '-' )
+         {
+-            Usage(CPLSPrintf("Unkown option name '%s'", papszArgv[iArg]));
++            Usage(CPLSPrintf("Unknown option name '%s'", papszArgv[iArg]));
+         }
+         else if( pszDestDataSource == NULL )
+             pszDestDataSource = papszArgv[iArg];
+--- a/apps/ogrinfo.cpp
++++ b/apps/ogrinfo.cpp
+@@ -165,7 +165,7 @@ int main( int nArgc, char ** papszArgv )
+         }
+         else if( papszArgv[iArg][0] == '-' )
+         {
+-            Usage(CPLSPrintf("Unkown option name '%s'", papszArgv[iArg]));
++            Usage(CPLSPrintf("Unknown option name '%s'", papszArgv[iArg]));
+         }
+         else if( pszDataSource == NULL )
+             pszDataSource = papszArgv[iArg];
+--- a/ogr/ogrsf_frmts/osm/gpb.h
++++ b/ogr/ogrsf_frmts/osm/gpb.h
+@@ -223,7 +223,7 @@ static void SkipVarInt(GByte** ppabyData
+         pabyData += nDataLength;
+ 
+ /************************************************************************/
+-/*                         SkipUnkownField()                            */
++/*                         SkipUnknownField()                            */
+ /************************************************************************/
+ 
+ #define SKIP_UNKNOWN_FIELD_INLINE(pabyData, pabyDataLimit, verbose) \
+@@ -264,10 +264,10 @@ static void SkipVarInt(GByte** ppabyData
+         }
+ 
+ static
+-int SkipUnkownField(int nKey, GByte* pabyData, GByte* pabyDataLimit, int verbose) CPL_NO_INLINE;
++int SkipUnknownField(int nKey, GByte* pabyData, GByte* pabyDataLimit, int verbose) CPL_NO_INLINE;
+ 
+ static
+-int SkipUnkownField(int nKey, GByte* pabyData, GByte* pabyDataLimit, int verbose)
++int SkipUnknownField(int nKey, GByte* pabyData, GByte* pabyDataLimit, int verbose)
+ {
+     GByte* pabyDataBefore = pabyData;
+     SKIP_UNKNOWN_FIELD_INLINE(pabyData, pabyDataLimit, verbose);
+@@ -278,7 +278,7 @@ end_error:
+ 
+ #define SKIP_UNKNOWN_FIELD(pabyData, pabyDataLimit, verbose) \
+     { \
+-        int _nOffset = SkipUnkownField(nKey, pabyData, pabyDataLimit, verbose); \
++        int _nOffset = SkipUnknownField(nKey, pabyData, pabyDataLimit, verbose); \
+         if (_nOffset < 0) \
+             GOTO_END_ERROR; \
+         pabyData += _nOffset; \
+--- a/ogr/ogrsf_frmts/sqlite/ogrsqlitevirtualogr.cpp
++++ b/ogr/ogrsf_frmts/sqlite/ogrsqlitevirtualogr.cpp
+@@ -640,7 +640,7 @@ int OGR2SQLITE_BestIndex(sqlite3_vtab *p
+         else if( iCol >= 0 && iCol < poFDefn->GetFieldCount() )
+             pszFieldName = poFDefn->GetFieldDefn(iCol)->GetNameRef();
+         else
+-            pszFieldName = "unkown_field";
++            pszFieldName = "unknown_field";
+ 
+         const char* pszOp;
+         switch(pIndex->aConstraint[i].op)

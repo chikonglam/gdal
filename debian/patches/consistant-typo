@@ -1,0 +1,373 @@
+--- a/NEWS
++++ b/NEWS
+@@ -1149,7 +1149,7 @@ Utilities:
+  * Add gdal_ls.py and gdal_cp.py as Python samples
+  * Add new sample utility, gdal_edit.py, to edit in place various information of an existing GDAL dataset (projection, geotransform, nodata, metadata) (#4220)
+  * gdalcopyproj.py: make it copy GCPs too
+- * Add warning if a target filename extension isn't consistant with the output driver
++ * Add warning if a target filename extension isn't consistent with the output driver
+  * Add --pause for convenient debugging, document it and --locale
+ 
+ Multi-driver topics:
+@@ -1607,7 +1607,7 @@ Utilities:
+  * ogr2ogr: take into account fields specified in the -where clause in combinations with -select to create the correct list of fields to pass to SetIgnoredFields() (#4015)
+  * ogr2ogr: fix -zfield option so that the modified geometry properly reports coordinate dimension = 3. Also avoids it to be in the list of ignored field names
+  * ogr2ogr: add -simplify option to simplify geometries
+- * ogr2ogr: add a warning if the target filename has an extension or a prefix that isn't consistant with the default output format (i.e. Shapefile), but which matches another driver. Can be made quiet with -q option
++ * ogr2ogr: add a warning if the target filename has an extension or a prefix that isn't consistent with the default output format (i.e. Shapefile), but which matches another driver. Can be made quiet with -q option
+  * ogrinfo/ogr2ogr: exit when SetAttributeFilter() fails, instead of silently going on (#4261)
+ 
+ Multi driver topics:
+@@ -2113,7 +2113,7 @@ Utilities :
+    to align on a standard grid (#3772)
+ 
+ AAIGRID driver:
+- * Cast nodata value to float to be consistant with precision of pixel data in
++ * Cast nodata value to float to be consistent with precision of pixel data in
+    GDT_Float32 case; small optimization to avoid reading the first 100K when
+    we know that the datatype is already Float32
+  * Allow reading files where decimal separator is comma (#3668)
+@@ -2220,7 +2220,7 @@ GTX driver:
+  * Read NOAA .gtx vertical datum shift files.
+ 
+ GXF driver:
+- * Cast nodata value to float to be consistant with precision of pixel data in
++ * Cast nodata value to float to be consistent with precision of pixel data in
+    GDT_Float32 case
+  * Introduce a GXF_DATATYPE configuration option that can be set to Float64
+  * Use GDALGetScanline() instead of GDALGetRawScanline() so that #SENS
+@@ -2453,7 +2453,7 @@ Core:
+                      OGR_G_SymDifference() and OGR_G_UnionCascaded()
+  * Add C function: OGR_F_StealGeometry()
+  * Move Centroid() method from OGRPolygon to OGRGeometry base class to be able
+-   to operate on various geometry types, and to be consistant with PostGIS
++   to operate on various geometry types, and to be consistent with PostGIS
+    ST_Centroid() capabilities and the underlying GEOS method
+  * Make the GetStyleTable() SetStyleTable() SetStyleTableDirectly() methods on
+    datasources and layers virtual (#2978)
+@@ -3544,7 +3544,7 @@ General:
+         osr.ImportFromMICoordSys(), osr.ExportToMICoordSys(), SpatialReference.Clone()
+         osr.EPSGTreatsAsLatLong(), osr.ImportFromEPSGA()
+  * Make resampling an optionnal parameter for gdal.RegenerateOverview(),
+-   to be consistant with gdal.RegenerateOverviews()
++   to be consistent with gdal.RegenerateOverviews()
+  * NONNULL checks have been added to check various arguments of methods
+  * add missing constants : DCAP_VIRTUALIO, color interpretations, OGR constants
+ 
+@@ -3723,7 +3723,7 @@ Utilities:
+  * gdalinfo: Display checksums on overviews when -checksum is specified
+  * gdalinfo: Display whether the mask band has overviews
+  * ogr2ogr: reset -gt to 1 with -skipfailures, document -gt (#2409)
+- * ogr2ogr: Output error messages on stderr to be consistant; Make error message about failed reprojection more clearer (hopefully); Advertize the use of -skipfailures in error message (#2588)
++ * ogr2ogr: Output error messages on stderr to be consistent; Make error message about failed reprojection more clearer (hopefully); Advertize the use of -skipfailures in error message (#2588)
+  * nearblack: Add support for scanning from top and bottom as well as from the sides.
+  * Prevent crash in gdalwarpsimple utility and in GDALSimpleImageWarp() when source dataset has no raster band
+  * gdal_rasterize: check that coordinates systems match (Ticket #1937)
+--- a/alg/gdaltransformer.cpp
++++ b/alg/gdaltransformer.cpp
+@@ -775,7 +775,7 @@ retry:
+     
+     
+ /* -------------------------------------------------------------------- */
+-/*      Recompute some bounds so that all return values are consistant  */
++/*      Recompute some bounds so that all return values are consistent  */
+ /* -------------------------------------------------------------------- */
+     dfMaxXOut = dfMinXOut + (*pnPixels) * dfPixelSizeX;
+     dfMinYOut = dfMaxYOut - (*pnLines) * dfPixelSizeY;
+--- a/apps/commonutils.cpp
++++ b/apps/commonutils.cpp
+@@ -36,7 +36,7 @@ CPL_CVSID("$Id: commonutils.cpp 25416 20
+ /* -------------------------------------------------------------------- */
+ /*                      CheckExtensionConsistency()                     */
+ /*                                                                      */
+-/*      Check that the target file extension is consistant with the     */
++/*      Check that the target file extension is consistent with the     */
+ /*      requested driver. Actually, we only warn in cases where the     */
+ /*      inconsistency is blatant (use of an extension declared by one   */
+ /*      or several drivers, and not by the selected one)                */
+--- a/apps/nearblack.cpp
++++ b/apps/nearblack.cpp
+@@ -184,7 +184,7 @@ int main( int argc, char ** argv )
+             
+             CSLDestroy( papszTokens );
+ 
+-            /***** check if the number of bands is consistant *****/
++            /***** check if the number of bands is consistent *****/
+ 
+             if ( oColors.size() > 0 &&
+                  oColors.front().size() != oColor.size() )
+--- a/apps/testreprojmulti.cpp
++++ b/apps/testreprojmulti.cpp
+@@ -65,7 +65,7 @@ void ReprojFunc(void* unused)
+         memcpy(padfResultY, padfRefY, 1024 * sizeof(double));
+         poCT->TransformEx( 1024, padfResultX, padfResultY, NULL, NULL );
+ 
+-        /* Check that the results are consistant with the reference results */
++        /* Check that the results are consistent with the reference results */
+         assert(memcmp(padfResultX, padfRefResultX, 1024 * sizeof(double)) == 0);
+         assert(memcmp(padfResultY, padfRefResultY, 1024 * sizeof(double)) == 0);
+ 
+--- a/frmts/bsb/bsb_read.c
++++ b/frmts/bsb/bsb_read.c
+@@ -643,7 +643,7 @@ static int BSBReadHeaderLine( BSBInfo *p
+ /*                  BSBSeekAndCheckScanlineNumber()                     */
+ /*                                                                      */
+ /*       Seek to the beginning of the scanline and check that the       */
+-/*       scanline number in file is consistant with what we expect      */
++/*       scanline number in file is consistent with what we expect      */
+ /*                                                                      */
+ /* @param nScanline zero based line number                              */
+ /************************************************************************/
+@@ -768,7 +768,7 @@ int BSBReadScanline( BSBInfo *psInfo, in
+ 
+ /* -------------------------------------------------------------------- */
+ /*       Seek to the beginning of the scanline and check that the       */
+-/*       scanline number in file is consistant with what we expect      */
++/*       scanline number in file is consistent with what we expect      */
+ /* -------------------------------------------------------------------- */
+     if ( !BSBSeekAndCheckScanlineNumber(psInfo, nScanline, TRUE) )
+     {
+--- a/frmts/nitf/nitfdataset.cpp
++++ b/frmts/nitf/nitfdataset.cpp
+@@ -3563,7 +3563,7 @@ CPLErr NITFDataset::ReadJPEGBlock( int i
+     if( poDS->GetRasterBand(1)->GetRasterDataType() != GetRasterBand(1)->GetRasterDataType())
+     {
+         CPLError( CE_Failure, CPLE_AppDefined,
+-                  "JPEG block %d data type (%s) not consistant with band data type (%s).", 
++                  "JPEG block %d data type (%s) not consistent with band data type (%s).",
+                   iBlock, GDALGetDataTypeName(poDS->GetRasterBand(1)->GetRasterDataType()),
+                   GDALGetDataTypeName(GetRasterBand(1)->GetRasterDataType()) );
+         delete poDS;
+--- a/frmts/nitf/nitfimage.c
++++ b/frmts/nitf/nitfimage.c
+@@ -3300,7 +3300,7 @@ static void NITFLoadLocationTable( NITFI
+                     }
+                     else
+                     {
+-                        CPLDebug("NITF", "The CoverageSectionSubheader content isn't consistant");
++                        CPLDebug("NITF", "The CoverageSectionSubheader content isn't consistent");
+                         bFoundValidLocation = FALSE;
+                         break;
+                     }
+@@ -3313,7 +3313,7 @@ static void NITFLoadLocationTable( NITFI
+                     }
+                     else
+                     {
+-                        CPLDebug("NITF", "The VQ tables content aren't consistant");
++                        CPLDebug("NITF", "The VQ tables content aren't consistent");
+                         bFoundValidLocation = FALSE;
+                         break;
+                     }
+--- a/gcore/gdalpamrasterband.cpp
++++ b/gcore/gdalpamrasterband.cpp
+@@ -998,7 +998,7 @@ PamParseHistogram( CPLXMLNode *psHistIte
+     if( strlen(pszHistCounts) < 2 * (size_t)(*pnBuckets) -1 )
+     {
+         CPLError(CE_Failure, CPLE_AppDefined,
+-                 "HistCounts content isn't consistant with BucketCount value");
++                 "HistCounts content isn't consistent with BucketCount value");
+         return FALSE;
+     }
+ 
+--- a/ogr/ogrsf_frmts/generic/ogr_gensql.cpp
++++ b/ogr/ogrsf_frmts/generic/ogr_gensql.cpp
+@@ -882,7 +882,7 @@ OGRFeature *OGRGenSQLResultsLayer::Trans
+         
+         // If joining a (primary) numeric column with a (secondary) string column
+         // then add implicit casting of the secondary column to numeric. This behaviour
+-        // worked in GDAL < 1.8, and it is consistant with how sqlite behaves too. See #4321
++        // worked in GDAL < 1.8, and it is consistent with how sqlite behaves too. See #4321
+         // For the reverse case, joining a string column with a numeric column, the
+         // string constant will be cast to float by SWQAutoConvertStringToNumeric (#4259)
+         if( eSecondaryFieldType == OFTString &&
+--- a/ogr/ogrsf_frmts/generic/ogrunionlayer.cpp
++++ b/ogr/ogrsf_frmts/generic/ogrunionlayer.cpp
+@@ -459,13 +459,13 @@ void OGRUnionLayer::AutoWarpLayerIfNeces
+             (poSRS != NULL && poSRS2 == NULL) )
+         {
+             CPLError(CE_Warning, CPLE_AppDefined,
+-                    "SRS of layer %s not consistant with layer SRS",
++                    "SRS of layer %s not consistent with layer SRS",
+                     papoSrcLayers[iLayer]->GetName());
+         }
+         else if (poSRS != NULL && poSRS2 != NULL &&
+                  poSRS != poSRS2 && !poSRS->IsSame(poSRS2))
+         {
+-            CPLDebug("VRT", "SRS of layer %s not consistant with layer SRS. "
++            CPLDebug("VRT", "SRS of layer %s not consistent with layer SRS. "
+                      "Trying auto warping",
+                      papoSrcLayers[iLayer]->GetName());
+             OGRCoordinateTransformation* poCT =
+--- a/ogr/ogrsf_frmts/gml/drv_gml.html
++++ b/ogr/ogrsf_frmts/gml/drv_gml.html
+@@ -105,7 +105,7 @@ When reading a feature, the driver will
+ last recognized GML geometry found (in case they are multiples) in the XML subtree describing the feature.<p>
+ 
+ Starting with OGR 1.10, in case of multiple geometry occurences, if a geometry is in a &lt;geometry&gt; element,
+-this will be the one selected. This will make default behaviour consistant with Inspire objects.<p>
++this will be the one selected. This will make default behaviour consistent with Inspire objects.<p>
+ 
+ Starting with OGR 1.8.0, the user can change the .gfs file to select the appropriate
+ geometry by specifying its path with the &lt;GeometryElementPath&gt; element. See the
+--- a/ogr/ogrsf_frmts/idrisi/ogridrisilayer.cpp
++++ b/ogr/ogrsf_frmts/idrisi/ogridrisilayer.cpp
+@@ -160,7 +160,7 @@ int OGRIdrisiLayer::Detect_AVL_ADC(const
+     if( pszRecords == NULL || atoi(pszRecords) != (int)nTotalFeatures )
+     {
+         CPLDebug("IDRISI", ".adc file found, but 'records' not found or not "
+-                 "consistant with feature number declared in .vdc");
++                 "consistent with feature number declared in .vdc");
+         CSLDestroy( papszADC );
+         return FALSE;
+     }
+--- a/ogr/ogrsf_frmts/shape/sbnsearch.c
++++ b/ogr/ogrsf_frmts/shape/sbnsearch.c
+@@ -684,7 +684,7 @@ static int SBNSearchDiskInternal( Search
+ #ifdef sanity_checks
+ /* -------------------------------------------------------------------- */
+ /*      Those tests only check that the shape bounding box in the bin   */
+-/*      are consistant (self-consistant and consistant with the node    */
++/*      are consistent (self-consistent and consistent with the node    */
+ /*      they are attached to). They are optional however (as far as     */
+ /*      the safety of runtime is concerned at least).                   */
+ /* -------------------------------------------------------------------- */
+--- a/ogr/ogrsf_frmts/wfs/ogrwfslayer.cpp
++++ b/ogr/ogrsf_frmts/wfs/ogrwfslayer.cpp
+@@ -1089,7 +1089,7 @@ OGRFeature *OGRWFSLayer::GetNextFeature(
+             poBaseLayer = poBaseDS->GetLayer(0);
+             poBaseLayer->ResetReading();
+ 
+-            /* Check that the layer field definition is consistant with the one */
++            /* Check that the layer field definition is consistent with the one */
+             /* we got in BuildLayerDefn() */
+             if (poFeatureDefn->GetFieldCount() != poBaseLayer->GetLayerDefn()->GetFieldCount())
+                 bGotApproximateLayerDefn = TRUE;
+--- a/port/cpl_csv.cpp
++++ b/port/cpl_csv.cpp
+@@ -462,7 +462,7 @@ char CSVDetectSeperator (const char* psz
+                 chDelimiter = *pszLine;
+             else if (chDelimiter != *pszLine)
+             {
+-                /* The separator is not consistant on the line. */
++                /* The separator is not consistent on the line. */
+                 CPLDebug("CSV", "Inconsistent separator. '%c' and '%c' found. Using ',' as default",
+                          chDelimiter, *pszLine);
+                 chDelimiter = ',';
+--- a/swig/include/gdal_array.i
++++ b/swig/include/gdal_array.i
+@@ -622,9 +622,9 @@ def BandReadAsArray( band, xoff = 0, yof
+             shape_buf_xsize = buf_obj.shape[2]
+             shape_buf_ysize = buf_obj.shape[1]
+         if buf_xsize is not None and buf_xsize != shape_buf_xsize:
+-            raise ValueError('Specified buf_xsize not consistant with array shape')
++            raise ValueError('Specified buf_xsize not consistent with array shape')
+         if buf_ysize is not None and buf_ysize != shape_buf_ysize:
+-            raise ValueError('Specified buf_ysize not consistant with array shape')
++            raise ValueError('Specified buf_ysize not consistent with array shape')
+         buf_xsize = shape_buf_xsize
+         buf_ysize = shape_buf_ysize
+ 
+--- a/swig/java/javadoc.java
++++ b/swig/java/javadoc.java
+@@ -2235,7 +2235,7 @@ public class Dataset:public int ReadRast
+  * <a href="../gdalconst/gdalconstConstants.html#GDT_Byte">gdalconstConstants.GDT_Byte</a>,
+  * <a href="../gdalconst/gdalconstConstants.html#GDT_Int16">gdalconstConstants.GDT_Int16</a>, ...
+  * The pixel values will automatically be translated to/from the Band
+- * data type as needed. The GDAL type must be consistant with the type of the Java array.
++ * data type as needed. The GDAL type must be consistent with the type of the Java array.
+  *
+  * @param array The array into which the data will be written. This buffer must contain at least
+  * buf_xsize * buf_ysize elements * nBandCount .  It is organized
+@@ -2496,7 +2496,7 @@ public class Dataset:public int WriteRas
+  * <a href="../gdalconst/gdalconstConstants.html#GDT_Byte">gdalconstConstants.GDT_Byte</a>,
+  * <a href="../gdalconst/gdalconstConstants.html#GDT_Int16">gdalconstConstants.GDT_Int16</a>, ...
+  * The pixel values will automatically be translated to/from the Band
+- * data type as needed. The GDAL type must be consistant with the type of the Java array.
++ * data type as needed. The GDAL type must be consistent with the type of the Java array.
+  *
+  * @param array The array from which the data will be read. This buffer must contain at least
+  * buf_xsize * buf_ysize elements * nBandCount .  It is organized
+@@ -3639,7 +3639,7 @@ public class Band:public java.nio.ByteBu
+  * <a href="../gdalconst/gdalconstConstants.html#GDT_Byte">gdalconstConstants.GDT_Byte</a>,
+  * <a href="../gdalconst/gdalconstConstants.html#GDT_Int16">gdalconstConstants.GDT_Int16</a>, ...
+  * The pixel values will automatically be translated to/from the Band
+- * data type as needed. The GDAL type must be consistant with the type of the Java array.
++ * data type as needed. The GDAL type must be consistent with the type of the Java array.
+  *
+  * @param array The buffer into which the data should be read.
+  * This buffer must contain at least buf_xsize *
+@@ -4045,7 +4045,7 @@ public class Band:public int WriteRaster
+  * <a href="../gdalconst/gdalconstConstants.html#GDT_Byte">gdalconstConstants.GDT_Byte</a>,
+  * <a href="../gdalconst/gdalconstConstants.html#GDT_Int16">gdalconstConstants.GDT_Int16</a>, ...
+  * The pixel values will automatically be translated to/from the Band
+- * data type as needed. The GDAL type must be consistant with the type of the Java array.
++ * data type as needed. The GDAL type must be consistent with the type of the Java array.
+  *
+  * @param array The buffer into which the data should be read.
+  * This buffer must contain at least buf_xsize *
+--- a/swig/python/osgeo/gdal_array.py
++++ b/swig/python/osgeo/gdal_array.py
+@@ -208,9 +208,9 @@ def BandReadAsArray( band, xoff = 0, yof
+             shape_buf_xsize = buf_obj.shape[2]
+             shape_buf_ysize = buf_obj.shape[1]
+         if buf_xsize is not None and buf_xsize != shape_buf_xsize:
+-            raise ValueError('Specified buf_xsize not consistant with array shape')
++            raise ValueError('Specified buf_xsize not consistent with array shape')
+         if buf_ysize is not None and buf_ysize != shape_buf_ysize:
+-            raise ValueError('Specified buf_ysize not consistant with array shape')
++            raise ValueError('Specified buf_ysize not consistent with array shape')
+         buf_xsize = shape_buf_xsize
+         buf_ysize = shape_buf_ysize
+ 
+--- a/ogr/ogrsf_frmts/gml/gmlfeatureclass.cpp
++++ b/ogr/ogrsf_frmts/gml/gmlfeatureclass.cpp
+@@ -55,7 +55,7 @@ GMLFeatureClass::GMLFeatureClass( const
+     m_nGeometryIndex = -1;
+ 
+     m_pszSRSName = NULL;
+-    m_bSRSNameConsistant = TRUE;
++    m_bSRSNameConsistent = TRUE;
+ }
+ 
+ /************************************************************************/
+@@ -291,7 +291,7 @@ int GMLFeatureClass::GetExtents( double
+ void GMLFeatureClass::SetSRSName( const char* pszSRSName )
+ 
+ {
+-    m_bSRSNameConsistant = TRUE;
++    m_bSRSNameConsistent = TRUE;
+     CPLFree(m_pszSRSName);
+     m_pszSRSName = (pszSRSName) ? CPLStrdup(pszSRSName) : NULL;
+ }
+@@ -303,7 +303,7 @@ void GMLFeatureClass::SetSRSName( const
+ void GMLFeatureClass::MergeSRSName( const char* pszSRSName )
+ 
+ {
+-    if(!m_bSRSNameConsistant)
++    if(!m_bSRSNameConsistent)
+         return;
+ 
+     if( m_pszSRSName == NULL )
+@@ -313,9 +313,9 @@ void GMLFeatureClass::MergeSRSName( cons
+     }
+     else
+     {
+-        m_bSRSNameConsistant = pszSRSName != NULL &&
++        m_bSRSNameConsistent = pszSRSName != NULL &&
+                                   strcmp(m_pszSRSName, pszSRSName) == 0;
+-        if (!m_bSRSNameConsistant)
++        if (!m_bSRSNameConsistent)
+         {
+             CPLFree(m_pszSRSName);
+             m_pszSRSName = NULL;
+--- a/ogr/ogrsf_frmts/gml/gmlreader.h
++++ b/ogr/ogrsf_frmts/gml/gmlreader.h
+@@ -122,7 +122,7 @@ class CPL_DLL GMLFeatureClass
+     int         m_nGeometryIndex;
+ 
+     char       *m_pszSRSName;
+-    int         m_bSRSNameConsistant;
++    int         m_bSRSNameConsistent;
+ 
+ public:
+             GMLFeatureClass( const char *pszName = "" );
