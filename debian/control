@@ -27,9 +27,10 @@ Section: libs
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Recommends: proj-bin
-Replaces: libgdal1
-Conflicts: libgdal1 (<= 1.10.0-0~)
-Breaks: libgdal1-1.6.0
+Breaks: libgdal1 (<= 1.10.0-0~),
+        libgdal1-1.6.0 (<= 1.10.0-0~)
+Replaces: libgdal1 (<= 1.10.0-0~),
+          libgdal1-1.6.0 (<= 1.10.0-0~)
 Description: Geospatial Data Abstraction Library
  GDAL is a translator library for raster geospatial data formats.
  As a library, it presents a single abstract data model to the
@@ -83,7 +84,7 @@ Depends: libgdal1h (=${binary:Version}), libc6-dev, libnetcdf-dev,
  libmysqlclient-dev, libhdf5-serial-dev, libltdl3-dev, libcurl4-gnutls-dev|libcurl4-dev,
  libspatialite-dev, libdap-dev, ${misc:Depends}
 Suggests: libgdal-doc
-Conflicts: libgdal1-dev (<< 1.9.0-1~)
+Breaks: libgdal1-dev (<< 1.9.0-1~)
 Replaces: libgdal1-dev (<< 1.9.0-1~)
 Description: Geospatial Data Abstraction Library - Development files
  GDAL is a translator library for raster geospatial data formats.
