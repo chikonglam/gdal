@@ -220,9 +220,9 @@ binary-common:
 	ln -f $(CURDIR)/debian/libgdal*.symbols.i386 $(CURDIR)/debian/libgdal1h.symbols.kfreebsd-i386
 	ln -f $(CURDIR)/debian/libgdal*.symbols.amd64 $(CURDIR)/debian/libgdal1h.symbols.kfreebsd-amd64
 	# Forces failure ignoring to collect new symbols on all archs
-	dh_makeshlibs -- -c0
+	dh_makeshlibs -Xlibgdal-java -- -c0
 	# Forces failure when symbols change
-	#dh_makeshlibs
+	#dh_makeshlibs -Xlibgdal-java
 	dh_installdeb
 	dh_shlibdeps -L libgdal1h -l debian/libgdal1h/usr/lib
 	dh_gencontrol
