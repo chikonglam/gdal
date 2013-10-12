@@ -143,9 +143,8 @@ clean:
 	rm -rf $(CURDIR)/swig/java/*.so $(CURDIR)/swig/java/*.o $(CURDIR)/swig/java/build/ $(CURDIR)/swig/java/*.jar $(CURDIR)/swig/java/.libs
 	rm -rf $(CURDIR)/.libs
 	rm -f GDALmake.opt-*
-	rm -rf $(CURDIR)/man/man1
 	rm -rf $(CURDIR)/debian/tmp $(CURDIR)/debian/python-tmp
-	rm -rf $(CURDIR)/html $(CURDIR)/doc/br/html $(CURDIR)/doc/ru/html
+	rm -rf $(CURDIR)/doc/br/html $(CURDIR)/doc/ru/html
 	rm -rf $(CURDIR)/frmts/o/.libs
 	rm -f  $(CURDIR)/islibdappost310.*
 	# Removes per arch symbols for compatible archs
