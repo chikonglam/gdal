@@ -21,6 +21,9 @@ GDAL_MAJOR=$(word 1,$(GDALVER))
 GDAL_MINOR=$(word 2,$(GDALVER))
 GDAL_PATCH=$(word 3,$(GDALVER))
 
+%:
+	dh $@ --with autoreconf,python2,python3
+
 versions:
 	@echo Gdal version: $(GDAL_MAJOR).$(GDAL_MINOR).$(GDAL_PATCH)
 	@echo Swig version: $(SWIGVER)
@@ -31,33 +34,42 @@ versions:
 #
 # The following targets are useful to autogen independent plugins sources
 #
-gdal-grass: configure gdal-grass-dist clean
+gdal-grass: override_dh_auto_configure gdal-grass-dist override_dh_auto_clean dh_clean
 gdal-grass-dist:
 	ln -fs $(CURDIR)/GDALmake.opt-$(PYDEF) $(CURDIR)/GDALmake.opt
 	[ -e $(CURDIR)/GDALmake.opt ] && $(MAKE) -C $(CURDIR)/frmts/grass dist
 	mv $(CURDIR)/frmts/grass/libgdal-grass-*.tar.gz $(CURDIR)/..
 	rm -f $(CURDIR)/GDALmake.opt
 
-gdal-ecw: configure gdal-ecw-dist clean
+gdal-ecw: override_dh_auto_configure gdal-ecw-dist override_dh_auto_clean dh_clean
 gdal-ecw-dist:
 	ln -fs $(CURDIR)/GDALmake.opt-$(PYDEF) $(CURDIR)/GDALmake.opt
 	[ -e $(CURDIR)/GDALmake.opt ] && $(MAKE) -C $(CURDIR)/frmts/ecw dist
 	mv $(CURDIR)/frmts/ecw/libgdal-ecw-*.tar.gz $(CURDIR)/..
 	rm -f $(CURDIR)/GDALmake.opt
 
-gdal-mrsid: configure gdal-mrsid-dist clean
+gdal-mrsid: override_dh_auto_configure gdal-mrsid-dist override_dh_auto_clean dh_clean
 gdal-mrsid-dist:
 	ln -fs $(CURDIR)/GDALmake.opt-$(PYDEF) $(CURDIR)/GDALmake.opt
 	[ -e $(CURDIR)/GDALmake.opt ] && $(MAKE) -C $(CURDIR)/frmts/mrsid dist
 	mv $(CURDIR)/frmts/mrsid/libgdal-mrsid-*.tar.gz $(CURDIR)/..
 	rm -f $(CURDIR)/GDALmake.opt
 
+override_dh_auto_clean:
+	[ ! -f GDALmake.opt ] || $(MAKE) distclean
+	rm -rf $(CURDIR)/swig/perl/*.bs
+	rm -rf $(CURDIR)/swig/java/*.so $(CURDIR)/swig/java/*.o $(CURDIR)/swig/java/build/ $(CURDIR)/swig/java/*.jar $(CURDIR)/swig/java/.libs
+	rm -rf $(CURDIR)/.libs
+	rm -f GDALmake.opt-*
+	rm -rf $(CURDIR)/debian/tmp $(CURDIR)/debian/python-tmp
+	rm -rf $(CURDIR)/doc/br/html $(CURDIR)/doc/ru/html
+	rm -rf $(CURDIR)/frmts/o/.libs
+	rm -f  $(CURDIR)/islibdappost310.*
 
+	# Removes per arch symbols for compatible archs
+	rm -f $(CURDIR)/debian/libgdal*.symbols.kfreebsd-i386 $(CURDIR)/debian/libgdal*.symbols.kfreebsd-amd64
 
-configure: configure-stamp
-configure-stamp:
-	dh_testdir
-
+override_dh_auto_configure:
 	for V in $(PYVERS); do \
 		PYTHON=/usr/bin/python$$V ./configure --prefix=/usr \
 			--mandir=\$$\{prefix\}/share/man \
@@ -99,15 +111,7 @@ configure-stamp:
 		mv GDALmake.opt GDALmake.opt-$$V; \
 	done
 
-	touch $@
-
-build-arch: build
-build-indep: build
-
-build: build-stamp
-build-stamp: configure-stamp
-	dh_testdir
-
+override_dh_auto_build:
 	cp `ls GDALmake.opt-*|tail -1` GDALmake.opt
 	$(MAKE) lib-target apps-target
 	rm -rf $(CURDIR)/swig/perl/*.c  $(CURDIR)/swig/perl/*.cpp
@@ -127,31 +131,7 @@ build-stamp: configure-stamp
 	$(MAKE) docs
 	$(MAKE) man
 
-	touch $@
-
-clean:
-	dh_testdir
-	dh_testroot
-
-	[ ! -f GDALmake.opt ] || $(MAKE) distclean
-	rm -rf $(CURDIR)/swig/perl/*.bs
-	rm -rf $(CURDIR)/swig/java/*.so $(CURDIR)/swig/java/*.o $(CURDIR)/swig/java/build/ $(CURDIR)/swig/java/*.jar $(CURDIR)/swig/java/.libs
-	rm -rf $(CURDIR)/.libs
-	rm -f GDALmake.opt-*
-	rm -rf $(CURDIR)/debian/tmp $(CURDIR)/debian/python-tmp
-	rm -rf $(CURDIR)/doc/br/html $(CURDIR)/doc/ru/html
-	rm -rf $(CURDIR)/frmts/o/.libs
-	rm -f  $(CURDIR)/islibdappost310.*
-	# Removes per arch symbols for compatible archs
-	rm -f $(CURDIR)/debian/libgdal*.symbols.kfreebsd-i386 $(CURDIR)/debian/libgdal*.symbols.kfreebsd-amd64
-	dh_clean
-
-install: build
-	dh_testdir
-	dh_testroot
-	dh_prep
-	dh_installdirs
-
+override_dh_auto_install:
 	cp `ls GDALmake.opt-*|tail -1` GDALmake.opt
 	$(MAKE) install BINDINGS="perl java" DESTDIR=$(CURDIR)/debian/tmp \
 			INST_DATA="\$$(prefix)/share/gdal/$(GDAL_MAJOR).$(GDAL_MINOR)"
@@ -199,44 +179,33 @@ install: build
 	echo "libgdal1h: spelling-error-in-binary usr/lib/libgdal.so.$$(basename debian/tmp/usr/lib/libgdal.so.*.*.*|cut -d. -f3,4,5) Nam Name" \
 		>> $(CURDIR)/debian/libgdal1h.lintian-overrides
 
-binary-common:
-	dh_testdir
-	dh_testroot
+override_dh_install:
 	dh_install --autodest --list-missing
-	dh_installdocs
-	dh_installexamples
+
+override_dh_installchangelogs:
 	dh_installchangelogs NEWS
-	dh_link
-	dh_strip
-	dh_compress
-	dh_fixperms
-	dh_lintian
+
+override_dh_python2:
 	dh_python2 -X.info
-	dh_python3 -X.info
 	dh_numpy
-	dh_perl
+
+override_dh_python3:
+	dh_python3 -X.info
+	dh_numpy3
+
+override_dh_makeshlibs:
 	# Adds per arch symbols for compatible archs
 	ln -f $(CURDIR)/debian/libgdal*.symbols.i386 $(CURDIR)/debian/libgdal1h.symbols.kfreebsd-i386
 	ln -f $(CURDIR)/debian/libgdal*.symbols.amd64 $(CURDIR)/debian/libgdal1h.symbols.kfreebsd-amd64
+
 	# Forces failure ignoring to collect new symbols on all archs
 	dh_makeshlibs -Xlibgdal-java -- -c0
 	# Forces failure when symbols change
 	#dh_makeshlibs -Xlibgdal-java
-	dh_installdeb
+
+override_dh_shlibdeps:
 	dh_shlibdeps -L libgdal1h -l debian/libgdal1h/usr/lib
-	dh_gencontrol
-	dh_md5sums
-	dh_builddeb
-
-binary-arch: build install
-	$(MAKE) -f debian/rules DH_OPTIONS=-a binary-common
-
-binary-indep: build install
-	$(MAKE) -f debian/rules DH_OPTIONS=-i binary-common
-
-binary: binary-arch binary-indep
 
 get-orig-source:
 	. debian/get-orig-source
 
-.PHONY: build clean binary-arch binary-indep binary-common binary install gdal-grass-dist versions build-arch build-indep
