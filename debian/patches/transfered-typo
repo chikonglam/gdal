@@ -1,3 +1,6 @@
+Description: Fix 'transfered' typo, replace with 'transferred'.
+Author: Bas Couwenberg <sebastic@xs4all.nl>
+Last-Update: 2013-10-11
 --- a/ogr/ogrsf_frmts/generic/ogrunionlayer.h
 +++ b/ogr/ogrsf_frmts/generic/ogrunionlayer.h
 @@ -94,7 +94,7 @@ class OGRUnionLayer : public OGRLayer

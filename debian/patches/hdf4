@@ -1,3 +1,6 @@
+Description: Link the -alt HDF4 libs.
+Author: Francesco Paolo Lovergine <frankie@debian.org>, Alan Boudreault <aboudreault@mapgears.com>	
+Last-Update: 2012-02-01
 --- a/configure
 +++ b/configure
 @@ -20930,7 +20930,7 @@ fi

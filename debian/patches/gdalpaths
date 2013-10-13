@@ -1,3 +1,6 @@
+Description: Install GDAL plugins in version specific subdirectory.
+Author: Francesco Paolo Lovergine <frankie@debian.org>
+Last-Update: 2013-07-01
 --- a/gcore/gdaldrivermanager.cpp
 +++ b/gcore/gdaldrivermanager.cpp
 @@ -667,7 +667,7 @@ void GDALDriverManager::AutoLoadDrivers(

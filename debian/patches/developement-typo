@@ -1,3 +1,6 @@
+Description: Fix 'developement' typo, replace with 'development'.
+Author: Bas Couwenberg <sebastic@xs4all.nl>
+Last-Update: 2013-10-11
 --- a/NEWS
 +++ b/NEWS
 @@ -224,7 +224,7 @@ Build(Unix):

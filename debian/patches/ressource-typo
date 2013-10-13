@@ -1,3 +1,6 @@
+Description: Fix 'ressources' typo, replace with 'resources'.
+Author: Bas Couwenberg <sebastic@xs4all.nl>
+Last-Update: 2013-10-11
 --- a/NEWS
 +++ b/NEWS
 @@ -1498,7 +1498,7 @@ USGSDEM driver:

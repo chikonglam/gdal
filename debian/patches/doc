@@ -1,3 +1,6 @@
+Description: Fix links to OGR documentation.
+Author: Francesco Paolo Lovergine <frankie@debian.org>, Bas Couwenberg <sebastic@xs4all.nl>
+Last-Update: 2013-10-13
 --- a/doc/index.dox
 +++ b/doc/index.dox
 @@ -19,7 +19,7 @@ for data translation and processing.  Th

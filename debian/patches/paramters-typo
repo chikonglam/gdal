@@ -1,3 +1,6 @@
+Description: Fix 'paramters' typo, replace with 'parameters'.
+Author: Bas Couwenger <sebastic@xs4all.nl>
+Last-Update: 2013-10-11
 --- a/frmts/georaster/georaster_wrapper.cpp
 +++ b/frmts/georaster/georaster_wrapper.cpp
 @@ -705,7 +705,7 @@ bool GeoRasterWrapper::Create( char* psz
