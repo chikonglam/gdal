@@ -20,6 +20,8 @@ gdal (1.10.1+dfsg-0~exp1) UNRELEASED; urgency=low
   * Add doc-base configuration for libgdal-doc.
   * Only install NEWS.Debian in libgdal-dev.
     (closes: #677693)
+  * Reinstate doc patch, refresh and update to fix more links.
+    (closes: #471198)
 
  -- Bas Couwenberg <sebastic@xs4all.nl>  Thu, 03 Oct 2013 23:19:27 +0200
 
