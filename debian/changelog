@@ -24,6 +24,8 @@ gdal (1.10.1+dfsg-0~exp1) UNRELEASED; urgency=low
     (closes: #471198)
   * Drop temporary fix for #564243, doxygen doesn't generate files with extra
     underscores anymore.
+  * Add patch to add a brief description to {gdal,ogr}_utilities documentation.
+    (closes: #421653)
 
  -- Bas Couwenberg <sebastic@xs4all.nl>  Thu, 03 Oct 2013 23:19:27 +0200
 
