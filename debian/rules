@@ -192,12 +192,19 @@ install: build
 	mv $(CURDIR)/debian/tmp$(PERL_PATH)/auto/* $(CURDIR)/debian/tmp/usr/lib/perl5/auto/.
 	mv $(CURDIR)/debian/tmp$(PERL_PATH)/Geo $(CURDIR)/debian/tmp/usr/lib/perl5/.
 	mv $(CURDIR)/debian/tmp/usr/local/lib/site_ruby/$(RUBYDEF)/* $(CURDIR)/debian/tmp/usr/lib/ruby/$(RUBYDEF)/.
+
 	# copy sample programs for python-gdal
 	install -o root -g root -d $(CURDIR)/debian/tmp/usr/share/doc/python-gdal/examples
 	install -o root -g root -m 755 $(CURDIR)/swig/python/samples/*.py $(CURDIR)/debian/tmp/usr/share/doc/python-gdal/examples/.
+
 	# create lintian overrides file
+	echo "# Used for BigTIFF support (#501127)" > $(CURDIR)/debian/libgdal1h.lintian-overrides
 	echo "libgdal1h: embedded-library usr/lib/libgdal.so.$$(basename debian/tmp/usr/lib/libgdal.so.*.*.*|cut -d. -f3,4,5): tiff" \
-		>$(CURDIR)/debian/libgdal1h.lintian-overrides
+		>> $(CURDIR)/debian/libgdal1h.lintian-overrides
+	echo >> $(CURDIR)/debian/libgdal1h.lintian-overrides
+	echo "# False positive on: {136, "Socialist Republic of Viet Nam"}," >> $(CURDIR)/debian/libgdal1h.lintian-overrides
+	echo "libgdal1h: spelling-error-in-binary usr/lib/libgdal.so.$$(basename debian/tmp/usr/lib/libgdal.so.*.*.*|cut -d. -f3,4,5) Nam Name" \
+		>> $(CURDIR)/debian/libgdal1h.lintian-overrides
 
 binary-common:
 	dh_testdir
