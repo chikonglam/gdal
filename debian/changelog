@@ -30,6 +30,7 @@ gdal (1.10.1+dfsg-0~exp1) UNRELEASED; urgency=low
     (closes: #722383)
   * Use minimal dh rules with dh-python, and dh-autoreconf for retooling.
   * Add patch to use hardening flags for java and perl bindings.
+  * Install python scripts without .py extension.
 
  -- Bas Couwenberg <sebastic@xs4all.nl>  Thu, 03 Oct 2013 23:19:27 +0200
 

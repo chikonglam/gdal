@@ -145,7 +145,9 @@ override_dh_auto_install:
 	# install python stuff previuosly built and pre-installed
 	cp -a $(CURDIR)/debian/python-tmp/usr/lib/* $(CURDIR)/debian/tmp/usr/lib/.
 	install -o root -g root -d $(CURDIR)/debian/tmp/usr/bin
-	install -o root -g root -m 755 $(CURDIR)/swig/python/scripts/*.py $(CURDIR)/debian/tmp/usr/bin/.
+	for pyfile in $(shell find swig/python/scripts/ -name "*.py"); do \
+		install -o root -g root -m 755 $$pyfile $(CURDIR)/debian/tmp/usr/bin/`basename $$pyfile | sed 's/\.py//'`; \
+	done
 
 	# java stuff
 	mkdir -p $(CURDIR)/debian/tmp/usr/share/java $(CURDIR)/debian/tmp/usr/lib/jni
