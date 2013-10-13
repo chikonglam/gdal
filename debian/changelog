@@ -26,6 +26,8 @@ gdal (1.10.1+dfsg-0~exp1) UNRELEASED; urgency=low
     underscores anymore.
   * Add patch to add a brief description to {gdal,ogr}_utilities documentation.
     (closes: #421653)
+  * Drop ruby extension for ruby1.8 removal transition. See also: #684433.
+    (closes: #722383)
 
  -- Bas Couwenberg <sebastic@xs4all.nl>  Thu, 03 Oct 2013 23:19:27 +0200
 

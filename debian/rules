@@ -10,7 +10,6 @@
 
 PYVERS=$(shell pyversions -v -r debian/control) $(shell py3versions -v -r)
 PYDEF=$(shell pyversions -dv)
-RUBYDEF=$(shell ruby --version|cut -d' ' -f2|cut -d. -f1,2)
 PERLDEF=$(shell perl -V:version|cut -d\' -f2)
 PERL_VENDOR_ARCH=$(shell perl -V:vendorarch|cut -d\' -f2)
 PERL_ARCH_NAME=$(shell perl -V:archname|cut -d\' -f2)
@@ -27,7 +26,6 @@ versions:
 	@echo Swig version: $(SWIGVER)
 	@echo Python default: $(PYDEF)
 	@echo Python versions: $(PYVERS)
-	@echo Ruby default: $(RUBYDEF)
 	@echo Perl default: $(PERLDEF)
 
 #
@@ -80,7 +78,7 @@ configure-stamp:
 			--with-pg \
 			--with-mysql \
 			--with-perl \
-			--with-ruby \
+			--with-ruby=no \
 			--with-java=/usr/lib/jvm/default-java \
 			--with-python \
 			--with-odbc \
@@ -114,7 +112,6 @@ build-stamp: configure-stamp
 	$(MAKE) lib-target apps-target
 	rm -rf $(CURDIR)/swig/perl/*.c  $(CURDIR)/swig/perl/*.cpp
 	$(MAKE) -C $(CURDIR)/swig/perl generate build
-	$(MAKE) -C $(CURDIR)/swig/ruby generate build
 	$(MAKE) -C $(CURDIR)/swig/java clean generate build
 
 	# It needs pre-installing just after the building due to intermediate cleaning.
@@ -137,7 +134,7 @@ clean:
 	dh_testroot
 
 	[ ! -f GDALmake.opt ] || $(MAKE) distclean
-	rm -rf $(CURDIR)/swig/ruby/.libs $(CURDIR)/swig/perl/*.bs
+	rm -rf $(CURDIR)/swig/perl/*.bs
 	rm -rf $(CURDIR)/swig/java/*.so $(CURDIR)/swig/java/*.o $(CURDIR)/swig/java/build/ $(CURDIR)/swig/java/*.jar $(CURDIR)/swig/java/.libs
 	rm -rf $(CURDIR)/.libs
 	rm -f GDALmake.opt-*
@@ -156,7 +153,7 @@ install: build
 	dh_installdirs
 
 	cp `ls GDALmake.opt-*|tail -1` GDALmake.opt
-	$(MAKE) install BINDINGS="perl ruby java" DESTDIR=$(CURDIR)/debian/tmp \
+	$(MAKE) install BINDINGS="perl java" DESTDIR=$(CURDIR)/debian/tmp \
 			INST_DATA="\$$(prefix)/share/gdal/$(GDAL_MAJOR).$(GDAL_MINOR)"
 	$(MAKE) install-docs DESTDIR=$(CURDIR)/debian/tmp \
 		"INST_DOCS=\$$(prefix)/share/doc/libgdal-doc"\
@@ -184,12 +181,10 @@ install: build
 	# removing embedded rpath in main lib
 	-find $(CURDIR)/debian/tmp/usr/lib -type f -name "*.so*" -exec chrpath --delete {} \;
 
-	# moves ruby/perl stuff the right dirs
+	# moves perl stuff the right dirs
 	install -o root -g root -d $(CURDIR)/debian/tmp/usr/lib/perl5/auto
-	install -o root -g root -d $(CURDIR)/debian/tmp/usr/lib/ruby/$(RUBYDEF)
 	mv $(CURDIR)/debian/tmp$(PERL_PATH)/auto/* $(CURDIR)/debian/tmp/usr/lib/perl5/auto/.
 	mv $(CURDIR)/debian/tmp$(PERL_PATH)/Geo $(CURDIR)/debian/tmp/usr/lib/perl5/.
-	mv $(CURDIR)/debian/tmp/usr/local/lib/site_ruby/$(RUBYDEF)/* $(CURDIR)/debian/tmp/usr/lib/ruby/$(RUBYDEF)/.
 
 	# copy sample programs for python-gdal
 	install -o root -g root -d $(CURDIR)/debian/tmp/usr/share/doc/python-gdal/examples
