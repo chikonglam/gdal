@@ -21,6 +21,14 @@ usr/bin/gdal_sieve
 usr/bin/mkgraticule
 usr/bin/pct2rgb
 usr/bin/rgb2pct
+usr/share/man/man1/gdal2tiles.1
+usr/share/man/man1/gdalmove.1
+usr/share/man/man1/gdal_edit.1
+usr/share/man/man1/gdal_fillnodata.1
 usr/share/man/man1/gdal_merge.1
+usr/share/man/man1/gdal_polygonize.1
+usr/share/man/man1/gdal_proximity.1
+usr/share/man/man1/gdal_retile.1
+usr/share/man/man1/gdal_sieve.1
 usr/share/man/man1/pct2rgb.1
 usr/share/man/man1/rgb2pct.1
