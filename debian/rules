@@ -129,9 +129,7 @@ build-stamp: configure-stamp
 	mkdir $(CURDIR)/html || true
 	$(MAKE) docs
 	$(MAKE) man
-	# a temporary workaround for doxygen problem #564243
-	cd man/man1 && \
-			for i in `find . -name "*__*"`; do basename=`basename $$i`; mv $$basename `echo $$basename|sed -e 's/__/_/'`; done
+
 	touch $@
 
 clean:
