@@ -1,2 +1,3 @@
 # Man pages are automatically generated with sphinx.
 python-gdal: hyphen-used-as-minus-sign 
+python-gdal: binary-without-manpage
