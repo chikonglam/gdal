@@ -21,6 +21,7 @@ usr/bin/gdal_sieve
 usr/bin/mkgraticule
 usr/bin/pct2rgb
 usr/bin/rgb2pct
+usr/share/doc/python-gdal/examples/
 usr/share/man/man1/gdal2tiles.1
 usr/share/man/man1/gdalmove.1
 usr/share/man/man1/gdal_edit.1
