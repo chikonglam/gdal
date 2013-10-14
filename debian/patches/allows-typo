@@ -1,0 +1,14 @@
+Description: Fix 'allows to' typo.
+Author: Bas Couwenberg <sebastic@xs4all.nl>
+Last-Update: 2013-10-13
+--- a/swig/python/scripts/gdal_edit.dox
++++ b/swig/python/scripts/gdal_edit.dox
+@@ -14,7 +14,7 @@ gdal_edit [--help-general] [-a_srs srs_d
+ 
+ \section gdal_edit_description DESCRIPTION
+ 
+-The gdal_edit.py script can be used to allows to edit in place various information
++The gdal_edit.py script can be used to edit in place various information
+ of an existing GDAL dataset (projection, geotransform, nodata, metadata).
+ 
+ It works only with raster formats that support update access to
