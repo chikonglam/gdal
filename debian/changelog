@@ -1,4 +1,4 @@
-gdal (1.10.1+dfsg-0~exp1) UNRELEASED; urgency=low
+gdal (1.10.1+dfsg-0~exp1) experimental; urgency=low
 
   * New upstream release.
   * Add myself to Uploaders.
