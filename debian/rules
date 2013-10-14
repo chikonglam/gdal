@@ -206,11 +206,11 @@ override_dh_installchangelogs:
 	dh_installchangelogs NEWS
 
 override_dh_python2:
-	dh_python2 -X.info
+	dh_python2 -X.info -ppython-gdal
 	dh_numpy
 
 override_dh_python3:
-	dh_python3 -X.info
+	dh_python3 -X.info -ppython3-gdal
 	dh_numpy3
 
 override_dh_makeshlibs:
