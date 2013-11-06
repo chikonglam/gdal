@@ -40,7 +40,7 @@ usr/share/man/man1/gdal_proximity.1
 usr/share/man/man1/gdal_polygonize.1
 usr/share/man/man1/gdal_fillnodata.1
 usr/share/man/man1/gdal_edit.1
-usr/share/man/man1/gdal_calc.1
+#usr/share/man/man1/gdal_calc.1
 usr/share/man/man1/gdal_auth.1
 usr/share/man/man1/gdal2xyz.1
 usr/share/man/man1/gdal2tiles.1
