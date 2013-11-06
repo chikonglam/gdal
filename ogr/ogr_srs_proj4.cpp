@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_srs_proj4.cpp 25229 2012-11-16 19:06:58Z rouault $
+ * $Id: ogr_srs_proj4.cpp 26137 2013-07-05 19:30:23Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  OGRSpatialReference interface to PROJ.4.
@@ -33,7 +33,7 @@
 
 extern int EPSGGetWGS84Transform( int nGeogCS, double *padfTransform );
 
-CPL_CVSID("$Id: ogr_srs_proj4.cpp 25229 2012-11-16 19:06:58Z rouault $");
+CPL_CVSID("$Id: ogr_srs_proj4.cpp 26137 2013-07-05 19:30:23Z rouault $");
 
 /* -------------------------------------------------------------------- */
 /*      The following list comes from osrs/proj/src/pj_ellps.c          */
@@ -380,6 +380,7 @@ OGRErr OGRSpatialReference::importFromProj4( const char * pszProj4 )
     int  i;
     char *pszCleanCopy;
     int   bAddProj4Extension = FALSE;
+    CPLLocaleC  oLocaleEnforcer;
 
 /* -------------------------------------------------------------------- */
 /*      Clear any existing definition.                                  */

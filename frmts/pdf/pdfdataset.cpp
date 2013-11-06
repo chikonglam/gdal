@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: pdfdataset.cpp 25598 2013-02-05 22:24:35Z rouault $
+ * $Id: pdfdataset.cpp 26332 2013-08-15 15:25:30Z rouault $
  *
  * Project:  PDF driver
  * Purpose:  GDALDataset driver for PDF dataset.
@@ -55,7 +55,7 @@
 
 /* g++ -fPIC -g -Wall frmts/pdf/pdfdataset.cpp -shared -o gdal_PDF.so -Iport -Igcore -Iogr -L. -lgdal -lpoppler -I/usr/include/poppler */
 
-CPL_CVSID("$Id: pdfdataset.cpp 25598 2013-02-05 22:24:35Z rouault $");
+CPL_CVSID("$Id: pdfdataset.cpp 26332 2013-08-15 15:25:30Z rouault $");
 
 CPL_C_START
 void    GDALRegister_PDF(void);
@@ -1580,6 +1580,21 @@ int PDFDataset::Identify( GDALOpenInfo * poOpenInfo )
 /************************************************************************/
 
 #ifdef HAVE_POPPLER
+
+static void PDFDatasetErrorFunctionCommon(const CPLString& osError)
+{
+    if (strcmp(osError.c_str(), "Incorrect password") == 0)
+        return;
+    /* Reported on newer USGS GeoPDF */
+    if (strcmp(osError.c_str(), "Couldn't find group for reference to set OFF") == 0)
+    {
+        CPLDebug("PDF", "%s", osError.c_str());
+        return;
+    }
+
+    CPLError(CE_Failure, CPLE_AppDefined, "%s", osError.c_str());
+}
+
 #ifdef POPPLER_0_20_OR_LATER
 static void PDFDatasetErrorFunction(void* userData, ErrorCategory eErrCatagory,
 #ifdef POPPLER_0_23_OR_LATER
@@ -1594,11 +1609,7 @@ static void PDFDatasetErrorFunction(void* userData, ErrorCategory eErrCatagory,
     if (nPos >= 0)
         osError.Printf("Pos = %d, ", (int)nPos);
     osError += pszMsg;
-
-    if (strcmp(osError.c_str(), "Incorrect password") == 0)
-        return;
-
-    CPLError(CE_Failure, CPLE_AppDefined, "%s", osError.c_str());
+    PDFDatasetErrorFunctionCommon(osError);
 }
 #else
 static void PDFDatasetErrorFunction(int nPos, char *pszMsg, va_list args)
@@ -1608,11 +1619,7 @@ static void PDFDatasetErrorFunction(int nPos, char *pszMsg, va_list args)
     if (nPos >= 0)
         osError.Printf("Pos = %d, ", nPos);
     osError += CPLString().vPrintf(pszMsg, args);
-
-    if (strcmp(osError.c_str(), "Incorrect password") == 0)
-        return;
-
-    CPLError(CE_Failure, CPLE_AppDefined, "%s", osError.c_str());
+    PDFDatasetErrorFunctionCommon(osError);
 }
 #endif
 #endif
@@ -2849,6 +2856,10 @@ GDALDataset *PDFDataset::Open( GDALOpenInfo * poOpenInfo )
         }
         else
             break;
+
+        /* Reset errors that could have been issued during opening and that */
+        /* did not result in an invalid document */
+        CPLErrorReset();
     }
 
     poCatalogPoppler = poDocPoppler->getCatalog();

@@ -1,0 +1,206 @@
+Description: Fix 'inconsistant' typo, replace with 'inconsistent'.
+Author: Bas Couwenberg <sebastic@xs4all.nl>
+Last-Update: 2013-10-11
+--- a/frmts/grib/degrib18/degrib/metaname.cpp
++++ b/frmts/grib/degrib18/degrib/metaname.cpp
+@@ -838,7 +838,7 @@ GRIB2ParmTable MeteoAtmos[] = {
+ /* 18 */    {"SNFALB", "Snow free albedo", "%", UC_NONE},
+ };
+ 
+-/* GRIB2 Code table 4.2 : 0.253 or 0.190 (Document is inconsistant.) */
++/* GRIB2 Code table 4.2 : 0.253 or 0.190 (Document is inconsistent.) */
+ GRIB2ParmTable MeteoText[] = {
+    /* 0 */ {"", "Arbitrary text string", "CCITTIA5", UC_NONE},
+ };
+--- a/frmts/grib/degrib18/degrib/tdlpack.cpp
++++ b/frmts/grib/degrib18/degrib/tdlpack.cpp
+@@ -175,7 +175,7 @@ static int ReadTDLPSect1 (uChar *pds, sI
+    t_hour = li_temp - t_day * 100;
+    if ((t_year != year) || (t_month != month) || (t_day != day) ||
+        (t_hour != hour)) {
+-      errSprintf ("Error Inconsistant Times in ReadTDLPSect1.\n");
++      errSprintf ("Error Inconsistent Times in ReadTDLPSect1.\n");
+       return -1;
+    }
+    if (ParseTime (&(pdsMeta->refTime), year, month, day, hour, min, 0) != 0) {
+@@ -232,10 +232,10 @@ static int ReadTDLPSect1 (uChar *pds, sI
+    project_hr = GRIB_UNSIGN_INT2 (*pds, pds[1]);
+    tau = pdsMeta->ID3 - ((pdsMeta->ID3 / 1000) * 1000);
+    if (tau != project_hr) {
+-      printf ("Warning: Inconsistant Projections in hours in "
++      printf ("Warning: Inconsistent Projections in hours in "
+               "ReadTDLPSect1 (%d vs %d)\n", tau, project_hr);
+ /*
+-      errSprintf ("Warning: Inconsistant Projections in hours in "
++      errSprintf ("Warning: Inconsistent Projections in hours in "
+                   "ReadTDLPSect1 (%ld vs %d)\n", tau, project_hr);
+ */
+       project_hr = tau;
+@@ -634,7 +634,7 @@ int TDLP_RefTime (DataSource &fp, sInt4
+ 
+    if ((t_year != year) || (t_month != month) || (t_day != day) ||
+        (t_hour != hour)) {
+-      errSprintf ("Error Inconsistant Times in TDLP_RefTime.\n");
++      errSprintf ("Error Inconsistent Times in TDLP_RefTime.\n");
+       return -1;
+    }
+    if (ParseTime (refTime, year, month, day, hour, min, 0) != 0) {
+--- a/frmts/mbtiles/mbtilesdataset.cpp
++++ b/frmts/mbtiles/mbtilesdataset.cpp
+@@ -1703,7 +1703,7 @@ GDALDataset* MBTilesDataset::Open(GDALOp
+         if (bHasMinMaxLevel && (nMinLevel < 0 || nMinLevel > nMaxLevel))
+         {
+             CPLError(CE_Failure, CPLE_AppDefined,
+-                     "Inconsistant values : min(zoom_level) = %d, max(zoom_level) = %d",
++                     "Inconsistent values : min(zoom_level) = %d, max(zoom_level) = %d",
+                      nMinLevel, nMaxLevel);
+             goto end;
+         }
+--- a/frmts/nitf/nitfdataset.cpp
++++ b/frmts/nitf/nitfdataset.cpp
+@@ -4270,7 +4270,7 @@ NITFDataset::NITFCreateCopy(
+             else
+             {
+                 CPLError((bStrict) ? CE_Failure : CE_Warning, CPLE_NotSupported,
+-                    "Inconsistant ICORDS value with SRS : %s%s.\n", pszICORDS,
++                    "Inconsistent ICORDS value with SRS : %s%s.\n", pszICORDS,
+                     (!bStrict) ? ". Setting it to G instead" : "");
+                 if (bStrict)
+                 {
+--- a/frmts/nitf/nitffile.c
++++ b/frmts/nitf/nitffile.c
+@@ -2523,7 +2523,7 @@ char **NITFGenericMetadataReadTRE(char *
+     if (bError == FALSE && nTreLength > 0 && nTreOffset != nTreLength)
+     {
+         CPLError( CE_Warning, CPLE_AppDefined,
+-                  "Inconsistant declaration of %s TRE",
++                  "Inconsistent declaration of %s TRE",
+                   pszTREName );
+     }
+     if (nTreOffset < nTRESize)
+@@ -2659,7 +2659,7 @@ CPLXMLNode* NITFCreateXMLTre(NITFFile* p
+     if (bError == FALSE && nTreLength > 0 && nTreOffset != nTreLength)
+     {
+         CPLError( CE_Warning, CPLE_AppDefined,
+-                  "Inconsistant declaration of %s TRE",
++                  "Inconsistent declaration of %s TRE",
+                   pszTREName );
+     }
+     if (nTreOffset < nTRESize)
+--- a/frmts/ozi/ozidataset.cpp
++++ b/frmts/ozi/ozidataset.cpp
+@@ -601,7 +601,7 @@ GDALDataset *OZIDataset::Open( GDALOpenI
+         short nTileY = ReadShort(fp, bOzi3, nKeyInit);
+         if (i == 0 && (nW != poDS->nRasterXSize || nH != poDS->nRasterYSize))
+         {
+-            CPLDebug("OZI", "zoom[%d] inconsistant dimensions for zoom level 0 : nW=%d, nH=%d, nTileX=%d, nTileY=%d, nRasterXSize=%d, nRasterYSize=%d",
++            CPLDebug("OZI", "zoom[%d] inconsistent dimensions for zoom level 0 : nW=%d, nH=%d, nTileX=%d, nTileY=%d, nRasterXSize=%d, nRasterYSize=%d",
+                      i, nW, nH, nTileX, nTileY, poDS->nRasterXSize, poDS->nRasterYSize);
+             delete poDS;
+             return NULL;
+--- a/frmts/pds/pdsdataset.cpp
++++ b/frmts/pds/pdsdataset.cpp
+@@ -330,7 +330,7 @@ void PDSDataset::ParseSRS()
+ /*      Calculate upper left corner of pixel in meters from the         */
+ /*      upper  left center pixel sample/line offsets.  It doesn't       */
+ /*      mean the defaults will work for every PDS image, as these       */
+-/*      values are used inconsistantly.  Thus we have included          */
++/*      values are used inconsistently.  Thus we have included          */
+ /*      conversion options to allow the user to override the            */
+ /*      documented PDS3 default. Jan. 2011, for known mapping issues    */
+ /*      see GDAL PDS page or mapping within ISIS3 source (USGS)         */
+--- a/ogr/ogrsf_frmts/shape/ogrshapelayer.cpp
++++ b/ogr/ogrsf_frmts/shape/ogrshapelayer.cpp
+@@ -89,7 +89,7 @@ OGRShapeLayer::OGRShapeLayer( OGRShapeDa
+         nTotalShapeCount = hSHP->nRecords;
+         if( hDBF != NULL && hDBF->nRecords != nTotalShapeCount )
+         {
+-            CPLDebug("Shape", "Inconsistant record number in .shp (%d) and in .dbf (%d)",
++            CPLDebug("Shape", "Inconsistent record number in .shp (%d) and in .dbf (%d)",
+                      hSHP->nRecords, hDBF->nRecords);
+         }
+     }
+--- a/ogr/ogrsf_frmts/shape/sbnsearch.c
++++ b/ogr/ogrsf_frmts/shape/sbnsearch.c
+@@ -328,7 +328,7 @@ SBNSearchHandle SBNOpenDiskTree( const c
+         if ((nBinStart > 0 && nNodeShapeCount == 0) ||
+             nNodeShapeCount < 0 || nNodeShapeCount > nShapeCount)
+         {
+-            hSBN->sHooks.Error( "Inconsistant shape count in bin" );
++            hSBN->sHooks.Error( "Inconsistent shape count in bin" );
+             SBNCloseDiskTree(hSBN);
+             return NULL;
+         }
+@@ -637,7 +637,7 @@ static int SBNSearchDiskInternal( Search
+             {
+                 free(psNode->pabyShapeDesc);
+                 psNode->pabyShapeDesc = NULL;
+-                hSBN->sHooks.Error( "Inconsistant shape count for bin" );
++                hSBN->sHooks.Error( "Inconsistent shape count for bin" );
+                 return FALSE;
+             }
+ 
+@@ -737,7 +737,7 @@ static int SBNSearchDiskInternal( Search
+         {
+             free(psNode->pabyShapeDesc);
+             psNode->pabyShapeDesc = NULL;
+-            hSBN->sHooks.Error( "Inconsistant shape count for bin" );
++            hSBN->sHooks.Error( "Inconsistent shape count for bin" );
+             return FALSE;
+         }
+ 
+--- a/ogr/ogrsf_frmts/wfs/ogrwfslayer.cpp
++++ b/ogr/ogrsf_frmts/wfs/ogrwfslayer.cpp
+@@ -2454,7 +2454,7 @@ OGRErr OGRWFSLayer::CommitTransaction()
+             if ((int)aosFIDList.size() != nGotInserted)
+             {
+                 CPLError(CE_Failure, CPLE_AppDefined,
+-                        "Inconsistant InsertResults: did not get expected FID count");
++                        "Inconsistent InsertResults: did not get expected FID count");
+                 CPLDestroyXMLNode( psXML );
+                 CPLHTTPDestroyResult(psResult);
+                 return OGRERR_FAILURE;
+--- a/port/cpl_csv.cpp
++++ b/port/cpl_csv.cpp
+@@ -463,7 +463,7 @@ char CSVDetectSeperator (const char* psz
+             else if (chDelimiter != *pszLine)
+             {
+                 /* The separator is not consistant on the line. */
+-                CPLDebug("CSV", "Inconsistant separator. '%c' and '%c' found. Using ',' as default",
++                CPLDebug("CSV", "Inconsistent separator. '%c' and '%c' found. Using ',' as default",
+                          chDelimiter, *pszLine);
+                 chDelimiter = ',';
+                 break;
+--- a/port/cpl_vsisimple.cpp
++++ b/port/cpl_vsisimple.cpp
+@@ -511,7 +511,7 @@ void VSICheckMarkerBegin(char* ptr)
+     if (memcmp(ptr, "VSIM", 4) != 0)
+     {
+         CPLError(CE_Fatal, CPLE_AppDefined,
+-                 "Inconsistant use of VSI memory allocation primitives for %p : %c%c%c%c",
++                 "Inconsistent use of VSI memory allocation primitives for %p : %c%c%c%c",
+                  ptr, ptr[0], ptr[1], ptr[2], ptr[3]);
+     }
+ }
+--- a/swig/include/cpl.i
++++ b/swig/include/cpl.i
+@@ -477,7 +477,7 @@ int wrapper_VSIFWriteL( int nLen, char *
+ {
+     if (nLen < size * memb)
+     {
+-        CPLError(CE_Failure, CPLE_AppDefined, "Inconsistant buffer size with 'size' and 'memb' values");
++        CPLError(CE_Failure, CPLE_AppDefined, "Inconsistent buffer size with 'size' and 'memb' values");
+         return 0;
+     }
+     return VSIFWriteL(pBuf, size, memb, f);
+--- a/swig/python/extensions/gdal_wrap.cpp
++++ b/swig/python/extensions/gdal_wrap.cpp
+@@ -3497,7 +3497,7 @@ int wrapper_VSIFWriteL( int nLen, char *
+ {
+     if (nLen < size * memb)
+     {
+-        CPLError(CE_Failure, CPLE_AppDefined, "Inconsistant buffer size with 'size' and 'memb' values");
++        CPLError(CE_Failure, CPLE_AppDefined, "Inconsistent buffer size with 'size' and 'memb' values");
+         return 0;
+     }
+     return VSIFWriteL(pBuf, size, memb, f);

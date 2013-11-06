@@ -1,0 +1,37 @@
+Description: Fix 'algoritm' typo, replace with 'algorithm'.
+Author: Bas Couwenberg <sebastic@xs4all.nl>
+Last-Update: 2013-10-11
+--- a/swig/include/Operations.i
++++ b/swig/include/Operations.i
+@@ -447,7 +447,7 @@ int wrapper_GridCreate( char* algorithmO
+     
+     if ( eErr != CE_None )
+     {
+-        CPLError( eErr, CPLE_AppDefined, "Failed to process algoritm name and parameters.\n" );
++        CPLError( eErr, CPLE_AppDefined, "Failed to process algorithm name and parameters.\n" );
+         return eErr;
+     }
+ 
+--- a/alg/gdalgrid.cpp
++++ b/alg/gdalgrid.cpp
+@@ -2032,17 +2032,17 @@ GDALGridCreate( GDALGridAlgorithm eAlgor
+ /*      defaults.                                                       */
+ /************************************************************************/
+ 
+-CPLErr ParseAlgorithmAndOptions( const char *pszAlgoritm,
++CPLErr ParseAlgorithmAndOptions( const char *pszAlgorithm,
+                                  GDALGridAlgorithm *peAlgorithm,
+                                  void **ppOptions )
+ {
+-    CPLAssert( pszAlgoritm );
++    CPLAssert( pszAlgorithm );
+     CPLAssert( peAlgorithm );
+     CPLAssert( ppOptions );
+ 
+     *ppOptions = NULL;
+ 
+-    char **papszParms = CSLTokenizeString2( pszAlgoritm, ":", FALSE );
++    char **papszParms = CSLTokenizeString2( pszAlgorithm, ":", FALSE );
+ 
+     if ( CSLCount(papszParms) < 1 )
+         return CE_Failure;

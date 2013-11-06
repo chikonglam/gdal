@@ -1,2 +1,5 @@
 version=3
-http://download.osgeo.org/gdal gdal-([0-9]\.[[0-9]\.[0-9]+)\.tar\.gz 
+opts=dversionmangle=s/\+(debian|dfsg|ds|deb)\d*$//,uversionmangle=s/(\d)[_\.\-\+]?((RC|rc|pre|dev|beta|alpha)\d*)$/$1~$2/ \
+http://trac.osgeo.org/gdal/wiki/DownloadSource \
+(?:|.*/)gdal(?:[_\-]v?|)(\d\S*)\.(?:tar\.xz|txz|tar\.bz2|tbz2|tar\.gz|tgz) \
+debian debian/get-orig-source

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: hdf5imagedataset.cpp 25801 2013-03-25 17:26:49Z antonio $
+ * $Id: hdf5imagedataset.cpp 26062 2013-06-04 21:16:21Z rouault $
  *
  * Project:  Hierarchical Data Format Release 5 (HDF5)
  * Purpose:  Read subdatasets of HDF5 file.
@@ -37,7 +37,7 @@
 #include "hdf5dataset.h"
 #include "ogr_spatialref.h"
 
-CPL_CVSID("$Id: hdf5imagedataset.cpp 25801 2013-03-25 17:26:49Z antonio $");
+CPL_CVSID("$Id: hdf5imagedataset.cpp 26062 2013-06-04 21:16:21Z rouault $");
 
 CPL_C_START
 void GDALRegister_HDF5Image(void);
@@ -166,6 +166,10 @@ HDF5ImageDataset::HDF5ImageDataset()
     adfGeoTransform[5] = 1.0;
     iSubdatasetType    = UNKNOWN_PRODUCT;
     bHasGeoTransform   = false;
+    dataset_id         = -1;
+    dataspace_id       = -1;
+    datatype           = -1;
+    native             = -1;
 }
 
 /************************************************************************/
@@ -174,6 +178,15 @@ HDF5ImageDataset::HDF5ImageDataset()
 HDF5ImageDataset::~HDF5ImageDataset( )
 {
     FlushCache();
+    
+    if( dataset_id > 0 )
+        H5Dclose(dataset_id);
+    if( dataspace_id > 0 )
+        H5Sclose(dataspace_id);
+    if( datatype > 0 )
+        H5Tclose(datatype);
+    if( native > 0 )
+        H5Tclose(native);
 
     CPLFree(pszProjection);
     CPLFree(pszGCPProjection);
@@ -458,17 +471,20 @@ GDALDataset *HDF5ImageDataset::Open( GDALOpenInfo * poOpenInfo )
     /* -------------------------------------------------------------------- */
     /*    Check for drive name in windows HDF5:"D:\...                      */
     /* -------------------------------------------------------------------- */
+    CPLString osSubdatasetName;
+
     strcpy(szFilename, papszName[1]);
 
     if( strlen(papszName[1]) == 1 && papszName[3] != NULL )
     {
         strcat(szFilename, ":");
         strcat(szFilename, papszName[2]);
-
-        poDS->SetSubdatasetName( papszName[3] );
+        osSubdatasetName = papszName[3];
     }
     else
-        poDS->SetSubdatasetName( papszName[2] );
+        osSubdatasetName = papszName[2];
+    
+    poDS->SetSubdatasetName( osSubdatasetName );
 
     CSLDestroy(papszName);
     papszName = NULL;
@@ -512,7 +528,7 @@ GDALDataset *HDF5ImageDataset::Open( GDALOpenInfo * poOpenInfo )
 /* -------------------------------------------------------------------- */
     poDS->poH5Objects =
         poDS->HDF5FindDatasetObjectsbyPath( poDS->poH5RootGroup,
-                                            (char *)poDS->GetSubdatasetName() );
+                                            osSubdatasetName );
 
     if( poDS->poH5Objects == NULL ) {
         delete poDS;
@@ -747,6 +763,12 @@ CPLErr HDF5ImageDataset::CreateProjections()
         CPLFree( Latitude );
         CPLFree( Longitude );
     }
+    
+    if( LatitudeDatasetID > 0 )
+        H5Dclose(LatitudeDatasetID);
+    if( LongitudeDatasetID > 0 )
+        H5Dclose(LongitudeDatasetID);
+
         break;
     }
     }
@@ -866,6 +888,9 @@ void HDF5ImageDataset::CaptureCSKGeolocation(int iProductType)
     double *dfProjScaleFactor;
     double *dfCenterCoord;
 
+    //Set the ellipsoid to WGS84
+    oSRS.SetWellKnownGeogCS( "WGS84" );
+
     if(iProductType == PROD_CSK_L1C||iProductType == PROD_CSK_L1D)
     {
         //Check if all the metadata attributes are present
@@ -882,7 +907,6 @@ void HDF5ImageDataset::CaptureCSKGeolocation(int iProductType)
         }
         else
         {
-
             //Fetch projection Type
             CPLString osProjectionID = GetMetadataItem("Projection_ID");
 
@@ -924,9 +948,6 @@ void HDF5ImageDataset::CaptureCSKGeolocation(int iProductType)
     }
     else
     {
-        //Set the ellipsoid to WGS84
-        oSRS.SetWellKnownGeogCS( "WGS84" );
-
         //Export GCPProjection to Wkt.
         //In case of error then clean the projection
         if(oSRS.exportToWkt(&pszGCPProjection) != OGRERR_NONE)

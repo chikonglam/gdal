@@ -1,0 +1,36 @@
+Description: Add support for all hardening buildflags.
+Author: Bas Couwenberg <sebastic@xs4all.nl>
+Last-Update: 2013-10-13
+--- a/swig/perl/Makefile.PL
++++ b/swig/perl/Makefile.PL
+@@ -1,4 +1,5 @@
+ use ExtUtils::MakeMaker;
++use Config;
+ 
+ # pick up our parameters from @ARGV
+ my %ARGV;
+@@ -120,6 +121,8 @@ for my $module (keys %object) {
+ 		   MAKEFILE => 'Makefile_'.$add,
+ 		   LIBS => $LIB,
+ 		   INC => $INC,
++		   OPTIMIZE => "$ENV{CFLAGS} $ENV{CPPFLAGS}",
++		   LD => "$Config{ld} $ENV{CFLAGS} $ENV{LDFLAGS}",
+ 		   OBJECT => $object{$module},
+ 		   PM => {'lib/Geo/GDAL.pm' => '$(INST_LIBDIR)/GDAL.pm',
+ 			  'lib/Geo/OGR.pm' => '$(INST_LIBDIR)/OGR.pm',
+--- a/swig/java/GNUmakefile
++++ b/swig/java/GNUmakefile
+@@ -76,10 +76,10 @@ $(JAVA_MODULES): lib%jni.$(SO_EXT): %_wr
+ # Do not remove -fno-strict-aliasing while SWIG generates weird code in upcast methods
+ # See http://trac.osgeo.org/gdal/changeset/16006
+ %.$(OBJ_EXT): %.cpp
+-	$(CXX) -fno-strict-aliasing $(CFLAGS) $(GDAL_INCLUDE) $(JAVA_INCLUDE) -c $<
++	$(CXX) -fno-strict-aliasing $(CFLAGS) $(CPPFLAGS) $(GDAL_INCLUDE) $(JAVA_INCLUDE) -c $<
+ 
+ %.$(OBJ_EXT): %.cxx
+-	$(CXX) -fno-strict-aliasing $(CFLAGS) $(GDAL_INCLUDE) $(JAVA_INCLUDE) -c $<
++	$(CXX) -fno-strict-aliasing $(CFLAGS) $(CPPFLAGS) $(GDAL_INCLUDE) $(JAVA_INCLUDE) -c $<
+ 
+ %.$(OBJ_EXT): %.c
+-	$(CC) -fno-strict-aliasing $(CFLAGS) $(GDAL_INCLUDE) $(JAVA_INCLUDE) -c $<
++	$(CC) -fno-strict-aliasing $(CFLAGS) $(CPPFLAGS) $(GDAL_INCLUDE) $(JAVA_INCLUDE) -c $<

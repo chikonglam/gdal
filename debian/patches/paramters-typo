@@ -1,0 +1,45 @@
+Description: Fix 'paramters' typo, replace with 'parameters'.
+Author: Bas Couwenger <sebastic@xs4all.nl>
+Last-Update: 2013-10-11
+--- a/frmts/georaster/georaster_wrapper.cpp
++++ b/frmts/georaster/georaster_wrapper.cpp
+@@ -705,7 +705,7 @@ bool GeoRasterWrapper::Create( char* psz
+     nBandBlockSize   = nBandBlockSize   == 0 ? 1 : nBandBlockSize;
+ 
+     //  -----------------------------------------------------------
+-    //  Blocking storage paramters
++    //  Blocking storage parameters
+     //  -----------------------------------------------------------
+ 
+     CPLString sBlocking;
+@@ -776,7 +776,7 @@ bool GeoRasterWrapper::Create( char* psz
+     }
+ 
+     //  -----------------------------------------------------------
+-    //  Complete format paramters
++    //  Complete format parameters
+     //  -----------------------------------------------------------
+ 
+     if( poConnection->GetVersion() > 10 )
+--- a/ogr/ogrsf_frmts/filegdb/FGdbLayer.cpp
++++ b/ogr/ogrsf_frmts/filegdb/FGdbLayer.cpp
+@@ -1103,7 +1103,7 @@ CPLXMLNode* XMLSpatialReference(OGRSpati
+     const char* gridvalues[7];
+ 
+     /* 
+-    Need different default paramters for geographic and projected coordinate systems.
++    Need different default parameters for geographic and projected coordinate systems.
+     Try and use ArcGIS 10 default values.
+     */
+     // default tolerance is 1mm in the units of the coordinate system
+--- a/frmts/pcidsk/sdk/segment/cpcidskgeoref.cpp
++++ b/frmts/pcidsk/sdk/segment/cpcidskgeoref.cpp
+@@ -317,7 +317,7 @@ void CPCIDSKGeoref::WriteParameters( std
+     Load();
+ 
+     if( parms.size() < 17 )
+-        ThrowPCIDSKException( "Did not get expected number of paramters in WriteParameters()" );
++        ThrowPCIDSKException( "Did not get expected number of parameters in WriteParameters()" );
+ 
+     unsigned int i;
+ 

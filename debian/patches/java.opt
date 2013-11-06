@@ -1,7 +1,9 @@
-Index: gdal/swig/java/java.opt
-===================================================================
---- gdal.orig/swig/java/java.opt	2013-07-01 12:07:30.000000000 +0200
-+++ gdal/swig/java/java.opt	2013-07-01 12:07:50.000000000 +0200
+Description: Fix path to default JVM.
+Bug-Debian: http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=628022
+Author: Ezequiel Lara Gómez <ezequiel.lara@yahoo.es>
+Last-Update: 2013-07-01
+--- a/swig/java/java.opt
++++ b/swig/java/java.opt
 @@ -1,7 +1,7 @@
  #
  # Java Stuff

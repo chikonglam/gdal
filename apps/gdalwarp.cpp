@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdalwarp.cpp 25894 2013-04-10 13:53:24Z etourigny $
+ * $Id: gdalwarp.cpp 26006 2013-05-16 15:00:44Z etourigny $
  *
  * Project:  High Performance Image Reprojector
  * Purpose:  Test program for high performance warper API.
@@ -35,7 +35,7 @@
 #include "commonutils.h"
 #include <vector>
 
-CPL_CVSID("$Id: gdalwarp.cpp 25894 2013-04-10 13:53:24Z etourigny $");
+CPL_CVSID("$Id: gdalwarp.cpp 26006 2013-05-16 15:00:44Z etourigny $");
 
 static void
 LoadCutline( const char *pszCutlineDSName, const char *pszCLayer, 
@@ -2128,6 +2128,9 @@ TransformCutlineToSource( GDALDatasetH hSrcDS, void *hCutline,
     else if( GDALGetGCPProjection( hSrcDS ) != NULL )
         pszProjection = GDALGetGCPProjection( hSrcDS );
 
+    if( pszProjection == NULL || EQUAL( pszProjection, "" ) )
+        pszProjection = CSLFetchNameValue( papszTO, "SRC_SRS" );
+
     if( pszProjection != NULL )
     {
         hRasterSRS = OSRNewSpatialReference(NULL);
@@ -2232,7 +2235,8 @@ RemoveConflictingMetadata( GDALMajorObjectH hObj, char **papszMetadata,
         pszValueComp = GDALGetMetadataItem( hObj, pszKey, NULL );
         if ( ( pszValueRef == NULL || pszValueComp == NULL ||
                ! EQUAL( pszValueRef, pszValueComp ) ) &&
-             ! EQUAL( pszValueComp, pszValueConflict ) ) {
+             ( pszValueComp == NULL ||
+               ! EQUAL( pszValueComp, pszValueConflict ) ) ) {
             GDALSetMetadataItem( hObj, pszKey, pszValueConflict, NULL ); 
         }
         CPLFree( pszKey ); 

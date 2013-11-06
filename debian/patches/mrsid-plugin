@@ -1,8 +1,9 @@
-Index: gdal/frmts/mrsid/GNUmakefile
-===================================================================
---- gdal.orig/frmts/mrsid/GNUmakefile	2013-06-20 10:05:16.000000000 +0200
-+++ gdal/frmts/mrsid/GNUmakefile	2013-06-20 10:05:16.000000000 +0200
-@@ -31,3 +31,10 @@
+Description: Add support for building the libgdal-mrsid plugin.
+Author: Alan Boudreault <aboudreault@mapgears.com>, Francesco Paolo Lovergine <frankie@debian.org>
+Last-Update: 2010-05-14
+--- a/frmts/mrsid/GNUmakefile
++++ b/frmts/mrsid/GNUmakefile
+@@ -31,3 +31,10 @@ $(PLUGIN_DLL):  $(OBJ)
  #	    -rpath $(INST_LIB) \
  #	    -no-undefined -export-dynamic
  
@@ -13,10 +14,8 @@ Index: gdal/frmts/mrsid/GNUmakefile
 +	cp *.cpp libgdal-mrsid-$(GDAL_VER)
 +	tar czvf libgdal-mrsid-$(GDAL_VER).tar.gz ./libgdal-mrsid-$(GDAL_VER)
 +	rm -rf libgdal-mrsid-$(GDAL_VER)
-Index: gdal/frmts/mrsid/pkg/Makefile.in
-===================================================================
---- /dev/null	1970-01-01 00:00:00.000000000 +0000
-+++ gdal/frmts/mrsid/pkg/Makefile.in	2013-06-20 10:05:16.000000000 +0200
+--- /dev/null
++++ b/frmts/mrsid/pkg/Makefile.in
 @@ -0,0 +1,36 @@
 +CC	=	@CC@
 +CXX	=	@CXX@
@@ -54,10 +53,8 @@ Index: gdal/frmts/mrsid/pkg/Makefile.in
 +%.o:	%.cpp
 +	$(CXX) $(CXXFLAGS) $(CPPFLAGS) -c -o $@ $<
 +
-Index: gdal/frmts/mrsid/pkg/README
-===================================================================
---- /dev/null	1970-01-01 00:00:00.000000000 +0000
-+++ gdal/frmts/mrsid/pkg/README	2013-06-20 10:05:16.000000000 +0200
+--- /dev/null
++++ b/frmts/mrsid/pkg/README
 @@ -0,0 +1,34 @@
 +	Standalone MrSID Drivers for GDAL
 +	===================================
@@ -93,10 +90,8 @@ Index: gdal/frmts/mrsid/pkg/README
 +  http://www.gdal.org/
 +  http://www.lizardtech.com/
 +  http://www.lizardtech.com/download/
-Index: gdal/frmts/mrsid/pkg/aclocal.m4
-===================================================================
---- /dev/null	1970-01-01 00:00:00.000000000 +0000
-+++ gdal/frmts/mrsid/pkg/aclocal.m4	2013-06-20 10:05:16.000000000 +0200
+--- /dev/null
++++ b/frmts/mrsid/pkg/aclocal.m4
 @@ -0,0 +1,202 @@
 +AC_DEFUN(AC_COMPILER_LOCALHACK,
 +[
@@ -300,10 +295,8 @@ Index: gdal/frmts/mrsid/pkg/aclocal.m4
 +  AC_SUBST(LD_SHARED,$LD_SHARED)
 +  AC_SUBST(SO_EXT,$SO_EXT)
 +])
-Index: gdal/frmts/mrsid/pkg/configure
-===================================================================
---- /dev/null	1970-01-01 00:00:00.000000000 +0000
-+++ gdal/frmts/mrsid/pkg/configure	2013-06-20 10:05:16.000000000 +0200
+--- /dev/null
++++ b/frmts/mrsid/pkg/configure
 @@ -0,0 +1,4680 @@
 +#! /bin/sh
 +# Guess values for system-dependent variables and create Makefiles.
@@ -4985,10 +4978,8 @@ Index: gdal/frmts/mrsid/pkg/configure
 +  $ac_cs_success || { (exit 1); exit 1; }
 +fi
 +
-Index: gdal/frmts/mrsid/pkg/configure.in
-===================================================================
---- /dev/null	1970-01-01 00:00:00.000000000 +0000
-+++ gdal/frmts/mrsid/pkg/configure.in	2013-06-20 10:05:16.000000000 +0200
+--- /dev/null
++++ b/frmts/mrsid/pkg/configure.in
 @@ -0,0 +1,280 @@
 +dnl ***************************************************************************
 +dnl $Id: configure.in 9971 2006-08-23 20:06:02Z fwarmerdam $

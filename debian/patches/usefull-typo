@@ -1,0 +1,466 @@
+Description: Fix 'usefull' typo, replace with 'useful'.
+Author: Bas Couwenberg <sebastic@xs4all.nl>
+Last-Update: 2013-10-11
+--- a/NEWS
++++ b/NEWS
+@@ -2002,7 +2002,7 @@ Port:
+     - /vsitar/ : to read in .tar or .tgz/.tar.gz files
+  * Add C API to create ZIP files
+  * Add support for writable /vsizip/
+- * Add VSIBufferedReaderHandle class that is usefull to improve performance when
++ * Add VSIBufferedReaderHandle class that is useful to improve performance when
+    doing backward seeks by a few bytes on underlying file handles for which
+    backwardseeks are very slow, such as GZip handle
+  * Add service for base64 decoding
+@@ -2020,7 +2020,7 @@ Port:
+ Core:
+  * RFC 24: progressive/async raster reading
+  * On Unix, add capability of opening the target of a symlink through GDALOpen()
+-   even if it not a real filename. Usefull for opening resources expressed as
++   even if it not a real filename. Useful for opening resources expressed as
+    GDAL virtual filenames in software offering only file explorers (#3902)
+  * Assume anything less than 100000 for GDAL_CACHEMAX is measured in metabytes.
+  * Read cartesian coordinates if applicable in GDALLoadOziMapFile().
+@@ -2440,7 +2440,7 @@ Core:
+  * Add OGRLayer::GetName() and OGRLayer::GetGeomType() virtual methods,
+    and their C and SWIG mappings (#3719)
+  * On Unix, add capability of opening the target of a symlink through OGROpen()
+-   even if it not a real filename. Usefull for opening resources expressed as
++   even if it not a real filename. Useful for opening resources expressed as
+    GDAL virtual filenames in software offering only file explorers (#3902)
+  * Expat based XML readers : add support for reading files with Windows-1252
+    encoding
+@@ -2710,7 +2710,7 @@ PostgreSQL driver:
+    is set to YES
+  * If the PG_USE_BASE64 configuration option is set to YES, geometries will be
+    requested as BASE64 encoded EWKB instead of canonical HEX encoded EWKB.
+-   (usefull when bandwidth is the limiting factor)
++   (useful when bandwidth is the limiting factor)
+  * Don't instanciate layer defn at layer creation. This can speed up
+    significantly database opening when they are many tables and the user just
+    needs to fetch one with GetLayerByName().
+--- a/apps/ogr_utilities.dox
++++ b/apps/ogr_utilities.dox
+@@ -239,7 +239,7 @@ GEOMETRYCOLLECTION, MULTIPOINT, MULTIPOL
+ Add "25D" to the name to get 2.5D versions.
+ Starting with GDAL 1.10, PROMOTE_TO_MULTI can be used to automatically promote layers
+ that mix polygon or multipolygons to multipolygons, and layers that mix linestrings or
+-multilinestrings to multilinestrings. Can be usefull when converting shapefiles to PostGIS
++multilinestrings to multilinestrings. Can be useful when converting shapefiles to PostGIS
+ (and other target drivers) that implements strict checks for geometry type.</dd>
+ <dt> <b>-dim</b><em> val</em>:</dt><dd>(starting with GDAL 1.10) Force the coordinate dimension to val (valid values are 2 or 3).
+ This affects both the layer geometry type, and feature geometries.</dd>
+--- a/doc/gdal_drivertut.dox
++++ b/doc/gdal_drivertut.dox
+@@ -447,7 +447,7 @@ void GDALRegister_JDEM()
+ 
+ Note the use of GDAL_CHECK_VERSION macro (starting with GDAL 1.5.0).
+ This is an optional macro for drivers inside GDAL tree that don't depend on external libraries,
+-but that can be very usefull if you compile your driver as a plugin (that is to say, an out-of-tree
++but that can be very useful if you compile your driver as a plugin (that is to say, an out-of-tree
+ driver). As the GDAL C++ ABI may, and will, change between GDAL releases (for example from GDAL 1.5.0 to 1.6.0),
+ it may be necessary to recompile your driver against the header files of the GDAL version with
+ which you want to make it work. The GDAL_CHECK_VERSION macro will check that the GDAL version
+--- a/frmts/gtiff/geotiff.cpp
++++ b/frmts/gtiff/geotiff.cpp
+@@ -237,7 +237,7 @@ class GTiffDataset : public GDALPamDatas
+ 
+     toff_t      nDirOffset;
+     int		bBase;
+-    int         bCloseTIFFHandle; /* usefull for closing TIFF handle opened by GTIFF_DIR: */
++    int         bCloseTIFFHandle; /* useful for closing TIFF handle opened by GTIFF_DIR: */
+ 
+     uint16	nPlanarConfig;
+     uint16	nSamplesPerPixel;
+@@ -693,7 +693,7 @@ GTiffRasterBand::GTiffRasterBand( GTiffD
+ 
+ /* Reads directly bytes from the file using ReadMultiRange(), and by-pass */
+ /* block reading. Restricted to simple TIFF configurations (un-tiled, */
+-/* uncompressed data, standard data types). Particularly usefull to extract */
++/* uncompressed data, standard data types). Particularly useful to extract */
+ /* sub-windows of data on a large /vsicurl dataset). */
+ 
+ CPLErr GTiffRasterBand::DirectIO( GDALRWFlag eRWFlag,
+@@ -7643,7 +7643,7 @@ TIFF *GTiffDataset::CreateLL( const char
+     }
+     
+     /* Set the compression method before asking the default strip size */
+-    /* This is usefull when translating to a JPEG-In-TIFF file where */
++    /* This is useful when translating to a JPEG-In-TIFF file where */
+     /* the default strip size is 8 or 16 depending on the photometric value */
+     TIFFSetField( hTIFF, TIFFTAG_COMPRESSION, nCompression );
+ 
+@@ -8086,7 +8086,7 @@ GTiffDataset::CreateCopy( const char * p
+     int bDirectCopyFromJPEG = FALSE;
+ 
+     /* Note: JPEG_DIRECT_COPY is not defined by default, because it is mainly */
+-    /* usefull for debugging purposes */
++    /* useful for debugging purposes */
+ #ifdef JPEG_DIRECT_COPY
+     if (CSLFetchBoolean(papszCreateOptions, "JPEG_DIRECT_COPY", FALSE) &&
+         GTIFF_CanDirectCopyFromJPEG(poSrcDS, papszCreateOptions))
+--- a/frmts/gtiff/gt_jpeg_copy.cpp
++++ b/frmts/gtiff/gt_jpeg_copy.cpp
+@@ -31,7 +31,7 @@
+ #include "gt_jpeg_copy.h"
+ 
+ /* Note: JPEG_DIRECT_COPY is not defined by default, because it is mainly */
+-/* usefull for debugging purposes */
++/* useful for debugging purposes */
+ 
+ CPL_CVSID("$Id: gt_jpeg_copy.cpp 24337 2012-04-28 15:06:01Z rouault $");
+ 
+--- a/frmts/pcraster/pcrasterutil.cpp
++++ b/frmts/pcraster/pcrasterutil.cpp
+@@ -314,8 +314,8 @@ CSF_VS GDALType2ValueScale(
+              complex.
+ 
+   If exact is false, conversion to CSF2.0 types will take place. This is
+-  usefull for in file cell representations. If exact is true, and exact match
+-  is made. This is usefull for in app cell representations.
++  useful for in file cell representations. If exact is true, and exact match
++  is made. This is useful for in app cell representations.
+ 
+   If exact is false, this function always returns one of CR_UINT1, CR_INT4
+   or CR_REAL4.
+--- a/frmts/pdf/frmt_pdf.html
++++ b/frmts/pdf/frmt_pdf.html
+@@ -73,7 +73,7 @@ off.</li>
+ <h2>LAYERS Metadata domain</h2>
+ 
+ Starting with GDAL &gt;= 1.10.0 and when GDAL is compiled against libpoppler, the LAYERS metadata domain can be queried
+-to retrieve layer names that can be turned ON or OFF. This is usefull to know which values to specify for the
++to retrieve layer names that can be turned ON or OFF. This is useful to know which values to specify for the
+ <i>GDAL_PDF_LAYERS</i> or <i>GDAL_PDF_LAYERS_OFF</i> configuration options.<p>
+ 
+ For example :
+@@ -171,7 +171,7 @@ specified, all the extra rasters will be
+ the /FTimesRoman and /FTimesBold fonts.</p></li>
+ 
+ <li><p><b>EXTRA_IMAGES=image_file_name,x,y,scale[,link=some_url] (possibly repeated)</b>: A list of (ungeoreferenced) images to insert into
+-the page as extra content. This is usefull to insert logos, legends, etc...
++the page as extra content. This is useful to insert logos, legends, etc...
+ x and y are in user units from the lower left corner of the page, and the anchor point is the lower left pixel of the image.
+ scale is a magnifying ratio (use 1 if unsure). If link=some_url is specified, the image will be selectable and its selection
+ will cause a web browser to be opened on the specified URL.</p></li>
+--- a/frmts/sdts/sdtslinereader.cpp
++++ b/frmts/sdts/sdtslinereader.cpp
+@@ -73,7 +73,7 @@ SDTSRawLine::~SDTSRawLine()
+ int SDTSRawLine::Read( SDTS_IREF * poIREF, DDFRecord * poRecord )
+ 
+ {
+-    // E.Rouault: Not sure if this test is really usefull
++    // E.Rouault: Not sure if this test is really useful
+     if( poRecord->GetStringSubfield( "LINE", 0, "MODN", 0 ) == NULL )
+         return FALSE;
+     
+--- a/frmts/vrt/vrtsources.cpp
++++ b/frmts/vrt/vrtsources.cpp
+@@ -342,7 +342,7 @@ CPLErr VRTSimpleSource::XMLInit( CPLXMLN
+     /* Newly generated VRT will have RasterXSize, RasterYSize, DataType, */
+     /* BlockXSize, BlockYSize tags, so that we don't have actually to */
+     /* open the real dataset immediately, but we can use a proxy dataset */
+-    /* instead. This is particularly usefull when dealing with huge VRT */
++    /* instead. This is particularly useful when dealing with huge VRT */
+     /* For example, a VRT with the world coverage of DTED0 (25594 files) */
+     CPLXMLNode* psSrcProperties = CPLGetXMLNode(psSrc,"SourceProperties");
+     int nRasterXSize = 0, nRasterYSize =0;
+--- a/gcore/gdalrasterband.cpp
++++ b/gcore/gdalrasterband.cpp
+@@ -4712,7 +4712,7 @@ CPLErr CPL_STDCALL GDALCreateMaskBand( G
+ /**
+  * \brief Compute translation table for color tables.
+  *
+- * When the raster band has a palette index, it may be usefull to compute
++ * When the raster band has a palette index, it may be useful to compute
+  * the "translation" of this palette to the palette of another band.
+  * The translation tries to do exact matching first, and then approximate
+  * matching if no exact matching is possible.
+--- a/man/man1/ogr2ogr.1
++++ b/man/man1/ogr2ogr.1
+@@ -86,7 +86,7 @@ Layer creation option (format specific)
+ .IP "\fB\fB-nln\fP\fI name\fP:\fP" 1c
+ Assign an alternate name to the new layer 
+ .IP "\fB\fB-nlt\fP\fI type\fP:\fP" 1c
+-Define the geometry type for the created layer. One of NONE, GEOMETRY, POINT, LINESTRING, POLYGON, GEOMETRYCOLLECTION, MULTIPOINT, MULTIPOLYGON or MULTILINESTRING. Add '25D' to the name to get 2.5D versions. Starting with GDAL 1.10, PROMOTE_TO_MULTI can be used to automatically promote layers that mix polygon or multipolygons to multipolygons, and layers that mix linestrings or multilinestrings to multilinestrings. Can be usefull when converting shapefiles to PostGIS (and other target drivers) that implements strict checks for geometry type. 
++Define the geometry type for the created layer. One of NONE, GEOMETRY, POINT, LINESTRING, POLYGON, GEOMETRYCOLLECTION, MULTIPOINT, MULTIPOLYGON or MULTILINESTRING. Add '25D' to the name to get 2.5D versions. Starting with GDAL 1.10, PROMOTE_TO_MULTI can be used to automatically promote layers that mix polygon or multipolygons to multipolygons, and layers that mix linestrings or multilinestrings to multilinestrings. Can be useful when converting shapefiles to PostGIS (and other target drivers) that implements strict checks for geometry type.
+ .IP "\fB\fB-dim\fP\fI val\fP:\fP" 1c
+ (starting with GDAL 1.10) Force the coordinate dimension to val (valid values are 2 or 3). This affects both the layer geometry type, and feature geometries. 
+ .IP "\fB\fB-a_srs\fP\fI srs_def\fP:\fP" 1c
+--- a/ogr/ogrgeometryfactory.cpp
++++ b/ogr/ogrgeometryfactory.cpp
+@@ -1025,7 +1025,7 @@ typedef enum
+  * of holes is counterclockwise defined (this is the convention for shapefiles e.g.)
+  *
+  * If the OGR_ORGANIZE_POLYGONS configuration option is defined, its value will override
+- * the value of the METHOD option of papszOptions (usefull to modify the behaviour of the
++ * the value of the METHOD option of papszOptions (useful to modify the behaviour of the
+  * shapefile driver)
+  *
+  * @param papoPolygons array of geometry pointers - should all be OGRPolygons.
+--- a/ogr/ogrsf_frmts/generic/ogr_gensql.cpp
++++ b/ogr/ogrsf_frmts/generic/ogr_gensql.cpp
+@@ -1428,7 +1428,7 @@ void OGRGenSQLResultsLayer::CreateOrderB
+ 
+     /* If it is already sorted, then free than panFIDIndex array */
+     /* so that GetNextFeature() can call a sequential GetNextFeature() */
+-    /* on the source array. Very usefull for layers where random access */
++    /* on the source array. Very useful for layers where random access */
+     /* is slow. */
+     /* Use case: the GML result of a WFS GetFeature with a SORTBY */
+     if (bAlreadySorted)
+--- a/ogr/ogrsf_frmts/georss/drv_georss.html
++++ b/ogr/ogrsf_frmts/georss/drv_georss.html
+@@ -61,7 +61,7 @@ Attributes of first level elements will
+ 
+ Complex content (elements inside first level elements) will be returned as an XML blob.<p>
+ 
+-When a same element is repeated, a number will be appended at the end of the attribute name for the repetitions. This is usefull for the &lt;category&gt; element in RSS and Atom documents for example.<p>
++When a same element is repeated, a number will be appended at the end of the attribute name for the repetitions. This is useful for the &lt;category&gt; element in RSS and Atom documents for example.<p>
+ 
+ <p>
+ The following content :
+--- a/ogr/ogrsf_frmts/gml/drv_gml.html
++++ b/ogr/ogrsf_frmts/gml/drv_gml.html
+@@ -117,7 +117,7 @@ description of the .gfs syntax below.<p>
+ OGR 1.8.0 adds support to "merge" the multiple geometries found in a feature by
+ setting the configuration option <b>GML_FETCH_ALL_GEOMETRIES</b> to <b>YES</b>. The geometries
+ will be collected into a GeometryCollection (or Multipolygon if individual geometries
+-are polygons or multipolygons). This can be usefull when reading some GML application profiles.
++are polygons or multipolygons). This can be useful when reading some GML application profiles.
+ If a &lt;GeometryElementPath&gt; element is specified in the .gfs, the fetching will be limited
+ to paths that match the value of &lt;GeometryElementPath&gt;.<p>
+ -->
+--- a/ogr/ogrsf_frmts/null/ogrnulldriver.cpp
++++ b/ogr/ogrsf_frmts/null/ogrnulldriver.cpp
+@@ -27,7 +27,7 @@
+  * DEALINGS IN THE SOFTWARE.
+  ****************************************************************************/
+ 
+-/* NOTE: this driver is only usefull for debugging and is not included in the build process */
++/* NOTE: this driver is only useful for debugging and is not included in the build process */
+ /* To compile it as a pluing under Linux :
+     g++ -Wall -DDEBUG -fPIC -g ogr/ogrsf_frmts/null/ogrnulldriver.cpp  -shared -o ogr_NULL.so -L. -lgdal -Iport -Igcore -Iogr -Iogr/ogrsf_frmts
+ */
+--- a/ogr/ogrsf_frmts/osm/ogrosmdatasource.cpp
++++ b/ogr/ogrsf_frmts/osm/ogrosmdatasource.cpp
+@@ -2521,7 +2521,7 @@ int OGROSMDataSource::Open( const char *
+         return FALSE;
+     }
+ 
+-    /* The following 4 config options are only usefull for debugging */
++    /* The following 4 config options are only useful for debugging */
+     bIndexPoints = CSLTestBoolean(CPLGetConfigOption("OSM_INDEX_POINTS", "YES"));
+     bUsePointsIndex = CSLTestBoolean(CPLGetConfigOption("OSM_USE_POINTS_INDEX", "YES"));
+     bIndexWays = CSLTestBoolean(CPLGetConfigOption("OSM_INDEX_WAYS", "YES"));
+--- a/ogr/ogrsf_frmts/pdf/drv_pdf.html
++++ b/ogr/ogrsf_frmts/pdf/drv_pdf.html
+@@ -65,7 +65,7 @@ Set the DPI to use. Default to 72.</p></
+ the /FTimesRoman and /FTimesBold fonts.</p></li>
+ 
+ <li><p><b>EXTRA_IMAGES=image_file_name,x,y,scale[,link=some_url] (possibly repeated)</b>: A list of (ungeoreferenced) images to insert into
+-the page as extra content. This is usefull to insert logos, legends, etc...
++the page as extra content. This is useful to insert logos, legends, etc...
+ x and y are in user units from the lower left corner of the page, and the anchor point is the lower left pixel of the image.
+ scale is a magnifying ratio (use 1 if unsure). If link=some_url is specified, the image will be selectable and its selection
+ will cause a web browser to be opened on the specified URL.</p></li>
+--- a/ogr/ogrsf_frmts/shape/ogrshapelayer.cpp
++++ b/ogr/ogrsf_frmts/shape/ogrshapelayer.cpp
+@@ -555,7 +555,7 @@ void OGRShapeLayer::SetSpatialFilter( OG
+     {
+         /* We clear the spatialFIDs only if we have a new non-NULL */
+         /* spatial filter, otherwise we keep the previous result */
+-        /* cached. This can be usefull when several SQL layers */
++        /* cached. This can be useful when several SQL layers */
+         /* rely on the same table layer, and use the same spatial */
+         /* filters. But as there is in the destructor of OGRGenSQLResultsLayer */
+         /* a clearing of the spatial filter of the table layer, we */
+--- a/ogr/ogrsf_frmts/sqlite/ogrsqliteexecutesql.cpp
++++ b/ogr/ogrsf_frmts/sqlite/ogrsqliteexecutesql.cpp
+@@ -544,7 +544,7 @@ OGRLayer * OGRSQLiteExecuteSQL( OGRDataS
+         }
+     }
+ 
+-    /* The following configuration option is usefull mostly for debugging/testing */
++    /* The following configuration option is useful mostly for debugging/testing */
+     if( pabyEmptyDB != NULL && CSLTestBoolean(CPLGetConfigOption("OGR_SQLITE_DIALECT_USE_SPATIALITE", "YES")) )
+     {
+         GByte* pabyEmptyDBClone = (GByte*)VSIMalloc(nEmptyDBSize);
+--- a/ogr/ogrsf_frmts/vrt/drv_vrt.html
++++ b/ogr/ogrsf_frmts/vrt/drv_vrt.html
+@@ -145,12 +145,12 @@ default defaults to the value of "name".
+ 
+ <li> <b>FeatureCount</b> (optional, from GDAL 1.10.0) : This element is used
+ to define the feature count of the layer (when no spatial or attribute filter is set).
+-This can be usefull on static data, when getting the feature count from the source layer is slow.</li>
++This can be useful on static data, when getting the feature count from the source layer is slow.</li>
+ 
+ <br>
+ 
+ <li> <b>ExtentXMin</b>, <b>ExtentYMin</b>, <b>ExtentXMax</b> and <b>ExtentXMax</b> (optional, from GDAL 1.10.0) :
+-Those elements are used to define the extent of the layer. This can be usefull on static data, when
++Those elements are used to define the extent of the layer. This can be useful on static data, when
+ getting the extent from the source layer is slow.</li>
+ 
+ <br>
+@@ -178,7 +178,7 @@ reference to use for the layer after rep
+ <br>
+ 
+ <li> <b>ExtentXMin</b>, <b>ExtentYMin</b>, <b>ExtentXMax</b> and <b>ExtentXMax</b> (optional, from GDAL 1.10.0) :
+-Those elements are used to define the extent of the layer. This can be usefull on static data, when
++Those elements are used to define the extent of the layer. This can be useful on static data, when
+ getting the extent from the source layer is slow.</li>
+ 
+ <br>
+@@ -254,7 +254,7 @@ the layer as a point layer, and as being
+ 
+ <h2>Example: Renaming attributes</h2>
+ 
+-It can be usefull in some circumstances to be able to rename the field names 
++It can be useful in some circumstances to be able to rename the field names
+ from a source layer to other names. This is particularly true when you want 
+ to transcode to a format whose schema is fixed, such as GPX 
+ (&lt;name&gt;, &lt;desc&gt, etc.).  This can be accomplished using
+--- a/port/cpl_conv.cpp
++++ b/port/cpl_conv.cpp
+@@ -1527,7 +1527,7 @@ static void CPLAccessConfigOption(const
+   *     char* pszOldVal = pszOldValTmp ? CPLStrdup(pszOldValTmp) : NULL;
+   *     // override with new value
+   *     CPLSetConfigOption(pszKey, pszNewVal);
+-  *     // do something usefull
++  *     // do something useful
+   *     // restore old value
+   *     CPLSetConfigOption(pszKey, pszOldVal);
+   *     CPLFree(pszOldVal);
+--- a/port/cpl_http.cpp
++++ b/port/cpl_http.cpp
+@@ -513,7 +513,7 @@ void CPLHTTPSetOptions(CURL *http_handle
+ /************************************************************************/
+ 
+ /**
+- * \brief Return if CPLHTTP services can be usefull
++ * \brief Return if CPLHTTP services can be useful
+  *
+  * Those services depend on GDAL being build with libcurl support.
+  *
+--- a/swig/java/javadoc.java
++++ b/swig/java/javadoc.java
+@@ -5062,7 +5062,7 @@ public class org.gdal.gdal.Driver:public
+   * Class used to report progression of long operations.
+   * <p>
+   * This class will not do anything by itself, but it can be subclassed, like <a href="TermProgressCallback.html">TermProgressCallback</a> class.
+-  * to do more usefull things.
++  * to do more useful things.
+   *
+   * @since Java bindings 1.7.0
+   */
+--- a/swig/python/scripts/gdal2tiles.py
++++ b/swig/python/scripts/gdal2tiles.py
+@@ -91,7 +91,7 @@ Created by Klokan Petr Pridal on 2008-07
+ Google Summer of Code 2008, project GDAL2Tiles for OSGEO.
+ 
+ In case you use this class in your product, translate it to another language
+-or find it usefull for your project please let me know.
++or find it useful for your project please let me know.
+ My email: klokan at klokan dot cz.
+ I would like to know where it was used.
+ 
+--- a/swig/python/scripts/gdal_retile.py
++++ b/swig/python/scripts/gdal_retile.py
+@@ -45,7 +45,7 @@ import os
+ import math
+ 
+ class AffineTransformDecorator:
+-    """ A class providing some usefull methods for affine Transformations """
++    """ A class providing some useful methods for affine Transformations """
+     def __init__(self, transform ):
+         self.geotransform=transform
+         self.scaleX=self.geotransform[1]
+--- a/alg/gdal_rpc.cpp
++++ b/alg/gdal_rpc.cpp
+@@ -335,7 +335,7 @@ typedef struct {
+  * an average height above sea level for ground in the target scene. 
+  *
+  * <li> RPC_HEIGHT_SCALE: a factor used to multiply heights above ground.
+- * Usefull when elevation offsets of the DEM are not expressed in meters. (GDAL >= 1.8.0)
++ * Useful when elevation offsets of the DEM are not expressed in meters. (GDAL >= 1.8.0)
+  *
+  * <li> RPC_DEM: the name of a GDAL dataset (a DEM file typically) used to
+  * extract elevation offsets from. In this situation the Z passed into the
+--- a/apps/gdaladdo.cpp
++++ b/apps/gdaladdo.cpp
+@@ -51,7 +51,7 @@ static void Usage(const char* pszErrorMs
+             "  filename: The file to build overviews for (or whose overviews must be removed).\n"
+             "  levels: A list of integral overview levels to build. Ignored with -clean option.\n"
+             "\n"
+-            "Usefull configuration variables :\n"
++            "Useful configuration variables :\n"
+             "  --config USE_RRD YES : Use Erdas Imagine format (.aux) as overview format.\n"
+             "Below, only for external overviews in GeoTIFF format:\n"
+             "  --config COMPRESS_OVERVIEW {JPEG,LZW,PACKBITS,DEFLATE} : TIFF compression\n"
+--- a/frmts/wms/frmt_wms.html
++++ b/frmts/wms/frmt_wms.html
+@@ -188,7 +188,7 @@
+ 		</tr>
+ 		<tr>
+ 			<td class="xml">    &lt;OfflineMode&gt;<span class="value">true</span>&lt;/OfflineMode&gt;</td>
+-			<td class="desc">Do not download any new images, use only what is in cache. Usefull only with cache enabled. (optional, defaults to false)</td>
++			<td class="desc">Do not download any new images, use only what is in cache. Useful only with cache enabled. (optional, defaults to false)</td>
+ 		</tr>
+ 		<tr>
+ 			<td class="xml">    &lt;AdviseRead&gt;<span class="value">true</span>&lt;/AdviseRead&gt;</td>
+--- a/gcore/gdal_priv.h
++++ b/gcore/gdal_priv.h
+@@ -912,7 +912,7 @@ int CPL_DLL GDALCheckDatasetDimensions(
+ int CPL_DLL GDALCheckBandCount( int nBands, int bIsZeroAllowed );
+ 
+ 
+-// Test if 2 floating point values match. Usefull when comparing values
++// Test if 2 floating point values match. Useful when comparing values
+ // stored as a string at some point. See #3573, #4183, #4506
+ #define ARE_REAL_EQUAL(dfVal1, dfVal2) \
+  (dfVal1 == dfVal2 || fabs(dfVal1 - dfVal2) < 1e-10 || (dfVal2 != 0 && fabs(1 - dfVal1 / dfVal2) < 1e-10 ))
+--- a/gcore/gdaldataset.cpp
++++ b/gcore/gdaldataset.cpp
+@@ -1846,7 +1846,7 @@ void CPL_STDCALL GDALGetOpenDatasets( GD
+ /*                        GDALCleanOpenDatasetsList()                   */
+ /************************************************************************/
+ 
+-/* Usefull when called from the child of a fork(), to avoid closing */
++/* Useful when called from the child of a fork(), to avoid closing */
+ /* the datasets of the parent at the child termination */
+ void GDALNullifyOpenDatasetsList()
+ {
+--- a/ogr/ogrsf_frmts/gpx/ogrgpxlayer.cpp
++++ b/ogr/ogrsf_frmts/gpx/ogrgpxlayer.cpp
+@@ -1084,7 +1084,7 @@ OGRSpatialReference *OGRGPXLayer::GetSpa
+ static char* OGRGPX_GetXMLCompatibleTagName(const char* pszExtensionsNS,
+                                             const char* pszName)
+ {
+-    /* Skip "ogr_" for example if NS is "ogr". Usefull for GPX -> GPX roundtrip */
++    /* Skip "ogr_" for example if NS is "ogr". Useful for GPX -> GPX roundtrip */
+     if (strncmp(pszName, pszExtensionsNS, strlen(pszExtensionsNS)) == 0 &&
+         pszName[strlen(pszExtensionsNS)] == '_')
+     {
+--- a/ogr/ogrsf_frmts/sqlite/ogrsqlitelayer.cpp
++++ b/ogr/ogrsf_frmts/sqlite/ogrsqlitelayer.cpp
+@@ -330,7 +330,7 @@ void OGRSQLiteLayer::BuildFeatureDefn( c
+         }
+ 
+         // Recognize a geometry column from trying to build the geometry
+-        // Usefull for OGRSQLiteSelectLayer
++        // Useful for OGRSQLiteSelectLayer
+         if( nColType == SQLITE_BLOB && osGeomColumn.size() == 0 )
+         {
+             const int nBytes = sqlite3_column_bytes( hStmt, iCol );
+--- a/port/cpl_string.cpp
++++ b/port/cpl_string.cpp
+@@ -2166,7 +2166,7 @@ size_t CPLStrlcat(char* pszDest, const c
+  * the specified number of bytes.
+  *
+  * The CPLStrnlen() function returns MIN(strlen(pszStr), nMaxLen).
+- * Only the first nMaxLen bytes of the string will be read. Usefull to
++ * Only the first nMaxLen bytes of the string will be read. Useful to
+  * test if a string contains at least nMaxLen characters without reading
+  * the full string up to the NUL terminating character.
+  *

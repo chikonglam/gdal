@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdaltindex.c 25582 2013-01-29 21:13:43Z rouault $
+ * $Id: gdaltindex.c 26095 2013-06-18 23:09:35Z rouault $
  *
  * Project:  MapServer
  * Purpose:  Commandline App to build tile index for raster files.
@@ -34,7 +34,7 @@
 #include "cpl_conv.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: gdaltindex.c 25582 2013-01-29 21:13:43Z rouault $");
+CPL_CVSID("$Id: gdaltindex.c 26095 2013-06-18 23:09:35Z rouault $");
 
 /************************************************************************/
 /*                               Usage()                                */
@@ -255,7 +255,7 @@ int main(int argc, char *argv[])
             if (hLayer)
             {
                 OGRFieldDefnH hFieldDefn = OGR_Fld_Create( tile_index, OFTString );
-                OGR_Fld_SetWidth( hFieldDefn, 255);
+                OGR_Fld_SetWidth( hFieldDefn, 254);
                 OGR_L_CreateField( hLayer, hFieldDefn, TRUE );
                 OGR_Fld_Destroy(hFieldDefn);
             }

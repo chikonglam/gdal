@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrgmldatasource.cpp 25727 2013-03-10 14:56:33Z rouault $
+ * $Id: ogrgmldatasource.cpp 26148 2013-07-06 08:27:00Z rouault $
  *
  * Project:  OGR
  * Purpose:  Implements OGRGMLDataSource class.
@@ -44,7 +44,7 @@
 
 #include <vector>
 
-CPL_CVSID("$Id: ogrgmldatasource.cpp 25727 2013-03-10 14:56:33Z rouault $");
+CPL_CVSID("$Id: ogrgmldatasource.cpp 26148 2013-07-06 08:27:00Z rouault $");
 
 /************************************************************************/
 /*                   ReplaceSpaceByPct20IfNeeded()                      */
@@ -353,6 +353,15 @@ int OGRGMLDataSource::Open( const char * pszNameIn, int bTestOpen )
 /* -------------------------------------------------------------------- */
         if( szPtr[0] != '<' 
             || strstr(szPtr,"opengis.net/gml") == NULL )
+        {
+            VSIFCloseL( fp );
+            return FALSE;
+        }
+
+        /* Ignore .xsd schemas */
+        if( strstr(szPtr, "<schema") != NULL
+            || strstr(szPtr, "<xs:schema") != NULL
+            || strstr(szPtr, "<xsd:schema") != NULL )
         {
             VSIFCloseL( fp );
             return FALSE;
@@ -1281,7 +1290,7 @@ OGRGMLDataSource::CreateLayer( const char * pszLayerName,
     else
     {
         if (poSRS == NULL ||
-            (poGlobalSRS != NULL && poSRS->IsSame(poGlobalSRS)))
+            (poGlobalSRS != NULL && !poSRS->IsSame(poGlobalSRS)))
         {
             delete poGlobalSRS;
             poGlobalSRS = NULL;
@@ -1664,6 +1673,11 @@ void OGRGMLDataSource::InsertHeader()
         for( int iField = 0; iField < poFDefn->GetFieldCount(); iField++ )
         {
             OGRFieldDefn *poFieldDefn = poFDefn->GetFieldDefn(iField);
+
+            if( IsGML3Output() && strcmp(poFieldDefn->GetNameRef(), "gml_id") == 0 )
+                continue;
+            else if( !IsGML3Output() && strcmp(poFieldDefn->GetNameRef(), "fid") == 0 )
+                continue;
 
             if( poFieldDefn->GetType() == OFTInteger )
             {

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrkmllayer.cpp 24713 2012-07-28 11:21:07Z rouault $
+ * $Id: ogrkmllayer.cpp 26347 2013-08-20 18:22:32Z rouault $
  *
  * Project:  KML Driver
  * Purpose:  Implementation of OGRKMLLayer class.
@@ -233,35 +233,34 @@ int OGRKMLLayer::GetFeatureCount( int bForce )
 }
 
 /************************************************************************/
-/*                           CreateFeature()                            */
+/*                           WriteSchema()                              */
 /************************************************************************/
 
-OGRErr OGRKMLLayer::CreateFeature( OGRFeature* poFeature )
+void OGRKMLLayer::WriteSchema()
 {
-    CPLAssert( NULL != poFeature );
-    CPLAssert( NULL != poDS_ );
-
-    if( !bWriter_ )
-        return OGRERR_FAILURE;
-
-    if( bClosedForWriting )
+    if (0 != nWroteFeatureCount_)
     {
-        CPLError(CE_Failure, CPLE_NotSupported,
-                 "Interleaved feature adding to different layers is not supported");
-        return OGRERR_FAILURE;
-    }
-
-    VSILFILE *fp = poDS_->GetOutputFP();
-    CPLAssert( NULL != fp );
-
-    // If we haven't writen any features yet, output the layer's schema
-    if (0 == nWroteFeatureCount_)
-    {
-        VSIFPrintfL( fp, "<Schema name=\"%s\" id=\"%s\">\n", pszName_, pszName_ );
+        VSILFILE *fp = poDS_->GetOutputFP();
+        int nFieldsWritten = 0;
         OGRFeatureDefn *featureDefinition = GetLayerDefn();
         for (int j=0; j < featureDefinition->GetFieldCount(); j++)
         {
-            OGRFieldDefn *fieldDefinition = featureDefinition->GetFieldDefn(j);			
+            OGRFieldDefn *fieldDefinition = featureDefinition->GetFieldDefn(j);
+
+            if (NULL != poDS_->GetNameField() &&
+                EQUAL(fieldDefinition->GetNameRef(), poDS_->GetNameField()) )
+                continue;
+
+            if (NULL != poDS_->GetDescriptionField() &&
+                EQUAL(fieldDefinition->GetNameRef(), poDS_->GetDescriptionField()) )
+                continue;
+
+            if( nFieldsWritten == 0 )
+            {
+                VSIFPrintfL( fp, "<Schema name=\"%s\" id=\"%s\">\n", pszName_, pszName_ );
+            }
+            nFieldsWritten ++;
+
             const char* pszKMLType = NULL;
             const char* pszKMLEltName = NULL;
             // Match the OGR type to the GDAL type
@@ -311,8 +310,32 @@ OGRErr OGRKMLLayer::CreateFeature( OGRFeature* poFeature )
             VSIFPrintfL( fp, "\t<%s name=\"%s\" type=\"%s\"></%s>\n", 
                         pszKMLEltName, fieldDefinition->GetNameRef() ,pszKMLType, pszKMLEltName );
         }
-        VSIFPrintfL( fp, "</Schema>\n" );
+        if( nFieldsWritten > 0 )
+            VSIFPrintfL( fp, "</Schema>\n" );
     }
+}
+
+/************************************************************************/
+/*                           CreateFeature()                            */
+/************************************************************************/
+
+OGRErr OGRKMLLayer::CreateFeature( OGRFeature* poFeature )
+{
+    CPLAssert( NULL != poFeature );
+    CPLAssert( NULL != poDS_ );
+
+    if( !bWriter_ )
+        return OGRERR_FAILURE;
+
+    if( bClosedForWriting )
+    {
+        CPLError(CE_Failure, CPLE_NotSupported,
+                 "Interleaved feature adding to different layers is not supported");
+        return OGRERR_FAILURE;
+    }
+
+    VSILFILE *fp = poDS_->GetOutputFP();
+    CPLAssert( NULL != fp );
 
     VSIFPrintfL( fp, "  <Placemark>\n" );
 
@@ -449,6 +472,14 @@ OGRErr OGRKMLLayer::CreateFeature( OGRFeature* poFeature )
 
         if( poFeature->IsFieldSet( iField ))
         {
+            if (NULL != poDS_->GetNameField() &&
+                EQUAL(poField->GetNameRef(), poDS_->GetNameField()) )
+                continue;
+
+            if (NULL != poDS_->GetDescriptionField() &&
+                EQUAL(poField->GetNameRef(), poDS_->GetDescriptionField()) )
+                continue;
+
             if (!bHasFoundOtherField)
             {                
                 VSIFPrintfL( fp, "\t<ExtendedData><SchemaData schemaUrl=\"#%s\">\n", pszName_ );

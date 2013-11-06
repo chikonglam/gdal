@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_kml.h 23022 2011-09-01 19:10:17Z rouault $
+ * $Id: ogr_kml.h 25979 2013-05-03 19:10:30Z rouault $
  *
  * Project:  KML Driver
  * Purpose:  Declarations for OGR wrapper classes for KML, and OGR->KML
@@ -73,6 +73,8 @@ public:
     void SetLayerNumber( int nLayer );
 
     void SetClosedForWriting() { bClosedForWriting = TRUE; }
+    
+    void WriteSchema();
 
 private:
     OGRKMLDataSource* poDS_;

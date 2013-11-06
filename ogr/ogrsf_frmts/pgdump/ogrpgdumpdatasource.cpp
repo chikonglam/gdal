@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrpgdumpdatasource.cpp 25366 2012-12-27 18:38:53Z rouault $
+ * $Id: ogrpgdumpdatasource.cpp 26197 2013-07-23 22:16:13Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implements OGRPGDumpDataSource class.
@@ -32,7 +32,7 @@
 #include "cpl_conv.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: ogrpgdumpdatasource.cpp 25366 2012-12-27 18:38:53Z rouault $");
+CPL_CVSID("$Id: ogrpgdumpdatasource.cpp 26197 2013-07-23 22:16:13Z rouault $");
 
 /************************************************************************/
 /*                      OGRPGDumpDataSource()                           */
@@ -167,6 +167,9 @@ OGRPGDumpDataSource::CreateLayer( const char * pszLayerName,
     char                *pszSchemaName = NULL;
     int                  nDimension = 3;
     int                  bHavePostGIS = TRUE;
+    
+    if( nLayers == 0 )
+         Log("SET standard_conforming_strings = OFF");
 
     const char* pszFIDColumnName = CSLFetchNameValue(papszOptions, "FID");
     CPLString osFIDColumnName;

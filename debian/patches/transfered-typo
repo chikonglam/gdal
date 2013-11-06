@@ -1,0 +1,47 @@
+Description: Fix 'transfered' typo, replace with 'transferred'.
+Author: Bas Couwenberg <sebastic@xs4all.nl>
+Last-Update: 2013-10-11
+--- a/ogr/ogrsf_frmts/generic/ogrunionlayer.h
++++ b/ogr/ogrsf_frmts/generic/ogrunionlayer.h
+@@ -94,7 +94,7 @@ class OGRUnionLayer : public OGRLayer
+   public:
+                         OGRUnionLayer( const char* pszName,
+                                        int nSrcLayers, /* must be >= 1 */
+-                                       OGRLayer** papoSrcLayers, /* array itself ownership always transfered, layer ownership depending on bTakeLayerOwnership */
++                                       OGRLayer** papoSrcLayers, /* array itself ownership always transferred, layer ownership depending on bTakeLayerOwnership */
+                                        int bTakeLayerOwnership);
+ 
+     virtual             ~OGRUnionLayer();
+--- a/ogr/ogrsf_frmts/pg/drv_pg.html
++++ b/ogr/ogrsf_frmts/pg/drv_pg.html
+@@ -140,7 +140,7 @@ Ignored by CreateLayer() that uses the F
+ <!-- Little interest to advertize PG_USE_TEXT... Just to keep it mind it exists for example for debugging -->
+ <!-- <li><b>PG_USE_TEXT</b>: (GDAL >= 1.8.0) If set to "YES", geometries will be fetched as text instead of their default HEXEWKB form.</li></p> -->
+ <li><b>PG_USE_BASE64</b>: (GDAL >= 1.8.0) If set to "YES", geometries will be fetched as BASE64 encoded EWKB instead of canonical HEX encoded EWKB.
+-This reduces the amount of data to be transfered from 2 N to 1.333 N, where N is the size of EWKB data. However, it might be a
++This reduces the amount of data to be transferred from 2 N to 1.333 N, where N is the size of EWKB data. However, it might be a
+ bit slower than fetching in canonical form when the client and the server are on the same machine, so the default is NO.</li><p>
+ </ul>
+ 
+--- a/port/cpl_vsi_mem.cpp
++++ b/port/cpl_vsi_mem.cpp
+@@ -204,7 +204,7 @@ bool VSIMemFile::SetLength( vsi_l_offset
+         if( !bOwnData )
+         {
+             CPLError(CE_Failure, CPLE_NotSupported,
+-                     "Cannot extended in-memory file whose ownership was not transfered");
++                     "Cannot extended in-memory file whose ownership was not transferred");
+             return false;
+         }
+         
+--- a/swig/python/samples/README
++++ b/swig/python/samples/README
+@@ -28,7 +28,7 @@ gdalfilter.py		Example script for applyi
+ 			files as an intermediate representation.
+ 
+ gdal_retile.py          Script for restructuring data in a tree of regular tiles.
+-                        (transfered in swig/python/scripts)
++                        (transferred in swig/python/scripts)
+ 
+ get_soundg.py		Script to copy the SOUNDG layer from an S-57 file to
+ 			a Shapefile, splitting up features with MULTIPOINT

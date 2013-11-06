@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrkmldatasource.cpp 23978 2012-02-14 20:42:34Z rouault $
+ * $Id: ogrkmldatasource.cpp 25979 2013-05-03 19:10:30Z rouault $
  *
  * Project:  KML Driver
  * Purpose:  Implementation of OGRKMLDataSource class.
@@ -66,7 +66,12 @@ OGRKMLDataSource::~OGRKMLDataSource()
 {
     if( fpOutput_ != NULL )
     {
-        VSIFPrintfL( fpOutput_, "%s", "</Folder></Document></kml>\n" );
+        VSIFPrintfL( fpOutput_, "%s", "</Folder>\n");
+        for( int i = 0; i < nLayers_; i++ )
+        {
+            papoLayers_[i]->WriteSchema();
+        }
+        VSIFPrintfL( fpOutput_, "%s", "</Document></kml>\n" );
 
         VSIFCloseL( fpOutput_ );
     }
