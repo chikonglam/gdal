@@ -1,3 +1,9 @@
+gdal (1.10.1+dfsg-0~exp2) UNRELEASED; urgency=low
+
+  * Change priority to optional.
+
+ -- Bas Couwenberg <sebastic@xs4all.nl>  Fri, 22 Nov 2013 03:29:36 +0100
+
 gdal (1.10.1+dfsg-0~exp1) experimental; urgency=low
 
   [ Bas Couwenberg ]
