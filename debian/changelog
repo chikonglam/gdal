@@ -1,5 +1,9 @@
 gdal (1.10.1+dfsg-1) unstable; urgency=medium
 
+  [ Bas Couwenberg ]
+  * Change priority to optional.
+
+  [ Francesco Paolo Lovergine ]
   * Ready for unstable.
 
  -- Francesco Paolo Lovergine <frankie@debian.org>  Tue, 10 Dec 2013 12:59:27 +0100
