@@ -14,7 +14,7 @@ Build-Depends: debhelper (>= 9),
                libjpeg-dev,
                libgif-dev,
                libhdf4-alt-dev,
-               libhdf5-serial-dev (>= 1.6.6),
+               libhdf5-dev (>= 1.8.8),
                libpq-dev,
                libxerces-c-dev,
                unixodbc-dev (>= 2.2.11),
@@ -49,7 +49,7 @@ Build-Depends: debhelper (>= 9),
                default-jdk,
                ant
 Build-Conflicts: python-setuptools
-Standards-Version: 3.9.4
+Standards-Version: 3.9.5
 Vcs-Browser: http://anonscm.debian.org/gitweb/?p=pkg-grass/gdal.git
 Vcs-Git: git://anonscm.debian.org/git/pkg-grass/gdal.git
 Homepage: http://www.gdal.org/
@@ -121,7 +121,7 @@ Depends: libgdal1h (= ${binary:Version}),
          libjpeg-dev,
          libgif-dev,
          libhdf4-alt-dev,
-         libhdf5-serial-dev,
+         libhdf5-dev,
          libpq-dev,
          libxerces-c-dev,
          unixodbc-dev,
@@ -186,6 +186,7 @@ Architecture: any
 Depends: ${shlibs:Depends},
          ${misc:Depends}
 Suggests: python-gdal
+Breaks: gdal-bin (<< 1.10.0-0~)
 Description: Geospatial Data Abstraction Library - Utility programs
  GDAL is a translator library for raster geospatial data formats.
  As a library, it presents a single abstract data model to the

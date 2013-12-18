@@ -1,3 +1,13 @@
+gdal (1.10.1+dfsg-2) unstable; urgency=medium
+
+  * Moved to libhdf5-dev b-d with the right versioning. 
+    (closes: #689426)
+  * Policy bumped to 3.9.5, no changes.
+  * Added a Breaks for python-gdal vs gdal-bin due to gdal_retile.1 collision
+    in pre-1.10 versions distributed in experimental. Just for safety.
+
+ -- Francesco Paolo Lovergine <frankie@debian.org>  Wed, 18 Dec 2013 13:10:55 +0100
+
 gdal (1.10.1+dfsg-1) unstable; urgency=medium
 
   [ Bas Couwenberg ]
