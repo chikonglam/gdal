@@ -1,4 +1,4 @@
-gdal (1.10.1+dfsg-3) unstable; urgency=low
+gdal (1.10.1+dfsg-3) unstable; urgency=medium
 
   * Add patch to fix FTBFS on hurd-i386 which doesn't defined PATH_MAX.
   * Update symbols files for version 1.10.1.
