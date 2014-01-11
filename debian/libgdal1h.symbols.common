@@ -1,149 +1,9 @@
- AIGAccessTile@GDAL_1.8 1.8.0
- AIGClose@GDAL_1.8 1.8.0
- AIGLLOpen@GDAL_1.8 1.8.0
- AIGOpen@GDAL_1.8 1.8.0
- AIGReadBlock@GDAL_1.8 1.8.0
- AIGReadBlockIndex@GDAL_1.8 1.8.0
- AIGReadBounds@GDAL_1.8 1.8.0
- AIGReadFloatTile@GDAL_1.8 1.8.0
- AIGReadHeader@GDAL_1.8 1.8.0
- AIGReadStatistics@GDAL_1.8 1.8.0
- AIGReadTile@GDAL_1.8 1.8.0
- AVCAdjustCaseSensitiveFilename@GDAL_1.8 1.8.0
- AVCAllocDBCSInfo@GDAL_1.8 1.8.0
- AVCBinReadClose@GDAL_1.8 1.8.0
- AVCBinReadListTables@GDAL_1.8 1.8.0
- AVCBinReadNextArc@GDAL_1.8 1.8.0
- AVCBinReadNextCnt@GDAL_1.8 1.8.0
- AVCBinReadNextLab@GDAL_1.8 1.8.0
- AVCBinReadNextObject@GDAL_1.8 1.8.0
- AVCBinReadNextPal@GDAL_1.8 1.8.0
- AVCBinReadNextPrj@GDAL_1.8 1.8.0
- AVCBinReadNextRxp@GDAL_1.8 1.8.0
- AVCBinReadNextTableRec@GDAL_1.8 1.8.0
- AVCBinReadNextTol@GDAL_1.8 1.8.0
- AVCBinReadNextTxt@GDAL_1.8 1.8.0
- AVCBinReadObject@GDAL_1.8 1.8.0
- AVCBinReadOpen@GDAL_1.8 1.8.0
- AVCBinReadRewind@GDAL_1.8 1.8.0
- AVCBinWriteArc@GDAL_1.8 1.8.0
- AVCBinWriteClose@GDAL_1.8 1.8.0
- AVCBinWriteCnt@GDAL_1.8 1.8.0
- AVCBinWriteCreate@GDAL_1.8 1.8.0
- AVCBinWriteCreateTable@GDAL_1.8 1.8.0
- AVCBinWriteHeader@GDAL_1.8 1.8.0
- AVCBinWriteLab@GDAL_1.8 1.8.0
- AVCBinWriteObject@GDAL_1.8 1.8.0
- AVCBinWritePal@GDAL_1.8 1.8.0
- AVCBinWritePrj@GDAL_1.8 1.8.0
- AVCBinWriteRxp@GDAL_1.8 1.8.0
- AVCBinWriteTableRec@GDAL_1.8 1.8.0
- AVCBinWriteTol@GDAL_1.8 1.8.0
- AVCBinWriteTxt@GDAL_1.8 1.8.0
- AVCE00Convert2ArcDBCS@GDAL_1.8 1.8.0
- AVCE00ConvertFromArcDBCS@GDAL_1.8 1.8.0
- AVCE00DeleteCoverage@GDAL_1.8 1.8.0
- AVCE00DetectEncoding@GDAL_1.8 1.8.0
- AVCE00GenArc@GDAL_1.8 1.8.0
- AVCE00GenCnt@GDAL_1.8 1.8.0
- AVCE00GenEndSection@GDAL_1.8 1.8.0
- AVCE00GenInfoAlloc@GDAL_1.8 1.8.0
- AVCE00GenInfoFree@GDAL_1.8 1.8.0
- AVCE00GenLab@GDAL_1.8 1.8.0
- AVCE00GenObject@GDAL_1.8 1.8.0
- AVCE00GenPal@GDAL_1.8 1.8.0
- AVCE00GenPrj@GDAL_1.8 1.8.0
- AVCE00GenReset@GDAL_1.8 1.8.0
- AVCE00GenRxp@GDAL_1.8 1.8.0
- AVCE00GenStartSection@GDAL_1.8 1.8.0
- AVCE00GenTableHdr@GDAL_1.8 1.8.0
- AVCE00GenTableRec@GDAL_1.8 1.8.0
- AVCE00GenTol@GDAL_1.8 1.8.0
- AVCE00GenTx6@GDAL_1.8 1.8.0
- AVCE00GenTxt@GDAL_1.8 1.8.0
- AVCE00ParseInfoAlloc@GDAL_1.8 1.8.0
- AVCE00ParseInfoFree@GDAL_1.8 1.8.0
- AVCE00ParseNextArcLine@GDAL_1.8 1.8.0
- AVCE00ParseNextCntLine@GDAL_1.8 1.8.0
- AVCE00ParseNextLabLine@GDAL_1.8 1.8.0
- AVCE00ParseNextLine@GDAL_1.8 1.8.0
- AVCE00ParseNextPalLine@GDAL_1.8 1.8.0
- AVCE00ParseNextPrjLine@GDAL_1.8 1.8.0
- AVCE00ParseNextRxpLine@GDAL_1.8 1.8.0
- AVCE00ParseNextTableDefLine@GDAL_1.8 1.8.0
- AVCE00ParseNextTableRecLine@GDAL_1.8 1.8.0
- AVCE00ParseNextTolLine@GDAL_1.8 1.8.0
- AVCE00ParseNextTx6Line@GDAL_1.8 1.8.0
- AVCE00ParseNextTxtLine@GDAL_1.8 1.8.0
- AVCE00ParseReset@GDAL_1.8 1.8.0
- AVCE00ParseSectionEnd@GDAL_1.8 1.8.0
- AVCE00ParseSectionHeader@GDAL_1.8 1.8.0
- AVCE00ParseSuperSectionEnd@GDAL_1.8 1.8.0
- AVCE00ParseSuperSectionHeader@GDAL_1.8 1.8.0
- AVCE00ReadClose@GDAL_1.8 1.8.0
- AVCE00ReadCloseE00@GDAL_1.8 1.8.0
- AVCE00ReadGotoSection@GDAL_1.8 1.8.0
- AVCE00ReadGotoSectionE00@GDAL_1.8 1.8.0
- AVCE00ReadNextLine@GDAL_1.8 1.8.0
- AVCE00ReadNextObjectE00@GDAL_1.8 1.8.0
- AVCE00ReadOpen@GDAL_1.8 1.8.0
- AVCE00ReadOpenE00@GDAL_1.8 1.8.0
- AVCE00ReadRewind@GDAL_1.8 1.8.0
- AVCE00ReadRewindE00@GDAL_1.8 1.8.0
- AVCE00ReadSectionsList@GDAL_1.8 1.8.0
- AVCE00ReadSectionsListE00@GDAL_1.8 1.8.0
- AVCE00Str2Int@GDAL_1.8 1.8.0
- AVCE00WriteClose@GDAL_1.8 1.8.0
- AVCE00WriteNextLine@GDAL_1.8 1.8.0
- AVCE00WriteOpen@GDAL_1.8 1.8.0
- AVCFileExists@GDAL_1.8 1.8.0
- AVCFreeDBCSInfo@GDAL_1.8 1.8.0
- AVCGetDBCSCodePage@GDAL_1.8 1.8.0
- AVCPrintRealValue@GDAL_1.8 1.8.0
- AVCRawBinClose@GDAL_1.8 1.8.0
- AVCRawBinEOF@GDAL_1.8 1.8.0
- AVCRawBinFSeek@GDAL_1.8 1.8.0
- AVCRawBinOpen@GDAL_1.8 1.8.0
- AVCRawBinReadBytes@GDAL_1.8 1.8.0
- AVCRawBinReadDouble@GDAL_1.8 1.8.0
- AVCRawBinReadFloat@GDAL_1.8 1.8.0
- AVCRawBinReadInt16@GDAL_1.8 1.8.0
- AVCRawBinReadInt32@GDAL_1.8 1.8.0
- AVCRawBinReadString@GDAL_1.8 1.8.0
- AVCRawBinSetFileDataSize@GDAL_1.8 1.8.0
- AVCRawBinWriteBytes@GDAL_1.8 1.8.0
- AVCRawBinWriteDouble@GDAL_1.8 1.8.0
- AVCRawBinWriteFloat@GDAL_1.8 1.8.0
- AVCRawBinWriteInt16@GDAL_1.8 1.8.0
- AVCRawBinWriteInt32@GDAL_1.8 1.8.0
- AVCRawBinWritePaddedString@GDAL_1.8 1.8.0
- AVCRawBinWriteZeros@GDAL_1.8 1.8.0
- AddLink@GDAL_1.8 1.8.0
- AddRecipe@GDAL_1.8 1.8.0
- AddSubTypeField_GCIO@GDAL_1.8 1.8.0
- AddSubType_GCIO@GDAL_1.8 1.8.0
- AddTypeField_GCIO@GDAL_1.8 1.8.0
- AddType_GCIO@GDAL_1.8 1.8.0
- BESSEL_1841@GDAL_1.8 1.8.0
- BESSEL_1841_NAMIBIA@GDAL_1.8 1.8.0
- BNA_Display@GDAL_1.8 1.8.0
- BNA_FeatureTypeToStr@GDAL_1.8 1.8.0
- BNA_FreeRecord@GDAL_1.8 1.8.0
- BNA_GetNextRecord@GDAL_1.8 1.8.0
  BSBClose@GDAL_1.8 1.8.0
  BSBCreate@GDAL_1.8 1.8.0
  BSBOpen@GDAL_1.8 1.8.0
  BSBReadScanline@GDAL_1.8 1.8.0
  BSBWritePCT@GDAL_1.8 1.8.0
  BSBWriteScanline@GDAL_1.8 1.8.0
- Break_MGRS_String@GDAL_1.8 1.8.0
- CEOSClose@GDAL_1.8 1.8.0
- CEOSDestroyRecord@GDAL_1.8 1.8.0
- CEOSOpen@GDAL_1.8 1.8.0
- CEOSReadRecord@GDAL_1.8 1.8.0
- CEOSReadScanline@GDAL_1.8 1.8.0
- CLARKE_1866@GDAL_1.8 1.8.0
- CLARKE_1880@GDAL_1.8 1.8.0
  CPLAcquireMutex@GDAL_1.8 1.8.0
  CPLAddXMLChild@GDAL_1.8 1.8.0
  CPLAddXMLSibling@GDAL_1.8 1.8.0
@@ -158,14 +18,23 @@
  CPLCheckForFile@GDAL_1.8 1.8.0
  CPLCleanTrailingSlash@GDAL_1.8 1.8.0
  CPLCleanXMLElementName@GDAL_1.8 1.8.0
+ CPLCleanupErrorMutex@GDAL_1.8 1.10.1
+ CPLCleanupMasterMutex@GDAL_1.8 1.10.1
+ CPLCleanupSharedFileMutex@GDAL_1.8 1.10.1
  CPLCleanupTLS@GDAL_1.8 1.8.0
+ CPLClearRecodeWarningFlags@GDAL_1.8 1.10.1
  CPLCloneXMLTree@GDAL_1.8 1.8.0
  CPLCloseFileInZip@GDAL_1.8 1.8.0
  CPLCloseShared@GDAL_1.8 1.8.0
  CPLCloseZip@GDAL_1.8 1.8.0
+ CPLCondBroadcast@GDAL_1.8 1.10.1
+ CPLCondSignal@GDAL_1.8 1.10.1
+ CPLCondWait@GDAL_1.8 1.10.1
  CPLCopyFile@GDAL_1.8 1.8.0
  CPLCorrespondingPaths@GDAL_1.8 1.8.0
+ CPLCreateCond@GDAL_1.8 1.10.1
  CPLCreateFileInZip@GDAL_1.8 1.8.0
+ CPLCreateJoinableThread@GDAL_1.8 1.10.1
  CPLCreateMutex@GDAL_1.8 1.8.0
  CPLCreateOrAcquireMutex@GDAL_1.8 1.8.0
  CPLCreateThread@GDAL_1.8 1.8.0
@@ -178,6 +47,7 @@
  CPLDecToPackedDMS@GDAL_1.8 1.8.0
  CPLDefaultErrorHandler@GDAL_1.8 1.8.0
  CPLDefaultFindFile@GDAL_1.8 1.8.0
+ CPLDestroyCond@GDAL_1.8 1.10.1
  CPLDestroyMutex@GDAL_1.8 1.8.0
  CPLDestroyXMLNode@GDAL_1.8 1.8.0
  CPLDumpSharedList@GDAL_1.8 1.8.0
@@ -207,6 +77,7 @@
  CPLGetLastErrorMsg@GDAL_1.8 1.8.0
  CPLGetLastErrorNo@GDAL_1.8 1.8.0
  CPLGetLastErrorType@GDAL_1.8 1.8.0
+ CPLGetNumCPUs@GDAL_1.8 1.10.1
  CPLGetPID@GDAL_1.8 1.8.0
  CPLGetPath@GDAL_1.8 1.8.0
  CPLGetSharedList@GDAL_1.8 1.8.0
@@ -235,6 +106,7 @@
  CPLHexToBinary@GDAL_1.8 1.8.0
  CPLIsFilenameRelative@GDAL_1.8 1.8.0
  CPLIsUTF8@GDAL_1.8 1.8.0
+ CPLJoinThread@GDAL_1.8 1.10.1
  CPLListAppend@GDAL_1.8 1.8.0
  CPLListCount@GDAL_1.8 1.8.0
  CPLListDestroy@GDAL_1.8 1.8.0
@@ -253,6 +125,8 @@
  CPLParseNameValue@GDAL_1.8 1.8.0
  CPLParseXMLFile@GDAL_1.8 1.8.0
  CPLParseXMLString@GDAL_1.8 1.8.0
+ CPLPipeRead@GDAL_1.8 1.10.1
+ CPLPipeWrite@GDAL_1.8 1.10.1
  CPLPopErrorHandler@GDAL_1.8 1.8.0
  CPLPopFileFinder@GDAL_1.8 1.8.0
  CPLPopFinderLocation@GDAL_1.8 1.8.0
@@ -308,6 +182,16 @@
  CPLSetThreadLocalConfigOption@GDAL_1.8 1.8.0
  CPLSetXMLValue@GDAL_1.8 1.8.0
  CPLSleep@GDAL_1.8 1.8.0
+ CPLSpawn@GDAL_1.8 1.10.1
+ CPLSpawnAsync@GDAL_1.8 1.10.1
+ CPLSpawnAsyncCloseErrorFileHandle@GDAL_1.8 1.10.1
+ CPLSpawnAsyncCloseInputFileHandle@GDAL_1.8 1.10.1
+ CPLSpawnAsyncCloseOutputFileHandle@GDAL_1.8 1.10.1
+ CPLSpawnAsyncFinish@GDAL_1.8 1.10.1
+ CPLSpawnAsyncGetChildProcessId@GDAL_1.8 1.10.1
+ CPLSpawnAsyncGetErrorFileHandle@GDAL_1.8 1.10.1
+ CPLSpawnAsyncGetInputFileHandle@GDAL_1.8 1.10.1
+ CPLSpawnAsyncGetOutputFileHandle@GDAL_1.8 1.10.1
  CPLStat@GDAL_1.8 1.8.0
  CPLStrdup@GDAL_1.8 1.8.0
  CPLStringToComplex@GDAL_1.8 1.8.0
@@ -320,13 +204,15 @@
  CPLStrtodDelim@GDAL_1.8 1.8.0
  CPLStrtof@GDAL_1.8 1.8.0
  CPLStrtofDelim@GDAL_1.8 1.8.0
- CPLTurnFailureIntoWarning@GDAL_1.8 1.8.0
  CPLUnescapeString@GDAL_1.8 1.8.0
  CPLUnlinkTree@GDAL_1.8 1.8.0
  CPLUnlockFile@GDAL_1.8 1.8.0
  CPLVASPrintf@GDAL_1.8 1.8.0
+ CPLValidateXML@GDAL_1.8 1.10.1
  CPLVerifyConfiguration@GDAL_1.8 1.8.0
  CPLWriteFileInZip@GDAL_1.8 1.8.0
+ CPLZLibDeflate@GDAL_1.8 1.10.1
+ CPLZLibInflate@GDAL_1.8 1.10.1
  CSLAddNameValue@GDAL_1.8 1.8.0
  CSLAddString@GDAL_1.8 1.8.0
  CSLAppendPrintf@GDAL_1.8 1.8.0
@@ -367,66 +253,6 @@
  CSVScanFile@GDAL_1.8 1.8.0
  CSVScanFileByName@GDAL_1.8 1.8.0
  CSVScanLines@GDAL_1.8 1.8.0
- C_pkGrib2@GDAL_1.8 1.8.0
- CalcCeosSARImageFilePosition@GDAL_1.8 1.8.0
- CeosDataType@GDAL_1.8 1.8.0
- CeosDefaultRecipe@GDAL_1.8 1.8.0
- CeosInterleaveType@GDAL_1.8 1.8.0
- CeosUpdateHeaderFromBuffer@GDAL_1.8 1.8.0
- Check_Zone@GDAL_1.8 1.8.0
- CleanupESRIDatumMappingTable@GDAL_1.8 1.8.0
- Clock_Clicks@GDAL_1.8 1.8.0
- Clock_Epoch2YearDay@GDAL_1.8 1.8.0
- Clock_GetTimeZone@GDAL_1.8 1.8.0
- Clock_IsDaylightSaving2@GDAL_1.8 1.8.0
- Clock_MonthNum@GDAL_1.8 1.8.0
- Clock_NumDay@GDAL_1.8 1.8.0
- Clock_Print2@GDAL_1.8 1.8.0
- Clock_Print@GDAL_1.8 1.8.0
- Clock_PrintDate@GDAL_1.8 1.8.0
- Clock_PrintDateNumber@GDAL_1.8 1.8.0
- Clock_PrintMonth3@GDAL_1.8 1.8.0
- Clock_PrintMonth@GDAL_1.8 1.8.0
- Clock_PrintZone2@GDAL_1.8 1.8.0
- Clock_Scan@GDAL_1.8 1.8.0
- Clock_ScanDate@GDAL_1.8 1.8.0
- Clock_ScanDateNumber@GDAL_1.8 1.8.0
- Clock_ScanMonth@GDAL_1.8 1.8.0
- Clock_ScanZone2@GDAL_1.8 1.8.0
- Clock_Seconds@GDAL_1.8 1.8.0
- Clock_SetSeconds@GDAL_1.8 1.8.0
- Close_GCIO@GDAL_1.8 1.8.0
- ComputeUnit@GDAL_1.8 1.8.0
- Convert_MGRS_To_UPS@GDAL_1.8 1.8.0
- Convert_MGRS_To_UTM@GDAL_1.8 1.8.0
- Convert_UPS_To_MGRS@GDAL_1.8 1.8.0
- CreateExtent_GCIO@GDAL_1.8 1.8.0
- CreateHeader_GCIO@GDAL_1.8 1.8.0
- CreateSysCoord_GCSRS@GDAL_1.8 1.8.0
- CsfAttributeSize@GDAL_1.8 1.8.0
- CsfBootCsfKernel@GDAL_1.8 1.8.0
- CsfDummyConversion@GDAL_1.8 1.8.0
- CsfFinishMapInit@GDAL_1.8 1.8.0
- CsfGetAttrBlock@GDAL_1.8 1.8.0
- CsfGetAttrIndex@GDAL_1.8 1.8.0
- CsfGetAttrPosSize@GDAL_1.8 1.8.0
- CsfGetAttribute@GDAL_1.8 1.8.0
- CsfGetVarType@GDAL_1.8 1.8.0
- CsfIsBootedCsfKernel@GDAL_1.8 1.8.0
- CsfIsValidMap@GDAL_1.8 1.8.0
- CsfPutAttribute@GDAL_1.8 1.8.0
- CsfReadAttrBlock@GDAL_1.8 1.8.0
- CsfReadSwapped@GDAL_1.8 1.8.0
- CsfRegisterMap@GDAL_1.8 1.8.0
- CsfSeekAttrSpace@GDAL_1.8 1.8.0
- CsfSetVarTypeMV@GDAL_1.8 1.8.0
- CsfStringPad@GDAL_1.8 1.8.0
- CsfSwap@GDAL_1.8 1.8.0
- CsfUnloadMap@GDAL_1.8 1.8.0
- CsfUpdateAttribute@GDAL_1.8 1.8.0
- CsfValidSize@GDAL_1.8 1.8.0
- CsfWriteAttrBlock@GDAL_1.8 1.8.0
- CsfWriteSwapped@GDAL_1.8 1.8.0
  DBFAddField@GDAL_1.8 1.8.0
  DBFAddNativeFieldType@GDAL_1.8 1.8.0
  DBFAlterFieldDefn@GDAL_1.8 1.9.0
@@ -508,91 +334,6 @@
  DGNUpdateElemCore@GDAL_1.8 1.8.0
  DGNUpdateElemCoreExtended@GDAL_1.8 1.8.0
  DGNWriteElement@GDAL_1.8 1.8.0
- DTEDClose@GDAL_1.8 1.8.0
- DTEDClosePtStream@GDAL_1.8 1.8.0
- DTEDCreate@GDAL_1.8 1.8.0
- DTEDCreatePtStream@GDAL_1.8 1.8.0
- DTEDFillPixel@GDAL_1.8 1.8.0
- DTEDFillPtStream@GDAL_1.8 1.8.0
- DTEDGetMetadata@GDAL_1.8 1.8.0
- DTEDOpen@GDAL_1.8 1.8.0
- DTEDPtStreamSetMetadata@GDAL_1.8 1.8.0
- DTEDPtStreamTrimEdgeOnlyTiles@GDAL_1.8 1.8.0
- DTEDReadPoint@GDAL_1.8 1.8.0
- DTEDReadProfile@GDAL_1.8 1.8.0
- DTEDReadProfileEx@GDAL_1.8 1.8.0
- DTEDSetMetadata@GDAL_1.8 1.8.0
- DTEDWriteProfile@GDAL_1.8 1.8.0
- DTEDWritePt@GDAL_1.8 1.8.0
- DecompressCCITTRLETile@GDAL_1.8 1.8.0
- DeleteCeosRecord@GDAL_1.8 1.8.0
- DeleteCeosSARVolume@GDAL_1.8 1.8.0
- DestroyExtent_GCIO@GDAL_1.8 1.8.0
- DestroyHeader_GCIO@GDAL_1.8 1.8.0
- DestroyList@GDAL_1.8 1.8.0
- DestroySysCoord_GCSRS@GDAL_1.8 1.8.0
- DetermineCeosRecordBodyLength@GDAL_1.8 1.8.0
- DetermineCeosSARPixelOrder@GDAL_1.8 1.8.0
- EHattr@GDAL_1.8 1.8.0
- EHattrcat@GDAL_1.8 1.8.0
- EHattrinfo@GDAL_1.8 1.8.0
- EHbisect@GDAL_1.8 1.8.0
- EHchkfid@GDAL_1.8 1.8.0
- EHclose@GDAL_1.8 1.8.0
- EHcntGROUP@GDAL_1.8 1.8.0
- EHcntOBJECT@GDAL_1.8 1.8.0
- EHconvAng@GDAL_1.8 1.8.0
- EHfilename@GDAL_1.8 1.8.0
- EHfillfld@GDAL_1.8 1.8.0
- EHgetid@GDAL_1.8 1.8.0
- EHgetmetavalue@GDAL_1.8 1.8.0
- EHgetversion@GDAL_1.8 1.8.0
- EHidinfo@GDAL_1.8 1.8.0
- EHinquire@GDAL_1.8 1.8.0
- EHinsertmeta@GDAL_1.8 1.8.0
- EHloadliststr@GDAL_1.8 1.8.0
- EHmetagroup@GDAL_1.8 1.8.0
- EHnumstr@GDAL_1.8 1.8.0
- EHopen@GDAL_1.8 1.8.0
- EHparsestr@GDAL_1.8 1.8.0
- EHrevflds@GDAL_1.8 1.8.0
- EHstrwithin@GDAL_1.8 1.8.0
- EnvisatFile_Close@GDAL_1.8 1.8.0
- EnvisatFile_Create@GDAL_1.8 1.8.0
- EnvisatFile_GetCurrentLength@GDAL_1.8 1.8.0
- EnvisatFile_GetDatasetIndex@GDAL_1.8 1.8.0
- EnvisatFile_GetDatasetInfo@GDAL_1.8 1.8.0
- EnvisatFile_GetFieldAsString@GDAL_1.8 1.9.0
- EnvisatFile_GetFilename@GDAL_1.8 1.8.0
- EnvisatFile_GetKeyByIndex@GDAL_1.8 1.8.0
- EnvisatFile_GetKeyValueAsDouble@GDAL_1.8 1.8.0
- EnvisatFile_GetKeyValueAsInt@GDAL_1.8 1.8.0
- EnvisatFile_GetKeyValueAsString@GDAL_1.8 1.8.0
- EnvisatFile_GetRecordDescriptor@GDAL_1.8 1.9.0
- EnvisatFile_Open@GDAL_1.8 1.8.0
- EnvisatFile_ReadDatasetChunk@GDAL_1.8 1.8.0
- EnvisatFile_ReadDatasetRecord@GDAL_1.8 1.8.0
- EnvisatFile_SetDatasetInfo@GDAL_1.8 1.8.0
- EnvisatFile_SetKeyValueAsDouble@GDAL_1.8 1.8.0
- EnvisatFile_SetKeyValueAsInt@GDAL_1.8 1.8.0
- EnvisatFile_SetKeyValueAsString@GDAL_1.8 1.8.0
- EnvisatFile_WriteDatasetRecord@GDAL_1.8 1.8.0
- FFlush_GCIO@GDAL_1.8 1.8.0
- FileCopy@GDAL_1.8 1.8.0
- FileTail@GDAL_1.8 1.8.0
- FindCeosRecord@GDAL_1.8 1.8.0
- FindFeatureFieldIndex_GCIO@GDAL_1.8 1.8.0
- FindFeatureField_GCIO@GDAL_1.8 1.8.0
- FindFeature_GCIO@GDAL_1.8 1.8.0
- FindGRIBMsg@GDAL_1.8 1.8.0
- FreeRecipes@GDAL_1.8 1.8.0
- FreeUglyString@GDAL_1.8 1.8.0
- FreqPrint@GDAL_1.8 1.8.0
- GCAccessMode2str_GCIO@GDAL_1.8 1.8.0
- GCAccessStatus2str_GCIO@GDAL_1.8 1.8.0
- GCCharset2str_GCIO@GDAL_1.8 1.8.0
- GCDim2str_GCIO@GDAL_1.8 1.8.0
- GCTypeKind2str_GCIO@GDAL_1.8 1.8.0
  GDALARGetNextUpdatedRegion@GDAL_1.8 1.8.0
  GDALARLockBuffer@GDAL_1.8 1.8.0
  GDALARUnlockBuffer@GDAL_1.8 1.8.0
@@ -616,6 +357,7 @@
  GDALCloneWarpOptions@GDAL_1.8 1.8.0
  GDALClose@GDAL_1.8 1.8.0
  GDALComputeBandStats@GDAL_1.8 1.8.0
+ GDALComputeMatchingPoints@GDAL_1.8 1.10.1
  GDALComputeMedianCutPCT@GDAL_1.8 1.8.0
  GDALComputeProximity@GDAL_1.8 1.8.0
  GDALComputeRasterMinMax@GDAL_1.8 1.8.0
@@ -633,13 +375,11 @@
  GDALCreateDatasetMaskBand@GDAL_1.8 1.8.0
  GDALCreateGCPRefineTransformer@GDAL_1.8 1.9.0
  GDALCreateGCPTransformer@GDAL_1.8 1.8.0
- GDALCreateGCPTransformerEx@GDAL_1.8 1.9.0
  GDALCreateGenImgProjTransformer2@GDAL_1.8 1.8.0
  GDALCreateGenImgProjTransformer3@GDAL_1.8 1.8.0
  GDALCreateGenImgProjTransformer@GDAL_1.8 1.8.0
  GDALCreateGeoLocTransformer@GDAL_1.8 1.8.0
  GDALCreateMaskBand@GDAL_1.8 1.8.0
- GDALCreateProjDef@GDAL_1.8 1.8.0
  GDALCreateRPCTransformer@GDAL_1.8 1.8.0
  GDALCreateRasterAttributeTable@GDAL_1.8 1.8.0
  GDALCreateReprojectionTransformer@GDAL_1.8 1.8.0
@@ -655,15 +395,10 @@
  GDALDatasetRasterIO@GDAL_1.8 1.8.0
  GDALDecToDMS@GDAL_1.8 1.8.0
  GDALDecToPackedDMS@GDAL_1.8 1.8.0
- GDALDefaultCSVFilename@GDAL_1.8 1.8.0
  GDALDeinitGCPs@GDAL_1.8 1.8.0
  GDALDeleteDataset@GDAL_1.8 1.8.0
  GDALDereferenceDataset@GDAL_1.8 1.8.0
  GDALDeregisterDriver@GDAL_1.8 1.8.0
- GDALDeserializeGCPTransformer@GDAL_1.8 1.8.0
- GDALDeserializeGeoLocTransformer@GDAL_1.8 1.8.0
- GDALDeserializeRPCTransformer@GDAL_1.8 1.8.0
- GDALDeserializeTPSTransformer@GDAL_1.8 1.8.0
  GDALDeserializeTransformer@GDAL_1.8 1.8.0
  GDALDeserializeWarpOptions@GDAL_1.8 1.8.0
  GDALDestroyApproxTransformer@GDAL_1.8 1.8.0
@@ -673,7 +408,6 @@
  GDALDestroyGCPTransformer@GDAL_1.8 1.8.0
  GDALDestroyGenImgProjTransformer@GDAL_1.8 1.8.0
  GDALDestroyGeoLocTransformer@GDAL_1.8 1.8.0
- GDALDestroyProjDef@GDAL_1.8 1.8.0
  GDALDestroyRPCTransformer@GDAL_1.8 1.8.0
  GDALDestroyRasterAttributeTable@GDAL_1.8 1.8.0
  GDALDestroyReprojectionTransformer@GDAL_1.8 1.8.0
@@ -686,11 +420,6 @@
  GDALDummyProgress@GDAL_1.8 1.8.0
  GDALDumpOpenDatasets@GDAL_1.8 1.8.0
  GDALDuplicateGCPs@GDAL_1.8 1.8.0
- GDALE00GRIDReadCallbackOpen@GDAL_1.8 1.9.0
- GDALE00GRIDReadClose@GDAL_1.8 1.9.0
- GDALE00GRIDReadNextLine@GDAL_1.8 1.9.0
- GDALE00GRIDReadOpen@GDAL_1.8 1.9.0
- GDALE00GRIDReadRewind@GDAL_1.8 1.9.0
  GDALEndAsyncReader@GDAL_1.8 1.8.0
  GDALExtractRPCInfo@GDAL_1.8 1.8.0
  GDALFPolygonize@GDAL_1.8 1.9.0
@@ -724,7 +453,6 @@
  GDALGetDataTypeName@GDAL_1.8 1.8.0
  GDALGetDataTypeSize@GDAL_1.8 1.8.0
  GDALGetDatasetDriver@GDAL_1.8 1.8.0
- GDALGetDefaultAsyncReader@GDAL_1.8 1.8.0
  GDALGetDefaultHistogram@GDAL_1.8 1.8.0
  GDALGetDefaultRAT@GDAL_1.8 1.8.0
  GDALGetDescription@GDAL_1.8 1.8.0
@@ -773,21 +501,12 @@
  GDALGetRasterXSize@GDAL_1.8 1.8.0
  GDALGetRasterYSize@GDAL_1.8 1.8.0
  GDALGridCreate@GDAL_1.8 1.8.0
- GDALGridDataMetricAverageDistance@GDAL_1.8 1.8.0
- GDALGridDataMetricAverageDistancePts@GDAL_1.8 1.8.0
- GDALGridDataMetricCount@GDAL_1.8 1.8.0
- GDALGridDataMetricMaximum@GDAL_1.8 1.8.0
- GDALGridDataMetricMinimum@GDAL_1.8 1.8.0
- GDALGridDataMetricRange@GDAL_1.8 1.8.0
- GDALGridInverseDistanceToAPower@GDAL_1.8 1.8.0
- GDALGridInverseDistanceToAPowerNoSearch@GDAL_1.8 1.8.0
- GDALGridMovingAverage@GDAL_1.8 1.8.0
- GDALGridNearestNeighbor@GDAL_1.8 1.8.0
  GDALHasArbitraryOverviews@GDAL_1.8 1.8.0
  GDALIdentifyDriver@GDAL_1.8 1.8.0
  GDALInitGCPs@GDAL_1.8 1.8.0
  GDALInitializeWarpedVRT@GDAL_1.8 1.8.0
  GDALInvGeoTransform@GDAL_1.8 1.8.0
+ GDALIsInGlobalDestructor@GDAL_1.8 1.10.1
  GDALLoadIMDFile@GDAL_1.8 1.8.0
  GDALLoadOziMapFile@GDAL_1.8 1.8.0
  GDALLoadRPBFile@GDAL_1.8 1.8.0
@@ -834,7 +553,6 @@
  GDALRasterizeLayersBuf@GDAL_1.8 1.8.0
  GDALReadBlock@GDAL_1.8 1.8.0
  GDALReadOziMapFile@GDAL_1.8 1.8.0
- GDALReadTabFile2@GDAL_1.8 1.9.0
  GDALReadTabFile@GDAL_1.8 1.8.0
  GDALReadWorldFile2@GDAL_1.8 1.9.0
  GDALReadWorldFile@GDAL_1.8 1.8.0
@@ -845,6 +563,7 @@
  GDALRegister_ACE2@GDAL_1.8 1.9.0
  GDALRegister_ADRG@GDAL_1.8 1.8.0
  GDALRegister_AIGrid@GDAL_1.8 1.8.0
+ GDALRegister_ARG@GDAL_1.8 1.10.1
  GDALRegister_AirSAR@GDAL_1.8 1.8.0
  GDALRegister_BAG@GDAL_1.8 1.8.0
  GDALRegister_BIGGIF@GDAL_1.8 1.8.0
@@ -857,6 +576,7 @@
  GDALRegister_COSAR@GDAL_1.8 1.8.0
  GDALRegister_CPG@GDAL_1.8 1.8.0
  GDALRegister_CTG@GDAL_1.8 1.9.0
+ GDALRegister_CTable2@GDAL_1.8 1.10.1
  GDALRegister_DIMAP@GDAL_1.8 1.8.0
  GDALRegister_DIPEx@GDAL_1.8 1.8.0
  GDALRegister_DODS@GDAL_1.8 1.8.0
@@ -900,6 +620,7 @@
  GDALRegister_IDRISI@GDAL_1.8 1.8.0
  GDALRegister_ILWIS@GDAL_1.8 1.8.0
  GDALRegister_INGR@GDAL_1.8 1.8.0
+ GDALRegister_IRIS@GDAL_1.8 1.10.1
  GDALRegister_ISIS2@GDAL_1.8 1.8.0
  GDALRegister_ISIS3@GDAL_1.8 1.8.0
  GDALRegister_JDEM@GDAL_1.8 1.8.0
@@ -911,6 +632,8 @@
  GDALRegister_LCP@GDAL_1.8 1.8.0
  GDALRegister_LOSLAS@GDAL_1.8 1.8.0
  GDALRegister_Leveller@GDAL_1.8 1.8.0
+ GDALRegister_MAP@GDAL_1.8 1.10.1
+ GDALRegister_MBTiles@GDAL_1.8 1.10.1
  GDALRegister_MEM@GDAL_1.8 1.8.0
  GDALRegister_MFF@GDAL_1.8 1.8.0
  GDALRegister_MSGN@GDAL_1.8 1.8.0
@@ -925,8 +648,8 @@
  GDALRegister_PALSARJaxa@GDAL_1.8 1.8.0
  GDALRegister_PAux@GDAL_1.8 1.8.0
  GDALRegister_PCIDSK@GDAL_1.8 1.8.0
- GDALRegister_PDF@GDAL_1.8 1.9.0
  GDALRegister_PCRaster@GDAL_1.8 1.8.0
+ GDALRegister_PDF@GDAL_1.8 1.9.0
  GDALRegister_PDS@GDAL_1.8 1.8.0
  GDALRegister_PNG@GDAL_1.8 1.8.0
  GDALRegister_PNM@GDAL_1.8 1.8.0
@@ -956,17 +679,13 @@
  GDALRegister_ZMap@GDAL_1.8 1.9.0
  GDALRegister_netCDF@GDAL_1.8 1.8.0
  GDALRenameDataset@GDAL_1.8 1.8.0
- GDALReprojectFromLongLat@GDAL_1.8 1.8.0
  GDALReprojectImage@GDAL_1.8 1.8.0
- GDALReprojectToLongLat@GDAL_1.8 1.8.0
  GDALReprojectionTransform@GDAL_1.8 1.8.0
  GDALScaledProgress@GDAL_1.8 1.8.0
- GDALSerializeGCPTransformer@GDAL_1.8 1.8.0
- GDALSerializeGeoLocTransformer@GDAL_1.8 1.8.0
- GDALSerializeRPCTransformer@GDAL_1.8 1.8.0
- GDALSerializeTPSTransformer@GDAL_1.8 1.8.0
  GDALSerializeTransformer@GDAL_1.8 1.8.0
  GDALSerializeWarpOptions@GDAL_1.8 1.8.0
+ GDALServerLoop@GDAL_1.8 1.10.1
+ GDALServerLoopSocket@GDAL_1.8 1.10.1
  GDALSetCacheMax64@GDAL_1.8 1.8.0
  GDALSetCacheMax@GDAL_1.8 1.8.0
  GDALSetColorEntry@GDAL_1.8 1.8.0
@@ -994,6 +713,7 @@
  GDALSwapWords@GDAL_1.8 1.8.0
  GDALTPSTransform@GDAL_1.8 1.8.0
  GDALTermProgress@GDAL_1.8 1.8.0
+ GDALTransformGeolocations@GDAL_1.8 1.10.1
  GDALUseTransformer@GDAL_1.8 1.8.0
  GDALValidateCreationOptions@GDAL_1.8 1.8.0
  GDALVersionInfo@GDAL_1.8 1.8.0
@@ -1012,155 +732,26 @@
  GDAL_CG_Create@GDAL_1.8 1.8.0
  GDAL_CG_Destroy@GDAL_1.8 1.8.0
  GDAL_CG_FeedLine@GDAL_1.8 1.8.0
- GDALdllImageFilledPolygon@GDAL_1.8 1.8.0
- GDALdllImageLine@GDAL_1.8 1.8.0
- GDALdllImageLineAllTouched@GDAL_1.8 1.8.0
- GDALdllImagePoint@GDAL_1.8 1.8.0
- GDattach@GDAL_1.8 1.8.0
- GDattrinfo@GDAL_1.8 1.8.0
- GDblkSOMoffset@GDAL_1.8 1.8.0
- GDclose@GDAL_1.8 1.8.0
- GDcompinfo@GDAL_1.8 1.8.0
- GDcreate@GDAL_1.8 1.8.0
- GDdefboxregion@GDAL_1.8 1.8.0
- GDdefcomp@GDAL_1.8 1.8.0
- GDdefdim@GDAL_1.8 1.8.0
- GDdeffield@GDAL_1.8 1.8.0
- GDdeforigin@GDAL_1.8 1.8.0
- GDdefpixreg@GDAL_1.8 1.8.0
- GDdefproj@GDAL_1.8 1.8.0
- GDdeftile@GDAL_1.8 1.8.0
- GDdeftimeperiod@GDAL_1.8 1.8.0
- GDdefvrtregion@GDAL_1.8 1.8.0
- GDdetach@GDAL_1.8 1.8.0
- GDdiminfo@GDAL_1.8 1.8.0
- GDdupregion@GDAL_1.8 1.8.0
- GDextractregion@GDAL_1.8 1.8.0
- GDfieldinfo@GDAL_1.8 1.8.0
- GDgetfillvalue@GDAL_1.8 1.8.0
- GDgetpixels@GDAL_1.8 1.8.0
- GDgetpixvalues@GDAL_1.8 1.8.0
- GDgridinfo@GDAL_1.8 1.8.0
- GDinqattrs@GDAL_1.8 1.8.0
- GDinqdims@GDAL_1.8 1.8.0
- GDinqfields@GDAL_1.8 1.8.0
- GDinqgrid@GDAL_1.8 1.8.0
- GDinterpolate@GDAL_1.8 1.8.0
- GDnentries@GDAL_1.8 1.8.0
- GDopen@GDAL_1.8 1.8.0
- GDorigininfo@GDAL_1.8 1.8.0
- GDpixreginfo@GDAL_1.8 1.8.0
- GDprojinfo@GDAL_1.8 1.8.0
- GDreadattr@GDAL_1.8 1.8.0
- GDreadfield@GDAL_1.8 1.8.0
- GDreadtile@GDAL_1.8 1.8.0
- GDregioninfo@GDAL_1.8 1.8.0
- GDrs2ll@GDAL_1.8 1.8.0
- GDsdid@GDAL_1.8 1.8.0
- GDsetfillvalue@GDAL_1.8 1.8.0
- GDsettilecache@GDAL_1.8 1.8.0
- GDsettilecomp@GDAL_1.8 1.8.0
- GDtileinfo@GDAL_1.8 1.8.0
- GDwriteattr@GDAL_1.8 1.8.0
- GDwritefield@GDAL_1.8 1.8.0
- GDwritefieldmeta@GDAL_1.8 1.8.0
- GDwritetile@GDAL_1.8 1.8.0
- GRIB1Surface@GDAL_1.8 1.8.0
- GRIB2Inventory@GDAL_1.8 1.8.0
- GRIB2InventoryFree@GDAL_1.8 1.8.0
- GRIB2InventoryPrint@GDAL_1.8 1.8.0
- GRIB2RefTime@GDAL_1.8 1.8.0
- GTIFAngleStringToDD@GDAL_1.8 1.8.0
- GTIFAngleToDD@GDAL_1.8 1.8.0
- GTIFDeaccessCSV@GDAL_1.8 1.8.0
- GTIFDecToDMS@GDAL_1.8 1.8.0
- GTIFDirectoryInfo@GDAL_1.8 1.8.0
+ GOA2GetAccessToken@GDAL_1.8 1.10.1
+ GOA2GetAuthorizationURL@GDAL_1.8 1.10.1
+ GOA2GetRefreshToken@GDAL_1.8 1.10.1
  GTIFFBuildOverviews@GDAL_1.8 1.8.0
- GTIFFree@GDAL_1.8 1.8.0
- GTIFFreeMemory@GDAL_1.8 1.8.0
- GTIFGetDatumInfo@GDAL_1.8 1.8.0
- GTIFGetDefn@GDAL_1.8 1.8.0
- GTIFGetEllipsoidInfo@GDAL_1.8 1.8.0
- GTIFGetGCSInfo@GDAL_1.8 1.8.0
  GTIFGetOGISDefn@GDAL_1.8 1.8.0
- GTIFGetPCSInfo@GDAL_1.8 1.8.0
- GTIFGetPMInfo@GDAL_1.8 1.8.0
- GTIFGetProj4Defn@GDAL_1.8 1.8.0
- GTIFGetProjTRFInfo@GDAL_1.8 1.8.0
- GTIFGetUOMAngleInfo@GDAL_1.8 1.8.0
- GTIFGetUOMLengthInfo@GDAL_1.8 1.8.0
- GTIFImageToPCS@GDAL_1.8 1.8.0
- GTIFImport@GDAL_1.8 1.8.0
- GTIFKeyCode@GDAL_1.8 1.8.0
- GTIFKeyGet@GDAL_1.8 1.8.0
- GTIFKeyInfo@GDAL_1.8 1.8.0
- GTIFKeyName@GDAL_1.8 1.8.0
- GTIFKeySet@GDAL_1.8 1.8.0
- GTIFMapSysToPCS@GDAL_1.8 1.8.0
- GTIFMapSysToProj@GDAL_1.8 1.8.0
  GTIFMemBufFromWkt@GDAL_1.8 1.8.0
- GTIFNew@GDAL_1.8 1.8.0
- GTIFNewSimpleTags@GDAL_1.8 1.8.0
- GTIFNewWithMethods@GDAL_1.8 1.8.0
- GTIFPCSToImage@GDAL_1.8 1.8.0
- GTIFPCSToMapSys@GDAL_1.8 1.8.0
- GTIFPrint@GDAL_1.8 1.8.0
- GTIFPrintDefn@GDAL_1.8 1.8.0
- GTIFProj4FromLatLong@GDAL_1.8 1.8.0
- GTIFProj4ToLatLong@GDAL_1.8 1.8.0
- GTIFProjToMapSys@GDAL_1.8 1.8.0
  GTIFSetFromOGISDefn@GDAL_1.8 1.8.0
- GTIFSetFromProj4@GDAL_1.8 1.8.0
- GTIFSetSimpleTagsMethods@GDAL_1.8 1.8.0
- GTIFTagCode@GDAL_1.8 1.8.0
- GTIFTagName@GDAL_1.8 1.8.0
- GTIFTiepointTranslate@GDAL_1.8 1.8.0
- GTIFTypeCode@GDAL_1.8 1.8.0
- GTIFTypeName@GDAL_1.8 1.8.0
- GTIFValueCode@GDAL_1.8 1.8.0
- GTIFValueName@GDAL_1.8 1.8.0
  GTIFWktFromMemBuf@GDAL_1.8 1.8.0
- GTIFWriteKeys@GDAL_1.8 1.8.0
- GTiffOneTimeInit@GDAL_1.8 1.8.0
- GXFClose@GDAL_1.8 1.8.0
- GXFGetMapDatumTransform@GDAL_1.8 1.8.0
- GXFGetMapProjection@GDAL_1.8 1.8.0
- GXFGetMapProjectionAsOGCWKT@GDAL_1.8 1.8.0
- GXFGetMapProjectionAsPROJ4@GDAL_1.8 1.8.0
- GXFGetPROJ4Position@GDAL_1.8 1.8.0
- GXFGetPosition@GDAL_1.8 1.8.0
- GXFGetRawInfo@GDAL_1.8 1.8.0
- GXFGetRawPosition@GDAL_1.8 1.8.0
- GXFGetRawScanline@GDAL_1.8 1.8.0
- GXFGetScanline@GDAL_1.8 1.8.0
- GXFOpen@GDAL_1.8 1.8.0
- GXFParseBase90@GDAL_1.8 1.8.0
- GetCeosField@GDAL_1.8 1.8.0
- GetCeosRecordStruct@GDAL_1.8 1.8.0
- GetCeosSAREmbeddedInfo@GDAL_1.8 1.8.0
- GetCeosSARImageData@GDAL_1.8 1.8.0
- GetCeosSARImageDesc@GDAL_1.8 1.8.0
  GetGDALDriverManager@GDAL_1.8 1.8.0
- GetIndexFromStr@GDAL_1.8 1.8.0
- GetMode_GCIO@GDAL_1.8 1.8.0
- Get_Grid_Values@GDAL_1.8 1.8.0
- Get_Latitude_Band_Min_Northing@GDAL_1.8 1.8.0
- Get_Latitude_Letter@GDAL_1.8 1.8.0
- Get_Latitude_Range@GDAL_1.8 1.8.0
- Get_MGRS_Parameters@GDAL_1.8 1.8.0
  HFAAuxBuildOverviews@GDAL_1.8 1.8.0
  HFAClose@GDAL_1.8 1.8.0
  HFACreate@GDAL_1.8 1.8.0
  HFACreateLL@GDAL_1.8 1.8.0
  HFACreateLayer@GDAL_1.8 1.8.0
  HFACreateOverview@GDAL_1.8 1.8.0
- HFADelete@GDAL_1.8 1.8.0
  HFADumpDictionary@GDAL_1.8 1.8.0
  HFADumpTree@GDAL_1.8 1.8.0
  HFAEvaluateXFormStack@GDAL_1.8 1.8.0
  HFAFlush@GDAL_1.8 1.8.0
  HFAGetBandInfo@GDAL_1.8 1.8.0
- HFAGetBandName@GDAL_1.8 1.8.0
  HFAGetBandNoData@GDAL_1.8 1.8.0
  HFAGetDataRange@GDAL_1.8 1.8.0
  HFAGetDataTypeBits@GDAL_1.8 1.8.0
@@ -1181,11 +772,8 @@
  HFAGetRasterBlockEx@GDAL_1.8 1.8.0
  HFAGetRasterInfo@GDAL_1.8 1.8.0
  HFAOpen@GDAL_1.8 1.8.0
- HFAPCSStructToWKT@GDAL_1.8 1.8.0
  HFAReadCameraModel@GDAL_1.8 1.8.0
  HFAReadXFormStack@GDAL_1.8 1.8.0
- HFARenameReferences@GDAL_1.8 1.8.0
- HFASetBandName@GDAL_1.8 1.8.0
  HFASetBandNoData@GDAL_1.8 1.8.0
  HFASetDatum@GDAL_1.8 1.8.0
  HFASetGeoTransform@GDAL_1.8 1.8.0
@@ -1197,111 +785,18 @@
  HFASetProParameters@GDAL_1.8 1.8.0
  HFASetRasterBlock@GDAL_1.8 1.8.0
  HFAWriteXFormStack@GDAL_1.8 1.8.0
- HPC_LclTable@GDAL_1.8 1.8.0
- HalfToFloat@GDAL_1.8 1.8.0
- HydroBasic@GDAL_1.8 1.8.0
- HydroProb@GDAL_1.8 1.8.0
- IS_Free@GDAL_1.8 1.8.0
- IS_Init@GDAL_1.8 1.8.0
- InitCeosRecord@GDAL_1.8 1.8.0
- InitCeosRecordWithHeader@GDAL_1.8 1.8.0
- InitCeosSARVolume@GDAL_1.8 1.8.0
- InitEmptyCeosRecord@GDAL_1.8 1.8.0
- InsertLink@GDAL_1.8 1.8.0
- IsData_MOS@GDAL_1.8 1.8.0
- IsData_NDFD@GDAL_1.8 1.8.0
- IsMV@GDAL_1.8 1.8.0
- IsMVcellRepr@GDAL_1.8 1.8.0
- JersRecipe@GDAL_1.8 1.8.0
- LandSoil@GDAL_1.8 1.8.0
- LandVeg@GDAL_1.8 1.8.0
- LogL10fromY@GDAL_1.8 1.8.0
- LogL10toY@GDAL_1.8 1.8.0
- LogL16fromY@GDAL_1.8 1.8.0
- LogL16toY@GDAL_1.8 1.8.0
- LogLuv24fromXYZ@GDAL_1.8 1.8.0
- LogLuv24toXYZ@GDAL_1.8 1.8.0
- LogLuv32fromXYZ@GDAL_1.8 1.8.0
- LogLuv32toXYZ@GDAL_1.8 1.8.0
+ LibgeotiffOneTimeInit@GDAL_1.8 1.10.1
  MEMCreateRasterBand@GDAL_1.8 1.8.0
- MGRS_Ellipsoid_Code@GDAL_1.8 1.8.0
- MGRS_a@GDAL_1.8 1.8.0
- MGRS_f@GDAL_1.8 1.8.0
- MGRS_recpf@GDAL_1.8 1.8.0
- Make_MGRS_String@GDAL_1.8 1.8.0
- MattributeAvail@GDAL_1.8 1.8.0
- Mclose@GDAL_1.8 1.8.0
- MdelAttribute@GDAL_1.8 1.8.0
- Merrno@GDAL_1.8 1.8.0
- MetaFree@GDAL_1.8 1.8.0
- MetaInit@GDAL_1.8 1.8.0
- MetaParse@GDAL_1.8 1.8.0
- MetaPrint@GDAL_1.8 1.8.0
- MetaPrintGDS@GDAL_1.8 1.8.0
- MetaSect2Free@GDAL_1.8 1.8.0
- MeteoAerosols@GDAL_1.8 1.8.0
- MeteoAtmos@GDAL_1.8 1.8.0
- MeteoCloud@GDAL_1.8 1.8.0
- MeteoGases@GDAL_1.8 1.8.0
- MeteoLongRadiate@GDAL_1.8 1.8.0
- MeteoMass@GDAL_1.8 1.8.0
- MeteoMisc@GDAL_1.8 1.8.0
- MeteoMoist@GDAL_1.8 1.8.0
- MeteoMoment@GDAL_1.8 1.8.0
- MeteoNuclear@GDAL_1.8 1.8.0
- MeteoRadar@GDAL_1.8 1.8.0
- MeteoShortRadiate@GDAL_1.8 1.8.0
- MeteoStability@GDAL_1.8 1.8.0
- MeteoTemp@GDAL_1.8 1.8.0
- MeteoText@GDAL_1.8 1.8.0
- MgetColourPalette@GDAL_1.8 1.8.0
- MgetDescription@GDAL_1.8 1.8.0
- MgetDescriptionSize@GDAL_1.8 1.8.0
- MgetFileName@GDAL_1.8 1.8.0
- MgetGisFileId@GDAL_1.8 1.8.0
- MgetGreyPalette@GDAL_1.8 1.8.0
- MgetHistory@GDAL_1.8 1.8.0
- MgetHistorySize@GDAL_1.8 1.8.0
- MgetLegend@GDAL_1.8 1.8.0
- MgetMapDataType@GDAL_1.8 1.8.0
- MgetNrColourPaletteEntries@GDAL_1.8 1.8.0
- MgetNrGreyPaletteEntries@GDAL_1.8 1.8.0
- MgetNrLegendEntries@GDAL_1.8 1.8.0
- MgetProjection@GDAL_1.8 1.8.0
- MgetVersion@GDAL_1.8 1.8.0
- MnativeEndian@GDAL_1.8 1.8.0
- Mopen@GDAL_1.8 1.8.0
- MopenPerm@GDAL_1.8 1.8.0
- Mperror@GDAL_1.8 1.8.0
- MperrorExit@GDAL_1.8 1.8.0
- MputColourPalette@GDAL_1.8 1.8.0
- MputDescription@GDAL_1.8 1.8.0
- MputGisFileId@GDAL_1.8 1.8.0
- MputGreyPalette@GDAL_1.8 1.8.0
- MputHistory@GDAL_1.8 1.8.0
- MputLegend@GDAL_1.8 1.8.0
- MputProjection@GDAL_1.8 1.8.0
- MstrError@GDAL_1.8 1.8.0
- MstrProjection@GDAL_1.8 1.8.0
- NCEP_LclTable@GDAL_1.8 1.8.0
- NCEP_Surface@GDAL_1.8 1.8.0
- NDFD_LclTable@GDAL_1.8 1.8.0
- NDFD_Overide@GDAL_1.8 1.8.0
  NITFClose@GDAL_1.8 1.8.0
  NITFCollectAttachments@GDAL_1.8 1.8.0
  NITFCreate@GDAL_1.8 1.8.0
- NITFCreateXMLTre@GDAL_1.8 1.9.0
  NITFDESAccess@GDAL_1.8 1.8.0
  NITFDESDeaccess@GDAL_1.8 1.8.0
  NITFDESExtractShapefile@GDAL_1.8 1.8.0
  NITFDESFreeTREData@GDAL_1.8 1.8.0
  NITFDESGetTRE@GDAL_1.8 1.8.0
- NITFExtractMetadata@GDAL_1.8 1.8.0
  NITFFindTRE@GDAL_1.8 1.8.0
  NITFFindTREByIndex@GDAL_1.8 1.8.0
- NITFGenericMetadataRead@GDAL_1.8 1.9.0
- NITFGetField@GDAL_1.8 1.8.0
- NITFGetGCP@GDAL_1.8 1.8.0
  NITFGetSeriesInfo@GDAL_1.8 1.8.0
  NITFIHFieldOffset@GDAL_1.8 1.8.0
  NITFImageAccess@GDAL_1.8 1.8.0
@@ -1309,37 +804,36 @@
  NITFOpen@GDAL_1.8 1.8.0
  NITFRPCGeoToImage@GDAL_1.8 1.8.0
  NITFReadBLOCKA@GDAL_1.8 1.8.0
- NITFReadBLOCKA_GCPs@GDAL_1.8 1.8.0
  NITFReadCSEXRA@GDAL_1.8 1.9.0
  NITFReadICHIPB@GDAL_1.8 1.8.0
  NITFReadImageBlock@GDAL_1.8 1.8.0
  NITFReadImageLine@GDAL_1.8 1.8.0
  NITFReadPIAIMC@GDAL_1.8 1.9.0
  NITFReadRPC00B@GDAL_1.8 1.8.0
- NITFReadRPFLocationTable@GDAL_1.8 1.8.0
  NITFReadSTDIDC@GDAL_1.8 1.8.0
  NITFReadUSE00A@GDAL_1.8 1.8.0
  NITFReconcileAttachments@GDAL_1.8 1.8.0
- NITFUncompressARIDPCM@GDAL_1.8 1.8.0
- NITFUncompressBILEVEL@GDAL_1.8 1.8.0
  NITFWriteIGEOLO@GDAL_1.8 1.8.0
  NITFWriteImageBlock@GDAL_1.8 1.8.0
  NITFWriteImageLine@GDAL_1.8 1.8.0
  NITFWriteLUT@GDAL_1.8 1.8.0
  NITF_WGS84_Geocentric_Latitude_To_Geodetic_Latitude@GDAL_1.8 1.8.0
- (arch=!powerpc !s390 !mips)NativeToCeos@GDAL_1.8 1.8.0
  OCTDestroyCoordinateTransformation@GDAL_1.8 1.8.0
  OCTNewCoordinateTransformation@GDAL_1.8 1.8.0
- OCTProj4Normalize@GDAL_1.8 1.8.0
  OCTTransform@GDAL_1.8 1.8.0
  OCTTransformEx@GDAL_1.8 1.8.0
+ OGR2SQLITE_static_register@GDAL_1.8 1.10.1
  OGRBuildPolygonFromEdges@GDAL_1.8 1.8.0
  OGRCalloc@GDAL_1.8 1.8.0
  OGRCleanupAll@GDAL_1.8 1.8.0
  OGRContourWriter@GDAL_1.8 1.8.0
  OGRDeregisterDriver@GDAL_1.8 1.8.0
- OGRFeatureStylePuller@GDAL_1.8 1.8.0
  OGRFree@GDAL_1.8 1.8.0
+ OGRGeocode@GDAL_1.8 1.10.1
+ OGRGeocodeCreateSession@GDAL_1.8 1.10.1
+ OGRGeocodeDestroySession@GDAL_1.8 1.10.1
+ OGRGeocodeFreeResult@GDAL_1.8 1.10.1
+ OGRGeocodeReverse@GDAL_1.8 1.10.1
  OGRGeometryTypeToName@GDAL_1.8 1.8.0
  OGRGetDriver@GDAL_1.8 1.8.0
  OGRGetDriverByName@GDAL_1.8 1.8.0
@@ -1357,7 +851,6 @@
  OGRRegisterDriver@GDAL_1.8 1.8.0
  OGRReleaseDataSource@GDAL_1.8 1.8.0
  OGRSetGenerate_DB2_V72_BYTE_ORDER@GDAL_1.8 1.8.0
- OGRSpatialReference2SysCoord_GCSRS@GDAL_1.8 1.8.0
  OGR_DS_CopyLayer@GDAL_1.8 1.8.0
  OGR_DS_CreateLayer@GDAL_1.8 1.8.0
  OGR_DS_DeleteLayer@GDAL_1.8 1.8.0
@@ -1500,6 +993,7 @@
  OGR_G_ExportToWkb@GDAL_1.8 1.8.0
  OGR_G_ExportToWkt@GDAL_1.8 1.8.0
  OGR_G_FlattenTo2D@GDAL_1.8 1.8.0
+ OGR_G_ForceToLineString@GDAL_1.8 1.10.1
  OGR_G_ForceToMultiLineString@GDAL_1.8 1.8.0
  OGR_G_ForceToMultiPoint@GDAL_1.8 1.8.0
  OGR_G_ForceToMultiPolygon@GDAL_1.8 1.8.0
@@ -1532,6 +1026,7 @@
  OGR_G_IsValid@GDAL_1.8 1.8.0
  OGR_G_Length@GDAL_1.8 1.8.0
  OGR_G_Overlaps@GDAL_1.8 1.8.0
+ OGR_G_PointOnSurface@GDAL_1.8 1.10.1
  OGR_G_Polygonize@GDAL_1.8 1.9.0
  OGR_G_RemoveGeometry@GDAL_1.8 1.8.0
  OGR_G_Segmentize@GDAL_1.8 1.8.0
@@ -1551,12 +1046,14 @@
  OGR_G_WkbSize@GDAL_1.8 1.8.0
  OGR_GetFieldTypeName@GDAL_1.8 1.8.0
  OGR_L_AlterFieldDefn@GDAL_1.8 1.9.0
+ OGR_L_Clip@GDAL_1.8 1.10.1
  OGR_L_CommitTransaction@GDAL_1.8 1.8.0
  OGR_L_CreateFeature@GDAL_1.8 1.8.0
  OGR_L_CreateField@GDAL_1.8 1.8.0
  OGR_L_DeleteFeature@GDAL_1.8 1.8.0
  OGR_L_DeleteField@GDAL_1.8 1.9.0
  OGR_L_Dereference@GDAL_1.8 1.8.0
+ OGR_L_Erase@GDAL_1.8 1.10.1
  OGR_L_GetExtent@GDAL_1.8 1.8.0
  OGR_L_GetFIDColumn@GDAL_1.8 1.8.0
  OGR_L_GetFeature@GDAL_1.8 1.8.0
@@ -1571,6 +1068,8 @@
  OGR_L_GetSpatialFilter@GDAL_1.8 1.8.0
  OGR_L_GetSpatialRef@GDAL_1.8 1.8.0
  OGR_L_GetStyleTable@GDAL_1.8 1.8.0
+ OGR_L_Identity@GDAL_1.8 1.10.1
+ OGR_L_Intersection@GDAL_1.8 1.10.1
  OGR_L_Reference@GDAL_1.8 1.8.0
  OGR_L_ReorderField@GDAL_1.8 1.9.0
  OGR_L_ReorderFields@GDAL_1.8 1.9.0
@@ -1585,8 +1084,11 @@
  OGR_L_SetStyleTable@GDAL_1.8 1.8.0
  OGR_L_SetStyleTableDirectly@GDAL_1.8 1.8.0
  OGR_L_StartTransaction@GDAL_1.8 1.8.0
+ OGR_L_SymDifference@GDAL_1.8 1.10.1
  OGR_L_SyncToDisk@GDAL_1.8 1.8.0
  OGR_L_TestCapability@GDAL_1.8 1.8.0
+ OGR_L_Union@GDAL_1.8 1.10.1
+ OGR_L_Update@GDAL_1.8 1.10.1
  OGR_SM_AddPart@GDAL_1.8 1.8.0
  OGR_SM_AddStyle@GDAL_1.8 1.8.0
  OGR_SM_Create@GDAL_1.8 1.8.0
@@ -1628,6 +1130,7 @@
  OSRDereference@GDAL_1.8 1.8.0
  OSRDestroySpatialReference@GDAL_1.8 1.8.0
  OSREPSGTreatsAsLatLong@GDAL_1.8 1.8.0
+ OSREPSGTreatsAsNorthingEasting@GDAL_1.8 1.10.1
  OSRExportToERM@GDAL_1.8 1.8.0
  OSRExportToMICoordSys@GDAL_1.8 1.8.0
  OSRExportToPCI@GDAL_1.8 1.8.0
@@ -1747,49 +1250,15 @@
  OSRSetWellKnownGeogCS@GDAL_1.8 1.8.0
  OSRStripCTParms@GDAL_1.8 1.8.0
  OSRValidate@GDAL_1.8 1.8.0
- OceanCurrents@GDAL_1.8 1.8.0
- OceanIce@GDAL_1.8 1.8.0
- OceanSubSurface@GDAL_1.8 1.8.0
- OceanSurface@GDAL_1.8 1.8.0
- OceanWaves@GDAL_1.8 1.8.0
- Open_GCIO@GDAL_1.8 1.8.0
- POWERS_ONE@GDAL_1.8 1.8.0
  ParseAlgorithmAndOptions@GDAL_1.8 1.8.0
- ParseElemName@GDAL_1.8 1.8.0
- ParseGrid@GDAL_1.8 1.8.0
- ParseLevelName@GDAL_1.8 1.8.0
- ParseSect4Time2sec@GDAL_1.8 1.8.0
- ParseSect4Time2secV1@GDAL_1.8 1.8.0
- ParseTime@GDAL_1.8 1.8.0
- ParseUglyString@GDAL_1.8 1.8.0
- Print@GDAL_1.8 1.8.0
- PrintUglyString@GDAL_1.8 1.8.0
- PutCeosRecordStruct@GDAL_1.8 1.8.0
  RECGetField@GDAL_1.8 1.8.0
  RECGetFieldCount@GDAL_1.8 1.8.0
  RECGetFieldDefinition@GDAL_1.8 1.8.0
  RECReadRecord@GDAL_1.8 1.8.0
+ RPCInfoToMD@GDAL_1.8 1.10.1
  RPFTOCFree@GDAL_1.8 1.8.0
  RPFTOCRead@GDAL_1.8 1.8.0
  RPFTOCReadFromBuffer@GDAL_1.8 1.8.0
- RadarSatRecipe@GDAL_1.8 1.8.0
- RasterCoords2RowCol@GDAL_1.8 1.8.0
- RasterCoords2RowColChecked@GDAL_1.8 1.8.0
- RasterRowCol2Coords@GDAL_1.8 1.8.0
- Rcompare@GDAL_1.8 1.8.0
- RcompareLocationAttributes@GDAL_1.8 1.8.0
- RcomputeExtend@GDAL_1.8 1.8.0
- Rcoords2RowCol@GDAL_1.8 1.8.0
- Rcreate@GDAL_1.8 1.8.0
- RdefaultCellRepr@GDAL_1.8 1.8.0
- RdontTrackMinMax@GDAL_1.8 1.8.0
- Rdup@GDAL_1.8 1.8.0
- ReadConfig_GCIO@GDAL_1.8 1.8.0
- ReadGrib2Record@GDAL_1.8 1.8.0
- ReadHeader_GCIO@GDAL_1.8 1.8.0
- ReadNextFeature_GCIO@GDAL_1.8 1.8.0
- ReadSECT0@GDAL_1.8 1.8.0
- RecipeFunctions@GDAL_1.8 1.8.0
  RegisterOGRARCGEN@GDAL_1.8 1.9.0
  RegisterOGRAVCBin@GDAL_1.8 1.8.0
  RegisterOGRAVCE00@GDAL_1.8 1.8.0
@@ -1801,6 +1270,7 @@
  RegisterOGRDODS@GDAL_1.8 1.8.0
  RegisterOGRDXF@GDAL_1.8 1.8.0
  RegisterOGREDIGEO@GDAL_1.8 1.9.0
+ RegisterOGRElastic@GDAL_1.8 1.10.1
  RegisterOGRGFT@GDAL_1.8 1.9.0
  RegisterOGRGML@GDAL_1.8 1.8.0
  RegisterOGRGMT@GDAL_1.8 1.8.0
@@ -1823,9 +1293,12 @@
  RegisterOGRNAS@GDAL_1.8 1.8.0
  RegisterOGRNTF@GDAL_1.8 1.8.0
  RegisterOGRODBC@GDAL_1.8 1.8.0
+ RegisterOGRODS@GDAL_1.8 1.10.1
  RegisterOGROGDI@GDAL_1.8 1.8.0
+ RegisterOGROSM@GDAL_1.8 1.10.1
  RegisterOGROpenAir@GDAL_1.8 1.8.0
  RegisterOGRPCIDSK@GDAL_1.8 1.8.0
+ RegisterOGRPDF@GDAL_1.8 1.10.1
  RegisterOGRPDS@GDAL_1.8 1.8.0
  RegisterOGRPG@GDAL_1.8 1.8.0
  RegisterOGRPGDump@GDAL_1.8 1.8.0
@@ -1845,49 +1318,14 @@
  RegisterOGRVRT@GDAL_1.8 1.8.0
  RegisterOGRWFS@GDAL_1.8 1.8.0
  RegisterOGRXLS@GDAL_1.8 1.9.0
+ RegisterOGRXLSX@GDAL_1.8 1.10.1
  RegisterOGRXPlane@GDAL_1.8 1.8.0
- RegisterRecipes@GDAL_1.8 1.8.0
- ResetMerrno@GDAL_1.8 1.8.0
- Rewind_GCIO@GDAL_1.8 1.8.0
- RgetAngle@GDAL_1.8 1.8.0
- RgetCell@GDAL_1.8 1.8.0
- RgetCellRepr@GDAL_1.8 1.8.0
- RgetCellSize@GDAL_1.8 1.8.0
- RgetCoords@GDAL_1.8 1.8.0
- RgetLocationAttributes@GDAL_1.8 1.8.0
- RgetMaxVal@GDAL_1.8 1.8.0
- RgetMinVal@GDAL_1.8 1.8.0
- RgetNrCols@GDAL_1.8 1.8.0
- RgetNrRows@GDAL_1.8 1.8.0
- RgetRow@GDAL_1.8 1.8.0
- RgetRowCol@GDAL_1.8 1.8.0
- RgetSomeCells@GDAL_1.8 1.8.0
- RgetUseCellRepr@GDAL_1.8 1.8.0
- RgetValueScale@GDAL_1.8 1.8.0
- RgetValueScaleVersion@GDAL_1.8 1.8.0
- RgetXUL@GDAL_1.8 1.8.0
- RgetYUL@GDAL_1.8 1.8.0
- Rmalloc@GDAL_1.8 1.8.0
- Round_MGRS@GDAL_1.8 1.8.0
- RputAllMV@GDAL_1.8 1.8.0
- RputAngle@GDAL_1.8 1.8.0
- RputCell@GDAL_1.8 1.8.0
- RputCellSize@GDAL_1.8 1.8.0
- RputDoNotChangeValues@GDAL_1.8 1.8.0
- RputMaxVal@GDAL_1.8 1.8.0
- RputMinVal@GDAL_1.8 1.8.0
- RputRow@GDAL_1.8 1.8.0
- RputSomeCells@GDAL_1.8 1.8.0
- RputValueScale@GDAL_1.8 1.8.0
- RputXUL@GDAL_1.8 1.8.0
- RputYUL@GDAL_1.8 1.8.0
- RrowCol2Coords@GDAL_1.8 1.8.0
- RstrCellRepr@GDAL_1.8 1.8.0
- RstrValueScale@GDAL_1.8 1.8.0
- RuseAs@GDAL_1.8 1.8.0
- RvalueScale2@GDAL_1.8 1.8.0
- RvalueScaleIs@GDAL_1.8 1.8.0
  SASetupDefaultHooks@GDAL_1.8 1.8.0
+ SBNCloseDiskTree@GDAL_1.8 1.10.1
+ SBNOpenDiskTree@GDAL_1.8 1.10.1
+ SBNSearchDiskTree@GDAL_1.8 1.10.1
+ SBNSearchDiskTreeInteger@GDAL_1.8 1.10.1
+ SBNSearchFreeIds@GDAL_1.8 1.10.1
  SHPCheckBoundsOverlap@GDAL_1.8 1.8.0
  SHPClose@GDAL_1.8 1.8.0
  SHPCloseDiskTree@GDAL_1.8 1.9.0
@@ -1918,271 +1356,11 @@
  SHPWriteObject@GDAL_1.8 1.8.0
  SHPWriteTree@GDAL_1.8 1.8.0
  SHPWriteTreeLL@GDAL_1.8 1.9.0
- SIRCRecipe@GDAL_1.8 1.8.0
- ST_Create@GDAL_1.8 1.8.0
- ST_Destroy@GDAL_1.8 1.8.0
- ST_GetKey@GDAL_1.8 1.8.0
- ST_SetKey@GDAL_1.8 1.8.0
- ST_TagType@GDAL_1.8 1.8.0
- SWattach@GDAL_1.8 1.8.0
- SWattrinfo@GDAL_1.8 1.8.0
- SWclose@GDAL_1.8 1.8.0
- SWcompinfo@GDAL_1.8 1.8.0
- SWcreate@GDAL_1.8 1.8.0
- SWdefboxregion@GDAL_1.8 1.8.0
- SWdefcomp@GDAL_1.8 1.8.0
- SWdefdatafield@GDAL_1.8 1.8.0
- SWdefdim@GDAL_1.8 1.8.0
- SWdefdimmap@GDAL_1.8 1.8.0
- SWdefgeofield@GDAL_1.8 1.8.0
- SWdefidxmap@GDAL_1.8 1.8.0
- SWdefscanregion@GDAL_1.8 1.8.0
- SWdeftimeperiod@GDAL_1.8 1.8.0
- SWdefvrtregion@GDAL_1.8 1.8.0
- SWdetach@GDAL_1.8 1.8.0
- SWdiminfo@GDAL_1.8 1.8.0
- SWdupregion@GDAL_1.8 1.8.0
- SWextractperiod@GDAL_1.8 1.8.0
- SWextractregion@GDAL_1.8 1.8.0
- SWfieldinfo@GDAL_1.8 1.8.0
- SWgeomapinfo@GDAL_1.8 1.8.0
- SWgetfillvalue@GDAL_1.8 1.8.0
- SWidxmapinfo@GDAL_1.8 1.8.0
- SWinqattrs@GDAL_1.8 1.8.0
- SWinqdatafields@GDAL_1.8 1.8.0
- SWinqdims@GDAL_1.8 1.8.0
- SWinqgeofields@GDAL_1.8 1.8.0
- SWinqidxmaps@GDAL_1.8 1.8.0
- SWinqmaps@GDAL_1.8 1.8.0
- SWinqswath@GDAL_1.8 1.8.0
- SWmapinfo@GDAL_1.8 1.8.0
- SWnentries@GDAL_1.8 1.8.0
- SWopen@GDAL_1.8 1.8.0
- SWperiodinfo@GDAL_1.8 1.8.0
- SWreadattr@GDAL_1.8 1.8.0
- SWreadfield@GDAL_1.8 1.8.0
- SWregionindex@GDAL_1.8 1.8.0
- SWregioninfo@GDAL_1.8 1.8.0
- SWsdid@GDAL_1.8 1.8.0
- SWsetfillvalue@GDAL_1.8 1.8.0
- SWupdateidxmap@GDAL_1.8 1.8.0
- SWupdatescene@GDAL_1.8 1.8.0
- SWwriteattr@GDAL_1.8 1.8.0
- SWwritedatameta@GDAL_1.8 1.8.0
- SWwritefield@GDAL_1.8 1.8.0
- SWwritegeometa@GDAL_1.8 1.8.0
- S_NameValueList_Destroy@GDAL_1.8 1.8.0
- S_NameValueList_FindKey@GDAL_1.8 1.8.0
- S_NameValueList_FindValue@GDAL_1.8 1.8.0
- S_NameValueList_Parse@GDAL_1.8 1.8.0
- S_NameValueList_Rewrite@GDAL_1.8 1.8.0
- ScanIndex2XY@GDAL_1.8 1.8.0
- ScanSARRecipe@GDAL_1.8 1.8.0
- ScanSARRecipeFCN@GDAL_1.8 1.8.0
- SerializeCeosRecordsFromFile@GDAL_1.8 1.8.0
- SerializeCeosRecordsToFile@GDAL_1.8 1.8.0
  SetCSVFilenameHook@GDAL_1.8 1.8.0
- SetCeosField@GDAL_1.8 1.8.0
- SetIntCeosField@GDAL_1.8 1.8.0
- SetMV@GDAL_1.8 1.8.0
- SetMVcellRepr@GDAL_1.8 1.8.0
- SetMemMV@GDAL_1.8 1.8.0
- Set_MGRS_Parameters@GDAL_1.8 1.8.0
- SpaceImage@GDAL_1.8 1.8.0
- SpaceQuantitative@GDAL_1.8 1.8.0
- SpecialFieldNames@GDAL_1.8 1.8.0
- SpecialFieldTypes@GDAL_1.8 1.8.0
- StartWritingFeature_GCIO@GDAL_1.8 1.8.0
- StopWritingFeature_GCIO@GDAL_1.8 1.8.0
- Surface@GDAL_1.8 1.8.0
- SysCoord2OGRSpatialReference_GCSRS@GDAL_1.8 1.8.0
- TDLP_B_Table@GDAL_1.8 1.8.0
- TDLP_DD_Table@GDAL_1.8 1.8.0
- TDLP_I_Table@GDAL_1.8 1.8.0
- TDLP_Oper_Table@GDAL_1.8 1.8.0
- TDLP_S_Table@GDAL_1.8 1.8.0
- TDLP_T_Table@GDAL_1.8 1.8.0
- TDLP_V_Table@GDAL_1.8 1.8.0
- TIFFAccessTagMethods@GDAL_1.8 1.8.0
- TIFFCIELabToRGBInit@GDAL_1.8 1.8.0
- TIFFCIELabToXYZ@GDAL_1.8 1.8.0
- TIFFCheckTile@GDAL_1.8 1.8.0
- TIFFCheckpointDirectory@GDAL_1.8 1.8.0
- TIFFCleanup@GDAL_1.8 1.8.0
- TIFFClientOpen@GDAL_1.8 1.8.0
- TIFFClientdata@GDAL_1.8 1.8.0
- TIFFClose@GDAL_1.8 1.8.0
- TIFFComputeStrip@GDAL_1.8 1.8.0
- TIFFComputeTile@GDAL_1.8 1.8.0
- TIFFCreateDirectory@GDAL_1.8 1.8.0
- TIFFCurrentDirOffset@GDAL_1.8 1.8.0
- TIFFCurrentDirectory@GDAL_1.8 1.8.0
- TIFFCurrentRow@GDAL_1.8 1.8.0
- TIFFCurrentStrip@GDAL_1.8 1.8.0
- TIFFCurrentTile@GDAL_1.8 1.8.0
- TIFFDataWidth@GDAL_1.8 1.8.0
- TIFFDefaultDirectory@GDAL_1.8 1.8.0
- TIFFDefaultStripSize@GDAL_1.8 1.8.0
- TIFFDefaultTileSize@GDAL_1.8 1.8.0
- TIFFError@GDAL_1.8 1.8.0
- TIFFErrorExt@GDAL_1.8 1.8.0
- TIFFFaxBlackCodes@GDAL_1.8 1.8.0
- TIFFFaxBlackTable@GDAL_1.8 1.8.0
- TIFFFaxMainTable@GDAL_1.8 1.8.0
- TIFFFaxWhiteCodes@GDAL_1.8 1.8.0
- TIFFFaxWhiteTable@GDAL_1.8 1.8.0
- TIFFFdOpen@GDAL_1.8 1.8.0
- TIFFFieldWithName@GDAL_1.8 1.8.0
- TIFFFieldWithTag@GDAL_1.8 1.8.0
- TIFFFileName@GDAL_1.8 1.8.0
- TIFFFileno@GDAL_1.8 1.8.0
- TIFFFillStrip@GDAL_1.8 1.8.0
- TIFFFillTile@GDAL_1.8 1.8.0
- TIFFFindCODEC@GDAL_1.8 1.8.0
- TIFFFindField@GDAL_1.8 1.8.0
- TIFFFlush@GDAL_1.8 1.8.0
- TIFFFlushData1@GDAL_1.8 1.8.0
- TIFFFlushData@GDAL_1.8 1.8.0
- TIFFFreeDirectory@GDAL_1.8 1.8.0
- TIFFGetBitRevTable@GDAL_1.8 1.8.0
- TIFFGetClientInfo@GDAL_1.8 1.8.0
- TIFFGetCloseProc@GDAL_1.8 1.8.0
- TIFFGetConfiguredCODECs@GDAL_1.8 1.8.0
- TIFFGetField@GDAL_1.8 1.8.0
- TIFFGetFieldDefaulted@GDAL_1.8 1.8.0
- TIFFGetMapFileProc@GDAL_1.8 1.8.0
- TIFFGetMode@GDAL_1.8 1.8.0
- TIFFGetReadProc@GDAL_1.8 1.8.0
- TIFFGetSeekProc@GDAL_1.8 1.8.0
- TIFFGetSizeProc@GDAL_1.8 1.8.0
- TIFFGetTagListCount@GDAL_1.8 1.8.0
- TIFFGetTagListEntry@GDAL_1.8 1.8.0
- TIFFGetUnmapFileProc@GDAL_1.8 1.8.0
- TIFFGetVersion@GDAL_1.8 1.8.0
- TIFFGetWriteProc@GDAL_1.8 1.8.0
- TIFFInitCCITTFax3@GDAL_1.8 1.8.0
- TIFFInitCCITTFax4@GDAL_1.8 1.8.0
- TIFFInitCCITTRLE@GDAL_1.8 1.8.0
- TIFFInitCCITTRLEW@GDAL_1.8 1.8.0
- TIFFInitDumpMode@GDAL_1.8 1.8.0
- TIFFInitJPEG@GDAL_1.8 1.8.0
- TIFFInitLZMA@GDAL_1.8 1.9.0
- TIFFInitLZW@GDAL_1.8 1.8.0
- TIFFInitNeXT@GDAL_1.8 1.8.0
- TIFFInitOJPEG@GDAL_1.8 1.8.0
- TIFFInitPackBits@GDAL_1.8 1.8.0
- TIFFInitPixarLog@GDAL_1.8 1.8.0
- TIFFInitSGILog@GDAL_1.8 1.8.0
- TIFFInitThunderScan@GDAL_1.8 1.8.0
- TIFFInitZIP@GDAL_1.8 1.8.0
- TIFFIsBigEndian@GDAL_1.8 1.8.0
- TIFFIsByteSwapped@GDAL_1.8 1.8.0
- TIFFIsCODECConfigured@GDAL_1.8 1.8.0
- TIFFIsMSB2LSB@GDAL_1.8 1.8.0
- TIFFIsTiled@GDAL_1.8 1.8.0
- TIFFIsUpSampled@GDAL_1.8 1.8.0
- TIFFLastDirectory@GDAL_1.8 1.8.0
- TIFFMergeFieldInfo@GDAL_1.8 1.8.0
- TIFFNumberOfDirectories@GDAL_1.8 1.8.0
- TIFFNumberOfStrips@GDAL_1.8 1.8.0
- TIFFNumberOfTiles@GDAL_1.8 1.8.0
- TIFFOpen@GDAL_1.8 1.8.0
- TIFFPredictorCleanup@GDAL_1.8 1.8.0
- TIFFPredictorInit@GDAL_1.8 1.8.0
- TIFFPrintDirectory@GDAL_1.8 1.8.0
- TIFFRGBAImageBegin@GDAL_1.8 1.8.0
- TIFFRGBAImageEnd@GDAL_1.8 1.8.0
- TIFFRGBAImageGet@GDAL_1.8 1.8.0
- TIFFRGBAImageOK@GDAL_1.8 1.8.0
- TIFFRasterScanlineSize64@GDAL_1.8 1.8.0
- TIFFRasterScanlineSize@GDAL_1.8 1.8.0
- TIFFRawStripSize64@GDAL_1.8 1.8.0
- TIFFRawStripSize@GDAL_1.8 1.8.0
- TIFFReadBufferSetup@GDAL_1.8 1.8.0
- TIFFReadCustomDirectory@GDAL_1.8 1.8.0
- TIFFReadDirectory@GDAL_1.8 1.8.0
- TIFFReadEXIFDirectory@GDAL_1.8 1.8.0
- TIFFReadEncodedStrip@GDAL_1.8 1.8.0
- TIFFReadEncodedTile@GDAL_1.8 1.8.0
- TIFFReadRGBAImage@GDAL_1.8 1.8.0
- TIFFReadRGBAImageOriented@GDAL_1.8 1.8.0
- TIFFReadRGBAStrip@GDAL_1.8 1.8.0
- TIFFReadRGBATile@GDAL_1.8 1.8.0
- TIFFReadRawStrip@GDAL_1.8 1.8.0
- TIFFReadRawTile@GDAL_1.8 1.8.0
- TIFFReadScanline@GDAL_1.8 1.8.0
- TIFFReadTile@GDAL_1.8 1.8.0
- TIFFRegisterCODEC@GDAL_1.8 1.8.0
- TIFFReverseBits@GDAL_1.8 1.8.0
- TIFFRewriteDirectory@GDAL_1.8 1.8.0
- TIFFScanlineSize64@GDAL_1.8 1.8.0
- TIFFScanlineSize@GDAL_1.8 1.8.0
- TIFFSetClientInfo@GDAL_1.8 1.8.0
- TIFFSetClientdata@GDAL_1.8 1.8.0
- TIFFSetCompressionScheme@GDAL_1.8 1.8.0
- TIFFSetDirectory@GDAL_1.8 1.8.0
- TIFFSetErrorHandler@GDAL_1.8 1.8.0
- TIFFSetErrorHandlerExt@GDAL_1.8 1.8.0
- TIFFSetField@GDAL_1.8 1.8.0
- TIFFSetFileName@GDAL_1.8 1.8.0
- TIFFSetFileno@GDAL_1.8 1.8.0
- TIFFSetMode@GDAL_1.8 1.8.0
- TIFFSetSubDirectory@GDAL_1.8 1.8.0
- TIFFSetTagExtender@GDAL_1.8 1.8.0
- TIFFSetWarningHandler@GDAL_1.8 1.8.0
- TIFFSetWarningHandlerExt@GDAL_1.8 1.8.0
- TIFFSetWriteOffset@GDAL_1.8 1.8.0
- TIFFSetupStrips@GDAL_1.8 1.8.0
- TIFFStripSize64@GDAL_1.8 1.8.0
- TIFFStripSize@GDAL_1.8 1.8.0
- TIFFSwabArrayOfDouble@GDAL_1.8 1.8.0
- TIFFSwabArrayOfFloat@GDAL_1.8 1.8.0
- TIFFSwabArrayOfLong8@GDAL_1.8 1.8.0
- TIFFSwabArrayOfLong@GDAL_1.8 1.8.0
- TIFFSwabArrayOfShort@GDAL_1.8 1.8.0
- TIFFSwabArrayOfTriples@GDAL_1.8 1.8.0
- TIFFSwabDouble@GDAL_1.8 1.8.0
- TIFFSwabFloat@GDAL_1.8 1.8.0
- TIFFSwabLong8@GDAL_1.8 1.8.0
- TIFFSwabLong@GDAL_1.8 1.8.0
- TIFFSwabShort@GDAL_1.8 1.8.0
- TIFFTileRowSize64@GDAL_1.8 1.8.0
- TIFFTileRowSize@GDAL_1.8 1.8.0
- TIFFTileSize64@GDAL_1.8 1.8.0
- TIFFTileSize@GDAL_1.8 1.8.0
- TIFFUnRegisterCODEC@GDAL_1.8 1.8.0
- TIFFUnlinkDirectory@GDAL_1.8 1.8.0
- TIFFUnsetField@GDAL_1.8 1.8.0
- TIFFVGetField@GDAL_1.8 1.8.0
- TIFFVGetFieldDefaulted@GDAL_1.8 1.8.0
- TIFFVSetField@GDAL_1.8 1.8.0
- TIFFVStripSize64@GDAL_1.8 1.8.0
- TIFFVStripSize@GDAL_1.8 1.8.0
- TIFFVTileSize64@GDAL_1.8 1.8.0
- TIFFVTileSize@GDAL_1.8 1.8.0
- TIFFWarning@GDAL_1.8 1.8.0
- TIFFWarningExt@GDAL_1.8 1.8.0
- TIFFWriteBufferSetup@GDAL_1.8 1.8.0
- TIFFWriteCheck@GDAL_1.8 1.8.0
- TIFFWriteCustomDirectory@GDAL_1.8 1.8.0
- TIFFWriteDirectory@GDAL_1.8 1.8.0
- TIFFWriteEncodedStrip@GDAL_1.8 1.8.0
- TIFFWriteEncodedTile@GDAL_1.8 1.8.0
- TIFFWriteRawStrip@GDAL_1.8 1.8.0
- TIFFWriteRawTile@GDAL_1.8 1.8.0
- TIFFWriteScanline@GDAL_1.8 1.8.0
- TIFFWriteTile@GDAL_1.8 1.8.0
- TIFFXYZToRGB@GDAL_1.8 1.8.0
- TIFFYCbCrToRGBInit@GDAL_1.8 1.8.0
- TIFFYCbCrtoRGB@GDAL_1.8 1.8.0
- Table45Index@GDAL_1.8 1.8.0
- TripleToFloat@GDAL_1.8 1.8.0
- UTM_To_MGRS@GDAL_1.8 1.8.0
  VRTAddBand@GDAL_1.8 1.8.0
  VRTAddComplexSource@GDAL_1.8 1.8.0
  VRTAddFuncSource@GDAL_1.8 1.8.0
  VRTAddSimpleSource@GDAL_1.8 1.8.0
- VRTAddSource@GDAL_1.8 1.8.0
  VRTCreate@GDAL_1.8 1.8.0
  VRTFlushCache@GDAL_1.8 1.8.0
  VRTSerializeToXML@GDAL_1.8 1.8.0
@@ -2218,16 +1396,10 @@
  VSIFree@GDAL_1.8 1.8.0
  VSIGMTime@GDAL_1.8 1.8.0
  VSIGetMemFileBuffer@GDAL_1.8 1.8.0
- VSIInstallCurlFileHandler@GDAL_1.8 1.8.0
- VSIInstallGZipFileHandler@GDAL_1.8 1.8.0
  VSIInstallLargeFileHandler@GDAL_1.8 1.8.0
  VSIInstallMemFileHandler@GDAL_1.8 1.8.0
  VSIInstallSparseFileHandler@GDAL_1.8 1.8.0
- VSIInstallStdinHandler@GDAL_1.8 1.8.0
- VSIInstallStdoutHandler@GDAL_1.8 1.8.0
  VSIInstallSubFileHandler@GDAL_1.8 1.8.0
- VSIInstallTarFileHandler@GDAL_1.8 1.8.0
- VSIInstallZipFileHandler@GDAL_1.8 1.8.0
  VSIIsCaseSensitiveFS@GDAL_1.8 1.8.0
  VSILocalTime@GDAL_1.8 1.8.0
  VSIMalloc2@GDAL_1.8 1.8.0
@@ -2235,6 +1407,7 @@
  VSIMalloc@GDAL_1.8 1.8.0
  VSIMkdir@GDAL_1.8 1.8.0
  VSIReadDir@GDAL_1.8 1.8.0
+ VSIReadDirRecursive@GDAL_1.8 1.10.1
  VSIRealloc@GDAL_1.8 1.8.0
  VSIRename@GDAL_1.8 1.8.0
  VSIRewind@GDAL_1.8 1.8.0
@@ -2248,505 +1421,29 @@
  VSITime@GDAL_1.8 1.8.0
  VSIUngetc@GDAL_1.8 1.8.0
  VSIUnlink@GDAL_1.8 1.8.0
- VSI_SHP_Close@GDAL_1.8 1.8.0
- VSI_SHP_Error@GDAL_1.8 1.8.0
- VSI_SHP_Flush@GDAL_1.8 1.8.0
- VSI_SHP_Open@GDAL_1.8 1.8.0
- VSI_SHP_Read@GDAL_1.8 1.8.0
- VSI_SHP_Remove@GDAL_1.8 1.8.0
- VSI_SHP_Seek@GDAL_1.8 1.8.0
- VSI_SHP_Tell@GDAL_1.8 1.8.0
- VSI_SHP_Write@GDAL_1.8 1.8.0
- WriteFeatureFieldAsString_GCIO@GDAL_1.8 1.8.0
- WriteFeatureGeometry_GCIO@GDAL_1.8 1.8.0
- WriteHeader_GCIO@GDAL_1.8 1.8.0
- WxAttrib@GDAL_1.8 1.8.0
- WxCode@GDAL_1.8 1.8.0
- WxCover@GDAL_1.8 1.8.0
- WxIntens@GDAL_1.8 1.8.0
- WxVisib@GDAL_1.8 1.8.0
- XTIFFClientOpen@GDAL_1.8 1.8.0
- XTIFFClose@GDAL_1.8 1.8.0
- XTIFFFdOpen@GDAL_1.8 1.8.0
- XTIFFInitialize@GDAL_1.8 1.8.0
- XTIFFOpen@GDAL_1.8 1.8.0
- XY2ScanIndex@GDAL_1.8 1.8.0
- XYZtoRGB24@GDAL_1.8 1.8.0
- _AVCBinReadGetInfoFilename@GDAL_1.8 1.8.0
- _AVCBinReadHeader@GDAL_1.8 1.8.0
- _AVCBinReadInfoFileExists@GDAL_1.8 1.8.0
- _AVCBinReadNextArc@GDAL_1.8 1.8.0
- _AVCBinReadNextArcDir@GDAL_1.8 1.8.0
- _AVCBinReadNextArcNit@GDAL_1.8 1.8.0
- _AVCBinReadNextCnt@GDAL_1.8 1.8.0
- _AVCBinReadNextLab@GDAL_1.8 1.8.0
- _AVCBinReadNextPCCoverageTxt@GDAL_1.8 1.8.0
- _AVCBinReadNextPal@GDAL_1.8 1.8.0
- _AVCBinReadNextRxp@GDAL_1.8 1.8.0
- _AVCBinReadNextTol@GDAL_1.8 1.8.0
- _AVCBinReadNextTxt@GDAL_1.8 1.8.0
- _AVCBinReadRepairDBFFieldName@GDAL_1.8 1.8.0
- _AVCBinWriteArc@GDAL_1.8 1.8.0
- _AVCBinWriteArcDir@GDAL_1.8 1.8.0
- _AVCBinWriteArcNit@GDAL_1.8 1.8.0
- _AVCBinWriteCnt@GDAL_1.8 1.8.0
- _AVCBinWriteCreateArcDirEntry@GDAL_1.8 1.8.0
- _AVCBinWriteDBFTableRec@GDAL_1.8 1.8.0
- _AVCBinWriteHeader@GDAL_1.8 1.8.0
- _AVCBinWriteIndexEntry@GDAL_1.8 1.8.0
- _AVCBinWriteLab@GDAL_1.8 1.8.0
- _AVCBinWritePCCoverageTxt@GDAL_1.8 1.8.0
- _AVCBinWritePal@GDAL_1.8 1.8.0
- _AVCBinWriteRxp@GDAL_1.8 1.8.0
- _AVCBinWriteTableRec@GDAL_1.8 1.8.0
- _AVCBinWriteTol@GDAL_1.8 1.8.0
- _AVCBinWriteTxt@GDAL_1.8 1.8.0
- _AVCDestroyTableDef@GDAL_1.8 1.8.0
- _AVCDestroyTableFields@GDAL_1.8 1.8.0
- _AVCDupTableDef@GDAL_1.8 1.8.0
- _AVCE00ComputeRecSize@GDAL_1.8 1.8.0
- _AVCE00ParseDestroyCurObject@GDAL_1.8 1.8.0
- _AVCE00WriteCloseCoverFile@GDAL_1.8 1.8.0
- _AVCE00WriteCreateCoverFile@GDAL_1.8 1.8.0
  _CPLAssert@GDAL_1.8 1.8.0
- _GTIFFree@GDAL_1.8 1.8.0
- _GTIFSetDefaultTIFF@GDAL_1.8 1.8.0
- _GTIFcalloc@GDAL_1.8 1.8.0
- _GTIFmemcpy@GDAL_1.8 1.8.0
- _GTIFrealloc@GDAL_1.8 1.8.0
- _TIFFBuiltinCODECS@GDAL_1.8 1.8.0
- _TIFFCheckMalloc@GDAL_1.8 1.8.0
- _TIFFCheckRealloc@GDAL_1.8 1.8.0
- _TIFFCreateAnonField@GDAL_1.8 1.8.0
- _TIFFDataSize@GDAL_1.8 1.8.0
- _TIFFDefaultStripSize@GDAL_1.8 1.8.0
- _TIFFDefaultTileSize@GDAL_1.8 1.8.0
- _TIFFFax3fillruns@GDAL_1.8 1.8.0
- _TIFFFillStriles@GDAL_1.8 1.9.0
- _TIFFFindFieldByName@GDAL_1.8 1.8.0
- _TIFFFindOrRegisterField@GDAL_1.8 1.8.0
- _TIFFGetExifFields@GDAL_1.8 1.8.0
- _TIFFGetFields@GDAL_1.8 1.8.0
- _TIFFMergeFields@GDAL_1.8 1.8.0
- _TIFFMultiply32@GDAL_1.8 1.8.0
- _TIFFMultiply64@GDAL_1.8 1.8.0
- _TIFFNoFixupTags@GDAL_1.8 1.8.0
- _TIFFNoPostDecode@GDAL_1.8 1.8.0
- _TIFFNoPreCode@GDAL_1.8 1.8.0
- _TIFFNoRowDecode@GDAL_1.8 1.8.0
- _TIFFNoRowEncode@GDAL_1.8 1.8.0
- _TIFFNoSeek@GDAL_1.8 1.8.0
- _TIFFNoStripDecode@GDAL_1.8 1.8.0
- _TIFFNoStripEncode@GDAL_1.8 1.8.0
- _TIFFNoTileDecode@GDAL_1.8 1.8.0
- _TIFFNoTileEncode@GDAL_1.8 1.8.0
- _TIFFPrintFieldInfo@GDAL_1.8 1.8.0
- _TIFFRewriteField@GDAL_1.8 1.8.0
- _TIFFSetDefaultCompressionState@GDAL_1.8 1.8.0
- _TIFFSetupFields@GDAL_1.8 1.8.0
- _TIFFSwab16BitData@GDAL_1.8 1.8.0
- _TIFFSwab24BitData@GDAL_1.8 1.8.0
- _TIFFSwab32BitData@GDAL_1.8 1.8.0
- _TIFFSwab64BitData@GDAL_1.8 1.8.0
- _TIFFUInt64ToDouble@GDAL_1.8 1.8.0
- _TIFFUInt64ToFloat@GDAL_1.8 1.8.0
- _TIFFerrorHandler@GDAL_1.8 1.8.0
- _TIFFerrorHandlerExt@GDAL_1.8 1.8.0
- _TIFFfree@GDAL_1.8 1.8.0
- _TIFFgetMode@GDAL_1.8 1.8.0
- _TIFFmalloc@GDAL_1.8 1.8.0
- _TIFFmemcmp@GDAL_1.8 1.8.0
- _TIFFmemcpy@GDAL_1.8 1.8.0
- _TIFFmemset@GDAL_1.8 1.8.0
- _TIFFprintAscii@GDAL_1.8 1.8.0
- _TIFFprintAsciiTag@GDAL_1.8 1.8.0
- _TIFFrealloc@GDAL_1.8 1.8.0
- _TIFFsetByteArray@GDAL_1.8 1.8.0
- _TIFFsetDoubleArray@GDAL_1.8 1.8.0
- _TIFFsetFloatArray@GDAL_1.8 1.8.0
- _TIFFsetLong8Array@GDAL_1.8 1.8.0
- _TIFFsetLongArray@GDAL_1.8 1.8.0
- _TIFFsetNString@GDAL_1.8 1.8.0
- _TIFFsetShortArray@GDAL_1.8 1.8.0
- _TIFFsetString@GDAL_1.8 1.8.0
- _TIFFwarningHandler@GDAL_1.8 1.8.0
- _TIFFwarningHandlerExt@GDAL_1.8 1.8.0
- __pure_virtual@GDAL_1.8 1.8.0
- _gtiff_size@GDAL_1.8 1.8.0
- array_list_add@GDAL_1.8 1.8.0
- array_list_free@GDAL_1.8 1.8.0
- array_list_get_idx@GDAL_1.8 1.8.0
- array_list_length@GDAL_1.8 1.8.0
- array_list_new@GDAL_1.8 1.8.0
- array_list_put_idx@GDAL_1.8 1.8.0
- asDatumInfoList@GDAL_1.8 1.8.0
- asSpheroidInfoList@GDAL_1.8 1.8.0
- blx_checkheader@GDAL_1.8 1.8.0
- blx_create_context@GDAL_1.8 1.8.0
- blx_encode_celldata@GDAL_1.8 1.8.0
- blx_free_context@GDAL_1.8 1.8.0
- blx_generate_header@GDAL_1.8 1.8.0
- blx_readcell@GDAL_1.8 1.8.0
- blx_writecell@GDAL_1.8 1.8.0
- blxclose@GDAL_1.8 1.8.0
- blxopen@GDAL_1.8 1.8.0
- blxprintinfo@GDAL_1.8 1.8.0
- centerLookup@GDAL_1.8 1.8.0
- ceos2CreateLink@GDAL_1.8 1.8.0
- cmplxpack@GDAL_1.8 1.8.0
- compack@GDAL_1.8 1.8.0
- comunpack@GDAL_1.8 1.8.0
- cpl_fill_fopen_filefunc@GDAL_1.8 1.8.0
- cpl_unzClose@GDAL_1.8 1.8.0
- cpl_unzCloseCurrentFile@GDAL_1.8 1.8.0
- cpl_unzGetCurrentFileInfo@GDAL_1.8 1.8.0
- cpl_unzGetCurrentFileZStreamPos@GDAL_1.8 1.8.0
- cpl_unzGetFilePos@GDAL_1.8 1.8.0
- cpl_unzGetGlobalComment@GDAL_1.8 1.8.0
- cpl_unzGetGlobalInfo@GDAL_1.8 1.8.0
- cpl_unzGetLocalExtrafield@GDAL_1.8 1.8.0
- cpl_unzGetOffset@GDAL_1.8 1.8.0
- cpl_unzGoToFilePos@GDAL_1.8 1.8.0
- cpl_unzGoToFirstFile@GDAL_1.8 1.8.0
- cpl_unzGoToNextFile@GDAL_1.8 1.8.0
- cpl_unzLocateFile@GDAL_1.8 1.8.0
- cpl_unzOpen2@GDAL_1.8 1.8.0
- cpl_unzOpen@GDAL_1.8 1.8.0
- cpl_unzOpenCurrentFile2@GDAL_1.8 1.8.0
- cpl_unzOpenCurrentFile3@GDAL_1.8 1.8.0
- cpl_unzOpenCurrentFile@GDAL_1.8 1.8.0
- cpl_unzOpenCurrentFilePassword@GDAL_1.8 1.8.0
- cpl_unzReadCurrentFile@GDAL_1.8 1.8.0
- cpl_unzSetOffset@GDAL_1.8 1.8.0
- cpl_unzStringFileNameCompare@GDAL_1.8 1.8.0
- cpl_unzeof@GDAL_1.8 1.8.0
- cpl_unztell@GDAL_1.8 1.8.0
- cpl_zipClose@GDAL_1.8 1.8.0
- cpl_zipCloseFileInZip@GDAL_1.8 1.8.0
- cpl_zipCloseFileInZipRaw@GDAL_1.8 1.8.0
- cpl_zipOpen2@GDAL_1.8 1.8.0
- cpl_zipOpen@GDAL_1.8 1.8.0
- cpl_zipOpenNewFileInZip2@GDAL_1.8 1.8.0
- cpl_zipOpenNewFileInZip3@GDAL_1.8 1.8.0
- cpl_zipOpenNewFileInZip@GDAL_1.8 1.8.0
- cpl_zipWriteInFileInZip@GDAL_1.8 1.8.0
- dec_jpeg2000@GDAL_1.8 1.8.0
- doubleSWAP@GDAL_1.8 1.8.0
- elon@GDAL_1.8 1.8.0
- enc_jpeg2000@GDAL_1.8 1.8.0
- errSprintf@GDAL_1.8 1.8.0
- extdrstemplate@GDAL_1.8 1.8.0
- extgridtemplate@GDAL_1.8 1.8.0
- extpdstemplate@GDAL_1.8 1.8.0
- fillGrid@GDAL_1.8 1.8.0
- fillSect0@GDAL_1.8 1.8.0
- fillSect1@GDAL_1.8 1.8.0
- fillSect2@GDAL_1.8 1.8.0
- fillSect3@GDAL_1.8 1.8.0
- fillSect4_0@GDAL_1.8 1.8.0
- fillSect4_10@GDAL_1.8 1.8.0
- fillSect4_12@GDAL_1.8 1.8.0
- fillSect4_1@GDAL_1.8 1.8.0
- fillSect4_2@GDAL_1.8 1.8.0
- fillSect4_5@GDAL_1.8 1.8.0
- fillSect4_8@GDAL_1.8 1.8.0
- fillSect4_9@GDAL_1.8 1.8.0
- fillSect5@GDAL_1.8 1.8.0
- fitDataType@GDAL_1.8 1.8.0
- fitGetColorModel@GDAL_1.8 1.8.0
- fitGetDataType@GDAL_1.8 1.8.0
- for_init@GDAL_1.8 1.8.0
- freeEnGribMeta@GDAL_1.8 1.8.0
- g2_addfield@GDAL_1.8 1.8.0
- g2_addgrid@GDAL_1.8 1.8.0
- g2_addlocal@GDAL_1.8 1.8.0
- g2_create@GDAL_1.8 1.8.0
- g2_free@GDAL_1.8 1.8.0
- g2_getfld@GDAL_1.8 1.8.0
- g2_gribend@GDAL_1.8 1.8.0
- g2_info@GDAL_1.8 1.8.0
- g2_miss@GDAL_1.8 1.8.0
- g2_unpack1@GDAL_1.8 1.8.0
- g2_unpack2@GDAL_1.8 1.8.0
- g2_unpack3@GDAL_1.8 1.8.0
- g2_unpack4@GDAL_1.8 1.8.0
- g2_unpack5@GDAL_1.8 1.8.0
- g2_unpack6@GDAL_1.8 1.8.0
- g2_unpack7@GDAL_1.8 1.8.0
- gbit@GDAL_1.8 1.8.0
- gbits@GDAL_1.8 1.8.0
- gcs@GDAL_1.8 1.8.0
- gctp_destroy@GDAL_1.8 1.9.0
- get_templatesdrs@GDAL_1.8 1.8.0
- get_templatesgrid@GDAL_1.8 1.8.0
- get_templatespds@GDAL_1.8 1.8.0
- getdim@GDAL_1.8 1.8.0
- getdrsindex@GDAL_1.8 1.8.0
- getdrstemplate@GDAL_1.8 1.8.0
- getgridindex@GDAL_1.8 1.8.0
- getgridtemplate@GDAL_1.8 1.8.0
- getpdsindex@GDAL_1.8 1.8.0
- getpdstemplate@GDAL_1.8 1.8.0
- getpoly@GDAL_1.8 1.8.0
- hdfeosg_LibraryVersionString01@GDAL_1.8 1.8.0
- hdfeosg_LibraryVersionString02@GDAL_1.8 1.8.0
- hdfeosg_LibraryVersionString03@GDAL_1.8 1.8.0
- hdfeosg_LibraryVersionString04@GDAL_1.8 1.8.0
- homDyDtheta@GDAL_1.8 1.8.0
- initEnGribMeta@GDAL_1.8 1.8.0
- int_power@GDAL_1.8 1.8.0
- inv_init@GDAL_1.8 1.8.0
- iom_addattrobj@GDAL_1.8 1.8.0
- iom_changeattrobj@GDAL_1.8 1.8.0
- iom_close@GDAL_1.8 1.8.0
- iom_compileIli@GDAL_1.8 1.8.0
- iom_currentmilis@GDAL_1.8 1.8.0
- iom_deleteattrobj@GDAL_1.8 1.8.0
- iom_end@GDAL_1.8 1.8.0
- iom_fileexists@GDAL_1.8 1.8.0
- iom_getattrcount@GDAL_1.8 1.8.0
- iom_getattrname@GDAL_1.8 1.8.0
- iom_getattrobj@GDAL_1.8 1.8.0
- iom_getattrprim@GDAL_1.8 1.8.0
- iom_getattrprimUTF8@GDAL_1.8 1.8.0
- iom_getattrvalue@GDAL_1.8 1.8.0
- iom_getattrvalueUTF8@GDAL_1.8 1.8.0
- iom_getattrvaluecount@GDAL_1.8 1.8.0
- iom_getbasket@GDAL_1.8 1.8.0
- iom_getbasketcol@GDAL_1.8 1.8.0
- iom_getbasketconsistency@GDAL_1.8 1.8.0
- iom_getbasketline@GDAL_1.8 1.8.0
- iom_getbasketoid@GDAL_1.8 1.8.0
- iom_getbaskettag@GDAL_1.8 1.8.0
- iom_getheadcomment@GDAL_1.8 1.8.0
- iom_getheadcommentUTF8@GDAL_1.8 1.8.0
- iom_getheadsender@GDAL_1.8 1.8.0
- iom_getheadsenderUTF8@GDAL_1.8 1.8.0
- iom_getheadversion@GDAL_1.8 1.8.0
- iom_getheadversionUTF8@GDAL_1.8 1.8.0
- iom_getmodel@GDAL_1.8 1.8.0
- iom_getobject@GDAL_1.8 1.8.0
- iom_getobjectcol@GDAL_1.8 1.8.0
- iom_getobjectconsistency@GDAL_1.8 1.8.0
- iom_getobjectline@GDAL_1.8 1.8.0
- iom_getobjectoid@GDAL_1.8 1.8.0
- iom_getobjectoperation@GDAL_1.8 1.8.0
- iom_getobjectrefbid@GDAL_1.8 1.8.0
- iom_getobjectrefoid@GDAL_1.8 1.8.0
- iom_getobjectreforderpos@GDAL_1.8 1.8.0
- iom_getobjecttag@GDAL_1.8 1.8.0
- iom_gettmpnam@GDAL_1.8 1.8.0
- iom_getxmleleattrname@GDAL_1.8 1.8.0
- iom_getxmlelecount@GDAL_1.8 1.8.0
- iom_getxmleleobj@GDAL_1.8 1.8.0
- iom_getxmleleprim@GDAL_1.8 1.8.0
- iom_getxmleleprimUTF8@GDAL_1.8 1.8.0
- iom_getxmlelevalueidx@GDAL_1.8 1.8.0
- iom_init@GDAL_1.8 1.8.0
- iom_insertattrobj@GDAL_1.8 1.8.0
- iom_issueanyerr@GDAL_1.8 1.8.0
- iom_issueerr@GDAL_1.8 1.8.0
- iom_issueparserr@GDAL_1.8 1.8.0
- iom_issuesemerr@GDAL_1.8 1.8.0
- iom_iteratorbasket@GDAL_1.8 1.8.0
- iom_iteratorobject@GDAL_1.8 1.8.0
- iom_newbasket@GDAL_1.8 1.8.0
- iom_newobject@GDAL_1.8 1.8.0
- iom_nextbasket@GDAL_1.8 1.8.0
- iom_nextobject@GDAL_1.8 1.8.0
- iom_open@GDAL_1.8 1.8.0
- iom_releasebasket@GDAL_1.8 1.8.0
- iom_releaseiterator@GDAL_1.8 1.8.0
- iom_releaseobject@GDAL_1.8 1.8.0
- iom_save@GDAL_1.8 1.8.0
- iom_searchenv@GDAL_1.8 1.8.0
- iom_setattrundefined@GDAL_1.8 1.8.0
- iom_setattrvalue@GDAL_1.8 1.8.0
- iom_setattrvalueUTF8@GDAL_1.8 1.8.0
- iom_setbasketconsistency@GDAL_1.8 1.8.0
- iom_setbasketoid@GDAL_1.8 1.8.0
- iom_setbaskettag@GDAL_1.8 1.8.0
- iom_seterrlistener@GDAL_1.8 1.8.0
- iom_setheadcomment@GDAL_1.8 1.8.0
- iom_setheadcommentUTF8@GDAL_1.8 1.8.0
- iom_setheadsender@GDAL_1.8 1.8.0
- iom_setheadsenderUTF8@GDAL_1.8 1.8.0
- iom_setmodel@GDAL_1.8 1.8.0
- iom_setobjectconsistency@GDAL_1.8 1.8.0
- iom_setobjectoid@GDAL_1.8 1.8.0
- iom_setobjectoperation@GDAL_1.8 1.8.0
- iom_setobjectrefbid@GDAL_1.8 1.8.0
- iom_setobjectrefoid@GDAL_1.8 1.8.0
- iom_setobjectreforderpos@GDAL_1.8 1.8.0
- iom_setobjecttag@GDAL_1.8 1.8.0
- iom_settmpdir@GDAL_1.8 1.8.0
- iom_stderrlistener@GDAL_1.8 1.8.0
- is_big_endian@GDAL_1.8 1.8.0
- jpcpack@GDAL_1.8 1.8.0
- jpcunpack@GDAL_1.8 1.8.0
- json_hex_chars@GDAL_1.8 1.8.0
- json_number_chars@GDAL_1.8 1.8.0
- json_object_array_add@GDAL_1.8 1.8.0
- json_object_array_get_idx@GDAL_1.8 1.8.0
- json_object_array_length@GDAL_1.8 1.8.0
- json_object_array_put_idx@GDAL_1.8 1.8.0
- json_object_from_file@GDAL_1.8 1.8.0
- json_object_get@GDAL_1.8 1.8.0
- json_object_get_array@GDAL_1.8 1.8.0
- json_object_get_boolean@GDAL_1.8 1.8.0
- json_object_get_double@GDAL_1.8 1.8.0
- json_object_get_int@GDAL_1.8 1.8.0
- json_object_get_object@GDAL_1.8 1.8.0
- json_object_get_string@GDAL_1.8 1.8.0
- json_object_get_type@GDAL_1.8 1.8.0
- json_object_is_type@GDAL_1.8 1.8.0
- json_object_new_array@GDAL_1.8 1.8.0
- json_object_new_boolean@GDAL_1.8 1.8.0
- json_object_new_double@GDAL_1.8 1.8.0
- json_object_new_double_with_precision@GDAL_1.8 1.9.0
- json_object_new_int@GDAL_1.8 1.8.0
- json_object_new_object@GDAL_1.8 1.8.0
- json_object_new_string@GDAL_1.8 1.8.0
- json_object_new_string_len@GDAL_1.8 1.8.0
- json_object_object_add@GDAL_1.8 1.8.0
- json_object_object_del@GDAL_1.8 1.8.0
- json_object_object_get@GDAL_1.8 1.8.0
- json_object_put@GDAL_1.8 1.8.0
- json_object_to_file@GDAL_1.8 1.8.0
- json_object_to_json_string@GDAL_1.8 1.8.0
- json_tokener_errors@GDAL_1.8 1.8.0
- json_tokener_free@GDAL_1.8 1.8.0
- json_tokener_new@GDAL_1.8 1.8.0
- json_tokener_parse@GDAL_1.8 1.8.0
- json_tokener_parse_ex@GDAL_1.8 1.8.0
- json_tokener_reset@GDAL_1.8 1.8.0
- lamazDxDlamda@GDAL_1.8 1.8.0
- lamazDxDtheta@GDAL_1.8 1.8.0
- lamazDyDtheta@GDAL_1.8 1.8.0
- lh_abort@GDAL_1.8 1.8.0
- lh_char_equal@GDAL_1.8 1.8.0
- lh_char_hash@GDAL_1.8 1.8.0
- lh_kchar_table_new@GDAL_1.8 1.8.0
- lh_kptr_table_new@GDAL_1.8 1.8.0
- lh_ptr_equal@GDAL_1.8 1.8.0
- lh_ptr_hash@GDAL_1.8 1.8.0
- lh_table_delete@GDAL_1.8 1.8.0
- lh_table_delete_entry@GDAL_1.8 1.8.0
- lh_table_free@GDAL_1.8 1.8.0
- lh_table_insert@GDAL_1.8 1.8.0
- lh_table_lookup@GDAL_1.8 1.8.0
- lh_table_lookup_entry@GDAL_1.8 1.8.0
- lh_table_new@GDAL_1.8 1.8.0
- lh_table_resize@GDAL_1.8 1.8.0
- lutcmp@GDAL_1.8 1.8.0
- mallocSprintf@GDAL_1.8 1.8.0
- mc_abort@GDAL_1.8 1.8.0
- mc_debug@GDAL_1.8 1.8.0
- mc_error@GDAL_1.8 1.8.0
- mc_get_debug@GDAL_1.8 1.8.0
- mc_info@GDAL_1.8 1.8.0
- mc_set_debug@GDAL_1.8 1.8.0
- mc_set_syslog@GDAL_1.8 1.8.0
- memBitRead@GDAL_1.8 1.8.0
- memBitWrite@GDAL_1.8 1.8.0
- memswp@GDAL_1.8 1.8.0
- misspack@GDAL_1.8 1.8.0
- mkieee@GDAL_1.8 1.8.0
- myAtoF@GDAL_1.8 1.8.0
- myAtoI@GDAL_1.8 1.8.0
- myGlob@GDAL_1.8 1.8.0
- myIsReal_old@GDAL_1.8 1.8.0
- myParseTime3@GDAL_1.8 1.8.0
- myRound@GDAL_1.8 1.8.0
- mySplit@GDAL_1.8 1.8.0
- myStat@GDAL_1.8 1.8.0
- myWarnClear@GDAL_1.8 1.8.0
- myWarnLevel@GDAL_1.8 1.8.0
- myWarnNotEmpty@GDAL_1.8 1.8.0
- myWarnRet@GDAL_1.8 1.8.0
- myWarnSet@GDAL_1.8 1.8.0
- nlat@GDAL_1.8 1.8.0
- norm_proj_param@GDAL_1.8 1.8.0
- osr_for@GDAL_1.8 1.8.0
- osr_inv@GDAL_1.8 1.8.0
- pack_gp@GDAL_1.8 1.8.0
- parm_table_afwa_000@GDAL_1.8 1.8.0
- parm_table_afwa_001@GDAL_1.8 1.8.0
- parm_table_afwa_002@GDAL_1.8 1.8.0
- parm_table_afwa_003@GDAL_1.8 1.8.0
- parm_table_afwa_010@GDAL_1.8 1.8.0
- parm_table_afwa_011@GDAL_1.8 1.8.0
- parm_table_athens@GDAL_1.8 1.8.0
- parm_table_cmc@GDAL_1.8 1.8.0
- parm_table_cptec_254@GDAL_1.8 1.8.0
- parm_table_dwd_002@GDAL_1.8 1.8.0
- parm_table_dwd_201@GDAL_1.8 1.8.0
- parm_table_dwd_202@GDAL_1.8 1.8.0
- parm_table_dwd_203@GDAL_1.8 1.8.0
- parm_table_ecmwf_128@GDAL_1.8 1.8.0
- parm_table_ecmwf_129@GDAL_1.8 1.8.0
- parm_table_ecmwf_130@GDAL_1.8 1.8.0
- parm_table_ecmwf_131@GDAL_1.8 1.8.0
- parm_table_ecmwf_140@GDAL_1.8 1.8.0
- parm_table_ecmwf_150@GDAL_1.8 1.8.0
- parm_table_ecmwf_160@GDAL_1.8 1.8.0
- parm_table_ecmwf_170@GDAL_1.8 1.8.0
- parm_table_ecmwf_180@GDAL_1.8 1.8.0
- parm_table_ncep_mdl@GDAL_1.8 1.8.0
- parm_table_ncep_opn@GDAL_1.8 1.8.0
- parm_table_ncep_reanal@GDAL_1.8 1.8.0
- parm_table_ncep_tdl@GDAL_1.8 1.8.0
- parm_table_nceptab_129@GDAL_1.8 1.8.0
- parm_table_nceptab_130@GDAL_1.8 1.8.0
- parm_table_nceptab_131@GDAL_1.8 1.8.0
- parm_table_nohrsc@GDAL_1.8 1.8.0
- parm_table_omb@GDAL_1.8 1.8.0
- parm_table_undefined@GDAL_1.8 1.8.0
- pcs@GDAL_1.8 1.8.0
- pk_grib2@GDAL_1.8 1.8.0
- preErrSprintf@GDAL_1.8 1.8.0
- printbuf_free@GDAL_1.8 1.8.0
- printbuf_memappend@GDAL_1.8 1.8.0
- printbuf_new@GDAL_1.8 1.8.0
- printbuf_reset@GDAL_1.8 1.8.0
- processLookup@GDAL_1.8 1.8.0
- pszGDALSignature@GDAL_1.8 1.8.0
- rdieee@GDAL_1.8 1.8.0
- reallocFGets@GDAL_1.8 1.8.0
- reallocSprintf@GDAL_1.8 1.8.0
- reduce@GDAL_1.8 1.8.0
- revmemcpy@GDAL_1.8 1.8.0
- revmemcpyRay@GDAL_1.8 1.8.0
- sbit@GDAL_1.8 1.8.0
- sbits@GDAL_1.8 1.8.0
- seekgb@GDAL_1.8 1.8.0
- simpack@GDAL_1.8 1.8.0
- simunpack@GDAL_1.8 1.8.0
- slat@GDAL_1.8 1.8.0
- spatial_ref@GDAL_1.8 1.8.0
- specpack@GDAL_1.8 1.8.0
- specunpack@GDAL_1.8 1.8.0
- sprintbuf@GDAL_1.8 1.8.0
- str2GCAccessMode_GCIO@GDAL_1.8 1.8.0
- str2GCAccessStatus_GCIO@GDAL_1.8 1.8.0
- str2GCCharset_GCIO@GDAL_1.8 1.8.0
- str2GCDim@GDAL_1.8 1.8.0
- str2GCTypeKind_GCIO@GDAL_1.8 1.8.0
- strCompact@GDAL_1.8 1.8.0
- strReplace@GDAL_1.8 1.8.0
- strToLower@GDAL_1.8 1.8.0
- strToUpper@GDAL_1.8 1.8.0
- strTrim@GDAL_1.8 1.8.0
- strTrimRight@GDAL_1.8 1.8.0
- strcmpNoCase@GDAL_1.8 1.8.0
- strndup@GDAL_1.8 1.8.0
- subCenterLookup@GDAL_1.8 1.8.0
- (arch=!powerpc !s390 !mips)swapbyte@GDAL_1.8 1.8.0
- unpk_g2ncep@GDAL_1.8 1.8.0
- unpk_grib2@GDAL_1.8 1.8.0
- unpk_grib2__@GDAL_1.8 1.8.0
- uv_decode@GDAL_1.8 1.8.0
- uv_encode@GDAL_1.8 1.8.0
- viz_llz2xy@GDAL_1.8 1.8.0
- viz_xy2llz@GDAL_1.8 1.8.0
- wlon@GDAL_1.8 1.8.0
+ gdal_GTIFAngleStringToDD@GDAL_1.8 1.10.1
+ gdal_GTIFAngleToDD@GDAL_1.8 1.10.1
+ gdal_GTIFDeaccessCSV@GDAL_1.8 1.10.1
+ gdal_GTIFDecToDMS@GDAL_1.8 1.10.1
+ gdal_GTIFFreeMemory@GDAL_1.8 1.10.1
+ gdal_GTIFGetDatumInfo@GDAL_1.8 1.10.1
+ gdal_GTIFGetDefn@GDAL_1.8 1.10.1
+ gdal_GTIFGetEllipsoidInfo@GDAL_1.8 1.10.1
+ gdal_GTIFGetGCSInfo@GDAL_1.8 1.10.1
+ gdal_GTIFGetPCSInfo@GDAL_1.8 1.10.1
+ gdal_GTIFGetPMInfo@GDAL_1.8 1.10.1
+ gdal_GTIFGetProj4Defn@GDAL_1.8 1.10.1
+ gdal_GTIFGetProjTRFInfo@GDAL_1.8 1.10.1
+ gdal_GTIFGetUOMAngleInfo@GDAL_1.8 1.10.1
+ gdal_GTIFGetUOMLengthInfo@GDAL_1.8 1.10.1
+ gdal_GTIFPrintDefn@GDAL_1.8 1.10.1
+ gdal_GTIFProj4FromLatLong@GDAL_1.8 1.10.1
+ gdal_GTIFProj4ToLatLong@GDAL_1.8 1.10.1
+ gdal_GTIFSetFromProj4@GDAL_1.8 1.10.1
+ gdal_XTIFFClientOpen@GDAL_1.8 1.10.1
+ gdal_XTIFFClose@GDAL_1.8 1.10.1
+ gdal_XTIFFFdOpen@GDAL_1.8 1.10.1
+ gdal_XTIFFInitialize@GDAL_1.8 1.10.1
+ gdal_XTIFFOpen@GDAL_1.8 1.10.1
+ sqlite3_extension_init@GDAL_1.8 1.10.1
