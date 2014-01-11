@@ -74,4 +74,10 @@ So:
         - re-upload in unstable if possible with new symbols and after
           removing the -c0 arg.
 
+    You can use the gdal-symbols.pl script to assist with symbols file updates.
+    It automates most of the work required to collect symbols for all
+    architectures using packages downloaded from snapshot.debian.org,
+    and optionally update the current symbols file with the newly generated
+    ones.
+
  -- Francesco Paolo Lovergine <frankie@debian.org>  Thu, 23 Feb 2012 22:45:56 +0200

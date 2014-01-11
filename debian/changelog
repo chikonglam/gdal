@@ -2,6 +2,7 @@ gdal (1.10.1+dfsg-3) UNRELEASED; urgency=low
 
   * Add patch to fix FTBFS on hurd-i386 which doesn't defined PATH_MAX.
   * Update symbols files for version 1.10.1.
+  * Add script to assist with symbols file updates.
 
  -- Bas Couwenberg <sebastic@xs4all.nl>  Fri, 10 Jan 2014 20:19:50 +0100
 
