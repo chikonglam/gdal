@@ -1,3 +1,10 @@
+gdal (1.10.1+dfsg-4) UNRELEASED; urgency=medium
+
+  * Add libcurl-ssl-dev as alternative to libcurl4-gnutls-dev.
+    (closes: #741015)
+
+ -- Bas Couwenberg <sebastic@xs4all.nl>  Fri, 07 Mar 2014 14:29:56 +0100
+
 gdal (1.10.1+dfsg-3) unstable; urgency=medium
 
   * Add patch to fix FTBFS on hurd-i386 which doesn't defined PATH_MAX.
