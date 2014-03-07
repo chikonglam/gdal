@@ -4,6 +4,7 @@ gdal (1.10.1+dfsg-4) UNRELEASED; urgency=medium
     (closes: #741015)
   * Enable WebP image format support.
     (closes: #741004)
+  * Add gbp.conf to use pristine-tar by default.
 
  -- Bas Couwenberg <sebastic@xs4all.nl>  Fri, 07 Mar 2014 14:29:56 +0100
 
