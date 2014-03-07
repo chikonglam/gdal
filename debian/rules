@@ -220,9 +220,9 @@ override_dh_makeshlibs:
 	ln -f $(CURDIR)/debian/libgdal*.symbols.amd64 $(CURDIR)/debian/libgdal1h.symbols.kfreebsd-amd64
 
 	# Forces failure ignoring to collect new symbols on all archs
-	dh_makeshlibs -Xlibgdal-java -- -c0
+	dh_makeshlibs -Xlibgdal-java -- -v$(GDAL_MAJOR).$(GDAL_MINOR).$(GDAL_PATCH) -c0
 	# Forces failure when symbols change
-	#dh_makeshlibs -Xlibgdal-java
+	#dh_makeshlibs -Xlibgdal-java -- -v$(GDAL_MAJOR).$(GDAL_MINOR).$(GDAL_PATCH)
 
 override_dh_shlibdeps:
 	dh_shlibdeps -L libgdal1h -l debian/libgdal1h/usr/lib
