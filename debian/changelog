@@ -1,4 +1,4 @@
-gdal (1.10.1+dfsg-4) UNRELEASED; urgency=medium
+gdal (1.10.1+dfsg-4) unstable; urgency=medium
 
   * Add libcurl-ssl-dev as alternative to libcurl4-gnutls-dev.
     (closes: #741015)
@@ -6,7 +6,7 @@ gdal (1.10.1+dfsg-4) UNRELEASED; urgency=medium
     (closes: #741004)
   * Add gbp.conf to use pristine-tar by default.
 
- -- Bas Couwenberg <sebastic@xs4all.nl>  Fri, 07 Mar 2014 14:29:56 +0100
+ -- Bas Couwenberg <sebastic@xs4all.nl>  Fri, 07 Mar 2014 21:58:55 +0100
 
 gdal (1.10.1+dfsg-3) unstable; urgency=medium
 
