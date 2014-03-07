@@ -5,6 +5,8 @@ gdal (1.10.1+dfsg-4) unstable; urgency=medium
   * Enable WebP image format support.
     (closes: #741004)
   * Add gbp.conf to use pristine-tar by default.
+  * Drop lintian override for debian-watch-may-check-gpg-signature,
+    shouldn't override pedantic tags.
 
  -- Bas Couwenberg <sebastic@xs4all.nl>  Fri, 07 Mar 2014 21:58:55 +0100
 
