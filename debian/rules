@@ -81,6 +81,7 @@ override_dh_auto_configure:
 			--with-rename-internal-libgeotiff-symbols=yes \
 			--with-libtiff=internal \
 			--with-geotiff=internal \
+			--with-webp \
 			--with-jasper \
 			--with-netcdf \
 			--with-xerces \

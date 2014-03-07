@@ -2,6 +2,8 @@ gdal (1.10.1+dfsg-4) UNRELEASED; urgency=medium
 
   * Add libcurl-ssl-dev as alternative to libcurl4-gnutls-dev.
     (closes: #741015)
+  * Enable WebP image format support.
+    (closes: #741004)
 
  -- Bas Couwenberg <sebastic@xs4all.nl>  Fri, 07 Mar 2014 14:29:56 +0100
 
