@@ -21,9 +21,6 @@ GDAL_MAJOR=$(word 1,$(GDALVER))
 GDAL_MINOR=$(word 2,$(GDALVER))
 GDAL_PATCH=$(word 3,$(GDALVER))
 
-%:
-	dh $@ --with autoreconf,python2,python3
-
 versions:
 	@echo Gdal version: $(GDAL_MAJOR).$(GDAL_MINOR).$(GDAL_PATCH)
 	@echo Swig version: $(SWIGVER)
@@ -54,6 +51,11 @@ gdal-mrsid-dist:
 	[ -e $(CURDIR)/GDALmake.opt ] && $(MAKE) -C $(CURDIR)/frmts/mrsid dist
 	mv $(CURDIR)/frmts/mrsid/libgdal-mrsid-*.tar.gz $(CURDIR)/..
 	rm -f $(CURDIR)/GDALmake.opt
+
+%:
+	if [ "$@" != "gdal-grass" -a "$@" != "gdal-ecw" -a "$@" != "gdal-mrsid" ]; then \
+		dh $@ --with autoreconf,python2,python3 ; \
+	fi
 
 override_dh_auto_clean:
 	[ ! -f GDALmake.opt ] || $(MAKE) distclean
