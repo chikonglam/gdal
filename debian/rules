@@ -31,21 +31,21 @@ versions:
 #
 # The following targets are useful to autogen independent plugins sources
 #
-gdal-grass: override_dh_auto_configure gdal-grass-dist override_dh_auto_clean dh_clean
+gdal-grass: override_dh_auto_configure gdal-grass-dist override_dh_auto_clean override_dh_clean
 gdal-grass-dist:
 	ln -fs $(CURDIR)/GDALmake.opt-$(PYDEF) $(CURDIR)/GDALmake.opt
 	[ -e $(CURDIR)/GDALmake.opt ] && $(MAKE) -C $(CURDIR)/frmts/grass dist
 	mv $(CURDIR)/frmts/grass/libgdal-grass-*.tar.gz $(CURDIR)/..
 	rm -f $(CURDIR)/GDALmake.opt
 
-gdal-ecw: override_dh_auto_configure gdal-ecw-dist override_dh_auto_clean dh_clean
+gdal-ecw: override_dh_auto_configure gdal-ecw-dist override_dh_auto_clean override_dh_clean
 gdal-ecw-dist:
 	ln -fs $(CURDIR)/GDALmake.opt-$(PYDEF) $(CURDIR)/GDALmake.opt
 	[ -e $(CURDIR)/GDALmake.opt ] && $(MAKE) -C $(CURDIR)/frmts/ecw dist
 	mv $(CURDIR)/frmts/ecw/libgdal-ecw-*.tar.gz $(CURDIR)/..
 	rm -f $(CURDIR)/GDALmake.opt
 
-gdal-mrsid: override_dh_auto_configure gdal-mrsid-dist override_dh_auto_clean dh_clean
+gdal-mrsid: override_dh_auto_configure gdal-mrsid-dist override_dh_auto_clean override_dh_clean
 gdal-mrsid-dist:
 	ln -fs $(CURDIR)/GDALmake.opt-$(PYDEF) $(CURDIR)/GDALmake.opt
 	[ -e $(CURDIR)/GDALmake.opt ] && $(MAKE) -C $(CURDIR)/frmts/mrsid dist
@@ -56,6 +56,9 @@ gdal-mrsid-dist:
 	if [ "$@" != "gdal-grass" -a "$@" != "gdal-ecw" -a "$@" != "gdal-mrsid" ]; then \
 		dh $@ --with autoreconf,python2,python3 ; \
 	fi
+
+override_dh_clean:
+	dh_clean config.log
 
 override_dh_auto_clean:
 	[ ! -f GDALmake.opt ] || $(MAKE) distclean
