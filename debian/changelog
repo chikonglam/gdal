@@ -2,6 +2,7 @@ gdal (1.10.1+dfsg-5) unstable; urgency=low
 
   * Don't run dh for custom targets.
   * Also remove config.log on clean.
+  * Don't strip .py extension from python scripts, breaks QGIS plugins.
 
  -- Bas Couwenberg <sebastic@xs4all.nl>  Sun, 16 Mar 2014 10:12:39 +0100
 
