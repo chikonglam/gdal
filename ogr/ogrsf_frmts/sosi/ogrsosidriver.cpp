@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrsosidriver.cpp 25330 2012-12-18 11:12:05Z mloskot $
+ * $Id: ogrsosidriver.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  SOSI Translator
  * Purpose:  Implements OGRSOSIDriver.
@@ -7,6 +7,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2010, Thomas Hirsch
+ * Copyright (c) 2010, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),

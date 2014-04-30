@@ -177,6 +177,12 @@ public class RasterAttributeTable : IDisposable {
     return ret;
   }
 
+  public int ChangesAreWrittenToFile() {
+    int ret = GdalPINVOKE.RasterAttributeTable_ChangesAreWrittenToFile(swigCPtr);
+    if (GdalPINVOKE.SWIGPendingException.Pending) throw GdalPINVOKE.SWIGPendingException.Retrieve();
+    return ret;
+  }
+
 }
 
 }

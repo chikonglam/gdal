@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gxf_ogcwkt.c 25164 2012-10-20 13:42:32Z rouault $
+ * $Id: gxf_ogcwkt.c 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  GXF Reader
  * Purpose:  Handle GXF to OGC WKT projection transformation.
@@ -7,6 +7,7 @@
  *
  ******************************************************************************
  * Copyright (c) 1999, Frank Warmerdam
+ * Copyright (c) 2009-2012, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -29,7 +30,7 @@
 
 #include "gxfopen.h"
 
-CPL_CVSID("$Id: gxf_ogcwkt.c 25164 2012-10-20 13:42:32Z rouault $");
+CPL_CVSID("$Id: gxf_ogcwkt.c 27044 2014-03-16 23:41:27Z rouault $");
 
 /* -------------------------------------------------------------------- */
 /* the following #defines come from ogr_spatialref.h in the GDAL/OGR	*/

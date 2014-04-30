@@ -30,6 +30,29 @@ public class Gdal {
     GdalPINVOKE.DontUseExceptions();
   }
 
+
+  internal static byte[] StringToUtf8Bytes(string str)
+  {
+    if (str == null)
+      return null;
+    
+    int bytecount = System.Text.Encoding.UTF8.GetMaxByteCount(str.Length);
+    byte[] bytes = new byte[bytecount + 1];
+    System.Text.Encoding.UTF8.GetBytes(str, 0, str.Length, bytes, 0);
+    return bytes;
+  }
+  
+  internal static string Utf8BytesToString(IntPtr pNativeData)
+  {
+    if (pNativeData == IntPtr.Zero)
+        return null;
+        
+    int length = Marshal.PtrToStringAnsi(pNativeData).Length;
+    byte[] strbuf = new byte[length];  
+    Marshal.Copy(pNativeData, strbuf, 0, length); 
+    return System.Text.Encoding.UTF8.GetString(strbuf);
+  }
+
   internal static void StringListDestroy(IntPtr buffer_ptr) {
     GdalPINVOKE.StringListDestroy(buffer_ptr);
     if (GdalPINVOKE.SWIGPendingException.Pending) throw GdalPINVOKE.SWIGPendingException.Retrieve();
@@ -149,7 +172,7 @@ public delegate int GDALProgressFuncDelegate(double Complete, IntPtr Message, In
   }
 
   public static void PushFinderLocation(string utf8_path) {
-    GdalPINVOKE.PushFinderLocation(System.Text.Encoding.Default.GetString(System.Text.Encoding.UTF8.GetBytes(utf8_path)));
+    GdalPINVOKE.PushFinderLocation(Gdal.StringToUtf8Bytes(utf8_path));
     if (GdalPINVOKE.SWIGPendingException.Pending) throw GdalPINVOKE.SWIGPendingException.Retrieve();
   }
 
@@ -164,14 +187,14 @@ public delegate int GDALProgressFuncDelegate(double Complete, IntPtr Message, In
   }
 
   public static string FindFile(string pszClass, string utf8_path) {
-    string ret = GdalPINVOKE.FindFile(pszClass, System.Text.Encoding.Default.GetString(System.Text.Encoding.UTF8.GetBytes(utf8_path)));
+    string ret = GdalPINVOKE.FindFile(pszClass, Gdal.StringToUtf8Bytes(utf8_path));
     if (GdalPINVOKE.SWIGPendingException.Pending) throw GdalPINVOKE.SWIGPendingException.Retrieve();
     return ret;
   }
 
   public static string[] ReadDir(string utf8_path) {
         /* %typemap(csout) char** CSL */
-        IntPtr cPtr = GdalPINVOKE.ReadDir(System.Text.Encoding.Default.GetString(System.Text.Encoding.UTF8.GetBytes(utf8_path)));
+        IntPtr cPtr = GdalPINVOKE.ReadDir(Gdal.StringToUtf8Bytes(utf8_path));
         IntPtr objPtr;
         int count = 0;
         if (cPtr != IntPtr.Zero) {
@@ -194,7 +217,7 @@ public delegate int GDALProgressFuncDelegate(double Complete, IntPtr Message, In
 
   public static string[] ReadDirRecursive(string utf8_path) {
         /* %typemap(csout) char** CSL */
-        IntPtr cPtr = GdalPINVOKE.ReadDirRecursive(System.Text.Encoding.Default.GetString(System.Text.Encoding.UTF8.GetBytes(utf8_path)));
+        IntPtr cPtr = GdalPINVOKE.ReadDirRecursive(Gdal.StringToUtf8Bytes(utf8_path));
         IntPtr objPtr;
         int count = 0;
         if (cPtr != IntPtr.Zero) {
@@ -239,12 +262,12 @@ public delegate int GDALProgressFuncDelegate(double Complete, IntPtr Message, In
 }
 
   public static void FileFromMemBuffer(string utf8_path, int nBytes, IntPtr pabyData) {
-    GdalPINVOKE.FileFromMemBuffer(System.Text.Encoding.Default.GetString(System.Text.Encoding.UTF8.GetBytes(utf8_path)), nBytes, pabyData);
+    GdalPINVOKE.FileFromMemBuffer(Gdal.StringToUtf8Bytes(utf8_path), nBytes, pabyData);
     if (GdalPINVOKE.SWIGPendingException.Pending) throw GdalPINVOKE.SWIGPendingException.Retrieve();
   }
 
   public static int Unlink(string utf8_path) {
-    int ret = GdalPINVOKE.Unlink(System.Text.Encoding.Default.GetString(System.Text.Encoding.UTF8.GetBytes(utf8_path)));
+    int ret = GdalPINVOKE.Unlink(Gdal.StringToUtf8Bytes(utf8_path));
     if (GdalPINVOKE.SWIGPendingException.Pending) throw GdalPINVOKE.SWIGPendingException.Retrieve();
     return ret;
   }
@@ -256,13 +279,13 @@ public delegate int GDALProgressFuncDelegate(double Complete, IntPtr Message, In
   }
 
   public static int Mkdir(string utf8_path, int mode) {
-    int ret = GdalPINVOKE.Mkdir(System.Text.Encoding.Default.GetString(System.Text.Encoding.UTF8.GetBytes(utf8_path)), mode);
+    int ret = GdalPINVOKE.Mkdir(Gdal.StringToUtf8Bytes(utf8_path), mode);
     if (GdalPINVOKE.SWIGPendingException.Pending) throw GdalPINVOKE.SWIGPendingException.Retrieve();
     return ret;
   }
 
   public static int Rmdir(string utf8_path) {
-    int ret = GdalPINVOKE.Rmdir(System.Text.Encoding.Default.GetString(System.Text.Encoding.UTF8.GetBytes(utf8_path)));
+    int ret = GdalPINVOKE.Rmdir(Gdal.StringToUtf8Bytes(utf8_path));
     if (GdalPINVOKE.SWIGPendingException.Pending) throw GdalPINVOKE.SWIGPendingException.Retrieve();
     return ret;
   }
@@ -273,38 +296,37 @@ public delegate int GDALProgressFuncDelegate(double Complete, IntPtr Message, In
     return ret;
   }
 
-  public static SWIGTYPE_p_void VSIFOpenL(string utf8_path, string pszMode) {
-    IntPtr cPtr = GdalPINVOKE.VSIFOpenL(System.Text.Encoding.Default.GetString(System.Text.Encoding.UTF8.GetBytes(utf8_path)), pszMode);
-    SWIGTYPE_p_void ret = (cPtr == IntPtr.Zero) ? null : new SWIGTYPE_p_void(cPtr, false, ThisOwn_false());
+  public static IntPtr VSIFOpenL(string utf8_path, string pszMode) {
+      IntPtr ret = GdalPINVOKE.VSIFOpenL(Gdal.StringToUtf8Bytes(utf8_path), pszMode);
+    if (GdalPINVOKE.SWIGPendingException.Pending) throw GdalPINVOKE.SWIGPendingException.Retrieve();
+      return ret;
+}
+
+  public static void VSIFCloseL(IntPtr arg0) {
+    GdalPINVOKE.VSIFCloseL(arg0);
+    if (GdalPINVOKE.SWIGPendingException.Pending) throw GdalPINVOKE.SWIGPendingException.Retrieve();
+  }
+
+  public static int VSIFSeekL(IntPtr arg0, int arg1, int arg2) {
+    int ret = GdalPINVOKE.VSIFSeekL(arg0, arg1, arg2);
     if (GdalPINVOKE.SWIGPendingException.Pending) throw GdalPINVOKE.SWIGPendingException.Retrieve();
     return ret;
   }
 
-  public static void VSIFCloseL(SWIGTYPE_p_void arg0) {
-    GdalPINVOKE.VSIFCloseL(SWIGTYPE_p_void.getCPtr(arg0));
-    if (GdalPINVOKE.SWIGPendingException.Pending) throw GdalPINVOKE.SWIGPendingException.Retrieve();
-  }
-
-  public static int VSIFSeekL(SWIGTYPE_p_void arg0, int arg1, int arg2) {
-    int ret = GdalPINVOKE.VSIFSeekL(SWIGTYPE_p_void.getCPtr(arg0), arg1, arg2);
+  public static int VSIFTellL(IntPtr arg0) {
+    int ret = GdalPINVOKE.VSIFTellL(arg0);
     if (GdalPINVOKE.SWIGPendingException.Pending) throw GdalPINVOKE.SWIGPendingException.Retrieve();
     return ret;
   }
 
-  public static int VSIFTellL(SWIGTYPE_p_void arg0) {
-    int ret = GdalPINVOKE.VSIFTellL(SWIGTYPE_p_void.getCPtr(arg0));
+  public static int VSIFTruncateL(IntPtr arg0, int arg1) {
+    int ret = GdalPINVOKE.VSIFTruncateL(arg0, arg1);
     if (GdalPINVOKE.SWIGPendingException.Pending) throw GdalPINVOKE.SWIGPendingException.Retrieve();
     return ret;
   }
 
-  public static int VSIFTruncateL(SWIGTYPE_p_void arg0, int arg1) {
-    int ret = GdalPINVOKE.VSIFTruncateL(SWIGTYPE_p_void.getCPtr(arg0), arg1);
-    if (GdalPINVOKE.SWIGPendingException.Pending) throw GdalPINVOKE.SWIGPendingException.Retrieve();
-    return ret;
-  }
-
-  public static int VSIFWriteL(string arg0, int arg1, int arg2, SWIGTYPE_p_void arg3) {
-    int ret = GdalPINVOKE.VSIFWriteL(arg0, arg1, arg2, SWIGTYPE_p_void.getCPtr(arg3));
+  public static int VSIFWriteL(string arg0, int arg1, int arg2, IntPtr arg3) {
+    int ret = GdalPINVOKE.VSIFWriteL(arg0, arg1, arg2, arg3);
     if (GdalPINVOKE.SWIGPendingException.Pending) throw GdalPINVOKE.SWIGPendingException.Retrieve();
     return ret;
   }
@@ -493,8 +515,8 @@ public delegate int GDALProgressFuncDelegate(double Complete, IntPtr Message, In
     return ret;
   }
 
-  public static int RasterizeLayer(Dataset dataset, int bands, SWIGTYPE_p_int band_list, OSGeo.OGR.Layer layer, SWIGTYPE_p_void pfnTransformer, SWIGTYPE_p_void pTransformArg, int burn_values, SWIGTYPE_p_double burn_values_list, string[] options, Gdal.GDALProgressFuncDelegate callback, string callback_data) {
-    int ret = GdalPINVOKE.RasterizeLayer(Dataset.getCPtr(dataset), bands, SWIGTYPE_p_int.getCPtr(band_list), OSGeo.OGR.Layer.getCPtr(layer), SWIGTYPE_p_void.getCPtr(pfnTransformer), SWIGTYPE_p_void.getCPtr(pTransformArg), burn_values, SWIGTYPE_p_double.getCPtr(burn_values_list), (options != null)? new GdalPINVOKE.StringListMarshal(options)._ar : null, callback, callback_data);
+  public static int RasterizeLayer(Dataset dataset, int bands, int[] band_list, OSGeo.OGR.Layer layer, IntPtr pfnTransformer, IntPtr pTransformArg, int burn_values, double[] burn_values_list, string[] options, Gdal.GDALProgressFuncDelegate callback, string callback_data) {
+    int ret = GdalPINVOKE.RasterizeLayer(Dataset.getCPtr(dataset), bands, band_list, OSGeo.OGR.Layer.getCPtr(layer), pfnTransformer, pTransformArg, burn_values, burn_values_list, (options != null)? new GdalPINVOKE.StringListMarshal(options)._ar : null, callback, callback_data);
     if (GdalPINVOKE.SWIGPendingException.Pending) throw GdalPINVOKE.SWIGPendingException.Retrieve();
     return ret;
   }
@@ -529,8 +551,8 @@ public delegate int GDALProgressFuncDelegate(double Complete, IntPtr Message, In
     return ret;
   }
 
-  public static int ContourGenerate(Band srcBand, double contourInterval, double contourBase, int fixedLevelCount, SWIGTYPE_p_double fixedLevels, int useNoData, double noDataValue, OSGeo.OGR.Layer dstLayer, int idField, int elevField, Gdal.GDALProgressFuncDelegate callback, string callback_data) {
-    int ret = GdalPINVOKE.ContourGenerate(Band.getCPtr(srcBand), contourInterval, contourBase, fixedLevelCount, SWIGTYPE_p_double.getCPtr(fixedLevels), useNoData, noDataValue, OSGeo.OGR.Layer.getCPtr(dstLayer), idField, elevField, callback, callback_data);
+  public static int ContourGenerate(Band srcBand, double contourInterval, double contourBase, int fixedLevelCount, double[] fixedLevels, int useNoData, double noDataValue, OSGeo.OGR.Layer dstLayer, int idField, int elevField, Gdal.GDALProgressFuncDelegate callback, string callback_data) {
+    int ret = GdalPINVOKE.ContourGenerate(Band.getCPtr(srcBand), contourInterval, contourBase, fixedLevelCount, fixedLevels, useNoData, noDataValue, OSGeo.OGR.Layer.getCPtr(dstLayer), idField, elevField, callback, callback_data);
     if (GdalPINVOKE.SWIGPendingException.Pending) throw GdalPINVOKE.SWIGPendingException.Retrieve();
     return ret;
   }
@@ -674,21 +696,21 @@ public delegate int GDALProgressFuncDelegate(double Complete, IntPtr Message, In
   }
 
   public static Dataset Open(string utf8_path, Access eAccess) {
-    IntPtr cPtr = GdalPINVOKE.Open(System.Text.Encoding.Default.GetString(System.Text.Encoding.UTF8.GetBytes(utf8_path)), (int)eAccess);
+    IntPtr cPtr = GdalPINVOKE.Open(Gdal.StringToUtf8Bytes(utf8_path), (int)eAccess);
     Dataset ret = (cPtr == IntPtr.Zero) ? null : new Dataset(cPtr, true, ThisOwn_true());
     if (GdalPINVOKE.SWIGPendingException.Pending) throw GdalPINVOKE.SWIGPendingException.Retrieve();
     return ret;
   }
 
   public static Dataset OpenShared(string utf8_path, Access eAccess) {
-    IntPtr cPtr = GdalPINVOKE.OpenShared(System.Text.Encoding.Default.GetString(System.Text.Encoding.UTF8.GetBytes(utf8_path)), (int)eAccess);
+    IntPtr cPtr = GdalPINVOKE.OpenShared(Gdal.StringToUtf8Bytes(utf8_path), (int)eAccess);
     Dataset ret = (cPtr == IntPtr.Zero) ? null : new Dataset(cPtr, true, ThisOwn_true());
     if (GdalPINVOKE.SWIGPendingException.Pending) throw GdalPINVOKE.SWIGPendingException.Retrieve();
     return ret;
   }
 
   public static Driver IdentifyDriver(string utf8_path, string[] papszSiblings) {
-    IntPtr cPtr = GdalPINVOKE.IdentifyDriver(System.Text.Encoding.Default.GetString(System.Text.Encoding.UTF8.GetBytes(utf8_path)), (papszSiblings != null)? new GdalPINVOKE.StringListMarshal(papszSiblings)._ar : null);
+    IntPtr cPtr = GdalPINVOKE.IdentifyDriver(Gdal.StringToUtf8Bytes(utf8_path), (papszSiblings != null)? new GdalPINVOKE.StringListMarshal(papszSiblings)._ar : null);
     Driver ret = (cPtr == IntPtr.Zero) ? null : new Driver(cPtr, false, ThisOwn_false());
     if (GdalPINVOKE.SWIGPendingException.Pending) throw GdalPINVOKE.SWIGPendingException.Retrieve();
     return ret;

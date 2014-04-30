@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: vrtrawrasterband.cpp 25567 2013-01-26 21:55:28Z rouault $
+ * $Id: vrtrawrasterband.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  Virtual GDAL Datasets
  * Purpose:  Implementation of VRTRawRasterBand
@@ -7,6 +7,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2004, Frank Warmerdam <warmerdam@pobox.com>
+ * Copyright (c) 2007-2013, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -32,7 +33,7 @@
 #include "cpl_string.h"
 #include "rawdataset.h"
 
-CPL_CVSID("$Id: vrtrawrasterband.cpp 25567 2013-01-26 21:55:28Z rouault $");
+CPL_CVSID("$Id: vrtrawrasterband.cpp 27044 2014-03-16 23:41:27Z rouault $");
 
 /************************************************************************/
 /* ==================================================================== */
@@ -331,7 +332,8 @@ CPLErr VRTRawRasterBand::XMLInit( CPLXMLNode * psTree,
     int nPixelOffset, nLineOffset;
     int nWordDataSize = GDALGetDataTypeSize( GetRasterDataType() ) / 8;
 
-    nImageOffset = atoi(CPLGetXMLValue( psTree, "ImageOffset", "0") );
+    nImageOffset = CPLScanUIntBig(
+        CPLGetXMLValue( psTree, "ImageOffset", "0"), 20);
 
     if( CPLGetXMLValue( psTree, "PixelOffset", NULL ) == NULL )
         nPixelOffset = nWordDataSize;
@@ -403,17 +405,16 @@ CPLXMLNode *VRTRawRasterBand::SerializeToXML( const char *pszVRTPath )
 /* -------------------------------------------------------------------- */
 /*      Set other layout information.                                   */
 /* -------------------------------------------------------------------- */
-    CPLCreateXMLElementAndValue( 
-        psTree, "ImageOffset", 
-        CPLSPrintf("%d",(int) poRawRaster->GetImgOffset()) );
+    char szOffset[22];
     
-    CPLCreateXMLElementAndValue( 
-        psTree, "PixelOffset", 
-        CPLSPrintf("%d",(int) poRawRaster->GetPixelOffset()) );
+    CPLPrintUIntBig(szOffset, poRawRaster->GetImgOffset(), sizeof(szOffset)-1);
+    CPLCreateXMLElementAndValue(psTree, "ImageOffset", szOffset);
     
-    CPLCreateXMLElementAndValue( 
-        psTree, "LineOffset", 
-        CPLSPrintf("%d",(int) poRawRaster->GetLineOffset()) );
+    CPLPrintUIntBig(szOffset, poRawRaster->GetPixelOffset(),sizeof(szOffset)-1);
+    CPLCreateXMLElementAndValue(psTree, "PixelOffset", szOffset);
+    
+    CPLPrintUIntBig(szOffset, poRawRaster->GetLineOffset(), sizeof(szOffset)-1);
+    CPLCreateXMLElementAndValue(psTree, "LineOffset", szOffset);
 
 #if CPL_IS_LSB == 1
     if( poRawRaster->GetNativeOrder() )

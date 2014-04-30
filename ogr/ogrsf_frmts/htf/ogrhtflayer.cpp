@@ -1,12 +1,12 @@
 /******************************************************************************
- * $Id: ogrhtflayer.cpp 20766 2010-10-05 09:07:28Z rouault $
+ * $Id: ogrhtflayer.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  HTF Translator
  * Purpose:  Implements OGRHTFLayer class.
  * Author:   Even Rouault, <even dot rouault at mines dash paris dot org>
  *
  ******************************************************************************
- * Copyright (c) 2010, Even Rouault <even dot rouault at mines dash paris dot org>
+ * Copyright (c) 2010-2013, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -33,7 +33,7 @@
 #include "ogr_p.h"
 #include "ogr_srs_api.h"
 
-CPL_CVSID("$Id: ogrhtflayer.cpp 20766 2010-10-05 09:07:28Z rouault $");
+CPL_CVSID("$Id: ogrhtflayer.cpp 27044 2014-03-16 23:41:27Z rouault $");
 
 /************************************************************************/
 /*                            OGRHTFLayer()                             */
@@ -67,6 +67,7 @@ OGRHTFPolygonLayer::OGRHTFPolygonLayer( const char* pszFilename, int nZone, int 
     poFeatureDefn = new OGRFeatureDefn( "polygon" );
     poFeatureDefn->Reference();
     poFeatureDefn->SetGeomType( wkbPolygon  );
+    poFeatureDefn->GetGeomFieldDefn(0)->SetSpatialRef(poSRS);
 
     OGRFieldDefn    oField1( "DESCRIPTION", OFTString);
     poFeatureDefn->AddFieldDefn( &oField1 );
@@ -93,6 +94,7 @@ OGRHTFSoundingLayer::OGRHTFSoundingLayer( const char* pszFilename, int nZone, in
     poFeatureDefn = new OGRFeatureDefn( "sounding" );
     poFeatureDefn->Reference();
     poFeatureDefn->SetGeomType( wkbPoint  );
+    poFeatureDefn->GetGeomFieldDefn(0)->SetSpatialRef(poSRS);
 
     this->nTotalSoundings = nTotalSoundings;
     bHasFPK = FALSE;

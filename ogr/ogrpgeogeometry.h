@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrpgeogeometry.h 22525 2011-06-11 02:18:49Z rburhum $
+ * $Id: ogrpgeogeometry.h 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implements decoder of shapebin geometry for PGeo
@@ -7,6 +7,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2005, Frank Warmerdam <warmerdam@pobox.com>
+ * Copyright (c) 2011-2014, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -72,6 +73,13 @@
 #define ESRI_LAYERGEOMTYPE_POLYGON       4
 #define ESRI_LAYERGEOMTYPE_MULTIPATCH    9
 
+void OGRCreateFromMultiPatchPart(OGRMultiPolygon *poMP,
+                                 OGRPolygon*& poLastPoly,
+                                 int nPartType,
+                                 int nPartPoints,
+                                 double* padfX,
+                                 double* padfY,
+                                 double* padfZ);
 
 OGRErr CPL_DLL OGRCreateFromShapeBin( GByte *pabyShape,
                               OGRGeometry **ppoGeom,
@@ -81,5 +89,8 @@ OGRErr CPL_DLL OGRWriteToShapeBin( OGRGeometry *poGeom,
                            GByte **ppabyShape,
                            int *pnBytes );
 
+OGRErr CPL_DLL OGRWriteMultiPatchToShapeBin( OGRGeometry *poGeom, 
+                           GByte **ppabyShape,
+                           int *pnBytes );
 
 #endif

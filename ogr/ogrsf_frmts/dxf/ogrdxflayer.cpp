@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrdxflayer.cpp 25030 2012-10-02 22:08:36Z rouault $
+ * $Id: ogrdxflayer.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  DXF Translator
  * Purpose:  Implements OGRDXFLayer class.
@@ -7,6 +7,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2009, Frank Warmerdam <warmerdam@pobox.com>
+ * Copyright (c) 2011-2013, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -30,8 +31,9 @@
 #include "ogr_dxf.h"
 #include "cpl_conv.h"
 #include "ogrdxf_polyline_smooth.h"
+#include "ogr_api.h"
 
-CPL_CVSID("$Id: ogrdxflayer.cpp 25030 2012-10-02 22:08:36Z rouault $");
+CPL_CVSID("$Id: ogrdxflayer.cpp 27044 2014-03-16 23:41:27Z rouault $");
 
 #ifndef PI
 #define PI  3.14159265358979323846
@@ -1454,6 +1456,267 @@ OGRFeature *OGRDXFLayer::TranslateSPLINE()
 }
 
 /************************************************************************/
+/*                          Translate3DFACE()                           */
+/************************************************************************/
+
+OGRFeature *OGRDXFLayer::Translate3DFACE()
+
+{
+    char szLineBuf[257];
+    int nCode;
+    OGRFeature *poFeature = new OGRFeature( poFeatureDefn );
+    double dfX1 = 0.0, dfY1 = 0.0, dfZ1 = 0.0;
+    double dfX2 = 0.0, dfY2 = 0.0, dfZ2 = 0.0;
+    double dfX3 = 0.0, dfY3 = 0.0, dfZ3 = 0.0;
+    double dfX4 = 0.0, dfY4 = 0.0, dfZ4 = 0.0;
+
+/* -------------------------------------------------------------------- */
+/*      Process values.                                                 */
+/* -------------------------------------------------------------------- */
+    while( (nCode = poDS->ReadValue(szLineBuf,sizeof(szLineBuf))) > 0 )
+    {
+        switch( nCode )
+        {
+          case 10:
+            dfX1 = CPLAtof(szLineBuf);
+            break;
+
+          case 11:
+            dfX2 = CPLAtof(szLineBuf);
+            break;
+
+          case 12:
+            dfX3 = CPLAtof(szLineBuf);
+            break;
+
+          case 13:
+            dfX4 = CPLAtof(szLineBuf);
+            break;
+
+          case 20:
+            dfY1 = CPLAtof(szLineBuf);
+            break;
+
+          case 21:
+            dfY2 = CPLAtof(szLineBuf);
+            break;
+
+          case 22:
+            dfY3 = CPLAtof(szLineBuf);
+            break;
+
+          case 23:
+            dfY4 = CPLAtof(szLineBuf);
+            break;
+
+          case 30:
+            dfZ1 = CPLAtof(szLineBuf);
+            break;
+
+          case 31:
+            dfZ2 = CPLAtof(szLineBuf);
+            break;
+
+          case 32:
+            dfZ3 = CPLAtof(szLineBuf);
+            break;
+
+          case 33:
+            dfZ4 = CPLAtof(szLineBuf);
+            break;
+
+          default:
+            TranslateGenericProperty( poFeature, nCode, szLineBuf );
+            break;
+        }
+    }
+
+    if( nCode == 0 )
+        poDS->UnreadValue();
+
+/* -------------------------------------------------------------------- */
+/*      Create geometry                                                 */
+/* -------------------------------------------------------------------- */
+    OGRPolygon *poPoly = new OGRPolygon();
+    OGRLinearRing* poLR = new OGRLinearRing();
+    poLR->addPoint( dfX1, dfY1, dfZ1 );
+    poLR->addPoint( dfX2, dfY2, dfZ2 );
+    poLR->addPoint( dfX3, dfY3, dfZ3 );
+    if( dfX4 != dfX3 || dfY4 != dfY3 || dfZ4 != dfZ3 )
+        poLR->addPoint( dfX4, dfY4, dfZ4 );
+    poPoly->addRingDirectly(poLR);
+    poPoly->closeRings();
+
+    ApplyOCSTransformer( poLR );
+    poFeature->SetGeometryDirectly( poPoly );
+
+    /* PrepareLineStyle( poFeature ); */
+
+    return poFeature;
+}
+
+/* -------------------------------------------------------------------- */
+/*      Distance                                                        */
+/*                                                                      */
+/*      Calculate distance between two points                           */
+/* -------------------------------------------------------------------- */
+
+static double Distance(double dX0, double dY0, double dX1, double dY1) {
+    return sqrt((dX1 - dX0) * (dX1 - dX0) + (dY1 - dY0) * (dY1 - dY0));
+}
+
+/* -------------------------------------------------------------------- */
+/*      AddEdgesByNearest                                               */
+/*                                                                      */
+/*      Order and add SOLID edges to geometry collection                */
+/* -------------------------------------------------------------------- */
+
+static void AddEdgesByNearest(OGRGeometryCollection* poCollection, OGRLineString *poLS,
+        OGRLineString *poLS4, double dfX2, double dfY2, double dfX3,
+        double dfY3, double dfX4, double dfY4) {
+    OGRLineString *poLS2 = new OGRLineString();
+    OGRLineString *poLS3 = new OGRLineString();
+    poLS->addPoint(dfX2, dfY2);
+    poCollection->addGeometryDirectly(poLS);
+    poLS2->addPoint(dfX2, dfY2);
+    double dTo3 = Distance(dfX2, dfY2, dfX3, dfY3);
+    double dTo4 = Distance(dfX2, dfY2, dfX4, dfY4);
+    if (dTo3 <= dTo4) {
+        poLS2->addPoint(dfX3, dfY3);
+        poCollection->addGeometryDirectly(poLS2);
+        poLS3->addPoint(dfX3, dfY3);
+        poLS3->addPoint(dfX4, dfY4);
+        poCollection->addGeometryDirectly(poLS3);
+        poLS4->addPoint(dfX4, dfY4);
+    } else {
+        poLS2->addPoint(dfX4, dfY4);
+        poCollection->addGeometryDirectly(poLS2);
+        poLS3->addPoint(dfX4, dfY4);
+        poLS3->addPoint(dfX3, dfY3);
+        poCollection->addGeometryDirectly(poLS3);
+        poLS4->addPoint(dfX3, dfY3);
+    }
+}
+
+/************************************************************************/
+/*                           TranslateSOLID()                           */
+/************************************************************************/
+
+OGRFeature *OGRDXFLayer::TranslateSOLID()
+
+{
+    CPLDebug("SOLID", "translating solid");
+    char szLineBuf[257];
+    int nCode;
+    OGRFeature *poFeature = new OGRFeature(poFeatureDefn);
+    double dfX1 = 0.0, dfY1 = 0.0;
+    double dfX2 = 0.0, dfY2 = 0.0;
+    double dfX3 = 0.0, dfY3 = 0.0;
+    double dfX4 = 0.0, dfY4 = 0.0;
+
+    while ((nCode = poDS->ReadValue(szLineBuf, sizeof(szLineBuf))) > 0) {
+        switch (nCode) {
+        case 10:
+            dfX1 = CPLAtof(szLineBuf);
+            break;
+
+        case 20:
+            dfY1 = CPLAtof(szLineBuf);
+            break;
+
+        case 30:
+            break;
+
+        case 11:
+            dfX2 = CPLAtof(szLineBuf);
+            break;
+
+        case 21:
+            dfY2 = CPLAtof(szLineBuf);
+            break;
+
+        case 31:
+            break;
+
+        case 12:
+            dfX3 = CPLAtof(szLineBuf);
+            break;
+
+        case 22:
+            dfY3 = CPLAtof(szLineBuf);
+            break;
+
+        case 32:
+            break;
+
+        case 13:
+            dfX4 = CPLAtof(szLineBuf);
+            break;
+
+        case 23:
+            dfY4 = CPLAtof(szLineBuf);
+            break;
+
+        case 33:
+            break;
+
+        default:
+            TranslateGenericProperty(poFeature, nCode, szLineBuf);
+            break;
+        }
+    }
+
+    CPLDebug("Corner coordinates are", "%f,%f,%f,%f,%f,%f,%f,%f", dfX1, dfY1,
+            dfX2, dfY2, dfX3, dfY3, dfX4, dfY4);
+
+    OGRGeometryCollection* poCollection = NULL;
+    poCollection = new OGRGeometryCollection();
+
+    OGRLineString *poLS = new OGRLineString();
+    poLS->addPoint(dfX1, dfY1);
+
+    // corners in SOLID can be in any order, so we need to order them for
+    // creating edges for polygon
+
+    double dTo2 = Distance(dfX1, dfY1, dfX2, dfY2);
+    double dTo3 = Distance(dfX1, dfY1, dfX3, dfY3);
+    double dTo4 = Distance(dfX1, dfY1, dfX4, dfY4);
+
+    OGRLineString *poLS4 = new OGRLineString();
+
+    if (dTo2 <= dTo3 && dTo2 <= dTo4) {
+        AddEdgesByNearest(poCollection, poLS, poLS4, dfX2, dfY2, dfX3, dfY3,
+                dfX4, dfY4);
+    } else if (dTo3 <= dTo2 && dTo3 <= dTo4) {
+        AddEdgesByNearest(poCollection, poLS, poLS4, dfX3, dfY3, dfX2, dfY2,
+                dfX4, dfY4);
+    } else /* if (dTo4 <= dTo2 && dTo4 <= dTo3) */ {
+        AddEdgesByNearest(poCollection, poLS, poLS4, dfX4, dfY4, dfX3, dfY3,
+                dfX2, dfY2);
+    }
+    poLS4->addPoint(dfX1, dfY1);
+    poCollection->addGeometryDirectly(poLS4);
+    OGRErr eErr;
+
+    OGRGeometry* poFinalGeom = (OGRGeometry *) OGRBuildPolygonFromEdges(
+            (OGRGeometryH) poCollection, TRUE, TRUE, 0, &eErr);
+
+    delete poCollection;
+
+    ApplyOCSTransformer(poFinalGeom);
+
+    poFeature->SetGeometryDirectly(poFinalGeom);
+
+    if (nCode == 0)
+        poDS->UnreadValue();
+
+    // Set style pen color
+    PrepareLineStyle(poFeature);
+
+    return poFeature;
+}
+
+/************************************************************************/
 /*                      GeometryInsertTransformer                       */
 /************************************************************************/
 
@@ -1764,6 +2027,10 @@ OGRFeature *OGRDXFLayer::GetNextUnfilteredFeature()
         {
             poFeature = TranslateSPLINE();
         }
+        else if( EQUAL(szLineBuf,"3DFACE") )
+        {
+            poFeature = Translate3DFACE();
+        }
         else if( EQUAL(szLineBuf,"INSERT") )
         {
             poFeature = TranslateINSERT();
@@ -1775,6 +2042,10 @@ OGRFeature *OGRDXFLayer::GetNextUnfilteredFeature()
         else if( EQUAL(szLineBuf,"HATCH") )
         {
             poFeature = TranslateHATCH();
+        }
+        else if( EQUAL(szLineBuf,"SOLID") )
+        {
+            poFeature = TranslateSOLID();
         }
         else
         {

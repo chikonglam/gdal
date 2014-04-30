@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gifdataset.cpp 24608 2012-06-24 21:55:29Z rouault $
+ * $Id: gifdataset.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  GIF Driver
  * Purpose:  Implement GDAL GIF Support using libungif code.  
@@ -7,6 +7,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2001, Frank Warmerdam
+ * Copyright (c) 2007-2012, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -31,7 +32,7 @@
 #include "cpl_string.h"
 #include "gifabstractdataset.h"
 
-CPL_CVSID("$Id: gifdataset.cpp 24608 2012-06-24 21:55:29Z rouault $");
+CPL_CVSID("$Id: gifdataset.cpp 27044 2014-03-16 23:41:27Z rouault $");
 
 CPL_C_START
 void	GDALRegister_GIF(void);

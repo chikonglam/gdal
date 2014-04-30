@@ -1366,6 +1366,36 @@ SWIGEXPORT int SWIGSTDCALL CSharp_GARIO_COMPLETE_get() {
 }
 
 
+SWIGEXPORT int SWIGSTDCALL CSharp_GTO_TIP_get() {
+  int jresult ;
+  int result;
+  
+  result = (int)(GTO_TIP);
+  jresult = result; 
+  return jresult;
+}
+
+
+SWIGEXPORT int SWIGSTDCALL CSharp_GTO_BIT_get() {
+  int jresult ;
+  int result;
+  
+  result = (int)(GTO_BIT);
+  jresult = result; 
+  return jresult;
+}
+
+
+SWIGEXPORT int SWIGSTDCALL CSharp_GTO_BSQ_get() {
+  int jresult ;
+  int result;
+  
+  result = (int)(GTO_BSQ);
+  jresult = result; 
+  return jresult;
+}
+
+
 #ifdef __cplusplus
 }
 #endif

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: hfatype.cpp 23495 2011-12-08 00:16:33Z rouault $
+ * $Id: hfatype.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  Erdas Imagine (.img) Translator
  * Purpose:  Implementation of the HFAType class, for managing one type
@@ -8,6 +8,7 @@
  *
  ******************************************************************************
  * Copyright (c) 1999, Intergraph Corporation
+ * Copyright (c) 2009-2011, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -30,7 +31,7 @@
 
 #include "hfa_p.h"
 
-CPL_CVSID("$Id: hfatype.cpp 23495 2011-12-08 00:16:33Z rouault $");
+CPL_CVSID("$Id: hfatype.cpp 27044 2014-03-16 23:41:27Z rouault $");
 
 /************************************************************************/
 /* ==================================================================== */

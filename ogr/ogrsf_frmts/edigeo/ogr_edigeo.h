@@ -1,12 +1,12 @@
 /******************************************************************************
- * $Id: ogr_edigeo.h 23423 2011-11-26 18:40:30Z rouault $
+ * $Id: ogr_edigeo.h 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  EDIGEO Translator
  * Purpose:  Definition of classes for OGR .edigeo driver.
  * Author:   Even Rouault, even dot rouault at mines dash paris dot org
  *
  ******************************************************************************
- * Copyright (c) 2011, Even Rouault <even dot rouault at mines dash paris dot org>
+ * Copyright (c) 2011, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -72,8 +72,6 @@ class OGREDIGEOLayer : public OGRLayer
     virtual OGRFeatureDefn *    GetLayerDefn() { return poFeatureDefn; }
 
     virtual int                 TestCapability( const char * );
-
-    virtual OGRSpatialReference *GetSpatialRef() { return poSRS; }
 
     virtual OGRErr              GetExtent(OGREnvelope *psExtent, int bForce);
 

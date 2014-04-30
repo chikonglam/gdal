@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrgeojsondatasource.cpp 25665 2013-02-22 16:09:22Z rouault $
+ * $Id: ogrgeojsondatasource.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implementation of OGRGeoJSONDataSource class (OGR GeoJSON Driver).
@@ -7,6 +7,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2007, Mateusz Loskot
+ * Copyright (c) 2008-2013, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -30,7 +31,7 @@
 #include "ogrgeojsonutils.h"
 #include "ogrgeojsonreader.h"
 #include <cpl_http.h>
-#include <jsonc/json.h> // JSON-C
+#include <json.h> // JSON-C
 #include <cstddef>
 #include <cstdlib>
 using namespace std;
@@ -88,7 +89,9 @@ int OGRGeoJSONDataSource::Open( const char* pszName )
 /* -------------------------------------------------------------------- */
     GeoJSONSourceType nSrcType;
     
-    nSrcType = GeoJSONGetSourceType( pszName );
+    VSILFILE* fp = NULL;
+
+    nSrcType = GeoJSONGetSourceType( pszName, &fp );
     if( eGeoJSONSourceService == nSrcType )
     {
         if( (strstr(pszName, "SERVICE=WFS") || strstr(pszName, "service=WFS") ||
@@ -104,7 +107,7 @@ int OGRGeoJSONDataSource::Open( const char* pszName )
     }
     else if( eGeoJSONSourceFile == nSrcType )
     {
-        if( !ReadFromFile( pszName ) )
+        if( !ReadFromFile( pszName, fp ) )
             return FALSE;
     }
     else
@@ -127,8 +130,8 @@ int OGRGeoJSONDataSource::Open( const char* pszName )
         return FALSE;
     }
 
-    OGRGeoJSONLayer* poLayer = LoadLayer();
-    if( NULL == poLayer )
+    LoadLayers();
+    if( nLayers_ == 0 )
     {
         Clear();
         
@@ -137,22 +140,6 @@ int OGRGeoJSONDataSource::Open( const char* pszName )
         return FALSE;
     }
 
-    poLayer->DetectGeometryType();
-
-    /* Return layer in readable state. */
-    poLayer->ResetReading();
-/* -------------------------------------------------------------------- */
-/*      NOTE: Currently, the driver generates only one layer per        */
-/*      single GeoJSON file, input or service request.                  */
-/* -------------------------------------------------------------------- */
-    const int nLayerIndex = 0;
-    nLayers_ = 1;
-    
-    papoLayers_ = (OGRLayer**)CPLMalloc( sizeof(OGRLayer*) * nLayers_ );
-    papoLayers_[nLayerIndex] = poLayer; 
-
-    CPLAssert( NULL != papoLayers_ );
-    CPLAssert( nLayers_ > 0 );
     return TRUE;
 }
 
@@ -180,7 +167,7 @@ int OGRGeoJSONDataSource::GetLayerCount()
 
 OGRLayer* OGRGeoJSONDataSource::GetLayer( int nLayer )
 {
-    if( 0 <= nLayer || nLayer < nLayers_ )
+    if( 0 <= nLayer && nLayer < nLayers_ )
     {
         return papoLayers_[nLayer];
     }
@@ -382,55 +369,18 @@ void OGRGeoJSONDataSource::Clear()
 /*                           ReadFromFile()                             */
 /************************************************************************/
 
-int OGRGeoJSONDataSource::ReadFromFile( const char* pszSource )
+int OGRGeoJSONDataSource::ReadFromFile( const char* pszSource, VSILFILE* fpIn )
 {
-    CPLAssert( NULL == pszGeoData_ );
-
-    if( NULL == pszSource )
+    GByte* pabyOut = NULL;
+    if( !VSIIngestFile( fpIn, pszSource, &pabyOut, NULL, -1) )
     {
-        CPLDebug( "GeoJSON", "Input file path is null" );
+        if( fpIn != NULL )
+            VSIFCloseL(fpIn);
         return FALSE;
     }
-
-    VSILFILE* fp = NULL;
-    fp = VSIFOpenL( pszSource, "rb" );
-    if( NULL == fp )
-    {
-        CPLDebug( "GeoJSON", "Failed to open input file '%s'", pszSource );
-        return FALSE;
-    }
-
-    vsi_l_offset nDataLen = 0;
-
-    VSIFSeekL( fp, 0, SEEK_END );
-    nDataLen = VSIFTellL( fp );
-
-    // With "large" VSI I/O API we can read data chunks larger than VSIMalloc
-    // could allocate. Catch it here.
-    if ( nDataLen > (vsi_l_offset)(size_t)nDataLen )
-    {
-        CPLDebug( "GeoJSON", "Input file too large to be opened" );
-        VSIFCloseL( fp );
-        return FALSE;
-    }
-
-    VSIFSeekL( fp, 0, SEEK_SET );
-
-    pszGeoData_ = (char*)VSIMalloc((size_t)(nDataLen + 1));
-    if( NULL == pszGeoData_ )
-    {
-        VSIFCloseL(fp);
-        return FALSE;
-    }
-
-    pszGeoData_[nDataLen] = '\0';
-    if( ( nDataLen != VSIFReadL( pszGeoData_, 1, (size_t)nDataLen, fp ) ) )
-    {
-        Clear();
-        VSIFCloseL( fp );
-        return FALSE;
-    }
-    VSIFCloseL( fp );
+    if( fpIn != NULL )
+        VSIFCloseL(fpIn);
+    pszGeoData_ = (char*) pabyOut;
 
     pszName_ = CPLStrdup( pszSource );
 
@@ -513,44 +463,75 @@ int OGRGeoJSONDataSource::ReadFromService( const char* pszSource )
 }
 
 /************************************************************************/
-/*                           LoadLayer()                                */
+/*                           LoadLayers()                               */
 /************************************************************************/
 
-OGRGeoJSONLayer* OGRGeoJSONDataSource::LoadLayer()
+void OGRGeoJSONDataSource::LoadLayers()
 {
     if( NULL == pszGeoData_ )
     {
         CPLError( CE_Failure, CPLE_ObjectNull,
                   "GeoJSON data buffer empty" );
-        return NULL;
+        return;
     }
+    
+    const char* const apszPrefix[] = { "loadGeoJSON(", "jsonp(" };
+    for(size_t iP = 0; iP < sizeof(apszPrefix) / sizeof(apszPrefix[0]); iP++ )
+    {
+        if( strncmp(pszGeoData_, apszPrefix[iP], strlen(apszPrefix[iP])) == 0 )
+        {
+            size_t nDataLen = strlen(pszGeoData_);
+            memmove( pszGeoData_, pszGeoData_ + strlen(apszPrefix[iP]),
+                    nDataLen - strlen(apszPrefix[iP]) );
+            size_t i = nDataLen - strlen(apszPrefix[iP]);
+            pszGeoData_[i] = '\0';
+            while( i > 0 && pszGeoData_[i] != ')' )
+            {
+                i --;
+            }
+            pszGeoData_[i] = '\0';
+        }
+    }
+
 
     if ( !GeoJSONIsObject( pszGeoData_) )
     {
         CPLDebug( "GeoJSON", "No valid GeoJSON data found in source '%s'", pszName_ );
-        return NULL;
+        return;
     }
 
     OGRErr err = OGRERR_NONE;
-    OGRGeoJSONLayer* poLayer = NULL;
 
 /* -------------------------------------------------------------------- */
 /*      Is it ESRI Feature Service data ?                               */
 /* -------------------------------------------------------------------- */
     if ( strstr(pszGeoData_, "esriGeometry") ||
-         strstr(pszGeoData_, "esriFieldTypeOID") )
+         strstr(pszGeoData_, "esriFieldType") )
     {
         OGRESRIJSONReader reader;
         err = reader.Parse( pszGeoData_ );
         if( OGRERR_NONE == err )
         {
-            // TODO: Think about better name selection
-            poLayer = reader.ReadLayer( OGRGeoJSONLayer::DefaultName, this );
+            reader.ReadLayers( this );
         }
-
-        return poLayer;
+        return;
     }
-    
+
+/* -------------------------------------------------------------------- */
+/*      Is it TopoJSON data ?                                           */
+/* -------------------------------------------------------------------- */
+    if ( strstr(pszGeoData_, "\"type\"") &&
+         strstr(pszGeoData_, "\"Topology\"")  )
+    {
+        OGRTopoJSONReader reader;
+        err = reader.Parse( pszGeoData_ );
+        if( OGRERR_NONE == err )
+        {
+            reader.ReadLayers( this );
+        }
+        return;
+    }
+
 /* -------------------------------------------------------------------- */
 /*      Configure GeoJSON format translator.                            */
 /* -------------------------------------------------------------------- */
@@ -574,9 +555,25 @@ OGRGeoJSONLayer* OGRGeoJSONDataSource::LoadLayer()
     err = reader.Parse( pszGeoData_ );
     if( OGRERR_NONE == err )
     {
-        // TODO: Think about better name selection
-        poLayer = reader.ReadLayer( OGRGeoJSONLayer::DefaultName, this );
+        reader.ReadLayers( this );
     }
 
-    return poLayer;
+    return;
+}
+
+/************************************************************************/
+/*                            AddLayer()                                */
+/************************************************************************/
+
+void OGRGeoJSONDataSource::AddLayer( OGRGeoJSONLayer* poLayer )
+{
+
+    poLayer->DetectGeometryType();
+
+    /* Return layer in readable state. */
+    poLayer->ResetReading();
+
+    papoLayers_ = (OGRLayer**)CPLRealloc( papoLayers_, sizeof(OGRLayer*) * (nLayers_ + 1));
+    papoLayers_[nLayers_] = poLayer; 
+    nLayers_ ++;
 }

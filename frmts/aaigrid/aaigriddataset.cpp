@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: aaigriddataset.cpp 25032 2012-10-03 00:00:02Z rcoup $
+ * $Id: aaigriddataset.cpp 27050 2014-03-18 00:09:03Z kyle $
  *
  * Project:  GDAL
  * Purpose:  Implements Arc/Info ASCII Grid Format.
@@ -7,6 +7,8 @@
  *
  ******************************************************************************
  * Copyright (c) 2001, Frank Warmerdam (warmerdam@pobox.com)
+ * Copyright (c) 2007-2012, Even Rouault <even dot rouault at mines-paris dot org>
+ * Copyright (c) 2014, Kyle Shannon <kyle at pobox dot com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -33,7 +35,7 @@
 #include "cpl_string.h"
 #include "ogr_spatialref.h"
 
-CPL_CVSID("$Id: aaigriddataset.cpp 25032 2012-10-03 00:00:02Z rcoup $");
+CPL_CVSID("$Id: aaigriddataset.cpp 27050 2014-03-18 00:09:03Z kyle $");
 
 CPL_C_START
 void    GDALRegister_AAIGrid(void);
@@ -1034,47 +1036,70 @@ GDALDataset * AAIGDataset::CreateCopy(
     }
 
 /* -------------------------------------------------------------------- */
-/*      Handle nodata (optionally).                                     */
-/* -------------------------------------------------------------------- */
-    GDALRasterBand * poBand = poSrcDS->GetRasterBand( 1 );
-    double dfNoData;
-    int bSuccess;
-
-    // Write `nodata' value to header if it is exists in source dataset
-    dfNoData = poBand->GetNoDataValue( &bSuccess );
-    if ( bSuccess )
-        sprintf( szHeader+strlen(szHeader), "NODATA_value %6.20g\n", 
-                 dfNoData );
-    
-    VSIFWriteL( szHeader, 1, strlen(szHeader), fpImage );
-
-/* -------------------------------------------------------------------- */
 /*     Builds the format string used for printing float values.         */
 /* -------------------------------------------------------------------- */
     char szFormatFloat[32];
     strcpy(szFormatFloat, " %.20g");
     const char *pszDecimalPrecision = 
         CSLFetchNameValue( papszOptions, "DECIMAL_PRECISION" );
-    if (pszDecimalPrecision)
+    const char *pszSignificantDigits =
+        CSLFetchNameValue( papszOptions, "SIGNIFICANT_DIGITS" );
+    int bIgnoreSigDigits = FALSE;
+    if( pszDecimalPrecision && pszSignificantDigits )
     {
-        int nDecimal = atoi(pszDecimalPrecision);
-        if (nDecimal >= 0)
-            sprintf(szFormatFloat, " %%.%dg", nDecimal);
+        CPLError( CE_Warning, CPLE_AppDefined,
+                  "Conflicting precision arguments, using DECIMAL_PRECISION" );
+        bIgnoreSigDigits = TRUE;
     }
+    int nPrecision;
+    if ( pszSignificantDigits && !bIgnoreSigDigits )
+    {
+        nPrecision = atoi( pszSignificantDigits );
+        if (nPrecision >= 0)
+            sprintf( szFormatFloat, " %%.%dg", nPrecision );
+        CPLDebug( "AAIGrid", "Setting precision format: %s", szFormatFloat );
+    }
+    else if( pszDecimalPrecision )
+    {
+        nPrecision = atoi( pszDecimalPrecision );
+        if ( nPrecision >= 0 )
+            sprintf( szFormatFloat, " %%.%dlf", nPrecision );
+        CPLDebug( "AAIGrid", "Setting precision format: %s", szFormatFloat );
+    }
+
+/* -------------------------------------------------------------------- */
+/*      Handle nodata (optionally).                                     */
+/* -------------------------------------------------------------------- */
+    GDALRasterBand * poBand = poSrcDS->GetRasterBand( 1 );
+    double dfNoData;
+    int bSuccess;
+    int bReadAsInt;
+    bReadAsInt = ( poBand->GetRasterDataType() == GDT_Byte
+                || poBand->GetRasterDataType() == GDT_Int16
+                || poBand->GetRasterDataType() == GDT_UInt16
+                || poBand->GetRasterDataType() == GDT_Int32 );
+
+    // Write `nodata' value to header if it is exists in source dataset
+    dfNoData = poBand->GetNoDataValue( &bSuccess );
+    if ( bSuccess )
+    {
+        sprintf( szHeader+strlen( szHeader ), "NODATA_value " );
+        if( bReadAsInt )
+            sprintf( szHeader+strlen( szHeader ), "%d", (int)dfNoData );
+        else
+            sprintf( szHeader+strlen( szHeader ), szFormatFloat, dfNoData );
+        sprintf( szHeader+strlen( szHeader ), "\n" );
+    }
+
+    VSIFWriteL( szHeader, 1, strlen(szHeader), fpImage );
 
 /* -------------------------------------------------------------------- */
 /*      Loop over image, copying image data.                            */
 /* -------------------------------------------------------------------- */
     int         *panScanline = NULL;
     double      *padfScanline = NULL;
-    int         bReadAsInt;
     int         iLine, iPixel;
     CPLErr      eErr = CE_None;
-    
-    bReadAsInt = ( poBand->GetRasterDataType() == GDT_Byte 
-                || poBand->GetRasterDataType() == GDT_Int16
-                || poBand->GetRasterDataType() == GDT_UInt16
-                || poBand->GetRasterDataType() == GDT_Int32 );
 
     // Write scanlines to output file
     if (bReadAsInt)
@@ -1275,7 +1300,8 @@ void GDALRegister_AAIGrid()
         poDriver->SetMetadataItem( GDAL_DMD_CREATIONOPTIONLIST, 
 "<CreationOptionList>\n"
 "   <Option name='FORCE_CELLSIZE' type='boolean' description='Force use of CELLSIZE, default is FALSE.'/>\n"
-"   <Option name='DECIMAL_PRECISION' type='int' description='Number of decimal when writing floating-point numbers.'/>\n"
+"   <Option name='DECIMAL_PRECISION' type='int' description='Number of decimal when writing floating-point numbers(%f).'/>\n"
+"   <Option name='SIGNIFICANT_DIGITS' type='int' description='Number of significant digits when writing floating-point numbers(%g).'/>\n"
 "</CreationOptionList>\n" );
 
         poDriver->pfnOpen = AAIGDataset::Open;

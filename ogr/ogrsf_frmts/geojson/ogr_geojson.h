@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_geojson.h 23662 2011-12-30 11:16:59Z rouault $
+ * $Id: ogr_geojson.h 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Definitions of OGR OGRGeoJSON driver types.
@@ -7,6 +7,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2007, Mateusz Loskot
+ * Copyright (c) 2010-2013, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -59,7 +60,6 @@ public:
     // OGRLayer Interface
     //
     OGRFeatureDefn* GetLayerDefn();
-    OGRSpatialReference* GetSpatialRef();
     
     int GetFeatureCount( int bForce = TRUE );
     void ResetReading();
@@ -72,7 +72,6 @@ public:
     // OGRGeoJSONLayer Interface
     //
     void AddFeature( OGRFeature* poFeature );
-    void SetSpatialRef( OGRSpatialReference* poSRS );
     void DetectGeometryType();
 
 private:
@@ -83,7 +82,6 @@ private:
 
     OGRGeoJSONDataSource* poDS_;
     OGRFeatureDefn* poFeatureDefn_;
-    OGRSpatialReference* poSRS_;
     CPLString sFIDColumn_;
 };
 
@@ -148,6 +146,8 @@ public:
                            OGRwkbGeometryType eGType = wkbUnknown,
                            char** papszOptions = NULL );
     int TestCapability( const char* pszCap );
+    
+    void AddLayer( OGRGeoJSONLayer* poLayer );
 
     //
     // OGRGeoJSONDataSource Interface
@@ -198,9 +198,9 @@ private:
     // Priavte utility functions
     //
     void Clear();
-    int ReadFromFile( const char* pszSource );
+    int ReadFromFile( const char* pszSource, VSILFILE* fpIn );
     int ReadFromService( const char* pszSource );
-    OGRGeoJSONLayer* LoadLayer();
+    void LoadLayers();
 };
 
 

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gtxdataset.cpp 25795 2013-03-24 13:16:52Z rouault $
+ * $Id: gtxdataset.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  Vertical Datum Transformation
  * Purpose:  Implementation of NOAA .gtx vertical datum shift file format.
@@ -7,6 +7,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2010, Frank Warmerdam
+ * Copyright (c) 2010-2013, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -31,7 +32,7 @@
 #include "cpl_string.h"
 #include "ogr_srs_api.h"
 
-CPL_CVSID("$Id: gtxdataset.cpp 25795 2013-03-24 13:16:52Z rouault $");
+CPL_CVSID("$Id: gtxdataset.cpp 27044 2014-03-16 23:41:27Z rouault $");
 
 /**
 
@@ -213,12 +214,17 @@ GDALDataset *GTXDataset::Open( GDALOpenInfo * poOpenInfo )
 /* -------------------------------------------------------------------- */
 /*      Create band information object.                                 */
 /* -------------------------------------------------------------------- */
-    poDS->SetBand( 
-        1, new RawRasterBand( poDS, 1, poDS->fpImage, 
+    RawRasterBand *poBand = new RawRasterBand( poDS, 1, poDS->fpImage, 
                               (poDS->nRasterYSize-1)*poDS->nRasterXSize*nDTSize + 40,
                               nDTSize, poDS->nRasterXSize * -nDTSize,
                               eDT,
-                              !CPL_IS_LSB, TRUE, FALSE ) );
+                              !CPL_IS_LSB, TRUE, FALSE );
+    if (eDT == GDT_Float64)
+      poBand->SetNoDataValue( -88.8888 );
+    else
+      /* GDT_Float32 */
+      poBand->SetNoDataValue( (double)-88.8888f );
+    poDS->SetBand( 1, poBand );
 
 /* -------------------------------------------------------------------- */
 /*      Initialize any PAM information.                                 */
@@ -405,4 +411,3 @@ void GDALRegister_GTX()
         GetGDALDriverManager()->RegisterDriver( poDriver );
     }
 }
-

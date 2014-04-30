@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrdxf_dimension.cpp 19643 2010-05-08 21:56:18Z rouault $
+ * $Id: ogrdxf_dimension.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  DXF Translator
  * Purpose:  Implements translation support for DIMENSION elements as a part
@@ -8,6 +8,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2009, Frank Warmerdam <warmerdam@pobox.com>
+ * Copyright (c) 2010, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -31,7 +32,7 @@
 #include "ogr_dxf.h"
 #include "cpl_conv.h"
 
-CPL_CVSID("$Id: ogrdxf_dimension.cpp 19643 2010-05-08 21:56:18Z rouault $");
+CPL_CVSID("$Id: ogrdxf_dimension.cpp 27044 2014-03-16 23:41:27Z rouault $");
 
 #ifndef PI
 #define PI  3.14159265358979323846

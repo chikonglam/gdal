@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: dodsdataset2.cpp 20634 2010-09-16 22:02:29Z rouault $
+ * $Id: dodsdataset2.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  OPeNDAP Raster Driver
  * Purpose:  Implements DODSDataset and DODSRasterBand classes.
@@ -8,6 +8,7 @@
  ******************************************************************************
  * Copyright (c) 2004, Frank Warmerdam <warmerdam@pobox.com>
  * Copyright (c) 2003 OPeNDAP, Inc.
+ * Copyright (c) 2007-2010, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -70,7 +71,7 @@
 
 using namespace libdap;
 
-CPL_CVSID("$Id: dodsdataset2.cpp 20634 2010-09-16 22:02:29Z rouault $");
+CPL_CVSID("$Id: dodsdataset2.cpp 27044 2014-03-16 23:41:27Z rouault $");
 
 CPL_C_START
 void GDALRegister_DODS(void);

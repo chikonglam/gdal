@@ -247,11 +247,17 @@ class OgrPINVOKE {
   [DllImport("ogr_wrap", EntryPoint="CSharp_OLCStringsAsUTF8_get")]
   public static extern string OLCStringsAsUTF8_get();
 
+  [DllImport("ogr_wrap", EntryPoint="CSharp_OLCCreateGeomField_get")]
+  public static extern string OLCCreateGeomField_get();
+
   [DllImport("ogr_wrap", EntryPoint="CSharp_ODsCCreateLayer_get")]
   public static extern string ODsCCreateLayer_get();
 
   [DllImport("ogr_wrap", EntryPoint="CSharp_ODsCDeleteLayer_get")]
   public static extern string ODsCDeleteLayer_get();
+
+  [DllImport("ogr_wrap", EntryPoint="CSharp_ODsCCreateGeomFieldAfterCreateLayer_get")]
+  public static extern string ODsCCreateGeomFieldAfterCreateLayer_get();
 
   [DllImport("ogr_wrap", EntryPoint="CSharp_ODrCCreateDataSource_get")]
   public static extern string ODrCCreateDataSource_get();
@@ -382,20 +388,47 @@ class OgrPINVOKE {
   [DllImport("ogr_wrap", EntryPoint="CSharp_delete_Envelope3D")]
   public static extern void delete_Envelope3D(HandleRef jarg1);
 
+  [DllImport("ogr_wrap", EntryPoint="CSharp_new_StyleTable")]
+  public static extern IntPtr new_StyleTable();
+
+  [DllImport("ogr_wrap", EntryPoint="CSharp_delete_StyleTable")]
+  public static extern void delete_StyleTable(HandleRef jarg1);
+
+  [DllImport("ogr_wrap", EntryPoint="CSharp_StyleTable_AddStyle")]
+  public static extern int StyleTable_AddStyle(HandleRef jarg1, string jarg2, string jarg3);
+
+  [DllImport("ogr_wrap", EntryPoint="CSharp_StyleTable_LoadStyleTable")]
+  public static extern int StyleTable_LoadStyleTable(HandleRef jarg1, byte[] jarg2);
+
+  [DllImport("ogr_wrap", EntryPoint="CSharp_StyleTable_SaveStyleTable")]
+  public static extern int StyleTable_SaveStyleTable(HandleRef jarg1, byte[] jarg2);
+
+  [DllImport("ogr_wrap", EntryPoint="CSharp_StyleTable_Find")]
+  public static extern string StyleTable_Find(HandleRef jarg1, string jarg2);
+
+  [DllImport("ogr_wrap", EntryPoint="CSharp_StyleTable_ResetStyleStringReading")]
+  public static extern void StyleTable_ResetStyleStringReading(HandleRef jarg1);
+
+  [DllImport("ogr_wrap", EntryPoint="CSharp_StyleTable_GetNextStyle")]
+  public static extern string StyleTable_GetNextStyle(HandleRef jarg1);
+
+  [DllImport("ogr_wrap", EntryPoint="CSharp_StyleTable_GetLastStyleName")]
+  public static extern string StyleTable_GetLastStyleName(HandleRef jarg1);
+
   [DllImport("ogr_wrap", EntryPoint="CSharp_Driver_name_get")]
   public static extern string Driver_name_get(HandleRef jarg1);
 
   [DllImport("ogr_wrap", EntryPoint="CSharp_Driver_CreateDataSource")]
-  public static extern IntPtr Driver_CreateDataSource(HandleRef jarg1, string jarg2, IntPtr[] jarg3);
+  public static extern IntPtr Driver_CreateDataSource(HandleRef jarg1, byte[] jarg2, IntPtr[] jarg3);
 
   [DllImport("ogr_wrap", EntryPoint="CSharp_Driver_CopyDataSource")]
-  public static extern IntPtr Driver_CopyDataSource(HandleRef jarg1, HandleRef jarg2, string jarg3, IntPtr[] jarg4);
+  public static extern IntPtr Driver_CopyDataSource(HandleRef jarg1, HandleRef jarg2, byte[] jarg3, IntPtr[] jarg4);
 
   [DllImport("ogr_wrap", EntryPoint="CSharp_Driver_Open")]
-  public static extern IntPtr Driver_Open(HandleRef jarg1, string jarg2, int jarg3);
+  public static extern IntPtr Driver_Open(HandleRef jarg1, byte[] jarg2, int jarg3);
 
   [DllImport("ogr_wrap", EntryPoint="CSharp_Driver_DeleteDataSource")]
-  public static extern int Driver_DeleteDataSource(HandleRef jarg1, string jarg2);
+  public static extern int Driver_DeleteDataSource(HandleRef jarg1, byte[] jarg2);
 
   [DllImport("ogr_wrap", EntryPoint="CSharp_Driver_TestCapability")]
   public static extern bool Driver_TestCapability(HandleRef jarg1, string jarg2);
@@ -457,20 +490,32 @@ class OgrPINVOKE {
   [DllImport("ogr_wrap", EntryPoint="CSharp_DataSource_ReleaseResultSet")]
   public static extern void DataSource_ReleaseResultSet(HandleRef jarg1, HandleRef jarg2);
 
+  [DllImport("ogr_wrap", EntryPoint="CSharp_DataSource_GetStyleTable")]
+  public static extern IntPtr DataSource_GetStyleTable(HandleRef jarg1);
+
+  [DllImport("ogr_wrap", EntryPoint="CSharp_DataSource_SetStyleTable")]
+  public static extern void DataSource_SetStyleTable(HandleRef jarg1, HandleRef jarg2);
+
   [DllImport("ogr_wrap", EntryPoint="CSharp_Layer_GetRefCount")]
   public static extern int Layer_GetRefCount(HandleRef jarg1);
 
-  [DllImport("ogr_wrap", EntryPoint="CSharp_Layer_SetSpatialFilter")]
-  public static extern void Layer_SetSpatialFilter(HandleRef jarg1, HandleRef jarg2);
+  [DllImport("ogr_wrap", EntryPoint="CSharp_Layer_SetSpatialFilter__SWIG_0")]
+  public static extern void Layer_SetSpatialFilter__SWIG_0(HandleRef jarg1, HandleRef jarg2);
 
-  [DllImport("ogr_wrap", EntryPoint="CSharp_Layer_SetSpatialFilterRect")]
-  public static extern void Layer_SetSpatialFilterRect(HandleRef jarg1, double jarg2, double jarg3, double jarg4, double jarg5);
+  [DllImport("ogr_wrap", EntryPoint="CSharp_Layer_SetSpatialFilterRect__SWIG_0")]
+  public static extern void Layer_SetSpatialFilterRect__SWIG_0(HandleRef jarg1, double jarg2, double jarg3, double jarg4, double jarg5);
+
+  [DllImport("ogr_wrap", EntryPoint="CSharp_Layer_SetSpatialFilter__SWIG_1")]
+  public static extern void Layer_SetSpatialFilter__SWIG_1(HandleRef jarg1, int jarg2, HandleRef jarg3);
+
+  [DllImport("ogr_wrap", EntryPoint="CSharp_Layer_SetSpatialFilterRect__SWIG_1")]
+  public static extern void Layer_SetSpatialFilterRect__SWIG_1(HandleRef jarg1, int jarg2, double jarg3, double jarg4, double jarg5, double jarg6);
 
   [DllImport("ogr_wrap", EntryPoint="CSharp_Layer_GetSpatialFilter")]
   public static extern IntPtr Layer_GetSpatialFilter(HandleRef jarg1);
 
   [DllImport("ogr_wrap", EntryPoint="CSharp_Layer_SetAttributeFilter")]
-  public static extern int Layer_SetAttributeFilter(HandleRef jarg1, string jarg2);
+  public static extern int Layer_SetAttributeFilter(HandleRef jarg1, byte[] jarg2);
 
   [DllImport("ogr_wrap", EntryPoint="CSharp_Layer_ResetReading")]
   public static extern void Layer_ResetReading(HandleRef jarg1);
@@ -535,6 +580,9 @@ class OgrPINVOKE {
   [DllImport("ogr_wrap", EntryPoint="CSharp_Layer_AlterFieldDefn")]
   public static extern int Layer_AlterFieldDefn(HandleRef jarg1, int jarg2, HandleRef jarg3, int jarg4);
 
+  [DllImport("ogr_wrap", EntryPoint="CSharp_Layer_CreateGeomField")]
+  public static extern int Layer_CreateGeomField(HandleRef jarg1, HandleRef jarg2, int jarg3);
+
   [DllImport("ogr_wrap", EntryPoint="CSharp_Layer_StartTransaction")]
   public static extern int Layer_StartTransaction(HandleRef jarg1);
 
@@ -543,6 +591,9 @@ class OgrPINVOKE {
 
   [DllImport("ogr_wrap", EntryPoint="CSharp_Layer_RollbackTransaction")]
   public static extern int Layer_RollbackTransaction(HandleRef jarg1);
+
+  [DllImport("ogr_wrap", EntryPoint="CSharp_Layer_FindFieldIndex")]
+  public static extern int Layer_FindFieldIndex(HandleRef jarg1, string jarg2, int jarg3);
 
   [DllImport("ogr_wrap", EntryPoint="CSharp_Layer_GetSpatialRef")]
   public static extern IntPtr Layer_GetSpatialRef(HandleRef jarg1);
@@ -554,25 +605,31 @@ class OgrPINVOKE {
   public static extern int Layer_SetIgnoredFields(HandleRef jarg1, IntPtr[] jarg2);
 
   [DllImport("ogr_wrap", EntryPoint="CSharp_Layer_Intersection")]
-  public static extern int Layer_Intersection(HandleRef jarg1, HandleRef jarg2, HandleRef jarg3, IntPtr[] jarg4, HandleRef jarg5, HandleRef jarg6);
+  public static extern int Layer_Intersection(HandleRef jarg1, HandleRef jarg2, HandleRef jarg3, IntPtr[] jarg4, Ogr.GDALProgressFuncDelegate jarg5, string jarg6);
 
   [DllImport("ogr_wrap", EntryPoint="CSharp_Layer_Union")]
-  public static extern int Layer_Union(HandleRef jarg1, HandleRef jarg2, HandleRef jarg3, IntPtr[] jarg4, HandleRef jarg5, HandleRef jarg6);
+  public static extern int Layer_Union(HandleRef jarg1, HandleRef jarg2, HandleRef jarg3, IntPtr[] jarg4, Ogr.GDALProgressFuncDelegate jarg5, string jarg6);
 
   [DllImport("ogr_wrap", EntryPoint="CSharp_Layer_SymDifference")]
-  public static extern int Layer_SymDifference(HandleRef jarg1, HandleRef jarg2, HandleRef jarg3, IntPtr[] jarg4, HandleRef jarg5, HandleRef jarg6);
+  public static extern int Layer_SymDifference(HandleRef jarg1, HandleRef jarg2, HandleRef jarg3, IntPtr[] jarg4, Ogr.GDALProgressFuncDelegate jarg5, string jarg6);
 
   [DllImport("ogr_wrap", EntryPoint="CSharp_Layer_Identity")]
-  public static extern int Layer_Identity(HandleRef jarg1, HandleRef jarg2, HandleRef jarg3, IntPtr[] jarg4, HandleRef jarg5, HandleRef jarg6);
+  public static extern int Layer_Identity(HandleRef jarg1, HandleRef jarg2, HandleRef jarg3, IntPtr[] jarg4, Ogr.GDALProgressFuncDelegate jarg5, string jarg6);
 
   [DllImport("ogr_wrap", EntryPoint="CSharp_Layer_Update")]
-  public static extern int Layer_Update(HandleRef jarg1, HandleRef jarg2, HandleRef jarg3, IntPtr[] jarg4, HandleRef jarg5, HandleRef jarg6);
+  public static extern int Layer_Update(HandleRef jarg1, HandleRef jarg2, HandleRef jarg3, IntPtr[] jarg4, Ogr.GDALProgressFuncDelegate jarg5, string jarg6);
 
   [DllImport("ogr_wrap", EntryPoint="CSharp_Layer_Clip")]
-  public static extern int Layer_Clip(HandleRef jarg1, HandleRef jarg2, HandleRef jarg3, IntPtr[] jarg4, HandleRef jarg5, HandleRef jarg6);
+  public static extern int Layer_Clip(HandleRef jarg1, HandleRef jarg2, HandleRef jarg3, IntPtr[] jarg4, Ogr.GDALProgressFuncDelegate jarg5, string jarg6);
 
   [DllImport("ogr_wrap", EntryPoint="CSharp_Layer_Erase")]
-  public static extern int Layer_Erase(HandleRef jarg1, HandleRef jarg2, HandleRef jarg3, IntPtr[] jarg4, HandleRef jarg5, HandleRef jarg6);
+  public static extern int Layer_Erase(HandleRef jarg1, HandleRef jarg2, HandleRef jarg3, IntPtr[] jarg4, Ogr.GDALProgressFuncDelegate jarg5, string jarg6);
+
+  [DllImport("ogr_wrap", EntryPoint="CSharp_Layer_GetStyleTable")]
+  public static extern IntPtr Layer_GetStyleTable(HandleRef jarg1);
+
+  [DllImport("ogr_wrap", EntryPoint="CSharp_Layer_SetStyleTable")]
+  public static extern void Layer_SetStyleTable(HandleRef jarg1, HandleRef jarg2);
 
   [DllImport("ogr_wrap", EntryPoint="CSharp_delete_Feature")]
   public static extern void delete_Feature(HandleRef jarg1);
@@ -592,6 +649,24 @@ class OgrPINVOKE {
   [DllImport("ogr_wrap", EntryPoint="CSharp_Feature_GetGeometryRef")]
   public static extern IntPtr Feature_GetGeometryRef(HandleRef jarg1);
 
+  [DllImport("ogr_wrap", EntryPoint="CSharp_Feature_SetGeomField__SWIG_0")]
+  public static extern int Feature_SetGeomField__SWIG_0(HandleRef jarg1, int jarg2, HandleRef jarg3);
+
+  [DllImport("ogr_wrap", EntryPoint="CSharp_Feature_SetGeomField__SWIG_1")]
+  public static extern int Feature_SetGeomField__SWIG_1(HandleRef jarg1, string jarg2, HandleRef jarg3);
+
+  [DllImport("ogr_wrap", EntryPoint="CSharp_Feature_SetGeomFieldDirectly__SWIG_0")]
+  public static extern int Feature_SetGeomFieldDirectly__SWIG_0(HandleRef jarg1, int jarg2, HandleRef jarg3);
+
+  [DllImport("ogr_wrap", EntryPoint="CSharp_Feature_SetGeomFieldDirectly__SWIG_1")]
+  public static extern int Feature_SetGeomFieldDirectly__SWIG_1(HandleRef jarg1, string jarg2, HandleRef jarg3);
+
+  [DllImport("ogr_wrap", EntryPoint="CSharp_Feature_GetGeomFieldRef__SWIG_0")]
+  public static extern IntPtr Feature_GetGeomFieldRef__SWIG_0(HandleRef jarg1, int jarg2);
+
+  [DllImport("ogr_wrap", EntryPoint="CSharp_Feature_GetGeomFieldRef__SWIG_1")]
+  public static extern IntPtr Feature_GetGeomFieldRef__SWIG_1(HandleRef jarg1, string jarg2);
+
   [DllImport("ogr_wrap", EntryPoint="CSharp_Feature_Clone")]
   public static extern IntPtr Feature_Clone(HandleRef jarg1);
 
@@ -607,11 +682,20 @@ class OgrPINVOKE {
   [DllImport("ogr_wrap", EntryPoint="CSharp_Feature_GetFieldDefnRef__SWIG_1")]
   public static extern IntPtr Feature_GetFieldDefnRef__SWIG_1(HandleRef jarg1, string jarg2);
 
+  [DllImport("ogr_wrap", EntryPoint="CSharp_Feature_GetGeomFieldCount")]
+  public static extern int Feature_GetGeomFieldCount(HandleRef jarg1);
+
+  [DllImport("ogr_wrap", EntryPoint="CSharp_Feature_GetGeomFieldDefnRef__SWIG_0")]
+  public static extern IntPtr Feature_GetGeomFieldDefnRef__SWIG_0(HandleRef jarg1, int jarg2);
+
+  [DllImport("ogr_wrap", EntryPoint="CSharp_Feature_GetGeomFieldDefnRef__SWIG_1")]
+  public static extern IntPtr Feature_GetGeomFieldDefnRef__SWIG_1(HandleRef jarg1, string jarg2);
+
   [DllImport("ogr_wrap", EntryPoint="CSharp_Feature_GetFieldAsString__SWIG_0")]
-  public static extern string Feature_GetFieldAsString__SWIG_0(HandleRef jarg1, int jarg2);
+  public static extern IntPtr Feature_GetFieldAsString__SWIG_0(HandleRef jarg1, int jarg2);
 
   [DllImport("ogr_wrap", EntryPoint="CSharp_Feature_GetFieldAsString__SWIG_1")]
-  public static extern string Feature_GetFieldAsString__SWIG_1(HandleRef jarg1, string jarg2);
+  public static extern IntPtr Feature_GetFieldAsString__SWIG_1(HandleRef jarg1, string jarg2);
 
   [DllImport("ogr_wrap", EntryPoint="CSharp_Feature_GetFieldAsInteger__SWIG_0")]
   public static extern int Feature_GetFieldAsInteger__SWIG_0(HandleRef jarg1, int jarg2);
@@ -646,6 +730,9 @@ class OgrPINVOKE {
   [DllImport("ogr_wrap", EntryPoint="CSharp_Feature_GetFieldIndex")]
   public static extern int Feature_GetFieldIndex(HandleRef jarg1, string jarg2);
 
+  [DllImport("ogr_wrap", EntryPoint="CSharp_Feature_GetGeomFieldIndex")]
+  public static extern int Feature_GetGeomFieldIndex(HandleRef jarg1, string jarg2);
+
   [DllImport("ogr_wrap", EntryPoint="CSharp_Feature_GetFID")]
   public static extern int Feature_GetFID(HandleRef jarg1);
 
@@ -662,10 +749,10 @@ class OgrPINVOKE {
   public static extern void Feature_UnsetField__SWIG_1(HandleRef jarg1, string jarg2);
 
   [DllImport("ogr_wrap", EntryPoint="CSharp_Feature_SetField__SWIG_0")]
-  public static extern void Feature_SetField__SWIG_0(HandleRef jarg1, int jarg2, string jarg3);
+  public static extern void Feature_SetField__SWIG_0(HandleRef jarg1, int jarg2, byte[] jarg3);
 
   [DllImport("ogr_wrap", EntryPoint="CSharp_Feature_SetField__SWIG_1")]
-  public static extern void Feature_SetField__SWIG_1(HandleRef jarg1, string jarg2, string jarg3);
+  public static extern void Feature_SetField__SWIG_1(HandleRef jarg1, string jarg2, byte[] jarg3);
 
   [DllImport("ogr_wrap", EntryPoint="CSharp_Feature_SetField__SWIG_2")]
   public static extern void Feature_SetField__SWIG_2(HandleRef jarg1, int jarg2, int jarg3);
@@ -693,6 +780,12 @@ class OgrPINVOKE {
 
   [DllImport("ogr_wrap", EntryPoint="CSharp_Feature_SetFieldStringList")]
   public static extern void Feature_SetFieldStringList(HandleRef jarg1, int jarg2, IntPtr[] jarg3);
+
+  [DllImport("ogr_wrap", EntryPoint="CSharp_Feature_SetFieldBinaryFromHexString__SWIG_0")]
+  public static extern void Feature_SetFieldBinaryFromHexString__SWIG_0(HandleRef jarg1, int jarg2, string jarg3);
+
+  [DllImport("ogr_wrap", EntryPoint="CSharp_Feature_SetFieldBinaryFromHexString__SWIG_1")]
+  public static extern void Feature_SetFieldBinaryFromHexString__SWIG_1(HandleRef jarg1, string jarg2, string jarg3);
 
   [DllImport("ogr_wrap", EntryPoint="CSharp_Feature_SetFrom")]
   public static extern int Feature_SetFrom(HandleRef jarg1, HandleRef jarg2, int jarg3);
@@ -733,6 +826,21 @@ class OgrPINVOKE {
   [DllImport("ogr_wrap", EntryPoint="CSharp_FeatureDefn_AddFieldDefn")]
   public static extern void FeatureDefn_AddFieldDefn(HandleRef jarg1, HandleRef jarg2);
 
+  [DllImport("ogr_wrap", EntryPoint="CSharp_FeatureDefn_GetGeomFieldCount")]
+  public static extern int FeatureDefn_GetGeomFieldCount(HandleRef jarg1);
+
+  [DllImport("ogr_wrap", EntryPoint="CSharp_FeatureDefn_GetGeomFieldDefn")]
+  public static extern IntPtr FeatureDefn_GetGeomFieldDefn(HandleRef jarg1, int jarg2);
+
+  [DllImport("ogr_wrap", EntryPoint="CSharp_FeatureDefn_GetGeomFieldIndex")]
+  public static extern int FeatureDefn_GetGeomFieldIndex(HandleRef jarg1, string jarg2);
+
+  [DllImport("ogr_wrap", EntryPoint="CSharp_FeatureDefn_AddGeomFieldDefn")]
+  public static extern void FeatureDefn_AddGeomFieldDefn(HandleRef jarg1, HandleRef jarg2);
+
+  [DllImport("ogr_wrap", EntryPoint="CSharp_FeatureDefn_DeleteGeomFieldDefn")]
+  public static extern int FeatureDefn_DeleteGeomFieldDefn(HandleRef jarg1, int jarg2);
+
   [DllImport("ogr_wrap", EntryPoint="CSharp_FeatureDefn_GetGeomType")]
   public static extern int FeatureDefn_GetGeomType(HandleRef jarg1);
 
@@ -753,6 +861,9 @@ class OgrPINVOKE {
 
   [DllImport("ogr_wrap", EntryPoint="CSharp_FeatureDefn_SetStyleIgnored")]
   public static extern void FeatureDefn_SetStyleIgnored(HandleRef jarg1, int jarg2);
+
+  [DllImport("ogr_wrap", EntryPoint="CSharp_FeatureDefn_IsSame")]
+  public static extern int FeatureDefn_IsSame(HandleRef jarg1, HandleRef jarg2);
 
   [DllImport("ogr_wrap", EntryPoint="CSharp_delete_FieldDefn")]
   public static extern void delete_FieldDefn(HandleRef jarg1);
@@ -804,6 +915,39 @@ class OgrPINVOKE {
 
   [DllImport("ogr_wrap", EntryPoint="CSharp_FieldDefn_SetIgnored")]
   public static extern void FieldDefn_SetIgnored(HandleRef jarg1, int jarg2);
+
+  [DllImport("ogr_wrap", EntryPoint="CSharp_delete_GeomFieldDefn")]
+  public static extern void delete_GeomFieldDefn(HandleRef jarg1);
+
+  [DllImport("ogr_wrap", EntryPoint="CSharp_new_GeomFieldDefn")]
+  public static extern IntPtr new_GeomFieldDefn(string jarg1, int jarg2);
+
+  [DllImport("ogr_wrap", EntryPoint="CSharp_GeomFieldDefn_GetName")]
+  public static extern string GeomFieldDefn_GetName(HandleRef jarg1);
+
+  [DllImport("ogr_wrap", EntryPoint="CSharp_GeomFieldDefn_GetNameRef")]
+  public static extern string GeomFieldDefn_GetNameRef(HandleRef jarg1);
+
+  [DllImport("ogr_wrap", EntryPoint="CSharp_GeomFieldDefn_SetName")]
+  public static extern void GeomFieldDefn_SetName(HandleRef jarg1, string jarg2);
+
+  [DllImport("ogr_wrap", EntryPoint="CSharp_GeomFieldDefn_GetFieldType")]
+  public static extern int GeomFieldDefn_GetFieldType(HandleRef jarg1);
+
+  [DllImport("ogr_wrap", EntryPoint="CSharp_GeomFieldDefn_SetType")]
+  public static extern void GeomFieldDefn_SetType(HandleRef jarg1, int jarg2);
+
+  [DllImport("ogr_wrap", EntryPoint="CSharp_GeomFieldDefn_GetSpatialRef")]
+  public static extern IntPtr GeomFieldDefn_GetSpatialRef(HandleRef jarg1);
+
+  [DllImport("ogr_wrap", EntryPoint="CSharp_GeomFieldDefn_SetSpatialRef")]
+  public static extern void GeomFieldDefn_SetSpatialRef(HandleRef jarg1, HandleRef jarg2);
+
+  [DllImport("ogr_wrap", EntryPoint="CSharp_GeomFieldDefn_IsIgnored")]
+  public static extern int GeomFieldDefn_IsIgnored(HandleRef jarg1);
+
+  [DllImport("ogr_wrap", EntryPoint="CSharp_GeomFieldDefn_SetIgnored")]
+  public static extern void GeomFieldDefn_SetIgnored(HandleRef jarg1, int jarg2);
 
   [DllImport("ogr_wrap", EntryPoint="CSharp_CreateGeometryFromWkb")]
   public static extern IntPtr CreateGeometryFromWkb(int jarg1, IntPtr jarg2, HandleRef jarg3);
@@ -1073,10 +1217,10 @@ class OgrPINVOKE {
   public static extern IntPtr GetOpenDS(int jarg1);
 
   [DllImport("ogr_wrap", EntryPoint="CSharp_Open")]
-  public static extern IntPtr Open(string jarg1, int jarg2);
+  public static extern IntPtr Open(byte[] jarg1, int jarg2);
 
   [DllImport("ogr_wrap", EntryPoint="CSharp_OpenShared")]
-  public static extern IntPtr OpenShared(string jarg1, int jarg2);
+  public static extern IntPtr OpenShared(byte[] jarg1, int jarg2);
 
   [DllImport("ogr_wrap", EntryPoint="CSharp_GetDriverByName")]
   public static extern IntPtr GetDriverByName(string jarg1);

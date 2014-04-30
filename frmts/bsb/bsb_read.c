@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: bsb_read.c 20996 2010-10-28 18:38:15Z rouault $
+ * $Id: bsb_read.c 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  BSB Reader
  * Purpose:  Low level BSB Access API Implementation (non-GDAL).
@@ -12,6 +12,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2001, Frank Warmerdam
+ * Copyright (c) 2007-2013, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -36,7 +37,7 @@
 #include "cpl_conv.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: bsb_read.c 20996 2010-10-28 18:38:15Z rouault $");
+CPL_CVSID("$Id: bsb_read.c 27044 2014-03-16 23:41:27Z rouault $");
 
 static int BSBReadHeaderLine( BSBInfo *psInfo, char* pszLine, int nLineMaxLen, int bNO1 );
 static int BSBSeekAndCheckScanlineNumber ( BSBInfo *psInfo, int nScanline,
@@ -378,10 +379,10 @@ BSBInfo *BSBOpen( const char *pszFilename )
 
     if( psInfo->nXSize <= 0 || psInfo->nYSize <= 0 )
     {
-        BSBClose( psInfo );
         CPLError( CE_Failure, CPLE_AppDefined, 
                   "Wrong dimensions found in header : %d x %d.",
                   psInfo->nXSize, psInfo->nYSize );
+        BSBClose( psInfo );
         return NULL;
     }
 

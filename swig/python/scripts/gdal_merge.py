@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 ###############################################################################
-# $Id: gdal_merge.py 24064 2012-03-04 00:34:19Z warmerdam $
+# $Id: gdal_merge.py 27044 2014-03-16 23:41:27Z rouault $
 #
 # Project:  InSAR Peppers
 # Purpose:  Module to extract data from many rasters into one output.
@@ -8,6 +8,7 @@
 #
 ###############################################################################
 # Copyright (c) 2000, Atlantis Scientific Inc. (www.atlsci.com)
+# Copyright (c) 2009-2011, Even Rouault <even dot rouault at mines-paris dot org>
 # 
 # This library is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Library General Public

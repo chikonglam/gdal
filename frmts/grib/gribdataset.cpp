@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gribdataset.cpp 25627 2013-02-10 10:17:19Z rouault $
+ * $Id: gribdataset.cpp 27116 2014-04-02 19:29:50Z rouault $
  *
  * Project:  GRIB Driver
  * Purpose:  GDALDataset driver for GRIB translator for read support
@@ -7,6 +7,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2007, ITC
+ * Copyright (c) 2008-2013, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -40,7 +41,7 @@
 
 #include "ogr_spatialref.h"
 
-CPL_CVSID("$Id: gribdataset.cpp 25627 2013-02-10 10:17:19Z rouault $");
+CPL_CVSID("$Id: gribdataset.cpp 27116 2014-04-02 19:29:50Z rouault $");
 
 CPL_C_START
 void	GDALRegister_GRIB(void);
@@ -121,6 +122,21 @@ private:
     int      nGribDataYSize;
 };
 
+/************************************************************************/
+/*                         ConvertUnitInText()                          */
+/************************************************************************/
+
+static CPLString ConvertUnitInText(int bMetricUnits, const char* pszTxt)
+{
+    if( !bMetricUnits )
+        return pszTxt;
+
+    CPLString osRes(pszTxt);
+    size_t iPos = osRes.find("[K]");
+    if( iPos != std::string::npos )
+        osRes = osRes.substr(0, iPos) + "[C]" + osRes.substr(iPos + 3);
+    return osRes;
+}
 
 /************************************************************************/
 /*                           GRIBRasterBand()                            */
@@ -144,8 +160,11 @@ GRIBRasterBand::GRIBRasterBand( GRIBDataset *poDS, int nBand,
     nGribDataXSize = poDS->nRasterXSize;
     nGribDataYSize = poDS->nRasterYSize;
 
-    SetMetadataItem( "GRIB_UNIT", psInv->unitName );
-    SetMetadataItem( "GRIB_COMMENT", psInv->comment );
+    const char* pszGribNormalizeUnits = CPLGetConfigOption("GRIB_NORMALIZE_UNITS", "YES");
+    int bMetricUnits = CSLTestBoolean(pszGribNormalizeUnits);
+
+    SetMetadataItem( "GRIB_UNIT", ConvertUnitInText(bMetricUnits, psInv->unitName) );
+    SetMetadataItem( "GRIB_COMMENT", ConvertUnitInText(bMetricUnits, psInv->comment) );
     SetMetadataItem( "GRIB_ELEMENT", psInv->element );
     SetMetadataItem( "GRIB_SHORT_NAME", psInv->shortFstLevel );
     SetMetadataItem( "GRIB_REF_TIME", 
@@ -415,8 +434,8 @@ void GRIBRasterBand::ReadGribData( DataSource & fp, sInt4 start, int subgNum, do
 
     IS_Init (&is);
 
-    const char* pszGribNormalizeUnits = CPLGetConfigOption("GRIB_NORMALIZE_UNITS", NULL);
-    if ( pszGribNormalizeUnits != NULL && ( STRCASECMP(pszGribNormalizeUnits,"NO")==0 ) )
+    const char* pszGribNormalizeUnits = CPLGetConfigOption("GRIB_NORMALIZE_UNITS", "YES");
+    if ( !CSLTestBoolean(pszGribNormalizeUnits) )
         f_unit = 0; /* do not normalize units to metric */
 
     /* Read GRIB message from file position "start". */

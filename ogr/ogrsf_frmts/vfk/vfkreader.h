@@ -1,12 +1,12 @@
 /******************************************************************************
- * $Id: vfkreader.h 25721 2013-03-09 16:21:46Z martinl $
+ * $Id: vfkreader.h 26907 2014-01-31 17:54:09Z martinl $
  *
  * Project:  VFK Reader
  * Purpose:  Public Declarations for OGR free VFK Reader code.
  * Author:   Martin Landa, landa.martin gmail.com
  *
  ******************************************************************************
- * Copyright (c) 2009-2010, 2012-2013, Martin Landa <landa.martin gmail.com>
+ * Copyright (c) 2009-2014, Martin Landa <landa.martin gmail.com>
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -53,6 +53,12 @@ typedef std::vector<VFKFeatureSQLite *> VFKFeatureSQLiteList;
 
 #define FID_COLUMN   "ogr_fid"
 #define GEOM_COLUMN  "geometry"
+
+#define VFK_DB_HEADER   "vfk_header"
+#define VFK_DB_TABLE    "vfk_tables"
+
+
+enum RecordType { RecordValid, RecordSkipped, RecordDuplicated };
 
 /************************************************************************/
 /*                              VFKProperty                             */
@@ -233,6 +239,8 @@ protected:
 
     IVFKReader        *m_poReader;
 
+    long               m_nRecordCount[3];
+    
     bool               AppendLineToRing(PointListArray *, const OGRLineString *, bool, bool = FALSE);
     int                LoadData();
     
@@ -271,6 +279,8 @@ public:
     int                LoadGeometry();
 
     IVFKReader        *GetReader() const { return m_poReader; }
+    int                GetRecordCount(RecordType = RecordValid)  const;
+    void               SetIncRecordCount(RecordType);
 };
 
 /************************************************************************/
@@ -340,8 +350,9 @@ public:
     
     virtual bool           IsLatin2() const = 0;
     virtual bool           IsSpatial() const = 0;
+    virtual bool           IsPreProcessed() const = 0;
     virtual int            ReadDataBlocks() = 0;
-    virtual int            ReadDataRecords(IVFKDataBlock *) = 0;
+    virtual int            ReadDataRecords(IVFKDataBlock * = NULL) = 0;
     virtual int            LoadGeometry() = 0;
 
     virtual int            GetDataBlockCount() const = 0;

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdal_contour.cpp 25643 2013-02-12 13:50:42Z bishop $
+ * $Id: gdal_contour.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  Contour Generator
  * Purpose:  Contour Generator mainline.
@@ -7,6 +7,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2003, Applied Coherent Technology (www.actgate.com). 
+ * Copyright (c) 2008-2013, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -34,7 +35,7 @@
 #include "ogr_api.h"
 #include "ogr_srs_api.h"
 
-CPL_CVSID("$Id: gdal_contour.cpp 25643 2013-02-12 13:50:42Z bishop $");
+CPL_CVSID("$Id: gdal_contour.cpp 27044 2014-03-16 23:41:27Z rouault $");
 
 /************************************************************************/
 /*                            ArgIsNumeric()                            */

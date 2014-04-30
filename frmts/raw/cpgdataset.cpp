@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: cpgdataset.cpp 18073 2009-11-22 01:01:14Z rouault $
+ * $Id: cpgdataset.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  Polarimetric Workstation
  * Purpose:  Convair PolGASP data (.img/.hdr format). 
@@ -7,6 +7,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2004, Frank Warmerdam <warmerdam@pobox.com>
+ * Copyright (c) 2009, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -31,7 +32,7 @@
 #include "ogr_spatialref.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: cpgdataset.cpp 18073 2009-11-22 01:01:14Z rouault $");
+CPL_CVSID("$Id: cpgdataset.cpp 27044 2014-03-16 23:41:27Z rouault $");
 
 CPL_C_START
 void	GDALRegister_CPG(void);

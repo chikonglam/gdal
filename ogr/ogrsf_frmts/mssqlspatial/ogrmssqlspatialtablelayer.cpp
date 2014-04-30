@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrmssqlspatialtablelayer.cpp 25988 2013-05-05 14:09:05Z tamas $
+ * $Id: ogrmssqlspatialtablelayer.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  MSSQL Spatial driver
  * Purpose:  Implements OGRMSSQLSpatialTableLayer class, access to an existing table.
@@ -7,6 +7,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2010, Tamas Szekeres
+ * Copyright (c) 2010-2012, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -30,7 +31,7 @@
 #include "cpl_conv.h"
 #include "ogr_mssqlspatial.h"
 
-CPL_CVSID("$Id: ogrmssqlspatialtablelayer.cpp 25988 2013-05-05 14:09:05Z tamas $");
+CPL_CVSID("$Id: ogrmssqlspatialtablelayer.cpp 27044 2014-03-16 23:41:27Z rouault $");
 
 /************************************************************************/
 /*                         OGRMSSQLAppendEscaped( )                     */
@@ -140,6 +141,7 @@ OGRFeatureDefn* OGRMSSQLSpatialTableLayer::GetLayerDefn()
         
         if( oGetKey.Fetch() ) // more than one field in key! 
         {
+            oGetKey.Clear();
             CPLFree( pszFIDColumn );
             pszFIDColumn = NULL;
 
@@ -271,7 +273,7 @@ CPLErr OGRMSSQLSpatialTableLayer::Initialize( const char *pszSchema,
 /* -------------------------------------------------------------------- */
 /*             Try to find out the spatial reference                    */
 /* -------------------------------------------------------------------- */
-    
+
     nSRSId = nSRId;
 
     if (pszSRText)
@@ -637,6 +639,9 @@ OGRFeature *OGRMSSQLSpatialTableLayer::GetFeature( long nFeatureId )
 OGRErr OGRMSSQLSpatialTableLayer::SetAttributeFilter( const char *pszQuery )
 
 {
+    CPLFree(m_pszAttrQueryString);
+    m_pszAttrQueryString = (pszQuery) ? CPLStrdup(pszQuery) : NULL;
+
     if( (pszQuery == NULL && this->pszQuery == NULL)
         || (pszQuery != NULL && this->pszQuery != NULL 
             && EQUAL(pszQuery,this->pszQuery)) )

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ods_formula.h 23831 2012-01-30 23:12:23Z rouault $
+ * $Id: ods_formula.h 27044 2014-03-16 23:41:27Z rouault $
  *
  * Component: ODS formula Engine
  * Purpose: Implementation of the ods_formula_node class used to represent a
@@ -8,7 +8,7 @@
  *
  ******************************************************************************
  * Copyright (C) 2010 Frank Warmerdam <warmerdam@pobox.com>
- * Copyright (c) 2012, Even Rouault <even dot rouault at mines dash paris dot org>
+ * Copyright (c) 2012, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -192,6 +192,7 @@ class IODSCellEvaluator
 public:
     virtual int EvaluateRange(int nRow1, int nCol1, int nRow2, int nCol2,
                               std::vector<ods_formula_node>& aoOutValues) = 0;
+    virtual ~IODSCellEvaluator() {}
 };
 
 int ods_formulaparse( ods_formula_parse_context *context );

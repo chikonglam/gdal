@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gmtdataset.cpp 25593 2013-02-02 13:03:03Z rouault $
+ * $Id: gmtdataset.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  netCDF read/write Driver
  * Purpose:  GDAL bindings over netCDF library for GMT Grids.
@@ -7,6 +7,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2004, Frank Warmerdam
+ * Copyright (c) 2007-2013, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -32,7 +33,7 @@
 #include "netcdf.h"
 #include "cpl_multiproc.h"
 
-CPL_CVSID("$Id: gmtdataset.cpp 25593 2013-02-02 13:03:03Z rouault $");
+CPL_CVSID("$Id: gmtdataset.cpp 27044 2014-03-16 23:41:27Z rouault $");
 
 extern void *hNCMutex; /* shared with netcdf. See netcdfdataset.cpp */
 

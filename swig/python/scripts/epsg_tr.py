@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #******************************************************************************
-#  $Id: epsg_tr.py 19102 2010-03-15 23:41:44Z warmerdam $
+#  $Id: epsg_tr.py 27044 2014-03-16 23:41:27Z rouault $
 # 
 #  Project:  CFS OGC MapServer
 #  Purpose:  Script to create WKT and PROJ.4 dictionaries for EPSG GCS/PCS
@@ -9,6 +9,7 @@
 # 
 #******************************************************************************
 #  Copyright (c) 2001, Frank Warmerdam
+#  Copyright (c) 2009-2010, Even Rouault <even dot rouault at mines-paris dot org>
 # 
 #  Permission is hereby granted, free of charge, to any person obtaining a
 #  copy of this software and associated documentation files (the "Software"),

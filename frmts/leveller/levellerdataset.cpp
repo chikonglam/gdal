@@ -10,6 +10,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2005-2007 Daylon Graphics Ltd.
+ * Copyright (c) 2007-2013, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -34,7 +35,7 @@
 #include "gdal_pam.h"
 #include "ogr_spatialref.h"
 
-CPL_CVSID("$Id: levellerdataset.cpp 25572 2013-01-27 00:46:10Z rouault $");
+CPL_CVSID("$Id: levellerdataset.cpp 27044 2014-03-16 23:41:27Z rouault $");
 
 CPL_C_START
 void	GDALRegister_Leveller(void);

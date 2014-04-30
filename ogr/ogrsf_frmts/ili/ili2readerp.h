@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ili2readerp.h 17910 2009-10-27 02:07:33Z chaitanya $
+ * $Id: ili2readerp.h 27184 2014-04-14 22:21:56Z pka $
  *
  * Project:  Interlis 2 Reader
  * Purpose:  Private Declarations for Reader code.
@@ -73,7 +73,7 @@ class ILI2Reader;
 class ILI2Handler : public DefaultHandler 
 {
     ILI2Reader  *m_poReader;
-    
+
     int level;
     
     DOMDocument *dom_doc;
@@ -140,16 +140,17 @@ public:
 
     void     SetArcDegrees(double arcDegrees);
     void     SetSourceFile( const char *pszFilename );
-    int      ReadModel( char **modelFilenames );
+    int      ReadModel( ImdReader *poImdReader, const char *modelFilename );
     int      SaveClasses( const char *pszFile );
     
     std::list<OGRLayer *> GetLayers();
     int      GetLayerCount();
+    OGRLayer* GetLayer(const char* pszName);
     
     int      AddFeature(DOMElement *elem);
     void     SetFieldValues(OGRFeature *feature, DOMElement* elem);
-    const char* GetLayerName(IOM_BASKET model, IOM_OBJECT table);
-    void     AddField(OGRLayer* layer, IOM_BASKET model, IOM_OBJECT obj);
+    const char* GetLayerName(/*IOM_BASKET model, IOM_OBJECT table*/);
+    void     AddField(OGRLayer* layer/*, IOM_BASKET model, IOM_OBJECT obj*/);
     OGRLineString *getArc(DOMElement *elem);
     OGRGeometry *getGeometry(DOMElement *elem, int type);
     void     setFieldDefn(OGRFeatureDefn *featureDef, DOMElement* elem);

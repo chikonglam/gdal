@@ -78,6 +78,50 @@ package Geo::OGR;
 *GeneralCmdLineProcessor = *Geo::OGRc::GeneralCmdLineProcessor;
 *TermProgress_nocb = *Geo::OGRc::TermProgress_nocb;
 
+############# Class : Geo::OGR::StyleTable ##############
+
+package Geo::OGR::StyleTable;
+use vars qw(@ISA %OWNER %ITERATORS %BLESSEDMEMBERS);
+@ISA = qw( Geo::OGR );
+%OWNER = ();
+%ITERATORS = ();
+sub new {
+    my $pkg = shift;
+    my $self = Geo::OGRc::new_StyleTable(@_);
+    bless $self, $pkg if defined($self);
+}
+
+sub DESTROY {
+    return unless $_[0]->isa('HASH');
+    my $self = tied(%{$_[0]});
+    return unless defined $self;
+    delete $ITERATORS{$self};
+    if (exists $OWNER{$self}) {
+        Geo::OGRc::delete_StyleTable($self);
+        delete $OWNER{$self};
+    }
+}
+
+*AddStyle = *Geo::OGRc::StyleTable_AddStyle;
+*LoadStyleTable = *Geo::OGRc::StyleTable_LoadStyleTable;
+*SaveStyleTable = *Geo::OGRc::StyleTable_SaveStyleTable;
+*Find = *Geo::OGRc::StyleTable_Find;
+*ResetStyleStringReading = *Geo::OGRc::StyleTable_ResetStyleStringReading;
+*GetNextStyle = *Geo::OGRc::StyleTable_GetNextStyle;
+*GetLastStyleName = *Geo::OGRc::StyleTable_GetLastStyleName;
+sub DISOWN {
+    my $self = shift;
+    my $ptr = tied(%$self);
+    delete $OWNER{$ptr};
+}
+
+sub ACQUIRE {
+    my $self = shift;
+    my $ptr = tied(%$self);
+    $OWNER{$ptr} = 1;
+}
+
+
 ############# Class : Geo::OGR::Driver ##############
 
 package Geo::OGR::Driver;
@@ -148,6 +192,8 @@ sub DESTROY {
 *_TestCapability = *Geo::OGRc::DataSource__TestCapability;
 *_ExecuteSQL = *Geo::OGRc::DataSource__ExecuteSQL;
 *ReleaseResultSet = *Geo::OGRc::DataSource_ReleaseResultSet;
+*GetStyleTable = *Geo::OGRc::DataSource_GetStyleTable;
+*SetStyleTable = *Geo::OGRc::DataSource_SetStyleTable;
 sub DISOWN {
     my $self = shift;
     my $ptr = tied(%$self);
@@ -193,9 +239,11 @@ use vars qw(@ISA %OWNER %ITERATORS %BLESSEDMEMBERS);
 *ReorderField = *Geo::OGRc::Layer_ReorderField;
 *ReorderFields = *Geo::OGRc::Layer_ReorderFields;
 *AlterFieldDefn = *Geo::OGRc::Layer_AlterFieldDefn;
+*CreateGeomField = *Geo::OGRc::Layer_CreateGeomField;
 *StartTransaction = *Geo::OGRc::Layer_StartTransaction;
 *CommitTransaction = *Geo::OGRc::Layer_CommitTransaction;
 *RollbackTransaction = *Geo::OGRc::Layer_RollbackTransaction;
+*FindFieldIndex = *Geo::OGRc::Layer_FindFieldIndex;
 *GetSpatialRef = *Geo::OGRc::Layer_GetSpatialRef;
 *GetFeaturesRead = *Geo::OGRc::Layer_GetFeaturesRead;
 *SetIgnoredFields = *Geo::OGRc::Layer_SetIgnoredFields;
@@ -206,6 +254,8 @@ use vars qw(@ISA %OWNER %ITERATORS %BLESSEDMEMBERS);
 *Update = *Geo::OGRc::Layer_Update;
 *Clip = *Geo::OGRc::Layer_Clip;
 *Erase = *Geo::OGRc::Layer_Erase;
+*GetStyleTable = *Geo::OGRc::Layer_GetStyleTable;
+*SetStyleTable = *Geo::OGRc::Layer_SetStyleTable;
 sub DISOWN {
     my $self = shift;
     my $ptr = tied(%$self);
@@ -252,10 +302,15 @@ sub new {
 *SetGeometry = *Geo::OGRc::Feature_SetGeometry;
 *_SetGeometryDirectly = *Geo::OGRc::Feature__SetGeometryDirectly;
 *GetGeometryRef = *Geo::OGRc::Feature_GetGeometryRef;
+*SetGeomField = *Geo::OGRc::Feature_SetGeomField;
+*SetGeomFieldDirectly = *Geo::OGRc::Feature_SetGeomFieldDirectly;
+*GetGeomFieldRef = *Geo::OGRc::Feature_GetGeomFieldRef;
 *Clone = *Geo::OGRc::Feature_Clone;
 *Equal = *Geo::OGRc::Feature_Equal;
 *GetFieldCount = *Geo::OGRc::Feature_GetFieldCount;
 *GetFieldDefnRef = *Geo::OGRc::Feature_GetFieldDefnRef;
+*GetGeomFieldCount = *Geo::OGRc::Feature_GetGeomFieldCount;
+*GetGeomFieldDefnRef = *Geo::OGRc::Feature_GetGeomFieldDefnRef;
 *GetFieldAsString = *Geo::OGRc::Feature_GetFieldAsString;
 *GetFieldAsInteger = *Geo::OGRc::Feature_GetFieldAsInteger;
 *GetFieldAsDouble = *Geo::OGRc::Feature_GetFieldAsDouble;
@@ -265,6 +320,7 @@ sub new {
 *GetFieldAsStringList = *Geo::OGRc::Feature_GetFieldAsStringList;
 *IsFieldSet = *Geo::OGRc::Feature_IsFieldSet;
 *GetFieldIndex = *Geo::OGRc::Feature_GetFieldIndex;
+*GetGeomFieldIndex = *Geo::OGRc::Feature_GetGeomFieldIndex;
 *GetFID = *Geo::OGRc::Feature_GetFID;
 *SetFID = *Geo::OGRc::Feature_SetFID;
 *DumpReadable = *Geo::OGRc::Feature_DumpReadable;
@@ -273,6 +329,7 @@ sub new {
 *SetFieldIntegerList = *Geo::OGRc::Feature_SetFieldIntegerList;
 *SetFieldDoubleList = *Geo::OGRc::Feature_SetFieldDoubleList;
 *SetFieldStringList = *Geo::OGRc::Feature_SetFieldStringList;
+*SetFieldBinaryFromHexString = *Geo::OGRc::Feature_SetFieldBinaryFromHexString;
 *_SetFrom = *Geo::OGRc::Feature__SetFrom;
 *SetFromWithMap = *Geo::OGRc::Feature_SetFromWithMap;
 *GetStyleString = *Geo::OGRc::Feature_GetStyleString;
@@ -325,6 +382,11 @@ sub new {
 *GetFieldDefn = *Geo::OGRc::FeatureDefn_GetFieldDefn;
 *GetFieldIndex = *Geo::OGRc::FeatureDefn_GetFieldIndex;
 *AddFieldDefn = *Geo::OGRc::FeatureDefn_AddFieldDefn;
+*GetGeomFieldCount = *Geo::OGRc::FeatureDefn_GetGeomFieldCount;
+*GetGeomFieldDefn = *Geo::OGRc::FeatureDefn_GetGeomFieldDefn;
+*GetGeomFieldIndex = *Geo::OGRc::FeatureDefn_GetGeomFieldIndex;
+*AddGeomFieldDefn = *Geo::OGRc::FeatureDefn_AddGeomFieldDefn;
+*DeleteGeomFieldDefn = *Geo::OGRc::FeatureDefn_DeleteGeomFieldDefn;
 *GetGeomType = *Geo::OGRc::FeatureDefn_GetGeomType;
 *SetGeomType = *Geo::OGRc::FeatureDefn_SetGeomType;
 *GetReferenceCount = *Geo::OGRc::FeatureDefn_GetReferenceCount;
@@ -332,6 +394,7 @@ sub new {
 *SetGeometryIgnored = *Geo::OGRc::FeatureDefn_SetGeometryIgnored;
 *IsStyleIgnored = *Geo::OGRc::FeatureDefn_IsStyleIgnored;
 *SetStyleIgnored = *Geo::OGRc::FeatureDefn_SetStyleIgnored;
+*IsSame = *Geo::OGRc::FeatureDefn_IsSame;
 sub DISOWN {
     my $self = shift;
     my $ptr = tied(%$self);
@@ -389,6 +452,52 @@ sub new {
 *GetFieldTypeName = *Geo::OGRc::FieldDefn_GetFieldTypeName;
 *IsIgnored = *Geo::OGRc::FieldDefn_IsIgnored;
 *SetIgnored = *Geo::OGRc::FieldDefn_SetIgnored;
+sub DISOWN {
+    my $self = shift;
+    my $ptr = tied(%$self);
+    delete $OWNER{$ptr};
+}
+
+sub ACQUIRE {
+    my $self = shift;
+    my $ptr = tied(%$self);
+    $OWNER{$ptr} = 1;
+}
+
+
+############# Class : Geo::OGR::GeomFieldDefn ##############
+
+package Geo::OGR::GeomFieldDefn;
+use vars qw(@ISA %OWNER %ITERATORS %BLESSEDMEMBERS);
+@ISA = qw( Geo::OGR );
+%OWNER = ();
+%ITERATORS = ();
+sub DESTROY {
+    return unless $_[0]->isa('HASH');
+    my $self = tied(%{$_[0]});
+    return unless defined $self;
+    delete $ITERATORS{$self};
+    if (exists $OWNER{$self}) {
+        Geo::OGRc::delete_GeomFieldDefn($self);
+        delete $OWNER{$self};
+    }
+}
+
+sub new {
+    my $pkg = shift;
+    my $self = Geo::OGRc::new_GeomFieldDefn(@_);
+    bless $self, $pkg if defined($self);
+}
+
+*GetName = *Geo::OGRc::GeomFieldDefn_GetName;
+*GetNameRef = *Geo::OGRc::GeomFieldDefn_GetNameRef;
+*SetName = *Geo::OGRc::GeomFieldDefn_SetName;
+*GetType = *Geo::OGRc::GeomFieldDefn_GetType;
+*SetType = *Geo::OGRc::GeomFieldDefn_SetType;
+*GetSpatialRef = *Geo::OGRc::GeomFieldDefn_GetSpatialRef;
+*SetSpatialRef = *Geo::OGRc::GeomFieldDefn_SetSpatialRef;
+*IsIgnored = *Geo::OGRc::GeomFieldDefn_IsIgnored;
+*SetIgnored = *Geo::OGRc::GeomFieldDefn_SetIgnored;
 sub DISOWN {
     my $self = shift;
     my $ptr = tied(%$self);
@@ -573,8 +682,10 @@ package Geo::OGR;
 *OLCFastSetNextByIndex = *Geo::OGRc::OLCFastSetNextByIndex;
 *OLCStringsAsUTF8 = *Geo::OGRc::OLCStringsAsUTF8;
 *OLCIgnoreFields = *Geo::OGRc::OLCIgnoreFields;
+*OLCCreateGeomField = *Geo::OGRc::OLCCreateGeomField;
 *ODsCCreateLayer = *Geo::OGRc::ODsCCreateLayer;
 *ODsCDeleteLayer = *Geo::OGRc::ODsCDeleteLayer;
+*ODsCCreateGeomFieldAfterCreateLayer = *Geo::OGRc::ODsCCreateGeomFieldAfterCreateLayer;
 *ODrCCreateDataSource = *Geo::OGRc::ODrCCreateDataSource;
 *ODrCDeleteDataSource = *Geo::OGRc::ODrCDeleteDataSource;
 *TermProgress = *Geo::OGRc::TermProgress;

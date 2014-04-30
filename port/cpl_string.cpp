@@ -1,5 +1,5 @@
 /**********************************************************************
- * $Id: cpl_string.cpp 25044 2012-10-04 01:54:26Z rcoup $
+ * $Id: cpl_string.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Name:     cpl_string.cpp
  * Project:  CPL - Common Portability Library
@@ -8,6 +8,7 @@
  *
  **********************************************************************
  * Copyright (c) 1998, Daniel Morissette
+ * Copyright (c) 2008-2013, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -54,7 +55,7 @@
 #  include <wce_string.h>
 #endif
 
-CPL_CVSID("$Id: cpl_string.cpp 25044 2012-10-04 01:54:26Z rcoup $");
+CPL_CVSID("$Id: cpl_string.cpp 27044 2014-03-16 23:41:27Z rouault $");
 
 /*=====================================================================
                     StringList manipulation functions.
@@ -918,7 +919,7 @@ char ** CSLTokenizeString2( const char * pszString,
     {
         // we prefer to return empty lists as a pointer to 
         // a null pointer since some client code might depend on this.
-        oRetList.Assign( (char**) CPLCalloc(sizeof(char**),1) );
+        oRetList.Assign( (char**) CPLCalloc(sizeof(char*),1) );
     }
 
     return oRetList.StealList();

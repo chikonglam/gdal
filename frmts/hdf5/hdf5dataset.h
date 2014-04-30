@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: hdf5dataset.h 26062 2013-06-04 21:16:21Z rouault $
+ * $Id: hdf5dataset.h 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  Hierarchical Data Format Release 5 (HDF5)
  * Purpose:  Header file for HDF5 datasets reader.
@@ -7,6 +7,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2005, Frank Warmerdam <warmerdam@pobox.com>
+ * Copyright (c) 2013, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: nasreader.cpp 25656 2013-02-19 15:40:20Z ilucena $
+ * $Id: nasreader.cpp 27132 2014-04-05 21:48:58Z rouault $
  *
  * Project:  NAS Reader
  * Purpose:  Implementation of NASReader class.
@@ -7,6 +7,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2002, Frank Warmerdam
+ * Copyright (c) 2010-2013, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -31,6 +32,7 @@
 #include "cpl_error.h"
 #include "cpl_string.h"
 #include "gmlutils.h"
+#include "cpl_multiproc.h"
 
 #define SUPPORT_GEOMETRY
 
@@ -46,6 +48,8 @@
 
 #include "nasreaderp.h"
 #include "cpl_conv.h"
+
+void *NASReader::hMutex = NULL;
 
 /************************************************************************/
 /*                          CreateGMLReader()                           */
@@ -127,9 +131,11 @@ const char* NASReader::GetSourceFileName()
 int NASReader::SetupParser()
 
 {
-    static int bXercesInitialized = FALSE;
+    {
+    CPLMutexHolderD(&hMutex);
+    static int bXercesInitialized = -1;
 
-    if( !bXercesInitialized )
+    if( bXercesInitialized < 0)
     {
         try
         {
@@ -141,9 +147,13 @@ int NASReader::SetupParser()
             CPLError( CE_Warning, CPLE_AppDefined,
                       "Exception initializing Xerces based GML reader.\n%s", 
                       tr_strdup(toCatch.getMessage()) );
+            bXercesInitialized = FALSE;
             return FALSE;
         }
         bXercesInitialized = TRUE;
+    }
+    if( !bXercesInitialized )
+        return FALSE;
     }
 
     // Cleanup any old parser.
@@ -844,7 +854,7 @@ int NASReader::SaveClasses( const char *pszFile )
 /*      looking for schema information.                                 */
 /************************************************************************/
 
-int NASReader::PrescanForSchema( int bGetExtents )
+int NASReader::PrescanForSchema( int bGetExtents, int bAnalyzeSRSPerFeature )
 
 {
     GMLFeature  *poFeature;
@@ -884,8 +894,12 @@ int NASReader::PrescanForSchema( int bGetExtents )
             {
                 double  dfXMin, dfXMax, dfYMin, dfYMax;
                 OGREnvelope sEnvelope;
-                OGRwkbGeometryType eGType = (OGRwkbGeometryType)
-                    poClass->GetGeometryType();
+
+                if( poClass->GetGeometryPropertyCount() == 0 )
+                    poClass->AddGeometryProperty( new GMLGeometryPropertyDefn( "", "", wkbUnknown ) );
+
+                OGRwkbGeometryType eGType = (OGRwkbGeometryType) 
+                    poClass->GetGeometryProperty(0)->GetType();
 
                 // Merge SRSName into layer.
                 const char* pszSRSName = GML_ExtractSrsNameFromGeometry(papsGeometry, osWork, FALSE);
@@ -897,7 +911,7 @@ int NASReader::PrescanForSchema( int bGetExtents )
                 if( poClass->GetFeatureCount() == 1 && eGType == wkbUnknown )
                     eGType = wkbNone;
 
-                poClass->SetGeometryType(
+                poClass->GetGeometryProperty(0)->SetType(
                     (int) OGRMergeGeometryTypes(
                         eGType, poGeometry->getGeometryType() ) );
 
@@ -923,9 +937,12 @@ int NASReader::PrescanForSchema( int bGetExtents )
             }
             else
             {
-                if( poClass->GetGeometryType() == (int) wkbUnknown
+                if( poClass->GetGeometryPropertyCount() == 1 &&
+                    poClass->GetGeometryProperty(0)->GetType() == (int) wkbUnknown
                     && poClass->GetFeatureCount() == 1 )
-                    poClass->SetGeometryType( wkbNone );
+                {
+                    poClass->ClearGeometryProperties();
+                }
             }
 #endif /* def SUPPORT_GEOMETRY */
         }

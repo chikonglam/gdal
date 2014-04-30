@@ -1,12 +1,12 @@
 /******************************************************************************
- * $Id: ogr_mdb.h 21557 2011-01-22 23:42:14Z rouault $
+ * $Id: ogr_mdb.h 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Private definitions for MDB driver.
  * Author:   Even Rouault, <even dot rouault at mines dash paris dot org>
  *
  ******************************************************************************
- * Copyright (c) 2011, Even Rouault, <even dot rouault at mines dash paris dot org>
+ * Copyright (c) 2011, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -277,12 +277,9 @@ class OGRMDBLayer : public OGRLayer
     
     OGRFeatureDefn *    GetLayerDefn() { return poFeatureDefn; }
 
-    virtual OGRSpatialReference *GetSpatialRef();
-
     virtual int         TestCapability( const char * );
 
     virtual const char *GetFIDColumn();
-    virtual const char *GetGeometryColumn();
 
     virtual OGRErr      GetExtent( OGREnvelope *psExtent, int bForce );
 };

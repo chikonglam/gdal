@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdalgrid.h 25079 2012-10-07 21:31:36Z rouault $
+ * $Id: gdalgrid.h 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  GDAL Gridding API.
  * Purpose:  Prototypes, and definitions for of GDAL scattered data gridder.
@@ -7,6 +7,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2007, Andrey Kiselev <dron@ak4719.spb.edu>
+ * Copyright (c) 2012, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),

@@ -18,7 +18,7 @@ also optionally be drawn on top of the raster layer (see OGR_* creation options 
 GDAL must be compiled with libpoppler support (GPL-licensed), and libpoppler itself must have been configured with
 --enable-xpdf-headers so that the xpdf C++ headers are available. Note: the poppler C++ API isn't
 stable, so the driver compilation may fail with too old or too recent poppler versions.
-Successfully tested versions are poppler &gt;= 0.12.X and &lt;= 0.22.0.
+Successfully tested versions are poppler &gt;= 0.12.X and &lt;= 0.24.0.
 <p>
 Starting with GDAL 1.9.0, as an alternative, the PDF driver can be compiled against libpodofo (LGPL-licensed)
 to avoid the libpoppler dependency. This is sufficient to get the georeferencing information. However, for
@@ -66,8 +66,7 @@ Defaults to 3.</li>
 The layer names can be obtained by querying the LAYERS metadata domain. When this option is specified,
 layers not explicitely listed will be turned off.</li>
 <li><i>GDAL_PDF_LAYERS_OFF</i> = list of layers (comma separated) to turn OFF. The layer names can be obtained by
-querying the LAYERS metadata domain. When this option is specified, layers not explicitely listed will be turned
-off.</li>
+querying the LAYERS metadata domain.</li>
 </ul>
 
 <h2>LAYERS Metadata domain</h2>
@@ -132,7 +131,9 @@ Set the compression to use for raster data. DEFLATE is the default.</p></li>
 Set the compression to use for stream objects. DEFLATE is the default.</p></li>
 
 <li><p><b>DPI=value</b>:
-Set the DPI to use. Default to 72.</p></li>
+Set the DPI to use. Default to 72. May be automatically adjusted to higher value
+so that page dimension does not exceed the 14400 maximum value (in user units)
+allowed by Acrobat.</p></li>
 
 <li><p><b>PREDICTOR=[1/2]</b>:
 Only for DEFLATE compression. Might be set to 2 to use horizontal predictor that can make files smaller (but not always!).

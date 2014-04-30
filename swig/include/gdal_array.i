@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdal_array.i 19478 2010-04-21 19:49:37Z rouault $
+ * $Id: gdal_array.i 26832 2014-01-15 12:46:08Z rouault $
  *
  * Name:     gdal_array.i
  * Project:  GDAL Python Interface
@@ -32,10 +32,15 @@
 
 %module gdal_array
 
+%include constraints.i
+
 %import typemaps_python.i
 
 %import MajorObject.i
 %import Band.i
+%import RasterAttributeTable.i
+
+%include "cplvirtualmem.i"
 
 %init %{
   import_array();
@@ -59,8 +64,10 @@ typedef int CPLErr;
 
 #ifdef DEBUG 
 typedef struct GDALRasterBandHS GDALRasterBandShadow;
+typedef struct RasterAttributeTableHS GDALRasterAttributeTableShadow;
 #else
 typedef void GDALRasterBandShadow;
+typedef void GDALRasterAttributeTableShadow;
 #endif
 
 CPL_C_START
@@ -489,6 +496,361 @@ retStringAndCPLFree* GetArrayFilename(PyArrayObject *psArray)
   }
 %}
 
+%typemap(in,numinputs=0) (CPLVirtualMemShadow** pvirtualmem, int numpytypemap) (CPLVirtualMemShadow* virtualmem)
+{
+  $1 = &virtualmem;
+  $2 = 0;
+}
+
+%typemap(argout) (CPLVirtualMemShadow** pvirtualmem, int numpytypemap)
+{
+    CPLVirtualMemShadow* virtualmem = *($1);
+    void* ptr = CPLVirtualMemGetAddr( virtualmem->vmem );
+    /*size_t nsize = CPLVirtualMemGetSize( virtualmem->vmem );*/
+    GDALDataType datatype = virtualmem->eBufType;
+    int readonly = virtualmem->bReadOnly;
+    GIntBig nBufXSize = virtualmem->nBufXSize;
+    GIntBig nBufYSize = virtualmem->nBufYSize;
+    int nBandCount = virtualmem->nBandCount;
+    int bIsBandSequential = virtualmem->bIsBandSequential;
+    GDALTileOrganization eTileOrganization = virtualmem->eTileOrganization;
+    int nTileXSize = virtualmem->nTileXSize;
+    int nTileYSize = virtualmem->nTileYSize;
+    int bAuto = virtualmem->bAuto;
+    int            nPixelSpace = virtualmem->nPixelSpace; /* if bAuto == TRUE */
+    GIntBig        nLineSpace = virtualmem->nLineSpace; /* if bAuto == TRUE */
+    int numpytype;
+
+    if( datatype == GDT_CInt16 || datatype == GDT_CInt32 )
+    {
+        PyErr_SetString( PyExc_RuntimeError, "GDT_CInt16 and GDT_CInt32 not supported for now" );
+        SWIG_fail;
+    }
+
+    switch(datatype)
+    {
+        case GDT_Byte: numpytype = NPY_UBYTE; break;
+        case GDT_Int16: numpytype = NPY_INT16; break;
+        case GDT_UInt16: numpytype = NPY_UINT16; break;
+        case GDT_Int32: numpytype = NPY_INT32; break;
+        case GDT_UInt32: numpytype = NPY_UINT32; break;
+        case GDT_Float32: numpytype = NPY_FLOAT32; break;
+        case GDT_Float64: numpytype = NPY_FLOAT64; break;
+        //case GDT_CInt16: numpytype = NPY_INT16; break;
+        //case GDT_CInt32: numpytype = NPY_INT32; break;
+        case GDT_CFloat32: numpytype = NPY_CFLOAT; break;
+        case GDT_CFloat64: numpytype = NPY_CDOUBLE; break;
+        default: numpytype = NPY_UBYTE; break;
+    }
+    PyArrayObject* ar;
+    int flags = (readonly) ? 0x1 : 0x1 | 0x0400;
+    int nDataTypeSize = GDALGetDataTypeSize(datatype) / 8;
+    if( bAuto )
+    {
+        if( nBandCount == 1 )
+        {
+            npy_intp shape[2], stride[2];
+            shape[0] = nBufYSize;
+            shape[1] = nBufXSize;
+            stride[1] = nPixelSpace;
+            stride[0] = nLineSpace;
+            ar = (PyArrayObject*) PyArray_New(&PyArray_Type, 2, shape,
+                    numpytype, stride, ptr, 0, flags , NULL);
+        }
+        else
+        {
+            PyErr_SetString( PyExc_RuntimeError, "Code update needed for bAuto and nBandCount > 1 !" );
+            SWIG_fail;
+        }
+    }
+    else if( bIsBandSequential >= 0 )
+    {
+        if( nBandCount == 1 )
+        {
+            npy_intp shape[2], stride[2];
+            shape[0] = nBufYSize;
+            shape[1] = nBufXSize;
+            stride[1] = nDataTypeSize;
+            stride[0] = stride[1] * nBufXSize;
+            ar = (PyArrayObject*) PyArray_New(&PyArray_Type, 2, shape,
+                    numpytype, stride, ptr, 0, flags , NULL);
+        }
+        else
+        {
+            npy_intp shape[3], stride[3];
+            if( bIsBandSequential )
+            {
+                shape[0] = nBandCount;
+                shape[1] = nBufYSize;
+                shape[2] = nBufXSize;
+                stride[2] = nDataTypeSize;
+                stride[1] = stride[2] * nBufXSize;
+                stride[0] = stride[1] * nBufYSize;
+            }
+            else
+            {
+                shape[0] = nBufYSize;
+                shape[1] = nBufXSize;
+                shape[2] = nBandCount;
+                stride[2] = nDataTypeSize;
+                stride[1] = stride[2] * nBandCount;
+                stride[0] = stride[1] * nBufXSize;
+            }
+            ar = (PyArrayObject*) PyArray_New(&PyArray_Type, 3, shape,
+                    numpytype, stride, ptr, 0, flags , NULL);
+        }
+    }
+    else
+    {
+        int nTilesPerRow = (nBufXSize + nTileXSize - 1) / nTileXSize;
+        int nTilesPerCol = (nBufYSize + nTileYSize - 1) / nTileYSize;
+        npy_intp shape[5], stride[5];
+        if( nBandCount == 1 )
+        {
+            shape[0] = nTilesPerCol;
+            shape[1] = nTilesPerRow;
+            shape[2] = nTileYSize;
+            shape[3] = nTileXSize;
+            stride[3] = nDataTypeSize;
+            stride[2] = stride[3] * nTileXSize;
+            stride[1] = stride[2] * nTileYSize;
+            stride[0] = stride[1] * nTilesPerRow;
+            ar = (PyArrayObject*) PyArray_New(&PyArray_Type, 4, shape,
+                    numpytype, stride, ptr, 0, flags , NULL);
+        }
+        else if( eTileOrganization == GTO_TIP )
+        {
+            shape[0] = nTilesPerCol;
+            shape[1] = nTilesPerRow;
+            shape[2] = nTileYSize;
+            shape[3] = nTileXSize;
+            shape[4] = nBandCount;
+            stride[4] = nDataTypeSize;
+            stride[3] = stride[4] * nBandCount;
+            stride[2] = stride[3] * nTileXSize;
+            stride[1] = stride[2] * nTileYSize;
+            stride[0] = stride[1] * nTilesPerRow;
+            ar = (PyArrayObject*) PyArray_New(&PyArray_Type, 5, shape,
+                    numpytype, stride, ptr, 0, flags , NULL);
+        }
+        else if( eTileOrganization == GTO_BIT )
+        {
+            shape[0] = nTilesPerCol;
+            shape[1] = nTilesPerRow;
+            shape[2] = nBandCount;
+            shape[3] = nTileYSize;
+            shape[4] = nTileXSize;
+            stride[4] = nDataTypeSize;
+            stride[3] = stride[4] * nTileXSize;
+            stride[2] = stride[3] * nTileYSize;
+            stride[1] = stride[2] * nBandCount;
+            stride[0] = stride[1] * nTilesPerRow;
+            ar = (PyArrayObject*) PyArray_New(&PyArray_Type, 5, shape,
+                    numpytype, stride, ptr, 0, flags , NULL);
+        }
+        else /* GTO_BSQ */
+        {
+            shape[0] = nBandCount;
+            shape[1] = nTilesPerCol;
+            shape[2] = nTilesPerRow;
+            shape[3] = nTileYSize;
+            shape[4] = nTileXSize;
+            stride[4] = nDataTypeSize;
+            stride[3] = stride[4] * nTileXSize;
+            stride[2] = stride[3] * nTileYSize;
+            stride[1] = stride[2] * nTilesPerRow;
+            stride[0] = stride[1] * nTilesPerCol;
+            ar = (PyArrayObject*) PyArray_New(&PyArray_Type, 5, shape,
+                    numpytype, stride, ptr, 0, flags , NULL);
+        }
+    }
+
+    /* Keep a reference to the VirtualMem object */
+    ar->base = obj0;
+    Py_INCREF(obj0);
+    $result = (PyObject*) ar;
+}
+
+%apply Pointer NONNULL {CPLVirtualMemShadow* virtualmem};
+%inline %{
+    void VirtualMemGetArray(CPLVirtualMemShadow* virtualmem, CPLVirtualMemShadow** pvirtualmem, int numpytypemap)
+    {
+        *pvirtualmem = virtualmem;
+    }
+%}
+%clear CPLVirtualMemShadow* virtualmem;
+
+%feature( "kwargs" ) RATValuesIONumPyWrite;
+%inline %{
+  // need different functions for read and write
+  // since reading strings requires us to know the 
+  // length of the longest string before creating array
+  CPLErr RATValuesIONumPyWrite( GDALRasterAttributeTableShadow* poRAT, int nField, int nStart, 
+                       PyArrayObject *psArray) {
+
+    if( PyArray_NDIM(psArray) != 1 )
+    {
+        CPLError( CE_Failure, CPLE_AppDefined, 
+                  "Illegal numpy array rank %d.\n", 
+                  PyArray_NDIM(psArray) );
+        return CE_Failure;
+    }
+
+    int nLength = PyArray_DIM(psArray, 0);
+    int nType = PyArray_TYPE(psArray);
+    CPLErr retval = CE_None;
+
+    if( nType == NPY_INT32 )
+    {
+        retval = GDALRATValuesIOAsInteger(poRAT, GF_Write, nField, nStart, nLength, 
+                        (int*)PyArray_DATA(psArray) );
+    }
+    else if( nType == NPY_DOUBLE )
+    {
+        retval = GDALRATValuesIOAsDouble(poRAT, GF_Write, nField, nStart, nLength,
+                        (double*)PyArray_DATA(psArray) );
+    }
+    else if( nType == NPY_STRING )
+    {
+        // have to convert array of strings to a char **
+        char **papszStringData = (char**)CPLCalloc(sizeof(char*), nLength);
+
+        // max size of string
+        int nMaxLen = PyArray_ITEMSIZE(psArray);
+        char *pszBuffer = (char*)CPLMalloc((nMaxLen+1) * sizeof(char));
+        // make sure there is a null char on the end
+        // as there won't be if this string is the maximum size
+        pszBuffer[nMaxLen] = '\0';
+
+        // we can't just use the memory location in the array 
+        // since long strings won't be null terminated
+        for( int i = 0; i < nLength; i++ )
+        {
+            strncpy(pszBuffer, (char*)PyArray_GETPTR1(psArray, i), nMaxLen);
+            papszStringData[i] = CPLStrdup(pszBuffer);
+        }
+        CPLFree(pszBuffer);
+
+        retval = GDALRATValuesIOAsString(poRAT, GF_Write, nField, nStart, nLength,
+                                            papszStringData);
+
+        for( int i = 0; i < nLength; i++ )
+        {
+            CPLFree(papszStringData[i]);
+        }
+        CPLFree(papszStringData);
+    }
+    else
+    {
+        CPLError( CE_Failure, CPLE_AppDefined, 
+                  "Illegal numpy array type %d.\n", 
+                  nType );
+        return CE_Failure;
+    }
+    return retval;
+  }
+%}
+
+%feature( "kwargs" ) RATValuesIONumPyRead;
+%inline %{
+  // need different functions for read and write
+  // since reading strings requires us to know the 
+  // length of the longest string before creating array
+  PyObject *RATValuesIONumPyRead( GDALRasterAttributeTableShadow* poRAT, int nField, int nStart, 
+                       int nLength) {
+
+    GDALRATFieldType colType = GDALRATGetTypeOfCol(poRAT, nField);
+    npy_intp dims = nLength;
+    PyObject *pOutArray = NULL;
+    if( colType == GFT_Integer )
+    {
+        pOutArray = PyArray_SimpleNew(1, &dims, NPY_INT32);
+        if( GDALRATValuesIOAsInteger(poRAT, GF_Read, nField, nStart, nLength, 
+                        (int*)PyArray_DATA(pOutArray)) != CE_None)
+        {
+            Py_DECREF(pOutArray);
+            Py_RETURN_NONE;
+        }
+    }
+    else if( colType == GFT_Real )
+    {
+        pOutArray = PyArray_SimpleNew(1, &dims, NPY_DOUBLE);
+        if( GDALRATValuesIOAsDouble(poRAT, GF_Read, nField, nStart, nLength,
+                        (double*)PyArray_DATA(pOutArray)) != CE_None)
+        {
+            Py_DECREF(pOutArray);
+            Py_RETURN_NONE;
+        }
+    }
+    else if( colType == GFT_String )
+    {
+        // must read the data first to work out max size
+        // of strings to create array
+        int n;
+        char **papszStringList = (char**)CPLCalloc(sizeof(char*), nLength);
+        if( GDALRATValuesIOAsString(poRAT, GF_Read, nField, nStart, nLength, papszStringList) != CE_None )
+        {
+            CPLFree(papszStringList);
+            Py_RETURN_NONE;
+        }
+        int nMaxLen = 0, nLen;
+        for( n = 0; n < nLength; n++ )
+        {
+            // note strlen doesn't include null char
+            // but that is what numpy expects so all good
+            nLen = strlen(papszStringList[n]);
+            if( nLen > nMaxLen )
+                nMaxLen = nLen;
+        }
+        int bZeroLength = FALSE;
+        // numpy can't deal with zero length strings
+        if( nMaxLen == 0 )
+        {
+            nMaxLen = 1;
+            bZeroLength = TRUE;
+        }
+
+        // create the dtype string
+#if PY_VERSION_HEX >= 0x03000000
+        PyObject *pDTypeString = PyUnicode_FromFormat("S%d", nMaxLen);
+#else
+        PyObject *pDTypeString = PyString_FromFormat("S%d", nMaxLen);
+#endif
+        // out type description object
+        PyArray_Descr *pDescr;
+        PyArray_DescrConverter(pDTypeString, &pDescr);
+        Py_DECREF(pDTypeString);
+
+        // create array
+        pOutArray = PyArray_SimpleNewFromDescr(1, &dims, pDescr);
+
+        // copy data in
+        if( !bZeroLength )
+        {
+            for( n = 0; n < nLength; n++ )
+            {
+                // we use strncpy so that we don't go over nMaxLen
+                // which we would if the null char is copied
+                // (which we don't want as numpy 'knows' to interpret the string as nMaxLen long)
+                strncpy((char*)PyArray_GETPTR1(pOutArray, n), papszStringList[n], nMaxLen);
+            }
+        }
+        else
+        {
+            // so there isn't rubbush in the 1 char strings
+            PyArray_FILLWBYTE(pOutArray, 0);
+        }
+
+        // free strings
+        for( n = 0; n < nLength; n++ )
+        {
+            CPLFree(papszStringList[n]);
+        }
+        CPLFree(papszStringList);
+    }
+    return pOutArray;
+  }
+%}
 
 %pythoncode %{
 import numpy
@@ -525,7 +887,7 @@ def OpenArray( array, prototype_ds = None ):
     
     
 def flip_code(code):
-    if isinstance(code, type):
+    if isinstance(code, (numpy.dtype,type)):
         # since several things map to complex64 we must carefully select
         # the opposite that is an exact match (ticket 1518)
         if code == numpy.int8:
@@ -544,7 +906,7 @@ def flip_code(code):
             return None
 
 def NumericTypeCodeToGDALTypeCode(numeric_type):
-    if not isinstance(numeric_type, type):
+    if not isinstance(numeric_type, (numpy.dtype,type)):
         raise TypeError("Input must be a type")
     return flip_code(numeric_type)
 
@@ -684,6 +1046,50 @@ def BandWriteArray( band, array, xoff=0, yoff=0 ):
     return BandRasterIONumPy( band, 1, xoff, yoff, xsize, ysize,
                                 array, datatype )
 
+def RATWriteArray(rat, array, field, start=0):
+    """
+    Pure Python implementation of writing a chunk of the RAT
+    from a numpy array. Type of array is coerced to one of the types
+    (int, double, string) supported. Called from RasterAttributeTable.WriteArray
+    """
+    if array is None:
+        raise ValueError("Expected array of dim 1")
+
+    # if not the array type convert it to handle lists etc
+    if not isinstance(array, numpy.ndarray):
+        array = numpy.array(array)
+
+    if array.ndim != 1:
+        raise ValueError("Expected array of dim 1")
+
+    if (start + array.size) > rat.GetRowCount():
+        raise ValueError("Array too big to fit into RAT from start position")
+
+    if numpy.issubdtype(array.dtype, numpy.integer):
+        # is some type of integer - coerce to standard int
+        # TODO: must check this is fine on all platforms
+        # confusingly numpy.int 64 bit even if native type 32 bit
+        array = array.astype(numpy.int32)
+    elif numpy.issubdtype(array.dtype, numpy.floating):
+        # is some type of floating point - coerce to double
+        array = array.astype(numpy.double)
+    elif numpy.issubdtype(array.dtype, numpy.character):
+        # cast away any kind of Unicode etc
+        array = array.astype(numpy.character)
+    else:
+        raise ValueError("Array not of a supported type (integer, double or string)")
+
+    return RATValuesIONumPyWrite(rat, field, start, array)
+
+def RATReadArray(rat, field, start=0, length=None):
+    """
+    Pure Python implementation of reading a chunk of the RAT
+    into a numpy array. Called from RasterAttributeTable.ReadAsArray
+    """
+    if length is None:
+        length = rat.GetRowCount() - start
+
+    return RATValuesIONumPyRead(rat, field, start, length)
     
 def CopyDatasetInfo( src, dst, xoff=0, yoff=0 ):
     """

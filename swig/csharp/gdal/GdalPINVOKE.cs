@@ -263,7 +263,7 @@ class GdalPINVOKE {
   public static extern string GetLastErrorMsg();
 
   [DllImport("gdal_wrap", EntryPoint="CSharp_PushFinderLocation")]
-  public static extern void PushFinderLocation(string jarg1);
+  public static extern void PushFinderLocation(byte[] jarg1);
 
   [DllImport("gdal_wrap", EntryPoint="CSharp_PopFinderLocation")]
   public static extern void PopFinderLocation();
@@ -272,13 +272,13 @@ class GdalPINVOKE {
   public static extern void FinderClean();
 
   [DllImport("gdal_wrap", EntryPoint="CSharp_FindFile")]
-  public static extern string FindFile(string jarg1, string jarg2);
+  public static extern string FindFile(string jarg1, byte[] jarg2);
 
   [DllImport("gdal_wrap", EntryPoint="CSharp_ReadDir")]
-  public static extern IntPtr ReadDir(string jarg1);
+  public static extern IntPtr ReadDir(byte[] jarg1);
 
   [DllImport("gdal_wrap", EntryPoint="CSharp_ReadDirRecursive")]
-  public static extern IntPtr ReadDirRecursive(string jarg1);
+  public static extern IntPtr ReadDirRecursive(byte[] jarg1);
 
   [DllImport("gdal_wrap", EntryPoint="CSharp_SetConfigOption")]
   public static extern void SetConfigOption(string jarg1, string jarg2);
@@ -293,40 +293,40 @@ class GdalPINVOKE {
   public static extern IntPtr CPLHexToBinary(string jarg1, out int jarg2);
 
   [DllImport("gdal_wrap", EntryPoint="CSharp_FileFromMemBuffer")]
-  public static extern void FileFromMemBuffer(string jarg1, int jarg2, IntPtr jarg3);
+  public static extern void FileFromMemBuffer(byte[] jarg1, int jarg2, IntPtr jarg3);
 
   [DllImport("gdal_wrap", EntryPoint="CSharp_Unlink")]
-  public static extern int Unlink(string jarg1);
+  public static extern int Unlink(byte[] jarg1);
 
   [DllImport("gdal_wrap", EntryPoint="CSharp_HasThreadSupport")]
   public static extern int HasThreadSupport();
 
   [DllImport("gdal_wrap", EntryPoint="CSharp_Mkdir")]
-  public static extern int Mkdir(string jarg1, int jarg2);
+  public static extern int Mkdir(byte[] jarg1, int jarg2);
 
   [DllImport("gdal_wrap", EntryPoint="CSharp_Rmdir")]
-  public static extern int Rmdir(string jarg1);
+  public static extern int Rmdir(byte[] jarg1);
 
   [DllImport("gdal_wrap", EntryPoint="CSharp_Rename")]
   public static extern int Rename(string jarg1, string jarg2);
 
   [DllImport("gdal_wrap", EntryPoint="CSharp_VSIFOpenL")]
-  public static extern IntPtr VSIFOpenL(string jarg1, string jarg2);
+  public static extern IntPtr VSIFOpenL(byte[] jarg1, string jarg2);
 
   [DllImport("gdal_wrap", EntryPoint="CSharp_VSIFCloseL")]
-  public static extern void VSIFCloseL(HandleRef jarg1);
+  public static extern void VSIFCloseL(IntPtr jarg1);
 
   [DllImport("gdal_wrap", EntryPoint="CSharp_VSIFSeekL")]
-  public static extern int VSIFSeekL(HandleRef jarg1, int jarg2, int jarg3);
+  public static extern int VSIFSeekL(IntPtr jarg1, int jarg2, int jarg3);
 
   [DllImport("gdal_wrap", EntryPoint="CSharp_VSIFTellL")]
-  public static extern int VSIFTellL(HandleRef jarg1);
+  public static extern int VSIFTellL(IntPtr jarg1);
 
   [DllImport("gdal_wrap", EntryPoint="CSharp_VSIFTruncateL")]
-  public static extern int VSIFTruncateL(HandleRef jarg1, int jarg2);
+  public static extern int VSIFTruncateL(IntPtr jarg1, int jarg2);
 
   [DllImport("gdal_wrap", EntryPoint="CSharp_VSIFWriteL")]
-  public static extern int VSIFWriteL(string jarg1, int jarg2, int jarg3, HandleRef jarg4);
+  public static extern int VSIFWriteL(string jarg1, int jarg2, int jarg3, IntPtr jarg4);
 
   [DllImport("gdal_wrap", EntryPoint="CSharp_XMLNode_Type_get")]
   public static extern int XMLNode_Type_get(HandleRef jarg1);
@@ -394,6 +394,9 @@ class GdalPINVOKE {
   [DllImport("gdal_wrap", EntryPoint="CSharp_MajorObject_SetDescription")]
   public static extern void MajorObject_SetDescription(HandleRef jarg1, string jarg2);
 
+  [DllImport("gdal_wrap", EntryPoint="CSharp_MajorObject_GetMetadataDomainList")]
+  public static extern IntPtr MajorObject_GetMetadataDomainList(HandleRef jarg1);
+
   [DllImport("gdal_wrap", EntryPoint="CSharp_MajorObject_GetMetadata")]
   public static extern IntPtr MajorObject_GetMetadata(HandleRef jarg1, string jarg2);
 
@@ -419,13 +422,13 @@ class GdalPINVOKE {
   public static extern string Driver_HelpTopic_get(HandleRef jarg1);
 
   [DllImport("gdal_wrap", EntryPoint="CSharp_Driver_Create")]
-  public static extern IntPtr Driver_Create(HandleRef jarg1, string jarg2, int jarg3, int jarg4, int jarg5, int jarg6, IntPtr[] jarg7);
+  public static extern IntPtr Driver_Create(HandleRef jarg1, byte[] jarg2, int jarg3, int jarg4, int jarg5, int jarg6, IntPtr[] jarg7);
 
   [DllImport("gdal_wrap", EntryPoint="CSharp_Driver_CreateCopy")]
-  public static extern IntPtr Driver_CreateCopy(HandleRef jarg1, string jarg2, HandleRef jarg3, int jarg4, IntPtr[] jarg5, Gdal.GDALProgressFuncDelegate jarg6, string jarg7);
+  public static extern IntPtr Driver_CreateCopy(HandleRef jarg1, byte[] jarg2, HandleRef jarg3, int jarg4, IntPtr[] jarg5, Gdal.GDALProgressFuncDelegate jarg6, string jarg7);
 
   [DllImport("gdal_wrap", EntryPoint="CSharp_Driver_Delete")]
-  public static extern int Driver_Delete(HandleRef jarg1, string jarg2);
+  public static extern int Driver_Delete(HandleRef jarg1, byte[] jarg2);
 
   [DllImport("gdal_wrap", EntryPoint="CSharp_Driver_Rename")]
   public static extern int Driver_Rename(HandleRef jarg1, string jarg2, string jarg3);
@@ -818,10 +821,10 @@ class GdalPINVOKE {
   public static extern int Band_GetHistogram(HandleRef jarg1, double jarg2, double jarg3, int jarg4, int[] jarg5, int jarg6, int jarg7, Gdal.GDALProgressFuncDelegate jarg8, string jarg9);
 
   [DllImport("gdal_wrap", EntryPoint="CSharp_Band_GetDefaultHistogram")]
-  public static extern int Band_GetDefaultHistogram(HandleRef jarg1, HandleRef jarg2, HandleRef jarg3, HandleRef jarg4, HandleRef jarg5, int jarg6, Gdal.GDALProgressFuncDelegate jarg7, string jarg8);
+  public static extern int Band_GetDefaultHistogram(HandleRef jarg1, out double jarg2, out double jarg3, out int jarg4, out int[] jarg5, int jarg6, Gdal.GDALProgressFuncDelegate jarg7, string jarg8);
 
   [DllImport("gdal_wrap", EntryPoint="CSharp_Band_SetDefaultHistogram")]
-  public static extern int Band_SetDefaultHistogram(HandleRef jarg1, double jarg2, double jarg3, int jarg4, HandleRef jarg5);
+  public static extern int Band_SetDefaultHistogram(HandleRef jarg1, double jarg2, double jarg3, int jarg4, int[] jarg5);
 
   [DllImport("gdal_wrap", EntryPoint="CSharp_Band_HasArbitraryOverviews")]
   public static extern bool Band_HasArbitraryOverviews(HandleRef jarg1);
@@ -925,6 +928,9 @@ class GdalPINVOKE {
   [DllImport("gdal_wrap", EntryPoint="CSharp_RasterAttributeTable_GetRowOfValue")]
   public static extern int RasterAttributeTable_GetRowOfValue(HandleRef jarg1, double jarg2);
 
+  [DllImport("gdal_wrap", EntryPoint="CSharp_RasterAttributeTable_ChangesAreWrittenToFile")]
+  public static extern int RasterAttributeTable_ChangesAreWrittenToFile(HandleRef jarg1);
+
   [DllImport("gdal_wrap", EntryPoint="CSharp_ComputeMedianCutPCT")]
   public static extern int ComputeMedianCutPCT(HandleRef jarg1, HandleRef jarg2, HandleRef jarg3, int jarg4, HandleRef jarg5, Gdal.GDALProgressFuncDelegate jarg6, string jarg7);
 
@@ -938,7 +944,7 @@ class GdalPINVOKE {
   public static extern int ComputeProximity(HandleRef jarg1, HandleRef jarg2, IntPtr[] jarg3, Gdal.GDALProgressFuncDelegate jarg4, string jarg5);
 
   [DllImport("gdal_wrap", EntryPoint="CSharp_RasterizeLayer")]
-  public static extern int RasterizeLayer(HandleRef jarg1, int jarg2, HandleRef jarg3, HandleRef jarg4, HandleRef jarg5, HandleRef jarg6, int jarg7, HandleRef jarg8, IntPtr[] jarg9, Gdal.GDALProgressFuncDelegate jarg10, string jarg11);
+  public static extern int RasterizeLayer(HandleRef jarg1, int jarg2, int[] jarg3, HandleRef jarg4, IntPtr jarg5, IntPtr jarg6, int jarg7, double[] jarg8, IntPtr[] jarg9, Gdal.GDALProgressFuncDelegate jarg10, string jarg11);
 
   [DllImport("gdal_wrap", EntryPoint="CSharp_Polygonize")]
   public static extern int Polygonize(HandleRef jarg1, HandleRef jarg2, HandleRef jarg3, int jarg4, IntPtr[] jarg5, Gdal.GDALProgressFuncDelegate jarg6, string jarg7);
@@ -956,7 +962,7 @@ class GdalPINVOKE {
   public static extern int RegenerateOverview(HandleRef jarg1, HandleRef jarg2, string jarg3, Gdal.GDALProgressFuncDelegate jarg4, string jarg5);
 
   [DllImport("gdal_wrap", EntryPoint="CSharp_ContourGenerate")]
-  public static extern int ContourGenerate(HandleRef jarg1, double jarg2, double jarg3, int jarg4, HandleRef jarg5, int jarg6, double jarg7, HandleRef jarg8, int jarg9, int jarg10, Gdal.GDALProgressFuncDelegate jarg11, string jarg12);
+  public static extern int ContourGenerate(HandleRef jarg1, double jarg2, double jarg3, int jarg4, double[] jarg5, int jarg6, double jarg7, HandleRef jarg8, int jarg9, int jarg10, Gdal.GDALProgressFuncDelegate jarg11, string jarg12);
 
   [DllImport("gdal_wrap", EntryPoint="CSharp_AutoCreateWarpedVRT")]
   public static extern IntPtr AutoCreateWarpedVRT(HandleRef jarg1, string jarg2, string jarg3, int jarg4, double jarg5);
@@ -1046,13 +1052,13 @@ class GdalPINVOKE {
   public static extern IntPtr GetDriver(int jarg1);
 
   [DllImport("gdal_wrap", EntryPoint="CSharp_Open")]
-  public static extern IntPtr Open(string jarg1, int jarg2);
+  public static extern IntPtr Open(byte[] jarg1, int jarg2);
 
   [DllImport("gdal_wrap", EntryPoint="CSharp_OpenShared")]
-  public static extern IntPtr OpenShared(string jarg1, int jarg2);
+  public static extern IntPtr OpenShared(byte[] jarg1, int jarg2);
 
   [DllImport("gdal_wrap", EntryPoint="CSharp_IdentifyDriver")]
-  public static extern IntPtr IdentifyDriver(string jarg1, IntPtr[] jarg2);
+  public static extern IntPtr IdentifyDriver(byte[] jarg1, IntPtr[] jarg2);
 
   [DllImport("gdal_wrap", EntryPoint="CSharp_GeneralCmdLineProcessor")]
   public static extern IntPtr GeneralCmdLineProcessor(IntPtr[] jarg1, int jarg2);

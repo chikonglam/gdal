@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_opt.cpp 22332 2011-05-08 15:32:37Z rouault $
+ * $Id: ogr_opt.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  OpenGIS Simple Features
  * Purpose:  Functions for getting list of projection types, and their parms.
@@ -7,6 +7,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2000, Frank Warmerdam
+ * Copyright (c) 2009-2011, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -30,7 +31,7 @@
 #include "ogr_srs_api.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: ogr_opt.cpp 22332 2011-05-08 15:32:37Z rouault $");
+CPL_CVSID("$Id: ogr_opt.cpp 27044 2014-03-16 23:41:27Z rouault $");
 
 static const char *papszParameterDefinitions[] = {
     SRS_PP_CENTRAL_MERIDIAN,    "Central Meridian",     "Long",  "0.0",

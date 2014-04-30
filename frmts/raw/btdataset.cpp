@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: btdataset.cpp 26358 2013-08-21 20:12:38Z rouault $
+ * $Id: btdataset.cpp 27192 2014-04-16 09:59:42Z rouault $
  *
  * Project:  VTP .bt Driver
  * Purpose:  Implementation of VTP .bt elevation format read/write support.
@@ -8,6 +8,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2003, Frank Warmerdam
+ * Copyright (c) 2007-2011, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -31,7 +32,7 @@
 #include "rawdataset.h"
 #include "ogr_spatialref.h"
 
-CPL_CVSID("$Id: btdataset.cpp 26358 2013-08-21 20:12:38Z rouault $");
+CPL_CVSID("$Id: btdataset.cpp 27192 2014-04-16 09:59:42Z rouault $");
 
 CPL_C_START
 void    GDALRegister_BT(void);
@@ -689,8 +690,6 @@ GDALDataset *BTDataset::Open( GDALOpenInfo * poOpenInfo )
             nDatum = 6210;
         else if( nDatum == 3 )
             nDatum = 6202;
-        else if( nDatum == 4 )
-            nDatum = 6203;
         else if( nDatum == 4 )
             nDatum = 6203;
         else if( nDatum == 6 )

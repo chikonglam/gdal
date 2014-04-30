@@ -1,12 +1,12 @@
 /******************************************************************************
- * $Id: wmsmetadataset.h 22557 2011-06-22 15:56:00Z rouault $
+ * $Id: wmsmetadataset.h 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  WMS Client Driver
  * Purpose:  Declaration of GDALWMSMetaDataset class
  * Author:   Even Rouault, <even dot rouault at mines dash paris dot org>
  *
  ******************************************************************************
- * Copyright (c) 2011, Even Rouault, <even dot rouault at mines dash paris dot org>
+ * Copyright (c) 2011-2013, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -83,6 +83,7 @@ class GDALWMSMetaDataset : public GDALPamDataset
     void                ExploreLayer(CPLXMLNode* psXML,
                                      CPLString osFormat,
                                      CPLString osTransparent,
+                                     CPLString osPreferredSRS,
                                      const char* pszSRS = NULL,
                                      const char* pszMinX = NULL,
                                      const char* pszMinY = NULL,
@@ -104,11 +105,13 @@ class GDALWMSMetaDataset : public GDALPamDataset
         GDALWMSMetaDataset();
        ~GDALWMSMetaDataset();
 
+    virtual char      **GetMetadataDomainList();
     virtual char      **GetMetadata( const char * pszDomain = "" );
 
     static GDALDataset* AnalyzeGetCapabilities(CPLXMLNode* psXML,
                                                CPLString osFormat = "",
-                                               CPLString osTransparent = "");
+                                               CPLString osTransparent = "",
+                                               CPLString osPreferredSRS = "");
     static GDALDataset* AnalyzeGetTileService(CPLXMLNode* psXML);
     static GDALDataset* AnalyzeTileMapService(CPLXMLNode* psXML);
 

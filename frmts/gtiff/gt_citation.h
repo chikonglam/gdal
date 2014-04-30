@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gt_citation.h 21929 2011-03-11 03:58:42Z warmerdam $
+ * $Id: gt_citation.h 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  GeoTIFF Driver
  * Purpose:  Implements special parsing of Imagine citation strings, and
@@ -8,6 +8,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2008, Xiuguang Zhou (ESRI)
+ * Copyright (c) 2010-2013, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -66,7 +67,7 @@ void GetGeogCSFromCitation(char* szGCSName, int nGCSName,
                           char	**ppszPMName,
                           char	**ppszSpheroidName,
                           char	**ppszAngularUnits);
-void CheckUTM( GTIFDefn * psDefn, char * pszCtString );
+void CheckUTM( GTIFDefn * psDefn, const char * pszCtString );
 
 
 #endif // GT_CITATION_H_INCLUDED

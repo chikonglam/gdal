@@ -62,7 +62,7 @@ public class Dataset : MajorObject {
       base.Dispose();
     }
   }
-/*! Eight bit unsigned integer */ /*@SWIG:../include/csharp/gdal_csharp.i,96,%ds_rasterio_functions@*/
+/*! Eight bit unsigned integer */ /*@SWIG:../include/csharp/gdal_csharp.i,93,%ds_rasterio_functions@*/
  public CPLErr ReadRaster(int xOff, int yOff, int xSize, int ySize, byte[] buffer, int buf_xSize, int buf_ySize, 
      int bandCount, int[] bandMap, int pixelSpace, int lineSpace, int bandSpace) {
       CPLErr retval;
@@ -91,7 +91,7 @@ public class Dataset : MajorObject {
   }
   
 /*@SWIG@*/
-/*! Sixteen bit signed integer */ /*@SWIG:../include/csharp/gdal_csharp.i,96,%ds_rasterio_functions@*/
+/*! Sixteen bit signed integer */ /*@SWIG:../include/csharp/gdal_csharp.i,93,%ds_rasterio_functions@*/
  public CPLErr ReadRaster(int xOff, int yOff, int xSize, int ySize, short[] buffer, int buf_xSize, int buf_ySize, 
      int bandCount, int[] bandMap, int pixelSpace, int lineSpace, int bandSpace) {
       CPLErr retval;
@@ -120,7 +120,7 @@ public class Dataset : MajorObject {
   }
   
 /*@SWIG@*/
-/*! Thirty two bit signed integer */ /*@SWIG:../include/csharp/gdal_csharp.i,96,%ds_rasterio_functions@*/
+/*! Thirty two bit signed integer */ /*@SWIG:../include/csharp/gdal_csharp.i,93,%ds_rasterio_functions@*/
  public CPLErr ReadRaster(int xOff, int yOff, int xSize, int ySize, int[] buffer, int buf_xSize, int buf_ySize, 
      int bandCount, int[] bandMap, int pixelSpace, int lineSpace, int bandSpace) {
       CPLErr retval;
@@ -149,7 +149,7 @@ public class Dataset : MajorObject {
   }
   
 /*@SWIG@*/
-/*! Thirty two bit floating point */ /*@SWIG:../include/csharp/gdal_csharp.i,96,%ds_rasterio_functions@*/
+/*! Thirty two bit floating point */ /*@SWIG:../include/csharp/gdal_csharp.i,93,%ds_rasterio_functions@*/
  public CPLErr ReadRaster(int xOff, int yOff, int xSize, int ySize, float[] buffer, int buf_xSize, int buf_ySize, 
      int bandCount, int[] bandMap, int pixelSpace, int lineSpace, int bandSpace) {
       CPLErr retval;
@@ -178,7 +178,7 @@ public class Dataset : MajorObject {
   }
   
 /*@SWIG@*/
-/*! Sixty four bit floating point */ /*@SWIG:../include/csharp/gdal_csharp.i,96,%ds_rasterio_functions@*/
+/*! Sixty four bit floating point */ /*@SWIG:../include/csharp/gdal_csharp.i,93,%ds_rasterio_functions@*/
  public CPLErr ReadRaster(int xOff, int yOff, int xSize, int ySize, double[] buffer, int buf_xSize, int buf_ySize, 
      int bandCount, int[] bandMap, int pixelSpace, int lineSpace, int bandSpace) {
       CPLErr retval;

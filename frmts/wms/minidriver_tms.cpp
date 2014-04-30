@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: minidriver_tms.cpp 22021 2011-03-23 21:51:19Z rouault $
+ * $Id: minidriver_tms.cpp 26079 2013-06-13 01:31:48Z warmerdam $
  *
  * Project:  WMS Client Driver
  * Purpose:  Implementation of Dataset and RasterBand classes for WMS
@@ -28,7 +28,9 @@
  * DEALINGS IN THE SOFTWARE.
  ****************************************************************************/
 
-#include "stdinc.h"
+#include "wmsdriver.h"
+#include "minidriver_tms.h"
+
 
 CPP_GDALWMSMiniDriverFactory(TMS)
 

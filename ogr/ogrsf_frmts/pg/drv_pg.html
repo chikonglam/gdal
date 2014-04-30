@@ -134,7 +134,7 @@ Options</a> which help control the behavior of this driver.<p>
 
 <ul>
 <li><b>PG_USE_COPY</b>: This may be "YES" for using COPY for inserting data to Postgresql.
-COPY is less robust than INSERT, but significantly faster.</li><p>
+COPY is significantly faster than INSERT.</li><p>
 <li><b>PGSQL_OGR_FID</b>: Set name of primary key instead of 'ogc_fid'. Only used when opening a layer whose primary key cannot be autodetected.
 Ignored by CreateLayer() that uses the FID creation option.</li><p>
 <!-- Little interest to advertize PG_USE_TEXT... Just to keep it mind it exists for example for debugging -->
@@ -142,6 +142,10 @@ Ignored by CreateLayer() that uses the FID creation option.</li><p>
 <li><b>PG_USE_BASE64</b>: (GDAL >= 1.8.0) If set to "YES", geometries will be fetched as BASE64 encoded EWKB instead of canonical HEX encoded EWKB.
 This reduces the amount of data to be transfered from 2 N to 1.333 N, where N is the size of EWKB data. However, it might be a
 bit slower than fetching in canonical form when the client and the server are on the same machine, so the default is NO.</li><p>
+<li><b>OGR_TRUNCATE</b>: (GDAL &gt;= 1.11) If set to "YES", the content of the table will be first erased with the SQL TRUNCATE command before
+inserting the first feature. This is an alternative to using the -overwrite flag of ogr2ogr,
+that avoids views based on the table to be destroyed.
+Typical use case: "ogr2ogr -append PG:dbname=foo abc.shp --config OGR_TRUNCATE YES".
 </ul>
 
 <h3>Examples</h3>

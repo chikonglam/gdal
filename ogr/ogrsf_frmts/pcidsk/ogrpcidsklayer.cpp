@@ -7,6 +7,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2009, Frank Warmerdam <warmerdam@pobox.com>
+ * Copyright (c) 2011-2013, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -46,7 +47,6 @@ OGRPCIDSKLayer::OGRPCIDSKLayer( PCIDSK::PCIDSKSegment *poSegIn,
 
     poFeatureDefn = new OGRFeatureDefn( poSeg->GetName().c_str() );
     poFeatureDefn->Reference();
-    //poFeatureDefn->SetGeomType( wkbNone );
 
     hLastShapeId = PCIDSK::NullShapeId;
 
@@ -159,6 +159,9 @@ OGRPCIDSKLayer::OGRPCIDSKLayer( PCIDSK::PCIDSKSegment *poSegIn,
         CPLError( CE_Failure, CPLE_AppDefined, 
                   "Non-PCIDSK exception trapped while initializing layer, operation likely impaired." );
     }
+    
+    if( poFeatureDefn->GetGeomFieldCount() > 0 )
+        poFeatureDefn->GetGeomFieldDefn(0)->SetSpatialRef(poSRS);
 }
 
 /************************************************************************/
@@ -179,16 +182,6 @@ OGRPCIDSKLayer::~OGRPCIDSKLayer()
 
     if (poSRS)
         poSRS->Release();
-}
-
-/************************************************************************/
-/*                           GetSpatialRef()                            */
-/************************************************************************/
-
-OGRSpatialReference *OGRPCIDSKLayer::GetSpatialRef()
-
-{
-    return poSRS;
 }
 
 /************************************************************************/

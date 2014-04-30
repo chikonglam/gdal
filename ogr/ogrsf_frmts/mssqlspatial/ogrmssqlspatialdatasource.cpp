@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrmssqlspatialdatasource.cpp 25988 2013-05-05 14:09:05Z tamas $
+ * $Id: ogrmssqlspatialdatasource.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  MSSQL Spatial driver
  * Purpose:  Implements OGRMSSQLSpatialDataSource class..
@@ -7,6 +7,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2010, Tamas Szekeres
+ * Copyright (c) 2010-2013, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -29,7 +30,7 @@
 
 #include "ogr_mssqlspatial.h"
 
-CPL_CVSID("$Id: ogrmssqlspatialdatasource.cpp 25988 2013-05-05 14:09:05Z tamas $");
+CPL_CVSID("$Id: ogrmssqlspatialdatasource.cpp 27044 2014-03-16 23:41:27Z rouault $");
 
 /************************************************************************/
 /*                          OGRMSSQLSpatialDataSource()                 */
@@ -50,6 +51,7 @@ OGRMSSQLSpatialDataSource::OGRMSSQLSpatialDataSource()
     nGeometryFormat = MSSQLGEOMETRY_NATIVE;
 
     bUseGeometryColumns = CSLTestBoolean(CPLGetConfigOption("MSSQLSPATIAL_USE_GEOMETRY_COLUMNS", "YES"));
+    bListAllTables = CSLTestBoolean(CPLGetConfigOption("MSSQLSPATIAL_LIST_ALL_TABLES", "NO"));
 }
 
 /************************************************************************/
@@ -251,27 +253,30 @@ OGRLayer * OGRMSSQLSpatialDataSource::CreateLayer( const char * pszLayerName,
 /* -------------------------------------------------------------------- */
 /*      Handle the GEOM_TYPE option.                                    */
 /* -------------------------------------------------------------------- */
-    pszGeomType = CSLFetchNameValue( papszOptions, "GEOM_TYPE" );
-
-    if( !pszGeomType )
-        pszGeomType = "geometry";
-    
-    if( !EQUAL(pszGeomType, "geometry")
-        && !EQUAL(pszGeomType, "geography"))
+    if ( eType != wkbNone )
     {
-        CPLError( CE_Failure, CPLE_AppDefined, 
-                  "FORMAT=%s not recognised or supported.", 
-                  pszGeomType );
+        pszGeomType = CSLFetchNameValue( papszOptions, "GEOM_TYPE" );
 
-        CPLFree( pszSchemaName );
-        CPLFree( pszTableName );
-        return NULL;
+        if( !pszGeomType )
+            pszGeomType = "geometry";
+        
+        if( !EQUAL(pszGeomType, "geometry")
+            && !EQUAL(pszGeomType, "geography"))
+        {
+            CPLError( CE_Failure, CPLE_AppDefined, 
+                      "FORMAT=%s not recognised or supported.", 
+                      pszGeomType );
+
+            CPLFree( pszSchemaName );
+            CPLFree( pszTableName );
+            return NULL;
+        }
+
+        /* determine the geometry column name */
+        pszGeomColumn =  CSLFetchNameValue( papszOptions, "GEOM_NAME");
+        if (!pszGeomColumn)
+            pszGeomColumn = "ogr_geometry";
     }
-
-    /* determine the geometry column name */
-    pszGeomColumn =  CSLFetchNameValue( papszOptions, "GEOM_NAME");
-    if (!pszGeomColumn)
-        pszGeomColumn = "ogr_geometry";
 
 /* -------------------------------------------------------------------- */
 /*      Initialize the metadata tables                                  */
@@ -301,38 +306,43 @@ OGRLayer * OGRMSSQLSpatialDataSource::CreateLayer( const char * pszLayerName,
 /*      geometry_columns metadata table.                                */
 /* -------------------------------------------------------------------- */
 
-    if( eType != wkbNone )
+    CPLODBCStatement oStmt( &oSession );
+
+    if( eType != wkbNone && bUseGeometryColumns)
     {
         const char *pszGeometryType = OGRToOGCGeomType(eType);
+      
+        oStmt.Appendf( "DELETE FROM geometry_columns WHERE f_table_schema = '%s' "
+            "AND f_table_name = '%s'\n", pszSchemaName, pszTableName );
+    
+        oStmt.Appendf("INSERT INTO [geometry_columns] ([f_table_catalog], [f_table_schema] ,[f_table_name], "
+            "[f_geometry_column],[coord_dimension],[srid],[geometry_type]) VALUES ('%s', '%s', '%s', '%s', %d, %d, '%s')\n", 
+            pszCatalog, pszSchemaName, pszTableName, pszGeomColumn, nCoordDimension, nSRSId, pszGeometryType );
+    }
 
-        CPLODBCStatement oStmt( &oSession );
-        
-        if (bUseGeometryColumns)
-        {
-            oStmt.Appendf( "DELETE FROM geometry_columns WHERE f_table_schema = '%s' "
-                "AND f_table_name = '%s'\n", pszSchemaName, pszTableName );
-        
-            oStmt.Appendf("INSERT INTO [geometry_columns] ([f_table_catalog], [f_table_schema] ,[f_table_name], "
-                "[f_geometry_column],[coord_dimension],[srid],[geometry_type]) VALUES ('%s', '%s', '%s', '%s', %d, %d, '%s')\n", 
-                pszCatalog, pszSchemaName, pszTableName, pszGeomColumn, nCoordDimension, nSRSId, pszGeometryType );
-        }
-
+    if( eType == wkbNone ) 
+    { 
+        oStmt.Appendf("CREATE TABLE [%s].[%s] ([ogr_fid] [int] IDENTITY(1,1) NOT NULL"
+            "CONSTRAINT [PK_%s] PRIMARY KEY CLUSTERED ([ogr_fid] ASC))",
+            pszSchemaName, pszTableName, pszTableName);
+    }
+    else
+    {
         oStmt.Appendf("CREATE TABLE [%s].[%s] ([ogr_fid] [int] IDENTITY(1,1) NOT NULL, "
             "[%s] [%s] NULL, CONSTRAINT [PK_%s] PRIMARY KEY CLUSTERED ([ogr_fid] ASC))",
             pszSchemaName, pszTableName, pszGeomColumn, pszGeomType, pszTableName);
-
-        oSession.BeginTransaction();
-        
-        if( !oStmt.ExecuteSQL() )
-        {
-            CPLError( CE_Failure, CPLE_AppDefined,
-                        "Error creating layer: %s", GetSession()->GetLastError() );
-
-            return NULL;
-        }
-
-        oSession.CommitTransaction();
     }
+    oSession.BeginTransaction();
+        
+    if( !oStmt.ExecuteSQL() )
+    {
+        CPLError( CE_Failure, CPLE_AppDefined,
+                    "Error creating layer: %s", GetSession()->GetLastError() );
+
+        return NULL;
+    }
+
+    oSession.CommitTransaction();
 
 /* -------------------------------------------------------------------- */
 /*      Create the layer object.                                        */
@@ -343,14 +353,14 @@ OGRLayer * OGRMSSQLSpatialDataSource::CreateLayer( const char * pszLayerName,
 
     poLayer->SetLaunderFlag( CSLFetchBoolean(papszOptions,"LAUNDER",TRUE) );
     poLayer->SetPrecisionFlag( CSLFetchBoolean(papszOptions,"PRECISION",TRUE));
-    
+
     char *pszWKT = NULL;
     if( poSRS && poSRS->exportToWkt( &pszWKT ) != OGRERR_NONE )
     {
         CPLFree(pszWKT);
         pszWKT = NULL;
     }
-
+    
     if (poLayer->Initialize(pszSchemaName, pszTableName, pszGeomColumn, nCoordDimension, nSRSId, pszWKT, eType) == OGRERR_FAILURE)
     {
         CPLFree( pszSchemaName );
@@ -635,11 +645,33 @@ int OGRMSSQLSpatialDataSource::Open( const char * pszNewName, int bUpdate,
 
     char** papszTypes = NULL;
 
+    /* if requesting all user database table then this takes priority */ 
+ 	if (papszTableNames == NULL && bListAllTables) 
+ 	{ 
+ 	    CPLODBCStatement oStmt( &oSession ); 
+ 	         
+ 	    oStmt.Append( "select sys.schemas.name, sys.schemas.name + '.' + sys.objects.name, sys.columns.name from sys.columns join sys.types on sys.columns.system_type_id = sys.types.system_type_id and sys.columns.user_type_id = sys.types.user_type_id join sys.objects on sys.objects.object_id = sys.columns.object_id join sys.schemas on sys.objects.schema_id = sys.schemas.schema_id where (sys.types.name = 'geometry' or sys.types.name = 'geography') and (sys.objects.type = 'U' or sys.objects.type = 'V') union all select sys.schemas.name, sys.schemas.name + '.' + sys.objects.name, '' from sys.objects join sys.schemas on sys.objects.schema_id = sys.schemas.schema_id where not exists (select * from sys.columns sc1 join sys.types on sc1.system_type_id = sys.types.system_type_id where (sys.types.name = 'geometry' or sys.types.name = 'geography') and sys.objects.object_id = sc1.object_id) and (sys.objects.type = 'U' or sys.objects.type = 'V')" ); 
+ 	
+ 	    if( oStmt.ExecuteSQL() ) 
+ 	    { 
+ 	        while( oStmt.Fetch() ) 
+ 	        { 
+ 	            papszSchemaNames =  
+ 	                    CSLAddString( papszSchemaNames, oStmt.GetColData(0) ); 
+ 	            papszTableNames =  
+ 	                    CSLAddString( papszTableNames, oStmt.GetColData(1) ); 
+ 	            papszGeomColumnNames =  
+ 	                    CSLAddString( papszGeomColumnNames, oStmt.GetColData(2) ); 
+ 	        } 
+ 	    } 
+ 	} 
+
     /* Determine the available tables if not specified. */
     if (papszTableNames == NULL && bUseGeometryColumns)
     {
         CPLODBCStatement oStmt( &oSession );
-            
+        
+        /* Use join to make sure the existence of the referred column/table */
         oStmt.Append( "SELECT f_table_schema, f_table_name, f_geometry_column, coord_dimension, g.srid, srtext, geometry_type FROM dbo.geometry_columns g JOIN INFORMATION_SCHEMA.COLUMNS ON f_table_schema = TABLE_SCHEMA and f_table_name = TABLE_NAME and f_geometry_column = COLUMN_NAME left outer join dbo.spatial_ref_sys s on g.srid = s.srid");
 
         if( oStmt.ExecuteSQL() )
@@ -663,7 +695,10 @@ int OGRMSSQLSpatialDataSource::Open( const char * pszNewName, int bUpdate,
             }
         }
         else
-            bUseGeometryColumns = FALSE;
+        {
+            /* probably the table is missing at all */
+            InitializeMetadataTables();
+        }
     }
 
     /* Query catalog for tables having geometry columns */
@@ -711,10 +746,10 @@ int OGRMSSQLSpatialDataSource::Open( const char * pszNewName, int bUpdate,
 
         if( strlen(papszGeomColumnNames[iTable]) > 0 )
             OpenTable( papszSchemaNames[iTable], papszTableNames[iTable], papszGeomColumnNames[iTable], 
-            nCoordDimension, nSRId, papszSRTexts? papszSRTexts[iTable] : NULL, eType, bUpdate );
+                    nCoordDimension, nSRId, papszSRTexts? papszSRTexts[iTable] : NULL, eType, bUpdate );
         else
             OpenTable( papszSchemaNames[iTable], papszTableNames[iTable], NULL, 
-                    nCoordDimension, nSRId, papszSRTexts? papszSRTexts[iTable] : NULL, eType, bUpdate );
+                    nCoordDimension, nSRId, papszSRTexts? papszSRTexts[iTable] : NULL, wkbNone, bUpdate );
     }
 
     CSLDestroy( papszTableNames );
@@ -743,9 +778,9 @@ OGRLayer * OGRMSSQLSpatialDataSource::ExecuteSQL( const char *pszSQLCommand,
 
 {
 /* -------------------------------------------------------------------- */
-/*      Use generic imlplementation for OGRSQL dialect.                 */
+/*      Use generic implementation for recognized dialects              */
 /* -------------------------------------------------------------------- */
-    if( pszDialect != NULL && EQUAL(pszDialect,"OGRSQL") )
+    if( IsGenericSQLDialect(pszDialect) )
         return OGRDataSource::ExecuteSQL( pszSQLCommand, 
                                           poSpatialFilter, 
                                           pszDialect );

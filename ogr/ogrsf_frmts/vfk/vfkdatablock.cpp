@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: vfkdatablock.cpp 26317 2013-08-14 08:17:37Z rouault $
+ * $Id: vfkdatablock.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  VFK Reader - Data block definition
  * Purpose:  Implements VFKDataBlock class.
@@ -7,6 +7,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2009-2013, Martin Landa <landa.martin gmail.com>
+ * Copyright (c) 2012-2013, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -59,6 +60,10 @@ IVFKDataBlock::IVFKDataBlock(const char *pszName, const IVFKReader *poReader)
     m_bGeometryPerBlock = TRUE;    /* load geometry per block/feature */
 
     m_poReader       = (IVFKReader *) poReader;
+    
+    m_nRecordCount[RecordValid]      = 0L;      /* number of valid records */
+    m_nRecordCount[RecordSkipped]    = 0L;      /* number of skipped (invalid) records */
+    m_nRecordCount[RecordDuplicated] = 0L;      /* number of duplicated records */
 }
 
 /*!
@@ -466,11 +471,11 @@ int IVFKDataBlock::LoadGeometry()
 
     if (nInvalid > 0) {
         CPLError(CE_Warning, CPLE_AppDefined, 
-                 "%s: %d invalid features found", m_pszName, nInvalid);
+                 "%s: %d features with invalid or empty geometry found", m_pszName, nInvalid);
     }
 
 #ifdef DEBUG_TIMING
-    CPLDebug("OGR_VFK", "VFKDataBlock::LoadGeometry(): name=%s time=%ld sec",
+    CPLDebug("OGR-VFK", "VFKDataBlock::LoadGeometry(): name=%s time=%ld sec",
              m_pszName, (long)((end - start) / CLOCKS_PER_SEC));
 #endif
 
@@ -577,6 +582,28 @@ void IVFKDataBlock::AddFeature(IVFKFeature *poNewFeature)
     m_papoFeature = (IVFKFeature **)
         CPLRealloc(m_papoFeature, sizeof (IVFKFeature *) * m_nFeatureCount);
     m_papoFeature[m_nFeatureCount-1] = poNewFeature;
+}
+
+/*!
+  \brief Get number of records
+
+  \param iRec record type (valid, skipped, duplicated)
+
+  \return number of records
+*/
+int IVFKDataBlock::GetRecordCount(RecordType iRec) const
+{
+    return m_nRecordCount[iRec];
+}
+
+/*!
+  \brief Increment number of records
+
+  \param iRec record type (valid, skipped, duplicated)
+*/
+void IVFKDataBlock::SetIncRecordCount(RecordType iRec)
+{
+    m_nRecordCount[iRec]++;
 }
 
 /*!

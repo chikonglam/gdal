@@ -1,8 +1,8 @@
-.TH "ogrinfo" 1 "Mon Aug 26 2013" "GDAL" \" -*- nroff -*-
+.TH "ogrinfo" 1 "Wed Apr 16 2014" "GDAL" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
-ogrinfo \- .TH "ogrinfo" 1 "Mon Aug 26 2013" "GDAL" \" -*- nroff -*-
+ogrinfo \- .TH "ogrinfo" 1 "Wed Apr 16 2014" "GDAL" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -14,7 +14,7 @@ ogrinfo \- lists information about an OGR supported data source
 .nf
 
 ogrinfo [--help-general] [-ro] [-q] [-where restricted_where]
-        [-spat xmin ymin xmax ymax] [-fid fid]
+        [-spat xmin ymin xmax ymax] [-geomfield field] [-fid fid]
         [-sql statement] [-dialect dialect] [-al] [-so] [-fields={YES/NO}]
         [-geom={YES/NO/SUMMARY}][--formats]
         datasource_name [layer [layer ...]]
@@ -41,6 +41,8 @@ Execute the indicated SQL statement and return the result.
 SQL dialect. In some cases can be used to use (unoptimized) OGR SQL instead of the native SQL of an RDBMS by passing OGRSQL. Starting with GDAL 1.10, the 'SQLITE' dialect can also be used with any datasource. 
 .IP "\fB\fB-spat\fP \fIxmin ymin xmax ymax\fP:\fP" 1c
 The area of interest. Only features within the rectangle will be reported. 
+.IP "\fB\fB-geomfield\fP \fIfield\fP:\fP" 1c
+(OGR >= 1.11) Name of the geometry field on which the spatial filter operates on. 
 .IP "\fB\fB-fid\fP \fIfid\fP:\fP" 1c
 If provided, only the feature with this feature id will be reported. Operates exclusive of the spatial or attribute queries. Note: if you want to select several features based on their feature id, you can also use the fact the 'fid' is a special field recognized by OGR SQL. So, '-where 'fid in (1,3,5)'' would select features 1, 3 and 5. 
 .IP "\fB\fB-fields\fP={YES/NO}:\fP" 1c

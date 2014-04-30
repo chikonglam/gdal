@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: hdf5imagedataset.cpp 26062 2013-06-04 21:16:21Z rouault $
+ * $Id: hdf5imagedataset.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  Hierarchical Data Format Release 5 (HDF5)
  * Purpose:  Read subdatasets of HDF5 file.
@@ -7,6 +7,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2005, Frank Warmerdam <warmerdam@pobox.com>
+ * Copyright (c) 2007-2013, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -37,7 +38,7 @@
 #include "hdf5dataset.h"
 #include "ogr_spatialref.h"
 
-CPL_CVSID("$Id: hdf5imagedataset.cpp 26062 2013-06-04 21:16:21Z rouault $");
+CPL_CVSID("$Id: hdf5imagedataset.cpp 27044 2014-03-16 23:41:27Z rouault $");
 
 CPL_C_START
 void GDALRegister_HDF5Image(void);
@@ -88,9 +89,12 @@ class HDF5ImageDataset : public HDF5Dataset
     hid_t        datatype;
     hid_t        native;
     H5T_class_t  clas;
-    int          iSubdatasetType;
+    Hdf5ProductType    iSubdatasetType;
+    HDF5CSKProductEnum iCSKProductType;
     double       adfGeoTransform[6];
     bool         bHasGeoTransform;
+    
+    CPLErr CreateODIMH5Projection();
 
 public:
     HDF5ImageDataset();
@@ -105,6 +109,18 @@ public:
     virtual const char  *GetGCPProjection();
     virtual const GDAL_GCP *GetGCPs( ); 
     virtual CPLErr GetGeoTransform( double * padfTransform );
+
+    Hdf5ProductType GetSubdatasetType() const {return iSubdatasetType;}
+    HDF5CSKProductEnum GetCSKProductType() const {return iCSKProductType;}
+
+    int     IsComplexCSKL1A() const
+    {
+        return (GetSubdatasetType() == CSK_PRODUCT) &&
+               (GetCSKProductType() == PROD_CSK_L1A) &&
+               (ndims == 3);
+    }
+    int     GetYIndex() const { return IsComplexCSKL1A() ? 0 : ndims - 2; }
+    int     GetXIndex() const { return IsComplexCSKL1A() ? 1 : ndims - 1; }
 
     /**
      * Identify if the subdataset has a known product format
@@ -165,6 +181,7 @@ HDF5ImageDataset::HDF5ImageDataset()
     adfGeoTransform[4] = 0.0;
     adfGeoTransform[5] = 1.0;
     iSubdatasetType    = UNKNOWN_PRODUCT;
+    iCSKProductType    = PROD_UNKNOWN;
     bHasGeoTransform   = false;
     dataset_id         = -1;
     dataspace_id       = -1;
@@ -288,9 +305,11 @@ HDF5ImageRasterBand::HDF5ImageRasterBand( HDF5ImageDataset *poDS, int nBand,
         {
             hsize_t panChunkDims[3];
             int nDimSize = H5Pget_chunk(listid, 3, panChunkDims);
-            nBlockXSize   = (int) panChunkDims[nDimSize-1];
-            nBlockYSize   = (int) panChunkDims[nDimSize-2];
+            CPLAssert(nDimSize == poDS->ndims);
+            nBlockXSize   = (int) panChunkDims[poDS->GetXIndex()];
+            nBlockYSize   = (int) panChunkDims[poDS->GetYIndex()];
         }
+        
         H5Pclose(listid);
     }
 
@@ -348,30 +367,38 @@ CPLErr HDF5ImageRasterBand::IReadBlock( int nBlockXOff, int nBlockYOff,
         return CE_None;
     }
 
-    rank=2;
-
-    if( poGDS->ndims == 3 ){
+    if( poGDS->IsComplexCSKL1A() )
+    {
+        rank = 3; 
+        offset[2]   = nBand-1;
+        count[2]    = 1;
+        col_dims[2] = 1;
+    }
+    else if( poGDS->ndims == 3 )
+    {
         rank=3;
         offset[0]   = nBand-1;
         count[0]    = 1;
         col_dims[0] = 1;
     }
+    else
+        rank = 2;
 
-    offset[poGDS->ndims - 2] = nBlockYOff*nBlockYSize;
-    offset[poGDS->ndims - 1] = nBlockXOff*nBlockXSize;
-    count[poGDS->ndims - 2]  = nBlockYSize;
-    count[poGDS->ndims - 1]  = nBlockXSize;
+    offset[poGDS->GetYIndex()] = nBlockYOff*nBlockYSize;
+    offset[poGDS->GetXIndex()] = nBlockXOff*nBlockXSize;
+    count[poGDS->GetYIndex()]  = nBlockYSize;
+    count[poGDS->GetXIndex()]  = nBlockXSize;
 
     nSizeOfData = H5Tget_size( poGDS->native );
     memset( pImage,0,nBlockXSize*nBlockYSize*nSizeOfData );
 
     /*  blocksize may not be a multiple of imagesize */
-    count[poGDS->ndims - 2]  = MIN( size_t(nBlockYSize),
+    count[poGDS->GetYIndex()]  = MIN( size_t(nBlockYSize),
                                     poDS->GetRasterYSize() -
-                                            offset[poGDS->ndims - 2]);
-    count[poGDS->ndims - 1]  = MIN( size_t(nBlockXSize),
+                                    offset[poGDS->GetYIndex()]);
+    count[poGDS->GetXIndex()]  = MIN( size_t(nBlockXSize),
                                     poDS->GetRasterXSize()-
-                                            offset[poGDS->ndims - 1]);
+                                    offset[poGDS->GetXIndex()]);
 
 /* -------------------------------------------------------------------- */
 /*      Select block from file space                                    */
@@ -384,8 +411,9 @@ CPLErr HDF5ImageRasterBand::IReadBlock( int nBlockXOff, int nBlockYOff,
 /* -------------------------------------------------------------------- */
 /*      Create memory space to receive the data                         */
 /* -------------------------------------------------------------------- */
-    col_dims[poGDS->ndims-2]=nBlockYSize;
-    col_dims[poGDS->ndims-1]=nBlockXSize;
+    col_dims[poGDS->GetYIndex()]=nBlockYSize;
+    col_dims[poGDS->GetXIndex()]=nBlockXSize;
+
     memspace = H5Screate_simple( (int) rank, col_dims, NULL );
     H5OFFSET_TYPE mem_offset[3] = {0, 0, 0};
     status =  H5Sselect_hyperslab(memspace,
@@ -540,6 +568,11 @@ GDALDataset *HDF5ImageDataset::Open( GDALOpenInfo * poOpenInfo )
     poDS->dataset_id   = H5Dopen( poDS->hHDF5,poDS->poH5Objects->pszPath );
     poDS->dataspace_id = H5Dget_space( poDS->dataset_id );
     poDS->ndims        = H5Sget_simple_extent_ndims( poDS->dataspace_id );
+    if( poDS->ndims < 0 )
+    {
+        delete poDS;
+        return NULL;
+    }
     poDS->dims         = (hsize_t*)CPLCalloc( poDS->ndims, sizeof(hsize_t) );
     poDS->maxdims      = (hsize_t*)CPLCalloc( poDS->ndims, sizeof(hsize_t) );
     poDS->dimensions   = H5Sget_simple_extent_dims( poDS->dataspace_id,
@@ -551,13 +584,27 @@ GDALDataset *HDF5ImageDataset::Open( GDALOpenInfo * poOpenInfo )
     poDS->address = H5Dget_offset( poDS->dataset_id );
     poDS->native  = H5Tget_native_type( poDS->datatype, H5T_DIR_ASCEND );
 
-    poDS->nRasterYSize=(int)poDS->dims[poDS->ndims-2];   // Y
-    poDS->nRasterXSize=(int)poDS->dims[poDS->ndims-1];   // X alway last
+    // CSK code in IdentifyProductType() and CreateProjections() 
+    // uses dataset metadata.
+    poDS->SetMetadata( poDS->papszMetadata );
 
-    poDS->nBands=1;
+    // Check if the hdf5 is a well known product type
+    poDS->IdentifyProductType();
 
-    if( poDS->ndims == 3 ) poDS->nBands=(int) poDS->dims[0];
-
+    poDS->nRasterYSize=(int)poDS->dims[poDS->GetYIndex()];   // nRows
+    poDS->nRasterXSize=(int)poDS->dims[poDS->GetXIndex()];   // nCols
+    if( poDS->IsComplexCSKL1A() )
+    {
+        poDS->nBands=(int) poDS->dims[2]; // nBands
+    }
+    else if( poDS->ndims == 3 )
+    {
+        poDS->nBands=(int) poDS->dims[0];
+    }
+    else
+    {
+        poDS->nBands=1;
+    }
 
     for(  i = 1; i <= poDS->nBands; i++ ) {
         HDF5ImageRasterBand *poBand =
@@ -568,13 +615,6 @@ GDALDataset *HDF5ImageDataset::Open( GDALOpenInfo * poOpenInfo )
         if( poBand->bNoDataSet )
             poBand->SetNoDataValue( 255 );
     }
-
-    // CSK code in IdentifyProductType() and CreateProjections() 
-    // uses dataset metadata.
-    poDS->SetMetadata( poDS->papszMetadata );
-
-    // Check if the hdf5 is a well known product type
-    poDS->IdentifyProductType();
 
     poDS->CreateProjections( );
 
@@ -617,6 +657,71 @@ void GDALRegister_HDF5Image( )
 
         GetGDALDriverManager( )->RegisterDriver( poDriver );
     }
+}
+
+/************************************************************************/
+/*                       CreateODIMH5Projection()                       */
+/************************************************************************/
+
+/* Reference : http://www.knmi.nl/opera/opera3/OPERA_2008_03_WP2.1b_ODIM_H5_v2.1.pdf */
+/* 4.3.2 where for geographically referenced image Groups */
+/* We don't use the where_xscale and where_yscale parameters, but recompute them */
+/* from the lower-left and upper-right coordinates. There's some difference. */
+/* As all those parameters are linked together, I'm not sure which one should be */
+/* considered as the reference */
+
+CPLErr HDF5ImageDataset::CreateODIMH5Projection()
+{
+    const char* pszProj4String = GetMetadataItem("where_projdef");
+    const char* pszLL_lon = GetMetadataItem("where_LL_lon");
+    const char* pszLL_lat = GetMetadataItem("where_LL_lat");
+    const char* pszUR_lon = GetMetadataItem("where_UR_lon");
+    const char* pszUR_lat = GetMetadataItem("where_UR_lat");
+    if( pszProj4String == NULL ||
+        pszLL_lon == NULL || pszLL_lat == NULL ||
+        pszUR_lon == NULL || pszUR_lat == NULL )
+        return CE_Failure;
+
+    if( oSRS.importFromProj4( pszProj4String ) != OGRERR_NONE )
+        return CE_Failure;
+
+    OGRSpatialReference oSRSWGS84;
+    oSRSWGS84.SetWellKnownGeogCS( "WGS84" );
+
+    OGRCoordinateTransformation* poCT =
+        OGRCreateCoordinateTransformation( &oSRSWGS84, &oSRS );
+    if( poCT == NULL )
+        return CE_Failure;
+
+    /* Reproject corners from long,lat WGS84 to the target SRS */
+    double dfLLX = CPLAtof(pszLL_lon);
+    double dfLLY = CPLAtof(pszLL_lat);
+    double dfURX = CPLAtof(pszUR_lon);
+    double dfURY = CPLAtof(pszUR_lat);
+    if( !poCT->Transform(1, &dfLLX, &dfLLY) ||
+        !poCT->Transform(1, &dfURX, &dfURY) )
+    {
+        delete poCT;
+        return CE_Failure;
+    }
+    delete poCT;
+
+    /* Compute the geotransform now */
+    double dfPixelX = (dfURX - dfLLX) / nRasterXSize;
+    double dfPixelY = (dfURY - dfLLY) / nRasterYSize;
+
+    bHasGeoTransform = TRUE;
+    adfGeoTransform[0] = dfLLX;
+    adfGeoTransform[1] = dfPixelX;
+    adfGeoTransform[2] = 0;
+    adfGeoTransform[3] = dfURY;
+    adfGeoTransform[4] = 0;
+    adfGeoTransform[5] = -dfPixelY;
+
+    CPLFree( pszProjection );
+    oSRS.exportToWkt( &pszProjection );
+
+    return CE_None;
 }
 
 /************************************************************************/
@@ -684,6 +789,8 @@ CPLErr HDF5ImageDataset::CreateProjections()
     /* -------------------------------------------------------------------- */
     poH5Objects=HDF5FindDatasetObjects( poH5RootGroup,  "Latitude" );
     if( !poH5Objects ) {
+        if( GetMetadataItem("where_projdef") != NULL )
+            return CreateODIMH5Projection();
         return CE_None;
     }
     /* -------------------------------------------------------------------- */
@@ -857,17 +964,44 @@ void HDF5ImageDataset::IdentifyProductType()
 /************************************************************************/
 /*                               COSMO-SKYMED                           */
 /************************************************************************/
-   const char *pszMissionId;
+    const char *pszMissionId;
 
     //Get the Mission Id as a char *, because the
     //field may not exist
     pszMissionId = HDF5Dataset::GetMetadataItem("Mission_ID");
 
     //If there is a Mission_ID field
-     if(pszMissionId != NULL && strstr(GetDescription(), "QLK") == NULL)
-         //Check if the mission type is CSK
-         if(EQUAL(pszMissionId,"CSK"))
-             iSubdatasetType = CSK_PRODUCT;
+    if(pszMissionId != NULL && strstr(GetDescription(), "QLK") == NULL)
+    {
+        //Check if the mission type is CSK
+        if(EQUAL(pszMissionId,"CSK"))
+        {
+            iSubdatasetType = CSK_PRODUCT;
+             
+            const char *osMissionLevel = NULL;
+
+            if(GetMetadataItem("Product_Type")!=NULL)
+            {
+                //Get the format's level
+                osMissionLevel = HDF5Dataset::GetMetadataItem("Product_Type");
+
+                if(EQUALN(osMissionLevel,"RAW",3))
+                    iCSKProductType  = PROD_CSK_L0;
+
+                if(EQUALN(osMissionLevel,"SCS",3))
+                    iCSKProductType  = PROD_CSK_L1A;
+                
+                if(EQUALN(osMissionLevel,"DGM",3))
+                    iCSKProductType  = PROD_CSK_L1B;
+
+                if(EQUALN(osMissionLevel,"GEC",3))
+                    iCSKProductType  = PROD_CSK_L1C;
+
+                if(EQUALN(osMissionLevel,"GTC",3))
+                    iCSKProductType  = PROD_CSK_L1D;
+            }
+        }
+    }
 }
 
 /************************************************************************/

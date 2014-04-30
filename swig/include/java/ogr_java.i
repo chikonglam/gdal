@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_java.i 24762 2012-08-11 16:28:26Z rouault $
+ * $Id: ogr_java.i 26302 2013-08-11 16:24:14Z rouault $
  *
  * Name:     ogr_java.i
  * Project:  GDAL SWIG Interface
@@ -68,6 +68,9 @@ import org.gdal.osr.SpatialReference;
 import org.gdal.osr.SpatialReference;
 %}
 %typemap(javaimports) OGRDataSourceShadow %{
+import org.gdal.osr.SpatialReference;
+%}
+%typemap(javaimports) OGRGeomFieldDefnShadow %{
 import org.gdal.osr.SpatialReference;
 %}
 
@@ -270,7 +273,10 @@ import org.gdal.osr.CoordinateTransformation;
                   OGRFeatureDefnShadow* GetDefnRef,
                   OGRFieldDefnShadow* GetFieldDefnRef,
                   OGRFieldDefnShadow* GetFieldDefn,
-                  OGRGeometryShadow* GetGeometryRef {
+                  OGRGeometryDefnShadow* GetGeomFieldDefnRef,
+                  OGRGeometryDefnShadow* GetGeomFieldDefn,
+                  OGRGeometryShadow* GetGeometryRef,
+                  OGRGeometryShadow* GetGeomFieldRef {
     long cPtr = $jnicall;
     $javaclassname ret = null;
     if (cPtr != 0) {
@@ -450,6 +456,7 @@ import org.gdal.ogr.FeatureNative;
 %}
 
 SMART_FINALIZER(Geometry)
+
 
 /* ----------------------------------------------------------------- */
 /* End of smart finalizer mechanism                                  */

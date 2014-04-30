@@ -518,6 +518,15 @@ class GdalConstPINVOKE {
 
   [DllImport("gdalconst_wrap", EntryPoint="CSharp_GARIO_COMPLETE_get")]
   public static extern int GARIO_COMPLETE_get();
+
+  [DllImport("gdalconst_wrap", EntryPoint="CSharp_GTO_TIP_get")]
+  public static extern int GTO_TIP_get();
+
+  [DllImport("gdalconst_wrap", EntryPoint="CSharp_GTO_BIT_get")]
+  public static extern int GTO_BIT_get();
+
+  [DllImport("gdalconst_wrap", EntryPoint="CSharp_GTO_BSQ_get")]
+  public static extern int GTO_BSQ_get();
 }
 
 }

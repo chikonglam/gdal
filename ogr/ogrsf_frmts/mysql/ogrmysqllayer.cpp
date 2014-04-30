@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrmysqllayer.cpp 20458 2010-08-27 19:33:46Z rouault $
+ * $Id: ogrmysqllayer.cpp 26679 2013-12-01 11:35:25Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implements OGRMySQLLayer class.
@@ -32,7 +32,7 @@
 #include "cpl_conv.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: ogrmysqllayer.cpp 20458 2010-08-27 19:33:46Z rouault $");
+CPL_CVSID("$Id: ogrmysqllayer.cpp 26679 2013-12-01 11:35:25Z rouault $");
 
 /************************************************************************/
 /*                           OGRMySQLLayer()                            */
@@ -203,7 +203,7 @@ OGRFeature *OGRMySQLLayer::RecordToFeature( char **papszRow,
 
             if( poGeometry != NULL )
             {
-                poGeometry->assignSpatialReference( poSRS );
+                poGeometry->assignSpatialReference( GetSpatialRef() );
                 poFeature->SetGeometryDirectly( poGeometry );
             }
             continue;

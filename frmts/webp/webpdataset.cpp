@@ -1,12 +1,12 @@
 /******************************************************************************
- * $Id: webpdataset.cpp 25570 2013-01-27 00:22:37Z rouault $
+ * $Id: webpdataset.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  GDAL WEBP Driver
  * Purpose:  Implement GDAL WEBP Support based on libwebp
  * Author:   Even Rouault, <even dot rouault at mines dash paris dot org>
  *
  ******************************************************************************
- * Copyright (c) 2011, Even Rouault
+ * Copyright (c) 2011-2013, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -33,7 +33,7 @@
 #include "webp/decode.h"
 #include "webp/encode.h"
 
-CPL_CVSID("$Id: webpdataset.cpp 25570 2013-01-27 00:22:37Z rouault $");
+CPL_CVSID("$Id: webpdataset.cpp 27044 2014-03-16 23:41:27Z rouault $");
 
 CPL_C_START
 void    GDALRegister_WEBP(void);
@@ -67,6 +67,7 @@ class WEBPDataset : public GDALPamDataset
                                    void *, int, int, GDALDataType,
                                    int, int *, int, int, int );
 
+    virtual char      **GetMetadataDomainList();
     virtual char  **GetMetadata( const char * pszDomain = "" );
 
     static GDALDataset *Open( GDALOpenInfo * );
@@ -185,6 +186,17 @@ WEBPDataset::~WEBPDataset()
     if (fpImage)
         VSIFCloseL(fpImage);
     VSIFree(pabyUncompressed);
+}
+
+/************************************************************************/
+/*                      GetMetadataDomainList()                         */
+/************************************************************************/
+
+char **WEBPDataset::GetMetadataDomainList()
+{
+    return BuildMetadataDomainList(GDALPamDataset::GetMetadataDomainList(),
+                                   TRUE,
+                                   "xml:XMP", NULL);
 }
 
 /************************************************************************/

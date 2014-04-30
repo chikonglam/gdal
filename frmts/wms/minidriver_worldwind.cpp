@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: minidriver_worldwind.cpp 18020 2009-11-14 14:33:20Z rouault $
+ * $Id: minidriver_worldwind.cpp 26079 2013-06-13 01:31:48Z warmerdam $
  *
  * Project:  WMS Client Driver
  * Purpose:  Implementation of Dataset and RasterBand classes for WMS
@@ -28,7 +28,8 @@
  * DEALINGS IN THE SOFTWARE.
  ****************************************************************************/
 
-#include "stdinc.h"
+#include "wmsdriver.h"
+#include "minidriver_worldwind.h"
 
 CPP_GDALWMSMiniDriverFactory(WorldWind)
 

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ili2handler.cpp 24408 2012-05-11 21:31:45Z pka $
+ * $Id: ili2handler.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  Interlis 2 Reader
  * Purpose:  Implementation of ILI2Handler class.
@@ -7,6 +7,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2004, Pirmin Kalberer, Sourcepole AG
+ * Copyright (c) 2008, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -34,7 +35,7 @@
 #include "ili2readerp.h"
 #include <xercesc/sax2/Attributes.hpp>
 
-CPL_CVSID("$Id: ili2handler.cpp 24408 2012-05-11 21:31:45Z pka $");
+CPL_CVSID("$Id: ili2handler.cpp 27044 2014-03-16 23:41:27Z rouault $");
 
 // 
 // constants

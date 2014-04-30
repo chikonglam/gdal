@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrvfklayer.cpp 25702 2013-03-07 17:17:54Z martinl $
+ * $Id: ogrvfklayer.cpp 26596 2013-11-08 17:59:47Z martinl $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implements OGRVFKLayer class.
@@ -33,7 +33,7 @@
 #include "cpl_conv.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: ogrvfklayer.cpp 25702 2013-03-07 17:17:54Z martinl $");
+CPL_CVSID("$Id: ogrvfklayer.cpp 26596 2013-11-08 17:59:47Z martinl $");
 
 /*!
   \brief OGRVFKLayer constructor
@@ -87,6 +87,7 @@ OGRVFKLayer::OGRVFKLayer(const char *pszName,
 
     /* feature definition */
     poFeatureDefn = new OGRFeatureDefn(pszName);
+    poFeatureDefn->GetGeomFieldDefn(0)->SetSpatialRef(poSRS);
 
     poFeatureDefn->Reference();
     poFeatureDefn->SetGeomType(eReqType);
@@ -145,14 +146,6 @@ OGRGeometry *OGRVFKLayer::CreateGeometry(IVFKFeature * poVfkFeature)
 }
 
 /*!
-  \brief Get spatial reference information
-*/
-OGRSpatialReference *OGRVFKLayer::GetSpatialRef()
-{
-    return poSRS;
-}
-
-/*!
   \brief Get feature count
 
   This method overwrites OGRLayer::GetFeatureCount(), 
@@ -165,15 +158,13 @@ int OGRVFKLayer::GetFeatureCount(int bForce)
 {
     int nfeatures;
 
-    if(!bForce)
-        return -1;
-    
-    if (m_poFilterGeom || m_poAttrQuery)
+    if (m_poFilterGeom || m_poAttrQuery || bForce)
         nfeatures = OGRLayer::GetFeatureCount(bForce);
     else
         nfeatures = poDataBlock->GetFeatureCount();
     
-    CPLDebug("OGR_VFK", "OGRVFKLayer::GetFeatureCount(): n=%d", nfeatures);
+    CPLDebug("OGR-VFK", "OGRVFKLayer::GetFeatureCount(): name=%s -> n=%d",
+             GetName(), nfeatures);
     
     return nfeatures;
 }
@@ -234,7 +225,7 @@ OGRFeature *OGRVFKLayer::GetFeature(long nFID)
         return NULL;
 
     CPLAssert(nFID == poVFKFeature->GetFID());
-    CPLDebug("OGR_VFK", "OGRVFKLayer::GetFeature(): fid=%ld", nFID);
+    CPLDebug("OGR-VFK", "OGRVFKLayer::GetFeature(): name=%s fid=%ld", GetName(), nFID);
     
     return GetFeature(poVFKFeature);
 }

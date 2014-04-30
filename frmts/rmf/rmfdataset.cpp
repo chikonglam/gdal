@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: rmfdataset.cpp 24731 2012-08-03 17:02:56Z rouault $
+ * $Id: rmfdataset.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  Raster Matrix Format
  * Purpose:  Read/write raster files used in GIS "Integratsia"
@@ -8,6 +8,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2005, Andrey Kiselev <dron@ak4719.spb.edu>
+ * Copyright (c) 2007-2012, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -32,7 +33,7 @@
 
 #include "rmfdataset.h"
 
-CPL_CVSID("$Id: rmfdataset.cpp 24731 2012-08-03 17:02:56Z rouault $");
+CPL_CVSID("$Id: rmfdataset.cpp 27044 2014-03-16 23:41:27Z rouault $");
 
 CPL_C_START
 void    GDALRegister_RMF(void);

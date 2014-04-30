@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_mem.h 25311 2012-12-15 12:48:14Z rouault $
+ * $Id: ogr_mem.h 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Private definitions within the OGR Memory driver.
@@ -7,6 +7,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2003, Frank Warmerdam <warmerdam@pobox.com>
+ * Copyright (c) 2011-2013, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -38,7 +39,6 @@
 
 class OGRMemLayer : public OGRLayer
 {
-    OGRSpatialReference *poSRS;
     OGRFeatureDefn     *poFeatureDefn;
     
     int                 nFeatureCount;
@@ -77,9 +77,9 @@ class OGRMemLayer : public OGRLayer
     virtual OGRErr      DeleteField( int iField );
     virtual OGRErr      ReorderFields( int* panMap );
     virtual OGRErr      AlterFieldDefn( int iField, OGRFieldDefn* poNewFieldDefn, int nFlags );
+    virtual OGRErr      CreateGeomField( OGRGeomFieldDefn *poGeomField,
+                                         int bApproxOK = TRUE );
 
-    virtual OGRSpatialReference *GetSpatialRef();
-    
     int                 TestCapability( const char * );
 
     void                SetUpdatable(int bUpdatableIn) { bUpdatable = bUpdatableIn; }

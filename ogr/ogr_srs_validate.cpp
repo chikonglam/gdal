@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_srs_validate.cpp 24323 2012-04-27 05:45:18Z warmerdam $
+ * $Id: ogr_srs_validate.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implementation of the OGRSpatialReference::Validate() method and
@@ -8,6 +8,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2001, Frank Warmerdam <warmerdam@pobox.com>
+ * Copyright (c) 2008-2013, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -30,8 +31,9 @@
 
 #include "ogr_spatialref.h"
 #include "ogr_p.h"
+#include "osr_cs_wkt.h"
 
-CPL_CVSID("$Id: ogr_srs_validate.cpp 24323 2012-04-27 05:45:18Z warmerdam $");
+CPL_CVSID("$Id: ogr_srs_validate.cpp 27044 2014-03-16 23:41:27Z rouault $");
 
 /* why would fipszone and zone be paramers when they relate to a composite
    projection which renders done into a non-zoned projection? */
@@ -567,7 +569,36 @@ OGRErr OGRSpatialReference::Validate()
         return OGRERR_CORRUPT_DATA;
     }
 
-    return Validate(poRoot);
+    OGRErr eErr = Validate(poRoot);
+
+    /* Even if hand-validation has succeeded, try a more formal validation */
+    /* using the CT spec grammar */
+    static int bUseCTGrammar = -1;
+    if( bUseCTGrammar < 0 )
+        bUseCTGrammar = CSLTestBoolean(CPLGetConfigOption("OSR_USE_CT_GRAMMAR", "TRUE"));
+
+    if( eErr == OGRERR_NONE && bUseCTGrammar )
+    {
+        osr_cs_wkt_parse_context sContext;
+        char* pszWKT = NULL;
+
+        exportToWkt(&pszWKT);
+
+        sContext.pszInput = pszWKT;
+        sContext.pszLastSuccess = pszWKT;
+        sContext.pszNext = pszWKT;
+        sContext.szErrorMsg[0] = '\0';
+
+        if( osr_cs_wkt_parse(&sContext) != 0 )
+        {
+            CPLDebug( "OGRSpatialReference::Validate", "%s",
+                      sContext.szErrorMsg );
+            eErr = OGRERR_CORRUPT_DATA;
+        }
+
+        CPLFree(pszWKT);
+    }
+    return eErr;
 }
 
 
@@ -614,6 +645,11 @@ OGRErr OGRSpatialReference::Validate(OGR_SRSNode *poRoot)
                 OGRErr eErr = ValidateAuthority(poNode);
                 if (eErr != OGRERR_NONE)
                     return eErr;
+            }
+            else if( EQUAL(poNode->GetValue(),"EXTENSION") )
+            {
+                // We do not try to control the sub-organization of 
+                // EXTENSION nodes.
             }
             else
             {
@@ -1057,6 +1093,11 @@ OGRErr OGRSpatialReference::Validate(OGR_SRSNode *poRoot)
                               poNode->GetChildCount() );
                     return OGRERR_CORRUPT_DATA;
                 }
+            }
+            else if( EQUAL(poNode->GetValue(),"EXTENSION") )
+            {
+                // We do not try to control the sub-organization of 
+                // EXTENSION nodes.
             }
             else
             {

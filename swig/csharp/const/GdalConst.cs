@@ -122,6 +122,9 @@ public class GdalConst {
   public static readonly int GARIO_UPDATE = GdalConstPINVOKE.GARIO_UPDATE_get();
   public static readonly int GARIO_ERROR = GdalConstPINVOKE.GARIO_ERROR_get();
   public static readonly int GARIO_COMPLETE = GdalConstPINVOKE.GARIO_COMPLETE_get();
+  public static readonly int GTO_TIP = GdalConstPINVOKE.GTO_TIP_get();
+  public static readonly int GTO_BIT = GdalConstPINVOKE.GTO_BIT_get();
+  public static readonly int GTO_BSQ = GdalConstPINVOKE.GTO_BSQ_get();
 }
 
 }

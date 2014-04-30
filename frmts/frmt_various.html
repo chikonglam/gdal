@@ -24,7 +24,8 @@ It is normally produced with the Arc/Info ASCIIGRID command.</p>
 limited.  Additional sample .prj files may be sent to the maintainer,
 <a href="mailto:warmerdam@pobox.com">warmerdam@pobox.com</a>.</p>
 
-<p>The NODATA value for the grid read is also preserved when available.
+<p>The NODATA value for the grid read is also preserved when available in the
+same format as the band data.
 </p>
 
 <p>By default, the datatype returned for AAIGRID datasets by GDAL is autodetected,
@@ -41,11 +42,13 @@ ascii grid reading programs.  For force the X pixel size to be used as CELLSIZE
 use the FORCE_CELLSIZE=YES creation option or resample the input to have 
 square pixels.</p>
 
-<p>When writing floating-point values, the driver uses the "%6.20g" format
+<p>When writing floating-point values, the driver uses the "%.20g" format
 pattern as a default. You can consult a <a href="http://en.wikipedia.org/wiki/Printf">
 reference manual</a> for printf to have an idea of the exact behaviour of this ;-).
 You can alternatively specify the number of decimal places with the DECIMAL_PRECISION creation
-option. For example, DECIMAL_PRECISION=3 will output numbers with 3 decimal places.</p>
+option. For example, DECIMAL_PRECISION=3 will output numbers with 3 decimal
+places(using %lf format).  Starting with GDAL 1.11, another option is
+SIGNIFICANT_DIGITS=3, which will output 3 significant digits (using %g format).</p>
 
 <p>The <a href="#AIG">AIG</a> driver is also available
 for Arc/Info Binary Grid format.</p>
@@ -672,6 +675,22 @@ Institute (GSI) Web Site.</a></p>
 
 <!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
 
+<h2><a name="KRO">KRO -- KOLOR Raw format</a></h2>
+
+<p>(GDAL >= 1.11)</p>
+
+<p>Supported for read access, update and creation.
+This format is a binary raw format, that supports data of several depths (
+8 bit, unsigned integer 16 bit and floating point 32 bit) and with several band
+number (3 or 4 typically, for RGB and RGBA). There is no file size limit,
+except the limitation of the file system.</p>
+
+<p><a href="http://www.autopano.net/wiki-en/Format_KRO">Specification of the format</a></p>
+
+<p>NOTE: Implemented as <tt>gdal/frmts/raw/krodataset.cpp</tt>.</p>
+
+<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+
 <h2><a name="LAN">LAN -- Erdas 7.x .LAN and .GIS</a></h2>
 
 <p>GDAL supports reading and writing
@@ -924,6 +943,23 @@ pixel types other than 16bit unsigned will be written as eight bit.</p>
 <p>Starting with GDAL 1.9.0, XMP metadata can be extracted from the file, and will be
 stored as XML raw content in the xml:XMP metadata domain.</p>
 
+<h2>Color Profile Metadata</h2>
+
+<p>Starting with GDAL 1.11, GDAL can deal with the following color profile metadata in the COLOR_PROFILE domain:</p>
+<ul>
+<li>SOURCE_ICC_PROFILE (Base64 encoded ICC profile embedded in file. If available, other tags are ignored.)</li>
+<li>SOURCE_ICC_PROFILE_NAME : ICC profile name. sRGB is recognized as a special value.</li>
+<li>SOURCE_PRIMARIES_RED (xyY in "x,y,1" format for red primary.)</li>
+<li>SOURCE_PRIMARIES_GREEN (xyY in "x,y,1" format for green primary)</li>
+<li>SOURCE_PRIMARIES_BLUE (xyY in "x,y,1" format for blue primary)</li>
+<li>SOURCE_WHITEPOINT (xyY in "x,y,1" format for whitepoint)</li>
+<li>PNG_GAMMA</li>
+</ul>
+
+<p>Note that these metadata properties can only be used on the original raw pixel data. If automatic conversion to RGB has been done, the color profile information cannot be used.</p>
+
+<p>All these metadata tags can be used as creation options.</p>
+
 <p>Creation Options:</p>
 
 <ul>
@@ -1172,6 +1208,9 @@ file with a common basename.  The .IMG file should be selected to access the dat
 system) products are single band images with a palette and georeferencing.
 </p>
 
+<p>Starting with GDAL 1.11, the Transmission Header File (.THF) can also be used as an input to GDAL. If the THF references more than one image,
+GDAL will report the images it is composed of as subdatasets. If the THF references just one image, GDAL will open it directly.</p>
+
 <p>NOTE: Implemented as <tt>gdal/frmts/adrg/srpdataset.cpp</tt>.</p>
 
 <!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
@@ -1286,7 +1325,7 @@ as reported by GDAL will be a half-pixel at the top and left of the values that 
 </p>
 
 <p>
-$Id: frmt_various.html 25803 2013-03-25 18:45:55Z rouault $
+$Id: frmt_various.html 27110 2014-03-28 21:29:20Z rouault $
 </p>
 
 </body>

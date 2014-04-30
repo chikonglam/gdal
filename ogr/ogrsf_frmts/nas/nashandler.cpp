@@ -1,5 +1,5 @@
 /**********************************************************************
- * $Id: nashandler.cpp 25656 2013-02-19 15:40:20Z ilucena $
+ * $Id: nashandler.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  NAS Reader
  * Purpose:  Implementation of NASHandler class.
@@ -7,6 +7,7 @@
  *
  **********************************************************************
  * Copyright (c) 2002, Frank Warmerdam
+ * Copyright (c) 2010-2012, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),

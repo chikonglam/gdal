@@ -1,12 +1,12 @@
 /******************************************************************************
- * $Id: ogropenairlayer.cpp 20996 2010-10-28 18:38:15Z rouault $
+ * $Id: ogropenairlayer.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  OpenAir Translator
  * Purpose:  Implements OGROpenAirLayer class.
  * Author:   Even Rouault, <even dot rouault at mines dash paris dot org>
  *
  ******************************************************************************
- * Copyright (c) 2010, Even Rouault <even dot rouault at mines dash paris dot org>
+ * Copyright (c) 2010-2013, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -34,7 +34,7 @@
 #include "ogr_xplane_geo_utils.h"
 #include "ogr_srs_api.h"
 
-CPL_CVSID("$Id: ogropenairlayer.cpp 20996 2010-10-28 18:38:15Z rouault $");
+CPL_CVSID("$Id: ogropenairlayer.cpp 27044 2014-03-16 23:41:27Z rouault $");
 
 /************************************************************************/
 /*                         OGROpenAirLayer()                            */
@@ -53,6 +53,7 @@ OGROpenAirLayer::OGROpenAirLayer( VSILFILE* fp )
     poFeatureDefn = new OGRFeatureDefn( "airspaces" );
     poFeatureDefn->Reference();
     poFeatureDefn->SetGeomType( wkbPolygon );
+    poFeatureDefn->GetGeomFieldDefn(0)->SetSpatialRef(poSRS);
 
     OGRFieldDefn    oField1( "CLASS", OFTString);
     poFeatureDefn->AddFieldDefn( &oField1 );

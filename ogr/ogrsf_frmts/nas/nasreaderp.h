@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: nasreaderp.h 25120 2012-10-13 22:38:57Z rouault $
+ * $Id: nasreaderp.h 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  NAS Reader
  * Purpose:  Private Declarations for OGR NAS Reader code.
@@ -7,6 +7,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2008, Frank Warmerdam
+ * Copyright (c) 2010-2013, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -180,7 +181,7 @@ public:
     int              LoadClasses( const char *pszFile = NULL );
     int              SaveClasses( const char *pszFile = NULL );
 
-    int              PrescanForSchema(int bGetExtents = TRUE );
+    int              PrescanForSchema(int bGetExtents = TRUE, int bAnalyzeSRSPerFeature = TRUE );
     int              PrescanForTemplate( void );
     void             ResetReading();
 
@@ -222,6 +223,8 @@ public:
 
     int         SetFilteredClassName(const char* pszClassName);
     const char* GetFilteredClassName() { return m_pszFilteredClassName; }
+
+    static void* hMutex;
 };
 
 #endif /* _CPL_NASREADERP_H_INCLUDED */

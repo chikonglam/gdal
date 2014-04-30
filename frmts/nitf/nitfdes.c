@@ -1,12 +1,12 @@
 /******************************************************************************
- * $Id: nitfdes.c 24916 2012-09-05 21:30:41Z hobu $
+ * $Id: nitfdes.c 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  NITF Read/Write Library
  * Purpose:  Module responsible for implementation of DE segments.
  * Author:   Even Rouault, <even dot rouault at mines dash paris dot org>
  *
  **********************************************************************
- * Copyright (c) 2010, Even Rouault <even dot rouault at mines dash paris dot org>
+ * Copyright (c) 2010-2011, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -33,7 +33,7 @@
 #include "cpl_conv.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: nitfdes.c 24916 2012-09-05 21:30:41Z hobu $");
+CPL_CVSID("$Id: nitfdes.c 27044 2014-03-16 23:41:27Z rouault $");
 
 /************************************************************************/
 /*                          NITFDESAccess()                             */

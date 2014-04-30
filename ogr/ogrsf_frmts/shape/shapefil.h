@@ -2,7 +2,7 @@
 #define SHAPEFILE_H_INCLUDED
 
 /******************************************************************************
- * $Id: shapefil.h 24607 2012-06-24 19:18:48Z rouault $
+ * $Id: shapefil.h 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  Shapelib
  * Purpose:  Primary include file for Shapelib.
@@ -10,6 +10,7 @@
  *
  ******************************************************************************
  * Copyright (c) 1999, Frank Warmerdam
+ * Copyright (c) 2012-2013, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * This software is available under the following "MIT Style" license,
  * or at the option of the licensee under the LGPL (see LICENSE.LGPL).  This
@@ -273,7 +274,9 @@ void SHPAPI_CALL SASetupUtf8Hooks( SAHooks *psHooks );
 /************************************************************************/
 /*                             SHP Support.                             */
 /************************************************************************/
-typedef	struct
+typedef struct tagSHPObject SHPObject;
+
+typedef struct
 {
     SAHooks sHooks;
 
@@ -296,6 +299,11 @@ typedef	struct
 
     unsigned char *pabyRec;
     int         nBufSize;
+    
+    int            bFastModeReadObject;
+    unsigned char *pabyObjectBuf;
+    int            nObjectBufSize;
+    SHPObject*     psCachedObject;
 } SHPInfo;
 
 typedef SHPInfo * SHPHandle;
@@ -335,7 +343,7 @@ typedef SHPInfo * SHPHandle;
 /*      SHPObject - represents on shape (without attributes) read       */
 /*      from the .shp file.                                             */
 /* -------------------------------------------------------------------- */
-typedef struct
+struct tagSHPObject
 {
     int		nSHPType;
 
@@ -362,7 +370,8 @@ typedef struct
     double	dfMMax;
 
     int		bMeasureIsUsed;
-} SHPObject;
+    int     bFastModeReadObject;
+};
 
 /* -------------------------------------------------------------------- */
 /*      SHP API Prototypes                                              */
@@ -375,6 +384,13 @@ SHPHandle SHPAPI_CALL
 SHPHandle SHPAPI_CALL
       SHPOpenLL( const char *pszShapeFile, const char *pszAccess, 
                  SAHooks *psHooks );
+
+/* If setting bFastMode = TRUE, the content of SHPReadObject() is owned by the SHPHandle. */
+/* So you cannot have 2 valid instances of SHPReadObject() simultaneously. */
+/* The SHPObject padfZ and padfM members may be NULL depending on the geometry */
+/* type. It is illegal to free at hand any of the pointer members of the SHPObject structure */
+void SHPAPI_CALL SHPSetFastModeReadObject( SHPHandle hSHP, int bFastMode );
+
 SHPHandle SHPAPI_CALL
       SHPCreate( const char * pszShapeFile, int nShapeType );
 SHPHandle SHPAPI_CALL
@@ -559,7 +575,11 @@ typedef	struct
     int		bNoHeader;
     int		bUpdated;
 
-    double      dfDoubleField;
+    union
+    {
+        double      dfDoubleField;
+        int         nIntField;
+    } fieldValue;
 
     int         iLanguageDriver;
     char        *pszCodePage;

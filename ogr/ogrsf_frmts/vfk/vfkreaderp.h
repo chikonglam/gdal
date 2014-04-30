@@ -1,12 +1,12 @@
 /******************************************************************************
- * $Id: vfkreaderp.h 25703 2013-03-07 18:23:48Z martinl $
+ * $Id: vfkreaderp.h 26911 2014-02-01 11:46:09Z martinl $
  *
  * Project:  VFK Reader
  * Purpose:  Private Declarations for OGR free VFK Reader code.
  * Author:   Martin Landa, landa.martin gmail.com
  *
  ******************************************************************************
- * Copyright (c) 2009-2010, 2012, Martin Landa <landa.martin gmail.com>
+ * Copyright (c) 2009-2010, 2012-2013, Martin Landa <landa.martin gmail.com>
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -53,9 +53,6 @@ private:
     FILE          *m_poFD;
     char          *ReadLine(bool = FALSE);
     
-    /* metadata */
-    std::map<CPLString, CPLString> poInfo;
-    
     void          AddInfo(const char *);
 
 protected:
@@ -67,14 +64,18 @@ protected:
     void            AddDataBlock(IVFKDataBlock *, const char *);
     OGRErr          AddFeature(IVFKDataBlock *, VFKFeature *);
 
+    /* metadata */
+    std::map<CPLString, CPLString> poInfo;
+    
 public:
     VFKReader(const char *);
     virtual ~VFKReader();
 
     bool           IsLatin2() const { return m_bLatin2; }
     bool           IsSpatial() const { return FALSE; }
+    bool           IsPreProcessed() const { return FALSE; }
     int            ReadDataBlocks();
-    int            ReadDataRecords(IVFKDataBlock *);
+    int            ReadDataRecords(IVFKDataBlock * = NULL);
     int            LoadGeometry();
     
     int            GetDataBlockCount() const { return m_nDataBlockCount; }
@@ -91,12 +92,16 @@ public:
 class VFKReaderSQLite : public VFKReader 
 {
 private:
+    char          *m_pszDBname;
     sqlite3       *m_poDB;
     bool           m_bSpatial;
+    bool           m_bNewDb;
 
     IVFKDataBlock *CreateDataBlock(const char *);
     void           AddDataBlock(IVFKDataBlock *, const char *);
     OGRErr         AddFeature(IVFKDataBlock *, VFKFeature *);
+
+    void           StoreInfo2DB();
 
     void           CreateIndex(const char *, const char *, const char *, bool = TRUE);
     
@@ -106,8 +111,9 @@ public:
     virtual ~VFKReaderSQLite();
 
     bool          IsSpatial() const { return m_bSpatial; }
+    bool          IsPreProcessed() const { return !m_bNewDb; }
     int           ReadDataBlocks();
-    int           ReadDataRecords(IVFKDataBlock *);
+    int           ReadDataRecords(IVFKDataBlock * = NULL);
 
     sqlite3_stmt *PrepareStatement(const char *);
     OGRErr        ExecuteSQL(const char *, bool = FALSE);

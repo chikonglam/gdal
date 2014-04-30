@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ecwdataset.cpp 26371 2013-08-26 18:42:34Z rouault $
+ * $Id: ecwdataset.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  GDAL 
  * Purpose:  ECW (ERDAS Wavelet Compression Format) Driver
@@ -7,6 +7,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2001, Frank Warmerdam <warmerdam@pobox.com>
+ * Copyright (c) 2007-2013, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -33,7 +34,7 @@
 #include "ogr_api.h"
 #include "ogr_geometry.h"
 
-CPL_CVSID("$Id: ecwdataset.cpp 26371 2013-08-26 18:42:34Z rouault $");
+CPL_CVSID("$Id: ecwdataset.cpp 27044 2014-03-16 23:41:27Z rouault $");
 
 #undef NOISY_DEBUG
 
@@ -908,22 +909,11 @@ ECWDataset::ECWDataset(int bIsJPEG2000)
 {
     this->bIsJPEG2000 = bIsJPEG2000;
     bUsingCustomStream = FALSE;
-    pszProjection = NULL;
     poFileView = NULL;
     bWinActive = FALSE;
     panWinBandList = NULL;
     eRasterDataType = GDT_Byte;
-    nGCPCount = 0;
-    pasGCPList = NULL;
     papszGMLMetadata = NULL;
-    
-    bGeoTransformValid = FALSE;
-    adfGeoTransform[0] = 0.0;
-    adfGeoTransform[1] = 1.0;
-    adfGeoTransform[2] = 0.0;
-    adfGeoTransform[3] = 0.0;
-    adfGeoTransform[4] = 0.0;
-    adfGeoTransform[5] = 1.0;
 
     bHdrDirty = FALSE;
     bGeoTransformChanged = FALSE;
@@ -994,8 +984,30 @@ ECWDataset::~ECWDataset()
     // to avoid an issue with the ECW SDK 3.3 where the destructor of CNCSJP2File::CNCSJP2FileVector CNCSJP2File::sm_Files;
     // static ressource allocated in NCJP2File.cpp can be called before GDALDestroy(), causing
     // ECW SDK resources ( CNCSJP2File files ) to be closed before we get here.
-    if( poFileView != NULL &&
-        (!bIsJPEG2000 || !GDALIsInGlobalDestructor()) )
+    //
+    // We also have an issue with ECW SDK 5.0 and ECW files on Linux when
+    // running a multi-threaded test under Java if there's still an ECW dataset
+    // not explicitely closed at process termination.
+    /*  #0  0x00007fffb26e7a80 in NCSAtomicAdd64 () from /home/even/ecwjp2_sdk/redistributable/x64/libNCSEcw.so
+        #1  0x00007fffb2aa7684 in NCS::SDK::CBuffer2D::Free() () from /home/even/ecwjp2_sdk/redistributable/x64/libNCSEcw.so
+        #2  0x00007fffb2aa7727 in NCS::SDK::CBuffer2D::~CBuffer2D() () from /home/even/ecwjp2_sdk/redistributable/x64/libNCSEcw.so
+        #3  0x00007fffb29aa7be in NCS::ECW::CReader::~CReader() () from /home/even/ecwjp2_sdk/redistributable/x64/libNCSEcw.so
+        #4  0x00007fffb29aa819 in NCS::ECW::CReader::~CReader() () from /home/even/ecwjp2_sdk/redistributable/x64/libNCSEcw.so
+        #5  0x00007fffb291fd3a in NCS::CView::Close(bool) () from /home/even/ecwjp2_sdk/redistributable/x64/libNCSEcw.so
+        #6  0x00007fffb2927529 in NCS::CView::~CView() () from /home/even/ecwjp2_sdk/redistributable/x64/libNCSEcw.so
+        #7  0x00007fffb29277f9 in NCS::CView::~CView() () from /home/even/ecwjp2_sdk/redistributable/x64/libNCSEcw.so
+        #8  0x00007fffb71a9a53 in ECWDataset::~ECWDataset (this=0x7fff942cce10, __in_chrg=<optimized out>) at ecwdataset.cpp:1003
+        #9  0x00007fffb71a9cca in ECWDataset::~ECWDataset (this=0x7fff942cce10, __in_chrg=<optimized out>) at ecwdataset.cpp:1039
+        #10 0x00007fffb7551f98 in GDALDriverManager::~GDALDriverManager (this=0x7ffff01981a0, __in_chrg=<optimized out>) at gdaldrivermanager.cpp:196
+        #11 0x00007fffb7552140 in GDALDriverManager::~GDALDriverManager (this=0x7ffff01981a0, __in_chrg=<optimized out>) at gdaldrivermanager.cpp:288
+        #12 0x00007fffb7552e18 in GDALDestroyDriverManager () at gdaldrivermanager.cpp:824
+        #13 0x00007fffb7551c61 in GDALDestroy () at gdaldllmain.cpp:80
+        #14 0x00007ffff7de990e in _dl_fini () at dl-fini.c:254
+    */
+    // Not replicable with similar test in C++, but this might be just a matter of luck related
+    // to the order in which the libraries are unloaded, so just don't try
+    // to delete poFileView from the GDAL destructor.
+    if( poFileView != NULL && !GDALIsInGlobalDestructor() )
     {
         VSIIOStream *poUnderlyingIOStream = (VSIIOStream *)NULL;
 
@@ -1026,14 +1038,7 @@ ECWDataset::~ECWDataset()
     }
 #endif 
 
-    CPLFree( pszProjection );
     CSLDestroy( papszGMLMetadata );
-
-    if( nGCPCount > 0 )
-    {
-        GDALDeinitGCPs( nGCPCount, pasGCPList );
-        CPLFree( pasGCPList );
-    }
 
     CPLFree(sCachedMultiBandIO.pabyData);
 }
@@ -1479,6 +1484,26 @@ CPLErr ECWDataset::AdviseRead( int nXOff, int nYOff, int nXSize, int nYSize,
 #endif
 
 /* -------------------------------------------------------------------- */
+/*      Do some validation of parameters.                               */
+/* -------------------------------------------------------------------- */
+
+    CPLErr eErr;
+    int bStopProcessing = FALSE;
+    eErr = ValidateRasterIOOrAdviseReadParameters( "AdviseRead()", &bStopProcessing,
+                                                    nXOff, nYOff, nXSize, nYSize,
+                                                    nBufXSize, nBufYSize, 
+                                                    nBandCount, panBandList);
+    if( eErr != CE_None || bStopProcessing )
+        return eErr;
+    
+    if( nBandCount > 100 )
+    {
+        ReportError( CE_Failure, CPLE_IllegalArg,
+                     "AdviseRead(): Too many bands : %d", nBandCount);
+        return CE_Failure;
+    }
+
+/* -------------------------------------------------------------------- */
 /*      Adjust band numbers to be zero based.                           */
 /* -------------------------------------------------------------------- */
     panAdjustedBandList = (int *) 
@@ -1486,10 +1511,9 @@ CPLErr ECWDataset::AdviseRead( int nXOff, int nYOff, int nXSize, int nYSize,
     nBandIndexToPromoteTo8Bit = -1;
     for( int ii= 0; ii < nBandCount; ii++ )
     {
-        if( ((ECWRasterBand*)GetRasterBand(panBandList[ii]))->bPromoteTo8Bit )
+        panAdjustedBandList[ii] = (panBandList != NULL) ? panBandList[ii] - 1 : ii;
+        if( ((ECWRasterBand*)GetRasterBand(panAdjustedBandList[ii] + 1))->bPromoteTo8Bit )
             nBandIndexToPromoteTo8Bit = ii;
-
-        panAdjustedBandList[ii] = panBandList[ii] - 1;
     }
 
 /* -------------------------------------------------------------------- */
@@ -1529,7 +1553,15 @@ CPLErr ECWDataset::AdviseRead( int nXOff, int nYOff, int nXSize, int nYSize,
     nWinBufYSize = nBufYSize;
 
     panWinBandList = (int *) CPLMalloc(sizeof(int)*nBandCount);
-    memcpy( panWinBandList, panBandList, sizeof(int)* nBandCount);
+    if( panBandList != NULL )
+        memcpy( panWinBandList, panBandList, sizeof(int)* nBandCount);
+    else
+    {
+        for( int ii= 0; ii < nBandCount; ii++ )
+        {
+            panWinBandList[ii] = ii + 1;
+        }
+    }
     nWinBandCount = nBandCount;
 
     nWinBufLoaded = -1;
@@ -1809,7 +1841,7 @@ CPLErr ECWDataset::IRasterIO( GDALRWFlag eRWFlag,
                                     (*panBandMap - 1) * nBufXSize * nBufYSize * nDataTypeSize +
                                     j * nBufXSize * nDataTypeSize,
                             eBufType, nDataTypeSize,
-                            ((GByte*)pData) + j * nLineSpace, eBufType, nDataTypeSize,
+                            ((GByte*)pData) + j * nLineSpace, eBufType, nPixelSpace,
                             nBufXSize);
             }
             return CE_None;
@@ -1973,7 +2005,7 @@ CPLErr ECWDataset::IRasterIO( GDALRWFlag eRWFlag,
                 GDALCopyWords(sCachedMultiBandIO.pabyData +
                                     j * nBufXSize * nDataTypeSize,
                               eBufType, nDataTypeSize,
-                              ((GByte*)pData) + j * nLineSpace, eBufType, nDataTypeSize,
+                              ((GByte*)pData) + j * nLineSpace, eBufType, nPixelSpace,
                               nBufXSize);
             }
             return CE_None;
@@ -2472,31 +2504,25 @@ GDALDataset *ECWDataset::Open( GDALOpenInfo * poOpenInfo, int bIsJPEG2000 )
 /* -------------------------------------------------------------------- */
     if( bIsJPEG2000 )
     {
-        GDALJP2Metadata oJP2Geo;
-        if ( oJP2Geo.ReadAndParse( osFilename ) )
-        {
-            poDS->pszProjection = CPLStrdup(oJP2Geo.pszProjection);
-            poDS->bGeoTransformValid = oJP2Geo.bHaveGeoTransform;
-            memcpy( poDS->adfGeoTransform, oJP2Geo.adfGeoTransform,
-                    sizeof(double) * 6 );
-            poDS->nGCPCount = oJP2Geo.nGCPCount;
-            poDS->pasGCPList = oJP2Geo.pasGCPList;
-            oJP2Geo.pasGCPList = NULL;
-            oJP2Geo.nGCPCount = 0;
-        }
-
-        if (oJP2Geo.pszXMPMetadata)
-        {
-            char *apszMDList[2];
-            apszMDList[0] = (char *) oJP2Geo.pszXMPMetadata;
-            apszMDList[1] = NULL;
-            poDS->SetMetadata(apszMDList, "xml:XMP");
-        }
+        poDS->LoadJP2Metadata(poOpenInfo, osFilename);
     }
     else
     {
         poDS->ECW2WKTProjection();
-		
+
+    /* -------------------------------------------------------------------- */
+    /*      Check for world file.                                           */
+    /* -------------------------------------------------------------------- */
+        if( !poDS->bGeoTransformValid )
+        {
+            poDS->bGeoTransformValid |= 
+                GDALReadWorldFile2( osFilename, NULL,
+                                    poDS->adfGeoTransform,
+                                    poOpenInfo->papszSiblingFiles, NULL )
+                || GDALReadWorldFile2( osFilename, ".wld",
+                                    poDS->adfGeoTransform,
+                                    poOpenInfo->papszSiblingFiles, NULL );
+        }
     }
 
 	poDS->SetMetadataItem("COMPRESSION_RATE_TARGET", CPLString().Printf("%d", poDS->psFileInfo->nCompressionRate));
@@ -2515,20 +2541,6 @@ GDALDataset *ECWDataset::Open( GDALOpenInfo * poOpenInfo, int bIsJPEG2000 )
 #endif
 
 /* -------------------------------------------------------------------- */
-/*      Check for world file.                                           */
-/* -------------------------------------------------------------------- */
-    if( !poDS->bGeoTransformValid )
-    {
-        poDS->bGeoTransformValid |= 
-            GDALReadWorldFile2( osFilename, NULL,
-                                poDS->adfGeoTransform,
-                                poOpenInfo->papszSiblingFiles, NULL )
-            || GDALReadWorldFile2( osFilename, ".wld",
-                                   poDS->adfGeoTransform,
-                                   poOpenInfo->papszSiblingFiles, NULL );
-    }
-
-/* -------------------------------------------------------------------- */
 /*      Initialize any PAM information.                                 */
 /* -------------------------------------------------------------------- */
     poDS->SetDescription( osFilename );
@@ -2538,81 +2550,14 @@ GDALDataset *ECWDataset::Open( GDALOpenInfo * poOpenInfo, int bIsJPEG2000 )
 }
 
 /************************************************************************/
-/*                            GetGCPCount()                             */
+/*                      GetMetadataDomainList()                         */
 /************************************************************************/
 
-int ECWDataset::GetGCPCount()
-
+char **ECWDataset::GetMetadataDomainList()
 {
-    if( nGCPCount != 0 )
-        return nGCPCount;
-    else
-        return GDALPamDataset::GetGCPCount();
-}
-
-/************************************************************************/
-/*                          GetGCPProjection()                          */
-/************************************************************************/
-
-const char *ECWDataset::GetGCPProjection()
-
-{
-    if( nGCPCount > 0 )
-        return pszProjection;
-    else
-        return GDALPamDataset::GetGCPProjection();
-}
-
-/************************************************************************/
-/*                               GetGCP()                               */
-/************************************************************************/
-
-const GDAL_GCP *ECWDataset::GetGCPs()
-
-{
-    if( nGCPCount != 0 )
-        return pasGCPList;
-    else
-        return GDALPamDataset::GetGCPs();
-}
-
-/************************************************************************/
-/*                          GetProjectionRef()                          */
-/*                                                                      */
-/*      We let PAM coordinate system override the one stored inside     */
-/*      our file.                                                       */
-/************************************************************************/
-
-const char *ECWDataset::GetProjectionRef() 
-
-{
-    const char* pszPamPrj = GDALPamDataset::GetProjectionRef();
-
-    if( pszProjection != NULL && strlen(pszPamPrj) == 0 )
-        return pszProjection;
-    else
-        return pszPamPrj;
-}
-
-/************************************************************************/
-/*                          GetGeoTransform()                           */
-/*                                                                      */
-/*      Let the PAM geotransform override the native one if it is       */
-/*      available.                                                      */
-/************************************************************************/
-
-CPLErr ECWDataset::GetGeoTransform( double * padfTransform )
-
-{
-    CPLErr eErr = GDALPamDataset::GetGeoTransform( padfTransform );
-
-    if( eErr != CE_None && bGeoTransformValid )
-    {
-        memcpy( padfTransform, adfGeoTransform, sizeof(double) * 6 );
-        return( CE_None );
-    }
-    else
-        return eErr;
+    return BuildMetadataDomainList(GDALPamDataset::GetMetadataDomainList(),
+                                   TRUE,
+                                   "ECW", "GML", NULL);
 }
 
 /************************************************************************/

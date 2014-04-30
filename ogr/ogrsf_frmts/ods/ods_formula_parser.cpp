@@ -5,6 +5,7 @@
    
       Copyright (C) 1984, 1989, 1990, 2000, 2001, 2002, 2003, 2004, 2005, 2006
    Free Software Foundation, Inc.
+ * Copyright (c) 2012, Even Rouault <even dot rouault at mines-paris dot org>
    
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -79,7 +80,7 @@
 #line 1 "ods_formula_parser.y"
 
 /******************************************************************************
- * $Id: ods_formula_parser.cpp 23831 2012-01-30 23:12:23Z rouault $
+ * $Id: ods_formula_parser.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Component: OGR ODS Formula Engine
  * Purpose: expression and select parser grammar.

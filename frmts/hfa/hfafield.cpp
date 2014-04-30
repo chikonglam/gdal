@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: hfafield.cpp 26254 2013-07-31 19:49:54Z rouault $
+ * $Id: hfafield.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  Erdas Imagine (.img) Translator
  * Purpose:  Implementation of the HFAField class for managing information
@@ -8,6 +8,7 @@
  *
  ******************************************************************************
  * Copyright (c) 1999, Intergraph Corporation
+ * Copyright (c) 2009-2011, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -30,7 +31,7 @@
 
 #include "hfa_p.h"
 
-CPL_CVSID("$Id: hfafield.cpp 26254 2013-07-31 19:49:54Z rouault $");
+CPL_CVSID("$Id: hfafield.cpp 27044 2014-03-16 23:41:27Z rouault $");
 
 #define MAX_ENTRY_REPORT   16
                            
@@ -497,7 +498,12 @@ HFAField::SetInstValue( const char * pszField, int nIndexValue,
     else if( chReqType == 'd' )
     {
         dfDoubleValue = *((double *) pValue);
-        nIntValue = (int) dfDoubleValue;
+        if( dfDoubleValue > INT_MAX )
+            nIntValue = INT_MAX;
+        else if( dfDoubleValue < INT_MIN )
+            nIntValue = INT_MIN;
+        else
+            nIntValue = (int) dfDoubleValue;
     }
     else if( chReqType == 'i' )
     {
@@ -1045,6 +1051,36 @@ HFAField::ExtractInstValue( const char * pszField, int nIndexValue,
                   nIntRet = 0;
               }
           }
+          else if( nBaseItemType == EPT_u2 )
+          {
+              int nBitOffset = nIndexValue & 0x3;
+              int nByteOffset = nIndexValue >> 2;
+              int nMask = 0x3;
+
+              if (nByteOffset >= nDataSize)
+              {
+                  CPLError(CE_Failure, CPLE_AppDefined, "Buffer too small");
+                  return FALSE;
+              }
+
+              nIntRet = (pabyData[nByteOffset] >> nBitOffset) & nMask;
+              dfDoubleRet = nIntRet;
+          }
+          else if( nBaseItemType == EPT_u4 )
+          {
+              int nBitOffset = nIndexValue & 0x7;
+              int nByteOffset = nIndexValue >> 3;
+              int nMask = 0x7;
+
+              if (nByteOffset >= nDataSize)
+              {
+                  CPLError(CE_Failure, CPLE_AppDefined, "Buffer too small");
+                  return FALSE;
+              }
+
+              nIntRet = (pabyData[nByteOffset] >> nBitOffset) & nMask;
+              dfDoubleRet = nIntRet;
+          }
           else if( nBaseItemType == EPT_u8 )
           {
               if (nIndexValue >= nDataSize)
@@ -1147,7 +1183,12 @@ HFAField::ExtractInstValue( const char * pszField, int nIndexValue,
               HFAStandard( 8, &dfValue );
 
               dfDoubleRet = dfValue;
-              nIntRet = (int) dfValue;
+              if( dfDoubleRet > INT_MAX )
+                  nIntRet = INT_MAX;
+              else if( dfDoubleRet < INT_MIN )
+                  nIntRet = INT_MIN;
+              else
+                  nIntRet = (int) dfDoubleRet;
           }
           else
           {

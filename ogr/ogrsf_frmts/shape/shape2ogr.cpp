@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: shape2ogr.cpp 26116 2013-06-29 18:57:36Z rouault $
+ * $Id: shape2ogr.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implements translation of Shapefile shapes into OGR
@@ -8,6 +8,7 @@
  *
  ******************************************************************************
  * Copyright (c) 1999,  Les Technologies SoftMap Inc.
+ * Copyright (c) 2007-2013, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -31,7 +32,7 @@
 #include "ogrshape.h"
 #include "cpl_conv.h"
 
-CPL_CVSID("$Id: shape2ogr.cpp 26116 2013-06-29 18:57:36Z rouault $");
+CPL_CVSID("$Id: shape2ogr.cpp 27044 2014-03-16 23:41:27Z rouault $");
 
 /************************************************************************/
 /*                        RingStartEnd                                  */

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ntf.h 10645 2007-01-18 02:22:39Z warmerdam $
+ * $Id: ntf.h 26466 2013-09-14 09:07:46Z rouault $
  *
  * Project:  NTF Translator
  * Purpose:  Main declarations for NTF translator.
@@ -409,8 +409,6 @@ class OGRNTFLayer : public OGRLayer
     
     int                 TestCapability( const char * );
 
-    virtual OGRSpatialReference *GetSpatialRef();
-
     // special to NTF
     OGRFeature         *FeatureTranslate( NTFFileReader *, NTFRecord ** );
 };
@@ -484,8 +482,6 @@ class OGRNTFRasterLayer : public OGRLayer
     OGRFeatureDefn *    GetLayerDefn() { return poFeatureDefn; }
 
     int                 GetFeatureCount( int = TRUE );
-    
-    virtual OGRSpatialReference *GetSpatialRef();
     
     int                 TestCapability( const char * );
 };

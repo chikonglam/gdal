@@ -1,12 +1,12 @@
 /******************************************************************************
- * $Id: osm_parser.cpp 25926 2013-04-18 18:33:29Z rouault $
+ * $Id: osm_parser.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Author:   Even Rouault, <even dot rouault at mines dash paris dot org>
  * Purpose:  OSM XML and OSM PBF parser
  *
  ******************************************************************************
- * Copyright (c) 2012, Even Rouault, <even dot rouault at mines dash paris dot org>
+ * Copyright (c) 2012-2013, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -45,7 +45,7 @@
 
 #define XML_BUFSIZE 64*1024
 
-CPL_CVSID("$Id: osm_parser.cpp 25926 2013-04-18 18:33:29Z rouault $");
+CPL_CVSID("$Id: osm_parser.cpp 27044 2014-03-16 23:41:27Z rouault $");
 
 /************************************************************************/
 /*                            INIT_INFO()                               */
@@ -804,7 +804,11 @@ int ReadNode(GByte* pabyData, GByte* pabyDataLimit,
     OSMNode sNode;
 
     sNode.nID = 0;
+    sNode.dfLat = 0.0;
+    sNode.dfLon = 0.0;
     INIT_INFO(sNode.sInfo);
+    sNode.nTags = 0;
+    sNode.pasTags = NULL;
 
     /* printf(">ReadNode\n"); */
     while(pabyData < pabyDataLimit)

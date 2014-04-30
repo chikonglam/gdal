@@ -1,12 +1,12 @@
 /******************************************************************************
- * $Id: gmlutils.cpp 25727 2013-03-10 14:56:33Z rouault $
+ * $Id: gmlutils.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  GML Utils
  * Purpose:  GML reader
  * Author:   Even Rouault, <even dot rouault at mines dash paris dot org>
  *
  ******************************************************************************
- * Copyright (c) 2010, Even Rouault
+ * Copyright (c) 2010-2013, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),

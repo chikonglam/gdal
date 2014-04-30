@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_pgeo.h 21550 2011-01-22 18:01:57Z rouault $
+ * $Id: ogr_pgeo.h 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Private definitions for Personal Geodatabase driver.
@@ -7,6 +7,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2005, Frank Warmerdam <warmerdam@pobox.com>
+ * Copyright (c) 2009-2013, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -78,8 +79,6 @@ class OGRPGeoLayer : public OGRLayer
     virtual OGRFeature *GetFeature( long nFeatureId );
     
     OGRFeatureDefn *    GetLayerDefn() { return poFeatureDefn; }
-
-    virtual OGRSpatialReference *GetSpatialRef();
 
     virtual int         TestCapability( const char * );
 
@@ -194,18 +193,30 @@ class OGRPGeoDataSource : public OGRDataSource
 };
 
 /************************************************************************/
-/*                             OGRPGeoDriver                            */
+/*                           OGRODBCMDBDriver                           */
 /************************************************************************/
 
-class OGRPGeoDriver : public OGRSFDriver
+class OGRODBCMDBDriver : public OGRSFDriver
 {
+#ifndef WIN32
     CPLString   osDriverFile;
-
-    bool        InstallMdbDriver();
     bool        LibraryExists( const char* pszLibPath );
     bool        FindDriverLib();
     CPLString   FindDefaultLib(const char* pszLibName);
+#endif
 
+protected:
+#ifndef WIN32
+    bool        InstallMdbDriver();
+#endif
+};
+
+/************************************************************************/
+/*                             OGRPGeoDriver                            */
+/************************************************************************/
+
+class OGRPGeoDriver : public OGRODBCMDBDriver
+{
   public:
                 ~OGRPGeoDriver();
                 

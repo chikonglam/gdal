@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrtigerlayer.cpp 10645 2007-01-18 02:22:39Z warmerdam $
+ * $Id: ogrtigerlayer.cpp 26466 2013-09-14 09:07:46Z rouault $
  *
  * Project:  TIGER/Line Translator
  * Purpose:  Implements OGRTigerLayer class.
@@ -29,7 +29,7 @@
 
 #include "ogr_tiger.h"
 
-CPL_CVSID("$Id: ogrtigerlayer.cpp 10645 2007-01-18 02:22:39Z warmerdam $");
+CPL_CVSID("$Id: ogrtigerlayer.cpp 26466 2013-09-14 09:07:46Z rouault $");
 
 /************************************************************************/
 /*                           OGRTigerLayer()                            */
@@ -226,23 +226,19 @@ int OGRTigerLayer::TestCapability( const char * pszCap )
 }
 
 /************************************************************************/
-/*                           GetSpatialRef()                            */
-/************************************************************************/
-
-OGRSpatialReference *OGRTigerLayer::GetSpatialRef()
-
-{
-    return poDS->GetSpatialRef();
-}
-
-/************************************************************************/
 /*                            GetLayerDefn()                            */
 /************************************************************************/
 
 OGRFeatureDefn *OGRTigerLayer::GetLayerDefn()
 
 {
-    return poReader->GetFeatureDefn();
+    OGRFeatureDefn* poFDefn = poReader->GetFeatureDefn();
+    if( poFDefn != NULL )
+    {
+        if( poFDefn->GetGeomFieldCount() > 0 )
+            poFDefn->GetGeomFieldDefn(0)->SetSpatialRef(poDS->GetSpatialRef());
+    }
+    return poFDefn;
 }
 
 /************************************************************************/

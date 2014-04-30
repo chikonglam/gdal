@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: dteddataset.cpp 24517 2012-05-30 21:07:47Z rouault $
+ * $Id: dteddataset.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  DTED Translator
  * Purpose:  GDALDataset driver for DTED translator.
@@ -7,6 +7,7 @@
  *
  ******************************************************************************
  * Copyright (c) 1999, Frank Warmerdam
+ * Copyright (c) 2007-2012, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -30,8 +31,9 @@
 #include "dted_api.h"
 #include "gdal_pam.h"
 #include "ogr_spatialref.h"
+#include <algorithm>
 
-CPL_CVSID("$Id: dteddataset.cpp 24517 2012-05-30 21:07:47Z rouault $");
+CPL_CVSID("$Id: dteddataset.cpp 27044 2014-03-16 23:41:27Z rouault $");
 
 CPL_C_START
 void    GDALRegister_DTED(void);
@@ -136,21 +138,24 @@ CPLErr DTEDRasterBand::IReadBlock( int nBlockXOff, int nBlockYOff,
 
     if (nBlockXSize != 1)
     {
+        const int cbs = 32; // optimize for 64 byte cache line size
+        const int bsy = (nBlockYSize + cbs - 1) / cbs * cbs;
         panData = (GInt16 *) pImage;
-        GInt16* panBuffer = (GInt16*) CPLMalloc(sizeof(GInt16) * nBlockYSize);
-        int i;
-        for(i=0;i<nBlockXSize;i++)
-        {
-            if( !DTEDReadProfileEx( poDTED_DS->psDTED, i, panBuffer,
-                                    poDTED_DS->bVerifyChecksum ) )
-            {
-                CPLFree(panBuffer);
-                return CE_Failure;
+        GInt16* panBuffer = (GInt16*) CPLMalloc(sizeof(GInt16) * cbs * bsy);
+        for (int i = 0; i < nBlockXSize; i += cbs) {
+            int n = std::min(cbs, nBlockXSize - i);
+            for (int j = 0; j < n; ++j) {
+                if (!DTEDReadProfileEx(poDTED_DS->psDTED, i + j, panBuffer + j * bsy, poDTED_DS->bVerifyChecksum)) {
+                    CPLFree(panBuffer);
+                    return CE_Failure;
+                }
             }
-            int j;
-            for(j=0;j<nBlockYSize;j++)
-            {
-                panData[j * nBlockXSize + i] = panBuffer[nYSize - j - 1];
+            for (int y = 0; y < nBlockYSize; ++y) {
+                GInt16 *dst = panData + i + (nYSize - y - 1) * nBlockXSize;
+                GInt16 *src = panBuffer + y;
+                for (int j = 0; j < n; ++j) {
+                    dst[j] = src[j * bsy];
+                }
             }
         }
 
@@ -172,11 +177,7 @@ CPLErr DTEDRasterBand::IReadBlock( int nBlockXOff, int nBlockYOff,
 /* -------------------------------------------------------------------- */
     for( int i = nYSize/2; i >= 0; i-- )
     {
-        GInt16  nTemp;
-
-        nTemp = panData[i];
-        panData[i] = panData[nYSize - i - 1];
-        panData[nYSize - i - 1] = nTemp;
+        std::swap(panData[i], panData[nYSize - i - 1]);
     }
 
     return CE_None;

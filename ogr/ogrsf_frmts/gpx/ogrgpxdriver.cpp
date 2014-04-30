@@ -1,12 +1,12 @@
 /******************************************************************************
- * $Id: ogrgpxdriver.cpp 15805 2008-11-23 21:42:01Z rouault $
+ * $Id: ogrgpxdriver.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  GPX Translator
  * Purpose:  Implements OGRGPXDriver.
  * Author:   Even Rouault, even dot rouault at mines dash paris dot org
  *
  ******************************************************************************
- * Copyright (c) 2007, Even Rouault
+ * Copyright (c) 2007-2008, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -30,7 +30,7 @@
 #include "ogr_gpx.h"
 #include "cpl_conv.h"
 
-CPL_CVSID("$Id: ogrgpxdriver.cpp 15805 2008-11-23 21:42:01Z rouault $");
+CPL_CVSID("$Id: ogrgpxdriver.cpp 27044 2014-03-16 23:41:27Z rouault $");
 
 /************************************************************************/
 /*                           ~OGRGPXDriver()                            */

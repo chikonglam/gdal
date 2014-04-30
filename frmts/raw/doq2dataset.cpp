@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: doq2dataset.cpp 21717 2011-02-13 20:16:30Z rouault $
+ * $Id: doq2dataset.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  USGS DOQ Driver (Second Generation Format)
  * Purpose:  Implementation of DOQ2Dataset
@@ -7,6 +7,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2000, Derrick J Brashear
+ * Copyright (c) 2009-2011, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -30,7 +31,7 @@
 #include "rawdataset.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: doq2dataset.cpp 21717 2011-02-13 20:16:30Z rouault $");
+CPL_CVSID("$Id: doq2dataset.cpp 27044 2014-03-16 23:41:27Z rouault $");
 
 CPL_C_START
 void	GDALRegister_DOQ2(void);

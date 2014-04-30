@@ -466,6 +466,9 @@ SWIGINTERN int OSRSpatialReferenceShadow_IsVertical(OSRSpatialReferenceShadow *s
 SWIGINTERN int OSRSpatialReferenceShadow_EPSGTreatsAsLatLong(OSRSpatialReferenceShadow *self){
     return OSREPSGTreatsAsLatLong(self);
   }
+SWIGINTERN int OSRSpatialReferenceShadow_EPSGTreatsAsNorthingEasting(OSRSpatialReferenceShadow *self){
+    return OSREPSGTreatsAsNorthingEasting(self);
+  }
 SWIGINTERN OGRErr OSRSpatialReferenceShadow_SetAuthority(OSRSpatialReferenceShadow *self,char const *pszTargetKey,char const *pszAuthority,int nCode){
     return OSRSetAuthority( self, pszTargetKey, pszAuthority, nCode );
   }
@@ -1592,6 +1595,39 @@ SWIGEXPORT int SWIGSTDCALL CSharp_SpatialReference_EPSGTreatsAsLatLong(void * ja
   {
     CPLErrorReset();
     result = (int)OSRSpatialReferenceShadow_EPSGTreatsAsLatLong(arg1);
+    CPLErr eclass = CPLGetLastErrorType();
+    if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+      SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
+      
+      
+      
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+  }
+  jresult = result; 
+  return jresult;
+}
+
+
+SWIGEXPORT int SWIGSTDCALL CSharp_SpatialReference_EPSGTreatsAsNorthingEasting(void * jarg1) {
+  int jresult ;
+  OSRSpatialReferenceShadow *arg1 = (OSRSpatialReferenceShadow *) 0 ;
+  int result;
+  
+  arg1 = (OSRSpatialReferenceShadow *)jarg1; 
+  {
+    CPLErrorReset();
+    result = (int)OSRSpatialReferenceShadow_EPSGTreatsAsNorthingEasting(arg1);
     CPLErr eclass = CPLGetLastErrorType();
     if ( eclass == CE_Failure || eclass == CE_Fatal ) {
       SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());

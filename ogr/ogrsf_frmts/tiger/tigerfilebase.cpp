@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: tigerfilebase.cpp 23871 2012-02-02 03:24:07Z warmerdam $
+ * $Id: tigerfilebase.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  TIGER/Line Translator
  * Purpose:  Implements TigerBaseFile class, providing common services to all
@@ -8,6 +8,7 @@
  *
  ******************************************************************************
  * Copyright (c) 1999, Frank Warmerdam
+ * Copyright (c) 2009-2013, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -33,7 +34,7 @@
 #include "cpl_error.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: tigerfilebase.cpp 23871 2012-02-02 03:24:07Z warmerdam $");
+CPL_CVSID("$Id: tigerfilebase.cpp 27044 2014-03-16 23:41:27Z rouault $");
 
 /************************************************************************/
 /*                           TigerFileBase()                            */
@@ -341,7 +342,7 @@ int TigerFileBase::WritePoint( char *pachRecord, int nStart,
 
     if( dfX == 0.0 && dfY == 0.0 )
     {
-        strncpy( pachRecord + nStart - 1, "+000000000+00000000", 19 );
+        memcpy( pachRecord + nStart - 1, "+000000000+00000000", 19 );
     }
     else
     {

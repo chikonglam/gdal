@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gt_citation.cpp 25773 2013-03-20 20:13:40Z rouault $
+ * $Id: gt_citation.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  GeoTIFF Driver
  * Purpose:  Implements special parsing of Imagine citation strings, and
@@ -8,6 +8,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2008, Xiuguang Zhou (ESRI)
+ * Copyright (c) 2008-2013, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -34,7 +35,7 @@
 #include "geovalues.h"
 #include "gt_citation.h"
 
-CPL_CVSID("$Id: gt_citation.cpp 25773 2013-03-20 20:13:40Z rouault $");
+CPL_CVSID("$Id: gt_citation.cpp 27044 2014-03-16 23:41:27Z rouault $");
 
 static const char *apszUnitMap[] = {
     "meters", "1.0",
@@ -697,7 +698,7 @@ OGRBoolean CheckCitationKeyForStatePlaneUTM(GTIF* hGTIF, GTIFDefn* psDefn, OGRSp
 /*                                                                      */
 /*        Check utm proj code by its name.                              */
 /************************************************************************/
-void CheckUTM( GTIFDefn * psDefn, char * pszCtString )
+void CheckUTM( GTIFDefn * psDefn, const char * pszCtString )
 {
     if(!psDefn || !pszCtString)
         return;
@@ -716,19 +717,23 @@ void CheckUTM( GTIFDefn * psDefn, char * pszCtString )
         "PSAD56", "22S", "16122",
         NULL, NULL, NULL};
 
-    char* p = strstr(pszCtString, "Datum = ");
+    const char* p = strstr(pszCtString, "Datum = ");
     char datumName[128];
     if(p)
     {
         p += strlen("Datum = ");
-        char* p1 = strchr(p, '|');
-        if(p1)
+        const char* p1 = strchr(p, '|');
+        if(p1 && p1-p < (int)sizeof(datumName))
         {
             strncpy(datumName, p, (p1-p));
             datumName[p1-p] = '\0';
         }
         else
-            strcpy(datumName, p);
+            CPLStrlcpy(datumName, p, sizeof(datumName));
+    }
+    else
+    {
+        datumName[0] = '\0';
     }
 
     char utmName[64];
@@ -736,29 +741,30 @@ void CheckUTM( GTIFDefn * psDefn, char * pszCtString )
     if(p)
     {
         p += strlen("UTM Zone ");
-        char* p1 = strchr(p, '|');
-        if(p1)
+        const char* p1 = strchr(p, '|');
+        if(p1 && p1-p < (int)sizeof(utmName))
         {
             strncpy(utmName, p, (p1-p));
             utmName[p1-p] = '\0';
         }
         else
-            strcpy(utmName, p);
-    }
+            CPLStrlcpy(utmName, p, sizeof(utmName));
 
-    for(int i=0; apszUtmProjCode[i]!=NULL; i += 3)
-    {
-        if(EQUALN(utmName, apszUtmProjCode[i+1], strlen(apszUtmProjCode[i+1])) &&
-           EQUAL(datumName, apszUtmProjCode[i]) )
+        for(int i=0; apszUtmProjCode[i]!=NULL; i += 3)
         {
-            if(psDefn->ProjCode != atoi(apszUtmProjCode[i+2]))
+            if(EQUALN(utmName, apszUtmProjCode[i+1], strlen(apszUtmProjCode[i+1])) &&
+            EQUAL(datumName, apszUtmProjCode[i]) )
             {
-                psDefn->ProjCode = (short) atoi(apszUtmProjCode[i+2]);
-                GTIFGetProjTRFInfo( psDefn->ProjCode, NULL, &(psDefn->Projection),
-                                    psDefn->ProjParm );
-                break;
+                if(psDefn->ProjCode != atoi(apszUtmProjCode[i+2]))
+                {
+                    psDefn->ProjCode = (short) atoi(apszUtmProjCode[i+2]);
+                    GTIFGetProjTRFInfo( psDefn->ProjCode, NULL, &(psDefn->Projection),
+                                        psDefn->ProjParm );
+                    break;
+                }
             }
         }
     }
+
     return;
 }

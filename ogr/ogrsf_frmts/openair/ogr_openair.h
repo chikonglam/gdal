@@ -1,12 +1,12 @@
 /******************************************************************************
- * $Id: ogr_openair.h 25311 2012-12-15 12:48:14Z rouault $
+ * $Id: ogr_openair.h 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  OpenAir Translator
  * Purpose:  Definition of classes for OGR .sua driver.
  * Author:   Even Rouault, even dot rouault at mines dash paris dot org
  *
  ******************************************************************************
- * Copyright (c) 2010, Even Rouault <even dot rouault at mines dash paris dot org>
+ * Copyright (c) 2010, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -72,9 +72,6 @@ class OGROpenAirLayer : public OGRLayer
     virtual OGRFeatureDefn *    GetLayerDefn() { return poFeatureDefn; }
 
     virtual int                 TestCapability( const char * );
-
-    virtual OGRSpatialReference *GetSpatialRef() { return poSRS; }
-
 };
 
 /************************************************************************/
@@ -106,9 +103,6 @@ class OGROpenAirLabelLayer : public OGRLayer
     virtual OGRFeatureDefn *    GetLayerDefn() { return poFeatureDefn; }
 
     virtual int                 TestCapability( const char * );
-
-    virtual OGRSpatialReference *GetSpatialRef() { return poSRS; }
-
 };
 
 /************************************************************************/

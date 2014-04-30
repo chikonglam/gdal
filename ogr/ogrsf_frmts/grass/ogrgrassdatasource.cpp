@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrgrassdatasource.cpp 20157 2010-07-28 19:32:04Z rouault $
+ * $Id: ogrgrassdatasource.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implements OGRGRASSDataSource class.
@@ -7,6 +7,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2005, Radim Blazek <radim.blazek@gmail.com>
+ * Copyright (c) 2008-2010, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -31,7 +32,7 @@
 #include "cpl_conv.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: ogrgrassdatasource.cpp 20157 2010-07-28 19:32:04Z rouault $");
+CPL_CVSID("$Id: ogrgrassdatasource.cpp 27044 2014-03-16 23:41:27Z rouault $");
 
 /************************************************************************/
 /*                         Grass2CPLErrorHook()                         */
@@ -188,7 +189,9 @@ int OGRGRASSDataSource::Open( const char * pszNewName, int bUpdate,
 /* -------------------------------------------------------------------- */
 /*      Open GRASS vector map                                           */
 /* -------------------------------------------------------------------- */
+#if GRASS_VERSION_MAJOR  < 7
     Vect_set_fatal_error ( GV_FATAL_PRINT ); // Print error and continue
+#endif
     Vect_set_open_level (2);
     int level = Vect_open_old ( &map, pszMap, pszMapset);
 

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: jdemdataset.cpp 25143 2012-10-16 18:49:32Z rouault $
+ * $Id: jdemdataset.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  JDEM Reader
  * Purpose:  All code for Japanese DEM Reader
@@ -7,6 +7,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2000, Frank Warmerdam <warmerdam@pobox.com>
+ * Copyright (c) 2009-2012, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -29,7 +30,7 @@
 
 #include "gdal_pam.h"
 
-CPL_CVSID("$Id: jdemdataset.cpp 25143 2012-10-16 18:49:32Z rouault $");
+CPL_CVSID("$Id: jdemdataset.cpp 27044 2014-03-16 23:41:27Z rouault $");
 
 CPL_C_START
 void	GDALRegister_JDEM(void);

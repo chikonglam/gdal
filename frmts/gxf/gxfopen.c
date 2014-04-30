@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gxfopen.c 25164 2012-10-20 13:42:32Z rouault $
+ * $Id: gxfopen.c 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  GXF Reader
  * Purpose:  Majority of Geosoft GXF reading code.
@@ -8,6 +8,7 @@
  ******************************************************************************
  * Copyright (c) 1998, Global Geomatics
  * Copyright (c) 1998, Frank Warmerdam
+ * Copyright (c) 2008-2012, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -31,7 +32,7 @@
 #include <ctype.h>
 #include "gxfopen.h"
 
-CPL_CVSID("$Id: gxfopen.c 25164 2012-10-20 13:42:32Z rouault $");
+CPL_CVSID("$Id: gxfopen.c 27044 2014-03-16 23:41:27Z rouault $");
 
 
 /* this is also defined in gdal.h which we avoid in this separable component */

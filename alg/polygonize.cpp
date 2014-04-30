@@ -1,11 +1,12 @@
 /******************************************************************************
- * $Id: polygonize.cpp 22501 2011-06-04 21:28:47Z rouault $
+ * $Id: polygonize.cpp 27044 2014-03-16 23:41:27Z rouault $
  * Project:  GDAL
  * Purpose:  Raster to Polygon Converter
  * Author:   Frank Warmerdam, warmerdam@pobox.com
  *
  ******************************************************************************
  * Copyright (c) 2008, Frank Warmerdam
+ * Copyright (c) 2009-2011, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -31,7 +32,7 @@
 #include "cpl_string.h"
 #include <vector>
 
-CPL_CVSID("$Id: polygonize.cpp 22501 2011-06-04 21:28:47Z rouault $");
+CPL_CVSID("$Id: polygonize.cpp 27044 2014-03-16 23:41:27Z rouault $");
 
 #define GP_NODATA_MARKER -51502112
 

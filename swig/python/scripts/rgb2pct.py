@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #******************************************************************************
-#  $Id: rgb2pct.py 26002 2013-05-14 03:33:55Z warmerdam $
+#  $Id: rgb2pct.py 26001 2013-05-14 03:24:22Z warmerdam $
 # 
 #  Name:     rgb2pct
 #  Project:  GDAL Python Interface

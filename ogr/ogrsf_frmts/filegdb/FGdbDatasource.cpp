@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: FGdbDatasource.cpp 26310 2013-08-13 19:54:26Z rouault $
+ * $Id: FGdbDatasource.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implements FileGDB OGR Datasource.
@@ -9,6 +9,7 @@
  ******************************************************************************
  * Copyright (c) 2010, Ragi Yaser Burhum
  * Copyright (c) 2011, Paul Ramsey <pramsey at cleverelephant.ca>
+ * Copyright (c) 2011-2013, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -34,8 +35,9 @@
 #include "cpl_string.h"
 #include "gdal.h"
 #include "FGdbUtils.h"
+#include "cpl_multiproc.h"
 
-CPL_CVSID("$Id: FGdbDatasource.cpp 26310 2013-08-13 19:54:26Z rouault $");
+CPL_CVSID("$Id: FGdbDatasource.cpp 27044 2014-03-16 23:41:27Z rouault $");
 
 using std::vector;
 using std::wstring;
@@ -46,7 +48,7 @@ using std::wstring;
 
 FGdbDataSource::FGdbDataSource(FGdbDriver* poDriver):
 OGRDataSource(),
-m_poDriver(poDriver), m_pszName(0), m_pGeodatabase(NULL)
+m_poDriver(poDriver), m_pszName(0), m_pGeodatabase(NULL), m_bUpdate(false)
 {
 }
 
@@ -56,6 +58,8 @@ m_poDriver(poDriver), m_pszName(0), m_pGeodatabase(NULL)
 
 FGdbDataSource::~FGdbDataSource()
 {
+    CPLMutexHolderOptionalLockD(m_poDriver->GetMutex());
+
     size_t count = m_layers.size();
     for(size_t i = 0; i < count; ++i )
         delete m_layers[i];
@@ -73,6 +77,7 @@ int FGdbDataSource::Open(Geodatabase* pGeodatabase, const char * pszNewName, int
 {
     m_pszName = CPLStrdup( pszNewName );
     m_pGeodatabase = pGeodatabase;
+    m_bUpdate = bUpdate;
 
     std::vector<std::wstring> typesRequested;
 
@@ -104,14 +109,14 @@ bool FGdbDataSource::OpenFGDBTables(const std::wstring &type,
             GDBDebug(hr, "Error opening " + WStringToString(layers[i]) + ". Skipping it");
             continue;
         }
-        FGdbLayer* pLayer = new FGdbLayer;
+        FGdbLayer* pLayer = new FGdbLayer();
         if (!pLayer->Initialize(this, pTable, layers[i], type))
         {
             delete pLayer;
             return GDBErr(hr, "Error initializing OGRLayer for " + WStringToString(layers[i]));
         }
 
-        m_layers.push_back(pLayer);
+        m_layers.push_back(new OGRMutexedLayer(pLayer, TRUE, m_poDriver->GetMutex()));
     }
     return true;
 }
@@ -248,16 +253,21 @@ bool FGdbDataSource::LoadLayersOld(const std::vector<wstring> & datasetTypes,
 
 OGRErr FGdbDataSource::DeleteLayer( int iLayer )
 {
+    if( !m_bUpdate )
+        return OGRERR_FAILURE;
+
     if( iLayer < 0 || iLayer >= static_cast<int>(m_layers.size()) )
         return OGRERR_FAILURE;
+    
+    FGdbLayer* poBaseLayer = (FGdbLayer*) m_layers[iLayer]->GetBaseLayer();
 
     // Fetch FGDBAPI Table before deleting OGR layer object
 
-    Table* pTable = m_layers[iLayer]->GetTable();
+    Table* pTable = poBaseLayer->GetTable();
 
-    std::string name = m_layers[iLayer]->GetLayerDefn()->GetName();
-    std::wstring strPath = m_layers[iLayer]->GetTablePath();
-    std::wstring strType = m_layers[iLayer]->GetType();
+    std::string name = poBaseLayer->GetLayerDefn()->GetName();
+    std::wstring strPath = poBaseLayer->GetTablePath();
+    std::wstring strType = poBaseLayer->GetType();
 
     // delete OGR layer
     delete m_layers[iLayer];
@@ -286,10 +296,10 @@ OGRErr FGdbDataSource::DeleteLayer( int iLayer )
 int FGdbDataSource::TestCapability( const char * pszCap )
 {
     if( EQUAL(pszCap,ODsCCreateLayer) )
-        return TRUE;
+        return m_bUpdate;
 
     else if( EQUAL(pszCap,ODsCDeleteLayer) )
-        return TRUE;
+        return m_bUpdate;
 
     return FALSE;
 }
@@ -321,16 +331,21 @@ FGdbDataSource::CreateLayer( const char * pszLayerName,
                               OGRwkbGeometryType eType,
                               char ** papszOptions )
 {
-    FGdbLayer* pLayer = new FGdbLayer;
+    if( !m_bUpdate )
+        return NULL;
+
+    FGdbLayer* pLayer = new FGdbLayer();
     if (!pLayer->Create(this, pszLayerName, poSRS, eType, papszOptions))
     {
         delete pLayer;
         return NULL;
     }
+    
+    OGRMutexedLayer* pMutexedLayer = new OGRMutexedLayer(pLayer, TRUE, m_poDriver->GetMutex());
 
-    m_layers.push_back(pLayer);
+    m_layers.push_back(pMutexedLayer);
 
-    return pLayer;  
+    return pMutexedLayer;  
 }
 
 
@@ -409,7 +424,10 @@ OGRLayer * FGdbDataSource::ExecuteSQL( const char *pszSQLCommand,
                                        const char *pszDialect )
 
 {
-    if ( pszDialect != NULL && EQUAL(pszDialect, "OGRSQL") )
+/* -------------------------------------------------------------------- */
+/*      Use generic implementation for recognized dialects              */
+/* -------------------------------------------------------------------- */
+    if( IsGenericSQLDialect(pszDialect) )
         return OGRDataSource::ExecuteSQL( pszSQLCommand,
                                           poSpatialFilter,
                                           pszDialect );
@@ -419,9 +437,10 @@ OGRLayer * FGdbDataSource::ExecuteSQL( const char *pszSQLCommand,
 /* -------------------------------------------------------------------- */
     if (EQUALN(pszSQLCommand, "GetLayerDefinition ", strlen("GetLayerDefinition ")))
     {
-        FGdbLayer* poLayer = (FGdbLayer*) GetLayerByName(pszSQLCommand + strlen("GetLayerDefinition "));
-        if (poLayer)
+        OGRMutexedLayer* poMutexedLayer = (OGRMutexedLayer*) GetLayerByName(pszSQLCommand + strlen("GetLayerDefinition "));
+        if (poMutexedLayer)
         {
+            FGdbLayer* poLayer = (FGdbLayer*) poMutexedLayer->GetBaseLayer();
             char* pszVal = NULL;
             poLayer->GetLayerXML(&pszVal);
             OGRLayer* poRet = new OGRFGdbSingleFeatureLayer( "LayerDefinition", pszVal );
@@ -437,9 +456,10 @@ OGRLayer * FGdbDataSource::ExecuteSQL( const char *pszSQLCommand,
 /* -------------------------------------------------------------------- */
     if (EQUALN(pszSQLCommand, "GetLayerMetadata ", strlen("GetLayerMetadata ")))
     {
-        FGdbLayer* poLayer = (FGdbLayer*) GetLayerByName(pszSQLCommand + strlen("GetLayerMetadata "));
-        if (poLayer)
+        OGRMutexedLayer* poMutexedLayer = (OGRMutexedLayer*) GetLayerByName(pszSQLCommand + strlen("GetLayerMetadata "));
+        if (poMutexedLayer)
         {
+            FGdbLayer* poLayer = (FGdbLayer*) poMutexedLayer->GetBaseLayer();
             char* pszVal = NULL;
             poLayer->GetLayerMetadataXML(&pszVal);
             OGRLayer* poRet = new OGRFGdbSingleFeatureLayer( "LayerMetadata", pszVal );
@@ -479,7 +499,8 @@ OGRLayer * FGdbDataSource::ExecuteSQL( const char *pszSQLCommand,
 
     if( EQUALN(pszSQLCommand, "SELECT ", 7) )
     {
-        return new FGdbResultLayer(this, pszSQLCommand, pEnumRows);
+        OGRLayer* pLayer = new FGdbResultLayer(this, pszSQLCommand, pEnumRows);
+        return new OGRMutexedLayer(pLayer, TRUE, m_poDriver->GetMutex());
     }
     else
     {

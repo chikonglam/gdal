@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrshape.h 25900 2013-04-11 20:24:31Z rouault $
+ * $Id: ogrshape.h 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Private definitions within the Shapefile driver to implement
@@ -8,6 +8,7 @@
  *
  ******************************************************************************
  * Copyright (c) 1999,  Les Technologies SoftMap Inc.
+ * Copyright (c) 2008-2013, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -33,6 +34,7 @@
 
 #include "ogrsf_frmts.h"
 #include "shapefil.h"
+#include "shp_vsi.h"
 #include "ogrlayerpool.h"
 #include <vector>
 
@@ -66,8 +68,7 @@ class OGRShapeDataSource;
 class OGRShapeLayer : public OGRAbstractProxiedLayer
 {
     OGRShapeDataSource  *poDS;
-    OGRSpatialReference *poSRS; /* lazy loaded --> use GetSpatialRef() */
-    int                 bSRSSet;
+
     OGRFeatureDefn     *poFeatureDefn;
     int                 iNextShapeId;
     int                 nTotalShapeCount;
@@ -119,7 +120,6 @@ class OGRShapeLayer : public OGRAbstractProxiedLayer
     int                 bResizeAtClose;
 
     void                TruncateDBF();
-
 
   protected:
 
@@ -173,8 +173,6 @@ class OGRShapeLayer : public OGRAbstractProxiedLayer
     virtual OGRErr      ReorderFields( int* panMap );
     virtual OGRErr      AlterFieldDefn( int iField, OGRFieldDefn* poNewFieldDefn, int nFlags );
 
-    virtual OGRSpatialReference *GetSpatialRef();
-    
     virtual int         TestCapability( const char * );
     virtual void        SetSpatialFilter( OGRGeometry * );
     virtual OGRErr      SetAttributeFilter( const char * );
@@ -200,6 +198,8 @@ class OGRShapeDataSource : public OGRDataSource
     void                AddLayer(OGRShapeLayer* poLayer);
 
     std::vector<CPLString> oVectorLayerName;
+    
+    int                 b2GBLimit;
 
   public:
                         OGRShapeDataSource();
@@ -231,6 +231,9 @@ class OGRShapeDataSource : public OGRDataSource
 
     void                 SetLastUsedLayer( OGRShapeLayer* poLayer );
     void                 UnchainLayer( OGRShapeLayer* poLayer );
+
+    SHPHandle            DS_SHPOpen( const char * pszShapeFile, const char * pszAccess );
+    DBFHandle            DS_DBFOpen( const char * pszDBFFile, const char * pszAccess );
 };
 
 /************************************************************************/

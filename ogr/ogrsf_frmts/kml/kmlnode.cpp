@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: kmlnode.cpp 25309 2012-12-15 12:14:44Z rouault $
+ * $Id: kmlnode.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  KML Driver
  * Purpose:  Class for building up the node structure of the kml file.
@@ -7,6 +7,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2007, Jens Oberender
+ * Copyright (c) 2007-2012, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),

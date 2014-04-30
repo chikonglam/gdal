@@ -1,12 +1,12 @@
 /******************************************************************************
- * $Id: gifabstractdataset.cpp 25287 2012-12-05 21:17:14Z rouault $
+ * $Id: gifabstractdataset.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  GIF Driver
  * Purpose:  GIF Abstract Dataset
  * Author:   Even Rouault <even dot rouault at mines dash paris dot org>
  *
  ****************************************************************************
- * Copyright (c) 2011, Even Rouault <even dot rouault at mines dash paris dot org>
+ * Copyright (c) 2011-2013, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -29,7 +29,7 @@
 
 #include "gifabstractdataset.h"
 
-CPL_CVSID("$Id: gifabstractdataset.cpp 25287 2012-12-05 21:17:14Z rouault $");
+CPL_CVSID("$Id: gifabstractdataset.cpp 27044 2014-03-16 23:41:27Z rouault $");
 
 /************************************************************************/
 /* ==================================================================== */
@@ -208,6 +208,17 @@ void GIFAbstractDataset::CollectXMPMetadata()
     }
 
     bHasReadXMPMetadata = TRUE;
+}
+
+/************************************************************************/
+/*                      GetMetadataDomainList()                         */
+/************************************************************************/
+
+char **GIFAbstractDataset::GetMetadataDomainList()
+{
+    return BuildMetadataDomainList(GDALPamDataset::GetMetadataDomainList(),
+                                   TRUE,
+                                   "xml:XMP", NULL);
 }
 
 /************************************************************************/

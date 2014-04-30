@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gff_dataset.cpp 25311 2012-12-15 12:48:14Z rouault $
+ * $Id: gff_dataset.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  Ground-based SAR Applitcations Testbed File Format driver
  * Purpose:  Support in GDAL for Sandia National Laboratory's GFF format
@@ -8,6 +8,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2007, Philippe Vachon
+ * Copyright (c) 2008-2012, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -35,7 +36,7 @@
 #include "cpl_vsi.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: gff_dataset.cpp 25311 2012-12-15 12:48:14Z rouault $");
+CPL_CVSID("$Id: gff_dataset.cpp 27044 2014-03-16 23:41:27Z rouault $");
 
 /*******************************************************************
  * Declaration of the GFFDataset class                             *

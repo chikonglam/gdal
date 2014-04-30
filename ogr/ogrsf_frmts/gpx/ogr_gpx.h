@@ -1,12 +1,12 @@
 /******************************************************************************
- * $Id: ogr_gpx.h 25311 2012-12-15 12:48:14Z rouault $
+ * $Id: ogr_gpx.h 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  GPX Translator
  * Purpose:  Definition of classes for OGR .gpx driver.
  * Author:   Even Rouault, even dot rouault at mines dash paris dot org
  *
  ******************************************************************************
- * Copyright (c) 2007, Even Rouault
+ * Copyright (c) 2007-2010, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -143,8 +143,6 @@ class OGRGPXLayer : public OGRLayer
     OGRFeatureDefn *    GetLayerDefn() { return poFeatureDefn; }
     
     int                 TestCapability( const char * );
-    
-    OGRSpatialReference *GetSpatialRef();
     
 #ifdef HAVE_EXPAT
     void                startElementCbk(const char *pszName, const char **ppszAttr);

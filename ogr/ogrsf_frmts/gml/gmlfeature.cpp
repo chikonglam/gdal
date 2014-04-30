@@ -1,5 +1,5 @@
 /**********************************************************************
- * $Id: gmlfeature.cpp 25579 2013-01-29 18:53:52Z rouault $
+ * $Id: gmlfeature.cpp 27188 2014-04-14 23:26:49Z rouault $
  *
  * Project:  GML Reader
  * Purpose:  Implementation of GMLFeature.
@@ -7,6 +7,7 @@
  *
  **********************************************************************
  * Copyright (c) 2002, Frank Warmerdam
+ * Copyright (c) 2010-2013, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -204,6 +205,50 @@ void GMLFeature::SetGeometryDirectly( CPLXMLNode* psGeom )
         CPLDestroyXMLNode(m_apsGeometry[0]);
     m_nGeometryCount = 1;
     m_apsGeometry[0] = psGeom;
+}
+
+/************************************************************************/
+/*                        SetGeometryDirectly()                         */
+/************************************************************************/
+
+void GMLFeature::SetGeometryDirectly( int nIdx, CPLXMLNode* psGeom )
+
+{
+    if( nIdx == 0 && m_nGeometryCount <= 1 )
+    {
+        SetGeometryDirectly( psGeom );
+        return;
+    }
+    else if( nIdx > 0 && m_nGeometryCount <= 1 )
+    {
+        m_papsGeometry = (CPLXMLNode **) CPLMalloc(2 * sizeof(CPLXMLNode *));
+        m_papsGeometry[0] = m_apsGeometry[0];
+        m_papsGeometry[1] = NULL;
+        m_apsGeometry[0] = NULL;
+    }
+
+    if( nIdx >= m_nGeometryCount )
+    {
+        m_papsGeometry = (CPLXMLNode **) CPLRealloc(m_papsGeometry,
+            (nIdx + 2) * sizeof(CPLXMLNode *));
+        for( int i = m_nGeometryCount; i <= nIdx + 1; i++ )
+            m_papsGeometry[i] = NULL;
+        m_nGeometryCount = nIdx + 1;
+    }
+    if (m_papsGeometry[nIdx] != NULL)
+        CPLDestroyXMLNode(m_papsGeometry[nIdx]);
+    m_papsGeometry[nIdx] = psGeom;
+}
+
+/************************************************************************/
+/*                          GetGeometryRef()                            */
+/************************************************************************/
+
+const CPLXMLNode* GMLFeature::GetGeometryRef( int nIdx ) const
+{
+    if( nIdx < 0 || nIdx >= m_nGeometryCount )
+        return NULL;
+    return m_papsGeometry[nIdx];
 }
 
 /************************************************************************/

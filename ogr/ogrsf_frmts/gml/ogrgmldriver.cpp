@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrgmldriver.cpp 10645 2007-01-18 02:22:39Z warmerdam $
+ * $Id: ogrgmldriver.cpp 26591 2013-11-07 20:41:38Z rouault $
  *
  * Project:  OGR
  * Purpose:  OGRGMLDriver implementation
@@ -29,8 +29,10 @@
 
 #include "ogr_gml.h"
 #include "cpl_conv.h"
+#include "cpl_multiproc.h"
+#include "gmlreaderp.h"
 
-CPL_CVSID("$Id: ogrgmldriver.cpp 10645 2007-01-18 02:22:39Z warmerdam $");
+CPL_CVSID("$Id: ogrgmldriver.cpp 26591 2013-11-07 20:41:38Z rouault $");
 
 /************************************************************************/
 /*                          ~OGRGMLDriver()                           */
@@ -39,6 +41,9 @@ CPL_CVSID("$Id: ogrgmldriver.cpp 10645 2007-01-18 02:22:39Z warmerdam $");
 OGRGMLDriver::~OGRGMLDriver()
 
 {
+    if( GMLReader::hMutex != NULL )
+        CPLDestroyMutex( GMLReader::hMutex );
+    GMLReader::hMutex = NULL;
 }
 
 /************************************************************************/
@@ -66,8 +71,7 @@ OGRDataSource *OGRGMLDriver::Open( const char * pszFilename,
 
     poDS = new OGRGMLDataSource();
 
-    if( !poDS->Open( pszFilename, TRUE )
-        || poDS->GetLayerCount() == 0 )
+    if( !poDS->Open( pszFilename ) )
     {
         delete poDS;
         return NULL;

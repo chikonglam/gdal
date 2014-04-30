@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrsdelayer.cpp 24943 2012-09-20 12:03:38Z tamas $
+ * $Id: ogrsdelayer.cpp 26688 2013-12-02 19:07:41Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implements OGRSDELayer class.
@@ -33,7 +33,7 @@
 #include "cpl_conv.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: ogrsdelayer.cpp 24943 2012-09-20 12:03:38Z tamas $");
+CPL_CVSID("$Id: ogrsdelayer.cpp 26688 2013-12-02 19:07:41Z rouault $");
 
 /************************************************************************/
 /*                            OGRSDELayer()                             */
@@ -717,6 +717,9 @@ int OGRSDELayer::InstallQuery( int bCountingOnly )
 OGRErr OGRSDELayer::SetAttributeFilter( const char *pszQuery )
 
 {
+    CPLFree(m_pszAttrQueryString);
+    m_pszAttrQueryString = (pszQuery) ? CPLStrdup(pszQuery) : NULL;
+
     if( pszQuery == NULL )
         osAttributeFilter = "";
     else

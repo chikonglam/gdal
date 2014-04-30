@@ -1,12 +1,12 @@
 /******************************************************************************
- * $Id: testreprojmulti.cpp 20592 2010-09-12 17:28:30Z rouault $
+ * $Id: testreprojmulti.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  GDAL
  * Purpose:  Test multi-threaded reprojection
  * Author:   Even Rouault, <even dot rouault at mines dash paris dot org>
  *
  ******************************************************************************
- * Copyright (c) 2010, Even Rouault, <even dot rouault at mines dash paris dot org>
+ * Copyright (c) 2010, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -34,7 +34,7 @@
 #include "cpl_multiproc.h"
 #include "ogr_spatialref.h"
 
-CPL_CVSID("$Id: testreprojmulti.cpp 20592 2010-09-12 17:28:30Z rouault $");
+CPL_CVSID("$Id: testreprojmulti.cpp 27044 2014-03-16 23:41:27Z rouault $");
 
 double* padfRefX;
 double* padfRefY;

@@ -1,12 +1,12 @@
 /******************************************************************************
- * $Id: ogropenairdriver.cpp 20003 2010-07-10 19:46:28Z rouault $
+ * $Id: ogropenairdriver.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  OpenAir Translator
  * Purpose:  Implements OGROpenAirDriver.
  * Author:   Even Rouault, even dot rouault at mines dash paris dot org
  *
  ******************************************************************************
- * Copyright (c) 2010, Even Rouault <even dot rouault at mines dash paris dot org>
+ * Copyright (c) 2010, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -30,7 +30,7 @@
 #include "ogr_openair.h"
 #include "cpl_conv.h"
 
-CPL_CVSID("$Id: ogropenairdriver.cpp 20003 2010-07-10 19:46:28Z rouault $");
+CPL_CVSID("$Id: ogropenairdriver.cpp 27044 2014-03-16 23:41:27Z rouault $");
 
 extern "C" void RegisterOGROpenAir();
 

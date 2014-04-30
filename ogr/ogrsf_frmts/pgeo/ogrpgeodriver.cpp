@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrpgeodriver.cpp 23931 2012-02-09 13:41:13Z rouault $
+ * $Id: ogrpgeodriver.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implements Personal Geodatabase driver.
@@ -7,6 +7,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2005, Frank Warmerdam <warmerdam@pobox.com>
+ * Copyright (c) 2008-2013, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -30,7 +31,7 @@
 #include "ogr_pgeo.h"
 #include "cpl_conv.h"
 
-CPL_CVSID("$Id: ogrpgeodriver.cpp 23931 2012-02-09 13:41:13Z rouault $");
+CPL_CVSID("$Id: ogrpgeodriver.cpp 27044 2014-03-16 23:41:27Z rouault $");
 
 /************************************************************************/
 /*                            ~OGRODBCDriver()                            */
@@ -60,6 +61,12 @@ OGRDataSource *OGRPGeoDriver::Open( const char * pszFilename,
 
 {
     OGRPGeoDataSource     *poDS;
+
+    if( EQUALN(pszFilename, "WALK:", strlen("WALK:")) )
+        return NULL;
+
+    if( EQUALN(pszFilename, "GEOMEDIA:", strlen("GEOMEDIA:")) )
+        return NULL;
 
     if( !EQUALN(pszFilename,"PGEO:",5) 
         && !EQUAL(CPLGetExtension(pszFilename),"mdb") )
@@ -153,7 +160,7 @@ int OGRPGeoDriver::TestCapability( const char * pszCap )
 /*                           InstallMdbDriver()                         */
 /************************************************************************/
 
-bool OGRPGeoDriver::InstallMdbDriver()
+bool OGRODBCMDBDriver::InstallMdbDriver()
 {
     if ( !FindDriverLib() )
     {
@@ -162,7 +169,7 @@ bool OGRPGeoDriver::InstallMdbDriver()
     else
     {
         CPLAssert( !osDriverFile.empty() );
-        CPLDebug( "PGeo", "MDB Tools driver: %s", osDriverFile.c_str() );
+        CPLDebug( GetName(), "MDB Tools driver: %s", osDriverFile.c_str() );
 
         CPLString driverName("Microsoft Access Driver (*.mdb)");
         CPLString driver(driverName);
@@ -192,7 +199,7 @@ bool OGRPGeoDriver::InstallMdbDriver()
 /*                           FindDriverLib()                            */
 /************************************************************************/
 
-bool OGRPGeoDriver::FindDriverLib()
+bool OGRODBCMDBDriver::FindDriverLib()
 {
     // Default name and path of driver library
     const char* aszDefaultLibName[] = {
@@ -250,7 +257,7 @@ bool OGRPGeoDriver::FindDriverLib()
         }
     }
 
-    CPLError(CE_Failure, CPLE_AppDefined, "PGeo: MDB Tools driver not found!\n");
+    CPLError(CE_Failure, CPLE_AppDefined, "%s: MDB Tools driver not found!\n", GetName());
     // Driver not found!
     return false;
 }
@@ -259,7 +266,7 @@ bool OGRPGeoDriver::FindDriverLib()
 /*                           LibraryExists()                            */
 /************************************************************************/
 
-bool OGRPGeoDriver::LibraryExists(const char* pszLibPath)
+bool OGRODBCMDBDriver::LibraryExists(const char* pszLibPath)
 {
     CPLAssert( 0 != pszLibPath );
 

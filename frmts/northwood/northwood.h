@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: northwood.h 21898 2011-03-06 14:27:52Z rouault $
+ * $Id: northwood.h 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  GRC/GRD Reader
  * Purpose:  Northwood Technologies Grid format declarations
@@ -7,6 +7,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2007, Waypoint Information Technology
+ * Copyright (c) 2009-2011, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),

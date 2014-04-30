@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gtmwaypointlayer.cpp 21684 2011-02-11 22:14:01Z warmerdam $
+ * $Id: gtmwaypointlayer.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  GTM Driver
  * Purpose:  Implementation of gtmwaypoint class.
@@ -8,6 +8,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2009, Leonardo de Paula Rosa Piga
+ * Copyright (c) 2009-2013, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -81,6 +82,7 @@ GTMWaypointLayer::GTMWaypointLayer( const char* pszName,
     poFeatureDefn = new OGRFeatureDefn( pszName );
     poFeatureDefn->Reference();
     poFeatureDefn->SetGeomType ( wkbPoint );
+    poFeatureDefn->GetGeomFieldDefn(0)->SetSpatialRef(poSRS);
 
     /* We implement just name, comment, and icon, if others needed feel
        free to append more parameters */

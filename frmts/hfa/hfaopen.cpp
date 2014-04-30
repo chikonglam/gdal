@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: hfaopen.cpp 23624 2011-12-21 19:31:43Z rouault $
+ * $Id: hfaopen.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  Erdas Imagine (.img) Translator
  * Purpose:  Supporting functions for HFA (.img) ... main (C callable) API
@@ -8,6 +8,7 @@
  *
  ******************************************************************************
  * Copyright (c) 1999, Intergraph Corporation
+ * Copyright (c) 2007-2011, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -41,7 +42,7 @@
 #include <limits.h>
 #include <vector>
 
-CPL_CVSID("$Id: hfaopen.cpp 23624 2011-12-21 19:31:43Z rouault $");
+CPL_CVSID("$Id: hfaopen.cpp 27044 2014-03-16 23:41:27Z rouault $");
 
 
 static const char *apszAuxMetadataItems[] = {
@@ -2741,7 +2742,7 @@ CPLErr HFASetMetadata( HFAHandle hHFA, int nBand, char **papszMD )
                     // first because the SetStringField sets the count for the object
                     // BinFunction to the length of the string
                     poEntry->MakeData( 70 );
-                    poEntry->SetStringField( "BinFunction.binFunctionType", "linear" );
+                    poEntry->SetStringField( "BinFunction.binFunctionType", "direct" );
                     
                     bCreatedHistogramParameters = TRUE;
                 }
@@ -2820,7 +2821,11 @@ CPLErr HFASetMetadata( HFAHandle hHFA, int nBand, char **papszMD )
             poBinFunc->SetIntField( "numBins", nNumBins );
             poBinFunc->SetDoubleField( "minLimit", dMinLimit );
             poBinFunc->SetDoubleField( "maxLimit", dMaxLimit );
-            poBinFunc->SetStringField( "binFunctionType", "linear" ); // we use always a linear
+            // direct for thematic layers, linear otherwise
+            if ( EQUALN ( poNode->GetStringField("layerType"), "thematic", 8) )
+                poBinFunc->SetStringField( "binFunctionType", "direct" );
+            else
+                poBinFunc->SetStringField( "binFunctionType", "linear" );
 
             // we need a child named histogram
             HFAEntry * poHisto = poEntry->GetNamedChild( "Histogram" );
@@ -2829,9 +2834,9 @@ CPLErr HFASetMetadata( HFAHandle hHFA, int nBand, char **papszMD )
                 
             poHisto->SetIntField( "numRows", nNumBins );
             // allocate space for the bin values
-            GUInt32 nOffset = HFAAllocateSpace( hHFA, nNumBins*4 );
+            GUInt32 nOffset = HFAAllocateSpace( hHFA, nNumBins*8 );
             poHisto->SetIntField( "columnDataPtr", nOffset );
-            poHisto->SetStringField( "dataType", "integer" );
+            poHisto->SetStringField( "dataType", "real" );
             poHisto->SetIntField( "maxNumChars", 0 );
             // write out histogram data
             char * pszWork = pszBinValues;
@@ -2841,12 +2846,64 @@ CPLErr HFASetMetadata( HFAHandle hHFA, int nBand, char **papszMD )
                 if ( pszEnd != NULL )
                 {
                     *pszEnd = 0;
-                    VSIFSeekL( hHFA->fp, nOffset + 4*nBin, SEEK_SET );
-                    int nValue = atoi( pszWork );
-                    HFAStandard( 4, &nValue );
+                    VSIFSeekL( hHFA->fp, nOffset + 8*nBin, SEEK_SET );
+                    double nValue = atof( pszWork );
+                    HFAStandard( 8, &nValue );
 
-                    VSIFWriteL( (void *)&nValue, 1, 4, hHFA->fp );
+                    VSIFWriteL( (void *)&nValue, 1, 8, hHFA->fp );
                     pszWork = pszEnd + 1;
+                }
+            }
+        }
+        else if ( poEntry != NULL )
+        {
+            // In this case, there are HistogramParameters present, but we did not
+            // create them. However, we might be modifying them, in the case where 
+            // the data has changed and the histogram counts need to be updated. It could 
+            // be worse than that, but that is all we are going to cope with for now. 
+            // We are assuming that we did not change any of the other stuff, like 
+            // skip factors and so forth. The main need for this case is for programs
+            // (such as Imagine itself) which will happily modify the pixel values
+            // without re-calculating the histogram counts. 
+            int nNumBins = poEntry->GetIntField( "BinFunction.numBins" );
+            HFAEntry *poEntryDescrTbl = poNode->GetNamedChild( "Descriptor_Table" );
+            HFAEntry *poHisto = NULL;
+            if ( poEntryDescrTbl != NULL) {
+                poHisto = poEntryDescrTbl->GetNamedChild( "Histogram" );
+            }
+            if ( poHisto != NULL ) {
+                int nOffset = poHisto->GetIntField( "columnDataPtr" );
+                // write out histogram data
+                char * pszWork = pszBinValues;
+                
+                // Check whether histogram counts were written as int or double
+                bool bCountIsInt = TRUE;
+                const char *pszDataType = poHisto->GetStringField("dataType");
+                if ( EQUALN(pszDataType, "real", strlen(pszDataType)) )
+                {
+                    bCountIsInt = FALSE;
+                }
+                for ( int nBin = 0; nBin < nNumBins; ++nBin )
+                {
+                    char * pszEnd = strchr( pszWork, '|' );
+                    if ( pszEnd != NULL )
+                    {
+                        *pszEnd = 0;
+                        if ( bCountIsInt ) {
+                            // Histogram counts were written as ints, so re-write them the same way
+                            VSIFSeekL( hHFA->fp, nOffset + 4*nBin, SEEK_SET );
+                            int nValue = atoi( pszWork );
+                            HFAStandard( 4, &nValue );
+                            VSIFWriteL( (void *)&nValue, 1, 4, hHFA->fp );
+                        } else {
+                            // Histogram were written as doubles, as is now the default behaviour
+                            VSIFSeekL( hHFA->fp, nOffset + 8*nBin, SEEK_SET );
+                            double nValue = atof( pszWork );
+                            HFAStandard( 8, &nValue );
+                            VSIFWriteL( (void *)&nValue, 1, 8, hHFA->fp );
+                        }
+                        pszWork = pszEnd + 1;
+                    }
                 }
             }
         }

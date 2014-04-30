@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ods_formula.cpp 23831 2012-01-30 23:12:23Z rouault $
+ * $Id: ods_formula.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Component: ODS formula Engine
  * Purpose:
@@ -7,7 +7,7 @@
  *
  ******************************************************************************
  * Copyright (C) 2010 Frank Warmerdam <warmerdam@pobox.com>
- * Copyright (c) 2012, Even Rouault <even dot rouault at mines dash paris dot org>
+ * Copyright (c) 2012, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),

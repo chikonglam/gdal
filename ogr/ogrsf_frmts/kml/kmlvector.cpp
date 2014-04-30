@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: kmlvector.cpp 23978 2012-02-14 20:42:34Z rouault $
+ * $Id: kmlvector.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  KML Driver
  * Purpose:  Specialization of the kml class, only for vectors in kml files.
@@ -7,6 +7,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2007, Jens Oberender
+ * Copyright (c) 2009-2012, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),

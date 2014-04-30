@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: dgnwrite.cpp 25340 2012-12-21 20:30:21Z rouault $
+ * $Id: dgnwrite.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  Microstation DGN Access Library
  * Purpose:  DGN Access functions related to writing DGN elements.
@@ -7,6 +7,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2002, Frank Warmerdam <warmerdam@pobox.com>
+ * Copyright (c) 2011-2013, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -29,7 +30,7 @@
 
 #include "dgnlibp.h"
 
-CPL_CVSID("$Id: dgnwrite.cpp 25340 2012-12-21 20:30:21Z rouault $");
+CPL_CVSID("$Id: dgnwrite.cpp 27044 2014-03-16 23:41:27Z rouault $");
 
 static void DGNPointToInt( DGNInfo *psDGN, DGNPoint *psPoint, 
                            unsigned char *pabyTarget );
@@ -1073,7 +1074,7 @@ DGNCreateArcElem( DGNHandle hDGN, int nType,
     }
     else
     {
-        memcpy( psArc->quat, panQuaternion, sizeof(long)*4 );
+        memcpy( psArc->quat, panQuaternion, sizeof(int)*4 );
     }
 
 /* -------------------------------------------------------------------- */
@@ -1294,7 +1295,7 @@ DGNCreateConeElem( DGNHandle hDGN,
     memset( psCone->quat, 0, sizeof(int) * 4 );
     if( panQuaternion != NULL )
     {
-        memcpy( psCone->quat, panQuaternion, sizeof(long)*4 );
+        memcpy( psCone->quat, panQuaternion, sizeof(int)*4 );
     }
     else {
       psCone->quat[0] = 1 << 31;

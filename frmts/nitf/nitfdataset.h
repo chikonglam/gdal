@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: nitfdataset.h 25194 2012-10-30 22:33:21Z rouault $
+ * $Id: nitfdataset.h 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  NITF Read/Write Translator
  * Purpose:  GDALDataset/GDALRasterBand declarations.
@@ -7,6 +7,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2002, Frank Warmerdam
+ * Copyright (c) 2011-2013, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Portions Copyright (c) Her majesty the Queen in right of Canada as
  * represented by the Minister of National Defence, 2006.
@@ -148,6 +149,7 @@ class NITFDataset : public GDALPamDataset
     virtual const GDAL_GCP *GetGCPs();
     virtual char **GetFileList(void);
 
+    virtual char      **GetMetadataDomainList();
     virtual char      **GetMetadata( const char * pszDomain = "" );
     virtual const char *GetMetadataItem( const char * pszName,
                                          const char * pszDomain = "" );

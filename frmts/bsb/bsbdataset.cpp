@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: bsbdataset.cpp 25340 2012-12-21 20:30:21Z rouault $
+ * $Id: bsbdataset.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  BSB Reader
  * Purpose:  BSBDataset implementation for BSB format.
@@ -7,6 +7,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2001, Frank Warmerdam <warmerdam@pobox.com>
+ * Copyright (c) 2008-2012, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -32,7 +33,7 @@
 #include "cpl_string.h"
 #include "ogr_spatialref.h"
 
-CPL_CVSID("$Id: bsbdataset.cpp 25340 2012-12-21 20:30:21Z rouault $");
+CPL_CVSID("$Id: bsbdataset.cpp 27044 2014-03-16 23:41:27Z rouault $");
 
 CPL_C_START
 void	GDALRegister_BSB(void);

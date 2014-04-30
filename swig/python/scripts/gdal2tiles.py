@@ -1,6 +1,7 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 #******************************************************************************
-#  $Id: gdal2tiles.py 25611 2013-02-07 10:24:56Z bishop $
+#  $Id: gdal2tiles.py 27044 2014-03-16 23:41:27Z rouault $
 # 
 # Project:  Google Summer of Code 2007, 2008 (http://code.google.com/soc/)
 # Support:  BRGM (http://www.brgm.fr)
@@ -15,6 +16,7 @@
 #
 ###############################################################################
 # Copyright (c) 2008, Klokan Petr Pridal
+# Copyright (c) 2010-2013, Even Rouault <even dot rouault at mines-paris dot org>
 # 
 #  Permission is hereby granted, free of charge, to any person obtaining a
 #  copy of this software and associated documentation files (the "Software"),
@@ -56,7 +58,7 @@ except:
     # 'antialias' resampling is not available
     pass
 
-__version__ = "$Id: gdal2tiles.py 25611 2013-02-07 10:24:56Z bishop $"
+__version__ = "$Id: gdal2tiles.py 27044 2014-03-16 23:41:27Z rouault $"
 
 resampling_list = ('average','near','bilinear','cubic','cubicspline','lanczos','antialias')
 profile_list = ('mercator','geodetic','raster') #,'zoomify')
@@ -352,15 +354,23 @@ class GlobalGeodetic(object):
        WMS, KML    Web Clients, Google Earth  TileMapService
     """
 
-    def __init__(self, tileSize = 256):
+    def __init__(self, tmscompatible, tileSize = 256):
         self.tileSize = tileSize
+        if tmscompatible is not None:
+            # Defaults the resolution factor to 0.703125 (2 tiles @ level 0)
+            # Adhers to OSGeo TMS spec http://wiki.osgeo.org/wiki/Tile_Map_Service_Specification#global-geodetic
+            self.resFact = 180.0 / self.tileSize
+        else:
+            # Defaults the resolution factor to 1.40625 (1 tile @ level 0)
+            # Adheres OpenLayers, MapProxy, etc default resolution for WMTS
+            self.resFact = 360.0 / self.tileSize
 
-    def LatLonToPixels(self, lat, lon, zoom):
-        "Converts lat/lon to pixel coordinates in given zoom of the EPSG:4326 pyramid"
+    def LonLatToPixels(self, lon, lat, zoom):
+        "Converts lon/lat to pixel coordinates in given zoom of the EPSG:4326 pyramid"
 
-        res = 180.0 / self.tileSize / 2**zoom
-        px = (180 + lat) / res
-        py = (90 + lon) / res
+        res = self.resFact / 2**zoom
+        px = (180 + lon) / res
+        py = (90 + lat) / res
         return px, py
 
     def PixelsToTile(self, px, py):
@@ -370,16 +380,16 @@ class GlobalGeodetic(object):
         ty = int( math.ceil( py / float(self.tileSize) ) - 1 )
         return tx, ty
 
-    def LatLonToTile(self, lat, lon, zoom):
-        "Returns the tile for zoom which covers given lat/lon coordinates"
+    def LonLatToTile(self, lon, lat, zoom):
+        "Returns the tile for zoom which covers given lon/lat coordinates"
 
-        px, py = self.LatLonToPixels( lat, lon, zoom)
+        px, py = self.LonLatToPixels( lon, lat, zoom)
         return self.PixelsToTile(px,py)
 
     def Resolution(self, zoom ):
         "Resolution (arc/pixel) for given zoom level (measured at Equator)"
 
-        return 180.0 / self.tileSize / 2**zoom
+        return self.resFact / 2**zoom
         #return 180 / float( 1 << (8+zoom) )
 
     def ZoomForPixelSize(self, pixelSize ):
@@ -394,7 +404,7 @@ class GlobalGeodetic(object):
 
     def TileBounds(self, tx, ty, zoom):
         "Returns bounds of the given tile"
-        res = 180.0 / self.tileSize / 2**zoom
+        res = self.resFact / 2**zoom
         return (
             tx*self.tileSize*res - 180,
             ty*self.tileSize*res - 90,
@@ -655,6 +665,8 @@ gdal_vrtmerge.py -o merged.vrt %s""" % " ".join(self.args))
                           help="Resume mode. Generate only missing files.")
         p.add_option('-a', '--srcnodata', dest="srcnodata", metavar="NODATA",
                           help="NODATA transparency value to assign to the input data")
+        p.add_option('-d', '--tmscompatible', dest="tmscompatible", action="store_true",
+                          help="When using the geodetic profile, specifies the base resolution as 0.703125 or 2 tiles at zoom level 0.")
         p.add_option("-v", "--verbose",
                           action="store_true", dest="verbose",
                           help="Print status messages to stdout")
@@ -980,7 +992,7 @@ gdal2tiles temp.vrt""" % self.input )
 
         if self.options.profile == 'geodetic':
 
-            self.geodetic = GlobalGeodetic() # from globalmaptiles.py
+            self.geodetic = GlobalGeodetic(self.options.tmscompatible) # from globalmaptiles.py
 
             # Function which generates SWNE in LatLong for given tile
             self.tileswne = self.geodetic.TileLatLonBounds
@@ -988,8 +1000,8 @@ gdal2tiles temp.vrt""" % self.input )
             # Generate table with min max tile coordinates for all zoomlevels
             self.tminmax = list(range(0,32))
             for tz in range(0, 32):
-                tminx, tminy = self.geodetic.LatLonToTile( self.ominx, self.ominy, tz )
-                tmaxx, tmaxy = self.geodetic.LatLonToTile( self.omaxx, self.omaxy, tz )
+                tminx, tminy = self.geodetic.LonLatToTile( self.ominx, self.ominy, tz )
+                tmaxx, tmaxy = self.geodetic.LonLatToTile( self.omaxx, self.omaxy, tz )
                 # crop tiles extending world limits (+-180,+-90)
                 tminx, tminy = max(0, tminx), max(0, tminy)
                 tmaxx, tmaxy = min(2**(tz+1)-1, tmaxx), min(2**tz-1, tmaxy)
@@ -1952,6 +1964,10 @@ gdal2tiles temp.vrt""" % self.input )
         args['tileformat'] = self.tileext
         args['publishurl'] = self.options.url
         args['copyright'] = self.options.copyright
+        if self.options.tmscompatible:
+            args['tmsoffset'] = "-1"
+        else:
+            args['tmsoffset'] = ""
         if self.options.profile == 'raster':
             args['rasterzoomlevels'] = self.tmaxz+1
             args['rastermaxresolution'] = 2**(self.nativezoom) * self.out_gt[1]
@@ -2079,7 +2095,7 @@ gdal2tiles temp.vrt""" % self.input )
                   map = new OpenLayers.Map(options);
 
                   var wms = new OpenLayers.Layer.WMS("VMap0",
-                      "http://labs.metacarta.com/wms-c/Basic.py?",
+                      "http://tilecache.osgeo.org/wms-c/Basic.py?",
                       {
                           layers: 'basic',
                           format: 'image/png'
@@ -2172,7 +2188,7 @@ gdal2tiles temp.vrt""" % self.input )
                   var res = this.getServerResolution();
                   var x = Math.round((bounds.left - this.tileOrigin.lon) / (res * this.tileSize.w));
                   var y = Math.round((bounds.bottom - this.tileOrigin.lat) / (res * this.tileSize.h));
-                  var z = this.getServerZoom()-1;
+                  var z = this.getServerZoom()%(tmsoffset)s;
                   var path = this.serviceVersion + "/" + this.layername + "/" + z + "/" + x + "/" + y + "." + this.type; 
                   var url = this.url;
                   if (OpenLayers.Util.isArray(url)) {

@@ -1,12 +1,12 @@
 /******************************************************************************
- * $Id: sbnsearch.c 25862 2013-04-05 10:06:06Z rouault $
+ * $Id: sbnsearch.c 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  Shapelib
  * Purpose:  Implementation of search in ESRI SBN spatial index.
  * Author:   Even Rouault, even dot rouault at mines dash paris dot org
  *
  ******************************************************************************
- * Copyright (c) 2012, Even Rouault
+ * Copyright (c) 2012-2014, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * This software is available under the following "MIT Style" license,
  * or at the option of the licensee under the LGPL (see LICENSE.LGPL).  This
@@ -40,7 +40,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-SHP_CVSID("$Id: sbnsearch.c 25862 2013-04-05 10:06:06Z rouault $")
+SHP_CVSID("$Id: sbnsearch.c 27044 2014-03-16 23:41:27Z rouault $")
 
 #ifndef TRUE
 #  define TRUE 1
@@ -245,10 +245,10 @@ SBNSearchHandle SBNOpenDiskTree( const char* pszSBNFilename,
 /* -------------------------------------------------------------------- */
 /*      Compute tree depth.                                             */
 /*      It is computed such as in average there are not more than 8     */
-/*      shapes per node. With a minimum depth of 2, and a maximum of 15 */
+/*      shapes per node. With a minimum depth of 2, and a maximum of 24 */
 /* -------------------------------------------------------------------- */
     nMaxDepth = 2;
-    while( nMaxDepth < 15 && nShapeCount > ((1 << nMaxDepth) - 1) * 8 )
+    while( nMaxDepth < 24 && nShapeCount > ((1 << nMaxDepth) - 1) * 8 )
         nMaxDepth ++;
     hSBN->nMaxDepth = nMaxDepth;
     nMaxNodes = (1 << nMaxDepth) - 1;

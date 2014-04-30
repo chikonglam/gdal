@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: hdf5dataset.cpp 26062 2013-06-04 21:16:21Z rouault $
+ * $Id: hdf5dataset.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  Hierarchical Data Format Release 5 (HDF5)
  * Purpose:  HDF5 Datasets. Open HDF5 file, fetch metadata and list of
@@ -9,6 +9,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2005, Frank Warmerdam <warmerdam@pobox.com>
+ * Copyright (c) 2008-2013, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -39,7 +40,7 @@
 #include "cpl_string.h"
 #include "hdf5dataset.h"
 
-CPL_CVSID("$Id: hdf5dataset.cpp 26062 2013-06-04 21:16:21Z rouault $");
+CPL_CVSID("$Id: hdf5dataset.cpp 27044 2014-03-16 23:41:27Z rouault $");
 
 CPL_C_START
 void GDALRegister_HDF5(void);
@@ -634,7 +635,7 @@ herr_t HDF5AttrIterate( hid_t hH5ObjID,
     {
         papszTokens = CSLTokenizeString2( pszPath, "/", CSLT_HONOURSTRINGS );
 
-        for( int i = 0; papszTokens != NULL && papszTokens[i] != NULL; ++i )
+        for( i = 0; papszTokens != NULL && papszTokens[i] != NULL; ++i )
         {
             if( i != 0)
                 osKey += '_';
@@ -646,7 +647,7 @@ herr_t HDF5AttrIterate( hid_t hH5ObjID,
     // Convert whitespaces into "_" for the attribute name component
     papszTokens = CSLTokenizeString2( pszAttrName, " ",
                             CSLT_STRIPLEADSPACES | CSLT_STRIPENDSPACES );
-    for( int i = 0; papszTokens != NULL && papszTokens[i] != NULL; ++i )
+    for( i = 0; papszTokens != NULL && papszTokens[i] != NULL; ++i )
     {
         if(!osKey.empty())
             osKey += '_';

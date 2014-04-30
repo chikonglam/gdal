@@ -1,12 +1,12 @@
 /******************************************************************************
- * $Id: pdfobject.h 25536 2013-01-20 14:04:39Z rouault $
+ * $Id: pdfobject.h 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  PDF driver
  * Purpose:  GDALDataset driver for PDF dataset.
  * Author:   Even Rouault, <even dot rouault at mines dash paris dot org>
  *
  ******************************************************************************
- * Copyright (c) 2011, Even Rouault
+ * Copyright (c) 2011-2014, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -33,6 +33,9 @@
 #include "cpl_string.h"
 #include <map>
 #include <vector>
+
+#define DEFAULT_DPI         (72.0)
+#define USER_UNIT_IN_INCH   (1.0 / DEFAULT_DPI)
 
 #ifdef HAVE_POPPLER
 

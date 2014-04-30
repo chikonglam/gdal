@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_vrt.h 25110 2012-10-13 13:53:53Z rouault $
+ * $Id: ogr_vrt.h 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Private definitions for OGR/VRT driver.
@@ -7,6 +7,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2003, Frank Warmerdam <warmerdam@pobox.com>
+ * Copyright (c) 2009-2014, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -49,6 +50,37 @@ typedef enum {
 } OGRVRTGeometryStyle;
 
 /************************************************************************/
+/*                         OGRVRTGeomFieldProps                         */
+/************************************************************************/
+
+class OGRVRTGeomFieldProps
+{
+    public:
+        CPLString           osName;         /* Name of the VRT geometry field */
+        OGRwkbGeometryType  eGeomType;
+        OGRSpatialReference *poSRS;
+
+        int                 bSrcClip;
+        OGRGeometry         *poSrcRegion;
+
+        // Geometry interpretation related.
+        OGRVRTGeometryStyle eGeometryStyle;
+
+        /* points to a OGRField for VGS_WKT, VGS_WKB, VGS_Shape and OGRGeomField for VGS_Direct */
+        int                 iGeomField;
+
+                            // VGS_PointFromColumn
+        int                 iGeomXField, iGeomYField, iGeomZField;
+        int                 bReportSrcColumn;
+        int                 bUseSpatialSubquery;
+
+        OGREnvelope         sStaticEnvelope;
+
+                        OGRVRTGeomFieldProps();
+                       ~OGRVRTGeomFieldProps();
+};
+
+/************************************************************************/
 /*                            OGRVRTLayer                                */
 /************************************************************************/
 
@@ -58,10 +90,10 @@ class OGRVRTLayer : public OGRLayer
 {
   protected:
     OGRVRTDataSource*   poDS;
+    std::vector<OGRVRTGeomFieldProps*> apoGeomFieldProps;
 
     int                 bHasFullInitialized;
     CPLString           osName;
-    OGRwkbGeometryType  eGeomType;
     CPLXMLNode         *psLTree;
     CPLString           osVRTDirectory;
 
@@ -75,26 +107,10 @@ class OGRVRTLayer : public OGRLayer
     int                 bSrcDSShared;
     int                 bAttrFilterPassThrough;
 
-    // Layer spatial reference system, and srid.
-    OGRSpatialReference *poSRS;
-
     char                *pszAttrFilter;
-
-    int                 bSrcClip;
-    OGRGeometry         *poSrcRegion;
 
     int                 iFIDField; // -1 means pass through. 
     int                 iStyleField; // -1 means pass through.
-
-    // Geometry interpretation related.
-    OGRVRTGeometryStyle eGeometryStyle;
-    
-    int                 iGeomField; 
-
-                        // VGS_PointFromColumn
-    int                 iGeomXField, iGeomYField, iGeomZField;
-
-    int                 bUseSpatialSubquery;
 
     // Attribute Mapping
     std::vector<int>    anSrcField;
@@ -113,7 +129,12 @@ class OGRVRTLayer : public OGRLayer
     void                ClipAndAssignSRS(OGRFeature* poFeature);
 
     int                 nFeatureCount;
-    OGREnvelope         sStaticEnvelope;
+
+    int                 bError;
+
+    int                 ParseGeometryField(CPLXMLNode* psNode,
+                                           CPLXMLNode* psNodeParent,
+                                           OGRVRTGeomFieldProps* poProps);
 
   public:
                         OGRVRTLayer(OGRVRTDataSource* poDSIn);
@@ -148,9 +169,12 @@ class OGRVRTLayer : public OGRLayer
 
     virtual int         TestCapability( const char * );
 
-    virtual OGRErr      GetExtent( OGREnvelope *psExtent, int bForce );
+    virtual OGRErr      GetExtent(OGREnvelope *psExtent, int bForce = TRUE);
+    virtual OGRErr      GetExtent(int iGeomField, OGREnvelope *psExtent,
+                                  int bForce = TRUE);
 
     virtual void        SetSpatialFilter( OGRGeometry * poGeomIn );
+    virtual void        SetSpatialFilter( int iGeomField, OGRGeometry * poGeomIn );
 
     virtual OGRErr      CreateFeature( OGRFeature* poFeature );
 

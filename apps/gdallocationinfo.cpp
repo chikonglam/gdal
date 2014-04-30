@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdallocationinfo.cpp 23726 2012-01-07 22:57:12Z rouault $
+ * $Id: gdallocationinfo.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  GDAL
  * Purpose:  Commandline raster query tool.
@@ -7,6 +7,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2010, Frank Warmerdam <warmerdam@pobox.com>
+ * Copyright (c) 2010-2013, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -33,7 +34,7 @@
 #include "cpl_minixml.h"
 #include <vector>
 
-CPL_CVSID("$Id: gdallocationinfo.cpp 23726 2012-01-07 22:57:12Z rouault $");
+CPL_CVSID("$Id: gdallocationinfo.cpp 27044 2014-03-16 23:41:27Z rouault $");
 
 /******************************************************************************/
 /*! \page gdallocationinfo gdallocationinfo
@@ -364,9 +365,16 @@ int main( int argc, char ** argv )
             double adfGeoTransform[6], adfInvGeoTransform[6];
     
             if( GDALGetGeoTransform( hSrcDS, adfGeoTransform ) != CE_None )
+            {
+                CPLError(CE_Failure, CPLE_AppDefined, "Cannot get geotransform");
                 exit( 1 );
+            }
     
-            GDALInvGeoTransform( adfGeoTransform, adfInvGeoTransform );
+            if( !GDALInvGeoTransform( adfGeoTransform, adfInvGeoTransform ) )
+            {
+                CPLError(CE_Failure, CPLE_AppDefined, "Cannot invert geotransform");
+                exit( 1 );
+            }
     
             iPixel = (int) floor(
                 adfInvGeoTransform[0] 

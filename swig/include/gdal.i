@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdal.i 25897 2013-04-10 22:30:30Z rouault $
+ * $Id: gdal.i 26832 2014-01-15 12:46:08Z rouault $
  *
  * Name:     gdal.i
  * Project:  GDAL Python Interface
@@ -27,6 +27,8 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  *****************************************************************************/
+
+%include constraints.i
 
 #ifdef PERL_CPAN_NAMESPACE
 %module "Geo::GDAL"
@@ -82,6 +84,7 @@ typedef int RETURN_NONE;
 //
 //************************************************************************
 
+typedef int GDALTileOrganization;
 #ifndef SWIGCSHARP
 typedef int GDALPaletteInterp;
 typedef int GDALColorInterp;
@@ -90,6 +93,7 @@ typedef int GDALDataType;
 typedef int CPLErr;
 typedef int GDALResampleAlg;
 typedef int GDALAsyncStatusType;
+typedef int GDALRWFlag;
 #else
 /*! Pixel data types */
 %rename (DataType) GDALDataType;
@@ -479,6 +483,8 @@ RETURN_NONE GDALGCPsToGeoTransform( int nGCPs, GDAL_GCP const * pGCPs,
     	                             double argout[6], int bApproxOK = 1 ); 
 %clear (RETURN_NONE);
 #endif
+
+%include "cplvirtualmem.i"
 
 //************************************************************************
 //

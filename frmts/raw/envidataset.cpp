@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: envidataset.cpp 25660 2013-02-21 20:56:07Z rouault $
+ * $Id: envidataset.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  ENVI .hdr Driver
  * Purpose:  Implementation of ENVI .hdr labelled raw raster support.
@@ -8,6 +8,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2002, Frank Warmerdam
+ * Copyright (c) 2007-2013, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -33,7 +34,7 @@
 #include "cpl_string.h"
 #include <algorithm>
 
-CPL_CVSID("$Id: envidataset.cpp 25660 2013-02-21 20:56:07Z rouault $");
+CPL_CVSID("$Id: envidataset.cpp 27044 2014-03-16 23:41:27Z rouault $");
 
 CPL_C_START
 void GDALRegister_ENVI(void);

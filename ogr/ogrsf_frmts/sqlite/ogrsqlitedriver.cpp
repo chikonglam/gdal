@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrsqlitedriver.cpp 25409 2012-12-31 11:51:10Z rouault $
+ * $Id: ogrsqlitedriver.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implements OGRSQLiteDriver class.
@@ -14,6 +14,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2004, Frank Warmerdam <warmerdam@pobox.com>
+ * Copyright (c) 2007-2013, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -37,7 +38,11 @@
 #include "ogr_sqlite.h"
 #include "cpl_conv.h"
 
-CPL_CVSID("$Id: ogrsqlitedriver.cpp 25409 2012-12-31 11:51:10Z rouault $");
+#ifdef HAVE_SPATIALITE
+#include "spatialite.h"
+#endif
+
+CPL_CVSID("$Id: ogrsqlitedriver.cpp 27044 2014-03-16 23:41:27Z rouault $");
 
 /************************************************************************/
 /*                            ~OGRSQLiteDriver()                        */
@@ -46,6 +51,9 @@ CPL_CVSID("$Id: ogrsqlitedriver.cpp 25409 2012-12-31 11:51:10Z rouault $");
 OGRSQLiteDriver::~OGRSQLiteDriver()
 
 {
+#ifdef SPATIALITE_412_OR_LATER
+    spatialite_shutdown();
+#endif
 }
 
 /************************************************************************/

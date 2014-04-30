@@ -30,12 +30,36 @@ public class Ogr {
     OgrPINVOKE.DontUseExceptions();
   }
 
+
+  internal static byte[] StringToUtf8Bytes(string str)
+  {
+    if (str == null)
+      return null;
+    
+    int bytecount = System.Text.Encoding.UTF8.GetMaxByteCount(str.Length);
+    byte[] bytes = new byte[bytecount + 1];
+    System.Text.Encoding.UTF8.GetBytes(str, 0, str.Length, bytes, 0);
+    return bytes;
+  }
+  
+  internal static string Utf8BytesToString(IntPtr pNativeData)
+  {
+    if (pNativeData == IntPtr.Zero)
+        return null;
+        
+    int length = Marshal.PtrToStringAnsi(pNativeData).Length;
+    byte[] strbuf = new byte[length];  
+    Marshal.Copy(pNativeData, strbuf, 0, length); 
+    return System.Text.Encoding.UTF8.GetString(strbuf);
+  }
+
   internal static void StringListDestroy(IntPtr buffer_ptr) {
     OgrPINVOKE.StringListDestroy(buffer_ptr);
     if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
   }
 
 public delegate void GDALErrorHandlerDelegate(int eclass, int code, IntPtr msg);
+public delegate int GDALProgressFuncDelegate(double Complete, IntPtr Message, IntPtr Data);
   public static Geometry CreateGeometryFromWkb(int len, IntPtr bin_string, OSGeo.OSR.SpatialReference reference) {
     IntPtr cPtr = OgrPINVOKE.CreateGeometryFromWkb(len, bin_string, OSGeo.OSR.SpatialReference.getCPtr(reference));
     Geometry ret = (cPtr == IntPtr.Zero) ? null : new Geometry(cPtr, true, ThisOwn_true());
@@ -156,14 +180,14 @@ public delegate void GDALErrorHandlerDelegate(int eclass, int code, IntPtr msg);
   }
 
   public static DataSource Open(string utf8_path, int update) {
-    IntPtr cPtr = OgrPINVOKE.Open(System.Text.Encoding.Default.GetString(System.Text.Encoding.UTF8.GetBytes(utf8_path)), update);
+    IntPtr cPtr = OgrPINVOKE.Open(Ogr.StringToUtf8Bytes(utf8_path), update);
     DataSource ret = (cPtr == IntPtr.Zero) ? null : new DataSource(cPtr, true, ThisOwn_true());
     if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
     return ret;
   }
 
   public static DataSource OpenShared(string utf8_path, int update) {
-    IntPtr cPtr = OgrPINVOKE.OpenShared(System.Text.Encoding.Default.GetString(System.Text.Encoding.UTF8.GetBytes(utf8_path)), update);
+    IntPtr cPtr = OgrPINVOKE.OpenShared(Ogr.StringToUtf8Bytes(utf8_path), update);
     DataSource ret = (cPtr == IntPtr.Zero) ? null : new DataSource(cPtr, true, ThisOwn_true());
     if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
     return ret;
@@ -222,8 +246,10 @@ public delegate void GDALErrorHandlerDelegate(int eclass, int code, IntPtr msg);
   public static readonly string OLCDeleteFeature = OgrPINVOKE.OLCDeleteFeature_get();
   public static readonly string OLCFastSetNextByIndex = OgrPINVOKE.OLCFastSetNextByIndex_get();
   public static readonly string OLCStringsAsUTF8 = OgrPINVOKE.OLCStringsAsUTF8_get();
+  public static readonly string OLCCreateGeomField = OgrPINVOKE.OLCCreateGeomField_get();
   public static readonly string ODsCCreateLayer = OgrPINVOKE.ODsCCreateLayer_get();
   public static readonly string ODsCDeleteLayer = OgrPINVOKE.ODsCDeleteLayer_get();
+  public static readonly string ODsCCreateGeomFieldAfterCreateLayer = OgrPINVOKE.ODsCCreateGeomFieldAfterCreateLayer_get();
   public static readonly string ODrCCreateDataSource = OgrPINVOKE.ODrCCreateDataSource_get();
   public static readonly string ODrCDeleteDataSource = OgrPINVOKE.ODrCDeleteDataSource_get();
   public static readonly int OGRERR_NONE = OgrPINVOKE.OGRERR_NONE_get();

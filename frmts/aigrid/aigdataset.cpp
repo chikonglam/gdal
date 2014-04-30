@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: aigdataset.cpp 22103 2011-04-02 14:51:10Z warmerdam $
+ * $Id: aigdataset.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  Arc/Info Binary Grid Driver
  * Purpose:  Implements GDAL interface to underlying library.
@@ -7,6 +7,7 @@
  *
  ******************************************************************************
  * Copyright (c) 1999, Frank Warmerdam
+ * Copyright (c) 2008-2013, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -33,8 +34,9 @@
 #include "gdal_rat.h"
 #include "aigrid.h"
 #include "avc.h"
+#include <vector>
 
-CPL_CVSID("$Id: aigdataset.cpp 22103 2011-04-02 14:51:10Z warmerdam $");
+CPL_CVSID("$Id: aigdataset.cpp 27044 2014-03-16 23:41:27Z rouault $");
 
 CPL_C_START
 void	GDALRegister_AIGrid(void);
@@ -102,7 +104,7 @@ class AIGRasterBand : public GDALPamRasterBand
 
     virtual GDALColorInterp GetColorInterpretation();
     virtual GDALColorTable *GetColorTable();
-    virtual const GDALRasterAttributeTable *GetDefaultRAT();
+    virtual GDALRasterAttributeTable *GetDefaultRAT();
 };
 
 /************************************************************************/
@@ -202,7 +204,7 @@ CPLErr AIGRasterBand::IReadBlock( int nBlockXOff, int nBlockYOff,
 /*                           GetDefaultRAT()                            */
 /************************************************************************/
 
-const GDALRasterAttributeTable *AIGRasterBand::GetDefaultRAT()
+GDALRasterAttributeTable *AIGRasterBand::GetDefaultRAT()
 
 {
     AIGDataset	*poODS = (AIGDataset *) poDS;
@@ -375,6 +377,34 @@ char **AIGDataset::GetFileList()
 }
 
 /************************************************************************/
+/*                          AIGErrorHandlerVATOpen()                    */
+/************************************************************************/
+
+class AIGErrorDescription
+{
+    public:
+        CPLErr eErr;
+        int    no;
+        CPLString osMsg;
+};
+
+static void CPL_STDCALL AIGErrorHandlerVATOpen(CPLErr eErr, int no, const char* msg)
+{
+    std::vector<AIGErrorDescription>* paoErrors =
+        (std::vector<AIGErrorDescription>* )CPLGetErrorHandlerUserData();
+    if( EQUALN(msg, "EOF encountered in", strlen("EOF encountered in")) &&
+        strstr(msg, "../info/arc.dir") != NULL )
+        return;
+    if( EQUALN(msg, "Failed to open table ", strlen("Failed to open table ")) )
+        return;
+    AIGErrorDescription oError;
+    oError.eErr = eErr;
+    oError.no = no;
+    oError.osMsg = msg;
+    paoErrors->push_back(oError);
+}
+
+/************************************************************************/
 /*                              ReadRAT()                               */
 /************************************************************************/
 
@@ -408,9 +438,23 @@ void AIGDataset::ReadRAT()
     osTableName = CPLGetFilename(psInfo->pszCoverName);
     osTableName += ".VAT";
 
+    /* Turn off errors that can be triggered if the info has no VAT */
+    /* table related with this coverage */
+    std::vector<AIGErrorDescription> aoErrors;
+    CPLPushErrorHandlerEx(AIGErrorHandlerVATOpen, &aoErrors );
+
     AVCBinFile *psFile = 
         AVCBinReadOpen( osInfoPath, osTableName,
                         AVCCoverTypeUnknown, AVCFileTABLE, NULL );
+    CPLPopErrorHandler();
+
+    /* Emit other errors */
+    std::vector<AIGErrorDescription>::const_iterator oIter;
+    for( oIter = aoErrors.begin(); oIter != aoErrors.end(); ++oIter )
+    {
+        const AIGErrorDescription& oError = *oIter;
+        CPLError( oError.eErr, oError.no, "%s", oError.osMsg.c_str() );
+    }
 
     CPLErrorReset();
     if( psFile == NULL )
@@ -423,7 +467,7 @@ void AIGDataset::ReadRAT()
 /* -------------------------------------------------------------------- */
     int iField;
 
-    poRAT = new GDALRasterAttributeTable();
+    poRAT = new GDALDefaultRasterAttributeTable();
 
     for( iField = 0; iField < psTableDef->numFields; iField++ )
     {

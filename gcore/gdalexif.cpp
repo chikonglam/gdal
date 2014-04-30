@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdalexif.cpp 24551 2012-06-09 20:19:04Z rouault $
+ * $Id: gdalexif.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  GDAL
  * Purpose:  Implements a EXIF directory reader
@@ -7,6 +7,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2000, Frank Warmerdam
+ * Copyright (c) 2012, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Portions Copyright (c) Her majesty the Queen in right of Canada as
  * represented by the Minister of National Defence, 2006.
@@ -38,7 +39,7 @@
 
 #include "gdalexif.h"
 
-CPL_CVSID("$Id: gdalexif.cpp 24551 2012-06-09 20:19:04Z rouault $");
+CPL_CVSID("$Id: gdalexif.cpp 27044 2014-03-16 23:41:27Z rouault $");
 
 /************************************************************************/
 /*                         EXIFPrintData()                              */

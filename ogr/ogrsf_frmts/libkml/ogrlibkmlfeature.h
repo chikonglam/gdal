@@ -29,6 +29,7 @@
 #include <kml/dom.h>
 
 using kmldom::KmlFactory;
+using kmldom::FeaturePtr;
 using kmldom::PlacemarkPtr;
 
 #include "ogr_libkml.h"
@@ -38,11 +39,12 @@ using kmldom::PlacemarkPtr;
  function to output a ogr feature to a kml placemark
 ******************************************************************************/
 
-PlacemarkPtr feat2kml (
+FeaturePtr feat2kml (
     OGRLIBKMLDataSource *poOgrDS,
     OGRLayer * poKOgrLayer,
     OGRFeature * poOgrFeat,
-    KmlFactory * poKmlFactory );
+    KmlFactory * poKmlFactory,
+    int bUseSimpleField );
 
 /******************************************************************************
  function to read a kml placemark into a ogr feature

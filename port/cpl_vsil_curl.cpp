@@ -1,12 +1,12 @@
 /******************************************************************************
- * $Id: cpl_vsil_curl.cpp 25696 2013-03-02 17:55:51Z rouault $
+ * $Id: cpl_vsil_curl.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  CPL - Common Portability Library
  * Purpose:  Implement VSI large file api for HTTP/FTP files
  * Author:   Even Rouault, even.rouault at mines-paris.org
  *
  ******************************************************************************
- * Copyright (c) 2008, Even Rouault
+ * Copyright (c) 2010-2013, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -34,7 +34,7 @@
 #include "cpl_time.h"
 #include "cpl_vsil_curl_priv.h"
 
-CPL_CVSID("$Id: cpl_vsil_curl.cpp 25696 2013-03-02 17:55:51Z rouault $");
+CPL_CVSID("$Id: cpl_vsil_curl.cpp 27044 2014-03-16 23:41:27Z rouault $");
 
 #ifndef HAVE_CURL
 
@@ -638,7 +638,8 @@ vsi_l_offset VSICurlHandle::GetFileSize()
     /* HACK for mbtiles driver: proper fix would be to auto-detect servers that don't accept HEAD */
     /* http://a.tiles.mapbox.com/v3/ doesn't accept HEAD, so let's start a GET */
     /* and interrupt is as soon as the header is found */
-    if (strstr(pszURL, ".tiles.mapbox.com/") != NULL)
+    if (strstr(pszURL, ".tiles.mapbox.com/") != NULL
+	|| !CSLTestBoolean(CPLGetConfigOption("CPL_VSIL_CURL_USE_HEAD", "YES")))
     {
         curl_easy_setopt(hCurlHandle, CURLOPT_HEADERDATA, &sWriteFuncHeaderData);
         curl_easy_setopt(hCurlHandle, CURLOPT_HEADERFUNCTION, VSICurlHandleWriteFunc);

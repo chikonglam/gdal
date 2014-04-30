@@ -1,12 +1,12 @@
 /******************************************************************************
- * $Id: ogrwfsdatasource.cpp 25727 2013-03-10 14:56:33Z rouault $
+ * $Id: ogrwfsdatasource.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  WFS Translator
  * Purpose:  Implements OGRWFSDataSource class
  * Author:   Even Rouault, even dot rouault at mines dash paris dot org
  *
  ******************************************************************************
- * Copyright (c) 2010, Even Rouault <even dot rouault at mines dash paris dot org>
+ * Copyright (c) 2010-2013, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -37,7 +37,7 @@
 #include "swq.h"
 #include "ogr_p.h"
 
-CPL_CVSID("$Id: ogrwfsdatasource.cpp 25727 2013-03-10 14:56:33Z rouault $");
+CPL_CVSID("$Id: ogrwfsdatasource.cpp 27044 2014-03-16 23:41:27Z rouault $");
 
 #define DEFAULT_BASE_START_INDEX     0
 #define DEFAULT_PAGE_SIZE            100
@@ -685,7 +685,10 @@ CPLHTTPResult* OGRWFSDataSource::SendGetCapabilities(const char* pszBaseURL,
     osURL = CPLURLAddKVP(osURL, "SERVICE", "WFS");
     osURL = CPLURLAddKVP(osURL, "REQUEST", "GetCapabilities");
     osTypeName = CPLURLGetValue(osURL, "TYPENAME");
+    if( osTypeName.size() == 0 )
+        osTypeName = CPLURLGetValue(osURL, "TYPENAMES");
     osURL = CPLURLAddKVP(osURL, "TYPENAME", NULL);
+    osURL = CPLURLAddKVP(osURL, "TYPENAMES", NULL);
     osURL = CPLURLAddKVP(osURL, "FILTER", NULL);
     osURL = CPLURLAddKVP(osURL, "PROPERTYNAME", NULL);
     osURL = CPLURLAddKVP(osURL, "MAXFEATURES", NULL);
@@ -751,8 +754,9 @@ int OGRWFSDataSource::Open( const char * pszFilename, int bUpdateIn)
             strncmp(pszBaseURL, "https://", 8) != 0)
             return FALSE;
 
-        CPLHTTPResult* psResult = SendGetCapabilities(pszBaseURL,
-                                                      osTypeName);
+        CPLString strOriginalTypeName = "";
+        CPLHTTPResult* psResult = SendGetCapabilities(pszBaseURL, strOriginalTypeName);
+        osTypeName = WFS_DecodeURL(strOriginalTypeName);
         if (psResult == NULL)
         {
             return FALSE;
@@ -852,13 +856,17 @@ int OGRWFSDataSource::Open( const char * pszFilename, int bUpdateIn)
         if( pszParm )
             nBaseStartIndex = atoi(pszParm);
 
-        osTypeName = CPLURLGetValue(pszBaseURL, "TYPENAME");
+        CPLString strOriginalTypeName = CPLURLGetValue(pszBaseURL, "TYPENAME");
+        if( strOriginalTypeName.size() == 0 )
+            strOriginalTypeName = CPLURLGetValue(pszBaseURL, "TYPENAMES");
+        osTypeName = WFS_DecodeURL(strOriginalTypeName);
 
         psWFSCapabilities = WFSFindNode( psRoot, "WFS_Capabilities" );
         if (psWFSCapabilities == NULL)
         {
-            CPLHTTPResult* psResult = SendGetCapabilities(pszBaseURL,
-                                                          osTypeName);
+            CPLHTTPResult* psResult = SendGetCapabilities(pszBaseURL, strOriginalTypeName);
+            osTypeName = WFS_DecodeURL(strOriginalTypeName);
+
             if (psResult == NULL)
             {
                 CPLDestroyXMLNode( psXML );
@@ -1796,6 +1804,32 @@ CPLString WFS_EscapeURL(const char* pszURL)
 }
 
 /************************************************************************/
+/*                         WFS_DecodeURL()                              */
+/************************************************************************/
+
+CPLString WFS_DecodeURL(const CPLString &osSrc)
+{
+    CPLString ret;
+    char ch;
+    int ii;
+    for (size_t i=0; i<osSrc.length(); i++) 
+    {
+        if (osSrc[i]=='%' && i+2 < osSrc.length())
+        {
+            sscanf(osSrc.substr(i+1,2).c_str(), "%x", &ii);
+            ch=static_cast<char>(ii);
+            ret+=ch;
+            i=i+2;
+        }
+        else 
+        {
+            ret+=osSrc[i];
+        }
+    }
+    return (ret);
+}
+
+/************************************************************************/
 /*                            HTTPFetch()                               */
 /************************************************************************/
 
@@ -1851,9 +1885,9 @@ OGRLayer * OGRWFSDataSource::ExecuteSQL( const char *pszSQLCommand,
 
 {
 /* -------------------------------------------------------------------- */
-/*      Use generic implementation for OGRSQL dialect.                  */
+/*      Use generic implementation for recognized dialects              */
 /* -------------------------------------------------------------------- */
-    if( pszDialect != NULL && (EQUAL(pszDialect,"OGRSQL") || EQUAL(pszDialect, "SQLITE")) )
+    if( IsGenericSQLDialect(pszDialect) )
     {
         OGRLayer* poResLayer = OGRDataSource::ExecuteSQL( pszSQLCommand,
                                                           poSpatialFilter,

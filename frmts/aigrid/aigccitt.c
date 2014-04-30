@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: aigccitt.c 22640 2011-07-03 15:52:40Z rouault $
+ * $Id: aigccitt.c 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  Arc/Info Binary Grid Translator
  * Purpose:  Code for decoding CCITT RLE (G1) compressed data.
@@ -11,6 +11,7 @@
  * Copyright (c) 2002 Frank Warmerdam <warmerdam@pobox.com>
  * Copyright (c) 1990-1997 Sam Leffler
  * Copyright (c) 1991-1997 Silicon Graphics, Inc.
+ * Copyright (c) 2009-2013, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission to use, copy, modify, distribute, and sell this software and 
  * its documentation for any purpose is hereby granted without fee, provided
@@ -1487,7 +1488,7 @@ typedef struct {
 
 #define	is2DEncoding(sp) \
 	(sp->b.groupoptions & GROUP3OPT_2DENCODING)
-#define	isAligned(p,t)	((((unsigned long)(p)) & (sizeof (t)-1)) == 0)
+#define	isAligned(p,t)	((((size_t)(p)) & (sizeof (t)-1)) == 0)
 
 /*
  * Group 3 and Group 4 Decoding.

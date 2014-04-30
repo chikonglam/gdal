@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: grass57dataset.cpp 20157 2010-07-28 19:32:04Z rouault $
+ * $Id: grass57dataset.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  GRASS Driver
  * Purpose:  Implement GRASS raster read/write support
@@ -10,6 +10,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2000 Frank Warmerdam <warmerdam@pobox.com>
+ * Copyright (c) 2007-2010, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -45,9 +46,15 @@ extern "C" {
 #include <grass/gprojects.h>
 #include <grass/gis.h>
 
-char *GPJ_grass_to_wkt(struct Key_Value *proj_info,
-		       struct Key_Value *proj_units,
-		       int esri_style, int prettify);
+#if GRASS_VERSION_MAJOR  >= 7
+char *GPJ_grass_to_wkt(const struct Key_Value *,
+		       const struct Key_Value *,
+		       int, int);
+#else
+char *GPJ_grass_to_wkt(struct Key_Value *,
+		       struct Key_Value *,
+		       int, int);
+#endif
 }
 
 #include "gdal_priv.h"
@@ -56,7 +63,7 @@ char *GPJ_grass_to_wkt(struct Key_Value *proj_info,
 
 #define GRASS_MAX_COLORS 100000  // what is the right value
 
-CPL_CVSID("$Id: grass57dataset.cpp 20157 2010-07-28 19:32:04Z rouault $");
+CPL_CVSID("$Id: grass57dataset.cpp 27044 2014-03-16 23:41:27Z rouault $");
 
 CPL_C_START
 void	GDALRegister_GRASS(void);

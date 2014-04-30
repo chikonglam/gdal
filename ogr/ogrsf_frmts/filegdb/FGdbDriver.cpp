@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: FGdbDriver.cpp 26310 2013-08-13 19:54:26Z rouault $
+ * $Id: FGdbDriver.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implements FileGDB OGR driver.
@@ -9,6 +9,7 @@
  ******************************************************************************
  * Copyright (c) 2010, Ragi Yaser Burhum
  * Copyright (c) 2011, Paul Ramsey <pramsey at cleverelephant.ca>
+ * Copyright (c) 2011-2013, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -32,16 +33,17 @@
 #include "ogr_fgdb.h"
 #include "cpl_conv.h"
 #include "FGdbUtils.h"
+#include "cpl_multiproc.h"
+#include "ogrmutexeddatasource.h"
 
-CPL_CVSID("$Id: FGdbDriver.cpp 26310 2013-08-13 19:54:26Z rouault $");
+CPL_CVSID("$Id: FGdbDriver.cpp 27044 2014-03-16 23:41:27Z rouault $");
 
 extern "C" void RegisterOGRFileGDB();
 
 /************************************************************************/
 /*                            FGdbDriver()                              */
 /************************************************************************/
-FGdbDriver::FGdbDriver():
-OGRSFDriver()
+FGdbDriver::FGdbDriver(): OGRSFDriver(), hMutex(NULL)
 {
 }
 
@@ -51,6 +53,9 @@ OGRSFDriver()
 FGdbDriver::~FGdbDriver()
 
 {
+    if( hMutex != NULL )
+        CPLDestroyMutex(hMutex);
+    hMutex = NULL;
 }
 
 
@@ -89,6 +94,7 @@ OGRDataSource *FGdbDriver::Open( const char* pszFilename, int bUpdate )
         return NULL;
     }
 
+    CPLMutexHolderD(&hMutex);
     Geodatabase* pGeoDatabase = NULL;
 
     FGdbDatabaseConnection* pConnection = oMapConnections[pszFilename];
@@ -126,7 +132,7 @@ OGRDataSource *FGdbDriver::Open( const char* pszFilename, int bUpdate )
         return NULL;
     }
     else
-        return pDS;
+        return new OGRMutexedDataSource(pDS, TRUE, hMutex);
 }
 
 /***********************************************************************/
@@ -141,6 +147,8 @@ OGRDataSource* FGdbDriver::CreateDataSource( const char * conn,
     std::wstring wconn = StringToWString(conn);
     int bUpdate = TRUE; // If we're creating, we must be writing.
     VSIStatBuf stat;
+
+    CPLMutexHolderD(&hMutex);
 
     /* We don't support options yet, so warn if they send us some */
     if ( papszOptions )
@@ -191,7 +199,7 @@ OGRDataSource* FGdbDriver::CreateDataSource( const char * conn,
         return NULL;
     }
     else
-        return pDS;
+        return new OGRMutexedDataSource(pDS, TRUE, hMutex);
 }
 
 /***********************************************************************/
@@ -200,6 +208,8 @@ OGRDataSource* FGdbDriver::CreateDataSource( const char * conn,
 
 void FGdbDriver::Release(const char* pszName)
 {
+    CPLMutexHolderOptionalLockD(hMutex);
+
     FGdbDatabaseConnection* pConnection = oMapConnections[pszName];
     if( pConnection != NULL )
     {
@@ -238,6 +248,7 @@ int FGdbDriver::TestCapability( const char * pszCap )
 
 OGRErr FGdbDriver::DeleteDataSource( const char *pszDataSource )
 {
+    CPLMutexHolderD(&hMutex);
 
     std::wstring wstr = StringToWString(pszDataSource);
 

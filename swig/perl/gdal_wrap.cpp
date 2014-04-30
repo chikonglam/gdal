@@ -2030,6 +2030,9 @@ SWIGINTERN char const *GDALMajorObjectShadow_GetDescription(GDALMajorObjectShado
 SWIGINTERN void GDALMajorObjectShadow_SetDescription(GDALMajorObjectShadow *self,char const *pszNewDesc){
     GDALSetDescription( self, pszNewDesc );
   }
+SWIGINTERN char **GDALMajorObjectShadow_GetMetadataDomainList(GDALMajorObjectShadow *self){
+    return GDALGetMetadataDomainList( self );
+  }
 SWIGINTERN char **GDALMajorObjectShadow_GetMetadata_Dict(GDALMajorObjectShadow *self,char const *pszDomain=""){
     return GDALGetMetadata( self, pszDomain );
   }
@@ -2409,11 +2412,13 @@ static GDALAsyncReaderH AsyncReaderWrapperGetReader(GDALAsyncReaderWrapperH hWra
     return psWrapper->hAsyncReader;
 }
 
+#if defined(SWIGPYTHON)
 static void* AsyncReaderWrapperGetPyObject(GDALAsyncReaderWrapperH hWrapper)
 {
     GDALAsyncReaderWrapper* psWrapper = (GDALAsyncReaderWrapper*)hWrapper;
     return psWrapper->pyObject;
 }
+#endif
 
 static void DeleteAsyncReaderWrapper(GDALAsyncReaderWrapperH hWrapper)
 {
@@ -3042,6 +3047,9 @@ SWIGINTERN int GDALRasterAttributeTableShadow_SetLinearBinning(GDALRasterAttribu
     }
 SWIGINTERN int GDALRasterAttributeTableShadow_GetRowOfValue(GDALRasterAttributeTableShadow *self,double dfValue){
         return GDALRATGetRowOfValue( self, dfValue );
+    }
+SWIGINTERN int GDALRasterAttributeTableShadow_ChangesAreWrittenToFile(GDALRasterAttributeTableShadow *self){
+        return GDALRATChangesAreWrittenToFile( self );
     }
 
 #include "gdalgrid.h"
@@ -6172,6 +6180,86 @@ XS(_wrap_MajorObject_SetDescription) {
   fail:
     
     if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
+    SWIG_croak_null();
+  }
+}
+
+
+XS(_wrap_MajorObject_GetMetadataDomainList) {
+  {
+    GDALMajorObjectShadow *arg1 = (GDALMajorObjectShadow *) 0 ;
+    void *argp1 = 0 ;
+    int res1 = 0 ;
+    int argvi = 0;
+    char **result = 0 ;
+    dXSARGS;
+    
+    if ((items < 1) || (items > 1)) {
+      SWIG_croak("Usage: MajorObject_GetMetadataDomainList(self);");
+    }
+    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_GDALMajorObjectShadow, 0 |  0 );
+    if (!SWIG_IsOK(res1)) {
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "MajorObject_GetMetadataDomainList" "', argument " "1"" of type '" "GDALMajorObjectShadow *""'"); 
+    }
+    arg1 = reinterpret_cast< GDALMajorObjectShadow * >(argp1);
+    {
+      CPLErrorReset();
+      result = (char **)GDALMajorObjectShadow_GetMetadataDomainList(arg1);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /* 
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
+    {
+      /* %typemap(out) char **CSL */
+      if (GIMME_V == G_ARRAY) {
+        if (result) {
+          int i;
+          for (i = 0; result[i]; i++) {
+            if (argvi > items-1) EXTEND(SP, 1);
+            SV *sv = newSVpv(result[i], 0);
+            SvUTF8_on(sv); /* expecting GDAL to give us UTF-8 */
+            ST(argvi++) = sv_2mortal(sv);
+          }
+          CSLDestroy(result);
+        }
+      } else {
+        AV *av = (AV*)sv_2mortal((SV*)newAV());
+        if (result) {
+          int i;
+          for (i = 0; result[i]; i++) {
+            SV *sv = newSVpv(result[i], 0);
+            SvUTF8_on(sv); /* expecting GDAL to give us UTF-8 */
+            if (!av_store(av, i, sv))
+            SvREFCNT_dec(sv);
+          }
+          CSLDestroy(result);
+        }
+        ST(argvi) = newRV((SV*)av);
+        sv_2mortal(ST(argvi));
+        argvi++;
+      }
+    }
+    
+    XSRETURN(argvi);
+  fail:
+    
     SWIG_croak_null();
   }
 }
@@ -18232,6 +18320,57 @@ XS(_wrap_RasterAttributeTable_GetRowOfValue) {
 }
 
 
+XS(_wrap_RasterAttributeTable_ChangesAreWrittenToFile) {
+  {
+    GDALRasterAttributeTableShadow *arg1 = (GDALRasterAttributeTableShadow *) 0 ;
+    void *argp1 = 0 ;
+    int res1 = 0 ;
+    int argvi = 0;
+    int result;
+    dXSARGS;
+    
+    if ((items < 1) || (items > 1)) {
+      SWIG_croak("Usage: RasterAttributeTable_ChangesAreWrittenToFile(self);");
+    }
+    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_GDALRasterAttributeTableShadow, 0 |  0 );
+    if (!SWIG_IsOK(res1)) {
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "RasterAttributeTable_ChangesAreWrittenToFile" "', argument " "1"" of type '" "GDALRasterAttributeTableShadow *""'"); 
+    }
+    arg1 = reinterpret_cast< GDALRasterAttributeTableShadow * >(argp1);
+    {
+      CPLErrorReset();
+      result = (int)GDALRasterAttributeTableShadow_ChangesAreWrittenToFile(arg1);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /* 
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
+    ST(argvi) = SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(result)); argvi++ ;
+    
+    XSRETURN(argvi);
+  fail:
+    
+    SWIG_croak_null();
+  }
+}
+
+
 XS(_wrap__ComputeMedianCutPCT) {
   {
     GDALRasterBandShadow *arg1 = (GDALRasterBandShadow *) 0 ;
@@ -22364,7 +22503,7 @@ static swig_type_info _swigt__p_OGRLayerShadow = {"_p_OGRLayerShadow", "OGRLayer
 static swig_type_info _swigt__p_VSIStatBufL = {"_p_VSIStatBufL", "VSIStatBufL *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_char = {"_p_char", "char *|retStringAndCPLFree *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_double = {"_p_double", "double *", 0, 0, (void*)0, 0};
-static swig_type_info _swigt__p_int = {"_p_int", "OGRFieldType *|GDALRATFieldType *|GDALAccess *|int *|OGRwkbByteOrder *|CPLErr *|GDALRATFieldUsage *|OGRJustification *|GDALPaletteInterp *|GDALColorInterp *|GDALResampleAlg *|OGRErr *|OGRwkbGeometryType *|GDALDataType *|GDALAsyncStatusType *", 0, 0, (void*)0, 0};
+static swig_type_info _swigt__p_int = {"_p_int", "GDALRATFieldType *|OGRFieldType *|GDALAccess *|int *|OGRwkbByteOrder *|CPLErr *|GDALRWFlag *|OGRJustification *|GDALRATFieldUsage *|GDALTileOrganization *|GDALPaletteInterp *|GDALColorInterp *|GDALResampleAlg *|OGRErr *|OGRwkbGeometryType *|GDALDataType *|GDALAsyncStatusType *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_p_GDAL_GCP = {"_p_p_GDAL_GCP", "GDAL_GCP **", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_p_char = {"_p_p_char", "char **", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_p_int = {"_p_p_int", "int **", 0, 0, (void*)0, 0};
@@ -22501,6 +22640,7 @@ static swig_command_info swig_commands[] = {
 {"Geo::GDALc::VSIFReadL", _wrap_VSIFReadL},
 {"Geo::GDALc::MajorObject_GetDescription", _wrap_MajorObject_GetDescription},
 {"Geo::GDALc::MajorObject_SetDescription", _wrap_MajorObject_SetDescription},
+{"Geo::GDALc::MajorObject_GetMetadataDomainList", _wrap_MajorObject_GetMetadataDomainList},
 {"Geo::GDALc::MajorObject_GetMetadata", _wrap_MajorObject_GetMetadata},
 {"Geo::GDALc::MajorObject_SetMetadata", _wrap_MajorObject_SetMetadata},
 {"Geo::GDALc::MajorObject_GetMetadataItem", _wrap_MajorObject_GetMetadataItem},
@@ -22664,6 +22804,7 @@ static swig_command_info swig_commands[] = {
 {"Geo::GDALc::RasterAttributeTable_GetLinearBinning", _wrap_RasterAttributeTable_GetLinearBinning},
 {"Geo::GDALc::RasterAttributeTable_SetLinearBinning", _wrap_RasterAttributeTable_SetLinearBinning},
 {"Geo::GDALc::RasterAttributeTable_GetRowOfValue", _wrap_RasterAttributeTable_GetRowOfValue},
+{"Geo::GDALc::RasterAttributeTable_ChangesAreWrittenToFile", _wrap_RasterAttributeTable_ChangesAreWrittenToFile},
 {"Geo::GDALc::_ComputeMedianCutPCT", _wrap__ComputeMedianCutPCT},
 {"Geo::GDALc::_DitherRGB2PCT", _wrap__DitherRGB2PCT},
 {"Geo::GDALc::_ReprojectImage", _wrap__ReprojectImage},

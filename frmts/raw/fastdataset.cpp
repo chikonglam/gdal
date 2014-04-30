@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: fastdataset.cpp 22610 2011-06-28 21:20:06Z rouault $
+ * $Id: fastdataset.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  EOSAT FAST Format reader
  * Purpose:  Reads Landsat FAST-L7A, IRS 1C/1D
@@ -7,6 +7,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2002, Andrey Kiselev <dron@ak4719.spb.edu>
+ * Copyright (c) 2007-2011, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -32,7 +33,7 @@
 #include "ogr_spatialref.h"
 #include "rawdataset.h"
 
-CPL_CVSID("$Id: fastdataset.cpp 22610 2011-06-28 21:20:06Z rouault $");
+CPL_CVSID("$Id: fastdataset.cpp 27044 2014-03-16 23:41:27Z rouault $");
 
 CPL_C_START
 void	GDALRegister_FAST(void);

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrsdtslayer.cpp 25839 2013-04-02 18:54:20Z rouault $
+ * $Id: ogrsdtslayer.cpp 26466 2013-09-14 09:07:46Z rouault $
  *
  * Project:  SDTSReader
  * Purpose:  Implements OGRSDTSLayer class.
@@ -31,7 +31,7 @@
 #include "cpl_conv.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: ogrsdtslayer.cpp 25839 2013-04-02 18:54:20Z rouault $");
+CPL_CVSID("$Id: ogrsdtslayer.cpp 26466 2013-09-14 09:07:46Z rouault $");
 
 /************************************************************************/
 /*                            OGRSDTSLayer()                            */
@@ -59,6 +59,7 @@ OGRSDTSLayer::OGRSDTSLayer( SDTSTransfer * poTransferIn, int iLayerIn,
     poFeatureDefn =
         new OGRFeatureDefn(poTransfer->GetCATD()->GetEntryModule(iCATDEntry));
     poFeatureDefn->Reference();
+    poFeatureDefn->GetGeomFieldDefn(0)->SetSpatialRef(poDS->GetSpatialRef());
 
     OGRFieldDefn oRecId( "RCID", OFTInteger );
     poFeatureDefn->AddFieldDefn( &oRecId );
@@ -472,15 +473,4 @@ int OGRSDTSLayer::TestCapability( const char * pszCap )
 
     else 
         return FALSE;
-}
-
-
-/************************************************************************/
-/*                           GetSpatialRef()                            */
-/************************************************************************/
-
-OGRSpatialReference * OGRSDTSLayer::GetSpatialRef()
-
-{
-    return poDS->GetSpatialRef();
 }

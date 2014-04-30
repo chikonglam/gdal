@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdalconst.i 25897 2013-04-10 22:30:30Z rouault $
+ * $Id: gdalconst.i 26832 2014-01-15 12:46:08Z rouault $
  *
  * Name:     gdalconst.i
  * Project:  GDAL Python Interface
@@ -204,3 +204,9 @@
 %constant GARIO_UPDATE = GARIO_UPDATE;
 %constant GARIO_ERROR = GARIO_ERROR;
 %constant GARIO_COMPLETE = GARIO_COMPLETE;
+
+// GDALTileOrganization
+%constant GTO_TIP  = GTO_TIP;
+%constant GTO_BIT = GTO_BIT;
+%constant GTO_BSQ = GTO_BSQ;
+

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr2kmlgeometry.cpp 21019 2010-10-30 11:37:54Z rouault $
+ * $Id: ogr2kmlgeometry.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  KML Driver
  * Purpose:  Implementation of OGR -> KML geometries writer.
@@ -7,6 +7,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2006, Christopher Condit
+ * Copyright (c) 2007-2010, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),

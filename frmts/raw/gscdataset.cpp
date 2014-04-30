@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gscdataset.cpp 21715 2011-02-13 19:18:59Z rouault $
+ * $Id: gscdataset.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  GSC Geogrid format driver.
  * Purpose:  Implements support for reading and writing GSC Geogrid format.
@@ -7,6 +7,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2002, Frank Warmerdam <warmerdam@pobox.com>
+ * Copyright (c) 2009-2011, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -30,7 +31,7 @@
 #include "rawdataset.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: gscdataset.cpp 21715 2011-02-13 19:18:59Z rouault $");
+CPL_CVSID("$Id: gscdataset.cpp 27044 2014-03-16 23:41:27Z rouault $");
 
 /************************************************************************/
 /* ==================================================================== */

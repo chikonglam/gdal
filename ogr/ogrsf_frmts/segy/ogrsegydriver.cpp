@@ -1,12 +1,12 @@
 /******************************************************************************
- * $Id: ogrsegydriver.cpp 23268 2011-10-22 09:50:46Z rouault $
+ * $Id: ogrsegydriver.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  SEG-Y Translator
  * Purpose:  Implements OGRSEGYDriver class.
  * Author:   Even Rouault, even dot rouault at mines dash paris dot org
  *
  ******************************************************************************
- * Copyright (c) 2011, Even Rouault <even dot rouault at mines dash paris dot org>
+ * Copyright (c) 2011, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -30,7 +30,7 @@
 #include "ogr_segy.h"
 #include "cpl_conv.h"
 
-CPL_CVSID("$Id: ogrsegydriver.cpp 23268 2011-10-22 09:50:46Z rouault $");
+CPL_CVSID("$Id: ogrsegydriver.cpp 27044 2014-03-16 23:41:27Z rouault $");
 
 /************************************************************************/
 /*                           ~OGRSEGYDriver()                           */
