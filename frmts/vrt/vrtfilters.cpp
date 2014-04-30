@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: vrtfilters.cpp 24530 2012-06-02 16:28:14Z rouault $
+ * $Id: vrtfilters.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  Virtual GDAL Datasets
  * Purpose:  Implementation of some filter types.
@@ -7,6 +7,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2003, Frank Warmerdam <warmerdam@pobox.com>
+ * Copyright (c) 2008-2013, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -31,7 +32,7 @@
 #include "cpl_minixml.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: vrtfilters.cpp 24530 2012-06-02 16:28:14Z rouault $");
+CPL_CVSID("$Id: vrtfilters.cpp 27044 2014-03-16 23:41:27Z rouault $");
 
 /************************************************************************/
 /* ==================================================================== */
@@ -79,11 +80,11 @@ void VRTFilteredSource::SetFilteringDataTypesSupported( int nTypeCount,
 
 {
     if( nTypeCount > 
-        (int) sizeof(sizeof(aeSupportedTypes)/sizeof(GDALDataType)) )
+        (int) (sizeof(aeSupportedTypes)/sizeof(GDALDataType)) )
     {
         CPLAssert( FALSE );
         nTypeCount = (int) 
-            sizeof(sizeof(aeSupportedTypes)/sizeof(GDALDataType));
+            (sizeof(aeSupportedTypes)/sizeof(GDALDataType));
     }
 
     nSupportedTypesCount = nTypeCount;

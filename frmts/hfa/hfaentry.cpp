@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: hfaentry.cpp 23494 2011-12-07 23:56:41Z rouault $
+ * $Id: hfaentry.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  Erdas Imagine (.img) Translator
  * Purpose:  Implementation of the HFAEntry class for reading and relating
@@ -8,6 +8,7 @@
  *
  ******************************************************************************
  * Copyright (c) 1999, Intergraph Corporation
+ * Copyright (c) 2008-2011, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -37,7 +38,7 @@
 #include "hfa_p.h"
 #include "cpl_conv.h"
 
-CPL_CVSID("$Id: hfaentry.cpp 23494 2011-12-07 23:56:41Z rouault $");
+CPL_CVSID("$Id: hfaentry.cpp 27044 2014-03-16 23:41:27Z rouault $");
 
 /************************************************************************/
 /*                              HFAEntry()                              */

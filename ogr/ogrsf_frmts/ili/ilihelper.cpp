@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ilihelper.cpp 24609 2012-06-25 15:21:10Z pka $
+ * $Id$
  *
  * Project:  Interlis 1/2 Translator
  * Purpose:  Helper functions for Interlis reader
@@ -31,7 +31,7 @@
 #include "ilihelper.h"
 
 
-CPL_CVSID("$Id: ilihelper.cpp 24609 2012-06-25 15:21:10Z pka $");
+CPL_CVSID("$Id$");
 
 
 OGRPoint *getARCCenter(OGRPoint *ptStart, OGRPoint *ptArc, OGRPoint *ptEnd) {

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrsosilayer.cpp 21826 2011-02-24 15:25:13Z warmerdam $
+ * $Id: ogrsosilayer.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  SOSI Translator
  * Purpose:  Implements OGRSOSILayer.
@@ -7,6 +7,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2010, Thomas Hirsch
+ * Copyright (c) 2010-2014, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -40,6 +41,12 @@ OGRSOSILayer::OGRSOSILayer( OGRSOSIDataSource *poPar, OGRFeatureDefn *poFeatDefn
     poFeatureDefn = poFeatDefn;
     poHeaderDefn  = poHeadDefn;
     nNextFID      = 0;
+    poNextSerial  = NULL;
+    
+    if( poFeatureDefn->GetGeomFieldCount() > 0 )
+        poFeatureDefn->GetGeomFieldDefn(0)->SetSpatialRef(poParent->poSRS);
+
+    ResetReading();
 }
 
 /************************************************************************/
@@ -54,16 +61,6 @@ OGRSOSILayer::~OGRSOSILayer() {
 /************************************************************************/
 OGRFeatureDefn *OGRSOSILayer::GetLayerDefn() {
     return poFeatureDefn;
-}
-
-/************************************************************************/
-/*                           GetSpatialRef()                            */
-/************************************************************************/
-OGRSpatialReference *OGRSOSILayer::GetSpatialRef() {
-    if (poParent->poSRS == NULL) {
-        CPLDebug( "[GetSpatialRef]", "Called, but parent spatial ref is unknown yet.");
-    }
-    return poParent->poSRS; /* The same for all layers */
 }
 
 /************************************************************************/
@@ -267,6 +264,9 @@ OGRFeature *OGRSOSILayer::GetNextFeature() {
                 poFeature->SetField( iHNr, pszLine);
             }
         }
+        
+        if( poGeom != NULL )
+            poGeom->assignSpatialReference(poParent->poSRS);
 
         poFeature->SetGeometryDirectly( poGeom );
         poFeature->SetFID( nNextFID++ );
@@ -297,6 +297,8 @@ void OGRSOSILayer::ResetReading() {
 int OGRSOSILayer::TestCapability( const char * pszCap ) {
 
     if( EQUAL(pszCap,OLCStringsAsUTF8) )
+        return TRUE;
+    if( EQUAL(pszCap,OLCCreateField) )
         return TRUE;
     else
         return FALSE;

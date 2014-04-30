@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: tigerpolygon.cpp 23871 2012-02-02 03:24:07Z warmerdam $
+ * $Id: tigerpolygon.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  TIGER/Line Translator
  * Purpose:  Implements TigerPolygon, providing access to .RTA files.
@@ -7,6 +7,7 @@
  *
  ******************************************************************************
  * Copyright (c) 1999, Frank Warmerdam
+ * Copyright (c) 2011, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -30,7 +31,7 @@
 #include "ogr_tiger.h"
 #include "cpl_conv.h"
 
-CPL_CVSID("$Id: tigerpolygon.cpp 23871 2012-02-02 03:24:07Z warmerdam $");
+CPL_CVSID("$Id: tigerpolygon.cpp 27044 2014-03-16 23:41:27Z rouault $");
 
 static const TigerFieldInfo rtA_2002_fields[] = {
   // fieldname    fmt  type OFTType      beg  end  len  bDefine bSet bWrite

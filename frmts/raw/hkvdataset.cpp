@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: hkvdataset.cpp 24590 2012-06-16 16:34:48Z rouault $
+ * $Id: hkvdataset.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  GView
  * Purpose:  Implementation of Atlantis HKV labelled blob support
@@ -7,6 +7,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2000, Frank Warmerdam
+ * Copyright (c) 2008-2012, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -33,7 +34,7 @@
 #include "ogr_spatialref.h"
 #include "atlsci_spheroid.h"
 
-CPL_CVSID("$Id: hkvdataset.cpp 24590 2012-06-16 16:34:48Z rouault $");
+CPL_CVSID("$Id: hkvdataset.cpp 27044 2014-03-16 23:41:27Z rouault $");
 
 CPL_C_START
 void	GDALRegister_HKV(void);

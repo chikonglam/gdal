@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrlayer.cpp 26015 2013-05-20 08:19:40Z warmerdam $
+ * $Id: ogrlayer.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  The generic portions of the OGRSFLayer class.
@@ -7,6 +7,7 @@
  *
  ******************************************************************************
  * Copyright (c) 1999,  Les Technologies SoftMap Inc.
+ * Copyright (c) 2008-2014, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -33,7 +34,7 @@
 #include "ogr_attrind.h"
 #include "swq.h"
 
-CPL_CVSID("$Id: ogrlayer.cpp 26015 2013-05-20 08:19:40Z warmerdam $");
+CPL_CVSID("$Id: ogrlayer.cpp 27044 2014-03-16 23:41:27Z rouault $");
 
 /************************************************************************/
 /*                              OGRLayer()                              */
@@ -44,6 +45,7 @@ OGRLayer::OGRLayer()
 {
     m_poStyleTable = NULL;
     m_poAttrQuery = NULL;
+    m_pszAttrQueryString = NULL;
     m_poAttrIndex = NULL;
     m_nRefCount = 0;
 
@@ -52,6 +54,7 @@ OGRLayer::OGRLayer()
     m_poFilterGeom = NULL;
     m_bFilterIsEnvelope = FALSE;
     m_pPreparedFilterGeom = NULL;
+    m_iGeomFieldFilter = 0;
 }
 
 /************************************************************************/
@@ -78,6 +81,8 @@ OGRLayer::~OGRLayer()
         delete m_poAttrQuery;
         m_poAttrQuery = NULL;
     }
+
+    CPLFree( m_pszAttrQueryString );
 
     if( m_poFilterGeom )
     {
@@ -201,6 +206,21 @@ int OGR_L_GetFeatureCount( OGRLayerH hLayer, int bForce )
 OGRErr OGRLayer::GetExtent(OGREnvelope *psExtent, int bForce )
 
 {
+    return GetExtentInternal(0, psExtent, bForce);
+}
+
+OGRErr OGRLayer::GetExtent(int iGeomField, OGREnvelope *psExtent, int bForce )
+
+{
+    if( iGeomField == 0 )
+        return GetExtent(psExtent, bForce);
+    else
+        return GetExtentInternal(iGeomField, psExtent, bForce);
+}
+
+OGRErr OGRLayer::GetExtentInternal(int iGeomField, OGREnvelope *psExtent, int bForce )
+
+{
     OGRFeature  *poFeature;
     OGREnvelope oEnv;
     GBool       bExtentSet = FALSE;
@@ -214,8 +234,16 @@ OGRErr OGRLayer::GetExtent(OGREnvelope *psExtent, int bForce )
 /*      If this layer has a none geometry type, then we can             */
 /*      reasonably assume there are not extents available.              */
 /* -------------------------------------------------------------------- */
-    if( GetLayerDefn()->GetGeomType() == wkbNone )
+    if( iGeomField < 0 || iGeomField >= GetLayerDefn()->GetGeomFieldCount() ||
+        GetLayerDefn()->GetGeomFieldDefn(iGeomField)->GetType() == wkbNone )
+    {
+        if( iGeomField != 0 )
+        {
+            CPLError(CE_Failure, CPLE_AppDefined,
+                     "Invalid geometry field index : %d", iGeomField);
+        }
         return OGRERR_FAILURE;
+    }
 
 /* -------------------------------------------------------------------- */
 /*      If not forced, we should avoid having to scan all the           */
@@ -231,7 +259,7 @@ OGRErr OGRLayer::GetExtent(OGREnvelope *psExtent, int bForce )
     ResetReading();
     while( (poFeature = GetNextFeature()) != NULL )
     {
-        OGRGeometry *poGeom = poFeature->GetGeometryRef();
+        OGRGeometry *poGeom = poFeature->GetGeomFieldRef(iGeomField);
         if (poGeom == NULL || poGeom->IsEmpty())
         {
             /* Do nothing */
@@ -273,12 +301,28 @@ OGRErr OGR_L_GetExtent( OGRLayerH hLayer, OGREnvelope *psExtent, int bForce )
 }
 
 /************************************************************************/
+/*                         OGR_L_GetExtentEx()                          */
+/************************************************************************/
+
+OGRErr OGR_L_GetExtentEx( OGRLayerH hLayer, int iGeomField,
+                          OGREnvelope *psExtent, int bForce )
+
+{
+    VALIDATE_POINTER1( hLayer, "OGR_L_GetExtentEx", OGRERR_INVALID_HANDLE );
+
+    return ((OGRLayer *) hLayer)->GetExtent( iGeomField, psExtent, bForce );
+}
+
+/************************************************************************/
 /*                         SetAttributeFilter()                         */
 /************************************************************************/
 
 OGRErr OGRLayer::SetAttributeFilter( const char *pszQuery )
 
 {
+    CPLFree(m_pszAttrQueryString);
+    m_pszAttrQueryString = (pszQuery) ? CPLStrdup(pszQuery) : NULL;
+
 /* -------------------------------------------------------------------- */
 /*      Are we just clearing any existing query?                        */
 /* -------------------------------------------------------------------- */
@@ -379,16 +423,30 @@ OGRFeature *OGRLayer::GetFeature( long nFID )
 {
     OGRFeature *poFeature;
 
+    /* Save old attribute and spatial filters */
+    char* pszOldFilter = m_pszAttrQueryString ? CPLStrdup(m_pszAttrQueryString) : NULL;
+    OGRGeometry* poOldFilterGeom = ( m_poFilterGeom != NULL ) ? m_poFilterGeom->clone() : NULL;
+    int iOldGeomFieldFilter = m_iGeomFieldFilter;
+    /* Unset filters */
+    SetAttributeFilter(NULL);
+    SetSpatialFilter(0, NULL);
+
     ResetReading();
     while( (poFeature = GetNextFeature()) != NULL )
     {
         if( poFeature->GetFID() == nFID )
-            return poFeature;
+            break;
         else
             delete poFeature;
     }
     
-    return NULL;
+    /* Restore filters */
+    SetAttributeFilter(pszOldFilter);
+    CPLFree(pszOldFilter);
+    SetSpatialFilter(iOldGeomFieldFilter, poOldFilterGeom);
+    delete poOldFilterGeom;
+    
+    return poFeature;
 }
 
 /************************************************************************/
@@ -697,6 +755,37 @@ OGRErr OGR_L_AlterFieldDefn( OGRLayerH hLayer, int iField, OGRFieldDefnH hNewFie
 }
 
 /************************************************************************/
+/*                         CreateGeomField()                            */
+/************************************************************************/
+
+OGRErr OGRLayer::CreateGeomField( OGRGeomFieldDefn * poField, int bApproxOK )
+
+{
+    (void) poField;
+    (void) bApproxOK;
+
+    CPLError( CE_Failure, CPLE_NotSupported,
+              "CreateGeomField() not supported by this layer.\n" );
+              
+    return OGRERR_UNSUPPORTED_OPERATION;
+}
+
+/************************************************************************/
+/*                        OGR_L_CreateGeomField()                       */
+/************************************************************************/
+
+OGRErr OGR_L_CreateGeomField( OGRLayerH hLayer, OGRGeomFieldDefnH hField, 
+                              int bApproxOK )
+
+{
+    VALIDATE_POINTER1( hLayer, "OGR_L_CreateGeomField", OGRERR_INVALID_HANDLE );
+    VALIDATE_POINTER1( hField, "OGR_L_CreateGeomField", OGRERR_INVALID_HANDLE );
+
+    return ((OGRLayer *) hLayer)->CreateGeomField( (OGRGeomFieldDefn *) hField, 
+                                                   bApproxOK );
+}
+
+/************************************************************************/
 /*                          StartTransaction()                          */
 /************************************************************************/
 
@@ -775,6 +864,39 @@ OGRFeatureDefnH OGR_L_GetLayerDefn( OGRLayerH hLayer )
 }
 
 /************************************************************************/
+/*                         OGR_L_FindFieldIndex()                       */
+/************************************************************************/
+
+int OGR_L_FindFieldIndex( OGRLayerH hLayer, const char *pszFieldName, int bExactMatch )
+
+{
+    VALIDATE_POINTER1( hLayer, "OGR_L_FindFieldIndex", -1 );
+
+    return ((OGRLayer *)hLayer)->FindFieldIndex( pszFieldName, bExactMatch );
+}
+
+/************************************************************************/
+/*                           FindFieldIndex()                           */
+/************************************************************************/
+
+int OGRLayer::FindFieldIndex( const char *pszFieldName, int bExactMatch )
+{
+    return GetLayerDefn()->GetFieldIndex( pszFieldName );
+}
+
+/************************************************************************/
+/*                           GetSpatialRef()                            */
+/************************************************************************/
+
+OGRSpatialReference *OGRLayer::GetSpatialRef()
+{ 
+    if( GetLayerDefn()->GetGeomFieldCount() > 0 )
+        return GetLayerDefn()->GetGeomFieldDefn(0)->GetSpatialRef();
+    else
+        return NULL;
+}
+
+/************************************************************************/
 /*                        OGR_L_GetSpatialRef()                         */
 /************************************************************************/
 
@@ -828,8 +950,33 @@ OGRGeometryH OGR_L_GetSpatialFilter( OGRLayerH hLayer )
 void OGRLayer::SetSpatialFilter( OGRGeometry * poGeomIn )
 
 {
+    m_iGeomFieldFilter = 0;
     if( InstallFilter( poGeomIn ) )
         ResetReading();
+}
+
+
+void OGRLayer::SetSpatialFilter( int iGeomField, OGRGeometry * poGeomIn )
+
+{
+    if( iGeomField == 0 )
+    {
+        m_iGeomFieldFilter = iGeomField;
+        SetSpatialFilter( poGeomIn );
+    }
+    else
+    {
+        if( iGeomField < 0 || iGeomField >= GetLayerDefn()->GetGeomFieldCount() )
+        {
+            CPLError(CE_Failure, CPLE_AppDefined,
+                     "Invalid geometry field index : %d", iGeomField);
+            return;
+        }
+
+        m_iGeomFieldFilter = iGeomField;
+        if( InstallFilter( poGeomIn ) )
+            ResetReading();
+    }
 }
 
 /************************************************************************/
@@ -845,10 +992,31 @@ void OGR_L_SetSpatialFilter( OGRLayerH hLayer, OGRGeometryH hGeom )
 }
 
 /************************************************************************/
+/*                      OGR_L_SetSpatialFilterEx()                      */
+/************************************************************************/
+
+void OGR_L_SetSpatialFilterEx( OGRLayerH hLayer, int iGeomField, 
+                               OGRGeometryH hGeom )
+
+{
+    VALIDATE_POINTER0( hLayer, "OGR_L_SetSpatialFilterEx" );
+
+    ((OGRLayer *) hLayer)->SetSpatialFilter( iGeomField, (OGRGeometry *) hGeom );
+}
+/************************************************************************/
 /*                        SetSpatialFilterRect()                        */
 /************************************************************************/
 
 void OGRLayer::SetSpatialFilterRect( double dfMinX, double dfMinY, 
+                                     double dfMaxX, double dfMaxY )
+
+{
+    SetSpatialFilterRect( 0, dfMinX, dfMinY, dfMaxX, dfMaxY );
+}
+
+
+void OGRLayer::SetSpatialFilterRect( int iGeomField, 
+                                     double dfMinX, double dfMinY, 
                                      double dfMaxX, double dfMaxY )
 
 {
@@ -863,7 +1031,11 @@ void OGRLayer::SetSpatialFilterRect( double dfMinX, double dfMinY,
 
     oPoly.addRing( &oRing );
 
-    SetSpatialFilter( &oPoly );
+    if( iGeomField == 0 )
+        /* for drivers that only overload SetSpatialFilter(OGRGeometry*) */
+        SetSpatialFilter( &oPoly );
+    else
+        SetSpatialFilter( iGeomField, &oPoly );
 }
 
 /************************************************************************/
@@ -878,6 +1050,23 @@ void OGR_L_SetSpatialFilterRect( OGRLayerH hLayer,
     VALIDATE_POINTER0( hLayer, "OGR_L_SetSpatialFilterRect" );
 
     ((OGRLayer *) hLayer)->SetSpatialFilterRect( dfMinX, dfMinY, 
+                                                 dfMaxX, dfMaxY );
+}
+
+/************************************************************************/
+/*                    OGR_L_SetSpatialFilterRectEx()                    */
+/************************************************************************/
+
+void OGR_L_SetSpatialFilterRectEx( OGRLayerH hLayer,
+                                   int iGeomField,
+                                   double dfMinX, double dfMinY, 
+                                   double dfMaxX, double dfMaxY )
+
+{
+    VALIDATE_POINTER0( hLayer, "OGR_L_SetSpatialFilterRectEx" );
+
+    ((OGRLayer *) hLayer)->SetSpatialFilterRect( iGeomField,
+                                                 dfMinX, dfMinY, 
                                                  dfMaxX, dfMaxY );
 }
 
@@ -1226,7 +1415,10 @@ const char *OGR_L_GetFIDColumn( OGRLayerH hLayer )
 const char *OGRLayer::GetGeometryColumn()
 
 {
-    return "";
+    if( GetLayerDefn()->GetGeomFieldCount() > 0 )
+        return GetLayerDefn()->GetGeomFieldDefn(0)->GetNameRef();
+    else
+        return "";
 }
 
 /************************************************************************/
@@ -1387,7 +1579,16 @@ OGRErr OGRLayer::SetIgnoredFields( const char **papszFields )
             // check ordinary fields
             int iField = poDefn->GetFieldIndex(pszFieldName);
             if ( iField == -1 )
-                return OGRERR_FAILURE;
+            {
+                // check geometry field
+                iField = poDefn->GetGeomFieldIndex(pszFieldName);
+                if ( iField == -1 )
+                {
+                    return OGRERR_FAILURE;
+                }
+                else
+                    poDefn->GetGeomFieldDefn(iField)->SetIgnored( TRUE );
+            }
             else
                 poDefn->GetFieldDefn(iField)->SetIgnored( TRUE );
         }
@@ -1471,8 +1672,14 @@ OGRErr set_result_schema(OGRLayer *pLayerResult,
             if( pszInputPrefix != NULL )
                 oFieldDefn.SetName(CPLSPrintf("%s%s", pszInputPrefix, oFieldDefn.GetNameRef()));
             ret = pLayerResult->CreateField(&oFieldDefn);
-            if (!bSkipFailures && ret != OGRERR_NONE) return ret;
-            ret = OGRERR_NONE;
+            if (ret != OGRERR_NONE) {
+                if (!bSkipFailures) 
+                    return ret;
+                else {
+                    CPLErrorReset();
+                    ret = OGRERR_NONE;
+                }
+            }
             mapInput[iField] = iField;
         }
         if (!combined) return ret;
@@ -1482,8 +1689,14 @@ OGRErr set_result_schema(OGRLayer *pLayerResult,
             if( pszMethodPrefix != NULL )
                 oFieldDefn.SetName(CPLSPrintf("%s%s", pszMethodPrefix, oFieldDefn.GetNameRef()));
             ret = pLayerResult->CreateField(&oFieldDefn);
-            if (!bSkipFailures && ret != OGRERR_NONE) return ret;
-            ret = OGRERR_NONE;
+            if (ret != OGRERR_NONE) {
+                if (!bSkipFailures) 
+                    return ret;
+                else {
+                    CPLErrorReset();
+                    ret = OGRERR_NONE;
+                }
+            }
             mapMethod[iField] = nFieldsInput+iField;
         }
     }
@@ -1678,8 +1891,15 @@ OGRErr OGRLayer::Intersection( OGRLayer *pLayerMethod,
                 delete y;
                 ret = pLayerResult->CreateFeature(z);
                 delete z;
-                if (!bSkipFailures && ret != OGRERR_NONE) {delete x; goto done;}
-                ret = OGRERR_NONE;
+                if (ret != OGRERR_NONE) {
+                    if (!bSkipFailures) {
+                        delete x; 
+                        goto done;
+                    } else {
+                        CPLErrorReset();
+                        ret = OGRERR_NONE;
+                    }
+                }
             }
         }
 
@@ -1923,8 +2143,17 @@ OGRErr OGRLayer::Union( OGRLayer *pLayerMethod,
                 delete y;
                 ret = pLayerResult->CreateFeature(z);
                 delete z;
-                if (!bSkipFailures && ret != OGRERR_NONE) {delete x; if (x_geom_diff) delete x_geom_diff; goto done;}
-                ret = OGRERR_NONE;
+                if (ret != OGRERR_NONE) {
+                    if (!bSkipFailures) {
+                        delete x;
+                        if (x_geom_diff)
+                            delete x_geom_diff;
+                        goto done;
+                    } else {
+                        CPLErrorReset();
+                        ret = OGRERR_NONE;
+                    }
+                }
             }
         }
 
@@ -1943,8 +2172,14 @@ OGRErr OGRLayer::Union( OGRLayer *pLayerMethod,
             delete x;
             ret = pLayerResult->CreateFeature(z);
             delete z;
-            if (!bSkipFailures && ret != OGRERR_NONE) goto done;
-            ret = OGRERR_NONE;
+            if (ret != OGRERR_NONE) {
+                if (!bSkipFailures) {
+                    goto done;
+                } else {
+                    CPLErrorReset();
+                    ret = OGRERR_NONE;
+                }
+            }
         }
     }
 
@@ -1999,8 +2234,14 @@ OGRErr OGRLayer::Union( OGRLayer *pLayerMethod,
             delete x;
             ret = pLayerResult->CreateFeature(z);
             delete z;
-            if (!bSkipFailures && ret != OGRERR_NONE) goto done;
-            ret = OGRERR_NONE;
+            if (ret != OGRERR_NONE) {
+                if (!bSkipFailures) {
+                    goto done;
+                } else {
+                    CPLErrorReset();
+                    ret = OGRERR_NONE;
+                }
+            }
         }
     }
     if (pfnProgress && !pfnProgress(1.0, "", pProgressArg)) {
@@ -2244,8 +2485,14 @@ OGRErr OGRLayer::SymDifference( OGRLayer *pLayerMethod,
         if (z) {
             ret = pLayerResult->CreateFeature(z);
             delete z;
-            if (!bSkipFailures && ret != OGRERR_NONE) goto done;
-            ret = OGRERR_NONE;
+            if (ret != OGRERR_NONE) {
+                if (!bSkipFailures) {
+                    goto done;
+                } else {
+                    CPLErrorReset();
+                    ret = OGRERR_NONE;
+                }
+            }
         }
     }
 
@@ -2300,8 +2547,14 @@ OGRErr OGRLayer::SymDifference( OGRLayer *pLayerMethod,
         if (z) {
             ret = pLayerResult->CreateFeature(z);
             delete z;
-            if (!bSkipFailures && ret != OGRERR_NONE) goto done;
-            ret = OGRERR_NONE;
+            if (ret != OGRERR_NONE) {
+                if (!bSkipFailures) {
+                    goto done;
+                } else {
+                    CPLErrorReset();
+                    ret = OGRERR_NONE;
+                }
+            }
         }
     }
     if (pfnProgress && !pfnProgress(1.0, "", pProgressArg)) {
@@ -2542,8 +2795,16 @@ OGRErr OGRLayer::Identity( OGRLayer *pLayerMethod,
                 delete y;
                 ret = pLayerResult->CreateFeature(z);
                 delete z;
-                if (!bSkipFailures && ret != OGRERR_NONE) {delete x; delete x_geom_diff; goto done;}
-                ret = OGRERR_NONE;
+                if (ret != OGRERR_NONE) {
+                    if (!bSkipFailures) {
+                        delete x;
+                        delete x_geom_diff;
+                        goto done;
+                    } else {
+                        CPLErrorReset();
+                        ret = OGRERR_NONE;
+                    }
+                }
             }
         }
 
@@ -2562,8 +2823,14 @@ OGRErr OGRLayer::Identity( OGRLayer *pLayerMethod,
             delete x;
             ret = pLayerResult->CreateFeature(z);
             delete z;
-            if (!bSkipFailures && ret != OGRERR_NONE) goto done;
-            ret = OGRERR_NONE;
+            if (ret != OGRERR_NONE) {
+                if (!bSkipFailures) {
+                    goto done;
+                } else {
+                    CPLErrorReset();
+                    ret = OGRERR_NONE;
+                }
+            }
         }
     }
     if (pfnProgress && !pfnProgress(1.0, "", pProgressArg)) {
@@ -2800,8 +3067,14 @@ OGRErr OGRLayer::Update( OGRLayer *pLayerMethod,
             delete x;
             ret = pLayerResult->CreateFeature(z);
             delete z;
-            if (!bSkipFailures && ret != OGRERR_NONE) goto done;
-            ret = OGRERR_NONE;
+            if (ret != OGRERR_NONE) {
+                if (!bSkipFailures) {
+                    goto done;
+                } else {
+                    CPLErrorReset();
+                    ret = OGRERR_NONE;
+                }
+            }
         }
     }
 
@@ -2831,8 +3104,14 @@ OGRErr OGRLayer::Update( OGRLayer *pLayerMethod,
         delete y;
         ret = pLayerResult->CreateFeature(z);
         delete z;
-        if (!bSkipFailures && ret != OGRERR_NONE) goto done;
-        ret = OGRERR_NONE;
+        if (ret != OGRERR_NONE) {
+            if (!bSkipFailures) {
+                goto done;
+            } else {
+                CPLErrorReset();
+                ret = OGRERR_NONE;
+            }
+        }
     }
     if (pfnProgress && !pfnProgress(1.0, "", pProgressArg)) {
       CPLError(CE_Failure, CPLE_UserInterrupt, "User terminated");
@@ -3068,8 +3347,14 @@ OGRErr OGRLayer::Clip( OGRLayer *pLayerMethod,
             if (z->GetGeometryRef() != NULL && !z->GetGeometryRef()->IsEmpty())
                 ret = pLayerResult->CreateFeature(z);
             delete z;
-            if (!bSkipFailures && ret != OGRERR_NONE) goto done;
-            ret = OGRERR_NONE;
+            if (ret != OGRERR_NONE) {
+                if (!bSkipFailures) {
+                    goto done;
+                } else {
+                    CPLErrorReset();
+                    ret = OGRERR_NONE;
+                }
+            }
         }
     }
     if (pfnProgress && !pfnProgress(1.0, "", pProgressArg)) {
@@ -3299,8 +3584,14 @@ OGRErr OGRLayer::Erase( OGRLayer *pLayerMethod,
             if (z->GetGeometryRef() != NULL && !z->GetGeometryRef()->IsEmpty())
                 ret = pLayerResult->CreateFeature(z);
             delete z;
-            if (!bSkipFailures && ret != OGRERR_NONE) goto done;
-            ret = OGRERR_NONE;
+            if (ret != OGRERR_NONE) {
+                if (!bSkipFailures) {
+                    goto done;
+                } else {
+                    CPLErrorReset();
+                    ret = OGRERR_NONE;
+                }
+            }
         }
     }
     if (pfnProgress && !pfnProgress(1.0, "", pProgressArg)) {

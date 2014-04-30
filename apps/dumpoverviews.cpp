@@ -1,5 +1,5 @@
 /* ****************************************************************************
- * $Id: dumpoverviews.cpp 23484 2011-12-07 03:34:10Z warmerdam $
+ * $Id: dumpoverviews.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  GDAL Utilities
  * Purpose:  Dump overviews to external files.
@@ -7,6 +7,7 @@
  *
  * ****************************************************************************
  * Copyright (c) 2005, Frank Warmerdam
+ * Copyright (c) 2009-2010, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -32,7 +33,7 @@
 #include "gdal_priv.h"
 #include "ogr_spatialref.h"
 
-CPL_CVSID("$Id: dumpoverviews.cpp 23484 2011-12-07 03:34:10Z warmerdam $");
+CPL_CVSID("$Id: dumpoverviews.cpp 27044 2014-03-16 23:41:27Z rouault $");
 
 static void DumpBand( GDALDatasetH hBaseDS, GDALRasterBandH hBand,
                       const char *pszName );

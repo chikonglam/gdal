@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrgrasslayer.cpp 20157 2010-07-28 19:32:04Z rouault $
+ * $Id: ogrgrasslayer.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implements OGRGRASSLayer class.
@@ -7,6 +7,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2005, Radim Blazek <radim.blazek@gmail.com>
+ * Copyright (c) 2008-2010, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -31,7 +32,7 @@
 #include "ogrgrass.h"
 #include "cpl_conv.h"
 
-CPL_CVSID("$Id: ogrgrasslayer.cpp 20157 2010-07-28 19:32:04Z rouault $");
+CPL_CVSID("$Id: ogrgrasslayer.cpp 27044 2014-03-16 23:41:27Z rouault $");
 
 /************************************************************************/
 /*                           OGRGRASSLayer()                            */

@@ -1,4 +1,4 @@
-/* $Id: gdal_tutorial.dox 20418 2010-08-23 19:01:36Z rouault $ */
+/* $Id: gdal_tutorial.dox 26639 2013-11-20 12:34:03Z rouault $ */
 
 /*!
 \page gdal_tutorial GDAL API Tutorial
@@ -83,14 +83,19 @@ area, and having the same resolution.  It also has metadata, a coordinate
 system, a georeferencing transform, size of raster and various other 
 information.  
 
+In the particular, but common, case of a "north up" image without any rotation
+or shearing, the georeferencing transform takes the following form :
+
 \code
     adfGeoTransform[0] /* top left x */
     adfGeoTransform[1] /* w-e pixel resolution */
-    adfGeoTransform[2] /* rotation, 0 if image is "north up" */
+    adfGeoTransform[2] /* 0 */
     adfGeoTransform[3] /* top left y */
-    adfGeoTransform[4] /* rotation, 0 if image is "north up" */
-    adfGeoTransform[5] /* n-s pixel resolution */
+    adfGeoTransform[4] /* 0 */
+    adfGeoTransform[5] /* n-s pixel resolution (negative value) */
 \endcode
+
+In the general case, this is an affine transform.
 
 If we wanted to print some general information about the 
 dataset we might do the following:
@@ -646,7 +651,7 @@ In Python:
 
 \htmlonly
 <p>
-$Id: gdal_tutorial.dox 20418 2010-08-23 19:01:36Z rouault $
+$Id: gdal_tutorial.dox 26639 2013-11-20 12:34:03Z rouault $
 </p>
 \endhtmlonly
 

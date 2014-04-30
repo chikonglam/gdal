@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdal_alg.h 25741 2013-03-13 19:19:16Z ilucena $
+ * $Id: gdal_alg.h 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  GDAL Image Processing Algorithms
  * Purpose:  Prototypes, and definitions for various GDAL based algorithms.
@@ -7,6 +7,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2001, Frank Warmerdam
+ * Copyright (c) 2008-2012, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),

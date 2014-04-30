@@ -1,5 +1,5 @@
 /****************************************************************************
- * $Id: gs7bgdataset.cpp 24584 2012-06-16 10:24:03Z rouault $
+ * $Id: gs7bgdataset.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  GDAL
  * Purpose:  Implements the Golden Software Surfer 7 Binary Grid Format.
@@ -9,6 +9,7 @@
  *
  ****************************************************************************
  * Copyright (c) 2007, Adam Guernsey <adam@ctech.com>
+ * Copyright (c) 2009-2011, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -60,7 +61,7 @@
 # define SHRT_MAX 32767
 #endif /* SHRT_MAX */
 
-CPL_CVSID("$Id: gs7bgdataset.cpp 24584 2012-06-16 10:24:03Z rouault $");
+CPL_CVSID("$Id: gs7bgdataset.cpp 27044 2014-03-16 23:41:27Z rouault $");
 
 CPL_C_START
 void    GDALRegister_GS7BG(void);

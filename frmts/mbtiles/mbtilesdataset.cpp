@@ -1,12 +1,12 @@
 /******************************************************************************
- * $Id: mbtilesdataset.cpp 23737 2012-01-09 19:26:10Z rouault $
+ * $Id: mbtilesdataset.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  GDAL MBTiles driver
  * Purpose:  Implement GDAL MBTiles support using OGR SQLite driver
  * Author:   Even Rouault, <even dot rouault at mines dash paris dot org>
  *
  **********************************************************************
- * Copyright (c) 2012, Even Rouault, <even dot rouault at mines dash paris dot org>
+ * Copyright (c) 2012-2013, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -33,13 +33,13 @@
 #include "cpl_vsil_curl_priv.h"
 
 #include "zlib.h"
-#include "jsonc/json.h"
+#include "json.h"
 
 #include <math.h>
 
 extern "C" void GDALRegister_MBTiles();
 
-CPL_CVSID("$Id: mbtilesdataset.cpp 23737 2012-01-09 19:26:10Z rouault $");
+CPL_CVSID("$Id: mbtilesdataset.cpp 27044 2014-03-16 23:41:27Z rouault $");
 
 static const char * const apszAllowedDrivers[] = {"JPEG", "PNG", NULL};
 
@@ -63,6 +63,8 @@ class MBTilesDataset : public GDALPamDataset
 
     virtual CPLErr GetGeoTransform(double* padfGeoTransform);
     virtual const char* GetProjectionRef();
+    
+    virtual char      **GetMetadataDomainList();
     virtual char      **GetMetadata( const char * pszDomain = "" );
 
     static GDALDataset *Open( GDALOpenInfo * );
@@ -126,6 +128,7 @@ class MBTilesBand: public GDALPamRasterBand
 
     virtual CPLErr          IReadBlock( int, int, void * );
 
+    virtual char      **GetMetadataDomainList();
     virtual const char *GetMetadataItem( const char * pszName,
                                          const char * pszDomain = "" );
 };
@@ -728,6 +731,15 @@ end:
 }
 
 /************************************************************************/
+/*                      GetMetadataDomainList()                         */
+/************************************************************************/
+
+char **MBTilesBand::GetMetadataDomainList()
+{
+    return CSLAddString(GDALPamRasterBand::GetMetadataDomainList(), "LocationInfo");
+}
+
+/************************************************************************/
 /*                         GetMetadataItem()                            */
 /************************************************************************/
 
@@ -1057,6 +1069,17 @@ CPLErr MBTilesDataset::GetGeoTransform(double* padfGeoTransform)
 const char* MBTilesDataset::GetProjectionRef()
 {
     return "PROJCS[\"WGS 84 / Pseudo-Mercator\",GEOGCS[\"WGS 84\",DATUM[\"WGS_1984\",SPHEROID[\"WGS 84\",6378137,298.257223563,AUTHORITY[\"EPSG\",\"7030\"]],AUTHORITY[\"EPSG\",\"6326\"]],PRIMEM[\"Greenwich\",0,AUTHORITY[\"EPSG\",\"8901\"]],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AUTHORITY[\"EPSG\",\"4326\"]],PROJECTION[\"Mercator_1SP\"],PARAMETER[\"central_meridian\",0],PARAMETER[\"scale_factor\",1],PARAMETER[\"false_easting\",0],PARAMETER[\"false_northing\",0],UNIT[\"metre\",1,AUTHORITY[\"EPSG\",\"9001\"]],AXIS[\"X\",EAST],AXIS[\"Y\",NORTH],EXTENSION[\"PROJ4\",\"+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +wktext  +no_defs\"],AUTHORITY[\"EPSG\",\"3857\"]]";
+}
+
+/************************************************************************/
+/*                      GetMetadataDomainList()                         */
+/************************************************************************/
+
+char **MBTilesDataset::GetMetadataDomainList()
+{
+    return BuildMetadataDomainList(GDALDataset::GetMetadataDomainList(),
+                                   TRUE,
+                                   "", NULL);
 }
 
 /************************************************************************/
@@ -1462,6 +1485,7 @@ int MBTilesGetBandCount(OGRDataSourceH &hDS, int nMinLevel, int nMaxLevel,
     OGRFeatureH hFeat;
     const char* pszSQL;
     VSILFILE* fpCURLOGR = NULL;
+    int bFirstSelect = TRUE;
 
     int nBands = -1;
 
@@ -1503,6 +1527,7 @@ int MBTilesGetBandCount(OGRDataSourceH &hDS, int nMinLevel, int nMaxLevel,
         /* Install a spy on the file connexion that will intercept */
         /* PNG or JPEG headers, to interrupt their downloading */
         /* once the header is found. Speeds up dataset opening. */
+        CPLErrorReset();
         VSICurlInstallReadCbk(fpCURLOGR, MBTilesCurlReadCbk, &nBands, TRUE);
 
         CPLErrorReset();
@@ -1545,21 +1570,29 @@ int MBTilesGetBandCount(OGRDataSourceH &hDS, int nMinLevel, int nMaxLevel,
         hSQLLyr = OGR_DS_ExecuteSQL(hDS, pszSQL, NULL, NULL);
     }
 
-    if (hSQLLyr == NULL)
+    while( TRUE )
     {
-        pszSQL = CPLSPrintf("SELECT tile_data FROM tiles WHERE "
-                            "zoom_level = %d LIMIT 1", nMaxLevel);
-        CPLDebug("MBTILES", "%s", pszSQL);
-        hSQLLyr = OGR_DS_ExecuteSQL(hDS, pszSQL, NULL, NULL);
-        if (hSQLLyr == NULL)
-            return -1;
-    }
+        if (hSQLLyr == NULL && bFirstSelect)
+        {
+            bFirstSelect = FALSE;
+            pszSQL = CPLSPrintf("SELECT tile_data FROM tiles WHERE "
+                                "zoom_level = %d LIMIT 1", nMaxLevel);
+            CPLDebug("MBTILES", "%s", pszSQL);
+            hSQLLyr = OGR_DS_ExecuteSQL(hDS, pszSQL, NULL, NULL);
+            if (hSQLLyr == NULL)
+                return -1;
+        }
 
-    hFeat = OGR_L_GetNextFeature(hSQLLyr);
-    if (hFeat == NULL)
-    {
-        OGR_DS_ReleaseResultSet(hDS, hSQLLyr);
-        return -1;
+        hFeat = OGR_L_GetNextFeature(hSQLLyr);
+        if (hFeat == NULL)
+        {
+            OGR_DS_ReleaseResultSet(hDS, hSQLLyr);
+            hSQLLyr = NULL;
+            if( !bFirstSelect )
+                return -1;
+        }
+        else
+            break;
     }
 
     CPLString osMemFileName;

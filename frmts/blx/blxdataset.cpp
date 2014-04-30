@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: blxdataset.cpp 23619 2011-12-20 22:40:19Z rouault $
+ * $Id: blxdataset.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  BLX Driver
  * Purpose:  GDAL BLX support.
@@ -7,6 +7,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2006, Henrik Johansson <henrik@johome.net>
+ * Copyright (c) 2008-2011, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -32,7 +33,7 @@
 #include "gdal_pam.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: blxdataset.cpp 23619 2011-12-20 22:40:19Z rouault $");
+CPL_CVSID("$Id: blxdataset.cpp 27044 2014-03-16 23:41:27Z rouault $");
 
 CPL_C_START
 #include <blx.h>

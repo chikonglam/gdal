@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrmysqldatasource.cpp 24947 2012-09-22 09:54:23Z rouault $
+ * $Id: ogrmysqldatasource.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implements OGRMySQLDataSource class.
@@ -8,6 +8,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2004, Frank Warmerdam <warmerdam@pobox.com>
+ * Copyright (c) 2008-2013, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -36,7 +37,17 @@
 #include "cpl_conv.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: ogrmysqldatasource.cpp 24947 2012-09-22 09:54:23Z rouault $");
+/* Recent versions of mysql no longer declare load_defaults() in my_sys.h */
+/* but they still have it in the lib. Very fragile... */
+#ifdef MYSQL_NEEDS_LOAD_DEFAULTS_DECLARATION
+extern "C" {
+int load_defaults(const char *conf_file, const char **groups,
+                  int *argc, char ***argv);
+void free_defaults(char **argv);
+}
+#endif
+
+CPL_CVSID("$Id: ogrmysqldatasource.cpp 27044 2014-03-16 23:41:27Z rouault $");
 /************************************************************************/
 /*                         OGRMySQLDataSource()                         */
 /************************************************************************/
@@ -648,9 +659,9 @@ OGRLayer * OGRMySQLDataSource::ExecuteSQL( const char *pszSQLCommand,
     }
 
 /* -------------------------------------------------------------------- */
-/*      Use generic implementation for OGRSQL dialect.                  */
+/*      Use generic implementation for recognized dialects              */
 /* -------------------------------------------------------------------- */
-    if( pszDialect != NULL && EQUAL(pszDialect,"OGRSQL") )
+    if( IsGenericSQLDialect(pszDialect) )
         return OGRDataSource::ExecuteSQL( pszSQLCommand, 
                                           poSpatialFilter, 
                                           pszDialect );

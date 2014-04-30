@@ -1,12 +1,12 @@
 /******************************************************************************
- * $Id: ogrxlsdatasource.cpp 25307 2012-12-15 09:04:40Z rouault $
+ * $Id: ogrxlsdatasource.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  XLS Translator
  * Purpose:  Implements OGRXLSDataSource class
  * Author:   Even Rouault, even dot rouault at mines dash paris dot org
  *
  ******************************************************************************
- * Copyright (c) 2011, Even Rouault <even dot rouault at mines dash paris dot org>
+ * Copyright (c) 2011, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -37,7 +37,7 @@
 #include "cpl_conv.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: ogrxlsdatasource.cpp 25307 2012-12-15 09:04:40Z rouault $");
+CPL_CVSID("$Id: ogrxlsdatasource.cpp 27044 2014-03-16 23:41:27Z rouault $");
 
 /************************************************************************/
 /*                          OGRXLSDataSource()                          */

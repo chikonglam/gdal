@@ -1,12 +1,12 @@
 /******************************************************************************
- * $Id: gpb.h 25370 2012-12-27 21:20:05Z rouault $
+ * $Id: gpb.h 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Author:   Even Rouault, <even dot rouault at mines dash paris dot org>
  * Purpose:  Google Protocol Buffer generic handling functions
  *
  ******************************************************************************
- * Copyright (c) 2012, Even Rouault, <even dot rouault at mines dash paris dot org>
+ * Copyright (c) 2012, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -223,7 +223,7 @@ static void SkipVarInt(GByte** ppabyData)
         pabyData += nDataLength;
 
 /************************************************************************/
-/*                         SkipUnkownField()                            */
+/*                         SkipUnknownField()                           */
 /************************************************************************/
 
 #define SKIP_UNKNOWN_FIELD_INLINE(pabyData, pabyDataLimit, verbose) \
@@ -264,10 +264,10 @@ static void SkipVarInt(GByte** ppabyData)
         }
 
 static
-int SkipUnkownField(int nKey, GByte* pabyData, GByte* pabyDataLimit, int verbose) CPL_NO_INLINE;
+int SkipUnknownField(int nKey, GByte* pabyData, GByte* pabyDataLimit, int verbose) CPL_NO_INLINE;
 
 static
-int SkipUnkownField(int nKey, GByte* pabyData, GByte* pabyDataLimit, int verbose)
+int SkipUnknownField(int nKey, GByte* pabyData, GByte* pabyDataLimit, int verbose)
 {
     GByte* pabyDataBefore = pabyData;
     SKIP_UNKNOWN_FIELD_INLINE(pabyData, pabyDataLimit, verbose);
@@ -278,7 +278,7 @@ end_error:
 
 #define SKIP_UNKNOWN_FIELD(pabyData, pabyDataLimit, verbose) \
     { \
-        int _nOffset = SkipUnkownField(nKey, pabyData, pabyDataLimit, verbose); \
+        int _nOffset = SkipUnknownField(nKey, pabyData, pabyDataLimit, verbose); \
         if (_nOffset < 0) \
             GOTO_END_ERROR; \
         pabyData += _nOffset; \

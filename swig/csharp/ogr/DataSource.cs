@@ -165,6 +165,18 @@ public class DataSource : IDisposable {
     if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
   }
 
+  public StyleTable GetStyleTable() {
+    IntPtr cPtr = OgrPINVOKE.DataSource_GetStyleTable(swigCPtr);
+    StyleTable ret = (cPtr == IntPtr.Zero) ? null : new StyleTable(cPtr, false, ThisOwn_false());
+    if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
+    return ret;
+  }
+
+  public void SetStyleTable(StyleTable table) {
+    OgrPINVOKE.DataSource_SetStyleTable(swigCPtr, StyleTable.getCPtr(table));
+    if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
+  }
+
 }
 
 }

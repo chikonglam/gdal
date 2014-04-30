@@ -1,12 +1,12 @@
 /**********************************************************************
- * $Id: cpl_spawn.cpp 26317 2013-08-14 08:17:37Z rouault $
+ * $Id: cpl_spawn.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  CPL - Common Portability Library
  * Purpose:  Implement CPLSystem().
  * Author:   Even Rouault, <even dot rouault at mines dash paris dot org>
  *
  **********************************************************************
- * Copyright (c) 2012,Even Rouault
+ * Copyright (c) 2012-2013, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -39,7 +39,7 @@
 #define IN_FOR_PARENT   0
 #define OUT_FOR_PARENT  1
 
-CPL_CVSID("$Id: cpl_spawn.cpp 26317 2013-08-14 08:17:37Z rouault $");
+CPL_CVSID("$Id: cpl_spawn.cpp 27044 2014-03-16 23:41:27Z rouault $");
 
 static void FillFileFromPipe(CPL_FILE_HANDLE pipe_fd, VSILFILE* fout);
 
@@ -464,7 +464,7 @@ void CPLSpawnAsyncCloseErrorFileHandle(CPLSpawnedProcess* p)
     #ifdef __APPLE__
         #include <TargetConditionals.h>
     #endif
-    #if defined(__APPLE__) && !defined(TARGET_OS_IPHONE)
+    #if defined(__APPLE__) && (!defined(TARGET_OS_IPHONE) || TARGET_OS_IPHONE==0)
         #include <crt_externs.h>
         #define environ (*_NSGetEnviron())
     #else

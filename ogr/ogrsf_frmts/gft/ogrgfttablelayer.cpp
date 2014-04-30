@@ -1,12 +1,12 @@
 /******************************************************************************
- * $Id: ogrgfttablelayer.cpp 25475 2013-01-09 09:09:59Z warmerdam $
+ * $Id: ogrgfttablelayer.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  GFT Translator
  * Purpose:  Implements OGRGFTTableLayer class.
  * Author:   Even Rouault, <even dot rouault at mines dash paris dot org>
  *
  ******************************************************************************
- * Copyright (c) 2011, Even Rouault <even dot rouault at mines dash paris dot org>
+ * Copyright (c) 2011-2013, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -29,7 +29,7 @@
 
 #include "ogr_gft.h"
 
-CPL_CVSID("$Id: ogrgfttablelayer.cpp 25475 2013-01-09 09:09:59Z warmerdam $");
+CPL_CVSID("$Id: ogrgfttablelayer.cpp 27044 2014-03-16 23:41:27Z rouault $");
 
 /************************************************************************/
 /*                         OGRGFTTableLayer()                           */
@@ -106,6 +106,7 @@ int OGRGFTTableLayer::FetchDescribe()
 {
     poFeatureDefn = new OGRFeatureDefn( osTableName );
     poFeatureDefn->Reference();
+    poFeatureDefn->GetGeomFieldDefn(0)->SetSpatialRef(poSRS);
 
     const CPLString& osAuth = poDS->GetAccessToken();
     std::vector<CPLString> aosHeaderAndFirstDataLine;
@@ -293,6 +294,8 @@ int OGRGFTTableLayer::FetchDescribe()
         else
             poFeatureDefn->SetGeomType( eType );
     }
+
+    SetGeomFieldName();
 
     return TRUE;
 }
@@ -547,6 +550,8 @@ OGRErr OGRGFTTableLayer::CreateField( OGRFieldDefn *poField,
     {
         poFeatureDefn = new OGRFeatureDefn( osTableName );
         poFeatureDefn->Reference();
+        poFeatureDefn->GetGeomFieldDefn(0)->SetSpatialRef(poSRS);
+        poFeatureDefn->GetGeomFieldDefn(0)->SetName(GetDefaultGeometryColumnName());
     }
 
     poFeatureDefn->AddFieldDefn(poField);
@@ -576,6 +581,8 @@ void OGRGFTTableLayer::CreateTableIfNecessary()
         /* In case CreateField() hasn't yet been called */
         poFeatureDefn = new OGRFeatureDefn( osTableName );
         poFeatureDefn->Reference();
+        poFeatureDefn->GetGeomFieldDefn(0)->SetSpatialRef(poSRS);
+        poFeatureDefn->GetGeomFieldDefn(0)->SetName(GetDefaultGeometryColumnName());
     }
 
     /* If there are longitude and latitude fields, use the latitude */

@@ -297,6 +297,45 @@ SWIGEXPORT void SWIGSTDCALL SWIGRegisterStringCallback_Gdal(SWIG_CSharpStringHel
 
 
 
+SWIGINTERN void SWIG_CSharpException(int code, const char *msg) {
+  if (code == SWIG_ValueError) {
+    SWIG_CSharpExceptionArgumentCodes exception_code = SWIG_CSharpArgumentOutOfRangeException;
+    SWIG_CSharpSetPendingExceptionArgument(exception_code, msg, 0);
+  } else {
+    SWIG_CSharpExceptionCodes exception_code = SWIG_CSharpApplicationException;
+    switch(code) {
+    case SWIG_MemoryError:
+      exception_code = SWIG_CSharpOutOfMemoryException;
+      break;
+    case SWIG_IndexError:
+      exception_code = SWIG_CSharpIndexOutOfRangeException;
+      break;
+    case SWIG_DivisionByZero:
+      exception_code = SWIG_CSharpDivideByZeroException;
+      break;
+    case SWIG_IOError:
+      exception_code = SWIG_CSharpIOException;
+      break;
+    case SWIG_OverflowError:
+      exception_code = SWIG_CSharpOverflowException;
+      break;
+    case SWIG_RuntimeError:
+    case SWIG_TypeError:
+    case SWIG_SyntaxError:
+    case SWIG_SystemError:
+    case SWIG_UnknownError:
+    default:
+      exception_code = SWIG_CSharpApplicationException;
+      break;
+    }
+    SWIG_CSharpSetPendingException(exception_code, msg);
+  }
+}
+
+
+#include <stdexcept>
+
+
 #include <iostream>
 using namespace std;
 
@@ -341,45 +380,6 @@ void UseExceptions() {
 void DontUseExceptions() {
   CPLSetErrorHandler( CPLDefaultErrorHandler );
 }
-
-
-SWIGINTERN void SWIG_CSharpException(int code, const char *msg) {
-  if (code == SWIG_ValueError) {
-    SWIG_CSharpExceptionArgumentCodes exception_code = SWIG_CSharpArgumentOutOfRangeException;
-    SWIG_CSharpSetPendingExceptionArgument(exception_code, msg, 0);
-  } else {
-    SWIG_CSharpExceptionCodes exception_code = SWIG_CSharpApplicationException;
-    switch(code) {
-    case SWIG_MemoryError:
-      exception_code = SWIG_CSharpOutOfMemoryException;
-      break;
-    case SWIG_IndexError:
-      exception_code = SWIG_CSharpIndexOutOfRangeException;
-      break;
-    case SWIG_DivisionByZero:
-      exception_code = SWIG_CSharpDivideByZeroException;
-      break;
-    case SWIG_IOError:
-      exception_code = SWIG_CSharpIOException;
-      break;
-    case SWIG_OverflowError:
-      exception_code = SWIG_CSharpOverflowException;
-      break;
-    case SWIG_RuntimeError:
-    case SWIG_TypeError:
-    case SWIG_SyntaxError:
-    case SWIG_SystemError:
-    case SWIG_UnknownError:
-    default:
-      exception_code = SWIG_CSharpApplicationException;
-      break;
-    }
-    SWIG_CSharpSetPendingException(exception_code, msg);
-  }
-}
-
-
-#include <stdexcept>
 
 
     void StringListDestroy(void *buffer_ptr) {
@@ -516,6 +516,9 @@ SWIGINTERN char const *GDALMajorObjectShadow_GetDescription(GDALMajorObjectShado
   }
 SWIGINTERN void GDALMajorObjectShadow_SetDescription(GDALMajorObjectShadow *self,char const *pszNewDesc){
     GDALSetDescription( self, pszNewDesc );
+  }
+SWIGINTERN char **GDALMajorObjectShadow_GetMetadataDomainList(GDALMajorObjectShadow *self){
+    return GDALGetMetadataDomainList( self );
   }
 SWIGINTERN char **GDALMajorObjectShadow_GetMetadata_List(GDALMajorObjectShadow *self,char const *pszDomain=""){
     return GDALGetMetadata( self, pszDomain );
@@ -809,11 +812,13 @@ static GDALAsyncReaderH AsyncReaderWrapperGetReader(GDALAsyncReaderWrapperH hWra
     return psWrapper->hAsyncReader;
 }
 
+#if defined(SWIGPYTHON)
 static void* AsyncReaderWrapperGetPyObject(GDALAsyncReaderWrapperH hWrapper)
 {
     GDALAsyncReaderWrapper* psWrapper = (GDALAsyncReaderWrapper*)hWrapper;
     return psWrapper->pyObject;
 }
+#endif
 
 static void DeleteAsyncReaderWrapper(GDALAsyncReaderWrapperH hWrapper)
 {
@@ -1274,6 +1279,9 @@ SWIGINTERN int GDALRasterAttributeTableShadow_SetLinearBinning(GDALRasterAttribu
     }
 SWIGINTERN int GDALRasterAttributeTableShadow_GetRowOfValue(GDALRasterAttributeTableShadow *self,double dfValue){
         return GDALRATGetRowOfValue( self, dfValue );
+    }
+SWIGINTERN int GDALRasterAttributeTableShadow_ChangesAreWrittenToFile(GDALRasterAttributeTableShadow *self){
+        return GDALRATChangesAreWrittenToFile( self );
     }
 
 #include "gdalgrid.h"
@@ -2163,6 +2171,13 @@ SWIGEXPORT void SWIGSTDCALL CSharp_PushFinderLocation(char * jarg1) {
   
   arg1 = (char *)jarg1; 
   {
+    if (!arg1) {
+      {
+        SWIG_CSharpException(SWIG_ValueError, "Received a NULL pointer."); return ; 
+      };
+    }
+  }
+  {
     CPLErrorReset();
     CPLPushFinderLocation((char const *)arg1);
     CPLErr eclass = CPLGetLastErrorType();
@@ -2248,6 +2263,13 @@ SWIGEXPORT char * SWIGSTDCALL CSharp_FindFile(char * jarg1, char * jarg2) {
   arg1 = (char *)jarg1; 
   arg2 = (char *)jarg2; 
   {
+    if (!arg2) {
+      {
+        SWIG_CSharpException(SWIG_ValueError, "Received a NULL pointer."); return 0; 
+      };
+    }
+  }
+  {
     CPLErrorReset();
     result = (char *)CPLFindFile((char const *)arg1,(char const *)arg2);
     CPLErr eclass = CPLGetLastErrorType();
@@ -2281,6 +2303,13 @@ SWIGEXPORT void * SWIGSTDCALL CSharp_ReadDir(char * jarg1) {
   
   arg1 = (char *)jarg1; 
   {
+    if (!arg1) {
+      {
+        SWIG_CSharpException(SWIG_ValueError, "Received a NULL pointer."); return 0; 
+      };
+    }
+  }
+  {
     CPLErrorReset();
     result = (char **)VSIReadDir((char const *)arg1);
     CPLErr eclass = CPLGetLastErrorType();
@@ -2313,6 +2342,13 @@ SWIGEXPORT void * SWIGSTDCALL CSharp_ReadDirRecursive(char * jarg1) {
   char **result = 0 ;
   
   arg1 = (char *)jarg1; 
+  {
+    if (!arg1) {
+      {
+        SWIG_CSharpException(SWIG_ValueError, "Received a NULL pointer."); return 0; 
+      };
+    }
+  }
   {
     CPLErrorReset();
     result = (char **)VSIReadDirRecursive((char const *)arg1);
@@ -2513,6 +2549,13 @@ SWIGEXPORT void SWIGSTDCALL CSharp_FileFromMemBuffer(char * jarg1, int jarg2, vo
   arg2 = (int)jarg2; 
   arg3 = (GByte *)jarg3; 
   {
+    if (!arg1) {
+      {
+        SWIG_CSharpException(SWIG_ValueError, "Received a NULL pointer."); return ; 
+      };
+    }
+  }
+  {
     CPLErrorReset();
     wrapper_VSIFileFromMemBuffer((char const *)arg1,arg2,(GByte const *)arg3);
     CPLErr eclass = CPLGetLastErrorType();
@@ -2543,6 +2586,13 @@ SWIGEXPORT int SWIGSTDCALL CSharp_Unlink(char * jarg1) {
   int result;
   
   arg1 = (char *)jarg1; 
+  {
+    if (!arg1) {
+      {
+        SWIG_CSharpException(SWIG_ValueError, "Received a NULL pointer."); return 0; 
+      };
+    }
+  }
   {
     CPLErrorReset();
     result = (int)VSIUnlink((char const *)arg1);
@@ -2610,6 +2660,13 @@ SWIGEXPORT int SWIGSTDCALL CSharp_Mkdir(char * jarg1, int jarg2) {
   arg1 = (char *)jarg1; 
   arg2 = (int)jarg2; 
   {
+    if (!arg1) {
+      {
+        SWIG_CSharpException(SWIG_ValueError, "Received a NULL pointer."); return 0; 
+      };
+    }
+  }
+  {
     CPLErrorReset();
     result = (int)VSIMkdir((char const *)arg1,arg2);
     CPLErr eclass = CPLGetLastErrorType();
@@ -2642,6 +2699,13 @@ SWIGEXPORT int SWIGSTDCALL CSharp_Rmdir(char * jarg1) {
   int result;
   
   arg1 = (char *)jarg1; 
+  {
+    if (!arg1) {
+      {
+        SWIG_CSharpException(SWIG_ValueError, "Received a NULL pointer."); return 0; 
+      };
+    }
+  }
   {
     CPLErrorReset();
     result = (int)VSIRmdir((char const *)arg1);
@@ -2713,6 +2777,13 @@ SWIGEXPORT void * SWIGSTDCALL CSharp_VSIFOpenL(char * jarg1, char * jarg2) {
   arg1 = (char *)jarg1; 
   arg2 = (char *)jarg2; 
   {
+    if (!arg1) {
+      {
+        SWIG_CSharpException(SWIG_ValueError, "Received a NULL pointer."); return 0; 
+      };
+    }
+  }
+  {
     CPLErrorReset();
     result = (VSILFILE *)VSIFOpenL((char const *)arg1,(char const *)arg2);
     CPLErr eclass = CPLGetLastErrorType();
@@ -2734,7 +2805,7 @@ SWIGEXPORT void * SWIGSTDCALL CSharp_VSIFOpenL(char * jarg1, char * jarg2) {
     
     
   }
-  jresult = (void *)result; 
+  jresult = result; 
   return jresult;
 }
 
@@ -3595,6 +3666,39 @@ SWIGEXPORT void SWIGSTDCALL CSharp_MajorObject_SetDescription(void * jarg1, char
 }
 
 
+SWIGEXPORT void * SWIGSTDCALL CSharp_MajorObject_GetMetadataDomainList(void * jarg1) {
+  void * jresult ;
+  GDALMajorObjectShadow *arg1 = (GDALMajorObjectShadow *) 0 ;
+  char **result = 0 ;
+  
+  arg1 = (GDALMajorObjectShadow *)jarg1; 
+  {
+    CPLErrorReset();
+    result = (char **)GDALMajorObjectShadow_GetMetadataDomainList(arg1);
+    CPLErr eclass = CPLGetLastErrorType();
+    if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+      SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
+      
+      
+      
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+  }
+  jresult = result; 
+  return jresult;
+}
+
+
 SWIGEXPORT void * SWIGSTDCALL CSharp_MajorObject_GetMetadata(void * jarg1, char * jarg2) {
   void * jresult ;
   GDALMajorObjectShadow *arg1 = (GDALMajorObjectShadow *) 0 ;
@@ -3912,6 +4016,13 @@ SWIGEXPORT void * SWIGSTDCALL CSharp_Driver_Create(void * jarg1, char * jarg2, i
   arg6 = (GDALDataType)jarg6; 
   arg7 = (char **)jarg7; 
   {
+    if (!arg2) {
+      {
+        SWIG_CSharpException(SWIG_ValueError, "Received a NULL pointer."); return 0; 
+      };
+    }
+  }
+  {
     CPLErrorReset();
     result = (GDALDatasetShadow *)GDALDriverShadow_Create(arg1,(char const *)arg2,arg3,arg4,arg5,arg6,arg7);
     CPLErr eclass = CPLGetLastErrorType();
@@ -3957,6 +4068,13 @@ SWIGEXPORT void * SWIGSTDCALL CSharp_Driver_CreateCopy(void * jarg1, char * jarg
   arg6 = (GDALProgressFunc)jarg6; 
   arg7 = (void *)jarg7; 
   {
+    if (!arg2) {
+      {
+        SWIG_CSharpException(SWIG_ValueError, "Received a NULL pointer."); return 0; 
+      };
+    }
+  }
+  {
     if (!arg3) {
       {
         SWIG_CSharpException(SWIG_ValueError, "Received a NULL pointer."); return 0; 
@@ -3998,6 +4116,13 @@ SWIGEXPORT int SWIGSTDCALL CSharp_Driver_Delete(void * jarg1, char * jarg2) {
   
   arg1 = (GDALDriverShadow *)jarg1; 
   arg2 = (char *)jarg2; 
+  {
+    if (!arg2) {
+      {
+        SWIG_CSharpException(SWIG_ValueError, "Received a NULL pointer."); return 0; 
+      };
+    }
+  }
   {
     CPLErrorReset();
     result = (int)GDALDriverShadow_Delete(arg1,(char const *)arg2);
@@ -8586,7 +8711,7 @@ SWIGEXPORT int SWIGSTDCALL CSharp_Band_GetHistogram(void * jarg1, double jarg2, 
 }
 
 
-SWIGEXPORT int SWIGSTDCALL CSharp_Band_GetDefaultHistogram(void * jarg1, void * jarg2, void * jarg3, void * jarg4, void * jarg5, int jarg6, void * jarg7, void * jarg8) {
+SWIGEXPORT int SWIGSTDCALL CSharp_Band_GetDefaultHistogram(void * jarg1, double * jarg2, double * jarg3, void * jarg4, void * jarg5, int jarg6, void * jarg7, void * jarg8) {
   int jresult ;
   GDALRasterBandShadow *arg1 = (GDALRasterBandShadow *) 0 ;
   double *arg2 = (double *) NULL ;
@@ -8599,10 +8724,22 @@ SWIGEXPORT int SWIGSTDCALL CSharp_Band_GetDefaultHistogram(void * jarg1, void * 
   CPLErr result;
   
   arg1 = (GDALRasterBandShadow *)jarg1; 
-  arg2 = (double *)jarg2; 
-  arg3 = (double *)jarg3; 
-  arg4 = (int *)jarg4; 
-  arg5 = (int **)jarg5; 
+  {
+    /* %typemap(in) (double *val) */
+    arg2 = (double *)jarg2;
+  }
+  {
+    /* %typemap(in) (double *val) */
+    arg3 = (double *)jarg3;
+  }
+  {
+    /* %typemap(in) (int *hasval) */
+    arg4 = (int *)jarg4;
+  }
+  {
+    /* %typemap(in) (int **array_argout) */
+    arg5 = (int **)jarg5;
+  }
   arg6 = (int)jarg6; 
   arg7 = (GDALProgressFunc)jarg7; 
   arg8 = (void *)jarg8; 
@@ -8646,7 +8783,10 @@ SWIGEXPORT int SWIGSTDCALL CSharp_Band_SetDefaultHistogram(void * jarg1, double 
   arg2 = (double)jarg2; 
   arg3 = (double)jarg3; 
   arg4 = (int)jarg4; 
-  arg5 = (int *)jarg5; 
+  {
+    /* %typemap(in) (int inout[ANY]) */
+    arg5 = (int *)jarg5;
+  }
   {
     CPLErrorReset();
     result = (CPLErr)GDALRasterBandShadow_SetDefaultHistogram(arg1,arg2,arg3,arg4,arg5);
@@ -9888,6 +10028,39 @@ SWIGEXPORT int SWIGSTDCALL CSharp_RasterAttributeTable_GetRowOfValue(void * jarg
 }
 
 
+SWIGEXPORT int SWIGSTDCALL CSharp_RasterAttributeTable_ChangesAreWrittenToFile(void * jarg1) {
+  int jresult ;
+  GDALRasterAttributeTableShadow *arg1 = (GDALRasterAttributeTableShadow *) 0 ;
+  int result;
+  
+  arg1 = (GDALRasterAttributeTableShadow *)jarg1; 
+  {
+    CPLErrorReset();
+    result = (int)GDALRasterAttributeTableShadow_ChangesAreWrittenToFile(arg1);
+    CPLErr eclass = CPLGetLastErrorType();
+    if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+      SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
+      
+      
+      
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+  }
+  jresult = result; 
+  return jresult;
+}
+
+
 SWIGEXPORT int SWIGSTDCALL CSharp_ComputeMedianCutPCT(void * jarg1, void * jarg2, void * jarg3, int jarg4, void * jarg5, void * jarg6, void * jarg7) {
   int jresult ;
   GDALRasterBandShadow *arg1 = (GDALRasterBandShadow *) 0 ;
@@ -10176,12 +10349,18 @@ SWIGEXPORT int SWIGSTDCALL CSharp_RasterizeLayer(void * jarg1, int jarg2, void *
   
   arg1 = (GDALDatasetShadow *)jarg1; 
   arg2 = (int)jarg2; 
-  arg3 = (int *)jarg3; 
+  {
+    /* %typemap(in) (int inout[ANY]) */
+    arg3 = (int *)jarg3;
+  }
   arg4 = (OGRLayerShadow *)jarg4; 
   arg5 = (void *)jarg5; 
   arg6 = (void *)jarg6; 
   arg7 = (int)jarg7; 
-  arg8 = (double *)jarg8; 
+  {
+    /* %typemap(in) (double inout[ANY]) */
+    arg8 = (double *)jarg8;
+  }
   arg9 = (char **)jarg9; 
   arg10 = (GDALProgressFunc)jarg10; 
   arg11 = (void *)jarg11; 
@@ -10523,7 +10702,10 @@ SWIGEXPORT int SWIGSTDCALL CSharp_ContourGenerate(void * jarg1, double jarg2, do
   arg2 = (double)jarg2; 
   arg3 = (double)jarg3; 
   arg4 = (int)jarg4; 
-  arg5 = (double *)jarg5; 
+  {
+    /* %typemap(in) (double inout[ANY]) */
+    arg5 = (double *)jarg5;
+  }
   arg6 = (int)jarg6; 
   arg7 = (double)jarg7; 
   arg8 = (OGRLayerShadow *)jarg8; 
@@ -11649,6 +11831,13 @@ SWIGEXPORT void * SWIGSTDCALL CSharp_Open(char * jarg1, int jarg2) {
   arg1 = (char *)jarg1; 
   arg2 = (GDALAccess)jarg2; 
   {
+    if (!arg1) {
+      {
+        SWIG_CSharpException(SWIG_ValueError, "Received a NULL pointer."); return 0; 
+      };
+    }
+  }
+  {
     CPLErrorReset();
     result = (GDALDatasetShadow *)Open((char const *)arg1,arg2);
     CPLErr eclass = CPLGetLastErrorType();
@@ -11684,6 +11873,13 @@ SWIGEXPORT void * SWIGSTDCALL CSharp_OpenShared(char * jarg1, int jarg2) {
   arg1 = (char *)jarg1; 
   arg2 = (GDALAccess)jarg2; 
   {
+    if (!arg1) {
+      {
+        SWIG_CSharpException(SWIG_ValueError, "Received a NULL pointer."); return 0; 
+      };
+    }
+  }
+  {
     CPLErrorReset();
     result = (GDALDatasetShadow *)OpenShared((char const *)arg1,arg2);
     CPLErr eclass = CPLGetLastErrorType();
@@ -11718,6 +11914,13 @@ SWIGEXPORT void * SWIGSTDCALL CSharp_IdentifyDriver(char * jarg1, void * jarg2) 
   
   arg1 = (char *)jarg1; 
   arg2 = (char **)jarg2; 
+  {
+    if (!arg1) {
+      {
+        SWIG_CSharpException(SWIG_ValueError, "Received a NULL pointer."); return 0; 
+      };
+    }
+  }
   {
     CPLErrorReset();
     result = (GDALDriverShadow *)IdentifyDriver((char const *)arg1,arg2);

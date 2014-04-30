@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: xpmdataset.cpp 21680 2011-02-11 21:12:07Z warmerdam $
+ * $Id: xpmdataset.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  XPM Driver
  * Purpose:  Implement GDAL XPM Support
@@ -7,6 +7,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2002, Frank Warmerdam
+ * Copyright (c) 2008-2010, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -33,7 +34,7 @@
 #include "gdal_frmts.h"						      
 
 
-CPL_CVSID("$Id: xpmdataset.cpp 21680 2011-02-11 21:12:07Z warmerdam $");
+CPL_CVSID("$Id: xpmdataset.cpp 27044 2014-03-16 23:41:27Z rouault $");
 
 static unsigned char *ParseXPM( const char *pszInput,
                                 int *pnXSize, int *pnYSize, 

@@ -1,12 +1,12 @@
 /******************************************************************************
- * $Id: ogrsqlite3ext.h 24824 2012-08-22 11:43:07Z rouault $
+ * $Id: ogrsqlite3ext.h 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Custom version of sqlite3ext.h to workaround issues with Spatialite amalgamation
  * Author:   Even Rouault, even dot rouault at mines dash paris dot org
  *
  ******************************************************************************
- * Copyright (c) 2012, Even Rouault <even dot rouault at mines dash paris dot org>
+ * Copyright (c) 2012-2013, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -223,6 +223,7 @@
 #undef sqlite3_vtab_config
 #undef sqlite3_vtab_on_conflict
 
+typedef struct sqlite3_backup ogr_sqlite3_backup;
 
 /*
 ** 2006 June 7
@@ -436,11 +437,11 @@ struct sqlite3_api_routines {
   sqlite3_stmt *(*next_stmt)(sqlite3*,sqlite3_stmt*);
   const char *(*sql)(sqlite3_stmt*);
   int (*status)(int,int*,int*,int);
-  int (*backup_finish)(sqlite3_backup*);
-  sqlite3_backup *(*backup_init)(sqlite3*,const char*,sqlite3*,const char*);
-  int (*backup_pagecount)(sqlite3_backup*);
-  int (*backup_remaining)(sqlite3_backup*);
-  int (*backup_step)(sqlite3_backup*,int);
+  int (*backup_finish)(ogr_sqlite3_backup*);
+  ogr_sqlite3_backup *(*backup_init)(sqlite3*,const char*,sqlite3*,const char*);
+  int (*backup_pagecount)(ogr_sqlite3_backup*);
+  int (*backup_remaining)(ogr_sqlite3_backup*);
+  int (*backup_step)(ogr_sqlite3_backup*,int);
   const char *(*compileoption_get)(int);
   int (*compileoption_used)(const char*);
   int (*create_function_v2)(sqlite3*,const char*,int,int,void*,

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: cplstring.cpp 23406 2011-11-21 19:29:41Z rouault $
+ * $Id: cplstring.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  GDAL 
  * Purpose:  CPLString implementation.
@@ -7,6 +7,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2005, Frank Warmerdam <warmerdam@pobox.com>
+ * Copyright (c) 2011, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -30,7 +31,7 @@
 #include "cpl_string.h"
 #include <string>
 
-CPL_CVSID("$Id: cplstring.cpp 23406 2011-11-21 19:29:41Z rouault $");
+CPL_CVSID("$Id: cplstring.cpp 27044 2014-03-16 23:41:27Z rouault $");
 
 /*
  * The CPLString class is derived from std::string, so the vast majority 
@@ -414,4 +415,33 @@ CPLString CPLURLAddKVP(const char* pszURL, const char* pszKey,
         }
         return osURL;
     }
+}
+
+/************************************************************************/
+/*                            CPLOPrintf()                              */
+/************************************************************************/
+
+CPLString CPLOPrintf( const char *pszFormat, ... )
+
+{
+    va_list args;
+    CPLString osTarget;
+
+    va_start( args, pszFormat );
+    osTarget.vPrintf( pszFormat, args );
+    va_end( args );
+
+    return osTarget;
+}
+
+/************************************************************************/
+/*                            CPLOvPrintf()                             */
+/************************************************************************/
+
+CPLString CPLOvPrintf( const char *pszFormat, va_list args )
+
+{
+    CPLString osTarget;
+    osTarget.vPrintf( pszFormat, args);
+    return osTarget;
 }

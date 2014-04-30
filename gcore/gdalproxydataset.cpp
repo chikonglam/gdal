@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdalproxydataset.cpp 21866 2011-02-26 21:04:58Z rouault $
+ * $Id: gdalproxydataset.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  GDAL Core
  * Purpose:  A dataset and raster band classes that act as proxy for underlying
@@ -7,7 +7,7 @@
  * Author:   Even Rouault <even dot rouault at mines dash paris dot org>
  *
  ******************************************************************************
- * Copyright (c) 2008, Even Rouault
+ * Copyright (c) 2008-2014, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -30,7 +30,7 @@
 
 #include "gdal_proxy.h"
 
-CPL_CVSID("$Id: gdalproxydataset.cpp 21866 2011-02-26 21:04:58Z rouault $");
+CPL_CVSID("$Id: gdalproxydataset.cpp 27044 2014-03-16 23:41:27Z rouault $");
 
 /* ******************************************************************** */
 /*                        GDALProxyDataset                              */
@@ -86,6 +86,7 @@ void  GDALProxyDataset::FlushCache()
     }
 }
 
+D_PROXY_METHOD_WITH_RET(char**, NULL, GetMetadataDomainList, (), ())
 D_PROXY_METHOD_WITH_RET(char**, NULL, GetMetadata, (const char * pszDomain), (pszDomain))
 D_PROXY_METHOD_WITH_RET(CPLErr, CE_Failure, SetMetadata,
                         (char ** papszMetadata, const char * pszDomain),
@@ -189,6 +190,7 @@ RB_PROXY_METHOD_WITH_RET(CPLErr, CE_Failure, IRasterIO,
                                 pData, nBufXSize, nBufYSize, eBufType,
                                 nPixelSpace, nLineSpace ) )
 
+RB_PROXY_METHOD_WITH_RET(char**, NULL, GetMetadataDomainList, (), ())
 RB_PROXY_METHOD_WITH_RET(char**, NULL, GetMetadata, (const char * pszDomain), (pszDomain))
 RB_PROXY_METHOD_WITH_RET(CPLErr, CE_Failure, SetMetadata,
                         (char ** papszMetadata, const char * pszDomain),
@@ -279,7 +281,7 @@ RB_PROXY_METHOD_WITH_RET(CPLErr, CE_Failure, SetDefaultHistogram,
                         int nBuckets, int * panHistogram ),
                         (dfMin, dfMax, nBuckets, panHistogram))
 
-RB_PROXY_METHOD_WITH_RET(const GDALRasterAttributeTable *, NULL,
+RB_PROXY_METHOD_WITH_RET(GDALRasterAttributeTable *, NULL,
                         GetDefaultRAT, (), ())
 RB_PROXY_METHOD_WITH_RET(CPLErr, CE_Failure, SetDefaultRAT,
                         ( const GDALRasterAttributeTable * arg1), (arg1))
@@ -287,6 +289,10 @@ RB_PROXY_METHOD_WITH_RET(CPLErr, CE_Failure, SetDefaultRAT,
 RB_PROXY_METHOD_WITH_RET(GDALRasterBand*, NULL, GetMaskBand, (), ())
 RB_PROXY_METHOD_WITH_RET(int, 0, GetMaskFlags, (), ())
 RB_PROXY_METHOD_WITH_RET(CPLErr, CE_Failure, CreateMaskBand, ( int nFlags ), (nFlags))
+
+RB_PROXY_METHOD_WITH_RET(CPLVirtualMem*, NULL, GetVirtualMemAuto,
+                         ( GDALRWFlag eRWFlag, int *pnPixelSpace, GIntBig *pnLineSpace, char **papszOptions ),
+                         (eRWFlag, pnPixelSpace, pnLineSpace, papszOptions) )
 
 /************************************************************************/
 /*                 UnrefUnderlyingRasterBand()                        */

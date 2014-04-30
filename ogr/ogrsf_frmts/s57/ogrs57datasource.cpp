@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrs57datasource.cpp 25905 2013-04-13 20:46:53Z rouault $
+ * $Id: ogrs57datasource.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  S-57 Translator
  * Purpose:  Implements OGRS57DataSource class
@@ -7,6 +7,7 @@
  *
  ******************************************************************************
  * Copyright (c) 1999, Frank Warmerdam
+ * Copyright (c) 2010-2013, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -31,7 +32,7 @@
 #include "cpl_conv.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: ogrs57datasource.cpp 25905 2013-04-13 20:46:53Z rouault $");
+CPL_CVSID("$Id: ogrs57datasource.cpp 27044 2014-03-16 23:41:27Z rouault $");
 
 /************************************************************************/
 /*                          OGRS57DataSource()                          */
@@ -45,6 +46,7 @@ OGRS57DataSource::OGRS57DataSource()
 
     nModules = 0;
     papoModules = NULL;
+    poClassContentExplorer = NULL;
     poWriter = NULL;
 
     pszName = NULL;
@@ -107,6 +109,7 @@ OGRS57DataSource::~OGRS57DataSource()
         poWriter->Close();
         delete poWriter;
     }
+    delete poClassContentExplorer;
 }
 
 /************************************************************************/
@@ -318,33 +321,36 @@ int OGRS57DataSource::Open( const char * pszFilename, int bTestOpen )
     else
     {
         OGRFeatureDefn  *poDefn;
-        int             *panClassCount;
-        int             iClass, bGeneric = FALSE;
+        std::vector<int> anClassCount;
+        int              bGeneric = FALSE;
+        unsigned int     iClass;
+        
+        poClassContentExplorer =
+            new S57ClassContentExplorer( OGRS57Driver::GetS57Registrar() );
 
         for( iModule = 0; iModule < nModules; iModule++ )
-            papoModules[iModule]->SetClassBased( OGRS57Driver::GetS57Registrar() );
+            papoModules[iModule]->SetClassBased( OGRS57Driver::GetS57Registrar(),
+                                                 poClassContentExplorer );
         
-        panClassCount = (int *) CPLCalloc(sizeof(int),MAX_CLASSES);
-
         for( iModule = 0; iModule < nModules; iModule++ )
         {
             bSuccess &= 
-                papoModules[iModule]->CollectClassList(panClassCount,
-                                                       MAX_CLASSES);
+                papoModules[iModule]->CollectClassList(anClassCount);
         }
 
-        for( iClass = 0; iClass < MAX_CLASSES; iClass++ )
+        for( iClass = 0; iClass < anClassCount.size(); iClass++ )
         {
-            if( panClassCount[iClass] > 0 )
+            if( anClassCount[iClass] > 0 )
             {
                 poDefn = 
-                    S57GenerateObjectClassDefn( OGRS57Driver::GetS57Registrar(), 
+                    S57GenerateObjectClassDefn( OGRS57Driver::GetS57Registrar(),
+                                                poClassContentExplorer,
                                                 iClass, 
                                                 poModule->GetOptionFlags() );
 
                 if( poDefn != NULL )
                     AddLayer( new OGRS57Layer( this, poDefn, 
-                                               panClassCount[iClass] ) );
+                                               anClassCount[iClass] ) );
                 else
                 {
                     bGeneric = TRUE;
@@ -361,8 +367,6 @@ int OGRS57DataSource::Open( const char * pszFilename, int bTestOpen )
                                                  poModule->GetOptionFlags() );
             AddLayer( new OGRS57Layer( this, poDefn ) );
         }
-            
-        CPLFree( panClassCount );
     }
 
 /* -------------------------------------------------------------------- */
@@ -494,7 +498,11 @@ int OGRS57DataSource::Create( const char *pszFilename, char **papszOptions )
     if( !poWriter->CreateS57File( pszFilename ) )
         return FALSE;
 
-    poWriter->SetClassBased( OGRS57Driver::GetS57Registrar() );
+    poClassContentExplorer =
+        new S57ClassContentExplorer( OGRS57Driver::GetS57Registrar() );
+
+    poWriter->SetClassBased( OGRS57Driver::GetS57Registrar(),
+                             poClassContentExplorer );
     pszName = CPLStrdup( pszFilename );
 
 /* -------------------------------------------------------------------- */
@@ -518,16 +526,17 @@ int OGRS57DataSource::Create( const char *pszFilename, char **papszOptions )
 /* -------------------------------------------------------------------- */
 /*      Initialize a feature definition for each object class.          */
 /* -------------------------------------------------------------------- */
-    for( int iClass = 0; iClass < MAX_CLASSES; iClass++ )
+    poClassContentExplorer->Rewind();
+    while( poClassContentExplorer->NextClass() )
     {
         poDefn = 
             S57GenerateObjectClassDefn( OGRS57Driver::GetS57Registrar(), 
-                                        iClass, nOptionFlags );
+                                        poClassContentExplorer,
+                                        poClassContentExplorer->GetOBJL(),
+                                        nOptionFlags );
         
-        if( poDefn == NULL )
-            continue;
-
-        AddLayer( new OGRS57Layer( this, poDefn, 0, iClass ) );
+        AddLayer( new OGRS57Layer( this, poDefn, 0, 
+                                   poClassContentExplorer->GetOBJL() ) );
     }
 
 /* -------------------------------------------------------------------- */

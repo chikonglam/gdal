@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrfeaturestyle.cpp 23051 2011-09-04 17:59:02Z winkey $
+ * $Id: ogrfeaturestyle.cpp 27071 2014-03-21 21:52:46Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Feature Representation string API
@@ -7,6 +7,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2000-2001, Stephane Villeneuve
+ * Copyright (c) 2008-2010, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -33,7 +34,7 @@
 #include "ogr_featurestyle.h"
 #include "ogr_api.h"
 
-CPL_CVSID("$Id: ogrfeaturestyle.cpp 23051 2011-09-04 17:59:02Z winkey $");
+CPL_CVSID("$Id: ogrfeaturestyle.cpp 27071 2014-03-21 21:52:46Z rouault $");
 
 CPL_C_START
 void OGRFeatureStylePuller() {}
@@ -785,6 +786,7 @@ OGRStyleTool *OGRStyleMgr::CreateStyleToolFromStyleString(const char *
 OGRStyleTable::OGRStyleTable()
 {
     m_papszStyleTable = NULL;
+    iNextStyle = 0;
 }
 
 /************************************************************************/
@@ -921,6 +923,31 @@ GBool OGRStyleTable::AddStyle(const char *pszName, const char *pszStyleString)
         return TRUE;
     }
     return FALSE;
+}
+
+/************************************************************************/
+/*                       OGR_STBL_AddStyle()                            */
+/************************************************************************/
+
+/**
+ * \brief Add a new style in the table.
+ * No comparison will be done on the
+ * Style string, only on the name.
+ * This function is the same as the C++ method OGRStyleTable::AddStyle().
+ *
+ * @param hStyleTable handle to the style table.
+ * @param pszName the name the style to add.
+ * @param pszStyleString the style string to add.
+ *
+ * @return TRUE on success, FALSE on error
+ */
+
+int OGR_STBL_AddStyle( OGRStyleTableH hStyleTable,
+                       const char *pszName, const char *pszStyleString)
+{
+    VALIDATE_POINTER1( hStyleTable, "OGR_STBL_AddStyle", FALSE );
+    
+    return ((OGRStyleTable *) hStyleTable)->AddStyle( pszName, pszStyleString );
 }
 
 /****************************************************************************/

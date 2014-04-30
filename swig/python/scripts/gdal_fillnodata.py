@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #******************************************************************************
-#  $Id: gdal_fillnodata.py 23153 2011-10-01 13:40:24Z rouault $
+#  $Id: gdal_fillnodata.py 27044 2014-03-16 23:41:27Z rouault $
 # 
 #  Project:  GDAL Python Interface
 #  Purpose:  Application for filling nodata areas in a raster by interpolation
@@ -8,6 +8,7 @@
 # 
 #******************************************************************************
 #  Copyright (c) 2008, Frank Warmerdam
+#  Copyright (c) 2009-2011, Even Rouault <even dot rouault at mines-paris dot org>
 # 
 #  Permission is hereby granted, free of charge, to any person obtaining a
 #  copy of this software and associated documentation files (the "Software"),

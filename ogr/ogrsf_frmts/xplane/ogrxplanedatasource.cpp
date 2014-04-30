@@ -6,7 +6,7 @@
  * Author:   Even Rouault, even dot rouault at mines dash paris dot org
  *
  ******************************************************************************
- * Copyright (c) 2008, Even Rouault
+ * Copyright (c) 2008-2010, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -30,7 +30,7 @@
 #include "ogr_xplane.h"
 #include "ogr_xplane_reader.h"
 
-CPL_CVSID("$Id: ogrxplanedatasource.cpp 18548 2010-01-14 22:01:35Z rouault $");
+CPL_CVSID("$Id: ogrxplanedatasource.cpp 27044 2014-03-16 23:41:27Z rouault $");
 
 /************************************************************************/
 /*                          OGRXPlaneDataSource()                          */

@@ -1,12 +1,12 @@
 /******************************************************************************
- * $Id: ogr_osm.h 25362 2012-12-27 17:02:54Z rouault $
+ * $Id: ogr_osm.h 27138 2014-04-07 20:32:14Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Private definitions for OGR/OpenStreeMap driver.
  * Author:   Even Rouault, <even dot rouault at mines dash paris dot org>
  *
  ******************************************************************************
- * Copyright (c) 2010, Even Rouault
+ * Copyright (c) 2012-2014, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -29,6 +29,9 @@
 
 #ifndef _OGR_OSM_H_INCLUDED
 #define _OGR_OSM_H_INCLUDED
+
+// replace O(log2(N)) complexity of FindNode() by O(1)
+#define ENABLE_NODE_LOOKUP_BY_HASHING 1
 
 #include "ogrsf_frmts.h"
 #include "cpl_string.h"
@@ -59,8 +62,9 @@ class OGROSMDataSource;
 class OGROSMLayer : public OGRLayer
 {
     friend class OGROSMDataSource;
-    
+
     OGROSMDataSource    *poDS;
+    int                  nIdxLayer;
     OGRFeatureDefn      *poFeatureDefn;
     OGRSpatialReference *poSRS;
     long                 nFeatureCount;
@@ -84,6 +88,9 @@ class OGROSMLayer : public OGRLayer
     int                   bHasUser;
     int                   bHasChangeset;
     int                   bHasOtherTags;
+    int                   nIndexOtherTags;
+    int                   bHasAllTags;
+    int                   nIndexAllTags;
 
     int                   bHasWarnedTooManyFeatures;
 
@@ -92,7 +99,9 @@ class OGROSMLayer : public OGRLayer
 
     int                   bUserInterested;
 
-    int                  AddToArray(OGRFeature* poFeature);
+    int                  AddToArray(OGRFeature* poFeature, int bCheckFeatureThreshold);
+
+    int                   AddInOtherOrAllTags(const char* pszK);
 
     char                  szLaunderedFieldName[256];
     const char*           GetLaunderedFieldName(const char* pszName);
@@ -107,25 +116,28 @@ class OGROSMLayer : public OGRLayer
 
   public:
                         OGROSMLayer( OGROSMDataSource* poDS,
+                                     int nIdxLayer,
                                      const char* pszName );
     virtual             ~OGROSMLayer();
 
     virtual OGRFeatureDefn *GetLayerDefn() {return poFeatureDefn;}
-    virtual OGRSpatialReference * GetSpatialRef() { return poSRS; }
     
     virtual void        ResetReading();
     virtual int         TestCapability( const char * );
                                      
     virtual OGRFeature *GetNextFeature();
     virtual int         GetFeatureCount( int bForce );
-    
+        
+    virtual OGRErr      SetAttributeFilter( const char* pszAttrQuery );
+
     virtual OGRErr      GetExtent( OGREnvelope *psExtent, int bForce );
 
     const OGREnvelope*  GetSpatialFilterEnvelope();
 
     int                 AddFeature(OGRFeature* poFeature,
                                    int bAttrFilterAlreadyEvaluated,
-                                   int* pbFilteredOut = NULL);
+                                   int* pbFilteredOut = NULL,
+                                   int bCheckFeatureThreshold = TRUE);
     void                ForceResetReading();
 
     void                AddField(const char* pszName, OGRFieldType eFieldType);
@@ -151,7 +163,9 @@ class OGROSMLayer : public OGRLayer
 
     void                SetHasOtherTags(int bIn) { bHasOtherTags = bIn; }
     int                 HasOtherTags() const { return bHasOtherTags; }
-    int                 AddInOtherTag(const char* pszK);
+
+    void                SetHasAllTags(int bIn) { bHasAllTags = bIn; }
+    int                 HasAllTags() const { return bHasAllTags; }
 
     void                SetFieldsFromTags(OGRFeature* poFeature,
                                           GIntBig nID,
@@ -226,6 +240,14 @@ typedef struct
     int                 bIsArea : 1;
     int                 bAttrFilterAlreadyEvaluated : 1;
 } WayFeaturePair;
+
+#ifdef ENABLE_NODE_LOOKUP_BY_HASHING
+typedef struct
+{
+    int nInd;           /* values are indexes of panReqIds */
+    int nNext;          /* values are indexes of psCollisionBuckets, or -1 to stop the chain */
+} CollisionBucket;
+#endif
 
 class OGROSMDataSource : public OGRDataSource
 {
@@ -307,6 +329,17 @@ class OGROSMDataSource : public OGRDataSource
 
     unsigned int        nReqIds;
     GIntBig            *panReqIds;
+
+#ifdef ENABLE_NODE_LOOKUP_BY_HASHING
+    int                 bEnableHashedIndex;
+    /* values >= 0 are indexes of panReqIds. */
+    /*        == -1 for unoccupied */
+    /*        < -1 are expressed as -nIndexToCollisonBuckets-2 where nIndexToCollisonBuckets point to psCollisionBuckets */
+    int                *panHashedIndexes; 
+    CollisionBucket    *psCollisionBuckets;
+    int                 bHashedIndexValid;
+#endif
+
     LonLat             *pasLonLatArray;
 
     IndexedKVP         *pasAccumulatedTags; /* points to content of pabyNonRedundantValues or aoMapIndexedKeys */
@@ -409,7 +442,7 @@ class OGROSMDataSource : public OGRDataSource
     int                 Open ( const char* pszFilename, int bUpdateIn );
 
     int                 ResetReading();
-    int                 ParseNextChunk();
+    int                 ParseNextChunk(int nIdxLayer);
     OGRErr              GetExtent( OGREnvelope *psExtent );
     int                 IsInterleavedReading();
 

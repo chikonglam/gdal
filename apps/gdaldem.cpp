@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdaldem.cpp 26358 2013-08-21 20:12:38Z rouault $
+ * $Id: gdaldem.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  GDAL DEM Utilities
  * Purpose:  
@@ -10,7 +10,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2006, 2009 Matthew Perry 
- * Copyright (c) 2009 Even Rouault
+ * Copyright (c) 2009-2013, Even Rouault <even dot rouault at mines-paris dot org>
  * Portions derived from GRASS 4.1 (public domain) See 
  * http://trac.osgeo.org/gdal/ticket/2975 for more information regarding 
  * history of this code
@@ -91,7 +91,7 @@
 #include "gdal_priv.h"
 #include "commonutils.h"
 
-CPL_CVSID("$Id: gdaldem.cpp 26358 2013-08-21 20:12:38Z rouault $");
+CPL_CVSID("$Id: gdaldem.cpp 27044 2014-03-16 23:41:27Z rouault $");
 
 #ifndef M_PI
 # define M_PI  3.1415926535897932384626433832795
@@ -2184,6 +2184,15 @@ double GDALGeneric3x3RasterBand::GetNoDataValue( int* pbHasNoData )
 }
 
 /************************************************************************/
+/*                            ArgIsNumeric()                            */
+/************************************************************************/
+
+static int ArgIsNumeric( const char *pszArg )
+
+{
+    return CPLGetValueType(pszArg) != CPL_VALUE_STRING;
+}
+/************************************************************************/
 /*                                main()                                */
 /************************************************************************/
 
@@ -2303,7 +2312,10 @@ int main( int argc, char ** argv )
             (EQUAL(argv[i], "--z") || EQUAL(argv[i], "-z")))
         {
             CHECK_HAS_ENOUGH_ADDITIONAL_ARGS(1);
-            z = atof(argv[++i]);
+            ++i;
+            if( !ArgIsNumeric(argv[i]) )
+                Usage();
+            z = atof(argv[i]);
         }
         else if ( eUtilityMode == SLOPE && EQUAL(argv[i], "-p"))
         {
@@ -2345,7 +2357,10 @@ int main( int argc, char ** argv )
           )
         {
             CHECK_HAS_ENOUGH_ADDITIONAL_ARGS(1);
-            scale = atof(argv[++i]);
+            ++i;
+            if( !ArgIsNumeric(argv[i]) )
+                Usage();
+            scale = atof(argv[i]);
         }
         else if( eUtilityMode == HILL_SHADE &&
             (EQUAL(argv[i], "--az") || 
@@ -2355,7 +2370,10 @@ int main( int argc, char ** argv )
           )
         {
             CHECK_HAS_ENOUGH_ADDITIONAL_ARGS(1);
-            az = atof(argv[++i]);
+            ++i;
+            if( !ArgIsNumeric(argv[i]) )
+                Usage();
+            az = atof(argv[i]);
         }
         else if( eUtilityMode == HILL_SHADE &&
             (EQUAL(argv[i], "--alt") || 
@@ -2365,7 +2383,10 @@ int main( int argc, char ** argv )
           )
         {
             CHECK_HAS_ENOUGH_ADDITIONAL_ARGS(1);
-            alt = atof(argv[++i]);
+            ++i;
+            if( !ArgIsNumeric(argv[i]) )
+                Usage();
+            alt = atof(argv[i]);
         }
         else if( eUtilityMode == HILL_SHADE &&
             (EQUAL(argv[i], "-combined") || 
@@ -2409,7 +2430,7 @@ int main( int argc, char ** argv )
         }
         else if( argv[i][0] == '-' )
         {
-            Usage(CPLSPrintf("Unkown option name '%s'", argv[i]));
+            Usage(CPLSPrintf("Unknown option name '%s'", argv[i]));
         }
         else if( pszSrcFilename == NULL )
         {

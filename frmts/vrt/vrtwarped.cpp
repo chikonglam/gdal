@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: vrtwarped.cpp 25884 2013-04-09 17:04:16Z etourigny $
+ * $Id: vrtwarped.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  Virtual GDAL Datasets
  * Purpose:  Implementation of VRTWarpedRasterBand *and VRTWarpedDataset.
@@ -7,6 +7,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2004, Frank Warmerdam <warmerdam@pobox.com>
+ * Copyright (c) 2008-2013, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -34,7 +35,7 @@
 #include "gdal_alg_priv.h"
 #include <cassert>
 
-CPL_CVSID("$Id: vrtwarped.cpp 25884 2013-04-09 17:04:16Z etourigny $");
+CPL_CVSID("$Id: vrtwarped.cpp 27044 2014-03-16 23:41:27Z rouault $");
 
 /************************************************************************/
 /*                      GDALAutoCreateWarpedVRT()                       */
@@ -146,6 +147,12 @@ GDALAutoCreateWarpedVRT( GDALDatasetH hSrcDS,
         GDALSuggestedWarpOutput( hSrcDS, psWO->pfnTransformer, 
                                  psWO->pTransformerArg, 
                                  adfDstGeoTransform, &nDstPixels, &nDstLines );
+    if( eErr != CE_None )
+    {
+        GDALDestroyTransformer( psWO->pTransformerArg );
+        GDALDestroyWarpOptions( psWO );
+        return NULL;
+    }
 
 /* -------------------------------------------------------------------- */
 /*      Update the transformer to include an output geotransform        */
@@ -1022,16 +1029,21 @@ CPLXMLNode *VRTWarpedDataset::SerializeToXML( const char *pszVRTPath )
 /*      the VRT file if possible.  Adjust accordingly.                  */
 /* -------------------------------------------------------------------- */
         CPLXMLNode *psSDS = CPLGetXMLNode( psWOTree, "SourceDataset" );
-        int bRelativeToVRT;
-        char *pszRelativePath;
+        int bRelativeToVRT = FALSE;
+        VSIStatBufL  sStat;
 
-        pszRelativePath = 
-            CPLStrdup(
+        if( VSIStatExL( psSDS->psChild->pszValue, &sStat, 
+                        VSI_STAT_EXISTS_FLAG) == 0 ) 
+        {
+            char *pszRelativePath;
+        
+            pszRelativePath = CPLStrdup(
                 CPLExtractRelativePath( pszVRTPath, psSDS->psChild->pszValue, 
                                         &bRelativeToVRT ) );
 
-        CPLFree( psSDS->psChild->pszValue );
-        psSDS->psChild->pszValue = pszRelativePath;
+            CPLFree( psSDS->psChild->pszValue );
+            psSDS->psChild->pszValue = pszRelativePath;
+        }
 
         CPLCreateXMLNode( 
             CPLCreateXMLNode( psSDS, CXT_Attribute, "relativeToVRT" ), 

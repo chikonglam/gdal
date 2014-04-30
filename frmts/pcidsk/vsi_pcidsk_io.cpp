@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: vsi_pcidsk_io.cpp 21680 2011-02-11 21:12:07Z warmerdam $
+ * $Id: vsi_pcidsk_io.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  PCIDSK Database File
  * Purpose:  PCIDSK SDK compatiable io interface built on VSI.
@@ -7,6 +7,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2009, Frank Warmerdam <warmerdam@pobox.com>
+ * Copyright (c) 2010, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -31,7 +32,7 @@
 #include "cpl_multiproc.h"
 #include "pcidsk.h"
 
-CPL_CVSID("$Id: vsi_pcidsk_io.cpp 21680 2011-02-11 21:12:07Z warmerdam $");
+CPL_CVSID("$Id: vsi_pcidsk_io.cpp 27044 2014-03-16 23:41:27Z rouault $");
 
 using namespace PCIDSK;
 

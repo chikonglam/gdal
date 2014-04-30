@@ -1,5 +1,5 @@
 /*
- * $Id: gdal_python.i 25101 2012-10-11 20:47:28Z rouault $
+ * $Id: gdal_python.i 26832 2014-01-15 12:46:08Z rouault $
  *
  * python specific code for gdal bindings.
  */
@@ -269,9 +269,14 @@ int wrapper_VSIFReadL( void **buf, int nMembSize, int nMembCount, VSILFILE *fp)
 
 %pythoncode {
 
-  def ReadRaster(self, xoff, yoff, xsize, ysize,
+  def ReadRaster(self, xoff = 0, yoff = 0, xsize = None, ysize = None,
                    buf_xsize = None, buf_ysize = None, buf_type = None,
                    buf_pixel_space = None, buf_line_space = None ):
+
+      if xsize is None:
+          xsize = self.XSize
+      if ysize is None:
+          ysize = self.YSize
 
       return _gdal.Band_ReadRaster1(self, xoff, yoff, xsize, ysize,
                                     buf_xsize, buf_ysize, buf_type,
@@ -289,6 +294,69 @@ int wrapper_VSIFReadL( void **buf, int nMembSize, int nMembCount, VSILFILE *fp)
       import gdalnumeric
 
       return gdalnumeric.BandWriteArray( self, array, xoff, yoff )
+
+  def GetVirtualMemArray(self, eAccess = gdalconst.GF_Read, xoff=0, yoff=0,
+                         xsize=None, ysize=None, bufxsize=None, bufysize=None,
+                         datatype = None,
+                         cache_size = 10 * 1024 * 1024, page_size_hint = 0,
+                         options = None):
+        """Return a NumPy array for the band, seen as a virtual memory mapping.
+           An element is accessed with array[y][x].
+           Any reference to the array must be dropped before the last reference to the
+           related dataset is also dropped.
+        """
+        import gdalnumeric
+        if xsize is None:
+            xsize = self.XSize
+        if ysize is None:
+            ysize = self.YSize
+        if bufxsize is None:
+            bufxsize = self.XSize
+        if bufysize is None:
+            bufysize = self.YSize
+        if datatype is None:
+            datatype = self.DataType
+        if options is None:
+            virtualmem = self.GetVirtualMem(eAccess,xoff,yoff,xsize,ysize,bufxsize,bufysize,datatype,cache_size,page_size_hint)
+        else:
+            virtualmem = self.GetVirtualMem(eAccess,xoff,yoff,xsize,ysize,bufxsize,bufysize,datatype,cache_size,page_size_hint,options)
+        return gdalnumeric.VirtualMemGetArray( virtualmem )
+
+  def GetVirtualMemAutoArray(self, eAccess = gdalconst.GF_Read, options = None):
+        """Return a NumPy array for the band, seen as a virtual memory mapping.
+           An element is accessed with array[y][x].
+           Any reference to the array must be dropped before the last reference to the
+           related dataset is also dropped.
+        """
+        import gdalnumeric
+        if options is None:
+            virtualmem = self.GetVirtualMemAuto(eAccess)
+        else:
+            virtualmem = self.GetVirtualMemAuto(eAccess,options)
+        return gdalnumeric.VirtualMemGetArray( virtualmem )
+
+  def GetTiledVirtualMemArray(self, eAccess = gdalconst.GF_Read, xoff=0, yoff=0,
+                           xsize=None, ysize=None, tilexsize=256, tileysize=256,
+                           datatype = None,
+                           cache_size = 10 * 1024 * 1024, options = None):
+        """Return a NumPy array for the band, seen as a virtual memory mapping with
+           a tile organization.
+           An element is accessed with array[tiley][tilex][y][x].
+           Any reference to the array must be dropped before the last reference to the
+           related dataset is also dropped.
+        """
+        import gdalnumeric
+        if xsize is None:
+            xsize = self.XSize
+        if ysize is None:
+            ysize = self.YSize
+        if datatype is None:
+            datatype = self.DataType
+        if options is None:
+            virtualmem = self.GetTiledVirtualMem(eAccess,xoff,yoff,xsize,ysize,tilexsize,tileysize,datatype,cache_size)
+        else:
+            virtualmem = self.GetTiledVirtualMem(eAccess,xoff,yoff,xsize,ysize,tilexsize,tileysize,datatype,cache_size,options)
+        return gdalnumeric.VirtualMemGetArray( virtualmem )
 
   def __get_array_interface__(self):
       shape = [1, self.XSize, self.YSize]
@@ -395,11 +463,15 @@ CPLErr ReadRaster1(  int xoff, int yoff, int xsize, int ysize,
                 buf_string, buf_xsize, buf_ysize, buf_type, band_list,
                 buf_pixel_space, buf_line_space, buf_band_space )
 
-    def ReadRaster(self, xoff, yoff, xsize, ysize,
+    def ReadRaster(self, xoff = 0, yoff = 0, xsize = None, ysize = None,
                    buf_xsize = None, buf_ysize = None, buf_type = None,
                    band_list = None,
                    buf_pixel_space = None, buf_line_space = None, buf_band_space = None ):
 
+        if xsize is None:
+            xsize = self.RasterXSize
+        if ysize is None:
+            ysize = self.RasterYSize
         if band_list is None:
             band_list = range(1,self.RasterCount+1)
         if buf_xsize is None:
@@ -413,6 +485,70 @@ CPLErr ReadRaster1(  int xoff, int yoff, int xsize, int ysize,
         return _gdal.Dataset_ReadRaster1(self, xoff, yoff, xsize, ysize,
                                             buf_xsize, buf_ysize, buf_type,
                                             band_list, buf_pixel_space, buf_line_space, buf_band_space )
+
+    def GetVirtualMemArray(self, eAccess = gdalconst.GF_Read, xoff=0, yoff=0,
+                           xsize=None, ysize=None, bufxsize=None, bufysize=None,
+                           datatype = None, band_list = None, band_sequential = True,
+                           cache_size = 10 * 1024 * 1024, page_size_hint = 0,
+                           options = None):
+        """Return a NumPy array for the dataset, seen as a virtual memory mapping.
+           If there are several bands and band_sequential = True, an element is
+           accessed with array[band][y][x].
+           If there are several bands and band_sequential = False, an element is
+           accessed with array[y][x][band].
+           If there is only one band, an element is accessed with array[y][x].
+           Any reference to the array must be dropped before the last reference to the
+           related dataset is also dropped.
+        """
+        import gdalnumeric
+        if xsize is None:
+            xsize = self.RasterXSize
+        if ysize is None:
+            ysize = self.RasterYSize
+        if bufxsize is None:
+            bufxsize = self.RasterXSize
+        if bufysize is None:
+            bufysize = self.RasterYSize
+        if datatype is None:
+            datatype = self.GetRasterBand(1).DataType
+        if band_list is None:
+            band_list = range(1,self.RasterCount+1)
+        if options is None:
+            virtualmem = self.GetVirtualMem(eAccess,xoff,yoff,xsize,ysize,bufxsize,bufysize,datatype,band_list,band_sequential,cache_size,page_size_hint)
+        else:
+            virtualmem = self.GetVirtualMem(eAccess,xoff,yoff,xsize,ysize,bufxsize,bufysize,datatype,band_list,band_sequential,cache_size,page_size_hint, options)
+        return gdalnumeric.VirtualMemGetArray( virtualmem )
+
+    def GetTiledVirtualMemArray(self, eAccess = gdalconst.GF_Read, xoff=0, yoff=0,
+                           xsize=None, ysize=None, tilexsize=256, tileysize=256,
+                           datatype = None, band_list = None, tile_organization = gdalconst.GTO_BSQ,
+                           cache_size = 10 * 1024 * 1024, options = None):
+        """Return a NumPy array for the dataset, seen as a virtual memory mapping with
+           a tile organization.
+           If there are several bands and tile_organization = gdal.GTO_TIP, an element is
+           accessed with array[tiley][tilex][y][x][band].
+           If there are several bands and tile_organization = gdal.GTO_BIT, an element is
+           accessed with array[tiley][tilex][band][y][x].
+           If there are several bands and tile_organization = gdal.GTO_BSQ, an element is
+           accessed with array[band][tiley][tilex][y][x].
+           If there is only one band, an element is accessed with array[tiley][tilex][y][x].
+           Any reference to the array must be dropped before the last reference to the
+           related dataset is also dropped.
+        """
+        import gdalnumeric
+        if xsize is None:
+            xsize = self.RasterXSize
+        if ysize is None:
+            ysize = self.RasterYSize
+        if datatype is None:
+            datatype = self.GetRasterBand(1).DataType
+        if band_list is None:
+            band_list = range(1,self.RasterCount+1)
+        if options is None:
+            virtualmem = self.GetTiledVirtualMem(eAccess,xoff,yoff,xsize,ysize,tilexsize,tileysize,datatype,band_list,tile_organization,cache_size)
+        else:
+            virtualmem = self.GetTiledVirtualMem(eAccess,xoff,yoff,xsize,ysize,tilexsize,tileysize,datatype,band_list,tile_organization,cache_size, options)
+        return gdalnumeric.VirtualMemGetArray( virtualmem )
 
     def GetSubDatasets(self):
         sd_list = []
@@ -462,6 +598,20 @@ CPLErr ReadRaster1(  int xoff, int yoff, int xsize, int ysize,
     if domain[:4] == 'xml:':
       return self.GetMetadata_List( domain )
     return self.GetMetadata_Dict( domain )
+}
+}
+
+%extend GDALRasterAttributeTableShadow {
+%pythoncode {
+  def WriteArray(self, array, field, start=0):
+      import gdalnumeric
+
+      return gdalnumeric.RATWriteArray(self, array, field, start)
+
+  def ReadAsArray(self, field, start=0, length=None):
+      import gdalnumeric
+
+      return gdalnumeric.RATReadArray(self, field, start, length)
 }
 }
 

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: cpl_minizip_zip.cpp 25401 2012-12-30 09:42:27Z rouault $
+ * $Id: cpl_minizip_zip.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  CPL - Common Portability Library
  * Author:   Frank Warmerdam, warmerdam@pobox.com
@@ -22,6 +22,7 @@
    Modification to zipOpen2 to support globalComment retrieval.
 
    Copyright (C) 1998-2005 Gilles Vollant
+ * Copyright (c) 2010-2012, Even Rouault <even dot rouault at mines-paris dot org>
 
    Read zip.h for more info
 */

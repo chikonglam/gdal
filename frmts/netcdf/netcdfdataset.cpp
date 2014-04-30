@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: netcdfdataset.cpp 26111 2013-06-27 21:25:29Z etourigny $
+ * $Id: netcdfdataset.cpp 27050 2014-03-18 00:09:03Z kyle $
  *
  * Project:  netCDF read/write Driver
  * Purpose:  GDAL bindings over netCDF library.
@@ -7,6 +7,8 @@
  *
  ******************************************************************************
  * Copyright (c) 2004, Frank Warmerdam
+ * Copyright (c) 2007-2013, Even Rouault <even dot rouault at mines-paris dot org>
+ * Copyright (c) 2010, Kyle Shannon <kyle at pobox dot com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -31,7 +33,7 @@
 #include "cpl_error.h"
 #include "cpl_multiproc.h"
 
-CPL_CVSID("$Id: netcdfdataset.cpp 26111 2013-06-27 21:25:29Z etourigny $");
+CPL_CVSID("$Id: netcdfdataset.cpp 27050 2014-03-18 00:09:03Z kyle $");
 
 #include <map> //for NCDFWriteProjAttribs()
 
@@ -1541,7 +1543,7 @@ netCDFDataset::~netCDFDataset()
     if( pszCFCoordinates )
         CPLFree( pszCFCoordinates );
 
-    if( cdfid ) {
+    if( cdfid > 0 ) {
 #ifdef NCDF_DEBUG
         CPLDebug( "GDAL_netCDF", "calling nc_close( %d )", cdfid );
 #endif
@@ -1574,6 +1576,17 @@ int netCDFDataset::SetDefineMode( int bNewDefineMode )
 
     NCDF_ERR(status);
     return status;
+}
+
+/************************************************************************/
+/*                      GetMetadataDomainList()                         */
+/************************************************************************/
+
+char **netCDFDataset::GetMetadataDomainList()
+{
+    return BuildMetadataDomainList(GDALDataset::GetMetadataDomainList(),
+                                   TRUE,
+                                   "SUBDATASETS", NULL);
 }
 
 /************************************************************************/
@@ -4247,7 +4260,8 @@ int netCDFDataset::IdentifyFormat( GDALOpenInfo * poOpenInfo, bool bCheckExt = T
         if ( bCheckExt ) { /* Check by default */
             const char* pszExtension = CPLGetExtension( poOpenInfo->pszFilename );
             if ( ! ( EQUAL( pszExtension, "nc")  || EQUAL( pszExtension, "cdf") 
-                     || EQUAL( pszExtension, "nc2") || EQUAL( pszExtension, "nc4") ) )
+                     || EQUAL( pszExtension, "nc2") || EQUAL( pszExtension, "nc4")
+					 || EQUAL( pszExtension, "nc3") || EQUAL( pszExtension, "grd") ) )
                 return NCDF_FORMAT_HDF5;
         }
 #endif
@@ -4344,13 +4358,18 @@ GDALDataset *netCDFDataset::Open( GDALOpenInfo * poOpenInfo )
     char         szExtraDimDef[NC_MAX_NAME];
     nc_type      nType=NC_NAT;
 
+#ifdef NCDF_DEBUG
     CPLDebug( "GDAL_netCDF", "\n=====\nOpen(), filename=[%s]", poOpenInfo->pszFilename );
+#endif
 
 /* -------------------------------------------------------------------- */
 /*      Does this appear to be a netcdf file?                           */
 /* -------------------------------------------------------------------- */
     if( ! EQUALN(poOpenInfo->pszFilename,"NETCDF:",7) ) {
         nTmpFormat = IdentifyFormat( poOpenInfo );
+#ifdef NCDF_DEBUG
+    CPLDebug( "GDAL_netCDF", "identified format %d", nTmpFormat );
+#endif
         /* Note: not calling Identify() directly, because we want the file type */
         /* Only support NCDF_FORMAT* formats */
         if( ! ( NCDF_FORMAT_NC  == nTmpFormat ||
@@ -4438,14 +4457,21 @@ GDALDataset *netCDFDataset::Open( GDALOpenInfo * poOpenInfo )
 /* -------------------------------------------------------------------- */
 /*      Try opening the dataset.                                        */
 /* -------------------------------------------------------------------- */
+#ifdef NCDF_DEBUG
     CPLDebug( "GDAL_netCDF", "calling nc_open( %s )", poDS->osFilename.c_str() );
+#endif
     if( nc_open( poDS->osFilename, NC_NOWRITE, &cdfid ) != NC_NOERR ) {
+#ifdef NCDF_DEBUG
+        CPLDebug( "GDAL_netCDF", "error opening" );
+#endif
         CPLReleaseMutex(hNCMutex); // Release mutex otherwise we'll deadlock with GDALDataset own mutex
         delete poDS;
         CPLAcquireMutex(hNCMutex, 1000.0);
         return NULL;
     }
+#ifdef NCDF_DEBUG
     CPLDebug( "GDAL_netCDF", "got cdfid=%d\n", cdfid );
+#endif
 
 /* -------------------------------------------------------------------- */
 /*      Is this a real netCDF file?                                     */
@@ -4923,8 +4949,6 @@ void CopyMetadata( void  *poDS, int fpImage, int CDFVarID,
     char       szTemp[ NCDF_MAX_STR_LEN ];
     int        nItems;
 
-    CPLDebug( "GDAL_netCDF", "CopyMetadata()" );
-
     /* Remove the following band meta but set them later from band data */
     const char *papszIgnoreBand[] = { CF_ADD_OFFSET, CF_SCALE_FACTOR, 
                                       "valid_range", "_Unsigned", 
@@ -4946,10 +4970,6 @@ void CopyMetadata( void  *poDS, int fpImage, int CDFVarID,
         papszFieldData = CSLTokenizeString2 (pszField, "=", 
                                              CSLT_HONOURSTRINGS );
         if( papszFieldData[1] != NULL ) {
-#ifdef NCDF_DEBUG
-            CPLDebug( "GDAL_netCDF", "copy metadata [%s]=[%s]", 
-                      papszFieldData[ 0 ], papszFieldData[ 1 ] );
-#endif
 
 #ifdef NCDF_DEBUG
             CPLDebug( "GDAL_netCDF", "copy metadata [%s]=[%s]", 

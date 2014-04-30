@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrregisterall.cpp 24669 2012-07-10 16:04:24Z rouault $
+ * $Id: ogrregisterall.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Function to register all known OGR drivers.
@@ -7,6 +7,7 @@
  *
  ******************************************************************************
  * Copyright (c) 1999,  Les Technologies SoftMap Inc.
+ * Copyright (c) 2007-2014, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -29,7 +30,7 @@
 
 #include "ogrsf_frmts.h"
 
-CPL_CVSID("$Id: ogrregisterall.cpp 24669 2012-07-10 16:04:24Z rouault $");
+CPL_CVSID("$Id: ogrregisterall.cpp 27044 2014-03-16 23:41:27Z rouault $");
 
 /************************************************************************/
 /*                           OGRRegisterAll()                           */
@@ -101,6 +102,7 @@ void OGRRegisterAll()
     RegisterOGRGMT();
 #endif
 #ifdef SQLITE_ENABLED
+    RegisterOGRGeoPackage();
     RegisterOGRSQLite();
 #endif
 #ifdef DODS_ENABLED
@@ -108,6 +110,9 @@ void OGRRegisterAll()
 #endif
 #ifdef ODBC_ENABLED
     RegisterOGRODBC();
+#endif
+#ifdef WASP_ENABLED
+    RegisterOGRWAsP();
 #endif
 
 /* Register before PGeo and Geomedia drivers */
@@ -142,6 +147,10 @@ void OGRRegisterAll()
 #endif
 #ifdef SDE_ENABLED
     RegisterOGRSDE();
+#endif
+/* Register OpenFileGDB before FGDB as it is more capable for read-only */
+#ifdef OPENFILEGDB_ENABLED
+    RegisterOGROpenFileGDB();
 #endif
 #ifdef FGDB_ENABLED
     RegisterOGRFileGDB();
@@ -203,7 +212,7 @@ void OGRRegisterAll()
     RegisterOGRWFS();
 #endif
 #ifdef SOSI_ENABLED 
-	RegisterOGRSOSI(); 
+    RegisterOGRSOSI(); 
 #endif
 #ifdef HTF_ENABLED
     RegisterOGRHTF();
@@ -219,6 +228,9 @@ void OGRRegisterAll()
 #endif
 #ifdef GFT_ENABLED
     RegisterOGRGFT();
+#endif
+#ifdef GME_ENABLED
+    RegisterOGRGME();
 #endif
 #ifdef SVG_ENABLED
     RegisterOGRSVG();
@@ -252,5 +264,14 @@ void OGRRegisterAll()
 #endif
 #ifdef PDF_ENABLED
     RegisterOGRPDF();
+#endif
+#ifdef WALK_ENABLED
+    RegisterOGRWalk();
+#endif
+#ifdef CARTODB_ENABLED
+    RegisterOGRCartoDB();
+#endif
+#ifdef SXF_ENABLED
+    RegisterOGRSXF();
 #endif
 } /* OGRRegisterAll */

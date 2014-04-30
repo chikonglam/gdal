@@ -1,12 +1,12 @@
 /******************************************************************************
- * $Id: ogrsqlitevfs.cpp 24807 2012-08-19 20:14:37Z rouault $
+ * $Id: ogrsqlitevfs.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implements SQLite VFS
  * Author:   Even Rouault, <even dot rouault at mines dash paris dot org>
 
  ******************************************************************************
- * Copyright (c) 2011, Even Rouault, <even dot rouault at mines dash paris dot org>
+ * Copyright (c) 2011-2012, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -30,7 +30,7 @@
 #include "cpl_atomic_ops.h"
 #include "ogr_sqlite.h"
 
-CPL_CVSID("$Id: ogrsqlitevfs.cpp 24807 2012-08-19 20:14:37Z rouault $");
+CPL_CVSID("$Id: ogrsqlitevfs.cpp 27044 2014-03-16 23:41:27Z rouault $");
 
 //#define DEBUG_IO 1
 

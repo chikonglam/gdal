@@ -1,8 +1,8 @@
-.TH "gdalinfo" 1 "Mon Aug 26 2013" "GDAL" \" -*- nroff -*-
+.TH "gdalinfo" 1 "Wed Apr 16 2014" "GDAL" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
-gdalinfo \- .TH "gdalinfo" 1 "Mon Aug 26 2013" "GDAL" \" -*- nroff -*-
+gdalinfo \- .TH "gdalinfo" 1 "Wed Apr 16 2014" "GDAL" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -13,8 +13,9 @@ gdalinfo \- lists information about a raster dataset
 .nf
 
 gdalinfo [--help-general] [-mm] [-stats] [-hist] [-nogcp] [-nomd]
-         [-norat] [-noct] [-nofl] [-checksum] [-proj4] [-mdd domain]*
-	 [-sd subdataset] datasetname
+         [-norat] [-noct] [-nofl] [-checksum] [-proj4]
+         [-listmdd] [-mdd domain|`all`]*
+         [-sd subdataset] datasetname
 .fi
 .PP
 .SH "DESCRIPTION"
@@ -38,8 +39,10 @@ Suppress printing of raster attribute table.
 Suppress printing of color table. 
 .IP "\fB\fB-checksum\fP\fP" 1c
 Force computation of the checksum for each band in the dataset. 
+.IP "\fB\fB-listmdd\fP\fP" 1c
+(GDAL >= 1.11) List all metadata domains available for the dataset. 
 .IP "\fB\fB-mdd domain\fP\fP" 1c
-Report metadata for the specified domain 
+Report metadata for the specified domain. Starting with GDAL 1.11, 'all' can be used to report metadata in all domains 
 .IP "\fB\fB-nofl\fP\fP" 1c
 (GDAL >= 1.9.0) Only display the first file of the file list. 
 .IP "\fB\fB-sd\fP \fIsubdataset\fP\fP" 1c

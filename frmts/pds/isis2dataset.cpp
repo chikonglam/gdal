@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: isis2dataset.cpp 23371 2011-11-13 14:24:00Z rouault $
+ * $Id: isis2dataset.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  ISIS Version 2 Driver
  * Purpose:  Implementation of ISIS2Dataset
@@ -14,6 +14,7 @@
  * diminish Trent and Roberts contribution. 
  ******************************************************************************
  * Copyright (c) 2006, Frank Warmerdam <warmerdam@pobox.com>
+ * Copyright (c) 2008-2011, Even Rouault <even dot rouault at mines-paris dot org>
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -49,7 +50,7 @@
 #include "cpl_string.h" 
 #include "nasakeywordhandler.h"
 
-CPL_CVSID("$Id: isis2dataset.cpp 23371 2011-11-13 14:24:00Z rouault $");
+CPL_CVSID("$Id: isis2dataset.cpp 27044 2014-03-16 23:41:27Z rouault $");
 
 CPL_C_START
 void	GDALRegister_ISIS2(void);

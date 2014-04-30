@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrociwritablelayer.cpp 12355 2007-10-09 04:48:19Z ilucena $
+ * $Id: ogrociwritablelayer.cpp 26573 2013-10-30 13:34:41Z rouault $
  *
  * Project:  Oracle Spatial Driver
  * Purpose:  Implementation of the OGROCIWritableLayer class.  This provides
@@ -33,7 +33,7 @@
 #include "cpl_conv.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: ogrociwritablelayer.cpp 12355 2007-10-09 04:48:19Z ilucena $");
+CPL_CVSID("$Id: ogrociwritablelayer.cpp 26573 2013-10-30 13:34:41Z rouault $");
 
 /************************************************************************/
 /*                        OGROCIWritableLayer()                         */
@@ -490,5 +490,25 @@ OGRErr OGROCIWritableLayer::TranslateToSDOGeometry( OGRGeometry * poGeometry,
     }
 
     return OGRERR_FAILURE;
+}
+
+int OGROCIWritableLayer::FindFieldIndex( const char *pszFieldName, int bExactMatch )
+{
+  int iField = GetLayerDefn()->GetFieldIndex( pszFieldName );
+
+  if( !bExactMatch && iField < 0 )
+  {
+      // try laundered version
+      OGROCISession *poSession = poDS->GetSession();
+      char *pszSafeName = CPLStrdup( pszFieldName );
+
+      poSession->CleanName( pszSafeName );
+
+      iField = GetLayerDefn()->GetFieldIndex( pszSafeName );
+
+      CPLFree( pszSafeName );
+  }
+
+  return iField;
 }
 

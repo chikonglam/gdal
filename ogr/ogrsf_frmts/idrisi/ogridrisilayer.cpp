@@ -1,12 +1,12 @@
 /******************************************************************************
- * $Id: ogridrisilayer.cpp 25795 2013-03-24 13:16:52Z rouault $
+ * $Id: ogridrisilayer.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  Idrisi Translator
  * Purpose:  Implements OGRIdrisiLayer class.
  * Author:   Even Rouault, <even dot rouault at mines dash paris dot org>
  *
  ******************************************************************************
- * Copyright (c) 2011, Even Rouault <even dot rouault at mines dash paris dot org>
+ * Copyright (c) 2011-2013, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -33,7 +33,7 @@
 #include "ogr_p.h"
 #include "ogr_srs_api.h"
 
-CPL_CVSID("$Id: ogridrisilayer.cpp 25795 2013-03-24 13:16:52Z rouault $");
+CPL_CVSID("$Id: ogridrisilayer.cpp 27044 2014-03-16 23:41:27Z rouault $");
 
 /************************************************************************/
 /*                         OGRIdrisiLayer()                             */
@@ -63,6 +63,7 @@ OGRIdrisiLayer::OGRIdrisiLayer( const char* pszFilename,
 
     poFeatureDefn = new OGRFeatureDefn( pszLayerName );
     poFeatureDefn->Reference();
+    poFeatureDefn->GetGeomFieldDefn(0)->SetSpatialRef(poSRS);
     poFeatureDefn->SetGeomType( eGeomType );
 
     OGRFieldDefn oFieldDefn("id", OFTReal);

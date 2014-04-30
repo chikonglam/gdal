@@ -7,6 +7,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2010, Mateusz Loskot <mateusz@loskot.net>
+ * Copyright (c) 2013, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -77,9 +78,7 @@ static void GDALDestroy(void)
 
     CPLDebug("GDAL", "In GDALDestroy - unloading GDAL shared library.");
     bInGDALGlobalDestructor = TRUE;
-    CPLSetConfigOption("GDAL_CLOSE_JP2ECW_RESOURCE", "NO");
     GDALDestroyDriverManager();
-    CPLSetConfigOption("GDAL_CLOSE_JP2ECW_RESOURCE", NULL);
 
 #ifdef OGR_ENABLED
     OGRCleanupAll();

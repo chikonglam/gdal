@@ -6,7 +6,7 @@
  * Author:   Even Rouault, even.rouault at mines-paris.org
  *
  ******************************************************************************
- * Copyright (c) 2007, Even Rouault
+ * Copyright (c) 2007-2014, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -42,7 +42,7 @@
 #define GEOTRSFRM_ROTATION_PARAM2      4
 #define GEOTRSFRM_NS_RES               5
 
-CPL_CVSID("$Id: rpftocdataset.cpp 25494 2013-01-13 12:55:17Z etourigny $");
+CPL_CVSID("$Id: rpftocdataset.cpp 27044 2014-03-16 23:41:27Z rouault $");
 
 
 /** Overview of used classes :
@@ -822,7 +822,7 @@ GDALDataset* RPFTOCSubDataset::CreateDataSetFromTocEntry(const char* openInforma
                             if( bHasNoDataValue && iC == (int)noDataValue )
                                 continue;
 
-                            const GDALColorEntry* entry = poCT->GetColorEntry(i);
+                            const GDALColorEntry* entry = poCT->GetColorEntry(iC);
                             if( entry->c1 != 0 || entry->c2 != 0 || entry->c3 != 0)
                             {
                                 bAllBlack = FALSE;

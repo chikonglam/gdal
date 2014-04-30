@@ -6,7 +6,7 @@
  * Author:   Even Rouault, even dot rouault at mines dash paris dot org
  *
  ******************************************************************************
- * Copyright (c) 2008, Even Rouault
+ * Copyright (c) 2008-2011, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -30,7 +30,7 @@
 #include "ogr_xplane_apt_reader.h"
 #include "ogr_xplane_geo_utils.h"
 
-CPL_CVSID("$Id: ogr_xplane_apt_reader.cpp 22627 2011-07-01 19:36:15Z rouault $");
+CPL_CVSID("$Id: ogr_xplane_apt_reader.cpp 27118 2014-04-02 20:52:00Z rouault $");
 
 /************************************************************************/
 /*                   OGRXPlaneCreateAptFileReader                       */
@@ -182,7 +182,8 @@ void OGRXPlaneAptReader::Rewind()
 int OGRXPlaneAptReader::IsRecognizedVersion( const char* pszVersionString)
 {
     return EQUALN(pszVersionString, "850 Version", 11) ||
-           EQUALN(pszVersionString, "810 Version", 11);
+           EQUALN(pszVersionString, "810 Version", 11) ||
+           EQUALN(pszVersionString, "1000 Version", 12);
 }
 
 /************************************************************************/

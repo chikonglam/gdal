@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: grddataset.cpp 24355 2012-05-01 10:52:54Z rouault $
+ * $Id: grddataset.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  GRD Reader
  * Purpose:  GDAL driver for Northwood Grid Format
@@ -7,6 +7,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2006, Waypoint Information Technology
+ * Copyright (c) 2009-2012, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),

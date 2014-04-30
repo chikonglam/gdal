@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_elastic.h 25311 2012-12-15 12:48:14Z rouault $
+ * $Id: ogr_elastic.h 26464 2013-09-13 21:06:03Z rouault $
  *
  * Project:  ElasticSearch Translator
  * Purpose:
@@ -65,8 +65,6 @@ public:
     OGRFeatureDefn * GetLayerDefn();
 
     int TestCapability(const char *);
-
-    OGRSpatialReference *GetSpatialRef();
 
     int GetFeatureCount(int bForce);
 

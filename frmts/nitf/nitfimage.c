@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: nitfimage.c 26189 2013-07-20 07:43:42Z rouault $
+ * $Id: nitfimage.c 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  NITF Read/Write Library
  * Purpose:  Module responsible for implementation of most NITFImage 
@@ -8,6 +8,7 @@
  *
  **********************************************************************
  * Copyright (c) 2002, Frank Warmerdam
+ * Copyright (c) 2007-2013, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -35,7 +36,7 @@
 #include "cpl_conv.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: nitfimage.c 26189 2013-07-20 07:43:42Z rouault $");
+CPL_CVSID("$Id: nitfimage.c 27044 2014-03-16 23:41:27Z rouault $");
 
 static int NITFReadIMRFCA( NITFImage *psImage, NITFRPC00BInfo *psRPC );
 static char *NITFTrimWhite( char * );

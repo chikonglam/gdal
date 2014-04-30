@@ -1,12 +1,12 @@
 /******************************************************************************
- * $Id: ogrsvgdatasource.cpp 23557 2011-12-12 22:08:17Z rouault $
+ * $Id: ogrsvgdatasource.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  SVG Translator
  * Purpose:  Implements OGRSVGDataSource class
  * Author:   Even Rouault, even dot rouault at mines dash paris dot org
  *
  ******************************************************************************
- * Copyright (c) 2011, Even Rouault
+ * Copyright (c) 2011, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -30,7 +30,7 @@
 #include "ogr_svg.h"
 #include "cpl_conv.h"
 
-CPL_CVSID("$Id: ogrsvgdatasource.cpp 23557 2011-12-12 22:08:17Z rouault $");
+CPL_CVSID("$Id: ogrsvgdatasource.cpp 27044 2014-03-16 23:41:27Z rouault $");
 
 /************************************************************************/
 /*                          OGRSVGDataSource()                          */

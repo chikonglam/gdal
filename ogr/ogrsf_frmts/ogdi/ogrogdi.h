@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrogdi.h 20207 2010-08-06 22:07:29Z rouault $
+ * $Id: ogrogdi.h 26688 2013-12-02 19:07:41Z rouault $
  *
  * Project:  OGDI Bridge
  * Purpose:  Private definitions within the OGDI driver to implement
@@ -58,6 +58,8 @@ class OGROGDILayer : public OGRLayer
     int                 m_iNextShapeId;
     int                 m_nTotalShapeCount;
     int                 m_nFilteredOutShapes;
+    
+    OGRFeature *        GetNextRawFeature();
 
   public:
                         OGROGDILayer(OGROGDIDataSource *, const char *, 
@@ -77,8 +79,6 @@ class OGROGDILayer : public OGRLayer
     int                 GetFeatureCount( int );
 
     int                 TestCapability( const char * );
-
-    OGRSpatialReference *GetSpatialRef()  { return m_poSpatialRef; }
 
   private:
     void                BuildFeatureDefn();

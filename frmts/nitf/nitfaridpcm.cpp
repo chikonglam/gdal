@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: nitfaridpcm.cpp 21680 2011-02-11 21:12:07Z warmerdam $
+ * $Id: nitfaridpcm.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  NITF Read/Write Library
  * Purpose:  ARIDPCM reading code.
@@ -7,6 +7,7 @@
  *
  **********************************************************************
  * Copyright (c) 2007, Frank Warmerdam 
+ * Copyright (c) 2009, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -31,7 +32,7 @@
 #include "nitflib.h"
 #include "cpl_conv.h"
 
-CPL_CVSID("$Id: nitfaridpcm.cpp 21680 2011-02-11 21:12:07Z warmerdam $");
+CPL_CVSID("$Id: nitfaridpcm.cpp 27044 2014-03-16 23:41:27Z rouault $");
 
 static const int neighbourhood_size_75[4] = { 23, 47, 74, 173 };
 static const int bits_per_level_by_busycode_75[4/*busy code*/][4/*level*/] = { 

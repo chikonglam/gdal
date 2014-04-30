@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: iso19115_srs.cpp 26160 2013-07-10 00:27:52Z warmerdam $
+ * $Id: iso19115_srs.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  BAG Driver
  * Purpose:  Implements code to parse ISO 19115 metadata to extract a
@@ -9,6 +9,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2009, Frank Warmerdam <warmerdam@pobox.com>
+ * Copyright (c) 2009-2012, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -33,7 +34,7 @@
 #include "cpl_minixml.h"
 #include "cpl_error.h"
 
-CPL_CVSID("$Id: iso19115_srs.cpp 26160 2013-07-10 00:27:52Z warmerdam $");
+CPL_CVSID("$Id: iso19115_srs.cpp 27044 2014-03-16 23:41:27Z rouault $");
 
 /************************************************************************/
 /*                     OGR_SRS_ImportFromISO19115()                     */

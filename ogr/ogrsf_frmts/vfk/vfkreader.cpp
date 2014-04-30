@@ -1,12 +1,13 @@
 /******************************************************************************
- * $Id: vfkreader.cpp 25721 2013-03-09 16:21:46Z martinl $
+ * $Id: vfkreader.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  VFK Reader
  * Purpose:  Implements VFKReader class.
  * Author:   Martin Landa, landa.martin gmail.com
  *
  ******************************************************************************
- * Copyright (c) 2009-2010, 2012-2013, Martin Landa <landa.martin gmail.com>
+ * Copyright (c) 2009-2014, Martin Landa <landa.martin gmail.com>
+ * Copyright (c) 2012-2013, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -139,7 +140,7 @@ char *VFKReader::ReadLine(bool bRecode)
         pszLine = (char *) CPLMalloc(strlen(pszRawLine) + 1);
         strcpy(pszLine, pszRawLine);
     }
-    
+
     return pszLine;
 }
 
@@ -199,25 +200,40 @@ int VFKReader::ReadDataBlocks()
   \brief Load data records (&D)
 
   Call VFKReader::OpenFile() before this function.
-  
+
+  \param poDataBlock limit to selected data block or NULL for all
+
   \return number of data records or -1 on error
 */
 int VFKReader::ReadDataRecords(IVFKDataBlock *poDataBlock)
 {
     const char *pszName;
     char       *pszBlockName, *pszLine;
-    long        iFID;
+    CPLString   osBlockNameLast;
     int         nLength, iLine, nSkipped, nDupl, nRecords;
+    int         iDataBlock;
+    
+    IVFKDataBlock *poDataBlockCurrent;
     
     CPLString pszMultiLine;
 
     VFKFeature *poNewFeature;
-    
-    poDataBlock->SetFeatureCount(0);
-    pszName = poDataBlock->GetName();
 
+    if (poDataBlock) {  /* read only given data block */
+        poDataBlockCurrent = poDataBlock;
+        poDataBlockCurrent->SetFeatureCount(0);
+        pszName = poDataBlockCurrent->GetName();
+    }
+    else {              /* read all data blocks */
+        pszName = NULL; 
+        for (iDataBlock = 0; iDataBlock < GetDataBlockCount(); iDataBlock++) {
+            poDataBlockCurrent = GetDataBlock(iDataBlock);
+            poDataBlockCurrent->SetFeatureCount(0);
+        }
+        poDataBlockCurrent = NULL;
+    }
+    
     VSIFSeek(m_poFD, 0, SEEK_SET);
-    iFID = 1L;
     iLine = nSkipped = nDupl = nRecords = 0;
     while ((pszLine = ReadLine()) != NULL) {
         iLine++;
@@ -227,7 +243,7 @@ int VFKReader::ReadDataRecords(IVFKDataBlock *poDataBlock)
         
         if (pszLine[1] == 'D') {
             pszBlockName = GetDataBlockName(pszLine);
-            if (pszBlockName && EQUAL(pszBlockName, pszName)) {
+            if (pszBlockName && (!pszName || EQUAL(pszBlockName, pszName))) {
                 /* merge lines if needed */
                 if (pszLine[nLength - 2] == '\302' &&
                     pszLine[nLength - 1] == '\244') {
@@ -258,25 +274,39 @@ int VFKReader::ReadDataRecords(IVFKDataBlock *poDataBlock)
                     pszLine[nLength] = '\0';
                 }
                 
-                poNewFeature = new VFKFeature(poDataBlock, iFID++);
+                if (!poDataBlock && pszBlockName) { /* read all data blocks */
+                    if (osBlockNameLast.empty() ||
+                        !EQUAL(pszBlockName, osBlockNameLast.c_str())) {
+                        poDataBlockCurrent = GetDataBlock(pszBlockName);
+                        osBlockNameLast = CPLString(pszBlockName);
+                    }
+                }
+                if (!poDataBlockCurrent)
+                {
+                    CPLFree(pszBlockName);
+                    continue; // assert ?
+                }
+                
+                poNewFeature = new VFKFeature(poDataBlockCurrent,
+                                              poDataBlockCurrent->GetFeatureCount() + 1);
                 if (poNewFeature->SetProperties(pszLine)) {
-                    if (AddFeature(poDataBlock, poNewFeature) != OGRERR_NONE) {
+                    if (AddFeature(poDataBlockCurrent, poNewFeature) != OGRERR_NONE) {
                         CPLDebug("OGR-VFK", 
                                  "%s: duplicated VFK data recored skipped (line %d).\n%s\n",
                                  pszBlockName, iLine, pszLine);
-                        nDupl++;
-                        iFID--;
+                        poDataBlockCurrent->SetIncRecordCount(RecordDuplicated);
                     }
                     else {
                         nRecords++;
+                        poDataBlockCurrent->SetIncRecordCount(RecordValid);
                     }
                     delete poNewFeature;
-		}
+                }
                 else {
                     CPLDebug("OGR-VFK", 
                              "Invalid VFK data record skipped (line %d).\n%s\n", iLine, pszLine);
-		    nSkipped++;
-		}
+                    poDataBlockCurrent->SetIncRecordCount(RecordSkipped);
+                }
             }
             CPLFree(pszBlockName);
         }
@@ -287,18 +317,28 @@ int VFKReader::ReadDataRecords(IVFKDataBlock *poDataBlock)
         }
         CPLFree(pszLine);
     }
-    
-    if (nSkipped > 0)
-	CPLError(CE_Warning, CPLE_AppDefined, 
-		 "%s: %d invalid VFK data records skipped",
-                 poDataBlock->GetName(), nSkipped);
-    if (nDupl > 0)
-	CPLError(CE_Warning, CPLE_AppDefined, 
-		 "%s: %d duplicated VFK data records skipped",
-                 poDataBlock->GetName(), nDupl);
 
-    CPLDebug("OGR_VFK", "VFKReader::ReadDataRecords(): name=%s n=%d",
-             poDataBlock->GetName(), nRecords);
+    for (iDataBlock = 0; iDataBlock < GetDataBlockCount(); iDataBlock++) {
+        poDataBlockCurrent = GetDataBlock(iDataBlock);
+
+        if (poDataBlock && poDataBlock != poDataBlockCurrent)
+            continue;
+        
+        nSkipped = poDataBlockCurrent->GetRecordCount(RecordSkipped);
+        nDupl    = poDataBlockCurrent->GetRecordCount(RecordDuplicated);
+        if (nSkipped > 0)
+            CPLError(CE_Warning, CPLE_AppDefined, 
+                     "%s: %d invalid VFK data records skipped",
+                     poDataBlockCurrent->GetName(), nSkipped);
+        if (nDupl > 0)
+            CPLError(CE_Warning, CPLE_AppDefined, 
+                     "%s: %d duplicated VFK data records skipped",
+                     poDataBlockCurrent->GetName(), nDupl);
+
+        CPLDebug("OGR-VFK", "VFKReader::ReadDataRecords(): name=%s n=%d",
+                 poDataBlockCurrent->GetName(),
+                 poDataBlockCurrent->GetRecordCount(RecordValid));
+    }
 
     return nRecords;
 }
@@ -393,9 +433,10 @@ int VFKReader::LoadGeometry()
 */
 void VFKReader::AddInfo(const char *pszLine)
 {
-    int         iKeyLength, iValueLength;
+    int         i, iKeyLength, iValueLength;
+    int         nSkip;
     char       *pszKey, *pszValue;
-    const char *poChar, *poKey, *poValue;
+    const char *poChar, *poKey;
     CPLString   key, value;
     
     poChar = poKey = pszLine + 2; /* &H */
@@ -411,21 +452,36 @@ void VFKReader::AddInfo(const char *pszLine)
     strncpy(pszKey, poKey, iKeyLength);
     pszKey[iKeyLength] = '\0';
 
-    poValue = ++poChar; /* skip ';' */
+    poChar++; /* skip ; */
+
     iValueLength = 0;
+    nSkip = 3; /* &H + ; */
     while (*poChar != '\0') {
-        iValueLength++;
+        if (*poChar == '"' && iValueLength == 0) {
+            nSkip++;
+        }
+        else {
+            iValueLength++; 
+        }
         poChar++;
     }
-
+    if (nSkip > 3)
+        iValueLength--;
+    
     pszValue = (char *) CPLMalloc(iValueLength + 1);
-    strncpy(pszValue, poValue, iValueLength);
+    for (i = 0; i < iValueLength; i++) {
+        pszValue[i] = pszLine[iKeyLength+nSkip+i];
+        if (pszValue[i] == '"') {
+            pszValue[i] = '\''; /* " -> ' */
+        }
+    }
+
     pszValue[iValueLength] = '\0';
 
     poInfo[pszKey] = pszValue;
 
     if (EQUAL(pszKey, "CODEPAGE")) {
-        if (!EQUAL(pszValue, "\"WE8ISO8859P2\""))
+        if (!EQUAL(pszValue, "WE8ISO8859P2"))
             m_bLatin2 = FALSE;
     }
 

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ecwcreatecopy.cpp 25924 2013-04-18 18:16:41Z rouault $
+ * $Id: ecwcreatecopy.cpp 27182 2014-04-14 20:03:08Z rouault $
  *
  * Project:  GDAL ECW Driver
  * Purpose:  ECW CreateCopy method implementation.
@@ -7,6 +7,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2001, 2004, Frank Warmerdam <warmerdam@pobox.com>
+ * Copyright (c) 2008-2013, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -28,9 +29,10 @@
  ****************************************************************************/
 
 #include "gdal_ecw.h"
+#include "gdaljp2metadata.h"
 #include "ogr_spatialref.h"
 
-CPL_CVSID("$Id: ecwcreatecopy.cpp 25924 2013-04-18 18:16:41Z rouault $");
+CPL_CVSID("$Id: ecwcreatecopy.cpp 27182 2014-04-14 20:03:08Z rouault $");
 
 #if defined(FRMT_ecw) && defined(HAVE_COMPRESS)
 
@@ -90,7 +92,7 @@ public:
                         GDALDataType eType, 
                         const char *pszWKT, double *padfGeoTransform,
                         int nGCPCount, const GDAL_GCP *pasGCPList,
-                        int bIsJPEG2000 );
+                        int bIsJPEG2000, int bPixelIsPoint );
     CPLErr  CloseDown();
 
     CPLErr  PrepareCoverageBox( const char *pszWKT, double *padfGeoTransform );
@@ -194,6 +196,10 @@ CNCSError GDALECWCompressor::WriteReadLine( UINT32 nNextLine,
     CPLErr eErr;
     GByte *pabyLineBuf;
     int nWordSize = GDALGetDataTypeSize( eWorkDT ) / 8;
+
+#ifdef DEBUG_VERBOSE
+    CPLDebug("ECW", "nNextLine = %d", nNextLine);
+#endif
 
     panBandMap = (int *) CPLMalloc(sizeof(int) * sFileInfo.nBands);
     for( iBand = 0; iBand < sFileInfo.nBands; iBand++ )
@@ -509,7 +515,7 @@ CPLErr GDALECWCompressor::Initialize(
     GDALDataType eType, 
     const char *pszWKT, double *padfGeoTransform,
     int nGCPCount, const GDAL_GCP *pasGCPList,
-    int bIsJPEG2000 )
+    int bIsJPEG2000, int bPixelIsPoint )
 
 {
      const char *pszOption;
@@ -908,18 +914,30 @@ CPLErr GDALECWCompressor::Initialize(
 /* -------------------------------------------------------------------- */
 /*      Setup GML and GeoTIFF information.                              */
 /* -------------------------------------------------------------------- */
-    GDALJP2Metadata oJP2MD;
+    if( (pszWKT != NULL && pszWKT[0] != '\0') ||
+        !(padfGeoTransform[0] == 0.0 &&
+          padfGeoTransform[1] == 1.0 &&
+          padfGeoTransform[2] == 0.0 &&
+          padfGeoTransform[3] == 0.0 &&
+          padfGeoTransform[4] == 0.0 &&
+          padfGeoTransform[5] == 1.0) ||
+         nGCPCount > 0 )
+    {
+        GDALJP2Metadata oJP2MD;
 
-    oJP2MD.SetProjection( pszWKT );
-    oJP2MD.SetGeoTransform( padfGeoTransform );
-    oJP2MD.SetGCPs( nGCPCount, pasGCPList );
-    if (bIsJPEG2000) {
+        oJP2MD.SetProjection( pszWKT );
+        oJP2MD.SetGeoTransform( padfGeoTransform );
+        oJP2MD.SetGCPs( nGCPCount, pasGCPList );
+        oJP2MD.bPixelIsPoint = bPixelIsPoint;
 
-        if( CSLFetchBoolean( papszOptions, "GMLJP2", TRUE ) )
-            WriteJP2Box( oJP2MD.CreateGMLJP2(nXSize,nYSize) );
-        if( CSLFetchBoolean( papszOptions, "GeoJP2", TRUE ) )
-            WriteJP2Box( oJP2MD.CreateJP2GeoTIFF() );
+        if (bIsJPEG2000) {
 
+            if( CSLFetchBoolean( papszOptions, "GMLJP2", TRUE ) )
+                WriteJP2Box( oJP2MD.CreateGMLJP2(nXSize,nYSize) );
+            if( CSLFetchBoolean( papszOptions, "GeoJP2", TRUE ) )
+                WriteJP2Box( oJP2MD.CreateJP2GeoTIFF() );
+
+        }
     }
 /* -------------------------------------------------------------------- */
 /*      We handle all jpeg2000 files via the VSIIOStream, but ECW       */
@@ -941,7 +959,8 @@ CPLErr GDALECWCompressor::Initialize(
             return CE_Failure;
         }
 
-        m_OStream.Access( fpVSIL, TRUE, bSeekable, pszFilename, 0, -1 );
+        m_OStream.Access( fpVSIL, TRUE, (BOOLEAN) bSeekable, pszFilename, 
+			  0, -1 );
     }    
 
 /* -------------------------------------------------------------------- */
@@ -1181,12 +1200,16 @@ ECWCreateCopy( const char * pszFilename, GDALDataset *poSrcDS,
         /* by CPLSPrintf(), which has just a few rotating entries. */
         papszBandDescriptions[i] = CPLStrdup(ECWGetColorInterpretationName(poSrcDS->GetRasterBand(i+1)->GetColorInterpretation(), i));
     }
+
+    const char* pszAreaOrPoint = poSrcDS->GetMetadataItem(GDALMD_AREA_OR_POINT);
+    int bPixelIsPoint = pszAreaOrPoint != NULL && EQUAL(pszAreaOrPoint, GDALMD_AOP_POINT);
+
     if( oCompressor.Initialize( pszFilename, papszOptions, 
                                 nXSize, nYSize, nBands, papszBandDescriptions, bRGBColorSpace,
                                 eType, pszWKT, adfGeoTransform, 
                                 poSrcDS->GetGCPCount(), 
                                 poSrcDS->GetGCPs(),
-                                bIsJPEG2000 )
+                                bIsJPEG2000, bPixelIsPoint )
         != CE_None )
     {
         for (i=0;i<nBands;i++)
@@ -1720,7 +1743,7 @@ CPLErr ECWWriteDataset::Crystalize()
                                    eDataType, 
                                    pszProjection, adfGeoTransform, 
                                    0, NULL,
-                                   bIsJPEG2000 );
+                                   bIsJPEG2000, FALSE );
 
     if( eErr == CE_None )
         bCrystalized = TRUE;

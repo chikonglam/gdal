@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #******************************************************************************
-#  $Id: gcps2wld.py 18952 2010-02-28 11:59:53Z rouault $
+#  $Id: gcps2wld.py 27044 2014-03-16 23:41:27Z rouault $
 # 
 #  Name:     gcps2wld
 #  Project:  GDAL Python Interface
@@ -10,6 +10,7 @@
 # 
 #******************************************************************************
 #  Copyright (c) 2002, Frank Warmerdam
+#  Copyright (c) 2009-2010, Even Rouault <even dot rouault at mines-paris dot org>
 # 
 #  Permission is hereby granted, free of charge, to any person obtaining a
 #  copy of this software and associated documentation files (the "Software"),

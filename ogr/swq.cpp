@@ -6,6 +6,7 @@
  * 
  ******************************************************************************
  * Copyright (C) 2001 Information Interoperability Institute (3i)
+ * Copyright (c) 2010-2013, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission to use, copy, modify and distribute this software and
  * its documentation for any purpose and without fee is hereby granted,
@@ -24,8 +25,32 @@
 #include "cpl_multiproc.h"
 #include "swq.h"
 #include "swq_parser.hpp"
+#include "cpl_time.h"
 
 #define YYSTYPE  swq_expr_node*
+
+/************************************************************************/
+/*                               swqlex()                               */
+/************************************************************************/
+
+void swqerror( swq_parse_context *context, const char *msg )
+{
+    CPLString osMsg;
+    osMsg.Printf( "SQL Expression Parsing Error: %s. Occured around :\n", msg );
+
+    int i;
+    int n = context->pszLastValid - context->pszInput;
+
+    for( i = MAX(0,n-40); i < n + 40 && context->pszInput[i] != '\0'; i ++ )
+        osMsg += context->pszInput[i];
+    osMsg += "\n";
+    for(i=0;i<MIN(n, 40);i++)
+        osMsg += " ";
+    osMsg += "^";
+
+    CPLError( CE_Failure, CPLE_AppDefined, "%s", osMsg.c_str() );
+}
+
 
 /************************************************************************/
 /*                               swqlex()                               */
@@ -55,6 +80,8 @@ int swqlex( YYSTYPE *ppNode, swq_parse_context *context )
     while( *pszInput == ' ' || *pszInput == '\t'
            || *pszInput == 10 || *pszInput == 13 )
         pszInput++;
+
+    context->pszLastValid = pszInput;
 
     if( *pszInput == '\0' )
     {
@@ -151,13 +178,13 @@ int swqlex( YYSTYPE *ppNode, swq_parse_context *context )
             || strstr(osToken,"E") )
         {
             *ppNode = new swq_expr_node( CPLAtof(osToken) );
+            return SWQT_FLOAT_NUMBER;
         }
         else
         {
             *ppNode = new swq_expr_node( atoi(osToken) );
+            return SWQT_INTEGER_NUMBER;
         }
-
-        return SWQT_NUMBER;
     }
 
 /* -------------------------------------------------------------------- */
@@ -228,6 +255,13 @@ int swqlex( YYSTYPE *ppNode, swq_parse_context *context )
             nReturn = SWQT_UNION;
         else if( EQUAL(osToken,"ALL") )
             nReturn = SWQT_ALL;
+
+        /* Unhandled by OGR SQL */
+        else if( EQUAL(osToken,"LIMIT") ||
+                 EQUAL(osToken,"OUTER") ||
+                 EQUAL(osToken,"INNER") )
+            nReturn = SWQT_RESERVED_KEYWORD;
+
         else
         {
             *ppNode = new swq_expr_node( osToken );
@@ -288,6 +322,8 @@ swq_select_summarize( swq_select *select_info,
         {
             select_info->column_summary[i].min = 1e20;
             select_info->column_summary[i].max = -1e20;
+            strcpy(select_info->column_summary[i].szMin, "9999/99/99 99:99:99");
+            strcpy(select_info->column_summary[i].szMax, "0000/00/00 00:00:00");
         }
     }
 
@@ -341,25 +377,73 @@ swq_select_summarize( swq_select *select_info,
       case SWQCF_MIN:
         if( value != NULL && value[0] != '\0' )
         {
-            double df_val = CPLAtof(value);
-            if( df_val < summary->min )
-                summary->min = df_val;
+            if(def->field_type == SWQ_DATE ||
+               def->field_type == SWQ_TIME ||
+               def->field_type == SWQ_TIMESTAMP)
+            {
+                if( strcmp( value, summary->szMin ) < 0 )
+                {
+                    strncpy( summary->szMin, value, sizeof(summary->szMin) );
+                    summary->szMin[sizeof(summary->szMin) - 1] = '\0';
+                }
+            }
+            else
+            {
+                double df_val = CPLAtof(value);
+                if( df_val < summary->min )
+                    summary->min = df_val;
+            }
         }
         break;
       case SWQCF_MAX:
         if( value != NULL && value[0] != '\0' )
         {
-            double df_val = CPLAtof(value);
-            if( df_val > summary->max )
-                summary->max = df_val;
+            if(def->field_type == SWQ_DATE ||
+               def->field_type == SWQ_TIME ||
+               def->field_type == SWQ_TIMESTAMP)
+            {
+                if( strcmp( value, summary->szMax ) > 0 )
+                {
+                    strncpy( summary->szMax, value, sizeof(summary->szMax) );
+                    summary->szMax[sizeof(summary->szMax) - 1] = '\0';
+                }
+            }
+            else
+            {
+                double df_val = CPLAtof(value);
+                if( df_val > summary->max )
+                    summary->max = df_val;
+            }
         }
         break;
       case SWQCF_AVG:
       case SWQCF_SUM:
         if( value != NULL && value[0] != '\0' )
         {
-            summary->count++;
-            summary->sum += CPLAtof(value);
+            if(def->field_type == SWQ_DATE ||
+               def->field_type == SWQ_TIME ||
+               def->field_type == SWQ_TIMESTAMP)
+            {
+                int nYear, nMonth, nDay, nHour, nMin, nSec;
+                if( sscanf(value, "%04d/%02d/%02d %02d:%02d:%02d",
+                           &nYear, &nMonth, &nDay, &nHour, &nMin, &nSec) == 6 )
+                {
+                    struct tm brokendowntime;
+                    brokendowntime.tm_year = nYear - 1900;
+                    brokendowntime.tm_mon = nMonth - 1;
+                    brokendowntime.tm_mday = nDay;
+                    brokendowntime.tm_hour = nHour;
+                    brokendowntime.tm_min = nMin;
+                    brokendowntime.tm_sec = nSec;
+                    summary->count++;
+                    summary->sum += CPLYMDHMSToUnixTime(&brokendowntime);
+                }
+            }
+            else
+            {
+                summary->count++;
+                summary->sum += CPLAtof(value);
+            }
         }
         break;
 
@@ -691,10 +775,11 @@ CPLErr swq_expr_compile2( const char *where_clause,
 
     context.pszInput = where_clause;
     context.pszNext = where_clause;
+    context.pszLastValid = where_clause;
     context.nStartToken = SWQT_LOGICAL_START;
     
     if( swqparse( &context ) == 0 
-        && context.poRoot->Check( field_list ) != SWQ_ERROR )
+        && context.poRoot->Check( field_list, FALSE ) != SWQ_ERROR )
     {
         *expr_out = context.poRoot;
 
@@ -747,4 +832,25 @@ int swq_is_reserved_keyword(const char* pszStr)
             return TRUE;
     }
     return FALSE;
+}
+
+/************************************************************************/
+/*                          SWQFieldTypeToString()                      */
+/************************************************************************/
+
+const char* SWQFieldTypeToString( swq_field_type field_type )
+{
+    switch(field_type)
+    {
+        case SWQ_INTEGER:   return "integer";
+        case SWQ_FLOAT:     return "float";
+        case SWQ_STRING:    return "string";
+        case SWQ_BOOLEAN:   return "boolean";
+        case SWQ_DATE:      return "date";
+        case SWQ_TIME:      return "time";
+        case SWQ_TIMESTAMP: return "timestamp";
+        case SWQ_GEOMETRY:  return "geometry";
+        case SWQ_NULL:      return "null";
+        default: return "unknown";
+    }
 }

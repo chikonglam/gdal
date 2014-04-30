@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_srs_proj4.cpp 26137 2013-07-05 19:30:23Z rouault $
+ * $Id: ogr_srs_proj4.cpp 27108 2014-03-28 20:25:46Z kyle $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  OGRSpatialReference interface to PROJ.4.
@@ -7,6 +7,8 @@
  *
  ******************************************************************************
  * Copyright (c) 1999,  Les Technologies SoftMap Inc. 
+ * Copyright (c) 2008-2013, Even Rouault <even dot rouault at mines-paris dot org>
+ * Copyright (c) 2014, Kyle Shannon <kyle at pobox dot com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -33,7 +35,7 @@
 
 extern int EPSGGetWGS84Transform( int nGeogCS, double *padfTransform );
 
-CPL_CVSID("$Id: ogr_srs_proj4.cpp 26137 2013-07-05 19:30:23Z rouault $");
+CPL_CVSID("$Id: ogr_srs_proj4.cpp 27108 2014-03-28 20:25:46Z kyle $");
 
 /* -------------------------------------------------------------------- */
 /*      The following list comes from osrs/proj/src/pj_ellps.c          */
@@ -782,7 +784,8 @@ OGRErr OGRSpatialReference::importFromProj4( const char * pszProj4 )
     else if( EQUAL(pszProj,"lcc") ) 
     {
         if( OSR_GDV(papszNV, "lat_0", 0.0 ) 
-            == OSR_GDV(papszNV, "lat_1", 0.0 ) )
+            == OSR_GDV(papszNV, "lat_1", 0.0 ) &&
+            CSLFetchNameValue( papszNV, "lat_2" ) == NULL )
         {
             /* 1SP form */
             SetLCC1SP( OSR_GDV( papszNV, "lat_0", 0.0 ), 
@@ -1123,20 +1126,81 @@ OGRErr OGRSpatialReference::importFromProj4( const char * pszProj4 )
             else
                 SetLinearUnits( "unknown", CPLAtofM(pszValue) );
         }
+        /*
+        ** All units reported by cs2cs -lu are supported, fall back to meter.
+        */
         else if( (pszValue = CSLFetchNameValue(papszNV, "units")) != NULL )
         {
             if( EQUAL(pszValue,"meter" ) || EQUAL(pszValue,"m") || EQUAL(pszValue,"metre") )
                 SetLinearUnits( SRS_UL_METER, 1.0 );
-            else if( EQUAL(pszValue,"km") )
-                SetLinearUnits( "kilometre", 1000.0 );
-            else if( EQUAL(pszValue,"us-ft" ) )
-                SetLinearUnits( SRS_UL_US_FOOT, CPLAtof(SRS_UL_US_FOOT_CONV) );
-            else if( EQUAL(pszValue,"ft" ) )
-                SetLinearUnits( SRS_UL_FOOT, CPLAtof(SRS_UL_FOOT_CONV) );
-            else if( EQUAL(pszValue,"yd" ) )
-                SetLinearUnits( pszValue, 0.9144 );
-            else if( EQUAL(pszValue,"us-yd" ) )
-                SetLinearUnits( pszValue, 0.914401828803658 );
+            /*
+            ** Leave as 'kilometre' instead of SRS_UL_KILOMETER due to
+            ** historical usage
+            */
+            else if( EQUAL( pszValue,"km") )
+                SetLinearUnits( "kilometre",
+                                CPLAtof( SRS_UL_KILOMETER_CONV ) );
+            else if( EQUAL( pszValue,"us-ft" ) )
+                SetLinearUnits( SRS_UL_US_FOOT,
+                                CPLAtof( SRS_UL_US_FOOT_CONV ) );
+            /*
+            ** Leave as 'Foot (International)' or SRS_UL_FOOT instead of
+            ** SRS_UL_INTL_FOOT due to historical usage
+            */
+            else if( EQUAL( pszValue,"ft" ) )
+                SetLinearUnits( SRS_UL_FOOT,
+                                CPLAtof( SRS_UL_FOOT_CONV) );
+            else if( EQUAL( pszValue,"yd" ) )
+                SetLinearUnits( SRS_UL_INTL_YARD,
+                                CPLAtof( SRS_UL_INTL_YARD_CONV ) );
+            else if( EQUAL( pszValue,"us-yd" ) )
+                SetLinearUnits( SRS_UL_US_YARD,
+                                CPLAtof( SRS_UL_US_YARD_CONV ) );
+            else if( EQUAL( pszValue,"dm" ) )
+                SetLinearUnits( SRS_UL_DECIMETER, 
+                                CPLAtof( SRS_UL_DECIMETER_CONV ) );
+            else if( EQUAL( pszValue,"cm" ) )
+                SetLinearUnits( SRS_UL_CENTIMETER,
+                                CPLAtof( SRS_UL_CENTIMETER_CONV ) );
+            else if( EQUAL( pszValue,"mm" ) )
+                SetLinearUnits( SRS_UL_MILLIMETER,
+                                CPLAtof( SRS_UL_MILLIMETER_CONV ) );
+            else if( EQUAL( pszValue,"kmi" ) )
+                SetLinearUnits( SRS_UL_INTL_NAUT_MILE,
+                                CPLAtof( SRS_UL_INTL_NAUT_MILE_CONV ) );
+            else if( EQUAL( pszValue,"in" ) )
+                SetLinearUnits( SRS_UL_INTL_INCH,
+                                CPLAtof( SRS_UL_INTL_INCH_CONV ) );
+            else if( EQUAL( pszValue,"mi" ) )
+                SetLinearUnits( SRS_UL_INTL_STAT_MILE,
+                                CPLAtof( SRS_UL_INTL_STAT_MILE_CONV ) );
+            else if( EQUAL( pszValue,"fath" ) )
+                SetLinearUnits( SRS_UL_INTL_FATHOM,
+                                CPLAtof( SRS_UL_INTL_FATHOM_CONV ) );
+            else if( EQUAL( pszValue,"ch" ) )
+                SetLinearUnits( SRS_UL_INTL_CHAIN,
+                                CPLAtof( SRS_UL_INTL_CHAIN_CONV ) );
+            else if( EQUAL( pszValue,"link" ) )
+                SetLinearUnits( SRS_UL_INTL_LINK,
+                                CPLAtof( SRS_UL_INTL_LINK_CONV ) );
+            else if( EQUAL( pszValue,"us-in" ) )
+                SetLinearUnits( SRS_UL_US_INCH,
+                                CPLAtof( SRS_UL_US_INCH_CONV ) );
+            else if( EQUAL( pszValue, "us-ch" ) )
+                SetLinearUnits( SRS_UL_US_CHAIN,
+                                CPLAtof( SRS_UL_US_CHAIN_CONV ) );
+            else if( EQUAL( pszValue, "us-mi" ) )
+                SetLinearUnits( SRS_UL_US_STAT_MILE,
+                                CPLAtof( SRS_UL_US_STAT_MILE_CONV ) );
+            else if( EQUAL( pszValue, "ind-yd" ) )
+                SetLinearUnits( SRS_UL_INDIAN_YARD,
+                                CPLAtof( SRS_UL_INDIAN_YARD_CONV ) );
+            else if( EQUAL( pszValue, "ind-ft" ) )
+                SetLinearUnits( SRS_UL_INDIAN_FOOT,
+                                CPLAtof( SRS_UL_INDIAN_FOOT_CONV ) );
+            else if( EQUAL( pszValue, "ind-ch" ) )
+                SetLinearUnits( SRS_UL_INDIAN_CHAIN,
+                                CPLAtof( SRS_UL_INDIAN_CHAIN_CONV ) );
             else // This case is untranslatable.  Should add all proj.4 unts
                 SetLinearUnits( pszValue, 1.0 );
         }
@@ -1169,6 +1233,7 @@ OGRErr OGRSpatialReference::importFromProj4( const char * pszProj4 )
 /*      Handle geoidgrids via an extension node and COMPD_CS.           */
 /* -------------------------------------------------------------------- */
     pszValue = CSLFetchNameValue(papszNV, "geoidgrids");
+    OGR_SRSNode *poVERT_CS = NULL;
     if( pszValue != NULL )
     {
         OGR_SRSNode *poHorizSRS = GetRoot()->Clone();
@@ -1182,32 +1247,23 @@ OGRErr OGRSpatialReference::importFromProj4( const char * pszProj4 )
         SetNode( "COMPD_CS", osName );
         GetRoot()->AddChild( poHorizSRS );
 
-        OGR_SRSNode *poVertSRS;
-        
-        poVertSRS = new OGR_SRSNode( "VERT_CS" );
-        GetRoot()->AddChild( poVertSRS );
-        poVertSRS->AddChild( new OGR_SRSNode( "Unnamed" ) );
+        poVERT_CS = new OGR_SRSNode( "VERT_CS" );
+        GetRoot()->AddChild( poVERT_CS );
+        poVERT_CS->AddChild( new OGR_SRSNode( "Unnamed" ) );
 
         CPLString osTarget = GetRoot()->GetValue();
         osTarget += "|VERT_CS|VERT_DATUM";
 
         SetNode( osTarget, "Unnamed" );
         
-        poVertSRS->GetChild(1)->AddChild( new OGR_SRSNode( "2005" ) );
+        poVERT_CS->GetChild(1)->AddChild( new OGR_SRSNode( "2005" ) );
         SetExtension( osTarget, "PROJ4_GRIDS", pszValue );
-
-        OGR_SRSNode *poAxis = new OGR_SRSNode( "AXIS" );
-
-        poAxis->AddChild( new OGR_SRSNode( "Up" ) );
-        poAxis->AddChild( new OGR_SRSNode( "UP" ) );
-        
-        poVertSRS->AddChild( poAxis );
     }
 
 /* -------------------------------------------------------------------- */
 /*      Handle vertical units.                                          */
 /* -------------------------------------------------------------------- */
-    if( GetRoot()->GetNode( "VERT_CS" ) != NULL )
+    if( poVERT_CS != NULL )
     {
         const char *pszUnitName = NULL;
         const char *pszUnitConv = NULL;
@@ -1270,15 +1326,25 @@ OGRErr OGRSpatialReference::importFromProj4( const char * pszProj4 )
 
         if( pszUnitName != NULL )
         {
-            OGR_SRSNode *poVERT_CS = GetRoot()->GetNode( "VERT_CS" );
             OGR_SRSNode *poUnits; 
 
             poUnits = new OGR_SRSNode( "UNIT" );
             poUnits->AddChild( new OGR_SRSNode( pszUnitName ) );
             poUnits->AddChild( new OGR_SRSNode( pszUnitConv ) );
-            
+
             poVERT_CS->AddChild( poUnits );
         }
+    }
+
+    /* Add AXIS to VERT_CS node */
+    if( poVERT_CS != NULL )
+    {
+        OGR_SRSNode *poAxis = new OGR_SRSNode( "AXIS" );
+
+        poAxis->AddChild( new OGR_SRSNode( "Up" ) );
+        poAxis->AddChild( new OGR_SRSNode( "UP" ) );
+
+        poVERT_CS->AddChild( poAxis );
     }
 
 /* -------------------------------------------------------------------- */
@@ -1286,9 +1352,26 @@ OGRErr OGRSpatialReference::importFromProj4( const char * pszProj4 )
 /* -------------------------------------------------------------------- */
     if( strstr(pszProj4,"wktext") != NULL || bAddProj4Extension )
         SetExtension( GetRoot()->GetValue(), "PROJ4", pszProj4 );
-        
+
+/* -------------------------------------------------------------------- */
+/*      Preserve authority (for example IGNF)                           */
+/* -------------------------------------------------------------------- */
+    const char *pszINIT = CSLFetchNameValue(papszNV,"init");
+    const char *pszColumn;
+    if( pszINIT != NULL && (pszColumn = strchr(pszINIT, ':')) != NULL &&
+        GetRoot()->FindChild( "AUTHORITY" ) < 0 )
+    {
+        CPLString osAuthority;
+        osAuthority.assign(pszINIT, pszColumn - pszINIT);
+        OGR_SRSNode* poAuthNode = new OGR_SRSNode( "AUTHORITY" );
+        poAuthNode->AddChild( new OGR_SRSNode( osAuthority ) );
+        poAuthNode->AddChild( new OGR_SRSNode( pszColumn + 1 ) );
+
+        GetRoot()->AddChild( poAuthNode );
+    }
+
     CSLDestroy( papszNV );
-    
+
     return OGRERR_NONE;
 }
 

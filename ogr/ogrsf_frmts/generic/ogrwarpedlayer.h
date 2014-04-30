@@ -1,12 +1,12 @@
 /******************************************************************************
- * $Id: ogrwarpedlayer.h 24633 2012-07-01 14:37:25Z rouault $
+ * $Id: ogrwarpedlayer.h 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Defines OGRWarpedLayer class
  * Author:   Even Rouault, even dot rouault at mines dash paris dot org
  *
  ******************************************************************************
- * Copyright (c) 2012, Even Rouault <even dot rouault at mines dash paris dot org>
+ * Copyright (c) 2012-2014, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -39,6 +39,9 @@
 class OGRWarpedLayer : public OGRLayerDecorator
 {
   protected:
+      OGRFeatureDefn              *m_poFeatureDefn;
+      int                          m_iGeomField;
+
       OGRCoordinateTransformation *m_poCT;
       OGRCoordinateTransformation *m_poReversedCT; /* may be NULL */
       OGRSpatialReference         *m_poSRS;
@@ -48,9 +51,13 @@ class OGRWarpedLayer : public OGRLayerDecorator
       static int ReprojectEnvelope( OGREnvelope* psEnvelope,
                                     OGRCoordinateTransformation* poCT );
 
+      OGRFeature *                 SrcFeatureToWarpedFeature(OGRFeature* poFeature);
+      OGRFeature *                 WarpedFeatureToSrcFeature(OGRFeature* poFeature);
+
   public:
 
                        OGRWarpedLayer(OGRLayer* poDecoratedLayer,
+                                      int iGeomField,
                                       int bTakeOwnership,
                                       OGRCoordinateTransformation* poCT,  /* must NOT be NULL, ownership acquired by OGRWarpedLayer */
                                       OGRCoordinateTransformation* poReversedCT /* may be NULL, ownership acquired by OGRWarpedLayer */);
@@ -61,15 +68,21 @@ class OGRWarpedLayer : public OGRLayerDecorator
     virtual void        SetSpatialFilter( OGRGeometry * );
     virtual void        SetSpatialFilterRect( double dfMinX, double dfMinY,
                                               double dfMaxX, double dfMaxY );
+    virtual void        SetSpatialFilter( int iGeomField, OGRGeometry * );
+    virtual void        SetSpatialFilterRect( int iGeomField, double dfMinX, double dfMinY,
+                                              double dfMaxX, double dfMaxY );
 
     virtual OGRFeature *GetNextFeature();
     virtual OGRFeature *GetFeature( long nFID );
     virtual OGRErr      SetFeature( OGRFeature *poFeature );
     virtual OGRErr      CreateFeature( OGRFeature *poFeature );
 
+    virtual OGRFeatureDefn *GetLayerDefn();
+
     virtual OGRSpatialReference *GetSpatialRef();
 
     virtual int         GetFeatureCount( int bForce = TRUE );
+    virtual OGRErr      GetExtent(int iGeomField, OGREnvelope *psExtent, int bForce = TRUE);
     virtual OGRErr      GetExtent(OGREnvelope *psExtent, int bForce = TRUE);
 
     virtual int         TestCapability( const char * );

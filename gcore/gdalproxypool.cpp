@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdalproxypool.cpp 25615 2013-02-08 22:24:32Z rouault $
+ * $Id: gdalproxypool.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  GDAL Core
  * Purpose:  A dataset and raster band classes that differ the opening of the
@@ -7,7 +7,7 @@
  * Author:   Even Rouault <even dot rouault at mines dash paris dot org>
  *
  ******************************************************************************
- * Copyright (c) 2008, Even Rouault
+ * Copyright (c) 2008-2013, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -31,7 +31,7 @@
 #include "gdal_proxy.h"
 #include "cpl_multiproc.h"
 
-CPL_CVSID("$Id: gdalproxypool.cpp 25615 2013-02-08 22:24:32Z rouault $");
+CPL_CVSID("$Id: gdalproxypool.cpp 27044 2014-03-16 23:41:27Z rouault $");
 
 /* We *must* share the same mutex as the gdaldataset.cpp file, as we are */
 /* doing GDALOpen() calls that can indirectly call GDALOpenShared() on */

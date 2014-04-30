@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: sar_ceosdataset.cpp 25657 2013-02-19 18:52:30Z warmerdam $
+ * $Id: sar_ceosdataset.cpp 27067 2014-03-20 22:20:43Z rouault $
  *
  * Project:  ASI CEOS Translator
  * Purpose:  GDALDataset driver for CEOS translator.
@@ -7,6 +7,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2000, Atlantis Scientific Inc.
+ * Copyright (c) 2009-2013, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -33,7 +34,7 @@
 #include "cpl_string.h"
 #include "ogr_srs_api.h"
 
-CPL_CVSID("$Id: sar_ceosdataset.cpp 25657 2013-02-19 18:52:30Z warmerdam $");
+CPL_CVSID("$Id: sar_ceosdataset.cpp 27067 2014-03-20 22:20:43Z rouault $");
 
 CPL_C_START
 void	GDALRegister_SAR_CEOS(void);
@@ -161,6 +162,7 @@ class SAR_CEOSDataset : public GDALPamDataset
     virtual const char *GetGCPProjection();
     virtual const GDAL_GCP *GetGCPs();
 
+    virtual char      **GetMetadataDomainList();
     virtual char **GetMetadata( const char * pszDomain );
 
     static GDALDataset *Open( GDALOpenInfo * );
@@ -724,6 +726,16 @@ const GDAL_GCP *SAR_CEOSDataset::GetGCPs()
 
 {
     return pasGCPList;
+}
+
+
+/************************************************************************/
+/*                      GetMetadataDomainList()                         */
+/************************************************************************/
+
+char **SAR_CEOSDataset::GetMetadataDomainList()
+{
+    return CSLAddString(GDALDataset::GetMetadataDomainList(), "ceos-FFF-n-n-n-n:r");
 }
 
 /************************************************************************/
@@ -2149,9 +2161,13 @@ ProcessData( VSILFILE *fp, int fileid, CeosSARVolume_t *sar, int max_records,
             max_records--;
         if(max_bytes > 0)
         {
-            max_bytes -= record->Length;
-            if(max_bytes < 0)
+            if( record->Length <= max_bytes )
+                max_bytes -= record->Length;
+            else {
+                CPLDebug( "SAR_CEOS", "Partial record found.  %d > " CPL_FRMT_GUIB,
+                          record->Length, max_bytes );
                 max_bytes = 0;
+            }
         }
     }
 

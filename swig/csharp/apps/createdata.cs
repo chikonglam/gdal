@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: createdata.cs 19757 2010-05-22 18:37:08Z rouault $
+ * $Id: createdata.cs 27044 2014-03-16 23:41:27Z rouault $
  *
  * Name:     createdata.cs
  * Project:  GDAL CSharp Interface
@@ -8,6 +8,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2007, Tamas Szekeres
+ * Copyright (c) 2009-2010, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),

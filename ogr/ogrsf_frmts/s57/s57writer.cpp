@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s57writer.cpp 25501 2013-01-14 19:05:28Z rouault $
+ * $Id: s57writer.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  S-57 Translator
  * Purpose:  Implements S57Writer class.
@@ -7,6 +7,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2003, Frank Warmerdam
+ * Copyright (c) 2013, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -32,7 +33,7 @@
 #include "cpl_conv.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: s57writer.cpp 25501 2013-01-14 19:05:28Z rouault $");
+CPL_CVSID("$Id: s57writer.cpp 27044 2014-03-16 23:41:27Z rouault $");
 
 /************************************************************************/
 /*                             S57Writer()                              */
@@ -43,6 +44,7 @@ S57Writer::S57Writer()
 {
     poModule = NULL;
     poRegistrar = NULL;
+    poClassContentExplorer = NULL;
 
     nCOMF = 10000000;
     nSOMF = 10;
@@ -864,7 +866,7 @@ int S57Writer::WriteCompleteFeature( OGRFeature *poFeature )
 /* -------------------------------------------------------------------- */
     
     if( poRegistrar != NULL 
-        && poRegistrar->SelectClass( poFeature->GetDefnRef()->GetName() )
+        && poClassContentExplorer->SelectClass( poFeature->GetDefnRef()->GetName() )
         && !WriteATTF( poRec, poFeature ) )
         return FALSE;
 
@@ -963,10 +965,12 @@ int S57Writer::WriteCompleteFeature( OGRFeature *poFeature )
 /*                           SetClassBased()                            */
 /************************************************************************/
 
-void S57Writer::SetClassBased( S57ClassRegistrar * poReg )
+void S57Writer::SetClassBased( S57ClassRegistrar * poReg,
+                               S57ClassContentExplorer* poClassContentExplorerIn )
 
 {
     poRegistrar = poReg;
+    poClassContentExplorer = poClassContentExplorerIn;
 }
 
 /************************************************************************/
@@ -984,7 +988,7 @@ int S57Writer::WriteATTF( DDFRecord *poRec, OGRFeature *poFeature )
 /* -------------------------------------------------------------------- */
 /*      Loop over all attributes.                                       */
 /* -------------------------------------------------------------------- */
-    papszAttrList = poRegistrar->GetAttributeList(NULL); 
+    papszAttrList = poClassContentExplorer->GetAttributeList(NULL); 
     
     for( int iAttr = 0; papszAttrList[iAttr] != NULL; iAttr++ )
     {

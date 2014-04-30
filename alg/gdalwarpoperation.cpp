@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdalwarpoperation.cpp 25884 2013-04-09 17:04:16Z etourigny $
+ * $Id: gdalwarpoperation.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  High Performance Image Reprojector
  * Purpose:  Implementation of the GDALWarpOperation class.
@@ -7,6 +7,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2003, Frank Warmerdam <warmerdam@pobox.com>
+ * Copyright (c) 2007-2012, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -32,7 +33,7 @@
 #include "cpl_multiproc.h"
 #include "ogr_api.h"
 
-CPL_CVSID("$Id: gdalwarpoperation.cpp 25884 2013-04-09 17:04:16Z etourigny $");
+CPL_CVSID("$Id: gdalwarpoperation.cpp 27044 2014-03-16 23:41:27Z rouault $");
 
 /* Defined in gdalwarpkernel.cpp */
 int GWKGetFilterRadius(GDALResampleAlg eResampleAlg);

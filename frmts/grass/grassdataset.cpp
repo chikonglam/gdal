@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: grassdataset.cpp 17664 2009-09-21 21:16:45Z rouault $
+ * $Id: grassdataset.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  GRASS Driver
  * Purpose:  Implement GRASS raster read/write support
@@ -7,6 +7,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2000, Frank Warmerdam
+ * Copyright (c) 2007-2009, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -33,7 +34,7 @@
 #include "cpl_string.h"
 #include "ogr_spatialref.h"
 
-CPL_CVSID("$Id: grassdataset.cpp 17664 2009-09-21 21:16:45Z rouault $");
+CPL_CVSID("$Id: grassdataset.cpp 27044 2014-03-16 23:41:27Z rouault $");
 
 CPL_C_START
 void	GDALRegister_GRASS(void);

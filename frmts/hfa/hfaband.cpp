@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: hfaband.cpp 24206 2012-04-07 15:43:21Z rouault $
+ * $Id: hfaband.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  Erdas Imagine (.img) Translator
  * Purpose:  Implementation of the HFABand, for accessing one Eimg_Layer.
@@ -7,6 +7,7 @@
  *
  ******************************************************************************
  * Copyright (c) 1999, Intergraph Corporation
+ * Copyright (c) 2007-2012, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -32,7 +33,7 @@
 
 /* include the compression code */
 
-CPL_CVSID("$Id: hfaband.cpp 24206 2012-04-07 15:43:21Z rouault $");
+CPL_CVSID("$Id: hfaband.cpp 27044 2014-03-16 23:41:27Z rouault $");
 
 /************************************************************************/
 /*                              HFABand()                               */
@@ -2059,12 +2060,29 @@ int HFABand::CreateOverview( int nOverviewLevel, const char *pszResampling )
     }
 
 /* -------------------------------------------------------------------- */
+/*      Are we compressed? If so, overview should be too (unless        */
+/*      HFA_COMPRESS_OVR is defined).                                   */
+/*      Check RasterDMS like HFAGetBandInfo                             */
+/* -------------------------------------------------------------------- */
+    int bCompressionType = FALSE;
+    const char* pszCompressOvr = CPLGetConfigOption("HFA_COMPRESS_OVR", NULL);
+    if( pszCompressOvr != NULL )
+        bCompressionType = CSLTestBoolean(pszCompressOvr);
+    else
+    {
+        HFAEntry *poDMS = poNode->GetNamedChild( "RasterDMS" );
+
+        if( poDMS != NULL )
+            bCompressionType = poDMS->GetIntField( "compressionType" ) != 0;
+    }
+
+/* -------------------------------------------------------------------- */
 /*      Create the layer.                                               */
 /* -------------------------------------------------------------------- */
     osLayerName.Printf( "_ss_%d_", nOverviewLevel );
 
     if( !HFACreateLayer( psRRDInfo, poParent, osLayerName, 
-                         TRUE, 64, FALSE, bCreateLargeRaster, FALSE,
+                         TRUE, 64, bCompressionType, bCreateLargeRaster, FALSE,
                          nOXSize, nOYSize, nOverviewDataType, NULL,
                          nValidFlagsOffset, nDataOffset, 1, 0 ) )
         return -1;

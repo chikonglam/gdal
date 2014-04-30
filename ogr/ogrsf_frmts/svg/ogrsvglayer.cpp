@@ -1,12 +1,12 @@
 /******************************************************************************
- * $Id: ogrsvglayer.cpp 22111 2011-04-03 19:28:18Z rouault $
+ * $Id: ogrsvglayer.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  SVG Translator
  * Purpose:  Implements OGRSVGLayer class.
  * Author:   Even Rouault, even dot rouault at mines dash paris dot org
  *
  ******************************************************************************
- * Copyright (c) 2011, Even Rouault
+ * Copyright (c) 2011-2013, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -30,7 +30,7 @@
 #include "ogr_svg.h"
 #include "cpl_conv.h"
 
-CPL_CVSID("$Id: ogrsvglayer.cpp 22111 2011-04-03 19:28:18Z rouault $");
+CPL_CVSID("$Id: ogrsvglayer.cpp 27044 2014-03-16 23:41:27Z rouault $");
 
 /************************************************************************/
 /*                            OGRSVGLayer()                             */
@@ -587,16 +587,6 @@ OGRFeature *OGRSVGLayer::GetNextFeature()
 }
 
 /************************************************************************/
-/*                           GetSpatialRef()                            */
-/************************************************************************/
-
-OGRSpatialReference *OGRSVGLayer::GetSpatialRef()
-
-{
-    return poSRS;
-}
-
-/************************************************************************/
 /*                           TestCapability()                           */
 /************************************************************************/
 
@@ -651,6 +641,7 @@ void OGRSVGLayer::LoadSchema()
         poLayer->poFeatureDefn = new OGRFeatureDefn( poLayer->osLayerName );
         poLayer->poFeatureDefn->Reference();
         poLayer->poFeatureDefn->SetGeomType(poLayer->GetGeomType());
+        poLayer->poFeatureDefn->GetGeomFieldDefn(0)->SetSpatialRef(poLayer->poSRS);
     }
 
     oSchemaParser = OGRCreateExpatXMLParser();

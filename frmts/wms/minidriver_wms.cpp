@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: minidriver_wms.cpp 23722 2012-01-07 22:15:29Z rouault $
+ * $Id: minidriver_wms.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  WMS Client Driver
  * Purpose:  Implementation of Dataset and RasterBand classes for WMS
@@ -8,6 +8,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2007, Adam Nowacki
+ * Copyright (c) 2007-2012, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -28,7 +29,8 @@
  * DEALINGS IN THE SOFTWARE.
  ****************************************************************************/
 
-#include "stdinc.h"
+#include "wmsdriver.h"
+#include "minidriver_wms.h"
 
 CPP_GDALWMSMiniDriverFactory(WMS)
 

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: rs2dataset.cpp 25658 2013-02-19 18:56:59Z warmerdam $
+ * $Id: rs2dataset.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  Polarimetric Workstation
  * Purpose:  Radarsat 2 - XML Products (product.xml) driver
@@ -7,6 +7,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2004, Frank Warmerdam <warmerdam@pobox.com>
+ * Copyright (c) 2009-2013, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -31,7 +32,7 @@
 #include "cpl_minixml.h"
 #include "ogr_spatialref.h"
 
-CPL_CVSID("$Id: rs2dataset.cpp 25658 2013-02-19 18:56:59Z warmerdam $");
+CPL_CVSID("$Id: rs2dataset.cpp 27044 2014-03-16 23:41:27Z rouault $");
 
 CPL_C_START
 void    GDALRegister_RS2(void);
@@ -104,6 +105,7 @@ class RS2Dataset : public GDALPamDataset
     virtual const char *GetProjectionRef(void);
     virtual CPLErr GetGeoTransform( double * );
 
+    virtual char      **GetMetadataDomainList();
     virtual char **GetMetadata( const char * pszDomain = "" );
     virtual char **GetFileList(void);
 
@@ -1477,6 +1479,17 @@ CPLErr RS2Dataset::GetGeoTransform( double * padfTransform )
     return( CE_Failure );
 }
 
+
+/************************************************************************/
+/*                      GetMetadataDomainList()                         */
+/************************************************************************/
+
+char **RS2Dataset::GetMetadataDomainList()
+{
+    return BuildMetadataDomainList(GDALDataset::GetMetadataDomainList(),
+                                   TRUE,
+                                   "SUBDATASETS", NULL);
+}
 
 /************************************************************************/
 /*                            GetMetadata()                             */

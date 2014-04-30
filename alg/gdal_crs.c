@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdal_crs.c 22670 2011-07-08 17:15:19Z rouault $
+ * $Id: gdal_crs.c 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  Mapinfo Image Warper
  * Purpose:  Implemention of the GDALTransformer wrapper around CRS.C functions
@@ -31,6 +31,7 @@
       
 
     Copyright (c) 1992, Michigan State University
+ * Copyright (c) 2008-2013, Even Rouault <even dot rouault at mines-paris dot org>
    
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -57,7 +58,21 @@
 #include "cpl_minixml.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: gdal_crs.c 22670 2011-07-08 17:15:19Z rouault $");
+CPL_CVSID("$Id: gdal_crs.c 27044 2014-03-16 23:41:27Z rouault $");
+
+/* Hum, we cannot include gdal_priv.h from a .c file... */
+CPL_C_START
+
+void GDALSerializeGCPListToXML( CPLXMLNode* psParentNode,
+                                GDAL_GCP* pasGCPList,
+                                int nGCPCount,
+                                const char* pszGCPProjection );
+void GDALDeserializeGCPListFromXML( CPLXMLNode* psGCPList,
+                                    GDAL_GCP** ppasGCPList,
+                                    int* pnGCPCount,
+                                    char** ppszGCPProjection );
+
+CPL_C_END
 
 #define MAXORDER 3
 
@@ -392,43 +407,15 @@ CPLXMLNode *GDALSerializeGCPTransformer( void *pTransformArg )
 /* -------------------------------------------------------------------- */
     if( psInfo->nGCPCount > 0 )
     {
-        int iGCP;
-        CPLXMLNode *psGCPList = CPLCreateXMLNode( psTree, CXT_Element, 
-                                                  "GCPList" );
-
-	if(psInfo->bRefine)
-	{
-	  remove_outliers(psInfo);
-	}
-	
-        for( iGCP = 0; iGCP < psInfo->nGCPCount; iGCP++ )
+        if(psInfo->bRefine)
         {
-            CPLXMLNode *psXMLGCP;
-            GDAL_GCP *psGCP = psInfo->pasGCPList + iGCP;
-
-            psXMLGCP = CPLCreateXMLNode( psGCPList, CXT_Element, "GCP" );
-
-            CPLSetXMLValue( psXMLGCP, "#Id", psGCP->pszId );
-
-            if( psGCP->pszInfo != NULL && strlen(psGCP->pszInfo) > 0 )
-                CPLSetXMLValue( psXMLGCP, "Info", psGCP->pszInfo );
-
-            CPLSetXMLValue( psXMLGCP, "#Pixel", 
-                            CPLSPrintf( "%.4f", psGCP->dfGCPPixel ) );
-
-            CPLSetXMLValue( psXMLGCP, "#Line", 
-                            CPLSPrintf( "%.4f", psGCP->dfGCPLine ) );
-
-            CPLSetXMLValue( psXMLGCP, "#X", 
-                            CPLSPrintf( "%.12E", psGCP->dfGCPX ) );
-
-            CPLSetXMLValue( psXMLGCP, "#Y", 
-                            CPLSPrintf( "%.12E", psGCP->dfGCPY ) );
-
-            if( psGCP->dfGCPZ != 0.0 )
-                CPLSetXMLValue( psXMLGCP, "#GCPZ", 
-                                CPLSPrintf( "%.12E", psGCP->dfGCPZ ) );
+            remove_outliers(psInfo);
         }
+
+        GDALSerializeGCPListToXML( psTree,
+                                   psInfo->pasGCPList,
+                                   psInfo->nGCPCount,
+                                   NULL );
     }
 
     return psTree;
@@ -457,41 +444,10 @@ void *GDALDeserializeGCPTransformer( CPLXMLNode *psTree )
 
     if( psGCPList != NULL )
     {
-        int  nGCPMax = 0;
-        CPLXMLNode *psXMLGCP;
-         
-        // Count GCPs.
-        for( psXMLGCP = psGCPList->psChild; psXMLGCP != NULL; 
-             psXMLGCP = psXMLGCP->psNext )
-            nGCPMax++;
-         
-        pasGCPList = (GDAL_GCP *) CPLCalloc(sizeof(GDAL_GCP),nGCPMax);
-
-        for( psXMLGCP = psGCPList->psChild; psXMLGCP != NULL; 
-             psXMLGCP = psXMLGCP->psNext )
-        {
-            GDAL_GCP *psGCP = pasGCPList + nGCPCount;
-
-            if( !EQUAL(psXMLGCP->pszValue,"GCP") || 
-                psXMLGCP->eType != CXT_Element )
-                continue;
-             
-            GDALInitGCPs( 1, psGCP );
-             
-            CPLFree( psGCP->pszId );
-            psGCP->pszId = CPLStrdup(CPLGetXMLValue(psXMLGCP,"Id",""));
-             
-            CPLFree( psGCP->pszInfo );
-            psGCP->pszInfo = CPLStrdup(CPLGetXMLValue(psXMLGCP,"Info",""));
-             
-            psGCP->dfGCPPixel = atof(CPLGetXMLValue(psXMLGCP,"Pixel","0.0"));
-            psGCP->dfGCPLine = atof(CPLGetXMLValue(psXMLGCP,"Line","0.0"));
-             
-            psGCP->dfGCPX = atof(CPLGetXMLValue(psXMLGCP,"X","0.0"));
-            psGCP->dfGCPY = atof(CPLGetXMLValue(psXMLGCP,"Y","0.0"));
-            psGCP->dfGCPZ = atof(CPLGetXMLValue(psXMLGCP,"Z","0.0"));
-            nGCPCount++;
-        }
+        GDALDeserializeGCPListFromXML( psGCPList,
+                                       &pasGCPList,
+                                       &nGCPCount,
+                                       NULL );
     }
 
 /* -------------------------------------------------------------------- */

@@ -1,5 +1,5 @@
 /**********************************************************************
- * $Id: cpl_error.cpp 25781 2013-03-22 20:57:00Z warmerdam $
+ * $Id: cpl_error.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Name:     cpl_error.cpp
  * Project:  CPL - Common Portability Library
@@ -8,6 +8,7 @@
  *
  **********************************************************************
  * Copyright (c) 1998, Daniel Morissette
+ * Copyright (c) 2007-2013, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -39,8 +40,9 @@
 #endif
  
 #define TIMESTAMP_DEBUG
+//#define MEMORY_DEBUG
 
-CPL_CVSID("$Id: cpl_error.cpp 25781 2013-03-22 20:57:00Z warmerdam $");
+CPL_CVSID("$Id: cpl_error.cpp 27044 2014-03-16 23:41:27Z rouault $");
 
 static void *hErrorMutex = NULL;
 static void *pErrorHandlerUserData = NULL; 
@@ -314,6 +316,40 @@ void CPLEmergencyError( const char *pszMessage )
 }
 
 /************************************************************************/
+/*                    CPLGetProcessMemorySize()                         */
+/************************************************************************/
+
+#ifdef MEMORY_DEBUG
+
+#ifdef __linux
+static int CPLGetProcessMemorySize()
+{
+    FILE* fp = fopen("/proc/self/status", "r");
+    if( fp == NULL )
+        return -1;
+    int nRet = -1;
+    char szLine[128];
+    while (fgets(szLine, sizeof(szLine), fp) != NULL)
+    {
+        if (strncmp(szLine, "VmSize:", 7) == 0)
+        {
+            const char* pszPtr = szLine;
+            while( !(*pszPtr == '\0' || (*pszPtr >= '0' && *pszPtr <= '9')) )
+                 pszPtr ++;
+            nRet = atoi(pszPtr);
+            break;
+        }
+    }
+    fclose(fp);
+    return nRet;
+}
+#else
+#error CPLGetProcessMemorySize() unimplemented for this OS
+#endif
+
+#endif // def MEMORY_DEBUG
+
+/************************************************************************/
 /*                              CPLDebug()                              */
 /************************************************************************/
 
@@ -397,6 +433,16 @@ void CPLDebug( const char * pszCategory, const char * pszFormat, ... )
         strcat( pszMessage, ": " );
     }
 #endif
+
+/* -------------------------------------------------------------------- */
+/*      Add the process memory size.                                    */
+/* -------------------------------------------------------------------- */
+#ifdef MEMORY_DEBUG
+    char szVmSize[32];
+    sprintf( szVmSize, "[VmSize: %d] ", CPLGetProcessMemorySize());
+    strcat( pszMessage, szVmSize );
+#endif
+
     //sprintf(pszMessage,"[%d] ", (int)getpid());
 
 /* -------------------------------------------------------------------- */

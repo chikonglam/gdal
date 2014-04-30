@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: vsidataio.h 24269 2012-04-20 20:52:55Z rouault $
+ * $Id: vsidataio.h 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  JPEG JFIF Driver
  * Purpose:  Implement JPEG read/write io indirection through VSI.
@@ -7,6 +7,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2005, Frank Warmerdam <warmerdam@pobox.com>
+ * Copyright (c) 2012, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),

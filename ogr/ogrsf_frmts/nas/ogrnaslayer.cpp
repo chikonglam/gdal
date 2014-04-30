@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrnaslayer.cpp 25120 2012-10-13 22:38:57Z rouault $
+ * $Id: ogrnaslayer.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  OGR
  * Purpose:  Implements OGRNASLayer class.
@@ -7,6 +7,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2002, Frank Warmerdam <warmerdam@pobox.com>
+ * Copyright (c) 2010-2013, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -32,7 +33,7 @@
 #include "cpl_port.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: ogrnaslayer.cpp 25120 2012-10-13 22:38:57Z rouault $");
+CPL_CVSID("$Id: ogrnaslayer.cpp 27044 2014-03-16 23:41:27Z rouault $");
 
 /************************************************************************/
 /*                           OGRNASLayer()                              */
@@ -59,6 +60,7 @@ OGRNASLayer::OGRNASLayer( const char * pszName,
     else
         poFeatureDefn = new OGRFeatureDefn( pszName );
     poFeatureDefn->Reference();
+    poFeatureDefn->GetGeomFieldDefn(0)->SetSpatialRef(poSRS);
     poFeatureDefn->SetGeomType( eReqType );
 
 /* -------------------------------------------------------------------- */
@@ -247,9 +249,15 @@ OGRFeature *OGRNASLayer::GetNextFeature()
 /* -------------------------------------------------------------------- */
 /*      Wow, we got our desired feature. Return it.                     */
 /* -------------------------------------------------------------------- */
-        delete poNASFeature;
+        if( poGeom && poOGRFeature->SetGeometryDirectly( poGeom ) != OGRERR_NONE )
+        {
+            int iId = poNASFeature->GetClass()->GetPropertyIndex( "gml_id" );
+            const GMLProperty *poIdProp = poNASFeature->GetProperty(iId);
+            CPLError( CE_Warning, CPLE_AppDefined, "NAS: could not set geometry (gml_id:%s)",
+		      poIdProp && poIdProp->nSubProperties>0 && poIdProp->papszSubProperties[0] ? poIdProp->papszSubProperties[0] : "(null)" );
+        }
 
-        poOGRFeature->SetGeometryDirectly( poGeom );
+        delete poNASFeature;
 
         return poOGRFeature;
     }
@@ -329,14 +337,3 @@ int OGRNASLayer::TestCapability( const char * pszCap )
     else 
         return FALSE;
 }
-
-/************************************************************************/
-/*                           GetSpatialRef()                            */
-/************************************************************************/
-
-OGRSpatialReference *OGRNASLayer::GetSpatialRef()
-
-{
-    return poSRS;
-}
-

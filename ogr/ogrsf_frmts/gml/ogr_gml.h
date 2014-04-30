@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_gml.h 24481 2012-05-20 12:50:29Z rouault $
+ * $Id: ogr_gml.h 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  GML Reader
  * Purpose:  Declarations for OGR wrapper classes for GML, and GML<->OGR
@@ -8,6 +8,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2002, Frank Warmerdam
+ * Copyright (c) 2010-2013, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -49,7 +50,6 @@ typedef enum
 
 class OGRGMLLayer : public OGRLayer
 {
-    OGRSpatialReference *poSRS;
     OGRFeatureDefn     *poFeatureDefn;
 
     int                 iNextGMLId;
@@ -58,6 +58,7 @@ class OGRGMLLayer : public OGRLayer
     char                *pszFIDPrefix;
 
     int                 bWriter;
+    int                 bSameSRS;
 
     OGRGMLDataSource    *poDS;
 
@@ -69,11 +70,11 @@ class OGRGMLLayer : public OGRLayer
 
     int                 bFaceHoleNegative;
 
+    OGRGeometry        *ConvertGeomToMultiIfNecessary(OGRGeometry* poGeom);
+
   public:
                         OGRGMLLayer( const char * pszName, 
-                                     OGRSpatialReference *poSRS, 
                                      int bWriter,
-                                     OGRwkbGeometryType eType,
                                      OGRGMLDataSource *poDS );
 
                         ~OGRGMLLayer();
@@ -90,12 +91,10 @@ class OGRGMLLayer : public OGRLayer
 
     virtual OGRErr      CreateField( OGRFieldDefn *poField,
                                      int bApproxOK = TRUE );
+    virtual OGRErr      CreateGeomField( OGRGeomFieldDefn *poField,
+                                     int bApproxOK = TRUE );
 
-    virtual OGRSpatialReference *GetSpatialRef();
-    
     int                 TestCapability( const char * );
-    
-    virtual const char *GetGeometryColumn();
 };
 
 /************************************************************************/
@@ -128,6 +127,9 @@ class OGRGMLDataSource : public OGRDataSource
     int                 bIsLongSRSRequired;
     int                 bWriteSpaceIndentation;
 
+    OGRSpatialReference* poWriteGlobalSRS;
+    int                 bWriteGlobalSRS;
+
     // input related parameters.
     CPLString           osFilename;
     CPLString           osXSDFilename;
@@ -141,7 +143,7 @@ class OGRGMLDataSource : public OGRDataSource
     int                 bExposeFid;
     int                 bIsWFS;
 
-    OGRSpatialReference* poGlobalSRS;
+    int                 bUseGlobalSRSName;
 
     int                 m_bInvertAxisOrderIfLatLong;
     int                 m_bConsiderEPSGAsURN;
@@ -158,7 +160,7 @@ class OGRGMLDataSource : public OGRDataSource
                         OGRGMLDataSource();
                         ~OGRGMLDataSource();
 
-    int                 Open( const char *, int bTestOpen );
+    int                 Open( const char * );
     int                 Create( const char *pszFile, char **papszOptions );
 
     const char          *GetName() { return pszName; }
@@ -200,6 +202,8 @@ class OGRGMLDataSource : public OGRDataSource
     void                SetLastReadLayer(OGRGMLLayer* poLayer) { poLastReadLayer = poLayer; }
 
     const char         *GetAppPrefix();
+    int                 RemoveAppPrefix();
+    int                 WriteFeatureBoundedBy();
 
     virtual OGRLayer *          ExecuteSQL( const char *pszSQLCommand,
                                             OGRGeometry *poSpatialFilter,

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrelasticlayer.cpp 23836 2012-01-31 19:32:04Z rouault $
+ * $Id: ogrelasticlayer.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  ElasticSearch Translator
  * Purpose:
@@ -7,6 +7,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2011, Adam Estrada
+ * Copyright (c) 2012-2013, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -32,9 +33,9 @@
 #include "cpl_minixml.h"
 #include "ogr_api.h"
 #include "ogr_p.h"
-#include <jsonc/json.h> // JSON-C
+#include <json.h> // JSON-C
 
-CPL_CVSID("$Id: ogrelasticlayer.cpp 23836 2012-01-31 19:32:04Z rouault $");
+CPL_CVSID("$Id: ogrelasticlayer.cpp 27044 2014-03-16 23:41:27Z rouault $");
 
 /************************************************************************/
 /*                           OGRElasticLayer()                          */
@@ -69,6 +70,8 @@ OGRElasticLayer::OGRElasticLayer(const char* pszFilename,
     poSRS = poSRSIn;
     if (poSRS)
         poSRS->Reference();
+
+    poFeatureDefn->GetGeomFieldDefn(0)->SetSpatialRef(poSRS);
 
     ResetReading();
     return;
@@ -114,14 +117,6 @@ OGRFeature *OGRElasticLayer::GetNextFeature() {
     CPLError(CE_Failure, CPLE_NotSupported,
             "Cannot read features when writing a Elastic file");
     return NULL;
-}
-
-/************************************************************************/
-/*                           GetSpatialRef()                            */
-/************************************************************************/
-
-OGRSpatialReference *OGRElasticLayer::GetSpatialRef() {
-    return poSRS;
 }
 
 /************************************************************************/

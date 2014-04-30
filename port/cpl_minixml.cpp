@@ -1,5 +1,5 @@
 /**********************************************************************
- * $Id: cpl_minixml.cpp 25340 2012-12-21 20:30:21Z rouault $
+ * $Id: cpl_minixml.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  CPL - Common Portability Library
  * Purpose:  Implementation of MiniXML Parser and handling.
@@ -7,6 +7,7 @@
  *
  **********************************************************************
  * Copyright (c) 2001, Frank Warmerdam
+ * Copyright (c) 2007-2013, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -44,7 +45,7 @@
 #include "cpl_string.h"
 #include <ctype.h>
 
-CPL_CVSID("$Id: cpl_minixml.cpp 25340 2012-12-21 20:30:21Z rouault $");
+CPL_CVSID("$Id: cpl_minixml.cpp 27044 2014-03-16 23:41:27Z rouault $");
 
 typedef enum {
     TNone,
@@ -1887,46 +1888,16 @@ void CPLStripXMLNamespace( CPLXMLNode *psRoot,
 CPLXMLNode *CPLParseXMLFile( const char *pszFilename )
 
 {
-    VSILFILE       *fp;
-    vsi_l_offset    nLen;
+    GByte           *pabyOut = NULL;
     char            *pszDoc;
     CPLXMLNode      *psTree;
 
 /* -------------------------------------------------------------------- */
-/*      Read the file.                                                  */
+/*      Ingest the file.                                                */
 /* -------------------------------------------------------------------- */
-    fp = VSIFOpenL( pszFilename, "rb" );
-    if( fp == NULL )
-    {
-        CPLError( CE_Failure, CPLE_OpenFailed, 
-                  "Failed to open %.500s to read.", pszFilename );
+    if( !VSIIngestFile( NULL, pszFilename, &pabyOut, NULL, -1 ) )
         return NULL;
-    }
-
-    VSIFSeekL( fp, 0, SEEK_END );
-    nLen = VSIFTellL( fp );
-    VSIFSeekL( fp, 0, SEEK_SET );
-    
-    pszDoc = (char *) VSIMalloc((size_t)nLen + 1);
-    if( pszDoc == NULL )
-    {
-        CPLError( CE_Failure, CPLE_OutOfMemory, 
-                  "Out of memory allocating space for %d byte buffer in\n"
-                  "CPLParseXMLFile(%.500s).", 
-                  (int)nLen+1, pszFilename );
-        VSIFCloseL( fp );
-        return NULL;
-    }
-    if( VSIFReadL( pszDoc, 1, (size_t)nLen, fp ) < nLen )
-    {
-        CPLError( CE_Failure, CPLE_FileIO, 
-                  "VSIFRead() result short of expected %d bytes from %.500s.", 
-                  (int)nLen, pszFilename );
-        pszDoc[0] = '\0';
-    }
-    VSIFCloseL( fp );
-
-    pszDoc[nLen] = '\0';
+    pszDoc = (char*) pabyOut;
 
 /* -------------------------------------------------------------------- */
 /*      Parse it.                                                       */

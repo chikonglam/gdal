@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s57.h 25905 2013-04-13 20:46:53Z rouault $
+ * $Id: s57.h 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  S-57 Translator
  * Purpose:  Declarations for S-57 translator not including the
@@ -9,6 +9,7 @@
  *
  ******************************************************************************
  * Copyright (c) 1999, Frank Warmerdam
+ * Copyright (c) 2013, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -32,6 +33,7 @@
 #ifndef _S57_H_INCLUDED
 #define _S57_H_INCLUDED
 
+#include <vector>
 #include "ogr_feature.h"
 #include "iso8211.h"
 
@@ -94,31 +96,29 @@ char **S57FileCollector( const char * pszDataset );
 /*                          S57ClassRegistrar                           */
 /************************************************************************/
 
-#define MAX_CLASSES 23000
-#define MAX_ATTRIBUTES 65535
+class S57ClassContentExplorer;
+
+class CPL_DLL S57AttrInfo 
+{
+  public:
+    CPLString    osName;
+    CPLString    osAcronym;
+    char         chType;
+    char         chClass;
+};
 
 class CPL_DLL S57ClassRegistrar
 {
+    friend class S57ClassContentExplorer;
+
     // Class information:
     int         nClasses;
-    char      **papszClassesInfo;
-    char     ***papapszClassesFields;
-
-    int         iCurrentClass;
-
-    char      **papszCurrentFields;
-
-    char      **papszTempResult;
+    CPLStringList apszClassesInfo;
 
     // Attribute Information:
-    int         nAttrMax;
     int         nAttrCount;
-    char      **papszAttrNames;
-    char      **papszAttrAcronym;
-    char     ***papapszAttrValues;
-    char       *pachAttrType;
-    char       *pachAttrClass;
-    GUInt16    *panAttrIndex; // sorted by acronym.
+    std::vector<S57AttrInfo*> aoAttrInfos;
+    std::vector<int> anAttrIndex; // sorted by acronym.
 
     int         FindFile( const char *pszTarget, const char *pszDirectory,
                           int bReportErr, VSILFILE **fp );
@@ -132,7 +132,48 @@ public:
 
     int         LoadInfo( const char *, const char *, int );
 
-    // class table methods.
+    // attribute table methods.
+    //int         GetMaxAttrIndex() { return nAttrMax; }
+    const S57AttrInfo *GetAttrInfo(int i);
+    const char *GetAttrName( int i ) 
+    { return GetAttrInfo(i) == NULL ? NULL : aoAttrInfos[i]->osName.c_str(); }
+    const char *GetAttrAcronym( int i )
+    { return GetAttrInfo(i) == NULL ? NULL : aoAttrInfos[i]->osAcronym.c_str(); }
+    char        GetAttrType( int i )
+    { return GetAttrInfo(i) == NULL ? '\0' : aoAttrInfos[i]->chType; }
+#define SAT_ENUM        'E'
+#define SAT_LIST        'L'
+#define SAT_FLOAT       'F'
+#define SAT_INT         'I'
+#define SAT_CODE_STRING 'A'
+#define SAT_FREE_TEXT   'S'
+
+    char        GetAttrClass( int i )
+    { return GetAttrInfo(i) == NULL ? '\0' : aoAttrInfos[i]->chClass; }
+    int         FindAttrByAcronym( const char * );
+
+};
+
+/************************************************************************/
+/*                       S57ClassContentExplorer                        */
+/************************************************************************/
+
+class S57ClassContentExplorer
+{
+    S57ClassRegistrar* poRegistrar;
+
+    char     ***papapszClassesFields;
+
+    int         iCurrentClass;
+
+    char      **papszCurrentFields;
+
+    char      **papszTempResult;
+
+    public:
+        S57ClassContentExplorer(S57ClassRegistrar* poRegistrar);
+       ~S57ClassContentExplorer();
+
     int         SelectClassByIndex( int );
     int         SelectClass( int );
     int         SelectClass( const char * );
@@ -148,23 +189,6 @@ public:
 
     char        GetClassCode();
     char      **GetPrimitives();
-
-    // attribute table methods.
-    int         GetMaxAttrIndex() { return nAttrMax; }
-    const char *GetAttrName( int i ) { return papszAttrNames[i]; }
-    const char *GetAttrAcronym( int i ) { return papszAttrAcronym[i]; }
-    char      **GetAttrValues( int i ) { return papapszAttrValues[i]; }
-    char        GetAttrType( int i ) { return pachAttrType[i]; }
-#define SAT_ENUM        'E'
-#define SAT_LIST        'L'
-#define SAT_FLOAT       'F'
-#define SAT_INT         'I'
-#define SAT_CODE_STRING 'A'
-#define SAT_FREE_TEXT   'S'
-
-    char        GetAttrClass( int i ) { return pachAttrClass[i]; }
-    int         FindAttrByAcronym( const char * );
-
 };
 
 /************************************************************************/
@@ -221,11 +245,12 @@ public:
 class CPL_DLL S57Reader
 {
     S57ClassRegistrar  *poRegistrar;
+    S57ClassContentExplorer* poClassContentExplorer;
 
     int                 nFDefnCount;
     OGRFeatureDefn      **papoFDefnList;
 
-    OGRFeatureDefn      *apoFDefnByOBJL[MAX_CLASSES];
+    std::vector<OGRFeatureDefn*> apoFDefnByOBJL;
 
     char                *pszModuleName;
     char                *pszDSNM;
@@ -295,7 +320,7 @@ class CPL_DLL S57Reader
                         S57Reader( const char * );
                        ~S57Reader();
 
-    void                SetClassBased( S57ClassRegistrar * );
+    void                SetClassBased( S57ClassRegistrar *, S57ClassContentExplorer* );
     void                SetOptions( char ** );
     int                 GetOptionFlags() { return nOptionFlags; }
 
@@ -319,7 +344,7 @@ class CPL_DLL S57Reader
 
     void                AddFeatureDefn( OGRFeatureDefn * );
 
-    int                 CollectClassList( int *, int);
+    int                 CollectClassList(std::vector<int> &anClassCount);
 
     OGRErr              GetExtent( OGREnvelope *psExtent, int bForce );
 
@@ -337,7 +362,7 @@ public:
                         S57Writer();
                         ~S57Writer();
 
-    void                SetClassBased( S57ClassRegistrar * );
+    void                SetClassBased( S57ClassRegistrar *, S57ClassContentExplorer* );
     int                 CreateS57File( const char *pszFilename );
     int                 Close();
 
@@ -360,6 +385,7 @@ public:
 private:
     int                 nNext0001Index;
     S57ClassRegistrar   *poRegistrar;
+    S57ClassContentExplorer* poClassContentExplorer;
 
     int                 nCOMF;  /* Coordinate multiplier */
     int                 nSOMF;  /* Vertical (sounding) multiplier */
@@ -371,6 +397,7 @@ private:
 void           CPL_DLL  S57GenerateStandardAttributes( OGRFeatureDefn *, int );
 OGRFeatureDefn CPL_DLL *S57GenerateGeomFeatureDefn( OGRwkbGeometryType, int );
 OGRFeatureDefn CPL_DLL *S57GenerateObjectClassDefn( S57ClassRegistrar *, 
+                                                    S57ClassContentExplorer* poClassContentExplorer,
                                                     int, int );
 OGRFeatureDefn CPL_DLL  *S57GenerateVectorPrimitiveFeatureDefn( int, int );
 OGRFeatureDefn CPL_DLL  *S57GenerateDSIDFeatureDefn( void );

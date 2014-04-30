@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ddfmodule.cpp 25841 2013-04-02 21:30:03Z rouault $
+ * $Id: ddfmodule.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  ISO 8211 Access
  * Purpose:  Implements the DDFModule class.
@@ -7,6 +7,7 @@
  *
  ******************************************************************************
  * Copyright (c) 1999, Frank Warmerdam
+ * Copyright (c) 2011-2013, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -30,7 +31,7 @@
 #include "iso8211.h"
 #include "cpl_conv.h"
 
-CPL_CVSID("$Id: ddfmodule.cpp 25841 2013-04-02 21:30:03Z rouault $");
+CPL_CVSID("$Id: ddfmodule.cpp 27044 2014-03-16 23:41:27Z rouault $");
 
 /************************************************************************/
 /*                             DDFModule()                              */

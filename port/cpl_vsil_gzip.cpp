@@ -1,12 +1,12 @@
 /******************************************************************************
- * $Id: cpl_vsil_gzip.cpp 25871 2013-04-06 21:21:33Z rouault $
+ * $Id: cpl_vsil_gzip.cpp 27048 2014-03-17 23:07:47Z rouault $
  *
  * Project:  CPL - Common Portability Library
  * Purpose:  Implement VSI large file api for gz/zip files (.gz and .zip).
  * Author:   Even Rouault, even.rouault at mines-paris.org
  *
  ******************************************************************************
- * Copyright (c) 2007, Even Rouault
+ * Copyright (c) 2008-2014, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -84,7 +84,7 @@
 #include "cpl_minizip_unzip.h"
 #include "cpl_time.h"
 
-CPL_CVSID("$Id: cpl_vsil_gzip.cpp 25871 2013-04-06 21:21:33Z rouault $");
+CPL_CVSID("$Id: cpl_vsil_gzip.cpp 27048 2014-03-17 23:07:47Z rouault $");
 
 #define Z_BUFSIZE 65536  /* original size is 16384 */
 static int const gz_magic[2] = {0x1f, 0x8b}; /* gzip magic header */
@@ -523,6 +523,7 @@ int VSIGZipHandle::gzseek( vsi_l_offset offset, int whence )
     vsi_l_offset original_offset = offset;
     int original_nWhence = whence;
 
+    z_eof = 0;
     if (ENABLE_DEBUG) CPLDebug("GZIP", "Seek(" CPL_FRMT_GUIB ",%d)", offset, whence);
 
     if (transparent)
@@ -1448,7 +1449,7 @@ int VSIGZipFilesystemHandler::Stat( const char *pszFilename,
             if (nCompressedSize == (GUIntBig) pStatBuf->st_size)
             {
                 /* Patch with the uncompressed size */
-                pStatBuf->st_size = (long)nUncompressedSize;
+                pStatBuf->st_size = nUncompressedSize;
 
                 VSIGZipHandle* poHandle =
                     VSIGZipFilesystemHandler::OpenGZipReadOnly(pszFilename, "rb");
@@ -1474,7 +1475,7 @@ int VSIGZipFilesystemHandler::Stat( const char *pszFilename,
             poHandle->Seek(0, SEEK_SET);
 
             /* Patch with the uncompressed size */
-            pStatBuf->st_size = (long)uncompressed_size;
+            pStatBuf->st_size = uncompressed_size;
 
             delete poHandle;
         }
@@ -1689,7 +1690,11 @@ int VSIZipReader::GotoFirstFile()
 int VSIZipReader::GotoFileOffset(VSIArchiveEntryFileOffset* pOffset)
 {
     VSIZipEntryFileOffset* pZipEntryOffset = (VSIZipEntryFileOffset*)pOffset;
-    cpl_unzGoToFilePos(unzF, &(pZipEntryOffset->file_pos));
+    if( cpl_unzGoToFilePos(unzF, &(pZipEntryOffset->file_pos)) != UNZ_OK )
+    {
+        CPLError(CE_Failure, CPLE_AppDefined, "GotoFileOffset failed");
+        return FALSE;
+    }
 
     SetInfo();
 
@@ -1793,6 +1798,22 @@ std::vector<CPLString> VSIZipFilesystemHandler::GetExtensions()
     oList.push_back(".dwf");
     oList.push_back(".ods");
     oList.push_back(".xlsx");
+
+    /* Add to zip FS handler extensions array additional extensions */
+    /* listed in CPL_VSIL_ZIP_ALLOWED_EXTENSIONS config option. */
+    /* The extensions divided by comma */
+    const char* pszAllowedExtensions =
+        CPLGetConfigOption("CPL_VSIL_ZIP_ALLOWED_EXTENSIONS", NULL);
+    if (pszAllowedExtensions)
+    {
+        char** papszExtensions = CSLTokenizeString2(pszAllowedExtensions, ", ", 0);
+        for (int i = 0; papszExtensions[i] != NULL; i++)
+        {
+            oList.push_back(papszExtensions[i]);
+        }
+        CSLDestroy(papszExtensions);
+    }
+
     return oList;
 }
 
@@ -1880,12 +1901,23 @@ VSIVirtualHandle* VSIZipFilesystemHandler::Open( const char *pszFilename,
 
     unzFile unzF = ((VSIZipReader*)poReader)->GetUnzFileHandle();
 
-    cpl_unzOpenCurrentFile(unzF);
+    if( cpl_unzOpenCurrentFile(unzF) != UNZ_OK )
+    {
+        CPLError(CE_Failure, CPLE_AppDefined, "cpl_unzOpenCurrentFile() failed");
+        delete poReader;
+        return NULL;
+    }
 
     uLong64 pos = cpl_unzGetCurrentFileZStreamPos(unzF);
 
     unz_file_info file_info;
-    cpl_unzGetCurrentFileInfo (unzF, &file_info, NULL, 0, NULL, 0, NULL, 0);
+    if( cpl_unzGetCurrentFileInfo (unzF, &file_info, NULL, 0, NULL, 0, NULL, 0) != UNZ_OK )
+    {
+        CPLError(CE_Failure, CPLE_AppDefined, "cpl_unzGetCurrentFileInfo() failed");
+        cpl_unzCloseCurrentFile(unzF);
+        delete poReader;
+        return NULL;
+    }
 
     cpl_unzCloseCurrentFile(unzF);
 
@@ -2213,8 +2245,8 @@ int VSIZipWriteHandle::Eof()
 
 int VSIZipWriteHandle::Flush()
 {
-    CPLError(CE_Failure, CPLE_NotSupported,
-             "VSIFFlushL() is not supported on writable Zip files");
+    /*CPLError(CE_Failure, CPLE_NotSupported,
+             "VSIFFlushL() is not supported on writable Zip files");*/
     return 0;
 }
 

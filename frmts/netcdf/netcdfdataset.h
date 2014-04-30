@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: netcdfdataset.h 26007 2013-05-16 15:03:22Z etourigny $
+ * $Id: netcdfdataset.h 26612 2013-11-14 17:35:56Z goatbar $
  *
  * Project:  netCDF read/write Driver
  * Purpose:  GDAL bindings over netCDF library.
@@ -28,7 +28,7 @@
  ****************************************************************************/
 
 #ifndef _NETCDFDATASET_H_INCLUDED_
-#define _NETCDFATASET_H_INCLUDED_
+#define _NETCDFDATASET_H_INCLUDED_
 
 #include <float.h>
 #include "gdal_pam.h"
@@ -743,6 +743,7 @@ class netCDFDataset : public GDALPamDataset
     const char * GetProjectionRef();
     CPLErr 	SetProjection (const char *);
 
+    virtual char      **GetMetadataDomainList();
     char ** GetMetadata( const char * );
 
     int GetCDFID() { return cdfid; }

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogringrestablelayer.cpp 23803 2012-01-26 07:49:25Z warmerdam $
+ * $Id: ogringrestablelayer.cpp 26688 2013-12-02 19:07:41Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implements OGRIngresTableLayer class.
@@ -31,7 +31,7 @@
 #include "cpl_string.h"
 #include "ogr_ingres.h"
 
-CPL_CVSID("$Id: ogringrestablelayer.cpp 23803 2012-01-26 07:49:25Z warmerdam $");
+CPL_CVSID("$Id: ogringrestablelayer.cpp 26688 2013-12-02 19:07:41Z rouault $");
 
 /************************************************************************/
 /*                         OGRIngresTableLayer()                         */
@@ -416,6 +416,9 @@ char *OGRIngresTableLayer::BuildFields()
 OGRErr OGRIngresTableLayer::SetAttributeFilter( const char *pszQuery )
 
 {
+    CPLFree(m_pszAttrQueryString);
+    m_pszAttrQueryString = (pszQuery) ? CPLStrdup(pszQuery) : NULL;
+
     osQuery = "";
 
     if( pszQuery != NULL )

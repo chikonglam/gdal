@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: sdts_al.h 25839 2013-04-02 18:54:20Z rouault $
+ * $Id: sdts_al.h 26613 2013-11-14 17:42:08Z goatbar $
  *
  * Project:  SDTS Translator
  * Purpose:  Include file for entire SDTS Abstraction Layer functions.
@@ -28,7 +28,7 @@
  ****************************************************************************/
 
 #ifndef SDTS_AL_H_INCLUDED
-#define STDS_AL_H_INCLUDED
+#define SDTS_AL_H_INCLUDED
 
 #include "cpl_conv.h"
 #include "iso8211.h"
@@ -677,4 +677,4 @@ class SDTSTransfer
     SDTSIndexedReader **papoLayerReader;
 };
 
-#endif /* ndef SDTS_AL_H_INCLUDED */
+#endif /* ifndef SDTS_AL_H_INCLUDED */

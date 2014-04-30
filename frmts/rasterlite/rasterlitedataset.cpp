@@ -1,12 +1,12 @@
 /******************************************************************************
- * $Id: rasterlitedataset.cpp 25494 2013-01-13 12:55:17Z etourigny $
+ * $Id: rasterlitedataset.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  GDAL Rasterlite driver
  * Purpose:  Implement GDAL Rasterlite support using OGR SQLite driver
  * Author:   Even Rouault, <even dot rouault at mines dash paris dot org>
  *
  **********************************************************************
- * Copyright (c) 2009, Even Rouault, <even dot rouault at mines dash paris dot org>
+ * Copyright (c) 2009-2013, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -34,7 +34,7 @@
 
 #include "rasterlitedataset.h"
 
-CPL_CVSID("$Id: rasterlitedataset.cpp 25494 2013-01-13 12:55:17Z etourigny $");
+CPL_CVSID("$Id: rasterlitedataset.cpp 27044 2014-03-16 23:41:27Z rouault $");
 
 /************************************************************************/
 /*                            RasterliteBand()                          */
@@ -658,6 +658,17 @@ void RasterliteDataset::AddSubDataset( const char* pszDSName)
 }
 
 /************************************************************************/
+/*                      GetMetadataDomainList()                         */
+/************************************************************************/
+
+char **RasterliteDataset::GetMetadataDomainList()
+{
+    return BuildMetadataDomainList(GDALPamDataset::GetMetadataDomainList(),
+                                   TRUE,
+                                   "SUBDATASETS", "IMAGE_STRUCTURE", NULL);
+}
+
+/************************************************************************/
 /*                            GetMetadata()                             */
 /************************************************************************/
 
@@ -1163,7 +1174,7 @@ GDALDataset* RasterliteDataset::Open(GDALOpenInfo* poOpenInfo)
             //printf("[%d] xres=%.15f yres=%.15f\n", i,
             //       poDS->padfXResolutions[i], poDS->padfYResolutions[i]);
             
-            if (poDS->padfXResolutions[i] <= 0 || poDS->padfXResolutions[i] <= 0)
+            if (poDS->padfXResolutions[i] <= 0 || poDS->padfYResolutions[i] <= 0)
             {
                 CPLError(CE_Failure, CPLE_NotSupported,
                          "res=%d, xres=%.15f, yres=%.15f",

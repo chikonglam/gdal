@@ -6,6 +6,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2010, Brian Case
+ * Copyright (c) 2010-2014, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -44,6 +45,7 @@ using kmldom::GeometryPtr;
 using kmldom::ElementPtr;
 using kmldom::GeometryPtr;
 using kmldom::GxLatLonQuadPtr;
+using kmldom::GxTrackPtr;
 
 using kmlbase::Vec3;
 
@@ -104,7 +106,7 @@ ElementPtr geom2kml (
 
     int numpoints = 0;
     int nGeom;
-    int type = poOgrGeom->getGeometryType (  );
+    OGRwkbGeometryType type = poOgrGeom->getGeometryType (  );
 
     wkb25D = type & wkb25DBit;
 
@@ -153,9 +155,33 @@ ElementPtr geom2kml (
     case wkbLineString:
         poOgrLineString = ( OGRLineString * ) poOgrGeom;
 
-        coordinates = poKmlFactory->CreateCoordinates (  );
+        if( extra >= 0 )
+        {
+            ((OGRLinearRing*)poOgrGeom)->closeRings();
+        }
 
         numpoints = poOgrLineString->getNumPoints (  );
+        if( extra >= 0 )
+        {
+            if( numpoints < 4 && 
+                CSLTestBoolean(CPLGetConfigOption("LIBKML_STRICT_COMPLIANCE", "TRUE")) )
+            {
+                CPLError(CE_Failure, CPLE_NotSupported, "A linearring should have at least 4 points");
+                return NULL;
+            }
+        }
+        else
+        {
+            if( numpoints < 2 && 
+                CSLTestBoolean(CPLGetConfigOption("LIBKML_STRICT_COMPLIANCE", "TRUE")) )
+            {
+                CPLError(CE_Failure, CPLE_NotSupported, "A linestring should have at least 2 points");
+                return NULL;
+            }
+        }
+
+        coordinates = poKmlFactory->CreateCoordinates (  );
+
         poOgrPoint = new OGRPoint (  );
 
         for ( i = 0; i < numpoints; i++ ) {
@@ -204,9 +230,34 @@ ElementPtr geom2kml (
 
         poOgrLineString = ( OGRLineString * ) poOgrGeom;
 
+        if( extra >= 0 )
+        {
+            ((OGRLinearRing*)poOgrGeom)->closeRings();
+        }
+
+        numpoints = poOgrLineString->getNumPoints (  );
+        if( extra >= 0 )
+        {
+            if( numpoints < 4 && 
+                CSLTestBoolean(CPLGetConfigOption("LIBKML_STRICT_COMPLIANCE", "TRUE")) )
+            {
+                CPLError(CE_Failure, CPLE_NotSupported, "A linearring should have at least 4 points");
+                return NULL;
+            }
+        }
+        else
+        {
+            if( numpoints < 2 && 
+                CSLTestBoolean(CPLGetConfigOption("LIBKML_STRICT_COMPLIANCE", "TRUE")) )
+            {
+                CPLError(CE_Failure, CPLE_NotSupported, "A linestring should have at least 2 points");
+                return NULL;
+            }
+        }
+
         coordinates = poKmlFactory->CreateCoordinates (  );
         poOgrPoint = new OGRPoint (  );
-        numpoints = poOgrLineString->getNumPoints (  );
+
         for ( i = 0; i < numpoints; i++ ) {
             poOgrLineString->getPoint ( i, poOgrPoint );
 
@@ -253,6 +304,14 @@ ElementPtr geom2kml (
 
     case wkbPolygon:
 
+        CPLErrorReset();
+        if( CSLTestBoolean(CPLGetConfigOption("LIBKML_STRICT_COMPLIANCE", "TRUE")) &&
+            OGRGeometryFactory::haveGEOS() && (!poOgrGeom->IsValid() ||
+             CPLGetLastErrorType() != CE_None) )
+        {
+            CPLError(CE_Failure, CPLE_NotSupported, "Invalid polygon");
+            return NULL;
+        }
         poOgrPolygon = ( OGRPolygon * ) poOgrGeom;
 
         poKmlGeometry = poKmlPolygon = poKmlFactory->CreatePolygon (  );
@@ -274,6 +333,14 @@ ElementPtr geom2kml (
 
     case wkbPolygon25D:
 
+        CPLErrorReset();
+        if( CSLTestBoolean(CPLGetConfigOption("LIBKML_STRICT_COMPLIANCE", "TRUE")) &&
+            OGRGeometryFactory::haveGEOS() && (!poOgrGeom->IsValid() ||
+             CPLGetLastErrorType() != CE_None) )
+        {
+            CPLError(CE_Failure, CPLE_NotSupported, "Invalid polygon");
+            return NULL;
+        }
         poOgrPolygon = ( OGRPolygon * ) poOgrGeom;
 
         poKmlGeometry = poKmlPolygon = poKmlFactory->CreatePolygon (  );
@@ -304,15 +371,30 @@ ElementPtr geom2kml (
 
         poOgrMultiGeom = ( OGRGeometryCollection * ) poOgrGeom;
 
-        poKmlGeometry = poKmlMultiGeometry =
-            poKmlFactory->CreateMultiGeometry (  );
-
         nGeom = poOgrMultiGeom->getNumGeometries (  );
-        for ( i = 0; i < nGeom; i++ ) {
-            poKmlTmpGeometry = geom2kml ( poOgrMultiGeom->getGeometryRef ( i ),
-                                          -1, wkb25D, poKmlFactory );
-            poKmlMultiGeometry->
-                add_geometry ( AsGeometry ( poKmlTmpGeometry ) );
+
+        if( nGeom == 1 && 
+            CSLTestBoolean(CPLGetConfigOption("LIBKML_STRICT_COMPLIANCE", "TRUE")) )
+        {
+            CPLDebug("LIBKML", "Turning multiple geometry into single geometry");
+            poKmlGeometry = geom2kml( poOgrMultiGeom->getGeometryRef ( 0 ),
+                                      -1, wkb25D, poKmlFactory );
+        }
+        else
+        {
+            if( nGeom == 0 && 
+                CSLTestBoolean(CPLGetConfigOption("LIBKML_STRICT_COMPLIANCE", "TRUE")) )
+            {
+                CPLError(CE_Warning, CPLE_AppDefined, "Empty multi geometry are not recommended");
+            }
+            poKmlGeometry = poKmlMultiGeometry =
+                poKmlFactory->CreateMultiGeometry (  );
+            for ( i = 0; i < nGeom; i++ ) {
+                poKmlTmpGeometry = geom2kml ( poOgrMultiGeom->getGeometryRef ( i ),
+                                            -1, wkb25D, poKmlFactory );
+                poKmlMultiGeometry->
+                    add_geometry ( AsGeometry ( poKmlTmpGeometry ) );
+            }
         }
 
         break;
@@ -366,6 +448,7 @@ OGRGeometry *kml2geom_rec (
     InnerBoundaryIsPtr poKmlInnerRing;
     PolygonPtr poKmlPolygon;
     MultiGeometryPtr poKmlMultiGeometry;
+    GxTrackPtr poKmlGxTrack;
     GeometryPtr poKmlTmpGeometry;
 
     Vec3 oKmlVec;
@@ -521,6 +604,26 @@ OGRGeometry *kml2geom_rec (
         poOgrGeometry = poOgrMultiGeometry;
         break;
     }
+    
+    case kmldom::Type_GxTrack:
+        poKmlGxTrack = AsGxTrack ( poKmlGeometry );
+        nCoords = poKmlGxTrack->get_gx_coord_array_size();
+        poOgrLineString = new OGRLineString (  );
+        for ( i = 0; i < nCoords; i++ ) {
+            oKmlVec = poKmlGxTrack->get_gx_coord_array_at ( i );
+            if ( oKmlVec.has_altitude (  ) )
+                poOgrLineString->
+                    addPoint ( oKmlVec.get_longitude (  ),
+                                oKmlVec.get_latitude (  ),
+                                oKmlVec.get_altitude (  ) );
+            else
+                poOgrLineString->
+                    addPoint ( oKmlVec.get_longitude (  ),
+                                oKmlVec.get_latitude (  ) );
+        }
+        poOgrGeometry = poOgrLineString;
+        break;
+
     default:
         break;
     }
@@ -539,7 +642,6 @@ OGRGeometry *kml2geom_latlonbox_int (
 {
     OGRPolygon *poOgrPolygon;
     double north, south, east, west;
-    poOgrPolygon = new OGRPolygon (  );
     if ( !poKmlLatLonBox->has_north (  ) ||
          !poKmlLatLonBox->has_south (  ) ||
          !poKmlLatLonBox->has_east (  ) ||
@@ -547,6 +649,7 @@ OGRGeometry *kml2geom_latlonbox_int (
 
         return NULL;
     }
+    poOgrPolygon = new OGRPolygon (  );
     north = poKmlLatLonBox->get_north (  );
     south = poKmlLatLonBox->get_south (  );
     east = poKmlLatLonBox->get_east (  );

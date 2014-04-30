@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_nas.h 24105 2012-03-10 12:08:04Z rouault $
+ * $Id: ogr_nas.h 26466 2013-09-14 09:07:46Z rouault $
  *
  * Project:  NAS Reader
  * Purpose:  Declarations for OGR wrapper classes for NAS, and NAS<->OGR
@@ -70,8 +70,6 @@ class OGRNASLayer : public OGRLayer
 
     OGRFeatureDefn *    GetLayerDefn() { return poFeatureDefn; }
 
-    virtual OGRSpatialReference *GetSpatialRef();
-    
     int                 TestCapability( const char * );
 };
 

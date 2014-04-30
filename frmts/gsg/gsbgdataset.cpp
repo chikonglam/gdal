@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gsbgdataset.cpp 24585 2012-06-16 10:27:04Z rouault $
+ * $Id: gsbgdataset.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  GDAL
  * Purpose:  Implements the Golden Software Binary Grid Format.
@@ -8,6 +8,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2006, Kevin Locke <kwl7@cornell.edu>
+ * Copyright (c) 2008-2012, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -60,7 +61,7 @@
 # define SHRT_MAX 32767
 #endif /* SHRT_MAX */
 
-CPL_CVSID("$Id: gsbgdataset.cpp 24585 2012-06-16 10:27:04Z rouault $");
+CPL_CVSID("$Id: gsbgdataset.cpp 27044 2014-03-16 23:41:27Z rouault $");
 
 CPL_C_START
 void	GDALRegister_GSBG(void);
@@ -907,7 +908,7 @@ GDALDataset *GSBGDataset::Create( const char * pszFilename,
         && eType != GDT_Int16 )
     {
         CPLError( CE_Failure, CPLE_AppDefined,
-		  "Golden Software ASCII Grid only supports Byte, Int16, "
+		  "Golden Software Binary Grid only supports Byte, Int16, "
 		  "Uint16, and Float32 datatypes.  Unable to create with "
 		  "type %s.\n", GDALGetDataTypeName( eType ) );
 

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrgeojsonlayer.cpp 23866 2012-02-01 23:51:11Z warmerdam $
+ * $Id: ogrgeojsonlayer.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implementation of OGRGeoJSONLayer class (OGR GeoJSON Driver).
@@ -7,6 +7,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2007, Mateusz Loskot
+ * Copyright (c) 2010-2013, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -27,7 +28,7 @@
  * DEALINGS IN THE SOFTWARE.
  ****************************************************************************/
 #include <algorithm> // for_each, find_if
-#include <jsonc/json.h> // JSON-C
+#include <json.h> // JSON-C
 #include "ogr_geojson.h"
 
 /* Remove annoying warnings Microsoft Visual C++ */
@@ -51,18 +52,15 @@ OGRGeoJSONLayer::OGRGeoJSONLayer( const char* pszName,
                                   OGRSpatialReference* poSRSIn,
                                   OGRwkbGeometryType eGType,
                                   OGRGeoJSONDataSource* poDS )
-    : iterCurrent_( seqFeatures_.end() ), poDS_( poDS ), poFeatureDefn_(new OGRFeatureDefn( pszName ) ), poSRS_( NULL )
+    : iterCurrent_( seqFeatures_.end() ), poDS_( poDS ), poFeatureDefn_(new OGRFeatureDefn( pszName ) )
 {
     CPLAssert( NULL != poDS_ );
     CPLAssert( NULL != poFeatureDefn_ );
     
     poFeatureDefn_->Reference();
     poFeatureDefn_->SetGeomType( eGType );
-
-    if( NULL != poSRSIn )
-    {
-        SetSpatialRef( poSRSIn );
-    }
+    if( poFeatureDefn_->GetGeomFieldCount() != 0 )
+        poFeatureDefn_->GetGeomFieldDefn(0)->SetSpatialRef(poSRSIn);
 }
 
 /************************************************************************/
@@ -78,11 +76,6 @@ OGRGeoJSONLayer::~OGRGeoJSONLayer()
     {
         poFeatureDefn_->Release();
     }
-
-    if( NULL != poSRS_ )
-    {
-        poSRS_->Release();   
-    }
 }
 
 /************************************************************************/
@@ -92,37 +85,6 @@ OGRGeoJSONLayer::~OGRGeoJSONLayer()
 OGRFeatureDefn* OGRGeoJSONLayer::GetLayerDefn()
 {
     return poFeatureDefn_;
-}
-
-/************************************************************************/
-/*                           GetSpatialRef                              */
-/************************************************************************/
-
-OGRSpatialReference* OGRGeoJSONLayer::GetSpatialRef()
-{
-    return poSRS_;
-}
-
-/************************************************************************/
-/*                           SetSpatialRef                              */
-/************************************************************************/
-
-void OGRGeoJSONLayer::SetSpatialRef( OGRSpatialReference* poSRSIn )
-{
-    if( NULL == poSRSIn )
-    {
-        poSRS_ = NULL;
-        // poSRS_ = new OGRSpatialReference();
-        // if( OGRERR_NONE != poSRS_->importFromEPSG( 4326 ) )
-        // {
-        //     delete poSRS_;
-        //     poSRS_ = NULL;
-        // }
-    }
-    else
-    {
-        poSRS_ = poSRSIn->Clone(); 
-    }
 }
 
 /************************************************************************/
@@ -166,9 +128,9 @@ OGRFeature* OGRGeoJSONLayer::GetNextFeature()
             OGRFeature* poFeatureCopy = poFeature->Clone();
             CPLAssert( NULL != poFeatureCopy );
 
-            if (poFeatureCopy->GetGeometryRef() != NULL && poSRS_ != NULL)
+            if (poFeatureCopy->GetGeometryRef() != NULL && GetSpatialRef() != NULL)
             {
-                poFeatureCopy->GetGeometryRef()->assignSpatialReference( poSRS_ );
+                poFeatureCopy->GetGeometryRef()->assignSpatialReference( GetSpatialRef() );
             }
 
             return poFeatureCopy;
@@ -232,7 +194,7 @@ void OGRGeoJSONLayer::AddFeature( OGRFeature* poFeature )
 
         // TODO - mlokot: We need to redesign creation of FID column
         int nField = poNewFeature->GetFieldIndex( DefaultFIDColumn );
-        if( -1 != nField )
+        if( -1 != nField && GetLayerDefn()->GetFieldDefn(nField)->GetType() == OFTInteger )
         {
             poNewFeature->SetField( nField, nFID );
         }

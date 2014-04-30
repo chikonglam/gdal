@@ -1,12 +1,12 @@
 /******************************************************************************
- * $Id: gdalserver.c 25684 2013-02-25 15:40:26Z rouault $
+ * $Id: gdalserver.c 27142 2014-04-09 11:14:35Z rouault $
  *
  * Project:  GDAL
  * Purpose:  Server application that is forked by libgdal
  * Author:   Even Rouault, <even dot rouault at mines-paris dot org>
  *
  ******************************************************************************
- * Copyright (c) 2013, Even Rouault, <even dot rouault at mines-paris dot org>
+ * Copyright (c) 2013, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -27,12 +27,17 @@
  * DEALINGS IN THE SOFTWARE.
  ****************************************************************************/
 
+#if defined(__STDC_VERSION__)
+#define _XOPEN_SOURCE
+#endif
+
 #include "cpl_port.h"
 
 #ifdef WIN32
-  #ifndef _WIN32_WINNT
-    #define _WIN32_WINNT 0x0501
+  #ifdef _WIN32_WINNT
+    #undef _WIN32_WINNT
   #endif
+  #define _WIN32_WINNT 0x0501
   #include <winsock2.h>
   #include <ws2tcpip.h>
   typedef SOCKET CPL_SOCKET;
@@ -72,7 +77,7 @@ int CPL_DLL GDALServerLoop(CPL_FILE_HANDLE fin, CPL_FILE_HANDLE fout);
 int CPL_DLL GDALServerLoopSocket(CPL_SOCKET nSocket);
 CPL_C_END
 
-CPL_CVSID("$Id: gdalserver.c 25684 2013-02-25 15:40:26Z rouault $");
+CPL_CVSID("$Id: gdalserver.c 27142 2014-04-09 11:14:35Z rouault $");
 
 /************************************************************************/
 /*                               Usage()                                */
@@ -574,7 +579,7 @@ int main(int argc, char* argv[])
         else if( EQUAL(argv[i], "-daemonize") )
             ;
         else if( argv[i][0] == '-' )
-            Usage(CPLSPrintf("Unkown option name '%s'", argv[i]));
+            Usage(CPLSPrintf("Unknown option name '%s'", argv[i]));
         else
             Usage("Too many command options.");
     }

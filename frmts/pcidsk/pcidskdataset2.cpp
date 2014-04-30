@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: pcidskdataset2.cpp 24941 2012-09-18 22:31:13Z rouault $
+ * $Id: pcidskdataset2.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  PCIDSK Database File
  * Purpose:  Read/write PCIDSK Database File used by the PCI software, using
@@ -8,6 +8,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2009, Frank Warmerdam <warmerdam@pobox.com>
+ * Copyright (c) 2009-2013, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -34,7 +35,7 @@
 #include "cpl_string.h"
 #include "ogr_spatialref.h"
 
-CPL_CVSID("$Id: pcidskdataset2.cpp 24941 2012-09-18 22:31:13Z rouault $");
+CPL_CVSID("$Id: pcidskdataset2.cpp 27044 2014-03-16 23:41:27Z rouault $");
 
 using namespace PCIDSK;
 
@@ -76,6 +77,7 @@ class PCIDSK2Dataset : public GDALPamDataset
     const char         *GetProjectionRef();
     CPLErr              SetProjection( const char * );
 
+    virtual char      **GetMetadataDomainList();
     CPLErr              SetMetadata( char **, const char * );
     char              **GetMetadata( const char* );
     CPLErr              SetMetadataItem(const char*,const char*,const char*);
@@ -130,6 +132,7 @@ class PCIDSK2Band : public GDALPamRasterBand
 
     virtual void        SetDescription( const char * );
 
+    virtual char      **GetMetadataDomainList();
     CPLErr              SetMetadata( char **, const char * );
     char              **GetMetadata( const char* );
     CPLErr              SetMetadataItem(const char*,const char*,const char*);
@@ -781,6 +784,17 @@ CPLErr PCIDSK2Band::SetMetadataItem( const char *pszName,
 }
 
 /************************************************************************/
+/*                      GetMetadataDomainList()                         */
+/************************************************************************/
+
+char **PCIDSK2Band::GetMetadataDomainList()
+{
+    return BuildMetadataDomainList(GDALPamRasterBand::GetMetadataDomainList(),
+                                   TRUE,
+                                   "", NULL);
+}
+
+/************************************************************************/
 /*                          GetMetadataItem()                           */
 /************************************************************************/
 
@@ -1180,6 +1194,17 @@ CPLErr PCIDSK2Dataset::SetMetadataItem( const char *pszName,
                   "%s", ex.what() );
         return CE_Failure;
     }
+}
+
+/************************************************************************/
+/*                      GetMetadataDomainList()                         */
+/************************************************************************/
+
+char **PCIDSK2Dataset::GetMetadataDomainList()
+{
+    return BuildMetadataDomainList(GDALPamDataset::GetMetadataDomainList(),
+                                   TRUE,
+                                   "", NULL);
 }
 
 /************************************************************************/

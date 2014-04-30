@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: osr.i 25229 2012-11-16 19:06:58Z rouault $
+ * $Id: osr.i 26938 2014-02-13 20:15:52Z rcoup $
  *
  * Project:  GDAL SWIG Interfaces.
  * Purpose:  OGRSpatialReference related declarations.
@@ -257,6 +257,10 @@ public:
 
   int EPSGTreatsAsLatLong() {
     return OSREPSGTreatsAsLatLong(self);
+  }
+
+  int EPSGTreatsAsNorthingEasting() {
+    return OSREPSGTreatsAsNorthingEasting(self);
   }
 
   OGRErr SetAuthority( const char * pszTargetKey,

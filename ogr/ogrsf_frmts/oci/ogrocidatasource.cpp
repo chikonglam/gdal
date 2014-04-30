@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrocidatasource.cpp 25759 2013-03-15 17:41:57Z ilucena $
+ * $Id: ogrocidatasource.cpp 26506 2013-09-30 18:17:55Z rouault $
  *
  * Project:  Oracle Spatial Driver
  * Purpose:  Implementation of the OGROCIDataSource class.
@@ -31,7 +31,7 @@
 #include "cpl_conv.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: ogrocidatasource.cpp 25759 2013-03-15 17:41:57Z ilucena $");
+CPL_CVSID("$Id: ogrocidatasource.cpp 26506 2013-09-30 18:17:55Z rouault $");
 
 static int anEPSGOracleMapping[] = 
 {
@@ -644,9 +644,9 @@ OGRLayer * OGROCIDataSource::ExecuteSQL( const char *pszSQLCommand,
 
 {
 /* -------------------------------------------------------------------- */
-/*      Use generic implementation for OGRSQL dialect.                  */
+/*      Use generic implementation for recognized dialects              */
 /* -------------------------------------------------------------------- */
-    if( pszDialect != NULL && EQUAL(pszDialect,"OGRSQL") )
+    if( IsGenericSQLDialect(pszDialect) )
         return OGRDataSource::ExecuteSQL( pszSQLCommand, 
                                           poSpatialFilter, 
                                           pszDialect );

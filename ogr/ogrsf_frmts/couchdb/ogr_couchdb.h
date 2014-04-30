@@ -1,12 +1,12 @@
 /******************************************************************************
- * $Id: ogr_couchdb.h 23324 2011-11-05 16:17:33Z rouault $
+ * $Id: ogr_couchdb.h 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  CouchDB Translator
  * Purpose:  Definition of classes for OGR CouchDB / GeoCouch driver.
  * Author:   Even Rouault, even dot rouault at mines dash paris dot org
  *
  ******************************************************************************
- * Copyright (c) 2011, Even Rouault <even dot rouault at mines dash paris dot org>
+ * Copyright (c) 2011-2013, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -32,7 +32,7 @@
 
 #include "ogrsf_frmts.h"
 #include "cpl_http.h"
-#include "json.h"
+#include <json.h>
 
 #include <vector>
 #include <map>
@@ -93,8 +93,6 @@ protected:
     virtual OGRFeatureDefn *    GetLayerDefn();
 
     virtual int                 TestCapability( const char * );
-
-    virtual OGRSpatialReference*GetSpatialRef();
 
     virtual CouchDBLayerType    GetLayerType() = 0;
 
@@ -188,8 +186,6 @@ class OGRCouchDBTableLayer : public OGRCouchDBLayer
     virtual OGRErr              RollbackTransaction();
 
     virtual int                 TestCapability( const char * );
-
-    virtual OGRSpatialReference*GetSpatialRef();
 
     void                        SetInfoAfterCreation(OGRwkbGeometryType eGType,
                                              OGRSpatialReference* poSRSIn,

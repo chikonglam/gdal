@@ -1,5 +1,5 @@
 /**********************************************************************
- * $Id: gmlpropertydefn.cpp 22954 2011-08-19 21:47:19Z rouault $
+ * $Id: gmlpropertydefn.cpp 27132 2014-04-05 21:48:58Z rouault $
  *
  * Project:  GML Reader
  * Purpose:  Implementation of GMLPropertyDefn
@@ -7,6 +7,7 @@
  *
  **********************************************************************
  * Copyright (c) 2002, Frank Warmerdam
+ * Copyright (c) 2008-2013, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -53,7 +54,7 @@ GMLPropertyDefn::GMLPropertyDefn( const char *pszName,
     m_eType = GMLPT_Untyped;
     m_nWidth = 0; 
     m_nPrecision = 0;
-    m_nIndex = -1;
+    m_pszCondition = NULL;
 }
 
 /************************************************************************/
@@ -65,6 +66,7 @@ GMLPropertyDefn::~GMLPropertyDefn()
 {
     CPLFree( m_pszName );
     CPLFree( m_pszSrcElement );
+    CPLFree( m_pszCondition );
 }
 
 /************************************************************************/
@@ -88,13 +90,24 @@ void GMLPropertyDefn::SetSrcElement( const char *pszSrcElement )
 }
 
 /************************************************************************/
+/*                           SetCondition()                             */
+/************************************************************************/
+
+void GMLPropertyDefn::SetCondition( const char *pszCondition )
+{
+    CPLFree( m_pszCondition );
+    m_pszCondition = ( pszCondition != NULL ) ? CPLStrdup(pszCondition) : NULL;
+}
+
+/************************************************************************/
 /*                        AnalysePropertyValue()                        */
 /*                                                                      */
 /*      Examine the passed property value, and see if we need to        */
 /*      make the field type more specific, or more general.             */
 /************************************************************************/
 
-void GMLPropertyDefn::AnalysePropertyValue( const GMLProperty* psGMLProperty )
+void GMLPropertyDefn::AnalysePropertyValue( const GMLProperty* psGMLProperty,
+                                            int bSetWidth )
 
 {
 /* -------------------------------------------------------------------- */
@@ -157,11 +170,14 @@ void GMLPropertyDefn::AnalysePropertyValue( const GMLProperty* psGMLProperty )
     
         if( m_eType == GMLPT_String )
         {
-            /* grow the Width to the length of the string passed in */
-            int nWidth;
-            nWidth = strlen(pszValue);
-            if ( m_nWidth < nWidth ) 
-                SetWidth( nWidth );
+            if( bSetWidth )
+            {
+                /* grow the Width to the length of the string passed in */
+                int nWidth;
+                nWidth = strlen(pszValue);
+                if ( m_nWidth < nWidth ) 
+                    SetWidth( nWidth );
+            }
         }
         else if( m_eType == GMLPT_Untyped || m_eType == GMLPT_Integer )
         {
@@ -175,4 +191,30 @@ void GMLPropertyDefn::AnalysePropertyValue( const GMLProperty* psGMLProperty )
             m_eType = GMLPT_RealList;
         }
     }
+}
+
+/************************************************************************/
+/*                       GMLGeometryPropertyDefn                        */
+/************************************************************************/
+
+GMLGeometryPropertyDefn::GMLGeometryPropertyDefn( const char *pszName,
+                                                  const char *pszSrcElement,
+                                                  int nType,
+                                                  int nAttributeIndex )
+{
+    m_pszName = (pszName == NULL || pszName[0] == '\0') ?
+                        CPLStrdup(pszSrcElement) : CPLStrdup(pszName);
+    m_pszSrcElement = CPLStrdup(pszSrcElement);
+    m_nGeometryType = nType;
+    m_nAttributeIndex = nAttributeIndex;
+}
+
+/************************************************************************/
+/*                       ~GMLGeometryPropertyDefn                       */
+/************************************************************************/
+
+GMLGeometryPropertyDefn::~GMLGeometryPropertyDefn()
+{
+    CPLFree(m_pszName);
+    CPLFree(m_pszSrcElement);
 }

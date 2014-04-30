@@ -1,12 +1,12 @@
 /******************************************************************************
- * $Id: ogrxlsxdatasource.cpp 24173 2012-03-29 21:09:52Z rouault $
+ * $Id: ogrxlsxdatasource.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  XLSX Translator
  * Purpose:  Implements OGRXLSXDataSource class
  * Author:   Even Rouault, even dot rouault at mines dash paris dot org
  *
  ******************************************************************************
- * Copyright (c) 2012, Even Rouault <even dot rouault at mines dash paris dot org>
+ * Copyright (c) 2012-2014, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -32,7 +32,7 @@
 #include "cpl_conv.h"
 #include "cpl_time.h"
 
-CPL_CVSID("$Id: ogrxlsxdatasource.cpp 24173 2012-03-29 21:09:52Z rouault $");
+CPL_CVSID("$Id: ogrxlsxdatasource.cpp 27044 2014-03-16 23:41:27Z rouault $");
 
 /************************************************************************/
 /*                            OGRXLSXLayer()                            */
@@ -1154,10 +1154,11 @@ void OGRXLSXDataSource::startElementWBCbk(const char *pszName,
     if (strcmp(pszName,"sheet") == 0)
     {
         const char* pszSheetName = GetAttributeValue(ppszAttr, "name", NULL);
-        const char* pszSheetId = GetAttributeValue(ppszAttr, "sheetId", NULL);
-        if (pszSheetName && pszSheetId)
+        /*const char* pszSheetId = GetAttributeValue(ppszAttr, "sheetId", NULL);*/
+        if (pszSheetName /*&& pszSheetId*/)
         {
-            int nSheetId = atoi(pszSheetId);
+            /*int nSheetId = atoi(pszSheetId);*/
+            int nSheetId = nLayers + 1;
             papoLayers = (OGRLayer**)CPLRealloc(papoLayers, (nLayers + 1) * sizeof(OGRLayer*));
             papoLayers[nLayers++] = new OGRXLSXLayer(this, nSheetId, pszSheetName);
         }

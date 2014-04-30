@@ -138,6 +138,12 @@ public class SpatialReference : IDisposable {
     return ret;
   }
 
+  public int EPSGTreatsAsNorthingEasting() {
+    int ret = OsrPINVOKE.SpatialReference_EPSGTreatsAsNorthingEasting(swigCPtr);
+    if (OsrPINVOKE.SWIGPendingException.Pending) throw OsrPINVOKE.SWIGPendingException.Retrieve();
+    return ret;
+  }
+
   public int SetAuthority(string pszTargetKey, string pszAuthority, int nCode) {
     int ret = OsrPINVOKE.SpatialReference_SetAuthority(swigCPtr, pszTargetKey, pszAuthority, nCode);
     if (OsrPINVOKE.SWIGPendingException.Pending) throw OsrPINVOKE.SWIGPendingException.Retrieve();

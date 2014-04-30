@@ -1,12 +1,12 @@
 /******************************************************************************
- * $Id: cpl_vsil_curl_streaming.cpp 25787 2013-03-23 13:59:41Z rouault $
+ * $Id: cpl_vsil_curl_streaming.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  CPL - Common Portability Library
  * Purpose:  Implement VSI large file api for HTTP/FTP files in streaming mode
  * Author:   Even Rouault <even dot rouault at mines dash paris.org>
  *
  ******************************************************************************
- * Copyright (c) 2012, Even Rouault <even dot rouault at mines dash paris.org>
+ * Copyright (c) 2012-2013, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -33,7 +33,7 @@
 #include "cpl_hash_set.h"
 #include "cpl_time.h"
 
-CPL_CVSID("$Id: cpl_vsil_curl_streaming.cpp 25787 2013-03-23 13:59:41Z rouault $");
+CPL_CVSID("$Id: cpl_vsil_curl_streaming.cpp 27044 2014-03-16 23:41:27Z rouault $");
 
 #if !defined(HAVE_CURL) || defined(CPL_MULTIPROC_STUB)
 

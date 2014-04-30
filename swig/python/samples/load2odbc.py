@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 ###############################################################################
-# $Id: load2odbc.py 18195 2009-12-06 20:24:39Z rouault $
+# $Id: load2odbc.py 27044 2014-03-16 23:41:27Z rouault $
 #
 # Project:  OGR Python samples
 # Purpose:  Load ODBC table to an ODBC datastore.  Uses direct SQL 
@@ -9,6 +9,7 @@
 #
 ###############################################################################
 # Copyright (c) 2005, Frank Warmerdam <warmerdam@pobox.com>
+# Copyright (c) 2009, Even Rouault <even dot rouault at mines-paris dot org>
 # 
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),

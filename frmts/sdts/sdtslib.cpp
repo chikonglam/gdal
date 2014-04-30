@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: sdtslib.cpp 25839 2013-04-02 18:54:20Z rouault $
+ * $Id: sdtslib.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  SDTS Translator
  * Purpose:  Various utility functions that apply to all SDTS profiles.
@@ -8,6 +8,7 @@
  *
  ******************************************************************************
  * Copyright (c) 1999, Frank Warmerdam
+ * Copyright (c) 2009-2013, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -31,7 +32,7 @@
 #include "sdts_al.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: sdtslib.cpp 25839 2013-04-02 18:54:20Z rouault $");
+CPL_CVSID("$Id: sdtslib.cpp 27044 2014-03-16 23:41:27Z rouault $");
 
 /************************************************************************/
 /*                            SDTSFeature()                             */

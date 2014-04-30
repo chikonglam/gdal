@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gsagdataset.cpp 25215 2012-11-08 08:25:05Z rouault $
+ * $Id: gsagdataset.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  GDAL
  * Purpose:  Implements the Golden Software ASCII Grid Format.
@@ -8,6 +8,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2006, Kevin Locke <kwl7@cornell.edu>
+ * Copyright (c) 2008-2012, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -49,7 +50,7 @@
 # define INT_MAX 2147483647
 #endif /* INT_MAX */
 
-CPL_CVSID("$Id: gsagdataset.cpp 25215 2012-11-08 08:25:05Z rouault $");
+CPL_CVSID("$Id: gsagdataset.cpp 27044 2014-03-16 23:41:27Z rouault $");
 
 CPL_C_START
 void	GDALRegister_GSAG(void);

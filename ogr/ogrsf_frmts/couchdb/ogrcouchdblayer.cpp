@@ -1,12 +1,12 @@
 /******************************************************************************
- * $Id: ogrcouchdblayer.cpp 22283 2011-05-01 22:14:25Z rouault $
+ * $Id: ogrcouchdblayer.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  CouchDB Translator
  * Purpose:  Implements OGRCouchDBLayer class.
  * Author:   Even Rouault, <even dot rouault at mines dash paris dot org>
  *
  ******************************************************************************
- * Copyright (c) 2011, Even Rouault <even dot rouault at mines dash paris dot org>
+ * Copyright (c) 2011, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -28,11 +28,10 @@
  ****************************************************************************/
 
 #include "ogr_couchdb.h"
-#include "json_object_private.h" // json_object_iter, complete type required
 #include "ogrgeojsonreader.h"
 #include "ogrgeojsonutils.h"
 
-CPL_CVSID("$Id: ogrcouchdblayer.cpp 22283 2011-05-01 22:14:25Z rouault $");
+CPL_CVSID("$Id: ogrcouchdblayer.cpp 27044 2014-03-16 23:41:27Z rouault $");
 
 /************************************************************************/
 /*                            OGRCouchDBLayer()                             */
@@ -178,17 +177,6 @@ int OGRCouchDBLayer::TestCapability( const char * pszCap )
     else if ( EQUAL(pszCap, OLCFastSetNextByIndex) )
         return TRUE;
     return FALSE;
-}
-
-/************************************************************************/
-/*                          GetSpatialRef()                             */
-/************************************************************************/
-
-OGRSpatialReference* OGRCouchDBLayer::GetSpatialRef()
-{
-    GetLayerDefn();
-
-    return poSRS;
 }
 
 /************************************************************************/

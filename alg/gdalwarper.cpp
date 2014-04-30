@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdalwarper.cpp 25884 2013-04-09 17:04:16Z etourigny $
+ * $Id: gdalwarper.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  High Performance Image Reprojector
  * Purpose:  Implementation of high level convenience APIs for warper.
@@ -7,6 +7,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2003, Frank Warmerdam <warmerdam@pobox.com>
+ * Copyright (c) 2008-2012, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -33,7 +34,7 @@
 #include "ogr_api.h"
 #include "gdal_priv.h"
 
-CPL_CVSID("$Id: gdalwarper.cpp 25884 2013-04-09 17:04:16Z etourigny $");
+CPL_CVSID("$Id: gdalwarper.cpp 27044 2014-03-16 23:41:27Z rouault $");
 
 /************************************************************************/
 /*                         GDALReprojectImage()                         */
@@ -854,6 +855,7 @@ GDALWarpOptions * CPL_STDCALL GDALCreateWarpOptions()
 
     psOptions = (GDALWarpOptions *) CPLCalloc(sizeof(GDALWarpOptions),1);
 
+    psOptions->nBandCount = 0;
     psOptions->eResampleAlg = GRA_NearestNeighbour;
     psOptions->pfnProgress = GDALDummyProgress;
     psOptions->eWorkingDataType = GDT_Unknown;

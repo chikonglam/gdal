@@ -1,14 +1,14 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 ###############################################################################
-# $Id: ogrupdate.py 25346 2012-12-25 22:38:21Z rouault $
+# $Id: ogrupdate.py 27044 2014-03-16 23:41:27Z rouault $
 #
 # Project:  GDAL/OGR samples
 # Purpose:  Update an existing datasource with features from another one
 # Author:   Even Rouault <even dot rouault at mines dash paris dot org>
 #
 ###############################################################################
-# Copyright (c) 2012, Even Rouault <even dot rouault at mines dash paris dot org>
+# Copyright (c) 2012, Even Rouault <even dot rouault at mines-paris dot org>
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),

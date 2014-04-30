@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogridbtablelayer.cpp 14412 2008-05-09 15:02:27Z warmerdam $
+ * $Id: ogridbtablelayer.cpp 26688 2013-12-02 19:07:41Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implements OGRIDBTableLayer class, access to an existing table
@@ -32,7 +32,7 @@
 #include "cpl_string.h"
 #include "ogr_idb.h"
 
-CPL_CVSID("$Id: ogridbtablelayer.cpp 14412 2008-05-09 15:02:27Z warmerdam $");
+CPL_CVSID("$Id: ogridbtablelayer.cpp 26688 2013-12-02 19:07:41Z rouault $");
 /************************************************************************/
 /*                          OGRIDBTableLayer()                         */
 /************************************************************************/
@@ -378,6 +378,9 @@ OGRFeature *OGRIDBTableLayer::GetFeature( long nFeatureId )
 OGRErr OGRIDBTableLayer::SetAttributeFilter( const char *pszQuery )
 
 {
+    CPLFree(m_pszAttrQueryString);
+    m_pszAttrQueryString = (pszQuery) ? CPLStrdup(pszQuery) : NULL;
+
     if( (pszQuery == NULL && this->pszQuery == NULL)
         || (pszQuery != NULL && this->pszQuery != NULL 
             && EQUAL(pszQuery,this->pszQuery)) )

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gtadataset.cpp 23475 2011-12-05 22:44:57Z rouault $
+ * $Id: gtadataset.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  GTA read/write Driver
  * Purpose:  GDAL bindings over GTA library.
@@ -7,6 +7,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2010, 2011, Martin Lambers <marlam@marlam.de>
+ * Copyright (c) 2011-2013, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -90,7 +91,7 @@
 #include <gta/gta.hpp>
 #include "gdal_pam.h"
 
-CPL_CVSID("$Id: gtadataset.cpp 23475 2011-12-05 22:44:57Z rouault $");
+CPL_CVSID("$Id: gtadataset.cpp 27044 2014-03-16 23:41:27Z rouault $");
 
 CPL_C_START
 void    GDALRegister_GTA(void);
@@ -853,7 +854,7 @@ CPLErr GTADataset::ReadBlock( int nBlockXOff, int nBlockYOff )
 
         try
         {
-            uintmax_t lo[2] = { nBlockXOff * nBlockXSize, nBlockYOff * nBlockYSize};
+            uintmax_t lo[2] = { (uintmax_t)nBlockXOff * nBlockXSize, (uintmax_t)nBlockYOff * nBlockYSize};
             uintmax_t hi[2] = { lo[0] + nBlockXSize - 1, lo[1] + nBlockYSize - 1 };
             oHeader.read_block( oGTAIO, DataOffset, lo, hi, pBlock );
         }
@@ -883,7 +884,7 @@ CPLErr GTADataset::WriteBlock( )
     // Write the block (nLastBlockXOff, nLastBlockYOff) stored in pBlock.
     try
     {
-        uintmax_t lo[2] = { nLastBlockXOff * nBlockXSize, nLastBlockYOff * nBlockYSize};
+        uintmax_t lo[2] = { (uintmax_t)nLastBlockXOff * nBlockXSize, (uintmax_t)nLastBlockYOff * nBlockYSize};
         uintmax_t hi[2] = { lo[0] + nBlockXSize - 1, lo[1] + nBlockYSize - 1 };
         oHeader.write_block( oGTAIO, DataOffset, lo, hi, pBlock );
     }

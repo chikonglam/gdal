@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #/******************************************************************************
-# * $Id: gdalinfo.py 22986 2011-08-27 14:20:16Z rouault $
+# * $Id: gdalinfo.py 27044 2014-03-16 23:41:27Z rouault $
 # *
 # * Project:  GDAL Utilities
 # * Purpose:  Python port of Commandline application to list info about a file.
@@ -9,7 +9,7 @@
 # * Port from gdalinfo.c whose author is Frank Warmerdam
 # *
 # ******************************************************************************
-# * Copyright (c) 2010, Even Rouault
+# * Copyright (c) 2010-2011, Even Rouault <even dot rouault at mines-paris dot org>
 # * Copyright (c) 1998, Frank Warmerdam
 # *
 # * Permission is hereby granted, free of charge, to any person obtaining a

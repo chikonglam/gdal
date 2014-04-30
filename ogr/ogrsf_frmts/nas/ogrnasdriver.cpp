@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrnasdriver.cpp 24105 2012-03-10 12:08:04Z rouault $
+ * $Id: ogrnasdriver.cpp 26335 2013-08-15 22:34:46Z rouault $
  *
  * Project:  OGR
  * Purpose:  OGRNASDriver implementation
@@ -29,8 +29,11 @@
 
 #include "ogr_nas.h"
 #include "cpl_conv.h"
+#include "nasreaderp.h"
+#include "cpl_multiproc.h"
 
-CPL_CVSID("$Id: ogrnasdriver.cpp 24105 2012-03-10 12:08:04Z rouault $");
+CPL_CVSID("$Id: ogrnasdriver.cpp 26335 2013-08-15 22:34:46Z rouault $");
+
 
 /************************************************************************/
 /*                          ~OGRNASDriver()                           */
@@ -39,6 +42,9 @@ CPL_CVSID("$Id: ogrnasdriver.cpp 24105 2012-03-10 12:08:04Z rouault $");
 OGRNASDriver::~OGRNASDriver()
 
 {
+    if( NASReader::hMutex != NULL )
+        CPLDestroyMutex( NASReader::hMutex );
+    NASReader::hMutex = NULL;
 }
 
 /************************************************************************/

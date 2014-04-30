@@ -7,6 +7,7 @@
  * 
  ******************************************************************************
  * Copyright (C) 2010 Frank Warmerdam <warmerdam@pobox.com>
+ * Copyright (c) 2010-2013, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -30,6 +31,7 @@
 #include "cpl_conv.h"
 #include "cpl_multiproc.h"
 #include "swq.h"
+#include "ogr_geometry.h"
 #include <vector>
 
 /************************************************************************/
@@ -82,6 +84,20 @@ swq_expr_node::swq_expr_node( const char *pszValueIn )
 }
 
 /************************************************************************/
+/*                      swq_expr_node(OGRGeometry *)                    */
+/************************************************************************/
+
+swq_expr_node::swq_expr_node( OGRGeometry *poGeomIn )
+
+{
+    Initialize();
+
+    field_type = SWQ_GEOMETRY;
+    geometry_value = poGeomIn ? poGeomIn->clone() : NULL;
+    is_null = poGeomIn == NULL;
+}
+
+/************************************************************************/
 /*                        swq_expr_node(swq_op)                         */
 /************************************************************************/
 
@@ -110,6 +126,7 @@ void swq_expr_node::Initialize()
 
     is_null = FALSE;
     string_value = NULL;
+    geometry_value = NULL;
     papoSubExpr = NULL;
     nSubExprCount = 0;
 }
@@ -127,6 +144,7 @@ swq_expr_node::~swq_expr_node()
     for( i = 0; i < nSubExprCount; i++ )
         delete papoSubExpr[i];
     CPLFree( papoSubExpr );
+    delete geometry_value;
 }
 
 /************************************************************************/
@@ -167,7 +185,8 @@ void swq_expr_node::ReverseSubExpressions()
 /*      Check argument types, etc.                                      */
 /************************************************************************/
 
-swq_field_type swq_expr_node::Check( swq_field_list *poFieldList )
+swq_field_type swq_expr_node::Check( swq_field_list *poFieldList,
+                                     int bAllowFieldsInSecondaryTables )
 
 {
 /* -------------------------------------------------------------------- */
@@ -180,9 +199,12 @@ swq_field_type swq_expr_node::Check( swq_field_list *poFieldList )
         int wrk_field_index, wrk_table_index;
         swq_field_type wrk_field_type;
 
-        wrk_field_index = 
-            swq_identify_field( string_value, poFieldList,
-                                &wrk_field_type, &wrk_table_index );
+        if( is_null )
+            wrk_field_index = -1;
+        else
+            wrk_field_index = 
+                swq_identify_field( string_value, poFieldList,
+                                    &wrk_field_type, &wrk_table_index );
         
         if( wrk_field_index >= 0 )
         {
@@ -215,7 +237,14 @@ swq_field_type swq_expr_node::Check( swq_field_list *poFieldList )
                       string_value );
 
             return SWQ_ERROR;
-            
+        }
+
+        if( !bAllowFieldsInSecondaryTables && table_index != 0 )
+        {
+            CPLError( CE_Failure, CPLE_AppDefined,
+                      "Cannot use field '%s' of a secondary table in this context",
+                      string_value );
+            return SWQ_ERROR;
         }
     }
     
@@ -243,7 +272,7 @@ swq_field_type swq_expr_node::Check( swq_field_list *poFieldList )
 
     for( i = 0; i < nSubExprCount; i++ )
     {
-        if( papoSubExpr[i]->Check(poFieldList) == SWQ_ERROR )
+        if( papoSubExpr[i]->Check(poFieldList, bAllowFieldsInSecondaryTables) == SWQ_ERROR )
             return SWQ_ERROR;
     }
     
@@ -265,7 +294,7 @@ void swq_expr_node::Dump( FILE * fp, int depth )
     char        spaces[60];
     int         i;
 
-    for( i = 0; i < depth*2 && i < (int) sizeof(spaces); i++ )
+    for( i = 0; i < depth*2 && i < (int) sizeof(spaces) - 1; i++ )
         spaces[i] = ' ';
     spaces[i] = '\0';
 
@@ -281,6 +310,18 @@ void swq_expr_node::Dump( FILE * fp, int depth )
             fprintf( fp, "%s  %d\n", spaces, int_value );
         else if( field_type == SWQ_FLOAT )
             fprintf( fp, "%s  %.15g\n", spaces, float_value );
+        else if( field_type == SWQ_GEOMETRY )
+        {
+            if( geometry_value == NULL )
+                fprintf( fp, "%s  (null)\n", spaces );
+            else
+            {
+                char* pszWKT = NULL;
+                geometry_value->exportToWkt(&pszWKT);
+                fprintf( fp, "%s  %s\n", spaces, pszWKT );
+                CPLFree(pszWKT);
+            }
+        }
         else
             fprintf( fp, "%s  %s\n", spaces, string_value );
         return;
@@ -291,7 +332,7 @@ void swq_expr_node::Dump( FILE * fp, int depth )
     const swq_operation *op_def = 
         swq_op_registrar::GetOperator( (swq_op) nOperation );
 
-    fprintf( fp, "%s%s\n", spaces, op_def->osName.c_str() );
+    fprintf( fp, "%s%s\n", spaces, op_def->pszName );
 
     for( i = 0; i < nSubExprCount; i++ )
         papoSubExpr[i]->Dump( fp, depth+1 );
@@ -371,12 +412,36 @@ char *swq_expr_node::Unparse( swq_field_list *field_list, char chColumnQuote )
         if( field_index != -1 
             && table_index < field_list->table_count 
             && table_index > 0 )
-            osExpr.Printf( "%s.%s", 
-                           field_list->table_defs[table_index].table_name,
-                           field_list->names[field_index] );
+        {
+            for(int i = 0; i < field_list->count; i++ )
+            {
+                if( field_list->table_ids[i] == table_index &&
+                    field_list->ids[i] == field_index )
+                {
+                    osExpr.Printf( "%s.%s",
+                                   field_list->table_defs[table_index].table_name,
+                                   field_list->names[i] );
+                    break;
+                }
+            }
+        }
         else if( field_index != -1 )
-            osExpr.Printf( "%s", field_list->names[field_index] );
+        {
+            for(int i = 0; i < field_list->count; i++ )
+            {
+                if( field_list->table_ids[i] == table_index &&
+                    field_list->ids[i] == field_index )
+                {
+                    osExpr.Printf( "%s", field_list->names[i] );
+                    break;
+                }
+            }
+        }
 
+        if( osExpr.size() == 0 )
+        {
+            return CPLStrdup(CPLSPrintf("%c%c", chColumnQuote, chColumnQuote));
+        }
 
         for( int i = 0; i < (int) osExpr.size(); i++ )
         {
@@ -449,7 +514,7 @@ char *swq_expr_node::Unparse( swq_field_list *field_list, char chColumnQuote )
             osExpr += ")";
         }
         osExpr += " ";
-        osExpr += poOp->osName;
+        osExpr += poOp->pszName;
         osExpr += " ";
         if (papoSubExpr[1]->eNodeType == SNT_COLUMN ||
             papoSubExpr[1]->eNodeType == SNT_CONSTANT)
@@ -493,7 +558,7 @@ char *swq_expr_node::Unparse( swq_field_list *field_list, char chColumnQuote )
         CPLAssert( nSubExprCount == 3 );
         osExpr.Printf( "%s %s (%s) AND (%s)",
                        apszSubExpr[0],
-                       poOp->osName.c_str(),
+                       poOp->pszName,
                        apszSubExpr[1],
                        apszSubExpr[2] );
         break;
@@ -508,14 +573,15 @@ char *swq_expr_node::Unparse( swq_field_list *field_list, char chColumnQuote )
                 osExpr += ", ";
 
             int nLen = (int)strlen(apszSubExpr[i]);
-            if( i != 1 ||
-                !(apszSubExpr[i][0] == '\'' && nLen > 2 && apszSubExpr[i][nLen-1] == '\'') )
-                osExpr += apszSubExpr[i];
-            else
+            if( (i == 1 &&
+                (apszSubExpr[i][0] == '\'' && nLen > 2 && apszSubExpr[i][nLen-1] == '\'')) ||
+                (i == 2 && EQUAL(apszSubExpr[1], "'GEOMETRY")) )
             {
                 apszSubExpr[i][nLen-1] = '\0';
                 osExpr += apszSubExpr[i] + 1;
             }
+            else
+                osExpr += apszSubExpr[i];
 
             if( i == 1 && nSubExprCount > 2)
                 osExpr += "(";
@@ -526,7 +592,7 @@ char *swq_expr_node::Unparse( swq_field_list *field_list, char chColumnQuote )
         break;
 
       default: // function style.
-        osExpr.Printf( "%s(", poOp->osName.c_str() );
+        osExpr.Printf( "%s(", poOp->pszName );
         for( i = 0; i < nSubExprCount; i++ )
         {
             if( i > 0 )
@@ -574,6 +640,11 @@ swq_expr_node *swq_expr_node::Evaluate( swq_field_fetcher pfnFetcher,
             poRetNode->string_value = CPLStrdup(string_value);
         else
             poRetNode->string_value = NULL;
+
+        if( geometry_value )
+            poRetNode->geometry_value = geometry_value->clone();
+        else
+            poRetNode->geometry_value = NULL;
 
         poRetNode->is_null = is_null;
 

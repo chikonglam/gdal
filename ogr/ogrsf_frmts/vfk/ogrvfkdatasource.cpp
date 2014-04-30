@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrvfkdatasource.cpp 25703 2013-03-07 18:23:48Z martinl $
+ * $Id: ogrvfkdatasource.cpp 26906 2014-01-31 16:28:21Z martinl $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implements OGRVFKDatasource class.
@@ -33,7 +33,7 @@
 #include "cpl_conv.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: ogrvfkdatasource.cpp 25703 2013-03-07 18:23:48Z martinl $");
+CPL_CVSID("$Id: ogrvfkdatasource.cpp 26906 2014-01-31 16:28:21Z martinl $");
 
 /*!
   \brief OGRVFKDataSource constructor
@@ -99,7 +99,7 @@ int OGRVFKDataSource::Open(const char *pszNewName, int bTestOpen)
         szHeader[MIN(nRead, sizeof(szHeader))-1] = '\0';
         
         // TODO: improve check
-        if (strncmp(szHeader, "&HVERZE;", 8) != 0) {
+        if (strncmp(szHeader, "&H", 2) != 0) {
             VSIFClose(fp);
             return FALSE;
         } 
@@ -131,6 +131,10 @@ int OGRVFKDataSource::Open(const char *pszNewName, int bTestOpen)
         nLayers++;
     }
     
+    /* read data records if required */
+    if (CSLTestBoolean(CPLGetConfigOption("OGR_VFK_DB_READ_ALL_BLOCKS", "YES")))
+        poReader->ReadDataRecords();
+
     return TRUE;
 }
 
@@ -158,6 +162,11 @@ OGRLayer *OGRVFKDataSource::GetLayer(int iLayer)
 */
 int OGRVFKDataSource::TestCapability(const char * pszCap)
 {
+    if (EQUAL(pszCap, "IsPreProcessed") && poReader) {
+        if (poReader->IsPreProcessed())
+            return TRUE;
+    }
+
     return FALSE;
 }
 

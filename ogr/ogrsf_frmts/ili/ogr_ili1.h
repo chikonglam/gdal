@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_ili1.h 15268 2008-08-31 19:03:09Z pka $
+ * $Id: ogr_ili1.h 26979 2014-02-23 21:55:20Z pka $
  *
  * Project:  Interlis 1 Translator
  * Purpose:   Definition of classes for OGR Interlis 1 driver.
@@ -46,10 +46,7 @@ class OGRILI1Layer : public OGRLayer
 private:
     OGRSpatialReference *poSRS;
     OGRFeatureDefn      *poFeatureDefn;
-
-    OGRILI1Layer        *poSurfacePolyLayer; //Corresponding poly layer for surfaces
-    OGRILI1Layer        *poAreaReferenceLayer; //corresponding point layer for AREA's
-    OGRILI1Layer        *poAreaLineLayer; //corresponding line layer with AREA's
+    GeomFieldInfos      oGeomFieldInfos;
 
     int                 nFeatures;
     OGRFeature          **papoFeatures;
@@ -57,14 +54,14 @@ private:
 
     int                 bWriter;
 
+    int                 bGeomsJoined;
+
     OGRILI1DataSource   *poDS;
 
   public:
-                        OGRILI1Layer( const char * pszName,
-                                     OGRSpatialReference *poSRS,
-                                     int bWriter,
-                                     OGRwkbGeometryType eType,
-                                     OGRILI1DataSource *poDS );
+                        OGRILI1Layer( OGRFeatureDefn* poFeatureDefn,
+                                      GeomFieldInfos oGeomFieldInfos,
+                                      OGRILI1DataSource *poDS );
 
                        ~OGRILI1Layer();
 
@@ -75,9 +72,6 @@ private:
     OGRFeature *        GetNextFeatureRef();
     OGRFeature *        GetFeatureRef( long nFID );
 
-    void                SetSurfacePolyLayer(OGRILI1Layer *poSurfacePolyLayer);
-    void                SetAreaLayers(OGRILI1Layer *poReferenceLayer, OGRILI1Layer *poAreaLineLayer);
-
     int                 GetFeatureCount( int bForce = TRUE );
 
     OGRErr              CreateFeature( OGRFeature *poFeature );
@@ -87,14 +81,13 @@ private:
 
     OGRErr              CreateField( OGRFieldDefn *poField, int bApproxOK = TRUE );
 
-    OGRSpatialReference *GetSpatialRef();
-
     int                 TestCapability( const char * );
 
   private:
-    void                JoinSurfaceLayer();
+    void                JoinGeomLayers();
+    void                JoinSurfaceLayer( OGRILI1Layer* poSurfacePolyLayer, int nSurfaceFieldIndex );
     OGRMultiPolygon*    Polygonize( OGRGeometryCollection* poLines, bool fix_crossing_lines = false );
-    void                PolygonizeAreaLayer();
+    void                PolygonizeAreaLayer( OGRILI1Layer* poAreaLineLayer, int nAreaFieldIndex, int nPointFieldIndex );
 };
 
 /************************************************************************/
@@ -105,6 +98,7 @@ class OGRILI1DataSource : public OGRDataSource
 {
   private:
     char       *pszName;
+    ImdReader  *poImdReader;
     IILI1Reader *poReader;
     FILE       *fpTransfer;
     char       *pszTopic;
@@ -121,6 +115,7 @@ class OGRILI1DataSource : public OGRDataSource
     const char *GetName() { return pszName; }
     int         GetLayerCount() { return poReader ? poReader->GetLayerCount() : 0; }
     OGRLayer   *GetLayer( int );
+    OGRILI1Layer *GetLayerByName( const char* );
 
     FILE       *GetTransferFile() { return fpTransfer; }
 

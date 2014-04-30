@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdal_rpc.cpp 25741 2013-03-13 19:19:16Z ilucena $
+ * $Id: gdal_rpc.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  Image Warper
  * Purpose:  Implements a rational polynomail (RPC) based transformer. 
@@ -7,6 +7,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2003, Frank Warmerdam <warmerdam@pobox.com>
+ * Copyright (c) 2009-2013, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -32,7 +33,7 @@
 #include "ogr_spatialref.h"
 #include "cpl_minixml.h"
 
-CPL_CVSID("$Id: gdal_rpc.cpp 25741 2013-03-13 19:19:16Z ilucena $");
+CPL_CVSID("$Id: gdal_rpc.cpp 27044 2014-03-16 23:41:27Z rouault $");
 
 CPL_C_START
 CPLXMLNode *GDALSerializeRPCTransformer( void *pTransformArg );
@@ -452,24 +453,28 @@ void *GDALCreateRPCTransformer( GDALRPCInfo *psRPCInfo, int bReversed,
 /*      vectors.                                                        */
 /* -------------------------------------------------------------------- */
     double dfRefPixelDelta, dfRefLineDelta, dfLLDelta = 0.0001;
-    
+
     RPCTransformPoint( psRPCInfo, dfRefLong+dfLLDelta, dfRefLat, 0.0, 
                        &dfRefPixelDelta, &dfRefLineDelta );
     adfGTFromLL[1] = (dfRefPixelDelta - dfRefPixel) / dfLLDelta;
-    adfGTFromLL[2] = (dfRefLineDelta - dfRefLine) / dfLLDelta;
+    adfGTFromLL[4] = (dfRefLineDelta - dfRefLine) / dfLLDelta;
     
     RPCTransformPoint( psRPCInfo, dfRefLong, dfRefLat+dfLLDelta, 0.0, 
                        &dfRefPixelDelta, &dfRefLineDelta );
-    adfGTFromLL[4] = (dfRefPixelDelta - dfRefPixel) / dfLLDelta;
+    adfGTFromLL[2] = (dfRefPixelDelta - dfRefPixel) / dfLLDelta;
     adfGTFromLL[5] = (dfRefLineDelta - dfRefLine) / dfLLDelta;
 
-    adfGTFromLL[0] = dfRefPixel 
+    adfGTFromLL[0] = dfRefPixel
         - adfGTFromLL[1] * dfRefLong - adfGTFromLL[2] * dfRefLat;
-    adfGTFromLL[3] = dfRefLine 
+    adfGTFromLL[3] = dfRefLine
         - adfGTFromLL[4] * dfRefLong - adfGTFromLL[5] * dfRefLat;
-
-    GDALInvGeoTransform( adfGTFromLL, psTransform->adfPLToLatLongGeoTransform);
     
+    if( !GDALInvGeoTransform( adfGTFromLL, psTransform->adfPLToLatLongGeoTransform) )
+    {
+        CPLError(CE_Failure, CPLE_AppDefined, "Cannot invert geotransform");
+        GDALDestroyRPCTransformer(psTransform);
+        return NULL;
+    }
     return psTransform;
 }
 
@@ -548,20 +553,24 @@ RPCInverseTransformPoint( GDALRPCTransformInfo *psTransform,
             //CPLDebug( "RPC", "Converged!" );
             break;
         }
-
     }
 
     if( iIter != -1 )
-        CPLDebug( "RPC", "Iterations %d: Got: %g,%g  Offset=%g,%g", 
+    {
+#ifdef notdef
+        CPLDebug( "RPC", "Failed Iterations %d: Got: %g,%g  Offset=%g,%g", 
                   iIter, 
                   dfResultX, dfResultY,
                   dfPixelDeltaX, dfPixelDeltaY );
+#endif
+    }
     
     *pdfLong = dfResultX;
     *pdfLat = dfResultY;
 }
 
 
+static
 double BiCubicKernel(double dfVal)
 {
 	if ( dfVal > 2.0 )
@@ -702,9 +711,9 @@ int GDALRPCTransform( void *pTransformArg, int bDstToSrc,
                         continue;
                     }
                     //cubic interpolation
-                    int adElevData[16] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+                    int anElevData[16] = {0};
                     CPLErr eErr = psTransform->poDS->RasterIO(GF_Read, dXNew, dYNew, 4, 4,
-                                                              &adElevData, 4, 4,
+                                                              &anElevData, 4, 4,
                                                               GDT_Int32, 1, bands, 0, 0, 0);
                     if(eErr != CE_None)
                     {
@@ -713,10 +722,10 @@ int GDALRPCTransform( void *pTransformArg, int bDstToSrc,
                     }
 
                     double dfSumH(0);
-                    for ( int i = 0; i < 5; i++ )
+                    for ( int i = 0; i < 4; i++ )
                     {
                         // Loop across the X axis
-                        for ( int j = 0; j < 5; j++ )
+                        for ( int j = 0; j < 4; j++ )
                         {
                             // Calculate the weight for the specified pixel according
                             // to the bicubic b-spline kernel we're using for
@@ -727,7 +736,7 @@ int GDALRPCTransform( void *pTransformArg, int bDstToSrc,
 
                             // Create a sum of all values
                             // adjusted for the pixel's calculated weight
-                            dfSumH += adElevData[j + i * 4] * dfPixelWeight;
+                            dfSumH += anElevData[j + i * 4] * dfPixelWeight;
                         }
                     }
                     dfDEMH = dfSumH;
@@ -837,9 +846,9 @@ int GDALRPCTransform( void *pTransformArg, int bDstToSrc,
                     continue;
                 }
                 //cubic interpolation
-                int adElevData[16] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+                int anElevData[16] = {0};
                 CPLErr eErr = psTransform->poDS->RasterIO(GF_Read, dXNew, dYNew, 4, 4,
-                                                          &adElevData, 4, 4,
+                                                          &anElevData, 4, 4,
                                                           GDT_Int32, 1, bands, 0, 0, 0);
                 if(eErr != CE_None)
                 {
@@ -848,10 +857,10 @@ int GDALRPCTransform( void *pTransformArg, int bDstToSrc,
                 }
 
                 double dfSumH(0);
-                for ( int i = 0; i < 5; i++ )
+                for ( int i = 0; i < 4; i++ )
                 {
                     // Loop across the X axis
-                    for ( int j = 0; j < 5; j++ )
+                    for ( int j = 0; j < 4; j++ )
                     {
                         // Calculate the weight for the specified pixel according
                         // to the bicubic b-spline kernel we're using for
@@ -862,7 +871,7 @@ int GDALRPCTransform( void *pTransformArg, int bDstToSrc,
 
                         // Create a sum of all values
                         // adjusted for the pixel's calculated weight
-                        dfSumH += adElevData[j + i * 4] * dfPixelWeight;
+                        dfSumH += anElevData[j + i * 4] * dfPixelWeight;
                     }
                 }
                 dfDEMH = dfSumH;
@@ -875,9 +884,9 @@ int GDALRPCTransform( void *pTransformArg, int bDstToSrc,
                     continue;
                 }
                 //bilinear interpolation
-                int adElevData[4] = {0,0,0,0};
+                int anElevData[4] = {0,0,0,0};
                 CPLErr eErr = psTransform->poDS->RasterIO(GF_Read, dX, dY, 2, 2,
-                                                          &adElevData, 2, 2,
+                                                          &anElevData, 2, 2,
                                                           GDT_Int32, 1, bands, 0, 0, 0);
                 if(eErr != CE_None)
                 {
@@ -887,8 +896,8 @@ int GDALRPCTransform( void *pTransformArg, int bDstToSrc,
                 double dfDeltaX1 = 1.0 - dfDeltaX;                
                 double dfDeltaY1 = 1.0 - dfDeltaY;
 
-                double dfXZ1 = adElevData[0] * dfDeltaX1 + adElevData[1] * dfDeltaX;
-                double dfXZ2 = adElevData[2] * dfDeltaX1 + adElevData[3] * dfDeltaX;
+                double dfXZ1 = anElevData[0] * dfDeltaX1 + anElevData[1] * dfDeltaX;
+                double dfXZ2 = anElevData[2] * dfDeltaX1 + anElevData[3] * dfDeltaX;
                 double dfYZ = dfXZ1 * dfDeltaY1 + dfXZ2 * dfDeltaY;
                 dfDEMH = dfYZ;
             }

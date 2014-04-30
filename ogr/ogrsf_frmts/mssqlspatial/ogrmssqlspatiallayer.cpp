@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrmssqlspatiallayer.cpp 25860 2013-04-05 07:20:37Z tamas $
+ * $Id: ogrmssqlspatiallayer.cpp 25989 2013-05-05 19:35:01Z tamas $
  *
  * Project:  MSSQL Spatial driver
  * Purpose:  Definition of classes for OGR MSSQL Spatial driver.
@@ -29,7 +29,7 @@
 
 #include "ogr_mssqlspatial.h"
 
-CPL_CVSID("$Id: ogrmssqlspatiallayer.cpp 25860 2013-04-05 07:20:37Z tamas $");
+CPL_CVSID("$Id: ogrmssqlspatiallayer.cpp 25989 2013-05-05 19:35:01Z tamas $");
 /************************************************************************/
 /*                        OGRMSSQLSpatialLayer()                        */
 /************************************************************************/
@@ -120,13 +120,6 @@ CPLErr OGRMSSQLSpatialLayer::BuildFeatureDefn( const char *pszLayerName,
             else if ( EQUAL(poStmt->GetColTypeName( iCol ), "geography") )
             {
                 nGeomColumnType = MSSQLCOLTYPE_GEOGRAPHY;
-                pszGeomColumn = CPLStrdup( poStmt->GetColName(iCol) );
-                continue;
-            }
-            else if ( EQUAL(poStmt->GetColTypeName( iCol ), "image") )
-            {
-                /* for the select layers we get image type */
-                nGeomColumnType = MSSQLCOLTYPE_BINARY;
                 pszGeomColumn = CPLStrdup( poStmt->GetColName(iCol) );
                 continue;
             }

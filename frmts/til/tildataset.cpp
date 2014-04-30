@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: tildataset.cpp 25588 2013-01-31 21:09:01Z bishop $
+ * $Id: tildataset.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  EarthWatch .TIL Driver
  * Purpose:  Implementation of the TILDataset class.
@@ -7,6 +7,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2009, Frank Warmerdam
+ * Copyright (c) 2009-2011, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -35,7 +36,7 @@
 #include "cpl_multiproc.h"
 #include "cplkeywordparser.h"
 
-CPL_CVSID("$Id: tildataset.cpp 25588 2013-01-31 21:09:01Z bishop $");
+CPL_CVSID("$Id: tildataset.cpp 27044 2014-03-16 23:41:27Z rouault $");
 
 /************************************************************************/
 /* ==================================================================== */

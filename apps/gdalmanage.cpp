@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdalmanage.cpp 21425 2011-01-07 19:36:23Z warmerdam $
+ * $Id: gdalmanage.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  GDAL Utilities
  * Purpose:  Commandline utility for GDAL identify, delete, rename and copy 
@@ -8,6 +8,7 @@
  *
  * ****************************************************************************
  * Copyright (c) 2007, Frank Warmerdam
+ * Copyright (c) 2008-2009, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -32,7 +33,7 @@
 #include "cpl_string.h"
 #include "cpl_conv.h"
 
-CPL_CVSID("$Id: gdalmanage.cpp 21425 2011-01-07 19:36:23Z warmerdam $");
+CPL_CVSID("$Id: gdalmanage.cpp 27044 2014-03-16 23:41:27Z rouault $");
 
 /************************************************************************/
 /*                               Usage()                                */

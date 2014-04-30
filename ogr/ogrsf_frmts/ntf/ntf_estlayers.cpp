@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ntf_estlayers.cpp 15637 2008-10-29 16:06:38Z warmerdam $
+ * $Id: ntf_estlayers.cpp 26466 2013-09-14 09:07:46Z rouault $
  *
  * Project:  NTF Translator
  * Purpose:  NTFFileReader methods related to establishing the schemas
@@ -33,7 +33,7 @@
 #include "ntf.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: ntf_estlayers.cpp 15637 2008-10-29 16:06:38Z warmerdam $");
+CPL_CVSID("$Id: ntf_estlayers.cpp 26466 2013-09-14 09:07:46Z rouault $");
 
 #define MAX_LINK        5000
 
@@ -1692,6 +1692,7 @@ void NTFFileReader::EstablishLayer( const char * pszLayerName,
 /*      Create a new feature definition.                                */
 /* -------------------------------------------------------------------- */
         poDefn = new OGRFeatureDefn( pszLayerName );
+        poDefn->GetGeomFieldDefn(0)->SetSpatialRef(poDS->GetSpatialRef());
         poDefn->SetGeomType( eGeomType );
         poDefn->Reference();
 

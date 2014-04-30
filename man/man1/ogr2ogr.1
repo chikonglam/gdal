@@ -1,8 +1,8 @@
-.TH "ogr2ogr" 1 "Mon Aug 26 2013" "GDAL" \" -*- nroff -*-
+.TH "ogr2ogr" 1 "Wed Apr 16 2014" "GDAL" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
-ogr2ogr \- .TH "ogr2ogr" 1 "Mon Aug 26 2013" "GDAL" \" -*- nroff -*-
+ogr2ogr \- .TH "ogr2ogr" 1 "Wed Apr 16 2014" "GDAL" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -17,11 +17,11 @@ Usage: ogr2ogr [--help-general] [-skipfailures] [-append] [-update]
                [-select field_list] [-where restricted_where] 
                [-progress] [-sql <sql statement>] [-dialect dialect]
                [-preserve_fid] [-fid FID]
-               [-spat xmin ymin xmax ymax]
+               [-spat xmin ymin xmax ymax] [-geomfield field]
                [-a_srs srs_def] [-t_srs srs_def] [-s_srs srs_def]
                [-f format_name] [-overwrite] [[-dsco NAME=VALUE] ...]
                dst_datasource_name src_datasource_name
-               [-lco NAME=VALUE] [-nln name] [-nlt type] [-dim 2|3] [layer [layer ...]]
+               [-lco NAME=VALUE] [-nln name] [-nlt type] [-dim 2|3|layer_dim] [layer [layer ...]]
 
 Advanced options :
                [-gt n]
@@ -33,7 +33,8 @@ Advanced options :
                [-clipdstwhere expression]
                [-wrapdateline] [-datelineoffset val]
                [[-simplify tolerance] | [-segmentize max_dist]]
-               [-fieldTypeToString All|(type1[,type2]*)]
+               [-addfields]
+               [-fieldTypeToString All|(type1[,type2]*)] [-unsetFieldWidth]
                [-fieldmap identity | index1[,index2]*]
                [-splitlistfields] [-maxsubfields val]
                [-explodecollections] [-zfield field_name]
@@ -66,7 +67,7 @@ Delete the output layer and recreate it empty
 .IP "\fB\fB-update\fP:\fP" 1c
 Open existing output datasource in update mode rather than trying to create a new one 
 .IP "\fB\fB-select\fP\fI field_list\fP:\fP" 1c
-Comma-delimited list of fields from input layer to copy to the new layer. A field is skipped if mentioned previously in the list even if the input layer has duplicate field names. (Defaults to all; any field is skipped if a subsequent field with same name is found.) 
+Comma-delimited list of fields from input layer to copy to the new layer. A field is skipped if mentioned previously in the list even if the input layer has duplicate field names. (Defaults to all; any field is skipped if a subsequent field with same name is found.) Starting with OGR 1.11, geometry fields can also be specified in the list. 
 .IP "\fB\fB-progress\fP:\fP" 1c
 (starting with GDAL 1.7.0) Display progress on terminal. Only works if input layers have the 'fast feature count' capability. 
 .IP "\fB\fB-sql\fP \fIsql_statement\fP:\fP" 1c
@@ -79,6 +80,8 @@ Attribute query (like SQL WHERE)
 Continue after a failure, skipping the failed feature. 
 .IP "\fB\fB-spat\fP\fI xmin ymin xmax ymax\fP:\fP" 1c
 spatial query extents. Only features whose geometry intersects the extents will be selected. The geometries will not be clipped unless -clipsrc is specified 
+.IP "\fB\fB-geomfield\fP \fIfield\fP:\fP" 1c
+(OGR >= 1.11) Name of the geometry field on which the spatial filter operates on. 
 .IP "\fB\fB-dsco\fP \fINAME=VALUE\fP:\fP" 1c
 Dataset creation option (format specific) 
 .IP "\fB\fB-lco\fP\fI NAME=VALUE\fP:\fP" 1c
@@ -88,7 +91,7 @@ Assign an alternate name to the new layer
 .IP "\fB\fB-nlt\fP\fI type\fP:\fP" 1c
 Define the geometry type for the created layer. One of NONE, GEOMETRY, POINT, LINESTRING, POLYGON, GEOMETRYCOLLECTION, MULTIPOINT, MULTIPOLYGON or MULTILINESTRING. Add '25D' to the name to get 2.5D versions. Starting with GDAL 1.10, PROMOTE_TO_MULTI can be used to automatically promote layers that mix polygon or multipolygons to multipolygons, and layers that mix linestrings or multilinestrings to multilinestrings. Can be usefull when converting shapefiles to PostGIS (and other target drivers) that implements strict checks for geometry type. 
 .IP "\fB\fB-dim\fP\fI val\fP:\fP" 1c
-(starting with GDAL 1.10) Force the coordinate dimension to val (valid values are 2 or 3). This affects both the layer geometry type, and feature geometries. 
+(starting with GDAL 1.10) Force the coordinate dimension to val (valid values are 2 or 3). This affects both the layer geometry type, and feature geometries. Starting with GDAL 1.11, the value can be set to 'layer_dim' to instruct feature geometries to be promoted to the coordinate dimension declared by the layer.  
 .IP "\fB\fB-a_srs\fP\fI srs_def\fP:\fP" 1c
 Assign an output SRS 
 .IP "\fB\fB-t_srs\fP\fI srs_def\fP:\fP" 1c
@@ -106,7 +109,7 @@ Srs_def can be a full WKT definition (hard to escape properly), or a well known 
 Advanced options :
 .PP
 .IP "\fB\fB-gt\fP \fIn\fP:\fP" 1c
-group \fIn\fP features per transaction (default 200). Increase the value for better performance when writing into DBMS drivers that have transaction support. 
+group \fIn\fP features per transaction (default 20000 in OGR 1.11, 200 in previous releases). Increase the value for better performance when writing into DBMS drivers that have transaction support. 
 .IP "\fB\fB-clipsrc\fP\fI [xmin ymin xmax ymax]|WKT|datasource|spat_extent\fP: \fP" 1c
 (starting with GDAL 1.7.0) clip geometries to the specified bounding box (expressed in source SRS), WKT geometry (POLYGON or MULTIPOLYGON), from a datasource or to the spatial extent of the \fB-spat\fP option if you use the \fIspat_extent\fP keyword. When specifying a datasource, you will generally want to use it in combination of the \fB-clipsrclayer\fP, \fB-clipsrcwhere\fP or \fB-clipsrcsql\fP options 
 .IP "\fB\fB-clipsrcsql\fP \fIsql_statement\fP:\fP" 1c
@@ -133,6 +136,8 @@ Restrict desired geometries based on attribute query.
 (starting with GDAL 1.6.0) maximum distance between 2 nodes. Used to create intermediate points 
 .IP "\fB\fB-fieldTypeToString\fP\fI type1, ...\fP:\fP" 1c
 (starting with GDAL 1.7.0) converts any field of the specified type to a field of type string in the destination layer. Valid types are : Integer, Real, String, Date, Time, DateTime, Binary, IntegerList, RealList, StringList. Special value \fBAll\fP can be used to convert all fields to strings. This is an alternate way to using the CAST operator of OGR SQL, that may avoid typing a long SQL query. 
+.IP "\fB\fB-unsetFieldWidth\fP:\fP" 1c
+(starting with GDAL 1.11) set field width and precision to 0. 
 .IP "\fB\fB-splitlistfields\fP:\fP" 1c
 (starting with GDAL 1.8.0) split fields of type StringList, RealList or IntegerList into as many fields of type String, Real or Integer as necessary. 
 .IP "\fB\fB-maxsubfields\fP \fIval\fP:\fP" 1c
@@ -149,10 +154,12 @@ To be combined with -splitlistfields to limit the number of subfields created fo
 (starting with GDAL 1.10.0) Force use of thin plate spline transformer based on available GCPs. 
 .IP "\fB\fB-fieldmap\fP:\fP" 1c
 (starting with GDAL 1.10.0) Specifies the list of field indexes to be copied from the source to the destination. The (n)th value specified in the list is the index of the field in the target layer definition in which the n(th) field of the source layer must be copied. Index count starts at zero. There must be exactly as many values in the list as the count of the fields in the source layer. We can use the 'identity' setting to specify that the fields should be transferred by using the same order. This setting should be used along with the -append setting. 
+.IP "\fB\fB-addfields\fP:\fP" 1c
+(starting with GDAL 1.11) This is a specialized version of -append. Contrary to -append, -addfields has the effect of adding, to existing target layers, the new fields found in source layers. This option is usefull when merging files that have non-strictly identical structures. This might not work for output formats that don't support adding fields to existing non-empty layers. 
 .PP
 .SH "PERFORMANCE HINTS"
 .PP
-When writing into transactional DBMS (SQLite/PostgreSQL,MySQL, etc...), it might be beneficial to increase the number of INSERT statements executed between BEGIN TRANSACTION and COMMIT TRANSACTION statements. This number is specified with the -gt option. For example, for SQLite, explicitly defining \fB-gt 1024\fP usually ensures a noticeable performance boost; defining an even bigger \fB-gt 65536\fP ensures optimal performance while populating some table containing many hundredth thousand or million rows. However, note that if there are failed insertions, the scope of -skipfailures is a whole transaction.
+When writing into transactional DBMS (SQLite/PostgreSQL,MySQL, etc...), it might be beneficial to increase the number of INSERT statements executed between BEGIN TRANSACTION and COMMIT TRANSACTION statements. This number is specified with the -gt option. For example, for SQLite, explicitly defining \fB-gt 65536\fP ensures optimal performance while populating some table containing many hundredth thousand or million rows. However, note that if there are failed insertions, the scope of -skipfailures is a whole transaction.
 .PP
 For PostgreSQL, the PG_USE_COPY config option can be set to YES for significantly insertion performance boot. See the PG driver documentation page.
 .PP

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ili2reader.h 13906 2008-03-01 13:08:28Z rouault $
+ * $Id: ili2reader.h 27184 2014-04-14 22:21:56Z pka $
  *
  * Project:  Interlis 2 Reader
  * Purpose:  Public Declarations for Reader code.
@@ -36,6 +36,7 @@
 #define INFINITY INFINITY_XERCES
 #endif
 
+#include "imdreader.h"
 #include <list>
 
 
@@ -45,7 +46,8 @@ public:
     virtual     ~IILI2Reader();
 
     virtual void SetSourceFile( const char *pszFilename ) = 0;
-    virtual int  ReadModel( char **modelFilenames ) = 0;
+
+    virtual int  ReadModel( ImdReader *poImdReader, const char *modelFilename ) = 0;
     virtual int  SaveClasses( const char *pszFilename ) = 0;
     
     virtual std::list<OGRLayer *> GetLayers() = 0;

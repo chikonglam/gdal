@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 ###############################################################################
-# $Id: rel.py 24538 2012-06-04 18:30:34Z antonio $
+# $Id: rel.py 27044 2014-03-16 23:41:27Z rouault $
 #
 # Project:  GDAL Python samples
 # Purpose:  Script to produce a shaded relief image from elevation data
@@ -8,6 +8,7 @@
 #
 ###############################################################################
 # Copyright (c) 2003, Andrey Kiselev <dron@remotesensing.org>
+# Copyright (c) 2009, Even Rouault <even dot rouault at mines-paris dot org>
 # 
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),

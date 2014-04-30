@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdalwarp.cpp 26006 2013-05-16 15:00:44Z etourigny $
+ * $Id: gdalwarp.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  High Performance Image Reprojector
  * Purpose:  Test program for high performance warper API.
@@ -8,6 +8,7 @@
  ******************************************************************************
  * Copyright (c) 2002, i3 - information integration and imaging 
  *                          Fort Collin, CO
+ * Copyright (c) 2007-2013, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -35,7 +36,7 @@
 #include "commonutils.h"
 #include <vector>
 
-CPL_CVSID("$Id: gdalwarp.cpp 26006 2013-05-16 15:00:44Z etourigny $");
+CPL_CVSID("$Id: gdalwarp.cpp 27044 2014-03-16 23:41:27Z rouault $");
 
 static void
 LoadCutline( const char *pszCutlineDSName, const char *pszCLayer, 
@@ -167,7 +168,8 @@ for output bands (different values can be supplied for each band).  If more
 than one value is supplied all values should be quoted to keep them together
 as a single operating system argument.  New files will be initialized to this
 value and if possible the nodata value will be recorded in the output
-file.</dd>
+file. Use a value of <tt>None</tt> to ensure that nodata is not defined (GDAL>=2.0).
+If this argument is not used then nodata values will be copied from the source dataset (GDAL>=2.0).</dd>
 <dt> <b>-dstalpha</b>:</dt><dd> Create an output alpha band to identify 
 nodata (unset/transparent) pixels. </dd>
 <dt> <b>-wm</b> <em>memory_in_mb</em>:</dt><dd> Set the amount of memory (in
@@ -209,8 +211,8 @@ use the -overwrite option.
 
 Polygon cutlines may be used as a mask to restrict the area of the destination file
 that may be updated, including blending.  If the OGR layer containing the cutline
-features has no explicit SRS, the cutline features must be in the georeferenced
-units of the destination file. When outputing to a not yet existing target dataset,
+features has no explicit SRS, the cutline features must be in the SRS of the
+destination file. When outputing to a not yet existing target dataset,
 its extent will be the one of the original raster unless -te or -crop_to_cutline are
 specified.
 
@@ -690,7 +692,7 @@ int main( int argc, char ** argv )
             bSetColorInterpretation = TRUE;
 
         else if( argv[i][0] == '-' )
-            Usage(CPLSPrintf("Unkown option name '%s'", argv[i]));
+            Usage(CPLSPrintf("Unknown option name '%s'", argv[i]));
 
         else 
             papszSrcFiles = CSLAddString( papszSrcFiles, argv[i] );
@@ -891,6 +893,10 @@ int main( int argc, char ** argv )
     void* hUniqueTransformArg = NULL;
     GDALDatasetH hUniqueSrcDS = NULL;
 
+    const char* pszWarpThreads = CSLFetchNameValue(papszWarpOptions, "NUM_THREADS");
+    if( pszWarpThreads != NULL )
+        papszTO = CSLSetNameValue(papszTO, "NUM_THREADS", pszWarpThreads);
+
     if( hDstDS == NULL )
     {
         if (!bQuiet && !bFormatExplicitelySet)
@@ -987,10 +993,20 @@ int main( int argc, char ** argv )
                     {
                         hSrcBand = GDALGetRasterBand( hSrcDS, iBand + 1 );
                         hDstBand = GDALGetRasterBand( hDstDS, iBand + 1 );
-                        /* copy metadata */
+                        /* copy metadata, except stats (#5319) */
                         papszMetadata = GDALGetMetadata( hSrcBand, NULL);              
                         if ( CSLCount(papszMetadata) > 0 )
-                            GDALSetMetadata( hDstBand, papszMetadata, NULL );
+                        {
+                            //GDALSetMetadata( hDstBand, papszMetadata, NULL );       
+                            char** papszMetadataNew = NULL;
+                            for( int i = 0; papszMetadata != NULL && papszMetadata[i] != NULL; i++ )
+                            {
+                                if (strncmp(papszMetadata[i], "STATISTICS_", 11) != 0)
+                                    papszMetadataNew = CSLAddString(papszMetadataNew, papszMetadata[i]);
+                            }
+                            GDALSetMetadata( hDstBand, papszMetadataNew, NULL );
+                            CSLDestroy(papszMetadataNew);
+                        }
                         /* copy other info (Description, Unit Type) - what else? */
                         if ( bCopyBandInfo ) {
                             pszSrcInfo = GDALGetDescription( hSrcBand );
@@ -1167,7 +1183,7 @@ int main( int argc, char ** argv )
 /* -------------------------------------------------------------------- */
 /*      Setup NODATA options.                                           */
 /* -------------------------------------------------------------------- */
-        if( pszSrcNodata != NULL && !EQUALN(pszSrcNodata,"n",1) )
+        if( pszSrcNodata != NULL && !EQUAL(pszSrcNodata,"none") )
         {
             char **papszTokens = CSLTokenizeString( pszSrcNodata );
             int  nTokenCount = CSLCount(papszTokens);
@@ -1218,10 +1234,10 @@ int main( int argc, char ** argv )
                 if( !bQuiet )
                 {
                     if (CPLIsNan(dfReal))
-                        printf( "Using internal nodata values (eg. nan) for image %s.\n",
+                        printf( "Using internal nodata values (e.g. nan) for image %s.\n",
                                 papszSrcFiles[iSrc] );
                     else
-                        printf( "Using internal nodata values (eg. %g) for image %s.\n",
+                        printf( "Using internal nodata values (e.g. %g) for image %s.\n",
                                 dfReal, papszSrcFiles[iSrc] );
                 }
                 psWO->padfSrcNoDataReal = (double *) 
@@ -1257,6 +1273,7 @@ int main( int argc, char ** argv )
         {
             char **papszTokens = CSLTokenizeString( pszDstNodata );
             int  nTokenCount = CSLCount(papszTokens);
+            int bDstNoDataNone = TRUE;
 
             psWO->padfDstNoDataReal = (double *) 
                 CPLMalloc(psWO->nBandCount*sizeof(double));
@@ -1267,14 +1284,37 @@ int main( int argc, char ** argv )
             {
                 if( i < nTokenCount )
                 {
+                    if ( papszTokens[i] != NULL && EQUAL(papszTokens[i],"none") )
+                    {
+                        CPLDebug( "WARP", "dstnodata of band %d not set", i );
+                        bDstNoDataNone = TRUE;
+                        continue;
+                    }
+                    else if ( papszTokens[i] == NULL ) // this shouldn't happen, but just in case
+                    {
+                        fprintf( stderr, "Error parsing dstnodata arg #%d\n", i );
+                        bDstNoDataNone = TRUE;
+                        continue;
+                    }
                     CPLStringToComplex( papszTokens[i], 
                                         psWO->padfDstNoDataReal + i,
                                         psWO->padfDstNoDataImag + i );
+                    bDstNoDataNone = FALSE;
+                    CPLDebug( "WARP", "dstnodata of band %d set to %f", i, psWO->padfDstNoDataReal[i] );
                 }
                 else
                 {
-                    psWO->padfDstNoDataReal[i] = psWO->padfDstNoDataReal[i-1];
-                    psWO->padfDstNoDataImag[i] = psWO->padfDstNoDataImag[i-1];
+                    if ( ! bDstNoDataNone )
+                    {                    
+                        psWO->padfDstNoDataReal[i] = psWO->padfDstNoDataReal[i-1];
+                        psWO->padfDstNoDataImag[i] = psWO->padfDstNoDataImag[i-1];
+                        CPLDebug( "WARP", "dstnodata of band %d set from previous band", i );
+                    }
+                    else
+                    {
+                        CPLDebug( "WARP", "dstnodata value of band %d not set", i );
+                        continue;
+                    }
                 }
                 
                 GDALRasterBandH hBand = GDALGetRasterBand( hDstDS, i+1 );
@@ -1335,6 +1375,44 @@ int main( int argc, char ** argv )
             }
 
             CSLDestroy( papszTokens );
+        }
+        /* else try to fill dstNoData from source bands */
+        else if ( psWO->padfSrcNoDataReal != NULL )
+        {
+            psWO->padfDstNoDataReal = (double *) 
+                CPLMalloc(psWO->nBandCount*sizeof(double));
+            psWO->padfDstNoDataImag = (double *) 
+                CPLMalloc(psWO->nBandCount*sizeof(double));
+
+            if( !bQuiet )
+                printf( "Copying nodata values from source %s to destination %s.\n",
+                        papszSrcFiles[iSrc], pszDstFilename );
+
+            for( i = 0; i < psWO->nBandCount; i++ )
+            {
+                int bHaveNodata = FALSE;
+                
+                GDALRasterBandH hBand = GDALGetRasterBand( hSrcDS, i+1 );
+                GDALGetRasterNoDataValue( hBand, &bHaveNodata );
+
+                CPLDebug("WARP", "band=%d bHaveNodata=%d", i, bHaveNodata);
+                if( bHaveNodata )
+                {
+                    psWO->padfDstNoDataReal[i] = psWO->padfSrcNoDataReal[i];
+                    psWO->padfDstNoDataImag[i] = psWO->padfSrcNoDataImag[i];
+                    CPLDebug("WARP", "srcNoData=%f dstNoData=%f", 
+                             psWO->padfSrcNoDataReal[i], psWO->padfDstNoDataReal[i] );
+                }
+
+                if( bCreateOutput )
+                {
+                    CPLDebug("WARP", "calling GDALSetRasterNoDataValue() for band#%d", i );
+                    GDALSetRasterNoDataValue( 
+                        GDALGetRasterBand( hDstDS, psWO->panDstBands[i] ), 
+                        psWO->padfDstNoDataReal[i] );
+                }
+            }
+
         }
 
 /* -------------------------------------------------------------------- */
@@ -1424,7 +1502,7 @@ int main( int argc, char ** argv )
 /* -------------------------------------------------------------------- */
     CPLErrorReset();
     GDALFlushCache( hDstDS );
-    if( CPLGetLastErrorType() != CE_None )
+    if( CPLGetLastErrorType() == CE_Failure )
         bHasGotErr = TRUE;
     GDALClose( hDstDS );
     
@@ -2230,16 +2308,20 @@ RemoveConflictingMetadata( GDALMajorObjectH hObj, char **papszMetadata,
     int nCount = CSLCount( papszMetadataRef ); 
 
     for( int i = 0; i < nCount; i++ ) 
-    { 
+    {
+        pszKey = NULL;
         pszValueRef = CPLParseNameValue( papszMetadataRef[i], &pszKey ); 
-        pszValueComp = GDALGetMetadataItem( hObj, pszKey, NULL );
-        if ( ( pszValueRef == NULL || pszValueComp == NULL ||
-               ! EQUAL( pszValueRef, pszValueComp ) ) &&
-             ( pszValueComp == NULL ||
-               ! EQUAL( pszValueComp, pszValueConflict ) ) ) {
-            GDALSetMetadataItem( hObj, pszKey, pszValueConflict, NULL ); 
+        if( pszKey != NULL )
+        {
+            pszValueComp = GDALGetMetadataItem( hObj, pszKey, NULL );
+            if ( ( pszValueRef == NULL || pszValueComp == NULL ||
+                ! EQUAL( pszValueRef, pszValueComp ) ) &&
+                ( pszValueComp == NULL ||
+                ! EQUAL( pszValueComp, pszValueConflict ) ) ) {
+                GDALSetMetadataItem( hObj, pszKey, pszValueConflict, NULL ); 
+            }
+            CPLFree( pszKey );
         }
-        CPLFree( pszKey ); 
     } 
 
     CSLDestroy( papszMetadataRef );

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: dted_test.c 12247 2007-09-27 18:18:06Z rouault $
+ * $Id: dted_test.c 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  DTED Translator
  * Purpose:  Test mainline for DTED writer.
@@ -7,6 +7,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2001, Frank Warmerdam
+ * Copyright (c) 2007, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),

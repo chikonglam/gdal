@@ -1,8 +1,8 @@
-.TH "gdalwarp" 1 "Mon Aug 26 2013" "GDAL" \" -*- nroff -*-
+.TH "gdalwarp" 1 "Wed Apr 16 2014" "GDAL" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
-gdalwarp \- .TH "gdalwarp" 1 "Mon Aug 26 2013" "GDAL" \" -*- nroff -*-
+gdalwarp \- .TH "gdalwarp" 1 "Wed Apr 16 2014" "GDAL" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -84,7 +84,7 @@ mode resampling, selects the value which appears most often of all the sampled p
 .IP "\fB\fB-srcnodata\fP \fIvalue [value...]\fP:\fP" 1c
 Set nodata masking values for input bands (different values can be supplied for each band). If more than one value is supplied all values should be quoted to keep them together as a single operating system argument. Masked values will not be used in interpolation. Use a value of \fCNone\fP to ignore intrinsic nodata settings on the source dataset. 
 .IP "\fB\fB-dstnodata\fP \fIvalue [value...]\fP:\fP" 1c
-Set nodata values for output bands (different values can be supplied for each band). If more than one value is supplied all values should be quoted to keep them together as a single operating system argument. New files will be initialized to this value and if possible the nodata value will be recorded in the output file. 
+Set nodata values for output bands (different values can be supplied for each band). If more than one value is supplied all values should be quoted to keep them together as a single operating system argument. New files will be initialized to this value and if possible the nodata value will be recorded in the output file. Use a value of \fCNone\fP to ensure that nodata is not defined (GDAL>=2.0). If this argument is not used then nodata values will be copied from the source dataset (GDAL>=2.0). 
 .IP "\fB\fB-dstalpha\fP:\fP" 1c
 Create an output alpha band to identify nodata (unset/transparent) pixels.  
 .IP "\fB\fB-wm\fP \fImemory_in_mb\fP:\fP" 1c
@@ -127,7 +127,7 @@ The destination file name.
 .PP
 Mosaicing into an existing output file is supported if the output file already exists. The spatial extent of the existing file will not be modified to accomodate new data, so you may have to remove it in that case, or use the -overwrite option.
 .PP
-Polygon cutlines may be used as a mask to restrict the area of the destination file that may be updated, including blending. If the OGR layer containing the cutline features has no explicit SRS, the cutline features must be in the georeferenced units of the destination file. When outputing to a not yet existing target dataset, its extent will be the one of the original raster unless -te or -crop_to_cutline are specified.
+Polygon cutlines may be used as a mask to restrict the area of the destination file that may be updated, including blending. If the OGR layer containing the cutline features has no explicit SRS, the cutline features must be in the SRS of the destination file. When outputing to a not yet existing target dataset, its extent will be the one of the original raster unless -te or -crop_to_cutline are specified.
 .SH "EXAMPLE"
 .PP
 For instance, an eight bit spot scene stored in GeoTIFF with control points mapping the corners to lat/long could be warped to a UTM projection with a command like this:

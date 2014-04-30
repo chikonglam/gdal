@@ -1,12 +1,12 @@
 /******************************************************************************
- * $Id: epsilondataset.cpp 22363 2011-05-12 18:26:19Z rouault $
+ * $Id: epsilondataset.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  GDAL Epsilon driver
  * Purpose:  Implement GDAL Epsilon support using Epsilon library
  * Author:   Even Rouault, <even dot rouault at mines dash paris dot org>
  *
  **********************************************************************
- * Copyright (c) 2009, Even Rouault, <even dot rouault at mines dash paris dot org>
+ * Copyright (c) 2009-2011, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -30,7 +30,7 @@
 #include "epsilon.h"
 #include "gdal_pam.h"
 
-CPL_CVSID("$Id: epsilondataset.cpp 22363 2011-05-12 18:26:19Z rouault $");
+CPL_CVSID("$Id: epsilondataset.cpp 27044 2014-03-16 23:41:27Z rouault $");
 
 #define RASTERLITE_WAVELET_HEADER "StartWaveletsImage$$"
 #define RASTERLITE_WAVELET_FOOTER "$$EndWaveletsImage"

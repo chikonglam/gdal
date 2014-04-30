@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_sosi.h 21065 2010-11-05 18:47:30Z rouault $
+ * $Id: ogr_sosi.h 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  SOSI Translator
  * Purpose:  Implements OGRSOSIDriver.
@@ -7,6 +7,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2010, Thomas Hirsch
+ * Copyright (c) 2010, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -68,7 +69,6 @@ public:
  ************************************************************************/
 
 class OGRSOSILayer : public OGRLayer {
-    FILE               *fp;
     int                 nNextFID;
 
     OGRSOSIDataSource  *poParent;   /* used to call methods from data source */
@@ -90,7 +90,6 @@ public:
     OGRErr              CreateField(OGRFieldDefn *poField, int bApproxOK=TRUE);
     OGRErr              CreateFeature(OGRFeature *poFeature);
     int                 TestCapability( const char * );
-    OGRSpatialReference  *GetSpatialRef();
 };
 
 /************************************************************************

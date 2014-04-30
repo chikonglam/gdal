@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrcsvdatasource.cpp 25354 2012-12-27 10:26:34Z rouault $
+ * $Id: ogrcsvdatasource.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  CSV Translator
  * Purpose:  Implements OGRCSVDataSource class
@@ -7,6 +7,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2004, Frank Warmerdam <warmerdam@pobox.com>
+ * Copyright (c) 2008-2013, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -33,7 +34,7 @@
 #include "cpl_csv.h"
 #include "cpl_vsi_virtual.h"
 
-CPL_CVSID("$Id: ogrcsvdatasource.cpp 25354 2012-12-27 10:26:34Z rouault $");
+CPL_CVSID("$Id: ogrcsvdatasource.cpp 27044 2014-03-16 23:41:27Z rouault $");
 
 /************************************************************************/
 /*                          OGRCSVDataSource()                          */
@@ -48,6 +49,7 @@ OGRCSVDataSource::OGRCSVDataSource()
     pszName = NULL;
 
     bUpdate = FALSE;
+    bEnableGeometryFields = FALSE;
 }
 
 /************************************************************************/
@@ -75,6 +77,8 @@ int OGRCSVDataSource::TestCapability( const char * pszCap )
         return bUpdate;
     else if( EQUAL(pszCap,ODsCDeleteLayer) )
         return bUpdate;
+    else if( EQUAL(pszCap,ODsCCreateGeomFieldAfterCreateLayer) )
+        return bUpdate && bEnableGeometryFields;
     else
         return FALSE;
 }
@@ -592,11 +596,15 @@ OGRCSVDataSource::CreateLayer( const char *pszLayerName,
 /*      Should we write the geometry ?                                  */
 /* -------------------------------------------------------------------- */
     const char *pszGeometry = CSLFetchNameValue( papszOptions, "GEOMETRY");
-    if (pszGeometry != NULL)
+    if( bEnableGeometryFields )
+    {
+        papoLayers[nLayers-1]->SetWriteGeometry(eGType, OGR_CSV_GEOM_AS_WKT);
+    }
+    else if (pszGeometry != NULL)
     {
         if (EQUAL(pszGeometry, "AS_WKT"))
         {
-            papoLayers[nLayers-1]->SetWriteGeometry(OGR_CSV_GEOM_AS_WKT);
+            papoLayers[nLayers-1]->SetWriteGeometry(eGType, OGR_CSV_GEOM_AS_WKT);
         }
         else if (EQUAL(pszGeometry, "AS_XYZ") ||
                  EQUAL(pszGeometry, "AS_XY") ||
@@ -604,7 +612,8 @@ OGRCSVDataSource::CreateLayer( const char *pszLayerName,
         {
             if (eGType == wkbUnknown || wkbFlatten(eGType) == wkbPoint)
             {
-                papoLayers[nLayers-1]->SetWriteGeometry(EQUAL(pszGeometry, "AS_XYZ") ? OGR_CSV_GEOM_AS_XYZ :
+                papoLayers[nLayers-1]->SetWriteGeometry(eGType,
+                                                        EQUAL(pszGeometry, "AS_XYZ") ? OGR_CSV_GEOM_AS_XYZ :
                                                         EQUAL(pszGeometry, "AS_XY") ?  OGR_CSV_GEOM_AS_XY :
                                                                                        OGR_CSV_GEOM_AS_YX);
             }

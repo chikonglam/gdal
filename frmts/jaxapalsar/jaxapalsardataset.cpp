@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: jaxapalsardataset.cpp 22636 2011-07-03 10:39:11Z rouault $
+ * $Id: jaxapalsardataset.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  PALSAR JAXA imagery reader
  * Purpose:  Support for PALSAR L1.1/1.5 imagery and appropriate metadata from
@@ -9,6 +9,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2007, Philippe P. Vachon <philippe@cowpig.ca>
+ * Copyright (c) 2008-2011, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -31,7 +32,7 @@
 
 #include "gdal_pam.h"
 
-CPL_CVSID("$Id: jaxapalsardataset.cpp 22636 2011-07-03 10:39:11Z rouault $");
+CPL_CVSID("$Id: jaxapalsardataset.cpp 27044 2014-03-16 23:41:27Z rouault $");
 
 CPL_C_START
 void	GDALRegister_PALSARJaxa(void);

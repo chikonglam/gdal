@@ -1,15 +1,15 @@
 /******************************************************************************
- * $Id: gt_wkt_srs.cpp 25659 2013-02-19 22:51:46Z warmerdam $
+ * $Id: gt_wkt_srs.cpp 27182 2014-04-14 20:03:08Z rouault $
  *
  * Project:  GeoTIFF Driver
  * Purpose:  Implements translation between GeoTIFF normalized projection
- *           definitions and OpenGIS WKT SRS format.  This code is
- *           deliberately GDAL free, and it is intended to be moved into
- *           libgeotiff someday if possible.
+ *           definitions and OpenGIS WKT SRS format.  This code is intended to
+ *           be moved into libgeotiff someday if possible.
  * Author:   Frank Warmerdam, warmerdam@pobox.com
  *
  ******************************************************************************
  * Copyright (c) 1999, Frank Warmerdam
+ * Copyright (c) 2008-2014, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -30,9 +30,10 @@
  * DEALINGS IN THE SOFTWARE.
  ****************************************************************************/
 
-#include "cpl_serv.h"
-#include "geo_tiffp.h"
-#define CPL_ERROR_H_INCLUDED
+#include "cpl_error.h"
+#include "cpl_conv.h"
+#include "cpl_csv.h"
+#include "gdal_csv.h"
 
 #include "geovalues.h"
 #include "ogr_spatialref.h"
@@ -44,7 +45,7 @@
 #include "gt_wkt_srs_for_gdal.h"
 #include "gt_citation.h"
 
-CPL_CVSID("$Id: gt_wkt_srs.cpp 25659 2013-02-19 22:51:46Z warmerdam $")
+CPL_CVSID("$Id: gt_wkt_srs.cpp 27182 2014-04-14 20:03:08Z rouault $")
 
 #define ProjLinearUnitsInterpCorrectGeoKey   3059
 
@@ -52,68 +53,13 @@ CPL_CVSID("$Id: gt_wkt_srs.cpp 25659 2013-02-19 22:51:46Z warmerdam $")
 #  define CT_HotineObliqueMercatorAzimuthCenter 9815
 #endif
 
+#if !defined(GTIFAtof)
+#  define GTIFAtof CPLAtof
+#endif
 
 CPL_C_START
 void CPL_DLL LibgeotiffOneTimeInit();
 void    LibgeotiffOneTimeCleanupMutex();
-
-// replicated from gdal_csv.h. 
-const char * GDALDefaultCSVFilename( const char *pszBasename );
-
-#ifndef CPL_SERV_H_INTERNAL
-/* Make VSIL_STRICT_ENFORCE active in DEBUG builds */
-#ifdef DEBUG
-#define VSIL_STRICT_ENFORCE
-#endif
-
-#ifdef VSIL_STRICT_ENFORCE
-typedef struct _VSILFILE VSILFILE;
-#else
-typedef FILE VSILFILE;
-#endif
-
-// ensure compatability with older libgeotiffs. 
-#if !defined(GTIFAtof)
-#  define GTIFAtof atof
-#endif
-
-int CPL_DLL VSIFCloseL( VSILFILE * );
-int CPL_DLL VSIUnlink( const char * );
-VSILFILE CPL_DLL *VSIFileFromMemBuffer( const char *pszFilename,
-                                    GByte *pabyData, 
-                                    GUIntBig nDataLength,
-                                    int bTakeOwnership );
-GByte CPL_DLL *VSIGetMemFileBuffer( const char *pszFilename, 
-                                    GUIntBig *pnDataLength, 
-                                    int bUnlinkAndSeize );
-
-int CPL_DLL CSLTestBoolean( const char *pszValue );
-const char CPL_DLL * CPL_STDCALL CPLGetConfigOption( const char *, const char * );
-									
-/* Those stuff are redefined in external libgeotiff cpl_serv.h */
-/* as macros. Let's use GDAL functions instead */
-/* E.Rouault : I'm wondering why we just don't #define CPL_SERV_H_INCLUDED */
-/* at the beginning of this file to avoid cpl_serv.h to be used at all ??? */
-
-#undef CSVReadParseLine
-char CPL_DLL  **CSVReadParseLine( FILE *fp);
-#undef CSLDestroy
-void CPL_DLL CPL_STDCALL CSLDestroy(char **papszStrList);
-#undef VSIFree
-void CPL_DLL    VSIFree( void * );
-#undef CPLFree
-#define CPLFree VSIFree
-#undef CPLMalloc
-void CPL_DLL *CPLMalloc( size_t );
-#undef CPLCalloc
-void CPL_DLL *CPLCalloc( size_t, size_t );
-#undef CPLStrdup
-char CPL_DLL *CPLStrdup( const char * );
-
-#endif /* CPL_SERV_H_INTERNAL */
-
-const char CPL_DLL * CPL_STDCALL CPLGetConfigOption( const char *, const char * );
-void CPL_DLL CPL_STDCALL CPLDebug( const char *, const char *, ... );
 
 CPL_C_END
 
@@ -263,11 +209,11 @@ static void WKTMassageDatum( char ** ppszDatum )
 /************************************************************************/
 
 /* For example:
-   GTCitationGeoKey (Ascii,215): "IMAGINE GeoTIFF Support\nCopyright 1991 - 2001 by ERDAS, Inc. All Rights Reserved\n@(#)$RCSfile$ $Revision: 25659 $ $Date: 2013-02-19 14:51:46 -0800 (Tue, 19 Feb 2013) $\nProjection Name = UTM\nUnits = meters\nGeoTIFF Units = meters"
+   GTCitationGeoKey (Ascii,215): "IMAGINE GeoTIFF Support\nCopyright 1991 - 2001 by ERDAS, Inc. All Rights Reserved\n@(#)$RCSfile$ $Revision: 27182 $ $Date: 2014-04-14 13:03:08 -0700 (Mon, 14 Apr 2014) $\nProjection Name = UTM\nUnits = meters\nGeoTIFF Units = meters"
 
-   GeogCitationGeoKey (Ascii,267): "IMAGINE GeoTIFF Support\nCopyright 1991 - 2001 by ERDAS, Inc. All Rights Reserved\n@(#)$RCSfile$ $Revision: 25659 $ $Date: 2013-02-19 14:51:46 -0800 (Tue, 19 Feb 2013) $\nUnable to match Ellipsoid (Datum) to a GeographicTypeGeoKey value\nEllipsoid = Clarke 1866\nDatum = NAD27 (CONUS)"
+   GeogCitationGeoKey (Ascii,267): "IMAGINE GeoTIFF Support\nCopyright 1991 - 2001 by ERDAS, Inc. All Rights Reserved\n@(#)$RCSfile$ $Revision: 27182 $ $Date: 2014-04-14 13:03:08 -0700 (Mon, 14 Apr 2014) $\nUnable to match Ellipsoid (Datum) to a GeographicTypeGeoKey value\nEllipsoid = Clarke 1866\nDatum = NAD27 (CONUS)"
 
-   PCSCitationGeoKey (Ascii,214): "IMAGINE GeoTIFF Support\nCopyright 1991 - 2001 by ERDAS, Inc. All Rights Reserved\n@(#)$RCSfile$ $Revision: 25659 $ $Date: 2013-02-19 14:51:46 -0800 (Tue, 19 Feb 2013) $\nUTM Zone 10N\nEllipsoid = Clarke 1866\nDatum = NAD27 (CONUS)"
+   PCSCitationGeoKey (Ascii,214): "IMAGINE GeoTIFF Support\nCopyright 1991 - 2001 by ERDAS, Inc. All Rights Reserved\n@(#)$RCSfile$ $Revision: 27182 $ $Date: 2014-04-14 13:03:08 -0700 (Mon, 14 Apr 2014) $\nUTM Zone 10N\nEllipsoid = Clarke 1866\nDatum = NAD27 (CONUS)"
  
 */
 
@@ -623,6 +569,7 @@ char *GTIFGetOGISDefn( GTIF *hGTIF, GTIFDefn * psDefn )
     dfSemiMajor = psDefn->SemiMajor;
     if( dfSemiMajor == 0.0 )
     {
+        CPLFree(pszSpheroidName);
         pszSpheroidName = CPLStrdup("unretrievable - using WGS84");
         dfSemiMajor = SRS_WGS84_SEMIMAJOR;
         dfInvFlattening = SRS_WGS84_INVFLATTENING;
@@ -2384,8 +2331,20 @@ int GTIFSetFromOGISDefn( GTIF * psGTIF, const char *pszOGCWKT )
 CPLErr GTIFWktFromMemBuf( int nSize, unsigned char *pabyBuffer, 
                           char **ppszWKT, double *padfGeoTransform,
                           int *pnGCPCount, GDAL_GCP **ppasGCPList )
+{
+    return GTIFWktFromMemBufEx(nSize, pabyBuffer, ppszWKT, padfGeoTransform,
+                               pnGCPCount, ppasGCPList, NULL);
+}
+
+CPLErr GTIFWktFromMemBufEx( int nSize, unsigned char *pabyBuffer, 
+                            char **ppszWKT, double *padfGeoTransform,
+                            int *pnGCPCount, GDAL_GCP **ppasGCPList,
+                            int *pbPixelIsPoint )
 
 {
+    bool    bPixelIsPoint = false;
+    int     bPointGeoIgnore = FALSE;
+    short nRasterType;
     char szFilename[100];
 
     sprintf( szFilename, "/vsimem/wkt_from_mem_buf_%ld.tif",
@@ -2426,12 +2385,25 @@ CPLErr GTIFWktFromMemBuf( int nSize, unsigned char *pabyBuffer,
 
     hGTIF = GTIFNew(hTIFF);
 
+    if( hGTIF != NULL && GTIFKeyGet(hGTIF, GTRasterTypeGeoKey, &nRasterType,
+                0, 1 ) == 1
+        && nRasterType == (short) RasterPixelIsPoint )
+    {
+        bPixelIsPoint = true;
+        bPointGeoIgnore =
+            CSLTestBoolean( CPLGetConfigOption("GTIFF_POINT_GEO_IGNORE",
+                                            "FALSE") );
+    }
+    if( pbPixelIsPoint )
+        *pbPixelIsPoint = bPixelIsPoint;
+
 #if LIBGEOTIFF_VERSION >= 1410
     psGTIFDefn = GTIFAllocDefn();
 #else
     psGTIFDefn = (GTIFDefn *) CPLCalloc(1,sizeof(GTIFDefn));
 #endif    
 
+                
     if( hGTIF != NULL && GTIFGetDefn( hGTIF, psGTIFDefn ) )
         *ppszWKT = GTIFGetOGISDefn( hGTIF, psGTIFDefn );
     else
@@ -2475,6 +2447,13 @@ CPLErr GTIFWktFromMemBuf( int nSize, unsigned char *pabyBuffer,
                 padfTiePoints[3] - padfTiePoints[0] * padfGeoTransform[1];
             padfGeoTransform[3] =
                 padfTiePoints[4] - padfTiePoints[1] * padfGeoTransform[5];
+        
+            // adjust for pixel is point in transform
+            if( bPixelIsPoint && !bPointGeoIgnore )
+            {
+                padfGeoTransform[0] -= (padfGeoTransform[1] * 0.5 + padfGeoTransform[2] * 0.5);
+                padfGeoTransform[3] -= (padfGeoTransform[4] * 0.5 + padfGeoTransform[5] * 0.5);
+            }
         }
     }
 
@@ -2531,6 +2510,16 @@ CPLErr GTIFWktFromMemBuf( int nSize, unsigned char *pabyBuffer,
 CPLErr GTIFMemBufFromWkt( const char *pszWKT, const double *padfGeoTransform,
                           int nGCPCount, const GDAL_GCP *pasGCPList,
                           int *pnSize, unsigned char **ppabyBuffer )
+{
+    return GTIFMemBufFromWktEx(pszWKT, padfGeoTransform,
+                               nGCPCount,pasGCPList,
+                               pnSize, ppabyBuffer, FALSE);
+}
+
+CPLErr GTIFMemBufFromWktEx( const char *pszWKT, const double *padfGeoTransform,
+                            int nGCPCount, const GDAL_GCP *pasGCPList,
+                            int *pnSize, unsigned char **ppabyBuffer,
+                            int bPixelIsPoint )
 
 {
     TIFF        *hTIFF;
@@ -2572,10 +2561,26 @@ CPLErr GTIFMemBufFromWkt( const char *pszWKT, const double *padfGeoTransform,
 /*      Get the projection definition.                                  */
 /* -------------------------------------------------------------------- */
 
-    if( pszWKT != NULL )
+    int  bPointGeoIgnore = FALSE;
+    if( bPixelIsPoint )
+    {
+        bPointGeoIgnore = 
+            CSLTestBoolean( CPLGetConfigOption("GTIFF_POINT_GEO_IGNORE",
+                                               "FALSE") );
+    }
+
+    if( pszWKT != NULL || bPixelIsPoint )
     {
         hGTIF = GTIFNew(hTIFF);
-        GTIFSetFromOGISDefn( hGTIF, pszWKT );
+        if( pszWKT != NULL )
+            GTIFSetFromOGISDefn( hGTIF, pszWKT );
+
+        if( bPixelIsPoint )
+        {
+            GTIFKeySet(hGTIF, GTRasterTypeGeoKey, TYPE_SHORT, 1,
+                       RasterPixelIsPoint);
+        }
+
         GTIFWriteKeys( hGTIF );
         GTIFFree( hGTIF );
     }
@@ -2583,6 +2588,7 @@ CPLErr GTIFMemBufFromWkt( const char *pszWKT, const double *padfGeoTransform,
 /* -------------------------------------------------------------------- */
 /*      Set the geotransform, or GCPs.                                  */
 /* -------------------------------------------------------------------- */
+
     if( padfGeoTransform[0] != 0.0 || padfGeoTransform[1] != 1.0
         || padfGeoTransform[2] != 0.0 || padfGeoTransform[3] != 0.0
         || padfGeoTransform[4] != 0.0 || ABS(padfGeoTransform[5]) != 1.0 )
@@ -2604,7 +2610,13 @@ CPLErr GTIFMemBufFromWkt( const char *pszWKT, const double *padfGeoTransform,
             adfTiePoints[3] = padfGeoTransform[0];
             adfTiePoints[4] = padfGeoTransform[3];
             adfTiePoints[5] = 0.0;
-        
+
+            if( bPixelIsPoint && !bPointGeoIgnore )
+            {
+                adfTiePoints[3] += padfGeoTransform[1] * 0.5 + padfGeoTransform[2] * 0.5;
+                adfTiePoints[4] += padfGeoTransform[4] * 0.5 + padfGeoTransform[5] * 0.5;
+            }
+
             TIFFSetField( hTIFF, TIFFTAG_GEOTIEPOINTS, 6, adfTiePoints );
         }
         else
@@ -2620,6 +2632,12 @@ CPLErr GTIFMemBufFromWkt( const char *pszWKT, const double *padfGeoTransform,
             adfMatrix[5] = padfGeoTransform[5];
             adfMatrix[7] = padfGeoTransform[3];
             adfMatrix[15] = 1.0;
+
+            if( bPixelIsPoint && !bPointGeoIgnore )
+            {
+                adfMatrix[3] += padfGeoTransform[1] * 0.5 + padfGeoTransform[2] * 0.5;
+                adfMatrix[7] += padfGeoTransform[4] * 0.5 + padfGeoTransform[5] * 0.5;
+            }
 
             TIFFSetField( hTIFF, TIFFTAG_GEOTRANSMATRIX, 16, adfMatrix );
         }

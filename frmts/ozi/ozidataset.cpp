@@ -1,12 +1,12 @@
 /******************************************************************************
- * $Id: ozidataset.cpp 25310 2012-12-15 12:26:10Z rouault $
+ * $Id: ozidataset.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:   OZF2 and OZFx3 binary files driver
  * Purpose:  GDALDataset driver for OZF2 and OZFx3 binary files.
  * Author:   Even Rouault, <even dot rouault at mines dash paris dot org>
  *
  ******************************************************************************
- * Copyright (c) 2010, Even Rouault
+ * Copyright (c) 2010-2012, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -32,7 +32,7 @@
 
 /* g++ -fPIC -g -Wall frmts/ozi/ozidataset.cpp -shared -o gdal_OZI.so -Iport -Igcore -Iogr -L. -lgdal  */
 
-CPL_CVSID("$Id: ozidataset.cpp 25310 2012-12-15 12:26:10Z rouault $");
+CPL_CVSID("$Id: ozidataset.cpp 27044 2014-03-16 23:41:27Z rouault $");
 
 CPL_C_START
 void    GDALRegister_OZI(void);

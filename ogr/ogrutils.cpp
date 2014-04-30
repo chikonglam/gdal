@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrutils.cpp 25496 2013-01-13 21:20:35Z rouault $
+ * $Id: ogrutils.cpp 27121 2014-04-03 22:08:55Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Utility functions for OGR classes, including some related to
@@ -8,6 +8,7 @@
  *
  ******************************************************************************
  * Copyright (c) 1999, Frank Warmerdam
+ * Copyright (c) 2008-2014, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -28,6 +29,7 @@
  * DEALINGS IN THE SOFTWARE.
  ****************************************************************************/
 
+#include "cpl_conv.h"
 #include "cpl_vsi.h"
 
 #include <ctype.h>
@@ -39,7 +41,7 @@
 # include "ogrsf_frmts.h"
 #endif /* OGR_ENABLED */
 
-CPL_CVSID("$Id: ogrutils.cpp 25496 2013-01-13 21:20:35Z rouault $");
+CPL_CVSID("$Id: ogrutils.cpp 27121 2014-04-03 22:08:55Z rouault $");
 
 /************************************************************************/
 /*                        OGRFormatDouble()                             */
@@ -60,7 +62,7 @@ void OGRFormatDouble( char *pszBuffer, int nBufferLen, double dfVal, char chDeci
         return;
     }
 
-    while(TRUE)
+    while(nPrecision > 0)
     {
         i = 0;
         int nCountBeforeDot = 0;
@@ -728,7 +730,7 @@ int OGRGeneralCmdLineProcessor( int nArgc, char ***ppapszArgv, int nOptions )
 /* -------------------------------------------------------------------- */
         else if( EQUAL(papszArgv[iArg],"--locale") && iArg < nArgc-1 )
         {
-            setlocale( LC_ALL, papszArgv[++iArg] );
+            CPLsetlocale( LC_ALL, papszArgv[++iArg] );
         }
 
 /* -------------------------------------------------------------------- */
@@ -1422,4 +1424,70 @@ OGRErr OGRCheckPermutation(int* panPermutation, int nSize)
     }
     CPLFree(panCheck);
     return eErr;
+}
+
+
+OGRErr OGRReadWKBGeometryType( unsigned char * pabyData, OGRwkbGeometryType *peGeometryType, OGRBoolean *pbIs3D )
+{
+    if ( ! (peGeometryType && pbIs3D) )
+        return OGRERR_FAILURE;
+    
+/* -------------------------------------------------------------------- */
+/*      Get the byte order byte.                                        */
+/* -------------------------------------------------------------------- */
+    OGRwkbByteOrder eByteOrder = DB2_V72_FIX_BYTE_ORDER((OGRwkbByteOrder) *pabyData);
+    if (!( eByteOrder == wkbXDR || eByteOrder == wkbNDR ))
+        return OGRERR_CORRUPT_DATA;
+
+/* -------------------------------------------------------------------- */
+/*      Get the geometry feature type.  For now we assume that          */
+/*      geometry type is between 0 and 255 so we only have to fetch     */
+/*      one byte.                                                       */
+/* -------------------------------------------------------------------- */
+    int bIs3D = FALSE;
+    int iRawType;
+    
+    memcpy(&iRawType, pabyData + 1, 4);
+    if ( OGR_SWAP(eByteOrder))
+    {
+        CPL_SWAP32PTR(&iRawType);
+    }
+    
+    /* Old-style OGC z-bit is flipped? */
+    if ( wkb25DBit & iRawType )
+    {
+        /* Clean off top 3 bytes */
+        iRawType &= 0x000000FF;
+        bIs3D = TRUE;        
+    }
+    
+    /* ISO SQL/MM style Z types (between 1001 and 1007)? */
+    if ( iRawType >= 1001 && iRawType <= 1007 )
+    {
+        /* Remove the ISO padding */
+        iRawType -= 1000;
+        bIs3D = TRUE;
+    }
+    
+    /* Sometimes the Z flag is in the 2nd byte? */
+    if ( iRawType & (wkb25DBit >> 16) )
+    {
+        /* Clean off top 3 bytes */
+        iRawType &= 0x000000FF;
+        bIs3D = TRUE;        
+    }
+
+    /* Nothing left but (hopefully) basic 2D types */
+
+    /* What if what we have is still out of range? */
+    if ( iRawType < 1 || iRawType > (int)wkbGeometryCollection )
+    {
+        CPLError(CE_Failure, CPLE_NotSupported, "Unsupported WKB type %d", iRawType);            
+        return OGRERR_UNSUPPORTED_GEOMETRY_TYPE;
+    }
+
+    *pbIs3D = bIs3D;
+    *peGeometryType = (OGRwkbGeometryType)iRawType;
+    
+    return OGRERR_NONE;
 }

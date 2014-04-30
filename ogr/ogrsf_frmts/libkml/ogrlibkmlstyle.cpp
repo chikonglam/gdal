@@ -6,6 +6,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2010, Brian Case
+ * Copyright (c) 2011-2014, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -28,6 +29,8 @@
 
 #include <ogr_featurestyle.h>
 
+#include <set>
+
 #include <kml/dom.h>
 #include <kml/engine.h>
 #include <kml/base/color32.h>
@@ -46,32 +49,35 @@ using kmldom::PolyStylePtr;
 using kmldom::IconStylePtr;
 using kmldom::IconStyleIconPtr;
 using kmldom::LabelStylePtr;
+using kmldom::BalloonStylePtr;
 using kmldom::HotSpotPtr;
 using kmlbase::Color32;
 using kmldom::PairPtr;
 using kmldom::KmlPtr;
+using kmldom::ListStylePtr;
+using kmldom::ItemIconPtr;
 
 #include "ogrlibkmlstyle.h"
+#include "ogr_libkml.h"
 
 /******************************************************************************
  generic function to parse a stylestring and add to a kml style
 
 args:
             pszStyleString  the stylestring to parse
-            poKmlStyle      the kml style to add to
+            poKmlStyle      the kml style to add to (or NULL)
             poKmlFactory    the kml dom factory
 
 returns:
-            nothing
+            the kml style
 
 ******************************************************************************/
 
-void addstylestring2kml (
+StylePtr addstylestring2kml (
     const char *pszStyleString,
     StylePtr poKmlStyle,
     KmlFactory * poKmlFactory,
-    PlacemarkPtr poKmlPlacemark,
-    OGRFeature * poOgrFeat )
+    FeaturePtr poKmlFeature )
 {
 
     LineStylePtr poKmlLineStyle = NULL;
@@ -82,7 +88,7 @@ void addstylestring2kml (
     /***** just bail now if stylestring is empty *****/
 
     if ( !pszStyleString || !*pszStyleString ) {
-        return;
+        return poKmlStyle;
     }
 
     /***** create and init a style mamager with the style string *****/
@@ -124,6 +130,7 @@ void addstylestring2kml (
                      && poStylePen->GetRGBFromString ( pszcolor, nR, nG, nB, nA ) ) {
                     poKmlLineStyle->set_color ( Color32 ( nA, nB, nG, nR ) );
                 }
+                poStylePen->SetUnit(OGRSTUPixel);
                 double dfWidth = poStylePen->Width ( nullcheck );
 
                 if ( nullcheck )
@@ -136,8 +143,6 @@ void addstylestring2kml (
         case OGRSTCBrush:
             {
                 GBool nullcheck;
-
-                poKmlPolyStyle = poKmlFactory->CreatePolyStyle (  );
 
                 OGRStyleBrush *poStyleBrush = ( OGRStyleBrush * ) poOgrST;
 
@@ -152,6 +157,7 @@ void addstylestring2kml (
 
                 if ( !nullcheck
                      && poStyleBrush->GetRGBFromString ( pszcolor, nR, nG, nB, nA ) ) {
+                    poKmlPolyStyle = poKmlFactory->CreatePolyStyle (  );
                     poKmlPolyStyle->set_color ( Color32 ( nA, nB, nG, nR ) );
                 }
                 
@@ -257,8 +263,6 @@ void addstylestring2kml (
                 GBool nullcheck;
                 GBool nullcheck2;
                 
-                poKmlLabelStyle = poKmlFactory->CreateLabelStyle (  );
-
                 OGRStyleLabel *poStyleLabel = ( OGRStyleLabel * ) poOgrST;
 
                 /***** color *****/
@@ -272,6 +276,8 @@ void addstylestring2kml (
 
                 if ( !nullcheck
                      && poStyleLabel->GetRGBFromString ( pszcolor, nR, nG, nB, nA ) ) {
+                    if( poKmlLabelStyle == NULL )
+                        poKmlLabelStyle = poKmlFactory->CreateLabelStyle (  );
                     poKmlLabelStyle->set_color ( Color32 ( nA, nB, nG, nR ) );
                 }
 
@@ -281,6 +287,8 @@ void addstylestring2kml (
 
                 if ( !nullcheck ) {
                     dfScale /= 100.0;
+                    if( poKmlLabelStyle == NULL )
+                        poKmlLabelStyle = poKmlFactory->CreateLabelStyle (  );
                     poKmlLabelStyle->set_scale ( dfScale );
                 }
                 
@@ -323,9 +331,9 @@ void addstylestring2kml (
                 const char *pszText = poStyleLabel->TextString ( nullcheck );
 
                 if ( !nullcheck ) {
-                    if ( poKmlPlacemark ) {
+                    if ( poKmlFeature ) {
 
-                        poKmlPlacemark->set_name( pszText );
+                        poKmlFeature->set_name( pszText );
                     }
                 }
                     
@@ -339,19 +347,27 @@ void addstylestring2kml (
         delete poOgrST;
     }
 
-    if ( poKmlLineStyle )
-        poKmlStyle->set_linestyle ( poKmlLineStyle );
+    if ( poKmlLineStyle || poKmlPolyStyle || poKmlIconStyle || poKmlLabelStyle )
+    {
+        if( poKmlStyle == NULL )
+            poKmlStyle = poKmlFactory->CreateStyle (  );
 
-    if ( poKmlPolyStyle )
-        poKmlStyle->set_polystyle ( poKmlPolyStyle );
+        if ( poKmlLineStyle )
+            poKmlStyle->set_linestyle ( poKmlLineStyle );
 
-    if ( poKmlIconStyle )
-        poKmlStyle->set_iconstyle ( poKmlIconStyle );
+        if ( poKmlPolyStyle )
+            poKmlStyle->set_polystyle ( poKmlPolyStyle );
 
-    if ( poKmlLabelStyle )
-        poKmlStyle->set_labelstyle ( poKmlLabelStyle );
-    
+        if ( poKmlIconStyle )
+            poKmlStyle->set_iconstyle ( poKmlIconStyle );
+
+        if ( poKmlLabelStyle )
+            poKmlStyle->set_labelstyle ( poKmlLabelStyle );
+    }
+
     delete poOgrSM;
+    
+    return poKmlStyle;
 }
 
 /******************************************************************************
@@ -732,7 +748,7 @@ void kml2styletable (
         const std::string oName = poKmlStyle->get_id (  );
 
 
-        poOgrSM->AddStyle ( CPLString (  ).Printf ( "@%s",
+        poOgrSM->AddStyle ( CPLString (  ).Printf ( "%s",
                                                     oName.c_str (  ) ), NULL );
 
         /***** cleanup the style manager *****/
@@ -849,7 +865,7 @@ StyleSelectorPtr StyleFromStyleURL(
     else if ( strchr(pszUrl, '#') ) {
 
         const char *pszFetch = CPLGetConfigOption ( "LIBKML_EXTERNAL_STYLE", "no" );
-        if ( EQUAL(pszFetch, "yes") ) {
+        if ( CSLTestBoolean(pszFetch) ) {
 
             /***** Lets go out and fetch the style from the external URL *****/
 
@@ -1079,7 +1095,8 @@ void ParseStyles (
 void styletable2kml (
     OGRStyleTable * poOgrStyleTable,
     KmlFactory * poKmlFactory,
-    ContainerPtr poKmlContainer )
+    ContainerPtr poKmlContainer,
+    char** papszOptions )
 {
 
     /***** just return if the styletable is null *****/
@@ -1087,33 +1104,160 @@ void styletable2kml (
     if ( !poOgrStyleTable )
         return;
 
-    /***** parse the style table *****/
-
+    std::set<CPLString> aoSetNormalStyles;
+    std::set<CPLString> aoSetHighlightStyles;
     poOgrStyleTable->ResetStyleStringReading (  );
     const char *pszStyleString;
 
+    /* Collect styles that end with _normal or _highlight */
+    while ( poOgrStyleTable->GetNextStyle (  ) != NULL ) {
+        const char *pszStyleName = poOgrStyleTable->GetLastStyleName (  );
+
+        if( strlen(pszStyleName) > strlen("_normal") &&
+            EQUAL(pszStyleName + strlen(pszStyleName) - strlen("_normal"), "_normal") )
+        {
+            CPLString osName(pszStyleName);
+            osName.resize(strlen(pszStyleName) - strlen("_normal"));
+            aoSetNormalStyles.insert(osName);
+        }
+        else if( strlen(pszStyleName) > strlen("_highlight") &&
+                  EQUAL(pszStyleName + strlen(pszStyleName) - strlen("_highlight"), "_highlight") )
+        {
+            CPLString osName(pszStyleName);
+            osName.resize(strlen(pszStyleName) - strlen("_highlight"));
+            aoSetHighlightStyles.insert(osName);
+        }
+    }
+
+    /***** parse the style table *****/
+
+    poOgrStyleTable->ResetStyleStringReading (  );
+    
     while ( ( pszStyleString = poOgrStyleTable->GetNextStyle (  ) ) ) {
         const char *pszStyleName = poOgrStyleTable->GetLastStyleName (  );
+
+        if( aoSetNormalStyles.find(pszStyleName) != aoSetNormalStyles.end() &&
+            aoSetHighlightStyles.find(pszStyleName) != aoSetHighlightStyles.end() )
+        {
+            continue;
+        }
 
         /***** add the style header to the kml *****/
 
         StylePtr poKmlStyle = poKmlFactory->CreateStyle (  );
 
-        poKmlStyle->set_id ( pszStyleName + 1 );
+        poKmlStyle->set_id ( pszStyleName );
 
         /***** parse the style string *****/
 
-        addstylestring2kml ( pszStyleString, poKmlStyle, poKmlFactory, NULL, NULL );
+        addstylestring2kml ( pszStyleString, poKmlStyle, poKmlFactory, NULL );
+
+        /***** add balloon style *****/
+        const char* pszBalloonStyleBgColor = CSLFetchNameValue(papszOptions, CPLSPrintf("%s_balloonstyle_bgcolor", pszStyleName));
+        const char* pszBalloonStyleText = CSLFetchNameValue(papszOptions, CPLSPrintf("%s_balloonstyle_text", pszStyleName));
+        int nR, nG, nB, nA;
+        OGRStylePen oStyleTool;
+        if( (pszBalloonStyleBgColor != NULL &&
+             oStyleTool.GetRGBFromString ( pszBalloonStyleBgColor, nR, nG, nB, nA )  ) ||
+            pszBalloonStyleText != NULL )
+        {
+            BalloonStylePtr poKmlBalloonStyle = poKmlFactory->CreateBalloonStyle();
+            if( pszBalloonStyleBgColor != NULL &&
+                oStyleTool.GetRGBFromString ( pszBalloonStyleBgColor, nR, nG, nB, nA ) )
+                poKmlBalloonStyle->set_bgcolor ( Color32 ( nA, nB, nG, nR ) );
+            if( pszBalloonStyleText != NULL )
+                poKmlBalloonStyle->set_text(pszBalloonStyleText);
+            poKmlStyle->set_balloonstyle ( poKmlBalloonStyle );
+        }
 
         /***** add the style to the container *****/
 
         DocumentPtr poKmlDocument = AsDocument ( poKmlContainer );
-
-        //ObjectPtr pokmlObject = boost::static_pointer_cast <kmldom::Object> () ;
-        //poKmlContainer->add_feature ( AsFeature( poKmlStyle) );
         poKmlDocument->add_styleselector ( poKmlStyle );
 
     }
 
+    /* Find style name that end with _normal and _highlight to create */
+    /* a StyleMap from both */
+    std::set<CPLString>::iterator aoSetNormalStylesIter =
+        aoSetNormalStyles.begin();
+    for( ; aoSetNormalStylesIter != aoSetNormalStyles.end(); ++aoSetNormalStylesIter )
+    {
+        CPLString osStyleName(*aoSetNormalStylesIter);
+        if( aoSetHighlightStyles.find(osStyleName) !=
+                aoSetHighlightStyles.end() )
+        {
+            StyleMapPtr poKmlStyleMap = poKmlFactory->CreateStyleMap (  );
+            poKmlStyleMap->set_id ( osStyleName );
+
+            PairPtr poKmlPairNormal = poKmlFactory->CreatePair (  );
+            poKmlPairNormal->set_key(STYLESTATE_NORMAL);
+            poKmlPairNormal->set_styleurl(CPLSPrintf("#%s_normal", osStyleName.c_str()));
+            poKmlStyleMap->add_pair(poKmlPairNormal);
+
+            PairPtr poKmlPairHightlight = poKmlFactory->CreatePair (  );
+            poKmlPairHightlight->set_key(STYLESTATE_HIGHLIGHT);
+            poKmlPairHightlight->set_styleurl(CPLSPrintf("#%s_highlight", osStyleName.c_str()));
+            poKmlStyleMap->add_pair(poKmlPairHightlight);
+
+            /***** add the style to the container *****/
+            DocumentPtr poKmlDocument = AsDocument ( poKmlContainer );
+            poKmlDocument->add_styleselector ( poKmlStyleMap );
+        }
+    }
+
     return;
+}
+
+
+/******************************************************************************
+ function to add a ListStyle and select it to a container
+******************************************************************************/
+
+void createkmlliststyle (
+    KmlFactory * poKmlFactory,
+    const char* pszBaseName,
+    ContainerPtr poKmlLayerContainer,
+    DocumentPtr poKmlDocument,
+    const CPLString& osListStyleType,
+    const CPLString& osListStyleIconHref)
+{
+    if( osListStyleType.size() || osListStyleIconHref.size() )
+    {
+        StylePtr poKmlStyle = poKmlFactory->CreateStyle (  );
+
+        const char* pszStyleName = CPLSPrintf("%s_liststyle", OGRLIBKMLGetSanitizedNCName(pszBaseName).c_str());
+        poKmlStyle->set_id ( pszStyleName );
+
+        ListStylePtr poKmlListStyle = poKmlFactory->CreateListStyle (  );
+        poKmlStyle->set_liststyle ( poKmlListStyle );
+        if( osListStyleType.size() )
+        {
+            if( EQUAL(osListStyleType, "check") )
+                poKmlListStyle->set_listitemtype( kmldom::LISTITEMTYPE_CHECK );
+            else if( EQUAL(osListStyleType, "radioFolder") )
+                poKmlListStyle->set_listitemtype( kmldom::LISTITEMTYPE_RADIOFOLDER );
+            else if( EQUAL(osListStyleType, "checkOffOnly") )
+                poKmlListStyle->set_listitemtype( kmldom::LISTITEMTYPE_CHECKOFFONLY );
+            else if( EQUAL(osListStyleType, "checkHideChildren") )
+                poKmlListStyle->set_listitemtype( kmldom::LISTITEMTYPE_CHECKHIDECHILDREN );
+            else
+            {
+                CPLError(CE_Warning, CPLE_AppDefined,
+                         "Invalid value for list style type: %s. Defaulting to Check",
+                         osListStyleType.c_str());
+                poKmlListStyle->set_listitemtype( kmldom::LISTITEMTYPE_CHECK );
+            }
+        }
+
+        if( osListStyleIconHref.size() )
+        {
+            ItemIconPtr poItemIcon = poKmlFactory->CreateItemIcon (  );
+            poItemIcon->set_href( osListStyleIconHref.c_str() );
+            poKmlListStyle->add_itemicon(poItemIcon);
+        }
+
+        poKmlDocument->add_styleselector ( poKmlStyle );
+        poKmlLayerContainer->set_styleurl( CPLSPrintf("#%s", pszStyleName) );
+    }
 }

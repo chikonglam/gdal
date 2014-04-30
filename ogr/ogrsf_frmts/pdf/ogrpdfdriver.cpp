@@ -1,12 +1,12 @@
 /******************************************************************************
- * $Id: ogrpdfdriver.cpp 24143 2012-03-19 21:40:42Z rouault $
+ * $Id: ogrpdfdriver.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  PDF Translator
  * Purpose:  Implements OGRPDFDriver.
  * Author:   Even Rouault, even dot rouault at mines dash paris dot org
  *
  ******************************************************************************
- * Copyright (c) 2012, Even Rouault <even dot rouault at mines dash paris dot org>
+ * Copyright (c) 2012, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -30,7 +30,7 @@
 #include "ogr_pdf.h"
 #include "cpl_conv.h"
 
-CPL_CVSID("$Id: ogrpdfdriver.cpp 24143 2012-03-19 21:40:42Z rouault $");
+CPL_CVSID("$Id: ogrpdfdriver.cpp 27044 2014-03-16 23:41:27Z rouault $");
 
 extern "C" void RegisterOGRPDF();
 

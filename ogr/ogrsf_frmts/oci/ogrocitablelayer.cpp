@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrocitablelayer.cpp 25770 2013-03-19 13:55:49Z ilucena $
+ * $Id: ogrocitablelayer.cpp 26688 2013-12-02 19:07:41Z rouault $
  *
  * Project:  Oracle Spatial Driver
  * Purpose:  Implementation of the OGROCITableLayer class.  This class provides
@@ -33,7 +33,7 @@
 #include "cpl_conv.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: ogrocitablelayer.cpp 25770 2013-03-19 13:55:49Z ilucena $");
+CPL_CVSID("$Id: ogrocitablelayer.cpp 26688 2013-12-02 19:07:41Z rouault $");
 
 static int nDiscarded = 0;
 static int nHits = 0;
@@ -674,6 +674,9 @@ char *OGROCITableLayer::BuildFields()
 OGRErr OGROCITableLayer::SetAttributeFilter( const char *pszQuery )
 
 {
+    CPLFree(m_pszAttrQueryString);
+    m_pszAttrQueryString = (pszQuery) ? CPLStrdup(pszQuery) : NULL;
+
     if( (pszQuery == NULL && this->pszQuery == NULL)
         || (pszQuery != NULL && this->pszQuery != NULL
             && strcmp(pszQuery,this->pszQuery) == 0) )

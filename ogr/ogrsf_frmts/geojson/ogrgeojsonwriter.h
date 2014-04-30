@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrgeojsonwriter.h 22490 2011-06-03 10:26:47Z rouault $
+ * $Id: ogrgeojsonwriter.h 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Defines GeoJSON reader within OGR OGRGeoJSON Driver.
@@ -7,6 +7,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2007, Mateusz Loskot
+ * Copyright (c) 2011-2013, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -30,7 +31,7 @@
 #define OGR_GEOJSONWRITER_H_INCLUDED
 
 #include <ogr_core.h>
-#include <jsonc/json.h> // JSON-C
+#include <json.h> // JSON-C
 
 /************************************************************************/
 /*                         FORWARD DECLARATIONS                         */
@@ -46,6 +47,8 @@ class OGRLinearRing;
 class OGRPolygon;
 class OGRMultiPolygon;
 class OGRGeometryCollection;
+
+json_object* json_object_new_double_with_precision(double dfVal, int nCoordPrecision);
 
 /************************************************************************/
 /*                 GeoJSON Geometry Translators                         */

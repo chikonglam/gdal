@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 ###############################################################################
-# $Id: val_at_coord.py 20674 2010-09-22 17:50:33Z rouault $
+# $Id: val_at_coord.py 27044 2014-03-16 23:41:27Z rouault $
 #
 # Project:  GDAL Python samples
 # Purpose:  Outputs the value of the raster bands at a given
@@ -8,7 +8,7 @@
 # Author:   Even Rouault
 #
 ###############################################################################
-# Copyright (c) 2010, Even Rouault <even dot rouault at mines dash paris dot org>
+# Copyright (c) 2010, Even Rouault <even dot rouault at mines-paris dot org>
 # 
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),

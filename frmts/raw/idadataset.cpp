@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: idadataset.cpp 25311 2012-12-15 12:48:14Z rouault $
+ * $Id: idadataset.cpp 26117 2013-06-29 20:22:34Z rouault $
  *
  * Project:  IDA Raster Driver
  * Purpose:  Implemenents IDA driver/dataset/rasterband.
@@ -31,7 +31,7 @@
 #include "ogr_spatialref.h"
 #include "gdal_rat.h"
 
-CPL_CVSID("$Id: idadataset.cpp 25311 2012-12-15 12:48:14Z rouault $");
+CPL_CVSID("$Id: idadataset.cpp 26117 2013-06-29 20:22:34Z rouault $");
 
 CPL_C_START
 void	GDALRegister_IDA(void);
@@ -116,7 +116,7 @@ class IDARasterBand : public RawRasterBand
     		IDARasterBand( IDADataset *poDSIn, FILE *fpRaw, int nXSize );
     virtual     ~IDARasterBand();
 
-    virtual const GDALRasterAttributeTable *GetDefaultRAT();
+    virtual GDALRasterAttributeTable *GetDefaultRAT();
     virtual GDALColorInterp GetColorInterpretation();
     virtual GDALColorTable *GetColorTable();
     virtual double GetOffset( int *pbSuccess = NULL );
@@ -269,7 +269,7 @@ GDALColorInterp IDARasterBand::GetColorInterpretation()
 /*                           GetDefaultRAT()                            */
 /************************************************************************/
 
-const GDALRasterAttributeTable *IDARasterBand::GetDefaultRAT() 
+GDALRasterAttributeTable *IDARasterBand::GetDefaultRAT() 
 
 {
     if( poRAT )
@@ -586,7 +586,7 @@ void IDADataset::ReadColorTable()
 /* -------------------------------------------------------------------- */
 /*      Create a RAT to populate.                                       */
 /* -------------------------------------------------------------------- */
-    GDALRasterAttributeTable *poRAT = new GDALRasterAttributeTable();
+    GDALRasterAttributeTable *poRAT = new GDALDefaultRasterAttributeTable();
 
     poRAT->CreateColumn( "FROM", GFT_Integer, GFU_Min );
     poRAT->CreateColumn( "TO", GFT_Integer, GFU_Max );

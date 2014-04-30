@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #******************************************************************************
-#  $Id: pct2rgb.py 25674 2013-02-23 15:21:10Z rouault $
+#  $Id: pct2rgb.py 27044 2014-03-16 23:41:27Z rouault $
 # 
 #  Name:     pct2rgb
 #  Project:  GDAL Python Interface
@@ -9,6 +9,7 @@
 # 
 #******************************************************************************
 #  Copyright (c) 2001, Frank Warmerdam
+#  Copyright (c) 2009-2010, Even Rouault <even dot rouault at mines-paris dot org>
 # 
 #  Permission is hereby granted, free of charge, to any person obtaining a
 #  copy of this software and associated documentation files (the "Software"),

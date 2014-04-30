@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrntflayer.cpp 10645 2007-01-18 02:22:39Z warmerdam $
+ * $Id: ogrntflayer.cpp 26467 2013-09-14 09:16:12Z rouault $
  *
  * Project:  UK NTF Reader
  * Purpose:  Implements OGRNTFLayer class.
@@ -30,7 +30,7 @@
 #include "ntf.h"
 #include "cpl_conv.h"
 
-CPL_CVSID("$Id: ogrntflayer.cpp 10645 2007-01-18 02:22:39Z warmerdam $");
+CPL_CVSID("$Id: ogrntflayer.cpp 26467 2013-09-14 09:16:12Z rouault $");
 
 /************************************************************************/
 /*                            OGRNTFLayer()                             */
@@ -213,14 +213,4 @@ OGRFeature * OGRNTFLayer::FeatureTranslate( NTFFileReader *poReader,
         return NULL;
 
     return pfnTranslator( poReader, this, papoGroup );
-}
-
-/************************************************************************/
-/*                           GetSpatialRef()                            */
-/************************************************************************/
-
-OGRSpatialReference *OGRNTFLayer::GetSpatialRef()
-
-{
-    return poDS->GetSpatialRef();
 }

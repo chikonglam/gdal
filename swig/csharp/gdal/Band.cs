@@ -58,7 +58,7 @@ public class Band : MajorObject {
       base.Dispose();
     }
   }
-/*! Eight bit unsigned integer */ /*@SWIG:../include/csharp/gdal_csharp.i,55,%rasterio_functions@*/
+/*! Eight bit unsigned integer */ /*@SWIG:../include/csharp/gdal_csharp.i,52,%rasterio_functions@*/
  public CPLErr ReadRaster(int xOff, int yOff, int xSize, int ySize, byte[] buffer, int buf_xSize, int buf_ySize, int pixelSpace, int lineSpace) {
       CPLErr retval;
       GCHandle handle = GCHandle.Alloc(buffer, GCHandleType.Pinned);
@@ -83,7 +83,7 @@ public class Band : MajorObject {
   }
   
 /*@SWIG@*/
-/*! Sixteen bit signed integer */ /*@SWIG:../include/csharp/gdal_csharp.i,55,%rasterio_functions@*/
+/*! Sixteen bit signed integer */ /*@SWIG:../include/csharp/gdal_csharp.i,52,%rasterio_functions@*/
  public CPLErr ReadRaster(int xOff, int yOff, int xSize, int ySize, short[] buffer, int buf_xSize, int buf_ySize, int pixelSpace, int lineSpace) {
       CPLErr retval;
       GCHandle handle = GCHandle.Alloc(buffer, GCHandleType.Pinned);
@@ -108,7 +108,7 @@ public class Band : MajorObject {
   }
   
 /*@SWIG@*/
-/*! Thirty two bit signed integer */ /*@SWIG:../include/csharp/gdal_csharp.i,55,%rasterio_functions@*/
+/*! Thirty two bit signed integer */ /*@SWIG:../include/csharp/gdal_csharp.i,52,%rasterio_functions@*/
  public CPLErr ReadRaster(int xOff, int yOff, int xSize, int ySize, int[] buffer, int buf_xSize, int buf_ySize, int pixelSpace, int lineSpace) {
       CPLErr retval;
       GCHandle handle = GCHandle.Alloc(buffer, GCHandleType.Pinned);
@@ -133,7 +133,7 @@ public class Band : MajorObject {
   }
   
 /*@SWIG@*/
-/*! Thirty two bit floating point */ /*@SWIG:../include/csharp/gdal_csharp.i,55,%rasterio_functions@*/
+/*! Thirty two bit floating point */ /*@SWIG:../include/csharp/gdal_csharp.i,52,%rasterio_functions@*/
  public CPLErr ReadRaster(int xOff, int yOff, int xSize, int ySize, float[] buffer, int buf_xSize, int buf_ySize, int pixelSpace, int lineSpace) {
       CPLErr retval;
       GCHandle handle = GCHandle.Alloc(buffer, GCHandleType.Pinned);
@@ -158,7 +158,7 @@ public class Band : MajorObject {
   }
   
 /*@SWIG@*/
-/*! Sixty four bit floating point */ /*@SWIG:../include/csharp/gdal_csharp.i,55,%rasterio_functions@*/
+/*! Sixty four bit floating point */ /*@SWIG:../include/csharp/gdal_csharp.i,52,%rasterio_functions@*/
  public CPLErr ReadRaster(int xOff, int yOff, int xSize, int ySize, double[] buffer, int buf_xSize, int buf_ySize, int pixelSpace, int lineSpace) {
       CPLErr retval;
       GCHandle handle = GCHandle.Alloc(buffer, GCHandleType.Pinned);
@@ -446,14 +446,14 @@ public class Band : MajorObject {
     return ret;
   }
 
-  public CPLErr GetDefaultHistogram(SWIGTYPE_p_double min_ret, SWIGTYPE_p_double max_ret, SWIGTYPE_p_int buckets_ret, SWIGTYPE_p_p_int ppanHistogram, int force, Gdal.GDALProgressFuncDelegate callback, string callback_data) {
-    CPLErr ret = (CPLErr)GdalPINVOKE.Band_GetDefaultHistogram(swigCPtr, SWIGTYPE_p_double.getCPtr(min_ret), SWIGTYPE_p_double.getCPtr(max_ret), SWIGTYPE_p_int.getCPtr(buckets_ret), SWIGTYPE_p_p_int.getCPtr(ppanHistogram), force, callback, callback_data);
+  public CPLErr GetDefaultHistogram(out double min_ret, out double max_ret, out int buckets_ret, out int[] ppanHistogram, int force, Gdal.GDALProgressFuncDelegate callback, string callback_data) {
+    CPLErr ret = (CPLErr)GdalPINVOKE.Band_GetDefaultHistogram(swigCPtr, out min_ret, out max_ret, out buckets_ret, out ppanHistogram, force, callback, callback_data);
     if (GdalPINVOKE.SWIGPendingException.Pending) throw GdalPINVOKE.SWIGPendingException.Retrieve();
     return ret;
   }
 
-  public CPLErr SetDefaultHistogram(double min, double max, int buckets_in, SWIGTYPE_p_int panHistogram_in) {
-    CPLErr ret = (CPLErr)GdalPINVOKE.Band_SetDefaultHistogram(swigCPtr, min, max, buckets_in, SWIGTYPE_p_int.getCPtr(panHistogram_in));
+  public CPLErr SetDefaultHistogram(double min, double max, int buckets_in, int[] panHistogram_in) {
+    CPLErr ret = (CPLErr)GdalPINVOKE.Band_SetDefaultHistogram(swigCPtr, min, max, buckets_in, panHistogram_in);
     if (GdalPINVOKE.SWIGPendingException.Pending) throw GdalPINVOKE.SWIGPendingException.Retrieve();
     return ret;
   }

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrmemdatasource.cpp 13027 2007-11-25 19:21:57Z warmerdam $
+ * $Id: ogrmemdatasource.cpp 26302 2013-08-11 16:24:14Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implements OGRMemDataSource class.
@@ -31,7 +31,7 @@
 #include "cpl_conv.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: ogrmemdatasource.cpp 13027 2007-11-25 19:21:57Z warmerdam $");
+CPL_CVSID("$Id: ogrmemdatasource.cpp 26302 2013-08-11 16:24:14Z rouault $");
 
 /************************************************************************/
 /*                          OGRMemDataSource()                          */
@@ -122,6 +122,8 @@ int OGRMemDataSource::TestCapability( const char * pszCap )
     if( EQUAL(pszCap,ODsCCreateLayer) )
         return TRUE;
     else if( EQUAL(pszCap,ODsCDeleteLayer) )
+        return TRUE;
+    else if( EQUAL(pszCap,ODsCCreateGeomFieldAfterCreateLayer) )
         return TRUE;
     else
         return FALSE;

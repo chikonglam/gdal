@@ -1,5 +1,5 @@
 /******************************************************************************
-* $Id: ogr_fgdb.h 26310 2013-08-13 19:54:26Z rouault $
+* $Id: ogr_fgdb.h 27044 2014-03-16 23:41:27Z rouault $
 *
 * Project:  OpenGIS Simple Features Reference Implementation
 * Purpose:  Standard includes and class definitions ArcObjects OGR driver.
@@ -7,6 +7,7 @@
 *
 ******************************************************************************
 * Copyright (c) 2009, Ragi Yaser Burhum
+ * Copyright (c) 2011-2014, Even Rouault <even dot rouault at mines-paris dot org>
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -32,6 +33,7 @@
 
 #include <vector>
 #include "ogrsf_frmts.h"
+#include "ogrmutexedlayer.h"
 
 /* GDAL string utilities */
 #include "cpl_string.h"
@@ -58,6 +60,8 @@
 
 /* The ESRI FGDB API namespace */
 using namespace FileGDBAPI;
+
+class FGdbDriver;
 
 /************************************************************************/
 /*                           FGdbBaseLayer                              */
@@ -109,8 +113,13 @@ class FGdbLayer : public FGdbBaseLayer
   bool                UpdateRowWithGeometry(Row& row, OGRGeometry* poGeom);
 #endif
 
+  std::vector<ByteArray*> m_apoByteArrays;
   OGRErr              PopulateRowWithFeature( Row& row, OGRFeature *poFeature );
   OGRErr              GetRow( EnumRows& enumRows, Row& row, long nFID );
+
+  char              **m_papszOptions;
+  
+  int                 m_bCreateMultipatch;
 
   char*               CreateFieldDefn(OGRFieldDefn& oField,
                                       int bApproxOK,
@@ -129,7 +138,6 @@ public:
 
   // virtual const char *GetName();
   virtual const char* GetFIDColumn() { return m_strOIDFieldName.c_str(); }
-  virtual const char* GetGeometryColumn() { return m_strShapeFieldName.c_str(); }
 
   virtual void        ResetReading();
   virtual OGRFeature* GetNextFeature();
@@ -161,8 +169,6 @@ public:
 //  virtual OGRErr        RollbackTransaction( );
 
   OGRFeatureDefn *    GetLayerDefn() { return m_pFeatureDefn; }
-	
-  virtual OGRSpatialReference *GetSpatialRef() { return m_pSRS; }
 
   virtual int         TestCapability( const char * );
 
@@ -213,8 +219,6 @@ public:
 
   OGRFeatureDefn *    GetLayerDefn() { return m_pFeatureDefn; }
 
-  //virtual OGRSpatialReference *GetSpatialRef() { return m_pSRS; }
-
   virtual int         TestCapability( const char * );
 
 protected:
@@ -226,7 +230,6 @@ protected:
 /************************************************************************/
 /*                           FGdbDataSource                            */
 /************************************************************************/
-class FGdbDriver;
 
 class FGdbDataSource : public OGRDataSource
 {
@@ -254,6 +257,7 @@ public:
   int TestCapability( const char * );
 
   Geodatabase* GetGDB() { return m_pGeodatabase; }
+  bool         GetUpdate() { return m_bUpdate; }
 
   /*
   protected:
@@ -268,8 +272,9 @@ protected:
 
   FGdbDriver* m_poDriver;
   char* m_pszName;
-  std::vector <FGdbLayer*> m_layers;
+  std::vector <OGRMutexedLayer*> m_layers;
   Geodatabase* m_pGeodatabase;
+  bool m_bUpdate;
 
 };
 
@@ -290,6 +295,7 @@ public:
 class FGdbDriver : public OGRSFDriver
 {
   std::map<CPLString, FGdbDatabaseConnection*> oMapConnections;
+  void* hMutex;
 
 public:
   FGdbDriver();
@@ -302,6 +308,7 @@ public:
   virtual OGRErr DeleteDataSource( const char *pszDataSource );
 
   void Release(const char* pszName);
+  void* GetMutex() { return hMutex; }
 
 private:
 

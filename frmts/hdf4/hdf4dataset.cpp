@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: hdf4dataset.cpp 25847 2013-04-03 09:45:20Z dron $
+ * $Id: hdf4dataset.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  Hierarchical Data Format Release 4 (HDF4)
  * Purpose:  HDF4 Datasets. Open HDF4 file, fetch metadata and list of
@@ -9,6 +9,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2002, Andrey Kiselev <dron@ak4719.spb.edu>
+ * Copyright (c) 2007-2013, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -41,7 +42,7 @@
 #include "hdf4compat.h"
 #include "hdf4dataset.h"
 
-CPL_CVSID("$Id: hdf4dataset.cpp 25847 2013-04-03 09:45:20Z dron $");
+CPL_CVSID("$Id: hdf4dataset.cpp 27044 2014-03-16 23:41:27Z rouault $");
 
 CPL_C_START
 void	GDALRegister_HDF4(void);
@@ -94,6 +95,17 @@ HDF4Dataset::~HDF4Dataset()
 	CSLDestroy( papszGlobalMetadata );
     if( fp != NULL )
         VSIFClose( fp );
+}
+
+/************************************************************************/
+/*                      GetMetadataDomainList()                         */
+/************************************************************************/
+
+char **HDF4Dataset::GetMetadataDomainList()
+{
+    return BuildMetadataDomainList(GDALPamDataset::GetMetadataDomainList(),
+                                   TRUE,
+                                   "SUBDATASETS", NULL);
 }
 
 /************************************************************************/
@@ -813,7 +825,7 @@ GDALDataset *HDF4Dataset::Open( GDALOpenInfo * poOpenInfo )
             return NULL;
         } 
         nSubDatasets = SWinqswath(poOpenInfo->pszFilename, NULL, &nStrBufSize);
-#if DEBUG
+#ifdef DEBUG
         CPLDebug( "HDF4", "Number of HDF-EOS swaths: %d", (int)nSubDatasets );
 #endif
         if ( nSubDatasets > 0 && nStrBufSize > 0 )
@@ -825,7 +837,7 @@ GDALDataset *HDF4Dataset::Open( GDALOpenInfo * poOpenInfo )
             SWinqswath( poOpenInfo->pszFilename, pszSwathList, &nStrBufSize );
             pszSwathList[nStrBufSize] = '\0';
 
-#if DEBUG
+#ifdef DEBUG
             CPLDebug( "HDF4", "List of HDF-EOS swaths: %s", pszSwathList );
 #endif
 
@@ -859,7 +871,7 @@ GDALDataset *HDF4Dataset::Open( GDALOpenInfo * poOpenInfo )
 
                 SWinqdatafields( hSW, pszFieldList, paiRank, paiNumType );
 
-#if DEBUG
+#ifdef DEBUG
                 {
                     char *pszTmp =
                         SPrintArray( GDT_UInt32, paiRank, nFields, "," );
@@ -923,7 +935,7 @@ GDALDataset *HDF4Dataset::Open( GDALOpenInfo * poOpenInfo )
 /* -------------------------------------------------------------------- */
         hHDF4 = GDopen( poOpenInfo->pszFilename, DFACC_READ );
         nSubDatasets = GDinqgrid( poOpenInfo->pszFilename, NULL, &nStrBufSize );
-#if DEBUG
+#ifdef DEBUG
         CPLDebug( "HDF4", "Number of HDF-EOS grids: %d", (int)nSubDatasets );
 #endif
         if ( nSubDatasets > 0 && nStrBufSize > 0 )
@@ -934,7 +946,7 @@ GDALDataset *HDF4Dataset::Open( GDALOpenInfo * poOpenInfo )
             pszGridList = (char *)CPLMalloc( nStrBufSize + 1 );
             GDinqgrid( poOpenInfo->pszFilename, pszGridList, &nStrBufSize );
 
-#if DEBUG
+#ifdef DEBUG
             CPLDebug( "HDF4", "List of HDF-EOS grids: %s", pszGridList );
 #endif
 
@@ -969,7 +981,7 @@ GDALDataset *HDF4Dataset::Open( GDALOpenInfo * poOpenInfo )
 
                 GDinqfields( hGD, pszFieldList, paiRank, paiNumType );
 
-#if DEBUG
+#ifdef DEBUG
                 {
                     char* pszTmp =
                             SPrintArray( GDT_UInt32, paiRank, nFields, "," );

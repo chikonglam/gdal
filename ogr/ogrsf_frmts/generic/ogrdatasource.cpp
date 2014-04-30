@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrdatasource.cpp 24813 2012-08-20 21:08:33Z rouault $
+ * $Id: ogrdatasource.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  The generic portions of the OGRDataSource class.
@@ -7,6 +7,7 @@
  *
  ******************************************************************************
  * Copyright (c) 1999,  Les Technologies SoftMap Inc.
+ * Copyright (c) 2008-2014, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -40,7 +41,7 @@
 #include "../sqlite/ogrsqliteexecutesql.h"
 #endif
 
-CPL_CVSID("$Id: ogrdatasource.cpp 24813 2012-08-20 21:08:33Z rouault $");
+CPL_CVSID("$Id: ogrdatasource.cpp 27044 2014-03-16 23:41:27Z rouault $");
 
 /************************************************************************/
 /*                           ~OGRDataSource()                           */
@@ -265,8 +266,16 @@ OGRLayer *OGRDataSource::CopyLayer( OGRLayer *poSrcLayer,
     }
 
     CPLErrorReset();
-    poDstLayer = CreateLayer( pszNewName, poSrcLayer->GetSpatialRef(),
-                              poSrcDefn->GetGeomType(), papszOptions );
+    if( poSrcDefn->GetGeomFieldCount() > 1 &&
+        TestCapability(ODsCCreateGeomFieldAfterCreateLayer) )
+    {
+        poDstLayer = CreateLayer( pszNewName, NULL, wkbNone, papszOptions );
+    }
+    else
+    {
+        poDstLayer = CreateLayer( pszNewName, poSrcLayer->GetSpatialRef(),
+                                  poSrcDefn->GetGeomType(), papszOptions );
+    }
     
     if( poDstLayer == NULL )
         return NULL;
@@ -327,6 +336,19 @@ OGRLayer *OGRDataSource::CopyLayer( OGRLayer *poSrcLayer,
     }
 
 /* -------------------------------------------------------------------- */
+/*      Create geometry fields.                                         */
+/* -------------------------------------------------------------------- */
+    if( poSrcDefn->GetGeomFieldCount() > 1 &&
+        TestCapability(ODsCCreateGeomFieldAfterCreateLayer) )
+    {
+        int nSrcGeomFieldCount = poSrcDefn->GetGeomFieldCount();
+        for( iField = 0; iField < nSrcGeomFieldCount; iField++ )
+        {
+            poDstLayer->CreateGeomField( poSrcDefn->GetGeomFieldDefn(iField) );
+        }
+    }
+
+/* -------------------------------------------------------------------- */
 /*      Check if the destination layer supports transactions and set a  */
 /*      default number of features in a single transaction.             */
 /* -------------------------------------------------------------------- */
@@ -361,6 +383,7 @@ OGRLayer *OGRDataSource::CopyLayer( OGRLayer *poSrcLayer,
                       "Unable to translate feature %ld from layer %s.\n",
                       poFeature->GetFID(), poSrcDefn->GetName() );
             OGRFeature::DestroyFeature( poFeature );
+            CPLFree(panMap);
             return poDstLayer;
         }
 
@@ -372,6 +395,7 @@ OGRLayer *OGRDataSource::CopyLayer( OGRLayer *poSrcLayer,
         if( poDstLayer->CreateFeature( poDstFeature ) != OGRERR_NONE )
         {
             OGRFeature::DestroyFeature( poDstFeature );
+            CPLFree(panMap);
             return poDstLayer;
         }
 
@@ -406,10 +430,10 @@ OGRLayer *OGRDataSource::CopyLayer( OGRLayer *poSrcLayer,
 
             if( papoDstFeature[nFeatCount]->SetFrom( poFeature, panMap, TRUE ) != OGRERR_NONE )
             {
-                OGRFeature::DestroyFeature( poFeature );
                 CPLError( CE_Failure, CPLE_AppDefined,
                           "Unable to translate feature %ld from layer %s.\n",
                           poFeature->GetFID(), poSrcDefn->GetName() );
+                OGRFeature::DestroyFeature( poFeature );
                 bStopTransfer = TRUE;
                 break;
             }
@@ -737,7 +761,10 @@ OGRErr OGRDataSource::ProcessSQLDropIndex( const char *pszSQLCommand )
             {
                 eErr = poLayer->GetIndex()->DropIndex( i );
                 if( eErr != OGRERR_NONE )
+                {
+                    CSLDestroy(papszTokens);
                     return eErr;
+                }
             }
         }
 
@@ -1515,6 +1542,8 @@ OGRLayer* OGRDataSource::BuildLayerFromSelectInfo(void* psSelectInfoIn,
         }
 
         nFieldCount += poSrcLayer->GetLayerDefn()->GetFieldCount();
+        if( iTable == 0 )
+            nFieldCount += poSrcLayer->GetLayerDefn()->GetGeomFieldCount();
     }
     
 /* -------------------------------------------------------------------- */
@@ -1562,6 +1591,12 @@ OGRLayer* OGRDataSource::BuildLayerFromSelectInfo(void* psSelectInfoIn,
                 sFieldList.types[iOutField] = SWQ_FLOAT;
             else if( poFDefn->GetType() == OFTString )
                 sFieldList.types[iOutField] = SWQ_STRING;
+            else if( poFDefn->GetType() == OFTTime )
+                sFieldList.types[iOutField] = SWQ_TIME;
+            else if( poFDefn->GetType() == OFTDate )
+                sFieldList.types[iOutField] = SWQ_DATE;
+            else if( poFDefn->GetType() == OFTDateTime )
+                sFieldList.types[iOutField] = SWQ_TIMESTAMP;
             else
                 sFieldList.types[iOutField] = SWQ_OTHER;
 
@@ -1570,7 +1605,25 @@ OGRLayer* OGRDataSource::BuildLayerFromSelectInfo(void* psSelectInfoIn,
         }
 
         if( iTable == 0 )
-            nFIDIndex = poSrcLayer->GetLayerDefn()->GetFieldCount();
+        {
+            nFIDIndex = sFieldList.count;
+
+            for( iField = 0; 
+                 iField < poSrcLayer->GetLayerDefn()->GetGeomFieldCount();
+                 iField++ )
+            {
+                OGRGeomFieldDefn *poFDefn=poSrcLayer->GetLayerDefn()->GetGeomFieldDefn(iField);
+                int iOutField = sFieldList.count++;
+                sFieldList.names[iOutField] = (char *) poFDefn->GetNameRef();
+                if( *sFieldList.names[iOutField] == '\0' )
+                    sFieldList.names[iOutField] = (char*) OGR_GEOMETRY_DEFAULT_NON_EMPTY_NAME;
+                sFieldList.types[iOutField] = SWQ_GEOMETRY;
+
+                sFieldList.table_ids[iOutField] = iTable;
+                sFieldList.ids[iOutField] =
+                    GEOM_FIELD_INDEX_TO_ALL_FIELD_INDEX(poSrcLayer->GetLayerDefn(), iField);
+            }
+        }
     }
 
 /* -------------------------------------------------------------------- */
@@ -1871,4 +1924,15 @@ void OGR_DS_SetStyleTable( OGRDataSourceH hDS, OGRStyleTableH hStyleTable )
     VALIDATE_POINTER0( hStyleTable, "OGR_DS_SetStyleTable" );
     
     ((OGRDataSource *) hDS)->SetStyleTable( (OGRStyleTable *) hStyleTable);
+}
+
+/************************************************************************/
+/*                         IsGenericSQLDialect()                        */
+/************************************************************************/
+
+int OGRDataSource::IsGenericSQLDialect(const char* pszDialect)
+{
+    return ( pszDialect != NULL && (EQUAL(pszDialect,"OGRSQL") ||
+                                    EQUAL(pszDialect,"SQLITE")) );
+
 }

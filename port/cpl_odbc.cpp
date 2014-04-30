@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: cpl_odbc.cpp 20862 2010-10-17 15:47:12Z tamas $
+ * $Id: cpl_odbc.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  OGR ODBC Driver
  * Purpose:  Declarations for ODBC Access Cover API.
@@ -7,6 +7,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2003, Frank Warmerdam
+ * Copyright (c) 2008, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -35,7 +36,7 @@
 
 #ifndef WIN32CE /* ODBC is not supported on Windows CE. */
 
-CPL_CVSID("$Id: cpl_odbc.cpp 20862 2010-10-17 15:47:12Z tamas $");
+CPL_CVSID("$Id: cpl_odbc.cpp 27044 2014-03-16 23:41:27Z rouault $");
 
 #ifndef SQLColumns_TABLE_CAT 
 #define SQLColumns_TABLE_CAT 1

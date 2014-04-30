@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrsfdriverregistrar.cpp 25329 2012-12-17 18:38:43Z mloskot $
+ * $Id: ogrsfdriverregistrar.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  The OGRSFDriverRegistrar class implementation.
@@ -7,6 +7,7 @@
  *
  ******************************************************************************
  * Copyright (c) 1999,  Les Technologies SoftMap Inc.
+ * Copyright (c) 2008-2012, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -37,7 +38,7 @@
 #include <unistd.h>
 #endif
 
-CPL_CVSID("$Id: ogrsfdriverregistrar.cpp 25329 2012-12-17 18:38:43Z mloskot $");
+CPL_CVSID("$Id: ogrsfdriverregistrar.cpp 27044 2014-03-16 23:41:27Z rouault $");
 
 static void *hDRMutex = NULL;
 static OGRSFDriverRegistrar * volatile poRegistrar = NULL;
@@ -147,7 +148,6 @@ void OGRCleanupAll()
         if( poRegistrar != NULL )
             delete poRegistrar;
         OSRCleanup();
-        swq_op_registrar::DeInitialize();
     }
 
     CPLDestroyMutex( hDRMutex );
@@ -761,6 +761,9 @@ OGRSFDriverH OGRGetDriverByName( const char *pszName )
  * There are a few rules for the driver path.  If the GDAL_DRIVER_PATH 
  * environment variable it set, it is taken to be a list of directories to 
  * search separated by colons on unix, or semi-colons on Windows.  
+ * 
+ * Auto loading can be completely disabled by setting the GDAL_DRIVER_PATH
+ * config option to "disable".
  *
  * If that is not set the following defaults are used:
  *
@@ -786,6 +789,16 @@ void OGRSFDriverRegistrar::AutoLoadDrivers()
     if( pszGDAL_DRIVER_PATH == NULL )
         pszGDAL_DRIVER_PATH = 
             CPLGetConfigOption( "GDAL_DRIVER_PATH", NULL );
+
+/* -------------------------------------------------------------------- */
+/*      Allow applications to completely disable this search by         */
+/*      setting the driver path to the special string "disable".        */
+/* -------------------------------------------------------------------- */
+    if( pszGDAL_DRIVER_PATH != NULL && EQUAL(pszGDAL_DRIVER_PATH,"disable")) 
+    {
+        CPLDebug( "GDAL", "OGRSFDriverRegistrar::AutoLoadDrivers() disabled." );
+        return;
+    }
 
 /* -------------------------------------------------------------------- */
 /*      Where should we look for stuff?                                 */

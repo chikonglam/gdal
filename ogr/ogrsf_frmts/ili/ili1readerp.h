@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ili1readerp.h 24116 2012-03-13 16:31:27Z pka $
+ * $Id: ili1readerp.h 26979 2014-02-23 21:55:20Z pka $
  *
  * Project:  Interlis 1 Reader
  * Purpose:  Private Declarations for Reader code.
@@ -32,7 +32,6 @@
 
 #include "ili1reader.h"
 #include "ogr_ili1.h"
-#include "iom/iom.h"
 
 
 class ILI1Reader;
@@ -49,7 +48,6 @@ private:
     int          nLayers;
     OGRILI1Layer **papoLayers;
     OGRILI1Layer *curLayer;
-    OGRILI1Layer *metaLayer;
     double       arcIncr;
     char         codeBlank;
     char         codeUndefined;
@@ -61,10 +59,10 @@ public:
 
     void         SetArcDegrees(double arcDegrees);
     int          OpenFile( const char *pszFilename );
-    int          ReadModel( const char *pszModelFilename );
+    int          ReadModel( ImdReader *poImdReader, const char *pszModelFilename, OGRILI1DataSource *poDS );
     int          ReadFeatures();
     int          ReadTable(const char *layername);
-    void         ReadGeom(char **stgeom, OGRwkbGeometryType eType, OGRFeature *feature);
+    void         ReadGeom(char **stgeom, int geomIdx, OGRwkbGeometryType eType, OGRFeature *feature);
     char         **ReadParseLine();
 
     void         AddLayer( OGRILI1Layer * poNewLayer );
@@ -73,15 +71,7 @@ public:
     OGRILI1Layer *GetLayerByName( const char* );
     int          GetLayerCount();
 
-    int          HasMultiplePointGeom(const char* layername);
-    char*        GetPointLayerName(const char* layername, char* newlayername);
     const char*  GetLayerNameString(const char* topicname, const char* tablename);
-    const char*  GetLayerName(IOM_BASKET model, IOM_OBJECT table);
-    void         AddCoord(OGRILI1Layer* layer, IOM_BASKET model, IOM_OBJECT modelele, IOM_OBJECT typeobj);
-    void         AddEnumTable(OGRILI1Layer* layer, IOM_BASKET model, IOM_OBJECT enumeration);
-    OGRILI1Layer* AddGeomTable(const char* datalayername, const char* geomname, OGRwkbGeometryType eType);
-    void         AddField(OGRILI1Layer* layer, IOM_BASKET model, IOM_OBJECT obj);
-    unsigned int GetCoordDim(IOM_BASKET model, IOM_OBJECT typeobj);
 };
 
 

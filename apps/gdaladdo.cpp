@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdaladdo.cpp 25586 2013-01-30 20:26:44Z rouault $
+ * $Id: gdaladdo.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  GDAL Utilities
  * Purpose:  Commandline application to build overviews. 
@@ -7,6 +7,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2000, Frank Warmerdam
+ * Copyright (c) 2008-2013, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -30,7 +31,7 @@
 #include "gdal_priv.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: gdaladdo.cpp 25586 2013-01-30 20:26:44Z rouault $");
+CPL_CVSID("$Id: gdaladdo.cpp 27044 2014-03-16 23:41:27Z rouault $");
 
 /************************************************************************/
 /*                               Usage()                                */
@@ -153,7 +154,7 @@ int main( int nArgc, char ** papszArgv )
             panBandList[nBandCount-1] = nBand;
         }
         else if( papszArgv[iArg][0] == '-' )
-            Usage(CPLSPrintf("Unkown option name '%s'", papszArgv[iArg]));
+            Usage(CPLSPrintf("Unknown option name '%s'", papszArgv[iArg]));
         else if( pszFilename == NULL )
             pszFilename = papszArgv[iArg];
         else if( atoi(papszArgv[iArg]) > 0 )

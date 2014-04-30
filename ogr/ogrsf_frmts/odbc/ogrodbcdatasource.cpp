@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrodbcdatasource.cpp 24960 2012-09-23 18:06:25Z rouault $
+ * $Id: ogrodbcdatasource.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implements OGRODBCDataSource class.
@@ -7,6 +7,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2003, Frank Warmerdam <warmerdam@pobox.com>
+ * Copyright (c) 2009-2013, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -31,7 +32,7 @@
 #include "cpl_conv.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: ogrodbcdatasource.cpp 24960 2012-09-23 18:06:25Z rouault $");
+CPL_CVSID("$Id: ogrodbcdatasource.cpp 27044 2014-03-16 23:41:27Z rouault $");
 /************************************************************************/
 /*                         OGRODBCDataSource()                          */
 /************************************************************************/
@@ -125,6 +126,20 @@ int OGRODBCDataSource::OpenMDB( const char * pszNewName, int bUpdate )
         CPLODBCStatement oStmt( &oSession );
 
         oStmt.Append( "SELECT TableName FROM GAliasTable WHERE TableType = 'INGRFeatures'" );
+
+        if( oStmt.ExecuteSQL() )
+        {
+            return FALSE;
+        }
+    }
+
+/* -------------------------------------------------------------------- */
+/*      Check if it is a Walk MDB.                                      */
+/* -------------------------------------------------------------------- */
+    {
+        CPLODBCStatement oStmt( &oSession );
+
+        oStmt.Append( "SELECT LayerID, LayerName, minE, maxE, minN, maxN, Memo FROM WalkLayers" );
 
         if( oStmt.ExecuteSQL() )
         {
@@ -527,9 +542,9 @@ OGRLayer * OGRODBCDataSource::ExecuteSQL( const char *pszSQLCommand,
 
 {
 /* -------------------------------------------------------------------- */
-/*      Use generic imlplementation for OGRSQL dialect.                 */
+/*      Use generic implementation for recognized dialects              */
 /* -------------------------------------------------------------------- */
-    if( pszDialect != NULL && EQUAL(pszDialect,"OGRSQL") )
+    if( IsGenericSQLDialect(pszDialect) )
         return OGRDataSource::ExecuteSQL( pszSQLCommand, 
                                           poSpatialFilter, 
                                           pszDialect );

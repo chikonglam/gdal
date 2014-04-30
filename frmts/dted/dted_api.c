@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: dted_api.c 24603 2012-06-20 18:21:29Z rouault $
+ * $Id: dted_api.c 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  DTED Translator
  * Purpose:  Implementation of DTED/CDED access functions.
@@ -7,6 +7,7 @@
  *
  ******************************************************************************
  * Copyright (c) 1999, Frank Warmerdam
+ * Copyright (c) 2007-2012, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -30,7 +31,7 @@
 #include "dted_api.h"
 
 #ifndef AVOID_CPL
-CPL_CVSID("$Id: dted_api.c 24603 2012-06-20 18:21:29Z rouault $");
+CPL_CVSID("$Id: dted_api.c 27044 2014-03-16 23:41:27Z rouault $");
 #endif
 
 static int bWarnedTwoComplement = FALSE;

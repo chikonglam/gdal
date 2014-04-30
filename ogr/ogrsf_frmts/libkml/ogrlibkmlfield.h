@@ -6,6 +6,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2010, Brian Case
+ * Copyright (c) 2014, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -58,7 +59,8 @@ void field2kml (
     OGRFeature * poOgrFeat,
     OGRLIBKMLLayer * poOgrLayer,
     KmlFactory * poKmlFactory,
-    PlacemarkPtr poKmlPlacemark );
+    FeaturePtr poKmlPlacemark,
+    int bUseSimpleField );
 
 /******************************************************************************
  function to read kml into ogr fields
@@ -101,7 +103,42 @@ struct fieldconfig {
     const char *visibilityfield;
     const char *drawOrderfield;
     const char *iconfield;
+    const char *headingfield;
+    const char *tiltfield;
+    const char *rollfield;
+    const char *snippetfield;
+    const char *modelfield;
+    const char *scalexfield;
+    const char *scaleyfield;
+    const char *scalezfield;
+    const char *networklinkfield;
+    const char *networklink_refreshvisibility_field;
+    const char *networklink_flytoview_field;
+    const char *networklink_refreshMode_field;
+    const char *networklink_refreshInterval_field;
+    const char *networklink_viewRefreshMode_field;
+    const char *networklink_viewRefreshTime_field;
+    const char *networklink_viewBoundScale_field;
+    const char *networklink_viewFormat_field;
+    const char *networklink_httpQuery_field;
+    const char *camera_longitude_field;
+    const char *camera_latitude_field;
+    const char *camera_altitude_field;
+    const char *camera_altitudemode_field;
+    const char *photooverlayfield;
+    const char *leftfovfield;
+    const char *rightfovfield;
+    const char *bottomfovfield;
+    const char *topfovfield;
+    const char *nearfield;
+    const char *photooverlay_shape_field;
+    const char *imagepyramid_tilesize_field;
+    const char *imagepyramid_maxwidth_field;
+    const char *imagepyramid_maxheight_field;
+    const char *imagepyramid_gridorigin_field;
 };
 
 void get_fieldconfig( struct fieldconfig *oFC );
 
+int kmlAltitudeModeFromString(const char* pszAltitudeMode,
+                              int& isGX);
