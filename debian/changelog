@@ -1,3 +1,9 @@
+gdal (1.11.0+dfsg-1) UNRELEASED; urgency=low
+
+  * New upstream release.
+
+ -- Bas Couwenberg <sebastic@xs4all.nl>  Wed, 30 Apr 2014 20:10:05 +0200
+
 gdal (1.10.1+dfsg-5) unstable; urgency=medium
 
   * Don't run dh for custom targets.
