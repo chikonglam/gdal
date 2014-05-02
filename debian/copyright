@@ -25,22 +25,22 @@ Files: *
 Copyright: 1998-2013, Frank Warmerdam <warmerdam@pobox.com>
 License: MIT
 
-Files: ./install-sh
+Files: install-sh
 Copyright: 1991, Massachusetts Institute of Technology
 License: MIT-short
 
-Files: ./config.guess
- ./config.sub
+Files: config.guess
+ config.sub
 Copyright: 1992-2006, Free Software Foundation
 License: GPL-2.0+
 
-Files: ./configure
+Files: configure
 Copyright: 1992-2010, Free Software Foundation, Inc.
 License: public-domain
  This configure script is free software; the Free Software Foundation
  gives unlimited permission to copy, distribute and modify it.
 
-Files: ./aclocal.m4
+Files: aclocal.m4
 Copyright: 1996-2009, Free Software Foundation, Inc.
 License: public-domain
  This file is free software; the Free Software Foundation
@@ -52,45 +52,22 @@ License: public-domain
  even the implied warranty of MERCHANTABILITY or FITNESS FOR A
  PARTICULAR PURPOSE.
 
-Files: ./ltmain.sh
+Files: ltmain.sh
 Copyright: 1996-2001, 2003-2010, Free Software Foundation, Inc
 License: GPL-2.0+ with Libtool exception
 
-Files: ./makegdal_gen.bat
+Files: makegdal_gen.bat
 Copyright: 2007, Ivan Lucena
 License: MIT
 
-Files: alg/gdal_crs.c
-Copyright: 1992, Michigan State University
-License: MIT
-
-Files: alg/gdalsimplewarp.cpp
- alg/gdaltransformer.cpp
-Copyright: 2002, i3 - information integration and imaging, Fort Collin,CO
+Files: update_copyright.py
+Copyright: 2014, Even Rouault <even dot rouault at mines-paris dot org>
 License: MIT
 
 Files: alg/contour.cpp
-Copyright: 2003, Frank Warmerdam <warmerdam@pobox.com>
- 2003, Applied Coherent Technology Corporation, www.actgate.com
-License: MIT
-
-Files: alg/thinplatespline.cpp
- alg/thinplatespline.h
-Copyright: 2004, VIZRT Inc.
-License: MIT
-
-Files: alg/gdalgrid.cpp
- alg/gdalgrid.h
-Copyright: 2007, Andrey Kiselev <dron@ak4719.spb.edu>
-License: MIT
-
-Files: alg/gdal_alg_priv.h
-Copyright: 2008, Andrey Kiselev <dron@ak4719.spb.edu>
-License: MIT
-
-Files: alg/gdalwarpkernel_opencl.c
- alg/gdalwarpkernel_opencl.h
-Copyright: 2010, Seth Price <seth@pricepages.org>
+Copyright: 2003, Applied Coherent Technology Corporation, www.actgate.com
+ 2003, Frank Warmerdam <warmerdam@pobox.com>
+ 2007-2013, Even Rouault <even dot rouault at mines-paris dot org>
 License: MIT
 
 Files: alg/fpolygonize.cpp
@@ -99,66 +76,301 @@ Copyright: 2011, Jorge Arevalo
  2008, Frank Warmerdam
 License: MIT
 
+Files: alg/gdal_alg.h
+Copyright: 2001, Frank Warmerdam
+ 2008-2012, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: alg/gdal_alg_priv.h
+Copyright: 2008, Andrey Kiselev <dron@ak4719.spb.edu>
+ 2010-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: alg/gdal_crs.c
+Copyright: 1992, Michigan State University
+ 2008-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: alg/gdal_rpc.cpp
+Copyright: 2009-2013, Even Rouault <even dot rouault at mines-paris dot org>
+ 2003, Frank Warmerdam <warmerdam@pobox.com>
+License: MIT
+
 Files: alg/gdal_octave.cpp
  alg/gdal_simplesurf.cpp
  alg/gdal_simplesurf.h
 Copyright: 2012, Andrew Migal
 License: MIT
 
-Files: apps/gdaltindex.c
-Copyright: 2001, Frank Warmerdam, DM Solutions Group Inc
+Files: alg/gdal_tps.cpp
+Copyright: 2004, Frank Warmerdam <warmerdam@pobox.com>
+ 2011-2013, Even Rouault <even dot rouault at mines-paris dot org>
 License: MIT
 
-Files: apps/gdalwarp.cpp
- apps/gdalwarpsimple.c
+Files: alg/gdalchecksum.cpp
+Copyright: 2003, Frank Warmerdam
+ 2007-2008, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: alg/gdalcutline.cpp
+Copyright: 2008, Frank Warmerdam <warmerdam@pobox.com>
+ 2008-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: alg/gdaldither.cpp
+Copyright: 2007, Even Rouault <even dot rouault at mines-paris dot org>
+ 2001, Frank Warmerdam
+License: MIT
+
+Files: alg/gdalgeoloc.cpp
+Copyright: 2007-2013, Even Rouault <even dot rouault at mines-paris dot org>
+ 2006, Frank Warmerdam <warmerdam@pobox.com>
+License: MIT
+
+Files: alg/gdalgrid.cpp
+Copyright: 2007, Andrey Kiselev <dron@ak4719.spb.edu>
+ 2009-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: alg/gdalgrid.h
+Copyright: 2007, Andrey Kiselev <dron@ak4719.spb.edu>
+ 2012, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: alg/gdalgrid_priv.h
+Copyright: 2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: alg/gdalgridavx.cpp
+Copyright: 2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: alg/gdalmediancut.cpp
+Copyright: 2001, Frank Warmerdam
+ 2007-2010, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: alg/gdalproximity.cpp
+Copyright: 2008, Frank Warmerdam
+ 2009-2010, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: alg/gdalrasterize.cpp
+Copyright: 2005, Frank Warmerdam <warmerdam@pobox.com>
+ 2008-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: alg/gdalsievefilter.cpp
+Copyright: 2008, Frank Warmerdam
+ 2009-2011, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: alg/gdalsimplewarp.cpp
+Copyright: 2002, i3 - information integration and imaging, Fort Collin,CO
+License: MIT
+
+Files: alg/gdaltransformer.cpp
 Copyright: 2002, i3 - information integration and imaging
+ 2008-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: alg/gdalwarper.cpp
+Copyright: 2003, Frank Warmerdam <warmerdam@pobox.com>
+ 2008-2012, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: alg/gdalwarper.h
+Copyright: 2003, Frank Warmerdam
+ 2009-2012, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: alg/gdalwarpkernel.cpp
+Copyright: 2003, Frank Warmerdam <warmerdam@pobox.com>
+ 2008-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: alg/gdalwarpkernel_opencl.c
+Copyright: 2010, Seth Price <seth@pricepages.org>
+ 2010-2012, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: alg/gdalwarpkernel_opencl.h
+Copyright: 2010, Seth Price <seth@pricepages.org>
+License: MIT
+
+Files: alg/gdalwarpoperation.cpp
+Copyright: 2003, Frank Warmerdam <warmerdam@pobox.com>
+ 2007-2012, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: alg/llrasterize.cpp
+Copyright: 2000, Frank Warmerdam <warmerdam@pobox.com>
+ 2011, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: alg/polygonize.cpp
+Copyright: 2008, Frank Warmerdam
+ 2009-2011, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: alg/rasterfill.cpp
+Copyright: 2008, Frank Warmerdam
+ 2009-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: alg/thinplatespline.cpp
+Copyright: 2004, VIZRT Inc
+ 2008-2014, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: alg/thinplatespline.h
+Copyright: 2004, VIZRT Inc.
+License: MIT
+
+Files: apps/commonutils.cpp
+Copyright: 2011-2012, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: apps/commonutils.h
+Copyright: 2011-2012, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: apps/dumpoverviews.cpp
+Copyright: 2005, Frank Warmerdam
+ 2009-2010, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: apps/gdal2ogr.c
+Copyright: 2008, Even Rouault <even dot rouault at mines-paris dot org>
 License: MIT
 
 Files: apps/gdal_contour.cpp
-Copyright: 2003, Applied Coherent Technology (www.actgate.com).
-License: MIT
-
-Files: apps/gdaldem.cpp
-Copyright: 2006, 2009, Matthew Perry
- 2009, Even Rouault
-Comment: Portions derived from GRASS 4.1 (public domain) See 
- http://trac.osgeo.org/gdal/ticket/2975 for more information regarding 
- history of this code
-License: MIT
-
-Files: apps/nearblack.cpp
-Copyright: 2006, MapShots Inc (www.mapshots.com)
+Copyright: 2003, Applied Coherent Technology (www.actgate.com)
+ 2008-2013, Even Rouault <even dot rouault at mines-paris dot org>
 License: MIT
 
 Files: apps/gdal_grid.cpp
 Copyright: 2007, Andrey Kiselev <dron@ak4719.spb.edu>
 License: MIT
 
+Files: apps/gdal_rasterize.cpp
+Copyright: 2005, Frank Warmerdam <warmerdam@pobox.com>
+ 2008-2012, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: apps/gdal_translate.cpp
+Copyright: 1998, 2002, Frank Warmerdam
+ 2007-2014, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: apps/gdaladdo.cpp
+Copyright: 2000, Frank Warmerdam
+ 2008-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
 Files: apps/gdalbuildvrt.cpp
-Copyright: 2007, Even Rouault
+Copyright: 2007-2014, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: apps/gdaldem.cpp
+Copyright: 2006, 2009 Matthew Perry
+ 2009-2013, Even Rouault <even dot rouault at mines-paris dot org>
+Comment: Portions derived from GRASS 4.1 (public domain) See 
+ http://trac.osgeo.org/gdal/ticket/2975 for more information regarding 
+ history of this code
+License: MIT
+
+Files: apps/gdalenhance.cpp
+Copyright: 2007, Frank Warmerdam <warmerdam@pobox.com>
+ 2007-2011, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: apps/gdalflattenmask.c
+Copyright: 2008-2010, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: apps/gdalinfo.c
+Copyright: 1998, Frank Warmerdam
+ 2007-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: apps/gdallocationinfo.cpp
+Copyright: 2010, Frank Warmerdam <warmerdam@pobox.com>
+ 2010-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: apps/gdalmanage.cpp
+Copyright: 2007, Frank Warmerdam
+ 2008-2009, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: apps/gdalserver.c
+Copyright: 2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: apps/gdalsrsinfo.cpp
+Copyright: 1998, Frank Warmerdam
+ 2011-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: apps/gdaltindex.c
+Copyright: 2001, Frank Warmerdam, DM Solutions Group Inc
+ 2007-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: apps/gdaltorture.cpp
+Copyright: 2008-2011, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: apps/gdaltransform.cpp
+Copyright: 2007, Frank Warmerdam <warmerdam@pobox.com>
+ 2008-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: apps/gdalwarp.cpp
+Copyright: 2002, i3 - information integration and imaging
+ 2007-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: apps/gdalwarpsimple.c
+Copyright: 2002, i3 - information integration and imaging
+License: MIT
+
+Files: apps/nearblack.cpp
+Copyright: 2006, MapShots Inc (www.mapshots.com)
+ 2007-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: apps/ogr2ogr.cpp
+Copyright: 1999, Frank Warmerdam
+ 2008-2014, Even Rouault <even dot rouault at mines-paris dot org>
 License: MIT
 
 Files: apps/ogrdissolve.cpp
 Copyright: 2007, Howard Butler
 License: MIT
 
-Files: apps/gdal2ogr.c
- apps/gdalflattenmask.c
- apps/gdaltorture.cpp
-Copyright: 2008, Even Rouault
+Files: apps/ogrinfo.cpp
+Copyright: 1999, Frank Warmerdam
+ 2008-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: apps/ogrlineref.cpp
+Copyright: 2014, NextGIS
+License: MIT
+
+Files: apps/ogrtindex.cpp
+Copyright: 2002, Frank Warmerdam
+ 2007-2010, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: apps/test_ogrsf.cpp
+Copyright: 1999, Frank Warmerdam
+ 2009-2014, Even Rouault <even dot rouault at mines-paris dot org>
 License: MIT
 
 Files: apps/testreprojmulti.cpp
-Copyright: 2010, Even Rouault, <even dot rouault at mines dash paris dot org>
-License: MIT
-
-Files: apps/commonutils.cpp
- apps/commonutils.h
-Copyright: 2011, Even Rouault
-License: MIT
-
-Files: apps/gdalserver.c
-Copyright: 2013, Even Rouault, <even dot rouault at mines-paris dot org>
+Copyright: 2010, Even Rouault <even dot rouault at mines-paris dot org>
 License: MIT
 
 Files: data/nitf_spec.xml
@@ -166,36 +378,90 @@ Files: data/nitf_spec.xml
 Copyright: 2011, Even Rouault
 License: MIT
 
+Files: frmts/aaigrid/aaigriddataset.cpp
+Copyright: 2001, Frank Warmerdam (warmerdam@pobox.com)
+ 2007-2012, Even Rouault <even dot rouault at mines-paris dot org>
+ 2014, Kyle Shannon <kyle at pobox dot com>
+License: MIT
+
 Files: frmts/adrg/adrgdataset.cpp
-Copyright: 2007, Even Rouault
+Copyright: 2007-2013, Even Rouault <even dot rouault at mines-paris dot org>
 License: MIT
 
 Files: frmts/adrg/srpdataset.cpp
-Copyright: 2007, Even Rouault
- 2009, Frank Warmerdam
+Copyright: 2009, Frank Warmerdam
+ 2009-2013, Even Rouault <even dot rouault at mines-paris dot org>
 License: MIT
 
 Files: frmts/aigrid/aigccitt.c
-Copyright: 2002, Frank Warmerdam <warmerdam@pobox.com>
- 1990-1997, Sam Leffler
- 1991-1997, Silicon Graphics, Inc.
+Copyright: 1990-1997 Sam Leffler
+ 1991-1997 Silicon Graphics, Inc
+ 2002 Frank Warmerdam <warmerdam@pobox.com>
+ 2009-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: HPND-p-sl-sgi
+
+Files: frmts/aigrid/aigdataset.cpp
+Copyright: 1999, Frank Warmerdam
+ 2008-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: frmts/aigrid/aigopen.c
+Copyright: 1999, Frank Warmerdam
+ 2009-2010, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: frmts/aigrid/gridlib.c
+Copyright: 1999, Frank Warmerdam
+ 2007-2010, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: frmts/airsar/airsardataset.cpp
+Copyright: 2004, Frank Warmerdam <warmerdam@pobox.com>
+ 2007-2009, Even Rouault <even dot rouault at mines-paris dot org>
 License: MIT
 
 Files: frmts/arg/argdataset.cpp
 Copyright: 2012, David Zwarg <dzwarg@azavea.com>
+ 2012-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: frmts/blx/blx.c
+Copyright: 2008, Henrik Johansson <henrik@johome.net>
+ 2008-2009, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: frmts/blx/blx.h
+Copyright: 2008, Henrik Johansson <henrik@johome.net>
 License: MIT
 
 Files: frmts/blx/blxdataset.cpp
 Copyright: 2006, Henrik Johansson <henrik@johome.net>
-License: MIT
-
-Files: frmts/blx/blx.c
- frmts/blx/blx.h
-Copyright: 2008, Henrik Johansson <henrik@johome.net>
+ 2008-2011, Even Rouault <even dot rouault at mines-paris dot org>
 License: MIT
 
 Files: frmts/bmp/bmpdataset.cpp
 Copyright: 2002, Andrey Kiselev <dron@remotesensing.org>
+ 2007-2010, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: frmts/bsb/bsb_read.c
+Copyright: 2001, Frank Warmerdam
+ 2007-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: frmts/bsb/bsbdataset.cpp
+Copyright: 2001, Frank Warmerdam <warmerdam@pobox.com>
+ 2008-2012, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: frmts/ceos/ceosdataset.cpp
+Copyright: 1999, Frank Warmerdam
+ 2009-2010, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: frmts/ceos/ceosopen.c
+Copyright: 1999, Frank Warmerdam
+ 2007-2012, Even Rouault <even dot rouault at mines-paris dot org>
 License: MIT
 
 Files: frmts/ceos2/ceos.c
@@ -203,12 +469,17 @@ Files: frmts/ceos2/ceos.c
  frmts/ceos2/ceosrecipe.c
  frmts/ceos2/ceossar.c
  frmts/ceos2/link.c
- frmts/ceos2/sar_ceosdataset.cpp
 Copyright: 2000, Atlantis Scientific Inc
+License: MIT
+
+Files: frmts/ceos2/sar_ceosdataset.cpp
+Copyright: 2000, Atlantis Scientific Inc
+ 2009-2013, Even Rouault <even dot rouault at mines-paris dot org>
 License: MIT
 
 Files: frmts/coasp/coasp_dataset.cpp
 Copyright: 2007, Philippe Vachon
+ 2009-2012, Even Rouault <even dot rouault at mines-paris dot org>
 License: MIT
 
 Files: frmts/cosar/cosar_dataset.cpp
@@ -216,16 +487,43 @@ Copyright: 2007, Philippe P. Vachon <philippe@cowpig.ca>
 License: MIT
 
 Files: frmts/ctg/ctgdataset.cpp
-Copyright: 2011, Even Rouault
+Copyright: 2011, Even Rouault <even dot rouault at mines-paris dot org>
 License: MIT
 
 Files: frmts/dds/ddsdataset.cpp
 Copyright: 2013, Alan Boudreault
+ 2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: frmts/dimap/dimapdataset.cpp
+Copyright: 2007, Frank Warmerdam <warmerdam@pobox.com>
+ 2008-2013, Even Rouault <even dot rouault at mines-paris dot org>
 License: MIT
 
 Files: frmts/dods/dodsdataset2.cpp
-Copyright: 2004, Frank Warmerdam <warmerdam@pobox.com>
- 2003, OPeNDAP, Inc.
+Copyright: 2003 OPeNDAP, Inc
+ 2004, Frank Warmerdam <warmerdam@pobox.com>
+ 2007-2010, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: frmts/dted/dted_api.c
+Copyright: 1999, Frank Warmerdam
+ 2007-2012, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: frmts/dted/dted_api.h
+Copyright: 1999, Frank Warmerdam
+ 2007-2012, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: frmts/dted/dted_test.c
+Copyright: 2001, Frank Warmerdam
+ 2007, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: frmts/dted/dteddataset.cpp
+Copyright: 1999, Frank Warmerdam
+ 2007-2012, Even Rouault <even dot rouault at mines-paris dot org>
 License: MIT
 
 Files: frmts/e00grid/e00compr.h
@@ -234,15 +532,48 @@ Copyright: 1998-2005, Daniel Morissette
 License: MIT
 
 Files: frmts/e00grid/e00griddataset.cpp
-Copyright: 2011, Even Rouault
+Copyright: 2011, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: frmts/ecw/ecwasyncreader.cpp
+Copyright: 2011, Frank Warmerdam <warmerdam@pobox.com>
+ 2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: frmts/ecw/ecwcreatecopy.cpp
+Copyright: 2001, 2004, Frank Warmerdam <warmerdam@pobox.com>
+ 2008-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: frmts/ecw/ecwdataset.cpp
+Copyright: 2001, Frank Warmerdam <warmerdam@pobox.com>
+ 2007-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: frmts/ecw/gdal_ecw.h
+Copyright: 2001-2011, Frank Warmerdam <warmerdam@pobox.com>
+ 2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: frmts/elas/elasdataset.cpp
+Copyright: 1999, Frank Warmerdam
+ 2008-2011, Even Rouault <even dot rouault at mines-paris dot org>
 License: MIT
 
 Files: frmts/envisat/EnvisatFile.c
- frmts/envisat/EnvisatFile.h
+Copyright: 2001, Atlantis Scientific, Inc
+ 2010-2012, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: frmts/envisat/EnvisatFile.h
  frmts/envisat/dumpgeo.c
  frmts/envisat/envisat_dump.c
- frmts/envisat/envisatdataset.cpp
 Copyright: 2001, Atlantis Scientific, Inc.
+License: MIT
+
+Files: frmts/envisat/envisatdataset.cpp
+Copyright: 2001, Atlantis Scientific, Inc
+ 2009-2013, Even Rouault <even dot rouault at mines-paris dot org>
 License: MIT
 
 Files: frmts/envisat/records.c
@@ -250,24 +581,50 @@ Files: frmts/envisat/records.c
 Copyright: 2011, Antonio Valentino
 License: MIT
 
+Files: frmts/envisat/adsrange.cpp
+ frmts/envisat/adsrange.hpp
+ frmts/envisat/timedelta.hpp
+ frmts/envisat/unwrapgcps.cpp
+Copyright: 2013, EOX IT Services, GmbH
+License: MIT
+
 Files: frmts/epsilon/epsilondataset.cpp
-Copyright: 2009, Even Rouault, <even dot rouault at mines dash paris dot org>
+Copyright: 2009-2011, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: frmts/ers/ersdataset.cpp
+Copyright: 2007, Frank Warmerdam <warmerdam@pobox.com>
+ 2008-2013, Even Rouault <even dot rouault at mines-paris dot org>
 License: MIT
 
 Files: frmts/fit/fit.cpp
  frmts/fit/fit.h
- frmts/fit/fitdataset.cpp
  frmts/fit/gstEndian.h
  frmts/fit/gstTypes.h
 Copyright: 2001, Keyhole, Inc.
 License: MIT
 
+Files: frmts/fit/fitdataset.cpp
+Copyright: 2001, Keyhole, Inc
+ 2007-2011, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
 Files: frmts/fits/fitsdataset.cpp
 Copyright: 2001, Simon Perkins
+ 2008-2012, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: frmts/gdalallregister.cpp
+Copyright: 1998, Frank Warmerdam
+ 2007-2014, Even Rouault <even dot rouault at mines-paris dot org>
 License: MIT
 
 Files: frmts/georaster/georaster_dataset.cpp
- frmts/georaster/georaster_priv.h
+Copyright: 2008, Ivan Lucena
+ 2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: frmts/georaster/georaster_priv.h
  frmts/georaster/georaster_rasterband.cpp
  frmts/georaster/georaster_wrapper.cpp
  frmts/georaster/oci_wrapper.cpp
@@ -277,11 +634,25 @@ License: MIT
 
 Files: frmts/gff/gff_dataset.cpp
 Copyright: 2007, Philippe Vachon
+ 2008-2012, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: frmts/gif/biggifdataset.cpp
+Copyright: 2001-2008, Frank Warmerdam <warmerdam@pobox.com>
+ 2009-2013, Even Rouault <even dot rouault at mines-paris dot org>
 License: MIT
 
 Files: frmts/gif/gifabstractdataset.cpp
- frmts/gif/gifabstractdataset.h
-Copyright: 2011, Even Rouault <even dot rouault at mines dash paris dot org>
+Copyright: 2011-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: frmts/gif/gifabstractdataset.h
+Copyright: 2011-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: frmts/gif/gifdataset.cpp
+Copyright: 2001, Frank Warmerdam
+ 2007-2012, Even Rouault <even dot rouault at mines-paris dot org>
 License: MIT
 
 Files: frmts/gif/giflib/dgif_lib.c
@@ -314,8 +685,19 @@ Files: frmts/gif/giflib/gif_lib_private.h
 Copyright: 1997, Eric S. Raymond
 License: MIT
 
+Files: frmts/grass/grass57dataset.cpp
+Copyright: 2000 Frank Warmerdam <warmerdam@pobox.com>
+ 2007-2010, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: frmts/grass/grassdataset.cpp
+Copyright: 2000, Frank Warmerdam
+ 2007-2009, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
 Files: frmts/grib/gribdataset.cpp
 Copyright: 2007, ITC
+ 2008-2013, Even Rouault <even dot rouault at mines-paris dot org>
 License: MIT
 
 Files: frmts/grib/degrib18/*
@@ -357,38 +739,96 @@ License: public-domain
  provide notice with such work(s) identifying the NWS material incorporated 
  and stating that such material is not subject to copyright protection.
 
-Files: frmts/gsg/gsagdataset.cpp
- frmts/gsg/gsbgdataset.cpp
-Copyright: 2006, Kevin Locke <kwl7@cornell.edu>
-License: MIT
-
 Files: frmts/gsg/gs7bgdataset.cpp
 Copyright: 2007, Adam Guernsey <adam@ctech.com>
+ 2009-2011, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: frmts/gsg/gsagdataset.cpp
+Copyright: 2006, Kevin Locke <kwl7@cornell.edu>
+ 2008-2012, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: frmts/gsg/gsbgdataset.cpp
+Copyright: 2006, Kevin Locke <kwl7@cornell.edu>
+ 2008-2012, Even Rouault <even dot rouault at mines-paris dot org>
 License: MIT
 
 Files: frmts/gta/gtadataset.cpp
-Copyright: 2010-2011, Martin Lambers <marlam@marlam.de>
+Copyright: 2010, 2011, Martin Lambers <marlam@marlam.de>
+ 2011-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: frmts/gtiff/geotiff.cpp
+Copyright: 1998, 2002, Frank Warmerdam <warmerdam@pobox.com>
+ 2007-2014, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: frmts/gtiff/gt_citation.cpp
+Copyright: 2008, Xiuguang Zhou (ESRI)
+ 2008-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: frmts/gtiff/gt_citation.h
+Copyright: 2008, Xiuguang Zhou (ESRI)
+ 2010-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: frmts/gtiff/gt_jpeg_copy.cpp
+Copyright: 2012, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: frmts/gtiff/gt_jpeg_copy.h
+Copyright: 2012, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: frmts/gtiff/gt_overview.cpp
+Copyright: 2000, Frank Warmerdam
+ 2008-2012, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: frmts/gtiff/gt_overview.h
+Copyright: 2000, Frank Warmerdam
+ 2008-2010, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: frmts/gtiff/gt_wkt_srs.cpp
+Copyright: 1999, Frank Warmerdam
+ 2008-2014, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: frmts/gtiff/gt_wkt_srs.h
+Copyright: 2010, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: frmts/gtiff/gt_wkt_srs_for_gdal.h
+Copyright: 2010-2012, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: frmts/gtiff/gtiff.h
+Copyright: 1998, 2002, Frank Warmerdam <warmerdam@pobox.com>
+ 2010-2013, Even Rouault <even dot rouault at mines-paris dot org>
 License: MIT
 
 Files: frmts/gtiff/tif_float.c
- frmts/gtiff/tif_float.h
 Copyright: 2002, Industrial Light & Magic, a division of Lucas Digital Ltd. LLC
  2005, Andrey Kiselev <dron@remotesensing.org>
 License: BSD-3-Clause
 
-Files: frmts/gtiff/gt_citation.cpp
- frmts/gtiff/gt_citation.h
-Copyright: 2008, Xiuguang Zhou (ESRI)
+Files: frmts/gtiff/tif_float.h
+Copyright: 2002, Industrial Light & Magic, a division of Lucas
+ 2005, Andrey Kiselev <dron@remotesensing.org>
+ 2010, Even Rouault <even dot rouault at mines-paris dot org>
+License: BSD-3-Clause
+
+Files: frmts/gtiff/tifvsi.cpp
+Copyright: 2005, Frank Warmerdam, warmerdam@pobox.com
+ 2010-2012, Even Rouault <even dot rouault at mines-paris dot org>
 License: MIT
 
-Files: frmts/gtiff/gt_jpeg_copy.cpp
- frmts/gtiff/gt_jpeg_copy.h
-Copyright: 2012, Even Rouault, <even dot rouault at mines dash paris dot org>
-License: MIT
-
-Files: frmts/gtiff/gt_wkt_srs.h
- frmts/gtiff/gt_wkt_srs_for_gdal.h
-Copyright: 2010, Even Rouault
+Files: frmts/gtiff/tifvsi.h
+Copyright: 2005, Frank Warmerdam, warmerdam@pobox.com
+ 2010, Even Rouault <even dot rouault at mines-paris dot org>
 License: MIT
 
 Files: frmts/gtiff/libgeotiff/geo_free.c
@@ -508,17 +948,40 @@ Copyright: 1996-1997, Sam Leffler
  1996 Pixar
 License: HPND-p-sl-sgi
 
+Files: frmts/gxf/gxf_ogcwkt.c
+Copyright: 1999, Frank Warmerdam
+ 2009-2012, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: frmts/gxf/gxfdataset.cpp
+Copyright: 1998, Frank Warmerdam
+ 2008-2012, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: frmts/gxf/gxfopen.c
+Copyright: 1998, Frank Warmerdam
+ 1998, Global Geomatics
+ 2008-2012, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
 Files: frmts/gxf/gxf_proj4.c
- frmts/gxf/gxfopen.c
  frmts/gxf/gxfopen.h
 Copyright: 1998, Global Geomatics
  1998, Frank Warmerdam
 License: MIT
 
+Files: frmts/hdf4/hdf4dataset.cpp
+Copyright: 2002, Andrey Kiselev <dron@ak4719.spb.edu>
+ 2007-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: frmts/hdf4/hdf4imagedataset.cpp
+Copyright: 2002, Andrey Kiselev <dron@ak4719.spb.edu>
+ 2009-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
 Files: frmts/hdf4/hdf4compat.h
- frmts/hdf4/hdf4dataset.cpp
  frmts/hdf4/hdf4dataset.h
- frmts/hdf4/hdf4imagedataset.cpp
 Copyright: 2002, Andrey Kiselev <dron@ak4719.spb.edu>
 License: MIT
 
@@ -535,67 +998,206 @@ Files: frmts/hdf4/hdf-eos/gctp_wrap.c
 Copyright: 2004, Andrey Kiselev <dron@ak4719.spb.edu>
 License: MIT
 
+Files: frmts/hdf5/bagdataset.cpp
+Copyright: 2009, Frank Warmerdam <warmerdam@pobox.com>
+ 2009-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: frmts/hdf5/hdf5dataset.cpp
+Copyright: 2005, Frank Warmerdam <warmerdam@pobox.com>
+ 2008-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: frmts/hdf5/hdf5dataset.h
+Copyright: 2005, Frank Warmerdam <warmerdam@pobox.com>
+ 2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: frmts/hdf5/hdf5imagedataset.cpp
+Copyright: 2005, Frank Warmerdam <warmerdam@pobox.com>
+ 2007-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: frmts/hdf5/iso19115_srs.cpp
+Copyright: 2009, Frank Warmerdam <warmerdam@pobox.com>
+ 2009-2012, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
 Files: frmts/hf2/hf2dataset.cpp
-Copyright: 2010, Even Rouault
+Copyright: 2010-2012, Even Rouault <even dot rouault at mines-paris dot org>
 License: MIT
 
 Files: frmts/hfa/hfa.h
  frmts/hfa/hfa_p.h
- frmts/hfa/hfaband.cpp
  frmts/hfa/hfadictionary.cpp
- frmts/hfa/hfaentry.cpp
- frmts/hfa/hfafield.cpp
- frmts/hfa/hfaopen.cpp
- frmts/hfa/hfatest.cpp
- frmts/hfa/hfatype.cpp
 Copyright: 1999, Intergraph Corporation
+License: MIT
+
+Files: frmts/hfa/hfaband.cpp
+Copyright: 1999, Intergraph Corporation
+ 2007-2012, Even Rouault <even dot rouault at mines-paris dot org>
 License: MIT
 
 Files: frmts/hfa/hfacompress.cpp
 Copyright: 2005, Sam Gillingham
 License: MIT
 
+Files: frmts/hfa/hfadataset.cpp
+Copyright: 1999, Frank Warmerdam
+ 2008-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: frmts/hfa/hfaentry.cpp
+Copyright: 1999, Intergraph Corporation
+ 2008-2011, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: frmts/hfa/hfafield.cpp
+Copyright: 1999, Intergraph Corporation
+ 2009-2011, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: frmts/hfa/hfaopen.cpp
+Copyright: 1999, Intergraph Corporation
+ 2007-2011, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: frmts/hfa/hfatest.cpp
+Copyright: 1999, Intergraph Corporation
+ 2009-2011, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: frmts/hfa/hfatype.cpp
+Copyright: 1999, Intergraph Corporation
+ 2009-2011, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
 Files: frmts/idrisi/IdrisiDataset.cpp
- frmts/idrisi/idrisi.h
-Copyright: ( c ) 2006, Ivan Lucena
+Copyright: 2006, Ivan Lucena
+ 2007-2012, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: frmts/idrisi/idrisi.h
+Copyright: 2006, Ivan Lucena
+ 2011, Even Rouault <even dot rouault at mines-paris dot org>
 License: MIT
 
 Files: frmts/ilwis/ilwiscoordinatesystem.cpp
- frmts/ilwis/ilwisdataset.cpp
- frmts/ilwis/ilwisdataset.h
+Copyright: 2004, ITC
+ 2008-2012, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: frmts/ilwis/ilwisdataset.cpp
+Copyright: 2004, ITC
+ 2008-2010, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: frmts/ilwis/ilwisdataset.h
 Copyright: 2004, ITC
 License: MIT
 
 Files: frmts/ingr/IngrTypes.cpp
- frmts/ingr/IngrTypes.h
- frmts/ingr/IntergraphBand.cpp
- frmts/ingr/IntergraphBand.h
- frmts/ingr/IntergraphDataset.cpp
- frmts/ingr/IntergraphDataset.h
- frmts/ingr/JpegHelper.cpp
- frmts/ingr/JpegHelper.h
+Copyright: 2007, Ivan Lucena
+ 2007-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: frmts/ingr/IngrTypes.h
+Copyright: 2007, Ivan Lucena
+ 2007-2010, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: frmts/ingr/IntergraphBand.cpp
+Copyright: 2007, Ivan Lucena
+ 2007-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: frmts/ingr/IntergraphBand.h
+Copyright: 2007, Ivan Lucena
+ 2007-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: frmts/ingr/IntergraphDataset.cpp
+Copyright: 2007, Ivan Lucena
+ 2007-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: frmts/ingr/IntergraphDataset.h
+Copyright: 2007, Ivan Lucena
+ 2007-2010, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: frmts/ingr/JpegHelper.cpp
 Copyright: 2007, Ivan Lucena
 License: MIT
 
+Files: frmts/ingr/JpegHelper.h
+Copyright: 2007, Even Rouault <even dot rouault at mines-paris dot org>
+ 2007, Ivan Lucena
+License: MIT
+
 Files: frmts/iris/irisdataset.cpp
-Copyright: 2012, Roger Veciana <rveciana@gmail.com>
+Copyright: 2005-2012
+ 2012, Roger Veciana <rveciana@gmail.com>
+ 2012-2013, Even Rouault <even dot rouault at mines-paris dot org>
 License: MIT
 
 Files: frmts/iso8211/8211createfromxml.cpp
 Copyright: 2013, Even Rouault <even dot rouault at mines-paris dot org>
 License: MIT
 
+Files: frmts/iso8211/8211dump.cpp
+Copyright: 1999, Frank Warmerdam
+ 2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: frmts/iso8211/ddfmodule.cpp
+Copyright: 1999, Frank Warmerdam
+ 2011-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: frmts/iso8211/ddfrecord.cpp
+Copyright: 1999, Frank Warmerdam
+ 2010-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: frmts/iso8211/ddfsubfielddefn.cpp
+Copyright: 1999, Frank Warmerdam
+ 2011-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
 Files: frmts/jaxapalsar/jaxapalsardataset.cpp
 Copyright: 2007, Philippe P. Vachon <philippe@cowpig.ca>
+ 2008-2011, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: frmts/jdem/jdemdataset.cpp
+Copyright: 2000, Frank Warmerdam <warmerdam@pobox.com>
+ 2009-2012, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: frmts/jp2kak/jp2kakdataset.cpp
+Copyright: 2002, Frank Warmerdam <warmerdam@pobox.com>
+ 2007-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: frmts/jp2kak/subfile_source.h
+Copyright: 2004, Frank Warmerdam <warmerdam@pobox.com>
+ 2013, Even Rouault <even dot rouault at mines-paris dot org>
 License: MIT
 
 Files: frmts/jpeg/jpgdataset.cpp
 Copyright: 2000, Frank Warmerdam
  2006, Her majesty the Queen in right of Canada as represented by the Minister of National Defence
+ 2007-2014, Even Rouault <even dot rouault at mines-paris dot org>
 License: MIT
 
 Files: frmts/jpeg/jpgdataset_12.cpp
-Copyright: 2009, Even Rouault
+Copyright: 2009-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: frmts/jpeg/vsidataio.h
+Copyright: 2005, Frank Warmerdam <warmerdam@pobox.com>
+ 2012, Even Rouault <even dot rouault at mines-paris dot org>
 License: MIT
 
 Files: frmts/jpeg/libjpeg/*
@@ -604,21 +1206,23 @@ Copyright: 1991-1998, Thomas G. Lane
 License: IJG
 
 Files: frmts/jpeg2000/jpeg2000_vsil_io.cpp
-Copyright: 2001-2006, Michael David Adams
- 1999-2000, Image Power, Inc.
- 1999-2000, The University of British Columbia
+Copyright: 1999-2000 Image Power, Inc
+ 1999-2000 The University of British Columbia
+ 2001-2006 Michael David Adams
+ 2009-2010, Even Rouault <even dot rouault at mines-paris dot org>
 License: JasPer-2.0
+
+Files: frmts/jpeg2000/jpeg2000_vsil_io.h
+Copyright: 2009, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
 
 Files: frmts/jpeg2000/jpeg2000dataset.cpp
 Copyright: 2002, Andrey Kiselev <dron@ak4719.spb.edu>
-License: MIT
-
-Files: frmts/jpeg2000/jpeg2000_vsil_io.h
-Copyright: 2009, Even Rouault, <even dot rouault at mines dash paris dot org>
+ 2007-2013, Even Rouault <even dot rouault at mines-paris dot org>
 License: MIT
 
 Files: frmts/jpegls/jpeglsdataset.cpp
-Copyright: 2010, Even Rouault, <even dot rouault at mines dash paris dot org>
+Copyright: 2010, Even Rouault <even dot rouault at mines-paris dot org>
 License: MIT
 
 Files: frmts/jpipkak/jpipkakdataset.cpp
@@ -627,32 +1231,50 @@ Copyright: 2000-2007, ITT Visual Information Solutions
 License: ITT
 
 Files: frmts/kmlsuperoverlay/kmlsuperoverlaydataset.cpp
- frmts/kmlsuperoverlay/kmlsuperoverlaydataset.h
 Copyright: 2010, SPADAC Inc. <harsh.govind@spadac.com>
+ 2010-2014, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: frmts/kmlsuperoverlay/kmlsuperoverlaydataset.h
+Copyright: 2010, SPADAC Inc. <harsh.govind@spadac.com>
+ 2012, Even Rouault <even dot rouault at mines-paris dot org>
 License: MIT
 
 Files: frmts/l1b/l1bdataset.cpp
 Copyright: 2002, Andrey Kiselev <dron@ak4719.spb.edu>
+ 2008-2013, Even Rouault <even dot rouault at mines-paris dot org>
 License: MIT
 
 Files: frmts/leveller/levellerdataset.cpp
-Copyright: 2005-2007, Daylon Graphics Ltd.
+Copyright: 2005-2007 Daylon Graphics Ltd
+ 2007-2013, Even Rouault <even dot rouault at mines-paris dot org>
 License: MIT
 
 Files: frmts/map/mapdataset.cpp
 Copyright: 2012, Jean-Claude Repetto
+ 2012, Even Rouault <even dot rouault at mines-paris dot org>
 License: MIT
 
 Files: frmts/mbtiles/mbtilesdataset.cpp
-Copyright: 2012, Even Rouault, <even dot rouault at mines dash paris dot org>
+Copyright: 2012-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: frmts/mem/memdataset.cpp
+Copyright: 2000, Frank Warmerdam
+ 2008-2013, Even Rouault <even dot rouault at mines-paris dot org>
 License: MIT
 
 Files: frmts/mrsid/mrsiddataset.cpp
 Copyright: 2003, Andrey Kiselev <dron@ak4719.spb.edu>
+ 2007-2013, Even Rouault <even dot rouault at mines-paris dot org>
 License: MIT
 
 Files: frmts/mrsid/mrsidstream.cpp
- frmts/mrsid/mrsidstream.h
+Copyright: 2008, Andrey Kiselev <dron@ak4719.spb.edu>
+ 2008-2010, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: frmts/mrsid/mrsidstream.h
 Copyright: 2008, Andrey Kiselev <dron@ak4719.spb.edu>
 License: MIT
 
@@ -662,13 +1284,17 @@ License: BSD-3-Clause
 
 Files: frmts/msg/msgcommand.cpp
  frmts/msg/msgcommand.h
- frmts/msg/msgdataset.cpp
  frmts/msg/msgdataset.h
  frmts/msg/prologue.cpp
  frmts/msg/prologue.h
  frmts/msg/reflectancecalculator.cpp
  frmts/msg/reflectancecalculator.h
 Copyright: 2004, ITC
+License: MIT
+
+Files: frmts/msg/msgdataset.cpp
+Copyright: 2004, ITC
+ 2009, Even Rouault <even dot rouault at mines-paris dot org>
 License: MIT
 
 Files: frmts/msg/xritheaderparser.cpp
@@ -680,41 +1306,73 @@ Files: frmts/msgn/msg_basic_types.cpp
  frmts/msgn/msg_basic_types.h
  frmts/msgn/msg_reader_core.cpp
  frmts/msgn/msg_reader_core.h
- frmts/msgn/msgndataset.cpp
 Copyright: 2005, Frans van den Bergh <fvdbergh@csir.co.za>
 License: MIT
 
+Files: frmts/msgn/msgndataset.cpp
+Copyright: 2005, Frans van den Bergh <fvdbergh@csir.co.za>
+ 2008-2009, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: frmts/netcdf/gmtdataset.cpp
+Copyright: 2004, Frank Warmerdam
+ 2007-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: frmts/netcdf/netcdfdataset.cpp
+Copyright: 2004, Frank Warmerdam
+ 2007-2013, Even Rouault <even dot rouault at mines-paris dot org>
+ 2010, Kyle Shannon <kyle at pobox dot com>
+License: MIT
+
 Files: frmts/ngsgeoid/ngsgeoiddataset.cpp
-Copyright: 2011, Even Rouault
+Copyright: 2011, Even Rouault <even dot rouault at mines-paris dot org>
 License: MIT
 
-Files: frmts/nitf/nitfdump.c
- frmts/nitf/nitffile.c
- frmts/nitf/nitflib.h
-Copyright: 2002, Frank Warmerdam
+Files: frmts/nitf/ecrgtocdataset.cpp
+Copyright: 2011, Even Rouault <even dot rouault at mines-paris dot org>
 License: MIT
 
-Files: frmts/nitf/nitfimage.c
-Copyright: 2002, Frank Warmerdam
- 1995, Logiciels et Applications Scientifiques (L.A.S.) Inc
+Files: frmts/nitf/nitfaridpcm.cpp
+Copyright: 2007, Frank Warmerdam
+ 2009, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: frmts/nitf/nitfbilevel.cpp
+Copyright: 2007, Frank Warmerdam
+ 2009, Even Rouault <even dot rouault at mines-paris dot org>
 License: MIT
 
 Files: frmts/nitf/nitfdataset.cpp
- frmts/nitf/nitfdataset.h
- frmts/nitf/nitfrasterband.cpp
- frmts/nitf/nitfwritejpeg.cpp
 Copyright: 2002, Frank Warmerdam
  2006, Her majesty the Queen in right of Canada as represented by the Minister of National Defence
+ 2007-2013, Even Rouault <even dot rouault at mines-paris dot org>
 License: MIT
 
-Files: frmts/nitf/rpftocdataset.cpp
- frmts/nitf/rpftoclib.h
-Copyright: 2007, Even Rouault
+Files: frmts/nitf/nitfdataset.h
+Copyright: 2002, Frank Warmerdam
+ 2006, Her majesty the Queen in right of Canada as represented by the Minister of National Defence
+ 2011-2013, Even Rouault <even dot rouault at mines-paris dot org>
 License: MIT
 
-Files: frmts/nitf/rpftocfile.cpp
-Copyright: 2007, Even Rouault
- 1995, Logiciels et Applications Scientifiques (L.A.S.) Inc
+Files: frmts/nitf/nitfdes.c
+Copyright: 2010-2011, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: frmts/nitf/nitfdump.c
+Copyright: 2002, Frank Warmerdam
+ 2009-2010, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: frmts/nitf/nitffile.c
+Copyright: 2002, Frank Warmerdam
+ 2007-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: frmts/nitf/nitfimage.c
+Copyright: 1995, Logiciels et Applications Scientifiques (L.A.S.) Inc
+ 2002, Frank Warmerdam
+ 2007-2013, Even Rouault <even dot rouault at mines-paris dot org>
 Comment: Portions of code are placed under the following copyright:
  .
  Copyright (C) 1995 Logiciels et Applications Scientifiques (L.A.S.) Inc
@@ -729,42 +1387,102 @@ Comment: Portions of code are placed under the following copyright:
  It is provided "as is" without express or implied warranty.
 License: MIT
 
+Files: frmts/nitf/nitflib.h
+Copyright: 2002, Frank Warmerdam
+ 2007-2011, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: frmts/nitf/nitfrasterband.cpp
+Copyright: 2002, Frank Warmerdam
+ 2006, Her majesty the Queen in right of Canada as represented by the Minister of National Defence
+ 2011-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: frmts/nitf/nitfwritejpeg.cpp
+Copyright: 2002, Frank Warmerdam
+ 2006, Her majesty the Queen in right of Canada as represented by the Minister of National Defence
+ 2009-2010, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: frmts/nitf/rpftocdataset.cpp
+Copyright: 2007-2014, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: frmts/nitf/rpftocfile.cpp
+Copyright: 1995 Logiciels et Applications Scientifiques (L.A.S.) Inc
+ 2007-2010, Even Rouault <even dot rouault at mines-paris dot org>
+Comment: Portions of code are placed under the following copyright:
+ .
+ Copyright (C) 1995 Logiciels et Applications Scientifiques (L.A.S.) Inc
+ Permission to use, copy, modify and distribute this software and
+ its documentation for any purpose and without fee is hereby granted,
+ provided that the above copyright notice appear in all copies, that
+ both the copyright notice and this permission notice appear in
+ supporting documentation, and that the name of L.A.S. Inc not be used
+ in advertising or publicity pertaining to distribution of the software
+ without specific, written prior permission. L.A.S. Inc. makes no
+ representations about the suitability of this software for any purpose.
+ It is provided "as is" without express or implied warranty.
+License: MIT
+
+Files: frmts/nitf/rpftoclib.h
+Copyright: 2007-2010, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
 Files: frmts/nitf/nitf_gcprpc.cpp
 Copyright: 2010, ESRI
 License: MIT
 
-Files: frmts/nitf/nitfdes.c
-Copyright: 2010, Even Rouault <even dot rouault at mines dash paris dot org>
-License: MIT
-
-Files: frmts/nitf/ecrgtocdataset.cpp
-Copyright: 2011, Even Rouault
+Files: frmts/northwood/grcdataset.cpp
+Copyright: 2007, Waypoint Information Technology
+ 2009-2012, Even Rouault <even dot rouault at mines-paris dot org>
 License: MIT
 
 Files: frmts/northwood/grddataset.cpp
 Copyright: 2006, Waypoint Information Technology
+ 2009-2012, Even Rouault <even dot rouault at mines-paris dot org>
 License: MIT
 
-Files: frmts/northwood/grcdataset.cpp
- frmts/northwood/northwood.cpp
- frmts/northwood/northwood.h
+Files: frmts/northwood/northwood.cpp
 Copyright: 2007, Waypoint Information Technology
+ 2009-2011, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: frmts/northwood/northwood.h
+Copyright: 2007, Waypoint Information Technology
+ 2009-2011, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: frmts/ogdi/ogdidataset.cpp
+Copyright: 1998, Frank Warmerdam
+ 2007-2013, Even Rouault <even dot rouault at mines-paris dot org>
 License: MIT
 
 Files: frmts/openjpeg/openjpegdataset.cpp
-Copyright: 2010, Even Rouault, <even dot rouault at mines dash paris dot org>
+Copyright: 2010-2013, Even Rouault <even dot rouault at mines-paris dot org>
 License: MIT
 
 Files: frmts/ozi/ozidataset.cpp
-Copyright: 2010, Even Rouault
-License: MIT
-
-Files: frmts/pcidsk/pcidskdataset.cpp
-Copyright: 2003, Andrey Kiselev <dron@ak4719.spb.edu>
+Copyright: 2010-2012, Even Rouault <even dot rouault at mines-paris dot org>
 License: MIT
 
 Files: frmts/pcidsk/gdal_pcidsk.h
 Copyright: 2003, Andrey Kiselev <dron@remotesensing.org>
+License: MIT
+
+Files: frmts/pcidsk/pcidskdataset.cpp
+Copyright: 2003, Andrey Kiselev <dron@ak4719.spb.edu>
+ 2009-2010, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: frmts/pcidsk/pcidskdataset2.cpp
+Copyright: 2009, Frank Warmerdam <warmerdam@pobox.com>
+ 2009-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: frmts/pcidsk/vsi_pcidsk_io.cpp
+Copyright: 2009, Frank Warmerdam <warmerdam@pobox.com>
+ 2010, Even Rouault <even dot rouault at mines-paris dot org>
 License: MIT
 
 Files: frmts/pcidsk/sdk/pcidsk.h
@@ -910,38 +1628,105 @@ Files: frmts/pcraster/libcsf/*
 Copyright: 1997-2003, Utrecht University
 License: BSD-3-Clause
 
+Files: frmts/pdf/pdfcreatecopy.cpp
+Copyright: 2012-2014, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: frmts/pdf/pdfcreatecopy.h
+Copyright: 2012-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
 Files: frmts/pdf/pdfdataset.cpp
- frmts/pdf/pdfio.cpp
+Copyright: 2010-2014, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: frmts/pdf/pdfdataset.h
+Copyright: 2012, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: frmts/pdf/pdfio.cpp
  frmts/pdf/pdfio.h
+Copyright: 2010-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: frmts/pdf/pdfio.h
 Copyright: 2010, Even Rouault
 License: MIT
 
 Files: frmts/pdf/pdfobject.cpp
- frmts/pdf/pdfobject.h
-Copyright: 2011, Even Rouault
+Copyright: 2011-2013, Even Rouault <even dot rouault at mines-paris dot org>
 License: MIT
 
-Files: frmts/pdf/pdfcreatecopy.cpp
- frmts/pdf/pdfcreatecopy.h
- frmts/pdf/pdfdataset.h
-Copyright: 2012, Even Rouault
+Files: frmts/pdf/pdfobject.h
+Copyright: 2011-2014, Even Rouault <even dot rouault at mines-paris dot org>
 License: MIT
 
 Files: frmts/pds/isis2dataset.cpp
- frmts/pds/isis3dataset.cpp
- frmts/pds/pdsdataset.cpp
 Copyright: 2006, Frank Warmerdam <warmerdam@pobox.com>
-Comment: NOTE: Original code authored by Trent and Robert and placed in the public 
+ 2008-2011, Even Rouault <even dot rouault at mines-paris dot org>
+Comment: 
+ Project:  ISIS Version 2 Driver
+ Purpose:  Implementation of ISIS2Dataset
+ Author:   Trent Hare (thare@usgs.gov),
+           Robert Soricone (rsoricone@usgs.gov)
+           Ludovic Mercier (ludovic.mercier@gmail.com) 
+           Frank Warmerdam (warmerdam@pobox.com)
+ .
+ NOTE: Original code authored by Trent and Robert and placed in the public 
+ domain as per US government policy.  I have (within my rights) appropriated 
+ it and placed it under the following license.  This is not intended to 
+ diminish Trent and Roberts contribution. 
+License: MIT
+
+Files: frmts/pds/isis3dataset.cpp
+Copyright: 2007, Frank Warmerdam <warmerdam@pobox.com>
+ 2009-2010, Even Rouault <even dot rouault at mines-paris dot org>
+Comment: 
+ Project:  ISIS Version 3 Driver
+ Purpose:  Implementation of ISIS3Dataset
+ Author:   Trent Hare (thare@usgs.gov)
+           Frank Warmerdam (warmerdam@pobox.com)
+ .
+ NOTE: Original code authored by Trent and placed in the public domain as 
+ per US government policy.  I have (within my rights) appropriated it and 
+ placed it under the following license.  This is not intended to diminish 
+ Trents contribution. 
+License: MIT
+
+Files: frmts/pds/nasakeywordhandler.cpp
+Copyright: 2006, Frank Warmerdam <warmerdam@pobox.com>
+ 2008-2010, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: frmts/pds/pdsdataset.cpp
+Copyright: 2007, Frank Warmerdam <warmerdam@pobox.com>
+ 2008-2013, Even Rouault <even dot rouault at mines-paris dot org>
+Comment: 
+ Project:  PDS Driver; Planetary Data System Format
+ Purpose:  Implementation of PDSDataset
+ Author:   Trent Hare (thare@usgs.gov),
+           Robert Soricone (rsoricone@usgs.gov)
+ .
+ NOTE: Original code authored by Trent and Robert and placed in the public 
  domain as per US government policy.  I have (within my rights) appropriated 
  it and placed it under the following license.  This is not intended to 
  diminish Trent and Roberts contribution. 
 License: MIT
 
 Files: frmts/pgchip/pgchip.h
- frmts/pgchip/pgchipdataset.cpp
  frmts/pgchip/pgchiprasterband.cpp
  frmts/pgchip/pgchiputilities.cpp
 Copyright: 2005, Benjamin Simon, noumayoss@gmail.com
+License: MIT
+
+Files: frmts/pgchip/pgchipdataset.cpp
+Copyright: 2005, Benjamin Simon, noumayoss@gmail.com
+ 2008, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: frmts/png/pngdataset.cpp
+Copyright: 2000, Frank Warmerdam
+ 2007-2014, Even Rouault <even dot rouault at mines-paris dot org>
 License: MIT
 
 Files: frmts/png/libpng/pngtrans.c
@@ -996,55 +1781,210 @@ Copyright: 1998-2012, Glenn Randers-Pehrson
  1995, 1996, Guy Eric Schalnat, Group 42, Inc.
 License: libpng
 
-Files: frmts/postgisraster/postgisrasterdataset.cpp
- frmts/postgisraster/postgisrasterrasterband.cpp
-Copyright: 2009-2011, Jorge Arevalo, jorge.arevalo@deimos-space.com
+Files: frmts/postgisraster/postgisraster.h
+Copyright: 2009-2013, Jorge Arevalo
+ 2009-2013, David Zwarg
+ 2013, Even Rouault
 License: MIT
 
-Files: frmts/postgisraster/postgisraster.h
- frmts/postgisraster/postgisrasterdriver.cpp
+Files: frmts/postgisraster/postgisrasterdataset.cpp
+Copyright: 2009-2013, Jorge Arevalo, David Zwarg
+ 2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: frmts/postgisraster/postgisrasterdriver.cpp
 Copyright: 2010, Jorge Arevalo, jorge.arevalo@deimos-space.com
+ 2013, Even Rouault
+License: MIT
+
+Files: frmts/postgisraster/postgisrastertiledataset.cpp
+Copyright: 2013, Jorge Arevalo
+ 2013, Even Rouault
+License: MIT
+
+Files: frmts/postgisraster/postgisrastertilerasterband.cpp
+Copyright: 2009 - 2013, Jorge Arevalo
+ 2013, Even Rouault
+License: MIT
+
+Files: frmts/postgisraster/postgisrastertools.cpp
+Copyright: 2009-2013, Jorge Arevalo, David Zwarg
+License: MIT
+
+Files: frmts/r/rdataset.cpp
+Copyright: 2009, Frank Warmerdam <warmerdam@pobox.com>
+ 2009-2010, Even Rouault <even dot rouault at mines-paris dot org>
 License: MIT
 
 Files: frmts/rasdaman/rasdamandataset.cpp
- frmts/rasdaman/rasdamandataset.h
+Copyright: 2010, Constantin Jucovschi
+ 2010, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: frmts/rasdaman/rasdamandataset.h
 Copyright: 2010, Constantin Jucovschi
 License: MIT
 
 Files: frmts/rasterlite/rasterlitecreatecopy.cpp
- frmts/rasterlite/rasterlitedataset.cpp
- frmts/rasterlite/rasterlitedataset.h
- frmts/rasterlite/rasterliteoverviews.cpp
-Copyright: 2009, Even Rouault, <even dot rouault at mines dash paris dot org>
+Copyright: 2009-2012, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: frmts/rasterlite/rasterlitedataset.cpp
+Copyright: 2009-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: frmts/rasterlite/rasterlitedataset.h
+Copyright: 2009-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: frmts/rasterlite/rasterliteoverviews.cpp
+Copyright: 2009-2012, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: frmts/raw/ace2dataset.cpp
+Copyright: 2011-2012, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: frmts/raw/btdataset.cpp
+Copyright: 2003, Frank Warmerdam
+ 2007-2011, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: frmts/raw/cpgdataset.cpp
+Copyright: 2004, Frank Warmerdam <warmerdam@pobox.com>
+ 2009, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: frmts/raw/dipxdataset.cpp
+Copyright: 2006, Frank Warmerdam
+ 2008-2011, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: frmts/raw/doq1dataset.cpp
+Copyright: 1999, Frank Warmerdam
+ 2009-2011, Even Rouault <even dot rouault at mines-paris dot org>
 License: MIT
 
 Files: frmts/raw/doq2dataset.cpp
 Copyright: 2000, Derrick J Brashear
+ 2009-2011, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: frmts/raw/ehdrdataset.cpp
+Copyright: 1999, Frank Warmerdam <warmerdam@pobox.com>
+ 2007-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: frmts/raw/eirdataset.cpp
+Copyright: 1999, Frank Warmerdam <warmerdam@pobox.com>
+ 2009-2010, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: frmts/raw/envidataset.cpp
+Copyright: 2002, Frank Warmerdam
+ 2007-2013, Even Rouault <even dot rouault at mines-paris dot org>
 License: MIT
 
 Files: frmts/raw/fastdataset.cpp
 Copyright: 2002, Andrey Kiselev <dron@ak4719.spb.edu>
+ 2007-2011, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: frmts/raw/fujibasdataset.cpp
+Copyright: 2001, Frank Warmerdam
+ 2009, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: frmts/raw/genbindataset.cpp
+Copyright: 2007, Frank Warmerdam <warmerdam@pobox.com>
+ 2008-2011, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: frmts/raw/gscdataset.cpp
+Copyright: 2002, Frank Warmerdam <warmerdam@pobox.com>
+ 2009-2011, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: frmts/raw/gtxdataset.cpp
+Copyright: 2010, Frank Warmerdam
+ 2010-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: frmts/raw/hkvdataset.cpp
+Copyright: 2000, Frank Warmerdam
+ 2008-2012, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: frmts/raw/krodataset.cpp
+Copyright: 2014, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: frmts/raw/landataset.cpp
+Copyright: 2004, Frank Warmerdam
+ 2008-2011, Even Rouault <even dot rouault at mines-paris dot org>
 License: MIT
 
 Files: frmts/raw/lcpdataset.cpp
 Copyright: 2008, Chris Toney
+ 2008-2011, Even Rouault <even dot rouault at mines-paris dot org>
+ 2013, Kyle Shannon <kyle at pobox dot com>
 License: MIT
 
-Files: frmts/raw/ace2dataset.cpp
- frmts/raw/snodasdataset.cpp
-Copyright: 2011, Even Rouault
+Files: frmts/raw/mffdataset.cpp
+Copyright: 2000, Frank Warmerdam
+ 2008-2012, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: frmts/raw/ndfdataset.cpp
+Copyright: 2005, Frank Warmerdam
+ 2008-2011, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: frmts/raw/ntv2dataset.cpp
+Copyright: 2010, Frank Warmerdam
+ 2010-2012, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: frmts/raw/pauxdataset.cpp
+Copyright: 1999, Frank Warmerdam
+ 2008-2010, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: frmts/raw/pnmdataset.cpp
+Copyright: 2001, Frank Warmerdam
+ 2008-2011, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: frmts/raw/rawdataset.cpp
+Copyright: 1999, Frank Warmerdam
+ 2007-2014, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: frmts/raw/rawdataset.h
+Copyright: 1999, Frank Warmerdam
+ 2008-2014, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: frmts/raw/snodasdataset.cpp
+Copyright: 2011, Even Rouault <even dot rouault at mines-paris dot org>
 License: MIT
 
 Files: frmts/rik/rikdataset.cpp
 Copyright: 2005, Daniel Wallner <daniel.wallner@bredband.net>
+ 2008-2011, Even Rouault <even dot rouault at mines-paris dot org>
 License: MIT
 
 Files: frmts/rmf/rmfdataset.cpp
 Copyright: 2005, Andrey Kiselev <dron@ak4719.spb.edu>
+ 2007-2012, Even Rouault <even dot rouault at mines-paris dot org>
 License: MIT
 
 Files: frmts/rmf/rmfdataset.h
 Copyright: 2007, Andrey Kiselev <dron@ak4719.spb.edu>
+License: MIT
+
+Files: frmts/rmf/rmfdem.cpp
+Copyright: 2009, Andrey Kiselev <dron@ak4719.spb.edu>
 License: MIT
 
 Files: frmts/rmf/rmflzw.cpp
@@ -1066,12 +2006,14 @@ Comment: COPYRIGHT NOTICE FROM THE INITIAL IMPLEMENTATION:
  (319) 369-3131
 License: MIT
 
-Files: frmts/rmf/rmfdem.cpp
-Copyright: 2009, Andrey Kiselev <dron@ak4719.spb.edu>
+Files: frmts/rs2/rs2dataset.cpp
+Copyright: 2004, Frank Warmerdam <warmerdam@pobox.com>
+ 2009-2013, Even Rouault <even dot rouault at mines-paris dot org>
 License: MIT
 
 Files: frmts/saga/sagadataset.cpp
 Copyright: 2009, Volker Wichmann <wichmann@laserdata.at>
+ 2009-2011, Even Rouault <even dot rouault at mines-paris dot org>
 License: MIT
 
 Files: frmts/sde/sdedataset.cpp
@@ -1079,50 +2021,197 @@ Files: frmts/sde/sdedataset.cpp
 Copyright: 2007, Howard Butler <hobu@hobu.net>
 License: MIT
 
+Files: frmts/sdts/sdtsdataset.cpp
+Copyright: 1999, Frank Warmerdam
+ 2008-2011, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: frmts/sdts/sdtslib.cpp
+Copyright: 1999, Frank Warmerdam
+ 2009-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: frmts/sdts/sdtsrasterreader.cpp
+Copyright: 1999, Frank Warmerdam
+ 2008-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: frmts/sgi/sgidataset.cpp
+Copyright: 2005, Frank Warmerdam <warmerdam@pobox.com>
+ 2008-2010, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: frmts/srtmhgt/srtmhgtdataset.cpp
+Copyright: 2005, Frank Warmerdam <warmerdam@pobox.com>
+ 2007-2011, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
 Files: frmts/terragen/readme.txt
  frmts/terragen/terragendataset.cpp
 Copyright: 2006-2007, Daylon Graphics Ltd.
 License: MIT
 
-Files: frmts/tsx/tsxdataset.cpp
-Copyright: 2007, Philippe Vachon <philippe@cowpig.ca>
+Files: frmts/til/tildataset.cpp
+Copyright: 2009, Frank Warmerdam
+ 2009-2011, Even Rouault <even dot rouault at mines-paris dot org>
 License: MIT
 
-Files: frmts/vrt/vrtderivedrasterband.cpp
-Copyright: 2005, Vexcel Corp.
+Files: frmts/tsx/tsxdataset.cpp
+Copyright: 2007, Philippe Vachon <philippe@cowpig.ca>
+ 2009-2012, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: frmts/usgsdem/usgsdem_create.cpp
+Copyright: 2004, Frank Warmerdam <warmerdam@pobox.com>
+ 2007-2011, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: frmts/usgsdem/usgsdemdataset.cpp
+Copyright: 2001, Frank Warmerdam <warmerdam@pobox.com>
+ 2008-2013, Even Rouault <even dot rouault at mines-paris dot org>
 License: MIT
 
 Files: frmts/vrt/gdal_vrt.h
 Copyright: 2007, Andrey Kiselev <dron@ak4719.spb.edu>
 License: MIT
 
-Files: frmts/webp/webpdataset.cpp
-Copyright: 2011, Even Rouault
+Files: frmts/vrt/vrtdataset.cpp
+Copyright: 2001, Frank Warmerdam <warmerdam@pobox.com>
+ 2007-2014, Even Rouault <even dot rouault at mines-paris dot org>
 License: MIT
 
-Files: frmts/wms/cache.cpp
- frmts/wms/dataset.cpp
- frmts/wms/gdalhttp.cpp
- frmts/wms/gdalhttp.h
+Files: frmts/vrt/vrtdataset.h
+Copyright: 2001, Frank Warmerdam <warmerdam@pobox.com>
+ 2007-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: frmts/vrt/vrtderivedrasterband.cpp
+Copyright: 2005 Vexcel Corp
+ 2008-2011, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: frmts/vrt/vrtdriver.cpp
+Copyright: 2003, Frank Warmerdam <warmerdam@pobox.com>
+ 2009-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: frmts/vrt/vrtfilters.cpp
+Copyright: 2003, Frank Warmerdam <warmerdam@pobox.com>
+ 2008-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: frmts/vrt/vrtrasterband.cpp
+Copyright: 2001, Frank Warmerdam <warmerdam@pobox.com>
+ 2008-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: frmts/vrt/vrtrawrasterband.cpp
+Copyright: 2004, Frank Warmerdam <warmerdam@pobox.com>
+ 2007-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: frmts/vrt/vrtsourcedrasterband.cpp
+Copyright: 2001, Frank Warmerdam <warmerdam@pobox.com>
+ 2008-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: frmts/vrt/vrtsources.cpp
+Copyright: 2001, Frank Warmerdam <warmerdam@pobox.com>
+ 2008-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: frmts/vrt/vrtwarped.cpp
+Copyright: 2004, Frank Warmerdam <warmerdam@pobox.com>
+ 2008-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: frmts/wcs/httpdriver.cpp
+Copyright: 2007, Frank Warmerdam
+ 2008-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: frmts/wcs/wcsdataset.cpp
+Copyright: 2006, Frank Warmerdam
+ 2008-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: frmts/webp/webpdataset.cpp
+Copyright: 2011-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: frmts/wms/gdalhttp.h
  frmts/wms/minidriver.cpp
- frmts/wms/minidriver_tiled_wms.cpp
  frmts/wms/minidriver_tiled_wms.h
  frmts/wms/minidriver_tileservice.cpp
  frmts/wms/minidriver_tileservice.h
- frmts/wms/minidriver_wms.cpp
  frmts/wms/minidriver_wms.h
  frmts/wms/minidriver_worldwind.cpp
  frmts/wms/minidriver_worldwind.h
- frmts/wms/rasterband.cpp
- frmts/wms/stuff.cpp
- frmts/wms/wmsdriver.cpp
- frmts/wms/wmsdriver.h
 Copyright: 2007, Adam Nowacki
+License: MIT
+
+Files: frmts/wms/gdalhttp.cpp
+Copyright: 2007, Adam Nowacki
+ 2007-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: frmts/wms/gdalwmscache.cpp
+Copyright: 2007, Adam Nowacki
+License: MIT
+
+Files: frmts/wms/gdalwmsdataset.cpp
+Copyright: 2007, Adam Nowacki
+ 2008-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: frmts/wms/gdalwmsrasterband.cpp
+Copyright: 2007, Adam Nowacki
+ 2008-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: frmts/wms/minidriver_tiled_wms.cpp
+Copyright: 2007, Adam Nowacki
+ 2011-2012, Even Rouault <even dot rouault at mines-paris dot org>
 License: MIT
 
 Files: frmts/wms/minidriver_tms.cpp
  frmts/wms/minidriver_tms.h
 Copyright: 2007, Chris Schmidt
+License: MIT
+
+Files: frmts/wms/minidriver_virtualearth.cpp
+Copyright: 2011, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: frmts/wms/minidriver_virtualearth.h
+Copyright: 2011, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: frmts/wms/minidriver_wms.cpp
+Copyright: 2007, Adam Nowacki
+ 2007-2012, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: frmts/wms/wmsdriver.cpp
+Copyright: 2007, Adam Nowacki
+ 2009-2014, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: frmts/wms/wmsdriver.h
+Copyright: 2007, Adam Nowacki
+ 2008-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: frmts/wms/wmsmetadataset.cpp
+Copyright: 2011-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: frmts/wms/wmsmetadataset.h
+Copyright: 2011-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: frmts/wms/wmsutils.cpp
+Copyright: 2007, Adam Nowacki
 License: MIT
 
 Files: frmts/wms/md5.cpp
@@ -1152,18 +2241,13 @@ License: public-domain
  copyright in any changes I have made; this code remains in the
  public domain.
 
-Files: frmts/wms/minidriver_virtualearth.cpp
- frmts/wms/minidriver_virtualearth.h
-Copyright: 2011, Even Rouault
-License: MIT
-
-Files: frmts/wms/wmsmetadataset.cpp
- frmts/wms/wmsmetadataset.h
-Copyright: 2011, Even Rouault, <even dot rouault at mines dash paris dot org>
+Files: frmts/xpm/xpmdataset.cpp
+Copyright: 2002, Frank Warmerdam
+ 2008-2010, Even Rouault <even dot rouault at mines-paris dot org>
 License: MIT
 
 Files: frmts/xyz/xyzdataset.cpp
-Copyright: 2010, Even Rouault
+Copyright: 2010-2013, Even Rouault <even dot rouault at mines-paris dot org>
 License: MIT
 
 Files: frmts/zlib/compress.c
@@ -1226,31 +2310,182 @@ Copyright: 1995-2005, Mark Adler
 License: zlib
 
 Files: frmts/zmap/zmapdataset.cpp
-Copyright: 2011, Even Rouault
+Copyright: 2011-2012, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: gcore/gdal.h
+Copyright: 1998, 2002 Frank Warmerdam
+ 2007-2014, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: gcore/gdal_frmts.h
+Copyright: 2001, Frank Warmerdam
+ 2007-2014, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: gcore/gdal_misc.cpp
+Copyright: 1999, Frank Warmerdam
+ 2007-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: gcore/gdal_priv.h
+Copyright: 1998, Frank Warmerdam
+ 2007-2014, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: gcore/gdal_proxy.h
+Copyright: 2008-2014, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: gcore/gdal_rat.cpp
+Copyright: 2005, Frank Warmerdam
+ 2009, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: gcore/gdal_rpcimdio.cpp
+Copyright: 2008, HER MAJESTY THE QUEEN IN RIGHT OF CANADA as represented by the Canadian Nuclear Safety Commission
+License: MIT
+
+Files: gcore/gdalclientserver.cpp
+Copyright: 2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: gcore/gdalcolortable.cpp
+Copyright: 2000, Frank Warmerdam
+ 2009, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: gcore/gdaldataset.cpp
+Copyright: 1998, 2003, Frank Warmerdam
+ 2008-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: gcore/gdaldefaultoverviews.cpp
+Copyright: 2000, 2007, Frank Warmerdam
+ 2007-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: gcore/gdaldllmain.cpp
+Copyright: 2010, Mateusz Loskot <mateusz@loskot.net>
+ 2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: gcore/gdaldriver.cpp
+Copyright: 1998, 2000, Frank Warmerdam
+ 2007-2014, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: gcore/gdaldrivermanager.cpp
+Copyright: 1998, Frank Warmerdam
+ 2009-2013, Even Rouault <even dot rouault at mines-paris dot org>
 License: MIT
 
 Files: gcore/gdalexif.cpp
 Copyright: 2000, Frank Warmerdam
  2006, Her majesty the Queen in right of Canada as represented by the Minister of National Defence
+ 2012, Even Rouault <even dot rouault at mines-paris dot org>
 License: MIT
 
-Files: gcore/gdal_proxy.h
- gcore/gdalnodatavaluesmaskband.cpp
- gcore/gdalproxydataset.cpp
- gcore/gdalproxypool.cpp
-Copyright: 2008, Even Rouault
+Files: gcore/gdalgeorefpamdataset.cpp
+Copyright: 2013, Even Rouault <even dot rouault at mines-paris dot org>
 License: MIT
 
-Files: gcore/gdaldllmain.cpp
-Copyright: 2010, Mateusz Loskot <mateusz@loskot.net>
+Files: gcore/gdalgeorefpamdataset.h
+Copyright: 2013, Even Rouault <even dot rouault at mines-paris dot org>
 License: MIT
 
-Files: gcore/gdalclientserver.cpp
-Copyright: 2013, Even Rouault, <even dot rouault at mines-paris dot org>
+Files: gcore/gdaljp2abstractdataset.cpp
+Copyright: 2002, Frank Warmerdam <warmerdam@pobox.com>
+ 2013, Even Rouault <even dot rouault at mines-paris dot org>
 License: MIT
 
-Files: gcore/gdal_rpcimdio.cpp
-Copyright: 2008, HER MAJESTY THE QUEEN IN RIGHT OF CANADA as represented by the Canadian Nuclear Safety Commission
+Files: gcore/gdaljp2abstractdataset.h
+Copyright: 2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: gcore/gdaljp2box.cpp
+Copyright: 2005, Frank Warmerdam <warmerdam@pobox.com>
+ 2010-2012, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: gcore/gdaljp2metadata.cpp
+Copyright: 2005, Frank Warmerdam <warmerdam@pobox.com>
+ 2010-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: gcore/gdaljp2metadata.h
+Copyright: 2005, Frank Warmerdam <warmerdam@pobox.com>
+ 2010-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: gcore/gdalmajorobject.cpp
+Copyright: 2000, Frank Warmerdam
+ 2009-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: gcore/gdalmultidomainmetadata.cpp
+Copyright: 2005, Frank Warmerdam <warmerdam@pobox.com>
+ 2009-2011, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: gcore/gdalnodatamaskband.cpp
+Copyright: 2007, Frank Warmerdam
+ 2008-2012, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: gcore/gdalnodatavaluesmaskband.cpp
+Copyright: 2008-2009, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: gcore/gdalopeninfo.cpp
+Copyright: 2002, Frank Warmerdam
+ 2008-2012, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: gcore/gdalpamdataset.cpp
+Copyright: 2005, Frank Warmerdam <warmerdam@pobox.com>
+ 2007-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: gcore/gdalpamrasterband.cpp
+Copyright: 2005, Frank Warmerdam <warmerdam@pobox.com>
+ 2008-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: gcore/gdalproxydataset.cpp
+Copyright: 2008-2014, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: gcore/gdalproxypool.cpp
+Copyright: 2008-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: gcore/gdalrasterband.cpp
+Copyright: 1998, Frank Warmerdam
+ 2007-2014, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: gcore/gdalrasterblock.cpp
+Copyright: 1998, Frank Warmerdam <warmerdam@pobox.com>
+ 2008-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: gcore/gdalvirtualmem.cpp
+Copyright: 2014, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: gcore/jp2dump.cpp
+Copyright: 2013, Frank Warmerdam <warmerdam@pobox.com>
+License: MIT
+
+Files: gcore/overview.cpp
+Copyright: 2000, Frank Warmerdam
+ 2007-2010, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: gcore/rasterio.cpp
+Copyright: 1998, Frank Warmerdam
+ 2007-2014, Even Rouault <even dot rouault at mines-paris dot org>
 License: MIT
 
 Files: gcore/Version.rc
@@ -1259,84 +2494,335 @@ Comment:  Copyright assignment provided by Martin Daly by email, "Be my guest.  
  At last!  Best not let it go to my head, eh?"
 License: MIT
 
-Files: ogr/ogr_expat.cpp
- ogr/ogr_expat.h
-Copyright: 2009, Even Rouault
-License: MIT
-
-Files: ogr/ogrgeomediageometry.cpp
- ogr/ogrgeomediageometry.h
-Copyright: 2011, Even Rouault, <even dot rouault at mines dash paris dot org>
-License: MIT
-
 Files: ogr/generate_encoding_table.c
- ogr/ogr_geocoding.cpp
- ogr/ogr_geocoding.h
-Copyright: 2012, Even Rouault
+Copyright: 2012, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/gml2ogrgeometry.cpp
+Copyright: 2002, Frank Warmerdam
+ 2009-2014, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogr2gmlgeometry.cpp
+Copyright: 2002, Frank Warmerdam <warmerdam@pobox.com>
+ 2009-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogr_api.cpp
+Copyright: 2002, Frank Warmerdam
+ 2009-2011, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogr_api.h
+Copyright: 2002, Frank Warmerdam
+ 2008-2013, Even Rouault <even dot rouault at mines-paris dot org>
 License: MIT
 
 Files: ogr/ogr_capi_test.c
 Copyright: 2003, Daniel Morissette
 License: MIT
 
+Files: ogr/ogr_core.h
+Copyright: 1999, Frank Warmerdam
+ 2007-2014, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/osr_cs_wkt.c
+ ogr/osr_cs_wkt.h
+Copyright: 2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/osr_cs_wkt_parser.c
+ ogr/osr_cs_wkt_parser.h
+Copyright: 1984, 1989-1990, 2000-2013 Free Software Foundation, Inc
+ 2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: GPL-3.0+ with Bison exception
+
+Files: ogr/ogr_expat.cpp
+Copyright: 2009-2012, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogr_expat.h
+Copyright: 2009, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogr_feature.h
+Copyright: 1999, Les Technologies SoftMap Inc
+ 2008-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogr_fromepsg.cpp
+Copyright: 2000, Frank Warmerdam
+ 2008-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogr_geocoding.cpp
+Copyright: 2012-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogr_geocoding.h
+Copyright: 2012, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogr_geometry.h
+Copyright: 1999, Frank Warmerdam
+ 2008-2014, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogr_opt.cpp
+Copyright: 2000, Frank Warmerdam
+ 2009-2011, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogr_p.h
+Copyright: 1999, Frank Warmerdam
+ 2008-2014, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogr_spatialref.h
+Copyright: 1999, Les Technologies SoftMap Inc
+ 2008-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogr_srs_api.h
+Copyright: 2000, Frank Warmerdam
+ 2008-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogr_srs_erm.cpp
+Copyright: 2007, Frank Warmerdam <warmerdam@pobox.com>
+ 2008-2011, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogr_srs_esri.cpp
+Copyright: 2000, Frank Warmerdam
+ 2007-2013, Even Rouault <even dot rouault at mines-paris dot org>
+ 2013, Kyle Shannon <kyle at pobox dot com>
+License: MIT
+
+Files: ogr/ogr_srs_ozi.cpp
+Copyright: 2009, Andrey Kiselev <dron@ak4719.spb.edu>
+ 2009-2012, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogr_srs_panorama.cpp
+Copyright: 2005, Andrey Kiselev <dron@ak4719.spb.edu>
+ 2008-2012, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogr_srs_pci.cpp
+Copyright: 2003, Andrey Kiselev <dron@ak4719.spb.edu>
+ 2009-2011, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogr_srs_proj4.cpp
+Copyright: 1999, Les Technologies SoftMap Inc
+ 2008-2013, Even Rouault <even dot rouault at mines-paris dot org>
+ 2014, Kyle Shannon <kyle at pobox dot com>
+License: MIT
+
+Files: ogr/ogr_srs_usgs.cpp
+Copyright: 2004, Andrey Kiselev <dron@ak4719.spb.edu>
+ 2008-2009, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogr_srs_validate.cpp
+Copyright: 2001, Frank Warmerdam <warmerdam@pobox.com>
+ 2008-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogr_srs_xml.cpp
+Copyright: 2001, Frank Warmerdam (warmerdam@pobox.com)
+ 2008-2012, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogr_srsnode.cpp
+Copyright: 1999, Les Technologies SoftMap Inc
+ 2010-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ograssemblepolygon.cpp
+Copyright: 1999, Frank Warmerdam
+ 2009-2011, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrct.cpp
+Copyright: 2000, Frank Warmerdam
+ 2008-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
 Files: ogr/ogrfeature.cpp
- ogr/ogrfeaturedefn.cpp
- ogr/ogr_feature.h
- ogr/ogrfielddefn.cpp
- ogr/ogrspatialreference.cpp
- ogr/ogr_spatialref.h
- ogr/ogr_srsnode.cpp
- ogr/ogr_srs_proj4.cpp
-Copyright: 1999, Les Technologies SoftMap Inc.
+Copyright: 1999, Les Technologies SoftMap Inc
+ 2008-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrfeaturedefn.cpp
+Copyright: 1999, Les Technologies SoftMap Inc
+ 2009-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrfeaturequery.cpp
+Copyright: 2001, Frank Warmerdam <warmerdam@pobox.com>
+ 2008-2014, Even Rouault <even dot rouault at mines-paris dot org>
 License: MIT
 
 Files: ogr/ogrfeaturestyle.cpp
 Copyright: 2000-2001, Stephane Villeneuve
+ 2008-2010, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrfielddefn.cpp
+Copyright: 1999, Les Technologies SoftMap Inc
+ 2009-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrgeomediageometry.cpp
+ ogr/ogrgeomediageometry.h
+Copyright: 2011, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrgeometry.cpp
+Copyright: 1999, Frank Warmerdam
+ 2008-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrgeometrycollection.cpp
+Copyright: 1999, Frank Warmerdam
+ 2008-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrgeometryfactory.cpp
+Copyright: 1999, Frank Warmerdam
+ 2008-2014, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrgeomfielddefn.cpp
+Copyright: 2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrlinearring.cpp
+Copyright: 1999, Frank Warmerdam
+ 2008-2014, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrlinestring.cpp
+Copyright: 1999, Frank Warmerdam
+ 2008-2014, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrmultilinestring.cpp
+Copyright: 1999, Frank Warmerdam
+ 2008-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrmultipoint.cpp
+Copyright: 1999, Frank Warmerdam
+ 2008-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrmultipolygon.cpp
+Copyright: 1999, Frank Warmerdam
+ 2008-2013, Even Rouault <even dot rouault at mines-paris dot org>
 License: MIT
 
 Files: ogr/ogrpgeogeometry.cpp
 Copyright: 2005, Frank Warmerdam <warmerdam@pobox.com>
  2011, Paul Ramsey <pramsey at cleverelephant.ca>
+ 2011-2014, Even Rouault <even dot rouault at mines-paris dot org>
 License: MIT
 
-Files: ogr/ogr_srs_pci.cpp
-Copyright: 2003, Andrey Kiselev <dron@ak4719.spb.edu>
+Files: ogr/ogrpgeogeometry.h
+Copyright: 2005, Frank Warmerdam <warmerdam@pobox.com>
+ 2011-2014, Even Rouault <even dot rouault at mines-paris dot org>
 License: MIT
 
-Files: ogr/ogr_srs_usgs.cpp
-Copyright: 2004, Andrey Kiselev <dron@ak4719.spb.edu>
+Files: ogr/ogrpoint.cpp
+Copyright: 1999, Frank Warmerdam
+ 2008-2011, Even Rouault <even dot rouault at mines-paris dot org>
 License: MIT
 
-Files: ogr/ogr_srs_panorama.cpp
-Copyright: 2005, Andrey Kiselev <dron@ak4719.spb.edu>
+Files: ogr/ogrpolygon.cpp
+Copyright: 1999, Frank Warmerdam
+ 2008-2014, Even Rouault <even dot rouault at mines-paris dot org>
 License: MIT
 
-Files: ogr/ogr_srs_ozi.cpp
-Copyright: 2009, Andrey Kiselev <dron@ak4719.spb.edu>
+Files: ogr/ogrspatialreference.cpp
+Copyright: 1999, Les Technologies SoftMap Inc.
+ 2008-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrutils.cpp
+Copyright: 1999, Frank Warmerdam
+ 2008-2014, Even Rouault <even dot rouault at mines-paris dot org>
 License: MIT
 
 Files: ogr/swq.cpp
  ogr/swq.h
 Copyright: 2001, Information Interoperability Institute (3i)
+ 2010-2013, Even Rouault <even dot rouault at mines-paris dot org>
 License: HPND-3i
+
+Files: ogr/swq_expr_node.cpp
+Copyright: 2010 Frank Warmerdam <warmerdam@pobox.com>
+ 2010-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/swq_op_general.cpp
+Copyright: 2010 Frank Warmerdam <warmerdam@pobox.com>
+ 2010-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/swq_op_registrar.cpp
+Copyright: 2010 Frank Warmerdam <warmerdam@pobox.com>
+ 2010-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
 
 Files: ogr/swq_parser.cpp
  ogr/swq_parser.hpp
-Copyright: 1984, 1989-1990, 2000-2006, Free Software Foundation, Inc.
+Copyright: 1984, 1989-1990, 2000-2013, Free Software Foundation, Inc
+ 2010-2013, Even Rouault <even dot rouault at mines-paris dot org>
 License: GPL-3.0+ with Bison exception
 
+Files: ogr/swq_parser.hpp
+Copyright: 1984, 1989-1990, 2000-2013 Free Software Foundation, Inc
+ 2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: GPL-3.0+ with Bison exception
+
+Files: ogr/swq_select.cpp
+Copyright: 2010 Frank Warmerdam <warmerdam@pobox.com>
+ 2010-2014, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/aeronavfaa/ogr_aeronavfaa.h
+Copyright: 2011, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
 Files: ogr/ogrsf_frmts/aeronavfaa/ograeronavfaadatasource.cpp
- ogr/ogrsf_frmts/aeronavfaa/ograeronavfaadriver.cpp
- ogr/ogrsf_frmts/aeronavfaa/ogr_aeronavfaa.h
- ogr/ogrsf_frmts/aeronavfaa/ograeronavfaalayer.cpp
-Copyright: 2010, Even Rouault <even dot rouault at mines dash paris dot org>
+Copyright: 2011, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/aeronavfaa/ograeronavfaadriver.cpp
+Copyright: 2011, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/aeronavfaa/ograeronavfaalayer.cpp
+Copyright: 2011-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/arcgen/ogr_arcgen.h
+Copyright: 2011, Even Rouault <even dot rouault at mines-paris dot org>
 License: MIT
 
 Files: ogr/ogrsf_frmts/arcgen/ograrcgendatasource.cpp
- ogr/ogrsf_frmts/arcgen/ograrcgendriver.cpp
- ogr/ogrsf_frmts/arcgen/ogr_arcgen.h
- ogr/ogrsf_frmts/arcgen/ograrcgenlayer.cpp
-Copyright: 2011, Even Rouault <even dot rouault at mines dash paris dot org>
+Copyright: 2011-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/arcgen/ograrcgendriver.cpp
+Copyright: 2011, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/arcgen/ograrcgenlayer.cpp
+Copyright: 2011, Even Rouault <even dot rouault at mines-paris dot org>
 License: MIT
 
 Files: ogr/ogrsf_frmts/arcobjects/*
@@ -1366,22 +2852,80 @@ Copyright: 2002, Frank Warmerdam <warmerdam@pobox.com>
  2006, James Flemer <jflemer@alum.rpi.edu>
 License: MIT
 
+Files: ogr/ogrsf_frmts/bna/ogr_bna.h
+Copyright: 2007-2010, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
 Files: ogr/ogrsf_frmts/bna/ogrbnadatasource.cpp
- ogr/ogrsf_frmts/bna/ogrbnadriver.cpp
- ogr/ogrsf_frmts/bna/ogr_bna.h
- ogr/ogrsf_frmts/bna/ogrbnalayer.cpp
- ogr/ogrsf_frmts/bna/ogrbnaparser.cpp
- ogr/ogrsf_frmts/bna/ogrbnaparser.h
+Copyright: 2007-2011, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/bna/ogrbnadriver.cpp
+Copyright: 2007, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/bna/ogrbnalayer.cpp
+Copyright: 2007-2010, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/bna/ogrbnaparser.cpp
+Copyright: 2007-2010, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/bna/ogrbnaparser.h
 Copyright: 2007, Even Rouault
 License: MIT
 
+Files: ogr/ogrsf_frmts/cartodb/ogr_cartodb.h
+ ogr/ogrsf_frmts/cartodb/ogrcartodbdatasource.cpp
+ ogr/ogrsf_frmts/cartodb/ogrcartodbdriver.cpp
+ ogr/ogrsf_frmts/cartodb/ogrcartodbresultlayer.cpp
+ ogr/ogrsf_frmts/cartodb/ogrcartodbtablelayer.cpp
+Copyright: 2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/couchdb/ogr_couchdb.h
+Copyright: 2011-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
 Files: ogr/ogrsf_frmts/couchdb/ogrcouchdbdatasource.cpp
- ogr/ogrsf_frmts/couchdb/ogrcouchdbdriver.cpp
- ogr/ogrsf_frmts/couchdb/ogr_couchdb.h
- ogr/ogrsf_frmts/couchdb/ogrcouchdblayer.cpp
- ogr/ogrsf_frmts/couchdb/ogrcouchdbrowslayer.cpp
- ogr/ogrsf_frmts/couchdb/ogrcouchdbtablelayer.cpp
-Copyright: 2011, Even Rouault <even dot rouault at mines dash paris dot org>
+Copyright: 2011-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/couchdb/ogrcouchdbdriver.cpp
+Copyright: 2011, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/couchdb/ogrcouchdblayer.cpp
+Copyright: 2011, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/couchdb/ogrcouchdbrowslayer.cpp
+Copyright: 2011, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/couchdb/ogrcouchdbtablelayer.cpp
+Copyright: 2011-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/csv/ogr_csv.h
+Copyright: 2004, Frank Warmerdam
+ 2008-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/csv/ogrcsvdatasource.cpp
+Copyright: 2004, Frank Warmerdam <warmerdam@pobox.com>
+ 2008-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/csv/ogrcsvdriver.cpp
+Copyright: 2004, Frank Warmerdam <warmerdam@pobox.com>
+ 2010-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/csv/ogrcsvlayer.cpp
+Copyright: 2004, Frank Warmerdam <warmerdam@pobox.com>
+ 2008-2014, Even Rouault <even dot rouault at mines-paris dot org>
 License: MIT
 
 Files: ogr/ogrsf_frmts/dgn/dgnlib.h
@@ -1401,6 +2945,16 @@ Files: ogr/ogrsf_frmts/dgn/dgndump.c
 Copyright: 2002, Avenza Systems Inc, http://www.avenza.com/
 License: MIT
 
+Files: ogr/ogrsf_frmts/dgn/dgnwrite.cpp
+Copyright: 2002, Frank Warmerdam <warmerdam@pobox.com>
+ 2011-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/dods/ogrdodsdatasource.cpp
+Copyright: 2004, Frank Warmerdam
+ 2010, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
 Files: ogr/ogrsf_frmts/dxf/intronurbs.cpp
 Copyright: 2000, 2009, David F. Rogers
 Comment: This code is derived from the code associated with the book "An
@@ -1408,43 +2962,112 @@ Comment: This code is derived from the code associated with the book "An
  and the code is available at: http://www.nar-associates.com/nurbs/
 License: BSD-3-Clause
 
+Files: ogr/ogrsf_frmts/dxf/ogr_dxf.h
+Copyright: 2009, Frank Warmerdam
+ 2010-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/dxf/ogrdxf_dimension.cpp
+Copyright: 2009, Frank Warmerdam <warmerdam@pobox.com>
+ 2010, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/dxf/ogrdxf_hatch.cpp
+Copyright: 2010, Frank Warmerdam <warmerdam@pobox.com>
+ 2011-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
 Files: ogr/ogrsf_frmts/dxf/ogrdxf_polyline_smooth.cpp
  ogr/ogrsf_frmts/dxf/ogrdxf_polyline_smooth.h
 Copyright: 2010, Daylon Graphics Ltd.
 License: MIT
 
+Files: ogr/ogrsf_frmts/dxf/ogrdxfdatasource.cpp
+Copyright: 2009, Frank Warmerdam <warmerdam@pobox.com>
+ 2010-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/dxf/ogrdxflayer.cpp
+Copyright: 2009, Frank Warmerdam <warmerdam@pobox.com>
+ 2011-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/dxf/ogrdxfwriterds.cpp
+Copyright: 2009, Frank Warmerdam <warmerdam@pobox.com>
+ 2010-2012, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/dxf/ogrdxfwriterlayer.cpp
+Copyright: 2009, Frank Warmerdam <warmerdam@pobox.com>
+ 2009-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/edigeo/ogr_edigeo.h
+Copyright: 2011, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
 Files: ogr/ogrsf_frmts/edigeo/ogredigeodatasource.cpp
- ogr/ogrsf_frmts/edigeo/ogredigeodriver.cpp
- ogr/ogrsf_frmts/edigeo/ogr_edigeo.h
- ogr/ogrsf_frmts/edigeo/ogredigeolayer.cpp
-Copyright: 2011, Even Rouault <even dot rouault at mines dash paris dot org>
+Copyright: 2011, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/edigeo/ogredigeodriver.cpp
+Copyright: 2011, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/edigeo/ogredigeolayer.cpp
+Copyright: 2011-2013, Even Rouault <even dot rouault at mines-paris dot org>
 License: MIT
 
 Files: ogr/ogrsf_frmts/elastic/ogrelasticdatasource.cpp
- ogr/ogrsf_frmts/elastic/ogrelasticdriver.cpp
- ogr/ogrsf_frmts/elastic/ogr_elastic.h
- ogr/ogrsf_frmts/elastic/ogrelasticlayer.cpp
 Copyright: 2011, Adam Estrada
+ 2012, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/elastic/ogrelasticdriver.cpp
+ ogr/ogrsf_frmts/elastic/ogr_elastic.h
+Copyright: 2011, Adam Estrada
+License: MIT
+
+Files: ogr/ogrsf_frmts/elastic/ogrelasticlayer.cpp
+Copyright: 2011, Adam Estrada
+ 2012-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/filegdb/FGdbDatasource.cpp
+Copyright: 2010, Ragi Yaser Burhum
+ 2011, Paul Ramsey <pramsey at cleverelephant.ca>
+ 2011-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/filegdb/FGdbDriver.cpp
+Copyright: 2010, Ragi Yaser Burhum
+ 2011, Paul Ramsey <pramsey at cleverelephant.ca>
+ 2011-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/filegdb/FGdbLayer.cpp
+Copyright: 2010, Ragi Yaser Burhum
+ 2011, Paul Ramsey <pramsey at cleverelephant.ca>
+ 2011-2014, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/filegdb/FGdbResultLayer.cpp
+Copyright: 2012, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/filegdb/FGdbUtils.cpp
+Copyright: 2010, Ragi Yaser Burhum
+ 2011, Paul Ramsey <pramsey at cleverelephant.ca>
+ 2011-2014, Even Rouault <even dot rouault at mines-paris dot org>
 License: MIT
 
 Files: ogr/ogrsf_frmts/filegdb/ogr_fgdb.h
 Copyright: 2009, Ragi Yaser Burhum
+ 2011-2014, Even Rouault <even dot rouault at mines-paris dot org>
 License: MIT
 
 Files: ogr/ogrsf_frmts/filegdb/FGdbUtils.h
 Copyright: 2010, Ragi Yaser Burhum
-License: MIT
-
-Files: ogr/ogrsf_frmts/filegdb/FGdbDatasource.cpp
- ogr/ogrsf_frmts/filegdb/FGdbDriver.cpp
- ogr/ogrsf_frmts/filegdb/FGdbLayer.cpp
- ogr/ogrsf_frmts/filegdb/FGdbUtils.cpp
-Copyright: 2010, Ragi Yaser Burhum
- 2011, Paul Ramsey <pramsey at cleverelephant.ca>
-License: MIT
-
-Files: ogr/ogrsf_frmts/filegdb/FGdbResultLayer.cpp
-Copyright: 2012, Even Rouault, <even dot rouault at mines dash paris dot org>
 License: MIT
 
 Files: ogr/ogrsf_frmts/fme/fme2ogr.h
@@ -1461,110 +3084,264 @@ Files: ogr/ogrsf_frmts/fme/ogrfmecacheindex.cpp
 Copyright: 2002 Safe Software Inc.
 License: MIT
 
+Files: ogr/ogrsf_frmts/generic/ogr_gensql.cpp
+Copyright: 2002, Frank Warmerdam
+ 2008-2014, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/generic/ogr_gensql.h
+Copyright: 2002, Frank Warmerdam
+ 2010-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/generic/ogr_miattrind.cpp
+Copyright: 2003, Frank Warmerdam
+ 2008-2010, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
 Files: ogr/ogrsf_frmts/generic/ogrdatasource.cpp
- ogr/ogrsf_frmts/generic/ogrlayer.cpp
- ogr/ogrsf_frmts/generic/ogrregisterall.cpp
- ogr/ogrsf_frmts/generic/ogrsfdriver.cpp
- ogr/ogrsf_frmts/generic/ogrsfdriverregistrar.cpp
-Copyright: 1999, Les Technologies SoftMap Inc.
+Copyright: 1999, Les Technologies SoftMap Inc
+ 2008-2014, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/generic/ogrlayer.cpp
+Copyright: 1999, Les Technologies SoftMap Inc
+ 2008-2014, Even Rouault <even dot rouault at mines-paris dot org>
 License: MIT
 
 Files: ogr/ogrsf_frmts/generic/ogrlayerdecorator.cpp
- ogr/ogrsf_frmts/generic/ogrlayerdecorator.h
- ogr/ogrsf_frmts/generic/ogrlayerpool.cpp
- ogr/ogrsf_frmts/generic/ogrlayerpool.h
- ogr/ogrsf_frmts/generic/ogrunionlayer.cpp
- ogr/ogrsf_frmts/generic/ogrunionlayer.h
- ogr/ogrsf_frmts/generic/ogrwarpedlayer.cpp
- ogr/ogrsf_frmts/generic/ogrwarpedlayer.h
-Copyright: 2012, Even Rouault <even dot rouault at mines dash paris dot org>
+Copyright: 2012-2013, Even Rouault <even dot rouault at mines-paris dot org>
 License: MIT
 
-Files: ogr/ogrsf_frmts/geoconcept/geoconcept.c
- ogr/ogrsf_frmts/geoconcept/geoconcept.h
- ogr/ogrsf_frmts/geoconcept/geoconcept_syscoord.c
- ogr/ogrsf_frmts/geoconcept/geoconcept_syscoord.h
- ogr/ogrsf_frmts/geoconcept/ogrgeoconceptdatasource.cpp
- ogr/ogrsf_frmts/geoconcept/ogrgeoconceptdatasource.h
+Files: ogr/ogrsf_frmts/generic/ogrlayerdecorator.h
+Copyright: 2012-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/generic/ogrlayerpool.cpp
+Copyright: 2012-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/generic/ogrlayerpool.h
+Copyright: 2012-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/generic/ogrmutexeddatasource.cpp
+ ogr/ogrsf_frmts/generic/ogrmutexeddatasource.h
+ ogr/ogrsf_frmts/generic/ogrmutexedlayer.cpp
+ ogr/ogrsf_frmts/generic/ogrmutexedlayer.h
+Copyright: 2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/generic/ogrregisterall.cpp
+Copyright: 1999, Les Technologies SoftMap Inc
+ 2007-2014, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/generic/ogrsfdriver.cpp
+Copyright: 1999, Les Technologies SoftMap Inc
+ 2009-2011, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/generic/ogrsfdriverregistrar.cpp
+Copyright: 1999, Les Technologies SoftMap Inc
+ 2008-2012, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/generic/ogrunionlayer.cpp
+Copyright: 2012-2014, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/generic/ogrunionlayer.h
+Copyright: 2012-2014, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/generic/ogrwarpedlayer.cpp
+Copyright: 2012-2014, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/generic/ogrwarpedlayer.h
+Copyright: 2012-2014, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/geoconcept/ogrgeoconceptdatasource.h
  ogr/ogrsf_frmts/geoconcept/ogrgeoconceptdriver.cpp
  ogr/ogrsf_frmts/geoconcept/ogrgeoconceptdriver.h
- ogr/ogrsf_frmts/geoconcept/ogrgeoconceptlayer.cpp
  ogr/ogrsf_frmts/geoconcept/ogrgeoconceptlayer.h
 Copyright: 2007, Geoconcept and IGN
 License: MIT
 
-Files: ogr/ogrsf_frmts/geojson/ogrgeojsondatasource.cpp
- ogr/ogrsf_frmts/geojson/ogrgeojsondriver.cpp
- ogr/ogrsf_frmts/geojson/ogr_geojson.h
- ogr/ogrsf_frmts/geojson/ogrgeojsonlayer.cpp
- ogr/ogrsf_frmts/geojson/ogrgeojsonreader.cpp
- ogr/ogrsf_frmts/geojson/ogrgeojsonreader.h
- ogr/ogrsf_frmts/geojson/ogrgeojsonutils.cpp
- ogr/ogrsf_frmts/geojson/ogrgeojsonutils.h
- ogr/ogrsf_frmts/geojson/ogrgeojsonwriter.cpp
- ogr/ogrsf_frmts/geojson/ogrgeojsonwriter.h
+Files: ogr/ogrsf_frmts/geoconcept/geoconcept.c
+Copyright: 2007, Geoconcept and IGN
+ 2008-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/geoconcept/geoconcept.h
+Copyright: 2007, Geoconcept and IGN
+ 2008, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/geoconcept/geoconcept_syscoord.c
+Copyright: 2007, Geoconcept and IGN
+ 2008-2010, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/geoconcept/geoconcept_syscoord.h
+Copyright: 2007, Geoconcept and IGN
+ 2008, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/geoconcept/ogrgeoconceptdatasource.cpp
+Copyright: 2007, Geoconcept and IGN
+ 2008, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/geoconcept/ogrgeoconceptlayer.cpp
+Copyright: 2007, Geoconcept and IGN
+ 2008, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/geojson/ogr_geojson.h
 Copyright: 2007, Mateusz Loskot
+ 2010-2013, Even Rouault <even dot rouault at mines-paris dot org>
 License: MIT
 
 Files: ogr/ogrsf_frmts/geojson/ogresrijsonreader.cpp
-Copyright: 2010, Even Rouault
- 2007, Mateusz Loskot
+Copyright: 2007, Mateusz Loskot
+ 2010-2013, Even Rouault <even dot rouault at mines-paris dot org>
+ 2013, Kyle Shannon <kyle at pobox dot com>
+License: MIT
+
+Files: ogr/ogrsf_frmts/geojson/ogrgeojsondatasource.cpp
+Copyright: 2007, Mateusz Loskot
+ 2008-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/geojson/ogrgeojsonlayer.cpp
+Copyright: 2007, Mateusz Loskot
+ 2010-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/geojson/ogrgeojsonreader.cpp
+Copyright: 2007, Mateusz Loskot
+ 2008-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/geojson/ogrgeojsonreader.h
+Copyright: 2007, Mateusz Loskot
+ 2010-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/geojson/ogrgeojsonutils.cpp
+Copyright: 2007, Mateusz Loskot
+ 2010-2013, Even Rouault <even dot rouault at mines-paris dot org>
 License: MIT
 
 Files: ogr/ogrsf_frmts/geojson/ogrgeojsonwritelayer.cpp
-Copyright: 2011, Even Rouault
- 2007, Mateusz Loskot
+Copyright: 2007, Mateusz Loskot
+ 2011, Even Rouault <even dot rouault at mines-paris dot org>
 License: MIT
 
-Files: ogr/ogrsf_frmts/geojson/jsonc/arraylist.c
- ogr/ogrsf_frmts/geojson/jsonc/arraylist.h
- ogr/ogrsf_frmts/geojson/jsonc/bits.h
- ogr/ogrsf_frmts/geojson/jsonc/config.h
- ogr/ogrsf_frmts/geojson/jsonc/COPYING
- ogr/ogrsf_frmts/geojson/jsonc/debug.c
- ogr/ogrsf_frmts/geojson/jsonc/debug.h
- ogr/ogrsf_frmts/geojson/jsonc/json.h
- ogr/ogrsf_frmts/geojson/jsonc/json_object.c
- ogr/ogrsf_frmts/geojson/jsonc/json_object.h
- ogr/ogrsf_frmts/geojson/jsonc/json_object_private.h
- ogr/ogrsf_frmts/geojson/jsonc/json_tokener.h
- ogr/ogrsf_frmts/geojson/jsonc/json_util.c
- ogr/ogrsf_frmts/geojson/jsonc/json_util.h
- ogr/ogrsf_frmts/geojson/jsonc/linkhash.c
- ogr/ogrsf_frmts/geojson/jsonc/linkhash.h
-Copyright: 2004, 2005 Metaparadigm Pte. Ltd.
+Files: ogr/ogrsf_frmts/geojson/ogrgeojsonwriter.cpp
+Copyright: 2007, Mateusz Loskot
+ 2008-2014, Even Rouault <even dot rouault at mines-paris dot org>
 License: MIT
 
-Files: ogr/ogrsf_frmts/geojson/jsonc/json_tokener.c
- ogr/ogrsf_frmts/geojson/jsonc/printbuf.c
- ogr/ogrsf_frmts/geojson/jsonc/printbuf.h
-Copyright: 2004, 2005 Metaparadigm Pte. Ltd.
- 2008-2009 Yahoo! Inc.  All rights reserved.
+Files: ogr/ogrsf_frmts/geojson/ogrgeojsonwriter.h
+Copyright: 2007, Mateusz Loskot
+ 2011-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/geojson/ogrgeojsondriver.cpp
+ ogr/ogrsf_frmts/geojson/ogrgeojsonutils.h
+Copyright: 2007, Mateusz Loskot
+License: MIT
+
+Files: ogr/ogrsf_frmts/geojson/ogrtopojsonreader.cpp
+Copyright: 2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/geojson/libjson/*
+Copyright: 2004-2005, Metaparadigm Pte. Ltd.
+ 2009-2012 Eric Haszlakiewicz
+License: MIT
+
+Files: ogr/ogrsf_frmts/geomedia/ogr_geomedia.h
+Copyright: 2005, Frank Warmerdam <warmerdam@pobox.com>
+ 2011-2013, Even Rouault <even dot rouault at mines-paris dot org>
 License: MIT
 
 Files: ogr/ogrsf_frmts/geomedia/ogrgeomediadatasource.cpp
- ogr/ogrsf_frmts/geomedia/ogrgeomediadriver.cpp
- ogr/ogrsf_frmts/geomedia/ogr_geomedia.h
- ogr/ogrsf_frmts/geomedia/ogrgeomedialayer.cpp
- ogr/ogrsf_frmts/geomedia/ogrgeomediatablelayer.cpp
-Copyright: 2011, Even Rouault, <even dot rouault at mines dash paris dot org>
- 2005, Frank Warmerdam <warmerdam@pobox.com>
+Copyright: 2005, Frank Warmerdam <warmerdam@pobox.com>
+ 2011-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/geomedia/ogrgeomediadriver.cpp
+Copyright: 2005, Frank Warmerdam <warmerdam@pobox.com>
+ 2011-2012, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/geomedia/ogrgeomedialayer.cpp
+Copyright: 2005, Frank Warmerdam <warmerdam@pobox.com>
+ 2011-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/geomedia/ogrgeomediaselectlayer.cpp
+Copyright: 2005, Frank Warmerdam
+ 2011, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/geomedia/ogrgeomediatablelayer.cpp
+Copyright: 2005, Frank Warmerdam <warmerdam@pobox.com>
+ 2011, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/georss/ogr_georss.h
+Copyright: 2008-2010, Even Rouault <even dot rouault at mines-paris dot org>
 License: MIT
 
 Files: ogr/ogrsf_frmts/georss/ogrgeorssdatasource.cpp
- ogr/ogrsf_frmts/georss/ogrgeorssdriver.cpp
- ogr/ogrsf_frmts/georss/ogr_georss.h
- ogr/ogrsf_frmts/georss/ogrgeorsslayer.cpp
-Copyright: 2008, Even Rouault
+Copyright: 2008-2011, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/georss/ogrgeorssdriver.cpp
+Copyright: 2008, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/georss/ogrgeorsslayer.cpp
+Copyright: 2008-2014, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/gft/ogr_gft.h
+Copyright: 2011-2013, Even Rouault <even dot rouault at mines-paris dot org>
 License: MIT
 
 Files: ogr/ogrsf_frmts/gft/ogrgftdatasource.cpp
- ogr/ogrsf_frmts/gft/ogrgftdriver.cpp
- ogr/ogrsf_frmts/gft/ogr_gft.h
- ogr/ogrsf_frmts/gft/ogrgftlayer.cpp
- ogr/ogrsf_frmts/gft/ogrgftresultlayer.cpp
- ogr/ogrsf_frmts/gft/ogrgfttablelayer.cpp
-Copyright: 2011, Even Rouault <even dot rouault at mines dash paris dot org>
+Copyright: 2011-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/gft/ogrgftdriver.cpp
+Copyright: 2011, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/gft/ogrgftlayer.cpp
+Copyright: 2011-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/gft/ogrgftresultlayer.cpp
+Copyright: 2011-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/gft/ogrgfttablelayer.cpp
+Copyright: 2011-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/gme/ogr_gme.h
+ ogr/ogrsf_frmts/gme/ogrgmedatasource.cpp
+ ogr/ogrsf_frmts/gme/ogrgmedriver.cpp
+ ogr/ogrsf_frmts/gme/ogrgmejson.cpp
+ ogr/ogrsf_frmts/gme/ogrgmejson.h
+ ogr/ogrsf_frmts/gme/ogrgmelayer.cpp
+Copyright: 2013, Frank Warmerdam <warmerdam@pobox.com>
 License: MIT
 
 Files: ogr/ogrsf_frmts/gml/gfstemplate.cpp
@@ -1572,52 +3349,195 @@ Files: ogr/ogrsf_frmts/gml/gfstemplate.cpp
 Copyright: 2011, Alessandro Furieri
 License: MIT
 
+Files: ogr/ogrsf_frmts/gml/gmlfeature.cpp
+Copyright: 2002, Frank Warmerdam
+ 2010-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/gml/gmlfeatureclass.cpp
+Copyright: 2002, Frank Warmerdam
+ 2010-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/gml/gmlhandler.cpp
+Copyright: 2002, Frank Warmerdam
+ 2008-2014, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/gml/gmlpropertydefn.cpp
+Copyright: 2002, Frank Warmerdam
+ 2008-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/gml/gmlreader.cpp
+Copyright: 2002, Frank Warmerdam
+ 2008-2014, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/gml/gmlreader.h
+Copyright: 2002, Frank Warmerdam
+ 2008-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/gml/gmlreaderp.h
+Copyright: 2002, Frank Warmerdam
+ 2008-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/gml/gmlreadstate.cpp
+Copyright: 2002, Frank Warmerdam
+ 2011, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/gml/gmlregistry.cpp
+ ogr/ogrsf_frmts/gml/gmlregistry.h
+Copyright: 2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
 Files: ogr/ogrsf_frmts/gml/gmlutils.cpp
- ogr/ogrsf_frmts/gml/gmlutils.h
-Copyright: 2010, Even Rouault
+Copyright: 2010-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/gml/gmlutils.h
+Copyright: 2010-2011, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/gml/hugefileresolver.cpp
+Copyright: 2011, Alessandro Furieri
+ 2011-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/gml/ogr_gml.h
+Copyright: 2002, Frank Warmerdam
+ 2010-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/gml/ogrgmldatasource.cpp
+Copyright: 2002, Frank Warmerdam <warmerdam@pobox.com>
+ 2007-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/gml/ogrgmllayer.cpp
+Copyright: 2002, Frank Warmerdam <warmerdam@pobox.com>
+ 2009-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/gml/parsexsd.cpp
+Copyright: 2005, Frank Warmerdam
+ 2010-2014, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/gml/parsexsd.h
+Copyright: 2005, Frank Warmerdam
+ 2010, Even Rouault <even dot rouault at mines-paris dot org>
 License: MIT
 
 Files: ogr/ogrsf_frmts/gml/resolvexlinks.cpp
 Copyright: 2010, Chaitanya kumar CH
+ 2010-2014, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/gpkg/ogr_geopackage.h
+ ogr/ogrsf_frmts/gpkg/ogrgeopackagedriver.cpp
+ ogr/ogrsf_frmts/gpkg/ogrgeopackageutility.cpp
+ ogr/ogrsf_frmts/gpkg/ogrgeopackageutility.h
+Copyright: 2013, Paul Ramsey <pramsey@boundlessgeo.com>
+License: MIT
+
+Files: ogr/ogrsf_frmts/gpkg/ogrgeopackagedatasource.cpp
+ ogr/ogrsf_frmts/gpkg/ogrgeopackagelayer.cpp
+Copyright: 2013, Paul Ramsey <pramsey@boundlessgeo.com>
+ 2014, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/gpsbabel/ogr_gpsbabel.h
+Copyright: 2010, Even Rouault <even dot rouault at mines-paris dot org>
 License: MIT
 
 Files: ogr/ogrsf_frmts/gpsbabel/ogrgpsbabeldatasource.cpp
- ogr/ogrsf_frmts/gpsbabel/ogrgpsbabeldriver.cpp
- ogr/ogrsf_frmts/gpsbabel/ogr_gpsbabel.h
- ogr/ogrsf_frmts/gpsbabel/ogrgpsbabelwritedatasource.cpp
-Copyright: 2010, Even Rouault
+Copyright: 2010-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/gpsbabel/ogrgpsbabeldriver.cpp
+Copyright: 2010, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/gpsbabel/ogrgpsbabelwritedatasource.cpp
+Copyright: 2010-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/gpx/ogr_gpx.h
+Copyright: 2007-2010, Even Rouault <even dot rouault at mines-paris dot org>
 License: MIT
 
 Files: ogr/ogrsf_frmts/gpx/ogrgpxdatasource.cpp
- ogr/ogrsf_frmts/gpx/ogrgpxdriver.cpp
- ogr/ogrsf_frmts/gpx/ogr_gpx.h
- ogr/ogrsf_frmts/gpx/ogrgpxlayer.cpp
-Copyright: 2007, Even Rouault
+Copyright: 2007-2011, Even Rouault <even dot rouault at mines-paris dot org>
 License: MIT
 
-Files: ogr/ogrsf_frmts/grass/ogrgrassdatasource.cpp
- ogr/ogrsf_frmts/grass/ogrgrassdriver.cpp
+Files: ogr/ogrsf_frmts/gpx/ogrgpxdriver.cpp
+Copyright: 2007-2008, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/gpx/ogrgpxlayer.cpp
+Copyright: 2007-2014, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/grass/ogrgrassdriver.cpp
  ogr/ogrsf_frmts/grass/ogrgrass.h
- ogr/ogrsf_frmts/grass/ogrgrasslayer.cpp
 Copyright: 2005, Radim Blazek <radim.blazek@gmail.com>
 License: MIT
 
-Files: ogr/ogrsf_frmts/gtm/gtm.cpp
- ogr/ogrsf_frmts/gtm/gtm.h
- ogr/ogrsf_frmts/gtm/gtmtracklayer.cpp
- ogr/ogrsf_frmts/gtm/gtmwaypointlayer.cpp
+Files: ogr/ogrsf_frmts/grass/ogrgrassdatasource.cpp
+Copyright: 2005, Radim Blazek <radim.blazek@gmail.com>
+ 2008-2010, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/grass/ogrgrasslayer.cpp
+Copyright: 2005, Radim Blazek <radim.blazek@gmail.com>
+ 2008-2010, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/gtm/gtmtracklayer.cpp
  ogr/ogrsf_frmts/gtm/ogrgtmdatasource.cpp
  ogr/ogrsf_frmts/gtm/ogrgtmdriver.cpp
- ogr/ogrsf_frmts/gtm/ogr_gtm.h
  ogr/ogrsf_frmts/gtm/ogrgtmlayer.cpp
 Copyright: 2009, Leonardo de Paula Rosa Piga
 License: MIT
 
+Files: ogr/ogrsf_frmts/gtm/gtm.cpp
+Copyright: 2009, Leonardo de Paula Rosa Piga
+ 2009-2010, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/gtm/gtm.h
+Copyright: 2009, Leonardo de Paula Rosa Piga
+ 2009-2010, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/gtm/gtmwaypointlayer.cpp
+Copyright: 2009, Leonardo de Paula Rosa Piga
+ 2009-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/gtm/ogr_gtm.h
+Copyright: 2009, Leonardo de Paula Rosa Piga
+ 2009-2010, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/htf/ogr_htf.h
+Copyright: 2010, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
 Files: ogr/ogrsf_frmts/htf/ogrhtfdatasource.cpp
- ogr/ogrsf_frmts/htf/ogrhtfdriver.cpp
- ogr/ogrsf_frmts/htf/ogr_htf.h
- ogr/ogrsf_frmts/htf/ogrhtflayer.cpp
-Copyright: 2010, Even Rouault <even dot rouault at mines dash paris dot org>
+Copyright: 2010, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/htf/ogrhtfdriver.cpp
+Copyright: 2010, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/htf/ogrhtflayer.cpp
+Copyright: 2010-2013, Even Rouault <even dot rouault at mines-paris dot org>
 License: MIT
 
 Files: ogr/ogrsf_frmts/idb/ogr_idb.h
@@ -1630,94 +3550,217 @@ Copyright: 2006, Oleg Semykin
 License: MIT
 
 Files: ogr/ogrsf_frmts/idrisi/generate_test_files.c
- ogr/ogrsf_frmts/idrisi/ogr_idrisi.h
- ogr/ogrsf_frmts/idrisi/ogridrisidatasource.cpp
- ogr/ogrsf_frmts/idrisi/ogridrisidriver.cpp
- ogr/ogrsf_frmts/idrisi/ogridrisilayer.cpp
-Copyright: 2011, Even Rouault <even dot rouault at mines dash paris dot org>
+Copyright: 2011, Even Rouault <even dot rouault at mines-paris dot org>
 License: MIT
 
-Files: ogr/ogrsf_frmts/ili/ili1reader.cpp
- ogr/ogrsf_frmts/ili/ili1reader.h
+Files: ogr/ogrsf_frmts/idrisi/ogr_idrisi.h
+Copyright: 2011-2012, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/idrisi/ogridrisidatasource.cpp
+Copyright: 2011-2012, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/idrisi/ogridrisidriver.cpp
+Copyright: 2011, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/idrisi/ogridrisilayer.cpp
+Copyright: 2011-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/ili/ili1reader.h
  ogr/ogrsf_frmts/ili/ili1readerp.h
- ogr/ogrsf_frmts/ili/ili2handler.cpp
- ogr/ogrsf_frmts/ili/ili2reader.cpp
  ogr/ogrsf_frmts/ili/ili2reader.h
  ogr/ogrsf_frmts/ili/ili2readerp.h
  ogr/ogrsf_frmts/ili/ilihelper.cpp
  ogr/ogrsf_frmts/ili/ilihelper.h
- ogr/ogrsf_frmts/ili/iomhelper.cpp
- ogr/ogrsf_frmts/ili/iomhelper.h
  ogr/ogrsf_frmts/ili/ogr_ili1.h
  ogr/ogrsf_frmts/ili/ogr_ili2.h
- ogr/ogrsf_frmts/ili/ogrili1datasource.cpp
  ogr/ogrsf_frmts/ili/ogrili1driver.cpp
- ogr/ogrsf_frmts/ili/ogrili1layer.cpp
- ogr/ogrsf_frmts/ili/ogrili2datasource.cpp
  ogr/ogrsf_frmts/ili/ogrili2driver.cpp
- ogr/ogrsf_frmts/ili/ogrili2layer.cpp
 Copyright: 2004, Pirmin Kalberer, Sourcepole AG
 License: MIT
 
-Files: ogr/ogrsf_frmts/ili/iom/iom.h
- ogr/ogrsf_frmts/ili/iom/iom_attr.cpp
- ogr/ogrsf_frmts/ili/iom/iom_basket.cpp
- ogr/ogrsf_frmts/ili/iom/iom_error.cpp
- ogr/ogrsf_frmts/ili/iom/iom_file.cpp
- ogr/ogrsf_frmts/ili/iom/iom_iterator.cpp
- ogr/ogrsf_frmts/ili/iom/iom_object.cpp
- ogr/ogrsf_frmts/ili/iom/iom_p.h
- ogr/ogrsf_frmts/ili/iom/iom_utilities.cpp
- ogr/ogrsf_frmts/ili/iom/iom_value.cpp
- ogr/ogrsf_frmts/ili/iom/reader.cpp
- ogr/ogrsf_frmts/ili/iom/tags.cpp
- ogr/ogrsf_frmts/ili/iom/ustrings.cpp
- ogr/ogrsf_frmts/ili/iom/writer.cpp
-Copyright: 2007, Claude Eisenhut
+Files: ogr/ogrsf_frmts/ili/imdreader.cpp
+ ogr/ogrsf_frmts/ili/imdreader.h
+Copyright: 2014, Pirmin Kalberer, Sourcepole AG
 License: MIT
 
-Files: ogr/ogrsf_frmts/kml/ogr2kmlgeometry.cpp
- ogr/ogrsf_frmts/kml/ogr_kml.h
- ogr/ogrsf_frmts/kml/ogrkmldatasource.cpp
- ogr/ogrsf_frmts/kml/ogrkmldriver.cpp
- ogr/ogrsf_frmts/kml/ogrkmllayer.cpp
-Copyright: 2006, Christopher Condit
+Files: ogr/ogrsf_frmts/ili/ili1reader.cpp
+Copyright: 2004, Pirmin Kalberer, Sourcepole AG
+ 2008-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/ili/ili2handler.cpp
+Copyright: 2004, Pirmin Kalberer, Sourcepole AG
+ 2008, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/ili/ili2reader.cpp
+Copyright: 2004, Pirmin Kalberer, Sourcepole AG
+ 2008-2012, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/ili/ogrili1datasource.cpp
+Copyright: 2004, Pirmin Kalberer, Sourcepole AG
+ 2007-2008, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/ili/ogrili1layer.cpp
+Copyright: 2004, Pirmin Kalberer, Sourcepole AG
+ 2008-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/ili/ogrili2datasource.cpp
+Copyright: 2004, Pirmin Kalberer, Sourcepole AG
+ 2007-2008, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/ili/ogrili2layer.cpp
+Copyright: 2004, Pirmin Kalberer, Sourcepole AG
+ 2008-2012, Even Rouault <even dot rouault at mines-paris dot org>
 License: MIT
 
 Files: ogr/ogrsf_frmts/kml/kml.cpp
- ogr/ogrsf_frmts/kml/kml.h
- ogr/ogrsf_frmts/kml/kmlnode.cpp
- ogr/ogrsf_frmts/kml/kmlnode.h
- ogr/ogrsf_frmts/kml/kmlutility.h
- ogr/ogrsf_frmts/kml/kmlvector.cpp
- ogr/ogrsf_frmts/kml/kmlvector.h
+Copyright: 2007, Jens Oberender
+ 2008-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/kml/kml.h
+Copyright: 2007, Jens Oberender
+ 2008-2012, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/kml/kmlnode.cpp
+Copyright: 2007, Jens Oberender
+ 2007-2012, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/kml/kmlnode.h
+Copyright: 2007, Jens Oberender
+ 2009-2012, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/kml/kmlutility.h
+Copyright: 2007, Jens Oberender
+ 2009, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/kml/kmlvector.cpp
+Copyright: 2007, Jens Oberender
+ 2009-2012, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/kml/kmlvector.h
 Copyright: 2007, Jens Oberender
 License: MIT
 
-Files: ogr/ogrsf_frmts/libkml/drv_libkml.html
- ogr/ogrsf_frmts/libkml/ogr_libkml.h
- ogr/ogrsf_frmts/libkml/ogrlibkmldatasource.cpp
- ogr/ogrsf_frmts/libkml/ogrlibkmldriver.cpp
- ogr/ogrsf_frmts/libkml/ogrlibkmlfeature.cpp
+Files: ogr/ogrsf_frmts/kml/ogr2kmlgeometry.cpp
+Copyright: 2006, Christopher Condit
+ 2007-2010, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/kml/ogr_kml.h
+Copyright: 2006, Christopher Condit
+ 2007-2014, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/kml/ogrkmldatasource.cpp
+Copyright: 2006, Christopher Condit
+ 2007-2014, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/kml/ogrkmldriver.cpp
+Copyright: 2006, Christopher Condit
+License: MIT
+
+Files: ogr/ogrsf_frmts/kml/ogrkmllayer.cpp
+Copyright: 2006, Christopher Condit
+ 2007-2014, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/libkml/ogrlibkmldriver.cpp
  ogr/ogrsf_frmts/libkml/ogrlibkmlfeature.h
- ogr/ogrsf_frmts/libkml/ogrlibkmlfeaturestyle.cpp
  ogr/ogrsf_frmts/libkml/ogrlibkmlfeaturestyle.h
- ogr/ogrsf_frmts/libkml/ogrlibkmlfield.cpp
- ogr/ogrsf_frmts/libkml/ogrlibkmlfield.h
- ogr/ogrsf_frmts/libkml/ogrlibkmlgeometry.cpp
  ogr/ogrsf_frmts/libkml/ogrlibkmlgeometry.h
- ogr/ogrsf_frmts/libkml/ogrlibkmllayer.cpp
- ogr/ogrsf_frmts/libkml/ogrlibkmlstyle.cpp
  ogr/ogrsf_frmts/libkml/ogrlibkmlstyle.h
 Copyright: 2010, Brian Case
 License: MIT
 
+Files: ogr/ogrsf_frmts/libkml/ogr_libkml.h
+Copyright: 2010, Brian Case
+ 2010-2014, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/libkml/ogrlibkmldatasource.cpp
+Copyright: 2010, Brian Case
+ 2010-2014, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/libkml/ogrlibkmlfeature.cpp
+Copyright: 2010, Brian Case
+ 2014, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/libkml/ogrlibkmlfeaturestyle.cpp
+Copyright: 2010, Brian Case
+ 2010-2014, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/libkml/ogrlibkmlfield.cpp
+Copyright: 2010, Brian Case
+ 2010-2014, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/libkml/ogrlibkmlfield.h
+Copyright: 2010, Brian Case
+ 2014, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/libkml/ogrlibkmlgeometry.cpp
+Copyright: 2010, Brian Case
+ 2010-2014, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/libkml/ogrlibkmllayer.cpp
+Copyright: 2010, Brian Case
+ 2010-2014, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/libkml/ogrlibkmlstyle.cpp
+Copyright: 2010, Brian Case
+ 2011-2014, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
 Files: ogr/ogrsf_frmts/mdb/ogr_mdb.h
- ogr/ogrsf_frmts/mdb/ogrmdbdatasource.cpp
- ogr/ogrsf_frmts/mdb/ogrmdbdriver.cpp
- ogr/ogrsf_frmts/mdb/ogrmdbjackcess.cpp
- ogr/ogrsf_frmts/mdb/ogrmdblayer.cpp
-Copyright: 2011, Even Rouault, <even dot rouault at mines dash paris dot org>
+Copyright: 2011, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/mdb/ogrmdbdatasource.cpp
+Copyright: 2011, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/mdb/ogrmdbdriver.cpp
+Copyright: 2011, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/mdb/ogrmdbjackcess.cpp
+Copyright: 2011, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/mdb/ogrmdblayer.cpp
+Copyright: 2011-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/mem/ogr_mem.h
+Copyright: 2003, Frank Warmerdam <warmerdam@pobox.com>
+ 2011-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/mem/ogrmemlayer.cpp
+Copyright: 2003, Frank Warmerdam <warmerdam@pobox.com>
+ 2009-2013, Even Rouault <even dot rouault at mines-paris dot org>
 License: MIT
 
 Files: ogr/ogrsf_frmts/mitab/mitab_geometry.h
@@ -1764,6 +3807,7 @@ License: MIT
 
 Files: ogr/ogrsf_frmts/mitab/mitab_miffile.cpp
 Copyright: 1999-2003, Stephane Villeneuve
+ 2011-2013, Even Rouault <even dot rouault at mines-paris dot org>
 License: MIT
 
 Files: ogr/ogrsf_frmts/mitab/mitab_tabseamless.cpp
@@ -1785,104 +3829,360 @@ License: MIT
 Files: ogr/ogrsf_frmts/mssqlspatial/ogr_mssqlspatial.h
  ogr/ogrsf_frmts/mssqlspatial/ogrmssqlgeometryparser.cpp
  ogr/ogrsf_frmts/mssqlspatial/ogrmssqlgeometryvalidator.cpp
- ogr/ogrsf_frmts/mssqlspatial/ogrmssqlspatialdatasource.cpp
  ogr/ogrsf_frmts/mssqlspatial/ogrmssqlspatialdriver.cpp
  ogr/ogrsf_frmts/mssqlspatial/ogrmssqlspatiallayer.cpp
  ogr/ogrsf_frmts/mssqlspatial/ogrmssqlspatialselectlayer.cpp
- ogr/ogrsf_frmts/mssqlspatial/ogrmssqlspatialtablelayer.cpp
 Copyright: 2010, Tamas Szekeres
 License: MIT
 
-Files: ogr/ogrsf_frmts/null/ogrnulldriver.cpp
-Copyright: 2012, Even Rouault
+Files: ogr/ogrsf_frmts/mssqlspatial/ogrmssqlspatialdatasource.cpp
+Copyright: 2010, Tamas Szekeres
+ 2010-2013, Even Rouault <even dot rouault at mines-paris dot org>
 License: MIT
 
-Files: ogr/ogrsf_frmts/ods/ods_formula_parser.hpp
-Copyright: 1984, 1989, 1990, 2000-2006, Free Software Foundation, Inc.
-License: GPL-3.0+ with Bison exception
+Files: ogr/ogrsf_frmts/mssqlspatial/ogrmssqlspatialtablelayer.cpp
+Copyright: 2010, Tamas Szekeres
+ 2010-2012, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/mysql/ogr_mysql.h
+Copyright: 2004, Frank Warmerdam <warmerdam@pobox.com>
+ 2008-2012, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/mysql/ogrmysqldatasource.cpp
+Copyright: 2004, Frank Warmerdam <warmerdam@pobox.com>
+ 2008-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/mysql/ogrmysqlresultlayer.cpp
+Copyright: 2004, Frank Warmerdam <warmerdam@pobox.com>
+ 2008-2010, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/mysql/ogrmysqltablelayer.cpp
+Copyright: 2004, Frank Warmerdam <warmerdam@pobox.com>
+ 2008-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/nas/nashandler.cpp
+Copyright: 2002, Frank Warmerdam
+ 2010-2012, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/nas/nasreader.cpp
+Copyright: 2002, Frank Warmerdam
+ 2010-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/nas/nasreaderp.h
+Copyright: 2008, Frank Warmerdam
+ 2010-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/nas/ogrnasdatasource.cpp
+Copyright: 2002, Frank Warmerdam <warmerdam@pobox.com>
+ 2010-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/nas/ogrnaslayer.cpp
+Copyright: 2002, Frank Warmerdam <warmerdam@pobox.com>
+ 2010-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/ntf/ntffilereader.cpp
+Copyright: 1999, Frank Warmerdam
+ 2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/ntf/ntfrecord.cpp
+Copyright: 1999, Frank Warmerdam
+ 2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/null/ogrnulldriver.cpp
+Copyright: 2012, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/odbc/ogrodbcdatasource.cpp
+Copyright: 2003, Frank Warmerdam <warmerdam@pobox.com>
+ 2009-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/odbc/ogrodbctablelayer.cpp
+Copyright: 2003, Frank Warmerdam
+ 2009-2012, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/ods/ods_formula.cpp
+ ogr/ogrsf_frmts/ods/ods_formula.h
+Copyright: 2010 Frank Warmerdam <warmerdam@pobox.com>
+ 2012, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/ods/ods_formula_node.cpp
+Copyright: 2010 Frank Warmerdam <warmerdam@pobox.com>
+ 2012-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
 
 Files: ogr/ogrsf_frmts/ods/ods_formula_parser.cpp
 Copyright: 1984, 1989, 1990, 2000-2006, Free Software Foundation, Inc.
  2010, Frank Warmerdam <warmerdam@pobox.com>
- 2012, Even Rouault <even dot rouault at mines dash paris dot org>
+ 2012, Even Rouault <even dot rouault at mines-paris dot org>
 License: MIT and GPL-3.0+ with Bison exception
 
-Files: ogr/ogrsf_frmts/ods/ods_formula.cpp
- ogr/ogrsf_frmts/ods/ods_formula.h
- ogr/ogrsf_frmts/ods/ods_formula_node.cpp
- ogr/ogrsf_frmts/ods/ods_formula_parser.y
+Files: ogr/ogrsf_frmts/ods/ods_formula_parser.hpp
+Copyright: 1984, 1989, 1990, 2000-2006, Free Software Foundation, Inc.
+ 2012, Even Rouault <even dot rouault at mines-paris dot org>
+License: GPL-3.0+ with Bison exception
+
+Files: ogr/ogrsf_frmts/ods/ods_formula_parser.y
 Copyright: 2010, Frank Warmerdam <warmerdam@pobox.com>
  2012, Even Rouault <even dot rouault at mines dash paris dot org>
 License: MIT
 
 Files: ogr/ogrsf_frmts/ods/ogr_ods.h
- ogr/ogrsf_frmts/ods/ogrodsdatasource.cpp
- ogr/ogrsf_frmts/ods/ogrodsdriver.cpp
- ogr/ogrsf_frmts/ods/testparser.cpp
-Copyright: 2012, Even Rouault <even dot rouault at mines dash paris dot org>
+Copyright: 2012, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/ods/ogrodsdatasource.cpp
+Copyright: 2012, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/ods/ogrodsdriver.cpp
+Copyright: 2012, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/ods/testparser.cpp
+Copyright: 2012, Even Rouault <even dot rouault at mines-paris dot org>
 License: MIT
 
 Files: ogr/ogrsf_frmts/ogdi/ogrogdi.h
  ogr/ogrsf_frmts/ogdi/ogrogdidatasource.cpp
  ogr/ogrsf_frmts/ogdi/ogrogdidriver.cpp
- ogr/ogrsf_frmts/ogdi/ogrogdilayer.cpp
 Copyright: 2000, Daniel Morissette
 License: MIT
 
-Files: ogr/ogrsf_frmts/openair/ogr_openair.h
- ogr/ogrsf_frmts/openair/ogropenairdatasource.cpp
- ogr/ogrsf_frmts/openair/ogropenairdriver.cpp
- ogr/ogrsf_frmts/openair/ogropenairlabellayer.cpp
- ogr/ogrsf_frmts/openair/ogropenairlayer.cpp
-Copyright: 2010, Even Rouault <even dot rouault at mines dash paris dot org>
+Files: ogr/ogrsf_frmts/ogdi/ogrogdilayer.cpp
+Copyright: 2000, Daniel Morissette
+ 2008-2013, Even Rouault <even dot rouault at mines-paris dot org>
 License: MIT
 
-Files: ogr/ogrsf_frmts/osm/ogr_osm.h
-Copyright: 2010, Even Rouault
+Files: ogr/ogrsf_frmts/ogrsf_frmts.h
+Copyright: 1999, Les Technologies SoftMap Inc
+ 2007-2014, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/openair/ogr_openair.h
+Copyright: 2010, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/openair/ogropenairdatasource.cpp
+Copyright: 2010, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/openair/ogropenairdriver.cpp
+Copyright: 2010, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/openair/ogropenairlabellayer.cpp
+Copyright: 2010-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/openair/ogropenairlayer.cpp
+Copyright: 2010-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/openfilegdb/filegdbindex.cpp
+ ogr/ogrsf_frmts/openfilegdb/filegdbtable.cpp
+ ogr/ogrsf_frmts/openfilegdb/filegdbtable.h
+ ogr/ogrsf_frmts/openfilegdb/filegdbtable_priv.h
+ ogr/ogrsf_frmts/openfilegdb/ogr_openfilegdb.h
+ ogr/ogrsf_frmts/openfilegdb/ogropenfilegdbdatasource.cpp
+ ogr/ogrsf_frmts/openfilegdb/ogropenfilegdbdriver.cpp
+ ogr/ogrsf_frmts/openfilegdb/ogropenfilegdblayer.cpp
+Copyright: 2014, Even Rouault <even dot rouault at mines-paris dot org>
 License: MIT
 
 Files: ogr/ogrsf_frmts/osm/gpb.h
- ogr/ogrsf_frmts/osm/ogrosmdatasource.cpp
- ogr/ogrsf_frmts/osm/ogrosmdriver.cpp
- ogr/ogrsf_frmts/osm/ogrosmlayer.cpp
- ogr/ogrsf_frmts/osm/osm2osm.c
- ogr/ogrsf_frmts/osm/osm_parser.cpp
- ogr/ogrsf_frmts/osm/osm_parser.h
-Copyright: 2012, Even Rouault, <even dot rouault at mines dash paris dot org>
+Copyright: 2012, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/osm/ogr_osm.h
+Copyright: 2012-2014, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/osm/ogrosmdatasource.cpp
+Copyright: 2012-2014, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/osm/ogrosmdriver.cpp
+Copyright: 2012, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/osm/ogrosmlayer.cpp
+Copyright: 2012-2014, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/osm/osm2osm.c
+Copyright: 2012, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/osm/osm_parser.cpp
+Copyright: 2012-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/osm/osm_parser.h
+Copyright: 2012, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/pcidsk/ogrpcidsklayer.cpp
+Copyright: 2009, Frank Warmerdam <warmerdam@pobox.com>
+ 2011-2013, Even Rouault <even dot rouault at mines-paris dot org>
 License: MIT
 
 Files: ogr/ogrsf_frmts/pdf/ogr_pdf.h
- ogr/ogrsf_frmts/pdf/ogrpdfdatasource.cpp
- ogr/ogrsf_frmts/pdf/ogrpdfdriver.cpp
-Copyright: 2012, Even Rouault <even dot rouault at mines dash paris dot org>
+Copyright: 2012, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/pdf/ogrpdfdatasource.cpp
+Copyright: 2012, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/pdf/ogrpdfdriver.cpp
+Copyright: 2012, Even Rouault <even dot rouault at mines-paris dot org>
 License: MIT
 
 Files: ogr/ogrsf_frmts/pds/ogr_pds.h
- ogr/ogrsf_frmts/pds/ogrpdsdatasource.cpp
- ogr/ogrsf_frmts/pds/ogrpdsdriver.cpp
- ogr/ogrsf_frmts/pds/ogrpdslayer.cpp
-Copyright: 2010, Even Rouault <even dot rouault at mines dash paris dot org>
+Copyright: 2010, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/pds/ogrpdsdatasource.cpp
+Copyright: 2010-2011, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/pds/ogrpdsdriver.cpp
+Copyright: 2010, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/pds/ogrpdslayer.cpp
+Copyright: 2010-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/pg/ogr_pg.h
+Copyright: 2000, Frank Warmerdam
+ 2008-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/pg/ogrpgdatasource.cpp
+Copyright: 2000, Frank Warmerdam
+ 2008-2014, Even Rouault <even dot rouault at mines-paris dot org>
 License: MIT
 
 Files: ogr/ogrsf_frmts/pg/ogrpglayer.cpp
-Copyright: 2000, Frank Warmerdam
+Copyright: 1994, The Regents of the University of California
  1996-2006, PostgreSQL Global Development Group
- 1994, The Regents of the University of California
+ 2000, Frank Warmerdam
+ 2008-2013, Even Rouault <even dot rouault at mines-paris dot org>
 License: MIT and PostgreSQL
+
+Files: ogr/ogrsf_frmts/pg/ogrpgresultlayer.cpp
+Copyright: 2002, Frank Warmerdam
+ 2008-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/pg/ogrpgtablelayer.cpp
+Copyright: 2000, Frank Warmerdam
+ 2008-2014, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/pg/ogrpgutility.cpp
+Copyright: 2009-2011, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
 
 Files: ogr/ogrsf_frmts/pg/ogrpgutility.h
 Copyright: 2007, Mateusz Loskot
 License: MIT
 
-Files: ogr/ogrsf_frmts/pg/ogrpgutility.cpp
-Copyright: 2009, Even Rouault
+Files: ogr/ogrsf_frmts/pgdump/ogr_pgdump.h
+Copyright: 2010-2013, Even Rouault <even dot rouault at mines-paris dot org>
 License: MIT
 
-Files: ogr/ogrsf_frmts/pgdump/ogr_pgdump.h
- ogr/ogrsf_frmts/pgdump/ogrpgdumpdatasource.cpp
- ogr/ogrsf_frmts/pgdump/ogrpgdumpdriver.cpp
- ogr/ogrsf_frmts/pgdump/ogrpgdumplayer.cpp
-Copyright: 2010, Even Rouault
+Files: ogr/ogrsf_frmts/pgdump/ogrpgdumpdatasource.cpp
+Copyright: 2010-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/pgdump/ogrpgdumpdriver.cpp
+Copyright: 2010-2011, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/pgdump/ogrpgdumplayer.cpp
+Copyright: 2010-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/pgeo/ogr_pgeo.h
+Copyright: 2005, Frank Warmerdam <warmerdam@pobox.com>
+ 2009-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/pgeo/ogrpgeodatasource.cpp
+Copyright: 2005, Frank Warmerdam <warmerdam@pobox.com>
+ 2010-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/pgeo/ogrpgeodriver.cpp
+Copyright: 2005, Frank Warmerdam <warmerdam@pobox.com>
+ 2008-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/pgeo/ogrpgeolayer.cpp
+Copyright: 2005, Frank Warmerdam <warmerdam@pobox.com>
+ 2008-2014, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/pgeo/ogrpgeoselectlayer.cpp
+Copyright: 2005, Frank Warmerdam
+ 2010-2014, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/pgeo/ogrpgeotablelayer.cpp
+Copyright: 2005, Frank Warmerdam
+ 2008-2011, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/s57/ogrs57datasource.cpp
+Copyright: 1999, Frank Warmerdam
+ 2010-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/s57/ogrs57driver.cpp
+Copyright: 1999, Frank Warmerdam
+ 2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/s57/ogrs57layer.cpp
+Copyright: 1999, Frank Warmerdam
+ 2009-2014, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/s57/s57.h
+Copyright: 1999, Frank Warmerdam
+ 2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/s57/s57classregistrar.cpp
+Copyright: 1999, Frank Warmerdam
+ 2011-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/s57/s57reader.cpp
+Copyright: 1999, 2001, Frank Warmerdam
+ 2009-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/s57/s57writer.cpp
+Copyright: 2003, Frank Warmerdam
+ 2013, Even Rouault <even dot rouault at mines-paris dot org>
 License: MIT
 
 Files: ogr/ogrsf_frmts/sde/ogrsdedatasource.cpp
@@ -1894,91 +4194,129 @@ License: MIT
 
 Files: ogr/ogrsf_frmts/sde/ogr_sde.h
  ogr/ogrsf_frmts/sde/ogrsdedriver.cpp
-Copyright: 2008, Shawn Gervais <project10@project10.net>
+Copyright: 2005, Frank Warmerdam <warmerdam@pobox.com>
+ 2008, Shawn Gervais <project10@project10.net>
  2008, Howard Butler <hobu.inc@gmail.com>
- 2005, Frank Warmerdam <warmerdam@pobox.com>
 License: MIT
 
 Files: ogr/ogrsf_frmts/segukooa/ogr_segukooa.h
- ogr/ogrsf_frmts/segukooa/ogrsegukooadatasource.cpp
- ogr/ogrsf_frmts/segukooa/ogrsegukooadriver.cpp
- ogr/ogrsf_frmts/segukooa/ogrsegukooalayer.cpp
-Copyright: 2011, Even Rouault <even dot rouault at mines dash paris dot org>
+Copyright: 2011, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/segukooa/ogrsegukooadatasource.cpp
+Copyright: 2011, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/segukooa/ogrsegukooadriver.cpp
+Copyright: 2011, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/segukooa/ogrsegukooalayer.cpp
+Copyright: 2011-2013, Even Rouault <even dot rouault at mines-paris dot org>
 License: MIT
 
 Files: ogr/ogrsf_frmts/segy/ogr_segy.h
- ogr/ogrsf_frmts/segy/ogrsegydatasource.cpp
- ogr/ogrsf_frmts/segy/ogrsegydriver.cpp
- ogr/ogrsf_frmts/segy/ogrsegylayer.cpp
-Copyright: 2011, Even Rouault <even dot rouault at mines dash paris dot org>
+Copyright: 2011, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/segy/ogrsegydatasource.cpp
+Copyright: 2011-2012, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/segy/ogrsegydriver.cpp
+Copyright: 2011, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/segy/ogrsegylayer.cpp
+Copyright: 2011, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/shape/dbfopen.c
+Copyright: 1999, Frank Warmerdam
+ 2012-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT or LGPL-2.0+
+
+Files: ogr/ogrsf_frmts/shape/ogrshape.h
+Copyright: 1999, Les Technologies SoftMap Inc
+ 2008-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/shape/ogrshapedatasource.cpp
+Copyright: 1999, Les Technologies SoftMap Inc
+ 2008-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/shape/ogrshapelayer.cpp
+Copyright: 1999, Les Technologies SoftMap Inc
+ 2007-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/shape/sbnsearch.c
+Copyright: 2012-2014, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT or LGPL-2.0+
+
+Files: ogr/ogrsf_frmts/shape/shape2ogr.cpp
+Copyright: 1999, Les Technologies SoftMap Inc
+ 2007-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/shape/shapefil.h
+Copyright: 1999, Frank Warmerdam
+ 2012-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT or LGPL-2.0+
+
+Files: ogr/ogrsf_frmts/shape/shp_vsi.c
+Copyright: 2007, Frank Warmerdam
+ 2009-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/shape/shp_vsi.h
+Copyright: 2007, Frank Warmerdam
+ 2013, Even Rouault <even dot rouault at mines-paris dot org>
 License: MIT
 
 Files: ogr/ogrsf_frmts/shape/shpopen.c
 Copyright: 1999, 2001, Frank Warmerdam
+ 2011-2013, Even Rouault <even dot rouault at mines-paris dot org>
 License: MIT or LGPL-2.0+
 
-Files: ogr/ogrsf_frmts/shape/dbfopen.c
- ogr/ogrsf_frmts/shape/shapefil.h
- ogr/ogrsf_frmts/shape/shptree.c
+Files: ogr/ogrsf_frmts/shape/shptree.c
 Copyright: 1999, Frank Warmerdam
-License: MIT or LGPL-2.0+
-
-Files: ogr/ogrsf_frmts/shape/ogrshape.h
- ogr/ogrsf_frmts/shape/ogrshapedatasource.cpp
- ogr/ogrsf_frmts/shape/ogrshapedriver.cpp
- ogr/ogrsf_frmts/shape/ogrshapelayer.cpp
- ogr/ogrsf_frmts/shape/shape2ogr.cpp
-Copyright: 1999, Les Technologies SoftMap Inc.
-License: MIT
-
-Files: ogr/ogrsf_frmts/shape/sbnsearch.c
-Copyright: 2012, Even Rouault
+ 2012, Even Rouault <even dot rouault at mines-paris dot org>
 License: MIT or LGPL-2.0+
 
 Files: ogr/ogrsf_frmts/sosi/fyba_melding.cpp
- ogr/ogrsf_frmts/sosi/ogr_sosi.h
- ogr/ogrsf_frmts/sosi/ogrsosidatasource.cpp
- ogr/ogrsf_frmts/sosi/ogrsosidriver.cpp
- ogr/ogrsf_frmts/sosi/ogrsosilayer.cpp
+Copyright: 2010, Even Rouault <even dot rouault at mines-paris dot org>
+ 2010, Thomas Hirsch
+License: MIT
+
+Files: ogr/ogrsf_frmts/sosi/ogr_sosi.h
+Copyright: 2010, Even Rouault <even dot rouault at mines-paris dot org>
+ 2010, Thomas Hirsch
+License: MIT
+
+Files: ogr/ogrsf_frmts/sosi/ogrsosidatasource.cpp
 Copyright: 2010, Thomas Hirsch
+ 2010-2013, Even Rouault <even dot rouault at mines-paris dot org>
 License: MIT
 
-Files: ogr/ogrsf_frmts/sqlite/ogrsqlitedatasource.cpp
-Copyright: 2003, Frank Warmerdam <warmerdam@pobox.com>
-Comment:  Contributor: Alessandro Furieri, a.furieri@lqt.it
- Portions of this module properly supporting SpatiaLite Table/Geom creation
- Developed for Faunalia ( http://www.faunalia.it) with funding from 
- Regione Toscana - Settore SISTEMA INFORMATIVO TERRITORIALE ED AMBIENTALE
+Files: ogr/ogrsf_frmts/sosi/ogrsosidriver.cpp
+Copyright: 2010, Even Rouault <even dot rouault at mines-paris dot org>
+ 2010, Thomas Hirsch
 License: MIT
 
-Files: ogr/ogrsf_frmts/sqlite/ogrsqlitedriver.cpp
+Files: ogr/ogrsf_frmts/sosi/ogrsosilayer.cpp
+Copyright: 2010, Thomas Hirsch
+ 2010-2014, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/sqlite/ogr_sqlite.h
 Copyright: 2004, Frank Warmerdam <warmerdam@pobox.com>
-Comment:  Contributor: Alessandro Furieri, a.furieri@lqt.it
- Portions of this module properly supporting SpatiaLite Table/Geom creation
- Developed for Faunalia ( http://www.faunalia.it) with funding from 
- Regione Toscana - Settore SISTEMA INFORMATIVO TERRITORIALE ED AMBIENTALE
-License: MIT
-
-Files: ogr/ogrsf_frmts/sqlite/ogrsqlitelayer.cpp
-Copyright: 2004, Frank Warmerdam <warmerdam@pobox.com>
-Comment: Contributor: Alessandro Furieri, a.furieri@lqt.it
- Portions of this module supporting SpatiaLite's own 3D geometries
- [XY, XYM, XYZ and XYZM] available since v.2.4.0
- Developed for Faunalia ( http://www.faunalia.it) with funding from 
- Regione Toscana - Settore SISTEMA INFORMATIVO TERRITORIALE ED AMBIENTALE
-License: MIT
-
-Files: ogr/ogrsf_frmts/sqlite/ogrsqlitesinglefeaturelayer.cpp
-Copyright: 2010, Even Rouault
-License: MIT
-
-Files: ogr/ogrsf_frmts/sqlite/ogrsqlitevfs.cpp
- ogr/ogrsf_frmts/sqlite/ogrsqliteviewlayer.cpp
-Copyright: 2011, Even Rouault, <even dot rouault at mines dash paris dot org>
+ 2009-2014, Even Rouault <even dot rouault at mines-paris dot org>
 License: MIT
 
 Files: ogr/ogrsf_frmts/sqlite/ogrsqlite3ext.h
-Copyright: 2012, Even Rouault <even dot rouault at mines dash paris dot org>
+Copyright: 2012-2013, Even Rouault <even dot rouault at mines-paris dot org>
 Comment: Contains headers from sqlite3.
  .
  Customized version of sqlite3ext.h to fix issues with */
@@ -2008,8 +4346,49 @@ Comment: Contains headers from sqlite3.
  sqlite3.h.
 License: MIT
 
+Files: ogr/ogrsf_frmts/sqlite/ogrsqliteapiroutines.c
+Copyright: 2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/sqlite/ogrsqlitedatasource.cpp
+Copyright: 2003, Frank Warmerdam <warmerdam@pobox.com>
+ 2009-2013, Even Rouault <even dot rouault at mines-paris dot org>
+Comment:  Contributor: Alessandro Furieri, a.furieri@lqt.it
+ Portions of this module properly supporting SpatiaLite Table/Geom creation
+ Developed for Faunalia ( http://www.faunalia.it) with funding from 
+ Regione Toscana - Settore SISTEMA INFORMATIVO TERRITORIALE ED AMBIENTALE
+License: MIT
+
+Files: ogr/ogrsf_frmts/sqlite/ogrsqlitedriver.cpp
+Copyright: 2004, Frank Warmerdam <warmerdam@pobox.com>
+ 2007-2013, Even Rouault <even dot rouault at mines-paris dot org>
+Comment:  Contributor: Alessandro Furieri, a.furieri@lqt.it
+ Portions of this module properly supporting SpatiaLite Table/Geom creation
+ Developed for Faunalia ( http://www.faunalia.it) with funding from 
+ Regione Toscana - Settore SISTEMA INFORMATIVO TERRITORIALE ED AMBIENTALE
+License: MIT
+
+Files: ogr/ogrsf_frmts/sqlite/ogrsqliteexecutesql.cpp
+Copyright: 2012-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/sqlite/ogrsqliteexecutesql.h
+Copyright: 2004, Frank Warmerdam <warmerdam@pobox.com>
+ 2012, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/sqlite/ogrsqlitelayer.cpp
+Copyright: 2004, Frank Warmerdam <warmerdam@pobox.com>
+ 2009-2013, Even Rouault <even dot rouault at mines-paris dot org>
+Comment: Contributor: Alessandro Furieri, a.furieri@lqt.it
+ Portions of this module supporting SpatiaLite's own 3D geometries
+ [XY, XYM, XYZ and XYZM] available since v.2.4.0
+ Developed for Faunalia ( http://www.faunalia.it) with funding from 
+ Regione Toscana - Settore SISTEMA INFORMATIVO TERRITORIALE ED AMBIENTALE
+License: MIT
+
 Files: ogr/ogrsf_frmts/sqlite/ogrsqliteregexp.cpp
-Copyright: 2012, Even Rouault <even dot rouault at mines dash paris dot org>
+Copyright: 2012, Even Rouault <even dot rouault at mines-paris dot org>
 Comment: This code originates from pcre.c from the sqlite3-pcre extension
  from http://laltromondo.dynalias.net/~iki/informatica/soft/sqlite3-pcre/
  whose header is:
@@ -2022,28 +4401,100 @@ Comment: This code originates from pcre.c from the sqlite3-pcre extension
  commercial or non-commercial, and by any means.
 License: MIT
 
-Files: ogr/ogrsf_frmts/sqlite/ogrsqliteexecutesql.cpp
- ogr/ogrsf_frmts/sqlite/ogrsqliteregexp.h
- ogr/ogrsf_frmts/sqlite/ogrsqlitesqlfunctions.cpp
- ogr/ogrsf_frmts/sqlite/ogrsqlitesqlfunctions.h
- ogr/ogrsf_frmts/sqlite/ogrsqlitevirtualogr.cpp
- ogr/ogrsf_frmts/sqlite/ogrsqlitevirtualogr.h
- ogr/ogrsf_frmts/sqlite/test_load_virtual_ogr.c
-Copyright: 2012, Even Rouault <even dot rouault at mines dash paris dot org>
+Files: ogr/ogrsf_frmts/sqlite/ogrsqliteregexp.h
+Copyright: 2012, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/sqlite/ogrsqliteselectlayer.cpp
+Copyright: 2004, Frank Warmerdam
+ 2010-2014, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/sqlite/ogrsqlitesinglefeaturelayer.cpp
+Copyright: 2010-2012, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/sqlite/ogrsqlitesqlfunctions.cpp
+Copyright: 2012-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/sqlite/ogrsqlitesqlfunctions.h
+Copyright: 2012, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/sqlite/ogrsqlitetablelayer.cpp
+Copyright: 2004, Frank Warmerdam
+ 2009-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/sqlite/ogrsqlitevfs.cpp
+Copyright: 2011-2012, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/sqlite/ogrsqliteviewlayer.cpp
+Copyright: 2011-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/sqlite/ogrsqlitevirtualogr.cpp
+Copyright: 2012-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/sqlite/ogrsqlitevirtualogr.h
+Copyright: 2012, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/sqlite/test_load_virtual_ogr.c
+Copyright: 2012, Even Rouault <even dot rouault at mines-paris dot org>
 License: MIT
 
 Files: ogr/ogrsf_frmts/sua/ogr_sua.h
- ogr/ogrsf_frmts/sua/ogrsuadatasource.cpp
- ogr/ogrsf_frmts/sua/ogrsuadriver.cpp
- ogr/ogrsf_frmts/sua/ogrsualayer.cpp
-Copyright: 2010, Even Rouault <even dot rouault at mines dash paris dot org>
+Copyright: 2010, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/sua/ogrsuadatasource.cpp
+Copyright: 2010, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/sua/ogrsuadriver.cpp
+Copyright: 2010, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/sua/ogrsualayer.cpp
+Copyright: 2010-2013, Even Rouault <even dot rouault at mines-paris dot org>
 License: MIT
 
 Files: ogr/ogrsf_frmts/svg/ogr_svg.h
- ogr/ogrsf_frmts/svg/ogrsvgdatasource.cpp
- ogr/ogrsf_frmts/svg/ogrsvgdriver.cpp
- ogr/ogrsf_frmts/svg/ogrsvglayer.cpp
-Copyright: 2011, Even Rouault
+Copyright: 2011-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/svg/ogrsvgdatasource.cpp
+Copyright: 2011, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/svg/ogrsvgdriver.cpp
+Copyright: 2011, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/svg/ogrsvglayer.cpp
+Copyright: 2011-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/sxf/ogr_sxf.h
+Copyright: 2011, Ben Ahmed Daho Ali
+ 2013, NextGIS
+License: MIT
+
+Files: ogr/ogrsf_frmts/sxf/ogrsxfdatasource.cpp
+ ogr/ogrsf_frmts/sxf/ogrsxfdriver.cpp
+ ogr/ogrsf_frmts/sxf/ogrsxflayer.cpp
+Copyright: 2011, Ben Ahmed Daho Ali
+ 2013, NextGIS
+ 2014, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/sxf/org_sxf_defs.h
+Copyright: 2011, Ben Ahmed Daho Ali
+ 2013, NextGIS
 License: MIT
 
 Files: ogr/ogrsf_frmts/tiger/tigeroverunder.cpp
@@ -2053,23 +4504,28 @@ Files: ogr/ogrsf_frmts/tiger/tigeroverunder.cpp
 Copyright: 2002, Frank Warmerdam, Mark Phillips
 License: MIT
 
+Files: ogr/ogrsf_frmts/tiger/ogr_tiger.h
+Copyright: 1999, Frank Warmerdam
+ 2008-2011, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/tiger/tigerentitynames.cpp
+Copyright: 1999, Frank Warmerdam
+ 2011, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/tiger/tigerfilebase.cpp
+Copyright: 1999, Frank Warmerdam
+ 2009-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
 Files: ogr/ogrsf_frmts/tiger/tigerpoint.cpp
 Copyright: 2002, Mark Phillips
 License: MIT
 
-Files: ogr/ogrsf_frmts/vfk/vfkpropertydefn.cpp
- ogr/ogrsf_frmts/vfk/vfkreaderp.h
-Copyright: 2009-2010, 2012, Martin Landa <landa.martin gmail.com>
-License: MIT
-
-Files: ogr/ogrsf_frmts/vfk/vfkfeature.cpp
- ogr/ogrsf_frmts/vfk/vfkreader.cpp
- ogr/ogrsf_frmts/vfk/vfkreader.h
-Copyright: 2009-2010, 2012-2013, Martin Landa <landa.martin gmail.com>
-License: MIT
-
-Files: ogr/ogrsf_frmts/vfk/ogrvfkdatasource.cpp
-Copyright: 2009-2010, 2013, Martin Landa <landa.martin gmail.com>
+Files: ogr/ogrsf_frmts/tiger/tigerpolygon.cpp
+Copyright: 1999, Frank Warmerdam
+ 2011, Even Rouault <even dot rouault at mines-paris dot org>
 License: MIT
 
 Files: ogr/ogrsf_frmts/vfk/ogr_vfk.h
@@ -2079,138 +4535,391 @@ Files: ogr/ogrsf_frmts/vfk/ogr_vfk.h
 Copyright: 2009-2010, Martin Landa <landa.martin gmail.com>
 License: MIT
 
+Files: ogr/ogrsf_frmts/vfk/ogrvfkdatasource.cpp
+Copyright: 2009-2010, 2013, Martin Landa <landa.martin gmail.com>
+License: MIT
+
 Files: ogr/ogrsf_frmts/vfk/vfkdatablock.cpp
 Copyright: 2009-2013, Martin Landa <landa.martin gmail.com>
+ 2012-2013, Even Rouault <even dot rouault at mines-paris dot org>
 License: MIT
 
 Files: ogr/ogrsf_frmts/vfk/vfkdatablocksqlite.cpp
- ogr/ogrsf_frmts/vfk/vfkfeaturesqlite.cpp
- ogr/ogrsf_frmts/vfk/vfkreadersqlite.cpp
+Copyright: 2012-2014, Even Rouault <even dot rouault at mines-paris dot org>
+ 2012-2014, Martin Landa <landa.martin gmail.com>
+License: MIT
+
+Files: ogr/ogrsf_frmts/vfk/vfkfeature.cpp
+Copyright: 2009-2010, 2012-2013, Martin Landa <landa.martin gmail.com>
+ 2012, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/vfk/vfkfeaturesqlite.cpp
 Copyright: 2012-2013, Martin Landa <landa.martin gmail.com>
+License: MIT
+
+Files: ogr/ogrsf_frmts/vfk/vfkpropertydefn.cpp
+Copyright: 2009-2010, 2012, Martin Landa <landa.martin gmail.com>
+License: MIT
+
+Files: ogr/ogrsf_frmts/vfk/vfkreader.cpp
+Copyright: 2009-2014, Martin Landa <landa.martin gmail.com>
+ 2012-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/vfk/vfkreader.h
+Copyright: 2009-2014, Martin Landa <landa.martin gmail.com>
+License: MIT
+
+Files: ogr/ogrsf_frmts/vfk/vfkreaderp.h
+Copyright: 2009-2010, 2012-2013, Martin Landa <landa.martin gmail.com>
+License: MIT
+
+Files: ogr/ogrsf_frmts/vfk/vfkreadersqlite.cpp
+Copyright: 2012-2014, Even Rouault <even dot rouault at mines-paris dot org>
+ 2012-2014, Martin Landa <landa.martin gmail.com>
+License: MIT
+
+Files: ogr/ogrsf_frmts/vrt/ogr_vrt.h
+Copyright: 2003, Frank Warmerdam <warmerdam@pobox.com>
+ 2009-2014, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/vrt/ogrvrtdatasource.cpp
+Copyright: 2003, Frank Warmerdam <warmerdam@pobox.com>
+ 2009-2014, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/vrt/ogrvrtdriver.cpp
+Copyright: 2003, Frank Warmerdam <warmerdam@pobox.com>
+ 2009-2014, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/vrt/ogrvrtlayer.cpp
+Copyright: 2003, Frank Warmerdam <warmerdam@pobox.com>
+ 2009-2014, Even Rouault <even dot rouault at mines-paris dot org>
 License: MIT
 
 Files: ogr/ogrsf_frmts/vrt/ogrvrt.xsd
 Copyright: 2012, Even Rouault
 License: MIT
 
+Files: ogr/ogrsf_frmts/walk/ogis_geometry_wkb_struct.h
+ ogr/ogrsf_frmts/walk/ogrwalk.h
+ ogr/ogrsf_frmts/walk/ogrwalkdatasource.cpp
+ ogr/ogrsf_frmts/walk/ogrwalklayer.cpp
+ ogr/ogrsf_frmts/walk/ogrwalkselectlayer.cpp
+ ogr/ogrsf_frmts/walk/ogrwalktablelayer.cpp
+ ogr/ogrsf_frmts/walk/ogrwalktool.cpp
+Copyright: 2013, ZJU Walkinfo Technology Corp., Ltd
+License: MIT
+
+Files: ogr/ogrsf_frmts/walk/ogrwalkdriver.cpp
+Copyright: 2014, ZJU Walkinfo Technology Corp., Ltd
+ 2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/wasp/ogrwasp.h
+ ogr/ogrsf_frmts/wasp/ogrwaspdatasource.cpp
+ ogr/ogrsf_frmts/wasp/ogrwaspdriver.cpp
+ ogr/ogrsf_frmts/wasp/ogrwasplayer.cpp
+Copyright: 2014, Oslandia <info at oslandia dot com>
+License: MIT
+
 Files: ogr/ogrsf_frmts/wfs/ogr_wfs.h
- ogr/ogrsf_frmts/wfs/ogrwfsdatasource.cpp
- ogr/ogrsf_frmts/wfs/ogrwfsdriver.cpp
- ogr/ogrsf_frmts/wfs/ogrwfsfilter.cpp
- ogr/ogrsf_frmts/wfs/ogrwfslayer.cpp
-Copyright: 2010, Even Rouault <even dot rouault at mines dash paris dot org>
+Copyright: 2010-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/wfs/ogrwfsdatasource.cpp
+Copyright: 2010-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/wfs/ogrwfsdriver.cpp
+Copyright: 2010, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/wfs/ogrwfsfilter.cpp
+Copyright: 2010-2012, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/wfs/ogrwfslayer.cpp
+Copyright: 2010-2013, Even Rouault <even dot rouault at mines-paris dot org>
 License: MIT
 
 Files: ogr/ogrsf_frmts/xls/ogr_xls.h
- ogr/ogrsf_frmts/xls/ogrxlsdatasource.cpp
- ogr/ogrsf_frmts/xls/ogrxlsdriver.cpp
- ogr/ogrsf_frmts/xls/ogrxlslayer.cpp
-Copyright: 2011, Even Rouault <even dot rouault at mines dash paris dot org>
+Copyright: 2011-2012, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/xls/ogrxlsdatasource.cpp
+Copyright: 2011, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/xls/ogrxlsdriver.cpp
+Copyright: 2011, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/xls/ogrxlslayer.cpp
+Copyright: 2011-2012, Even Rouault <even dot rouault at mines-paris dot org>
 License: MIT
 
 Files: ogr/ogrsf_frmts/xlsx/ogr_xlsx.h
- ogr/ogrsf_frmts/xlsx/ogrxlsxdatasource.cpp
- ogr/ogrsf_frmts/xlsx/ogrxlsxdriver.cpp
-Copyright: 2012, Even Rouault <even dot rouault at mines dash paris dot org>
+Copyright: 2012, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/xlsx/ogrxlsxdatasource.cpp
+Copyright: 2012-2014, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/xlsx/ogrxlsxdriver.cpp
+Copyright: 2012, Even Rouault <even dot rouault at mines-paris dot org>
 License: MIT
 
 Files: ogr/ogrsf_frmts/xplane/ogr_xplane.h
- ogr/ogrsf_frmts/xplane/ogr_xplane_apt_reader.cpp
- ogr/ogrsf_frmts/xplane/ogr_xplane_apt_reader.h
- ogr/ogrsf_frmts/xplane/ogr_xplane_awy_reader.cpp
- ogr/ogrsf_frmts/xplane/ogr_xplane_awy_reader.h
- ogr/ogrsf_frmts/xplane/ogr_xplane_fix_reader.cpp
- ogr/ogrsf_frmts/xplane/ogr_xplane_fix_reader.h
- ogr/ogrsf_frmts/xplane/ogr_xplane_geo_utils.cpp
- ogr/ogrsf_frmts/xplane/ogr_xplane_geo_utils.h
- ogr/ogrsf_frmts/xplane/ogr_xplane_nav_reader.cpp
- ogr/ogrsf_frmts/xplane/ogr_xplane_nav_reader.h
- ogr/ogrsf_frmts/xplane/ogr_xplane_reader.h
- ogr/ogrsf_frmts/xplane/ogr_xplane_reader.cpp
- ogr/ogrsf_frmts/xplane/ogrxplanedatasource.cpp
- ogr/ogrsf_frmts/xplane/ogrxplanedriver.cpp
- ogr/ogrsf_frmts/xplane/ogrxplanelayer.cpp
-Copyright: 2008, Even Rouault
+Copyright: 2008-2010, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/xplane/ogr_xplane_apt_reader.cpp
+Copyright: 2008-2011, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/xplane/ogr_xplane_apt_reader.h
+Copyright: 2008-2010, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/xplane/ogr_xplane_awy_reader.cpp
+Copyright: 2008-2011, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/xplane/ogr_xplane_awy_reader.h
+Copyright: 2008, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/xplane/ogr_xplane_fix_reader.cpp
+Copyright: 2008-2011, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/xplane/ogr_xplane_fix_reader.h
+Copyright: 2008, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/xplane/ogr_xplane_geo_utils.cpp
+Copyright: 2008-2010, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/xplane/ogr_xplane_geo_utils.h
+Copyright: 2008, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/xplane/ogr_xplane_nav_reader.cpp
+Copyright: 2008-2011, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/xplane/ogr_xplane_nav_reader.h
+Copyright: 2008, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/xplane/ogr_xplane_reader.cpp
+Copyright: 2008-2011, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/xplane/ogr_xplane_reader.h
+Copyright: 2008-2011, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/xplane/ogrxplanedatasource.cpp
+Copyright: 2008-2010, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/xplane/ogrxplanedriver.cpp
+Copyright: 2008, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: ogr/ogrsf_frmts/xplane/ogrxplanelayer.cpp
+Copyright: 2008-2013, Even Rouault <even dot rouault at mines-paris dot org>
 License: MIT
 
 Files: port/cpl_atomic_ops.cpp
  port/cpl_atomic_ops.h
-Copyright: 2009, Even Rouault, <even dot rouault at mines dash paris dot org>
+Copyright: 2009-2010, Even Rouault <even dot rouault at mines-paris dot org>
 License: MIT
 
 Files: port/cpl_base64.cpp
-Copyright: 2008 Paul Ramsey
- 2002 Refractions Research
- 2004-2008 René Nyffenegger
+Copyright: 2002, Refractions Research
+ 2004-2008, René Nyffenegger
+ 2008, Paul Ramsey
+ 2010-2013, Even Rouault <even dot rouault at mines-paris dot org>
 Comment: CPLBase64Encode() was extracted from the base64 cpp utility published by
  René Nyffenegger. The code was modified into a form suitable for use in
  CPL.  The original code can be found at
  http://www.adp-gmbh.ch/cpp/common/base64.html. 
 License: MIT and Base64
 
+Files: port/cpl_conv.cpp
+Copyright: 1998, Frank Warmerdam
+ 2007-2014, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: port/cpl_conv.h
+Copyright: 1998, Frank Warmerdam
+ 2007-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: port/cpl_csv.cpp
+Copyright: 1999, Frank Warmerdam
+ 2009-2012, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
 Files: port/cpl_error.cpp
- port/cpl_error.h
+Copyright: 1998, Daniel Morissette
+ 2007-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: port/cpl_error.h
 Copyright: 1998, Daniel Morissette
 License: MIT
 
+Files: port/cpl_findfile.cpp
+Copyright: 2000, Frank Warmerdam
+ 2009-2010, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
 Files: port/cpl_hash_set.cpp
- port/cpl_hash_set.h
-Copyright: 2008, Even Rouault, <even dot rouault at mines dash paris dot org>
+Copyright: 2008-2009, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: port/cpl_hash_set.h
+Copyright: 2008-2009, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: port/cpl_http.cpp
+Copyright: 2006, Frank Warmerdam
+ 2008-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: port/cpl_http.h
+Copyright: 2006, Frank Warmerdam
+ 2009, Even Rouault <even dot rouault at mines-paris dot org>
 License: MIT
 
 Files: port/cpl_list.cpp
- port/cpl_list.h
+Copyright: 2003, Andrey Kiselev <dron@remotesensing.org>
+ 2008, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: port/cpl_list.h
 Copyright: 2003, Andrey Kiselev <dron@remotesensing.org>
 License: MIT
 
-Files: port/cpl_minizip_ioapi.*
- port/cpl_minizip_unzip.h
- port/cpl_minizip_zip.h
+Files: port/cpl_minixml.cpp
+Copyright: 2001, Frank Warmerdam
+ 2007-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: port/cpl_minizip_ioapi.cpp
 Copyright: 1998-2005, Gilles Vollant
- 2007-2008, Even Rouault
+ 2008-2010, Even Rouault <even dot rouault at mines-paris dot org>
+License: Info-ZIP
+
+Files: port/cpl_minizip_ioapi.h
+Copyright: 1998-2005, Gilles Vollant
+ 2008-2012, Even Rouault <even dot rouault at mines-paris dot org>
 License: Info-ZIP
 
 Files: port/cpl_minizip_unzip.cpp
-Copyright: 1990-2000, Info-ZIP
+Copyright: 1990-2000, Info-Zip
  1998-2005, Gilles Vollant
- 2007-2008, Even Rouault
+ 2008-2014, Even Rouault <even dot rouault at mines-paris dot org>
+License: Info-ZIP
+
+Files: port/cpl_minizip_unzip.h
+Copyright: 1998-2005, Gilles Vollant
+ 2008, Even Rouault <even dot rouault at mines-paris dot org>
 License: Info-ZIP
 
 Files: port/cpl_minizip_zip.cpp
 Copyright: 1998-2005, Gilles Vollant
  2004, Rolf Kalbermatter
+ 2010-2012, Even Rouault <even dot rouault at mines-paris dot org>
+License: Info-ZIP
+
+Files: port/cpl_minizip_zip.h
+Copyright: 1998-2005, Gilles Vollant
  2007-2008, Even Rouault
 License: Info-ZIP
 
+Files: port/cpl_multiproc.cpp
+Copyright: 2002, Frank Warmerdam
+ 2009-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: port/cpl_multiproc.h
+Copyright: 2002, Frank Warmerdam
+ 2008-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: port/cpl_odbc.cpp
+Copyright: 2003, Frank Warmerdam
+ 2008, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: port/cpl_path.cpp
+Copyright: 1999, Frank Warmerdam
+ 2008-2012, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: port/cpl_port.h
+Copyright: 1998, 2005, Frank Warmerdam <warmerdam@pobox.com>
+ 2008-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: port/cpl_quad_tree.cpp
+Copyright: 1999-2008, Frank Warmerdam
+ 2008-2014, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: port/cpl_quad_tree.h
+Copyright: 1999-2008, Frank Warmerdam
+ 2008-2014, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
 Files: port/cpl_recode.cpp
-Copyright: 2011, Andrey Kiselev <dron@ak4719.spb.edu>
- 2008, Frank Warmerdam
+Copyright: 2008, Frank Warmerdam
+ 2011, Andrey Kiselev <dron@ak4719.spb.edu>
+ 2011-2014, Even Rouault <even dot rouault at mines-paris dot org>
 License: HPND-disclaimer
 
 Files: port/cpl_recode_iconv.cpp
 Copyright: 2011, Andrey Kiselev <dron@ak4719.spb.edu>
+ 2011-2012, Even Rouault <even dot rouault at mines-paris dot org>
 License: HPND-disclaimer
 
 Files: port/cpl_recode_stub.cpp
-Copyright: 2008, Frank Warmerdam
- 2006 by Bill Spitzak and others.
+Copyright: 2006, Bill Spitzak and others
+ 2008, Frank Warmerdam
+ 2009-2014, Even Rouault <even dot rouault at mines-paris dot org>
 License: HPND-disclaimer
 
 Files: port/cpl_spawn.cpp
-Copyright: 2012, Even Rouault
+Copyright: 2012-2013, Even Rouault <even dot rouault at mines-paris dot org>
 License: MIT
 
 Files: port/cpl_spawn.h
-Copyright: 2013, Even Rouault
+Copyright: 2013, Even Rouault <even dot rouault at mines-paris dot org>
 License: MIT
 
 Files: port/cpl_string.cpp
- port/cpl_string.h
 Copyright: 1998, Daniel Morissette
+ 2008-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: port/cpl_string.h
+Copyright: 1998, Daniel Morissette
+ 2008-2014, Even Rouault <even dot rouault at mines-paris dot org>
 License: MIT
 
 Files: port/cpl_strtod.cpp
 Copyright: 2006, Andrey Kiselev
+ 2008-2012, Even Rouault <even dot rouault at mines-paris dot org>
 License: MIT
 
 Files: port/cpl_time.cpp
@@ -2226,32 +4935,99 @@ License: public-domain
  1996-06-05 by Arthur David Olson (arthur_david_olson@nih.gov).
 
 Files: port/cpl_time.h
-Copyright: 2009, Even Rouault, <even dot rouault at mines dash paris dot org>
+Copyright: 2009, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: port/cpl_virtualmem.cpp
+ port/cpl_virtualmem.h
+Copyright: 2014, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: port/cpl_vsi.h
+Copyright: 1998, Frank Warmerdam
+ 2008-2014, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: port/cpl_vsi_mem.cpp
+Copyright: 2005, Frank Warmerdam <warmerdam@pobox.com>
+ 2007-2014, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: port/cpl_vsi_virtual.h
+Copyright: 2005, Frank Warmerdam <warmerdam@pobox.com>
+ 2010-2014, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: port/cpl_vsil.cpp
+Copyright: 2005, Frank Warmerdam <warmerdam@pobox.com>
+ 2008-2014, Even Rouault <even dot rouault at mines-paris dot org>
 License: MIT
 
 Files: port/cpl_vsil_abstract_archive.cpp
- port/cpl_vsil_buffered_reader.cpp
-Copyright: 2010, Even Rouault
+Copyright: 2010-2014, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: port/cpl_vsil_buffered_reader.cpp
+Copyright: 2010-2011, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: port/cpl_vsil_cache.cpp
+Copyright: 2011, Frank Warmerdam <warmerdam@pobox.com>
+ 2011-2014, Even Rouault <even dot rouault at mines-paris dot org>
 License: MIT
 
 Files: port/cpl_vsil_curl.cpp
-Copyright: 2008, Even Rouault
+Copyright: 2010-2013, Even Rouault <even dot rouault at mines-paris dot org>
 License: MIT
 
 Files: port/cpl_vsil_curl_priv.h
- port/cpl_vsil_curl_streaming.cpp
-Copyright: 2012, Even Rouault
+Copyright: 2012, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: port/cpl_vsil_curl_streaming.cpp
+Copyright: 2012-2013, Even Rouault <even dot rouault at mines-paris dot org>
 License: MIT
 
 Files: port/cpl_vsil_gzip.cpp
-Copyright: 2007, Even Rouault
- 1995-2005 Jean-loup Gailly.
+Copyright: 1995-2005, Jean-loup Gailly
+ 2008-2014, Even Rouault <even dot rouault at mines-paris dot org>
 License: MIT and zlib
 
+Files: port/cpl_vsil_sparsefile.cpp
+Copyright: 2010, Frank Warmerdam <warmerdam@pobox.com>
+ 2010-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
 Files: port/cpl_vsil_stdin.cpp
- port/cpl_vsil_stdout.cpp
- port/cpl_vsil_tar.cpp
-Copyright: 2010, Even Rouault
+Copyright: 2010-2012, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: port/cpl_vsil_stdout.cpp
+Copyright: 2010-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: port/cpl_vsil_subfile.cpp
+Copyright: 2005, Frank Warmerdam <warmerdam@pobox.com>
+ 2009-2014, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: port/cpl_vsil_tar.cpp
+Copyright: 2010-2014, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: port/cpl_vsil_unix_stdio_64.cpp
+Copyright: 2001, Frank Warmerdam
+ 2010-2014, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: port/cpl_vsil_win32.cpp
+Copyright: 2000, Frank Warmerdam <warmerdam@pobox.com>
+ 2008-2014, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: port/cpl_vsisimple.cpp
+Copyright: 1998, Frank Warmerdam
+ 2008-2012, Even Rouault <even dot rouault at mines-paris dot org>
 License: MIT
 
 Files: port/cpl_win32ce_api.cpp
@@ -2261,15 +5037,43 @@ Copyright: 2006, Mateusz £oskot
 License: MIT
 
 Files: port/cpl_xml_validate.cpp
-Copyright: 2012, Even Rouault
+Copyright: 2012-2014, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: port/cplgetsymbol.cpp
+Copyright: 1999, Frank Warmerdam
+ 2009-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: port/cplkeywordparser.cpp
+Copyright: 2008, Frank Warmerdam <warmerdam@pobox.com>
+ 2009-2010, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: port/cplstring.cpp
+Copyright: 2005, Frank Warmerdam <warmerdam@pobox.com>
+ 2011, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: port/cplstringlist.cpp
+Copyright: 2011, Frank Warmerdam <warmerdam@pobox.com>
+ 2011, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: port/gdal_csv.h
+Copyright: 1999, Frank Warmerdam
+ 2010, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: port/vsipreload.cpp
+Copyright: 2013, Even Rouault <even dot rouault at mines-paris dot org>
 License: MIT
 
 Files: swig/csharp/AssemblyInfo.cs
 Copyright: 2008, Tamas Szekeres
 License: MIT
 
-Files: swig/csharp/apps/createdata.cs
- swig/csharp/apps/GDALAdjustContrast.cs
+Files: swig/csharp/apps/GDALAdjustContrast.cs
  swig/csharp/apps/GDALColorTable.cs
  swig/csharp/apps/GDALCreateCopy.cs
  swig/csharp/apps/GDALDatasetRasterIO.cs
@@ -2288,7 +5092,13 @@ Files: swig/csharp/apps/createdata.cs
 Copyright: 2007, Tamas Szekeres
 License: MIT
 
+Files: swig/csharp/apps/createdata.cs
+Copyright: 2007, Tamas Szekeres
+ 2009-2010, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
 Files: swig/csharp/apps/GDALMemDataset.cs
+ swig/csharp/apps/OGRLayerAlg.cs
  swig/csharp/apps/VSIMem.cs
 Copyright: 2013, Tamas Szekeres
 License: MIT
@@ -2354,7 +5164,7 @@ Copyright: 2009, Even Rouault
 License: MIT
 
 Files: swig/java/add_javadoc.c
-Copyright: 2009, Even Rouault <even dot rouault at mines dash paris dot org>
+Copyright: 2009, Even Rouault <even dot rouault at mines-paris dot org>
 License: MIT
 
 Files: swig/java/javadoc.java
@@ -2402,79 +5212,187 @@ Files: swig/java/apps/testgetpoints.java
 Copyright: 2011, Even Rouault
 License: MIT
 
+Files: swig/java/apps/multireadtest.java
+Copyright: 2013, Even Rouault
+License: MIT
+
 Files: swig/perl/*
 Copyright: 2006-, Ari Jolma and GDAL Swig developers
 License: Artistic or GPL-1.0+
 
 Files: swig/python/samples/fft.py
- swig/python/samples/gdal2grd.py
 Copyright: 2003, Andrey Kiselev <dron@remotesensing.org>
+ 2009, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: swig/python/samples/gdal2grd.py
+Copyright: 2003, Andrey Kiselev <dron@remotesensing.org>
+ 2009, Even Rouault <even dot rouault at mines-paris dot org>
 License: MIT
 
 Files: swig/python/samples/gdal_cp.py
-Copyright: 2011, Even Rouault <even dot rouault at mines dash paris dot org>
-License: MIT
-
-Files: swig/python/samples/gdalinfo.py
-Copyright: 2010, Even Rouault
- 1998, Frank Warmerdam
+Copyright: 2011, Even Rouault <even dot rouault at mines-paris dot org>
 License: MIT
 
 Files: swig/python/samples/gdal_ls.py
-Copyright: 2011, Even Rouault <even dot rouault at mines dash paris dot org>
-License: MIT
-
-Files: swig/python/samples/gdalpythonserver.py
-Copyright: 2013, Even Rouault, <even dot rouault at mines-paris dot org>
+Copyright: 2011-2014, Even Rouault <even dot rouault at mines-paris dot org>
 License: MIT
 
 Files: swig/python/samples/gdal_vrtmerge.py
 Copyright: 2000, Atlantis Scientific Inc. (www.atlsci.com)
- 2005, Gabriel Ebner <ge@gabrielebner.at>
+ 2005 Gabriel Ebner <ge@gabrielebner.at>
+ 2009, Even Rouault <even dot rouault at mines-paris dot org>
 License: LGPL-2.0+
 
+Files: swig/python/samples/gdalcopyproj.py
+Copyright: 2005, Frank Warmerdam
+ 2009-2011, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: swig/python/samples/gdalinfo.py
+Copyright: 1998, Frank Warmerdam
+ 2010-2011, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: swig/python/samples/gdalpythonserver.py
+Copyright: 2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: swig/python/samples/histrep.py
+Copyright: 2005, Frank Warmerdam, warmerdam@pobox.com
+ 2009, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: swig/python/samples/hsv_merge.py
+Copyright: 2009, Frank Warmerdam
+ 2010, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: swig/python/samples/load2odbc.py
+Copyright: 2005, Frank Warmerdam <warmerdam@pobox.com>
+ 2009, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
 Files: swig/python/samples/ogr2ogr.py
- swig/python/samples/ogrinfo.py
-Copyright: 2010, Even Rouault
- 1999, Frank Warmerdam
+Copyright: 1999, Frank Warmerdam
+ 2010-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: swig/python/samples/ogr2vrt.py
+Copyright: 2009, Frank Warmerdam <warmerdam@pobox.com>
+ 2009-2014, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: swig/python/samples/ogr_build_junction_table.py
+Copyright: 2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: swig/python/samples/ogr_dispatch.py
+Copyright: 2013, Even Rouault <even dot rouault at mines-paris dot org>
 License: MIT
 
 Files: swig/python/samples/ogr_layer_algebra.py
-Copyright: 2013, Even Rouault
+Copyright: 2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: swig/python/samples/ogrinfo.py
+Copyright: 1999, Frank Warmerdam
+ 2010-2013, Even Rouault <even dot rouault at mines-paris dot org>
 License: MIT
 
 Files: swig/python/samples/ogrupdate.py
-Copyright: 2012, Even Rouault <even dot rouault at mines dash paris dot org>
+Copyright: 2012, Even Rouault <even dot rouault at mines-paris dot org>
 License: MIT
 
 Files: swig/python/samples/rel.py
- swig/python/samples/tolatlong.py
- swig/python/samples/val_repl.py
 Copyright: 2003, Andrey Kiselev <dron@remotesensing.org>
+ 2009, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: swig/python/samples/tigerpoly.py
+Copyright: 2003, Frank Warmerdam <warmerdam@pobox.com>
+ 2009, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: swig/python/samples/tolatlong.py
+Copyright: 2003, Andrey Kiselev <dron@remotesensing.org>
+ 2009-2010, Even Rouault <even dot rouault at mines-paris dot org>
 License: MIT
 
 Files: swig/python/samples/val_at_coord.py
-Copyright: 2010, Even Rouault <even dot rouault at mines dash paris dot org>
+Copyright: 2010, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: swig/python/samples/val_repl.py
+Copyright: 2003, Andrey Kiselev <dron@remotesensing.org>
+ 2009-2010, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: swig/python/samples/wcs_virtds_params.py
+Copyright: 2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: swig/python/scripts/epsg_tr.py
+Copyright: 2001, Frank Warmerdam
+ 2009-2010, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: swig/python/scripts/gcps2wld.py
+Copyright: 2002, Frank Warmerdam
+ 2009-2010, Even Rouault <even dot rouault at mines-paris dot org>
 License: MIT
 
 Files: swig/python/scripts/gdal2tiles.py
 Copyright: 2008, Klokan Petr Pridal
+ 2010-2013, Even Rouault <even dot rouault at mines-paris dot org>
 License: MIT
 
 Files: swig/python/scripts/gdal_calc.py
 Copyright: 2010, Chris Yesson <chris.yesson@ioz.ac.uk>
+ 2010-2011, Even Rouault <even dot rouault at mines-paris dot org>
 License: MIT
 
 Files: swig/python/scripts/gdal_edit.py
-Copyright: 2011, Even Rouault <even dot rouault at mines dash paris dot org>
+Copyright: 2011-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: swig/python/scripts/gdal_fillnodata.py
+Copyright: 2008, Frank Warmerdam
+ 2009-2011, Even Rouault <even dot rouault at mines-paris dot org>
 License: MIT
 
 Files: swig/python/scripts/gdal_merge.py
 Copyright: 2000, Atlantis Scientific Inc. (www.atlsci.com)
+ 2009-2011, Even Rouault <even dot rouault at mines-paris dot org>
 License: LGPL-2.0+
+
+Files: swig/python/scripts/gdal_polygonize.py
+Copyright: 2008, Frank Warmerdam
+ 2009-2013, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: swig/python/scripts/gdal_proximity.py
+Copyright: 2008, Frank Warmerdam
+ 2009-2011, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
 
 Files: swig/python/scripts/gdal_retile.py
 Copyright: 2007, Christian Mueller
+ 2009-2012, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: swig/python/scripts/gdal_sieve.py
+Copyright: 2008, Frank Warmerdam
+ 2009-2010, Even Rouault <even dot rouault at mines-paris dot org>
+License: MIT
+
+Files: swig/python/scripts/gdalcompare.py
+Copyright: 2012, Frank Warmerdam <warmerdam@pobox.com>
+License: MIT
+
+Files: swig/python/scripts/pct2rgb.py
+Copyright: 2001, Frank Warmerdam
+ 2009-2010, Even Rouault <even dot rouault at mines-paris dot org>
 License: MIT
 
 License: Artistic
