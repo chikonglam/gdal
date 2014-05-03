@@ -14,7 +14,7 @@ Last-Update: 2013-10-11
      * abort.  May need to revisit this behavior. */
 --- a/ogr/ogrsf_frmts/osm/ogrosmdatasource.cpp
 +++ b/ogr/ogrsf_frmts/osm/ogrosmdatasource.cpp
-@@ -3464,7 +3464,7 @@ int OGROSMDataSource::TransferToDiskIfNe
+@@ -3646,7 +3646,7 @@ int OGROSMDataSource::TransferToDiskIfNe
              CPLString osNewTmpDBName;
              osNewTmpDBName = CPLGenerateTempFilename("osm_tmp_nodes");
  
@@ -23,7 +23,7 @@ Last-Update: 2013-10-11
                       osNodesFilename.c_str(), osNewTmpDBName.c_str());
  
              if( CPLCopyFile( osNewTmpDBName, osNodesFilename ) != 0 )
-@@ -3543,7 +3543,7 @@ int OGROSMDataSource::TransferToDiskIfNe
+@@ -3725,7 +3725,7 @@ int OGROSMDataSource::TransferToDiskIfNe
  
              osNewTmpDBName = CPLGenerateTempFilename("osm_tmp");
  

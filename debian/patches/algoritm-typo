@@ -14,7 +14,7 @@ Last-Update: 2013-10-11
  
 --- a/alg/gdalgrid.cpp
 +++ b/alg/gdalgrid.cpp
-@@ -2032,17 +2032,17 @@ GDALGridCreate( GDALGridAlgorithm eAlgor
+@@ -2045,17 +2045,17 @@ GDALGridCreate( GDALGridAlgorithm eAlgor
  /*      defaults.                                                       */
  /************************************************************************/
  

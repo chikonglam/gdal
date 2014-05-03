@@ -3,7 +3,7 @@ Author: Bas Couwenberg <sebastic@xs4all.nl>
 Last-Update: 2013-10-11
 --- a/NEWS
 +++ b/NEWS
-@@ -1498,7 +1498,7 @@ USGSDEM driver:
+@@ -2057,7 +2057,7 @@ USGSDEM driver:
  VRT driver:
   * Implement VRTDataset::IRasterIO() that can delegate to source Dataset::RasterIO() in particular cases
   * Implement GetMinimum() and GetMaximum()
@@ -12,7 +12,7 @@ Last-Update: 2013-10-11
   * VRTComplexSource: correctly deal with complex data type (#3977)
   * Fix 2 segfaults related to using '<VRTDataset', but with invalid XML, as the target filename of VRTDataset::Create()
   * Fix 'VRTDerivedRasterBand with ComplexSource and nodata value yields potentially uninitialized buffer' (#4045)
-@@ -2020,7 +2020,7 @@ Port:
+@@ -2579,7 +2579,7 @@ Port:
  Core:
   * RFC 24: progressive/async raster reading
   * On Unix, add capability of opening the target of a symlink through GDALOpen()
@@ -21,7 +21,7 @@ Last-Update: 2013-10-11
     GDAL virtual filenames in software offering only file explorers (#3902)
   * Assume anything less than 100000 for GDAL_CACHEMAX is measured in metabytes.
   * Read cartesian coordinates if applicable in GDALLoadOziMapFile().
-@@ -2440,7 +2440,7 @@ Core:
+@@ -2999,7 +2999,7 @@ Core:
   * Add OGRLayer::GetName() and OGRLayer::GetGeomType() virtual methods,
     and their C and SWIG mappings (#3719)
   * On Unix, add capability of opening the target of a symlink through OGROpen()
@@ -32,7 +32,7 @@ Last-Update: 2013-10-11
     encoding
 --- a/frmts/ecw/ecwasyncreader.cpp
 +++ b/frmts/ecw/ecwasyncreader.cpp
-@@ -281,7 +281,7 @@ NCSEcwReadStatus ECWAsyncReader::Refresh
+@@ -282,7 +282,7 @@ NCSEcwReadStatus ECWAsyncReader::Refresh
      }
  
      /* Call CPLCleanupTLS explicitly since this thread isn't managed */
@@ -43,18 +43,18 @@ Last-Update: 2013-10-11
  
 --- a/frmts/ecw/ecwdataset.cpp
 +++ b/frmts/ecw/ecwdataset.cpp
-@@ -992,7 +992,7 @@ ECWDataset::~ECWDataset()
+@@ -982,7 +982,7 @@ ECWDataset::~ECWDataset()
  
      // bInGDALGlobalDestructor is set to TRUE by gdaldllmain.cpp/GDALDestroy() so as
      // to avoid an issue with the ECW SDK 3.3 where the destructor of CNCSJP2File::CNCSJP2FileVector CNCSJP2File::sm_Files;
 -    // static ressource allocated in NCJP2File.cpp can be called before GDALDestroy(), causing
 +    // static resource allocated in NCJP2File.cpp can be called before GDALDestroy(), causing
      // ECW SDK resources ( CNCSJP2File files ) to be closed before we get here.
-     if( poFileView != NULL &&
-         (!bIsJPEG2000 || !GDALIsInGlobalDestructor()) )
+     //
+     // We also have an issue with ECW SDK 5.0 and ECW files on Linux when
 --- a/frmts/nitf/nitffile.c
 +++ b/frmts/nitf/nitffile.c
-@@ -2102,7 +2102,7 @@ static char** NITFGenericMetadataReadTRE
+@@ -2203,7 +2203,7 @@ static char** NITFGenericMetadataReadTRE
              {
                  *pbError = TRUE;
                  CPLError( CE_Warning, CPLE_AppDefined,
@@ -63,7 +63,7 @@ Last-Update: 2013-10-11
                            pszTREName );
                  break;
              }
-@@ -2126,7 +2126,7 @@ static char** NITFGenericMetadataReadTRE
+@@ -2227,7 +2227,7 @@ static char** NITFGenericMetadataReadTRE
                  if (nIterations < 0)
                  {
                      CPLError( CE_Warning, CPLE_AppDefined,
@@ -72,7 +72,7 @@ Last-Update: 2013-10-11
                              "invalid 'counter' %s",
                              pszTREName, pszCounter );
                      *pbError = TRUE;
-@@ -2147,7 +2147,7 @@ static char** NITFGenericMetadataReadTRE
+@@ -2248,7 +2248,7 @@ static char** NITFGenericMetadataReadTRE
                  if (NPART < 0)
                  {
                      CPLError( CE_Warning, CPLE_AppDefined,
@@ -81,7 +81,7 @@ Last-Update: 2013-10-11
                              "invalid 'counter' %s",
                              pszTREName, "NPART" );
                      *pbError = TRUE;
-@@ -2165,7 +2165,7 @@ static char** NITFGenericMetadataReadTRE
+@@ -2266,7 +2266,7 @@ static char** NITFGenericMetadataReadTRE
                  if (NUMOPG < 0)
                  {
                      CPLError( CE_Warning, CPLE_AppDefined,
@@ -90,7 +90,7 @@ Last-Update: 2013-10-11
                              "invalid 'counter' %s",
                              pszTREName, "NUMOPG" );
                      *pbError = TRUE;
-@@ -2187,7 +2187,7 @@ static char** NITFGenericMetadataReadTRE
+@@ -2288,7 +2288,7 @@ static char** NITFGenericMetadataReadTRE
                  if (NPAR < 0)
                  {
                      CPLError( CE_Warning, CPLE_AppDefined,
@@ -99,7 +99,7 @@ Last-Update: 2013-10-11
                              "invalid 'counter' %s",
                              pszTREName, "NPAR" );
                      *pbError = TRUE;
-@@ -2196,7 +2196,7 @@ static char** NITFGenericMetadataReadTRE
+@@ -2297,7 +2297,7 @@ static char** NITFGenericMetadataReadTRE
                  if (NPARO < 0)
                  {
                      CPLError( CE_Warning, CPLE_AppDefined,
@@ -108,7 +108,7 @@ Last-Update: 2013-10-11
                              "invalid 'counter' %s",
                              pszTREName, "NPAR0" );
                      *pbError = TRUE;
-@@ -2214,7 +2214,7 @@ static char** NITFGenericMetadataReadTRE
+@@ -2315,7 +2315,7 @@ static char** NITFGenericMetadataReadTRE
                  if (NPLN < 0)
                  {
                      CPLError( CE_Warning, CPLE_AppDefined,
@@ -117,7 +117,7 @@ Last-Update: 2013-10-11
                              "invalid 'counter' %s",
                              pszTREName, "NPLN" );
                      *pbError = TRUE;
-@@ -2236,7 +2236,7 @@ static char** NITFGenericMetadataReadTRE
+@@ -2337,7 +2337,7 @@ static char** NITFGenericMetadataReadTRE
                  if (NXPTS < 0)
                  {
                      CPLError( CE_Warning, CPLE_AppDefined,
@@ -126,7 +126,7 @@ Last-Update: 2013-10-11
                              "invalid 'counter' %s",
                              pszTREName, "NXPTS" );
                      *pbError = TRUE;
-@@ -2245,7 +2245,7 @@ static char** NITFGenericMetadataReadTRE
+@@ -2346,7 +2346,7 @@ static char** NITFGenericMetadataReadTRE
                  if (NYPTS < 0)
                  {
                      CPLError( CE_Warning, CPLE_AppDefined,
@@ -135,7 +135,7 @@ Last-Update: 2013-10-11
                              "invalid 'counter' %s",
                              pszTREName, "NYPTS" );
                      *pbError = TRUE;
-@@ -2256,7 +2256,7 @@ static char** NITFGenericMetadataReadTRE
+@@ -2357,7 +2357,7 @@ static char** NITFGenericMetadataReadTRE
              else
              {
                  CPLError( CE_Warning, CPLE_AppDefined,
@@ -144,7 +144,7 @@ Last-Update: 2013-10-11
                            "missing or invalid 'counter' or 'iterations' or 'formula'",
                            pszTREName );
                  *pbError = TRUE;
-@@ -2441,7 +2441,7 @@ static char** NITFGenericMetadataReadTRE
+@@ -2542,7 +2542,7 @@ static char** NITFGenericMetadataReadTRE
              else
              {
                  CPLError( CE_Warning, CPLE_AppDefined,
@@ -155,7 +155,7 @@ Last-Update: 2013-10-11
                  *pbError = TRUE;
 --- a/frmts/vrt/vrtsources.cpp
 +++ b/frmts/vrt/vrtsources.cpp
-@@ -207,7 +207,7 @@ CPLXMLNode *VRTSimpleSource::SerializeTo
+@@ -217,7 +217,7 @@ CPLXMLNode *VRTSimpleSource::SerializeTo
      if ( strstr(poDS->GetDescription(), "/vsicurl/http") != NULL ||
           strstr(poDS->GetDescription(), "/vsicurl/ftp") != NULL )
      {
@@ -164,7 +164,7 @@ Last-Update: 2013-10-11
          /* slow, so let's just suppose they exist */
          pszRelativePath = poDS->GetDescription();
          bRelativeToVRT = FALSE;
-@@ -469,7 +469,7 @@ void VRTSimpleSource::GetFileList(char**
+@@ -571,7 +571,7 @@ void VRTSimpleSource::GetFileList(char**
          if ( strstr(pszFilename, "/vsicurl/http") != NULL ||
               strstr(pszFilename, "/vsicurl/ftp") != NULL )
          {
@@ -206,7 +206,7 @@ Last-Update: 2013-10-11
          }
 --- a/port/cpl_vsil_curl.cpp
 +++ b/port/cpl_vsil_curl.cpp
-@@ -2630,9 +2630,9 @@ char** VSICurlFilesystemHandler::ReadDir
+@@ -2631,9 +2631,9 @@ char** VSICurlFilesystemHandler::ReadDir
   * A special file handler is installed that allows reading on-the-fly of files
   * available through HTTP/FTP web protocols, without downloading the entire file.
   *

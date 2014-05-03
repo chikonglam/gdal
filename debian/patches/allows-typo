@@ -3,7 +3,7 @@ Author: Bas Couwenberg <sebastic@xs4all.nl>
 Last-Update: 2013-10-13
 --- a/swig/python/scripts/gdal_edit.dox
 +++ b/swig/python/scripts/gdal_edit.dox
-@@ -14,7 +14,7 @@ gdal_edit [--help-general] [-a_srs srs_d
+@@ -14,7 +14,7 @@ gdal_edit [--help-general] [-ro] [-a_srs
  
  \section gdal_edit_description DESCRIPTION
  

@@ -4,8 +4,8 @@ Last-Update: 2013-10-13
 --- a/doc/index.dox
 +++ b/doc/index.dox
 @@ -19,7 +19,7 @@ for data translation and processing.  Th
- <a href="http://trac.osgeo.org/gdal/wiki/Release/1.9.2-News">NEWS</a>
- page describes the October 2012 GDAL/OGR 1.9.2 release.
+ <a href="http://trac.osgeo.org/gdal/wiki/Release/1.10.1-News">NEWS</a>
+ page describes the August 2013 GDAL/OGR 1.10.1 release.
  
 -The related <a href="ogr/index.html">OGR</a> library (which lives within the GDAL source tree) 
 +The related <a href="../ogr/index.html">OGR</a> library (which lives within the GDAL source tree)
@@ -74,7 +74,7 @@ Last-Update: 2013-10-13
 +++ b/doc/br/index_br.dox
 @@ -29,7 +29,7 @@ A p&aacute;gina
  <a href="http://trac.osgeo.org/gdal/wiki/Release/1.9.0-News">novidades</a> descreve o 
- lan&ccedil;amento em Dezembro de 2011 da release 1.9.0 da biblioteca GDAL/OGR.
+ lan&ccedil;amento em Abril de 2013 da release 1.10.0 da biblioteca GDAL/OGR.
  
 -A bilioteca <a href="ogr">OGR</a> (cujo c&oacute;digo fonte esta inclu&iacute;do na GDAL) possue
 +A bilioteca <a href="../ogr/index.html">OGR</a> (cujo c&oacute;digo fonte esta inclu&iacute;do na GDAL) possue

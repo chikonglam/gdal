@@ -3,7 +3,7 @@ Author: Francesco Paolo Lovergine <frankie@debian.org>
 Last-Update: 2010-05-13
 --- a/GDALmake.opt.in
 +++ b/GDALmake.opt.in
-@@ -353,7 +353,7 @@ endif
+@@ -372,7 +372,7 @@ endif
  # PCRaster support
  PCRASTER_SETTING	=	@PCRASTER_SETTING@
  

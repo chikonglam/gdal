@@ -3,7 +3,7 @@ Author: Bas Couwenberg <sebastic@xs4all.nl>
 Last-Update: 2013-10-11
 --- a/ogr/ogrsf_frmts/sqlite/ogrsqlitedatasource.cpp
 +++ b/ogr/ogrsf_frmts/sqlite/ogrsqlitedatasource.cpp
-@@ -444,7 +444,7 @@ int OGRSQLiteDataSource::OpenOrCreateDB(
+@@ -495,7 +495,7 @@ int OGRSQLiteDataSource::OpenOrCreateDB(
          {
              CPLError( CE_Failure, CPLE_OpenFailed, "%s", 
                  "A trigger and/or view calls a OGR extension SQL function that could be used to "
@@ -12,3 +12,14 @@ Last-Update: 2013-10-11
                  "The database will not be opened unless the ALLOW_OGR_SQL_FUNCTIONS_FROM_TRIGGER_AND_VIEW "
                  "configuration option to YES.");
              return FALSE;
+--- a/ogr/ogrsf_frmts/sqlite/ogrsqlitelayer.cpp
++++ b/ogr/ogrsf_frmts/sqlite/ogrsqlitelayer.cpp
+@@ -395,7 +395,7 @@ void OGRSQLiteLayer::BuildFeatureDefn( c
+         }
+ 
+         // Recognize a geometry column from trying to build the geometry
+-        // Usefull for OGRSQLiteSelectLayer
++        // Useful for OGRSQLiteSelectLayer
+         if( nColType == SQLITE_BLOB && 
+             (bAllowMultipleGeomFields || poFeatureDefn->GetGeomFieldCount() == 0) )
+         {

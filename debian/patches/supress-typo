@@ -3,7 +3,7 @@ Author: Bas Couwenberg <sebastic@xs4all.nl>
 Last-Update: 2014-01-11
 --- a/apps/ogr_utilities.dox
 +++ b/apps/ogr_utilities.dox
-@@ -39,7 +39,7 @@ source to stdout (the terminal).
+@@ -40,7 +40,7 @@ source to stdout (the terminal).
  <dt> <b>-ro</b>:</dt><dd> Open the data source in read-only mode.  </dd>
  <dt> <b>-al</b>:</dt><dd> List all features of all layers (used instead of having to
  give layer names as arguments).</dd>

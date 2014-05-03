@@ -3,7 +3,7 @@ Author: Bas Couwenberg <sebastic@xs4all.nl>
 Last-Update: 2013-10-11
 --- a/apps/gdal_utilities.dox
 +++ b/apps/gdal_utilities.dox
-@@ -1359,7 +1359,7 @@ Create an image with the pixels in all b
+@@ -1416,7 +1416,7 @@ Create an image with the pixels in all b
  \endverbatim
  
  Create an RGB image that shows blue in pixels with no data. The first two bands
@@ -25,18 +25,18 @@ Last-Update: 2013-10-11
  .nf
 --- a/ogr/ogrsf_frmts/ili/ili2reader.cpp
 +++ b/ogr/ogrsf_frmts/ili/ili2reader.cpp
-@@ -614,7 +614,7 @@ int ILI2Reader::SetupParser() {
+@@ -509,7 +509,7 @@ int ILI2Reader::SetupParser() {
          {
-             char* msg = XMLString::transcode(toCatch.getMessage());
+             char* msg = tr_strdup(toCatch.getMessage());
              CPLError( CE_Failure, CPLE_AppDefined,
 -                      "Unable to initalize Xerces C++ based ILI2 reader. "
 +                      "Unable to initialize Xerces C++ based ILI2 reader. "
                        "Error message:\n%s\n", msg );
-             XMLString::release(&msg);
+             CPLFree(msg);
  
 --- a/ogr/ogrsf_frmts/tiger/ogr_tiger.h
 +++ b/ogr/ogrsf_frmts/tiger/ogr_tiger.h
-@@ -82,7 +82,7 @@ const char * TigerVersionString( TigerVe
+@@ -83,7 +83,7 @@ const char * TigerVersionString( TigerVe
  /*****************************************************************************/
  /* The TigerFieldInfo and TigerRecordInfo structures hold information about  */
  /* the schema of a TIGER record type.  In each layer implementation file     */
