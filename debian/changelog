@@ -13,6 +13,7 @@ gdal (1.11.0+dfsg-1) UNRELEASED; urgency=low
   * Add patch to fix 'recommended' typo.
   * Update typo patches.
   * Install JNI libraries in /usr/lib/jni instead of /usr/lib.
+  * Fix man page install.
 
  -- Bas Couwenberg <sebastic@xs4all.nl>  Wed, 30 Apr 2014 20:10:05 +0200
 
