@@ -50,6 +50,22 @@ Last-Update: 2013-10-11
  (and other target drivers) that implements strict checks for geometry type.</dd>
  <dt> <b>-dim</b><em> val</em>:</dt><dd>(starting with GDAL 1.10) Force the coordinate dimension to val (valid values are 2 or 3).
  This affects both the layer geometry type, and feature geometries.
+@@ -319,7 +319,7 @@ We can use the 'identity' setting to spe
+ This setting should be used along with the -append setting.</dd>
+ <dt> <b>-addfields</b>:</dt><dd>(starting with GDAL 1.11) This is a specialized version of
+ -append. Contrary to -append, -addfields has the effect of adding, to existing target layers,
+-the new fields found in source layers. This option is usefull when merging files that have non-strictly
++the new fields found in source layers. This option is useful when merging files that have non-strictly
+ identical structures.
+ This might not work for output formats that don't support adding fields to existing non-empty layers.</dd>
+ </dl>
+@@ -527,4 +527,4 @@ Dmitry Baryshnikov <polimax@mail.ru>
+ 
+ \endif
+ 
+-*/
+\ No newline at end of file
++*/
 --- a/doc/gdal_drivertut.dox
 +++ b/doc/gdal_drivertut.dox
 @@ -447,7 +447,7 @@ void GDALRegister_JDEM()
@@ -187,6 +203,15 @@ Last-Update: 2013-10-11
  .IP "\fB\fB-dim\fP\fI val\fP:\fP" 1c
  (starting with GDAL 1.10) Force the coordinate dimension to val (valid values are 2 or 3). This affects both the layer geometry type, and feature geometries. Starting with GDAL 1.11, the value can be set to 'layer_dim' to instruct feature geometries to be promoted to the coordinate dimension declared by the layer.  
  .IP "\fB\fB-a_srs\fP\fI srs_def\fP:\fP" 1c
+@@ -155,7 +155,7 @@ To be combined with -splitlistfields to
+ .IP "\fB\fB-fieldmap\fP:\fP" 1c
+ (starting with GDAL 1.10.0) Specifies the list of field indexes to be copied from the source to the destination. The (n)th value specified in the list is the index of the field in the target layer definition in which the n(th) field of the source layer must be copied. Index count starts at zero. There must be exactly as many values in the list as the count of the fields in the source layer. We can use the 'identity' setting to specify that the fields should be transferred by using the same order. This setting should be used along with the -append setting. 
+ .IP "\fB\fB-addfields\fP:\fP" 1c
+-(starting with GDAL 1.11) This is a specialized version of -append. Contrary to -append, -addfields has the effect of adding, to existing target layers, the new fields found in source layers. This option is usefull when merging files that have non-strictly identical structures. This might not work for output formats that don't support adding fields to existing non-empty layers. 
++(starting with GDAL 1.11) This is a specialized version of -append. Contrary to -append, -addfields has the effect of adding, to existing target layers, the new fields found in source layers. This option is useful when merging files that have non-strictly identical structures. This might not work for output formats that don't support adding fields to existing non-empty layers. 
+ .PP
+ .SH "PERFORMANCE HINTS"
+ .PP
 --- a/ogr/ogrgeometryfactory.cpp
 +++ b/ogr/ogrgeometryfactory.cpp
 @@ -1039,7 +1039,7 @@ typedef enum
@@ -550,3 +575,14 @@ Last-Update: 2013-10-11
  use the dataset in update-mode. In which case, updated information will go
  into PAM .aux.xml files.</dd>
  
+--- a/man/man1/gdal_edit.1
++++ b/man/man1/gdal_edit.1
+@@ -27,7 +27,7 @@ It works only with raster formats that s
+ Gives a brief usage message for the generic GDAL commandline options and exit. 
+ .PP
+ .IP "\fB\fB-ro\fP:\fP" 1c
+-(GDAL >= 1.11) Open the dataset in read-only. Might be usefull for drivers refusing to use the dataset in update-mode. In which case, updated information will go into PAM .aux.xml files.
++(GDAL >= 1.11) Open the dataset in read-only. Might be useful for drivers refusing to use the dataset in update-mode. In which case, updated information will go into PAM .aux.xml files.
+ .PP
+ .IP "\fB\fB-a_srs\fP \fIsrs_def\fP:\fP" 1c
+ .PP
