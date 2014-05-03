@@ -8,6 +8,8 @@ gdal (1.11.0+dfsg-1) UNRELEASED; urgency=low
   * Refresh patches.
   * Update install paths for new upstream version.
   * Add libpcre3-dev build dependency.
+  * Don't use -Werror=format-security, causes build failure on
+    ogrsxfdatasource.cpp.
 
  -- Bas Couwenberg <sebastic@xs4all.nl>  Wed, 30 Apr 2014 20:10:05 +0200
 

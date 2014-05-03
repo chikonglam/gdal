@@ -8,6 +8,13 @@
 # Uncomment this to turn on verbose mode.
 #export DH_VERBOSE=1
 
+# Remove -Werror=format-security, causes build failure on ogrsxfdatasource.cpp
+CFLAGS   = $(shell dpkg-buildflags --get CFLAGS)
+CXXFLAGS = $(shell dpkg-buildflags --get CXXFLAGS)
+
+CFLAGS   := $(filter-out -Werror=format-security, $(CFLAGS))
+CXXFLAGS := $(filter-out -Werror=format-security, $(CXXFLAGS))
+
 PYVERS=$(shell pyversions -v -r debian/control) $(shell py3versions -v -r)
 PYDEF=$(shell pyversions -dv)
 PERLDEF=$(shell perl -V:version|cut -d\' -f2)
@@ -113,7 +120,8 @@ override_dh_auto_configure:
 			--with-libkml=yes \
 			--with-armadillo=yes \
 			--with-liblzma=yes \
-			--with-epsilon=/usr; \
+			--with-epsilon=/usr \
+			CFLAGS="$(CFLAGS)" CXXFLAGS="$(CXXFLAGS)"; \
 		mv GDALmake.opt GDALmake.opt-$$V; \
 	done
 
