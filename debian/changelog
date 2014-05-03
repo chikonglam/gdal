@@ -4,6 +4,7 @@ gdal (1.11.0+dfsg-1) UNRELEASED; urgency=low
   * Update copyright file.
   * Drop patch: man, applied upstream.
   * Drop patch: unkown-typo, applied upstream.
+  * Drop patch: hurd-i386-pathmax, file removed upstream.
 
  -- Bas Couwenberg <sebastic@xs4all.nl>  Wed, 30 Apr 2014 20:10:05 +0200
 
