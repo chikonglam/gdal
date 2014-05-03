@@ -7,6 +7,7 @@ gdal (1.11.0+dfsg-1) UNRELEASED; urgency=low
   * Drop patch: hurd-i386-pathmax, file removed upstream.
   * Refresh patches.
   * Update install paths for new upstream version.
+  * Add libpcre3-dev build dependency.
 
  -- Bas Couwenberg <sebastic@xs4all.nl>  Wed, 30 Apr 2014 20:10:05 +0200
 
