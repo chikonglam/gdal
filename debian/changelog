@@ -1,4 +1,4 @@
-gdal (1.11.0+dfsg-1) UNRELEASED; urgency=low
+gdal (1.11.0+dfsg-1~exp1) experimental; urgency=low
 
   * New upstream release.
   * Update copyright file.
@@ -16,7 +16,7 @@ gdal (1.11.0+dfsg-1) UNRELEASED; urgency=low
   * Fix man page install.
   * Also include gdal.pc in dev package.
 
- -- Bas Couwenberg <sebastic@xs4all.nl>  Wed, 30 Apr 2014 20:10:05 +0200
+ -- Bas Couwenberg <sebastic@xs4all.nl>  Sun, 04 May 2014 18:13:46 +0200
 
 gdal (1.10.1+dfsg-5) unstable; urgency=medium
 
