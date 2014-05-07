@@ -1,5 +1,6 @@
 gdal (1.11.0+dfsg-1~exp1) experimental; urgency=low
 
+  [ Bas Couwenberg ]
   * New upstream release.
   * Update copyright file.
   * Drop patch: man, applied upstream.
@@ -15,6 +16,9 @@ gdal (1.11.0+dfsg-1~exp1) experimental; urgency=low
   * Install JNI libraries in /usr/lib/jni instead of /usr/lib.
   * Fix man page install.
   * Also include gdal.pc in dev package.
+
+  [ Francesco Paolo Lovergine ]
+  * New binary ogrlineref added.
 
  -- Bas Couwenberg <sebastic@xs4all.nl>  Sun, 04 May 2014 18:13:46 +0200
 

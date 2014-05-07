@@ -14,6 +14,7 @@ usr/bin/gdal_contour
 usr/bin/gdal_grid
 usr/bin/gdal_rasterize
 usr/bin/gdal_translate
+usr/bin/ogrlineref
 # gdal_utilities
 usr/bin/nearblack
 usr/bin/ogr*
