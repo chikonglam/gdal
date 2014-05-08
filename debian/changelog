@@ -1,3 +1,9 @@
+gdal (1.11.0+dfsg-1~exp2) UNRELEASED; urgency=low
+
+  * Simplify repacking with tar --delete.
+
+ -- Bas Couwenberg <sebastic@xs4all.nl>  Thu, 08 May 2014 22:59:02 +0200
+
 gdal (1.11.0+dfsg-1~exp1) experimental; urgency=low
 
   * New upstream release.
