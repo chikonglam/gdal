@@ -1,6 +1,10 @@
 gdal (1.11.0+dfsg-1~exp2) UNRELEASED; urgency=low
 
+  [ Bas Couwenberg ]
   * Simplify repacking with tar --delete.
+
+  [ Marc Deslauriers ]
+  * Fix ftbfs on arm64 and ppc64el.
 
  -- Bas Couwenberg <sebastic@xs4all.nl>  Thu, 08 May 2014 22:59:02 +0200
 
