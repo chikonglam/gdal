@@ -1,4 +1,4 @@
-gdal (1.11.0+dfsg-1~exp2) UNRELEASED; urgency=low
+gdal (1.11.0+dfsg1-1~exp2) UNRELEASED; urgency=low
 
   [ Marc Deslauriers ]
   * Fix ftbfs on arm64 and ppc64el.
@@ -6,6 +6,8 @@ gdal (1.11.0+dfsg-1~exp2) UNRELEASED; urgency=low
   [ Bas Couwenberg ]
   * Simplify repacking with tar --delete.
   * Update symbols for: amd64, armel, armhf, i386, mipsel, powerpc & s390x.
+  * Bump repacked upstream version, repacking was fixed to not delete the
+    .gitignore file included by upstream.
 
  -- Bas Couwenberg <sebastic@xs4all.nl>  Thu, 08 May 2014 22:59:02 +0200
 
