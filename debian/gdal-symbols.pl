@@ -384,7 +384,7 @@ sub create_new_symbols {
 							
 							next if($version ne $cfg{version});
 
-							$version =~ s/(\+dfsg)?-\d+$//;
+							$version =~ s/(\+dfsg\d*)?-\d+(\~\w+)?$//;
 
 							$library = find_library($pkg_dir.$_.'/usr/lib/');
 
