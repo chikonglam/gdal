@@ -5,7 +5,8 @@ gdal (1.11.0+dfsg1-1~exp2) UNRELEASED; urgency=low
 
   [ Bas Couwenberg ]
   * Simplify repacking with tar --delete.
-  * Update symbols for: amd64, armel, armhf, i386, mipsel, powerpc & s390x.
+  * Update symbols for: amd64, armel, armhf, i386, mips, mipsel, powerpc &
+    s390x.
   * Bump repacked upstream version, repacking was fixed to not delete the
     .gitignore file included by upstream.
 
