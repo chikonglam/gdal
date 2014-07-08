@@ -1,4 +1,4 @@
-gdal (1.11.0+dfsg1-1~exp2) UNRELEASED; urgency=low
+gdal (1.11.0+dfsg1-1~exp2) experimental; urgency=low
 
   [ Marc Deslauriers ]
   * Fix ftbfs on arm64 and ppc64el.
@@ -11,7 +11,7 @@ gdal (1.11.0+dfsg1-1~exp2) UNRELEASED; urgency=low
     .gitignore file included by upstream.
   * Merge changes from 1.10.1+dfsg-6 to include patch by gregor herrmann.
 
- -- Bas Couwenberg <sebastic@xs4all.nl>  Thu, 08 May 2014 22:59:02 +0200
+ -- Bas Couwenberg <sebastic@xs4all.nl>  Wed, 09 Jul 2014 00:32:07 +0200
 
 gdal (1.11.0+dfsg-1~exp1) experimental; urgency=low
 
