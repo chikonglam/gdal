@@ -11,9 +11,6 @@
 PYVERS=$(shell pyversions -v -r debian/control) $(shell py3versions -v -r)
 PYDEF=$(shell pyversions -dv)
 PERLDEF=$(shell perl -V:version|cut -d\' -f2)
-PERL_VENDOR_ARCH=$(shell perl -V:vendorarch|cut -d\' -f2)
-PERL_ARCH_NAME=$(shell perl -V:archname|cut -d\' -f2)
-PERL_PATH="$(PERL_VENDOR_ARCH)/$(PERL_ARCH_NAME)"
 SWIGVER=$(shell swig -version |grep Version|cut -d' ' -f3|sed -e 's/\.//g')
 
 GDALVER=$(shell cat VERSION|sed -e 's/\./ /g')
@@ -167,22 +164,8 @@ override_dh_auto_install:
 	# removing la file
 	rm -f $(CURDIR)/debian/tmp/usr/lib/libgdal.la
 	
-	# removing perllocal.pod
-	rm -f $(CURDIR)/debian/tmp$(PERL_PATH)/perllocal.pod
-
-	# removing empty packlist MakeMaker files
-	-find $(CURDIR)/debian/tmp$(PERL_PATH) -type f -name .packlist -exec rm -f {} \;
-
-	# removing embedded rpath in perl shlibs
-	-find $(CURDIR)/debian/tmp$(PERL_PATH) -type f -name "*.so" -exec chrpath --delete {} \;
-
 	# removing embedded rpath in main lib
 	-find $(CURDIR)/debian/tmp/usr/lib -type f -name "*.so*" -exec chrpath --delete {} \;
-
-	# moves perl stuff the right dirs
-	install -o root -g root -d $(CURDIR)/debian/tmp/usr/lib/perl5/auto
-	mv $(CURDIR)/debian/tmp$(PERL_PATH)/auto/* $(CURDIR)/debian/tmp/usr/lib/perl5/auto/.
-	mv $(CURDIR)/debian/tmp$(PERL_PATH)/Geo $(CURDIR)/debian/tmp/usr/lib/perl5/.
 
 	# copy sample programs for python-gdal
 	install -o root -g root -d $(CURDIR)/debian/tmp/usr/share/doc/python-gdal/examples

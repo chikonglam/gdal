@@ -29,3 +29,4 @@ supress-typo
 doc-brief
 hardening
 hurd-i386-pathmax
+perl-vendor

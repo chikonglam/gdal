@@ -1,3 +1,17 @@
+gdal (1.10.1+dfsg-6) UNRELEASED; urgency=medium
+
+  [ gregor herrmann ]
+  * Fix "hardcodes /usr/lib/perl5":
+    - add patch perl-vendor which passes INSTALLDIRS=vendor to Makefile.PL
+      which nicely drops perl files into suitable directories
+    - remove all perl juggling around from debian/rules as a result of the
+      patch
+    - make debian/libgdal-perl.install executable and use $Config{vendorarch}
+      there to install the perl files from the expected location
+    (Closes: #752473)
+
+ -- Bas Couwenberg <sebastic@xs4all.nl>  Tue, 08 Jul 2014 20:41:39 +0200
+
 gdal (1.10.1+dfsg-5) unstable; urgency=medium
 
   * Don't run dh for custom targets.
