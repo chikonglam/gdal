@@ -1,4 +1,4 @@
-gdal (1.10.1+dfsg-6) UNRELEASED; urgency=medium
+gdal (1.10.1+dfsg-6) unstable; urgency=medium
 
   [ gregor herrmann ]
   * Fix "hardcodes /usr/lib/perl5":
@@ -10,7 +10,7 @@ gdal (1.10.1+dfsg-6) UNRELEASED; urgency=medium
       there to install the perl files from the expected location
     (Closes: #752473)
 
- -- Bas Couwenberg <sebastic@xs4all.nl>  Tue, 08 Jul 2014 20:41:39 +0200
+ -- Bas Couwenberg <sebastic@xs4all.nl>  Tue, 08 Jul 2014 20:44:25 +0200
 
 gdal (1.10.1+dfsg-5) unstable; urgency=medium
 
