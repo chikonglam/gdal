@@ -6,6 +6,7 @@ Section: science
 Priority: optional
 Build-Depends: debhelper (>= 9),
                dh-autoreconf,
+               autotools-dev,
                zlib1g-dev,
                libnetcdf-dev (>= 1:4.0.0),
                netcdf-bin,

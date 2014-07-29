@@ -51,7 +51,7 @@ gdal-mrsid-dist:
 
 %:
 	if [ "$@" != "gdal-grass" -a "$@" != "gdal-ecw" -a "$@" != "gdal-mrsid" ]; then \
-		dh $@ --with autoreconf,python2,python3 ; \
+		dh $@ --with autotools_dev,autoreconf,python2,python3 ; \
 	fi
 
 override_dh_clean:
