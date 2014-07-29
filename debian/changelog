@@ -1,10 +1,10 @@
-gdal (1.10.1+dfsg-7) UNRELEASED; urgency=medium
+gdal (1.10.1+dfsg-7) unstable; urgency=medium
 
   * Also use autotools_dev to update config.sub and config.guess.
     Thanks to Breno Leitao for the patch.
     (closes: #756412)
 
- -- Bas Couwenberg <sebastic@xs4all.nl>  Tue, 29 Jul 2014 22:15:46 +0200
+ -- Bas Couwenberg <sebastic@xs4all.nl>  Tue, 29 Jul 2014 22:17:47 +0200
 
 gdal (1.10.1+dfsg-6) unstable; urgency=medium
 
