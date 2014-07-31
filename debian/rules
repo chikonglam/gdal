@@ -25,6 +25,12 @@ GDAL_MAJOR=$(word 1,$(GDALVER))
 GDAL_MINOR=$(word 2,$(GDALVER))
 GDAL_PATCH=$(word 3,$(GDALVER))
 
+ifneq ($(wildcard /usr/lib/$(DEB_HOST_MULTIARCH)/hdf5/serial/libhdf5.so),)
+  WITH_HDF5:=--with-hdf5=/usr/lib/$(DEB_HOST_MULTIARCH)/hdf5/serial
+else
+  WITH_HDF5:=
+endif
+
 versions:
 	@echo Gdal version: $(GDAL_MAJOR).$(GDAL_MINOR).$(GDAL_PATCH)
 	@echo Swig version: $(SWIGVER)
@@ -93,6 +99,7 @@ override_dh_auto_configure:
 			--with-webp \
 			--with-jasper \
 			--with-netcdf \
+			$(WITH_HDF5) \
 			--with-xerces \
 			--with-geos \
 			--with-sqlite3 \

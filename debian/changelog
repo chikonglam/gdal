@@ -1,3 +1,9 @@
+gdal (1.11.0+dfsg1-1~exp4) UNRELEASED; urgency=medium
+
+  * Merge changes from 1.10.1+dfsg-8 to support new hdf5 packaging layout.
+
+ -- Bas Couwenberg <sebastic@xs4all.nl>  Fri, 01 Aug 2014 00:07:07 +0200
+
 gdal (1.11.0+dfsg1-1~exp3) experimental; urgency=medium
 
   * Merge changes from 1.10.1+dfsg-7 to include patch by Breno Leitao.
@@ -38,6 +44,14 @@ gdal (1.11.0+dfsg-1~exp1) experimental; urgency=low
   * Also include gdal.pc in dev package.
 
  -- Bas Couwenberg <sebastic@xs4all.nl>  Sun, 04 May 2014 18:13:46 +0200
+
+gdal (1.10.1+dfsg-8) unstable; urgency=medium
+
+  * Support hdf5 1.8.13 new packaging layout.
+    Thanks to Gilles Filippini for the patch.
+    (closes: #756662)
+
+ -- Bas Couwenberg <sebastic@xs4all.nl>  Fri, 01 Aug 2014 00:02:15 +0200
 
 gdal (1.10.1+dfsg-7) unstable; urgency=medium
 
