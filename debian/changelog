@@ -1,10 +1,10 @@
-gdal (1.10.1+dfsg-8) UNRELEASED; urgency=medium
+gdal (1.10.1+dfsg-8) unstable; urgency=medium
 
   * Support hdf5 1.8.13 new packaging layout.
     Thanks to Gilles Filippini for the patch.
     (closes: #756662)
 
- -- Bas Couwenberg <sebastic@xs4all.nl>  Fri, 01 Aug 2014 00:01:08 +0200
+ -- Bas Couwenberg <sebastic@xs4all.nl>  Fri, 01 Aug 2014 00:02:15 +0200
 
 gdal (1.10.1+dfsg-7) unstable; urgency=medium
 
