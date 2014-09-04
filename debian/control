@@ -68,6 +68,7 @@ Breaks: libgdal1 (<= 1.10.0-0~),
         libgdal1-1.6.0 (<= 1.10.0-0~)
 Replaces: libgdal1 (<= 1.10.0-0~),
           libgdal1-1.6.0 (<= 1.10.0-0~)
+Provides: libgdal.so.1-1.11.0
 Description: Geospatial Data Abstraction Library
  GDAL is a translator library for raster geospatial data formats.
  As a library, it presents a single abstract data model to the

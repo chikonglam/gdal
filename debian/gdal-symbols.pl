@@ -440,17 +440,18 @@ sub create_new_symbols {
 				`cat $output | $cfg{cppfilt} > $filt 2>&1`;
 
 				# libgdal.so.1 libgdal1h #MINVER# 
+				# | libgdal1h #MINVER#, libgdal.so.1-1.10.1
 				# #include "libgdal1h.symbols.common"
 
 				my $data = '';
 
 				my $i = 0;
 				foreach(read_file($filt)) {
-					if($i == 0) {
-						$_ .= "#include \"${package}.symbols.common\"\n";
+					if($i == 0 && /^ /) {
+						$_ = "#include \"${package}.symbols.common\"\n" . $_;
+						$i++;
 					}
 					$data .= $_;
-					$i++;
 				}
 
 				write_file($filt, $data);
@@ -565,7 +566,12 @@ sub create_patch_files {
 						# + VRTSourcedRasterBand::ComputeRasterMinMax(int, double*)@GDAL_1.8 1.10.1
 						elsif(/^\+ (.*?) (\d+\.\d+\.\d+\S*)\s*$/) {
 							# ignore
-							$_ = '+ (c++)"'.$1.'" '.$2."\n";
+							$_ = '+ (c++)"'.$1.'" '.$2." 1\n";
+						}
+						# + VRTSourcedRasterBand::ComputeRasterMinMax(int, double*)@GDAL_1.8 1.10.1 1
+						elsif(/^\+ (.*?) (\d+\.\d+\.\d+\S*)(\s+\d+)\s*$/) {
+							# ignore
+							$_ = '+ (c++)"'.$1.'" '.$2.$3."\n";
 						}
 
 						$data .= $_;

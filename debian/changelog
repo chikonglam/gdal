@@ -1,3 +1,9 @@
+gdal (1.11.0+dfsg1-1~exp5) UNRELEASED; urgency=medium
+
+  * Use alternative dependency template for C++ symbols in libgdal1h.
+
+ -- Bas Couwenberg <sebastic@xs4all.nl>  Fri, 05 Sep 2014 00:14:59 +0200
+
 gdal (1.11.0+dfsg1-1~exp4) experimental; urgency=medium
 
   * Merge changes from 1.10.1+dfsg-8 to support new hdf5 packaging layout.
