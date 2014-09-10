@@ -1,6 +1,7 @@
 gdal (1.11.0+dfsg1-1~exp5) UNRELEASED; urgency=medium
 
   * Use alternative dependency template for C++ symbols in libgdal1h.
+  * Update path in copyright file, ogrvrt.xsd moved to data directory.
 
  -- Bas Couwenberg <sebastic@xs4all.nl>  Fri, 05 Sep 2014 00:14:59 +0200
 
