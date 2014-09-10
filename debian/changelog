@@ -1,9 +1,9 @@
-gdal (1.11.0+dfsg1-1~exp5) UNRELEASED; urgency=medium
+gdal (1.11.0+dfsg1-1~exp5) experimental; urgency=medium
 
   * Use alternative dependency template for C++ symbols in libgdal1h.
   * Update path in copyright file, ogrvrt.xsd moved to data directory.
 
- -- Bas Couwenberg <sebastic@xs4all.nl>  Fri, 05 Sep 2014 00:14:59 +0200
+ -- Bas Couwenberg <sebastic@xs4all.nl>  Wed, 10 Sep 2014 20:27:35 +0200
 
 gdal (1.11.0+dfsg1-1~exp4) experimental; urgency=medium
 
