@@ -3,7 +3,7 @@ Author: Bas Couwenberg <sebastic@xs4all.nl>
 Last-Update: 2013-10-11
 --- a/NEWS
 +++ b/NEWS
-@@ -2561,7 +2561,7 @@ Port:
+@@ -2771,7 +2771,7 @@ Port:
      - /vsitar/ : to read in .tar or .tgz/.tar.gz files
   * Add C API to create ZIP files
   * Add support for writable /vsizip/
@@ -12,7 +12,7 @@ Last-Update: 2013-10-11
     doing backward seeks by a few bytes on underlying file handles for which
     backwardseeks are very slow, such as GZip handle
   * Add service for base64 decoding
-@@ -2579,7 +2579,7 @@ Port:
+@@ -2789,7 +2789,7 @@ Port:
  Core:
   * RFC 24: progressive/async raster reading
   * On Unix, add capability of opening the target of a symlink through GDALOpen()
@@ -21,7 +21,7 @@ Last-Update: 2013-10-11
     GDAL virtual filenames in software offering only file explorers (#3902)
   * Assume anything less than 100000 for GDAL_CACHEMAX is measured in metabytes.
   * Read cartesian coordinates if applicable in GDALLoadOziMapFile().
-@@ -2999,7 +2999,7 @@ Core:
+@@ -3209,7 +3209,7 @@ Core:
   * Add OGRLayer::GetName() and OGRLayer::GetGeomType() virtual methods,
     and their C and SWIG mappings (#3719)
   * On Unix, add capability of opening the target of a symlink through OGROpen()
@@ -30,7 +30,7 @@ Last-Update: 2013-10-11
     GDAL virtual filenames in software offering only file explorers (#3902)
   * Expat based XML readers : add support for reading files with Windows-1252
     encoding
-@@ -3269,7 +3269,7 @@ PostgreSQL driver:
+@@ -3479,7 +3479,7 @@ PostgreSQL driver:
     is set to YES
   * If the PG_USE_BASE64 configuration option is set to YES, geometries will be
     requested as BASE64 encoded EWKB instead of canonical HEX encoded EWKB.
@@ -79,7 +79,7 @@ Last-Update: 2013-10-11
  which you want to make it work. The GDAL_CHECK_VERSION macro will check that the GDAL version
 --- a/frmts/gtiff/geotiff.cpp
 +++ b/frmts/gtiff/geotiff.cpp
-@@ -247,7 +247,7 @@ class GTiffDataset : public GDALPamDatas
+@@ -277,7 +277,7 @@ class GTiffDataset : public GDALPamDatas
  
      toff_t      nDirOffset;
      int		bBase;
@@ -88,7 +88,7 @@ Last-Update: 2013-10-11
  
      uint16	nPlanarConfig;
      uint16	nSamplesPerPixel;
-@@ -746,7 +746,7 @@ GTiffRasterBand::~GTiffRasterBand()
+@@ -776,7 +776,7 @@ GTiffRasterBand::~GTiffRasterBand()
  
  /* Reads directly bytes from the file using ReadMultiRange(), and by-pass */
  /* block reading. Restricted to simple TIFF configurations (un-tiled, */
@@ -97,7 +97,7 @@ Last-Update: 2013-10-11
  /* sub-windows of data on a large /vsicurl dataset). */
  
  CPLErr GTiffRasterBand::DirectIO( GDALRWFlag eRWFlag,
-@@ -8608,7 +8608,7 @@ TIFF *GTiffDataset::CreateLL( const char
+@@ -8649,7 +8649,7 @@ TIFF *GTiffDataset::CreateLL( const char
      }
  
      /* Set the compression method before asking the default strip size */
@@ -106,7 +106,7 @@ Last-Update: 2013-10-11
      /* the default strip size is 8 or 16 depending on the photometric value */
      TIFFSetField( hTIFF, TIFFTAG_COMPRESSION, nCompression );
  
-@@ -9092,7 +9092,7 @@ GTiffDataset::CreateCopy( const char * p
+@@ -9133,7 +9133,7 @@ GTiffDataset::CreateCopy( const char * p
      int bDirectCopyFromJPEG = FALSE;
  
      /* Note: JPEG_DIRECT_COPY is not defined by default, because it is mainly */
@@ -124,7 +124,7 @@ Last-Update: 2013-10-11
 -/* usefull for debugging purposes */
 +/* useful for debugging purposes */
  
- CPL_CVSID("$Id: gt_jpeg_copy.cpp 27044 2014-03-16 23:41:27Z rouault $");
+ CPL_CVSID("$Id: gt_jpeg_copy.cpp 27729 2014-09-24 00:40:16Z goatbar $");
  
 --- a/frmts/pcraster/pcrasterutil.cpp
 +++ b/frmts/pcraster/pcrasterutil.cpp
@@ -183,7 +183,7 @@ Last-Update: 2013-10-11
      int nRasterXSize = 0, nRasterYSize =0;
 --- a/gcore/gdalrasterband.cpp
 +++ b/gcore/gdalrasterband.cpp
-@@ -4761,7 +4761,7 @@ CPLErr CPL_STDCALL GDALCreateMaskBand( G
+@@ -4757,7 +4757,7 @@ CPLErr CPL_STDCALL GDALCreateMaskBand( G
  /**
   * \brief Compute translation table for color tables.
   *
@@ -269,7 +269,7 @@ Last-Update: 2013-10-11
  */
 --- a/ogr/ogrsf_frmts/osm/ogrosmdatasource.cpp
 +++ b/ogr/ogrsf_frmts/osm/ogrosmdatasource.cpp
-@@ -2677,7 +2677,7 @@ int OGROSMDataSource::Open( const char *
+@@ -2678,7 +2678,7 @@ int OGROSMDataSource::Open( const char *
          return FALSE;
      }
  
@@ -302,7 +302,7 @@ Last-Update: 2013-10-11
          /* a clearing of the spatial filter of the table layer, we */
 --- a/ogr/ogrsf_frmts/sqlite/ogrsqliteexecutesql.cpp
 +++ b/ogr/ogrsf_frmts/sqlite/ogrsqliteexecutesql.cpp
-@@ -764,7 +764,7 @@ OGRLayer * OGRSQLiteExecuteSQL( OGRDataS
+@@ -774,7 +774,7 @@ OGRLayer * OGRSQLiteExecuteSQL( OGRDataS
          }
      }
  
@@ -436,7 +436,7 @@ Last-Update: 2013-10-11
  			<td class="xml">    &lt;AdviseRead&gt;<span class="value">true</span>&lt;/AdviseRead&gt;</td>
 --- a/gcore/gdal_priv.h
 +++ b/gcore/gdal_priv.h
-@@ -932,7 +932,7 @@ int CPL_DLL GDALCheckDatasetDimensions(
+@@ -935,7 +935,7 @@ int CPL_DLL GDALCheckDatasetDimensions(
  int CPL_DLL GDALCheckBandCount( int nBands, int bIsZeroAllowed );
  
  
@@ -447,7 +447,7 @@ Last-Update: 2013-10-11
   (dfVal1 == dfVal2 || fabs(dfVal1 - dfVal2) < 1e-10 || (dfVal2 != 0 && fabs(1 - dfVal1 / dfVal2) < 1e-10 ))
 --- a/gcore/gdaldataset.cpp
 +++ b/gcore/gdaldataset.cpp
-@@ -1874,7 +1874,7 @@ void CPL_STDCALL GDALGetOpenDatasets( GD
+@@ -1870,7 +1870,7 @@ void CPL_STDCALL GDALGetOpenDatasets( GD
  /*                        GDALCleanOpenDatasetsList()                   */
  /************************************************************************/
  
@@ -502,7 +502,7 @@ Last-Update: 2013-10-11
  
 --- a/ogr/ogrsf_frmts/openfilegdb/ogropenfilegdblayer.cpp
 +++ b/ogr/ogrsf_frmts/openfilegdb/ogropenfilegdblayer.cpp
-@@ -789,7 +789,7 @@ FileGDBIterator* OGROpenFileGDBLayer::Bu
+@@ -818,7 +818,7 @@ FileGDBIterator* OGROpenFileGDBLayer::Bu
          poNode->nOperation == SWQ_AND && poNode->nSubExprCount == 2 )
      {
          /* Even if there's only one branch of the 2 that results to an iterator, */

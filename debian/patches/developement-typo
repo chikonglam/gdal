@@ -3,7 +3,7 @@ Author: Bas Couwenberg <sebastic@xs4all.nl>
 Last-Update: 2013-10-11
 --- a/NEWS
 +++ b/NEWS
-@@ -783,7 +783,7 @@ Build(Unix):
+@@ -993,7 +993,7 @@ Build(Unix):
   * New optional dependencies : libpcre (for regular expressions support in SQLite), libxml2 (validation of GML files)
   * --with-python: make it work with python3, and also accept path to python binary as argument of --with-python (#4725)
   * Use nc-config to detect netcdf compilation and linking parameters (#4424)

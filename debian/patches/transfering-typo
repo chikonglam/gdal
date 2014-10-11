@@ -3,7 +3,7 @@ Author: Bas Couwenberg <sebastic@xs4all.nl>
 Last-Update: 2013-10-11
 --- a/frmts/grib/degrib18/degrib/grib2api.c
 +++ b/frmts/grib/degrib18/degrib/grib2api.c
-@@ -1081,7 +1081,7 @@ void unpk_g2ncep (sInt4 * kfildo, float
+@@ -1083,7 +1083,7 @@ void unpk_g2ncep (CPL_UNUSED sInt4 * kfi
        *ibitmap = 0;
     }
  
@@ -14,7 +14,7 @@ Last-Update: 2013-10-11
      * abort.  May need to revisit this behavior. */
 --- a/ogr/ogrsf_frmts/osm/ogrosmdatasource.cpp
 +++ b/ogr/ogrsf_frmts/osm/ogrosmdatasource.cpp
-@@ -3646,7 +3646,7 @@ int OGROSMDataSource::TransferToDiskIfNe
+@@ -3647,7 +3647,7 @@ int OGROSMDataSource::TransferToDiskIfNe
              CPLString osNewTmpDBName;
              osNewTmpDBName = CPLGenerateTempFilename("osm_tmp_nodes");
  
@@ -23,7 +23,7 @@ Last-Update: 2013-10-11
                       osNodesFilename.c_str(), osNewTmpDBName.c_str());
  
              if( CPLCopyFile( osNewTmpDBName, osNodesFilename ) != 0 )
-@@ -3725,7 +3725,7 @@ int OGROSMDataSource::TransferToDiskIfNe
+@@ -3726,7 +3726,7 @@ int OGROSMDataSource::TransferToDiskIfNe
  
              osNewTmpDBName = CPLGenerateTempFilename("osm_tmp");
  

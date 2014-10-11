@@ -55,7 +55,7 @@ Author: Bas Couwenberg <sebastic@xs4all.nl>
          /* to realloc over that value */
          if (psCtxt->sRelation.nMembers >= psCtxt->nMembersAllocated)
          {
-@@ -2246,7 +2246,7 @@ OSMContext* OSM_Open( const char* pszFil
+@@ -2248,7 +2248,7 @@ OSMContext* OSM_Open( const char* pszFil
          psCtxt->nTagsAllocated = 256;
          psCtxt->pasTags = (OSMTag*) VSIMalloc(sizeof(OSMTag) * psCtxt->nTagsAllocated);
  

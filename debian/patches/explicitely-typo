@@ -3,7 +3,7 @@ Author: Bas Couwenberg <sebastic@xs4all.nl>
 Last-Update: 2013-10-11
 --- a/NEWS
 +++ b/NEWS
-@@ -1311,7 +1311,7 @@ GML driver:
+@@ -1521,7 +1521,7 @@ GML driver:
   * Allow reading srsDimension attribute when set on LineString element, and not on posList (#4663)
   * Partial support for reading GML 3.3 compat encoding profile, limited to <gmlce:SimplePolygon>, <gmlce:SimpleRectangle>, <gmlce:SimpleTriangle>, <gmlce:SimpleMultiPoint> elements
   * Support WFS GetFeature response document to be piped and opened with /vsistdin/
@@ -12,7 +12,7 @@ Last-Update: 2013-10-11
   * Improve detection of extent and srs for WFS 2.0
   * Allow ISO-8859-15 encoded files to be used by Expat parser (#4829)
   * Handle CompositeCurve like MultiCurve (for NAS)
-@@ -2112,7 +2112,7 @@ Core:
+@@ -2322,7 +2322,7 @@ Core:
   * OGR SQL: recognize optional ESCAPE escape_char clause
   * OGR SQL: allow NULL to be used as a value, so that 'SELECT *, NULL FROM foo works'
   * OGR SQL: Accept doublequoting of column_name in 'SELECT DISTINCT "column_name" FROM table_name' (#3966)
@@ -61,7 +61,7 @@ Last-Update: 2013-10-11
      else
 --- a/frmts/ctg/ctgdataset.cpp
 +++ b/frmts/ctg/ctgdataset.cpp
-@@ -361,7 +361,7 @@ int CTGDataset::Identify( GDALOpenInfo *
+@@ -360,7 +360,7 @@ int CTGDataset::Identify( GDALOpenInfo *
  
      GDALOpenInfo* poOpenInfoToDelete = NULL;
      /*  GZipped grid_cell.gz files are common, so automagically open them */
@@ -70,7 +70,7 @@ Last-Update: 2013-10-11
      const char* pszFilename = CPLGetFilename(poOpenInfo->pszFilename);
      if ((EQUAL(pszFilename, "grid_cell.gz") ||
           EQUAL(pszFilename, "grid_cell1.gz") ||
-@@ -432,7 +432,7 @@ GDALDataset *CTGDataset::Open( GDALOpenI
+@@ -431,7 +431,7 @@ GDALDataset *CTGDataset::Open( GDALOpenI
      CPLString osFilename(poOpenInfo->pszFilename);
  
      /*  GZipped grid_cell.gz files are common, so automagically open them */
@@ -190,7 +190,7 @@ Last-Update: 2013-10-11
  
 --- a/frmts/xyz/xyzdataset.cpp
 +++ b/frmts/xyz/xyzdataset.cpp
-@@ -475,7 +475,7 @@ int XYZDataset::IdentifyEx( GDALOpenInfo
+@@ -479,7 +479,7 @@ int XYZDataset::IdentifyEx( GDALOpenInfo
  
      GDALOpenInfo* poOpenInfoToDelete = NULL;
      /*  GZipped .xyz files are common, so automagically open them */
@@ -199,7 +199,7 @@ Last-Update: 2013-10-11
      if (strlen(poOpenInfo->pszFilename) > 6 &&
          EQUAL(poOpenInfo->pszFilename + strlen(poOpenInfo->pszFilename) - 6, "xyz.gz") &&
          !EQUALN(poOpenInfo->pszFilename, "/vsigzip/", 9))
-@@ -607,7 +607,7 @@ GDALDataset *XYZDataset::Open( GDALOpenI
+@@ -611,7 +611,7 @@ GDALDataset *XYZDataset::Open( GDALOpenI
      CPLString osFilename(poOpenInfo->pszFilename);
  
      /*  GZipped .xyz files are common, so automagically open them */
@@ -210,7 +210,7 @@ Last-Update: 2013-10-11
          !EQUALN(poOpenInfo->pszFilename, "/vsigzip/", 9))
 --- a/gcore/gdaldataset.cpp
 +++ b/gcore/gdaldataset.cpp
-@@ -2385,7 +2385,7 @@ GDALDatasetH GDALOpenInternal( GDALOpenI
+@@ -2381,7 +2381,7 @@ GDALDatasetH GDALOpenInternal( GDALOpenI
   * Starting with GDAL 1.6.0, if GDALOpenShared() is called on the same pszFilename
   * from two different threads, a different GDALDataset object will be returned as
   * it is not safe to use the same dataset from different threads, unless the user

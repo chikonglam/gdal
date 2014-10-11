@@ -3,7 +3,7 @@ Author: Bas Couwenberg <sebastic@xs4all.nl>
 Last-Update: 2013-10-11
 --- a/NEWS
 +++ b/NEWS
-@@ -1708,7 +1708,7 @@ Utilities:
+@@ -1918,7 +1918,7 @@ Utilities:
   * Add gdal_ls.py and gdal_cp.py as Python samples
   * Add new sample utility, gdal_edit.py, to edit in place various information of an existing GDAL dataset (projection, geotransform, nodata, metadata) (#4220)
   * gdalcopyproj.py: make it copy GCPs too
@@ -12,7 +12,7 @@ Last-Update: 2013-10-11
   * Add --pause for convenient debugging, document it and --locale
  
  Multi-driver topics:
-@@ -2166,7 +2166,7 @@ Utilities:
+@@ -2376,7 +2376,7 @@ Utilities:
   * ogr2ogr: take into account fields specified in the -where clause in combinations with -select to create the correct list of fields to pass to SetIgnoredFields() (#4015)
   * ogr2ogr: fix -zfield option so that the modified geometry properly reports coordinate dimension = 3. Also avoids it to be in the list of ignored field names
   * ogr2ogr: add -simplify option to simplify geometries
@@ -21,7 +21,7 @@ Last-Update: 2013-10-11
   * ogrinfo/ogr2ogr: exit when SetAttributeFilter() fails, instead of silently going on (#4261)
  
  Multi driver topics:
-@@ -2672,7 +2672,7 @@ Utilities :
+@@ -2882,7 +2882,7 @@ Utilities :
     to align on a standard grid (#3772)
  
  AAIGRID driver:
@@ -30,7 +30,7 @@ Last-Update: 2013-10-11
     GDT_Float32 case; small optimization to avoid reading the first 100K when
     we know that the datatype is already Float32
   * Allow reading files where decimal separator is comma (#3668)
-@@ -2779,7 +2779,7 @@ GTX driver:
+@@ -2989,7 +2989,7 @@ GTX driver:
   * Read NOAA .gtx vertical datum shift files.
  
  GXF driver:
@@ -39,7 +39,7 @@ Last-Update: 2013-10-11
     GDT_Float32 case
   * Introduce a GXF_DATATYPE configuration option that can be set to Float64
   * Use GDALGetScanline() instead of GDALGetRawScanline() so that #SENS
-@@ -3012,7 +3012,7 @@ Core:
+@@ -3222,7 +3222,7 @@ Core:
                       OGR_G_SymDifference() and OGR_G_UnionCascaded()
   * Add C function: OGR_F_StealGeometry()
   * Move Centroid() method from OGRPolygon to OGRGeometry base class to be able
@@ -48,7 +48,7 @@ Last-Update: 2013-10-11
     ST_Centroid() capabilities and the underlying GEOS method
   * Make the GetStyleTable() SetStyleTable() SetStyleTableDirectly() methods on
     datasources and layers virtual (#2978)
-@@ -4103,7 +4103,7 @@ General:
+@@ -4313,7 +4313,7 @@ General:
          osr.ImportFromMICoordSys(), osr.ExportToMICoordSys(), SpatialReference.Clone()
          osr.EPSGTreatsAsLatLong(), osr.ImportFromEPSGA()
   * Make resampling an optionnal parameter for gdal.RegenerateOverview(),
@@ -57,7 +57,7 @@ Last-Update: 2013-10-11
   * NONNULL checks have been added to check various arguments of methods
   * add missing constants : DCAP_VIRTUALIO, color interpretations, OGR constants
  
-@@ -4282,7 +4282,7 @@ Utilities:
+@@ -4492,7 +4492,7 @@ Utilities:
   * gdalinfo: Display checksums on overviews when -checksum is specified
   * gdalinfo: Display whether the mask band has overviews
   * ogr2ogr: reset -gt to 1 with -skipfailures, document -gt (#2409)
@@ -163,7 +163,7 @@ Last-Update: 2013-10-11
                      }
 --- a/gcore/gdalpamrasterband.cpp
 +++ b/gcore/gdalpamrasterband.cpp
-@@ -999,7 +999,7 @@ PamParseHistogram( CPLXMLNode *psHistIte
+@@ -1002,7 +1002,7 @@ PamParseHistogram( CPLXMLNode *psHistIte
      if( strlen(pszHistCounts) < 2 * (size_t)(*pnBuckets) -1 )
      {
          CPLError(CE_Failure, CPLE_AppDefined,

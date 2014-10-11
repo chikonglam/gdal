@@ -3,7 +3,7 @@ Author: Bas Couwenberg <sebastic@xs4all.nl>
 Last-Update: 2013-10-11
 --- a/NEWS
 +++ b/NEWS
-@@ -3665,7 +3665,7 @@ GeoTIFF driver :
+@@ -3875,7 +3875,7 @@ GeoTIFF driver :
   * Use official value for inverse flattening of the WGS84 ellipsoid (#2787)
   * Add metadata domain for XML documents (#2786)
   * Make GTiff driver friendly with files with huge number of bands and pixel interleaving (#2838)
@@ -25,7 +25,7 @@ Last-Update: 2013-10-11
             rmax=rmax*dscale;
 --- a/frmts/gtiff/geotiff.cpp
 +++ b/frmts/gtiff/geotiff.cpp
-@@ -1524,7 +1524,7 @@ CPLErr GTiffRasterBand::FillCacheForOthe
+@@ -1554,7 +1554,7 @@ CPLErr GTiffRasterBand::FillCacheForOthe
  /*      and O(nBands^2) performance !                                   */
  /*                                                                      */
  /*      If there are many bands and the block cache size is not big     */
