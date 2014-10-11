@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #******************************************************************************
-#  $Id: gdal2tiles.py 27044 2014-03-16 23:41:27Z rouault $
+#  $Id: gdal2tiles.py 27349 2014-05-16 18:58:51Z rouault $
 # 
 # Project:  Google Summer of Code 2007, 2008 (http://code.google.com/soc/)
 # Support:  BRGM (http://www.brgm.fr)
@@ -58,7 +58,7 @@ except:
     # 'antialias' resampling is not available
     pass
 
-__version__ = "$Id: gdal2tiles.py 27044 2014-03-16 23:41:27Z rouault $"
+__version__ = "$Id: gdal2tiles.py 27349 2014-05-16 18:58:51Z rouault $"
 
 resampling_list = ('average','near','bilinear','cubic','cubicspline','lanczos','antialias')
 profile_list = ('mercator','geodetic','raster') #,'zoomify')
@@ -1523,8 +1523,8 @@ gdal2tiles temp.vrt""" % self.input )
       <Title>%(title)s</Title>
       <Abstract></Abstract>
       <SRS>%(srs)s</SRS>
-      <BoundingBox minx="%(south).14f" miny="%(west).14f" maxx="%(north).14f" maxy="%(east).14f"/>
-      <Origin x="%(south).14f" y="%(west).14f"/>
+      <BoundingBox minx="%(west).14f" miny="%(south).14f" maxx="%(east).14f" maxy="%(north).14f"/>
+      <Origin x="%(west).14f" y="%(south).14f"/>
       <TileFormat width="%(tilesize)d" height="%(tilesize)d" mime-type="image/%(tileformat)s" extension="%(tileformat)s"/>
       <TileSets profile="%(profile)s">
 """ % args

@@ -3424,7 +3424,7 @@ XS(_wrap_StyleTable_LoadStyleTable) {
     
     {
       /* %typemap(default) const char * utf8_path */
-      arg2 = (const char *)"";
+      arg2 = (char *)"";
     }
     if ((items < 1) || (items > 2)) {
       SWIG_croak("Usage: StyleTable_LoadStyleTable(self,utf8_path);");
@@ -3487,7 +3487,7 @@ XS(_wrap_StyleTable_SaveStyleTable) {
     
     {
       /* %typemap(default) const char * utf8_path */
-      arg2 = (const char *)"";
+      arg2 = (char *)"";
     }
     if ((items < 1) || (items > 2)) {
       SWIG_croak("Usage: StyleTable_SaveStyleTable(self,utf8_path);");
@@ -3842,7 +3842,7 @@ XS(_wrap_Driver_CreateDataSource) {
     
     {
       /* %typemap(default) const char * utf8_path */
-      arg2 = (const char *)"";
+      arg2 = (char *)"";
     }
     if ((items < 1) || (items > 3)) {
       SWIG_croak("Usage: Driver_CreateDataSource(self,utf8_path,options);");
@@ -3948,7 +3948,7 @@ XS(_wrap_Driver_CopyDataSource) {
     
     {
       /* %typemap(default) const char * utf8_path */
-      arg3 = (const char *)"";
+      arg3 = (char *)"";
     }
     if ((items < 2) || (items > 4)) {
       SWIG_croak("Usage: Driver_CopyDataSource(self,copy_ds,utf8_path,options);");
@@ -4060,7 +4060,7 @@ XS(_wrap_Driver_Open) {
     
     {
       /* %typemap(default) const char * utf8_path */
-      arg2 = (const char *)"";
+      arg2 = (char *)"";
     }
     if ((items < 1) || (items > 3)) {
       SWIG_croak("Usage: Driver_Open(self,utf8_path,update);");
@@ -4132,7 +4132,7 @@ XS(_wrap_Driver_DeleteDataSource) {
     
     {
       /* %typemap(default) const char * utf8_path */
-      arg2 = (const char *)"";
+      arg2 = (char *)"";
     }
     if ((items < 1) || (items > 2)) {
       SWIG_croak("Usage: Driver_DeleteDataSource(self,utf8_path);");
@@ -22339,7 +22339,7 @@ XS(_wrap_Open) {
     
     {
       /* %typemap(default) const char * utf8_path */
-      arg1 = (const char *)"";
+      arg1 = (char *)"";
     }
     if ((items < 0) || (items > 2)) {
       SWIG_croak("Usage: Open(utf8_path,update);");
@@ -22404,7 +22404,7 @@ XS(_wrap_OpenShared) {
     
     {
       /* %typemap(default) const char * utf8_path */
-      arg1 = (const char *)"";
+      arg1 = (char *)"";
     }
     if ((items < 0) || (items > 2)) {
       SWIG_croak("Usage: OpenShared(utf8_path,update);");
