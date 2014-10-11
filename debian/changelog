@@ -1,10 +1,10 @@
-gdal (1.11.1+dfsg-1) UNRELEASED; urgency=medium
+gdal (1.11.1+dfsg-1~exp1) experimental; urgency=medium
 
   * New upstream release.
   * Refresh patches.
   * Bump Standards-Version to 3.9.6, no changes.
 
- -- Bas Couwenberg <sebastic@xs4all.nl>  Sat, 11 Oct 2014 14:33:44 +0200
+ -- Bas Couwenberg <sebastic@xs4all.nl>  Sat, 11 Oct 2014 18:11:56 +0200
 
 gdal (1.11.0+dfsg1-1~exp5) experimental; urgency=medium
 
