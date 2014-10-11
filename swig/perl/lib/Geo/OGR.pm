@@ -1454,7 +1454,7 @@ package Geo::OGR;
 	    } elsif (@_ == 1) {
 		$param{Name} = shift;
 	    } else {
-		my %known = map {$_ => 1} qw/Name Type Justify Width Precision/;
+		my %known = map {$_ => 1} qw/Index Name Type Justify Width Precision/;
 		unless ($known{$_[0]}) {
 		    $param{Name} = shift;
 		    $param{Type} = shift;

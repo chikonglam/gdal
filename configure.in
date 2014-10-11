@@ -1,5 +1,5 @@
 dnl ***************************************************************************
-dnl $Id: configure.in 26958 2014-02-17 18:24:07Z rouault $
+dnl $Id: configure.in 27506 2014-07-07 19:49:05Z rouault $
 dnl
 dnl Project:  GDAL
 dnl Purpose:  Configure source file.
@@ -597,7 +597,7 @@ dnl ICONV_CONST when used from .cpp files.
 if test "$am_func_iconv" = "yes"; then
     rm -f testiconv.*
     echo '#include <iconv.h>' > testiconv.cpp
-    echo 'int main(int argc, char** argv) { iconv_t cd; return iconv (cd, (const char **) 0, 0, 0, 0); } ' >> testiconv.cpp
+    echo 'int main(int argc, char** argv) { iconv_t cd = 0; return iconv (cd, (const char **) 0, 0, 0, 0); } ' >> testiconv.cpp
     if test -z "`${CXX} ${CPPFLAGS} testiconv.cpp -c 2>&1`" ; then
         AC_MSG_RESULT([using ICONV_CPP_CONST="const"])
         ICONV_CPP_CONST="const"
@@ -2488,30 +2488,6 @@ else
       MYSQL_INC="`$MYSQL_CONFIG --include`"
       AC_MSG_RESULT([yes])
 
-      # Check if mysql headers declare load_defaults
-      AC_MSG_CHECKING([load_defaults() in MySQL])
-      rm -f testmysql.*
-      echo '#include "my_global.h"' > testmysql.cpp
-      echo '#include "my_sys.h"' >> testmysql.cpp
-      echo 'int main(int argc, char** argv) { load_defaults(0, 0, 0, 0); return 0; } ' >> testmysql.cpp
-      if test -z "`${CXX} ${CXXFLAGS} ${MYSQL_INC} -o testmysql testmysql.cpp ${MYSQL_LIB} 2>&1`" ; then
-        AC_MSG_RESULT([yes, found in my_sys.h])
-      else
-        echo 'extern "C" void load_defaults(const char *conf_file, const char **groups, int *argc, char ***argv);' > testmysql.cpp
-        echo 'int main(int argc, char** argv) { load_defaults(0, 0, 0, 0); return 0; } ' >> testmysql.cpp
-        if test -z "`${CXX} ${CXXFLAGS} ${MYSQL_INC} -o testmysql testmysql.cpp ${MYSQL_LIB} 2>&1`" ; then
-            AC_MSG_RESULT([yes, found in library but not in header])
-            MYSQL_NEEDS_LOAD_DEFAULTS_DECLARATION=yes
-        else
-            HAVE_MYSQL=no
-            MYSQL_LIB=
-            MYSQL_INC=
-            AC_MSG_ERROR([Cannot find load_defaults()])
-        fi
-      fi
-      rm -f testmysql.*
-      rm -f testmysql
-
 	;;
   esac
 fi
@@ -2519,7 +2495,6 @@ fi
 AC_SUBST(HAVE_MYSQL,$HAVE_MYSQL)
 AC_SUBST(MYSQL_INC,$MYSQL_INC)
 AC_SUBST(MYSQL_LIB,$MYSQL_LIB)
-AC_SUBST(MYSQL_NEEDS_LOAD_DEFAULTS_DECLARATION,$MYSQL_NEEDS_LOAD_DEFAULTS_DECLARATION)
 
 dnl ---------------------------------------------------------------------------
 dnl INGRES support.
