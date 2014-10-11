@@ -1,4 +1,4 @@
-#!/bin/sh -x
+#!/bin/bash -x
 # Repack tarball because of data files with unknown license
 
 set -e
