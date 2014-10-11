@@ -2,6 +2,7 @@ gdal (1.11.1+dfsg-1) UNRELEASED; urgency=medium
 
   * New upstream release.
   * Refresh patches.
+  * Bump Standards-Version to 3.9.6, no changes.
 
  -- Bas Couwenberg <sebastic@xs4all.nl>  Sat, 11 Oct 2014 14:33:44 +0200
 
