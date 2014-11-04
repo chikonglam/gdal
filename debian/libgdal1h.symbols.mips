@@ -913,6 +913,7 @@ libgdal.so.1 libgdal1h #MINVER#
  (c++)"GDALRasterBand::GetLockedBlockRef(int, int, int)@GDAL_1.8" 1.9.0 1
  (c++)"GDALRasterBand::GetRasterDataType()@GDAL_1.8" 1.9.0 1
  (c++)"GDALRasterBand::GetVirtualMemAuto(GDALRWFlag, int*, long long*, char**)@GDAL_1.8" 1.11.0 1
+ (c++)"GDALRasterBand::InvalidateMaskBand()@GDAL_1.8" 1.11.1 1
  (c++)"GDALRasterBand::ComputeRasterMinMax(int, double*)@GDAL_1.8" 1.9.0 1
  (c++)"GDALRasterBand::GetDefaultHistogram(double*, double*, int*, int**, int, int (*)(double, char const*, void*), void*)@GDAL_1.8" 1.9.0 1
  (c++)"GDALRasterBand::SetDefaultHistogram(double, double, int, int*)@GDAL_1.8" 1.9.0 1
@@ -1739,6 +1740,7 @@ libgdal.so.1 libgdal1h #MINVER#
  (c++)"VRTSourcedRasterBand::IsSourcedRasterBand()@GDAL_1.8" 1.9.0 1
  (c++)"VRTSourcedRasterBand::GetMetadataDomainList()@GDAL_1.8" 1.11.0 1
  (c++)"VRTSourcedRasterBand::CloseDependentDatasets()@GDAL_1.8" 1.9.0 1
+ (c++)"VRTSourcedRasterBand::CanUseSourcesMinMaxImplementations()@GDAL_1.8" 1.11.1 1
  (c++)"VRTSourcedRasterBand::XMLInit(CPLXMLNode*, char const*)@GDAL_1.8" 1.9.0 1
  (c++)"VRTSourcedRasterBand::AddSource(VRTSource*)@GDAL_1.8" 1.9.0 1
  (c++)"VRTSourcedRasterBand::IRasterIO(GDALRWFlag, int, int, int, int, void*, int, int, GDALDataType, int, int)@GDAL_1.8" 1.9.0 1
