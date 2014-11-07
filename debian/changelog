@@ -4,6 +4,8 @@ gdal (1.11.1+dfsg-1~exp2) UNRELEASED; urgency=medium
   * Update symbols for amd64, armel, armhf, i386, mips, mipsel, powerpc,
     s390x & sparc.
   * Don't exclude libhdf4-alt-dev from build dependencies on ppc64.
+  * Update gdal-symbols.pl to also generate symbols files for new
+    architectures.
 
  -- Bas Couwenberg <sebastic@xs4all.nl>  Sat, 25 Oct 2014 01:13:07 +0200
 
