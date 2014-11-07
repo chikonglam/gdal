@@ -81,9 +81,6 @@ override_dh_auto_clean:
 	rm -rf $(CURDIR)/frmts/o/.libs
 	rm -f  $(CURDIR)/islibdappost310.*
 
-	# Removes per arch symbols for compatible archs
-	rm -f $(CURDIR)/debian/libgdal*.symbols.kfreebsd-i386 $(CURDIR)/debian/libgdal*.symbols.kfreebsd-amd64
-
 override_dh_auto_configure:
 	for V in $(PYVERS); do \
 		PYTHON=/usr/bin/python$$V ./configure --prefix=/usr \
@@ -216,10 +213,6 @@ override_dh_python3:
 	dh_numpy3
 
 override_dh_makeshlibs:
-	# Adds per arch symbols for compatible archs
-	ln -f $(CURDIR)/debian/libgdal*.symbols.i386 $(CURDIR)/debian/libgdal1h.symbols.kfreebsd-i386
-	ln -f $(CURDIR)/debian/libgdal*.symbols.amd64 $(CURDIR)/debian/libgdal1h.symbols.kfreebsd-amd64
-
 	# Forces failure ignoring to collect new symbols on all archs
 	dh_makeshlibs -Xlibgdal-java -- -v$(GDAL_MAJOR).$(GDAL_MINOR).$(GDAL_PATCH) -c0
 	# Forces failure when symbols change
