@@ -1,3 +1,9 @@
+gdal (1.11.1+dfsg-1~exp3) UNRELEASED; urgency=medium
+
+  * Add upstream metadata.
+
+ -- Bas Couwenberg <sebastic@xs4all.nl>  Fri, 28 Nov 2014 22:28:07 +0100
+
 gdal (1.11.1+dfsg-1~exp2) experimental; urgency=medium
 
   * Set experimental branch in Vcs-Git and gbp.conf.
