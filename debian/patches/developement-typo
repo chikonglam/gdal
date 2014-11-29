@@ -1,6 +1,7 @@
 Description: Fix 'developement' typo, replace with 'development'.
 Author: Bas Couwenberg <sebastic@xs4all.nl>
-Last-Update: 2013-10-11
+Forwarded: http://trac.osgeo.org/gdal/ticket/5756
+
 --- a/NEWS
 +++ b/NEWS
 @@ -993,7 +993,7 @@ Build(Unix):

@@ -1,6 +1,7 @@
 Description: Fix 'accomodate' typo, replace with 'accommodate'.
 Author: Bas Couwenberg <sebastic@xs4all.nl>
-Last-Update: 2013-10-11
+Forwarded: http://trac.osgeo.org/gdal/ticket/5756
+
 --- a/NEWS
 +++ b/NEWS
 @@ -3875,7 +3875,7 @@ GeoTIFF driver :

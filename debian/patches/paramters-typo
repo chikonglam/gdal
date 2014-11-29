@@ -1,6 +1,7 @@
 Description: Fix 'paramters' typo, replace with 'parameters'.
 Author: Bas Couwenger <sebastic@xs4all.nl>
-Last-Update: 2013-10-11
+Forwarded: http://trac.osgeo.org/gdal/ticket/5756
+
 --- a/frmts/georaster/georaster_wrapper.cpp
 +++ b/frmts/georaster/georaster_wrapper.cpp
 @@ -718,7 +718,7 @@ bool GeoRasterWrapper::Create( char* psz

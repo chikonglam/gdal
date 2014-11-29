@@ -1,6 +1,7 @@
 Description: Fix 'consistant' typo, replace with 'consistent'.
 Author: Bas Couwenberg <sebastic@xs4all.nl>
-Last-Update: 2013-10-11
+Forwarded: http://trac.osgeo.org/gdal/ticket/5756
+
 --- a/NEWS
 +++ b/NEWS
 @@ -1918,7 +1918,7 @@ Utilities:

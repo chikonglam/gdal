@@ -1,6 +1,7 @@
 Description: Fix 'algoritm' typo, replace with 'algorithm'.
 Author: Bas Couwenberg <sebastic@xs4all.nl>
-Last-Update: 2013-10-11
+Forwarded: http://trac.osgeo.org/gdal/ticket/5756
+
 --- a/swig/include/Operations.i
 +++ b/swig/include/Operations.i
 @@ -447,7 +447,7 @@ int wrapper_GridCreate( char* algorithmO

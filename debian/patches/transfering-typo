@@ -1,6 +1,7 @@
 Description: Fix 'transfering' typo, replace with 'transferring'.
 Author: Bas Couwenberg <sebastic@xs4all.nl>
-Last-Update: 2013-10-11
+Forwarded: http://trac.osgeo.org/gdal/ticket/5756
+
 --- a/frmts/grib/degrib18/degrib/grib2api.c
 +++ b/frmts/grib/degrib18/degrib/grib2api.c
 @@ -1083,7 +1083,7 @@ void unpk_g2ncep (CPL_UNUSED sInt4 * kfi

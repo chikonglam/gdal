@@ -1,6 +1,7 @@
 Description: Fix 'inconsistant' typo, replace with 'inconsistent'.
 Author: Bas Couwenberg <sebastic@xs4all.nl>
-Last-Update: 2013-10-11
+Forwarded: http://trac.osgeo.org/gdal/ticket/5756
+
 --- a/frmts/grib/degrib18/degrib/metaname.cpp
 +++ b/frmts/grib/degrib18/degrib/metaname.cpp
 @@ -840,7 +840,7 @@ GRIB2ParmTable MeteoAtmos[] = {

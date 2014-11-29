@@ -1,5 +1,7 @@
 Description: Fix 'recommanded' typo, replace with 'recommended'.
 Author: Bas Couwenberg <sebastic@xs4all.nl>
+Forwarded: http://trac.osgeo.org/gdal/ticket/5756
+
 --- a/ogr/ogr_geocoding.cpp
 +++ b/ogr/ogr_geocoding.cpp
 @@ -202,7 +202,7 @@ int OGRGeocodeHasStringValidFormat(const

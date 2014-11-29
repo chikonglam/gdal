@@ -1,6 +1,7 @@
 Description: Fix 'supress' typo, replace with 'suppress'.
 Author: Bas Couwenberg <sebastic@xs4all.nl>
-Last-Update: 2014-01-11
+Forwarded: http://trac.osgeo.org/gdal/ticket/5756
+
 --- a/apps/ogr_utilities.dox
 +++ b/apps/ogr_utilities.dox
 @@ -40,7 +40,7 @@ source to stdout (the terminal).

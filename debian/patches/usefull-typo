@@ -1,6 +1,7 @@
 Description: Fix 'usefull' typo, replace with 'useful'.
 Author: Bas Couwenberg <sebastic@xs4all.nl>
-Last-Update: 2013-10-11
+Forwarded: http://trac.osgeo.org/gdal/ticket/5756
+
 --- a/NEWS
 +++ b/NEWS
 @@ -2771,7 +2771,7 @@ Port:

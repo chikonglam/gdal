@@ -1,6 +1,7 @@
 Description: Fix 'transfered' typo, replace with 'transferred'.
 Author: Bas Couwenberg <sebastic@xs4all.nl>
-Last-Update: 2013-10-11
+Forwarded: http://trac.osgeo.org/gdal/ticket/5756
+
 --- a/ogr/ogrsf_frmts/generic/ogrunionlayer.h
 +++ b/ogr/ogrsf_frmts/generic/ogrunionlayer.h
 @@ -102,7 +102,7 @@ class OGRUnionLayer : public OGRLayer
