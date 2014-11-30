@@ -1,6 +1,7 @@
 Description: Fix 'initialized' typo, replace with 'initialized'.
 Author: Bas Couwenberg <sebastic@xs4all.nl>
 Forwarded: http://trac.osgeo.org/gdal/ticket/5756
+Applied-Upstream: 2.0, http://trac.osgeo.org/gdal/changeset/28039
 
 --- a/apps/gdal_utilities.dox
 +++ b/apps/gdal_utilities.dox

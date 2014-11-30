@@ -1,6 +1,7 @@
 Description: Fix 'allows to' typo.
 Author: Bas Couwenberg <sebastic@xs4all.nl>
 Forwarded: http://trac.osgeo.org/gdal/ticket/5756
+Applied-Upstream: 2.0, http://trac.osgeo.org/gdal/changeset/28039
 
 --- a/swig/python/scripts/gdal_edit.dox
 +++ b/swig/python/scripts/gdal_edit.dox

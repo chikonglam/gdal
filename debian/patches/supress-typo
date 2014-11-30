@@ -1,6 +1,7 @@
 Description: Fix 'supress' typo, replace with 'suppress'.
 Author: Bas Couwenberg <sebastic@xs4all.nl>
 Forwarded: http://trac.osgeo.org/gdal/ticket/5756
+Applied-Upstream: 2.0, http://trac.osgeo.org/gdal/changeset/28039
 
 --- a/apps/ogr_utilities.dox
 +++ b/apps/ogr_utilities.dox
