@@ -4,6 +4,8 @@ gdal (1.10.1+dfsg-9) UNRELEASED; urgency=medium
   * Add patch backporting upstream changes to fix FTBFS with MySQL 5.6.
   * Bump Standards-Version to 3.9.6, no changes.
   * Add upstream metadata.
+  * Have python*-gdal suggest gdal-bin.
+    (closes: #774243)
 
  -- Bas Couwenberg <sebastic@debian.org>  Sun, 28 Jun 2015 12:01:44 +0200
 

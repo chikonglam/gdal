@@ -219,6 +219,7 @@ Depends: ${shlibs:Depends},
          ${python:Depends},
          python-numpy,
          ${misc:Depends}
+Suggests: gdal-bin
 Provides: ${python:Provides}
 Description: Python bindings to the Geospatial Data Abstraction Library
  GDAL is a translator library for raster geospatial data formats.
@@ -248,6 +249,7 @@ Depends: ${shlibs:Depends},
          ${python3:Depends},
          python3-numpy,
          ${misc:Depends}
+Suggests: gdal-bin
 Provides: ${python3:Provides}
 Description: Python 3 bindings to the Geospatial Data Abstraction Library
  GDAL is a translator library for raster geospatial data formats.
