@@ -1,6 +1,8 @@
 gdal (1.11.1+dfsg-1~exp3) UNRELEASED; urgency=medium
 
   * Add upstream metadata.
+  * Have python*-gdal suggest gdal-bin.
+    (closes: #774243)
 
  -- Bas Couwenberg <sebastic@xs4all.nl>  Fri, 28 Nov 2014 22:28:07 +0100
 
