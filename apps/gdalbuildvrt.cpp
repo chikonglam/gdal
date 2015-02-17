@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdalbuildvrt.cpp 27044 2014-03-16 23:41:27Z rouault $
+ * $Id: gdalbuildvrt.cpp 27994 2014-11-21 20:03:49Z rouault $
  *
  * Project:  GDAL Utilities
  * Purpose:  Commandline application to build VRT datasets from raster products or content of SHP tile index
@@ -29,15 +29,15 @@
 
 #include "gdal_proxy.h"
 #include "cpl_string.h"
-#include "vrt/gdal_vrt.h"
-#include "vrt/vrtdataset.h"
+#include "gdal_vrt.h"
+#include "vrtdataset.h"
 
 #ifdef OGR_ENABLED
 #include "ogr_api.h"
 #endif
 #include "ogr_srs_api.h"
 
-CPL_CVSID("$Id: gdalbuildvrt.cpp 27044 2014-03-16 23:41:27Z rouault $");
+CPL_CVSID("$Id: gdalbuildvrt.cpp 27994 2014-11-21 20:03:49Z rouault $");
 
 #define GEOTRSFRM_TOPLEFT_X            0
 #define GEOTRSFRM_WE_RES               1
