@@ -7,6 +7,7 @@ gdal (1.11.2+dfsg-1~exp1) UNRELEASED; urgency=medium
   * Update my email to @debian.org address.
   * Drop get-orig-source script in favor of uscan + Files-Excluded.
   * Refresh patches.
+  * Update Vcs-Browser URL to use cgit instead of gitweb.
 
  -- Bas Couwenberg <sebastic@debian.org>  Tue, 17 Feb 2015 23:31:13 +0100
 
