@@ -4,6 +4,7 @@ gdal (1.11.1+dfsg-1~exp3) UNRELEASED; urgency=medium
   * Have python*-gdal suggest gdal-bin.
     (closes: #774243)
   * Update my email to @debian.org address.
+  * Drop get-orig-source script in favor of uscan + Files-Excluded.
 
  -- Bas Couwenberg <sebastic@debian.org>  Fri, 28 Nov 2014 22:28:07 +0100
 
