@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdal_translate.cpp 27044 2014-03-16 23:41:27Z rouault $
+ * $Id: gdal_translate.cpp 27994 2014-11-21 20:03:49Z rouault $
  *
  * Project:  GDAL Utilities
  * Purpose:  GDAL Image Translator Program
@@ -33,10 +33,10 @@
 #include "cpl_string.h"
 #include "gdal_priv.h"
 #include "ogr_spatialref.h"
-#include "vrt/vrtdataset.h"
+#include "vrtdataset.h"
 #include "commonutils.h"
 
-CPL_CVSID("$Id: gdal_translate.cpp 27044 2014-03-16 23:41:27Z rouault $");
+CPL_CVSID("$Id: gdal_translate.cpp 27994 2014-11-21 20:03:49Z rouault $");
 
 static int ArgIsNumeric( const char * );
 static void AttachMetadata( GDALDatasetH, char ** );
