@@ -6,6 +6,7 @@ gdal (1.11.2+dfsg-1~exp1) UNRELEASED; urgency=medium
     (closes: #774243)
   * Update my email to @debian.org address.
   * Drop get-orig-source script in favor of uscan + Files-Excluded.
+  * Refresh patches.
 
  -- Bas Couwenberg <sebastic@debian.org>  Tue, 17 Feb 2015 23:31:13 +0100
 

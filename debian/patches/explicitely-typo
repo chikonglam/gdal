@@ -5,7 +5,7 @@ Applied-Upstream: 2.0, http://trac.osgeo.org/gdal/changeset/28039
 
 --- a/NEWS
 +++ b/NEWS
-@@ -1521,7 +1521,7 @@ GML driver:
+@@ -1670,7 +1670,7 @@ GML driver:
   * Allow reading srsDimension attribute when set on LineString element, and not on posList (#4663)
   * Partial support for reading GML 3.3 compat encoding profile, limited to <gmlce:SimplePolygon>, <gmlce:SimpleRectangle>, <gmlce:SimpleTriangle>, <gmlce:SimpleMultiPoint> elements
   * Support WFS GetFeature response document to be piped and opened with /vsistdin/
@@ -14,7 +14,7 @@ Applied-Upstream: 2.0, http://trac.osgeo.org/gdal/changeset/28039
   * Improve detection of extent and srs for WFS 2.0
   * Allow ISO-8859-15 encoded files to be used by Expat parser (#4829)
   * Handle CompositeCurve like MultiCurve (for NAS)
-@@ -2322,7 +2322,7 @@ Core:
+@@ -2471,7 +2471,7 @@ Core:
   * OGR SQL: recognize optional ESCAPE escape_char clause
   * OGR SQL: allow NULL to be used as a value, so that 'SELECT *, NULL FROM foo works'
   * OGR SQL: Accept doublequoting of column_name in 'SELECT DISTINCT "column_name" FROM table_name' (#3966)
@@ -163,7 +163,7 @@ Applied-Upstream: 2.0, http://trac.osgeo.org/gdal/changeset/28039
              }
 --- a/frmts/pdf/pdfdataset.cpp
 +++ b/frmts/pdf/pdfdataset.cpp
-@@ -2511,7 +2511,7 @@ void PDFDataset::TurnLayersOnOff()
+@@ -2510,7 +2510,7 @@ void PDFDataset::TurnLayersOnOff()
                      oIter->second->setState(OptionalContentGroup::On);
                  }
  
@@ -172,7 +172,7 @@ Applied-Upstream: 2.0, http://trac.osgeo.org/gdal/changeset/28039
                  // in the list.
                  size_t nLen = strlen(papszLayers[i]);
                  int bFoundChildLayer = FALSE;
-@@ -4970,7 +4970,7 @@ CPLErr PDFDataset::SetGeoTransform(doubl
+@@ -4972,7 +4972,7 @@ CPLErr PDFDataset::SetGeoTransform(doubl
      bGeoTransformValid = TRUE;
      bProjDirty = TRUE;
  
@@ -181,7 +181,7 @@ Applied-Upstream: 2.0, http://trac.osgeo.org/gdal/changeset/28039
      if (!bNeatLineDirty)
          SetMetadataItem("NEATLINE", NULL);
      return CE_None;
-@@ -5153,7 +5153,7 @@ CPLErr PDFDataset::SetGCPs( int nGCPCoun
+@@ -5155,7 +5155,7 @@ CPLErr PDFDataset::SetGCPs( int nGCPCoun
      
      bProjDirty = TRUE;
  
@@ -192,7 +192,7 @@ Applied-Upstream: 2.0, http://trac.osgeo.org/gdal/changeset/28039
  
 --- a/frmts/xyz/xyzdataset.cpp
 +++ b/frmts/xyz/xyzdataset.cpp
-@@ -479,7 +479,7 @@ int XYZDataset::IdentifyEx( GDALOpenInfo
+@@ -480,7 +480,7 @@ int XYZDataset::IdentifyEx( GDALOpenInfo
  
      GDALOpenInfo* poOpenInfoToDelete = NULL;
      /*  GZipped .xyz files are common, so automagically open them */
@@ -201,7 +201,7 @@ Applied-Upstream: 2.0, http://trac.osgeo.org/gdal/changeset/28039
      if (strlen(poOpenInfo->pszFilename) > 6 &&
          EQUAL(poOpenInfo->pszFilename + strlen(poOpenInfo->pszFilename) - 6, "xyz.gz") &&
          !EQUALN(poOpenInfo->pszFilename, "/vsigzip/", 9))
-@@ -611,7 +611,7 @@ GDALDataset *XYZDataset::Open( GDALOpenI
+@@ -612,7 +612,7 @@ GDALDataset *XYZDataset::Open( GDALOpenI
      CPLString osFilename(poOpenInfo->pszFilename);
  
      /*  GZipped .xyz files are common, so automagically open them */
@@ -287,7 +287,7 @@ Applied-Upstream: 2.0, http://trac.osgeo.org/gdal/changeset/28039
   @return an handle to a OGRLayer containing the results of the query.  
 --- a/ogr/ogrsf_frmts/osm/ogrosmdatasource.cpp
 +++ b/ogr/ogrsf_frmts/osm/ogrosmdatasource.cpp
-@@ -4110,7 +4110,7 @@ OGRLayer * OGROSMDataSource::ExecuteSQL(
+@@ -4111,7 +4111,7 @@ OGRLayer * OGROSMDataSource::ExecuteSQL(
                                                              poSpatialFilter,
                                                              pszDialect );
  
@@ -320,7 +320,7 @@ Applied-Upstream: 2.0, http://trac.osgeo.org/gdal/changeset/28039
  
 --- a/ogr/ogrsf_frmts/sqlite/ogrsqlitevirtualogr.cpp
 +++ b/ogr/ogrsf_frmts/sqlite/ogrsqlitevirtualogr.cpp
-@@ -526,7 +526,7 @@ int OGR2SQLITE_ConnectCreate(sqlite3* hD
+@@ -545,7 +545,7 @@ int OGR2SQLITE_ConnectCreate(sqlite3* hD
  
              if( poDS->GetLayerCount() > 1 )
              {
@@ -422,7 +422,7 @@ Applied-Upstream: 2.0, http://trac.osgeo.org/gdal/changeset/28039
  public class Geometry:public void delete()
 --- a/swig/python/extensions/gdal_wrap.cpp
 +++ b/swig/python/extensions/gdal_wrap.cpp
-@@ -7996,7 +7996,7 @@ SWIGINTERN PyObject *_wrap_MajorObject_S
+@@ -8002,7 +8002,7 @@ SWIGINTERN PyObject *_wrap_MajorObject_S
      if (_v) {
        {
          /* %typecheck(SWIG_TYPECHECK_POINTER) (char **dict) */
@@ -433,7 +433,7 @@ Applied-Upstream: 2.0, http://trac.osgeo.org/gdal/changeset/28039
          _v = ((PyMapping_Check(argv[1]) || PySequence_Check(argv[1]) ) && !SWIG_CheckState(SWIG_AsCharPtrAndSize(argv[1], 0, NULL, 0)) ) ? 1 : 0;
 --- a/swig/python/extensions/ogr_wrap.cpp
 +++ b/swig/python/extensions/ogr_wrap.cpp
-@@ -20881,7 +20881,7 @@ static PyMethodDef SwigMethods[] = {
+@@ -20887,7 +20887,7 @@ static PyMethodDef SwigMethods[] = {
  		"\n"
  		"pszDialect:  allows control of the statement dialect. If set to NULL,\n"
  		"the OGR SQL engine will be used, except for RDBMS drivers that will\n"
@@ -513,7 +513,7 @@ Applied-Upstream: 2.0, http://trac.osgeo.org/gdal/changeset/28039
  /* -------------------------------------------------------------------- */
 --- a/apps/gdaldem.cpp
 +++ b/apps/gdaldem.cpp
-@@ -2233,7 +2233,7 @@ int main( int argc, char ** argv )
+@@ -2237,7 +2237,7 @@ int main( int argc, char ** argv )
      const char *pszDstFilename = NULL;
      const char *pszColorFilename = NULL;
      const char *pszFormat = "GTiff";
@@ -522,7 +522,7 @@ Applied-Upstream: 2.0, http://trac.osgeo.org/gdal/changeset/28039
      char **papszCreateOptions = NULL;
      
      GDALDatasetH hSrcDataset = NULL;
-@@ -2426,7 +2426,7 @@ int main( int argc, char ** argv )
+@@ -2430,7 +2430,7 @@ int main( int argc, char ** argv )
          {
              CHECK_HAS_ENOUGH_ADDITIONAL_ARGS(1);
              pszFormat = argv[++i];
@@ -531,7 +531,7 @@ Applied-Upstream: 2.0, http://trac.osgeo.org/gdal/changeset/28039
          }
          else if( argv[i][0] == '-' )
          {
-@@ -2517,7 +2517,7 @@ int main( int argc, char ** argv )
+@@ -2521,7 +2521,7 @@ int main( int argc, char ** argv )
          exit( 1 );
      }
  
@@ -589,7 +589,7 @@ Applied-Upstream: 2.0, http://trac.osgeo.org/gdal/changeset/28039
              bCreateOutput = TRUE;
              if( EQUAL(pszFormat,"VRT") )
                  bVRT = TRUE;
-@@ -899,7 +899,7 @@ int main( int argc, char ** argv )
+@@ -898,7 +898,7 @@ int main( int argc, char ** argv )
  
      if( hDstDS == NULL )
      {

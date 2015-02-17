@@ -5,7 +5,7 @@ Applied-Upstream: 2.0, http://trac.osgeo.org/gdal/changeset/28039
 
 --- a/NEWS
 +++ b/NEWS
-@@ -2771,7 +2771,7 @@ Port:
+@@ -2920,7 +2920,7 @@ Port:
      - /vsitar/ : to read in .tar or .tgz/.tar.gz files
   * Add C API to create ZIP files
   * Add support for writable /vsizip/
@@ -14,7 +14,7 @@ Applied-Upstream: 2.0, http://trac.osgeo.org/gdal/changeset/28039
     doing backward seeks by a few bytes on underlying file handles for which
     backwardseeks are very slow, such as GZip handle
   * Add service for base64 decoding
-@@ -2789,7 +2789,7 @@ Port:
+@@ -2938,7 +2938,7 @@ Port:
  Core:
   * RFC 24: progressive/async raster reading
   * On Unix, add capability of opening the target of a symlink through GDALOpen()
@@ -23,7 +23,7 @@ Applied-Upstream: 2.0, http://trac.osgeo.org/gdal/changeset/28039
     GDAL virtual filenames in software offering only file explorers (#3902)
   * Assume anything less than 100000 for GDAL_CACHEMAX is measured in metabytes.
   * Read cartesian coordinates if applicable in GDALLoadOziMapFile().
-@@ -3209,7 +3209,7 @@ Core:
+@@ -3358,7 +3358,7 @@ Core:
   * Add OGRLayer::GetName() and OGRLayer::GetGeomType() virtual methods,
     and their C and SWIG mappings (#3719)
   * On Unix, add capability of opening the target of a symlink through OGROpen()
@@ -32,7 +32,7 @@ Applied-Upstream: 2.0, http://trac.osgeo.org/gdal/changeset/28039
     GDAL virtual filenames in software offering only file explorers (#3902)
   * Expat based XML readers : add support for reading files with Windows-1252
     encoding
-@@ -3479,7 +3479,7 @@ PostgreSQL driver:
+@@ -3628,7 +3628,7 @@ PostgreSQL driver:
     is set to YES
   * If the PG_USE_BASE64 configuration option is set to YES, geometries will be
     requested as BASE64 encoded EWKB instead of canonical HEX encoded EWKB.
@@ -99,7 +99,7 @@ Applied-Upstream: 2.0, http://trac.osgeo.org/gdal/changeset/28039
  /* sub-windows of data on a large /vsicurl dataset). */
  
  CPLErr GTiffRasterBand::DirectIO( GDALRWFlag eRWFlag,
-@@ -8649,7 +8649,7 @@ TIFF *GTiffDataset::CreateLL( const char
+@@ -8667,7 +8667,7 @@ TIFF *GTiffDataset::CreateLL( const char
      }
  
      /* Set the compression method before asking the default strip size */
@@ -108,8 +108,8 @@ Applied-Upstream: 2.0, http://trac.osgeo.org/gdal/changeset/28039
      /* the default strip size is 8 or 16 depending on the photometric value */
      TIFFSetField( hTIFF, TIFFTAG_COMPRESSION, nCompression );
  
-@@ -9133,7 +9133,7 @@ GTiffDataset::CreateCopy( const char * p
-     int bDirectCopyFromJPEG = FALSE;
+@@ -9155,7 +9155,7 @@ GTiffDataset::CreateCopy( const char * p
+ #endif
  
      /* Note: JPEG_DIRECT_COPY is not defined by default, because it is mainly */
 -    /* usefull for debugging purposes */
@@ -126,7 +126,7 @@ Applied-Upstream: 2.0, http://trac.osgeo.org/gdal/changeset/28039
 -/* usefull for debugging purposes */
 +/* useful for debugging purposes */
  
- CPL_CVSID("$Id: gt_jpeg_copy.cpp 27729 2014-09-24 00:40:16Z goatbar $");
+ CPL_CVSID("$Id: gt_jpeg_copy.cpp 27899 2014-10-23 13:36:59Z rouault $");
  
 --- a/frmts/pcraster/pcrasterutil.cpp
 +++ b/frmts/pcraster/pcrasterutil.cpp
@@ -185,7 +185,7 @@ Applied-Upstream: 2.0, http://trac.osgeo.org/gdal/changeset/28039
      int nRasterXSize = 0, nRasterYSize =0;
 --- a/gcore/gdalrasterband.cpp
 +++ b/gcore/gdalrasterband.cpp
-@@ -4757,7 +4757,7 @@ CPLErr CPL_STDCALL GDALCreateMaskBand( G
+@@ -4766,7 +4766,7 @@ CPLErr CPL_STDCALL GDALCreateMaskBand( G
  /**
   * \brief Compute translation table for color tables.
   *
@@ -271,7 +271,7 @@ Applied-Upstream: 2.0, http://trac.osgeo.org/gdal/changeset/28039
  */
 --- a/ogr/ogrsf_frmts/osm/ogrosmdatasource.cpp
 +++ b/ogr/ogrsf_frmts/osm/ogrosmdatasource.cpp
-@@ -2678,7 +2678,7 @@ int OGROSMDataSource::Open( const char *
+@@ -2679,7 +2679,7 @@ int OGROSMDataSource::Open( const char *
          return FALSE;
      }
  
@@ -405,7 +405,7 @@ Applied-Upstream: 2.0, http://trac.osgeo.org/gdal/changeset/28039
          self.scaleX=self.geotransform[1]
 --- a/alg/gdal_rpc.cpp
 +++ b/alg/gdal_rpc.cpp
-@@ -336,7 +336,7 @@ typedef struct {
+@@ -357,7 +357,7 @@ static const char* GDALSerializeRPCDEMRe
   * an average height above sea level for ground in the target scene. 
   *
   * <li> RPC_HEIGHT_SCALE: a factor used to multiply heights above ground.
@@ -438,7 +438,7 @@ Applied-Upstream: 2.0, http://trac.osgeo.org/gdal/changeset/28039
  			<td class="xml">    &lt;AdviseRead&gt;<span class="value">true</span>&lt;/AdviseRead&gt;</td>
 --- a/gcore/gdal_priv.h
 +++ b/gcore/gdal_priv.h
-@@ -935,7 +935,7 @@ int CPL_DLL GDALCheckDatasetDimensions(
+@@ -955,7 +955,7 @@ int CPL_DLL GDALCheckDatasetDimensions(
  int CPL_DLL GDALCheckBandCount( int nBands, int bIsZeroAllowed );
  
  
@@ -471,7 +471,7 @@ Applied-Upstream: 2.0, http://trac.osgeo.org/gdal/changeset/28039
      {
 --- a/port/cpl_string.cpp
 +++ b/port/cpl_string.cpp
-@@ -2167,7 +2167,7 @@ size_t CPLStrlcat(char* pszDest, const c
+@@ -2170,7 +2170,7 @@ size_t CPLStrlcat(char* pszDest, const c
   * the specified number of bytes.
   *
   * The CPLStrnlen() function returns MIN(strlen(pszStr), nMaxLen).

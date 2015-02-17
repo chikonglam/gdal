@@ -25,7 +25,7 @@ Applied-Upstream: 2.0, http://trac.osgeo.org/gdal/changeset/28039
  <dt> <b>-dsco</b> <em>NAME=VALUE</em>:</dt><dd> Dataset creation option 
 --- a/NEWS
 +++ b/NEWS
-@@ -1904,7 +1904,7 @@ Utilities:
+@@ -2053,7 +2053,7 @@ Utilities:
   * gdalwarp: speed-up when using -tps with large number of GCPs
   * gdalwarp: add support for optional use of libarmadillo to speed-up matrix inversion in -tps mode
   * gdalwarp: detect situations where the user will override the source file
@@ -34,7 +34,7 @@ Applied-Upstream: 2.0, http://trac.osgeo.org/gdal/changeset/28039
   * gdal_rasterize: fix half pixel shift when rasterizing points; make gdal_rasterize utility increase the computed raster extent by a half-pixel for point layers (#3774)
   * gdal_rasterize: when source datasource has a single layer, use it implicitely if none of -l or -sql is specified
   * nearblack: add -color option (#4085)
-@@ -3598,7 +3598,7 @@ Python bindings:
+@@ -3747,7 +3747,7 @@ Python bindings:
     when used and set to True, None is returned when GDALGetGeoTransform()
     returns CE_Failure (instead of the fake (0,1,0,0,0,1)); backward
     compatibility preserved when the parameter isn't specified
@@ -85,7 +85,7 @@ Applied-Upstream: 2.0, http://trac.osgeo.org/gdal/changeset/28039
  /* -------------------------------------------------------------------- */
 --- a/frmts/ecw/ecwcreatecopy.cpp
 +++ b/frmts/ecw/ecwcreatecopy.cpp
-@@ -810,7 +810,7 @@ CPLErr GDALECWCompressor::Initialize(
+@@ -817,7 +817,7 @@ CPLErr GDALECWCompressor::Initialize(
  
          pszOption = CSLFetchNameValue(papszOptions, "GEODATA_USAGE");
          if( pszOption == NULL )
@@ -105,17 +105,6 @@ Applied-Upstream: 2.0, http://trac.osgeo.org/gdal/changeset/28039
  /*      GDAL_SKIP environment variable.                                 */
  /* -------------------------------------------------------------------- */
      GetGDALDriverManager()->AutoSkipDrivers();
---- a/frmts/gtiff/libtiff/tif_zip.c
-+++ b/frmts/gtiff/libtiff/tif_zip.c
-@@ -36,7 +36,7 @@
-  * of the library: this code assumes the 1.0 API and also depends on
-  * the ability to write the zlib header multiple times (one per strip)
-  * which was not possible with versions prior to 0.95.  Note also that
-- * older versions of this codec avoided this bug by supressing the header
-+ * older versions of this codec avoided this bug by suppressing the header
-  * entirely.  This means that files written with the old library cannot
-  * be read; they should be converted to a different compression scheme
-  * and then reconverted.
 --- a/frmts/zlib/deflate.h
 +++ b/frmts/zlib/deflate.h
 @@ -188,7 +188,7 @@ typedef struct internal_state {

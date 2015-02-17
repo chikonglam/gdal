@@ -38,7 +38,7 @@ Applied-Upstream: 2.0, http://trac.osgeo.org/gdal/changeset/28039
       sub-strings in the photooverlay field, and the imagepyramid_tilesize,
 --- a/ogr/ogrsf_frmts/libkml/ogrlibkmllayer.cpp
 +++ b/ogr/ogrsf_frmts/libkml/ogrlibkmllayer.cpp
-@@ -568,7 +568,7 @@ OGRErr OGRLIBKMLLayer::CreateFeature (
+@@ -571,7 +571,7 @@ OGRErr OGRLIBKMLLayer::CreateFeature (
              {
                  bAlreadyWarned = TRUE;
                  CPLError(CE_Warning, CPLE_AppDefined,
@@ -49,7 +49,7 @@ Applied-Upstream: 2.0, http://trac.osgeo.org/gdal/changeset/28039
          else
 --- a/ogr/ogrsf_frmts/osm/osm_parser.cpp
 +++ b/ogr/ogrsf_frmts/osm/osm_parser.cpp
-@@ -1907,7 +1907,7 @@ static void XMLCALL OSM_XML_startElement
+@@ -1908,7 +1908,7 @@ static void XMLCALL OSM_XML_startElement
      else if( psCtxt->bInRelation &&
               strcmp(pszName, "member") == 0 )
      {
@@ -58,7 +58,7 @@ Applied-Upstream: 2.0, http://trac.osgeo.org/gdal/changeset/28039
          /* to realloc over that value */
          if (psCtxt->sRelation.nMembers >= psCtxt->nMembersAllocated)
          {
-@@ -2248,7 +2248,7 @@ OSMContext* OSM_Open( const char* pszFil
+@@ -2249,7 +2249,7 @@ OSMContext* OSM_Open( const char* pszFil
          psCtxt->nTagsAllocated = 256;
          psCtxt->pasTags = (OSMTag*) VSIMalloc(sizeof(OSMTag) * psCtxt->nTagsAllocated);
  

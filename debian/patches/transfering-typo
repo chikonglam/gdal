@@ -16,7 +16,7 @@ Applied-Upstream: 2.0, http://trac.osgeo.org/gdal/changeset/28039
      * abort.  May need to revisit this behavior. */
 --- a/ogr/ogrsf_frmts/osm/ogrosmdatasource.cpp
 +++ b/ogr/ogrsf_frmts/osm/ogrosmdatasource.cpp
-@@ -3647,7 +3647,7 @@ int OGROSMDataSource::TransferToDiskIfNe
+@@ -3648,7 +3648,7 @@ int OGROSMDataSource::TransferToDiskIfNe
              CPLString osNewTmpDBName;
              osNewTmpDBName = CPLGenerateTempFilename("osm_tmp_nodes");
  
@@ -25,7 +25,7 @@ Applied-Upstream: 2.0, http://trac.osgeo.org/gdal/changeset/28039
                       osNodesFilename.c_str(), osNewTmpDBName.c_str());
  
              if( CPLCopyFile( osNewTmpDBName, osNodesFilename ) != 0 )
-@@ -3726,7 +3726,7 @@ int OGROSMDataSource::TransferToDiskIfNe
+@@ -3727,7 +3727,7 @@ int OGROSMDataSource::TransferToDiskIfNe
  
              osNewTmpDBName = CPLGenerateTempFilename("osm_tmp");
  

@@ -5,7 +5,7 @@ Applied-Upstream: 2.0, http://trac.osgeo.org/gdal/changeset/28039
 
 --- a/NEWS
 +++ b/NEWS
-@@ -1918,7 +1918,7 @@ Utilities:
+@@ -2067,7 +2067,7 @@ Utilities:
   * Add gdal_ls.py and gdal_cp.py as Python samples
   * Add new sample utility, gdal_edit.py, to edit in place various information of an existing GDAL dataset (projection, geotransform, nodata, metadata) (#4220)
   * gdalcopyproj.py: make it copy GCPs too
@@ -14,7 +14,7 @@ Applied-Upstream: 2.0, http://trac.osgeo.org/gdal/changeset/28039
   * Add --pause for convenient debugging, document it and --locale
  
  Multi-driver topics:
-@@ -2376,7 +2376,7 @@ Utilities:
+@@ -2525,7 +2525,7 @@ Utilities:
   * ogr2ogr: take into account fields specified in the -where clause in combinations with -select to create the correct list of fields to pass to SetIgnoredFields() (#4015)
   * ogr2ogr: fix -zfield option so that the modified geometry properly reports coordinate dimension = 3. Also avoids it to be in the list of ignored field names
   * ogr2ogr: add -simplify option to simplify geometries
@@ -23,7 +23,7 @@ Applied-Upstream: 2.0, http://trac.osgeo.org/gdal/changeset/28039
   * ogrinfo/ogr2ogr: exit when SetAttributeFilter() fails, instead of silently going on (#4261)
  
  Multi driver topics:
-@@ -2882,7 +2882,7 @@ Utilities :
+@@ -3031,7 +3031,7 @@ Utilities :
     to align on a standard grid (#3772)
  
  AAIGRID driver:
@@ -32,7 +32,7 @@ Applied-Upstream: 2.0, http://trac.osgeo.org/gdal/changeset/28039
     GDT_Float32 case; small optimization to avoid reading the first 100K when
     we know that the datatype is already Float32
   * Allow reading files where decimal separator is comma (#3668)
-@@ -2989,7 +2989,7 @@ GTX driver:
+@@ -3138,7 +3138,7 @@ GTX driver:
   * Read NOAA .gtx vertical datum shift files.
  
  GXF driver:
@@ -41,7 +41,7 @@ Applied-Upstream: 2.0, http://trac.osgeo.org/gdal/changeset/28039
     GDT_Float32 case
   * Introduce a GXF_DATATYPE configuration option that can be set to Float64
   * Use GDALGetScanline() instead of GDALGetRawScanline() so that #SENS
-@@ -3222,7 +3222,7 @@ Core:
+@@ -3371,7 +3371,7 @@ Core:
                       OGR_G_SymDifference() and OGR_G_UnionCascaded()
   * Add C function: OGR_F_StealGeometry()
   * Move Centroid() method from OGRPolygon to OGRGeometry base class to be able
@@ -50,7 +50,7 @@ Applied-Upstream: 2.0, http://trac.osgeo.org/gdal/changeset/28039
     ST_Centroid() capabilities and the underlying GEOS method
   * Make the GetStyleTable() SetStyleTable() SetStyleTableDirectly() methods on
     datasources and layers virtual (#2978)
-@@ -4313,7 +4313,7 @@ General:
+@@ -4462,7 +4462,7 @@ General:
          osr.ImportFromMICoordSys(), osr.ExportToMICoordSys(), SpatialReference.Clone()
          osr.EPSGTreatsAsLatLong(), osr.ImportFromEPSGA()
   * Make resampling an optionnal parameter for gdal.RegenerateOverview(),
@@ -59,7 +59,7 @@ Applied-Upstream: 2.0, http://trac.osgeo.org/gdal/changeset/28039
   * NONNULL checks have been added to check various arguments of methods
   * add missing constants : DCAP_VIRTUALIO, color interpretations, OGR constants
  
-@@ -4492,7 +4492,7 @@ Utilities:
+@@ -4641,7 +4641,7 @@ Utilities:
   * gdalinfo: Display checksums on overviews when -checksum is specified
   * gdalinfo: Display whether the mask band has overviews
   * ogr2ogr: reset -gt to 1 with -skipfailures, document -gt (#2409)
@@ -70,7 +70,7 @@ Applied-Upstream: 2.0, http://trac.osgeo.org/gdal/changeset/28039
   * gdal_rasterize: check that coordinates systems match (Ticket #1937)
 --- a/alg/gdaltransformer.cpp
 +++ b/alg/gdaltransformer.cpp
-@@ -776,7 +776,7 @@ retry:
+@@ -797,7 +797,7 @@ retry:
      
      
  /* -------------------------------------------------------------------- */
@@ -145,7 +145,7 @@ Applied-Upstream: 2.0, http://trac.osgeo.org/gdal/changeset/28039
          delete poDS;
 --- a/frmts/nitf/nitfimage.c
 +++ b/frmts/nitf/nitfimage.c
-@@ -3301,7 +3301,7 @@ static void NITFLoadLocationTable( NITFI
+@@ -3298,7 +3298,7 @@ static void NITFLoadLocationTable( NITFI
                      }
                      else
                      {
@@ -154,7 +154,7 @@ Applied-Upstream: 2.0, http://trac.osgeo.org/gdal/changeset/28039
                          bFoundValidLocation = FALSE;
                          break;
                      }
-@@ -3314,7 +3314,7 @@ static void NITFLoadLocationTable( NITFI
+@@ -3311,7 +3311,7 @@ static void NITFLoadLocationTable( NITFI
                      }
                      else
                      {
@@ -261,7 +261,7 @@ Applied-Upstream: 2.0, http://trac.osgeo.org/gdal/changeset/28039
                  chDelimiter = ',';
 --- a/swig/include/gdal_array.i
 +++ b/swig/include/gdal_array.i
-@@ -984,9 +984,9 @@ def BandReadAsArray( band, xoff = 0, yof
+@@ -990,9 +990,9 @@ def BandReadAsArray( band, xoff = 0, yof
              shape_buf_xsize = buf_obj.shape[2]
              shape_buf_ysize = buf_obj.shape[1]
          if buf_xsize is not None and buf_xsize != shape_buf_xsize:

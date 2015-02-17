@@ -3,7 +3,7 @@ Author: Francesco Paolo Lovergine <frankie@debian.org>, Alan Boudreault <aboudre
 Last-Update: 2012-02-01
 --- a/configure
 +++ b/configure
-@@ -21189,7 +21189,7 @@ fi
+@@ -21190,7 +21190,7 @@ fi
  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_mfhdf_SDreaddata" >&5
  $as_echo "$ac_cv_lib_mfhdf_SDreaddata" >&6; }
  if test "x$ac_cv_lib_mfhdf_SDreaddata" = xyes; then :
@@ -12,7 +12,7 @@ Last-Update: 2012-02-01
  else
    HDF_LIB_NAME=missing
  fi
-@@ -21249,7 +21249,7 @@ if ${ac_cv_lib_mfhdf_SDreaddata+:} false
+@@ -21250,7 +21250,7 @@ if ${ac_cv_lib_mfhdf_SDreaddata+:} false
    $as_echo_n "(cached) " >&6
  else
    ac_check_lib_save_LIBS=$LIBS
@@ -21,7 +21,7 @@ Last-Update: 2012-02-01
  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
  /* end confdefs.h.  */
  
-@@ -21280,7 +21280,7 @@ fi
+@@ -21281,7 +21281,7 @@ fi
  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_mfhdf_SDreaddata" >&5
  $as_echo "$ac_cv_lib_mfhdf_SDreaddata" >&6; }
  if test "x$ac_cv_lib_mfhdf_SDreaddata" = xyes; then :
@@ -30,7 +30,7 @@ Last-Update: 2012-02-01
  else
    HDF_LIB_NAME=missing
  fi
-@@ -21295,7 +21295,7 @@ if ${ac_cv_lib_mfhdf_SDreaddata+:} false
+@@ -21296,7 +21296,7 @@ if ${ac_cv_lib_mfhdf_SDreaddata+:} false
    $as_echo_n "(cached) " >&6
  else
    ac_check_lib_save_LIBS=$LIBS
@@ -39,7 +39,7 @@ Last-Update: 2012-02-01
  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
  /* end confdefs.h.  */
  
-@@ -21326,7 +21326,7 @@ fi
+@@ -21327,7 +21327,7 @@ fi
  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_mfhdf_SDreaddata" >&5
  $as_echo "$ac_cv_lib_mfhdf_SDreaddata" >&6; }
  if test "x$ac_cv_lib_mfhdf_SDreaddata" = xyes; then :

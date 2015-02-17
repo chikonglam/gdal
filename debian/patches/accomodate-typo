@@ -5,7 +5,7 @@ Applied-Upstream: 2.0, http://trac.osgeo.org/gdal/changeset/28039
 
 --- a/NEWS
 +++ b/NEWS
-@@ -3875,7 +3875,7 @@ GeoTIFF driver :
+@@ -4024,7 +4024,7 @@ GeoTIFF driver :
   * Use official value for inverse flattening of the WGS84 ellipsoid (#2787)
   * Add metadata domain for XML documents (#2786)
   * Make GTiff driver friendly with files with huge number of bands and pixel interleaving (#2838)
@@ -27,7 +27,7 @@ Applied-Upstream: 2.0, http://trac.osgeo.org/gdal/changeset/28039
             rmax=rmax*dscale;
 --- a/frmts/gtiff/geotiff.cpp
 +++ b/frmts/gtiff/geotiff.cpp
-@@ -1554,7 +1554,7 @@ CPLErr GTiffRasterBand::FillCacheForOthe
+@@ -1555,7 +1555,7 @@ CPLErr GTiffRasterBand::FillCacheForOthe
  /*      and O(nBands^2) performance !                                   */
  /*                                                                      */
  /*      If there are many bands and the block cache size is not big     */
@@ -47,28 +47,6 @@ Applied-Upstream: 2.0, http://trac.osgeo.org/gdal/changeset/28039
                  }
                  break;
  
---- a/frmts/gtiff/libtiff/tif_getimage.c
-+++ b/frmts/gtiff/libtiff/tif_getimage.c
-@@ -2541,7 +2541,7 @@ PickContigCase(TIFFRGBAImage* img)
- 					 * must always be <= horizontal subsampling; so
- 					 * there are only a few possibilities and we just
- 					 * enumerate the cases.
--					 * Joris: added support for the [1,2] case, nonetheless, to accomodate
-+					 * Joris: added support for the [1,2] case, nonetheless, to accommodate
- 					 * some OJPEG files
- 					 */
- 					uint16 SubsamplingHor;
---- a/frmts/gtiff/libtiff/tif_ojpeg.c
-+++ b/frmts/gtiff/libtiff/tif_ojpeg.c
-@@ -141,7 +141,7 @@
-  * OJPEG_BUFFER: Define the size of the desired buffer here. Should be small enough so as to guarantee
-  * 	instant processing, optimal streaming and optimal use of processor cache, but also big
-  * 	enough so as to not result in significant call overhead. It should be at least a few
-- * 	bytes to accomodate some structures (this is verified in asserts), but it would not be
-+ * 	bytes to accommodate some structures (this is verified in asserts), but it would not be
-  * 	sensible to make it this small anyway, and it should be at most 64K since it is indexed
-  * 	with uint16. We recommend 2K.
-  * EGYPTIANWALK: You could also define EGYPTIANWALK here, but it is not used anywhere and has
 --- a/man/man1/gdalwarp.1
 +++ b/man/man1/gdalwarp.1
 @@ -125,7 +125,7 @@ The source file name(s).
