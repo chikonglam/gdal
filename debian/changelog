@@ -1,12 +1,13 @@
-gdal (1.11.1+dfsg-1~exp3) UNRELEASED; urgency=medium
+gdal (1.11.2+dfsg-1~exp1) UNRELEASED; urgency=medium
 
+  * New upstream release.
   * Add upstream metadata.
   * Have python*-gdal suggest gdal-bin.
     (closes: #774243)
   * Update my email to @debian.org address.
   * Drop get-orig-source script in favor of uscan + Files-Excluded.
 
- -- Bas Couwenberg <sebastic@debian.org>  Fri, 28 Nov 2014 22:28:07 +0100
+ -- Bas Couwenberg <sebastic@debian.org>  Tue, 17 Feb 2015 23:31:13 +0100
 
 gdal (1.11.1+dfsg-1~exp2) experimental; urgency=medium
 
