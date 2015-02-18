@@ -8,6 +8,7 @@ gdal (1.11.2+dfsg-1~exp1) UNRELEASED; urgency=medium
   * Drop get-orig-source script in favor of uscan + Files-Excluded.
   * Refresh patches.
   * Update Vcs-Browser URL to use cgit instead of gitweb.
+  * Update copyright file, group files & copyright by license.
 
  -- Bas Couwenberg <sebastic@debian.org>  Tue, 17 Feb 2015 23:31:13 +0100
 
