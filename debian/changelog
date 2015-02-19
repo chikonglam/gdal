@@ -1,4 +1,4 @@
-gdal (1.11.2+dfsg-1~exp1) UNRELEASED; urgency=medium
+gdal (1.11.2+dfsg-1~exp1) experimental; urgency=medium
 
   * New upstream release.
   * Add upstream metadata.
@@ -12,7 +12,7 @@ gdal (1.11.2+dfsg-1~exp1) UNRELEASED; urgency=medium
   * Update openjpeg build dependency from 1.5 to 2.1.
     (closes: #761957)
 
- -- Bas Couwenberg <sebastic@debian.org>  Tue, 17 Feb 2015 23:31:13 +0100
+ -- Bas Couwenberg <sebastic@debian.org>  Thu, 19 Feb 2015 22:24:13 +0100
 
 gdal (1.11.1+dfsg-1~exp2) experimental; urgency=medium
 
