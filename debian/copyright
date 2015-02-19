@@ -22,8 +22,7 @@ Files-Excluded: data/cubewerx_extra.wkt
  data/esri_extra.wkt
 
 Files: *
-Copyright:
-                   2007-2014, Even Rouault <even dot rouault at mines-paris dot org>
+Copyright:         2007-2014, Even Rouault <even dot rouault at mines-paris dot org>
                    2009-2014, Martin Landa <landa.martin gmail.com>
              2010, 2013-2014, Kyle Shannon <kyle at pobox dot com>
                   2004, 2014, Pirmin Kalberer, Sourcepole AG
