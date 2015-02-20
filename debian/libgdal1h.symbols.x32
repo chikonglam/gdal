@@ -2361,6 +2361,8 @@ libgdal.so.1 libgdal1h #MINVER#
  (c++)"std::vector<std::pair<double, double>, std::allocator<std::pair<double, double> > >::vector(std::vector<std::pair<double, double>, std::allocator<std::pair<double, double> > > const&)@GDAL_1.8" 1.10.1 1
  (c++)"std::vector<std::pair<double, double>, std::allocator<std::pair<double, double> > >::vector(std::vector<std::pair<double, double>, std::allocator<std::pair<double, double> > > const&)@GDAL_1.8" 1.10.1 1
  (c++)"std::vector<std::pair<double, double>, std::allocator<std::pair<double, double> > >::operator=(std::vector<std::pair<double, double>, std::allocator<std::pair<double, double> > > const&)@GDAL_1.8" 1.10.1 1
+ (c++)"std::vector<std::pair<int, int>, std::allocator<std::pair<int, int> > >::_M_insert_aux(__gnu_cxx::__normal_iterator<std::pair<int, int>*, std::vector<std::pair<int, int>, std::allocator<std::pair<int, int> > > >, std::pair<int, int> const&)@GDAL_1.8" 1.11.2 1
+ (c++)"std::vector<std::pair<int, int>, std::allocator<std::pair<int, int> > >::operator=(std::vector<std::pair<int, int>, std::allocator<std::pair<int, int> > > const&)@GDAL_1.8" 1.11.2 1
  (c++)"std::vector<bool, std::allocator<bool> >::_M_fill_insert(std::_Bit_iterator, unsigned int, bool)@GDAL_1.8" 1.10.1 1
  (c++)"std::vector<double, std::allocator<double> >::_M_insert_aux(__gnu_cxx::__normal_iterator<double*, std::vector<double, std::allocator<double> > >, double const&)@GDAL_1.8" 1.10.1 1
  (c++)"std::vector<double, std::allocator<double> >::_M_fill_insert(__gnu_cxx::__normal_iterator<double*, std::vector<double, std::allocator<double> > >, unsigned int, double const&)@GDAL_1.8" 1.10.1 1
