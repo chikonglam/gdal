@@ -1,3 +1,9 @@
+gdal (1.11.2+dfsg-1~exp2~trusty) trusty; urgency=medium
+
+  * Trusty build
+
+ -- Johan Van de Wauw <johan.vandewauw@gmail.com>  Thu, 12 Mar 2015 01:23:30 +0100
+
 gdal (1.11.2+dfsg-1~exp2~utopic2) utopic; urgency=medium
 
   * Use openjpeg for <vivid
