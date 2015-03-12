@@ -1,4 +1,10 @@
-gdal (1.11.2+dfsg-1~exp2-utopic) utopic; urgency=medium
+gdal (1.11.2+dfsg-1~exp2~utopic2) utopic; urgency=medium
+
+  * Use openjpeg for <vivid
+
+ -- Johan Van de Wauw <johan.vandewauw@gmail.com>  Wed, 04 Mar 2015 00:15:35 +0100
+
+gdal (1.11.2+dfsg-1~exp2~utopic) utopic; urgency=medium
 
   * Utopic build 
 
