@@ -1,8 +1,8 @@
-gdal (1.11.2+dfsg-1~exp3) UNRELEASED; urgency=medium
+gdal (1.11.2+dfsg-1~exp3) experimental; urgency=medium
 
   * Use packaged jquery.js instead of Doxygen copy.
 
- -- Bas Couwenberg <sebastic@debian.org>  Sat, 23 May 2015 16:05:43 +0200
+ -- Bas Couwenberg <sebastic@debian.org>  Sat, 23 May 2015 16:43:16 +0200
 
 gdal (1.11.2+dfsg-1~exp2) experimental; urgency=medium
 
