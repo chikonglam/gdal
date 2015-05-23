@@ -10,6 +10,7 @@ gdal (1.10.1+dfsg-9) UNRELEASED; urgency=medium
   * Use uscan in get-orig-source target.
   * Update Vcs-Browser URL to use cgit instead of gitweb.
   * Remove trailing whitespace to fix syntax error in symbols files.
+  * Use packaged jquery.js instead of Doxygen copy.
 
  -- Bas Couwenberg <sebastic@debian.org>  Sun, 28 Jun 2015 12:01:44 +0200
 

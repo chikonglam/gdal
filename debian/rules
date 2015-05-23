@@ -170,7 +170,10 @@ override_dh_auto_install:
 
 	# removing la file
 	rm -f $(CURDIR)/debian/tmp/usr/lib/libgdal.la
-	
+
+	# Remove doxygen jquery.js copy in favor of libjs-jquery
+	rm -f $(CURDIR)/debian/*/usr/share/doc/libgdal-doc/*/jquery.js
+
 	# removing embedded rpath in main lib
 	-find $(CURDIR)/debian/tmp/usr/lib -type f -name "*.so*" -exec chrpath --delete {} \;
 
