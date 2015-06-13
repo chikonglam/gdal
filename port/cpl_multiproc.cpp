@@ -1,5 +1,5 @@
 /**********************************************************************
- * $Id: cpl_multiproc.cpp 28471 2015-02-12 21:16:10Z rouault $
+ * $Id: cpl_multiproc.cpp 29269 2015-06-01 13:23:14Z rouault $
  *
  * Project:  CPL - Common Portability Library
  * Purpose:  CPL Multi-Threading, and process handling portability functions.
@@ -42,7 +42,7 @@
 #  include <wce_time.h>
 #endif
 
-CPL_CVSID("$Id: cpl_multiproc.cpp 28471 2015-02-12 21:16:10Z rouault $");
+CPL_CVSID("$Id: cpl_multiproc.cpp 29269 2015-06-01 13:23:14Z rouault $");
 
 #if defined(CPL_MULTIPROC_STUB) && !defined(DEBUG)
 #  define MUTEX_NONE
@@ -2001,6 +2001,9 @@ CPLLock *CPLCreateLock( CPLLockType eType )
             CPLLock* psLock = (CPLLock*)malloc(sizeof(CPLLock));
             psLock->eType = eType;
             psLock->u.hMutex = hMutex;
+#ifdef DEBUG_CONTENTION
+            psLock->bDebugPerf = FALSE;
+#endif
             return psLock;
         }
         case LOCK_SPIN:
@@ -2011,6 +2014,9 @@ CPLLock *CPLCreateLock( CPLLockType eType )
             CPLLock* psLock = (CPLLock*)malloc(sizeof(CPLLock));
             psLock->eType = eType;
             psLock->u.hSpinLock = hSpinLock;
+#ifdef DEBUG_CONTENTION
+            psLock->bDebugPerf = FALSE;
+#endif
             return psLock;
         }
         default:

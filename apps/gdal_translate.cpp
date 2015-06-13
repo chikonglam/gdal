@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdal_translate.cpp 29144 2015-05-04 09:22:47Z rouault $
+ * $Id: gdal_translate.cpp 29259 2015-05-28 22:21:55Z rouault $
  *
  * Project:  GDAL Utilities
  * Purpose:  GDAL Image Translator Program
@@ -36,7 +36,7 @@
 #include "vrtdataset.h"
 #include "commonutils.h"
 
-CPL_CVSID("$Id: gdal_translate.cpp 29144 2015-05-04 09:22:47Z rouault $");
+CPL_CVSID("$Id: gdal_translate.cpp 29259 2015-05-28 22:21:55Z rouault $");
 
 static int ArgIsNumeric( const char * );
 static void AttachMetadata( GDALDatasetH, char ** );
@@ -1599,6 +1599,14 @@ static int ProxyMain( int argc, char ** argv )
                                          anDstWin[0], anDstWin[1],
                                          anDstWin[2], anDstWin[3]);
             continue;
+        }
+
+        // Preserve nbits if no option change values
+        const char* pszNBits = poSrcBand->GetMetadataItem("NBITS", "IMAGE_STRUCTURE");
+        if( pszNBits && nRGBExpand == 0 && nScaleRepeat == 0 &&
+            !bUnscale && eOutputType == GDT_Unknown && pszResampling == NULL )
+        {
+            poVRTBand->SetMetadataItem("NBITS", pszNBits, "IMAGE_STRUCTURE");
         }
 
 /* -------------------------------------------------------------------- */

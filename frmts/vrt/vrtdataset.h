@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: vrtdataset.h 28899 2015-04-14 09:27:00Z rouault $
+ * $Id: vrtdataset.h 29294 2015-06-05 08:52:15Z rouault $
  *
  * Project:  Virtual GDAL Datasets
  * Purpose:  Declaration of virtual gdal dataset classes.
@@ -191,6 +191,8 @@ class CPL_DLL VRTDataset : public GDALDataset
 
     /* Used by PDF driver for example */
     GDALDataset*        GetSingleSimpleSource();
+    
+    void                UnsetPreservedRelativeFilenames();
  
     static int          Identify( GDALOpenInfo * );
     static GDALDataset *Open( GDALOpenInfo * );
@@ -606,6 +608,9 @@ protected:
     int                 bNoDataSet;
     double              dfNoDataValue;
     CPLString           osResampling;
+    
+    int                 bRelativeToVRTOri;
+    CPLString           osSourceFileNameOri;
 
 public:
             VRTSimpleSource();
@@ -669,6 +674,8 @@ public:
                                GSpacing nPixelSpace, GSpacing nLineSpace,
                                GSpacing nBandSpace,
                                GDALRasterIOExtraArg* psExtraArg);
+
+    void             UnsetPreservedRelativeFilenames();
 };
 
 /************************************************************************/

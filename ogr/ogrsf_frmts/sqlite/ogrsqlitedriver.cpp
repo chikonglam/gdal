@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrsqlitedriver.cpp 28612 2015-03-04 15:22:08Z rouault $
+ * $Id: ogrsqlitedriver.cpp 29265 2015-05-29 10:49:34Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implements OGRSQLiteDriver class.
@@ -42,7 +42,7 @@
 #include "spatialite.h"
 #endif
 
-CPL_CVSID("$Id: ogrsqlitedriver.cpp 28612 2015-03-04 15:22:08Z rouault $");
+CPL_CVSID("$Id: ogrsqlitedriver.cpp 29265 2015-05-29 10:49:34Z rouault $");
 
 /************************************************************************/
 /*                          OGRSQLiteDriverUnload()                     */
@@ -78,7 +78,11 @@ static int OGRSQLiteDriverIdentify( GDALOpenInfo* poOpenInfo )
     if( poOpenInfo->nHeaderBytes < 16 )
         return FALSE;
 
-    return( strncmp( (const char*)poOpenInfo->pabyHeader, "SQLite format 3", 15 ) == 0 );
+    if( strncmp( (const char*)poOpenInfo->pabyHeader, "SQLite format 3", 15 ) != 0 )
+        return FALSE;
+    
+    // Could be a Rasterlite file as well
+    return -1;
 }
 
 /************************************************************************/
@@ -88,7 +92,7 @@ static int OGRSQLiteDriverIdentify( GDALOpenInfo* poOpenInfo )
 static GDALDataset *OGRSQLiteDriverOpen( GDALOpenInfo* poOpenInfo )
 
 {
-    if( !OGRSQLiteDriverIdentify(poOpenInfo) )
+    if( OGRSQLiteDriverIdentify(poOpenInfo) == FALSE )
         return NULL;
 
 /* -------------------------------------------------------------------- */

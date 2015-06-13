@@ -1,5 +1,5 @@
 /*
- * $Id: keacopy.h 28011 2014-11-26 13:47:09Z rouault $
+ * $Id: keacopy.h 29258 2015-05-28 22:08:43Z rouault $
  *  keacopy.h
  *
  *  Created by Pete Bunting on 01/08/2012.
@@ -31,6 +31,10 @@
 #ifndef KEACOPY_H
 #define KEACOPY_H
 
+#include "gdal_priv.h"
+#if defined(USE_GCC_VISIBILITY_FLAG) && !defined(DllExport)
+#define DllExport CPL_DLL
+#endif
 #include "libkea/KEAImageIO.h"
 
 bool KEACopyFile( GDALDataset *pDataset, kealib::KEAImageIO *pImageIO, GDALProgressFunc pfnProgress, void *pProgressData );

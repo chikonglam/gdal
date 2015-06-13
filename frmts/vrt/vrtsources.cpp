@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: vrtsources.cpp 29204 2015-05-16 21:49:02Z rouault $
+ * $Id: vrtsources.cpp 29294 2015-06-05 08:52:15Z rouault $
  *
  * Project:  Virtual GDAL Datasets
  * Purpose:  Implementation of VRTSimpleSource, VRTFuncSource and 
@@ -43,7 +43,7 @@
 #define isnan std::isnan
 #endif
 
-CPL_CVSID("$Id: vrtsources.cpp 29204 2015-05-16 21:49:02Z rouault $");
+CPL_CVSID("$Id: vrtsources.cpp 29294 2015-06-05 08:52:15Z rouault $");
 
 /************************************************************************/
 /* ==================================================================== */
@@ -83,6 +83,7 @@ VRTSimpleSource::VRTSimpleSource()
     poMaskBandMainBand = NULL;
     bNoDataSet = FALSE;
     dfNoDataValue = VRT_NODATA_UNSET;
+    bRelativeToVRTOri = -1;
 }
 
 /************************************************************************/
@@ -109,6 +110,16 @@ VRTSimpleSource::~VRTSimpleSource()
         else
             poRasterBand->GetDataset()->Dereference();
     }
+}
+
+/************************************************************************/
+/*                    UnsetPreservedRelativeFilenames()                 */
+/************************************************************************/
+
+void VRTSimpleSource::UnsetPreservedRelativeFilenames()
+{
+    bRelativeToVRTOri = -1;
+    osSourceFileNameOri = "";
 }
 
 /************************************************************************/
@@ -230,7 +241,12 @@ CPLXMLNode *VRTSimpleSource::SerializeToXML( const char *pszVRTPath )
 
     VSIStatBufL sStat;
     CPLString osTmp;
-    if ( strstr(poDS->GetDescription(), "/vsicurl/http") != NULL ||
+    if( bRelativeToVRTOri >= 0 )
+    {
+        pszRelativePath = osSourceFileNameOri;
+        bRelativeToVRT = bRelativeToVRTOri;
+    }
+    else if ( strstr(poDS->GetDescription(), "/vsicurl/http") != NULL ||
          strstr(poDS->GetDescription(), "/vsicurl/ftp") != NULL )
     {
         /* Testing the existence of remote resources can be excruciating */
@@ -386,8 +402,13 @@ CPLErr VRTSimpleSource::XMLInit( CPLXMLNode *psSrc, const char *pszVRTPath )
         return CE_Failure;
     }
     
+    // Backup original filename and relativeToVRT so as to be able to
+    // serialize them identically again (#5985)
+    osSourceFileNameOri = pszFilename;
+    bRelativeToVRTOri = atoi(CPLGetXMLValue( psSourceFileNameNode, "relativetoVRT", "0"));
+    
     if( pszVRTPath != NULL
-        && atoi(CPLGetXMLValue( psSourceFileNameNode, "relativetoVRT", "0")) )
+        && bRelativeToVRTOri )
     {
         int bDone = FALSE;
         for( size_t i = 0; i < sizeof(apszSpecialSyntax) / sizeof(apszSpecialSyntax[0]); i ++)

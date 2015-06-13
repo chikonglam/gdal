@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdal_priv.h 29097 2015-05-01 20:13:36Z rouault $
+ * $Id: gdal_priv.h 29284 2015-06-03 13:26:10Z rouault $
  *
  * Name:     gdal_priv.h
  * Project:  GDAL Core
@@ -350,6 +350,10 @@ class CPL_DLL GDALDataset : public GDALMajorObject
 
     friend class GDALRasterBand;
     
+    int                 EnterReadWrite(GDALRWFlag eRWFlag);
+    void                LeaveReadWrite();
+    
+    
   public:
     virtual     ~GDALDataset();
 
@@ -639,7 +643,7 @@ class CPL_DLL GDALRasterBand : public GDALMajorObject
     GDALRasterBand *poMask;
     bool        bOwnMask;
     int         nMaskFlags;
-    
+
     void        InvalidateMaskBand();
 
     friend class GDALDataset;
@@ -649,6 +653,10 @@ class CPL_DLL GDALRasterBand : public GDALMajorObject
     CPLErr RasterIOResampled( GDALRWFlag, int, int, int, int,
                               void *, int, int, GDALDataType,
                               GSpacing, GSpacing, GDALRasterIOExtraArg* psExtraArg );
+
+    int          EnterReadWrite(GDALRWFlag eRWFlag);
+    void         LeaveReadWrite();
+
   protected:
     virtual CPLErr IReadBlock( int, int, void * ) = 0;
     virtual CPLErr IWriteBlock( int, int, void * );

@@ -32,7 +32,7 @@
 
 // g++ -fPIC -g -Wall ogr/ogrsf_frmts/wfs/*.cpp -shared -o ogr_WFS.so -Iport -Igcore -Iogr -Iogr/ogrsf_frmts -Iogr/ogrsf_frmts/gml -Iogr/ogrsf_frmts/wfs -L. -lgdal
 
-CPL_CVSID("$Id: ogrwfsdriver.cpp 29241 2015-05-24 10:58:54Z rouault $");
+CPL_CVSID("$Id: ogrwfsdriver.cpp 29273 2015-06-02 08:08:38Z rouault $");
 
 extern "C" void RegisterOGRWFS();
 
@@ -113,6 +113,7 @@ void RegisterOGRWFS()
 "    <Value>YES</Value>"
 "    <Value>NO</Value>"
 "  </Option>"
+"  <Option name='EXPOSE_GML_ID' type='boolean' description='Whether to make feature gml:id as a gml_id attribute.' default='YES'/>"
 "</OpenOptionList>" );
 
         poDriver->SetMetadataItem( GDAL_DCAP_VIRTUALIO, "YES" );

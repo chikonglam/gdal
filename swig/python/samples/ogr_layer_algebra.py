@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #******************************************************************************
-#  $Id: ogr_layer_algebra.py 28391 2015-01-30 19:57:31Z rouault $
+#  $Id: ogr_layer_algebra.py 29254 2015-05-27 12:45:56Z rouault $
 # 
 #  Project:  GDAL Python Interface
 #  Purpose:  Application for executing OGR layer algebra operations
@@ -131,7 +131,7 @@ def main(argv = None):
     opt = []
     overwrite = False
     input_fields = 'ALL'
-    method_fields = 'ALL'
+    method_fields = None
     geom_type = ogr.wkbUnknown
     srs_name = None
     srs = None
@@ -286,6 +286,12 @@ def main(argv = None):
        output_ds_name is None or \
        op_str is None:
            return Usage()
+
+    if method_fields is None:
+        if op_str in ( 'Update', 'Clip', 'Erase' ):
+            method_fields = 'NONE'
+        else:
+            method_fields = 'ALL'
 
     if input_fields == 'NONE' and method_fields == 'NONE':
         print('Warning: -input_fields NONE and -method_fields NONE results in all fields being added')

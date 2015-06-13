@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrsuadriver.cpp 27384 2014-05-24 12:28:12Z rouault $
+ * $Id: ogrsuadriver.cpp 29253 2015-05-27 08:49:16Z rouault $
  *
  * Project:  SUA Translator
  * Purpose:  Implements OGRSUADriver.
@@ -30,7 +30,7 @@
 #include "ogr_sua.h"
 #include "cpl_conv.h"
 
-CPL_CVSID("$Id: ogrsuadriver.cpp 27384 2014-05-24 12:28:12Z rouault $");
+CPL_CVSID("$Id: ogrsuadriver.cpp 29253 2015-05-27 08:49:16Z rouault $");
 
 extern "C" void RegisterOGRSUA();
 
@@ -51,7 +51,42 @@ static GDALDataset *OGRSUADriverOpen( GDALOpenInfo* poOpenInfo )
             (strstr((const char*)poOpenInfo->pabyHeader, "\nPOINT=") != NULL ||
             strstr((const char*)poOpenInfo->pabyHeader, "\nCIRCLE ") != NULL));
     if( !bIsSUA )
-        return NULL;
+    {
+        /* Some files such http://soaringweb.org/Airspace/CZ/CZ_combined_2014_05_01.sua */
+        /* have very long comments in the header, so we will have to check */
+        /* further, but only do this is we have a hint that the file might be */
+        /* a candidate */
+        int nLen = poOpenInfo->nHeaderBytes;
+        if( nLen < 10000 )
+            return NULL;
+        /* Check the 'Airspace' word in the header */
+        if( strstr((const char*)poOpenInfo->pabyHeader, "Airspace") == NULL )
+            return NULL;
+        // Check that the header is at least UTF-8
+        // but do not take into account partial UTF-8 characters at the end
+        int nTruncated = 0;
+        while(nLen > 0)
+        {
+            if( (poOpenInfo->pabyHeader[nLen-1] & 0xc0) != 0x80 )
+            {
+                break;
+            }
+            nLen --;
+            nTruncated ++;
+            if( nTruncated == 7 )
+                return NULL;
+        }
+        if( !CPLIsUTF8((const char*)poOpenInfo->pabyHeader, nLen) )
+            return NULL;
+        if( !poOpenInfo->TryToIngest(30000) )
+            return NULL;
+        bIsSUA = ( strstr((const char*)poOpenInfo->pabyHeader, "\nTYPE=") != NULL &&
+                   strstr((const char*)poOpenInfo->pabyHeader, "\nTITLE=") != NULL &&
+                   (strstr((const char*)poOpenInfo->pabyHeader, "\nPOINT=") != NULL ||
+                   strstr((const char*)poOpenInfo->pabyHeader, "\nCIRCLE ") != NULL) );
+        if( !bIsSUA )
+            return NULL;
+    }
 
     OGRSUADataSource   *poDS = new OGRSUADataSource();
 

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: vrtdataset.cpp 29192 2015-05-14 10:07:42Z rouault $
+ * $Id: vrtdataset.cpp 29294 2015-06-05 08:52:15Z rouault $
  *
  * Project:  Virtual GDAL Datasets
  * Purpose:  Implementation of VRTDataset
@@ -33,7 +33,7 @@
 #include "cpl_minixml.h"
 #include "ogr_spatialref.h"
 
-CPL_CVSID("$Id: vrtdataset.cpp 29192 2015-05-14 10:07:42Z rouault $");
+CPL_CVSID("$Id: vrtdataset.cpp 29294 2015-06-05 08:52:15Z rouault $");
 
 /************************************************************************/
 /*                            VRTDataset()                             */
@@ -1371,4 +1371,29 @@ CPLErr VRTDataset::IRasterIO( GDALRWFlag eRWFlag,
                                   eBufType,
                                   nBandCount, panBandMap,
                                   nPixelSpace, nLineSpace, nBandSpace, psExtraArg);
+}
+
+/************************************************************************/
+/*                  UnsetPreservedRelativeFilenames()                   */
+/************************************************************************/
+
+void VRTDataset::UnsetPreservedRelativeFilenames()
+{
+    for(int iBand = 0; iBand < nBands; iBand++)
+    {
+        if (!((VRTRasterBand *) papoBands[iBand])->IsSourcedRasterBand())
+            continue;
+
+        VRTSourcedRasterBand* poBand = (VRTSourcedRasterBand* )papoBands[iBand];
+        int nSources = poBand->nSources;
+        VRTSource** papoSources = poBand->papoSources;
+        for(int iSource = 0; iSource < nSources; iSource++)
+        {
+            if (!papoSources[iSource]->IsSimpleSource())
+                continue;
+
+            VRTSimpleSource* poSource = (VRTSimpleSource* )papoSources[iSource];
+            poSource->UnsetPreservedRelativeFilenames();
+        }
+    }
 }

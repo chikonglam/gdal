@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdalrasterblock.cpp 28894 2015-04-13 14:55:20Z rouault $
+ * $Id: gdalrasterblock.cpp 29284 2015-06-03 13:26:10Z rouault $
  *
  * Project:  GDAL Core
  * Purpose:  Implementation of GDALRasterBlock class and related global 
@@ -32,7 +32,7 @@
 #include "gdal_priv.h"
 #include "cpl_multiproc.h"
 
-CPL_CVSID("$Id: gdalrasterblock.cpp 28894 2015-04-13 14:55:20Z rouault $");
+CPL_CVSID("$Id: gdalrasterblock.cpp 29284 2015-06-03 13:26:10Z rouault $");
 
 static int bCacheMaxInitialized = FALSE;
 static GIntBig nCacheMax = 40 * 1024*1024;
@@ -371,11 +371,6 @@ int GDALRasterBlock::FlushCacheBlock(int bDirtyBlocksOnly)
         poTarget->GetBand()->UnreferenceBlock(poTarget->GetXOff(),poTarget->GetYOff());
     }
 
-    /* Note: flushing dirty blocks to disk is not really safe */
-    /* if the underlying dataset is being read/written by another thread */
-    /* This issue has always existed and has no obvious fix */
-    /* So only read-only operations should be considered thread-safe with */
-    /* the global cache */
     if( poTarget->GetDirty() )
     {
         CPLErr eErr = poTarget->Write();
@@ -599,7 +594,12 @@ CPLErr GDALRasterBlock::Write()
     MarkClean();
 
     if (poBand->eFlushBlockErr == CE_None)
-        return poBand->IWriteBlock( nXOff, nYOff, pData );
+    {
+        int bCallLeaveReadWrite = poBand->EnterReadWrite(GF_Write);
+        CPLErr eErr = poBand->IWriteBlock( nXOff, nYOff, pData );
+        if( bCallLeaveReadWrite ) poBand->LeaveReadWrite();
+        return eErr;
+    }
     else
         return poBand->eFlushBlockErr;
 }
@@ -745,11 +745,6 @@ CPLErr GDALRasterBlock::Internalize()
     {
         GDALRasterBlock *poBlock = apoBlocksToFree[i];
 
-        /* Note: flushing dirty blocks to disk is not really safe */
-        /* if the underlying dataset is being read/written by another thread */
-        /* This issue has always existed and has no obvious fix */
-        /* So only read-only operations should be considered thread-safe with */
-        /* the global cache */
         if( poBlock->GetDirty() )
         {
             CPLErr eErr = poBlock->Write();
