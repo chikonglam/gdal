@@ -3,11 +3,14 @@ include ../../GDALmake.opt
 
 OBJ	=	openjpegdataset.o
 
-CPPFLAGS	:=	$(GDAL_INCLUDE) $(CPPFLAGS)
+
 
 ifneq ($(OPENJPEG_VERSION),)
-CPPFLAGS        :=      $(CPPFLAGS) -DOPENJPEG_VERSION=$(OPENJPEG_VERSION)
+CPPFLAGS 	:=	$(CPPFLAGS) -DOPENJPEG_VERSION=$(OPENJPEG_VERSION)
 endif
+
+CPPFLAGS        :=       -I.. $(CPPFLAGS)
+
 
 default:	$(OBJ:.o=.$(OBJ_EXT))
 

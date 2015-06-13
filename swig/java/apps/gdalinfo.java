@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdalinfo.java 25229 2012-11-16 19:06:58Z rouault $
+ * $Id: gdalinfo.java 28051 2014-12-03 18:59:00Z goatbar $
  *
  * Name:     gdalinfo.java
  * Project:  GDAL SWIG Interface
@@ -74,7 +74,7 @@ public class gdalinfo {
 			double[] adfGeoTransform = new double[6];
 			Driver hDriver;
 			Vector papszMetadata;
-			boolean bComputeMinMax = false, bSample = false;
+			boolean bComputeMinMax = false /* , bSample = false */;
 			boolean bShowGCPs = true, bShowMetadata = true;
 			boolean bStats = false, bApproxStats = true;
                         boolean bShowColorTable = true, bComputeChecksum = false;

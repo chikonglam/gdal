@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: hdf4imagedataset.cpp 27044 2014-03-16 23:41:27Z rouault $
+ * $Id: hdf4imagedataset.cpp 28459 2015-02-12 13:48:21Z rouault $
  *
  * Project:  Hierarchical Data Format Release 4 (HDF4)
  * Purpose:  Read subdatasets of HDF4 file.
@@ -47,7 +47,7 @@
 
 #include "nasakeywordhandler.h"
 
-CPL_CVSID("$Id: hdf4imagedataset.cpp 27044 2014-03-16 23:41:27Z rouault $");
+CPL_CVSID("$Id: hdf4imagedataset.cpp 28459 2015-02-12 13:48:21Z rouault $");
 
 CPL_C_START
 void    GDALRegister_HDF4(void);
@@ -59,7 +59,7 @@ CPL_C_END
 const char      *pszGDALSignature =
         "Created with GDAL (http://www.remotesensing.org/gdal/)";
 
-extern void *hHDF4Mutex;
+extern CPLMutex *hHDF4Mutex;
 
 /************************************************************************/
 /* ==================================================================== */
@@ -1219,14 +1219,14 @@ void HDF4ImageDataset::CaptureL1GMTLInfo()
     else
         return;
 
-    dfULX = atof(oMTL.GetKeyword((osPrefix+"UL_CORNER_LON").c_str(), "0" ));
-    dfULY = atof(oMTL.GetKeyword((osPrefix+"UL_CORNER_LAT").c_str(), "0" ));
-    dfLRX = atof(oMTL.GetKeyword((osPrefix+"LR_CORNER_LON").c_str(), "0" ));
-    dfLRY = atof(oMTL.GetKeyword((osPrefix+"LR_CORNER_LAT").c_str(), "0" ));
-    dfLLX = atof(oMTL.GetKeyword((osPrefix+"LL_CORNER_LON").c_str(), "0" ));
-    dfLLY = atof(oMTL.GetKeyword((osPrefix+"LL_CORNER_LAT").c_str(), "0" ));
-    dfURX = atof(oMTL.GetKeyword((osPrefix+"UR_CORNER_LON").c_str(), "0" ));
-    dfURY = atof(oMTL.GetKeyword((osPrefix+"UR_CORNER_LAT").c_str(), "0" ));
+    dfULX = CPLAtof(oMTL.GetKeyword((osPrefix+"UL_CORNER_LON").c_str(), "0" ));
+    dfULY = CPLAtof(oMTL.GetKeyword((osPrefix+"UL_CORNER_LAT").c_str(), "0" ));
+    dfLRX = CPLAtof(oMTL.GetKeyword((osPrefix+"LR_CORNER_LON").c_str(), "0" ));
+    dfLRY = CPLAtof(oMTL.GetKeyword((osPrefix+"LR_CORNER_LAT").c_str(), "0" ));
+    dfLLX = CPLAtof(oMTL.GetKeyword((osPrefix+"LL_CORNER_LON").c_str(), "0" ));
+    dfLLY = CPLAtof(oMTL.GetKeyword((osPrefix+"LL_CORNER_LAT").c_str(), "0" ));
+    dfURX = CPLAtof(oMTL.GetKeyword((osPrefix+"UR_CORNER_LON").c_str(), "0" ));
+    dfURY = CPLAtof(oMTL.GetKeyword((osPrefix+"UR_CORNER_LAT").c_str(), "0" ));
 
     CPLFree( pszGCPProjection );
     pszGCPProjection = CPLStrdup( "GEOGCS[\"WGS 84\",DATUM[\"WGS_1984\",SPHEROID[\"WGS 84\",6378137,298.257223563,AUTHORITY[\"EPSG\",\"7030\"]],TOWGS84[0,0,0,0,0,0,0],AUTHORITY[\"EPSG\",\"6326\"]],PRIMEM[\"Greenwich\",0,AUTHORITY[\"EPSG\",\"8901\"]],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9108\"]],AXIS[\"Lat\",NORTH],AXIS[\"Long\",EAST],AUTHORITY[\"EPSG\",\"4326\"]]" );
@@ -2602,8 +2602,11 @@ GDALDataset *HDF4ImageDataset::Open( GDALOpenInfo * poOpenInfo )
     HDF4ImageDataset    *poDS;
 
     poDS = new HDF4ImageDataset( );
-    poDS->fp = poOpenInfo->fp;
-    poOpenInfo->fp = NULL;
+    if( poOpenInfo->fpL != NULL )
+    {
+        VSIFCloseL(poOpenInfo->fpL);
+        poOpenInfo->fpL = NULL;
+    }
     
     CPLMutexHolderD(&hHDF4Mutex);
 
@@ -2695,7 +2698,7 @@ GDALDataset *HDF4ImageDataset::Open( GDALOpenInfo * poOpenInfo )
 /*      Try opening the dataset.                                        */
 /* -------------------------------------------------------------------- */
     int32       iAttribute, nValues, iAttrNumType;
-    double      dfNoData, dfScale, dfOffset;
+    double      dfNoData = 0, dfScale = 1, dfOffset = 0;
     int         bNoDataSet = FALSE, bHaveScale = FALSE, bHaveOffset = FALSE;
     const char  *pszUnits = NULL, *pszDescription = NULL;
 
@@ -3451,7 +3454,7 @@ GDALDataset *HDF4ImageDataset::Open( GDALOpenInfo * poOpenInfo )
               char *pszString = (char *) pszValue;
               while ( *pszValue && i < 6 )
               {
-                  poDS->adfGeoTransform[i++] = strtod(pszString, &pszString);
+                  poDS->adfGeoTransform[i++] = CPLStrtod(pszString, &pszString);
                   pszString++;
               }
               poDS->bHasGeoTransform = TRUE;
@@ -3807,6 +3810,7 @@ void GDALRegister_HDF4Image()
         poDriver = new GDALDriver();
         
         poDriver->SetDescription( "HDF4Image" );
+        poDriver->SetMetadataItem( GDAL_DCAP_RASTER, "YES" );
         poDriver->SetMetadataItem( GDAL_DMD_LONGNAME, 
                                    "HDF4 Dataset" );
         poDriver->SetMetadataItem( GDAL_DMD_HELPTOPIC, 

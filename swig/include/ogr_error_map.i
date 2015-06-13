@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_error_map.i 12444 2007-10-16 17:48:23Z ajolma $
+ * $Id: ogr_error_map.i 28809 2015-03-28 17:10:07Z rouault $
  *
  * Project:  GDAL SWIG Interfaces.
  * Purpose:  OGRErr handling typemap.
@@ -56,6 +56,8 @@ OGRErrMessages( int rc ) {
     return "OGR Error: Unsupported SRS";
   case OGRERR_INVALID_HANDLE:
     return "OGR Error: Invalid handle";
+  case OGRERR_NON_EXISTING_FEATURE:
+    return "OGR Error: Non existing feature";
   default:
     return "OGR Error: Unknown";
   }

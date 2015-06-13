@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 ###############################################################################
-# $Id: gdal2grd.py 27044 2014-03-16 23:41:27Z rouault $
+# $Id: gdal2grd.py 28391 2015-01-30 19:57:31Z rouault $
 #
 # Project:  GDAL Python samples
 # Purpose:  Script to write out ASCII GRD rasters (used in Golden Software
@@ -33,18 +33,9 @@
 
 try:
     from osgeo import gdal
-    from osgeo.gdalconst import *
     gdal.TermProgress = gdal.TermProgress_nocb
 except ImportError:
     import gdal
-    from gdalconst import *
-
-try:
-    import numpy as Numeric
-    Numeric.arrayrange = Numeric.arange
-except ImportError:
-    import Numeric
-
 
 import sys
 
@@ -95,7 +86,7 @@ if infile is None:
 if  outfile is None:
     Usage()
 
-indataset = gdal.Open(infile, GA_ReadOnly)
+indataset = gdal.Open(infile, gdal.GA_ReadOnly)
 if infile == None:
     print('Cannot open', infile)
     sys.exit(2)

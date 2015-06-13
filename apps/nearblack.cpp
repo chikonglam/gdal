@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: nearblack.cpp 27044 2014-03-16 23:41:27Z rouault $
+ * $Id: nearblack.cpp 28039 2014-11-30 18:24:59Z rouault $
  *
  * Project:  GDAL Utilities
  * Purpose:  Convert nearly black or nearly white border to exact black/white.
@@ -34,7 +34,7 @@
 #include <vector>
 #include "commonutils.h"
 
-CPL_CVSID("$Id: nearblack.cpp 27044 2014-03-16 23:41:27Z rouault $");
+CPL_CVSID("$Id: nearblack.cpp 28039 2014-11-30 18:24:59Z rouault $");
 
 typedef std::vector<int> Color;
 typedef std::vector< Color > Colors;
@@ -123,7 +123,7 @@ int main( int argc, char ** argv )
     int bSetAlpha = FALSE;
     int bSetMask = FALSE;
     const char* pszDriverName = "HFA";
-    int bFormatExplicitelySet = FALSE;
+    int bFormatExplicitlySet = FALSE;
     char** papszCreationOptions = NULL;
     int bQuiet = FALSE;
 
@@ -148,7 +148,7 @@ int main( int argc, char ** argv )
         {
             CHECK_HAS_ENOUGH_ADDITIONAL_ARGS(1);
             pszDriverName = argv[++i];
-            bFormatExplicitelySet = TRUE;
+            bFormatExplicitlySet = TRUE;
         }
         else if( EQUAL(argv[i], "-white") ) {
             bNearWhite = TRUE;
@@ -185,7 +185,7 @@ int main( int argc, char ** argv )
             
             CSLDestroy( papszTokens );
 
-            /***** check if the number of bands is consistant *****/
+            /***** check if the number of bands is consistent *****/
 
             if ( oColors.size() > 0 &&
                  oColors.front().size() != oColor.size() )
@@ -270,7 +270,7 @@ int main( int argc, char ** argv )
         if (hDriver == NULL)
             exit(1);
 
-        if (!bQuiet && !bFormatExplicitelySet)
+        if (!bQuiet && !bFormatExplicitlySet)
             CheckExtensionConsistency(pszOutFile, pszDriverName);
 
         if (bSetAlpha)

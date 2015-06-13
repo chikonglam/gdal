@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrosmdriver.cpp 27729 2014-09-24 00:40:16Z goatbar $
+ * $Id: ogrosmdriver.cpp 27384 2014-05-24 12:28:12Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implements OGROSMDriver class.
@@ -34,66 +34,49 @@
 
 extern "C" void CPL_DLL RegisterOGROSM();
 
-CPL_CVSID("$Id: ogrosmdriver.cpp 27729 2014-09-24 00:40:16Z goatbar $");
+CPL_CVSID("$Id: ogrosmdriver.cpp 27384 2014-05-24 12:28:12Z rouault $");
 
 /************************************************************************/
-/*                         ~OGROSMDriver()                           */
+/*                      OGROSMDriverIdentify()                          */
 /************************************************************************/
 
-OGROSMDriver::~OGROSMDriver()
+static int OGROSMDriverIdentify( GDALOpenInfo* poOpenInfo )
 
 {
-}
-
-/************************************************************************/
-/*                              GetName()                               */
-/************************************************************************/
-
-const char *OGROSMDriver::GetName()
-
-{
-    return "OSM";
+    if (poOpenInfo->fpL == NULL )
+        return FALSE;
+    const char* pszExt = CPLGetExtension(poOpenInfo->pszFilename);
+    if( EQUAL(pszExt, "pbf") ||
+        EQUAL(pszExt, "osm") )
+        return TRUE;
+    if( EQUALN(poOpenInfo->pszFilename, "/vsicurl_streaming/", strlen("/vsicurl_streaming/")) ||
+        strcmp(poOpenInfo->pszFilename, "/vsistdin/") == 0 ||
+        strcmp(poOpenInfo->pszFilename, "/dev/stdin/") == 0 )
+        return -1;
+    return FALSE;
 }
 
 /************************************************************************/
 /*                                Open()                                */
 /************************************************************************/
 
-OGRDataSource *OGROSMDriver::Open( const char * pszFilename,
-                                   int bUpdate )
+static GDALDataset *OGROSMDriverOpen( GDALOpenInfo* poOpenInfo )
 
 {
-    if (bUpdate)
+    if (poOpenInfo->eAccess == GA_Update )
+        return NULL;
+    if( OGROSMDriverIdentify(poOpenInfo) == FALSE )
         return NULL;
 
     OGROSMDataSource   *poDS = new OGROSMDataSource();
 
-    if( !poDS->Open( pszFilename, bUpdate ) )
+    if( !poDS->Open( poOpenInfo->pszFilename ) )
     {
         delete poDS;
         poDS = NULL;
     }
 
     return poDS;
-}
-
-/************************************************************************/
-/*                          CreateDataSource()                          */
-/************************************************************************/
-
-OGRDataSource *OGROSMDriver::CreateDataSource( CPL_UNUSED const char * pszName,
-                                               CPL_UNUSED char **papszOptions )
-{
-    return NULL;
-}
-
-/************************************************************************/
-/*                           TestCapability()                           */
-/************************************************************************/
-
-int OGROSMDriver::TestCapability( CPL_UNUSED const char * pszCap )
-{
-    return FALSE;
 }
 
 /************************************************************************/
@@ -104,7 +87,26 @@ void RegisterOGROSM()
 {
     if (! GDAL_CHECK_VERSION("OGR/OSM driver"))
         return;
+    GDALDriver  *poDriver;
 
-    OGRSFDriverRegistrar::GetRegistrar()->RegisterDriver( new OGROSMDriver );
+    if( GDALGetDriverByName( "OSM" ) == NULL )
+    {
+        poDriver = new GDALDriver();
+
+        poDriver->SetDescription( "OSM" );
+        poDriver->SetMetadataItem( GDAL_DCAP_VECTOR, "YES" );
+        poDriver->SetMetadataItem( GDAL_DMD_LONGNAME,
+                                   "OpenStreetMap XML and PBF" );
+        poDriver->SetMetadataItem( GDAL_DMD_EXTENSIONS, "osm pbf" );
+        poDriver->SetMetadataItem( GDAL_DMD_HELPTOPIC,
+                                   "drv_osm.html" );
+
+        poDriver->SetMetadataItem( GDAL_DCAP_VIRTUALIO, "YES" );
+
+        poDriver->pfnOpen = OGROSMDriverOpen;
+        poDriver->pfnIdentify = OGROSMDriverIdentify;
+
+        GetGDALDriverManager()->RegisterDriver( poDriver );
+    }
 }
 

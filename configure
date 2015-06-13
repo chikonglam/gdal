@@ -754,8 +754,13 @@ NETCDF_HAS_NC4
 NETCDF_ROOT
 NETCDF_SETTING
 NETCDF_NCCONFIG
+KEA_LIB
+KEA_INC
+HAVE_KEA
+KEA_CONFIG
 HDF5_INCLUDE
 HAVE_HDF5
+HDF4_HAS_MAXOPENFILES
 HDF4_INCLUDE
 HAVE_HDF4
 SOSI_INC
@@ -798,6 +803,8 @@ RENAME_INTERNAL_LIBTIFF_SYMBOLS
 HAVE_HIDE_INTERNAL_SYMBOLS
 HAVE_AVX_AT_COMPILE_TIME
 AVXFLAGS
+HAVE_SSE_AT_COMPILE_TIME
+SSEFLAGS
 HAVE_GCC_ATOMIC_BUILTINS
 HAVE_LIBTOOL
 SO_EXT
@@ -930,6 +937,7 @@ with_fme
 with_sosi
 with_hdf4
 with_hdf5
+with_kea
 with_netcdf
 with_jasper
 with_openjpeg
@@ -986,7 +994,6 @@ with_gdal_ver
 with_
 with_perl
 with_php
-with_ruby
 with_python
 with_java
 with_mdb
@@ -1670,6 +1677,7 @@ Optional Packages:
   --with-sosi=ARG        Include SOSI support (ARG=SOSI lib Path, yes or no)
   --with-hdf4=ARG       Include HDF4 support (ARG=path)
   --with-hdf5=ARG       Include HDF5 support (ARG=path)
+  --with-kea=ARG      Include kealib (ARG=path to kea-config) [default=yes]
   --with-netcdf=ARG     Include netCDF support (ARG=no or netCDF tree prefix)
   --with-jasper=ARG     Include JPEG-2000 support via JasPer library (ARG=path)
   --with-openjpeg=ARG     Include JPEG-2000 support via OpenJPEG 2.0 library (ARG=path)
@@ -1735,7 +1743,6 @@ Optional Packages:
   --with-macosx-framework         Build and install GDAL as a Mac OS X Framework
   --with-perl           Enable perl bindings
   --with-php            Enable php bindings
-  --with-ruby           Enable Ruby bindings
   --with-python=ARG   Enable python bindings (ARG=yes, no, or path to python binary)
   --with-java       Include Java support (ARG=yes, no or JDK home path)  [default=no]
   --with-mdb       Include MDB driver
@@ -6565,7 +6572,7 @@ linux* | k*bsd*-gnu | kopensolaris*-gnu)
   lt_cv_deplibs_check_method=pass_all
   ;;
 
-netbsd*)
+netbsd* | netbsdelf*-gnu)
   if echo __ELF__ | $CC -E - | $GREP __ELF__ > /dev/null; then
     lt_cv_deplibs_check_method='match_pattern /lib[^/]+(\.so\.[0-9]+\.[0-9]+|_pic\.a)$'
   else
@@ -9953,6 +9960,9 @@ $as_echo_n "checking whether the $compiler linker ($LD) supports shared librarie
   openbsd*)
     with_gnu_ld=no
     ;;
+  linux* | k*bsd*-gnu | gnu*)
+    link_all_deplibs=no
+    ;;
   esac
 
   ld_shlibs=yes
@@ -10175,7 +10185,7 @@ _LT_EOF
       fi
       ;;
 
-    netbsd*)
+    netbsd* | netbsdelf*-gnu)
       if echo __ELF__ | $CC -E - | $GREP __ELF__ >/dev/null; then
 	archive_cmds='$LD -Bshareable $libobjs $deplibs $linker_flags -o $lib'
 	wlarc=
@@ -10352,6 +10362,7 @@ _LT_EOF
 	if test "$aix_use_runtimelinking" = yes; then
 	  shared_flag="$shared_flag "'${wl}-G'
 	fi
+	link_all_deplibs=no
       else
 	# not using gcc
 	if test "$host_cpu" = ia64; then
@@ -10808,7 +10819,7 @@ $as_echo "$lt_cv_irix_exported_symbol" >&6; }
       link_all_deplibs=yes
       ;;
 
-    netbsd*)
+    netbsd* | netbsdelf*-gnu)
       if echo __ELF__ | $CC -E - | $GREP __ELF__ >/dev/null; then
 	archive_cmds='$LD -Bshareable -o $lib $libobjs $deplibs $linker_flags'  # a.out
       else
@@ -11661,6 +11672,7 @@ gnu*)
   library_names_spec='${libname}${release}${shared_ext}$versuffix ${libname}${release}${shared_ext}${major} ${libname}${shared_ext}'
   soname_spec='${libname}${release}${shared_ext}$major'
   shlibpath_var=LD_LIBRARY_PATH
+  shlibpath_overrides_runpath=no
   hardcode_into_libs=yes
   ;;
 
@@ -11842,6 +11854,18 @@ fi
   # people can always --disable-shared, the test was removed, and we
   # assume the GNU/Linux dynamic linker is in use.
   dynamic_linker='GNU/Linux ld.so'
+  ;;
+
+netbsdelf*-gnu)
+  version_type=linux
+  need_lib_prefix=no
+  need_version=no
+  library_names_spec='${libname}${release}${shared_ext}$versuffix ${libname}${release}${shared_ext}$major ${libname}${shared_ext}'
+  soname_spec='${libname}${release}${shared_ext}$major'
+  shlibpath_var=LD_LIBRARY_PATH
+  shlibpath_overrides_runpath=no
+  hardcode_into_libs=yes
+  dynamic_linker='NetBSD ld.elf_so'
   ;;
 
 netbsd*)
@@ -14678,7 +14702,7 @@ lt_prog_compiler_static_CXX=
 	    ;;
 	esac
 	;;
-      netbsd*)
+      netbsd* | netbsdelf*-gnu)
 	;;
       *qnx* | *nto*)
         # QNX uses GNU C++, but need to define -shared option too, otherwise
@@ -15046,6 +15070,9 @@ $as_echo_n "checking whether the $compiler linker ($LD) supports shared librarie
       exclude_expsyms_CXX='[_]+GLOBAL_OFFSET_TABLE_|[_]+GLOBAL__[FID]_.*|[_]+head_[A-Za-z0-9_]+_dll|[A-Za-z0-9_]+_dll_iname'
       ;;
     esac
+    ;;
+  linux* | k*bsd*-gnu | gnu*)
+    link_all_deplibs_CXX=no
     ;;
   *)
     export_symbols_cmds_CXX='$NM $libobjs $convenience | $global_symbol_pipe | $SED '\''s/.* //'\'' | sort | uniq > $export_symbols'
@@ -15494,6 +15521,7 @@ gnu*)
   library_names_spec='${libname}${release}${shared_ext}$versuffix ${libname}${release}${shared_ext}${major} ${libname}${shared_ext}'
   soname_spec='${libname}${release}${shared_ext}$major'
   shlibpath_var=LD_LIBRARY_PATH
+  shlibpath_overrides_runpath=no
   hardcode_into_libs=yes
   ;;
 
@@ -15675,6 +15703,18 @@ fi
   # people can always --disable-shared, the test was removed, and we
   # assume the GNU/Linux dynamic linker is in use.
   dynamic_linker='GNU/Linux ld.so'
+  ;;
+
+netbsdelf*-gnu)
+  version_type=linux
+  need_lib_prefix=no
+  need_version=no
+  library_names_spec='${libname}${release}${shared_ext}$versuffix ${libname}${release}${shared_ext}$major ${libname}${shared_ext}'
+  soname_spec='${libname}${release}${shared_ext}$major'
+  shlibpath_var=LD_LIBRARY_PATH
+  shlibpath_overrides_runpath=no
+  hardcode_into_libs=yes
+  dynamic_linker='NetBSD ld.elf_so'
   ;;
 
 netbsd*)
@@ -16880,13 +16920,21 @@ $as_echo "#define VSI_NEED_LARGEFILE64_SOURCE 1" >>confdefs.h
     { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 $as_echo "yes" >&6; }
 
-    ac_fn_c_check_func "$LINENO" "stat64" "ac_cv_func_stat64"
+    case "${host_os}" in
+      darwin*)
+        VSI_STAT64=stat
+        VSI_STAT64_T=stat
+        ;;
+      *)
+        ac_fn_c_check_func "$LINENO" "stat64" "ac_cv_func_stat64"
 if test "x$ac_cv_func_stat64" = xyes; then :
   VSI_STAT64=stat64 VSI_STAT64_T=stat64
 else
   VSI_STAT64=stat VSI_STAT64_T=stat
 fi
 
+        ;;
+    esac
     ac_fn_c_check_func "$LINENO" "fopen64" "ac_cv_func_fopen64"
 if test "x$ac_cv_func_fopen64" = xyes; then :
   VSI_FOPEN64=fopen64
@@ -17417,13 +17465,13 @@ if test "$with_sse" = "yes" -o "$with_sse" = ""; then
     if test -z "`${CXX} ${CXXFLAGS} -o detectsse detectsse.cpp 2>&1`" ; then
         { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 $as_echo "yes" >&6; }
-        SSEFLAGS="-DHAVE_SSE_AT_COMPILE_TIME"
+        SSEFLAGS=""
         HAVE_SSE_AT_COMPILE_TIME=yes
     else
         if test -z "`${CXX} ${CXXFLAGS} -msse -o detectsse detectsse.cpp 2>&1`" ; then
             { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 $as_echo "yes" >&6; }
-            SSEFLAGS="-msse -DHAVE_SSE_AT_COMPILE_TIME"
+            SSEFLAGS="-msse"
             HAVE_SSE_AT_COMPILE_TIME=yes
         else
             { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
@@ -17457,16 +17505,16 @@ $as_echo "no" >&6; }
        esac
     fi
 
-    if test "$HAVE_SSE_AT_COMPILE_TIME" = "yes"; then
-      CFLAGS="$CFLAGS $SSEFLAGS"
-      CXXFLAGS="$CXXFLAGS $SSEFLAGS"
-    fi
-
     rm -f detectsse*
 else
     { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 fi
+
+SSEFLAGS=$SSEFLAGS
+
+HAVE_SSE_AT_COMPILE_TIME=$HAVE_SSE_AT_COMPILE_TIME
+
 
 
 
@@ -17732,6 +17780,49 @@ fi
 
   if test -n "$THREAD_FLAG" ; then
       THREAD_LIB="-lpthread"
+  else
+    # For Android, pthread_create is in Bionic libc
+    unset ac_cv_lib_pthread_pthread_create
+    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for pthread_create in -lc" >&5
+$as_echo_n "checking for pthread_create in -lc... " >&6; }
+if ${ac_cv_lib_c_pthread_create+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lc  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char pthread_create ();
+int
+main ()
+{
+return pthread_create ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_c_pthread_create=yes
+else
+  ac_cv_lib_c_pthread_create=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_c_pthread_create" >&5
+$as_echo "$ac_cv_lib_c_pthread_create" >&6; }
+if test "x$ac_cv_lib_c_pthread_create" = xyes; then :
+  THREAD_FLAG=CPL_MULTIPROC_PTHREAD
+fi
+
   fi
 
   { $as_echo "$as_me:${as_lineno-$LINENO}: checking for PTHREAD_MUTEX_RECURSIVE" >&5
@@ -17771,7 +17862,82 @@ $as_echo "no" >&6; }
 fi
 rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
 
-  PTHREAD_ENABLED="yes"
+
+
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for PTHREAD_MUTEX_ADAPTIVE_NP" >&5
+$as_echo_n "checking for PTHREAD_MUTEX_ADAPTIVE_NP... " >&6; }
+
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+#define _GNU_SOURCE
+#include <pthread.h>
+
+int
+main ()
+{
+
+    return PTHREAD_MUTEX_ADAPTIVE_NP;
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"; then :
+
+    { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+
+cat >>confdefs.h <<_ACEOF
+#define HAVE_PTHREAD_MUTEX_ADAPTIVE_NP 1
+_ACEOF
+
+
+else
+
+    { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for pthread_spinlock_t" >&5
+$as_echo_n "checking for pthread_spinlock_t... " >&6; }
+
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+#define _GNU_SOURCE
+#include <pthread.h>
+
+int
+main ()
+{
+
+    pthread_spinlock_t spin;
+    return 1;
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"; then :
+
+    { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+
+cat >>confdefs.h <<_ACEOF
+#define HAVE_PTHREAD_SPINLOCK 1
+_ACEOF
+
+
+else
+
+    { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
 
 elif test "$with_threads" != "no" ; then
 
@@ -17782,8 +17948,6 @@ elif test "$with_threads" != "no" ; then
 $as_echo "$as_me: checking whether we should include thread/mutex support......" >&6;}
   { $as_echo "$as_me:${as_lineno-$LINENO}: result:         using threads with link options \"$THREAD_LIB\"." >&5
 $as_echo "        using threads with link options \"$THREAD_LIB\"." >&6; }
-
-  PTHREAD_ENABLED="yes"
 
 else
   { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether we should include thread/mutex support......" >&5
@@ -17798,9 +17962,85 @@ cat >>confdefs.h <<_ACEOF
 #define CPL_MULTIPROC_PTHREAD 1
 _ACEOF
 
+  PTHREAD_ENABLED="yes"
 fi
 
 LIBS="$THREAD_LIB $LIBS"
+
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for 5 args mremap()" >&5
+$as_echo_n "checking for 5 args mremap()... " >&6; }
+
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+#define _GNU_SOURCE
+#include <sys/mman.h>
+
+int
+main ()
+{
+
+return (mremap(0,0,0,0,0));
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"; then :
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+
+cat >>confdefs.h <<_ACEOF
+#define HAVE_5ARGS_MREMAP 1
+_ACEOF
+
+
+else
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for _SC_PHYS_PAGES" >&5
+$as_echo_n "checking for _SC_PHYS_PAGES... " >&6; }
+
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+#include <unistd.h>
+
+int
+main ()
+{
+
+return (sysconf(_SC_PHYS_PAGES));
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"; then :
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+
+cat >>confdefs.h <<_ACEOF
+#define HAVE_SC_PHYS_PAGES 1
+_ACEOF
+
+
+else
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
 
 
 
@@ -21342,6 +21582,93 @@ fi
       LIBS="$HDF_LIB_NAME $ORIG_LIBS"
     fi
 
+                { $as_echo "$as_me:${as_lineno-$LINENO}: checking for SDget_maxopenfiles in -lmfhdfalt" >&5
+$as_echo_n "checking for SDget_maxopenfiles in -lmfhdfalt... " >&6; }
+if ${ac_cv_lib_mfhdfalt_SDget_maxopenfiles+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lmfhdfalt $HDF_LIB_NAME $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char SDget_maxopenfiles ();
+int
+main ()
+{
+return SDget_maxopenfiles ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_mfhdfalt_SDget_maxopenfiles=yes
+else
+  ac_cv_lib_mfhdfalt_SDget_maxopenfiles=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_mfhdfalt_SDget_maxopenfiles" >&5
+$as_echo "$ac_cv_lib_mfhdfalt_SDget_maxopenfiles" >&6; }
+if test "x$ac_cv_lib_mfhdfalt_SDget_maxopenfiles" = xyes; then :
+  HDF4_HAS_MAXOPENFILES=yes
+else
+  HDF4_HAS_MAXOPENFILES=no
+fi
+
+    if test "$HDF4_HAS_MAXOPENFILES" = "no" ; then
+      { $as_echo "$as_me:${as_lineno-$LINENO}: checking for SDget_maxopenfiles in -lmfhdf" >&5
+$as_echo_n "checking for SDget_maxopenfiles in -lmfhdf... " >&6; }
+if ${ac_cv_lib_mfhdf_SDget_maxopenfiles+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lmfhdf $HDF_LIB_NAME $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char SDget_maxopenfiles ();
+int
+main ()
+{
+return SDget_maxopenfiles ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_mfhdf_SDget_maxopenfiles=yes
+else
+  ac_cv_lib_mfhdf_SDget_maxopenfiles=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_mfhdf_SDget_maxopenfiles" >&5
+$as_echo "$ac_cv_lib_mfhdf_SDget_maxopenfiles" >&6; }
+if test "x$ac_cv_lib_mfhdf_SDget_maxopenfiles" = xyes; then :
+  HDF4_HAS_MAXOPENFILES=yes
+else
+  HDF4_HAS_MAXOPENFILES=no
+fi
+
+    fi
+
       if test "$with_hdf4" = "yes" -o "$with_hdf4" = "" -a -r /usr/include/hdf/hdf.h ; then
       HDF4_INCLUDE="-I/usr/include/hdf"
     elif test -r "$with_hdf4/hdf/hdf.h" ; then
@@ -21372,6 +21699,8 @@ fi
 HAVE_HDF4=$HAVE_HDF4
 
 HDF4_INCLUDE=$HDF4_INCLUDE
+
+HDF4_HAS_MAXOPENFILES=$HDF4_HAS_MAXOPENFILES
 
 
 if test "$HAVE_HDF4" != "no" ; then
@@ -21528,6 +21857,105 @@ HDF5_INCLUDE=$HDF5_INCLUDE
 
 if test "$HAVE_HDF5" != "no" ; then
   OPT_GDAL_FORMATS="hdf5 $OPT_GDAL_FORMATS"
+fi
+
+
+KEA_CONFIG=no
+
+
+# Check whether --with-kea was given.
+if test "${with_kea+set}" = set; then :
+  withval=$with_kea;
+fi
+
+
+if test "$with_kea" = "yes" -o "x$with_kea" = "x" ; then
+  # Extract the first word of "kea-config", so it can be a program name with args.
+set dummy kea-config; ac_word=$2
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
+$as_echo_n "checking for $ac_word... " >&6; }
+if ${ac_cv_path_KEA_CONFIG+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  case $KEA_CONFIG in
+  [\\/]* | ?:[\\/]*)
+  ac_cv_path_KEA_CONFIG="$KEA_CONFIG" # Let the user override the test with a path.
+  ;;
+  *)
+  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+    for ac_exec_ext in '' $ac_executable_extensions; do
+  if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
+    ac_cv_path_KEA_CONFIG="$as_dir/$ac_word$ac_exec_ext"
+    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+  done
+IFS=$as_save_IFS
+
+  test -z "$ac_cv_path_KEA_CONFIG" && ac_cv_path_KEA_CONFIG="no"
+  ;;
+esac
+fi
+KEA_CONFIG=$ac_cv_path_KEA_CONFIG
+if test -n "$KEA_CONFIG"; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $KEA_CONFIG" >&5
+$as_echo "$KEA_CONFIG" >&6; }
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+fi
+
+
+else
+   KEA_CONFIG=$with_kea
+fi
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for kea" >&5
+$as_echo_n "checking for kea... " >&6; }
+
+if test "$KEA_CONFIG" = "no" ; then
+
+  HAVE_KEA=no
+  KEA_LIB=
+  KEA_INC=
+
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+
+else
+  if test -d $KEA_CONFIG ; then
+      { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+      as_fn_error $? "--with-kea argument is a directory.  It should be the path to the kea_config script, often somewhere like /usr/local/bin/kea_config." "$LINENO" 5
+  fi
+
+  if test \! -x $KEA_CONFIG ; then
+      { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+      as_fn_error $? "--with-kea argument is a not an executable file.  It should be the path to the kea_config script, often somewhere like /usr/local/bin/kea_config." "$LINENO" 5
+  fi
+
+  HAVE_KEA=yes
+  KEA_LIB="`$KEA_CONFIG --libs --hdflibs`"
+  KEA_INC="`$KEA_CONFIG --cflags --hdfcflags`"
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+fi
+
+HAVE_KEA=$HAVE_KEA
+
+KEA_INC=$KEA_INC
+
+KEA_LIB=$KEA_LIB
+
+
+if test "$HAVE_KEA" != "no" ; then
+  OPT_GDAL_FORMATS="kea $OPT_GDAL_FORMATS"
 fi
 
 
@@ -22528,22 +22956,24 @@ fi
       ECW_LIBS="-lecwj2 $CARBON_FRAMEWORK"
     fi
   fi
-  # ECWJP2 SDK 5.1 style
-  if test "$ECW_SETTING" = "no" ; then
-        if test -r /Intergraph/ERDASEcwJpeg2000SDK5.1/lib/libEcwJp2SDK.a; then
-                ECW_LIBDIR=/Intergraph/ERDASEcwJpeg2000SDK5.1/lib
-                ECW_INCLUDE=-I/Intergraph/ERDASEcwJpeg2000SDK5.1/include
-                ECW_LIBS="-L$ECW_LIBDIR -lEcwJp2SDK -framework Cocoa"
-                ECW_SETTING=yes
-                ECW_FLAGS="-DHAVE_ECW_BUILDNUMBER_H $ECW_FLAGS"
-                { $as_echo "$as_me:${as_lineno-$LINENO}: result: found Intergraph ERDAS EcwJpeg2000 SDK 5.1 in /Intergraph/ERDASEcwJpeg2000SDK5.1/." >&5
-$as_echo "found Intergraph ERDAS EcwJpeg2000 SDK 5.1 in /Intergraph/ERDASEcwJpeg2000SDK5.1/." >&6; }
-        fi
-  fi
 else
 
-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for libNCSEcw.so or libecwj2" >&5
-$as_echo_n "checking for libNCSEcw.so or libecwj2... " >&6; }
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for libNCSEcw.a or libecwj2" >&5
+$as_echo_n "checking for libNCSEcw.a or libecwj2... " >&6; }
+  ECW_ARCH=x86
+  ECW_CONF="release"
+  ECW_FLAGS="-DLINUX -DX86 -DPOSIX -DHAVE_COMPRESS -DECW_COMPRESS_RW_SDK_VERSION"
+  ECW_FRAMEWORK_COCOA=""
+  if test "`arch`" = "x86_64" ; then
+    ECW_ARCH="x64"
+  fi
+  if test ! -z "`uname | grep Darwin`" ; then
+    ECW_ARCH=""
+    ECW_CONF=""
+    ECW_FLAGS=""
+    ECW_FRAMEWORK_COCOA=" -framework Cocoa "
+  fi
+
   ECW_SETTING=yes
   if test -r $with_ecw/lib/libNCSCnet.so -o -r $with_ecw/lib/libNCSCnet.dylib ; then
     ECW_LIBS="-L$with_ecw/lib -lNCSEcw -lNCSEcwC -lNCSCnet -lNCSUtil"
@@ -22562,27 +22992,27 @@ $as_echo "found in $with_ecw/bin." >&6; }
     { $as_echo "$as_me:${as_lineno-$LINENO}: result: found libecwj2 in $with_ecw/lib." >&5
 $as_echo "found libecwj2 in $with_ecw/lib." >&6; }
 
-  # ECW SDK 5.0 style
-  elif test -r $with_ecw/lib/x64/release/libNCSEcw.so ; then
-    if test `arch` == "x86_64" ; then
-      ECW_LIBDIR=$with_ecw/lib/x64/release
-    else
-      ECW_LIBDIR=$with_ecw/lib/x86/release
-    fi
-    ECW_FLAGS="-DLINUX -DX86 -DPOSIX -DHAVE_COMPRESS -DECW_COMPRESS_RW_SDK_VERSION"
-    ECW_LIBS="-L$ECW_LIBDIR -lNCSEcw"
+  # ECW SDK 5.0 style and also for the case where license type is included in path i.e. specific license type is requested.
+  elif test -r $with_ecw/lib/$ECW_ARCH/$ECW_CONF/libNCSEcw.a ; then
+    ECW_LIBDIR=$with_ecw/lib/$ECW_ARCH/$ECW_CONF
+    ECW_LIBS="-L$ECW_LIBDIR -lNCSEcw $ECW_FRAMEWORK_COCOA"
     { $as_echo "$as_me:${as_lineno-$LINENO}: result: found Intergraph 5.x+ SDK in ${ECW_LIBDIR}." >&5
 $as_echo "found Intergraph 5.x+ SDK in ${ECW_LIBDIR}." >&6; }
  # ECWJP2 SDK 5.1 style
-  elif test -r $with_ecw/lib/libEcwJp2SDK.a; then
-        ECW_LIBDIR=$with_ecw/lib
-        ECW_INCLUDE=-I$with_ecw/include
-        ECW_LIBS="-L$ECW_LIBDIR -lEcwJp2SDK -framework Cocoa"
-        ECW_FLAGS="-DHAVE_ECW_BUILDNUMBER_H $ECW_FLAGS"
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: found Intergraph 5.1+ SDK in $ {with_ecw}." >&5
-$as_echo "found Intergraph 5.1+ SDK in $ {with_ecw}." >&6; }
+  elif test -d $with_ecw; then
+    for ecw_license_type in "Desktop_Read-Write" "Server_Read-Only_EndUser" "Server_Read-Only" "Server_Read-Write" "Desktop_Read-Only"
+      do
+        ECW_LIBDIR=$with_ecw/$ecw_license_type/lib/$ECW_ARCH/$ECW_CONF
+        if test -r $ECW_LIBDIR/libNCSEcw.a; then
+          ECW_LIBS="-L$ECW_LIBDIR -lNCSEcw $ECW_FRAMEWORK_COCOA"
+          with_ecw=$with_ecw/$ecw_license_type
+          { $as_echo "$as_me:${as_lineno-$LINENO}: result: found Intergraph 5.x+ SDK in ${ECW_LIBDIR}." >&5
+$as_echo "found Intergraph 5.x+ SDK in ${ECW_LIBDIR}." >&6; }
+          break
+        fi
+      done
  else
-    as_fn_error $? "not found in $with_ecw/lib or $with_ecw/bin." "$LINENO" 5
+    as_fn_error $? "not found in $with_ecw." "$LINENO" 5
   fi
 
   { $as_echo "$as_me:${as_lineno-$LINENO}: checking for NCSECWClient.h in $with_ecw/include" >&5
@@ -25094,7 +25524,7 @@ if test "$CURL_SETTING" = "yes" ; then
 
   CURL_INC=`$LIBCURL_CONFIG --cflags`
   CURL_LIB=`$LIBCURL_CONFIG --libs`
-  OPT_GDAL_FORMATS="wcs wms $OPT_GDAL_FORMATS"
+  OPT_GDAL_FORMATS="wcs wms plmosaic $OPT_GDAL_FORMATS"
 
 fi
 
@@ -28433,22 +28863,6 @@ fi
 
 
 
-# Check whether --with-ruby was given.
-if test "${with_ruby+set}" = set; then :
-  withval=$with_ruby;
-fi
-
-
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for ruby bindings" >&5
-$as_echo_n "checking for ruby bindings... " >&6; }
-if test "$with_ruby" = "yes" ; then
-  BINDINGS="ruby $BINDINGS"
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: enabled" >&5
-$as_echo "enabled" >&6; }
-else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: disabled" >&5
-$as_echo "disabled" >&6; }
-fi
 
 
 
@@ -29124,20 +29538,28 @@ if test "$with_armadillo" = "yes" ; then
     rm -f testarmadillo
     echo '#include <armadillo>' > testarmadillo.cpp
     echo 'int main(int argc, char** argv) { arma::mat matInput(2,2); const arma::mat& matInv = arma::inv(matInput); return 0; } ' >> testarmadillo.cpp
-    if test -z "`${CXX} ${CPPFLAGS} testarmadillo.cpp -o testarmadillo -larmadillo ${LIBS} 2>&1`" ; then
+    if test -z "`${CXX} ${CPPFLAGS} testarmadillo.cpp -o testarmadillo -larmadillo 2>&1`" ; then
         HAVE_ARMADILLO=yes
         LIBS="-larmadillo ${LIBS}"
         { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 $as_echo "yes" >&6; }
     else
-                if test -z "`${CXX} ${CPPFLAGS} testarmadillo.cpp -o testarmadillo -larmadillo -llapack ${LIBS} 2>&1`" ; then
+                if test -z "`${CXX} ${CPPFLAGS} testarmadillo.cpp -o testarmadillo -larmadillo -llapack 2>&1`" ; then
             HAVE_ARMADILLO=yes
             LIBS="-larmadillo -llapack ${LIBS}"
             { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 $as_echo "yes" >&6; }
         else
-            { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+            # clang 3.4 needs linking against libstdc++ (ubuntu 14.04)
+            if test -z "`${CXX} ${CPPFLAGS} testarmadillo.cpp -o testarmadillo -larmadillo -lstdc++ 2>&1`" ; then
+                HAVE_ARMADILLO=yes
+                LIBS="-larmadillo -lstdc++ ${LIBS}"
+                { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+            else
+                { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
+            fi
         fi
     fi
     rm -f testarmadillo.*
@@ -29149,14 +29571,14 @@ elif test -n "$with_armadillo" -a "$with_armadillo" != "no" ; then
     rm -f testarmadillo
     echo '#include <armadillo>' > testarmadillo.cpp
     echo 'int main(int argc, char** argv) { arma::mat matInput(2,2); const arma::mat& matInv = arma::inv(matInput); return 0; } ' >> testarmadillo.cpp
-    if test -z "`${CXX} ${CPPFLAGS} -I$with_armadillo/include testarmadillo.cpp -o testarmadillo -L$with_armadillo/lib -larmadillo ${LIBS} 2>&1`" ; then
+    if test -z "`${CXX} ${CPPFLAGS} -I$with_armadillo/include testarmadillo.cpp -o testarmadillo -L$with_armadillo/lib -larmadillo 2>&1`" ; then
         HAVE_ARMADILLO=yes
         LIBS="-L$with_armadillo/lib -larmadillo ${LIBS}"
         EXTRA_INCLUDES="-I$with_armadillo/include $EXTRA_INCLUDES"
         { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 $as_echo "yes" >&6; }
     else
-                if test -z "`${CXX} ${CPPFLAGS} -I$with_armadillo/include testarmadillo.cpp -o testarmadillo -L$with_armadillo/lib -larmadillo -llapack ${LIBS} 2>&1`" ; then
+                if test -z "`${CXX} ${CPPFLAGS} -I$with_armadillo/include testarmadillo.cpp -o testarmadillo -L$with_armadillo/lib -larmadillo -llapack 2>&1`" ; then
             HAVE_ARMADILLO=yes
             LIBS="-L$with_armadillo/lib -larmadillo -llapack ${LIBS}"
             EXTRA_INCLUDES="-I$with_armadillo/include $EXTRA_INCLUDES"
@@ -31650,6 +32072,9 @@ echo "  HDF4 support:              ${HAVE_HDF4}"
 
 
 echo "  HDF5 support:              ${HAVE_HDF5}"
+
+
+echo "  Kea support:               ${HAVE_KEA}"
 
 
 echo "  NetCDF support:            ${NETCDF_SETTING}"

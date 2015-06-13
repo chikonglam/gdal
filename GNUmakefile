@@ -6,9 +6,7 @@ GDAL_OBJ	=	$(GDAL_ROOT)/frmts/o/*.o \
 			$(GDAL_ROOT)/port/*.o \
 			$(GDAL_ROOT)/alg/*.o
 
-ifeq ($(OGR_ENABLED),yes)
 GDAL_OBJ += $(GDAL_ROOT)/ogr/ogrsf_frmts/o/*.o
-endif
 
 include ./ogr/file.lst
 GDAL_OBJ += $(addprefix ./ogr/,$(OBJ))
@@ -112,7 +110,6 @@ GDALmake.opt:	GDALmake.opt.in config.status
 	./config.status
 
 docs:
-	(cd ogr; $(MAKE) docs)
 	(cd html; rm -f *.*)
 # Generate translated docs. Should go first, because index.html page should
 # be overwritten with the main one later
@@ -127,8 +124,12 @@ docs:
 	cp doc/images/*.* html
 	cp doc/grid/*.png html
 	cp frmts/*.html frmts/*/frmt_*.html html
-	cp frmts/wms/frmt_wms_*.xml html
-	cp frmts/wms/frmt_twms_*.xml html
+	cp frmts/wms/frmt_*.xml html
+	cp ogr/ogrsf_frmts/*/drv_*.html html
+	cp ogr/ogrsf_frmts/ogr_formats.html html
+	cp ogr/ogr_feature_style.html html
+	cp ogr/ogrsf_frmts/gpkg/geopackage_aspatial.html html
+	cp ogr/*.gif html
 
 .PHONY: man
 
@@ -139,7 +140,6 @@ man:
 all:	default ogr-all
 
 install-docs:
-	(cd ogr; $(MAKE) install-docs)
 	$(INSTALL_DIR) $(DESTDIR)$(INST_DOCS)/gdal
 	cp html/*.* $(DESTDIR)$(INST_DOCS)/gdal
 
@@ -148,8 +148,8 @@ install-man:
 	for f in $(wildcard man/man1/*.1) ; do $(INSTALL_DATA) $$f $(DESTDIR)$(INST_MAN)/man1 ; done
 
 web-update:	docs
+	$(INSTALL_DIR) $(INST_HTML)
 	cp html/*.* $(INST_HTML)
-	(cd ogr; make web-update)
 
 install:	default install-actions
 

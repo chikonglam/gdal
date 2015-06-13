@@ -42,12 +42,9 @@
 # gdal_calc.py -A input.tif --outfile=result.tif --calc="A*(A>0)" --NoDataValue=0
 ################################################################
 
-try:
-    from osgeo import gdal
-    from osgeo.gdalnumeric import *
-except ImportError:
-    import gdal
-    from gdalnumeric import *
+from osgeo import gdal
+from osgeo import gdalnumeric
+import numpy
 
 from optparse import OptionParser
 import sys
@@ -177,7 +174,7 @@ def doit(opts, args):
             myOutB=None
 
     if opts.debug:
-        print("output file: %s, dimensions: %s, %s, type: %s" %(opts.outF,myOut.RasterXSize,myOut.RasterYSize,gdal.GetDataTypeName(myOutB.DataType)))
+        print("output file: %s, dimensions: %s, %s, type: %s" %(opts.outF,myOut.RasterXSize,myOut.RasterYSize,myOutType))
 
     ################################################################
     # find block size to chop grids into bite-sized chunks 
@@ -258,7 +255,7 @@ def doit(opts, args):
                         myBandNo=bandNo
                     else:
                         myBandNo=myBands[i]
-                    myval=BandReadAsArray(myFiles[i].GetRasterBand(myBandNo),
+                    myval=gdalnumeric.BandReadAsArray(myFiles[i].GetRasterBand(myBandNo),
                                           xoff=myX, yoff=myY,
                                           win_xsize=nXValid, win_ysize=nYValid)
 
@@ -283,7 +280,7 @@ def doit(opts, args):
 
                 # write data block to the output file
                 myOutB=myOut.GetRasterBand(bandNo)
-                BandWriteArray(myOutB, myResult, xoff=myX, yoff=myY)
+                gdalnumeric.BandWriteArray(myOutB, myResult, xoff=myX, yoff=myY)
 
     print("100 - Done")
     #print("Finished - Results written to %s" %opts.outF)
@@ -300,7 +297,7 @@ def main():
     # hack to limit the number of input file options close to required number
     for myAlpha in AlphaList[0:len(sys.argv)-1]:
         eval('parser.add_option("-%s", dest="%s", help="input gdal raster file, note you can use any letter A-Z")' %(myAlpha, myAlpha))
-        eval('parser.add_option("--%s_band", dest="%s_band", default=0, type=int, help="number of raster band for file %s (default 0)")' %(myAlpha, myAlpha, myAlpha))
+        eval('parser.add_option("--%s_band", dest="%s_band", default=1, type=int, help="number of raster band for file %s (default 1)")' %(myAlpha, myAlpha, myAlpha))
 
     parser.add_option("--outfile", dest="outF", default='gdal_calc.tif', help="output file to generate or fill")
     parser.add_option("--NoDataValue", dest="NoDataValue", type=float, help="set output nodata value (Defaults to datatype specific value)")

@@ -1,4 +1,4 @@
-# $Id: nmake.opt 28317 2015-01-15 22:49:41Z tamas $
+# $Id: nmake.opt 28874 2015-04-08 15:10:44Z dron $
 #
 # nmake.opt - main configuration file for NMAKE makefiles.
 #
@@ -31,6 +31,7 @@
 # Check version of Visual C++ compiler:
 # nmake -f makefile.vc MSVC_VER=xxxx
 # where xxxx is one of following:
+# 1900 = 14.0(2015)
 # 1800 = 12.0(2013)
 # 1700 = 11.0(2012)
 # 1600 = 10.0(2010)
@@ -141,7 +142,7 @@ OPTFLAGS= $(CXX_PDB_FLAGS) /nologo /MD /EHsc /GR /DDEBUG
 !ENDIF  # OPTFLAGS
 
 # 
-# Set flags controlling warnings level, and supression of some warnings.
+# Set flags controlling warnings level, and suppression of some warnings.
 # 
 !IFNDEF WARNFLAGS
 WARNFLAGS =	/W4 /wd4127 /wd4251 /wd4275 /wd4786 /wd4100 /wd4245 /wd4206 /wd4018 /wd4389
@@ -176,8 +177,9 @@ LDEBUG= /debug
 STDCALL=YES
 
 # Version number embedded in DLL name. 
+# If GDAL version is X.Y.Z, VERSION = X * 100 + Y
 !IFNDEF VERSION
-VERSION =	111
+VERSION =	200
 !ENDIF
 
 # Comment the following out if you want PAM supported disabled
@@ -349,11 +351,21 @@ JPEG12_SUPPORTED = 1
 #HDF4_PLUGIN = NO
 #HDF4_DIR =	D:\warmerda\HDF41r5
 #HDF4_LIB =	/LIBPATH:$(HDF4_DIR)\lib Ws2_32.lib
+# HDF4 library newer than 4.2.5 has a SDreset_maxopenfiles/SDget_maxopenfiles
+# interface which allows to open many HDF files simultaneously (the max
+# number of files was previously hardcoded and too low, smth. like 32).
+# Uncomment following if your library is newer than 4.2.5.
+#HDF4_HAS_MAXOPENFILES = YES
 
 # Uncomment the following and update to enable NCSA HDF Release 5 support.
 #HDF5_PLUGIN = NO
 #HDF5_DIR =	c:\warmerda\supportlibs\hdf5\5-164-win
 #HDF5_LIB =	$(HDF5_DIR)\dll\hdf5dll.lib 
+
+# Uncomment the following and update to enable KEA support.
+#KEA_PLUGIN = NO
+#KEA_CFLAGS = -Ic:\kea\include
+#KEA_LIB = c:\kea\libkea.lib 
 
 # Uncomment the following for MrSID support.  Only MRSID_DIR is required,
 # which may point to a MrSID Raster SDK, Lidar SDK, or the combined SDK, and
@@ -542,6 +554,8 @@ OCI_INCLUDE =	-I$(ORACLE_HOME)\oci\include
 #PODOFO_ENABLED = YES
 #PODOFO_CFLAGS = -Ie:/podofo-svn/install/include -Ie:/podofo-svn/install/include/podofo
 #PODOFO_LIBS = e:/podofo-svn/install/lib/podofo.lib E:/release-1500-dev/release-1500/lib/freetype239.lib gdi32.lib
+# Build PDF driver as plugin
+#PDF_PLUGIN = NO
 
 # Uncomment for LZMA TIFF support
 #LZMA_CFLAGS = -IC:/gdal_trunk/xz-5.0.0-windows/include
@@ -608,7 +622,7 @@ OGR_FLAG = -DOGR_ENABLED
 LINKER_FLAGS = $(EXTRA_LINKER_FLAGS) $(MSVC_VLD_LIB) $(LDEBUG)
 
 
-CFLAGS	=	$(OPTFLAGS) $(WARNFLAGS) $(SSEFLAGS) $(INC) $(EXTRAFLAGS) $(OGR_FLAG) $(MSVC_VLD_FLAGS)
+CFLAGS	=	$(OPTFLAGS) $(WARNFLAGS) $(SSEFLAGS) $(INC) $(EXTRAFLAGS) $(OGR_FLAG) $(MSVC_VLD_FLAGS) -DGDAL_COMPILATION
 CPPFLAGS = $(CFLAGS) 
 MAKE	=	nmake /nologo
 
@@ -654,6 +668,22 @@ FITS_LIB_LINK =
 !ENDIF
 !ENDIF
 
+!IFDEF POPPLER_LIBS
+!IF "$(PDF_PLUGIN)" != "YES"
+PDF_LIB_LINK = $(POPPLER_LIBS)
+!ELSE
+PDF_LIB_LINK =
+!ENDIF
+!ENDIF
+
+!IFDEF PODOFO_LIBS
+!IF "$(PDF_PLUGIN)" != "YES"
+PDF_LIB_LINK = $(PODOFO_LIBS)
+!ELSE
+PDF_LIB_LINK =
+!ENDIF
+!ENDIF
+
 !IFDEF NETCDF_LIB
 !IF "$(NETCDF_PLUGIN)" != "YES"
 NETCDF_LIB_LINK = $(NETCDF_LIB)
@@ -675,6 +705,14 @@ HDF4_LIB_LINK =
 HDF5_LIB_LINK = $(HDF5_LIB)
 !ELSE
 HDF5_LIB_LINK =
+!ENDIF
+!ENDIF
+
+!IFDEF KEA_LIB
+!IF "$(KEA_PLUGIN)" != "YES"
+KEA_LIB_LINK = $(KEA_LIB)
+!ELSE
+KEA_LIB_LINK =
 !ENDIF
 !ENDIF
 
@@ -702,10 +740,10 @@ EXTERNAL_LIBS =	$(OGDILIB) $(XERCES_LIB) $(EXPAT_LIB) $(OCI_LIB) $(PG_LIB) \
 	$(ECW_LIB_LINK) $(HDF4_LIB_LINK) $(FME_LIB) $(MRSID_LIB_LINK) \
 	$(FITS_LIB_LINK) $(JPEG_LIB) $(NETCDF_LIB_LINK) $(PROJ4_LIB) \
 	$(GEOTIFF_LIB) $(TIFF_LIB) $(PROJ_LIBRARY) $(SQLITE_LIB) \
-	$(MYSQL_LIB) $(GEOS_LIB) $(HDF5_LIB_LINK) $(SDE_LIB) $(ARCOBJECTS_LIB) $(DWG_LIB) \
+	$(MYSQL_LIB) $(GEOS_LIB) $(HDF5_LIB_LINK) $(KEA_LIB_LINK) $(SDE_LIB) $(ARCOBJECTS_LIB) $(DWG_LIB) \
 	$(IDB_LIB) $(CURL_LIB) $(DODS_LIB) $(KAKLIB) $(PCIDSK_LIB) \
 	$(ODBCLIB) $(JASPER_LIB) $(PNG_LIB) $(ADD_LIBS) $(OPENJPEG_LIB) \
-	$(MRSID_LIDAR_LIB) $(LIBKML_LIBS) $(SOSI_LIBS) $(POPPLER_LIBS) $(PODOFO_LIBS) $(LZMA_LIBS) \
+	$(MRSID_LIDAR_LIB) $(LIBKML_LIBS) $(SOSI_LIBS) $(PDF_LIB_LINK) $(LZMA_LIBS) \
 	$(LIBICONV_LIBRARY) $(WEBP_LIBS) $(FGDB_LIB_LINK) $(FREEXL_LIBS) $(GTA_LIBS) \
 	$(INGRES_LIB) $(LIBXML2_LIB) $(PCRE_LIB) ws2_32.lib
 		

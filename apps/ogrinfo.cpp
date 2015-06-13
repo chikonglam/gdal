@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrinfo.cpp 27044 2014-03-16 23:41:27Z rouault $
+ * $Id: ogrinfo.cpp 28977 2015-04-22 22:21:03Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Simple client for viewing OGR driver data.
@@ -36,18 +36,27 @@
 #include "cpl_multiproc.h"
 #include "commonutils.h"
 
-CPL_CVSID("$Id: ogrinfo.cpp 27044 2014-03-16 23:41:27Z rouault $");
+CPL_CVSID("$Id: ogrinfo.cpp 28977 2015-04-22 22:21:03Z rouault $");
 
 int     bReadOnly = FALSE;
 int     bVerbose = TRUE;
 int     bSummaryOnly = FALSE;
-int     nFetchFID = OGRNullFID;
+GIntBig nFetchFID = OGRNullFID;
 char**  papszOptions = NULL;
 
 static void Usage(const char* pszErrorMsg = NULL);
 
 static void ReportOnLayer( OGRLayer *, const char *, const char* pszGeomField, 
-                           OGRGeometry * );
+                           OGRGeometry *,
+                           int bListMDD,
+                           int bShowMetadata,
+                           char** papszExtraMDDomains,
+                           int bFeatureCount,
+                           int bExtent  );
+static void GDALInfoReportMetadata( GDALMajorObjectH hObject,
+                                    int bListMDD,
+                                    int bShowMetadata,
+                                    char **papszExtraMDDomains );
 
 /************************************************************************/
 /*                                main()                                */
@@ -69,6 +78,11 @@ int main( int nArgc, char ** papszArgv )
     const char  *pszDialect = NULL;
     int          nRet = 0;
     const char* pszGeomField = NULL;
+    char      **papszOpenOptions = NULL;
+    char      **papszExtraMDDomains = NULL;
+    int                 bListMDD = FALSE;
+    int                  bShowMetadata = TRUE;
+    int         bFeatureCount = TRUE, bExtent = TRUE;
     
     /* Check strict compilation and runtime library version as we use C++ API */
     if (! GDAL_CHECK_VERSION(papszArgv[0]))
@@ -106,18 +120,18 @@ int main( int nArgc, char ** papszArgv )
         else if( EQUAL(papszArgv[iArg],"-fid") )
         {
             CHECK_HAS_ENOUGH_ADDITIONAL_ARGS(1);
-            nFetchFID = atoi(papszArgv[++iArg]);
+            nFetchFID = CPLAtoGIntBig(papszArgv[++iArg]);
         }
         else if( EQUAL(papszArgv[iArg],"-spat") )
         {
             CHECK_HAS_ENOUGH_ADDITIONAL_ARGS(4);
             OGRLinearRing  oRing;
 
-            oRing.addPoint( atof(papszArgv[iArg+1]), atof(papszArgv[iArg+2]) );
-            oRing.addPoint( atof(papszArgv[iArg+1]), atof(papszArgv[iArg+4]) );
-            oRing.addPoint( atof(papszArgv[iArg+3]), atof(papszArgv[iArg+4]) );
-            oRing.addPoint( atof(papszArgv[iArg+3]), atof(papszArgv[iArg+2]) );
-            oRing.addPoint( atof(papszArgv[iArg+1]), atof(papszArgv[iArg+2]) );
+            oRing.addPoint( CPLAtof(papszArgv[iArg+1]), CPLAtof(papszArgv[iArg+2]) );
+            oRing.addPoint( CPLAtof(papszArgv[iArg+1]), CPLAtof(papszArgv[iArg+4]) );
+            oRing.addPoint( CPLAtof(papszArgv[iArg+3]), CPLAtof(papszArgv[iArg+4]) );
+            oRing.addPoint( CPLAtof(papszArgv[iArg+3]), CPLAtof(papszArgv[iArg+2]) );
+            oRing.addPoint( CPLAtof(papszArgv[iArg+1]), CPLAtof(papszArgv[iArg+2]) );
 
             poSpatialFilter = new OGRPolygon();
             ((OGRPolygon *) poSpatialFilter)->addRing( &oRing );
@@ -171,6 +185,26 @@ int main( int nArgc, char ** papszArgv )
             papszOptions = CSLAddString(papszOptions, pszTemp);
             CPLFree(pszTemp);
         }
+        else if( EQUAL(papszArgv[iArg], "-oo") )
+        {
+            CHECK_HAS_ENOUGH_ADDITIONAL_ARGS(1);
+            papszOpenOptions = CSLAddString( papszOpenOptions,
+                                                papszArgv[++iArg] );
+        }
+        else if( EQUAL(papszArgv[iArg], "-nomd") )
+            bShowMetadata = FALSE;
+        else if( EQUAL(papszArgv[iArg], "-listmdd") )
+            bListMDD = TRUE;
+        else if( EQUAL(papszArgv[iArg], "-mdd") )
+        {
+            CHECK_HAS_ENOUGH_ADDITIONAL_ARGS(1);
+            papszExtraMDDomains = CSLAddString( papszExtraMDDomains,
+                                                papszArgv[++iArg] );
+        }
+        else if( EQUAL(papszArgv[iArg], "-nocount") )
+            bFeatureCount = FALSE;
+        else if( EQUAL(papszArgv[iArg], "-noextent") )
+            bExtent = FALSE;
         else if( papszArgv[iArg][0] == '-' )
         {
             Usage(CPLSPrintf("Unknown option name '%s'", papszArgv[iArg]));
@@ -187,22 +221,30 @@ int main( int nArgc, char ** papszArgv )
     if( pszDataSource == NULL )
         Usage("No datasource specified.");
 
+    if( pszDialect != NULL && pszWHERE != NULL && pszSQLStatement == NULL )
+        printf("Warning: -dialect is ignored with -where. Use -sql instead");
+
 /* -------------------------------------------------------------------- */
 /*      Open data source.                                               */
 /* -------------------------------------------------------------------- */
-    OGRDataSource       *poDS = NULL;
-    OGRSFDriver         *poDriver = NULL;
+    GDALDataset        *poDS = NULL;
+    GDALDriver         *poDriver = NULL;
 
-    poDS = OGRSFDriverRegistrar::Open( pszDataSource, !bReadOnly, &poDriver );
+    poDS = (GDALDataset*) GDALOpenEx( pszDataSource,
+            (!bReadOnly ? GDAL_OF_UPDATE : GDAL_OF_READONLY) | GDAL_OF_VECTOR,
+            NULL, papszOpenOptions, NULL );
     if( poDS == NULL && !bReadOnly )
     {
-        poDS = OGRSFDriverRegistrar::Open( pszDataSource, FALSE, &poDriver );
+        poDS = (GDALDataset*) GDALOpenEx( pszDataSource,
+            GDAL_OF_READONLY | GDAL_OF_VECTOR, NULL, papszOpenOptions, NULL );
         if( poDS != NULL && bVerbose )
         {
             printf( "Had to open data source read-only.\n" );
             bReadOnly = TRUE;
         }
     }
+    if( poDS != NULL )
+        poDriver = poDS->GetDriver();
 
 /* -------------------------------------------------------------------- */
 /*      Report failure                                                  */
@@ -217,7 +259,7 @@ int main( int nArgc, char ** papszArgv )
 
         for( int iDriver = 0; iDriver < poR->GetDriverCount(); iDriver++ )
         {
-            printf( "  -> %s\n", poR->GetDriver(iDriver)->GetName() );
+            printf( "  -> %s\n", poR->GetDriver(iDriver)->GetDescription() );
         }
 
         nRet = 1;
@@ -232,14 +274,19 @@ int main( int nArgc, char ** papszArgv )
     if( bVerbose )
         printf( "INFO: Open of `%s'\n"
                 "      using driver `%s' successful.\n",
-                pszDataSource, poDriver->GetName() );
+                pszDataSource, poDriver->GetDescription() );
 
-    if( bVerbose && !EQUAL(pszDataSource,poDS->GetName()) )
+    if( bVerbose && !EQUAL(pszDataSource,poDS->GetDescription()) )
     {
         printf( "INFO: Internal data source name `%s'\n"
                 "      different from user name `%s'.\n",
-                poDS->GetName(), pszDataSource );
+                poDS->GetDescription(), pszDataSource );
     }
+
+    GDALInfoReportMetadata( (GDALMajorObjectH)poDS,
+                            bListMDD,
+                            bShowMetadata,
+                            papszExtraMDDomains );
 
 /* -------------------------------------------------------------------- */
 /*      Special case for -sql clause.  No source layers required.       */
@@ -269,9 +316,13 @@ int main( int nArgc, char ** papszArgv )
             }
 
             if( pszGeomField != NULL )
-                ReportOnLayer( poResultSet, NULL, pszGeomField, poSpatialFilter );
+                ReportOnLayer( poResultSet, NULL, pszGeomField, poSpatialFilter,
+                               bListMDD, bShowMetadata, papszExtraMDDomains,
+                               bFeatureCount, bExtent );
             else
-                ReportOnLayer( poResultSet, NULL, NULL, NULL );
+                ReportOnLayer( poResultSet, NULL, NULL, NULL,
+                               bListMDD, bShowMetadata, papszExtraMDDomains,
+                               bFeatureCount, bExtent );
             poDS->ReleaseResultSet( poResultSet );
         }
     }
@@ -331,7 +382,9 @@ int main( int nArgc, char ** papszArgv )
                     if( iRepeat != 0 )
                         poLayer->ResetReading();
 
-                    ReportOnLayer( poLayer, pszWHERE, pszGeomField, poSpatialFilter );
+                    ReportOnLayer( poLayer, pszWHERE, pszGeomField, poSpatialFilter,
+                                   bListMDD, bShowMetadata, papszExtraMDDomains,
+                                   bFeatureCount, bExtent );
                 }
             }
         }
@@ -355,7 +408,9 @@ int main( int nArgc, char ** papszArgv )
                 if( iRepeat != 0 )
                     poLayer->ResetReading();
 
-                ReportOnLayer( poLayer, pszWHERE, pszGeomField, poSpatialFilter );
+                ReportOnLayer( poLayer, pszWHERE, pszGeomField, poSpatialFilter,
+                               bListMDD, bShowMetadata, papszExtraMDDomains,
+                               bFeatureCount, bExtent );
             }
         }
     }
@@ -367,7 +422,10 @@ end:
     CSLDestroy( papszArgv );
     CSLDestroy( papszLayers );
     CSLDestroy( papszOptions );
-    OGRDataSource::DestroyDataSource( poDS );
+    CSLDestroy( papszOpenOptions );
+    CSLDestroy( papszExtraMDDomains );
+    if( poDS != NULL )
+        GDALClose( (GDALDatasetH)poDS );
     if (poSpatialFilter)
         OGRGeometryFactory::destroyGeometry( poSpatialFilter );
 
@@ -386,7 +444,9 @@ static void Usage(const char* pszErrorMsg)
     printf( "Usage: ogrinfo [--help-general] [-ro] [-q] [-where restricted_where]\n"
             "               [-spat xmin ymin xmax ymax] [-geomfield field] [-fid fid]\n"
             "               [-sql statement] [-dialect sql_dialect] [-al] [-so] [-fields={YES/NO}]\n"
-            "               [-geom={YES/NO/SUMMARY}][--formats]\n"
+            "               [-geom={YES/NO/SUMMARY}] [-formats] [[-oo NAME=VALUE] ...]\n"
+            "               [-nomd] [-listmdd] [-mdd domain|`all`]*\n"
+            "               [-nocount] [-noextent]\n"
             "               datasource_name [layer [layer ...]]\n");
 
     if( pszErrorMsg != NULL )
@@ -401,7 +461,12 @@ static void Usage(const char* pszErrorMsg)
 
 static void ReportOnLayer( OGRLayer * poLayer, const char *pszWHERE,
                            const char* pszGeomField, 
-                           OGRGeometry *poSpatialFilter )
+                           OGRGeometry *poSpatialFilter,
+                           int bListMDD,
+                           int bShowMetadata,
+                           char** papszExtraMDDomains,
+                           int bFeatureCount,
+                           int bExtent )
 
 {
     OGRFeatureDefn      *poDefn = poLayer->GetLayerDefn();
@@ -440,6 +505,11 @@ static void ReportOnLayer( OGRLayer * poLayer, const char *pszWHERE,
     
     printf( "Layer name: %s\n", poLayer->GetName() );
 
+    GDALInfoReportMetadata( (GDALMajorObjectH)poLayer,
+                            bListMDD,
+                            bShowMetadata,
+                            papszExtraMDDomains );
+
     if( bVerbose )
     {
         int nGeomFieldCount =
@@ -460,10 +530,11 @@ static void ReportOnLayer( OGRLayer * poLayer, const char *pszWHERE,
                     OGRGeometryTypeToName( poLayer->GetGeomType() ) );
         }
         
-        printf( "Feature Count: %d\n", poLayer->GetFeatureCount() );
+        if( bFeatureCount )
+            printf( "Feature Count: " CPL_FRMT_GIB "\n", poLayer->GetFeatureCount() );
         
         OGREnvelope oExt;
-        if( nGeomFieldCount > 1 )
+        if( bExtent && nGeomFieldCount > 1 )
         {
             for(int iGeom = 0;iGeom < nGeomFieldCount; iGeom ++ )
             {
@@ -471,15 +542,15 @@ static void ReportOnLayer( OGRLayer * poLayer, const char *pszWHERE,
                 {
                     OGRGeomFieldDefn* poGFldDefn =
                         poLayer->GetLayerDefn()->GetGeomFieldDefn(iGeom);
-                    printf("Extent (%s): (%f, %f) - (%f, %f)\n",
+                    CPLprintf("Extent (%s): (%f, %f) - (%f, %f)\n",
                            poGFldDefn->GetNameRef(),
                            oExt.MinX, oExt.MinY, oExt.MaxX, oExt.MaxY);
                 }
             }
         }
-        else if (poLayer->GetExtent(&oExt, TRUE) == OGRERR_NONE)
+        else if ( bExtent && poLayer->GetExtent(&oExt, TRUE) == OGRERR_NONE)
         {
-            printf("Extent: (%f, %f) - (%f, %f)\n", 
+            CPLprintf("Extent: (%f, %f) - (%f, %f)\n", 
                    oExt.MinX, oExt.MinY, oExt.MaxX, oExt.MaxY);
         }
 
@@ -520,30 +591,40 @@ static void ReportOnLayer( OGRLayer * poLayer, const char *pszWHERE,
         if( strlen(poLayer->GetFIDColumn()) > 0 )
             printf( "FID Column = %s\n", 
                     poLayer->GetFIDColumn() );
-    
-        if( nGeomFieldCount > 1 )
+
+        for(int iGeom = 0;iGeom < nGeomFieldCount; iGeom ++ )
         {
-            for(int iGeom = 0;iGeom < nGeomFieldCount; iGeom ++ )
-            {
-                OGRGeomFieldDefn* poGFldDefn =
-                    poLayer->GetLayerDefn()->GetGeomFieldDefn(iGeom);
-                printf( "Geometry Column %d = %s\n", iGeom + 1,
-                        poGFldDefn->GetNameRef() );
-            }
+            OGRGeomFieldDefn* poGFldDefn =
+                poLayer->GetLayerDefn()->GetGeomFieldDefn(iGeom);
+            if( nGeomFieldCount == 1 &&
+                EQUAL(poGFldDefn->GetNameRef(), "")  && poGFldDefn->IsNullable() )
+                break;
+            printf( "Geometry Column ");
+            if( nGeomFieldCount > 1 )
+                printf("%d ", iGeom + 1);
+            if( !poGFldDefn->IsNullable() )
+                printf("NOT NULL ");
+            printf("= %s\n", poGFldDefn->GetNameRef() );
         }
-        else if( strlen(poLayer->GetGeometryColumn()) > 0 )
-            printf( "Geometry Column = %s\n", 
-                    poLayer->GetGeometryColumn() );
 
         for( int iAttr = 0; iAttr < poDefn->GetFieldCount(); iAttr++ )
         {
             OGRFieldDefn    *poField = poDefn->GetFieldDefn( iAttr );
-            
-            printf( "%s: %s (%d.%d)\n",
+            const char* pszType = (poField->GetSubType() != OFSTNone) ?
+                CPLSPrintf("%s(%s)",
+                           poField->GetFieldTypeName( poField->GetType() ),
+                           poField->GetFieldSubTypeName(poField->GetSubType())) :
+                poField->GetFieldTypeName( poField->GetType() );
+            printf( "%s: %s (%d.%d)",
                     poField->GetNameRef(),
-                    poField->GetFieldTypeName( poField->GetType() ),
+                    pszType,
                     poField->GetWidth(),
                     poField->GetPrecision() );
+            if( !poField->IsNullable() )
+                printf(" NOT NULL");
+            if( poField->GetDefault() != NULL )
+                printf(" DEFAULT %s", poField->GetDefault() );
+            printf( "\n" );
         }
     }
 
@@ -565,7 +646,7 @@ static void ReportOnLayer( OGRLayer * poLayer, const char *pszWHERE,
         poFeature = poLayer->GetFeature( nFetchFID );
         if( poFeature == NULL )
         {
-            printf( "Unable to locate feature id %d on this layer.\n", 
+            printf( "Unable to locate feature id " CPL_FRMT_GIB " on this layer.\n", 
                     nFetchFID );
         }
         else
@@ -574,4 +655,112 @@ static void ReportOnLayer( OGRLayer * poLayer, const char *pszWHERE,
             OGRFeature::DestroyFeature( poFeature );
         }
     }
+}
+
+/************************************************************************/
+/*                       GDALInfoPrintMetadata()                        */
+/************************************************************************/
+static void GDALInfoPrintMetadata( GDALMajorObjectH hObject,
+                                   const char *pszDomain,
+                                   const char *pszDisplayedname,
+                                   const char *pszIndent)
+{
+    int i;
+    char **papszMetadata;
+    int bIsxml = FALSE;
+
+    if (pszDomain != NULL && EQUALN(pszDomain, "xml:", 4))
+        bIsxml = TRUE;
+
+    papszMetadata = GDALGetMetadata( hObject, pszDomain );
+    if( CSLCount(papszMetadata) > 0 )
+    {
+        printf( "%s%s:\n", pszIndent, pszDisplayedname );
+        for( i = 0; papszMetadata[i] != NULL; i++ )
+        {
+            if (bIsxml)
+                printf( "%s%s\n", pszIndent, papszMetadata[i] );
+            else
+                printf( "%s  %s\n", pszIndent, papszMetadata[i] );
+        }
+    }
+}
+
+/************************************************************************/
+/*                       GDALInfoReportMetadata()                       */
+/************************************************************************/
+static void GDALInfoReportMetadata( GDALMajorObjectH hObject,
+                                    int bListMDD,
+                                    int bShowMetadata,
+                                    char **papszExtraMDDomains )
+{
+    const char* pszIndent = "";
+
+    /* -------------------------------------------------------------------- */
+    /*      Report list of Metadata domains                                 */
+    /* -------------------------------------------------------------------- */
+    if( bListMDD )
+    {
+        char** papszMDDList = GDALGetMetadataDomainList( hObject );
+        char** papszIter = papszMDDList;
+
+        if( papszMDDList != NULL )
+            printf( "%sMetadata domains:\n", pszIndent );
+        while( papszIter != NULL && *papszIter != NULL )
+        {
+            if( EQUAL(*papszIter, "") )
+                printf( "%s  (default)\n", pszIndent);
+            else
+                printf( "%s  %s\n", pszIndent, *papszIter );
+            papszIter ++;
+        }
+        CSLDestroy(papszMDDList);
+    }
+
+    if (!bShowMetadata)
+        return;
+
+    /* -------------------------------------------------------------------- */
+    /*      Report default Metadata domain.                                 */
+    /* -------------------------------------------------------------------- */
+    GDALInfoPrintMetadata( hObject, NULL, "Metadata", pszIndent );
+
+    /* -------------------------------------------------------------------- */
+    /*      Report extra Metadata domains                                   */
+    /* -------------------------------------------------------------------- */
+    if (papszExtraMDDomains != NULL) {
+        char **papszExtraMDDomainsExpanded = NULL;
+        int iMDD;
+
+        if( EQUAL(papszExtraMDDomains[0], "all") &&
+            papszExtraMDDomains[1] == NULL )
+        {
+            char** papszMDDList = GDALGetMetadataDomainList( hObject );
+            char** papszIter = papszMDDList;
+
+            while( papszIter != NULL && *papszIter != NULL )
+            {
+                if( !EQUAL(*papszIter, "") )
+                {
+                    papszExtraMDDomainsExpanded = CSLAddString(papszExtraMDDomainsExpanded, *papszIter);
+                }
+                papszIter ++;
+            }
+            CSLDestroy(papszMDDList);
+        }
+        else
+        {
+            papszExtraMDDomainsExpanded = CSLDuplicate(papszExtraMDDomains);
+        }
+
+        for( iMDD = 0; iMDD < CSLCount(papszExtraMDDomainsExpanded); iMDD++ )
+        {
+            char pszDisplayedname[256];
+            snprintf(pszDisplayedname, 256, "Metadata (%s)", papszExtraMDDomainsExpanded[iMDD]);
+            GDALInfoPrintMetadata( hObject, papszExtraMDDomainsExpanded[iMDD], pszDisplayedname, pszIndent );
+        }
+
+        CSLDestroy(papszExtraMDDomainsExpanded);
+    }
+
 }

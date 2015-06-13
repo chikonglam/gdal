@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 ###############################################################################
-# $Id: ogrupdate.py 27044 2014-03-16 23:41:27Z rouault $
+# $Id: ogrupdate.py 28391 2015-01-30 19:57:31Z rouault $
 #
 # Project:  GDAL/OGR samples
 # Purpose:  Update an existing datasource with features from another one
@@ -77,10 +77,6 @@ def ogrupdate_analyse_args(argv, progress = None, progress_arg = None):
     src_layername = None
     dst_layername = None
     matchfieldname = None
-
-    # in case there's no existing matching feature in the target datasource
-    # should we try to create a new feature ? 
-    update_only = False
 
     # in case there's no existing matching feature in the target datasource
     # should we preserve the FID of the source feature that will be inserted ?
@@ -343,7 +339,7 @@ def ogrupdate_process(src_layer, dst_layer, matchfieldname = None, update_mode =
                 if ret == 0:
                     inserted_count = inserted_count + 1
                 else:
-                    insert_failed = insert_failed + 1
+                    inserted_failed = inserted_failed + 1
 
             elif update_mode == APPEND_ONLY:
                 continue
@@ -403,7 +399,7 @@ def ogrupdate_process(src_layer, dst_layer, matchfieldname = None, update_mode =
                 if ret == 0:
                     inserted_count = inserted_count + 1
                 else:
-                    insert_failed = insert_failed + 1
+                    inserted_failed = inserted_failed + 1
 
             elif update_mode == APPEND_ONLY:
                 continue

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdal_rpc.cpp 27931 2014-11-07 13:24:50Z rouault $
+ * $Id: gdal_rpc.cpp 29123 2015-05-03 11:05:46Z bishop $
  *
  * Project:  Image Warper
  * Purpose:  Implements a rational polynomail (RPC) based transformer. 
@@ -32,8 +32,9 @@
 #include "gdal_alg.h"
 #include "ogr_spatialref.h"
 #include "cpl_minixml.h"
+#include "gdal_mdreader.h"
 
-CPL_CVSID("$Id: gdal_rpc.cpp 27931 2014-11-07 13:24:50Z rouault $");
+CPL_CVSID("$Id: gdal_rpc.cpp 29123 2015-05-03 11:05:46Z bishop $");
 
 CPL_C_START
 CPLXMLNode *GDALSerializeRPCTransformer( void *pTransformArg );
@@ -54,34 +55,34 @@ char ** RPCInfoToMD( GDALRPCInfo *psRPCInfo )
     int i;
 
     osField.Printf( "%.15g", psRPCInfo->dfLINE_OFF );
-    papszMD = CSLSetNameValue( papszMD, "LINE_OFF", osField );
+    papszMD = CSLSetNameValue( papszMD, RPC_LINE_OFF, osField );
 
     osField.Printf( "%.15g", psRPCInfo->dfSAMP_OFF );
-    papszMD = CSLSetNameValue( papszMD, "SAMP_OFF", osField );
+    papszMD = CSLSetNameValue( papszMD, RPC_SAMP_OFF, osField );
 
     osField.Printf( "%.15g", psRPCInfo->dfLAT_OFF );
-    papszMD = CSLSetNameValue( papszMD, "LAT_OFF", osField );
+    papszMD = CSLSetNameValue( papszMD, RPC_LAT_OFF, osField );
 
     osField.Printf( "%.15g", psRPCInfo->dfLONG_OFF );
-    papszMD = CSLSetNameValue( papszMD, "LONG_OFF", osField );
+    papszMD = CSLSetNameValue( papszMD, RPC_LONG_OFF, osField );
 
     osField.Printf( "%.15g", psRPCInfo->dfHEIGHT_OFF );
-    papszMD = CSLSetNameValue( papszMD, "HEIGHT_OFF", osField );
+    papszMD = CSLSetNameValue( papszMD, RPC_HEIGHT_OFF, osField );
 
     osField.Printf( "%.15g", psRPCInfo->dfLINE_SCALE );
-    papszMD = CSLSetNameValue( papszMD, "LINE_SCALE", osField );
+    papszMD = CSLSetNameValue( papszMD, RPC_LINE_SCALE, osField );
 
     osField.Printf( "%.15g", psRPCInfo->dfSAMP_SCALE );
-    papszMD = CSLSetNameValue( papszMD, "SAMP_SCALE", osField );
+    papszMD = CSLSetNameValue( papszMD, RPC_SAMP_SCALE, osField );
 
     osField.Printf( "%.15g", psRPCInfo->dfLAT_SCALE );
-    papszMD = CSLSetNameValue( papszMD, "LAT_SCALE", osField );
+    papszMD = CSLSetNameValue( papszMD, RPC_LAT_SCALE, osField );
 
     osField.Printf( "%.15g", psRPCInfo->dfLONG_SCALE );
-    papszMD = CSLSetNameValue( papszMD, "LONG_SCALE", osField );
+    papszMD = CSLSetNameValue( papszMD, RPC_LONG_SCALE, osField );
 
     osField.Printf( "%.15g", psRPCInfo->dfHEIGHT_SCALE );
-    papszMD = CSLSetNameValue( papszMD, "HEIGHT_SCALE", osField );
+    papszMD = CSLSetNameValue( papszMD, RPC_HEIGHT_SCALE, osField );
 
     osField.Printf( "%.15g", psRPCInfo->dfMIN_LONG );
     papszMD = CSLSetNameValue( papszMD, "MIN_LONG", osField );
@@ -281,6 +282,49 @@ static const char* GDALSerializeRPCDEMResample(DEMResampleAlg eResampleAlg)
 }
 
 /************************************************************************/
+/*                   GDALCreateSimilarRPCTransformer()                  */
+/************************************************************************/
+
+static
+void* GDALCreateSimilarRPCTransformer( void *hTransformArg, double dfRatioX, double dfRatioY )
+{
+    VALIDATE_POINTER1( hTransformArg, "GDALCreateSimilarRPCTransformer", NULL );
+
+    GDALRPCTransformInfo *psInfo = (GDALRPCTransformInfo *) hTransformArg;
+    
+    GDALRPCInfo sRPC;
+    memcpy(&sRPC, &(psInfo->sRPC), sizeof(GDALRPCInfo));
+    
+    if( dfRatioX != 1.0 || dfRatioY != 1.0 )
+    {
+        sRPC.dfLINE_OFF /= dfRatioY;
+        sRPC.dfLINE_SCALE /= dfRatioY;
+        sRPC.dfSAMP_OFF /= dfRatioX;
+        sRPC.dfSAMP_SCALE /= dfRatioX;
+    }
+
+    char** papszOptions = NULL;
+    papszOptions = CSLSetNameValue(papszOptions, "RPC_HEIGHT",
+                                   CPLSPrintf("%.18g", psInfo->dfHeightOffset));
+    papszOptions = CSLSetNameValue(papszOptions, "RPC_HEIGHT_SCALE",
+                                   CPLSPrintf("%.18g", psInfo->dfHeightScale));
+    if( psInfo->pszDEMPath != NULL )
+    {
+        papszOptions = CSLSetNameValue(papszOptions, "RPC_DEM", psInfo->pszDEMPath);
+        papszOptions = CSLSetNameValue(papszOptions, "RPC_DEMINTERPOLATION",
+                                       GDALSerializeRPCDEMResample(psInfo->eResampleAlg));
+        if( psInfo->bHasDEMMissingValue )
+            papszOptions = CSLSetNameValue(papszOptions, "RPC_DEM_MISSING_VALUE",
+                                           CPLSPrintf("%.18g", psInfo->dfDEMMissingValue)) ;
+    }
+    psInfo = (GDALRPCTransformInfo*) GDALCreateRPCTransformer( &sRPC,
+           psInfo->bReversed, psInfo->dfPixErrThreshold, papszOptions );
+    CSLDestroy(papszOptions);
+
+    return psInfo;
+}
+
+/************************************************************************/
 /*                      GDALCreateRPCTransformer()                      */
 /************************************************************************/
 
@@ -357,7 +401,7 @@ static const char* GDALSerializeRPCDEMResample(DEMResampleAlg eResampleAlg)
  * an average height above sea level for ground in the target scene. 
  *
  * <li> RPC_HEIGHT_SCALE: a factor used to multiply heights above ground.
- * Usefull when elevation offsets of the DEM are not expressed in meters. (GDAL >= 1.8.0)
+ * Useful when elevation offsets of the DEM are not expressed in meters. (GDAL >= 1.8.0)
  *
  * <li> RPC_DEM: the name of a GDAL dataset (a DEM file typically) used to
  * extract elevation offsets from. In this situation the Z passed into the
@@ -406,11 +450,12 @@ void *GDALCreateRPCTransformer( GDALRPCInfo *psRPCInfo, int bReversed,
     psTransform->dfHeightOffset = 0.0;
     psTransform->dfHeightScale = 1.0;
 
-    strcpy( psTransform->sTI.szSignature, "GTI" );
+    memcpy( psTransform->sTI.abySignature, GDAL_GTI2_SIGNATURE, strlen(GDAL_GTI2_SIGNATURE) );
     psTransform->sTI.pszClassName = "GDALRPCTransformer";
     psTransform->sTI.pfnTransform = GDALRPCTransform;
     psTransform->sTI.pfnCleanup = GDALDestroyRPCTransformer;
     psTransform->sTI.pfnSerialize = GDALSerializeRPCTransformer;
+    psTransform->sTI.pfnCreateSimilar = GDALCreateSimilarRPCTransformer;
    
 /* -------------------------------------------------------------------- */
 /*      Do we have a "average height" that we want to consider all      */
@@ -664,7 +709,8 @@ int GDALRPCGetDEMHeight( GDALRPCTransformInfo *psTransform,
         double adfElevData[16] = {0};
         CPLErr eErr = psTransform->poDS->RasterIO(GF_Read, dXNew, dYNew, 4, 4,
                                                     &adfElevData, 4, 4,
-                                                    GDT_Float64, 1, bands, 0, 0, 0);
+                                                    GDT_Float64, 1, bands, 0, 0, 0,
+                                                    NULL);
         if(eErr != CE_None)
         {
             return FALSE;
@@ -709,7 +755,8 @@ int GDALRPCGetDEMHeight( GDALRPCTransformInfo *psTransform,
         double adfElevData[4] = {0,0,0,0};
         CPLErr eErr = psTransform->poDS->RasterIO(GF_Read, dX, dY, 2, 2,
                                                     &adfElevData, 2, 2,
-                                                    GDT_Float64, 1, bands, 0, 0, 0);
+                                                    GDT_Float64, 1, bands, 0, 0, 0,
+                                                  NULL);
         if(eErr != CE_None)
         {
             return FALSE;
@@ -744,7 +791,8 @@ int GDALRPCGetDEMHeight( GDALRPCTransformInfo *psTransform,
         }
         CPLErr eErr = psTransform->poDS->RasterIO(GF_Read, dX, dY, 1, 1,
                                                     &dfDEMH, 1, 1,
-                                                    GDT_Float64, 1, bands, 0, 0, 0);
+                                                    GDT_Float64, 1, bands, 0, 0, 0,
+                                                  NULL);
         if(eErr != CE_None ||
             (bGotNoDataValue && ARE_REAL_EQUAL(dfNoDataValue, dfDEMH)) )
         {

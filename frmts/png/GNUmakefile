@@ -1,4 +1,4 @@
-# $Id: GNUmakefile 16755 2009-04-09 20:38:33Z chaitanya $
+# $Id: GNUmakefile 27976 2014-11-17 13:13:44Z rouault $
 #
 # Makefile to build libpng using GNU Make and GCC.
 #
@@ -35,7 +35,7 @@ ifeq ($(LIBZ_SETTING),internal)
 XTRA_OPT	:=	$(XTRA_OPT) -I../zlib
 endif
 
-CPPFLAGS	:=	$(XTRA_OPT) $(GDAL_INCLUDE) $(CPPFLAGS)
+CPPFLAGS	:=	$(XTRA_OPT)  $(CPPFLAGS)
 
 default:	$(OBJ:.o=.$(OBJ_EXT))
 

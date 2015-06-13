@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #******************************************************************************
-#  $Id: gdalcopyproj.py 27044 2014-03-16 23:41:27Z rouault $
+#  $Id: gdalcopyproj.py 28391 2015-01-30 19:57:31Z rouault $
 # 
 #  Name:     gdalcopyproj.py
 #  Project:  GDAL Python Interface
@@ -39,7 +39,6 @@ except ImportError:
     import gdal
 
 import sys
-import os.path
 
 if len(sys.argv) < 3:
     print("Usage: gdalcopyproj.py source_file dest_file")

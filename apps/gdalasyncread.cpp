@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdalasyncread.cpp 19521 2010-04-24 21:46:11Z rouault $
+ * $Id: gdalasyncread.cpp 28053 2014-12-04 09:31:07Z rouault $
  *
  * Project:  GDAL Utilities
  * Purpose:  GDAL Async Image Reader, primarily for testing async api.
@@ -33,7 +33,7 @@
 #include "gdal_priv.h"
 #include "ogr_spatialref.h"
 
-CPL_CVSID("$Id: gdalasyncread.cpp 19521 2010-04-24 21:46:11Z rouault $");
+CPL_CVSID("$Id: gdalasyncread.cpp 28053 2014-12-04 09:31:07Z rouault $");
 
 /* ******************************************************************** */
 /*                               Usage()                                */
@@ -189,7 +189,7 @@ int main( int argc, char ** argv )
 
         else if( EQUAL(argv[i],"-to") && i < argc-1 )
         {
-            dfTimeout = atof(argv[++i] );
+            dfTimeout = CPLAtof(argv[++i] );
         }   
 
         else if( EQUAL(argv[i],"-outsize") && i < argc-2 )
@@ -294,9 +294,9 @@ int main( int argc, char ** argv )
     else
     {
         nOXSize = (int) ((pszOXSize[strlen(pszOXSize)-1]=='%' 
-                          ? atof(pszOXSize)/100*anSrcWin[2] : atoi(pszOXSize)));
+                          ? CPLAtof(pszOXSize)/100*anSrcWin[2] : atoi(pszOXSize)));
         nOYSize = (int) ((pszOYSize[strlen(pszOYSize)-1]=='%' 
-                          ? atof(pszOYSize)/100*anSrcWin[3] : atoi(pszOYSize)));
+                          ? CPLAtof(pszOYSize)/100*anSrcWin[3] : atoi(pszOYSize)));
     }
 
 /* -------------------------------------------------------------------- */
@@ -521,7 +521,7 @@ int main( int argc, char ** argv )
                                + nUpYOff * nLineSpace, 
                                nUpXSize, nUpYSize, eOutputType,
                                nBandCount, NULL, 
-                               nPixelSpace, nLineSpace, nBandSpace );
+                               nPixelSpace, nLineSpace, nBandSpace, NULL );
         poAsyncReq->UnlockBuffer();
 
 /* -------------------------------------------------------------------- */

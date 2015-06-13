@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: cpl.i 26526 2013-10-11 11:49:24Z tamas $
+ * $Id: cpl.i 28730 2015-03-14 14:24:15Z ajolma $
  *
  * Name:     cpl.i
  * Project:  GDAL Python Interface
@@ -363,7 +363,7 @@ int VSIUnlink(const char * utf8_path );
 
 /* Added in GDAL 1.7.0 */
 /* Thread support is necessary for binding languages with threaded GC */
-/* even if the user doesn't explicitely use threads */
+/* even if the user doesn't explicitly use threads */
 %inline {
 int wrapper_HasThreadSupport()
 {
@@ -411,13 +411,11 @@ typedef struct
 
 struct StatBuf
 {
-%apply (GIntBig bigint) { GIntBig };
 %immutable;
   int         mode;
   GIntBig     size;
   GIntBig     mtime;
 %mutable;
-%clear (GIntBig bigint);
 
 %extend {
   StatBuf( StatBuf *psStatBuf ) {
@@ -457,15 +455,21 @@ int wrapper_VSIStatL( const char * utf8_path, StatBuf *psStatBufOut, int nFlags 
 
 #endif
 
-VSILFILE   *VSIFOpenL( const char *utf8_path, const char *pszMode );
+%rename (VSIFOpenL) wrapper_VSIFOpenL;
+%inline %{
+VSILFILE   *wrapper_VSIFOpenL( const char *utf8_path, const char *pszMode )
+{
+    if (!pszMode) /* would lead to segfault */
+        pszMode = "r";
+    return VSIFOpenL( utf8_path, pszMode );
+}
+%}
 void    VSIFCloseL( VSILFILE * );
 
 #if defined(SWIGPYTHON)
-%apply (GIntBig bigint) { GIntBig };
 int     VSIFSeekL( VSILFILE *, GIntBig, int );
 GIntBig    VSIFTellL( VSILFILE * );
 int     VSIFTruncateL( VSILFILE *, GIntBig );
-%clear (GIntBig bigint);
 #else
 int     VSIFSeekL( VSILFILE *, long, int );
 long    VSIFTellL( VSILFILE * );
@@ -479,7 +483,7 @@ int wrapper_VSIFWriteL( int nLen, char *pBuf, int size, int memb, VSILFILE * f)
 {
     if (nLen < size * memb)
     {
-        CPLError(CE_Failure, CPLE_AppDefined, "Inconsistant buffer size with 'size' and 'memb' values");
+        CPLError(CE_Failure, CPLE_AppDefined, "Inconsistent buffer size with 'size' and 'memb' values");
         return 0;
     }
     return VSIFWriteL(pBuf, size, memb, f);

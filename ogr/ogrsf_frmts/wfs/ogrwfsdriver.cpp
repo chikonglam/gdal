@@ -32,39 +32,46 @@
 
 // g++ -fPIC -g -Wall ogr/ogrsf_frmts/wfs/*.cpp -shared -o ogr_WFS.so -Iport -Igcore -Iogr -Iogr/ogrsf_frmts -Iogr/ogrsf_frmts/gml -Iogr/ogrsf_frmts/wfs -L. -lgdal
 
-CPL_CVSID("$Id: ogrwfsdriver.cpp 27729 2014-09-24 00:40:16Z goatbar $");
+CPL_CVSID("$Id: ogrwfsdriver.cpp 29019 2015-04-25 20:34:19Z rouault $");
 
 extern "C" void RegisterOGRWFS();
 
 /************************************************************************/
-/*                           ~OGRWFSDriver()                            */
+/*                             Identify()                               */
 /************************************************************************/
 
-OGRWFSDriver::~OGRWFSDriver()
+static int OGRWFSDriverIdentify( GDALOpenInfo* poOpenInfo )
 
 {
-}
-
-/************************************************************************/
-/*                              GetName()                               */
-/************************************************************************/
-
-const char *OGRWFSDriver::GetName()
-
-{
-    return "WFS";
+    if( !EQUALN(poOpenInfo->pszFilename, "WFS:", 4) )
+    {
+        if( poOpenInfo->fpL == NULL )
+            return FALSE;
+        if( !EQUALN((const char*)poOpenInfo->pabyHeader,"<OGRWFSDataSource>",18) &&
+            strstr((const char*)poOpenInfo->pabyHeader,"<WFS_Capabilities") == NULL &&
+            strstr((const char*)poOpenInfo->pabyHeader,"<wfs:WFS_Capabilities") == NULL)
+        {
+            return FALSE;
+        }
+    }
+    return TRUE;
 }
 
 /************************************************************************/
 /*                                Open()                                */
 /************************************************************************/
 
-OGRDataSource *OGRWFSDriver::Open( const char * pszFilename, int bUpdate )
+static GDALDataset *OGRWFSDriverOpen( GDALOpenInfo* poOpenInfo )
 
 {
+    if( !OGRWFSDriverIdentify(poOpenInfo) )
+        return NULL;
+
     OGRWFSDataSource   *poDS = new OGRWFSDataSource();
 
-    if( !poDS->Open( pszFilename, bUpdate ) )
+    if( !poDS->Open( poOpenInfo->pszFilename,
+                     poOpenInfo->eAccess == GA_Update,
+                     poOpenInfo->papszOpenOptions ) )
     {
         delete poDS;
         poDS = NULL;
@@ -74,21 +81,39 @@ OGRDataSource *OGRWFSDriver::Open( const char * pszFilename, int bUpdate )
 }
 
 /************************************************************************/
-/*                           TestCapability()                           */
-/************************************************************************/
-
-int OGRWFSDriver::TestCapability( CPL_UNUSED const char * pszCap )
-{
-    return FALSE;
-}
-
-/************************************************************************/
 /*                           RegisterOGRWFS()                           */
 /************************************************************************/
 
 void RegisterOGRWFS()
 
 {
-    OGRSFDriverRegistrar::GetRegistrar()->RegisterDriver( new OGRWFSDriver );
+    GDALDriver  *poDriver;
+
+    if( GDALGetDriverByName( "WFS" ) == NULL )
+    {
+        poDriver = new GDALDriver();
+
+        poDriver->SetDescription( "WFS" );
+        poDriver->SetMetadataItem( GDAL_DCAP_VECTOR, "YES" );
+        poDriver->SetMetadataItem( GDAL_DMD_LONGNAME,
+                                   "OGC WFS (Web Feature Service)" );
+        poDriver->SetMetadataItem( GDAL_DMD_HELPTOPIC,
+                                   "drv_wfs.html" );
+
+        poDriver->SetMetadataItem( GDAL_DMD_CONNECTION_PREFIX, "WFS:" );
+
+        poDriver->SetMetadataItem( GDAL_DMD_OPENOPTIONLIST,
+"<OpenOptionList>"
+"  <Option name='URL' type='string' description='URL to the WFS server endpoint' required='true'/>"
+"  <Option name='TRUST_CAPABILITIES_BOUNDS' type='boolean' description='Whether to trust layer bounds declared in GetCapabilities response' default='NO'/>"
+"</OpenOptionList>" );
+
+        poDriver->SetMetadataItem( GDAL_DCAP_VIRTUALIO, "YES" );
+
+        poDriver->pfnIdentify = OGRWFSDriverIdentify;
+        poDriver->pfnOpen = OGRWFSDriverOpen;
+
+        GetGDALDriverManager()->RegisterDriver( poDriver );
+    }
 }
 

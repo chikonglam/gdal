@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: commonutils.cpp 27044 2014-03-16 23:41:27Z rouault $
+ * $Id: commonutils.cpp 27384 2014-05-24 12:28:12Z rouault $
  *
  * Project:  GDAL Utilities
  * Purpose:  Common utility routines
@@ -31,7 +31,7 @@
 #include "cpl_string.h"
 #include "gdal.h"
 
-CPL_CVSID("$Id: commonutils.cpp 27044 2014-03-16 23:41:27Z rouault $");
+CPL_CVSID("$Id: commonutils.cpp 27384 2014-05-24 12:28:12Z rouault $");
 
 /* -------------------------------------------------------------------- */
 /*                      CheckExtensionConsistency()                     */
@@ -54,23 +54,32 @@ void CheckExtensionConsistency(const char* pszDestFilename,
         for(int i=0;i<nDriverCount;i++)
         {
             GDALDriverH hDriver = GDALGetDriver(i);
-            const char* pszDriverExtension = 
-                GDALGetMetadataItem( hDriver, GDAL_DMD_EXTENSION, NULL );   
-            if (pszDriverExtension && EQUAL(pszDestExtension, pszDriverExtension))
+            const char* pszDriverExtensions = 
+                GDALGetMetadataItem( hDriver, GDAL_DMD_EXTENSIONS, NULL );
+            if( pszDriverExtensions )
             {
-                if (GDALGetDriverByName(pszDriverName) != hDriver)
+                char** papszTokens = CSLTokenizeString( pszDriverExtensions );
+                for(int j=0; papszTokens[j]; j++)
                 {
-                    if (osConflictingDriverList.size())
-                        osConflictingDriverList += ", ";
-                    osConflictingDriverList += GDALGetDriverShortName(hDriver);
+                    const char* pszDriverExtension = papszTokens[j];
+                    if (EQUAL(pszDestExtension, pszDriverExtension))
+                    {
+                        if (GDALGetDriverByName(pszDriverName) != hDriver)
+                        {
+                            if (osConflictingDriverList.size())
+                                osConflictingDriverList += ", ";
+                            osConflictingDriverList += GDALGetDriverShortName(hDriver);
+                        }
+                        else
+                        {
+                            /* If the request driver allows the used extension, then */
+                            /* just stop iterating now */
+                            osConflictingDriverList = "";
+                            break;
+                        }
+                    }
                 }
-                else
-                {
-                    /* If the request driver allows the used extension, then */
-                    /* just stop iterating now */
-                    osConflictingDriverList = "";
-                    break;
-                }
+                CSLDestroy(papszTokens);
             }
         }
         if (osConflictingDriverList.size())
@@ -108,6 +117,11 @@ void EarlySetConfigOptions( int argc, char ** argv )
             CPLSetConfigOption( argv[i+1], argv[i+2] );
 
             i += 2;
+        }
+        else if( EQUAL(argv[i],"--debug") && i + 1 < argc )
+        {
+            CPLSetConfigOption( "CPL_DEBUG", argv[i+1] );
+            i += 1;
         }
     }
 }

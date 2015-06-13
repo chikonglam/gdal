@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: filegdbindex.cpp 27751 2014-09-28 16:33:48Z rouault $
+ * $Id: filegdbindex.cpp 28900 2015-04-14 09:40:34Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implements reading of FileGDB indexes
@@ -731,7 +731,7 @@ static const char* FileGDBValueToStr(OGRFieldType eOGRFieldType,
                                             psValue->Date.Day,
                                             psValue->Date.Hour,
                                             psValue->Date.Minute,
-                                            psValue->Date.Second);
+                                            (int)psValue->Date.Second);
         case OFTDate: return CPLSPrintf("%04d/%02d/%02d",
                                             psValue->Date.Year,
                                             psValue->Date.Month,
@@ -739,7 +739,7 @@ static const char* FileGDBValueToStr(OGRFieldType eOGRFieldType,
         case OFTTime: return CPLSPrintf("%02d:%02d:%02d",
                                             psValue->Date.Hour,
                                             psValue->Date.Minute,
-                                            psValue->Date.Second);
+                                            (int)psValue->Date.Second);
         default:
             break;
     }

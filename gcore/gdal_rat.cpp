@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdal_rat.cpp 27723 2014-09-22 18:21:08Z goatbar $
+ * $Id: gdal_rat.cpp 28016 2014-11-26 15:13:41Z rouault $
  *
  * Project:  GDAL Core
  * Purpose:  Implementation of GDALRasterAttributeTable and related classes.
@@ -31,7 +31,7 @@
 #include "gdal_priv.h"
 #include "gdal_rat.h"
 
-CPL_CVSID("$Id: gdal_rat.cpp 27723 2014-09-22 18:21:08Z goatbar $");
+CPL_CVSID("$Id: gdal_rat.cpp 28016 2014-11-26 15:13:41Z rouault $");
 
 /**
  * \class GDALRasterAttributeTable
@@ -374,7 +374,7 @@ int GDALRasterAttributeTable::GetRowOfValue( int nValue ) const
  * @return CE_None on success or CE_Failure if something goes wrong.
  */
 
-CPLErr GDALRasterAttributeTable::CreateColumn( CPL_UNUSED const char *pszFieldName, 
+CPLErr GDALRasterAttributeTable::CreateColumn( CPL_UNUSED const char *pszFieldName,
                                                CPL_UNUSED GDALRATFieldType eFieldType,
                                                CPL_UNUSED GDALRATFieldUsage eFieldUsage )
 {
@@ -422,7 +422,7 @@ CPLErr CPL_STDCALL GDALRATCreateColumn( GDALRasterAttributeTableH hRAT,
  * @return CE_None on success or CE_Failure on failure.
  */
 
-CPLErr GDALRasterAttributeTable::SetLinearBinning( CPL_UNUSED double dfRow0MinIn, 
+CPLErr GDALRasterAttributeTable::SetLinearBinning( CPL_UNUSED double dfRow0MinIn,
                                                    CPL_UNUSED double dfBinSizeIn )
 {
     return CE_Failure;
@@ -514,12 +514,12 @@ CPLXMLNode *GDALRasterAttributeTable::Serialize() const
 
     if( GetLinearBinning(&dfRow0Min, &dfBinSize) )
     {
-        sprintf( szValue, "%.16g", dfRow0Min );
+        CPLsprintf( szValue, "%.16g", dfRow0Min );
         CPLCreateXMLNode( 
             CPLCreateXMLNode( psTree, CXT_Attribute, "Row0Min" ), 
             CXT_Text, szValue );
 
-        sprintf( szValue, "%.16g", dfBinSize );
+        CPLsprintf( szValue, "%.16g", dfBinSize );
         CPLCreateXMLNode( 
             CPLCreateXMLNode( psTree, CXT_Attribute, "BinSize" ), 
             CXT_Text, szValue );
@@ -580,7 +580,7 @@ CPLXMLNode *GDALRasterAttributeTable::Serialize() const
             if( GetTypeOfCol(iCol) == GFT_Integer )
                 sprintf( szValue, "%d", GetValueAsInt(iRow, iCol) );
             else if( GetTypeOfCol(iCol) == GFT_Real )
-                sprintf( szValue, "%.16g", GetValueAsDouble(iRow, iCol) );
+                CPLsprintf( szValue, "%.16g", GetValueAsDouble(iRow, iCol) );
             else
                 pszValue = GetValueAsString(iRow, iCol);
 
@@ -607,8 +607,8 @@ CPLErr GDALRasterAttributeTable::XMLInit( CPLXMLNode *psTree,
     if( CPLGetXMLValue( psTree, "Row0Min", NULL ) 
         && CPLGetXMLValue( psTree, "BinSize", NULL ) )
     {
-        SetLinearBinning( atof(CPLGetXMLValue( psTree, "Row0Min","" )), 
-                          atof(CPLGetXMLValue( psTree, "BinSize","" )) );
+        SetLinearBinning( CPLAtof(CPLGetXMLValue( psTree, "Row0Min","" )), 
+                          CPLAtof(CPLGetXMLValue( psTree, "BinSize","" )) );
     }
 
 /* -------------------------------------------------------------------- */
@@ -1353,7 +1353,7 @@ GDALDefaultRasterAttributeTable::GetValueAsDouble( int iRow, int iField ) const
         return aoFields[iField].adfValues[iRow];
 
       case GFT_String:
-        return atof( aoFields[iField].aosValues[iRow].c_str() );
+        return CPLAtof( aoFields[iField].aosValues[iRow].c_str() );
     }
 
     return 0;
@@ -1443,7 +1443,7 @@ void GDALDefaultRasterAttributeTable::SetValue( int iRow, int iField,
         break;
         
       case GFT_Real:
-        aoFields[iField].adfValues[iRow] = atof(pszValue);
+        aoFields[iField].adfValues[iRow] = CPLAtof(pszValue);
         break;
         
       case GFT_String:
@@ -1579,7 +1579,7 @@ void GDALDefaultRasterAttributeTable::SetValue( int iRow, int iField,
       {
           char szValue[100];
 
-          sprintf( szValue, "%.15g", dfValue );
+          CPLsprintf( szValue, "%.15g", dfValue );
           aoFields[iField].aosValues[iRow] = szValue;
       }
       break;

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrunionlayer.h 27044 2014-03-16 23:41:27Z rouault $
+ * $Id: ogrunionlayer.h 28375 2015-01-30 12:06:11Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Defines OGRUnionLayer class
@@ -80,7 +80,7 @@ class OGRUnionLayer : public OGRLayer
 
     int                 bPreserveSrcFID;
 
-    int                 nFeatureCount;
+    GIntBig             nFeatureCount;
 
     int                 iCurLayer;
     char               *pszAttributeFilter;
@@ -102,7 +102,7 @@ class OGRUnionLayer : public OGRLayer
   public:
                         OGRUnionLayer( const char* pszName,
                                        int nSrcLayers, /* must be >= 1 */
-                                       OGRLayer** papoSrcLayers, /* array itself ownership always transfered, layer ownership depending on bTakeLayerOwnership */
+                                       OGRLayer** papoSrcLayers, /* array itself ownership always transferred, layer ownership depending on bTakeLayerOwnership */
                                        int bTakeLayerOwnership);
 
     virtual             ~OGRUnionLayer();
@@ -123,17 +123,17 @@ class OGRUnionLayer : public OGRLayer
     virtual void        ResetReading();
     virtual OGRFeature *GetNextFeature();
 
-    virtual OGRFeature *GetFeature( long nFeatureId );
+    virtual OGRFeature *GetFeature( GIntBig nFeatureId );
 
-    virtual OGRErr      CreateFeature( OGRFeature* poFeature );
+    virtual OGRErr      ICreateFeature( OGRFeature* poFeature );
 
-    virtual OGRErr      SetFeature( OGRFeature* poFeature );
+    virtual OGRErr      ISetFeature( OGRFeature* poFeature );
 
     virtual OGRFeatureDefn *GetLayerDefn();
 
     virtual OGRSpatialReference *GetSpatialRef();
 
-    virtual int         GetFeatureCount( int );
+    virtual GIntBig     GetFeatureCount( int );
 
     virtual OGRErr      SetAttributeFilter( const char * );
 

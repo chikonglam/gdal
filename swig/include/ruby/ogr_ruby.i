@@ -1,5 +1,5 @@
 /*
- * $Id: ogr_ruby.i 9022 2006-01-17 04:42:16Z cfis $
+ * $Id: ogr_ruby.i 28039 2014-11-30 18:24:59Z rouault $
  *
  * ruby specific code for ogr bindings.
  */
@@ -16,7 +16,7 @@
  * Added support for exceptions, removed some outdated code.
  *
  * Revision 1.1  2005/09/02 16:19:23  kruland
- * Major reorganization to accomodate multiple language bindings.
+ * Major reorganization to accommodate multiple language bindings.
  * Each language binding can define renames and supplemental code without
  * having to have a lot of conditionals in the main interface definition files.
  *

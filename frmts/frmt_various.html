@@ -112,6 +112,17 @@ limited.  Additional sample prj.adf files may be sent to the maintainer,
 
 <!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
 
+<h2><a name="ARG">ARG -- Azavea Raster Grid</a></h2>
+
+<p>Driver implementation for a raw format that is used in 
+<a href="http://geotrellis.io/">GeoTrellis</a> and called ARG. 
+<a href="http://geotrellis.io/documentation/0.9.0/geotrellis/io/arg/">ARG format 
+specification</a>. Format is essentially a raw format, with a companion .JSON file.</p>
+
+<p>NOTE: Implemented as <tt>gdal/frmts/arg/argdataset.cpp</tt>.</p>
+
+<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+
 <h2><a name="BSB">BSB -- Maptech/NOAA BSB Nautical Chart Format</a></h2>
 
 <p>BSB Nautical Chart format is supported for read access, including reading 
@@ -287,7 +298,7 @@ unlabelled DOQ (Digital Ortho Quad) format from the USGS.</p>
 <h2><a name="DOQ2">DOQ2 -- New Labelled USGS DOQ</a></h2>
 
 <p>Support for read access, including reading of an affine georeferencing 
-transform, capture of the projection string and reading of other auxilary
+transform, capture of the projection string and reading of other auxiliary
 fields as metadata.   This format is the new,
 labelled DOQ (Digital Ortho Quad) format from the USGS.</p>
 
@@ -815,7 +826,7 @@ Description</a></p>
 <!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
 
 <h2><a name="PCRaster">PCRaster raster file format</a></h2>
-<p>GDAL includes support for reading and writing PCRaster raster files. PCRaster is a dynamic modelling system for distributed simulation models. The main applications of PCRaster are found in environmental modelling: geography, hydrology, ecology to name a few. Examples include rainfall-runoff models, vegetation competition models and slope stability models.</p>
+<p>GDAL includes support for reading and writing PCRaster raster files. PCRaster is a dynamic modelling system for distributed simulation models. The main applications of PCRaster are found in environmental modelling: geography, hydrology, ecology to name a few. Examples include models for research on global hydrology, vegetation competition models, slope stability models and land use change models.</p>
 
 <p>The driver reads all types of PCRaster maps: booleans, nominal, ordinals, scalar, directional and ldd. The same cell representation used to store values in the file is used to store the values in memory.</p>
 
@@ -914,7 +925,7 @@ Description</a></p>
 
 <p>NOTE: Implemented as <tt>gdal/frmts/pcraster/pcrasterdataset.cpp</tt>.</p>
 
-<p>See also: <a href="http://pcraster.geog.uu.nl">PCRaster website at Utrecht University</a> and <a href="http://www.pcraster.nl">PCRaster Environmental Software company website</a>.</p>
+<p>See also: <a href="http://pcraster.geo.uu.nl">PCRaster website at Utrecht University</a>.</p>
 
 <!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
 
@@ -972,6 +983,12 @@ details.</li>
 The default is 6.  A value of 1 is fast but does no compression, and a value
 of 9 is slow but does the best compression.</li>
 
+<li> <b>TITLE=value</b>: Title, written in a TEXT or iTXt chunk (GDAL &gt;= 2.0 )</li>
+<li> <b>DESCRIPTION=value</b>: Description, written in a TEXT or iTXt chunk (GDAL &gt;= 2.0 )</li>
+<li> <b>COPYRIGHT=value</b>: Copyright, written in a TEXT or iTXt chunk (GDAL &gt;= 2.0 )</li>
+<li> <b>COMMENT=value</b>: Comment, written in a TEXT or iTXt chunk (GDAL &gt;= 2.0 )</li>
+<li> <b>WRITE_METADATA_AS_TEXT=YES/NO</b>: Whether to write source dataset metadata in TEXT chunks (GDAL &gt;= 2.0 )</li>
+
 </ul>
 
 <p>NOTE: Implemented as <tt>gdal/frmts/png/pngdataset.cpp</tt>.</p> 
@@ -1000,6 +1017,25 @@ software which is not liberal to this value.</li>
 </ul>
 
 <p>NOTE: Implemented as <tt>gdal/frmts/raw/pnmdataset.cpp</tt>.</p>
+
+<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+
+<h2><a name="ROI_PAC">ROI_PAC</a></h2>
+
+<p>Driver for the image formats used in the JPL's ROI_PAC 
+project (<a href="https://aws.roipac.org/">https://aws.roipac.org/</a>).
+All image type are supported excepted .raw images.</p>
+
+<p>Metadata are stored in the ROI_PAC domain.</p>
+
+<p>Georeferencing is supported, but expect problems when using the UTM 
+projection, as ROI_PAC format do not store any hemisphere field.</p>
+
+<p>When creating files, you have to be able to specify the right data type
+corresponding to the file type (slc, int, etc), else the driver will output
+an error.</p>
+
+<p>NOTE: Implemented as <tt>gdal/frmts/raw/roipacdataset.cpp</tt>.</p>
 
 <!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
 
@@ -1325,7 +1361,7 @@ as reported by GDAL will be a half-pixel at the top and left of the values that 
 </p>
 
 <p>
-$Id: frmt_various.html 27110 2014-03-28 21:29:20Z rouault $
+$Id: frmt_various.html 28861 2015-04-07 09:41:29Z kdejong $
 </p>
 
 </body>

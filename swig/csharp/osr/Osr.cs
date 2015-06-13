@@ -160,6 +160,7 @@ public delegate int GDALProgressFuncDelegate(double Complete, IntPtr Message, In
   public const string SRS_PT_LAMBERT_AZIMUTHAL_EQUAL_AREA = "Lambert_Azimuthal_Equal_Area";
   public const string SRS_PT_MERCATOR_1SP = "Mercator_1SP";
   public const string SRS_PT_MERCATOR_2SP = "Mercator_2SP";
+  public const string SRS_PT_MERCATOR_AUXILIARY_SPHERE = "Mercator_Auxiliary_Sphere";
   public const string SRS_PT_MILLER_CYLINDRICAL = "Miller_Cylindrical";
   public const string SRS_PT_MOLLWEIDE = "Mollweide";
   public const string SRS_PT_NEW_ZEALAND_MAP_GRID = "New_Zealand_Map_Grid";
@@ -190,6 +191,14 @@ public delegate int GDALProgressFuncDelegate(double Complete, IntPtr Message, In
   public const string SRS_PT_WAGNER_V = "Wagner_V";
   public const string SRS_PT_WAGNER_VI = "Wagner_VI";
   public const string SRS_PT_WAGNER_VII = "Wagner_VII";
+  public const string SRS_PT_QSC = "Quadrilateralized_Spherical_Cube";
+  public const string SRS_PT_AITOFF = "Aitoff";
+  public const string SRS_PT_WINKEL_I = "Winkel_I";
+  public const string SRS_PT_WINKEL_II = "Winkel_II";
+  public const string SRS_PT_WINKEL_TRIPEL = "Winkel_Tripel";
+  public const string SRS_PT_CRASTER_PARABOLIC = "Craster_Parabolic";
+  public const string SRS_PT_LOXIMUTHAL = "Loximuthal";
+  public const string SRS_PT_QUARTIC_AUTHALIC = "Quartic_Authalic";
   public const string SRS_PP_CENTRAL_MERIDIAN = "central_meridian";
   public const string SRS_PP_SCALE_FACTOR = "scale_factor";
   public const string SRS_PP_STANDARD_PARALLEL_1 = "standard_parallel_1";

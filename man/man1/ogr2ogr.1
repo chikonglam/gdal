@@ -1,8 +1,8 @@
-.TH "ogr2ogr" 1 "Tue Feb 10 2015" "GDAL" \" -*- nroff -*-
+.TH "ogr2ogr" 1 "Mon May 4 2015" "GDAL" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
-ogr2ogr \- .TH "ogr2ogr" 1 "Tue Feb 10 2015" "GDAL" \" -*- nroff -*-
+ogr2ogr \- .TH "ogr2ogr" 1 "Mon May 4 2015" "GDAL" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -21,10 +21,13 @@ Usage: ogr2ogr [--help-general] [-skipfailures] [-append] [-update]
                [-a_srs srs_def] [-t_srs srs_def] [-s_srs srs_def]
                [-f format_name] [-overwrite] [[-dsco NAME=VALUE] ...]
                dst_datasource_name src_datasource_name
-               [-lco NAME=VALUE] [-nln name] [-nlt type] [-dim 2|3|layer_dim] [layer [layer ...]]
+               [-lco NAME=VALUE] [-nln name]
+               [-nlt type|PROMOTE_TO_MULTI|CONVERT_TO_LINEAR]
+               [-dim 2|3|layer_dim] [layer [layer ...]]
 
 Advanced options :
                [-gt n]
+               [[-oo NAME=VALUE] ...] [[-doo NAME=VALUE] ...]
                [-clipsrc [xmin ymin xmax ymax]|WKT|datasource|spat_extent]
                [-clipsrcsql sql_statement] [-clipsrclayer layer]
                [-clipsrcwhere expression]
@@ -33,12 +36,15 @@ Advanced options :
                [-clipdstwhere expression]
                [-wrapdateline] [-datelineoffset val]
                [[-simplify tolerance] | [-segmentize max_dist]]
-               [-addfields]
+               [-addfields] [-unsetFid]
+               [-relaxedFieldNameMatch] [-forceNullable] [-unsetDefault]
                [-fieldTypeToString All|(type1[,type2]*)] [-unsetFieldWidth]
+               [-mapFieldType type1|All=type2[,type3=type4]*]
                [-fieldmap identity | index1[,index2]*]
                [-splitlistfields] [-maxsubfields val]
                [-explodecollections] [-zfield field_name]
                [-gcp pixel line easting northing [elevation]]* [-order n | -tps]
+               [-nomd] [-mo \"META-TAG=VALUE\"]*
 
 .fi
 .PP
@@ -89,7 +95,7 @@ Layer creation option (format specific)
 .IP "\fB\fB-nln\fP\fI name\fP:\fP" 1c
 Assign an alternate name to the new layer 
 .IP "\fB\fB-nlt\fP\fI type\fP:\fP" 1c
-Define the geometry type for the created layer. One of NONE, GEOMETRY, POINT, LINESTRING, POLYGON, GEOMETRYCOLLECTION, MULTIPOINT, MULTIPOLYGON or MULTILINESTRING. Add '25D' to the name to get 2.5D versions. Starting with GDAL 1.10, PROMOTE_TO_MULTI can be used to automatically promote layers that mix polygon or multipolygons to multipolygons, and layers that mix linestrings or multilinestrings to multilinestrings. Can be usefull when converting shapefiles to PostGIS (and other target drivers) that implements strict checks for geometry type. 
+Define the geometry type for the created layer. One of NONE, GEOMETRY, POINT, LINESTRING, POLYGON, GEOMETRYCOLLECTION, MULTIPOINT, MULTIPOLYGON or MULTILINESTRING. And CIRCULARSTRING, COMPOUNDCURVE, CURVEPOLYGON, MULTICURVE and MULTISURFACE for GDAL 2.0 non-linear geometry types. Add '25D' to the name to get 2.5D versions. Starting with GDAL 1.10, PROMOTE_TO_MULTI can be used to automatically promote layers that mix polygon or multipolygons to multipolygons, and layers that mix linestrings or multilinestrings to multilinestrings. Can be usefull when converting shapefiles to PostGIS (and other target drivers) that implements strict checks for geometry type. Starting with GDAL 2.0, CONVERT_TO_LINEAR can be used to to convert non-linear geometries types into linear geometries by approximating them. 
 .IP "\fB\fB-dim\fP\fI val\fP:\fP" 1c
 (starting with GDAL 1.10) Force the coordinate dimension to val (valid values are 2 or 3). This affects both the layer geometry type, and feature geometries. Starting with GDAL 1.11, the value can be set to 'layer_dim' to instruct feature geometries to be promoted to the coordinate dimension declared by the layer.  
 .IP "\fB\fB-a_srs\fP\fI srs_def\fP:\fP" 1c
@@ -99,7 +105,7 @@ Reproject/transform to this SRS on output
 .IP "\fB\fB-s_srs\fP\fI srs_def\fP:\fP" 1c
 Override source SRS 
 .IP "\fB\fB-preserve_fid\fP:\fP" 1c
-Use the FID of the source features instead of letting the output driver to automatically assign a new one. 
+Use the FID of the source features instead of letting the output driver to automatically assign a new one. Note: starting with GDAL 2.0, if not in append mode, this behaviour becomes the default if the output driver has a FID layer creation option. In which case the name of the source FID column will be used and source feature IDs will be attempted to be preserved. This behaviour can be disabled by setting -unsetFid 
 .IP "\fB\fB-fid\fP \fIfid\fP:\fP" 1c
 If provided, only the feature with this feature id will be reported. Operates exclusive of the spatial or attribute queries. Note: if you want to select several features based on their feature id, you can also use the fact the 'fid' is a special field recognized by OGR SQL. So, '-where 'fid in (1,3,5)'' would select features 1, 3 and 5. 
 .PP
@@ -108,6 +114,10 @@ Srs_def can be a full WKT definition (hard to escape properly), or a well known 
 .PP
 Advanced options :
 .PP
+.IP "\fB\fB-oo\fP \fINAME=VALUE\fP:\fP" 1c
+(starting with GDAL 2.0) Input dataset open option (format specific) 
+.IP "\fB\fB-doo\fP \fINAME=VALUE\fP:\fP" 1c
+(starting with GDAL 2.0) Destination dataset open option (format specific), only valid in -update mode 
 .IP "\fB\fB-gt\fP \fIn\fP:\fP" 1c
 group \fIn\fP features per transaction (default 20000 in OGR 1.11, 200 in previous releases). Increase the value for better performance when writing into DBMS drivers that have transaction support. 
 .IP "\fB\fB-clipsrc\fP\fI [xmin ymin xmax ymax]|WKT|datasource|spat_extent\fP: \fP" 1c
@@ -135,7 +145,9 @@ Restrict desired geometries based on attribute query.
 .IP "\fB\fB-segmentize\fP\fI max_dist\fP:\fP" 1c
 (starting with GDAL 1.6.0) maximum distance between 2 nodes. Used to create intermediate points 
 .IP "\fB\fB-fieldTypeToString\fP\fI type1, ...\fP:\fP" 1c
-(starting with GDAL 1.7.0) converts any field of the specified type to a field of type string in the destination layer. Valid types are : Integer, Real, String, Date, Time, DateTime, Binary, IntegerList, RealList, StringList. Special value \fBAll\fP can be used to convert all fields to strings. This is an alternate way to using the CAST operator of OGR SQL, that may avoid typing a long SQL query. 
+(starting with GDAL 1.7.0) converts any field of the specified type to a field of type string in the destination layer. Valid types are : Integer, Integer64, Real, String, Date, Time, DateTime, Binary, IntegerList, Integer64List, RealList, StringList. Special value \fBAll\fP can be used to convert all fields to strings. This is an alternate way to using the CAST operator of OGR SQL, that may avoid typing a long SQL query. Note that this does not influence the field types used by the source driver, and is only an afterwards conversion. 
+.IP "\fB\fB-mapFieldType\fP\fI srctype|All=dsttype, ...\fP:\fP" 1c
+(starting with GDAL 2.0) converts any field of the specified type to another type. Valid types are : Integer, Integer64, Real, String, Date, Time, DateTime, Binary, IntegerList, Integer64List, RealList, StringList. Types can also include subtype between parenthesis, such as Integer(Boolean), Real(Float32), ... Special value \fBAll\fP can be used to convert all fields to another type. This is an alternate way to using the CAST operator of OGR SQL, that may avoid typing a long SQL query. This is a generalization of -fieldTypeToString. Note that this does not influence the field types used by the source driver, and is only an afterwards conversion. 
 .IP "\fB\fB-unsetFieldWidth\fP:\fP" 1c
 (starting with GDAL 1.11) set field width and precision to 0. 
 .IP "\fB\fB-splitlistfields\fP:\fP" 1c
@@ -155,7 +167,20 @@ To be combined with -splitlistfields to limit the number of subfields created fo
 .IP "\fB\fB-fieldmap\fP:\fP" 1c
 (starting with GDAL 1.10.0) Specifies the list of field indexes to be copied from the source to the destination. The (n)th value specified in the list is the index of the field in the target layer definition in which the n(th) field of the source layer must be copied. Index count starts at zero. There must be exactly as many values in the list as the count of the fields in the source layer. We can use the 'identity' setting to specify that the fields should be transferred by using the same order. This setting should be used along with the -append setting. 
 .IP "\fB\fB-addfields\fP:\fP" 1c
-(starting with GDAL 1.11) This is a specialized version of -append. Contrary to -append, -addfields has the effect of adding, to existing target layers, the new fields found in source layers. This option is usefull when merging files that have non-strictly identical structures. This might not work for output formats that don't support adding fields to existing non-empty layers. 
+(starting with GDAL 1.11) This is a specialized version of -append. Contrary to -append, -addfields has the effect of adding, to existing target layers, the new fields found in source layers. This option is useful when merging files that have non-strictly identical structures. This might not work for output formats that don't support adding fields to existing non-empty layers. 
+.IP "\fB\fB-relaxedFieldNameMatch\fP:\fP" 1c
+(starting with GDAL 1.11) Do field name matching between source and existing target layer in a more relaxed way if the target driver has an implementation for it. [-relaxedFieldNameMatch] [-forceNullable] 
+.IP "\fB\fB-forceNullable\fP:\fP" 1c
+(starting with GDAL 2.0) Do not propagate not-nullable constraints to target layer if they exist in source layer.. 
+.IP "\fB\fB-unsetDefault\fP:\fP" 1c
+(starting with GDAL 2.0) Do not propagate default field values to target layer if they exist in source layer.. 
+.IP "\fB\fB-unsetFid\fP:\fP" 1c
+(starting with GDAL 2.0) Can be specify to prevent the new default behaviour that consists in, if the output driver has a FID layer creation option and we are not in append mode, to preserve the name of the source FID column and source feature IDs 
+.IP "\fB\fB-nomd\fP:\fP" 1c
+(starting with GDAL 2.0) To disable copying of metadata from source dataset and layers into target dataset and layers, when supported by output driver. 
+.IP "\fB\fB-mo\fP \fI'META-TAG=VALUE'\fP:\fP" 1c
+(starting with GDAL 2.0) Passes a metadata key and value to set on the output dataset, when supported by output driver.
+.PP
 .PP
 .SH "PERFORMANCE HINTS"
 .PP

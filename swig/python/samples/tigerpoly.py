@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 ###############################################################################
-# $Id: tigerpoly.py 27044 2014-03-16 23:41:27Z rouault $
+# $Id: tigerpoly.py 28391 2015-01-30 19:57:31Z rouault $
 #
 # Project:  OGR Python samples
 # Purpose:  Assemble TIGER Polygons.
@@ -36,7 +36,6 @@ except ImportError:
     import osr
     import ogr
 
-import string
 import sys
 
 #############################################################################

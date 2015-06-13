@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #******************************************************************************
-#  $Id: gcps2vec.py 21739 2011-02-18 14:59:15Z dron $
+#  $Id: gcps2vec.py 28389 2015-01-30 19:26:09Z rouault $
 # 
 #  Project:  GDAL
 #  Purpose:  Convert GCPs to a point layer.
@@ -88,7 +88,7 @@ if out_file is None:
 # ----------------------------------------------------------------------------
 ds = gdal.Open( in_file )
 if ds is None:
-    print('Unable to open %s' % filename)
+    print('Unable to open %s' % in_file)
     sys.exit(1)
 
 gcp_srs = ds.GetGCPProjection()

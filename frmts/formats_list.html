@@ -59,7 +59,7 @@
 </td><td> Yes
 </td></tr>
 
-<tr><td> <!--<a href="frmt_various.html#ARG"> -->Azavea Raster Grid<!-- </a> -->
+<tr><td> <a href="frmt_various.html#ARG">Azavea Raster Grid</a>
 </td><td> ARG
 </td><td> Yes
 </td><td> Yes
@@ -89,6 +89,14 @@
 </td><td> Yes
 </td><td> 4GiB
 </td><td> Yes
+</td></tr>
+
+<tr><td> BPG (Better Portable Graphics)</a>
+</td><td> BPG
+</td><td> No
+</td><td> No
+</td><td> ---
+</td><td> No, needs libbpg (manual build required for now)
 </td></tr>
 
 <tr><td> <a href="frmt_various.html#BSB">BSB Nautical Chart Format (.kap)</a>
@@ -321,6 +329,14 @@
 </td><td> No
 </td><td> --
 </td><td> Yes
+</td></tr>
+
+<tr><td> <a href="drv_geopackage_raster.html">GeoPackage</a>
+</td><td> GPKG
+</td><td> Yes
+</td><td> Yes
+</td><td> No limits
+</td><td> No, needs libsqlite3 (and any or all of PNG, JPEG, WEBP drivers)
 </td></tr>
 
 <tr><td> <a href="frmt_georaster.html">Oracle Spatial GeoRaster</a>
@@ -603,6 +619,14 @@
 </td><td> No, needs Kakadu library
 </td></tr>
 
+<tr><td> <a href="frmt_kea.html">KEA</a>
+</td><td> KEA
+</td><td> Yes
+</td><td> Yes
+</td><td> --
+</td><td> No, needs libkea and libhdf5 libraries
+</td></tr>
+
 <tr><td> KMLSUPEROVERLAY
 </td><td> KMLSUPEROVERLAY
 </td><td> Yes
@@ -843,6 +867,14 @@
 </td><td> Yes
 </td></tr>
 
+<tr><td> <a href="frmt_plmosaic.html">Planet Labs Mosaics API</a>
+</td><td> PLMosaic
+</td><td> No
+</td><td> Yes
+</td><td> --
+</td><td> No, needs libcurl
+</td></tr>
+
 <tr><td> <a href="frmt_various.html#PNG">Portable Network Graphics (.png)</a>
 </td><td> PNG
 </td><td> Yes
@@ -904,6 +936,14 @@
 </td><td> Yes
 </td><td> Yes
 </td><td> 4GB
+</td><td> Yes
+</td></tr>
+
+<tr><td> <a href="frmt_various.html#ROI_PAC">ROI_PAC Raster</a>
+</td><td> ROI_PAC
+</td><td> Yes
+</td><td> Yes
+</td><td> --
 </td><td> Yes
 </td></tr>
 
@@ -1027,7 +1067,15 @@
 </td><td> Yes
 </td></tr>
 
-<tr><td> <a href="http://www.gdal.org/gdal_vrttut.html">GDAL Virtual (.vrt)</a>
+<tr><td> <a href="http://www-mipl.jpl.nasa.gov/external/vicar.html">VICAR</a>
+</td><td> VICAR
+</td><td> No
+</td><td> Yes
+</td><td> --
+</td><td> Yes
+</td></tr>
+
+<tr><td> <a href="gdal_vrttut.html">GDAL Virtual (.vrt)</a>
 </td><td> VRT
 </td><td> Yes
 </td><td> Yes
@@ -1099,7 +1147,7 @@
 </p>
 
 <p>
-$Id: formats_list.html 26905 2014-01-30 21:08:06Z rouault $
+$Id: formats_list.html 28859 2015-04-07 08:40:10Z rouault $
 </p>
 
 </body>
