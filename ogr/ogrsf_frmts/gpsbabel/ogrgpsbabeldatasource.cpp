@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrgpsbabeldatasource.cpp 27745 2014-09-27 16:38:57Z goatbar $
+ * $Id: ogrgpsbabeldatasource.cpp 29177 2015-05-09 19:29:02Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implements OGRGPSBabelDataSource class.
@@ -35,7 +35,7 @@
 
 #include <string.h>
 
-CPL_CVSID("$Id: ogrgpsbabeldatasource.cpp 27745 2014-09-27 16:38:57Z goatbar $");
+CPL_CVSID("$Id: ogrgpsbabeldatasource.cpp 29177 2015-05-09 19:29:02Z rouault $");
 
 /************************************************************************/
 /*                      OGRGPSBabelDataSource()                         */
@@ -149,7 +149,8 @@ int OGRGPSBabelDataSource::IsValidDriverName(const char* pszGPSBabelDriverName)
 /************************************************************************/
 
 int OGRGPSBabelDataSource::Open( const char * pszDatasourceName,
-                                 const char* pszGPSBabelDriverNameIn )
+                                 const char* pszGPSBabelDriverNameIn,
+                                 char** papszOpenOptions )
 
 {
     int bExplicitFeatures = FALSE;
@@ -160,6 +161,28 @@ int OGRGPSBabelDataSource::Open( const char * pszDatasourceName,
         CPLAssert(pszGPSBabelDriverNameIn);
         pszGPSBabelDriverName = CPLStrdup(pszGPSBabelDriverNameIn);
         pszFilename = CPLStrdup(pszDatasourceName);
+    }
+    else
+    {
+        if( CSLFetchNameValue(papszOpenOptions, "FILENAME") )
+            pszFilename = CPLStrdup(CSLFetchNameValue(papszOpenOptions,
+                                                      "FILENAME"));
+
+        if( CSLFetchNameValue(papszOpenOptions, "GPSBABEL_DRIVER") )
+        {
+            if( pszFilename == NULL )
+            {
+                CPLError(CE_Failure, CPLE_AppDefined, "Missing FILENAME");
+                return FALSE;
+            }
+
+            pszGPSBabelDriverName = CPLStrdup(CSLFetchNameValue(papszOpenOptions,
+                                                            "DRIVER"));
+
+            /* A bit of validation to avoid command line injection */
+            if (!IsValidDriverName(pszGPSBabelDriverName))
+                return FALSE;
+        }
     }
 
     pszName = CPLStrdup( pszDatasourceName );
@@ -223,7 +246,8 @@ int OGRGPSBabelDataSource::Open( const char * pszDatasourceName,
             pszSep = pszNextSep;
         }
 
-        pszFilename = CPLStrdup(pszSep+1);
+        if( pszFilename == NULL )
+            pszFilename = CPLStrdup(pszSep+1);
     }
 
     const char* pszOptionUseTempFile = CPLGetConfigOption("USE_TEMPFILE", NULL);

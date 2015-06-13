@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: reader_geo_eye.h 29138 2015-05-03 19:12:48Z rouault $
+ * $Id: reader_geo_eye.h 29190 2015-05-13 21:40:30Z bishop $
  *
  * Project:  GDAL Core
  * Purpose:  Read metadata from GeoEye imagery.
@@ -36,14 +36,14 @@
 /**
 @brief Metadata reader for Geo Eye
 
-TIFF filename:        aaaaaaaaaa.tif
-Metadata filename:    *_metadata*
-RPC filename:         aaaaaaaaaa_rpc.txt
+TIFF filename:      aaaaaaaaaa.tif
+Metadata filename:  *_metadata*
+RPC filename:       aaaaaaaaaa_rpc.txt
 
 Common metadata (from metadata filename):
-    MDName_SatelliteId:            Sensor
-    MDName_CloudCover:             Percent Cloud Cover
-    MDName_AcquisitionDateTime:    Acquisition Date/Time
+    SatelliteId:         Sensor
+    CloudCover:          Percent Cloud Cover
+    AcquisitionDateTime: Acquisition Date/Time
 
 */
 

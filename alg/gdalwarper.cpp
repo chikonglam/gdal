@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdalwarper.cpp 28919 2015-04-16 18:57:58Z rouault $
+ * $Id: gdalwarper.cpp 29207 2015-05-18 17:23:45Z mloskot $
  *
  * Project:  High Performance Image Reprojector
  * Purpose:  Implementation of high level convenience APIs for warper.
@@ -34,7 +34,7 @@
 #include "ogr_api.h"
 #include "gdal_priv.h"
 
-CPL_CVSID("$Id: gdalwarper.cpp 28919 2015-04-16 18:57:58Z rouault $");
+CPL_CVSID("$Id: gdalwarper.cpp 29207 2015-05-18 17:23:45Z mloskot $");
 
 /************************************************************************/
 /*                         GDALReprojectImage()                         */
@@ -960,7 +960,8 @@ GDALWarpOptions * CPL_STDCALL GDALCreateWarpOptions()
 void CPL_STDCALL GDALDestroyWarpOptions( GDALWarpOptions *psOptions )
 
 {
-    VALIDATE_POINTER0( psOptions, "GDALDestroyWarpOptions" );
+    if( psOptions == NULL )
+        return;
 
     CSLDestroy( psOptions->papszWarpOptions );
     CPLFree( psOptions->panSrcBands );

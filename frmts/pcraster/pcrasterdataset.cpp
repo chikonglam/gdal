@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: pcrasterdataset.cpp 28862 2015-04-07 10:10:25Z kdejong $
+ * $Id: pcrasterdataset.cpp 29187 2015-05-13 14:20:13Z kdejong $
  *
  * Project:  PCRaster Integration
  * Purpose:  PCRaster CSF 2.0 raster file driver
@@ -42,7 +42,7 @@
 #define INCLUDED_CPL_STRING
 #endif
 
-CPL_CVSID("$Id: pcrasterdataset.cpp 28862 2015-04-07 10:10:25Z kdejong $");
+CPL_CVSID("$Id: pcrasterdataset.cpp 29187 2015-05-13 14:20:13Z kdejong $");
 
 // PCRaster library headers.
 
@@ -330,7 +330,7 @@ PCRasterDataset::PCRasterDataset(
   CPLAssert(d_cellRepresentation != CR_UNDEFINED);
   d_valueScale = RgetValueScale(d_map);
   CPLAssert(d_valueScale != VS_UNDEFINED);
-  d_missingValue = ::missingValue(d_cellRepresentation);
+  d_defaultNoDataValue = ::missingValue(d_cellRepresentation);
   d_location_changed = false;
 
   // Create band information objects.
@@ -421,9 +421,9 @@ CSF_VS PCRasterDataset::valueScale() const
 /*!
   \return    Missing value
 */
-double PCRasterDataset::missingValue() const
+double PCRasterDataset::defaultNoDataValue() const
 {
-  return d_missingValue;
+  return d_defaultNoDataValue;
 }
 
 

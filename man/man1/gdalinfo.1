@@ -1,8 +1,8 @@
-.TH "gdalinfo" 1 "Mon May 4 2015" "GDAL" \" -*- nroff -*-
+.TH "gdalinfo" 1 "Mon May 25 2015" "GDAL" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
-gdalinfo \- .TH "gdalinfo" 1 "Mon May 4 2015" "GDAL" \" -*- nroff -*-
+gdalinfo \- .TH "gdalinfo" 1 "Mon May 25 2015" "GDAL" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -12,7 +12,7 @@ gdalinfo \- lists information about a raster dataset
 .PP
 .nf
 
-gdalinfo [--help-general] [-mm] [-stats] [-hist] [-nogcp] [-nomd]
+gdalinfo [--help-general] [-json] [-mm] [-stats] [-hist] [-nogcp] [-nomd]
          [-norat] [-noct] [-nofl] [-checksum] [-proj4]
          [-listmdd] [-mdd domain|`all`]*
          [-sd subdataset] [-oo NAME=VALUE]* datasetname
@@ -21,6 +21,8 @@ gdalinfo [--help-general] [-mm] [-stats] [-hist] [-nogcp] [-nomd]
 .SH "DESCRIPTION"
 .PP
 The gdalinfo program lists various information about a GDAL supported raster dataset. 
+.IP "\fB\fB-json\fP\fP" 1c
+Display the output in json format. 
 .IP "\fB\fB-mm\fP\fP" 1c
 Force computation of the actual min/max values for each band in the dataset. 
 .IP "\fB\fB-stats\fP\fP" 1c

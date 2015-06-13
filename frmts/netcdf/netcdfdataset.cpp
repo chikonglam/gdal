@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: netcdfdataset.cpp 28823 2015-03-30 14:18:13Z rouault $
+ * $Id: netcdfdataset.cpp 29200 2015-05-15 18:04:02Z rouault $
  *
  * Project:  netCDF read/write Driver
  * Purpose:  GDAL bindings over netCDF library.
@@ -33,7 +33,7 @@
 #include "cpl_error.h"
 #include "cpl_multiproc.h"
 
-CPL_CVSID("$Id: netcdfdataset.cpp 28823 2015-03-30 14:18:13Z rouault $");
+CPL_CVSID("$Id: netcdfdataset.cpp 29200 2015-05-15 18:04:02Z rouault $");
 
 #include <map> //for NCDFWriteProjAttribs()
 
@@ -4638,7 +4638,8 @@ GDALDataset *netCDFDataset::Open( GDALOpenInfo * poOpenInfo )
             if ( papszTokens) CSLDestroy( papszTokens );
             CPLFree( pszTemp );
         }
-        if ( NCDFGetAttr( cdfid, j, "bounds", &pszTemp ) == CE_None ) { 
+        if ( NCDFGetAttr( cdfid, j, "bounds", &pszTemp ) == CE_None &&
+             pszTemp != NULL ) { 
             if ( !EQUAL( pszTemp, "" ) )
                 papszIgnoreVars = CSLAddString( papszIgnoreVars, pszTemp );
             CPLFree( pszTemp );
@@ -6871,7 +6872,7 @@ int NCDFDoesVarContainAttribVal( int nCdfId,
 
     for( int i=0; !bFound && i<CSLCount((char**)papszAttribNames); i++ ) {
         if ( NCDFGetAttr( nCdfId, nVarId, papszAttribNames[i], &pszTemp ) 
-             == CE_None ) { 
+             == CE_None && pszTemp != NULL ) { 
             if ( bStrict ) {
                 if ( EQUAL( pszTemp, papszAttribValues[i] ) )
                     bFound=TRUE;
@@ -6902,7 +6903,7 @@ int NCDFDoesVarContainAttribVal2( int nCdfId,
     if ( nVarId == -1 ) return -1;
 
     if ( NCDFGetAttr( nCdfId, nVarId, papszAttribName, &pszTemp ) 
-         != CE_None ) return FALSE;
+         != CE_None || pszTemp == NULL ) return FALSE;
 
     for( int i=0; !bFound && i<CSLCount((char**)papszAttribValues); i++ ) {
         if ( bStrict ) {

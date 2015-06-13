@@ -302,9 +302,10 @@ public delegate int GDALProgressFuncDelegate(double Complete, IntPtr Message, In
       return ret;
 }
 
-  public static void VSIFCloseL(IntPtr arg0) {
-    GdalPINVOKE.VSIFCloseL(arg0);
+  public static int VSIFCloseL(IntPtr arg0) {
+    int ret = GdalPINVOKE.VSIFCloseL(arg0);
     if (GdalPINVOKE.SWIGPendingException.Pending) throw GdalPINVOKE.SWIGPendingException.Retrieve();
+    return ret;
   }
 
   public static int VSIFSeekL(IntPtr arg0, int arg1, int arg2) {

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: reader_rdk1.h 29138 2015-05-03 19:12:48Z rouault $
+ * $Id: reader_rdk1.h 29190 2015-05-13 21:40:30Z bishop $
  *
  * Project:  GDAL Core
  * Purpose:  Read metadata from Resurs-DK1 imagery.
@@ -36,13 +36,13 @@
 /**
 @brief Metadata reader for RDK1
 
-TIFF filename:		aaaaaaaaaa.tif
-Metadata filename:	aaaaaaaaaa.xml
+TIFF filename:      aaaaaaaaaa.tif
+Metadata filename:  aaaaaaaaaa.xml
 RPC filename:
 
 Common metadata (from metadata filename):
-        MDName_SatelliteId:			cCodeKA
-        MDName_AcquisitionDateTime:	dSceneDate, tSceneTime
+    SatelliteId:         cCodeKA
+    AcquisitionDateTime: dSceneDate, tSceneTime
 */
 
 class GDALMDReaderResursDK1: public GDALMDReaderBase

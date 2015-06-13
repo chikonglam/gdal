@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: reader_landsat.h 29138 2015-05-03 19:12:48Z rouault $
+ * $Id: reader_landsat.h 29190 2015-05-13 21:40:30Z bishop $
  *
  * Project:  GDAL Core
  * Purpose:  Read metadata from Landsat imagery.
@@ -36,16 +36,16 @@
 /**
 @brief Metadata reader for Landsat
 
-TIFF filename:		xxxxxx_aaa.tif
-Metadata filename:	xxxxxx_MTL.txt
+TIFF filename:      xxxxxx_aaa.tif
+Metadata filename:  xxxxxx_MTL.txt
 RPC filename:           
 
 Common metadata (from metadata filename):
-        MDName_SatelliteId:         SPACECRAFT_ID
-        MDName_CloudCover:          CLOUD_COVER (Landsat 8)
-        MDName_AcquisitionDateTime: ACQUISITION_DATE,
-                                    SCENE_CENTER_SCAN_TIME (Landsat 5,7) or
-                                    DATE_ACQUIRED, SCENE_CENTER_TIME (Landsat 8);
+    SatelliteId:         SPACECRAFT_ID
+    CloudCover:          CLOUD_COVER (Landsat 8)
+    AcquisitionDateTime: ACQUISITION_DATE,
+                         SCENE_CENTER_SCAN_TIME (Landsat 5,7) or
+                         DATE_ACQUIRED, SCENE_CENTER_TIME (Landsat 8);
 
 */
 

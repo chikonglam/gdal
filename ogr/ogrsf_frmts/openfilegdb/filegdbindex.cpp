@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: filegdbindex.cpp 28900 2015-04-14 09:40:34Z rouault $
+ * $Id: filegdbindex.cpp 29195 2015-05-14 11:27:35Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implements reading of FileGDB indexes
@@ -1474,8 +1474,10 @@ int FileGDBIndexIterator::SortRows()
     if( nSortedCount == 0 )
         return FALSE;
     std::sort(panSortedRows, panSortedRows + nSortedCount);
+#ifdef nValueCountInIdx_reliable
     if( eOp == FGSO_ISNOTNULL && (int)nValueCountInIdx != nSortedCount )
         PrintError();
+#endif
     return TRUE;
 }
 
@@ -1509,8 +1511,15 @@ int FileGDBIndexIterator::GetNextRowSortedByFID()
 
 int FileGDBIndexIterator::GetRowCount()
 {
+    // The nValueCountInIdx value has been found to be unreliable when the index is built
+    // as features are inserted (and when they are not in increasing order)
+    // (with FileGDB SDK 1.3)
+    // So disable this optimization as there's no fast way to know
+    // if the value is reliable or not.
+#ifdef nValueCountInIdx_reliable
     if( eOp == FGSO_ISNOTNULL )
         return (int)nValueCountInIdx;
+#endif
 
     if( nSortedCount >= 0 )
         return nSortedCount;

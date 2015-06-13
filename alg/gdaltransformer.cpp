@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdaltransformer.cpp 28916 2015-04-16 14:13:13Z rouault $
+ * $Id: gdaltransformer.cpp 29207 2015-05-18 17:23:45Z mloskot $
  *
  * Project:  Mapinfo Image Warper
  * Purpose:  Implementation of one or more GDALTrasformerFunc types, including
@@ -38,7 +38,7 @@
 #include "cpl_list.h"
 #include "cpl_multiproc.h"
 
-CPL_CVSID("$Id: gdaltransformer.cpp 28916 2015-04-16 14:13:13Z rouault $");
+CPL_CVSID("$Id: gdaltransformer.cpp 29207 2015-05-18 17:23:45Z mloskot $");
 CPL_C_START
 void *GDALDeserializeGCPTransformer( CPLXMLNode *psTree );
 void *GDALDeserializeTPSTransformer( CPLXMLNode *psTree );
@@ -1152,6 +1152,7 @@ static GDALGenImgProjTransformInfo* GDALCreateGenImgProjTransformerInternal()
  * to georef transformation on the destination dataset.
  * <li> RPC_HEIGHT: A fixed height to be used with RPC calculations.
  * <li> RPC_DEM: The name of a DEM file to be used with RPC calculations.
+ * <li> Other RPC related options. See GDALCreateRPCTransformer()
  * <li> INSERT_CENTER_LONG: May be set to FALSE to disable setting up a 
  * CENTER_LONG value on the coordinate system to rewrap things around the
  * center of the image.  
@@ -1676,7 +1677,8 @@ void GDALSetGenImgProjTransformerDstGeoTransform(
 void GDALDestroyGenImgProjTransformer( void *hTransformArg )
 
 {
-    VALIDATE_POINTER0( hTransformArg, "GDALDestroyGenImgProjTransformer" );
+    if( hTransformArg == NULL )
+        return;
 
     GDALGenImgProjTransformInfo *psInfo = 
         (GDALGenImgProjTransformInfo *) hTransformArg;
@@ -2364,7 +2366,8 @@ void *GDALCreateReprojectionTransformer( const char *pszSrcWKT,
 void GDALDestroyReprojectionTransformer( void *pTransformArg )
 
 {
-    VALIDATE_POINTER0( pTransformArg, "GDALDestroyReprojectionTransformer" );
+    if( pTransformArg == NULL )
+        return;
 
     GDALReprojectionTransformInfo *psInfo = 
         (GDALReprojectionTransformInfo *) pTransformArg;		
@@ -2671,7 +2674,8 @@ void GDALApproxTransformerOwnsSubtransformer( void *pCBData, int bOwnFlag )
 void GDALDestroyApproxTransformer( void * pCBData )
 
 {
-    VALIDATE_POINTER0( pCBData, "GDALDestroyApproxTransformer" );
+    if( pCBData == NULL)
+        return;
 
     ApproxTransformInfo	*psATInfo = (ApproxTransformInfo *) pCBData;
 
@@ -2911,13 +2915,29 @@ static int GDALApproxTransformInternal( void *pCBData, int bDstToSrc, int nPoint
 /*      approximation of the reverse transform.  Eventually we          */
 /*      should implement iterative searching to find a result within    */
 /*      our error threshold.                                            */
+/*      NOTE: the above comment is not true: gdalwarp uses approximator */
+/*      also to compute the source pixel of each target pixel.          */
 /* -------------------------------------------------------------------- */
     for( i = nPoints-1; i >= 0; i-- )
     {
+#ifdef check_error
+        double xtemp = x[i], ytemp = y[i], ztemp = z[i];
+        double x_ori = xtemp, y_ori = ytemp;
+        int btemp;
+        psATInfo->pfnBaseTransformer( psATInfo->pBaseCBData, bDstToSrc,
+                                      1, &xtemp, &ytemp, &ztemp, &btemp);
+#endif
         dfDist = (x[i] - x[0]);
         x[i] = xSMETransformed[0] + dfDeltaX * dfDist;
         y[i] = ySMETransformed[0] + dfDeltaY * dfDist;
         z[i] = zSMETransformed[0] + dfDeltaZ * dfDist;
+#ifdef check_error
+        dfError = fabs(x[i] - xtemp) + fabs(y[i] - ytemp);
+        if( dfError > 4 /*10 * psATInfo->dfMaxError*/ )
+        {
+            printf("Error = %f on (%f, %f)\n", dfError,  x_ori, y_ori);
+        }
+#endif
         panSuccess[i] = TRUE;
     }
     
@@ -3333,10 +3353,13 @@ CPLErr GDALDeserializeTransformer( CPLXMLNode *psTree,
 void GDALDestroyTransformer( void *pTransformArg )
 
 {
+    if( pTransformArg == NULL )
+        return;
+
     GDALTransformerInfo *psInfo = (GDALTransformerInfo *) pTransformArg;
 
-    if( psInfo == NULL ||
-        memcmp(psInfo->abySignature,GDAL_GTI2_SIGNATURE, strlen(GDAL_GTI2_SIGNATURE)) != 0 )
+    if( memcmp(psInfo->abySignature,GDAL_GTI2_SIGNATURE,
+        strlen(GDAL_GTI2_SIGNATURE)) != 0 )
     {
         CPLError( CE_Failure, CPLE_AppDefined,
                   "Attempt to destroy non-GTI2 transformer." );

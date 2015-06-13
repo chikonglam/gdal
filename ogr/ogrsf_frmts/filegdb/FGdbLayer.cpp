@@ -1,5 +1,5 @@
 /******************************************************************************
-* $Id: FGdbLayer.cpp 29119 2015-05-02 21:38:04Z rouault $
+* $Id: FGdbLayer.cpp 29196 2015-05-14 15:50:13Z rouault $
 *
 * Project:  OpenGIS Simple Features Reference Implementation
 * Purpose:  Implements FileGDB OGR layer.
@@ -37,7 +37,7 @@
 #include "FGdbUtils.h"
 #include "cpl_minixml.h" // the only way right now to extract schema information
 
-CPL_CVSID("$Id: FGdbLayer.cpp 29119 2015-05-02 21:38:04Z rouault $");
+CPL_CVSID("$Id: FGdbLayer.cpp 29196 2015-05-14 15:50:13Z rouault $");
 
 using std::string;
 using std::wstring;
@@ -1676,6 +1676,9 @@ bool FGdbLayer::Create(FGdbDataSource* pParentDataSource,
 
     m_papszOptions = CSLDuplicate(papszOptions);
     m_bCreateMultipatch = CSLTestBoolean(CSLFetchNameValueDef(m_papszOptions, "CREATE_MULTIPATCH", "NO"));
+    
+    // Default to YES here assuming ogr2ogr scenario
+    m_bBulkLoadAllowed = CSLTestBoolean(CPLGetConfigOption("FGDB_BULK_LOAD", "YES"));
 
     /* Store the new FGDB Table pointer and set up the OGRFeatureDefn */
     return FGdbLayer::Initialize(pParentDataSource, table, wtable_path, L"Table");
@@ -2864,14 +2867,3 @@ int FGdbLayer::TestCapability( const char* pszCap )
         return FALSE;
 }
 
-/************************************************************************/
-/*                       ReadoptOldFeatureDefn()                        */
-/************************************************************************/
-
-void FGdbLayer::ReadoptOldFeatureDefn(OGRFeatureDefn* poFeatureDefn)
-{
-    CPLAssert(m_pFeatureDefn->IsSame(poFeatureDefn));
-    m_pFeatureDefn->Release();
-    m_pFeatureDefn = poFeatureDefn;
-    m_pFeatureDefn->Reference();
-}

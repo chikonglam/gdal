@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdalgeoloc.cpp 27942 2014-11-11 00:57:41Z rouault $
+ * $Id: gdalgeoloc.cpp 29207 2015-05-18 17:23:45Z mloskot $
  *
  * Project:  GDAL
  * Purpose:  Implements Geolocation array based transformer.
@@ -38,7 +38,7 @@ SHPHandle hSHP = NULL;
 DBFHandle hDBF = NULL;
 #endif
 
-CPL_CVSID("$Id: gdalgeoloc.cpp 27942 2014-11-11 00:57:41Z rouault $");
+CPL_CVSID("$Id: gdalgeoloc.cpp 29207 2015-05-18 17:23:45Z mloskot $");
 
 CPL_C_START
 CPLXMLNode *GDALSerializeGeoLocTransformer( void *pTransformArg );
@@ -913,6 +913,9 @@ void *GDALCreateGeoLocTransformer( GDALDatasetH hBaseDS,
 void GDALDestroyGeoLocTransformer( void *pTransformAlg )
 
 {
+    if( pTransformAlg == NULL )
+        return;
+
     GDALGeoLocTransformInfo *psTransform = 
         (GDALGeoLocTransformInfo *) pTransformAlg;
 

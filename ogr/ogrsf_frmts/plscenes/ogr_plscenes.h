@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_plscenes.h 28963 2015-04-20 19:55:40Z rouault $
+ * $Id: ogr_plscenes.h 29164 2015-05-06 15:01:37Z rouault $
  *
  * Project:  PlanetLabs scene driver
  * Purpose:  PLScenes driver interface
@@ -62,6 +62,7 @@ class OGRPLScenesDataset: public GDALDataset
 
         virtual int         GetLayerCount() { return nLayers; }
         virtual OGRLayer   *GetLayer(int idx);
+        virtual OGRLayer   *GetLayerByName(const char* pszName);
         virtual OGRLayer   *ExecuteSQL( const char *pszSQLCommand,
                                         OGRGeometry *poSpatialFilter,
                                         const char *pszDialect );
@@ -108,8 +109,9 @@ class OGRPLScenesLayer: public OGRLayer
 
     public:
                             OGRPLScenesLayer(OGRPLScenesDataset* poDS,
-                                         const char* pszName,
-                                         const char* pszBaseURL);
+                                             const char* pszName,
+                                             const char* pszBaseURL,
+                                             json_object* poObjCount10 = NULL);
                            ~OGRPLScenesLayer();
 
         virtual void            ResetReading();

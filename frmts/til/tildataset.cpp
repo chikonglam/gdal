@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: tildataset.cpp 29123 2015-05-03 11:05:46Z bishop $
+ * $Id: tildataset.cpp 29198 2015-05-15 08:45:00Z rouault $
  *
  * Project:  EarthWatch .TIL Driver
  * Purpose:  Implementation of the TILDataset class.
@@ -37,7 +37,7 @@
 #include "cplkeywordparser.h"
 #include "gdal_mdreader.h"
 
-CPL_CVSID("$Id: tildataset.cpp 29123 2015-05-03 11:05:46Z bishop $");
+CPL_CVSID("$Id: tildataset.cpp 29198 2015-05-15 08:45:00Z rouault $");
 
 /************************************************************************/
 /* ==================================================================== */
@@ -346,8 +346,10 @@ GDALDataset *TILDataset::Open( GDALOpenInfo * poOpenInfo )
     double      adfGeoTransform[6];
     if( poTemplateDS->GetGeoTransform( adfGeoTransform ) == CE_None )
     {
-        adfGeoTransform[0] = CPLAtof(CSLFetchNameValueDef(papszIMD,"MAP_PROJECTED_PRODUCT.ULX","0"));
-        adfGeoTransform[3] = CPLAtof(CSLFetchNameValueDef(papszIMD,"MAP_PROJECTED_PRODUCT.ULY","0"));
+        // According to https://www.digitalglobe.com/sites/default/files/ISD_External.pdf, ulx=originX and 
+        // is "Easting of the center of the upper left pixel of the image."
+        adfGeoTransform[0] = CPLAtof(CSLFetchNameValueDef(papszIMD,"MAP_PROJECTED_PRODUCT.ULX","0")) - adfGeoTransform[1] / 2;
+        adfGeoTransform[3] = CPLAtof(CSLFetchNameValueDef(papszIMD,"MAP_PROJECTED_PRODUCT.ULY","0")) - adfGeoTransform[5] / 2;
         poDS->SetGeoTransform(adfGeoTransform);
     }
 

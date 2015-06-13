@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrili1layer.cpp 29139 2015-05-03 20:09:20Z pka $
+ * $Id: ogrili1layer.cpp 29221 2015-05-21 13:40:23Z pka $
  *
  * Project:  Interlis 1 Translator
  * Purpose:  Implements OGRILI1Layer class.
@@ -33,7 +33,7 @@
 #include "cpl_string.h"
 #include "ogr_geos.h"
 
-CPL_CVSID("$Id: ogrili1layer.cpp 29139 2015-05-03 20:09:20Z pka $");
+CPL_CVSID("$Id: ogrili1layer.cpp 29221 2015-05-21 13:40:23Z pka $");
 
 /************************************************************************/
 /*                           OGRILI1Layer()                              */
@@ -422,6 +422,7 @@ OGRErr OGRILI1Layer::CreateField( OGRFieldDefn *poField, CPL_UNUSED int bApproxO
 
 void OGRILI1Layer::JoinGeomLayers()
 {
+    bGeomsJoined = TRUE;
     int bResetConfigOption = FALSE;
     if (EQUAL(CPLGetConfigOption("OGR_ARC_STEPSIZE", ""), ""))
     {
@@ -449,7 +450,6 @@ void OGRILI1Layer::JoinGeomLayers()
             }
         }
     }
-    bGeomsJoined = TRUE;
 
     if( bResetConfigOption )
         CPLSetThreadLocalConfigOption("OGR_ARC_STEPSIZE", NULL);

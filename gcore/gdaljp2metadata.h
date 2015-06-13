@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdaljp2metadata.h 29054 2015-04-29 19:31:41Z rouault $
+ * $Id: gdaljp2metadata.h 29210 2015-05-19 19:04:28Z rouault $
  *
  * Project:  GDAL 
  * Purpose:  JP2 Box Reader (and GMLJP2 Interpreter)
@@ -132,7 +132,8 @@ private:
                                           double adfXVector[2],
                                           double adfYVector[2],
                                           const char*& pszComment,
-                                          CPLString& osDictBox );
+                                          CPLString& osDictBox,
+                                          int& bNeedAxisFlip );
     static CPLXMLNode* CreateGDALMultiDomainMetadataXML(
                                        GDALDataset* poSrcDS,
                                        int bMainMDDomainOnly );

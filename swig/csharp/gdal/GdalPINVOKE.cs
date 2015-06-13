@@ -314,7 +314,7 @@ class GdalPINVOKE {
   public static extern IntPtr VSIFOpenL(byte[] jarg1, string jarg2);
 
   [DllImport("gdal_wrap", EntryPoint="CSharp_VSIFCloseL")]
-  public static extern void VSIFCloseL(IntPtr jarg1);
+  public static extern int VSIFCloseL(IntPtr jarg1);
 
   [DllImport("gdal_wrap", EntryPoint="CSharp_VSIFSeekL")]
   public static extern int VSIFSeekL(IntPtr jarg1, int jarg2, int jarg3);

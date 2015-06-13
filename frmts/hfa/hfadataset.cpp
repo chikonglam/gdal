@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: hfadataset.cpp 28899 2015-04-14 09:27:00Z rouault $
+ * $Id: hfadataset.cpp 29206 2015-05-18 15:52:22Z rouault $
  *
  * Name:     hfadataset.cpp
  * Project:  Erdas Imagine Driver
@@ -35,7 +35,7 @@
 #include "ogr_spatialref.h"
 #include "ogr_srs_api.h"
 
-CPL_CVSID("$Id: hfadataset.cpp 28899 2015-04-14 09:27:00Z rouault $");
+CPL_CVSID("$Id: hfadataset.cpp 29206 2015-05-18 15:52:22Z rouault $");
 
 CPL_C_START
 void	GDALRegister_HFA(void);
@@ -5011,12 +5011,11 @@ CPLErr HFADataset::ReadProjection()
 
     CPLFree( pszProjection );
 
-    if( !psDatum || !psPro ||
-        (psMapInfo == NULL && poMapInformation == NULL) ||
-        ((strlen(psDatum->datumname) == 0 || EQUAL(psDatum->datumname, "Unknown")) && 
-        (strlen(psPro->proName) == 0 || EQUAL(psPro->proName, "Unknown")) &&
-        (psMapInfo && (strlen(psMapInfo->proName) == 0 || EQUAL(psMapInfo->proName, "Unknown"))) && 
-        psPro->proZone == 0) )
+    if((psMapInfo == NULL && poMapInformation == NULL) ||
+       ((!psDatum || strlen(psDatum->datumname) == 0 || EQUAL(psDatum->datumname, "Unknown")) &&
+       (!psPro || strlen(psPro->proName) == 0 || EQUAL(psPro->proName, "Unknown")) &&
+       (psMapInfo && (strlen(psMapInfo->proName) == 0 || EQUAL(psMapInfo->proName, "Unknown"))) &&
+       (!psPro || psPro->proZone == 0)) )
     {
         pszProjection = CPLStrdup("");
         return CE_None;

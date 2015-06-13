@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: typemaps_java.i 26068 2013-06-06 20:46:21Z rouault $
+ * $Id: typemaps_java.i 29225 2015-05-21 16:28:00Z rouault $
  *
  * Name:     typemaps_java.i
  * Project:  GDAL SWIG Interface
@@ -19,6 +19,8 @@
 
 %include "arrays_java.i";
 %include "typemaps.i"
+
+%apply (int) {VSI_RETVAL};
 
 %typemap(javabody) SWIGTYPE %{
   private long swigCPtr;

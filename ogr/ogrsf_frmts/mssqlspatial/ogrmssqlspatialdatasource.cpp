@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrmssqlspatialdatasource.cpp 29027 2015-04-26 18:29:41Z tamas $
+ * $Id: ogrmssqlspatialdatasource.cpp 29185 2015-05-12 10:45:44Z tamas $
  *
  * Project:  MSSQL Spatial driver
  * Purpose:  Implements OGRMSSQLSpatialDataSource class..
@@ -30,7 +30,7 @@
 
 #include "ogr_mssqlspatial.h"
 
-CPL_CVSID("$Id: ogrmssqlspatialdatasource.cpp 29027 2015-04-26 18:29:41Z tamas $");
+CPL_CVSID("$Id: ogrmssqlspatialdatasource.cpp 29185 2015-05-12 10:45:44Z tamas $");
 
 /************************************************************************/
 /*                          OGRMSSQLSpatialDataSource()                 */
@@ -179,6 +179,8 @@ int OGRMSSQLSpatialDataSource::DeleteLayer( int iLayer )
     oStmt.Appendf("DROP TABLE [%s].[%s]", pszSchemaName, pszTableName );
 
     CPLDebug( "MSSQLSpatial", "DeleteLayer(%s)", pszTableName );
+
+    papoLayers[iLayer]->SetSpatialIndexFlag(FALSE);
 
     delete papoLayers[iLayer];
     memmove( papoLayers + iLayer, papoLayers + iLayer + 1,
@@ -436,6 +438,11 @@ OGRLayer * OGRMSSQLSpatialDataSource::ICreateLayer( const char * pszLayerName,
     OGRMSSQLSpatialTableLayer   *poLayer;
 
     poLayer = new OGRMSSQLSpatialTableLayer( this );
+
+    if (bInTransaction)
+        poLayer->SetLayerStatus(MSSQLLAYERSTATUS_INITIAL);
+    else
+        poLayer->SetLayerStatus(MSSQLLAYERSTATUS_CREATED);
 
     poLayer->SetLaunderFlag( CSLFetchBoolean(papszOptions,"LAUNDER",TRUE) );
     poLayer->SetPrecisionFlag( CSLFetchBoolean(papszOptions,"PRECISION",TRUE));
@@ -1419,7 +1426,20 @@ OGRErr OGRMSSQLSpatialDataSource::CommitTransaction()
      {
         CPLError( CE_Failure, CPLE_AppDefined,
                     "Failed to commit transaction: %s", oSession.GetLastError() );
+
+        for( int iLayer = 0; iLayer < nLayers; iLayer++ )
+        {
+            if( papoLayers[iLayer]->GetLayerStatus() == MSSQLLAYERSTATUS_INITIAL )
+                papoLayers[iLayer]->SetLayerStatus(MSSQLLAYERSTATUS_DISABLED);
+        }
         return OGRERR_FAILURE;
+    }
+
+    /* set the status for the newly created layers */
+    for( int iLayer = 0; iLayer < nLayers; iLayer++ )
+    {
+        if( papoLayers[iLayer]->GetLayerStatus() == MSSQLLAYERSTATUS_INITIAL )
+            papoLayers[iLayer]->SetLayerStatus(MSSQLLAYERSTATUS_CREATED);
     }
     
     return OGRERR_NONE;
@@ -1433,6 +1453,13 @@ OGRErr OGRMSSQLSpatialDataSource::CommitTransaction()
 
 OGRErr OGRMSSQLSpatialDataSource::RollbackTransaction()
 {
+    /* set the status for the newly created layers */
+    for( int iLayer = 0; iLayer < nLayers; iLayer++ )
+    {
+        if( papoLayers[iLayer]->GetLayerStatus() == MSSQLLAYERSTATUS_INITIAL )
+            papoLayers[iLayer]->SetLayerStatus(MSSQLLAYERSTATUS_DISABLED);
+    }
+    
     if (!oSession.RollbackTransaction())
      {
         CPLError( CE_Failure, CPLE_AppDefined,

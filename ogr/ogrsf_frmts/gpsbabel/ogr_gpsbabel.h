@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_gpsbabel.h 27384 2014-05-24 12:28:12Z rouault $
+ * $Id: ogr_gpsbabel.h 29172 2015-05-07 22:15:24Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Private definitions for OGR/GPSBabel driver.
@@ -60,7 +60,8 @@ class OGRGPSBabelDataSource : public OGRDataSource
     virtual int         TestCapability( const char * );
 
     int                 Open ( const char* pszFilename,
-                               const char* pszGPSBabelDriverNameIn );
+                               const char* pszGPSBabelDriverNameIn,
+                               char** papszOpenOptions );
 
     static int          IsSpecialFile(const char* pszFilename);
     static int          IsValidDriverName(const char* pszGPSBabelDriverName);

@@ -1526,19 +1526,20 @@ SWIG_Perl_SetModule(swig_module_info *module) {
 #define SWIGTYPE_p_GDALRasterBandShadow swig_types[11]
 #define SWIGTYPE_p_GDALTransformerInfoShadow swig_types[12]
 #define SWIGTYPE_p_GDAL_GCP swig_types[13]
-#define SWIGTYPE_p_OGRLayerShadow swig_types[14]
-#define SWIGTYPE_p_VSIStatBufL swig_types[15]
-#define SWIGTYPE_p_char swig_types[16]
-#define SWIGTYPE_p_double swig_types[17]
-#define SWIGTYPE_p_f_double_p_q_const__char_p_void__int swig_types[18]
-#define SWIGTYPE_p_int swig_types[19]
-#define SWIGTYPE_p_p_GDALRasterBandShadow swig_types[20]
-#define SWIGTYPE_p_p_GDAL_GCP swig_types[21]
-#define SWIGTYPE_p_p_char swig_types[22]
-#define SWIGTYPE_p_p_int swig_types[23]
-#define SWIGTYPE_p_void swig_types[24]
-static swig_type_info *swig_types[26];
-static swig_module_info swig_module = {swig_types, 25, 0, 0, 0, 0};
+#define SWIGTYPE_p_GUIntBig swig_types[14]
+#define SWIGTYPE_p_OGRLayerShadow swig_types[15]
+#define SWIGTYPE_p_VSIStatBufL swig_types[16]
+#define SWIGTYPE_p_char swig_types[17]
+#define SWIGTYPE_p_double swig_types[18]
+#define SWIGTYPE_p_f_double_p_q_const__char_p_void__int swig_types[19]
+#define SWIGTYPE_p_int swig_types[20]
+#define SWIGTYPE_p_p_GDALRasterBandShadow swig_types[21]
+#define SWIGTYPE_p_p_GDAL_GCP swig_types[22]
+#define SWIGTYPE_p_p_GUIntBig swig_types[23]
+#define SWIGTYPE_p_p_char swig_types[24]
+#define SWIGTYPE_p_void swig_types[25]
+static swig_type_info *swig_types[27];
+static swig_module_info swig_module = {swig_types, 26, 0, 0, 0, 0};
 #define SWIG_TypeQuery(name) SWIG_TypeQueryModule(&swig_module, &swig_module, name)
 #define SWIG_MangledTypeQuery(name) SWIG_MangledTypeQueryModule(&swig_module, &swig_module, name)
 
@@ -1599,6 +1600,8 @@ typedef void GDALAsyncReaderShadow;
 
 /* use this to not return the int returned by GDAL */
 typedef int RETURN_NONE;
+/* return value that is used for VSI methods that return -1 on error (and set errno) */
+typedef int VSI_RETVAL;
 
 
 
@@ -2902,31 +2905,34 @@ SWIGINTERN CPLErr GDALRasterBandShadow_CreateMaskBand(GDALRasterBandShadow *self
       return GDALCreateMaskBand( self, nFlags );
   }
 
+#define LENGTH_OF_GUIntBig_AS_STRING 30
 static SV *
-CreateArrayFromIntArray( int *first, unsigned int size ) {
+CreateArrayFromGUIntBigArray( GUIntBig *first, unsigned int size ) {
   AV *av = (AV*)sv_2mortal((SV*)newAV());
   for( unsigned int i=0; i<size; i++ ) {
-    av_store(av,i,newSViv(*first));
+    char s[LENGTH_OF_GUIntBig_AS_STRING];
+    snprintf(s, LENGTH_OF_GUIntBig_AS_STRING-1, CPL_FRMT_GUIB, *first);
+    av_store(av,i,newSVpv(s, 0));
     ++first;
   }
   return sv_2mortal(newRV((SV*)av));
 }
 
-SWIGINTERN CPLErr GDALRasterBandShadow_GetHistogram(GDALRasterBandShadow *self,double min=-0.5,double max=255.5,int buckets=256,int *panHistogram=NULL,int include_out_of_range=0,int approx_ok=1,GDALProgressFunc callback=NULL,void *callback_data=NULL){
+SWIGINTERN CPLErr GDALRasterBandShadow_GetHistogram(GDALRasterBandShadow *self,double min=-0.5,double max=255.5,int buckets=256,GUIntBig *panHistogram=NULL,int include_out_of_range=0,int approx_ok=1,GDALProgressFunc callback=NULL,void *callback_data=NULL){
     CPLErrorReset(); 
-    CPLErr err = GDALGetRasterHistogram( self, min, max, buckets, panHistogram,
+    CPLErr err = GDALGetRasterHistogramEx( self, min, max, buckets, panHistogram,
                                          include_out_of_range, approx_ok,
                                          callback, callback_data );
     return err;
   }
-SWIGINTERN CPLErr GDALRasterBandShadow_GetDefaultHistogram(GDALRasterBandShadow *self,double *min_ret=NULL,double *max_ret=NULL,int *buckets_ret=NULL,int **ppanHistogram=NULL,int force=1,GDALProgressFunc callback=NULL,void *callback_data=NULL){
-    return GDALGetDefaultHistogram( self, min_ret, max_ret, buckets_ret,
+SWIGINTERN CPLErr GDALRasterBandShadow_GetDefaultHistogram(GDALRasterBandShadow *self,double *min_ret=NULL,double *max_ret=NULL,int *buckets_ret=NULL,GUIntBig **ppanHistogram=NULL,int force=1,GDALProgressFunc callback=NULL,void *callback_data=NULL){
+    return GDALGetDefaultHistogramEx( self, min_ret, max_ret, buckets_ret,
                                     ppanHistogram, force, 
                                     callback, callback_data );
 }
-SWIGINTERN CPLErr GDALRasterBandShadow_SetDefaultHistogram(GDALRasterBandShadow *self,double min,double max,int buckets_in,int *panHistogram_in){
-    return GDALSetDefaultHistogram( self, min, max, 
-    	   			    buckets_in, panHistogram_in );
+SWIGINTERN CPLErr GDALRasterBandShadow_SetDefaultHistogram(GDALRasterBandShadow *self,double min,double max,int buckets_in,GUIntBig *panHistogram_in){
+    return GDALSetDefaultHistogramEx( self, min, max, 
+                                    buckets_in, panHistogram_in );
 }
 SWIGINTERN bool GDALRasterBandShadow_HasArbitraryOverviews(GDALRasterBandShadow *self){
       return (GDALHasArbitraryOverviews( self ) != 0) ? true : false;
@@ -5321,7 +5327,7 @@ XS(_wrap_Unlink) {
   {
     char *arg1 = (char *) 0 ;
     int argvi = 0;
-    int result;
+    VSI_RETVAL result;
     dXSARGS;
     
     {
@@ -5345,7 +5351,7 @@ XS(_wrap_Unlink) {
     }
     {
       CPLErrorReset();
-      result = (int)VSIUnlink((char const *)arg1);
+      result = VSIUnlink((char const *)arg1);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
         SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
@@ -5367,7 +5373,15 @@ XS(_wrap_Unlink) {
       
       
     }
-    ST(argvi) = SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(result)); argvi++ ;
+    {
+      /* %typemap(out) VSI_RETVAL */
+    }
+    {
+      /* %typemap(ret) VSI_RETVAL */
+      if (result == -1 ) {
+        croak(strerror(errno));
+      }
+    }
     XSRETURN(argvi);
   fail:
     SWIG_croak_null();
@@ -5423,7 +5437,7 @@ XS(_wrap_Mkdir) {
     int val2 ;
     int ecode2 = 0 ;
     int argvi = 0;
-    int result;
+    VSI_RETVAL result;
     dXSARGS;
     
     {
@@ -5454,7 +5468,7 @@ XS(_wrap_Mkdir) {
     }
     {
       CPLErrorReset();
-      result = (int)VSIMkdir((char const *)arg1,arg2);
+      result = VSIMkdir((char const *)arg1,arg2);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
         SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
@@ -5476,8 +5490,16 @@ XS(_wrap_Mkdir) {
       
       
     }
-    ST(argvi) = SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(result)); argvi++ ;
+    {
+      /* %typemap(out) VSI_RETVAL */
+    }
     
+    {
+      /* %typemap(ret) VSI_RETVAL */
+      if (result == -1 ) {
+        croak(strerror(errno));
+      }
+    }
     XSRETURN(argvi);
   fail:
     
@@ -5490,7 +5512,7 @@ XS(_wrap_Rmdir) {
   {
     char *arg1 = (char *) 0 ;
     int argvi = 0;
-    int result;
+    VSI_RETVAL result;
     dXSARGS;
     
     {
@@ -5514,7 +5536,7 @@ XS(_wrap_Rmdir) {
     }
     {
       CPLErrorReset();
-      result = (int)VSIRmdir((char const *)arg1);
+      result = VSIRmdir((char const *)arg1);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
         SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
@@ -5536,7 +5558,15 @@ XS(_wrap_Rmdir) {
       
       
     }
-    ST(argvi) = SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(result)); argvi++ ;
+    {
+      /* %typemap(out) VSI_RETVAL */
+    }
+    {
+      /* %typemap(ret) VSI_RETVAL */
+      if (result == -1 ) {
+        croak(strerror(errno));
+      }
+    }
     XSRETURN(argvi);
   fail:
     SWIG_croak_null();
@@ -5555,7 +5585,7 @@ XS(_wrap_Rename) {
     char *buf2 = 0 ;
     int alloc2 = 0 ;
     int argvi = 0;
-    int result;
+    VSI_RETVAL result;
     dXSARGS;
     
     if ((items < 2) || (items > 2)) {
@@ -5573,7 +5603,7 @@ XS(_wrap_Rename) {
     arg2 = reinterpret_cast< char * >(buf2);
     {
       CPLErrorReset();
-      result = (int)VSIRename((char const *)arg1,(char const *)arg2);
+      result = VSIRename((char const *)arg1,(char const *)arg2);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
         SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
@@ -5595,9 +5625,17 @@ XS(_wrap_Rename) {
       
       
     }
-    ST(argvi) = SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(result)); argvi++ ;
+    {
+      /* %typemap(out) VSI_RETVAL */
+    }
     if (alloc1 == SWIG_NEWOBJ) delete[] buf1;
     if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
+    {
+      /* %typemap(ret) VSI_RETVAL */
+      if (result == -1 ) {
+        croak(strerror(errno));
+      }
+    }
     XSRETURN(argvi);
   fail:
     if (alloc1 == SWIG_NEWOBJ) delete[] buf1;
@@ -5613,7 +5651,7 @@ XS(_wrap_Stat) {
     VSIStatBufL *arg2 = (VSIStatBufL *) 0 ;
     VSIStatBufL sStatBuf2 ;
     int argvi = 0;
-    RETURN_NONE result;
+    VSI_RETVAL result;
     dXSARGS;
     
     {
@@ -5664,7 +5702,7 @@ XS(_wrap_Stat) {
       
     }
     {
-      /* %typemap(out) RETURN_NONE_TRUE_IS_ERROR */
+      /* %typemap(out) VSI_RETVAL */
     }
     {
       /* %typemap(argout) (VSIStatBufL *) */
@@ -5688,9 +5726,9 @@ XS(_wrap_Stat) {
     }
     
     {
-      /* %typemap(ret) RETURN_NONE_TRUE_IS_ERROR */
-      if (result != 0 ) {
-        SWIG_croak("unexpected error in 'Stat'");
+      /* %typemap(ret) VSI_RETVAL */
+      if (result == -1 ) {
+        croak(strerror(errno));
       }
     }
     XSRETURN(argvi);
@@ -5777,6 +5815,7 @@ XS(_wrap_VSIFCloseL) {
     VSILFILE *arg1 = (VSILFILE *) 0 ;
     int res1 ;
     int argvi = 0;
+    VSI_RETVAL result;
     dXSARGS;
     
     if ((items < 1) || (items > 1)) {
@@ -5788,7 +5827,7 @@ XS(_wrap_VSIFCloseL) {
     }
     {
       CPLErrorReset();
-      VSIFCloseL(arg1);
+      result = VSIFCloseL(arg1);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
         SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
@@ -5811,9 +5850,15 @@ XS(_wrap_VSIFCloseL) {
       
     }
     {
-      /* %typemap(out) void */
+      /* %typemap(out) VSI_RETVAL */
     }
     
+    {
+      /* %typemap(ret) VSI_RETVAL */
+      if (result == -1 ) {
+        croak(strerror(errno));
+      }
+    }
     XSRETURN(argvi);
   fail:
     
@@ -5833,7 +5878,7 @@ XS(_wrap_VSIFSeekL) {
     int val3 ;
     int ecode3 = 0 ;
     int argvi = 0;
-    int result;
+    VSI_RETVAL result;
     dXSARGS;
     
     if ((items < 3) || (items > 3)) {
@@ -5855,7 +5900,7 @@ XS(_wrap_VSIFSeekL) {
     arg3 = static_cast< int >(val3);
     {
       CPLErrorReset();
-      result = (int)VSIFSeekL(arg1,arg2,arg3);
+      result = VSIFSeekL(arg1,arg2,arg3);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
         SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
@@ -5877,10 +5922,18 @@ XS(_wrap_VSIFSeekL) {
       
       
     }
-    ST(argvi) = SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(result)); argvi++ ;
+    {
+      /* %typemap(out) VSI_RETVAL */
+    }
     
     
     
+    {
+      /* %typemap(ret) VSI_RETVAL */
+      if (result == -1 ) {
+        croak(strerror(errno));
+      }
+    }
     XSRETURN(argvi);
   fail:
     
@@ -5948,7 +6001,7 @@ XS(_wrap_VSIFTruncateL) {
     long val2 ;
     int ecode2 = 0 ;
     int argvi = 0;
-    int result;
+    VSI_RETVAL result;
     dXSARGS;
     
     if ((items < 2) || (items > 2)) {
@@ -5965,7 +6018,7 @@ XS(_wrap_VSIFTruncateL) {
     arg2 = static_cast< long >(val2);
     {
       CPLErrorReset();
-      result = (int)VSIFTruncateL(arg1,arg2);
+      result = VSIFTruncateL(arg1,arg2);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
         SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
@@ -5987,9 +6040,17 @@ XS(_wrap_VSIFTruncateL) {
       
       
     }
-    ST(argvi) = SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(result)); argvi++ ;
+    {
+      /* %typemap(out) VSI_RETVAL */
+    }
     
     
+    {
+      /* %typemap(ret) VSI_RETVAL */
+      if (result == -1 ) {
+        croak(strerror(errno));
+      }
+    }
     XSRETURN(argvi);
   fail:
     
@@ -15201,7 +15262,7 @@ XS(_wrap_Band__GetHistogram) {
     double arg2 = (double) -0.5 ;
     double arg3 = (double) 255.5 ;
     int arg4 = (int) 256 ;
-    int *arg5 = (int *) NULL ;
+    GUIntBig *arg5 = (GUIntBig *) NULL ;
     int arg6 = (int) 0 ;
     int arg7 = (int) 1 ;
     GDALProgressFunc arg8 = (GDALProgressFunc) NULL ;
@@ -15250,7 +15311,7 @@ XS(_wrap_Band__GetHistogram) {
     }
     if (items > 3) {
       {
-        /* %typemap(in,numinputs=1) (int len, int *output) */
+        /* %typemap(in,numinputs=1) (int len, GUIntBig *output) */
         arg4 = SvIV(ST(3));
       }
     }
@@ -15293,9 +15354,9 @@ XS(_wrap_Band__GetHistogram) {
       }
     }
     {
-      /* %typemap(check) (int len, int *output) */
+      /* %typemap(check) (int len, GUIntBig *output) */
       if (arg4 < 1) arg4 = 1; /* stop idiocy */
-      arg5 = (int *)CPLMalloc( arg4 * sizeof(int) );
+      arg5 = (GUIntBig*)CPLMalloc( arg4 * sizeof(GUIntBig) );
       
     }
     _saved[0] = ST(3);
@@ -15327,15 +15388,18 @@ XS(_wrap_Band__GetHistogram) {
       /* %typemap(out) IF_ERROR_RETURN_NONE */
     }
     {
-      /* %typemap(argout) (int len, int *output) */
+      /* %typemap(argout) (int len, GUIntBig *output) */
       if (GIMME_V == G_ARRAY) {
         /* return a list */
         int i;
         EXTEND(SP, argvi+arg4-items+1);
-        for (i = 0; i < arg4; i++)
-        ST(argvi++) = sv_2mortal(newSVnv(arg5[i]));
+        for (i = 0; i < arg4; i++) {
+          char s[LENGTH_OF_GUIntBig_AS_STRING];
+          snprintf(s, LENGTH_OF_GUIntBig_AS_STRING-1, CPL_FRMT_GUIB, arg5[i]);
+          ST(argvi++) = sv_2mortal(newSVpv(s, 0));
+        }
       } else {
-        ST(argvi) = CreateArrayFromIntArray( arg5, arg4 );
+        ST(argvi) = CreateArrayFromGUIntBigArray( arg5, arg4 );
         argvi++;
       }
     }
@@ -15343,7 +15407,7 @@ XS(_wrap_Band__GetHistogram) {
     
     
     {
-      /* %typemap(freearg) (int len, int *output) */
+      /* %typemap(freearg) (int len, GUIntBig *output) */
       CPLFree(arg5);
     }
     
@@ -15355,7 +15419,7 @@ XS(_wrap_Band__GetHistogram) {
     
     
     {
-      /* %typemap(freearg) (int len, int *output) */
+      /* %typemap(freearg) (int len, GUIntBig *output) */
       CPLFree(arg5);
     }
     
@@ -15372,7 +15436,7 @@ XS(_wrap_Band_GetDefaultHistogram) {
     double *arg2 = (double *) NULL ;
     double *arg3 = (double *) NULL ;
     int *arg4 = (int *) NULL ;
-    int **arg5 = (int **) NULL ;
+    GUIntBig **arg5 = (GUIntBig **) NULL ;
     int arg6 = (int) 1 ;
     GDALProgressFunc arg7 = (GDALProgressFunc) NULL ;
     void *arg8 = (void *) NULL ;
@@ -15383,7 +15447,7 @@ XS(_wrap_Band_GetDefaultHistogram) {
     double temp3 ;
     int res3 = SWIG_TMPOBJ ;
     int nLen4 ;
-    int *pList4 ;
+    GUIntBig *pList4 ;
     int val6 ;
     int ecode6 = 0 ;
     int argvi = 0;
@@ -15398,7 +15462,7 @@ XS(_wrap_Band_GetDefaultHistogram) {
     arg2 = &temp2;
     arg3 = &temp3;
     {
-      /* %typemap(in,numinputs=0) (int *nLen4, const int **pList4) */
+      /* %typemap(in,numinputs=0) (int *nLen4, const GUIntBig **pList4) */
       arg4 = &nLen4;
       arg5 = &pList4;
     }
@@ -15481,8 +15545,8 @@ XS(_wrap_Band_GetDefaultHistogram) {
       if (argvi >= items) EXTEND(sp,1);  ST(argvi) = SWIG_NewPointerObj((void*)(arg3), SWIGTYPE_p_double, new_flags); argvi++  ;
     }
     {
-      /* %typemap(argout) (int *nLen, const int **pList) */
-      ST(argvi) = CreateArrayFromIntArray( *(arg5), *(arg4) );
+      /* %typemap(argout) (int *nLen, const GUIntBig **pList) */
+      ST(argvi) = CreateArrayFromGUIntBigArray( *(arg5), *(arg4) );
       argvi++;
     }
     
@@ -15508,7 +15572,7 @@ XS(_wrap_Band_SetDefaultHistogram) {
     double arg2 ;
     double arg3 ;
     int arg4 ;
-    int *arg5 = (int *) 0 ;
+    GUIntBig *arg5 = (GUIntBig *) 0 ;
     void *argp1 = 0 ;
     int res1 = 0 ;
     double val2 ;
@@ -15538,16 +15602,16 @@ XS(_wrap_Band_SetDefaultHistogram) {
     } 
     arg3 = static_cast< double >(val3);
     {
-      /* %typemap(in,numinputs=1) (int nList, int* pList) */
+      /* %typemap(in,numinputs=1) (int nList, GUIntBig* pList) */
       if (!(SvROK(ST(3)) && (SvTYPE(SvRV(ST(3)))==SVt_PVAV)))
       SWIG_croak("Expected a reference to an array.");
       AV *av = (AV*)(SvRV(ST(3)));
       arg4 = av_len(av)+1;
-      arg5 = (int*)CPLMalloc(arg4*sizeof(int));
+      arg5 = (GUIntBig*)CPLMalloc(arg4*sizeof(GUIntBig));
       if (arg5) {
         for( int i = 0; i<arg4; i++ ) {
           SV **sv = av_fetch(av, i, 0);
-          arg5[i] =  SvIV(*sv);
+          arg5[i] =  strtoull(SvPV_nolen(*sv), NULL, 10);
         }
       } else
       SWIG_fail;
@@ -15581,7 +15645,7 @@ XS(_wrap_Band_SetDefaultHistogram) {
     
     
     {
-      /* %typemap(freearg) (int nList, int* pList) */
+      /* %typemap(freearg) (int nList, GUIntBig* pList) */
       CPLFree((void*) arg5);
     }
     XSRETURN(argvi);
@@ -15590,7 +15654,7 @@ XS(_wrap_Band_SetDefaultHistogram) {
     
     
     {
-      /* %typemap(freearg) (int nList, int* pList) */
+      /* %typemap(freearg) (int nList, GUIntBig* pList) */
       CPLFree((void*) arg5);
     }
     SWIG_croak_null();
@@ -22775,6 +22839,7 @@ static swig_type_info _swigt__p_GDALRasterAttributeTableShadow = {"_p_GDALRaster
 static swig_type_info _swigt__p_GDALRasterBandShadow = {"_p_GDALRasterBandShadow", "GDALRasterBandShadow *", 0, 0, (void*)"Geo::GDAL::Band", 0};
 static swig_type_info _swigt__p_GDALTransformerInfoShadow = {"_p_GDALTransformerInfoShadow", "GDALTransformerInfoShadow *", 0, 0, (void*)"Geo::GDAL::Transformer", 0};
 static swig_type_info _swigt__p_GDAL_GCP = {"_p_GDAL_GCP", "GDAL_GCP *", 0, 0, (void*)"Geo::GDAL::GCP", 0};
+static swig_type_info _swigt__p_GUIntBig = {"_p_GUIntBig", "GUIntBig *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_OGRLayerShadow = {"_p_OGRLayerShadow", "OGRLayerShadow *", 0, 0, (void*)"Geo::OGR::Layer", 0};
 static swig_type_info _swigt__p_VSIStatBufL = {"_p_VSIStatBufL", "VSIStatBufL *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_char = {"_p_char", "char *|retStringAndCPLFree *", 0, 0, (void*)0, 0};
@@ -22783,8 +22848,8 @@ static swig_type_info _swigt__p_f_double_p_q_const__char_p_void__int = {"_p_f_do
 static swig_type_info _swigt__p_int = {"_p_int", "OGRFieldSubType *|GDALRATFieldType *|OGRFieldType *|int *|GDALAccess *|OGRwkbByteOrder *|CPLErr *|GDALRWFlag *|OGRJustification *|GDALRATFieldUsage *|GDALTileOrganization *|GDALPaletteInterp *|GDALColorInterp *|GDALResampleAlg *|GDALRIOResampleAlg *|OGRErr *|OGRwkbGeometryType *|GDALDataType *|GDALAsyncStatusType *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_p_GDALRasterBandShadow = {"_p_p_GDALRasterBandShadow", "GDALRasterBandShadow **", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_p_GDAL_GCP = {"_p_p_GDAL_GCP", "GDAL_GCP **", 0, 0, (void*)0, 0};
+static swig_type_info _swigt__p_p_GUIntBig = {"_p_p_GUIntBig", "GUIntBig **", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_p_char = {"_p_p_char", "char **", 0, 0, (void*)0, 0};
-static swig_type_info _swigt__p_p_int = {"_p_p_int", "int **", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_void = {"_p_void", "VSILFILE *|void *", 0, 0, (void*)0, 0};
 
 static swig_type_info *swig_type_initial[] = {
@@ -22802,6 +22867,7 @@ static swig_type_info *swig_type_initial[] = {
   &_swigt__p_GDALRasterBandShadow,
   &_swigt__p_GDALTransformerInfoShadow,
   &_swigt__p_GDAL_GCP,
+  &_swigt__p_GUIntBig,
   &_swigt__p_OGRLayerShadow,
   &_swigt__p_VSIStatBufL,
   &_swigt__p_char,
@@ -22810,8 +22876,8 @@ static swig_type_info *swig_type_initial[] = {
   &_swigt__p_int,
   &_swigt__p_p_GDALRasterBandShadow,
   &_swigt__p_p_GDAL_GCP,
+  &_swigt__p_p_GUIntBig,
   &_swigt__p_p_char,
-  &_swigt__p_p_int,
   &_swigt__p_void,
 };
 
@@ -22829,6 +22895,7 @@ static swig_cast_info _swigc__p_GDALRasterAttributeTableShadow[] = {  {&_swigt__
 static swig_cast_info _swigc__p_GDALRasterBandShadow[] = {  {&_swigt__p_GDALRasterBandShadow, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_GDALTransformerInfoShadow[] = {  {&_swigt__p_GDALTransformerInfoShadow, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_GDAL_GCP[] = {  {&_swigt__p_GDAL_GCP, 0, 0, 0},{0, 0, 0, 0}};
+static swig_cast_info _swigc__p_GUIntBig[] = {  {&_swigt__p_GUIntBig, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_OGRLayerShadow[] = {  {&_swigt__p_OGRLayerShadow, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_VSIStatBufL[] = {  {&_swigt__p_VSIStatBufL, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_char[] = {  {&_swigt__p_char, 0, 0, 0},{0, 0, 0, 0}};
@@ -22837,8 +22904,8 @@ static swig_cast_info _swigc__p_f_double_p_q_const__char_p_void__int[] = {  {&_s
 static swig_cast_info _swigc__p_int[] = {  {&_swigt__p_int, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_p_GDALRasterBandShadow[] = {  {&_swigt__p_p_GDALRasterBandShadow, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_p_GDAL_GCP[] = {  {&_swigt__p_p_GDAL_GCP, 0, 0, 0},{0, 0, 0, 0}};
+static swig_cast_info _swigc__p_p_GUIntBig[] = {  {&_swigt__p_p_GUIntBig, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_p_char[] = {  {&_swigt__p_p_char, 0, 0, 0},{0, 0, 0, 0}};
-static swig_cast_info _swigc__p_p_int[] = {  {&_swigt__p_p_int, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_void[] = {  {&_swigt__p_void, 0, 0, 0},{0, 0, 0, 0}};
 
 static swig_cast_info *swig_cast_initial[] = {
@@ -22856,6 +22923,7 @@ static swig_cast_info *swig_cast_initial[] = {
   _swigc__p_GDALRasterBandShadow,
   _swigc__p_GDALTransformerInfoShadow,
   _swigc__p_GDAL_GCP,
+  _swigc__p_GUIntBig,
   _swigc__p_OGRLayerShadow,
   _swigc__p_VSIStatBufL,
   _swigc__p_char,
@@ -22864,8 +22932,8 @@ static swig_cast_info *swig_cast_initial[] = {
   _swigc__p_int,
   _swigc__p_p_GDALRasterBandShadow,
   _swigc__p_p_GDAL_GCP,
+  _swigc__p_p_GUIntBig,
   _swigc__p_p_char,
-  _swigc__p_p_int,
   _swigc__p_void,
 };
 

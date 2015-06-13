@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: FGdbDatasource.cpp 28601 2015-03-03 11:06:40Z rouault $
+ * $Id: FGdbDatasource.cpp 29196 2015-05-14 15:50:13Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implements FileGDB OGR Datasource.
@@ -37,7 +37,7 @@
 #include "FGdbUtils.h"
 #include "cpl_multiproc.h"
 
-CPL_CVSID("$Id: FGdbDatasource.cpp 28601 2015-03-03 11:06:40Z rouault $");
+CPL_CVSID("$Id: FGdbDatasource.cpp 29196 2015-05-14 15:50:13Z rouault $");
 
 using std::vector;
 using std::wstring;
@@ -430,6 +430,12 @@ OGRLayer * FGdbDataSource::ExecuteSQL( const char *pszSQLCommand,
                                        const char *pszDialect )
 
 {
+    size_t count = m_layers.size();
+    for(size_t i = 0; i < count; ++i )
+    {
+        m_layers[i]->EndBulkLoad();
+    }
+    
 /* -------------------------------------------------------------------- */
 /*      Use generic implementation for recognized dialects              */
 /* -------------------------------------------------------------------- */

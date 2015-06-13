@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: jpeg2000dataset.cpp 29075 2015-04-30 12:51:21Z rouault $
+ * $Id: jpeg2000dataset.cpp 29171 2015-05-07 19:49:07Z rouault $
  *
  * Project:  JPEG-2000
  * Purpose:  Partial implementation of the ISO/IEC 15444-1 standard
@@ -35,7 +35,7 @@
 #include <jasper/jasper.h>
 #include "jpeg2000_vsil_io.h"
 
-CPL_CVSID("$Id: jpeg2000dataset.cpp 29075 2015-04-30 12:51:21Z rouault $");
+CPL_CVSID("$Id: jpeg2000dataset.cpp 29171 2015-05-07 19:49:07Z rouault $");
 
 CPL_C_START
 void    GDALRegister_JPEG2000(void);
@@ -1356,7 +1356,7 @@ void GDALRegister_JPEG2000()
         poDriver->SetMetadataItem( GDAL_DCAP_RASTER, "YES" );
         poDriver->SetMetadataItem( GDAL_DCAP_VECTOR, "YES" );
         poDriver->SetMetadataItem( GDAL_DMD_LONGNAME, 
-                                   "JPEG-2000 part 1 (ISO/IEC 15444-1)" );
+                                   "JPEG-2000 part 1 (ISO/IEC 15444-1), based on Jasper library" );
         poDriver->SetMetadataItem( GDAL_DMD_HELPTOPIC, 
                                    "frmt_jpeg2000.html" );
         poDriver->SetMetadataItem( GDAL_DMD_CREATIONDATATYPES, 

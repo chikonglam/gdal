@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrgeojsonreader.cpp 28898 2015-04-13 22:25:53Z rouault $
+ * $Id: ogrgeojsonreader.cpp 29156 2015-05-05 10:19:17Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implementation of OGRGeoJSONReader class (OGR GeoJSON Driver).
@@ -1069,11 +1069,12 @@ OGRFeature* OGRGeoJSONReader::ReadFeature( OGRGeoJSONLayer* poLayer, json_object
     }
     else
     {
-        CPLError( CE_Failure, CPLE_AppDefined,
-                  "Invalid Feature object. "
-                  "Missing \'geometry\' member." );
-        delete poFeature;
-        return NULL;
+        static int bWarned = FALSE;
+        if( !bWarned )
+        {
+            bWarned = TRUE;
+            CPLDebug("GeoJSON", "Non conformant Feature object. Missing \'geometry\' member." );
+        }
     }
 
     return poFeature;

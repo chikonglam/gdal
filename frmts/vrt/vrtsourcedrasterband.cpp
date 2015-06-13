@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: vrtsourcedrasterband.cpp 28899 2015-04-14 09:27:00Z rouault $
+ * $Id: vrtsourcedrasterband.cpp 29161 2015-05-06 10:18:19Z rouault $
  *
  * Project:  Virtual GDAL Datasets
  * Purpose:  Implementation of VRTSourcedRasterBand
@@ -32,7 +32,7 @@
 #include "cpl_minixml.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: vrtsourcedrasterband.cpp 28899 2015-04-14 09:27:00Z rouault $");
+CPL_CVSID("$Id: vrtsourcedrasterband.cpp 29161 2015-05-06 10:18:19Z rouault $");
 
 /************************************************************************/
 /* ==================================================================== */
@@ -206,11 +206,13 @@ CPLErr VRTSourcedRasterBand::IRasterIO( GDALRWFlag eRWFlag,
     for( iSource = 0; eErr == CE_None && iSource < nSources; iSource++ )
     {
         psExtraArg->pfnProgress = GDALScaledProgress;
-            psExtraArg->pProgressData = 
+        psExtraArg->pProgressData = 
                 GDALCreateScaledProgress( 1.0 * iSource / nSources,
                                         1.0 * (iSource + 1) / nSources,
                                         pfnProgressGlobal,
                                         pProgressDataGlobal );
+        if( psExtraArg->pProgressData == NULL )
+            psExtraArg->pfnProgress = NULL;
 
         eErr = 
             papoSources[iSource]->RasterIO( nXOff, nYOff, nXSize, nYSize, 

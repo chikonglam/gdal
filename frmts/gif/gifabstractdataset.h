@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gifabstractdataset.h 28279 2015-01-03 14:37:52Z rouault $
+ * $Id: gifabstractdataset.h 29222 2015-05-21 15:06:39Z rouault $
  *
  * Project:  GIF Driver
  * Purpose:  GIF Abstract Dataset
@@ -61,6 +61,8 @@ class GIFAbstractDataset : public GDALPamDataset
     int         bHasReadXMPMetadata;
     void        CollectXMPMetadata();
 
+    CPLString   osWldFilename;
+
     void        DetectGeoreferencing( GDALOpenInfo * poOpenInfo );
 
   public:
@@ -75,6 +77,8 @@ class GIFAbstractDataset : public GDALPamDataset
 
     virtual char      **GetMetadataDomainList();
     virtual char  **GetMetadata( const char * pszDomain = "" );
+
+    virtual char **GetFileList(void);
 
     static int          Identify( GDALOpenInfo * );
 

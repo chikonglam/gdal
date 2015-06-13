@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_wfs.h 29028 2015-04-26 21:19:29Z rouault $
+ * $Id: ogr_wfs.h 29241 2015-05-24 10:58:54Z rouault $
  *
  * Project:  WFS Translator
  * Purpose:  Definition of classes for OGR WFS driver.
@@ -324,6 +324,11 @@ class OGRWFSDataSource : public OGRDataSource
     OGRLayer           *poLayerGetCapabilitiesLayer;
 
     int                 bKeepLayerNamePrefix;
+    
+    int                 bEmptyAsNull;
+    
+    int                 bInvertAxisOrderIfLatLong;
+    CPLString           osConsiderEPSGAsURN;
 
     CPLHTTPResult*      SendGetCapabilities(const char* pszBaseURL,
                                             CPLString& osTypeName);
@@ -384,6 +389,10 @@ class OGRWFSDataSource : public OGRDataSource
 
     int                         GetKeepLayerNamePrefix() { return bKeepLayerNamePrefix; }
     const CPLString&            GetBaseURL() { return osBaseURL; }
+    
+    int                         IsEmptyAsNull() const { return bEmptyAsNull; }
+    int                         InvertAxisOrderIfLatLong() const { return bInvertAxisOrderIfLatLong; }
+    const CPLString&            GetConsiderEPSGAsURN() const { return osConsiderEPSGAsURN; }
 
     virtual char**              GetMetadataDomainList();
     virtual char**              GetMetadata( const char * pszDomain = "" );

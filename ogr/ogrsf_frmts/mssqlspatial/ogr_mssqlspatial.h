@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_mssqlspatial.h 29027 2015-04-26 18:29:41Z tamas $
+ * $Id: ogr_mssqlspatial.h 29185 2015-05-12 10:45:44Z tamas $
  *
  * Project:  MSSQL Spatial driver
  * Purpose:  Definition of classes for OGR MSSQL Spatial driver.
@@ -35,6 +35,12 @@
 #include "cpl_error.h"
 
 class OGRMSSQLSpatialDataSource;
+
+/* layer status */
+#define MSSQLLAYERSTATUS_ORIGINAL  0
+#define MSSQLLAYERSTATUS_INITIAL 1
+#define MSSQLLAYERSTATUS_CREATED 2
+#define MSSQLLAYERSTATUS_DISABLED 3
 
 /* geometry format to transfer geometry column */
 #define MSSQLGEOMETRY_NATIVE 0
@@ -149,6 +155,8 @@ class OGRMSSQLSpatialLayer : public OGRLayer
 
     int                bIsIdentityFid;
 
+    int                nLayerStatus;
+
     int                *panFieldOrdinals;
 
     CPLErr              BuildFeatureDefn( const char *pszLayerName,
@@ -179,6 +187,9 @@ class OGRMSSQLSpatialLayer : public OGRLayer
 
     virtual int         TestCapability( const char * );
     char*               GByteArrayToHexString( const GByte* pabyData, int nLen);
+
+    void               SetLayerStatus( int nStatus ) { nLayerStatus = nStatus; }
+    int                GetLayerStatus() { return nLayerStatus; }
 };
 
 /************************************************************************/

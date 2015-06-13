@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_gml.h 29013 2015-04-25 18:12:21Z rouault $
+ * $Id: ogr_gml.h 29214 2015-05-20 13:47:29Z rouault $
  *
  * Project:  GML Reader
  * Purpose:  Declarations for OGR wrapper classes for GML, and GML<->OGR
@@ -150,6 +150,8 @@ class OGRGMLDataSource : public OGRDataSource
     ReadMode            eReadMode;
     GMLFeature         *poStoredGMLFeature;
     OGRGMLLayer        *poLastReadLayer;
+    
+    int                 bEmptyAsNull;
 
     void                FindAndParseTopElements(VSILFILE* fp);
     void                SetExtents(double dfMinX, double dfMinY, double dfMaxX, double dfMaxY);

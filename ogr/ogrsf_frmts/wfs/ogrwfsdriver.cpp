@@ -32,7 +32,7 @@
 
 // g++ -fPIC -g -Wall ogr/ogrsf_frmts/wfs/*.cpp -shared -o ogr_WFS.so -Iport -Igcore -Iogr -Iogr/ogrsf_frmts -Iogr/ogrsf_frmts/gml -Iogr/ogrsf_frmts/wfs -L. -lgdal
 
-CPL_CVSID("$Id: ogrwfsdriver.cpp 29019 2015-04-25 20:34:19Z rouault $");
+CPL_CVSID("$Id: ogrwfsdriver.cpp 29241 2015-05-24 10:58:54Z rouault $");
 
 extern "C" void RegisterOGRWFS();
 
@@ -106,6 +106,13 @@ void RegisterOGRWFS()
 "<OpenOptionList>"
 "  <Option name='URL' type='string' description='URL to the WFS server endpoint' required='true'/>"
 "  <Option name='TRUST_CAPABILITIES_BOUNDS' type='boolean' description='Whether to trust layer bounds declared in GetCapabilities response' default='NO'/>"
+"  <Option name='EMPTY_AS_NULL' type='boolean' description='Force empty fields to be reported as NULL. Set to NO so that not-nullable fields can be exposed' default='YES'/>"
+"  <Option name='INVERT_AXIS_ORDER_IF_LAT_LONG' type='boolean' description='Whether to present SRS and coordinate ordering in traditional GIS order' default='YES'/>"
+"  <Option name='CONSIDER_EPSG_AS_URN' type='string-select' description='Whether to consider srsName like EPSG:XXXX as respecting EPSG axis order' default='AUTO'>"
+"    <Value>AUTO</Value>"
+"    <Value>YES</Value>"
+"    <Value>NO</Value>"
+"  </Option>"
 "</OpenOptionList>" );
 
         poDriver->SetMetadataItem( GDAL_DCAP_VIRTUALIO, "YES" );

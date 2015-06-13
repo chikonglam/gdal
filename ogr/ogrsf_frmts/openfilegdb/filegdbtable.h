@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: filegdbtable.h 28880 2015-04-09 15:18:43Z rouault $
+ * $Id: filegdbtable.h 29158 2015-05-05 21:19:37Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implements reading of FileGDB tables
@@ -235,6 +235,8 @@ class FileGDBTable
         std::vector<vsi_l_offset>   anFeatureOffsets; /* MSb set marks deleted feature */
 
         GByte*                      pabyTablXBlockMap;
+        int                         nCountBlocksBeforeIBlockIdx; /* optimization */
+        int                         nCountBlocksBeforeIBlockValue; /* optimization */
 
         char                        achGUIDBuffer[32 + 6 + 1];
         int                         nChSaved;
@@ -302,6 +304,7 @@ class FileGDBTable
 
        /* Next call to SelectRow() or GetFieldValue() invalidates previously returned values */
        int                      SelectRow(int iRow);
+       int                      GetAndSelectNextNonEmptyRow(int iRow);
        int                      HasGotError() const { return bError; }
        int                      GetCurRow() const { return nCurRow; }
        int                      IsCurRowDeleted() const { return bIsDeleted; }

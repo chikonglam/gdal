@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr2ogr.cpp 29012 2015-04-25 17:27:37Z rouault $
+ * $Id: ogr2ogr.cpp 29236 2015-05-22 19:39:48Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Simple client for translating between formats.
@@ -39,10 +39,11 @@
 #include <map>
 #include <vector>
 
-CPL_CVSID("$Id: ogr2ogr.cpp 29012 2015-04-25 17:27:37Z rouault $");
+CPL_CVSID("$Id: ogr2ogr.cpp 29236 2015-05-22 19:39:48Z rouault $");
 
 static int bSkipFailures = FALSE;
 static int bLayerTransaction = -1;
+static int bForceTransaction = FALSE;
 static int nGroupTransactions = 20000;
 static GIntBig nFIDToFetch = OGRNullFID;
 
@@ -1174,10 +1175,10 @@ int main( int nArgc, char ** papszArgv )
             else
                 nGroupTransactions = atoi(papszArgv[iArg]);
         }
-        /* Undocumented. Just a provision. Default behaviour should be OK */
         else if ( EQUAL(papszArgv[iArg],"-ds_transaction") )
         {
             bLayerTransaction = FALSE;
+            bForceTransaction = TRUE;
         }
         /* Undocumented. Just a provision. Default behaviour should be OK */
         else if ( EQUAL(papszArgv[iArg],"-lyr_transaction") )
@@ -1754,6 +1755,11 @@ int main( int nArgc, char ** papszArgv )
                     pszFormat );
             exit( 1 );
         }
+        
+        if( papszDestOpenOptions != NULL )
+        {
+            fprintf(stderr, "-doo ignored when creating the output datasource.\n");
+        }
 
 /* -------------------------------------------------------------------- */
 /*      Special case to improve user experience when translating        */
@@ -1930,7 +1936,7 @@ int main( int nArgc, char ** papszArgv )
     if( nGroupTransactions )
     {
         if( !bLayerTransaction )
-            poODS->StartTransaction();
+            poODS->StartTransaction(bForceTransaction);
     }
 
 /* -------------------------------------------------------------------- */
@@ -2510,7 +2516,7 @@ static void Usage(const char* pszAdditionalMsg, int bShort)
             "               [-dim 2|3|layer_dim] [layer [layer ...]]\n"
             "\n"
             "Advanced options :\n"
-            "               [-gt n]\n"
+            "               [-gt n] [-ds_transaction]\n"
             "               [[-oo NAME=VALUE] ...] [[-doo NAME=VALUE] ...]\n"
             "               [-clipsrc [xmin ymin xmax ymax]|WKT|datasource|spat_extent]\n"
             "               [-clipsrcsql sql_statement] [-clipsrclayer layer]\n"
@@ -2564,7 +2570,7 @@ static void Usage(const char* pszAdditionalMsg, int bShort)
             " -sql statement: Execute given SQL statement and save result.\n"
             " -dialect value: select a dialect, usually OGRSQL to avoid native sql.\n"
             " -skipfailures: skip features or layers that fail to convert\n"
-            " -gt n: group n features per transaction (default 20000)\n"
+            " -gt n: group n features per transaction (default 20000). n can be set to unlimited\n"
             " -spat xmin ymin xmax ymax: spatial query extents\n"
             " -simplify tolerance: distance tolerance for simplification.\n"
             " -segmentize max_dist: maximum distance between 2 nodes.\n"
@@ -3749,21 +3755,13 @@ int LayerTranslator::Translate( TargetLayerInfo* psInfo,
                                         psInfo->iRequestedSrcGeomField);
             else
                 poSrcGeometry = poFeature->GetGeometryRef();
-            if (poSrcGeometry)
+            if (poSrcGeometry &&
+                OGR_GT_IsSubClassOf(poSrcGeometry->getGeometryType(), wkbGeometryCollection) )
             {
-                switch (wkbFlatten(poSrcGeometry->getGeometryType()))
-                {
-                    case wkbMultiPoint:
-                    case wkbMultiLineString:
-                    case wkbMultiPolygon:
-                    case wkbGeometryCollection:
-                        nParts = ((OGRGeometryCollection*)poSrcGeometry)->getNumGeometries();
-                        nIters = nParts;
-                        if (nIters == 0)
-                            nIters = 1;
-                    default:
-                        break;
-                }
+                nParts = ((OGRGeometryCollection*)poSrcGeometry)->getNumGeometries();
+                nIters = nParts;
+                if (nIters == 0)
+                    nIters = 1;
             }
         }
 
@@ -3779,7 +3777,7 @@ int LayerTranslator::Translate( TargetLayerInfo* psInfo,
                 else
                 {
                     poODS->CommitTransaction();
-                    poODS->StartTransaction();
+                    poODS->StartTransaction(bForceTransaction);
                 }
                 nFeaturesInTransaction = 0;
             }
@@ -3933,6 +3931,9 @@ int LayerTranslator::Translate( TargetLayerInfo* psInfo,
 
                 if (poClipDst)
                 {
+                    if( poDstGeometry == NULL )
+                        goto end_loop;
+
                     OGRGeometry* poClipped = poDstGeometry->Intersection(poClipDst);
                     if (poClipped == NULL || poClipped->IsEmpty())
                     {

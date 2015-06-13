@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrwfslayer.cpp 29028 2015-04-26 21:19:29Z rouault $
+ * $Id: ogrwfslayer.cpp 29241 2015-05-24 10:58:54Z rouault $
  *
  * Project:  WFS Translator
  * Purpose:  Implements OGRWFSLayer class.
@@ -34,7 +34,7 @@
 #include "cpl_http.h"
 #include "parsexsd.h"
 
-CPL_CVSID("$Id: ogrwfslayer.cpp 29028 2015-04-26 21:19:29Z rouault $");
+CPL_CVSID("$Id: ogrwfslayer.cpp 29241 2015-05-24 10:58:54Z rouault $");
 
 
 /************************************************************************/
@@ -377,7 +377,8 @@ OGRFeatureDefn* OGRWFSLayer::BuildLayerDefnFromFeatureClass(GMLFeatureClass* poC
             oField.SetSubType(OFSTInt16);
         else if( poProperty->GetType() == GMLPT_Float) 
             oField.SetSubType(OFSTFloat32);
-        oField.SetNullable(poProperty->IsNullable());
+        if( !poDS->IsEmptyAsNull() )
+            oField.SetNullable(poProperty->IsNullable());
 
         poFDefn->AddFieldDefn( &oField );
     }
@@ -738,8 +739,23 @@ GDALDataset* OGRWFSLayer::FetchGetFeature(int nRequestMaxFeatures)
         }
 
         const char* const apszAllowedDrivers[] = { "GML", NULL };
-        const char* apszOpenOptions[2] = { NULL, NULL };
+        const char* apszOpenOptions[5] = { NULL, NULL, NULL, NULL, NULL };
         apszOpenOptions[0] = CPLSPrintf("XSD=%s", osXSDFileName.c_str());
+        apszOpenOptions[1] = CPLSPrintf("EMPTY_AS_NULL=%s", poDS->IsEmptyAsNull() ? "YES" : "NO");
+        int iGMLOOIdex = 2;
+        if( CPLGetConfigOption("GML_INVERT_AXIS_ORDER_IF_LAT_LONG", NULL) == NULL )
+        {
+            apszOpenOptions[iGMLOOIdex] = CPLSPrintf("INVERT_AXIS_ORDER_IF_LAT_LONG=%s",
+                                    poDS->InvertAxisOrderIfLatLong() ? "YES" : "NO");
+            iGMLOOIdex ++;
+        }
+        if( CPLGetConfigOption("GML_CONSIDER_EPSG_AS_URN", NULL) == NULL )
+        {
+            apszOpenOptions[iGMLOOIdex] = CPLSPrintf("CONSIDER_EPSG_AS_URN=%s",
+                                            poDS->GetConsiderEPSGAsURN().c_str());
+            iGMLOOIdex ++;
+        }
+
         GDALDataset* poGML_DS = (GDALDataset*)
                 GDALOpenEx(pszStreamingName, GDAL_OF_VECTOR, apszAllowedDrivers,
                            apszOpenOptions, NULL);
@@ -947,10 +963,29 @@ GDALDataset* OGRWFSLayer::FetchGetFeature(int nRequestMaxFeatures)
 
     CPLHTTPDestroyResult(psResult);
 
-    OGRDataSource* poDS;
+    const char* const * papszOpenOptions = NULL;
+    const char* apszGMLOpenOptions[3] = { NULL, NULL, NULL };
+    int iGMLOOIdex = 0;
+    if( CPLGetConfigOption("GML_INVERT_AXIS_ORDER_IF_LAT_LONG", NULL) == NULL )
+    {
+        apszGMLOpenOptions[iGMLOOIdex] = CPLSPrintf("INVERT_AXIS_ORDER_IF_LAT_LONG=%s",
+                                poDS->InvertAxisOrderIfLatLong() ? "YES" : "NO");
+        iGMLOOIdex ++;
+    }
+    if( CPLGetConfigOption("GML_CONSIDER_EPSG_AS_URN", NULL) == NULL )
+    {
+        apszGMLOpenOptions[iGMLOOIdex] = CPLSPrintf("CONSIDER_EPSG_AS_URN=%s",
+                                        poDS->GetConsiderEPSGAsURN().c_str());
+        iGMLOOIdex ++;
+    }
 
-    poDS = (OGRDataSource*) OGROpen(osTmpFileName, FALSE, NULL);
-    if (poDS == NULL && (bZIP || bIsMultiPart))
+    GDALDriverH hDrv = GDALIdentifyDriver(osTmpFileName, NULL);
+    if( hDrv != NULL && hDrv == GDALGetDriverByName("GML") )
+        papszOpenOptions = apszGMLOpenOptions;
+
+    GDALDataset* poPageDS = (GDALDataset*) GDALOpenEx(osTmpFileName,
+                                GDAL_OF_VECTOR, NULL, papszOpenOptions, NULL);
+    if (poPageDS == NULL && (bZIP || bIsMultiPart))
     {
         char** papszFileList = VSIReadDir(osTmpFileName);
         int i;
@@ -958,15 +993,19 @@ GDALDataset* OGRWFSLayer::FetchGetFeature(int nRequestMaxFeatures)
         {
             CPLString osFullFilename =
                     CPLFormFilename( osTmpFileName, papszFileList[i], NULL );
-            poDS = (OGRDataSource*) OGROpen(osFullFilename, FALSE, NULL);
-            if (poDS != NULL)
+            GDALDriverH hDrv = GDALIdentifyDriver(osFullFilename, NULL);
+            if( hDrv != NULL && hDrv == GDALGetDriverByName("GML") )
+                papszOpenOptions = apszGMLOpenOptions;
+            poPageDS = (GDALDataset*) GDALOpenEx(osFullFilename,
+                                GDAL_OF_VECTOR, NULL, papszOpenOptions, NULL);
+            if (poPageDS != NULL)
                 break;
         }
 
         CSLDestroy( papszFileList );
     }
 
-    if (poDS == NULL)
+    if (poPageDS == NULL)
     {
         if (pabyData != NULL && !bJSON && !bZIP &&
             strstr((const char*)pabyData, "<wfs:FeatureCollection") == NULL &&
@@ -980,14 +1019,14 @@ GDALDataset* OGRWFSLayer::FetchGetFeature(int nRequestMaxFeatures)
         return NULL;
     }
 
-    OGRLayer* poLayer = poDS->GetLayer(0);
+    OGRLayer* poLayer = poPageDS->GetLayer(0);
     if (poLayer == NULL)
     {
-        OGRDataSource::DestroyDataSource(poDS);
+        GDALClose(poPageDS);
         return NULL;
     }
 
-    return poDS;
+    return poPageDS;
 }
 
 /************************************************************************/
