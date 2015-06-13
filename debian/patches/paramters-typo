@@ -1,31 +1,10 @@
 Description: Fix 'paramters' typo, replace with 'parameters'.
 Author: Bas Couwenger <sebastic@xs4all.nl>
-Forwarded: http://trac.osgeo.org/gdal/ticket/5756
-Applied-Upstream: 2.0, http://trac.osgeo.org/gdal/changeset/28039
+Forwarded: http://trac.osgeo.org/gdal/ticket/5995
 
---- a/frmts/georaster/georaster_wrapper.cpp
-+++ b/frmts/georaster/georaster_wrapper.cpp
-@@ -718,7 +718,7 @@ bool GeoRasterWrapper::Create( char* psz
-     nBandBlockSize   = nBandBlockSize   == 0 ? 1 : nBandBlockSize;
- 
-     //  -----------------------------------------------------------
--    //  Blocking storage paramters
-+    //  Blocking storage parameters
-     //  -----------------------------------------------------------
- 
-     CPLString sBlocking;
-@@ -789,7 +789,7 @@ bool GeoRasterWrapper::Create( char* psz
-     }
- 
-     //  -----------------------------------------------------------
--    //  Complete format paramters
-+    //  Complete format parameters
-     //  -----------------------------------------------------------
- 
-     if( poConnection->GetVersion() > 10 )
 --- a/ogr/ogrsf_frmts/filegdb/FGdbLayer.cpp
 +++ b/ogr/ogrsf_frmts/filegdb/FGdbLayer.cpp
-@@ -1178,7 +1178,7 @@ CPLXMLNode* XMLSpatialReference(OGRSpati
+@@ -1247,7 +1247,7 @@ CPLXMLNode* XMLSpatialReference(OGRSpati
      const char* gridvalues[7];
  
      /* 
@@ -34,14 +13,3 @@ Applied-Upstream: 2.0, http://trac.osgeo.org/gdal/changeset/28039
      Try and use ArcGIS 10 default values.
      */
      // default tolerance is 1mm in the units of the coordinate system
---- a/frmts/pcidsk/sdk/segment/cpcidskgeoref.cpp
-+++ b/frmts/pcidsk/sdk/segment/cpcidskgeoref.cpp
-@@ -317,7 +317,7 @@ void CPCIDSKGeoref::WriteParameters( std
-     Load();
- 
-     if( parms.size() < 17 )
--        ThrowPCIDSKException( "Did not get expected number of paramters in WriteParameters()" );
-+        ThrowPCIDSKException( "Did not get expected number of parameters in WriteParameters()" );
- 
-     unsigned int i;
- 

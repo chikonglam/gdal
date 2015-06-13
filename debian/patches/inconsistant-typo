@@ -1,208 +1,173 @@
 Description: Fix 'inconsistant' typo, replace with 'inconsistent'.
 Author: Bas Couwenberg <sebastic@xs4all.nl>
-Forwarded: http://trac.osgeo.org/gdal/ticket/5756
-Applied-Upstream: 2.0, http://trac.osgeo.org/gdal/changeset/28039
+Forwarded: http://trac.osgeo.org/gdal/ticket/5995
 
---- a/frmts/grib/degrib18/degrib/metaname.cpp
-+++ b/frmts/grib/degrib18/degrib/metaname.cpp
-@@ -840,7 +840,7 @@ GRIB2ParmTable MeteoAtmos[] = {
- /* 18 */    {"SNFALB", "Snow free albedo", "%", UC_NONE},
- };
+--- a/MIGRATION_GUIDE.TXT
++++ b/MIGRATION_GUIDE.TXT
+@@ -227,7 +227,7 @@ OGR drivers :
  
--/* GRIB2 Code table 4.2 : 0.253 or 0.190 (Document is inconsistant.) */
-+/* GRIB2 Code table 4.2 : 0.253 or 0.190 (Document is inconsistent.) */
- GRIB2ParmTable MeteoText[] = {
-    /* 0 */ {"", "Arbitrary text string", "CCITTIA5", UC_NONE},
- };
---- a/frmts/grib/degrib18/degrib/tdlpack.cpp
-+++ b/frmts/grib/degrib18/degrib/tdlpack.cpp
-@@ -175,7 +175,7 @@ static int ReadTDLPSect1 (uChar *pds, sI
-    t_hour = li_temp - t_day * 100;
-    if ((t_year != year) || (t_month != month) || (t_day != day) ||
-        (t_hour != hour)) {
--      errSprintf ("Error Inconsistant Times in ReadTDLPSect1.\n");
-+      errSprintf ("Error Inconsistent Times in ReadTDLPSect1.\n");
-       return -1;
-    }
-    if (ParseTime (&(pdsMeta->refTime), year, month, day, hour, min, 0) != 0) {
-@@ -232,10 +232,10 @@ static int ReadTDLPSect1 (uChar *pds, sI
-    project_hr = GRIB_UNSIGN_INT2 (*pds, pds[1]);
-    tau = pdsMeta->ID3 - ((pdsMeta->ID3 / 1000) * 1000);
-    if (tau != project_hr) {
--      printf ("Warning: Inconsistant Projections in hours in "
-+      printf ("Warning: Inconsistent Projections in hours in "
-               "ReadTDLPSect1 (%d vs %d)\n", tau, project_hr);
- /*
--      errSprintf ("Warning: Inconsistant Projections in hours in "
-+      errSprintf ("Warning: Inconsistent Projections in hours in "
-                   "ReadTDLPSect1 (%ld vs %d)\n", tau, project_hr);
- */
-       project_hr = tau;
-@@ -634,7 +634,7 @@ int TDLP_RefTime (DataSource &fp, sInt4
+   * Due to RFC 41, if a OGR driver calls SetGeomType(wkbNone) on a layer,
+     it will be impossible to affect geometries to features of that layer.
+-    This worked before, although it was inconsistant, but it does no longer now.
++    This worked before, although it was inconsistent, but it does no longer now.
+     In the developmenet of RFC 41, the CSV and VRT drivers have been upgraded
+     to fix such errors.
  
-    if ((t_year != year) || (t_month != month) || (t_day != day) ||
-        (t_hour != hour)) {
--      errSprintf ("Error Inconsistant Times in TDLP_RefTime.\n");
-+      errSprintf ("Error Inconsistent Times in TDLP_RefTime.\n");
-       return -1;
-    }
-    if (ParseTime (refTime, year, month, day, hour, min, 0) != 0) {
---- a/frmts/mbtiles/mbtilesdataset.cpp
-+++ b/frmts/mbtiles/mbtilesdataset.cpp
-@@ -1746,7 +1746,7 @@ GDALDataset* MBTilesDataset::Open(GDALOp
-         if (bHasMinMaxLevel && (nMinLevel < 0 || nMinLevel > nMaxLevel))
-         {
-             CPLError(CE_Failure, CPLE_AppDefined,
--                     "Inconsistant values : min(zoom_level) = %d, max(zoom_level) = %d",
-+                     "Inconsistent values : min(zoom_level) = %d, max(zoom_level) = %d",
-                      nMinLevel, nMaxLevel);
-             goto end;
-         }
---- a/frmts/nitf/nitfdataset.cpp
-+++ b/frmts/nitf/nitfdataset.cpp
-@@ -4317,7 +4317,7 @@ NITFDataset::NITFCreateCopy(
-             else
-             {
-                 CPLError((bStrict) ? CE_Failure : CE_Warning, CPLE_NotSupported,
--                    "Inconsistant ICORDS value with SRS : %s%s.\n", pszICORDS,
-+                    "Inconsistent ICORDS value with SRS : %s%s.\n", pszICORDS,
-                     (!bStrict) ? ". Setting it to G instead" : "");
-                 if (bStrict)
-                 {
---- a/frmts/nitf/nitffile.c
-+++ b/frmts/nitf/nitffile.c
-@@ -2626,7 +2626,7 @@ char **NITFGenericMetadataReadTRE(char *
-     if (bError == FALSE && nTreLength > 0 && nTreOffset != nTreLength)
+--- a/frmts/openjpeg/frmt_jp2openjpeg.html
++++ b/frmts/openjpeg/frmt_jp2openjpeg.html
+@@ -204,11 +204,11 @@ be written. Defaults to NO.
+ <li><p><b>USE_SRC_CODESTREAM=YES/NO</b>: (GDAL &gt;= 2.0)
+ (EXPERIMENTAL!) When source dataset is JPEG2000, whether to reuse the codestream
+ of the source dataset unmodified. Defaults to NO. Note that enabling that feature might result
+-in inconsistant content of the JP2 boxes w.r.t. to the content of the source codestream.
++in inconsistent content of the JP2 boxes w.r.t. to the content of the source codestream.
+ Most other creation options will be ignored in that mode. Can be usefull in some
+ use cases when adding/correcting georeferencing, metadata, ... INSPIRE_TG and
+ PROFILE options will be ignored, and the profile of the codestream will be overriden
+-with the one specified/implied by the options (which may be inconsistant with
++with the one specified/implied by the options (which may be inconsistent with
+ the characteristics of the codestream).
+ </p></li>
+ 
+--- a/frmts/openjpeg/openjpegdataset.cpp
++++ b/frmts/openjpeg/openjpegdataset.cpp
+@@ -2412,7 +2412,7 @@ GDALDataset * JP2OpenJPEGDataset::Create
+         (GDALGetDataTypeSize(eDataType) == 32 && (nBits <= 16 || nBits > 32)) )
+     {
+         CPLError(CE_Warning, CPLE_NotSupported,
+-                 "Inconsistant NBITS value with data type. Using %d",
++                 "Inconsistent NBITS value with data type. Using %d",
+                  GDALGetDataTypeSize(eDataType));
+     }
+ 
+--- a/gcore/gdaldataset.cpp
++++ b/gcore/gdaldataset.cpp
+@@ -3383,7 +3383,7 @@ OGRLayer *GDALDataset::CreateLayer( cons
+         !poLayer->TestCapability(OLCCurveGeometries) )
      {
          CPLError( CE_Warning, CPLE_AppDefined,
--                  "Inconsistant declaration of %s TRE",
-+                  "Inconsistent declaration of %s TRE",
-                   pszTREName );
+-                  "Inconsistant driver: Layer geometry type is non-linear, but "
++                  "Inconsistent driver: Layer geometry type is non-linear, but "
+                   "TestCapability(OLCCurveGeometries) returns FALSE." );
      }
-     if (nTreOffset < nTRESize)
-@@ -2762,7 +2762,7 @@ CPLXMLNode* NITFCreateXMLTre(NITFFile* p
-     if (bError == FALSE && nTreLength > 0 && nTreOffset != nTreLength)
-     {
-         CPLError( CE_Warning, CPLE_AppDefined,
--                  "Inconsistant declaration of %s TRE",
-+                  "Inconsistent declaration of %s TRE",
-                   pszTREName );
-     }
-     if (nTreOffset < nTRESize)
---- a/frmts/ozi/ozidataset.cpp
-+++ b/frmts/ozi/ozidataset.cpp
-@@ -601,7 +601,7 @@ GDALDataset *OZIDataset::Open( GDALOpenI
-         short nTileY = ReadShort(fp, bOzi3, nKeyInit);
-         if (i == 0 && (nW != poDS->nRasterXSize || nH != poDS->nRasterYSize))
-         {
--            CPLDebug("OZI", "zoom[%d] inconsistant dimensions for zoom level 0 : nW=%d, nH=%d, nTileX=%d, nTileY=%d, nRasterXSize=%d, nRasterYSize=%d",
-+            CPLDebug("OZI", "zoom[%d] inconsistent dimensions for zoom level 0 : nW=%d, nH=%d, nTileX=%d, nTileY=%d, nRasterXSize=%d, nRasterYSize=%d",
-                      i, nW, nH, nTileX, nTileY, poDS->nRasterXSize, poDS->nRasterYSize);
-             delete poDS;
-             return NULL;
---- a/frmts/pds/pdsdataset.cpp
-+++ b/frmts/pds/pdsdataset.cpp
-@@ -331,7 +331,7 @@ void PDSDataset::ParseSRS()
- /*      Calculate upper left corner of pixel in meters from the         */
- /*      upper  left center pixel sample/line offsets.  It doesn't       */
- /*      mean the defaults will work for every PDS image, as these       */
--/*      values are used inconsistantly.  Thus we have included          */
-+/*      values are used inconsistently.  Thus we have included          */
- /*      conversion options to allow the user to override the            */
- /*      documented PDS3 default. Jan. 2011, for known mapping issues    */
- /*      see GDAL PDS page or mapping within ISIS3 source (USGS)         */
---- a/ogr/ogrsf_frmts/shape/ogrshapelayer.cpp
-+++ b/ogr/ogrsf_frmts/shape/ogrshapelayer.cpp
-@@ -109,7 +109,7 @@ OGRShapeLayer::OGRShapeLayer( OGRShapeDa
-         nTotalShapeCount = hSHP->nRecords;
-         if( hDBF != NULL && hDBF->nRecords != nTotalShapeCount )
-         {
--            CPLDebug("Shape", "Inconsistant record number in .shp (%d) and in .dbf (%d)",
-+            CPLDebug("Shape", "Inconsistent record number in .shp (%d) and in .dbf (%d)",
-                      hSHP->nRecords, hDBF->nRecords);
-         }
-     }
---- a/ogr/ogrsf_frmts/shape/sbnsearch.c
-+++ b/ogr/ogrsf_frmts/shape/sbnsearch.c
-@@ -328,7 +328,7 @@ SBNSearchHandle SBNOpenDiskTree( const c
-         if ((nBinStart > 0 && nNodeShapeCount == 0) ||
-             nNodeShapeCount < 0 || nNodeShapeCount > nShapeCount)
-         {
--            hSBN->sHooks.Error( "Inconsistant shape count in bin" );
-+            hSBN->sHooks.Error( "Inconsistent shape count in bin" );
-             SBNCloseDiskTree(hSBN);
-             return NULL;
-         }
-@@ -637,7 +637,7 @@ static int SBNSearchDiskInternal( Search
-             {
-                 free(psNode->pabyShapeDesc);
-                 psNode->pabyShapeDesc = NULL;
--                hSBN->sHooks.Error( "Inconsistant shape count for bin" );
-+                hSBN->sHooks.Error( "Inconsistent shape count for bin" );
-                 return FALSE;
-             }
- 
-@@ -737,7 +737,7 @@ static int SBNSearchDiskInternal( Search
-         {
-             free(psNode->pabyShapeDesc);
-             psNode->pabyShapeDesc = NULL;
--            hSBN->sHooks.Error( "Inconsistant shape count for bin" );
-+            hSBN->sHooks.Error( "Inconsistent shape count for bin" );
-             return FALSE;
-         }
- 
---- a/ogr/ogrsf_frmts/wfs/ogrwfslayer.cpp
-+++ b/ogr/ogrsf_frmts/wfs/ogrwfslayer.cpp
-@@ -2458,7 +2458,7 @@ OGRErr OGRWFSLayer::CommitTransaction()
-             if ((int)aosFIDList.size() != nGotInserted)
+ #endif
+--- a/ogr/ogrsf_frmts/gpkg/ogrgeopackagetablelayer.cpp
++++ b/ogr/ogrsf_frmts/gpkg/ogrgeopackagetablelayer.cpp
+@@ -1130,7 +1130,7 @@ OGRErr OGRGeoPackageTableLayer::ICreateF
+                 poFeature->GetFieldAsInteger64(m_iFIDAsRegularColumnIndex) != poFeature->GetFID() )
              {
                  CPLError(CE_Failure, CPLE_AppDefined,
--                        "Inconsistant InsertResults: did not get expected FID count");
-+                        "Inconsistent InsertResults: did not get expected FID count");
-                 CPLDestroyXMLNode( psXML );
-                 CPLHTTPDestroyResult(psResult);
-                 return OGRERR_FAILURE;
---- a/port/cpl_csv.cpp
-+++ b/port/cpl_csv.cpp
-@@ -464,7 +464,7 @@ char CSVDetectSeperator (const char* psz
-             else if (chDelimiter != *pszLine)
+-                            "Inconsistant values of FID and field of same name");
++                            "Inconsistent values of FID and field of same name");
+                 return CE_Failure;
+             }
+         }
+@@ -1251,7 +1251,7 @@ OGRErr OGRGeoPackageTableLayer::ISetFeat
+             poFeature->GetFieldAsInteger64(m_iFIDAsRegularColumnIndex) != poFeature->GetFID() )
+         {
+             CPLError(CE_Failure, CPLE_AppDefined,
+-                        "Inconsistant values of FID and field of same name");
++                        "Inconsistent values of FID and field of same name");
+             return CE_Failure;
+         }
+     }
+--- a/ogr/ogrsf_frmts/pg/ogrpgtablelayer.cpp
++++ b/ogr/ogrsf_frmts/pg/ogrpgtablelayer.cpp
+@@ -1105,7 +1105,7 @@ OGRErr OGRPGTableLayer::ISetFeature( OGR
+             poFeature->GetFieldAsInteger64(iFIDAsRegularColumnIndex) != poFeature->GetFID() )
+         {
+             CPLError(CE_Failure, CPLE_AppDefined,
+-                        "Inconsistant values of FID and field of same name");
++                        "Inconsistent values of FID and field of same name");
+             return CE_Failure;
+         }
+     }
+@@ -1319,7 +1319,7 @@ OGRErr OGRPGTableLayer::ICreateFeature(
+                 poFeature->GetFieldAsInteger64(iFIDAsRegularColumnIndex) != poFeature->GetFID() )
              {
-                 /* The separator is not consistant on the line. */
--                CPLDebug("CSV", "Inconsistant separator. '%c' and '%c' found. Using ',' as default",
-+                CPLDebug("CSV", "Inconsistent separator. '%c' and '%c' found. Using ',' as default",
-                          chDelimiter, *pszLine);
-                 chDelimiter = ',';
-                 break;
---- a/port/cpl_vsisimple.cpp
-+++ b/port/cpl_vsisimple.cpp
-@@ -512,7 +512,7 @@ void VSICheckMarkerBegin(char* ptr)
-     if (memcmp(ptr, "VSIM", 4) != 0)
-     {
-         CPLError(CE_Fatal, CPLE_AppDefined,
--                 "Inconsistant use of VSI memory allocation primitives for %p : %c%c%c%c",
-+                 "Inconsistent use of VSI memory allocation primitives for %p : %c%c%c%c",
-                  ptr, ptr[0], ptr[1], ptr[2], ptr[3]);
+                 CPLError(CE_Failure, CPLE_AppDefined,
+-                            "Inconsistant values of FID and field of same name");
++                            "Inconsistent values of FID and field of same name");
+                 return CE_Failure;
+             }
+         }
+--- a/ogr/ogrsf_frmts/pgdump/ogrpgdumplayer.cpp
++++ b/ogr/ogrsf_frmts/pgdump/ogrpgdumplayer.cpp
+@@ -158,7 +158,7 @@ OGRErr OGRPGDumpLayer::ICreateFeature( O
+                 poFeature->GetFieldAsInteger64(iFIDAsRegularColumnIndex) != poFeature->GetFID() )
+             {
+                 CPLError(CE_Failure, CPLE_AppDefined,
+-                            "Inconsistant values of FID and field of same name");
++                            "Inconsistent values of FID and field of same name");
+                 return CE_Failure;
+             }
+         }
+--- a/ogr/ogrsf_frmts/shape/shpopen.c
++++ b/ogr/ogrsf_frmts/shape/shpopen.c
+@@ -1792,7 +1792,7 @@ SHPReadObject( SHPHandle psSHP, int hEnt
+         {
+             char str[128];
+             sprintf( str,
+-                    "Sanity check failed when trying to recover from inconsistant .shx/.shp with shape %d",
++                    "Sanity check failed when trying to recover from inconsistent .shx/.shp with shape %d",
+                     hEntity );
+ 
+             psSHP->sHooks.Error( str );
+--- a/ogr/ogrsf_frmts/sqlite/ogrsqlitetablelayer.cpp
++++ b/ogr/ogrsf_frmts/sqlite/ogrsqlitetablelayer.cpp
+@@ -2585,7 +2585,7 @@ OGRErr OGRSQLiteTableLayer::ISetFeature(
+             poFeature->GetFieldAsInteger64(iFIDAsRegularColumnIndex) != poFeature->GetFID() )
+         {
+             CPLError(CE_Failure, CPLE_AppDefined,
+-                        "Inconsistant values of FID and field of same name");
++                        "Inconsistent values of FID and field of same name");
+             return CE_Failure;
+         }
      }
- }
---- a/swig/include/cpl.i
-+++ b/swig/include/cpl.i
-@@ -479,7 +479,7 @@ int wrapper_VSIFWriteL( int nLen, char *
- {
-     if (nLen < size * memb)
-     {
--        CPLError(CE_Failure, CPLE_AppDefined, "Inconsistant buffer size with 'size' and 'memb' values");
-+        CPLError(CE_Failure, CPLE_AppDefined, "Inconsistent buffer size with 'size' and 'memb' values");
-         return 0;
-     }
-     return VSIFWriteL(pBuf, size, memb, f);
---- a/swig/python/extensions/gdal_wrap.cpp
-+++ b/swig/python/extensions/gdal_wrap.cpp
-@@ -3505,7 +3505,7 @@ int wrapper_VSIFWriteL( int nLen, char *
- {
-     if (nLen < size * memb)
-     {
--        CPLError(CE_Failure, CPLE_AppDefined, "Inconsistant buffer size with 'size' and 'memb' values");
-+        CPLError(CE_Failure, CPLE_AppDefined, "Inconsistent buffer size with 'size' and 'memb' values");
-         return 0;
-     }
-     return VSIFWriteL(pBuf, size, memb, f);
+@@ -2946,7 +2946,7 @@ OGRErr OGRSQLiteTableLayer::ICreateFeatu
+                 poFeature->GetFieldAsInteger64(iFIDAsRegularColumnIndex) != poFeature->GetFID() )
+             {
+                 CPLError(CE_Failure, CPLE_AppDefined,
+-                            "Inconsistant values of FID and field of same name");
++                            "Inconsistent values of FID and field of same name");
+                 return CE_Failure;
+             }
+         }
+--- a/swig/python/samples/validate_jp2.py
++++ b/swig/python/samples/validate_jp2.py
+@@ -291,7 +291,7 @@ def check_geojp2_gmljp2_consistency(file
+             if abs(geojp2_gt[i] - gmljp2_gt[i] > 1e-8):
+                 diff = True
+         if diff:
+-            error_report.EmitError('GENERAL', 'Inconsistant geotransform between GeoJP2 (%s) and GMLJP2 (%s)' % (str(geojp2_gt), str(gmljp2_gt)))
++            error_report.EmitError('GENERAL', 'Inconsistent geotransform between GeoJP2 (%s) and GMLJP2 (%s)' % (str(geojp2_gt), str(gmljp2_gt)))
+ 
+     geojp2_sr = osr.SpatialReference()
+     geojp2_sr.ImportFromWkt(geojp2_wkt)
+@@ -303,7 +303,7 @@ def check_geojp2_gmljp2_consistency(file
+         geojp2_proj4 = geojp2_sr.ExportToProj4()
+         gmljp2_proj4 = gmljp2_sr.ExportToProj4()
+         if geojp2_proj4 != gmljp2_proj4:
+-            error_report.EmitError('GENERAL', 'Inconsistant SRS between GeoJP2 (wkt=%s, proj4=%s) and GMLJP2 (wkt=%s, proj4=%s)' % (geojp2_wkt, geojp2_proj4, gmljp2_wkt, gmljp2_proj4))
++            error_report.EmitError('GENERAL', 'Inconsistent SRS between GeoJP2 (wkt=%s, proj4=%s) and GMLJP2 (wkt=%s, proj4=%s)' % (geojp2_wkt, geojp2_proj4, gmljp2_wkt, gmljp2_proj4))
+ 
+ 
+ # Check consistency of georeferencing of OrthoimageCoverage with the one embedded in the JPEG2000 file
+@@ -363,7 +363,7 @@ def check_oi_rg_consistency(filename, se
+             if abs(oi_gt[i] - gt[i] > 1e-8):
+                 diff = True
+         if diff:
+-            error_report.EmitError('INSPIRE_TG', 'Inconsistant geotransform between OrthoImagery (%s) and GMLJP2/GeoJP2 (%s)' % (str(oi_gt), str(gt)), conformance_class = 'A.8.8')
++            error_report.EmitError('INSPIRE_TG', 'Inconsistent geotransform between OrthoImagery (%s) and GMLJP2/GeoJP2 (%s)' % (str(oi_gt), str(gt)), conformance_class = 'A.8.8')
+ 
+     sr = osr.SpatialReference()
+     sr.ImportFromWkt(wkt)
+@@ -375,7 +375,7 @@ def check_oi_rg_consistency(filename, se
+         proj4 = sr.ExportToProj4()
+         oi_proj4 = oi_sr.ExportToProj4()
+         if proj4 != oi_proj4:
+-            error_report.EmitError('INSPIRE_TG', 'Inconsistant SRS between OrthoImagery (wkt=%s, proj4=%s) and GMLJP2/GeoJP2 (wkt=%s, proj4=%s)' % (wkt, proj4, oi_wkt, oi_proj4), conformance_class = 'A.8.8')
++            error_report.EmitError('INSPIRE_TG', 'Inconsistent SRS between OrthoImagery (wkt=%s, proj4=%s) and GMLJP2/GeoJP2 (wkt=%s, proj4=%s)' % (wkt, proj4, oi_wkt, oi_proj4), conformance_class = 'A.8.8')
+ 
+ def validate(filename, oidoc, inspire_tg, expected_gmljp2, ogc_schemas_location, datatype = 'imagery', error_report = None):
+ 

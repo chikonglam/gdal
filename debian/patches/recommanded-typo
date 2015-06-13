@@ -1,91 +1,15 @@
 Description: Fix 'recommanded' typo, replace with 'recommended'.
 Author: Bas Couwenberg <sebastic@xs4all.nl>
-Forwarded: http://trac.osgeo.org/gdal/ticket/5756
-Applied-Upstream: 2.0, http://trac.osgeo.org/gdal/changeset/28039
+Forwarded: http://trac.osgeo.org/gdal/ticket/5995
 
---- a/ogr/ogr_geocoding.cpp
-+++ b/ogr/ogr_geocoding.cpp
-@@ -202,7 +202,7 @@ int OGRGeocodeHasStringValidFormat(const
-  *      <a href="http://msdn.microsoft.com/en-us/library/ff701714.aspx">"BING"</a> or
-  *       other value.
-  *      Note: "YAHOO" is no longer available as a free service.
-- * <li> "EMAIL": used by OSM_NOMINATIM. Optional, but recommanded.
-+ * <li> "EMAIL": used by OSM_NOMINATIM. Optional, but recommended.
-  * <li> "USERNAME": used by GEONAMES. Compulsory in that case.
-  * <li> "KEY": used by BING. Compulsory in that case.
-  * <li> "APPLICATION": used to set the User-Agent MIME header. Defaults
---- a/ogr/ogrsf_frmts/gml/drv_gml.html
-+++ b/ogr/ogrsf_frmts/gml/drv_gml.html
-@@ -372,7 +372,7 @@ the prefix of the application target nam
- <ul>
- <li><i>GML3</i> in order to write GML files that follow GML 3.1.1 SF-0 profile.</li>
- <li><i>GML3Deegree</i> (OGR &gt;= 1.9.0) in order to produce a GML 3.1.1 .XSD schema,
--with a few variations with respect to what is recommanded by GML3 SF-0 profile,
-+with a few variations with respect to what is recommended by GML3 SF-0 profile,
- but that will be better accepted by some software (such as Deegree 3).</li>
- <li><i>GML3.2</i>(OGR &gt;= 1.9.0) in order to write GML files that follow GML 3.2.1 SF-0 profile.</li>
- </ul><br>
---- a/ogr/ogrsf_frmts/libkml/drv_libkml.html
-+++ b/ogr/ogrsf_frmts/libkml/drv_libkml.html
-@@ -318,7 +318,7 @@
-     camera_latitude, camera_altitude, camera_altitudemode, head and/or tilt and/or roll,
-     leftfov, rightfov, bottomfov, topfov, near fields are also set. The shape field is optional.
-   </p>
--  <p>In case the PhotoOverlay is a big image, it is highly recommanded to tile it and
-+  <p>In case the PhotoOverlay is a big image, it is highly recommended to tile it and
-      generate overview levels, as explained in the <a href="https://developers.google.com/kml/documentation/photos">
-      PhotoOverlay tutorial</a>. In which case, the URL should contain the "$[level]", "$[x]" and "$[y]"
-      sub-strings in the photooverlay field, and the imagepyramid_tilesize,
---- a/ogr/ogrsf_frmts/libkml/ogrlibkmllayer.cpp
-+++ b/ogr/ogrsf_frmts/libkml/ogrlibkmllayer.cpp
-@@ -571,7 +571,7 @@ OGRErr OGRLIBKMLLayer::CreateFeature (
-             {
-                 bAlreadyWarned = TRUE;
-                 CPLError(CE_Warning, CPLE_AppDefined,
--                         "It is recommanded to define a FID when calling CreateFeature() in a update document");
-+                         "It is recommended to define a FID when calling CreateFeature() in a update document");
-             }
-         }
-         else
---- a/ogr/ogrsf_frmts/osm/osm_parser.cpp
-+++ b/ogr/ogrsf_frmts/osm/osm_parser.cpp
-@@ -1908,7 +1908,7 @@ static void XMLCALL OSM_XML_startElement
-     else if( psCtxt->bInRelation &&
-              strcmp(pszName, "member") == 0 )
-     {
--        /* 300 is the recommanded value, but there are files with more than 2000 so we should be able */
-+        /* 300 is the recommended value, but there are files with more than 2000 so we should be able */
-         /* to realloc over that value */
-         if (psCtxt->sRelation.nMembers >= psCtxt->nMembersAllocated)
-         {
-@@ -2249,7 +2249,7 @@ OSMContext* OSM_Open( const char* pszFil
-         psCtxt->nTagsAllocated = 256;
-         psCtxt->pasTags = (OSMTag*) VSIMalloc(sizeof(OSMTag) * psCtxt->nTagsAllocated);
+--- a/NEWS
++++ b/NEWS
+@@ -5019,7 +5019,7 @@ XPlane/Flightgear driver:
+ == SWIG Language Bindings ==
  
--        /* 300 is the recommanded value, but there are files with more than 2000 so we should be able */
-+        /* 300 is the recommended value, but there are files with more than 2000 so we should be able */
-         /* to realloc over that value */
-         psCtxt->nMembersAllocated = 2000;
-         psCtxt->pasMembers = (OSMMember*) VSIMalloc(sizeof(OSMMember) * psCtxt->nMembersAllocated);
---- a/ogr/ogrsf_frmts/vrt/drv_vrt.html
-+++ b/ogr/ogrsf_frmts/vrt/drv_vrt.html
-@@ -120,7 +120,7 @@ If set to FALSE, the source geometry fie
- <p>
- Starting with OGR 1.11, the GeometryField element can be repeated as many times
- as necessary to create multiple geometry fields. It accepts a <b>name</b>
--attribute (recommanded) that will be used to define the VRT geometry field name. When <b>encoding</b> is
-+attribute (recommended) that will be used to define the VRT geometry field name. When <b>encoding</b> is
- not specified, the <b>field</b> attribute will be used to determine the corresponding
- geometry field name in the source layer. If neither <b>encoding</b> nor <b>field</b>
- are specified, it is assumed that the name of source geometry field is the value
---- a/swig/java/javadoc.java
-+++ b/swig/java/javadoc.java
-@@ -11773,7 +11773,7 @@ public class CoordinateTransformation
-  * Caution: the coordinate transformation object returned can be in a non
-  * working state if no coordinate transformation can be established between
-  * src and dst, and calling other methods on it can result in the process
-- * termination. If using GDAL 1.10 or above, it is recommanded to use the
-+ * termination. If using GDAL 1.10 or above, it is recommended to use the
-  * <a href="#CreateCoordinateTransformation(org.gdal.osr.SpatialReference,%20org.gdal.osr.SpatialReference)">
-  * CreateCoordinateTransformation(org.gdal.osr.SpatialReference, org.gdal.osr.SpatialReference)</a> method instead.
-  * <p>
+ General:
+- * Recommanded SWIG version is 1.3.39
++ * Recommended SWIG version is 1.3.39
+  * Added API : 
+     - GDAL :
+         gdal.FilldoData(), gdal.FileFromMemBuffer(), gdal.Unlink()
