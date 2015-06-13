@@ -7,6 +7,7 @@ gdal (1.10.1+dfsg-9) UNRELEASED; urgency=medium
   * Have python*-gdal suggest gdal-bin.
     (closes: #774243)
   * Drop get-orig-source script in favor of uscan + Files-Excluded.
+  * Use uscan in get-orig-source target.
 
  -- Bas Couwenberg <sebastic@debian.org>  Sun, 28 Jun 2015 12:01:44 +0200
 
