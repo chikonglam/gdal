@@ -2,14 +2,6 @@ version=3
 opts=dversionmangle=s/\+(debian|dfsg|ds|deb)\d*$//,\
 uversionmangle=s/(\d)[_\.\-\+]?((RC|rc|pre|dev|beta|alpha)\d*)$/$1~$2/,\
 repacksuffix=+dfsg \
-http://trac.osgeo.org/gdal/wiki/DownloadSource \
+http://download.osgeo.org/gdal/2.0.0beta1/ \
 (?:|.*/)gdal(?:[_\-]v?|)(\d\S*)\.(?:tar\.xz|txz|tar\.bz2|tbz2|tar\.gz|tgz)
-
-# version=3
-# opts=dversionmangle=s/\+(debian|dfsg|ds|deb)\d*$//,\
-# uversionmangle=s/(\d)[_\.\-\+]?((RC|rc|pre|dev|beta|alpha)\d*)$/$1~$2/,\
-# downloadurlmangle=s/\/(\d\S*)\//\/$1\/gdal-$1.tar.gz/,\
-# filenamemangle=s/\/(\d\S*)\//gdal-$1.tar.gz/,\
-# repacksuffix=+dfsg \
-# http://download.osgeo.org/gdal/ \
-# (\d\S*)/
+#http://trac.osgeo.org/gdal/wiki/DownloadSource \
