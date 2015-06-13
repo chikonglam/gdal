@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrwfsdatasource.cpp 29241 2015-05-24 10:58:54Z rouault $
+ * $Id: ogrwfsdatasource.cpp 29273 2015-06-02 08:08:38Z rouault $
  *
  * Project:  WFS Translator
  * Purpose:  Implements OGRWFSDataSource class
@@ -37,7 +37,7 @@
 #include "swq.h"
 #include "ogr_p.h"
 
-CPL_CVSID("$Id: ogrwfsdatasource.cpp 29241 2015-05-24 10:58:54Z rouault $");
+CPL_CVSID("$Id: ogrwfsdatasource.cpp 29273 2015-06-02 08:08:38Z rouault $");
 
 #define DEFAULT_BASE_START_INDEX     0
 #define DEFAULT_PAGE_SIZE            100
@@ -195,6 +195,7 @@ OGRWFSDataSource::OGRWFSDataSource()
     bEmptyAsNull = TRUE;
     
     bInvertAxisOrderIfLatLong = TRUE;
+    bExposeGMLId = TRUE;
 }
 
 /************************************************************************/
@@ -1108,6 +1109,10 @@ int OGRWFSDataSource::Open( const char * pszFilename, int bUpdateIn,
         CSLFetchNameValueDef(papszOpenOptions,
             "CONSIDER_EPSG_AS_URN",
             CPLGetConfigOption("GML_CONSIDER_EPSG_AS_URN", "AUTO"));
+    bExposeGMLId =
+        CSLTestBoolean(CSLFetchNameValueDef(papszOpenOptions,
+            "EXPOSE_GML_ID",
+            CPLGetConfigOption("GML_EXPOSE_GML_ID", "YES")));
 
     CPLXMLNode* psStrippedXML = CPLCloneXMLTree(psXML);
     CPLStripXMLNamespace( psStrippedXML, NULL, TRUE );

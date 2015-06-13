@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrgmldatasource.cpp 29240 2015-05-24 10:58:38Z rouault $
+ * $Id: ogrgmldatasource.cpp 29273 2015-06-02 08:08:38Z rouault $
  *
  * Project:  OGR
  * Purpose:  Implements OGRGMLDataSource class.
@@ -47,7 +47,7 @@
 
 #include <vector>
 
-CPL_CVSID("$Id: ogrgmldatasource.cpp 29240 2015-05-24 10:58:38Z rouault $");
+CPL_CVSID("$Id: ogrgmldatasource.cpp 29273 2015-06-02 08:08:38Z rouault $");
 
 static int ExtractSRSName(const char* pszXML, char* szSRSName,
                           size_t sizeof_szSRSName);
@@ -488,17 +488,17 @@ int OGRGMLDataSource::Open( GDALOpenInfo* poOpenInfo )
                         strstr(szPtr, " gml:id='") != NULL;
         bExposeFid = strstr(szPtr, " fid=\"") != NULL ||
                         strstr(szPtr, " fid='") != NULL;
-        
-        const char* pszExposeGMLId = CSLFetchNameValueDef(poOpenInfo->papszOpenOptions,
-            "EXPOSE_GML_ID", CPLGetConfigOption("GML_EXPOSE_GML_ID", NULL));
-        if (pszExposeGMLId)
-            bExposeGMLId = CSLTestBoolean(pszExposeGMLId);
-
-        const char* pszExposeFid = CSLFetchNameValueDef(poOpenInfo->papszOpenOptions,
-            "EXPOSE_FID", CPLGetConfigOption("GML_EXPOSE_FID", NULL));
-        if (pszExposeFid)
-            bExposeFid = CSLTestBoolean(pszExposeFid);
     }
+
+    const char* pszExposeGMLId = CSLFetchNameValueDef(poOpenInfo->papszOpenOptions,
+        "EXPOSE_GML_ID", CPLGetConfigOption("GML_EXPOSE_GML_ID", NULL));
+    if (pszExposeGMLId)
+        bExposeGMLId = CSLTestBoolean(pszExposeGMLId);
+
+    const char* pszExposeFid = CSLFetchNameValueDef(poOpenInfo->papszOpenOptions,
+        "EXPOSE_FID", CPLGetConfigOption("GML_EXPOSE_FID", NULL));
+    if (pszExposeFid)
+        bExposeFid = CSLTestBoolean(pszExposeFid);
 
     bHintConsiderEPSGAsURN = strstr(szPtr, "xmlns:fme=\"http://www.safe.com/gml/fme\"") != NULL;
 

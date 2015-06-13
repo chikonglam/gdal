@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #******************************************************************************
-#  $Id: build_jp2_from_xml.py 28891 2015-04-13 09:42:46Z rouault $
+#  $Id: build_jp2_from_xml.py 29270 2015-06-01 13:35:43Z rouault $
 # 
 #  Project:  GDAL
 #  Purpose:  Build a JPEG2000 file from the XML structure dumped by dump_jp2.py
@@ -318,8 +318,7 @@ def parse_jp2_box(xml_tree, out_f, src_jp2file):
             print('Cannot decode VRTDataset. Outputing empty content')
             binary_content = ''
         else:
-            out_ds = gdal.GetDriverByName('GTiff').CreateCopy('/vsimem/out.tif', vrt_ds)
-            del out_ds
+            gdal.GetDriverByName('GTiff').CreateCopy('/vsimem/out.tif', vrt_ds)
             tif_f = gdal.VSIFOpenL('/vsimem/out.tif', 'rb')
             binary_content = gdal.VSIFReadL(1, 10000, tif_f)
             gdal.VSIFCloseL(tif_f)

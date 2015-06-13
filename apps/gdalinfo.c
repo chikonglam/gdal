@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdalinfo.c 29243 2015-05-24 15:53:26Z rouault $
+ * $Id: gdalinfo.c 29268 2015-05-30 11:46:44Z rouault $
  *
  * Project:  GDAL Utilities
  * Purpose:  Commandline application to list info about a file.
@@ -38,7 +38,7 @@
 #include "json.h"
 #include "ogrgeojsonwriter.h"
 
-CPL_CVSID("$Id: gdalinfo.c 29243 2015-05-24 15:53:26Z rouault $");
+CPL_CVSID("$Id: gdalinfo.c 29268 2015-05-30 11:46:44Z rouault $");
 
 static int 
 GDALInfoReportCorner( GDALDatasetH hDataset, 
@@ -1431,13 +1431,20 @@ static void GDALInfoPrintMetadata( GDALMajorObjectH hObject,
             if(bJson)
             {
                 if(bIsxml)
+                {
                     poValue = json_object_new_string( papszMetadata[i] );
+                    break;
+                }
                 else
                 {
+                    pszKey = NULL;
                     pszValue = CPLParseNameValue( papszMetadata[i], &pszKey );
-                    poValue = json_object_new_string( pszValue );
-                    json_object_object_add( poDomain, pszKey, poValue );
-                    CPLFree( pszKey );
+                    if( pszKey )
+                    {
+                        poValue = json_object_new_string( pszValue );
+                        json_object_object_add( poDomain, pszKey, poValue );
+                        CPLFree( pszKey );
+                    }
                 }
             }
             else

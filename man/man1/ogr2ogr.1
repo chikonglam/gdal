@@ -1,8 +1,8 @@
-.TH "ogr2ogr" 1 "Mon May 25 2015" "GDAL" \" -*- nroff -*-
+.TH "ogr2ogr" 1 "Fri Jun 5 2015" "GDAL" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
-ogr2ogr \- .TH "ogr2ogr" 1 "Mon May 25 2015" "GDAL" \" -*- nroff -*-
+ogr2ogr \- .TH "ogr2ogr" 1 "Fri Jun 5 2015" "GDAL" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -17,7 +17,7 @@ Usage: ogr2ogr [--help-general] [-skipfailures] [-append] [-update]
                [-select field_list] [-where restricted_where] 
                [-progress] [-sql <sql statement>] [-dialect dialect]
                [-preserve_fid] [-fid FID]
-               [-spat xmin ymin xmax ymax] [-geomfield field]
+               [-spat xmin ymin xmax ymax] [-spat_srs srs_def] [-geomfield field]
                [-a_srs srs_def] [-t_srs srs_def] [-s_srs srs_def]
                [-f format_name] [-overwrite] [[-dsco NAME=VALUE] ...]
                dst_datasource_name src_datasource_name
@@ -85,7 +85,9 @@ Attribute query (like SQL WHERE)
 .IP "\fB\fB-skipfailures\fP:\fP" 1c
 Continue after a failure, skipping the failed feature. 
 .IP "\fB\fB-spat\fP\fI xmin ymin xmax ymax\fP:\fP" 1c
-spatial query extents. Only features whose geometry intersects the extents will be selected. The geometries will not be clipped unless -clipsrc is specified 
+spatial query extents, in the SRS of the source layer(s) (or the one specified with -spat_srs). Only features whose geometry intersects the extents will be selected. The geometries will not be clipped unless -clipsrc is specified 
+.IP "\fB\fB-spat_srs\fP\fI srs_def\fP:\fP" 1c
+(OGR >= 2.0) Override spatial filter SRS. 
 .IP "\fB\fB-geomfield\fP \fIfield\fP:\fP" 1c
 (OGR >= 1.11) Name of the geometry field on which the spatial filter operates on. 
 .IP "\fB\fB-dsco\fP \fINAME=VALUE\fP:\fP" 1c

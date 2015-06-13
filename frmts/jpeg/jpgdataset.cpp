@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: jpgdataset.cpp 29017 2015-04-25 19:32:11Z rouault $
+ * $Id: jpgdataset.cpp 29267 2015-05-29 20:47:00Z rouault $
  *
  * Project:  JPEG JFIF Driver
  * Purpose:  Implement GDAL JPEG Support based on IJG libjpeg.
@@ -57,7 +57,7 @@ typedef struct {
         GUInt32  tiff_diroff;    /* byte offset to first directory */
 } TIFFHeader;
 
-CPL_CVSID("$Id: jpgdataset.cpp 29017 2015-04-25 19:32:11Z rouault $");
+CPL_CVSID("$Id: jpgdataset.cpp 29267 2015-05-29 20:47:00Z rouault $");
 
 CPL_C_START
 #ifdef LIBJPEG_12_PATH 
@@ -1998,7 +1998,9 @@ CPLErr JPGDatasetCommon::IRasterIO( GDALRWFlag eRWFlag,
        (eBufType == GDT_Byte) && (GetDataPrecision() != 12) &&
        (pData != NULL) &&
        (panBandMap != NULL) &&
-       (panBandMap[0] == 1) && (panBandMap[1] == 2) && (panBandMap[2] == 3))
+       (panBandMap[0] == 1) && (panBandMap[1] == 2) && (panBandMap[2] == 3) &&
+       /* those color spaces need transformation to RGB */
+       GetOutColorSpace() != JCS_YCCK && GetOutColorSpace() != JCS_CMYK )
     {
         Restart();
         int y;

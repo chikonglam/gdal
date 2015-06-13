@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: geotiff.cpp 29228 2015-05-21 19:45:55Z rouault $
+ * $Id: geotiff.cpp 29257 2015-05-28 18:35:39Z rouault $
  *
  * Project:  GeoTIFF Driver
  * Purpose:  GDAL GeoTIFF support.
@@ -63,7 +63,7 @@
 #include "tiffiop.h"
 #endif
 
-CPL_CVSID("$Id: geotiff.cpp 29228 2015-05-21 19:45:55Z rouault $");
+CPL_CVSID("$Id: geotiff.cpp 29257 2015-05-28 18:35:39Z rouault $");
 
 #if SIZEOF_VOIDP == 4
 static int bGlobalStripIntegerOverflow = FALSE;
@@ -9470,8 +9470,7 @@ CPLErr GTiffDataset::OpenOffset( TIFF *hTIFFIn,
         // Lets treat large "one row" bitmaps using the scanline api.
         if( !TIFFIsTiled(hTIFF) 
             && nBlockYSize == nYSize 
-            && nYSize > 2000 
-            && bAllowRGBAInterface )
+            && nYSize > 2000 )
             bTreatAsSplitBitmap = TRUE;
     }
 
@@ -12517,7 +12516,7 @@ GTiffDataset::CreateCopy( const char * pszFilename, GDALDataset *poSrcDS,
         else
         {
             int iBand, j;
-            GByte* pabyScanline = (GByte *) CPLMalloc(TIFFScanlineSize(hTIFF));
+            GByte* pabyScanline = (GByte *) CPLMalloc(nXSize);
             eErr = CE_None;
             for(iBand=1;iBand<=nBands && eErr == CE_None;iBand++)
             {

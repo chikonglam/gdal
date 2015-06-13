@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: test_ogrsf.cpp 28849 2015-04-05 14:05:18Z goatbar $
+ * $Id: test_ogrsf.cpp 29262 2015-05-29 09:28:38Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Formal test harnass for OGRLayer implementations.
@@ -35,7 +35,7 @@
 #include "ogr_p.h"
 #include "commonutils.h"
 
-CPL_CVSID("$Id: test_ogrsf.cpp 28849 2015-04-05 14:05:18Z goatbar $");
+CPL_CVSID("$Id: test_ogrsf.cpp 29262 2015-05-29 09:28:38Z rouault $");
 
 int     bReadOnly = FALSE;
 int     bVerbose = TRUE;
@@ -2145,7 +2145,7 @@ static int TestSpatialFilter( OGRLayer *poLayer )
 /*      filter that doesn't include this feature, and test again.       */
 /************************************************************************/
 
-static int TestAttributeFilter( GDALDataset* poDS, OGRLayer *poLayer )
+static int TestAttributeFilter( CPL_UNUSED GDALDataset* poDS, OGRLayer *poLayer )
 
 {
     int bRet = TRUE;

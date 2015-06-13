@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: vrtdriver.cpp 28979 2015-04-23 10:25:51Z rouault $
+ * $Id: vrtdriver.cpp 29294 2015-06-05 08:52:15Z rouault $
  *
  * Project:  Virtual GDAL Datasets
  * Purpose:  Implementation of VRTDriver
@@ -33,7 +33,7 @@
 #include "cpl_string.h"
 #include "gdal_alg_priv.h"
 
-CPL_CVSID("$Id: vrtdriver.cpp 28979 2015-04-23 10:25:51Z rouault $");
+CPL_CVSID("$Id: vrtdriver.cpp 29294 2015-06-05 08:52:15Z rouault $");
 
 /************************************************************************/
 /*                             VRTDriver()                              */
@@ -186,6 +186,7 @@ VRTCreateCopy( const char * pszFilename,
     /*      Convert tree to a single block of XML text.                     */
     /* -------------------------------------------------------------------- */
         char *pszVRTPath = CPLStrdup(CPLGetPath(pszFilename));
+        ((VRTDataset *) poSrcDS)->UnsetPreservedRelativeFilenames();
         CPLXMLNode *psDSTree = ((VRTDataset *) poSrcDS)->SerializeToXML( pszVRTPath );
 
         char *pszXML = CPLSerializeXMLTree( psDSTree );

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: rasterlitedataset.cpp 28027 2014-11-30 11:45:46Z rouault $
+ * $Id: rasterlitedataset.cpp 29265 2015-05-29 10:49:34Z rouault $
  *
  * Project:  GDAL Rasterlite driver
  * Purpose:  Implement GDAL Rasterlite support using OGR SQLite driver
@@ -34,7 +34,7 @@
 
 #include "rasterlitedataset.h"
 
-CPL_CVSID("$Id: rasterlitedataset.cpp 28027 2014-11-30 11:45:46Z rouault $");
+CPL_CVSID("$Id: rasterlitedataset.cpp 29265 2015-05-29 10:49:34Z rouault $");
 
 
 /************************************************************************/
@@ -933,7 +933,8 @@ int RasterliteDataset::Identify(GDALOpenInfo* poOpenInfo)
         poOpenInfo->nHeaderBytes >= 1024 &&
         EQUALN((const char*)poOpenInfo->pabyHeader, "SQLite Format 3", 15))
     {
-        return TRUE;
+        // Could be a SQLite/Spatialite file as well
+        return -1;
     }
     else if (EQUALN(poOpenInfo->pszFilename, "RASTERLITE:", 11))
     {
@@ -957,7 +958,7 @@ GDALDataset* RasterliteDataset::Open(GDALOpenInfo* poOpenInfo)
     int bMinXSet = FALSE, bMinYSet = FALSE, bMaxXSet = FALSE, bMaxYSet = FALSE;
     int nReqBands = 0;
 
-    if (!Identify(poOpenInfo))
+    if( Identify(poOpenInfo) == FALSE )
         return NULL;
 
 /* -------------------------------------------------------------------- */

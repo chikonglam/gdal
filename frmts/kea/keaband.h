@@ -1,5 +1,5 @@
 /*
- * $Id: keaband.h 28011 2014-11-26 13:47:09Z rouault $
+ * $Id: keaband.h 29258 2015-05-28 22:08:43Z rouault $
  *  keaband.h
  *
  *  Created by Pete Bunting on 01/08/2012.
@@ -32,6 +32,9 @@
 #define KEABAND_H
 
 #include "gdal_pam.h"
+#if defined(USE_GCC_VISIBILITY_FLAG) && !defined(DllExport)
+#define DllExport CPL_DLL
+#endif
 #include "keadataset.h"
 
 class KEAOverview;

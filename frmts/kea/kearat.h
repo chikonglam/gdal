@@ -1,5 +1,5 @@
 /*
- * $Id: kearat.h 28011 2014-11-26 13:47:09Z rouault $
+ * $Id: kearat.h 29258 2015-05-28 22:08:43Z rouault $
  *  kearat.h
  *
  *  Created by Pete Bunting on 01/08/2012.
@@ -33,6 +33,9 @@
 
 #include "gdal_priv.h"
 #include "gdal_rat.h"
+#if defined(USE_GCC_VISIBILITY_FLAG) && !defined(DllExport)
+#define DllExport CPL_DLL
+#endif
 #include "keaband.h"
 
 class KEARasterAttributeTable : public GDALRasterAttributeTable

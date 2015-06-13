@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 ###############################################################################
-# $Id: gdal_edit.py 28676 2015-03-08 09:03:15Z rouault $
+# $Id: gdal_edit.py 29248 2015-05-25 09:57:17Z rouault $
 #
 #  Project:  GDAL samples
 #  Purpose:  Edit in place various information of an existing GDAL dataset
@@ -153,7 +153,7 @@ def gdal_edit(argv):
 
     if (srs is None and lry is None and yres is None and not unsetgt
             and not unsetstats and not stats and nodata is None
-            and len(molist) == 0 and not unsetmd):
+            and len(molist) == 0 and not unsetmd and len(gcp_list) == 0):
         print('No option specified')
         print('')
         return Usage()
