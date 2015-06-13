@@ -2,6 +2,7 @@ gdal (2.0.0~rc1+dfsg-1) UNRELEASED; urgency=medium
 
   * New upstream release candidate.
   * Update copyright years & holders.
+  * Use uscan in get-orig-source target.
 
  -- Bas Couwenberg <sebastic@debian.org>  Sat, 13 Jun 2015 23:40:47 +0200
 
