@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 ###############################################################################
-# $Id: get_soundg.py 18195 2009-12-06 20:24:39Z rouault $
+# $Id: get_soundg.py 28391 2015-01-30 19:57:31Z rouault $
 #
 # Project:  OGR Python samples
 # Purpose:  Extract SOUNDGings from an S-57 dataset, and write them to
@@ -31,13 +31,10 @@
 ###############################################################################
 
 try:
-    from osgeo import osr
     from osgeo import ogr
 except ImportError:
-    import osr
     import ogr
 
-import string
 import sys
 
 #############################################################################

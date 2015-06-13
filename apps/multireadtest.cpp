@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: multireadtest.cpp 17754 2009-10-04 20:48:03Z rouault $
+ * $Id: multireadtest.cpp 28459 2015-02-12 13:48:21Z rouault $
  *
  * Project:  GDAL Utilities
  * Purpose:  Multithreading test application.
@@ -32,7 +32,7 @@
 #include "cpl_multiproc.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: multireadtest.cpp 17754 2009-10-04 20:48:03Z rouault $");
+CPL_CVSID("$Id: multireadtest.cpp 28459 2015-02-12 13:48:21Z rouault $");
 
 static int nThreadCount = 4, nIterations = 1, bLockOnOpen = TRUE;
 static int nOpenIterations = 1;
@@ -40,7 +40,7 @@ static volatile int nPendingThreads = 0;
 static const char *pszFilename = NULL;
 static int nChecksum = 0;
 
-static void *pGlobalMutex = NULL;
+static CPLMutex *pGlobalMutex = NULL;
 
 static void WorkerFunc( void * );
 

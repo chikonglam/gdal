@@ -1,5 +1,5 @@
 /**********************************************************************
- * $Id: cpl_virtualmem.cpp 27722 2014-09-22 15:37:31Z goatbar $
+ * $Id: cpl_virtualmem.cpp 28459 2015-02-12 13:48:21Z rouault $
  *
  * Name:     cpl_virtualmem.cpp
  * Project:  CPL - Common Portability Library
@@ -53,8 +53,6 @@
 #include <string.h>
 #include <unistd.h>     /* read, write, close, pipe */
 #include <pthread.h>
-
-#define HAVE_5ARGS_MREMAP
 
 #ifndef HAVE_5ARGS_MREMAP
 #include "cpl_atomic_ops.h"
@@ -135,7 +133,7 @@ struct CPLVirtualMem
     void                   *pCbkUserData;
     CPLVirtualMemFreeUserData     pfnFreeUserData;
 #ifndef HAVE_5ARGS_MREMAP
-    void                   *hMutexThreadArray;
+    CPLMutex               *hMutexThreadArray;
     int                     nThreads;
     pthread_t              *pahThreads;
 #endif
@@ -150,7 +148,7 @@ typedef struct
     int              pipefd_to_thread[2];
     int              pipefd_from_thread[2];
     int              pipefd_wait_thread[2];
-    void            *hHelperThread;
+    CPLJoinableThread *hHelperThread;
 
     struct sigaction oldact;
 } CPLVirtualMemManager;
@@ -163,7 +161,7 @@ typedef struct
 } CPLVirtualMemMsgToWorkerThread;
 
 static CPLVirtualMemManager* pVirtualMemManager = NULL;
-static void* hVirtualMemManagerMutex = NULL;
+static CPLMutex* hVirtualMemManagerMutex = NULL;
 
 static void CPLVirtualMemManagerInit();
 
@@ -2048,7 +2046,9 @@ void CPLVirtualMemUnDeclareThread(CPL_UNUSED CPLVirtualMem* ctxt)
 }
 
 void CPLVirtualMemPin(CPL_UNUSED CPLVirtualMem* ctxt,
-                      CPL_UNUSED void* pAddr, CPL_UNUSED size_t nSize, CPL_UNUSED int bWriteOp)
+                      CPL_UNUSED void* pAddr,
+                      CPL_UNUSED size_t nSize,
+                      CPL_UNUSED int bWriteOp)
 {
 }
 

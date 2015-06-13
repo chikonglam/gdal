@@ -1,8 +1,8 @@
-.TH "gdallocationinfo" 1 "Tue Feb 10 2015" "GDAL" \" -*- nroff -*-
+.TH "gdallocationinfo" 1 "Mon May 4 2015" "GDAL" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
-gdallocationinfo \- .TH "gdallocationinfo" 1 "Tue Feb 10 2015" "GDAL" \" -*- nroff -*-
+gdallocationinfo \- .TH "gdallocationinfo" 1 "Mon May 4 2015" "GDAL" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -16,7 +16,7 @@ gdallocationinfo \- raster query tool
 Usage: gdallocationinfo [--help-general] [-xml] [-lifonly] [-valonly]
                         [-b band]* [-overview overview_level]
                         [-l_srs srs_def] [-geoloc] [-wgs84]
-                        srcfile [x y]
+                        [-oo NAME=VALUE]* srcfile [x y]
 .fi
 .PP
 .SH "DESCRIPTION"
@@ -46,6 +46,9 @@ Indicates input x,y points are in the georeferencing system of the image.
 .PP
 .IP "\fB\fB-wgs84\fP: \fP" 1c
 Indicates input x,y points are WGS84 long, lat.
+.PP
+.IP "\fB\fB-oo\fP \fINAME=VALUE\fP: \fP" 1c
+(starting with GDAL 2.0) Dataset open option (format specific)
 .PP
 .IP "\fB\fIsrcfile\fP:\fP" 1c
 The source GDAL raster datasource name.

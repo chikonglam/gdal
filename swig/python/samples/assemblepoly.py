@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 ###############################################################################
-# $Id: assemblepoly.py 22986 2011-08-27 14:20:16Z rouault $
+# $Id: assemblepoly.py 28391 2015-01-30 19:57:31Z rouault $
 #
 # Project:  OGR Python samples
 # Purpose:  Assemble polygon geometries from arcs fulled from an arc layer.
@@ -31,13 +31,9 @@
 ###############################################################################
 
 try:
-    from osgeo import osr
     from osgeo import ogr
 except ImportError:
-    import osr
     import ogr
-
-import string
 
 #############################################################################-
 # Open the datasource to operate on.

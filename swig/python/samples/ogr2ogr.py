@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #/******************************************************************************
-# * $Id: ogr2ogr.py 27044 2014-03-16 23:41:27Z rouault $
+# * $Id: ogr2ogr.py 28392 2015-01-30 21:01:09Z rouault $
 # *
 # * Project:  OpenGIS Simple Features Reference Implementation
 # * Purpose:  Python port of a simple client for translating between formats.
@@ -184,8 +184,8 @@ def main(args = None, progress_func = TermProgress, progress_data = None):
     pszClipDstSQL = None
     pszClipDstLayer = None
     pszClipDstWhere = None
-    pszSrcEncoding = None
-    pszDstEncoding = None
+    #pszSrcEncoding = None
+    #pszDstEncoding = None
     bWrapDateline = False
     bExplodeCollections = False
     pszZField = None
@@ -337,7 +337,7 @@ def main(args = None, progress_func = TermProgress, progress_data = None):
 
         elif EQUAL(args[iArg],"-where") and iArg < nArgc-1:
             iArg = iArg + 1
-            pszWHERE = args[++iArg]
+            pszWHERE = args[iArg]
 
         elif EQUAL(args[iArg],"-select") and iArg < nArgc-1:
             iArg = iArg + 1

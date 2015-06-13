@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdalserver.c 27741 2014-09-26 19:20:02Z goatbar $
+ * $Id: gdalserver.c 27745 2014-09-27 16:38:57Z goatbar $
  *
  * Project:  GDAL
  * Purpose:  Server application that is forked by libgdal
@@ -77,7 +77,7 @@ int CPL_DLL GDALServerLoop(CPL_FILE_HANDLE fin, CPL_FILE_HANDLE fout);
 int CPL_DLL GDALServerLoopSocket(CPL_SOCKET nSocket);
 CPL_C_END
 
-CPL_CVSID("$Id: gdalserver.c 27741 2014-09-26 19:20:02Z goatbar $");
+CPL_CVSID("$Id: gdalserver.c 27745 2014-09-27 16:38:57Z goatbar $");
 
 /************************************************************************/
 /*                               Usage()                                */

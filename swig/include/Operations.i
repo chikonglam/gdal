@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: Operations.i 24896 2012-09-03 00:32:04Z warmerdam $
+ * $Id: Operations.i 28730 2015-03-14 14:24:15Z ajolma $
  *
  * Name:     Operations.i
  * Project:  GDAL Python Interface
@@ -352,16 +352,15 @@ int  SieveFilter( GDALRasterBandShadow *srcBand,
 /*                        RegenerateOverviews()                         */
 /************************************************************************/
 
-#ifndef SWIGPERL
 #ifndef SWIGJAVA
 %feature( "kwargs" ) RegenerateOverviews;
-#endif
+#endif /* SWIGJAVA */
 #ifndef SWIGCSHARP
 %apply (int object_list_count, GDALRasterBandShadow **poObjects) {(int overviewBandCount, GDALRasterBandShadow **overviewBands)};
-#endif
+#endif /* SWIGCSHARP */
 #ifdef SWIGJAVA
 %apply (const char* stringWithDefaultValue) {const char *resampling};
-#endif
+#endif /* SWIGJAVA */
 %apply Pointer NONNULL { GDALRasterBandShadow* srcBand };
 %inline %{
 int  RegenerateOverviews( GDALRasterBandShadow *srcBand,
@@ -379,9 +378,8 @@ int  RegenerateOverviews( GDALRasterBandShadow *srcBand,
 %}
 #ifdef SWIGJAVA
 %clear (const char* resampling);
-#endif
+#endif /* SWIGJAVA */
 %clear GDALRasterBandShadow* srcBand;
-#endif
 
 /************************************************************************/
 /*                         RegenerateOverview()                         */
@@ -447,7 +445,7 @@ int wrapper_GridCreate( char* algorithmOptions,
     
     if ( eErr != CE_None )
     {
-        CPLError( eErr, CPLE_AppDefined, "Failed to process algoritm name and parameters.\n" );
+        CPLError( eErr, CPLE_AppDefined, "Failed to process algorithm name and parameters.\n" );
         return eErr;
     }
 

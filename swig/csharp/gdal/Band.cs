@@ -207,6 +207,13 @@ public class Band : MajorObject {
     } 
   }
 
+  public Dataset GetDataset() {
+    IntPtr cPtr = GdalPINVOKE.Band_GetDataset(swigCPtr);
+    Dataset ret = (cPtr == IntPtr.Zero) ? null : new Dataset(cPtr, false, ThisOwn_false());
+    if (GdalPINVOKE.SWIGPendingException.Pending) throw GdalPINVOKE.SWIGPendingException.Retrieve();
+    return ret;
+  }
+
   public int GetBand() {
     int ret = GdalPINVOKE.Band_GetBand(swigCPtr);
     if (GdalPINVOKE.SWIGPendingException.Pending) throw GdalPINVOKE.SWIGPendingException.Retrieve();

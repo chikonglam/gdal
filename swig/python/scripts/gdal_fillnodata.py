@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #******************************************************************************
-#  $Id: gdal_fillnodata.py 27044 2014-03-16 23:41:27Z rouault $
+#  $Id: gdal_fillnodata.py 28389 2015-01-30 19:26:09Z rouault $
 # 
 #  Project:  GDAL Python Interface
 #  Purpose:  Application for filling nodata areas in a raster by interpolation
@@ -30,13 +30,11 @@
 #******************************************************************************
 
 try:
-    from osgeo import gdal, ogr
+    from osgeo import gdal
 except ImportError:
     import gdal
-    import ogr
 
 import sys
-import os.path
 
 def CopyBand( srcband, dstband ):
     for line in range(srcband.YSize):
@@ -181,7 +179,10 @@ if dst_filename is not None:
     
     dstband = dst_ds.GetRasterBand(1)
     CopyBand( srcband, dstband )
-    
+    ndv = srcband.GetNoDataValue()
+    if ndv is not None:
+        dstband.SetNoDataValue(ndv)
+
 else:
     dstband = srcband
 

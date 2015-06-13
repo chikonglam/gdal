@@ -1,8 +1,8 @@
-.TH "gdalinfo" 1 "Tue Feb 10 2015" "GDAL" \" -*- nroff -*-
+.TH "gdalinfo" 1 "Mon May 4 2015" "GDAL" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
-gdalinfo \- .TH "gdalinfo" 1 "Tue Feb 10 2015" "GDAL" \" -*- nroff -*-
+gdalinfo \- .TH "gdalinfo" 1 "Mon May 4 2015" "GDAL" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -15,7 +15,7 @@ gdalinfo \- lists information about a raster dataset
 gdalinfo [--help-general] [-mm] [-stats] [-hist] [-nogcp] [-nomd]
          [-norat] [-noct] [-nofl] [-checksum] [-proj4]
          [-listmdd] [-mdd domain|`all`]*
-         [-sd subdataset] datasetname
+         [-sd subdataset] [-oo NAME=VALUE]* datasetname
 .fi
 .PP
 .SH "DESCRIPTION"
@@ -33,7 +33,7 @@ Report histogram information for all bands.
 Suppress ground control points list printing. It may be useful for datasets with huge amount of GCPs, such as L1B AVHRR or HDF4 MODIS which contain thousands of them. 
 .IP "\fB\fB-nomd\fP\fP" 1c
 Suppress metadata printing. Some datasets may contain a lot of metadata strings. 
-.IP "\fB\fB-nrat\fP\fP" 1c
+.IP "\fB\fB-norat\fP\fP" 1c
 Suppress printing of raster attribute table. 
 .IP "\fB\fB-noct\fP\fP" 1c
 Suppress printing of color table. 
@@ -49,6 +49,8 @@ Report metadata for the specified domain. Starting with GDAL 1.11, 'all' can be 
 (GDAL >= 1.9.0) If the input dataset contains several subdatasets read and display a subdataset with specified number (starting from 1). This is an alternative of giving the full subdataset name. 
 .IP "\fB\fB-proj4\fP\fP" 1c
 (GDAL >= 1.9.0) Report a PROJ.4 string corresponding to the file's coordinate system. 
+.IP "\fB\fB-oo\fP \fINAME=VALUE\fP:\fP" 1c
+(starting with GDAL 2.0) Dataset open option (format specific) 
 .PP
 .PP
 The gdalinfo will report all of the following (if known):

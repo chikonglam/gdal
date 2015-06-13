@@ -219,6 +219,18 @@ public class Feature : IDisposable {
     return ret;
   }
 
+  public long GetFieldAsInteger64(int id) {
+    long res = OgrPINVOKE.Feature_GetFieldAsInteger64__SWIG_0(swigCPtr, id);
+    if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
+    return res;
+}
+
+  public long GetFieldAsInteger64(string name) {
+    long res = OgrPINVOKE.Feature_GetFieldAsInteger64__SWIG_1(swigCPtr, name);
+    if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
+    return res;
+}
+
   public double GetFieldAsDouble(int id) {
     double ret = OgrPINVOKE.Feature_GetFieldAsDouble__SWIG_0(swigCPtr, id);
     if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
@@ -231,8 +243,8 @@ public class Feature : IDisposable {
     return ret;
   }
 
-  public void GetFieldAsDateTime(int id, out int pnYear, out int pnMonth, out int pnDay, out int pnHour, out int pnMinute, out int pnSecond, out int pnTZFlag) {
-    OgrPINVOKE.Feature_GetFieldAsDateTime(swigCPtr, id, out pnYear, out pnMonth, out pnDay, out pnHour, out pnMinute, out pnSecond, out pnTZFlag);
+  public void GetFieldAsDateTime(int id, out int pnYear, out int pnMonth, out int pnDay, out int pnHour, out int pnMinute, out float pfSecond, out int pnTZFlag) {
+    OgrPINVOKE.Feature_GetFieldAsDateTime(swigCPtr, id, out pnYear, out pnMonth, out pnDay, out pnHour, out pnMinute, out pfSecond, out pnTZFlag);
     if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
   }
 
@@ -305,13 +317,13 @@ public class Feature : IDisposable {
     return ret;
   }
 
-  public int GetFID() {
-    int ret = OgrPINVOKE.Feature_GetFID(swigCPtr);
+  public long GetFID() {
+    long res = OgrPINVOKE.Feature_GetFID(swigCPtr);
     if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
-    return ret;
-  }
+    return res;
+}
 
-  public int SetFID(int fid) {
+  public int SetFID(long fid) {
     int ret = OgrPINVOKE.Feature_SetFID(swigCPtr, fid);
     if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
     return ret;
@@ -342,6 +354,11 @@ public class Feature : IDisposable {
     if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
   }
 
+  public void SetFieldInteger64(int id, long value) {
+    OgrPINVOKE.Feature_SetFieldInteger64(swigCPtr, id, value);
+    if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
+  }
+
   public void SetField(int id, int value) {
     OgrPINVOKE.Feature_SetField__SWIG_2(swigCPtr, id, value);
     if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
@@ -362,12 +379,12 @@ public class Feature : IDisposable {
     if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
   }
 
-  public void SetField(int id, int year, int month, int day, int hour, int minute, int second, int tzflag) {
+  public void SetField(int id, int year, int month, int day, int hour, int minute, float second, int tzflag) {
     OgrPINVOKE.Feature_SetField__SWIG_6(swigCPtr, id, year, month, day, hour, minute, second, tzflag);
     if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
   }
 
-  public void SetField(string name, int year, int month, int day, int hour, int minute, int second, int tzflag) {
+  public void SetField(string name, int year, int month, int day, int hour, int minute, float second, int tzflag) {
     OgrPINVOKE.Feature_SetField__SWIG_7(swigCPtr, name, year, month, day, hour, minute, second, tzflag);
     if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
   }
@@ -430,6 +447,17 @@ public class Feature : IDisposable {
     FieldType ret = (FieldType)OgrPINVOKE.Feature_GetFieldType__SWIG_1(swigCPtr, name);
     if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
     return ret;
+  }
+
+  public int Validate(int flags, int bEmitError) {
+    int ret = OgrPINVOKE.Feature_Validate(swigCPtr, flags, bEmitError);
+    if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
+    return ret;
+  }
+
+  public void FillUnsetWithDefault(int bNotNullableOnly, string[] options) {
+    OgrPINVOKE.Feature_FillUnsetWithDefault(swigCPtr, bNotNullableOnly, (options != null)? new OgrPINVOKE.StringListMarshal(options)._ar : null);
+    if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
   }
 
 }

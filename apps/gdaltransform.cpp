@@ -45,7 +45,7 @@ static void Usage(const char* pszErrorMsg = NULL)
         "Usage: gdaltransform [--help-general]\n"
         "    [-i] [-s_srs srs_def] [-t_srs srs_def] [-to \"NAME=VALUE\"]\n"
         "    [-order n] [-tps] [-rpc] [-geoloc] \n"
-        "    [-gcp pixel line easting northing [elevation]]*\n" 
+        "    [-gcp pixel line easting northing [elevation]]* [-output_xy]\n" 
         "    [srcfile [dstfile]]\n" 
         "\n" );
 
@@ -103,6 +103,7 @@ int main( int argc, char ** argv )
     GDAL_GCP            *pasGCPs = NULL;
     int                 bInverse = FALSE;
     char              **papszTO = NULL;
+    int                 bOutputXY = FALSE;
 
     /* Check that we are running against at least GDAL 1.5 */
     /* Note to developers : if we use newer API, please change the requirement */
@@ -186,21 +187,26 @@ int main( int argc, char ** argv )
                 CPLRealloc( pasGCPs, sizeof(GDAL_GCP) * nGCPCount );
             GDALInitGCPs( 1, pasGCPs + nGCPCount - 1 );
 
-            pasGCPs[nGCPCount-1].dfGCPPixel = atof(argv[++i]);
-            pasGCPs[nGCPCount-1].dfGCPLine = atof(argv[++i]);
-            pasGCPs[nGCPCount-1].dfGCPX = atof(argv[++i]);
-            pasGCPs[nGCPCount-1].dfGCPY = atof(argv[++i]);
+            pasGCPs[nGCPCount-1].dfGCPPixel = CPLAtof(argv[++i]);
+            pasGCPs[nGCPCount-1].dfGCPLine = CPLAtof(argv[++i]);
+            pasGCPs[nGCPCount-1].dfGCPX = CPLAtof(argv[++i]);
+            pasGCPs[nGCPCount-1].dfGCPY = CPLAtof(argv[++i]);
             if( argv[i+1] != NULL 
                 && (CPLStrtod(argv[i+1], &endptr) != 0.0 || argv[i+1][0] == '0') )
             {
                 /* Check that last argument is really a number and not a filename */
                 /* looking like a number (see ticket #863) */
                 if (endptr && *endptr == 0)
-                    pasGCPs[nGCPCount-1].dfGCPZ = atof(argv[++i]);
+                    pasGCPs[nGCPCount-1].dfGCPZ = CPLAtof(argv[++i]);
             }
 
             /* should set id and info? */
         }   
+        
+        else if( EQUAL(argv[i],"-output_xy") )
+        {
+            bOutputXY = TRUE;
+        }
 
         else if( argv[i][0] == '-' )
             Usage(CPLSPrintf("Unknown option name '%s'", argv[i]));
@@ -290,16 +296,19 @@ int main( int argc, char ** argv )
             continue;
         }
 
-        dfX = atof(papszTokens[0]);
-        dfY = atof(papszTokens[1]);
+        dfX = CPLAtof(papszTokens[0]);
+        dfY = CPLAtof(papszTokens[1]);
         if( CSLCount(papszTokens) >= 3 )
-            dfZ = atof(papszTokens[2]);
+            dfZ = CPLAtof(papszTokens[2]);
 
         if( pfnTransformer( hTransformArg, bInverse, 1, 
                             &dfX, &dfY, &dfZ, &bSuccess )
             && bSuccess )
         {
-            printf( "%.15g %.15g %.15g\n", dfX, dfY, dfZ );
+            if( bOutputXY )
+                CPLprintf( "%.15g %.15g\n", dfX, dfY );
+            else
+                CPLprintf( "%.15g %.15g %.15g\n", dfX, dfY, dfZ );
         }
         else
         {

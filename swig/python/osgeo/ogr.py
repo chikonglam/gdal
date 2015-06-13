@@ -76,8 +76,18 @@ wkbMultiPoint = _ogr.wkbMultiPoint
 wkbMultiLineString = _ogr.wkbMultiLineString
 wkbMultiPolygon = _ogr.wkbMultiPolygon
 wkbGeometryCollection = _ogr.wkbGeometryCollection
+wkbCircularString = _ogr.wkbCircularString
+wkbCompoundCurve = _ogr.wkbCompoundCurve
+wkbCurvePolygon = _ogr.wkbCurvePolygon
+wkbMultiCurve = _ogr.wkbMultiCurve
+wkbMultiSurface = _ogr.wkbMultiSurface
 wkbNone = _ogr.wkbNone
 wkbLinearRing = _ogr.wkbLinearRing
+wkbCircularStringZ = _ogr.wkbCircularStringZ
+wkbCompoundCurveZ = _ogr.wkbCompoundCurveZ
+wkbCurvePolygonZ = _ogr.wkbCurvePolygonZ
+wkbMultiCurveZ = _ogr.wkbMultiCurveZ
+wkbMultiSurfaceZ = _ogr.wkbMultiSurfaceZ
 wkbPoint25D = _ogr.wkbPoint25D
 wkbLineString25D = _ogr.wkbLineString25D
 wkbPolygon25D = _ogr.wkbPolygon25D
@@ -97,6 +107,12 @@ OFTBinary = _ogr.OFTBinary
 OFTDate = _ogr.OFTDate
 OFTTime = _ogr.OFTTime
 OFTDateTime = _ogr.OFTDateTime
+OFTInteger64 = _ogr.OFTInteger64
+OFTInteger64List = _ogr.OFTInteger64List
+OFSTNone = _ogr.OFSTNone
+OFSTBoolean = _ogr.OFSTBoolean
+OFSTInt16 = _ogr.OFSTInt16
+OFSTFloat32 = _ogr.OFSTFloat32
 OJUndefined = _ogr.OJUndefined
 OJLeft = _ogr.OJLeft
 OJRight = _ogr.OJRight
@@ -106,7 +122,14 @@ NullFID = _ogr.NullFID
 ALTER_NAME_FLAG = _ogr.ALTER_NAME_FLAG
 ALTER_TYPE_FLAG = _ogr.ALTER_TYPE_FLAG
 ALTER_WIDTH_PRECISION_FLAG = _ogr.ALTER_WIDTH_PRECISION_FLAG
+ALTER_NULLABLE_FLAG = _ogr.ALTER_NULLABLE_FLAG
+ALTER_DEFAULT_FLAG = _ogr.ALTER_DEFAULT_FLAG
 ALTER_ALL_FLAG = _ogr.ALTER_ALL_FLAG
+F_VAL_NULL = _ogr.F_VAL_NULL
+F_VAL_GEOM_TYPE = _ogr.F_VAL_GEOM_TYPE
+F_VAL_WIDTH = _ogr.F_VAL_WIDTH
+F_VAL_ALLOW_NULL_WHEN_DEFAULT = _ogr.F_VAL_ALLOW_NULL_WHEN_DEFAULT
+F_VAL_ALL = _ogr.F_VAL_ALL
 OLCRandomRead = _ogr.OLCRandomRead
 OLCSequentialWrite = _ogr.OLCSequentialWrite
 OLCRandomWrite = _ogr.OLCRandomWrite
@@ -123,11 +146,26 @@ OLCFastSetNextByIndex = _ogr.OLCFastSetNextByIndex
 OLCStringsAsUTF8 = _ogr.OLCStringsAsUTF8
 OLCIgnoreFields = _ogr.OLCIgnoreFields
 OLCCreateGeomField = _ogr.OLCCreateGeomField
+OLCCurveGeometries = _ogr.OLCCurveGeometries
 ODsCCreateLayer = _ogr.ODsCCreateLayer
 ODsCDeleteLayer = _ogr.ODsCDeleteLayer
 ODsCCreateGeomFieldAfterCreateLayer = _ogr.ODsCCreateGeomFieldAfterCreateLayer
+ODsCCurveGeometries = _ogr.ODsCCurveGeometries
+ODsCTransactions = _ogr.ODsCTransactions
+ODsCEmulatedTransactions = _ogr.ODsCEmulatedTransactions
 ODrCCreateDataSource = _ogr.ODrCCreateDataSource
 ODrCDeleteDataSource = _ogr.ODrCDeleteDataSource
+OLMD_FID64 = _ogr.OLMD_FID64
+OGRERR_NONE = _ogr.OGRERR_NONE
+OGRERR_NOT_ENOUGH_DATA = _ogr.OGRERR_NOT_ENOUGH_DATA
+OGRERR_NOT_ENOUGH_MEMORY = _ogr.OGRERR_NOT_ENOUGH_MEMORY
+OGRERR_UNSUPPORTED_GEOMETRY_TYPE = _ogr.OGRERR_UNSUPPORTED_GEOMETRY_TYPE
+OGRERR_UNSUPPORTED_OPERATION = _ogr.OGRERR_UNSUPPORTED_OPERATION
+OGRERR_CORRUPT_DATA = _ogr.OGRERR_CORRUPT_DATA
+OGRERR_FAILURE = _ogr.OGRERR_FAILURE
+OGRERR_UNSUPPORTED_SRS = _ogr.OGRERR_UNSUPPORTED_SRS
+OGRERR_INVALID_HANDLE = _ogr.OGRERR_INVALID_HANDLE
+OGRERR_NON_EXISTING_FEATURE = _ogr.OGRERR_NON_EXISTING_FEATURE
 
 def GetUseExceptions(*args):
   """GetUseExceptions() -> int"""
@@ -140,7 +178,133 @@ def UseExceptions(*args):
 def DontUseExceptions(*args):
   """DontUseExceptions()"""
   return _ogr.DontUseExceptions(*args)
+# Backup original dictionnary before doing anything else
+_initial_dict = globals().copy()
+
+@property
+def wkb25Bit(module):
+    import warnings
+    warnings.warn("ogr.wkb25DBit deprecated: use ogr.GT_Flatten(), ogr.GT_HasZ() or ogr.GT_SetZ() instead", DeprecationWarning)
+    return module._initial_dict['wkb25DBit']
+
+@property
+def wkb25DBit(module):
+    import warnings
+    warnings.warn("ogr.wkb25DBit deprecated: use ogr.GT_Flatten(), ogr.GT_HasZ() or ogr.GT_SetZ() instead", DeprecationWarning)
+    return module._initial_dict['wkb25DBit']
+
+# Inspired from http://www.dr-josiah.com/2013/12/properties-on-python-modules.html
+class _Module(object):
+    def __init__(self):
+        self.__dict__ = globals()
+        self._initial_dict = _initial_dict
+
+        # Transfer properties from the object to the Class
+        for k, v in list(self.__dict__.items()):
+            if isinstance(v, property):
+                setattr(self.__class__, k, v)
+                #del self.__dict__[k]
+
+        # Replace original module by our object
+        import sys
+        self._original_module = sys.modules[self.__name__]
+        sys.modules[self.__name__] = self
+
+# Custom help() replacement to display the help of the original module
+# instead of the one of our instance object
+class _MyHelper(object):
+
+    def __init__(self, module):
+        self.module = module
+        self.original_help = help
+
+        # Replace builtin help by ours
+        try:
+            import __builtin__ as builtins # Python 2
+        except ImportError:
+            import builtins # Python 3
+        builtins.help = self
+
+    def __repr__(self):
+        return self.original_help.__repr__()
+
+    def __call__(self, *args, **kwds):
+
+        if args == (self.module,):
+            import sys
+
+            # Restore original module before calling help() otherwise
+            # we don't get methods or classes mentionned
+            sys.modules[self.module.__name__] = self.module._original_module
+
+            ret = self.original_help(self.module._original_module, **kwds)
+
+            # Reinstall our module
+            sys.modules[self.module.__name__] = self.module
+
+            return ret
+        elif args == (self,):
+            return self.original_help(self.original_help, **kwds)
+        else:
+            return self.original_help(*args, **kwds)
+
+_MyHelper(_Module())
+del _MyHelper
+del _Module
+
+
 import osr
+class MajorObject(_object):
+    """Proxy of C++ GDALMajorObjectShadow class"""
+    __swig_setmethods__ = {}
+    __setattr__ = lambda self, name, value: _swig_setattr(self, MajorObject, name, value)
+    __swig_getmethods__ = {}
+    __getattr__ = lambda self, name: _swig_getattr(self, MajorObject, name)
+    def __init__(self, *args, **kwargs): raise AttributeError("No constructor defined")
+    __repr__ = _swig_repr
+    def GetDescription(self, *args):
+        """GetDescription(self) -> char"""
+        return _ogr.MajorObject_GetDescription(self, *args)
+
+    def SetDescription(self, *args):
+        """SetDescription(self, char pszNewDesc)"""
+        return _ogr.MajorObject_SetDescription(self, *args)
+
+    def GetMetadataDomainList(self, *args):
+        """GetMetadataDomainList(self) -> char"""
+        return _ogr.MajorObject_GetMetadataDomainList(self, *args)
+
+    def GetMetadata_Dict(self, *args):
+        """GetMetadata_Dict(self, char pszDomain = "") -> char"""
+        return _ogr.MajorObject_GetMetadata_Dict(self, *args)
+
+    def GetMetadata_List(self, *args):
+        """GetMetadata_List(self, char pszDomain = "") -> char"""
+        return _ogr.MajorObject_GetMetadata_List(self, *args)
+
+    def SetMetadata(self, *args):
+        """
+        SetMetadata(self, char papszMetadata, char pszDomain = "") -> CPLErr
+        SetMetadata(self, char pszMetadataString, char pszDomain = "") -> CPLErr
+        """
+        return _ogr.MajorObject_SetMetadata(self, *args)
+
+    def GetMetadataItem(self, *args):
+        """GetMetadataItem(self, char pszName, char pszDomain = "") -> char"""
+        return _ogr.MajorObject_GetMetadataItem(self, *args)
+
+    def SetMetadataItem(self, *args):
+        """SetMetadataItem(self, char pszName, char pszValue, char pszDomain = "") -> CPLErr"""
+        return _ogr.MajorObject_SetMetadataItem(self, *args)
+
+    def GetMetadata( self, domain = '' ):
+      if domain[:4] == 'xml:':
+        return self.GetMetadata_List( domain )
+      return self.GetMetadata_Dict( domain )
+
+MajorObject_swigregister = _ogr.MajorObject_swigregister
+MajorObject_swigregister(MajorObject)
+
 class StyleTable(_object):
     """Proxy of C++ OGRStyleTableShadow class"""
     __swig_setmethods__ = {}
@@ -186,11 +350,13 @@ class StyleTable(_object):
 StyleTable_swigregister = _ogr.StyleTable_swigregister
 StyleTable_swigregister(StyleTable)
 
-class Driver(_object):
+class Driver(MajorObject):
     """Proxy of C++ OGRDriverShadow class"""
     __swig_setmethods__ = {}
+    for _s in [MajorObject]: __swig_setmethods__.update(getattr(_s,'__swig_setmethods__',{}))
     __setattr__ = lambda self, name, value: _swig_setattr(self, Driver, name, value)
     __swig_getmethods__ = {}
+    for _s in [MajorObject]: __swig_getmethods__.update(getattr(_s,'__swig_getmethods__',{}))
     __getattr__ = lambda self, name: _swig_getattr(self, Driver, name)
     def __init__(self, *args, **kwargs): raise AttributeError("No constructor defined")
     __repr__ = _swig_repr
@@ -397,11 +563,13 @@ class Driver(_object):
 Driver_swigregister = _ogr.Driver_swigregister
 Driver_swigregister(Driver)
 
-class DataSource(_object):
+class DataSource(MajorObject):
     """Proxy of C++ OGRDataSourceShadow class"""
     __swig_setmethods__ = {}
+    for _s in [MajorObject]: __swig_setmethods__.update(getattr(_s,'__swig_setmethods__',{}))
     __setattr__ = lambda self, name, value: _swig_setattr(self, DataSource, name, value)
     __swig_getmethods__ = {}
+    for _s in [MajorObject]: __swig_getmethods__.update(getattr(_s,'__swig_getmethods__',{}))
     __getattr__ = lambda self, name: _swig_getattr(self, DataSource, name)
     def __init__(self, *args, **kwargs): raise AttributeError("No constructor defined")
     __repr__ = _swig_repr
@@ -559,6 +727,10 @@ class DataSource(_object):
         code. 
         """
         return _ogr.DataSource_SyncToDisk(self, *args)
+
+    def FlushCache(self, *args):
+        """FlushCache(self)"""
+        return _ogr.DataSource_FlushCache(self, *args)
 
     def CreateLayer(self, *args, **kwargs):
         """
@@ -737,7 +909,7 @@ class DataSource(_object):
 
         pszDialect:  allows control of the statement dialect. If set to NULL,
         the OGR SQL engine will be used, except for RDBMS drivers that will
-        use their dedicated SQL engine, unless OGRSQL is explicitely passed as
+        use their dedicated SQL engine, unless OGRSQL is explicitly passed as
         the dialect.
 
         an handle to a OGRLayer containing the results of the query.
@@ -790,6 +962,18 @@ class DataSource(_object):
 
         """
         return _ogr.DataSource_SetStyleTable(self, *args)
+
+    def StartTransaction(self, *args, **kwargs):
+        """StartTransaction(self, int force = True) -> OGRErr"""
+        return _ogr.DataSource_StartTransaction(self, *args, **kwargs)
+
+    def CommitTransaction(self, *args):
+        """CommitTransaction(self) -> OGRErr"""
+        return _ogr.DataSource_CommitTransaction(self, *args)
+
+    def RollbackTransaction(self, *args):
+        """RollbackTransaction(self) -> OGRErr"""
+        return _ogr.DataSource_RollbackTransaction(self, *args)
 
     def Destroy(self):
       "Once called, self has effectively been destroyed.  Do not access. For backwards compatiblity only"
@@ -860,11 +1044,13 @@ class DataSource(_object):
 DataSource_swigregister = _ogr.DataSource_swigregister
 DataSource_swigregister(DataSource)
 
-class Layer(_object):
+class Layer(MajorObject):
     """Proxy of C++ OGRLayerShadow class"""
     __swig_setmethods__ = {}
+    for _s in [MajorObject]: __swig_setmethods__.update(getattr(_s,'__swig_setmethods__',{}))
     __setattr__ = lambda self, name, value: _swig_setattr(self, Layer, name, value)
     __swig_getmethods__ = {}
+    for _s in [MajorObject]: __swig_getmethods__.update(getattr(_s,'__swig_getmethods__',{}))
     __getattr__ = lambda self, name: _swig_getattr(self, Layer, name)
     def __init__(self, *args, **kwargs): raise AttributeError("No constructor defined")
     __repr__ = _swig_repr
@@ -1147,7 +1333,7 @@ class Layer(_object):
 
     def GetFeature(self, *args):
         """
-        GetFeature(self, long fid) -> Feature
+        GetFeature(self, GIntBig fid) -> Feature
 
         OGRFeatureH
         OGR_L_GetFeature(OGRLayerH hLayer, long nFeatureId)
@@ -1220,7 +1406,7 @@ class Layer(_object):
 
     def SetNextByIndex(self, *args):
         """
-        SetNextByIndex(self, long new_index) -> OGRErr
+        SetNextByIndex(self, GIntBig new_index) -> OGRErr
 
         OGRErr
         OGR_L_SetNextByIndex(OGRLayerH hLayer, long nIndex)
@@ -1315,7 +1501,7 @@ class Layer(_object):
 
     def DeleteFeature(self, *args):
         """
-        DeleteFeature(self, long fid) -> OGRErr
+        DeleteFeature(self, GIntBig fid) -> OGRErr
 
         OGRErr
         OGR_L_DeleteFeature(OGRLayerH hDS, long nFID)
@@ -1400,7 +1586,7 @@ class Layer(_object):
 
     def GetFeatureCount(self, *args, **kwargs):
         """
-        GetFeatureCount(self, int force = 1) -> int
+        GetFeatureCount(self, int force = 1) -> GIntBig
 
         int
         OGR_L_GetFeatureCount(OGRLayerH hLayer, int bForce)
@@ -2387,6 +2573,13 @@ class Feature(_object):
         """
         return _ogr.Feature_GetFieldAsInteger(self, *args)
 
+    def GetFieldAsInteger64(self, *args):
+        """
+        GetFieldAsInteger64(self, int id) -> GIntBig
+        GetFieldAsInteger64(self, char name) -> GIntBig
+        """
+        return _ogr.Feature_GetFieldAsInteger64(self, *args)
+
     def GetFieldAsDouble(self, *args):
         """
         GetFieldAsDouble(self, int id) -> double
@@ -2488,6 +2681,10 @@ class Feature(_object):
         """
         return _ogr.Feature_GetFieldAsIntegerList(self, *args)
 
+    def GetFieldAsInteger64List(self, *args):
+        """GetFieldAsInteger64List(self, int id)"""
+        return _ogr.Feature_GetFieldAsInteger64List(self, *args)
+
     def GetFieldAsDoubleList(self, *args):
         """
         GetFieldAsDoubleList(self, int id)
@@ -2547,6 +2744,35 @@ class Feature(_object):
         """
         return _ogr.Feature_GetFieldAsStringList(self, *args)
 
+    def GetFieldAsBinary(self, *args):
+        """
+        GetFieldAsBinary(self, int id) -> OGRErr
+        GetFieldAsBinary(self, char name) -> OGRErr
+
+        GByte*
+        OGR_F_GetFieldAsBinary(OGRFeatureH hFeat, int iField, int *pnBytes)
+
+        Fetch field value as binary.
+
+        Currently this method only works for OFTBinary fields.
+
+        This function is the same as the C++ method
+        OGRFeature::GetFieldAsBinary().
+
+        Parameters:
+        -----------
+
+        hFeat:  handle to the feature that owned the field.
+
+        iField:  the field to fetch, from 0 to GetFieldCount()-1.
+
+        pnBytes:  location to place count of bytes returned.
+
+        the field value. This list is internal, and should not be modified, or
+        freed. Its lifetime may be very brief. 
+        """
+        return _ogr.Feature_GetFieldAsBinary(self, *args)
+
     def IsFieldSet(self, *args):
         """
         IsFieldSet(self, int id) -> bool
@@ -2601,7 +2827,7 @@ class Feature(_object):
 
     def GetFID(self, *args):
         """
-        GetFID(self) -> int
+        GetFID(self) -> GIntBig
 
         long OGR_F_GetFID(OGRFeatureH hFeat)
 
@@ -2621,7 +2847,7 @@ class Feature(_object):
 
     def SetFID(self, *args):
         """
-        SetFID(self, int fid) -> OGRErr
+        SetFID(self, GIntBig fid) -> OGRErr
 
         OGRErr OGR_F_SetFID(OGRFeatureH hFeat,
         long nFID)
@@ -2692,18 +2918,20 @@ class Feature(_object):
         """
         return _ogr.Feature_UnsetField(self, *args)
 
+    def SetFieldInteger64(self, *args):
+        """SetFieldInteger64(self, int id, GIntBig value)"""
+        return _ogr.Feature_SetFieldInteger64(self, *args)
+
     def SetField(self, *args):
         """
         SetField(self, int id, char value)
         SetField(self, char name, char value)
-        SetField(self, int id, int value)
-        SetField(self, char name, int value)
         SetField(self, int id, double value)
         SetField(self, char name, double value)
         SetField(self, int id, int year, int month, int day, int hour, int minute, 
-            int second, int tzflag)
+            float second, int tzflag)
         SetField(self, char name, int year, int month, int day, int hour, 
-            int minute, int second, int tzflag)
+            int minute, float second, int tzflag)
         """
         return _ogr.Feature_SetField(self, *args)
 
@@ -2733,6 +2961,10 @@ class Feature(_object):
         panValues:  the values to assign. 
         """
         return _ogr.Feature_SetFieldIntegerList(self, *args)
+
+    def SetFieldInteger64List(self, *args):
+        """SetFieldInteger64List(self, int id, int nList)"""
+        return _ogr.Feature_SetFieldInteger64List(self, *args)
 
     def SetFieldDoubleList(self, *args):
         """
@@ -2926,6 +3158,41 @@ class Feature(_object):
         """
         return _ogr.Feature_GetFieldType(self, *args)
 
+    def Validate(self, *args):
+        """Validate(self, int flags = OGR_F_VAL_ALL, int bEmitError = TRUE) -> int"""
+        return _ogr.Feature_Validate(self, *args)
+
+    def FillUnsetWithDefault(self, *args):
+        """FillUnsetWithDefault(self, int bNotNullableOnly = True, char options = None)"""
+        return _ogr.Feature_FillUnsetWithDefault(self, *args)
+
+    def SetFieldString(self, *args):
+        """
+        SetFieldString(self, int id, char value)
+
+        void
+        OGR_F_SetFieldString(OGRFeatureH hFeat, int iField, const char
+        *pszValue)
+
+        Set field to string value.
+
+        OFTInteger fields will be set based on an atoi() conversion of the
+        string. OFTReal fields will be set based on an atof() conversion of
+        the string. Other field types may be unaffected.
+
+        This function is the same as the C++ method OGRFeature::SetField().
+
+        Parameters:
+        -----------
+
+        hFeat:  handle to the feature that owned the field.
+
+        iField:  the field to fetch, from 0 to GetFieldCount()-1.
+
+        pszValue:  the value to assign. 
+        """
+        return _ogr.Feature_SetFieldString(self, *args)
+
     def Reference(self):
       pass
 
@@ -3018,18 +3285,57 @@ class Feature(_object):
         fld_type = self.GetFieldType(fld_index)
         if fld_type == OFTInteger:
             return self.GetFieldAsInteger(fld_index)
+        if fld_type == OFTInteger64:
+            return self.GetFieldAsInteger64(fld_index)
         if fld_type == OFTReal:
             return self.GetFieldAsDouble(fld_index)
         if fld_type == OFTStringList:
             return self.GetFieldAsStringList(fld_index)
         if fld_type == OFTIntegerList:
             return self.GetFieldAsIntegerList(fld_index)
+        if fld_type == OFTInteger64List:
+            return self.GetFieldAsInteger64List(fld_index)
         if fld_type == OFTRealList:
             return self.GetFieldAsDoubleList(fld_index)
         ## if fld_type == OFTDateTime or fld_type == OFTDate or fld_type == OFTTime:
         #     return self.GetFieldAsDate(fld_index)
         # default to returning as a string.  Should we add more types?
-        return self.GetFieldAsString(fld_index)
+        try:
+            return self.GetFieldAsString(fld_index)
+        except:
+            # For Python3 on non-UTF8 strings
+            return self.GetFieldAsBinary(fld_index)
+
+    # With several override, SWIG cannot dispatch automatically unicode strings
+    # to the right implementation, so we have to do it at hand
+    def SetField(self, *args):
+        """
+        SetField(self, int id, char value)
+        SetField(self, char name, char value)
+        SetField(self, int id, int value)
+        SetField(self, char name, int value)
+        SetField(self, int id, double value)
+        SetField(self, char name, double value)
+        SetField(self, int id, int year, int month, int day, int hour, int minute, 
+            int second, int tzflag)
+        SetField(self, char name, int year, int month, int day, int hour, 
+            int minute, int second, int tzflag)
+        """
+
+        if len(args) == 2 and (type(args[1]) == type(1) or type(args[1]) == type(12345678901234)):
+            fld_index = args[0]
+            if isinstance(fld_index, str):
+                fld_index = self.GetFieldIndex(fld_index)
+            return _ogr.Feature_SetFieldInteger64(self, fld_index, args[1])
+
+
+        if len(args) == 2 and str(type(args[1])) == "<type 'unicode'>":
+            fld_index = args[0]
+            if isinstance(fld_index, str):
+                fld_index = self.GetFieldIndex(fld_index)
+            return _ogr.Feature_SetFieldString(self, fld_index, args[1])
+
+        return _ogr.Feature_SetField(self, *args)
 
     def SetField2(self, fld_index, value):
         if isinstance(fld_index, str):
@@ -3045,8 +3351,8 @@ class Feature(_object):
             if len(value) == 0:
                 self.UnsetField( fld_index )
                 return
-            if isinstance(value[0],int):
-                self.SetFieldIntegerList(fld_index,value)
+            if isinstance(value[0],type(1)) or isinstance(value[0],type(12345678901234)):
+                self.SetFieldInteger64List(fld_index,value)
                 return
             elif isinstance(value[0],float):
                 self.SetFieldDoubleList(fld_index,value)
@@ -3055,7 +3361,7 @@ class Feature(_object):
                 self.SetFieldStringList(fld_index,value)
                 return
             else:
-                raise TypeError( 'Unsupported type of list in SetField2()' )
+                raise TypeError( 'Unsupported type of list in SetField2(). Type of element is %s' % str(type(value[0])) )
 
         try:
             self.SetField( fld_index, value )
@@ -3556,6 +3862,14 @@ class FieldDefn(_object):
         """
         return _ogr.FieldDefn_SetType(self, *args)
 
+    def GetSubType(self, *args):
+        """GetSubType(self) -> OGRFieldSubType"""
+        return _ogr.FieldDefn_GetSubType(self, *args)
+
+    def SetSubType(self, *args):
+        """SetSubType(self, OGRFieldSubType type)"""
+        return _ogr.FieldDefn_SetSubType(self, *args)
+
     def GetJustify(self, *args):
         """
         GetJustify(self) -> OGRJustification
@@ -3731,6 +4045,26 @@ class FieldDefn(_object):
         """
         return _ogr.FieldDefn_SetIgnored(self, *args)
 
+    def IsNullable(self, *args):
+        """IsNullable(self) -> int"""
+        return _ogr.FieldDefn_IsNullable(self, *args)
+
+    def SetNullable(self, *args):
+        """SetNullable(self, int bNullable)"""
+        return _ogr.FieldDefn_SetNullable(self, *args)
+
+    def GetDefault(self, *args):
+        """GetDefault(self) -> char"""
+        return _ogr.FieldDefn_GetDefault(self, *args)
+
+    def SetDefault(self, *args):
+        """SetDefault(self, char pszValue)"""
+        return _ogr.FieldDefn_SetDefault(self, *args)
+
+    def IsDefaultDriverSpecific(self, *args):
+        """IsDefaultDriverSpecific(self) -> int"""
+        return _ogr.FieldDefn_IsDefaultDriverSpecific(self, *args)
+
     width = property(GetWidth, SetWidth)
     type = property(GetType, SetType)
     precision = property(GetPrecision, SetPrecision)
@@ -3795,6 +4129,14 @@ class GeomFieldDefn(_object):
         """SetIgnored(self, int bIgnored)"""
         return _ogr.GeomFieldDefn_SetIgnored(self, *args)
 
+    def IsNullable(self, *args):
+        """IsNullable(self) -> int"""
+        return _ogr.GeomFieldDefn_IsNullable(self, *args)
+
+    def SetNullable(self, *args):
+        """SetNullable(self, int bNullable)"""
+        return _ogr.GeomFieldDefn_SetNullable(self, *args)
+
     type = property(GetType, SetType)
     name = property(GetName, SetName)
     srs = property(GetSpatialRef, SetSpatialRef)
@@ -3854,6 +4196,10 @@ def ForceToMultiPoint(*args):
 def ForceToMultiLineString(*args):
   """ForceToMultiLineString(Geometry geom_in) -> Geometry"""
   return _ogr.ForceToMultiLineString(*args)
+
+def ForceTo(*args):
+  """ForceTo(Geometry geom_in, OGRwkbGeometryType eTargetType, char options = None) -> Geometry"""
+  return _ogr.ForceTo(*args)
 class Geometry(_object):
     """Proxy of C++ OGRGeometryShadow class"""
     __swig_setmethods__ = {}
@@ -3897,6 +4243,10 @@ class Geometry(_object):
         """
         return _ogr.Geometry_ExportToWkt(self, *args)
 
+    def ExportToIsoWkt(self, *args):
+        """ExportToIsoWkt(self) -> OGRErr"""
+        return _ogr.Geometry_ExportToIsoWkt(self, *args)
+
     def ExportToWkb(self, *args, **kwargs):
         """
         ExportToWkb(self, OGRwkbByteOrder byte_order = wkbXDR) -> OGRErr
@@ -3927,6 +4277,10 @@ class Geometry(_object):
         Currently OGRERR_NONE is always returned. 
         """
         return _ogr.Geometry_ExportToWkb(self, *args, **kwargs)
+
+    def ExportToIsoWkb(self, *args, **kwargs):
+        """ExportToIsoWkb(self, OGRwkbByteOrder byte_order = wkbXDR) -> OGRErr"""
+        return _ogr.Geometry_ExportToIsoWkb(self, *args, **kwargs)
 
     def ExportToGML(self, *args, **kwargs):
         """ExportToGML(self, char options = None) -> retStringAndCPLFree"""
@@ -5182,6 +5536,22 @@ class Geometry(_object):
         """
         return _ogr.Geometry_GetDimension(self, *args)
 
+    def HasCurveGeometry(self, *args):
+        """HasCurveGeometry(self, int bLookForCircular = True) -> int"""
+        return _ogr.Geometry_HasCurveGeometry(self, *args)
+
+    def GetLinearGeometry(self, *args, **kwargs):
+        """GetLinearGeometry(self, double dfMaxAngleStepSizeDegrees = 0.0, char options = None) -> Geometry"""
+        return _ogr.Geometry_GetLinearGeometry(self, *args, **kwargs)
+
+    def GetCurveGeometry(self, *args, **kwargs):
+        """GetCurveGeometry(self, char options = None) -> Geometry"""
+        return _ogr.Geometry_GetCurveGeometry(self, *args, **kwargs)
+
+    def Value(self, *args):
+        """Value(self, double dfDistance) -> Geometry"""
+        return _ogr.Geometry_Value(self, *args)
+
     def Destroy(self):
       self.__swig_destroy__(self) 
       self.__del__()
@@ -5237,6 +5607,62 @@ def GeometryTypeToName(*args):
 def GetFieldTypeName(*args):
   """GetFieldTypeName(OGRFieldType type) -> char"""
   return _ogr.GetFieldTypeName(*args)
+
+def GetFieldSubTypeName(*args):
+  """GetFieldSubTypeName(OGRFieldSubType type) -> char"""
+  return _ogr.GetFieldSubTypeName(*args)
+
+def GT_Flatten(*args):
+  """GT_Flatten(OGRwkbGeometryType eType) -> OGRwkbGeometryType"""
+  return _ogr.GT_Flatten(*args)
+
+def GT_SetZ(*args):
+  """GT_SetZ(OGRwkbGeometryType eType) -> OGRwkbGeometryType"""
+  return _ogr.GT_SetZ(*args)
+
+def GT_SetModifier(*args):
+  """GT_SetModifier(OGRwkbGeometryType eType, int bSetZ, int bSetM = True) -> OGRwkbGeometryType"""
+  return _ogr.GT_SetModifier(*args)
+
+def GT_HasZ(*args):
+  """GT_HasZ(OGRwkbGeometryType eType) -> int"""
+  return _ogr.GT_HasZ(*args)
+
+def GT_IsSubClassOf(*args):
+  """GT_IsSubClassOf(OGRwkbGeometryType eType, OGRwkbGeometryType eSuperType) -> int"""
+  return _ogr.GT_IsSubClassOf(*args)
+
+def GT_IsCurve(*args):
+  """GT_IsCurve(OGRwkbGeometryType arg0) -> int"""
+  return _ogr.GT_IsCurve(*args)
+
+def GT_IsSurface(*args):
+  """GT_IsSurface(OGRwkbGeometryType arg0) -> int"""
+  return _ogr.GT_IsSurface(*args)
+
+def GT_IsNonLinear(*args):
+  """GT_IsNonLinear(OGRwkbGeometryType arg0) -> int"""
+  return _ogr.GT_IsNonLinear(*args)
+
+def GT_GetCollection(*args):
+  """GT_GetCollection(OGRwkbGeometryType eType) -> OGRwkbGeometryType"""
+  return _ogr.GT_GetCollection(*args)
+
+def GT_GetCurve(*args):
+  """GT_GetCurve(OGRwkbGeometryType eType) -> OGRwkbGeometryType"""
+  return _ogr.GT_GetCurve(*args)
+
+def GT_GetLinear(*args):
+  """GT_GetLinear(OGRwkbGeometryType eType) -> OGRwkbGeometryType"""
+  return _ogr.GT_GetLinear(*args)
+
+def SetNonLinearGeometriesEnabledFlag(*args):
+  """SetNonLinearGeometriesEnabledFlag(int bFlag)"""
+  return _ogr.SetNonLinearGeometriesEnabledFlag(*args)
+
+def GetNonLinearGeometriesEnabledFlag(*args):
+  """GetNonLinearGeometriesEnabledFlag() -> int"""
+  return _ogr.GetNonLinearGeometriesEnabledFlag(*args)
 
 def GetOpenDS(*args):
   """GetOpenDS(int ds_number) -> DataSource"""

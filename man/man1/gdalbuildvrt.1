@@ -1,8 +1,8 @@
-.TH "gdalbuildvrt" 1 "Tue Feb 10 2015" "GDAL" \" -*- nroff -*-
+.TH "gdalbuildvrt" 1 "Mon May 4 2015" "GDAL" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
-gdalbuildvrt \- .TH "gdalbuildvrt" 1 "Tue Feb 10 2015" "GDAL" \" -*- nroff -*-
+gdalbuildvrt \- .TH "gdalbuildvrt" 1 "Mon May 4 2015" "GDAL" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -20,6 +20,7 @@ gdalbuildvrt [-tileindex field_name]
              [-addalpha] [-hidenodata]
              [-srcnodata "value [value...]"] [-vrtnodata "value [value...]"] 
              [-a_srs srs_def]
+             [-r {nearest,bilinear,cubic,cubicspline,lanczos,average,mode}]
              [-input_file_list my_liste.txt] [-overwrite] output.vrt [gdalfile]*
 .fi
 .PP
@@ -78,6 +79,9 @@ In case the resolution of all input files is not the same, the -resolution flag 
 .PP
 .IP "\fB\fB-a_srs\fP \fIsrs_def\fP:\fP" 1c
 (starting with GDAL 1.10) Override the projection for the output file. The \fIsrs_def\fP may be any of the usual GDAL/OGR forms, complete WKT, PROJ.4, EPSG:n or a file containing the WKT. 
+.PP
+.IP "\fB\fB-r\fP \fI{nearest (default),bilinear,cubic,cubicspline,lanczos,average,mode}\fP:\fP" 1c
+(GDAL >= 2.0) Select a resampling algorithm.
 .PP
 .IP "\fB\fB-input_file_list\fP:\fP" 1c
 To specify a text file with an input filename on each line 

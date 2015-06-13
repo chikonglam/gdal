@@ -570,10 +570,10 @@ public delegate int GDALProgressFuncDelegate(double Complete, IntPtr Message, In
   }
 
   public static int InvGeoTransform(double[] gt_in, double[] gt_out) {
-    int ret = GdalPINVOKE.InvGeoTransform(gt_in, gt_out);
+    int res = GdalPINVOKE.InvGeoTransform(gt_in, gt_out);
     if (GdalPINVOKE.SWIGPendingException.Pending) throw GdalPINVOKE.SWIGPendingException.Retrieve();
-    return ret;
-  }
+    return res;
+}
 
   public static string VersionInfo(string request) {
     string ret = GdalPINVOKE.VersionInfo(request);
@@ -675,6 +675,12 @@ public delegate int GDALProgressFuncDelegate(double Complete, IntPtr Message, In
     return ret;
   }
 
+  public static string GetJPEG2000StructureAsString(string pszFilename, string[] options) {
+    string ret = GdalPINVOKE.GetJPEG2000StructureAsString(pszFilename, (options != null)? new GdalPINVOKE.StringListMarshal(options)._ar : null);
+    if (GdalPINVOKE.SWIGPendingException.Pending) throw GdalPINVOKE.SWIGPendingException.Retrieve();
+    return ret;
+  }
+
   public static int GetDriverCount() {
     int ret = GdalPINVOKE.GetDriverCount();
     if (GdalPINVOKE.SWIGPendingException.Pending) throw GdalPINVOKE.SWIGPendingException.Retrieve();
@@ -697,6 +703,13 @@ public delegate int GDALProgressFuncDelegate(double Complete, IntPtr Message, In
 
   public static Dataset Open(string utf8_path, Access eAccess) {
     IntPtr cPtr = GdalPINVOKE.Open(Gdal.StringToUtf8Bytes(utf8_path), (int)eAccess);
+    Dataset ret = (cPtr == IntPtr.Zero) ? null : new Dataset(cPtr, true, ThisOwn_true());
+    if (GdalPINVOKE.SWIGPendingException.Pending) throw GdalPINVOKE.SWIGPendingException.Retrieve();
+    return ret;
+  }
+
+  public static Dataset OpenEx(string utf8_path, uint nOpenFlags, string[] allowed_drivers, string[] open_options, string[] sibling_files) {
+    IntPtr cPtr = GdalPINVOKE.OpenEx(Gdal.StringToUtf8Bytes(utf8_path), nOpenFlags, (allowed_drivers != null)? new GdalPINVOKE.StringListMarshal(allowed_drivers)._ar : null, (open_options != null)? new GdalPINVOKE.StringListMarshal(open_options)._ar : null, (sibling_files != null)? new GdalPINVOKE.StringListMarshal(sibling_files)._ar : null);
     Dataset ret = (cPtr == IntPtr.Zero) ? null : new Dataset(cPtr, true, ThisOwn_true());
     if (GdalPINVOKE.SWIGPendingException.Pending) throw GdalPINVOKE.SWIGPendingException.Retrieve();
     return ret;

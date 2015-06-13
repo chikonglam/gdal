@@ -1,5 +1,5 @@
 /*
- * $Id: gdal_ruby.i 21964 2011-03-17 14:00:08Z warmerdam $
+ * $Id: gdal_ruby.i 28039 2014-11-30 18:24:59Z rouault $
  *
  * ruby specific code for gdal bindings.
  */
@@ -10,7 +10,7 @@
  * Copied over code from the Python version of gdal_ruby.i.  Will have to port the code to Ruby.
  *
  * Revision 1.1  2005/09/02 16:19:23  kruland
- * Major reorganization to accomodate multiple language bindings.
+ * Major reorganization to accommodate multiple language bindings.
  * Each language binding can define renames and supplemental code without
  * having to have a lot of conditionals in the main interface definition files.
  *

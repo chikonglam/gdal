@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrsuadriver.cpp 27729 2014-09-24 00:40:16Z goatbar $
+ * $Id: ogrsuadriver.cpp 27384 2014-05-24 12:28:12Z rouault $
  *
  * Project:  SUA Translator
  * Purpose:  Implements OGRSUADriver.
@@ -30,39 +30,32 @@
 #include "ogr_sua.h"
 #include "cpl_conv.h"
 
-CPL_CVSID("$Id: ogrsuadriver.cpp 27729 2014-09-24 00:40:16Z goatbar $");
+CPL_CVSID("$Id: ogrsuadriver.cpp 27384 2014-05-24 12:28:12Z rouault $");
 
 extern "C" void RegisterOGRSUA();
-
-/************************************************************************/
-/*                           ~OGRSUADriver()                            */
-/************************************************************************/
-
-OGRSUADriver::~OGRSUADriver()
-
-{
-}
-
-/************************************************************************/
-/*                              GetName()                               */
-/************************************************************************/
-
-const char *OGRSUADriver::GetName()
-
-{
-    return "SUA";
-}
 
 /************************************************************************/
 /*                                Open()                                */
 /************************************************************************/
 
-OGRDataSource *OGRSUADriver::Open( const char * pszFilename, int bUpdate )
+static GDALDataset *OGRSUADriverOpen( GDALOpenInfo* poOpenInfo )
 
 {
+    if( poOpenInfo->eAccess == GA_Update ||
+        poOpenInfo->fpL == NULL ||
+        !poOpenInfo->TryToIngest(10000) )
+        return NULL;
+
+    int bIsSUA = ( strstr((const char*)poOpenInfo->pabyHeader, "\nTYPE=") != NULL &&
+            strstr((const char*)poOpenInfo->pabyHeader, "\nTITLE=") != NULL &&
+            (strstr((const char*)poOpenInfo->pabyHeader, "\nPOINT=") != NULL ||
+            strstr((const char*)poOpenInfo->pabyHeader, "\nCIRCLE ") != NULL));
+    if( !bIsSUA )
+        return NULL;
+
     OGRSUADataSource   *poDS = new OGRSUADataSource();
 
-    if( !poDS->Open( pszFilename, bUpdate ) )
+    if( !poDS->Open( poOpenInfo->pszFilename ) )
     {
         delete poDS;
         poDS = NULL;
@@ -72,21 +65,30 @@ OGRDataSource *OGRSUADriver::Open( const char * pszFilename, int bUpdate )
 }
 
 /************************************************************************/
-/*                           TestCapability()                           */
-/************************************************************************/
-
-int OGRSUADriver::TestCapability( CPL_UNUSED const char * pszCap )
-{
-    return FALSE;
-}
-
-/************************************************************************/
 /*                           RegisterOGRSUA()                           */
 /************************************************************************/
 
 void RegisterOGRSUA()
 
 {
-    OGRSFDriverRegistrar::GetRegistrar()->RegisterDriver( new OGRSUADriver );
+    GDALDriver  *poDriver;
+
+    if( GDALGetDriverByName( "SUA" ) == NULL )
+    {
+        poDriver = new GDALDriver();
+
+        poDriver->SetDescription( "SUA" );
+        poDriver->SetMetadataItem( GDAL_DCAP_VECTOR, "YES" );
+        poDriver->SetMetadataItem( GDAL_DMD_LONGNAME,
+                                   "Tim Newport-Peace's Special Use Airspace Format" );
+        poDriver->SetMetadataItem( GDAL_DMD_HELPTOPIC,
+                                   "drv_sua.html" );
+
+        poDriver->SetMetadataItem( GDAL_DCAP_VIRTUALIO, "YES" );
+
+        poDriver->pfnOpen = OGRSUADriverOpen;
+
+        GetGDALDriverManager()->RegisterDriver( poDriver );
+    }
 }
 

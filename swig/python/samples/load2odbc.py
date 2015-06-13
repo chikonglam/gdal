@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 ###############################################################################
-# $Id: load2odbc.py 27044 2014-03-16 23:41:27Z rouault $
+# $Id: load2odbc.py 28391 2015-01-30 19:57:31Z rouault $
 #
 # Project:  OGR Python samples
 # Purpose:  Load ODBC table to an ODBC datastore.  Uses direct SQL 
@@ -31,13 +31,10 @@
 ###############################################################################
 
 try:
-    from osgeo import osr
     from osgeo import ogr
 except ImportError:
-    import osr
     import ogr
 
-import string
 import sys
 
 #############################################################################

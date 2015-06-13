@@ -123,6 +123,17 @@ public class GeomFieldDefn : IDisposable {
     if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
   }
 
+  public int IsNullable() {
+    int ret = OgrPINVOKE.GeomFieldDefn_IsNullable(swigCPtr);
+    if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
+    return ret;
+  }
+
+  public void SetNullable(int bNullable) {
+    OgrPINVOKE.GeomFieldDefn_SetNullable(swigCPtr, bNullable);
+    if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
+  }
+
 }
 
 }

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 ###############################################################################
-# $Id: vec_tr.py 18195 2009-12-06 20:24:39Z rouault $
+# $Id: vec_tr.py 28391 2015-01-30 19:57:31Z rouault $
 #
 # Project:  OGR Python samples
 # Purpose:  Apply a transformation to all OGR geometries.
@@ -29,13 +29,10 @@
 ###############################################################################
 
 try:
-    from osgeo import osr
     from osgeo import ogr
 except ImportError:
-    import osr
     import ogr
 
-import string
 import sys
 
 #############################################################################

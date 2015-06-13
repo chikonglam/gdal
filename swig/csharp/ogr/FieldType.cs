@@ -20,7 +20,9 @@ public enum FieldType {
   OFTBinary = 8,
   OFTDate = 9,
   OFTTime = 10,
-  OFTDateTime = 11
+  OFTDateTime = 11,
+  OFTInteger64 = 12,
+  OFTInteger64List = 13
 }
 
 }

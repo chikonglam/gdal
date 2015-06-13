@@ -270,7 +270,7 @@
     <p>By default, layers are written as
     <a href="https://developers.google.com/kml/documentation/kmlreference#document">
     &lt;Document&gt;</a> elements. By settings the <b>FOLDER</b> layer creation option
-    to No, it is also possible to write them as <a href="https://developers.google.com/kml/documentation/kmlreference#folder">
+    to YES, it is also possible to write them as <a href="https://developers.google.com/kml/documentation/kmlreference#folder">
     &lt;Folder&gt;</a> elements (only in .kml files). 
     </p>
 
@@ -318,7 +318,7 @@
     camera_latitude, camera_altitude, camera_altitudemode, head and/or tilt and/or roll,
     leftfov, rightfov, bottomfov, topfov, near fields are also set. The shape field is optional.
   </p>
-  <p>In case the PhotoOverlay is a big image, it is highly recommanded to tile it and
+  <p>In case the PhotoOverlay is a big image, it is highly recommended to tile it and
      generate overview levels, as explained in the <a href="https://developers.google.com/kml/documentation/photos">
      PhotoOverlay tutorial</a>. In which case, the URL should contain the "$[level]", "$[x]" and "$[y]"
      sub-strings in the photooverlay field, and the imagepyramid_tilesize,

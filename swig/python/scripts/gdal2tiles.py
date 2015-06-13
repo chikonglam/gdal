@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #******************************************************************************
-#  $Id: gdal2tiles.py 27349 2014-05-16 18:58:51Z rouault $
+#  $Id: gdal2tiles.py 28392 2015-01-30 21:01:09Z rouault $
 # 
 # Project:  Google Summer of Code 2007, 2008 (http://code.google.com/soc/)
 # Support:  BRGM (http://www.brgm.fr)
@@ -58,7 +58,7 @@ except:
     # 'antialias' resampling is not available
     pass
 
-__version__ = "$Id: gdal2tiles.py 27349 2014-05-16 18:58:51Z rouault $"
+__version__ = "$Id: gdal2tiles.py 28392 2015-01-30 21:01:09Z rouault $"
 
 resampling_list = ('average','near','bilinear','cubic','cubicspline','lanczos','antialias')
 profile_list = ('mercator','geodetic','raster') #,'zoomify')
@@ -93,14 +93,12 @@ Created by Klokan Petr Pridal on 2008-07-03.
 Google Summer of Code 2008, project GDAL2Tiles for OSGEO.
 
 In case you use this class in your product, translate it to another language
-or find it usefull for your project please let me know.
+or find it useful for your project please let me know.
 My email: klokan at klokan dot cz.
 I would like to know where it was used.
 
 Class is available under the open-source GDAL license (www.gdal.org).
 """
-
-import math
 
 MAXZOOMLEVEL = 32
 
@@ -435,13 +433,13 @@ class Zoomify(object):
 
         # Size (in tiles) for each tier of pyramid.
         self.tierSizeInTiles = []
-        self.tierSizeInTiles.push( tiles )
+        self.tierSizeInTiles.append( tiles )
 
         # Image size in pixels for each pyramid tierself
         self.tierImageSize = []
         self.tierImageSize.append( imagesize );
 
-        while (imagesize[0] > tilesize or imageSize[1] > tilesize ):
+        while (imagesize[0] > tilesize or imagesize[1] > tilesize ):
             imagesize = (math.floor( imagesize[0] / 2 ), math.floor( imagesize[1] / 2) )
             tiles = ( math.ceil( imagesize[0] / tilesize ), math.ceil( imagesize[1] / tilesize ) )
             self.tierSizeInTiles.append( tiles )
@@ -1055,7 +1053,8 @@ gdal2tiles temp.vrt""" % self.input )
 
                 def rastertileswne(x,y,z):
                     pixelsizex = (2**(self.tmaxz-z) * self.out_gt[1]) # X-pixel size in level
-                    pixelsizey = (2**(self.tmaxz-z) * self.out_gt[1]) # Y-pixel size in level (usually -1*pixelsizex)
+                    #Comment pixelsizey as unused...
+                    #pixelsizey = (2**(self.tmaxz-z) * self.out_gt[1]) # Y-pixel size in level (usually -1*pixelsizex)
                     west = self.out_gt[0] + x*self.tilesize*pixelsizex
                     east = west + self.tilesize*pixelsizex
                     south = self.ominy + y*self.tilesize*pixelsizex

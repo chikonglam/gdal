@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 ###############################################################################
-# $Id: ogr_dispatch.py 27044 2014-03-16 23:41:27Z rouault $
+# $Id: ogr_dispatch.py 28392 2015-01-30 21:01:09Z rouault $
 #
 # Project:  GDAL/OGR samples
 # Purpose:  Dispatch features into layers according to the value of some fields
@@ -288,6 +288,7 @@ def ogr_dispatch(argv, progress = None, progress_arg = None):
     dst_filename = None
     format = "ESRI Shapefile"
     options = Options()
+    lco = []
     dsco = []
     pszWHERE = None
 
@@ -370,7 +371,7 @@ def ogr_dispatch(argv, progress = None, progress_arg = None):
 
     dst_ds = ogr.Open(dst_filename, update = 1)
     if dst_ds is not None:
-        if len(options.dsco) != 0:
+        if len(dsco) != 0:
             print('-dsco should not be specified for an existing datasource')
             return 1
     else:

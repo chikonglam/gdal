@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdal_java.i 27432 2014-06-03 18:28:26Z goatbar $
+ * $Id: gdal_java.i 28053 2014-12-04 09:31:07Z rouault $
  *
  * Name:     gdal_java.i
  * Project:  GDAL SWIG Interface
@@ -16,6 +16,8 @@
  *
  *
 */
+
+%include java_exceptions.i
 
 %pragma(java) jniclasscode=%{
   private static boolean available = false;
@@ -44,7 +46,26 @@
 
 /* This hacks turns the gdalJNI class into a package private class */
 %pragma(java) jniclassimports=%{
+import org.gdal.osr.SpatialReference;
+import org.gdal.ogr.Geometry;
+import org.gdal.ogr.StyleTable;
+import org.gdal.ogr.Layer;
 %}
+
+%pragma(java) moduleimports=%{
+import org.gdal.osr.SpatialReference;
+import org.gdal.ogr.Geometry;
+import org.gdal.ogr.StyleTable;
+import org.gdal.ogr.Layer;
+%}
+
+%typemap(javaimports) GDALDatasetShadow %{
+import org.gdal.osr.SpatialReference;
+import org.gdal.ogr.Geometry;
+import org.gdal.ogr.StyleTable;
+import org.gdal.ogr.Layer;
+%}
+
 
 %pragma(java) modulecode=%{
 
@@ -145,7 +166,6 @@ import org.gdal.gdalconst.gdalconstConstants;
 
 %}
 
-
 %typemap(javacode) GDALDatasetShadow %{
 
   // Preferred name to match C++ API
@@ -176,6 +196,16 @@ import org.gdal.gdalconst.gdalconstConstants;
       GetGeoTransform(adfGeoTransform);
       return adfGeoTransform;
   }
+
+  public Layer GetLayer(int index)
+  {
+      return GetLayerByIndex(index);
+  }
+
+  public Layer GetLayer(String layerName)
+  {
+      return GetLayerByName(layerName);
+  }
 %}
 
 %{
@@ -205,7 +235,7 @@ import org.gdal.gdalconst.gdalconstConstants;
 static
 GIntBig ComputeDatasetRasterIOSize (int buf_xsize, int buf_ysize, int nPixelSize,
                                 int nBands, int* bandMap, int nBandMapArrayLength,
-                                int nPixelSpace, int nLineSpace, int nBandSpace,
+                                GIntBig nPixelSpace, GIntBig nLineSpace, GIntBig nBandSpace,
                                 int bSpacingShouldBeMultipleOfPixelSize );
 
 static CPLErr DatasetRasterIO( GDALDatasetH hDS, GDALRWFlag eRWFlag,
@@ -372,8 +402,8 @@ CPLErr ReadRaster( int xoff, int yoff, int xsize, int ysize,
 %{
 static
 GIntBig ComputeBandRasterIOSize (int buf_xsize, int buf_ysize, int nPixelSize,
-                             int nPixelSpace, int nLineSpace,
-                             int bSpacingShouldBeMultipleOfPixelSize );
+                                 GIntBig nPixelSpace, GIntBig nLineSpace,
+                                 int bSpacingShouldBeMultipleOfPixelSize );
 
 static CPLErr BandRasterIO( GDALRasterBandH hBand, GDALRWFlag eRWFlag,
                             int xoff, int yoff, int xsize, int ysize,
@@ -859,6 +889,11 @@ import org.gdal.gdalconst.gdalconstConstants;
                   GDALRasterBandShadow* GetMaskBand,
                   GDALColorTableShadow* GetColorTable,
                   GDALColorTableShadow* GetRasterColorTable,
+                  OGRLayerShadow* CreateLayer,
+                  OGRLayerShadow* CopyLayer,
+                  OGRLayerShadow* GetLayerByIndex,
+                  OGRLayerShadow* GetLayerByName,
+                  OGRLayerShadow* ExecuteSQL,
                   CPLXMLNode* getChild,
                   CPLXMLNode* getNext,
                   CPLXMLNode* GetXMLNode,
@@ -911,21 +946,6 @@ import org.gdal.gdalconst.gdalconstConstants;
       return SetMetadata(metadata, null);
   }
 %}
-
-%typemap(in) (OGRLayerShadow*)
-{
-    if ($input != NULL)
-    {
-        const jclass klass = jenv->FindClass("org/gdal/ogr/Layer");
-        const jmethodID getCPtr = jenv->GetStaticMethodID(klass, "getCPtr", "(Lorg/gdal/ogr/Layer;)J");
-        $1 = (OGRLayerShadow*) jenv->CallStaticLongMethod(klass, getCPtr, $input);
-    }
-}
-
-%typemap(jni) (OGRLayerShadow*)  "jobject"
-%typemap(jtype) (OGRLayerShadow*)  "org.gdal.ogr.Layer"
-%typemap(jstype) (OGRLayerShadow*)  "org.gdal.ogr.Layer"
-%typemap(javain) (OGRLayerShadow*)  "$javainput"
 
 %include callback.i
 
