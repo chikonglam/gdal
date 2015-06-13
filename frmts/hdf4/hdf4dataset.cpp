@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: hdf4dataset.cpp 28901 2015-04-14 10:10:32Z rouault $
+ * $Id: hdf4dataset.cpp 29208 2015-05-19 13:54:59Z rouault $
  *
  * Project:  Hierarchical Data Format Release 4 (HDF4)
  * Purpose:  HDF4 Datasets. Open HDF4 file, fetch metadata and list of
@@ -42,7 +42,7 @@
 #include "hdf4compat.h"
 #include "hdf4dataset.h"
 
-CPL_CVSID("$Id: hdf4dataset.cpp 28901 2015-04-14 10:10:32Z rouault $");
+CPL_CVSID("$Id: hdf4dataset.cpp 29208 2015-05-19 13:54:59Z rouault $");
 
 CPL_C_START
 void	GDALRegister_HDF4(void);
@@ -295,11 +295,11 @@ double HDF4Dataset::AnyTypeToDouble( int32 iNumType, void *pData )
         case DFNT_UINT16:
             return (double)*(unsigned short *)pData;
         case DFNT_INT32:
-            return (double)*(long *)pData;
+            return (double)*(int *)pData;
         case DFNT_UINT32:
-            return (double)*(unsigned long *)pData;
+            return (double)*(unsigned int *)pData;
         case DFNT_INT64:
-            return (double)*(char *)pData;
+            return (double)*(char *)pData; // highly suspicious ! Should be GIntBig. But cannot verify
         case DFNT_UINT64:
             return (double)*(GIntBig *)pData;
         case DFNT_FLOAT32:

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: typemaps_csharp.i 28375 2015-01-30 12:06:11Z rouault $
+ * $Id: typemaps_csharp.i 29225 2015-05-21 16:28:00Z rouault $
  *
  * Name:     typemaps_csharp.i
  * Project:  GDAL CSharp Interface
@@ -32,6 +32,8 @@
 %include "typemaps.i"
 
 /* CSHARP TYPEMAPS */
+
+%apply (int) {VSI_RETVAL};
 
 %fragment("OGRErrMessages","header") %{
 static char const *

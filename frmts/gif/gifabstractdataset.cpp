@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gifabstractdataset.cpp 28283 2015-01-03 20:08:00Z rouault $
+ * $Id: gifabstractdataset.cpp 29222 2015-05-21 15:06:39Z rouault $
  *
  * Project:  GIF Driver
  * Purpose:  GIF Abstract Dataset
@@ -29,7 +29,7 @@
 
 #include "gifabstractdataset.h"
 
-CPL_CVSID("$Id: gifabstractdataset.cpp 28283 2015-01-03 20:08:00Z rouault $");
+CPL_CVSID("$Id: gifabstractdataset.cpp 29222 2015-05-21 15:06:39Z rouault $");
 
 static const int InterlacedOffset[] = { 0, 4, 2, 1 }; 
 static const int InterlacedJumps[] = { 8, 8, 4, 2 };  
@@ -324,19 +324,47 @@ int GIFAbstractDataset::Identify( GDALOpenInfo * poOpenInfo )
 }
 
 /************************************************************************/
+/*                            GetFileList()                             */
+/************************************************************************/
+
+char **GIFAbstractDataset::GetFileList()
+
+{
+    char **papszFileList = GDALPamDataset::GetFileList();
+
+    if (osWldFilename.size() != 0 &&
+        CSLFindString(papszFileList, osWldFilename) == -1)
+    {
+        papszFileList = CSLAddString( papszFileList, osWldFilename );
+    }
+
+    return papszFileList;
+}
+
+/************************************************************************/
 /*                         DetectGeoreferencing()                       */
 /************************************************************************/
 
 void GIFAbstractDataset::DetectGeoreferencing( GDALOpenInfo * poOpenInfo )
 {
+    char* pszWldFilename = NULL;
+
     bGeoTransformValid =
         GDALReadWorldFile2( poOpenInfo->pszFilename, NULL,
-                           adfGeoTransform, poOpenInfo->GetSiblingFiles(), NULL );
+                            adfGeoTransform, poOpenInfo->GetSiblingFiles(), 
+                            &pszWldFilename );
     if ( !bGeoTransformValid )
     {
         bGeoTransformValid =
             GDALReadWorldFile2( poOpenInfo->pszFilename, ".wld",
-                               adfGeoTransform, poOpenInfo->GetSiblingFiles(), NULL );
+                                adfGeoTransform, poOpenInfo->GetSiblingFiles(),
+                                &pszWldFilename );
+    }
+
+    if (pszWldFilename)
+    {
+        osWldFilename = pszWldFilename;
+        CPLFree(pszWldFilename);
     }
 }
 

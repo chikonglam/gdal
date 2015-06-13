@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdaldriver.cpp 29077 2015-04-30 13:23:31Z rouault $
+ * $Id: gdaldriver.cpp 29207 2015-05-18 17:23:45Z mloskot $
  *
  * Project:  GDAL Core
  * Purpose:  Implementation of GDALDriver class (and C wrappers)
@@ -31,7 +31,7 @@
 #include "gdal_priv.h"
 #include "ogrsf_frmts.h"
 
-CPL_CVSID("$Id: gdaldriver.cpp 29077 2015-04-30 13:23:31Z rouault $");
+CPL_CVSID("$Id: gdaldriver.cpp 29207 2015-05-18 17:23:45Z mloskot $");
 
 CPL_C_START
 const char* GDALClientDatasetGetFilename(const char* pszFilename);
@@ -86,9 +86,8 @@ GDALDriver::~GDALDriver()
 void CPL_STDCALL GDALDestroyDriver( GDALDriverH hDriver )
 
 {
-    VALIDATE_POINTER0( hDriver, "GDALDestroyDriver" );
-
-    delete ((GDALDriver *) hDriver);
+    if( hDriver != NULL )
+        delete ((GDALDriver *) hDriver);
 }
 
 /************************************************************************/

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_osm.h 28601 2015-03-03 11:06:40Z rouault $
+ * $Id: ogr_osm.h 29242 2015-05-24 10:59:41Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Private definitions for OGR/OpenStreeMap driver.
@@ -400,7 +400,7 @@ class OGROSMDataSource : public OGRDataSource
                                        unsigned int* pnTags, OSMTag* pasTags,
                                        OSMInfo* psInfo );
 
-    int                 ParseConf();
+    int                 ParseConf(char** papszOpenOptions);
     int                 CreateTempDB();
     int                 SetDBOptions();
     int                 SetCacheSize();
@@ -465,7 +465,7 @@ class OGROSMDataSource : public OGRDataSource
     virtual void        ReleaseResultSet( OGRLayer * poLayer );
 
 
-    int                 Open ( const char* pszFilename );
+    int                 Open ( const char* pszFilename, char** papszOpenOptions );
 
     int                 ResetReading();
     int                 ParseNextChunk(int nIdxLayer);

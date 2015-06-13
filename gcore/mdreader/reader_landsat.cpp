@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: reader_landsat.cpp 29145 2015-05-04 10:00:40Z rouault $
+ * $Id: reader_landsat.cpp 29245 2015-05-24 16:46:56Z rouault $
  *
  * Project:  GDAL Core
  * Purpose:  Read metadata from Landsat imagery.
@@ -30,7 +30,7 @@
 
 #include "reader_landsat.h"
 
-CPL_CVSID("$Id: reader_landsat.cpp 29145 2015-05-04 10:00:40Z rouault $");
+CPL_CVSID("$Id: reader_landsat.cpp 29245 2015-05-24 16:46:56Z rouault $");
 
 /**
  * GDALMDReaderLandsat()
@@ -40,11 +40,14 @@ GDALMDReaderLandsat::GDALMDReaderLandsat(const char *pszPath,
 {
     const char* pszBaseName = CPLGetBasename(pszPath);
     const char* pszDirName = CPLGetDirname(pszPath);
+    size_t nBaseNameLen = strlen(pszBaseName);
+    if( nBaseNameLen > 511 )
+        return;
 
     // split file name by _B or _b
     char szMetadataName[512] = {0};
     size_t i;
-    for(i = 0; i < CPLStrnlen(pszBaseName, 511); i++)
+    for(i = 0; i < nBaseNameLen; i++)
     {
         szMetadataName[i] = pszBaseName[i];
         if(EQUALN(pszBaseName + i, "_B", 2) || EQUALN(pszBaseName + i, "_b", 2))
@@ -55,9 +58,6 @@ GDALMDReaderLandsat::GDALMDReaderLandsat(const char *pszPath,
 
     // form metadata file name
     CPLStrlcpy(szMetadataName + i, "_MTL.txt", 9);
-
-    //CPLDebug( "MDReaderLandsat", "Try IMD Filename: %s",
-    //        szMetadataName );
 
     const char* pszIMDSourceFilename = CPLFormFilename( pszDirName,
                                                         szMetadataName, NULL );

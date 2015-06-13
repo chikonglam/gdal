@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: typemaps_python.i 28899 2015-04-14 09:27:00Z rouault $
+ * $Id: typemaps_python.i 29225 2015-05-21 16:28:00Z rouault $
  *
  * Name:     typemaps_python.i
  * Project:  GDAL Python Interface
@@ -21,6 +21,8 @@
  * standard types through arguments.
  */
 %include "typemaps.i"
+
+%apply (int) {VSI_RETVAL};
 
 %apply (double *OUTPUT) { double *argout };
 

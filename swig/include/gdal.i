@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdal.i 28713 2015-03-10 20:19:21Z ajolma $
+ * $Id: gdal.i 29227 2015-05-21 16:58:30Z ajolma $
  *
  * Name:     gdal.i
  * Project:  GDAL Python Interface
@@ -96,6 +96,8 @@ typedef int OGRErr;
 %{
 /* use this to not return the int returned by GDAL */
 typedef int RETURN_NONE;
+/* return value that is used for VSI methods that return -1 on error (and set errno) */
+typedef int VSI_RETVAL;
 
 %}
 

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrcsvdatasource.cpp 27959 2014-11-14 18:29:21Z rouault $
+ * $Id: ogrcsvdatasource.cpp 29237 2015-05-24 08:38:20Z rouault $
  *
  * Project:  CSV Translator
  * Purpose:  Implements OGRCSVDataSource class
@@ -34,7 +34,7 @@
 #include "cpl_csv.h"
 #include "cpl_vsi_virtual.h"
 
-CPL_CVSID("$Id: ogrcsvdatasource.cpp 27959 2014-11-14 18:29:21Z rouault $");
+CPL_CVSID("$Id: ogrcsvdatasource.cpp 29237 2015-05-24 08:38:20Z rouault $");
 
 /************************************************************************/
 /*                          OGRCSVDataSource()                          */
@@ -408,6 +408,26 @@ int OGRCSVDataSource::OpenTable( const char * pszFilename,
         return FALSE;
     }
     char chDelimiter = CSVDetectSeperator(pszLine);
+#if 0
+    const char *pszDelimiter = CSLFetchNameValueDef( papszOpenOptions, "SEPARATOR", "AUTO");
+    if( !EQUAL(pszDelimiter, "AUTO") )
+    {
+        if (EQUAL(pszDelimiter, "COMMA"))
+            chDelimiter = ',';
+        else if (EQUAL(pszDelimiter, "SEMICOLON"))
+            chDelimiter = ';';
+        else if (EQUAL(pszDelimiter, "TAB"))
+            chDelimiter = '\t';
+        else if (EQUAL(pszDelimiter, "SPACE"))
+            chDelimiter = ' ';
+        else
+        {
+            CPLError( CE_Warning, CPLE_AppDefined, 
+                  "SEPARATOR=%s not understood, use one of COMMA, SEMICOLON, SPACE or TAB.",
+                  pszDelimiter );
+        }
+    }
+#endif
 
     /* Force the delimiter to be TAB for a .tsv file that has a tabulation */
     /* in its first line */
@@ -546,10 +566,12 @@ OGRCSVDataSource::ICreateLayer( const char *pszLayerName,
             chDelimiter = ';';
         else if (EQUAL(pszDelimiter, "TAB"))
             chDelimiter = '\t';
+        else if (EQUAL(pszDelimiter, "SPACE"))
+            chDelimiter = ' ';
         else
         {
             CPLError( CE_Warning, CPLE_AppDefined, 
-                  "SEPARATOR=%s not understood, use one of COMMA, SEMICOLON or TAB.",
+                  "SEPARATOR=%s not understood, use one of COMMA, SEMICOLON, SPACE or TAB.",
                   pszDelimiter );
         }
     }

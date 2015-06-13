@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: pcrasterrasterband.h 28862 2015-04-07 10:10:25Z kdejong $
+ * $Id: pcrasterrasterband.h 29187 2015-05-13 14:20:13Z kdejong $
  *
  * Project:  PCRaster Integration
  * Purpose:  PCRaster raster band declaration.
@@ -64,7 +64,9 @@ private:
   //! Dataset this band is part of. For use only.
   PCRasterDataset const* d_dataset;
 
-  double           d_missing_value;
+  double           d_noDataValue;
+
+  bool             d_defaultNoDataValueOverridden;
 
   GDALDataType     d_create_in;
 
@@ -82,7 +84,7 @@ private:
 
 protected:
 
-  double           GetNoDataValue      (int* success);
+  double           GetNoDataValue      (int* success=NULL);
 
   double           GetMinimum          (int* success);
 
@@ -108,7 +110,7 @@ public:
 
   CPLErr           SetNoDataValue      (double no_data);
 
- //----------------------------------------------------------------------------
+  //----------------------------------------------------------------------------
   // ACCESSORS
   //----------------------------------------------------------------------------
 

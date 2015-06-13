@@ -1,5 +1,5 @@
 /**********************************************************************
- * $Id: gmlhandler.cpp 29026 2015-04-26 14:45:00Z rouault $
+ * $Id: gmlhandler.cpp 29217 2015-05-21 09:08:48Z rouault $
  *
  * Project:  GML Reader
  * Purpose:  Implementation of GMLHandler class.
@@ -791,25 +791,22 @@ void GMLHandler::DealWithAttributes(const char *pszName, int nLenName, void* att
         /* Hard-coded historic cases */
         else if( strcmp(pszAttrKey, "xlink:href") == 0 )
         {
-            if (m_bReportHref)
+            if( (m_bReportHref || m_poReader->ReportAllAttributes()) && m_bInCurField )
             {
-                if( m_bInCurField )
-                {
-                    CPLFree(m_pszHref);
-                    m_pszHref = pszAttrVal;
-                    pszAttrVal = NULL;
-                }
-                else if( !poClass->IsSchemaLocked() ||
-                         (nAttrIndex =
-                            m_poReader->GetAttributeElementIndex( CPLSPrintf("%s_href", pszName ),
-                                                      nLenName + 5 )) != -1 )
-                {
-                    poState->PushPath( pszName, nLenName );
-                    CPLString osPropNameHref = poState->osPath + "_href";
-                    poState->PopPath();
-                    m_poReader->SetFeaturePropertyDirectly( osPropNameHref, pszAttrVal, nAttrIndex );
-                    pszAttrVal = NULL;
-                }
+                CPLFree(m_pszHref);
+                m_pszHref = pszAttrVal;
+                pszAttrVal = NULL;
+            }
+            else if( (!poClass->IsSchemaLocked() && (m_bReportHref || m_poReader->ReportAllAttributes())) ||
+                        (poClass->IsSchemaLocked() && (nAttrIndex =
+                        m_poReader->GetAttributeElementIndex( CPLSPrintf("%s_href", pszName ),
+                                                    nLenName + 5 )) != -1) )
+            {
+                poState->PushPath( pszName, nLenName );
+                CPLString osPropNameHref = poState->osPath + "_href";
+                poState->PopPath();
+                m_poReader->SetFeaturePropertyDirectly( osPropNameHref, pszAttrVal, nAttrIndex );
+                pszAttrVal = NULL;
             }
         }
         else if( strcmp(pszAttrKey, "uom") == 0 )
@@ -1593,7 +1590,7 @@ OGRErr GMLHandler::endElementAttribute()
 
     if (m_bInCurField)
     {
-        if (m_pszCurField == NULL)
+        if (m_pszCurField == NULL && m_poReader->IsEmptyAsNull())
         {
             if (m_pszValue != NULL)
             {
@@ -1605,7 +1602,7 @@ OGRErr GMLHandler::endElementAttribute()
         else
         {
             m_poReader->SetFeaturePropertyDirectly( poState->osPath.c_str(),
-                                            m_pszCurField,
+                                            m_pszCurField ? m_pszCurField : CPLStrdup(""),
                                             m_nAttributeIndex );
             m_pszCurField = NULL;
         }

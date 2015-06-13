@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdaldataset.cpp 29097 2015-05-01 20:13:36Z rouault $
+ * $Id: gdaldataset.cpp 29161 2015-05-06 10:18:19Z rouault $
  *
  * Project:  GDAL Core
  * Purpose:  Base class for raster file formats.  
@@ -46,7 +46,7 @@
 
 #include <map>
 
-CPL_CVSID("$Id: gdaldataset.cpp 29097 2015-05-01 20:13:36Z rouault $");
+CPL_CVSID("$Id: gdaldataset.cpp 29161 2015-05-06 10:18:19Z rouault $");
 
 CPL_C_START
 GDALAsyncReader *
@@ -1527,19 +1527,25 @@ CPLErr GDALDataset::IRasterIO( GDALRWFlag eRWFlag,
 
         pabyBandData = ((GByte *) pData) + iBandIndex * nBandSpace;
 
-        psExtraArg->pfnProgress = GDALScaledProgress;
-        psExtraArg->pProgressData = 
-            GDALCreateScaledProgress( 1.0 * iBandIndex / nBandCount,
-                                      1.0 * (iBandIndex + 1) / nBandCount,
-                                      pfnProgressGlobal,
-                                      pProgressDataGlobal );
+        if( nBandCount > 1 )
+        {
+            psExtraArg->pfnProgress = GDALScaledProgress;
+            psExtraArg->pProgressData = 
+                GDALCreateScaledProgress( 1.0 * iBandIndex / nBandCount,
+                                        1.0 * (iBandIndex + 1) / nBandCount,
+                                        pfnProgressGlobal,
+                                        pProgressDataGlobal );
+            if( psExtraArg->pProgressData == NULL )
+                psExtraArg->pfnProgress = NULL;
+        }
 
         eErr = poBand->IRasterIO( eRWFlag, nXOff, nYOff, nXSize, nYSize, 
                                   (void *) pabyBandData, nBufXSize, nBufYSize,
                                   eBufType, nPixelSpace, nLineSpace,
                                   psExtraArg );
 
-        GDALDestroyScaledProgress( psExtraArg->pProgressData );
+        if( nBandCount > 1 )
+            GDALDestroyScaledProgress( psExtraArg->pProgressData );
     }
     
     psExtraArg->pfnProgress = pfnProgressGlobal;

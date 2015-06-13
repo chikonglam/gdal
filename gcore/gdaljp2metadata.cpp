@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdaljp2metadata.cpp 29082 2015-04-30 17:03:52Z rouault $
+ * $Id: gdaljp2metadata.cpp 29210 2015-05-19 19:04:28Z rouault $
  *
  * Project:  GDAL 
  * Purpose:  GDALJP2Metadata - Read GeoTIFF and/or GML georef info.
@@ -40,7 +40,7 @@
 #include "json.h"
 #include "gdaljp2metadatagenerator.h"
 
-CPL_CVSID("$Id: gdaljp2metadata.cpp 29082 2015-04-30 17:03:52Z rouault $");
+CPL_CVSID("$Id: gdaljp2metadata.cpp 29210 2015-05-19 19:04:28Z rouault $");
 
 static const unsigned char msi_uuid2[16] =
 {0xb1,0x4b,0xf8,0xbd,0x08,0x3d,0x4b,0x43,
@@ -991,11 +991,10 @@ int GDALJP2Metadata::ParseGMLCoverageDesc()
 /* -------------------------------------------------------------------- */
     int bNeedAxisFlip = FALSE;
 
+    OGRSpatialReference oSRS;
     if( bSuccess && pszSRSName != NULL 
         && (pszProjection == NULL || strlen(pszProjection) == 0) )
     {
-        OGRSpatialReference oSRS;
-
         if( EQUALN(pszSRSName,"epsg:",5) )
         {
             if( oSRS.SetFromUserInput( pszSRSName ) == OGRERR_NONE )
@@ -1033,9 +1032,6 @@ int GDALJP2Metadata::ParseGMLCoverageDesc()
                   "Got projection from GML box: %s", 
                  pszProjection );
 
-    CPLDestroyXMLNode( psXML );
-    psXML = NULL;
-
 /* -------------------------------------------------------------------- */
 /*      Do we need to flip the axes?                                    */
 /* -------------------------------------------------------------------- */
@@ -1046,6 +1042,60 @@ int GDALJP2Metadata::ParseGMLCoverageDesc()
         bNeedAxisFlip = FALSE;
         CPLDebug( "GMLJP2", "Suppressed axis flipping based on GDAL_IGNORE_AXIS_ORIENTATION." );
     }
+    
+    if( pszSRSName && bNeedAxisFlip )
+    {
+        // Suppress explicit axis order in SRS definition
+
+        OGR_SRSNode *poGEOGCS = oSRS.GetAttrNode( "GEOGCS" );
+        if( poGEOGCS != NULL )
+            poGEOGCS->StripNodes( "AXIS" );
+
+        OGR_SRSNode *poPROJCS = oSRS.GetAttrNode( "PROJCS" );
+        if (poPROJCS != NULL && oSRS.EPSGTreatsAsNorthingEasting())
+            poPROJCS->StripNodes( "AXIS" );
+        
+        CPLFree(pszProjection);
+        oSRS.exportToWkt( &pszProjection );
+
+    }
+    
+    /* Some Pleiades files have explicit <gml:axisName>Easting</gml:axisName> */
+    /* <gml:axisName>Northing</gml:axisName> to override default EPSG order */
+    if( bNeedAxisFlip && psRG != NULL )
+    {
+        int nAxisCount = 0;
+        int bFirstAxisIsEastOrLong = FALSE, bSecondAxisIsNorthOrLat = FALSE;
+        for(CPLXMLNode* psIter = psRG->psChild; psIter != NULL; psIter = psIter->psNext )
+        {
+            if( psIter->eType == CXT_Element && strcmp(psIter->pszValue, "axisName") == 0 &&
+                psIter->psChild != NULL && psIter->psChild->eType == CXT_Text )
+            {
+                if( nAxisCount == 0 && 
+                    (EQUALN(psIter->psChild->pszValue, "EAST", 4) ||
+                     EQUALN(psIter->psChild->pszValue, "LONG", 4) ) )
+                {
+                    bFirstAxisIsEastOrLong = TRUE;
+                }
+                else if( nAxisCount == 1 &&
+                         (EQUALN(psIter->psChild->pszValue, "NORTH", 5) ||
+                          EQUALN(psIter->psChild->pszValue, "LAT", 3)) )
+                {
+                    bSecondAxisIsNorthOrLat = TRUE;
+                }
+                nAxisCount ++;
+            }
+        }
+        if( bFirstAxisIsEastOrLong && bSecondAxisIsNorthOrLat )
+        {
+            CPLDebug( "GMLJP2", "Disable axis flip because of explicit axisName disabling it" );
+            bNeedAxisFlip = FALSE;
+        }
+    }
+
+    CPLDestroyXMLNode( psXML );
+    psXML = NULL;
+    psRG = NULL;
 
     if( bNeedAxisFlip )
     {
@@ -1190,7 +1240,8 @@ int GDALJP2Metadata::GetGMLJP2GeoreferencingInfo( int& nEPSGCode,
                                                   double adfXVector[2],
                                                   double adfYVector[2],
                                                   const char*& pszComment,
-                                                  CPLString& osDictBox )
+                                                  CPLString& osDictBox,
+                                                  int& bNeedAxisFlip )
 {
 
 /* -------------------------------------------------------------------- */
@@ -1199,7 +1250,7 @@ int GDALJP2Metadata::GetGMLJP2GeoreferencingInfo( int& nEPSGCode,
     OGRSpatialReference oSRS;
     char *pszWKTCopy = (char *) pszProjection;
     nEPSGCode = 0;
-    int  bNeedAxisFlip = FALSE;
+    bNeedAxisFlip = FALSE;
 
     if( oSRS.importFromWkt( &pszWKTCopy ) != OGRERR_NONE )
         return FALSE;
@@ -1395,9 +1446,10 @@ GDALJP2Box *GDALJP2Metadata::CreateGMLJP2( int nXSize, int nYSize )
     double adfYVector[2];
     const char* pszComment = "";
     CPLString osDictBox;
+    int bNeedAxisFlip = FALSE;
     if( !GetGMLJP2GeoreferencingInfo( nEPSGCode, adfOrigin,
                                       adfXVector, adfYVector,
-                                      pszComment, osDictBox ) )
+                                      pszComment, osDictBox, bNeedAxisFlip ) )
     {
         return NULL;
     }
@@ -1408,6 +1460,30 @@ GDALJP2Box *GDALJP2Metadata::CreateGMLJP2( int nXSize, int nYSize )
     else
         strcpy( szSRSName, 
                 "gmljp2://xml/CRSDictionary.gml#ogrcrs1" );
+
+    // Compute bounding box
+    double dfX1 = adfGeoTransform[0];
+    double dfX2 = adfGeoTransform[0] + nXSize * adfGeoTransform[1];
+    double dfX3 = adfGeoTransform[0] +                               nYSize * adfGeoTransform[2];
+    double dfX4 = adfGeoTransform[0] + nXSize * adfGeoTransform[1] + nYSize * adfGeoTransform[2];
+    double dfY1 = adfGeoTransform[3];
+    double dfY2 = adfGeoTransform[3] + nXSize * adfGeoTransform[4];
+    double dfY3 = adfGeoTransform[3] +                               nYSize * adfGeoTransform[5];
+    double dfY4 = adfGeoTransform[3] + nXSize * adfGeoTransform[4] + nYSize * adfGeoTransform[5];
+    double dfLCX = MIN(MIN(dfX1,dfX2),MIN(dfX3,dfX4));
+    double dfLCY = MIN(MIN(dfY1,dfY2),MIN(dfY3,dfY4));
+    double dfUCX = MAX(MAX(dfX1,dfX2),MAX(dfX3,dfX4));
+    double dfUCY = MAX(MAX(dfY1,dfY2),MAX(dfY3,dfY4));
+    if( bNeedAxisFlip )
+    {
+        double dfTmp = dfLCX;
+        dfLCX = dfLCY;
+        dfLCY = dfTmp;
+        
+        dfTmp = dfUCX;
+        dfUCX = dfUCY;
+        dfUCY = dfTmp;
+    }
 
 /* -------------------------------------------------------------------- */
 /*      For now we hardcode for a minimal instance format.              */
@@ -1420,7 +1496,10 @@ GDALJP2Box *GDALJP2Metadata::CreateGMLJP2( int nXSize, int nYSize )
 "   xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n"
 "   xsi:schemaLocation=\"http://www.opengis.net/gml http://schemas.opengis.net/gml/3.1.1/profiles/gmlJP2Profile/1.0.0/gmlJP2Profile.xsd\">\n"
 "  <gml:boundedBy>\n"
-"    <gml:Null>withheld</gml:Null>\n"
+"    <gml:Envelope srsName=\"%s\">\n"
+"      <gml:lowerCorner>%.15g %.15g</gml:lowerCorner>\n"
+"      <gml:upperCorner>%.15g %.15g</gml:upperCorner>\n"
+"    </gml:Envelope>\n"
 "  </gml:boundedBy>\n"
 "  <gml:featureMember>\n"
 "    <gml:FeatureCollection>\n"
@@ -1458,6 +1537,7 @@ GDALJP2Box *GDALJP2Metadata::CreateGMLJP2( int nXSize, int nYSize )
 "    </gml:FeatureCollection>\n"
 "  </gml:featureMember>\n"
 "</gml:FeatureCollection>\n",
+             szSRSName, dfLCX, dfLCY, dfUCX, dfUCY,
              nXSize-1, nYSize-1, szSRSName, adfOrigin[0], adfOrigin[1],
              pszComment,
              szSRSName, adfXVector[0], adfXVector[1], 
@@ -2147,9 +2227,10 @@ GDALJP2Box *GDALJP2Metadata::CreateGMLJP2V2( int nXSize, int nYSize,
         double adfXVector[2];
         double adfYVector[2];
         const char* pszComment = "";   
+        int bNeedAxisFlip = FALSE;
         if( !GetGMLJP2GeoreferencingInfo( nEPSGCode, adfOrigin,
                                         adfXVector, adfYVector,
-                                        pszComment, osDictBox ) )
+                                        pszComment, osDictBox, bNeedAxisFlip ) )
         {
             return NULL;
         }

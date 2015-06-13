@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdal_crs.c 27942 2014-11-11 00:57:41Z rouault $
+ * $Id: gdal_crs.c 29207 2015-05-18 17:23:45Z mloskot $
  *
  * Project:  Mapinfo Image Warper
  * Purpose:  Implemention of the GDALTransformer wrapper around CRS.C functions
@@ -59,7 +59,7 @@
 #include "cpl_string.h"
 #include "cpl_atomic_ops.h"
 
-CPL_CVSID("$Id: gdal_crs.c 27942 2014-11-11 00:57:41Z rouault $");
+CPL_CVSID("$Id: gdal_crs.c 29207 2015-05-18 17:23:45Z mloskot $");
 
 /* Hum, we cannot include gdal_priv.h from a .c file... */
 CPL_C_START
@@ -331,10 +331,13 @@ void *GDALCreateGCPRefineTransformer( int nGCPCount, const GDAL_GCP *pasGCPList,
 void GDALDestroyGCPTransformer( void *pTransformArg )
 
 {
-    GCPTransformInfo *psInfo = (GCPTransformInfo *) pTransformArg;
+    GCPTransformInfo *psInfo = NULL;
 
-    VALIDATE_POINTER0( pTransformArg, "GDALDestroyGCPTransformer" );
-    
+    if( pTransformArg == NULL )
+        return;
+
+    psInfo = (GCPTransformInfo *) pTransformArg;
+
     if( CPLAtomicDec(&(psInfo->nRefCount)) == 0 )
     {
         GDALDeinitGCPs( psInfo->nGCPCount, psInfo->pasGCPList );

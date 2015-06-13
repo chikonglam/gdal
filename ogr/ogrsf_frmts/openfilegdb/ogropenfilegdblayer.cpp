@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogropenfilegdblayer.cpp 28967 2015-04-21 11:01:15Z rouault $
+ * $Id: ogropenfilegdblayer.cpp 29158 2015-05-05 21:19:37Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implements Open FileGDB OGR driver.
@@ -377,7 +377,7 @@ int OGROpenFileGDBLayer::BuildLayerDefinition()
             case FGTGT_MULTIPATCH: eGeomType = wkbMultiPolygon; break;
         }
 
-        if( wkbFlatten(eGeomType) != wkbFlatten(m_eGeomType) )
+        if( m_eGeomType != wkbUnknown && wkbFlatten(eGeomType) != wkbFlatten(m_eGeomType) )
         {
             CPLError(CE_Warning, CPLE_AppDefined,
                      "Inconsistency for layer geometry type");
@@ -1403,8 +1403,15 @@ OGRFeature* OGROpenFileGDBLayer::GetNextFeature()
                 {
                     return NULL;
                 }
-                if( m_poLyrTable->SelectRow(m_iCurFeat++) )
+                m_iCurFeat = m_poLyrTable->GetAndSelectNextNonEmptyRow(m_iCurFeat);
+                if( m_iCurFeat < 0 )
                 {
+                    m_bEOF = TRUE;
+                    return NULL;
+                }
+                else
+                {
+                    m_iCurFeat ++;
                     poFeature = GetCurrentFeature();
                     if( m_eSpatialIndexState == SPI_IN_BUILDING &&
                         m_iCurFeat == m_poLyrTable->GetTotalRecordCount() )
@@ -1414,11 +1421,6 @@ OGRFeature* OGROpenFileGDBLayer::GetNextFeature()
                     }
                     if( poFeature )
                         break;
-                }
-                else if( m_poLyrTable->HasGotError() )
-                {
-                    m_bEOF = TRUE;
-                    return NULL;
                 }
             }
         }

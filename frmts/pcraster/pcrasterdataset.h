@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: pcrasterdataset.h 28862 2015-04-07 10:10:25Z kdejong $
+ * $Id: pcrasterdataset.h 29187 2015-05-13 14:20:13Z kdejong $
  *
  * Project:  PCRaster Integration
  * Purpose:  PCRaster CSF 2.0 raster file driver declarations.
@@ -112,7 +112,7 @@ private:
   CSF_VS           d_valueScale;
 
   //! No data value.
-  double           d_missingValue;
+  double           d_defaultNoDataValue;
 
   bool             d_location_changed;
 
@@ -150,7 +150,7 @@ public:
 
   CSF_VS           valueScale          () const;
 
-  double           missingValue        () const;
+  double           defaultNoDataValue  () const;
 
   bool             location_changed    () const;
 

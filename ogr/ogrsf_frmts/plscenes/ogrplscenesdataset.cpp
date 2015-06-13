@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrplscenesdataset.cpp 29085 2015-04-30 19:40:11Z rouault $
+ * $Id: ogrplscenesdataset.cpp 29164 2015-05-06 15:01:37Z rouault $
  *
  * Project:  PlanetLabs scene driver
  * Purpose:  Implements OGRPLScenesDataset
@@ -31,7 +31,7 @@
 
 // g++ -g -Wall -fPIC -shared -o ogr_PLSCENES.so -Iport -Igcore -Iogr -Iogr/ogrsf_frmts -Iogr/ogrsf_frmts/plscene ogr/ogrsf_frmts/plscenes/*.c* -L. -lgdal -Iogr/ogrsf_frmts/geojson -Iogr/ogrsf_frmts/geojson/libjson 
 
-CPL_CVSID("$Id: ogrplscenesdataset.cpp 29085 2015-04-30 19:40:11Z rouault $");
+CPL_CVSID("$Id: ogrplscenesdataset.cpp 29164 2015-05-06 15:01:37Z rouault $");
 
 extern "C" void RegisterOGRPLSCENES();
 
@@ -74,6 +74,34 @@ OGRLayer *OGRPLScenesDataset::GetLayer(int idx)
     if( idx < 0 || idx >= nLayers )
         return NULL;
     return papoLayers[idx];
+}
+
+/************************************************************************/
+/*                          GetLayerByName()                            */
+/************************************************************************/
+
+OGRLayer *OGRPLScenesDataset::GetLayerByName(const char* pszName)
+{
+    OGRLayer* poLayer = GDALDataset::GetLayerByName(pszName);
+    if( poLayer != NULL )
+        return poLayer;
+
+    CPLString osURL;
+    osURL = osBaseURL;
+    osURL += pszName;
+    osURL += "/";
+    json_object* poObj = RunRequest( (osURL + CPLString("?count=10")).c_str() );
+    if( poObj == NULL )
+        return NULL;
+
+    OGRPLScenesLayer* poPLLayer = new OGRPLScenesLayer(this, pszName, osURL, poObj);
+    papoLayers = (OGRPLScenesLayer**) CPLRealloc(papoLayers,
+                                sizeof(OGRPLScenesLayer*) * (nLayers + 1));
+    papoLayers[nLayers ++] = poPLLayer;
+
+    json_object_put(poObj);
+
+    return poPLLayer;
 }
 
 /***********************************************************************/
@@ -502,8 +530,17 @@ GDALDataset* OGRPLScenesDataset::Open(GDALOpenInfo* poOpenInfo)
     {
         if( it.val != NULL && json_object_get_type(it.val) == json_type_string )
         {
-            OGRPLScenesLayer* poLayer = new OGRPLScenesLayer(poDS, it.key,
-                                                     json_object_get_string(it.val));
+            const char* pszSceneType = it.key;
+            const char* pszSceneTypeURL = json_object_get_string(it.val);
+            json_object* poObj = NULL;
+            if( !EQUAL(pszSceneType, "ortho") )
+                poObj = poDS->RunRequest( (CPLString(pszSceneTypeURL) + CPLString("?count=10")).c_str() );
+
+            OGRPLScenesLayer* poLayer = new OGRPLScenesLayer(poDS, pszSceneType, pszSceneTypeURL, poObj);
+
+            if( poObj )
+                json_object_put(poObj);
+
             poDS->papoLayers = (OGRPLScenesLayer**) CPLRealloc(poDS->papoLayers,
                                         sizeof(OGRPLScenesLayer*) * (poDS->nLayers + 1));
             poDS->papoLayers[poDS->nLayers ++] = poLayer;

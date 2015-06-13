@@ -1,5 +1,5 @@
 /******************************************************************************
-* $Id: ogr_fgdb.h 28601 2015-03-03 11:06:40Z rouault $
+* $Id: ogr_fgdb.h 29196 2015-05-14 15:50:13Z rouault $
 *
 * Project:  OpenGIS Simple Features Reference Implementation
 * Purpose:  Standard includes and class definitions ArcObjects OGR driver.
@@ -99,6 +99,8 @@ class FGdbDataSource;
 
 class FGdbLayer : public FGdbBaseLayer
 {
+  friend class FGdbDataSource;
+
   int                 m_bBulkLoadAllowed;
   int                 m_bBulkLoadInProgress;
 
@@ -176,8 +178,6 @@ public:
   // can be used by external code for specific purposes.
   OGRErr              GetLayerXML ( char **poXml );
   OGRErr              GetLayerMetadataXML ( char **poXmlMeta );
-  
-  void                ReadoptOldFeatureDefn(OGRFeatureDefn* poFeatureDefn);
   
 protected:
 
@@ -323,7 +323,6 @@ public:
   virtual OGRErr StartTransaction(OGRDataSource*& poDSInOut, int& bOutHasReopenedDS);
   virtual OGRErr CommitTransaction(OGRDataSource*& poDSInOut, int& bOutHasReopenedDS);
   virtual OGRErr RollbackTransaction(OGRDataSource*& poDSInOut, int& bOutHasReopenedDS);
-  virtual void   ReadoptOldFeatureDefn(OGRDataSource* poDS, OGRLayer* poLayer, OGRFeatureDefn* poFeatureDefn);
 
   void Release(const char* pszName);
   CPLMutex* GetMutex() { return hMutex; }

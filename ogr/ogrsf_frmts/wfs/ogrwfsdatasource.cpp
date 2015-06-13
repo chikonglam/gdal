@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrwfsdatasource.cpp 29028 2015-04-26 21:19:29Z rouault $
+ * $Id: ogrwfsdatasource.cpp 29241 2015-05-24 10:58:54Z rouault $
  *
  * Project:  WFS Translator
  * Purpose:  Implements OGRWFSDataSource class
@@ -37,7 +37,7 @@
 #include "swq.h"
 #include "ogr_p.h"
 
-CPL_CVSID("$Id: ogrwfsdatasource.cpp 29028 2015-04-26 21:19:29Z rouault $");
+CPL_CVSID("$Id: ogrwfsdatasource.cpp 29241 2015-05-24 10:58:54Z rouault $");
 
 #define DEFAULT_BASE_START_INDEX     0
 #define DEFAULT_PAGE_SIZE            100
@@ -192,6 +192,9 @@ OGRWFSDataSource::OGRWFSDataSource()
     bKeepLayerNamePrefix = FALSE;
     apszGetCapabilities[0] = NULL;
     apszGetCapabilities[1] = NULL;
+    bEmptyAsNull = TRUE;
+    
+    bInvertAxisOrderIfLatLong = TRUE;
 }
 
 /************************************************************************/
@@ -899,6 +902,8 @@ int OGRWFSDataSource::Open( const char * pszFilename, int bUpdateIn,
     CPLString osTypeName;
     const char* pszBaseURL = NULL;
 
+    bEmptyAsNull = CSLFetchBoolean(papszOpenOptions, "EMPTY_AS_NULL", TRUE);
+
     if (psXML == NULL)
     {
         if (!EQUALN(pszFilename, "WFS:", 4) &&
@@ -1095,8 +1100,14 @@ int OGRWFSDataSource::Open( const char * pszFilename, int bUpdateIn,
         }
     }
 
-    int bInvertAxisOrderIfLatLong = CSLTestBoolean(CPLGetConfigOption(
-                                  "GML_INVERT_AXIS_ORDER_IF_LAT_LONG", "YES"));
+    bInvertAxisOrderIfLatLong =
+        CSLTestBoolean(CSLFetchNameValueDef(papszOpenOptions,
+            "INVERT_AXIS_ORDER_IF_LAT_LONG",
+            CPLGetConfigOption("GML_INVERT_AXIS_ORDER_IF_LAT_LONG", "YES")));
+    osConsiderEPSGAsURN =
+        CSLFetchNameValueDef(papszOpenOptions,
+            "CONSIDER_EPSG_AS_URN",
+            CPLGetConfigOption("GML_CONSIDER_EPSG_AS_URN", "AUTO"));
 
     CPLXMLNode* psStrippedXML = CPLCloneXMLTree(psXML);
     CPLStripXMLNamespace( psStrippedXML, NULL, TRUE );

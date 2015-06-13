@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: reader_geo_eye.cpp 29145 2015-05-04 10:00:40Z rouault $
+ * $Id: reader_geo_eye.cpp 29245 2015-05-24 16:46:56Z rouault $
  *
  * Project:  GDAL Core
  * Purpose:  Read metadata from GeoEye imagery.
@@ -30,7 +30,7 @@
  
 #include "reader_geo_eye.h"
 
-CPL_CVSID("$Id: reader_geo_eye.cpp 29145 2015-05-04 10:00:40Z rouault $");
+CPL_CVSID("$Id: reader_geo_eye.cpp 29245 2015-05-24 16:46:56Z rouault $");
 
 /**
  * GDALMDReaderGeoEye()
@@ -41,13 +41,16 @@ GDALMDReaderGeoEye::GDALMDReaderGeoEye(const char *pszPath,
     
     const char* pszBaseName = CPLGetBasename(pszPath);
     const char* pszDirName = CPLGetDirname(pszPath);
+    size_t nBaseNameLen = strlen(pszBaseName);
+    if( nBaseNameLen > 511 )
+        return;
 
     // get _metadata.txt file
     
     // split file name by _rgb_ or _pan_
     char szMetadataName[512] = {0};
     size_t i;
-    for(i = 0; i < CPLStrnlen(pszBaseName, 511); i++)
+    for(i = 0; i < nBaseNameLen; i++)
     {
         szMetadataName[i] = pszBaseName[i];
         if(EQUALN(pszBaseName + i, "_rgb_", 5) || EQUALN(pszBaseName + i, "_pan_", 5))

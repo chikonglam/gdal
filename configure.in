@@ -1,5 +1,5 @@
 dnl ***************************************************************************
-dnl $Id: configure.in 28874 2015-04-08 15:10:44Z dron $
+dnl $Id: configure.in 29175 2015-05-09 14:08:22Z rouault $
 dnl
 dnl Project:  GDAL
 dnl Purpose:  Configure source file.
@@ -4025,6 +4025,7 @@ elif test "x$with_python" != "x" -a "$with_python" != "no" ; then
   fi
   AC_MSG_RESULT([enabled])
 else
+  PYTHON=""
   AC_MSG_RESULT([disabled])
 fi
 

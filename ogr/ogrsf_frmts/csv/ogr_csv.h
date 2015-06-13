@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_csv.h 28375 2015-01-30 12:06:11Z rouault $
+ * $Id: ogr_csv.h 29237 2015-05-24 08:38:20Z rouault $
  *
  * Project:  CSV Translator
  * Purpose:  Definition of classes for OGR .csv driver.
@@ -46,7 +46,8 @@ class OGRCSVDataSource;
 
 char **OGRCSVReadParseLineL( VSILFILE * fp, char chDelimiter,
                              int bDontHonourStrings = FALSE,
-                             int bKeepLeadingAndClosingQuotes = FALSE);
+                             int bKeepLeadingAndClosingQuotes = FALSE,
+                             int bMergeDelimiter = FALSE);
 
 /************************************************************************/
 /*                             OGRCSVLayer                              */
@@ -96,6 +97,8 @@ class OGRCSVLayer : public OGRLayer
     
     int                 bWarningBadTypeOrWidth;
     int                 bKeepSourceColumns;
+    
+    int                 bMergeDelimiter;
     
     char              **GetNextLineTokens();
 

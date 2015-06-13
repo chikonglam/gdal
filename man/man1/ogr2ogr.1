@@ -1,8 +1,8 @@
-.TH "ogr2ogr" 1 "Mon May 4 2015" "GDAL" \" -*- nroff -*-
+.TH "ogr2ogr" 1 "Mon May 25 2015" "GDAL" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
-ogr2ogr \- .TH "ogr2ogr" 1 "Mon May 4 2015" "GDAL" \" -*- nroff -*-
+ogr2ogr \- .TH "ogr2ogr" 1 "Mon May 25 2015" "GDAL" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -119,7 +119,9 @@ Advanced options :
 .IP "\fB\fB-doo\fP \fINAME=VALUE\fP:\fP" 1c
 (starting with GDAL 2.0) Destination dataset open option (format specific), only valid in -update mode 
 .IP "\fB\fB-gt\fP \fIn\fP:\fP" 1c
-group \fIn\fP features per transaction (default 20000 in OGR 1.11, 200 in previous releases). Increase the value for better performance when writing into DBMS drivers that have transaction support. 
+group \fIn\fP features per transaction (default 20000 in OGR 1.11, 200 in previous releases). Increase the value for better performance when writing into DBMS drivers that have transaction support. Starting with GDAL 2.0, n can be set to unlimited to load the data into a single transaction. 
+.IP "\fB\fB-ds_transaction\fP:\fP" 1c
+(starting with GDAL 2.0) Force the use of a dataset level transaction (for drivers that support such mechanism), especially for drivers such as FileGDB that only support dataset level transaction in emulation mode. 
 .IP "\fB\fB-clipsrc\fP\fI [xmin ymin xmax ymax]|WKT|datasource|spat_extent\fP: \fP" 1c
 (starting with GDAL 1.7.0) clip geometries to the specified bounding box (expressed in source SRS), WKT geometry (POLYGON or MULTIPOLYGON), from a datasource or to the spatial extent of the \fB-spat\fP option if you use the \fIspat_extent\fP keyword. When specifying a datasource, you will generally want to use it in combination of the \fB-clipsrclayer\fP, \fB-clipsrcwhere\fP or \fB-clipsrcsql\fP options 
 .IP "\fB\fB-clipsrcsql\fP \fIsql_statement\fP:\fP" 1c

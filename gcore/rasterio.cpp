@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: rasterio.cpp 28620 2015-03-05 16:56:28Z rouault $
+ * $Id: rasterio.cpp 29161 2015-05-06 10:18:19Z rouault $
  *
  * Project:  GDAL Core
  * Purpose:  Contains default implementation of GDALRasterBand::IRasterIO()
@@ -52,7 +52,7 @@
 #endif
 
 
-CPL_CVSID("$Id: rasterio.cpp 28620 2015-03-05 16:56:28Z rouault $");
+CPL_CVSID("$Id: rasterio.cpp 29161 2015-05-06 10:18:19Z rouault $");
 
 /************************************************************************/
 /*                             IRasterIO()                              */
@@ -3679,6 +3679,8 @@ CPLErr CPL_STDCALL GDALDatasetCopyWholeRaster(
                                                 (nBlocksDone + 0.5) / (double)nTotalBlocks,
                                                 pfnProgress,
                                                 pProgressData );
+                    if( sExtraArg.pProgressData == NULL )
+                        sExtraArg.pfnProgress = NULL;
 
                     eErr = poSrcDS->RasterIO( GF_Read, 
                                             iX, iY, nThisCols, nThisLines,
@@ -3742,6 +3744,8 @@ CPLErr CPL_STDCALL GDALDatasetCopyWholeRaster(
                                             (nBlocksDone + 0.5) / (double)nTotalBlocks,
                                             pfnProgress,
                                             pProgressData );
+                if( sExtraArg.pProgressData == NULL )
+                    sExtraArg.pfnProgress = NULL;
 
                 eErr = poSrcDS->RasterIO( GF_Read, 
                                         iX, iY, nThisCols, nThisLines,

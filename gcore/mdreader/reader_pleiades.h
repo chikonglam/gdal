@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: reader_pleiades.h 29138 2015-05-03 19:12:48Z rouault $
+ * $Id: reader_pleiades.h 29190 2015-05-13 21:40:30Z bishop $
  *
  * Project:  GDAL Core
  * Purpose:  Read metadata from Pleiades imagery.
@@ -36,13 +36,13 @@
 /**
 @brief Metadata reader for Pleiades
 
-TIFF filename:        IMG_xxxxxx.tif
-Metadata filename:    DIM_xxxxxx.XML
-RPC filename:         RPC_xxxxxx.XML
+TIFF filename:      IMG_xxxxxx.tif
+Metadata filename:  DIM_xxxxxx.XML
+RPC filename:       RPC_xxxxxx.XML
 
 Common metadata (from metadata filename):
-    MDName_SatelliteId:            MISSION, MISSION_INDEX
-    MDName_AcquisitionDateTime:    IMAGING_DATE, IMAGING_TIME
+    SatelliteId:         MISSION, MISSION_INDEX
+    AcquisitionDateTime: IMAGING_DATE, IMAGING_TIME
 
 */
 

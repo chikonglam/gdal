@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gmlreader.cpp 29094 2015-05-01 18:55:27Z rouault $
+ * $Id: gmlreader.cpp 29217 2015-05-21 09:08:48Z rouault $
  *
  * Project:  GML Reader
  * Purpose:  Implementation of GMLReader class.
@@ -184,10 +184,10 @@ CPL_UNUSED
 
     m_bSetWidthFlag = TRUE;
 
-    m_bReportAllAttributes = CSLTestBoolean(
-                    CPLGetConfigOption("GML_ATTRIBUTES_TO_OGR_FIELDS", "NO"));
+    m_bReportAllAttributes = FALSE;
 
     m_bIsWFSJointLayer = FALSE;
+    m_bEmptyAsNull = TRUE;
 }
 
 /************************************************************************/

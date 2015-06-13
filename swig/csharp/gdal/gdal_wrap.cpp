@@ -361,6 +361,8 @@ typedef void GDALAsyncReaderShadow;
 
 /* use this to not return the int returned by GDAL */
 typedef int RETURN_NONE;
+/* return value that is used for VSI methods that return -1 on error (and set errno) */
+typedef int VSI_RETVAL;
 
 
 
@@ -2640,7 +2642,7 @@ SWIGEXPORT void SWIGSTDCALL CSharp_FileFromMemBuffer(char * jarg1, int jarg2, vo
 SWIGEXPORT int SWIGSTDCALL CSharp_Unlink(char * jarg1) {
   int jresult ;
   char *arg1 = (char *) 0 ;
-  int result;
+  VSI_RETVAL result;
   
   arg1 = (char *)jarg1; 
   {
@@ -2652,7 +2654,7 @@ SWIGEXPORT int SWIGSTDCALL CSharp_Unlink(char * jarg1) {
   }
   {
     CPLErrorReset();
-    result = (int)VSIUnlink((char const *)arg1);
+    result = VSIUnlink((char const *)arg1);
     CPLErr eclass = CPLGetLastErrorType();
     if ( eclass == CE_Failure || eclass == CE_Fatal ) {
       SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
@@ -2712,7 +2714,7 @@ SWIGEXPORT int SWIGSTDCALL CSharp_Mkdir(char * jarg1, int jarg2) {
   int jresult ;
   char *arg1 = (char *) 0 ;
   int arg2 ;
-  int result;
+  VSI_RETVAL result;
   
   arg1 = (char *)jarg1; 
   arg2 = (int)jarg2; 
@@ -2725,7 +2727,7 @@ SWIGEXPORT int SWIGSTDCALL CSharp_Mkdir(char * jarg1, int jarg2) {
   }
   {
     CPLErrorReset();
-    result = (int)VSIMkdir((char const *)arg1,arg2);
+    result = VSIMkdir((char const *)arg1,arg2);
     CPLErr eclass = CPLGetLastErrorType();
     if ( eclass == CE_Failure || eclass == CE_Fatal ) {
       SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
@@ -2753,7 +2755,7 @@ SWIGEXPORT int SWIGSTDCALL CSharp_Mkdir(char * jarg1, int jarg2) {
 SWIGEXPORT int SWIGSTDCALL CSharp_Rmdir(char * jarg1) {
   int jresult ;
   char *arg1 = (char *) 0 ;
-  int result;
+  VSI_RETVAL result;
   
   arg1 = (char *)jarg1; 
   {
@@ -2765,7 +2767,7 @@ SWIGEXPORT int SWIGSTDCALL CSharp_Rmdir(char * jarg1) {
   }
   {
     CPLErrorReset();
-    result = (int)VSIRmdir((char const *)arg1);
+    result = VSIRmdir((char const *)arg1);
     CPLErr eclass = CPLGetLastErrorType();
     if ( eclass == CE_Failure || eclass == CE_Fatal ) {
       SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
@@ -2794,13 +2796,13 @@ SWIGEXPORT int SWIGSTDCALL CSharp_Rename(char * jarg1, char * jarg2) {
   int jresult ;
   char *arg1 = (char *) 0 ;
   char *arg2 = (char *) 0 ;
-  int result;
+  VSI_RETVAL result;
   
   arg1 = (char *)jarg1; 
   arg2 = (char *)jarg2; 
   {
     CPLErrorReset();
-    result = (int)VSIRename((char const *)arg1,(char const *)arg2);
+    result = VSIRename((char const *)arg1,(char const *)arg2);
     CPLErr eclass = CPLGetLastErrorType();
     if ( eclass == CE_Failure || eclass == CE_Fatal ) {
       SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
@@ -2867,13 +2869,15 @@ SWIGEXPORT void * SWIGSTDCALL CSharp_VSIFOpenL(char * jarg1, char * jarg2) {
 }
 
 
-SWIGEXPORT void SWIGSTDCALL CSharp_VSIFCloseL(void * jarg1) {
+SWIGEXPORT int SWIGSTDCALL CSharp_VSIFCloseL(void * jarg1) {
+  int jresult ;
   VSILFILE *arg1 = (VSILFILE *) 0 ;
+  VSI_RETVAL result;
   
   arg1 = (VSILFILE *)jarg1; 
   {
     CPLErrorReset();
-    VSIFCloseL(arg1);
+    result = VSIFCloseL(arg1);
     CPLErr eclass = CPLGetLastErrorType();
     if ( eclass == CE_Failure || eclass == CE_Fatal ) {
       SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
@@ -2893,6 +2897,8 @@ SWIGEXPORT void SWIGSTDCALL CSharp_VSIFCloseL(void * jarg1) {
     
     
   }
+  jresult = result; 
+  return jresult;
 }
 
 
@@ -2901,14 +2907,14 @@ SWIGEXPORT int SWIGSTDCALL CSharp_VSIFSeekL(void * jarg1, long jarg2, int jarg3)
   VSILFILE *arg1 = (VSILFILE *) 0 ;
   long arg2 ;
   int arg3 ;
-  int result;
+  VSI_RETVAL result;
   
   arg1 = (VSILFILE *)jarg1; 
   arg2 = (long)jarg2; 
   arg3 = (int)jarg3; 
   {
     CPLErrorReset();
-    result = (int)VSIFSeekL(arg1,arg2,arg3);
+    result = VSIFSeekL(arg1,arg2,arg3);
     CPLErr eclass = CPLGetLastErrorType();
     if ( eclass == CE_Failure || eclass == CE_Fatal ) {
       SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
@@ -2970,13 +2976,13 @@ SWIGEXPORT int SWIGSTDCALL CSharp_VSIFTruncateL(void * jarg1, long jarg2) {
   int jresult ;
   VSILFILE *arg1 = (VSILFILE *) 0 ;
   long arg2 ;
-  int result;
+  VSI_RETVAL result;
   
   arg1 = (VSILFILE *)jarg1; 
   arg2 = (long)jarg2; 
   {
     CPLErrorReset();
-    result = (int)VSIFTruncateL(arg1,arg2);
+    result = VSIFTruncateL(arg1,arg2);
     CPLErr eclass = CPLGetLastErrorType();
     if ( eclass == CE_Failure || eclass == CE_Fatal ) {
       SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());

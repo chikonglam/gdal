@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdal.h 29123 2015-05-03 11:05:46Z bishop $
+ * $Id: gdal.h 29243 2015-05-24 15:53:26Z rouault $
  *
  * Project:  GDAL Core
  * Purpose:  GDAL Core C/Public declarations.
@@ -988,6 +988,9 @@ void CPL_DLL CPL_STDCALL GDALRATDumpReadable( GDALRasterAttributeTableH,
                                               FILE * );
 GDALRasterAttributeTableH CPL_DLL CPL_STDCALL 
     GDALRATClone( GDALRasterAttributeTableH );
+
+void CPL_DLL* CPL_STDCALL 
+    GDALRATSerializeJSON( GDALRasterAttributeTableH );
 
 int CPL_DLL CPL_STDCALL GDALRATGetRowOfValue( GDALRasterAttributeTableH , double );
 

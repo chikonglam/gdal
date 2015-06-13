@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: reader_pleiades.cpp 29145 2015-05-04 10:00:40Z rouault $
+ * $Id: reader_pleiades.cpp 29245 2015-05-24 16:46:56Z rouault $
  *
  * Project:  GDAL Core
  * Purpose:  Read metadata from Pleiades imagery.
@@ -30,7 +30,7 @@
 
 #include "reader_pleiades.h"
 
-CPL_CVSID("$Id: reader_pleiades.cpp 29145 2015-05-04 10:00:40Z rouault $");
+CPL_CVSID("$Id: reader_pleiades.cpp 29245 2015-05-24 16:46:56Z rouault $");
 
 /**
  * GDALMDReaderPleiades()
@@ -39,6 +39,9 @@ GDALMDReaderPleiades::GDALMDReaderPleiades(const char *pszPath,
         char **papszSiblingFiles) : GDALMDReaderBase(pszPath, papszSiblingFiles)
 {
     const char* pszBaseName = CPLGetBasename(pszPath);
+    size_t nBaseNameLen = strlen(pszBaseName);
+    if( nBaseNameLen < 4 || nBaseNameLen > 511 )
+        return;
 
     const char* pszDirName = CPLGetDirname(pszPath);
 
@@ -50,7 +53,7 @@ GDALMDReaderPleiades::GDALMDReaderPleiades(const char *pszPath,
     // find last underline
     char sBaseName[512];
     int nLastUnderline = 0;
-    for(size_t i = 4; i < CPLStrnlen(pszBaseName, 512); i++)
+    for(size_t i = 4; i < nBaseNameLen; i++)
     {
         sBaseName[i - 4] = pszBaseName[i];
         if(pszBaseName[i] == '_')

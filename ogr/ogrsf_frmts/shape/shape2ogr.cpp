@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: shape2ogr.cpp 28900 2015-04-14 09:40:34Z rouault $
+ * $Id: shape2ogr.cpp 29234 2015-05-22 19:17:03Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implements translation of Shapefile shapes into OGR
@@ -32,7 +32,7 @@
 #include "ogrshape.h"
 #include "cpl_conv.h"
 
-CPL_CVSID("$Id: shape2ogr.cpp 28900 2015-04-14 09:40:34Z rouault $");
+CPL_CVSID("$Id: shape2ogr.cpp 29234 2015-05-22 19:17:03Z rouault $");
 
 /************************************************************************/
 /*                        RingStartEnd                                  */
@@ -1078,6 +1078,8 @@ OGRFeature *SHPReadOGRFeature( SHPHandle hSHP, DBFHandle hDBF,
         CPLError( CE_Failure, CPLE_AppDefined, 
                   "Attempt to read shape with feature id (%d), but it is marked deleted.",
                   iShape );
+        if( psShape != NULL )
+            SHPDestroyObject(psShape);
         return NULL;
     }
 
