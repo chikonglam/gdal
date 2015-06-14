@@ -1,6 +1,8 @@
 Description: Fix include path of ogdi library.
 Author: Francesco Paolo Lovergine <frankie@debian.org>
 Last-Update: 2010-05-13
+Forwarded: not-needed
+
 --- a/GDALmake.opt.in
 +++ b/GDALmake.opt.in
 @@ -386,7 +386,7 @@ endif

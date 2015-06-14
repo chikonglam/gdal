@@ -2,6 +2,8 @@ Description: Add a brief summary to the GDAL and OGR utilities pages.
 Bug-Debian: http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=421653
 Author: Bas Couwenberg <sebastic@xs4all.nl>
 Last-Update: 2013-10-13
+Forwarded: https://trac.osgeo.org/gdal/ticket/5996
+
 --- a/apps/gdal_utilities.dox
 +++ b/apps/gdal_utilities.dox
 @@ -4,6 +4,7 @@

@@ -2,6 +2,8 @@ Description: Fix path to default JVM.
 Bug-Debian: http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=628022
 Author: Ezequiel Lara Gómez <ezequiel.lara@yahoo.es>
 Last-Update: 2013-07-01
+Forwarded: not-needed
+
 --- a/swig/java/java.opt
 +++ b/swig/java/java.opt
 @@ -2,6 +2,7 @@

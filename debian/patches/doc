@@ -1,6 +1,8 @@
 Description: Fix links to OGR documentation.
 Author: Francesco Paolo Lovergine <frankie@debian.org>, Bas Couwenberg <sebastic@xs4all.nl>
 Last-Update: 2013-10-13
+Forwarded: https://trac.osgeo.org/gdal/ticket/5996
+
 --- a/ogr/index.dox
 +++ b/ogr/index.dox
 @@ -6,7 +6,7 @@ tools) providing read (and sometimes wri

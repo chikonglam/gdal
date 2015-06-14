@@ -1,6 +1,8 @@
 Description: Use Debian specific symbol versioning.
 Author: Francesco Paolo Lovergine <frankie@debian.org>	
 Last-Update: 2011-09-27
+Forwarded: not-needed
+
 --- a/GNUmakefile
 +++ b/GNUmakefile
 @@ -39,7 +39,8 @@ $(LIBGDAL):	$(GDAL_OBJ:.o=.lo)

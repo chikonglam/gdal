@@ -1,6 +1,8 @@
 Description: Fix linking with sqlite3, because Debian spatialite does not embed Sqlite.
 Author: Francesco Paolo Lovergine <frankie@debian.org>	
 Last-Update: 2011-05-12
+Forwarded: not-needed
+
 --- a/configure
 +++ b/configure
 @@ -25662,7 +25662,7 @@ if ${ac_cv_lib_spatialite_spatialite_ini
