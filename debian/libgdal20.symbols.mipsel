@@ -1,6 +1,6 @@
-libgdal.so.1 libgdal1h #MINVER# 
-| libgdal1h #MINVER#, libgdal.so.1-2.0.0
-#include "libgdal1h.symbols.common"
+libgdal.so.20 libgdal20 #MINVER# 
+| libgdal20 #MINVER#, libgdal.so.20-2.0.0
+#include "libgdal20.symbols.common"
  (c++)"PamGetProxy(char const*)@GDAL_1.8" 1.9.0 1
  (c++)"CPLURLAddKVP(char const*, char const*, char const*)@GDAL_1.8" 1.9.0 1
  (c++)"CPLURLGetValue(char const*, char const*)@GDAL_1.8" 1.9.0 1
@@ -1959,7 +1959,7 @@ libgdal.so.1 libgdal1h #MINVER#
  (c++)"CPLString::FormatC(double, char const*)@GDAL_1.8" 1.9.0 1
  (c++)"CPLString::tolower()@GDAL_1.8" 1.9.0 1
  (c++)"CPLString::toupper()@GDAL_1.8" 1.9.0 1
- (c++)"CPLString::vPrintf(char const*, char*)@GDAL_1.8" 1.9.0 1
+ (c++)"CPLString::vPrintf(char const*, void*)@GDAL_1.8" 1.9.0 1
  (c++)"S57Reader::FetchPoint(int, int, double*, double*, double*)@GDAL_1.8" 1.9.0 1
  (c++)"S57Reader::ReadVector(int, int)@GDAL_1.8" 1.9.0 1
  (c++)"S57Reader::SetOptions(char**)@GDAL_1.8" 1.9.0 1
@@ -2302,8 +2302,8 @@ libgdal.so.1 libgdal1h #MINVER#
  (c++)"std::vector<CPLString, std::allocator<CPLString> >::_M_insert_aux(__gnu_cxx::__normal_iterator<CPLString*, std::vector<CPLString, std::allocator<CPLString> > >, CPLString const&)@GDAL_1.8" 1.9.0 1
  (c++)"std::vector<CPLString, std::allocator<CPLString> >::_M_fill_insert(__gnu_cxx::__normal_iterator<CPLString*, std::vector<CPLString, std::allocator<CPLString> > >, unsigned int, CPLString const&)@GDAL_1.8" 1.9.0 1
  (c++)"std::vector<CPLString, std::allocator<CPLString> >::push_back(CPLString const&)@GDAL_1.8" 1.10.1 1
- (c++)"std::vector<CPLString, std::allocator<CPLString> >::vector(std::vector<CPLString, std::allocator<CPLString> > const&)@GDAL_1.8" 1.10.1 1
- (c++)"std::vector<CPLString, std::allocator<CPLString> >::vector(std::vector<CPLString, std::allocator<CPLString> > const&)@GDAL_1.8" 1.10.1 1
+ (c++)"std::vector<CPLString, std::allocator<CPLString> >::vector(std::vector<CPLString, std::allocator<CPLString> > const&)@GDAL_1.8" 1.9.0 1
+ (c++)"std::vector<CPLString, std::allocator<CPLString> >::vector(std::vector<CPLString, std::allocator<CPLString> > const&)@GDAL_1.8" 1.9.0 1
  (c++)"std::vector<CPLString, std::allocator<CPLString> >::~vector()@GDAL_1.8" 1.9.0 1
  (c++)"std::vector<CPLString, std::allocator<CPLString> >::~vector()@GDAL_1.8" 1.9.0 1
  (c++)"std::vector<CPLString, std::allocator<CPLString> >::operator=(std::vector<CPLString, std::allocator<CPLString> > const&)@GDAL_1.8" 1.9.0 1

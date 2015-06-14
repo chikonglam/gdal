@@ -30,7 +30,7 @@ use Term::Prompt;
 
 $|=1;
 
-my $package = 'libgdal1h';
+my $package = 'libgdal20';
 my $pkgdir  = 'binary-'.$package.'/';
 
 our $ua = LWP::UserAgent->new(agent => basename($0));

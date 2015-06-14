@@ -1,6 +1,6 @@
-libgdal.so.1 libgdal1h #MINVER#
-| libgdal1h #MINVER#, libgdal.so.1-2.0.0
-#include "libgdal1h.symbols.common"
+libgdal.so.20 libgdal20 #MINVER#
+| libgdal20 #MINVER#, libgdal.so.20-2.0.0
+#include "libgdal20.symbols.common"
  (c++)"PamGetProxy(char const*)@GDAL_1.8" 1.10.1 1
  (c++)"CPLURLAddKVP(char const*, char const*, char const*)@GDAL_1.8" 1.10.1 1
  (c++)"CPLURLGetValue(char const*, char const*)@GDAL_1.8" 1.10.1 1
@@ -1959,7 +1959,7 @@ libgdal.so.1 libgdal1h #MINVER#
  (c++)"CPLString::FormatC(double, char const*)@GDAL_1.8" 1.10.1 1
  (c++)"CPLString::tolower()@GDAL_1.8" 1.10.1 1
  (c++)"CPLString::toupper()@GDAL_1.8" 1.10.1 1
- (c++)"CPLString::vPrintf(char const*, void*)@GDAL_1.8" 1.10.1 1
+ (c++)"CPLString::vPrintf(char const*, __va_list_tag*)@GDAL_1.8" 1.10.1 1
  (c++)"S57Reader::FetchPoint(int, int, double*, double*, double*)@GDAL_1.8" 1.10.1 1
  (c++)"S57Reader::ReadVector(int, int)@GDAL_1.8" 1.10.1 1
  (c++)"S57Reader::SetOptions(char**)@GDAL_1.8" 1.10.1 1
@@ -2248,16 +2248,16 @@ libgdal.so.1 libgdal1h #MINVER#
  (c++)"std::_Deque_base<OGRFeature*, std::allocator<OGRFeature*> >::_M_initialize_map(unsigned int)@GDAL_1.8" 1.10.1 1
  (c++)"std::_Deque_base<OGRFeature*, std::allocator<OGRFeature*> >::~_Deque_base()@GDAL_1.8" 1.10.1 1
  (c++)"std::_Deque_base<OGRFeature*, std::allocator<OGRFeature*> >::~_Deque_base()@GDAL_1.8" 1.10.1 1
- (c++)"void std::_Destroy_aux<false>::__destroy<GDALPDFOCGDesc*>(GDALPDFOCGDesc*, GDALPDFOCGDesc*)@GDAL_1.8" 1.11.0 1
+ (c++)"void std::_Destroy_aux<false>::__destroy<GDALPDFOCGDesc*>(GDALPDFOCGDesc*, GDALPDFOCGDesc*)@GDAL_1.8" 1.10.1 1
  (c++)"void std::_Destroy_aux<false>::__destroy<HFAAttributeField*>(HFAAttributeField*, HFAAttributeField*)@GDAL_1.8" 1.11.0 1
  (c++)"void std::_Destroy_aux<false>::__destroy<AIGErrorDescription*>(AIGErrorDescription*, AIGErrorDescription*)@GDAL_1.8" 1.11.0 1
- (c++)"void std::_Destroy_aux<false>::__destroy<GDALServerErrorDesc*>(GDALServerErrorDesc*, GDALServerErrorDesc*)@GDAL_1.8" 1.11.0 1
- (c++)"void std::_Destroy_aux<false>::__destroy<SFRegion*>(SFRegion*, SFRegion*)@GDAL_1.8" 1.11.0 1
- (c++)"void std::_Destroy_aux<false>::__destroy<CPLString*>(CPLString*, CPLString*)@GDAL_1.8" 1.11.0 1
- (c++)"void std::_Destroy_aux<false>::__destroy<PCIDSK::ProtectedFile*>(PCIDSK::ProtectedFile*, PCIDSK::ProtectedFile*)@GDAL_1.8" 1.11.0 1
- (c++)"void std::_Destroy_aux<false>::__destroy<PCIDSK::ProtectedEDBFile*>(PCIDSK::ProtectedEDBFile*, PCIDSK::ProtectedEDBFile*)@GDAL_1.8" 1.11.0 1
- (c++)"void std::_Destroy_aux<false>::__destroy<std::basic_string<char, std::char_traits<char>, std::allocator<char> >*>(std::basic_string<char, std::char_traits<char>, std::allocator<char> >*, std::basic_string<char, std::char_traits<char>, std::allocator<char> >*)@GDAL_1.8" 1.11.0 1
- (c++)"void std::_Destroy_aux<false>::__destroy<std::pair<std::basic_string<char, std::char_traits<char>, std::allocator<char> >, double>*>(std::pair<std::basic_string<char, std::char_traits<char>, std::allocator<char> >, double>*, std::pair<std::basic_string<char, std::char_traits<char>, std::allocator<char> >, double>*)@GDAL_1.8" 1.11.0 1
+ (c++)"void std::_Destroy_aux<false>::__destroy<GDALServerErrorDesc*>(GDALServerErrorDesc*, GDALServerErrorDesc*)@GDAL_1.8" 1.10.1 1
+ (c++)"void std::_Destroy_aux<false>::__destroy<SFRegion*>(SFRegion*, SFRegion*)@GDAL_1.8" 1.10.1 1
+ (c++)"void std::_Destroy_aux<false>::__destroy<CPLString*>(CPLString*, CPLString*)@GDAL_1.8" 1.10.1 1
+ (c++)"void std::_Destroy_aux<false>::__destroy<PCIDSK::ProtectedFile*>(PCIDSK::ProtectedFile*, PCIDSK::ProtectedFile*)@GDAL_1.8" 1.10.1 1
+ (c++)"void std::_Destroy_aux<false>::__destroy<PCIDSK::ProtectedEDBFile*>(PCIDSK::ProtectedEDBFile*, PCIDSK::ProtectedEDBFile*)@GDAL_1.8" 1.10.1 1
+ (c++)"void std::_Destroy_aux<false>::__destroy<std::basic_string<char, std::char_traits<char>, std::allocator<char> >*>(std::basic_string<char, std::char_traits<char>, std::allocator<char> >*, std::basic_string<char, std::char_traits<char>, std::allocator<char> >*)@GDAL_1.8" 1.10.1 1
+ (c++)"void std::_Destroy_aux<false>::__destroy<std::pair<std::basic_string<char, std::char_traits<char>, std::allocator<char> >, double>*>(std::pair<std::basic_string<char, std::char_traits<char>, std::allocator<char> >, double>*, std::pair<std::basic_string<char, std::char_traits<char>, std::allocator<char> >, double>*)@GDAL_1.8" 1.10.1 1
  (c++)"std::basic_stringbuf<char, std::char_traits<char>, std::allocator<char> >::~basic_stringbuf()@GDAL_1.8" 1.10.1 1
  (c++)"std::basic_stringbuf<char, std::char_traits<char>, std::allocator<char> >::~basic_stringbuf()@GDAL_1.8" 1.10.1 1
  (c++)"std::basic_stringbuf<char, std::char_traits<char>, std::allocator<char> >::~basic_stringbuf()@GDAL_1.8" 1.10.1 1
@@ -2313,7 +2313,7 @@ libgdal.so.1 libgdal1h #MINVER#
  (c++)"std::vector<OGRFeature*, std::allocator<OGRFeature*> >::_M_insert_aux(__gnu_cxx::__normal_iterator<OGRFeature**, std::vector<OGRFeature*, std::allocator<OGRFeature*> > >, OGRFeature* const&)@GDAL_1.8" 1.10.1 1
  (c++)"std::vector<OGRFeature*, std::allocator<OGRFeature*> >::operator=(std::vector<OGRFeature*, std::allocator<OGRFeature*> > const&)@GDAL_1.8" 1.10.1 1
  (c++)"std::vector<VFKFeature*, std::allocator<VFKFeature*> >::_M_insert_aux(__gnu_cxx::__normal_iterator<VFKFeature**, std::vector<VFKFeature*, std::allocator<VFKFeature*> > >, VFKFeature* const&)@GDAL_1.8" 1.10.1 1
- (c++)"std::vector<VFKFeature*, std::allocator<VFKFeature*> >::_M_erase(__gnu_cxx::__normal_iterator<VFKFeature**, std::vector<VFKFeature*, std::allocator<VFKFeature*> > >)@GDAL_1.8" 1.11.0 1
+ (c++)"std::vector<VFKFeature*, std::allocator<VFKFeature*> >::_M_erase(__gnu_cxx::__normal_iterator<VFKFeature**, std::vector<VFKFeature*, std::allocator<VFKFeature*> > >)@GDAL_1.8" 1.10.1 1
  (c++)"std::vector<VFKFeature*, std::allocator<VFKFeature*> >::operator=(std::vector<VFKFeature*, std::allocator<VFKFeature*> > const&)@GDAL_1.8" 1.10.1 1
  (c++)"std::vector<GDALDataset*, std::allocator<GDALDataset*> >::_M_insert_aux(__gnu_cxx::__normal_iterator<GDALDataset**, std::vector<GDALDataset*, std::allocator<GDALDataset*> > >, GDALDataset* const&)@GDAL_1.8" 1.10.1 1
  (c++)"std::vector<OGRGeometry*, std::allocator<OGRGeometry*> >::_M_insert_aux(__gnu_cxx::__normal_iterator<OGRGeometry**, std::vector<OGRGeometry*, std::allocator<OGRGeometry*> > >, OGRGeometry* const&)@GDAL_1.8" 1.10.1 1
@@ -2361,6 +2361,8 @@ libgdal.so.1 libgdal1h #MINVER#
  (c++)"std::vector<std::pair<double, double>, std::allocator<std::pair<double, double> > >::vector(std::vector<std::pair<double, double>, std::allocator<std::pair<double, double> > > const&)@GDAL_1.8" 1.10.1 1
  (c++)"std::vector<std::pair<double, double>, std::allocator<std::pair<double, double> > >::vector(std::vector<std::pair<double, double>, std::allocator<std::pair<double, double> > > const&)@GDAL_1.8" 1.10.1 1
  (c++)"std::vector<std::pair<double, double>, std::allocator<std::pair<double, double> > >::operator=(std::vector<std::pair<double, double>, std::allocator<std::pair<double, double> > > const&)@GDAL_1.8" 1.10.1 1
+ (c++)"std::vector<std::pair<int, int>, std::allocator<std::pair<int, int> > >::_M_insert_aux(__gnu_cxx::__normal_iterator<std::pair<int, int>*, std::vector<std::pair<int, int>, std::allocator<std::pair<int, int> > > >, std::pair<int, int> const&)@GDAL_1.8" 1.11.2 1
+ (c++)"std::vector<std::pair<int, int>, std::allocator<std::pair<int, int> > >::operator=(std::vector<std::pair<int, int>, std::allocator<std::pair<int, int> > > const&)@GDAL_1.8" 1.11.2 1
  (c++)"std::vector<bool, std::allocator<bool> >::_M_fill_insert(std::_Bit_iterator, unsigned int, bool)@GDAL_1.8" 1.10.1 1
  (c++)"std::vector<double, std::allocator<double> >::_M_insert_aux(__gnu_cxx::__normal_iterator<double*, std::vector<double, std::allocator<double> > >, double const&)@GDAL_1.8" 1.10.1 1
  (c++)"std::vector<double, std::allocator<double> >::_M_fill_insert(__gnu_cxx::__normal_iterator<double*, std::vector<double, std::allocator<double> > >, unsigned int, double const&)@GDAL_1.8" 1.10.1 1
@@ -2449,7 +2451,7 @@ libgdal.so.1 libgdal1h #MINVER#
  (c++)"std::_Rb_tree<OGRLayer*, std::pair<OGRLayer* const, OGRLayer*>, std::_Select1st<std::pair<OGRLayer* const, OGRLayer*> >, std::less<OGRLayer*>, std::allocator<std::pair<OGRLayer* const, OGRLayer*> > >::_M_get_insert_unique_pos(OGRLayer* const&)@GDAL_1.8" 1.10.1 1
  (c++)"std::_Rb_tree<OGRLayer*, std::pair<OGRLayer* const, OGRLayer*>, std::_Select1st<std::pair<OGRLayer* const, OGRLayer*> >, std::less<OGRLayer*>, std::allocator<std::pair<OGRLayer* const, OGRLayer*> > >::_M_get_insert_hint_unique_pos(std::_Rb_tree_const_iterator<std::pair<OGRLayer* const, OGRLayer*> >, OGRLayer* const&)@GDAL_1.8" 1.10.1 1
  (c++)"std::_Rb_tree<OGRLayer*, std::pair<OGRLayer* const, OGRLayer*>, std::_Select1st<std::pair<OGRLayer* const, OGRLayer*> >, std::less<OGRLayer*>, std::allocator<std::pair<OGRLayer* const, OGRLayer*> > >::_M_erase(std::_Rb_tree_node<std::pair<OGRLayer* const, OGRLayer*> >*)@GDAL_1.8" 1.10.1 1
- (c++)"std::_Rb_tree<std::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::_Identity<std::basic_string<char, std::char_traits<char>, std::allocator<char> > >, std::less<std::basic_string<char, std::char_traits<char>, std::allocator<char> > >, std::allocator<std::basic_string<char, std::char_traits<char>, std::allocator<char> > > >::_M_insert_(std::_Rb_tree_node_base*, std::_Rb_tree_node_base*, std::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)@GDAL_1.8" 1.11.0 1
+ (c++)"std::_Rb_tree<std::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::_Identity<std::basic_string<char, std::char_traits<char>, std::allocator<char> > >, std::less<std::basic_string<char, std::char_traits<char>, std::allocator<char> > >, std::allocator<std::basic_string<char, std::char_traits<char>, std::allocator<char> > > >::_M_insert_(std::_Rb_tree_node_base*, std::_Rb_tree_node_base*, std::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)@GDAL_1.8" 1.10.1 1
  (c++)"std::_Rb_tree<std::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::_Identity<std::basic_string<char, std::char_traits<char>, std::allocator<char> > >, std::less<std::basic_string<char, std::char_traits<char>, std::allocator<char> > >, std::allocator<std::basic_string<char, std::char_traits<char>, std::allocator<char> > > >::_M_insert_unique(std::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)@GDAL_1.8" 1.10.1 1
  (c++)"std::_Rb_tree<std::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::_Identity<std::basic_string<char, std::char_traits<char>, std::allocator<char> > >, std::less<std::basic_string<char, std::char_traits<char>, std::allocator<char> > >, std::allocator<std::basic_string<char, std::char_traits<char>, std::allocator<char> > > >::find(std::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)@GDAL_1.8" 1.10.1 1
  (c++)"std::_Rb_tree<std::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::_Identity<std::basic_string<char, std::char_traits<char>, std::allocator<char> > >, std::less<std::basic_string<char, std::char_traits<char>, std::allocator<char> > >, std::allocator<std::basic_string<char, std::char_traits<char>, std::allocator<char> > > >::_M_erase(std::_Rb_tree_node<std::basic_string<char, std::char_traits<char>, std::allocator<char> > >*)@GDAL_1.8" 1.10.1 1
@@ -2478,7 +2480,7 @@ libgdal.so.1 libgdal1h #MINVER#
  (c++)"std::_Rb_tree<std::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::pair<std::basic_string<char, std::char_traits<char>, std::allocator<char> > const, int>, std::_Select1st<std::pair<std::basic_string<char, std::char_traits<char>, std::allocator<char> > const, int> >, std::less<std::basic_string<char, std::char_traits<char>, std::allocator<char> > >, std::allocator<std::pair<std::basic_string<char, std::char_traits<char>, std::allocator<char> > const, int> > >::find(std::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)@GDAL_1.8" 1.10.1 1
  (c++)"std::_Rb_tree<std::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::pair<std::basic_string<char, std::char_traits<char>, std::allocator<char> > const, int>, std::_Select1st<std::pair<std::basic_string<char, std::char_traits<char>, std::allocator<char> > const, int> >, std::less<std::basic_string<char, std::char_traits<char>, std::allocator<char> > >, std::allocator<std::pair<std::basic_string<char, std::char_traits<char>, std::allocator<char> > const, int> > >::_M_erase(std::_Rb_tree_node<std::pair<std::basic_string<char, std::char_traits<char>, std::allocator<char> > const, int> >*)@GDAL_1.8" 1.10.1 1
  (c++)"std::_Rb_tree<std::pair<CPLString, CPLString>, std::pair<std::pair<CPLString, CPLString> const, char*>, std::_Select1st<std::pair<std::pair<CPLString, CPLString> const, char*> >, std::less<std::pair<CPLString, CPLString> >, std::allocator<std::pair<std::pair<CPLString, CPLString> const, char*> > >::_M_erase_aux(std::_Rb_tree_const_iterator<std::pair<std::pair<CPLString, CPLString> const, char*> >)@GDAL_1.8" 1.10.1 1
- (c++)"std::_Rb_tree<std::pair<CPLString, CPLString>, std::pair<std::pair<CPLString, CPLString> const, char*>, std::_Select1st<std::pair<std::pair<CPLString, CPLString> const, char*> >, std::less<std::pair<CPLString, CPLString> >, std::allocator<std::pair<std::pair<CPLString, CPLString> const, char*> > >::_M_insert_unique_(std::_Rb_tree_const_iterator<std::pair<std::pair<CPLString, CPLString> const, char*> >, std::pair<std::pair<CPLString, CPLString> const, char*> const&)@GDAL_1.8" 1.11.0 1
+ (c++)"std::_Rb_tree<std::pair<CPLString, CPLString>, std::pair<std::pair<CPLString, CPLString> const, char*>, std::_Select1st<std::pair<std::pair<CPLString, CPLString> const, char*> >, std::less<std::pair<CPLString, CPLString> >, std::allocator<std::pair<std::pair<CPLString, CPLString> const, char*> > >::_M_insert_unique_(std::_Rb_tree_const_iterator<std::pair<std::pair<CPLString, CPLString> const, char*> >, std::pair<std::pair<CPLString, CPLString> const, char*> const&)@GDAL_1.8" 1.10.1 1
  (c++)"std::_Rb_tree<std::pair<CPLString, CPLString>, std::pair<std::pair<CPLString, CPLString> const, char*>, std::_Select1st<std::pair<std::pair<CPLString, CPLString> const, char*> >, std::less<std::pair<CPLString, CPLString> >, std::allocator<std::pair<std::pair<CPLString, CPLString> const, char*> > >::_M_get_insert_unique_pos(std::pair<CPLString, CPLString> const&)@GDAL_1.8" 1.10.1 1
  (c++)"std::_Rb_tree<std::pair<CPLString, CPLString>, std::pair<std::pair<CPLString, CPLString> const, char*>, std::_Select1st<std::pair<std::pair<CPLString, CPLString> const, char*> >, std::less<std::pair<CPLString, CPLString> >, std::allocator<std::pair<std::pair<CPLString, CPLString> const, char*> > >::_M_get_insert_hint_unique_pos(std::_Rb_tree_const_iterator<std::pair<std::pair<CPLString, CPLString> const, char*> >, std::pair<CPLString, CPLString> const&)@GDAL_1.8" 1.10.1 1
  (c++)"std::_Rb_tree<std::pair<CPLString, CPLString>, std::pair<std::pair<CPLString, CPLString> const, char*>, std::_Select1st<std::pair<std::pair<CPLString, CPLString> const, char*> >, std::less<std::pair<CPLString, CPLString> >, std::allocator<std::pair<std::pair<CPLString, CPLString> const, char*> > >::find(std::pair<CPLString, CPLString> const&)@GDAL_1.8" 1.10.1 1
