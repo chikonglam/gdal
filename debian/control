@@ -66,10 +66,6 @@ Section: libs
 Depends: ${shlibs:Depends},
          ${misc:Depends}
 Recommends: proj-bin
-Breaks: libgdal1 (<= 1.10.0-0~),
-        libgdal1-1.6.0 (<= 1.10.0-0~)
-Replaces: libgdal1 (<= 1.10.0-0~),
-          libgdal1-1.6.0 (<= 1.10.0-0~)
 Provides: libgdal.so.20-2.0.0
 Description: Geospatial Data Abstraction Library
  GDAL is a translator library for raster geospatial data formats.
@@ -89,32 +85,6 @@ Description: Geospatial Data Abstraction Library
  TIGER data, S57, MapInfo File, DGN, GML and more.
  .
  This package contains the shared library.
-
-Package: libgdal1-dev
-Architecture: all
-Section: libdevel
-Depends: libgdal-dev,
-         ${misc:Depends}
-Description: Geospatial Data Abstraction Library - Transitional package
- GDAL is a translator library for raster geospatial data formats.
- As a library, it presents a single abstract data model to the
- calling application for all supported formats. The related OGR
- library (which lives within the GDAL source tree) provides
- a similar capability for simple features vector data.
- .
- GDAL supports many popular data formats, including commonly used
- ones (GeoTIFF, JPEG, PNG and more) as well as the ones used in
- GIS and remote sensing software packages (ERDAS Imagine,
- ESRI Arc/Info, ENVI, PCI Geomatics). Also supported many remote
- sensing and scientific data distribution formats such as HDF,
- EOS FAST, NOAA L1B, NetCDF, FITS.
- .
- OGR library supports popular vector formats like ESRI Shapefile,
- TIGER data, S57, MapInfo File, DGN, GML and more.
- .
- This is a transitional dummy package that depends on libgdal-dev 
- and is used to allow versioned build dependencies to work in 
- any build environment.
 
 Package: libgdal-dev
 Architecture: any
@@ -143,8 +113,6 @@ Depends: libgdal20 (= ${binary:Version}),
          libdap-dev,
          ${misc:Depends}
 Suggests: libgdal-doc
-Breaks: libgdal1-dev (<< 1.9.0-1~)
-Replaces: libgdal1-dev (<< 1.9.0-1~)
 Description: Geospatial Data Abstraction Library - Development files
  GDAL is a translator library for raster geospatial data formats.
  As a library, it presents a single abstract data model to the
