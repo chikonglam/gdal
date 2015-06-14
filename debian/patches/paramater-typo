@@ -1,0 +1,48 @@
+Description: Fix 'paramater' typo, replace with 'parameter'.
+Author: Bas Couwenberg <sebastic@xs4all.nl>
+Forwarded: http://trac.osgeo.org/gdal/ticket/5995
+
+--- a/frmts/hdf4/hdf-eos/GDapi.c
++++ b/frmts/hdf4/hdf-eos/GDapi.c
+@@ -3959,7 +3959,7 @@ GDwrrdfield(int32 gridID, char *fieldnam
+ 
+ 
+ 		/*
+-		 * If strideOne is true use NULL paramater for stride. This
++		 * If strideOne is true use NULL parameter for stride. This
+ 		 * is a work-around to HDF compression problem
+ 		 */
+ 		if (strideOne == 1)
+--- a/frmts/hdf4/hdf-eos/SWapi.c
++++ b/frmts/hdf4/hdf-eos/SWapi.c
+@@ -4922,7 +4922,7 @@ SWwrrdfield(int32 swathID, const char *f
+ 
+ 
+ 		/*
+-		 * If strideOne is true use NULL paramater for stride. This
++		 * If strideOne is true use NULL parameter for stride. This
+ 		 * is a work-around to HDF compression problem
+ 		 */
+ 		if (strideOne == 1)
+--- a/frmts/zlib/zlib.h
++++ b/frmts/zlib/zlib.h
+@@ -869,7 +869,7 @@ ZEXTERN int ZEXPORT inflateBackInit OF((
+      See inflateBack() for the usage of these routines.
+ 
+      inflateBackInit will return Z_OK on success, Z_STREAM_ERROR if any of
+-   the paramaters are invalid, Z_MEM_ERROR if the internal state could not
++   the parameters are invalid, Z_MEM_ERROR if the internal state could not
+    be allocated, or Z_VERSION_ERROR if the version of the library does not
+    match the version of the header file.
+ */
+--- a/ogr/ogrsf_frmts/mitab/mitab_bounds.cpp
++++ b/ogr/ogrsf_frmts/mitab/mitab_bounds.cpp
+@@ -1265,7 +1265,7 @@ int MITABLoadCoordSysTable(const char *p
+                 }
+                 if( strstr(pszLine, "Bounds") != NULL )
+                 {
+-                    CPLError(CE_Warning, CPLE_IllegalArg, "Unexpected Bounds paramater at line %d",
++                    CPLError(CE_Warning, CPLE_IllegalArg, "Unexpected Bounds parameter at line %d",
+                              iLine);
+                 }
+                 bHasProjIn = TRUE;
