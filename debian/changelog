@@ -1,3 +1,9 @@
+gdal (1.11.2+dfsg-1~exp4) UNRELEASED; urgency=medium
+
+  * Remove trailing whitespace to fix syntax error in symbols files.
+
+ -- Bas Couwenberg <sebastic@debian.org>  Sun, 14 Jun 2015 20:51:33 +0200
+
 gdal (1.11.2+dfsg-1~exp3) experimental; urgency=medium
 
   * Use packaged jquery.js instead of Doxygen copy.
