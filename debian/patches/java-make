@@ -3,6 +3,7 @@ Bug-Debian: http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=628022
 Author: Francesco Paolo Lovergine <frankie@debian.org>
 Last-Update: 2013-07-01
 Forwarded: https://trac.osgeo.org/gdal/ticket/5997
+Applied-Upstream: https://trac.osgeo.org/gdal/changeset/29340
 
 --- a/swig/java/GNUmakefile
 +++ b/swig/java/GNUmakefile
