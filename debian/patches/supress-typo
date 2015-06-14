@@ -1,6 +1,7 @@
 Description: Fix 'supress' typo, replace with 'suppress'.
 Author: Bas Couwenberg <sebastic@xs4all.nl>
 Forwarded: http://trac.osgeo.org/gdal/ticket/5995
+Applied-Upstream: https://trac.osgeo.org/gdal/changeset/29330
 
 --- a/ogr/ogrsf_frmts/arcobjects/aolayer.cpp
 +++ b/ogr/ogrsf_frmts/arcobjects/aolayer.cpp

@@ -1,6 +1,7 @@
 Description: Fix 'inconsistant' typo, replace with 'inconsistent'.
 Author: Bas Couwenberg <sebastic@xs4all.nl>
 Forwarded: http://trac.osgeo.org/gdal/ticket/5995
+Applied-Upstream: https://trac.osgeo.org/gdal/changeset/29330
 
 --- a/MIGRATION_GUIDE.TXT
 +++ b/MIGRATION_GUIDE.TXT

@@ -1,6 +1,7 @@
 Description: Fix 'paramters' typo, replace with 'parameters'.
-Author: Bas Couwenger <sebastic@xs4all.nl>
+Author: Bas Couwenberg <sebastic@xs4all.nl>
 Forwarded: http://trac.osgeo.org/gdal/ticket/5995
+Applied-Upstream: https://trac.osgeo.org/gdal/changeset/29330
 
 --- a/ogr/ogrsf_frmts/filegdb/FGdbLayer.cpp
 +++ b/ogr/ogrsf_frmts/filegdb/FGdbLayer.cpp

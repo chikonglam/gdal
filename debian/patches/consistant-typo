@@ -1,6 +1,7 @@
 Description: Fix 'consistant' typo, replace with 'consistent'.
 Author: Bas Couwenberg <sebastic@xs4all.nl>
 Forwarded: http://trac.osgeo.org/gdal/ticket/5995
+Applied-Upstream: https://trac.osgeo.org/gdal/changeset/29330
 
 --- a/apps/commonutils.cpp
 +++ b/apps/commonutils.cpp
