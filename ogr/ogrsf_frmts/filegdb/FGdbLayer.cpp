@@ -1,5 +1,5 @@
 /******************************************************************************
-* $Id: FGdbLayer.cpp 29196 2015-05-14 15:50:13Z rouault $
+* $Id: FGdbLayer.cpp 29330 2015-06-14 12:11:11Z rouault $
 *
 * Project:  OpenGIS Simple Features Reference Implementation
 * Purpose:  Implements FileGDB OGR layer.
@@ -37,7 +37,7 @@
 #include "FGdbUtils.h"
 #include "cpl_minixml.h" // the only way right now to extract schema information
 
-CPL_CVSID("$Id: FGdbLayer.cpp 29196 2015-05-14 15:50:13Z rouault $");
+CPL_CVSID("$Id: FGdbLayer.cpp 29330 2015-06-14 12:11:11Z rouault $");
 
 using std::string;
 using std::wstring;
@@ -47,7 +47,7 @@ using std::wstring;
 /************************************************************************/
 FGdbBaseLayer::FGdbBaseLayer() :
     m_pFeatureDefn(NULL), m_pSRS(NULL), m_pEnumRows(NULL),
-    m_supressColumnMappingError(false), m_forceMulti(false)
+    m_suppressColumnMappingError(false), m_forceMulti(false)
 {
 }
 
@@ -776,7 +776,7 @@ char* FGdbLayer::CreateFieldDefn(OGRFieldDefn& oField,
             {
                 if( fldtypeCheck != fldtype )
                 {
-                    CPLError(CE_Warning, CPLE_AppDefined, "Ignoring COLUMN_TYPES=%s=%s : %s not consistant with OGR data type",
+                    CPLError(CE_Warning, CPLE_AppDefined, "Ignoring COLUMN_TYPES=%s=%s : %s not consistent with OGR data type",
                          fieldname.c_str(), pszFieldType, pszFieldType);
                 }
                 else
@@ -1247,7 +1247,7 @@ CPLXMLNode* XMLSpatialReference(OGRSpatialReference* poSRS, char** papszOptions)
     const char* gridvalues[7];
 
     /* 
-    Need different default paramters for geographic and projected coordinate systems.
+    Need different default parameters for geographic and projected coordinate systems.
     Try and use ArcGIS 10 default values.
     */
     // default tolerance is 1mm in the units of the coordinate system
@@ -2537,7 +2537,7 @@ bool FGdbBaseLayer::OGRFeatureFromGdbRow(Row* pRow, OGRFeature** ppFeature)
 
             default:
             {
-                if (!m_supressColumnMappingError)
+                if (!m_suppressColumnMappingError)
                 {
                     foundBadColumn = true;
                     CPLError( CE_Warning, CPLE_AppDefined,
@@ -2549,7 +2549,7 @@ bool FGdbBaseLayer::OGRFeatureFromGdbRow(Row* pRow, OGRFeature** ppFeature)
     }
 
     if (foundBadColumn)
-        m_supressColumnMappingError = true;
+        m_suppressColumnMappingError = true;
 
 
     *ppFeature = pOutFeature;

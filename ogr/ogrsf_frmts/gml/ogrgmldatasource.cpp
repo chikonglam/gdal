@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrgmldatasource.cpp 29273 2015-06-02 08:08:38Z rouault $
+ * $Id: ogrgmldatasource.cpp 29330 2015-06-14 12:11:11Z rouault $
  *
  * Project:  OGR
  * Purpose:  Implements OGRGMLDataSource class.
@@ -47,7 +47,7 @@
 
 #include <vector>
 
-CPL_CVSID("$Id: ogrgmldatasource.cpp 29273 2015-06-02 08:08:38Z rouault $");
+CPL_CVSID("$Id: ogrgmldatasource.cpp 29330 2015-06-14 12:11:11Z rouault $");
 
 static int ExtractSRSName(const char* pszXML, char* szSRSName,
                           size_t sizeof_szSRSName);
@@ -1421,7 +1421,7 @@ OGRGMLLayer *OGRGMLDataSource::TranslateGMLSchema( GMLFeatureClass *poClass )
         }
     }
 
-    /* Report a COMPD_CS only if GML_REPORT_COMPD_CS is explicitely set to TRUE */
+    /* Report a COMPD_CS only if GML_REPORT_COMPD_CS is explicitly set to TRUE */
     if( poSRS != NULL &&
         !CSLTestBoolean(CPLGetConfigOption("GML_REPORT_COMPD_CS", "FALSE")) )
     {

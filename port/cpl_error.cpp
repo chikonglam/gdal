@@ -1,5 +1,5 @@
 /**********************************************************************
- * $Id: cpl_error.cpp 28831 2015-04-01 16:46:05Z rouault $
+ * $Id: cpl_error.cpp 29330 2015-06-14 12:11:11Z rouault $
  *
  * Name:     cpl_error.cpp
  * Project:  CPL - Common Portability Library
@@ -43,7 +43,7 @@
 #define TIMESTAMP_DEBUG
 //#define MEMORY_DEBUG
 
-CPL_CVSID("$Id: cpl_error.cpp 28831 2015-04-01 16:46:05Z rouault $");
+CPL_CVSID("$Id: cpl_error.cpp 29330 2015-06-14 12:11:11Z rouault $");
 
 static CPLMutex *hErrorMutex = NULL;
 static void *pErrorHandlerUserData = NULL; 
@@ -537,7 +537,7 @@ void CPL_STDCALL CPLErrorReset()
 /**
  * Restore an error state, without emitting an error.
  *
- * Can be usefull if a routine might call CPLErrorReset() and one wants to
+ * Can be useful if a routine might call CPLErrorReset() and one wants to
  * preserve the previous error state.
  *
  * @since GDAL 2.0

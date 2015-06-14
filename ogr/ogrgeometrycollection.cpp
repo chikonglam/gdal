@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrgeometrycollection.cpp 27959 2014-11-14 18:29:21Z rouault $
+ * $Id: ogrgeometrycollection.cpp 29330 2015-06-14 12:11:11Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  The OGRGeometryCollection class.
@@ -32,7 +32,7 @@
 #include "ogr_p.h"
 #include "ogr_api.h"
 
-CPL_CVSID("$Id: ogrgeometrycollection.cpp 27959 2014-11-14 18:29:21Z rouault $");
+CPL_CVSID("$Id: ogrgeometrycollection.cpp 29330 2015-06-14 12:11:11Z rouault $");
 
 /************************************************************************/
 /*                       OGRGeometryCollection()                        */
@@ -529,7 +529,7 @@ OGRErr  OGRGeometryCollection::exportToWkb( OGRwkbByteOrder eByteOrder,
         else if( nGType == wkbMultiSurface )
             nGType = POSTGIS15_MULTISURFACE;
         if( bIs3D )
-            nGType = (OGRwkbGeometryType)(nGType | wkb25DBitInternalUse); /* yes we explicitely set wkb25DBit */
+            nGType = (OGRwkbGeometryType)(nGType | wkb25DBitInternalUse); /* yes we explicitly set wkb25DBit */
     }
     
     if( eByteOrder == wkbNDR )

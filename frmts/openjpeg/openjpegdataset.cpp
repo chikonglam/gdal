@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: openjpegdataset.cpp 29131 2015-05-03 14:47:58Z rouault $
+ * $Id: openjpegdataset.cpp 29330 2015-06-14 12:11:11Z rouault $
  *
  * Project:  JPEG2000 driver based on OpenJPEG library
  * Purpose:  JPEG2000 driver based on OpenJPEG library
@@ -45,7 +45,7 @@
 #include "cpl_atomic_ops.h"
 #include "vrt/vrtdataset.h"
 
-CPL_CVSID("$Id: openjpegdataset.cpp 29131 2015-05-03 14:47:58Z rouault $");
+CPL_CVSID("$Id: openjpegdataset.cpp 29330 2015-06-14 12:11:11Z rouault $");
 
 /************************************************************************/
 /*                  JP2OpenJPEGDataset_ErrorCallback()                  */
@@ -2412,7 +2412,7 @@ GDALDataset * JP2OpenJPEGDataset::CreateCopy( const char * pszFilename,
         (GDALGetDataTypeSize(eDataType) == 32 && (nBits <= 16 || nBits > 32)) )
     {
         CPLError(CE_Warning, CPLE_NotSupported,
-                 "Inconsistant NBITS value with data type. Using %d",
+                 "Inconsistent NBITS value with data type. Using %d",
                  GDALGetDataTypeSize(eDataType));
     }
 
@@ -2484,7 +2484,7 @@ GDALDataset * JP2OpenJPEGDataset::CreateCopy( const char * pszFilename,
         !bGeoreferencingCompatOfGMLJP2 && nGMLJP2Version == 1 )
     {
         CPLError(CE_Warning, CPLE_AppDefined,
-                 "GMLJP2 box was explicitely required but cannot be written due "
+                 "GMLJP2 box was explicitly required but cannot be written due "
                  "to lack of georeferencing and/or unsupported georeferencing for GMLJP2");
     }
 
@@ -2492,7 +2492,7 @@ GDALDataset * JP2OpenJPEGDataset::CreateCopy( const char * pszFilename,
         !bGeoreferencingCompatOfGeoJP2 )
     {
         CPLError(CE_Warning, CPLE_AppDefined,
-                 "GeoJP2 box was explicitely required but cannot be written due "
+                 "GeoJP2 box was explicitly required but cannot be written due "
                  "to lack of georeferencing");
     }
     int bGeoBoxesAfter = CSLFetchBoolean(papszOptions, "GEOBOXES_AFTER_JP2C",

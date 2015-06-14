@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: filegdbtable.cpp 29158 2015-05-05 21:19:37Z rouault $
+ * $Id: filegdbtable.cpp 29330 2015-06-14 12:11:11Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implements reading of FileGDB tables
@@ -591,7 +591,7 @@ int FileGDBTable::ReadTableXHeader()
             returnErrorIf(VSIFReadL( pabyTablXBlockMap, nSizeInBytes, 1, fpTableX ) != 1 );
             /* returnErrorIf(nMagic2 == 0 ); */
 
-            // Check that the map is consistant with n1024Blocks
+            // Check that the map is consistent with n1024Blocks
             GUInt32 nCountBlocks = 0;
             for(GUInt32 i=0;i<nBitsForBlockMap;i++)
                 nCountBlocks += TEST_BIT(pabyTablXBlockMap, i) != 0;

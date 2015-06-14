@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrpglayer.cpp 28900 2015-04-14 09:40:34Z rouault $
+ * $Id: ogrpglayer.cpp 29330 2015-06-14 12:11:11Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implements OGRPGLayer class  which implements shared handling
@@ -65,7 +65,7 @@ PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 
 #define PQexec this_is_an_error
 
-CPL_CVSID("$Id: ogrpglayer.cpp 28900 2015-04-14 09:40:34Z rouault $");
+CPL_CVSID("$Id: ogrpglayer.cpp 29330 2015-06-14 12:11:11Z rouault $");
 
 // These originally are defined in libpq-fs.h.
 
@@ -1509,7 +1509,7 @@ OGRFeature *OGRPGLayer::GetNextRawFeature()
     {
         CPLError(CE_Failure, CPLE_AppDefined,
                  "Cursor used to read layer has been closed due to a COMMIT. "
-                 "ResetReading() must be explicitely called to restart reading");
+                 "ResetReading() must be explicitly called to restart reading");
         return NULL;
     }
     

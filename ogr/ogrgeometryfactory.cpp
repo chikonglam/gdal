@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrgeometryfactory.cpp 28039 2014-11-30 18:24:59Z rouault $
+ * $Id: ogrgeometryfactory.cpp 29330 2015-06-14 12:11:11Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Factory for converting geometry to and from well known binary
@@ -34,7 +34,7 @@
 #include "ogr_p.h"
 #include "ogr_geos.h"
 
-CPL_CVSID("$Id: ogrgeometryfactory.cpp 28039 2014-11-30 18:24:59Z rouault $");
+CPL_CVSID("$Id: ogrgeometryfactory.cpp 29330 2015-06-14 12:11:11Z rouault $");
 
 /************************************************************************/
 /*                           createFromWkb()                            */
@@ -3485,8 +3485,8 @@ static int OGRGF_NeedSwithArcOrder(double x0, double y0,
  *         and OGRGeometryFactory::curveFromLineString() can decode them.
  *         This is the best compromise for round-tripping in OGR and better results
  *         with PostGIS <a href="http://postgis.org/docs/ST_LineToCurve.html">ST_LineToCurve()</a>
- *         If set to YES, the intermediate point is explicitely added to the linestring.
- *         If set to NO, the intermediate point is not explicitely added.
+ *         If set to YES, the intermediate point is explicitly added to the linestring.
+ *         If set to NO, the intermediate point is not explicitly added.
  * </li>
  * </ul>
  *
@@ -3809,7 +3809,7 @@ static int OGRGF_DetectArc(const OGRLineString* poLS, int i,
 
         double dfStep10 = fabs(alpha1_2 - alpha0_2);
         double dfStep21 = fabs(alpha2_2 - alpha1_2);
-        /* Check that the angle step is consistant with the original */
+        /* Check that the angle step is consistent with the original */
         /* step. */
         if( !(dfStep10 < 2 * dfMaxDeltaAlpha && dfStep21 < 2 * dfMaxDeltaAlpha) )
         {
@@ -3888,7 +3888,7 @@ static int OGRGF_DetectArc(const OGRLineString* poLS, int i,
                 }
 
 #ifdef VERBOSE_DEBUG_CURVEFROMLINESTRING
-                printf("j=%d, nAlphaRatioReversed = %u --> unconsistant values accross arc. Don't use it\n",
+                printf("j=%d, nAlphaRatioReversed = %u --> unconsistent values accross arc. Don't use it\n",
                         j, nAlphaRatioReversed);
 #endif
                 bValidAlphaRatio = FALSE;

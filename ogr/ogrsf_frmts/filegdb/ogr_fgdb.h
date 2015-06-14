@@ -1,5 +1,5 @@
 /******************************************************************************
-* $Id: ogr_fgdb.h 29196 2015-05-14 15:50:13Z rouault $
+* $Id: ogr_fgdb.h 29330 2015-06-14 12:11:11Z rouault $
 *
 * Project:  OpenGIS Simple Features Reference Implementation
 * Purpose:  Standard includes and class definitions ArcObjects OGR driver.
@@ -82,7 +82,7 @@ protected:
   std::vector<std::wstring> m_vOGRFieldToESRIField; //OGR Field Index to ESRI Field Name Mapping
   std::vector<std::string> m_vOGRFieldToESRIFieldType; //OGR Field Index to ESRI Field Type Mapping
 
-  bool  m_supressColumnMappingError;
+  bool  m_suppressColumnMappingError;
   bool  m_forceMulti;
 
   bool OGRFeatureFromGdbRow(Row* pRow, OGRFeature** ppFeature);

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdal.h 29243 2015-05-24 15:53:26Z rouault $
+ * $Id: gdal.h 29330 2015-06-14 12:11:11Z rouault $
  *
  * Project:  GDAL Core
  * Purpose:  GDAL Core C/Public declarations.
@@ -103,7 +103,7 @@ typedef enum {
     /*! Write data */  GF_Write = 1
 } GDALRWFlag;
 
-/* NOTE: values are selected to be consistant with GDALResampleAlg of alg/gdalwarper.h */ 
+/* NOTE: values are selected to be consistent with GDALResampleAlg of alg/gdalwarper.h */ 
 /** RasterIO() resampling method.
   * @since GDAL 2.0
   */

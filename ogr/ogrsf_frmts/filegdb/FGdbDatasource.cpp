@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: FGdbDatasource.cpp 29196 2015-05-14 15:50:13Z rouault $
+ * $Id: FGdbDatasource.cpp 29330 2015-06-14 12:11:11Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implements FileGDB OGR Datasource.
@@ -37,7 +37,7 @@
 #include "FGdbUtils.h"
 #include "cpl_multiproc.h"
 
-CPL_CVSID("$Id: FGdbDatasource.cpp 29196 2015-05-14 15:50:13Z rouault $");
+CPL_CVSID("$Id: FGdbDatasource.cpp 29330 2015-06-14 12:11:11Z rouault $");
 
 using std::vector;
 using std::wstring;
@@ -487,7 +487,7 @@ OGRLayer * FGdbDataSource::ExecuteSQL( const char *pszSQLCommand,
         CPLDebug("FGDB", "Support for SELECT is known to be partially "
                          "non-compliant with FileGDB SDK API v1.2.\n"
                          "So for now, we use default OGR SQL engine. "
-                         "Explicitely specify -dialect FileGDB\n"
+                         "Explicitly specify -dialect FileGDB\n"
                          "to use the SQL engine from the FileGDB SDK API");
         return OGRDataSource::ExecuteSQL( pszSQLCommand,
                                         poSpatialFilter,

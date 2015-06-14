@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrlinestring.cpp 28039 2014-11-30 18:24:59Z rouault $
+ * $Id: ogrlinestring.cpp 29330 2015-06-14 12:11:11Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  The OGRSimpleCurve and OGRLineString geometry classes.
@@ -33,7 +33,7 @@
 #include <assert.h>
 #include "ogr_geos.h"
 
-CPL_CVSID("$Id: ogrlinestring.cpp 28039 2014-11-30 18:24:59Z rouault $");
+CPL_CVSID("$Id: ogrlinestring.cpp 29330 2015-06-14 12:11:11Z rouault $");
 
 /************************************************************************/
 /*                           OGRSimpleCurve()                           */
@@ -897,7 +897,7 @@ OGRErr  OGRSimpleCurve::exportToWkb( OGRwkbByteOrder eByteOrder,
     if ( eWkbVariant == wkbVariantIso )
         nGType = getIsoGeometryType();
     else if( eWkbVariant == wkbVariantPostGIS1 && wkbHasZ((OGRwkbGeometryType)nGType) )
-        nGType = (OGRwkbGeometryType)(wkbFlatten(nGType) | wkb25DBitInternalUse); /* yes we explicitely set wkb25DBit */
+        nGType = (OGRwkbGeometryType)(wkbFlatten(nGType) | wkb25DBitInternalUse); /* yes we explicitly set wkb25DBit */
 
     if( eByteOrder == wkbNDR )
         nGType = CPL_LSBWORD32( nGType );

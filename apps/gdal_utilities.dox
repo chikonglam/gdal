@@ -1,9 +1,10 @@
 #ifndef DOXYGEN_SKIP
-/* $Id: gdal_utilities.dox 29243 2015-05-24 15:53:26Z rouault $ */
+/* $Id: gdal_utilities.dox 29338 2015-06-14 17:53:28Z rouault $ */
 #endif /* DOXYGEN_SKIP */
 
 /*! 
 \page gdal_utilities GDAL Utilities
+\brief A collection of GDAL related programs.
 
 The following utility programs are distributed with GDAL. 
 
@@ -173,7 +174,7 @@ and exit.
 
 \htmlonly
 <p>
-$Id: gdal_utilities.dox 29243 2015-05-24 15:53:26Z rouault $
+$Id: gdal_utilities.dox 29338 2015-06-14 17:53:28Z rouault $
 </p>
 \endhtmlonly
 */

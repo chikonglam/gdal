@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdaldrivermanager.cpp 29110 2015-05-02 11:54:16Z rouault $
+ * $Id: gdaldrivermanager.cpp 29330 2015-06-14 12:11:11Z rouault $
  *
  * Project:  GDAL Core
  * Purpose:  Implementation of GDALDriverManager class.
@@ -43,7 +43,7 @@
 #  endif
 #endif
 
-CPL_CVSID("$Id: gdaldrivermanager.cpp 29110 2015-05-02 11:54:16Z rouault $");
+CPL_CVSID("$Id: gdaldrivermanager.cpp 29330 2015-06-14 12:11:11Z rouault $");
 
 static const char *pszUpdatableINST_DATA = 
 "__INST_DATA_TARGET:                                                                                                                                      ";
@@ -435,7 +435,7 @@ int GDALDriverManager::RegisterDriver( GDALDriver * poDriver )
         poDriver->SetMetadataItem( GDAL_DCAP_CREATECOPY, "YES" );
 
     /* Backward compability for GDAL raster out-of-tree drivers: */
-    /* if a driver hasn't explicitely set a vector capability, assume it is */
+    /* if a driver hasn't explicitly set a vector capability, assume it is */
     /* a raster driver (legacy OGR drivers will have DCAP_VECTOR set before */
     /* calling RegisterDriver() ) */
     if( poDriver->GetMetadataItem( GDAL_DCAP_RASTER ) == NULL &&

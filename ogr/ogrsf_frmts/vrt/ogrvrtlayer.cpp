@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrvrtlayer.cpp 28950 2015-04-18 23:24:49Z rouault $
+ * $Id: ogrvrtlayer.cpp 29330 2015-06-14 12:11:11Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implements OGRVRTLayer class.
@@ -34,7 +34,7 @@
 #include "ogrpgeogeometry.h"
 #include <string>
 
-CPL_CVSID("$Id: ogrvrtlayer.cpp 28950 2015-04-18 23:24:49Z rouault $");
+CPL_CVSID("$Id: ogrvrtlayer.cpp 29330 2015-06-14 12:11:11Z rouault $");
 
 #define UNSUPPORTED_OP_READ_ONLY "%s : unsupported operation on a read-only datasource."
 
@@ -409,7 +409,7 @@ int OGRVRTLayer::ParseGeometryField(CPLXMLNode* psNode,
         CSLTestBoolean(CPLGetXMLValue( psNode, "reportSrcColumn", "YES" ));
 
 /* -------------------------------------------------------------------- */
-/*      Guess geometry type if not explicitely provided (or computed)   */
+/*      Guess geometry type if not explicitly provided (or computed)   */
 /* -------------------------------------------------------------------- */
     if( pszGType == NULL && poProps->eGeomType == wkbUnknown )
     {
@@ -2322,7 +2322,7 @@ OGRErr OGRVRTLayer::SetIgnoredFields( const char **papszFields )
     char** papszFieldsSrc = NULL;
     OGRFeatureDefn* poSrcFeatureDefn = poSrcLayer->GetLayerDefn();
 
-    /* Translate explicitely ignored fields of VRT layers to their equivalent */
+    /* Translate explicitly ignored fields of VRT layers to their equivalent */
     /* source fields. */
     while ( papszIter != NULL && *papszIter != NULL )
     {

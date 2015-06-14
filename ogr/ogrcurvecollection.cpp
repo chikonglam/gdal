@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrcurvecollection.cpp 27960 2014-11-14 18:31:32Z rouault $
+ * $Id: ogrcurvecollection.cpp 29330 2015-06-14 12:11:11Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  The OGRCurveCollection class.
@@ -315,7 +315,7 @@ OGRErr OGRCurveCollection::exportToWkb( const OGRGeometry* poGeom,
         if( nGType == wkbCurvePolygon )
             nGType = POSTGIS15_CURVEPOLYGON;
         if( bIs3D )
-            nGType = (OGRwkbGeometryType)(nGType | wkb25DBitInternalUse); /* yes we explicitely set wkb25DBit */
+            nGType = (OGRwkbGeometryType)(nGType | wkb25DBitInternalUse); /* yes we explicitly set wkb25DBit */
     }
 
     if( eByteOrder == wkbNDR )

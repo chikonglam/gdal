@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: cpl_csv.cpp 29238 2015-05-24 08:42:03Z rouault $
+ * $Id: cpl_csv.cpp 29330 2015-06-14 12:11:11Z rouault $
  *
  * Project:  CPL - Common Portability Library
  * Purpose:  CSV (comma separated value) file access.
@@ -33,7 +33,7 @@
 #include "cpl_multiproc.h"
 #include "gdal_csv.h"
 
-CPL_CVSID("$Id: cpl_csv.cpp 29238 2015-05-24 08:42:03Z rouault $");
+CPL_CVSID("$Id: cpl_csv.cpp 29330 2015-06-14 12:11:11Z rouault $");
 
 /* ==================================================================== */
 /*      The CSVTable is a persistant set of info about an open CSV      */
@@ -464,7 +464,7 @@ char CSVDetectSeperator (const char* pszLine)
                 chDelimiter = *pszLine;
             else if (chDelimiter != *pszLine)
             {
-                /* The separator is not consistant on the line. */
+                /* The separator is not consistent on the line. */
                 CPLDebug("CSV", "Inconsistent separator. '%c' and '%c' found. Using ',' as default",
                          chDelimiter, *pszLine);
                 chDelimiter = ',';

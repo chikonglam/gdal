@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdalwarper.h 28876 2015-04-08 22:21:55Z rouault $
+ * $Id: gdalwarper.h 29330 2015-06-14 12:11:11Z rouault $
  *
  * Project:  GDAL High Performance Warper
  * Purpose:  Prototypes, and definitions for warping related work.
@@ -45,7 +45,7 @@
 
 CPL_C_START
 
-/* Note: values are selected to be consistant with GDALRIOResampleAlg of gcore/gdal.h */ 
+/* Note: values are selected to be consistent with GDALRIOResampleAlg of gcore/gdal.h */ 
 /*! Warp Resampling Algorithm */
 typedef enum {
   /*! Nearest neighbour (select on one input pixel) */ GRA_NearestNeighbour=0,

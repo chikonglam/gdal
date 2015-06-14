@@ -1,5 +1,5 @@
 /**********************************************************************
- * $Id: cpl_virtualmem.h 28543 2015-02-23 21:01:19Z rouault $
+ * $Id: cpl_virtualmem.h 29330 2015-06-14 12:11:11Z rouault $
  *
  * Name:     cpl_virtualmem.h
  * Project:  CPL - Common Portability Library
@@ -198,7 +198,7 @@ int CPL_DLL CPLIsVirtualMemFileMapAvailable(void);
  * @param  nOffset  Offset in the file to start the mapping from.
  * @param  nLength  Length of the portion of the file to map into memory.
  * @param eAccessMode Permission to use for the virtual memory mapping. This must
- *                    be consistant with how the file has been opened.
+ *                    be consistent with how the file has been opened.
  * @param pfnFreeUserData callback that is called when the object is destroyed.
  * @param pCbkUserData user data passed to pfnFreeUserData.
  * @return a virtual memory object that must be freed by CPLVirtualMemFree(),
