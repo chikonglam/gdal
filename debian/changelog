@@ -1,4 +1,4 @@
-gdal (2.0.0~rc1+dfsg-1) UNRELEASED; urgency=medium
+gdal (2.0.0~rc2+dfsg-1) UNRELEASED; urgency=medium
 
   * New upstream release candidate.
   * Update copyright file, changes:
@@ -11,7 +11,7 @@ gdal (2.0.0~rc1+dfsg-1) UNRELEASED; urgency=medium
   * Drop libgdal1-dev transitional package, and obsolete
     Breaks/Replaces.
 
- -- Bas Couwenberg <sebastic@debian.org>  Sat, 13 Jun 2015 23:40:47 +0200
+ -- Bas Couwenberg <sebastic@debian.org>  Sun, 14 Jun 2015 21:03:34 +0200
 
 gdal (1.11.2+dfsg-1~exp3) experimental; urgency=medium
 
