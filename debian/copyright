@@ -490,10 +490,6 @@ Comment: Thanks to Rodney Brown <rbrown64@csc.com.au> for his contribution of fa
  factor of two increase in speed on a Power PC G4 (PPC7455) using gcc -O3.
 License: zlib
 
-Files: gcore/gdal_rpcimdio.cpp
-Copyright: 2008, HER MAJESTY THE QUEEN IN RIGHT OF CANADA as represented by the Canadian Nuclear Safety Commission
-License: MIT
-
 Files: gcore/Version.rc
 Copyright: 2005, Frank Warmerdam <warmerdam@pobox.com>
 Comment: Copyright assignment provided by Martin Daly by email, "Be my guest.  Fame!

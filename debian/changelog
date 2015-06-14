@@ -1,7 +1,9 @@
 gdal (2.0.0~rc1+dfsg-1) UNRELEASED; urgency=medium
 
   * New upstream release candidate.
-  * Update copyright years & holders.
+  * Update copyright file, changes:
+    - Update copyright years & holders
+    - Drop files section for gcore/gdal_rpcimdio.cpp, removed upstream
   * Use uscan in get-orig-source target.
   * Drop patches applied upstream, refresh remaining patches.
   * Rename libgdal1h to libgdal20 to match SONAME.
