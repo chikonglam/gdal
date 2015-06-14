@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: l1bdataset.cpp 28925 2015-04-16 21:51:54Z rouault $
+ * $Id: l1bdataset.cpp 29330 2015-06-14 12:11:11Z rouault $
  *
  * Project:  NOAA Polar Orbiter Level 1b Dataset Reader (AVHRR)
  * Purpose:  Can read NOAA-9(F)-NOAA-17(M) AVHRR datasets
@@ -38,7 +38,7 @@
 #include "cpl_string.h"
 #include "ogr_srs_api.h"
 
-CPL_CVSID("$Id: l1bdataset.cpp 28925 2015-04-16 21:51:54Z rouault $");
+CPL_CVSID("$Id: l1bdataset.cpp 29330 2015-06-14 12:11:11Z rouault $");
 
 CPL_C_START
 void    GDALRegister_L1B(void);
@@ -178,7 +178,7 @@ static const char *apszBandDesc[] =
 #define L1B_NOAA15_HDR_REC_SRC_OFF  154 // Receiving station name offset
 #define L1B_NOAA15_HDR_REC_ELLIPSOID_OFF 328
 
-/* This only apply if L1B_HIGH_GCP_DENSITY is explicitely set to NO */
+/* This only apply if L1B_HIGH_GCP_DENSITY is explicitly set to NO */
 /* otherwise we will report more GCPs */
 #define DESIRED_GCPS_PER_LINE 11
 #define DESIRED_LINES_OF_GCPS 20

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdaljp2metadata.cpp 29210 2015-05-19 19:04:28Z rouault $
+ * $Id: gdaljp2metadata.cpp 29330 2015-06-14 12:11:11Z rouault $
  *
  * Project:  GDAL 
  * Purpose:  GDALJP2Metadata - Read GeoTIFF and/or GML georef info.
@@ -40,7 +40,7 @@
 #include "json.h"
 #include "gdaljp2metadatagenerator.h"
 
-CPL_CVSID("$Id: gdaljp2metadata.cpp 29210 2015-05-19 19:04:28Z rouault $");
+CPL_CVSID("$Id: gdaljp2metadata.cpp 29330 2015-06-14 12:11:11Z rouault $");
 
 static const unsigned char msi_uuid2[16] =
 {0xb1,0x4b,0xf8,0xbd,0x08,0x3d,0x4b,0x43,
@@ -1139,7 +1139,7 @@ int GDALJP2Metadata::ParseGMLCoverageDesc()
         {
             CPLError(CE_Warning, CPLE_AppDefined,
                      "It is likely that the axis order of the GMLJP2 box is not "
-                     "consistant with the EPSG order and that the resulting georeferencing "
+                     "consistent with the EPSG order and that the resulting georeferencing "
                      "will be incorrect. Try setting GDAL_IGNORE_AXIS_ORIENTATION=TRUE if it is the case");
         }
     }

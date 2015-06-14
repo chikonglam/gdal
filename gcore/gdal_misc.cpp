@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdal_misc.cpp 29123 2015-05-03 11:05:46Z bishop $
+ * $Id: gdal_misc.cpp 29326 2015-06-10 20:36:31Z rouault $
  *
  * Project:  GDAL Core
  * Purpose:  Free standing functions for GDAL.
@@ -35,7 +35,7 @@
 #include <ctype.h>
 #include <string>
 
-CPL_CVSID("$Id: gdal_misc.cpp 29123 2015-05-03 11:05:46Z bishop $");
+CPL_CVSID("$Id: gdal_misc.cpp 29326 2015-06-10 20:36:31Z rouault $");
 
 #include "ogr_spatialref.h"
 #include "gdal_mdreader.h"
@@ -2871,7 +2871,10 @@ GDALDataset *GDALFindAssociatedAuxFile( const char *pszBasename,
             /* Avoid causing failure in opening of main file from SWIG bindings */
             /* when auxiliary file cannot be opened (#3269) */
             CPLTurnFailureIntoWarning(TRUE);
-            poODS = (GDALDataset *) GDALOpenShared( osAuxFilename, eAccess );
+            if( poDependentDS != NULL && poDependentDS->GetShared() )
+                poODS = (GDALDataset *) GDALOpenShared( osAuxFilename, eAccess );
+            else
+                poODS = (GDALDataset *) GDALOpen( osAuxFilename, eAccess );
             CPLTurnFailureIntoWarning(FALSE);
         }
         VSIFCloseL( fp );
@@ -2965,7 +2968,10 @@ GDALDataset *GDALFindAssociatedAuxFile( const char *pszBasename,
                 /* Avoid causing failure in opening of main file from SWIG bindings */
                 /* when auxiliary file cannot be opened (#3269) */
                 CPLTurnFailureIntoWarning(TRUE);
-                poODS = (GDALDataset *) GDALOpenShared( osAuxFilename, eAccess );
+                if( poDependentDS != NULL && poDependentDS->GetShared() )
+                    poODS = (GDALDataset *) GDALOpenShared( osAuxFilename, eAccess );
+                else
+                    poODS = (GDALDataset *) GDALOpen( osAuxFilename, eAccess );
                 CPLTurnFailureIntoWarning(FALSE);
             }
             VSIFCloseL( fp );

@@ -1,5 +1,5 @@
 /**********************************************************************
- * $Id: cpl_virtualmem.cpp 28459 2015-02-12 13:48:21Z rouault $
+ * $Id: cpl_virtualmem.cpp 29330 2015-06-14 12:11:11Z rouault $
  *
  * Name:     cpl_virtualmem.cpp
  * Project:  CPL - Common Portability Library
@@ -626,7 +626,7 @@ static void CPLVirtualMemSIGUSR1Handler(int signum_unused,
     /* I guess this is only POSIX correct if it is implemented by an intrinsic */
     CPLAtomicInc(&nCountThreadsInSigUSR1);
     while( nWaitHelperThread )
-        usleep(1); /* not explicitely indicated as signal-async-safe, but hopefully ok */
+        usleep(1); /* not explicitly indicated as signal-async-safe, but hopefully ok */
     CPLAtomicDec(&nCountThreadsInSigUSR1);
     /* fprintfstderr("leaving CPLVirtualMemSIGUSR1Handler %X\n", pthread_self()); */
 }

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: commonutils.cpp 27384 2014-05-24 12:28:12Z rouault $
+ * $Id: commonutils.cpp 29330 2015-06-14 12:11:11Z rouault $
  *
  * Project:  GDAL Utilities
  * Purpose:  Common utility routines
@@ -31,12 +31,12 @@
 #include "cpl_string.h"
 #include "gdal.h"
 
-CPL_CVSID("$Id: commonutils.cpp 27384 2014-05-24 12:28:12Z rouault $");
+CPL_CVSID("$Id: commonutils.cpp 29330 2015-06-14 12:11:11Z rouault $");
 
 /* -------------------------------------------------------------------- */
 /*                      CheckExtensionConsistency()                     */
 /*                                                                      */
-/*      Check that the target file extension is consistant with the     */
+/*      Check that the target file extension is consistent with the     */
 /*      requested driver. Actually, we only warn in cases where the     */
 /*      inconsistency is blatant (use of an extension declared by one   */
 /*      or several drivers, and not by the selected one)                */

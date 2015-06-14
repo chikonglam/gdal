@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdaltransformer.cpp 29271 2015-06-01 14:17:30Z rouault $
+ * $Id: gdaltransformer.cpp 29309 2015-06-05 18:48:48Z rouault $
  *
  * Project:  Mapinfo Image Warper
  * Purpose:  Implementation of one or more GDALTrasformerFunc types, including
@@ -38,7 +38,7 @@
 #include "cpl_list.h"
 #include "cpl_multiproc.h"
 
-CPL_CVSID("$Id: gdaltransformer.cpp 29271 2015-06-01 14:17:30Z rouault $");
+CPL_CVSID("$Id: gdaltransformer.cpp 29309 2015-06-05 18:48:48Z rouault $");
 CPL_C_START
 void *GDALDeserializeGCPTransformer( CPLXMLNode *psTree );
 void *GDALDeserializeTPSTransformer( CPLXMLNode *psTree );
@@ -710,7 +710,7 @@ retry:
         // In some cases this can result in 0 values. See #5980
         // so fallback to safer method in that case
     }
-    if( dfDeltaX == 0.0 || dfDeltaX == 0.0 )
+    if( dfDeltaX == 0.0 || dfDeltaY == 0.0 )
     {
         dfDeltaX = dfMaxXOut - dfMinXOut;
         dfDeltaY = dfMaxYOut - dfMinYOut;

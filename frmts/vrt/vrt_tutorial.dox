@@ -1,5 +1,5 @@
 #ifndef DOXYGEN_SKIP
-/* $Id: vrt_tutorial.dox 28951 2015-04-18 23:25:15Z rouault $ */
+/* $Id: vrt_tutorial.dox 29342 2015-06-14 18:00:24Z rouault $ */
 #endif /* DOXYGEN_SKIP */
 
 /*!
@@ -264,6 +264,12 @@ rectangle of source data should be mapped into the VRTRasterBands space.
 The relativeToVRT attribute on the SourceFilename indicates whether the
 filename should be interpreted as relative to the .vrt file (value is 1)
 or not relative to the .vrt file (value is 0).  The default is 0.
+
+The shared attribute, added in GDAL 2.0.0, on the SourceFilename indicates whether the
+dataset should be shared (value is 1) or not (value is 0). The default is 1.
+If several VRT datasets refering to the same underlying sources are used in a multithreaded context,
+shared should be set to 0. Alternatively, the VRT_SHARED_SOURCE configuration
+option can be set to 0 to force non-shared mode.
 
 Some characteristics of the source band can be specified in the optional
 SourceProperties tag to enable the VRT driver to differ the opening of the source
@@ -870,6 +876,12 @@ reason for that is that the VRT dataset uses GDALOpenShared when opening the
 underlying datasets. So, if you open twice the same VRT dataset by the same
 thread, both VRT datasets will share the same handles to the underlying
 datasets.
+
+The shared attribute, added in GDAL 2.0.0, on the SourceFilename indicates whether the
+dataset should be shared (value is 1) or not (value is 0). The default is 1.
+If several VRT datasets refering to the same underlying sources are used in a multithreaded context,
+shared should be set to 0. Alternatively, the VRT_SHARED_SOURCE configuration
+option can be set to 0 to force non-shared mode.
 
 \section gdal_vrttut_perf Performance considerations
 

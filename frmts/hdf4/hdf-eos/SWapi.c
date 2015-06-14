@@ -1,5 +1,5 @@
 /*****************************************************************************
- * $Id: SWapi.c 28435 2015-02-07 14:35:34Z rouault $
+ * $Id: SWapi.c 29336 2015-06-14 17:37:21Z rouault $
  *
  * This module has a number of additions and improvements over the original
  * implementation to be suitable for usage in GDAL HDF driver.
@@ -4922,7 +4922,7 @@ SWwrrdfield(int32 swathID, const char *fieldname, const char *code,
 
 
 		/*
-		 * If strideOne is true use NULL paramater for stride. This
+		 * If strideOne is true use NULL parameter for stride. This
 		 * is a work-around to HDF compression problem
 		 */
 		if (strideOne == 1)

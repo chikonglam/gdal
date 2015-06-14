@@ -1,5 +1,5 @@
 /*****************************************************************************
- * $Id: GDapi.c 28436 2015-02-07 15:36:06Z rouault $
+ * $Id: GDapi.c 29336 2015-06-14 17:37:21Z rouault $
  *
  * This module has a number of additions and improvements over the original
  * implementation to be suitable for usage in GDAL HDF driver.
@@ -3959,7 +3959,7 @@ GDwrrdfield(int32 gridID, char *fieldname, char *code,
 
 
 		/*
-		 * If strideOne is true use NULL paramater for stride. This
+		 * If strideOne is true use NULL parameter for stride. This
 		 * is a work-around to HDF compression problem
 		 */
 		if (strideOne == 1)

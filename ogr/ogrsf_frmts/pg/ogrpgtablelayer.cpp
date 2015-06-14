@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrpgtablelayer.cpp 28995 2015-04-24 15:56:15Z rouault $
+ * $Id: ogrpgtablelayer.cpp 29330 2015-06-14 12:11:11Z rouault $
 
  *
  * Project:  OpenGIS Simple Features Reference Implementation
@@ -37,7 +37,7 @@
 
 #define PQexec this_is_an_error
 
-CPL_CVSID("$Id: ogrpgtablelayer.cpp 28995 2015-04-24 15:56:15Z rouault $");
+CPL_CVSID("$Id: ogrpgtablelayer.cpp 29330 2015-06-14 12:11:11Z rouault $");
 
 
 #define USE_COPY_UNSET  -10
@@ -1105,7 +1105,7 @@ OGRErr OGRPGTableLayer::ISetFeature( OGRFeature *poFeature )
             poFeature->GetFieldAsInteger64(iFIDAsRegularColumnIndex) != poFeature->GetFID() )
         {
             CPLError(CE_Failure, CPLE_AppDefined,
-                        "Inconsistant values of FID and field of same name");
+                        "Inconsistent values of FID and field of same name");
             return CE_Failure;
         }
     }
@@ -1319,7 +1319,7 @@ OGRErr OGRPGTableLayer::ICreateFeature( OGRFeature *poFeature )
                 poFeature->GetFieldAsInteger64(iFIDAsRegularColumnIndex) != poFeature->GetFID() )
             {
                 CPLError(CE_Failure, CPLE_AppDefined,
-                            "Inconsistant values of FID and field of same name");
+                            "Inconsistent values of FID and field of same name");
                 return CE_Failure;
             }
         }

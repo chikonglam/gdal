@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ecwdataset.cpp 29075 2015-04-30 12:51:21Z rouault $
+ * $Id: ecwdataset.cpp 29330 2015-06-14 12:11:11Z rouault $
  *
  * Project:  GDAL 
  * Purpose:  ECW (ERDAS Wavelet Compression Format) Driver
@@ -34,7 +34,7 @@
 #include "ogr_api.h"
 #include "ogr_geometry.h"
 
-CPL_CVSID("$Id: ecwdataset.cpp 29075 2015-04-30 12:51:21Z rouault $");
+CPL_CVSID("$Id: ecwdataset.cpp 29330 2015-06-14 12:11:11Z rouault $");
 
 #undef NOISY_DEBUG
 
@@ -1010,7 +1010,7 @@ ECWDataset::~ECWDataset()
     //
     // We also have an issue with ECW SDK 5.0 and ECW files on Linux when
     // running a multi-threaded test under Java if there's still an ECW dataset
-    // not explicitely closed at process termination.
+    // not explicitly closed at process termination.
     /*  #0  0x00007fffb26e7a80 in NCSAtomicAdd64 () from /home/even/ecwjp2_sdk/redistributable/x64/libNCSEcw.so
         #1  0x00007fffb2aa7684 in NCS::SDK::CBuffer2D::Free() () from /home/even/ecwjp2_sdk/redistributable/x64/libNCSEcw.so
         #2  0x00007fffb2aa7727 in NCS::SDK::CBuffer2D::~CBuffer2D() () from /home/even/ecwjp2_sdk/redistributable/x64/libNCSEcw.so

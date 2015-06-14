@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrsqlitetablelayer.cpp 28900 2015-04-14 09:40:34Z rouault $
+ * $Id: ogrsqlitetablelayer.cpp 29330 2015-06-14 12:11:11Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implements OGRSQLiteTableLayer class, access to an existing table.
@@ -37,7 +37,7 @@
 
 #define UNSUPPORTED_OP_READ_ONLY "%s : unsupported operation on a read-only datasource."
 
-CPL_CVSID("$Id: ogrsqlitetablelayer.cpp 28900 2015-04-14 09:40:34Z rouault $");
+CPL_CVSID("$Id: ogrsqlitetablelayer.cpp 29330 2015-06-14 12:11:11Z rouault $");
 
 /************************************************************************/
 /*                        OGRSQLiteTableLayer()                         */
@@ -2585,7 +2585,7 @@ OGRErr OGRSQLiteTableLayer::ISetFeature( OGRFeature *poFeature )
             poFeature->GetFieldAsInteger64(iFIDAsRegularColumnIndex) != poFeature->GetFID() )
         {
             CPLError(CE_Failure, CPLE_AppDefined,
-                        "Inconsistant values of FID and field of same name");
+                        "Inconsistent values of FID and field of same name");
             return CE_Failure;
         }
     }
@@ -2946,7 +2946,7 @@ OGRErr OGRSQLiteTableLayer::ICreateFeature( OGRFeature *poFeature )
                 poFeature->GetFieldAsInteger64(iFIDAsRegularColumnIndex) != poFeature->GetFID() )
             {
                 CPLError(CE_Failure, CPLE_AppDefined,
-                            "Inconsistant values of FID and field of same name");
+                            "Inconsistent values of FID and field of same name");
                 return CE_Failure;
             }
         }

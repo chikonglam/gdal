@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrpgdumplayer.cpp 28988 2015-04-24 11:58:49Z rouault $
+ * $Id: ogrpgdumplayer.cpp 29330 2015-06-14 12:11:11Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implements OGRPGDumpLayer class
@@ -32,7 +32,7 @@
 #include "cpl_string.h"
 #include "ogr_p.h"
 
-CPL_CVSID("$Id: ogrpgdumplayer.cpp 28988 2015-04-24 11:58:49Z rouault $");
+CPL_CVSID("$Id: ogrpgdumplayer.cpp 29330 2015-06-14 12:11:11Z rouault $");
 
 #define USE_COPY_UNSET -1
 
@@ -158,7 +158,7 @@ OGRErr OGRPGDumpLayer::ICreateFeature( OGRFeature *poFeature )
                 poFeature->GetFieldAsInteger64(iFIDAsRegularColumnIndex) != poFeature->GetFID() )
             {
                 CPLError(CE_Failure, CPLE_AppDefined,
-                            "Inconsistant values of FID and field of same name");
+                            "Inconsistent values of FID and field of same name");
                 return CE_Failure;
             }
         }

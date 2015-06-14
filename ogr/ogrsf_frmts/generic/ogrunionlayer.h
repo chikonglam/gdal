@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrunionlayer.h 28375 2015-01-30 12:06:11Z rouault $
+ * $Id: ogrunionlayer.h 29330 2015-06-14 12:11:11Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Defines OGRUnionLayer class
@@ -112,7 +112,7 @@ class OGRUnionLayer : public OGRLayer
     void                SetFields(FieldUnionStrategy eFieldStrategy,
                                   int nFields,
                                   OGRFieldDefn** papoFields,  /* duplicated by the method */
-                                  int nGeomFields, /* maybe -1 to explicitely disable geometry fields */
+                                  int nGeomFields, /* maybe -1 to explicitly disable geometry fields */
                                   OGRUnionLayerGeomFieldDefn** papoGeomFields  /* duplicated by the method */);
     void                SetSourceLayerFieldName(const char* pszSourceLayerFieldName);
     void                SetPreserveSrcFID(int bPreserveSrcFID);

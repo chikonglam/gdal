@@ -1,5 +1,5 @@
 /* ****************************************************************************
- * $Id: gdal_grid.cpp 27942 2014-11-11 00:57:41Z rouault $
+ * $Id: gdal_grid.cpp 29330 2015-06-14 12:11:11Z rouault $
  *
  * Project:  GDAL Utilities
  * Purpose:  GDAL scattered data gridding (interpolation) tool
@@ -40,7 +40,7 @@
 #include "gdalgrid.h"
 #include "commonutils.h"
 
-CPL_CVSID("$Id: gdal_grid.cpp 27942 2014-11-11 00:57:41Z rouault $");
+CPL_CVSID("$Id: gdal_grid.cpp 29330 2015-06-14 12:11:11Z rouault $");
 
 /************************************************************************/
 /*                               Usage()                                */
@@ -610,7 +610,7 @@ int main( int argc, char ** argv )
 {
     GDALDriverH     hDriver;
     const char      *pszSource=NULL, *pszDest=NULL, *pszFormat = "GTiff";
-    int             bFormatExplicitelySet = FALSE;
+    int             bFormatExplicitlySet = FALSE;
     char            **papszLayers = NULL;
     const char      *pszBurnAttribute = NULL;
     double          dfIncreaseBurnValue = 0.0;
@@ -665,7 +665,7 @@ int main( int argc, char ** argv )
         {
             CHECK_HAS_ENOUGH_ADDITIONAL_ARGS(1);
             pszFormat = argv[++i];
-            bFormatExplicitelySet = TRUE;
+            bFormatExplicitlySet = TRUE;
         }
 
         else if( EQUAL(argv[i],"-q") || EQUAL(argv[i],"-quiet") )
@@ -1021,7 +1021,7 @@ int main( int argc, char ** argv )
     if ( nYSize == 0 )
         nYSize = 256;
 
-    if (!bQuiet && !bFormatExplicitelySet)
+    if (!bQuiet && !bFormatExplicitlySet)
         CheckExtensionConsistency(pszDest, pszFormat);
 
     hDstDS = GDALCreate( hDriver, pszDest, nXSize, nYSize, nBands,

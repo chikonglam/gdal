@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_sqlite.h 28808 2015-03-28 15:01:36Z rouault $
+ * $Id: ogr_sqlite.h 29330 2015-06-14 12:11:11Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Private definitions for OGR/SQLite driver.
@@ -675,7 +675,7 @@ class OGRSQLiteBaseDataSource : public GDALPamDataset
 #endif
 
     VSILFILE*           fpMainFile; /* Set by the VFS layer when it opens the DB */
-                                    /* Must *NOT* be closed by the datasource explicitely. */
+                                    /* Must *NOT* be closed by the datasource explicitly. */
 
     int                 OpenOrCreateDB(int flags, int bRegisterOGR2SQLiteExtensions);
     int                 SetSynchronous();
