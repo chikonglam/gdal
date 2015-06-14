@@ -1,3 +1,9 @@
+gdal (2.0.0~rc1+dfsg-1) UNRELEASED; urgency=medium
+
+  * New upstream release candidate.
+
+ -- Bas Couwenberg <sebastic@debian.org>  Sat, 13 Jun 2015 23:40:47 +0200
+
 gdal (1.11.2+dfsg-1~exp3) experimental; urgency=medium
 
   * Use packaged jquery.js instead of Doxygen copy.
