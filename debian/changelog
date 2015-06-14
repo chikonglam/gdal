@@ -5,6 +5,7 @@ gdal (2.0.0~rc1+dfsg-1) UNRELEASED; urgency=medium
   * Use uscan in get-orig-source target.
   * Drop patches applied upstream, refresh remaining patches.
   * Rename libgdal1h to libgdal20 to match SONAME.
+  * Use packaged libgeotiff & libtiff instead of internal copies.
 
  -- Bas Couwenberg <sebastic@debian.org>  Sat, 13 Jun 2015 23:40:47 +0200
 

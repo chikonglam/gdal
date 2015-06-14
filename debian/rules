@@ -91,8 +91,8 @@ override_dh_auto_configure:
 			--with-hide-internal-symbols=yes \
 			--with-rename-internal-libtiff-symbols=yes \
 			--with-rename-internal-libgeotiff-symbols=yes \
-			--with-libtiff=internal \
-			--with-geotiff=internal \
+			--with-libtiff=yes \
+			--with-geotiff=yes \
 			--with-webp \
 			--with-jasper \
 			--with-netcdf \
@@ -187,15 +187,6 @@ override_dh_auto_install:
 	install -o root -g root -m 755 $(CURDIR)/swig/python/samples/*.py $(CURDIR)/debian/tmp/usr/share/doc/python-gdal/examples/.
 
 	# create lintian overrides file
-	echo "# TIFF/GEOTIFF symbols are renamed to definitively solve problem of" >> $(CURDIR)/debian/libgdal20.lintian-overrides
-	echo "# symbol collisions for programs that both links geotiff/tiff libraries." >> $(CURDIR)/debian/libgdal20.lintian-overrides
-	echo "libgdal20: package-name-doesnt-match-sonames libgdal1" >> $(CURDIR)/debian/libgdal20.lintian-overrides
-
-	echo >> $(CURDIR)/debian/libgdal20.lintian-overrides
-	echo "# Used for BigTIFF support (#501127)" >> $(CURDIR)/debian/libgdal20.lintian-overrides
-	echo "libgdal20: embedded-library usr/lib/libgdal.so.$$(basename debian/tmp/usr/lib/libgdal.so.*.*.*|cut -d. -f3,4,5): tiff" \
-		>> $(CURDIR)/debian/libgdal20.lintian-overrides
-
 	echo >> $(CURDIR)/debian/libgdal20.lintian-overrides
 	echo "# False positive on: {136, "Socialist Republic of Viet Nam"}," >> $(CURDIR)/debian/libgdal20.lintian-overrides
 	echo "libgdal20: spelling-error-in-binary usr/lib/libgdal.so.$$(basename debian/tmp/usr/lib/libgdal.so.*.*.*|cut -d. -f3,4,5) Nam Name" \
