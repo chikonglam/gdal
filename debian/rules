@@ -186,6 +186,12 @@ override_dh_auto_install:
 	install -o root -g root -d $(CURDIR)/debian/tmp/usr/share/doc/python-gdal/examples
 	install -o root -g root -m 755 $(CURDIR)/swig/python/samples/*.py $(CURDIR)/debian/tmp/usr/share/doc/python-gdal/examples/.
 
+	# create lintian overrides file
+	echo >> $(CURDIR)/debian/libgdal20.lintian-overrides
+	echo "# False positive on: {136, "Socialist Republic of Viet Nam"}," >> $(CURDIR)/debian/libgdal20.lintian-overrides
+	echo "libgdal20: spelling-error-in-binary usr/lib/libgdal.so.$$(basename debian/tmp/usr/lib/libgdal.so.*.*.*|cut -d. -f3,4,5) Nam Name" \
+		>> $(CURDIR)/debian/libgdal20.lintian-overrides
+
 override_dh_install:
 	dh_install --autodest --list-missing
 
@@ -207,7 +213,7 @@ override_dh_makeshlibs:
 	#dh_makeshlibs -Xlibgdal-java -- -v$(GDAL_MAJOR).$(GDAL_MINOR).$(GDAL_PATCH)
 
 override_dh_shlibdeps:
-	dh_shlibdeps -L libgdal20-2.0.0 -l debian/libgdal20-2.0.0/usr/lib
+	dh_shlibdeps -L libgdal20 -l debian/libgdal20/usr/lib
 
 get-orig-source:
 	uscan --verbose --force-download

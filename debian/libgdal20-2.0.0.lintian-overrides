@@ -1,6 +1,0 @@
-# Package name should be libgdal20, but because of C++ symbols is libgdal20-2.0.0
-libgdal20-2.0.0: package-name-doesnt-match-sonames *
-
-# False positive on: {136, "Socialist Republic of Viet Nam"},
-libgdal20-2.0.0: spelling-error-in-binary * Nam Name
-
