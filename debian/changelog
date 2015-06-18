@@ -10,6 +10,8 @@ gdal (2.0.0~rc2+dfsg-1) UNRELEASED; urgency=medium
   * Use packaged libgeotiff & libtiff instead of internal copies.
   * Drop libgdal1-dev transitional package, and obsolete
     Breaks/Replaces.
+  * Change virtual package from libgdal.so.1-<major>.<minor>.<patch> format
+    to gdal-abi-<major>-<minor>-<patch> format.
 
  -- Bas Couwenberg <sebastic@debian.org>  Sun, 14 Jun 2015 21:03:34 +0200
 

@@ -10,7 +10,7 @@
 # diffutils patch coreutils
 #
 # Copyright (C) 2013-2014, Bas Couwenberg <sebastic@xs4all.nl>
-# 
+#
 # This library is free software; you can redistribute it and/or modify
 # it under the same terms as Perl itself, either Perl version 5.8.5 or,
 # at your option, any later version of Perl 5 you may have available.
@@ -411,9 +411,13 @@ sub create_new_symbols {
 
 				`cat $output | $cfg{cppfilt} > $filt 2>&1`;
 
-				# libgdal.so.1 libgdal1h #MINVER# 
+				# libgdal.so.1 libgdal1h #MINVER#
 				# | libgdal1h #MINVER#, libgdal.so.1-1.10.1
 				# #include "libgdal1h.symbols.common"
+
+				# libgdal.so.20 libgdal20 #MINVER#
+				# | libgdal20 #MINVER#, gdal-abi-2-0-0
+				# #include "libgdal20.symbols.common"
 
 				my $data = '';
 
@@ -977,9 +981,9 @@ sub parse_symbols {
 
 			$symbols{$symbol}{version} = $version;
 		}
-		# libgdal.so.1 libgdal1h #MINVER# 
-		# | libgdal1h #MINVER#, libgdal.so.1-1.11.1
-		# #include "libgdal1h.symbols.common"
+		# libgdal.so.20 libgdal20 #MINVER#
+		# | libgdal20 #MINVER#, gdal-abi-2-0-0
+		# #include "libgdal20.symbols.common"
 		#  (c++)"PamGetProxy(char const*)@GDAL_1.8" 1.8.0 1
 		elsif(/^ (\S+)\s+(\d+\S+\d+)\s*(\d+)\s*$/) {
 			my $symbol   = $1;
@@ -1124,19 +1128,25 @@ sub new_architecture_symbols {
 
 					`cat $symbols{$arch}{file} | $cfg{cppfilt} > $filt 2>&1`;
 
-					# libgdal.so.1 libgdal1h #MINVER# 
+					# libgdal.so.1 libgdal1h #MINVER#
 					# | libgdal1h #MINVER#, libgdal.so.1-1.10.1
 					# #include "libgdal1h.symbols.common"
+
+					# libgdal.so.20 libgdal20 #MINVER#
+					# | libgdal20 #MINVER#, gdal-abi-2-0-0
+					# #include "libgdal20.symbols.common"
 
 					my $data = '';
 
 					my $upstream_version = upstream_version($versions[-1]);
 
+					(my $abi = $upstream_version) =~ s/\./-/g
+
 					my $i = 0;
 					foreach(read_file($filt)) {
 						if($i == 0 && /^ /) {
 							$_ = "#include \"${pkg}.symbols.common\"\n" . $_;
-							$_ = "| ${pkg} #MINVER#, libgdal.so.1-$upstream_version\n" . $_;
+							$_ = "| ${pkg} #MINVER#, gdal-abi-$abi\n" . $_;
 
 							$i++;
 						}
