@@ -30,7 +30,7 @@ use Term::Prompt;
 
 $|=1;
 
-my $package = 'libgdal1-1.11.2';
+my $package = 'libgdal1i';
 my $pkgdir  = 'binary-'.$package.'/';
 
 our $ua = LWP::UserAgent->new(agent => basename($0));
@@ -577,7 +577,7 @@ sub create_patch_file {
 		}
 		# + VRTSourcedRasterBand::ComputeRasterMinMax(int, double*)@GDAL_1.8 1.10.1
 		elsif(/^\+ (.*?) (\d+\.\d+\.\d+\S*)\s*$/) {
-			$_ = '+ (c++)"'.$1.'" '.$2."\n";
+			$_ = '+ (c++)"'.$1.'" '.$2." 1\n";
 		}
 		# + VRTSourcedRasterBand::ComputeRasterMinMax(int, double*)@GDAL_1.8 1.10.1 1
 		elsif(/^\+ (.*?) (\d+\.\d+\.\d+\S*)(\s+\d+)\s*$/) {
@@ -1134,6 +1134,7 @@ sub new_architecture_symbols {
 					foreach(read_file($filt)) {
 						if($i == 0 && /^ /) {
 							$_ = "#include \"${pkg}.symbols.common\"\n" . $_;
+							$_ = "| ${pkg} #MINVER#, libgdal.so.1-$upstream_version\n" . $_;
 
 							$i++;
 						}

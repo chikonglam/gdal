@@ -2,8 +2,7 @@ gdal (1.11.2+dfsg-1~exp4) UNRELEASED; urgency=medium
 
   * Remove trailing whitespace to fix syntax error in symbols files.
   * Use uscan in get-orig-source target.
-  * Include upstream version in library package name instead of using an
-    alternative dependency template for the C++ symbols.
+  * Rename library package to libgdal1i because of C++ symbols changes.
 
  -- Bas Couwenberg <sebastic@debian.org>  Sun, 14 Jun 2015 20:51:33 +0200
 
