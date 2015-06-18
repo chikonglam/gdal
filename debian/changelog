@@ -1,10 +1,10 @@
-gdal (1.11.2+dfsg-1~exp4) UNRELEASED; urgency=medium
+gdal (1.11.2+dfsg-1~exp4) experimental; urgency=medium
 
   * Remove trailing whitespace to fix syntax error in symbols files.
   * Use uscan in get-orig-source target.
   * Rename library package to libgdal1i because of C++ symbols changes.
 
- -- Bas Couwenberg <sebastic@debian.org>  Sun, 14 Jun 2015 20:51:33 +0200
+ -- Bas Couwenberg <sebastic@debian.org>  Fri, 19 Jun 2015 01:28:42 +0200
 
 gdal (1.11.2+dfsg-1~exp3) experimental; urgency=medium
 
