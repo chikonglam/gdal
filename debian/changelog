@@ -9,6 +9,7 @@ gdal (1.10.1+dfsg-9) UNRELEASED; urgency=medium
   * Drop get-orig-source script in favor of uscan + Files-Excluded.
   * Use uscan in get-orig-source target.
   * Update Vcs-Browser URL to use cgit instead of gitweb.
+  * Remove trailing whitespace to fix syntax error in symbols files.
 
  -- Bas Couwenberg <sebastic@debian.org>  Sun, 28 Jun 2015 12:01:44 +0200
 

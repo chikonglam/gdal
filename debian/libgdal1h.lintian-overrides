@@ -1,2 +1,11 @@
 # Package name should be libgdal1, but because of hidden symbols is libgdal1h
-libgdal1h: syntax-error-in-symbols-file 1
+# TIFF/GEOTIFF symbols are renamed to definitively solve problem of
+# symbol collisions for programs that both links geotiff/tiff libraries.
+libgdal1h: package-name-doesnt-match-sonames libgdal1
+
+# Used for BigTIFF support (#501127)
+libgdal1h: embedded-library *: tiff
+
+# False positive on: {136, "Socialist Republic of Viet Nam"},
+libgdal1h: spelling-error-in-binary * Nam Name
+
