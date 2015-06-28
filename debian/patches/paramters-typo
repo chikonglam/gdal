@@ -1,5 +1,5 @@
 Description: Fix 'paramters' typo, replace with 'parameters'.
-Author: Bas Couwenger <sebastic@xs4all.nl>
+Author: Bas Couwenger <sebastic@debian.org>
 Forwarded: http://trac.osgeo.org/gdal/ticket/5756
 Applied-Upstream: 2.0, http://trac.osgeo.org/gdal/changeset/28039
 

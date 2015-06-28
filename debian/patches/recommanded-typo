@@ -1,5 +1,5 @@
 Description: Fix 'recommanded' typo, replace with 'recommended'.
-Author: Bas Couwenberg <sebastic@xs4all.nl>
+Author: Bas Couwenberg <sebastic@debian.org>
 Forwarded: http://trac.osgeo.org/gdal/ticket/5756
 Applied-Upstream: 2.0, http://trac.osgeo.org/gdal/changeset/28039
 

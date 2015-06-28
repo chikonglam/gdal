@@ -1,5 +1,5 @@
 Description: Add support for all hardening buildflags.
-Author: Bas Couwenberg <sebastic@xs4all.nl>
+Author: Bas Couwenberg <sebastic@debian.org>
 Last-Update: 2013-10-13
 --- a/swig/perl/Makefile.PL
 +++ b/swig/perl/Makefile.PL
