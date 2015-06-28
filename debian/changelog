@@ -1,3 +1,13 @@
+gdal (1.11.2+dfsg-1~exp5) UNRELEASED; urgency=medium
+
+  * Update copyright file, changes:
+    - Drop .0 from GPL license shortnames
+    - Strip trailing whitespace
+    - Use range notation for copyright years
+    - Add sbnsearch.c to MIT or LGPL-2+ section
+
+ -- Bas Couwenberg <sebastic@debian.org>  Sun, 28 Jun 2015 23:44:03 +0200
+
 gdal (1.11.2+dfsg-1~exp4) experimental; urgency=medium
 
   * Remove trailing whitespace to fix syntax error in symbols files.
