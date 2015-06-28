@@ -4,6 +4,10 @@ gdal (2.0.0+dfsg-1) UNRELEASED; urgency=medium
   * Update copyright file, changes:
     - Update copyright years & holders
     - Drop files section for gcore/gdal_rpcimdio.cpp, removed upstream
+    - Drop .0 from GPL license shortnames
+    - Strip trailing whitespace
+    - Use range notation for copyright years
+    - Add sbnsearch.c to MIT or LGPL-2+ section
   * Use uscan in get-orig-source target.
   * Drop patches applied upstream, refresh remaining patches.
   * Rename libgdal1h to libgdal20 to match SONAME.
