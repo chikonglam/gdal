@@ -1,3 +1,9 @@
+gdal (1.10.1+dfsg-9) UNRELEASED; urgency=medium
+
+  * Update my email to use @debian.org address.
+
+ -- Bas Couwenberg <sebastic@debian.org>  Sun, 28 Jun 2015 12:01:44 +0200
+
 gdal (1.10.1+dfsg-8) unstable; urgency=medium
 
   * Support hdf5 1.8.13 new packaging layout.

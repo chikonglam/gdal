@@ -1,5 +1,5 @@
 Description: Fix 'supress' typo, replace with 'suppress'.
-Author: Bas Couwenberg <sebastic@xs4all.nl>
+Author: Bas Couwenberg <sebastic@debian.org>
 Last-Update: 2014-01-11
 --- a/apps/ogr_utilities.dox
 +++ b/apps/ogr_utilities.dox

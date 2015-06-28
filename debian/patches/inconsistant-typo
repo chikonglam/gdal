@@ -1,5 +1,5 @@
 Description: Fix 'inconsistant' typo, replace with 'inconsistent'.
-Author: Bas Couwenberg <sebastic@xs4all.nl>
+Author: Bas Couwenberg <sebastic@debian.org>
 Last-Update: 2013-10-11
 --- a/frmts/grib/degrib18/degrib/metaname.cpp
 +++ b/frmts/grib/degrib18/degrib/metaname.cpp

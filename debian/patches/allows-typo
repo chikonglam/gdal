@@ -1,5 +1,5 @@
 Description: Fix 'allows to' typo.
-Author: Bas Couwenberg <sebastic@xs4all.nl>
+Author: Bas Couwenberg <sebastic@debian.org>
 Last-Update: 2013-10-13
 --- a/swig/python/scripts/gdal_edit.dox
 +++ b/swig/python/scripts/gdal_edit.dox

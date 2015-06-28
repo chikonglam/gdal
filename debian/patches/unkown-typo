@@ -1,5 +1,5 @@
 Description: Fix 'unkown' typo, replace with 'unknown'.
-Author: Bas Couwenberg <sebastic@xs4all.nl>
+Author: Bas Couwenberg <sebastic@debian.org>
 Last-Update: 2013-10-11
 --- a/apps/gdal_grid.cpp
 +++ b/apps/gdal_grid.cpp

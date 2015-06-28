@@ -1,5 +1,5 @@
 Description: Fix 'algoritm' typo, replace with 'algorithm'.
-Author: Bas Couwenberg <sebastic@xs4all.nl>
+Author: Bas Couwenberg <sebastic@debian.org>
 Last-Update: 2013-10-11
 --- a/swig/include/Operations.i
 +++ b/swig/include/Operations.i

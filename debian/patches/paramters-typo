@@ -1,5 +1,5 @@
 Description: Fix 'paramters' typo, replace with 'parameters'.
-Author: Bas Couwenger <sebastic@xs4all.nl>
+Author: Bas Couwenger <sebastic@debian.org>
 Last-Update: 2013-10-11
 --- a/frmts/georaster/georaster_wrapper.cpp
 +++ b/frmts/georaster/georaster_wrapper.cpp

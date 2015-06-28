@@ -1,5 +1,5 @@
 Description: Fix 'bandwith' typo, replace with 'bandwidth'.
-Author: Bas Couwenberg <sebastic@xs4all.nl>
+Author: Bas Couwenberg <sebastic@debian.org>
 Last-Update: 2013-10-11
 --- a/ogr/ogrsf_frmts/sqlite/ogrsqlitedatasource.cpp
 +++ b/ogr/ogrsf_frmts/sqlite/ogrsqlitedatasource.cpp
