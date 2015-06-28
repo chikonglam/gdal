@@ -10,7 +10,7 @@
 # diffutils patch coreutils
 #
 # Copyright (C) 2013-2014, Bas Couwenberg <sebastic@debian.org>
-# 
+#
 # This library is free software; you can redistribute it and/or modify
 # it under the same terms as Perl itself, either Perl version 5.8.5 or,
 # at your option, any later version of Perl 5 you may have available.
@@ -411,7 +411,7 @@ sub create_new_symbols {
 
 				`cat $output | $cfg{cppfilt} > $filt 2>&1`;
 
-				# libgdal.so.1 libgdal1h #MINVER# 
+				# libgdal.so.1 libgdal1h #MINVER#
 				# | libgdal1h #MINVER#, libgdal.so.1-1.10.1
 				# #include "libgdal1h.symbols.common"
 
@@ -975,7 +975,7 @@ sub parse_symbols {
 
 			$symbols{$symbol}{version} = $version;
 		}
-		# libgdal.so.1 libgdal1h #MINVER# 
+		# libgdal.so.1 libgdal1h #MINVER#
 		# | libgdal1h #MINVER#, libgdal.so.1-1.11.1
 		# #include "libgdal1h.symbols.common"
 		#  (c++)"PamGetProxy(char const*)@GDAL_1.8" 1.8.0 1
@@ -1122,7 +1122,7 @@ sub new_architecture_symbols {
 
 					`cat $symbols{$arch}{file} | $cfg{cppfilt} > $filt 2>&1`;
 
-					# libgdal.so.1 libgdal1h #MINVER# 
+					# libgdal.so.1 libgdal1h #MINVER#
 					# | libgdal1h #MINVER#, libgdal.so.1-1.10.1
 					# #include "libgdal1h.symbols.common"
 
