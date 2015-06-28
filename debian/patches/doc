@@ -1,5 +1,5 @@
 Description: Fix links to OGR documentation.
-Author: Francesco Paolo Lovergine <frankie@debian.org>, Bas Couwenberg <sebastic@xs4all.nl>
+Author: Francesco Paolo Lovergine <frankie@debian.org>, Bas Couwenberg <sebastic@debian.org>
 Last-Update: 2013-10-13
 Forwarded: https://trac.osgeo.org/gdal/ticket/5996
 

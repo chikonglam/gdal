@@ -9,7 +9,7 @@
 # devscripts dpkg dpkg-dev binutils
 # diffutils patch coreutils
 #
-# Copyright (C) 2013-2014, Bas Couwenberg <sebastic@xs4all.nl>
+# Copyright (C) 2013-2014, Bas Couwenberg <sebastic@debian.org>
 #
 # This library is free software; you can redistribute it and/or modify
 # it under the same terms as Perl itself, either Perl version 5.8.5 or,
@@ -581,12 +581,10 @@ sub create_patch_file {
 		}
 		# + VRTSourcedRasterBand::ComputeRasterMinMax(int, double*)@GDAL_1.8 1.10.1
 		elsif(/^\+ (.*?) (\d+\.\d+\.\d+\S*)\s*$/) {
-			# ignore
 			$_ = '+ (c++)"'.$1.'" '.$2." 1\n";
 		}
 		# + VRTSourcedRasterBand::ComputeRasterMinMax(int, double*)@GDAL_1.8 1.10.1 1
 		elsif(/^\+ (.*?) (\d+\.\d+\.\d+\S*)(\s+\d+)\s*$/) {
-			# ignore
 			$_ = '+ (c++)"'.$1.'" '.$2.$3."\n";
 		}
 
