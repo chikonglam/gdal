@@ -472,7 +472,7 @@ License: zlib
 
 Files: frmts/zlib/crc32.c
 Copyright: 1995-2005, Mark Adler
-Comment:  Thanks to Rodney Brown <rbrown64@csc.com.au> for his contribution of faster
+Comment: Thanks to Rodney Brown <rbrown64@csc.com.au> for his contribution of faster
  CRC methods: exclusive-oring 32 bits of data at a time, and pre-computing
  tables for updating the shift register in one step with three exclusive-ors
  instead of four steps with four exclusive-ors.  This results in about a
@@ -485,7 +485,7 @@ License: MIT
 
 Files: gcore/Version.rc
 Copyright: 2005, Frank Warmerdam <warmerdam@pobox.com>
-Comment:  Copyright assignment provided by Martin Daly by email, "Be my guest.  Fame!
+Comment: Copyright assignment provided by Martin Daly by email, "Be my guest.  Fame!
  At last!  Best not let it go to my head, eh?"
 License: MIT
 
@@ -577,7 +577,7 @@ Files: ogr/ogrsf_frmts/sqlite/ogrsqlitedatasource.cpp
  ogr/ogrsf_frmts/sqlite/ogrsqlitelayer.cpp
 Copyright: 2003-2004, Frank Warmerdam <warmerdam@pobox.com>
            2007-2013, Even Rouault <even dot rouault at mines-paris dot org>
-Comment:  Contributor: Alessandro Furieri, a.furieri@lqt.it
+Comment: Contributor: Alessandro Furieri, a.furieri@lqt.it
  Portions of this module properly supporting SpatiaLite Table/Geom creation
  Developed for Faunalia ( http://www.faunalia.it) with funding from 
  Regione Toscana - Settore SISTEMA INFORMATIVO TERRITORIALE ED AMBIENTALE
