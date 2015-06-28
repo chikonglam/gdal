@@ -1,3 +1,13 @@
+gdal (1.10.1+dfsg-10) UNRELEASED; urgency=medium
+
+  * Update copyright file, changes:
+    - Group files & copyright by license
+    - Drop .0 from GPL license shortnames
+    - Strip trailing whitespace from end of lines
+    - Use range notation for copyright years
+
+ -- Bas Couwenberg <sebastic@debian.org>  Sun, 28 Jun 2015 23:35:25 +0200
+
 gdal (1.10.1+dfsg-9) unstable; urgency=medium
 
   * Update my email to use @debian.org address.
