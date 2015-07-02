@@ -39,7 +39,7 @@ Copyright:               2007-2015, Even Rouault <even dot rouault at spatialys 
                               2014, Oslandia <info at oslandia dot com>
                               2014, Sebastian Walter <sebastian dot walter at fu-berlin dot de>
                          1998-2013, Frank Warmerdam <warmerdam@pobox.com>
-                         2009-2013, Jorge Arevalo
+                         2009-2013, Jorge Arevalo <jorge.arevalo@deimos-space.com>
                          2009-2013, David Zwarg <dzwarg@azavea.com>
                         2011, 2013, Paul Ramsey <pramsey@boundlessgeo.com>
                               2013, Alan Boudreault
@@ -66,7 +66,7 @@ Copyright:               2007-2015, Even Rouault <even dot rouault at spatialys 
                               2010, Seth Price <seth@pricepages.org>
                               2010, SPADAC Inc. <harsh.govind@spadac.com>
                               2010, Thomas Hirsch
-              2002-2005, 2007-2009, Andrey Kiselev <dron@ak4719.spb.edu>
+                         2002-2009, Andrey Kiselev <dron@ak4719.spb.edu>
                               2009, Leonardo de Paula Rosa Piga
                               2009, Volker Wichmann <wichmann@laserdata.at>
                          1998-2008, Daniel Morissette
@@ -74,10 +74,12 @@ Copyright:               2007-2015, Even Rouault <even dot rouault at spatialys 
                          2007-2008, Howard Butler <hobu.inc@gmail.com>
                               2008, Chris Toney
                               2008, Her majesty the Queen in right of Canada as represented by the Canadian Nuclear Safety Commission
+                              2008, Klokan Petr Pridal
                               2008, Shawn Gervais <project10@project10.net>
                               2008, Xiuguang Zhou (ESRI)
                         2004, 2007, ITC
                         2005, 2007, Ari Jolma
+                        2005, 2007, Kevin Ruland
                          2006-2007, Waypoint Information Technology
                               2007, Adam Guernsey <adam@ctech.com>
                               2007, Adam Nowacki
@@ -86,19 +88,17 @@ Copyright:               2007-2015, Even Rouault <even dot rouault at spatialys 
                               2007, Christian Mueller
                               2007, Geoconcept and IGN
                               2007, Jens Oberender
-                              2007, Kevin Ruland
                               2007, Philippe P. Vachon <philippe@cowpig.ca>
                               2006, Benjamin Collins
                               2006, Christopher Condit
-                              2006, Kevin Locke <kwl7@cornell.edu>
                               2006, James Flemer <jflemer@alum.rpi.edu>
+                              2006, Kevin Locke <kwl7@cornell.edu>
                               2006, MapShots Inc (www.mapshots.com)
                               2006, Oleg Semykin
                               2006, The MITRE Corporation
                               2005, Benjamin Simon <noumayoss@gmail.com>
                               2005, Daniel Wallner <daniel.wallner@bredband.net>
                               2005, Frans van den Bergh <fvdbergh@csir.co.za>
-                              2005, Kevin Ruland
                               2005, Radim Blazek <radim.blazek@gmail.com>
                               2005, Sam Gillingham
                               2005, Vexcel Corp
