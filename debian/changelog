@@ -5,6 +5,7 @@ gdal (1.11.2+dfsg-1~exp5) UNRELEASED; urgency=medium
     - Strip trailing whitespace
     - Use range notation for copyright years
     - Add sbnsearch.c to MIT or LGPL-2+ section
+  * Add patch to fix 'existent' typo.
 
  -- Bas Couwenberg <sebastic@debian.org>  Sun, 28 Jun 2015 23:44:03 +0200
 

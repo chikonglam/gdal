@@ -7,3 +7,6 @@ libgdal1i: embedded-library *: tiff
 # False positive on: {136, "Socialist Republic of Viet Nam"},
 libgdal1i: spelling-error-in-binary * Nam Name
 
+# False positive on: DontUseExceptions
+libgdal1i: spelling-error-in-binary * Dont Don't
+
