@@ -1,5 +1,6 @@
 Description: Fix 'existant' typo, replace with 'existent'.
 Author: Bas Couwenberg <sebastic@debian.org>
+Forwarded: https://trac.osgeo.org/gdal/ticket/6074
 
 --- a/frmts/envisat/EnvisatFile.c
 +++ b/frmts/envisat/EnvisatFile.c
