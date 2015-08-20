@@ -1351,7 +1351,6 @@
  RegisterOGRILI2@GDAL_1.8 1.8.0
  RegisterOGRIdrisi@GDAL_1.8 1.9.0
  RegisterOGRKML@GDAL_1.8 1.8.0
- RegisterOGRLIBKML@GDAL_1.8 1.9.0
  RegisterOGRMEM@GDAL_1.8 1.8.0
  RegisterOGRMSSQLSpatial@GDAL_1.8 1.8.0
  RegisterOGRMySQL@GDAL_1.8 1.8.0
