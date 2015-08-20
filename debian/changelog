@@ -1,6 +1,7 @@
 gdal (1.11.2+dfsg-1~exp6) UNRELEASED; urgency=medium
 
   * Update symbols for all architectures with GCC 5.
+  * Drop symbols files for ia64 & sparc.
 
  -- Bas Couwenberg <sebastic@debian.org>  Thu, 20 Aug 2015 12:04:43 +0200
 
