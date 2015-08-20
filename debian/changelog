@@ -2,6 +2,7 @@ gdal (1.11.2+dfsg-1~exp7) UNRELEASED; urgency=medium
 
   * Require at least libkml-dev 1.3.0~rc0-3 for boost dependencies.
   * Add patch to support pkg-config for the new libkml.
+  * Add RegisterOGRLIBKML to common symbols file again.
 
  -- Bas Couwenberg <sebastic@debian.org>  Thu, 20 Aug 2015 14:57:44 +0200
 
