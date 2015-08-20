@@ -47,7 +47,7 @@ Build-Depends: debhelper (>= 9),
                libopenjp2-7-dev,
                libarmadillo-dev,
                libfreexl-dev (>= 1.0.0),
-               libkml-dev (>= 1.3.0~),
+               libkml-dev (>= 1.3.0~rc0-3),
                liburiparser-dev,
                default-jdk,
                ant
