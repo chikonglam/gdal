@@ -1,8 +1,8 @@
-gdal (1.11.2+dfsg-1) UNRELEASED; urgency=medium
+gdal (1.11.2+dfsg-1) unstable; urgency=medium
 
   * Move from experimental to unstable.
 
- -- Bas Couwenberg <sebastic@debian.org>  Fri, 21 Aug 2015 14:58:43 +0200
+ -- Bas Couwenberg <sebastic@debian.org>  Fri, 21 Aug 2015 17:25:49 +0200
 
 gdal (1.11.2+dfsg-1~exp7) experimental; urgency=medium
 
