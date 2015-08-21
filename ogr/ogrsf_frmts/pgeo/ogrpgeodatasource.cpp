@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrpgeodatasource.cpp 20440 2010-08-25 17:35:49Z rouault $
+ * $Id: ogrpgeodatasource.cpp 27741 2014-09-26 19:20:02Z goatbar $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implements OGRPGeoDataSource class.
@@ -7,6 +7,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2005, Frank Warmerdam <warmerdam@pobox.com>
+ * Copyright (c) 2010-2013, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -32,7 +33,7 @@
 #include "cpl_string.h"
 #include <vector>
 
-CPL_CVSID("$Id: ogrpgeodatasource.cpp 20440 2010-08-25 17:35:49Z rouault $");
+CPL_CVSID("$Id: ogrpgeodatasource.cpp 27741 2014-09-26 19:20:02Z goatbar $");
 
 /************************************************************************/
 /*                         OGRPGeoDataSource()                          */
@@ -98,8 +99,7 @@ static int CheckDSNStringTemplate(const char* pszStr)
 /************************************************************************/
 
 int OGRPGeoDataSource::Open( const char * pszNewName, int bUpdate,
-                              int bTestOpen )
-
+                             CPL_UNUSED int bTestOpen )
 {
     CPLAssert( nLayers == 0 );
 
@@ -215,8 +215,7 @@ int OGRPGeoDataSource::Open( const char * pszNewName, int bUpdate,
 /*                           TestCapability()                           */
 /************************************************************************/
 
-int OGRPGeoDataSource::TestCapability( const char * pszCap )
-
+int OGRPGeoDataSource::TestCapability( CPL_UNUSED const char * pszCap )
 {
     return FALSE;
 }
@@ -245,9 +244,9 @@ OGRLayer * OGRPGeoDataSource::ExecuteSQL( const char *pszSQLCommand,
 
 {
 /* -------------------------------------------------------------------- */
-/*      Use generic imlplementation for OGRSQL dialect.                 */
+/*      Use generic implementation for recognized dialects              */
 /* -------------------------------------------------------------------- */
-    if( pszDialect != NULL && EQUAL(pszDialect,"OGRSQL") )
+    if( IsGenericSQLDialect(pszDialect) )
         return OGRDataSource::ExecuteSQL( pszSQLCommand, 
                                           poSpatialFilter, 
                                           pszDialect );

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: usgsdem_create.cpp 21680 2011-02-11 21:12:07Z warmerdam $
+ * $Id: usgsdem_create.cpp 27729 2014-09-24 00:40:16Z goatbar $
  *
  * Project:  USGS DEM Driver
  * Purpose:  CreateCopy() implementation.
@@ -10,6 +10,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2004, Frank Warmerdam <warmerdam@pobox.com>
+ * Copyright (c) 2007-2011, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -36,7 +37,7 @@
 #include "gdalwarper.h"
 #include "cpl_csv.h"
 
-CPL_CVSID("$Id: usgsdem_create.cpp 21680 2011-02-11 21:12:07Z warmerdam $");
+CPL_CVSID("$Id: usgsdem_create.cpp 27729 2014-09-24 00:40:16Z goatbar $");
 
 typedef struct 
 {
@@ -1268,8 +1269,7 @@ static int USGSDEMProductSetup_DEFAULT( USGSDEMWriteInfo *psWInfo )
 /************************************************************************/
 
 static int USGSDEMLoadRaster( USGSDEMWriteInfo *psWInfo,
-                              GDALRasterBand *poSrcBand )
-
+                              CPL_UNUSED GDALRasterBand *poSrcBand )
 {
     CPLErr eErr;
     int i;
@@ -1396,8 +1396,7 @@ static int USGSDEMLoadRaster( USGSDEMWriteInfo *psWInfo,
 GDALDataset *
 USGSDEMCreateCopy( const char *pszFilename, GDALDataset *poSrcDS, 
                    int bStrict, char **papszOptions,
-                   GDALProgressFunc pfnProgress, void * pProgressData )
-
+                   CPL_UNUSED GDALProgressFunc pfnProgress, CPL_UNUSED void * pProgressData )
 {
     USGSDEMWriteInfo sWInfo;
 

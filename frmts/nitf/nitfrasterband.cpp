@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: nitfrasterband.cpp 25784 2013-03-23 11:13:42Z rouault $
+ * $Id: nitfrasterband.cpp 27729 2014-09-24 00:40:16Z goatbar $
  *
  * Project:  NITF Read/Write Translator
  * Purpose:  NITFRasterBand (and related proxy band) implementations.
@@ -7,6 +7,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2002, Frank Warmerdam
+ * Copyright (c) 2011-2013, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Portions Copyright (c) Her majesty the Queen in right of Canada as
  * represented by the Minister of National Defence, 2006.
@@ -34,7 +35,7 @@
 #include "cpl_string.h"
 #include "cpl_csv.h"
 
-CPL_CVSID("$Id: nitfrasterband.cpp 25784 2013-03-23 11:13:42Z rouault $");
+CPL_CVSID("$Id: nitfrasterband.cpp 27729 2014-09-24 00:40:16Z goatbar $");
 
 /************************************************************************/
 /*                       NITFMakeColorTable()                           */
@@ -351,7 +352,7 @@ RB_PROXY_METHOD_WITH_RET(CPLErr, CE_Failure, CreateMaskBand, ( int nFlags ), (nF
 /*                 UnrefUnderlyingRasterBand()                        */
 /************************************************************************/
 
-void NITFProxyPamRasterBand::UnrefUnderlyingRasterBand(GDALRasterBand* poUnderlyingRasterBand)
+void NITFProxyPamRasterBand::UnrefUnderlyingRasterBand(CPL_UNUSED GDALRasterBand* poUnderlyingRasterBand)
 {
 }
 

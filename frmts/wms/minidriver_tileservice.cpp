@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: minidriver_tileservice.cpp 18020 2009-11-14 14:33:20Z rouault $
+ * $Id: minidriver_tileservice.cpp 27729 2014-09-24 00:40:16Z goatbar $
  *
  * Project:  WMS Client Driver
  * Purpose:  Implementation of Dataset and RasterBand classes for WMS
@@ -28,7 +28,8 @@
  * DEALINGS IN THE SOFTWARE.
  ****************************************************************************/
 
-#include "stdinc.h"
+#include "wmsdriver.h"
+#include "minidriver_tileservice.h"
 
 CPP_GDALWMSMiniDriverFactory(TileService)
 
@@ -75,10 +76,13 @@ void GDALWMSMiniDriver_TileService::GetCapabilities(GDALWMSMiniDriverCapabilitie
     caps->m_max_overview_count = 32;
 }
 
-void GDALWMSMiniDriver_TileService::ImageRequest(CPLString *url, const GDALWMSImageRequestInfo &iri) {
+void GDALWMSMiniDriver_TileService::ImageRequest(CPL_UNUSED CPLString *url,
+                                                 CPL_UNUSED const GDALWMSImageRequestInfo &iri) {
 }
 
-void GDALWMSMiniDriver_TileService::TiledImageRequest(CPLString *url, const GDALWMSImageRequestInfo &iri, const GDALWMSTiledImageRequestInfo &tiri) {
+void GDALWMSMiniDriver_TileService::TiledImageRequest(CPLString *url,
+                                                      CPL_UNUSED const GDALWMSImageRequestInfo &iri,
+                                                      const GDALWMSTiledImageRequestInfo &tiri) {
     // http://s0.tileservice.worldwindcentral.com/getTile?interface=map&version=1&dataset=bmng.topo.bathy.200401&level=5&x=18&y=6
     *url = m_base_url;
     URLAppend(url, "&interface=map");

@@ -1,5 +1,5 @@
 /******************************************************************************
-* $Id: FGdbUtils.cpp 23984 2012-02-15 05:19:25Z rcoup $
+* $Id: FGdbUtils.cpp 27044 2014-03-16 23:41:27Z rouault $
 *
 * Project:  OpenGIS Simple Features Reference Implementation
 * Purpose:  Different utility functions used in FileGDB OGR driver.
@@ -9,6 +9,7 @@
 ******************************************************************************
 * Copyright (c) 2010, Ragi Yaser Burhum
 * Copyright (c) 2011, Paul Ramsey <pramsey at cleverelephant.ca>
+ * Copyright (c) 2011-2014, Even Rouault <even dot rouault at mines-paris dot org>
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -35,7 +36,7 @@
 #include "ogr_api.h"
 #include "ogrpgeogeometry.h"
 
-CPL_CVSID("$Id: FGdbUtils.cpp 23984 2012-02-15 05:19:25Z rcoup $");
+CPL_CVSID("$Id: FGdbUtils.cpp 27044 2014-03-16 23:41:27Z rouault $");
 
 using std::string;
 
@@ -370,35 +371,46 @@ bool GDBFieldTypeToWidthPrecision(std::string &gdbType, int *width, int *precisi
 {
     *precision = 0;
 
+    /* Width (Length in FileGDB terms) based on FileGDB_API/samples/XMLsamples/OneOfEachFieldType.xml */
+    /* Length is in bytes per doc of FileGDB_API/xmlResources/FileGDBAPI.xsd */
     if(gdbType == "esriFieldTypeSmallInteger" )
     {
         *width = 2;
     }
     else if(gdbType == "esriFieldTypeInteger" )
     {
-        *width = 12;
+        *width = 4;
     }
     else if(gdbType == "esriFieldTypeSingle" )
     {
-        *width = 12;
-        *precision = 5;
+        *width = 4;
+        *precision = 5; // FIXME ?
     }
     else if(gdbType == "esriFieldTypeDouble" )
     {
-        *width = 24;
-        *precision = 15;
+        *width = 8;
+        *precision = 15; // FIXME ?
     }
-    else if(gdbType == "esriFieldTypeString" )
+    else if(gdbType == "esriFieldTypeString" ||
+            gdbType == "esriFieldTypeXML")
     {
-        *width = 2147483647;
+        *width = atoi(CPLGetConfigOption("FGDB_STRING_WIDTH", "65536"));
     }
     else if(gdbType == "esriFieldTypeDate" )
     {
-        *width = 32;
+        *width = 8;
     }
     else if(gdbType == "esriFieldTypeOID" )
     {
-        *width = 15;
+        *width = 4;
+    }
+    else if(gdbType == "esriFieldTypeGUID" )
+    {
+        *width = 16;
+    }
+    else if(gdbType == "esriFieldTypeBlob" )
+    {
+        *width = 0;
     }
     else
     {

@@ -6,7 +6,7 @@ Edit in place various information of an existing GDAL dataset
 \section gdal_edit_synopsis SYNOPSIS
 
 \verbatim
-gdal_edit [--help-general] [-a_srs srs_def] [-a_ullr ulx uly lrx lry]
+gdal_edit [--help-general] [-ro] [-a_srs srs_def] [-a_ullr ulx uly lrx lry]
           [-tr xres yres] [-unsetgt] [-a_nodata value]
           [-gcp pixel line easting northing [elevation]]*
           [-mo "META-TAG=VALUE"]*  datasetname
@@ -26,6 +26,11 @@ Gives a brief usage message for the generic GDAL commandline options
 and exit.
 </dd>
 
+<dt> <b>-ro</b></dt>:<dd> (GDAL >= 1.11)
+Open the dataset in read-only. Might be usefull for drivers refusing to
+use the dataset in update-mode. In which case, updated information will go
+into PAM .aux.xml files.</dd>
+
 <dt> <b>-a_srs</b> <i>srs_def</i>:</dt><dd>
 
 Defines the target coordinate system.  This coordinate system will be
@@ -42,8 +47,7 @@ Both must be positive values.</dd>
 Remove the georeference information.</dd>
 
 <dt> <b>-a_nodata</b> <i>value</i>:</dt><dd>
-Assign a specified nodata value to output bands. Can be set to <i>none</i>
-to remove a nodata value if one exists for the dataset.</dd>
+Assign a specified nodata value to output bands.</dd>
 
 <dt> <b>-gcp</b> <i>pixel line easting northing [elevation]</i>:</dt><dd>
 Add the indicated ground control point to the dataset.  This option 

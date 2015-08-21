@@ -1,12 +1,12 @@
 /******************************************************************************
- * $Id: ecrgtocdataset.cpp 25494 2013-01-13 12:55:17Z etourigny $
+ * $Id: ecrgtocdataset.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  ECRG TOC read Translator
  * Purpose:  Implementation of ECRGTOCDataset and ECRGTOCSubDataset.
  * Author:   Even Rouault, even.rouault at mines-paris.org
  *
  ******************************************************************************
- * Copyright (c) 2011, Even Rouault
+ * Copyright (c) 2011, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -35,7 +35,7 @@
 #include "cpl_minixml.h"
 #include <vector>
 
-CPL_CVSID("$Id: ecrgtocdataset.cpp 25494 2013-01-13 12:55:17Z etourigny $");
+CPL_CVSID("$Id: ecrgtocdataset.cpp 27044 2014-03-16 23:41:27Z rouault $");
 
 /** Overview of used classes :
    - ECRGTOCDataset : lists the different subdatasets, listed in the .xml,

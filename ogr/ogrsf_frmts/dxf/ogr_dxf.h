@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_dxf.h 25811 2013-03-29 22:16:56Z rouault $
+ * $Id: ogr_dxf.h 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  DXF Translator
  * Purpose:  Definition of classes for OGR .dxf driver.
@@ -7,6 +7,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2009,  Frank Warmerdam
+ * Copyright (c) 2010-2013, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -115,11 +116,13 @@ class OGRDXFLayer : public OGRLayer
     OGRFeature *        TranslateELLIPSE();
     OGRFeature *        TranslateARC();
     OGRFeature *        TranslateSPLINE();
+    OGRFeature *        Translate3DFACE();
     OGRFeature *        TranslateINSERT();
     OGRFeature *        TranslateMTEXT();
     OGRFeature *        TranslateTEXT();
     OGRFeature *        TranslateDIMENSION();
     OGRFeature *        TranslateHATCH();
+    OGRFeature *        TranslateSOLID();
 
     void                FormatDimension( CPLString &osText, double dfValue );
     OGRErr              CollectBoundaryPath( OGRGeometryCollection * );

@@ -1,12 +1,12 @@
 /******************************************************************************
- * $Id: ogrgpxlayer.cpp 20996 2010-10-28 18:38:15Z rouault $
+ * $Id: ogrgpxlayer.cpp 27729 2014-09-24 00:40:16Z goatbar $
  *
  * Project:  GPX Translator
  * Purpose:  Implements OGRGPXLayer class.
  * Author:   Even Rouault, even dot rouault at mines dash paris dot org
  *
  ******************************************************************************
- * Copyright (c) 2007, Even Rouault
+ * Copyright (c) 2007-2014, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -33,7 +33,7 @@
 #include "cpl_minixml.h"
 #include "ogr_p.h"
 
-CPL_CVSID("$Id: ogrgpxlayer.cpp 20996 2010-10-28 18:38:15Z rouault $");
+CPL_CVSID("$Id: ogrgpxlayer.cpp 27729 2014-09-24 00:40:16Z goatbar $");
 
 #define FLD_TRACK_FID       0
 #define FLD_TRACK_SEG_ID    1
@@ -285,6 +285,8 @@ OGRGPXLayer::OGRGPXLayer( const char* pszFilename,
         "       UNIT[\"degree\",0.01745329251994328,"
         "           AUTHORITY[\"EPSG\",\"9122\"]],"
         "           AUTHORITY[\"EPSG\",\"4326\"]]");
+    if( poFeatureDefn->GetGeomFieldCount() != 0 )
+        poFeatureDefn->GetGeomFieldDefn(0)->SetSpatialRef(poSRS);
 
     poFeature = NULL;
 
@@ -1068,16 +1070,6 @@ OGRFeature *OGRGPXLayer::GetNextFeature()
 }
 
 /************************************************************************/
-/*                           GetSpatialRef()                            */
-/************************************************************************/
-
-OGRSpatialReference *OGRGPXLayer::GetSpatialRef()
-
-{
-    return poSRS;
-}
-
-/************************************************************************/
 /*                  OGRGPX_GetXMLCompatibleTagName()                    */
 /************************************************************************/
 
@@ -1776,8 +1768,7 @@ OGRErr OGRGPXLayer::CreateFeature( OGRFeature *poFeature )
 /************************************************************************/
 
 
-OGRErr OGRGPXLayer::CreateField( OGRFieldDefn *poField, int bApproxOK )
-
+OGRErr OGRGPXLayer::CreateField( OGRFieldDefn *poField, CPL_UNUSED int bApproxOK )
 {
     for( int iField = 0; iField < poFeatureDefn->GetFieldCount(); iField++ )
     {
@@ -1811,7 +1802,8 @@ int OGRGPXLayer::TestCapability( const char * pszCap )
 {
     if( EQUAL(pszCap,OLCSequentialWrite) )
         return bWriteMode;
-
+    else if( EQUAL(pszCap,OLCCreateField) )
+        return bWriteMode;
     else if( EQUAL(pszCap,OLCStringsAsUTF8) )
         return TRUE;
 
@@ -1901,7 +1893,8 @@ void OGRGPXLayer::LoadExtensionsSchema()
 /************************************************************************/
 
 
-void OGRGPXLayer::startElementLoadSchemaCbk(const char *pszName, const char **ppszAttr)
+void OGRGPXLayer::startElementLoadSchemaCbk(const char *pszName,
+                                            CPL_UNUSED const char **ppszAttr)
 {
     if (bStopParsing) return;
 

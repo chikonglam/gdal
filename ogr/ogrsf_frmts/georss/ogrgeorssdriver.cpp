@@ -1,12 +1,12 @@
 /******************************************************************************
- * $Id: ogrgeorssdriver.cpp 15919 2008-12-08 21:02:58Z rouault $
+ * $Id: ogrgeorssdriver.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  GeoRSS Translator
  * Purpose:  Implements OGRGeoRSSDriver.
  * Author:   Even Rouault, even dot rouault at mines dash paris dot org
  *
  ******************************************************************************
- * Copyright (c) 2008, Even Rouault
+ * Copyright (c) 2008, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -30,7 +30,7 @@
 #include "ogr_georss.h"
 #include "cpl_conv.h"
 
-CPL_CVSID("$Id: ogrgeorssdriver.cpp 15919 2008-12-08 21:02:58Z rouault $");
+CPL_CVSID("$Id: ogrgeorssdriver.cpp 27044 2014-03-16 23:41:27Z rouault $");
 
 /************************************************************************/
 /*                           ~OGRGeoRSSDriver()                            */

@@ -7,6 +7,7 @@
  *
  ******************************************************************************
  * Copyright (c) 1999, Frank Warmerdam
+ * Copyright (c) 2012, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * This software is available under the following "MIT Style" license,
  * or at the option of the licensee under the LGPL (see LICENSE.LGPL).  This
@@ -910,13 +911,13 @@ SHPSearchDiskTreeNode( SHPTreeDiskHandle hDiskTree, double *padfBoundsMin, doubl
 /* -------------------------------------------------------------------- */
     if(numshapes > 0) 
     {
-        if( *pnResultCount + numshapes > *pnBufferMax )
+        if( (int)(*pnResultCount + numshapes) > *pnBufferMax )
         {
             int* pNewBuffer;
 
             *pnBufferMax = (*pnResultCount + numshapes + 100) * 5 / 4;
 
-            if( *pnBufferMax > INT_MAX / sizeof(int) )
+            if( (unsigned int)*pnBufferMax > INT_MAX / sizeof(int) )
                 *pnBufferMax = *pnResultCount + numshapes;
 
             pNewBuffer = (int *)

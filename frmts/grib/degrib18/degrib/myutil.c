@@ -10,6 +10,9 @@
  * NOTES
  *****************************************************************************
  */
+
+/* For S_IFDIR */
+#define _XOPEN_SOURCE 500
 #include <stdlib.h>
 #include <stdio.h>
 #include <ctype.h>
@@ -20,6 +23,8 @@
 //#include <dirent.h>
 #include "myutil.h"
 #include "myassert.h"
+
+#include "cpl_port.h"
 
 /* Android compat */
 #ifndef S_IREAD
@@ -453,8 +458,8 @@ static int FileMatch (const char *filename, const char *filter)
 }
 **/
 
-int myGlob (const char *dirName, const char *filter, size_t *Argc,
-            char ***Argv)
+int myGlob (CPL_UNUSED const char *dirName, CPL_UNUSED const char *filter, CPL_UNUSED size_t *Argc,
+            CPL_UNUSED char ***Argv)
 {
 return 0; // TODO: reimplement for Win32
 /*
@@ -663,7 +668,7 @@ void strTrim (char *str)
 
    /* Remove the trailing white space before working on the leading ones. */
    len = strlen (str);
-   for (i = len - 1; ((i >= 0) && (isspace ((unsigned char)str[i]))); i--) {
+   for (i = len - 1; (/* (i >= 0) && */ (isspace ((unsigned char)str[i]))); i--) {
    }
    len = i + 1;
    str[len] = '\0';
@@ -712,7 +717,7 @@ void strTrimRight (char *str, char c)
    }
 
    for (i = strlen (str) - 1;
-        ((i >= 0) && ((isspace ((unsigned char)str[i])) || (str[i] == c))); i--) {
+        (/* (i >= 0) && */ ((isspace ((unsigned char)str[i])) || (str[i] == c))); i--) {
    }
    str[i + 1] = '\0';
 }

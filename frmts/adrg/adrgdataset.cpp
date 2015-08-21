@@ -1,11 +1,11 @@
 /******************************************************************************
- * $Id: adrgdataset.cpp 25843 2013-04-02 22:35:21Z rouault $
+ * $Id: adrgdataset.cpp 27729 2014-09-24 00:40:16Z goatbar $
  *
  * Purpose:  ADRG reader
  * Author:   Even Rouault, even.rouault at mines-paris.org
  *
  ******************************************************************************
- * Copyright (c) 2007, Even Rouault
+ * Copyright (c) 2007-2013, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -31,7 +31,7 @@
 #include "cpl_string.h"
 #include "iso8211.h"
 
-CPL_CVSID("$Id: adrgdataset.cpp 25843 2013-04-02 22:35:21Z rouault $");
+CPL_CVSID("$Id: adrgdataset.cpp 27729 2014-09-24 00:40:16Z goatbar $");
 
 #define N_ELEMENTS(x)  (sizeof(x)/sizeof(x[0]))
 
@@ -79,6 +79,7 @@ class ADRGDataset : public GDALPamDataset
     virtual CPLErr GetGeoTransform( double * padfGeoTransform );
     virtual CPLErr SetGeoTransform( double * padfGeoTransform );
 
+    virtual char      **GetMetadataDomainList();
     virtual char      **GetMetadata( const char * pszDomain = "" );
     
     virtual char      **GetFileList();
@@ -686,6 +687,17 @@ void ADRGDataset::AddSubDataset( const char* pszGENFileName, const char* pszIMGF
 }
 
 /************************************************************************/
+/*                      GetMetadataDomainList()                         */
+/************************************************************************/
+
+char **ADRGDataset::GetMetadataDomainList()
+{
+    return BuildMetadataDomainList(GDALPamDataset::GetMetadataDomainList(),
+                                   TRUE,
+                                   "SUBDATASETS", NULL);
+}
+
+/************************************************************************/
 /*                            GetMetadata()                             */
 /************************************************************************/
 
@@ -1068,6 +1080,7 @@ ADRGDataset* ADRGDataset::OpenDataset(
     if (fdIMG == NULL)
     {
         CPLError(CE_Failure, CPLE_AppDefined, "Cannot open %s\n", pszIMGFileName);
+        delete[] TILEINDEX;
         return NULL;
     }
     
@@ -1075,6 +1088,7 @@ ADRGDataset* ADRGDataset::OpenDataset(
     {
         CPLError(CE_Failure, CPLE_AppDefined, "Polar cases are not handled by ADRG driver");
         VSIFCloseL(fdIMG);
+        delete[] TILEINDEX;
         return NULL;
     }
     
@@ -1085,6 +1099,7 @@ ADRGDataset* ADRGDataset::OpenDataset(
     if (VSIFReadL(&c, 1, 1, fdIMG) != 1)
     {
         VSIFCloseL(fdIMG);
+        delete[] TILEINDEX;
         return NULL;
     }
     while (!VSIFEofL(fdIMG))
@@ -1094,20 +1109,18 @@ ADRGDataset* ADRGDataset::OpenDataset(
             if (VSIFReadL(recordName, 1, 3, fdIMG) != 3)
             {
                 VSIFCloseL(fdIMG);
+                delete[] TILEINDEX;
                 return NULL;
             }
             offsetInIMG += 3;
             if (strncmp(recordName,"IMG",3) == 0)
             {
                 offsetInIMG += 4;
-                if (VSIFSeekL(fdIMG,3,SEEK_CUR) != 0)
+                if (VSIFSeekL(fdIMG,3,SEEK_CUR) != 0 ||
+                    VSIFReadL(&c, 1, 1, fdIMG) != 1)
                 {
                     VSIFCloseL(fdIMG);
-                    return NULL;
-                }
-                if (VSIFReadL(&c, 1, 1, fdIMG) != 1)
-                {
-                    VSIFCloseL(fdIMG);
+                    delete[] TILEINDEX;
                     return NULL;
                 }
                 while(c ==' ')
@@ -1116,6 +1129,7 @@ ADRGDataset* ADRGDataset::OpenDataset(
                     if (VSIFReadL(&c, 1, 1, fdIMG) != 1)
                     {
                         VSIFCloseL(fdIMG);
+                        delete[] TILEINDEX;
                         return NULL;
                     }
                 }
@@ -1128,6 +1142,7 @@ ADRGDataset* ADRGDataset::OpenDataset(
         if (VSIFReadL(&c, 1, 1, fdIMG) != 1)
         {
             VSIFCloseL(fdIMG);
+            delete[] TILEINDEX;
             return NULL;
         }
     }
@@ -1135,6 +1150,7 @@ ADRGDataset* ADRGDataset::OpenDataset(
     if (VSIFEofL(fdIMG))
     {
         VSIFCloseL(fdIMG);
+        delete[] TILEINDEX;
         return NULL;
     }
     
@@ -1553,7 +1569,7 @@ GDALDataset *ADRGDataset::Open( GDALOpenInfo * poOpenInfo )
 /************************************************************************/
 
 GDALDataset *ADRGDataset::Create(const char* pszFilename, int nXSize, int nYSize,
-                                 int nBands, GDALDataType eType, char **papszOptions)
+                                 int nBands, GDALDataType eType, CPL_UNUSED char **papszOptions)
 {
     int i;
 

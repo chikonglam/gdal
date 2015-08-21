@@ -274,6 +274,9 @@ class OsrPINVOKE {
   [DllImport("osr_wrap", EntryPoint="CSharp_SpatialReference_EPSGTreatsAsLatLong")]
   public static extern int SpatialReference_EPSGTreatsAsLatLong(HandleRef jarg1);
 
+  [DllImport("osr_wrap", EntryPoint="CSharp_SpatialReference_EPSGTreatsAsNorthingEasting")]
+  public static extern int SpatialReference_EPSGTreatsAsNorthingEasting(HandleRef jarg1);
+
   [DllImport("osr_wrap", EntryPoint="CSharp_SpatialReference_SetAuthority")]
   public static extern int SpatialReference_SetAuthority(HandleRef jarg1, string jarg2, string jarg3, int jarg4);
 

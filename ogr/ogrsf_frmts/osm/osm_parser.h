@@ -1,12 +1,12 @@
 /******************************************************************************
- * $Id: osm_parser.h 24669 2012-07-10 16:04:24Z rouault $
+ * $Id: osm_parser.h 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Author:   Even Rouault, <even dot rouault at mines dash paris dot org>
  * Purpose:  OSM XML and OSM PBF parser
  *
  ******************************************************************************
- * Copyright (c) 2012, Even Rouault, <even dot rouault at mines dash paris dot org>
+ * Copyright (c) 2012, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),

@@ -1,9 +1,11 @@
 Description: Fix 'paramters' typo, replace with 'parameters'.
 Author: Bas Couwenger <sebastic@debian.org>
-Last-Update: 2013-10-11
+Forwarded: http://trac.osgeo.org/gdal/ticket/5756
+Applied-Upstream: 2.0, http://trac.osgeo.org/gdal/changeset/28039
+
 --- a/frmts/georaster/georaster_wrapper.cpp
 +++ b/frmts/georaster/georaster_wrapper.cpp
-@@ -705,7 +705,7 @@ bool GeoRasterWrapper::Create( char* psz
+@@ -718,7 +718,7 @@ bool GeoRasterWrapper::Create( char* psz
      nBandBlockSize   = nBandBlockSize   == 0 ? 1 : nBandBlockSize;
  
      //  -----------------------------------------------------------
@@ -12,7 +14,7 @@ Last-Update: 2013-10-11
      //  -----------------------------------------------------------
  
      CPLString sBlocking;
-@@ -776,7 +776,7 @@ bool GeoRasterWrapper::Create( char* psz
+@@ -789,7 +789,7 @@ bool GeoRasterWrapper::Create( char* psz
      }
  
      //  -----------------------------------------------------------
@@ -23,7 +25,7 @@ Last-Update: 2013-10-11
      if( poConnection->GetVersion() > 10 )
 --- a/ogr/ogrsf_frmts/filegdb/FGdbLayer.cpp
 +++ b/ogr/ogrsf_frmts/filegdb/FGdbLayer.cpp
-@@ -1103,7 +1103,7 @@ CPLXMLNode* XMLSpatialReference(OGRSpati
+@@ -1178,7 +1178,7 @@ CPLXMLNode* XMLSpatialReference(OGRSpati
      const char* gridvalues[7];
  
      /* 

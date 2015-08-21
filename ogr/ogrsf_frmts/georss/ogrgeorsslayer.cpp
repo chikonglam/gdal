@@ -1,12 +1,12 @@
 /******************************************************************************
- * $Id: ogrgeorsslayer.cpp 25445 2013-01-04 18:46:53Z rouault $
+ * $Id: ogrgeorsslayer.cpp 27729 2014-09-24 00:40:16Z goatbar $
  *
  * Project:  GeoRSS Translator
  * Purpose:  Implements OGRGeoRSSLayer class.
  * Author:   Even Rouault, even dot rouault at mines dash paris dot org
  *
  ******************************************************************************
- * Copyright (c) 2008, Even Rouault
+ * Copyright (c) 2008-2014, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -33,7 +33,7 @@
 #include "ogr_api.h"
 #include "ogr_p.h"
 
-CPL_CVSID("$Id: ogrgeorsslayer.cpp 25445 2013-01-04 18:46:53Z rouault $");
+CPL_CVSID("$Id: ogrgeorsslayer.cpp 27729 2014-09-24 00:40:16Z goatbar $");
 
 static const char* apszAllowedATOMFieldNamesWithSubElements[] = { "author", "contributor", NULL };
 
@@ -98,7 +98,10 @@ OGRGeoRSSLayer::OGRGeoRSSLayer( const char* pszFilename,
 
     poSRS = poSRSIn;
     if (poSRS)
+    {
         poSRS->Reference();
+        poFeatureDefn->GetGeomFieldDefn(0)->SetSpatialRef(poSRS);
+    }
 
     nTotalFeatureCount = 0;
 
@@ -938,19 +941,6 @@ OGRFeature *OGRGeoRSSLayer::GetNextFeature()
 }
 
 /************************************************************************/
-/*                           GetSpatialRef()                            */
-/************************************************************************/
-
-OGRSpatialReference *OGRGeoRSSLayer::GetSpatialRef()
-
-{
-    if (!bWriteMode && !bHasReadSchema)
-        LoadSchema();
-
-    return poSRS;
-}
-
-/************************************************************************/
 /*              OGRGeoRSSLayerIsStandardFieldInternal()                 */
 /************************************************************************/
 
@@ -1644,8 +1634,7 @@ OGRErr OGRGeoRSSLayer::CreateFeature( OGRFeature *poFeature )
 /*                            CreateField()                             */
 /************************************************************************/
 
-OGRErr OGRGeoRSSLayer::CreateField( OGRFieldDefn *poFieldDefn, int bApproxOK )
-
+OGRErr OGRGeoRSSLayer::CreateField( OGRFieldDefn *poFieldDefn, CPL_UNUSED int bApproxOK )
 {
     const char* pszName = poFieldDefn->GetNameRef();
     if (((eFormat == GEORSS_RSS && strcmp(pszName, "pubDate") == 0) ||
@@ -1791,6 +1780,8 @@ void OGRGeoRSSLayer::LoadSchema()
 
     if (eGeomType != wkbUnknown)
         poFeatureDefn->SetGeomType(eGeomType);
+    if( poFeatureDefn->GetGeomFieldCount() != 0 )
+        poFeatureDefn->GetGeomFieldDefn(0)->SetSpatialRef(poSRS);
 
     if (setOfFoundFields)
         CPLHashSetDestroy(setOfFoundFields);
@@ -2223,6 +2214,8 @@ int OGRGeoRSSLayer::TestCapability( const char * pszCap )
         return TRUE;
 
     else if( EQUAL(pszCap,OLCSequentialWrite) )
+        return bWriteMode;
+    else if( EQUAL(pszCap,OLCCreateField) )
         return bWriteMode;
     else 
         return FALSE;

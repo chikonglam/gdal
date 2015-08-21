@@ -66,6 +66,32 @@ except AttributeError:
     _newclass = 0
 
 
+class VirtualMem(_object):
+    """Proxy of C++ CPLVirtualMemShadow class"""
+    __swig_setmethods__ = {}
+    __setattr__ = lambda self, name, value: _swig_setattr(self, VirtualMem, name, value)
+    __swig_getmethods__ = {}
+    __getattr__ = lambda self, name: _swig_getattr(self, VirtualMem, name)
+    def __init__(self, *args, **kwargs): raise AttributeError("No constructor defined")
+    __repr__ = _swig_repr
+    __swig_destroy__ = _gdal_array.delete_VirtualMem
+    __del__ = lambda self : None;
+    def GetAddr(self):
+        """GetAddr(self)"""
+        return _gdal_array.VirtualMem_GetAddr(self)
+
+    def Pin(self, start_offset = 0, nsize = 0, bWriteOp = 0):
+        """
+        Pin(self, size_t start_offset = 0, size_t nsize = 0, int bWriteOp = 0)
+        Pin(self, size_t start_offset = 0, size_t nsize = 0)
+        Pin(self, size_t start_offset = 0)
+        Pin(self)
+        """
+        return _gdal_array.VirtualMem_Pin(self, start_offset, nsize, bWriteOp)
+
+VirtualMem_swigregister = _gdal_array.VirtualMem_swigregister
+VirtualMem_swigregister(VirtualMem)
+
 
 def GetArrayFilename(*args):
   """GetArrayFilename(PyArrayObject psArray) -> retStringAndCPLFree"""
@@ -77,6 +103,24 @@ def BandRasterIONumPy(*args, **kwargs):
         int ysize, PyArrayObject psArray, int buf_type) -> CPLErr
     """
   return _gdal_array.BandRasterIONumPy(*args, **kwargs)
+
+def VirtualMemGetArray(*args):
+  """VirtualMemGetArray(VirtualMem virtualmem)"""
+  return _gdal_array.VirtualMemGetArray(*args)
+
+def RATValuesIONumPyWrite(*args, **kwargs):
+  """
+    RATValuesIONumPyWrite(RasterAttributeTable poRAT, int nField, int nStart, 
+        PyArrayObject psArray) -> CPLErr
+    """
+  return _gdal_array.RATValuesIONumPyWrite(*args, **kwargs)
+
+def RATValuesIONumPyRead(*args, **kwargs):
+  """
+    RATValuesIONumPyRead(RasterAttributeTable poRAT, int nField, int nStart, 
+        int nLength) -> PyObject
+    """
+  return _gdal_array.RATValuesIONumPyRead(*args, **kwargs)
 import numpy
 import _gdal_array
 
@@ -111,7 +155,7 @@ def OpenArray( array, prototype_ds = None ):
     
     
 def flip_code(code):
-    if isinstance(code, type):
+    if isinstance(code, (numpy.dtype,type)):
         # since several things map to complex64 we must carefully select
         # the opposite that is an exact match (ticket 1518)
         if code == numpy.int8:
@@ -130,7 +174,7 @@ def flip_code(code):
             return None
 
 def NumericTypeCodeToGDALTypeCode(numeric_type):
-    if not isinstance(numeric_type, type):
+    if not isinstance(numeric_type, (numpy.dtype,type)):
         raise TypeError("Input must be a type")
     return flip_code(numeric_type)
 
@@ -270,6 +314,50 @@ def BandWriteArray( band, array, xoff=0, yoff=0 ):
     return BandRasterIONumPy( band, 1, xoff, yoff, xsize, ysize,
                                 array, datatype )
 
+def RATWriteArray(rat, array, field, start=0):
+    """
+    Pure Python implementation of writing a chunk of the RAT
+    from a numpy array. Type of array is coerced to one of the types
+    (int, double, string) supported. Called from RasterAttributeTable.WriteArray
+    """
+    if array is None:
+        raise ValueError("Expected array of dim 1")
+
+    # if not the array type convert it to handle lists etc
+    if not isinstance(array, numpy.ndarray):
+        array = numpy.array(array)
+
+    if array.ndim != 1:
+        raise ValueError("Expected array of dim 1")
+
+    if (start + array.size) > rat.GetRowCount():
+        raise ValueError("Array too big to fit into RAT from start position")
+
+    if numpy.issubdtype(array.dtype, numpy.integer):
+        # is some type of integer - coerce to standard int
+        # TODO: must check this is fine on all platforms
+        # confusingly numpy.int 64 bit even if native type 32 bit
+        array = array.astype(numpy.int32)
+    elif numpy.issubdtype(array.dtype, numpy.floating):
+        # is some type of floating point - coerce to double
+        array = array.astype(numpy.double)
+    elif numpy.issubdtype(array.dtype, numpy.character):
+        # cast away any kind of Unicode etc
+        array = array.astype(numpy.character)
+    else:
+        raise ValueError("Array not of a supported type (integer, double or string)")
+
+    return RATValuesIONumPyWrite(rat, field, start, array)
+
+def RATReadArray(rat, field, start=0, length=None):
+    """
+    Pure Python implementation of reading a chunk of the RAT
+    into a numpy array. Called from RasterAttributeTable.ReadAsArray
+    """
+    if length is None:
+        length = rat.GetRowCount() - start
+
+    return RATValuesIONumPyRead(rat, field, start, length)
     
 def CopyDatasetInfo( src, dst, xoff=0, yoff=0 ):
     """

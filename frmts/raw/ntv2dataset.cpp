@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ntv2dataset.cpp 25494 2013-01-13 12:55:17Z etourigny $
+ * $Id: ntv2dataset.cpp 27729 2014-09-24 00:40:16Z goatbar $
  *
  * Project:  Horizontal Datum Formats
  * Purpose:  Implementation of NTv2 datum shift format used in Canada, France, 
@@ -9,6 +9,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2010, Frank Warmerdam
+ * Copyright (c) 2010-2012, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -33,7 +34,7 @@
 #include "cpl_string.h"
 #include "ogr_srs_api.h"
 
-CPL_CVSID("$Id: ntv2dataset.cpp 25494 2013-01-13 12:55:17Z etourigny $");
+CPL_CVSID("$Id: ntv2dataset.cpp 27729 2014-09-24 00:40:16Z goatbar $");
 
 /** 
  * The header for the file, and each grid consists of 11 16byte records.
@@ -657,7 +658,7 @@ const char *NTv2Dataset::GetProjectionRef()
 /************************************************************************/
 
 GDALDataset *NTv2Dataset::Create( const char * pszFilename,
-                                  int nXSize, int nYSize, int nBands,
+                                  int nXSize, int nYSize, CPL_UNUSED int nBands,
                                   GDALDataType eType,
                                   char ** papszOptions )
 

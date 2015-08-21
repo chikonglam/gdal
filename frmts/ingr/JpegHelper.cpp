@@ -3,7 +3,7 @@
  *
  * Project:  Creates a jpeg header
  * Purpose:  Abreviated JPEG support
- * Author:   Ivan Lucena, ivan.lucena@pmldnet.com
+ * Author:   Ivan Lucena, [lucena_ivan at hotmail.com]
  *
  ******************************************************************************
  * Copyright (c) 2007, Ivan Lucena
@@ -145,7 +145,7 @@ int JPGHLP_HeaderMaker( GByte *pabyBuffer,
                         const int nCols, 
                         const int nRows, 
                         const int nComponents, 
-                        const int nRestart,
+                        CPL_UNUSED const int nRestart,
                         const int nQuality )
 {
     int i;

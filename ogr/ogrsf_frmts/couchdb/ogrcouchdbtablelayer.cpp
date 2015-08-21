@@ -1,12 +1,12 @@
 /******************************************************************************
- * $Id: ogrcouchdbtablelayer.cpp 23437 2011-11-28 23:03:56Z rouault $
+ * $Id: ogrcouchdbtablelayer.cpp 27729 2014-09-24 00:40:16Z goatbar $
  *
  * Project:  CouchDB Translator
  * Purpose:  Implements OGRCouchDBTableLayer class.
  * Author:   Even Rouault, <even dot rouault at mines dash paris dot org>
  *
  ******************************************************************************
- * Copyright (c) 2011, Even Rouault <even dot rouault at mines dash paris dot org>
+ * Copyright (c) 2011-2013, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -30,12 +30,11 @@
 #include "ogr_couchdb.h"
 #include "ogrgeojsonreader.h"
 #include "ogrgeojsonwriter.h"
-#include "json_object_private.h" // json_object_iter, complete type required
 #include "swq.h"
 
 #include <algorithm>
 
-CPL_CVSID("$Id: ogrcouchdbtablelayer.cpp 23437 2011-11-28 23:03:56Z rouault $");
+CPL_CVSID("$Id: ogrcouchdbtablelayer.cpp 27729 2014-09-24 00:40:16Z goatbar $");
 
 /************************************************************************/
 /*                       OGRCouchDBTableLayer()                         */
@@ -1035,7 +1034,7 @@ int OGRCouchDBTableLayer::GetTotalFeatureCount()
 /************************************************************************/
 
 OGRErr OGRCouchDBTableLayer::CreateField( OGRFieldDefn *poField,
-                                 int bApproxOK )
+                                          CPL_UNUSED int bApproxOK )
 {
 
     if (!poDS->IsReadWrite())
@@ -1736,17 +1735,6 @@ void OGRCouchDBTableLayer::SetInfoAfterCreation(OGRwkbGeometryType eGType,
 }
 
 /************************************************************************/
-/*                          GetSpatialRef()                             */
-/************************************************************************/
-
-OGRSpatialReference* OGRCouchDBTableLayer::GetSpatialRef()
-{
-    LoadMetadata();
-
-    return poSRS;
-}
-
-/************************************************************************/
 /*                     OGRCouchDBIsNumericObject()                      */
 /************************************************************************/
 
@@ -1888,6 +1876,8 @@ void OGRCouchDBTableLayer::LoadMetadata()
         poFeatureDefn->Reference();
 
         poFeatureDefn->SetGeomType(eGeomType);
+        if( poFeatureDefn->GetGeomFieldCount() != 0 ) 
+            poFeatureDefn->GetGeomFieldDefn(0)->SetSpatialRef(poSRS);
 
         OGRFieldDefn oFieldId("_id", OFTString);
         poFeatureDefn->AddFieldDefn(&oFieldId);

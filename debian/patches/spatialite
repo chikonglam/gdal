@@ -3,7 +3,7 @@ Author: Francesco Paolo Lovergine <frankie@debian.org>
 Last-Update: 2011-05-12
 --- a/configure
 +++ b/configure
-@@ -24910,7 +24910,7 @@ if ${ac_cv_lib_spatialite_spatialite_ini
+@@ -25265,7 +25265,7 @@ if ${ac_cv_lib_spatialite_spatialite_ini
    $as_echo_n "(cached) " >&6
  else
    ac_check_lib_save_LIBS=$LIBS
@@ -12,30 +12,21 @@ Last-Update: 2011-05-12
  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
  /* end confdefs.h.  */
  
-@@ -24948,7 +24948,7 @@ fi
- 
-             if test "$SPATIALITE_INIT_FOUND" = "yes"; then
-                 HAVE_SPATIALITE=yes
--                LIBS="$LIBS -lspatialite"
-+                LIBS="$LIBS -lspatialite -lsqlite3"
-                 HAVE_SQLITE3=yes
-             fi
-         else
-@@ -24963,7 +24963,7 @@ if ${ac_cv_lib_spatialite_spatialite_ini
+@@ -25319,7 +25319,7 @@ if ${ac_cv_lib_spatialite_spatialite_ini
    $as_echo_n "(cached) " >&6
  else
    ac_check_lib_save_LIBS=$LIBS
 -LIBS="-lspatialite -L$with_spatialite/lib -lspatialite $LIBS"
-+LIBS="-lspatialite -L$with_spatialite/lib -lspatialite -lsqlite3 $LIBS"
++LIBS="-lspatialite -L$with_spatialite/lib -lsqlite3 $LIBS"
  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
  /* end confdefs.h.  */
  
-@@ -25013,7 +25013,7 @@ $as_echo "enabled" >&6; }
-         # as there's a spatialite.h file in it, which we don't want to include.
-         # We want to include include/spatialite.h instead !
-         SQLITE3_CFLAGS="-I$with_spatialite/include"
--        LIBS="$LIBS -L$with_spatialite/lib -lspatialite"
-+        LIBS="$LIBS -L$with_spatialite/lib -lspatialite -lsqlite3"
-         HAVE_SQLITE3=yes
+@@ -25411,7 +25411,7 @@ if ${ac_cv_lib_spatialite_spatialite_tar
+   $as_echo_n "(cached) " >&6
+ else
+   ac_check_lib_save_LIBS=$LIBS
+-LIBS="-lspatialite  $LIBS"
++LIBS="-lspatialite -lsqlite3 $LIBS"
+ cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+ /* end confdefs.h.  */
  
-     elif test -f "$with_spatialite/include/spatialite.h" -a \

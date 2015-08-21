@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrrecdatasource.cpp 13025 2007-11-25 18:03:46Z rouault $
+ * $Id: ogrrecdatasource.cpp 26243 2013-07-29 20:45:59Z rouault $
  *
  * Project:  Epiinfo .REC Translator
  * Purpose:  Implements OGRRECDataSource class
@@ -31,7 +31,7 @@
 #include "cpl_conv.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: ogrrecdatasource.cpp 13025 2007-11-25 18:03:46Z rouault $");
+CPL_CVSID("$Id: ogrrecdatasource.cpp 26243 2013-07-29 20:45:59Z rouault $");
 
 /************************************************************************/
 /*                          OGRRECDataSource()                          */
@@ -103,7 +103,7 @@ int OGRRECDataSource::Open( const char * pszFilename )
     const char * pszLine;
     FILE       * fp;
 
-    fp = VSIFOpen( pszFilename, "r" );
+    fp = VSIFOpen( pszFilename, "rb" );
     if( fp == NULL )
         return FALSE;
     

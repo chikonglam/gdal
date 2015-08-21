@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrmysqldatasource.cpp 24947 2012-09-22 09:54:23Z rouault $
+ * $Id: ogrmysqldatasource.cpp 27741 2014-09-26 19:20:02Z goatbar $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implements OGRMySQLDataSource class.
@@ -8,6 +8,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2004, Frank Warmerdam <warmerdam@pobox.com>
+ * Copyright (c) 2008-2013, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -36,7 +37,7 @@
 #include "cpl_conv.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: ogrmysqldatasource.cpp 24947 2012-09-22 09:54:23Z rouault $");
+CPL_CVSID("$Id: ogrmysqldatasource.cpp 27741 2014-09-26 19:20:02Z goatbar $");
 /************************************************************************/
 /*                         OGRMySQLDataSource()                         */
 /************************************************************************/
@@ -133,28 +134,6 @@ int OGRMySQLDataSource::Open( const char * pszNewName, int bUpdate,
     int nPort = 0, i;
     char **papszTableNames=NULL;
     std::string oHost, oPassword, oUser, oDB;
-    char *apszArgv[2] = { (char*) "org", NULL };
-    char **papszArgv = apszArgv;
-    int  nArgc = 1;
-    const char *client_groups[] = {"client", "ogr", NULL };
-
-    my_init(); // I hope there is no problem with calling this multiple times!
-    load_defaults( "my", client_groups, &nArgc, &papszArgv );
-
-    for( i = 0; i < nArgc; i++ )
-    {
-        if( EQUALN(papszArgv[i],"--user=",7) )
-            oUser = papszArgv[i] + 7;
-        else if( EQUALN(papszArgv[i],"--host=",7) )
-            oHost = papszArgv[i] + 7;
-        else if( EQUALN(papszArgv[i],"--password=",11) )
-            oPassword = papszArgv[i] + 11;
-        else if( EQUALN(papszArgv[i],"--port=",7) )
-            nPort = atoi(papszArgv[i] + 7);
-    }
-
-    // cleanup
-    free_defaults( papszArgv );
 
 /* -------------------------------------------------------------------- */
 /*      Parse out connection information.                               */
@@ -315,8 +294,7 @@ int OGRMySQLDataSource::Open( const char * pszNewName, int bUpdate,
 /************************************************************************/
 
 int OGRMySQLDataSource::OpenTable( const char *pszNewName, int bUpdate,
-                                int bTestOpen )
-
+                                   CPL_UNUSED int bTestOpen )
 {
 /* -------------------------------------------------------------------- */
 /*      Create the layer object.                                        */
@@ -648,9 +626,9 @@ OGRLayer * OGRMySQLDataSource::ExecuteSQL( const char *pszSQLCommand,
     }
 
 /* -------------------------------------------------------------------- */
-/*      Use generic implementation for OGRSQL dialect.                  */
+/*      Use generic implementation for recognized dialects              */
 /* -------------------------------------------------------------------- */
-    if( pszDialect != NULL && EQUAL(pszDialect,"OGRSQL") )
+    if( IsGenericSQLDialect(pszDialect) )
         return OGRDataSource::ExecuteSQL( pszSQLCommand, 
                                           poSpatialFilter, 
                                           pszDialect );
@@ -840,11 +818,10 @@ OGRMySQLDataSource::CreateLayer( const char * pszLayerNameIn,
     MYSQL_RES           *hResult=NULL;
     CPLString            osCommand;
     const char          *pszGeometryType;
-    const char			*pszGeomColumnName;
-    const char 			*pszExpectedFIDName; 
-	
+    const char		*pszGeomColumnName;
+    const char		*pszExpectedFIDName;
     char                *pszLayerName;
-    int                 nDimension = 3; // MySQL only supports 2d currently
+    // int                 nDimension = 3; // MySQL only supports 2d currently
 
 
 /* -------------------------------------------------------------------- */
@@ -858,8 +835,8 @@ OGRMySQLDataSource::CreateLayer( const char * pszLayerNameIn,
     else
         pszLayerName = CPLStrdup( pszLayerNameIn );
 
-    if( wkbFlatten(eType) == eType )
-        nDimension = 2;
+    // if( wkbFlatten(eType) == eType )
+    //    nDimension = 2;
 
     CPLDebug("MYSQL","Creating layer %s.", pszLayerName);
 
@@ -873,7 +850,7 @@ OGRMySQLDataSource::CreateLayer( const char * pszLayerNameIn,
     {
         if( EQUAL(pszLayerName,papoLayers[iLayer]->GetLayerDefn()->GetName()) )
         {
-			
+
             if( CSLFetchNameValue( papszOptions, "OVERWRITE" ) != NULL
                 && !EQUAL(CSLFetchNameValue(papszOptions,"OVERWRITE"),"NO") )
             {

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdalmultidomainmetadata.cpp 22798 2011-07-24 12:19:53Z rouault $
+ * $Id: gdalmultidomainmetadata.cpp 27723 2014-09-22 18:21:08Z goatbar $
  *
  * Project:  GDAL Core
  * Purpose:  Implementation of GDALMultiDomainMetadata class.  This class
@@ -8,6 +8,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2005, Frank Warmerdam <warmerdam@pobox.com>
+ * Copyright (c) 2009-2011, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -32,7 +33,7 @@
 #include "cpl_string.h"
 #include <map>
 
-CPL_CVSID("$Id: gdalmultidomainmetadata.cpp 22798 2011-07-24 12:19:53Z rouault $");
+CPL_CVSID("$Id: gdalmultidomainmetadata.cpp 27723 2014-09-22 18:21:08Z goatbar $");
 
 /************************************************************************/
 /*                      GDALMultiDomainMetadata()                       */
@@ -189,8 +190,7 @@ CPLErr GDALMultiDomainMetadata::SetMetadataItem( const char *pszName,
 /*      <Metadata> elements.                                            */
 /************************************************************************/
 
-int GDALMultiDomainMetadata::XMLInit( CPLXMLNode *psTree, int bMerge )
-
+int GDALMultiDomainMetadata::XMLInit( CPLXMLNode *psTree, CPL_UNUSED int bMerge )
 {
     CPLXMLNode *psMetadata;
 

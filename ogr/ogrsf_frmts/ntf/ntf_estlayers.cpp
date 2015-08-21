@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ntf_estlayers.cpp 15637 2008-10-29 16:06:38Z warmerdam $
+ * $Id: ntf_estlayers.cpp 27729 2014-09-24 00:40:16Z goatbar $
  *
  * Project:  NTF Translator
  * Purpose:  NTFFileReader methods related to establishing the schemas
@@ -33,7 +33,7 @@
 #include "ntf.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: ntf_estlayers.cpp 15637 2008-10-29 16:06:38Z warmerdam $");
+CPL_CVSID("$Id: ntf_estlayers.cpp 27729 2014-09-24 00:40:16Z goatbar $");
 
 #define MAX_LINK        5000
 
@@ -312,7 +312,7 @@ static OGRFeature *TranslateOscarRouteLine( NTFFileReader *poReader,
 /*                       TranslateOscarComment()                        */
 /************************************************************************/
 
-static OGRFeature *TranslateOscarComment( NTFFileReader *poReader,
+static OGRFeature *TranslateOscarComment( CPL_UNUSED NTFFileReader *poReader,
                                           OGRNTFLayer *poLayer,
                                           NTFRecord **papoGroup )
 
@@ -1144,7 +1144,7 @@ static OGRFeature *TranslateMeridian2Line( NTFFileReader *poReader,
 /*      Also used for Meridian, Oscar and BaseData.GB nodes.            */
 /************************************************************************/
 
-static OGRFeature *TranslateStrategiNode( NTFFileReader *poReader,
+static OGRFeature *TranslateStrategiNode( CPL_UNUSED NTFFileReader *poReader,
                                           OGRNTFLayer *poLayer,
                                           NTFRecord **papoGroup )
 
@@ -1692,6 +1692,7 @@ void NTFFileReader::EstablishLayer( const char * pszLayerName,
 /*      Create a new feature definition.                                */
 /* -------------------------------------------------------------------- */
         poDefn = new OGRFeatureDefn( pszLayerName );
+        poDefn->GetGeomFieldDefn(0)->SetSpatialRef(poDS->GetSpatialRef());
         poDefn->SetGeomType( eGeomType );
         poDefn->Reference();
 

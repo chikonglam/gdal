@@ -9,6 +9,7 @@
  *
  **********************************************************************
  * Copyright (c) 2007,  Geoconcept and IGN
+ * Copyright (c) 2008-2010, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -32,7 +33,7 @@
 #include "geoconcept_syscoord.h"
 #include "cpl_string.h"
 
-GCSRS_CVSID("$Id: geoconcept_syscoord.c,v 1.0.0 2007-12-24 15:40:28 drichard Exp $")
+CPL_CVSID("$Id: geoconcept_syscoord.c,v 1.0.0 2007-12-24 15:40:28 drichard Exp $")
 
 #ifndef PI
 #define PI 3.14159265358979323846

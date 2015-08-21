@@ -1,12 +1,12 @@
 /******************************************************************************
- * $Id: pdfcreatecopy.cpp 25613 2013-02-07 19:33:31Z rouault $
+ * $Id: pdfcreatecopy.cpp 27991 2014-11-21 09:09:00Z rouault $
  *
  * Project:  PDF driver
  * Purpose:  GDALDataset driver for PDF dataset.
  * Author:   Even Rouault, <even dot rouault at mines dash paris dot org>
  *
  ******************************************************************************
- * Copyright (c) 2012, Even Rouault
+ * Copyright (c) 2012-2014, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -31,6 +31,7 @@
 /* in include/poppler/goo/gtypes.h with the one defined in cpl_port.h */
 #define CPL_GBOOL_DEFINED
 
+#include "pdfdataset.h"
 #include "pdfcreatecopy.h"
 
 #include "cpl_vsi_virtual.h"
@@ -38,7 +39,7 @@
 #include "cpl_error.h"
 #include "ogr_spatialref.h"
 #include "ogr_geometry.h"
-#include "vrt/vrtdataset.h"
+#include "vrtdataset.h"
 
 #include "pdfobject.h"
 
@@ -46,7 +47,10 @@
 #define M_PI       3.14159265358979323846
 #endif
 
-CPL_CVSID("$Id: pdfcreatecopy.cpp 25613 2013-02-07 19:33:31Z rouault $");
+/* Cf PDF reference v1.7, Appendix C, page 993 */
+#define MAXIMUM_SIZE_IN_UNITS   14400
+
+CPL_CVSID("$Id: pdfcreatecopy.cpp 27991 2014-11-21 09:09:00Z rouault $");
 
 #define PIXEL_TO_GEO_X(x,y) adfGeoTransform[0] + x * adfGeoTransform[1] + y * adfGeoTransform[2]
 #define PIXEL_TO_GEO_Y(x,y) adfGeoTransform[3] + x * adfGeoTransform[4] + y * adfGeoTransform[5]
@@ -299,9 +303,9 @@ void GDALPDFWriter::UpdateProj(GDALDataset* poSrcDS,
 
     const char* pszGEO_ENCODING = CPLGetConfigOption("GDAL_PDF_GEO_ENCODING", "ISO32000");
     if (EQUAL(pszGEO_ENCODING, "ISO32000") || EQUAL(pszGEO_ENCODING, "BOTH"))
-        nViewportId = WriteSRS_ISO32000(poSrcDS, dfDPI / 72.0, NULL, &sMargins, TRUE);
+        nViewportId = WriteSRS_ISO32000(poSrcDS, dfDPI * USER_UNIT_IN_INCH, NULL, &sMargins, TRUE);
     if (EQUAL(pszGEO_ENCODING, "OGC_BP") || EQUAL(pszGEO_ENCODING, "BOTH"))
-        nLGIDictId = WriteSRS_OGC_BP(poSrcDS, dfDPI / 72.0, NULL, &sMargins);
+        nLGIDictId = WriteSRS_OGC_BP(poSrcDS, dfDPI * USER_UNIT_IN_INCH, NULL, &sMargins);
 
 #ifdef invalidate_xref_entry
     GDALPDFObject* poVP = poPageDict->Get("VP");
@@ -1514,7 +1518,7 @@ int GDALPDFWriter::StartPage(GDALDataset* poClippingDS,
     int  nHeight = poClippingDS->GetRasterYSize();
     int  nBands = poClippingDS->GetRasterCount();
 
-    double dfUserUnit = dfDPI / 72.0;
+    double dfUserUnit = dfDPI * USER_UNIT_IN_INCH;
     double dfWidthInUserUnit = nWidth / dfUserUnit + psMargins->nLeft + psMargins->nRight;
     double dfHeightInUserUnit = nHeight / dfUserUnit + psMargins->nBottom + psMargins->nTop;
 
@@ -1657,7 +1661,7 @@ int GDALPDFWriter::WriteImagery(GDALDataset* poDS,
 {
     int  nWidth = poDS->GetRasterXSize();
     int  nHeight = poDS->GetRasterYSize();
-    double dfUserUnit = oPageContext.dfDPI / 72.0;
+    double dfUserUnit = oPageContext.dfDPI * USER_UNIT_IN_INCH;
 
     GDALPDFRasterDesc oRasterDesc;
 
@@ -1735,7 +1739,7 @@ int GDALPDFWriter::WriteClippedImagery(
                                 GDALProgressFunc pfnProgress,
                                 void * pProgressData)
 {
-    double dfUserUnit = oPageContext.dfDPI / 72.0;
+    double dfUserUnit = oPageContext.dfDPI * USER_UNIT_IN_INCH;
 
     GDALPDFRasterDesc oRasterDesc;
 
@@ -2159,7 +2163,7 @@ int GDALPDFWriter::WriteOGRFeature(GDALPDFLayerDesc& osVectorDesc,
 {
     GDALDataset* poClippingDS = oPageContext.poClippingDS;
     int  nHeight = poClippingDS->GetRasterYSize();
-    double dfUserUnit = oPageContext.dfDPI / 72.0;
+    double dfUserUnit = oPageContext.dfDPI * USER_UNIT_IN_INCH;
     double adfGeoTransform[6];
     poClippingDS->GetGeoTransform(adfGeoTransform);
 
@@ -2774,7 +2778,7 @@ int GDALPDFWriter::WriteOGRFeature(GDALPDFLayerDesc& osVectorDesc,
             GDALDataset* poClippingDS = oPageContext.poClippingDS;
             int  nWidth = poClippingDS->GetRasterXSize();
             int  nHeight = poClippingDS->GetRasterYSize();
-            double dfUserUnit = oPageContext.dfDPI / 72.0;
+            double dfUserUnit = oPageContext.dfDPI * USER_UNIT_IN_INCH;
             double dfWidthInUserUnit = nWidth / dfUserUnit + oPageContext.sMargins.nLeft + oPageContext.sMargins.nRight;
             double dfHeightInUserUnit = nHeight / dfUserUnit + oPageContext.sMargins.nBottom + oPageContext.sMargins.nTop;
 
@@ -2862,10 +2866,14 @@ int GDALPDFWriter::WriteOGRFeature(GDALPDFLayerDesc& osVectorDesc,
         {
             /*if (osLabelText[i] == '\n')
                 VSIFPrintfL(fp, ") Tj T* (");
-            else */if (osLabelText[i] >= 32 && osLabelText[i] <= 127)
-                VSIFPrintfL(fp, "%c", osLabelText[i]);
-            else
-                VSIFPrintfL(fp, "_");
+            else */
+
+            /* Tautology.  Always true. */
+            /* if (osLabelText[i] >= 32 && osLabelText[i] <= 127) { */
+            VSIFPrintfL(fp, "%c", osLabelText[i]);
+            /* } else {
+                   VSIFPrintfL(fp, "_");
+            } */
         }
         VSIFPrintfL(fp, ") Tj\n");
         VSIFPrintfL(fp, "ET\n");
@@ -2987,7 +2995,7 @@ int GDALPDFWriter::EndPage(const char* pszExtraImages,
             GDALAllRegister();
 
         char** papszExtraImagesTokens = CSLTokenizeString2(pszExtraImages, ",", 0);
-        double dfUserUnit = oPageContext.dfDPI / 72.0;
+        double dfUserUnit = oPageContext.dfDPI * USER_UNIT_IN_INCH;
         int nCount = CSLCount(papszExtraImagesTokens);
         for(int i=0;i+4<=nCount; /* */)
         {
@@ -3417,17 +3425,19 @@ int GDALPDFWriter::WriteMask(GDALDataset* poSrcDS,
 
     int bOnly0or255 = TRUE;
     int bOnly255 = TRUE;
-    int bOnly0 = TRUE;
+    /* int bOnly0 = TRUE; */
     int i;
     for(i=0;i<nReqXSize * nReqYSize;i++)
     {
         if (pabyMask[i] == 0)
             bOnly255 = FALSE;
         else if (pabyMask[i] == 255)
-            bOnly0 = FALSE;
+        {
+            /* bOnly0 = FALSE; */
+        }
         else
         {
-            bOnly0 = FALSE;
+            /* bOnly0 = FALSE; */
             bOnly255 = FALSE;
             bOnly0or255 = FALSE;
             break;
@@ -4361,10 +4371,6 @@ GDALDataset *GDALPDFCreateCopy( const char * pszFilename,
 
     const char* pszXMP = CSLFetchNameValue(papszOptions, "XMP");
 
-    double dfDPI = atof(CSLFetchNameValueDef(papszOptions, "DPI", "72"));
-    if (dfDPI < 72.0)
-        dfDPI = 72.0;
-
     const char* pszPredictor = CSLFetchNameValue(papszOptions, "PREDICTOR");
     int nPredictor = 1;
     if (pszPredictor)
@@ -4410,6 +4416,57 @@ GDALDataset *GDALPDFCreateCopy( const char * pszFilename,
 
     const char* pszBottomMargin = CSLFetchNameValue(papszOptions, "BOTTOM_MARGIN");
     if (pszBottomMargin) sMargins.nBottom = atoi(pszBottomMargin);
+
+    const char* pszDPI = CSLFetchNameValue(papszOptions, "DPI");
+    double dfDPI = DEFAULT_DPI;
+    if( pszDPI != NULL )
+        dfDPI = CPLAtof(pszDPI);
+
+    double dfUserUnit = dfDPI * USER_UNIT_IN_INCH;
+    double dfWidthInUserUnit = nWidth / dfUserUnit + sMargins.nLeft + sMargins.nRight;
+    double dfHeightInUserUnit = nHeight / dfUserUnit + sMargins.nBottom + sMargins.nTop;
+    if( dfWidthInUserUnit > MAXIMUM_SIZE_IN_UNITS ||
+        dfHeightInUserUnit > MAXIMUM_SIZE_IN_UNITS )
+    {
+        if( pszDPI == NULL )
+        {
+            if( sMargins.nLeft + sMargins.nRight >= MAXIMUM_SIZE_IN_UNITS ||
+                sMargins.nBottom + sMargins.nTop >= MAXIMUM_SIZE_IN_UNITS )
+            {
+                CPLError(CE_Warning, CPLE_AppDefined,
+                         "Margins too big compared to maximum page dimension (%d) "
+                         "in user units allowed by Acrobat",
+                         MAXIMUM_SIZE_IN_UNITS);
+            }
+            else
+            {
+                if( dfWidthInUserUnit >= dfHeightInUserUnit )
+                {
+                    dfDPI = (int)(0.5 + (double)nWidth / (MAXIMUM_SIZE_IN_UNITS -
+                            (sMargins.nLeft + sMargins.nRight)) / USER_UNIT_IN_INCH);
+                }
+                else
+                {
+                    dfDPI = (int)(0.5 + (double)nHeight / (MAXIMUM_SIZE_IN_UNITS -
+                            (sMargins.nBottom + sMargins.nTop)) / USER_UNIT_IN_INCH);
+                }
+                CPLDebug("PDF", "Adjusting DPI to %d so that page dimension in "
+                        "user units remain in what is accepted by Acrobat", (int)dfDPI);
+            }
+        }
+        else
+        {
+            CPLError(CE_Warning, CPLE_AppDefined,
+                     "The page dimension in user units is %d x %d whereas the "
+                     "maximum allowed by Acrobat is %d x %d",
+                     (int)(dfWidthInUserUnit + 0.5),
+                     (int)(dfHeightInUserUnit + 0.5),
+                     MAXIMUM_SIZE_IN_UNITS, MAXIMUM_SIZE_IN_UNITS);
+        }
+    }
+
+    if (dfDPI < DEFAULT_DPI)
+        dfDPI = DEFAULT_DPI;
 
     const char* pszClippingExtent = CSLFetchNameValue(papszOptions, "CLIPPING_EXTENT");
     int bUseClippingExtent = FALSE;
@@ -4677,7 +4734,7 @@ GDALDataset *GDALPDFCreateCopy( const char * pszFilename,
     else
     {
 #if defined(HAVE_POPPLER) || defined(HAVE_PODOFO)
-        return (GDALDataset*) GDALOpen(pszFilename, GA_ReadOnly);
+        return GDALPDFOpen(pszFilename, GA_ReadOnly);
 #else
         return new GDALFakePDFDataset();
 #endif

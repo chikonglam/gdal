@@ -1240,10 +1240,11 @@ static int ReadGrib1Sect3 (uChar *bms, uInt4 gribLen, uInt4 *curLoc,
    return 0;
 }
 
-static int UnpackCmplx (uChar *bds, uInt4 gribLen, uInt4 *curLoc,
-                        short int DSF, double *data, grib_MetaData *meta,
-                        char f_bms, uChar *bitmap, double unitM,
-                        double unitB, short int ESF, double refVal,
+#ifdef DEBUG
+static int UnpackCmplx (uChar *bds, CPL_UNUSED uInt4 gribLen, CPL_UNUSED uInt4 *curLoc,
+                        CPL_UNUSED short int DSF, CPL_UNUSED double *data, CPL_UNUSED grib_MetaData *meta,
+                        CPL_UNUSED char f_bms, CPL_UNUSED uChar *bitmap, CPL_UNUSED double unitM,
+                        CPL_UNUSED double unitB, CPL_UNUSED short int ESF, CPL_UNUSED double refVal,
                         uChar numBits, uChar f_octet14)
 {
    uInt4 secLen;
@@ -1336,6 +1337,7 @@ static int UnpackCmplx (uChar *bds, uInt4 gribLen, uInt4 *curLoc,
    return -2;
 
 }
+#endif /* DEBUG */
 
 /*****************************************************************************
  * ReadGrib1Sect4() --
@@ -1389,7 +1391,9 @@ static int ReadGrib1Sect4 (uChar *bds, uInt4 gribLen, uInt4 *curLoc,
    uChar numUnusedBit;  /* # of extra bits at end of record. */
    uChar f_spherHarm;   /* Flag if data contains Spherical Harmonics. */
    uChar f_cmplxPack;   /* Flag if complex packing was used. */
+#ifdef DEBUG
    uChar f_octet14;     /* Flag if octet 14 was used. */
+#endif
    uChar bufLoc;        /* Keeps track of where to start getting more data
                          * out of the packed data stream. */
    uChar f_convert;     /* Determine if scan mode implies that we have to do
@@ -1426,7 +1430,9 @@ static int ReadGrib1Sect4 (uChar *bds, uInt4 gribLen, uInt4 *curLoc,
    f_spherHarm = (*bds) & GRIB2BIT_1;
    f_cmplxPack = (*bds) & GRIB2BIT_2;
    meta->gridAttrib.fieldType = (*bds) & GRIB2BIT_3;
+#ifdef DEBUG
    f_octet14 = (*bds) & GRIB2BIT_4;
+#endif
 
    numUnusedBit = (*bds) & 0x0f;
 #ifdef DEBUG
@@ -1770,7 +1776,7 @@ int ReadGrib1Record (DataSource &fp, sChar f_unit, double **Grib_Data,
    }
    meta->pds1.gridID = gridID;
    /* Allow data originating from NCEP to be 6371.2 by default. */
-   if ((meta->center == NMC)) {
+   if (meta->center == NMC) {
       if (meta->gds.majEarth == 6367.47) {
          meta->gds.f_sphere = 1;
          meta->gds.majEarth = 6371.2;

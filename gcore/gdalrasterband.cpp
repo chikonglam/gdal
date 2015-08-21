@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdalrasterband.cpp 26358 2013-08-21 20:12:38Z rouault $
+ * $Id: gdalrasterband.cpp 27858 2014-10-15 08:41:23Z rouault $
  *
  * Project:  GDAL Core
  * Purpose:  Base class for format specific band class implementation.  This
@@ -8,6 +8,7 @@
  *
  ******************************************************************************
  * Copyright (c) 1998, Frank Warmerdam
+ * Copyright (c) 2007-2014, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -36,7 +37,7 @@
 #define TO_SUBBLOCK(x) ((x) >> 6)
 #define WITHIN_SUBBLOCK(x) ((x) & 0x3f)
 
-CPL_CVSID("$Id: gdalrasterband.cpp 26358 2013-08-21 20:12:38Z rouault $");
+CPL_CVSID("$Id: gdalrasterband.cpp 27858 2014-10-15 08:41:23Z rouault $");
 
 /************************************************************************/
 /*                           GDALRasterBand()                           */
@@ -94,13 +95,7 @@ GDALRasterBand::~GDALRasterBand()
                   poDS->GetDescription() );
     }
 
-    if( bOwnMask )
-    {
-        delete poMask;
-        poMask = NULL;
-        nMaskFlags = 0;
-        bOwnMask = false;
-    }
+    InvalidateMaskBand();
 }
 
 /************************************************************************/
@@ -566,6 +561,8 @@ CPLErr CPL_STDCALL GDALWriteBlock( GDALRasterBandH hBand, int nXOff, int nYOff,
 /**
  * \brief Fetch the pixel data type for this band.
  *
+ * This method is the same as the C function GDALGetRasterDataType().
+ *
  * @return the data type of pixels for this band.
  */
   
@@ -613,6 +610,8 @@ GDALDataType CPL_STDCALL GDALGetRasterDataType( GDALRasterBandH hBand )
  * Note that the X and Y block sizes don't have to divide the image size
  * evenly, meaning that right and bottom edge blocks may be incomplete.
  * See ReadBlock() for an example of code dealing with these issues.
+ *
+ * This method is the same as the C function GDALGetBlockSize().
  *
  * @param pnXSize integer to put the X block size into or NULL.
  *
@@ -1280,7 +1279,9 @@ GDALRasterBlock * GDALRasterBand::GetLockedBlockRef( int nXBlockOff,
  * to the underlying type before writing to the file. An optional
  * second argument allows the imaginary component of a complex
  * constant value to be specified.
- * 
+ *
+ * This method is the same as the C function GDALFillRaster().
+ *
  * @param dfRealValue Real component of fill value
  * @param dfImaginaryValue Imaginary component of fill value, defaults to zero
  * 
@@ -1431,7 +1432,9 @@ GDALAccess CPL_STDCALL GDALGetRasterAccess( GDALRasterBandH hBand )
  * The returned stringlist should not be altered or freed by the application.
  * It may change on the next GDAL call, so please copy it if it is needed
  * for any period of time. 
- * 
+ *
+ * This method is the same as the C function GDALGetRasterCategoryNames().
+ *
  * @return list of names, or NULL if none.
  */
 
@@ -1479,8 +1482,7 @@ char ** CPL_STDCALL GDALGetRasterCategoryNames( GDALRasterBandH hBand )
  * by the driver CE_Failure is returned, but no error message is reported.
  */
 
-CPLErr GDALRasterBand::SetCategoryNames( char ** papszNames )
-
+CPLErr GDALRasterBand::SetCategoryNames( CPL_UNUSED char ** papszNames )
 {
     if( !(GetMOFlags() & GMO_IGNORE_UNIMPLEMENTED) )
         ReportError( CE_Failure, CPLE_NotSupported,
@@ -1577,8 +1579,7 @@ GDALGetRasterNoDataValue( GDALRasterBandH hBand, int *pbSuccess )
  * been emitted.
  */
 
-CPLErr GDALRasterBand::SetNoDataValue( double dfNoData )
-
+CPLErr GDALRasterBand::SetNoDataValue( CPL_UNUSED double dfNoData )
 {
     if( !(GetMOFlags() & GMO_IGNORE_UNIMPLEMENTED) )
         ReportError( CE_Failure, CPLE_NotSupported,
@@ -1835,6 +1836,8 @@ GDALGetRasterColorInterpretation( GDALRasterBandH hBand )
 
 /**
  * \brief Set color interpretation of a band.
+ *
+ * This method is the same as the C function GDALSetRasterColorInterpretation().
  *
  * @param eColorInterp the new color interpretation to apply to this band.
  * 
@@ -2269,14 +2272,15 @@ double CPL_STDCALL GDALGetRasterOffset( GDALRasterBandH hBand, int *pbSuccess )
  *
  * Very few formats implement this method.   When not implemented it will
  * issue a CPLE_NotSupported error and return CE_Failure. 
- * 
+ *
+ * This method is the same as the C function GDALSetRasterOffset().
+ *
  * @param dfNewOffset the new offset.
  *
  * @return CE_None or success or CE_Failure on failure. 
  */
 
-CPLErr GDALRasterBand::SetOffset( double dfNewOffset )
-
+CPLErr GDALRasterBand::SetOffset( CPL_UNUSED double dfNewOffset )
 {
     if( !(GetMOFlags() & GMO_IGNORE_UNIMPLEMENTED) )
         ReportError( CE_Failure, CPLE_NotSupported,
@@ -2367,14 +2371,15 @@ double CPL_STDCALL GDALGetRasterScale( GDALRasterBandH hBand, int *pbSuccess )
  *
  * Very few formats implement this method.   When not implemented it will
  * issue a CPLE_NotSupported error and return CE_Failure. 
+ *
+ * This method is the same as the C function GDALSetRasterScale().
  * 
  * @param dfNewScale the new scale.
  *
  * @return CE_None or success or CE_Failure on failure. 
  */
 
-CPLErr GDALRasterBand::SetScale( double dfNewScale )
-
+CPLErr GDALRasterBand::SetScale( CPL_UNUSED double dfNewScale )
 {
     if( !(GetMOFlags() & GMO_IGNORE_UNIMPLEMENTED) )
         ReportError( CE_Failure, CPLE_NotSupported,
@@ -2464,7 +2469,7 @@ const char * CPL_STDCALL GDALGetRasterUnitType( GDALRasterBandH hBand )
  * unsupported.
  */
 
-CPLErr GDALRasterBand::SetUnitType( const char *pszNewValue )
+CPLErr GDALRasterBand::SetUnitType( CPL_UNUSED const char *pszNewValue )
 
 {
     if( !(GetMOFlags() & GMO_IGNORE_UNIMPLEMENTED) )
@@ -2620,7 +2625,7 @@ int CPL_STDCALL GDALGetBandNumber( GDALRasterBandH hBand )
  * Note that some GDALRasterBands are not considered to be a part of a dataset,
  * such as overviews or other "freestanding" bands. 
  *
- * This method is the same as the C function GDALGetBandDataset()
+ * This method is the same as the C function GDALGetBandDataset().
  *
  * @return the pointer to the GDALDataset to which this band belongs, or
  * NULL if this cannot be determined.
@@ -2676,6 +2681,8 @@ GDALDatasetH CPL_STDCALL GDALGetBandDataset( GDALRasterBandH hBand )
  * produce a representative histogram for the data that is suitable for use
  * in generating histogram based luts for instance.  Generally bApproxOK is
  * much faster than an exactly computed histogram.
+ *
+ * This method is the same as the C function GDALGetRasterHistogram().
  *
  * @param dfMin the lower bound of the histogram.
  * @param dfMax the upper bound of the histogram.
@@ -2735,6 +2742,15 @@ CPLErr GDALRasterBand::GetHistogram( double dfMin, double dfMax,
 
     dfScale = nBuckets / (dfMax - dfMin);
     memset( panHistogram, 0, sizeof(int) * nBuckets );
+
+    double dfNoDataValue;
+    int bGotNoDataValue;
+    dfNoDataValue = GetNoDataValue( &bGotNoDataValue );
+    bGotNoDataValue = bGotNoDataValue && !CPLIsNan(dfNoDataValue);
+    /* Not advertized. May be removed at any time. Just as a provision if the */
+    /* old behaviour made sense somethimes... */
+    bGotNoDataValue = bGotNoDataValue &&
+        !CSLTestBoolean(CPLGetConfigOption("GDAL_NODATA_IN_HISTOGRAM", "NO"));
 
     const char* pszPixelType = GetMetadataItem("PIXELTYPE", "IMAGE_STRUCTURE");
     int bSignedByte = (pszPixelType != NULL && EQUAL(pszPixelType, "SIGNEDBYTE"));
@@ -2859,6 +2875,9 @@ CPLErr GDALRasterBand::GetHistogram( double dfMin, double dfMax,
                     CPLAssert( FALSE );
                 }
 
+                if( bGotNoDataValue && ARE_REAL_EQUAL(dfValue, dfNoDataValue) )
+                    continue;
+
                 nIndex = (int) floor((dfValue - dfMin) * dfScale);
                 
                 if( nIndex < 0 )
@@ -2951,7 +2970,10 @@ CPLErr GDALRasterBand::GetHistogram( double dfMin, double dfMax,
                 GByte  *pabyData = (GByte *) pData;
                 
                 for( int i = 0; i < nPixels; i++ )
-                    panHistogram[pabyData[i]]++;
+                    if (! (bGotNoDataValue && (pabyData[i] == (GByte)dfNoDataValue)))
+                    {
+                        panHistogram[pabyData[i]]++;
+                    }
 
                 poBlock->DropLock();
                 continue; /* to next sample block */
@@ -3043,6 +3065,9 @@ CPLErr GDALRasterBand::GetHistogram( double dfMin, double dfMax,
                         return CE_Failure;
                     }
                     
+                    if( bGotNoDataValue && ARE_REAL_EQUAL(dfValue, dfNoDataValue) )
+                        continue;
+
                     nIndex = (int) floor((dfValue - dfMin) * dfScale);
 
                     if( nIndex < 0 )
@@ -3110,6 +3135,8 @@ GDALGetRasterHistogram( GDALRasterBandH hBand,
  * The default method in GDALRasterBand will compute a default histogram. This
  * method is overriden by derived classes (such as GDALPamRasterBand, VRTDataset, HFADataset...)
  * that may be able to fetch efficiently an already stored histogram.
+ *
+ * This method is the same as the C function GDALGetDefaultHistogram().
  *
  * @param pdfMin pointer to double value that will contain the lower bound of the histogram.
  * @param pdfMax pointer to double value that will contain the upper bound of the histogram.
@@ -3251,9 +3278,8 @@ CPLErr CPL_STDCALL GDALGetDefaultHistogram( GDALRasterBandH hBand,
  */
 
 CPLErr GDALRasterBand::AdviseRead( 
-    int nXOff, int nYOff, int nXSize, int nYSize,
-    int nBufXSize, int nBufYSize, GDALDataType eBufType, char **papszOptions )
-
+    CPL_UNUSED int nXOff, CPL_UNUSED int nYOff, CPL_UNUSED int nXSize, CPL_UNUSED int nYSize,
+    CPL_UNUSED int nBufXSize, CPL_UNUSED int nBufYSize, CPL_UNUSED GDALDataType eBufType, CPL_UNUSED char **papszOptions )
 {
     return CE_None;
 }
@@ -4258,10 +4284,11 @@ GDALComputeRasterMinMax( GDALRasterBandH hBand, int bApproxOK,
 /* FIXME : add proper documentation */
 /**
  * \brief Set default histogram.
+ *
+ * This method is the same as the C function GDALSetDefaultHistogram().
  */
-CPLErr GDALRasterBand::SetDefaultHistogram( double dfMin, double dfMax, 
-                                            int nBuckets, int *panHistogram )
-
+CPLErr GDALRasterBand::SetDefaultHistogram( CPL_UNUSED double dfMin, CPL_UNUSED double dfMax, 
+                                            CPL_UNUSED int nBuckets, CPL_UNUSED int *panHistogram )
 {
     if( !(GetMOFlags() & GMO_IGNORE_UNIMPLEMENTED) )
         ReportError( CE_Failure, CPLE_NotSupported,
@@ -4300,12 +4327,14 @@ CPLErr CPL_STDCALL GDALSetDefaultHistogram( GDALRasterBandH hBand,
  *
  * A RAT will be returned if there is a default one associated with the
  * band, otherwise NULL is returned.  The returned RAT is owned by the
- * band and should not be deleted, or altered by the application. 
- * 
+ * band and should not be deleted by the application. 
+ *
+ * This method is the same as the C function GDALGetDefaultRAT().
+ *
  * @return NULL, or a pointer to an internal RAT owned by the band.
  */
 
-const GDALRasterAttributeTable *GDALRasterBand::GetDefaultRAT()
+GDALRasterAttributeTable *GDALRasterBand::GetDefaultRAT()
 
 {
     return NULL;
@@ -4341,14 +4370,15 @@ GDALRasterAttributeTableH CPL_STDCALL GDALGetDefaultRAT( GDALRasterBandH hBand)
  * format a CPLE_NotSupported error will be issued.  If successful a copy
  * of the RAT is made, the original remains owned by the caller.
  *
+ * This method is the same as the C function GDALSetDefaultRAT().
+ *
  * @param poRAT the RAT to assign to the band.
  *
  * @return CE_None on success or CE_Failure if unsupported or otherwise 
  * failing.
  */
 
-CPLErr GDALRasterBand::SetDefaultRAT( const GDALRasterAttributeTable *poRAT )
-
+CPLErr GDALRasterBand::SetDefaultRAT( CPL_UNUSED const GDALRasterAttributeTable *poRAT )
 {
     if( !(GetMOFlags() & GMO_IGNORE_UNIMPLEMENTED) )
         ReportError( CE_Failure, CPLE_NotSupported,
@@ -4406,7 +4436,9 @@ CPLErr CPL_STDCALL GDALSetDefaultRAT( GDALRasterBandH hBand,
  * </ul>
  *
  * Note that the GetMaskBand() should always return a GDALRasterBand mask, even if it is only
- * an all 255 mask with the flags indicating GMF_ALL_VALID. 
+ * an all 255 mask with the flags indicating GMF_ALL_VALID.
+ *
+ * This method is the same as the C function GDALGetMaskBand().
  *
  * @return a valid mask band.
  *
@@ -4522,12 +4554,21 @@ GDALRasterBand *GDALRasterBand::GetMaskBand()
         && (this == poDS->GetRasterBand(1)
             || this == poDS->GetRasterBand(2)
             || this == poDS->GetRasterBand(3))
-        && poDS->GetRasterBand(4)->GetColorInterpretation() == GCI_AlphaBand
-        && poDS->GetRasterBand(4)->GetRasterDataType() == GDT_Byte )
+        && poDS->GetRasterBand(4)->GetColorInterpretation() == GCI_AlphaBand )
     {
-        nMaskFlags = GMF_ALPHA | GMF_PER_DATASET;
-        poMask = poDS->GetRasterBand(4);
-        return poMask;
+        if( poDS->GetRasterBand(4)->GetRasterDataType() == GDT_Byte )
+        {
+            nMaskFlags = GMF_ALPHA | GMF_PER_DATASET;
+            poMask = poDS->GetRasterBand(4);
+            return poMask;
+        }
+        else if( poDS->GetRasterBand(4)->GetRasterDataType() == GDT_UInt16 )
+        {
+            nMaskFlags = GMF_ALPHA | GMF_PER_DATASET;
+            poMask = new GDALRescaledAlphaBand( poDS->GetRasterBand(4) );
+            bOwnMask = true;
+            return poMask;
+        }
     }
 
 /* -------------------------------------------------------------------- */
@@ -4597,6 +4638,8 @@ GDALRasterBandH CPL_STDCALL GDALGetMaskBand( GDALRasterBandH hBand )
  *     The null flags will return GMF_ALL_VALID.</li>
  * </ul>
  *
+ * This method is the same as the C function GDALGetMaskFlags().
+ *
  * @since GDAL 1.5.0
  *
  * @return a valid mask band.
@@ -4636,6 +4679,19 @@ int CPL_STDCALL GDALGetMaskFlags( GDALRasterBandH hBand )
 }
 
 /************************************************************************/
+/*                         InvalidateMaskBand()                         */
+/************************************************************************/
+
+void GDALRasterBand::InvalidateMaskBand()
+{
+    if (bOwnMask)
+        delete poMask;
+    bOwnMask = false;
+    nMaskFlags = 0;
+    poMask = NULL;
+}
+
+/************************************************************************/
 /*                           CreateMaskBand()                           */
 /************************************************************************/
 
@@ -4654,6 +4710,8 @@ int CPL_STDCALL GDALGetMaskFlags( GDALRasterBandH hBand )
  * it might be invalidated by CreateMaskBand(). So you have to call GetMaskBand()
  * again.
  *
+ * This method is the same as the C function GDALCreateMaskBand().
+ *
  * @since GDAL 1.5.0
  *
  * @return CE_None on success or CE_Failure on an error.
@@ -4671,11 +4729,7 @@ CPLErr GDALRasterBand::CreateMaskBand( int nFlags )
         if (eErr != CE_None)
             return eErr;
 
-        /* Invalidate existing raster band mask */
-        if (bOwnMask)
-            delete poMask;
-        bOwnMask = false;
-        poMask = NULL;
+        InvalidateMaskBand();
 
         return CE_None;
     }
@@ -4906,3 +4960,118 @@ void GDALRasterBand::ReportError(CPLErr eErrClass, int err_no, const char *fmt, 
     }
     va_end(args);
 }
+
+
+/************************************************************************/
+/*                           GetVirtualMemAuto()                        */
+/************************************************************************/
+
+/** \brief Create a CPLVirtualMem object from a GDAL raster band object.
+ *
+ * Only supported on Linux for now.
+ *
+ * This method allows creating a virtual memory object for a GDALRasterBand,
+ * that exposes the whole image data as a virtual array.
+ *
+ * The default implementation relies on GDALRasterBandGetVirtualMem(), but specialized
+ * implementation, such as for raw files, may also directly use mechanisms of the
+ * operating system to create a view of the underlying file into virtual memory
+ * ( CPLVirtualMemFileMapNew() )
+ *
+ * At the time of writing, the GeoTIFF driver and "raw" drivers (EHdr, ...) offer
+ * a specialized implementation with direct file mapping, provided that some
+ * requirements are met :
+ *   - for all drivers, the dataset must be backed by a "real" file in the file
+ *     system, and the byte ordering of multi-byte datatypes (Int16, etc.)
+ *     must match the native ordering of the CPU.
+ *   - in addition, for the GeoTIFF driver, the GeoTIFF file must be uncompressed, scanline
+ *     oriented (i.e. not tiled). Strips must be organized in the file in sequential
+ *     order, and be equally spaced (which is generally the case). Only power-of-two
+ *     bit depths are supported (8 for GDT_Bye, 16 for GDT_Int16/GDT_UInt16,
+ *     32 for GDT_Float32 and 64 for GDT_Float64)
+ *
+ * The pointer returned remains valid until CPLVirtualMemFree() is called.
+ * CPLVirtualMemFree() must be called before the raster band object is destroyed.
+ *
+ * If p is such a pointer and base_type the type matching GDALGetRasterDataType(),
+ * the element of image coordinates (x, y) can be accessed with
+ * *(base_type*) ((GByte*)p + x * *pnPixelSpace + y * *pnLineSpace)
+ *
+ * This method is the same as the C GDALGetVirtualMemAuto() function.
+ *
+ * @param eRWFlag Either GF_Read to read the band, or GF_Write to
+ * read/write the band.
+ *
+ * @param pnPixelSpace Output parameter giving the byte offset from the start of one pixel value in
+ * the buffer to the start of the next pixel value within a scanline.
+ *
+ * @param pnLineSpace Output parameter giving the byte offset from the start of one scanline in
+ * the buffer to the start of the next.
+ *
+ * @param papszOptions NULL terminated list of options.
+ *                     If a specialized implementation exists, defining USE_DEFAULT_IMPLEMENTATION=YES
+ *                     will cause the default implementation to be used.
+ *                     When requiring or falling back to the default implementation, the following
+ *                     options are available : CACHE_SIZE (in bytes, defaults to 40 MB),
+ *                     PAGE_SIZE_HINT (in bytes),
+ *                     SINGLE_THREAD ("FALSE" / "TRUE", defaults to FALSE)
+ *
+ * @return a virtual memory object that must be unreferenced by CPLVirtualMemFree(),
+ *         or NULL in case of failure.
+ *
+ * @since GDAL 1.11
+ */
+
+CPLVirtualMem  *GDALRasterBand::GetVirtualMemAuto( GDALRWFlag eRWFlag,
+                                                   int *pnPixelSpace,
+                                                   GIntBig *pnLineSpace,
+                                                   char **papszOptions )
+{
+    int nPixelSpace = GDALGetDataTypeSize(eDataType) / 8;
+    GIntBig nLineSpace = (GIntBig)nRasterXSize * nPixelSpace;
+    if( pnPixelSpace )
+        *pnPixelSpace = nPixelSpace;
+    if( pnLineSpace )
+        *pnLineSpace = nLineSpace;
+    size_t nCacheSize = atoi(CSLFetchNameValueDef(papszOptions,
+                                            "CACHE_SIZE", "40000000"));
+    size_t nPageSizeHint = atoi(CSLFetchNameValueDef(papszOptions,
+                                            "PAGE_SIZE_HINT", "0"));
+    int bSingleThreadUsage = CSLTestBoolean(CSLFetchNameValueDef(papszOptions,
+                                            "SINGLE_THREAD", "FALSE"));
+    return GDALRasterBandGetVirtualMem( (GDALRasterBandH) this,
+                                        eRWFlag,
+                                        0, 0, nRasterXSize, nRasterYSize,
+                                        nRasterXSize, nRasterYSize,
+                                        eDataType,
+                                        nPixelSpace, nLineSpace,
+                                        nCacheSize,
+                                        nPageSizeHint,
+                                        bSingleThreadUsage,
+                                        papszOptions );
+}
+
+/************************************************************************/
+/*                         GDALGetVirtualMemAuto()                      */
+/************************************************************************/
+
+/**
+ * \brief Create a CPLVirtualMem object from a GDAL raster band object.
+ *
+ * @see GDALRasterBand::GetVirtualMemAuto()
+ */
+
+CPLVirtualMem * GDALGetVirtualMemAuto( GDALRasterBandH hBand,
+                                       GDALRWFlag eRWFlag,
+                                       int *pnPixelSpace,
+                                       GIntBig *pnLineSpace,
+                                       char **papszOptions )
+{
+    VALIDATE_POINTER1( hBand, "GDALGetVirtualMemAuto", NULL );
+
+    GDALRasterBand *poBand = static_cast<GDALRasterBand*>(hBand);
+
+    return poBand->GetVirtualMemAuto(eRWFlag, pnPixelSpace,
+                                     pnLineSpace, papszOptions);
+}
+

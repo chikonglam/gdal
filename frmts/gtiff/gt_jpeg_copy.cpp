@@ -1,12 +1,12 @@
 /******************************************************************************
- * $Id: gt_jpeg_copy.cpp 24337 2012-04-28 15:06:01Z rouault $
+ * $Id: gt_jpeg_copy.cpp 27899 2014-10-23 13:36:59Z rouault $
  *
  * Project:  GeoTIFF Driver
  * Purpose:  Specialized copy of JPEG content into TIFF.
  * Author:   Even Rouault, <even dot rouault at mines dash paris dot org>
  *
  ******************************************************************************
- * Copyright (c) 2012, Even Rouault, <even dot rouault at mines dash paris dot org>
+ * Copyright (c) 2012, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -33,7 +33,7 @@
 /* Note: JPEG_DIRECT_COPY is not defined by default, because it is mainly */
 /* usefull for debugging purposes */
 
-CPL_CVSID("$Id: gt_jpeg_copy.cpp 24337 2012-04-28 15:06:01Z rouault $");
+CPL_CVSID("$Id: gt_jpeg_copy.cpp 27899 2014-10-23 13:36:59Z rouault $");
 
 #if defined(JPEG_DIRECT_COPY) || defined(HAVE_LIBJPEG)
 
@@ -265,9 +265,6 @@ int GTIFF_CanCopyFromJPEG(GDALDataset* poSrcDS, char** &papszCreateOptions)
         poSrcDS->GetMetadataItem("SOURCE_COLOR_SPACE", "IMAGE_STRUCTURE");
     if (pszSrcColorSpace != NULL && EQUAL(pszSrcColorSpace, "YCbCr"))
         nMCUSize = 16;
-    else if (pszSrcColorSpace != NULL &&
-        (EQUAL(pszSrcColorSpace, "CMYK") || EQUAL(pszSrcColorSpace, "YCbCrK")))
-        return FALSE;
 
     int     nXSize = poSrcDS->GetRasterXSize();
     int     nYSize = poSrcDS->GetRasterYSize();
@@ -277,17 +274,37 @@ int GTIFF_CanCopyFromJPEG(GDALDataset* poSrcDS, char** &papszCreateOptions)
     int bCompatiblePhotometric = (
             pszPhotometric == NULL ||
             (nMCUSize == 16 && EQUAL(pszPhotometric, "YCbCr")) ||
+            (nMCUSize == 8 && nBands == 4 &&
+             poSrcDS->GetRasterBand(1)->GetColorInterpretation() == GCI_CyanBand &&
+             poSrcDS->GetRasterBand(2)->GetColorInterpretation() == GCI_MagentaBand &&
+             poSrcDS->GetRasterBand(3)->GetColorInterpretation() == GCI_YellowBand &&
+             poSrcDS->GetRasterBand(4)->GetColorInterpretation() == GCI_BlackBand) ||
             (nMCUSize == 8 && EQUAL(pszPhotometric, "RGB") && nBands == 3) ||
             (nMCUSize == 8 && EQUAL(pszPhotometric, "MINISBLACK") && nBands == 1) );
     if (!bCompatiblePhotometric)
+        return FALSE;
+
+    if ( nBands == 4 && pszPhotometric == NULL &&
+         poSrcDS->GetRasterBand(1)->GetColorInterpretation() == GCI_CyanBand &&
+         poSrcDS->GetRasterBand(2)->GetColorInterpretation() == GCI_MagentaBand &&
+         poSrcDS->GetRasterBand(3)->GetColorInterpretation() == GCI_YellowBand &&
+         poSrcDS->GetRasterBand(4)->GetColorInterpretation() == GCI_BlackBand )
+    {
+        papszCreateOptions = CSLSetNameValue(papszCreateOptions, "PHOTOMETRIC", "CMYK");
+    }
+
+    const char* pszInterleave = CSLFetchNameValue(papszCreateOptions, "INTERLEAVE");
+    int bCompatibleInterleave = ( pszInterleave == NULL ||
+                                  (nBands > 1 && EQUAL(pszInterleave, "PIXEL")) ||
+                                  nBands == 1 );
+    if( !bCompatibleInterleave )
         return FALSE;
 
     if ( (nBlockXSize == nXSize || (nBlockXSize % nMCUSize) == 0) &&
          (nBlockYSize == nYSize || (nBlockYSize % nMCUSize) == 0) &&
          poSrcDS->GetRasterBand(1)->GetRasterDataType() == GDT_Byte &&
          CSLFetchNameValue(papszCreateOptions, "NBITS") == NULL &&
-         CSLFetchNameValue(papszCreateOptions, "JPEG_QUALITY") == NULL &&
-         bCompatiblePhotometric )
+         CSLFetchNameValue(papszCreateOptions, "JPEG_QUALITY") == NULL )
     {
         if (nMCUSize == 16 && pszPhotometric == NULL)
             papszCreateOptions = CSLSetNameValue(papszCreateOptions, "PHOTOMETRIC", "YCBCR");
@@ -469,7 +486,7 @@ CPLErr GTIFF_CopyFromJPEG_WriteAdditionalTags(TIFF* hTIFF,
 static CPLErr GTIFF_CopyBlockFromJPEG(TIFF* hTIFF,
                                       jpeg_decompress_struct& sDInfo,
                                       int iX, int iY,
-                                      int nXBlocks, int nYBlocks,
+                                      int nXBlocks, CPL_UNUSED int nYBlocks,
                                       int nXSize, int nYSize,
                                       int nBlockXSize, int nBlockYSize,
                                       int iMCU_sample_width, int iMCU_sample_height,
@@ -752,12 +769,12 @@ CPLErr GTIFF_CopyFromJPEG(GDALDataset* poDS, GDALDataset* poSrcDS,
 /* -------------------------------------------------------------------- */
 /*      Get raster and block dimensions                                 */
 /* -------------------------------------------------------------------- */
-    int nXSize, nYSize, nBands;
+    int nXSize, nYSize /* , nBands */;
     int nBlockXSize, nBlockYSize;
 
     nXSize = poDS->GetRasterXSize();
     nYSize = poDS->GetRasterYSize();
-    nBands = poDS->GetRasterCount();
+    /* nBands = poDS->GetRasterCount(); */
 
     /* We don't use the GDAL block dimensions because of the split-band */
     /* mechanism that can expose a pseudo one-line-strip whereas the */

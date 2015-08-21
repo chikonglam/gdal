@@ -1,12 +1,12 @@
 /******************************************************************************
- * $Id: ogrgftresultlayer.cpp 24343 2012-04-29 11:31:01Z rouault $
+ * $Id: ogrgftresultlayer.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  GFT Translator
  * Purpose:  Implements OGRGFTResultLayer class.
  * Author:   Even Rouault, <even dot rouault at mines dash paris dot org>
  *
  ******************************************************************************
- * Copyright (c) 2011, Even Rouault <even dot rouault at mines dash paris dot org>
+ * Copyright (c) 2011-2013, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -29,7 +29,7 @@
 
 #include "ogr_gft.h"
 
-CPL_CVSID("$Id: ogrgftresultlayer.cpp 24343 2012-04-29 11:31:01Z rouault $");
+CPL_CVSID("$Id: ogrgftresultlayer.cpp 27044 2014-03-16 23:41:27Z rouault $");
 
 /************************************************************************/
 /*                        OGRGFTResultLayer()                           */
@@ -46,6 +46,7 @@ OGRGFTResultLayer::OGRGFTResultLayer(OGRGFTDataSource* poDS,
     poFeatureDefn = new OGRFeatureDefn( "result" );
     poFeatureDefn->Reference();
     poFeatureDefn->SetGeomType( wkbUnknown );
+    poFeatureDefn->GetGeomFieldDefn(0)->SetSpatialRef(poSRS);
 }
 
 /************************************************************************/
@@ -283,6 +284,8 @@ int OGRGFTResultLayer::RunSQL()
         else
             bGotAllRows = bEOF = TRUE;
     }
+
+    SetGeomFieldName();
 
     CPLHTTPDestroyResult(psResult);
 

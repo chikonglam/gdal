@@ -1,12 +1,12 @@
 /******************************************************************************
- * $Id: ogrcouchdbdatasource.cpp 25698 2013-03-02 18:53:07Z rouault $
+ * $Id: ogrcouchdbdatasource.cpp 27268 2014-05-01 10:46:20Z rouault $
  *
  * Project:  CouchDB Translator
  * Purpose:  Implements OGRCouchDBDataSource class
  * Author:   Even Rouault, even dot rouault at mines dash paris dot org
  *
  ******************************************************************************
- * Copyright (c) 2011, Even Rouault <even dot rouault at mines dash paris dot org>
+ * Copyright (c) 2011-2013, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -30,7 +30,7 @@
 #include "ogr_couchdb.h"
 #include "swq.h"
 
-CPL_CVSID("$Id: ogrcouchdbdatasource.cpp 25698 2013-03-02 18:53:07Z rouault $");
+CPL_CVSID("$Id: ogrcouchdbdatasource.cpp 27268 2014-05-01 10:46:20Z rouault $");
 
 /************************************************************************/
 /*                        OGRCouchDBDataSource()                        */
@@ -543,7 +543,10 @@ OGRLayer * OGRCouchDBDataSource::ExecuteSQL( const char *pszSQLCommand,
                                           const char *pszDialect )
 
 {
-    if( pszDialect != NULL && EQUAL(pszDialect,"OGRSQL") )
+/* -------------------------------------------------------------------- */
+/*      Use generic implementation for recognized dialects              */
+/* -------------------------------------------------------------------- */
+    if( IsGenericSQLDialect(pszDialect) )
         return OGRDataSource::ExecuteSQL( pszSQLCommand,
                                           poSpatialFilter,
                                           pszDialect );
@@ -948,7 +951,7 @@ OGRLayer * OGRCouchDBDataSource::ExecuteSQLStats( const char *pszSQLCommand )
                 const swq_operation *op = swq_op_registrar::GetOperator(
                     (swq_op) psColDef->col_func );
                 oFDefn.SetName( CPLSPrintf( "%s_%s",
-                                            op->osName.c_str(),
+                                            op->pszName,
                                             psColDef->field_name ) );
             }
 
@@ -1075,7 +1078,7 @@ json_object* OGRCouchDBDataSource::REQUEST(const char* pszVerb,
     {
         CPLError( CE_Failure, CPLE_AppDefined,
                     "JSON parsing error: %s (at offset %d)",
-                    json_tokener_errors[jstok->err], jstok->char_offset);
+                    json_tokener_error_desc(jstok->err), jstok->char_offset);
 
         json_tokener_free(jstok);
 

@@ -7,6 +7,7 @@
  *
  ******************************************************************************
  * Copyright (c) 1999, Frank Warmerdam
+ * Copyright (c) 2012-2013, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * This software is available under the following "MIT Style" license,
  * or at the option of the licensee under the LGPL (see LICENSE.LGPL).  This
@@ -996,7 +997,7 @@ static void *DBFReadAttribute(DBFHandle psDBF, int hEntity, int iField,
 /* -------------------------------------------------------------------- */
 /*	Extract the requested field.					*/
 /* -------------------------------------------------------------------- */
-    strncpy( psDBF->pszWorkField,
+    memcpy( psDBF->pszWorkField,
 	     ((const char *) pabyRec) + psDBF->panFieldOffset[iField],
 	     psDBF->panFieldSize[iField] );
     psDBF->pszWorkField[psDBF->panFieldSize[iField]] = '\0';
@@ -1006,11 +1007,17 @@ static void *DBFReadAttribute(DBFHandle psDBF, int hEntity, int iField,
 /* -------------------------------------------------------------------- */
 /*      Decode the field.                                               */
 /* -------------------------------------------------------------------- */
-    if( chReqType == 'N' )
+    if( chReqType == 'I' )
     {
-        psDBF->dfDoubleField = psDBF->sHooks.Atof(psDBF->pszWorkField);
+        psDBF->fieldValue.nIntField = atoi(psDBF->pszWorkField);
 
-	pReturnField = &(psDBF->dfDoubleField);
+        pReturnField = &(psDBF->fieldValue.nIntField);
+    }
+    else if( chReqType == 'N' )
+    {
+        psDBF->fieldValue.dfDoubleField = psDBF->sHooks.Atof(psDBF->pszWorkField);
+
+        pReturnField = &(psDBF->fieldValue.dfDoubleField);
     }
 
 /* -------------------------------------------------------------------- */
@@ -1047,14 +1054,14 @@ int SHPAPI_CALL
 DBFReadIntegerAttribute( DBFHandle psDBF, int iRecord, int iField )
 
 {
-    double	*pdValue;
+    int	*pnValue;
 
-    pdValue = (double *) DBFReadAttribute( psDBF, iRecord, iField, 'N' );
+    pnValue = (int *) DBFReadAttribute( psDBF, iRecord, iField, 'I' );
 
-    if( pdValue == NULL )
+    if( pnValue == NULL )
         return 0;
     else
-        return( (int) *pdValue );
+        return( *pnValue );
 }
 
 /************************************************************************/
@@ -1317,43 +1324,24 @@ static int DBFWriteAttribute(DBFHandle psDBF, int hEntity, int iField,
       case 'D':
       case 'N':
       case 'F':
-	if( psDBF->panFieldDecimals[iField] == 0 )
-	{
-            int		nWidth = psDBF->panFieldSize[iField];
+      {
+        int		nWidth = psDBF->panFieldSize[iField];
 
-            if( (int) sizeof(szSField)-2 < nWidth )
-                nWidth = sizeof(szSField)-2;
+        if( (int) sizeof(szSField)-2 < nWidth )
+            nWidth = sizeof(szSField)-2;
 
-	    sprintf( szFormat, "%%%dd", nWidth );
-	    sprintf(szSField, szFormat, (int) *((double *) pValue) );
-	    if( (int)strlen(szSField) > psDBF->panFieldSize[iField] )
-            {
-	        szSField[psDBF->panFieldSize[iField]] = '\0';
-                nRetResult = FALSE;
-            }
-
-	    strncpy((char *) (pabyRec+psDBF->panFieldOffset[iField]),
-		    szSField, strlen(szSField) );
-	}
-	else
-	{
-            int		nWidth = psDBF->panFieldSize[iField];
-
-            if( (int) sizeof(szSField)-2 < nWidth )
-                nWidth = sizeof(szSField)-2;
-
-	    sprintf( szFormat, "%%%d.%df", 
-                     nWidth, psDBF->panFieldDecimals[iField] );
-	    sprintf(szSField, szFormat, *((double *) pValue) );
-	    if( (int) strlen(szSField) > psDBF->panFieldSize[iField] )
-            {
-	        szSField[psDBF->panFieldSize[iField]] = '\0';
-                nRetResult = FALSE;
-            }
-	    strncpy((char *) (pabyRec+psDBF->panFieldOffset[iField]),
-		    szSField, strlen(szSField) );
-	}
-	break;
+        sprintf( szFormat, "%%%d.%df", 
+                    nWidth, psDBF->panFieldDecimals[iField] );
+        sprintf(szSField, szFormat, *((double *) pValue) );
+        if( (int) strlen(szSField) > psDBF->panFieldSize[iField] )
+        {
+            szSField[psDBF->panFieldSize[iField]] = '\0';
+            nRetResult = FALSE;
+        }
+        strncpy((char *) (pabyRec+psDBF->panFieldOffset[iField]),
+            szSField, strlen(szSField) );
+        break;
+      }
 
       case 'L':
         if (psDBF->panFieldSize[iField] >= 1  && 

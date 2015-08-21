@@ -1,12 +1,12 @@
 /******************************************************************************
- * $Id: rasterlitedataset.h 24674 2012-07-10 20:41:35Z rouault $
+ * $Id: rasterlitedataset.h 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  GDAL Rasterlite driver
  * Purpose:  Implement GDAL Rasterlite support using OGR SQLite driver
  * Author:   Even Rouault, <even dot rouault at mines dash paris dot org>
  *
  **********************************************************************
- * Copyright (c) 2009, Even Rouault, <even dot rouault at mines dash paris dot org>
+ * Copyright (c) 2009-2013, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -52,6 +52,7 @@ class RasterliteDataset : public GDALPamDataset
                  
     virtual     ~RasterliteDataset();
     
+    virtual char      **GetMetadataDomainList();
     virtual char **GetMetadata( const char *pszDomain );
     virtual const char *GetMetadataItem( const char *pszName, 
                                          const char *pszDomain );

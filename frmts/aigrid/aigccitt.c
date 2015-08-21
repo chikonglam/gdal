@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: aigccitt.c 22640 2011-07-03 15:52:40Z rouault $
+ * $Id: aigccitt.c 27729 2014-09-24 00:40:16Z goatbar $
  *
  * Project:  Arc/Info Binary Grid Translator
  * Purpose:  Code for decoding CCITT RLE (G1) compressed data.
@@ -11,6 +11,7 @@
  * Copyright (c) 2002 Frank Warmerdam <warmerdam@pobox.com>
  * Copyright (c) 1990-1997 Sam Leffler
  * Copyright (c) 1991-1997 Silicon Graphics, Inc.
+ * Copyright (c) 2009-2013, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission to use, copy, modify, distribute, and sell this software and 
  * its documentation for any purpose is hereby granted without fee, provided
@@ -87,6 +88,7 @@ typedef struct {		/* state table entry */
 	GUInt32	Param;		/* unsigned 32-bit run length in bits */
 } TIFFFaxTabEnt;
 
+#if 0  /* Unused */
 static const TIFFFaxTabEnt aig_TIFFFaxMainTable[128] = {
 {12,7,0},{3,1,0},{5,3,1},{3,1,0},{2,3,0},{3,1,0},{4,3,1},{3,1,0},{1,4,0},{3,1,0},{5,3,1},{3,1,0},
 {2,3,0},{3,1,0},{4,3,1},{3,1,0},{5,6,2},{3,1,0},{5,3,1},{3,1,0},{2,3,0},{3,1,0},{4,3,1},{3,1,0},
@@ -100,6 +102,8 @@ static const TIFFFaxTabEnt aig_TIFFFaxMainTable[128] = {
 {2,3,0},{3,1,0},{4,3,1},{3,1,0},{4,6,2},{3,1,0},{5,3,1},{3,1,0},{2,3,0},{3,1,0},{4,3,1},{3,1,0},
 {1,4,0},{3,1,0},{5,3,1},{3,1,0},{2,3,0},{3,1,0},{4,3,1},{3,1,0}
 };
+#endif  /* Unused */
+
 static const TIFFFaxTabEnt aig_TIFFFaxWhiteTable[4096] = {
 {12,11,0},{7,4,3},{7,5,11},{7,4,5},{7,6,12},{7,5,9},{9,6,1664},{7,4,6},{7,7,20},{9,5,128},{7,7,24},{7,6,14},
 {7,7,28},{7,4,4},{7,4,2},{7,4,7},{7,7,23},{7,4,3},{7,7,27},{7,4,5},{7,8,39},{7,6,16},{9,8,576},{7,4,6},
@@ -1164,6 +1168,8 @@ static const unsigned char aig_TIFFBitRevTable[256] = {
     0x0f, 0x8f, 0x4f, 0xcf, 0x2f, 0xaf, 0x6f, 0xef,
     0x1f, 0x9f, 0x5f, 0xdf, 0x3f, 0xbf, 0x7f, 0xff
 };
+
+#if 0  /* Unused */
 static const unsigned char aig_TIFFNoBitRevTable[256] = {
     0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 
     0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f, 
@@ -1198,6 +1204,7 @@ static const unsigned char aig_TIFFNoBitRevTable[256] = {
     0xf0, 0xf1, 0xf2, 0xf3, 0xf4, 0xf5, 0xf6, 0xf7, 
     0xf8, 0xf9, 0xfa, 0xfb, 0xfc, 0xfd, 0xfe, 0xff, 
 };
+#endif  /* Unused */
 
 /*
  * The following macros define the majority of the G3/G4 decoder
@@ -1487,7 +1494,7 @@ typedef struct {
 
 #define	is2DEncoding(sp) \
 	(sp->b.groupoptions & GROUP3OPT_2DENCODING)
-#define	isAligned(p,t)	((((unsigned long)(p)) & (sizeof (t)-1)) == 0)
+#define	isAligned(p,t)	((((size_t)(p)) & (sizeof (t)-1)) == 0)
 
 /*
  * Group 3 and Group 4 Decoding.
@@ -1847,7 +1854,7 @@ Fax3DecodeRLE(Fax3BaseState* tif, unsigned char *buf, int occ,
 
 CPLErr DecompressCCITTRLETile( unsigned char *pabySrcData, int nSrcBytes, 
                                unsigned char *pabyDstData, int nDstBytes,
-                               int nBlockXSize, int nBlockYSize )
+                               int nBlockXSize, CPL_UNUSED int nBlockYSize )
 
 {
     Fax3DecodeState  sDecoderState;
@@ -1864,7 +1871,8 @@ CPLErr DecompressCCITTRLETile( unsigned char *pabySrcData, int nSrcBytes,
     DecoderState(sp)->runs = NULL;
     DecoderState(sp)->fill = aig_TIFFFax3fillruns;
 
-    if( sizeof(runs_buf) < (nBlockXSize * 2 + 3) )
+    /* TODO: Verify that the cast is safe. */
+    if( sizeof(runs_buf) < (size_t)(nBlockXSize * 2 + 3) )
     {
         CPLError(CE_Failure, CPLE_AppDefined, "Run buffer too small");
         return CE_Failure;

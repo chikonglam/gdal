@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_kml.h 25979 2013-05-03 19:10:30Z rouault $
+ * $Id: ogr_kml.h 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  KML Driver
  * Purpose:  Declarations for OGR wrapper classes for KML, and OGR->KML
@@ -10,6 +10,7 @@
  ******************************************************************************
  * Copyright (c) 2006, Christopher Condit
  *               2007, Jens Oberender
+ * Copyright (c) 2007-2014, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -59,7 +60,6 @@ public:
     // OGRLayer Interface
     //
     OGRFeatureDefn* GetLayerDefn();
-    OGRSpatialReference* GetSpatialRef();
     OGRErr CreateFeature( OGRFeature* poFeature );
     OGRErr CreateField( OGRFieldDefn* poField, int bApproxOK = TRUE );
     void ResetReading();
@@ -74,9 +74,11 @@ public:
 
     void SetClosedForWriting() { bClosedForWriting = TRUE; }
     
-    void WriteSchema();
+    CPLString WriteSchema();
 
 private:
+    friend class OGRKMLDataSource;
+
     OGRKMLDataSource* poDS_;
     OGRSpatialReference* poSRS_;
 	OGRCoordinateTransformation *poCT_;
@@ -88,6 +90,7 @@ private:
     int bWriter_;
     int nLayerNumber_;
     int nWroteFeatureCount_;
+    int bSchemaWritten_;
     int bClosedForWriting;
     char* pszName_;
 

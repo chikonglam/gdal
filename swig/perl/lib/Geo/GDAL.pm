@@ -165,6 +165,7 @@ use vars qw(@ISA %OWNER %ITERATORS %BLESSEDMEMBERS);
 %OWNER = ();
 *GetDescription = *Geo::GDALc::MajorObject_GetDescription;
 *SetDescription = *Geo::GDALc::MajorObject_SetDescription;
+*GetMetadataDomainList = *Geo::GDALc::MajorObject_GetMetadataDomainList;
 *GetMetadata = *Geo::GDALc::MajorObject_GetMetadata;
 *SetMetadata = *Geo::GDALc::MajorObject_SetMetadata;
 *GetMetadataItem = *Geo::GDALc::MajorObject_GetMetadataItem;
@@ -535,6 +536,7 @@ sub DESTROY {
 *GetLinearBinning = *Geo::GDALc::RasterAttributeTable_GetLinearBinning;
 *SetLinearBinning = *Geo::GDALc::RasterAttributeTable_SetLinearBinning;
 *GetRowOfValue = *Geo::GDALc::RasterAttributeTable_GetRowOfValue;
+*ChangesAreWrittenToFile = *Geo::GDALc::RasterAttributeTable_ChangesAreWrittenToFile;
 sub DISOWN {
     my $self = shift;
     my $ptr = tied(%$self);
@@ -609,8 +611,9 @@ package Geo::GDAL;
     # have $VERSION 1.9911 and GDAL 1.11 would have $VERSION 1.992
     # etc.  GDAL 2.0 should then get VERSION 2.000 and 2.1 should get
     # 2.001 etc.
-    our $VERSION = '1.9911';
-    our $GDAL_VERSION = '1.10.1';
+
+    our $VERSION = '1.9922';
+    our $GDAL_VERSION = '1.11.2';
     use vars qw/
 	%TYPE_STRING2INT %TYPE_INT2STRING
 	%ACCESS_STRING2INT %ACCESS_INT2STRING
@@ -1175,6 +1178,7 @@ package Geo::GDAL;
 	}
 	return @table;
     }
+    *ColorEntries = *ColorTable;
 
     package Geo::GDAL::RasterAttributeTable;
     use strict;

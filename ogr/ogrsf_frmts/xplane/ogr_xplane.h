@@ -6,7 +6,7 @@
  * Author:   Even Rouault, even dot rouault at mines dash paris dot org
  *
  ******************************************************************************
- * Copyright (c) 2008, Even Rouault
+ * Copyright (c) 2008-2010, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -73,7 +73,6 @@ class OGRXPlaneLayer : public OGRLayer
     virtual OGRFeature *      GetFeature( long nFID );
     virtual OGRErr            SetNextByIndex( long nIndex );
     virtual int               GetFeatureCount( int bForce = TRUE );
-    virtual OGRSpatialReference * GetSpatialRef() { return poSRS; }
 
     virtual OGRFeatureDefn *  GetLayerDefn();
     virtual int               TestCapability( const char * pszCap );

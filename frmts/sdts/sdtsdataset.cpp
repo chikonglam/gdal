@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: sdtsdataset.cpp 23060 2011-09-05 17:58:30Z rouault $
+ * $Id: sdtsdataset.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  SDTS Translator
  * Purpose:  GDALDataset driver for SDTS Raster translator.
@@ -7,6 +7,7 @@
  *
  ******************************************************************************
  * Copyright (c) 1999, Frank Warmerdam
+ * Copyright (c) 2008-2011, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -31,7 +32,7 @@
 #include "gdal_pam.h"
 #include "ogr_spatialref.h"
 
-CPL_CVSID("$Id: sdtsdataset.cpp 23060 2011-09-05 17:58:30Z rouault $");
+CPL_CVSID("$Id: sdtsdataset.cpp 27044 2014-03-16 23:41:27Z rouault $");
 
 /**
  \file sdtsdataset.cpp

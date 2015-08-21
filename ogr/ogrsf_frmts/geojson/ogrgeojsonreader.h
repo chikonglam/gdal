@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrgeojsonreader.h 23325 2011-11-05 17:19:38Z rouault $
+ * $Id: ogrgeojsonreader.h 28350 2015-01-23 17:53:57Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Defines GeoJSON reader within OGR OGRGeoJSON Driver.
@@ -7,6 +7,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2007, Mateusz Loskot
+ * Copyright (c) 2010-2013, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -30,7 +31,7 @@
 #define OGR_GEOJSONREADER_H_INCLUDED
 
 #include <ogr_core.h>
-#include <jsonc/json.h> // JSON-C
+#include <json.h> // JSON-C
 
 /************************************************************************/
 /*                         FORWARD DECLARATIONS                         */
@@ -94,12 +95,15 @@ public:
     void SetSkipAttributes( bool bSkip );
 
     OGRErr Parse( const char* pszText );
-    OGRGeoJSONLayer* ReadLayer( const char* pszName, OGRGeoJSONDataSource* poDS );
+    void ReadLayers( OGRGeoJSONDataSource* poDS );
+    void ReadLayer( OGRGeoJSONDataSource* poDS,
+                    const char* pszName,
+                    json_object* poObj );
 
 private:
 
     json_object* poGJObject_;
-    OGRGeoJSONLayer* poLayer_;
+
     bool bGeometryPreserve_;
     bool bAttributesSkip_;
 
@@ -115,14 +119,14 @@ private:
     //
     // Translation utilities.
     //
-    bool GenerateLayerDefn();
-    bool GenerateFeatureDefn( json_object* poObj );
-    bool AddFeature( OGRGeometry* poGeometry );
-    bool AddFeature( OGRFeature* poFeature );
+    bool GenerateLayerDefn( OGRGeoJSONLayer* poLayer, json_object* poGJObject );
+    bool GenerateFeatureDefn( OGRGeoJSONLayer* poLayer, json_object* poObj );
+    bool AddFeature( OGRGeoJSONLayer* poLayer, OGRGeometry* poGeometry );
+    bool AddFeature( OGRGeoJSONLayer* poLayer, OGRFeature* poFeature );
 
     OGRGeometry* ReadGeometry( json_object* poObj );
-    OGRFeature* ReadFeature( json_object* poObj );
-    OGRGeoJSONLayer* ReadFeatureCollection( json_object* poObj );
+    OGRFeature* ReadFeature( OGRGeoJSONLayer* poLayer, json_object* poObj );
+    void ReadFeatureCollection( OGRGeoJSONLayer* poLayer, json_object* poObj );
 };
 
 /************************************************************************/
@@ -162,7 +166,7 @@ public:
     ~OGRESRIJSONReader();
 
     OGRErr Parse( const char* pszText );
-    OGRGeoJSONLayer* ReadLayer( const char* pszName, OGRGeoJSONDataSource* poDS );
+    void ReadLayers( OGRGeoJSONDataSource* poDS );
 
 private:
 
@@ -191,7 +195,32 @@ OGRSpatialReference* OGRESRIJSONReadSpatialReference( json_object* poObj );
 OGRwkbGeometryType OGRESRIJSONGetGeometryType( json_object* poObj );
 OGRPoint* OGRESRIJSONReadPoint( json_object* poObj);
 OGRLineString* OGRESRIJSONReadLineString( json_object* poObj);
-OGRPolygon* OGRESRIJSONReadPolygon( json_object* poObj);
+OGRGeometry* OGRESRIJSONReadPolygon( json_object* poObj);
 OGRMultiPoint* OGRESRIJSONReadMultiPoint( json_object* poObj);
+
+/************************************************************************/
+/*                          OGRTopoJSONReader                           */
+/************************************************************************/
+
+class OGRTopoJSONReader
+{
+public:
+
+    OGRTopoJSONReader();
+    ~OGRTopoJSONReader();
+
+    OGRErr Parse( const char* pszText );
+    void ReadLayers( OGRGeoJSONDataSource* poDS );
+
+private:
+
+    json_object* poGJObject_;
+
+    //
+    // Copy operations not supported.
+    //
+    OGRTopoJSONReader( OGRTopoJSONReader const& );
+    OGRTopoJSONReader& operator=( OGRTopoJSONReader const& );
+};
 
 #endif /* OGR_GEOJSONUTILS_H_INCLUDED */

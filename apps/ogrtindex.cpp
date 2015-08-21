@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrtindex.cpp 19803 2010-06-05 11:05:38Z rouault $
+ * $Id: ogrtindex.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Program to generate a UMN MapServer compatible tile index for a
@@ -8,6 +8,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2002, Frank Warmerdam
+ * Copyright (c) 2007-2010, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -35,7 +36,7 @@
 
 #include <cassert>
 
-CPL_CVSID("$Id: ogrtindex.cpp 19803 2010-06-05 11:05:38Z rouault $");
+CPL_CVSID("$Id: ogrtindex.cpp 27044 2014-03-16 23:41:27Z rouault $");
 
 static void Usage();
 

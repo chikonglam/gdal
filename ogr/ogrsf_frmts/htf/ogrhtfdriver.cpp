@@ -1,12 +1,12 @@
 /******************************************************************************
- * $Id: ogrhtfdriver.cpp 20735 2010-10-03 13:40:34Z rouault $
+ * $Id: ogrhtfdriver.cpp 27729 2014-09-24 00:40:16Z goatbar $
  *
  * Project:  HTF Translator
  * Purpose:  Implements OGRHTFDriver.
  * Author:   Even Rouault, even dot rouault at mines dash paris dot org
  *
  ******************************************************************************
- * Copyright (c) 2010, Even Rouault <even dot rouault at mines dash paris dot org>
+ * Copyright (c) 2010, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -30,7 +30,7 @@
 #include "ogr_htf.h"
 #include "cpl_conv.h"
 
-CPL_CVSID("$Id: ogrhtfdriver.cpp 20735 2010-10-03 13:40:34Z rouault $");
+CPL_CVSID("$Id: ogrhtfdriver.cpp 27729 2014-09-24 00:40:16Z goatbar $");
 
 extern "C" void RegisterOGRHTF();
 
@@ -75,8 +75,7 @@ OGRDataSource *OGRHTFDriver::Open( const char * pszFilename, int bUpdate )
 /*                           TestCapability()                           */
 /************************************************************************/
 
-int OGRHTFDriver::TestCapability( const char * pszCap )
-
+int OGRHTFDriver::TestCapability( CPL_UNUSED const char * pszCap )
 {
     return FALSE;
 }

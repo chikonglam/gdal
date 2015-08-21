@@ -8,6 +8,7 @@
  *
  **********************************************************************
  * Copyright (c) 2007,  Geoconcept and IGN
+ * Copyright (c) 2008, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -78,21 +79,6 @@
 
 #ifndef GCIOAPI_CALL1
 #  define GCIOAPI_CALL1(x)      x GCIOAPI_CALL
-#endif
-
-/* -------------------------------------------------------------------- */
-/*      Macros for controlling CVSID and ensuring they don't appear     */
-/*      as unreferenced variables resulting in lots of warnings.        */
-/* -------------------------------------------------------------------- */
-#ifndef DISABLE_CVSID
-#if defined(__GNUC__) && __GNUC__ >= 4
-#  define GCIO_CVSID(string)     static char cpl_cvsid[] __attribute__((used)) = string;
-#else
-#  define GCIO_CVSID(string)     static char gcio_cvsid[] = string; \
-static char *cvsid_aw() { return( cvsid_aw() ? ((char *) NULL) : gcio_cvsid ); }
-#endif
-#else
-#  define GCIO_CVSID(string)
 #endif
 
 #ifdef __cplusplus

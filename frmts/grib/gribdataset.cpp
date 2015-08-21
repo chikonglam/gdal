@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gribdataset.cpp 25627 2013-02-10 10:17:19Z rouault $
+ * $Id: gribdataset.cpp 27729 2014-09-24 00:40:16Z goatbar $
  *
  * Project:  GRIB Driver
  * Purpose:  GDALDataset driver for GRIB translator for read support
@@ -7,6 +7,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2007, ITC
+ * Copyright (c) 2008-2013, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -40,7 +41,7 @@
 
 #include "ogr_spatialref.h"
 
-CPL_CVSID("$Id: gribdataset.cpp 25627 2013-02-10 10:17:19Z rouault $");
+CPL_CVSID("$Id: gribdataset.cpp 27729 2014-09-24 00:40:16Z goatbar $");
 
 CPL_C_START
 void	GDALRegister_GRIB(void);
@@ -121,6 +122,21 @@ private:
     int      nGribDataYSize;
 };
 
+/************************************************************************/
+/*                         ConvertUnitInText()                          */
+/************************************************************************/
+
+static CPLString ConvertUnitInText(int bMetricUnits, const char* pszTxt)
+{
+    if( !bMetricUnits )
+        return pszTxt;
+
+    CPLString osRes(pszTxt);
+    size_t iPos = osRes.find("[K]");
+    if( iPos != std::string::npos )
+        osRes = osRes.substr(0, iPos) + "[C]" + osRes.substr(iPos + 3);
+    return osRes;
+}
 
 /************************************************************************/
 /*                           GRIBRasterBand()                            */
@@ -144,8 +160,11 @@ GRIBRasterBand::GRIBRasterBand( GRIBDataset *poDS, int nBand,
     nGribDataXSize = poDS->nRasterXSize;
     nGribDataYSize = poDS->nRasterYSize;
 
-    SetMetadataItem( "GRIB_UNIT", psInv->unitName );
-    SetMetadataItem( "GRIB_COMMENT", psInv->comment );
+    const char* pszGribNormalizeUnits = CPLGetConfigOption("GRIB_NORMALIZE_UNITS", "YES");
+    int bMetricUnits = CSLTestBoolean(pszGribNormalizeUnits);
+
+    SetMetadataItem( "GRIB_UNIT", ConvertUnitInText(bMetricUnits, psInv->unitName) );
+    SetMetadataItem( "GRIB_COMMENT", ConvertUnitInText(bMetricUnits, psInv->comment) );
     SetMetadataItem( "GRIB_ELEMENT", psInv->element );
     SetMetadataItem( "GRIB_SHORT_NAME", psInv->shortFstLevel );
     SetMetadataItem( "GRIB_REF_TIME", 
@@ -320,7 +339,7 @@ CPLErr GRIBRasterBand::LoadData()
 /*                             IReadBlock()                             */
 /************************************************************************/
 
-CPLErr GRIBRasterBand::IReadBlock( int nBlockXOff, int nBlockYOff,
+CPLErr GRIBRasterBand::IReadBlock( CPL_UNUSED int nBlockXOff, int nBlockYOff,
                                    void * pImage )
 
 {
@@ -415,8 +434,8 @@ void GRIBRasterBand::ReadGribData( DataSource & fp, sInt4 start, int subgNum, do
 
     IS_Init (&is);
 
-    const char* pszGribNormalizeUnits = CPLGetConfigOption("GRIB_NORMALIZE_UNITS", NULL);
-    if ( pszGribNormalizeUnits != NULL && ( STRCASECMP(pszGribNormalizeUnits,"NO")==0 ) )
+    const char* pszGribNormalizeUnits = CPLGetConfigOption("GRIB_NORMALIZE_UNITS", "YES");
+    if ( !CSLTestBoolean(pszGribNormalizeUnits) )
         f_unit = 0; /* do not normalize units to metric */
 
     /* Read GRIB message from file position "start". */
@@ -839,12 +858,17 @@ void GRIBDataset::SetGribMetaData(grib_MetaData* meta)
           rMinY = meta->gds.lat1;
         }
 
-        if (meta->gds.lon1 > meta->gds.lon2)
+        if( meta->gds.Nx == 1 )
+          rPixelSizeX = meta->gds.Dx;
+        else if (meta->gds.lon1 > meta->gds.lon2)
           rPixelSizeX = (360.0 - (meta->gds.lon1 - meta->gds.lon2)) / (meta->gds.Nx - 1);
         else
           rPixelSizeX = (meta->gds.lon2 - meta->gds.lon1) / (meta->gds.Nx - 1);
 
-        rPixelSizeY = (rMaxY - rMinY) / (meta->gds.Ny - 1);
+        if( meta->gds.Ny == 1 )
+            rPixelSizeY = meta->gds.Dy;
+        else
+            rPixelSizeY = (rMaxY - rMinY) / (meta->gds.Ny - 1);
 
         // Do some sanity checks for cases that can't be handled by the above
         // pixel size corrections. GRIB1 has a minimum precision of 0.001

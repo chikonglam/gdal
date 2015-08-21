@@ -1,12 +1,12 @@
 /******************************************************************************
- * $Id: ogrmdblayer.cpp 22156 2011-04-13 20:08:07Z rouault $
+ * $Id: ogrmdblayer.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implements OGRMDBLayer class
  * Author:   Even Rouault, <even dot rouault at mines dash paris dot org>
  *
  ******************************************************************************
- * Copyright (c) 2011, Even Rouault, <even dot rouault at mines dash paris dot org>
+ * Copyright (c) 2011-2013, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -33,7 +33,7 @@
 #include "ogrpgeogeometry.h"
 #include "ogrgeomediageometry.h"
 
-CPL_CVSID("$Id: ogrmdblayer.cpp 22156 2011-04-13 20:08:07Z rouault $");
+CPL_CVSID("$Id: ogrmdblayer.cpp 27044 2014-03-16 23:41:27Z rouault $");
 
 /************************************************************************/
 /*                            OGRMDBLayer()                            */
@@ -174,6 +174,13 @@ CPLErr OGRMDBLayer::BuildFeatureDefn()
         panFieldOrdinals[poFeatureDefn->GetFieldCount() - 1] = iCol+1;
     }
 
+    if( poFeatureDefn->GetGeomFieldCount() > 0 )
+    {
+        poFeatureDefn->GetGeomFieldDefn(0)->SetSpatialRef(poSRS);
+        if( pszGeomColumn != NULL )
+            poFeatureDefn->GetGeomFieldDefn(0)->SetName(pszGeomColumn);
+    }
+
     return CE_None;
 }
 
@@ -284,6 +291,10 @@ OGRFeature *OGRMDBLayer::GetNextRawFeature()
         CPLFree(pszValue);
     }
 
+    if( !(m_poAttrQuery == NULL
+          || m_poAttrQuery->Evaluate( poFeature )) )
+        return poFeature;
+
 /* -------------------------------------------------------------------- */
 /*      Try to extract a geometry.                                      */
 /* -------------------------------------------------------------------- */
@@ -370,16 +381,6 @@ int OGRMDBLayer::TestCapability( const char * pszCap )
 
     else
         return FALSE;
-}
-
-/************************************************************************/
-/*                           GetSpatialRef()                            */
-/************************************************************************/
-
-OGRSpatialReference *OGRMDBLayer::GetSpatialRef()
-
-{
-    return poSRS;
 }
 
 /************************************************************************/
@@ -476,20 +477,6 @@ const char *OGRMDBLayer::GetFIDColumn()
     else
         return "";
 }
-
-/************************************************************************/
-/*                         GetGeometryColumn()                          */
-/************************************************************************/
-
-const char *OGRMDBLayer::GetGeometryColumn()
-
-{
-    if( pszGeomColumn != NULL )
-        return pszGeomColumn;
-    else
-        return "";
-}
-
 
 /************************************************************************/
 /*                             Initialize()                             */

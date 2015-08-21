@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: s57featuredefns.cpp 21268 2010-12-14 23:33:34Z warmerdam $
+ * $Id: s57featuredefns.cpp 27729 2014-09-24 00:40:16Z goatbar $
  *
  * Project:  S-57 Translator
  * Purpose:  Implements methods to create OGRFeatureDefns for various
@@ -33,7 +33,7 @@
 #include "cpl_conv.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: s57featuredefns.cpp 21268 2010-12-14 23:33:34Z warmerdam $");
+CPL_CVSID("$Id: s57featuredefns.cpp 27729 2014-09-24 00:40:16Z goatbar $");
 
 
 /************************************************************************/
@@ -220,8 +220,7 @@ OGRFeatureDefn *S57GenerateGeomFeatureDefn( OGRwkbGeometryType eGType,
 /************************************************************************/
 
 OGRFeatureDefn *
-S57GenerateVectorPrimitiveFeatureDefn( int nRCNM, int nOptionFlags )
-
+S57GenerateVectorPrimitiveFeatureDefn( int nRCNM, CPL_UNUSED int nOptionFlags )
 {
     OGRFeatureDefn      *poFDefn = NULL;
  
@@ -318,27 +317,28 @@ S57GenerateVectorPrimitiveFeatureDefn( int nRCNM, int nOptionFlags )
 /************************************************************************/
 
 OGRFeatureDefn *S57GenerateObjectClassDefn( S57ClassRegistrar *poCR,
+                                            S57ClassContentExplorer* poClassContentExplorer,
                                             int nOBJL, int nOptionFlags )
 
 {
     OGRFeatureDefn      *poFDefn = NULL;
     char               **papszGeomPrim;
 
-    if( !poCR->SelectClass( nOBJL ) )
+    if( !poClassContentExplorer->SelectClass( nOBJL ) )
         return NULL;
     
 /* -------------------------------------------------------------------- */
 /*      Create the feature definition based on the object class         */
 /*      acronym.                                                        */
 /* -------------------------------------------------------------------- */
-    poFDefn = new OGRFeatureDefn( poCR->GetAcronym() );
+    poFDefn = new OGRFeatureDefn( poClassContentExplorer->GetAcronym() );
     poFDefn->Reference();
 
 /* -------------------------------------------------------------------- */
 /*      Try and establish the geometry type.  If more than one          */
 /*      geometry type is allowed we just fall back to wkbUnknown.       */
 /* -------------------------------------------------------------------- */
-    papszGeomPrim = poCR->GetPrimitives();
+    papszGeomPrim = poClassContentExplorer->GetPrimitives();
     if( CSLCount(papszGeomPrim) == 0 )
     {
         poFDefn->SetGeomType( wkbNone );
@@ -349,7 +349,7 @@ OGRFeatureDefn *S57GenerateObjectClassDefn( S57ClassRegistrar *poCR,
     }
     else if( papszGeomPrim[0][0] == 'P' )
     {
-        if( EQUAL(poCR->GetAcronym(),"SOUNDG") )
+        if( EQUAL(poClassContentExplorer->GetAcronym(),"SOUNDG") )
         {
             if( nOptionFlags & S57M_SPLIT_MULTIPOINT )
                 poFDefn->SetGeomType( wkbPoint25D );
@@ -377,7 +377,7 @@ OGRFeatureDefn *S57GenerateObjectClassDefn( S57ClassRegistrar *poCR,
 /* -------------------------------------------------------------------- */
 /*      Add the attributes specific to this object class.               */
 /* -------------------------------------------------------------------- */
-    char        **papszAttrList = poCR->GetAttributeList();
+    char        **papszAttrList = poClassContentExplorer->GetAttributeList();
 
     for( int iAttr = 0;
          papszAttrList != NULL && papszAttrList[iAttr] != NULL;
@@ -389,8 +389,8 @@ OGRFeatureDefn *S57GenerateObjectClassDefn( S57ClassRegistrar *poCR,
         {
             CPLDebug( "S57", "Can't find attribute %s from class %s:%s.",
                       papszAttrList[iAttr],
-                      poCR->GetAcronym(),
-                      poCR->GetDescription() );
+                      poClassContentExplorer->GetAcronym(),
+                      poClassContentExplorer->GetDescription() );
             continue;
         }
 
@@ -424,7 +424,7 @@ OGRFeatureDefn *S57GenerateObjectClassDefn( S57ClassRegistrar *poCR,
 /* -------------------------------------------------------------------- */
 /*      Do we need to add DEPTH attributes to soundings?                */
 /* -------------------------------------------------------------------- */
-    if( EQUAL(poCR->GetAcronym(),"SOUNDG") 
+    if( EQUAL(poClassContentExplorer->GetAcronym(),"SOUNDG") 
         && (nOptionFlags & S57M_ADD_SOUNDG_DEPTH) )
     {
         OGRFieldDefn    oField( "DEPTH", OFTReal );

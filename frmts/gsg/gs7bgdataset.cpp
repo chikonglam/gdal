@@ -1,5 +1,5 @@
 /****************************************************************************
- * $Id: gs7bgdataset.cpp 24584 2012-06-16 10:24:03Z rouault $
+ * $Id: gs7bgdataset.cpp 27739 2014-09-25 18:49:52Z goatbar $
  *
  * Project:  GDAL
  * Purpose:  Implements the Golden Software Surfer 7 Binary Grid Format.
@@ -9,6 +9,7 @@
  *
  ****************************************************************************
  * Copyright (c) 2007, Adam Guernsey <adam@ctech.com>
+ * Copyright (c) 2009-2011, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -60,7 +61,7 @@
 # define SHRT_MAX 32767
 #endif /* SHRT_MAX */
 
-CPL_CVSID("$Id: gs7bgdataset.cpp 24584 2012-06-16 10:24:03Z rouault $");
+CPL_CVSID("$Id: gs7bgdataset.cpp 27739 2014-09-25 18:49:52Z goatbar $");
 
 CPL_C_START
 void    GDALRegister_GS7BG(void);
@@ -119,7 +120,9 @@ size_t GS7BGDataset::nData_Position = 0;
 const long  nHEADER_TAG = 0x42525344;
 const long  nGRID_TAG = 0x44495247;
 const long  nDATA_TAG = 0x41544144;
+#if 0 /* Unused */
 const long  nFAULT_TAG = 0x49544c46;
+#endif
 
 /************************************************************************/
 /* ==================================================================== */
@@ -310,10 +313,11 @@ CPLErr GS7BGRasterBand::IReadBlock( int nBlockXOff, int nBlockYOff,
         return CE_Failure;
     }
 
-    double *pfImage;
-    pfImage = (double *)pImage;
+#ifdef CPL_MSB
+    double *pfImage = (double *)pImage;
     for( int iPixel=0; iPixel<nBlockXSize; iPixel++ )
         CPL_LSBPTR64( pfImage + iPixel );
+#endif
 
     return CE_None;
 }
@@ -1103,9 +1107,9 @@ CPLErr GS7BGDataset::WriteHeader( VSILFILE *fp, GInt32 nXSize, GInt32 nYSize,
 /************************************************************************/
 
 GDALDataset *GS7BGDataset::Create( const char * pszFilename,
-                  int nXSize, int nYSize, int nBands,
-                  GDALDataType eType,
-                  char **papszParmList )
+                                   int nXSize, int nYSize, int nBands,
+                                   GDALDataType eType,
+                                   CPL_UNUSED char **papszParmList )
 
 {
     if( nXSize <= 0 || nYSize <= 0 )
@@ -1180,10 +1184,10 @@ GDALDataset *GS7BGDataset::Create( const char * pszFilename,
 /************************************************************************/
 
 GDALDataset *GS7BGDataset::CreateCopy( const char *pszFilename,
-                      GDALDataset *poSrcDS,
-                      int bStrict, char **papszOptions,
-                      GDALProgressFunc pfnProgress,
-                      void *pProgressData )
+                                       GDALDataset *poSrcDS,
+                                       int bStrict, CPL_UNUSED char **papszOptions,
+                                       GDALProgressFunc pfnProgress,
+                                       void *pProgressData )
 {
     if( pfnProgress == NULL )
         pfnProgress = GDALDummyProgress;
@@ -1368,4 +1372,3 @@ void GDALRegister_GS7BG()
         GetGDALDriverManager()->RegisterDriver( poDriver );
     }
 }
-

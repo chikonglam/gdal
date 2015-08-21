@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdalpamrasterband.cpp 25873 2013-04-07 11:06:58Z rouault $
+ * $Id: gdalpamrasterband.cpp 27723 2014-09-22 18:21:08Z goatbar $
  *
  * Project:  GDAL Core
  * Purpose:  Implementation of GDALPamRasterBand, a raster band base class
@@ -9,6 +9,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2005, Frank Warmerdam <warmerdam@pobox.com>
+ * Copyright (c) 2008-2013, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -33,7 +34,7 @@
 #include "gdal_rat.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: gdalpamrasterband.cpp 25873 2013-04-07 11:06:58Z rouault $");
+CPL_CVSID("$Id: gdalpamrasterband.cpp 27723 2014-09-22 18:21:08Z goatbar $");
 
 /************************************************************************/
 /*                         GDALPamRasterBand()                          */
@@ -60,7 +61,7 @@ GDALPamRasterBand::~GDALPamRasterBand()
 /*                           SerializeToXML()                           */
 /************************************************************************/
 
-CPLXMLNode *GDALPamRasterBand::SerializeToXML( const char *pszUnused )
+CPLXMLNode *GDALPamRasterBand::SerializeToXML( CPL_UNUSED const char *pszUnused )
 
 {
     if( psPam == NULL )
@@ -206,7 +207,11 @@ CPLXMLNode *GDALPamRasterBand::SerializeToXML( const char *pszUnused )
 /*      Raster Attribute Table                                          */
 /* -------------------------------------------------------------------- */
     if( psPam->poDefaultRAT != NULL )
-        CPLAddXMLChild( psTree, psPam->poDefaultRAT->Serialize() );
+    {
+        CPLXMLNode* psSerializedRAT = psPam->poDefaultRAT->Serialize();
+        if( psSerializedRAT != NULL )
+            CPLAddXMLChild( psTree, psSerializedRAT );
+    }
 
 /* -------------------------------------------------------------------- */
 /*      Metadata.                                                       */
@@ -304,7 +309,7 @@ void GDALPamRasterBand::PamClear()
 /*                              XMLInit()                               */
 /************************************************************************/
 
-CPLErr GDALPamRasterBand::XMLInit( CPLXMLNode *psTree, const char *pszUnused )
+CPLErr GDALPamRasterBand::XMLInit( CPLXMLNode *psTree, CPL_UNUSED const char *pszUnused )
 
 {
     PamInitialize();
@@ -458,7 +463,7 @@ CPLErr GDALPamRasterBand::XMLInit( CPLXMLNode *psTree, const char *pszUnused )
             delete psPam->poDefaultRAT;
             psPam->poDefaultRAT = NULL;
         }
-        psPam->poDefaultRAT = new GDALRasterAttributeTable();
+        psPam->poDefaultRAT = new GDALDefaultRasterAttributeTable();
         psPam->poDefaultRAT->XMLInit( psRAT, "" );
     }
 
@@ -974,8 +979,7 @@ int
 PamParseHistogram( CPLXMLNode *psHistItem, 
                    double *pdfMin, double *pdfMax, 
                    int *pnBuckets, int **ppanHistogram, 
-                   int *pbIncludeOutOfRange, int *pbApproxOK )
-
+                   CPL_UNUSED int *pbIncludeOutOfRange, CPL_UNUSED int *pbApproxOK )
 {
     if( psHistItem == NULL )
         return FALSE;
@@ -1290,7 +1294,7 @@ GDALPamRasterBand::GetDefaultHistogram( double *pdfMin, double *pdfMax,
 /*                           GetDefaultRAT()                            */
 /************************************************************************/
 
-const GDALRasterAttributeTable *GDALPamRasterBand::GetDefaultRAT()
+GDALRasterAttributeTable *GDALPamRasterBand::GetDefaultRAT()
 
 {
     PamInitialize();

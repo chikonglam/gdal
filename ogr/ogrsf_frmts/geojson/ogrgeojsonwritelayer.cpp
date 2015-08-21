@@ -1,12 +1,12 @@
 /******************************************************************************
- * $Id: ogrgeojsonwritelayer.cpp 23663 2011-12-30 11:17:23Z rouault $
+ * $Id: ogrgeojsonwritelayer.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implementation of OGRGeoJSONWriteLayer class (OGR GeoJSON Driver).
  * Author:   Mateusz Loskot, mateusz@loskot.net
  *
  ******************************************************************************
- * Copyright (c) 2011, Even Rouault
+ * Copyright (c) 2011, Even Rouault <even dot rouault at mines-paris dot org>
  * Copyright (c) 2007, Mateusz Loskot
  *
  * Permission is hereby granted, free of charge, to any person obtaining a

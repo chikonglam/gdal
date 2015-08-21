@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: isis2dataset.cpp 23371 2011-11-13 14:24:00Z rouault $
+ * $Id: isis2dataset.cpp 27729 2014-09-24 00:40:16Z goatbar $
  *
  * Project:  ISIS Version 2 Driver
  * Purpose:  Implementation of ISIS2Dataset
@@ -14,6 +14,7 @@
  * diminish Trent and Roberts contribution. 
  ******************************************************************************
  * Copyright (c) 2006, Frank Warmerdam <warmerdam@pobox.com>
+ * Copyright (c) 2008-2011, Even Rouault <even dot rouault at mines-paris dot org>
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -49,7 +50,7 @@
 #include "cpl_string.h" 
 #include "nasakeywordhandler.h"
 
-CPL_CVSID("$Id: isis2dataset.cpp 23371 2011-11-13 14:24:00Z rouault $");
+CPL_CVSID("$Id: isis2dataset.cpp 27729 2014-09-24 00:40:16Z goatbar $");
 
 CPL_C_START
 void	GDALRegister_ISIS2(void);
@@ -961,7 +962,11 @@ GDALDataset *ISIS2Dataset::Create(const char* pszFilename,
 /*                            WriteRaster()                             */
 /************************************************************************/
 
-int ISIS2Dataset::WriteRaster(CPLString osFilename, bool includeLabel, GUIntBig iRecords, GUIntBig iLabelRecords, GDALDataType eType, const char * pszInterleaving) {
+int ISIS2Dataset::WriteRaster(CPLString osFilename,
+                              bool includeLabel,
+                              GUIntBig iRecords,
+                              GUIntBig iLabelRecords,
+                              CPL_UNUSED GDALDataType eType, CPL_UNUSED const char * pszInterleaving) {
     GUIntBig nSize;
     GByte byZero(0);
     CPLString pszAccess("wb");
@@ -1091,7 +1096,7 @@ int ISIS2Dataset::WriteLabel(
     unsigned int nXSize, unsigned int nYSize, unsigned int nBands, 
     GDALDataType eType,
     GUIntBig iRecords, const char * pszInterleaving, 
-    GUIntBig &iLabelRecords, bool bRelaunch)
+    GUIntBig &iLabelRecords, CPL_UNUSED bool bRelaunch)
 
 {
     CPLDebug("ISIS2", "Write Label filename = %s, rasterfile = %s",osFilename.c_str(),osRasterFile.c_str());

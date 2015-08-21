@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gmtdataset.cpp 25593 2013-02-02 13:03:03Z rouault $
+ * $Id: gmtdataset.cpp 27739 2014-09-25 18:49:52Z goatbar $
  *
  * Project:  netCDF read/write Driver
  * Purpose:  GDAL bindings over netCDF library for GMT Grids.
@@ -7,6 +7,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2004, Frank Warmerdam
+ * Copyright (c) 2007-2013, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -32,7 +33,7 @@
 #include "netcdf.h"
 #include "cpl_multiproc.h"
 
-CPL_CVSID("$Id: gmtdataset.cpp 25593 2013-02-02 13:03:03Z rouault $");
+CPL_CVSID("$Id: gmtdataset.cpp 27739 2014-09-25 18:49:52Z goatbar $");
 
 extern void *hNCMutex; /* shared with netcdf. See netcdfdataset.cpp */
 
@@ -127,9 +128,8 @@ GMTRasterBand::GMTRasterBand( GMTDataset *poDS, int nZId, int nBand )
 /*                             IReadBlock()                             */
 /************************************************************************/
 
-CPLErr GMTRasterBand::IReadBlock( int nBlockXOff, int nBlockYOff,
+CPLErr GMTRasterBand::IReadBlock( CPL_UNUSED int nBlockXOff, int nBlockYOff,
                                   void * pImage )
-
 {
     size_t start[2], edge[2];
     int    nErr = NC_NOERR;
@@ -385,10 +385,10 @@ GDALDataset *GMTDataset::Open( GDALOpenInfo * poOpenInfo )
 /************************************************************************/
 
 static GDALDataset *
-GMTCreateCopy( const char * pszFilename, GDALDataset *poSrcDS, 
-                  int bStrict, char ** papszOptions, 
-                  GDALProgressFunc pfnProgress, void * pProgressData )
-
+GMTCreateCopy( const char * pszFilename, GDALDataset *poSrcDS,
+               int bStrict, CPL_UNUSED char ** papszOptions,
+               CPL_UNUSED GDALProgressFunc pfnProgress,
+               CPL_UNUSED void * pProgressData )
 {
 /* -------------------------------------------------------------------- */
 /*      Figure out general characteristics.                             */
@@ -396,12 +396,12 @@ GMTCreateCopy( const char * pszFilename, GDALDataset *poSrcDS,
     nc_type nc_datatype;
     GDALRasterBand *poBand;
     int nXSize, nYSize;
-    
+
     CPLMutexHolderD(&hNCMutex);
 
     if( poSrcDS->GetRasterCount() != 1 )
     {
-        CPLError( CE_Failure, CPLE_AppDefined, 
+        CPLError( CE_Failure, CPLE_AppDefined,
                   "Currently GMT export only supports 1 band datasets." );
         return NULL;
     }

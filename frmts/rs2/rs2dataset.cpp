@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: rs2dataset.cpp 25658 2013-02-19 18:56:59Z warmerdam $
+ * $Id: rs2dataset.cpp 27739 2014-09-25 18:49:52Z goatbar $
  *
  * Project:  Polarimetric Workstation
  * Purpose:  Radarsat 2 - XML Products (product.xml) driver
@@ -7,6 +7,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2004, Frank Warmerdam <warmerdam@pobox.com>
+ * Copyright (c) 2009-2013, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -31,7 +32,7 @@
 #include "cpl_minixml.h"
 #include "ogr_spatialref.h"
 
-CPL_CVSID("$Id: rs2dataset.cpp 25658 2013-02-19 18:56:59Z warmerdam $");
+CPL_CVSID("$Id: rs2dataset.cpp 27739 2014-09-25 18:49:52Z goatbar $");
 
 CPL_C_START
 void    GDALRegister_RS2(void);
@@ -104,6 +105,7 @@ class RS2Dataset : public GDALPamDataset
     virtual const char *GetProjectionRef(void);
     virtual CPLErr GetGeoTransform( double * );
 
+    virtual char      **GetMetadataDomainList();
     virtual char **GetMetadata( const char * pszDomain = "" );
     virtual char **GetFileList(void);
 
@@ -1224,35 +1226,36 @@ GDALDataset *RS2Dataset::Open( GDALOpenInfo * poOpenInfo )
         }
    
         if ( psMapProjection != NULL ) {
-            const char *pszProj = CPLGetXMLValue( 
+            const char *pszProj = CPLGetXMLValue(
                 psMapProjection, "mapProjectionDescriptor", "" );
             bool bUseProjInfo = FALSE;
 
-            CPLXMLNode *psUtmParams = 
+            CPLXMLNode *psUtmParams =
                 CPLGetXMLNode( psMapProjection,
                                "utmProjectionParameters" );
 
-            CPLXMLNode *psNspParams = 
+            CPLXMLNode *psNspParams =
                 CPLGetXMLNode( psMapProjection,
                                "nspProjectionParameters" );
-            
+
             if ((psUtmParams != NULL) && poDS->bHaveGeoTransform ) {
                 const char *pszHemisphere;
                 int utmZone;
-                double origEasting, origNorthing;
+                /* double origEasting, origNorthing; */
                 bool bNorth = TRUE;
 
                 utmZone = atoi(CPLGetXMLValue( psUtmParams, "utmZone", "" ));
                 pszHemisphere = CPLGetXMLValue( psUtmParams,
                                                 "hemisphere", "" );
-                origEasting = strtod(CPLGetXMLValue( psUtmParams, 
+#if 0
+                origEasting = strtod(CPLGetXMLValue( psUtmParams,
                                                      "mapOriginFalseEasting", "0.0" ), NULL);
-                origNorthing = strtod(CPLGetXMLValue( psUtmParams, 
+                origNorthing = strtod(CPLGetXMLValue( psUtmParams,
                                                       "mapOriginFalseNorthing", "0.0" ), NULL);
-
+#endif
                 if ( EQUALN(pszHemisphere,"southern",8) )
                     bNorth = FALSE;
-                
+
                 if (EQUALN(pszProj,"UTM",3)) {
                     oPrj.SetUTM(utmZone, bNorth);
                     bUseProjInfo = TRUE;
@@ -1479,6 +1482,17 @@ CPLErr RS2Dataset::GetGeoTransform( double * padfTransform )
 
 
 /************************************************************************/
+/*                      GetMetadataDomainList()                         */
+/************************************************************************/
+
+char **RS2Dataset::GetMetadataDomainList()
+{
+    return BuildMetadataDomainList(GDALDataset::GetMetadataDomainList(),
+                                   TRUE,
+                                   "SUBDATASETS", NULL);
+}
+
+/************************************************************************/
 /*                            GetMetadata()                             */
 /************************************************************************/
 
@@ -1517,4 +1531,3 @@ void GDALRegister_RS2()
         GetGDALDriverManager()->RegisterDriver( poDriver );
     }
 }
-

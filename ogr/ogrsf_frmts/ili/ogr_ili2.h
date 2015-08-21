@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_ili2.h 13906 2008-03-01 13:08:28Z rouault $
+ * $Id: ogr_ili2.h 26953 2014-02-16 17:47:12Z pka $
  *
  * Project:  Interlis 2 Translator
  * Purpose:   Definition of classes for OGR Interlis 2 driver.
@@ -31,8 +31,8 @@
 #define _OGR_ILI2_H_INCLUDED
 
 #include "ogrsf_frmts.h"
+#include "imdreader.h"
 #include "ili2reader.h"
-#include "iom/iom.h"
 
 #include <string>
 #include <list>
@@ -46,21 +46,17 @@ class OGRILI2DataSource;
 class OGRILI2Layer : public OGRLayer
 {
 private:
-    OGRSpatialReference *poSRS;
     OGRFeatureDefn     *poFeatureDefn;
+    GeomFieldInfos      oGeomFieldInfos;
     std::list<OGRFeature *>    listFeature;
     std::list<OGRFeature *>::const_iterator listFeatureIt;
 
-    int                 bWriter;
-
-    OGRILI2DataSource   *poDS;
+    OGRILI2DataSource  *poDS;
 
   public:
-                        OGRILI2Layer( const char * pszName, 
-                                     OGRSpatialReference *poSRS, 
-                                     int bWriter,
-                                     OGRwkbGeometryType eType,
-                                     OGRILI2DataSource *poDS );
+                        OGRILI2Layer( OGRFeatureDefn* poFeatureDefn,
+                                      GeomFieldInfos oGeomFieldInfos,
+                                      OGRILI2DataSource *poDS );
 
                        ~OGRILI2Layer();
 
@@ -75,9 +71,9 @@ private:
     
     OGRFeatureDefn *    GetLayerDefn() { return poFeatureDefn; }
 
-    OGRErr              CreateField( OGRFieldDefn *poField, int bApproxOK = TRUE );
+    CPLString           GetIliGeomType( const char* cFieldName) { return oGeomFieldInfos[cFieldName].iliGeomType; };
 
-    OGRSpatialReference *GetSpatialRef();
+    OGRErr              CreateField( OGRFieldDefn *poField, int bApproxOK = TRUE );
     
     int                 TestCapability( const char * );
 };
@@ -92,9 +88,9 @@ class OGRILI2DataSource : public OGRDataSource
     std::list<OGRLayer *> listLayer;
     
     char        *pszName;
+    ImdReader   *poImdReader;
     IILI2Reader *poReader;
-    IOM_FILE    fpTransfer;  //for writing
-    IOM_BASKET  basket;
+    VSILFILE    *fpOutput;
 
     int         nLayers;
     OGRILI2Layer** papoLayers;
@@ -107,7 +103,6 @@ class OGRILI2DataSource : public OGRDataSource
     int         Create( const char *pszFile, char **papszOptions );
 
     const char *GetName() { return pszName; }
-    IOM_BASKET  GetBasket() { return basket; }
     int         GetLayerCount() { return listLayer.size(); }
     OGRLayer   *GetLayer( int );
 
@@ -116,6 +111,7 @@ class OGRILI2DataSource : public OGRDataSource
                                       OGRwkbGeometryType = wkbUnknown,
                                       char ** = NULL );
 
+    VSILFILE *  GetOutputFP() { return fpOutput; }
     int         TestCapability( const char * );
 };
 

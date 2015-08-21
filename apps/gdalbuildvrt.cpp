@@ -1,12 +1,12 @@
 /******************************************************************************
- * $Id: gdalbuildvrt.cpp 25846 2013-04-03 06:13:31Z dron $
+ * $Id: gdalbuildvrt.cpp 27994 2014-11-21 20:03:49Z rouault $
  *
  * Project:  GDAL Utilities
  * Purpose:  Commandline application to build VRT datasets from raster products or content of SHP tile index
  * Author:   Even Rouault, even.rouault at mines-paris.org
  *
  ******************************************************************************
- * Copyright (c) 2007, Even Rouault
+ * Copyright (c) 2007-2014, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -29,15 +29,15 @@
 
 #include "gdal_proxy.h"
 #include "cpl_string.h"
-#include "vrt/gdal_vrt.h"
-#include "vrt/vrtdataset.h"
+#include "gdal_vrt.h"
+#include "vrtdataset.h"
 
 #ifdef OGR_ENABLED
 #include "ogr_api.h"
 #endif
 #include "ogr_srs_api.h"
 
-CPL_CVSID("$Id: gdalbuildvrt.cpp 25846 2013-04-03 06:13:31Z dron $");
+CPL_CVSID("$Id: gdalbuildvrt.cpp 27994 2014-11-21 20:03:49Z rouault $");
 
 #define GEOTRSFRM_TOPLEFT_X            0
 #define GEOTRSFRM_WE_RES               1
@@ -78,6 +78,16 @@ typedef struct
     int                    bHasNoData;
     double                 noDataValue;
 } BandProperty;
+
+/************************************************************************/
+/*                            ArgIsNumeric()                            */
+/************************************************************************/
+
+static int ArgIsNumeric( const char *pszArg )
+
+{
+    return CPLGetValueType(pszArg) != CPL_VALUE_STRING;
+}
 
 /************************************************************************/
 /*                               Usage()                                */
@@ -1026,7 +1036,15 @@ int VRTBuilder::Build(GDALProgressFunc pfnProgress, void * pProgressData)
             nSrcNoDataCount = CSLCount(papszTokens);
             padfSrcNoData = (double *) CPLMalloc(sizeof(double) * nSrcNoDataCount);
             for(i=0;i<nSrcNoDataCount;i++)
+            {
+                if( !ArgIsNumeric(papszTokens[i]) )
+                {
+                    CPLError(CE_Failure, CPLE_IllegalArg, "Invalid -srcnodata value");
+                    CSLDestroy(papszTokens);
+                    return CE_Failure;
+                }
                 padfSrcNoData[i] = CPLAtofM(papszTokens[i]);
+            }
             CSLDestroy(papszTokens);
         }
     }
@@ -1043,7 +1061,15 @@ int VRTBuilder::Build(GDALProgressFunc pfnProgress, void * pProgressData)
             nVRTNoDataCount = CSLCount(papszTokens);
             padfVRTNoData = (double *) CPLMalloc(sizeof(double) * nVRTNoDataCount);
             for(i=0;i<nVRTNoDataCount;i++)
+            {
+                if( !ArgIsNumeric(papszTokens[i]) )
+                {
+                    CPLError(CE_Failure, CPLE_IllegalArg, "Invalid -vrtnodata value");
+                    CSLDestroy(papszTokens);
+                    return CE_Failure;
+                }
                 padfVRTNoData[i] = CPLAtofM(papszTokens[i]);
+            }
             CSLDestroy(papszTokens);
         }
     }
@@ -1271,6 +1297,8 @@ int main( int nArgc, char ** papszArgv )
     int *panBandList = NULL;
     int nBandCount = 0;
     int nMaxBandNo = 0;
+    int nRet;
+
     /* Check strict compilation and runtime library version as we use C++ API */
     if (! GDAL_CHECK_VERSION(papszArgv[0]))
         exit(1);
@@ -1427,7 +1455,7 @@ int main( int nArgc, char ** papszArgv )
         }
         else if ( papszArgv[iArg][0] == '-' )
         {
-            Usage(CPLSPrintf("Unkown option name '%s'", papszArgv[iArg]));
+            Usage(CPLSPrintf("Unknown option name '%s'", papszArgv[iArg]));
         }
         else if( pszOutputFilename == NULL )
         {
@@ -1519,7 +1547,7 @@ int main( int nArgc, char ** papszArgv )
                         bSeparate, bAllowProjectionDifference, bAddAlpha, bHideNoData, nSubdataset,
                         pszSrcNoData, pszVRTNoData, pszOutputSRS);
 
-    oBuilder.Build(pfnProgress, NULL);
+    nRet = (oBuilder.Build(pfnProgress, NULL) == CE_None) ? 0 : 1;
     
     for(i=0;i<nInputFiles;i++)
     {
@@ -1535,5 +1563,5 @@ int main( int nArgc, char ** papszArgv )
     OGRCleanupAll();
 #endif
 
-    return 0;
+    return nRet;
 }

@@ -1,12 +1,12 @@
 /******************************************************************************
- * $Id: ogrgeorssdatasource.cpp 23557 2011-12-12 22:08:17Z rouault $
+ * $Id: ogrgeorssdatasource.cpp 27729 2014-09-24 00:40:16Z goatbar $
  *
  * Project:  GeoRSS Translator
  * Purpose:  Implements OGRGeoRSSDataSource class
  * Author:   Even Rouault, even dot rouault at mines dash paris dot org
  *
  ******************************************************************************
- * Copyright (c) 2008, Even Rouault
+ * Copyright (c) 2008-2011, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -32,7 +32,7 @@
 #include "cpl_string.h"
 #include "cpl_csv.h"
 
-CPL_CVSID("$Id: ogrgeorssdatasource.cpp 23557 2011-12-12 22:08:17Z rouault $");
+CPL_CVSID("$Id: ogrgeorssdatasource.cpp 27729 2014-09-24 00:40:16Z goatbar $");
 
 /************************************************************************/
 /*                          OGRGeoRSSDataSource()                          */
@@ -118,9 +118,8 @@ OGRLayer *OGRGeoRSSDataSource::GetLayer( int iLayer )
 
 OGRLayer * OGRGeoRSSDataSource::CreateLayer( const char * pszLayerName,
                                              OGRSpatialReference *poSRS,
-                                             OGRwkbGeometryType eType,
-                                             char ** papszOptions )
-
+                                             CPL_UNUSED OGRwkbGeometryType eType,
+                                             CPL_UNUSED char ** papszOptions )
 {
     if (fpOutput == NULL)
         return NULL;
@@ -188,7 +187,8 @@ void OGRGeoRSSDataSource::startElementValidateCbk(const char *pszName, const cha
 /*                      dataHandlerValidateCbk()                        */
 /************************************************************************/
 
-void OGRGeoRSSDataSource::dataHandlerValidateCbk(const char *data, int nLen)
+void OGRGeoRSSDataSource::dataHandlerValidateCbk(CPL_UNUSED const char *data,
+                                                 CPL_UNUSED int nLen)
 {
     nDataHandlerCounter ++;
     if (nDataHandlerCounter >= BUFSIZ)

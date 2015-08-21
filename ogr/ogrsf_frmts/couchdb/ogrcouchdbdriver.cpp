@@ -1,12 +1,12 @@
 /******************************************************************************
- * $Id: ogrcouchdbdriver.cpp 22229 2011-04-25 17:44:28Z rouault $
+ * $Id: ogrcouchdbdriver.cpp 27729 2014-09-24 00:40:16Z goatbar $
  *
  * Project:  CouchDB Translator
  * Purpose:  Implements OGRCouchDBDriver.
  * Author:   Even Rouault, even dot rouault at mines dash paris dot org
  *
  ******************************************************************************
- * Copyright (c) 2011, Even Rouault <even dot rouault at mines dash paris dot org>
+ * Copyright (c) 2011, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -31,7 +31,7 @@
 
 // g++ -g -Wall -fPIC -shared -o ogr_CouchDB.so -Iport -Igcore -Iogr -Iogr/ogrsf_frmts -Iogr/ogrsf_frmts/couchdb ogr/ogrsf_frmts/couchdb/*.c* -L. -lgdal -Iogr/ogrsf_frmts/geojson/jsonc
 
-CPL_CVSID("$Id: ogrcouchdbdriver.cpp 22229 2011-04-25 17:44:28Z rouault $");
+CPL_CVSID("$Id: ogrcouchdbdriver.cpp 27729 2014-09-24 00:40:16Z goatbar $");
 
 extern "C" void RegisterOGRCouchDB();
 
@@ -78,8 +78,7 @@ OGRDataSource *OGRCouchDBDriver::Open( const char * pszFilename, int bUpdate )
 /************************************************************************/
 
 OGRDataSource *OGRCouchDBDriver::CreateDataSource( const char * pszName,
-                                               char **papszOptions )
-
+                                                   CPL_UNUSED char **papszOptions )
 {
     OGRCouchDBDataSource   *poDS = new OGRCouchDBDataSource();
 

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: rikdataset.cpp 23060 2011-09-05 17:58:30Z rouault $
+ * $Id: rikdataset.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  RIK Reader
  * Purpose:  All code for RIK Reader
@@ -7,6 +7,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2005, Daniel Wallner <daniel.wallner@bredband.net>
+ * Copyright (c) 2008-2011, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -31,7 +32,7 @@
 #include <zlib.h>
 #include "gdal_pam.h"
 
-CPL_CVSID("$Id: rikdataset.cpp 23060 2011-09-05 17:58:30Z rouault $");
+CPL_CVSID("$Id: rikdataset.cpp 27044 2014-03-16 23:41:27Z rouault $");
 
 CPL_C_START
 void	GDALRegister_RIK(void);

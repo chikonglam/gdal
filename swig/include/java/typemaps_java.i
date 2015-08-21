@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: typemaps_java.i 22044 2011-03-26 14:47:20Z rouault $
+ * $Id: typemaps_java.i 26068 2013-06-06 20:46:21Z rouault $
  *
  * Name:     typemaps_java.i
  * Project:  GDAL SWIG Interface
@@ -111,6 +111,37 @@
  * Typemaps for (GDALColorEntry *)
  ***************************************************/
 
+#ifdef SWIGANDROID
+
+/* Android Version with int */
+
+%typemap(in) (GDALColorEntry *) (GDALColorEntry tmp) {
+  /* %typemap(in) (GDALColorEntry *) (GDALColorEntry tmp) */
+  tmp.c4 = ($input >> 24) & 0xff;
+  tmp.c1 = ($input >> 16) & 0xff;
+  tmp.c2 = ($input >> 8) & 0xff;
+  tmp.c3 = ($input >> 0) & 0xff;
+  $1 = &tmp;
+}
+
+%typemap(out) (GDALColorEntry *) {
+  /* %typemap(out) (GDALColorEntry *) */
+ /* Android Color is int = (alpha << 24) | (red << 16) | (green << 8) | blue */
+  $result = ($1->c4 << 24) | ($1->c1 << 16) | ($1->c2 << 8) | $1->c3;
+}
+
+%typemap(jni) (GDALColorEntry *) "jint"
+%typemap(jtype) (GDALColorEntry *) "int"
+%typemap(jstype) (GDALColorEntry *) "int"
+%typemap(javain) (GDALColorEntry *) "$javainput"
+%typemap(javaout) (GDALColorEntry *) {
+    return $jnicall;
+  }
+
+#else
+
+/* J2SE Version with java.awt.Color */
+
 %typemap(in) (GDALColorEntry *) (GDALColorEntry tmp) {
   /* %typemap(in) (GDALColorEntry *) (GDALColorEntry tmp) */
   $1 = NULL;
@@ -153,6 +184,7 @@
     return $jnicall;
   }
 
+#endif
 
 /***************************************************
  * Typemaps for (int nGCPs, GDAL_GCP const * pGCPs)

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: msgdataset.cpp 17664 2009-09-21 21:16:45Z rouault $
+ * $Id: msgdataset.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  MSG Driver
  * Purpose:  GDALDataset driver for MSG translator for read support.
@@ -7,6 +7,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2004, ITC
+ * Copyright (c) 2009, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),

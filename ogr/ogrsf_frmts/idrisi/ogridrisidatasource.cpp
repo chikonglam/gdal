@@ -1,12 +1,12 @@
 /******************************************************************************
- * $Id: ogridrisidatasource.cpp 24397 2012-05-07 20:11:28Z rouault $
+ * $Id: ogridrisidatasource.cpp 27729 2014-09-24 00:40:16Z goatbar $
  *
  * Project:  Idrisi Translator
  * Purpose:  Implements OGRIdrisiDataSource class
  * Author:   Even Rouault, even dot rouault at mines dash paris dot org
  *
  ******************************************************************************
- * Copyright (c) 2011, Even Rouault <even dot rouault at mines dash paris dot org>
+ * Copyright (c) 2011-2012, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -32,7 +32,7 @@
 #include "cpl_string.h"
 #include "idrisi.h"
 
-CPL_CVSID("$Id: ogridrisidatasource.cpp 24397 2012-05-07 20:11:28Z rouault $");
+CPL_CVSID("$Id: ogridrisidatasource.cpp 27729 2014-09-24 00:40:16Z goatbar $");
 
 /************************************************************************/
 /*                        OGRIdrisiDataSource()                         */
@@ -65,8 +65,7 @@ OGRIdrisiDataSource::~OGRIdrisiDataSource()
 /*                           TestCapability()                           */
 /************************************************************************/
 
-int OGRIdrisiDataSource::TestCapability( const char * pszCap )
-
+int OGRIdrisiDataSource::TestCapability( CPL_UNUSED const char * pszCap )
 {
     return FALSE;
 }

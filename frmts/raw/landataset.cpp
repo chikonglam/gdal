@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: landataset.cpp 23033 2011-09-03 18:46:11Z rouault $
+ * $Id: landataset.cpp 27729 2014-09-24 00:40:16Z goatbar $
  *
  * Project:  eCognition
  * Purpose:  Implementation of Erdas .LAN / .GIS format.
@@ -7,6 +7,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2004, Frank Warmerdam
+ * Copyright (c) 2008-2011, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -31,7 +32,7 @@
 #include "cpl_string.h"
 #include "ogr_spatialref.h"
 
-CPL_CVSID("$Id: landataset.cpp 23033 2011-09-03 18:46:11Z rouault $");
+CPL_CVSID("$Id: landataset.cpp 27729 2014-09-24 00:40:16Z goatbar $");
 
 CPL_C_START
 void	GDALRegister_LAN(void);
@@ -199,7 +200,7 @@ LAN4BitRasterBand::~LAN4BitRasterBand()
 /*                             IReadBlock()                             */
 /************************************************************************/
 
-CPLErr LAN4BitRasterBand::IReadBlock( int nBlockXOff, int nBlockYOff,
+CPLErr LAN4BitRasterBand::IReadBlock( CPL_UNUSED int nBlockXOff, int nBlockYOff,
                                       void * pImage )
 
 {
@@ -849,7 +850,7 @@ void LANDataset::CheckForStatistics()
 GDALDataset *LANDataset::Create( const char * pszFilename,
                                  int nXSize, int nYSize, int nBands,
                                  GDALDataType eType,
-                                 char ** papszOptions )
+                                 CPL_UNUSED char ** papszOptions )
 
 {
     if( eType != GDT_Byte && eType != GDT_Int16 )

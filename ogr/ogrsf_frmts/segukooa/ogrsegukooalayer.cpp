@@ -1,12 +1,12 @@
 /******************************************************************************
- * $Id: ogrsegukooalayer.cpp 23222 2011-10-11 22:29:08Z rouault $
+ * $Id: ogrsegukooalayer.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  SEG-P1 / UKOOA P1-90 Translator
  * Purpose:  Implements OGRUKOOAP190Layer class.
  * Author:   Even Rouault, <even dot rouault at mines dash paris dot org>
  *
  ******************************************************************************
- * Copyright (c) 2011, Even Rouault <even dot rouault at mines dash paris dot org>
+ * Copyright (c) 2011-2013, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -33,7 +33,7 @@
 #include "ogr_p.h"
 #include "ogr_srs_api.h"
 
-CPL_CVSID("$Id: ogrsegukooalayer.cpp 23222 2011-10-11 22:29:08Z rouault $");
+CPL_CVSID("$Id: ogrsegukooalayer.cpp 27044 2014-03-16 23:41:27Z rouault $");
 
 /************************************************************************/
 /*                            ExtractField()                            */
@@ -137,6 +137,8 @@ OGRUKOOAP190Layer::OGRUKOOAP190Layer( const char* pszFilename,
         CSLTestBoolean(CPLGetConfigOption("UKOOAP190_USE_EASTING_NORTHING", "NO"));
 
     ParseHeaders();
+
+    poFeatureDefn->GetGeomFieldDefn(0)->SetSpatialRef(poSRS);
 }
 
 /************************************************************************/
@@ -724,6 +726,7 @@ OGRSEGUKOOALineLayer::OGRSEGUKOOALineLayer(const char* pszFilename,
                                                    CPLGetBasename(pszFilename)) );
     poFeatureDefn->Reference();
     poFeatureDefn->SetGeomType( wkbLineString );
+    poFeatureDefn->GetGeomFieldDefn(0)->SetSpatialRef(poBaseLayer->GetSpatialRef());
 
     OGRFieldDefn    oField( "LINENAME", OFTString );
     poFeatureDefn->AddFieldDefn( &oField );

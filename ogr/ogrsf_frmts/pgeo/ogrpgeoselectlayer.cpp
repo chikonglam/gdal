@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrpgeoselectlayer.cpp 20194 2010-08-06 18:28:05Z rouault $
+ * $Id: ogrpgeoselectlayer.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implements OGRPGeoSelectLayer class, layer access to the results
@@ -8,6 +8,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2005, Frank Warmerdam
+ * Copyright (c) 2010-2014, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -31,7 +32,7 @@
 #include "cpl_conv.h"
 #include "ogr_pgeo.h"
 
-CPL_CVSID("$Id: ogrpgeoselectlayer.cpp 20194 2010-08-06 18:28:05Z rouault $");
+CPL_CVSID("$Id: ogrpgeoselectlayer.cpp 27044 2014-03-16 23:41:27Z rouault $");
 
 /************************************************************************/
 /*                          OGRPGeoSelectLayer()                        */
@@ -49,6 +50,21 @@ OGRPGeoSelectLayer::OGRPGeoSelectLayer( OGRPGeoDataSource *poDSIn,
 
     poStmt = poStmtIn;
     pszBaseStatement = CPLStrdup( poStmtIn->GetCommand() );
+    
+    /* Just to make test_ogrsf happy, but would/could need be extended to */
+    /* other cases */
+    if( EQUALN(pszBaseStatement, "SELECT * FROM ", strlen("SELECT * FROM ")) )
+    {
+        
+        OGRLayer* poBaseLayer =
+            poDSIn->GetLayerByName(pszBaseStatement + strlen("SELECT * FROM "));
+        if( poBaseLayer != NULL )
+        {
+            poSRS = poBaseLayer->GetSpatialRef();
+            if( poSRS != NULL )
+                poSRS->Reference();
+        }
+    }
 
     BuildFeatureDefn( "SELECT", poStmt );
 }

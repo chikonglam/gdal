@@ -1,12 +1,12 @@
 /******************************************************************************
- * $Id: ogrwfslayer.cpp 25760 2013-03-15 21:53:45Z rouault $
+ * $Id: ogrwfslayer.cpp 27729 2014-09-24 00:40:16Z goatbar $
  *
  * Project:  WFS Translator
  * Purpose:  Implements OGRWFSLayer class.
  * Author:   Even Rouault, <even dot rouault at mines dash paris dot org>
  *
  ******************************************************************************
- * Copyright (c) 2010, Even Rouault <even dot rouault at mines dash paris dot org>
+ * Copyright (c) 2010-2013, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -34,7 +34,7 @@
 #include "cpl_http.h"
 #include "parsexsd.h"
 
-CPL_CVSID("$Id: ogrwfslayer.cpp 25760 2013-03-15 21:53:45Z rouault $");
+CPL_CVSID("$Id: ogrwfslayer.cpp 27729 2014-09-24 00:40:16Z goatbar $");
 
 
 /************************************************************************/
@@ -189,7 +189,7 @@ OGRWFSLayer::~OGRWFSLayer()
 /*                    GetDescribeFeatureTypeURL()                       */
 /************************************************************************/
 
-CPLString OGRWFSLayer::GetDescribeFeatureTypeURL(int bWithNS)
+CPLString OGRWFSLayer::GetDescribeFeatureTypeURL(CPL_UNUSED int bWithNS)
 {
     CPLString osURL(pszBaseURL);
     osURL = CPLURLAddKVP(osURL, "SERVICE", "WFS");
@@ -319,7 +319,9 @@ OGRFeatureDefn* OGRWFSLayer::BuildLayerDefnFromFeatureClass(GMLFeatureClass* poC
     this->poGMLFeatureClass = poClass;
 
     OGRFeatureDefn* poFDefn = new OGRFeatureDefn( pszName );
-    poFDefn->SetGeomType( (OGRwkbGeometryType)poGMLFeatureClass->GetGeometryType() );
+    poFDefn->GetGeomFieldDefn(0)->SetSpatialRef(poSRS);
+    if( poGMLFeatureClass->GetGeometryPropertyCount() > 0 )
+        poFDefn->SetGeomType( (OGRwkbGeometryType)poGMLFeatureClass->GetGeometryProperty(0)->GetType() );
 
 /* -------------------------------------------------------------------- */
 /*      Added attributes (properties).                                  */
@@ -360,9 +362,16 @@ OGRFeatureDefn* OGRWFSLayer::BuildLayerDefnFromFeatureClass(GMLFeatureClass* poC
         poFDefn->AddFieldDefn( &oField );
     }
 
-    const char* pszGeometryColumnName = poGMLFeatureClass->GetGeometryElement();
-    if (pszGeometryColumnName)
-        osGeometryColumnName = pszGeometryColumnName;
+    if( poGMLFeatureClass->GetGeometryPropertyCount() > 0 )
+    {
+        const char* pszGeometryColumnName = poGMLFeatureClass->GetGeometryProperty(0)->GetSrcElement();
+        if (pszGeometryColumnName[0] != '\0')
+        {
+            osGeometryColumnName = pszGeometryColumnName;
+            if( poFDefn->GetGeomFieldCount() > 0 )
+                poFDefn->GetGeomFieldDefn(0)->SetName(pszGeometryColumnName);
+        }
+    }
 
     return poFDefn;
 }
@@ -377,7 +386,10 @@ CPLString OGRWFSLayer::MakeGetFeatureURL(int nRequestMaxFeatures, int bRequestHi
     osURL = CPLURLAddKVP(osURL, "SERVICE", "WFS");
     osURL = CPLURLAddKVP(osURL, "VERSION", poDS->GetVersion());
     osURL = CPLURLAddKVP(osURL, "REQUEST", "GetFeature");
-    osURL = CPLURLAddKVP(osURL, "TYPENAME", WFS_EscapeURL(pszName));
+    if( atoi(poDS->GetVersion()) >= 2 )
+        osURL = CPLURLAddKVP(osURL, "TYPENAMES", WFS_EscapeURL(pszName));
+    else
+        osURL = CPLURLAddKVP(osURL, "TYPENAME", WFS_EscapeURL(pszName));
     if (pszRequiredOutputFormat)
         osURL = CPLURLAddKVP(osURL, "OUTPUTFORMAT", WFS_EscapeURL(pszRequiredOutputFormat));
 
@@ -970,6 +982,7 @@ OGRFeatureDefn * OGRWFSLayer::BuildLayerDefn(OGRFeatureDefn* poSrcFDefn)
     int bUnsetWidthPrecision = FALSE;
 
     poFeatureDefn = new OGRFeatureDefn( pszName );
+    poFeatureDefn->GetGeomFieldDefn(0)->SetSpatialRef(poSRS);
     poFeatureDefn->Reference();
 
     OGRDataSource* poDS = NULL;
@@ -1022,16 +1035,6 @@ OGRFeatureDefn * OGRWFSLayer::BuildLayerDefn(OGRFeatureDefn* poSrcFDefn)
         delete poSrcFDefn;
 
     return poFeatureDefn;
-}
-
-/************************************************************************/
-/*                           GetSpatialRef()                            */
-/************************************************************************/
-
-OGRSpatialReference *OGRWFSLayer::GetSpatialRef()
-{
-    GetLayerDefn();
-    return poSRS;
 }
 
 /************************************************************************/
@@ -1691,7 +1694,8 @@ OGRErr OGRWFSLayer::CreateFeature( OGRFeature *poFeature )
     int i;
     for(i=1; i <= poFeature->GetFieldCount(); i++)
     {
-        if (poGMLFeatureClass->GetGeometryAttributeIndex() == i - 1)
+        if (poGMLFeatureClass->GetGeometryPropertyCount() == 1 &&
+            poGMLFeatureClass->GetGeometryProperty(0)->GetAttributeIndex() == i - 1)
         {
             OGRGeometry* poGeom = poFeature->GetGeometryRef();
             if (poGeom != NULL && osGeometryColumnName.size() != 0)

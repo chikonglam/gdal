@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdaljp2box.cpp 24227 2012-04-13 20:55:20Z rouault $
+ * $Id: gdaljp2box.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  GDAL 
  * Purpose:  GDALJP2Box Implementation - Low level JP2 box reader.
@@ -7,6 +7,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2005, Frank Warmerdam <warmerdam@pobox.com>
+ * Copyright (c) 2010-2012, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -30,7 +31,7 @@
 #include "gdaljp2metadata.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: gdaljp2box.cpp 24227 2012-04-13 20:55:20Z rouault $");
+CPL_CVSID("$Id: gdaljp2box.cpp 27044 2014-03-16 23:41:27Z rouault $");
 
 /************************************************************************/
 /*                             GDALJP2Box()                             */

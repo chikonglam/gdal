@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdalwarpoperation.cpp 25884 2013-04-09 17:04:16Z etourigny $
+ * $Id: gdalwarpoperation.cpp 28206 2014-12-24 10:32:49Z rouault $
  *
  * Project:  High Performance Image Reprojector
  * Purpose:  Implementation of the GDALWarpOperation class.
@@ -7,6 +7,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2003, Frank Warmerdam <warmerdam@pobox.com>
+ * Copyright (c) 2007-2012, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -32,7 +33,7 @@
 #include "cpl_multiproc.h"
 #include "ogr_api.h"
 
-CPL_CVSID("$Id: gdalwarpoperation.cpp 25884 2013-04-09 17:04:16Z etourigny $");
+CPL_CVSID("$Id: gdalwarpoperation.cpp 28206 2014-12-24 10:32:49Z rouault $");
 
 /* Defined in gdalwarpkernel.cpp */
 int GWKGetFilterRadius(GDALResampleAlg eResampleAlg);
@@ -2212,10 +2213,16 @@ CPLErr GDALWarpOperation::ComputeSourceWindow(int nDstXOff, int nDstYOff,
     *pnSrcXOff = MIN(*pnSrcXOff,GDALGetRasterXSize(psOptions->hSrcDS));
     *pnSrcYOff = MIN(*pnSrcYOff,GDALGetRasterYSize(psOptions->hSrcDS));
 
+    double dfCeilMaxXOut = ceil(dfMaxXOut);
+    if( dfCeilMaxXOut > INT_MAX )
+        dfCeilMaxXOut = INT_MAX;
+    double dfCeilMaxYOut = ceil(dfMaxYOut);
+    if( dfCeilMaxYOut > INT_MAX )
+        dfCeilMaxYOut = INT_MAX;
     *pnSrcXSize = MIN( GDALGetRasterXSize(psOptions->hSrcDS) - *pnSrcXOff,
-                       ((int) ceil( dfMaxXOut )) - *pnSrcXOff + nResWinSize );
+                       ((int) dfCeilMaxXOut) - *pnSrcXOff + nResWinSize );
     *pnSrcYSize = MIN( GDALGetRasterYSize(psOptions->hSrcDS) - *pnSrcYOff,
-                       ((int) ceil( dfMaxYOut )) - *pnSrcYOff + nResWinSize );
+                       ((int) dfCeilMaxYOut) - *pnSrcYOff + nResWinSize );
     *pnSrcXSize = MAX(0,*pnSrcXSize);
     *pnSrcYSize = MAX(0,*pnSrcYSize);
 

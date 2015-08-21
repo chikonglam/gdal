@@ -1,12 +1,12 @@
 /******************************************************************************
- * $Id: ogrxlsxdatasource.cpp 24173 2012-03-29 21:09:52Z rouault $
+ * $Id: ogrxlsxdatasource.cpp 28181 2014-12-20 17:22:45Z rouault $
  *
  * Project:  XLSX Translator
  * Purpose:  Implements OGRXLSXDataSource class
  * Author:   Even Rouault, even dot rouault at mines dash paris dot org
  *
  ******************************************************************************
- * Copyright (c) 2012, Even Rouault <even dot rouault at mines dash paris dot org>
+ * Copyright (c) 2012-2014, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -32,7 +32,7 @@
 #include "cpl_conv.h"
 #include "cpl_time.h"
 
-CPL_CVSID("$Id: ogrxlsxdatasource.cpp 24173 2012-03-29 21:09:52Z rouault $");
+CPL_CVSID("$Id: ogrxlsxdatasource.cpp 28181 2014-12-20 17:22:45Z rouault $");
 
 /************************************************************************/
 /*                            OGRXLSXLayer()                            */
@@ -273,7 +273,7 @@ int OGRXLSXDataSource::Open( const char * pszFilename,
 /*                             Create()                                 */
 /************************************************************************/
 
-int OGRXLSXDataSource::Create( const char * pszFilename, char **papszOptions )
+int OGRXLSXDataSource::Create( const char * pszFilename, CPL_UNUSED char **papszOptions )
 {
     bUpdated = TRUE;
     bUpdatable = TRUE;
@@ -560,7 +560,7 @@ void OGRXLSXDataSource::DetectHeaderLine()
 /************************************************************************/
 
 void OGRXLSXDataSource::startElementDefault(const char *pszName,
-                                           const char **ppszAttr)
+                                            CPL_UNUSED const char **ppszAttr)
 {
     if (strcmp(pszName, "sheetData") == 0)
     {
@@ -601,7 +601,7 @@ void OGRXLSXDataSource::startElementTable(const char *pszName,
 /*                           endElementTable()                          */
 /************************************************************************/
 
-void OGRXLSXDataSource::endElementTable(const char *pszName)
+void OGRXLSXDataSource::endElementTable(CPL_UNUSED const char *pszName)
 {
     if (stateStack[nStackDepth].nBeginDepth == nDepth)
     {
@@ -706,7 +706,7 @@ void OGRXLSXDataSource::startElementRow(const char *pszName,
 /*                            endElementRow()                           */
 /************************************************************************/
 
-void OGRXLSXDataSource::endElementRow(const char *pszName)
+void OGRXLSXDataSource::endElementRow(CPL_UNUSED const char *pszName)
 {
     if (stateStack[nStackDepth].nBeginDepth == nDepth)
     {
@@ -859,7 +859,7 @@ void OGRXLSXDataSource::endElementRow(const char *pszName)
 /************************************************************************/
 
 void OGRXLSXDataSource::startElementCell(const char *pszName,
-                                        const char **ppszAttr)
+                                         CPL_UNUSED const char **ppszAttr)
 {
     if (osValue.size() == 0 && strcmp(pszName, "v") == 0)
     {
@@ -875,7 +875,7 @@ void OGRXLSXDataSource::startElementCell(const char *pszName,
 /*                            endElementCell()                          */
 /************************************************************************/
 
-void OGRXLSXDataSource::endElementCell(const char *pszName)
+void OGRXLSXDataSource::endElementCell(CPL_UNUSED const char *pszName)
 {
     if (stateStack[nStackDepth].nBeginDepth == nDepth)
     {
@@ -986,7 +986,7 @@ static void XMLCALL startElementSSCbk(void *pUserData, const char *pszName,
 }
 
 void OGRXLSXDataSource::startElementSSCbk(const char *pszName,
-                                       const char **ppszAttr)
+                                          CPL_UNUSED const char **ppszAttr)
 {
     if (bStopParsing) return;
 
@@ -1017,7 +1017,7 @@ static void XMLCALL endElementSSCbk(void *pUserData, const char *pszName)
     ((OGRXLSXDataSource*)pUserData)->endElementSSCbk(pszName);
 }
 
-void OGRXLSXDataSource::endElementSSCbk(const char *pszName)
+void OGRXLSXDataSource::endElementSSCbk(CPL_UNUSED const char *pszName)
 {
     if (bStopParsing) return;
 
@@ -1154,10 +1154,11 @@ void OGRXLSXDataSource::startElementWBCbk(const char *pszName,
     if (strcmp(pszName,"sheet") == 0)
     {
         const char* pszSheetName = GetAttributeValue(ppszAttr, "name", NULL);
-        const char* pszSheetId = GetAttributeValue(ppszAttr, "sheetId", NULL);
-        if (pszSheetName && pszSheetId)
+        /*const char* pszSheetId = GetAttributeValue(ppszAttr, "sheetId", NULL);*/
+        if (pszSheetName /*&& pszSheetId*/)
         {
-            int nSheetId = atoi(pszSheetId);
+            /*int nSheetId = atoi(pszSheetId);*/
+            int nSheetId = nLayers + 1;
             papoLayers = (OGRLayer**)CPLRealloc(papoLayers, (nLayers + 1) * sizeof(OGRLayer*));
             papoLayers[nLayers++] = new OGRXLSXLayer(this, nSheetId, pszSheetName);
         }
@@ -1367,8 +1368,8 @@ void OGRXLSXDataSource::AnalyseStyles(VSILFILE* fpStyles)
 
 OGRLayer *
 OGRXLSXDataSource::CreateLayer( const char * pszLayerName,
-                                OGRSpatialReference *poSRS,
-                                OGRwkbGeometryType eType,
+                                CPL_UNUSED OGRSpatialReference *poSRS,
+                                CPL_UNUSED OGRwkbGeometryType eType,
                                 char ** papszOptions )
 
 {
@@ -1620,11 +1621,16 @@ static void WriteWorkbook(const char* pszName, OGRDataSource* poDS)
 
 static void BuildColString(char szCol[5], int nCol)
 {
+    /*
+    A Z   AA AZ   BA BZ   ZA   ZZ   AAA    ZZZ      AAAA
+    0 25  26 51   52 77   676  701  702    18277    18278
+    */
     int k = 0;
     szCol[k++] = (nCol % 26) + 'A';
     while(nCol >= 26)
     {
         nCol /= 26;
+        nCol --; /* We wouldn't need that if this was a proper base 26 numeration scheme ! */
         szCol[k++] = (nCol % 26) + 'A';
     }
     szCol[k] = 0;
@@ -1796,8 +1802,8 @@ static void WriteLayer(const char* pszName, OGRLayer* poLayer, int iLayer,
 /************************************************************************/
 
 static void WriteSharedStrings(const char* pszName,
-                       std::map<std::string,int>& oStringMap,
-                       std::vector<std::string>& oStringList)
+                               CPL_UNUSED std::map<std::string,int>& oStringMap,
+                               std::vector<std::string>& oStringList)
 {
     VSILFILE* fp;
 

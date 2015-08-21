@@ -122,8 +122,10 @@ OLCDeleteFeature = _ogr.OLCDeleteFeature
 OLCFastSetNextByIndex = _ogr.OLCFastSetNextByIndex
 OLCStringsAsUTF8 = _ogr.OLCStringsAsUTF8
 OLCIgnoreFields = _ogr.OLCIgnoreFields
+OLCCreateGeomField = _ogr.OLCCreateGeomField
 ODsCCreateLayer = _ogr.ODsCCreateLayer
 ODsCDeleteLayer = _ogr.ODsCDeleteLayer
+ODsCCreateGeomFieldAfterCreateLayer = _ogr.ODsCCreateGeomFieldAfterCreateLayer
 ODrCCreateDataSource = _ogr.ODrCCreateDataSource
 ODrCDeleteDataSource = _ogr.ODrCDeleteDataSource
 
@@ -139,6 +141,51 @@ def DontUseExceptions(*args):
   """DontUseExceptions()"""
   return _ogr.DontUseExceptions(*args)
 import osr
+class StyleTable(_object):
+    """Proxy of C++ OGRStyleTableShadow class"""
+    __swig_setmethods__ = {}
+    __setattr__ = lambda self, name, value: _swig_setattr(self, StyleTable, name, value)
+    __swig_getmethods__ = {}
+    __getattr__ = lambda self, name: _swig_getattr(self, StyleTable, name)
+    __repr__ = _swig_repr
+    def __init__(self, *args): 
+        """__init__(self) -> StyleTable"""
+        this = _ogr.new_StyleTable(*args)
+        try: self.this.append(this)
+        except: self.this = this
+    __swig_destroy__ = _ogr.delete_StyleTable
+    __del__ = lambda self : None;
+    def AddStyle(self, *args):
+        """AddStyle(self, char pszName, char pszStyleString) -> int"""
+        return _ogr.StyleTable_AddStyle(self, *args)
+
+    def LoadStyleTable(self, *args):
+        """LoadStyleTable(self, char utf8_path) -> int"""
+        return _ogr.StyleTable_LoadStyleTable(self, *args)
+
+    def SaveStyleTable(self, *args):
+        """SaveStyleTable(self, char utf8_path) -> int"""
+        return _ogr.StyleTable_SaveStyleTable(self, *args)
+
+    def Find(self, *args):
+        """Find(self, char pszName) -> char"""
+        return _ogr.StyleTable_Find(self, *args)
+
+    def ResetStyleStringReading(self, *args):
+        """ResetStyleStringReading(self)"""
+        return _ogr.StyleTable_ResetStyleStringReading(self, *args)
+
+    def GetNextStyle(self, *args):
+        """GetNextStyle(self) -> char"""
+        return _ogr.StyleTable_GetNextStyle(self, *args)
+
+    def GetLastStyleName(self, *args):
+        """GetLastStyleName(self) -> char"""
+        return _ogr.StyleTable_GetLastStyleName(self, *args)
+
+StyleTable_swigregister = _ogr.StyleTable_swigregister
+StyleTable_swigregister(StyleTable)
+
 class Driver(_object):
     """Proxy of C++ OGRDriverShadow class"""
     __swig_setmethods__ = {}
@@ -725,6 +772,25 @@ class DataSource(_object):
         """
         return _ogr.DataSource_ReleaseResultSet(self, *args)
 
+    def GetStyleTable(self, *args):
+        """
+        GetStyleTable(self) -> StyleTable
+
+        OGRStyleTableH
+        OGR_DS_GetStyleTable(OGRDataSourceH hDS) 
+        """
+        return _ogr.DataSource_GetStyleTable(self, *args)
+
+    def SetStyleTable(self, *args):
+        """
+        SetStyleTable(self, StyleTable table)
+
+        void
+        OGR_DS_SetStyleTable(OGRDataSourceH hDS, OGRStyleTableH hStyleTable)
+
+        """
+        return _ogr.DataSource_SetStyleTable(self, *args)
+
     def Destroy(self):
       "Once called, self has effectively been destroyed.  Do not access. For backwards compatiblity only"
       _ogr.delete_DataSource( self )
@@ -814,6 +880,7 @@ class Layer(_object):
     def SetSpatialFilter(self, *args):
         """
         SetSpatialFilter(self, Geometry filter)
+        SetSpatialFilter(self, int iGeomField, Geometry filter)
 
         void
         OGR_L_SetSpatialFilter(OGRLayerH hLayer, OGRGeometryH hGeom)
@@ -856,6 +923,8 @@ class Layer(_object):
     def SetSpatialFilterRect(self, *args):
         """
         SetSpatialFilterRect(self, double minx, double miny, double maxx, double maxy)
+        SetSpatialFilterRect(self, int iGeomField, double minx, double miny, double maxx, 
+            double maxy)
 
         void
         OGR_L_SetSpatialFilterRect(OGRLayerH hLayer, double dfMinX, double
@@ -1366,7 +1435,7 @@ class Layer(_object):
 
     def GetExtent(self, *args, **kwargs):
         """
-        GetExtent(self, int force = 1, int can_return_null = 0)
+        GetExtent(self, int force = 1, int can_return_null = 0, int geom_field = 0)
 
         OGRErr OGR_L_GetExtent(OGRLayerH
         hLayer, OGREnvelope *psExtent, int bForce)
@@ -1726,6 +1795,10 @@ class Layer(_object):
         """
         return _ogr.Layer_AlterFieldDefn(self, *args)
 
+    def CreateGeomField(self, *args, **kwargs):
+        """CreateGeomField(self, GeomFieldDefn field_def, int approx_ok = 1) -> OGRErr"""
+        return _ogr.Layer_CreateGeomField(self, *args, **kwargs)
+
     def StartTransaction(self, *args):
         """
         StartTransaction(self) -> OGRErr
@@ -1802,6 +1875,10 @@ class Layer(_object):
         OGRERR_NONE on success. 
         """
         return _ogr.Layer_RollbackTransaction(self, *args)
+
+    def FindFieldIndex(self, *args):
+        """FindFieldIndex(self, char pszFieldName, int bExactMatch) -> int"""
+        return _ogr.Layer_FindFieldIndex(self, *args)
 
     def GetSpatialRef(self, *args):
         """
@@ -1918,6 +1995,24 @@ class Layer(_object):
         """
         return _ogr.Layer_Erase(self, *args, **kwargs)
 
+    def GetStyleTable(self, *args):
+        """
+        GetStyleTable(self) -> StyleTable
+
+        OGRStyleTableH
+        OGR_L_GetStyleTable(OGRLayerH hLayer) 
+        """
+        return _ogr.Layer_GetStyleTable(self, *args)
+
+    def SetStyleTable(self, *args):
+        """
+        SetStyleTable(self, StyleTable table)
+
+        void
+        OGR_L_SetStyleTable(OGRLayerH hLayer, OGRStyleTableH hStyleTable) 
+        """
+        return _ogr.Layer_SetStyleTable(self, *args)
+
     def Reference(self):
       "For backwards compatibility only."
       pass
@@ -1930,12 +2025,12 @@ class Layer(_object):
         """Returns the number of features in the layer"""
         return self.GetFeatureCount()
 
-
-
+    # To avoid __len__ being called when testing boolean value
+    # which can have side effects (#4758)
     def __nonzero__(self):
         return True
 
-
+    # For Python 3 compat
     __bool__ = __nonzero__
 
     def __getitem__(self, value):
@@ -1946,9 +2041,9 @@ class Layer(_object):
             import sys
             output = []
             if value.stop == sys.maxint:
-                
-                
-                
+                #for an unending slice, sys.maxint is used
+                #We need to stop before that or GDAL will write an
+                ##error to stdout
                 stop = len(self) - 1
             else:
                 stop = value.stop
@@ -2107,6 +2202,27 @@ class Feature(_object):
         """
         return _ogr.Feature_GetGeometryRef(self, *args)
 
+    def SetGeomField(self, *args):
+        """
+        SetGeomField(self, int iField, Geometry geom) -> OGRErr
+        SetGeomField(self, char name, Geometry geom) -> OGRErr
+        """
+        return _ogr.Feature_SetGeomField(self, *args)
+
+    def SetGeomFieldDirectly(self, *args):
+        """
+        SetGeomFieldDirectly(self, int iField, Geometry geom) -> OGRErr
+        SetGeomFieldDirectly(self, char name, Geometry geom) -> OGRErr
+        """
+        return _ogr.Feature_SetGeomFieldDirectly(self, *args)
+
+    def GetGeomFieldRef(self, *args):
+        """
+        GetGeomFieldRef(self, int iField) -> Geometry
+        GetGeomFieldRef(self, char name) -> Geometry
+        """
+        return _ogr.Feature_GetGeomFieldRef(self, *args)
+
     def Clone(self, *args):
         """
         Clone(self) -> Feature
@@ -2202,6 +2318,17 @@ class Feature(_object):
         an internal reference, and should not be deleted or modified. 
         """
         return _ogr.Feature_GetFieldDefnRef(self, *args)
+
+    def GetGeomFieldCount(self, *args):
+        """GetGeomFieldCount(self) -> int"""
+        return _ogr.Feature_GetGeomFieldCount(self, *args)
+
+    def GetGeomFieldDefnRef(self, *args):
+        """
+        GetGeomFieldDefnRef(self, int id) -> GeomFieldDefn
+        GetGeomFieldDefnRef(self, char name) -> GeomFieldDefn
+        """
+        return _ogr.Feature_GetGeomFieldDefnRef(self, *args)
 
     def GetFieldAsString(self, *args):
         """
@@ -2468,6 +2595,10 @@ class Feature(_object):
         """
         return _ogr.Feature_GetFieldIndex(self, *args)
 
+    def GetGeomFieldIndex(self, *args):
+        """GetGeomFieldIndex(self, char name) -> int"""
+        return _ogr.Feature_GetGeomFieldIndex(self, *args)
+
     def GetFID(self, *args):
         """
         GetFID(self) -> int
@@ -2655,6 +2786,13 @@ class Feature(_object):
         """
         return _ogr.Feature_SetFieldStringList(self, *args)
 
+    def SetFieldBinaryFromHexString(self, *args):
+        """
+        SetFieldBinaryFromHexString(self, int id, char pszValue)
+        SetFieldBinaryFromHexString(self, char name, char pszValue)
+        """
+        return _ogr.Feature_SetFieldBinaryFromHexString(self, *args)
+
     def SetFrom(self, *args, **kwargs):
         """
         SetFrom(self, Feature other, int forgiving = 1) -> OGRErr
@@ -2806,35 +2944,69 @@ class Feature(_object):
     def __copy__(self):
         return self.Clone()
 
-
-
+    # This makes it possible to fetch fields in the form "feature.area". 
+    # This has some risk of name collisions.
     def __getattr__(self, key):
         """Returns the values of fields by the given name"""
         if key == 'this':
             return self.__dict__[key]
-        try:
-            return self.GetField(key)
-        except:
-            raise AttributeError(key)
 
+        idx = self.GetFieldIndex(key)
+        if idx < 0:
+            idx = self.GetGeomFieldIndex(key)
+            if idx < 0:
+                raise AttributeError(key)
+            else:
+                return self.GetGeomFieldRef(idx)
+        else:
+            return self.GetField(idx)
 
-
+    # This makes it possible to set fields in the form "feature.area". 
+    # This has some risk of name collisions.
     def __setattr__(self, key, value):
         """Set the values of fields by the given name"""
-        if key != 'this' and key != 'thisown' and self.GetFieldIndex(key) != -1:
-            return self.SetField2(key,value)
-        else:
+        if key == 'this' or key == 'thisown':
             self.__dict__[key] = value
+        else:
+            idx = self.GetFieldIndex(key)
+            if idx != -1:
+                self.SetField2(idx,value)
+            else:
+                idx = self.GetGeomFieldIndex(key)
+                if idx != -1:
+                    self.SetGeomField(idx, value)
+                else:
+                    self.__dict__[key] = value
 
-
+    # This makes it possible to fetch fields in the form "feature['area']". 
     def __getitem__(self, key):
         """Returns the values of fields by the given name / field_index"""
-        return self.GetField(key)
+        if isinstance(key, str):
+            fld_index = self.GetFieldIndex(key)
+        if fld_index < 0:
+            if isinstance(key, str):
+                fld_index = self.GetGeomFieldIndex(key)
+            if fld_index < 0:
+                raise ValueError("Illegal field requested in GetField()")
+            else:
+                return self.GetGeomFieldRef(fld_index)
+        else:
+            return self.GetField(fld_index)
 
-
+    # This makes it possible to set fields in the form "feature['area'] = 123". 
     def __setitem__(self, key, value):
         """Returns the value of a field by field name / index"""
-        self.SetField2( key, value )    
+        if isinstance(key, str):
+            fld_index = self.GetFieldIndex(key)
+        if fld_index < 0:
+            if isinstance(key, str):
+                fld_index = self.GetGeomFieldIndex(key)
+            if fld_index < 0:
+                raise ValueError("Illegal field requested in SetField()")
+            else:
+                return self.SetGeomField( fld_index, value )
+        else:
+            return self.SetField2( fld_index, value )
 
     def GetField(self, fld_index):
         if isinstance(fld_index, str):
@@ -2854,14 +3026,16 @@ class Feature(_object):
             return self.GetFieldAsIntegerList(fld_index)
         if fld_type == OFTRealList:
             return self.GetFieldAsDoubleList(fld_index)
-        
-        
-        
+        ## if fld_type == OFTDateTime or fld_type == OFTDate or fld_type == OFTTime:
+        #     return self.GetFieldAsDate(fld_index)
+        # default to returning as a string.  Should we add more types?
         return self.GetFieldAsString(fld_index)
 
     def SetField2(self, fld_index, value):
         if isinstance(fld_index, str):
             fld_index = self.GetFieldIndex(fld_index)
+        if (fld_index < 0) or (fld_index > self.GetFieldCount()):
+            raise ValueError("Illegal field requested in SetField2()")
 
         if value is None:
             self.UnsetField( fld_index )
@@ -3089,6 +3263,26 @@ class FeatureDefn(_object):
         """
         return _ogr.FeatureDefn_AddFieldDefn(self, *args)
 
+    def GetGeomFieldCount(self, *args):
+        """GetGeomFieldCount(self) -> int"""
+        return _ogr.FeatureDefn_GetGeomFieldCount(self, *args)
+
+    def GetGeomFieldDefn(self, *args):
+        """GetGeomFieldDefn(self, int i) -> GeomFieldDefn"""
+        return _ogr.FeatureDefn_GetGeomFieldDefn(self, *args)
+
+    def GetGeomFieldIndex(self, *args):
+        """GetGeomFieldIndex(self, char name) -> int"""
+        return _ogr.FeatureDefn_GetGeomFieldIndex(self, *args)
+
+    def AddGeomFieldDefn(self, *args):
+        """AddGeomFieldDefn(self, GeomFieldDefn defn)"""
+        return _ogr.FeatureDefn_AddGeomFieldDefn(self, *args)
+
+    def DeleteGeomFieldDefn(self, *args):
+        """DeleteGeomFieldDefn(self, int idx) -> OGRErr"""
+        return _ogr.FeatureDefn_DeleteGeomFieldDefn(self, *args)
+
     def GetGeomType(self, *args):
         """
         GetGeomType(self) -> OGRwkbGeometryType
@@ -3248,6 +3442,10 @@ class FeatureDefn(_object):
         bIgnore:  ignore state 
         """
         return _ogr.FeatureDefn_SetStyleIgnored(self, *args)
+
+    def IsSame(self, *args):
+        """IsSame(self, FeatureDefn other_defn) -> int"""
+        return _ogr.FeatureDefn_IsSame(self, *args)
 
     def Destroy(self):
       "Once called, self has effectively been destroyed.  Do not access. For backwards compatiblity only"
@@ -3546,6 +3744,63 @@ class FieldDefn(_object):
 
 FieldDefn_swigregister = _ogr.FieldDefn_swigregister
 FieldDefn_swigregister(FieldDefn)
+
+class GeomFieldDefn(_object):
+    """Proxy of C++ OGRGeomFieldDefnShadow class"""
+    __swig_setmethods__ = {}
+    __setattr__ = lambda self, name, value: _swig_setattr(self, GeomFieldDefn, name, value)
+    __swig_getmethods__ = {}
+    __getattr__ = lambda self, name: _swig_getattr(self, GeomFieldDefn, name)
+    __repr__ = _swig_repr
+    __swig_destroy__ = _ogr.delete_GeomFieldDefn
+    __del__ = lambda self : None;
+    def __init__(self, *args, **kwargs): 
+        """__init__(self, char name_null_ok = "", OGRwkbGeometryType field_type = wkbUnknown) -> GeomFieldDefn"""
+        this = _ogr.new_GeomFieldDefn(*args, **kwargs)
+        try: self.this.append(this)
+        except: self.this = this
+    def GetName(self, *args):
+        """GetName(self) -> char"""
+        return _ogr.GeomFieldDefn_GetName(self, *args)
+
+    def GetNameRef(self, *args):
+        """GetNameRef(self) -> char"""
+        return _ogr.GeomFieldDefn_GetNameRef(self, *args)
+
+    def SetName(self, *args):
+        """SetName(self, char name)"""
+        return _ogr.GeomFieldDefn_SetName(self, *args)
+
+    def GetType(self, *args):
+        """GetType(self) -> OGRwkbGeometryType"""
+        return _ogr.GeomFieldDefn_GetType(self, *args)
+
+    def SetType(self, *args):
+        """SetType(self, OGRwkbGeometryType type)"""
+        return _ogr.GeomFieldDefn_SetType(self, *args)
+
+    def GetSpatialRef(self, *args):
+        """GetSpatialRef(self) -> SpatialReference"""
+        return _ogr.GeomFieldDefn_GetSpatialRef(self, *args)
+
+    def SetSpatialRef(self, *args):
+        """SetSpatialRef(self, SpatialReference srs)"""
+        return _ogr.GeomFieldDefn_SetSpatialRef(self, *args)
+
+    def IsIgnored(self, *args):
+        """IsIgnored(self) -> int"""
+        return _ogr.GeomFieldDefn_IsIgnored(self, *args)
+
+    def SetIgnored(self, *args):
+        """SetIgnored(self, int bIgnored)"""
+        return _ogr.GeomFieldDefn_SetIgnored(self, *args)
+
+    type = property(GetType, SetType)
+    name = property(GetName, SetName)
+    srs = property(GetSpatialRef, SetSpatialRef)
+
+GeomFieldDefn_swigregister = _ogr.GeomFieldDefn_swigregister
+GeomFieldDefn_swigregister(GeomFieldDefn)
 
 
 def CreateGeometryFromWkb(*args, **kwargs):

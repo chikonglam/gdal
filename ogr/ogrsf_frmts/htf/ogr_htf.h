@@ -1,12 +1,12 @@
 /******************************************************************************
- * $Id: ogr_htf.h 20996 2010-10-28 18:38:15Z rouault $
+ * $Id: ogr_htf.h 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  HTF Translator
  * Purpose:  Definition of classes for OGR .htf driver.
  * Author:   Even Rouault, even dot rouault at mines dash paris dot org
  *
  ******************************************************************************
- * Copyright (c) 2010, Even Rouault <even dot rouault at mines dash paris dot org>
+ * Copyright (c) 2010, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -68,8 +68,6 @@ protected:
     virtual OGRFeatureDefn *    GetLayerDefn() { return poFeatureDefn; }
 
     virtual int                 TestCapability( const char * );
-
-    virtual OGRSpatialReference *GetSpatialRef() { return poSRS; }
 
     virtual OGRErr      GetExtent(OGREnvelope *psExtent, int bForce = TRUE);
     void    SetExtent(double dfMinX, double dfMinY, double dfMaxX, double dfMaxY);
@@ -142,8 +140,6 @@ protected:
     virtual OGRFeatureDefn *    GetLayerDefn() { return poFeatureDefn; }
 
     virtual int                 TestCapability( const char * ) { return FALSE; }
-
-    virtual OGRSpatialReference *GetSpatialRef() { return NULL; }
 };
 
 /************************************************************************/

@@ -1,12 +1,12 @@
 /******************************************************************************
- * $Id: ogrmdbdriver.cpp 21560 2011-01-23 12:11:33Z rouault $
+ * $Id: ogrmdbdriver.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implements Personal Geodatabase driver.
  * Author:   Even Rouault, <even dot rouault at mines dash paris dot org>
  *
  ******************************************************************************
- * Copyright (c) 2011, Even Rouault, <even dot rouault at mines dash paris dot org>
+ * Copyright (c) 2011, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -30,7 +30,7 @@
 #include "ogr_mdb.h"
 #include "cpl_conv.h"
 
-CPL_CVSID("$Id: ogrmdbdriver.cpp 21560 2011-01-23 12:11:33Z rouault $");
+CPL_CVSID("$Id: ogrmdbdriver.cpp 27044 2014-03-16 23:41:27Z rouault $");
 
 // g++ -fPIC -g -Wall ogr/ogrsf_frmts/mdb/*.cpp -shared -o ogr_MDB.so -Iport -Igcore -Iogr -Iogr/ogrsf_frmts -Iogr/ogrsf_frmts/mdb -L. -lgdal -I/usr/lib/jvm/java-6-openjdk/include -I/usr/lib/jvm/java-6-openjdk/include/linux  -L/usr/lib/jvm/java-6-openjdk/jre/lib/amd64/server -ljvm
 
@@ -64,6 +64,15 @@ OGRDataSource *OGRMDBDriver::Open( const char * pszFilename,
 
 {
     OGRMDBDataSource     *poDS;
+
+    if( EQUALN(pszFilename, "PGEO:", strlen("PGEO:")) )
+        return NULL;
+
+    if( EQUALN(pszFilename, "GEOMEDIA:", strlen("GEOMEDIA:")) )
+        return NULL;
+
+    if( EQUALN(pszFilename, "WALK:", strlen("WALK:")) )
+        return NULL;
 
     if( !EQUAL(CPLGetExtension(pszFilename),"mdb") )
         return NULL;

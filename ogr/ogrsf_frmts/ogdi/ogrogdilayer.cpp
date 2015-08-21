@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrogdilayer.cpp 23014 2011-08-31 18:40:35Z rouault $
+ * $Id: ogrogdilayer.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  OGDI Bridge
  * Purpose:  Implements OGROGDILayer class.
@@ -8,6 +8,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2000, Daniel Morissette
+ * Copyright (c) 2008-2013, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -56,7 +57,7 @@
 #include "cpl_conv.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: ogrogdilayer.cpp 23014 2011-08-31 18:40:35Z rouault $");
+CPL_CVSID("$Id: ogrogdilayer.cpp 27044 2014-03-16 23:41:27Z rouault $");
 
 /************************************************************************/
 /*                           OGROGDILayer()                            */
@@ -204,9 +205,7 @@ void OGROGDILayer::ResetReading()
 OGRFeature *OGROGDILayer::GetNextFeature()
 
 {
-    OGRFeature  *poFeature=NULL;
-    ecs_Result  *psResult;
-    int         i;
+    OGRFeature  *poFeature;
 
     /* Reset reading if we are not the current layer */
     /* WARNING : this does not allow interleaved reading of layers */ 
@@ -216,10 +215,42 @@ OGRFeature *OGROGDILayer::GetNextFeature()
         ResetReading();
     }
 
+    while( TRUE )
+    {
+        poFeature = GetNextRawFeature();
+        if( poFeature == NULL )
+            return NULL;
+
+    /* -------------------------------------------------------------------- */
+    /*      Do we need to apply an attribute test?                          */
+    /* -------------------------------------------------------------------- */
+        if( (m_poAttrQuery != NULL
+            && !m_poAttrQuery->Evaluate( poFeature ) ) 
+            || (m_poFilterGeom != NULL 
+                && !FilterGeometry( poFeature->GetGeometryRef() ) ) )
+        {
+            m_nFilteredOutShapes ++;
+            delete poFeature;
+        }
+        else
+            return poFeature;
+    }
+}
+
+/************************************************************************/
+/*                           GetNextFeature()                           */
+/************************************************************************/
+
+OGRFeature *OGROGDILayer::GetNextRawFeature()
+{
+    ecs_Result  *psResult;
+    int         i;
+    OGRFeature  *poFeature;
+
 /* -------------------------------------------------------------------- */
 /*      Retrieve object from OGDI server and create new feature         */
 /* -------------------------------------------------------------------- */
-  TryAgain:
+
     psResult = cln_GetNextObject(m_nClientID);
     if (! ECSSUCCESS(psResult))
     {
@@ -353,19 +384,6 @@ OGRFeature *OGROGDILayer::GetNextFeature()
         poFeature->SetField( "text", ECSGEOM(psResult).text.desc );
     }
 
-/* -------------------------------------------------------------------- */
-/*      Do we need to apply an attribute test?                          */
-/* -------------------------------------------------------------------- */
-    if( (m_poAttrQuery != NULL
-         && !m_poAttrQuery->Evaluate( poFeature ) ) 
-        || (m_poFilterGeom != NULL 
-            && !FilterGeometry( poFeature->GetGeometryRef() ) ) )
-    {
-        m_nFilteredOutShapes ++;
-        delete poFeature;
-        goto TryAgain;
-    }
-
     return poFeature;
 }
 
@@ -380,6 +398,11 @@ OGRFeature *OGROGDILayer::GetFeature( long nFeatureId )
 
     if (m_nTotalShapeCount != -1 && nFeatureId > m_nTotalShapeCount)
         return NULL;
+
+    /* Unset spatial filter */
+    OGRGeometry* poOldFilterGeom = ( m_poFilterGeom != NULL ) ? m_poFilterGeom->clone() : NULL;
+    if( poOldFilterGeom != NULL )
+        SetSpatialFilter(NULL);
 
     /* Reset reading if we are not the current layer */
     /* WARNING : this does not allow interleaved reading of layers */
@@ -400,12 +423,23 @@ OGRFeature *OGROGDILayer::GetFeature( long nFeatureId )
         {
             // We probably reached EOF... keep track of shape count.
             m_nTotalShapeCount = m_iNextShapeId;
+            if( poOldFilterGeom != NULL )
+            {
+                SetSpatialFilter(poOldFilterGeom);
+                delete poOldFilterGeom;
+            }
             return NULL;
         }
     }
 
     // OK, we're ready to read the requested feature...
-    return GetNextFeature();
+    OGRFeature* poFeature = GetNextRawFeature();
+    if( poOldFilterGeom != NULL )
+    {
+        SetSpatialFilter(poOldFilterGeom);
+        delete poOldFilterGeom;
+    }
+    return poFeature;
 }
 
 /************************************************************************/
@@ -524,6 +558,7 @@ void OGROGDILayer::BuildFeatureDefn()
     
     m_poFeatureDefn->SetGeomType(eLayerGeomType);
     m_poFeatureDefn->Reference();
+    m_poFeatureDefn->GetGeomFieldDefn(0)->SetSpatialRef(m_poSpatialRef);
 
 /* -------------------------------------------------------------------- */
 /*      Fetch schema from OGDI server and map to OGR types              */

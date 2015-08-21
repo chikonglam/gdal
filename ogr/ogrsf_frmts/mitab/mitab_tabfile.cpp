@@ -190,14 +190,13 @@ void TABFile::ResetReading()
         {
             OGREnvelope  sEnvelope;
             TABVertex sMin, sMax;
-            TABMAPHeaderBlock *poHeader;
-    
-            poHeader = m_poMAPFile->GetHeaderBlock();
+            /* TABMAPHeaderBlock *poHeader; */
+            /* poHeader = m_poMAPFile->GetHeaderBlock(); */
 
             m_poFilterGeom->getEnvelope( &sEnvelope );
             m_poMAPFile->GetCoordFilter( sMin, sMax );
 
-            if( sEnvelope.MinX > sMin.x 
+            if( sEnvelope.MinX > sMin.x
                 || sEnvelope.MinY > sMin.y
                 || sEnvelope.MaxX < sMax.x
                 || sEnvelope.MaxY < sMax.y )
@@ -482,8 +481,9 @@ int TABFile::Open(const char *pszFname, const char *pszAccess,
             m_poDefn->SetGeomType( wkbPoint );
         else if( numPoints == 0 && numLines > 0 && numRegions == 0 )
             m_poDefn->SetGeomType( wkbLineString );
-        else
-            /* we leave it unknown indicating a mixture */;
+        else {
+            /* we leave it unknown indicating a mixture */
+        }
     }
     else if (m_poMAPFile->Open(pszTmpFname, pszAccess) != 0)
     {
@@ -1580,8 +1580,7 @@ OGRErr TABFile::CreateFeature(TABFeature *poFeature)
  * Implementation of OGRLayer's SetFeature(), enabled only for
  * random write access   
  **********************************************************************/
-OGRErr TABFile::SetFeature( OGRFeature *poFeature )
-
+OGRErr TABFile::SetFeature( CPL_UNUSED OGRFeature *poFeature )
 {
 //TODO: See CreateFeature()
 // Need to convert OGRFeature to TABFeature, extract FID and then forward
@@ -2242,7 +2241,7 @@ int TABFile::GetBounds(double &dXMin, double &dYMin,
  *
  * Returns OGRERR_NONE/OGRRERR_FAILURE.
  **********************************************************************/
-OGRErr TABFile::GetExtent (OGREnvelope *psExtent, int bForce)
+OGRErr TABFile::GetExtent (OGREnvelope *psExtent, CPL_UNUSED int bForce)
 {
     TABMAPHeaderBlock *poHeader;
 

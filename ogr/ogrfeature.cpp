@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrfeature.cpp 25692 2013-03-01 15:16:20Z rouault $
+ * $Id: ogrfeature.cpp 27741 2014-09-26 19:20:02Z goatbar $
  * 
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  The OGRFeature class implementation. 
@@ -7,6 +7,7 @@
  *
  ******************************************************************************
  * Copyright (c) 1999,  Les Technologies SoftMap Inc.
+ * Copyright (c) 2008-2013, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -32,7 +33,7 @@
 #include "ogr_p.h"
 #include <vector>
 
-CPL_CVSID("$Id: ogrfeature.cpp 25692 2013-03-01 15:16:20Z rouault $");
+CPL_CVSID("$Id: ogrfeature.cpp 27741 2014-09-26 19:20:02Z goatbar $");
 
 /************************************************************************/
 /*                             OGRFeature()                             */
@@ -62,12 +63,13 @@ OGRFeature::OGRFeature( OGRFeatureDefn * poDefnIn )
     poDefn = poDefnIn;
 
     nFID = OGRNullFID;
-    
-    poGeometry = NULL;
 
     // Allocate array of fields and initialize them to the unset special value
     pauFields = (OGRField *) CPLMalloc( poDefn->GetFieldCount() *
                                         sizeof(OGRField) );
+
+    papoGeometries = (OGRGeometry **) CPLCalloc( poDefn->GetGeomFieldCount(),
+                                        sizeof(OGRGeometry*) );
 
     for( int i = 0; i < poDefn->GetFieldCount(); i++ )
     {
@@ -111,10 +113,10 @@ OGRFeatureH OGR_F_Create( OGRFeatureDefnH hDefn )
 OGRFeature::~OGRFeature()
 
 {
-    if( poGeometry != NULL )
-        delete poGeometry;
+    int i;
 
-    for( int i = 0; i < poDefn->GetFieldCount(); i++ )
+    int nFieldcount = poDefn->GetFieldCount();
+    for( i = 0; i < nFieldcount; i++ )
     {
         OGRFieldDefn    *poFDefn = poDefn->GetFieldDefn(i);
         
@@ -148,9 +150,16 @@ OGRFeature::~OGRFeature()
         }
     }
     
+    int nGeomFieldCount = poDefn->GetGeomFieldCount();
+    for( i = 0; i < nGeomFieldCount; i++ )
+    {
+        delete papoGeometries[i];
+    }
+    
     poDefn->Release();
 
     CPLFree( pauFields );
+    CPLFree( papoGeometries );
     CPLFree(m_pszStyleString);
     CPLFree(m_pszTmpFieldValue);
 }
@@ -273,7 +282,7 @@ OGRFeatureDefnH OGR_F_GetDefnRef( OGRFeatureH hFeat )
  *
  * This method updates the features geometry, and operate exactly as
  * SetGeometry(), except that this method assumes ownership of the
- * passed geometry.
+ * passed geometry (even in case of failure of that function).
  *
  * This method is the same as the C function OGR_F_SetGeometryDirectly().
  *
@@ -289,12 +298,13 @@ OGRFeatureDefnH OGR_F_GetDefnRef( OGRFeatureH hFeat )
 OGRErr OGRFeature::SetGeometryDirectly( OGRGeometry * poGeomIn )
 
 {
-    delete poGeometry;
-    poGeometry = poGeomIn;
-
-    // I should be verifying that the geometry matches the defn's type.
-    
-    return OGRERR_NONE;
+    if( GetGeomFieldCount() > 0 )
+        return SetGeomFieldDirectly(0, poGeomIn);
+    else
+    {
+        delete poGeomIn;
+        return OGRERR_FAILURE;
+    }
 }
 
 /************************************************************************/
@@ -306,7 +316,7 @@ OGRErr OGRFeature::SetGeometryDirectly( OGRGeometry * poGeomIn )
  *
  * This function updates the features geometry, and operate exactly as
  * SetGeometry(), except that this function assumes ownership of the
- * passed geometry.
+ * passed geometry (even in case of failure of that function).
  *
  * This function is the same as the C++ method 
  * OGRFeature::SetGeometryDirectly.
@@ -352,16 +362,10 @@ OGRErr OGR_F_SetGeometryDirectly( OGRFeatureH hFeat, OGRGeometryH hGeom )
 OGRErr OGRFeature::SetGeometry( OGRGeometry * poGeomIn )
 
 {
-    delete poGeometry;
-
-    if( poGeomIn != NULL )
-        poGeometry = poGeomIn->clone();
+    if( GetGeomFieldCount() > 0 )
+        return SetGeomField(0, poGeomIn);
     else
-        poGeometry = NULL;
-
-    // I should be verifying that the geometry matches the defn's type.
-    
-    return OGRERR_NONE;
+        return OGRERR_FAILURE;
 }
 
 /************************************************************************/
@@ -413,9 +417,27 @@ OGRErr OGR_F_SetGeometry( OGRFeatureH hFeat, OGRGeometryH hGeom )
 OGRGeometry *OGRFeature::StealGeometry()
 
 {
-    OGRGeometry *poReturn = poGeometry;
-    poGeometry = NULL;
-    return poReturn;
+    if( GetGeomFieldCount() > 0 )
+    {
+        OGRGeometry *poReturn = papoGeometries[0];
+        papoGeometries[0] = NULL;
+        return poReturn;
+    }
+    else
+        return NULL;
+}
+
+OGRGeometry *OGRFeature::StealGeometry(int iGeomField)
+
+{
+    if( iGeomField >= 0 && iGeomField < GetGeomFieldCount() )
+    {
+        OGRGeometry *poReturn = papoGeometries[iGeomField];
+        papoGeometries[iGeomField] = NULL;
+        return poReturn;
+    }
+    else
+        return NULL;
 }
 
 /************************************************************************/
@@ -453,10 +475,21 @@ OGRGeometryH OGR_F_StealGeometry( OGRFeatureH hFeat )
  * \brief Fetch pointer to feature geometry.
  *
  * This method is the same as the C function OGR_F_GetGeometryRef().
+ * 
+ * Starting with GDAL 1.11, this is equivalent to calling
+ * OGRFeature::GetGeomFieldRef(0).
  *
  * @return pointer to internal feature geometry.  This object should
  * not be modified.
  */
+OGRGeometry *OGRFeature::GetGeometryRef()
+
+{
+    if( GetGeomFieldCount() > 0 )
+        return GetGeomFieldRef(0);
+    else
+        return NULL;
+}
 
 /************************************************************************/
 /*                        OGR_F_GetGeometryRef()                        */
@@ -480,6 +513,231 @@ OGRGeometryH OGR_F_GetGeometryRef( OGRFeatureH hFeat )
     return (OGRGeometryH) ((OGRFeature *) hFeat)->GetGeometryRef();
 }
 
+
+/************************************************************************/
+/*                           GetGeomFieldRef()                          */
+/************************************************************************/
+
+/**
+ * \brief Fetch pointer to feature geometry.
+ *
+ * This method is the same as the C function OGR_F_GetGeomFieldRef().
+ *
+ * @param iField geometry field to get.
+ *
+ * @return pointer to internal feature geometry.  This object should
+ * not be modified.
+ *
+ * @since GDAL 1.11
+ */
+OGRGeometry *OGRFeature::GetGeomFieldRef(int iField)
+
+{
+    if( iField < 0 || iField >= GetGeomFieldCount() )
+        return NULL;
+    else
+        return papoGeometries[iField];
+}
+
+/************************************************************************/
+/*                           GetGeomFieldRef()                          */
+/************************************************************************/
+
+/**
+ * \brief Fetch pointer to feature geometry.
+ *
+ * @param pszFName name of geometry field to get.
+ *
+ * @return pointer to internal feature geometry.  This object should
+ * not be modified.
+ *
+ * @since GDAL 1.11
+ */
+OGRGeometry *OGRFeature::GetGeomFieldRef(const char* pszFName)
+
+{
+    int iField = GetGeomFieldIndex(pszFName);
+    if( iField < 0 )
+        return NULL;
+    else
+        return papoGeometries[iField];
+}
+
+/************************************************************************/
+/*                       OGR_F_GetGeomFieldRef()                        */
+/************************************************************************/
+
+/**
+ * \brief Fetch an handle to feature geometry.
+ *
+ * This function is the same as the C++ method OGRFeature::GetGeomFieldRef().
+ *
+ * @param hFeat handle to the feature to get geometry from.
+ * @param iField geometry field to get.
+ * @return an handle to internal feature geometry.  This object should
+ * not be modified.
+ *
+ * @since GDAL 1.11
+ */
+
+OGRGeometryH OGR_F_GetGeomFieldRef( OGRFeatureH hFeat, int iField )
+
+{
+    VALIDATE_POINTER1( hFeat, "OGR_F_GetGeomFieldRef", NULL );
+
+    return (OGRGeometryH) ((OGRFeature *) hFeat)->GetGeomFieldRef(iField);
+}
+
+/************************************************************************/
+/*                       SetGeomFieldDirectly()                         */
+/************************************************************************/
+
+/**
+ * \brief Set feature geometry of a specified geometry field.
+ *
+ * This method updates the features geometry, and operate exactly as
+ * SetGeomField(), except that this method assumes ownership of the
+ * passed geometry (even in case of failure of that function).
+ *
+ * This method is the same as the C function OGR_F_SetGeomFieldDirectly().
+ *
+ * @param iField geometry field to set.
+ * @param poGeomIn new geometry to apply to feature. Passing NULL value here
+ * is correct and it will result in deallocation of currently assigned geometry
+ * without assigning new one.
+ *
+ * @return OGRERR_NONE if successful, or OGRERR_FAILURE if the index is invalid,
+ * or OGR_UNSUPPORTED_GEOMETRY_TYPE if the geometry type is illegal for the
+ * OGRFeatureDefn (checking not yet implemented). 
+ *
+ * @since GDAL 1.11
+ */ 
+
+OGRErr OGRFeature::SetGeomFieldDirectly( int iField, OGRGeometry * poGeomIn )
+
+{
+    if( iField < 0 || iField >= GetGeomFieldCount() )
+    {
+        delete poGeomIn;
+        return OGRERR_FAILURE;
+    }
+
+    delete papoGeometries[iField];
+    papoGeometries[iField] = poGeomIn;
+
+    // I should be verifying that the geometry matches the defn's type.
+    
+    return OGRERR_NONE;
+}
+
+/************************************************************************/
+/*                     OGR_F_SetGeomFieldDirectly()                     */
+/************************************************************************/
+
+/**
+ * \brief Set feature geometry of a specified geometry field.
+ *
+ * This function updates the features geometry, and operate exactly as
+ * SetGeomField(), except that this function assumes ownership of the
+ * passed geometry (even in case of failure of that function).
+ *
+ * This function is the same as the C++ method 
+ * OGRFeature::SetGeomFieldDirectly.
+ *
+ * @param hFeat handle to the feature on which to apply the geometry.
+ * @param iField geometry field to set.
+ * @param hGeom handle to the new geometry to apply to feature.
+ *
+ * @return OGRERR_NONE if successful, or OGRERR_FAILURE if the index is invalid,
+ * or OGR_UNSUPPORTED_GEOMETRY_TYPE if the geometry type is illegal for the
+ * OGRFeatureDefn (checking not yet implemented).
+ *
+ * @since GDAL 1.11
+ */ 
+
+OGRErr OGR_F_SetGeomFieldDirectly( OGRFeatureH hFeat, int iField,
+                                   OGRGeometryH hGeom )
+
+{
+    VALIDATE_POINTER1( hFeat, "OGR_F_SetGeomFieldDirectly", CE_Failure );
+
+    return ((OGRFeature *) hFeat)->SetGeomFieldDirectly(iField,
+                                                        (OGRGeometry *) hGeom);
+}
+
+/************************************************************************/
+/*                            SetGeomField()                            */
+/************************************************************************/
+
+/**
+ * \brief Set feature geometry of a specified geometry field.
+ *
+ * This method updates the features geometry, and operate exactly as
+ * SetGeomFieldDirectly(), except that this method does not assume ownership
+ * of the passed geometry, but instead makes a copy of it. 
+ *
+ * This method is the same as the C function OGR_F_SetGeomField().
+ *
+ * @param iField geometry field to set.
+ * @param poGeomIn new geometry to apply to feature. Passing NULL value here
+ * is correct and it will result in deallocation of currently assigned geometry
+ * without assigning new one.
+ *
+ * @return OGRERR_NONE if successful, or OGRERR_FAILURE if the index is invalid,
+ * or OGR_UNSUPPORTED_GEOMETRY_TYPE if the geometry type is illegal for the
+ * OGRFeatureDefn (checking not yet implemented).
+ *
+ * @since GDAL 1.11
+ */ 
+
+OGRErr OGRFeature::SetGeomField( int iField, OGRGeometry * poGeomIn )
+
+{
+    if( iField < 0 || iField >= GetGeomFieldCount() )
+        return OGRERR_FAILURE;
+
+    delete papoGeometries[iField];
+
+    if( poGeomIn != NULL )
+        papoGeometries[iField] = poGeomIn->clone();
+    else
+        papoGeometries[iField] = NULL;
+
+    // I should be verifying that the geometry matches the defn's type.
+    
+    return OGRERR_NONE;
+}
+
+/************************************************************************/
+/*                        OGR_F_SetGeomField()                          */
+/************************************************************************/
+
+/**
+ * \brief Set feature geometry of a specified geometry field.
+ *
+ * This function updates the features geometry, and operate exactly as
+ * SetGeometryDirectly(), except that this function does not assume ownership
+ * of the passed geometry, but instead makes a copy of it. 
+ *
+ * This function is the same as the C++ OGRFeature::SetGeomField().
+ *
+ * @param hFeat handle to the feature on which new geometry is applied to.
+ * @param iField geometry field to set.
+ * @param hGeom handle to the new geometry to apply to feature.
+ *
+ * @return OGRERR_NONE if successful, or OGR_UNSUPPORTED_GEOMETRY_TYPE if
+ * the geometry type is illegal for the OGRFeatureDefn (checking not yet
+ * implemented). 
+ */ 
+
+OGRErr OGR_F_SetGeomField( OGRFeatureH hFeat, int iField, OGRGeometryH hGeom )
+
+{
+    VALIDATE_POINTER1( hFeat, "OGR_F_SetGeomField", CE_Failure );
+
+    return ((OGRFeature *) hFeat)->SetGeomField(iField, (OGRGeometry *) hGeom);
+}
+
 /************************************************************************/
 /*                               Clone()                                */
 /************************************************************************/
@@ -498,13 +756,16 @@ OGRGeometryH OGR_F_GetGeometryRef( OGRFeatureH hFeat )
 OGRFeature *OGRFeature::Clone()
 
 {
+    int i;
     OGRFeature  *poNew = new OGRFeature( poDefn );
 
-    poNew->SetGeometry( poGeometry );
-
-    for( int i = 0; i < poDefn->GetFieldCount(); i++ )
+    for( i = 0; i < poDefn->GetFieldCount(); i++ )
     {
         poNew->SetField( i, pauFields + i );
+    }
+    for( i = 0; i < poDefn->GetGeomFieldCount(); i++ )
+    {
+        poNew->SetGeomField( i, papoGeometries[i] );
     }
 
     if( GetStyleString() != NULL )
@@ -662,6 +923,143 @@ int OGR_F_GetFieldIndex( OGRFeatureH hFeat, const char *pszName )
     return ((OGRFeature *) hFeat)->GetFieldIndex( pszName );
 }
 
+
+/************************************************************************/
+/*                         GetGeomFieldCount()                          */
+/************************************************************************/
+
+/**
+ * \fn int OGRFeature::GetGeomFieldCount();
+ *
+ * \brief Fetch number of geometry fields on this feature.
+ * This will always be the same
+ * as the geometry field count for the OGRFeatureDefn.
+ *
+ * This method is the same as the C function OGR_F_GetGeomFieldCount().
+ *
+ * @return count of geometry fields.
+ *
+ * @since GDAL 1.11
+ */
+
+/************************************************************************/
+/*                      OGR_F_GetGeomFieldCount()                       */
+/************************************************************************/
+
+/**
+ * \brief Fetch number of geometry fields on this feature
+ * This will always be the same
+ * as the geometry field count for the OGRFeatureDefn.
+ *
+ * This function is the same as the C++ method OGRFeature::GetGeomFieldCount().
+ *
+ * @param hFeat handle to the feature to get the geometry fields count from.
+ * @return count of geometry fields.
+ *
+ * @since GDAL 1.11
+ */
+
+int OGR_F_GetGeomFieldCount( OGRFeatureH hFeat )
+
+{
+    VALIDATE_POINTER1( hFeat, "OGR_F_GetGeomFieldCount", 0 );
+
+    return ((OGRFeature *) hFeat)->GetGeomFieldCount();
+}
+
+/************************************************************************/
+/*                        GetGeomFieldDefnRef()                         */
+/************************************************************************/
+
+/**
+ * \fn OGRGeomFieldDefn *OGRFeature::GetGeomFieldDefnRef( int iGeomField );
+ *
+ * \brief Fetch definition for this geometry field.
+ *
+ * This method is the same as the C function OGR_F_GetGeomFieldDefnRef().
+ *
+ * @param iGeomField the field to fetch, from 0 to GetGeomFieldCount()-1.
+ *
+ * @return the field definition (from the OGRFeatureDefn).  This is an
+ * internal reference, and should not be deleted or modified.
+ *
+ * @since GDAL 1.11
+ */
+
+/************************************************************************/
+/*                       OGR_F_GetGeomFieldDefnRef()                    */
+/************************************************************************/
+
+/**
+ * \brief Fetch definition for this geometry field.
+ *
+ * This function is the same as the C++ method OGRFeature::GetGeomFieldDefnRef().
+ *
+ * @param hFeat handle to the feature on which the field is found.
+ * @param i the field to fetch, from 0 to GetGeomFieldCount()-1.
+ *
+ * @return an handle to the field definition (from the OGRFeatureDefn).
+ * This is an internal reference, and should not be deleted or modified.
+ *
+ * @since GDAL 1.11
+ */
+
+OGRGeomFieldDefnH OGR_F_GetGeomFieldDefnRef( OGRFeatureH hFeat, int i )
+
+{
+    VALIDATE_POINTER1( hFeat, "OGR_F_GetGeomFieldDefnRef", NULL );
+
+    return (OGRGeomFieldDefnH) ((OGRFeature *) hFeat)->GetGeomFieldDefnRef(i);
+}
+
+/************************************************************************/
+/*                           GetGeomFieldIndex()                            */
+/************************************************************************/
+
+/**
+ * \fn int OGRFeature::GetGeomFieldIndex( const char * pszName );
+ * 
+ * \brief Fetch the geometry field index given geometry field name.
+ *
+ * This is a cover for the OGRFeatureDefn::GetGeomFieldIndex() method. 
+ *
+ * This method is the same as the C function OGR_F_GetGeomFieldIndex().
+ *
+ * @param pszName the name of the geometry field to search for. 
+ *
+ * @return the geometry field index, or -1 if no matching geometry field is found.
+ *
+ * @since GDAL 1.11
+ */
+
+/************************************************************************/
+/*                       OGR_F_GetGeomFieldIndex()                      */
+/************************************************************************/
+
+/**
+ * \brief Fetch the geometry field index given geometry field name.
+ *
+ * This is a cover for the OGRFeatureDefn::GetGeomFieldIndex() method. 
+ *
+ * This function is the same as the C++ method OGRFeature::GetGeomFieldIndex().
+ *
+ * @param hFeat handle to the feature on which the geometry field is found.
+ * @param pszName the name of the geometry field to search for. 
+ *
+ * @return the geometry field index, or -1 if no matching geometry field is found.
+ *
+ * @since GDAL 1.11
+ */
+
+int OGR_F_GetGeomFieldIndex( OGRFeatureH hFeat, const char *pszName )
+
+{
+    VALIDATE_POINTER1( hFeat, "OGR_F_GetGeomFieldIndex", 0 );
+
+    return ((OGRFeature *) hFeat)->GetGeomFieldIndex( pszName );
+}
+
+
 /************************************************************************/
 /*                             IsFieldSet()                             */
 /************************************************************************/
@@ -678,7 +1076,7 @@ int OGR_F_GetFieldIndex( OGRFeatureH hFeat, const char *pszName )
  * @return TRUE if the field has been set, otherwise false.
  */
 
-int OGRFeature::IsFieldSet( int iField ) const
+int OGRFeature::IsFieldSet( int iField )
 
 {
     int iSpecialField = iField - poDefn->GetFieldCount();
@@ -692,16 +1090,16 @@ int OGRFeature::IsFieldSet( int iField ) const
 
           case SPF_OGR_GEOM_WKT:
           case SPF_OGR_GEOMETRY:
-            return poGeometry != NULL;
+            return GetGeomFieldCount() > 0 && papoGeometries[0] != NULL;
 
           case SPF_OGR_STYLE:
             return ((OGRFeature *)this)->GetStyleString() != NULL;
 
           case SPF_OGR_GEOM_AREA:
-            if( poGeometry == NULL )
+            if( GetGeomFieldCount() == 0 || papoGeometries[0] == NULL )
                 return FALSE;
 
-            return OGR_G_Area((OGRGeometryH)poGeometry) != 0.0;
+            return OGR_G_Area((OGRGeometryH)papoGeometries[0]) != 0.0;
 
           default:
             return FALSE;
@@ -885,9 +1283,9 @@ int OGRFeature::GetFieldAsInteger( int iField )
             return GetFID();
 
         case SPF_OGR_GEOM_AREA:
-            if( poGeometry == NULL )
+            if( GetGeomFieldCount() == 0 || papoGeometries[0] == NULL )
                 return 0;
-            return (int)OGR_G_Area((OGRGeometryH)poGeometry);
+            return (int)OGR_G_Area((OGRGeometryH)papoGeometries[0]);
 
         default:
             return 0;
@@ -975,9 +1373,9 @@ double OGRFeature::GetFieldAsDouble( int iField )
             return GetFID();
 
         case SPF_OGR_GEOM_AREA:
-            if( poGeometry == NULL )
+            if( GetGeomFieldCount() == 0 || papoGeometries[0] == NULL )
                 return 0.0;
-            return OGR_G_Area((OGRGeometryH)poGeometry);
+            return OGR_G_Area((OGRGeometryH)papoGeometries[0]);
 
         default:
             return 0.0;
@@ -1073,8 +1471,8 @@ const char *OGRFeature::GetFieldAsString( int iField )
             return m_pszTmpFieldValue = CPLStrdup( szTempBuffer );
 
           case SPF_OGR_GEOMETRY:
-            if( poGeometry )
-                return poGeometry->getGeometryName();
+            if( GetGeomFieldCount() > 0 && papoGeometries[0] != NULL )
+                return papoGeometries[0]->getGeometryName();
             else
                 return "";
 
@@ -1086,21 +1484,21 @@ const char *OGRFeature::GetFieldAsString( int iField )
 
           case SPF_OGR_GEOM_WKT:
           {
-              if( poGeometry == NULL )
+              if( GetGeomFieldCount() == 0 || papoGeometries[0] == NULL )
                   return "";
 
-              if (poGeometry->exportToWkt( &m_pszTmpFieldValue ) == OGRERR_NONE )
+              if (papoGeometries[0]->exportToWkt( &m_pszTmpFieldValue ) == OGRERR_NONE )
                   return m_pszTmpFieldValue;
               else
                   return "";
           }
 
           case SPF_OGR_GEOM_AREA:
-            if( poGeometry == NULL )
+            if( GetGeomFieldCount() == 0 || papoGeometries[0] == NULL )
                 return "";
 
             snprintf( szTempBuffer, TEMP_BUFFER_SIZE, "%.16g", 
-                      OGR_G_Area((OGRGeometryH)poGeometry) );
+                      OGR_G_Area((OGRGeometryH)papoGeometries[0]) );
             return m_pszTmpFieldValue = CPLStrdup( szTempBuffer );
 
           default:
@@ -1508,7 +1906,7 @@ const double *OGR_F_GetFieldAsDoubleList( OGRFeatureH hFeat, int iField,
  * modified, or freed.  Its lifetime may be very brief.
  */
 
-char **OGRFeature::GetFieldAsStringList( int iField ) const
+char **OGRFeature::GetFieldAsStringList( int iField )
 
 {
     OGRFieldDefn        *poFDefn = poDefn->GetFieldDefn( iField );
@@ -1786,11 +2184,13 @@ void OGRFeature::SetField( int iField, int nValue )
 
         if( IsFieldSet( iField) )
             CPLFree( pauFields[iField].String );
-        
+
         pauFields[iField].String = CPLStrdup( szTempBuffer );
     }
     else
-        /* do nothing for other field types */;
+    {
+        /* do nothing for other field types */
+    }
 }
 
 /************************************************************************/
@@ -1876,7 +2276,9 @@ void OGRFeature::SetField( int iField, double dfValue )
         pauFields[iField].String = CPLStrdup( szTempBuffer );
     }
     else
-        /* do nothing for other field types */;
+    {
+        /* do nothing for other field types */
+    }
 }
 
 /************************************************************************/
@@ -2007,8 +2409,18 @@ void OGRFeature::SetField( int iField, const char * pszValue )
 
         CSLDestroy(papszValueList);
     }
+    else if ( poFDefn->GetType() == OFTStringList )
+    {
+        if( pszValue && *pszValue )
+        {
+            const char *papszValues[2] = { pszValue, 0 };
+            SetField( iField, (char **) papszValues );
+        }
+    }
     else
+    {
         /* do nothing for other field types */;
+    }
 }
 
 /************************************************************************/
@@ -2528,15 +2940,17 @@ void OGRFeature::SetField( int iField, OGRField * puValue )
         else
         {
             pauFields[iField].Binary.nCount = puValue->Binary.nCount;
-            pauFields[iField].Binary.paData = 
+            pauFields[iField].Binary.paData =
                 (GByte *) CPLMalloc(puValue->Binary.nCount);
-            memcpy( pauFields[iField].Binary.paData, 
-                    puValue->Binary.paData, 
+            memcpy( pauFields[iField].Binary.paData,
+                    puValue->Binary.paData,
                     puValue->Binary.nCount );
         }
     }
     else
-        /* do nothing for other field types */;
+    {
+        /* do nothing for other field types */
+    }
 }
 
 /************************************************************************/
@@ -2631,12 +3045,26 @@ void OGRFeature::DumpReadable( FILE * fpOut, char** papszOptions )
         }
     }
 
-    if( poGeometry != NULL )
+    int nGeomFieldCount = GetGeomFieldCount();
+    if( nGeomFieldCount > 0 )
     {
         const char* pszDisplayGeometry =
                 CSLFetchNameValue(papszOptions, "DISPLAY_GEOMETRY");
         if ( ! (pszDisplayGeometry != NULL && EQUAL(pszDisplayGeometry, "NO") ) )
-            poGeometry->dumpReadable( fpOut, "  ", papszOptions );
+        {
+            for( int iField = 0; iField < nGeomFieldCount; iField++ )
+            {
+                OGRGeomFieldDefn    *poFDefn = poDefn->GetGeomFieldDefn(iField);
+
+                if( papoGeometries[iField] != NULL )
+                {
+                    fprintf( fpOut, "  " );
+                    if( strlen(poFDefn->GetNameRef()) > 0 && GetGeomFieldCount() > 1 )
+                        fprintf( fpOut, "%s = ", poFDefn->GetNameRef() );
+                    papoGeometries[iField]->dumpReadable( fpOut, "", papszOptions );
+                }
+            }
+        }
     }
 
     fprintf( fpOut, "\n" );
@@ -2912,15 +3340,22 @@ OGRBoolean OGRFeature::Equal( OGRFeature * poFeature )
         }
     }
 
-    if( GetGeometryRef() == NULL && poFeature->GetGeometryRef() != NULL )
-        return FALSE;
+    int nGeomFieldCount = GetGeomFieldCount();
+    for( i = 0; i < nGeomFieldCount; i ++ )
+    {
+        OGRGeometry* poThisGeom = GetGeomFieldRef(i);
+        OGRGeometry* poOtherGeom = poFeature->GetGeomFieldRef(i);
 
-    if( GetGeometryRef() != NULL && poFeature->GetGeometryRef() == NULL )
-        return FALSE;
+        if( poThisGeom == NULL && poOtherGeom != NULL )
+            return FALSE;
 
-    if( GetGeometryRef() != NULL && poFeature->GetGeometryRef() != NULL 
-        && (!GetGeometryRef()->Equals( poFeature->GetGeometryRef() ) ) )
-        return FALSE;
+        if( poThisGeom != NULL && poOtherGeom == NULL )
+            return FALSE;
+
+        if( poThisGeom != NULL && poOtherGeom != NULL 
+            && (!poThisGeom->Equals( poOtherGeom ) ) )
+            return FALSE;
+    }
 
     return TRUE;
 }
@@ -3088,14 +3523,41 @@ OGRErr OGRFeature::SetFrom( OGRFeature * poSrcFeature, int *panMap ,
 {
     OGRErr      eErr;
 
+    if( poSrcFeature == this )
+        return OGRERR_FAILURE;
+
     SetFID( OGRNullFID );
 
 /* -------------------------------------------------------------------- */
 /*      Set the geometry.                                               */
 /* -------------------------------------------------------------------- */
-    eErr = SetGeometry( poSrcFeature->GetGeometryRef() );
-    if( eErr != OGRERR_NONE )
-        return eErr;
+    if( GetGeomFieldCount() == 1 )
+    {
+        OGRGeomFieldDefn* poGFieldDefn = GetGeomFieldDefnRef(0);
+
+        int iSrc = poSrcFeature->GetGeomFieldIndex(
+                                    poGFieldDefn->GetNameRef());
+        if( iSrc >= 0 )
+            SetGeomField( 0, poSrcFeature->GetGeomFieldRef(iSrc) );
+        else
+            /* whatever the geometry field names are. For backward compatibility */
+            SetGeomField( 0, poSrcFeature->GetGeomFieldRef(0) );
+    }
+    else
+    {
+        int i;
+        for(i = 0; i < GetGeomFieldCount(); i++)
+        {
+            OGRGeomFieldDefn* poGFieldDefn = GetGeomFieldDefnRef(i);
+
+            int iSrc = poSrcFeature->GetGeomFieldIndex(
+                                        poGFieldDefn->GetNameRef());
+            if( iSrc >= 0 )
+                SetGeomField( i, poSrcFeature->GetGeomFieldRef(iSrc) );
+            else
+                SetGeomField( i, NULL );
+        }
+    }
 
 /* -------------------------------------------------------------------- */
 /*      Copy feature style string.                                      */
@@ -3499,6 +3961,56 @@ OGRErr OGRFeature::RemapFields( OGRFeatureDefn *poNewDefn,
 /* -------------------------------------------------------------------- */
     CPLFree( pauFields );
     pauFields = pauNewFields;
+
+    poDefn = poNewDefn;
+
+    return OGRERR_NONE;
+}
+
+/************************************************************************/
+/*                        RemapGeomFields()                             */
+/*                                                                      */
+/*      This is used to transform a feature "in place" from one         */
+/*      feature defn to another with minimum work.                      */
+/************************************************************************/
+
+OGRErr OGRFeature::RemapGeomFields( OGRFeatureDefn *poNewDefn, 
+                                    int *panRemapSource )
+
+{
+    int  iDstField;
+    OGRGeometry** papoNewGeomFields;
+
+    if( poNewDefn == NULL )
+        poNewDefn = poDefn;
+
+    papoNewGeomFields = (OGRGeometry **) CPLCalloc( poNewDefn->GetGeomFieldCount(), 
+                                           sizeof(OGRGeometry*) );
+
+    for( iDstField = 0; iDstField < poDefn->GetGeomFieldCount(); iDstField++ )
+    {
+        if( panRemapSource[iDstField] == -1 )
+        {
+            papoNewGeomFields[iDstField] = NULL;
+        }
+        else
+        {
+            papoNewGeomFields[iDstField] =
+                papoGeometries[panRemapSource[iDstField]];
+        }
+    }
+
+    /* 
+    ** We really should be freeing memory for old columns that
+    ** are no longer present.  We don't for now because it is a bit messy
+    ** and would take too long to test.  
+    */
+
+/* -------------------------------------------------------------------- */
+/*      Apply new definition and fields.                                */
+/* -------------------------------------------------------------------- */
+    CPLFree( papoGeometries );
+    papoGeometries = papoNewGeomFields;
 
     poDefn = poNewDefn;
 

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: hfatest.cpp 22802 2011-07-24 14:16:58Z rouault $
+ * $Id: hfatest.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  Erdas Imagine (.img) Translator
  * Purpose:  Testing mainline for HFA services - transitory.
@@ -7,6 +7,7 @@
  *
  ******************************************************************************
  * Copyright (c) 1999, Intergraph Corporation
+ * Copyright (c) 2009-2011, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -30,7 +31,7 @@
 #include "hfa_p.h"
 #include "cpl_multiproc.h"
 
-CPL_CVSID("$Id: hfatest.cpp 22802 2011-07-24 14:16:58Z rouault $");
+CPL_CVSID("$Id: hfatest.cpp 27044 2014-03-16 23:41:27Z rouault $");
 
 /************************************************************************/
 /*                               Usage()                                */

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: hdf4imagedataset.cpp 25848 2013-04-03 11:35:16Z dron $
+ * $Id: hdf4imagedataset.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  Hierarchical Data Format Release 4 (HDF4)
  * Purpose:  Read subdatasets of HDF4 file.
@@ -8,6 +8,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2002, Andrey Kiselev <dron@ak4719.spb.edu>
+ * Copyright (c) 2009-2013, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -46,7 +47,7 @@
 
 #include "nasakeywordhandler.h"
 
-CPL_CVSID("$Id: hdf4imagedataset.cpp 25848 2013-04-03 11:35:16Z dron $");
+CPL_CVSID("$Id: hdf4imagedataset.cpp 27044 2014-03-16 23:41:27Z rouault $");
 
 CPL_C_START
 void    GDALRegister_HDF4(void);
@@ -2160,6 +2161,11 @@ int HDF4ImageDataset::ProcessSwathGeolocation( int32 hSW, char **papszDimList )
     for ( i = 0; i < nGeolocationsCount; i++ )
     {
         char    **papszGeoDimList = NULL;
+
+        // Skip "SceneLineNumber" table if present in the list of geolocation
+        // fields. It is not needed to fetch geocoding data.
+        if ( EQUAL(papszGeolocations[i], "SceneLineNumber") )
+            continue;
 
         if ( SWfieldinfo( hSW, papszGeolocations[i], &iRank,
                           aiDimSizes, &iWrkNumType, szGeoDimList ) < 0 )

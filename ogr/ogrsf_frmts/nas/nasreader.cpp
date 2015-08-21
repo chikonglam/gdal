@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: nasreader.cpp 25656 2013-02-19 15:40:20Z ilucena $
+ * $Id: nasreader.cpp 27741 2014-09-26 19:20:02Z goatbar $
  *
  * Project:  NAS Reader
  * Purpose:  Implementation of NASReader class.
@@ -7,6 +7,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2002, Frank Warmerdam
+ * Copyright (c) 2010-2013, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -14,16 +15,16 @@
  * the rights to use, copy, modify, merge, publish, distribute, sublicense,
  * and/or sell copies of the Software, and to permit persons to whom the
  * Software is furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included
  * in all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
  * THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  ****************************************************************************/
 
@@ -31,6 +32,7 @@
 #include "cpl_error.h"
 #include "cpl_string.h"
 #include "gmlutils.h"
+#include "cpl_multiproc.h"
 
 #define SUPPORT_GEOMETRY
 
@@ -46,6 +48,8 @@
 
 #include "nasreaderp.h"
 #include "cpl_conv.h"
+
+void *NASReader::hMutex = NULL;
 
 /************************************************************************/
 /*                          CreateGMLReader()                           */
@@ -72,7 +76,7 @@ NASReader::NASReader()
     m_poNASHandler = NULL;
     m_poSAXReader = NULL;
     m_bReadStarted = FALSE;
-    
+
     m_poState = NULL;
     m_poCompleteFeature = NULL;
 
@@ -127,23 +131,29 @@ const char* NASReader::GetSourceFileName()
 int NASReader::SetupParser()
 
 {
-    static int bXercesInitialized = FALSE;
+    {
+    CPLMutexHolderD(&hMutex);
+    static int bXercesInitialized = -1;
 
-    if( !bXercesInitialized )
+    if( bXercesInitialized < 0)
     {
         try
         {
             XMLPlatformUtils::Initialize();
         }
-        
+
         catch (const XMLException& toCatch)
         {
             CPLError( CE_Warning, CPLE_AppDefined,
-                      "Exception initializing Xerces based GML reader.\n%s", 
+                      "Exception initializing Xerces based GML reader.\n%s",
                       tr_strdup(toCatch.getMessage()) );
+            bXercesInitialized = FALSE;
             return FALSE;
         }
         bXercesInitialized = TRUE;
+    }
+    if( !bXercesInitialized )
+        return FALSE;
     }
 
     // Cleanup any old parser.
@@ -156,7 +166,7 @@ int NASReader::SetupParser()
 
     try{
         m_poSAXReader = XMLReaderFactory::createXMLReader();
-    
+
         m_poNASHandler = new NASHandler( this );
 
         m_poSAXReader->setContentHandler( m_poNASHandler );
@@ -254,7 +264,7 @@ GMLFeature *NASReader::NextFeature()
             m_bReadStarted = TRUE;
         }
 
-        while( m_poCompleteFeature == NULL 
+        while( m_poCompleteFeature == NULL
                && m_poSAXReader->parseNext( m_oToFill ) ) {}
 
         poReturn = m_poCompleteFeature;
@@ -263,8 +273,8 @@ GMLFeature *NASReader::NextFeature()
     }
     catch (const XMLException& toCatch)
     {
-        CPLDebug( "NAS", 
-                  "Error during NextFeature()! Message:\n%s", 
+        CPLDebug( "NAS",
+                  "Error during NextFeature()! Message:\n%s",
                   tr_strdup( toCatch.getMessage() ) );
     }
 
@@ -281,7 +291,7 @@ GMLFeature *NASReader::NextFeature()
 /*      pushed onto the readstate stack.                                */
 /************************************************************************/
 
-void NASReader::PushFeature( const char *pszElement, 
+void NASReader::PushFeature( const char *pszElement,
                              const Attributes &attrs )
 
 {
@@ -355,10 +365,10 @@ int NASReader::IsFeatureElement( const char *pszElement )
     const char *pszLast = m_poState->GetLastComponent();
     int        nLen = strlen(pszLast);
 
-    // There seem to be two major NAS classes of feature identifiers 
-    // -- either a wfs:Insert or a gml:featureMember. 
+    // There seem to be two major NAS classes of feature identifiers
+    // -- either a wfs:Insert or a gml:featureMember.
 
-    if( (nLen < 6 || !EQUAL(pszLast+nLen-6,"Insert")) 
+    if( (nLen < 6 || !EQUAL(pszLast+nLen-6,"Insert"))
         && (nLen < 13 || !EQUAL(pszLast+nLen-13,"featureMember"))
         && (nLen < 7 || !EQUAL(pszLast+nLen-7,"Replace")) )
         return FALSE;
@@ -820,7 +830,7 @@ int NASReader::SaveClasses( const char *pszFile )
     char        *pszWholeText = CPLSerializeXMLTree( psRoot );
 
     CPLDestroyXMLNode( psRoot );
- 
+
     fp = VSIFOpen( pszFile, "wb" );
 
     if( fp == NULL )
@@ -844,8 +854,7 @@ int NASReader::SaveClasses( const char *pszFile )
 /*      looking for schema information.                                 */
 /************************************************************************/
 
-int NASReader::PrescanForSchema( int bGetExtents )
-
+int NASReader::PrescanForSchema( int bGetExtents, CPL_UNUSED int bAnalyzeSRSPerFeature )
 {
     GMLFeature  *poFeature;
 
@@ -884,8 +893,12 @@ int NASReader::PrescanForSchema( int bGetExtents )
             {
                 double  dfXMin, dfXMax, dfYMin, dfYMax;
                 OGREnvelope sEnvelope;
+
+                if( poClass->GetGeometryPropertyCount() == 0 )
+                    poClass->AddGeometryProperty( new GMLGeometryPropertyDefn( "", "", wkbUnknown ) );
+
                 OGRwkbGeometryType eGType = (OGRwkbGeometryType)
-                    poClass->GetGeometryType();
+                    poClass->GetGeometryProperty(0)->GetType();
 
                 // Merge SRSName into layer.
                 const char* pszSRSName = GML_ExtractSrsNameFromGeometry(papsGeometry, osWork, FALSE);
@@ -897,7 +910,7 @@ int NASReader::PrescanForSchema( int bGetExtents )
                 if( poClass->GetFeatureCount() == 1 && eGType == wkbUnknown )
                     eGType = wkbNone;
 
-                poClass->SetGeometryType(
+                poClass->GetGeometryProperty(0)->SetType(
                     (int) OGRMergeGeometryTypes(
                         eGType, poGeometry->getGeometryType() ) );
 
@@ -923,9 +936,12 @@ int NASReader::PrescanForSchema( int bGetExtents )
             }
             else
             {
-                if( poClass->GetGeometryType() == (int) wkbUnknown
+                if( poClass->GetGeometryPropertyCount() == 1 &&
+                    poClass->GetGeometryProperty(0)->GetType() == (int) wkbUnknown
                     && poClass->GetFeatureCount() == 1 )
-                    poClass->SetGeometryType( wkbNone );
+                {
+                    poClass->ClearGeometryProperties();
+                }
             }
 #endif /* def SUPPORT_GEOMETRY */
         }
@@ -983,7 +999,8 @@ void NASReader::CheckForFID( const Attributes &attrs,
 /************************************************************************/
 
 void NASReader::CheckForRelations( const char *pszElement,
-                                   const Attributes &attrs )
+                                   const Attributes &attrs,
+                                   char **ppszCurField )
 
 {
     GMLFeature *poFeature = GetState()->m_poFeature;
@@ -1001,7 +1018,12 @@ void NASReader::CheckForRelations( const char *pszElement,
         char *pszHRef = tr_strdup( attrs.getValue( nIndex ) );
 
         if( EQUALN(pszHRef,"urn:adv:oid:", 12 ) )
+        {
             poFeature->AddOBProperty( pszElement, pszHRef );
+            if( ppszCurField && *ppszCurField )
+                CPLFree( *ppszCurField );
+            *ppszCurField = CPLStrdup( pszHRef + 12 );
+        }
 
         CPLFree( pszHRef );
     }
@@ -1012,10 +1034,9 @@ void NASReader::CheckForRelations( const char *pszElement,
 /*      Returns TRUE for success                                        */
 /************************************************************************/
 
-int NASReader::HugeFileResolver( const char *pszFile,
-                              int bSqliteIsTempFile,
-                              int iSqliteCacheMB )
-
+int NASReader::HugeFileResolver( CPL_UNUSED const char *pszFile,
+                                 CPL_UNUSED int bSqliteIsTempFile,
+                                 CPL_UNUSED int iSqliteCacheMB )
 {
     CPLDebug( "NAS", "HugeFileResolver() not currently implemented for NAS." );
     return FALSE;
@@ -1038,11 +1059,10 @@ int NASReader::PrescanForTemplate( void )
 /*      Returns TRUE for success                                        */
 /************************************************************************/
 
-int NASReader::ResolveXlinks( const char *pszFile,
-                              int* pbOutIsTempFile,
-                              char **papszSkip,
-                              const int bStrict )
-
+int NASReader::ResolveXlinks( CPL_UNUSED const char *pszFile,
+                              CPL_UNUSED int* pbOutIsTempFile,
+                              CPL_UNUSED char **papszSkip,
+                              CPL_UNUSED const int bStrict )
 {
     CPLDebug( "NAS", "ResolveXlinks() not currently implemented for NAS." );
     return FALSE;

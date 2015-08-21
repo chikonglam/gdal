@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrodbctablelayer.cpp 24961 2012-09-23 18:06:49Z rouault $
+ * $Id: ogrodbctablelayer.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implements OGRODBCTableLayer class, access to an existing table.
@@ -7,6 +7,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2003, Frank Warmerdam
+ * Copyright (c) 2009-2012, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -30,7 +31,7 @@
 #include "cpl_conv.h"
 #include "ogr_odbc.h"
 
-CPL_CVSID("$Id: ogrodbctablelayer.cpp 24961 2012-09-23 18:06:49Z rouault $");
+CPL_CVSID("$Id: ogrodbctablelayer.cpp 27044 2014-03-16 23:41:27Z rouault $");
 /************************************************************************/
 /*                          OGRODBCTableLayer()                         */
 /************************************************************************/
@@ -306,6 +307,9 @@ OGRFeature *OGRODBCTableLayer::GetFeature( long nFeatureId )
 OGRErr OGRODBCTableLayer::SetAttributeFilter( const char *pszQuery )
 
 {
+    CPLFree(m_pszAttrQueryString);
+    m_pszAttrQueryString = (pszQuery) ? CPLStrdup(pszQuery) : NULL;
+
     if( (pszQuery == NULL && this->pszQuery == NULL)
         || (pszQuery != NULL && this->pszQuery != NULL 
             && EQUAL(pszQuery,this->pszQuery)) )

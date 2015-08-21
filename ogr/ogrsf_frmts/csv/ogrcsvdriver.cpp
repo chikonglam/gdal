@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrcsvdriver.cpp 23830 2012-01-30 23:07:44Z rouault $
+ * $Id: ogrcsvdriver.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  CSV Translator
  * Purpose:  Implements OGRCSVDriver.
@@ -7,6 +7,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2004, Frank Warmerdam <warmerdam@pobox.com>
+ * Copyright (c) 2010-2013, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -30,7 +31,7 @@
 #include "ogr_csv.h"
 #include "cpl_conv.h"
 
-CPL_CVSID("$Id: ogrcsvdriver.cpp 23830 2012-01-30 23:07:44Z rouault $");
+CPL_CVSID("$Id: ogrcsvdriver.cpp 27044 2014-03-16 23:41:27Z rouault $");
 
 /************************************************************************/
 /*                           ~OGRCSVDriver()                            */
@@ -141,6 +142,10 @@ OGRDataSource *OGRCSVDriver::CreateDataSource( const char * pszName,
 
     if( osDirName != pszName )
         poDS->SetDefaultCSVName( CPLGetFilename(pszName) );
+    
+    const char *pszGeometry = CSLFetchNameValue( papszOptions, "GEOMETRY");
+    if (pszGeometry != NULL && EQUAL(pszGeometry, "AS_WKT"))
+        poDS->EnableGeometryFields();
 
     return poDS;
 }

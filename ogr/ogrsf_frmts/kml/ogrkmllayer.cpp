@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrkmllayer.cpp 26347 2013-08-20 18:22:32Z rouault $
+ * $Id: ogrkmllayer.cpp 27729 2014-09-24 00:40:16Z goatbar $
  *
  * Project:  KML Driver
  * Purpose:  Implementation of OGRKMLLayer class.
@@ -8,6 +8,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2006, Christopher Condit
+ * Copyright (c) 2007-2014, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -93,6 +94,8 @@ OGRKMLLayer::OGRKMLLayer( const char * pszName,
     poFeatureDefn_ = new OGRFeatureDefn( pszName );
     poFeatureDefn_->Reference();
     poFeatureDefn_->SetGeomType( eReqType );
+    if( poFeatureDefn_->GetGeomFieldCount() != 0 )
+        poFeatureDefn_->GetGeomFieldDefn(0)->SetSpatialRef(poSRS_);
 
     OGRFieldDefn oFieldName( "Name", OFTString );
     poFeatureDefn_->AddFieldDefn( &oFieldName );
@@ -103,6 +106,7 @@ OGRKMLLayer::OGRKMLLayer( const char * pszName,
     bWriter_ = bWriterIn;
     nWroteFeatureCount_ = 0;
     bClosedForWriting = (bWriterIn == FALSE);
+    bSchemaWritten_ = FALSE;
 
     pszName_ = CPLStrdup(pszName);
 }
@@ -236,12 +240,11 @@ int OGRKMLLayer::GetFeatureCount( int bForce )
 /*                           WriteSchema()                              */
 /************************************************************************/
 
-void OGRKMLLayer::WriteSchema()
+CPLString OGRKMLLayer::WriteSchema()
 {
-    if (0 != nWroteFeatureCount_)
+    CPLString osRet;
+    if ( !(bSchemaWritten_) )
     {
-        VSILFILE *fp = poDS_->GetOutputFP();
-        int nFieldsWritten = 0;
         OGRFeatureDefn *featureDefinition = GetLayerDefn();
         for (int j=0; j < featureDefinition->GetFieldCount(); j++)
         {
@@ -255,11 +258,10 @@ void OGRKMLLayer::WriteSchema()
                 EQUAL(fieldDefinition->GetNameRef(), poDS_->GetDescriptionField()) )
                 continue;
 
-            if( nFieldsWritten == 0 )
+            if( osRet.size() == 0 )
             {
-                VSIFPrintfL( fp, "<Schema name=\"%s\" id=\"%s\">\n", pszName_, pszName_ );
+                osRet += CPLSPrintf( "<Schema name=\"%s\" id=\"%s\">\n", pszName_, pszName_ );
             }
-            nFieldsWritten ++;
 
             const char* pszKMLType = NULL;
             const char* pszKMLEltName = NULL;
@@ -290,10 +292,6 @@ void OGRKMLLayer::WriteSchema()
                 pszKMLType = "string";
                 pszKMLEltName = "SimpleArrayField";
                 break;
-              case OFTBinary:
-                pszKMLType = "bool";
-                pszKMLEltName = "SimpleField";
-                break;
                 //TODO: KML doesn't handle these data types yet...
               case OFTDate:                
               case OFTTime:                
@@ -307,12 +305,13 @@ void OGRKMLLayer::WriteSchema()
                 pszKMLEltName = "SimpleField";
                 break;
             }
-            VSIFPrintfL( fp, "\t<%s name=\"%s\" type=\"%s\"></%s>\n", 
+            osRet += CPLSPrintf( "\t<%s name=\"%s\" type=\"%s\"></%s>\n", 
                         pszKMLEltName, fieldDefinition->GetNameRef() ,pszKMLType, pszKMLEltName );
         }
-        if( nFieldsWritten > 0 )
-            VSIFPrintfL( fp, "</Schema>\n" );
+        if( osRet.size() )
+            osRet += CPLSPrintf( "%s", "</Schema>\n" );
     }
+    return osRet;
 }
 
 /************************************************************************/
@@ -336,6 +335,16 @@ OGRErr OGRKMLLayer::CreateFeature( OGRFeature* poFeature )
 
     VSILFILE *fp = poDS_->GetOutputFP();
     CPLAssert( NULL != fp );
+
+    if( poDS_->GetLayerCount() == 1 && nWroteFeatureCount_ == 0 )
+    {
+        CPLString osRet = WriteSchema();
+        if( osRet.size() )
+            VSIFPrintfL( fp, "%s", osRet.c_str() );
+        bSchemaWritten_ = TRUE;
+
+        VSIFPrintfL( fp, "<Folder><name>%s</name>\n", pszName_);
+    }
 
     VSIFPrintfL( fp, "  <Placemark>\n" );
 
@@ -590,7 +599,7 @@ int OGRKMLLayer::TestCapability( const char * pszCap )
 /*                            CreateField()                             */
 /************************************************************************/
 
-OGRErr OGRKMLLayer::CreateField( OGRFieldDefn *poField, int bApproxOK )
+OGRErr OGRKMLLayer::CreateField( OGRFieldDefn *poField, CPL_UNUSED int bApproxOK )
 {
     if( !bWriter_ || iNextKMLId_ != 0 )
         return OGRERR_FAILURE;
@@ -599,15 +608,6 @@ OGRErr OGRKMLLayer::CreateField( OGRFieldDefn *poField, int bApproxOK )
     poFeatureDefn_->AddFieldDefn( &oCleanCopy );
 
     return OGRERR_NONE;
-}
-
-/************************************************************************/
-/*                           GetSpatialRef()                            */
-/************************************************************************/
-
-OGRSpatialReference *OGRKMLLayer::GetSpatialRef()
-{
-    return poSRS_;
 }
 
 /************************************************************************/

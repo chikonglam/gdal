@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrspatialreference.cpp 25627 2013-02-10 10:17:19Z rouault $
+ * $Id: ogrspatialreference.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  The OGRSpatialReference class.
@@ -7,6 +7,7 @@
  *
  ******************************************************************************
  * Copyright (c) 1999,  Les Technologies SoftMap Inc.
+ * Copyright (c) 2008-2013, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -33,7 +34,7 @@
 #include "cpl_http.h"
 #include "cpl_atomic_ops.h"
 
-CPL_CVSID("$Id: ogrspatialreference.cpp 25627 2013-02-10 10:17:19Z rouault $");
+CPL_CVSID("$Id: ogrspatialreference.cpp 27044 2014-03-16 23:41:27Z rouault $");
 
 // The current opinion is that WKT longitudes like central meridian
 // should be relative to greenwich, not the prime meridian in use. 
@@ -1972,7 +1973,7 @@ OGRErr OGRSpatialReference::SetFromUserInput( const char * pszDefinition )
 
                 CPLString osName = poHorizSRS->GetChild(0)->GetValue();
                 osName += " + ";
-                osName += oVertSRS.GetRoot()->GetValue();
+                osName += oVertSRS.GetRoot()->GetChild(0)->GetValue();
 
                 SetNode( "COMPD_CS", osName );
                 GetRoot()->AddChild( poHorizSRS );
@@ -2452,7 +2453,7 @@ OGRErr OGRSpatialReference::importFromURN( const char *pszURN )
 
             CPLString osName = poHorizSRS->GetChild(0)->GetValue();
             osName += " + ";
-            osName += oVertSRS.GetRoot()->GetValue();
+            osName += oVertSRS.GetRoot()->GetChild(0)->GetValue();
 
             SetNode( "COMPD_CS", osName );
             GetRoot()->AddChild( poHorizSRS );

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrgeometrycollection.cpp 25426 2013-01-01 17:51:35Z rouault $
+ * $Id: ogrgeometrycollection.cpp 27610 2014-08-27 15:47:43Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  The OGRGeometryCollection class.
@@ -7,6 +7,7 @@
  *
  ******************************************************************************
  * Copyright (c) 1999, Frank Warmerdam
+ * Copyright (c) 2008-2013, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -30,7 +31,7 @@
 #include "ogr_geometry.h"
 #include "ogr_p.h"
 
-CPL_CVSID("$Id: ogrgeometrycollection.cpp 25426 2013-01-01 17:51:35Z rouault $");
+CPL_CVSID("$Id: ogrgeometrycollection.cpp 27610 2014-08-27 15:47:43Z rouault $");
 
 /************************************************************************/
 /*                       OGRGeometryCollection()                        */
@@ -399,18 +400,12 @@ OGRErr OGRGeometryCollection::importFromWkbInternal( unsigned char * pabyData,
 /*      geometry type is between 0 and 255 so we only have to fetch     */
 /*      one byte.                                                       */
 /* -------------------------------------------------------------------- */
+
+    OGRBoolean b3D;
     OGRwkbGeometryType eGeometryType;
+    OGRErr err = OGRReadWKBGeometryType( pabyData, &eGeometryType, &b3D );
 
-    if( eByteOrder == wkbNDR )
-    {
-        eGeometryType = (OGRwkbGeometryType) pabyData[1];
-    }
-    else
-    {
-        eGeometryType = (OGRwkbGeometryType) pabyData[4];
-    }
-
-    if ( eGeometryType != wkbFlatten(getGeometryType()) )
+    if ( err != OGRERR_NONE || eGeometryType != wkbFlatten(getGeometryType()) )
         return OGRERR_CORRUPT_DATA;
 
 /* -------------------------------------------------------------------- */
@@ -471,10 +466,9 @@ OGRErr OGRGeometryCollection::importFromWkbInternal( unsigned char * pabyData,
             return OGRERR_CORRUPT_DATA;
 
         OGRwkbGeometryType eSubGeomType;
-        if( eSubGeomByteOrder == wkbNDR )
-            eSubGeomType = (OGRwkbGeometryType) pabySubData[1];
-        else
-            eSubGeomType = (OGRwkbGeometryType) pabySubData[4];
+        OGRBoolean bIs3D;
+        if ( OGRReadWKBGeometryType( pabySubData, &eSubGeomType, &bIs3D ) != OGRERR_NONE )
+            return OGRERR_FAILURE;
 
         if( eSubGeomType == wkbPoint ||
             eSubGeomType == wkbLineString ||
@@ -550,7 +544,8 @@ OGRErr OGRGeometryCollection::importFromWkb( unsigned char * pabyData,
 /************************************************************************/
 
 OGRErr  OGRGeometryCollection::exportToWkb( OGRwkbByteOrder eByteOrder,
-                                            unsigned char * pabyData ) const
+                                            unsigned char * pabyData,
+                                            OGRwkbVariant eWkbVariant ) const
 
 {
     int         nOffset;
@@ -565,6 +560,9 @@ OGRErr  OGRGeometryCollection::exportToWkb( OGRwkbByteOrder eByteOrder,
 /*      preserved.                                                      */
 /* -------------------------------------------------------------------- */
     GUInt32 nGType = getGeometryType();
+    
+    if ( eWkbVariant == wkbVariantIso )
+        nGType = getIsoGeometryType();
     
     if( eByteOrder == wkbNDR )
         nGType = CPL_LSBWORD32( nGType );
@@ -595,7 +593,7 @@ OGRErr  OGRGeometryCollection::exportToWkb( OGRwkbByteOrder eByteOrder,
 /* ==================================================================== */
     for( int iGeom = 0; iGeom < nGeomCount; iGeom++ )
     {
-        papoGeoms[iGeom]->exportToWkb( eByteOrder, pabyData + nOffset );
+        papoGeoms[iGeom]->exportToWkb( eByteOrder, pabyData + nOffset, eWkbVariant );
 
         nOffset += papoGeoms[iGeom]->WkbSize();
     }
@@ -949,6 +947,9 @@ OGRBoolean OGRGeometryCollection::Equals( OGRGeometry * poOther ) const
     
     if( poOther->getGeometryType() != getGeometryType() )
         return FALSE;
+
+    if ( IsEmpty() && poOther->IsEmpty() )
+        return TRUE;
 
     if( getNumGeometries() != poOGC->getNumGeometries() )
         return FALSE;

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gtmtracklayer.cpp 21684 2011-02-11 22:14:01Z warmerdam $
+ * $Id: gtmtracklayer.cpp 27729 2014-09-24 00:40:16Z goatbar $
  *
  * Project:  GTM Driver
  * Purpose:  Implementation of GTMTrackLayer class.
@@ -32,7 +32,7 @@
 
 GTMTrackLayer::GTMTrackLayer( const char* pszName,
                               OGRSpatialReference* poSRSIn,
-                              int bWriterIn,
+                              CPL_UNUSED int bWriterIn,
                               OGRGTMDataSource* poDSIn )
 {
     poCT = NULL;
@@ -81,6 +81,7 @@ GTMTrackLayer::GTMTrackLayer( const char* pszName,
     poFeatureDefn = new OGRFeatureDefn( pszName );
     poFeatureDefn->Reference();
     poFeatureDefn->SetGeomType ( wkbLineString );
+    poFeatureDefn->GetGeomFieldDefn(0)->SetSpatialRef(poSRS);
 
     /* We implement just name, type, and color for tracks, if others
        needed feel free to append more parameters and implement the

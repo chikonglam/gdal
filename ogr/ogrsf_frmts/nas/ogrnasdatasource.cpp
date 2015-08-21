@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrnasdatasource.cpp 25553 2013-01-26 11:45:56Z rouault $
+ * $Id: ogrnasdatasource.cpp 28132 2014-12-11 22:31:03Z jef $
  *
  * Project:  OGR
  * Purpose:  Implements OGRNASDataSource class.
@@ -7,6 +7,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2002, Frank Warmerdam <warmerdam@pobox.com>
+ * Copyright (c) 2010-2013, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -31,7 +32,7 @@
 #include "cpl_conv.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: ogrnasdatasource.cpp 25553 2013-01-26 11:45:56Z rouault $");
+CPL_CVSID("$Id: ogrnasdatasource.cpp 28132 2014-12-11 22:31:03Z jef $");
 
 static const char *apszURNNames[] =
 {
@@ -132,11 +133,23 @@ int OGRNASDataSource::Open( const char * pszNewName, int bTestOpen )
 /* -------------------------------------------------------------------- */
 /*      Here, we expect the opening chevrons of NAS tree root element   */
 /* -------------------------------------------------------------------- */
-        if( szPtr[0] != '<'
-            || strstr(szPtr,"opengis.net/gml") == NULL
-            || (strstr(szPtr,"NAS-Operationen.xsd") == NULL &&
-                strstr(szPtr,"AAA-Fachschema.xsd") == NULL ) )
+        bool bFound = FALSE;
+        if( szPtr[0] == '<' && strstr(szPtr,"opengis.net/gml") != NULL )
         {
+            char **papszIndicators = CSLTokenizeStringComplex( CPLGetConfigOption( "NAS_INDICATOR", "NAS-Operationen.xsd;NAS-Operationen_optional.xsd;AAA-Fachschema.xsd" ), ";", 0, 0 );
+
+            for( int i = 0; papszIndicators[i] && !bFound; i++ )
+            {
+                bFound = strstr( szPtr, papszIndicators[i] ) != NULL;
+            }
+
+            CSLDestroy( papszIndicators );
+        }
+
+        if( !bFound )
+        {
+            /*CPLDebug( "NAS",
+                      "Skipping. No chevrons of NAS found [%s]\n", szPtr );*/
             VSIFClose( fp );
             return FALSE;
         }
@@ -264,11 +277,15 @@ OGRNASLayer *OGRNASDataSource::TranslateNASSchema( GMLFeatureClass *poClass )
 
 {
     OGRNASLayer *poLayer;
-    OGRwkbGeometryType eGType
-        = (OGRwkbGeometryType) poClass->GetGeometryType();
+    OGRwkbGeometryType eGType = wkbNone;
 
-    if( poClass->GetFeatureCount() == 0 )
-        eGType = wkbUnknown;
+    if( poClass->GetGeometryPropertyCount() != 0 )
+    {
+        eGType = (OGRwkbGeometryType) poClass->GetGeometryProperty(0)->GetType();
+
+        if( poClass->GetFeatureCount() == 0 )
+            eGType = wkbUnknown;
+    }
 
 /* -------------------------------------------------------------------- */
 /*      Translate SRS.                                                  */
@@ -372,8 +389,7 @@ OGRLayer *OGRNASDataSource::GetLayer( int iLayer )
 /*                           TestCapability()                           */
 /************************************************************************/
 
-int OGRNASDataSource::TestCapability( const char * pszCap )
-
+int OGRNASDataSource::TestCapability( CPL_UNUSED const char * pszCap )
 {
     return FALSE;
 }

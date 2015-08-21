@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ili2handler.cpp 24408 2012-05-11 21:31:45Z pka $
+ * $Id: ili2handler.cpp 27741 2014-09-26 19:20:02Z goatbar $
  *
  * Project:  Interlis 2 Reader
  * Purpose:  Implementation of ILI2Handler class.
@@ -7,6 +7,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2004, Pirmin Kalberer, Sourcepole AG
+ * Copyright (c) 2008, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -34,7 +35,7 @@
 #include "ili2readerp.h"
 #include <xercesc/sax2/Attributes.hpp>
 
-CPL_CVSID("$Id: ili2handler.cpp 24408 2012-05-11 21:31:45Z pka $");
+CPL_CVSID("$Id: ili2handler.cpp 27741 2014-09-26 19:20:02Z goatbar $");
 
 // 
 // constants
@@ -85,22 +86,21 @@ void ILI2Handler::startDocument() {
 void ILI2Handler::endDocument() {
   // nothing to do
 }
-    
+
 void ILI2Handler::startElement(
-        const   XMLCh* const    uri,
-        const   XMLCh* const    localname,
-        const   XMLCh* const    qname,
-        const   Attributes& attrs
+    CPL_UNUSED const XMLCh* const uri,
+    CPL_UNUSED const XMLCh* const localname,
+    const XMLCh* const qname,
+    const Attributes& attrs
     ) {
-  
   // start to add the layers, features with the DATASECTION
   char *tmpC = NULL;
   m_nEntityCounter = 0;
   if ((level >= 0) || (cmpStr(ILI2_DATASECTION, tmpC = XMLString::transcode(qname)) == 0)) {
     level++;
-    
-    if (level >= 2) { 
-      
+
+    if (level >= 2) {
+
       // create the dom tree
       DOMElement *elem = (DOMElement*)dom_doc->createElement(qname);
       
@@ -116,15 +116,14 @@ void ILI2Handler::startElement(
 }
 
 void ILI2Handler::endElement(
-        const   XMLCh* const    uri,
-        const   XMLCh* const    localname,
-        const   XMLCh* const    qname
+    CPL_UNUSED const XMLCh* const uri,
+    CPL_UNUSED const XMLCh* const localname,
+    CPL_UNUSED const XMLCh* const qname
     ) {
-    
   m_nEntityCounter = 0;
   if (level >= 0) {
     if (level == 2) {
-    
+
       // go to the parent element and parse the child element
       DOMElement* childElem = dom_elem;
       dom_elem = (DOMElement*)dom_elem->getParentNode();
@@ -134,7 +133,7 @@ void ILI2Handler::endElement(
       // remove the child element
       childElem = (DOMElement*)dom_elem->removeChild(childElem);
     } else if (level >= 3) {
-    
+
       // go to the parent element
       dom_elem = (DOMElement*)dom_elem->getParentNode();
     }
@@ -148,16 +147,15 @@ void ILI2Handler::endElement(
 /************************************************************************/
 
 void ILI2Handler::characters( const XMLCh *const chars,
-                     const XMLSize_t length ) {
-  
+                              CPL_UNUSED const XMLSize_t length ) {
   // add the text element
   if (level >= 3) {
     char *tmpC = XMLString::transcode(chars);
-    
+
     // only add the text if it is not empty
-    if (trim(tmpC) != "") 
+    if (trim(tmpC) != "")
       dom_elem->appendChild(dom_doc->createTextNode(chars));
-    
+
     XMLString::release(&tmpC);
   }
 }
@@ -183,7 +181,7 @@ void ILI2Handler::characters( const XMLCh *const chars,
 }
 #endif
 
-void ILI2Handler::startEntity (const XMLCh *const name)
+void ILI2Handler::startEntity (CPL_UNUSED const XMLCh *const name)
 {
     m_nEntityCounter++;
     if (m_nEntityCounter > 1000)

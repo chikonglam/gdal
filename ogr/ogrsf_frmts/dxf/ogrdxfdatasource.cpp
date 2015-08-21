@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrdxfdatasource.cpp 25811 2013-03-29 22:16:56Z rouault $
+ * $Id: ogrdxfdatasource.cpp 27729 2014-09-24 00:40:16Z goatbar $
  *
  * Project:  DXF Translator
  * Purpose:  Implements OGRDXFDataSource class
@@ -7,6 +7,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2009, Frank Warmerdam <warmerdam@pobox.com>
+ * Copyright (c) 2010-2013, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -31,7 +32,7 @@
 #include "cpl_conv.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: ogrdxfdatasource.cpp 25811 2013-03-29 22:16:56Z rouault $");
+CPL_CVSID("$Id: ogrdxfdatasource.cpp 27729 2014-09-24 00:40:16Z goatbar $");
 
 /************************************************************************/
 /*                          OGRDXFDataSource()                          */
@@ -73,8 +74,7 @@ OGRDXFDataSource::~OGRDXFDataSource()
 /*                           TestCapability()                           */
 /************************************************************************/
 
-int OGRDXFDataSource::TestCapability( const char * pszCap )
-
+int OGRDXFDataSource::TestCapability( CPL_UNUSED const char * pszCap )
 {
     return FALSE;
 }
@@ -134,17 +134,27 @@ int OGRDXFDataSource::Open( const char * pszFilename, int bHeaderOnly )
         return FALSE;
 
     if( ReadValue( szLineBuf ) != 2 
-        || (!EQUAL(szLineBuf,"HEADER") && !EQUAL(szLineBuf,"ENTITIES")) )
+        || (!EQUAL(szLineBuf,"HEADER") && !EQUAL(szLineBuf,"ENTITIES") && !EQUAL(szLineBuf,"TABLES")) )
         return FALSE;
 
     if( EQUAL(szLineBuf,"ENTITIES") )
         bEntitiesOnly = TRUE;
 
+    /* Some files might have no header but begin directly with a TABLES section */
+    else if( EQUAL(szLineBuf,"TABLES") )
+    {
+        if( CPLGetConfigOption( "DXF_ENCODING", NULL ) != NULL )
+            osEncoding = CPLGetConfigOption( "DXF_ENCODING", NULL );
+
+        ReadTablesSection();
+        ReadValue(szLineBuf);
+    }
+
 /* -------------------------------------------------------------------- */
 /*      Process the header, picking up a few useful pieces of           */
 /*      information.                                                    */
 /* -------------------------------------------------------------------- */
-    if( !bEntitiesOnly )
+    else /* if( EQUAL(szLineBuf,"HEADER") ) */
     {
         ReadHeaderSection();
         ReadValue(szLineBuf);

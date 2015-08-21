@@ -1,5 +1,5 @@
 /**********************************************************************
- * $Id: cpl_multiproc.cpp 25780 2013-03-22 19:36:58Z warmerdam $
+ * $Id: cpl_multiproc.cpp 27720 2014-09-21 17:58:47Z goatbar $
  *
  * Project:  CPL - Common Portability Library
  * Purpose:  CPL Multi-Threading, and process handling portability functions.
@@ -7,6 +7,7 @@
  *
  **********************************************************************
  * Copyright (c) 2002, Frank Warmerdam
+ * Copyright (c) 2009-2013, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -40,7 +41,7 @@
 #  include <wce_time.h>
 #endif
 
-CPL_CVSID("$Id: cpl_multiproc.cpp 25780 2013-03-22 19:36:58Z warmerdam $");
+CPL_CVSID("$Id: cpl_multiproc.cpp 27720 2014-09-21 17:58:47Z goatbar $");
 
 #if defined(CPL_MULTIPROC_STUB) && !defined(DEBUG)
 #  define MUTEX_NONE
@@ -84,6 +85,29 @@ CPLMutexHolder::CPLMutexHolder( void **phMutex, double dfWaitInSeconds,
 #endif
 
         hMutex = *phMutex;
+    }
+#endif /* ndef MUTEX_NONE */
+}
+
+/************************************************************************/
+/*                           CPLMutexHolder()                           */
+/************************************************************************/
+
+CPLMutexHolder::CPLMutexHolder( void *hMutexIn, double dfWaitInSeconds,
+                                const char *pszFileIn, 
+                                int nLineIn )
+
+{
+#ifndef MUTEX_NONE
+    pszFile = pszFileIn;
+    nLine = nLineIn;
+    hMutex = hMutexIn;
+
+    if( hMutex != NULL &&
+        !CPLAcquireMutex( hMutex, dfWaitInSeconds ) )
+    {
+        fprintf( stderr, "CPLMutexHolder: Failed to acquire mutex!\n" );
+        hMutex = NULL;
     }
 #endif /* ndef MUTEX_NONE */
 }
@@ -747,8 +771,9 @@ void  CPLCondWait( void *hCond, void* hClientMutex )
     /* Release the client mutex before waiting for the event being signaled */
     CPLReleaseMutex(hClientMutex);
 
-    DWORD nRet = WaitForSingleObject(hEvent, INFINITE);
-    CPLAssert (nRet != WAIT_FAILED);
+    // Ideally we would check that we do not get WAIT_FAILED but it is hard 
+    // to report a failure.
+    WaitForSingleObject(hEvent, INFINITE);
 
     /* Reacquire the client mutex */
     CPLAcquireMutex(hClientMutex, 1000.0);
@@ -1181,8 +1206,7 @@ void *CPLCreateMutex()
 /*                          CPLAcquireMutex()                           */
 /************************************************************************/
 
-int CPLAcquireMutex( void *hMutexIn, double dfWaitInSeconds )
-
+int CPLAcquireMutex( void *hMutexIn, CPL_UNUSED double dfWaitInSeconds )
 {
     int err;
 

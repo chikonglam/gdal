@@ -8,6 +8,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2007, Adam Nowacki
+ * Copyright (c) 2011-2012, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -28,7 +29,8 @@
  * DEALINGS IN THE SOFTWARE.
  ****************************************************************************/
 
-#include "stdinc.h"
+#include "wmsdriver.h"
+#include "minidriver_tiled_wms.h"
 
 CPP_GDALWMSMiniDriverFactory(TiledWMS)
 
@@ -679,7 +681,8 @@ void GDALWMSMiniDriver_TiledWMS::GetCapabilities(GDALWMSMiniDriverCapabilities *
 
 
 // not called
-void GDALWMSMiniDriver_TiledWMS::ImageRequest(CPLString *url, const GDALWMSImageRequestInfo &iri) {
+void GDALWMSMiniDriver_TiledWMS::ImageRequest(CPL_UNUSED CPLString *url,
+                                              CPL_UNUSED const GDALWMSImageRequestInfo &iri) {
 }
 
 void GDALWMSMiniDriver_TiledWMS::TiledImageRequest(CPLString *url, const GDALWMSImageRequestInfo &iri, const GDALWMSTiledImageRequestInfo &tiri) {

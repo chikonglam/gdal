@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrsqlitedatasource.cpp 26252 2013-07-30 21:07:00Z rouault $
+ * $Id: ogrsqlitedatasource.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implements OGRSQLiteDataSource class.
@@ -14,6 +14,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2003, Frank Warmerdam <warmerdam@pobox.com>
+ * Copyright (c) 2009-2013, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -45,47 +46,89 @@
 #include "spatialite.h"
 #endif
 
-static int bSpatialiteLoaded = FALSE;
+#ifndef SPATIALITE_412_OR_LATER
+static int bSpatialiteGlobalLoaded = FALSE;
+#endif
 
-CPL_CVSID("$Id: ogrsqlitedatasource.cpp 26252 2013-07-30 21:07:00Z rouault $");
+CPL_CVSID("$Id: ogrsqlitedatasource.cpp 27044 2014-03-16 23:41:27Z rouault $");
 
 /************************************************************************/
-/*                      OGRSQLiteInitSpatialite()                       */
+/*                      OGRSQLiteInitOldSpatialite()                    */
 /************************************************************************/
 
-static int OGRSQLiteInitSpatialite()
+#ifndef SPATIALITE_412_OR_LATER
+
+static int OGRSQLiteInitOldSpatialite()
 {
 /* -------------------------------------------------------------------- */
 /*      Try loading SpatiaLite.                                         */
 /* -------------------------------------------------------------------- */
 #ifdef HAVE_SPATIALITE
-    if (!bSpatialiteLoaded && CSLTestBoolean(CPLGetConfigOption("SPATIALITE_LOAD", "TRUE")))
+    if (!bSpatialiteGlobalLoaded && CSLTestBoolean(CPLGetConfigOption("SPATIALITE_LOAD", "TRUE")))
     {
-        bSpatialiteLoaded = TRUE;
+        bSpatialiteGlobalLoaded = TRUE;
         spatialite_init(CSLTestBoolean(CPLGetConfigOption("SPATIALITE_INIT_VERBOSE", "FALSE")));
     }
 #endif
-    return bSpatialiteLoaded;
+    return bSpatialiteGlobalLoaded;
 }
 
+#else
+
 /************************************************************************/
-/*                     OGRSQLiteIsSpatialiteLoaded()                    */
+/*                          InitNewSpatialite()                         */
 /************************************************************************/
 
-int OGRSQLiteIsSpatialiteLoaded()
+int OGRSQLiteDataSource::InitNewSpatialite()
 {
-    return bSpatialiteLoaded;
+    if( CSLTestBoolean(CPLGetConfigOption("SPATIALITE_LOAD", "TRUE")) )
+    {
+        hSpatialiteCtxt = spatialite_alloc_connection();
+        if( hSpatialiteCtxt != NULL )
+        {
+            spatialite_init_ex(hDB, hSpatialiteCtxt,
+                CSLTestBoolean(CPLGetConfigOption("SPATIALITE_INIT_VERBOSE", "FALSE")));
+        }
+    }
+    return hSpatialiteCtxt != NULL;
 }
 
 /************************************************************************/
-/*               OGRSQLiteGetSpatialiteVersionNumber()                  */
+/*                         FinishNewSpatialite()                        */
 /************************************************************************/
 
-int OGRSQLiteGetSpatialiteVersionNumber()
+void OGRSQLiteDataSource::FinishNewSpatialite()
+{
+    if( hSpatialiteCtxt != NULL )
+    {
+        spatialite_cleanup_ex(hSpatialiteCtxt);
+    }
+}
+
+#endif
+
+/************************************************************************/
+/*                          IsSpatialiteLoaded()                        */
+/************************************************************************/
+
+int OGRSQLiteDataSource::IsSpatialiteLoaded()
+{
+#ifdef SPATIALITE_412_OR_LATER
+    return hSpatialiteCtxt != NULL;
+#else
+    return bSpatialiteGlobalLoaded;
+#endif
+}
+
+/************************************************************************/
+/*                     GetSpatialiteVersionNumber()                     */
+/************************************************************************/
+
+int OGRSQLiteDataSource::GetSpatialiteVersionNumber()
 {
     int v = 0;
 #ifdef HAVE_SPATIALITE
-    if( bSpatialiteLoaded )
+    if( IsSpatialiteLoaded() )
     {
         v = (int)(( atof( spatialite_version() ) + 0.001 )  * 10.0);
     }
@@ -114,6 +157,10 @@ OGRSQLiteDataSource::OGRSQLiteDataSource()
     bIsSpatiaLiteDB = FALSE;
     bSpatialite4Layout = FALSE;
     bUpdate = FALSE;
+
+#ifdef SPATIALITE_412_OR_LATER
+    hSpatialiteCtxt = NULL;
+#endif
 
     nUndefinedSRID = -1; /* will be changed to 0 if Spatialite >= 4.0 detected */
 
@@ -163,6 +210,10 @@ OGRSQLiteDataSource::~OGRSQLiteDataSource()
     CPLFree( panSRID );
     CPLFree( papoSRS );
 
+#ifdef SPATIALITE_412_OR_LATER
+    FinishNewSpatialite();
+#endif
+
     if( hDB != NULL )
         sqlite3_close( hDB );
 
@@ -185,7 +236,7 @@ void OGRSQLiteDataSource::SaveStatistics()
     int i;
     int nSavedAllLayersCacheData = -1;
 
-    if( !bIsSpatiaLiteDB || !OGRSQLiteIsSpatialiteLoaded() || bLastSQLCommandIsUpdateLayerStatistics )
+    if( !bIsSpatiaLiteDB || !IsSpatialiteLoaded() || bLastSQLCommandIsUpdateLayerStatistics )
         return;
 
     for( i = 0; i < nLayers; i++ )
@@ -474,6 +525,33 @@ int OGRSQLiteDataSource::OpenOrCreateDB(int flags)
         }
     }
 
+    const char* pszSqlitePragma = CPLGetConfigOption("OGR_SQLITE_PRAGMA", NULL);
+    if (pszSqlitePragma != NULL)
+    {
+        char** papszTokens = CSLTokenizeString2( pszSqlitePragma, ",", CSLT_HONOURSTRINGS );
+        for(int i=0; papszTokens[i] != NULL; i++ )
+        {
+            char* pszErrMsg = NULL;
+            char **papszResult;
+            int nRowCount, nColCount;
+
+            const char* pszSQL = CPLSPrintf("PRAGMA %s", papszTokens[i]);
+
+            rc = sqlite3_get_table( hDB, pszSQL,
+                                    &papszResult, &nRowCount, &nColCount,
+                                    &pszErrMsg );
+            if( rc == SQLITE_OK )
+            {
+                sqlite3_free_table(papszResult);
+            }
+            else
+            {
+                sqlite3_free( pszErrMsg );
+            }
+        }
+        CSLDestroy(papszTokens);
+    }
+
     if (!SetCacheSize())
         return FALSE;
 
@@ -505,13 +583,15 @@ int OGRSQLiteDataSource::Create( const char * pszNameIn, char **papszOptions )
     if (bSpatialite == TRUE)
     {
 #ifdef HAVE_SPATIALITE
-        OGRSQLiteInitSpatialite();
-        if (!OGRSQLiteIsSpatialiteLoaded())
+#ifndef SPATIALITE_412_OR_LATER
+        OGRSQLiteInitOldSpatialite();
+        if (!IsSpatialiteLoaded())
         {
             CPLError( CE_Failure, CPLE_NotSupported,
                     "Creating a Spatialite database, but Spatialite extensions are not loaded." );
             return FALSE;
         }
+#endif
 #else
         CPLError( CE_Failure, CPLE_NotSupported,
             "OGR was built without libspatialite support\n"
@@ -538,6 +618,15 @@ int OGRSQLiteDataSource::Create( const char * pszNameIn, char **papszOptions )
 /* -------------------------------------------------------------------- */
     if ( bSpatialite )
     {
+#ifdef SPATIALITE_412_OR_LATER
+        if (!InitNewSpatialite())
+        {
+            CPLError( CE_Failure, CPLE_NotSupported,
+                    "Creating a Spatialite database, but Spatialite extensions are not loaded." );
+            return FALSE;
+        }
+#endif
+
         /*
         / SpatiaLite full support: calling InitSpatialMetadata()
         /
@@ -549,10 +638,19 @@ int OGRSQLiteDataSource::Create( const char * pszNameIn, char **papszOptions )
         
         const char* pszVal = CSLFetchNameValue( papszOptions, "INIT_WITH_EPSG" );
         if( pszVal != NULL && !CSLTestBoolean(pszVal) &&
-            OGRSQLiteGetSpatialiteVersionNumber() >= 40 )
+            GetSpatialiteVersionNumber() >= 40 )
             osCommand =  "SELECT InitSpatialMetadata('NONE')";
         else
-            osCommand =  "SELECT InitSpatialMetadata()";
+        {
+            /* Since spatialite 4.1, InitSpatialMetadata() is no longer run */
+            /* into a transaction, which makes population of spatial_ref_sys */
+            /* from EPSG awfully slow. We have to use InitSpatialMetadata(1) */
+            /* to run within a transaction */
+            if( GetSpatialiteVersionNumber() >= 41 )
+                osCommand =  "SELECT InitSpatialMetadata(1)";
+            else
+                osCommand =  "SELECT InitSpatialMetadata()";
+        }
         rc = sqlite3_exec( hDB, osCommand, NULL, NULL, &pszErrMsg );
         if( rc != SQLITE_OK )
         {
@@ -633,7 +731,7 @@ int OGRSQLiteDataSource::InitWithEPSG()
         / if v.2.4.0 (or any subsequent) InitWithEPSG make no sense at all
         / because the EPSG dataset is already self-initialized at DB creation
         */
-        int iSpatialiteVersion = OGRSQLiteGetSpatialiteVersionNumber();
+        int iSpatialiteVersion = GetSpatialiteVersionNumber();
         if ( iSpatialiteVersion >= 24 )
             return TRUE;
     }
@@ -887,7 +985,9 @@ int OGRSQLiteDataSource::Open( const char * pszNewName, int bUpdateIn )
 /* -------------------------------------------------------------------- */
     if (hDB == NULL)
     {
-        OGRSQLiteInitSpatialite();
+#ifndef SPATIALITE_412_OR_LATER
+        OGRSQLiteInitOldSpatialite();
+#endif
 
 #ifdef HAVE_SQLITE_VFS
         if (!OpenOrCreateDB((bUpdateIn) ? SQLITE_OPEN_READWRITE : SQLITE_OPEN_READONLY) )
@@ -895,6 +995,10 @@ int OGRSQLiteDataSource::Open( const char * pszNewName, int bUpdateIn )
         if (!OpenOrCreateDB(0))
 #endif
             return FALSE;
+
+#ifdef SPATIALITE_412_OR_LATER
+        InitNewSpatialite();
+#endif
     }
 
 /* -------------------------------------------------------------------- */
@@ -1048,9 +1152,9 @@ int OGRSQLiteDataSource::Open( const char * pszNewName, int bUpdateIn )
         int iSpatialiteVersion = -1;
 
         /* Only enables write-mode if linked against SpatiaLite */
-        if( OGRSQLiteIsSpatialiteLoaded() )
+        if( IsSpatialiteLoaded() )
         {
-            iSpatialiteVersion = OGRSQLiteGetSpatialiteVersionNumber();
+            iSpatialiteVersion = GetSpatialiteVersionNumber();
         }
         else if( bUpdate )
         {
@@ -1170,7 +1274,7 @@ int OGRSQLiteDataSource::Open( const char * pszNewName, int bUpdateIn )
                 if( pszName == NULL || pszSQL == NULL )
                     continue;
 
-                if( (OGRSQLiteIsSpatialiteLoaded() &&
+                if( (IsSpatialiteLoaded() &&
                         (strstr(pszSQL, "VirtualShape") || strstr(pszSQL, "VirtualXL"))) ||
                     (bListVirtualOGRLayers && strstr(pszSQL, "VirtualOGR")) )
                 {
@@ -1685,10 +1789,10 @@ OGRLayer * OGRSQLiteDataSource::ExecuteSQL( const char *pszSQLCommand,
         
     CPLString osSQL = pszSQLCommand;
     poLayer = new OGRSQLiteSelectLayer( this, osSQL, hSQLStmt,
-                                        bUseStatementForGetNextFeature, bEmptyLayer );
+                                        bUseStatementForGetNextFeature, bEmptyLayer, TRUE );
 
     if( poSpatialFilter != NULL )
-        poLayer->SetSpatialFilter( poSpatialFilter );
+        poLayer->SetSpatialFilter( 0, poSpatialFilter );
     
     return poLayer;
 }
@@ -1771,7 +1875,7 @@ OGRSQLiteDataSource::CreateLayer( const char * pszLayerNameIn,
 
     /* Shouldn't happen since a spatialite DB should be opened in read-only mode */
     /* if libspatialite isn't loaded */
-    if (bIsSpatiaLiteDB && !OGRSQLiteIsSpatialiteLoaded())
+    if (bIsSpatiaLiteDB && !IsSpatialiteLoaded())
     {
         CPLError( CE_Failure, CPLE_NotSupported,
                   "Creating layers on a SpatiaLite enabled database, "
@@ -1954,7 +2058,7 @@ OGRSQLiteDataSource::CreateLayer( const char * pszLayerNameIn,
             / to support 2.5D: if an obsolete version of the library
             / is found we'll unconditionally activate 2D casting mode
             */
-            int iSpatialiteVersion = OGRSQLiteGetSpatialiteVersionNumber();
+            int iSpatialiteVersion = GetSpatialiteVersionNumber();
             if ( iSpatialiteVersion < 24 && nCoordDim == 3 )
             {
                 CPLDebug("SQLITE", "Spatialite < 2.4.0 --> 2.5D geometry not supported. Casting to 2D");
@@ -2016,7 +2120,7 @@ OGRSQLiteDataSource::CreateLayer( const char * pszLayerNameIn,
 
         const char* pszSI = CSLFetchNameValue( papszOptions, "SPATIAL_INDEX" );
         if ( pszSI != NULL && CSLTestBoolean(pszSI) &&
-             (bIsSpatiaLiteDB || EQUAL(pszGeomFormat, "SpatiaLite")) && !OGRSQLiteIsSpatialiteLoaded() )
+             (bIsSpatiaLiteDB || EQUAL(pszGeomFormat, "SpatiaLite")) && !IsSpatialiteLoaded() )
         {
             CPLError( CE_Warning, CPLE_OpenFailed,
                     "Cannot create a spatial index when Spatialite extensions are not loaded." );
@@ -2024,7 +2128,7 @@ OGRSQLiteDataSource::CreateLayer( const char * pszLayerNameIn,
 
 #ifdef HAVE_SPATIALITE
         /* Only if linked against SpatiaLite and the datasource was created as a SpatiaLite DB */
-        if ( bIsSpatiaLiteDB && OGRSQLiteIsSpatialiteLoaded() )
+        if ( bIsSpatiaLiteDB && IsSpatialiteLoaded() )
 #else
         if ( 0 )
 #endif
@@ -2769,7 +2873,18 @@ int OGRSQLiteDataSource::FetchSRSId( OGRSpatialReference * poSRS )
 /*      If there is no SRS ID with such auth_srid, use it as SRS ID.    */
 /* -------------------------------------------------------------------- */
         if ( nRowCount < 1 )
+        {
             nSRSId = atoi(pszAuthorityCode);
+            /* The authority code might be non numeric, e.g. IGNF:LAMB93 */
+            /* in which case we might fallback to the fake OGR authority */
+            /* for spatialite, since its auth_srid is INTEGER */
+            if( nSRSId == 0 )
+            {
+                nSRSId = nUndefinedSRID;
+                if( bIsSpatiaLiteDB )
+                    pszAuthorityName = NULL;
+            }
+        }
         sqlite3_free_table(papszResult);
     }
 

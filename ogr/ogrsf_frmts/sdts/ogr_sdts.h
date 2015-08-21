@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_sdts.h 15583 2008-10-23 00:04:33Z warmerdam $
+ * $Id: ogr_sdts.h 26466 2013-09-14 09:07:46Z rouault $
  *
  * Project:  STS Translator
  * Purpose:  Definition of classes finding SDTS support into OGRDriver
@@ -67,8 +67,6 @@ class OGRSDTSLayer : public OGRLayer
     OGRFeatureDefn *    GetLayerDefn() { return poFeatureDefn; }
 
 //    int                 GetFeatureCount( int );
-
-    OGRSpatialReference *GetSpatialRef();
     
     int                 TestCapability( const char * );
 };

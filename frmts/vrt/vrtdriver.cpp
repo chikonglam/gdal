@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: vrtdriver.cpp 21945 2011-03-12 21:11:37Z warmerdam $
+ * $Id: vrtdriver.cpp 27729 2014-09-24 00:40:16Z goatbar $
  *
  * Project:  Virtual GDAL Datasets
  * Purpose:  Implementation of VRTDriver
@@ -7,6 +7,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2003, Frank Warmerdam <warmerdam@pobox.com>
+ * Copyright (c) 2009-2013, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -32,7 +33,7 @@
 #include "cpl_string.h"
 #include "gdal_alg_priv.h"
 
-CPL_CVSID("$Id: vrtdriver.cpp 21945 2011-03-12 21:11:37Z warmerdam $");
+CPL_CVSID("$Id: vrtdriver.cpp 27729 2014-09-24 00:40:16Z goatbar $");
 
 /************************************************************************/
 /*                             VRTDriver()                              */
@@ -60,6 +61,17 @@ VRTDriver::~VRTDriver()
     {
         GDALUnregisterTransformDeserializer( pDeserializerData );
     }
+}
+
+/************************************************************************/
+/*                      GetMetadataDomainList()                         */
+/************************************************************************/
+
+char **VRTDriver::GetMetadataDomainList()
+{
+    return BuildMetadataDomainList(GDALDriver::GetMetadataDomainList(),
+                                   TRUE,
+                                   "SourceParsers", NULL);
 }
 
 /************************************************************************/
@@ -144,8 +156,7 @@ VRTSource *VRTDriver::ParseSource( CPLXMLNode *psSrc, const char *pszVRTPath )
 static GDALDataset *
 VRTCreateCopy( const char * pszFilename, GDALDataset *poSrcDS, 
                int bStrict, char ** papszOptions, 
-               GDALProgressFunc pfnProgress, void * pProgressData )
-
+               CPL_UNUSED GDALProgressFunc pfnProgress, CPL_UNUSED void * pProgressData )
 {
     VRTDataset *poVRTDS = NULL;
 

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: irisdataset.cpp 25348 2012-12-26 11:37:51Z rouault $
+ * $Id: irisdataset.cpp 27739 2014-09-25 18:49:52Z goatbar $
  *
  * Project:  IRIS Reader
  * Purpose:  All code for IRIS format Reader
@@ -9,6 +9,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2012, Roger Veciana <rveciana@gmail.com>
+ * Copyright (c) 2012-2013, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -42,7 +43,7 @@
 #include <sstream>
 
 
-CPL_CVSID("$Id: irisdataset.cpp 25348 2012-12-26 11:37:51Z rouault $");
+CPL_CVSID("$Id: irisdataset.cpp 27739 2014-09-25 18:49:52Z goatbar $");
 
 CPL_C_START
 void	GDALRegister_IRIS(void);
@@ -188,13 +189,12 @@ IRISRasterBand::~IRISRasterBand()
 /*                             IReadBlock()                             */
 /************************************************************************/
 
-CPLErr IRISRasterBand::IReadBlock( int nBlockXOff, int nBlockYOff,
+CPLErr IRISRasterBand::IReadBlock( CPL_UNUSED int nBlockXOff, int nBlockYOff,
                                    void * pImage )
 
 {
     IRISDataset *poGDS = (IRISDataset *) poDS;
 
-    //printf("hola %d %s\n",poGDS->dataTypeCode,poGDS->aszDataTypeCodes[poGDS->dataTypeCode]);
     //Every product type has it's own size. TODO: Move it like dataType
     int nDataLength = 1;
     if(poGDS->nDataTypeCode == 2){nDataLength=1;}
@@ -229,13 +229,23 @@ CPLErr IRISRasterBand::IReadBlock( int nBlockXOff, int nBlockYOff,
     if( (int)VSIFReadL( pszRecord, nBlockXSize*nDataLength, 1, poGDS->fp ) != 1 )
         return CE_Failure;
     
-    //If datatype is dbZ:
-    //See point 3.3.5 at page 3.42 of the manual
-    if(poGDS->nDataTypeCode == 2){
+    //If datatype is dbZ or dBT:
+    //See point 3.3.3 at page 3.33 of the manual
+    if(poGDS->nDataTypeCode == 2 || poGDS->nDataTypeCode == 1){
         float fVal;
         for (i=0;i<nBlockXSize;i++){
             fVal = (((float) *(pszRecord+i*nDataLength)) -64)/2.0;
             if (fVal == 95.5)
+                fVal = -9999;
+            ((float *) pImage)[i] = fVal;
+        }
+    //If datatype is dbZ2 or dBT2:
+    //See point 3.3.4 at page 3.33 of the manual
+    } else if(poGDS->nDataTypeCode == 8 || poGDS->nDataTypeCode == 9){
+        float fVal;
+        for (i=0;i<nBlockXSize;i++){
+            fVal = (((float) CPL_LSBUINT16PTR(pszRecord+i*nDataLength)) - 32768)/100.0;
+            if (fVal == 327.67)
                 fVal = -9999;
             ((float *) pImage)[i] = fVal;
         }
@@ -526,24 +536,24 @@ std::pair <double,double> IRISDataset::GeodesicCalculation(float fLat, float fLo
     double dfAlpha1 = DEG2RAD * fAngle;
     double dfSinAlpha1 = sin(dfAlpha1);
     double dfCosAlpha1 = cos(dfAlpha1);
-    
+
     double dfTanU1 = (1-fFlattening) * tan(fLat*DEG2RAD);
     double dfCosU1 = 1 / sqrt((1 + dfTanU1*dfTanU1));
     double dfSinU1 = dfTanU1*dfCosU1;
-    
+
     double dfSigma1 = atan2(dfTanU1, dfCosAlpha1);
     double dfSinAlpha = dfCosU1 * dfSinAlpha1;
     double dfCosSqAlpha = 1 - dfSinAlpha*dfSinAlpha;
     double dfUSq = dfCosSqAlpha * (fEquatorialRadius*fEquatorialRadius - fPolarRadius*fPolarRadius) / (fPolarRadius*fPolarRadius);
     double dfA = 1 + dfUSq/16384*(4096+dfUSq*(-768+dfUSq*(320-175*dfUSq)));
     double dfB = dfUSq/1024 * (256+dfUSq*(-128+dfUSq*(74-47*dfUSq)));
-    
+
     double dfSigma = fDist / (fPolarRadius*dfA);
     double dfSigmaP = 2*M_PI;
-    
-    double dfSinSigma;
-    double dfCosSigma;
-    double dfCos2SigmaM; 
+
+    double dfSinSigma = 0.0;
+    double dfCosSigma = 0.0;
+    double dfCos2SigmaM = 0.0;
     double dfDeltaSigma;
 
     while (fabs(dfSigma-dfSigmaP) > 1e-12) {
@@ -554,10 +564,10 @@ std::pair <double,double> IRISDataset::GeodesicCalculation(float fLat, float fLo
           dfB/6*dfCos2SigmaM*(-3+4*dfSinSigma*dfSinSigma)*(-3+4*dfCos2SigmaM*dfCos2SigmaM)));
         dfSigmaP = dfSigma;
         dfSigma = fDist / (fPolarRadius*dfA) + dfDeltaSigma;
-    }    
-    
+    }
+
     double dfTmp = dfSinU1*dfSinSigma - dfCosU1*dfCosSigma*dfCosAlpha1;
-    double dfLat2 = atan2(dfSinU1*dfCosSigma + dfCosU1*dfSinSigma*dfCosAlpha1, 
+    double dfLat2 = atan2(dfSinU1*dfCosSigma + dfCosU1*dfSinSigma*dfCosAlpha1,
       (1-fFlattening)*sqrt(dfSinAlpha*dfSinAlpha + dfTmp*dfTmp));
     double dfLambda = atan2(dfSinSigma*dfSinAlpha1, dfCosU1*dfCosSigma - dfSinU1*dfSinSigma*dfCosAlpha1);
     double dfC = fFlattening/16*dfCosSqAlpha*(4+fFlattening*(4-3*dfCosSqAlpha));
@@ -570,7 +580,7 @@ std::pair <double,double> IRISDataset::GeodesicCalculation(float fLat, float fLo
         dfLon2 = dfLon2 + 2*M_PI;
     oOutput.first = dfLon2*RAD2DEG;
     oOutput.second = dfLat2*RAD2DEG;
-    
+
     return oOutput;
 }
 
@@ -695,13 +705,7 @@ GDALDataset *IRISDataset::Open( GDALOpenInfo * poOpenInfo )
         return NULL;
     }
 
-/* -------------------------------------------------------------------- */
-/*      Create band information objects.                                */
-/* -------------------------------------------------------------------- */
-    for (int iBandNum = 1; iBandNum <= nNumBands; iBandNum++) {
-        poDS->SetBand( iBandNum, new IRISRasterBand( poDS, iBandNum ));
-        poDS->GetRasterBand(iBandNum)->SetNoDataValue(-9999);
-    }
+    
     
 /* -------------------------------------------------------------------- */
 /*      Setting the Metadata                                            */
@@ -853,7 +857,7 @@ GDALDataset *IRISDataset::Open( GDALOpenInfo * poOpenInfo )
         //See point 3.2.2 at page 3.2 of the manual
     } else if (EQUAL(poDS->aszProductNames[poDS->nProductCode],"CAPPI")){
         float fElevation = ((float) CPL_LSBSINT32PTR(poDS->abyHeader+4+164+12))/100;
-        poDS->SetMetadataItem( "CAPPI_HEIGHT",CPLString().Printf("%.1f m",fElevation));
+        poDS->SetMetadataItem( "CAPPI_BOTTOM_HEIGHT",CPLString().Printf("%.1f m",fElevation));
         float fAzimuthSmoothingForShear = 360 * float((CPL_LSBUINT16PTR (poDS->abyHeader+10+164+12))) / 65536;
         poDS->SetMetadataItem( "AZIMUTH_SMOOTHING_FOR_SHEAR" ,CPLString().Printf("%.1f", fAzimuthSmoothingForShear));
         unsigned int  nMaxAgeVVPCorrection = CPL_LSBUINT32PTR (poDS->abyHeader+24+164+12);
@@ -913,6 +917,21 @@ GDALDataset *IRISDataset::Open( GDALOpenInfo * poOpenInfo )
         poDS->SetMetadataItem( "VERTICAL_SMOOTHER_SIDE_PANELS",CPLString().Printf("%d",nVerticalSmootherSidePanels));
     }
 
+/* -------------------------------------------------------------------- */
+/*      Create band information objects.                                */
+/* -------------------------------------------------------------------- */
+    for (int iBandNum = 1; iBandNum <= nNumBands; iBandNum++) {
+        poDS->SetBand( iBandNum, new IRISRasterBand( poDS, iBandNum ));
+
+        poDS->GetRasterBand(iBandNum)->SetNoDataValue(-9999);
+        //Calculating the band height to include it in the band metadata. Only for the CAPPI product
+        if (EQUAL(poDS->aszProductNames[poDS->nProductCode],"CAPPI")){
+            float fScaleZ = float (CPL_LSBSINT32PTR (poDS->abyHeader + 96 + 12 )) / 100;
+            float fOffset = ((float) CPL_LSBSINT32PTR(poDS->abyHeader+4+164+12))/100;
+
+            poDS->GetRasterBand(iBandNum)->SetMetadataItem("height",CPLString().Printf("%.0f m",fOffset + fScaleZ*(iBandNum-1)));
+        }
+    }
 /* -------------------------------------------------------------------- */
 /*      Initialize any PAM information.                                 */
 /* -------------------------------------------------------------------- */

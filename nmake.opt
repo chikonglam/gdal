@@ -1,4 +1,4 @@
-# $Id: nmake.opt 25907 2013-04-13 21:19:24Z rouault $
+# $Id: nmake.opt 28317 2015-01-15 22:49:41Z tamas $
 #
 # nmake.opt - main configuration file for NMAKE makefiles.
 #
@@ -7,6 +7,12 @@
 # nmake -f makefile.vc MSVC_VER=1400
 # nmake -f makefile.vc MSVC_VER=1500 DEBUG=1
 # nmake -f makefile.vc MSVC_VER=1600 DEBUG=1 ANALYZE=1
+# nmake -f makefile.vc MSVC_VER=1600 DEBUG=1 ANALYZE=1 WITH_PDB=1
+#
+# Options:
+#    DEBUG - set to disable optimizations and link with debug runtimes; also implies WITH_PDB.
+#  ANALYZE - set to enable code analysis output.
+# WITH_PDB - set to enable output of PDB files, supported for both debug and release modes.
 #
 ###############################################################################
 # For convenience, user may put custom settings in a local settings file
@@ -25,6 +31,7 @@
 # Check version of Visual C++ compiler:
 # nmake -f makefile.vc MSVC_VER=xxxx
 # where xxxx is one of following:
+# 1800 = 12.0(2013)
 # 1700 = 11.0(2012)
 # 1600 = 10.0(2010)
 # 1500 = 9.0 (2008)
@@ -106,18 +113,29 @@ CXX_ANALYZE_FLAGS=/analyze
 CXX_ANALYZE_FLAGS=
 !ENDIF
 
+# Force PDB output for DEBUG mode
+!IFDEF DEBUG
+WITH_PDB=1
+!ENDIF
+
+!IFDEF WITH_PDB
+CXX_PDB_FLAGS=/Zi /Fd$(GDAL_ROOT)\gdal$(VERSION).pdb
+!ELSE
+CXX_PDB_FLAGS=
+!ENDIF
+
 !IFNDEF OPTFLAGS
 !IF $(MSVC_VER) >= 1400
 !IFNDEF DEBUG
-OPTFLAGS= $(CXX_ANALYZE_FLAGS) /nologo /MD /EHsc /Ox /D_CRT_SECURE_NO_DEPRECATE /D_CRT_NONSTDC_NO_DEPRECATE /DNDEBUG
+OPTFLAGS= $(CXX_ANALYZE_FLAGS) $(CXX_PDB_FLAGS) /nologo /MD /EHsc /Ox /D_CRT_SECURE_NO_DEPRECATE /D_CRT_NONSTDC_NO_DEPRECATE /DNDEBUG
 !ELSE
-OPTFLAGS= $(CXX_ANALYZE_FLAGS) /nologo /MD /EHsc /Zi /D_CRT_SECURE_NO_DEPRECATE /D_CRT_NONSTDC_NO_DEPRECATE /Fd$(GDAL_ROOT)\gdal$(VERSION).pdb /DDEBUG
+OPTFLAGS= $(CXX_ANALYZE_FLAGS) $(CXX_PDB_FLAGS) /nologo /MD /EHsc /D_CRT_SECURE_NO_DEPRECATE /D_CRT_NONSTDC_NO_DEPRECATE /DDEBUG
 !ENDIF
 !ELSE
 !IFNDEF DEBUG
-OPTFLAGS=	/nologo /MD /EHsc /GR /Ox /DNDEBUG
+OPTFLAGS= $(CXX_PDB_FLAGS) /nologo /MD /EHsc /GR /Ox /DNDEBUG
 !ELSE
-OPTFLAGS=	/nologo /MD /EHsc /GR /Zi /Fd$(GDAL_ROOT)\gdal$(VERSION).pdb  /DDEBUG
+OPTFLAGS= $(CXX_PDB_FLAGS) /nologo /MD /EHsc /GR /DDEBUG
 !ENDIF
 !ENDIF  #MSVC_VER
 !ENDIF  # OPTFLAGS
@@ -159,7 +177,7 @@ STDCALL=YES
 
 # Version number embedded in DLL name. 
 !IFNDEF VERSION
-VERSION =	110
+VERSION =	111
 !ENDIF
 
 # Comment the following out if you want PAM supported disabled
@@ -393,6 +411,8 @@ INGRES_LIB = "$(INGRES_HOME)\lib\iilibapi.lib" \
 #SQLITE_LIB=C:\osgeo4w\lib\spatialite_i.lib
 # Uncomment following line if libsqlite3 has been compiled with SQLITE_HAS_COLUMN_METADATA=yes
 #SQLITE_HAS_COLUMN_METADATA=yes
+# Uncomment following line if spatialite is 4.1.2 or later
+#SPATIALITE_412_OR_LATER=yes
 
 # PCRE Library (REGEXP support for SQLite) for example from http://sourceforge.net/projects/gnuwin32/files/pcre/7.0/pcre-7.0.exe/download
 #PCRE_INC=-I"C:\Program Files\GNUWin32\include" -DHAVE_PCRE
@@ -488,12 +508,13 @@ OCI_INCLUDE =	-I$(ORACLE_HOME)\oci\include
 # Uncomment for libdap >= 3.9
 #DODS_FLAGS = -DLIBDAP_39
 
-# Uncomment for GEOS support
+# Uncomment for GEOS support (GEOS >= 3.1.0 required)
 #GEOS_DIR=C:/warmerda/geos
 #GEOS_CFLAGS = -I$(GEOS_DIR)/capi -I$(GEOS_DIR)/source/headers -DHAVE_GEOS
 #GEOS_LIB     = $(GEOS_DIR)/source/geos_c_i.lib
 
 # Uncomment for SOSI support
+#SOSI_PLUGIN = YES
 #SOSI_ENABLED = YES
 #SOSI_INC_DIR = e:/sosi
 #SOSI_LIBS = e:/sosi/FYBA.lib e:/sosi/GM.lib e:/sosi/UT.lib
@@ -501,7 +522,9 @@ OCI_INCLUDE =	-I$(ORACLE_HOME)\oci\include
 # Uncomment for OpenJpeg (release v2.0.0) support
 #OPENJPEG_ENABLED = YES
 #OPENJPEG_CFLAGS = -IC:\openjpeg\include
-#OPENJPEG_LIB = C:\openjpeg\lib\openjpeg.lib
+#OPENJPEG_LIB = C:\openjpeg\lib\openjp2.lib
+# For OpenJpeg >= 2.1, uncomment
+#OPENJPEG_VERSION = 20100
 
 # Uncomment for PDF support
 # Uncomment POPPLER_BASE_STREAM_HAS_TWO_ARGS = YES for Poppler >= 0.16.0

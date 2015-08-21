@@ -2723,34 +2723,36 @@ SWIG_Python_MustGetPtr(PyObject *obj, swig_type_info *ty, int argnum, int flags)
 /* -------- TYPES TABLE (BEGIN) -------- */
 
 #define SWIGTYPE_p_CPLErrorHandler swig_types[0]
-#define SWIGTYPE_p_CPLXMLNode swig_types[1]
-#define SWIGTYPE_p_GByte swig_types[2]
-#define SWIGTYPE_p_GDALAsyncReaderShadow swig_types[3]
-#define SWIGTYPE_p_GDALColorEntry swig_types[4]
-#define SWIGTYPE_p_GDALColorTableShadow swig_types[5]
-#define SWIGTYPE_p_GDALDatasetShadow swig_types[6]
-#define SWIGTYPE_p_GDALDriverShadow swig_types[7]
-#define SWIGTYPE_p_GDALMajorObjectShadow swig_types[8]
-#define SWIGTYPE_p_GDALProgressFunc swig_types[9]
-#define SWIGTYPE_p_GDALRasterAttributeTableShadow swig_types[10]
-#define SWIGTYPE_p_GDALRasterBandShadow swig_types[11]
-#define SWIGTYPE_p_GDALTransformerInfoShadow swig_types[12]
-#define SWIGTYPE_p_GDAL_GCP swig_types[13]
-#define SWIGTYPE_p_GIntBig swig_types[14]
-#define SWIGTYPE_p_OGRLayerShadow swig_types[15]
-#define SWIGTYPE_p_StatBuf swig_types[16]
-#define SWIGTYPE_p_char swig_types[17]
-#define SWIGTYPE_p_double swig_types[18]
-#define SWIGTYPE_p_f_double_p_q_const__char_p_void__int swig_types[19]
-#define SWIGTYPE_p_int swig_types[20]
-#define SWIGTYPE_p_p_GDALRasterBandShadow swig_types[21]
-#define SWIGTYPE_p_p_GDAL_GCP swig_types[22]
-#define SWIGTYPE_p_p_char swig_types[23]
-#define SWIGTYPE_p_p_int swig_types[24]
-#define SWIGTYPE_p_p_void swig_types[25]
-#define SWIGTYPE_p_void swig_types[26]
-static swig_type_info *swig_types[28];
-static swig_module_info swig_module = {swig_types, 27, 0, 0, 0, 0};
+#define SWIGTYPE_p_CPLVirtualMemShadow swig_types[1]
+#define SWIGTYPE_p_CPLXMLNode swig_types[2]
+#define SWIGTYPE_p_GByte swig_types[3]
+#define SWIGTYPE_p_GDALAsyncReaderShadow swig_types[4]
+#define SWIGTYPE_p_GDALColorEntry swig_types[5]
+#define SWIGTYPE_p_GDALColorTableShadow swig_types[6]
+#define SWIGTYPE_p_GDALDatasetShadow swig_types[7]
+#define SWIGTYPE_p_GDALDriverShadow swig_types[8]
+#define SWIGTYPE_p_GDALMajorObjectShadow swig_types[9]
+#define SWIGTYPE_p_GDALProgressFunc swig_types[10]
+#define SWIGTYPE_p_GDALRasterAttributeTableShadow swig_types[11]
+#define SWIGTYPE_p_GDALRasterBandShadow swig_types[12]
+#define SWIGTYPE_p_GDALTransformerInfoShadow swig_types[13]
+#define SWIGTYPE_p_GDAL_GCP swig_types[14]
+#define SWIGTYPE_p_GIntBig swig_types[15]
+#define SWIGTYPE_p_OGRLayerShadow swig_types[16]
+#define SWIGTYPE_p_StatBuf swig_types[17]
+#define SWIGTYPE_p_char swig_types[18]
+#define SWIGTYPE_p_double swig_types[19]
+#define SWIGTYPE_p_f_double_p_q_const__char_p_void__int swig_types[20]
+#define SWIGTYPE_p_int swig_types[21]
+#define SWIGTYPE_p_p_GDALRasterBandShadow swig_types[22]
+#define SWIGTYPE_p_p_GDAL_GCP swig_types[23]
+#define SWIGTYPE_p_p_char swig_types[24]
+#define SWIGTYPE_p_p_int swig_types[25]
+#define SWIGTYPE_p_p_void swig_types[26]
+#define SWIGTYPE_p_size_t swig_types[27]
+#define SWIGTYPE_p_void swig_types[28]
+static swig_type_info *swig_types[30];
+static swig_module_info swig_module = {swig_types, 29, 0, 0, 0, 0};
 #define SWIG_TypeQuery(name) SWIG_TypeQueryModule(&swig_module, &swig_module, name)
 #define SWIG_MangledTypeQuery(name) SWIG_MangledTypeQueryModule(&swig_module, &swig_module, name)
 
@@ -2909,14 +2911,20 @@ int GetUseExceptions() {
 }
 
 void UseExceptions() {
-  bUseExceptions = 1;
-  pfnPreviousHandler = 
-    CPLSetErrorHandler( (CPLErrorHandler) PythonBindingErrorHandler );
+  if( !bUseExceptions )
+  {
+    bUseExceptions = 1;
+    pfnPreviousHandler = 
+        CPLSetErrorHandler( (CPLErrorHandler) PythonBindingErrorHandler );
+  }
 }
 
 void DontUseExceptions() {
-  bUseExceptions = 0;
-  CPLSetErrorHandler( pfnPreviousHandler );
+  if( bUseExceptions )
+  {
+    bUseExceptions = 0;
+    CPLSetErrorHandler( pfnPreviousHandler );
+  }
 }
 
 
@@ -3509,6 +3517,9 @@ SWIGINTERN char const *GDALMajorObjectShadow_GetDescription(GDALMajorObjectShado
 SWIGINTERN void GDALMajorObjectShadow_SetDescription(GDALMajorObjectShadow *self,char const *pszNewDesc){
     GDALSetDescription( self, pszNewDesc );
   }
+SWIGINTERN char **GDALMajorObjectShadow_GetMetadataDomainList(GDALMajorObjectShadow *self){
+    return GDALGetMetadataDomainList( self );
+  }
 SWIGINTERN char **GDALMajorObjectShadow_GetMetadata_Dict(GDALMajorObjectShadow *self,char const *pszDomain=""){
     return GDALGetMetadata( self, pszDomain );
   }
@@ -3741,6 +3752,97 @@ CreateTupleFromDoubleArray( double *first, unsigned int size ) {
 }
 
 
+#include "gdal.h"
+
+typedef struct
+{
+    CPLVirtualMem *vmem;
+    int            bAuto;
+    GDALDataType   eBufType;
+    int            bIsBandSequential;
+    int            bReadOnly;
+    int            nBufXSize;
+    int            nBufYSize;
+    int            nBandCount;
+    GDALTileOrganization eTileOrganization;
+    int                  nTileXSize;
+    int                  nTileYSize;
+    int            nPixelSpace; /* if bAuto == TRUE */
+    GIntBig        nLineSpace; /* if bAuto == TRUE */
+} CPLVirtualMemShadow;
+
+
+SWIGINTERN void delete_CPLVirtualMemShadow(CPLVirtualMemShadow *self){
+        CPLVirtualMemFree( self->vmem );
+        free(self);
+    }
+SWIGINTERN void CPLVirtualMemShadow_GetAddr(CPLVirtualMemShadow *self,void **pptr,size_t *pnsize,GDALDataType *pdatatype,int *preadonly){
+        *pptr = CPLVirtualMemGetAddr( self->vmem );
+        *pnsize = CPLVirtualMemGetSize( self->vmem );
+        *pdatatype = self->eBufType;
+        *preadonly = self->bReadOnly;
+    }
+
+SWIGINTERN int
+SWIG_AsVal_unsigned_SS_long (PyObject *obj, unsigned long *val) 
+{
+  if (PyInt_Check(obj)) {
+    long v = PyInt_AsLong(obj);
+    if (v >= 0) {
+      if (val) *val = v;
+      return SWIG_OK;
+    } else {
+      return SWIG_OverflowError;
+    }
+  } else if (PyLong_Check(obj)) {
+    unsigned long v = PyLong_AsUnsignedLong(obj);
+    if (!PyErr_Occurred()) {
+      if (val) *val = v;
+      return SWIG_OK;
+    } else {
+      PyErr_Clear();
+    }
+  }
+#ifdef SWIG_PYTHON_CAST_MODE
+  {
+    int dispatch = 0;
+    unsigned long v = PyLong_AsUnsignedLong(obj);
+    if (!PyErr_Occurred()) {
+      if (val) *val = v;
+      return SWIG_AddCast(SWIG_OK);
+    } else {
+      PyErr_Clear();
+    }
+    if (!dispatch) {
+      double d;
+      int res = SWIG_AddCast(SWIG_AsVal_double (obj,&d));
+      if (SWIG_IsOK(res) && SWIG_CanCastAsInteger(&d, 0, ULONG_MAX)) {
+	if (val) *val = (unsigned long)(d);
+	return res;
+      }
+    }
+  }
+#endif
+  return SWIG_TypeError;
+}
+
+
+SWIGINTERNINLINE int
+SWIG_AsVal_size_t (PyObject * obj, size_t *val)
+{
+  unsigned long v;
+  int res = SWIG_AsVal_unsigned_SS_long (obj, val ? &v : 0);
+  if (SWIG_IsOK(res) && val) *val = static_cast< size_t >(v);
+  return res;
+}
+
+SWIGINTERN void CPLVirtualMemShadow_Pin(CPLVirtualMemShadow *self,size_t start_offset=0,size_t nsize=0,int bWriteOp=0){
+        if( nsize == 0 || start_offset + nsize >= CPLVirtualMemGetSize( self->vmem ) )
+            nsize = CPLVirtualMemGetSize( self->vmem ) - start_offset;
+        char* start_addr = (char*)CPLVirtualMemGetAddr( self->vmem ) + start_offset;
+        CPLVirtualMemPin(self->vmem, start_addr, nsize, bWriteOp);
+    }
+
 /* Returned size is in bytes or 0 if an error occured */
 static
 GIntBig ComputeDatasetRasterIOSize (int buf_xsize, int buf_ysize, int nPixelSize,
@@ -3845,11 +3947,13 @@ static GDALAsyncReaderH AsyncReaderWrapperGetReader(GDALAsyncReaderWrapperH hWra
     return psWrapper->hAsyncReader;
 }
 
+#if defined(SWIGPYTHON)
 static void* AsyncReaderWrapperGetPyObject(GDALAsyncReaderWrapperH hWrapper)
 {
     GDALAsyncReaderWrapper* psWrapper = (GDALAsyncReaderWrapper*)hWrapper;
     return psWrapper->pyObject;
 }
+#endif
 
 static void DeleteAsyncReaderWrapper(GDALAsyncReaderWrapperH hWrapper)
 {
@@ -4119,6 +4223,78 @@ SWIGINTERN void GDALDatasetShadow_EndAsyncReader(GDALDatasetShadow *self,GDALAsy
     GDALEndAsyncReader(self, hReader);
     DisableAsyncReaderWrapper(ario);
   }
+SWIGINTERN CPLVirtualMemShadow *GDALDatasetShadow_GetVirtualMem(GDALDatasetShadow *self,GDALRWFlag eRWFlag,int nXOff,int nYOff,int nXSize,int nYSize,int nBufXSize,int nBufYSize,GDALDataType eBufType,int band_list,int *pband_list,int bIsBandSequential,size_t nCacheSize,size_t nPageSizeHint,char **options=NULL){
+        int nPixelSpace;
+        GIntBig nBandSpace;
+        if( bIsBandSequential != 0 && bIsBandSequential != 1 )
+            return NULL;
+        if( band_list == 0 )
+            return NULL;
+        if( bIsBandSequential || band_list == 1 )
+        {
+            nPixelSpace = 0;
+            nBandSpace = 0;
+        }
+        else
+        {
+            nBandSpace = GDALGetDataTypeSize(eBufType) / 8;
+            nPixelSpace  = nBandSpace * band_list;
+        }
+        CPLVirtualMem* vmem = GDALDatasetGetVirtualMem( self,
+                                         eRWFlag,
+                                         nXOff, nYOff,
+                                         nXSize, nYSize,
+                                         nBufXSize, nBufYSize,
+                                         eBufType,
+                                         band_list, pband_list,
+                                         nPixelSpace,
+                                         0,
+                                         nBandSpace,
+                                         nCacheSize,
+                                         nPageSizeHint,
+                                         FALSE,
+                                         options );
+        if( vmem == NULL )
+            return NULL;
+        CPLVirtualMemShadow* vmemshadow = (CPLVirtualMemShadow*)calloc(1, sizeof(CPLVirtualMemShadow));
+        vmemshadow->vmem = vmem;
+        vmemshadow->eBufType = eBufType;
+        vmemshadow->bIsBandSequential = bIsBandSequential;
+        vmemshadow->bReadOnly = (eRWFlag == GF_Read);
+        vmemshadow->nBufXSize = nBufXSize;
+        vmemshadow->nBufYSize = nBufYSize;
+        vmemshadow->nBandCount = band_list;
+        return vmemshadow;
+    }
+SWIGINTERN CPLVirtualMemShadow *GDALDatasetShadow_GetTiledVirtualMem(GDALDatasetShadow *self,GDALRWFlag eRWFlag,int nXOff,int nYOff,int nXSize,int nYSize,int nTileXSize,int nTileYSize,GDALDataType eBufType,int band_list,int *pband_list,GDALTileOrganization eTileOrganization,size_t nCacheSize,char **options=NULL){
+        if( band_list == 0 )
+            return NULL;
+        CPLVirtualMem* vmem = GDALDatasetGetTiledVirtualMem( self,
+                                         eRWFlag,
+                                         nXOff, nYOff,
+                                         nXSize, nYSize,
+                                         nTileXSize, nTileYSize,
+                                         eBufType,
+                                         band_list, pband_list,
+                                         eTileOrganization,
+                                         nCacheSize,
+                                         FALSE,
+                                         options );
+        if( vmem == NULL )
+            return NULL;
+        CPLVirtualMemShadow* vmemshadow = (CPLVirtualMemShadow*)calloc(1, sizeof(CPLVirtualMemShadow));
+        vmemshadow->vmem = vmem;
+        vmemshadow->eBufType = eBufType;
+        vmemshadow->bIsBandSequential = -1;
+        vmemshadow->bReadOnly = (eRWFlag == GF_Read);
+        vmemshadow->nBufXSize = nXSize;
+        vmemshadow->nBufYSize = nYSize;
+        vmemshadow->eTileOrganization = eTileOrganization;
+        vmemshadow->nTileXSize = nTileXSize;
+        vmemshadow->nTileYSize = nTileYSize;
+        vmemshadow->nBandCount = band_list;
+        return vmemshadow;
+    }
 SWIGINTERN CPLErr GDALDatasetShadow_ReadRaster1(GDALDatasetShadow *self,int xoff,int yoff,int xsize,int ysize,void **buf,int *buf_xsize=0,int *buf_ysize=0,GDALDataType *buf_type=0,int band_list=0,int *pband_list=0,int *buf_pixel_space=0,int *buf_line_space=0,int *buf_band_space=0){
     int nxsize = (buf_xsize==0) ? xsize : *buf_xsize;
     int nysize = (buf_ysize==0) ? ysize : *buf_ysize;
@@ -4446,6 +4622,78 @@ SWIGINTERN char **GDALRasterBandShadow_GetCategoryNames(GDALRasterBandShadow *se
 SWIGINTERN CPLErr GDALRasterBandShadow_SetCategoryNames(GDALRasterBandShadow *self,char **papszCategoryNames){
     return GDALSetRasterCategoryNames( self, papszCategoryNames );
   }
+SWIGINTERN CPLVirtualMemShadow *GDALRasterBandShadow_GetVirtualMem(GDALRasterBandShadow *self,GDALRWFlag eRWFlag,int nXOff,int nYOff,int nXSize,int nYSize,int nBufXSize,int nBufYSize,GDALDataType eBufType,size_t nCacheSize,size_t nPageSizeHint,char **options=NULL){
+        CPLVirtualMem* vmem = GDALRasterBandGetVirtualMem( self,
+                                         eRWFlag,
+                                         nXOff, nYOff,
+                                         nXSize, nYSize,
+                                         nBufXSize, nBufYSize,
+                                         eBufType,
+                                         0,
+                                         0,
+                                         nCacheSize,
+                                         nPageSizeHint,
+                                         FALSE,
+                                         options );
+        if( vmem == NULL )
+            return NULL;
+        CPLVirtualMemShadow* vmemshadow = (CPLVirtualMemShadow*)calloc(1, sizeof(CPLVirtualMemShadow));
+        vmemshadow->vmem = vmem;
+        vmemshadow->eBufType = eBufType;
+        vmemshadow->bIsBandSequential = TRUE;
+        vmemshadow->bReadOnly = (eRWFlag == GF_Read);
+        vmemshadow->nBufXSize = nBufXSize;
+        vmemshadow->nBufYSize = nBufYSize;
+        vmemshadow->nBandCount = 1;
+        return vmemshadow;
+    }
+SWIGINTERN CPLVirtualMemShadow *GDALRasterBandShadow_GetVirtualMemAuto(GDALRasterBandShadow *self,GDALRWFlag eRWFlag,char **options=NULL){
+        int            nPixelSpace;
+        GIntBig        nLineSpace;
+        CPLVirtualMem* vmem = GDALGetVirtualMemAuto( self,
+                                         eRWFlag,
+                                         &nPixelSpace,
+                                         &nLineSpace,
+                                         options );
+        if( vmem == NULL )
+            return NULL;
+        CPLVirtualMemShadow* vmemshadow = (CPLVirtualMemShadow*)calloc(1, sizeof(CPLVirtualMemShadow));
+        vmemshadow->vmem = vmem;
+        vmemshadow->eBufType = GDALGetRasterDataType( self );
+        vmemshadow->bAuto = TRUE;
+        vmemshadow->bReadOnly = (eRWFlag == GF_Read);
+        vmemshadow->nBandCount = 1;
+        vmemshadow->nPixelSpace = nPixelSpace;
+        vmemshadow->nLineSpace = nLineSpace;
+        vmemshadow->nBufXSize = GDALGetRasterBandXSize(self);
+        vmemshadow->nBufYSize = GDALGetRasterBandYSize(self);
+        return vmemshadow;
+    }
+SWIGINTERN CPLVirtualMemShadow *GDALRasterBandShadow_GetTiledVirtualMem(GDALRasterBandShadow *self,GDALRWFlag eRWFlag,int nXOff,int nYOff,int nXSize,int nYSize,int nTileXSize,int nTileYSize,GDALDataType eBufType,size_t nCacheSize,char **options=NULL){
+        CPLVirtualMem* vmem = GDALRasterBandGetTiledVirtualMem( self,
+                                         eRWFlag,
+                                         nXOff, nYOff,
+                                         nXSize, nYSize,
+                                         nTileXSize, nTileYSize,
+                                         eBufType,
+                                         nCacheSize,
+                                         FALSE,
+                                         options );
+        if( vmem == NULL )
+            return NULL;
+        CPLVirtualMemShadow* vmemshadow = (CPLVirtualMemShadow*)calloc(1, sizeof(CPLVirtualMemShadow));
+        vmemshadow->vmem = vmem;
+        vmemshadow->eBufType = eBufType;
+        vmemshadow->bIsBandSequential = -1;
+        vmemshadow->bReadOnly = (eRWFlag == GF_Read);
+        vmemshadow->nBufXSize = nXSize;
+        vmemshadow->nBufYSize = nYSize;
+        vmemshadow->eTileOrganization = GTO_BSQ;
+        vmemshadow->nTileXSize = nTileXSize;
+        vmemshadow->nTileYSize = nTileYSize;
+        vmemshadow->nBandCount = 1;
+        return vmemshadow;
+    }
 SWIGINTERN CPLErr GDALRasterBandShadow_ReadRaster1(GDALRasterBandShadow *self,int xoff,int yoff,int xsize,int ysize,void **buf,int *buf_xsize=0,int *buf_ysize=0,int *buf_type=0,int *buf_pixel_space=0,int *buf_line_space=0){
     int nxsize = (buf_xsize==0) ? xsize : *buf_xsize;
     int nysize = (buf_ysize==0) ? ysize : *buf_ysize;
@@ -4620,6 +4868,9 @@ SWIGINTERN int GDALRasterAttributeTableShadow_SetLinearBinning(GDALRasterAttribu
     }
 SWIGINTERN int GDALRasterAttributeTableShadow_GetRowOfValue(GDALRasterAttributeTableShadow *self,double dfValue){
         return GDALRATGetRowOfValue( self, dfValue );
+    }
+SWIGINTERN int GDALRasterAttributeTableShadow_ChangesAreWrittenToFile(GDALRasterAttributeTableShadow *self){
+        return GDALRATChangesAreWrittenToFile( self );
     }
 
 #include "gdalgrid.h"
@@ -5869,6 +6120,11 @@ SWIGINTERN PyObject *_wrap_PushFinderLocation(PyObject *SWIGUNUSEDPARM(self), Py
     }
   }
   {
+    if (!arg1) {
+      SWIG_exception(SWIG_ValueError,"Received a NULL pointer.");
+    }
+  }
+  {
     if ( bUseExceptions ) {
       CPLErrorReset();
     }
@@ -5969,6 +6225,11 @@ SWIGINTERN PyObject *_wrap_FindFile(PyObject *SWIGUNUSEDPARM(self), PyObject *ar
     }
   }
   {
+    if (!arg2) {
+      SWIG_exception(SWIG_ValueError,"Received a NULL pointer.");
+    }
+  }
+  {
     if ( bUseExceptions ) {
       CPLErrorReset();
     }
@@ -6012,6 +6273,11 @@ SWIGINTERN PyObject *_wrap_ReadDir(PyObject *SWIGUNUSEDPARM(self), PyObject *arg
     {
       PyErr_SetString( PyExc_RuntimeError, "not a string" );
       SWIG_fail;
+    }
+  }
+  {
+    if (!arg1) {
+      SWIG_exception(SWIG_ValueError,"Received a NULL pointer.");
     }
   }
   {
@@ -6072,6 +6338,11 @@ SWIGINTERN PyObject *_wrap_ReadDirRecursive(PyObject *SWIGUNUSEDPARM(self), PyOb
     {
       PyErr_SetString( PyExc_RuntimeError, "not a string" );
       SWIG_fail;
+    }
+  }
+  {
+    if (!arg1) {
+      SWIG_exception(SWIG_ValueError,"Received a NULL pointer.");
     }
   }
   {
@@ -6415,6 +6686,11 @@ SWIGINTERN PyObject *_wrap_FileFromMemBuffer(PyObject *SWIGUNUSEDPARM(self), PyO
 #endif
   }
   {
+    if (!arg1) {
+      SWIG_exception(SWIG_ValueError,"Received a NULL pointer.");
+    }
+  }
+  {
     if ( bUseExceptions ) {
       CPLErrorReset();
     }
@@ -6468,6 +6744,11 @@ SWIGINTERN PyObject *_wrap_Unlink(PyObject *SWIGUNUSEDPARM(self), PyObject *args
     {
       PyErr_SetString( PyExc_RuntimeError, "not a string" );
       SWIG_fail;
+    }
+  }
+  {
+    if (!arg1) {
+      SWIG_exception(SWIG_ValueError,"Received a NULL pointer.");
     }
   }
   {
@@ -6548,6 +6829,11 @@ SWIGINTERN PyObject *_wrap_Mkdir(PyObject *SWIGUNUSEDPARM(self), PyObject *args)
   } 
   arg2 = static_cast< int >(val2);
   {
+    if (!arg1) {
+      SWIG_exception(SWIG_ValueError,"Received a NULL pointer.");
+    }
+  }
+  {
     if ( bUseExceptions ) {
       CPLErrorReset();
     }
@@ -6589,6 +6875,11 @@ SWIGINTERN PyObject *_wrap_Rmdir(PyObject *SWIGUNUSEDPARM(self), PyObject *args)
     {
       PyErr_SetString( PyExc_RuntimeError, "not a string" );
       SWIG_fail;
+    }
+  }
+  {
+    if (!arg1) {
+      SWIG_exception(SWIG_ValueError,"Received a NULL pointer.");
     }
   }
   {
@@ -6888,6 +7179,11 @@ SWIGINTERN PyObject *_wrap_VSIStatL(PyObject *SWIGUNUSEDPARM(self), PyObject *ar
     arg3 = static_cast< int >(val3);
   }
   {
+    if (!arg1) {
+      SWIG_exception(SWIG_ValueError,"Received a NULL pointer.");
+    }
+  }
+  {
     if ( bUseExceptions ) {
       CPLErrorReset();
     }
@@ -6949,6 +7245,11 @@ SWIGINTERN PyObject *_wrap_VSIFOpenL(PyObject *SWIGUNUSEDPARM(self), PyObject *a
     SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "VSIFOpenL" "', argument " "2"" of type '" "char const *""'");
   }
   arg2 = reinterpret_cast< char * >(buf2);
+  {
+    if (!arg1) {
+      SWIG_exception(SWIG_ValueError,"Received a NULL pointer.");
+    }
+  }
   {
     if ( bUseExceptions ) {
       CPLErrorReset();
@@ -7320,6 +7621,55 @@ SWIGINTERN PyObject *_wrap_MajorObject_SetDescription(PyObject *SWIGUNUSEDPARM(s
   return resultobj;
 fail:
   if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_MajorObject_GetMetadataDomainList(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  GDALMajorObjectShadow *arg1 = (GDALMajorObjectShadow *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  PyObject * obj0 = 0 ;
+  char **result = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"O:MajorObject_GetMetadataDomainList",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_GDALMajorObjectShadow, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "MajorObject_GetMetadataDomainList" "', argument " "1"" of type '" "GDALMajorObjectShadow *""'"); 
+  }
+  arg1 = reinterpret_cast< GDALMajorObjectShadow * >(argp1);
+  {
+    if ( bUseExceptions ) {
+      CPLErrorReset();
+    }
+    result = (char **)GDALMajorObjectShadow_GetMetadataDomainList(arg1);
+    if ( bUseExceptions ) {
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        SWIG_exception( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+      }
+    }
+  }
+  {
+    /* %typemap(out) char **CSL -> ( string ) */
+    char **stringarray = result;
+    if ( stringarray == NULL ) {
+      resultobj = Py_None;
+      Py_INCREF( resultobj );
+    }
+    else {
+      int len = CSLCount( stringarray );
+      resultobj = PyList_New( len );
+      for ( int i = 0; i < len; ++i ) {
+        PyObject *o = GDALPythonObjectFromCStr( stringarray[i] );
+        PyList_SetItem(resultobj, i, o );
+      }
+    }
+    CSLDestroy(result);
+  }
+  return resultobj;
+fail:
   return NULL;
 }
 
@@ -8073,6 +8423,11 @@ SWIGINTERN PyObject *_wrap_Driver_Create(PyObject *SWIGUNUSEDPARM(self), PyObjec
     }
   }
   {
+    if (!arg2) {
+      SWIG_exception(SWIG_ValueError,"Received a NULL pointer.");
+    }
+  }
+  {
     if ( bUseExceptions ) {
       CPLErrorReset();
     }
@@ -8249,6 +8604,11 @@ SWIGINTERN PyObject *_wrap_Driver_CreateCopy(PyObject *SWIGUNUSEDPARM(self), PyO
     }
   }
   {
+    if (!arg2) {
+      SWIG_exception(SWIG_ValueError,"Received a NULL pointer.");
+    }
+  }
+  {
     if (!arg3) {
       SWIG_exception(SWIG_ValueError,"Received a NULL pointer.");
     }
@@ -8324,6 +8684,11 @@ SWIGINTERN PyObject *_wrap_Driver_Delete(PyObject *SWIGUNUSEDPARM(self), PyObjec
     {
       PyErr_SetString( PyExc_RuntimeError, "not a string" );
       SWIG_fail;
+    }
+  }
+  {
+    if (!arg2) {
+      SWIG_exception(SWIG_ValueError,"Received a NULL pointer.");
     }
   }
   {
@@ -10941,6 +11306,210 @@ fail:
 }
 
 
+SWIGINTERN PyObject *_wrap_delete_VirtualMem(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  CPLVirtualMemShadow *arg1 = (CPLVirtualMemShadow *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  PyObject * obj0 = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"O:delete_VirtualMem",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_CPLVirtualMemShadow, SWIG_POINTER_DISOWN |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "delete_VirtualMem" "', argument " "1"" of type '" "CPLVirtualMemShadow *""'"); 
+  }
+  arg1 = reinterpret_cast< CPLVirtualMemShadow * >(argp1);
+  {
+    if ( bUseExceptions ) {
+      CPLErrorReset();
+    }
+    delete_CPLVirtualMemShadow(arg1);
+    if ( bUseExceptions ) {
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        SWIG_exception( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+      }
+    }
+  }
+  resultobj = SWIG_Py_Void();
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_VirtualMem_GetAddr(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  CPLVirtualMemShadow *arg1 = (CPLVirtualMemShadow *) 0 ;
+  void **arg2 = (void **) 0 ;
+  size_t *arg3 = (size_t *) 0 ;
+  GDALDataType *arg4 = (GDALDataType *) 0 ;
+  int *arg5 = (int *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  void *ptr2 ;
+  size_t nsize2 ;
+  GDALDataType datatype2 ;
+  int readonly2 ;
+  PyObject * obj0 = 0 ;
+  
+  {
+    /* %typemap(in,numinputs=0) (void** pptr, size_t* pnsize, GDALDataType* pdatatype, int* preadonly) */
+    arg2 = &ptr2;
+    arg3 = &nsize2;
+    arg4 = &datatype2;
+    arg5 = &readonly2;
+  }
+  if (!PyArg_ParseTuple(args,(char *)"O:VirtualMem_GetAddr",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_CPLVirtualMemShadow, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "VirtualMem_GetAddr" "', argument " "1"" of type '" "CPLVirtualMemShadow *""'"); 
+  }
+  arg1 = reinterpret_cast< CPLVirtualMemShadow * >(argp1);
+  {
+    if ( bUseExceptions ) {
+      CPLErrorReset();
+    }
+    CPLVirtualMemShadow_GetAddr(arg1,arg2,arg3,arg4,arg5);
+    if ( bUseExceptions ) {
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        SWIG_exception( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+      }
+    }
+  }
+  resultobj = SWIG_Py_Void();
+  {
+#if PY_VERSION_HEX >= 0x02070000 
+    /* %typemap(argout) (void** pptr, size_t* pnsize, GDALDataType* pdatatype, int* preadonly)*/
+    Py_buffer *buf=(Py_buffer*)malloc(sizeof(Py_buffer));
+    if (PyBuffer_FillInfo(buf,  obj0,  *(arg2), *(arg3), *(arg5), PyBUF_ND)) {
+      // error, handle
+    }
+    if( *(arg4) == GDT_Byte )
+    {
+      buf->format = "B";
+      buf->itemsize = 1;
+    }
+    else if( *(arg4) == GDT_Int16 )
+    {
+      buf->format = "h";
+      buf->itemsize = 2;
+    }
+    else if( *(arg4) == GDT_UInt16 )
+    {
+      buf->format = "H";
+      buf->itemsize = 2;
+    }
+    else if( *(arg4) == GDT_Int32 )
+    {
+      buf->format = "i";
+      buf->itemsize = 4;
+    }
+    else if( *(arg4) == GDT_UInt32 )
+    {
+      buf->format = "I";
+      buf->itemsize = 4;
+    }
+    else if( *(arg4) == GDT_Float32 )
+    {
+      buf->format = "f";
+      buf->itemsize = 4;
+    }
+    else if( *(arg4) == GDT_Float64 )
+    {
+      buf->format = "F";
+      buf->itemsize = 8;
+    }
+    else
+    {
+      buf->format = "B";
+      buf->itemsize = 1;
+    }
+    resultobj = PyMemoryView_FromBuffer(buf);
+#else
+    PyErr_SetString( PyExc_RuntimeError, "needs Python 2.7 or later" );
+    SWIG_fail;
+#endif
+  }
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_VirtualMem_Pin(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  CPLVirtualMemShadow *arg1 = (CPLVirtualMemShadow *) 0 ;
+  size_t arg2 = (size_t) 0 ;
+  size_t arg3 = (size_t) 0 ;
+  int arg4 = (int) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  size_t val2 ;
+  int ecode2 = 0 ;
+  size_t val3 ;
+  int ecode3 = 0 ;
+  int val4 ;
+  int ecode4 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  PyObject * obj2 = 0 ;
+  PyObject * obj3 = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"O|OOO:VirtualMem_Pin",&obj0,&obj1,&obj2,&obj3)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_CPLVirtualMemShadow, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "VirtualMem_Pin" "', argument " "1"" of type '" "CPLVirtualMemShadow *""'"); 
+  }
+  arg1 = reinterpret_cast< CPLVirtualMemShadow * >(argp1);
+  if (obj1) {
+    ecode2 = SWIG_AsVal_size_t(obj1, &val2);
+    if (!SWIG_IsOK(ecode2)) {
+      SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "VirtualMem_Pin" "', argument " "2"" of type '" "size_t""'");
+    } 
+    arg2 = static_cast< size_t >(val2);
+  }
+  if (obj2) {
+    ecode3 = SWIG_AsVal_size_t(obj2, &val3);
+    if (!SWIG_IsOK(ecode3)) {
+      SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "VirtualMem_Pin" "', argument " "3"" of type '" "size_t""'");
+    } 
+    arg3 = static_cast< size_t >(val3);
+  }
+  if (obj3) {
+    ecode4 = SWIG_AsVal_int(obj3, &val4);
+    if (!SWIG_IsOK(ecode4)) {
+      SWIG_exception_fail(SWIG_ArgError(ecode4), "in method '" "VirtualMem_Pin" "', argument " "4"" of type '" "int""'");
+    } 
+    arg4 = static_cast< int >(val4);
+  }
+  {
+    if ( bUseExceptions ) {
+      CPLErrorReset();
+    }
+    CPLVirtualMemShadow_Pin(arg1,arg2,arg3,arg4);
+    if ( bUseExceptions ) {
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        SWIG_exception( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+      }
+    }
+  }
+  resultobj = SWIG_Py_Void();
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *VirtualMem_swigregister(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *obj;
+  if (!PyArg_ParseTuple(args,(char*)"O:swigregister", &obj)) return NULL;
+  SWIG_TypeNewClientData(SWIGTYPE_p_CPLVirtualMemShadow, SWIG_NewClientData(obj));
+  return SWIG_Py_Void();
+}
+
 SWIGINTERN PyObject *_wrap_delete_AsyncReader(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   GDALAsyncReaderShadow *arg1 = (GDALAsyncReaderShadow *) 0 ;
@@ -12848,6 +13417,447 @@ SWIGINTERN PyObject *_wrap_Dataset_EndAsyncReader(PyObject *SWIGUNUSEDPARM(self)
   resultobj = SWIG_Py_Void();
   return resultobj;
 fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_Dataset_GetVirtualMem(PyObject *SWIGUNUSEDPARM(self), PyObject *args, PyObject *kwargs) {
+  PyObject *resultobj = 0;
+  GDALDatasetShadow *arg1 = (GDALDatasetShadow *) 0 ;
+  GDALRWFlag arg2 ;
+  int arg3 ;
+  int arg4 ;
+  int arg5 ;
+  int arg6 ;
+  int arg7 ;
+  int arg8 ;
+  GDALDataType arg9 ;
+  int arg10 ;
+  int *arg11 = (int *) 0 ;
+  int arg12 ;
+  size_t arg13 ;
+  size_t arg14 ;
+  char **arg15 = (char **) NULL ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  int val2 ;
+  int ecode2 = 0 ;
+  int val3 ;
+  int ecode3 = 0 ;
+  int val4 ;
+  int ecode4 = 0 ;
+  int val5 ;
+  int ecode5 = 0 ;
+  int val6 ;
+  int ecode6 = 0 ;
+  int val7 ;
+  int ecode7 = 0 ;
+  int val8 ;
+  int ecode8 = 0 ;
+  int val9 ;
+  int ecode9 = 0 ;
+  int val12 ;
+  int ecode12 = 0 ;
+  size_t val13 ;
+  int ecode13 = 0 ;
+  size_t val14 ;
+  int ecode14 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  PyObject * obj2 = 0 ;
+  PyObject * obj3 = 0 ;
+  PyObject * obj4 = 0 ;
+  PyObject * obj5 = 0 ;
+  PyObject * obj6 = 0 ;
+  PyObject * obj7 = 0 ;
+  PyObject * obj8 = 0 ;
+  PyObject * obj9 = 0 ;
+  PyObject * obj10 = 0 ;
+  PyObject * obj11 = 0 ;
+  PyObject * obj12 = 0 ;
+  PyObject * obj13 = 0 ;
+  char *  kwnames[] = {
+    (char *) "self",(char *) "eRWFlag",(char *) "nXOff",(char *) "nYOff",(char *) "nXSize",(char *) "nYSize",(char *) "nBufXSize",(char *) "nBufYSize",(char *) "eBufType",(char *) "band_list",(char *) "bIsBandSequential",(char *) "nCacheSize",(char *) "nPageSizeHint",(char *) "options", NULL 
+  };
+  CPLVirtualMemShadow *result = 0 ;
+  
+  if (!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOOOOOOOOOOOO|O:Dataset_GetVirtualMem",kwnames,&obj0,&obj1,&obj2,&obj3,&obj4,&obj5,&obj6,&obj7,&obj8,&obj9,&obj10,&obj11,&obj12,&obj13)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_GDALDatasetShadow, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Dataset_GetVirtualMem" "', argument " "1"" of type '" "GDALDatasetShadow *""'"); 
+  }
+  arg1 = reinterpret_cast< GDALDatasetShadow * >(argp1);
+  ecode2 = SWIG_AsVal_int(obj1, &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "Dataset_GetVirtualMem" "', argument " "2"" of type '" "GDALRWFlag""'");
+  } 
+  arg2 = static_cast< GDALRWFlag >(val2);
+  ecode3 = SWIG_AsVal_int(obj2, &val3);
+  if (!SWIG_IsOK(ecode3)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "Dataset_GetVirtualMem" "', argument " "3"" of type '" "int""'");
+  } 
+  arg3 = static_cast< int >(val3);
+  ecode4 = SWIG_AsVal_int(obj3, &val4);
+  if (!SWIG_IsOK(ecode4)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode4), "in method '" "Dataset_GetVirtualMem" "', argument " "4"" of type '" "int""'");
+  } 
+  arg4 = static_cast< int >(val4);
+  ecode5 = SWIG_AsVal_int(obj4, &val5);
+  if (!SWIG_IsOK(ecode5)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode5), "in method '" "Dataset_GetVirtualMem" "', argument " "5"" of type '" "int""'");
+  } 
+  arg5 = static_cast< int >(val5);
+  ecode6 = SWIG_AsVal_int(obj5, &val6);
+  if (!SWIG_IsOK(ecode6)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode6), "in method '" "Dataset_GetVirtualMem" "', argument " "6"" of type '" "int""'");
+  } 
+  arg6 = static_cast< int >(val6);
+  ecode7 = SWIG_AsVal_int(obj6, &val7);
+  if (!SWIG_IsOK(ecode7)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode7), "in method '" "Dataset_GetVirtualMem" "', argument " "7"" of type '" "int""'");
+  } 
+  arg7 = static_cast< int >(val7);
+  ecode8 = SWIG_AsVal_int(obj7, &val8);
+  if (!SWIG_IsOK(ecode8)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode8), "in method '" "Dataset_GetVirtualMem" "', argument " "8"" of type '" "int""'");
+  } 
+  arg8 = static_cast< int >(val8);
+  ecode9 = SWIG_AsVal_int(obj8, &val9);
+  if (!SWIG_IsOK(ecode9)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode9), "in method '" "Dataset_GetVirtualMem" "', argument " "9"" of type '" "GDALDataType""'");
+  } 
+  arg9 = static_cast< GDALDataType >(val9);
+  {
+    /* %typemap(in,numinputs=1) (int nList, int* pList)*/
+    /* check if is List */
+    if ( !PySequence_Check(obj9) ) {
+      PyErr_SetString(PyExc_TypeError, "not a sequence");
+      SWIG_fail;
+    }
+    arg10 = PySequence_Size(obj9);
+    arg11 = (int*) malloc(arg10*sizeof(int));
+    for( int i = 0; i<arg10; i++ ) {
+      PyObject *o = PySequence_GetItem(obj9,i);
+      if ( !PyArg_Parse(o,"i",&arg11[i]) ) {
+        PyErr_SetString(PyExc_TypeError, "not an integer");
+        Py_DECREF(o);
+        SWIG_fail;
+      }
+      Py_DECREF(o);
+    }
+  }
+  ecode12 = SWIG_AsVal_int(obj10, &val12);
+  if (!SWIG_IsOK(ecode12)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode12), "in method '" "Dataset_GetVirtualMem" "', argument " "12"" of type '" "int""'");
+  } 
+  arg12 = static_cast< int >(val12);
+  ecode13 = SWIG_AsVal_size_t(obj11, &val13);
+  if (!SWIG_IsOK(ecode13)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode13), "in method '" "Dataset_GetVirtualMem" "', argument " "13"" of type '" "size_t""'");
+  } 
+  arg13 = static_cast< size_t >(val13);
+  ecode14 = SWIG_AsVal_size_t(obj12, &val14);
+  if (!SWIG_IsOK(ecode14)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode14), "in method '" "Dataset_GetVirtualMem" "', argument " "14"" of type '" "size_t""'");
+  } 
+  arg14 = static_cast< size_t >(val14);
+  if (obj13) {
+    {
+      /* %typemap(in) char **options */
+      /* Check if is a list (and reject strings, that are seen as sequence of characters)  */
+      if ( ! PySequence_Check(obj13) || PyUnicode_Check(obj13)
+  #if PY_VERSION_HEX < 0x03000000
+        || PyString_Check(obj13)
+  #endif
+        ) {
+        PyErr_SetString(PyExc_TypeError,"not a sequence");
+        SWIG_fail;
+      }
+      
+      int size = PySequence_Size(obj13);
+      for (int i = 0; i < size; i++) {
+        PyObject* pyObj = PySequence_GetItem(obj13,i);
+        if (PyUnicode_Check(pyObj))
+        {
+          char *pszStr;
+          Py_ssize_t nLen;
+          PyObject* pyUTF8Str = PyUnicode_AsUTF8String(pyObj);
+#if PY_VERSION_HEX >= 0x03000000
+          PyBytes_AsStringAndSize(pyUTF8Str, &pszStr, &nLen);
+#else
+          PyString_AsStringAndSize(pyUTF8Str, &pszStr, &nLen);
+#endif
+          arg15 = CSLAddString( arg15, pszStr );
+          Py_XDECREF(pyUTF8Str);
+        }
+#if PY_VERSION_HEX >= 0x03000000
+        else if (PyBytes_Check(pyObj))
+        arg15 = CSLAddString( arg15, PyBytes_AsString(pyObj) );
+#else
+        else if (PyString_Check(pyObj))
+        arg15 = CSLAddString( arg15, PyString_AsString(pyObj) );
+#endif
+        else
+        {
+          Py_DECREF(pyObj);
+          PyErr_SetString(PyExc_TypeError,"sequence must contain strings");
+          SWIG_fail;
+        }
+        Py_DECREF(pyObj);
+      }
+    }
+  }
+  {
+    if ( bUseExceptions ) {
+      CPLErrorReset();
+    }
+    result = (CPLVirtualMemShadow *)GDALDatasetShadow_GetVirtualMem(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11,arg12,arg13,arg14,arg15);
+    if ( bUseExceptions ) {
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        SWIG_exception( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+      }
+    }
+  }
+  resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_CPLVirtualMemShadow, SWIG_POINTER_OWN |  0 );
+  {
+    /* %typemap(freearg) (int nList, int* pList) */
+    if (arg11) {
+      free((void*) arg11);
+    }
+  }
+  {
+    /* %typemap(freearg) char **options */
+    CSLDestroy( arg15 );
+  }
+  return resultobj;
+fail:
+  {
+    /* %typemap(freearg) (int nList, int* pList) */
+    if (arg11) {
+      free((void*) arg11);
+    }
+  }
+  {
+    /* %typemap(freearg) char **options */
+    CSLDestroy( arg15 );
+  }
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_Dataset_GetTiledVirtualMem(PyObject *SWIGUNUSEDPARM(self), PyObject *args, PyObject *kwargs) {
+  PyObject *resultobj = 0;
+  GDALDatasetShadow *arg1 = (GDALDatasetShadow *) 0 ;
+  GDALRWFlag arg2 ;
+  int arg3 ;
+  int arg4 ;
+  int arg5 ;
+  int arg6 ;
+  int arg7 ;
+  int arg8 ;
+  GDALDataType arg9 ;
+  int arg10 ;
+  int *arg11 = (int *) 0 ;
+  GDALTileOrganization arg12 ;
+  size_t arg13 ;
+  char **arg14 = (char **) NULL ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  int val2 ;
+  int ecode2 = 0 ;
+  int val3 ;
+  int ecode3 = 0 ;
+  int val4 ;
+  int ecode4 = 0 ;
+  int val5 ;
+  int ecode5 = 0 ;
+  int val6 ;
+  int ecode6 = 0 ;
+  int val7 ;
+  int ecode7 = 0 ;
+  int val8 ;
+  int ecode8 = 0 ;
+  int val9 ;
+  int ecode9 = 0 ;
+  int val12 ;
+  int ecode12 = 0 ;
+  size_t val13 ;
+  int ecode13 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  PyObject * obj2 = 0 ;
+  PyObject * obj3 = 0 ;
+  PyObject * obj4 = 0 ;
+  PyObject * obj5 = 0 ;
+  PyObject * obj6 = 0 ;
+  PyObject * obj7 = 0 ;
+  PyObject * obj8 = 0 ;
+  PyObject * obj9 = 0 ;
+  PyObject * obj10 = 0 ;
+  PyObject * obj11 = 0 ;
+  PyObject * obj12 = 0 ;
+  char *  kwnames[] = {
+    (char *) "self",(char *) "eRWFlag",(char *) "nXOff",(char *) "nYOff",(char *) "nXSize",(char *) "nYSize",(char *) "nTileXSize",(char *) "nTileYSize",(char *) "eBufType",(char *) "band_list",(char *) "eTileOrganization",(char *) "nCacheSize",(char *) "options", NULL 
+  };
+  CPLVirtualMemShadow *result = 0 ;
+  
+  if (!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOOOOOOOOOOO|O:Dataset_GetTiledVirtualMem",kwnames,&obj0,&obj1,&obj2,&obj3,&obj4,&obj5,&obj6,&obj7,&obj8,&obj9,&obj10,&obj11,&obj12)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_GDALDatasetShadow, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Dataset_GetTiledVirtualMem" "', argument " "1"" of type '" "GDALDatasetShadow *""'"); 
+  }
+  arg1 = reinterpret_cast< GDALDatasetShadow * >(argp1);
+  ecode2 = SWIG_AsVal_int(obj1, &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "Dataset_GetTiledVirtualMem" "', argument " "2"" of type '" "GDALRWFlag""'");
+  } 
+  arg2 = static_cast< GDALRWFlag >(val2);
+  ecode3 = SWIG_AsVal_int(obj2, &val3);
+  if (!SWIG_IsOK(ecode3)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "Dataset_GetTiledVirtualMem" "', argument " "3"" of type '" "int""'");
+  } 
+  arg3 = static_cast< int >(val3);
+  ecode4 = SWIG_AsVal_int(obj3, &val4);
+  if (!SWIG_IsOK(ecode4)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode4), "in method '" "Dataset_GetTiledVirtualMem" "', argument " "4"" of type '" "int""'");
+  } 
+  arg4 = static_cast< int >(val4);
+  ecode5 = SWIG_AsVal_int(obj4, &val5);
+  if (!SWIG_IsOK(ecode5)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode5), "in method '" "Dataset_GetTiledVirtualMem" "', argument " "5"" of type '" "int""'");
+  } 
+  arg5 = static_cast< int >(val5);
+  ecode6 = SWIG_AsVal_int(obj5, &val6);
+  if (!SWIG_IsOK(ecode6)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode6), "in method '" "Dataset_GetTiledVirtualMem" "', argument " "6"" of type '" "int""'");
+  } 
+  arg6 = static_cast< int >(val6);
+  ecode7 = SWIG_AsVal_int(obj6, &val7);
+  if (!SWIG_IsOK(ecode7)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode7), "in method '" "Dataset_GetTiledVirtualMem" "', argument " "7"" of type '" "int""'");
+  } 
+  arg7 = static_cast< int >(val7);
+  ecode8 = SWIG_AsVal_int(obj7, &val8);
+  if (!SWIG_IsOK(ecode8)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode8), "in method '" "Dataset_GetTiledVirtualMem" "', argument " "8"" of type '" "int""'");
+  } 
+  arg8 = static_cast< int >(val8);
+  ecode9 = SWIG_AsVal_int(obj8, &val9);
+  if (!SWIG_IsOK(ecode9)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode9), "in method '" "Dataset_GetTiledVirtualMem" "', argument " "9"" of type '" "GDALDataType""'");
+  } 
+  arg9 = static_cast< GDALDataType >(val9);
+  {
+    /* %typemap(in,numinputs=1) (int nList, int* pList)*/
+    /* check if is List */
+    if ( !PySequence_Check(obj9) ) {
+      PyErr_SetString(PyExc_TypeError, "not a sequence");
+      SWIG_fail;
+    }
+    arg10 = PySequence_Size(obj9);
+    arg11 = (int*) malloc(arg10*sizeof(int));
+    for( int i = 0; i<arg10; i++ ) {
+      PyObject *o = PySequence_GetItem(obj9,i);
+      if ( !PyArg_Parse(o,"i",&arg11[i]) ) {
+        PyErr_SetString(PyExc_TypeError, "not an integer");
+        Py_DECREF(o);
+        SWIG_fail;
+      }
+      Py_DECREF(o);
+    }
+  }
+  ecode12 = SWIG_AsVal_int(obj10, &val12);
+  if (!SWIG_IsOK(ecode12)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode12), "in method '" "Dataset_GetTiledVirtualMem" "', argument " "12"" of type '" "GDALTileOrganization""'");
+  } 
+  arg12 = static_cast< GDALTileOrganization >(val12);
+  ecode13 = SWIG_AsVal_size_t(obj11, &val13);
+  if (!SWIG_IsOK(ecode13)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode13), "in method '" "Dataset_GetTiledVirtualMem" "', argument " "13"" of type '" "size_t""'");
+  } 
+  arg13 = static_cast< size_t >(val13);
+  if (obj12) {
+    {
+      /* %typemap(in) char **options */
+      /* Check if is a list (and reject strings, that are seen as sequence of characters)  */
+      if ( ! PySequence_Check(obj12) || PyUnicode_Check(obj12)
+  #if PY_VERSION_HEX < 0x03000000
+        || PyString_Check(obj12)
+  #endif
+        ) {
+        PyErr_SetString(PyExc_TypeError,"not a sequence");
+        SWIG_fail;
+      }
+      
+      int size = PySequence_Size(obj12);
+      for (int i = 0; i < size; i++) {
+        PyObject* pyObj = PySequence_GetItem(obj12,i);
+        if (PyUnicode_Check(pyObj))
+        {
+          char *pszStr;
+          Py_ssize_t nLen;
+          PyObject* pyUTF8Str = PyUnicode_AsUTF8String(pyObj);
+#if PY_VERSION_HEX >= 0x03000000
+          PyBytes_AsStringAndSize(pyUTF8Str, &pszStr, &nLen);
+#else
+          PyString_AsStringAndSize(pyUTF8Str, &pszStr, &nLen);
+#endif
+          arg14 = CSLAddString( arg14, pszStr );
+          Py_XDECREF(pyUTF8Str);
+        }
+#if PY_VERSION_HEX >= 0x03000000
+        else if (PyBytes_Check(pyObj))
+        arg14 = CSLAddString( arg14, PyBytes_AsString(pyObj) );
+#else
+        else if (PyString_Check(pyObj))
+        arg14 = CSLAddString( arg14, PyString_AsString(pyObj) );
+#endif
+        else
+        {
+          Py_DECREF(pyObj);
+          PyErr_SetString(PyExc_TypeError,"sequence must contain strings");
+          SWIG_fail;
+        }
+        Py_DECREF(pyObj);
+      }
+    }
+  }
+  {
+    if ( bUseExceptions ) {
+      CPLErrorReset();
+    }
+    result = (CPLVirtualMemShadow *)GDALDatasetShadow_GetTiledVirtualMem(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11,arg12,arg13,arg14);
+    if ( bUseExceptions ) {
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        SWIG_exception( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+      }
+    }
+  }
+  resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_CPLVirtualMemShadow, SWIG_POINTER_OWN |  0 );
+  {
+    /* %typemap(freearg) (int nList, int* pList) */
+    if (arg11) {
+      free((void*) arg11);
+    }
+  }
+  {
+    /* %typemap(freearg) char **options */
+    CSLDestroy( arg14 );
+  }
+  return resultobj;
+fail:
+  {
+    /* %typemap(freearg) (int nList, int* pList) */
+    if (arg11) {
+      free((void*) arg11);
+    }
+  }
+  {
+    /* %typemap(freearg) char **options */
+    CSLDestroy( arg14 );
+  }
   return NULL;
 }
 
@@ -15964,6 +16974,462 @@ fail:
 }
 
 
+SWIGINTERN PyObject *_wrap_Band_GetVirtualMem(PyObject *SWIGUNUSEDPARM(self), PyObject *args, PyObject *kwargs) {
+  PyObject *resultobj = 0;
+  GDALRasterBandShadow *arg1 = (GDALRasterBandShadow *) 0 ;
+  GDALRWFlag arg2 ;
+  int arg3 ;
+  int arg4 ;
+  int arg5 ;
+  int arg6 ;
+  int arg7 ;
+  int arg8 ;
+  GDALDataType arg9 ;
+  size_t arg10 ;
+  size_t arg11 ;
+  char **arg12 = (char **) NULL ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  int val2 ;
+  int ecode2 = 0 ;
+  int val3 ;
+  int ecode3 = 0 ;
+  int val4 ;
+  int ecode4 = 0 ;
+  int val5 ;
+  int ecode5 = 0 ;
+  int val6 ;
+  int ecode6 = 0 ;
+  int val7 ;
+  int ecode7 = 0 ;
+  int val8 ;
+  int ecode8 = 0 ;
+  int val9 ;
+  int ecode9 = 0 ;
+  size_t val10 ;
+  int ecode10 = 0 ;
+  size_t val11 ;
+  int ecode11 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  PyObject * obj2 = 0 ;
+  PyObject * obj3 = 0 ;
+  PyObject * obj4 = 0 ;
+  PyObject * obj5 = 0 ;
+  PyObject * obj6 = 0 ;
+  PyObject * obj7 = 0 ;
+  PyObject * obj8 = 0 ;
+  PyObject * obj9 = 0 ;
+  PyObject * obj10 = 0 ;
+  PyObject * obj11 = 0 ;
+  char *  kwnames[] = {
+    (char *) "self",(char *) "eRWFlag",(char *) "nXOff",(char *) "nYOff",(char *) "nXSize",(char *) "nYSize",(char *) "nBufXSize",(char *) "nBufYSize",(char *) "eBufType",(char *) "nCacheSize",(char *) "nPageSizeHint",(char *) "options", NULL 
+  };
+  CPLVirtualMemShadow *result = 0 ;
+  
+  if (!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOOOOOOOOOO|O:Band_GetVirtualMem",kwnames,&obj0,&obj1,&obj2,&obj3,&obj4,&obj5,&obj6,&obj7,&obj8,&obj9,&obj10,&obj11)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_GDALRasterBandShadow, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Band_GetVirtualMem" "', argument " "1"" of type '" "GDALRasterBandShadow *""'"); 
+  }
+  arg1 = reinterpret_cast< GDALRasterBandShadow * >(argp1);
+  ecode2 = SWIG_AsVal_int(obj1, &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "Band_GetVirtualMem" "', argument " "2"" of type '" "GDALRWFlag""'");
+  } 
+  arg2 = static_cast< GDALRWFlag >(val2);
+  ecode3 = SWIG_AsVal_int(obj2, &val3);
+  if (!SWIG_IsOK(ecode3)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "Band_GetVirtualMem" "', argument " "3"" of type '" "int""'");
+  } 
+  arg3 = static_cast< int >(val3);
+  ecode4 = SWIG_AsVal_int(obj3, &val4);
+  if (!SWIG_IsOK(ecode4)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode4), "in method '" "Band_GetVirtualMem" "', argument " "4"" of type '" "int""'");
+  } 
+  arg4 = static_cast< int >(val4);
+  ecode5 = SWIG_AsVal_int(obj4, &val5);
+  if (!SWIG_IsOK(ecode5)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode5), "in method '" "Band_GetVirtualMem" "', argument " "5"" of type '" "int""'");
+  } 
+  arg5 = static_cast< int >(val5);
+  ecode6 = SWIG_AsVal_int(obj5, &val6);
+  if (!SWIG_IsOK(ecode6)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode6), "in method '" "Band_GetVirtualMem" "', argument " "6"" of type '" "int""'");
+  } 
+  arg6 = static_cast< int >(val6);
+  ecode7 = SWIG_AsVal_int(obj6, &val7);
+  if (!SWIG_IsOK(ecode7)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode7), "in method '" "Band_GetVirtualMem" "', argument " "7"" of type '" "int""'");
+  } 
+  arg7 = static_cast< int >(val7);
+  ecode8 = SWIG_AsVal_int(obj7, &val8);
+  if (!SWIG_IsOK(ecode8)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode8), "in method '" "Band_GetVirtualMem" "', argument " "8"" of type '" "int""'");
+  } 
+  arg8 = static_cast< int >(val8);
+  ecode9 = SWIG_AsVal_int(obj8, &val9);
+  if (!SWIG_IsOK(ecode9)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode9), "in method '" "Band_GetVirtualMem" "', argument " "9"" of type '" "GDALDataType""'");
+  } 
+  arg9 = static_cast< GDALDataType >(val9);
+  ecode10 = SWIG_AsVal_size_t(obj9, &val10);
+  if (!SWIG_IsOK(ecode10)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode10), "in method '" "Band_GetVirtualMem" "', argument " "10"" of type '" "size_t""'");
+  } 
+  arg10 = static_cast< size_t >(val10);
+  ecode11 = SWIG_AsVal_size_t(obj10, &val11);
+  if (!SWIG_IsOK(ecode11)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode11), "in method '" "Band_GetVirtualMem" "', argument " "11"" of type '" "size_t""'");
+  } 
+  arg11 = static_cast< size_t >(val11);
+  if (obj11) {
+    {
+      /* %typemap(in) char **options */
+      /* Check if is a list (and reject strings, that are seen as sequence of characters)  */
+      if ( ! PySequence_Check(obj11) || PyUnicode_Check(obj11)
+  #if PY_VERSION_HEX < 0x03000000
+        || PyString_Check(obj11)
+  #endif
+        ) {
+        PyErr_SetString(PyExc_TypeError,"not a sequence");
+        SWIG_fail;
+      }
+      
+      int size = PySequence_Size(obj11);
+      for (int i = 0; i < size; i++) {
+        PyObject* pyObj = PySequence_GetItem(obj11,i);
+        if (PyUnicode_Check(pyObj))
+        {
+          char *pszStr;
+          Py_ssize_t nLen;
+          PyObject* pyUTF8Str = PyUnicode_AsUTF8String(pyObj);
+#if PY_VERSION_HEX >= 0x03000000
+          PyBytes_AsStringAndSize(pyUTF8Str, &pszStr, &nLen);
+#else
+          PyString_AsStringAndSize(pyUTF8Str, &pszStr, &nLen);
+#endif
+          arg12 = CSLAddString( arg12, pszStr );
+          Py_XDECREF(pyUTF8Str);
+        }
+#if PY_VERSION_HEX >= 0x03000000
+        else if (PyBytes_Check(pyObj))
+        arg12 = CSLAddString( arg12, PyBytes_AsString(pyObj) );
+#else
+        else if (PyString_Check(pyObj))
+        arg12 = CSLAddString( arg12, PyString_AsString(pyObj) );
+#endif
+        else
+        {
+          Py_DECREF(pyObj);
+          PyErr_SetString(PyExc_TypeError,"sequence must contain strings");
+          SWIG_fail;
+        }
+        Py_DECREF(pyObj);
+      }
+    }
+  }
+  {
+    if ( bUseExceptions ) {
+      CPLErrorReset();
+    }
+    result = (CPLVirtualMemShadow *)GDALRasterBandShadow_GetVirtualMem(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11,arg12);
+    if ( bUseExceptions ) {
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        SWIG_exception( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+      }
+    }
+  }
+  resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_CPLVirtualMemShadow, SWIG_POINTER_OWN |  0 );
+  {
+    /* %typemap(freearg) char **options */
+    CSLDestroy( arg12 );
+  }
+  return resultobj;
+fail:
+  {
+    /* %typemap(freearg) char **options */
+    CSLDestroy( arg12 );
+  }
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_Band_GetVirtualMemAuto(PyObject *SWIGUNUSEDPARM(self), PyObject *args, PyObject *kwargs) {
+  PyObject *resultobj = 0;
+  GDALRasterBandShadow *arg1 = (GDALRasterBandShadow *) 0 ;
+  GDALRWFlag arg2 ;
+  char **arg3 = (char **) NULL ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  int val2 ;
+  int ecode2 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  PyObject * obj2 = 0 ;
+  char *  kwnames[] = {
+    (char *) "self",(char *) "eRWFlag",(char *) "options", NULL 
+  };
+  CPLVirtualMemShadow *result = 0 ;
+  
+  if (!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OO|O:Band_GetVirtualMemAuto",kwnames,&obj0,&obj1,&obj2)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_GDALRasterBandShadow, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Band_GetVirtualMemAuto" "', argument " "1"" of type '" "GDALRasterBandShadow *""'"); 
+  }
+  arg1 = reinterpret_cast< GDALRasterBandShadow * >(argp1);
+  ecode2 = SWIG_AsVal_int(obj1, &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "Band_GetVirtualMemAuto" "', argument " "2"" of type '" "GDALRWFlag""'");
+  } 
+  arg2 = static_cast< GDALRWFlag >(val2);
+  if (obj2) {
+    {
+      /* %typemap(in) char **options */
+      /* Check if is a list (and reject strings, that are seen as sequence of characters)  */
+      if ( ! PySequence_Check(obj2) || PyUnicode_Check(obj2)
+  #if PY_VERSION_HEX < 0x03000000
+        || PyString_Check(obj2)
+  #endif
+        ) {
+        PyErr_SetString(PyExc_TypeError,"not a sequence");
+        SWIG_fail;
+      }
+      
+      int size = PySequence_Size(obj2);
+      for (int i = 0; i < size; i++) {
+        PyObject* pyObj = PySequence_GetItem(obj2,i);
+        if (PyUnicode_Check(pyObj))
+        {
+          char *pszStr;
+          Py_ssize_t nLen;
+          PyObject* pyUTF8Str = PyUnicode_AsUTF8String(pyObj);
+#if PY_VERSION_HEX >= 0x03000000
+          PyBytes_AsStringAndSize(pyUTF8Str, &pszStr, &nLen);
+#else
+          PyString_AsStringAndSize(pyUTF8Str, &pszStr, &nLen);
+#endif
+          arg3 = CSLAddString( arg3, pszStr );
+          Py_XDECREF(pyUTF8Str);
+        }
+#if PY_VERSION_HEX >= 0x03000000
+        else if (PyBytes_Check(pyObj))
+        arg3 = CSLAddString( arg3, PyBytes_AsString(pyObj) );
+#else
+        else if (PyString_Check(pyObj))
+        arg3 = CSLAddString( arg3, PyString_AsString(pyObj) );
+#endif
+        else
+        {
+          Py_DECREF(pyObj);
+          PyErr_SetString(PyExc_TypeError,"sequence must contain strings");
+          SWIG_fail;
+        }
+        Py_DECREF(pyObj);
+      }
+    }
+  }
+  {
+    if ( bUseExceptions ) {
+      CPLErrorReset();
+    }
+    result = (CPLVirtualMemShadow *)GDALRasterBandShadow_GetVirtualMemAuto(arg1,arg2,arg3);
+    if ( bUseExceptions ) {
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        SWIG_exception( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+      }
+    }
+  }
+  resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_CPLVirtualMemShadow, SWIG_POINTER_OWN |  0 );
+  {
+    /* %typemap(freearg) char **options */
+    CSLDestroy( arg3 );
+  }
+  return resultobj;
+fail:
+  {
+    /* %typemap(freearg) char **options */
+    CSLDestroy( arg3 );
+  }
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_Band_GetTiledVirtualMem(PyObject *SWIGUNUSEDPARM(self), PyObject *args, PyObject *kwargs) {
+  PyObject *resultobj = 0;
+  GDALRasterBandShadow *arg1 = (GDALRasterBandShadow *) 0 ;
+  GDALRWFlag arg2 ;
+  int arg3 ;
+  int arg4 ;
+  int arg5 ;
+  int arg6 ;
+  int arg7 ;
+  int arg8 ;
+  GDALDataType arg9 ;
+  size_t arg10 ;
+  char **arg11 = (char **) NULL ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  int val2 ;
+  int ecode2 = 0 ;
+  int val3 ;
+  int ecode3 = 0 ;
+  int val4 ;
+  int ecode4 = 0 ;
+  int val5 ;
+  int ecode5 = 0 ;
+  int val6 ;
+  int ecode6 = 0 ;
+  int val7 ;
+  int ecode7 = 0 ;
+  int val8 ;
+  int ecode8 = 0 ;
+  int val9 ;
+  int ecode9 = 0 ;
+  size_t val10 ;
+  int ecode10 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  PyObject * obj2 = 0 ;
+  PyObject * obj3 = 0 ;
+  PyObject * obj4 = 0 ;
+  PyObject * obj5 = 0 ;
+  PyObject * obj6 = 0 ;
+  PyObject * obj7 = 0 ;
+  PyObject * obj8 = 0 ;
+  PyObject * obj9 = 0 ;
+  PyObject * obj10 = 0 ;
+  char *  kwnames[] = {
+    (char *) "self",(char *) "eRWFlag",(char *) "nXOff",(char *) "nYOff",(char *) "nXSize",(char *) "nYSize",(char *) "nTileXSize",(char *) "nTileYSize",(char *) "eBufType",(char *) "nCacheSize",(char *) "options", NULL 
+  };
+  CPLVirtualMemShadow *result = 0 ;
+  
+  if (!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"OOOOOOOOOO|O:Band_GetTiledVirtualMem",kwnames,&obj0,&obj1,&obj2,&obj3,&obj4,&obj5,&obj6,&obj7,&obj8,&obj9,&obj10)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_GDALRasterBandShadow, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Band_GetTiledVirtualMem" "', argument " "1"" of type '" "GDALRasterBandShadow *""'"); 
+  }
+  arg1 = reinterpret_cast< GDALRasterBandShadow * >(argp1);
+  ecode2 = SWIG_AsVal_int(obj1, &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "Band_GetTiledVirtualMem" "', argument " "2"" of type '" "GDALRWFlag""'");
+  } 
+  arg2 = static_cast< GDALRWFlag >(val2);
+  ecode3 = SWIG_AsVal_int(obj2, &val3);
+  if (!SWIG_IsOK(ecode3)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "Band_GetTiledVirtualMem" "', argument " "3"" of type '" "int""'");
+  } 
+  arg3 = static_cast< int >(val3);
+  ecode4 = SWIG_AsVal_int(obj3, &val4);
+  if (!SWIG_IsOK(ecode4)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode4), "in method '" "Band_GetTiledVirtualMem" "', argument " "4"" of type '" "int""'");
+  } 
+  arg4 = static_cast< int >(val4);
+  ecode5 = SWIG_AsVal_int(obj4, &val5);
+  if (!SWIG_IsOK(ecode5)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode5), "in method '" "Band_GetTiledVirtualMem" "', argument " "5"" of type '" "int""'");
+  } 
+  arg5 = static_cast< int >(val5);
+  ecode6 = SWIG_AsVal_int(obj5, &val6);
+  if (!SWIG_IsOK(ecode6)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode6), "in method '" "Band_GetTiledVirtualMem" "', argument " "6"" of type '" "int""'");
+  } 
+  arg6 = static_cast< int >(val6);
+  ecode7 = SWIG_AsVal_int(obj6, &val7);
+  if (!SWIG_IsOK(ecode7)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode7), "in method '" "Band_GetTiledVirtualMem" "', argument " "7"" of type '" "int""'");
+  } 
+  arg7 = static_cast< int >(val7);
+  ecode8 = SWIG_AsVal_int(obj7, &val8);
+  if (!SWIG_IsOK(ecode8)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode8), "in method '" "Band_GetTiledVirtualMem" "', argument " "8"" of type '" "int""'");
+  } 
+  arg8 = static_cast< int >(val8);
+  ecode9 = SWIG_AsVal_int(obj8, &val9);
+  if (!SWIG_IsOK(ecode9)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode9), "in method '" "Band_GetTiledVirtualMem" "', argument " "9"" of type '" "GDALDataType""'");
+  } 
+  arg9 = static_cast< GDALDataType >(val9);
+  ecode10 = SWIG_AsVal_size_t(obj9, &val10);
+  if (!SWIG_IsOK(ecode10)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode10), "in method '" "Band_GetTiledVirtualMem" "', argument " "10"" of type '" "size_t""'");
+  } 
+  arg10 = static_cast< size_t >(val10);
+  if (obj10) {
+    {
+      /* %typemap(in) char **options */
+      /* Check if is a list (and reject strings, that are seen as sequence of characters)  */
+      if ( ! PySequence_Check(obj10) || PyUnicode_Check(obj10)
+  #if PY_VERSION_HEX < 0x03000000
+        || PyString_Check(obj10)
+  #endif
+        ) {
+        PyErr_SetString(PyExc_TypeError,"not a sequence");
+        SWIG_fail;
+      }
+      
+      int size = PySequence_Size(obj10);
+      for (int i = 0; i < size; i++) {
+        PyObject* pyObj = PySequence_GetItem(obj10,i);
+        if (PyUnicode_Check(pyObj))
+        {
+          char *pszStr;
+          Py_ssize_t nLen;
+          PyObject* pyUTF8Str = PyUnicode_AsUTF8String(pyObj);
+#if PY_VERSION_HEX >= 0x03000000
+          PyBytes_AsStringAndSize(pyUTF8Str, &pszStr, &nLen);
+#else
+          PyString_AsStringAndSize(pyUTF8Str, &pszStr, &nLen);
+#endif
+          arg11 = CSLAddString( arg11, pszStr );
+          Py_XDECREF(pyUTF8Str);
+        }
+#if PY_VERSION_HEX >= 0x03000000
+        else if (PyBytes_Check(pyObj))
+        arg11 = CSLAddString( arg11, PyBytes_AsString(pyObj) );
+#else
+        else if (PyString_Check(pyObj))
+        arg11 = CSLAddString( arg11, PyString_AsString(pyObj) );
+#endif
+        else
+        {
+          Py_DECREF(pyObj);
+          PyErr_SetString(PyExc_TypeError,"sequence must contain strings");
+          SWIG_fail;
+        }
+        Py_DECREF(pyObj);
+      }
+    }
+  }
+  {
+    if ( bUseExceptions ) {
+      CPLErrorReset();
+    }
+    result = (CPLVirtualMemShadow *)GDALRasterBandShadow_GetTiledVirtualMem(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11);
+    if ( bUseExceptions ) {
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        SWIG_exception( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+      }
+    }
+  }
+  resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_CPLVirtualMemShadow, SWIG_POINTER_OWN |  0 );
+  {
+    /* %typemap(freearg) char **options */
+    CSLDestroy( arg11 );
+  }
+  return resultobj;
+fail:
+  {
+    /* %typemap(freearg) char **options */
+    CSLDestroy( arg11 );
+  }
+  return NULL;
+}
+
+
 SWIGINTERN PyObject *_wrap_Band_ReadRaster1(PyObject *SWIGUNUSEDPARM(self), PyObject *args, PyObject *kwargs) {
   PyObject *resultobj = 0;
   GDALRasterBandShadow *arg1 = (GDALRasterBandShadow *) 0 ;
@@ -17592,6 +19058,39 @@ SWIGINTERN PyObject *_wrap_RasterAttributeTable_GetRowOfValue(PyObject *SWIGUNUS
       CPLErrorReset();
     }
     result = (int)GDALRasterAttributeTableShadow_GetRowOfValue(arg1,arg2);
+    if ( bUseExceptions ) {
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        SWIG_exception( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+      }
+    }
+  }
+  resultobj = SWIG_From_int(static_cast< int >(result));
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_RasterAttributeTable_ChangesAreWrittenToFile(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  GDALRasterAttributeTableShadow *arg1 = (GDALRasterAttributeTableShadow *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  PyObject * obj0 = 0 ;
+  int result;
+  
+  if (!PyArg_ParseTuple(args,(char *)"O:RasterAttributeTable_ChangesAreWrittenToFile",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_GDALRasterAttributeTableShadow, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "RasterAttributeTable_ChangesAreWrittenToFile" "', argument " "1"" of type '" "GDALRasterAttributeTableShadow *""'"); 
+  }
+  arg1 = reinterpret_cast< GDALRasterAttributeTableShadow * >(argp1);
+  {
+    if ( bUseExceptions ) {
+      CPLErrorReset();
+    }
+    result = (int)GDALRasterAttributeTableShadow_ChangesAreWrittenToFile(arg1);
     if ( bUseExceptions ) {
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
@@ -21235,6 +22734,11 @@ SWIGINTERN PyObject *_wrap_Open(PyObject *SWIGUNUSEDPARM(self), PyObject *args) 
     arg2 = static_cast< GDALAccess >(val2);
   }
   {
+    if (!arg1) {
+      SWIG_exception(SWIG_ValueError,"Received a NULL pointer.");
+    }
+  }
+  {
     if ( bUseExceptions ) {
       CPLErrorReset();
     }
@@ -21288,6 +22792,11 @@ SWIGINTERN PyObject *_wrap_OpenShared(PyObject *SWIGUNUSEDPARM(self), PyObject *
       SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "OpenShared" "', argument " "2"" of type '" "GDALAccess""'");
     } 
     arg2 = static_cast< GDALAccess >(val2);
+  }
+  {
+    if (!arg1) {
+      SWIG_exception(SWIG_ValueError,"Received a NULL pointer.");
+    }
   }
   {
     if ( bUseExceptions ) {
@@ -21379,6 +22888,11 @@ SWIGINTERN PyObject *_wrap_IdentifyDriver(PyObject *SWIGUNUSEDPARM(self), PyObje
         }
         Py_DECREF(pyObj);
       }
+    }
+  }
+  {
+    if (!arg1) {
+      SWIG_exception(SWIG_ValueError,"Received a NULL pointer.");
     }
   }
   {
@@ -21572,6 +23086,7 @@ static PyMethodDef SwigMethods[] = {
 	 { (char *)"VSIFWriteL", _wrap_VSIFWriteL, METH_VARARGS, (char *)"VSIFWriteL(int nLen, int size, int memb, VSILFILE f) -> int"},
 	 { (char *)"MajorObject_GetDescription", _wrap_MajorObject_GetDescription, METH_VARARGS, (char *)"MajorObject_GetDescription(MajorObject self) -> char"},
 	 { (char *)"MajorObject_SetDescription", _wrap_MajorObject_SetDescription, METH_VARARGS, (char *)"MajorObject_SetDescription(MajorObject self, char pszNewDesc)"},
+	 { (char *)"MajorObject_GetMetadataDomainList", _wrap_MajorObject_GetMetadataDomainList, METH_VARARGS, (char *)"MajorObject_GetMetadataDomainList(MajorObject self) -> char"},
 	 { (char *)"MajorObject_GetMetadata_Dict", _wrap_MajorObject_GetMetadata_Dict, METH_VARARGS, (char *)"MajorObject_GetMetadata_Dict(MajorObject self, char pszDomain = \"\") -> char"},
 	 { (char *)"MajorObject_GetMetadata_List", _wrap_MajorObject_GetMetadata_List, METH_VARARGS, (char *)"MajorObject_GetMetadata_List(MajorObject self, char pszDomain = \"\") -> char"},
 	 { (char *)"MajorObject_SetMetadata", _wrap_MajorObject_SetMetadata, METH_VARARGS, (char *)"\n"
@@ -21661,6 +23176,13 @@ static PyMethodDef SwigMethods[] = {
 	 { (char *)"GDAL_GCP_get_Id", _wrap_GDAL_GCP_get_Id, METH_VARARGS, (char *)"GDAL_GCP_get_Id(GCP gcp) -> char"},
 	 { (char *)"GDAL_GCP_set_Id", _wrap_GDAL_GCP_set_Id, METH_VARARGS, (char *)"GDAL_GCP_set_Id(GCP gcp, char pszId)"},
 	 { (char *)"GCPsToGeoTransform", _wrap_GCPsToGeoTransform, METH_VARARGS, (char *)"GCPsToGeoTransform(int nGCPs, int bApproxOK = 1) -> RETURN_NONE"},
+	 { (char *)"delete_VirtualMem", _wrap_delete_VirtualMem, METH_VARARGS, (char *)"delete_VirtualMem(VirtualMem self)"},
+	 { (char *)"VirtualMem_GetAddr", _wrap_VirtualMem_GetAddr, METH_VARARGS, (char *)"VirtualMem_GetAddr(VirtualMem self)"},
+	 { (char *)"VirtualMem_Pin", _wrap_VirtualMem_Pin, METH_VARARGS, (char *)"\n"
+		"VirtualMem_Pin(VirtualMem self, size_t start_offset = 0, size_t nsize = 0, \n"
+		"    int bWriteOp = 0)\n"
+		""},
+	 { (char *)"VirtualMem_swigregister", VirtualMem_swigregister, METH_VARARGS, NULL},
 	 { (char *)"delete_AsyncReader", _wrap_delete_AsyncReader, METH_VARARGS, (char *)"delete_AsyncReader(AsyncReader self)"},
 	 { (char *)"AsyncReader_GetNextUpdatedRegion", _wrap_AsyncReader_GetNextUpdatedRegion, METH_VARARGS, (char *)"AsyncReader_GetNextUpdatedRegion(AsyncReader self, double timeout) -> GDALAsyncStatusType"},
 	 { (char *)"AsyncReader_GetBuffer", _wrap_AsyncReader_GetBuffer, METH_VARARGS, (char *)"AsyncReader_GetBuffer(AsyncReader self)"},
@@ -21706,6 +23228,20 @@ static PyMethodDef SwigMethods[] = {
 		"    int nBandSpace = 0, char options = None) -> AsyncReader\n"
 		""},
 	 { (char *)"Dataset_EndAsyncReader", _wrap_Dataset_EndAsyncReader, METH_VARARGS, (char *)"Dataset_EndAsyncReader(Dataset self, AsyncReader ario)"},
+	 { (char *)"Dataset_GetVirtualMem", (PyCFunction) _wrap_Dataset_GetVirtualMem, METH_VARARGS | METH_KEYWORDS, (char *)"\n"
+		"Dataset_GetVirtualMem(Dataset self, GDALRWFlag eRWFlag, int nXOff, int nYOff, \n"
+		"    int nXSize, int nYSize, int nBufXSize, int nBufYSize, \n"
+		"    GDALDataType eBufType, int band_list, \n"
+		"    int bIsBandSequential, size_t nCacheSize, \n"
+		"    size_t nPageSizeHint, char options = None) -> VirtualMem\n"
+		""},
+	 { (char *)"Dataset_GetTiledVirtualMem", (PyCFunction) _wrap_Dataset_GetTiledVirtualMem, METH_VARARGS | METH_KEYWORDS, (char *)"\n"
+		"Dataset_GetTiledVirtualMem(Dataset self, GDALRWFlag eRWFlag, int nXOff, int nYOff, \n"
+		"    int nXSize, int nYSize, int nTileXSize, \n"
+		"    int nTileYSize, GDALDataType eBufType, int band_list, \n"
+		"    GDALTileOrganization eTileOrganization, \n"
+		"    size_t nCacheSize, char options = None) -> VirtualMem\n"
+		""},
 	 { (char *)"Dataset_ReadRaster1", (PyCFunction) _wrap_Dataset_ReadRaster1, METH_VARARGS | METH_KEYWORDS, (char *)"\n"
 		"Dataset_ReadRaster1(Dataset self, int xoff, int yoff, int xsize, int ysize, \n"
 		"    int buf_xsize = None, int buf_ysize = None, \n"
@@ -21782,6 +23318,19 @@ static PyMethodDef SwigMethods[] = {
 	 { (char *)"Band_HasArbitraryOverviews", _wrap_Band_HasArbitraryOverviews, METH_VARARGS, (char *)"Band_HasArbitraryOverviews(Band self) -> bool"},
 	 { (char *)"Band_GetCategoryNames", _wrap_Band_GetCategoryNames, METH_VARARGS, (char *)"Band_GetCategoryNames(Band self) -> char"},
 	 { (char *)"Band_SetCategoryNames", _wrap_Band_SetCategoryNames, METH_VARARGS, (char *)"Band_SetCategoryNames(Band self, char papszCategoryNames) -> CPLErr"},
+	 { (char *)"Band_GetVirtualMem", (PyCFunction) _wrap_Band_GetVirtualMem, METH_VARARGS | METH_KEYWORDS, (char *)"\n"
+		"Band_GetVirtualMem(Band self, GDALRWFlag eRWFlag, int nXOff, int nYOff, \n"
+		"    int nXSize, int nYSize, int nBufXSize, int nBufYSize, \n"
+		"    GDALDataType eBufType, size_t nCacheSize, \n"
+		"    size_t nPageSizeHint, char options = None) -> VirtualMem\n"
+		""},
+	 { (char *)"Band_GetVirtualMemAuto", (PyCFunction) _wrap_Band_GetVirtualMemAuto, METH_VARARGS | METH_KEYWORDS, (char *)"Band_GetVirtualMemAuto(Band self, GDALRWFlag eRWFlag, char options = None) -> VirtualMem"},
+	 { (char *)"Band_GetTiledVirtualMem", (PyCFunction) _wrap_Band_GetTiledVirtualMem, METH_VARARGS | METH_KEYWORDS, (char *)"\n"
+		"Band_GetTiledVirtualMem(Band self, GDALRWFlag eRWFlag, int nXOff, int nYOff, \n"
+		"    int nXSize, int nYSize, int nTileXSize, int nTileYSize, \n"
+		"    GDALDataType eBufType, size_t nCacheSize, \n"
+		"    char options = None) -> VirtualMem\n"
+		""},
 	 { (char *)"Band_ReadRaster1", (PyCFunction) _wrap_Band_ReadRaster1, METH_VARARGS | METH_KEYWORDS, (char *)"\n"
 		"Band_ReadRaster1(Band self, int xoff, int yoff, int xsize, int ysize, \n"
 		"    int buf_xsize = None, int buf_ysize = None, \n"
@@ -21826,6 +23375,7 @@ static PyMethodDef SwigMethods[] = {
 	 { (char *)"RasterAttributeTable_GetLinearBinning", _wrap_RasterAttributeTable_GetLinearBinning, METH_VARARGS, (char *)"RasterAttributeTable_GetLinearBinning(RasterAttributeTable self) -> bool"},
 	 { (char *)"RasterAttributeTable_SetLinearBinning", _wrap_RasterAttributeTable_SetLinearBinning, METH_VARARGS, (char *)"RasterAttributeTable_SetLinearBinning(RasterAttributeTable self, double dfRow0Min, double dfBinSize) -> int"},
 	 { (char *)"RasterAttributeTable_GetRowOfValue", _wrap_RasterAttributeTable_GetRowOfValue, METH_VARARGS, (char *)"RasterAttributeTable_GetRowOfValue(RasterAttributeTable self, double dfValue) -> int"},
+	 { (char *)"RasterAttributeTable_ChangesAreWrittenToFile", _wrap_RasterAttributeTable_ChangesAreWrittenToFile, METH_VARARGS, (char *)"RasterAttributeTable_ChangesAreWrittenToFile(RasterAttributeTable self) -> int"},
 	 { (char *)"RasterAttributeTable_swigregister", RasterAttributeTable_swigregister, METH_VARARGS, NULL},
 	 { (char *)"TermProgress_nocb", (PyCFunction) _wrap_TermProgress_nocb, METH_VARARGS | METH_KEYWORDS, (char *)"TermProgress_nocb(double dfProgress, char pszMessage = None, void pData = None) -> int"},
 	 { (char *)"ComputeMedianCutPCT", (PyCFunction) _wrap_ComputeMedianCutPCT, METH_VARARGS | METH_KEYWORDS, (char *)"\n"
@@ -21948,6 +23498,7 @@ static void *_p_GDALRasterBandShadowTo_p_GDALMajorObjectShadow(void *x, int *SWI
     return (void *)((GDALMajorObjectShadow *)  ((GDALRasterBandShadow *) x));
 }
 static swig_type_info _swigt__p_CPLErrorHandler = {"_p_CPLErrorHandler", "CPLErrorHandler *", 0, 0, (void*)0, 0};
+static swig_type_info _swigt__p_CPLVirtualMemShadow = {"_p_CPLVirtualMemShadow", "CPLVirtualMemShadow *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_CPLXMLNode = {"_p_CPLXMLNode", "CPLXMLNode *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_GByte = {"_p_GByte", "GByte *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_GDALAsyncReaderShadow = {"_p_GDALAsyncReaderShadow", "GDALAsyncReaderShadow *", 0, 0, (void*)0, 0};
@@ -21967,16 +23518,18 @@ static swig_type_info _swigt__p_StatBuf = {"_p_StatBuf", "StatBuf *", 0, 0, (voi
 static swig_type_info _swigt__p_char = {"_p_char", "char *|retStringAndCPLFree *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_double = {"_p_double", "double *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_f_double_p_q_const__char_p_void__int = {"_p_f_double_p_q_const__char_p_void__int", "int (*)(double,char const *,void *)", 0, 0, (void*)0, 0};
-static swig_type_info _swigt__p_int = {"_p_int", "CPLErr *|GDALRATFieldType *|int *|GDALColorInterp *|GDALAccess *|GDALPaletteInterp *|GDALDataType *|GDALAsyncStatusType *|GDALRATFieldUsage *|GDALResampleAlg *", 0, 0, (void*)0, 0};
+static swig_type_info _swigt__p_int = {"_p_int", "CPLErr *|GDALRATFieldType *|int *|GDALColorInterp *|GDALAccess *|GDALPaletteInterp *|GDALDataType *|GDALAsyncStatusType *|GDALRWFlag *|GDALTileOrganization *|GDALRATFieldUsage *|GDALResampleAlg *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_p_GDALRasterBandShadow = {"_p_p_GDALRasterBandShadow", "GDALRasterBandShadow **", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_p_GDAL_GCP = {"_p_p_GDAL_GCP", "GDAL_GCP **", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_p_char = {"_p_p_char", "char **", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_p_int = {"_p_p_int", "int **", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_p_void = {"_p_p_void", "void **", 0, 0, (void*)0, 0};
+static swig_type_info _swigt__p_size_t = {"_p_size_t", "size_t *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_void = {"_p_void", "VSILFILE *|void *", 0, 0, (void*)0, 0};
 
 static swig_type_info *swig_type_initial[] = {
   &_swigt__p_CPLErrorHandler,
+  &_swigt__p_CPLVirtualMemShadow,
   &_swigt__p_CPLXMLNode,
   &_swigt__p_GByte,
   &_swigt__p_GDALAsyncReaderShadow,
@@ -22002,10 +23555,12 @@ static swig_type_info *swig_type_initial[] = {
   &_swigt__p_p_char,
   &_swigt__p_p_int,
   &_swigt__p_p_void,
+  &_swigt__p_size_t,
   &_swigt__p_void,
 };
 
 static swig_cast_info _swigc__p_CPLErrorHandler[] = {  {&_swigt__p_CPLErrorHandler, 0, 0, 0},{0, 0, 0, 0}};
+static swig_cast_info _swigc__p_CPLVirtualMemShadow[] = {  {&_swigt__p_CPLVirtualMemShadow, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_CPLXMLNode[] = {  {&_swigt__p_CPLXMLNode, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_GByte[] = {  {&_swigt__p_GByte, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_GDALAsyncReaderShadow[] = {  {&_swigt__p_GDALAsyncReaderShadow, 0, 0, 0},{0, 0, 0, 0}};
@@ -22031,10 +23586,12 @@ static swig_cast_info _swigc__p_p_GDAL_GCP[] = {  {&_swigt__p_p_GDAL_GCP, 0, 0, 
 static swig_cast_info _swigc__p_p_char[] = {  {&_swigt__p_p_char, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_p_int[] = {  {&_swigt__p_p_int, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_p_void[] = {  {&_swigt__p_p_void, 0, 0, 0},{0, 0, 0, 0}};
+static swig_cast_info _swigc__p_size_t[] = {  {&_swigt__p_size_t, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_void[] = {  {&_swigt__p_void, 0, 0, 0},{0, 0, 0, 0}};
 
 static swig_cast_info *swig_cast_initial[] = {
   _swigc__p_CPLErrorHandler,
+  _swigc__p_CPLVirtualMemShadow,
   _swigc__p_CPLXMLNode,
   _swigc__p_GByte,
   _swigc__p_GDALAsyncReaderShadow,
@@ -22060,6 +23617,7 @@ static swig_cast_info *swig_cast_initial[] = {
   _swigc__p_p_char,
   _swigc__p_p_int,
   _swigc__p_p_void,
+  _swigc__p_size_t,
   _swigc__p_void,
 };
 

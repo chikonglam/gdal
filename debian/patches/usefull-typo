@@ -1,9 +1,11 @@
 Description: Fix 'usefull' typo, replace with 'useful'.
 Author: Bas Couwenberg <sebastic@debian.org>
-Last-Update: 2013-10-11
+Forwarded: http://trac.osgeo.org/gdal/ticket/5756
+Applied-Upstream: 2.0, http://trac.osgeo.org/gdal/changeset/28039
+
 --- a/NEWS
 +++ b/NEWS
-@@ -2002,7 +2002,7 @@ Port:
+@@ -2920,7 +2920,7 @@ Port:
      - /vsitar/ : to read in .tar or .tgz/.tar.gz files
   * Add C API to create ZIP files
   * Add support for writable /vsizip/
@@ -12,7 +14,7 @@ Last-Update: 2013-10-11
     doing backward seeks by a few bytes on underlying file handles for which
     backwardseeks are very slow, such as GZip handle
   * Add service for base64 decoding
-@@ -2020,7 +2020,7 @@ Port:
+@@ -2938,7 +2938,7 @@ Port:
  Core:
   * RFC 24: progressive/async raster reading
   * On Unix, add capability of opening the target of a symlink through GDALOpen()
@@ -21,7 +23,7 @@ Last-Update: 2013-10-11
     GDAL virtual filenames in software offering only file explorers (#3902)
   * Assume anything less than 100000 for GDAL_CACHEMAX is measured in metabytes.
   * Read cartesian coordinates if applicable in GDALLoadOziMapFile().
-@@ -2440,7 +2440,7 @@ Core:
+@@ -3358,7 +3358,7 @@ Core:
   * Add OGRLayer::GetName() and OGRLayer::GetGeomType() virtual methods,
     and their C and SWIG mappings (#3719)
   * On Unix, add capability of opening the target of a symlink through OGROpen()
@@ -30,7 +32,7 @@ Last-Update: 2013-10-11
     GDAL virtual filenames in software offering only file explorers (#3902)
   * Expat based XML readers : add support for reading files with Windows-1252
     encoding
-@@ -2710,7 +2710,7 @@ PostgreSQL driver:
+@@ -3628,7 +3628,7 @@ PostgreSQL driver:
     is set to YES
   * If the PG_USE_BASE64 configuration option is set to YES, geometries will be
     requested as BASE64 encoded EWKB instead of canonical HEX encoded EWKB.
@@ -41,7 +43,7 @@ Last-Update: 2013-10-11
     needs to fetch one with GetLayerByName().
 --- a/apps/ogr_utilities.dox
 +++ b/apps/ogr_utilities.dox
-@@ -239,7 +239,7 @@ GEOMETRYCOLLECTION, MULTIPOINT, MULTIPOL
+@@ -246,7 +246,7 @@ GEOMETRYCOLLECTION, MULTIPOINT, MULTIPOL
  Add "25D" to the name to get 2.5D versions.
  Starting with GDAL 1.10, PROMOTE_TO_MULTI can be used to automatically promote layers
  that mix polygon or multipolygons to multipolygons, and layers that mix linestrings or
@@ -49,7 +51,23 @@ Last-Update: 2013-10-11
 +multilinestrings to multilinestrings. Can be useful when converting shapefiles to PostGIS
  (and other target drivers) that implements strict checks for geometry type.</dd>
  <dt> <b>-dim</b><em> val</em>:</dt><dd>(starting with GDAL 1.10) Force the coordinate dimension to val (valid values are 2 or 3).
- This affects both the layer geometry type, and feature geometries.</dd>
+ This affects both the layer geometry type, and feature geometries.
+@@ -319,7 +319,7 @@ We can use the 'identity' setting to spe
+ This setting should be used along with the -append setting.</dd>
+ <dt> <b>-addfields</b>:</dt><dd>(starting with GDAL 1.11) This is a specialized version of
+ -append. Contrary to -append, -addfields has the effect of adding, to existing target layers,
+-the new fields found in source layers. This option is usefull when merging files that have non-strictly
++the new fields found in source layers. This option is useful when merging files that have non-strictly
+ identical structures.
+ This might not work for output formats that don't support adding fields to existing non-empty layers.</dd>
+ </dl>
+@@ -527,4 +527,4 @@ Dmitry Baryshnikov <polimax@mail.ru>
+ 
+ \endif
+ 
+-*/
+\ No newline at end of file
++*/
 --- a/doc/gdal_drivertut.dox
 +++ b/doc/gdal_drivertut.dox
 @@ -447,7 +447,7 @@ void GDALRegister_JDEM()
@@ -63,7 +81,7 @@ Last-Update: 2013-10-11
  which you want to make it work. The GDAL_CHECK_VERSION macro will check that the GDAL version
 --- a/frmts/gtiff/geotiff.cpp
 +++ b/frmts/gtiff/geotiff.cpp
-@@ -237,7 +237,7 @@ class GTiffDataset : public GDALPamDatas
+@@ -277,7 +277,7 @@ class GTiffDataset : public GDALPamDatas
  
      toff_t      nDirOffset;
      int		bBase;
@@ -72,7 +90,7 @@ Last-Update: 2013-10-11
  
      uint16	nPlanarConfig;
      uint16	nSamplesPerPixel;
-@@ -693,7 +693,7 @@ GTiffRasterBand::GTiffRasterBand( GTiffD
+@@ -776,7 +776,7 @@ GTiffRasterBand::~GTiffRasterBand()
  
  /* Reads directly bytes from the file using ReadMultiRange(), and by-pass */
  /* block reading. Restricted to simple TIFF configurations (un-tiled, */
@@ -81,17 +99,17 @@ Last-Update: 2013-10-11
  /* sub-windows of data on a large /vsicurl dataset). */
  
  CPLErr GTiffRasterBand::DirectIO( GDALRWFlag eRWFlag,
-@@ -7643,7 +7643,7 @@ TIFF *GTiffDataset::CreateLL( const char
+@@ -8667,7 +8667,7 @@ TIFF *GTiffDataset::CreateLL( const char
      }
-     
+ 
      /* Set the compression method before asking the default strip size */
 -    /* This is usefull when translating to a JPEG-In-TIFF file where */
 +    /* This is useful when translating to a JPEG-In-TIFF file where */
      /* the default strip size is 8 or 16 depending on the photometric value */
      TIFFSetField( hTIFF, TIFFTAG_COMPRESSION, nCompression );
  
-@@ -8086,7 +8086,7 @@ GTiffDataset::CreateCopy( const char * p
-     int bDirectCopyFromJPEG = FALSE;
+@@ -9155,7 +9155,7 @@ GTiffDataset::CreateCopy( const char * p
+ #endif
  
      /* Note: JPEG_DIRECT_COPY is not defined by default, because it is mainly */
 -    /* usefull for debugging purposes */
@@ -108,7 +126,7 @@ Last-Update: 2013-10-11
 -/* usefull for debugging purposes */
 +/* useful for debugging purposes */
  
- CPL_CVSID("$Id: gt_jpeg_copy.cpp 24337 2012-04-28 15:06:01Z rouault $");
+ CPL_CVSID("$Id: gt_jpeg_copy.cpp 27899 2014-10-23 13:36:59Z rouault $");
  
 --- a/frmts/pcraster/pcrasterutil.cpp
 +++ b/frmts/pcraster/pcrasterutil.cpp
@@ -125,7 +143,7 @@ Last-Update: 2013-10-11
    or CR_REAL4.
 --- a/frmts/pdf/frmt_pdf.html
 +++ b/frmts/pdf/frmt_pdf.html
-@@ -73,7 +73,7 @@ off.</li>
+@@ -72,7 +72,7 @@ querying the LAYERS metadata domain.</li
  <h2>LAYERS Metadata domain</h2>
  
  Starting with GDAL &gt;= 1.10.0 and when GDAL is compiled against libpoppler, the LAYERS metadata domain can be queried
@@ -134,7 +152,7 @@ Last-Update: 2013-10-11
  <i>GDAL_PDF_LAYERS</i> or <i>GDAL_PDF_LAYERS_OFF</i> configuration options.<p>
  
  For example :
-@@ -171,7 +171,7 @@ specified, all the extra rasters will be
+@@ -172,7 +172,7 @@ specified, all the extra rasters will be
  the /FTimesRoman and /FTimesBold fonts.</p></li>
  
  <li><p><b>EXTRA_IMAGES=image_file_name,x,y,scale[,link=some_url] (possibly repeated)</b>: A list of (ungeoreferenced) images to insert into
@@ -156,7 +174,7 @@ Last-Update: 2013-10-11
      
 --- a/frmts/vrt/vrtsources.cpp
 +++ b/frmts/vrt/vrtsources.cpp
-@@ -342,7 +342,7 @@ CPLErr VRTSimpleSource::XMLInit( CPLXMLN
+@@ -444,7 +444,7 @@ CPLErr VRTSimpleSource::XMLInit( CPLXMLN
      /* Newly generated VRT will have RasterXSize, RasterYSize, DataType, */
      /* BlockXSize, BlockYSize tags, so that we don't have actually to */
      /* open the real dataset immediately, but we can use a proxy dataset */
@@ -167,7 +185,7 @@ Last-Update: 2013-10-11
      int nRasterXSize = 0, nRasterYSize =0;
 --- a/gcore/gdalrasterband.cpp
 +++ b/gcore/gdalrasterband.cpp
-@@ -4712,7 +4712,7 @@ CPLErr CPL_STDCALL GDALCreateMaskBand( G
+@@ -4766,7 +4766,7 @@ CPLErr CPL_STDCALL GDALCreateMaskBand( G
  /**
   * \brief Compute translation table for color tables.
   *
@@ -178,19 +196,28 @@ Last-Update: 2013-10-11
   * matching if no exact matching is possible.
 --- a/man/man1/ogr2ogr.1
 +++ b/man/man1/ogr2ogr.1
-@@ -86,7 +86,7 @@ Layer creation option (format specific)
+@@ -89,7 +89,7 @@ Layer creation option (format specific)
  .IP "\fB\fB-nln\fP\fI name\fP:\fP" 1c
  Assign an alternate name to the new layer 
  .IP "\fB\fB-nlt\fP\fI type\fP:\fP" 1c
 -Define the geometry type for the created layer. One of NONE, GEOMETRY, POINT, LINESTRING, POLYGON, GEOMETRYCOLLECTION, MULTIPOINT, MULTIPOLYGON or MULTILINESTRING. Add '25D' to the name to get 2.5D versions. Starting with GDAL 1.10, PROMOTE_TO_MULTI can be used to automatically promote layers that mix polygon or multipolygons to multipolygons, and layers that mix linestrings or multilinestrings to multilinestrings. Can be usefull when converting shapefiles to PostGIS (and other target drivers) that implements strict checks for geometry type. 
 +Define the geometry type for the created layer. One of NONE, GEOMETRY, POINT, LINESTRING, POLYGON, GEOMETRYCOLLECTION, MULTIPOINT, MULTIPOLYGON or MULTILINESTRING. Add '25D' to the name to get 2.5D versions. Starting with GDAL 1.10, PROMOTE_TO_MULTI can be used to automatically promote layers that mix polygon or multipolygons to multipolygons, and layers that mix linestrings or multilinestrings to multilinestrings. Can be useful when converting shapefiles to PostGIS (and other target drivers) that implements strict checks for geometry type.
  .IP "\fB\fB-dim\fP\fI val\fP:\fP" 1c
- (starting with GDAL 1.10) Force the coordinate dimension to val (valid values are 2 or 3). This affects both the layer geometry type, and feature geometries. 
+ (starting with GDAL 1.10) Force the coordinate dimension to val (valid values are 2 or 3). This affects both the layer geometry type, and feature geometries. Starting with GDAL 1.11, the value can be set to 'layer_dim' to instruct feature geometries to be promoted to the coordinate dimension declared by the layer.  
  .IP "\fB\fB-a_srs\fP\fI srs_def\fP:\fP" 1c
+@@ -155,7 +155,7 @@ To be combined with -splitlistfields to
+ .IP "\fB\fB-fieldmap\fP:\fP" 1c
+ (starting with GDAL 1.10.0) Specifies the list of field indexes to be copied from the source to the destination. The (n)th value specified in the list is the index of the field in the target layer definition in which the n(th) field of the source layer must be copied. Index count starts at zero. There must be exactly as many values in the list as the count of the fields in the source layer. We can use the 'identity' setting to specify that the fields should be transferred by using the same order. This setting should be used along with the -append setting. 
+ .IP "\fB\fB-addfields\fP:\fP" 1c
+-(starting with GDAL 1.11) This is a specialized version of -append. Contrary to -append, -addfields has the effect of adding, to existing target layers, the new fields found in source layers. This option is usefull when merging files that have non-strictly identical structures. This might not work for output formats that don't support adding fields to existing non-empty layers. 
++(starting with GDAL 1.11) This is a specialized version of -append. Contrary to -append, -addfields has the effect of adding, to existing target layers, the new fields found in source layers. This option is useful when merging files that have non-strictly identical structures. This might not work for output formats that don't support adding fields to existing non-empty layers. 
+ .PP
+ .SH "PERFORMANCE HINTS"
+ .PP
 --- a/ogr/ogrgeometryfactory.cpp
 +++ b/ogr/ogrgeometryfactory.cpp
-@@ -1025,7 +1025,7 @@ typedef enum
-  * of holes is counterclockwise defined (this is the convention for shapefiles e.g.)
+@@ -1039,7 +1039,7 @@ typedef enum
+  * with care.
   *
   * If the OGR_ORGANIZE_POLYGONS configuration option is defined, its value will override
 - * the value of the METHOD option of papszOptions (usefull to modify the behaviour of the
@@ -200,7 +227,7 @@ Last-Update: 2013-10-11
   * @param papoPolygons array of geometry pointers - should all be OGRPolygons.
 --- a/ogr/ogrsf_frmts/generic/ogr_gensql.cpp
 +++ b/ogr/ogrsf_frmts/generic/ogr_gensql.cpp
-@@ -1428,7 +1428,7 @@ void OGRGenSQLResultsLayer::CreateOrderB
+@@ -1748,7 +1748,7 @@ void OGRGenSQLResultsLayer::CreateOrderB
  
      /* If it is already sorted, then free than panFIDIndex array */
      /* so that GetNextFeature() can call a sequential GetNextFeature() */
@@ -222,7 +249,7 @@ Last-Update: 2013-10-11
  The following content :
 --- a/ogr/ogrsf_frmts/gml/drv_gml.html
 +++ b/ogr/ogrsf_frmts/gml/drv_gml.html
-@@ -117,7 +117,7 @@ description of the .gfs syntax below.<p>
+@@ -140,7 +140,7 @@ description of the .gfs syntax below.<p>
  OGR 1.8.0 adds support to "merge" the multiple geometries found in a feature by
  setting the configuration option <b>GML_FETCH_ALL_GEOMETRIES</b> to <b>YES</b>. The geometries
  will be collected into a GeometryCollection (or Multipolygon if individual geometries
@@ -244,7 +271,7 @@ Last-Update: 2013-10-11
  */
 --- a/ogr/ogrsf_frmts/osm/ogrosmdatasource.cpp
 +++ b/ogr/ogrsf_frmts/osm/ogrosmdatasource.cpp
-@@ -2521,7 +2521,7 @@ int OGROSMDataSource::Open( const char *
+@@ -2679,7 +2679,7 @@ int OGROSMDataSource::Open( const char *
          return FALSE;
      }
  
@@ -266,7 +293,7 @@ Last-Update: 2013-10-11
  will cause a web browser to be opened on the specified URL.</p></li>
 --- a/ogr/ogrsf_frmts/shape/ogrshapelayer.cpp
 +++ b/ogr/ogrsf_frmts/shape/ogrshapelayer.cpp
-@@ -555,7 +555,7 @@ void OGRShapeLayer::SetSpatialFilter( OG
+@@ -584,7 +584,7 @@ void OGRShapeLayer::SetSpatialFilter( OG
      {
          /* We clear the spatialFIDs only if we have a new non-NULL */
          /* spatial filter, otherwise we keep the previous result */
@@ -277,7 +304,7 @@ Last-Update: 2013-10-11
          /* a clearing of the spatial filter of the table layer, we */
 --- a/ogr/ogrsf_frmts/sqlite/ogrsqliteexecutesql.cpp
 +++ b/ogr/ogrsf_frmts/sqlite/ogrsqliteexecutesql.cpp
-@@ -544,7 +544,7 @@ OGRLayer * OGRSQLiteExecuteSQL( OGRDataS
+@@ -774,7 +774,7 @@ OGRLayer * OGRSQLiteExecuteSQL( OGRDataS
          }
      }
  
@@ -288,7 +315,7 @@ Last-Update: 2013-10-11
          GByte* pabyEmptyDBClone = (GByte*)VSIMalloc(nEmptyDBSize);
 --- a/ogr/ogrsf_frmts/vrt/drv_vrt.html
 +++ b/ogr/ogrsf_frmts/vrt/drv_vrt.html
-@@ -145,12 +145,12 @@ default defaults to the value of "name".
+@@ -174,12 +174,12 @@ Defaults to the value of "name".
  
  <li> <b>FeatureCount</b> (optional, from GDAL 1.10.0) : This element is used
  to define the feature count of the layer (when no spatial or attribute filter is set).
@@ -303,16 +330,16 @@ Last-Update: 2013-10-11
  getting the extent from the source layer is slow.</li>
  
  <br>
-@@ -178,7 +178,7 @@ reference to use for the layer after rep
+@@ -207,7 +207,7 @@ reference to use for the layer after rep
  <br>
  
  <li> <b>ExtentXMin</b>, <b>ExtentYMin</b>, <b>ExtentXMax</b> and <b>ExtentXMax</b> (optional, from GDAL 1.10.0) :
 -Those elements are used to define the extent of the layer. This can be usefull on static data, when
 +Those elements are used to define the extent of the layer. This can be useful on static data, when
  getting the extent from the source layer is slow.</li>
- 
  <br>
-@@ -254,7 +254,7 @@ the layer as a point layer, and as being
+ 
+@@ -292,7 +292,7 @@ the layer as a point layer, and as being
  
  <h2>Example: Renaming attributes</h2>
  
@@ -323,7 +350,7 @@ Last-Update: 2013-10-11
  (&lt;name&gt;, &lt;desc&gt, etc.).  This can be accomplished using
 --- a/port/cpl_conv.cpp
 +++ b/port/cpl_conv.cpp
-@@ -1527,7 +1527,7 @@ static void CPLAccessConfigOption(const
+@@ -1531,7 +1531,7 @@ static void CPLAccessConfigOption(const
    *     char* pszOldVal = pszOldValTmp ? CPLStrdup(pszOldValTmp) : NULL;
    *     // override with new value
    *     CPLSetConfigOption(pszKey, pszNewVal);
@@ -334,7 +361,7 @@ Last-Update: 2013-10-11
    *     CPLFree(pszOldVal);
 --- a/port/cpl_http.cpp
 +++ b/port/cpl_http.cpp
-@@ -513,7 +513,7 @@ void CPLHTTPSetOptions(CURL *http_handle
+@@ -522,7 +522,7 @@ void CPLHTTPSetOptions(CURL *http_handle
  /************************************************************************/
  
  /**
@@ -356,7 +383,7 @@ Last-Update: 2013-10-11
    */
 --- a/swig/python/scripts/gdal2tiles.py
 +++ b/swig/python/scripts/gdal2tiles.py
-@@ -91,7 +91,7 @@ Created by Klokan Petr Pridal on 2008-07
+@@ -93,7 +93,7 @@ Created by Klokan Petr Pridal on 2008-07
  Google Summer of Code 2008, project GDAL2Tiles for OSGEO.
  
  In case you use this class in your product, translate it to another language
@@ -367,7 +394,7 @@ Last-Update: 2013-10-11
  
 --- a/swig/python/scripts/gdal_retile.py
 +++ b/swig/python/scripts/gdal_retile.py
-@@ -45,7 +45,7 @@ import os
+@@ -46,7 +46,7 @@ import os
  import math
  
  class AffineTransformDecorator:
@@ -378,7 +405,7 @@ Last-Update: 2013-10-11
          self.scaleX=self.geotransform[1]
 --- a/alg/gdal_rpc.cpp
 +++ b/alg/gdal_rpc.cpp
-@@ -335,7 +335,7 @@ typedef struct {
+@@ -357,7 +357,7 @@ static const char* GDALSerializeRPCDEMRe
   * an average height above sea level for ground in the target scene. 
   *
   * <li> RPC_HEIGHT_SCALE: a factor used to multiply heights above ground.
@@ -389,7 +416,7 @@ Last-Update: 2013-10-11
   * extract elevation offsets from. In this situation the Z passed into the
 --- a/apps/gdaladdo.cpp
 +++ b/apps/gdaladdo.cpp
-@@ -51,7 +51,7 @@ static void Usage(const char* pszErrorMs
+@@ -52,7 +52,7 @@ static void Usage(const char* pszErrorMs
              "  filename: The file to build overviews for (or whose overviews must be removed).\n"
              "  levels: A list of integral overview levels to build. Ignored with -clean option.\n"
              "\n"
@@ -411,7 +438,7 @@ Last-Update: 2013-10-11
  			<td class="xml">    &lt;AdviseRead&gt;<span class="value">true</span>&lt;/AdviseRead&gt;</td>
 --- a/gcore/gdal_priv.h
 +++ b/gcore/gdal_priv.h
-@@ -912,7 +912,7 @@ int CPL_DLL GDALCheckDatasetDimensions(
+@@ -955,7 +955,7 @@ int CPL_DLL GDALCheckDatasetDimensions(
  int CPL_DLL GDALCheckBandCount( int nBands, int bIsZeroAllowed );
  
  
@@ -422,7 +449,7 @@ Last-Update: 2013-10-11
   (dfVal1 == dfVal2 || fabs(dfVal1 - dfVal2) < 1e-10 || (dfVal2 != 0 && fabs(1 - dfVal1 / dfVal2) < 1e-10 ))
 --- a/gcore/gdaldataset.cpp
 +++ b/gcore/gdaldataset.cpp
-@@ -1846,7 +1846,7 @@ void CPL_STDCALL GDALGetOpenDatasets( GD
+@@ -1870,7 +1870,7 @@ void CPL_STDCALL GDALGetOpenDatasets( GD
  /*                        GDALCleanOpenDatasetsList()                   */
  /************************************************************************/
  
@@ -433,7 +460,7 @@ Last-Update: 2013-10-11
  {
 --- a/ogr/ogrsf_frmts/gpx/ogrgpxlayer.cpp
 +++ b/ogr/ogrsf_frmts/gpx/ogrgpxlayer.cpp
-@@ -1084,7 +1084,7 @@ OGRSpatialReference *OGRGPXLayer::GetSpa
+@@ -1076,7 +1076,7 @@ OGRFeature *OGRGPXLayer::GetNextFeature(
  static char* OGRGPX_GetXMLCompatibleTagName(const char* pszExtensionsNS,
                                              const char* pszName)
  {
@@ -442,20 +469,9 @@ Last-Update: 2013-10-11
      if (strncmp(pszName, pszExtensionsNS, strlen(pszExtensionsNS)) == 0 &&
          pszName[strlen(pszExtensionsNS)] == '_')
      {
---- a/ogr/ogrsf_frmts/sqlite/ogrsqlitelayer.cpp
-+++ b/ogr/ogrsf_frmts/sqlite/ogrsqlitelayer.cpp
-@@ -330,7 +330,7 @@ void OGRSQLiteLayer::BuildFeatureDefn( c
-         }
- 
-         // Recognize a geometry column from trying to build the geometry
--        // Usefull for OGRSQLiteSelectLayer
-+        // Useful for OGRSQLiteSelectLayer
-         if( nColType == SQLITE_BLOB && osGeomColumn.size() == 0 )
-         {
-             const int nBytes = sqlite3_column_bytes( hStmt, iCol );
 --- a/port/cpl_string.cpp
 +++ b/port/cpl_string.cpp
-@@ -2166,7 +2166,7 @@ size_t CPLStrlcat(char* pszDest, const c
+@@ -2170,7 +2170,7 @@ size_t CPLStrlcat(char* pszDest, const c
   * the specified number of bytes.
   *
   * The CPLStrnlen() function returns MIN(strlen(pszStr), nMaxLen).
@@ -464,3 +480,111 @@ Last-Update: 2013-10-11
   * test if a string contains at least nMaxLen characters without reading
   * the full string up to the NUL terminating character.
   *
+--- a/ogr/ogrsf_frmts/csv/ogrcsvlayer.cpp
++++ b/ogr/ogrsf_frmts/csv/ogrcsvlayer.cpp
+@@ -502,7 +502,7 @@ OGRCSVLayer::OGRCSVLayer( const char *ps
+                 EQUAL(pszFieldName,"WKT") ? "" : CPLSPrintf("geom_%s", pszFieldName),
+                 wkbUnknown );
+ 
+-            /* Usefull hack for RFC 41 testing */
++            /* Useful hack for RFC 41 testing */
+             const char* pszEPSG = strstr(pszFieldName, "_EPSG_");
+             if( pszEPSG != NULL )
+             {
+--- a/ogr/ogrsf_frmts/libkml/ogrlibkmldatasource.cpp
++++ b/ogr/ogrsf_frmts/libkml/ogrlibkmldatasource.cpp
+@@ -174,7 +174,7 @@ static void OGRLIBKMLPostProcessOutput(s
+     size_t nPos = 0;
+ 
+     /* Manually add <?xml> node since libkml does not produce it currently */
+-    /* and this is usefull in some circumstances (#5407) */
++    /* and this is useful in some circumstances (#5407) */
+     if( !(oKml[0] == '<' && oKml[1] == '?') )
+         oKml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" + oKml;
+ 
+--- a/ogr/ogrsf_frmts/openfilegdb/ogropenfilegdblayer.cpp
++++ b/ogr/ogrsf_frmts/openfilegdb/ogropenfilegdblayer.cpp
+@@ -818,7 +818,7 @@ FileGDBIterator* OGROpenFileGDBLayer::Bu
+         poNode->nOperation == SWQ_AND && poNode->nSubExprCount == 2 )
+     {
+         /* Even if there's only one branch of the 2 that results to an iterator, */
+-        /* it is usefull. Of course, the iterator will not be sufficient to evaluate */
++        /* it is useful. Of course, the iterator will not be sufficient to evaluate */
+         /* the filter, but it will be a super-set of the features */
+         FileGDBIterator* poIter1 = BuildIteratorFromExprNode(poNode->papoSubExpr[0]);
+ 
+--- a/ogr/ogrsf_frmts/sqlite/drv_sqlite.html
++++ b/ogr/ogrsf_frmts/sqlite/drv_sqlite.html
+@@ -308,7 +308,7 @@ ogrinfo db.sqlite -sql "SELECT CreateSpa
+ </pre>
+ <p>
+ 
+-If a database has gone through editing operations, it might be usefull to run a
++If a database has gone through editing operations, it might be useful to run a
+ <a href="https://sqlite.org/lang_vacuum.html">VACUUM</a> query to compact and optimize it.
+ <pre>ogrinfo db.sqlite -sql "VACUUM"</pre>
+ <p>
+--- a/ogr/ogrsf_frmts/wasp/drv_wasp.html
++++ b/ogr/ogrsf_frmts/wasp/drv_wasp.html
+@@ -15,7 +15,7 @@ This driver writes .map files to be used
+ 
+ <ul>
+     <li>WASP_FIELDS : a coma separated list of fields. For elevation, the name of the height field. For rouhgness, the name of the left and right roughness fields resp.</li>
+-    <li>WASP_MERGE : this may be set to "NO". Used only when generating roughness from polygons. All polygon boundaries will be output (including those with the same left and righ roughness). This is usefull (along with option -skipfailures) for debugging incorect input geometries.</li>
++    <li>WASP_MERGE : this may be set to "NO". Used only when generating roughness from polygons. All polygon boundaries will be output (including those with the same left and righ roughness). This is useful (along with option -skipfailures) for debugging incorect input geometries.</li>
+     <li>WASP_GEOM_FIELD : in case input has several geometry columns and the first one (default) is not the right one.</li>
+     <li>WASP_TOLERANCE : specify a tolerance for line simplification of output.</li>
+ </ul>
+--- a/port/cpl_virtualmem.h
++++ b/port/cpl_virtualmem.h
+@@ -216,7 +216,7 @@ CPLVirtualMem CPL_DLL *CPLVirtualMemFile
+ /** Create a new virtual memory mapping derived from an other virtual memory
+  *  mapping.
+  *
+- * This may be usefull in case of creating mapping for pixel interleaved data.
++ * This may be useful in case of creating mapping for pixel interleaved data.
+  *
+  * The new mapping takes a reference on the base mapping.
+  *
+@@ -356,7 +356,7 @@ void CPL_DLL CPLVirtualMemUnDeclareThrea
+ 
+ /** Make sure that a region of virtual memory will be realized.
+  *
+- * Calling this function is not required, but might be usefull when debugging
++ * Calling this function is not required, but might be useful when debugging
+  * a process with tools like gdb or valgrind that do not naturally like
+  * segmentation fault signals.
+  *
+--- a/scripts/vce2008_wine/prepare-gdal-vce2008.sh
++++ b/scripts/vce2008_wine/prepare-gdal-vce2008.sh
+@@ -43,7 +43,7 @@ unzip /tmp/release-1500-dev.zip release-
+ svn checkout https://svn.osgeo.org/gdal/trunk $HOME/gdal_vce2008
+ ln -s $HOME/gdal_vce2008 ~/.wine/drive_c/gdal
+ 
+-# Install usefull scripts
++# Install useful scripts
+ cp build_vce2008.patch /tmp
+ cp build_vce2008.bat $HOME/gdal_vce2008/gdal
+ cp build_vce2008.sh $HOME/gdal_vce2008/gdal
+--- a/swig/python/scripts/gdal_edit.dox
++++ b/swig/python/scripts/gdal_edit.dox
+@@ -27,7 +27,7 @@ and exit.
+ </dd>
+ 
+ <dt> <b>-ro</b></dt>:<dd> (GDAL >= 1.11)
+-Open the dataset in read-only. Might be usefull for drivers refusing to
++Open the dataset in read-only. Might be useful for drivers refusing to
+ use the dataset in update-mode. In which case, updated information will go
+ into PAM .aux.xml files.</dd>
+ 
+--- a/man/man1/gdal_edit.1
++++ b/man/man1/gdal_edit.1
+@@ -27,7 +27,7 @@ It works only with raster formats that s
+ Gives a brief usage message for the generic GDAL commandline options and exit. 
+ .PP
+ .IP "\fB\fB-ro\fP:\fP" 1c
+-(GDAL >= 1.11) Open the dataset in read-only. Might be usefull for drivers refusing to use the dataset in update-mode. In which case, updated information will go into PAM .aux.xml files.
++(GDAL >= 1.11) Open the dataset in read-only. Might be useful for drivers refusing to use the dataset in update-mode. In which case, updated information will go into PAM .aux.xml files.
+ .PP
+ .IP "\fB\fB-a_srs\fP \fIsrs_def\fP:\fP" 1c
+ .PP

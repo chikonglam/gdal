@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogridbdatasource.cpp 10645 2007-01-18 02:22:39Z warmerdam $
+ * $Id: ogridbdatasource.cpp 26506 2013-09-30 18:17:55Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implements OGRIDBDataSource class
@@ -32,7 +32,7 @@
 #include "cpl_conv.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: ogridbdatasource.cpp 10645 2007-01-18 02:22:39Z warmerdam $");
+CPL_CVSID("$Id: ogridbdatasource.cpp 26506 2013-09-30 18:17:55Z rouault $");
 /************************************************************************/
 /*                         OGRIDBDataSource()                          */
 /************************************************************************/
@@ -279,9 +279,9 @@ OGRLayer * OGRIDBDataSource::ExecuteSQL( const char *pszSQLCommand,
 
 {
 /* -------------------------------------------------------------------- */
-/*      Use generic imlplementation for OGRSQL dialect.                 */
+/*      Use generic implementation for recognized dialects              */
 /* -------------------------------------------------------------------- */
-    if( pszDialect != NULL && EQUAL(pszDialect,"OGRSQL") )
+    if( IsGenericSQLDialect(pszDialect) )
         return OGRDataSource::ExecuteSQL( pszSQLCommand, 
                                           poSpatialFilter, 
                                           pszDialect );

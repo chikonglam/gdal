@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: llrasterize.cpp 22998 2011-08-28 12:23:29Z rouault $
+ * $Id: llrasterize.cpp 27739 2014-09-25 18:49:52Z goatbar $
  *
  * Project:  GDAL
  * Purpose:  Vector polygon rasterization code.
@@ -7,6 +7,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2000, Frank Warmerdam <warmerdam@pobox.com>
+ * Copyright (c) 2011, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -104,15 +105,12 @@ No known bug
     double dx2, dy2;
     double dy;
     double intersect;
-    
 
     int ind1, ind2;
     int ints, n, part;
-    int *polyInts, polyAllocated;
+    int *polyInts;
 
-  
     int horizontal_x1, horizontal_x2;
-
 
     if (!nPartCount) {
         return;
@@ -121,10 +119,9 @@ No known bug
     n = 0;
     for( part = 0; part < nPartCount; part++ )
         n += panPartSize[part];
-    
+
     polyInts = (int *) malloc(sizeof(int) * n);
-    polyAllocated = n;
-    
+
     dminy = padfY[0];
     dmaxy = padfY[0];
     for (i=1; (i < n); i++) {
@@ -253,13 +250,11 @@ No known bug
 /************************************************************************/
 
 void GDALdllImagePoint( int nRasterXSize, int nRasterYSize, 
-                        int nPartCount, int *panPartSize,
+                        int nPartCount, CPL_UNUSED int *panPartSize,
                         double *padfX, double *padfY, double *padfVariant,
                         llPointFunc pfnPointFunc, void *pCBData )
 {
-    int     i;
- 
-    for ( i = 0; i < nPartCount; i++ )
+    for ( int i = 0; i < nPartCount; i++ )
     {
         int nX = (int)floor( padfX[i] );
         int nY = (int)floor( padfY[i] );
@@ -606,4 +601,3 @@ GDALdllImageLineAllTouched(int nRasterXSize, int nRasterYSize,
         } // next segment
     } // next part
 }
-

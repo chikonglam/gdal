@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ilihelper.h 10645 2007-01-18 02:22:39Z warmerdam $
+ * $Id$
  *
  * Project:  Interlis 1/2 Translator
  * Purpose:   Definition of classes for OGR Interlis 1 driver.

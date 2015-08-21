@@ -164,4 +164,7 @@ package Geo::GDAL::Const;
 *GARIO_UPDATE = *Geo::GDAL::Constc::GARIO_UPDATE;
 *GARIO_ERROR = *Geo::GDAL::Constc::GARIO_ERROR;
 *GARIO_COMPLETE = *Geo::GDAL::Constc::GARIO_COMPLETE;
+*GTO_TIP = *Geo::GDAL::Constc::GTO_TIP;
+*GTO_BIT = *Geo::GDAL::Constc::GTO_BIT;
+*GTO_BSQ = *Geo::GDAL::Constc::GTO_BSQ;
 1;

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdalhttp.cpp 25661 2013-02-22 11:35:12Z rouault $
+ * $Id: gdalhttp.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  WMS Client Driver
  * Purpose:  Implementation of Dataset and RasterBand classes for WMS
@@ -8,6 +8,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2007, Adam Nowacki
+ * Copyright (c) 2007-2013, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -28,7 +29,7 @@
  * DEALINGS IN THE SOFTWARE.
  ****************************************************************************/
 
-#include "stdinc.h"
+#include "wmsdriver.h"
 
 void CPLHTTPSetOptions(CURL *http_handle, char** papszOptions);
 
@@ -202,9 +203,12 @@ CPLErr CPLHTTPFetchMulti(CPLHTTPRequest *pasRequest, int nRequestCount, const ch
         FD_ZERO(&fdwrite);
         FD_ZERO(&fdexcep);
         curl_multi_fdset(curl_multi, &fdread, &fdwrite, &fdexcep, &maxfd);
-        timeout.tv_sec = 0;
-        timeout.tv_usec = 100000;
-        select(maxfd + 1, &fdread, &fdwrite, &fdexcep, &timeout);
+        if( maxfd >= 0 )
+        {
+            timeout.tv_sec = 0;
+            timeout.tv_usec = 100000;
+            select(maxfd + 1, &fdread, &fdwrite, &fdexcep, &timeout);
+        }
         while (curl_multi_perform(curl_multi, &still_running) == CURLM_CALL_MULTI_PERFORM);
     }
 

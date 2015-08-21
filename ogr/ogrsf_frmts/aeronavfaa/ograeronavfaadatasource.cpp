@@ -1,12 +1,12 @@
 /******************************************************************************
- * $Id: ograeronavfaadatasource.cpp 23042 2011-09-04 15:07:22Z rouault $
+ * $Id: ograeronavfaadatasource.cpp 27729 2014-09-24 00:40:16Z goatbar $
  *
  * Project:  AeronavFAA Translator
  * Purpose:  Implements OGRAeronavFAADataSource class
  * Author:   Even Rouault, even dot rouault at mines dash paris dot org
  *
  ******************************************************************************
- * Copyright (c) 2010, Even Rouault <even dot rouault at mines dash paris dot org>
+ * Copyright (c) 2011, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -31,7 +31,7 @@
 #include "cpl_conv.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: ograeronavfaadatasource.cpp 23042 2011-09-04 15:07:22Z rouault $");
+CPL_CVSID("$Id: ograeronavfaadatasource.cpp 27729 2014-09-24 00:40:16Z goatbar $");
 
 /************************************************************************/
 /*                      OGRAeronavFAADataSource()                       */
@@ -64,8 +64,7 @@ OGRAeronavFAADataSource::~OGRAeronavFAADataSource()
 /*                           TestCapability()                           */
 /************************************************************************/
 
-int OGRAeronavFAADataSource::TestCapability( const char * pszCap )
-
+int OGRAeronavFAADataSource::TestCapability( CPL_UNUSED const char * pszCap )
 {
     return FALSE;
 }

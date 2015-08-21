@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_geojson.h 23662 2011-12-30 11:16:59Z rouault $
+ * $Id: ogr_geojson.h 27741 2014-09-26 19:20:02Z goatbar $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Definitions of OGR OGRGeoJSON driver types.
@@ -7,6 +7,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2007, Mateusz Loskot
+ * Copyright (c) 2010-2013, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -29,7 +30,9 @@
 #ifndef OGR_GEOJSON_H_INCLUDED
 #define OGR_GEOJSON_H_INCLUDED
 
+#include "cpl_port.h"
 #include <ogrsf_frmts.h>
+
 #include <cstdio>
 #include <vector> // used by OGRGeoJSONLayer
 
@@ -59,7 +62,6 @@ public:
     // OGRLayer Interface
     //
     OGRFeatureDefn* GetLayerDefn();
-    OGRSpatialReference* GetSpatialRef();
     
     int GetFeatureCount( int bForce = TRUE );
     void ResetReading();
@@ -72,7 +74,6 @@ public:
     // OGRGeoJSONLayer Interface
     //
     void AddFeature( OGRFeature* poFeature );
-    void SetSpatialRef( OGRSpatialReference* poSRS );
     void DetectGeometryType();
 
 private:
@@ -81,9 +82,9 @@ private:
     FeaturesSeq seqFeatures_;
     FeaturesSeq::iterator iterCurrent_;
 
-    OGRGeoJSONDataSource* poDS_;
+    /* poDS_ retained for ABI compatibility. */
+    /* CPL_UNUSED */ OGRGeoJSONDataSource* poDS_;
     OGRFeatureDefn* poFeatureDefn_;
-    OGRSpatialReference* poSRS_;
     CPLString sFIDColumn_;
 };
 
@@ -148,6 +149,8 @@ public:
                            OGRwkbGeometryType eGType = wkbUnknown,
                            char** papszOptions = NULL );
     int TestCapability( const char* pszCap );
+    
+    void AddLayer( OGRGeoJSONLayer* poLayer );
 
     //
     // OGRGeoJSONDataSource Interface
@@ -198,9 +201,9 @@ private:
     // Priavte utility functions
     //
     void Clear();
-    int ReadFromFile( const char* pszSource );
+    int ReadFromFile( const char* pszSource, VSILFILE* fpIn );
     int ReadFromService( const char* pszSource );
-    OGRGeoJSONLayer* LoadLayer();
+    void LoadLayers();
 };
 
 
@@ -234,4 +237,3 @@ public:
 };
 
 #endif /* OGR_GEOJSON_H_INCLUDED */
-

@@ -1,12 +1,12 @@
 /******************************************************************************
- * $Id: jpeglsdataset.cpp 21192 2010-12-04 10:49:56Z rouault $
+ * $Id: jpeglsdataset.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  JPEGLS driver based on CharLS library
  * Purpose:  JPEGLS driver based on CharLS library
  * Author:   Even Rouault, <even dot rouault at mines dash paris dot org>
  *
  ******************************************************************************
- * Copyright (c) 2010, Even Rouault, <even dot rouault at mines dash paris dot org>
+ * Copyright (c) 2010, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -37,7 +37,7 @@ extern "C" void GDALRegister_JPEGLS();
 
 /* g++ -Wall -g fmrts/jpegls/jpeglsdataset.cpp -shared -fPIC -o gdal_JPEGLS.so -Iport -Igcore -L. -lgdal -I/home/even/charls-1.0 -L/home/even/charls-1.0/build -lCharLS */
 
-CPL_CVSID("$Id: jpeglsdataset.cpp 21192 2010-12-04 10:49:56Z rouault $");
+CPL_CVSID("$Id: jpeglsdataset.cpp 27044 2014-03-16 23:41:27Z rouault $");
 
 /************************************************************************/
 /* ==================================================================== */

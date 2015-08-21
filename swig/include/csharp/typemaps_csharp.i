@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: typemaps_csharp.i 21588 2011-01-27 15:42:24Z tamas $
+ * $Id: typemaps_csharp.i 26526 2013-10-11 11:49:24Z tamas $
  *
  * Name:     typemaps_csharp.i
  * Project:  GDAL CSharp Interface
@@ -382,9 +382,48 @@ OPTIONAL_POD(int, int);
 %apply (int inout[ANY]) {int *pList};
 
 /*
+ * Helper to marshal utf8 strings. 
+ */
+
+%pragma(csharp) modulecode=%{
+  internal static byte[] StringToUtf8Bytes(string str)
+  {
+    if (str == null)
+      return null;
+    
+    int bytecount = System.Text.Encoding.UTF8.GetMaxByteCount(str.Length);
+    byte[] bytes = new byte[bytecount + 1];
+    System.Text.Encoding.UTF8.GetBytes(str, 0, str.Length, bytes, 0);
+    return bytes;
+  }
+  
+  internal static string Utf8BytesToString(IntPtr pNativeData)
+  {
+    if (pNativeData == IntPtr.Zero)
+        return null;
+        
+    int length = Marshal.PtrToStringAnsi(pNativeData).Length;
+    byte[] strbuf = new byte[length];  
+    Marshal.Copy(pNativeData, strbuf, 0, length); 
+    return System.Text.Encoding.UTF8.GetString(strbuf);
+  }
+%}
+
+/*
  * Typemap for const char *utf8_path. 
  */
-%typemap(csin) (const char *utf8_path)  "System.Text.Encoding.Default.GetString(System.Text.Encoding.UTF8.GetBytes($csinput))" 
+%typemap(csin) (const char *utf8_path)  "$module.StringToUtf8Bytes($csinput)" 
+%typemap(imtype, out="IntPtr") (const char *utf8_path) "byte[]"
+%typemap(out) (const char *utf8_path) %{ $result = $1; %}
+%typemap(csout, excode=SWIGEXCODE) (const char *utf8_path) {
+        /* %typemap(csout) (const char *utf8_path) */
+        IntPtr cPtr = $imcall;
+        string ret = $module.Utf8BytesToString(cPtr);
+        $excode
+        return ret;
+}
+
+%apply ( const char *utf8_path ) { const char* GetFieldAsString };
 
 /*
  * Typemap for double *defaultval. 
@@ -477,7 +516,7 @@ OPTIONAL_POD(int, int);
       return ret;
 }
 
-%apply (void *buffer_ptr) {GByte*};
+%apply (void *buffer_ptr) {GByte*, VSILFILE*};
 
 %csmethodmodifiers StringListDestroy "internal";
 %inline %{
@@ -495,3 +534,15 @@ OPTIONAL_POD(int, int);
 %typemap(csin) (CPLErrorHandler)  "$csinput"
 %typemap(in) (CPLErrorHandler) %{ $1 = ($1_ltype)$input; %}
 
+/******************************************************************************
+ * GDALProgressFunc typemaps                                                  *
+ *****************************************************************************/
+%pragma(csharp) modulecode="public delegate int GDALProgressFuncDelegate(double Complete, IntPtr Message, IntPtr Data);"
+
+%typemap(imtype) (GDALProgressFunc callback)  "$module.GDALProgressFuncDelegate"
+%typemap(cstype) (GDALProgressFunc callback) "$module.GDALProgressFuncDelegate"
+%typemap(csin) (GDALProgressFunc callback)  "$csinput"
+%typemap(in) (GDALProgressFunc callback) %{ $1 = ($1_ltype)$input; %}
+%typemap(imtype) (void* callback_data) "string"
+%typemap(cstype) (void* callback_data) "string"
+%typemap(csin) (void* callback_data) "$csinput"

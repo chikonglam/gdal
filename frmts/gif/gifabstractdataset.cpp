@@ -1,12 +1,12 @@
 /******************************************************************************
- * $Id: gifabstractdataset.cpp 25287 2012-12-05 21:17:14Z rouault $
+ * $Id: gifabstractdataset.cpp 27459 2014-06-15 11:30:36Z rouault $
  *
  * Project:  GIF Driver
  * Purpose:  GIF Abstract Dataset
  * Author:   Even Rouault <even dot rouault at mines dash paris dot org>
  *
  ****************************************************************************
- * Copyright (c) 2011, Even Rouault <even dot rouault at mines dash paris dot org>
+ * Copyright (c) 2011-2013, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -29,7 +29,7 @@
 
 #include "gifabstractdataset.h"
 
-CPL_CVSID("$Id: gifabstractdataset.cpp 25287 2012-12-05 21:17:14Z rouault $");
+CPL_CVSID("$Id: gifabstractdataset.cpp 27459 2014-06-15 11:30:36Z rouault $");
 
 /************************************************************************/
 /* ==================================================================== */
@@ -82,7 +82,7 @@ GIFAbstractDataset::~GIFAbstractDataset()
     }
 
     if( hGifFile )
-        DGifCloseFile( hGifFile );
+        myDGifCloseFile( hGifFile );
 
     if( fp != NULL )
         VSIFCloseL( fp );
@@ -211,6 +211,17 @@ void GIFAbstractDataset::CollectXMPMetadata()
 }
 
 /************************************************************************/
+/*                      GetMetadataDomainList()                         */
+/************************************************************************/
+
+char **GIFAbstractDataset::GetMetadataDomainList()
+{
+    return BuildMetadataDomainList(GDALPamDataset::GetMetadataDomainList(),
+                                   TRUE,
+                                   "xml:XMP", NULL);
+}
+
+/************************************************************************/
 /*                           GetMetadata()                              */
 /************************************************************************/
 
@@ -324,4 +335,46 @@ void GIFAbstractDataset::DetectGeoreferencing( GDALOpenInfo * poOpenInfo )
             GDALReadWorldFile( poOpenInfo->pszFilename, ".wld",
                                adfGeoTransform );
     }
+}
+
+/************************************************************************/
+/*                            myDGifOpen()                              */
+/************************************************************************/
+
+GifFileType* GIFAbstractDataset::myDGifOpen( void *userPtr, InputFunc readFunc )
+{
+#if defined(GIFLIB_MAJOR) && GIFLIB_MAJOR >= 5
+    int nErrorCode;
+    return DGifOpen( userPtr, readFunc, &nErrorCode );
+#else
+    return DGifOpen( userPtr, readFunc );
+#endif
+}
+
+/************************************************************************/
+/*                          myDGifCloseFile()                           */
+/************************************************************************/
+
+int GIFAbstractDataset::myDGifCloseFile( GifFileType *hGifFile )
+{
+#if defined(GIFLIB_MAJOR) && ((GIFLIB_MAJOR == 5 && GIFLIB_MINOR >= 1) || GIFLIB_MAJOR > 5)
+    int nErrorCode;
+    return DGifCloseFile( hGifFile, &nErrorCode );
+#else
+    return DGifCloseFile( hGifFile );
+#endif
+}
+
+/************************************************************************/
+/*                          myEGifCloseFile()                           */
+/************************************************************************/
+
+int GIFAbstractDataset::myEGifCloseFile( GifFileType *hGifFile )
+{
+#if defined(GIFLIB_MAJOR) && ((GIFLIB_MAJOR == 5 && GIFLIB_MINOR >= 1) || GIFLIB_MAJOR > 5)
+    int nErrorCode;
+    return EGifCloseFile( hGifFile, &nErrorCode );
+#else
+    return EGifCloseFile( hGifFile );
+#endif
 }

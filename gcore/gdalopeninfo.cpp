@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdalopeninfo.cpp 23717 2012-01-07 14:58:34Z rouault $
+ * $Id: gdalopeninfo.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  GDAL Core
  * Purpose:  Implementation of GDALOpenInfo class.
@@ -7,6 +7,7 @@
  *
  **********************************************************************
  * Copyright (c) 2002, Frank Warmerdam
+ * Copyright (c) 2008-2012, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -34,7 +35,7 @@
 #include <unistd.h>
 #endif
 
-CPL_CVSID("$Id: gdalopeninfo.cpp 23717 2012-01-07 14:58:34Z rouault $");
+CPL_CVSID("$Id: gdalopeninfo.cpp 27044 2014-03-16 23:41:27Z rouault $");
 
 /************************************************************************/
 /* ==================================================================== */

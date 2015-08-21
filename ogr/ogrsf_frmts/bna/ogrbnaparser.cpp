@@ -1,12 +1,12 @@
 /******************************************************************************
- * $Id: ogrbnaparser.cpp 20996 2010-10-28 18:38:15Z rouault $
+ * $Id: ogrbnaparser.cpp 27710 2014-09-21 15:30:29Z goatbar $
  *
  * Project:  BNA Parser
  * Purpose:  Parse a BNA record
  * Author:   Even Rouault, even dot rouault at mines dash paris dot org
  *
  ******************************************************************************
- * Copyright (c) 2007, Even Rouault
+ * Copyright (c) 2007-2010, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -228,7 +228,7 @@ BNARecord* BNA_GetNextRecord(VSILFILE* f,
     int dotFound = 0;
     int numChar = 0;
     const char* detailedErrorMsg = NULL;
-    BNAFeatureType currentFeatureType = (BNAFeatureType) -1;
+    BNAFeatureType currentFeatureType = BNA_UNKNOWN;
     int nbExtraId = 0;
     char tmpBuffer[NB_MAX_BNA_IDS][TMP_BUFFER_SIZE+1];
     int  tmpBufferLength[NB_MAX_BNA_IDS] = {0, 0, 0};
@@ -496,7 +496,7 @@ BNARecord* BNA_GetNextRecord(VSILFILE* f,
           {
             inQuotes = TRUE;
           }
-          else if (numField >= NB_MIN_BNA_IDS && currentFeatureType == -1)
+          else if (numField >= NB_MIN_BNA_IDS && currentFeatureType == BNA_UNKNOWN)
           {
             if (ptrBeginningOfNumber == NULL)
             {

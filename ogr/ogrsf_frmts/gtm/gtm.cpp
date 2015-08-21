@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gtm.cpp 20996 2010-10-28 18:38:15Z rouault $
+ * $Id: gtm.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  GTM Driver
  * Purpose:  Class for reading, parsing and handling a gtmfile.
@@ -7,6 +7,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2009, Leonardo de Paula Rosa Piga
+ * Copyright (c) 2009-2010, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),

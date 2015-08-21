@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrodbcdatasource.cpp 24960 2012-09-23 18:06:25Z rouault $
+ * $Id: ogrodbcdatasource.cpp 27741 2014-09-26 19:20:02Z goatbar $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implements OGRODBCDataSource class.
@@ -7,6 +7,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2003, Frank Warmerdam <warmerdam@pobox.com>
+ * Copyright (c) 2009-2013, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -31,7 +32,7 @@
 #include "cpl_conv.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: ogrodbcdatasource.cpp 24960 2012-09-23 18:06:25Z rouault $");
+CPL_CVSID("$Id: ogrodbcdatasource.cpp 27741 2014-09-26 19:20:02Z goatbar $");
 /************************************************************************/
 /*                         OGRODBCDataSource()                          */
 /************************************************************************/
@@ -133,6 +134,20 @@ int OGRODBCDataSource::OpenMDB( const char * pszNewName, int bUpdate )
     }
 
 /* -------------------------------------------------------------------- */
+/*      Check if it is a Walk MDB.                                      */
+/* -------------------------------------------------------------------- */
+    {
+        CPLODBCStatement oStmt( &oSession );
+
+        oStmt.Append( "SELECT LayerID, LayerName, minE, maxE, minN, maxN, Memo FROM WalkLayers" );
+
+        if( oStmt.ExecuteSQL() )
+        {
+            return FALSE;
+        }
+    }
+
+/* -------------------------------------------------------------------- */
 /*      Return all tables as  non-spatial tables.                       */
 /* -------------------------------------------------------------------- */
     CPLODBCStatement oTableList( &oSession );
@@ -166,8 +181,7 @@ int OGRODBCDataSource::OpenMDB( const char * pszNewName, int bUpdate )
 /************************************************************************/
 
 int OGRODBCDataSource::Open( const char * pszNewName, int bUpdate,
-                             int bTestOpen )
-
+                             CPL_UNUSED int bTestOpen )
 {
     CPLAssert( nLayers == 0 );
 
@@ -467,10 +481,9 @@ int OGRODBCDataSource::Open( const char * pszNewName, int bUpdate,
 /*                             OpenTable()                              */
 /************************************************************************/
 
-int OGRODBCDataSource::OpenTable( const char *pszNewName, 
+int OGRODBCDataSource::OpenTable( const char *pszNewName,
                                   const char *pszGeomCol,
-                                  int bUpdate )
-
+                                  CPL_UNUSED int bUpdate )
 {
 /* -------------------------------------------------------------------- */
 /*      Create the layer object.                                        */
@@ -499,8 +512,7 @@ int OGRODBCDataSource::OpenTable( const char *pszNewName,
 /*                           TestCapability()                           */
 /************************************************************************/
 
-int OGRODBCDataSource::TestCapability( const char * pszCap )
-
+int OGRODBCDataSource::TestCapability( CPL_UNUSED const char * pszCap )
 {
     return FALSE;
 }
@@ -527,9 +539,9 @@ OGRLayer * OGRODBCDataSource::ExecuteSQL( const char *pszSQLCommand,
 
 {
 /* -------------------------------------------------------------------- */
-/*      Use generic imlplementation for OGRSQL dialect.                 */
+/*      Use generic implementation for recognized dialects              */
 /* -------------------------------------------------------------------- */
-    if( pszDialect != NULL && EQUAL(pszDialect,"OGRSQL") )
+    if( IsGenericSQLDialect(pszDialect) )
         return OGRDataSource::ExecuteSQL( pszSQLCommand, 
                                           poSpatialFilter, 
                                           pszDialect );

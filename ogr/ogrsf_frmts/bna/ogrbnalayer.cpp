@@ -1,12 +1,12 @@
 /******************************************************************************
- * $Id: ogrbnalayer.cpp 21684 2011-02-11 22:14:01Z warmerdam $
+ * $Id: ogrbnalayer.cpp 27729 2014-09-24 00:40:16Z goatbar $
  *
  * Project:  BNA Translator
  * Purpose:  Implements OGRBNALayer class.
  * Author:   Even Rouault, even dot rouault at mines dash paris dot org
  *
  ******************************************************************************
- * Copyright (c) 2007, Even Rouault
+ * Copyright (c) 2007-2010, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -560,8 +560,7 @@ OGRErr OGRBNALayer::CreateFeature( OGRFeature *poFeature )
 /*                            CreateField()                             */
 /************************************************************************/
 
-OGRErr OGRBNALayer::CreateField( OGRFieldDefn *poField, int bApproxOK )
-
+OGRErr OGRBNALayer::CreateField( OGRFieldDefn *poField, CPL_UNUSED int bApproxOK )
 {
     if( !bWriter || nFeatures != 0)
         return OGRERR_FAILURE;

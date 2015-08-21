@@ -1,12 +1,12 @@
 /******************************************************************************
- * $Id: ogrgftdatasource.cpp 25483 2013-01-10 17:06:59Z warmerdam $
+ * $Id: ogrgftdatasource.cpp 27729 2014-09-24 00:40:16Z goatbar $
  *
  * Project:  Google Fusion Table Translator
  * Purpose:  Implements OGRGFTDataSource class
  * Author:   Even Rouault, even dot rouault at mines dash paris dot org
  *
  ******************************************************************************
- * Copyright (c) 2011, Even Rouault <even dot rouault at mines dash paris dot org>
+ * Copyright (c) 2011-2013, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -29,7 +29,7 @@
 
 #include "ogr_gft.h"
 
-CPL_CVSID("$Id: ogrgftdatasource.cpp 25483 2013-01-10 17:06:59Z warmerdam $");
+CPL_CVSID("$Id: ogrgftdatasource.cpp 27729 2014-09-24 00:40:16Z goatbar $");
 
 #define GDAL_API_KEY "AIzaSyA_2h1_wXMOLHNSVeo-jf1ACME-M1XMgP0"
 #define FUSION_TABLE_SCOPE "https://www.googleapis.com/Fauth/fusiontables"
@@ -305,7 +305,7 @@ const char*  OGRGFTDataSource::GetAPIURL() const
 /************************************************************************/
 
 OGRLayer   *OGRGFTDataSource::CreateLayer( const char *pszName,
-                                           OGRSpatialReference *poSpatialRef,
+                                           CPL_UNUSED OGRSpatialReference *poSpatialRef,
                                            OGRwkbGeometryType eGType,
                                            char ** papszOptions )
 {
@@ -535,7 +535,10 @@ OGRLayer * OGRGFTDataSource::ExecuteSQL( const char *pszSQLCommand,
                                           const char *pszDialect )
 
 {
-    if( pszDialect != NULL && EQUAL(pszDialect,"OGRSQL") )
+/* -------------------------------------------------------------------- */
+/*      Use generic implementation for recognized dialects              */
+/* -------------------------------------------------------------------- */
+    if( IsGenericSQLDialect(pszDialect) )
         return OGRDataSource::ExecuteSQL( pszSQLCommand,
                                           poSpatialFilter,
                                           pszDialect );

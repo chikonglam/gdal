@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdalinfo.c 25582 2013-01-29 21:13:43Z rouault $
+ * $Id: gdalinfo.c 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  GDAL Utilities
  * Purpose:  Commandline application to list info about a file.
@@ -7,6 +7,7 @@
  *
  * ****************************************************************************
  * Copyright (c) 1998, Frank Warmerdam
+ * Copyright (c) 2007-2013, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -35,7 +36,7 @@
 #include "cpl_multiproc.h"
 #include "commonutils.h"
 
-CPL_CVSID("$Id: gdalinfo.c 25582 2013-01-29 21:13:43Z rouault $");
+CPL_CVSID("$Id: gdalinfo.c 27044 2014-03-16 23:41:27Z rouault $");
 
 static int 
 GDALInfoReportCorner( GDALDatasetH hDataset, 
@@ -51,7 +52,8 @@ void Usage(const char* pszErrorMsg)
 
 {
     printf( "Usage: gdalinfo [--help-general] [-mm] [-stats] [-hist] [-nogcp] [-nomd]\n"
-            "                [-norat] [-noct] [-nofl] [-checksum] [-proj4] [-mdd domain]*\n"
+            "                [-norat] [-noct] [-nofl] [-checksum] [-proj4]\n"
+            "                [-listmdd] [-mdd domain|`all`]*\n"
             "                [-sd subdataset] datasetname\n" );
 
     if( pszErrorMsg != NULL )
@@ -86,6 +88,7 @@ int main( int argc, char ** argv )
     int                 nSubdataset = -1;
     const char          *pszFilename = NULL;
     char              **papszExtraMDDomains = NULL, **papszFileList;
+    int                 bListMDD = FALSE;
     const char  *pszProjection = NULL;
     OGRCoordinateTransformationH hTransform = NULL;
     int             bShowFileList = TRUE;
@@ -148,6 +151,8 @@ int main( int argc, char ** argv )
             bShowRAT = FALSE;
         else if( EQUAL(argv[i], "-noct") )
             bShowColorTable = FALSE;
+        else if( EQUAL(argv[i], "-listmdd") )
+            bListMDD = TRUE;
         else if( EQUAL(argv[i], "-mdd") )
         {
             CHECK_HAS_ENOUGH_ADDITIONAL_ARGS(1);
@@ -162,7 +167,7 @@ int main( int argc, char ** argv )
             nSubdataset = atoi(argv[++i]);
         }
         else if( argv[i][0] == '-' )
-            Usage(CPLSPrintf("Unkown option name '%s'", argv[i]));
+            Usage(CPLSPrintf("Unknown option name '%s'", argv[i]));
         else if( pszFilename == NULL )
             pszFilename = argv[i];
         else
@@ -382,6 +387,25 @@ int main( int argc, char ** argv )
 /* -------------------------------------------------------------------- */
 /*      Report metadata.                                                */
 /* -------------------------------------------------------------------- */
+
+    if( bListMDD )
+    {
+        char** papszMDDList = GDALGetMetadataDomainList( hDataset );
+        char** papszIter = papszMDDList;
+
+        if( papszMDDList != NULL )
+            printf( "Metadata domains:\n" );
+        while( papszIter != NULL && *papszIter != NULL )
+        {
+            if( EQUAL(*papszIter, "") )
+                printf( "  (default)\n");
+            else
+                printf( "  %s\n", *papszIter );
+            papszIter ++;
+        }
+        CSLDestroy(papszMDDList);
+    }
+
     papszMetadata = (bShowMetadata) ? GDALGetMetadata( hDataset, NULL ) : NULL;
     if( bShowMetadata && CSLCount(papszMetadata) > 0 )
     {
@@ -390,6 +414,30 @@ int main( int argc, char ** argv )
         {
             printf( "  %s\n", papszMetadata[i] );
         }
+    }
+
+    if( papszExtraMDDomains != NULL && EQUAL(papszExtraMDDomains[0], "all") &&
+        papszExtraMDDomains[1] == NULL )
+    {
+        char** papszMDDList = GDALGetMetadataDomainList( hDataset );
+        char** papszIter = papszMDDList;
+
+        CSLDestroy(papszExtraMDDomains);
+        papszExtraMDDomains = NULL;
+
+        while( papszIter != NULL && *papszIter != NULL )
+        {
+            if( !EQUAL(*papszIter, "") &&
+                !EQUAL(*papszIter, "IMAGE_STRUCTURE") &&
+                !EQUAL(*papszIter, "SUBDATASETS") &&
+                !EQUAL(*papszIter, "GEOLOCATION") &&
+                !EQUAL(*papszIter, "RPC") )
+            {
+                papszExtraMDDomains = CSLAddString(papszExtraMDDomains, *papszIter);
+            }
+            papszIter ++;
+        }
+        CSLDestroy(papszMDDList);
     }
 
     for( iMDD = 0; bShowMetadata && iMDD < CSLCount(papszExtraMDDomains); iMDD++ )
@@ -738,6 +786,23 @@ int main( int argc, char ** argv )
             printf( "  Offset: %.15g,   Scale:%.15g\n",
                     GDALGetRasterOffset( hBand, &bSuccess ),
                     GDALGetRasterScale( hBand, &bSuccess ) );
+
+        if( bListMDD )
+        {
+            char** papszMDDList = GDALGetMetadataDomainList( hBand );
+            char** papszIter = papszMDDList;
+            if( papszMDDList != NULL )
+                printf( "  Metadata domains:\n" );
+            while( papszIter != NULL && *papszIter != NULL )
+            {
+                if( EQUAL(*papszIter, "") )
+                    printf( "    (default)\n");
+                else
+                    printf( "    %s\n", *papszIter );
+                papszIter ++;
+            }
+            CSLDestroy(papszMDDList);
+        }
 
         papszMetadata = (bShowMetadata) ? GDALGetMetadata( hBand, NULL ) : NULL;
         if( bShowMetadata && CSLCount(papszMetadata) > 0 )

@@ -1,12 +1,12 @@
 /******************************************************************************
- * $Id: osm_parser.cpp 25926 2013-04-18 18:33:29Z rouault $
+ * $Id: osm_parser.cpp 27741 2014-09-26 19:20:02Z goatbar $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Author:   Even Rouault, <even dot rouault at mines dash paris dot org>
  * Purpose:  OSM XML and OSM PBF parser
  *
  ******************************************************************************
- * Copyright (c) 2012, Even Rouault, <even dot rouault at mines dash paris dot org>
+ * Copyright (c) 2012-2013, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -45,7 +45,7 @@
 
 #define XML_BUFSIZE 64*1024
 
-CPL_CVSID("$Id: osm_parser.cpp 25926 2013-04-18 18:33:29Z rouault $");
+CPL_CVSID("$Id: osm_parser.cpp 27741 2014-09-26 19:20:02Z goatbar $");
 
 /************************************************************************/
 /*                            INIT_INFO()                               */
@@ -338,6 +338,7 @@ int ReadOSMHeader(GByte* pabyData, GByte* pabyDataLimit,
         }
         else if (nKey == MAKE_KEY(OSMHEADER_IDX_OSMOSIS_REPLICATION_TIMESTAMP, WT_VARINT))
         {
+            /* TODO: Do something with nVal or change this to a seek forward. */
             GIntBig nVal;
             READ_VARINT64(pabyData, pabyDataLimit, nVal);
         }
@@ -804,7 +805,11 @@ int ReadNode(GByte* pabyData, GByte* pabyDataLimit,
     OSMNode sNode;
 
     sNode.nID = 0;
+    sNode.dfLat = 0.0;
+    sNode.dfLon = 0.0;
     INIT_INFO(sNode.sInfo);
+    sNode.nTags = 0;
+    sNode.pasTags = NULL;
 
     /* printf(">ReadNode\n"); */
     while(pabyData < pabyDataLimit)
@@ -1583,8 +1588,8 @@ end_error:
 /*                        EmptyNotifyNodesFunc()                        */
 /************************************************************************/
 
-static void EmptyNotifyNodesFunc(unsigned int nNodes, OSMNode* pasNodes,
-                                 OSMContext* psCtxt, void* user_data)
+static void EmptyNotifyNodesFunc(CPL_UNUSED unsigned int nNodes, CPL_UNUSED OSMNode* pasNodes,
+                                 CPL_UNUSED OSMContext* psCtxt, CPL_UNUSED void* user_data)
 {
 }
 
@@ -1593,8 +1598,8 @@ static void EmptyNotifyNodesFunc(unsigned int nNodes, OSMNode* pasNodes,
 /*                         EmptyNotifyWayFunc()                         */
 /************************************************************************/
 
-static void EmptyNotifyWayFunc(OSMWay* psWay,
-                               OSMContext* psCtxt, void* user_data)
+static void EmptyNotifyWayFunc(CPL_UNUSED OSMWay* psWay,
+                               CPL_UNUSED OSMContext* psCtxt, CPL_UNUSED void* user_data)
 {
 }
 
@@ -1602,8 +1607,8 @@ static void EmptyNotifyWayFunc(OSMWay* psWay,
 /*                       EmptyNotifyRelationFunc()                      */
 /************************************************************************/
 
-static void EmptyNotifyRelationFunc(OSMRelation* psRelation,
-                                    OSMContext* psCtxt, void* user_data)
+static void EmptyNotifyRelationFunc(CPL_UNUSED OSMRelation* psRelation,
+                                    CPL_UNUSED OSMContext* psCtxt, CPL_UNUSED void* user_data)
 {
 }
 
@@ -1611,9 +1616,9 @@ static void EmptyNotifyRelationFunc(OSMRelation* psRelation,
 /*                         EmptyNotifyBoundsFunc()                      */
 /************************************************************************/
 
-static void EmptyNotifyBoundsFunc( double dfXMin, double dfYMin,
-                                   double dfXMax, double dfYMax,
-                                   OSMContext* psCtxt, void* user_data )
+static void EmptyNotifyBoundsFunc( CPL_UNUSED double dfXMin, CPL_UNUSED double dfYMin,
+                                   CPL_UNUSED double dfXMax, CPL_UNUSED double dfYMax,
+                                   CPL_UNUSED OSMContext* psCtxt, CPL_UNUSED void* user_data )
 {
 }
 
@@ -2059,7 +2064,9 @@ static void XMLCALL OSM_XML_endElementCbk(void *pUserData, const char *pszName)
 /*                           dataHandlerCbk()                           */
 /************************************************************************/
 
-static void XMLCALL OSM_XML_dataHandlerCbk(void *pUserData, const char *data, int nLen)
+static void XMLCALL OSM_XML_dataHandlerCbk(void *pUserData,
+                                           CPL_UNUSED const char *data,
+                                           CPL_UNUSED int nLen)
 {
     OSMContext* psCtxt = (OSMContext*) pUserData;
 

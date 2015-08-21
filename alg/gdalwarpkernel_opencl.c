@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdalwarpkernel_opencl.c 25069 2012-10-07 14:13:39Z rouault $
+ * $Id: gdalwarpkernel_opencl.c 28301 2015-01-07 08:31:04Z rouault $
  *
  * Project:  OpenCL Image Reprojector
  * Purpose:  Implementation of the GDALWarpKernel reprojector in OpenCL.
@@ -7,6 +7,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2010, Seth Price <seth@pricepages.org>
+ * Copyright (c) 2010-2012, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -40,7 +41,7 @@
 #include "cpl_string.h"
 #include "gdalwarpkernel_opencl.h"
 
-CPL_CVSID("$Id: gdalwarpkernel_opencl.c 25069 2012-10-07 14:13:39Z rouault $");
+CPL_CVSID("$Id: gdalwarpkernel_opencl.c 28301 2015-01-07 08:31:04Z rouault $");
 
 #define handleErr(err) if((err) != CL_SUCCESS) { \
     CPLError(CE_Failure, CPLE_AppDefined, "Error at file %s line %d: %s", __FILE__, __LINE__, getCLErrorString(err)); \
@@ -535,6 +536,32 @@ cl_kernel get_kernel(struct oclWarper *warper, char useVec,
     const char *dVecf = "float";
     const char *kernGenFuncs =
 // ********************* General Funcs ********************
+"void clampToDst(float fReal,\n"
+                "__global outType *dstPtr,\n"
+                "unsigned int iDstOffset,\n"
+                "__constant float *fDstNoDataReal,\n"
+                "int bandNum);\n"
+"void setPixel(__global outType *dstReal,\n"
+                "__global outType *dstImag,\n"
+                "__global float *dstDensity,\n"
+                "__global int *nDstValid,\n"
+                "__constant float *fDstNoDataReal,\n"
+                "const int bandNum,\n"
+                "vecf fDensity, vecf fReal, vecf fImag);\n"
+"int getPixel(__read_only image2d_t srcReal,\n"
+                "__read_only image2d_t srcImag,\n"
+                "__global float *fUnifiedSrcDensity,\n"
+                "__global int *nUnifiedSrcValid,\n"
+                "__constant char *useBandSrcValid,\n"
+                "__global int *nBandSrcValid,\n"
+                "const int2 iSrc,\n"
+                "int bandNum,\n"
+                "vecf *fDensity, vecf *fReal, vecf *fImag);\n"
+"int isValid(__global float *fUnifiedSrcDensity,\n"
+                "__global int *nUnifiedSrcValid,\n"
+                "float2 fSrcCoords );\n"
+"float2 getSrcCoords(__read_only image2d_t srcCoords);\n"
+
 "#ifdef USE_CLAMP_TO_DST_FLOAT\n"
 "void clampToDst(float fReal,\n"
                 "__global outType *dstPtr,\n"
@@ -566,7 +593,7 @@ cl_kernel get_kernel(struct oclWarper *warper, char useVec,
         "if (dstPtr[iDstOffset] == dstMinVal)\n"
             "dstPtr[iDstOffset] = dstMinVal + 1;\n"
         "else\n"
-            "dstPtr[iDstOffset] --;\n"
+            "dstPtr[iDstOffset] = dstPtr[iDstOffset] - 1;\n"
     "}\n"
 "}\n"
 "#endif\n"
@@ -666,7 +693,7 @@ cl_kernel get_kernel(struct oclWarper *warper, char useVec,
     "int bHasValid = FALSE;\n"
     
     // Clamp the src offset values if needed
-    "if(useUnifiedSrcDensity || useUnifiedSrcValid || useUseBandSrcValid){\n"
+    "if(useUnifiedSrcDensity | useUnifiedSrcValid | useUseBandSrcValid){\n"
         "int iSrcX = iSrc.x;\n"
         "int iSrcY = iSrc.y;\n"
         
@@ -809,7 +836,6 @@ cl_kernel get_kernel(struct oclWarper *warper, char useVec,
                     "__global int *nDstValid,\n"
                     "const int bandNum)\n"
 "{\n"
-    "int i;\n"
     "float2  fSrc = getSrcCoords(srcCoords);\n"
     "if (!isValid(fUnifiedSrcDensity, nUnifiedSrcValid, fSrc))\n"
         "return;\n"
@@ -902,6 +928,9 @@ cl_kernel get_kernel(struct oclWarper *warper, char useVec,
     
     const char *kernCubic =
 // ************************ Cubic ************************
+"vecf cubicConvolution(float dist1, float dist2, float dist3,\n"
+                        "vecf f0, vecf f1, vecf f2, vecf f3);\n"
+
 "vecf cubicConvolution(float dist1, float dist2, float dist3,\n"
                        "vecf f0, vecf f1, vecf f2, vecf f3)\n"
 "{\n"
@@ -1022,6 +1051,9 @@ cl_kernel get_kernel(struct oclWarper *warper, char useVec,
 
     const char *kernResampler =
 // ************************ LanczosSinc ************************
+
+"float lanczosSinc( float fX, float fR );\n"
+"float bSpline( float x );\n"
 
 "float lanczosSinc( float fX, float fR )\n"
 "{\n"

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 ###############################################################################
-# $Id: gdal2grd.py 18195 2009-12-06 20:24:39Z rouault $
+# $Id: gdal2grd.py 27044 2014-03-16 23:41:27Z rouault $
 #
 # Project:  GDAL Python samples
 # Purpose:  Script to write out ASCII GRD rasters (used in Golden Software
@@ -10,6 +10,7 @@
 #
 ###############################################################################
 # Copyright (c) 2003, Andrey Kiselev <dron@remotesensing.org>
+# Copyright (c) 2009, Even Rouault <even dot rouault at mines-paris dot org>
 # 
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),

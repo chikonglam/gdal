@@ -102,6 +102,36 @@ public class FeatureDefn : IDisposable {
     if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
   }
 
+  public int GetGeomFieldCount() {
+    int ret = OgrPINVOKE.FeatureDefn_GetGeomFieldCount(swigCPtr);
+    if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
+    return ret;
+  }
+
+  public GeomFieldDefn GetGeomFieldDefn(int i) {
+    IntPtr cPtr = OgrPINVOKE.FeatureDefn_GetGeomFieldDefn(swigCPtr, i);
+    GeomFieldDefn ret = (cPtr == IntPtr.Zero) ? null : new GeomFieldDefn(cPtr, false, ThisOwn_false());
+    if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
+    return ret;
+  }
+
+  public int GetGeomFieldIndex(string name) {
+    int ret = OgrPINVOKE.FeatureDefn_GetGeomFieldIndex(swigCPtr, name);
+    if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
+    return ret;
+  }
+
+  public void AddGeomFieldDefn(GeomFieldDefn defn) {
+    OgrPINVOKE.FeatureDefn_AddGeomFieldDefn(swigCPtr, GeomFieldDefn.getCPtr(defn));
+    if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
+  }
+
+  public int DeleteGeomFieldDefn(int idx) {
+    int ret = OgrPINVOKE.FeatureDefn_DeleteGeomFieldDefn(swigCPtr, idx);
+    if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
+    return ret;
+  }
+
   public wkbGeometryType GetGeomType() {
     wkbGeometryType ret = (wkbGeometryType)OgrPINVOKE.FeatureDefn_GetGeomType(swigCPtr);
     if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
@@ -139,6 +169,12 @@ public class FeatureDefn : IDisposable {
   public void SetStyleIgnored(int bIgnored) {
     OgrPINVOKE.FeatureDefn_SetStyleIgnored(swigCPtr, bIgnored);
     if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
+  }
+
+  public int IsSame(FeatureDefn other_defn) {
+    int ret = OgrPINVOKE.FeatureDefn_IsSame(swigCPtr, FeatureDefn.getCPtr(other_defn));
+    if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
+    return ret;
   }
 
 }

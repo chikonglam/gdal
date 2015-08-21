@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: dgnwrite.cpp 25340 2012-12-21 20:30:21Z rouault $
+ * $Id: dgnwrite.cpp 27741 2014-09-26 19:20:02Z goatbar $
  *
  * Project:  Microstation DGN Access Library
  * Purpose:  DGN Access functions related to writing DGN elements.
@@ -7,6 +7,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2002, Frank Warmerdam <warmerdam@pobox.com>
+ * Copyright (c) 2011-2013, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -29,7 +30,7 @@
 
 #include "dgnlibp.h"
 
-CPL_CVSID("$Id: dgnwrite.cpp 25340 2012-12-21 20:30:21Z rouault $");
+CPL_CVSID("$Id: dgnwrite.cpp 27741 2014-09-26 19:20:02Z goatbar $");
 
 static void DGNPointToInt( DGNInfo *psDGN, DGNPoint *psPoint, 
                            unsigned char *pabyTarget );
@@ -450,9 +451,8 @@ DGNHandle
  * the source element suitable to write to hDGNDst. 
  */
 
-DGNElemCore *DGNCloneElement( DGNHandle hDGNSrc, DGNHandle hDGNDst, 
+DGNElemCore *DGNCloneElement( CPL_UNUSED DGNHandle hDGNSrc, DGNHandle hDGNDst, 
                               DGNElemCore *psSrcElement )
-
 {
     DGNElemCore *psClone = NULL;
 
@@ -645,14 +645,14 @@ DGNElemCore *DGNCloneElement( DGNHandle hDGNSrc, DGNHandle hDGNDst,
     }
     else if( psSrcElement->stype == DGNST_KNOT_WEIGHT )
     {
-        DGNElemKnotWeight *psArray, *psSrcArray;
+        DGNElemKnotWeight *psArray /* , *psSrcArray*/;
         int               nSize, numelems;
 
         // FIXME: Is it OK to assume that the # of elements corresponds
         // directly to the element size? kintel 20051218.
         numelems = (psSrcElement->size - 36 - psSrcElement->attr_bytes)/4;
 
-        psSrcArray = (DGNElemKnotWeight *) psSrcElement;
+        /* psSrcArray = (DGNElemKnotWeight *) psSrcElement; */
 
         nSize = sizeof(DGNElemKnotWeight) + sizeof(long) * (numelems-1);
 
@@ -759,8 +759,7 @@ int DGNUpdateElemCore( DGNHandle hDGN, DGNElemCore *psElement,
  */
 
 
-int DGNUpdateElemCoreExtended( DGNHandle hDGN, DGNElemCore *psElement )
-
+int DGNUpdateElemCoreExtended( CPL_UNUSED DGNHandle hDGN, DGNElemCore *psElement )
 {
     GByte *rd = psElement->raw_data;
     int   nWords = (psElement->raw_bytes / 2) - 2;
@@ -817,8 +816,7 @@ int DGNUpdateElemCoreExtended( DGNHandle hDGN, DGNElemCore *psElement )
 /*                         DGNInitializeElemCore()                      */
 /************************************************************************/
 
-static void DGNInitializeElemCore( DGNHandle hDGN, DGNElemCore *psElement )
-
+static void DGNInitializeElemCore( CPL_UNUSED DGNHandle hDGN, DGNElemCore *psElement )
 {
     memset( psElement, 0, sizeof(DGNElemCore) );
 
@@ -1073,7 +1071,7 @@ DGNCreateArcElem( DGNHandle hDGN, int nType,
     }
     else
     {
-        memcpy( psArc->quat, panQuaternion, sizeof(long)*4 );
+        memcpy( psArc->quat, panQuaternion, sizeof(int)*4 );
     }
 
 /* -------------------------------------------------------------------- */
@@ -1294,7 +1292,7 @@ DGNCreateConeElem( DGNHandle hDGN,
     memset( psCone->quat, 0, sizeof(int) * 4 );
     if( panQuaternion != NULL )
     {
-        memcpy( psCone->quat, panQuaternion, sizeof(long)*4 );
+        memcpy( psCone->quat, panQuaternion, sizeof(int)*4 );
     }
     else {
       psCone->quat[0] = 1 << 31;
@@ -2186,7 +2184,7 @@ DGNCreateCellHeaderFromGroup( DGNHandle hDGN, const char *pszName,
 
 {
     int         nTotalLength;
-    int         i, nLevel;
+    int         i /* , nLevel */;
     DGNElemCore *psCH;
     DGNPoint    sMin={0.0,0.0,0.0}, sMax={0.0,0.0,0.0};
     unsigned char abyLevelsOccuring[8] = {0,0,0,0,0,0,0,0};
@@ -2209,7 +2207,7 @@ DGNCreateCellHeaderFromGroup( DGNHandle hDGN, const char *pszName,
 /* -------------------------------------------------------------------- */
 /*      Collect the total size, and bounds.                             */
 /* -------------------------------------------------------------------- */
-    nLevel = papsElems[0]->level;
+    /* nLevel = papsElems[0]->level; */
 
     for( i = 0; i < nNumElems; i++ )
     {
@@ -2408,17 +2406,18 @@ int DGNAddRawAttrLink( DGNHandle hDGN, DGNElemCore *psElement,
     
     memcpy( psElement->attr_data + (psElement->attr_bytes-nLinkSize), 
             pabyRawLinkData, nLinkSize );
-    
+
 /* -------------------------------------------------------------------- */
 /*      Grow the raw data, if we have rawdata.                          */
 /* -------------------------------------------------------------------- */
+    /* TODO: operation on raw_bytes may be undefined. */
     psElement->raw_bytes = psElement->raw_bytes += nLinkSize;
-    psElement->raw_data = (unsigned char *) 
+    psElement->raw_data = (unsigned char *)
         CPLRealloc( psElement->raw_data, psElement->raw_bytes );
-    
-    memcpy( psElement->raw_data + (psElement->raw_bytes-nLinkSize), 
+
+    memcpy( psElement->raw_data + (psElement->raw_bytes-nLinkSize),
             pabyRawLinkData, nLinkSize );
-    
+
 /* -------------------------------------------------------------------- */
 /*      If the element is a shape or chain complex header, then we      */
 /*      need to increase the total complex group size appropriately.    */

@@ -1,12 +1,12 @@
 /******************************************************************************
- * $Id: ogrlayerdecorator.cpp 24633 2012-07-01 14:37:25Z rouault $
+ * $Id: ogrlayerdecorator.cpp 27588 2014-08-18 20:57:46Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implements OGRLayerDecorator class
  * Author:   Even Rouault, even dot rouault at mines dash paris dot org
  *
  ******************************************************************************
- * Copyright (c) 2012, Even Rouault <even dot rouault at mines dash paris dot org>
+ * Copyright (c) 2012-2013, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -29,7 +29,7 @@
 
 #include "ogrlayerdecorator.h"
 
-CPL_CVSID("$Id: ogrlayerdecorator.cpp 24633 2012-07-01 14:37:25Z rouault $");
+CPL_CVSID("$Id: ogrlayerdecorator.cpp 27588 2014-08-18 20:57:46Z rouault $");
 
 OGRLayerDecorator::OGRLayerDecorator(OGRLayer* poDecoratedLayer,
                                      int bTakeOwnership) :
@@ -56,10 +56,21 @@ void        OGRLayerDecorator::SetSpatialFilter( OGRGeometry * poGeom )
     m_poDecoratedLayer->SetSpatialFilter(poGeom);
 }
 
+void        OGRLayerDecorator::SetSpatialFilter( int iGeomField, OGRGeometry * poGeom )
+{
+    m_poDecoratedLayer->SetSpatialFilter(iGeomField, poGeom);
+}
+
 void        OGRLayerDecorator::SetSpatialFilterRect( double dfMinX, double dfMinY,
                                   double dfMaxX, double dfMaxY )
 {
     m_poDecoratedLayer->SetSpatialFilterRect(dfMinX, dfMinY, dfMaxX, dfMaxY);
+}
+
+void        OGRLayerDecorator::SetSpatialFilterRect( int iGeomField, double dfMinX, double dfMinY,
+                                  double dfMaxX, double dfMaxY )
+{
+    m_poDecoratedLayer->SetSpatialFilterRect(iGeomField, dfMinX, dfMinY, dfMaxX, dfMaxY);
 }
 
 OGRErr      OGRLayerDecorator::SetAttributeFilter( const char * poAttrFilter )
@@ -132,6 +143,11 @@ OGRErr      OGRLayerDecorator::GetExtent(OGREnvelope *psExtent, int bForce)
     return m_poDecoratedLayer->GetExtent(psExtent, bForce);
 }
 
+OGRErr      OGRLayerDecorator::GetExtent(int iGeomField, OGREnvelope *psExtent, int bForce)
+{
+    return m_poDecoratedLayer->GetExtent(iGeomField, psExtent, bForce);
+}
+
 int         OGRLayerDecorator::TestCapability( const char * pszCapability )
 {
     return m_poDecoratedLayer->TestCapability(pszCapability);
@@ -170,12 +186,12 @@ OGRStyleTable *OGRLayerDecorator::GetStyleTable()
 
 void        OGRLayerDecorator::SetStyleTableDirectly( OGRStyleTable *poStyleTable )
 {
-    return m_poDecoratedLayer->SetStyleTableDirectly(poStyleTable);
+    m_poDecoratedLayer->SetStyleTableDirectly(poStyleTable);
 }
 
 void        OGRLayerDecorator::SetStyleTable(OGRStyleTable *poStyleTable)
 {
-    return m_poDecoratedLayer->SetStyleTable(poStyleTable);
+    m_poDecoratedLayer->SetStyleTable(poStyleTable);
 }
 
 OGRErr      OGRLayerDecorator::StartTransaction()

@@ -1,12 +1,12 @@
 /******************************************************************************
- * $Id: hf2dataset.cpp 24593 2012-06-16 18:58:42Z rouault $
+ * $Id: hf2dataset.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  HF2 driver
  * Purpose:  GDALDataset driver for HF2/HFZ dataset.
  * Author:   Even Rouault, <even dot rouault at mines dash paris dot org>
  *
  ******************************************************************************
- * Copyright (c) 2010, Even Rouault
+ * Copyright (c) 2010-2012, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -31,7 +31,7 @@
 #include "gdal_pam.h"
 #include "ogr_spatialref.h"
 
-CPL_CVSID("$Id: hf2dataset.cpp 24593 2012-06-16 18:58:42Z rouault $");
+CPL_CVSID("$Id: hf2dataset.cpp 27044 2014-03-16 23:41:27Z rouault $");
 
 CPL_C_START
 void    GDALRegister_HF2(void);

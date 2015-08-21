@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: btdataset.cpp 26358 2013-08-21 20:12:38Z rouault $
+ * $Id: btdataset.cpp 27729 2014-09-24 00:40:16Z goatbar $
  *
  * Project:  VTP .bt Driver
  * Purpose:  Implementation of VTP .bt elevation format read/write support.
@@ -8,6 +8,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2003, Frank Warmerdam
+ * Copyright (c) 2007-2011, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -31,7 +32,7 @@
 #include "rawdataset.h"
 #include "ogr_spatialref.h"
 
-CPL_CVSID("$Id: btdataset.cpp 26358 2013-08-21 20:12:38Z rouault $");
+CPL_CVSID("$Id: btdataset.cpp 27729 2014-09-24 00:40:16Z goatbar $");
 
 CPL_C_START
 void    GDALRegister_BT(void);
@@ -124,9 +125,9 @@ BTRasterBand::BTRasterBand( GDALDataset *poDS, VSILFILE *fp, GDALDataType eType 
 /*                             IReadBlock()                             */
 /************************************************************************/
 
-CPLErr BTRasterBand::IReadBlock( int nBlockXOff, int nBlockYOff,
-                                  void * pImage )
-
+CPLErr BTRasterBand::IReadBlock( int nBlockXOff,
+                                 CPL_UNUSED int nBlockYOff,
+                                 void * pImage )
 {
     int nDataSize = GDALGetDataTypeSize( eDataType ) / 8;
     int i;
@@ -186,9 +187,9 @@ CPLErr BTRasterBand::IReadBlock( int nBlockXOff, int nBlockYOff,
 /*                            IWriteBlock()                             */
 /************************************************************************/
 
-CPLErr BTRasterBand::IWriteBlock( int nBlockXOff, int nBlockYOff,
+CPLErr BTRasterBand::IWriteBlock( int nBlockXOff, 
+                                  CPL_UNUSED int nBlockYOff,
                                   void * pImage )
-
 {
     int nDataSize = GDALGetDataTypeSize( eDataType ) / 8;
     GByte *pabyWrkBlock;
@@ -691,8 +692,6 @@ GDALDataset *BTDataset::Open( GDALOpenInfo * poOpenInfo )
             nDatum = 6202;
         else if( nDatum == 4 )
             nDatum = 6203;
-        else if( nDatum == 4 )
-            nDatum = 6203;
         else if( nDatum == 6 )
             nDatum = 6222;
         else if( nDatum == 7 )
@@ -808,9 +807,9 @@ GDALDataset *BTDataset::Open( GDALOpenInfo * poOpenInfo )
 /************************************************************************/
 
 GDALDataset *BTDataset::Create( const char * pszFilename,
-                                 int nXSize, int nYSize, int nBands,
-                                 GDALDataType eType,
-                                 char ** papszOptions )
+                                int nXSize, int nYSize, int nBands,
+                                GDALDataType eType,
+                                CPL_UNUSED char ** papszOptions )
 
 {
 

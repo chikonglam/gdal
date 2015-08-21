@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 ###############################################################################
-# $Id: val_repl.py 19920 2010-06-26 10:59:03Z rouault $
+# $Id: val_repl.py 27044 2014-03-16 23:41:27Z rouault $
 #
 # Project:  GDAL Python samples
 # Purpose:  Script to replace specified values from the input raster file
@@ -11,6 +11,7 @@
 #
 ###############################################################################
 # Copyright (c) 2003, Andrey Kiselev <dron@remotesensing.org>
+# Copyright (c) 2009-2010, Even Rouault <even dot rouault at mines-paris dot org>
 # 
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),

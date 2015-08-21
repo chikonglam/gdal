@@ -32,14 +32,13 @@ using kmldom::StylePtr;
 using kmldom::StyleMapPtr;
 using kmldom::DocumentPtr;
 using kmldom::ContainerPtr;
-using kmldom::PlacemarkPtr;
+using kmldom::FeaturePtr;
 
-void addstylestring2kml (
+StylePtr addstylestring2kml (
     const char *stylestring,
     StylePtr poKmlStyle,
     KmlFactory * poKmlFactory,
-    PlacemarkPtr poKmlPlacemark,
-    OGRFeature * poOgrFeat );
+    FeaturePtr poKmlFeature );
 
 
 
@@ -84,5 +83,17 @@ void ParseStyles (
 void styletable2kml (
     OGRStyleTable * poOgrStyleTable,
     KmlFactory * poKmlFactory,
-    ContainerPtr poKmlContainer  );
+    ContainerPtr poKmlContainer,
+    char** papszOptions = NULL  );
 
+/******************************************************************************
+ function to add a ListStyle and select it to a container
+******************************************************************************/
+
+void createkmlliststyle (
+    KmlFactory * poKmlFactory,
+    const char* pszBaseName,
+    ContainerPtr poKmlLayerContainer,
+    DocumentPtr poKmlDocument,
+    const CPLString& osListStyleType,
+    const CPLString& osListStyleIconHref);

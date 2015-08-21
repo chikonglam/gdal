@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_vfk.h 24067 2012-03-04 11:27:45Z martinl $
+ * $Id: ogr_vfk.h 26468 2013-09-14 09:46:19Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Private definitions for OGR/VFK driver.
@@ -79,7 +79,6 @@ public:
     void                 ResetReading();
     
     int                  TestCapability(const char *);
-    OGRSpatialReference *GetSpatialRef();
 
     int                  GetFeatureCount(int = TRUE);
 };

@@ -1,12 +1,12 @@
 /******************************************************************************
- * $Id: ogrsegukooadriver.cpp 23220 2011-10-11 21:50:55Z rouault $
+ * $Id: ogrsegukooadriver.cpp 27729 2014-09-24 00:40:16Z goatbar $
  *
  * Project:  SEG-P1 / UKOOA P1-90 Translator
  * Purpose:  Implements OGRSEGUKOOADriver.
  * Author:   Even Rouault, even dot rouault at mines dash paris dot org
  *
  ******************************************************************************
- * Copyright (c) 2011, Even Rouault <even dot rouault at mines dash paris dot org>
+ * Copyright (c) 2011, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -30,7 +30,7 @@
 #include "ogr_segukooa.h"
 #include "cpl_conv.h"
 
-CPL_CVSID("$Id: ogrsegukooadriver.cpp 23220 2011-10-11 21:50:55Z rouault $");
+CPL_CVSID("$Id: ogrsegukooadriver.cpp 27729 2014-09-24 00:40:16Z goatbar $");
 
 extern "C" void RegisterOGRSEGUKOOA();
 
@@ -75,8 +75,7 @@ OGRDataSource *OGRSEGUKOOADriver::Open( const char * pszFilename, int bUpdate )
 /*                           TestCapability()                           */
 /************************************************************************/
 
-int OGRSEGUKOOADriver::TestCapability( const char * pszCap )
-
+int OGRSEGUKOOADriver::TestCapability( CPL_UNUSED const char * pszCap )
 {
     return FALSE;
 }

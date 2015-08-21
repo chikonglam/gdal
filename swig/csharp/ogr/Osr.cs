@@ -30,12 +30,36 @@ public class Osr {
     OsrPINVOKE.DontUseExceptions();
   }
 
+
+  internal static byte[] StringToUtf8Bytes(string str)
+  {
+    if (str == null)
+      return null;
+    
+    int bytecount = System.Text.Encoding.UTF8.GetMaxByteCount(str.Length);
+    byte[] bytes = new byte[bytecount + 1];
+    System.Text.Encoding.UTF8.GetBytes(str, 0, str.Length, bytes, 0);
+    return bytes;
+  }
+  
+  internal static string Utf8BytesToString(IntPtr pNativeData)
+  {
+    if (pNativeData == IntPtr.Zero)
+        return null;
+        
+    int length = Marshal.PtrToStringAnsi(pNativeData).Length;
+    byte[] strbuf = new byte[length];  
+    Marshal.Copy(pNativeData, strbuf, 0, length); 
+    return System.Text.Encoding.UTF8.GetString(strbuf);
+  }
+
   internal static void StringListDestroy(IntPtr buffer_ptr) {
     OsrPINVOKE.StringListDestroy(buffer_ptr);
     if (OsrPINVOKE.SWIGPendingException.Pending) throw OsrPINVOKE.SWIGPendingException.Retrieve();
   }
 
 public delegate void GDALErrorHandlerDelegate(int eclass, int code, IntPtr msg);
+public delegate int GDALProgressFuncDelegate(double Complete, IntPtr Message, IntPtr Data);
   public static int GetWellKnownGeogCSAsWKT(string name, out string argout) {
     int ret = OsrPINVOKE.GetWellKnownGeogCSAsWKT(name, out argout);
     if (OsrPINVOKE.SWIGPendingException.Pending) throw OsrPINVOKE.SWIGPendingException.Retrieve();
@@ -210,6 +234,44 @@ public delegate void GDALErrorHandlerDelegate(int eclass, int code, IntPtr msg);
   public const string SRS_UL_ROD_CONV = "5.02921005842012";
   public const string SRS_UL_LINK_Clarke = "Link_Clarke";
   public const string SRS_UL_LINK_Clarke_CONV = "0.2011661949";
+  public const string SRS_UL_KILOMETER = "Kilometer";
+  public const string SRS_UL_KILOMETER_CONV = "1000.";
+  public const string SRS_UL_DECIMETER = "Decimeter";
+  public const string SRS_UL_DECIMETER_CONV = "0.1";
+  public const string SRS_UL_CENTIMETER = "Centimeter";
+  public const string SRS_UL_CENTIMETER_CONV = "0.01";
+  public const string SRS_UL_MILLIMETER = "Millimeter";
+  public const string SRS_UL_MILLIMETER_CONV = "0.001";
+  public const string SRS_UL_INTL_NAUT_MILE = "Nautical_Mile_International";
+  public const string SRS_UL_INTL_NAUT_MILE_CONV = "1852.0";
+  public const string SRS_UL_INTL_INCH = "Inch_International";
+  public const string SRS_UL_INTL_INCH_CONV = "0.0254";
+  public const string SRS_UL_INTL_FOOT = "Foot_International";
+  public const string SRS_UL_INTL_FOOT_CONV = "0.3048";
+  public const string SRS_UL_INTL_YARD = "Yard_International";
+  public const string SRS_UL_INTL_YARD_CONV = "0.9144";
+  public const string SRS_UL_INTL_STAT_MILE = "Statute_Mile_International";
+  public const string SRS_UL_INTL_STAT_MILE_CONV = "1609.344";
+  public const string SRS_UL_INTL_FATHOM = "Fathom_International";
+  public const string SRS_UL_INTL_FATHOM_CONV = "1.8288";
+  public const string SRS_UL_INTL_CHAIN = "Chain_International";
+  public const string SRS_UL_INTL_CHAIN_CONV = "20.1168";
+  public const string SRS_UL_INTL_LINK = "Link_International";
+  public const string SRS_UL_INTL_LINK_CONV = "0.201168";
+  public const string SRS_UL_US_INCH = "Inch_US_Surveyor";
+  public const string SRS_UL_US_INCH_CONV = "0.025400050800101603";
+  public const string SRS_UL_US_YARD = "Yard_US_Surveyor";
+  public const string SRS_UL_US_YARD_CONV = "0.914401828803658";
+  public const string SRS_UL_US_CHAIN = "Chain_US_Surveyor";
+  public const string SRS_UL_US_CHAIN_CONV = "20.11684023368047";
+  public const string SRS_UL_US_STAT_MILE = "Statute_Mile_US_Surveyor";
+  public const string SRS_UL_US_STAT_MILE_CONV = "1609.347218694437";
+  public const string SRS_UL_INDIAN_YARD = "Yard_Indian";
+  public const string SRS_UL_INDIAN_YARD_CONV = "0.91439523";
+  public const string SRS_UL_INDIAN_FOOT = "Foot_Indian";
+  public const string SRS_UL_INDIAN_FOOT_CONV = "0.30479841";
+  public const string SRS_UL_INDIAN_CHAIN = "Chain_Indian";
+  public const string SRS_UL_INDIAN_CHAIN_CONV = "20.11669506";
   public const string SRS_UA_DEGREE = "degree";
   public const string SRS_UA_DEGREE_CONV = "0.0174532925199433";
   public const string SRS_UA_RADIAN = "radian";

@@ -1,12 +1,12 @@
 /******************************************************************************
- * $Id: ogrsegukooadatasource.cpp 23259 2011-10-20 21:11:42Z rouault $
+ * $Id: ogrsegukooadatasource.cpp 27729 2014-09-24 00:40:16Z goatbar $
  *
  * Project:  SEG-P1 / UKOOA P1-90 Translator
  * Purpose:  Implements OGRSEGUKOOADataSource class
  * Author:   Even Rouault, even dot rouault at mines dash paris dot org
  *
  ******************************************************************************
- * Copyright (c) 2011, Even Rouault <even dot rouault at mines dash paris dot org>
+ * Copyright (c) 2011, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -31,7 +31,7 @@
 #include "cpl_conv.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: ogrsegukooadatasource.cpp 23259 2011-10-20 21:11:42Z rouault $");
+CPL_CVSID("$Id: ogrsegukooadatasource.cpp 27729 2014-09-24 00:40:16Z goatbar $");
 
 /************************************************************************/
 /*                        OGRSEGUKOOADataSource()                       */
@@ -64,8 +64,7 @@ OGRSEGUKOOADataSource::~OGRSEGUKOOADataSource()
 /*                           TestCapability()                           */
 /************************************************************************/
 
-int OGRSEGUKOOADataSource::TestCapability( const char * pszCap )
-
+int OGRSEGUKOOADataSource::TestCapability( CPL_UNUSED const char * pszCap )
 {
     return FALSE;
 }

@@ -1,9 +1,8 @@
 /******************************************************************************
- * $Id: minidriver.cpp 23722 2012-01-07 22:15:29Z rouault $
+ * $Id: minidriver.cpp 27729 2014-09-24 00:40:16Z goatbar $
  *
  * Project:  WMS Client Driver
- * Purpose:  Implementation of Dataset and RasterBand classes for WMS
- *           and other similar services.
+ * Purpose:  GDALWMSMiniDriver base class implementation.
  * Author:   Adam Nowacki, nowak@xpam.de
  *
  ******************************************************************************
@@ -28,7 +27,7 @@
  * DEALINGS IN THE SOFTWARE.
  ****************************************************************************/
 
-#include "stdinc.h"
+#include "wmsdriver.h"
 
 static volatile GDALWMSMiniDriverManager *g_mini_driver_manager = NULL;
 static void *g_mini_driver_manager_mutex = NULL;
@@ -40,24 +39,27 @@ GDALWMSMiniDriver::GDALWMSMiniDriver() {
 GDALWMSMiniDriver::~GDALWMSMiniDriver() {
 }
 
-CPLErr GDALWMSMiniDriver::Initialize(CPLXMLNode *config) {
+CPLErr GDALWMSMiniDriver::Initialize(CPL_UNUSED CPLXMLNode *config) {
     return CE_None;
 }
 
-void GDALWMSMiniDriver::GetCapabilities(GDALWMSMiniDriverCapabilities *caps) {
+void GDALWMSMiniDriver::GetCapabilities(CPL_UNUSED GDALWMSMiniDriverCapabilities *caps) {
 }
 
-void GDALWMSMiniDriver::ImageRequest(CPLString *url, const GDALWMSImageRequestInfo &iri) {
+void GDALWMSMiniDriver::ImageRequest(CPL_UNUSED CPLString *url,
+                                     CPL_UNUSED const GDALWMSImageRequestInfo &iri) {
 }
 
-void GDALWMSMiniDriver::TiledImageRequest(CPLString *url, const GDALWMSImageRequestInfo &iri, const GDALWMSTiledImageRequestInfo &tiri) {
+void GDALWMSMiniDriver::TiledImageRequest(CPL_UNUSED CPLString *url,
+                                          CPL_UNUSED const GDALWMSImageRequestInfo &iri,
+                                          CPL_UNUSED const GDALWMSTiledImageRequestInfo &tiri) {
 }
 
-void GDALWMSMiniDriver::GetTiledImageInfo(CPLString *url,
-                                              const GDALWMSImageRequestInfo &iri,
-                                              const GDALWMSTiledImageRequestInfo &tiri,
-                                              int nXInBlock,
-                                              int nYInBlock)
+void GDALWMSMiniDriver::GetTiledImageInfo(CPL_UNUSED CPLString *url,
+                                          CPL_UNUSED const GDALWMSImageRequestInfo &iri,
+                                          CPL_UNUSED const GDALWMSTiledImageRequestInfo &tiri,
+                                          CPL_UNUSED int nXInBlock,
+                                          CPL_UNUSED int nYInBlock)
 {
 }
 

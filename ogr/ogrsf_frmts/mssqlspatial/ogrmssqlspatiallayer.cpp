@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrmssqlspatiallayer.cpp 25860 2013-04-05 07:20:37Z tamas $
+ * $Id: ogrmssqlspatiallayer.cpp 27741 2014-09-26 19:20:02Z goatbar $
  *
  * Project:  MSSQL Spatial driver
  * Purpose:  Definition of classes for OGR MSSQL Spatial driver.
@@ -29,7 +29,7 @@
 
 #include "ogr_mssqlspatial.h"
 
-CPL_CVSID("$Id: ogrmssqlspatiallayer.cpp 25860 2013-04-05 07:20:37Z tamas $");
+CPL_CVSID("$Id: ogrmssqlspatiallayer.cpp 27741 2014-09-26 19:20:02Z goatbar $");
 /************************************************************************/
 /*                        OGRMSSQLSpatialLayer()                        */
 /************************************************************************/
@@ -120,13 +120,6 @@ CPLErr OGRMSSQLSpatialLayer::BuildFeatureDefn( const char *pszLayerName,
             else if ( EQUAL(poStmt->GetColTypeName( iCol ), "geography") )
             {
                 nGeomColumnType = MSSQLCOLTYPE_GEOGRAPHY;
-                pszGeomColumn = CPLStrdup( poStmt->GetColName(iCol) );
-                continue;
-            }
-            else if ( EQUAL(poStmt->GetColTypeName( iCol ), "image") )
-            {
-                /* for the select layers we get image type */
-                nGeomColumnType = MSSQLCOLTYPE_BINARY;
                 pszGeomColumn = CPLStrdup( poStmt->GetColName(iCol) );
                 continue;
             }
@@ -403,8 +396,7 @@ OGRFeature *OGRMSSQLSpatialLayer::GetFeature( long nFeatureId )
 /*                           TestCapability()                           */
 /************************************************************************/
 
-int OGRMSSQLSpatialLayer::TestCapability( const char * pszCap )
-
+int OGRMSSQLSpatialLayer::TestCapability( CPL_UNUSED const char * pszCap )
 {
     return FALSE;
 }
@@ -520,4 +512,3 @@ char* OGRMSSQLSpatialLayer::GByteArrayToHexString( const GByte* pabyData, int nL
 
     return pszTextBuf;
 }
-

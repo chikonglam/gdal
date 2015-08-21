@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: jp2kakdataset.cpp 25764 2013-03-18 20:29:55Z warmerdam $
+ * $Id: jp2kakdataset.cpp 27182 2014-04-14 20:03:08Z rouault $
  *
  * Project:  JPEG-2000
  * Purpose:  Implementation of the ISO/IEC 15444-1 standard based on Kakadu.
@@ -7,6 +7,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2002, Frank Warmerdam <warmerdam@pobox.com>
+ * Copyright (c) 2007-2013, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -27,7 +28,7 @@
  * DEALINGS IN THE SOFTWARE.
  ****************************************************************************/
 
-#include "gdal_pam.h"
+#include "gdaljp2abstractdataset.h"
 #include "gdaljp2metadata.h"
 #include "cpl_string.h"
 #include "cpl_multiproc.h"
@@ -64,9 +65,19 @@
 #  define kdu_client void
 #endif
 
-// #define KAKADU_JPX	1
+CPL_CVSID("$Id: jp2kakdataset.cpp 27182 2014-04-14 20:03:08Z rouault $");
 
-CPL_CVSID("$Id: jp2kakdataset.cpp 25764 2013-03-18 20:29:55Z warmerdam $");
+// Generally Kakadu does not advertise its version well, so we look for a
+// clue to V6 vs V7, the main difference in api.
+#ifndef KAKADU_VERSION
+#  ifdef KDU_TARGET_CAP_SEQUENTIAL
+#    define KAKADU_VERSION 700
+#  else
+#    define KAKADU_VERSION 600
+#  endif
+#endif
+
+// #define KAKADU_JPX	1
 
 static int kakadu_initialized = FALSE;
 
@@ -88,7 +99,7 @@ static unsigned char jpc_header[] =
 /* ==================================================================== */
 /************************************************************************/
 
-class JP2KAKDataset : public GDALPamDataset
+class JP2KAKDataset : public GDALJP2AbstractDataset
 {
     friend class JP2KAKRasterBand;
 
@@ -102,18 +113,10 @@ class JP2KAKDataset : public GDALPamDataset
     bool           bPreferNPReads;
     kdu_thread_env *poThreadEnv;
 
+    int            bCached;
     int            bResilient;
     int            bFussy;
     bool           bUseYCC;
-
-    char	   *pszProjection;
-    double	   adfGeoTransform[6];
-    int            bGeoTransformValid;
-
-    int		   nGCPCount;
-    GDAL_GCP       *pasGCPList;
-
-    void           PamOverride();
 
     int         TestUseBlockIO( int, int, int, int, int, int,
                                 GDALDataType, int, int * );
@@ -132,12 +135,6 @@ class JP2KAKDataset : public GDALPamDataset
     
     virtual CPLErr IBuildOverviews( const char *, int, int *,
                                     int, int *, GDALProgressFunc, void * );
-    
-    virtual CPLErr GetGeoTransform( double * );
-    virtual const char *GetProjectionRef(void);
-    virtual int    GetGCPCount();
-    virtual const char *GetGCPProjection();
-    virtual const GDAL_GCP *GetGCPs();
 
     static void KakaduInitialize();
     static GDALDataset *Open( GDALOpenInfo * );
@@ -785,22 +782,12 @@ JP2KAKDataset::JP2KAKDataset()
 {
     poInput = NULL;
     poRawInput = NULL;
-    pszProjection = NULL;
-    nGCPCount = 0;
-    pasGCPList = NULL;
     family = NULL;
     jpip_client = NULL;
     poThreadEnv = NULL;
 
+    bCached = 0;
     bPreferNPReads = false;
-
-    bGeoTransformValid = FALSE;
-    adfGeoTransform[0] = 0.0;
-    adfGeoTransform[1] = 1.0;
-    adfGeoTransform[2] = 0.0;
-    adfGeoTransform[3] = 0.0;
-    adfGeoTransform[4] = 0.0;
-    adfGeoTransform[5] = 1.0;
 
     poDriver = (GDALDriver*) GDALGetDriverByName( "JP2KAK" );
 }
@@ -813,14 +800,6 @@ JP2KAKDataset::~JP2KAKDataset()
 
 {
     FlushCache();
-
-    CPLFree( pszProjection );
-    
-    if( nGCPCount > 0 )
-    {
-        GDALDeinitGCPs( nGCPCount, pasGCPList );
-        CPLFree( pasGCPList );
-    }
 
     if( poInput != NULL )
     {
@@ -849,70 +828,6 @@ JP2KAKDataset::~JP2KAKDataset()
         poThreadEnv->destroy();
         delete poThreadEnv;
     }
-}
-
-
-/************************************************************************/
-/*                          GetProjectionRef()                          */
-/************************************************************************/
-
-const char *JP2KAKDataset::GetProjectionRef()
-
-{
-    if( pszProjection && *pszProjection )
-        return( pszProjection );
-    else
-        return GDALPamDataset::GetProjectionRef();
-}
-
-/************************************************************************/
-/*                          GetGeoTransform()                           */
-/************************************************************************/
-
-CPLErr JP2KAKDataset::GetGeoTransform( double * padfTransform )
-
-{
-    if( bGeoTransformValid )
-    {
-        memcpy( padfTransform, adfGeoTransform, sizeof(double)*6 );
-    
-        return CE_None;
-    }
-    else
-        return GDALPamDataset::GetGeoTransform( padfTransform );
-}
-
-/************************************************************************/
-/*                            GetGCPCount()                             */
-/************************************************************************/
-
-int JP2KAKDataset::GetGCPCount()
-
-{
-    return nGCPCount;
-}
-
-/************************************************************************/
-/*                          GetGCPProjection()                          */
-/************************************************************************/
-
-const char *JP2KAKDataset::GetGCPProjection()
-
-{
-    if( nGCPCount > 0 )
-        return pszProjection;
-    else
-        return "";
-}
-
-/************************************************************************/
-/*                               GetGCP()                               */
-/************************************************************************/
-
-const GDAL_GCP *JP2KAKDataset::GetGCPs()
-
-{
-    return pasGCPList;
 }
 
 /************************************************************************/
@@ -1051,6 +966,16 @@ GDALDataset *JP2KAKDataset::Open( GDALOpenInfo * poOpenInfo )
     int bResilient = CSLTestBoolean(
         CPLGetConfigOption( "JP2KAK_RESILIENT", "NO" ) );
 
+    /* Doesn't seem to bring any real performance gain on Linux */
+    int bBuffered = CSLTestBoolean(
+        CPLGetConfigOption( "JP2KAK_BUFFERED",
+#ifdef WIN32
+                            "YES"
+#else
+                            "NO"
+#endif
+                            ) );
+
 /* -------------------------------------------------------------------- */
 /*      Handle setting up datasource for JPIP.                          */
 /* -------------------------------------------------------------------- */
@@ -1073,7 +998,7 @@ GDALDataset *JP2KAKDataset::Open( GDALOpenInfo * poOpenInfo )
             try
             {
                 poRawInput = new subfile_source;
-                poRawInput->open( poOpenInfo->pszFilename, bResilient );
+                poRawInput->open( poOpenInfo->pszFilename, bResilient, bBuffered );
                 poRawInput->seek( 0 );
 
                 poRawInput->read( abySubfileHeader, 16 );
@@ -1103,12 +1028,12 @@ GDALDataset *JP2KAKDataset::Open( GDALOpenInfo * poOpenInfo )
 /* -------------------------------------------------------------------- */
     if( poRawInput == NULL
         && !bIsJPIP
-        && (bResilient || poOpenInfo->fp == NULL) )
+        && (bBuffered || bResilient || poOpenInfo->fp == NULL) )
     {
         try
         {
             poRawInput = new subfile_source;
-            poRawInput->open( poOpenInfo->pszFilename, bResilient );
+            poRawInput->open( poOpenInfo->pszFilename, bResilient, bBuffered );
             poRawInput->seek( 0 );
         }
         catch( ... )
@@ -1207,8 +1132,14 @@ GDALDataset *JP2KAKDataset::Open( GDALOpenInfo * poOpenInfo )
             else
                 family->open( poOpenInfo->pszFilename, true );
             jp2_src = new jp2_source;
-            jp2_src->open( family );
-            jp2_src->read_header();
+            if( !jp2_src->open( family ) ||
+                !jp2_src->read_header() )
+            {
+                CPLDebug( "JP2KAK", "Cannot read JP2 boxes" );
+                delete jp2_src;
+                delete family;
+                return NULL;
+            }
 
             poInput = jp2_src;
 
@@ -1253,6 +1184,7 @@ GDALDataset *JP2KAKDataset::Open( GDALOpenInfo * poOpenInfo )
         poDS->oCodeStream.create( poInput );
         poDS->oCodeStream.set_persistent();
 
+        poDS->bCached = bBuffered;
         poDS->bResilient = bResilient;
         poDS->bFussy = CSLTestBoolean(
             CPLGetConfigOption( "JP2KAK_FUSSY", "NO" ) );
@@ -1424,69 +1356,9 @@ GDALDataset *JP2KAKDataset::Open( GDALOpenInfo * poOpenInfo )
 /* -------------------------------------------------------------------- */
 /*      Look for supporting coordinate system information.              */
 /* -------------------------------------------------------------------- */
-        if( poOpenInfo->nHeaderBytes > 0 )
+        if( poOpenInfo->nHeaderBytes != 0 )
         {
-            GDALJP2Metadata oJP2Geo;
-        
-            if( oJP2Geo.ReadAndParse( poOpenInfo->pszFilename ) )
-            {
-                poDS->pszProjection = CPLStrdup(oJP2Geo.pszProjection);
-                poDS->bGeoTransformValid = TRUE;
-                memcpy( poDS->adfGeoTransform, oJP2Geo.adfGeoTransform, 
-                        sizeof(double) * 6 );
-                poDS->nGCPCount = oJP2Geo.nGCPCount;
-                poDS->pasGCPList = oJP2Geo.pasGCPList;
-                oJP2Geo.pasGCPList = NULL;
-                oJP2Geo.nGCPCount = 0;
-            }
-
-            if (oJP2Geo.pszXMPMetadata)
-            {
-                char *apszMDList[2];
-                apszMDList[0] = (char *) oJP2Geo.pszXMPMetadata;
-                apszMDList[1] = NULL;
-                poDS->GDALPamDataset::SetMetadata(apszMDList, "xml:XMP");
-            }
-
-/* -------------------------------------------------------------------- */
-/*      Do we have any XML boxes we would like to treat as special      */
-/*      domain metadata?                                                */
-/* -------------------------------------------------------------------- */
-            int iBox;
-
-            for( iBox = 0; 
-                 oJP2Geo.papszGMLMetadata
-                     && oJP2Geo.papszGMLMetadata[iBox] != NULL; 
-                 iBox++ )
-            {
-                char *pszName = NULL;
-                const char *pszXML = 
-                    CPLParseNameValue( oJP2Geo.papszGMLMetadata[iBox], 
-                                       &pszName );
-                CPLString osDomain;
-                char *apszMDList[2];
-
-                osDomain.Printf( "xml:%s", pszName );
-                apszMDList[0] = (char *) pszXML;
-                apszMDList[1] = NULL;
-
-                poDS->GDALPamDataset::SetMetadata( apszMDList, osDomain );
-
-                CPLFree( pszName );
-            }
-
-/* -------------------------------------------------------------------- */
-/*      Do we have other misc metadata?                                 */
-/* -------------------------------------------------------------------- */
-            if( oJP2Geo.papszMetadata != NULL )
-            {
-                char **papszMD = CSLDuplicate(poDS->GDALPamDataset::GetMetadata());
-
-                papszMD = CSLMerge( papszMD, oJP2Geo.papszMetadata );
-                poDS->GDALPamDataset::SetMetadata( papszMD );
-
-                CSLDestroy( papszMD );
-            }
+            poDS->LoadJP2Metadata(poOpenInfo);
         }
 
 /* -------------------------------------------------------------------- */
@@ -1508,16 +1380,6 @@ GDALDataset *JP2KAKDataset::Open( GDALOpenInfo * poOpenInfo )
             poDS->TryLoadXML();
         else
             poDS->nPamFlags |= GPF_NOSAVE;
-
-/* -------------------------------------------------------------------- */
-/*      Do we have PAM information to override other geo-info?          */
-/* -------------------------------------------------------------------- */
-        poDS->PamOverride();
-
-        if( !poDS->bGeoTransformValid )
-            poDS->bGeoTransformValid = 
-                GDALReadWorldFile( poOpenInfo->pszFilename, 0, 
-                                   poDS->adfGeoTransform );
 
 /* -------------------------------------------------------------------- */
 /*      Check for external overviews.                                   */
@@ -1553,44 +1415,6 @@ GDALDataset *JP2KAKDataset::Open( GDALOpenInfo * poOpenInfo )
 }
 
 /************************************************************************/
-/*                            PamOverride()                             */
-/*                                                                      */
-/*      Override geolocation information from PAM if there is PAM       */
-/*      geolocation information.                                        */
-/************************************************************************/
-
-void JP2KAKDataset::PamOverride()
-
-{
-    if( strlen(GDALPamDataset::GetProjectionRef()) > 0 )
-    {
-        CPLFree( pszProjection );
-        pszProjection = CPLStrdup(GDALPamDataset::GetProjectionRef());
-    }
-
-    double adfPamGT[6];
-    if( GDALPamDataset::GetGeoTransform( adfPamGT ) == CE_None )
-    {
-        memcpy( adfGeoTransform, adfPamGT, sizeof(double) * 6 );
-        bGeoTransformValid = TRUE;
-    }
-
-    if( GDALPamDataset::GetGCPCount() > 0 )
-    {
-        if( nGCPCount > 0 )
-        {
-            GDALDeinitGCPs( nGCPCount, pasGCPList );
-            CPLFree( pasGCPList );
-        }
-
-        nGCPCount = GDALPamDataset::GetGCPCount();
-        pasGCPList = GDALDuplicateGCPs( nGCPCount, GDALPamDataset::GetGCPs() );
-        CPLFree( pszProjection );
-        pszProjection = CPLStrdup(GDALPamDataset::GetGCPProjection());
-    }
-}
-
-/************************************************************************/
 /*                           DirectRasterIO()                           */
 /************************************************************************/
 
@@ -1621,7 +1445,7 @@ JP2KAKDataset::DirectRasterIO( GDALRWFlag eRWFlag,
 
     if( bPreferNPReads )
     {
-        subfile_src.open( GetDescription(), bResilient );
+        subfile_src.open( GetDescription(), bResilient, bCached );
 
         if( family != NULL )
         {
@@ -1739,11 +1563,13 @@ JP2KAKDataset::DirectRasterIO( GDALRWFlag eRWFlag,
                     sample_offsets[i] = i * nBandSpace / 2;
                     sample_gaps[i] = nPixelSpace / 2;
                     row_gaps[i] = nLineSpace / 2;
+                    /* Introduced in r25136 with an unrelated commit message.
+                    Reverted per ticket #5328
                     if( precisions[i] == 12 )
                     {
                       CPLDebug( "JP2KAK", "16bit extend 12 bit data." );
                       precisions[i] = 16;
-                    }
+                    }*/
                 }
                 
             }
@@ -2041,6 +1867,13 @@ JP2KAKCreateCopy_WriteTile( GDALDataset *poSrcDS, kdu_tile &oTile,
     kdu_push_ifc  *engines = new kdu_push_ifc[num_components];
     kdu_line_buf  *lines = new kdu_line_buf[num_components];
     kdu_sample_allocator allocator;
+    
+    // Ticket #4050 patch : use a 32 bits kdu_line_buf for GDT_UInt16 reversible compression
+    // ToDo: test for GDT_UInt16?
+    bool   bUseShorts = bReversible;
+    if ((eType == GDT_UInt16)&&(bReversible))
+        bUseShorts = false;
+
     for (c=0; c < num_components; c++)
     {
         kdu_resolution res = oTile.access_component(c).access_resolution(); 
@@ -2053,9 +1886,12 @@ JP2KAKCreateCopy_WriteTile( GDALDataset *poSrcDS, kdu_tile &oTile,
             res.get_dims(dims);
             roi_node = poROIImage->acquire_node(c,dims);
         }
-
-        lines[c].pre_create(&allocator,nXSize,bReversible,bReversible);
-        engines[c] = kdu_analysis(res,&allocator,bReversible,1.0F,roi_node);
+#if KAKADU_VERSION >= 700
+        lines[c].pre_create(&allocator,nXSize,bReversible,bUseShorts,0,0);
+#else
+        lines[c].pre_create(&allocator,nXSize,bReversible,bUseShorts);
+#endif
+        engines[c] = kdu_analysis(res,&allocator,bUseShorts,1.0F,roi_node);
     }
 
     try
@@ -2119,11 +1955,12 @@ JP2KAKCreateCopy_WriteTile( GDALDataset *poSrcDS, kdu_tile &oTile,
                 }
                 else if( bReversible && eType == GDT_UInt16 )
                 {
-                    kdu_sample16 *dest = lines[c].get_buf16();
+                    // Ticket #4050 patch : use a 32 bits kdu_line_buf for GDT_UInt16 reversible compression
+                    kdu_sample32 *dest = lines[c].get_buf32();
                     GUInt16 *sp = (GUInt16 *) pabyBuffer;
                 
                     for (int n=nXSize; n > 0; n--, dest++, sp++)
-                        dest->ival = *sp;
+                        dest->ival = (kdu_int32)(*sp)-32768;
                 }
                 else if( eType == GDT_Byte )
                 {
@@ -2166,7 +2003,11 @@ JP2KAKCreateCopy_WriteTile( GDALDataset *poSrcDS, kdu_tile &oTile,
                         dest->fval = *sp;  /* scale it? */
                 }
 
+#if KAKADU_VERSION >= 700
+                engines[c].push(lines[c]);
+#else
                 engines[c].push(lines[c],true);
+#endif
 
                 iLinesWritten++;
 
@@ -2713,7 +2554,9 @@ JP2KAKCreateCopy( const char * pszFilename, GDALDataset *poSrcDS,
             oJP2MD.SetGeoTransform( adfGeoTransform );
         }
 
-        
+        const char* pszAreaOrPoint = poSrcDS->GetMetadataItem(GDALMD_AREA_OR_POINT);
+        oJP2MD.bPixelIsPoint = pszAreaOrPoint != NULL && EQUAL(pszAreaOrPoint, GDALMD_AOP_POINT);
+
         if( CSLFetchBoolean( papszOptions, "GMLJP2", TRUE ) )
             JP2KAKWriteBox( &jp2_out, oJP2MD.CreateGMLJP2(nXSize,nYSize) );
         if( CSLFetchBoolean( papszOptions, "GeoJP2", TRUE ) )
@@ -2866,7 +2709,8 @@ void GDALRegister_JP2KAK()
         
         poDriver->SetDescription( "JP2KAK" );
         poDriver->SetMetadataItem( GDAL_DMD_LONGNAME, 
-                                   "JPEG-2000 (based on Kakadu)" );
+                                   "JPEG-2000 (based on Kakadu " 
+                                   KDU_CORE_VERSION ")" );
         poDriver->SetMetadataItem( GDAL_DMD_HELPTOPIC, 
                                    "frmt_jp2kak.html" );
         poDriver->SetMetadataItem( GDAL_DMD_CREATIONDATATYPES, 

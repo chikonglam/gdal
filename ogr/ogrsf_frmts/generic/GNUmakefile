@@ -5,7 +5,8 @@ include ../../../GDALmake.opt
 OBJ	=	ogrsfdriverregistrar.o ogrlayer.o ogrdatasource.o \
 		ogrsfdriver.o ogrregisterall.o ogr_gensql.o \
 		ogr_attrind.o ogr_miattrind.o ogrlayerdecorator.o \
-		ogrwarpedlayer.o ogrunionlayer.o ogrlayerpool.o
+		ogrwarpedlayer.o ogrunionlayer.o ogrlayerpool.o \
+		ogrmutexedlayer.o ogrmutexeddatasource.o
 
 BASEFORMATS = \
 	-DAVCBIN_ENABLED \
@@ -43,7 +44,10 @@ BASEFORMATS = \
 	-DIDRISI_ENABLED \
 	-DARCGEN_ENABLED \
 	-DSEGUKOOA_ENABLED \
-	-DSEGY_ENABLED
+	-DSEGY_ENABLED \
+	-DSXF_ENABLED \
+	-DOPENFILEGDB_ENABLED \
+	-DWASP_ENABLED
 
 CXXFLAGS :=     $(CXXFLAGS) -DINST_DATA=\"$(INST_DATA)\" $(BASEFORMATS)
 
@@ -135,6 +139,10 @@ ifeq ($(HAVE_PANORAMA),yes)
 CXXFLAGS :=	$(CXXFLAGS) -DPANORAMA_ENABLED
 endif
 
+ifeq ($(HAVE_SOSI),yes)
+CXXFLAGS :=	$(CXXFLAGS) -DSOSI_ENABLED
+endif
+
 ifeq ($(HAVE_SQLITE),yes)
 CXXFLAGS :=	$(CXXFLAGS) -DVFK_ENABLED
 endif
@@ -153,6 +161,10 @@ endif
 
 ifeq ($(CURL_SETTING),yes)
 CXXFLAGS :=	$(CXXFLAGS) -DGFT_ENABLED
+endif
+
+ifeq ($(CURL_SETTING),yes)
+CXXFLAGS :=	$(CXXFLAGS) -DGME_ENABLED
 endif
 
 ifeq ($(CURL_SETTING),yes)
@@ -181,6 +193,14 @@ endif
 
 ifneq ($(LIBZ_SETTING),no)
 CXXFLAGS :=	$(CXXFLAGS) -DPDF_ENABLED
+endif
+
+ifeq ($(ODBC_SETTING),yes)
+CXXFLAGS :=	$(CXXFLAGS) -DWALK_ENABLED
+endif
+
+ifeq ($(CURL_SETTING),yes)
+CXXFLAGS :=	$(CXXFLAGS) -DCARTODB_ENABLED
 endif
 
 CPPFLAGS	:=	-I.. -I../.. $(GDAL_INCLUDE) $(CPPFLAGS)

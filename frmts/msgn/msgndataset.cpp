@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: msgndataset.cpp 25311 2012-12-15 12:48:14Z rouault $
+ * $Id: msgndataset.cpp 27729 2014-09-24 00:40:16Z goatbar $
  *
  * Project:  MSG Native Reader
  * Purpose:  All code for EUMETSAT Archive format reader
@@ -7,6 +7,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2005, Frans van den Bergh <fvdbergh@csir.co.za>
+ * Copyright (c) 2008-2009, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -33,7 +34,7 @@
 #include "msg_reader_core.h"
 using namespace msg_native_format;
 
-CPL_CVSID("$Id: msgndataset.cpp 25311 2012-12-15 12:48:14Z rouault $");
+CPL_CVSID("$Id: msgndataset.cpp 27729 2014-09-24 00:40:16Z goatbar $");
 
 CPL_C_START
 void   GDALRegister_MSGN(void);
@@ -154,9 +155,8 @@ MSGNRasterBand::MSGNRasterBand( MSGNDataset *poDS, int nBand , open_mode_type mo
 /*                             IReadBlock()                             */
 /************************************************************************/
 
-CPLErr MSGNRasterBand::IReadBlock( int nBlockXOff, int nBlockYOff,
-                                  void * pImage )
-
+CPLErr MSGNRasterBand::IReadBlock( CPL_UNUSED int nBlockXOff, int nBlockYOff,
+                                   void * pImage )
 {
     MSGNDataset *poGDS = (MSGNDataset *) poDS;
 

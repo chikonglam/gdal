@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrtigerlayer.cpp 10645 2007-01-18 02:22:39Z warmerdam $
+ * $Id: ogrtigerlayer.cpp 27729 2014-09-24 00:40:16Z goatbar $
  *
  * Project:  TIGER/Line Translator
  * Purpose:  Implements OGRTigerLayer class.
@@ -29,7 +29,7 @@
 
 #include "ogr_tiger.h"
 
-CPL_CVSID("$Id: ogrtigerlayer.cpp 10645 2007-01-18 02:22:39Z warmerdam $");
+CPL_CVSID("$Id: ogrtigerlayer.cpp 27729 2014-09-24 00:40:16Z goatbar $");
 
 /************************************************************************/
 /*                           OGRTigerLayer()                            */
@@ -226,34 +226,28 @@ int OGRTigerLayer::TestCapability( const char * pszCap )
 }
 
 /************************************************************************/
-/*                           GetSpatialRef()                            */
-/************************************************************************/
-
-OGRSpatialReference *OGRTigerLayer::GetSpatialRef()
-
-{
-    return poDS->GetSpatialRef();
-}
-
-/************************************************************************/
 /*                            GetLayerDefn()                            */
 /************************************************************************/
 
 OGRFeatureDefn *OGRTigerLayer::GetLayerDefn()
 
 {
-    return poReader->GetFeatureDefn();
+    OGRFeatureDefn* poFDefn = poReader->GetFeatureDefn();
+    if( poFDefn != NULL )
+    {
+        if( poFDefn->GetGeomFieldCount() > 0 )
+            poFDefn->GetGeomFieldDefn(0)->SetSpatialRef(poDS->GetSpatialRef());
+    }
+    return poFDefn;
 }
 
 /************************************************************************/
 /*                            CreateField()                             */
 /************************************************************************/
 
-OGRErr OGRTigerLayer::CreateField( OGRFieldDefn *poField, int bApproxOK )
-
+OGRErr OGRTigerLayer::CreateField( CPL_UNUSED OGRFieldDefn *poField, CPL_UNUSED int bApproxOK )
 {
     /* notdef/TODO: I should add some checking here eventually. */
-
     return OGRERR_NONE;
 }
 

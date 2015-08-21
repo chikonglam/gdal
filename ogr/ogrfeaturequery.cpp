@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrfeaturequery.cpp 24849 2012-08-25 12:22:05Z rouault $
+ * $Id: ogrfeaturequery.cpp 27044 2014-03-16 23:41:27Z rouault $
  * 
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implementation of simple SQL WHERE style attributes queries
@@ -8,6 +8,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2001, Frank Warmerdam <warmerdam@pobox.com>
+ * Copyright (c) 2008-2014, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -34,7 +35,7 @@
 #include "ogr_p.h"
 #include "ogr_attrind.h"
 
-CPL_CVSID("$Id: ogrfeaturequery.cpp 24849 2012-08-25 12:22:05Z rouault $");
+CPL_CVSID("$Id: ogrfeaturequery.cpp 27044 2014-03-16 23:41:27Z rouault $");
 
 /************************************************************************/
 /*     Support for special attributes (feature query and selection)     */
@@ -89,7 +90,8 @@ OGRErr OGRFeatureQuery::Compile( OGRFeatureDefn *poDefn,
     char        **papszFieldNames;
     swq_field_type *paeFieldTypes;
     int         iField;
-    int         nFieldCount = poDefn->GetFieldCount() + SPECIAL_FIELD_COUNT;
+    int         nFieldCount = poDefn->GetFieldCount() + SPECIAL_FIELD_COUNT +
+                              poDefn->GetGeomFieldCount();
 
     papszFieldNames = (char **) 
         CPLMalloc(sizeof(char *) * nFieldCount );
@@ -136,6 +138,17 @@ OGRErr OGRFeatureQuery::Compile( OGRFeatureDefn *poDefn,
         ++iField;
     }
 
+    for( iField = 0; iField < poDefn->GetGeomFieldCount(); iField++ )
+    {
+        OGRGeomFieldDefn    *poField = poDefn->GetGeomFieldDefn( iField );
+        int iDstField = poDefn->GetFieldCount() + SPECIAL_FIELD_COUNT + iField;
+
+        papszFieldNames[iDstField] = (char *) poField->GetNameRef();
+        if( *papszFieldNames[iDstField] == '\0' )
+            papszFieldNames[iDstField] = (char*) OGR_GEOMETRY_DEFAULT_NON_EMPTY_NAME;
+        paeFieldTypes[iDstField] = SWQ_GEOMETRY;
+    }
+
 /* -------------------------------------------------------------------- */
 /*      Try to parse.                                                   */
 /* -------------------------------------------------------------------- */
@@ -169,6 +182,13 @@ static swq_expr_node *OGRFeatureFetcher( swq_expr_node *op, void *pFeatureIn )
     OGRFeature *poFeature = (OGRFeature *) pFeatureIn;
     swq_expr_node *poRetNode = NULL;
 
+    if( op->field_type == SWQ_GEOMETRY )
+    {
+        int iField = op->field_index - (poFeature->GetFieldCount() + SPECIAL_FIELD_COUNT);
+        poRetNode = new swq_expr_node( poFeature->GetGeomFieldRef(iField) );
+        return poRetNode;
+    }
+
     switch( op->field_type )
     {
       case SWQ_INTEGER:
@@ -181,7 +201,7 @@ static swq_expr_node *OGRFeatureFetcher( swq_expr_node *op, void *pFeatureIn )
         poRetNode = new swq_expr_node( 
             poFeature->GetFieldAsDouble(op->field_index) );
         break;
-        
+
       default:
         poRetNode = new swq_expr_node( 
             poFeature->GetFieldAsString(op->field_index) );

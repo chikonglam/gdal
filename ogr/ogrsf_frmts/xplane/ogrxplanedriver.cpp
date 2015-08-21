@@ -6,7 +6,7 @@
  * Author:   Even Rouault, even dot rouault at mines dash paris dot org
  *
  ******************************************************************************
- * Copyright (c) 2008, Even Rouault
+ * Copyright (c) 2008, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -69,7 +69,7 @@ OGRDataSource *OGRXPlaneDriver::Open( const char * pszFilename, int bUpdate )
 /*                           TestCapability()                           */
 /************************************************************************/
 
-int OGRXPlaneDriver::TestCapability( const char * pszCap )
+int OGRXPlaneDriver::TestCapability( CPL_UNUSED const char * pszCap )
 {
     return FALSE;
 }

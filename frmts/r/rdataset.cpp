@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: rdataset.cpp 20996 2010-10-28 18:38:15Z rouault $
+ * $Id: rdataset.cpp 27729 2014-09-24 00:40:16Z goatbar $
  *
  * Project:  R Format Driver
  * Purpose:  Read/write R stats package object format.
@@ -7,6 +7,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2009, Frank Warmerdam <warmerdam@pobox.com>
+ * Copyright (c) 2009-2010, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -31,7 +32,7 @@
 #include "cpl_string.h"
 #include "../raw/rawdataset.h"
 
-CPL_CVSID("$Id: rdataset.cpp 20996 2010-10-28 18:38:15Z rouault $");
+CPL_CVSID("$Id: rdataset.cpp 27729 2014-09-24 00:40:16Z goatbar $");
 
 CPL_C_START
 void    GDALRegister_R(void);
@@ -129,7 +130,7 @@ RRasterBand::~RRasterBand()
 /*                             IReadBlock()                             */
 /************************************************************************/
 
-CPLErr RRasterBand::IReadBlock( int nBlockXOff, int nBlockYOff,
+CPLErr RRasterBand::IReadBlock( CPL_UNUSED int nBlockXOff, int nBlockYOff,
                                 void * pImage )
 {
     memcpy( pImage, padfMatrixValues + nBlockYOff * nBlockXSize,

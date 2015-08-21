@@ -1,12 +1,12 @@
 /******************************************************************************
- * $Id: ogrpdfdatasource.cpp 25325 2012-12-16 21:25:25Z rouault $
+ * $Id: ogrpdfdatasource.cpp 27729 2014-09-24 00:40:16Z goatbar $
  *
  * Project:  PDF Translator
  * Purpose:  Implements OGRPDFDataSource class
  * Author:   Even Rouault, even dot rouault at mines dash paris dot org
  *
  ******************************************************************************
- * Copyright (c) 2012, Even Rouault <even dot rouault at mines dash paris dot org>
+ * Copyright (c) 2012, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -39,7 +39,7 @@
 #define SQUARE(x) ((x)*(x))
 #define EPSILON 1e-5
 
-CPL_CVSID("$Id: ogrpdfdatasource.cpp 25325 2012-12-16 21:25:25Z rouault $");
+CPL_CVSID("$Id: ogrpdfdatasource.cpp 27729 2014-09-24 00:40:16Z goatbar $");
 
 /************************************************************************/
 /*                            OGRPDFLayer()                             */
@@ -259,7 +259,7 @@ void OGRPDFDataSource::CleanupIntermediateResources()
 typedef struct
 {
     char        szOpName[4];
-    char        nArgs;
+    int         nArgs;
 } PDFOperator;
 
 static const PDFOperator asPDFOperators [] =
@@ -1950,9 +1950,9 @@ int OGRPDFDataSource::Create( const char * pszName, char **papszOptions )
 
 OGRLayer *
 OGRPDFDataSource::CreateLayer( const char * pszLayerName,
-                                OGRSpatialReference *poSRS,
-                                OGRwkbGeometryType eType,
-                                char ** papszOptions )
+                               OGRSpatialReference *poSRS,
+                               OGRwkbGeometryType eType,
+                               CPL_UNUSED char ** papszOptions )
 
 {
 /* -------------------------------------------------------------------- */

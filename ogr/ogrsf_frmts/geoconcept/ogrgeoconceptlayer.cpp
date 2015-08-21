@@ -8,6 +8,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2007,  Geoconcept and IGN
+ * Copyright (c) 2008, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -444,8 +445,7 @@ int OGRGeoconceptLayer::GetFeatureCount( int bForce )
 /*                             GetExtent()                              */
 /************************************************************************/
 
-OGRErr OGRGeoconceptLayer::GetExtent( OGREnvelope* psExtent, int bForce )
-
+OGRErr OGRGeoconceptLayer::GetExtent( OGREnvelope* psExtent, CPL_UNUSED int bForce )
 {
     GCExtent* theExtent;
 
@@ -500,8 +500,7 @@ int OGRGeoconceptLayer::TestCapability( const char* pszCap )
 /*                            CreateField()                             */
 /************************************************************************/
 
-OGRErr OGRGeoconceptLayer::CreateField( OGRFieldDefn *poField, int bApproxOK )
-
+OGRErr OGRGeoconceptLayer::CreateField( OGRFieldDefn *poField, CPL_UNUSED int bApproxOK )
 {
     if( GetGCMode_GCIO(GetSubTypeGCHandle_GCIO(_gcFeature))==vReadAccess_GCIO )
     {

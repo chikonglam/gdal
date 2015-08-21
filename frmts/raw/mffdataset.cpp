@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: mffdataset.cpp 25311 2012-12-15 12:48:14Z rouault $
+ * $Id: mffdataset.cpp 27729 2014-09-24 00:40:16Z goatbar $
  *
  * Project:  GView
  * Purpose:  Implementation of Atlantis MFF Support
@@ -7,6 +7,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2000, Frank Warmerdam
+ * Copyright (c) 2008-2012, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -33,7 +34,7 @@
 #include "ogr_spatialref.h"
 #include "atlsci_spheroid.h"
 
-CPL_CVSID("$Id: mffdataset.cpp 25311 2012-12-15 12:48:14Z rouault $");
+CPL_CVSID("$Id: mffdataset.cpp 27729 2014-09-24 00:40:16Z goatbar $");
 
 CPL_C_START
 void	GDALRegister_MFF(void);
@@ -1220,7 +1221,7 @@ GDALDataset *MFFDataset::Create( const char * pszFilenameIn,
 
 GDALDataset *
 MFFDataset::CreateCopy( const char * pszFilename, GDALDataset *poSrcDS, 
-                        int bStrict, char ** papszOptions, 
+                        CPL_UNUSED int bStrict, char ** papszOptions, 
                         GDALProgressFunc pfnProgress, void * pProgressData )
 
 {

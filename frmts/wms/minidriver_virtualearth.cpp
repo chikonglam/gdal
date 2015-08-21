@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: minidriver_virtualearth.cpp 23033 2011-09-03 18:46:11Z rouault $
+ * $Id: minidriver_virtualearth.cpp 27729 2014-09-24 00:40:16Z goatbar $
  *
  * Project:  WMS Client Driver
  * Purpose:  Implementation of Dataset and RasterBand classes for WMS
@@ -7,7 +7,7 @@
  * Author:   Even Rouault
  *
  ******************************************************************************
- * Copyright (c) 2011, Even Rouault
+ * Copyright (c) 2011, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -28,7 +28,9 @@
  * DEALINGS IN THE SOFTWARE.
  ****************************************************************************/
 
-#include "stdinc.h"
+#include "wmsdriver.h"
+#include "minidriver_virtualearth.h"
+
 
 CPP_GDALWMSMiniDriverFactory(VirtualEarth)
 
@@ -81,7 +83,7 @@ void GDALWMSMiniDriver_VirtualEarth::GetCapabilities(GDALWMSMiniDriverCapabiliti
 }
 
 void GDALWMSMiniDriver_VirtualEarth::TiledImageRequest(CPLString *url,
-                                                       const GDALWMSImageRequestInfo &iri,
+                                                       CPL_UNUSED const GDALWMSImageRequestInfo &iri,
                                                        const GDALWMSTiledImageRequestInfo &tiri)
 {
 

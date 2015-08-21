@@ -9,6 +9,7 @@
  *
  **********************************************************************
  * Copyright (c) 2007,  Geoconcept and IGN
+ * Copyright (c) 2008, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -44,17 +45,6 @@
 
 #ifndef GCSRSAPI_CALL1
 #  define GCSRSAPI_CALL1(x) x GCSRSAPI_CALL
-#endif
-
-/* -------------------------------------------------------------------- */
-/*      Macros for controlling CVSID and ensuring they don't appear     */
-/*      as unreferenced variables resulting in lots of warnings.        */
-/* -------------------------------------------------------------------- */
-#ifndef DISABLE_CVSID
-#  define GCSRS_CVSID(string)     static char gcsrs_cvsid[] = string; \
-static char *cvsid_aw() { return( cvsid_aw() ? ((char *) NULL) : gcsrs_cvsid ); }
-#else
-#  define GCSRS_CVSID(string)
 #endif
 
 #ifdef __cplusplus

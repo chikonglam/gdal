@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrpgeolayer.cpp 21540 2011-01-22 00:06:04Z rouault $
+ * $Id: ogrpgeolayer.cpp 27741 2014-09-26 19:20:02Z goatbar $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implements OGRPGeoLayer class, code shared between 
@@ -8,6 +8,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2005, Frank Warmerdam <warmerdam@pobox.com>
+ * Copyright (c) 2008-2014, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -33,7 +34,7 @@
 #include "cpl_string.h"
 #include "ogrpgeogeometry.h"
 
-CPL_CVSID("$Id: ogrpgeolayer.cpp 21540 2011-01-22 00:06:04Z rouault $");
+CPL_CVSID("$Id: ogrpgeolayer.cpp 27741 2014-09-26 19:20:02Z goatbar $");
 
 /************************************************************************/
 /*                            OGRPGeoLayer()                            */
@@ -107,6 +108,7 @@ CPLErr OGRPGeoLayer::BuildFeatureDefn( const char *pszLayerName,
     int    nRawColumns = poStmt->GetColCount();
 
     poFeatureDefn->Reference();
+    poFeatureDefn->GetGeomFieldDefn(0)->SetSpatialRef(poSRS);
 
     panFieldOrdinals = (int *) CPLMalloc( sizeof(int) * nRawColumns );
 
@@ -173,6 +175,9 @@ CPLErr OGRPGeoLayer::BuildFeatureDefn( const char *pszLayerName,
           default:
             /* leave it as OFTString */;
         }
+
+        if( pszGeomColumn != NULL )
+            poFeatureDefn->GetGeomFieldDefn(0)->SetName(pszGeomColumn);
 
         poFeatureDefn->AddFieldDefn( &oField );
         panFieldOrdinals[poFeatureDefn->GetFieldCount() - 1] = iCol+1;
@@ -319,20 +324,9 @@ OGRFeature *OGRPGeoLayer::GetFeature( long nFeatureId )
 /*                           TestCapability()                           */
 /************************************************************************/
 
-int OGRPGeoLayer::TestCapability( const char * pszCap )
-
+int OGRPGeoLayer::TestCapability( CPL_UNUSED const char * pszCap )
 {
     return FALSE;
-}
-
-/************************************************************************/
-/*                           GetSpatialRef()                            */
-/************************************************************************/
-
-OGRSpatialReference *OGRPGeoLayer::GetSpatialRef()
-
-{
-    return poSRS;
 }
 
 /************************************************************************/

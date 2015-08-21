@@ -1,12 +1,12 @@
 /******************************************************************************
- * $Id: ogrgpsbabeldatasource.cpp 25598 2013-02-05 22:24:35Z rouault $
+ * $Id: ogrgpsbabeldatasource.cpp 27729 2014-09-24 00:40:16Z goatbar $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implements OGRGPSBabelDataSource class.
  * Author:   Even Rouault, <even dot rouault at mines dash paris dot org>
  *
  ******************************************************************************
- * Copyright (c) 2010, Even Rouault
+ * Copyright (c) 2010-2013, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -35,7 +35,7 @@
 
 #include <string.h>
 
-CPL_CVSID("$Id: ogrgpsbabeldatasource.cpp 25598 2013-02-05 22:24:35Z rouault $");
+CPL_CVSID("$Id: ogrgpsbabeldatasource.cpp 27729 2014-09-24 00:40:16Z goatbar $");
 
 /************************************************************************/
 /*                      OGRGPSBabelDataSource()                         */
@@ -377,8 +377,7 @@ int OGRGPSBabelDataSource::Open( const char * pszDatasourceName, int bUpdateIn)
 /*                           TestCapability()                           */
 /************************************************************************/
 
-int OGRGPSBabelDataSource::TestCapability( const char * pszCap )
-
+int OGRGPSBabelDataSource::TestCapability( CPL_UNUSED const char * pszCap )
 {
     return FALSE;
 }

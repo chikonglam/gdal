@@ -1,9 +1,11 @@
 Description: Fix 'supress' typo, replace with 'suppress'.
 Author: Bas Couwenberg <sebastic@debian.org>
-Last-Update: 2014-01-11
+Forwarded: http://trac.osgeo.org/gdal/ticket/5756
+Applied-Upstream: 2.0, http://trac.osgeo.org/gdal/changeset/28039
+
 --- a/apps/ogr_utilities.dox
 +++ b/apps/ogr_utilities.dox
-@@ -39,7 +39,7 @@ source to stdout (the terminal).
+@@ -40,7 +40,7 @@ source to stdout (the terminal).
  <dt> <b>-ro</b>:</dt><dd> Open the data source in read-only mode.  </dd>
  <dt> <b>-al</b>:</dt><dd> List all features of all layers (used instead of having to
  give layer names as arguments).</dd>
@@ -12,3 +14,478 @@ Last-Update: 2014-01-11
  summary information like projection, schema, feature count and
  extents.</dd>
  <dt> <b>-q</b>:</dt><dd> Quiet verbose reporting of various information, including
+@@ -473,7 +473,7 @@ format. Also some information writed to
+ <dl>
+ <dt><b>--help-general</b>:</dt><dd> Show the usage.</dd>
+ <dt><b>-progress</b>:</dt><dd> Show progress.</dd>
+-<dt><b>-quiet</b>:</dt><dd> Supress all messages except errors and results.</dd>
++<dt><b>-quiet</b>:</dt><dd> Suppress all messages except errors and results.</dd>
+ <dt><b>-f</b> <em>format_name</em>:</dt><dd> Select an output format name.
+     The default is to create a shapefile.</dd>
+ <dt> <b>-dsco</b> <em>NAME=VALUE</em>:</dt><dd> Dataset creation option 
+--- a/NEWS
++++ b/NEWS
+@@ -2053,7 +2053,7 @@ Utilities:
+  * gdalwarp: speed-up when using -tps with large number of GCPs
+  * gdalwarp: add support for optional use of libarmadillo to speed-up matrix inversion in -tps mode
+  * gdalwarp: detect situations where the user will override the source file
+- * gdallocationinfo: do not let one off-db pixel cause all the rest to be supressed (#4181)
++ * gdallocationinfo: do not let one off-db pixel cause all the rest to be suppressed (#4181)
+  * gdal_rasterize: fix half pixel shift when rasterizing points; make gdal_rasterize utility increase the computed raster extent by a half-pixel for point layers (#3774)
+  * gdal_rasterize: when source datasource has a single layer, use it implicitely if none of -l or -sql is specified
+  * nearblack: add -color option (#4085)
+@@ -3747,7 +3747,7 @@ Python bindings:
+    when used and set to True, None is returned when GDALGetGeoTransform()
+    returns CE_Failure (instead of the fake (0,1,0,0,0,1)); backward
+    compatibility preserved when the parameter isn't specified
+- * Avoid supressing warnings and errors when exceptions are used (#3632)
++ * Avoid suppressing warnings and errors when exceptions are used (#3632)
+  * Add gdalinfo.py, ogrinfo.py and ogr2ogr.py as sample scripts, direct ports
+    of corresponding C/C++ utilities
+  * Allow manipulating buffer > 2 GB on 64bit builds for ReadRaster() and WriteRaster()
+--- a/apps/gdalsrsinfo.cpp
++++ b/apps/gdalsrsinfo.cpp
+@@ -336,7 +336,7 @@ int FindSRS( const char *pszInput, OGRSp
+     OGRErr eErr = CE_None;
+     int bDebug  = FALSE;
+ 
+-    /* temporarily supress error messages we may get from xOpen() */
++    /* temporarily suppress error messages we may get from xOpen() */
+     bDebug = CSLTestBoolean(CPLGetConfigOption("CPL_DEBUG", "OFF"));
+     if ( ! bDebug )
+         oErrorHandler = CPLSetErrorHandler ( CPLQuietErrorHandler );
+--- a/frmts/aigrid/aitest.c
++++ b/frmts/aigrid/aitest.c
+@@ -115,7 +115,7 @@ int main( int argc, char ** argv )
+     AIGInfo_t	*psInfo;
+     GInt32 	*panRaster;
+     int		i, j;
+-    int		bMagic = FALSE, bSupressMagic = FALSE;
++    int		bMagic = FALSE, bSuppressMagic = FALSE;
+     int         iTestTileX = 0, iTestTileY = 0;
+ 
+ /* -------------------------------------------------------------------- */
+@@ -127,7 +127,7 @@ int main( int argc, char ** argv )
+             bMagic = TRUE;
+ 
+         else if( EQUAL(argv[1],"-nomagic") )
+-            bSupressMagic = TRUE;
++            bSuppressMagic = TRUE;
+ 
+         else if( EQUAL(argv[1],"-t") && argc > 2 )
+         {
+@@ -184,7 +184,7 @@ int main( int argc, char ** argv )
+ /*      Do we want a dump of all the ``magic'' numbers for              */
+ /*      instantated blocks?                                             */
+ /* -------------------------------------------------------------------- */
+-    if( !bSupressMagic )
++    if( !bSuppressMagic )
+         DumpMagic( psInfo, bMagic );
+     
+ /* -------------------------------------------------------------------- */
+--- a/frmts/ecw/ecwcreatecopy.cpp
++++ b/frmts/ecw/ecwcreatecopy.cpp
+@@ -817,7 +817,7 @@ CPLErr GDALECWCompressor::Initialize(
+ 
+         pszOption = CSLFetchNameValue(papszOptions, "GEODATA_USAGE");
+         if( pszOption == NULL )
+-            // Default to supressing ECW SDK geodata, just use our own stuff.
++            // Default to suppressing ECW SDK geodata, just use our own stuff.
+             SetGeodataUsage( JP2_GEODATA_USE_NONE );
+         else if( EQUAL(pszOption,"NONE") )
+             SetGeodataUsage( JP2_GEODATA_USE_NONE );
+--- a/frmts/gdalallregister.cpp
++++ b/frmts/gdalallregister.cpp
+@@ -532,7 +532,7 @@ void CPL_STDCALL GDALAllRegister()
+     GDALRegister_IRIS();
+ #endif
+ /* -------------------------------------------------------------------- */
+-/*      Deregister any drivers explicitly marked as supressed by the    */
++/*      Deregister any drivers explicitly marked as suppressed by the   */
+ /*      GDAL_SKIP environment variable.                                 */
+ /* -------------------------------------------------------------------- */
+     GetGDALDriverManager()->AutoSkipDrivers();
+--- a/frmts/zlib/deflate.h
++++ b/frmts/zlib/deflate.h
+@@ -188,7 +188,7 @@ typedef struct internal_state {
+     int nice_match; /* Stop searching when current match exceeds this */
+ 
+                 /* used by trees.c: */
+-    /* Didn't use ct_data typedef below to supress compiler warning */
++    /* Didn't use ct_data typedef below to suppress compiler warning */
+     struct ct_data_s dyn_ltree[HEAP_SIZE];   /* literal and length tree */
+     struct ct_data_s dyn_dtree[2*D_CODES+1]; /* distance tree */
+     struct ct_data_s bl_tree[2*BL_CODES+1];  /* Huffman tree for bit lengths */
+--- a/gcore/gdaljp2metadata.cpp
++++ b/gcore/gdaljp2metadata.cpp
+@@ -900,7 +900,7 @@ int GDALJP2Metadata::ParseGMLCoverageDes
+                                                "FALSE" ) ) )
+     {
+         bNeedAxisFlip = FALSE;
+-        CPLDebug( "GMLJP2", "Supressed axis flipping based on GDAL_IGNORE_AXIS_ORIENTATION." );
++        CPLDebug( "GMLJP2", "Suppressed axis flipping based on GDAL_IGNORE_AXIS_ORIENTATION." );
+     }
+ 
+     if( bNeedAxisFlip )
+@@ -1119,7 +1119,7 @@ GDALJP2Box *GDALJP2Metadata::CreateGMLJP
+                                                "FALSE" ) ) )
+     {
+         bNeedAxisFlip = FALSE;
+-        CPLDebug( "GMLJP2", "Supressed axis flipping on write based on GDAL_IGNORE_AXIS_ORIENTATION." );
++        CPLDebug( "GMLJP2", "Suppressed axis flipping on write based on GDAL_IGNORE_AXIS_ORIENTATION." );
+     }
+ 
+     if( bNeedAxisFlip )
+--- a/gcore/gdalpamdataset.cpp
++++ b/gcore/gdalpamdataset.cpp
+@@ -859,7 +859,7 @@ CPLErr GDALPamDataset::CloneInfo( GDALDa
+     PamInitialize();
+ 
+ /* -------------------------------------------------------------------- */
+-/*      Supress NotImplemented error messages - mainly needed if PAM    */
++/*      Suppress NotImplemented error messages - mainly needed if PAM   */
+ /*      disabled.                                                       */
+ /* -------------------------------------------------------------------- */
+     SetMOFlags( nSavedMOFlags | GMO_IGNORE_UNIMPLEMENTED );
+--- a/gcore/gdalpamrasterband.cpp
++++ b/gcore/gdalpamrasterband.cpp
+@@ -485,7 +485,7 @@ CPLErr GDALPamRasterBand::CloneInfo( GDA
+     PamInitialize();
+ 
+ /* -------------------------------------------------------------------- */
+-/*      Supress NotImplemented error messages - mainly needed if PAM    */
++/*      Suppress NotImplemented error messages - mainly needed if PAM   */
+ /*      disabled.                                                       */
+ /* -------------------------------------------------------------------- */
+     SetMOFlags( nSavedMOFlags | GMO_IGNORE_UNIMPLEMENTED );
+--- a/man/man1/gdal_fillnodata.1
++++ b/man/man1/gdal_fillnodata.1
+@@ -24,7 +24,7 @@ The gdal_fillnodata.py script fills sele
+ Additional details on the algorithm are available in the GDALFillNodata() docs.
+ .PP
+ .IP "\fB\fB-q\fP:\fP" 1c
+-The script runs in quiet mode. The progress monitor is supressed and routine messages are not displayed.
++The script runs in quiet mode. The progress monitor is suppressed and routine messages are not displayed.
+ .PP
+ .IP "\fB\fB-md\fP \fImax_distance\fP:\fP" 1c
+ The maximum distance (in pixels) that the algorithm will search out for values to interpolate.
+--- a/man/man1/gdal_polygonize.1
++++ b/man/man1/gdal_polygonize.1
+@@ -52,7 +52,7 @@ The name of the layer created to hold th
+ The name of the field to create (defaults to 'DN'). 
+ .PP
+ .IP "\fB\fB-q\fP:\fP" 1c
+-The script runs in quiet mode. The progress monitor is supressed and routine messages are not displayed. 
++The script runs in quiet mode. The progress monitor is suppressed and routine messages are not displayed. 
+ .PP
+ .PP
+ .PP
+--- a/man/man1/gdal_sieve.1
++++ b/man/man1/gdal_sieve.1
+@@ -23,7 +23,7 @@ The gdal_sieve.py script removes raster
+ Additional details on the algorithm are available in the GDALSieveFilter() docs.
+ .PP
+ .IP "\fB\fB-q\fP:\fP" 1c
+-The script runs in quiet mode. The progress monitor is supressed and routine messages are not displayed.
++The script runs in quiet mode. The progress monitor is suppressed and routine messages are not displayed.
+ .PP
+ .IP "\fB\fB-st\fP \fIthreshold\fP:\fP" 1c
+ Set the size threshold in pixels. Only raster polygons smaller than this size will be removed.
+--- a/man/man1/ogrinfo.1
++++ b/man/man1/ogrinfo.1
+@@ -30,7 +30,7 @@ Open the data source in read-only mode.
+ .IP "\fB\fB-al\fP:\fP" 1c
+ List all features of all layers (used instead of having to give layer names as arguments). 
+ .IP "\fB\fB-so\fP:\fP" 1c
+-Summary Only: supress listing of features, show only the summary information like projection, schema, feature count and extents. 
++Summary Only: suppress listing of features, show only the summary information like projection, schema, feature count and extents. 
+ .IP "\fB\fB-q\fP:\fP" 1c
+ Quiet verbose reporting of various information, including coordinate system, layer schema, extents, and feature count.  
+ .IP "\fB\fB-where\fP \fIrestricted_where\fP:\fP" 1c
+--- a/man/man1/ogrlineref.1
++++ b/man/man1/ogrlineref.1
+@@ -43,7 +43,7 @@ Show the usage.
+ .IP "\fB\fB-progress\fP:\fP" 1c
+ Show progress. 
+ .IP "\fB\fB-quiet\fP:\fP" 1c
+-Supress all messages except errors and results. 
++Suppress all messages except errors and results. 
+ .IP "\fB\fB-f\fP \fIformat_name\fP:\fP" 1c
+ Select an output format name. The default is to create a shapefile. 
+ .IP "\fB\fB-dsco\fP \fINAME=VALUE\fP:\fP" 1c
+--- a/nmake.opt
++++ b/nmake.opt
+@@ -141,7 +141,7 @@ OPTFLAGS= $(CXX_PDB_FLAGS) /nologo /MD /
+ !ENDIF  # OPTFLAGS
+ 
+ # 
+-# Set flags controlling warnings level, and supression of some warnings.
++# Set flags controlling warnings level, and suppression of some warnings.
+ # 
+ !IFNDEF WARNFLAGS
+ WARNFLAGS =	/W4 /wd4127 /wd4251 /wd4275 /wd4786 /wd4100 /wd4245 /wd4206 /wd4018 /wd4389
+--- a/ogr/ogr_core.h
++++ b/ogr/ogr_core.h
+@@ -158,7 +158,7 @@ typedef struct
+  * Simple container for a bounding region in 3D.
+  */
+ 
+-#if defined(__cplusplus) && !defined(CPL_SUPRESS_CPLUSPLUS)
++#if defined(__cplusplus) && !defined(CPL_SURESS_CPLUSPLUS)
+ class CPL_DLL OGREnvelope3D : public OGREnvelope
+ {
+   public:
+--- a/ogr/ogrct.cpp
++++ b/ogr/ogrct.cpp
+@@ -941,7 +941,7 @@ int OGRProj4CT::TransformEx( int nCount,
+ /* -------------------------------------------------------------------- */
+ /*      Try to report an error through CPL.  Get proj.4 error string    */
+ /*      if possible.  Try to avoid reporting thousands of error         */
+-/*      ... supress further error reporting on this OGRProj4CT if we    */
++/*      ... suppress further error reporting on this OGRProj4CT if we   */
+ /*      have already reported 20 errors.                                */
+ /* -------------------------------------------------------------------- */
+     if( err != 0 )
+@@ -973,7 +973,7 @@ int OGRProj4CT::TransformEx( int nCount,
+         else if( nErrorCount == 20 )
+         {
+             CPLError( CE_Failure, CPLE_AppDefined, 
+-                      "Reprojection failed, err = %d, further errors will be supressed on the transform object.", 
++                      "Reprojection failed, err = %d, further errors will be suppressed on the transform object.", 
+                       err );
+         }
+ 
+--- a/ogr/ogrsf_frmts/arcobjects/aolayer.cpp
++++ b/ogr/ogrsf_frmts/arcobjects/aolayer.cpp
+@@ -37,7 +37,7 @@
+ /************************************************************************/
+ AOLayer::AOLayer():
+ OGRLayer(),m_pFeatureDefn(NULL),m_pSRS(NULL), m_ipQF(CLSID_QueryFilter),
+-m_pBuffer(NULL), m_bufferSize(0), m_supressColumnMappingError(false),m_forceMulti(false)
++m_pBuffer(NULL), m_bufferSize(0), m_suppressColumnMappingError(false),m_forceMulti(false)
+ {
+ }
+ 
+@@ -419,7 +419,7 @@ bool AOLayer::OGRFeatureFromAORow(IRow*
+       */
+     default:
+       {
+-        if (!m_supressColumnMappingError)
++        if (!m_suppressColumnMappingError)
+         {
+           foundBadColumn = true;
+           CPLError( CE_Warning, CPLE_AppDefined, "Row id: %d col:%d has unhandled col type (%d). Setting to NULL.", oid, i, m_pFeatureDefn->GetFieldDefn(i)->GetType());
+@@ -429,7 +429,7 @@ bool AOLayer::OGRFeatureFromAORow(IRow*
+   }
+   
+   if (foundBadColumn)
+-    m_supressColumnMappingError = true;
++    m_suppressColumnMappingError = true;
+   
+ 
+   *ppFeature = pOutFeature;
+--- a/ogr/ogrsf_frmts/arcobjects/ogr_ao.h
++++ b/ogr/ogrsf_frmts/arcobjects/ogr_ao.h
+@@ -115,7 +115,7 @@ protected:
+     //buffers are used for avoiding constant reallocation of temp memory
+     unsigned char* m_pBuffer;
+     long  m_bufferSize; //in bytes
+-    bool  m_supressColumnMappingError;
++    bool  m_suppressColumnMappingError;
+     bool  m_forceMulti;
+ };
+ 
+--- a/ogr/ogrsf_frmts/avc/ogravcbindatasource.cpp
++++ b/ogr/ogrsf_frmts/avc/ogravcbindatasource.cpp
+@@ -75,7 +75,7 @@ int OGRAVCBinDataSource::Open( const cha
+ 
+ {
+ /* -------------------------------------------------------------------- */
+-/*      Open the source file.  Supress error reporting if we are in     */
++/*      Open the source file.  Suppress error reporting if we are in    */
+ /*      TestOpen mode.                                                  */
+ /* -------------------------------------------------------------------- */
+     if( bTestOpen )
+--- a/ogr/ogrsf_frmts/avc/ogravce00datasource.cpp
++++ b/ogr/ogrsf_frmts/avc/ogravce00datasource.cpp
+@@ -73,7 +73,7 @@ int OGRAVCE00DataSource::Open( const cha
+ 
+ {
+ /* -------------------------------------------------------------------- */
+-/*      Open the source file.  Supress error reporting if we are in     */
++/*      Open the source file.  Suppress error reporting if we are in    */
+ /*      TestOpen mode.                                                  */
+ /* -------------------------------------------------------------------- */
+     int bCompressed = FALSE;
+--- a/ogr/ogrsf_frmts/dwg/ogrdwg_dimension.cpp
++++ b/ogr/ogrsf_frmts/dwg/ogrdwg_dimension.cpp
+@@ -297,7 +297,7 @@ the approach is as above in all these ca
+ /*      feature for the next feature read.                              */
+ /* -------------------------------------------------------------------- */
+ 
+-    // a single space supresses labelling.
++    // a single space suppresses labelling.
+     if( osText == " " )
+         return poFeature;
+ 
+--- a/ogr/ogrsf_frmts/dxf/ogrdxf_dimension.cpp
++++ b/ogr/ogrsf_frmts/dxf/ogrdxf_dimension.cpp
+@@ -307,7 +307,7 @@ the approach is as above in all these ca
+ /*      feature for the next feature read.                              */
+ /* -------------------------------------------------------------------- */
+ 
+-    // a single space supresses labelling.
++    // a single space suppresses labelling.
+     if( osText == " " )
+         return poFeature;
+ 
+--- a/ogr/ogrsf_frmts/filegdb/FGdbLayer.cpp
++++ b/ogr/ogrsf_frmts/filegdb/FGdbLayer.cpp
+@@ -47,7 +47,7 @@ using std::wstring;
+ /************************************************************************/
+ FGdbBaseLayer::FGdbBaseLayer() :
+     m_pFeatureDefn(NULL), m_pSRS(NULL), m_pEnumRows(NULL),
+-    m_supressColumnMappingError(false), m_forceMulti(false)
++    m_suppressColumnMappingError(false), m_forceMulti(false)
+ {
+ }
+ 
+@@ -2360,7 +2360,7 @@ bool FGdbBaseLayer::OGRFeatureFromGdbRow
+ 
+             default:
+             {
+-                if (!m_supressColumnMappingError)
++                if (!m_suppressColumnMappingError)
+                 {
+                     foundBadColumn = true;
+                     CPLError( CE_Warning, CPLE_AppDefined,
+@@ -2372,7 +2372,7 @@ bool FGdbBaseLayer::OGRFeatureFromGdbRow
+     }
+ 
+     if (foundBadColumn)
+-        m_supressColumnMappingError = true;
++        m_suppressColumnMappingError = true;
+ 
+ 
+     *ppFeature = pOutFeature;
+--- a/ogr/ogrsf_frmts/filegdb/FGdbResultLayer.cpp
++++ b/ogr/ogrsf_frmts/filegdb/FGdbResultLayer.cpp
+@@ -47,7 +47,7 @@ FGdbResultLayer::FGdbResultLayer(FGdbDat
+     m_pDS = pParentDataSource;
+     osSQL = pszSQL;
+ 
+-    m_supressColumnMappingError = false;
++    m_suppressColumnMappingError = false;
+ 
+     FieldInfo fieldInfo;
+     m_pEnumRows->GetFieldInformation(fieldInfo);
+--- a/ogr/ogrsf_frmts/filegdb/ogr_fgdb.h
++++ b/ogr/ogrsf_frmts/filegdb/ogr_fgdb.h
+@@ -82,7 +82,7 @@ protected:
+   std::vector<std::wstring> m_vOGRFieldToESRIField; //OGR Field Index to ESRI Field Name Mapping
+   std::vector<std::string> m_vOGRFieldToESRIFieldType; //OGR Field Index to ESRI Field Type Mapping
+ 
+-  bool  m_supressColumnMappingError;
++  bool  m_suppressColumnMappingError;
+   bool  m_forceMulti;
+ 
+   bool OGRFeatureFromGdbRow(Row* pRow, OGRFeature** ppFeature);
+--- a/port/cpl_error.cpp
++++ b/port/cpl_error.cpp
+@@ -139,7 +139,7 @@ void* CPL_STDCALL CPLGetErrorHandlerUser
+  *
+  * The default behaviour of CPLError() is to report errors to stderr,
+  * and to abort() after reporting a CE_Fatal error.  It is expected that
+- * some applications will want to supress error reporting, and will want to
++ * some applications will want to suppress error reporting, and will want to
+  * install a C++ exception, or longjmp() approach to no local fatal error
+  * recovery.
+  *
+--- a/swig/include/python/python_exceptions.i
++++ b/swig/include/python/python_exceptions.i
+@@ -11,7 +11,7 @@ void CPL_STDCALL
+ PythonBindingErrorHandler(CPLErr eclass, int code, const char *msg ) 
+ {
+   /* 
+-  ** Generally we want to supress error reporting if we have exceptions
++  ** Generally we want to suppress error reporting if we have exceptions
+   ** enabled as the error message will be in the exception thrown in 
+   ** Python.  
+   */
+--- a/swig/java/javadoc.java
++++ b/swig/java/javadoc.java
+@@ -195,7 +195,7 @@ public class gdal:public static int SetE
+  * <p>
+  * The default behaviour of Error() is to report errors to stderr,
+  * and to abort() after reporting a gdalconst.CE_Fatal error.  It is expected that
+- * some applications will want to supress error reporting, and will want to
++ * some applications will want to suppress error reporting, and will want to
+  * install a C++ exception, or longjmp() approach to no local fatal error
+  * recovery.
+  * <p>
+--- a/swig/python/extensions/gdal_wrap.cpp
++++ b/swig/python/extensions/gdal_wrap.cpp
+@@ -2883,7 +2883,7 @@ void CPL_STDCALL
+ PythonBindingErrorHandler(CPLErr eclass, int code, const char *msg ) 
+ {
+   /* 
+-  ** Generally we want to supress error reporting if we have exceptions
++  ** Generally we want to suppress error reporting if we have exceptions
+   ** enabled as the error message will be in the exception thrown in 
+   ** Python.  
+   */
+--- a/swig/python/extensions/ogr_wrap.cpp
++++ b/swig/python/extensions/ogr_wrap.cpp
+@@ -2937,7 +2937,7 @@ void CPL_STDCALL
+ PythonBindingErrorHandler(CPLErr eclass, int code, const char *msg ) 
+ {
+   /* 
+-  ** Generally we want to supress error reporting if we have exceptions
++  ** Generally we want to suppress error reporting if we have exceptions
+   ** enabled as the error message will be in the exception thrown in 
+   ** Python.  
+   */
+--- a/swig/python/extensions/osr_wrap.cpp
++++ b/swig/python/extensions/osr_wrap.cpp
+@@ -2900,7 +2900,7 @@ void CPL_STDCALL
+ PythonBindingErrorHandler(CPLErr eclass, int code, const char *msg ) 
+ {
+   /* 
+-  ** Generally we want to supress error reporting if we have exceptions
++  ** Generally we want to suppress error reporting if we have exceptions
+   ** enabled as the error message will be in the exception thrown in 
+   ** Python.  
+   */
+--- a/swig/python/scripts/gdal_fillnodata.dox
++++ b/swig/python/scripts/gdal_fillnodata.dox
+@@ -22,7 +22,7 @@ docs.
+ <dl>
+ 
+ <dt> <b>-q</b>:</dt><dd>
+-The script runs in quiet mode.  The progress monitor is supressed and routine
++The script runs in quiet mode.  The progress monitor is suppressed and routine
+ messages are not displayed.
+ 
+ <dt> <b>-md</b> <i>max_distance</i>:</dt><dd>
+--- a/swig/python/scripts/gdal_polygonize.dox
++++ b/swig/python/scripts/gdal_polygonize.dox
+@@ -60,7 +60,7 @@ file to be created.  Default is GML.
+ </dd>
+ 
+ <dt> <b>-q</b>:</dt><dd>
+-The script runs in quiet mode.  The progress monitor is supressed and routine
++The script runs in quiet mode.  The progress monitor is suppressed and routine
+ messages are not displayed.
+ </dd>
+ 
+--- a/swig/python/scripts/gdal_sieve.dox
++++ b/swig/python/scripts/gdal_sieve.dox
+@@ -23,7 +23,7 @@ docs.
+ <dl>
+ 
+ <dt> <b>-q</b>:</dt><dd>
+-The script runs in quiet mode.  The progress monitor is supressed and routine
++The script runs in quiet mode.  The progress monitor is suppressed and routine
+ messages are not displayed.
+ 
+ <dt> <b>-st</b> <i>threshold</i>:</dt><dd>

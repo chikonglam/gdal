@@ -1,12 +1,12 @@
 /******************************************************************************
- * $Id: ograrcgendatasource.cpp 25447 2013-01-04 20:30:09Z rouault $
+ * $Id: ograrcgendatasource.cpp 27729 2014-09-24 00:40:16Z goatbar $
  *
  * Project:  Arc/Info Generate Translator
  * Purpose:  Implements OGRARCGENDataSource class
  * Author:   Even Rouault, even dot rouault at mines dash paris dot org
  *
  ******************************************************************************
- * Copyright (c) 2011, Even Rouault <even dot rouault at mines dash paris dot org>
+ * Copyright (c) 2011-2013, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -31,7 +31,7 @@
 #include "cpl_conv.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: ograrcgendatasource.cpp 25447 2013-01-04 20:30:09Z rouault $");
+CPL_CVSID("$Id: ograrcgendatasource.cpp 27729 2014-09-24 00:40:16Z goatbar $");
 
 /************************************************************************/
 /*                          OGRARCGENDataSource()                          */
@@ -64,8 +64,7 @@ OGRARCGENDataSource::~OGRARCGENDataSource()
 /*                           TestCapability()                           */
 /************************************************************************/
 
-int OGRARCGENDataSource::TestCapability( const char * pszCap )
-
+int OGRARCGENDataSource::TestCapability( CPL_UNUSED const char * pszCap )
 {
     return FALSE;
 }

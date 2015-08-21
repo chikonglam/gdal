@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: 8211dump.cpp 25826 2013-04-01 20:23:04Z rouault $
+ * $Id: 8211dump.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  SDTS Translator
  * Purpose:  Dump 8211 file in verbose form - just a junk program. 
@@ -7,6 +7,7 @@
  *
  ******************************************************************************
  * Copyright (c) 1999, Frank Warmerdam
+ * Copyright (c) 2013, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -32,7 +33,7 @@
 #include "cpl_vsi.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: 8211dump.cpp 25826 2013-04-01 20:23:04Z rouault $");
+CPL_CVSID("$Id: 8211dump.cpp 27044 2014-03-16 23:41:27Z rouault $");
 
 
 int main( int nArgc, char ** papszArgv )

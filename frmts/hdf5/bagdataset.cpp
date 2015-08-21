@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: bagdataset.cpp 26062 2013-06-04 21:16:21Z rouault $
+ * $Id: bagdataset.cpp 27394 2014-05-24 16:37:41Z rouault $
  *
  * Project:  Hierarchical Data Format Release 5 (HDF5)
  * Purpose:  Read BAG datasets.
@@ -7,6 +7,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2009, Frank Warmerdam <warmerdam@pobox.com>
+ * Copyright (c) 2009-2013, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -34,7 +35,7 @@
 #include "ogr_spatialref.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: bagdataset.cpp 26062 2013-06-04 21:16:21Z rouault $");
+CPL_CVSID("$Id: bagdataset.cpp 27394 2014-05-24 16:37:41Z rouault $");
 
 CPL_C_START
 void    GDALRegister_BAG(void);
@@ -69,6 +70,7 @@ public:
     
     virtual CPLErr GetGeoTransform( double * );
     virtual const char *GetProjectionRef(void);
+    virtual char      **GetMetadataDomainList();
     virtual char      **GetMetadata( const char * pszDomain = "" );
 
     static GDALDataset  *Open( GDALOpenInfo * );
@@ -227,7 +229,12 @@ bool BAGRasterBand::Initialize( hid_t hDatasetID, const char *pszName )
                                     dfMaximum ) 
              && GH5_FetchAttribute( hDatasetID, "Minimum Uncertainty Value", 
                                     dfMinimum ) )
-        bMinMaxSet = true;
+    {
+        /* Some products where uncertainty band is completely set to nodata */
+        /* wrongly declare minimum and maximum to 0.0 */
+        if( dfMinimum != 0.0 && dfMaximum != 0.0 )
+            bMinMaxSet = true;
+    }
     else if( EQUAL(pszName,"nominal_elevation") 
              && GH5_FetchAttribute( hDatasetID, "max_value", 
                                     dfMaximum ) 
@@ -284,7 +291,7 @@ double BAGRasterBand::GetNoDataValue( int * pbSuccess )
     if( EQUAL(GetDescription(),"elevation") )
         return  1000000.0;
     else if( EQUAL(GetDescription(),"uncertainty") )
-        return 0.0;
+        return 1000000.0;
     else if( EQUAL(GetDescription(),"nominal_elevation") )
         return 1000000.0;
     else
@@ -558,7 +565,7 @@ GDALDataset *BAGDataset::Open( GDALOpenInfo * poOpenInfo )
         delete poUBand;
 
 /* -------------------------------------------------------------------- */
-/*      Try to do the same for the uncertainty band.                    */
+/*      Try to do the same for the nominal_elevation band.              */
 /* -------------------------------------------------------------------- */
     hid_t hNominal = -1;
 
@@ -818,6 +825,17 @@ const char *BAGDataset::GetProjectionRef()
         return pszProjection;
     else 
         return GDALPamDataset::GetProjectionRef();
+}
+
+/************************************************************************/
+/*                      GetMetadataDomainList()                         */
+/************************************************************************/
+
+char **BAGDataset::GetMetadataDomainList()
+{
+    return BuildMetadataDomainList(GDALPamDataset::GetMetadataDomainList(),
+                                   TRUE,
+                                   "xml:BAG", NULL);
 }
 
 /************************************************************************/

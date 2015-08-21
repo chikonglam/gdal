@@ -1,5 +1,5 @@
 /**********************************************************************
- * $Id: gmlreadstate.cpp 22954 2011-08-19 21:47:19Z rouault $
+ * $Id: gmlreadstate.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  GML Reader
  * Purpose:  Implementation of GMLReadState class.
@@ -7,6 +7,7 @@
  *
  **********************************************************************
  * Copyright (c) 2002, Frank Warmerdam
+ * Copyright (c) 2011, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),

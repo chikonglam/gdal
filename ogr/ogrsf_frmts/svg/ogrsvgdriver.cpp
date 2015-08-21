@@ -1,12 +1,12 @@
 /******************************************************************************
- * $Id: ogrsvgdriver.cpp 22110 2011-04-03 19:05:10Z rouault $
+ * $Id: ogrsvgdriver.cpp 27729 2014-09-24 00:40:16Z goatbar $
  *
  * Project:  SVG Translator
  * Purpose:  Implements OGRSVGDriver.
  * Author:   Even Rouault, even dot rouault at mines dash paris dot org
  *
  ******************************************************************************
- * Copyright (c) 2011, Even Rouault
+ * Copyright (c) 2011, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -30,7 +30,7 @@
 #include "ogr_svg.h"
 #include "cpl_conv.h"
 
-CPL_CVSID("$Id: ogrsvgdriver.cpp 22110 2011-04-03 19:05:10Z rouault $");
+CPL_CVSID("$Id: ogrsvgdriver.cpp 27729 2014-09-24 00:40:16Z goatbar $");
 
 CPL_C_START
 void RegisterOGRSVG();
@@ -84,7 +84,7 @@ OGRDataSource *OGRSVGDriver::Open( const char * pszFilename, int bUpdate )
 /*                            TestCapability()                          */
 /************************************************************************/
 
-int OGRSVGDriver::TestCapability( const char *pszCap )
+int OGRSVGDriver::TestCapability( CPL_UNUSED const char *pszCap )
 {
     return FALSE;
 }

@@ -1,12 +1,12 @@
 /******************************************************************************
- * $Id: pdfobject.cpp 25683 2013-02-25 14:51:41Z rouault $
+ * $Id: pdfobject.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  PDF driver
  * Purpose:  GDALDataset driver for PDF dataset.
  * Author:   Even Rouault, <even dot rouault at mines dash paris dot org>
  *
  ******************************************************************************
- * Copyright (c) 2011, Even Rouault
+ * Copyright (c) 2011-2013, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -34,7 +34,7 @@
 #include <vector>
 #include "pdfobject.h"
 
-CPL_CVSID("$Id: pdfobject.cpp 25683 2013-02-25 14:51:41Z rouault $");
+CPL_CVSID("$Id: pdfobject.cpp 27044 2014-03-16 23:41:27Z rouault $");
 
 /************************************************************************/
 /*                        ROUND_TO_INT_IF_CLOSE()                       */

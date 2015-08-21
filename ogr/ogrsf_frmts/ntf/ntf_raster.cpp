@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ntf_raster.cpp 21977 2011-03-18 19:53:18Z warmerdam $
+ * $Id: ntf_raster.cpp 27729 2014-09-24 00:40:16Z goatbar $
  *
  * Project:  NTF Translator
  * Purpose:  Handle UK Ordnance Survey Raster DTM products.  Includes some
@@ -31,7 +31,7 @@
 
 #include "ntf.h"
 
-CPL_CVSID("$Id: ntf_raster.cpp 21977 2011-03-18 19:53:18Z warmerdam $");
+CPL_CVSID("$Id: ntf_raster.cpp 27729 2014-09-24 00:40:16Z goatbar $");
 
 /************************************************************************/
 /* ==================================================================== */
@@ -240,6 +240,7 @@ OGRNTFRasterLayer::OGRNTFRasterLayer( OGRNTFDataSource *poDSIn,
     poFeatureDefn = new OGRFeatureDefn( szLayerName );
     poFeatureDefn->Reference();
     poFeatureDefn->SetGeomType( wkbPoint25D );
+    poFeatureDefn->GetGeomFieldDefn(0)->SetSpatialRef(poDSIn->GetSpatialRef());
 
     OGRFieldDefn      oHeight( "HEIGHT", OFTReal );
     poFeatureDefn->AddFieldDefn( &oHeight );
@@ -400,20 +401,9 @@ OGRFeature *OGRNTFRasterLayer::GetFeature( long nFeatureId )
 /*      way of counting features matching a spatial query.              */
 /************************************************************************/
 
-int OGRNTFRasterLayer::GetFeatureCount( int bForce )
-
+int OGRNTFRasterLayer::GetFeatureCount( CPL_UNUSED int bForce )
 {
     return nFeatureCount;
-}
-
-/************************************************************************/
-/*                           GetSpatialRef()                            */
-/************************************************************************/
-
-OGRSpatialReference *OGRNTFRasterLayer::GetSpatialRef()
-
-{
-    return poDS->GetSpatialRef();
 }
 
 /************************************************************************/

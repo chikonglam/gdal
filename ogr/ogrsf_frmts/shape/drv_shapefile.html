@@ -56,11 +56,13 @@ any recoding. (Recoding support is new for GDAL/OGR 1.9.0)</p>
 attribute indexing.</p>
 
 <p>The spatial indexing uses the same .qix quadtree spatial index files that
-are used by UMN MapServer. Starting with OGR 1.10, it can also use the ESRI spatial index
-files (.sbn / .sbx).  Spatial indexing can accelerate spatially filtered
+are used by UMN MapServer. Spatial indexing can accelerate spatially filtered
 passes through large datasets to pick out a small area quite dramatically.</p>
 
-<p>To create a spatial index, issue a SQL command of the form</p>
+<p>Starting with OGR 1.10, it can also use the ESRI spatial index
+files (.sbn / .sbx), but writing them is not supported currently.</p> 
+
+<p>To create a spatial index (in .qix format), issue a SQL command of the form</p>
 <pre>CREATE SPATIAL INDEX ON tablename [DEPTH N]</pre>
 <p>where optional DEPTH specifier can be used to control number of index tree levels
 generated. If DEPTH is omitted, tree depth is estimated on basis of number of features
@@ -178,11 +180,19 @@ same applies for the deletion of a shape.</p>
 <h2>Size Issues</h2>
 
 <p>Geometry: The Shapefile format explicitly uses 32bit offsets and so cannot
-go over 8GB (it actually uses 32bit offsets to 16bit words).
-Hence, it is is not recommended to use a file size over 4GB.</p>
+go over 8GB (it actually uses 32bit offsets to 16bit words), but the OGR shapefile
+implementation has a limitation to 4GB.</p>
 
 <p>Attributes: The dbf format does not have any offsets in it, so it can be
 arbitrarily large.</p>
+
+<p>However, for compatibility with other software implementation, it is is not
+recommended to use a file size over 2GB for both .SHP and .DBF files.</p>
+
+<p>Starting with OGR 1.11, the 2GB_LIMIT=YES layer creation option can be used
+to strictly enforce that limit. For update mode, the SHAPE_2GB_LIMIT configuration option
+can be set to YES for similar effect. If nothing is set, a warning will be
+emitted when the 2GB limit is reached.</p>
 
 <h3>Dataset Creation Options</h3>
 
@@ -202,8 +212,12 @@ values are not supported, nor are MULTIPATCH files.</li>
 default value is "LDID/87".  It is not clear what other values may be
 appropriate.</li>
 
-<li> <b>RESIZE=</b><i>yes/no</i>: (OGR &gt;= 1.10.0) set the yes to resize fields to their optimal
-size. See above "Field sizes" section. Defaults to no.</li>
+<li> <b>RESIZE=</b><i>YES/NO</i>: (OGR &gt;= 1.10.0) set the YES to resize fields to their optimal
+size. See above "Field sizes" section. Defaults to NO.</li>
+
+<li> <b>2GB_LIMIT=</b><i>YES/NO</i>: (OGR &gt;= 1.11) set the YES to enforce the 2GB file size
+for .SHP or .DBF files. Defaults to NO.</li>
+
 </ul>
 
 <h3>VSI Virtual File System API support</h3>

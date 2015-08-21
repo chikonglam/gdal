@@ -1790,6 +1790,9 @@ SWIGINTERN int OSRSpatialReferenceShadow_IsVertical(OSRSpatialReferenceShadow *s
 SWIGINTERN int OSRSpatialReferenceShadow_EPSGTreatsAsLatLong(OSRSpatialReferenceShadow *self){
     return OSREPSGTreatsAsLatLong(self);
   }
+SWIGINTERN int OSRSpatialReferenceShadow_EPSGTreatsAsNorthingEasting(OSRSpatialReferenceShadow *self){
+    return OSREPSGTreatsAsNorthingEasting(self);
+  }
 
 #include <limits.h>
 #if !defined(SWIG_NO_LLONG_MAX)
@@ -3537,6 +3540,57 @@ XS(_wrap_SpatialReference_EPSGTreatsAsLatLong) {
     {
       CPLErrorReset();
       result = (int)OSRSpatialReferenceShadow_EPSGTreatsAsLatLong(arg1);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /* 
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
+    ST(argvi) = SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(result)); argvi++ ;
+    
+    XSRETURN(argvi);
+  fail:
+    
+    SWIG_croak_null();
+  }
+}
+
+
+XS(_wrap_SpatialReference_EPSGTreatsAsNorthingEasting) {
+  {
+    OSRSpatialReferenceShadow *arg1 = (OSRSpatialReferenceShadow *) 0 ;
+    void *argp1 = 0 ;
+    int res1 = 0 ;
+    int argvi = 0;
+    int result;
+    dXSARGS;
+    
+    if ((items < 1) || (items > 1)) {
+      SWIG_croak("Usage: SpatialReference_EPSGTreatsAsNorthingEasting(self);");
+    }
+    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OSRSpatialReferenceShadow, 0 |  0 );
+    if (!SWIG_IsOK(res1)) {
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "SpatialReference_EPSGTreatsAsNorthingEasting" "', argument " "1"" of type '" "OSRSpatialReferenceShadow *""'"); 
+    }
+    arg1 = reinterpret_cast< OSRSpatialReferenceShadow * >(argp1);
+    {
+      CPLErrorReset();
+      result = (int)OSRSpatialReferenceShadow_EPSGTreatsAsNorthingEasting(arg1);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
         SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
@@ -13162,6 +13216,7 @@ static swig_command_info swig_commands[] = {
 {"Geo::OSRc::SpatialReference_IsLocal", _wrap_SpatialReference_IsLocal},
 {"Geo::OSRc::SpatialReference_IsVertical", _wrap_SpatialReference_IsVertical},
 {"Geo::OSRc::SpatialReference_EPSGTreatsAsLatLong", _wrap_SpatialReference_EPSGTreatsAsLatLong},
+{"Geo::OSRc::SpatialReference_EPSGTreatsAsNorthingEasting", _wrap_SpatialReference_EPSGTreatsAsNorthingEasting},
 {"Geo::OSRc::SpatialReference_SetAuthority", _wrap_SpatialReference_SetAuthority},
 {"Geo::OSRc::SpatialReference_GetAttrValue", _wrap_SpatialReference_GetAttrValue},
 {"Geo::OSRc::SpatialReference_SetAttrValue", _wrap_SpatialReference_SetAttrValue},
@@ -14086,6 +14141,196 @@ XS(SWIG_init) {
   /*@SWIG:/usr/share/swig2.0/perl5/perltypemaps.swg,65,%set_constant@*/ do {
     SV *sv = get_sv((char*) SWIG_prefix "SRS_UL_LINK_Clarke_CONV", TRUE | 0x2 | GV_ADDMULTI);
     sv_setsv(sv, SWIG_FromCharPtr("0.2011661949"));
+    SvREADONLY_on(sv);
+  } while(0) /*@SWIG@*/;
+  /*@SWIG:/usr/share/swig2.0/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+    SV *sv = get_sv((char*) SWIG_prefix "SRS_UL_KILOMETER", TRUE | 0x2 | GV_ADDMULTI);
+    sv_setsv(sv, SWIG_FromCharPtr("Kilometer"));
+    SvREADONLY_on(sv);
+  } while(0) /*@SWIG@*/;
+  /*@SWIG:/usr/share/swig2.0/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+    SV *sv = get_sv((char*) SWIG_prefix "SRS_UL_KILOMETER_CONV", TRUE | 0x2 | GV_ADDMULTI);
+    sv_setsv(sv, SWIG_FromCharPtr("1000."));
+    SvREADONLY_on(sv);
+  } while(0) /*@SWIG@*/;
+  /*@SWIG:/usr/share/swig2.0/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+    SV *sv = get_sv((char*) SWIG_prefix "SRS_UL_DECIMETER", TRUE | 0x2 | GV_ADDMULTI);
+    sv_setsv(sv, SWIG_FromCharPtr("Decimeter"));
+    SvREADONLY_on(sv);
+  } while(0) /*@SWIG@*/;
+  /*@SWIG:/usr/share/swig2.0/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+    SV *sv = get_sv((char*) SWIG_prefix "SRS_UL_DECIMETER_CONV", TRUE | 0x2 | GV_ADDMULTI);
+    sv_setsv(sv, SWIG_FromCharPtr("0.1"));
+    SvREADONLY_on(sv);
+  } while(0) /*@SWIG@*/;
+  /*@SWIG:/usr/share/swig2.0/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+    SV *sv = get_sv((char*) SWIG_prefix "SRS_UL_CENTIMETER", TRUE | 0x2 | GV_ADDMULTI);
+    sv_setsv(sv, SWIG_FromCharPtr("Centimeter"));
+    SvREADONLY_on(sv);
+  } while(0) /*@SWIG@*/;
+  /*@SWIG:/usr/share/swig2.0/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+    SV *sv = get_sv((char*) SWIG_prefix "SRS_UL_CENTIMETER_CONV", TRUE | 0x2 | GV_ADDMULTI);
+    sv_setsv(sv, SWIG_FromCharPtr("0.01"));
+    SvREADONLY_on(sv);
+  } while(0) /*@SWIG@*/;
+  /*@SWIG:/usr/share/swig2.0/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+    SV *sv = get_sv((char*) SWIG_prefix "SRS_UL_MILLIMETER", TRUE | 0x2 | GV_ADDMULTI);
+    sv_setsv(sv, SWIG_FromCharPtr("Millimeter"));
+    SvREADONLY_on(sv);
+  } while(0) /*@SWIG@*/;
+  /*@SWIG:/usr/share/swig2.0/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+    SV *sv = get_sv((char*) SWIG_prefix "SRS_UL_MILLIMETER_CONV", TRUE | 0x2 | GV_ADDMULTI);
+    sv_setsv(sv, SWIG_FromCharPtr("0.001"));
+    SvREADONLY_on(sv);
+  } while(0) /*@SWIG@*/;
+  /*@SWIG:/usr/share/swig2.0/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+    SV *sv = get_sv((char*) SWIG_prefix "SRS_UL_INTL_NAUT_MILE", TRUE | 0x2 | GV_ADDMULTI);
+    sv_setsv(sv, SWIG_FromCharPtr("Nautical_Mile_International"));
+    SvREADONLY_on(sv);
+  } while(0) /*@SWIG@*/;
+  /*@SWIG:/usr/share/swig2.0/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+    SV *sv = get_sv((char*) SWIG_prefix "SRS_UL_INTL_NAUT_MILE_CONV", TRUE | 0x2 | GV_ADDMULTI);
+    sv_setsv(sv, SWIG_FromCharPtr("1852.0"));
+    SvREADONLY_on(sv);
+  } while(0) /*@SWIG@*/;
+  /*@SWIG:/usr/share/swig2.0/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+    SV *sv = get_sv((char*) SWIG_prefix "SRS_UL_INTL_INCH", TRUE | 0x2 | GV_ADDMULTI);
+    sv_setsv(sv, SWIG_FromCharPtr("Inch_International"));
+    SvREADONLY_on(sv);
+  } while(0) /*@SWIG@*/;
+  /*@SWIG:/usr/share/swig2.0/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+    SV *sv = get_sv((char*) SWIG_prefix "SRS_UL_INTL_INCH_CONV", TRUE | 0x2 | GV_ADDMULTI);
+    sv_setsv(sv, SWIG_FromCharPtr("0.0254"));
+    SvREADONLY_on(sv);
+  } while(0) /*@SWIG@*/;
+  /*@SWIG:/usr/share/swig2.0/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+    SV *sv = get_sv((char*) SWIG_prefix "SRS_UL_INTL_FOOT", TRUE | 0x2 | GV_ADDMULTI);
+    sv_setsv(sv, SWIG_FromCharPtr("Foot_International"));
+    SvREADONLY_on(sv);
+  } while(0) /*@SWIG@*/;
+  /*@SWIG:/usr/share/swig2.0/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+    SV *sv = get_sv((char*) SWIG_prefix "SRS_UL_INTL_FOOT_CONV", TRUE | 0x2 | GV_ADDMULTI);
+    sv_setsv(sv, SWIG_FromCharPtr("0.3048"));
+    SvREADONLY_on(sv);
+  } while(0) /*@SWIG@*/;
+  /*@SWIG:/usr/share/swig2.0/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+    SV *sv = get_sv((char*) SWIG_prefix "SRS_UL_INTL_YARD", TRUE | 0x2 | GV_ADDMULTI);
+    sv_setsv(sv, SWIG_FromCharPtr("Yard_International"));
+    SvREADONLY_on(sv);
+  } while(0) /*@SWIG@*/;
+  /*@SWIG:/usr/share/swig2.0/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+    SV *sv = get_sv((char*) SWIG_prefix "SRS_UL_INTL_YARD_CONV", TRUE | 0x2 | GV_ADDMULTI);
+    sv_setsv(sv, SWIG_FromCharPtr("0.9144"));
+    SvREADONLY_on(sv);
+  } while(0) /*@SWIG@*/;
+  /*@SWIG:/usr/share/swig2.0/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+    SV *sv = get_sv((char*) SWIG_prefix "SRS_UL_INTL_STAT_MILE", TRUE | 0x2 | GV_ADDMULTI);
+    sv_setsv(sv, SWIG_FromCharPtr("Statute_Mile_International"));
+    SvREADONLY_on(sv);
+  } while(0) /*@SWIG@*/;
+  /*@SWIG:/usr/share/swig2.0/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+    SV *sv = get_sv((char*) SWIG_prefix "SRS_UL_INTL_STAT_MILE_CONV", TRUE | 0x2 | GV_ADDMULTI);
+    sv_setsv(sv, SWIG_FromCharPtr("1609.344"));
+    SvREADONLY_on(sv);
+  } while(0) /*@SWIG@*/;
+  /*@SWIG:/usr/share/swig2.0/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+    SV *sv = get_sv((char*) SWIG_prefix "SRS_UL_INTL_FATHOM", TRUE | 0x2 | GV_ADDMULTI);
+    sv_setsv(sv, SWIG_FromCharPtr("Fathom_International"));
+    SvREADONLY_on(sv);
+  } while(0) /*@SWIG@*/;
+  /*@SWIG:/usr/share/swig2.0/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+    SV *sv = get_sv((char*) SWIG_prefix "SRS_UL_INTL_FATHOM_CONV", TRUE | 0x2 | GV_ADDMULTI);
+    sv_setsv(sv, SWIG_FromCharPtr("1.8288"));
+    SvREADONLY_on(sv);
+  } while(0) /*@SWIG@*/;
+  /*@SWIG:/usr/share/swig2.0/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+    SV *sv = get_sv((char*) SWIG_prefix "SRS_UL_INTL_CHAIN", TRUE | 0x2 | GV_ADDMULTI);
+    sv_setsv(sv, SWIG_FromCharPtr("Chain_International"));
+    SvREADONLY_on(sv);
+  } while(0) /*@SWIG@*/;
+  /*@SWIG:/usr/share/swig2.0/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+    SV *sv = get_sv((char*) SWIG_prefix "SRS_UL_INTL_CHAIN_CONV", TRUE | 0x2 | GV_ADDMULTI);
+    sv_setsv(sv, SWIG_FromCharPtr("20.1168"));
+    SvREADONLY_on(sv);
+  } while(0) /*@SWIG@*/;
+  /*@SWIG:/usr/share/swig2.0/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+    SV *sv = get_sv((char*) SWIG_prefix "SRS_UL_INTL_LINK", TRUE | 0x2 | GV_ADDMULTI);
+    sv_setsv(sv, SWIG_FromCharPtr("Link_International"));
+    SvREADONLY_on(sv);
+  } while(0) /*@SWIG@*/;
+  /*@SWIG:/usr/share/swig2.0/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+    SV *sv = get_sv((char*) SWIG_prefix "SRS_UL_INTL_LINK_CONV", TRUE | 0x2 | GV_ADDMULTI);
+    sv_setsv(sv, SWIG_FromCharPtr("0.201168"));
+    SvREADONLY_on(sv);
+  } while(0) /*@SWIG@*/;
+  /*@SWIG:/usr/share/swig2.0/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+    SV *sv = get_sv((char*) SWIG_prefix "SRS_UL_US_INCH", TRUE | 0x2 | GV_ADDMULTI);
+    sv_setsv(sv, SWIG_FromCharPtr("Inch_US_Surveyor"));
+    SvREADONLY_on(sv);
+  } while(0) /*@SWIG@*/;
+  /*@SWIG:/usr/share/swig2.0/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+    SV *sv = get_sv((char*) SWIG_prefix "SRS_UL_US_INCH_CONV", TRUE | 0x2 | GV_ADDMULTI);
+    sv_setsv(sv, SWIG_FromCharPtr("0.025400050800101603"));
+    SvREADONLY_on(sv);
+  } while(0) /*@SWIG@*/;
+  /*@SWIG:/usr/share/swig2.0/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+    SV *sv = get_sv((char*) SWIG_prefix "SRS_UL_US_YARD", TRUE | 0x2 | GV_ADDMULTI);
+    sv_setsv(sv, SWIG_FromCharPtr("Yard_US_Surveyor"));
+    SvREADONLY_on(sv);
+  } while(0) /*@SWIG@*/;
+  /*@SWIG:/usr/share/swig2.0/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+    SV *sv = get_sv((char*) SWIG_prefix "SRS_UL_US_YARD_CONV", TRUE | 0x2 | GV_ADDMULTI);
+    sv_setsv(sv, SWIG_FromCharPtr("0.914401828803658"));
+    SvREADONLY_on(sv);
+  } while(0) /*@SWIG@*/;
+  /*@SWIG:/usr/share/swig2.0/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+    SV *sv = get_sv((char*) SWIG_prefix "SRS_UL_US_CHAIN", TRUE | 0x2 | GV_ADDMULTI);
+    sv_setsv(sv, SWIG_FromCharPtr("Chain_US_Surveyor"));
+    SvREADONLY_on(sv);
+  } while(0) /*@SWIG@*/;
+  /*@SWIG:/usr/share/swig2.0/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+    SV *sv = get_sv((char*) SWIG_prefix "SRS_UL_US_CHAIN_CONV", TRUE | 0x2 | GV_ADDMULTI);
+    sv_setsv(sv, SWIG_FromCharPtr("20.11684023368047"));
+    SvREADONLY_on(sv);
+  } while(0) /*@SWIG@*/;
+  /*@SWIG:/usr/share/swig2.0/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+    SV *sv = get_sv((char*) SWIG_prefix "SRS_UL_US_STAT_MILE", TRUE | 0x2 | GV_ADDMULTI);
+    sv_setsv(sv, SWIG_FromCharPtr("Statute_Mile_US_Surveyor"));
+    SvREADONLY_on(sv);
+  } while(0) /*@SWIG@*/;
+  /*@SWIG:/usr/share/swig2.0/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+    SV *sv = get_sv((char*) SWIG_prefix "SRS_UL_US_STAT_MILE_CONV", TRUE | 0x2 | GV_ADDMULTI);
+    sv_setsv(sv, SWIG_FromCharPtr("1609.347218694437"));
+    SvREADONLY_on(sv);
+  } while(0) /*@SWIG@*/;
+  /*@SWIG:/usr/share/swig2.0/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+    SV *sv = get_sv((char*) SWIG_prefix "SRS_UL_INDIAN_YARD", TRUE | 0x2 | GV_ADDMULTI);
+    sv_setsv(sv, SWIG_FromCharPtr("Yard_Indian"));
+    SvREADONLY_on(sv);
+  } while(0) /*@SWIG@*/;
+  /*@SWIG:/usr/share/swig2.0/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+    SV *sv = get_sv((char*) SWIG_prefix "SRS_UL_INDIAN_YARD_CONV", TRUE | 0x2 | GV_ADDMULTI);
+    sv_setsv(sv, SWIG_FromCharPtr("0.91439523"));
+    SvREADONLY_on(sv);
+  } while(0) /*@SWIG@*/;
+  /*@SWIG:/usr/share/swig2.0/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+    SV *sv = get_sv((char*) SWIG_prefix "SRS_UL_INDIAN_FOOT", TRUE | 0x2 | GV_ADDMULTI);
+    sv_setsv(sv, SWIG_FromCharPtr("Foot_Indian"));
+    SvREADONLY_on(sv);
+  } while(0) /*@SWIG@*/;
+  /*@SWIG:/usr/share/swig2.0/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+    SV *sv = get_sv((char*) SWIG_prefix "SRS_UL_INDIAN_FOOT_CONV", TRUE | 0x2 | GV_ADDMULTI);
+    sv_setsv(sv, SWIG_FromCharPtr("0.30479841"));
+    SvREADONLY_on(sv);
+  } while(0) /*@SWIG@*/;
+  /*@SWIG:/usr/share/swig2.0/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+    SV *sv = get_sv((char*) SWIG_prefix "SRS_UL_INDIAN_CHAIN", TRUE | 0x2 | GV_ADDMULTI);
+    sv_setsv(sv, SWIG_FromCharPtr("Chain_Indian"));
+    SvREADONLY_on(sv);
+  } while(0) /*@SWIG@*/;
+  /*@SWIG:/usr/share/swig2.0/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+    SV *sv = get_sv((char*) SWIG_prefix "SRS_UL_INDIAN_CHAIN_CONV", TRUE | 0x2 | GV_ADDMULTI);
+    sv_setsv(sv, SWIG_FromCharPtr("20.11669506"));
     SvREADONLY_on(sv);
   } while(0) /*@SWIG@*/;
   /*@SWIG:/usr/share/swig2.0/perl5/perltypemaps.swg,65,%set_constant@*/ do {

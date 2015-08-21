@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: cpl_port.h 25450 2013-01-04 23:15:38Z rouault $
+ * $Id: cpl_port.h 27701 2014-09-20 15:07:02Z goatbar $
  *
  * Project:  CPL - Common Portability Library
  * Author:   Frank Warmerdam, warmerdam@pobox.com
@@ -8,6 +8,7 @@
  *
  ******************************************************************************
  * Copyright (c) 1998, 2005, Frank Warmerdam <warmerdam@pobox.com>
+ * Copyright (c) 2008-2013, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -168,7 +169,7 @@
 #  include <direct.h>
 #endif
 
-#ifdef _AIX
+#if !(defined(WIN32) || defined(WIN32CE))
 #  include <strings.h>
 #endif
 
@@ -554,6 +555,13 @@ static char *cvsid_aw() { return( cvsid_aw() ? ((char *) NULL) : cpl_cvsid ); }
 #  define CPL_CVSID(string)
 #endif
 
+/* Null terminated variadic */
+#if defined(__GNUC__) && __GNUC__ >= 4 && !defined(DOXYGEN_SKIP)
+#   define CPL_NULL_TERMINATED     __attribute__((__sentinel__))
+#else
+#   define CPL_NULL_TERMINATED
+#endif
+
 #if defined(__GNUC__) && __GNUC__ >= 3 && !defined(DOXYGEN_SKIP)
 #define CPL_PRINT_FUNC_FORMAT( format_idx, arg_idx )  __attribute__((__format__ (__printf__, format_idx, arg_idx)))
 #else
@@ -564,6 +572,13 @@ static char *cvsid_aw() { return( cvsid_aw() ? ((char *) NULL) : cpl_cvsid ); }
 #define CPL_WARN_UNUSED_RESULT                        __attribute__((warn_unused_result))
 #else
 #define CPL_WARN_UNUSED_RESULT
+#endif
+
+#if defined(__GNUC__) && __GNUC__ >= 4
+#  define CPL_UNUSED __attribute((__unused__))
+#else
+/* TODO: add cases for other compilers */
+#  define CPL_UNUSED
 #endif
 
 #if defined(__GNUC__) && __GNUC__ >= 3 && !defined(DOXYGEN_SKIP)

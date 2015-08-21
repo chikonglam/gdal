@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: fitdataset.cpp 23060 2011-09-05 17:58:30Z rouault $
+ * $Id: fitdataset.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  FIT Driver
  * Purpose:  Implement FIT Support - not using the SGI iflFIT library.
@@ -7,6 +7,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2001, Keyhole, Inc.
+ * Copyright (c) 2007-2011, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -32,7 +33,7 @@
 #include "gdal_pam.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: fitdataset.cpp 23060 2011-09-05 17:58:30Z rouault $");
+CPL_CVSID("$Id: fitdataset.cpp 27044 2014-03-16 23:41:27Z rouault $");
 
 CPL_C_START
  

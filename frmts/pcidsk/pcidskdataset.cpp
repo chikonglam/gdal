@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: pcidskdataset.cpp 20996 2010-10-28 18:38:15Z rouault $
+ * $Id: pcidskdataset.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  PCIDSK Database File
  * Purpose:  Read/write PCIDSK Database File used by the PCI software
@@ -7,6 +7,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2003, Andrey Kiselev <dron@ak4719.spb.edu>
+ * Copyright (c) 2009-2010, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -29,7 +30,7 @@
 
 #include "gdal_pcidsk.h"
 
-CPL_CVSID("$Id: pcidskdataset.cpp 20996 2010-10-28 18:38:15Z rouault $");
+CPL_CVSID("$Id: pcidskdataset.cpp 27044 2014-03-16 23:41:27Z rouault $");
 
 CPL_C_START
 void    GDALRegister_PCIDSK(void);

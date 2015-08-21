@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ndfdataset.cpp 21749 2011-02-19 12:25:29Z rouault $
+ * $Id: ndfdataset.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  NDF Driver
  * Purpose:  Implementation of NLAPS Data Format read support.
@@ -7,6 +7,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2005, Frank Warmerdam
+ * Copyright (c) 2008-2011, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -31,7 +32,7 @@
 #include "ogr_spatialref.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: ndfdataset.cpp 21749 2011-02-19 12:25:29Z rouault $");
+CPL_CVSID("$Id: ndfdataset.cpp 27044 2014-03-16 23:41:27Z rouault $");
 
 /************************************************************************/
 /* ==================================================================== */

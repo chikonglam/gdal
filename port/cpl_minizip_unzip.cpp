@@ -4,8 +4,11 @@
      - Undef EXPORT so that we are sure the symbols are not exported
      - Remove old C style function prototypes
      - Add support for ZIP64
+     - Recode filename to UTF-8 if GP 11 is unset
+     - Use Info-ZIP Unicode Path Extra Field (0x7075) to get UTF-8 filenames
+     - ZIP64: accept number_disk == 0 in unzlocal_SearchCentralDir64()
 
-   Copyright (C) 2007-2008 Even Rouault
+ * Copyright (c) 2008-2014, Even Rouault <even dot rouault at mines-paris dot org>
 
    Original licence available in port/LICENCE_minizip
 */
@@ -54,6 +57,7 @@ woven in by Terry Thorsen 1/2003.
 
 #include "zlib.h"
 #include "cpl_minizip_unzip.h"
+#include "cpl_string.h"
 
 #ifdef STDC
 #  include <stddef.h>
@@ -533,7 +537,8 @@ local uLong64 unzlocal_SearchCentralDir64(const zlib_filefunc_def* pzlib_filefun
     /* total number of disks */
     if (unzlocal_getLong(pzlib_filefunc_def,filestream,&uL)!=UNZ_OK)
         return 0;
-    if (uL != 1)
+    /* Some .zip declare 0 disks, such as in http://trac.osgeo.org/gdal/ticket/5615 */
+    if (uL != 1 && uL != 0)
         return 0;
 
     /* Goto end of central directory record */
@@ -805,15 +810,15 @@ local int unzlocal_GetCurrentFileInfoInternal OF((unzFile file,
                                                   uLong commentBufferSize));
 
 local int unzlocal_GetCurrentFileInfoInternal (unzFile file,
-                                                  unz_file_info *pfile_info,
-                                                  unz_file_info_internal
-                                                  *pfile_info_internal,
-                                                  char *szFileName,
-                                                  uLong fileNameBufferSize,
-                                                  void *extraField,
-                                                  uLong extraFieldBufferSize,
-                                                  char *szComment,
-                                                  uLong commentBufferSize)
+                                               unz_file_info *pfile_info,
+                                               unz_file_info_internal
+                                               *pfile_info_internal,
+                                               char *szFileName,
+                                               uLong fileNameBufferSize,
+                                               CPL_UNUSED void *extraField,
+                                               CPL_UNUSED uLong extraFieldBufferSize,
+                                               CPL_UNUSED char *szComment,
+                                               CPL_UNUSED uLong commentBufferSize)
 {
     unz_s* s;
     unz_file_info file_info;
@@ -822,6 +827,7 @@ local int unzlocal_GetCurrentFileInfoInternal (unzFile file,
     uLong uMagic;
     long lSeek=0;
     uLong uL;
+    int bHasUTF8Filename = FALSE;
 
     if (file==NULL)
         return UNZ_PARAMERROR;
@@ -904,8 +910,10 @@ local int unzlocal_GetCurrentFileInfoInternal (unzFile file,
             uSizeRead = fileNameBufferSize;
 
         if ((file_info.size_filename>0) && (fileNameBufferSize>0))
+        {
             if (ZREAD(s->z_filefunc, s->filestream,szFileName,uSizeRead)!=uSizeRead)
                 err=UNZ_ERRNO;
+        }
         lSeek -= uSizeRead;
     }
 
@@ -958,21 +966,89 @@ local int unzlocal_GetCurrentFileInfoInternal (unzFile file,
             /* ZIP64 extra fields */
             if (headerId == 0x0001)
             {
-                if (unzlocal_getLong64(&s->z_filefunc, s->filestream,&file_info.compressed_size) != UNZ_OK)
-                    err=UNZ_ERRNO;
+                uLong64 u64;
+                if( file_info.uncompressed_size == 0xFFFFFFFF )
+                {
+                    if (unzlocal_getLong64(&s->z_filefunc, s->filestream,&u64) != UNZ_OK)
+                        err=UNZ_ERRNO;
+                    file_info.uncompressed_size = u64;
+                }
 
-                if (unzlocal_getLong64(&s->z_filefunc, s->filestream,&file_info.uncompressed_size) != UNZ_OK)
-                    err=UNZ_ERRNO;
+                if( file_info.compressed_size == 0xFFFFFFFF )
+                {
+                    if (unzlocal_getLong64(&s->z_filefunc, s->filestream,&u64) != UNZ_OK)
+                        err=UNZ_ERRNO;
+                    file_info.compressed_size = u64;
+                }
 
                 /* Relative Header offset */
-                uLong64 u64;
-                if (unzlocal_getLong64(&s->z_filefunc, s->filestream,&u64) != UNZ_OK)
-                    err=UNZ_ERRNO;
+                if( file_info_internal.offset_curfile == 0xFFFFFFFF )
+                {
+                    if (unzlocal_getLong64(&s->z_filefunc, s->filestream,&u64) != UNZ_OK)
+                        err=UNZ_ERRNO;
+                    file_info_internal.offset_curfile = u64;
+                }
 
                 /* Disk Start Number */
-                uLong uL;
-                if (unzlocal_getLong(&s->z_filefunc, s->filestream,&uL) != UNZ_OK)
+                if( file_info.disk_num_start == 0xFFFF )
+                {
+                    uLong uL;
+                    if (unzlocal_getLong(&s->z_filefunc, s->filestream,&uL) != UNZ_OK)
+                        err=UNZ_ERRNO;
+                    file_info.disk_num_start = uL;
+                }
+            }
+            /* Info-ZIP Unicode Path Extra Field (0x7075) */
+            else if( headerId == 0x7075 && dataSize > 5 &&
+                     file_info.size_filename<=fileNameBufferSize &&
+                     szFileName != NULL )
+            {
+                int version;
+                if (unzlocal_getByte(&s->z_filefunc, s->filestream,&version) != UNZ_OK)
                     err=UNZ_ERRNO;
+                if( version != 1 )
+                {
+                    /* If version != 1, ignore that extra field */
+                    if (ZSEEK(s->z_filefunc, s->filestream,dataSize - 1,ZLIB_FILEFUNC_SEEK_CUR)!=0)
+                        err=UNZ_ERRNO;
+                }
+                else
+                {
+                    uLong nameCRC32;
+                    if (unzlocal_getLong(&s->z_filefunc, s->filestream,&nameCRC32) != UNZ_OK)
+                        err=UNZ_ERRNO;
+
+                    /* Check expected CRC for filename */
+                    if( nameCRC32 == crc32(0, (const Bytef*)szFileName, file_info.size_filename) )
+                    {
+                        uLong utf8Size = dataSize - 1 - 4;
+                        uLong uSizeRead ;
+
+                        bHasUTF8Filename = TRUE;
+
+                        if (utf8Size<fileNameBufferSize)
+                        {
+                            *(szFileName+utf8Size)='\0';
+                            uSizeRead = utf8Size;
+                        }
+                        else
+                            uSizeRead = fileNameBufferSize;
+
+                        if (ZREAD(s->z_filefunc, s->filestream,szFileName,uSizeRead)!=uSizeRead)
+                            err=UNZ_ERRNO;
+                        else if( utf8Size > fileNameBufferSize )
+                        {
+                            if (ZSEEK(s->z_filefunc, s->filestream,utf8Size - fileNameBufferSize,ZLIB_FILEFUNC_SEEK_CUR)!=0)
+                                err=UNZ_ERRNO;
+                        }
+                    }
+                    else
+                    {
+                        /* ignore unicode name if CRC mismatch */
+                        if (ZSEEK(s->z_filefunc, s->filestream,dataSize - 1- 4,ZLIB_FILEFUNC_SEEK_CUR)!=0)
+                                err=UNZ_ERRNO;
+                    }
+                }
             }
             else
             {
@@ -982,6 +1058,25 @@ local int unzlocal_GetCurrentFileInfoInternal (unzFile file,
 
             acc += 2 + 2 + dataSize;
         }
+    }
+    
+    if( !bHasUTF8Filename && szFileName != NULL &&
+        (file_info.flag & (1 << 11)) == 0 &&
+        file_info.size_filename<fileNameBufferSize )
+    {
+        const char* pszSrcEncoding = CPLGetConfigOption("CPL_ZIP_ENCODING",
+#ifdef _WIN32
+                                                        "CP_OEMCP"
+#else
+                                                        "CP437"
+#endif
+                                                        );
+        char* pszRecoded = CPLRecode(szFileName, pszSrcEncoding, CPL_ENC_UTF8);
+        if( pszRecoded != NULL && strlen(pszRecoded) < fileNameBufferSize)
+        {
+            strcpy(szFileName, pszRecoded);
+        }
+        CPLFree(pszRecoded);
     }
 
 #if 0

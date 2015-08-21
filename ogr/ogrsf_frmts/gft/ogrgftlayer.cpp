@@ -1,12 +1,12 @@
 /******************************************************************************
- * $Id: ogrgftlayer.cpp 22268 2011-04-30 13:10:40Z rouault $
+ * $Id: ogrgftlayer.cpp 27741 2014-09-26 19:20:02Z goatbar $
  *
  * Project:  GFT Translator
  * Purpose:  Implements OGRGFTLayer class.
  * Author:   Even Rouault, <even dot rouault at mines dash paris dot org>
  *
  ******************************************************************************
- * Copyright (c) 2011, Even Rouault <even dot rouault at mines dash paris dot org>
+ * Copyright (c) 2011-2013, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -30,7 +30,7 @@
 #include "ogr_gft.h"
 #include "cpl_minixml.h"
 
-CPL_CVSID("$Id: ogrgftlayer.cpp 22268 2011-04-30 13:10:40Z rouault $");
+CPL_CVSID("$Id: ogrgftlayer.cpp 27741 2014-09-26 19:20:02Z goatbar $");
 
 /************************************************************************/
 /*                            OGRGFTLayer()                             */
@@ -340,8 +340,9 @@ static OGRGeometry* ParseKMLGeometry(/* const */ CPLXMLNode* psXML)
             poColl = new OGRMultiLineString();
         else if (eType == wkbPolygon)
             poColl = new OGRMultiPolygon();
-        else
+        else {
             CPLAssert(0);
+        }
 
         psIter = psXML->psChild;
         for(psIter = psXML->psChild; psIter; psIter = psIter->psNext)
@@ -525,25 +526,6 @@ int OGRGFTLayer::TestCapability( const char * pszCap )
 }
 
 /************************************************************************/
-/*                         GetGeometryColumn()                          */
-/************************************************************************/
-
-const char *OGRGFTLayer::GetGeometryColumn()
-{
-    GetLayerDefn();
-    if (iGeometryField < 0)
-        return "";
-
-    if (iGeometryField == poFeatureDefn->GetFieldCount())
-    {
-        CPLAssert(bHiddenGeometryField);
-        return GetDefaultGeometryColumnName();
-    }
-
-    return poFeatureDefn->GetFieldDefn(iGeometryField)->GetNameRef();
-}
-
-/************************************************************************/
 /*                         ParseCSVResponse()                           */
 /************************************************************************/
 
@@ -648,20 +630,6 @@ CPLString OGRGFTLayer::PatchSQL(const char* pszSQL)
 }
 
 /************************************************************************/
-/*                          GetSpatialRef()                             */
-/************************************************************************/
-
-OGRSpatialReference* OGRGFTLayer::GetSpatialRef()
-{
-    GetLayerDefn();
-
-    if (iGeometryField < 0)
-        return NULL;
-
-    return poSRS;
-}
-
-/************************************************************************/
 /*                         LaunderColName()                             */
 /************************************************************************/
 
@@ -677,4 +645,24 @@ CPLString OGRGFTLayer::LaunderColName(const char* pszColName)
             osLaunderedColName += pszColName[i];
     }
     return osLaunderedColName;
+}
+
+/************************************************************************/
+/*                         SetGeomFieldName()                           */
+/************************************************************************/
+
+void OGRGFTLayer::SetGeomFieldName()
+{
+    if (iGeometryField >= 0 && poFeatureDefn->GetGeomFieldCount() > 0)
+    {
+        const char* pszGeomColName;
+        if (iGeometryField == poFeatureDefn->GetFieldCount())
+        {
+            CPLAssert(bHiddenGeometryField);
+            pszGeomColName = GetDefaultGeometryColumnName();
+        }
+        else
+            pszGeomColName = poFeatureDefn->GetFieldDefn(iGeometryField)->GetNameRef();
+        poFeatureDefn->GetGeomFieldDefn(0)->SetName(pszGeomColName);
+    }
 }

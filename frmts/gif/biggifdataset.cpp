@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: biggifdataset.cpp 24608 2012-06-24 21:55:29Z rouault $
+ * $Id: biggifdataset.cpp 28278 2015-01-03 14:00:06Z rouault $
  *
  * Project:  BIGGIF Driver
  * Purpose:  Implement GDAL support for reading large GIF files in a 
@@ -9,6 +9,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2001-2008, Frank Warmerdam <warmerdam@pobox.com>
+ * Copyright (c) 2009-2013, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -33,7 +34,7 @@
 #include "cpl_string.h"
 #include "gifabstractdataset.h"
 
-CPL_CVSID("$Id: biggifdataset.cpp 24608 2012-06-24 21:55:29Z rouault $");
+CPL_CVSID("$Id: biggifdataset.cpp 28278 2015-01-03 14:00:06Z rouault $");
 
 CPL_C_START
 void	GDALRegister_BIGGIF(void);
@@ -189,7 +190,7 @@ BIGGifRasterBand::~BIGGifRasterBand()
 /*                             IReadBlock()                             */
 /************************************************************************/
 
-CPLErr BIGGifRasterBand::IReadBlock( int nBlockXOff, int nBlockYOff,
+CPLErr BIGGifRasterBand::IReadBlock( CPL_UNUSED int nBlockXOff, int nBlockYOff,
                                   void * pImage )
 
 {
@@ -310,12 +311,13 @@ int BIGGIFDataset::CloseDependentDatasets()
         bHasDroppedRef = TRUE;
 
         CPLString osTempFilename = poWorkDS->GetDescription();
+        GDALDriver* poDrv = poWorkDS->GetDriver();
 
         GDALClose( (GDALDatasetH) poWorkDS );
         poWorkDS = NULL;
 
-        GDALDriver *poGTiff = (GDALDriver *) GDALGetDriverByName( "GTiff" );
-        poGTiff->Delete( osTempFilename );
+        if( poDrv != NULL )
+            poDrv->Delete( osTempFilename );
 
         poWorkDS = NULL;
     }
@@ -337,7 +339,7 @@ CPLErr BIGGIFDataset::ReOpen()
 /*      If the file is already open, close it so we can restart.        */
 /* -------------------------------------------------------------------- */
     if( hGifFile != NULL )
-        DGifCloseFile( hGifFile );
+        GIFAbstractDataset::myDGifCloseFile( hGifFile );
 
 /* -------------------------------------------------------------------- */
 /*      If we are actually reopening, then we assume that access to     */
@@ -371,12 +373,7 @@ CPLErr BIGGIFDataset::ReOpen()
     VSIFSeekL( fp, 0, SEEK_SET );
 
     nLastLineRead = -1;
-#if defined(GIFLIB_MAJOR) && GIFLIB_MAJOR >= 5
-    int nError;
-    hGifFile = DGifOpen( fp, VSIGIFReadFunc, &nError );
-#else
-    hGifFile = DGifOpen( fp, VSIGIFReadFunc );
-#endif
+    hGifFile = GIFAbstractDataset::myDGifOpen( fp, VSIGIFReadFunc );
     if( hGifFile == NULL )
     {
         CPLError( CE_Failure, CPLE_OpenFailed, 
@@ -411,7 +408,7 @@ CPLErr BIGGIFDataset::ReOpen()
 
     if( RecordType != IMAGE_DESC_RECORD_TYPE )
     {
-        DGifCloseFile( hGifFile );
+        GIFAbstractDataset::myDGifCloseFile( hGifFile );
         hGifFile = NULL;
 
         CPLError( CE_Failure, CPLE_OpenFailed, 
@@ -421,7 +418,7 @@ CPLErr BIGGIFDataset::ReOpen()
     
     if (DGifGetImageDesc(hGifFile) == GIF_ERROR)
     {
-        DGifCloseFile( hGifFile );
+        GIFAbstractDataset::myDGifCloseFile( hGifFile );
         hGifFile = NULL;
 
         CPLError( CE_Failure, CPLE_OpenFailed, 
@@ -481,6 +478,13 @@ GDALDataset *BIGGIFDataset::Open( GDALOpenInfo * poOpenInfo )
     
     poDS->nRasterXSize = poDS->hGifFile->SavedImages[0].ImageDesc.Width;
     poDS->nRasterYSize = poDS->hGifFile->SavedImages[0].ImageDesc.Height;
+    if( poDS->hGifFile->SavedImages[0].ImageDesc.ColorMap == NULL &&
+        poDS->hGifFile->SColorMap == NULL )
+    {
+        CPLDebug("GIF", "Skipping image without color table");
+        delete poDS;
+        return NULL;
+    }
 
 /* -------------------------------------------------------------------- */
 /*      Create band information objects.                                */

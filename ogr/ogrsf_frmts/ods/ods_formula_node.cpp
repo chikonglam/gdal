@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ods_formula_node.cpp 25340 2012-12-21 20:30:21Z rouault $
+ * $Id: ods_formula_node.cpp 27741 2014-09-26 19:20:02Z goatbar $
  *
  * Component: ODS formula Engine
  * Purpose: Implementation of the ods_formula_node class used to represent a
@@ -8,7 +8,7 @@
  * 
  ******************************************************************************
  * Copyright (C) 2010 Frank Warmerdam <warmerdam@pobox.com>
- * Copyright (c) 2012, Even Rouault <even dot rouault at mines dash paris dot org>
+ * Copyright (c) 2012-2013, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -250,7 +250,7 @@ void ods_formula_node::Dump( FILE * fp, int depth )
     char        spaces[60];
     int         i;
 
-    for( i = 0; i < depth*2 && i < (int) sizeof(spaces); i++ )
+    for( i = 0; i < depth*2 && i < (int) sizeof(spaces) - 1; i++ )
         spaces[i] = ' ';
     spaces[i] = '\0';
 
@@ -512,8 +512,9 @@ int ods_formula_node::EvaluateIF(IODSCellEvaluator* poEvaluator)
     CPLAssert(papoSubExpr[0]->eNodeType == SNT_CONSTANT );
     CPLAssert(papoSubExpr[1]->eNodeType == SNT_CONSTANT );
     if (nSubExprCount == 3)
+    {
         CPLAssert(papoSubExpr[2]->eNodeType == SNT_CONSTANT );
-
+    }
     int bCond = FALSE;
     if (papoSubExpr[0]->field_type == ODS_FIELD_TYPE_INTEGER)
     {

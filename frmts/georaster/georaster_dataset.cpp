@@ -4,10 +4,11 @@
  * Name:     georaster_dataset.cpp
  * Project:  Oracle Spatial GeoRaster Driver
  * Purpose:  Implement GeoRasterDataset Methods
- * Author:   Ivan Lucena [ivan.lucena@pmldnet.com]
+ * Author:   Ivan Lucena [ivan.lucena at oracle.com]
  *
  ******************************************************************************
  * Copyright (c) 2008, Ivan Lucena
+ * Copyright (c) 2013, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files ( the "Software" ),
@@ -182,7 +183,7 @@ GDALDataset* GeoRasterDataset::Open( GDALOpenInfo* poOpenInfo )
     }
 
     //  -------------------------------------------------------------------
-    //  Assign GeoRaster informationf
+    //  Assign GeoRaster information
     //  -------------------------------------------------------------------
 
     poGRD->poGeoRaster   = poGRW;
@@ -676,6 +677,24 @@ GDALDataset *GeoRasterDataset::Create( const char *pszFilename,
         }
     }
 
+    pszFetched = CSLFetchNameValue( papszOptions, "OBJECTTABLE" );
+
+    if( pszFetched )
+    {
+        int nVersion = poGRW->poConnection->GetVersion();
+        if( nVersion <= 11 )
+        {
+            CPLError( CE_Failure, CPLE_IllegalArg, 
+                "Driver create-option OBJECTTABLE not "
+                "supported on Oracle %d", nVersion );
+            delete poGRD;
+            return NULL;
+        }
+    }
+
+    poGRD->poGeoRaster->bCreateObjectTable = (bool)
+        CSLFetchBoolean( papszOptions, "OBJECTTABLE", FALSE );
+
     //  -------------------------------------------------------------------
     //  Create a SDO_GEORASTER object on the server
     //  -------------------------------------------------------------------
@@ -717,6 +736,13 @@ GDALDataset *GeoRasterDataset::Create( const char *pszFilename,
     //  Load aditional options
     //  -------------------------------------------------------------------
 
+    pszFetched = CSLFetchNameValue( papszOptions, "VATNAME" );
+
+    if( pszFetched )
+    {
+        poGRW->sValueAttributeTab = pszFetched;
+    }
+
     pszFetched = CSLFetchNameValue( papszOptions, "SRID" );
 
     if( pszFetched )
@@ -725,7 +751,7 @@ GDALDataset *GeoRasterDataset::Create( const char *pszFilename,
         poGRD->poGeoRaster->SetGeoReference( atoi( pszFetched ) );
     }
 
-    poGRD->poGeoRaster->bGenSpatialIndex = 
+    poGRD->poGeoRaster->bGenSpatialIndex = (bool)
         CSLFetchBoolean( papszOptions, "SPATIALEXTENT", TRUE );
 
     pszFetched = CSLFetchNameValue( papszOptions, "EXTENTSRID" );
@@ -757,6 +783,33 @@ GDALDataset *GeoRasterDataset::Create( const char *pszFilename,
     if ( nQuality > 0 )
     {
         poGRD->poGeoRaster->nCompressQuality = nQuality;
+    }
+
+
+    pszFetched = CSLFetchNameValue( papszOptions, "GENPYRAMID" );
+
+    if( pszFetched != NULL )
+    {
+        if (!(EQUAL(pszFetched, "NN") ||
+              EQUAL(pszFetched, "BILINEAR") ||
+              EQUAL(pszFetched, "BIQUADRATIC") ||
+              EQUAL(pszFetched, "CUBIC") ||
+              EQUAL(pszFetched, "AVERAGE4") ||
+              EQUAL(pszFetched, "AVERAGE16")))
+        {
+            CPLError( CE_Warning, CPLE_IllegalArg, "Wrong resample method for pyramid (%s)", pszFetched);
+        }
+
+        poGRD->poGeoRaster->bGenPyramid = true;
+        poGRD->poGeoRaster->sPyramidResampling = pszFetched;
+    }
+
+    pszFetched = CSLFetchNameValue( papszOptions, "GENPYRLEVELS" );
+
+    if( pszFetched != NULL )
+    {
+        poGRD->poGeoRaster->bGenPyramid = true;
+        poGRD->poGeoRaster->nPyramidLevels = atoi(pszFetched);
     }
 
     //  -------------------------------------------------------------------
@@ -813,9 +866,18 @@ GDALDataset *GeoRasterDataset::CreateCopy( const char* pszFilename,
 
     double adfTransform[6];
 
-    poSrcDS->GetGeoTransform( adfTransform );
-
-    poDstDS->SetGeoTransform( adfTransform );
+    if ( poSrcDS->GetGeoTransform( adfTransform ) == CE_None )
+    {
+        if ( ! ( adfTransform[0] == 0.0 && 
+                 adfTransform[1] == 1.0 &&
+                 adfTransform[2] == 0.0 &&
+                 adfTransform[3] == 0.0 &&
+                 adfTransform[4] == 0.0 &&
+                 adfTransform[5] == 1.0 ) ) 
+        {
+            poDstDS->SetGeoTransform( adfTransform );
+        }
+    }
 
     if( ! poDstDS->bForcedSRID ) /* forced by create option SRID */
     {
@@ -840,14 +902,20 @@ GDALDataset *GeoRasterDataset::CreateCopy( const char* pszFilename,
 
     int    bHasNoDataValue = FALSE;
     double dfNoDataValue = 0.0;
-    double dfMin, dfMax, dfStdDev, dfMean;
+    double dfMin = 0.0, dfMax = 0.0, dfStdDev = 0.0, dfMean = 0.0;
+    double dfMedian = 0.0, dfMode = 0.0;
     int    iBand = 0;
 
     for( iBand = 1; iBand <= poSrcDS->GetRasterCount(); iBand++ )
     {
-        GDALRasterBand* poSrcBand = poSrcDS->GetRasterBand( iBand );
+        GDALRasterBand*      poSrcBand = poSrcDS->GetRasterBand( iBand );
         GeoRasterRasterBand* poDstBand = (GeoRasterRasterBand*) 
-                                    poDstDS->GetRasterBand( iBand );
+                                         poDstDS->GetRasterBand( iBand );
+
+        // ----------------------------------------------------------------
+        //  Copy Color Table
+        // ----------------------------------------------------------------
+
         GDALColorTable* poColorTable = poSrcBand->GetColorTable(); 
 
         if( poColorTable )
@@ -855,18 +923,74 @@ GDALDataset *GeoRasterDataset::CreateCopy( const char* pszFilename,
             poDstBand->SetColorTable( poColorTable );
         }
 
+        // ----------------------------------------------------------------
+        //  Copy statitics information, without median and mode
+        // ----------------------------------------------------------------
+
         if( poSrcBand->GetStatistics( false, false, &dfMin, &dfMax,
-            &dfStdDev, &dfMean ) == CE_None )
+            &dfMean, &dfStdDev ) == CE_None )
         {
-            poDstBand->SetStatistics( dfMin, dfMax, dfStdDev, dfMean );
+            poDstBand->SetStatistics( dfMin, dfMax, dfMean, dfStdDev );
+
+            /* That will not be recorded in the GeoRaster metadata since it
+             * doesn't have median and mode, so those values are only useful
+             * at runtime.
+             */
         }
 
-        const GDALRasterAttributeTable *poRAT = poSrcBand->GetDefaultRAT();
+        // ----------------------------------------------------------------
+        //  Copy statitics metadata information, including median and mode
+        // ----------------------------------------------------------------
+
+        const char *pszMin     = poSrcBand->GetMetadataItem( "STATISTICS_MINIMUM" );
+        const char *pszMax     = poSrcBand->GetMetadataItem( "STATISTICS_MAXIMUM" );
+        const char *pszMean    = poSrcBand->GetMetadataItem( "STATISTICS_MEAN" );
+        const char *pszMedian  = poSrcBand->GetMetadataItem( "STATISTICS_MEDIAN" );
+        const char *pszMode    = poSrcBand->GetMetadataItem( "STATISTICS_MODE" );
+        const char *pszStdDev  = poSrcBand->GetMetadataItem( "STATISTICS_STDDEV" );
+        const char *pszSkipFX  = poSrcBand->GetMetadataItem( "STATISTICS_SKIPFACTORX" );
+        const char *pszSkipFY  = poSrcBand->GetMetadataItem( "STATISTICS_SKIPFACTORY" );
+
+        if ( pszMin    != NULL && pszMax  != NULL && pszMean   != NULL &&
+             pszMedian != NULL && pszMode != NULL && pszStdDev != NULL )
+        {
+            dfMin        = CPLScanDouble( pszMin, MAX_DOUBLE_STR_REP );
+            dfMax        = CPLScanDouble( pszMax, MAX_DOUBLE_STR_REP );
+            dfMean       = CPLScanDouble( pszMean, MAX_DOUBLE_STR_REP );
+            dfMedian     = CPLScanDouble( pszMedian, MAX_DOUBLE_STR_REP );
+            dfMode       = CPLScanDouble( pszMode, MAX_DOUBLE_STR_REP );
+
+            if ( ! ( ( dfMin    > dfMax ) ||
+                     ( dfMean   > dfMax ) || ( dfMean   < dfMin ) ||
+                     ( dfMedian > dfMax ) || ( dfMedian < dfMin ) ||
+                     ( dfMode   > dfMax ) || ( dfMode   < dfMin ) ) )
+            {
+                if ( ! pszSkipFX )
+                {
+                    pszSkipFX = pszSkipFY != NULL ? pszSkipFY : "1";
+                }
+
+                poDstBand->poGeoRaster->SetStatistics( iBand,
+                                                       pszMin, pszMax, pszMean, 
+                                                       pszMedian, pszMode,
+                                                       pszStdDev, pszSkipFX );
+            }
+        }
+
+        // ----------------------------------------------------------------
+        //  Copy Raster Attribute Table (RAT)
+        // ----------------------------------------------------------------
+
+        GDALRasterAttributeTableH poRAT = GDALGetDefaultRAT( poSrcBand );
 
         if( poRAT != NULL )
         {
-            poDstBand->SetDefaultRAT( poRAT );
+            poDstBand->SetDefaultRAT( (GDALRasterAttributeTable*) poRAT );
         }
+
+        // ----------------------------------------------------------------
+        //  Copy NoData Value
+        // ----------------------------------------------------------------
 
         dfNoDataValue = poSrcBand->GetNoDataValue( &bHasNoDataValue );
 
@@ -1101,18 +1225,11 @@ CPLErr GeoRasterDataset::GetGeoTransform( double *padfTransform )
         return CE_Failure;
     }
 
-    memcpy( padfTransform, adfGeoTransform, sizeof(double) * 6 );
-    
-    if( bGeoTransform )
-    {
-        return CE_None;
-    }
-
-    if( ! poGeoRaster->bIsReferenced )
+    if( poGeoRaster->nSRID == 0 )
     {
         return CE_Failure;
     }
-
+    
     memcpy( padfTransform, adfGeoTransform, sizeof(double) * 6 );
 
     bGeoTransform = true;
@@ -1152,6 +1269,8 @@ const char* GeoRasterDataset::GetProjectionRef( void )
     // Check if the SRID is a valid EPSG code
     // --------------------------------------------------------------------
 
+    CPLPushErrorHandler( CPLQuietErrorHandler );
+
     if( oSRS.importFromEPSG( poGeoRaster->nSRID ) == OGRERR_NONE )
     {
         /*
@@ -1162,9 +1281,13 @@ const char* GeoRasterDataset::GetProjectionRef( void )
 
         if( oSRS.exportToWkt( &pszProjection ) == OGRERR_NONE )
         {
+            CPLPopErrorHandler();
+
             return pszProjection;
         }
     }
+
+    CPLPopErrorHandler();
 
     // --------------------------------------------------------------------
     // Try to interpreter the WKT text
@@ -1178,10 +1301,10 @@ const char* GeoRasterDataset::GetProjectionRef( void )
     }
 
     // ----------------------------------------------------------------
-    // Decorate with EPSG Authority codes
+    // Decorate with ORACLE Authority codes
     // ----------------------------------------------------------------
 
-    oSRS.SetAuthority( oSRS.GetRoot()->GetValue(), "EPSG", poGeoRaster->nSRID );
+    oSRS.SetAuthority(oSRS.GetRoot()->GetValue(), "ORACLE", poGeoRaster->nSRID);
 
     int nSpher = OWParseEPSG( oSRS.GetAttrValue("GEOGCS|DATUM|SPHEROID") );
 
@@ -1327,7 +1450,7 @@ CPLErr GeoRasterDataset::SetProjection( const char *pszProjString )
 
     if( eOGRErr != OGRERR_NONE )
     {
-        poGeoRaster->SetGeoReference( UNKNOWN_CRS );
+        poGeoRaster->SetGeoReference( DEFAULT_CRS );
 
         return CE_Failure;
     }
@@ -1351,7 +1474,7 @@ CPLErr GeoRasterDataset::SetProjection( const char *pszProjString )
 
     if( pszAuthName != NULL && pszAuthCode != NULL )
     {
-        if( EQUAL( pszAuthName, "Oracle" ) || 
+        if( EQUAL( pszAuthName, "ORACLE" ) || 
             EQUAL( pszAuthName, "EPSG" ) )
         {
             poGeoRaster->SetGeoReference( atoi( pszAuthCode ) );
@@ -1431,6 +1554,17 @@ CPLErr GeoRasterDataset::SetProjection( const char *pszProjString )
     CPLFree( pszCloneWKT );
     
     return eError;
+}
+
+/************************************************************************/
+/*                      GetMetadataDomainList()                         */
+/************************************************************************/
+
+char **GeoRasterDataset::GetMetadataDomainList()
+{
+    return BuildMetadataDomainList(GDALDataset::GetMetadataDomainList(),
+                                   TRUE,
+                                   "SUBDATASETS", NULL);
 }
 
 //  ---------------------------------------------------------------------------
@@ -1922,51 +2056,57 @@ void CPL_DLL GDALRegister_GEOR()
                                    "Float64 CFloat32 CFloat64" );
         poDriver->SetMetadataItem( GDAL_DMD_CREATIONOPTIONLIST,
 "<CreationOptionList>"
-"  <Option name='DESCRIPTION' type='string' description='Table Description' "
-                                           "default='(RASTER MDSYS.SDO_GEORASTER)'/>"
-"  <Option name='INSERT'      type='string' description='Column Values' "
-                                           "default='(SDO_GEOR.INIT())'/>"
+"  <Option name='DESCRIPTION' type='string' description='Table Description'/>"
+"  <Option name='INSERT'      type='string' description='Column Values'/>"
 "  <Option name='BLOCKXSIZE'  type='int'    description='Column Block Size' "
                                            "default='512'/>"
 "  <Option name='BLOCKYSIZE'  type='int'    description='Row Block Size' "
                                            "default='512'/>"
-"  <Option name='BLOCKBSIZE'  type='int'    description='Band Block Size' "
-                                           "default='1'/>"
-"  <Option name='SRID'        type='int'    description='Overwrite EPSG code' "
-                                           "default='0'/>"
-"  <Option name='SPATIALEXTENT' type='boolean' "
-                                           "description='Generate Spatial Extent' "
-                                           "default='TRUE'/>"
-"  <Option name='EXTENTSRID'  type='int'    description='Spatial ExtentSRID code' "
-                                           "default='0'/>"
-"  <Option name='NBITS'       type='int'    description='BITS for sub-byte "
-                                           "data types (1,2,4) bits'/>"
-"  <Option name='INTERLEAVE'  type='string-select' default='BAND'>"
-"       <Value>BAND</Value>"
-"       <Value>PIXEL</Value>"
-"       <Value>LINE</Value>"
-"       <Value>BSQ</Value>"
-"       <Value>BIP</Value>"
-"       <Value>BIL</Value>"
-"   </Option>"
-"  <Option name='COMPRESS'    type='string-select' default='NONE'>"
-"       <Value>NONE</Value>"
-"       <Value>JPEG-B</Value>"
-"       <Value>JPEG-F</Value>"
-"       <Value>DEFLATE</Value>"
-"  </Option>"
+"  <Option name='BLOCKBSIZE'  type='int'    description='Band Block Size'/>"
 "  <Option name='BLOCKING'    type='string-select' default='YES'>"
 "       <Value>YES</Value>"
 "       <Value>NO</Value>"
 "       <Value>OPTIMALPADDING</Value>"
 "  </Option>"
+"  <Option name='SRID'        type='int'    description='Overwrite EPSG code'/>"
+"  <Option name='GENPYRAMID'  type='string-select' "
+" description='Generate Pyramid, inform resampling method'>"
+"       <Value>NN</Value>"
+"       <Value>BILINEAR</Value>"
+"       <Value>BIQUADRATIC</Value>"
+"       <Value>CUBIC</Value>"
+"       <Value>AVERAGE4</Value>"
+"       <Value>AVERAGE16</Value>"
+"  </Option>"
+"  <Option name='GENPYRLEVELS'  type='int'  description='Number of pyramid level to generate'/>"
+"  <Option name='OBJECTTABLE' type='boolean' "
+                                           "description='Create RDT as object table'/>"
+"  <Option name='SPATIALEXTENT' type='boolean' "
+                                           "description='Generate Spatial Extent' "
+                                           "default='TRUE'/>"
+"  <Option name='EXTENTSRID'  type='int'    description='Spatial ExtentSRID code'/>"
 "  <Option name='COORDLOCATION'    type='string-select' default='CENTER'>"
 "       <Value>CENTER</Value>"
 "       <Value>UPPERLEFT</Value>"
 "  </Option>"
+"  <Option name='VATNAME'     type='string' description='Value Attribute Table Name'/>"
+"  <Option name='NBITS'       type='int'    description='BITS for sub-byte "
+                                           "data types (1,2,4) bits'/>"
+"  <Option name='INTERLEAVE'  type='string-select'>"
+"       <Value>BSQ</Value>"
+"       <Value>BIP</Value>"
+"       <Value>BIL</Value>"
+"   </Option>"
+"  <Option name='COMPRESS'    type='string-select'>"
+"       <Value>NONE</Value>"
+"       <Value>JPEG-B</Value>"
+"       <Value>JPEG-F</Value>"
+"       <Value>DEFLATE</Value>"
+"  </Option>"
 "  <Option name='QUALITY'     type='int'    description='JPEG quality 0..100' "
                                            "default='75'/>"
 "</CreationOptionList>" );
+
         poDriver->pfnOpen       = GeoRasterDataset::Open;
         poDriver->pfnCreate     = GeoRasterDataset::Create;
         poDriver->pfnCreateCopy = GeoRasterDataset::CreateCopy;

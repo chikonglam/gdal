@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: sdtsrasterreader.cpp 25839 2013-04-02 18:54:20Z rouault $
+ * $Id: sdtsrasterreader.cpp 27729 2014-09-24 00:40:16Z goatbar $
  *
  * Project:  SDTS Translator
  * Purpose:  Implementation of SDTSRasterReader class.
@@ -7,6 +7,7 @@
  *
  ******************************************************************************
  * Copyright (c) 1999, Frank Warmerdam
+ * Copyright (c) 2008-2013, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -29,7 +30,7 @@
 
 #include "sdts_al.h"
 
-CPL_CVSID("$Id: sdtsrasterreader.cpp 25839 2013-04-02 18:54:20Z rouault $");
+CPL_CVSID("$Id: sdtsrasterreader.cpp 27729 2014-09-24 00:40:16Z goatbar $");
 
 /************************************************************************/
 /*                          SDTSRasterReader()                          */
@@ -362,8 +363,7 @@ int SDTSRasterReader::Open( SDTS_CATD * poCATD, SDTS_IREF * poIREF,
 
   */
 
-int SDTSRasterReader::GetBlock( int nXOffset, int nYOffset, void * pData )
-
+int SDTSRasterReader::GetBlock( CPL_UNUSED int nXOffset, int nYOffset, void * pData )
 {
     DDFRecord   *poRecord = NULL;
     int         nBytesPerValue;

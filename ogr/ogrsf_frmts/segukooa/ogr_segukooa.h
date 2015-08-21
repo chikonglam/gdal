@@ -1,12 +1,12 @@
 /******************************************************************************
- * $Id: ogr_segukooa.h 23220 2011-10-11 21:50:55Z rouault $
+ * $Id: ogr_segukooa.h 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  SEG-P1 / UKOOA P1-90 Translator
  * Purpose:  Definition of classes for OGR SEG-P1 / UKOOA P1-90 driver.
  * Author:   Even Rouault, even dot rouault at mines dash paris dot org
  *
  ******************************************************************************
- * Copyright (c) 2011, Even Rouault <even dot rouault at mines dash paris dot org>
+ * Copyright (c) 2011, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -77,9 +77,6 @@ class OGRUKOOAP190Layer : public OGRSEGUKOOABaseLayer
 
 
     virtual void                ResetReading();
-
-    virtual OGRSpatialReference *GetSpatialRef() { return poSRS; }
-
 };
 
 /************************************************************************/
@@ -100,8 +97,6 @@ class OGRSEGUKOOALineLayer : public OGRSEGUKOOABaseLayer
                         ~OGRSEGUKOOALineLayer();
 
     virtual void                ResetReading();
-
-    virtual OGRSpatialReference *GetSpatialRef() { return poBaseLayer->GetSpatialRef(); }
 };
 
 
@@ -128,8 +123,6 @@ class OGRSEGP1Layer: public OGRSEGUKOOABaseLayer
                         ~OGRSEGP1Layer();
 
     virtual void                ResetReading();
-
-    virtual OGRSpatialReference *GetSpatialRef() { return poSRS; }
 
 public:
     static char* ExpandTabs(const char* pszLine);

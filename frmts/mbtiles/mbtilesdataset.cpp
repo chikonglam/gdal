@@ -1,12 +1,12 @@
 /******************************************************************************
- * $Id: mbtilesdataset.cpp 23737 2012-01-09 19:26:10Z rouault $
+ * $Id: mbtilesdataset.cpp 27729 2014-09-24 00:40:16Z goatbar $
  *
  * Project:  GDAL MBTiles driver
  * Purpose:  Implement GDAL MBTiles support using OGR SQLite driver
  * Author:   Even Rouault, <even dot rouault at mines dash paris dot org>
  *
  **********************************************************************
- * Copyright (c) 2012, Even Rouault, <even dot rouault at mines dash paris dot org>
+ * Copyright (c) 2012-2013, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -33,13 +33,13 @@
 #include "cpl_vsil_curl_priv.h"
 
 #include "zlib.h"
-#include "jsonc/json.h"
+#include "json.h"
 
 #include <math.h>
 
 extern "C" void GDALRegister_MBTiles();
 
-CPL_CVSID("$Id: mbtilesdataset.cpp 23737 2012-01-09 19:26:10Z rouault $");
+CPL_CVSID("$Id: mbtilesdataset.cpp 27729 2014-09-24 00:40:16Z goatbar $");
 
 static const char * const apszAllowedDrivers[] = {"JPEG", "PNG", NULL};
 
@@ -63,6 +63,8 @@ class MBTilesDataset : public GDALPamDataset
 
     virtual CPLErr GetGeoTransform(double* padfGeoTransform);
     virtual const char* GetProjectionRef();
+    
+    virtual char      **GetMetadataDomainList();
     virtual char      **GetMetadata( const char * pszDomain = "" );
 
     static GDALDataset *Open( GDALOpenInfo * );
@@ -126,6 +128,7 @@ class MBTilesBand: public GDALPamRasterBand
 
     virtual CPLErr          IReadBlock( int, int, void * );
 
+    virtual char      **GetMetadataDomainList();
     virtual const char *GetMetadataItem( const char * pszName,
                                          const char * pszDomain = "" );
 };
@@ -195,7 +198,7 @@ CPLErr MBTilesBand::IReadBlock( int nBlockXOff, int nBlockYOff, void * pImage)
             {
                 int iBand;
                 void* pSrcImage = NULL;
-                GByte abyTranslation[256][3];
+                GByte abyTranslation[256][4];
 
                 bGotTile = TRUE;
 
@@ -232,12 +235,14 @@ CPLErr MBTilesBand::IReadBlock( int nBlockXOff, int nBlockYOff, void * pImage)
                         abyTranslation[i][0] = (GByte) psEntry->c1;
                         abyTranslation[i][1] = (GByte) psEntry->c2;
                         abyTranslation[i][2] = (GByte) psEntry->c3;
+                        abyTranslation[i][3] = (GByte) psEntry->c4;
                     }
                     for(; i < 256; i++)
                     {
                         abyTranslation[i][0] = 0;
                         abyTranslation[i][1] = 0;
                         abyTranslation[i][2] = 0;
+                        abyTranslation[i][3] = 0;
                     }
 
                     for(i = 0; i < nBlockXSize * nBlockYSize; i++)
@@ -279,11 +284,7 @@ CPLErr MBTilesBand::IReadBlock( int nBlockXOff, int nBlockYOff, void * pImage)
                     else if (nTileBands == 1 && (poGDS->nBands == 3 || poGDS->nBands == 4))
                     {
                         int i;
-                        if (iOtherBand == 4)
-                        {
-                            memset(pabySrcBlock, 255, nBlockXSize * nBlockYSize);
-                        }
-                        else if (pSrcImage)
+                        if (pSrcImage)
                         {
                             for(i = 0; i < nBlockXSize * nBlockYSize; i++)
                             {
@@ -617,7 +618,7 @@ char* MBTilesDataset::FindKey(int iPixel, int iLine,
     {
         CPLError( CE_Failure, CPLE_AppDefined,
                     "JSON parsing error: %s (at offset %d)",
-                    json_tokener_errors[jstok->err],
+                    json_tokener_error_desc(jstok->err),
                     jstok->char_offset);
         json_tokener_free(jstok);
 
@@ -725,6 +726,15 @@ end:
         OGR_DS_ReleaseResultSet(hDS, hSQLLyr);
 
     return pszKey;
+}
+
+/************************************************************************/
+/*                      GetMetadataDomainList()                         */
+/************************************************************************/
+
+char **MBTilesBand::GetMetadataDomainList()
+{
+    return CSLAddString(GDALPamRasterBand::GetMetadataDomainList(), "LocationInfo");
 }
 
 /************************************************************************/
@@ -1060,6 +1070,17 @@ const char* MBTilesDataset::GetProjectionRef()
 }
 
 /************************************************************************/
+/*                      GetMetadataDomainList()                         */
+/************************************************************************/
+
+char **MBTilesDataset::GetMetadataDomainList()
+{
+    return BuildMetadataDomainList(GDALDataset::GetMetadataDomainList(),
+                                   TRUE,
+                                   "", NULL);
+}
+
+/************************************************************************/
 /*                            GetMetadata()                             */
 /************************************************************************/
 
@@ -1254,7 +1275,7 @@ int MBTilesGetMinMaxZoomLevel(OGRDataSourceH hDS, int bHasMap,
 /************************************************************************/
 
 static
-int MBTilesGetBounds(OGRDataSourceH hDS, int nMinLevel, int nMaxLevel,
+int MBTilesGetBounds(OGRDataSourceH hDS, CPL_UNUSED int nMinLevel, int nMaxLevel,
                      int& nMinTileRow, int& nMaxTileRow,
                      int& nMinTileCol, int &nMaxTileCol)
 {
@@ -1353,7 +1374,7 @@ int MBTilesGetBounds(OGRDataSourceH hDS, int nMinLevel, int nMaxLevel,
 /* to get a first tile to see its characteristics. We just need the header */
 /* to determine that, so let's make VSICurl stop reading after we have found it */
 
-static int MBTilesCurlReadCbk(VSILFILE* fp,
+static int MBTilesCurlReadCbk(CPL_UNUSED VSILFILE* fp,
                               void *pabyBuffer, size_t nBufferSize,
                               void* pfnUserData)
 {
@@ -1411,7 +1432,12 @@ static int MBTilesCurlReadCbk(VSILFILE* fp,
                 else if (nColorType == 2)
                     *pnBands = 3; /* RGB */
                 else if (nColorType == 3)
-                    *pnBands = 3; /* palette -> RGB */
+                {
+                    /* This might also be a color table with transparency */
+                    /* but we cannot tell ! */
+                    *pnBands = -1;
+                    return TRUE;
+                }
                 else if (nColorType == 4)
                     *pnBands = 2; /* Gray + alpha */
                 else if (nColorType == 6)
@@ -1454,7 +1480,7 @@ static int MBTilesCurlReadCbk(VSILFILE* fp,
 /************************************************************************/
 
 static
-int MBTilesGetBandCount(OGRDataSourceH &hDS, int nMinLevel, int nMaxLevel,
+int MBTilesGetBandCount(OGRDataSourceH &hDS, CPL_UNUSED int nMinLevel, int nMaxLevel,
                         int nMinTileRow, int nMaxTileRow,
                         int nMinTileCol, int nMaxTileCol)
 {
@@ -1462,6 +1488,7 @@ int MBTilesGetBandCount(OGRDataSourceH &hDS, int nMinLevel, int nMaxLevel,
     OGRFeatureH hFeat;
     const char* pszSQL;
     VSILFILE* fpCURLOGR = NULL;
+    int bFirstSelect = TRUE;
 
     int nBands = -1;
 
@@ -1503,6 +1530,7 @@ int MBTilesGetBandCount(OGRDataSourceH &hDS, int nMinLevel, int nMaxLevel,
         /* Install a spy on the file connexion that will intercept */
         /* PNG or JPEG headers, to interrupt their downloading */
         /* once the header is found. Speeds up dataset opening. */
+        CPLErrorReset();
         VSICurlInstallReadCbk(fpCURLOGR, MBTilesCurlReadCbk, &nBands, TRUE);
 
         CPLErrorReset();
@@ -1545,21 +1573,29 @@ int MBTilesGetBandCount(OGRDataSourceH &hDS, int nMinLevel, int nMaxLevel,
         hSQLLyr = OGR_DS_ExecuteSQL(hDS, pszSQL, NULL, NULL);
     }
 
-    if (hSQLLyr == NULL)
+    while( TRUE )
     {
-        pszSQL = CPLSPrintf("SELECT tile_data FROM tiles WHERE "
-                            "zoom_level = %d LIMIT 1", nMaxLevel);
-        CPLDebug("MBTILES", "%s", pszSQL);
-        hSQLLyr = OGR_DS_ExecuteSQL(hDS, pszSQL, NULL, NULL);
-        if (hSQLLyr == NULL)
-            return -1;
-    }
+        if (hSQLLyr == NULL && bFirstSelect)
+        {
+            bFirstSelect = FALSE;
+            pszSQL = CPLSPrintf("SELECT tile_data FROM tiles WHERE "
+                                "zoom_level = %d LIMIT 1", nMaxLevel);
+            CPLDebug("MBTILES", "%s", pszSQL);
+            hSQLLyr = OGR_DS_ExecuteSQL(hDS, pszSQL, NULL, NULL);
+            if (hSQLLyr == NULL)
+                return -1;
+        }
 
-    hFeat = OGR_L_GetNextFeature(hSQLLyr);
-    if (hFeat == NULL)
-    {
-        OGR_DS_ReleaseResultSet(hDS, hSQLLyr);
-        return -1;
+        hFeat = OGR_L_GetNextFeature(hSQLLyr);
+        if (hFeat == NULL)
+        {
+            OGR_DS_ReleaseResultSet(hDS, hSQLLyr);
+            hSQLLyr = NULL;
+            if( !bFirstSelect )
+                return -1;
+        }
+        else
+            break;
     }
 
     CPLString osMemFileName;
@@ -1596,10 +1632,17 @@ int MBTilesGetBandCount(OGRDataSourceH &hDS, int nMinLevel, int nMaxLevel,
         return -1;
     }
 
-    if (nBands == 1 &&
-        GDALGetRasterColorTable(GDALGetRasterBand(hDSTile, 1)) != NULL)
+    GDALColorTableH hCT = GDALGetRasterColorTable(GDALGetRasterBand(hDSTile, 1));
+    if (nBands == 1 && hCT != NULL)
     {
         nBands = 3;
+        if( GDALGetColorEntryCount(hCT) > 0 )
+        {
+            /* Typical of paletted PNG with transparency */
+            const GDALColorEntry* psEntry = GDALGetColorEntry( hCT, 0 );
+            if( psEntry->c4 == 0 )
+                nBands = 4;
+        }
     }
 
     GDALClose(hDSTile);

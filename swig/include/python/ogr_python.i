@@ -1,5 +1,5 @@
 /*
- * $Id: ogr_python.i 25899 2013-04-11 18:07:32Z rouault $
+ * $Id: ogr_python.i 28298 2015-01-06 09:03:37Z rouault $
  *
  * python specific code for ogr bindings.
  */
@@ -111,7 +111,7 @@ ds[0:4] would return a list of the first four layers."""
 }
 
 %extend OGRLayerShadow {
-  %pythoncode {
+  %pythoncode %{
     def Reference(self):
       "For backwards compatibility only."
       pass
@@ -183,12 +183,12 @@ layer[0:4] would return a list of the first four features."""
         return output
     schema = property(schema)
 
-  }
+  %}
 
 }
 
 %extend OGRFeatureShadow {
-  %pythoncode {
+  %pythoncode %{
     def Reference(self):
       pass
 
@@ -213,29 +213,63 @@ layer[0:4] would return a list of the first four features."""
         """Returns the values of fields by the given name"""
         if key == 'this':
             return self.__dict__[key]
-        try:
-            return self.GetField(key)
-        except:
-            raise AttributeError(key)
+
+        idx = self.GetFieldIndex(key)
+        if idx < 0:
+            idx = self.GetGeomFieldIndex(key)
+            if idx < 0:
+                raise AttributeError(key)
+            else:
+                return self.GetGeomFieldRef(idx)
+        else:
+            return self.GetField(idx)
 
     # This makes it possible to set fields in the form "feature.area". 
     # This has some risk of name collisions.
     def __setattr__(self, key, value):
         """Set the values of fields by the given name"""
-        if key != 'this' and key != 'thisown' and self.GetFieldIndex(key) != -1:
-            return self.SetField2(key,value)
-        else:
+        if key == 'this' or key == 'thisown':
             self.__dict__[key] = value
+        else:
+            idx = self.GetFieldIndex(key)
+            if idx != -1:
+                self.SetField2(idx,value)
+            else:
+                idx = self.GetGeomFieldIndex(key)
+                if idx != -1:
+                    self.SetGeomField(idx, value)
+                else:
+                    self.__dict__[key] = value
 
     # This makes it possible to fetch fields in the form "feature['area']". 
     def __getitem__(self, key):
         """Returns the values of fields by the given name / field_index"""
-        return self.GetField(key)
+        if isinstance(key, str):
+            fld_index = self.GetFieldIndex(key)
+        if fld_index < 0:
+            if isinstance(key, str):
+                fld_index = self.GetGeomFieldIndex(key)
+            if fld_index < 0:
+                raise ValueError("Illegal field requested in GetField()")
+            else:
+                return self.GetGeomFieldRef(fld_index)
+        else:
+            return self.GetField(fld_index)
 
     # This makes it possible to set fields in the form "feature['area'] = 123". 
     def __setitem__(self, key, value):
         """Returns the value of a field by field name / index"""
-        self.SetField2( key, value )    
+        if isinstance(key, str):
+            fld_index = self.GetFieldIndex(key)
+        if fld_index < 0:
+            if isinstance(key, str):
+                fld_index = self.GetGeomFieldIndex(key)
+            if fld_index < 0:
+                raise ValueError("Illegal field requested in SetField()")
+            else:
+                return self.SetGeomField( fld_index, value )
+        else:
+            return self.SetField2( fld_index, value )
 
     def GetField(self, fld_index):
         if isinstance(fld_index, str):
@@ -263,6 +297,8 @@ layer[0:4] would return a list of the first four features."""
     def SetField2(self, fld_index, value):
         if isinstance(fld_index, str):
             fld_index = self.GetFieldIndex(fld_index)
+        if (fld_index < 0) or (fld_index > self.GetFieldCount()):
+            raise ValueError("Illegal field requested in SetField2()")
 
         if value is None:
             self.UnsetField( fld_index )
@@ -347,12 +383,12 @@ layer[0:4] would return a list of the first four features."""
         return output
 
 
-}
+%}
 
 }
 
 %extend OGRGeometryShadow {
-%pythoncode {
+%pythoncode %{
   def Destroy(self):
     self.__swig_destroy__(self) 
     self.__del__()
@@ -380,7 +416,7 @@ layer[0:4] would return a list of the first four features."""
           return subgeom
       else:
           raise StopIteration
-}
+%}
 }
 
 
@@ -391,6 +427,14 @@ layer[0:4] would return a list of the first four features."""
     precision = property(GetPrecision, SetPrecision)
     name = property(GetName, SetName)
     justify = property(GetJustify, SetJustify)
+}
+}
+
+%extend OGRGeomFieldDefnShadow {
+%pythoncode {
+    type = property(GetType, SetType)
+    name = property(GetName, SetName)
+    srs = property(GetSpatialRef, SetSpatialRef)
 }
 }
 
@@ -405,12 +449,12 @@ layer[0:4] would return a list of the first four features."""
 }
 
 %extend OGRFieldDefnShadow {
-%pythoncode {
+%pythoncode %{
   def Destroy(self):
     "Once called, self has effectively been destroyed.  Do not access. For backwards compatiblity only"
     _ogr.delete_FieldDefn( self )
     self.thisown = 0
-}
+%}
 }
 
 %import typemaps_python.i

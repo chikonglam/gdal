@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrs57layer.cpp 17953 2009-11-02 21:13:56Z rouault $
+ * $Id: ogrs57layer.cpp 27741 2014-09-26 19:20:02Z goatbar $
  *
  * Project:  S-57 Translator
  * Purpose:  Implements OGRS57Layer class.
@@ -7,6 +7,7 @@
  *
  ******************************************************************************
  * Copyright (c) 1999, Frank Warmerdam
+ * Copyright (c) 2009-2014, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -31,7 +32,7 @@
 #include "cpl_conv.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: ogrs57layer.cpp 17953 2009-11-02 21:13:56Z rouault $");
+CPL_CVSID("$Id: ogrs57layer.cpp 27741 2014-09-26 19:20:02Z goatbar $");
 
 /************************************************************************/
 /*                            OGRS57Layer()                             */
@@ -51,6 +52,8 @@ OGRS57Layer::OGRS57Layer( OGRS57DataSource *poDSIn,
     nFeatureCount = nFeatureCountIn;
 
     poFeatureDefn = poDefnIn;
+    if( poFeatureDefn->GetGeomFieldCount() > 0 )
+        poFeatureDefn->GetGeomFieldDefn(0)->SetSpatialRef(poDS->GetSpatialRef());
 
     nOBJL = nOBJLIn;
 
@@ -222,22 +225,15 @@ int OGRS57Layer::TestCapability( const char * pszCap )
 }
 
 /************************************************************************/
-/*                           GetSpatialRef()                            */
-/************************************************************************/
-
-OGRSpatialReference *OGRS57Layer::GetSpatialRef()
-
-{
-    return poDS->GetSpatialRef();
-}
-
-/************************************************************************/
 /*                             GetExtent()                              */
 /************************************************************************/
 
 OGRErr OGRS57Layer::GetExtent( OGREnvelope *psExtent, int bForce )
 
 {
+    if( GetGeomType() == wkbNone )
+        return OGRERR_FAILURE;
+
     return poDS->GetDSExtent( psExtent, bForce );
 }
 
@@ -293,7 +289,9 @@ OGRErr OGRS57Layer::CreateFeature( OGRFeature *poFeature )
         if( !poFeature->IsFieldSet( iRCNMFld ) )
             poFeature->SetField( iRCNMFld, nRCNM );
         else
+        {
             CPLAssert( poFeature->GetFieldAsInteger( iRCNMFld ) == nRCNM );
+        }
     }
 
 /* -------------------------------------------------------------------- */
@@ -306,7 +304,9 @@ OGRErr OGRS57Layer::CreateFeature( OGRFeature *poFeature )
         if( !poFeature->IsFieldSet( iOBJLFld ) )
             poFeature->SetField( iOBJLFld, nOBJL );
         else
+        {
             CPLAssert( poFeature->GetFieldAsInteger( iOBJLFld ) == nOBJL );
+        }
     }
 
 /* -------------------------------------------------------------------- */

@@ -1,12 +1,12 @@
 /******************************************************************************
- * $Id: ogrgeomediadatasource.cpp 21561 2011-01-23 12:22:58Z rouault $
+ * $Id: ogrgeomediadatasource.cpp 27741 2014-09-26 19:20:02Z goatbar $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implements OGRGeomediaDataSource class.
  * Author:   Even Rouault, <even dot rouault at mines dash paris dot org>
  *
  ******************************************************************************
- * Copyright (c) 2011, Even Rouault, <even dot rouault at mines dash paris dot org>
+ * Copyright (c) 2011-2013, Even Rouault <even dot rouault at mines-paris dot org>
  * Copyright (c) 2005, Frank Warmerdam <warmerdam@pobox.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
@@ -34,7 +34,7 @@
 #include "cpl_string.h"
 #include <vector>
 
-CPL_CVSID("$Id: ogrgeomediadatasource.cpp 21561 2011-01-23 12:22:58Z rouault $");
+CPL_CVSID("$Id: ogrgeomediadatasource.cpp 27741 2014-09-26 19:20:02Z goatbar $");
 
 /************************************************************************/
 /*                       OGRGeomediaDataSource()                        */
@@ -105,8 +105,7 @@ static int CheckDSNStringTemplate(const char* pszStr)
 /************************************************************************/
 
 int OGRGeomediaDataSource::Open( const char * pszNewName, int bUpdate,
-                              int bTestOpen )
-
+                                 CPL_UNUSED int bTestOpen )
 {
     CPLAssert( nLayers == 0 );
 
@@ -323,8 +322,7 @@ OGRSpatialReference* OGRGeomediaDataSource::GetGeomediaSRS(const char* pszGCoord
 /*                           TestCapability()                           */
 /************************************************************************/
 
-int OGRGeomediaDataSource::TestCapability( const char * pszCap )
-
+int OGRGeomediaDataSource::TestCapability( CPL_UNUSED const char * pszCap )
 {
     return FALSE;
 }
@@ -391,9 +389,9 @@ OGRLayer * OGRGeomediaDataSource::ExecuteSQL( const char *pszSQLCommand,
 
 {
 /* -------------------------------------------------------------------- */
-/*      Use generic imlplementation for OGRSQL dialect.                 */
+/*      Use generic implementation for recognized dialects              */
 /* -------------------------------------------------------------------- */
-    if( pszDialect != NULL && EQUAL(pszDialect,"OGRSQL") )
+    if( IsGenericSQLDialect(pszDialect) )
         return OGRDataSource::ExecuteSQL( pszSQLCommand, 
                                           poSpatialFilter, 
                                           pszDialect );

@@ -8,6 +8,7 @@
  *
  **********************************************************************
  * Copyright (c) 2007,  Geoconcept and IGN
+ * Copyright (c) 2008-2013, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -34,7 +35,7 @@
 #include "cpl_string.h"
 #include "ogr_core.h"
 
-GCIO_CVSID("$Id: geoconcept.c,v 1.0.0 2007-11-03 20:58:19 drichard Exp $")
+CPL_CVSID("$Id: geoconcept.c,v 1.0.0 2007-11-03 20:58:19 drichard Exp $")
 
 #define kItemSize_GCIO      256
 #define kExtraSize_GCIO    4096
@@ -2481,14 +2482,15 @@ static GCExportFileMetadata GCIOAPI_CALL1(*) _parseObject_GCIO (
   theSubType= NULL;
   coff= -1L;
 reloop:
-  if( GetGCWhatIs_GCIO(H)==vComType_GCIO )
+  /* TODO: Switch to C++ casts below. */
+  if( (enum _tIO_MetadataType_GCIO)GetGCWhatIs_GCIO(H) == vComType_GCIO )
   {
     if( _get_GCIO(H)==-1 )
       return Meta;
     goto reloop;
   }
   /* analyze the line according to schema : */
-  if( GetGCWhatIs_GCIO(H)==vPragma_GCIO )
+  if( (enum _tIO_MetadataType_GCIO)GetGCWhatIs_GCIO(H) == vPragma_GCIO )
   {
     if( strstr(GetGCCache_GCIO(H),k3DOBJECTMONO_GCIO) )
     {
@@ -3027,11 +3029,11 @@ static OGRErr GCIOAPI_CALL _readConfigField_GCIO (
   theField= NULL;
   while( _get_GCIO(hGCT)!=EOF )
   {
-    if( GetGCWhatIs_GCIO(hGCT)==vComType_GCIO )
+    if( (enum _tIO_MetadataType_GCIO)GetGCWhatIs_GCIO(hGCT) == vComType_GCIO )
     {
       continue;
     }
-    if( GetGCWhatIs_GCIO(hGCT)==vHeader_GCIO )
+    if( (enum _tIO_MetadataType_GCIO)GetGCWhatIs_GCIO(hGCT) == vHeader_GCIO )
     {
       if( strstr(GetGCCache_GCIO(hGCT),kConfigEndField_GCIO)!=NULL)
       {
@@ -3234,11 +3236,12 @@ static OGRErr GCIOAPI_CALL _readConfigFieldType_GCIO (
   knd= vUnknownItemType_GCIO;
   theField= NULL;
   while( _get_GCIO(hGCT)!=EOF ) {
-    if( GetGCWhatIs_GCIO(hGCT)==vComType_GCIO )
+    /* TODO: Switch to C++ casts below. */
+    if( (enum _tIO_MetadataType_GCIO)GetGCWhatIs_GCIO(hGCT) == vComType_GCIO )
     {
       continue;
     }
-    if( GetGCWhatIs_GCIO(hGCT)==vHeader_GCIO )
+    if( (enum _tIO_MetadataType_GCIO)GetGCWhatIs_GCIO(hGCT) == vHeader_GCIO )
     {
       if( strstr(GetGCCache_GCIO(hGCT),kConfigEndField_GCIO)!=NULL)
       {
@@ -3423,11 +3426,11 @@ static OGRErr GCIOAPI_CALL _readConfigFieldSubType_GCIO (
   knd= vUnknownItemType_GCIO;
   theField= NULL;
   while( _get_GCIO(hGCT)!=EOF ) {
-    if( GetGCWhatIs_GCIO(hGCT)==vComType_GCIO )
+    if( (enum _tIO_MetadataType_GCIO)GetGCWhatIs_GCIO(hGCT) == vComType_GCIO )
     {
       continue;
     }
-    if( GetGCWhatIs_GCIO(hGCT)==vHeader_GCIO )
+    if( (enum _tIO_MetadataType_GCIO)GetGCWhatIs_GCIO(hGCT) == vHeader_GCIO )
     {
       if( strstr(GetGCCache_GCIO(hGCT),kConfigEndField_GCIO)!=NULL)
       {
@@ -3611,11 +3614,11 @@ static OGRErr GCIOAPI_CALL _readConfigSubTypeType_GCIO (
   sys= v2D_GCIO;
   theSubType= NULL;
   while( _get_GCIO(hGCT)!=EOF ) {
-    if( GetGCWhatIs_GCIO(hGCT)==vComType_GCIO )
+    if( (enum _tIO_MetadataType_GCIO)GetGCWhatIs_GCIO(hGCT) == vComType_GCIO )
     {
       continue;
     }
-    if( GetGCWhatIs_GCIO(hGCT)==vHeader_GCIO )
+    if( (enum _tIO_MetadataType_GCIO)GetGCWhatIs_GCIO(hGCT) == vHeader_GCIO )
     {
       if( strstr(GetGCCache_GCIO(hGCT),kConfigEndSubType_GCIO)!=NULL)
       {
@@ -3795,11 +3798,11 @@ static OGRErr GCIOAPI_CALL _readConfigType_GCIO (
   id= UNDEFINEDID_GCIO;
   theClass= NULL;
   while( _get_GCIO(hGCT)!=EOF ) {
-    if( GetGCWhatIs_GCIO(hGCT)==vComType_GCIO )
+    if( (enum _tIO_MetadataType_GCIO)GetGCWhatIs_GCIO(hGCT) == vComType_GCIO )
     {
       continue;
     }
-    if( GetGCWhatIs_GCIO(hGCT)==vHeader_GCIO )
+    if( (enum _tIO_MetadataType_GCIO)GetGCWhatIs_GCIO(hGCT) == vHeader_GCIO )
     {
       if( strstr(GetGCCache_GCIO(hGCT),kConfigEndType_GCIO)!=NULL )
       {
@@ -3923,11 +3926,11 @@ static OGRErr GCIOAPI_CALL _readConfigMap_GCIO (
 
   eom= 0;
   while( _get_GCIO(hGCT)!=EOF ) {
-    if( GetGCWhatIs_GCIO(hGCT)==vComType_GCIO )
+    if( (enum _tIO_MetadataType_GCIO)GetGCWhatIs_GCIO(hGCT) == vComType_GCIO )
     {
       continue;
     }
-    if( GetGCWhatIs_GCIO(hGCT)==vHeader_GCIO )
+    if( (enum _tIO_MetadataType_GCIO)GetGCWhatIs_GCIO(hGCT) == vHeader_GCIO )
     {
       if( strstr(GetGCCache_GCIO(hGCT),kConfigEndMap_GCIO)!=NULL )
       {
@@ -4016,7 +4019,7 @@ GCExportFileMetadata GCIOAPI_CALL1(*) ReadConfig_GCIO (
   {
     return NULL;
   }
-  if( GetGCWhatIs_GCIO(hGCT)!=vHeader_GCIO &&
+  if( (enum _tIO_MetadataType_GCIO)GetGCWhatIs_GCIO(hGCT) != vHeader_GCIO &&
       strstr(GetGCCache_GCIO(hGCT),kConfigBeginConfig_GCIO)==NULL )
   {
     CPLError( CE_Failure, CPLE_AppDefined,
@@ -4031,11 +4034,11 @@ GCExportFileMetadata GCIOAPI_CALL1(*) ReadConfig_GCIO (
   }
   while( _get_GCIO(hGCT)!=EOF )
   {
-    if( GetGCWhatIs_GCIO(hGCT)==vComType_GCIO )
+    if( (enum _tIO_MetadataType_GCIO)GetGCWhatIs_GCIO(hGCT) == vComType_GCIO )
     {
       continue;
     }
-    if( GetGCWhatIs_GCIO(hGCT)==vHeader_GCIO )
+    if( (enum _tIO_MetadataType_GCIO)GetGCWhatIs_GCIO(hGCT) == vHeader_GCIO )
     {
       if( strstr(GetGCCache_GCIO(hGCT),kConfigEndConfig_GCIO)!=NULL )
       {
@@ -4580,7 +4583,7 @@ GCExportFileMetadata GCIOAPI_CALL1(*) ReadHeader_GCIO (
   {
     return NULL;
   }
-  if( GetGCWhatIs_GCIO(hGXT)!=vPragma_GCIO )
+  if( (enum _tIO_MetadataType_GCIO)GetGCWhatIs_GCIO(hGXT)!=vPragma_GCIO )
   {
     CPLDebug( "GEOCONCEPT",
               "Geoconcept export badly formatted :"
@@ -4596,11 +4599,11 @@ GCExportFileMetadata GCIOAPI_CALL1(*) ReadHeader_GCIO (
   SetMetaExtent_GCIO(Meta, CreateExtent_GCIO(HUGE_VAL,HUGE_VAL,-HUGE_VAL,-HUGE_VAL));
   while( _get_GCIO(hGXT)!=EOF )
   {
-    if( GetGCWhatIs_GCIO(hGXT)==vComType_GCIO )
+    if( (enum _tIO_MetadataType_GCIO)GetGCWhatIs_GCIO(hGXT)==vComType_GCIO )
     {
       continue;
     }
-    if( GetGCWhatIs_GCIO(hGXT)==vPragma_GCIO )
+    if( (enum _tIO_MetadataType_GCIO)GetGCWhatIs_GCIO(hGXT)==vPragma_GCIO )
     {
       /* try config header first ... */
       if( !_parsePragma_GCIO(hGXT) )
@@ -4717,8 +4720,8 @@ GCField GCIOAPI_CALL1(*) FindFeatureField_GCIO (
 
 /* -------------------------------------------------------------------- */
 static char GCIOAPI_CALL1(*) _escapeString_GCIO (
-                                                  GCExportFileH* H,
-                                                  const char *theString
+                                                 CPL_UNUSED GCExportFileH* H,
+                                                 const char *theString
                                                 )
 {
   int l, i, o;
@@ -5351,12 +5354,12 @@ OGRFeatureH GCIOAPI_CALL ReadNextFeature_GCIO (
   d= vUnknown3D_GCIO;
   while( _get_GCIO(H)!=EOF )
   {
-    if( GetGCWhatIs_GCIO(H)==vComType_GCIO )
+    if( (enum _tIO_MetadataType_GCIO)GetGCWhatIs_GCIO(H) == vComType_GCIO )
     {
       continue;
     }
     /* analyze the line according to schema : */
-    if( GetGCWhatIs_GCIO(H)==vPragma_GCIO )
+    if( (enum _tIO_MetadataType_GCIO)GetGCWhatIs_GCIO(H) == vPragma_GCIO )
     {
       if( strstr(GetGCCache_GCIO(H),k3DOBJECTMONO_GCIO) )
       {
@@ -5381,4 +5384,3 @@ OGRFeatureH GCIOAPI_CALL ReadNextFeature_GCIO (
 
   return f;
 }/* ReadNextFeature_GCIO */
-

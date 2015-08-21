@@ -1,12 +1,13 @@
 /*****************************************************************************
- * $Id: IngrTypes.cpp 25809 2013-03-27 21:54:18Z rouault $
+ * $Id: IngrTypes.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  Intergraph Raster Format support
  * Purpose:  Types support function
- * Author:   Ivan Lucena, ivan.lucena@pmldnet.com
+ * Author:   Ivan Lucena, [lucena_ivan at hotmail.com]
  *
  ******************************************************************************
  * Copyright (c) 2007, Ivan Lucena
+ * Copyright (c) 2007-2013, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files ( the "Software" ),

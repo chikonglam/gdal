@@ -1,12 +1,12 @@
 /******************************************************************************
- * $Id: ograeronavfaalayer.cpp 21376 2011-01-02 18:28:40Z rouault $
+ * $Id: ograeronavfaalayer.cpp 27729 2014-09-24 00:40:16Z goatbar $
  *
  * Project:  AeronavFAA Translator
  * Purpose:  Implements OGRAeronavFAALayer class.
  * Author:   Even Rouault, <even dot rouault at mines dash paris dot org>
  *
  ******************************************************************************
- * Copyright (c) 2010, Even Rouault <even dot rouault at mines dash paris dot org>
+ * Copyright (c) 2011-2013, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -33,7 +33,7 @@
 #include "ogr_p.h"
 #include "ogr_srs_api.h"
 
-CPL_CVSID("$Id: ograeronavfaalayer.cpp 21376 2011-01-02 18:28:40Z rouault $");
+CPL_CVSID("$Id: ograeronavfaalayer.cpp 27729 2014-09-24 00:40:16Z goatbar $");
 
 /************************************************************************/
 /*                        OGRAeronavFAALayer()                          */
@@ -52,6 +52,7 @@ OGRAeronavFAALayer::OGRAeronavFAALayer( VSILFILE* fp, const char* pszLayerName )
 
     poFeatureDefn = new OGRFeatureDefn( pszLayerName );
     poFeatureDefn->Reference();
+    poFeatureDefn->GetGeomFieldDefn(0)->SetSpatialRef(poSRS);
 }
 
 /************************************************************************/
@@ -116,8 +117,7 @@ OGRFeature *OGRAeronavFAALayer::GetNextFeature()
 /*                           TestCapability()                           */
 /************************************************************************/
 
-int OGRAeronavFAALayer::TestCapability( const char * pszCap )
-
+int OGRAeronavFAALayer::TestCapability( CPL_UNUSED const char * pszCap )
 {
     return FALSE;
 }

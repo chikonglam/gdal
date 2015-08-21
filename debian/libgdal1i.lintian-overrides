@@ -1,0 +1,12 @@
+# Package name should be libgdal1, but was renamed because of C++ symbols changes
+libgdal1i: package-name-doesnt-match-sonames libgdal1
+
+# Used for BigTIFF support (#501127)
+libgdal1i: embedded-library *: tiff
+
+# False positive on: {136, "Socialist Republic of Viet Nam"},
+libgdal1i: spelling-error-in-binary * Nam Name
+
+# False positive on: DontUseExceptions
+libgdal1i: spelling-error-in-binary * Dont Don't
+

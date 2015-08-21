@@ -1,8 +1,8 @@
-.TH "gdaldem" 1 "Mon Aug 26 2013" "GDAL" \" -*- nroff -*-
+.TH "gdaldem" 1 "Tue Feb 10 2015" "GDAL" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
-gdaldem \- .TH "gdaldem" 1 "Mon Aug 26 2013" "GDAL" \" -*- nroff -*-
+gdaldem \- .TH "gdaldem" 1 "Tue Feb 10 2015" "GDAL" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -53,8 +53,14 @@ gdaldem \- Tools to analyze and visualize DEMs. (since GDAL 1.7.0)
                 [-compute_edges] [-b Band (default=1)] [-of format] [-q]
 
 Notes :
-  Scale is the ratio of vertical units to horizontal
-   for Feet:Latlong use scale=370400, for Meters:LatLong use scale=111120)
+  gdaldem generally assumes that x, y and z units are identical.  If x (east-west)
+  and y (north-south) units are identical, but z (elevation) units are different, the
+  scale (-s) option can be used to set the ratio of vertical units to horizontal.  For 
+  LatLong projections near the equator, where units of latitude and units of 
+  longitude are similar, elevation (z) units can be converted to be compatible
+  by using scale=370400 (if elevation is in feet) or scale=111120 (if elevation is in 
+  meters).  For locations not near the equator, it would be best to reproject your
+  grid using gdalwarp before using gdaldem.
 
 .fi
 .PP

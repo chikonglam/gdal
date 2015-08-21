@@ -1,12 +1,12 @@
 /******************************************************************************
- * $Id: ogrosmlayer.cpp 26051 2013-05-27 20:41:34Z rouault $
+ * $Id: ogrosmlayer.cpp 27729 2014-09-24 00:40:16Z goatbar $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implements OGROSMLayer class
  * Author:   Even Rouault, <even dot rouault at mines dash paris dot org>
  *
  ******************************************************************************
- * Copyright (c) 2012, Even Rouault
+ * Copyright (c) 2012-2014, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -33,7 +33,7 @@
 #include "cpl_time.h"
 #include "ogr_p.h"
 
-CPL_CVSID("$Id: ogrosmlayer.cpp 26051 2013-05-27 20:41:34Z rouault $");
+CPL_CVSID("$Id: ogrosmlayer.cpp 27729 2014-09-24 00:40:16Z goatbar $");
 
 #define SWITCH_THRESHOLD   10000
 #define MAX_THRESHOLD      100000
@@ -45,15 +45,18 @@ CPL_CVSID("$Id: ogrosmlayer.cpp 26051 2013-05-27 20:41:34Z rouault $");
 /************************************************************************/
 
 
-OGROSMLayer::OGROSMLayer(OGROSMDataSource* poDS, const char* pszName )
+OGROSMLayer::OGROSMLayer(OGROSMDataSource* poDS, int nIdxLayer, const char* pszName )
 {
     this->poDS = poDS;
+    this->nIdxLayer = nIdxLayer;
 
     poFeatureDefn = new OGRFeatureDefn( pszName );
     poFeatureDefn->Reference();
 
     poSRS = new OGRSpatialReference();
     poSRS->SetWellKnownGeogCS("WGS84");
+    if( poFeatureDefn->GetGeomFieldCount() != 0 )
+        poFeatureDefn->GetGeomFieldDefn(0)->SetSpatialRef(poSRS);
 
     nFeatureArraySize = 0;
     nFeatureArrayMaxSize = 0;
@@ -71,6 +74,9 @@ OGROSMLayer::OGROSMLayer(OGROSMDataSource* poDS, const char* pszName )
     bHasUser = FALSE;
     bHasChangeset = FALSE;
     bHasOtherTags = TRUE;
+    nIndexOtherTags = -1;
+    bHasAllTags = FALSE;
+    nIndexAllTags = -1;
 
     bResetReadingAllowed = FALSE;
     bHasWarnedTooManyFeatures = FALSE;
@@ -144,6 +150,39 @@ void OGROSMLayer::ForceResetReading()
 }
 
 /************************************************************************/
+/*                        SetAttributeFilter()                          */
+/************************************************************************/
+
+OGRErr OGROSMLayer::SetAttributeFilter( const char* pszAttrQuery )
+{
+    if( pszAttrQuery == NULL && m_pszAttrQueryString == NULL )
+        return OGRERR_NONE;
+    if( pszAttrQuery != NULL && m_pszAttrQueryString != NULL &&
+        strcmp(pszAttrQuery, m_pszAttrQueryString) == 0 )
+        return OGRERR_NONE;
+
+    OGRErr eErr = OGRLayer::SetAttributeFilter(pszAttrQuery);
+    if( eErr != OGRERR_NONE )
+        return eErr;
+
+    if( nFeatureArrayIndex == 0 )
+    {
+        if( !poDS->IsInterleavedReading() )
+        {
+            poDS->ResetReading();
+        }
+    }
+    else
+    {
+        CPLError(CE_Warning, CPLE_AppDefined, "The new attribute filter will "
+                 "not be taken into account immediately. It is advised to "
+                 "set attribute filters for all needed layers, before reading *any* layer");
+    }
+
+    return OGRERR_NONE;
+}
+
+/************************************************************************/
 /*                          GetFeatureCount()                           */
 /************************************************************************/
 
@@ -197,7 +236,7 @@ OGRFeature *OGROSMLayer::GetNextFeature()
             }
 
             /* Read some more data and accumulate features */
-            poDS->ParseNextChunk();
+            poDS->ParseNextChunk(nIdxLayer);
 
             if ( nFeatureArraySize == 0 )
             {
@@ -227,7 +266,7 @@ OGRFeature *OGROSMLayer::GetNextFeature()
         {
             while(TRUE)
             {
-                int bRet = poDS->ParseNextChunk();
+                int bRet = poDS->ParseNextChunk(nIdxLayer);
                 if (nFeatureArraySize != 0)
                     break;
                 if (bRet == FALSE)
@@ -267,9 +306,9 @@ int OGROSMLayer::TestCapability( const char * pszCap )
 /*                             AddToArray()                             */
 /************************************************************************/
 
-int  OGROSMLayer::AddToArray(OGRFeature* poFeature)
+int  OGROSMLayer::AddToArray(OGRFeature* poFeature, int bCheckFeatureThreshold)
 {
-    if( nFeatureArraySize > MAX_THRESHOLD)
+    if( bCheckFeatureThreshold && nFeatureArraySize > MAX_THRESHOLD)
     {
         if( !bHasWarnedTooManyFeatures )
         {
@@ -290,7 +329,9 @@ int  OGROSMLayer::AddToArray(OGRFeature* poFeature)
                                 nFeatureArrayMaxSize * sizeof(OGRFeature*));
         if (papoNewFeatures == NULL)
         {
-            delete poFeature;
+            CPLError(CE_Failure, CPLE_AppDefined,
+                     "For layer %s, cannot resize feature array to %d features",
+                     GetName(), nFeatureArrayMaxSize);
             return FALSE;
         }
         papoFeatures = papoNewFeatures;
@@ -316,7 +357,8 @@ int OGROSMLayer::EvaluateAttributeFilter(OGRFeature* poFeature)
 
 int  OGROSMLayer::AddFeature(OGRFeature* poFeature,
                              int bAttrFilterAlreadyEvaluated,
-                             int* pbFilteredOut)
+                             int* pbFilteredOut,
+                             int bCheckFeatureThreshold)
 {
     if( !bUserInterested )
     {
@@ -335,7 +377,7 @@ int  OGROSMLayer::AddFeature(OGRFeature* poFeature,
         && (m_poAttrQuery == NULL || bAttrFilterAlreadyEvaluated
             || m_poAttrQuery->Evaluate( poFeature )) )
     {
-        if (!AddToArray(poFeature))
+        if (!AddToArray(poFeature, bCheckFeatureThreshold))
         {
             delete poFeature;
             return FALSE;
@@ -358,7 +400,7 @@ int  OGROSMLayer::AddFeature(OGRFeature* poFeature,
 /*                             GetExtent()                              */
 /************************************************************************/
 
-OGRErr OGROSMLayer::GetExtent( OGREnvelope *psExtent, int bForce )
+OGRErr OGROSMLayer::GetExtent( OGREnvelope *psExtent, CPL_UNUSED int bForce )
 {
     if (poDS->GetExtent(psExtent) == OGRERR_NONE)
         return OGRERR_NONE;
@@ -412,6 +454,12 @@ void OGROSMLayer::AddField(const char* pszName, OGRFieldType eFieldType)
 
     else if( strcmp(pszName, "osm_way_id") == 0 )
         nIndexOSMWayId = nIndex;
+
+    else if( strcmp(pszName, "other_tags") == 0 )
+        nIndexOtherTags = nIndex;
+
+    else if( strcmp(pszName, "all_tags") == 0 )
+        nIndexAllTags = nIndex;
 }
 
 /************************************************************************/
@@ -429,10 +477,10 @@ int OGROSMLayer::GetFieldIndex(const char* pszName)
 }
 
 /************************************************************************/
-/*                              AddInOtherTag()                         */
+/*                         AddInOtherOrAllTags()                        */
 /************************************************************************/
 
-int OGROSMLayer::AddInOtherTag(const char* pszK)
+int OGROSMLayer::AddInOtherOrAllTags(const char* pszK)
 {
     int bAddToOtherTags = FALSE;
 
@@ -565,10 +613,14 @@ void OGROSMLayer::SetFieldsFromTags(OGRFeature* poFeature,
         const char* pszV = pasTags[j].pszV;
         int nIndex = GetFieldIndex(pszK);
         if( nIndex >= 0 )
-            poFeature->SetField(nIndex, pszV);
-        else if ( HasOtherTags() )
         {
-            if ( AddInOtherTag(pszK) )
+            poFeature->SetField(nIndex, pszV);
+            if( nIndexAllTags < 0 )
+                continue;
+        }
+        if ( nIndexAllTags >= 0 || nIndexOtherTags >= 0 )
+        {
+            if ( AddInOtherOrAllTags(pszK) )
             {
                 int nLenK = (int)strlen(pszK);
                 int nLenV = (int)strlen(pszV);
@@ -579,7 +631,7 @@ void OGROSMLayer::SetFieldsFromTags(OGRFeature* poFeature,
                     1 >= ALLTAGS_LENGTH - 1 )
                 {
                     if( !bHasWarnedAllTagsTruncated )
-                        CPLDebug("OSM", "all_tags field truncated for feature " CPL_FRMT_GIB, nID);
+                        CPLDebug("OSM", "all_tags/other_tags field truncated for feature " CPL_FRMT_GIB, nID);
                     bHasWarnedAllTagsTruncated = TRUE;
                     continue;
                 }
@@ -611,7 +663,10 @@ void OGROSMLayer::SetFieldsFromTags(OGRFeature* poFeature,
     if( nAllTagsOff )
     {
         pszAllTags[nAllTagsOff] = '\0';
-        poFeature->SetField(GetLayerDefn()->GetFieldCount() - 1, pszAllTags);
+        if( nIndexAllTags >= 0 )
+            poFeature->SetField(nIndexAllTags, pszAllTags);
+        else
+            poFeature->SetField(nIndexOtherTags, pszAllTags);
     }
 }
 

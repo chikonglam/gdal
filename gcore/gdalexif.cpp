@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdalexif.cpp 24551 2012-06-09 20:19:04Z rouault $
+ * $Id: gdalexif.cpp 27255 2014-04-26 19:39:48Z rouault $
  *
  * Project:  GDAL
  * Purpose:  Implements a EXIF directory reader
@@ -7,6 +7,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2000, Frank Warmerdam
+ * Copyright (c) 2012, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Portions Copyright (c) Her majesty the Queen in right of Canada as
  * represented by the Minister of National Defence, 2006.
@@ -38,7 +39,7 @@
 
 #include "gdalexif.h"
 
-CPL_CVSID("$Id: gdalexif.cpp 24551 2012-06-09 20:19:04Z rouault $");
+CPL_CVSID("$Id: gdalexif.cpp 27255 2014-04-26 19:39:48Z rouault $");
 
 /************************************************************************/
 /*                         EXIFPrintData()                              */
@@ -94,8 +95,12 @@ static void EXIFPrintData(char* pszData, GUInt16 type,
   case TIFF_SSHORT: {
     register GInt16 *wp = (GInt16*)data;
     for(;count>0;count--) {
-      sprintf(pszTemp, "%s%d", sep, *wp++), sep = " ";
-      strcat(pszData,pszTemp);
+      sprintf(pszTemp, "%s%d", sep, *wp++);
+      sep = " ";
+      if (strlen(pszTemp) + pszDataEnd - pszData >= MAXSTRINGLENGTH)
+          break;
+      strcat(pszDataEnd,pszTemp);
+      pszDataEnd += strlen(pszDataEnd);
     }
     break;
   }
@@ -123,10 +128,10 @@ static void EXIFPrintData(char* pszData, GUInt16 type,
     break;
   }
   case TIFF_RATIONAL: {
-      register GUInt32 *lp = (GUInt32*)data;
+    register GUInt32 *lp = (GUInt32*)data;
       //      if(bSwabflag)
       //      TIFFSwabArrayOfLong((GUInt32*) data, 2*count);
-      for(;count>0;count--) {
+    for(;count>0;count--) {
       if( (lp[0]==0) && (lp[1] == 0) ) {
           sprintf(pszTemp,"%s(0)",sep);
       }
@@ -136,9 +141,12 @@ static void EXIFPrintData(char* pszData, GUInt16 type,
       }
       sep = " ";
       lp += 2;
-      strcat(pszData,pszTemp);
-      }
-      break;
+      if (strlen(pszTemp) + pszDataEnd - pszData >= MAXSTRINGLENGTH)
+          break;
+      strcat(pszDataEnd,pszTemp);
+      pszDataEnd += strlen(pszDataEnd);
+    }
+    break;
   }
   case TIFF_SRATIONAL: {
     register GInt32 *lp = (GInt32*)data;
@@ -250,6 +258,7 @@ CPLErr EXIFExtractMetadata(char**& papszMetadata,
     {
         CPLError( CE_Failure, CPLE_AppDefined,
                   "Could not read all directories");
+        CPLFree(poTIFFDir);
         return CE_Failure;
     }
 

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: rasterfill.cpp 26341 2013-08-19 19:23:33Z rouault $
+ * $Id: rasterfill.cpp 27729 2014-09-24 00:40:16Z goatbar $
  *
  * Project:  GDAL
  * Purpose:  Interpolate in nodata areas.
@@ -7,6 +7,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2008, Frank Warmerdam
+ * Copyright (c) 2009-2013, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -31,7 +32,7 @@
 #include "cpl_conv.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: rasterfill.cpp 26341 2013-08-19 19:23:33Z rouault $");
+CPL_CVSID("$Id: rasterfill.cpp 27729 2014-09-24 00:40:16Z goatbar $");
 
 /************************************************************************/
 /*                           GDALFilterLine()                           */
@@ -388,9 +389,9 @@ CPLErr CPL_STDCALL
 GDALFillNodata( GDALRasterBandH hTargetBand, 
                 GDALRasterBandH hMaskBand,
                 double dfMaxSearchDist, 
-                int bDeprecatedOption,
+                CPL_UNUSED int bDeprecatedOption,
                 int nSmoothingIterations,
-                char **papszOptions,
+                CPL_UNUSED char **papszOptions,
                 GDALProgressFunc pfnProgress, 
                 void * pProgressArg )
 

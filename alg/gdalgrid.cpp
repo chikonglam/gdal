@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdalgrid.cpp 25648 2013-02-12 18:40:49Z rouault $
+ * $Id: gdalgrid.cpp 27729 2014-09-24 00:40:16Z goatbar $
  *
  * Project:  GDAL Gridding API.
  * Purpose:  Implementation of GDAL scattered data gridder.
@@ -7,6 +7,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2007, Andrey Kiselev <dron@ak4719.spb.edu>
+ * Copyright (c) 2009-2013, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -32,14 +33,14 @@
 #include "gdalgrid.h"
 #include <float.h>
 #include <limits.h>
-#include "cpl_quad_tree.h"
 #include "cpl_multiproc.h"
+#include "gdalgrid_priv.h"
 
 #ifdef HAVE_SSE_AT_COMPILE_TIME
 #include <xmmintrin.h>
 #endif
 
-CPL_CVSID("$Id: gdalgrid.cpp 25648 2013-02-12 18:40:49Z rouault $");
+CPL_CVSID("$Id: gdalgrid.cpp 27729 2014-09-24 00:40:16Z goatbar $");
 
 #define TO_RADIANS (3.14159265358979323846 / 180.0)
 
@@ -51,34 +52,13 @@ CPL_CVSID("$Id: gdalgrid.cpp 25648 2013-02-12 18:40:49Z rouault $");
 # endif /* __DBL_MAX__ */
 #endif /* DBL_MAX */
 
-typedef struct
-{
-    const double* padfX;
-    const double* padfY;
-} GDALGridXYArrays;
-
-typedef struct
-{
-    GDALGridXYArrays* psXYArrays;
-    int               i;
-} GDALGridPoint;
-
-typedef struct
-{
-    CPLQuadTree* hQuadTree;
-    double       dfInitialSearchRadius;
-    const float *pafX;
-    const float *pafY;
-    const float *pafZ;
-} GDALGridExtraParameters;
-
 /************************************************************************/
 /*                          CPLHaveRuntimeSSE()                         */
 /************************************************************************/
 
 #ifdef HAVE_SSE_AT_COMPILE_TIME
 
-#define CPUID_SSE_BIT     25
+#define CPUID_SSE_EDX_BIT     25
 
 #if (defined(_M_X64) || defined(__x86_64))
 
@@ -89,18 +69,11 @@ static int CPLHaveRuntimeSSE()
 
 #elif defined(__GNUC__) && defined(__i386__)
 
-#define GCC_CPUID(level, a, b, c, d)            \
-  __asm__ ("xchgl %%ebx, %1\n"                  \
-           "cpuid\n"                            \
-           "xchgl %%ebx, %1"                    \
-       : "=a" (a), "=r" (b), "=c" (c), "=d" (d) \
-       : "0" (level))
-
 static int CPLHaveRuntimeSSE()
 {
     int cpuinfo[4] = {0,0,0,0};
     GCC_CPUID(1, cpuinfo[0], cpuinfo[1], cpuinfo[2], cpuinfo[3]);
-    return (cpuinfo[3] & (1 << CPUID_SSE_BIT)) != 0;
+    return (cpuinfo[3] & (1 << CPUID_SSE_EDX_BIT)) != 0;
 }
 
 #elif defined(_MSC_VER) && defined(_M_IX86)
@@ -133,7 +106,7 @@ static int CPLHaveRuntimeSSE()
 {
     int cpuinfo[4] = {0,0,0,0};
     __cpuid(cpuinfo, 1);
-    return (cpuinfo[3] & (1 << CPUID_SSE_BIT)) != 0;
+    return (cpuinfo[3] & (1 << CPUID_SSE_EDX_BIT)) != 0;
 }
 
 #else
@@ -220,7 +193,7 @@ GDALGridInverseDistanceToAPower( const void *poOptions, GUInt32 nPoints,
                                  const double *padfZ,
                                  double dfXPoint, double dfYPoint,
                                  double *pdfValue,
-                                 void* hExtraParamsIn )
+                                 CPL_UNUSED void* hExtraParamsIn )
 {
     // TODO: For optimization purposes pre-computed parameters should be moved
     // out of this routine to the calling function.
@@ -328,7 +301,7 @@ GDALGridInverseDistanceToAPowerNoSearch( const void *poOptions, GUInt32 nPoints,
                                          const double *padfZ,
                                          double dfXPoint, double dfYPoint,
                                          double *pdfValue,
-                                         void* hExtraParamsIn )
+                                         CPL_UNUSED void* hExtraParamsIn )
 {
     const double    dfPowerDiv2 =
         ((GDALGridInverseDistanceToAPowerOptions *)poOptions)->dfPower / 2;
@@ -430,9 +403,9 @@ static CPLErr
 GDALGridInverseDistanceToAPower2NoSmoothingNoSearchSSE(
                                         const void *poOptions,
                                         GUInt32 nPoints,
-                                        const double *unused_padfX,
-                                        const double *unused_padfY,
-                                        const double *unused_padfZ,
+                                        CPL_UNUSED const double *unused_padfX,
+                                        CPL_UNUSED const double *unused_padfY,
+                                        CPL_UNUSED const double *unused_padfZ,
                                         double dfXPoint, double dfYPoint,
                                         double *pdfValue,
                                         void* hExtraParamsIn )
@@ -608,7 +581,7 @@ GDALGridMovingAverage( const void *poOptions, GUInt32 nPoints,
                        const double *padfX, const double *padfY,
                        const double *padfZ,
                        double dfXPoint, double dfYPoint, double *pdfValue,
-                       void* hExtraParamsIn )
+                       CPL_UNUSED void* hExtraParamsIn )
 {
     // TODO: For optimization purposes pre-computed parameters should be moved
     // out of this routine to the calling function.
@@ -862,7 +835,7 @@ GDALGridDataMetricMinimum( const void *poOptions, GUInt32 nPoints,
                            const double *padfX, const double *padfY,
                            const double *padfZ,
                            double dfXPoint, double dfYPoint, double *pdfValue,
-                           void* hExtraParamsIn )
+                           CPL_UNUSED void* hExtraParamsIn )
 {
     // TODO: For optimization purposes pre-computed parameters should be moved
     // out of this routine to the calling function.
@@ -974,7 +947,7 @@ GDALGridDataMetricMaximum( const void *poOptions, GUInt32 nPoints,
                            const double *padfX, const double *padfY,
                            const double *padfZ,
                            double dfXPoint, double dfYPoint, double *pdfValue,
-                           void* hExtraParamsIn )
+                           CPL_UNUSED void* hExtraParamsIn )
 {
     // TODO: For optimization purposes pre-computed parameters should be moved
     // out of this routine to the calling function.
@@ -1087,7 +1060,7 @@ GDALGridDataMetricRange( const void *poOptions, GUInt32 nPoints,
                          const double *padfX, const double *padfY,
                          const double *padfZ,
                          double dfXPoint, double dfYPoint, double *pdfValue,
-                         void* hExtraParamsIn )
+                         CPL_UNUSED void* hExtraParamsIn )
 {
     // TODO: For optimization purposes pre-computed parameters should be moved
     // out of this routine to the calling function.
@@ -1197,9 +1170,9 @@ GDALGridDataMetricRange( const void *poOptions, GUInt32 nPoints,
 CPLErr
 GDALGridDataMetricCount( const void *poOptions, GUInt32 nPoints,
                          const double *padfX, const double *padfY,
-                         const double *padfZ,
+                         CPL_UNUSED const double *padfZ,
                          double dfXPoint, double dfYPoint, double *pdfValue,
-                         void* hExtraParamsIn )
+                         CPL_UNUSED void* hExtraParamsIn )
 {
     // TODO: For optimization purposes pre-computed parameters should be moved
     // out of this routine to the calling function.
@@ -1300,10 +1273,10 @@ GDALGridDataMetricCount( const void *poOptions, GUInt32 nPoints,
 CPLErr
 GDALGridDataMetricAverageDistance( const void *poOptions, GUInt32 nPoints,
                                    const double *padfX, const double *padfY,
-                                   const double *padfZ,
+                                   CPL_UNUSED const double *padfZ,
                                    double dfXPoint, double dfYPoint,
                                    double *pdfValue,
-                                   void* hExtraParamsIn )
+                                   CPL_UNUSED void* hExtraParamsIn )
 {
     // TODO: For optimization purposes pre-computed parameters should be moved
     // out of this routine to the calling function.
@@ -1411,10 +1384,10 @@ GDALGridDataMetricAverageDistance( const void *poOptions, GUInt32 nPoints,
 CPLErr
 GDALGridDataMetricAverageDistancePts( const void *poOptions, GUInt32 nPoints,
                                       const double *padfX, const double *padfY,
-                                      const double *padfZ,
+                                      CPL_UNUSED const double *padfZ,
                                       double dfXPoint, double dfYPoint,
                                       double *pdfValue,
-                                      void* hExtraParamsIn )
+                                      CPL_UNUSED void* hExtraParamsIn )
 {
     // TODO: For optimization purposes pre-computed parameters should be moved
     // out of this routine to the calling function.
@@ -1681,6 +1654,10 @@ static void GDALGridJobProcess(void* user_data)
  * This can provide substantial speed-up, but sometimes at the expense of
  * reduced floating point precision. This can be disabled by setting the
  * GDAL_USE_SSE configuration option to NO.
+ * Starting with GDAL 1.11, a further optimized version can use the AVX
+ * instruction set. This can be disabled by setting the GDAL_USE_AVX
+ * configuration option to NO.
+ * 
  *
  * @param eAlgorithm Gridding method. 
  * @param poOptions Options to control choosen gridding method.
@@ -1756,11 +1733,47 @@ GDALGridCreate( GDALGridAlgorithm eAlgorithm, const void *poOptions,
                 pfnGDALGridMethod = GDALGridInverseDistanceToAPowerNoSearch;
                 if( dfPower == 2.0 && dfSmoothing == 0.0 )
                 {
+#ifdef HAVE_AVX_AT_COMPILE_TIME
+
+#define ALIGN32(x)  (((char*)(x)) + ((32 - (((size_t)(x)) % 32)) % 32))
+
+                    if( CSLTestBoolean(CPLGetConfigOption("GDAL_USE_AVX", "YES")) &&
+                        CPLHaveRuntimeAVX() )
+                    {
+                        pabyX = (float*)VSIMalloc(sizeof(float) * nPoints + 31);
+                        pabyY = (float*)VSIMalloc(sizeof(float) * nPoints + 31);
+                        pabyZ = (float*)VSIMalloc(sizeof(float) * nPoints + 31);
+                        if( pabyX != NULL && pabyY != NULL && pabyZ != NULL)
+                        {
+                            CPLDebug("GDAL_GRID", "Using AVX optimized version");
+                            pafXAligned = (float*) ALIGN32(pabyX);
+                            pafYAligned = (float*) ALIGN32(pabyY);
+                            pafZAligned = (float*) ALIGN32(pabyZ);
+                            pfnGDALGridMethod = GDALGridInverseDistanceToAPower2NoSmoothingNoSearchAVX;
+                            GUInt32 i;
+                            for(i=0;i<nPoints;i++)
+                            {
+                                pafXAligned[i] = (float) padfX[i];
+                                pafYAligned[i] = (float) padfY[i];
+                                pafZAligned[i] = (float) padfZ[i];
+                            }
+                        }
+                        else
+                        {
+                            VSIFree(pabyX);
+                            VSIFree(pabyY);
+                            VSIFree(pabyZ);
+                            pabyX = pabyY = pabyZ = NULL;
+                        }
+                    }
+#endif
+
 #ifdef HAVE_SSE_AT_COMPILE_TIME
 
 #define ALIGN16(x)  (((char*)(x)) + ((16 - (((size_t)(x)) % 16)) % 16))
 
-                    if( CSLTestBoolean(CPLGetConfigOption("GDAL_USE_SSE", "YES")) &&
+                    if( pafXAligned == NULL &&
+                        CSLTestBoolean(CPLGetConfigOption("GDAL_USE_SSE", "YES")) &&
                         CPLHaveRuntimeSSE() )
                     {
                         pabyX = (float*)VSIMalloc(sizeof(float) * nPoints + 15);

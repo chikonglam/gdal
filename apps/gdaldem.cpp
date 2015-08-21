@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdaldem.cpp 26358 2013-08-21 20:12:38Z rouault $
+ * $Id: gdaldem.cpp 27781 2014-10-01 17:48:26Z rouault $
  *
  * Project:  GDAL DEM Utilities
  * Purpose:  
@@ -10,7 +10,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2006, 2009 Matthew Perry 
- * Copyright (c) 2009 Even Rouault
+ * Copyright (c) 2009-2013, Even Rouault <even dot rouault at mines-paris dot org>
  * Portions derived from GRASS 4.1 (public domain) See 
  * http://trac.osgeo.org/gdal/ticket/2975 for more information regarding 
  * history of this code
@@ -91,7 +91,7 @@
 #include "gdal_priv.h"
 #include "commonutils.h"
 
-CPL_CVSID("$Id: gdaldem.cpp 26358 2013-08-21 20:12:38Z rouault $");
+CPL_CVSID("$Id: gdaldem.cpp 27781 2014-10-01 17:48:26Z rouault $");
 
 #ifndef M_PI
 # define M_PI  3.1415926535897932384626433832795
@@ -467,11 +467,11 @@ typedef struct
            cos(az * degreesToRadians - M_PI/2 - aspect);
 */
 
-float GDALHillshadeAlg (float* afWin, float fDstNoDataValue, void* pData)
+float GDALHillshadeAlg (float* afWin, CPL_UNUSED float fDstNoDataValue, void* pData)
 {
     GDALHillshadeAlgData* psData = (GDALHillshadeAlgData*)pData;
     double x, y, aspect, xx_plus_yy, cang;
-    
+
     // First Slope ...
     x = ((afWin[0] + afWin[3] + afWin[3] + afWin[6]) -
         (afWin[2] + afWin[5] + afWin[5] + afWin[8])) / psData->ewres;
@@ -490,19 +490,19 @@ float GDALHillshadeAlg (float* afWin, float fDstNoDataValue, void* pData)
            sin(aspect - psData->azRadians)) /
            sqrt(1 + psData->square_z_scale_factor * xx_plus_yy);
 
-    if (cang <= 0.0) 
+    if (cang <= 0.0)
         cang = 1.0;
     else
         cang = 1.0 + (254.0 * cang);
-        
+
     return (float) cang;
 }
 
-float GDALHillshadeCombinedAlg (float* afWin, float fDstNoDataValue, void* pData)
+float GDALHillshadeCombinedAlg (float* afWin, CPL_UNUSED float fDstNoDataValue, void* pData)
 {
     GDALHillshadeAlgData* psData = (GDALHillshadeAlgData*)pData;
     double x, y, aspect, xx_plus_yy, cang;
-    
+
     // First Slope ...
     x = ((afWin[0] + afWin[3] + afWin[3] + afWin[6]) -
         (afWin[2] + afWin[5] + afWin[5] + afWin[8])) / psData->ewres;
@@ -525,19 +525,19 @@ float GDALHillshadeCombinedAlg (float* afWin, float fDstNoDataValue, void* pData
     // combined shading
     cang = 1 - cang * atan(sqrt(slope)) / psData->square_M_PI_2;
 
-    if (cang <= 0.0) 
+    if (cang <= 0.0)
         cang = 1.0;
     else
         cang = 1.0 + (254.0 * cang);
-        
+
     return (float) cang;
 }
 
-float GDALHillshadeZevenbergenThorneAlg (float* afWin, float fDstNoDataValue, void* pData)
+float GDALHillshadeZevenbergenThorneAlg (float* afWin, CPL_UNUSED float fDstNoDataValue, void* pData)
 {
     GDALHillshadeAlgData* psData = (GDALHillshadeAlgData*)pData;
     double x, y, aspect, xx_plus_yy, cang;
-    
+
     // First Slope ...
     x = (afWin[3] - afWin[5]) / psData->ewres;
 
@@ -554,19 +554,19 @@ float GDALHillshadeZevenbergenThorneAlg (float* afWin, float fDstNoDataValue, vo
            sin(aspect - psData->azRadians)) /
            sqrt(1 + psData->square_z_scale_factor * xx_plus_yy);
 
-    if (cang <= 0.0) 
+    if (cang <= 0.0)
         cang = 1.0;
     else
         cang = 1.0 + (254.0 * cang);
-        
+
     return (float) cang;
 }
 
-float GDALHillshadeZevenbergenThorneCombinedAlg (float* afWin, float fDstNoDataValue, void* pData)
+float GDALHillshadeZevenbergenThorneCombinedAlg (float* afWin, CPL_UNUSED float fDstNoDataValue, void* pData)
 {
     GDALHillshadeAlgData* psData = (GDALHillshadeAlgData*)pData;
     double x, y, aspect, xx_plus_yy, cang;
-    
+
     // First Slope ...
     x = (afWin[3] - afWin[5]) / psData->ewres;
 
@@ -630,39 +630,39 @@ typedef struct
     int    slopeFormat;
 } GDALSlopeAlgData;
 
-float GDALSlopeHornAlg (float* afWin, float fDstNoDataValue, void* pData)
+float GDALSlopeHornAlg (float* afWin, CPL_UNUSED float fDstNoDataValue, void* pData)
 {
     const double radiansToDegrees = 180.0 / M_PI;
     GDALSlopeAlgData* psData = (GDALSlopeAlgData*)pData;
     double dx, dy, key;
-    
-    dx = ((afWin[0] + afWin[3] + afWin[3] + afWin[6]) - 
+
+    dx = ((afWin[0] + afWin[3] + afWin[3] + afWin[6]) -
           (afWin[2] + afWin[5] + afWin[5] + afWin[8]))/psData->ewres;
 
-    dy = ((afWin[6] + afWin[7] + afWin[7] + afWin[8]) - 
+    dy = ((afWin[6] + afWin[7] + afWin[7] + afWin[8]) -
           (afWin[0] + afWin[1] + afWin[1] + afWin[2]))/psData->nsres;
 
     key = (dx * dx + dy * dy);
 
-    if (psData->slopeFormat == 1) 
+    if (psData->slopeFormat == 1)
         return (float) (atan(sqrt(key) / (8*psData->scale)) * radiansToDegrees);
     else
         return (float) (100*(sqrt(key) / (8*psData->scale)));
 }
 
-float GDALSlopeZevenbergenThorneAlg (float* afWin, float fDstNoDataValue, void* pData)
+float GDALSlopeZevenbergenThorneAlg (float* afWin, CPL_UNUSED float fDstNoDataValue, void* pData)
 {
     const double radiansToDegrees = 180.0 / M_PI;
     GDALSlopeAlgData* psData = (GDALSlopeAlgData*)pData;
     double dx, dy, key;
-    
+
     dx = (afWin[3] - afWin[5])/psData->ewres;
 
     dy = (afWin[7] - afWin[1])/psData->nsres;
 
     key = (dx * dx + dy * dy);
 
-    if (psData->slopeFormat == 1) 
+    if (psData->slopeFormat == 1)
         return (float) (atan(sqrt(key) / (2*psData->scale)) * radiansToDegrees);
     else
         return (float) (100*(sqrt(key) / (2*psData->scale)));
@@ -1721,7 +1721,9 @@ CPLErr GDALGenerateVRTColorRelief(const char* pszDstFilename,
 /*                         GDALTRIAlg()                                 */
 /************************************************************************/
 
-float GDALTRIAlg (float* afWin, float fDstNoDataValue, void* pData)
+float GDALTRIAlg (float* afWin,
+                  CPL_UNUSED float fDstNoDataValue,
+                  CPL_UNUSED void* pData)
 {
     // Terrain Ruggedness is average difference in height
     return (fabs(afWin[0]-afWin[4]) +
@@ -1739,11 +1741,13 @@ float GDALTRIAlg (float* afWin, float fDstNoDataValue, void* pData)
 /*                         GDALTPIAlg()                                 */
 /************************************************************************/
 
-float GDALTPIAlg (float* afWin, float fDstNoDataValue, void* pData)
+float GDALTPIAlg (float* afWin,
+                  CPL_UNUSED float fDstNoDataValue,
+                  CPL_UNUSED void* pData)
 {
     // Terrain Position is the difference between
     // The central cell and the mean of the surrounding cells
-    return afWin[4] - 
+    return afWin[4] -
             ((afWin[0]+
               afWin[1]+
               afWin[2]+
@@ -1758,7 +1762,7 @@ float GDALTPIAlg (float* afWin, float fDstNoDataValue, void* pData)
 /*                     GDALRoughnessAlg()                               */
 /************************************************************************/
 
-float GDALRoughnessAlg (float* afWin, float fDstNoDataValue, void* pData)
+float GDALRoughnessAlg (float* afWin, CPL_UNUSED float fDstNoDataValue, CPL_UNUSED void* pData)
 {
     // Roughness is the largest difference
     //  between any two cells
@@ -1918,7 +1922,7 @@ void   GDALGeneric3x3RasterBand::InitWidthNoData(void* pImage)
     }
 }
 
-CPLErr GDALGeneric3x3RasterBand::IReadBlock( int nBlockXOff,
+CPLErr GDALGeneric3x3RasterBand::IReadBlock( CPL_UNUSED int nBlockXOff,
                                              int nBlockYOff,
                                              void *pImage )
 {
@@ -2184,6 +2188,15 @@ double GDALGeneric3x3RasterBand::GetNoDataValue( int* pbHasNoData )
 }
 
 /************************************************************************/
+/*                            ArgIsNumeric()                            */
+/************************************************************************/
+
+static int ArgIsNumeric( const char *pszArg )
+
+{
+    return CPLGetValueType(pszArg) != CPL_VALUE_STRING;
+}
+/************************************************************************/
 /*                                main()                                */
 /************************************************************************/
 
@@ -2303,7 +2316,10 @@ int main( int argc, char ** argv )
             (EQUAL(argv[i], "--z") || EQUAL(argv[i], "-z")))
         {
             CHECK_HAS_ENOUGH_ADDITIONAL_ARGS(1);
-            z = atof(argv[++i]);
+            ++i;
+            if( !ArgIsNumeric(argv[i]) )
+                Usage();
+            z = atof(argv[i]);
         }
         else if ( eUtilityMode == SLOPE && EQUAL(argv[i], "-p"))
         {
@@ -2345,7 +2361,10 @@ int main( int argc, char ** argv )
           )
         {
             CHECK_HAS_ENOUGH_ADDITIONAL_ARGS(1);
-            scale = atof(argv[++i]);
+            ++i;
+            if( !ArgIsNumeric(argv[i]) )
+                Usage();
+            scale = atof(argv[i]);
         }
         else if( eUtilityMode == HILL_SHADE &&
             (EQUAL(argv[i], "--az") || 
@@ -2355,7 +2374,10 @@ int main( int argc, char ** argv )
           )
         {
             CHECK_HAS_ENOUGH_ADDITIONAL_ARGS(1);
-            az = atof(argv[++i]);
+            ++i;
+            if( !ArgIsNumeric(argv[i]) )
+                Usage();
+            az = atof(argv[i]);
         }
         else if( eUtilityMode == HILL_SHADE &&
             (EQUAL(argv[i], "--alt") || 
@@ -2365,7 +2387,10 @@ int main( int argc, char ** argv )
           )
         {
             CHECK_HAS_ENOUGH_ADDITIONAL_ARGS(1);
-            alt = atof(argv[++i]);
+            ++i;
+            if( !ArgIsNumeric(argv[i]) )
+                Usage();
+            alt = atof(argv[i]);
         }
         else if( eUtilityMode == HILL_SHADE &&
             (EQUAL(argv[i], "-combined") || 
@@ -2409,7 +2434,7 @@ int main( int argc, char ** argv )
         }
         else if( argv[i][0] == '-' )
         {
-            Usage(CPLSPrintf("Unkown option name '%s'", argv[i]));
+            Usage(CPLSPrintf("Unknown option name '%s'", argv[i]));
         }
         else if( pszSrcFilename == NULL )
         {
@@ -2607,7 +2632,16 @@ int main( int argc, char ** argv )
         }
     }
     
-    if( GDALGetMetadataItem( hDriver, GDAL_DCAP_CREATE, NULL ) == NULL &&
+    // We might actually want to always go through the intermediate dataset
+    int bForceUseIntermediateDataset = FALSE;
+    if( EQUAL(pszFormat, "GTiff") &&
+        !EQUAL(CSLFetchNameValueDef(papszCreateOptions, "COMPRESS", "NONE"), "NONE") &&
+        CSLTestBoolean(CSLFetchNameValueDef(papszCreateOptions, "TILED", "NO")) )
+    {
+        bForceUseIntermediateDataset = TRUE;
+    }
+
+    if( (bForceUseIntermediateDataset || GDALGetMetadataItem( hDriver, GDAL_DCAP_CREATE, NULL ) == NULL) &&
         GDALGetMetadataItem( hDriver, GDAL_DCAP_CREATECOPY, NULL ) != NULL)
     {
         GDALDatasetH hIntermediateDataset;
@@ -2709,4 +2743,3 @@ int main( int argc, char ** argv )
 
     return 0;
 }
-

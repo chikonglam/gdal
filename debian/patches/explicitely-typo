@@ -1,9 +1,11 @@
 Description: Fix 'explicitely' typo, replace with 'explicitly'.
 Author: Bas Couwenberg <sebastic@debian.org>
-Last-Update: 2013-10-11
+Forwarded: http://trac.osgeo.org/gdal/ticket/5756
+Applied-Upstream: 2.0, http://trac.osgeo.org/gdal/changeset/28039
+
 --- a/NEWS
 +++ b/NEWS
-@@ -752,7 +752,7 @@ GML driver:
+@@ -1670,7 +1670,7 @@ GML driver:
   * Allow reading srsDimension attribute when set on LineString element, and not on posList (#4663)
   * Partial support for reading GML 3.3 compat encoding profile, limited to <gmlce:SimplePolygon>, <gmlce:SimpleRectangle>, <gmlce:SimpleTriangle>, <gmlce:SimpleMultiPoint> elements
   * Support WFS GetFeature response document to be piped and opened with /vsistdin/
@@ -12,7 +14,7 @@ Last-Update: 2013-10-11
   * Improve detection of extent and srs for WFS 2.0
   * Allow ISO-8859-15 encoded files to be used by Expat parser (#4829)
   * Handle CompositeCurve like MultiCurve (for NAS)
-@@ -1553,7 +1553,7 @@ Core:
+@@ -2471,7 +2471,7 @@ Core:
   * OGR SQL: recognize optional ESCAPE escape_char clause
   * OGR SQL: allow NULL to be used as a value, so that 'SELECT *, NULL FROM foo works'
   * OGR SQL: Accept doublequoting of column_name in 'SELECT DISTINCT "column_name" FROM table_name' (#3966)
@@ -23,7 +25,7 @@ Last-Update: 2013-10-11
   * OGR SQL: Add a mechanism to delete a layer (DROP TABLE x)
 --- a/apps/gdal_rasterize.cpp
 +++ b/apps/gdal_rasterize.cpp
-@@ -340,7 +340,7 @@ GDALDatasetH CreateOutputDataset(std::ve
+@@ -341,7 +341,7 @@ GDALDatasetH CreateOutputDataset(std::ve
              }
  
              /* When rasterizing point layers and that the bounds have */
@@ -32,7 +34,7 @@ Last-Update: 2013-10-11
              /* a half-pixel size to avoid missing points on the border */
              if (wkbFlatten(OGR_L_GetGeomType(hLayer)) == wkbPoint &&
                  !bTargetAlignedPixels && dfXRes != 0 && dfYRes != 0)
-@@ -478,7 +478,7 @@ int main( int argc, char ** argv )
+@@ -479,7 +479,7 @@ int main( int argc, char ** argv )
      double dfXRes = 0, dfYRes = 0;
      int bCreateOutput = FALSE;
      const char* pszFormat = "GTiff";
@@ -41,7 +43,7 @@ Last-Update: 2013-10-11
      char **papszCreateOptions = NULL;
      GDALDriverH hDriver = NULL;
      GDALDataType eOutputType = GDT_Float64;
-@@ -606,7 +606,7 @@ int main( int argc, char ** argv )
+@@ -607,7 +607,7 @@ int main( int argc, char ** argv )
          else if( EQUAL(argv[i],"-of") && i < argc-1 )
          {
              pszFormat = argv[++i];
@@ -50,7 +52,7 @@ Last-Update: 2013-10-11
              bCreateOutput = TRUE;
          }
          else if( EQUAL(argv[i],"-init") && i < argc - 1 )
-@@ -858,7 +858,7 @@ int main( int argc, char ** argv )
+@@ -859,7 +859,7 @@ int main( int argc, char ** argv )
              exit( 1 );
          }
  
@@ -61,7 +63,7 @@ Last-Update: 2013-10-11
      else
 --- a/frmts/ctg/ctgdataset.cpp
 +++ b/frmts/ctg/ctgdataset.cpp
-@@ -361,7 +361,7 @@ int CTGDataset::Identify( GDALOpenInfo *
+@@ -360,7 +360,7 @@ int CTGDataset::Identify( GDALOpenInfo *
  
      GDALOpenInfo* poOpenInfoToDelete = NULL;
      /*  GZipped grid_cell.gz files are common, so automagically open them */
@@ -70,7 +72,7 @@ Last-Update: 2013-10-11
      const char* pszFilename = CPLGetFilename(poOpenInfo->pszFilename);
      if ((EQUAL(pszFilename, "grid_cell.gz") ||
           EQUAL(pszFilename, "grid_cell1.gz") ||
-@@ -432,7 +432,7 @@ GDALDataset *CTGDataset::Open( GDALOpenI
+@@ -431,7 +431,7 @@ GDALDataset *CTGDataset::Open( GDALOpenI
      CPLString osFilename(poOpenInfo->pszFilename);
  
      /*  GZipped grid_cell.gz files are common, so automagically open them */
@@ -81,7 +83,7 @@ Last-Update: 2013-10-11
           EQUAL(pszFilename, "grid_cell1.gz") ||
 --- a/frmts/ecw/ecwasyncreader.cpp
 +++ b/frmts/ecw/ecwasyncreader.cpp
-@@ -280,7 +280,7 @@ NCSEcwReadStatus ECWAsyncReader::Refresh
+@@ -281,7 +281,7 @@ NCSEcwReadStatus ECWAsyncReader::Refresh
              poReader->bComplete = TRUE;
      }
  
@@ -123,7 +125,7 @@ Last-Update: 2013-10-11
  
 --- a/frmts/nitf/nitfdataset.cpp
 +++ b/frmts/nitf/nitfdataset.cpp
-@@ -605,7 +605,7 @@ GDALDataset *NITFDataset::OpenInternal(
+@@ -606,7 +606,7 @@ GDALDataset *NITFDataset::OpenInternal(
          }
          else
          {
@@ -132,7 +134,7 @@ Last-Update: 2013-10-11
              /* to be opened by a random driver, and also to make sure that */
              /* a future new JPEG2000 compatible driver derives from GDALPamDataset */
              static const char * const apszDrivers[] = { "JP2KAK", "JP2ECW", "JP2MRSID",
-@@ -4178,7 +4178,7 @@ NITFDataset::NITFCreateCopy(
+@@ -4225,7 +4225,7 @@ NITFDataset::NITFCreateCopy(
  
                  if (CSLPartialFindString(papszFullOptions, "TRE=GEOLOB=") != - 1)
                  {
@@ -141,7 +143,7 @@ Last-Update: 2013-10-11
                               "Overriding it with current georefencing info.");
                  }
  
-@@ -4205,7 +4205,7 @@ NITFDataset::NITFCreateCopy(
+@@ -4252,7 +4252,7 @@ NITFDataset::NITFCreateCopy(
                  papszFullOptions = CSLAddString( papszFullOptions, osGEOLOB ) ;
  
  /* -------------------------------------------------------------------- */
@@ -150,7 +152,7 @@ Last-Update: 2013-10-11
  /* -------------------------------------------------------------------- */
                  if (CSLPartialFindString(papszFullOptions, "FILE_TRE=GEOPSB=") == -1 &&
                      CSLPartialFindString(papszFullOptions, "TRE=GEOPSB=") == -1)
-@@ -4237,7 +4237,7 @@ NITFDataset::NITFCreateCopy(
+@@ -4284,7 +4284,7 @@ NITFDataset::NITFCreateCopy(
                  }
                  else
                  {
@@ -159,23 +161,9 @@ Last-Update: 2013-10-11
                  }
  
              }
---- a/frmts/pdf/frmt_pdf.html
-+++ b/frmts/pdf/frmt_pdf.html
-@@ -64,9 +64,9 @@ specified, all features are rendered.</l
- Defaults to 3.</li>
- <li><i>GDAL_PDF_LAYERS</i> = list of layers (comma separated) to turn ON (or "ALL" to turn all layers ON).
- The layer names can be obtained by querying the LAYERS metadata domain. When this option is specified,
--layers not explicitely listed will be turned off.</li>
-+layers not explicitly listed will be turned off.</li>
- <li><i>GDAL_PDF_LAYERS_OFF</i> = list of layers (comma separated) to turn OFF. The layer names can be obtained by
--querying the LAYERS metadata domain. When this option is specified, layers not explicitely listed will be turned
-+querying the LAYERS metadata domain. When this option is specified, layers not explicitly listed will be turned
- off.</li>
- </ul>
- 
 --- a/frmts/pdf/pdfdataset.cpp
 +++ b/frmts/pdf/pdfdataset.cpp
-@@ -2509,7 +2509,7 @@ void PDFDataset::TurnLayersOnOff()
+@@ -2510,7 +2510,7 @@ void PDFDataset::TurnLayersOnOff()
                      oIter->second->setState(OptionalContentGroup::On);
                  }
  
@@ -184,7 +172,7 @@ Last-Update: 2013-10-11
                  // in the list.
                  size_t nLen = strlen(papszLayers[i]);
                  int bFoundChildLayer = FALSE;
-@@ -4968,7 +4968,7 @@ CPLErr PDFDataset::SetGeoTransform(doubl
+@@ -4972,7 +4972,7 @@ CPLErr PDFDataset::SetGeoTransform(doubl
      bGeoTransformValid = TRUE;
      bProjDirty = TRUE;
  
@@ -193,7 +181,7 @@ Last-Update: 2013-10-11
      if (!bNeatLineDirty)
          SetMetadataItem("NEATLINE", NULL);
      return CE_None;
-@@ -5140,7 +5140,7 @@ CPLErr PDFDataset::SetGCPs( int nGCPCoun
+@@ -5155,7 +5155,7 @@ CPLErr PDFDataset::SetGCPs( int nGCPCoun
      
      bProjDirty = TRUE;
  
@@ -204,7 +192,7 @@ Last-Update: 2013-10-11
  
 --- a/frmts/xyz/xyzdataset.cpp
 +++ b/frmts/xyz/xyzdataset.cpp
-@@ -314,7 +314,7 @@ int XYZDataset::IdentifyEx( GDALOpenInfo
+@@ -480,7 +480,7 @@ int XYZDataset::IdentifyEx( GDALOpenInfo
  
      GDALOpenInfo* poOpenInfoToDelete = NULL;
      /*  GZipped .xyz files are common, so automagically open them */
@@ -213,7 +201,7 @@ Last-Update: 2013-10-11
      if (strlen(poOpenInfo->pszFilename) > 6 &&
          EQUAL(poOpenInfo->pszFilename + strlen(poOpenInfo->pszFilename) - 6, "xyz.gz") &&
          !EQUALN(poOpenInfo->pszFilename, "/vsigzip/", 9))
-@@ -446,7 +446,7 @@ GDALDataset *XYZDataset::Open( GDALOpenI
+@@ -612,7 +612,7 @@ GDALDataset *XYZDataset::Open( GDALOpenI
      CPLString osFilename(poOpenInfo->pszFilename);
  
      /*  GZipped .xyz files are common, so automagically open them */
@@ -224,7 +212,7 @@ Last-Update: 2013-10-11
          !EQUALN(poOpenInfo->pszFilename, "/vsigzip/", 9))
 --- a/gcore/gdaldataset.cpp
 +++ b/gcore/gdaldataset.cpp
-@@ -2346,7 +2346,7 @@ GDALDatasetH GDALOpenInternal( GDALOpenI
+@@ -2381,7 +2381,7 @@ GDALDatasetH GDALOpenInternal( GDALOpenI
   * Starting with GDAL 1.6.0, if GDALOpenShared() is called on the same pszFilename
   * from two different threads, a different GDALDataset object will be returned as
   * it is not safe to use the same dataset from different threads, unless the user
@@ -235,7 +223,7 @@ Last-Update: 2013-10-11
   * a file in a .zip archive (see VSIInstallZipFileHandler()), in a .tar/.tar.gz/.tgz archive
 --- a/ogr/ogrsf_frmts/generic/ogr_gensql.cpp
 +++ b/ogr/ogrsf_frmts/generic/ogr_gensql.cpp
-@@ -134,7 +134,7 @@ OGRGenSQLResultsLayer::OGRGenSQLResultsL
+@@ -152,7 +152,7 @@ OGRGenSQLResultsLayer::OGRGenSQLResultsL
      poSrcLayer = papoTableLayers[0];
  
  /* -------------------------------------------------------------------- */
@@ -246,7 +234,7 @@ Last-Update: 2013-10-11
  /* -------------------------------------------------------------------- */
 --- a/ogr/ogrsf_frmts/gml/drv_gml.html
 +++ b/ogr/ogrsf_frmts/gml/drv_gml.html
-@@ -289,7 +289,7 @@ the layers must be read in the order the
+@@ -312,7 +312,7 @@ the layers must be read in the order the
  If no .xsd and .gfs files are found, the parser will detect the layout of layers when
  building the .gfs file. If the layers are found to be sequential, a <i>&lt;SequentialLayers&gt;true&lt;/SequentialLayers&gt;</i>
  element will be written in the .gfs file, so that the GML_READ_MODE will be automatically
@@ -299,7 +287,7 @@ Last-Update: 2013-10-11
   @return an handle to a OGRLayer containing the results of the query.  
 --- a/ogr/ogrsf_frmts/osm/ogrosmdatasource.cpp
 +++ b/ogr/ogrsf_frmts/osm/ogrosmdatasource.cpp
-@@ -3928,7 +3928,7 @@ OGRLayer * OGROSMDataSource::ExecuteSQL(
+@@ -4111,7 +4111,7 @@ OGRLayer * OGROSMDataSource::ExecuteSQL(
                                                              poSpatialFilter,
                                                              pszDialect );
  
@@ -310,7 +298,7 @@ Last-Update: 2013-10-11
                  if( pszDialect != NULL && EQUAL(pszDialect, "SQLITE") )
 --- a/ogr/ogrsf_frmts/pg/drv_pg_advanced.html
 +++ b/ogr/ogrsf_frmts/pg/drv_pg_advanced.html
-@@ -101,7 +101,7 @@ mode, will be retrieved from the databas
+@@ -116,7 +116,7 @@ mode, will be retrieved from the databas
  new behaviour is that you must be careful if you re-use the same feature object in a loop that makes
  insertions. After the first iteration, the FID will be set to a non-null value, so at the second iteration,
  CreateFeature() will try to insert the new feature with the FID of the previous feature, which will fail as
@@ -321,7 +309,7 @@ Last-Update: 2013-10-11
  Snippet example in Python :
 --- a/ogr/ogrsf_frmts/sqlite/ogr_sqlite.h
 +++ b/ogr/ogrsf_frmts/sqlite/ogr_sqlite.h
-@@ -558,7 +558,7 @@ class OGRSQLiteDataSource : public OGRDa
+@@ -607,7 +607,7 @@ class OGRSQLiteDataSource : public OGRDa
  #endif
  
      VSILFILE*           fpMainFile; /* Set by the VFS layer when it opens the DB */
@@ -332,7 +320,7 @@ Last-Update: 2013-10-11
  
 --- a/ogr/ogrsf_frmts/sqlite/ogrsqlitevirtualogr.cpp
 +++ b/ogr/ogrsf_frmts/sqlite/ogrsqlitevirtualogr.cpp
-@@ -524,7 +524,7 @@ int OGR2SQLITE_ConnectCreate(sqlite3* hD
+@@ -545,7 +545,7 @@ int OGR2SQLITE_ConnectCreate(sqlite3* hD
  
              if( poDS->GetLayerCount() > 1 )
              {
@@ -343,7 +331,7 @@ Last-Update: 2013-10-11
                  return SQLITE_ERROR;
 --- a/ogr/ogrsf_frmts/vrt/drv_vrt.html
 +++ b/ogr/ogrsf_frmts/vrt/drv_vrt.html
-@@ -117,7 +117,7 @@ If set to FALSE, the source geometry fie
+@@ -146,7 +146,7 @@ element to wkbNone.
  
  <li> <b>SrcRegion</b> (optionnal, from GDAL 1.7.0) : This element is used
  to define an initial spatial filter for the source features. This spatial
@@ -434,7 +422,7 @@ Last-Update: 2013-10-11
  public class Geometry:public void delete()
 --- a/swig/python/extensions/gdal_wrap.cpp
 +++ b/swig/python/extensions/gdal_wrap.cpp
-@@ -7652,7 +7652,7 @@ SWIGINTERN PyObject *_wrap_MajorObject_S
+@@ -8002,7 +8002,7 @@ SWIGINTERN PyObject *_wrap_MajorObject_S
      if (_v) {
        {
          /* %typecheck(SWIG_TYPECHECK_POINTER) (char **dict) */
@@ -445,7 +433,7 @@ Last-Update: 2013-10-11
          _v = ((PyMapping_Check(argv[1]) || PySequence_Check(argv[1]) ) && !SWIG_CheckState(SWIG_AsCharPtrAndSize(argv[1], 0, NULL, 0)) ) ? 1 : 0;
 --- a/swig/python/extensions/ogr_wrap.cpp
 +++ b/swig/python/extensions/ogr_wrap.cpp
-@@ -18084,7 +18084,7 @@ static PyMethodDef SwigMethods[] = {
+@@ -20887,7 +20887,7 @@ static PyMethodDef SwigMethods[] = {
  		"\n"
  		"pszDialect:  allows control of the statement dialect. If set to NULL,\n"
  		"the OGR SQL engine will be used, except for RDBMS drivers that will\n"
@@ -456,7 +444,7 @@ Last-Update: 2013-10-11
  		"an handle to a OGRLayer containing the results of the query.\n"
 --- a/swig/python/osgeo/ogr.py
 +++ b/swig/python/osgeo/ogr.py
-@@ -690,7 +690,7 @@ class DataSource(_object):
+@@ -737,7 +737,7 @@ class DataSource(_object):
  
          pszDialect:  allows control of the statement dialect. If set to NULL,
          the OGR SQL engine will be used, except for RDBMS drivers that will
@@ -467,7 +455,7 @@ Last-Update: 2013-10-11
          an handle to a OGRLayer containing the results of the query.
 --- a/apps/gdal_grid.cpp
 +++ b/apps/gdal_grid.cpp
-@@ -550,7 +550,7 @@ int main( int argc, char ** argv )
+@@ -610,7 +610,7 @@ int main( int argc, char ** argv )
  {
      GDALDriverH     hDriver;
      const char      *pszSource=NULL, *pszDest=NULL, *pszFormat = "GTiff";
@@ -475,8 +463,8 @@ Last-Update: 2013-10-11
 +    int             bFormatExplicitlySet = FALSE;
      char            **papszLayers = NULL;
      const char      *pszBurnAttribute = NULL;
-     const char      *pszWHERE = NULL, *pszSQL = NULL;
-@@ -601,7 +601,7 @@ int main( int argc, char ** argv )
+     double          dfIncreaseBurnValue = 0.0;
+@@ -663,7 +663,7 @@ int main( int argc, char ** argv )
          {
              CHECK_HAS_ENOUGH_ADDITIONAL_ARGS(1);
              pszFormat = argv[++i];
@@ -485,7 +473,7 @@ Last-Update: 2013-10-11
          }
  
          else if( EQUAL(argv[i],"-q") || EQUAL(argv[i],"-quiet") )
-@@ -935,7 +935,7 @@ int main( int argc, char ** argv )
+@@ -1009,7 +1009,7 @@ int main( int argc, char ** argv )
      if ( nYSize == 0 )
          nYSize = 256;
  
@@ -496,7 +484,7 @@ Last-Update: 2013-10-11
      hDstDS = GDALCreate( hDriver, pszDest, nXSize, nYSize, nBands,
 --- a/apps/gdal_translate.cpp
 +++ b/apps/gdal_translate.cpp
-@@ -268,7 +268,7 @@ static int ProxyMain( int argc, char **
+@@ -278,7 +278,7 @@ static int ProxyMain( int argc, char **
      int			i;
      int			nRasterXSize, nRasterYSize;
      const char		*pszSource=NULL, *pszDest=NULL, *pszFormat = "GTiff";
@@ -505,7 +493,7 @@ Last-Update: 2013-10-11
      GDALDriverH		hDriver;
      int			*panBandList = NULL; /* negative value of panBandList[i] means mask band of ABS(panBandList[i]) */
      int         nBandCount = 0, bDefBands = TRUE;
-@@ -346,7 +346,7 @@ static int ProxyMain( int argc, char **
+@@ -363,7 +363,7 @@ static int ProxyMain( int argc, char **
          else if( EQUAL(argv[i],"-of") && i < argc-1 )
          {
              pszFormat = argv[++i];
@@ -514,7 +502,7 @@ Last-Update: 2013-10-11
          }
  
          else if( EQUAL(argv[i],"-q") || EQUAL(argv[i],"-quiet") )
-@@ -671,7 +671,7 @@ static int ProxyMain( int argc, char **
+@@ -753,7 +753,7 @@ static int ProxyMain( int argc, char **
          pfnProgress = GDALDummyProgress;
      }
  
@@ -525,7 +513,7 @@ Last-Update: 2013-10-11
  /* -------------------------------------------------------------------- */
 --- a/apps/gdaldem.cpp
 +++ b/apps/gdaldem.cpp
-@@ -2224,7 +2224,7 @@ int main( int argc, char ** argv )
+@@ -2237,7 +2237,7 @@ int main( int argc, char ** argv )
      const char *pszDstFilename = NULL;
      const char *pszColorFilename = NULL;
      const char *pszFormat = "GTiff";
@@ -534,7 +522,7 @@ Last-Update: 2013-10-11
      char **papszCreateOptions = NULL;
      
      GDALDatasetH hSrcDataset = NULL;
-@@ -2405,7 +2405,7 @@ int main( int argc, char ** argv )
+@@ -2430,7 +2430,7 @@ int main( int argc, char ** argv )
          {
              CHECK_HAS_ENOUGH_ADDITIONAL_ARGS(1);
              pszFormat = argv[++i];
@@ -543,7 +531,7 @@ Last-Update: 2013-10-11
          }
          else if( argv[i][0] == '-' )
          {
-@@ -2496,7 +2496,7 @@ int main( int argc, char ** argv )
+@@ -2521,7 +2521,7 @@ int main( int argc, char ** argv )
          exit( 1 );
      }
  
@@ -554,7 +542,7 @@ Last-Update: 2013-10-11
      double dfDstNoDataValue = 0;
 --- a/apps/gdalenhance.cpp
 +++ b/apps/gdalenhance.cpp
-@@ -88,7 +88,7 @@ int main( int argc, char ** argv )
+@@ -89,7 +89,7 @@ int main( int argc, char ** argv )
      GDALDatasetH	hDataset, hOutDS;
      int			i;
      const char		*pszSource=NULL, *pszDest=NULL, *pszFormat = "GTiff";
@@ -563,7 +551,7 @@ Last-Update: 2013-10-11
      GDALDriverH		hDriver;
      GDALDataType	eOutputType = GDT_Unknown;
      char                **papszCreateOptions = NULL;
-@@ -129,7 +129,7 @@ int main( int argc, char ** argv )
+@@ -130,7 +130,7 @@ int main( int argc, char ** argv )
          else if( EQUAL(argv[i],"-of") && i < argc-1 )
          {
              pszFormat = argv[++i];
@@ -572,7 +560,7 @@ Last-Update: 2013-10-11
          }
  
          else if( EQUAL(argv[i],"-ot") && i < argc-1 )
-@@ -264,7 +264,7 @@ int main( int argc, char ** argv )
+@@ -265,7 +265,7 @@ int main( int argc, char ** argv )
          Usage();
      }
  
@@ -583,7 +571,7 @@ Last-Update: 2013-10-11
  /* -------------------------------------------------------------------- */
 --- a/apps/gdalwarp.cpp
 +++ b/apps/gdalwarp.cpp
-@@ -335,7 +335,7 @@ int main( int argc, char ** argv )
+@@ -337,7 +337,7 @@ int main( int argc, char ** argv )
  {
      GDALDatasetH	hDstDS;
      const char         *pszFormat = "GTiff";
@@ -592,7 +580,7 @@ Last-Update: 2013-10-11
      char              **papszSrcFiles = NULL;
      char               *pszDstFilename = NULL;
      int                 bCreateOutput = FALSE, i;
-@@ -438,7 +438,7 @@ int main( int argc, char ** argv )
+@@ -440,7 +440,7 @@ int main( int argc, char ** argv )
          {
              CHECK_HAS_ENOUGH_ADDITIONAL_ARGS(1);
              pszFormat = argv[++i];
@@ -601,7 +589,7 @@ Last-Update: 2013-10-11
              bCreateOutput = TRUE;
              if( EQUAL(pszFormat,"VRT") )
                  bVRT = TRUE;
-@@ -893,7 +893,7 @@ int main( int argc, char ** argv )
+@@ -898,7 +898,7 @@ int main( int argc, char ** argv )
  
      if( hDstDS == NULL )
      {
@@ -612,7 +600,7 @@ Last-Update: 2013-10-11
          hDstDS = GDALWarpCreateOutput( papszSrcFiles, pszDstFilename,pszFormat,
 --- a/apps/nearblack.cpp
 +++ b/apps/nearblack.cpp
-@@ -122,7 +122,7 @@ int main( int argc, char ** argv )
+@@ -123,7 +123,7 @@ int main( int argc, char ** argv )
      int bSetAlpha = FALSE;
      int bSetMask = FALSE;
      const char* pszDriverName = "HFA";
@@ -621,7 +609,7 @@ Last-Update: 2013-10-11
      char** papszCreationOptions = NULL;
      int bQuiet = FALSE;
  
-@@ -147,7 +147,7 @@ int main( int argc, char ** argv )
+@@ -148,7 +148,7 @@ int main( int argc, char ** argv )
          {
              CHECK_HAS_ENOUGH_ADDITIONAL_ARGS(1);
              pszDriverName = argv[++i];
@@ -630,7 +618,7 @@ Last-Update: 2013-10-11
          }
          else if( EQUAL(argv[i], "-white") ) {
              bNearWhite = TRUE;
-@@ -269,7 +269,7 @@ int main( int argc, char ** argv )
+@@ -270,7 +270,7 @@ int main( int argc, char ** argv )
          if (hDriver == NULL)
              exit(1);
  
@@ -641,7 +629,7 @@ Last-Update: 2013-10-11
          if (bSetAlpha)
 --- a/apps/ogr2ogr.cpp
 +++ b/apps/ogr2ogr.cpp
-@@ -805,7 +805,7 @@ int main( int nArgc, char ** papszArgv )
+@@ -855,7 +855,7 @@ int main( int nArgc, char ** papszArgv )
  {
      int          nRetCode = 0;
      int          bQuiet = FALSE;
@@ -650,7 +638,7 @@ Last-Update: 2013-10-11
      const char  *pszFormat = "ESRI Shapefile";
      const char  *pszDataSource = NULL;
      const char  *pszDestDataSource = NULL;
-@@ -899,7 +899,7 @@ int main( int nArgc, char ** papszArgv )
+@@ -953,7 +953,7 @@ int main( int nArgc, char ** papszArgv )
          else if( EQUAL(papszArgv[iArg],"-f") )
          {
              CHECK_HAS_ENOUGH_ADDITIONAL_ARGS(1);
@@ -659,7 +647,7 @@ Last-Update: 2013-10-11
              pszFormat = papszArgv[++iArg];
          }
          else if( EQUAL(papszArgv[iArg],"-dsco") )
-@@ -1478,7 +1478,7 @@ int main( int nArgc, char ** papszArgv )
+@@ -1566,7 +1566,7 @@ int main( int nArgc, char ** papszArgv )
  /* -------------------------------------------------------------------- */
      if( !bUpdate )
      {
@@ -670,7 +658,7 @@ Last-Update: 2013-10-11
          OGRSFDriverRegistrar *poR = OGRSFDriverRegistrar::GetRegistrar();
 --- a/ogr/ogrsf_frmts/filegdb/FGdbDatasource.cpp
 +++ b/ogr/ogrsf_frmts/filegdb/FGdbDatasource.cpp
-@@ -457,7 +457,7 @@ OGRLayer * FGdbDataSource::ExecuteSQL( c
+@@ -477,7 +477,7 @@ OGRLayer * FGdbDataSource::ExecuteSQL( c
          CPLDebug("FGDB", "Support for SELECT is known to be partially "
                           "non-compliant with FileGDB SDK API v1.2.\n"
                           "So for now, we use default OGR SQL engine. "

@@ -18,6 +18,10 @@ This driver is very similar to the PostGIS shp2pgsql utility.<p>
 
 Most creation options are shared with the regular PostgreSQL driver.<p>
 
+Starting with OGR 1.11, the PGDump driver supports creating tables with multiple PostGIS
+geometry columns (following
+<a href="http://trac.osgeo.org/gdal/wiki/rfc41_multiple_geometry_fields">RFC 41</a>)<p>
+
 <h2>Creation options</h2>
 
 <h3>Dataset Creation Options</h3>
@@ -82,7 +86,7 @@ critical to set it. Its effect is just to avoid a few warnings.<p>
 
 <ul>
 <li><b>PG_USE_COPY</b>: This may be "YES" for using COPY for inserting data to Postgresql.
-COPY is less robust than INSERT, but significantly faster.</li><p>
+COPY is significantly faster than INSERT.</li><p>
 </ul>
 
 <h3>VSI Virtual File System API support</h3>

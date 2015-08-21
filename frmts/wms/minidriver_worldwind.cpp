@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: minidriver_worldwind.cpp 18020 2009-11-14 14:33:20Z rouault $
+ * $Id: minidriver_worldwind.cpp 27729 2014-09-24 00:40:16Z goatbar $
  *
  * Project:  WMS Client Driver
  * Purpose:  Implementation of Dataset and RasterBand classes for WMS
@@ -28,7 +28,8 @@
  * DEALINGS IN THE SOFTWARE.
  ****************************************************************************/
 
-#include "stdinc.h"
+#include "wmsdriver.h"
+#include "minidriver_worldwind.h"
 
 CPP_GDALWMSMiniDriverFactory(WorldWind)
 
@@ -69,7 +70,8 @@ void GDALWMSMiniDriver_WorldWind::GetCapabilities(GDALWMSMiniDriverCapabilities 
     caps->m_max_overview_count = 32;
 }
 
-void GDALWMSMiniDriver_WorldWind::ImageRequest(CPLString *url, const GDALWMSImageRequestInfo &iri) {
+void GDALWMSMiniDriver_WorldWind::ImageRequest(CPL_UNUSED CPLString *url,
+                                               CPL_UNUSED const GDALWMSImageRequestInfo &iri) {
 }
 
 void GDALWMSMiniDriver_WorldWind::TiledImageRequest(CPLString *url, const GDALWMSImageRequestInfo &iri, const GDALWMSTiledImageRequestInfo &tiri) {

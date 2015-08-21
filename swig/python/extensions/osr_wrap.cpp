@@ -2928,14 +2928,20 @@ int GetUseExceptions() {
 }
 
 void UseExceptions() {
-  bUseExceptions = 1;
-  pfnPreviousHandler = 
-    CPLSetErrorHandler( (CPLErrorHandler) PythonBindingErrorHandler );
+  if( !bUseExceptions )
+  {
+    bUseExceptions = 1;
+    pfnPreviousHandler = 
+        CPLSetErrorHandler( (CPLErrorHandler) PythonBindingErrorHandler );
+  }
 }
 
 void DontUseExceptions() {
-  bUseExceptions = 0;
-  CPLSetErrorHandler( pfnPreviousHandler );
+  if( bUseExceptions )
+  {
+    bUseExceptions = 0;
+    CPLSetErrorHandler( pfnPreviousHandler );
+  }
 }
 
 
@@ -3248,6 +3254,9 @@ SWIGINTERN int OSRSpatialReferenceShadow_IsVertical(OSRSpatialReferenceShadow *s
   }
 SWIGINTERN int OSRSpatialReferenceShadow_EPSGTreatsAsLatLong(OSRSpatialReferenceShadow *self){
     return OSREPSGTreatsAsLatLong(self);
+  }
+SWIGINTERN int OSRSpatialReferenceShadow_EPSGTreatsAsNorthingEasting(OSRSpatialReferenceShadow *self){
+    return OSREPSGTreatsAsNorthingEasting(self);
   }
 
 #include <limits.h>
@@ -4558,6 +4567,39 @@ SWIGINTERN PyObject *_wrap_SpatialReference_EPSGTreatsAsLatLong(PyObject *SWIGUN
       CPLErrorReset();
     }
     result = (int)OSRSpatialReferenceShadow_EPSGTreatsAsLatLong(arg1);
+    if ( bUseExceptions ) {
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        SWIG_exception( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+      }
+    }
+  }
+  resultobj = SWIG_From_int(static_cast< int >(result));
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_SpatialReference_EPSGTreatsAsNorthingEasting(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  OSRSpatialReferenceShadow *arg1 = (OSRSpatialReferenceShadow *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  PyObject * obj0 = 0 ;
+  int result;
+  
+  if (!PyArg_ParseTuple(args,(char *)"O:SpatialReference_EPSGTreatsAsNorthingEasting",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_OSRSpatialReferenceShadow, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "SpatialReference_EPSGTreatsAsNorthingEasting" "', argument " "1"" of type '" "OSRSpatialReferenceShadow *""'"); 
+  }
+  arg1 = reinterpret_cast< OSRSpatialReferenceShadow * >(argp1);
+  {
+    if ( bUseExceptions ) {
+      CPLErrorReset();
+    }
+    result = (int)OSRSpatialReferenceShadow_EPSGTreatsAsNorthingEasting(arg1);
     if ( bUseExceptions ) {
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
@@ -10570,7 +10612,10 @@ SWIGINTERN PyObject *_wrap_SpatialReference_ImportFromWkt(PyObject *SWIGUNUSEDPA
   arg1 = reinterpret_cast< OSRSpatialReferenceShadow * >(argp1);
   {
     /* %typemap(in) (char **ignorechange) */
-    PyArg_Parse( obj1, "s", &val2 );
+    if( !PyArg_Parse( obj1, "s", &val2 ) ) {
+      PyErr_SetString( PyExc_TypeError, "not a string" );
+      SWIG_fail;
+    }
     arg2 = &val2;
   }
   {
@@ -12910,6 +12955,7 @@ static PyMethodDef SwigMethods[] = {
 	 { (char *)"SpatialReference_IsLocal", _wrap_SpatialReference_IsLocal, METH_VARARGS, (char *)"SpatialReference_IsLocal(SpatialReference self) -> int"},
 	 { (char *)"SpatialReference_IsVertical", _wrap_SpatialReference_IsVertical, METH_VARARGS, (char *)"SpatialReference_IsVertical(SpatialReference self) -> int"},
 	 { (char *)"SpatialReference_EPSGTreatsAsLatLong", _wrap_SpatialReference_EPSGTreatsAsLatLong, METH_VARARGS, (char *)"SpatialReference_EPSGTreatsAsLatLong(SpatialReference self) -> int"},
+	 { (char *)"SpatialReference_EPSGTreatsAsNorthingEasting", _wrap_SpatialReference_EPSGTreatsAsNorthingEasting, METH_VARARGS, (char *)"SpatialReference_EPSGTreatsAsNorthingEasting(SpatialReference self) -> int"},
 	 { (char *)"SpatialReference_SetAuthority", _wrap_SpatialReference_SetAuthority, METH_VARARGS, (char *)"\n"
 		"SpatialReference_SetAuthority(SpatialReference self, char pszTargetKey, char pszAuthority, \n"
 		"    int nCode) -> OGRErr\n"
@@ -13889,6 +13935,44 @@ SWIG_init(void) {
   SWIG_Python_SetConstant(d, "SRS_UL_ROD_CONV",SWIG_FromCharPtr("5.02921005842012"));
   SWIG_Python_SetConstant(d, "SRS_UL_LINK_Clarke",SWIG_FromCharPtr("Link_Clarke"));
   SWIG_Python_SetConstant(d, "SRS_UL_LINK_Clarke_CONV",SWIG_FromCharPtr("0.2011661949"));
+  SWIG_Python_SetConstant(d, "SRS_UL_KILOMETER",SWIG_FromCharPtr("Kilometer"));
+  SWIG_Python_SetConstant(d, "SRS_UL_KILOMETER_CONV",SWIG_FromCharPtr("1000."));
+  SWIG_Python_SetConstant(d, "SRS_UL_DECIMETER",SWIG_FromCharPtr("Decimeter"));
+  SWIG_Python_SetConstant(d, "SRS_UL_DECIMETER_CONV",SWIG_FromCharPtr("0.1"));
+  SWIG_Python_SetConstant(d, "SRS_UL_CENTIMETER",SWIG_FromCharPtr("Centimeter"));
+  SWIG_Python_SetConstant(d, "SRS_UL_CENTIMETER_CONV",SWIG_FromCharPtr("0.01"));
+  SWIG_Python_SetConstant(d, "SRS_UL_MILLIMETER",SWIG_FromCharPtr("Millimeter"));
+  SWIG_Python_SetConstant(d, "SRS_UL_MILLIMETER_CONV",SWIG_FromCharPtr("0.001"));
+  SWIG_Python_SetConstant(d, "SRS_UL_INTL_NAUT_MILE",SWIG_FromCharPtr("Nautical_Mile_International"));
+  SWIG_Python_SetConstant(d, "SRS_UL_INTL_NAUT_MILE_CONV",SWIG_FromCharPtr("1852.0"));
+  SWIG_Python_SetConstant(d, "SRS_UL_INTL_INCH",SWIG_FromCharPtr("Inch_International"));
+  SWIG_Python_SetConstant(d, "SRS_UL_INTL_INCH_CONV",SWIG_FromCharPtr("0.0254"));
+  SWIG_Python_SetConstant(d, "SRS_UL_INTL_FOOT",SWIG_FromCharPtr("Foot_International"));
+  SWIG_Python_SetConstant(d, "SRS_UL_INTL_FOOT_CONV",SWIG_FromCharPtr("0.3048"));
+  SWIG_Python_SetConstant(d, "SRS_UL_INTL_YARD",SWIG_FromCharPtr("Yard_International"));
+  SWIG_Python_SetConstant(d, "SRS_UL_INTL_YARD_CONV",SWIG_FromCharPtr("0.9144"));
+  SWIG_Python_SetConstant(d, "SRS_UL_INTL_STAT_MILE",SWIG_FromCharPtr("Statute_Mile_International"));
+  SWIG_Python_SetConstant(d, "SRS_UL_INTL_STAT_MILE_CONV",SWIG_FromCharPtr("1609.344"));
+  SWIG_Python_SetConstant(d, "SRS_UL_INTL_FATHOM",SWIG_FromCharPtr("Fathom_International"));
+  SWIG_Python_SetConstant(d, "SRS_UL_INTL_FATHOM_CONV",SWIG_FromCharPtr("1.8288"));
+  SWIG_Python_SetConstant(d, "SRS_UL_INTL_CHAIN",SWIG_FromCharPtr("Chain_International"));
+  SWIG_Python_SetConstant(d, "SRS_UL_INTL_CHAIN_CONV",SWIG_FromCharPtr("20.1168"));
+  SWIG_Python_SetConstant(d, "SRS_UL_INTL_LINK",SWIG_FromCharPtr("Link_International"));
+  SWIG_Python_SetConstant(d, "SRS_UL_INTL_LINK_CONV",SWIG_FromCharPtr("0.201168"));
+  SWIG_Python_SetConstant(d, "SRS_UL_US_INCH",SWIG_FromCharPtr("Inch_US_Surveyor"));
+  SWIG_Python_SetConstant(d, "SRS_UL_US_INCH_CONV",SWIG_FromCharPtr("0.025400050800101603"));
+  SWIG_Python_SetConstant(d, "SRS_UL_US_YARD",SWIG_FromCharPtr("Yard_US_Surveyor"));
+  SWIG_Python_SetConstant(d, "SRS_UL_US_YARD_CONV",SWIG_FromCharPtr("0.914401828803658"));
+  SWIG_Python_SetConstant(d, "SRS_UL_US_CHAIN",SWIG_FromCharPtr("Chain_US_Surveyor"));
+  SWIG_Python_SetConstant(d, "SRS_UL_US_CHAIN_CONV",SWIG_FromCharPtr("20.11684023368047"));
+  SWIG_Python_SetConstant(d, "SRS_UL_US_STAT_MILE",SWIG_FromCharPtr("Statute_Mile_US_Surveyor"));
+  SWIG_Python_SetConstant(d, "SRS_UL_US_STAT_MILE_CONV",SWIG_FromCharPtr("1609.347218694437"));
+  SWIG_Python_SetConstant(d, "SRS_UL_INDIAN_YARD",SWIG_FromCharPtr("Yard_Indian"));
+  SWIG_Python_SetConstant(d, "SRS_UL_INDIAN_YARD_CONV",SWIG_FromCharPtr("0.91439523"));
+  SWIG_Python_SetConstant(d, "SRS_UL_INDIAN_FOOT",SWIG_FromCharPtr("Foot_Indian"));
+  SWIG_Python_SetConstant(d, "SRS_UL_INDIAN_FOOT_CONV",SWIG_FromCharPtr("0.30479841"));
+  SWIG_Python_SetConstant(d, "SRS_UL_INDIAN_CHAIN",SWIG_FromCharPtr("Chain_Indian"));
+  SWIG_Python_SetConstant(d, "SRS_UL_INDIAN_CHAIN_CONV",SWIG_FromCharPtr("20.11669506"));
   SWIG_Python_SetConstant(d, "SRS_UA_DEGREE",SWIG_FromCharPtr("degree"));
   SWIG_Python_SetConstant(d, "SRS_UA_DEGREE_CONV",SWIG_FromCharPtr("0.0174532925199433"));
   SWIG_Python_SetConstant(d, "SRS_UA_RADIAN",SWIG_FromCharPtr("radian"));

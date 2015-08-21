@@ -1,12 +1,12 @@
 /******************************************************************************
- * $Id: ogrbnadatasource.cpp 23244 2011-10-16 21:52:16Z rouault $
+ * $Id: ogrbnadatasource.cpp 27729 2014-09-24 00:40:16Z goatbar $
  *
  * Project:  BNA Translator
  * Purpose:  Implements OGRBNADataSource class
  * Author:   Even Rouault, even dot rouault at mines dash paris dot org
  *
  ******************************************************************************
- * Copyright (c) 2007, Even Rouault
+ * Copyright (c) 2007-2011, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -106,10 +106,9 @@ OGRLayer *OGRBNADataSource::GetLayer( int iLayer )
 /************************************************************************/
 
 OGRLayer * OGRBNADataSource::CreateLayer( const char * pszLayerName,
-                                          OGRSpatialReference *poSRS,
+                                          CPL_UNUSED OGRSpatialReference *poSRS,
                                           OGRwkbGeometryType eType,
-                                          char ** papszOptions )
-
+                                          CPL_UNUSED char ** papszOptions )
 {
     BNAFeatureType bnaFeatureType;
     

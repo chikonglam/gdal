@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdaldefaultoverviews.cpp 25358 2012-12-27 13:19:58Z rouault $
+ * $Id: gdaldefaultoverviews.cpp 27657 2014-09-10 07:21:17Z rouault $
  *
  * Project:  GDAL Core
  * Purpose:  Helper code to implement overview and mask support for many 
@@ -8,6 +8,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2000, 2007, Frank Warmerdam
+ * Copyright (c) 2007-2013, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -31,7 +32,7 @@
 #include "gdal_priv.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: gdaldefaultoverviews.cpp 25358 2012-12-27 13:19:58Z rouault $");
+CPL_CVSID("$Id: gdaldefaultoverviews.cpp 27657 2014-09-10 07:21:17Z rouault $");
 
 /************************************************************************/
 /*                        GDALDefaultOverviews()                        */
@@ -54,6 +55,7 @@ GDALDefaultOverviews::GDALDefaultOverviews()
 
     papszInitSiblingFiles = NULL;
     pszInitName = NULL;
+    bInitNameIsOVR = FALSE;
 }
 
 /************************************************************************/
@@ -766,7 +768,18 @@ GDALDefaultOverviews::BuildOverviews(
             CPLSetThreadLocalConfigOption("PHOTOMETRIC_OVERVIEW", "YCBCR");
 
         if( bOwnMaskDS )
+        {
+            /* Reset the poMask member of main dataset bands, since it */
+            /* will become invalid after poMaskDS closing */
+            for( int iBand = 1; iBand <= poDS->GetRasterCount(); iBand ++ )
+            {
+                GDALRasterBand *poBand = poDS->GetRasterBand(iBand);
+                if( poBand != NULL )
+                    poBand->InvalidateMaskBand();
+            }
+
             GDALClose( poMaskDS );
+        }
 
         // force next request to reread mask file.
         poMaskDS = NULL;
@@ -1005,7 +1018,7 @@ int GDALDefaultOverviews::HaveMaskFile( char ** papszSiblingFiles,
 /*      Are we even initialized?  If not, we apparently don't want      */
 /*      to support overviews and masks.                                 */
 /* -------------------------------------------------------------------- */
-    if( !IsInitialized() )
+    if( poDS == NULL )
         return FALSE;
 
 /* -------------------------------------------------------------------- */

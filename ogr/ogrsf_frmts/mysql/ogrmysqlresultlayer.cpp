@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrmysqlresultlayer.cpp 20460 2010-08-27 20:06:26Z rouault $
+ * $Id: ogrmysqlresultlayer.cpp 27741 2014-09-26 19:20:02Z goatbar $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implements OGRMySQLResultLayer class.
@@ -8,6 +8,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2004, Frank Warmerdam <warmerdam@pobox.com>
+ * Copyright (c) 2008-2010, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -31,7 +32,7 @@
 #include "cpl_conv.h"
 #include "ogr_mysql.h"
 
-CPL_CVSID("$Id: ogrmysqlresultlayer.cpp 20460 2010-08-27 20:06:26Z rouault $");
+CPL_CVSID("$Id: ogrmysqlresultlayer.cpp 27741 2014-09-26 19:20:02Z goatbar $");
 
 /************************************************************************/
 /*                        OGRMySQLResultLayer()                         */
@@ -309,9 +310,7 @@ int OGRMySQLResultLayer::GetFeatureCount( int bForce )
 /*                           TestCapability()                           */
 /************************************************************************/
 
-int OGRMySQLResultLayer::TestCapability( const char * pszCap )
-
+int OGRMySQLResultLayer::TestCapability( CPL_UNUSED const char * pszCap )
 {
     return FALSE;
 }
-

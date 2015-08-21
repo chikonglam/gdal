@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 ###############################################################################
-#  $Id: gdal_retile.py 24037 2012-02-28 17:21:35Z rouault $
+#  $Id: gdal_retile.py 27044 2014-03-16 23:41:27Z rouault $
 #
 # Purpose:  Module for retiling (merging) tiles and building tiled pyramids
 # Author:   Christian Meuller, christian.mueller@nvoe.at
@@ -8,6 +8,7 @@
 #
 ###############################################################################
 # Copyright (c) 2007, Christian Mueller
+# Copyright (c) 2009-2012, Even Rouault <even dot rouault at mines-paris dot org>
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),

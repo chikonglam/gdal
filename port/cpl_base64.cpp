@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: cpl_base64.cpp 21954 2011-03-13 18:18:20Z warmerdam $
+ * $Id: cpl_base64.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  Common Portability Library
  * Purpose:  Encoding/Decoding Base64 strings
@@ -11,6 +11,7 @@
  * Copyright (c) 2008 Paul Ramsey
  * Copyright (c) 2002 Refractions Research
  * Copyright (C) 2004-2008 René Nyffenegger
+ * Copyright (c) 2010-2013, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * (see also part way down the file for license terms for René's code)
  *
@@ -35,7 +36,7 @@
 
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: cpl_base64.cpp 21954 2011-03-13 18:18:20Z warmerdam $");
+CPL_CVSID("$Id: cpl_base64.cpp 27044 2014-03-16 23:41:27Z rouault $");
 
 /* Derived from MapServer's mappostgis.c */
 
@@ -129,11 +130,17 @@ int CPLBase64DecodeInPlace(GByte* pszBase64)
             b4 = CPLBase64DecodeChar[c4];
 
             *p++=((b1<<2)|(b2>>4) );
+            if( p - pszBase64 == i )
+                break;
             if (c3 != '=') {
                 *p++=(((b2&0xf)<<4)|(b3>>2) );
+                if( p - pszBase64 == i )
+                    break;
             }
             if (c4 != '=') {
                 *p++=(((b3&0x3)<<6)|b4 );
+                if( p - pszBase64 == i )
+                    break;
             }
         }
         return(p-pszBase64);

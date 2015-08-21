@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr2gmlgeometry.cpp 25727 2013-03-10 14:56:33Z rouault $
+ * $Id: ogr2gmlgeometry.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  GML Translator
  * Purpose:  Code to translate OGRGeometry to GML string representation.
@@ -7,6 +7,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2002, Frank Warmerdam <warmerdam@pobox.com>
+ * Copyright (c) 2009-2013, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),

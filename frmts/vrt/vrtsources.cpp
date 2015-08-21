@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: vrtsources.cpp 25109 2012-10-13 11:51:23Z rouault $
+ * $Id: vrtsources.cpp 27957 2014-11-12 23:09:34Z rouault $
  *
  * Project:  Virtual GDAL Datasets
  * Purpose:  Implementation of VRTSimpleSource, VRTFuncSource and 
@@ -8,6 +8,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2001, Frank Warmerdam <warmerdam@pobox.com>
+ * Copyright (c) 2008-2013, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -35,7 +36,7 @@
 
 #include <algorithm>
 
-CPL_CVSID("$Id: vrtsources.cpp 25109 2012-10-13 11:51:23Z rouault $");
+CPL_CVSID("$Id: vrtsources.cpp 27957 2014-11-12 23:09:34Z rouault $");
 
 /************************************************************************/
 /* ==================================================================== */
@@ -51,8 +52,8 @@ VRTSource::~VRTSource()
 /*                             GetFileList()                            */
 /************************************************************************/
 
-void VRTSource::GetFileList(char*** ppapszFileList, int *pnSize,
-                            int *pnMaxSize, CPLHashSet* hSetFiles)
+void VRTSource::GetFileList(CPL_UNUSED char*** ppapszFileList, CPL_UNUSED int *pnSize,
+                            CPL_UNUSED int *pnMaxSize, CPL_UNUSED CPLHashSet* hSetFiles)
 {
 }
 
@@ -175,6 +176,14 @@ void VRTSimpleSource::SetNoDataValue( double dfNewNoDataValue )
 /*                           SerializeToXML()                           */
 /************************************************************************/
 
+static const char* apszSpecialSyntax[] = { "HDF5:\"{FILENAME}\":{ANY}",
+                                            "HDF5:{FILENAME}:{ANY}",
+                                            "NETCDF:\"{FILENAME}\":{ANY}",
+                                            "NETCDF:{FILENAME}:{ANY}",
+                                            "NITF_IM:{ANY}:{FILENAME}",
+                                            "PDF:{ANY}:{FILENAME}",
+                                            "RASTERLITE:{FILENAME},{ANY}" };
+
 CPLXMLNode *VRTSimpleSource::SerializeToXML( const char *pszVRTPath )
 
 {
@@ -204,6 +213,7 @@ CPLXMLNode *VRTSimpleSource::SerializeToXML( const char *pszVRTPath )
     psSrc = CPLCreateXMLNode( NULL, CXT_Element, "SimpleSource" );
 
     VSIStatBufL sStat;
+    CPLString osTmp;
     if ( strstr(poDS->GetDescription(), "/vsicurl/http") != NULL ||
          strstr(poDS->GetDescription(), "/vsicurl/ftp") != NULL )
     {
@@ -221,6 +231,52 @@ CPLXMLNode *VRTSimpleSource::SerializeToXML( const char *pszVRTPath )
     {
         pszRelativePath = poDS->GetDescription();
         bRelativeToVRT = FALSE;
+        for( size_t i = 0; i < sizeof(apszSpecialSyntax) / sizeof(apszSpecialSyntax[0]); i ++)
+        {
+            const char* pszSyntax = apszSpecialSyntax[i];
+            CPLString osPrefix(pszSyntax);
+            osPrefix.resize(strchr(pszSyntax, ':') - pszSyntax + 1);
+            if( pszSyntax[osPrefix.size()] == '"' )
+                osPrefix += '"';
+            if( EQUALN(pszRelativePath, osPrefix, osPrefix.size()) )
+            {
+                if( EQUALN(pszSyntax + osPrefix.size(), "{ANY}", strlen("{ANY}")) )
+                {
+                    const char* pszLastPart = strrchr(pszRelativePath, ':') + 1;
+                    /* CSV:z:/foo.xyz */
+                    if( (pszLastPart[0] == '/' || pszLastPart[0] == '\\') &&
+                        pszLastPart - pszRelativePath >= 3 && pszLastPart[-3] == ':' )
+                        pszLastPart -= 2;
+                    CPLString osPrefixFilename = pszRelativePath;
+                    osPrefixFilename.resize(pszLastPart - pszRelativePath);
+                    pszRelativePath =
+                        CPLExtractRelativePath( pszVRTPath, pszLastPart,
+                                    &bRelativeToVRT );
+                    osTmp = osPrefixFilename + pszRelativePath;
+                    pszRelativePath = osTmp.c_str();
+                }
+                else if( EQUALN(pszSyntax + osPrefix.size(), "{FILENAME}", strlen("{FILENAME}")) )
+                {
+                    CPLString osFilename(pszRelativePath + osPrefix.size());
+                    size_t nPos = 0;
+                    if( osFilename.size() >= 3 && osFilename[1] == ':' &&
+                        (osFilename[2] == '\\' || osFilename[2] == '/') )
+                        nPos = 2;
+                    nPos = osFilename.find(pszSyntax[osPrefix.size() + strlen("{FILENAME}")], nPos);
+                    if( nPos != std::string::npos )
+                    {
+                        CPLString osSuffix = osFilename.substr(nPos);
+                        osFilename.resize(nPos);
+                        pszRelativePath =
+                            CPLExtractRelativePath( pszVRTPath, osFilename,
+                                        &bRelativeToVRT );
+                        osTmp = osPrefix + pszRelativePath + osSuffix;
+                        pszRelativePath = osTmp.c_str();
+                    }
+                }
+                break;
+            }
+        }
     }
     else
     {
@@ -312,8 +368,54 @@ CPLErr VRTSimpleSource::XMLInit( CPLXMLNode *psSrc, const char *pszVRTPath )
     if( pszVRTPath != NULL
         && atoi(CPLGetXMLValue( psSourceFileNameNode, "relativetoVRT", "0")) )
     {
-        pszSrcDSName = CPLStrdup(
-            CPLProjectRelativeFilename( pszVRTPath, pszFilename ) );
+        int bDone = FALSE;
+        for( size_t i = 0; i < sizeof(apszSpecialSyntax) / sizeof(apszSpecialSyntax[0]); i ++)
+        {
+            const char* pszSyntax = apszSpecialSyntax[i];
+            CPLString osPrefix(pszSyntax);
+            osPrefix.resize(strchr(pszSyntax, ':') - pszSyntax + 1);
+            if( pszSyntax[osPrefix.size()] == '"' )
+                osPrefix += '"';
+            if( EQUALN(pszFilename, osPrefix, osPrefix.size()) )
+            {
+                if( EQUALN(pszSyntax + osPrefix.size(), "{ANY}", strlen("{ANY}")) )
+                {
+                    const char* pszLastPart = strrchr(pszFilename, ':') + 1;
+                    /* CSV:z:/foo.xyz */
+                    if( (pszLastPart[0] == '/' || pszLastPart[0] == '\\') &&
+                        pszLastPart - pszFilename >= 3 && pszLastPart[-3] == ':' )
+                        pszLastPart -= 2;
+                    CPLString osPrefixFilename = pszFilename;
+                    osPrefixFilename.resize(pszLastPart - pszFilename);
+                    pszSrcDSName = CPLStrdup( (osPrefixFilename +
+                        CPLProjectRelativeFilename( pszVRTPath, pszLastPart )).c_str() );
+                    bDone = TRUE;
+                }
+                else if( EQUALN(pszSyntax + osPrefix.size(), "{FILENAME}", strlen("{FILENAME}")) )
+                {
+                    CPLString osFilename(pszFilename + osPrefix.size());
+                    size_t nPos = 0;
+                    if( osFilename.size() >= 3 && osFilename[1] == ':' &&
+                        (osFilename[2] == '\\' || osFilename[2] == '/') )
+                        nPos = 2;
+                    nPos = osFilename.find(pszSyntax[osPrefix.size() + strlen("{FILENAME}")], nPos);
+                    if( nPos != std::string::npos )
+                    {
+                        CPLString osSuffix = osFilename.substr(nPos);
+                        osFilename.resize(nPos);
+                        pszSrcDSName = CPLStrdup( (osPrefix +
+                            CPLProjectRelativeFilename( pszVRTPath, osFilename ) + osSuffix).c_str() );
+                        bDone = TRUE;
+                    }
+                }
+                break;
+            }
+        }
+        if( !bDone )
+        {
+            pszSrcDSName = CPLStrdup(
+                CPLProjectRelativeFilename( pszVRTPath, pszFilename ) );
+        }
     }
     else
         pszSrcDSName = CPLStrdup( pszFilename );
@@ -799,7 +901,7 @@ VRTSimpleSource::RasterIO( int nXOff, int nYOff, int nXSize, int nYSize,
                                 nReqXOff, nReqYOff, nReqXSize, nReqYSize,
                                 ((unsigned char *) pData) 
                                 + nOutXOff * nPixelSpace
-                                + nOutYOff * nLineSpace, 
+                                + (size_t)nOutYOff * nLineSpace, 
                                 nOutXSize, nOutYSize, 
                                 eBufType, nPixelSpace, nLineSpace );
 
@@ -991,7 +1093,7 @@ CPLErr VRTSimpleSource::DatasetRasterIO(
                            nReqXOff, nReqYOff, nReqXSize, nReqYSize,
                            ((unsigned char *) pData)
                            + nOutXOff * nPixelSpace
-                           + nOutYOff * nLineSpace,
+                           + (size_t)nOutYOff * nLineSpace,
                            nOutXSize, nOutYSize,
                            eBufType, nBandCount, panBandMap,
                            nPixelSpace, nLineSpace, nBandSpace );
@@ -1172,7 +1274,7 @@ VRTAveragedSource::RasterIO( int nXOff, int nYOff, int nXSize, int nYSize,
 
             pDstLocation = ((GByte *)pData) 
                 + nPixelSpace * iBufPixel
-                + nLineSpace * iBufLine;
+                + (size_t)nLineSpace * iBufLine;
 
             if( eBufType == GDT_Byte )
                 *pDstLocation = (GByte) MIN(255,MAX(0,dfOutputValue + 0.5));
@@ -1191,7 +1293,7 @@ VRTAveragedSource::RasterIO( int nXOff, int nYOff, int nXSize, int nYSize,
 /*                             GetMinimum()                             */
 /************************************************************************/
 
-double VRTAveragedSource::GetMinimum( int nXSize, int nYSize, int *pbSuccess )
+double VRTAveragedSource::GetMinimum( CPL_UNUSED int nXSize, CPL_UNUSED int nYSize, int *pbSuccess )
 {
     *pbSuccess = FALSE;
     return 0;
@@ -1201,7 +1303,9 @@ double VRTAveragedSource::GetMinimum( int nXSize, int nYSize, int *pbSuccess )
 /*                             GetMaximum()                             */
 /************************************************************************/
 
-double VRTAveragedSource::GetMaximum( int nXSize, int nYSize, int *pbSuccess )
+double VRTAveragedSource::GetMaximum( CPL_UNUSED int nXSize,
+                                      CPL_UNUSED int nYSize,
+                                      int *pbSuccess )
 {
     *pbSuccess = FALSE;
     return 0;
@@ -1211,7 +1315,10 @@ double VRTAveragedSource::GetMaximum( int nXSize, int nYSize, int *pbSuccess )
 /*                       ComputeRasterMinMax()                          */
 /************************************************************************/
 
-CPLErr VRTAveragedSource::ComputeRasterMinMax( int nXSize, int nYSize, int bApproxOK, double* adfMinMax )
+CPLErr VRTAveragedSource::ComputeRasterMinMax( CPL_UNUSED int nXSize,
+                                               CPL_UNUSED int nYSize,
+                                               CPL_UNUSED int bApproxOK,
+                                               CPL_UNUSED double* adfMinMax )
 {
     return CE_Failure;
 }
@@ -1220,11 +1327,11 @@ CPLErr VRTAveragedSource::ComputeRasterMinMax( int nXSize, int nYSize, int bAppr
 /*                         ComputeStatistics()                          */
 /************************************************************************/
 
-CPLErr VRTAveragedSource::ComputeStatistics( int nXSize, int nYSize,
-                                      int bApproxOK, 
-                                      double *pdfMin, double *pdfMax, 
-                                      double *pdfMean, double *pdfStdDev,
-                                      GDALProgressFunc pfnProgress, void *pProgressData )
+CPLErr VRTAveragedSource::ComputeStatistics( CPL_UNUSED int nXSize, CPL_UNUSED int nYSize,
+                                             CPL_UNUSED int bApproxOK, 
+                                             CPL_UNUSED double *pdfMin, CPL_UNUSED double *pdfMax, 
+                                             CPL_UNUSED double *pdfMean, CPL_UNUSED double *pdfStdDev,
+                                             CPL_UNUSED GDALProgressFunc pfnProgress, CPL_UNUSED void *pProgressData )
 {
     return CE_Failure;
 }
@@ -1233,11 +1340,11 @@ CPLErr VRTAveragedSource::ComputeStatistics( int nXSize, int nYSize,
 /*                            GetHistogram()                            */
 /************************************************************************/
 
-CPLErr VRTAveragedSource::GetHistogram( int nXSize, int nYSize,
-                                  double dfMin, double dfMax,
-                                  int nBuckets, int * panHistogram,
-                                  int bIncludeOutOfRange, int bApproxOK,
-                                  GDALProgressFunc pfnProgress, void *pProgressData )
+CPLErr VRTAveragedSource::GetHistogram( CPL_UNUSED int nXSize, CPL_UNUSED int nYSize,
+                                        CPL_UNUSED double dfMin, CPL_UNUSED double dfMax,
+                                        CPL_UNUSED int nBuckets, CPL_UNUSED int * panHistogram,
+                                        CPL_UNUSED int bIncludeOutOfRange, CPL_UNUSED int bApproxOK,
+                                        CPL_UNUSED GDALProgressFunc pfnProgress, CPL_UNUSED void *pProgressData )
 {
     return CE_Failure;
 }
@@ -1255,7 +1362,7 @@ CPLErr VRTAveragedSource::GetHistogram( int nXSize, int nYSize,
 VRTComplexSource::VRTComplexSource()
 
 {
-    bDoScaling = FALSE;
+    eScalingType = VRT_SCALING_NONE;
     dfScaleOff = 0.0;
     dfScaleRatio = 1.0;
     
@@ -1266,6 +1373,13 @@ VRTComplexSource::VRTComplexSource()
     padfLUTOutputs = NULL;
     nLUTItemCount = 0;
     nColorTableComponent = 0;
+
+    bSrcMinMaxDefined = FALSE;
+    dfSrcMin = 0.0;
+    dfSrcMax = 0.0;
+    dfDstMin = 0.0;
+    dfDstMax = 0.0;
+    dfExponent = 1.0;
 }
 
 VRTComplexSource::~VRTComplexSource()
@@ -1300,12 +1414,34 @@ CPLXMLNode *VRTComplexSource::SerializeToXML( const char *pszVRTPath )
                             CPLSPrintf("%g", dfNoDataValue) );
     }
         
-    if( bDoScaling )
+    switch( eScalingType )
     {
-        CPLSetXMLValue( psSrc, "ScaleOffset", 
-                        CPLSPrintf("%g", dfScaleOff) );
-        CPLSetXMLValue( psSrc, "ScaleRatio", 
-                        CPLSPrintf("%g", dfScaleRatio) );
+        case VRT_SCALING_NONE:
+            break;
+
+        case VRT_SCALING_LINEAR:
+        {
+            CPLSetXMLValue( psSrc, "ScaleOffset", 
+                            CPLSPrintf("%g", dfScaleOff) );
+            CPLSetXMLValue( psSrc, "ScaleRatio", 
+                            CPLSPrintf("%g", dfScaleRatio) );
+            break;
+        }
+
+        case VRT_SCALING_EXPONENTIAL:
+        {
+            CPLSetXMLValue( psSrc, "Exponent", 
+                            CPLSPrintf("%g", dfExponent) );
+            CPLSetXMLValue( psSrc, "SrcMin", 
+                            CPLSPrintf("%g", dfSrcMin) );
+            CPLSetXMLValue( psSrc, "SrcMax", 
+                            CPLSPrintf("%g", dfSrcMax) );
+            CPLSetXMLValue( psSrc, "DstMin", 
+                            CPLSPrintf("%g", dfDstMin) );
+            CPLSetXMLValue( psSrc, "DstMax", 
+                            CPLSPrintf("%g", dfDstMax) );
+            break;
+        }
     }
 
     if ( nLUTItemCount )
@@ -1348,9 +1484,27 @@ CPLErr VRTComplexSource::XMLInit( CPLXMLNode *psSrc, const char *pszVRTPath )
     if( CPLGetXMLValue(psSrc, "ScaleOffset", NULL) != NULL 
         || CPLGetXMLValue(psSrc, "ScaleRatio", NULL) != NULL )
     {
-        bDoScaling = TRUE;
+        eScalingType = VRT_SCALING_LINEAR;
         dfScaleOff = atof(CPLGetXMLValue(psSrc, "ScaleOffset", "0") );
         dfScaleRatio = atof(CPLGetXMLValue(psSrc, "ScaleRatio", "1") );
+    }
+    else if( CPLGetXMLValue(psSrc, "Exponent", NULL) != NULL &&
+             CPLGetXMLValue(psSrc, "DstMin", NULL) != NULL && 
+             CPLGetXMLValue(psSrc, "DstMax", NULL) != NULL )
+    {
+        eScalingType = VRT_SCALING_EXPONENTIAL;
+        dfExponent = atof(CPLGetXMLValue(psSrc, "Exponent", "1.0") );
+
+        if( CPLGetXMLValue(psSrc, "SrcMin", NULL) != NULL 
+         && CPLGetXMLValue(psSrc, "SrcMax", NULL) != NULL )
+        {
+            dfSrcMin = atof(CPLGetXMLValue(psSrc, "SrcMin", "0.0") );
+            dfSrcMax = atof(CPLGetXMLValue(psSrc, "SrcMax", "0.0") );
+            bSrcMinMaxDefined = TRUE;
+        }
+
+        dfDstMin = atof(CPLGetXMLValue(psSrc, "DstMin", "0.0") );
+        dfDstMax = atof(CPLGetXMLValue(psSrc, "DstMax", "0.0") );
     }
 
     if( CPLGetXMLValue(psSrc, "NODATA", NULL) != NULL )
@@ -1456,6 +1610,45 @@ VRTComplexSource::LookupValue( double dfInput )
 }
 
 /************************************************************************/
+/*                         SetLinearScaling()                           */
+/************************************************************************/
+
+void VRTComplexSource::SetLinearScaling(double dfOffset, double dfScale)
+{
+    eScalingType = VRT_SCALING_LINEAR;
+    dfScaleOff = dfOffset;
+    dfScaleRatio = dfScale;
+}
+
+/************************************************************************/
+/*                         SetPowerScaling()                           */
+/************************************************************************/
+
+void VRTComplexSource::SetPowerScaling(double dfExponent,
+                                       double dfSrcMin,
+                                       double dfSrcMax,
+                                       double dfDstMin,
+                                       double dfDstMax)
+{
+    eScalingType = VRT_SCALING_EXPONENTIAL;
+    this->dfExponent = dfExponent;
+    this->dfSrcMin = dfSrcMin;
+    this->dfSrcMax = dfSrcMax;
+    this->dfDstMin = dfDstMin;
+    this->dfDstMax = dfDstMax;
+    bSrcMinMaxDefined = TRUE;
+}
+
+/************************************************************************/
+/*                    SetColorTableComponent()                          */
+/************************************************************************/
+
+void VRTComplexSource::SetColorTableComponent(int nComponent)
+{
+    nColorTableComponent = nComponent;
+}
+
+/************************************************************************/
 /*                              RasterIO()                              */
 /************************************************************************/
 
@@ -1480,7 +1673,7 @@ VRTComplexSource::RasterIO( int nXOff, int nYOff, int nXSize, int nYSize,
     return RasterIOInternal(nReqXOff, nReqYOff, nReqXSize, nReqYSize,
                        ((GByte *)pData)
                             + nPixelSpace * nOutXOff
-                            + nLineSpace * nOutYOff,
+                            + (size_t)nLineSpace * nOutYOff,
                        nOutXSize, nOutYSize,
                        eBufType,
                        nPixelSpace, nLineSpace );
@@ -1509,7 +1702,7 @@ CPLErr VRTComplexSource::RasterIOInternal( int nReqXOff, int nReqYOff,
     int nWordSize = GDALGetDataTypeSize(eWrkDataType) / 8;
     int bNoDataSetAndNotNan = bNoDataSet && !CPLIsNan(dfNoDataValue);
 
-    if( bDoScaling && bNoDataSet == FALSE && dfScaleRatio == 0)
+    if( eScalingType == VRT_SCALING_LINEAR && bNoDataSet == FALSE && dfScaleRatio == 0)
     {
 /* -------------------------------------------------------------------- */
 /*      Optimization when outputing a constant value                    */
@@ -1562,7 +1755,7 @@ CPLErr VRTComplexSource::RasterIOInternal( int nReqXOff, int nReqYOff,
 
             pDstLocation = ((GByte *)pData)
                 + nPixelSpace * iX
-                + nLineSpace * iY;
+                + (size_t)nLineSpace * iY;
 
             if (pafData && !bIsComplex)
             {
@@ -1599,8 +1792,39 @@ CPLErr VRTComplexSource::RasterIOInternal( int nReqXOff, int nReqYOff,
                     }
                 }
 
-                if( bDoScaling )
+                if( eScalingType == VRT_SCALING_LINEAR )
                     fResult = (float) (fResult * dfScaleRatio + dfScaleOff);
+                else if( eScalingType == VRT_SCALING_EXPONENTIAL )
+                {
+                    if( !bSrcMinMaxDefined )
+                    {
+                        int bSuccessMin = FALSE, bSuccessMax = FALSE;
+                        double adfMinMax[2];
+                        adfMinMax[0] = poRasterBand->GetMinimum(&bSuccessMin);
+                        adfMinMax[1] = poRasterBand->GetMaximum(&bSuccessMax);
+                        if( (bSuccessMin && bSuccessMax) ||
+                            poRasterBand->ComputeRasterMinMax( TRUE, adfMinMax ) == CE_None )
+                        {
+                            dfSrcMin = adfMinMax[0];
+                            dfSrcMax = adfMinMax[1];
+                            bSrcMinMaxDefined = TRUE;
+                        }
+                        else
+                        {
+                            CPLError(CE_Failure, CPLE_AppDefined,
+                                    "Cannot determine source min/max value");
+                            return CE_Failure;
+                        }
+                    }
+
+                    double dfPowVal =
+                        (fResult - dfSrcMin) / (dfSrcMax - dfSrcMin);
+                    if( dfPowVal < 0.0 )
+                        dfPowVal = 0.0;
+                    else if( dfPowVal > 1.0 )
+                        dfPowVal = 1.0;
+                    fResult = (float) (dfDstMax - dfDstMin) * pow( dfPowVal, dfExponent ) + dfDstMin;
+                }
 
                 if (nLUTItemCount)
                     fResult = (float) LookupValue( fResult );
@@ -1619,7 +1843,7 @@ CPLErr VRTComplexSource::RasterIOInternal( int nReqXOff, int nReqYOff,
 
                 /* Do not use color table */
 
-                if( bDoScaling )
+                if( eScalingType == VRT_SCALING_LINEAR )
                 {
                     afResult[0] = (float) (afResult[0] * dfScaleRatio + dfScaleOff);
                     afResult[1] = (float) (afResult[1] * dfScaleRatio + dfScaleOff);
@@ -1778,8 +2002,7 @@ VRTFuncSource::~VRTFuncSource()
 /*                           SerializeToXML()                           */
 /************************************************************************/
 
-CPLXMLNode *VRTFuncSource::SerializeToXML( const char * pszVRTPath )
-
+CPLXMLNode *VRTFuncSource::SerializeToXML( CPL_UNUSED const char * pszVRTPath )
 {
     return NULL;
 }
@@ -1822,7 +2045,7 @@ VRTFuncSource::RasterIO( int nXOff, int nYOff, int nXSize, int nYSize,
 /*                             GetMinimum()                             */
 /************************************************************************/
 
-double VRTFuncSource::GetMinimum( int nXSize, int nYSize, int *pbSuccess )
+double VRTFuncSource::GetMinimum( CPL_UNUSED int nXSize, CPL_UNUSED int nYSize, int *pbSuccess )
 {
     *pbSuccess = FALSE;
     return 0;
@@ -1832,7 +2055,7 @@ double VRTFuncSource::GetMinimum( int nXSize, int nYSize, int *pbSuccess )
 /*                             GetMaximum()                             */
 /************************************************************************/
 
-double VRTFuncSource::GetMaximum( int nXSize, int nYSize, int *pbSuccess )
+double VRTFuncSource::GetMaximum( CPL_UNUSED int nXSize, CPL_UNUSED int nYSize, int *pbSuccess )
 {
     *pbSuccess = FALSE;
     return 0;
@@ -1842,7 +2065,10 @@ double VRTFuncSource::GetMaximum( int nXSize, int nYSize, int *pbSuccess )
 /*                       ComputeRasterMinMax()                          */
 /************************************************************************/
 
-CPLErr VRTFuncSource::ComputeRasterMinMax( int nXSize, int nYSize, int bApproxOK, double* adfMinMax )
+CPLErr VRTFuncSource::ComputeRasterMinMax( CPL_UNUSED int nXSize,
+                                           CPL_UNUSED int nYSize,
+                                           CPL_UNUSED int bApproxOK,
+                                           CPL_UNUSED double* adfMinMax )
 {
     return CE_Failure;
 }
@@ -1851,11 +2077,11 @@ CPLErr VRTFuncSource::ComputeRasterMinMax( int nXSize, int nYSize, int bApproxOK
 /*                         ComputeStatistics()                          */
 /************************************************************************/
 
-CPLErr VRTFuncSource::ComputeStatistics( int nXSize, int nYSize,
-                                      int bApproxOK, 
-                                      double *pdfMin, double *pdfMax, 
-                                      double *pdfMean, double *pdfStdDev,
-                                      GDALProgressFunc pfnProgress, void *pProgressData )
+CPLErr VRTFuncSource::ComputeStatistics( CPL_UNUSED int nXSize, CPL_UNUSED int nYSize,
+                                         CPL_UNUSED int bApproxOK, 
+                                         CPL_UNUSED double *pdfMin, CPL_UNUSED double *pdfMax, 
+                                         CPL_UNUSED double *pdfMean, CPL_UNUSED double *pdfStdDev,
+                                         CPL_UNUSED GDALProgressFunc pfnProgress, CPL_UNUSED void *pProgressData )
 {
     return CE_Failure;
 }
@@ -1864,11 +2090,11 @@ CPLErr VRTFuncSource::ComputeStatistics( int nXSize, int nYSize,
 /*                            GetHistogram()                            */
 /************************************************************************/
 
-CPLErr VRTFuncSource::GetHistogram( int nXSize, int nYSize,
-                                  double dfMin, double dfMax,
-                                  int nBuckets, int * panHistogram,
-                                  int bIncludeOutOfRange, int bApproxOK,
-                                  GDALProgressFunc pfnProgress, void *pProgressData )
+CPLErr VRTFuncSource::GetHistogram( CPL_UNUSED int nXSize, CPL_UNUSED int nYSize,
+                                    CPL_UNUSED double dfMin, CPL_UNUSED double dfMax,
+                                    CPL_UNUSED int nBuckets, CPL_UNUSED int * panHistogram,
+                                    CPL_UNUSED int bIncludeOutOfRange, CPL_UNUSED int bApproxOK,
+                                    CPL_UNUSED GDALProgressFunc pfnProgress, CPL_UNUSED void *pProgressData )
 {
     return CE_Failure;
 }

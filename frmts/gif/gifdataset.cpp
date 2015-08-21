@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gifdataset.cpp 24608 2012-06-24 21:55:29Z rouault $
+ * $Id: gifdataset.cpp 28284 2015-01-03 20:08:36Z rouault $
  *
  * Project:  GIF Driver
  * Purpose:  Implement GDAL GIF Support using libungif code.  
@@ -7,6 +7,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2001, Frank Warmerdam
+ * Copyright (c) 2007-2012, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -31,7 +32,7 @@
 #include "cpl_string.h"
 #include "gifabstractdataset.h"
 
-CPL_CVSID("$Id: gifdataset.cpp 24608 2012-06-24 21:55:29Z rouault $");
+CPL_CVSID("$Id: gifdataset.cpp 28284 2015-01-03 20:08:36Z rouault $");
 
 CPL_C_START
 void	GDALRegister_GIF(void);
@@ -165,7 +166,8 @@ GIFRasterBand::GIFRasterBand( GIFDataset *poDS, int nBand,
     {
         unsigned char *pExtData;
 
-        if( psImage->ExtensionBlocks[iExtBlock].Function != 0xf9 )
+        if( psImage->ExtensionBlocks[iExtBlock].Function != 0xf9 ||
+            psImage->ExtensionBlocks[iExtBlock].ByteCount < 4  )
             continue;
 
         pExtData = (unsigned char *) psImage->ExtensionBlocks[iExtBlock].Bytes;
@@ -233,7 +235,7 @@ GIFRasterBand::~GIFRasterBand()
 /*                             IReadBlock()                             */
 /************************************************************************/
 
-CPLErr GIFRasterBand::IReadBlock( int nBlockXOff, int nBlockYOff,
+CPLErr GIFRasterBand::IReadBlock( CPL_UNUSED int nBlockXOff, int nBlockYOff,
                                   void * pImage )
 
 {
@@ -331,12 +333,7 @@ GDALDataset *GIFDataset::Open( GDALOpenInfo * poOpenInfo )
     if( fp == NULL )
         return NULL;
 
-#if defined(GIFLIB_MAJOR) && GIFLIB_MAJOR >= 5
-    int nError;
-    hGifFile = DGifOpen( fp, VSIGIFReadFunc, &nError );
-#else
-    hGifFile = DGifOpen( fp, VSIGIFReadFunc );
-#endif
+    hGifFile = GIFAbstractDataset::myDGifOpen( fp, VSIGIFReadFunc );
     if( hGifFile == NULL )
     {
         VSIFCloseL( fp );
@@ -385,21 +382,17 @@ GDALDataset *GIFDataset::Open( GDALOpenInfo * poOpenInfo )
             CPLDebug( "GIF",
                       "Due to limitations of the GDAL GIF driver we deliberately avoid\n"
                       "opening large GIF files (larger than 100 megapixels).");
-            DGifCloseFile( hGifFile );
+            GIFAbstractDataset::myDGifCloseFile( hGifFile );
             VSIFCloseL( fp );
             return NULL;
         }
     }
 
-    DGifCloseFile( hGifFile );
+    GIFAbstractDataset::myDGifCloseFile( hGifFile );
 
     VSIFSeekL( fp, 0, SEEK_SET);
 
-#if defined(GIFLIB_MAJOR) && GIFLIB_MAJOR >= 5
-    hGifFile = DGifOpen( fp, VSIGIFReadFunc, &nError );
-#else
-    hGifFile = DGifOpen( fp, VSIGIFReadFunc );
-#endif
+    hGifFile = GIFAbstractDataset::myDGifOpen( fp, VSIGIFReadFunc );
     if( hGifFile == NULL )
     {
         VSIFCloseL( fp );
@@ -416,7 +409,7 @@ GDALDataset *GIFDataset::Open( GDALOpenInfo * poOpenInfo )
     if( nGifErr != GIF_OK || hGifFile->SavedImages == NULL )
     {
         VSIFCloseL( fp );
-        DGifCloseFile(hGifFile);
+        GIFAbstractDataset::myDGifCloseFile(hGifFile);
 
         if( nGifErr == D_GIF_ERR_DATA_TOO_BIG )
         {
@@ -464,9 +457,21 @@ GDALDataset *GIFDataset::Open( GDALOpenInfo * poOpenInfo )
             || psImage->ImageDesc.Height != poDS->nRasterYSize )
             continue;
 
+        if( psImage->ImageDesc.ColorMap == NULL &&
+            poDS->hGifFile->SColorMap == NULL )
+        {
+            CPLDebug("GIF", "Skipping image without color table");
+            continue;
+        }
+
         poDS->SetBand( poDS->nBands+1, 
                        new GIFRasterBand( poDS, poDS->nBands+1, psImage,
                                           hGifFile->SBackGroundColor ));
+    }
+    if( poDS->nBands == 0 )
+    {
+        delete poDS;
+        return NULL;
     }
 
 /* -------------------------------------------------------------------- */
@@ -492,7 +497,11 @@ GDALDataset *GIFDataset::Open( GDALOpenInfo * poOpenInfo )
 /*                        GDALPrintGifError()                           */
 /************************************************************************/
 
-static void GDALPrintGifError(GifFileType *hGifFile, const char* pszMsg)
+static void GDALPrintGifError(
+#if GIFLIB_MAJOR < 5
+CPL_UNUSED 
+#endif
+GifFileType *hGifFile, const char* pszMsg)
 {
 /* GIFLIB_MAJOR is only defined in libgif >= 4.2.0 */
 /* libgif 4.2.0 has retired PrintGifError() and added GifErrorString() */
@@ -648,7 +657,7 @@ GIFDataset::CreateCopy( const char * pszFilename, GDALDataset *poSrcDS,
     {
         GifFreeMapObject(psGifCT);
         GDALPrintGifError(hGifFile, "Error writing gif file.");
-        EGifCloseFile(hGifFile);
+        GIFAbstractDataset::myEGifCloseFile(hGifFile);
         VSIFCloseL( fp );
         return NULL;
     }
@@ -672,7 +681,7 @@ GIFDataset::CreateCopy( const char * pszFilename, GDALDataset *poSrcDS,
     if (EGifPutImageDesc(hGifFile, 0, 0, nXSize, nYSize, bInterlace, NULL) == GIF_ERROR )
     {
         GDALPrintGifError(hGifFile, "Error writing gif file.");
-        EGifCloseFile(hGifFile);
+        GIFAbstractDataset::myEGifCloseFile(hGifFile);
         VSIFCloseL( fp );
         return NULL;
     }
@@ -755,7 +764,7 @@ GIFDataset::CreateCopy( const char * pszFilename, GDALDataset *poSrcDS,
 /* -------------------------------------------------------------------- */
 /*      cleanup                                                         */
 /* -------------------------------------------------------------------- */
-    if (EGifCloseFile(hGifFile) == GIF_ERROR)
+    if (GIFAbstractDataset::myEGifCloseFile(hGifFile) == GIF_ERROR)
     {
         CPLError( CE_Failure, CPLE_AppDefined, 
                   "EGifCloseFile() failed.\n" );
@@ -806,7 +815,7 @@ GIFDataset::CreateCopy( const char * pszFilename, GDALDataset *poSrcDS,
 
 error:
     if (hGifFile)
-        EGifCloseFile(hGifFile);
+        GIFAbstractDataset::myEGifCloseFile(hGifFile);
     if (fp)
         VSIFCloseL( fp );
     if (pabyScanline)

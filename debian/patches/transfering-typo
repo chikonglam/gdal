@@ -1,9 +1,11 @@
 Description: Fix 'transfering' typo, replace with 'transferring'.
 Author: Bas Couwenberg <sebastic@debian.org>
-Last-Update: 2013-10-11
+Forwarded: http://trac.osgeo.org/gdal/ticket/5756
+Applied-Upstream: 2.0, http://trac.osgeo.org/gdal/changeset/28039
+
 --- a/frmts/grib/degrib18/degrib/grib2api.c
 +++ b/frmts/grib/degrib18/degrib/grib2api.c
-@@ -1081,7 +1081,7 @@ void unpk_g2ncep (sInt4 * kfildo, float
+@@ -1083,7 +1083,7 @@ void unpk_g2ncep (CPL_UNUSED sInt4 * kfi
        *ibitmap = 0;
     }
  
@@ -14,7 +16,7 @@ Last-Update: 2013-10-11
      * abort.  May need to revisit this behavior. */
 --- a/ogr/ogrsf_frmts/osm/ogrosmdatasource.cpp
 +++ b/ogr/ogrsf_frmts/osm/ogrosmdatasource.cpp
-@@ -3464,7 +3464,7 @@ int OGROSMDataSource::TransferToDiskIfNe
+@@ -3648,7 +3648,7 @@ int OGROSMDataSource::TransferToDiskIfNe
              CPLString osNewTmpDBName;
              osNewTmpDBName = CPLGenerateTempFilename("osm_tmp_nodes");
  
@@ -23,7 +25,7 @@ Last-Update: 2013-10-11
                       osNodesFilename.c_str(), osNewTmpDBName.c_str());
  
              if( CPLCopyFile( osNewTmpDBName, osNodesFilename ) != 0 )
-@@ -3543,7 +3543,7 @@ int OGROSMDataSource::TransferToDiskIfNe
+@@ -3727,7 +3727,7 @@ int OGROSMDataSource::TransferToDiskIfNe
  
              osNewTmpDBName = CPLGenerateTempFilename("osm_tmp");
  

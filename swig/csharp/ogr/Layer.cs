@@ -71,12 +71,22 @@ public class Layer : IDisposable {
   }
 
   public void SetSpatialFilter(Geometry filter) {
-    OgrPINVOKE.Layer_SetSpatialFilter(swigCPtr, Geometry.getCPtr(filter));
+    OgrPINVOKE.Layer_SetSpatialFilter__SWIG_0(swigCPtr, Geometry.getCPtr(filter));
     if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
   }
 
   public void SetSpatialFilterRect(double minx, double miny, double maxx, double maxy) {
-    OgrPINVOKE.Layer_SetSpatialFilterRect(swigCPtr, minx, miny, maxx, maxy);
+    OgrPINVOKE.Layer_SetSpatialFilterRect__SWIG_0(swigCPtr, minx, miny, maxx, maxy);
+    if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
+  }
+
+  public void SetSpatialFilter(int iGeomField, Geometry filter) {
+    OgrPINVOKE.Layer_SetSpatialFilter__SWIG_1(swigCPtr, iGeomField, Geometry.getCPtr(filter));
+    if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
+  }
+
+  public void SetSpatialFilterRect(int iGeomField, double minx, double miny, double maxx, double maxy) {
+    OgrPINVOKE.Layer_SetSpatialFilterRect__SWIG_1(swigCPtr, iGeomField, minx, miny, maxx, maxy);
     if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
   }
 
@@ -88,7 +98,7 @@ public class Layer : IDisposable {
   }
 
   public int SetAttributeFilter(string filter_string) {
-    int ret = OgrPINVOKE.Layer_SetAttributeFilter(swigCPtr, filter_string);
+    int ret = OgrPINVOKE.Layer_SetAttributeFilter(swigCPtr, Ogr.StringToUtf8Bytes(filter_string));
     if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
     return ret;
   }
@@ -221,6 +231,12 @@ public class Layer : IDisposable {
     return ret;
   }
 
+  public int CreateGeomField(GeomFieldDefn field_def, int approx_ok) {
+    int ret = OgrPINVOKE.Layer_CreateGeomField(swigCPtr, GeomFieldDefn.getCPtr(field_def), approx_ok);
+    if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
+    return ret;
+  }
+
   public int StartTransaction() {
     int ret = OgrPINVOKE.Layer_StartTransaction(swigCPtr);
     if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
@@ -235,6 +251,12 @@ public class Layer : IDisposable {
 
   public int RollbackTransaction() {
     int ret = OgrPINVOKE.Layer_RollbackTransaction(swigCPtr);
+    if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
+    return ret;
+  }
+
+  public int FindFieldIndex(string pszFieldName, int bExactMatch) {
+    int ret = OgrPINVOKE.Layer_FindFieldIndex(swigCPtr, pszFieldName, bExactMatch);
     if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
     return ret;
   }
@@ -258,46 +280,58 @@ public class Layer : IDisposable {
     return ret;
   }
 
-  public int Intersection(Layer method_layer, Layer result_layer, string[] options, SWIGTYPE_p_GDALProgressFunc callback, SWIGTYPE_p_void callback_data) {
-    int ret = OgrPINVOKE.Layer_Intersection(swigCPtr, Layer.getCPtr(method_layer), Layer.getCPtr(result_layer), (options != null)? new OgrPINVOKE.StringListMarshal(options)._ar : null, SWIGTYPE_p_GDALProgressFunc.getCPtr(callback), SWIGTYPE_p_void.getCPtr(callback_data));
+  public int Intersection(Layer method_layer, Layer result_layer, string[] options, Ogr.GDALProgressFuncDelegate callback, string callback_data) {
+    int ret = OgrPINVOKE.Layer_Intersection(swigCPtr, Layer.getCPtr(method_layer), Layer.getCPtr(result_layer), (options != null)? new OgrPINVOKE.StringListMarshal(options)._ar : null, callback, callback_data);
     if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
     return ret;
   }
 
-  public int Union(Layer method_layer, Layer result_layer, string[] options, SWIGTYPE_p_GDALProgressFunc callback, SWIGTYPE_p_void callback_data) {
-    int ret = OgrPINVOKE.Layer_Union(swigCPtr, Layer.getCPtr(method_layer), Layer.getCPtr(result_layer), (options != null)? new OgrPINVOKE.StringListMarshal(options)._ar : null, SWIGTYPE_p_GDALProgressFunc.getCPtr(callback), SWIGTYPE_p_void.getCPtr(callback_data));
+  public int Union(Layer method_layer, Layer result_layer, string[] options, Ogr.GDALProgressFuncDelegate callback, string callback_data) {
+    int ret = OgrPINVOKE.Layer_Union(swigCPtr, Layer.getCPtr(method_layer), Layer.getCPtr(result_layer), (options != null)? new OgrPINVOKE.StringListMarshal(options)._ar : null, callback, callback_data);
     if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
     return ret;
   }
 
-  public int SymDifference(Layer method_layer, Layer result_layer, string[] options, SWIGTYPE_p_GDALProgressFunc callback, SWIGTYPE_p_void callback_data) {
-    int ret = OgrPINVOKE.Layer_SymDifference(swigCPtr, Layer.getCPtr(method_layer), Layer.getCPtr(result_layer), (options != null)? new OgrPINVOKE.StringListMarshal(options)._ar : null, SWIGTYPE_p_GDALProgressFunc.getCPtr(callback), SWIGTYPE_p_void.getCPtr(callback_data));
+  public int SymDifference(Layer method_layer, Layer result_layer, string[] options, Ogr.GDALProgressFuncDelegate callback, string callback_data) {
+    int ret = OgrPINVOKE.Layer_SymDifference(swigCPtr, Layer.getCPtr(method_layer), Layer.getCPtr(result_layer), (options != null)? new OgrPINVOKE.StringListMarshal(options)._ar : null, callback, callback_data);
     if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
     return ret;
   }
 
-  public int Identity(Layer method_layer, Layer result_layer, string[] options, SWIGTYPE_p_GDALProgressFunc callback, SWIGTYPE_p_void callback_data) {
-    int ret = OgrPINVOKE.Layer_Identity(swigCPtr, Layer.getCPtr(method_layer), Layer.getCPtr(result_layer), (options != null)? new OgrPINVOKE.StringListMarshal(options)._ar : null, SWIGTYPE_p_GDALProgressFunc.getCPtr(callback), SWIGTYPE_p_void.getCPtr(callback_data));
+  public int Identity(Layer method_layer, Layer result_layer, string[] options, Ogr.GDALProgressFuncDelegate callback, string callback_data) {
+    int ret = OgrPINVOKE.Layer_Identity(swigCPtr, Layer.getCPtr(method_layer), Layer.getCPtr(result_layer), (options != null)? new OgrPINVOKE.StringListMarshal(options)._ar : null, callback, callback_data);
     if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
     return ret;
   }
 
-  public int Update(Layer method_layer, Layer result_layer, string[] options, SWIGTYPE_p_GDALProgressFunc callback, SWIGTYPE_p_void callback_data) {
-    int ret = OgrPINVOKE.Layer_Update(swigCPtr, Layer.getCPtr(method_layer), Layer.getCPtr(result_layer), (options != null)? new OgrPINVOKE.StringListMarshal(options)._ar : null, SWIGTYPE_p_GDALProgressFunc.getCPtr(callback), SWIGTYPE_p_void.getCPtr(callback_data));
+  public int Update(Layer method_layer, Layer result_layer, string[] options, Ogr.GDALProgressFuncDelegate callback, string callback_data) {
+    int ret = OgrPINVOKE.Layer_Update(swigCPtr, Layer.getCPtr(method_layer), Layer.getCPtr(result_layer), (options != null)? new OgrPINVOKE.StringListMarshal(options)._ar : null, callback, callback_data);
     if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
     return ret;
   }
 
-  public int Clip(Layer method_layer, Layer result_layer, string[] options, SWIGTYPE_p_GDALProgressFunc callback, SWIGTYPE_p_void callback_data) {
-    int ret = OgrPINVOKE.Layer_Clip(swigCPtr, Layer.getCPtr(method_layer), Layer.getCPtr(result_layer), (options != null)? new OgrPINVOKE.StringListMarshal(options)._ar : null, SWIGTYPE_p_GDALProgressFunc.getCPtr(callback), SWIGTYPE_p_void.getCPtr(callback_data));
+  public int Clip(Layer method_layer, Layer result_layer, string[] options, Ogr.GDALProgressFuncDelegate callback, string callback_data) {
+    int ret = OgrPINVOKE.Layer_Clip(swigCPtr, Layer.getCPtr(method_layer), Layer.getCPtr(result_layer), (options != null)? new OgrPINVOKE.StringListMarshal(options)._ar : null, callback, callback_data);
     if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
     return ret;
   }
 
-  public int Erase(Layer method_layer, Layer result_layer, string[] options, SWIGTYPE_p_GDALProgressFunc callback, SWIGTYPE_p_void callback_data) {
-    int ret = OgrPINVOKE.Layer_Erase(swigCPtr, Layer.getCPtr(method_layer), Layer.getCPtr(result_layer), (options != null)? new OgrPINVOKE.StringListMarshal(options)._ar : null, SWIGTYPE_p_GDALProgressFunc.getCPtr(callback), SWIGTYPE_p_void.getCPtr(callback_data));
+  public int Erase(Layer method_layer, Layer result_layer, string[] options, Ogr.GDALProgressFuncDelegate callback, string callback_data) {
+    int ret = OgrPINVOKE.Layer_Erase(swigCPtr, Layer.getCPtr(method_layer), Layer.getCPtr(result_layer), (options != null)? new OgrPINVOKE.StringListMarshal(options)._ar : null, callback, callback_data);
     if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
     return ret;
+  }
+
+  public StyleTable GetStyleTable() {
+    IntPtr cPtr = OgrPINVOKE.Layer_GetStyleTable(swigCPtr);
+    StyleTable ret = (cPtr == IntPtr.Zero) ? null : new StyleTable(cPtr, false, ThisOwn_false());
+    if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
+    return ret;
+  }
+
+  public void SetStyleTable(StyleTable table) {
+    OgrPINVOKE.Layer_SetStyleTable(swigCPtr, StyleTable.getCPtr(table));
+    if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
   }
 
 }

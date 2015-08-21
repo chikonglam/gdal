@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrocitablelayer.cpp 25770 2013-03-19 13:55:49Z ilucena $
+ * $Id: ogrocitablelayer.cpp 28319 2015-01-15 23:29:32Z martinl $
  *
  * Project:  Oracle Spatial Driver
  * Purpose:  Implementation of the OGROCITableLayer class.  This class provides
@@ -33,7 +33,7 @@
 #include "cpl_conv.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: ogrocitablelayer.cpp 25770 2013-03-19 13:55:49Z ilucena $");
+CPL_CVSID("$Id: ogrocitablelayer.cpp 28319 2015-01-15 23:29:32Z martinl $");
 
 static int nDiscarded = 0;
 static int nHits = 0;
@@ -50,6 +50,7 @@ OGROCITableLayer::OGROCITableLayer( OGROCIDataSource *poDSIn,
 
 {
     poDS = poDSIn;
+    bExtentUpdated = false;
 
     pszQuery = NULL;
     pszWHERE = CPLStrdup( "" );
@@ -674,6 +675,9 @@ char *OGROCITableLayer::BuildFields()
 OGRErr OGROCITableLayer::SetAttributeFilter( const char *pszQuery )
 
 {
+    CPLFree(m_pszAttrQueryString);
+    m_pszAttrQueryString = (pszQuery) ? CPLStrdup(pszQuery) : NULL;
+
     if( (pszQuery == NULL && this->pszQuery == NULL)
         || (pszQuery != NULL && this->pszQuery != NULL
             && strcmp(pszQuery,this->pszQuery) == 0) )
@@ -956,9 +960,15 @@ OGRErr OGROCITableLayer::UnboundCreateFeature( OGRFeature *poFeature )
         nOffset += strlen(pszCommand+nOffset);
 
         nFID = poFeature->GetFID();
-        if( nFID == -1 )
+        if( nFID == OGRNullFID )
+        {
+            if( iNextFIDToWrite < 0 )
+            {
+                iNextFIDToWrite = GetMaxFID() + 1;
+            }
             nFID = iNextFIDToWrite++;
-
+            poFeature->SetFID( nFID );
+        }
         sprintf( pszCommand+nOffset, "%ld", nFID );
     }
 

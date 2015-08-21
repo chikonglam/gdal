@@ -1,12 +1,12 @@
 /******************************************************************************
- * $Id: ogr_wfs.h 25517 2013-01-17 21:10:41Z rouault $
+ * $Id: ogr_wfs.h 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  WFS Translator
  * Purpose:  Definition of classes for OGR WFS driver.
  * Author:   Even Rouault, even dot rouault at mines dash paris dot org
  *
  ******************************************************************************
- * Copyright (c) 2010, Even Rouault <even dot rouault at mines dash paris dot org>
+ * Copyright (c) 2010-2013, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -52,6 +52,7 @@ const char* FindSubStringInsensitive(const char* pszStr,
                                      const char* pszSubStr);
 
 CPLString WFS_EscapeURL(const char* pszURL);
+CPLString WFS_DecodeURL(const CPLString &osSrc);
 
 /************************************************************************/
 /*                             OGRWFSLayer                              */
@@ -149,11 +150,7 @@ class OGRWFSLayer : public OGRLayer
 
     virtual OGRFeatureDefn *    GetLayerDefn();
 
-    virtual const char *GetGeometryColumn() { return osGeometryColumnName; }
-
     virtual int                 TestCapability( const char * );
-
-    virtual OGRSpatialReference *GetSpatialRef();
 
     virtual void        SetSpatialFilter( OGRGeometry * );
 

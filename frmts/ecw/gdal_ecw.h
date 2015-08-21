@@ -7,6 +7,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2001-2011, Frank Warmerdam <warmerdam@pobox.com>
+ * Copyright (c) 2013, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -30,9 +31,8 @@
 #ifndef GDAL_ECW_H_INCLUDED
 #define GDAL_ECW_H_INCLUDED
 
-#include "gdal_pam.h"
+#include "gdaljp2abstractdataset.h"
 #include "gdal_frmts.h"
-#include "gdaljp2metadata.h"
 #include "cpl_string.h"
 #include "cpl_conv.h"
 #include "cpl_multiproc.h"
@@ -367,7 +367,8 @@ class VSIIOStream : public CNCSJPCIOStream
             }
             else
             {
-                GByte prevBuffer[] = { nCOMLength >> 8, nCOMLength & 0xff };
+                GByte prevBuffer[] = 
+		  { (GByte)(nCOMLength >> 8), (GByte) (nCOMLength & 0xff) };
                 VSIFWriteL(prevBuffer, 2, 1, fpVSIL);
                 nCOMState = 0;
             }
@@ -455,7 +456,7 @@ typedef struct
     GByte* pabyData;
 } ECWCachedMultiBandIO;
 
-class CPL_DLL ECWDataset : public GDALPamDataset
+class CPL_DLL ECWDataset : public GDALJP2AbstractDataset
 {
     friend class ECWRasterBand;
     friend class ECWAsyncReader;
@@ -478,12 +479,6 @@ class CPL_DLL ECWDataset : public GDALPamDataset
     int         *panWinBandList;
     int         nWinBufLoaded;
     void        **papCurLineBuf;
-
-    int         bGeoTransformValid;
-    double      adfGeoTransform[6];
-    char        *pszProjection;
-    int         nGCPCount;
-    GDAL_GCP    *pasGCPList;
 
     char        **papszGMLMetadata;
 
@@ -559,13 +554,7 @@ class CPL_DLL ECWDataset : public GDALPamDataset
                               void *, int, int, GDALDataType,
                               int, int *, int, int, int );
 
-    virtual CPLErr GetGeoTransform( double * );
-    virtual const char *GetProjectionRef();
-
-    virtual int    GetGCPCount();
-    virtual const char *GetGCPProjection();
-    virtual const GDAL_GCP *GetGCPs();
-
+    virtual char      **GetMetadataDomainList();
     virtual const char *GetMetadataItem( const char * pszName,
                                      const char * pszDomain = "" );
     virtual char      **GetMetadata( const char * pszDomain = "" );

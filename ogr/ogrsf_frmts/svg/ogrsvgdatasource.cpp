@@ -1,12 +1,12 @@
 /******************************************************************************
- * $Id: ogrsvgdatasource.cpp 23557 2011-12-12 22:08:17Z rouault $
+ * $Id: ogrsvgdatasource.cpp 27729 2014-09-24 00:40:16Z goatbar $
  *
  * Project:  SVG Translator
  * Purpose:  Implements OGRSVGDataSource class
  * Author:   Even Rouault, even dot rouault at mines dash paris dot org
  *
  ******************************************************************************
- * Copyright (c) 2011, Even Rouault
+ * Copyright (c) 2011, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -30,7 +30,7 @@
 #include "ogr_svg.h"
 #include "cpl_conv.h"
 
-CPL_CVSID("$Id: ogrsvgdatasource.cpp 23557 2011-12-12 22:08:17Z rouault $");
+CPL_CVSID("$Id: ogrsvgdatasource.cpp 27729 2014-09-24 00:40:16Z goatbar $");
 
 /************************************************************************/
 /*                          OGRSVGDataSource()                          */
@@ -110,7 +110,7 @@ void OGRSVGDataSource::startElementValidateCbk(const char *pszName,
 /*                      dataHandlerValidateCbk()                        */
 /************************************************************************/
 
-void OGRSVGDataSource::dataHandlerValidateCbk(const char *data, int nLen)
+void OGRSVGDataSource::dataHandlerValidateCbk(CPL_UNUSED const char *data, CPL_UNUSED int nLen)
 {
     nDataHandlerCounter ++;
     if (nDataHandlerCounter >= BUFSIZ)
@@ -272,7 +272,7 @@ int OGRSVGDataSource::Open( const char * pszFilename, int bUpdateIn)
 /*                            TestCapability()                          */
 /************************************************************************/
 
-int OGRSVGDataSource::TestCapability( const char *pszCap )
+int OGRSVGDataSource::TestCapability( CPL_UNUSED const char *pszCap )
 {
     return FALSE;
 }

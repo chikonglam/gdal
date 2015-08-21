@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ntffilereader.cpp 25504 2013-01-14 22:18:55Z rouault $
+ * $Id: ntffilereader.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  NTF Translator
  * Purpose:  NTFFileReader class implementation.
@@ -7,6 +7,7 @@
  *
  ******************************************************************************
  * Copyright (c) 1999, Frank Warmerdam
+ * Copyright (c) 2013, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -33,7 +34,7 @@
 #include "cpl_string.h"
 #include "ogr_api.h"
 
-CPL_CVSID("$Id: ntffilereader.cpp 25504 2013-01-14 22:18:55Z rouault $");
+CPL_CVSID("$Id: ntffilereader.cpp 27044 2014-03-16 23:41:27Z rouault $");
 
 static int DefaultNTFRecordGrouper( NTFFileReader *, NTFRecord **,
                                     NTFRecord * );

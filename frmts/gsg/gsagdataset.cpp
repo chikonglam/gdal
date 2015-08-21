@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gsagdataset.cpp 25215 2012-11-08 08:25:05Z rouault $
+ * $Id: gsagdataset.cpp 27729 2014-09-24 00:40:16Z goatbar $
  *
  * Project:  GDAL
  * Purpose:  Implements the Golden Software ASCII Grid Format.
@@ -8,6 +8,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2006, Kevin Locke <kwl7@cornell.edu>
+ * Copyright (c) 2008-2012, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -49,7 +50,7 @@
 # define INT_MAX 2147483647
 #endif /* INT_MAX */
 
-CPL_CVSID("$Id: gsagdataset.cpp 25215 2012-11-08 08:25:05Z rouault $");
+CPL_CVSID("$Id: gsagdataset.cpp 27729 2014-09-24 00:40:16Z goatbar $");
 
 CPL_C_START
 void	GDALRegister_GSAG(void);
@@ -1191,8 +1192,9 @@ CPLErr GSAGDataset::ShiftFileContents( VSILFILE *fp, vsi_l_offset nShiftStart,
 	return CE_None;
 
     /* make sure start location is sane */
-    if( nShiftStart < 0
-	|| (nShiftSize < 0
+/* Tautology is always false.  nShiftStart is unsigned. */
+    if( /* nShiftStart < 0
+           || */ (nShiftSize < 0
 	    && nShiftStart < static_cast<vsi_l_offset>(-nShiftSize)) )
 	nShiftStart = (nShiftSize > 0) ? 0 : -nShiftSize;
 
@@ -1503,7 +1505,7 @@ CPLErr GSAGDataset::UpdateHeader()
 
 GDALDataset *GSAGDataset::CreateCopy( const char *pszFilename,
 				      GDALDataset *poSrcDS,
-				      int bStrict, char **papszOptions,
+				      int bStrict, CPL_UNUSED char **papszOptions,
 				      GDALProgressFunc pfnProgress,
 				      void *pProgressData )
 {

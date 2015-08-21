@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrelasticlayer.cpp 23836 2012-01-31 19:32:04Z rouault $
+ * $Id: ogrelasticlayer.cpp 27729 2014-09-24 00:40:16Z goatbar $
  *
  * Project:  ElasticSearch Translator
  * Purpose:
@@ -7,6 +7,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2011, Adam Estrada
+ * Copyright (c) 2012-2013, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -32,19 +33,19 @@
 #include "cpl_minixml.h"
 #include "ogr_api.h"
 #include "ogr_p.h"
-#include <jsonc/json.h> // JSON-C
+#include <json.h> // JSON-C
 
-CPL_CVSID("$Id: ogrelasticlayer.cpp 23836 2012-01-31 19:32:04Z rouault $");
+CPL_CVSID("$Id: ogrelasticlayer.cpp 27729 2014-09-24 00:40:16Z goatbar $");
 
 /************************************************************************/
 /*                           OGRElasticLayer()                          */
 /************************************************************************/
 
-OGRElasticLayer::OGRElasticLayer(const char* pszFilename,
-        const char* pszLayerName,
-        OGRElasticDataSource* poDS,
-        OGRSpatialReference *poSRSIn,
-        int bWriteMode) {
+OGRElasticLayer::OGRElasticLayer(CPL_UNUSED const char* pszFilename,
+                                 const char* pszLayerName,
+                                 OGRElasticDataSource* poDS,
+                                 OGRSpatialReference *poSRSIn,
+                                 CPL_UNUSED int bWriteMode) {
     this->pszLayerName = CPLStrdup(pszLayerName);
     this->poDS = poDS;
     this->pAttributes = NULL;
@@ -69,6 +70,8 @@ OGRElasticLayer::OGRElasticLayer(const char* pszFilename,
     poSRS = poSRSIn;
     if (poSRS)
         poSRS->Reference();
+
+    poFeatureDefn->GetGeomFieldDefn(0)->SetSpatialRef(poSRS);
 
     ResetReading();
     return;
@@ -114,14 +117,6 @@ OGRFeature *OGRElasticLayer::GetNextFeature() {
     CPLError(CE_Failure, CPLE_NotSupported,
             "Cannot read features when writing a Elastic file");
     return NULL;
-}
-
-/************************************************************************/
-/*                           GetSpatialRef()                            */
-/************************************************************************/
-
-OGRSpatialReference *OGRElasticLayer::GetSpatialRef() {
-    return poSRS;
 }
 
 /************************************************************************/
@@ -290,7 +285,8 @@ void OGRElasticLayer::PushIndex() {
 /*                            CreateField()                             */
 /************************************************************************/
 
-OGRErr OGRElasticLayer::CreateField(OGRFieldDefn *poFieldDefn, int bApproxOK) {
+OGRErr OGRElasticLayer::CreateField(OGRFieldDefn *poFieldDefn,
+                                    CPL_UNUSED int bApproxOK) {
     if (!pAttributes) {
         pAttributes = json_object_new_object();
     }
@@ -350,7 +346,7 @@ int OGRElasticLayer::TestCapability(const char * pszCap) {
 /*                          GetFeatureCount()                           */
 /************************************************************************/
 
-int OGRElasticLayer::GetFeatureCount(int bForce) {
+int OGRElasticLayer::GetFeatureCount(CPL_UNUSED int bForce) {
     CPLError(CE_Failure, CPLE_NotSupported,
             "Cannot read features when writing a Elastic file");
     return 0;

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdal_rasterize.cpp 24682 2012-07-20 15:14:28Z rouault $
+ * $Id: gdal_rasterize.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  GDAL Utilities
  * Purpose:  Rasterize OGR shapes into a GDAL raster.
@@ -7,6 +7,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2005, Frank Warmerdam <warmerdam@pobox.com>
+ * Copyright (c) 2008-2012, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -36,7 +37,7 @@
 #include "commonutils.h"
 #include <vector>
 
-CPL_CVSID("$Id: gdal_rasterize.cpp 24682 2012-07-20 15:14:28Z rouault $");
+CPL_CVSID("$Id: gdal_rasterize.cpp 27044 2014-03-16 23:41:27Z rouault $");
 
 /************************************************************************/
 /*                            ArgIsNumeric()                            */
@@ -755,7 +756,7 @@ int main( int argc, char ** argv )
     {
         if( dfXRes == 0 && dfYRes == 0 && nXSize == 0 && nYSize == 0 )
         {
-            fprintf( stderr, "'-tr xres yes' or '-ts xsize ysize' is required.\n\n" );
+            fprintf( stderr, "'-tr xres yres' or '-ts xsize ysize' is required.\n\n" );
             Usage();
         }
     

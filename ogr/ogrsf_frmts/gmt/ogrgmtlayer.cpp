@@ -161,6 +161,7 @@ OGRGmtLayer::OGRGmtLayer( const char * pszFilename, int bUpdate )
 /* -------------------------------------------------------------------- */
     poFeatureDefn = new OGRFeatureDefn( CPLGetBasename(pszFilename) );
     poFeatureDefn->Reference();
+    poFeatureDefn->GetGeomFieldDefn(0)->SetSpatialRef(poSRS);
 
     if( osGeometryType == "POINT" )
         poFeatureDefn->SetGeomType( wkbPoint );
@@ -439,9 +440,11 @@ int OGRGmtLayer::NextIsFeature()
 OGRFeature *OGRGmtLayer::GetNextRawFeature()
 
 {
-    int  bMultiVertex = 
+#if 0
+    int  bMultiVertex =
         poFeatureDefn->GetGeomType() != wkbPoint
         && poFeatureDefn->GetGeomType() != wkbUnknown;
+#endif
     CPLString osFieldData;
     OGRGeometry *poGeom = NULL;
 
@@ -501,13 +504,13 @@ OGRFeature *OGRGmtLayer::GetNextRawFeature()
             else if( poFeatureDefn->GetGeomType() == wkbUnknown )
             {
                 poFeatureDefn->SetGeomType( wkbLineString );
-                bMultiVertex = TRUE;
+                /* bMultiVertex = TRUE; */
             }
         }
         else if( osLine[0] == '#' )
         {
             int i;
-            for( i = 0; 
+            for( i = 0;
                  papszKeyedValues != NULL && papszKeyedValues[i] != NULL; 
                  i++ )
             {
@@ -647,6 +650,7 @@ OGRFeature *OGRGmtLayer::GetNextRawFeature()
 /*      Create feature.                                                 */
 /* -------------------------------------------------------------------- */
     OGRFeature *poFeature = new OGRFeature( poFeatureDefn );
+    poGeom->assignSpatialReference(poSRS);
     poFeature->SetGeometryDirectly( poGeom );
     poFeature->SetFID( iNextFID++ );
 
@@ -1084,14 +1088,4 @@ OGRErr OGRGmtLayer::CreateField( OGRFieldDefn *poField, int bApproxOK )
             return OGRERR_NONE;
         }
     }
-}
-
-/************************************************************************/
-/*                           GetSpatialRef()                            */
-/************************************************************************/
-
-OGRSpatialReference *OGRGmtLayer::GetSpatialRef()
-
-{
-    return poSRS;
 }

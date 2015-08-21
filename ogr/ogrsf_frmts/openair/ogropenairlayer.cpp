@@ -1,12 +1,12 @@
 /******************************************************************************
- * $Id: ogropenairlayer.cpp 20996 2010-10-28 18:38:15Z rouault $
+ * $Id: ogropenairlayer.cpp 27741 2014-09-26 19:20:02Z goatbar $
  *
  * Project:  OpenAir Translator
  * Purpose:  Implements OGROpenAirLayer class.
  * Author:   Even Rouault, <even dot rouault at mines dash paris dot org>
  *
  ******************************************************************************
- * Copyright (c) 2010, Even Rouault <even dot rouault at mines dash paris dot org>
+ * Copyright (c) 2010-2013, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -34,7 +34,7 @@
 #include "ogr_xplane_geo_utils.h"
 #include "ogr_srs_api.h"
 
-CPL_CVSID("$Id: ogropenairlayer.cpp 20996 2010-10-28 18:38:15Z rouault $");
+CPL_CVSID("$Id: ogropenairlayer.cpp 27741 2014-09-26 19:20:02Z goatbar $");
 
 /************************************************************************/
 /*                         OGROpenAirLayer()                            */
@@ -53,6 +53,7 @@ OGROpenAirLayer::OGROpenAirLayer( VSILFILE* fp )
     poFeatureDefn = new OGRFeatureDefn( "airspaces" );
     poFeatureDefn->Reference();
     poFeatureDefn->SetGeomType( wkbPolygon );
+    poFeatureDefn->GetGeomFieldDefn(0)->SetSpatialRef(poSRS);
 
     OGRFieldDefn    oField1( "CLASS", OFTString);
     poFeatureDefn->AddFieldDefn( &oField1 );
@@ -136,7 +137,7 @@ OGRFeature *OGROpenAirLayer::GetNextRawFeature()
     const char* pszLine;
     CPLString osCLASS, osNAME, osFLOOR, osCEILING;
     OGRLinearRing oLR;
-    double dfLastLat = 0, dfLastLon = 0;
+    /* double dfLastLat = 0, dfLastLon = 0; */
     int bFirst = TRUE;
     int bClockWise = TRUE;
     double dfCenterLat = 0, dfCenterLon = 0;
@@ -271,8 +272,8 @@ OGRFeature *OGROpenAirLayer::GetNextRawFeature()
                 continue;
 
             oLR.addPoint(dfLon, dfLat);
-            dfLastLat = dfLat;
-            dfLastLon = dfLon;
+            /* dfLastLat = dfLat; */
+            /* dfLastLon = dfLon; */
         }
         else if (EQUALN(pszLine, "DA ", 3))
         {
@@ -313,8 +314,8 @@ OGRFeature *OGROpenAirLayer::GetNextRawFeature()
                                          dfEndDistance, dfEndAngle, &dfLat, &dfLon);
                 oLR.addPoint(dfLon, dfLat);
 
-                dfLastLat = oLR.getY(oLR.getNumPoints() - 1);
-                dfLastLon = oLR.getX(oLR.getNumPoints() - 1);
+                /* dfLastLat = oLR.getY(oLR.getNumPoints() - 1); */
+                /* dfLastLon = oLR.getX(oLR.getNumPoints() - 1); */
             }
             CSLDestroy(papszTokens);
         }
@@ -362,8 +363,8 @@ OGRFeature *OGROpenAirLayer::GetNextRawFeature()
                 }
                 oLR.addPoint(dfSecondLon, dfSecondLat);
 
-                dfLastLat = oLR.getY(oLR.getNumPoints() - 1);
-                dfLastLon = oLR.getX(oLR.getNumPoints() - 1);
+                /* dfLastLat = oLR.getY(oLR.getNumPoints() - 1); */
+                /* dfLastLon = oLR.getX(oLR.getNumPoints() - 1); */
             }
             CSLDestroy(papszTokens);
         }
@@ -393,8 +394,8 @@ OGRFeature *OGROpenAirLayer::GetNextRawFeature()
                                          dfRADIUS, 0, &dfLat, &dfLon);
                 oLR.addPoint(dfLon, dfLat);
 
-                dfLastLat = oLR.getY(oLR.getNumPoints() - 1);
-                dfLastLon = oLR.getX(oLR.getNumPoints() - 1);
+                /* dfLastLat = oLR.getY(oLR.getNumPoints() - 1); */
+                /* dfLastLon = oLR.getX(oLR.getNumPoints() - 1); */
             }
         }
         else if (EQUALN(pszLine, "V X=", 4))
@@ -464,9 +465,7 @@ OGRFeature *OGROpenAirLayer::GetNextRawFeature()
 /*                           TestCapability()                           */
 /************************************************************************/
 
-int OGROpenAirLayer::TestCapability( const char * pszCap )
-
+int OGROpenAirLayer::TestCapability( CPL_UNUSED const char * pszCap )
 {
     return FALSE;
 }
-

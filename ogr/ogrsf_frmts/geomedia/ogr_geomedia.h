@@ -1,12 +1,12 @@
 /******************************************************************************
- * $Id: ogr_geomedia.h 21561 2011-01-23 12:22:58Z rouault $
+ * $Id: ogr_geomedia.h 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Private definitions for Geomedia MDB driver.
  * Author:   Even Rouault, <even dot rouault at mines dash paris dot org>
  *
  ******************************************************************************
- * Copyright (c) 2011, Even Rouault, <even dot rouault at mines dash paris dot org>
+ * Copyright (c) 2011-2013, Even Rouault <even dot rouault at mines-paris dot org>
  * Copyright (c) 2005, Frank Warmerdam <warmerdam@pobox.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
@@ -34,6 +34,7 @@
 #include "ogrsf_frmts.h"
 #include "cpl_odbc.h"
 #include "cpl_error.h"
+#include "ogr_pgeo.h"
 
 /************************************************************************/
 /*                          OGRGeomediaLayer                            */
@@ -79,9 +80,7 @@ class OGRGeomediaLayer : public OGRLayer
     virtual OGRFeature *GetFeature( long nFeatureId );
     
     OGRFeatureDefn *    GetLayerDefn() { return poFeatureDefn; }
-
-    virtual OGRSpatialReference *GetSpatialRef();
-
+    
     virtual int         TestCapability( const char * );
 
     virtual const char *GetFIDColumn();
@@ -196,15 +195,8 @@ class OGRGeomediaDataSource : public OGRDataSource
 /*                          OGRGeomediaDriver                           */
 /************************************************************************/
 
-class OGRGeomediaDriver : public OGRSFDriver
+class OGRGeomediaDriver : public OGRODBCMDBDriver
 {
-    CPLString   osDriverFile;
-
-    bool        InstallMdbDriver();
-    bool        LibraryExists( const char* pszLibPath );
-    bool        FindDriverLib();
-    CPLString   FindDefaultLib(const char* pszLibName);
-
   public:
                 ~OGRGeomediaDriver();
                 

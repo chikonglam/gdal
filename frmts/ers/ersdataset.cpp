@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ersdataset.cpp 25995 2013-05-11 20:52:45Z rouault $
+ * $Id: ersdataset.cpp 27433 2014-06-04 19:21:16Z rouault $
  *
  * Project:  ERMapper .ers Driver
  * Purpose:  Implementation of .ers driver.
@@ -7,6 +7,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2007, Frank Warmerdam <warmerdam@pobox.com>
+ * Copyright (c) 2008-2013, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -32,7 +33,7 @@
 #include "cpl_string.h"
 #include "ershdrnode.h"
 
-CPL_CVSID("$Id: ersdataset.cpp 25995 2013-05-11 20:52:45Z rouault $");
+CPL_CVSID("$Id: ersdataset.cpp 27433 2014-06-04 19:21:16Z rouault $");
 
 /************************************************************************/
 /* ==================================================================== */
@@ -98,6 +99,7 @@ class ERSDataset : public RawDataset
     virtual CPLErr SetGCPs( int nGCPCount, const GDAL_GCP *pasGCPList,
                             const char *pszGCPProjection );
 
+    virtual char      **GetMetadataDomainList();
     virtual const char *GetMetadataItem( const char * pszName,
                                      const char * pszDomain = "" );
     virtual char      **GetMetadata( const char * pszDomain = "" );
@@ -216,6 +218,17 @@ void ERSDataset::FlushCache()
     }
 
     RawDataset::FlushCache();
+}
+
+/************************************************************************/
+/*                      GetMetadataDomainList()                         */
+/************************************************************************/
+
+char **ERSDataset::GetMetadataDomainList()
+{
+    return BuildMetadataDomainList(GDALPamDataset::GetMetadataDomainList(),
+                                   TRUE,
+                                   "ERS", NULL);
 }
 
 /************************************************************************/
@@ -540,7 +553,15 @@ CPLErr ERSDataset::SetGeoTransform( double *padfTransform )
                    CPLString().Printf( "%.15g", adfGeoTransform[0] ) );
     poHeader->Set( "RasterInfo.RegistrationCoord.Northings", 
                    CPLString().Printf( "%.15g", adfGeoTransform[3] ) );
-    
+
+    if( CPLAtof(poHeader->Find("RasterInfo.RegistrationCellX", "0")) != 0.0 ||
+        CPLAtof(poHeader->Find("RasterInfo.RegistrationCellY", "0")) != 0.0 ) 
+    {
+        // Reset RegistrationCellX/Y to 0 if the header gets rewritten (#5493)
+        poHeader->Set("RasterInfo.RegistrationCellX", "0");
+        poHeader->Set("RasterInfo.RegistrationCellY", "0");
+    }
+
     return CE_None;
 }
 

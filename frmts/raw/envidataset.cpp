@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: envidataset.cpp 25660 2013-02-21 20:56:07Z rouault $
+ * $Id: envidataset.cpp 27366 2014-05-19 18:27:40Z rouault $
  *
  * Project:  ENVI .hdr Driver
  * Purpose:  Implementation of ENVI .hdr labelled raw raster support.
@@ -8,6 +8,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2002, Frank Warmerdam
+ * Copyright (c) 2007-2013, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -33,7 +34,7 @@
 #include "cpl_string.h"
 #include <algorithm>
 
-CPL_CVSID("$Id: envidataset.cpp 25660 2013-02-21 20:56:07Z rouault $");
+CPL_CVSID("$Id: envidataset.cpp 27366 2014-05-19 18:27:40Z rouault $");
 
 CPL_C_START
 void GDALRegister_ENVI(void);
@@ -369,6 +370,11 @@ void ENVIDataset::FlushCache()
 
     CPLLocaleC  oLocaleEnforcer;
 
+    // If opening an existing file in Update mode (i.e. "r+") we need to make
+    // sure any existing content is cleared, otherwise the file may contain
+    // trailing content from the previous write.
+    VSIFTruncateL( fp, 0 ); 
+
     VSIFSeekL( fp, 0, SEEK_SET );
 /* -------------------------------------------------------------------- */
 /*      Rewrite out the header.                                           */
@@ -667,14 +673,15 @@ void ENVIDataset::WriteProjectionInfo()
 /*      Minimal case - write out simple geotransform if we have a       */
 /*      non-default geotransform.                                       */
 /* -------------------------------------------------------------------- */
-    if( pszProjection == NULL || strlen(pszProjection) == 0 )
+    if( pszProjection == NULL || strlen(pszProjection) == 0  ||
+        (strlen(pszProjection) >= 8 && strncmp(pszProjection, "LOCAL_CS", 8) == 0 ) )
     {
         if( adfGeoTransform[0] != 0.0 || adfGeoTransform[1] != 1.0
             || adfGeoTransform[2] != 0.0 || adfGeoTransform[3] != 0.0
             || adfGeoTransform[4] != 0.0 || adfGeoTransform[5] != 1.0 )
         {
             const char* pszHemisphere = "North";
-            VSIFPrintfL( fp, "map info = {Unknown, %s, %d, %s}\n",
+            VSIFPrintfL( fp, "map info = {Arbitrary, %s, %d, %s}\n",
                          osLocation.c_str(), 0, pszHemisphere);
         }
         return;
@@ -2502,6 +2509,10 @@ GDALDataset *ENVIDataset::Open( GDALOpenInfo * poOpenInfo )
 /*      Check for overviews.                                            */
 /* -------------------------------------------------------------------- */
     poDS->oOvManager.Initialize( poDS, poOpenInfo->pszFilename );
+
+    // SetMetadata() calls in Open() makes the header dirty. 
+    // Don't re-write the header if nothing external has changed the metadata 
+    poDS->bHeaderDirty = FALSE; 
 
     return( poDS );
 }

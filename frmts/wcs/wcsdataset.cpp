@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: wcsdataset.cpp 25494 2013-01-13 12:55:17Z etourigny $
+ * $Id: wcsdataset.cpp 27729 2014-09-24 00:40:16Z goatbar $
  *
  * Project:  WCS Client Driver
  * Purpose:  Implementation of Dataset and RasterBand classes for WCS.
@@ -7,6 +7,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2006, Frank Warmerdam
+ * Copyright (c) 2008-2013, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -33,7 +34,7 @@
 #include "cpl_http.h"
 #include "ogr_spatialref.h"
 
-CPL_CVSID("$Id: wcsdataset.cpp 25494 2013-01-13 12:55:17Z etourigny $");
+CPL_CVSID("$Id: wcsdataset.cpp 27729 2014-09-24 00:40:16Z goatbar $");
 
 /************************************************************************/
 /* ==================================================================== */
@@ -106,6 +107,7 @@ class CPL_DLL WCSDataset : public GDALPamDataset
     virtual const char *GetProjectionRef(void);
     virtual char **GetFileList(void);
 
+    virtual char      **GetMetadataDomainList();
     virtual char **GetMetadata( const char *pszDomain );
 };
 
@@ -391,6 +393,7 @@ CPLErr WCSRasterBand::IRasterIO( GDALRWFlag eRWFlag,
 double WCSRasterBand::GetNoDataValue( int *pbSuccess )
 
 {
+    CPLLocaleC  oLocaleEnforcer;
     const char *pszSV = CPLGetXMLValue( poODS->psService, "NoDataValue", NULL);
 
     if( pszSV == NULL )
@@ -497,7 +500,7 @@ WCSDataset::~WCSDataset()
 /*      (FALSE) for a given request configuration and environment.      */
 /************************************************************************/
 
-int WCSDataset::TestUseBlockIO( int nXOff, int nYOff, int nXSize, int nYSize,
+int WCSDataset::TestUseBlockIO( CPL_UNUSED int nXOff, CPL_UNUSED int nYOff, int nXSize, int nYSize,
                                 int nBufXSize, int nBufYSize )
 
 {
@@ -554,7 +557,7 @@ CPLErr WCSDataset::IRasterIO( GDALRWFlag eRWFlag,
 /************************************************************************/
 
 CPLErr 
-WCSDataset::DirectRasterIO( GDALRWFlag eRWFlag,
+WCSDataset::DirectRasterIO( CPL_UNUSED GDALRWFlag eRWFlag,
                             int nXOff, int nYOff, int nXSize, int nYSize,
                             void * pData, int nBufXSize, int nBufYSize,
                             GDALDataType eBufType, 
@@ -945,6 +948,7 @@ int WCSDataset::DescribeCoverage()
 int WCSDataset::ExtractGridInfo100()
 
 {
+    CPLLocaleC  oLocaleEnforcer; 
     CPLXMLNode * psCO = CPLGetXMLNode( psService, "CoverageOffering" );
 
     if( psCO == NULL )
@@ -1274,6 +1278,7 @@ static int ParseBoundingBox( CPLXMLNode *psBoundingBox, CPLString &osCRS,
                              double &dfUpperX, double &dfUpperY )
 
 {
+    CPLLocaleC  oLocaleEnforcer; 
     int nRet = TRUE;
 
     osCRS = CPLGetXMLValue( psBoundingBox, "crs", "" );
@@ -1311,6 +1316,8 @@ static int ParseBoundingBox( CPLXMLNode *psBoundingBox, CPLString &osCRS,
 int WCSDataset::ExtractGridInfo()
 
 {
+    CPLLocaleC  oLocaleEnforcer; 
+
     if( nVersion == 100 )
         return ExtractGridInfo100();
 
@@ -2334,6 +2341,17 @@ char **WCSDataset::GetFileList()
 #endif /* def ESRI_BUILD */
     
     return papszFileList;
+}
+
+/************************************************************************/
+/*                      GetMetadataDomainList()                         */
+/************************************************************************/
+
+char **WCSDataset::GetMetadataDomainList()
+{
+    return BuildMetadataDomainList(GDALPamDataset::GetMetadataDomainList(),
+                                   TRUE,
+                                   "xml:CoverageOffering", NULL);
 }
 
 /************************************************************************/

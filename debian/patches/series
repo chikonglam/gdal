@@ -1,6 +1,5 @@
 doc
 ogdi
-man
 gdalpaths
 hdf4
 gdal-grass
@@ -20,7 +19,6 @@ transfered-typo
 initalize-typo
 transfering-typo
 bandwith-typo
-unkown-typo
 usefull-typo
 developement-typo
 algoritm-typo
@@ -28,6 +26,7 @@ allows-typo
 supress-typo
 doc-brief
 hardening
-hurd-i386-pathmax
+recommanded-typo
 perl-vendor
-mysql-5.6
+existant-typo
+libkml-pkgconfig

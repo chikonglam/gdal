@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: hdf4dataset.h 18945 2010-02-27 20:39:31Z rouault $
+ * $Id: hdf4dataset.h 26569 2013-10-29 23:51:12Z rouault $
  *
  * Project:  Hierarchical Data Format Release 4 (HDF4)
  * Purpose:  Header file for HDF4 datasets reader.
@@ -97,6 +97,7 @@ class HDF4Dataset : public GDALPamDataset
                 HDF4Dataset();
 		~HDF4Dataset();
     
+    virtual char      **GetMetadataDomainList();
     virtual char        **GetMetadata( const char * pszDomain = "" );
     static GDALDataset  *Open( GDALOpenInfo * );
     static int          Identify( GDALOpenInfo * );

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #******************************************************************************
-#  $Id: pct2rgb.py 25674 2013-02-23 15:21:10Z rouault $
+#  $Id: pct2rgb.py 27490 2014-07-02 17:43:54Z rouault $
 # 
 #  Name:     pct2rgb
 #  Project:  GDAL Python Interface
@@ -9,6 +9,7 @@
 # 
 #******************************************************************************
 #  Copyright (c) 2001, Frank Warmerdam
+#  Copyright (c) 2009-2010, Even Rouault <even dot rouault at mines-paris dot org>
 # 
 #  Permission is hereby granted, free of charge, to any person obtaining a
 #  copy of this software and associated documentation files (the "Software"),
@@ -121,7 +122,7 @@ if dst_driver is None:
 
 ct = src_band.GetRasterColorTable()
 
-ct_size = max(256, ct.GetCount())
+ct_size = ct.GetCount()
 lookup = [Numeric.arrayrange(ct_size),
           Numeric.arrayrange(ct_size),
           Numeric.arrayrange(ct_size),

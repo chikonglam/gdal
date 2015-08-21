@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: pdsdataset.cpp 25984 2013-05-05 12:20:31Z rouault $
+ * $Id: pdsdataset.cpp 27044 2014-03-16 23:41:27Z rouault $
  *
  * Project:  PDS Driver; Planetary Data System Format
  * Purpose:  Implementation of PDSDataset
@@ -12,6 +12,7 @@
  * diminish Trent and Roberts contribution. 
  ******************************************************************************
  * Copyright (c) 2007, Frank Warmerdam <warmerdam@pobox.com>
+ * Copyright (c) 2008-2013, Even Rouault <even dot rouault at mines-paris dot org>
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -46,7 +47,7 @@
 #include "cpl_string.h" 
 #include "nasakeywordhandler.h"
 
-CPL_CVSID("$Id: pdsdataset.cpp 25984 2013-05-05 12:20:31Z rouault $");
+CPL_CVSID("$Id: pdsdataset.cpp 27044 2014-03-16 23:41:27Z rouault $");
 
 CPL_C_START
 void	GDALRegister_PDS(void);

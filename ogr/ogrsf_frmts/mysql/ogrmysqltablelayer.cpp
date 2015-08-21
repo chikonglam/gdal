@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrmysqltablelayer.cpp 25513 2013-01-16 19:04:39Z rouault $
+ * $Id: ogrmysqltablelayer.cpp 27916 2014-10-30 15:38:57Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implements OGRMySQLTableLayer class.
@@ -8,6 +8,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2004, Frank Warmerdam <warmerdam@pobox.com>
+ * Copyright (c) 2008-2013, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -32,23 +33,22 @@
 #include "cpl_string.h"
 #include "ogr_mysql.h"
 
-CPL_CVSID("$Id: ogrmysqltablelayer.cpp 25513 2013-01-16 19:04:39Z rouault $");
+CPL_CVSID("$Id: ogrmysqltablelayer.cpp 27916 2014-10-30 15:38:57Z rouault $");
 
 /************************************************************************/
 /*                         OGRMySQLTableLayer()                         */
 /************************************************************************/
 
-OGRMySQLTableLayer::OGRMySQLTableLayer( OGRMySQLDataSource *poDSIn, 
-                                  const char * pszTableName,
-                                  int bUpdate, int nSRSIdIn )
-
+OGRMySQLTableLayer::OGRMySQLTableLayer( OGRMySQLDataSource *poDSIn,
+                                        CPL_UNUSED const char * pszTableName,
+                                        int bUpdate, int nSRSIdIn )
 {
     poDS = poDSIn;
 
     pszQuery = NULL;
     pszWHERE = CPLStrdup( "" );
     pszQueryStatement = NULL;
-    
+
     bUpdateAccess = bUpdate;
 
     iNextShapeId = 0;
@@ -405,21 +405,24 @@ void OGRMySQLTableLayer::SetSpatialFilter( OGRGeometry * poGeomIn )
 void OGRMySQLTableLayer::BuildWhere()
 
 {
+    // don't mess up decimal separator 
+    CPLLocaleC oLocaleForcer; 
+
     CPLFree( pszWHERE );
     pszWHERE = (char*)CPLMalloc(500 + ((pszQuery) ? strlen(pszQuery) : 0));
     pszWHERE[0] = '\0';
 
     if( m_poFilterGeom != NULL && pszGeomColumn )
     {
-        char szEnvelope[4096];
+        char szEnvelope[400];
         OGREnvelope  sEnvelope;
         szEnvelope[0] = '\0';
         
         //POLYGON((MINX MINY, MAXX MINY, MAXX MAXY, MINX MAXY, MINX MINY))
         m_poFilterGeom->getEnvelope( &sEnvelope );
         
-        sprintf(szEnvelope,
-                "POLYGON((%.12f %.12f, %.12f %.12f, %.12f %.12f, %.12f %.12f, %.12f %.12f))",
+        snprintf(szEnvelope, sizeof(szEnvelope),
+                "POLYGON((%.18g %.18g, %.18g %.18g, %.18g %.18g, %.18g %.18g, %.18g %.18g))",
                 sEnvelope.MinX, sEnvelope.MinY,
                 sEnvelope.MaxX, sEnvelope.MinY,
                 sEnvelope.MaxX, sEnvelope.MaxY,
@@ -547,6 +550,9 @@ char *OGRMySQLTableLayer::BuildFields()
 OGRErr OGRMySQLTableLayer::SetAttributeFilter( const char *pszQuery )
 
 {
+    CPLFree(m_pszAttrQueryString);
+    m_pszAttrQueryString = (pszQuery) ? CPLStrdup(pszQuery) : NULL;
+
     CPLFree( this->pszQuery );
 
     if( pszQuery == NULL || strlen(pszQuery) == 0 )
@@ -1065,14 +1071,13 @@ OGRFeature *OGRMySQLTableLayer::GetFeature( long nFeatureId )
 /*      way of counting features matching a spatial query.              */
 /************************************************************************/
 
-int OGRMySQLTableLayer::GetFeatureCount( int bForce )
-
+int OGRMySQLTableLayer::GetFeatureCount( CPL_UNUSED int bForce )
 {
 /* -------------------------------------------------------------------- */
 /*      Ensure any active long result is interrupted.                   */
 /* -------------------------------------------------------------------- */
     poDS->InterruptLongResult();
-    
+
 /* -------------------------------------------------------------------- */
 /*      Issue the appropriate select command.                           */
 /* -------------------------------------------------------------------- */
@@ -1119,8 +1124,7 @@ int OGRMySQLTableLayer::GetFeatureCount( int bForce )
 /*      like PostgreSQL.						*/
 /************************************************************************/
 
-OGRErr OGRMySQLTableLayer::GetExtent(OGREnvelope *psExtent, int bForce )
-
+OGRErr OGRMySQLTableLayer::GetExtent(OGREnvelope *psExtent, CPL_UNUSED int bForce )
 {
 	if( GetLayerDefn()->GetGeomType() == wkbNone )
     {
@@ -1128,7 +1132,7 @@ OGRErr OGRMySQLTableLayer::GetExtent(OGREnvelope *psExtent, int bForce )
         psExtent->MaxX = 0.0;
         psExtent->MinY = 0.0;
         psExtent->MaxY = 0.0;
-        
+
         return OGRERR_FAILURE;
     }
 

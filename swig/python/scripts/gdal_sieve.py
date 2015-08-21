@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #******************************************************************************
-#  $Id: gdal_sieve.py 19392 2010-04-12 18:27:09Z rouault $
+#  $Id: gdal_sieve.py 27044 2014-03-16 23:41:27Z rouault $
 # 
 #  Project:  GDAL Python Interface
 #  Purpose:  Application for applying sieve filter to raster data.
@@ -8,6 +8,7 @@
 # 
 #******************************************************************************
 #  Copyright (c) 2008, Frank Warmerdam
+#  Copyright (c) 2009-2010, Even Rouault <even dot rouault at mines-paris dot org>
 # 
 #  Permission is hereby granted, free of charge, to any person obtaining a
 #  copy of this software and associated documentation files (the "Software"),

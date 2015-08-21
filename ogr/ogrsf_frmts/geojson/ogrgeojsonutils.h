@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrgeojsonutils.h 19489 2010-04-21 21:39:05Z rouault $
+ * $Id: ogrgeojsonutils.h 26296 2013-08-11 09:30:09Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Private utilities within OGR OGRGeoJSON Driver.
@@ -30,23 +30,10 @@
 #define OGR_GEOJSONUTILS_H_INCLUDED
 
 #include <ogr_core.h>
-#include <jsonc/json.h> // JSON-C
+#include <json.h> // JSON-C
+#include "cpl_vsi.h"
 
 class OGRGeometry;
-
-/************************************************************************/
-/*                           mloskot_deleter functor                    */
-/************************************************************************/
-
-template <typename T>
-struct mloskot_deleter
-{
-    void operator()(T*& ptr)
-    {
-        delete ptr;
-        ptr = 0;
-    }
-};
 
 /************************************************************************/
 /*                           GeoJSONSourceType                          */
@@ -60,7 +47,7 @@ enum GeoJSONSourceType
     eGeoJSONSourceService
 };
 
-GeoJSONSourceType GeoJSONGetSourceType( const char* pszSource );
+GeoJSONSourceType GeoJSONGetSourceType( const char* pszSource, VSILFILE** pfp );
 
 /************************************************************************/
 /*                           GeoJSONProtocolType                        */

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdaldrivermanager.cpp 25627 2013-02-10 10:17:19Z rouault $
+ * $Id: gdaldrivermanager.cpp 27121 2014-04-03 22:08:55Z rouault $
  *
  * Project:  GDAL Core
  * Purpose:  Implementation of GDALDriverManager class.
@@ -7,6 +7,7 @@
  *
  ******************************************************************************
  * Copyright (c) 1998, Frank Warmerdam
+ * Copyright (c) 2009-2013, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -42,7 +43,7 @@
 #  endif
 #endif
 
-CPL_CVSID("$Id: gdaldrivermanager.cpp 25627 2013-02-10 10:17:19Z rouault $");
+CPL_CVSID("$Id: gdaldrivermanager.cpp 27121 2014-04-03 22:08:55Z rouault $");
 
 static const char *pszUpdatableINST_DATA = 
 "__INST_DATA_TARGET:                                                                                                                                      ";
@@ -188,8 +189,8 @@ GDALDriverManager::~GDALDriverManager()
     papoDSList = GDALDataset::GetOpenDatasets(&nDSCount);
     for(i=0;i<nDSCount;i++)
     {
-        CPLDebug( "GDAL", "force close of %s in GDALDriverManager cleanup.",
-                  papoDSList[i]->GetDescription() );
+        CPLDebug( "GDAL", "force close of %s (%p) in GDALDriverManager cleanup.",
+                  papoDSList[i]->GetDescription(), papoDSList[i] );
         /* Destroy with delete operator rather than GDALClose() to force deletion of */
         /* datasets with multiple reference count */
         /* We could also iterate while GetOpenDatasets() returns a non NULL list */
@@ -265,6 +266,11 @@ GDALDriverManager::~GDALDriverManager()
     } 
 
 /* -------------------------------------------------------------------- */
+/*      Cleanup raster block mutex                                      */
+/* -------------------------------------------------------------------- */
+    GDALRasterBlock::DestroyRBMutex();
+
+/* -------------------------------------------------------------------- */
 /*      Cleanup gdaltransformer.cpp mutex                               */
 /* -------------------------------------------------------------------- */
     GDALCleanupTransformDeserializerMutex();
@@ -273,6 +279,11 @@ GDALDriverManager::~GDALDriverManager()
 /*      Cleanup cpl_error.cpp mutex                                     */
 /* -------------------------------------------------------------------- */
     CPLCleanupErrorMutex();
+
+/* -------------------------------------------------------------------- */
+/*      Cleanup CPLsetlocale mutex                                      */
+/* -------------------------------------------------------------------- */
+    CPLCleanupSetlocaleMutex();
 
 /* -------------------------------------------------------------------- */
 /*      Cleanup the master CPL mutex, which governs the creation        */
@@ -638,6 +649,9 @@ void GDALDriverManager::AutoSkipDrivers()
  * the /usr/local/lib/gdalplugins directory, and (if known) the
  * lib/gdalplugins subdirectory of the gdal home directory are searched on
  * UNIX and $(BINDIR)\gdalplugins on Windows.
+ *
+ * Auto loading can be completely disabled by setting the GDAL_DRIVER_PATH
+ * config option to "disable".
  */
 
 void GDALDriverManager::AutoLoadDrivers()
@@ -646,6 +660,16 @@ void GDALDriverManager::AutoLoadDrivers()
     char     **papszSearchPath = NULL;
     const char *pszGDAL_DRIVER_PATH = 
         CPLGetConfigOption( "GDAL_DRIVER_PATH", NULL );
+
+/* -------------------------------------------------------------------- */
+/*      Allow applications to completely disable this search by         */
+/*      setting the driver path to the special string "disable".        */
+/* -------------------------------------------------------------------- */
+    if( pszGDAL_DRIVER_PATH != NULL && EQUAL(pszGDAL_DRIVER_PATH,"disable")) 
+    {
+        CPLDebug( "GDAL", "GDALDriverManager::AutoLoadDrivers() disabled." );
+        return;
+    }
 
 /* -------------------------------------------------------------------- */
 /*      Where should we look for stuff?                                 */

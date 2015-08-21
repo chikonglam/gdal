@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdalwarper.h 25884 2013-04-09 17:04:16Z etourigny $
+ * $Id: gdalwarper.h 27739 2014-09-25 18:49:52Z goatbar $
  *
  * Project:  GDAL High Performance Warper
  * Purpose:  Prototypes, and definitions for warping related work.
@@ -7,6 +7,7 @@
  *
  ******************************************************************************
  * Copyright (c) 2003, Frank Warmerdam
+ * Copyright (c) 2009-2012, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -337,8 +338,9 @@ private:
     CPLErr          CreateKernelMask( GDALWarpKernel *, int iBand, 
                                       const char *pszType );
 
-    void            *unused1;
-    void            *unused2;
+    /* Unused kept to preserve binary ABI */
+    /* CPL_UNUSED */ void            *unused1;
+    /* CPL_UNUSED */ void            *unused2;
     void            *hIOMutex;
     void            *hWarpMutex;
 

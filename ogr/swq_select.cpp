@@ -6,6 +6,7 @@
  * 
  ******************************************************************************
  * Copyright (C) 2010 Frank Warmerdam <warmerdam@pobox.com>
+ * Copyright (c) 2010-2014, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -28,6 +29,7 @@
 
 #include "swq.h"
 #include "swq_parser.hpp"
+#include "ogr_geometry.h"
 
 /************************************************************************/
 /*                             swq_select()                             */
@@ -137,6 +139,7 @@ CPLErr swq_select::preparse( const char *select_statement )
 
     context.pszInput = select_statement;
     context.pszNext = select_statement;
+    context.pszLastValid = select_statement;
     context.nStartToken = SWQT_SELECT_START;
     context.poCurSelect = this;
 
@@ -344,6 +347,9 @@ int swq_select::PushField( swq_expr_node *poExpr, const char *pszAlias,
         col_def->field_name = 
             CPLStrdup(poExpr->string_value);
     else if( poExpr->eNodeType == SNT_OPERATION
+             && (poExpr->nOperation == SWQ_CAST ||
+                 (poExpr->nOperation >= SWQ_AVG &&
+                  poExpr->nOperation <= SWQ_SUM))
              && poExpr->nSubExprCount >= 1
              && poExpr->papoSubExpr[0]->eNodeType == SNT_COLUMN )
         col_def->field_name = 
@@ -356,6 +362,18 @@ int swq_select::PushField( swq_expr_node *poExpr, const char *pszAlias,
 /* -------------------------------------------------------------------- */
     if( pszAlias != NULL )
         col_def->field_alias = CPLStrdup( pszAlias );
+    else if( pszAlias == NULL && poExpr->eNodeType == SNT_OPERATION
+             && poExpr->nSubExprCount >= 1
+             && ( poExpr->nOperation == SWQ_CONCAT ||
+                  poExpr->nOperation == SWQ_SUBSTR )
+             && poExpr->papoSubExpr[0]->eNodeType == SNT_COLUMN )
+    {
+        const swq_operation *op = swq_op_registrar::GetOperator( 
+                (swq_op) poExpr->nOperation );
+
+        col_def->field_alias = CPLStrdup( CPLSPrintf("%s_%s", op->pszName, 
+                                    poExpr->papoSubExpr[0]->string_value));
+    }
 
     col_def->table_index = -1;
     col_def->field_index = -1;
@@ -404,6 +422,10 @@ int swq_select::PushField( swq_expr_node *poExpr, const char *pszAlias,
         {
             col_def->target_type = SWQ_TIME;
         }
+        else if( strcasecmp(pszTypeName,"geometry") == 0 )
+        {
+            col_def->target_type = SWQ_GEOMETRY;
+        }
         else
         {
             CPLError( CE_Failure, CPLE_AppDefined,
@@ -416,17 +438,57 @@ int swq_select::PushField( swq_expr_node *poExpr, const char *pszAlias,
             result_columns--;
             return FALSE;
         }
-
-        // field width.
-        if( poExpr->nSubExprCount > 2 )
+        
+        if( col_def->target_type == SWQ_GEOMETRY ) 
         {
-            col_def->field_length = poExpr->papoSubExpr[2]->int_value;
+            if( poExpr->nSubExprCount > 2 )
+            {
+                if( poExpr->papoSubExpr[2]->field_type != SWQ_STRING )
+                {
+                    CPLError( CE_Failure, CPLE_AppDefined,
+                      "First argument of CAST operator should be an geometry type identifier." );
+                    CPLFree(col_def->field_name);
+                    col_def->field_name = NULL;
+                    CPLFree(col_def->field_alias);
+                    col_def->field_alias = NULL;
+                    result_columns--;
+                    return FALSE;
+                }
+
+                col_def->eGeomType =
+                    OGRFromOGCGeomType(poExpr->papoSubExpr[2]->string_value);
+
+                // SRID
+                if( poExpr->nSubExprCount > 3 )
+                {
+                    col_def->nSRID = poExpr->papoSubExpr[3]->int_value;
+                }
+            }
         }
-
-        // field width.
-        if( poExpr->nSubExprCount > 3 && parse_precision )
+        else
         {
-            col_def->field_precision = poExpr->papoSubExpr[3]->int_value;
+            // field width.
+            if( poExpr->nSubExprCount > 2 )
+            {
+                if( poExpr->papoSubExpr[2]->field_type != SWQ_INTEGER )
+                {
+                    CPLError( CE_Failure, CPLE_AppDefined,
+                      "First argument of CAST operator should be of integer type." );
+                    CPLFree(col_def->field_name);
+                    col_def->field_name = NULL;
+                    CPLFree(col_def->field_alias);
+                    col_def->field_alias = NULL;
+                    result_columns--;
+                    return FALSE;
+                }
+                col_def->field_length = poExpr->papoSubExpr[2]->int_value;
+            }
+
+            // field width.
+            if( poExpr->nSubExprCount > 3 && parse_precision )
+            {
+                col_def->field_precision = poExpr->papoSubExpr[3]->int_value;
+            }
         }
     }
 
@@ -439,9 +501,25 @@ int swq_select::PushField( swq_expr_node *poExpr, const char *pszAlias,
     {
         if( poExpr->nSubExprCount != 1 )
         {
+            const swq_operation *poOp = 
+                    swq_op_registrar::GetOperator( (swq_op)poExpr->nOperation );
             CPLError( CE_Failure, CPLE_AppDefined,
                       "Column Summary Function '%s' has wrong number of arguments.", 
-                      poExpr->string_value ? poExpr->string_value : "(null)");
+                      poOp->pszName );
+            CPLFree(col_def->field_name);
+            col_def->field_name = NULL;
+            CPLFree(col_def->field_alias);
+            col_def->field_alias = NULL;
+            result_columns--;
+            return FALSE;
+        }
+        else if( poExpr->papoSubExpr[0]->eNodeType != SNT_COLUMN )
+        {
+            const swq_operation *poOp = 
+                    swq_op_registrar::GetOperator( (swq_op)poExpr->nOperation );
+            CPLError( CE_Failure, CPLE_AppDefined,
+                      "Argument of column Summary Function '%s' should be a column.", 
+                      poOp->pszName );
             CPLFree(col_def->field_name);
             col_def->field_name = NULL;
             CPLFree(col_def->field_alias);
@@ -686,8 +764,7 @@ CPLErr swq_select::expand_wildcard( swq_field_list *field_list )
             int compose = itable != -1;
 
             /* skip this field if it isn't in the target table.  */
-            if( itable != -1 && field_list->table_ids != NULL 
-                && itable != field_list->table_ids[i] )
+            if( itable != -1 && itable != field_list->table_ids[i] )
                 continue;
 
             /* set up some default values. */
@@ -696,8 +773,7 @@ CPLErr swq_select::expand_wildcard( swq_field_list *field_list )
             def->target_type = SWQ_OTHER;
 
             /* does this field duplicate an earlier one? */
-            if( field_list->table_ids != NULL 
-                && field_list->table_ids[i] != 0 
+            if( field_list->table_ids[i] != 0 
                 && !compose )
             {
                 int other;
@@ -713,23 +789,20 @@ CPLErr swq_select::expand_wildcard( swq_field_list *field_list )
                 }
             }
 
+            int itable = field_list->table_ids[i];
+            char *composed_name;
+            const char *field_name = field_list->names[i];
+            const char *table_alias = 
+                field_list->table_defs[itable].table_alias;
+
+            composed_name = (char *) 
+                CPLMalloc(strlen(field_name)+strlen(table_alias)+2);
+
+            sprintf( composed_name, "%s.%s", table_alias, field_name );
+
+            def->field_name = composed_name;
             if( !compose )
-                def->field_name = CPLStrdup( field_list->names[i] );
-            else
-            {
-                int itable = field_list->table_ids[i];
-                char *composed_name;
-                const char *field_name = field_list->names[i];
-                const char *table_alias = 
-                    field_list->table_defs[itable].table_alias;
-
-                composed_name = (char *) 
-                    CPLMalloc(strlen(field_name)+strlen(table_alias)+2);
-
-                sprintf( composed_name, "%s.%s", table_alias, field_name );
-
-                def->field_name = composed_name;
-            }							
+                def->field_alias = CPLStrdup( field_list->names[i] );
 
             iout++;
 
@@ -754,8 +827,7 @@ CPLErr swq_select::expand_wildcard( swq_field_list *field_list )
 /************************************************************************/
 
 CPLErr swq_select::parse( swq_field_list *field_list,
-                          int parse_flags )
-
+                          CPL_UNUSED int parse_flags )
 {
     int  i;
     CPLErr eError;
@@ -777,7 +849,7 @@ CPLErr swq_select::parse( swq_field_list *field_list,
             def->field_index = -1;
             def->table_index = -1;
 
-            if( def->expr->Check( field_list ) == SWQ_ERROR )
+            if( def->expr->Check( field_list, TRUE ) == SWQ_ERROR )
                 return CE_Failure;
                 
             def->field_type = def->expr->field_type;
@@ -819,15 +891,17 @@ CPLErr swq_select::parse( swq_field_list *field_list,
              || def->col_func == SWQCF_MAX
              || def->col_func == SWQCF_AVG
              || def->col_func == SWQCF_SUM)
-            && def->field_type == SWQ_STRING )
+            && (def->field_type == SWQ_STRING ||
+                def->field_type == SWQ_GEOMETRY) )
         {
             // possibly this is already enforced by the checker?
             const swq_operation *op = swq_op_registrar::GetOperator( 
                 (swq_op) def->col_func );
-            
             CPLError( CE_Failure, CPLE_AppDefined, 
-                      "Use of field function %s() on string field %s illegal.", 
-                          op->osName.c_str(), def->field_name );
+                      "Use of field function %s() on %s field %s illegal.", 
+                      op->pszName,
+                      SWQFieldTypeToString(def->field_type),
+                      def->field_name );
             return CE_Failure;
         }
     }
@@ -848,11 +922,29 @@ CPLErr swq_select::parse( swq_field_list *field_list,
             || def->col_func == SWQCF_AVG
             || def->col_func == SWQCF_SUM
             || def->col_func == SWQCF_COUNT )
+        {
             this_indicator = SWQM_SUMMARY_RECORD;
+            if( def->col_func == SWQCF_COUNT &&
+                def->distinct_flag &&
+                def->field_type == SWQ_GEOMETRY )
+            {
+                CPLError( CE_Failure, CPLE_AppDefined,
+                          "SELECT COUNT DISTINCT on a geometry not supported." );
+                return CE_Failure;
+            }
+        }
         else if( def->col_func == SWQCF_NONE )
         {
             if( def->distinct_flag )
+            {
                 this_indicator = SWQM_DISTINCT_LIST;
+                if( def->field_type == SWQ_GEOMETRY )
+                {
+                    CPLError( CE_Failure, CPLE_AppDefined,
+                              "SELECT DISTINCT on a geometry not supported." );
+                    return CE_Failure;
+                }
+            }
             else
                 this_indicator = SWQM_RECORDSET;
         }
@@ -940,13 +1032,30 @@ CPLErr swq_select::parse( swq_field_list *field_list,
         swq_order_def *def = order_defs + i;
 
         /* identify field */
+        swq_field_type field_type;
         def->field_index = swq_identify_field( def->field_name, field_list,
-                                               NULL, &(def->table_index) );
+                                               &field_type, &(def->table_index) );
         if( def->field_index == -1 )
         {
             CPLError( CE_Failure, CPLE_AppDefined, 
                       "Unrecognised field name %s in ORDER BY.", 
                      def->field_name );
+            return CE_Failure;
+        }
+
+        if( def->table_index != 0 )
+        {
+            CPLError( CE_Failure, CPLE_AppDefined,
+                      "Cannot use field '%s' of a secondary table in a ORDER BY clause",
+                      def->field_name );
+            return CE_Failure;
+        }
+
+        if( field_type == SWQ_GEOMETRY )
+        {
+            CPLError( CE_Failure, CPLE_AppDefined,
+                      "Cannot use geometry field '%s' in a ORDER BY clause",
+                      def->field_name );
             return CE_Failure;
         }
     }
@@ -956,7 +1065,7 @@ CPLErr swq_select::parse( swq_field_list *field_list,
 /*      doing final validation.                                         */
 /* -------------------------------------------------------------------- */
     if( where_expr != NULL 
-        && where_expr->Check( field_list ) == SWQ_ERROR )
+        && where_expr->Check( field_list, FALSE ) == SWQ_ERROR )
     {
         return CE_Failure;
     }

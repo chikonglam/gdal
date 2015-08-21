@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: cpl.i 26276 2013-08-08 19:15:31Z rouault $
+ * $Id: cpl.i 26526 2013-10-11 11:49:24Z tamas $
  *
  * Name:     cpl.i
  * Project:  GDAL Python Interface
@@ -385,7 +385,9 @@ int VSIRename(const char * pszOld, const char *pszNew );
 
 #if !defined(SWIGJAVA)
 
+#if !defined(SWIGCSHARP)
 typedef void VSILFILE;
+#endif
 
 #if defined(SWIGPERL)
 %apply RETURN_NONE_TRUE_IS_ERROR {RETURN_NONE};

@@ -3,10 +3,11 @@
  *
  * Project:  Project:  Creates a jpeg header
  * Purpose:  Abreviated JPEG support
- * Author:   Ivan Lucena, ivan.lucena@pmldnet.com
+ * Author:   Ivan Lucena, [lucena_ivan at hotmail.com]
  *
  ******************************************************************************
  * Copyright (c) 2007, Ivan Lucena
+ * Copyright (c) 2007, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files ( the "Software" ),
