@@ -1,6 +1,7 @@
 gdal (1.11.2+dfsg-3) UNRELEASED; urgency=medium
 
   * Bump minimum required libspatialite-dev to 4.3.0-3~ for liblwgeom support.
+  * Update Vcs-Browser URL to use HTTPS.
 
  -- Bas Couwenberg <sebastic@debian.org>  Fri, 28 Aug 2015 10:23:08 +0200
 
