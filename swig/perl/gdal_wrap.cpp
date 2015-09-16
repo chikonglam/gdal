@@ -5379,7 +5379,7 @@ XS(_wrap_Unlink) {
     {
       /* %typemap(ret) VSI_RETVAL */
       if (result == -1 ) {
-        croak(strerror(errno));
+        croak("%s", strerror(errno));
       }
     }
     XSRETURN(argvi);
@@ -5497,7 +5497,7 @@ XS(_wrap_Mkdir) {
     {
       /* %typemap(ret) VSI_RETVAL */
       if (result == -1 ) {
-        croak(strerror(errno));
+        croak("%s", strerror(errno));
       }
     }
     XSRETURN(argvi);
@@ -5564,7 +5564,7 @@ XS(_wrap_Rmdir) {
     {
       /* %typemap(ret) VSI_RETVAL */
       if (result == -1 ) {
-        croak(strerror(errno));
+        croak("%s", strerror(errno));
       }
     }
     XSRETURN(argvi);
@@ -5633,7 +5633,7 @@ XS(_wrap_Rename) {
     {
       /* %typemap(ret) VSI_RETVAL */
       if (result == -1 ) {
-        croak(strerror(errno));
+        croak("%s", strerror(errno));
       }
     }
     XSRETURN(argvi);
@@ -5728,7 +5728,7 @@ XS(_wrap_Stat) {
     {
       /* %typemap(ret) VSI_RETVAL */
       if (result == -1 ) {
-        croak(strerror(errno));
+        croak("%s", strerror(errno));
       }
     }
     XSRETURN(argvi);
@@ -5856,7 +5856,7 @@ XS(_wrap_VSIFCloseL) {
     {
       /* %typemap(ret) VSI_RETVAL */
       if (result == -1 ) {
-        croak(strerror(errno));
+        croak("%s", strerror(errno));
       }
     }
     XSRETURN(argvi);
@@ -5931,7 +5931,7 @@ XS(_wrap_VSIFSeekL) {
     {
       /* %typemap(ret) VSI_RETVAL */
       if (result == -1 ) {
-        croak(strerror(errno));
+        croak("%s", strerror(errno));
       }
     }
     XSRETURN(argvi);
@@ -6048,7 +6048,7 @@ XS(_wrap_VSIFTruncateL) {
     {
       /* %typemap(ret) VSI_RETVAL */
       if (result == -1 ) {
-        croak(strerror(errno));
+        croak("%s", strerror(errno));
       }
     }
     XSRETURN(argvi);

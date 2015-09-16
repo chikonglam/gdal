@@ -30,7 +30,7 @@ same format as the band data.
 
 <p>By default, the datatype returned for AAIGRID datasets by GDAL is autodetected,
 and set to Float32 for grid with floating point values or Int32 otherwise. This is
-done by analysing the format of the NODATA value and the first 100k bytes of data of the
+done by analysing the format of the NODATA value and, if needed, the data of the
 grid. From GDAL 1.8.0, you can explictely specify the datatype by setting the
 AAIGRID_DATATYPE configuration option (Int32, Float32 and Float64 values are
 supported currently)</p>
@@ -378,13 +378,14 @@ Starting with GDAL 1.9.0
 that uses the table of content file, TOC.xml, and exposes it as a virtual dataset whose
 coverage is the set of ECRG frames contained in the table of content.</p>
 <p>The driver will report a different subdataset for each subdataset found in the TOC.xml
-file.</p>
+file. Each subdataset consists of the frames of same product id, disk id, and starting
+with GDAL 1.11.3, with same scale.</p>
 
 <p>Result of a gdalinfo on a TOC.xml file.</p>
 <pre>
 Subdatasets:
-  SUBDATASET_1_NAME=ECRG_TOC_ENTRY:ECRG:FalconView:ECRG_Sample/EPF/TOC.xml
-  SUBDATASET_1_DESC=ECRG:FalconView
+  SUBDATASET_1_NAME=ECRG_TOC_ENTRY:ECRG:FalconView:1_500_K:ECRG_Sample/EPF/TOC.xml
+  SUBDATASET_1_DESC=Product ECRG, Disk FalconView, Scale 1:500 K
 </pre>
 
 <p>See Also:</p>
@@ -1361,7 +1362,7 @@ as reported by GDAL will be a half-pixel at the top and left of the values that 
 </p>
 
 <p>
-$Id: frmt_various.html 28861 2015-04-07 09:41:29Z kdejong $
+$Id: frmt_various.html 29778 2015-08-25 09:02:53Z rouault $
 </p>
 
 </body>
