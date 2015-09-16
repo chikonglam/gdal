@@ -1,3 +1,9 @@
+gdal (1.11.2+dfsg-4) UNRELEASED; urgency=medium
+
+  * Update watch file for 1.11.3 pre-releases.
+
+ -- Bas Couwenberg <sebastic@debian.org>  Wed, 16 Sep 2015 19:49:32 +0200
+
 gdal (1.11.2+dfsg-3) unstable; urgency=medium
 
   * Bump minimum required libspatialite-dev to 4.3.0-3~ for liblwgeom support.
