@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdaljp2metadata.cpp 27182 2014-04-14 20:03:08Z rouault $
+ * $Id: gdaljp2metadata.cpp 29189 2015-05-13 14:40:17Z rouault $
  *
  * Project:  GDAL 
  * Purpose:  GDALJP2Metadata - Read GeoTIFF and/or GML georef info.
@@ -36,7 +36,7 @@
 #include "ogr_api.h"
 #include "gt_wkt_srs_for_gdal.h"
 
-CPL_CVSID("$Id: gdaljp2metadata.cpp 27182 2014-04-14 20:03:08Z rouault $");
+CPL_CVSID("$Id: gdaljp2metadata.cpp 29189 2015-05-13 14:40:17Z rouault $");
 
 static const unsigned char msi_uuid2[16] =
 {0xb1,0x4b,0xf8,0xbd,0x08,0x3d,0x4b,0x43,
@@ -862,9 +862,14 @@ int GDALJP2Metadata::ParseGMLCoverageDesc()
             if( oSRS.SetFromUserInput( pszSRSName ) == OGRERR_NONE )
                 oSRS.exportToWkt( &pszProjection );
         }
-        else if( EQUALN(pszSRSName,"urn:",4) 
+        else if( (EQUALN(pszSRSName,"urn:",4) 
                  && strstr(pszSRSName,":def:") != NULL
-                 && oSRS.importFromURN(pszSRSName) == OGRERR_NONE )
+                 && oSRS.importFromURN(pszSRSName) == OGRERR_NONE) ||
+                 /* GMLJP2 v2.0 uses CRS URL instead of URN */
+                 /* See e.g. http://schemas.opengis.net/gmljp2/2.0/examples/minimalInstance.xml */
+                 (EQUALN(pszSRSName,"http://www.opengis.net/def/crs/",
+                         strlen("http://www.opengis.net/def/crs/")) 
+                 && oSRS.importFromCRSURL(pszSRSName) == OGRERR_NONE) )
         {
             oSRS.exportToWkt( &pszProjection );
 
@@ -889,9 +894,6 @@ int GDALJP2Metadata::ParseGMLCoverageDesc()
                   "Got projection from GML box: %s", 
                  pszProjection );
 
-    CPLDestroyXMLNode( psXML );
-    psXML = NULL;
-
 /* -------------------------------------------------------------------- */
 /*      Do we need to flip the axes?                                    */
 /* -------------------------------------------------------------------- */
@@ -902,6 +904,43 @@ int GDALJP2Metadata::ParseGMLCoverageDesc()
         bNeedAxisFlip = FALSE;
         CPLDebug( "GMLJP2", "Supressed axis flipping based on GDAL_IGNORE_AXIS_ORIENTATION." );
     }
+    
+    /* Some Pleiades files have explicit <gml:axisName>Easting</gml:axisName> */
+    /* <gml:axisName>Northing</gml:axisName> to override default EPSG order */
+    if( bNeedAxisFlip && psRG != NULL )
+    {
+        int nAxisCount = 0;
+        int bFirstAxisIsEastOrLong = FALSE, bSecondAxisIsNorthOrLat = FALSE;
+        for(CPLXMLNode* psIter = psRG->psChild; psIter != NULL; psIter = psIter->psNext )
+        {
+            if( psIter->eType == CXT_Element && strcmp(psIter->pszValue, "axisName") == 0 &&
+                psIter->psChild != NULL && psIter->psChild->eType == CXT_Text )
+            {
+                if( nAxisCount == 0 && 
+                    (EQUALN(psIter->psChild->pszValue, "EAST", 4) ||
+                     EQUALN(psIter->psChild->pszValue, "LONG", 4) ) )
+                {
+                    bFirstAxisIsEastOrLong = TRUE;
+                }
+                else if( nAxisCount == 1 &&
+                         (EQUALN(psIter->psChild->pszValue, "NORTH", 5) ||
+                          EQUALN(psIter->psChild->pszValue, "LAT", 3)) )
+                {
+                    bSecondAxisIsNorthOrLat = TRUE;
+                }
+                nAxisCount ++;
+            }
+        }
+        if( bFirstAxisIsEastOrLong && bSecondAxisIsNorthOrLat )
+        {
+            CPLDebug( "GMLJP2", "Disable axis flip because of explicit axisName disabling it" );
+            bNeedAxisFlip = FALSE;
+        }
+    }
+
+    CPLDestroyXMLNode( psXML );
+    psXML = NULL;
+    psRG = NULL;
 
     if( bNeedAxisFlip )
     {
@@ -1197,6 +1236,7 @@ GDALJP2Box *GDALJP2Metadata::CreateGMLJP2( int nXSize, int nYSize )
 "          </gml:rectifiedGridDomain>\n"
 "          <gml:rangeSet>\n"
 "            <gml:File>\n"
+"              <gml:rangeParameters/>\n"
 "              <gml:fileName>gmljp2://codestream/0</gml:fileName>\n"
 "              <gml:fileStructure>Record Interleaved</gml:fileStructure>\n"
 "            </gml:File>\n"

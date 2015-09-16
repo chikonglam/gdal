@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr2ogr.cpp 27741 2014-09-26 19:20:02Z goatbar $
+ * $Id: ogr2ogr.cpp 29232 2015-05-22 16:12:45Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Simple client for translating between formats.
@@ -39,7 +39,7 @@
 #include <map>
 #include <vector>
 
-CPL_CVSID("$Id: ogr2ogr.cpp 27741 2014-09-26 19:20:02Z goatbar $");
+CPL_CVSID("$Id: ogr2ogr.cpp 29232 2015-05-22 16:12:45Z rouault $");
 
 static int bSkipFailures = FALSE;
 static int nGroupTransactions = 20000;
@@ -3529,6 +3529,9 @@ static int TranslateLayer( TargetLayerInfo* psInfo,
 
                 if (poClipDst)
                 {
+                    if( poDstGeometry == NULL )
+                        goto end_loop;
+
                     OGRGeometry* poClipped = poDstGeometry->Intersection(poClipDst);
                     if (poClipped == NULL || poClipped->IsEmpty())
                     {

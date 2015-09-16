@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ersdataset.cpp 27433 2014-06-04 19:21:16Z rouault $
+ * $Id: ersdataset.cpp 28475 2015-02-13 11:43:30Z rouault $
  *
  * Project:  ERMapper .ers Driver
  * Purpose:  Implementation of .ers driver.
@@ -33,7 +33,7 @@
 #include "cpl_string.h"
 #include "ershdrnode.h"
 
-CPL_CVSID("$Id: ersdataset.cpp 27433 2014-06-04 19:21:16Z rouault $");
+CPL_CVSID("$Id: ersdataset.cpp 28475 2015-02-13 11:43:30Z rouault $");
 
 /************************************************************************/
 /* ==================================================================== */
@@ -70,9 +70,9 @@ class ERSDataset : public RawDataset
     int         bHasNoDataValue;
     double      dfNoDataValue;
 
-    CPLString      osProj;
-    CPLString      osDatum;
-    CPLString      osUnits;
+    CPLString      osProj, osProjForced;
+    CPLString      osDatum, osDatumForced;
+    CPLString      osUnits, osUnitsForced;
     void           WriteProjectionInfo(const char* pszProj,
                                        const char* pszDatum,
                                        const char* pszUnits);
@@ -437,9 +437,20 @@ CPLErr ERSDataset::SetProjection( const char *pszSRS )
 
     /* Write the above computed values, unless they have been overriden by */
     /* the creation options PROJ, DATUM or UNITS */
-    WriteProjectionInfo( (osProj.size()) ? osProj.c_str() : szERSProj,
-                         (osDatum.size()) ? osDatum.c_str() : szERSDatum,
-                         (osUnits.size()) ? osUnits.c_str() : szERSUnits );
+    if( osProjForced.size() )
+        osProj = osProjForced;
+    else
+        osProj = szERSProj;
+    if( osDatumForced.size() )
+        osDatum = osDatumForced;
+    else
+        osDatum = szERSDatum;
+    if( osUnitsForced.size() )
+        osUnits = osUnitsForced;
+    else
+        osUnits = szERSUnits;
+
+    WriteProjectionInfo( osProj, osDatum, osUnits );
 
     return CE_None;
 }
@@ -1410,13 +1421,13 @@ GDALDataset *ERSDataset::Create( const char * pszFilename,
 /* -------------------------------------------------------------------- */
     const char *pszDatum = CSLFetchNameValue( papszOptions, "DATUM" );
     if (pszDatum)
-        poDS->osDatum = pszDatum;
+        poDS->osDatumForced = poDS->osDatum = pszDatum;
     const char *pszProj = CSLFetchNameValue( papszOptions, "PROJ" );
     if (pszProj)
-        poDS->osProj = pszProj;
+        poDS->osProjForced = poDS->osProj = pszProj;
     const char *pszUnits = CSLFetchNameValue( papszOptions, "UNITS" );
     if (pszUnits)
-        poDS->osUnits = pszUnits;
+        poDS->osUnitsForced = poDS->osUnits = pszUnits;
 
     if (pszDatum || pszProj || pszUnits)
     {

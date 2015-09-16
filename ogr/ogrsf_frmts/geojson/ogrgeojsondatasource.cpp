@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrgeojsondatasource.cpp 27044 2014-03-16 23:41:27Z rouault $
+ * $Id: ogrgeojsondatasource.cpp 28492 2015-02-15 14:16:35Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implementation of OGRGeoJSONDataSource class (OGR GeoJSON Driver).
@@ -217,7 +217,7 @@ OGRLayer* OGRGeoJSONDataSource::CreateLayer( const char* pszName_,
         const char* pszAuthority = poSRS->GetAuthorityName(NULL);
         const char* pszAuthorityCode = poSRS->GetAuthorityCode(NULL);
         if (pszAuthority != NULL && pszAuthorityCode != NULL &&
-            strcmp(pszAuthority, "EPSG") == 0)
+            EQUAL(pszAuthority, "EPSG"))
         {
             json_object* poObjCRS = json_object_new_object();
             json_object_object_add(poObjCRS, "type",

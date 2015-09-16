@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogropenfilegdbdatasource.cpp 27771 2014-09-30 22:45:12Z rouault $
+ * $Id: ogropenfilegdbdatasource.cpp 28733 2015-03-15 03:06:35Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implements Open FileGDB OGR driver.
@@ -426,6 +426,7 @@ int OGROpenFileGDBDataSource::OpenFileGDBv9(int iGDBFeatureClasses,
                 /* Is it a non-spatial table ? */
                 if( strcmp(psField->String, "{7A566981-C114-11D2-8A28-006097AFF44E}") == 0 )
                 {
+                    aosName.push_back( "" );
                     AddLayer( osName, nInterestTable, nCandidateLayers, nLayersSDC,
                               "", "", NULL, wkbNone );
                 }

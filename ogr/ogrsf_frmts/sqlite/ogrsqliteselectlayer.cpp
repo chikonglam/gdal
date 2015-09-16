@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrsqliteselectlayer.cpp 27044 2014-03-16 23:41:27Z rouault $
+ * $Id: ogrsqliteselectlayer.cpp 30273 2015-09-11 07:59:52Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implements OGRSQLiteSelectLayer class, layer access to the results
@@ -34,7 +34,7 @@
 #include "swq.h"
 #include "ogr_p.h"
 
-CPL_CVSID("$Id: ogrsqliteselectlayer.cpp 27044 2014-03-16 23:41:27Z rouault $");
+CPL_CVSID("$Id: ogrsqliteselectlayer.cpp 30273 2015-09-11 07:59:52Z rouault $");
 /************************************************************************/
 /*                        OGRSQLiteSelectLayer()                        */
 /************************************************************************/
@@ -373,22 +373,26 @@ OGRSQLiteLayer* OGRSQLiteSelectLayer::GetBaseLayer(size_t& i)
         return NULL;
     }
 
-    char chQuote = osSQLBase[nFromPos + 6];
-    int bInQuotes = (chQuote == '\'' || chQuote == '"' );
+    /* Remove potential quotes around layer name */
+    char chFirst = osSQLBase[nFromPos + 6];
+    int bInQuotes = (chFirst == '\'' || chFirst == '"' );
     CPLString osBaseLayerName;
     for( i = nFromPos + 6 + (bInQuotes ? 1 : 0);
          i < osSQLBase.size(); i++ )
     {
-        if (osSQLBase[i] == chQuote && i + 1 < osSQLBase.size() &&
-            osSQLBase[i + 1] == chQuote )
+        if (osSQLBase[i] == chFirst && bInQuotes )
         {
-            osBaseLayerName += osSQLBase[i];
-            i++;
-        }
-        else if (osSQLBase[i] == chQuote && bInQuotes)
-        {
-            i++;
-            break;
+            if( i + 1 < osSQLBase.size() &&
+                osSQLBase[i + 1] == chFirst )
+            {
+                osBaseLayerName += osSQLBase[i];
+                i++;
+            }
+            else
+            {
+                i++;
+                break;
+            }
         }
         else if (osSQLBase[i] == ' ' && !bInQuotes)
             break;

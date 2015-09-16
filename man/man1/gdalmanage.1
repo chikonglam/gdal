@@ -1,12 +1,9 @@
-.TH "gdalmanage" 1 "Tue Feb 10 2015" "GDAL" \" -*- nroff -*-
+.TH "gdalmanage" 1 "Tue Sep 15 2015" "GDAL" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
-gdalmanage \- .TH "gdalmanage" 1 "Tue Feb 10 2015" "GDAL" \" -*- nroff -*-
-.ad l
-.nh
-.SH NAME
-gdalmanage \- Identify, delete, rename and copy raster data files
+gdalmanage \- gdalmanage 
+Identify, delete, rename and copy raster data files
 .SH "SYNOPSIS"
 .PP
 .PP
@@ -18,31 +15,31 @@ Usage: gdalmanage mode [-r] [-u] [-f format]
 .PP
 .SH "DESCRIPTION"
 .PP
-The gdalmanage program can perform various operations on raster data files, depending on the chosen \fImode\fP. This includes identifying raster data types and deleting, renaming or copying the files.
+The gdalmanage program can perform various operations on raster data files, depending on the chosen \fImode\fP\&. This includes identifying raster data types and deleting, renaming or copying the files\&.
 .PP
 .IP "\fB\fImode\fP:\fP" 1c
 Mode of operation 
 .IP "\fB\fBidentify\fP \fIdatasetname\fP:\fP" 1c
-List data format of file. 
+List data format of file\&. 
 .IP "\fB\fBcopy\fP \fIdatasetname newdatasetname\fP:\fP" 1c
-Create a copy of the raster file with a new name. 
+Create a copy of the raster file with a new name\&. 
 .IP "\fB\fBrename\fP \fIdatasetname newdatasetname\fP:\fP" 1c
-Change the name of the raster file. 
+Change the name of the raster file\&. 
 .IP "\fB\fBdelete\fP \fIdatasetname\fP:\fP" 1c
-Delete raster file. 
+Delete raster file\&. 
 .PP
 .PP
 .IP "\fB\fB-r\fP:\fP" 1c
-Recursively scan files/folders for raster files. 
+Recursively scan files/folders for raster files\&. 
 .IP "\fB\fB-u\fP:\fP" 1c
-Report failures if file type is unidentified. 
+Report failures if file type is unidentified\&. 
 .IP "\fB\fB-f\fP \fIformat\fP:\fP" 1c
-Specify format of raster file if unknown by the application. Uses short data format name (e.g. \fIGTiff\fP).
+Specify format of raster file if unknown by the application\&. Uses short data format name (e\&.g\&. \fIGTiff\fP)\&.
 .PP
 .IP "\fB\fIdatasetname\fP:\fP" 1c
-Raster file to operate on. 
+Raster file to operate on\&. 
 .IP "\fB\fInewdatasetname\fP:\fP" 1c
-For copy and rename modes, you provide a \fIsource\fP filename and a \fItarget\fP filename, just like copy and move commands in an operating system. 
+For copy and rename modes, you provide a \fIsource\fP filename and a \fItarget\fP filename, just like copy and move commands in an operating system\&. 
 .PP
 .SH "EXAMPLES"
 .PP
