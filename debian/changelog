@@ -1,6 +1,6 @@
-gdal (2.0.0+dfsg-1) UNRELEASED; urgency=medium
+gdal (2.0.1~rc1+dfsg-1) UNRELEASED; urgency=medium
 
-  * New upstream release.
+  * New upstream pre-release.
   * Update copyright file, changes:
     - Update copyright years & holders
     - Drop files section for gcore/gdal_rpcimdio.cpp, removed upstream
@@ -19,7 +19,7 @@ gdal (2.0.0+dfsg-1) UNRELEASED; urgency=medium
     to gdal-abi-<major>-<minor>-<patch> format.
   * Add patch to fix 'existent' typo.
 
- -- Bas Couwenberg <sebastic@debian.org>  Fri, 19 Jun 2015 00:17:11 +0200
+ -- Bas Couwenberg <sebastic@debian.org>  Wed, 16 Sep 2015 21:41:45 +0200
 
 gdal (1.11.2+dfsg-1~exp3) experimental; urgency=medium
 
