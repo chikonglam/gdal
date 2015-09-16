@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: vrtsources.cpp 27957 2014-11-12 23:09:34Z rouault $
+ * $Id: vrtsources.cpp 28735 2015-03-15 03:30:21Z rouault $
  *
  * Project:  Virtual GDAL Datasets
  * Purpose:  Implementation of VRTSimpleSource, VRTFuncSource and 
@@ -36,7 +36,7 @@
 
 #include <algorithm>
 
-CPL_CVSID("$Id: vrtsources.cpp 27957 2014-11-12 23:09:34Z rouault $");
+CPL_CVSID("$Id: vrtsources.cpp 28735 2015-03-15 03:30:21Z rouault $");
 
 /************************************************************************/
 /* ==================================================================== */
@@ -839,7 +839,7 @@ VRTSimpleSource::GetSrcDstWindow( int nXOff, int nYOff, int nXSize, int nYSize,
         dfScaleWinToBufX = nBufXSize / (double) nXSize;
 
         *pnOutXOff = (int) ((dfDstULX - nXOff) * dfScaleWinToBufX+0.001);
-        *pnOutXSize = (int) ((dfDstLRX - nXOff) * dfScaleWinToBufX+0.001) 
+        *pnOutXSize = (int) ((dfDstLRX - nXOff) * dfScaleWinToBufX+0.5) 
             - *pnOutXOff;
 
         *pnOutXOff = MAX(0,*pnOutXOff);
@@ -852,7 +852,7 @@ VRTSimpleSource::GetSrcDstWindow( int nXOff, int nYOff, int nXSize, int nYSize,
         dfScaleWinToBufY = nBufYSize / (double) nYSize;
 
         *pnOutYOff = (int) ((dfDstULY - nYOff) * dfScaleWinToBufY+0.001);
-        *pnOutYSize = (int) ((dfDstLRY - nYOff) * dfScaleWinToBufY+0.001) 
+        *pnOutYSize = (int) ((dfDstLRY - nYOff) * dfScaleWinToBufY+0.5) 
             - *pnOutYOff;
 
         *pnOutYOff = MAX(0,*pnOutYOff);

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdalrasterband.cpp 27858 2014-10-15 08:41:23Z rouault $
+ * $Id: gdalrasterband.cpp 29036 2015-04-27 14:15:16Z rouault $
  *
  * Project:  GDAL Core
  * Purpose:  Base class for format specific band class implementation.  This
@@ -37,7 +37,7 @@
 #define TO_SUBBLOCK(x) ((x) >> 6)
 #define WITHIN_SUBBLOCK(x) ((x) & 0x3f)
 
-CPL_CVSID("$Id: gdalrasterband.cpp 27858 2014-10-15 08:41:23Z rouault $");
+CPL_CVSID("$Id: gdalrasterband.cpp 29036 2015-04-27 14:15:16Z rouault $");
 
 /************************************************************************/
 /*                           GDALRasterBand()                           */

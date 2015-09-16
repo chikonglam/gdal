@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: vrtdataset.cpp 27739 2014-09-25 18:49:52Z goatbar $
+ * $Id: vrtdataset.cpp 29193 2015-05-14 10:08:11Z rouault $
  *
  * Project:  Virtual GDAL Datasets
  * Purpose:  Implementation of VRTDataset
@@ -33,7 +33,7 @@
 #include "cpl_minixml.h"
 #include "ogr_spatialref.h"
 
-CPL_CVSID("$Id: vrtdataset.cpp 27739 2014-09-25 18:49:52Z goatbar $");
+CPL_CVSID("$Id: vrtdataset.cpp 29193 2015-05-14 10:08:11Z rouault $");
 
 /************************************************************************/
 /*                            VRTDataset()                             */
@@ -1189,9 +1189,15 @@ int VRTDataset::CheckCompatibleForDatasetIO()
                 VRTSimpleSource* poSource = (VRTSimpleSource* )papoSources[iSource];
                 if (!EQUAL(poSource->GetType(), "SimpleSource"))
                     return FALSE;
-                if (poSource->GetBand() == NULL)
+
+                GDALRasterBand *srcband = poSource->GetBand();
+                if (srcband == NULL)
                     return FALSE;
-                if (poSource->GetBand()->GetBand() != iBand + 1)
+                if (srcband->GetDataset() == NULL)
+                    return FALSE;
+                if (srcband->GetDataset()->GetRasterCount() <= iBand)
+                    return FALSE;
+                if (srcband->GetDataset()->GetRasterBand(iBand + 1) != srcband)
                     return FALSE;
             }
         }
@@ -1209,9 +1215,15 @@ int VRTDataset::CheckCompatibleForDatasetIO()
                     return FALSE;
                 if (!poSource->IsSameExceptBandNumber(poRefSource))
                     return FALSE;
-                if (poSource->GetBand() == NULL)
+
+                GDALRasterBand *srcband = poSource->GetBand();
+                if (srcband == NULL)
                     return FALSE;
-                if (poSource->GetBand()->GetBand() != iBand + 1)
+                if (srcband->GetDataset() == NULL)
+                    return FALSE;
+                if (srcband->GetDataset()->GetRasterCount() <= iBand)
+                    return FALSE;
+                if (srcband->GetDataset()->GetRasterBand(iBand + 1) != srcband)
                     return FALSE;
             }
         }

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdalbuildvrt.cpp 27994 2014-11-21 20:03:49Z rouault $
+ * $Id: gdalbuildvrt.cpp 30129 2015-09-05 09:28:41Z rouault $
  *
  * Project:  GDAL Utilities
  * Purpose:  Commandline application to build VRT datasets from raster products or content of SHP tile index
@@ -37,7 +37,7 @@
 #endif
 #include "ogr_srs_api.h"
 
-CPL_CVSID("$Id: gdalbuildvrt.cpp 27994 2014-11-21 20:03:49Z rouault $");
+CPL_CVSID("$Id: gdalbuildvrt.cpp 30129 2015-09-05 09:28:41Z rouault $");
 
 #define GEOTRSFRM_TOPLEFT_X            0
 #define GEOTRSFRM_WE_RES               1
@@ -254,7 +254,7 @@ class VRTBuilder
     public:
                 VRTBuilder(const char* pszOutputFilename,
                            int nInputFiles, const char* const * ppszInputFilenames,
-                           int *panBandList, int nBandCount, int nMaxBandNo,
+                           const int *panBandListIn, int nBandCount, int nMaxBandNo,
                            ResolutionStrategy resolutionStrategy,
                            double we_res, double ns_res,
                            int bTargetAlignedPixels,
@@ -276,7 +276,7 @@ class VRTBuilder
 
 VRTBuilder::VRTBuilder(const char* pszOutputFilename,
                        int nInputFiles, const char* const * ppszInputFilenames,
-                       int *panBandList, int nBandCount, int nMaxBandNo,
+                       const int *panBandListIn, int nBandCount, int nMaxBandNo,
                        ResolutionStrategy resolutionStrategy,
                        double we_res, double ns_res,
                        int bTargetAlignedPixels,
@@ -297,7 +297,12 @@ VRTBuilder::VRTBuilder(const char* pszOutputFilename,
     }
 
     this->nBands = nBandCount;
-    this->panBandList = panBandList;    
+    panBandList = NULL;
+    if( nBandCount )
+    {
+        panBandList = (int*) CPLMalloc(nBands * sizeof(int));
+        memcpy(panBandList, panBandListIn, nBands * sizeof(int));
+    }
     this->nMaxBandNo = nMaxBandNo;    
 
     this->resolutionStrategy = resolutionStrategy;
@@ -344,8 +349,7 @@ VRTBuilder::~VRTBuilder()
     CPLFree(pszOutputFilename);
     CPLFree(pszSrcNoData);
     CPLFree(pszVRTNoData);
-    if (panBandList)
-        delete[] panBandList;
+    CPLFree(panBandList);
 
     int i;
     for(i=0;i<nInputFiles;i++)
@@ -619,13 +623,12 @@ int VRTBuilder::AnalyseRaster( GDALDatasetH hDS, const char* dsFileName,
             maxY = ds_maxY;
         }
 
-        //if provided band list
+        //if not provided an explicit band list, take the one of the first dataset
         if(nBands == 0)
         {
             nBands = _nBands;
-            if(panBandList != NULL)
-                CPLFree(panBandList);
-            panBandList = new int[nBands];
+            CPLFree(panBandList);
+            panBandList = (int*) CPLMalloc(nBands * sizeof(int));
             for(j=0;j<nBands;j++)
             {
                 panBandList[j] = j + 1;

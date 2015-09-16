@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: northwood.cpp 27739 2014-09-25 18:49:52Z goatbar $
+ * $Id: northwood.cpp 30005 2015-09-01 08:17:50Z rouault $
  *
  * Project:  GRC/GRD Reader
  * Purpose:  Northwood Format basic implementation
@@ -387,9 +387,9 @@ void createIP( int index, unsigned char r, unsigned char g, unsigned char b,
     float bslope = (float)(b - map[wm].b) / (float)(index - wm);
     for( i = wm + 1; i < index; i++)
     {
-        map[i].r = map[wm].r + (unsigned char)(((i - wm) * rslope) + 0.5);
-        map[i].g = map[wm].g + (unsigned char)(((i - wm) * gslope) + 0.5);
-        map[i].b = map[wm].b + (unsigned char)(((i - wm) * bslope) + 0.5);
+        map[i].r = (unsigned char)(map[wm].r + ((i - wm) * rslope) + 0.5);
+        map[i].g = (unsigned char)(map[wm].g + ((i - wm) * gslope) + 0.5);
+        map[i].b = (unsigned char)(map[wm].b + ((i - wm) * bslope) + 0.5);
     }
     map[index].r = r;
     map[index].g = g;

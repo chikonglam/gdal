@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrtopojsonreader.cpp 27268 2014-05-01 10:46:20Z rouault $
+ * $Id: ogrtopojsonreader.cpp 28887 2015-04-12 23:10:28Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implementation of OGRTopoJSONReader class
@@ -274,6 +274,8 @@ static void ParseObject(const char* pszId,
                         json_object* poArcsDB, ScalingParams* psParams)
 {
     json_object* poType = OGRGeoJSONFindMemberByName(poObj, "type");
+    if( poType == NULL || json_object_get_type(poType) != json_type_string )
+        return;
     const char* pszType = json_object_get_string(poType);
 
     json_object* poArcsObj = OGRGeoJSONFindMemberByName(poObj, "arcs");

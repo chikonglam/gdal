@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdalwarp.cpp 28186 2014-12-20 21:14:58Z rouault $
+ * $Id: gdalwarp.cpp 28897 2015-04-13 18:20:57Z rouault $
  *
  * Project:  High Performance Image Reprojector
  * Purpose:  Test program for high performance warper API.
@@ -36,7 +36,7 @@
 #include "commonutils.h"
 #include <vector>
 
-CPL_CVSID("$Id: gdalwarp.cpp 28186 2014-12-20 21:14:58Z rouault $");
+CPL_CVSID("$Id: gdalwarp.cpp 28897 2015-04-13 18:20:57Z rouault $");
 
 static void
 LoadCutline( const char *pszCutlineDSName, const char *pszCLayer, 
@@ -1412,7 +1412,7 @@ int main( int argc, char ** argv )
                 }
             }
 
-            if( !bInitDestSetByUser && iSrc == 0 )
+            if( bCreateOutput && !bInitDestSetByUser && iSrc == 0 )
             {
                 /* As we didn't know at the beginning if there was source nodata */
                 /* we have initialized INIT_DEST=0. Override this with NO_DATA now */
@@ -2094,7 +2094,10 @@ LoadCutline( const char *pszCutlineDSName, const char *pszCLayer,
 
     hSrcDS = OGROpen( pszCutlineDSName, FALSE, NULL );
     if( hSrcDS == NULL )
+    {
+        fprintf( stderr, "Cannot open %s.\n", pszCutlineDSName);
         GDALExit( 1 );
+    }
 
 /* -------------------------------------------------------------------- */
 /*      Get the source layer                                            */
