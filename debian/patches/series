@@ -5,7 +5,6 @@ hdf4
 gdal-grass
 ecw-plugin
 mrsid-plugin
-symver
 spatialite
 java.opt
 perl-vendor
