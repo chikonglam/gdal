@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdalinfo.c 29268 2015-05-30 11:46:44Z rouault $
+ * $Id: gdalinfo.c 29781 2015-08-25 16:20:28Z rouault $
  *
  * Project:  GDAL Utilities
  * Purpose:  Commandline application to list info about a file.
@@ -38,7 +38,7 @@
 #include "json.h"
 #include "ogrgeojsonwriter.h"
 
-CPL_CVSID("$Id: gdalinfo.c 29268 2015-05-30 11:46:44Z rouault $");
+CPL_CVSID("$Id: gdalinfo.c 29781 2015-08-25 16:20:28Z rouault $");
 
 static int 
 GDALInfoReportCorner( GDALDatasetH hDataset, 
@@ -1371,8 +1371,9 @@ GDALInfoReportCorner( GDALDatasetH hDataset,
 /* -------------------------------------------------------------------- */
     if(bJson)
     {
+        double dfZ = 0.0;
         if( hTransformWGS84 != NULL && !EQUAL( corner_name, "center" ) 
-        && OCTTransform(hTransformWGS84,1,&dfGeoX,&dfGeoY,NULL) )
+        && OCTTransform(hTransformWGS84,1,&dfGeoX,&dfGeoY,&dfZ) )
         {
             poCorner = json_object_new_array();
             poX = json_object_new_double_with_precision( dfGeoX, 7 );
@@ -1384,8 +1385,9 @@ GDALInfoReportCorner( GDALDatasetH hDataset,
     }
     else
     {
+        double dfZ = 0.0;
         if( hTransform != NULL 
-        && OCTTransform(hTransform,1,&dfGeoX,&dfGeoY,NULL) )
+        && OCTTransform(hTransform,1,&dfGeoX,&dfGeoY,&dfZ) )
         {
             printf( "(%s,", GDALDecToDMS( dfGeoX, "Long", 2 ) );
             printf( "%s)", GDALDecToDMS( dfGeoY, "Lat", 2 ) );

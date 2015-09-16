@@ -1,4 +1,4 @@
-/* $Id: gdal_datamodel.dox 29123 2015-05-03 11:05:46Z bishop $ */
+/* $Id: gdal_datamodel.dox 29417 2015-06-22 08:30:54Z rouault $ */
 
 /*!
 \page gdal_datamodel GDAL Data Model
@@ -254,6 +254,8 @@ items defining the model are:
 </ul>
 
 These fields are directly derived from the document prospective GeoTIFF RPC document (http://geotiff.maptools.org/rpc_prop.html) which in turn is closely modelled on the NITF RPC00B definition.
+
+The line and pixel offset expressed with LINE_OFF and SAMP_OFF are with respect to the center of the pixel.
 
 \subsubsection gdal_datamodel_subdatasets IMAGERY Domain
 
