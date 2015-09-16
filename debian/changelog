@@ -17,7 +17,6 @@ gdal (2.0.1~rc1+dfsg-1) UNRELEASED; urgency=medium
     Breaks/Replaces.
   * Change virtual package from libgdal.so.1-<major>.<minor>.<patch> format
     to gdal-abi-<major>-<minor>-<patch> format.
-  * Add patch to fix 'existent' typo.
 
  -- Bas Couwenberg <sebastic@debian.org>  Wed, 16 Sep 2015 21:41:45 +0200
 
