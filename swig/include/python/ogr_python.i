@@ -1,5 +1,5 @@
 /*
- * $Id: ogr_python.i 28298 2015-01-06 09:03:37Z rouault $
+ * $Id: ogr_python.i 30442 2015-09-16 10:14:34Z rouault $
  *
  * python specific code for ogr bindings.
  */
@@ -66,9 +66,9 @@
 
     def __getitem__(self, value):
         """Support dictionary, list, and slice -like access to the datasource.
-ds[0] would return the first layer on the datasource.
-ds['aname'] would return the layer named "aname".
-ds[0:4] would return a list of the first four layers."""
+        ds[0] would return the first layer on the datasource.
+        ds['aname'] would return the layer named "aname".
+        ds[0:4] would return a list of the first four layers."""
         if isinstance(value, slice):
             output = []
             for i in xrange(value.start,value.stop,value.step):
@@ -134,8 +134,8 @@ ds[0:4] would return a list of the first four layers."""
 
     def __getitem__(self, value):
         """Support list and slice -like access to the layer.
-layer[0] would return the first feature on the layer.
-layer[0:4] would return a list of the first four features."""
+        layer[0] would return the first feature on the layer.
+        layer[0:4] would return a list of the first four features."""
         if isinstance(value, slice):
             import sys
             output = []

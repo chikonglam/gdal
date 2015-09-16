@@ -13774,6 +13774,11 @@ XS(SWIG_init) {
     SvREADONLY_on(sv);
   } while(0) /*@SWIG@*/;
   /*@SWIG:/usr/share/swig2.0/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+    SV *sv = get_sv((char*) SWIG_prefix "SRS_PT_MERCATOR_AUXILIARY_SPHERE", TRUE | 0x2 | GV_ADDMULTI);
+    sv_setsv(sv, SWIG_FromCharPtr("Mercator_Auxiliary_Sphere"));
+    SvREADONLY_on(sv);
+  } while(0) /*@SWIG@*/;
+  /*@SWIG:/usr/share/swig2.0/perl5/perltypemaps.swg,65,%set_constant@*/ do {
     SV *sv = get_sv((char*) SWIG_prefix "SRS_PT_MILLER_CYLINDRICAL", TRUE | 0x2 | GV_ADDMULTI);
     sv_setsv(sv, SWIG_FromCharPtr("Miller_Cylindrical"));
     SvREADONLY_on(sv);
