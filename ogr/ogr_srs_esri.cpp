@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_srs_esri.cpp 27050 2014-03-18 00:09:03Z kyle $
+ * $Id: ogr_srs_esri.cpp 30440 2015-09-16 09:59:19Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  OGRSpatialReference translation to/from ESRI .prj definitions.
@@ -36,7 +36,7 @@
 
 #include "ogr_srs_esri_names.h"
 
-CPL_CVSID("$Id: ogr_srs_esri.cpp 27050 2014-03-18 00:09:03Z kyle $");
+CPL_CVSID("$Id: ogr_srs_esri.cpp 30440 2015-09-16 09:59:19Z rouault $");
 
 void  SetNewName( OGRSpatialReference* pOgr, const char* keyName, const char* newName );
 int   RemapImgWGSProjcsName(OGRSpatialReference* pOgr, const char* pszProjCSName, 
@@ -835,6 +835,13 @@ OGRErr OGRSpatialReference::importFromESRI( char **papszPrj )
                      OSR_GDV( papszPrj, "PARAM_3", 0.0 ) );
     }
 
+    else if( EQUAL(osProj, SRS_PT_MERCATOR_AUXILIARY_SPHERE) )
+    {
+       // This is EPSG:3875 Pseudo Mercator. We might as well import it from
+       // the EPSG spec.
+       importFromEPSG(3857);
+    }
+
     else if( EQUAL(osProj,"POLYCONIC") )
     {
         SetPolyconic( OSR_GDV( papszPrj, "PARAM_2", 0.0 ),
@@ -1576,6 +1583,12 @@ OGRErr OGRSpatialReference::morphFromESRI()
                      SRS_PT_LAMBERT_CONFORMAL_CONIC_1SP );
 
         pszProjection = GetAttrValue("PROJECTION");
+    }
+
+    if( pszProjection != NULL &&
+             EQUAL(pszProjection, SRS_PT_MERCATOR_AUXILIARY_SPHERE) )
+    {
+       return importFromEPSG(3857);
     }
 
 /* -------------------------------------------------------------------- */

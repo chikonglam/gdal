@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: pdfdataset.cpp 27741 2014-09-26 19:20:02Z goatbar $
+ * $Id: pdfdataset.cpp 30441 2015-09-16 10:08:47Z rouault $
  *
  * Project:  PDF driver
  * Purpose:  GDALDataset driver for PDF dataset.
@@ -55,7 +55,7 @@
 
 /* g++ -fPIC -g -Wall frmts/pdf/pdfdataset.cpp -shared -o gdal_PDF.so -Iport -Igcore -Iogr -L. -lgdal -lpoppler -I/usr/include/poppler */
 
-CPL_CVSID("$Id: pdfdataset.cpp 27741 2014-09-26 19:20:02Z goatbar $");
+CPL_CVSID("$Id: pdfdataset.cpp 30441 2015-09-16 10:08:47Z rouault $");
 
 CPL_C_START
 void    GDALRegister_PDF(void);
@@ -108,12 +108,9 @@ class GDALPDFOutputDev : public SplashOutputDev
 
     public:
         GDALPDFOutputDev(SplashColorMode colorModeA, int bitmapRowPadA,
-                         GBool reverseVideoA, SplashColorPtr paperColorA,
-                         GBool bitmapTopDownA = gTrue,
-                         GBool allowAntialiasA = gTrue) :
+                         GBool reverseVideoA, SplashColorPtr paperColorA) :
                 SplashOutputDev(colorModeA, bitmapRowPadA,
-                                reverseVideoA, paperColorA,
-                                bitmapTopDownA, allowAntialiasA),
+                                reverseVideoA, paperColorA),
                 bEnableVector(TRUE),
                 bEnableText(TRUE),
                 bEnableBitmap(TRUE) {}
@@ -1371,6 +1368,7 @@ static void PDFFreeDoc(PDFDoc* poDoc)
     {
         /* hack to avoid potential cross heap issues on Win32 */
         /* str is the VSIPDFFileStream object passed in the constructor of PDFDoc */
+        // NOTE: This is potentially very dangerous. See comment in VSIPDFFileStream::FillBuffer() */
         delete poDoc->str;
         poDoc->str = NULL;
 
