@@ -25,7 +25,7 @@ Applied-Upstream: 2.0, http://trac.osgeo.org/gdal/changeset/28039
  <dt> <b>-dsco</b> <em>NAME=VALUE</em>:</dt><dd> Dataset creation option 
 --- a/NEWS
 +++ b/NEWS
-@@ -2053,7 +2053,7 @@ Utilities:
+@@ -2170,7 +2170,7 @@ Utilities:
   * gdalwarp: speed-up when using -tps with large number of GCPs
   * gdalwarp: add support for optional use of libarmadillo to speed-up matrix inversion in -tps mode
   * gdalwarp: detect situations where the user will override the source file
@@ -34,7 +34,7 @@ Applied-Upstream: 2.0, http://trac.osgeo.org/gdal/changeset/28039
   * gdal_rasterize: fix half pixel shift when rasterizing points; make gdal_rasterize utility increase the computed raster extent by a half-pixel for point layers (#3774)
   * gdal_rasterize: when source datasource has a single layer, use it implicitely if none of -l or -sql is specified
   * nearblack: add -color option (#4085)
-@@ -3747,7 +3747,7 @@ Python bindings:
+@@ -3864,7 +3864,7 @@ Python bindings:
     when used and set to True, None is returned when GDALGetGeoTransform()
     returns CE_Failure (instead of the fake (0,1,0,0,0,1)); backward
     compatibility preserved when the parameter isn't specified
@@ -118,16 +118,16 @@ Applied-Upstream: 2.0, http://trac.osgeo.org/gdal/changeset/28039
      struct ct_data_s bl_tree[2*BL_CODES+1];  /* Huffman tree for bit lengths */
 --- a/gcore/gdaljp2metadata.cpp
 +++ b/gcore/gdaljp2metadata.cpp
-@@ -900,7 +900,7 @@ int GDALJP2Metadata::ParseGMLCoverageDes
+@@ -902,7 +902,7 @@ int GDALJP2Metadata::ParseGMLCoverageDes
                                                 "FALSE" ) ) )
      {
          bNeedAxisFlip = FALSE;
 -        CPLDebug( "GMLJP2", "Supressed axis flipping based on GDAL_IGNORE_AXIS_ORIENTATION." );
 +        CPLDebug( "GMLJP2", "Suppressed axis flipping based on GDAL_IGNORE_AXIS_ORIENTATION." );
      }
- 
-     if( bNeedAxisFlip )
-@@ -1119,7 +1119,7 @@ GDALJP2Box *GDALJP2Metadata::CreateGMLJP
+     
+     /* Some Pleiades files have explicit <gml:axisName>Easting</gml:axisName> */
+@@ -1158,7 +1158,7 @@ GDALJP2Box *GDALJP2Metadata::CreateGMLJP
                                                 "FALSE" ) ) )
      {
          bNeedAxisFlip = FALSE;
@@ -160,59 +160,48 @@ Applied-Upstream: 2.0, http://trac.osgeo.org/gdal/changeset/28039
      SetMOFlags( nSavedMOFlags | GMO_IGNORE_UNIMPLEMENTED );
 --- a/man/man1/gdal_fillnodata.1
 +++ b/man/man1/gdal_fillnodata.1
-@@ -24,7 +24,7 @@ The gdal_fillnodata.py script fills sele
- Additional details on the algorithm are available in the GDALFillNodata() docs.
+@@ -21,7 +21,7 @@ The gdal_fillnodata\&.py script fills se
+ Additional details on the algorithm are available in the GDALFillNodata() docs\&.
  .PP
  .IP "\fB\fB-q\fP:\fP" 1c
--The script runs in quiet mode. The progress monitor is supressed and routine messages are not displayed.
-+The script runs in quiet mode. The progress monitor is suppressed and routine messages are not displayed.
+-The script runs in quiet mode\&. The progress monitor is supressed and routine messages are not displayed\&.
++The script runs in quiet mode\&. The progress monitor is suppressed and routine messages are not displayed\&.
  .PP
  .IP "\fB\fB-md\fP \fImax_distance\fP:\fP" 1c
- The maximum distance (in pixels) that the algorithm will search out for values to interpolate.
+ The maximum distance (in pixels) that the algorithm will search out for values to interpolate\&.
 --- a/man/man1/gdal_polygonize.1
 +++ b/man/man1/gdal_polygonize.1
-@@ -52,7 +52,7 @@ The name of the layer created to hold th
- The name of the field to create (defaults to 'DN'). 
+@@ -49,7 +49,7 @@ The name of the layer created to hold th
+ The name of the field to create (defaults to 'DN')\&. 
  .PP
  .IP "\fB\fB-q\fP:\fP" 1c
--The script runs in quiet mode. The progress monitor is supressed and routine messages are not displayed. 
-+The script runs in quiet mode. The progress monitor is suppressed and routine messages are not displayed. 
+-The script runs in quiet mode\&. The progress monitor is supressed and routine messages are not displayed\&. 
++The script runs in quiet mode\&. The progress monitor is suppressed and routine messages are not displayed\&. 
  .PP
  .PP
  .PP
 --- a/man/man1/gdal_sieve.1
 +++ b/man/man1/gdal_sieve.1
-@@ -23,7 +23,7 @@ The gdal_sieve.py script removes raster
- Additional details on the algorithm are available in the GDALSieveFilter() docs.
+@@ -20,7 +20,7 @@ The gdal_sieve\&.py script removes raste
+ Additional details on the algorithm are available in the GDALSieveFilter() docs\&.
  .PP
  .IP "\fB\fB-q\fP:\fP" 1c
--The script runs in quiet mode. The progress monitor is supressed and routine messages are not displayed.
-+The script runs in quiet mode. The progress monitor is suppressed and routine messages are not displayed.
+-The script runs in quiet mode\&. The progress monitor is supressed and routine messages are not displayed\&.
++The script runs in quiet mode\&. The progress monitor is suppressed and routine messages are not displayed\&.
  .PP
  .IP "\fB\fB-st\fP \fIthreshold\fP:\fP" 1c
- Set the size threshold in pixels. Only raster polygons smaller than this size will be removed.
+ Set the size threshold in pixels\&. Only raster polygons smaller than this size will be removed\&.
 --- a/man/man1/ogrinfo.1
 +++ b/man/man1/ogrinfo.1
-@@ -30,7 +30,7 @@ Open the data source in read-only mode.
+@@ -27,7 +27,7 @@ Open the data source in read-only mode\&
  .IP "\fB\fB-al\fP:\fP" 1c
- List all features of all layers (used instead of having to give layer names as arguments). 
+ List all features of all layers (used instead of having to give layer names as arguments)\&. 
  .IP "\fB\fB-so\fP:\fP" 1c
--Summary Only: supress listing of features, show only the summary information like projection, schema, feature count and extents. 
-+Summary Only: suppress listing of features, show only the summary information like projection, schema, feature count and extents. 
+-Summary Only: supress listing of features, show only the summary information like projection, schema, feature count and extents\&. 
++Summary Only: suppress listing of features, show only the summary information like projection, schema, feature count and extents\&. 
  .IP "\fB\fB-q\fP:\fP" 1c
- Quiet verbose reporting of various information, including coordinate system, layer schema, extents, and feature count.  
+ Quiet verbose reporting of various information, including coordinate system, layer schema, extents, and feature count\&.  
  .IP "\fB\fB-where\fP \fIrestricted_where\fP:\fP" 1c
---- a/man/man1/ogrlineref.1
-+++ b/man/man1/ogrlineref.1
-@@ -43,7 +43,7 @@ Show the usage.
- .IP "\fB\fB-progress\fP:\fP" 1c
- Show progress. 
- .IP "\fB\fB-quiet\fP:\fP" 1c
--Supress all messages except errors and results. 
-+Suppress all messages except errors and results. 
- .IP "\fB\fB-f\fP \fIformat_name\fP:\fP" 1c
- Select an output format name. The default is to create a shapefile. 
- .IP "\fB\fB-dsco\fP \fINAME=VALUE\fP:\fP" 1c
 --- a/nmake.opt
 +++ b/nmake.opt
 @@ -141,7 +141,7 @@ OPTFLAGS= $(CXX_PDB_FLAGS) /nologo /MD /
@@ -489,3 +478,14 @@ Applied-Upstream: 2.0, http://trac.osgeo.org/gdal/changeset/28039
  messages are not displayed.
  
  <dt> <b>-st</b> <i>threshold</i>:</dt><dd>
+--- a/man/man1/ogrlineref.1
++++ b/man/man1/ogrlineref.1
+@@ -40,7 +40,7 @@ Show the usage\&.
+ .IP "\fB\fB-progress\fP:\fP" 1c
+ Show progress\&. 
+ .IP "\fB\fB-quiet\fP:\fP" 1c
+-Supress all messages except errors and results\&. 
++Suppress all messages except errors and results\&. 
+ .IP "\fB\fB-f\fP \fIformat_name\fP:\fP" 1c
+ Select an output format name\&. The default is to create a shapefile\&. 
+ .IP "\fB\fB-dsco\fP \fINAME=VALUE\fP:\fP" 1c
