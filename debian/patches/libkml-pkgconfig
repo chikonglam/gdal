@@ -3,6 +3,8 @@ Description: Add pkg-config support for libkml.
  and no longer includes the third_partry libraries.
 Author: Bas Couwenberg <sebastic@debian.org>
 Forwarded: https://trac.osgeo.org/gdal/ticket/6077
+Applied-Upstream: https://trac.osgeo.org/gdal/changeset/30554
+                  https://trac.osgeo.org/gdal/changeset/30555
 
 --- a/m4/ax_lib_libkml.m4
 +++ b/m4/ax_lib_libkml.m4
