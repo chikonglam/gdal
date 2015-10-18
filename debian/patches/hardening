@@ -2,6 +2,7 @@ Description: Add support for all hardening buildflags.
 Author: Bas Couwenberg <sebastic@debian.org>
 Forwarded: https://trac.osgeo.org/gdal/ticket/5998
 Applied-Upstream: https://trac.osgeo.org/gdal/changeset/29360
+                  https://trac.osgeo.org/gdal/changeset/31064
 
 --- a/swig/java/GNUmakefile
 +++ b/swig/java/GNUmakefile
