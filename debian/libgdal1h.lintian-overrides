@@ -1,2 +1,0 @@
-# Package name should be libgdal1, but because of hidden symbols is libgdal1h
-libgdal1h: syntax-error-in-symbols-file 1

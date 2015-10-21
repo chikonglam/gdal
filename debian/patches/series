@@ -27,5 +27,6 @@ supress-typo
 doc-brief
 hardening
 recommanded-typo
-hurd-i386-pathmax
 perl-vendor
+existant-typo
+libkml-pkgconfig

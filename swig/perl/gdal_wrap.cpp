@@ -4505,7 +4505,7 @@ XS(_wrap_PushFinderLocation) {
     
     {
       /* %typemap(default) const char * utf8_path */
-      arg1 = (const char *)"";
+      arg1 = (char *)"";
     }
     if ((items < 0) || (items > 1)) {
       SWIG_croak("Usage: PushFinderLocation(utf8_path);");
@@ -4653,7 +4653,7 @@ XS(_wrap_FindFile) {
     
     {
       /* %typemap(default) const char * utf8_path */
-      arg2 = (const char *)"";
+      arg2 = (char *)"";
     }
     if ((items < 1) || (items > 2)) {
       SWIG_croak("Usage: FindFile(pszClass,utf8_path);");
@@ -4724,7 +4724,7 @@ XS(_wrap_ReadDir) {
     
     {
       /* %typemap(default) const char * utf8_path */
-      arg1 = (const char *)"";
+      arg1 = (char *)"";
     }
     if ((items < 0) || (items > 1)) {
       SWIG_croak("Usage: ReadDir(utf8_path);");
@@ -4811,7 +4811,7 @@ XS(_wrap_ReadDirRecursive) {
     
     {
       /* %typemap(default) const char * utf8_path */
-      arg1 = (const char *)"";
+      arg1 = (char *)"";
     }
     if ((items < 0) || (items > 1)) {
       SWIG_croak("Usage: ReadDirRecursive(utf8_path);");
@@ -5178,7 +5178,7 @@ XS(_wrap_FileFromMemBuffer) {
     
     {
       /* %typemap(default) const char * utf8_path */
-      arg1 = (const char *)"";
+      arg1 = (char *)"";
     }
     if ((items < 0) || (items > 3)) {
       SWIG_croak("Usage: FileFromMemBuffer(utf8_path,nBytes,pabyData);");
@@ -5256,7 +5256,7 @@ XS(_wrap_Unlink) {
     
     {
       /* %typemap(default) const char * utf8_path */
-      arg1 = (const char *)"";
+      arg1 = (char *)"";
     }
     if ((items < 0) || (items > 1)) {
       SWIG_croak("Usage: Unlink(utf8_path);");
@@ -5358,7 +5358,7 @@ XS(_wrap_Mkdir) {
     
     {
       /* %typemap(default) const char * utf8_path */
-      arg1 = (const char *)"";
+      arg1 = (char *)"";
     }
     if ((items < 0) || (items > 2)) {
       SWIG_croak("Usage: Mkdir(utf8_path,mode);");
@@ -5425,7 +5425,7 @@ XS(_wrap_Rmdir) {
     
     {
       /* %typemap(default) const char * utf8_path */
-      arg1 = (const char *)"";
+      arg1 = (char *)"";
     }
     if ((items < 0) || (items > 1)) {
       SWIG_croak("Usage: Rmdir(utf8_path);");
@@ -5548,7 +5548,7 @@ XS(_wrap_Stat) {
     
     {
       /* %typemap(default) const char * utf8_path */
-      arg1 = (const char *)"";
+      arg1 = (char *)"";
     }
     {
       /* %typemap(in,numinputs=0) (VSIStatBufL *) (VSIStatBufL sStatBuf2) */
@@ -5644,7 +5644,7 @@ XS(_wrap_VSIFOpenL) {
     
     {
       /* %typemap(default) const char * utf8_path */
-      arg1 = (const char *)"";
+      arg1 = (char *)"";
     }
     if ((items < 0) || (items > 2)) {
       SWIG_croak("Usage: VSIFOpenL(utf8_path,pszMode);");
@@ -6987,7 +6987,7 @@ XS(_wrap_Driver__Create) {
     
     {
       /* %typemap(default) const char * utf8_path */
-      arg2 = (const char *)"";
+      arg2 = (char *)"";
     }
     if ((items < 1) || (items > 7)) {
       SWIG_croak("Usage: Driver__Create(self,utf8_path,xsize,ysize,bands,eType,options);");
@@ -7144,7 +7144,7 @@ XS(_wrap_Driver_CreateCopy) {
     arg7 = (void *)(&saved_env);
     {
       /* %typemap(default) const char * utf8_path */
-      arg2 = (const char *)"";
+      arg2 = (char *)"";
     }
     if ((items < 1) || (items > 7)) {
       SWIG_croak("Usage: Driver_CreateCopy(self,utf8_path,src,strict,options,callback,callback_data);");
@@ -7300,7 +7300,7 @@ XS(_wrap_Driver_Delete) {
     
     {
       /* %typemap(default) const char * utf8_path */
-      arg2 = (const char *)"";
+      arg2 = (char *)"";
     }
     if ((items < 1) || (items > 2)) {
       SWIG_croak("Usage: Driver_Delete(self,utf8_path);");
@@ -22143,7 +22143,7 @@ XS(_wrap__Open__SWIG_1) {
     
     {
       /* %typemap(default) const char * utf8_path */
-      arg1 = (const char *)"";
+      arg1 = (char *)"";
     }
     if ((items < 0) || (items > 2)) {
       SWIG_croak("Usage: _Open(utf8_path,eAccess);");
@@ -22265,7 +22265,7 @@ XS(_wrap__OpenShared__SWIG_1) {
     
     {
       /* %typemap(default) const char * utf8_path */
-      arg1 = (const char *)"";
+      arg1 = (char *)"";
     }
     if ((items < 0) || (items > 2)) {
       SWIG_croak("Usage: _OpenShared(utf8_path,eAccess);");
@@ -22385,7 +22385,7 @@ XS(_wrap_IdentifyDriver) {
     
     {
       /* %typemap(default) const char * utf8_path */
-      arg1 = (const char *)"";
+      arg1 = (char *)"";
     }
     if ((items < 0) || (items > 2)) {
       SWIG_croak("Usage: IdentifyDriver(utf8_path,papszSiblings);");

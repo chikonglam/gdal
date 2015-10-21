@@ -79,6 +79,7 @@
  CPLGetLastErrorType@GDAL_1.8 1.8.0
  CPLGetNumCPUs@GDAL_1.8 1.10.1
  CPLGetPID@GDAL_1.8 1.8.0
+ CPLGetPageSize@GDAL_1.8 1.11.0
  CPLGetPath@GDAL_1.8 1.8.0
  CPLGetSharedList@GDAL_1.8 1.8.0
  CPLGetSymbol@GDAL_1.8 1.8.0
@@ -106,6 +107,7 @@
  CPLHexToBinary@GDAL_1.8 1.8.0
  CPLIsFilenameRelative@GDAL_1.8 1.8.0
  CPLIsUTF8@GDAL_1.8 1.8.0
+ CPLIsVirtualMemFileMapAvailable@GDAL_1.8 1.11.0
  CPLJoinThread@GDAL_1.8 1.10.1
  CPLListAppend@GDAL_1.8 1.8.0
  CPLListCount@GDAL_1.8 1.8.0
@@ -149,6 +151,7 @@
  CPLQuadTreeGetAdvisedMaxDepth@GDAL_1.8 1.8.0
  CPLQuadTreeGetStats@GDAL_1.8 1.8.0
  CPLQuadTreeInsert@GDAL_1.8 1.8.0
+ CPLQuadTreeInsertWithBounds@GDAL_1.8 1.11.0
  CPLQuadTreeSearch@GDAL_1.8 1.8.0
  CPLQuadTreeSetBucketCapacity@GDAL_1.8 1.8.0
  CPLQuadTreeSetMaxDepth@GDAL_1.8 1.8.0
@@ -198,6 +201,7 @@
  CPLStripXMLNamespace@GDAL_1.8 1.8.0
  CPLStrlcat@GDAL_1.8 1.8.0
  CPLStrlcpy@GDAL_1.8 1.8.0
+ CPLStrlenUTF8@GDAL_1.8 1.11.0
  CPLStrlwr@GDAL_1.8 1.8.0
  CPLStrnlen@GDAL_1.8 1.8.0
  CPLStrtod@GDAL_1.8 1.8.0
@@ -210,6 +214,20 @@
  CPLVASPrintf@GDAL_1.8 1.8.0
  CPLValidateXML@GDAL_1.8 1.10.1
  CPLVerifyConfiguration@GDAL_1.8 1.8.0
+ CPLVirtualMemDeclareThread@GDAL_1.8 1.11.0
+ CPLVirtualMemDerivedNew@GDAL_1.8 1.11.0
+ CPLVirtualMemFileMapNew@GDAL_1.8 1.11.0
+ CPLVirtualMemFree@GDAL_1.8 1.11.0
+ CPLVirtualMemGetAccessMode@GDAL_1.8 1.11.0
+ CPLVirtualMemGetAddr@GDAL_1.8 1.11.0
+ CPLVirtualMemGetPageSize@GDAL_1.8 1.11.0
+ CPLVirtualMemGetSize@GDAL_1.8 1.11.0
+ CPLVirtualMemIsAccessThreadSafe@GDAL_1.8 1.11.0
+ CPLVirtualMemIsFileMapping@GDAL_1.8 1.11.0
+ CPLVirtualMemManagerTerminate@GDAL_1.8 1.11.0
+ CPLVirtualMemNew@GDAL_1.8 1.11.0
+ CPLVirtualMemPin@GDAL_1.8 1.11.0
+ CPLVirtualMemUnDeclareThread@GDAL_1.8 1.11.0
  CPLWriteFileInZip@GDAL_1.8 1.8.0
  CPLZLibDeflate@GDAL_1.8 1.10.1
  CPLZLibInflate@GDAL_1.8 1.10.1
@@ -356,6 +374,7 @@
  GDALCloneColorTable@GDAL_1.8 1.8.0
  GDALCloneWarpOptions@GDAL_1.8 1.8.0
  GDALClose@GDAL_1.8 1.8.0
+ GDALComposeGeoTransforms@GDAL_1.8 1.11.0
  GDALComputeBandStats@GDAL_1.8 1.8.0
  GDALComputeMatchingPoints@GDAL_1.8 1.10.1
  GDALComputeMedianCutPCT@GDAL_1.8 1.8.0
@@ -392,6 +411,8 @@
  GDALDataTypeUnion@GDAL_1.8 1.8.0
  GDALDatasetAdviseRead@GDAL_1.8 1.8.0
  GDALDatasetCopyWholeRaster@GDAL_1.8 1.8.0
+ GDALDatasetGetTiledVirtualMem@GDAL_1.8 1.11.0
+ GDALDatasetGetVirtualMem@GDAL_1.8 1.11.0
  GDALDatasetRasterIO@GDAL_1.8 1.8.0
  GDALDecToDMS@GDAL_1.8 1.8.0
  GDALDecToPackedDMS@GDAL_1.8 1.8.0
@@ -472,6 +493,7 @@
  GDALGetMaskBand@GDAL_1.8 1.8.0
  GDALGetMaskFlags@GDAL_1.8 1.8.0
  GDALGetMetadata@GDAL_1.8 1.8.0
+ GDALGetMetadataDomainList@GDAL_1.8 1.11.0
  GDALGetMetadataItem@GDAL_1.8 1.8.0
  GDALGetOpenDatasets@GDAL_1.8 1.8.0
  GDALGetOverview@GDAL_1.8 1.8.0
@@ -500,6 +522,7 @@
  GDALGetRasterUnitType@GDAL_1.8 1.8.0
  GDALGetRasterXSize@GDAL_1.8 1.8.0
  GDALGetRasterYSize@GDAL_1.8 1.8.0
+ GDALGetVirtualMemAuto@GDAL_1.8 1.11.0
  GDALGridCreate@GDAL_1.8 1.8.0
  GDALHasArbitraryOverviews@GDAL_1.8 1.8.0
  GDALIdentifyDriver@GDAL_1.8 1.8.0
@@ -523,6 +546,7 @@
  GDALProxyPoolDatasetAddSrcBandDescription@GDAL_1.8 1.8.0
  GDALProxyPoolDatasetCreate@GDAL_1.8 1.8.0
  GDALProxyPoolDatasetDelete@GDAL_1.8 1.8.0
+ GDALRATChangesAreWrittenToFile@GDAL_1.8 1.11.0
  GDALRATClone@GDAL_1.8 1.8.0
  GDALRATCreateColumn@GDAL_1.8 1.8.0
  GDALRATDumpReadable@GDAL_1.8 1.8.0
@@ -544,9 +568,14 @@
  GDALRATSetValueAsInt@GDAL_1.8 1.8.0
  GDALRATSetValueAsString@GDAL_1.8 1.8.0
  GDALRATTranslateToColorTable@GDAL_1.8 1.8.0
+ GDALRATValuesIOAsDouble@GDAL_1.8 1.11.0
+ GDALRATValuesIOAsInteger@GDAL_1.8 1.11.0
+ GDALRATValuesIOAsString@GDAL_1.8 1.11.0
  GDALRPCTransform@GDAL_1.8 1.8.0
  GDALRasterAdviseRead@GDAL_1.8 1.8.0
  GDALRasterBandCopyWholeRaster@GDAL_1.8 1.8.0
+ GDALRasterBandGetTiledVirtualMem@GDAL_1.8 1.11.0
+ GDALRasterBandGetVirtualMem@GDAL_1.8 1.11.0
  GDALRasterIO@GDAL_1.8 1.8.0
  GDALRasterizeGeometries@GDAL_1.8 1.8.0
  GDALRasterizeLayers@GDAL_1.8 1.8.0
@@ -624,9 +653,11 @@
  GDALRegister_ISIS2@GDAL_1.8 1.8.0
  GDALRegister_ISIS3@GDAL_1.8 1.8.0
  GDALRegister_JDEM@GDAL_1.8 1.8.0
+ GDALRegister_JP2OpenJPEG@GDAL_1.8 1.11.2
  GDALRegister_JPEG2000@GDAL_1.8 1.8.0
  GDALRegister_JPEG@GDAL_1.8 1.8.0
  GDALRegister_KMLSUPEROVERLAY@GDAL_1.8 1.8.0
+ GDALRegister_KRO@GDAL_1.8 1.11.0
  GDALRegister_L1B@GDAL_1.8 1.8.0
  GDALRegister_LAN@GDAL_1.8 1.8.0
  GDALRegister_LCP@GDAL_1.8 1.8.0
@@ -879,17 +910,23 @@
  OGR_Dr_Open@GDAL_1.8 1.8.0
  OGR_Dr_TestCapability@GDAL_1.8 1.8.0
  OGR_FD_AddFieldDefn@GDAL_1.8 1.8.0
+ OGR_FD_AddGeomFieldDefn@GDAL_1.8 1.11.0
  OGR_FD_Create@GDAL_1.8 1.8.0
  OGR_FD_DeleteFieldDefn@GDAL_1.8 1.9.0
+ OGR_FD_DeleteGeomFieldDefn@GDAL_1.8 1.11.0
  OGR_FD_Dereference@GDAL_1.8 1.8.0
  OGR_FD_Destroy@GDAL_1.8 1.8.0
  OGR_FD_GetFieldCount@GDAL_1.8 1.8.0
  OGR_FD_GetFieldDefn@GDAL_1.8 1.8.0
  OGR_FD_GetFieldIndex@GDAL_1.8 1.8.0
+ OGR_FD_GetGeomFieldCount@GDAL_1.8 1.11.0
+ OGR_FD_GetGeomFieldDefn@GDAL_1.8 1.11.0
+ OGR_FD_GetGeomFieldIndex@GDAL_1.8 1.11.0
  OGR_FD_GetGeomType@GDAL_1.8 1.8.0
  OGR_FD_GetName@GDAL_1.8 1.8.0
  OGR_FD_GetReferenceCount@GDAL_1.8 1.8.0
  OGR_FD_IsGeometryIgnored@GDAL_1.8 1.8.0
+ OGR_FD_IsSame@GDAL_1.8 1.11.0
  OGR_FD_IsStyleIgnored@GDAL_1.8 1.8.0
  OGR_FD_Reference@GDAL_1.8 1.8.0
  OGR_FD_Release@GDAL_1.8 1.8.0
@@ -914,6 +951,10 @@
  OGR_F_GetFieldCount@GDAL_1.8 1.8.0
  OGR_F_GetFieldDefnRef@GDAL_1.8 1.8.0
  OGR_F_GetFieldIndex@GDAL_1.8 1.8.0
+ OGR_F_GetGeomFieldCount@GDAL_1.8 1.11.0
+ OGR_F_GetGeomFieldDefnRef@GDAL_1.8 1.11.0
+ OGR_F_GetGeomFieldIndex@GDAL_1.8 1.11.0
+ OGR_F_GetGeomFieldRef@GDAL_1.8 1.11.0
  OGR_F_GetGeometryRef@GDAL_1.8 1.8.0
  OGR_F_GetRawFieldRef@GDAL_1.8 1.8.0
  OGR_F_GetStyleString@GDAL_1.8 1.8.0
@@ -931,6 +972,8 @@
  OGR_F_SetFieldStringList@GDAL_1.8 1.8.0
  OGR_F_SetFrom@GDAL_1.8 1.8.0
  OGR_F_SetFromWithMap@GDAL_1.8 1.8.0
+ OGR_F_SetGeomField@GDAL_1.8 1.11.0
+ OGR_F_SetGeomFieldDirectly@GDAL_1.8 1.11.0
  OGR_F_SetGeometry@GDAL_1.8 1.8.0
  OGR_F_SetGeometryDirectly@GDAL_1.8 1.8.0
  OGR_F_SetStyleString@GDAL_1.8 1.8.0
@@ -954,6 +997,16 @@
  OGR_Fld_SetPrecision@GDAL_1.8 1.8.0
  OGR_Fld_SetType@GDAL_1.8 1.8.0
  OGR_Fld_SetWidth@GDAL_1.8 1.8.0
+ OGR_GFld_Create@GDAL_1.8 1.11.0
+ OGR_GFld_Destroy@GDAL_1.8 1.11.0
+ OGR_GFld_GetNameRef@GDAL_1.8 1.11.0
+ OGR_GFld_GetSpatialRef@GDAL_1.8 1.11.0
+ OGR_GFld_GetType@GDAL_1.8 1.11.0
+ OGR_GFld_IsIgnored@GDAL_1.8 1.11.0
+ OGR_GFld_SetIgnored@GDAL_1.8 1.11.0
+ OGR_GFld_SetName@GDAL_1.8 1.11.0
+ OGR_GFld_SetSpatialRef@GDAL_1.8 1.11.0
+ OGR_GFld_SetType@GDAL_1.8 1.11.0
  OGR_G_AddGeometry@GDAL_1.8 1.8.0
  OGR_G_AddGeometryDirectly@GDAL_1.8 1.8.0
  OGR_G_AddPoint@GDAL_1.8 1.8.0
@@ -1033,7 +1086,9 @@
  OGR_G_Segmentize@GDAL_1.8 1.8.0
  OGR_G_SetCoordinateDimension@GDAL_1.8 1.8.0
  OGR_G_SetPoint@GDAL_1.8 1.8.0
+ OGR_G_SetPointCount@GDAL_1.8 1.11.0
  OGR_G_SetPoint_2D@GDAL_1.8 1.8.0
+ OGR_G_SetPoints@GDAL_1.8 1.11.0
  OGR_G_Simplify@GDAL_1.8 1.8.0
  OGR_G_SimplifyPreserveTopology@GDAL_1.8 1.9.0
  OGR_G_SymDifference@GDAL_1.8 1.8.0
@@ -1051,11 +1106,14 @@
  OGR_L_CommitTransaction@GDAL_1.8 1.8.0
  OGR_L_CreateFeature@GDAL_1.8 1.8.0
  OGR_L_CreateField@GDAL_1.8 1.8.0
+ OGR_L_CreateGeomField@GDAL_1.8 1.11.0
  OGR_L_DeleteFeature@GDAL_1.8 1.8.0
  OGR_L_DeleteField@GDAL_1.8 1.9.0
  OGR_L_Dereference@GDAL_1.8 1.8.0
  OGR_L_Erase@GDAL_1.8 1.10.1
+ OGR_L_FindFieldIndex@GDAL_1.8 1.11.0
  OGR_L_GetExtent@GDAL_1.8 1.8.0
+ OGR_L_GetExtentEx@GDAL_1.8 1.11.0
  OGR_L_GetFIDColumn@GDAL_1.8 1.8.0
  OGR_L_GetFeature@GDAL_1.8 1.8.0
  OGR_L_GetFeatureCount@GDAL_1.8 1.8.0
@@ -1081,7 +1139,9 @@
  OGR_L_SetIgnoredFields@GDAL_1.8 1.8.0
  OGR_L_SetNextByIndex@GDAL_1.8 1.8.0
  OGR_L_SetSpatialFilter@GDAL_1.8 1.8.0
+ OGR_L_SetSpatialFilterEx@GDAL_1.8 1.11.0
  OGR_L_SetSpatialFilterRect@GDAL_1.8 1.8.0
+ OGR_L_SetSpatialFilterRectEx@GDAL_1.8 1.11.0
  OGR_L_SetStyleTable@GDAL_1.8 1.8.0
  OGR_L_SetStyleTableDirectly@GDAL_1.8 1.8.0
  OGR_L_StartTransaction@GDAL_1.8 1.8.0
@@ -1098,6 +1158,7 @@
  OGR_SM_GetPartCount@GDAL_1.8 1.8.0
  OGR_SM_InitFromFeature@GDAL_1.8 1.8.0
  OGR_SM_InitStyleString@GDAL_1.8 1.8.0
+ OGR_STBL_AddStyle@GDAL_1.8 1.11.0
  OGR_STBL_Create@GDAL_1.8 1.8.0
  OGR_STBL_Destroy@GDAL_1.8 1.8.0
  OGR_STBL_Find@GDAL_1.8 1.8.0
@@ -1266,6 +1327,7 @@
  RegisterOGRAeronavFAA@GDAL_1.8 1.8.0
  RegisterOGRBNA@GDAL_1.8 1.8.0
  RegisterOGRCSV@GDAL_1.8 1.8.0
+ RegisterOGRCartoDB@GDAL_1.8 1.11.0
  RegisterOGRCouchDB@GDAL_1.8 1.9.0
  RegisterOGRDGN@GDAL_1.8 1.8.0
  RegisterOGRDODS@GDAL_1.8 1.8.0
@@ -1273,12 +1335,14 @@
  RegisterOGREDIGEO@GDAL_1.8 1.9.0
  RegisterOGRElastic@GDAL_1.8 1.10.1
  RegisterOGRGFT@GDAL_1.8 1.9.0
+ RegisterOGRGME@GDAL_1.8 1.11.0
  RegisterOGRGML@GDAL_1.8 1.8.0
  RegisterOGRGMT@GDAL_1.8 1.8.0
  RegisterOGRGPSBabel@GDAL_1.8 1.8.0
  RegisterOGRGPX@GDAL_1.8 1.8.0
  RegisterOGRGTM@GDAL_1.8 1.8.0
  RegisterOGRGeoJSON@GDAL_1.8 1.8.0
+ RegisterOGRGeoPackage@GDAL_1.8 1.11.0
  RegisterOGRGeoRSS@GDAL_1.8 1.8.0
  RegisterOGRGeoconcept@GDAL_1.8 1.8.0
  RegisterOGRGeomedia@GDAL_1.8 1.9.0
@@ -1298,6 +1362,7 @@
  RegisterOGROGDI@GDAL_1.8 1.8.0
  RegisterOGROSM@GDAL_1.8 1.10.1
  RegisterOGROpenAir@GDAL_1.8 1.8.0
+ RegisterOGROpenFileGDB@GDAL_1.8 1.11.0
  RegisterOGRPCIDSK@GDAL_1.8 1.8.0
  RegisterOGRPDF@GDAL_1.8 1.10.1
  RegisterOGRPDS@GDAL_1.8 1.8.0
@@ -1312,12 +1377,15 @@
  RegisterOGRSQLite@GDAL_1.8 1.8.0
  RegisterOGRSUA@GDAL_1.8 1.8.0
  RegisterOGRSVG@GDAL_1.8 1.9.0
+ RegisterOGRSXF@GDAL_1.8 1.11.0
  RegisterOGRShape@GDAL_1.8 1.8.0
  RegisterOGRTAB@GDAL_1.8 1.8.0
  RegisterOGRTiger@GDAL_1.8 1.8.0
  RegisterOGRVFK@GDAL_1.8 1.8.0
  RegisterOGRVRT@GDAL_1.8 1.8.0
+ RegisterOGRWAsP@GDAL_1.8 1.11.0
  RegisterOGRWFS@GDAL_1.8 1.8.0
+ RegisterOGRWalk@GDAL_1.8 1.11.0
  RegisterOGRXLS@GDAL_1.8 1.9.0
  RegisterOGRXLSX@GDAL_1.8 1.10.1
  RegisterOGRXPlane@GDAL_1.8 1.8.0
@@ -1347,6 +1415,7 @@
  SHPRewindObject@GDAL_1.8 1.8.0
  SHPSearchDiskTree@GDAL_1.8 1.8.0
  SHPSearchDiskTreeEx@GDAL_1.8 1.9.0
+ SHPSetFastModeReadObject@GDAL_1.8 1.11.0
  SHPTreeAddShapeId@GDAL_1.8 1.8.0
  SHPTreeCollectShapeIds@GDAL_1.8 1.8.0
  SHPTreeFindLikelyShapes@GDAL_1.8 1.8.0
@@ -1374,6 +1443,7 @@
  VSIFEofL@GDAL_1.8 1.8.0
  VSIFFlush@GDAL_1.8 1.8.0
  VSIFFlushL@GDAL_1.8 1.8.0
+ VSIFGetNativeFileDescriptorL@GDAL_1.8 1.11.0
  VSIFGetc@GDAL_1.8 1.8.0
  VSIFGets@GDAL_1.8 1.8.0
  VSIFOpen@GDAL_1.8 1.8.0
@@ -1397,6 +1467,7 @@
  VSIFree@GDAL_1.8 1.8.0
  VSIGMTime@GDAL_1.8 1.8.0
  VSIGetMemFileBuffer@GDAL_1.8 1.8.0
+ VSIIngestFile@GDAL_1.8 1.11.0
  VSIInstallLargeFileHandler@GDAL_1.8 1.8.0
  VSIInstallMemFileHandler@GDAL_1.8 1.8.0
  VSIInstallSparseFileHandler@GDAL_1.8 1.8.0

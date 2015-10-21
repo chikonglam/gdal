@@ -1,9 +1,11 @@
 Description: Fix 'developement' typo, replace with 'development'.
-Author: Bas Couwenberg <sebastic@xs4all.nl>
-Last-Update: 2013-10-11
+Author: Bas Couwenberg <sebastic@debian.org>
+Forwarded: http://trac.osgeo.org/gdal/ticket/5756
+Applied-Upstream: 2.0, http://trac.osgeo.org/gdal/changeset/28039
+
 --- a/NEWS
 +++ b/NEWS
-@@ -783,7 +783,7 @@ Build(Unix):
+@@ -1142,7 +1142,7 @@ Build(Unix):
   * New optional dependencies : libpcre (for regular expressions support in SQLite), libxml2 (validation of GML files)
   * --with-python: make it work with python3, and also accept path to python binary as argument of --with-python (#4725)
   * Use nc-config to detect netcdf compilation and linking parameters (#4424)
@@ -12,14 +14,3 @@ Last-Update: 2013-10-11
   * Fix compilation failure with iconv on FreeBSD (#4525)
   * Make FileGDBAPI detection work with FileGDBAPI v1.1 and v1.2 (#4570)
   * Fix build on Gentoo with its custom zlib 1.2.6 with the OF macro removed
---- a/frmts/gtiff/libtiff/tif_ojpeg.c
-+++ b/frmts/gtiff/libtiff/tif_ojpeg.c
-@@ -39,7 +39,7 @@
-    OF THIS SOFTWARE.
- 
-    Joris Van Damme and/or AWare Systems may be available for custom
--   developement. If you like what you see, and need anything similar or related,
-+   development. If you like what you see, and need anything similar or related,
-    contact <info@awaresystems.be>.
- */
- 

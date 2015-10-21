@@ -134,7 +134,7 @@ int OGRSXFLayer::AddRecord(long nFID, unsigned nClassCode, vsi_l_offset nOffset,
         {
             size_t offset = 0;
 
-            while (offset < nSemanticsSize)
+            while (offset < (size_t)nSemanticsSize)
             {
                 SXFRecordAttributeInfo stAttrInfo;
                 bool bAddField = false;
@@ -276,7 +276,7 @@ int OGRSXFLayer::AddRecord(long nFID, unsigned nClassCode, vsi_l_offset nOffset,
 
 OGRErr OGRSXFLayer::SetNextByIndex(long nIndex)
 {
-    if (nIndex < 0 || nIndex > mnRecordDesc.size())
+  if (nIndex < 0 || (size_t)nIndex > mnRecordDesc.size())
         return OGRERR_FAILURE;
 
     oNextIt = mnRecordDesc.begin();
@@ -709,7 +709,7 @@ OGRFeature *OGRSXFLayer::GetNextRawFeature(long nFID)
     }
     stCertInfo.nSubObjectCount = stRecordHeader.nSubObjectCount;
 
-    bool bFloatType, bBigType;
+    bool bFloatType = 0, bBigType = 0;
     bool b3D(true);
     if (m_nSXFFormatVer == 3)
     {
@@ -725,6 +725,7 @@ OGRFeature *OGRSXFLayer::GetNextRawFeature(long nFID)
         bBigType = CHECK_BIT(stRecordHeader.nRef[1], 2);
         stCertInfo.bHasTextSign = CHECK_BIT(stRecordHeader.nRef[2], 3);
     }
+    // Else trouble.
 
     if (b3D) //xххххх1х
         stCertInfo.bDim = 1;
@@ -1139,7 +1140,7 @@ OGRFeature *OGRSXFLayer::TranslateLine(const SXFRecordDescription& certifInfo,
                   "SXF. 3D metrics do not support." );
 	}
 
-    for(int count=0 ; count <  certifInfo.nPointCount ; count++)
+    for(int count=0 ; (GUInt32)count <  certifInfo.nPointCount ; count++)
     {
         const char * psCoords = psRecordBuf + nOffset ;
         GUInt32 nDelta = TranslateXYH( certifInfo, psCoords, nBufLen - nOffset, &dfX, &dfY );
@@ -1230,7 +1231,7 @@ OGRFeature *OGRSXFLayer::TranslateVetorAngle(const SXFRecordDescription& certifI
             "SXF. 3D metrics do not support.");
     }
 
-    for (int count = 0; count < certifInfo.nPointCount; count++)
+    for (int count = 0; (GUInt32)count < certifInfo.nPointCount; count++)
     {
         const char * psCoords = psRecordBuf + nOffset;
         GUInt32 nDelta = TranslateXYH(certifInfo, psCoords, nBufLen - nOffset, &dfX, &dfY);
@@ -1289,7 +1290,7 @@ OGRFeature *OGRSXFLayer::TranslatePolygon(const SXFRecordDescription& certifInfo
 					"SXF. 3D metrics do not support." );
 	}
 
-    for(int count=0 ; count <  certifInfo.nPointCount ; count++)
+    for(int count=0 ; (GUInt32)count <  certifInfo.nPointCount ; count++)
     {
         const char * psBuf = psRecordBuf + nOffset ;
 
@@ -1378,7 +1379,7 @@ OGRFeature *OGRSXFLayer::TranslateText(const SXFRecordDescription& certifInfo,
 					"SXF. 3D metrics do not support." );
 	}
 
-    for(int count=0 ; count <  certifInfo.nPointCount ; count++)
+    for(int count=0 ; (GUInt32)count <  certifInfo.nPointCount ; count++)
     {
         const char * psBuf = psRecordBuf + nOffset;
         GUInt32 nDelta = TranslateXYH( certifInfo, psBuf, nBufLen - nOffset, &dfX, &dfY );
@@ -1426,4 +1427,3 @@ const char* OGRSXFLayer::GetFIDColumn()
 {
     return sFIDColumn_.c_str();
 }
-

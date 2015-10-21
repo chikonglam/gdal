@@ -1,9 +1,11 @@
 Description: Fix 'ressources' typo, replace with 'resources'.
-Author: Bas Couwenberg <sebastic@xs4all.nl>
-Last-Update: 2013-10-11
+Author: Bas Couwenberg <sebastic@debian.org>
+Forwarded: http://trac.osgeo.org/gdal/ticket/5756
+Applied-Upstream: 2.0, http://trac.osgeo.org/gdal/changeset/28039
+
 --- a/NEWS
 +++ b/NEWS
-@@ -2057,7 +2057,7 @@ USGSDEM driver:
+@@ -2416,7 +2416,7 @@ USGSDEM driver:
  VRT driver:
   * Implement VRTDataset::IRasterIO() that can delegate to source Dataset::RasterIO() in particular cases
   * Implement GetMinimum() and GetMaximum()
@@ -12,7 +14,7 @@ Last-Update: 2013-10-11
   * VRTComplexSource: correctly deal with complex data type (#3977)
   * Fix 2 segfaults related to using '<VRTDataset', but with invalid XML, as the target filename of VRTDataset::Create()
   * Fix 'VRTDerivedRasterBand with ComplexSource and nodata value yields potentially uninitialized buffer' (#4045)
-@@ -2579,7 +2579,7 @@ Port:
+@@ -2938,7 +2938,7 @@ Port:
  Core:
   * RFC 24: progressive/async raster reading
   * On Unix, add capability of opening the target of a symlink through GDALOpen()
@@ -21,7 +23,7 @@ Last-Update: 2013-10-11
     GDAL virtual filenames in software offering only file explorers (#3902)
   * Assume anything less than 100000 for GDAL_CACHEMAX is measured in metabytes.
   * Read cartesian coordinates if applicable in GDALLoadOziMapFile().
-@@ -2999,7 +2999,7 @@ Core:
+@@ -3358,7 +3358,7 @@ Core:
   * Add OGRLayer::GetName() and OGRLayer::GetGeomType() virtual methods,
     and their C and SWIG mappings (#3719)
   * On Unix, add capability of opening the target of a symlink through OGROpen()
@@ -43,7 +45,7 @@ Last-Update: 2013-10-11
  
 --- a/frmts/ecw/ecwdataset.cpp
 +++ b/frmts/ecw/ecwdataset.cpp
-@@ -982,7 +982,7 @@ ECWDataset::~ECWDataset()
+@@ -981,7 +981,7 @@ ECWDataset::~ECWDataset()
  
      // bInGDALGlobalDestructor is set to TRUE by gdaldllmain.cpp/GDALDestroy() so as
      // to avoid an issue with the ECW SDK 3.3 where the destructor of CNCSJP2File::CNCSJP2FileVector CNCSJP2File::sm_Files;
@@ -54,7 +56,7 @@ Last-Update: 2013-10-11
      // We also have an issue with ECW SDK 5.0 and ECW files on Linux when
 --- a/frmts/nitf/nitffile.c
 +++ b/frmts/nitf/nitffile.c
-@@ -2203,7 +2203,7 @@ static char** NITFGenericMetadataReadTRE
+@@ -2205,7 +2205,7 @@ static char** NITFGenericMetadataReadTRE
              {
                  *pbError = TRUE;
                  CPLError( CE_Warning, CPLE_AppDefined,
@@ -63,7 +65,7 @@ Last-Update: 2013-10-11
                            pszTREName );
                  break;
              }
-@@ -2227,7 +2227,7 @@ static char** NITFGenericMetadataReadTRE
+@@ -2229,7 +2229,7 @@ static char** NITFGenericMetadataReadTRE
                  if (nIterations < 0)
                  {
                      CPLError( CE_Warning, CPLE_AppDefined,
@@ -72,7 +74,7 @@ Last-Update: 2013-10-11
                              "invalid 'counter' %s",
                              pszTREName, pszCounter );
                      *pbError = TRUE;
-@@ -2248,7 +2248,7 @@ static char** NITFGenericMetadataReadTRE
+@@ -2250,7 +2250,7 @@ static char** NITFGenericMetadataReadTRE
                  if (NPART < 0)
                  {
                      CPLError( CE_Warning, CPLE_AppDefined,
@@ -81,7 +83,7 @@ Last-Update: 2013-10-11
                              "invalid 'counter' %s",
                              pszTREName, "NPART" );
                      *pbError = TRUE;
-@@ -2266,7 +2266,7 @@ static char** NITFGenericMetadataReadTRE
+@@ -2268,7 +2268,7 @@ static char** NITFGenericMetadataReadTRE
                  if (NUMOPG < 0)
                  {
                      CPLError( CE_Warning, CPLE_AppDefined,
@@ -90,7 +92,7 @@ Last-Update: 2013-10-11
                              "invalid 'counter' %s",
                              pszTREName, "NUMOPG" );
                      *pbError = TRUE;
-@@ -2288,7 +2288,7 @@ static char** NITFGenericMetadataReadTRE
+@@ -2290,7 +2290,7 @@ static char** NITFGenericMetadataReadTRE
                  if (NPAR < 0)
                  {
                      CPLError( CE_Warning, CPLE_AppDefined,
@@ -99,7 +101,7 @@ Last-Update: 2013-10-11
                              "invalid 'counter' %s",
                              pszTREName, "NPAR" );
                      *pbError = TRUE;
-@@ -2297,7 +2297,7 @@ static char** NITFGenericMetadataReadTRE
+@@ -2299,7 +2299,7 @@ static char** NITFGenericMetadataReadTRE
                  if (NPARO < 0)
                  {
                      CPLError( CE_Warning, CPLE_AppDefined,
@@ -108,7 +110,7 @@ Last-Update: 2013-10-11
                              "invalid 'counter' %s",
                              pszTREName, "NPAR0" );
                      *pbError = TRUE;
-@@ -2315,7 +2315,7 @@ static char** NITFGenericMetadataReadTRE
+@@ -2317,7 +2317,7 @@ static char** NITFGenericMetadataReadTRE
                  if (NPLN < 0)
                  {
                      CPLError( CE_Warning, CPLE_AppDefined,
@@ -117,7 +119,7 @@ Last-Update: 2013-10-11
                              "invalid 'counter' %s",
                              pszTREName, "NPLN" );
                      *pbError = TRUE;
-@@ -2337,7 +2337,7 @@ static char** NITFGenericMetadataReadTRE
+@@ -2339,7 +2339,7 @@ static char** NITFGenericMetadataReadTRE
                  if (NXPTS < 0)
                  {
                      CPLError( CE_Warning, CPLE_AppDefined,
@@ -126,7 +128,7 @@ Last-Update: 2013-10-11
                              "invalid 'counter' %s",
                              pszTREName, "NXPTS" );
                      *pbError = TRUE;
-@@ -2346,7 +2346,7 @@ static char** NITFGenericMetadataReadTRE
+@@ -2348,7 +2348,7 @@ static char** NITFGenericMetadataReadTRE
                  if (NYPTS < 0)
                  {
                      CPLError( CE_Warning, CPLE_AppDefined,
@@ -135,7 +137,7 @@ Last-Update: 2013-10-11
                              "invalid 'counter' %s",
                              pszTREName, "NYPTS" );
                      *pbError = TRUE;
-@@ -2357,7 +2357,7 @@ static char** NITFGenericMetadataReadTRE
+@@ -2359,7 +2359,7 @@ static char** NITFGenericMetadataReadTRE
              else
              {
                  CPLError( CE_Warning, CPLE_AppDefined,
@@ -144,7 +146,7 @@ Last-Update: 2013-10-11
                            "missing or invalid 'counter' or 'iterations' or 'formula'",
                            pszTREName );
                  *pbError = TRUE;
-@@ -2542,7 +2542,7 @@ static char** NITFGenericMetadataReadTRE
+@@ -2544,7 +2544,7 @@ static char** NITFGenericMetadataReadTRE
              else
              {
                  CPLError( CE_Warning, CPLE_AppDefined,
@@ -195,7 +197,7 @@ Last-Update: 2013-10-11
  <li> <a href="http://svn.geotools.org/trunk/modules/unsupported/edigeo/src/test/resources/org/geotools/data/edigeo/test-data/">Sample of EDIGEO data</a>
 --- a/ogr/ogrsf_frmts/edigeo/ogredigeodatasource.cpp
 +++ b/ogr/ogrsf_frmts/edigeo/ogredigeodatasource.cpp
-@@ -271,7 +271,7 @@ int OGREDIGEODataSource::ReadGEO()
+@@ -270,7 +270,7 @@ int OGREDIGEODataSource::ReadGEO()
              poSRS->importFromProj4("+proj=lcc +lat_1=44 +lat_2=49 +lat_0=46.5 +lon_0=3 +x_0=700000 +y_0=6600000 +ellps=GRS81 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs");
          else
          {
@@ -206,7 +208,7 @@ Last-Update: 2013-10-11
          }
 --- a/port/cpl_vsil_curl.cpp
 +++ b/port/cpl_vsil_curl.cpp
-@@ -2631,9 +2631,9 @@ char** VSICurlFilesystemHandler::ReadDir
+@@ -2641,9 +2641,9 @@ char** VSICurlFilesystemHandler::ReadDir
   * A special file handler is installed that allows reading on-the-fly of files
   * available through HTTP/FTP web protocols, without downloading the entire file.
   *

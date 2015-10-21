@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: shape2ogr.cpp 27044 2014-03-16 23:41:27Z rouault $
+ * $Id: shape2ogr.cpp 27741 2014-09-26 19:20:02Z goatbar $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implements translation of Shapefile shapes into OGR
@@ -32,7 +32,7 @@
 #include "ogrshape.h"
 #include "cpl_conv.h"
 
-CPL_CVSID("$Id: shape2ogr.cpp 27044 2014-03-16 23:41:27Z rouault $");
+CPL_CVSID("$Id: shape2ogr.cpp 27741 2014-09-26 19:20:02Z goatbar $");
 
 /************************************************************************/
 /*                        RingStartEnd                                  */
@@ -1137,11 +1137,11 @@ static OGRErr GrowField(DBFHandle hDBF, int iField, OGRFieldDefn* poFieldDefn,
     char            szFieldName[20];
     int             nOriWidth, nPrecision;
     char            chNativeType;
-    DBFFieldType    eDBFType;
+    /* DBFFieldType    eDBFType; */
 
     chNativeType = DBFGetNativeFieldType( hDBF, iField );
-    eDBFType = DBFGetFieldInfo( hDBF, iField, szFieldName,
-                                &nOriWidth, &nPrecision );
+    /* eDBFType = */ DBFGetFieldInfo( hDBF, iField, szFieldName,
+                                      &nOriWidth, &nPrecision );
 
     CPLDebug("SHAPE", "Extending field %d (%s) from %d to %d characters",
                 iField, poFieldDefn->GetNameRef(), nOriWidth, nNewSize);
@@ -1319,14 +1319,38 @@ OGRErr SHPWriteOGRFeature( SHPHandle hSHP, DBFHandle hDBF,
               }
 
               DBFWriteAttributeDirectly( hDBF, poFeature->GetFID(), iField, 
-                                                szValue );
-            break;
+                                         szValue );
+
+              break;
           }
 
           case OFTReal:
-            DBFWriteDoubleAttribute( hDBF, poFeature->GetFID(), iField, 
-                                     poFeature->GetFieldAsDouble(iField) );
+          {
+            double dfVal = poFeature->GetFieldAsDouble(iField);
+            /* IEEE754 doubles can store exact values of all integers below 2^53 */
+            if( poFieldDefn->GetPrecision() == 0 && fabs(dfVal) > ((GIntBig)1 << 53) )
+            {
+                static int nCounter = 0;
+                if( nCounter <= 10 )
+                {
+                    CPLError(CE_Warning, CPLE_AppDefined,
+                             "Value %.18g of field %s with 0 decimal of feature %ld is bigger than 2^53. Precision loss likely occured or going to happen.%s",
+                             dfVal, poFieldDefn->GetNameRef(), poFeature->GetFID(),
+                             (nCounter == 10) ? " This warning will not be emitted anymore." : "");
+                    nCounter ++;
+                }
+            }
+            int ret = DBFWriteDoubleAttribute( hDBF, poFeature->GetFID(), iField, 
+                                               dfVal );
+            if( !ret )
+            {
+                CPLError(CE_Warning, CPLE_AppDefined,
+                         "Value %.18g of field %s of feature %ld not successfully written. "
+                         "Possibly due to too larger number with respect to field width",
+                         dfVal, poFieldDefn->GetNameRef(), poFeature->GetFID());
+            }
             break;
+          }
 
           case OFTDate:
           {
@@ -1358,4 +1382,3 @@ OGRErr SHPWriteOGRFeature( SHPHandle hSHP, DBFHandle hDBF,
 
     return OGRERR_NONE;
 }
-

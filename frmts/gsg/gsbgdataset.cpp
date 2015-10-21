@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gsbgdataset.cpp 27044 2014-03-16 23:41:27Z rouault $
+ * $Id: gsbgdataset.cpp 27739 2014-09-25 18:49:52Z goatbar $
  *
  * Project:  GDAL
  * Purpose:  Implements the Golden Software Binary Grid Format.
@@ -61,7 +61,7 @@
 # define SHRT_MAX 32767
 #endif /* SHRT_MAX */
 
-CPL_CVSID("$Id: gsbgdataset.cpp 27044 2014-03-16 23:41:27Z rouault $");
+CPL_CVSID("$Id: gsbgdataset.cpp 27739 2014-09-25 18:49:52Z goatbar $");
 
 CPL_C_START
 void	GDALRegister_GSBG(void);
@@ -302,10 +302,12 @@ CPLErr GSBGRasterBand::IReadBlock( int nBlockXOff, int nBlockYOff,
 	return CE_Failure;
     }
 
-    float *pfImage;
-    pfImage = (float *)pImage;
-    for( int iPixel=0; iPixel<nBlockXSize; iPixel++ )
+#ifdef CPL_MSB
+    float *pfImage = (float *)pImage;
+    for( int iPixel=0; iPixel<nBlockXSize; iPixel++ ) {
 	CPL_LSBPTR32( pfImage+iPixel );
+    }
+#endif
 
     return CE_None;
 }
@@ -880,9 +882,9 @@ CPLErr GSBGDataset::WriteHeader( VSILFILE *fp, GInt16 nXSize, GInt16 nYSize,
 /************************************************************************/
 
 GDALDataset *GSBGDataset::Create( const char * pszFilename,
-				  int nXSize, int nYSize, int nBands,
+				  int nXSize, int nYSize, CPL_UNUSED int nBands,
 				  GDALDataType eType,
-				  char **papszParmList )
+				  CPL_UNUSED char **papszParmList )
 
 {
     if( nXSize <= 0 || nYSize <= 0 )
@@ -960,7 +962,7 @@ GDALDataset *GSBGDataset::Create( const char * pszFilename,
 
 GDALDataset *GSBGDataset::CreateCopy( const char *pszFilename,
 				      GDALDataset *poSrcDS,
-				      int bStrict, char **papszOptions,
+				      int bStrict, CPL_UNUSED char **papszOptions,
 				      GDALProgressFunc pfnProgress,
 				      void *pProgressData )
 {

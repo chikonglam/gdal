@@ -1,5 +1,5 @@
 /**********************************************************************
- * $Id: gmlhandler.cpp 27120 2014-04-03 20:33:49Z rouault $
+ * $Id: gmlhandler.cpp 27741 2014-09-26 19:20:02Z goatbar $
  *
  * Project:  GML Reader
  * Purpose:  Implementation of GMLHandler class.
@@ -52,11 +52,10 @@ GMLXercesHandler::GMLXercesHandler( GMLReader *poReader ) : GMLHandler(poReader)
 /*                            startElement()                            */
 /************************************************************************/
 
-void GMLXercesHandler::startElement(const XMLCh* const    uri,
-                                    const XMLCh* const    localname,
-                                    const XMLCh* const    qname,
+void GMLXercesHandler::startElement(CPL_UNUSED const XMLCh* const uri,
+                                    const XMLCh* const localname,
+                                    CPL_UNUSED const XMLCh* const qname,
                                     const Attributes& attrs )
-
 {
     char        szElementName[MAX_TOKEN_SIZE];
 
@@ -89,10 +88,9 @@ void GMLXercesHandler::startElement(const XMLCh* const    uri,
 /************************************************************************/
 /*                             endElement()                             */
 /************************************************************************/
-void GMLXercesHandler::endElement(const   XMLCh* const    uri,
-                                  const   XMLCh* const    localname,
-                                  const   XMLCh* const    qname )
-
+void GMLXercesHandler::endElement(CPL_UNUSED const XMLCh* const uri,
+                                  CPL_UNUSED const XMLCh* const localname,
+                                  CPL_UNUSED const XMLCh* const qname )
 {
     m_nEntityCounter = 0;
 
@@ -107,6 +105,7 @@ void GMLXercesHandler::endElement(const   XMLCh* const    uri,
 /************************************************************************/
 
 void GMLXercesHandler::characters(const XMLCh* const chars_in,
+                                  CPL_UNUSED
 #if XERCES_VERSION_MAJOR >= 3
                                   const XMLSize_t length
 #else
@@ -146,7 +145,7 @@ void GMLXercesHandler::fatalError( const SAXParseException &exception)
 /*                             startEntity()                            */
 /************************************************************************/
 
-void GMLXercesHandler::startEntity (const XMLCh *const name)
+void GMLXercesHandler::startEntity (CPL_UNUSED const XMLCh *const name)
 {
     m_nEntityCounter ++;
     if (m_nEntityCounter > 1000 && !m_poReader->HasStoppedParsing())
@@ -307,7 +306,7 @@ void XMLCALL GMLExpatHandler::startElementCbk(void *pUserData, const char *pszNa
 /************************************************************************/
 /*                            endElementCbk()                           */
 /************************************************************************/
-void XMLCALL GMLExpatHandler::endElementCbk(void *pUserData, const char* pszName )
+void XMLCALL GMLExpatHandler::endElementCbk(void *pUserData, CPL_UNUSED const char* pszName )
 
 {
     GMLExpatHandler* pThis = ((GMLExpatHandler*)pUserData);
@@ -639,7 +638,7 @@ OGRErr GMLHandler::dataHandler(const char *data, int nLen)
 /*                       startElementBoundedBy()                        */
 /************************************************************************/
 
-OGRErr GMLHandler::startElementBoundedBy(const char *pszName, int nLenName, void* attr )
+OGRErr GMLHandler::startElementBoundedBy(const char *pszName, CPL_UNUSED int nLenName, void* attr )
 {
     if ( m_nDepth == 2 && strcmp(pszName, "Envelope") == 0 )
     {
@@ -729,7 +728,9 @@ OGRErr GMLHandler::startElementGeometry(const char *pszName, int nLenName, void*
 /*                    startElementCityGMLGenericAttr()                  */
 /************************************************************************/
 
-OGRErr GMLHandler::startElementCityGMLGenericAttr(const char *pszName, int nLenName, void* attr )
+OGRErr GMLHandler::startElementCityGMLGenericAttr(const char *pszName,
+                                                  CPL_UNUSED int nLenName,
+                                                  CPL_UNUSED void* attr )
 {
     if( strcmp(pszName, "value") == 0 )
     {
@@ -763,7 +764,7 @@ void GMLHandler::DealWithAttributes(const char *pszName, int nLenName, void* att
         if( pszAttrVal == NULL )
             break;
 
-        int nAttrIndex;
+        int nAttrIndex = 0;
         const char* pszAttrKeyNoNS = strchr(pszAttrKey, ':');
         if( pszAttrKeyNoNS != NULL )
             pszAttrKeyNoNS ++;
@@ -1187,8 +1188,7 @@ OGRErr GMLHandler::startElementFeatureAttribute(const char *pszName, int nLenNam
 /*                         startElementTop()                            */
 /************************************************************************/
 
-OGRErr GMLHandler::startElementTop(const char *pszName, int nLenName, void* attr )
-
+OGRErr GMLHandler::startElementTop(const char *pszName, CPL_UNUSED int nLenName, void* attr )
 {
     if (strcmp(pszName, "CityModel") == 0 )
     {
@@ -1588,7 +1588,9 @@ OGRErr GMLHandler::endElementAttribute()
 /*                    startElementFeatureProperty()                     */
 /************************************************************************/
 
-OGRErr GMLHandler::startElementFeatureProperty(const char *pszName, int nLenName, void* attr )
+OGRErr GMLHandler::startElementFeatureProperty(CPL_UNUSED const char *pszName,
+                                               CPL_UNUSED int nLenName,
+                                               void* attr )
 {
     if (m_nDepth == m_nAttributeDepth + 1)
     {

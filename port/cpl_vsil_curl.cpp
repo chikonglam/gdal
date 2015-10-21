@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: cpl_vsil_curl.cpp 27044 2014-03-16 23:41:27Z rouault $
+ * $Id: cpl_vsil_curl.cpp 28190 2014-12-21 22:42:54Z rouault $
  *
  * Project:  CPL - Common Portability Library
  * Purpose:  Implement VSI large file api for HTTP/FTP files
@@ -34,7 +34,7 @@
 #include "cpl_time.h"
 #include "cpl_vsil_curl_priv.h"
 
-CPL_CVSID("$Id: cpl_vsil_curl.cpp 27044 2014-03-16 23:41:27Z rouault $");
+CPL_CVSID("$Id: cpl_vsil_curl.cpp 28190 2014-12-21 22:42:54Z rouault $");
 
 #ifndef HAVE_CURL
 
@@ -790,9 +790,16 @@ int VSICurlHandle::DownloadRegion(vsi_l_offset startOffset, int nBlocks)
     sWriteFuncHeaderData.bIsHTTP = strncmp(pszURL, "http", 4) == 0;
     sWriteFuncHeaderData.nStartOffset = startOffset;
     sWriteFuncHeaderData.nEndOffset = startOffset + nBlocks * DOWNLOAD_CHUNCK_SIZE - 1;
+    /* Some servers don't like we try to read after end-of-file (#5786) */
+    if( cachedFileProp->bHastComputedFileSize && 
+        sWriteFuncHeaderData.nEndOffset >= cachedFileProp->fileSize )
+    {
+        sWriteFuncHeaderData.nEndOffset = cachedFileProp->fileSize - 1;
+    }
 
     char rangeStr[512];
-    sprintf(rangeStr, CPL_FRMT_GUIB "-" CPL_FRMT_GUIB, startOffset, startOffset + nBlocks * DOWNLOAD_CHUNCK_SIZE - 1);
+    sprintf(rangeStr, CPL_FRMT_GUIB "-" CPL_FRMT_GUIB, startOffset,
+            sWriteFuncHeaderData.nEndOffset);
 
     if (ENABLE_DEBUG)
         CPLDebug("VSICURL", "Downloading %s (%s)...", rangeStr, pszURL);
@@ -991,6 +998,9 @@ size_t VSICurlHandle::Read( void *pBuffer, size_t nSize, size_t nMemb )
                     break;
                 }
             }
+
+            if( nBlocksToDownload > N_MAX_REGIONS )
+                nBlocksToDownload = N_MAX_REGIONS;
 
             if (DownloadRegion(nOffsetToDownload, nBlocksToDownload) == FALSE)
             {
@@ -1381,7 +1391,7 @@ end:
 /*                               Write()                                */
 /************************************************************************/
 
-size_t VSICurlHandle::Write( const void *pBuffer, size_t nSize, size_t nMemb )
+size_t VSICurlHandle::Write( CPL_UNUSED const void *pBuffer, CPL_UNUSED size_t nSize, CPL_UNUSED size_t nMemb )
 {
     return 0;
 }
@@ -2534,7 +2544,7 @@ int VSICurlFilesystemHandler::Stat( const char *pszFilename, VSIStatBufL *pStatB
 /*                               Unlink()                               */
 /************************************************************************/
 
-int VSICurlFilesystemHandler::Unlink( const char *pszFilename )
+int VSICurlFilesystemHandler::Unlink( CPL_UNUSED const char *pszFilename )
 {
     return -1;
 }
@@ -2543,7 +2553,7 @@ int VSICurlFilesystemHandler::Unlink( const char *pszFilename )
 /*                               Rename()                               */
 /************************************************************************/
 
-int VSICurlFilesystemHandler::Rename( const char *oldpath, const char *newpath )
+int VSICurlFilesystemHandler::Rename( CPL_UNUSED const char *oldpath, CPL_UNUSED const char *newpath )
 {
     return -1;
 }
@@ -2552,7 +2562,7 @@ int VSICurlFilesystemHandler::Rename( const char *oldpath, const char *newpath )
 /*                               Mkdir()                                */
 /************************************************************************/
 
-int VSICurlFilesystemHandler::Mkdir( const char *pszDirname, long nMode )
+int VSICurlFilesystemHandler::Mkdir( CPL_UNUSED const char *pszDirname, CPL_UNUSED long nMode )
 {
     return -1;
 }
@@ -2560,7 +2570,7 @@ int VSICurlFilesystemHandler::Mkdir( const char *pszDirname, long nMode )
 /*                               Rmdir()                                */
 /************************************************************************/
 
-int VSICurlFilesystemHandler::Rmdir( const char *pszDirname )
+int VSICurlFilesystemHandler::Rmdir( CPL_UNUSED const char *pszDirname )
 {
     return -1;
 }

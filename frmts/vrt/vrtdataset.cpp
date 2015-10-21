@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: vrtdataset.cpp 27044 2014-03-16 23:41:27Z rouault $
+ * $Id: vrtdataset.cpp 27739 2014-09-25 18:49:52Z goatbar $
  *
  * Project:  Virtual GDAL Datasets
  * Purpose:  Implementation of VRTDataset
@@ -33,7 +33,7 @@
 #include "cpl_minixml.h"
 #include "ogr_spatialref.h"
 
-CPL_CVSID("$Id: vrtdataset.cpp 27044 2014-03-16 23:41:27Z rouault $");
+CPL_CVSID("$Id: vrtdataset.cpp 27739 2014-09-25 18:49:52Z goatbar $");
 
 /************************************************************************/
 /*                            VRTDataset()                             */
@@ -64,7 +64,7 @@ VRTDataset::VRTDataset( int nXSize, int nYSize )
     pszVRTPath = NULL;
 
     poMaskBand = NULL;
-    
+
     GDALRegister_VRT();
     poDriver = (GDALDriver *) GDALGetDriverByName( "VRT" );
 
@@ -631,23 +631,24 @@ GDALDataset *VRTDataset::Open( GDALOpenInfo * poOpenInfo )
     if( fp != NULL )
     {
         unsigned int nLength;
-     
+
         VSIFSeekL( fp, 0, SEEK_END );
         nLength = (int) VSIFTellL( fp );
         VSIFSeekL( fp, 0, SEEK_SET );
-        
-        nLength = MAX(0,nLength);
+
+        // Unsigned always >= 0.
+        // nLength = MAX(0, nLength);
         pszXML = (char *) VSIMalloc(nLength+1);
-        
+
         if( pszXML == NULL )
         {
             VSIFCloseL(fp);
-            CPLError( CE_Failure, CPLE_OutOfMemory, 
+            CPLError( CE_Failure, CPLE_OutOfMemory,
                       "Failed to allocate %d byte buffer to hold VRT xml file.",
                       nLength );
             return NULL;
         }
-        
+
         if( VSIFReadL( pszXML, 1, nLength, fp ) != nLength )
         {
             VSIFCloseL(fp);
@@ -657,7 +658,7 @@ GDALDataset *VRTDataset::Open( GDALOpenInfo * poOpenInfo )
                       nLength );
             return NULL;
         }
-        
+
         pszXML[nLength] = '\0';
 
         char* pszCurDir = CPLGetCurrentDir();
@@ -865,7 +866,7 @@ CPLErr VRTDataset::AddBand( GDALDataType eType, char **papszOptions )
         }
         
         bRelativeToVRT = 
-            CSLFetchBoolean( papszOptions, "RelativeToVRT", FALSE );
+            CSLFetchBoolean( papszOptions, "relativeToVRT", FALSE );
 
 /* -------------------------------------------------------------------- */
 /*      Create and initialize the band.                                 */
@@ -1106,7 +1107,7 @@ CPLErr VRTDataset::Delete( const char * pszFilename )
 /*                          CreateMaskBand()                            */
 /************************************************************************/
 
-CPLErr VRTDataset::CreateMaskBand( int nFlags )
+CPLErr VRTDataset::CreateMaskBand( CPL_UNUSED int nFlags )
 {
     if (poMaskBand != NULL)
     {

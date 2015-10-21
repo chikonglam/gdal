@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdaltindex.c 27044 2014-03-16 23:41:27Z rouault $
+ * $Id: gdaltindex.c 27741 2014-09-26 19:20:02Z goatbar $
  *
  * Project:  MapServer
  * Purpose:  Commandline App to build tile index for raster files.
@@ -35,7 +35,7 @@
 #include "cpl_conv.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: gdaltindex.c 27044 2014-03-16 23:41:27Z rouault $");
+CPL_CVSID("$Id: gdaltindex.c 27741 2014-09-26 19:20:02Z goatbar $");
 
 /************************************************************************/
 /*                               Usage()                                */
@@ -95,7 +95,7 @@ int main(int argc, char *argv[])
     const char *index_filename = NULL;
     const char *tile_index = "location";
     const char* pszDriverName = "ESRI Shapefile";
-    int nMaxFieldSize = 254;
+    size_t nMaxFieldSize = 254;
     int		i_arg, ti_field;
     OGRDataSourceH hTileIndexDS;
     OGRLayerH hLayer = NULL;

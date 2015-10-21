@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdal_array.i 26832 2014-01-15 12:46:08Z rouault $
+ * $Id: gdal_array.i 28304 2015-01-07 11:24:37Z rouault $
  *
  * Name:     gdal_array.i
  * Project:  GDAL Python Interface
@@ -82,6 +82,7 @@ class NUMPYDataset : public GDALDataset
 {
     PyArrayObject *psArray;
 
+    int           bValidGeoTransform;
     double	  adfGeoTransform[6];
     char	  *pszProjection;
 
@@ -141,6 +142,7 @@ NUMPYDataset::NUMPYDataset()
 
 {
     pszProjection = CPLStrdup("");
+    bValidGeoTransform = FALSE;
     adfGeoTransform[0] = 0.0;
     adfGeoTransform[1] = 1.0;
     adfGeoTransform[2] = 0.0;
@@ -204,7 +206,10 @@ CPLErr NUMPYDataset::GetGeoTransform( double * padfTransform )
 
 {
     memcpy( padfTransform, adfGeoTransform, sizeof(double)*6 );
-    return CE_None;
+    if( bValidGeoTransform )
+        return CE_None;
+    else
+        return CE_Failure;
 }
 
 /************************************************************************/
@@ -214,6 +219,7 @@ CPLErr NUMPYDataset::GetGeoTransform( double * padfTransform )
 CPLErr NUMPYDataset::SetGeoTransform( double * padfTransform )
 
 {
+    bValidGeoTransform = TRUE;
     memcpy( adfGeoTransform, padfTransform, sizeof(double)*6 );
     return( CE_None );
 }

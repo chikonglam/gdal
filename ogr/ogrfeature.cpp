@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrfeature.cpp 27110 2014-03-28 21:29:20Z rouault $
+ * $Id: ogrfeature.cpp 27741 2014-09-26 19:20:02Z goatbar $
  * 
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  The OGRFeature class implementation. 
@@ -33,7 +33,7 @@
 #include "ogr_p.h"
 #include <vector>
 
-CPL_CVSID("$Id: ogrfeature.cpp 27110 2014-03-28 21:29:20Z rouault $");
+CPL_CVSID("$Id: ogrfeature.cpp 27741 2014-09-26 19:20:02Z goatbar $");
 
 /************************************************************************/
 /*                             OGRFeature()                             */
@@ -282,7 +282,7 @@ OGRFeatureDefnH OGR_F_GetDefnRef( OGRFeatureH hFeat )
  *
  * This method updates the features geometry, and operate exactly as
  * SetGeometry(), except that this method assumes ownership of the
- * passed geometry.
+ * passed geometry (even in case of failure of that function).
  *
  * This method is the same as the C function OGR_F_SetGeometryDirectly().
  *
@@ -301,7 +301,10 @@ OGRErr OGRFeature::SetGeometryDirectly( OGRGeometry * poGeomIn )
     if( GetGeomFieldCount() > 0 )
         return SetGeomFieldDirectly(0, poGeomIn);
     else
+    {
+        delete poGeomIn;
         return OGRERR_FAILURE;
+    }
 }
 
 /************************************************************************/
@@ -313,7 +316,7 @@ OGRErr OGRFeature::SetGeometryDirectly( OGRGeometry * poGeomIn )
  *
  * This function updates the features geometry, and operate exactly as
  * SetGeometry(), except that this function assumes ownership of the
- * passed geometry.
+ * passed geometry (even in case of failure of that function).
  *
  * This function is the same as the C++ method 
  * OGRFeature::SetGeometryDirectly.
@@ -594,7 +597,7 @@ OGRGeometryH OGR_F_GetGeomFieldRef( OGRFeatureH hFeat, int iField )
  *
  * This method updates the features geometry, and operate exactly as
  * SetGeomField(), except that this method assumes ownership of the
- * passed geometry.
+ * passed geometry (even in case of failure of that function).
  *
  * This method is the same as the C function OGR_F_SetGeomFieldDirectly().
  *
@@ -614,7 +617,10 @@ OGRErr OGRFeature::SetGeomFieldDirectly( int iField, OGRGeometry * poGeomIn )
 
 {
     if( iField < 0 || iField >= GetGeomFieldCount() )
+    {
+        delete poGeomIn;
         return OGRERR_FAILURE;
+    }
 
     delete papoGeometries[iField];
     papoGeometries[iField] = poGeomIn;
@@ -633,7 +639,7 @@ OGRErr OGRFeature::SetGeomFieldDirectly( int iField, OGRGeometry * poGeomIn )
  *
  * This function updates the features geometry, and operate exactly as
  * SetGeomField(), except that this function assumes ownership of the
- * passed geometry.
+ * passed geometry (even in case of failure of that function).
  *
  * This function is the same as the C++ method 
  * OGRFeature::SetGeomFieldDirectly.
@@ -2178,11 +2184,13 @@ void OGRFeature::SetField( int iField, int nValue )
 
         if( IsFieldSet( iField) )
             CPLFree( pauFields[iField].String );
-        
+
         pauFields[iField].String = CPLStrdup( szTempBuffer );
     }
     else
-        /* do nothing for other field types */;
+    {
+        /* do nothing for other field types */
+    }
 }
 
 /************************************************************************/
@@ -2268,7 +2276,9 @@ void OGRFeature::SetField( int iField, double dfValue )
         pauFields[iField].String = CPLStrdup( szTempBuffer );
     }
     else
-        /* do nothing for other field types */;
+    {
+        /* do nothing for other field types */
+    }
 }
 
 /************************************************************************/
@@ -2399,8 +2409,18 @@ void OGRFeature::SetField( int iField, const char * pszValue )
 
         CSLDestroy(papszValueList);
     }
+    else if ( poFDefn->GetType() == OFTStringList )
+    {
+        if( pszValue && *pszValue )
+        {
+            const char *papszValues[2] = { pszValue, 0 };
+            SetField( iField, (char **) papszValues );
+        }
+    }
     else
+    {
         /* do nothing for other field types */;
+    }
 }
 
 /************************************************************************/
@@ -2920,15 +2940,17 @@ void OGRFeature::SetField( int iField, OGRField * puValue )
         else
         {
             pauFields[iField].Binary.nCount = puValue->Binary.nCount;
-            pauFields[iField].Binary.paData = 
+            pauFields[iField].Binary.paData =
                 (GByte *) CPLMalloc(puValue->Binary.nCount);
-            memcpy( pauFields[iField].Binary.paData, 
-                    puValue->Binary.paData, 
+            memcpy( pauFields[iField].Binary.paData,
+                    puValue->Binary.paData,
                     puValue->Binary.nCount );
         }
     }
     else
-        /* do nothing for other field types */;
+    {
+        /* do nothing for other field types */
+    }
 }
 
 /************************************************************************/

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrmysqldatasource.cpp 27044 2014-03-16 23:41:27Z rouault $
+ * $Id: ogrmysqldatasource.cpp 27741 2014-09-26 19:20:02Z goatbar $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implements OGRMySQLDataSource class.
@@ -37,17 +37,7 @@
 #include "cpl_conv.h"
 #include "cpl_string.h"
 
-/* Recent versions of mysql no longer declare load_defaults() in my_sys.h */
-/* but they still have it in the lib. Very fragile... */
-#ifdef MYSQL_NEEDS_LOAD_DEFAULTS_DECLARATION
-extern "C" {
-int load_defaults(const char *conf_file, const char **groups,
-                  int *argc, char ***argv);
-void free_defaults(char **argv);
-}
-#endif
-
-CPL_CVSID("$Id: ogrmysqldatasource.cpp 27044 2014-03-16 23:41:27Z rouault $");
+CPL_CVSID("$Id: ogrmysqldatasource.cpp 27741 2014-09-26 19:20:02Z goatbar $");
 /************************************************************************/
 /*                         OGRMySQLDataSource()                         */
 /************************************************************************/
@@ -144,28 +134,6 @@ int OGRMySQLDataSource::Open( const char * pszNewName, int bUpdate,
     int nPort = 0, i;
     char **papszTableNames=NULL;
     std::string oHost, oPassword, oUser, oDB;
-    char *apszArgv[2] = { (char*) "org", NULL };
-    char **papszArgv = apszArgv;
-    int  nArgc = 1;
-    const char *client_groups[] = {"client", "ogr", NULL };
-
-    my_init(); // I hope there is no problem with calling this multiple times!
-    load_defaults( "my", client_groups, &nArgc, &papszArgv );
-
-    for( i = 0; i < nArgc; i++ )
-    {
-        if( EQUALN(papszArgv[i],"--user=",7) )
-            oUser = papszArgv[i] + 7;
-        else if( EQUALN(papszArgv[i],"--host=",7) )
-            oHost = papszArgv[i] + 7;
-        else if( EQUALN(papszArgv[i],"--password=",11) )
-            oPassword = papszArgv[i] + 11;
-        else if( EQUALN(papszArgv[i],"--port=",7) )
-            nPort = atoi(papszArgv[i] + 7);
-    }
-
-    // cleanup
-    free_defaults( papszArgv );
 
 /* -------------------------------------------------------------------- */
 /*      Parse out connection information.                               */
@@ -326,8 +294,7 @@ int OGRMySQLDataSource::Open( const char * pszNewName, int bUpdate,
 /************************************************************************/
 
 int OGRMySQLDataSource::OpenTable( const char *pszNewName, int bUpdate,
-                                int bTestOpen )
-
+                                   CPL_UNUSED int bTestOpen )
 {
 /* -------------------------------------------------------------------- */
 /*      Create the layer object.                                        */
@@ -851,11 +818,10 @@ OGRMySQLDataSource::CreateLayer( const char * pszLayerNameIn,
     MYSQL_RES           *hResult=NULL;
     CPLString            osCommand;
     const char          *pszGeometryType;
-    const char			*pszGeomColumnName;
-    const char 			*pszExpectedFIDName; 
-	
+    const char		*pszGeomColumnName;
+    const char		*pszExpectedFIDName;
     char                *pszLayerName;
-    int                 nDimension = 3; // MySQL only supports 2d currently
+    // int                 nDimension = 3; // MySQL only supports 2d currently
 
 
 /* -------------------------------------------------------------------- */
@@ -869,8 +835,8 @@ OGRMySQLDataSource::CreateLayer( const char * pszLayerNameIn,
     else
         pszLayerName = CPLStrdup( pszLayerNameIn );
 
-    if( wkbFlatten(eType) == eType )
-        nDimension = 2;
+    // if( wkbFlatten(eType) == eType )
+    //    nDimension = 2;
 
     CPLDebug("MYSQL","Creating layer %s.", pszLayerName);
 
@@ -884,7 +850,7 @@ OGRMySQLDataSource::CreateLayer( const char * pszLayerNameIn,
     {
         if( EQUAL(pszLayerName,papoLayers[iLayer]->GetLayerDefn()->GetName()) )
         {
-			
+
             if( CSLFetchNameValue( papszOptions, "OVERWRITE" ) != NULL
                 && !EQUAL(CSLFetchNameValue(papszOptions,"OVERWRITE"),"NO") )
             {

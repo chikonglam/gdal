@@ -723,7 +723,6 @@ INGRES_INC
 INGRES_LIB
 II_SYSTEM
 HAVE_INGRES
-MYSQL_NEEDS_LOAD_DEFAULTS_DECLARATION
 MYSQL_LIB
 MYSQL_INC
 HAVE_MYSQL
@@ -746,6 +745,7 @@ ECW_SETTING
 FGDB_INC
 FGDB_LIB
 FGDB_ENABLED
+OPENJPEG_VERSION
 HAVE_OPENJPEG
 JASPER_FLAGS
 HAVE_JASPER
@@ -18960,7 +18960,7 @@ _ACEOF
 if test "$am_func_iconv" = "yes"; then
     rm -f testiconv.*
     echo '#include <iconv.h>' > testiconv.cpp
-    echo 'int main(int argc, char** argv) { iconv_t cd; return iconv (cd, (const char **) 0, 0, 0, 0); } ' >> testiconv.cpp
+    echo 'int main(int argc, char** argv) { iconv_t cd = 0; return iconv (cd, (const char **) 0, 0, 0, 0); } ' >> testiconv.cpp
     if test -z "`${CXX} ${CPPFLAGS} testiconv.cpp -c 2>&1`" ; then
         { $as_echo "$as_me:${as_lineno-$LINENO}: result: using ICONV_CPP_CONST=\"const\"" >&5
 $as_echo "using ICONV_CPP_CONST=\"const\"" >&6; }
@@ -22200,14 +22200,78 @@ fi
     if test "$HAVE_OPENJPEG" = "yes"; then
         LIBS="-lopenjp2 $LIBS"
     fi
+  else
+    for ac_header in openjpeg-2.1/openjpeg.h
+do :
+  ac_fn_c_check_header_mongrel "$LINENO" "openjpeg-2.1/openjpeg.h" "ac_cv_header_openjpeg_2_1_openjpeg_h" "$ac_includes_default"
+if test "x$ac_cv_header_openjpeg_2_1_openjpeg_h" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_OPENJPEG_2_1_OPENJPEG_H 1
+_ACEOF
+
+fi
+
+done
+
+    if test "$ac_cv_header_openjpeg_2_1_openjpeg_h" = "yes"; then
+        { $as_echo "$as_me:${as_lineno-$LINENO}: checking for opj_stream_set_user_data_length in -lopenjp2" >&5
+$as_echo_n "checking for opj_stream_set_user_data_length in -lopenjp2... " >&6; }
+if ${ac_cv_lib_openjp2_opj_stream_set_user_data_length+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lopenjp2  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char opj_stream_set_user_data_length ();
+int
+main ()
+{
+return opj_stream_set_user_data_length ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_openjp2_opj_stream_set_user_data_length=yes
+else
+  ac_cv_lib_openjp2_opj_stream_set_user_data_length=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_openjp2_opj_stream_set_user_data_length" >&5
+$as_echo "$ac_cv_lib_openjp2_opj_stream_set_user_data_length" >&6; }
+if test "x$ac_cv_lib_openjp2_opj_stream_set_user_data_length" = xyes; then :
+  HAVE_OPENJPEG=yes
+else
+  HAVE_OPENJPEG=no
+fi
+
+        if test "$HAVE_OPENJPEG" = "yes"; then
+            OPENJPEG_VERSION=20100
+            LIBS="-lopenjp2 $LIBS"
+        fi
+    fi
   fi
 else
 
   HAVE_OPENJPEG=yes
   if test -r $with_openjpeg/include/openjpeg-2.0/openjpeg.h ; then
     EXTRA_INCLUDES="-I$with_openjpeg/include $EXTRA_INCLUDES"
+  elif test -r $with_openjpeg/include/openjpeg-2.1/openjpeg.h ; then
+    OPENJPEG_VERSION=20100
+    EXTRA_INCLUDES="-I$with_openjpeg/include $EXTRA_INCLUDES"
   else
-    as_fn_error $? "openjpeg.h not found in $with_openjpeg/include/openjpeg-2.0" "$LINENO" 5
+    as_fn_error $? "openjpeg.h not found in $with_openjpeg/include/openjpeg-2.0 or $with_openjpeg/include/openjpeg-2.1" "$LINENO" 5
   fi
 
   { $as_echo "$as_me:${as_lineno-$LINENO}: checking for opj_stream_set_user_data_length in -lopenjp2" >&5
@@ -22266,6 +22330,7 @@ fi
 
 HAVE_OPENJPEG=$HAVE_OPENJPEG
 
+OPENJPEG_VERSION=$OPENJPEG_VERSION
 
 
 
@@ -22964,13 +23029,14 @@ Please, locate Oracle directories using --with-oci or \
             CPPFLAGS="$CPPFLAGS -I$oracle_include_dir3"
         fi
 
-                        saved_LDFLAGS="$LDFLAGS"
-	if test -n "$oracle_include_dir" ; then
+                        if test -n "$oracle_include_dir" ; then
           oci_ldflags="-L$oracle_lib_dir -lclntsh"
         else
           oci_ldflags="-L$oracle_lib_dir -L$oracle_lib_dir2 -lclntsh"
         fi
-        LDFLAGS="$LDFLAGS $oci_ldflags"
+
+        saved_LIBS="$LIBS"
+        LIBS="$LIBS $oci_ldflags"
 
                                 if test -f "$oracle_include_dir/oci.h"; then
             ACTIVE_INCLUDE_DIR="$oracle_include_dir"
@@ -23100,7 +23166,7 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
         fi
 
         CPPFLAGS="$saved_CPPFLAGS"
-        LDFLAGS="$saved_LDFLAGS"
+        LIBS="$saved_LIBS"
     fi
 
                 oracle_version_req=$ORACLE_OCI_REQ_VERSION
@@ -23324,49 +23390,19 @@ $as_echo "no" >&6; }
   fi
 
   MYSQL_VERSION="`$MYSQL_CONFIG --version`"
+  MYSQL_MAJOR_VERSION=${MYSQL_VERSION%%'.'*}
 
-  case ${MYSQL_VERSION} in
-    [0-3]*)
-      HAVE_MYSQL=no
-      { $as_echo "$as_me:${as_lineno-$LINENO}: result: no, mysql is pre-4.x" >&5
+  if test $MYSQL_MAJOR_VERSION -le 3 ; then
+    HAVE_MYSQL=no
+    { $as_echo "$as_me:${as_lineno-$LINENO}: result: no, mysql is pre-4.x" >&5
 $as_echo "no, mysql is pre-4.x" >&6; }
-	;;
-    *)
+  else
       HAVE_MYSQL=yes
       MYSQL_LIB="`$MYSQL_CONFIG --libs`"
       MYSQL_INC="`$MYSQL_CONFIG --include`"
       { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 $as_echo "yes" >&6; }
-
-      # Check if mysql headers declare load_defaults
-      { $as_echo "$as_me:${as_lineno-$LINENO}: checking load_defaults() in MySQL" >&5
-$as_echo_n "checking load_defaults() in MySQL... " >&6; }
-      rm -f testmysql.*
-      echo '#include "my_global.h"' > testmysql.cpp
-      echo '#include "my_sys.h"' >> testmysql.cpp
-      echo 'int main(int argc, char** argv) { load_defaults(0, 0, 0, 0); return 0; } ' >> testmysql.cpp
-      if test -z "`${CXX} ${CXXFLAGS} ${MYSQL_INC} -o testmysql testmysql.cpp ${MYSQL_LIB} 2>&1`" ; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes, found in my_sys.h" >&5
-$as_echo "yes, found in my_sys.h" >&6; }
-      else
-        echo 'extern "C" void load_defaults(const char *conf_file, const char **groups, int *argc, char ***argv);' > testmysql.cpp
-        echo 'int main(int argc, char** argv) { load_defaults(0, 0, 0, 0); return 0; } ' >> testmysql.cpp
-        if test -z "`${CXX} ${CXXFLAGS} ${MYSQL_INC} -o testmysql testmysql.cpp ${MYSQL_LIB} 2>&1`" ; then
-            { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes, found in library but not in header" >&5
-$as_echo "yes, found in library but not in header" >&6; }
-            MYSQL_NEEDS_LOAD_DEFAULTS_DECLARATION=yes
-        else
-            HAVE_MYSQL=no
-            MYSQL_LIB=
-            MYSQL_INC=
-            as_fn_error $? "Cannot find load_defaults()" "$LINENO" 5
-        fi
-      fi
-      rm -f testmysql.*
-      rm -f testmysql
-
-	;;
-  esac
+  fi
 fi
 
 HAVE_MYSQL=$HAVE_MYSQL
@@ -23374,8 +23410,6 @@ HAVE_MYSQL=$HAVE_MYSQL
 MYSQL_INC=$MYSQL_INC
 
 MYSQL_LIB=$MYSQL_LIB
-
-MYSQL_NEEDS_LOAD_DEFAULTS_DECLARATION=$MYSQL_NEEDS_LOAD_DEFAULTS_DECLARATION
 
 
 
@@ -24612,13 +24646,14 @@ Please, locate Oracle directories using --with-oci or \
             CPPFLAGS="$CPPFLAGS -I$oracle_include_dir3"
         fi
 
-                        saved_LDFLAGS="$LDFLAGS"
-	if test -n "$oracle_include_dir" ; then
+                        if test -n "$oracle_include_dir" ; then
           oci_ldflags="-L$oracle_lib_dir -lclntsh"
         else
           oci_ldflags="-L$oracle_lib_dir -L$oracle_lib_dir2 -lclntsh"
         fi
-        LDFLAGS="$LDFLAGS $oci_ldflags"
+
+        saved_LIBS="$LIBS"
+        LIBS="$LIBS $oci_ldflags"
 
                                 if test -f "$oracle_include_dir/oci.h"; then
             ACTIVE_INCLUDE_DIR="$oracle_include_dir"
@@ -24748,7 +24783,7 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
         fi
 
         CPPFLAGS="$saved_CPPFLAGS"
-        LDFLAGS="$saved_LDFLAGS"
+        LIBS="$saved_LIBS"
     fi
 
                 oracle_version_req=$ORACLE_OCI_REQ_VERSION

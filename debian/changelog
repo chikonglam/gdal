@@ -1,3 +1,143 @@
+gdal (1.11.2+dfsg-3) unstable; urgency=medium
+
+  * Bump minimum required libspatialite-dev to 4.3.0-3~ for liblwgeom support.
+  * Update Vcs-Browser URL to use HTTPS.
+
+ -- Bas Couwenberg <sebastic@debian.org>  Fri, 28 Aug 2015 10:35:01 +0200
+
+gdal (1.11.2+dfsg-2) unstable; urgency=medium
+
+  * Bump minimum required libspatialite-dev to 4.3.0-2~ for circular
+    dependency change.
+  * Rebuild for geos transition.
+
+ -- Bas Couwenberg <sebastic@debian.org>  Thu, 27 Aug 2015 16:48:40 +0200
+
+gdal (1.11.2+dfsg-1) unstable; urgency=medium
+
+  * Move from experimental to unstable.
+
+ -- Bas Couwenberg <sebastic@debian.org>  Fri, 21 Aug 2015 17:25:49 +0200
+
+gdal (1.11.2+dfsg-1~exp7) experimental; urgency=medium
+
+  * Require at least libkml-dev 1.3.0~rc0-3 for boost dependencies.
+  * Add patch to support pkg-config for the new libkml.
+  * Add RegisterOGRLIBKML to common symbols file again.
+
+ -- Bas Couwenberg <sebastic@debian.org>  Fri, 21 Aug 2015 11:13:01 +0200
+
+gdal (1.11.2+dfsg-1~exp6) experimental; urgency=medium
+
+  * Update symbols for all architectures with GCC 5.
+  * Drop symbols files for ia64 & sparc.
+
+ -- Bas Couwenberg <sebastic@debian.org>  Thu, 20 Aug 2015 12:11:17 +0200
+
+gdal (1.11.2+dfsg-1~exp5) experimental; urgency=medium
+
+  * Update copyright file, changes:
+    - Drop .0 from GPL license shortnames
+    - Strip trailing whitespace
+    - Use range notation for copyright years
+    - Add sbnsearch.c to MIT or LGPL-2+ section
+  * Add patch to fix 'existent' typo.
+
+ -- Bas Couwenberg <sebastic@debian.org>  Tue, 18 Aug 2015 23:05:54 +0200
+
+gdal (1.11.2+dfsg-1~exp4) experimental; urgency=medium
+
+  * Remove trailing whitespace to fix syntax error in symbols files.
+  * Use uscan in get-orig-source target.
+  * Rename library package to libgdal1i because of C++ symbols changes.
+
+ -- Bas Couwenberg <sebastic@debian.org>  Fri, 19 Jun 2015 01:28:42 +0200
+
+gdal (1.11.2+dfsg-1~exp3) experimental; urgency=medium
+
+  * Use packaged jquery.js instead of Doxygen copy.
+
+ -- Bas Couwenberg <sebastic@debian.org>  Sat, 23 May 2015 16:43:16 +0200
+
+gdal (1.11.2+dfsg-1~exp2) experimental; urgency=medium
+
+  * Update symbols for amd64, arm64, armel, armhf, hurd-i386, i386,
+    kfreebsd-amd64, kfreebsd-i386, mipsel, powerpc, ppc64el, s390x, sparc &
+    x32.
+
+ -- Bas Couwenberg <sebastic@debian.org>  Fri, 20 Feb 2015 14:56:48 +0100
+
+gdal (1.11.2+dfsg-1~exp1) experimental; urgency=medium
+
+  * New upstream release.
+  * Add upstream metadata.
+  * Have python*-gdal suggest gdal-bin.
+    (closes: #774243)
+  * Update my email to @debian.org address.
+  * Drop get-orig-source script in favor of uscan + Files-Excluded.
+  * Refresh patches.
+  * Update Vcs-Browser URL to use cgit instead of gitweb.
+  * Update copyright file, group files & copyright by license.
+  * Update openjpeg build dependency from 1.5 to 2.1.
+    (closes: #761957)
+
+ -- Bas Couwenberg <sebastic@debian.org>  Thu, 19 Feb 2015 22:24:13 +0100
+
+gdal (1.11.1+dfsg-1~exp2) experimental; urgency=medium
+
+  * Set experimental branch in Vcs-Git and gbp.conf.
+  * Update symbols for amd64, armel, armhf, i386, mips, mipsel, powerpc,
+    s390x & sparc.
+  * Don't exclude libhdf4-alt-dev from build dependencies on ppc64.
+  * Update gdal-symbols.pl to also generate symbols files for new
+    architectures.
+  * Add symbols files for alpha, arm64, hppa, hurd-i386,
+    kfreebsd-amd64, kfreebsd-i386, ppc64, ppc64el & x32.
+
+ -- Bas Couwenberg <sebastic@xs4all.nl>  Fri, 07 Nov 2014 20:53:35 +0100
+
+gdal (1.11.1+dfsg-1~exp1) experimental; urgency=medium
+
+  * New upstream release.
+  * Refresh patches.
+  * Bump Standards-Version to 3.9.6, no changes.
+
+ -- Bas Couwenberg <sebastic@xs4all.nl>  Sat, 11 Oct 2014 18:11:56 +0200
+
+gdal (1.11.0+dfsg1-1~exp5) experimental; urgency=medium
+
+  * Use alternative dependency template for C++ symbols in libgdal1h.
+  * Update path in copyright file, ogrvrt.xsd moved to data directory.
+
+ -- Bas Couwenberg <sebastic@xs4all.nl>  Wed, 10 Sep 2014 20:27:35 +0200
+
+gdal (1.11.0+dfsg1-1~exp4) experimental; urgency=medium
+
+  * Merge changes from 1.10.1+dfsg-8 to support new hdf5 packaging layout.
+
+ -- Bas Couwenberg <sebastic@xs4all.nl>  Fri, 01 Aug 2014 00:08:50 +0200
+
+gdal (1.11.0+dfsg1-1~exp3) experimental; urgency=medium
+
+  * Merge changes from 1.10.1+dfsg-7 to include patch by Breno Leitao.
+
+ -- Bas Couwenberg <sebastic@xs4all.nl>  Tue, 29 Jul 2014 22:40:29 +0200
+
+gdal (1.11.0+dfsg1-1~exp2) experimental; urgency=low
+
+  [ Marc Deslauriers ]
+  * Fix ftbfs on arm64 and ppc64el.
+
+  [ Bas Couwenberg ]
+  * Simplify repacking with tar --delete.
+  * Update symbols for: amd64, armel, armhf, i386, mips, mipsel, powerpc &
+    s390x.
+  * Bump repacked upstream version, repacking was fixed to not delete the
+    .gitignore file included by upstream.
+  * Merge changes from 1.10.1+dfsg-6 to include patch by gregor herrmann.
+
+ -- Bas Couwenberg <sebastic@xs4all.nl>  Wed, 09 Jul 2014 00:32:07 +0200
+
 gdal (1.11.0+dfsg-1~exp1) experimental; urgency=low
 
   * New upstream release.
@@ -17,6 +157,32 @@ gdal (1.11.0+dfsg-1~exp1) experimental; urgency=low
   * Also include gdal.pc in dev package.
 
  -- Bas Couwenberg <sebastic@xs4all.nl>  Sun, 04 May 2014 18:13:46 +0200
+
+gdal (1.10.1+dfsg-10) UNRELEASED; urgency=medium
+
+  * Update copyright file, changes:
+    - Group files & copyright by license
+    - Drop .0 from GPL license shortnames
+    - Strip trailing whitespace from end of lines
+    - Use range notation for copyright years
+
+ -- Bas Couwenberg <sebastic@debian.org>  Sun, 28 Jun 2015 23:35:25 +0200
+
+gdal (1.10.1+dfsg-9) unstable; urgency=medium
+
+  * Update my email to use @debian.org address.
+  * Add patch backporting upstream changes to fix FTBFS with MySQL 5.6.
+  * Bump Standards-Version to 3.9.6, no changes.
+  * Add upstream metadata.
+  * Have python*-gdal suggest gdal-bin.
+    (closes: #774243)
+  * Drop get-orig-source script in favor of uscan + Files-Excluded.
+  * Use uscan in get-orig-source target.
+  * Update Vcs-Browser URL to use cgit instead of gitweb.
+  * Remove trailing whitespace to fix syntax error in symbols files.
+  * Use packaged jquery.js instead of Doxygen copy.
+
+ -- Bas Couwenberg <sebastic@debian.org>  Sun, 28 Jun 2015 15:10:22 +0200
 
 gdal (1.10.1+dfsg-8) unstable; urgency=medium
 

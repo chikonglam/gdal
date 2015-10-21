@@ -1,5 +1,8 @@
 Description: Fix 'recommanded' typo, replace with 'recommended'.
-Author: Bas Couwenberg <sebastic@xs4all.nl>
+Author: Bas Couwenberg <sebastic@debian.org>
+Forwarded: http://trac.osgeo.org/gdal/ticket/5756
+Applied-Upstream: 2.0, http://trac.osgeo.org/gdal/changeset/28039
+
 --- a/ogr/ogr_geocoding.cpp
 +++ b/ogr/ogr_geocoding.cpp
 @@ -202,7 +202,7 @@ int OGRGeocodeHasStringValidFormat(const
@@ -35,7 +38,7 @@ Author: Bas Couwenberg <sebastic@xs4all.nl>
       sub-strings in the photooverlay field, and the imagepyramid_tilesize,
 --- a/ogr/ogrsf_frmts/libkml/ogrlibkmllayer.cpp
 +++ b/ogr/ogrsf_frmts/libkml/ogrlibkmllayer.cpp
-@@ -568,7 +568,7 @@ OGRErr OGRLIBKMLLayer::CreateFeature (
+@@ -571,7 +571,7 @@ OGRErr OGRLIBKMLLayer::CreateFeature (
              {
                  bAlreadyWarned = TRUE;
                  CPLError(CE_Warning, CPLE_AppDefined,
@@ -46,7 +49,7 @@ Author: Bas Couwenberg <sebastic@xs4all.nl>
          else
 --- a/ogr/ogrsf_frmts/osm/osm_parser.cpp
 +++ b/ogr/ogrsf_frmts/osm/osm_parser.cpp
-@@ -1907,7 +1907,7 @@ static void XMLCALL OSM_XML_startElement
+@@ -1908,7 +1908,7 @@ static void XMLCALL OSM_XML_startElement
      else if( psCtxt->bInRelation &&
               strcmp(pszName, "member") == 0 )
      {
@@ -55,7 +58,7 @@ Author: Bas Couwenberg <sebastic@xs4all.nl>
          /* to realloc over that value */
          if (psCtxt->sRelation.nMembers >= psCtxt->nMembersAllocated)
          {
-@@ -2246,7 +2246,7 @@ OSMContext* OSM_Open( const char* pszFil
+@@ -2249,7 +2249,7 @@ OSMContext* OSM_Open( const char* pszFil
          psCtxt->nTagsAllocated = 256;
          psCtxt->pasTags = (OSMTag*) VSIMalloc(sizeof(OSMTag) * psCtxt->nTagsAllocated);
  

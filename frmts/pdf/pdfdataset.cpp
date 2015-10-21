@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: pdfdataset.cpp 27044 2014-03-16 23:41:27Z rouault $
+ * $Id: pdfdataset.cpp 27741 2014-09-26 19:20:02Z goatbar $
  *
  * Project:  PDF driver
  * Purpose:  GDALDataset driver for PDF dataset.
@@ -55,7 +55,7 @@
 
 /* g++ -fPIC -g -Wall frmts/pdf/pdfdataset.cpp -shared -o gdal_PDF.so -Iport -Igcore -Iogr -L. -lgdal -lpoppler -I/usr/include/poppler */
 
-CPL_CVSID("$Id: pdfdataset.cpp 27044 2014-03-16 23:41:27Z rouault $");
+CPL_CVSID("$Id: pdfdataset.cpp 27741 2014-09-26 19:20:02Z goatbar $");
 
 CPL_C_START
 void    GDALRegister_PDF(void);
@@ -1256,9 +1256,8 @@ PDFImageRasterBand::PDFImageRasterBand( PDFDataset *poDS, int nBand ) : PDFRaste
 /*                             IReadBlock()                             */
 /************************************************************************/
 
-CPLErr PDFImageRasterBand::IReadBlock( int nBlockXOff, int nBlockYOff,
-                                  void * pImage )
-
+CPLErr PDFImageRasterBand::IReadBlock( int CPL_UNUSED nBlockXOff, int nBlockYOff,
+                                       void * pImage )
 {
     PDFDataset *poGDS = (PDFDataset *) poDS;
     CPLAssert(poGDS->poImageObj != NULL);
@@ -1597,7 +1596,7 @@ static void PDFDatasetErrorFunctionCommon(const CPLString& osError)
 }
 
 #ifdef POPPLER_0_20_OR_LATER
-static void PDFDatasetErrorFunction(void* userData, ErrorCategory eErrCatagory,
+static void PDFDatasetErrorFunction(CPL_UNUSED void* userData, CPL_UNUSED ErrorCategory eErrCatagory,
 #ifdef POPPLER_0_23_OR_LATER
                                     Goffset nPos,
 #else
@@ -2827,7 +2826,10 @@ GDALDataset *PDFDataset::Open( GDALOpenInfo * poOpenInfo )
                 if (pszUserPwd && EQUAL(pszUserPwd, "ASK_INTERACTIVE"))
                 {
                     printf( "Enter password (will be echo'ed in the console): " );
-                    fgets( szPassword, sizeof(szPassword), stdin );
+                    if (0 == fgets( szPassword, sizeof(szPassword), stdin ))
+                    {
+                      fprintf(stderr, "WARNING: Error getting password.\n");
+                    }
                     szPassword[sizeof(szPassword)-1] = 0;
                     char* sz10 = strchr(szPassword, '\n');
                     if (sz10)
@@ -3908,7 +3910,7 @@ int PDFDataset::ParseProjDict(GDALPDFDictionary* poProjDict)
 /* -------------------------------------------------------------------- */
     int bIsWGS84 = FALSE;
     int bIsNAD83 = FALSE;
-    int bIsNAD27 = FALSE;
+    /* int bIsNAD27 = FALSE; */
 
     GDALPDFObject* poDatum;
     if ((poDatum = poProjDict->Get("Datum")) != NULL)
@@ -3929,7 +3931,7 @@ int PDFDataset::ParseProjDict(GDALPDFDictionary* poProjDict)
             }
             else if (EQUAL(pszDatum, "NAS") || EQUALN(pszDatum, "NAS-", 4))
             {
-                bIsNAD27 = TRUE;
+                /* bIsNAD27 = TRUE; */
                 oSRS.SetWellKnownGeogCS("NAD27");
             }
             else if (EQUAL(pszDatum, "HEN")) /* HERAT North, Afghanistan */
@@ -5167,7 +5169,16 @@ CPLErr PDFDataset::SetGCPs( int nGCPCountIn, const GDAL_GCP *pasGCPListIn,
 /*                          GDALPDFOpen()                               */
 /************************************************************************/
 
-GDALDataset* GDALPDFOpen(const char* pszFilename, GDALAccess eAccess)
+GDALDataset* GDALPDFOpen(
+#if !defined(HAVE_POPPLER) && !defined(HAVE_PODOFO)
+CPL_UNUSED
+#endif
+                         const char* pszFilename,
+#if !defined(HAVE_POPPLER) && !defined(HAVE_PODOFO)
+CPL_UNUSED
+#endif
+                         GDALAccess eAccess
+                         )
 {
 #if defined(HAVE_POPPLER) || defined(HAVE_PODOFO)
     GDALOpenInfo oOpenInfo(pszFilename, eAccess);
@@ -5181,7 +5192,7 @@ GDALDataset* GDALPDFOpen(const char* pszFilename, GDALAccess eAccess)
 /*                       GDALPDFUnloadDriver()                          */
 /************************************************************************/
 
-static void GDALPDFUnloadDriver(GDALDriver * poDriver)
+static void GDALPDFUnloadDriver(CPL_UNUSED GDALDriver * poDriver)
 {
 #ifdef HAVE_POPPLER
     if( hGlobalParamsMutex != NULL )
@@ -5291,4 +5302,3 @@ void GDALRegister_PDF()
         GetGDALDriverManager()->RegisterDriver( poDriver );
     }
 }
-

@@ -1,9 +1,11 @@
 Description: Fix 'inconsistant' typo, replace with 'inconsistent'.
-Author: Bas Couwenberg <sebastic@xs4all.nl>
-Last-Update: 2013-10-11
+Author: Bas Couwenberg <sebastic@debian.org>
+Forwarded: http://trac.osgeo.org/gdal/ticket/5756
+Applied-Upstream: 2.0, http://trac.osgeo.org/gdal/changeset/28039
+
 --- a/frmts/grib/degrib18/degrib/metaname.cpp
 +++ b/frmts/grib/degrib18/degrib/metaname.cpp
-@@ -838,7 +838,7 @@ GRIB2ParmTable MeteoAtmos[] = {
+@@ -840,7 +840,7 @@ GRIB2ParmTable MeteoAtmos[] = {
  /* 18 */    {"SNFALB", "Snow free albedo", "%", UC_NONE},
  };
  
@@ -47,7 +49,7 @@ Last-Update: 2013-10-11
     if (ParseTime (refTime, year, month, day, hour, min, 0) != 0) {
 --- a/frmts/mbtiles/mbtilesdataset.cpp
 +++ b/frmts/mbtiles/mbtilesdataset.cpp
-@@ -1736,7 +1736,7 @@ GDALDataset* MBTilesDataset::Open(GDALOp
+@@ -1746,7 +1746,7 @@ GDALDataset* MBTilesDataset::Open(GDALOp
          if (bHasMinMaxLevel && (nMinLevel < 0 || nMinLevel > nMaxLevel))
          {
              CPLError(CE_Failure, CPLE_AppDefined,
@@ -69,7 +71,7 @@ Last-Update: 2013-10-11
                  {
 --- a/frmts/nitf/nitffile.c
 +++ b/frmts/nitf/nitffile.c
-@@ -2624,7 +2624,7 @@ char **NITFGenericMetadataReadTRE(char *
+@@ -2626,7 +2626,7 @@ char **NITFGenericMetadataReadTRE(char *
      if (bError == FALSE && nTreLength > 0 && nTreOffset != nTreLength)
      {
          CPLError( CE_Warning, CPLE_AppDefined,
@@ -78,7 +80,7 @@ Last-Update: 2013-10-11
                    pszTREName );
      }
      if (nTreOffset < nTRESize)
-@@ -2760,7 +2760,7 @@ CPLXMLNode* NITFCreateXMLTre(NITFFile* p
+@@ -2762,7 +2762,7 @@ CPLXMLNode* NITFCreateXMLTre(NITFFile* p
      if (bError == FALSE && nTreLength > 0 && nTreOffset != nTreLength)
      {
          CPLError( CE_Warning, CPLE_AppDefined,
@@ -195,7 +197,7 @@ Last-Update: 2013-10-11
      return VSIFWriteL(pBuf, size, memb, f);
 --- a/swig/python/extensions/gdal_wrap.cpp
 +++ b/swig/python/extensions/gdal_wrap.cpp
-@@ -3499,7 +3499,7 @@ int wrapper_VSIFWriteL( int nLen, char *
+@@ -3505,7 +3505,7 @@ int wrapper_VSIFWriteL( int nLen, char *
  {
      if (nLen < size * memb)
      {

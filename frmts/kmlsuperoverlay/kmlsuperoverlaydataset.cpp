@@ -52,8 +52,8 @@ using namespace std;
 /*                           GenerateTiles()                            */
 /************************************************************************/
 void GenerateTiles(std::string filename, 
-                   int zoom, int rxsize, 
-                   int rysize, int ix, int iy, 
+                   CPL_UNUSED int zoom, int rxsize, 
+                   int rysize, CPL_UNUSED int ix, CPL_UNUSED int iy, 
                    int rx, int ry, int dxsize, 
                    int dysize, int bands,
                    GDALDataset* poSrcDs,
@@ -508,7 +508,8 @@ class KmlSuperOverlayDummyDataset: public GDALDataset
 
 static
 GDALDataset *KmlSuperOverlayCreateCopy( const char * pszFilename, GDALDataset *poSrcDS, 
-                                        int bStrict, char ** papszOptions, GDALProgressFunc pfnProgress, void * pProgressData)
+                                        CPL_UNUSED int bStrict, char ** papszOptions,
+                                        GDALProgressFunc pfnProgress, void * pProgressData)
 {
     bool isKmz = false;
     
@@ -637,7 +638,7 @@ GDALDataset *KmlSuperOverlayCreateCopy( const char * pszFilename, GDALDataset *p
     }
 
     //Zoom levels of the pyramid.
-    int maxzoom;
+    int maxzoom = 0;
     int tilexsize;
     int tileysize;
     // Let the longer side determine the max zoom level and x/y tilesizes.
@@ -647,9 +648,8 @@ GDALDataset *KmlSuperOverlayCreateCopy( const char * pszFilename, GDALDataset *p
         while (dtilexsize > 400) //calculate x tile size
         {
             dtilexsize = dtilexsize/2;
+            maxzoom ++;
         }
-
-        maxzoom   = static_cast<int>(log( (double)xsize / dtilexsize ) / log(2.0));
         tilexsize = (int)dtilexsize;
         tileysize = (int)( (double)(dtilexsize * ysize) / xsize );
     }
@@ -659,9 +659,9 @@ GDALDataset *KmlSuperOverlayCreateCopy( const char * pszFilename, GDALDataset *p
         while (dtileysize > 400) //calculate y tile size
         {
             dtileysize = dtileysize/2;
+            maxzoom ++;
         }
 
-        maxzoom   = static_cast<int>(log( (double)ysize / dtileysize ) / log(2.0));
         tileysize = (int)dtileysize;
         tilexsize = (int)( (double)(dtileysize * xsize) / ysize );
     }
@@ -747,8 +747,8 @@ GDALDataset *KmlSuperOverlayCreateCopy( const char * pszFilename, GDALDataset *p
 
     for (zoom = maxzoom; zoom >= 0; --zoom)
     {
-        int rmaxxsize = static_cast<int>(pow(2.0, (maxzoom-zoom)) * tilexsize);
-        int rmaxysize = static_cast<int>(pow(2.0, (maxzoom-zoom)) * tileysize);
+        int rmaxxsize = tilexsize * (1 << (maxzoom-zoom));
+        int rmaxysize = tileysize * (1 << (maxzoom-zoom));
 
         int xloop = (int)xsize/rmaxxsize;
         int yloop = (int)ysize/rmaxysize;
@@ -757,8 +757,8 @@ GDALDataset *KmlSuperOverlayCreateCopy( const char * pszFilename, GDALDataset *p
 
     for (zoom = maxzoom; zoom >= 0; --zoom)
     {
-        int rmaxxsize = static_cast<int>(pow(2.0, (maxzoom-zoom)) * tilexsize);
-        int rmaxysize = static_cast<int>(pow(2.0, (maxzoom-zoom)) * tileysize);
+        int rmaxxsize = tilexsize * (1 << (maxzoom-zoom));
+        int rmaxysize = tileysize * (1 << (maxzoom-zoom));
 
         int xloop = (int)xsize/rmaxxsize;
         int yloop = (int)ysize/rmaxysize;
@@ -991,7 +991,7 @@ CPLErr KmlSuperOverlayReadDataset::GetGeoTransform( double * padfGeoTransform )
 /*                        KmlSuperOverlayRasterBand()                   */
 /************************************************************************/
 
-KmlSuperOverlayRasterBand::KmlSuperOverlayRasterBand(KmlSuperOverlayReadDataset* poDS, int nBand)
+KmlSuperOverlayRasterBand::KmlSuperOverlayRasterBand(KmlSuperOverlayReadDataset* poDS, CPL_UNUSED int nBand)
 {
     nRasterXSize = poDS->nRasterXSize;
     nRasterYSize = poDS->nRasterYSize;
@@ -2427,7 +2427,7 @@ GDALDataset *KmlSuperOverlayReadDataset::Open(const char* pszFilename,
 /*                    KmlSuperOverlayDatasetDelete()                    */
 /************************************************************************/
 
-static CPLErr KmlSuperOverlayDatasetDelete(const char* fileName)
+static CPLErr KmlSuperOverlayDatasetDelete(CPL_UNUSED const char* fileName)
 {
     /* Null implementation, so that people can Delete("MEM:::") */
     return CE_None;

@@ -1,4 +1,4 @@
-# $Id: nmake.opt 27143 2014-04-09 12:35:26Z rouault $
+# $Id: nmake.opt 28317 2015-01-15 22:49:41Z tamas $
 #
 # nmake.opt - main configuration file for NMAKE makefiles.
 #
@@ -522,7 +522,9 @@ OCI_INCLUDE =	-I$(ORACLE_HOME)\oci\include
 # Uncomment for OpenJpeg (release v2.0.0) support
 #OPENJPEG_ENABLED = YES
 #OPENJPEG_CFLAGS = -IC:\openjpeg\include
-#OPENJPEG_LIB = C:\openjpeg\lib\openjpeg.lib
+#OPENJPEG_LIB = C:\openjpeg\lib\openjp2.lib
+# For OpenJpeg >= 2.1, uncomment
+#OPENJPEG_VERSION = 20100
 
 # Uncomment for PDF support
 # Uncomment POPPLER_BASE_STREAM_HAS_TWO_ARGS = YES for Poppler >= 0.16.0

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: hugefileresolver.cpp 27044 2014-03-16 23:41:27Z rouault $
+ * $Id: hugefileresolver.cpp 27741 2014-09-26 19:20:02Z goatbar $
  *
  * Project:  GML Reader
  * Purpose:  Implementation of GMLReader::HugeFileResolver() method.
@@ -47,7 +47,7 @@
 
 #include <stack>
 
-CPL_CVSID("$Id: hugefileresolver.cpp 27044 2014-03-16 23:41:27Z rouault $");
+CPL_CVSID("$Id: hugefileresolver.cpp 27741 2014-09-26 19:20:02Z goatbar $");
 
 /****************************************************/
 /*      SQLite is absolutely required in order to   */
@@ -376,7 +376,7 @@ static int gmlHugeFileResolveEdges( struct huge_helper *helper )
         sqlite3_finalize ( hUpdateStmt );
         return FALSE;
     }
-    
+
     /* looping on the QUERY result-set */
     while ( TRUE )
     {
@@ -391,7 +391,7 @@ static int gmlHugeFileResolveEdges( struct huge_helper *helper )
         int             bIsYFromNull;
         double          zFrom = 0.0;
         int             bIsZFromNull;
-        const char      *pszNodeFromId = NULL;
+        /* const char      *pszNodeFromId = NULL; */
         int             bIsNodeFromIdNull;
         double          xNodeFrom = 0.0;
         int             bIsXNodeFromNull;
@@ -407,7 +407,7 @@ static int gmlHugeFileResolveEdges( struct huge_helper *helper )
         int             bIsYToNull;
         double          zTo = 0.0;
         int             bIsZToNull;
-        const char      *pszNodeToId = NULL;
+        /* const char      *pszNodeToId = NULL; */
         int             bIsNodeToIdNull;
         double          xNodeTo = 0.0;
         int             bIsXNodeToNull;
@@ -462,7 +462,8 @@ static int gmlHugeFileResolveEdges( struct huge_helper *helper )
                 bIsNodeFromIdNull = TRUE;
             else
             {
-                pszNodeFromId = (const char *) sqlite3_column_text( hQueryStmt, 6 );
+                /* TODO: Can sqlite3_column_text be removed? */
+                /* pszNodeFromId = (const char *) */ sqlite3_column_text( hQueryStmt, 6 );
                 bIsNodeFromIdNull = FALSE;
             }
             if( sqlite3_column_type( hQueryStmt, 7 ) == SQLITE_NULL )
@@ -518,7 +519,8 @@ static int gmlHugeFileResolveEdges( struct huge_helper *helper )
                 bIsNodeToIdNull = TRUE;
             else
             {
-                pszNodeToId = (const char *) sqlite3_column_text( hQueryStmt, 14 );
+                /* TODO: Can sqlite3_column_text be removed? */
+                /* pszNodeToId = (const char *) */ sqlite3_column_text( hQueryStmt, 14 );
                 bIsNodeToIdNull = FALSE;
             }
             if( sqlite3_column_type( hQueryStmt, 15 ) == SQLITE_NULL )
@@ -1057,7 +1059,7 @@ static int gmlHugeFindGmlId( const CPLXMLNode *psNode, CPLString **gmlId )
 
 static void gmlHugeFileNodeCoords( struct huge_tag *pItem,
                                    const CPLXMLNode * psNode,
-                                   CPLString **nodeSrs )
+                                   CPL_UNUSED CPLString **nodeSrs )
 {
 /* 
 / this function attempts to set coordinates for <Node> items
@@ -1461,7 +1463,7 @@ static int gmlHugeSetChild( struct huge_parent *pParent,
 }
 
 static int gmlHugeResolveEdges( struct huge_helper *helper,
-                                CPLXMLNode *psNode, sqlite3 *hDB )
+                                CPL_UNUSED CPLXMLNode *psNode, sqlite3 *hDB )
 {
 /* resolving GML <Edge> xlink:href */
     CPLString      osCommand;

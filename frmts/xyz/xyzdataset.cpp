@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: xyzdataset.cpp 27044 2014-03-16 23:41:27Z rouault $
+ * $Id: xyzdataset.cpp 27739 2014-09-25 18:49:52Z goatbar $
  *
  * Project:  XYZ driver
  * Purpose:  GDALDataset driver for XYZ dataset.
@@ -31,7 +31,7 @@
 #include "cpl_string.h"
 #include "gdal_pam.h"
 
-CPL_CVSID("$Id: xyzdataset.cpp 27044 2014-03-16 23:41:27Z rouault $");
+CPL_CVSID("$Id: xyzdataset.cpp 27739 2014-09-25 18:49:52Z goatbar $");
 
 CPL_C_START
 void    GDALRegister_XYZ(void);
@@ -124,7 +124,7 @@ XYZRasterBand::XYZRasterBand( XYZDataset *poDS, int nBand, GDALDataType eDT )
 /*                             IReadBlock()                             */
 /************************************************************************/
 
-CPLErr XYZRasterBand::IReadBlock( int nBlockXOff, int nBlockYOff,
+CPLErr XYZRasterBand::IReadBlock( CPL_UNUSED int nBlockXOff, int nBlockYOff,
                                   void * pImage )
 
 {
@@ -146,13 +146,17 @@ CPLErr XYZRasterBand::IReadBlock( int nBlockXOff, int nBlockYOff,
 
     int nLineInFile = nBlockYOff * nBlockXSize; // only valid if bSameNumberOfValuesPerLine
     if ( (poGDS->bSameNumberOfValuesPerLine && poGDS->nDataLineNum > nLineInFile) ||
-         (!poGDS->bSameNumberOfValuesPerLine && (nLastYOff == -1 || nBlockYOff != nLastYOff + 1)) )
+         (!poGDS->bSameNumberOfValuesPerLine && (nLastYOff == -1 || nBlockYOff == 0)) )
     {
         poGDS->nDataLineNum = 0;
+        poGDS->nLineNum = 0;
         VSIFSeekL(poGDS->fp, 0, SEEK_SET);
 
         for(int i=0;i<poGDS->nCommentLineCount;i++)
+        {
             CPLReadLine2L(poGDS->fp, 100, NULL);
+            poGDS->nLineNum ++;
+        }
 
         if (poGDS->bHasHeaderLine)
         {
@@ -354,9 +358,10 @@ CPLErr XYZRasterBand::IReadBlock( int nBlockXOff, int nBlockYOff,
         if( idx + 1 == nRasterXSize )
             break;
     }
-    
-    if( poGDS->bSameNumberOfValuesPerLine )
+
+    if( poGDS->bSameNumberOfValuesPerLine ) {
         CPLAssert(poGDS->nDataLineNum == (nBlockYOff + 1) * nBlockXSize);
+    }
 
     nLastYOff = nBlockYOff;
 
@@ -783,7 +788,7 @@ GDALDataset *XYZDataset::Open( GDALOpenInfo * poOpenInfo )
                         dfX = CPLAtofDelim(pszPtr, chLocalDecimalSep);
                     else if (nCol == nYIndex)
                         dfY = CPLAtofDelim(pszPtr, chLocalDecimalSep);
-                    else if (nCol == nZIndex && eDT != GDT_Float32)
+                    else if (nCol == nZIndex)
                     {
                         dfZ = CPLAtofDelim(pszPtr, chLocalDecimalSep);
                         if( nDataLineNum == 0 )
@@ -1236,4 +1241,3 @@ void GDALRegister_XYZ()
         GetGDALDriverManager()->RegisterDriver( poDriver );
     }
 }
-

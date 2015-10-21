@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdalwarper.cpp 27044 2014-03-16 23:41:27Z rouault $
+ * $Id: gdalwarper.cpp 27739 2014-09-25 18:49:52Z goatbar $
  *
  * Project:  High Performance Image Reprojector
  * Purpose:  Implementation of high level convenience APIs for warper.
@@ -34,7 +34,7 @@
 #include "ogr_api.h"
 #include "gdal_priv.h"
 
-CPL_CVSID("$Id: gdalwarper.cpp 27044 2014-03-16 23:41:27Z rouault $");
+CPL_CVSID("$Id: gdalwarper.cpp 27739 2014-09-25 18:49:52Z goatbar $");
 
 /************************************************************************/
 /*                         GDALReprojectImage()                         */
@@ -73,13 +73,13 @@ CPL_CVSID("$Id: gdalwarper.cpp 27044 2014-03-16 23:41:27Z rouault $");
  * @return CE_None on success or CE_Failure if something goes wrong.
  */
 
-CPLErr CPL_STDCALL 
-GDALReprojectImage( GDALDatasetH hSrcDS, const char *pszSrcWKT, 
+CPLErr CPL_STDCALL
+GDALReprojectImage( GDALDatasetH hSrcDS, const char *pszSrcWKT,
                     GDALDatasetH hDstDS, const char *pszDstWKT,
-                    GDALResampleAlg eResampleAlg, 
-                    double dfWarpMemoryLimit, 
+                    GDALResampleAlg eResampleAlg,
+                    CPL_UNUSED double dfWarpMemoryLimit,
                     double dfMaxError,
-                    GDALProgressFunc pfnProgress, void *pProgressArg, 
+                    GDALProgressFunc pfnProgress, void *pProgressArg,
                     GDALWarpOptions *psOptions )
 
 {
@@ -509,7 +509,7 @@ GDALWarpNoDataMasker( void *pMaskFuncArg, int nBandCount, GDALDataType eType,
 /************************************************************************/
 
 CPLErr 
-GDALWarpSrcAlphaMasker( void *pMaskFuncArg, int nBandCount, GDALDataType eType, 
+GDALWarpSrcAlphaMasker( void *pMaskFuncArg, CPL_UNUSED int nBandCount, CPL_UNUSED GDALDataType eType, 
                         int nXOff, int nYOff, int nXSize, int nYSize,
                         GByte ** /*ppImageData */,
                         int bMaskIsFloat, void *pValidityMask )
@@ -568,7 +568,7 @@ GDALWarpSrcAlphaMasker( void *pMaskFuncArg, int nBandCount, GDALDataType eType,
 /************************************************************************/
 
 CPLErr 
-GDALWarpSrcMaskMasker( void *pMaskFuncArg, int nBandCount, GDALDataType eType, 
+GDALWarpSrcMaskMasker( void *pMaskFuncArg, CPL_UNUSED int nBandCount, CPL_UNUSED GDALDataType eType, 
                        int nXOff, int nYOff, int nXSize, int nYSize,
                        GByte ** /*ppImageData */,
                        int bMaskIsFloat, void *pValidityMask )
@@ -659,7 +659,7 @@ GDALWarpSrcMaskMasker( void *pMaskFuncArg, int nBandCount, GDALDataType eType,
 /************************************************************************/
 
 CPLErr 
-GDALWarpDstAlphaMasker( void *pMaskFuncArg, int nBandCount, GDALDataType eType,
+GDALWarpDstAlphaMasker( void *pMaskFuncArg, int nBandCount, CPL_UNUSED GDALDataType eType,
                         int nXOff, int nYOff, int nXSize, int nYSize,
                         GByte ** /*ppImageData */,
                         int bMaskIsFloat, void *pValidityMask )

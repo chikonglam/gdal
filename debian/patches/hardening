@@ -1,6 +1,8 @@
 Description: Add support for all hardening buildflags.
-Author: Bas Couwenberg <sebastic@xs4all.nl>
-Last-Update: 2013-10-13
+Author: Bas Couwenberg <sebastic@debian.org>
+Applied-Upstream: https://trac.osgeo.org/gdal/changeset/30006
+                  https://trac.osgeo.org/gdal/changeset/29360
+
 --- a/swig/perl/Makefile.PL
 +++ b/swig/perl/Makefile.PL
 @@ -1,4 +1,5 @@
