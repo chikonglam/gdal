@@ -18,6 +18,36 @@ gdal (1.11.0+dfsg-1~exp1) experimental; urgency=low
 
  -- Bas Couwenberg <sebastic@xs4all.nl>  Sun, 04 May 2014 18:13:46 +0200
 
+gdal (1.10.1+dfsg-8) unstable; urgency=medium
+
+  * Support hdf5 1.8.13 new packaging layout.
+    Thanks to Gilles Filippini for the patch.
+    (closes: #756662)
+
+ -- Bas Couwenberg <sebastic@xs4all.nl>  Fri, 01 Aug 2014 00:02:15 +0200
+
+gdal (1.10.1+dfsg-7) unstable; urgency=medium
+
+  * Also use autotools_dev to update config.sub and config.guess.
+    Thanks to Breno Leitao for the patch.
+    (closes: #756412)
+
+ -- Bas Couwenberg <sebastic@xs4all.nl>  Tue, 29 Jul 2014 22:17:47 +0200
+
+gdal (1.10.1+dfsg-6) unstable; urgency=medium
+
+  [ gregor herrmann ]
+  * Fix "hardcodes /usr/lib/perl5":
+    - add patch perl-vendor which passes INSTALLDIRS=vendor to Makefile.PL
+      which nicely drops perl files into suitable directories
+    - remove all perl juggling around from debian/rules as a result of the
+      patch
+    - make debian/libgdal-perl.install executable and use $Config{vendorarch}
+      there to install the perl files from the expected location
+    (Closes: #752473)
+
+ -- Bas Couwenberg <sebastic@xs4all.nl>  Tue, 08 Jul 2014 20:44:25 +0200
+
 gdal (1.10.1+dfsg-5) unstable; urgency=medium
 
   * Don't run dh for custom targets.
