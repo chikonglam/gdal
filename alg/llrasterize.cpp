@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: llrasterize.cpp 27739 2014-09-25 18:49:52Z goatbar $
+ * $Id: llrasterize.cpp 29118 2015-05-02 20:50:50Z rouault $
  *
  * Project:  GDAL
  * Purpose:  Vector polygon rasterization code.
@@ -553,7 +553,7 @@ GDALdllImageLineAllTouched(int nRasterXSize, int nRasterYSize,
             }
 
             // step from pixel to pixel.
-            while( dfX < dfXEnd )
+            while( dfX >= 0 && dfX < dfXEnd )
             {
                 int iX = (int) floor(dfX);
                 int iY = (int) floor(dfY);

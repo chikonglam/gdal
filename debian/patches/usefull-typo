@@ -5,7 +5,7 @@ Applied-Upstream: 2.0, http://trac.osgeo.org/gdal/changeset/28039
 
 --- a/NEWS
 +++ b/NEWS
-@@ -2920,7 +2920,7 @@ Port:
+@@ -3037,7 +3037,7 @@ Port:
      - /vsitar/ : to read in .tar or .tgz/.tar.gz files
   * Add C API to create ZIP files
   * Add support for writable /vsizip/
@@ -14,7 +14,7 @@ Applied-Upstream: 2.0, http://trac.osgeo.org/gdal/changeset/28039
     doing backward seeks by a few bytes on underlying file handles for which
     backwardseeks are very slow, such as GZip handle
   * Add service for base64 decoding
-@@ -2938,7 +2938,7 @@ Port:
+@@ -3055,7 +3055,7 @@ Port:
  Core:
   * RFC 24: progressive/async raster reading
   * On Unix, add capability of opening the target of a symlink through GDALOpen()
@@ -23,7 +23,7 @@ Applied-Upstream: 2.0, http://trac.osgeo.org/gdal/changeset/28039
     GDAL virtual filenames in software offering only file explorers (#3902)
   * Assume anything less than 100000 for GDAL_CACHEMAX is measured in metabytes.
   * Read cartesian coordinates if applicable in GDALLoadOziMapFile().
-@@ -3358,7 +3358,7 @@ Core:
+@@ -3475,7 +3475,7 @@ Core:
   * Add OGRLayer::GetName() and OGRLayer::GetGeomType() virtual methods,
     and their C and SWIG mappings (#3719)
   * On Unix, add capability of opening the target of a symlink through OGROpen()
@@ -32,7 +32,7 @@ Applied-Upstream: 2.0, http://trac.osgeo.org/gdal/changeset/28039
     GDAL virtual filenames in software offering only file explorers (#3902)
   * Expat based XML readers : add support for reading files with Windows-1252
     encoding
-@@ -3628,7 +3628,7 @@ PostgreSQL driver:
+@@ -3745,7 +3745,7 @@ PostgreSQL driver:
     is set to YES
   * If the PG_USE_BASE64 configuration option is set to YES, geometries will be
     requested as BASE64 encoded EWKB instead of canonical HEX encoded EWKB.
@@ -99,7 +99,7 @@ Applied-Upstream: 2.0, http://trac.osgeo.org/gdal/changeset/28039
  /* sub-windows of data on a large /vsicurl dataset). */
  
  CPLErr GTiffRasterBand::DirectIO( GDALRWFlag eRWFlag,
-@@ -8667,7 +8667,7 @@ TIFF *GTiffDataset::CreateLL( const char
+@@ -8681,7 +8681,7 @@ TIFF *GTiffDataset::CreateLL( const char
      }
  
      /* Set the compression method before asking the default strip size */
@@ -108,7 +108,7 @@ Applied-Upstream: 2.0, http://trac.osgeo.org/gdal/changeset/28039
      /* the default strip size is 8 or 16 depending on the photometric value */
      TIFFSetField( hTIFF, TIFFTAG_COMPRESSION, nCompression );
  
-@@ -9155,7 +9155,7 @@ GTiffDataset::CreateCopy( const char * p
+@@ -9169,7 +9169,7 @@ GTiffDataset::CreateCopy( const char * p
  #endif
  
      /* Note: JPEG_DIRECT_COPY is not defined by default, because it is mainly */
@@ -196,21 +196,21 @@ Applied-Upstream: 2.0, http://trac.osgeo.org/gdal/changeset/28039
   * matching if no exact matching is possible.
 --- a/man/man1/ogr2ogr.1
 +++ b/man/man1/ogr2ogr.1
-@@ -89,7 +89,7 @@ Layer creation option (format specific)
+@@ -86,7 +86,7 @@ Layer creation option (format specific)
  .IP "\fB\fB-nln\fP\fI name\fP:\fP" 1c
  Assign an alternate name to the new layer 
  .IP "\fB\fB-nlt\fP\fI type\fP:\fP" 1c
--Define the geometry type for the created layer. One of NONE, GEOMETRY, POINT, LINESTRING, POLYGON, GEOMETRYCOLLECTION, MULTIPOINT, MULTIPOLYGON or MULTILINESTRING. Add '25D' to the name to get 2.5D versions. Starting with GDAL 1.10, PROMOTE_TO_MULTI can be used to automatically promote layers that mix polygon or multipolygons to multipolygons, and layers that mix linestrings or multilinestrings to multilinestrings. Can be usefull when converting shapefiles to PostGIS (and other target drivers) that implements strict checks for geometry type. 
-+Define the geometry type for the created layer. One of NONE, GEOMETRY, POINT, LINESTRING, POLYGON, GEOMETRYCOLLECTION, MULTIPOINT, MULTIPOLYGON or MULTILINESTRING. Add '25D' to the name to get 2.5D versions. Starting with GDAL 1.10, PROMOTE_TO_MULTI can be used to automatically promote layers that mix polygon or multipolygons to multipolygons, and layers that mix linestrings or multilinestrings to multilinestrings. Can be useful when converting shapefiles to PostGIS (and other target drivers) that implements strict checks for geometry type.
+-Define the geometry type for the created layer\&. One of NONE, GEOMETRY, POINT, LINESTRING, POLYGON, GEOMETRYCOLLECTION, MULTIPOINT, MULTIPOLYGON or MULTILINESTRING\&. Add '25D' to the name to get 2\&.5D versions\&. Starting with GDAL 1\&.10, PROMOTE_TO_MULTI can be used to automatically promote layers that mix polygon or multipolygons to multipolygons, and layers that mix linestrings or multilinestrings to multilinestrings\&. Can be usefull when converting shapefiles to PostGIS (and other target drivers) that implements strict checks for geometry type\&. 
++Define the geometry type for the created layer\&. One of NONE, GEOMETRY, POINT, LINESTRING, POLYGON, GEOMETRYCOLLECTION, MULTIPOINT, MULTIPOLYGON or MULTILINESTRING\&. Add '25D' to the name to get 2\&.5D versions\&. Starting with GDAL 1\&.10, PROMOTE_TO_MULTI can be used to automatically promote layers that mix polygon or multipolygons to multipolygons, and layers that mix linestrings or multilinestrings to multilinestrings\&. Can be useful when converting shapefiles to PostGIS (and other target drivers) that implements strict checks for geometry type\&. 
  .IP "\fB\fB-dim\fP\fI val\fP:\fP" 1c
- (starting with GDAL 1.10) Force the coordinate dimension to val (valid values are 2 or 3). This affects both the layer geometry type, and feature geometries. Starting with GDAL 1.11, the value can be set to 'layer_dim' to instruct feature geometries to be promoted to the coordinate dimension declared by the layer.  
+ (starting with GDAL 1\&.10) Force the coordinate dimension to val (valid values are 2 or 3)\&. This affects both the layer geometry type, and feature geometries\&. Starting with GDAL 1\&.11, the value can be set to 'layer_dim' to instruct feature geometries to be promoted to the coordinate dimension declared by the layer\&.  
  .IP "\fB\fB-a_srs\fP\fI srs_def\fP:\fP" 1c
-@@ -155,7 +155,7 @@ To be combined with -splitlistfields to
+@@ -152,7 +152,7 @@ To be combined with -splitlistfields to
  .IP "\fB\fB-fieldmap\fP:\fP" 1c
- (starting with GDAL 1.10.0) Specifies the list of field indexes to be copied from the source to the destination. The (n)th value specified in the list is the index of the field in the target layer definition in which the n(th) field of the source layer must be copied. Index count starts at zero. There must be exactly as many values in the list as the count of the fields in the source layer. We can use the 'identity' setting to specify that the fields should be transferred by using the same order. This setting should be used along with the -append setting. 
+ (starting with GDAL 1\&.10\&.0) Specifies the list of field indexes to be copied from the source to the destination\&. The (n)th value specified in the list is the index of the field in the target layer definition in which the n(th) field of the source layer must be copied\&. Index count starts at zero\&. There must be exactly as many values in the list as the count of the fields in the source layer\&. We can use the 'identity' setting to specify that the fields should be transferred by using the same order\&. This setting should be used along with the -append setting\&. 
  .IP "\fB\fB-addfields\fP:\fP" 1c
--(starting with GDAL 1.11) This is a specialized version of -append. Contrary to -append, -addfields has the effect of adding, to existing target layers, the new fields found in source layers. This option is usefull when merging files that have non-strictly identical structures. This might not work for output formats that don't support adding fields to existing non-empty layers. 
-+(starting with GDAL 1.11) This is a specialized version of -append. Contrary to -append, -addfields has the effect of adding, to existing target layers, the new fields found in source layers. This option is useful when merging files that have non-strictly identical structures. This might not work for output formats that don't support adding fields to existing non-empty layers. 
+-(starting with GDAL 1\&.11) This is a specialized version of -append\&. Contrary to -append, -addfields has the effect of adding, to existing target layers, the new fields found in source layers\&. This option is usefull when merging files that have non-strictly identical structures\&. This might not work for output formats that don't support adding fields to existing non-empty layers\&. 
++(starting with GDAL 1\&.11) This is a specialized version of -append\&. Contrary to -append, -addfields has the effect of adding, to existing target layers, the new fields found in source layers\&. This option is useful when merging files that have non-strictly identical structures\&. This might not work for output formats that don't support adding fields to existing non-empty layers\&. 
  .PP
  .SH "PERFORMANCE HINTS"
  .PP
@@ -579,12 +579,12 @@ Applied-Upstream: 2.0, http://trac.osgeo.org/gdal/changeset/28039
  
 --- a/man/man1/gdal_edit.1
 +++ b/man/man1/gdal_edit.1
-@@ -27,7 +27,7 @@ It works only with raster formats that s
- Gives a brief usage message for the generic GDAL commandline options and exit. 
+@@ -24,7 +24,7 @@ It works only with raster formats that s
+ Gives a brief usage message for the generic GDAL commandline options and exit\&. 
  .PP
  .IP "\fB\fB-ro\fP:\fP" 1c
--(GDAL >= 1.11) Open the dataset in read-only. Might be usefull for drivers refusing to use the dataset in update-mode. In which case, updated information will go into PAM .aux.xml files.
-+(GDAL >= 1.11) Open the dataset in read-only. Might be useful for drivers refusing to use the dataset in update-mode. In which case, updated information will go into PAM .aux.xml files.
+-(GDAL >= 1\&.11) Open the dataset in read-only\&. Might be usefull for drivers refusing to use the dataset in update-mode\&. In which case, updated information will go into PAM \&.aux\&.xml files\&.
++(GDAL >= 1\&.11) Open the dataset in read-only\&. Might be useful for drivers refusing to use the dataset in update-mode\&. In which case, updated information will go into PAM \&.aux\&.xml files\&.
  .PP
  .IP "\fB\fB-a_srs\fP \fIsrs_def\fP:\fP" 1c
  .PP

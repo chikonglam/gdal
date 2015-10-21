@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdalserver.c 27741 2014-09-26 19:20:02Z goatbar $
+ * $Id: gdalserver.c 29669 2015-08-19 16:42:29Z rouault $
  *
  * Project:  GDAL
  * Purpose:  Server application that is forked by libgdal
@@ -27,9 +27,8 @@
  * DEALINGS IN THE SOFTWARE.
  ****************************************************************************/
 
-#if defined(__STDC_VERSION__)
-#define _XOPEN_SOURCE
-#endif
+// So that __USE_XOPEN2K is defined to have getaddrinfo
+#define _XOPEN_SOURCE 600
 
 #include "cpl_port.h"
 
@@ -77,7 +76,7 @@ int CPL_DLL GDALServerLoop(CPL_FILE_HANDLE fin, CPL_FILE_HANDLE fout);
 int CPL_DLL GDALServerLoopSocket(CPL_SOCKET nSocket);
 CPL_C_END
 
-CPL_CVSID("$Id: gdalserver.c 27741 2014-09-26 19:20:02Z goatbar $");
+CPL_CVSID("$Id: gdalserver.c 29669 2015-08-19 16:42:29Z rouault $");
 
 /************************************************************************/
 /*                               Usage()                                */

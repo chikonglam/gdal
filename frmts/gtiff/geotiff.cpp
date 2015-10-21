@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: geotiff.cpp 28419 2015-02-06 00:28:50Z rouault $
+ * $Id: geotiff.cpp 29356 2015-06-15 09:27:49Z rouault $
  *
  * Project:  GeoTIFF Driver
  * Purpose:  GDAL GeoTIFF support.
@@ -60,7 +60,7 @@
 #include "tiffiop.h"
 #endif
 
-CPL_CVSID("$Id: geotiff.cpp 28419 2015-02-06 00:28:50Z rouault $");
+CPL_CVSID("$Id: geotiff.cpp 29356 2015-06-15 09:27:49Z rouault $");
 
 #if SIZEOF_VOIDP == 4
 static int bGlobalStripIntegerOverflow = FALSE;
@@ -3845,7 +3845,9 @@ int GTiffDataset::WriteEncodedTile(uint32 tile, GByte *pabyData,
     /*
     ** Perform tile fill if needed.
     */
-    if( bNeedTileFill )
+    // TODO: we should also handle the case of nBitsPerSample == 12
+    // but this is more involved...
+    if( bNeedTileFill && nBitsPerSample == 8 )
     {
         int nRightPixelsToFill = 0;
         int nBottomPixelsToFill = 0;
@@ -4306,10 +4308,16 @@ int GTiffDataset::IsBlockAvailable( int nBlockId )
             vsi_l_offset nCurOffset = VSIFTellL(fp);
             if( ~(hTIFF->tif_dir.td_stripoffset[nBlockId]) == 0 )
             {
+                vsi_l_offset nDirOffset;
+                if( hTIFF->tif_flags&TIFF_BIGTIFF )
+                    nDirOffset = hTIFF->tif_dir.td_stripoffset_entry.tdir_offset.toff_long8;
+                else
+                    nDirOffset = hTIFF->tif_dir.td_stripoffset_entry.tdir_offset.toff_long;
+
                 if( hTIFF->tif_dir.td_stripoffset_entry.tdir_type == TIFF_LONG )
                 {
                     GTiffCacheOffsetOrCount4(fp,
-                                             hTIFF->tif_dir.td_stripoffset_entry.tdir_offset.toff_long,
+                                             nDirOffset,
                                              nBlockId,
                                              hTIFF->tif_dir.td_nstrips,
                                              hTIFF->tif_dir.td_stripoffset);
@@ -4317,7 +4325,7 @@ int GTiffDataset::IsBlockAvailable( int nBlockId )
                 else
                 {
                     GTiffCacheOffsetOrCount8(fp,
-                                             hTIFF->tif_dir.td_stripoffset_entry.tdir_offset.toff_long8,
+                                             nDirOffset,
                                              nBlockId,
                                              hTIFF->tif_dir.td_nstrips,
                                              hTIFF->tif_dir.td_stripoffset);
@@ -4326,10 +4334,16 @@ int GTiffDataset::IsBlockAvailable( int nBlockId )
 
             if( ~(hTIFF->tif_dir.td_stripbytecount[nBlockId]) == 0 )
             {
+                vsi_l_offset nDirOffset;
+                if( hTIFF->tif_flags&TIFF_BIGTIFF )
+                    nDirOffset = hTIFF->tif_dir.td_stripbytecount_entry.tdir_offset.toff_long8;
+                else
+                    nDirOffset = hTIFF->tif_dir.td_stripbytecount_entry.tdir_offset.toff_long;
+
                 if( hTIFF->tif_dir.td_stripbytecount_entry.tdir_type == TIFF_LONG )
                 {
                     GTiffCacheOffsetOrCount4(fp,
-                                             hTIFF->tif_dir.td_stripbytecount_entry.tdir_offset.toff_long,
+                                             nDirOffset,
                                              nBlockId,
                                              hTIFF->tif_dir.td_nstrips,
                                              hTIFF->tif_dir.td_stripbytecount);
@@ -4337,7 +4351,7 @@ int GTiffDataset::IsBlockAvailable( int nBlockId )
                 else
                 {
                     GTiffCacheOffsetOrCount8(fp,
-                                             hTIFF->tif_dir.td_stripbytecount_entry.tdir_offset.toff_long8,
+                                             nDirOffset,
                                              nBlockId,
                                              hTIFF->tif_dir.td_nstrips,
                                              hTIFF->tif_dir.td_stripbytecount);

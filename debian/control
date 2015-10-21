@@ -54,7 +54,7 @@ Build-Depends: debhelper (>= 9),
 Build-Conflicts: python-setuptools
 Standards-Version: 3.9.6
 Vcs-Browser: https://anonscm.debian.org/cgit/pkg-grass/gdal.git
-Vcs-Git: git://anonscm.debian.org/pkg-grass/gdal.git
+Vcs-Git: git://anonscm.debian.org/pkg-grass/gdal.git -b experimental
 Homepage: http://www.gdal.org/
 X-Python3-Version: >= 3.2
 
@@ -70,7 +70,7 @@ Breaks: libgdal1 (<= 1.10.0-0~),
 Replaces: libgdal1 (<= 1.10.0-0~),
           libgdal1-1.6.0 (<= 1.10.0-0~),
           libgdal1h (<< 1.11.2+dfsg-1~exp4)
-Provides: libgdal.so.1-1.11.2
+Provides: libgdal.so.1-1.11.3
 Description: Geospatial Data Abstraction Library
  GDAL is a translator library for raster geospatial data formats.
  As a library, it presents a single abstract data model to the

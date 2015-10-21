@@ -160,6 +160,7 @@ public delegate int GDALProgressFuncDelegate(double Complete, IntPtr Message, In
   public const string SRS_PT_LAMBERT_AZIMUTHAL_EQUAL_AREA = "Lambert_Azimuthal_Equal_Area";
   public const string SRS_PT_MERCATOR_1SP = "Mercator_1SP";
   public const string SRS_PT_MERCATOR_2SP = "Mercator_2SP";
+  public const string SRS_PT_MERCATOR_AUXILIARY_SPHERE = "Mercator_Auxiliary_Sphere";
   public const string SRS_PT_MILLER_CYLINDRICAL = "Miller_Cylindrical";
   public const string SRS_PT_MOLLWEIDE = "Mollweide";
   public const string SRS_PT_NEW_ZEALAND_MAP_GRID = "New_Zealand_Map_Grid";

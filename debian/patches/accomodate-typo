@@ -5,7 +5,7 @@ Applied-Upstream: 2.0, http://trac.osgeo.org/gdal/changeset/28039
 
 --- a/NEWS
 +++ b/NEWS
-@@ -4024,7 +4024,7 @@ GeoTIFF driver :
+@@ -4141,7 +4141,7 @@ GeoTIFF driver :
   * Use official value for inverse flattening of the WGS84 ellipsoid (#2787)
   * Add metadata domain for XML documents (#2786)
   * Make GTiff driver friendly with files with huge number of bands and pixel interleaving (#2838)
@@ -38,7 +38,7 @@ Applied-Upstream: 2.0, http://trac.osgeo.org/gdal/changeset/28039
          nBlockXSize * nBlockYSize * (GDALGetDataTypeSize(eDataType) / 8) < GDALGetCacheMax64() / poGDS->nBands)
 --- a/frmts/gtiff/gt_wkt_srs.cpp
 +++ b/frmts/gtiff/gt_wkt_srs.cpp
-@@ -433,7 +433,7 @@ char *GTIFGetOGISDefn( GTIF *hGTIF, GTIF
+@@ -445,7 +445,7 @@ char *GTIFGetOGISDefn( GTIF *hGTIF, GTIF
                      && psDefn->UOMLengthInMeters != 1.0 )
                  {
                      psDefn->ProjParm[iParm] /= psDefn->UOMLengthInMeters;
@@ -49,14 +49,14 @@ Applied-Upstream: 2.0, http://trac.osgeo.org/gdal/changeset/28039
  
 --- a/man/man1/gdalwarp.1
 +++ b/man/man1/gdalwarp.1
-@@ -125,7 +125,7 @@ The source file name(s).
- The destination file name.  
+@@ -122,7 +122,7 @@ The source file name(s)\&.
+ The destination file name\&.  
  .PP
  .PP
--Mosaicing into an existing output file is supported if the output file already exists. The spatial extent of the existing file will not be modified to accomodate new data, so you may have to remove it in that case, or use the -overwrite option.
-+Mosaicing into an existing output file is supported if the output file already exists. The spatial extent of the existing file will not be modified to accommodate new data, so you may have to remove it in that case, or use the -overwrite option.
+-Mosaicing into an existing output file is supported if the output file already exists\&. The spatial extent of the existing file will not be modified to accomodate new data, so you may have to remove it in that case, or use the -overwrite option\&.
++Mosaicing into an existing output file is supported if the output file already exists\&. The spatial extent of the existing file will not be modified to accommodate new data, so you may have to remove it in that case, or use the -overwrite option\&.
  .PP
- Polygon cutlines may be used as a mask to restrict the area of the destination file that may be updated, including blending. If the OGR layer containing the cutline features has no explicit SRS, the cutline features must be in the SRS of the destination file. When outputing to a not yet existing target dataset, its extent will be the one of the original raster unless -te or -crop_to_cutline are specified.
+ Polygon cutlines may be used as a mask to restrict the area of the destination file that may be updated, including blending\&. If the OGR layer containing the cutline features has no explicit SRS, the cutline features must be in the SRS of the destination file\&. When outputing to a not yet existing target dataset, its extent will be the one of the original raster unless -te or -crop_to_cutline are specified\&.
  .SH "EXAMPLE"
 --- a/ogr/ogr_api.cpp
 +++ b/ogr/ogr_api.cpp

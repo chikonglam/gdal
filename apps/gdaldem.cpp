@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdaldem.cpp 27781 2014-10-01 17:48:26Z rouault $
+ * $Id: gdaldem.cpp 30390 2015-09-15 13:14:09Z rouault $
  *
  * Project:  GDAL DEM Utilities
  * Purpose:  
@@ -91,7 +91,7 @@
 #include "gdal_priv.h"
 #include "commonutils.h"
 
-CPL_CVSID("$Id: gdaldem.cpp 27781 2014-10-01 17:48:26Z rouault $");
+CPL_CVSID("$Id: gdaldem.cpp 30390 2015-09-15 13:14:09Z rouault $");
 
 #ifndef M_PI
 # define M_PI  3.1415926535897932384626433832795

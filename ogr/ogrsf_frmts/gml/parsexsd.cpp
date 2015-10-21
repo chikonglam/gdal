@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: parsexsd.cpp 27132 2014-04-05 21:48:58Z rouault $
+ * $Id: parsexsd.cpp 29256 2015-05-27 20:45:11Z rouault $
  *
  * Project:  GML Reader
  * Purpose:  Implementation of GMLParseXSD()
@@ -321,6 +321,54 @@ GMLFeatureClass* GMLParseFeatureType(CPLXMLNode *psSchemaNode,
             /* Too complex schema for us. Aborts parsing */
             delete poClass;
             return NULL;
+        }
+        
+        /* Parse stuff like :
+        <xs:choice>
+            <xs:element ref="gml:polygonProperty"/>
+            <xs:element ref="gml:multiPolygonProperty"/>
+        </xs:choice>
+        as found in https://downloadagiv.blob.core.windows.net/overstromingsgebieden-en-oeverzones/2014_01/Overstromingsgebieden_en_oeverzones_2014_01_GML.zip
+        */
+        if( strcmp(psAttrDef->pszValue,"choice") == 0 )
+        {
+            CPLXMLNode* psChild = psAttrDef->psChild;
+            int bPolygon = FALSE;
+            int bMultiPolygon = FALSE;
+            for( ; psChild; psChild = psChild->psNext )
+            {
+                if( psChild->eType != CXT_Element )
+                    continue;
+                if( strcmp(psChild->pszValue,"element") == 0 )
+                {
+                    const char* pszRef = CPLGetXMLValue( psChild, "ref", NULL );
+                    if( pszRef != NULL )
+                    {
+                        if( strcmp(pszRef, "gml:polygonProperty") == 0 )
+                            bPolygon = TRUE;
+                        else if( strcmp(pszRef, "gml:multiPolygonProperty") == 0 )
+                            bMultiPolygon = TRUE;
+                        else
+                        {
+                            delete poClass;
+                            return NULL;
+                        }
+                    }
+                    else
+                    {
+                        delete poClass;
+                        return NULL;
+                    }
+                }
+            }
+            if( bPolygon && bMultiPolygon )
+            {
+                poClass->AddGeometryProperty( new GMLGeometryPropertyDefn(
+                    "", "", wkbMultiPolygon, nAttributeIndex ) );
+
+                nAttributeIndex ++;
+            }
+            continue;
         }
 
         if( !EQUAL(psAttrDef->pszValue,"element") )

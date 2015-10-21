@@ -5,7 +5,7 @@ Applied-Upstream: 2.0, http://trac.osgeo.org/gdal/changeset/28039
 
 --- a/NEWS
 +++ b/NEWS
-@@ -1142,7 +1142,7 @@ Build(Unix):
+@@ -1259,7 +1259,7 @@ Build(Unix):
   * New optional dependencies : libpcre (for regular expressions support in SQLite), libxml2 (validation of GML files)
   * --with-python: make it work with python3, and also accept path to python binary as argument of --with-python (#4725)
   * Use nc-config to detect netcdf compilation and linking parameters (#4424)

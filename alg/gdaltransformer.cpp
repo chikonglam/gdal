@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdaltransformer.cpp 27865 2014-10-15 22:44:28Z rouault $
+ * $Id: gdaltransformer.cpp 29310 2015-06-05 18:50:26Z rouault $
  *
  * Project:  Mapinfo Image Warper
  * Purpose:  Implementation of one or more GDALTrasformerFunc types, including
@@ -38,7 +38,7 @@
 #include "cpl_list.h"
 #include "cpl_multiproc.h"
 
-CPL_CVSID("$Id: gdaltransformer.cpp 27865 2014-10-15 22:44:28Z rouault $");
+CPL_CVSID("$Id: gdaltransformer.cpp 29310 2015-06-05 18:50:26Z rouault $");
 CPL_C_START
 void *GDALDeserializeGCPTransformer( CPLXMLNode *psTree );
 void *GDALDeserializeTPSTransformer( CPLXMLNode *psTree );
@@ -698,14 +698,16 @@ retry:
 /*      compute an approximate pixel size in the output                 */
 /*      georeferenced coordinates.                                      */
 /* -------------------------------------------------------------------- */
-    double dfDiagonalDist, dfDeltaX, dfDeltaY;
+    double dfDiagonalDist, dfDeltaX = 0.0, dfDeltaY = 0.0;
 
     if( pabSuccess[0] && pabSuccess[nSamplePoints - 1] )
     {
         dfDeltaX = padfX[nSamplePoints-1] - padfX[0];
         dfDeltaY = padfY[nSamplePoints-1] - padfY[0];
+        // In some cases this can result in 0 values. See #5980
+        // so fallback to safer method in that case
     }
-    else
+    if( dfDeltaX == 0.0 || dfDeltaY == 0.0 )
     {
         dfDeltaX = dfMaxXOut - dfMinXOut;
         dfDeltaY = dfMaxYOut - dfMinYOut;
