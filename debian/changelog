@@ -1,3 +1,9 @@
+gdal (1.11.3+dfsg-2) UNRELEASED; urgency=medium
+
+  * Update symbols for alpha, amd64, kfreebsd-amd64, ppc64el & s390x.
+
+ -- Bas Couwenberg <sebastic@debian.org>  Thu, 22 Oct 2015 12:28:04 +0200
+
 gdal (1.11.3+dfsg-1) unstable; urgency=medium
 
   * Update symbols for hppa, hurd-i386 & x32.
