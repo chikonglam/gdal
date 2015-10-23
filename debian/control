@@ -42,20 +42,20 @@ Build-Depends: debhelper (>= 9),
                libproj-dev,
                libdap-dev,
                libxml2-dev,
-               libspatialite-dev (>= 2.4.0~rc2-4),
+               libspatialite-dev (>= 4.3.0-3~),
                libepsilon-dev (>= 0.9.1-1~),
                libpoppler-private-dev,
                liblzma-dev,
                libopenjp2-7-dev,
                libarmadillo-dev,
                libfreexl-dev (>= 1.0.0),
-               libkml-dev (>= 1.3.0~),
+               libkml-dev (>= 1.3.0~rc0-3),
                liburiparser-dev,
                default-jdk,
                ant
 Build-Conflicts: python-setuptools
 Standards-Version: 3.9.6
-Vcs-Browser: http://anonscm.debian.org/cgit/pkg-grass/gdal.git
+Vcs-Browser: https://anonscm.debian.org/cgit/pkg-grass/gdal.git
 Vcs-Git: git://anonscm.debian.org/pkg-grass/gdal.git -b experimental-2.0
 Homepage: http://www.gdal.org/
 X-Python3-Version: >= 3.2
@@ -297,4 +297,3 @@ Description: Java bindings to the Geospatial Data Abstraction Library
  .
  This package contains Java bindings for GDAL/OGR library.
 Homepage: http://map.hut.fi/doc/Geo-GDAL/html/
-

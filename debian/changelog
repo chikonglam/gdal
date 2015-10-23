@@ -8,9 +8,8 @@ gdal (2.0.1+dfsg-1) UNRELEASED; urgency=medium
     - Strip trailing whitespace
     - Use range notation for copyright years
     - Add sbnsearch.c to MIT or LGPL-2+ section
-  * Use uscan in get-orig-source target.
   * Drop patches applied upstream, refresh remaining patches.
-  * Rename libgdal1h to libgdal20 to match SONAME.
+  * Rename libgdal1i to libgdal20 to match SONAME.
   * Use packaged libgeotiff & libtiff instead of internal copies.
     (closes: #684233)
   * Drop libgdal1-dev transitional package, and obsolete Breaks/Replaces.
@@ -19,6 +18,90 @@ gdal (2.0.1+dfsg-1) UNRELEASED; urgency=medium
   * Drop custom symbol version script, never updated after 1.8.
 
  -- Bas Couwenberg <sebastic@debian.org>  Wed, 23 Sep 2015 22:46:53 +0200
+
+gdal (1.11.3+dfsg-2) unstable; urgency=medium
+
+  * Update symbols for alpha, amd64, kfreebsd-amd64, ppc64el & s390x.
+
+ -- Bas Couwenberg <sebastic@debian.org>  Thu, 22 Oct 2015 12:29:38 +0200
+
+gdal (1.11.3+dfsg-1) unstable; urgency=medium
+
+  * Update symbols for hppa, hurd-i386 & x32.
+  * Move from experimental to unstable.
+
+ -- Bas Couwenberg <sebastic@debian.org>  Thu, 22 Oct 2015 00:44:25 +0200
+
+gdal (1.11.3+dfsg-1~exp1) experimental; urgency=medium
+
+  * Update watch file to final releases.
+  * New upstream release.
+
+ -- Bas Couwenberg <sebastic@debian.org>  Wed, 23 Sep 2015 21:05:14 +0200
+
+gdal (1.11.3~rc2+dfsg-1~exp1) experimental; urgency=medium
+
+  * Update watch file for 1.11.3 pre-releases.
+  * New upstream release candidate.
+  * Drop existant-typo patch, applied upstream.
+    Refresh remaining patches.
+
+ -- Bas Couwenberg <sebastic@debian.org>  Wed, 16 Sep 2015 22:17:07 +0200
+
+gdal (1.11.2+dfsg-3) unstable; urgency=medium
+
+  * Bump minimum required libspatialite-dev to 4.3.0-3~ for liblwgeom support.
+  * Update Vcs-Browser URL to use HTTPS.
+
+ -- Bas Couwenberg <sebastic@debian.org>  Fri, 28 Aug 2015 10:35:01 +0200
+
+gdal (1.11.2+dfsg-2) unstable; urgency=medium
+
+  * Bump minimum required libspatialite-dev to 4.3.0-2~ for circular
+    dependency change.
+  * Rebuild for geos transition.
+
+ -- Bas Couwenberg <sebastic@debian.org>  Thu, 27 Aug 2015 16:48:40 +0200
+
+gdal (1.11.2+dfsg-1) unstable; urgency=medium
+
+  * Move from experimental to unstable.
+
+ -- Bas Couwenberg <sebastic@debian.org>  Fri, 21 Aug 2015 17:25:49 +0200
+
+gdal (1.11.2+dfsg-1~exp7) experimental; urgency=medium
+
+  * Require at least libkml-dev 1.3.0~rc0-3 for boost dependencies.
+  * Add patch to support pkg-config for the new libkml.
+  * Add RegisterOGRLIBKML to common symbols file again.
+
+ -- Bas Couwenberg <sebastic@debian.org>  Fri, 21 Aug 2015 11:13:01 +0200
+
+gdal (1.11.2+dfsg-1~exp6) experimental; urgency=medium
+
+  * Update symbols for all architectures with GCC 5.
+  * Drop symbols files for ia64 & sparc.
+
+ -- Bas Couwenberg <sebastic@debian.org>  Thu, 20 Aug 2015 12:11:17 +0200
+
+gdal (1.11.2+dfsg-1~exp5) experimental; urgency=medium
+
+  * Update copyright file, changes:
+    - Drop .0 from GPL license shortnames
+    - Strip trailing whitespace
+    - Use range notation for copyright years
+    - Add sbnsearch.c to MIT or LGPL-2+ section
+  * Add patch to fix 'existent' typo.
+
+ -- Bas Couwenberg <sebastic@debian.org>  Tue, 18 Aug 2015 23:05:54 +0200
+
+gdal (1.11.2+dfsg-1~exp4) experimental; urgency=medium
+
+  * Remove trailing whitespace to fix syntax error in symbols files.
+  * Use uscan in get-orig-source target.
+  * Rename library package to libgdal1i because of C++ symbols changes.
+
+ -- Bas Couwenberg <sebastic@debian.org>  Fri, 19 Jun 2015 01:28:42 +0200
 
 gdal (1.11.2+dfsg-1~exp3) experimental; urgency=medium
 
@@ -124,6 +207,32 @@ gdal (1.11.0+dfsg-1~exp1) experimental; urgency=low
   * Also include gdal.pc in dev package.
 
  -- Bas Couwenberg <sebastic@xs4all.nl>  Sun, 04 May 2014 18:13:46 +0200
+
+gdal (1.10.1+dfsg-10) UNRELEASED; urgency=medium
+
+  * Update copyright file, changes:
+    - Group files & copyright by license
+    - Drop .0 from GPL license shortnames
+    - Strip trailing whitespace from end of lines
+    - Use range notation for copyright years
+
+ -- Bas Couwenberg <sebastic@debian.org>  Sun, 28 Jun 2015 23:35:25 +0200
+
+gdal (1.10.1+dfsg-9) unstable; urgency=medium
+
+  * Update my email to use @debian.org address.
+  * Add patch backporting upstream changes to fix FTBFS with MySQL 5.6.
+  * Bump Standards-Version to 3.9.6, no changes.
+  * Add upstream metadata.
+  * Have python*-gdal suggest gdal-bin.
+    (closes: #774243)
+  * Drop get-orig-source script in favor of uscan + Files-Excluded.
+  * Use uscan in get-orig-source target.
+  * Update Vcs-Browser URL to use cgit instead of gitweb.
+  * Remove trailing whitespace to fix syntax error in symbols files.
+  * Use packaged jquery.js instead of Doxygen copy.
+
+ -- Bas Couwenberg <sebastic@debian.org>  Sun, 28 Jun 2015 15:10:22 +0200
 
 gdal (1.10.1+dfsg-8) unstable; urgency=medium
 

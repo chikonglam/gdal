@@ -690,7 +690,7 @@ sub split_new_files {
 				my $filt_file  = $file.'.new.filt';
 				my $patch_file = $file.'.new.patch';
 
-				if(-r $diff_file && -r $new_file && -r $filt_file && !-r $patch_file) {
+				if(-r $diff_file && -r $new_file && -r $filt_file && -r $patch_file) {
 					print "Splitting files for: $file\n" if($cfg{verbose});
 
 					my ($common, $cplus) = split_file(
