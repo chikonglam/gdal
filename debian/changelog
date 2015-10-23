@@ -16,6 +16,7 @@ gdal (2.0.1+dfsg-1) UNRELEASED; urgency=medium
   * Change virtual package from libgdal.so.1-<major>.<minor>.<patch> format
     to gdal-abi-<major>-<minor>-<patch> format.
   * Drop custom symbol version script, never updated after 1.8.
+  * Include Geo::GDAL manpage in libgdal-perl.
 
  -- Bas Couwenberg <sebastic@debian.org>  Wed, 23 Sep 2015 22:46:53 +0200
 
