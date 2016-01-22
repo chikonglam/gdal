@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrvrtlayer.cpp 28159 2014-12-17 11:04:07Z rouault $
+ * $Id: ogrvrtlayer.cpp 32516 2015-12-29 10:09:15Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implements OGRVRTLayer class.
@@ -34,7 +34,7 @@
 #include "ogrpgeogeometry.h"
 #include <string>
 
-CPL_CVSID("$Id: ogrvrtlayer.cpp 28159 2014-12-17 11:04:07Z rouault $");
+CPL_CVSID("$Id: ogrvrtlayer.cpp 32516 2015-12-29 10:09:15Z rouault $");
 
 #define UNSUPPORTED_OP_READ_ONLY "%s : unsupported operation on a read-only datasource."
 
@@ -973,7 +973,8 @@ try_again:
                     (iSrcField == apoGeomFieldProps[iGF]->iGeomXField ||
                      iSrcField == apoGeomFieldProps[iGF]->iGeomYField ||
                      iSrcField == apoGeomFieldProps[iGF]->iGeomZField ||
-                     iSrcField == apoGeomFieldProps[iGF]->iGeomField) )
+                     (apoGeomFieldProps[iGF]->eGeometryStyle != VGS_Direct &&
+                      iSrcField == apoGeomFieldProps[iGF]->iGeomField)) )
                 {
                     bSkip = TRUE;
                     break;
@@ -1756,7 +1757,8 @@ OGRFeature* OGRVRTLayer::TranslateVRTFeatureToSrcFeature( OGRFeature* poVRTFeatu
         for(int i = 0; i < poFeatureDefn->GetGeomFieldCount(); i++ )
         {
             /* Do not set source geometry columns. Have been set just above */
-            if (anSrcField[iVRTField] == apoGeomFieldProps[i]->iGeomField ||
+            if ((apoGeomFieldProps[i]->eGeometryStyle != VGS_Direct &&
+                 anSrcField[iVRTField] == apoGeomFieldProps[i]->iGeomField) ||
                 anSrcField[iVRTField] == apoGeomFieldProps[i]->iGeomXField ||
                 anSrcField[iVRTField] == apoGeomFieldProps[i]->iGeomYField ||
                 anSrcField[iVRTField] == apoGeomFieldProps[i]->iGeomZField)

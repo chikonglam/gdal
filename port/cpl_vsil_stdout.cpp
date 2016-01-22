@@ -1,5 +1,5 @@
 /**********************************************************************
- * $Id: cpl_vsil_stdout.cpp 27722 2014-09-22 15:37:31Z goatbar $
+ * $Id: cpl_vsil_stdout.cpp 30997 2015-10-13 16:57:35Z rouault $
  *
  * Project:  CPL - Common Portability Library
  * Purpose:  Implement VSI large file api for stdout
@@ -37,7 +37,7 @@
 #include <fcntl.h>
 #endif
 
-CPL_CVSID("$Id: cpl_vsil_stdout.cpp 27722 2014-09-22 15:37:31Z goatbar $");
+CPL_CVSID("$Id: cpl_vsil_stdout.cpp 30997 2015-10-13 16:57:35Z rouault $");
 
 /************************************************************************/
 /* ==================================================================== */
@@ -144,7 +144,7 @@ int VSIStdoutHandle::Eof()
 int VSIStdoutHandle::Close()
 
 {
-    return 0;
+    return Flush();
 }
 
 /************************************************************************/

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr2ogr.cpp 29232 2015-05-22 16:12:45Z rouault $
+ * $Id: ogr2ogr.cpp 30692 2015-09-24 18:01:28Z tamas $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Simple client for translating between formats.
@@ -39,7 +39,7 @@
 #include <map>
 #include <vector>
 
-CPL_CVSID("$Id: ogr2ogr.cpp 29232 2015-05-22 16:12:45Z rouault $");
+CPL_CVSID("$Id: ogr2ogr.cpp 30692 2015-09-24 18:01:28Z tamas $");
 
 static int bSkipFailures = FALSE;
 static int nGroupTransactions = 20000;
@@ -1072,7 +1072,12 @@ int main( int nArgc, char ** papszArgv )
                  EQUAL(papszArgv[iArg],"-gt") )
         {
             CHECK_HAS_ENOUGH_ADDITIONAL_ARGS(1);
-            nGroupTransactions = atoi(papszArgv[++iArg]);
+            /* If skipfailures is already set we should not
+            modify nGroupTransactions = 1  #2409 */
+            if ( bSkipFailures )
+                ++iArg;
+            else
+                nGroupTransactions = atoi(papszArgv[++iArg]);
         }
         else if( EQUAL(papszArgv[iArg],"-s_srs") )
         {

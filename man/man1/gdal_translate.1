@@ -1,4 +1,4 @@
-.TH "gdal_translate" 1 "Wed Sep 16 2015" "GDAL" \" -*- nroff -*-
+.TH "gdal_translate" 1 "Fri Jan 22 2016" "GDAL" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -8,7 +8,6 @@ converts raster data between different formats
 .PP
 .PP
 .nf
-
 gdal_translate [--help-general]
        [-ot {Byte/Int16/UInt16/UInt32/Int32/Float32/Float64/
              CInt16/CInt32/CFloat32/CFloat64}] [-strict]
@@ -84,7 +83,6 @@ The destination file name\&.
 .PP
 .PP
 .nf
-
 gdal_translate -of GTiff -co "TILED=YES" utm.tif utm_tiled.tif
 .fi
 .PP
@@ -92,7 +90,6 @@ gdal_translate -of GTiff -co "TILED=YES" utm.tif utm_tiled.tif
 Starting with GDAL 1\&.8\&.0, to create a JPEG-compressed TIFF with internal mask from a RGBA dataset : 
 .PP
 .nf
-
 gdal_translate rgba.tif withmask.tif -b 1 -b 2 -b 3 -mask 4 -co COMPRESS=JPEG -co PHOTOMETRIC=YCBCR --config GDAL_TIFF_INTERNAL_MASK YES
 
 .fi
@@ -101,11 +98,10 @@ gdal_translate rgba.tif withmask.tif -b 1 -b 2 -b 3 -mask 4 -co COMPRESS=JPEG -c
 Starting with GDAL 1\&.8\&.0, to create a RGBA dataset from a RGB dataset with a mask : 
 .PP
 .nf
-
 gdal_translate withmask.tif rgba.tif -b 1 -b 2 -b 3 -b mask
 
 .fi
 .PP
 .SH "AUTHORS"
 .PP
-Frank Warmerdam <warmerdam@pobox.com>, Silke Reimer <silke@intevation.de> 
+Frank Warmerdam warmerdam@pobox.com, Silke Reimer silke@intevation.de 

@@ -1,5 +1,5 @@
 /**********************************************************************
- * $Id: gmlhandler.cpp 29218 2015-05-21 09:09:31Z rouault $
+ * $Id: gmlhandler.cpp 31861 2015-11-30 20:49:30Z rouault $
  *
  * Project:  GML Reader
  * Purpose:  Implementation of GMLHandler class.
@@ -1080,6 +1080,13 @@ OGRErr GMLHandler::startElementFeatureAttribute(const char *pszName, int nLenNam
             {
                 m_bAlreadyFoundGeometry = TRUE;
                 bReadGeometry = TRUE;
+                m_nGeometryPropertyIndex = poClass->GetGeometryPropertyIndexBySrcElement( poState->osPath.c_str() );
+                if( m_nGeometryPropertyIndex < 0 )
+                {
+                    poClass->AddGeometryProperty( new GMLGeometryPropertyDefn(
+                            "geometry", poState->osPath.c_str(), wkbUnknown, -1 ) );
+                    m_nGeometryPropertyIndex = poClass->GetGeometryPropertyCount();
+                }
             }
 
             else

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: vrtsources.cpp 28735 2015-03-15 03:30:21Z rouault $
+ * $Id: vrtsources.cpp 31004 2015-10-14 16:19:25Z rouault $
  *
  * Project:  Virtual GDAL Datasets
  * Purpose:  Implementation of VRTSimpleSource, VRTFuncSource and 
@@ -36,7 +36,7 @@
 
 #include <algorithm>
 
-CPL_CVSID("$Id: vrtsources.cpp 28735 2015-03-15 03:30:21Z rouault $");
+CPL_CVSID("$Id: vrtsources.cpp 31004 2015-10-14 16:19:25Z rouault $");
 
 /************************************************************************/
 /* ==================================================================== */
@@ -1411,7 +1411,7 @@ CPLXMLNode *VRTComplexSource::SerializeToXML( const char *pszVRTPath )
             CPLSetXMLValue( psSrc, "NODATA", "nan");
         else
             CPLSetXMLValue( psSrc, "NODATA", 
-                            CPLSPrintf("%g", dfNoDataValue) );
+                            CPLSPrintf("%.16g", dfNoDataValue) );
     }
         
     switch( eScalingType )

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: hfaband.cpp 27739 2014-09-25 18:49:52Z goatbar $
+ * $Id: hfaband.cpp 31392 2015-11-08 12:14:51Z rouault $
  *
  * Project:  Erdas Imagine (.img) Translator
  * Purpose:  Implementation of the HFABand, for accessing one Eimg_Layer.
@@ -33,7 +33,7 @@
 
 /* include the compression code */
 
-CPL_CVSID("$Id: hfaband.cpp 27739 2014-09-25 18:49:52Z goatbar $");
+CPL_CVSID("$Id: hfaband.cpp 31392 2015-11-08 12:14:51Z rouault $");
 
 /************************************************************************/
 /*                              HFABand()                               */
@@ -704,9 +704,10 @@ static CPLErr UncompressBlock( GByte *pabyCData, int nSrcBytes,
         return CE_Failure;
     }
 
-    if (nNumBits > INT_MAX / nNumRuns ||
-        nNumBits * nNumRuns > INT_MAX - 7 ||
-        (nNumBits * nNumRuns + 7)/8 > INT_MAX - nDataOffset)
+    if (nNumRuns != 0 &&
+        (nNumBits > INT_MAX / nNumRuns ||
+         nNumBits * nNumRuns > INT_MAX - 7 ||
+         (nNumBits * nNumRuns + 7)/8 > INT_MAX - nDataOffset) )
     {
         CPLError(CE_Failure, CPLE_AppDefined,
                  "Integer overflow : nDataOffset + (nNumBits * nNumRuns + 7)/8");

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: vrtrasterband.cpp 27044 2014-03-16 23:41:27Z rouault $
+ * $Id: vrtrasterband.cpp 31004 2015-10-14 16:19:25Z rouault $
  *
  * Project:  Virtual GDAL Datasets
  * Purpose:  Implementation of VRTRasterBand
@@ -32,7 +32,7 @@
 #include "cpl_minixml.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: vrtrasterband.cpp 27044 2014-03-16 23:41:27Z rouault $");
+CPL_CVSID("$Id: vrtrasterband.cpp 31004 2015-10-14 16:19:25Z rouault $");
 
 /************************************************************************/
 /* ==================================================================== */
@@ -550,7 +550,7 @@ CPLXMLNode *VRTRasterBand::SerializeToXML( const char *pszVRTPath )
             CPLSetXMLValue( psTree, "NoDataValue", "nan");
         else
             CPLSetXMLValue( psTree, "NoDataValue", 
-                            CPLSPrintf( "%.14E", dfNoDataValue ) );
+                            CPLSPrintf( "%.16g", dfNoDataValue ) );
     }
     
     if( bHideNoDataValue )
