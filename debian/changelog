@@ -1,3 +1,9 @@
+gdal (2.0.1+dfsg-1~exp2) UNRELEASED; urgency=medium
+
+  * Update watch file for 2.0.2 pre-releases.
+
+ -- Bas Couwenberg <sebastic@debian.org>  Fri, 22 Jan 2016 15:12:47 +0100
+
 gdal (2.0.1+dfsg-1~exp1) experimental; urgency=medium
 
   * New upstream release.
