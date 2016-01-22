@@ -1,4 +1,4 @@
-.TH "gdal_grid" 1 "Tue Sep 15 2015" "GDAL" \" -*- nroff -*-
+.TH "gdal_grid" 1 "Fri Jan 22 2016" "GDAL" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -8,19 +8,18 @@ creates regular grid from the scattered data
 .PP
 .PP
 .nf
-
 gdal_grid [-ot {Byte/Int16/UInt16/UInt32/Int32/Float32/Float64/
           CInt16/CInt32/CFloat32/CFloat64}]
-	  [-of format] [-co "NAME=VALUE"]
-	  [-zfield field_name] [-z_increase increase_value] [-z_multiply multiply_value]
-	  [-a_srs srs_def] [-spat xmin ymin xmax ymax]
+          [-of format] [-co "NAME=VALUE"]
+          [-zfield field_name] [-z_increase increase_value] [-z_multiply multiply_value]
+          [-a_srs srs_def] [-spat xmin ymin xmax ymax]
           [-clipsrc <xmin ymin xmax ymax>|WKT|datasource|spat_extent]
           [-clipsrcsql sql_statement] [-clipsrclayer layer]
           [-clipsrcwhere expression]
-	  [-l layername]* [-where expression] [-sql select_statement]
-	  [-txe xmin xmax] [-tye ymin ymax] [-outsize xsize ysize]
-	  [-a algorithm[:parameter1=value1]*] [-q]
-	  <src_datasource> <dst_filename>
+          [-l layername]* [-where expression] [-sql select_statement]
+          [-txe xmin xmax] [-tye ymin ymax] [-outsize xsize ysize]
+          [-a algorithm[:parameter1=value1]*] [-q]
+          <src_datasource> <dst_filename>
 .fi
 .PP
 .SH "DESCRIPTION"
@@ -193,7 +192,6 @@ Here is a small example\&. Let we have a CSV file called \fIdem\&.csv\fP contain
 .PP
 .PP
 .nf
-
 Easting,Northing,Elevation
 86943.4,891957,139.13
 87124.3,892075,135.01
@@ -207,12 +205,11 @@ For above data we will create \fIdem\&.vrt\fP header with the following content:
 .PP
 .PP
 .nf
-
 <OGRVRTDataSource>
     <OGRVRTLayer name="dem">
         <SrcDataSource>dem.csv</SrcDataSource> 
-	<GeometryType>wkbPoint</GeometryType> 
-	<GeometryField encoding="PointFromColumns" x="Easting" y="Northing" z="Elevation"/> 
+        <GeometryType>wkbPoint</GeometryType> 
+        <GeometryField encoding="PointFromColumns" x="Easting" y="Northing" z="Elevation"/> 
     </OGRVRTLayer>
 </OGRVRTDataSource>
 .fi
@@ -224,7 +221,6 @@ If your CSV file does not contain column headers then it can be handled in the f
 .PP
 .PP
 .nf
-
 <GeometryField encoding="PointFromColumns" x="field_1" y="field_2" z="field_3"/>
 .fi
 .PP
@@ -236,7 +232,6 @@ The following would create raster TIFF file from VRT datasource described in \fB
 .PP
 .PP
 .nf
-
 gdal_grid -a invdist:power=2.0:smoothing=1.0 -txe 85000 89000 -tye 894000 890000 -outsize 400 400 -of GTiff -ot Float64 -l dem dem.vrt dem.tiff
 .fi
 .PP
@@ -245,10 +240,9 @@ The next command does the same thing as the previous one, but reads values to in
 .PP
 .PP
 .nf
-
 gdal_grid -zfield "Elevation" -a invdist:power=2.0:smoothing=1.0 -txe 85000 89000 -tye 894000 890000 -outsize 400 400 -of GTiff -ot Float64 -l dem dem.vrt dem.tiff --config GDAL_NUM_THREADS ALL_CPUS
 .fi
 .PP
 .SH "AUTHORS"
 .PP
-Andrey Kiselev <dron@ak4719.spb.edu> 
+Andrey Kiselev dron@ak4719.spb.edu 

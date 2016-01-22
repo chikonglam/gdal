@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr2ogr.cpp 29251 2015-05-25 21:24:45Z rouault $
+ * $Id: ogr2ogr.cpp 30691 2015-09-24 18:00:57Z tamas $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Simple client for translating between formats.
@@ -39,7 +39,7 @@
 #include <map>
 #include <vector>
 
-CPL_CVSID("$Id: ogr2ogr.cpp 29251 2015-05-25 21:24:45Z rouault $");
+CPL_CVSID("$Id: ogr2ogr.cpp 30691 2015-09-24 18:00:57Z tamas $");
 
 static int bSkipFailures = FALSE;
 static int bLayerTransaction = -1;
@@ -1189,10 +1189,15 @@ int main( int nArgc, char ** papszArgv )
         {
             CHECK_HAS_ENOUGH_ADDITIONAL_ARGS(1);
             ++iArg;
-            if( EQUAL(papszArgv[iArg], "unlimited") )
-                nGroupTransactions = -1;
-            else
-                nGroupTransactions = atoi(papszArgv[iArg]);
+            /* If skipfailures is already set we should not
+            modify nGroupTransactions = 1  #2409 */
+            if ( !bSkipFailures )
+            {
+                if( EQUAL(papszArgv[iArg], "unlimited") )
+                    nGroupTransactions = -1;
+                else
+                    nGroupTransactions = atoi(papszArgv[iArg]);
+            }
         }
         else if ( EQUAL(papszArgv[iArg],"-ds_transaction") )
         {

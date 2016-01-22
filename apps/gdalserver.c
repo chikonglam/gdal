@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdalserver.c 29668 2015-08-19 16:41:53Z rouault $
+ * $Id: gdalserver.c 31326 2015-11-02 20:26:23Z rouault $
  *
  * Project:  GDAL
  * Purpose:  Server application that is forked by libgdal
@@ -50,6 +50,7 @@
   #include <sys/socket.h>
   #include <sys/un.h>
   #include <netinet/in.h>
+  #include <signal.h>
   #include <unistd.h>
   #ifdef HAVE_GETADDRINFO
     #include <netdb.h>
@@ -76,7 +77,7 @@ int CPL_DLL GDALServerLoop(CPL_FILE_HANDLE fin, CPL_FILE_HANDLE fout);
 int CPL_DLL GDALServerLoopSocket(CPL_SOCKET nSocket);
 CPL_C_END
 
-CPL_CVSID("$Id: gdalserver.c 29668 2015-08-19 16:41:53Z rouault $");
+CPL_CVSID("$Id: gdalserver.c 31326 2015-11-02 20:26:23Z rouault $");
 
 /************************************************************************/
 /*                               Usage()                                */

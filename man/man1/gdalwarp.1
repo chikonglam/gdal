@@ -1,4 +1,4 @@
-.TH "gdalwarp" 1 "Tue Sep 15 2015" "GDAL" \" -*- nroff -*-
+.TH "gdalwarp" 1 "Fri Jan 22 2016" "GDAL" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -9,7 +9,6 @@ image reprojection and warping utility
 .PP
 .PP
 .nf
-
 gdalwarp [--help-general] [--formats]
     [-s_srs srs_def] [-t_srs srs_def] [-to "NAME=VALUE"]
     [-order n | -tps | -rpc | -geoloc] [-et err_threshold]
@@ -148,7 +147,6 @@ For instance, an eight bit spot scene stored in GeoTIFF with control points mapp
 .PP
 .PP
 .nf
-
 gdalwarp -t_srs '+proj=utm +zone=11 +datum=WGS84' raw_spot.tif utm11.tif
 .fi
 .PP
@@ -157,7 +155,6 @@ For instance, the second channel of an ASTER image stored in HDF with control po
 .PP
 .PP
 .nf
-
 gdalwarp HDF4_SDS:ASTER_L1B:"pg-PR1B0000-2002031402_100_001":2 pg-PR1B0000-2002031402_100_001_2.tif
 .fi
 .PP
@@ -166,4 +163,4 @@ gdalwarp HDF4_SDS:ASTER_L1B:"pg-PR1B0000-2002031402_100_001":2 pg-PR1B0000-20020
 http://trac.osgeo.org/gdal/wiki/UserDocs/GdalWarp : Wiki page discussing options and behaviours of gdalwarp
 .SH "AUTHORS"
 .PP
-Frank Warmerdam <warmerdam@pobox.com>, Silke Reimer <silke@intevation.de> 
+Frank Warmerdam warmerdam@pobox.com, Silke Reimer silke@intevation.de 

@@ -1,4 +1,4 @@
-.TH "gdal_merge" 1 "Tue Sep 15 2015" "GDAL" \" -*- nroff -*-
+.TH "gdal_merge" 1 "Fri Jan 22 2016" "GDAL" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -8,7 +8,6 @@ mosaics a set of images
 .PP
 .PP
 .nf
-
 gdal_merge.py [-o out_filename] [-of out_format] [-co NAME=VALUE]*
               [-ps pixelsize_x pixelsize_y] [-tap] [-separate] [-v] [-pct]
               [-ul_lr ulx uly lrx lry] [-n nodata_value] [-init "value [value...]"]
@@ -59,7 +58,6 @@ Create an image with the pixels in all bands initialized to 255\&.
 .PP
 .PP
 .nf
-
 % gdal_merge.py -init 255 -o out.tif in1.tif in2.tif
 .fi
 .PP
@@ -68,10 +66,9 @@ Create an RGB image that shows blue in pixels with no data\&. The first two band
 .PP
 .PP
 .nf
-
 % gdal_merge.py -init "0 0 255" -o out.tif in1.tif in2.tif
 .fi
 .PP
 .SH "AUTHORS"
 .PP
-Frank Warmerdam <warmerdam@pobox.com>, Silke Reimer <silke@intevation.de> 
+Frank Warmerdam warmerdam@pobox.com, Silke Reimer silke@intevation.de 

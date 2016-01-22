@@ -1,4 +1,4 @@
-.TH "ogrinfo" 1 "Tue Sep 15 2015" "GDAL" \" -*- nroff -*-
+.TH "ogrinfo" 1 "Fri Jan 22 2016" "GDAL" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -9,16 +9,13 @@ lists information about an OGR supported data source
 .PP
 .PP
 .nf
-
 ogrinfo [--help-general] [-ro] [-q] [-where restricted_where]
         [-spat xmin ymin xmax ymax] [-geomfield field] [-fid fid]
         [-sql statement] [-dialect dialect] [-al] [-so] [-fields={YES/NO}]
         [-geom={YES/NO/SUMMARY}] [-formats] [[-oo NAME=VALUE] ...]
         [-nomd] [-listmdd] [-mdd domain|`all`]*
         [-nocount] [-noextent]
-        datasource_name [layer [layer ...]]
-
-.fi
+        datasource_name [layer [layer ...]].fi
 .PP
 .SH "DESCRIPTION"
 .PP
@@ -76,7 +73,6 @@ Geometries are reported in OGC WKT format\&.
 Example reporting all layers in an NTF file: 
 .PP
 .nf
-
 % ogrinfo wrk/SHETLAND_ISLANDS.NTF
 INFO: Open of `wrk/SHETLAND_ISLANDS.NTF'
 using driver `UK .NTF' successful.
@@ -91,7 +87,6 @@ using driver `UK .NTF' successful.
 Example using an attribute query is used to restrict the output of the features in a layer: 
 .PP
 .nf
-
 % ogrinfo -ro -where 'GLOBAL_LINK_ID=185878' wrk/SHETLAND_ISLANDS.NTF BL2000_LINK
 INFO: Open of `wrk/SHETLAND_ISLANDS.NTF'
 using driver `UK .NTF' successful.
@@ -149,4 +144,4 @@ OGRFeature(BL2000_LINK):2
 .PP
 .SH "AUTHORS"
 .PP
-Frank Warmerdam <warmerdam@pobox.com>, Silke Reimer <silke@intevation.de> 
+Frank Warmerdam warmerdam@pobox.com, Silke Reimer silke@intevation.de 

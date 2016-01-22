@@ -1,4 +1,4 @@
-.TH "gdalmanage" 1 "Tue Sep 15 2015" "GDAL" \" -*- nroff -*-
+.TH "gdalmanage" 1 "Fri Jan 22 2016" "GDAL" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -8,7 +8,6 @@ Identify, delete, rename and copy raster data files
 .PP
 .PP
 .nf
-
 Usage: gdalmanage mode [-r] [-u] [-f format]
                   datasetname [newdatasetname]
 .fi
@@ -48,7 +47,6 @@ Report the data format of the raster file by using the \fIidentify\fP mode and s
 .PP
 .PP
 .nf
-
 $ gdalmanage identify NE1_50M_SR_W.tif
 
 NE1_50M_SR_W.tif: GTiff
@@ -59,7 +57,6 @@ Recursive mode will scan subfolders and report the data format:
 .PP
 .PP
 .nf
-
 $ gdalmanage identify -r 50m_raster/
 
 NE1_50M_SR_W/ne1_50m.jpg: JPEG
@@ -70,9 +67,7 @@ NE1_50M_SR_W/ne1_50m_print.png: PNG
 NE1_50M_SR_W/NE1_50M_SR_W.aux: HFA
 NE1_50M_SR_W/NE1_50M_SR_W.tif: GTiff
 NE1_50M_SR_W/ne1_50m_sub.tif: GTiff
-NE1_50M_SR_W/ne1_50m_sub2.tif: GTiff
-
-.fi
+NE1_50M_SR_W/ne1_50m_sub2.tif: GTiff.fi
 .PP
  
 .SS "Using copy mode"
@@ -80,7 +75,6 @@ Copy the raster data:
 .PP
 .PP
 .nf
-
 $ gdalmanage copy NE1_50M_SR_W.tif ne1_copy.tif
 .fi
 .PP
@@ -88,7 +82,6 @@ $ gdalmanage copy NE1_50M_SR_W.tif ne1_copy.tif
 Rename raster data: 
 .PP
 .nf
-
 $ gdalmanage rename NE1_50M_SR_W.tif ne1_rename.tif
 
 .fi
@@ -98,10 +91,9 @@ Delete the raster data:
 .PP
 .PP
 .nf
-
 gdalmanage delete NE1_50M_SR_W.tif
 .fi
 .PP
 .SH "AUTHORS"
 .PP
-Tyler Mitchell <spatialguru@shaw.ca> 
+Tyler Mitchell spatialguru@shaw.ca 

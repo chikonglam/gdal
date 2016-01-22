@@ -1,4 +1,4 @@
-.TH "ogr2ogr" 1 "Tue Sep 15 2015" "GDAL" \" -*- nroff -*-
+.TH "ogr2ogr" 1 "Fri Jan 22 2016" "GDAL" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -9,7 +9,6 @@ converts simple features data between file formats
 .PP
 .PP
 .nf
-
 Usage: ogr2ogr [--help-general] [-skipfailures] [-append] [-update]
                [-select field_list] [-where restricted_where] 
                [-progress] [-sql <sql statement>] [-dialect dialect]
@@ -41,9 +40,7 @@ Advanced options :
                [-splitlistfields] [-maxsubfields val]
                [-explodecollections] [-zfield field_name]
                [-gcp pixel line easting northing [elevation]]* [-order n | -tps]
-               [-nomd] [-mo \"META-TAG=VALUE\"]*
-
-.fi
+               [-nomd] [-mo \"META-TAG=VALUE\"]*.fi
 .PP
 .SH "DESCRIPTION"
 .PP
@@ -53,13 +50,11 @@ This program can be used to convert simple features data between file formats pe
 output file format name (default is ESRI Shapefile), some possible values are: 
 .PP
 .nf
-
      -f "ESRI Shapefile"
      -f "TIGER"
      -f "MapInfo File"
      -f "GML"
      -f "PostgreSQL"
-	 
 .fi
 .PP
   
@@ -196,7 +191,6 @@ Example appending to an existing layer (both flags need to be used):
 .PP
 .PP
 .nf
-
 % ogr2ogr -update -append -f PostgreSQL PG:dbname=warmerda abc.tab
 .fi
 .PP
@@ -205,7 +199,6 @@ Example reprojecting from ETRS_1989_LAEA_52N_10E to EPSG:4326 and clipping to a 
 .PP
 .PP
 .nf
-
 % ogr2ogr -wrapdateline -t_srs EPSG:4326 -clipdst -5 40 15 55 france_4326.shp europe_laea.shp
 .fi
 .PP
@@ -214,7 +207,6 @@ Example for using the -fieldmap setting\&. The first field of the source layer i
 .PP
 .PP
 .nf
-
 % ogr2ogr -append -fieldmap 2,-1,4 dst.shp src.shp
 .fi
 .PP
@@ -222,4 +214,4 @@ Example for using the -fieldmap setting\&. The first field of the source layer i
 More examples are given in the individual format pages\&.
 .SH "AUTHOR"
 .PP
-Frank Warmerdam <warmerdam@pobox.com>, Silke Reimer <silke@intevation.de> 
+Frank Warmerdam warmerdam@pobox.com, Silke Reimer silke@intevation.de 
