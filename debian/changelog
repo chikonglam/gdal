@@ -1,3 +1,9 @@
+gdal (1.11.3+dfsg-3) UNRELEASED; urgency=medium
+
+  * Update watch file for 1.11.4 pre-releases.
+
+ -- Bas Couwenberg <sebastic@debian.org>  Fri, 22 Jan 2016 12:28:58 +0100
+
 gdal (1.11.3+dfsg-2) unstable; urgency=medium
 
   * Update symbols for alpha, amd64, kfreebsd-amd64, ppc64el & s390x.
