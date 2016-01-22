@@ -1,0 +1,771 @@
+Description: Fix 'occured' typo, replace with 'occurred'.
+ Also fix 'occurance' typo, replace with 'occurrence'.
+Author: Bas Couwenberg <sebastic@debian.org>
+Forwarded: https://trac.osgeo.org/gdal/ticket/6324
+
+--- a/NEWS
++++ b/NEWS
+@@ -1001,7 +1001,7 @@ Core:
+  * introduce OGRLayer::FindFieldIndex() / OGR_L_FindFieldIndex() to lookup potentially laundered field names (RFC 42)
+  * OGR SQL: upgrade to support RFC 41 (multiple geometry fields)
+  * OGR SQL: more stricter checks
+- * OGR SQL: make parsing error report a usefull hint where the syntax error occured
++ * OGR SQL: make parsing error report a usefull hint where the syntax error occurred
+  * OGR SQL: fix thread-safety of swq_op_registrar::GetOperator() (#5196)
+  * OGR SQL: support not explicitely specifying AS keyword for aliasing a column spec
+  * OGR SQL: don't call CONCAT(a_column ...) or SUBSTR(a_column ...) as a_column
+@@ -2241,7 +2241,7 @@ Core:
+  * Fix performance problem when serializing huge color tables, metadata, CategoryNames and GCPs to VRT/PAM (#3961)
+  * Be careful about Nan complex values getting histogram, avoid locale issues with statistics metadata
+  * GDALRasterBand::IRasterIO() default implementation : don't try to use full-res band if I/O failed on the appropriate overview band (for WMS errors)
+- * RasterIO: Return earlier when a write error occured while flushing dirty block
++ * RasterIO: Return earlier when a write error occurred while flushing dirty block
+  * GDAL_DISABLE_READDIR_ON_OPEN can be set to EMPTY_DIR to avoid reading the dir, but it set an empty dir to avoid looking for auxiliary files
+  * Use sibling file list to look for .aux.xml, .aux, .ovr, world files, tab files
+  * Add GDALFindAssociatedFile() (#4008)
+--- a/alg/gdalwarper.cpp
++++ b/alg/gdalwarper.cpp
+@@ -1397,7 +1397,7 @@ GDALWarpOptions * CPL_STDCALL GDALDeseri
+     }
+ 
+ /* -------------------------------------------------------------------- */
+-/*      If any error has occured, cleanup else return success.          */
++/*      If any error has occurred, cleanup else return success.         */
+ /* -------------------------------------------------------------------- */
+     if( CPLGetLastErrorNo() != CE_None )
+     {
+--- a/apps/testepsg.cpp
++++ b/apps/testepsg.cpp
+@@ -115,7 +115,7 @@ int main( int nArgc, char ** papszArgv )
+         {
+             if( oSRS.SetFromUserInput(papszArgv[i]) != OGRERR_NONE )
+                 CPLError( CE_Failure, CPLE_AppDefined, 
+-                          "Error occured translating %s.\n", 
++                          "Error occurred translating %s.\n", 
+                           papszArgv[i] );
+             else
+             {
+--- a/frmts/bsb/bsb_read.c
++++ b/frmts/bsb/bsb_read.c
+@@ -831,7 +831,7 @@ int BSBReadScanline( BSBInfo *psInfo, in
+ /*      For reasons that are unclear, some scanlines are exactly one    */
+ /*      pixel short (such as in the BSB 3.0 354704.KAP product from     */
+ /*      NDI/CHS) but are otherwise OK.  Just add a zero if this         */
+-/*      appear to have occured.                                         */
++/*      appear to have occurred.                                        */
+ /* -------------------------------------------------------------------- */
+         if( iPixel == psInfo->nXSize - 1 )
+             pabyScanlineBuf[iPixel++] = 0;
+--- a/frmts/epsilon/epsilondataset.cpp
++++ b/frmts/epsilon/epsilondataset.cpp
+@@ -900,7 +900,7 @@ EpsilonDatasetCreateCopy( const char * p
+                                            (char*) pszFilter, eMode))
+                 {
+                     CPLError(CE_Failure, CPLE_AppDefined,
+-                             "Error occured when encoding block (%d, %d)",
++                             "Error occurred when encoding block (%d, %d)",
+                              nBlockXOff, nBlockYOff);
+                     eErr = CE_Failure;
+                 }
+@@ -921,7 +921,7 @@ EpsilonDatasetCreateCopy( const char * p
+                                            (char*) pszFilter, eMode))
+                 {
+                     CPLError(CE_Failure, CPLE_AppDefined,
+-                             "Error occured when encoding block (%d, %d)",
++                             "Error occurred when encoding block (%d, %d)",
+                              nBlockXOff, nBlockYOff);
+                     eErr = CE_Failure;
+                 }
+--- a/frmts/gtiff/libtiff/tif_ojpeg.c
++++ b/frmts/gtiff/libtiff/tif_ojpeg.c
+@@ -1381,7 +1381,7 @@ OJPEGReadHeaderInfoSec(TIFF* tif)
+ static int
+ OJPEGReadHeaderInfoSecStreamDri(TIFF* tif)
+ {
+-	/* this could easilly cause trouble in some cases... but no such cases have occured sofar */
++	/* this could easilly cause trouble in some cases... but no such cases have occurred sofar */
+ 	static const char module[]="OJPEGReadHeaderInfoSecStreamDri";
+ 	OJPEGState* sp=(OJPEGState*)tif->tif_data;
+ 	uint16 m;
+--- a/frmts/hdf4/hdf-eos/SWapi.c
++++ b/frmts/hdf4/hdf-eos/SWapi.c
+@@ -10266,8 +10266,8 @@ SWdetach(int32 swathID)
+ 
+ 		if (abs(match[0]) == 1)
+ 		{
+-		    /* Two Dimensional Array (no merging has occured) */
+-		    /* ---------------------------------------------- */
++		    /* Two Dimensional Array (no merging has occurred) */
++		    /* ----------------------------------------------- */
+ 		    dims[0] = abs(match[1]);
+ 		    dims[1] = abs(match[2]);
+ 
+--- a/frmts/iso8211/ddfrecord.cpp
++++ b/frmts/iso8211/ddfrecord.cpp
+@@ -738,7 +738,7 @@ int DDFRecord::GetIntSubfield( const cha
+ /* -------------------------------------------------------------------- */
+ /*      Return the extracted value.                                     */
+ /*                                                                      */
+-/*      Assume an error has occured if no bytes are consumed.           */
++/*      Assume an error has occurred if no bytes are consumed.          */
+ /* -------------------------------------------------------------------- */
+     int nConsumedBytes = 0;
+     int nResult = poSFDefn->ExtractIntData( pachData, nBytesRemaining, 
+--- a/frmts/raw/envidataset.cpp
++++ b/frmts/raw/envidataset.cpp
+@@ -2300,7 +2300,7 @@ GDALDataset *ENVIDataset::Open( GDALOpen
+     {
+         delete poDS;
+         CPLError( CE_Failure, CPLE_AppDefined, 
+-                  "Int overflow occured.");
++                  "Int overflow occurred.");
+         return NULL;
+     }
+     
+--- a/frmts/raw/genbindataset.cpp
++++ b/frmts/raw/genbindataset.cpp
+@@ -806,7 +806,7 @@ GDALDataset *GenBinDataset::Open( GDALOp
+     {
+         delete poDS;
+         CPLError( CE_Failure, CPLE_AppDefined, 
+-                  "Int overflow occured.");
++                  "Int overflow occurred.");
+         return NULL;
+     }
+ 
+--- a/frmts/raw/lcpdataset.cpp
++++ b/frmts/raw/lcpdataset.cpp
+@@ -297,7 +297,7 @@ GDALDataset *LCPDataset::Open( GDALOpenI
+ 
+    if (nWidth > INT_MAX / iPixelSize)
+    {
+-       CPLError( CE_Failure, CPLE_AppDefined,  "Int overflow occured");
++       CPLError( CE_Failure, CPLE_AppDefined,  "Int overflow occurred");
+        delete poDS;
+        return NULL;
+    }
+--- a/frmts/raw/mffdataset.cpp
++++ b/frmts/raw/mffdataset.cpp
+@@ -961,7 +961,7 @@ GDALDataset *MFFDataset::Open( GDALOpenI
+         {
+             if (poDS->GetRasterXSize() > INT_MAX / nPixelOffset)
+             {
+-                CPLError( CE_Warning, CPLE_AppDefined,  "Int overflow occured... skipping");
++                CPLError( CE_Warning, CPLE_AppDefined,  "Int overflow occurred... skipping");
+                 nSkipped++;
+                 VSIFCloseL(fpRaw);
+                 continue;
+--- a/frmts/raw/pnmdataset.cpp
++++ b/frmts/raw/pnmdataset.cpp
+@@ -258,7 +258,7 @@ GDALDataset *PNMDataset::Open( GDALOpenI
+         if (nWidth > INT_MAX / iPixelSize)
+         {
+             CPLError( CE_Failure, CPLE_AppDefined, 
+-                  "Int overflow occured.");
++                  "Int overflow occurred.");
+             delete poDS;
+             return NULL;
+         }
+@@ -272,7 +272,7 @@ GDALDataset *PNMDataset::Open( GDALOpenI
+         if (nWidth > INT_MAX / (3 * iPixelSize))
+         {
+             CPLError( CE_Failure, CPLE_AppDefined, 
+-                  "Int overflow occured.");
++                  "Int overflow occurred.");
+             delete poDS;
+             return NULL;
+         }
+--- a/frmts/rmf/rmflzw.cpp
++++ b/frmts/rmf/rmflzw.cpp
+@@ -92,7 +92,7 @@ static void LZWUpdateTab(LZWStringTab *p
+         nNext = nLocal;
+     else
+     {
+-        // If collision has occured
++        // If collision has occurred
+         while ( (nNext = poCodeTab[nLocal].iNext) != 0 )
+             nLocal = nNext;
+ 
+--- a/frmts/sdts/sdtspolygonreader.cpp
++++ b/frmts/sdts/sdtspolygonreader.cpp
+@@ -209,7 +209,7 @@ void SDTSRawPolygon::AddEdgeToRing( int
+  * direction of rings.
+  *
+  * @return TRUE if all rings assembled without problems or FALSE if a problem
+- * occured.  If a problem occurs rings are still formed from all lines, but
++ * occurred.  If a problem occurs rings are still formed from all lines, but
+  * some of the rings will not be closed, and rings will have no particular
+  * order or direction.
+  */
+--- a/gcore/gdal_misc.cpp
++++ b/gcore/gdal_misc.cpp
+@@ -2758,7 +2758,7 @@ GDALDataset *GDALFindAssociatedAuxFile(
+ /*      file.  Check that we are the dependent file of the aux          */
+ /*      file, or if we aren't verify that the dependent file does       */
+ /*      not exist, likely mean it is us but some sort of renaming       */
+-/*      has occured.                                                    */
++/*      has occurred.                                                   */
+ /* -------------------------------------------------------------------- */
+     CPLString osJustFile = CPLGetFilename(pszBasename); // without dir
+     CPLString osAuxFilename = CPLResetExtension(pszBasename, pszAuxSuffixLC);
+--- a/gcore/gdaldefaultasync.cpp
++++ b/gcore/gdaldefaultasync.cpp
+@@ -89,7 +89,7 @@ GDALAsyncReader::~GDALAsyncReader()
+  * activity pending.
+  * - GARIO_ERROR: Something has gone wrong. The asynchronous request should 
+  * be ended.
+- * - GARIO_COMPLETE: An update has occured and there is no more pending work 
++ * - GARIO_COMPLETE: An update has occurred and there is no more pending work 
+  * on this request. The request should be ended and the buffer used. 
+  *
+  * @param dfTimeout the number of seconds to wait for additional updates.  Use 
+--- a/gcore/gdalrasterband.cpp
++++ b/gcore/gdalrasterband.cpp
+@@ -202,7 +202,7 @@ CPLErr GDALRasterBand::RasterIO( GDALRWF
+     if( eRWFlag == GF_Write && eFlushBlockErr != CE_None )
+     {
+         ReportError(eFlushBlockErr, CPLE_AppDefined,
+-                 "An error occured while writing a dirty block");
++                 "An error occurred while writing a dirty block");
+         CPLErr eErr = eFlushBlockErr;
+         eFlushBlockErr = CE_None;
+         return eErr;
+@@ -521,7 +521,7 @@ CPLErr GDALRasterBand::WriteBlock( int n
+     if( eFlushBlockErr != CE_None )
+     {
+         ReportError(eFlushBlockErr, CPLE_AppDefined,
+-                 "An error occured while writing a dirty block");
++                 "An error occurred while writing a dirty block");
+         CPLErr eErr = eFlushBlockErr;
+         eFlushBlockErr = CE_None;
+         return eErr;
+@@ -855,7 +855,7 @@ CPLErr GDALRasterBand::FlushCache()
+     if (eFlushBlockErr != CE_None)
+     {
+         ReportError(eFlushBlockErr, CPLE_AppDefined,
+-                 "An error occured while writing a dirty block");
++                 "An error occurred while writing a dirty block");
+         eFlushBlockErr = CE_None;
+     }
+ 
+@@ -4901,9 +4901,9 @@ unsigned char* GDALRasterBand::GetIndexC
+ /************************************************************************/
+ 
+ /**
+- * \brief Store that an error occured while writing a dirty block.
++ * \brief Store that an error occurred while writing a dirty block.
+  *
+- * This function stores the fact that an error occured while writing a dirty
++ * This function stores the fact that an error occurred while writing a dirty
+  * block from GDALRasterBlock::FlushCacheBlock(). Indeed when dirty blocks are
+  * flushed when the block cache get full, it is not convenient/possible to
+  * report that a dirty block could not be written correctly. This function
+--- a/gcore/overview.cpp
++++ b/gcore/overview.cpp
+@@ -1630,9 +1630,9 @@ GDALRegenerateOverviews( GDALRasterBandH
+ /*      amount of computation.                                          */
+ /* -------------------------------------------------------------------- */
+ 
+-    /* In case the mask made be computed from another band of the dataset, */
++    /* In case the mask made be computed from another band of the dataset,   */
+     /* we can't use cascaded generation, as the computation of the overviews */
+-    /* of the band used for the mask band may not have yet occured (#3033) */
++    /* of the band used for the mask band may not have yet occurred (#3033)  */
+     if( (EQUALN(pszResampling,"AVER",4) || EQUALN(pszResampling,"GAUSS",5)) && nOverviewCount > 1
+          && !(bUseNoDataMask && nMaskFlags != GMF_NODATA))
+         return GDALRegenerateCascadingOverviews( poSrcBand, 
+--- a/gcore/rasterio.cpp
++++ b/gcore/rasterio.cpp
+@@ -74,7 +74,7 @@ CPLErr GDALRasterBand::IRasterIO( GDALRW
+     if( eRWFlag == GF_Write && eFlushBlockErr != CE_None )
+     {
+         CPLError(eFlushBlockErr, CPLE_AppDefined,
+-                 "An error occured while writing a dirty block");
++                 "An error occurred while writing a dirty block");
+         CPLErr eErr = eFlushBlockErr;
+         eFlushBlockErr = CE_None;
+         return eErr;
+--- a/ogr/ogr_srsnode.cpp
++++ b/ogr/ogr_srsnode.cpp
+@@ -770,7 +770,7 @@ void OGR_SRSNode::MakeValueSafe()
+  * argument.
+  * 
+  * @return returns OGRERR_NONE unless something bad happens.  There is no
+- * indication returned about whether any replacement occured.  
++ * indication returned about whether any replacement occurred.  
+  */
+ 
+ OGRErr OGR_SRSNode::applyRemapper( const char *pszNode, 
+--- a/ogr/ogrgeometry.cpp
++++ b/ogr/ogrgeometry.cpp
+@@ -3660,7 +3660,7 @@ int OGR_G_Centroid( OGRGeometryH hGeom,
+  *
+  * @param hGeom the geometry to operate on. 
+  * @return a point guaranteed to lie on the surface or NULL if an error
+- *         occured.
++ *         occurred.
+  *
+  * @since OGR 1.10
+  */
+--- a/ogr/ogrsf_frmts/bna/ogrbnaparser.cpp
++++ b/ogr/ogrsf_frmts/bna/ogrbnaparser.cpp
+@@ -121,7 +121,7 @@ and http://64.145.236.125/forum/topic.as
+ /* We allow that couples of coordinates on the same line may be separated only by spaces */
+ /* (instead of being separated by a comma) */
+ 
+-#define STRING_NOT_TERMINATED      "string not terminated when end of line occured"
++#define STRING_NOT_TERMINATED      "string not terminated when end of line occurred"
+ #define MISSING_FIELDS             "missing fields"
+ #define BAD_INTEGER_NUMBER_FORMAT  "bad integer number format"
+ #define BAD_FLOAT_NUMBER_FORMAT    "bad float number format"
+--- a/ogr/ogrsf_frmts/ntf/ntfrecord.cpp
++++ b/ogr/ogrsf_frmts/ntf/ntfrecord.cpp
+@@ -170,7 +170,7 @@ int NTFRecord::ReadPhysicalLine( FILE *f
+         else
+         {
+             CPLError( CE_Failure, CPLE_AppDefined, 
+-                      "Low level read error occured while reading NTF file." );
++                      "Low level read error occurred while reading NTF file." );
+             return -2;
+         }
+     }
+--- a/ogr/ogrsf_frmts/openfilegdb/filegdbtable.cpp
++++ b/ogr/ogrsf_frmts/openfilegdb/filegdbtable.cpp
+@@ -56,7 +56,7 @@ namespace OpenFileGDB
+ 
+ void FileGDBTablePrintError(const char* pszFile, int nLineNumber)
+ {
+-    CPLError(CE_Failure, CPLE_AppDefined, "Error occured in %s at line %d",
++    CPLError(CE_Failure, CPLE_AppDefined, "Error occurred in %s at line %d",
+              pszFile, nLineNumber);
+ }
+ 
+--- a/ogr/ogrsf_frmts/osm/gpb.h
++++ b/ogr/ogrsf_frmts/osm/gpb.h
+@@ -41,7 +41,7 @@
+ #ifdef DEBUG_GPB_ERRORS
+ static void error_occured(int nLine)
+ {
+-    CPLError(CE_Failure, CPLE_AppDefined, "Parsing error occured at line %d", nLine);
++    CPLError(CE_Failure, CPLE_AppDefined, "Parsing error occurred at line %d", nLine);
+ }
+ 
+ #define GOTO_END_ERROR do { error_occured(__LINE__); goto end_error; } while(0)
+--- a/ogr/ogrsf_frmts/osm/ogrosmdatasource.cpp
++++ b/ogr/ogrsf_frmts/osm/ogrosmdatasource.cpp
+@@ -3607,7 +3607,7 @@ int OGROSMDataSource::ParseNextChunk(int
+             else
+             {
+                 CPLError(CE_Failure, CPLE_AppDefined,
+-                         "An error occured during the parsing of data around byte " CPL_FRMT_GUIB,
++                         "An error occurred during the parsing of data around byte " CPL_FRMT_GUIB,
+                          OSM_GetBytesRead(psParser));
+ 
+                 bStopParsing = TRUE;
+--- a/ogr/ogrsf_frmts/pg/ogrpgdatasource.cpp
++++ b/ogr/ogrsf_frmts/pg/ogrpgdatasource.cpp
+@@ -2388,7 +2388,7 @@ OGRLayer * OGRPGDataSource::ExecuteSQL(
+     }
+ 
+ /* -------------------------------------------------------------------- */
+-/*      Generate an error report if an error occured.                   */
++/*      Generate an error report if an error occurred.                  */
+ /* -------------------------------------------------------------------- */
+     if( !hResult ||
+         (PQresultStatus(hResult) == PGRES_NONFATAL_ERROR
+--- a/ogr/ogrsf_frmts/pg/ogrpgutility.cpp
++++ b/ogr/ogrsf_frmts/pg/ogrpgutility.cpp
+@@ -79,7 +79,7 @@ PGresult *OGRPG_PQexec(PGconn *conn, con
+         CPLDebug("PG", "PQexecParams(%s) = %s%s", query, pszRetCode, szNTuples);
+ 
+ /* -------------------------------------------------------------------- */
+-/*      Generate an error report if an error occured.                   */
++/*      Generate an error report if an error occurred.                  */
+ /* -------------------------------------------------------------------- */
+     if ( !hResult || (PQresultStatus(hResult) == PGRES_NONFATAL_ERROR ||
+                       PQresultStatus(hResult) == PGRES_FATAL_ERROR ) )
+--- a/ogr/ogrsf_frmts/shape/shape2ogr.cpp
++++ b/ogr/ogrsf_frmts/shape/shape2ogr.cpp
+@@ -1337,7 +1337,7 @@ OGRErr SHPWriteOGRFeature( SHPHandle hSH
+                 if( nCounter <= 10 )
+                 {
+                     CPLError(CE_Warning, CPLE_AppDefined,
+-                             "Value %.18g of field %s with 0 decimal of feature %ld is bigger than 2^53. Precision loss likely occured or going to happen.%s",
++                             "Value %.18g of field %s with 0 decimal of feature %ld is bigger than 2^53. Precision loss likely occurred or going to happen.%s",
+                              dfVal, poFieldDefn->GetNameRef(), poFeature->GetFID(),
+                              (nCounter == 10) ? " This warning will not be emitted anymore." : "");
+                     nCounter ++;
+--- a/ogr/ogrsf_frmts/sqlite/ogrsqliteexecutesql.cpp
++++ b/ogr/ogrsf_frmts/sqlite/ogrsqliteexecutesql.cpp
+@@ -645,7 +645,7 @@ CPL_UNUSED
+     if( rc != SQLITE_OK )
+     {
+         CPLDebug("SQLITE",
+-                    "Error occured during spatial index creation : %s",
++                    "Error occurred during spatial index creation : %s",
+                     sqlite3_errmsg(hDB));
+     }
+ #else //  ENABLE_VIRTUAL_OGR_SPATIAL_INDEX
+@@ -701,7 +701,7 @@ CPL_UNUSED
+     else
+     {
+         CPLDebug("SQLITE",
+-                    "Error occured during spatial index creation : %s",
++                    "Error occurred during spatial index creation : %s",
+                     sqlite3_errmsg(hDB));
+         rc = sqlite3_exec( hDB, "ROLLBACK", NULL, NULL, NULL );
+     }
+--- a/ogr/ogrsf_frmts/tiger/tigercompletechain.cpp
++++ b/ogr/ogrsf_frmts/tiger/tigercompletechain.cpp
+@@ -488,7 +488,7 @@ int TigerCompleteChain::AddShapePoints(
+ 
+     nShapeRecId = GetShapeRecordId( nRecordId, nTLID );
+ 
+-    // -2 means an error occured.
++    // -2 means an error occurred.
+     if( nShapeRecId == -2 )
+         return FALSE;
+ 
+--- a/ogr/osr_cs_wkt.c
++++ b/ogr/osr_cs_wkt.c
+@@ -47,7 +47,7 @@ void osr_cs_wkt_error( osr_cs_wkt_parse_
+     int i, n;
+     char* szPtr;
+     sprintf(context->szErrorMsg,
+-            "Parsing error : %s. Error occured around:\n", msg );
++            "Parsing error : %s. Error occurred around:\n", msg );
+     n = context->pszLastSuccess - context->pszInput;
+ 
+     szPtr = context->szErrorMsg + strlen(context->szErrorMsg);
+--- a/ogr/swq.cpp
++++ b/ogr/swq.cpp
+@@ -36,7 +36,7 @@
+ void swqerror( swq_parse_context *context, const char *msg )
+ {
+     CPLString osMsg;
+-    osMsg.Printf( "SQL Expression Parsing Error: %s. Occured around :\n", msg );
++    osMsg.Printf( "SQL Expression Parsing Error: %s. Occurred around :\n", msg );
+ 
+     int i;
+     int n = context->pszLastValid - context->pszInput;
+--- a/port/cpl_error.cpp
++++ b/port/cpl_error.cpp
+@@ -134,7 +134,7 @@ void* CPL_STDCALL CPLGetErrorHandlerUser
+  * The eErrClass argument can have the value CE_Warning indicating that the
+  * message is an informational warning, CE_Failure indicating that the
+  * action failed, but that normal recover mechanisms will be used or
+- * CE_Fatal meaning that a fatal error has occured, and that CPLError()
++ * CE_Fatal meaning that a fatal error has occurred, and that CPLError()
+  * should not return.  
+  *
+  * The default behaviour of CPLError() is to report errors to stderr,
+--- a/port/cpl_odbc.cpp
++++ b/port/cpl_odbc.cpp
+@@ -761,7 +761,7 @@ short CPLODBCStatement::GetColNullable(
+  * be considered reliable on all drivers. 
+  *
+  * Currently it isn't clear how to determine whether an error or a normal
+- * out of data condition has occured if Fetch() fails. 
++ * out of data condition has occurred if Fetch() fails. 
+  *
+  * @param nOrientation One of SQL_FETCH_NEXT, SQL_FETCH_LAST, SQL_FETCH_PRIOR,
+  * SQL_FETCH_ABSOLUTE, or SQL_FETCH_RELATIVE (default is SQL_FETCH_NEXT).
+--- a/port/cpl_spawn.cpp
++++ b/port/cpl_spawn.cpp
+@@ -119,7 +119,7 @@ int CPLSpawn(const char * const papszArg
+     GByte* pData = VSIGetMemFileBuffer(osName.c_str(), &nDataLength, TRUE);
+     if( nDataLength > 0 )
+         pData[nDataLength-1] = '\0';
+-    if( pData && strstr((const char*)pData, "An error occured while forking process") != NULL )
++    if( pData && strstr((const char*)pData, "An error occurred while forking process") != NULL )
+         bDisplayErr = TRUE;
+     if( pData && bDisplayErr )
+         CPLError(CE_Failure, CPLE_AppDefined, "[%s error] %s", papszArgv[0], pData);
+--- a/port/cpl_string.cpp
++++ b/port/cpl_string.cpp
+@@ -1142,7 +1142,7 @@ const char *CSLFetchNameValue(char **pap
+  * @param papszStrList the string list to search.
+  * @param pszName the key value to look for (case insensitive).
+  *
+- * @return -1 on failure or the list index of the first occurance 
++ * @return -1 on failure or the list index of the first occurrence 
+  * matching the given key.
+  */
+ 
+@@ -2098,7 +2098,7 @@ CPLValueType CPLGetValueType(const char*
+ \verbatim
+ char szDest[5];
+ if (CPLStrlcpy(szDest, "abcde", sizeof(szDest)) >= sizeof(szDest))
+-    fprintf(stderr, "truncation occured !\n");
++    fprintf(stderr, "truncation occurred !\n");
+ \endverbatim
+ 
+  * @param pszDest   destination buffer
+@@ -2150,7 +2150,7 @@ size_t CPLStrlcpy(char* pszDest, const c
+ char szDest[5];
+ CPLStrlcpy(szDest, "ab", sizeof(szDest));
+ if (CPLStrlcat(szDest, "cde", sizeof(szDest)) >= sizeof(szDest))
+-    fprintf(stderr, "truncation occured !\n");
++    fprintf(stderr, "truncation occurred !\n");
+ \endverbatim
+ 
+  * @param pszDest   destination buffer. Must be NUL terminated before running CPLStrlcat
+--- a/port/cpl_virtualmem.cpp
++++ b/port/cpl_virtualmem.cpp
+@@ -66,7 +66,7 @@
+    - mremap() with 5 args is Linux specific. It is used when the user callback is invited
+      to fill a page, we currently mmap() a writable page, let it filled it,
+      and afterwards mremap() that temporary page onto the location where the
+-     fault occured.
++     fault occurred.
+      If we have no mremap(), the workaround is to pause other threads that
+      consume the current view while we are updating the faulted page, otherwise
+      a non-paused thread could access a page that is in the middle of being
+--- a/port/cpl_vsil.cpp
++++ b/port/cpl_vsil.cpp
+@@ -750,7 +750,7 @@ size_t VSIFWriteL( const void *pBuffer,
+ /**
+  * \brief Test for end of file.
+  *
+- * Returns TRUE (non-zero) if an end-of-file condition occured during the
++ * Returns TRUE (non-zero) if an end-of-file condition occurred during the
+  * previous read operation. The end-of-file flag is cleared by a successfull
+  * VSIFSeekL() call.
+  *
+--- a/swig/csharp/gdal/gdal_wrap.cpp
++++ b/swig/csharp/gdal/gdal_wrap.cpp
+@@ -708,7 +708,7 @@ void GDAL_GCP_set_Id( GDAL_GCP *gcp, con
+ 
+ 
+ 
+-/* Returned size is in bytes or 0 if an error occured */
++/* Returned size is in bytes or 0 if an error occurred */
+ static
+ GIntBig ComputeDatasetRasterIOSize (int buf_xsize, int buf_ysize, int nPixelSize,
+                                 int nBands, int* bandMap, int nBandMapArrayLength,
+@@ -966,7 +966,7 @@ int GDALDatasetShadow_RasterCount_get( G
+ }
+ 
+ 
+-/* Returned size is in bytes or 0 if an error occured */
++/* Returned size is in bytes or 0 if an error occurred */
+ static
+ GIntBig ComputeBandRasterIOSize (int buf_xsize, int buf_ysize, int nPixelSize,
+                              int nPixelSpace, int nLineSpace,
+--- a/swig/include/Band.i
++++ b/swig/include/Band.i
+@@ -36,7 +36,7 @@
+ 
+ 
+ %{
+-/* Returned size is in bytes or 0 if an error occured */
++/* Returned size is in bytes or 0 if an error occurred */
+ static
+ GIntBig ComputeBandRasterIOSize (int buf_xsize, int buf_ysize, int nPixelSize,
+                              int nPixelSpace, int nLineSpace,
+--- a/swig/include/Dataset.i
++++ b/swig/include/Dataset.i
+@@ -29,7 +29,7 @@
+  *****************************************************************************/
+ 
+ %{
+-/* Returned size is in bytes or 0 if an error occured */
++/* Returned size is in bytes or 0 if an error occurred */
+ static
+ GIntBig ComputeDatasetRasterIOSize (int buf_xsize, int buf_ysize, int nPixelSize,
+                                 int nBands, int* bandMap, int nBandMapArrayLength,
+--- a/swig/java/javadoc.java
++++ b/swig/java/javadoc.java
+@@ -190,7 +190,7 @@ public class gdal:public static int SetE
+  * The msg_class argument can have the value gdalconst.CE_Warning indicating that the
+  * message is an informational warning, gdalconst.CE_Failure indicating that the
+  * action failed, but that normal recover mechanisms will be used or
+- * CE_Fatal meaning that a fatal error has occured, and that Error()
++ * CE_Fatal meaning that a fatal error has occurred, and that Error()
+  * should not return.  
+  * <p>
+  * The default behaviour of Error() is to report errors to stderr,
+--- a/swig/perl/gdal_wrap.cpp
++++ b/swig/perl/gdal_wrap.cpp
+@@ -2253,7 +2253,7 @@ CreateArrayFromDoubleArray( double *firs
+ }
+ 
+ 
+-/* Returned size is in bytes or 0 if an error occured */
++/* Returned size is in bytes or 0 if an error occurred */
+ static
+ GIntBig ComputeDatasetRasterIOSize (int buf_xsize, int buf_ysize, int nPixelSize,
+                                 int nBands, int* bandMap, int nBandMapArrayLength,
+@@ -2601,7 +2601,7 @@ int GDALDatasetShadow_RasterCount_get( G
+ }
+ 
+ 
+-/* Returned size is in bytes or 0 if an error occured */
++/* Returned size is in bytes or 0 if an error occurred */
+ static
+ GIntBig ComputeBandRasterIOSize (int buf_xsize, int buf_ysize, int nPixelSize,
+                              int nPixelSpace, int nLineSpace,
+--- a/swig/php/gdal_wrap.cpp
++++ b/swig/php/gdal_wrap.cpp
+@@ -1438,7 +1438,7 @@ t_output_helper( zval **target, zval *o)
+ }
+ 
+ 
+-/* Returned size is in bytes or 0 if an error occured */
++/* Returned size is in bytes or 0 if an error occurred */
+ static
+ GIntBig ComputeDatasetRasterIOSize (int buf_xsize, int buf_ysize, int nPixelSize,
+                                 int nBands, int* bandMap, int nBandMapArrayLength,
+@@ -1784,7 +1784,7 @@ int GDALDatasetShadow_RasterCount_get( G
+ }
+ 
+ 
+-/* Returned size is in bytes or 0 if an error occured */
++/* Returned size is in bytes or 0 if an error occurred */
+ static
+ GIntBig ComputeBandRasterIOSize (int buf_xsize, int buf_ysize, int nPixelSize,
+                              int nPixelSpace, int nLineSpace,
+--- a/swig/python/extensions/gdal_wrap.cpp
++++ b/swig/python/extensions/gdal_wrap.cpp
+@@ -3843,7 +3843,7 @@ SWIGINTERN void CPLVirtualMemShadow_Pin(
+         CPLVirtualMemPin(self->vmem, start_addr, nsize, bWriteOp);
+     }
+ 
+-/* Returned size is in bytes or 0 if an error occured */
++/* Returned size is in bytes or 0 if an error occurred */
+ static
+ GIntBig ComputeDatasetRasterIOSize (int buf_xsize, int buf_ysize, int nPixelSize,
+                                 int nBands, int* bandMap, int nBandMapArrayLength,
+@@ -4364,7 +4364,7 @@ int GDALDatasetShadow_RasterCount_get( G
+ }
+ 
+ 
+-/* Returned size is in bytes or 0 if an error occured */
++/* Returned size is in bytes or 0 if an error occurred */
+ static
+ GIntBig ComputeBandRasterIOSize (int buf_xsize, int buf_ysize, int nPixelSize,
+                              int nPixelSpace, int nLineSpace,
+--- a/swig/python/samples/ogr_layer_algebra.py
++++ b/swig/python/samples/ogr_layer_algebra.py
+@@ -430,7 +430,7 @@ def main(argv = None):
+     output_ds = None
+ 
+     if ret != 0:
+-        print('An error occured during %s operation' % op_str)
++        print('An error occurred during %s operation' % op_str)
+         return 1
+ 
+     return 0
+--- a/swig/python/samples/ogrupdate.py
++++ b/swig/python/samples/ogrupdate.py
+@@ -437,7 +437,7 @@ def ogrupdate_process(src_layer, dst_lay
+         if ret != 0:
+             if not skip_failures:
+                 if gdal.GetLastErrorMsg() == '':
+-                    print('An error occured during feature insertion/update. Interrupting processing.')
++                    print('An error occurred during feature insertion/update. Interrupting processing.')
+                 ret = 1
+                 break
+             else:
+--- a/frmts/grib/degrib18/degrib/grib1tab.cpp
++++ b/frmts/grib/degrib18/degrib/grib1tab.cpp
+@@ -8114,14 +8114,14 @@ GRIB1ParmTable parm_table_afwa_010[256]
+    /* 147 */ {"MXABH", "Max Absolute Humidity", "g/m^3", UC_NONE},
+    /* 148 */ {"MNABH", "Min Absolute Humidity", "g/m^3", UC_NONE},
+    /* 149 */ {"MNPREC", "Min Precipitation", "mm", UC_NONE},
+-   /* 150 */ {"NEWND", "NE Wind Direction Occurance", "%", UC_NONE},
+-   /* 151 */ {"EWND", "E Wind Direction Occurance", "%", UC_NONE},
+-   /* 152 */ {"SEWND", "SE Wind Direction Occurance", "%", UC_NONE},
+-   /* 153 */ {"SWND", "S Wind Direction Occurance", "%", UC_NONE},
+-   /* 154 */ {"SWWND", "SW Wind Direction Occurance", "%", UC_NONE},
+-   /* 155 */ {"WWND", "W Wind Direction Occurance", "%", UC_NONE},
+-   /* 156 */ {"NWWND", "NW Wind Direction Occurance", "%", UC_NONE},
+-   /* 157 */ {"NWND", "N Wind Direction Occurance", "%", UC_NONE},
++   /* 150 */ {"NEWND", "NE Wind Direction Occurrence", "%", UC_NONE},
++   /* 151 */ {"EWND", "E Wind Direction Occurrence", "%", UC_NONE},
++   /* 152 */ {"SEWND", "SE Wind Direction Occurrence", "%", UC_NONE},
++   /* 153 */ {"SWND", "S Wind Direction Occurrence", "%", UC_NONE},
++   /* 154 */ {"SWWND", "SW Wind Direction Occurrence", "%", UC_NONE},
++   /* 155 */ {"WWND", "W Wind Direction Occurrence", "%", UC_NONE},
++   /* 156 */ {"NWWND", "NW Wind Direction Occurrence", "%", UC_NONE},
++   /* 157 */ {"NWND", "N Wind Direction Occurrence", "%", UC_NONE},
+    /* 158 */ {"NEWSP", "NE Wind Speed", "m/s", UC_NONE},
+    /* 159 */ {"EWSP", "E Wind Speed", "m/s", UC_NONE},
+    /* 160 */ {"SEWSP", "SE Wind Speed", "m/s", UC_NONE},
+--- a/frmts/iso8211/ddffield.cpp
++++ b/frmts/iso8211/ddffield.cpp
+@@ -208,7 +208,7 @@ int DDFField::GetRepeatCount()
+         return 1;
+ 
+ /* -------------------------------------------------------------------- */
+-/*      The occurance count depends on how many copies of this          */
++/*      The occurrence count depends on how many copies of this         */
+ /*      field's list of subfields can fit into the data space.          */
+ /* -------------------------------------------------------------------- */
+     if( poDefn->GetFixedWidth() )
+--- a/frmts/iso8211/iso8211.h
++++ b/frmts/iso8211/iso8211.h
+@@ -268,7 +268,7 @@ class CPL_ODLL DDFFieldDefn
+ 
+ /**
+  * Information from the DDR record describing one subfield of a DDFFieldDefn.
+- * All subfields of a field will occur in each occurance of that field
++ * All subfields of a field will occur in each occurrence of that field
+  * (as a DDFField) in a DDFRecord.  Subfield's actually contain formatted
+  * data (as instances within a record).
+  */
+--- a/frmts/nitf/frmt_nitf_advanced.html
++++ b/frmts/nitf/frmt_nitf_advanced.html
+@@ -34,7 +34,7 @@ The SLOC_ROW and SLOC_COL values are the
+ to the base (SALVL) image.  The CCS_ROW/COL values are relative to the common
+ coordinate system.  The _SDLVL is the display level.  
+ The DATA is the raw CGM data with "backslash quotable" escaping 
+-applied.  All occurances of ASCII zero will be translated to '\0', and all 
++applied.  All occurrences of ASCII zero will be translated to '\0', and all 
+ backslashes and double quotes will be backslashed escaped.  The 
+ CPLUnescapeString() function can be used to unescape the data into binary
+ format using scheme CPLES_BackslashQuotable. <p>
+--- a/frmts/raw/fastdataset.cpp
++++ b/frmts/raw/fastdataset.cpp
+@@ -847,7 +847,7 @@ GDALDataset *FASTDataset::Open( GDALOpen
+         pszSecond = "GAIN%d";
+     }
+ 
+-    // Now search for the first number occurance after that string
++    // Now search for the first number occurrence after that string
+     for ( i = 1; i <= poDS->nBands; i++ )
+     {
+         char    *pszValue = NULL;
+--- a/ogr/ogrsf_frmts/csv/drv_csv.html
++++ b/ogr/ogrsf_frmts/csv/drv_csv.html
+@@ -52,7 +52,7 @@ if there's no other potential separator
+ Otherwise it will default to comma as separator.</p>
+ 
+ <p>Complex attribute values (such as those containing commas, quotes or newlines) 
+-may be placed in double quotes. Any occurances of double quotes within 
++may be placed in double quotes. Any occurrences of double quotes within 
+ the quoted string should be doubled up to "escape" them.</p>
+ 
+ <p>The driver attempts to treat the first line of the file as a list of field 
+--- a/ogr/wcts/html/install.html
++++ b/ogr/wcts/html/install.html
+@@ -113,7 +113,7 @@ wcts_capabilities.xml.0.1.0.  It should
+ the nature of the service being setup.  In particular, the ContactInformation
+ should be updated to refer to whoever is setting up the service.  Also, all
+ the service URLs all need to be updated to reflect the url for the service
+-as it is being installed.  Change each occurance of 
++as it is being installed.  Change each occurrence of 
+ "http://maps.gdal.org/cgi-bin/ogrwcts?to the appropriate value. <p>
+ 
+ <pre>
+--- a/vb6/README.TXT
++++ b/vb6/README.TXT
+@@ -23,7 +23,7 @@ Quick Test Run
+ 1) VB6 needs to be launched in such a way that it can find the gdal12vb.dll.
+    This could be accomplished by having VB6 run in the same directory as the
+    DLL, or by copying the DLL into windows\system32 or by editing GDALCore.bas
+-   and changing all occurances of "gdal12vb.dll" to a full path to the DLL. 
++   and changing all occurrences of "gdal12vb.dll" to a full path to the DLL. 
+ 
+    But for the test app to run, you need to have the sample files in the
+    current directory, so you might as well just make a shortcut copy of your
