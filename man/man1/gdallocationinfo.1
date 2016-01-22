@@ -1,4 +1,4 @@
-.TH "gdallocationinfo" 1 "Wed Sep 16 2015" "GDAL" \" -*- nroff -*-
+.TH "gdallocationinfo" 1 "Fri Jan 22 2016" "GDAL" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -9,7 +9,6 @@ raster query tool
 .PP
 .PP
 .nf
-
 Usage: gdallocationinfo [--help-general] [-xml] [-lifonly] [-valonly]
                         [-b band]* [-overview overview_level]
                         [-l_srs srs_def] [-geoloc] [-wgs84]
@@ -81,7 +80,6 @@ Simple example reporting on pixel (256,256) on the file utm\&.tif\&.
 .PP
 .PP
 .nf
-
 $ gdallocationinfo utm.tif 256 256
 Report:
   Location: (256P,256L)
@@ -94,7 +92,6 @@ Query a VRT file providing the location in WGS84, and getting the result in xml\
 .PP
 .PP
 .nf
-
 $ gdallocationinfo -xml -wgs84 utm.vrt -117.5 33.75
 <Report pixel="217" line="282">
   <BandReport band="1">
@@ -108,4 +105,4 @@ $ gdallocationinfo -xml -wgs84 utm.vrt -117.5 33.75
 .PP
 .SH "AUTHORS"
 .PP
-Frank Warmerdam <warmerdam@pobox.com> 
+Frank Warmerdam warmerdam@pobox.com 

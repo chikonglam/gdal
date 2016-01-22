@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogropenfilegdblayer.cpp 27741 2014-09-26 19:20:02Z goatbar $
+ * $Id: ogropenfilegdblayer.cpp 31071 2015-10-19 14:28:09Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implements Open FileGDB OGR driver.
@@ -1610,7 +1610,7 @@ const OGRField* OGROpenFileGDBLayer::GetMinMaxValue(OGRFieldDefn* poFieldDefn,
                                                     int bIsMin,
                                                     int& eOutType)
 {
-    eOutType = OFTMaxType;
+    eOutType = -1;
     if( !BuildLayerDefinition() )
         return NULL;
 

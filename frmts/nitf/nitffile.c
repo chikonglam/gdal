@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: nitffile.c 27739 2014-09-25 18:49:52Z goatbar $
+ * $Id: nitffile.c 32466 2015-12-26 09:11:37Z rouault $
  *
  * Project:  NITF Read/Write Library
  * Purpose:  Module responsible for opening NITF file, populating NITFFile
@@ -34,7 +34,7 @@
 #include "cpl_conv.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: nitffile.c 27739 2014-09-25 18:49:52Z goatbar $");
+CPL_CVSID("$Id: nitffile.c 32466 2015-12-26 09:11:37Z rouault $");
 
 static int NITFWriteBLOCKA( VSILFILE* fp, vsi_l_offset nOffsetUDIDL,
                             int *pnOffset,
@@ -2127,19 +2127,31 @@ static char** NITFGenericMetadataReadTREInternal(char **papszMD,
                 const char* pszLengthVar = CPLGetXMLValue(psIter, "length_var", NULL);
                 if (pszLengthVar != NULL)
                 {
-                    char** papszMDIter = papszMD;
-                    while(papszMDIter != NULL && *papszMDIter != NULL)
+                    // Preferably look for item at the same level as ours.
+                    const char* pszLengthValue =
+                        CSLFetchNameValue( papszMD,  CPLSPrintf("%s%s", pszMDPrefix, pszLengthVar) );
+                    if( pszLengthValue != NULL )
                     {
-                        if (strstr(*papszMDIter, pszLengthVar) != NULL)
+                        nLength = atoi(pszLengthValue);
+                    }
+                    else
+                    {
+                        char** papszMDIter = papszMD;
+                        while(papszMDIter != NULL && *papszMDIter != NULL)
                         {
-                            const char* pszEqual = strchr(*papszMDIter, '=');
-                            if (pszEqual != NULL)
+                            if (strstr(*papszMDIter, pszLengthVar) != NULL)
                             {
-                                nLength = atoi(pszEqual + 1);
-                                break;
+                                const char* pszEqual = strchr(*papszMDIter, '=');
+                                if (pszEqual != NULL)
+                                {
+                                    nLength = atoi(pszEqual + 1);
+                                    // Voluntary missing break so as to find the
+                                    // "closest" item to ours in case it is not
+                                    // defined in the same level
+                                }
                             }
+                            papszMDIter ++;
                         }
-                        papszMDIter ++;
                     }
                 }
             }

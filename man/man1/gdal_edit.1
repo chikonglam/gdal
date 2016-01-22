@@ -1,4 +1,4 @@
-.TH "gdal_edit" 1 "Wed Sep 16 2015" "GDAL" \" -*- nroff -*-
+.TH "gdal_edit" 1 "Fri Jan 22 2016" "GDAL" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -8,7 +8,6 @@ Edit in place various information of an existing GDAL dataset
 .PP
 .PP
 .nf
-
 gdal_edit [--help-general] [-ro] [-a_srs srs_def] [-a_ullr ulx uly lrx lry]
           [-tr xres yres] [-unsetgt] [-a_nodata value]
           [-gcp pixel line easting northing [elevation]]*
@@ -55,7 +54,6 @@ Passes a metadata key and value to set on the output dataset if possible\&.
 .PP
 .PP
 .nf
-
 gdal_edit -mo DATUM=WGS84 -mo PROJ=GEODETIC -a_ullr 7 47 8 46 test.ecw
 .fi
 .PP

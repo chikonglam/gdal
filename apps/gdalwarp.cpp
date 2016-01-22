@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdalwarp.cpp 28897 2015-04-13 18:20:57Z rouault $
+ * $Id: gdalwarp.cpp 33044 2016-01-19 10:00:25Z rouault $
  *
  * Project:  High Performance Image Reprojector
  * Purpose:  Test program for high performance warper API.
@@ -36,7 +36,7 @@
 #include "commonutils.h"
 #include <vector>
 
-CPL_CVSID("$Id: gdalwarp.cpp 28897 2015-04-13 18:20:57Z rouault $");
+CPL_CVSID("$Id: gdalwarp.cpp 33044 2016-01-19 10:00:25Z rouault $");
 
 static void
 LoadCutline( const char *pszCutlineDSName, const char *pszCLayer, 
@@ -1389,19 +1389,10 @@ int main( int argc, char ** argv )
 
             for( i = 0; i < psWO->nBandCount; i++ )
             {
-                int bHaveNodata = FALSE;
-                
-                GDALRasterBandH hBand = GDALGetRasterBand( hSrcDS, i+1 );
-                GDALGetRasterNoDataValue( hBand, &bHaveNodata );
-
-                CPLDebug("WARP", "band=%d bHaveNodata=%d", i, bHaveNodata);
-                if( bHaveNodata )
-                {
-                    psWO->padfDstNoDataReal[i] = psWO->padfSrcNoDataReal[i];
-                    psWO->padfDstNoDataImag[i] = psWO->padfSrcNoDataImag[i];
-                    CPLDebug("WARP", "srcNoData=%f dstNoData=%f", 
-                             psWO->padfSrcNoDataReal[i], psWO->padfDstNoDataReal[i] );
-                }
+                psWO->padfDstNoDataReal[i] = psWO->padfSrcNoDataReal[i];
+                psWO->padfDstNoDataImag[i] = psWO->padfSrcNoDataImag[i];
+                CPLDebug("WARP", "srcNoData=%f dstNoData=%f", 
+                            psWO->padfSrcNoDataReal[i], psWO->padfDstNoDataReal[i] );
 
                 if( bCreateOutput )
                 {

@@ -1,4 +1,4 @@
-.TH "ogrlineref" 1 "Wed Sep 16 2015" "GDAL" \" -*- nroff -*-
+.TH "ogrlineref" 1 "Fri Jan 22 2016" "GDAL" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -18,7 +18,6 @@ return the portion of the path according to the 'linear referenced' begin and en
 .PP
 .PP
 .nf
-
 ogrlineref [--help-general] [-progress] [-quiet]
            [-f format_name] [[-dsco NAME=VALUE] ...] [[-lco NAME=VALUE]...]
            [-create]
@@ -97,11 +96,10 @@ The input end linear distance
 This example would create a shapefile (parts\&.shp) containing a data needed for linear referencing (1 km parts): 
 .PP
 .nf
-
 % ogrlineref -create -l roads.shp -p references.shp -pm dist -o parts.shp -s 1000 -progress
 
 .fi
 .PP
 .SH "AUTHORS"
 .PP
-Dmitry Baryshnikov <polimax@mail.ru> 
+Dmitry Baryshnikov polimax@mail.ru 

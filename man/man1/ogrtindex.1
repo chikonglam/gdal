@@ -1,4 +1,4 @@
-.TH "ogrtindex" 1 "Wed Sep 16 2015" "GDAL" \" -*- nroff -*-
+.TH "ogrtindex" 1 "Fri Jan 22 2016" "GDAL" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -9,7 +9,6 @@ creates a tileindex
 .PP
 .PP
 .nf
-
 ogrtindex [-lnum n]... [-lname name]... [-f output_format]
           [-write_absolute_path] [-skip_different_projection]
                  output_dataset src_dataset...
@@ -43,11 +42,10 @@ It is a flaw of the current ogrtindex program that no attempt is made to copy th
 This example would create a shapefile (tindex\&.shp) containing a tile index of the BL2000_LINK layers in all the NTF files in the wrk directory: 
 .PP
 .nf
-
 % ogrtindex tindex.shp wrk/*.NTF
 
 .fi
 .PP
 .SH "AUTHORS"
 .PP
-Frank Warmerdam <warmerdam@pobox.com>, Silke Reimer <silke@intevation.de> 
+Frank Warmerdam warmerdam@pobox.com, Silke Reimer silke@intevation.de 

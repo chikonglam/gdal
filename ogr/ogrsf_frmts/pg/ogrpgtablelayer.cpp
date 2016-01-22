@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrpgtablelayer.cpp 28541 2015-02-23 11:56:10Z rouault $
+ * $Id: ogrpgtablelayer.cpp 30850 2015-10-05 13:49:23Z rouault $
 
  *
  * Project:  OpenGIS Simple Features Reference Implementation
@@ -37,7 +37,7 @@
 
 #define PQexec this_is_an_error
 
-CPL_CVSID("$Id: ogrpgtablelayer.cpp 28541 2015-02-23 11:56:10Z rouault $");
+CPL_CVSID("$Id: ogrpgtablelayer.cpp 30850 2015-10-05 13:49:23Z rouault $");
 
 
 #define USE_COPY_UNSET  -10
@@ -2455,7 +2455,7 @@ OGRErr OGRPGTableLayer::CreateGeomField( OGRGeomFieldDefn *poGeomFieldIn,
     osCommand.Printf(
             "SELECT AddGeometryColumn(%s,%s,%s,%d,'%s',%d)",
             OGRPGEscapeString(hPGConn, pszSchemaName).c_str(),
-            OGRPGEscapeString(hPGConn, poFeatureDefn->GetName()).c_str(),
+            OGRPGEscapeString(hPGConn, pszTableName).c_str(),
             OGRPGEscapeString(hPGConn, poGeomField->GetNameRef()).c_str(),
             nSRSId, pszGeometryType, nDimension );
 
