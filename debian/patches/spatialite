@@ -5,7 +5,7 @@ Forwarded: not-needed
 
 --- a/configure
 +++ b/configure
-@@ -25662,7 +25662,7 @@ if ${ac_cv_lib_spatialite_spatialite_ini
+@@ -25886,7 +25886,7 @@ if ${ac_cv_lib_spatialite_spatialite_ini
    $as_echo_n "(cached) " >&6
  else
    ac_check_lib_save_LIBS=$LIBS
@@ -14,7 +14,7 @@ Forwarded: not-needed
  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
  /* end confdefs.h.  */
  
-@@ -25716,7 +25716,7 @@ if ${ac_cv_lib_spatialite_spatialite_ini
+@@ -25940,7 +25940,7 @@ if ${ac_cv_lib_spatialite_spatialite_ini
    $as_echo_n "(cached) " >&6
  else
    ac_check_lib_save_LIBS=$LIBS
@@ -23,7 +23,7 @@ Forwarded: not-needed
  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
  /* end confdefs.h.  */
  
-@@ -25808,7 +25808,7 @@ if ${ac_cv_lib_spatialite_spatialite_tar
+@@ -26032,7 +26032,7 @@ if ${ac_cv_lib_spatialite_spatialite_tar
    $as_echo_n "(cached) " >&6
  else
    ac_check_lib_save_LIBS=$LIBS
