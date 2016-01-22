@@ -1,5 +1,5 @@
 libgdal.so.1 libgdal1i #MINVER#
-| libgdal1i #MINVER#, libgdal.so.1-1.11.3
+| libgdal1i #MINVER#, libgdal.so.1-1.11.4
 #include "libgdal1i.symbols.common"
  (c++)"PamGetProxy(char const*)@GDAL_1.8" 1.10.0 1
  (c++)"CPLURLAddKVP(char const*, char const*, char const*)@GDAL_1.8" 1.10.0 1

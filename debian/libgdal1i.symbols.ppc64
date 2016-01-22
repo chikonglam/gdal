@@ -1,5 +1,5 @@
 libgdal.so.1 libgdal1i #MINVER#
-| libgdal1i #MINVER#, libgdal.so.1-1.11.3
+| libgdal1i #MINVER#, libgdal.so.1-1.11.4
 #include "libgdal1i.symbols.common"
  BSBClose@GDAL_1.8 1.10.0
  BSBCreate@GDAL_1.8 1.10.0

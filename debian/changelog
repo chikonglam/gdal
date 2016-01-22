@@ -1,8 +1,9 @@
-gdal (1.11.3+dfsg-3) UNRELEASED; urgency=medium
+gdal (1.11.4~rc1+dfsg-1) UNRELEASED; urgency=medium
 
+  * New upstream release candidate.
   * Update watch file for 1.11.4 pre-releases.
 
- -- Bas Couwenberg <sebastic@debian.org>  Fri, 22 Jan 2016 12:28:58 +0100
+ -- Bas Couwenberg <sebastic@debian.org>  Fri, 22 Jan 2016 12:38:00 +0100
 
 gdal (1.11.3+dfsg-2) unstable; urgency=medium
 
