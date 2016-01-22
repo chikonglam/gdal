@@ -71,7 +71,7 @@ Applied-Upstream: 2.0, http://trac.osgeo.org/gdal/changeset/28039
                  {
 --- a/frmts/nitf/nitffile.c
 +++ b/frmts/nitf/nitffile.c
-@@ -2626,7 +2626,7 @@ char **NITFGenericMetadataReadTRE(char *
+@@ -2638,7 +2638,7 @@ char **NITFGenericMetadataReadTRE(char *
      if (bError == FALSE && nTreLength > 0 && nTreOffset != nTreLength)
      {
          CPLError( CE_Warning, CPLE_AppDefined,
@@ -80,7 +80,7 @@ Applied-Upstream: 2.0, http://trac.osgeo.org/gdal/changeset/28039
                    pszTREName );
      }
      if (nTreOffset < nTRESize)
-@@ -2762,7 +2762,7 @@ CPLXMLNode* NITFCreateXMLTre(NITFFile* p
+@@ -2774,7 +2774,7 @@ CPLXMLNode* NITFCreateXMLTre(NITFFile* p
      if (bError == FALSE && nTreLength > 0 && nTreOffset != nTreLength)
      {
          CPLError( CE_Warning, CPLE_AppDefined,

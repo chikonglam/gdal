@@ -2,6 +2,7 @@ gdal (1.11.4~rc1+dfsg-1) UNRELEASED; urgency=medium
 
   * New upstream release candidate.
   * Update watch file for 1.11.4 pre-releases.
+  * Refresh patches.
 
  -- Bas Couwenberg <sebastic@debian.org>  Fri, 22 Jan 2016 12:38:00 +0100
 

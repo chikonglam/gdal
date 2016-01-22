@@ -16,7 +16,7 @@ Applied-Upstream: 2.0, http://trac.osgeo.org/gdal/changeset/28039
  % gdal_merge.py -init "0 0 255" -o out.tif in1.tif in2.tif
 --- a/man/man1/gdal_merge.1
 +++ b/man/man1/gdal_merge.1
-@@ -64,7 +64,7 @@ Create an image with the pixels in all b
+@@ -62,7 +62,7 @@ Create an image with the pixels in all b
  .fi
  .PP
  .PP

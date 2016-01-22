@@ -5,7 +5,7 @@ Applied-Upstream: 2.0, http://trac.osgeo.org/gdal/changeset/28039
 
 --- a/NEWS
 +++ b/NEWS
-@@ -4141,7 +4141,7 @@ GeoTIFF driver :
+@@ -4243,7 +4243,7 @@ GeoTIFF driver :
   * Use official value for inverse flattening of the WGS84 ellipsoid (#2787)
   * Add metadata domain for XML documents (#2786)
   * Make GTiff driver friendly with files with huge number of bands and pixel interleaving (#2838)
@@ -27,7 +27,7 @@ Applied-Upstream: 2.0, http://trac.osgeo.org/gdal/changeset/28039
             rmax=rmax*dscale;
 --- a/frmts/gtiff/geotiff.cpp
 +++ b/frmts/gtiff/geotiff.cpp
-@@ -1555,7 +1555,7 @@ CPLErr GTiffRasterBand::FillCacheForOthe
+@@ -1556,7 +1556,7 @@ CPLErr GTiffRasterBand::FillCacheForOthe
  /*      and O(nBands^2) performance !                                   */
  /*                                                                      */
  /*      If there are many bands and the block cache size is not big     */
@@ -49,7 +49,7 @@ Applied-Upstream: 2.0, http://trac.osgeo.org/gdal/changeset/28039
  
 --- a/man/man1/gdalwarp.1
 +++ b/man/man1/gdalwarp.1
-@@ -122,7 +122,7 @@ The source file name(s)\&.
+@@ -121,7 +121,7 @@ The source file name(s)\&.
  The destination file name\&.  
  .PP
  .PP

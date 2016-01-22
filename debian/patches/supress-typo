@@ -25,7 +25,7 @@ Applied-Upstream: 2.0, http://trac.osgeo.org/gdal/changeset/28039
  <dt> <b>-dsco</b> <em>NAME=VALUE</em>:</dt><dd> Dataset creation option 
 --- a/NEWS
 +++ b/NEWS
-@@ -2170,7 +2170,7 @@ Utilities:
+@@ -2272,7 +2272,7 @@ Utilities:
   * gdalwarp: speed-up when using -tps with large number of GCPs
   * gdalwarp: add support for optional use of libarmadillo to speed-up matrix inversion in -tps mode
   * gdalwarp: detect situations where the user will override the source file
@@ -34,7 +34,7 @@ Applied-Upstream: 2.0, http://trac.osgeo.org/gdal/changeset/28039
   * gdal_rasterize: fix half pixel shift when rasterizing points; make gdal_rasterize utility increase the computed raster extent by a half-pixel for point layers (#3774)
   * gdal_rasterize: when source datasource has a single layer, use it implicitely if none of -l or -sql is specified
   * nearblack: add -color option (#4085)
-@@ -3864,7 +3864,7 @@ Python bindings:
+@@ -3966,7 +3966,7 @@ Python bindings:
     when used and set to True, None is returned when GDALGetGeoTransform()
     returns CE_Failure (instead of the fake (0,1,0,0,0,1)); backward
     compatibility preserved when the parameter isn't specified
@@ -160,7 +160,7 @@ Applied-Upstream: 2.0, http://trac.osgeo.org/gdal/changeset/28039
      SetMOFlags( nSavedMOFlags | GMO_IGNORE_UNIMPLEMENTED );
 --- a/man/man1/gdal_fillnodata.1
 +++ b/man/man1/gdal_fillnodata.1
-@@ -21,7 +21,7 @@ The gdal_fillnodata\&.py script fills se
+@@ -20,7 +20,7 @@ The gdal_fillnodata\&.py script fills se
  Additional details on the algorithm are available in the GDALFillNodata() docs\&.
  .PP
  .IP "\fB\fB-q\fP:\fP" 1c
@@ -171,7 +171,7 @@ Applied-Upstream: 2.0, http://trac.osgeo.org/gdal/changeset/28039
  The maximum distance (in pixels) that the algorithm will search out for values to interpolate\&.
 --- a/man/man1/gdal_polygonize.1
 +++ b/man/man1/gdal_polygonize.1
-@@ -49,7 +49,7 @@ The name of the layer created to hold th
+@@ -48,7 +48,7 @@ The name of the layer created to hold th
  The name of the field to create (defaults to 'DN')\&. 
  .PP
  .IP "\fB\fB-q\fP:\fP" 1c
@@ -182,7 +182,7 @@ Applied-Upstream: 2.0, http://trac.osgeo.org/gdal/changeset/28039
  .PP
 --- a/man/man1/gdal_sieve.1
 +++ b/man/man1/gdal_sieve.1
-@@ -20,7 +20,7 @@ The gdal_sieve\&.py script removes raste
+@@ -19,7 +19,7 @@ The gdal_sieve\&.py script removes raste
  Additional details on the algorithm are available in the GDALSieveFilter() docs\&.
  .PP
  .IP "\fB\fB-q\fP:\fP" 1c
@@ -193,7 +193,7 @@ Applied-Upstream: 2.0, http://trac.osgeo.org/gdal/changeset/28039
  Set the size threshold in pixels\&. Only raster polygons smaller than this size will be removed\&.
 --- a/man/man1/ogrinfo.1
 +++ b/man/man1/ogrinfo.1
-@@ -27,7 +27,7 @@ Open the data source in read-only mode\&
+@@ -24,7 +24,7 @@ Open the data source in read-only mode\&
  .IP "\fB\fB-al\fP:\fP" 1c
  List all features of all layers (used instead of having to give layer names as arguments)\&. 
  .IP "\fB\fB-so\fP:\fP" 1c
@@ -480,7 +480,7 @@ Applied-Upstream: 2.0, http://trac.osgeo.org/gdal/changeset/28039
  <dt> <b>-st</b> <i>threshold</i>:</dt><dd>
 --- a/man/man1/ogrlineref.1
 +++ b/man/man1/ogrlineref.1
-@@ -40,7 +40,7 @@ Show the usage\&.
+@@ -39,7 +39,7 @@ Show the usage\&.
  .IP "\fB\fB-progress\fP:\fP" 1c
  Show progress\&. 
  .IP "\fB\fB-quiet\fP:\fP" 1c

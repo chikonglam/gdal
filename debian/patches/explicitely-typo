@@ -5,7 +5,7 @@ Applied-Upstream: 2.0, http://trac.osgeo.org/gdal/changeset/28039
 
 --- a/NEWS
 +++ b/NEWS
-@@ -1787,7 +1787,7 @@ GML driver:
+@@ -1889,7 +1889,7 @@ GML driver:
   * Allow reading srsDimension attribute when set on LineString element, and not on posList (#4663)
   * Partial support for reading GML 3.3 compat encoding profile, limited to <gmlce:SimplePolygon>, <gmlce:SimpleRectangle>, <gmlce:SimpleTriangle>, <gmlce:SimpleMultiPoint> elements
   * Support WFS GetFeature response document to be piped and opened with /vsistdin/
@@ -14,7 +14,7 @@ Applied-Upstream: 2.0, http://trac.osgeo.org/gdal/changeset/28039
   * Improve detection of extent and srs for WFS 2.0
   * Allow ISO-8859-15 encoded files to be used by Expat parser (#4829)
   * Handle CompositeCurve like MultiCurve (for NAS)
-@@ -2588,7 +2588,7 @@ Core:
+@@ -2690,7 +2690,7 @@ Core:
   * OGR SQL: recognize optional ESCAPE escape_char clause
   * OGR SQL: allow NULL to be used as a value, so that 'SELECT *, NULL FROM foo works'
   * OGR SQL: Accept doublequoting of column_name in 'SELECT DISTINCT "column_name" FROM table_name' (#3966)
@@ -172,7 +172,7 @@ Applied-Upstream: 2.0, http://trac.osgeo.org/gdal/changeset/28039
                  // in the list.
                  size_t nLen = strlen(papszLayers[i]);
                  int bFoundChildLayer = FALSE;
-@@ -4970,7 +4970,7 @@ CPLErr PDFDataset::SetGeoTransform(doubl
+@@ -4985,7 +4985,7 @@ CPLErr PDFDataset::SetGeoTransform(doubl
      bGeoTransformValid = TRUE;
      bProjDirty = TRUE;
  
@@ -181,7 +181,7 @@ Applied-Upstream: 2.0, http://trac.osgeo.org/gdal/changeset/28039
      if (!bNeatLineDirty)
          SetMetadataItem("NEATLINE", NULL);
      return CE_None;
-@@ -5153,7 +5153,7 @@ CPLErr PDFDataset::SetGCPs( int nGCPCoun
+@@ -5168,7 +5168,7 @@ CPLErr PDFDataset::SetGCPs( int nGCPCoun
      
      bProjDirty = TRUE;
  
@@ -647,7 +647,7 @@ Applied-Upstream: 2.0, http://trac.osgeo.org/gdal/changeset/28039
              pszFormat = papszArgv[++iArg];
          }
          else if( EQUAL(papszArgv[iArg],"-dsco") )
-@@ -1566,7 +1566,7 @@ int main( int nArgc, char ** papszArgv )
+@@ -1571,7 +1571,7 @@ int main( int nArgc, char ** papszArgv )
  /* -------------------------------------------------------------------- */
      if( !bUpdate )
      {
