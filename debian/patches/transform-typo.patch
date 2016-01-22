@@ -1,0 +1,65 @@
+Description: Fix 'tranform' typo, replace with 'transform'.
+Author: Bas Couwenberg <sebastic@debian.org>
+
+--- a/NEWS
++++ b/NEWS
+@@ -13,7 +13,7 @@ The 1.11.3 release is a bug fix release.
+ 
+ == Algorithms ==
+  * gdal_grid: fix crash in optimized mode with GCC 4.4 on 64bit (#5987)
+- * Fix failure in GDALSuggestedWarpOut2() when computing output image size in case the top-left and bottom-right corners tranform to the same point (#5980)
++ * Fix failure in GDALSuggestedWarpOut2() when computing output image size in case the top-left and bottom-right corners transform to the same point (#5980)
+  * Rasterize: add check to avoid burning negative x values (#5641)
+ 
+ == GDAL core ==
+--- a/frmts/grib/degrib18/degrib/tdlpack.cpp
++++ b/frmts/grib/degrib18/degrib/tdlpack.cpp
+@@ -48,9 +48,9 @@ TDLP_TableType TDLP_V_Table[4] = {
+ };
+ 
+ TDLP_TableType TDLP_T_Table[3] = {
+-   /* 0 */ {0, "No nolinear tranform"},
++   /* 0 */ {0, "No nolinear transform"},
+    /* 1 */ {1, "Square transform"},
+-   /* 2 */ {2, "Square root tranform"},
++   /* 2 */ {2, "Square root transform"},
+ };
+ 
+ TDLP_TableType TDLP_Oper_Table[9] = {
+--- a/frmts/ingr/IngrTypes.cpp
++++ b/frmts/ingr/IngrTypes.cpp
+@@ -301,9 +301,9 @@ void CPL_STDCALL INGR_GetTransMatrix( IN
+         return;
+     }
+ 
+-    // -------------------------------------------------------------
+-    // Calculate Concatened Tranformation Matrix based on Orientation
+-    // -------------------------------------------------------------
++    // ---------------------------------------------------------------
++    // Calculate Concatened Transformation Matrix based on Orientation
++    // ---------------------------------------------------------------
+ 
+     double adfConcat[16];
+    
+--- a/frmts/netcdf/netcdfdataset.cpp
++++ b/frmts/netcdf/netcdfdataset.cpp
+@@ -3544,7 +3544,7 @@ CPLErr netCDFDataset::AddProjectionVars(
+                          adfGeoTransform[i] );
+                 strcat( szGeoTransform, szTemp );
+             }
+-            CPLDebug( "GDAL_netCDF", "szGeoTranform = %s", szGeoTransform );
++            CPLDebug( "GDAL_netCDF", "szGeoTransform = %s", szGeoTransform );
+             
+             // if ( strlen(pszProj4Defn) > 0 ) {
+             //     nc_put_att_text( cdfid, NCDFVarID, "proj4",
+--- a/frmts/png/libpng/png.h
++++ b/frmts/png/libpng/png.h
+@@ -1391,7 +1391,7 @@ struct png_struct_def
+ #endif
+ 
+ #if defined(PNG_READ_SHIFT_SUPPORTED) || defined(PNG_WRITE_SHIFT_SUPPORTED)
+-   png_color_8 shift PNG_DEPSTRUCT;         /* shift for significant bit tranformation */
++   png_color_8 shift PNG_DEPSTRUCT;         /* shift for significant bit transformation */
+ #endif
+ 
+ #if defined(PNG_tRNS_SUPPORTED) || defined(PNG_READ_BACKGROUND_SUPPORTED) \
