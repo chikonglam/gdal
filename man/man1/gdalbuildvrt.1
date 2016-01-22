@@ -1,4 +1,4 @@
-.TH "gdalbuildvrt" 1 "Tue Sep 15 2015" "GDAL" \" -*- nroff -*-
+.TH "gdalbuildvrt" 1 "Fri Jan 22 2016" "GDAL" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -8,7 +8,6 @@ Builds a VRT from a list of datasets\&. (compiled by default since GDAL 1\&.6\&.
 .PP
 .PP
 .nf
-
 gdalbuildvrt [-tileindex field_name]
              [-resolution {highest|lowest|average|user}]
              [-te xmin ymin xmax ymax] [-tr xres yres] [-tap]
@@ -96,7 +95,6 @@ Overwrite the VRT if it already exists\&.
 Make a virtual mosaic from all TIFF files contained in a directory : 
 .PP
 .nf
-
 gdalbuildvrt doq_index.vrt doq/*.tif
 
 .fi
@@ -105,7 +103,6 @@ gdalbuildvrt doq_index.vrt doq/*.tif
 Make a virtual mosaic from files whose name is specified in a text file : 
 .PP
 .nf
-
 gdalbuildvrt -input_file_list my_liste.txt doq_index.vrt
 
 .fi
@@ -114,7 +111,6 @@ gdalbuildvrt -input_file_list my_liste.txt doq_index.vrt
 Make a RGB virtual mosaic from 3 single-band input files : 
 .PP
 .nf
-
 gdalbuildvrt -separate rgb.vrt red.tif green.tif blue.tif
 
 .fi
@@ -123,11 +119,10 @@ gdalbuildvrt -separate rgb.vrt red.tif green.tif blue.tif
 Make a virtual mosaic with blue background colour (RGB: 0 0 255) : 
 .PP
 .nf
-
 gdalbuildvrt -hidenodata -vrtnodata "0 0 255" doq_index.vrt doq/*.tif
 
 .fi
 .PP
 .SH "AUTHOR"
 .PP
-Even Rouault <even.rouault@mines-paris.org> 
+Even Rouault even.rouault@mines-paris.org 

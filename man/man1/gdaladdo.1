@@ -1,4 +1,4 @@
-.TH "gdaladdo" 1 "Tue Sep 15 2015" "GDAL" \" -*- nroff -*-
+.TH "gdaladdo" 1 "Fri Jan 22 2016" "GDAL" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -8,7 +8,6 @@ builds or rebuilds overview images
 .PP
 .PP
 .nf
-
 gdaladdo [-r {nearest,average,gauss,cubic,cubicspline,lanczos,average_mp,average_magphase,mode}]
          [-b band]
          [-ro] [-clean] [-oo NAME=VALUE]* [--help-general] filename levels
@@ -56,7 +55,6 @@ For LZW or DEFLATE compressed external overviews, the predictor value can be set
 To produce the smallest possible JPEG-In-TIFF overviews, you should use : 
 .PP
 .nf
-
 --config COMPRESS_OVERVIEW JPEG --config PHOTOMETRIC_OVERVIEW YCBCR --config INTERLEAVE_OVERVIEW PIXEL
 
 .fi
@@ -72,7 +70,7 @@ NO forces classic TIFF\&.
 .IP "\(bu" 2
 IF_NEEDED will only create a BigTIFF if it is clearly needed (uncompressed, and overviews larger than 4GB)\&. 
 .IP "\(bu" 2
-IF_SAFER will create BigTIFF if the resulting file *might* exceed 4GB\&. 
+IF_SAFER will create BigTIFF if the resulting file \fImight\fP exceed 4GB\&. 
 .PP
 
 .br
@@ -85,7 +83,6 @@ Create overviews, embedded in the supplied TIFF file:
 .PP
 .PP
 .nf
-
 gdaladdo -r average abc.tif 2 4 8 16
 .fi
 .PP
@@ -94,7 +91,6 @@ Create an external compressed GeoTIFF overview file from the ERDAS \&.IMG file:
 .PP
 .PP
 .nf
-
 gdaladdo -ro --config COMPRESS_OVERVIEW DEFLATE erdas.img 2 4 8 16
 .fi
 .PP
@@ -103,7 +99,6 @@ Create an external JPEG-compressed GeoTIFF overview file from a 3-band RGB datas
 .PP
 .PP
 .nf
-
 gdaladdo --config COMPRESS_OVERVIEW JPEG --config PHOTOMETRIC_OVERVIEW YCBCR
          --config INTERLEAVE_OVERVIEW PIXEL rgb_dataset.ext 2 4 8 16
 .fi
@@ -113,10 +108,9 @@ Create an Erdas Imagine format overviews for the indicated JPEG file:
 .PP
 .PP
 .nf
-
 gdaladdo --config USE_RRD YES airphoto.jpg 3 9 27 81
 .fi
 .PP
 .SH "AUTHORS"
 .PP
-Frank Warmerdam <warmerdam@pobox.com>, Silke Reimer <silke@intevation.de> 
+Frank Warmerdam warmerdam@pobox.com, Silke Reimer silke@intevation.de 

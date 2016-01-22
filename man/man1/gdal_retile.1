@@ -1,4 +1,4 @@
-.TH "gdal_retile" 1 "Tue Sep 15 2015" "GDAL" \" -*- nroff -*-
+.TH "gdal_retile" 1 "Fri Jan 22 2016" "GDAL" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -9,8 +9,6 @@ gdal_retile\&.py retiles a set of tiles and/or build tiled pyramid levels
 .PP
 .PP
 .nf
-
-
 gdal_retile.py [-v] [-co NAME=VALUE]* [-of out_format] [-ps pixelWidth pixelHeight]
                [-ot  {Byte/Int16/UInt16/UInt32/Int32/Float32/Float64/
                       CInt16/CInt32/CFloat32/CFloat64}]'
@@ -20,9 +18,7 @@ gdal_retile.py [-v] [-co NAME=VALUE]* [-of out_format] [-ps pixelWidth pixelHeig
                [-r {near/bilinear/cubic/cubicspline/lanczos}]
                -levels numberoflevels
                [-useDirForEachRow]   
-               -targetDir TileDirectory input_files
-
-.fi
+               -targetDir TileDirectory input_files.fi
 .PP
  
 .SH "DESCRIPTION"
@@ -66,4 +62,4 @@ Normally the tiles of the base image are stored as described in \fB-targetDir\fP
 NOTE: gdal_retile\&.py is a Python script, and will only work if GDAL was built with Python support\&.
 .SH "AUTHORS"
 .PP
-Christian Mueller <christian.mueller@nvoe.at> 
+Christian Mueller christian.mueller@nvoe.at 

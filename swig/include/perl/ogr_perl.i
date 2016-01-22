@@ -131,7 +131,7 @@ ALTERED_DESTROY(OGRGeometryShadow, OGRc, delete_Geometry)
 %perlcode %{
 
 package Geo::OGR;
-our $VERSION = '2.0001'; # this needs to be the same as that in gdal_perl.i
+our $VERSION = '2.0002'; # this needs to be the same as that in gdal_perl.i
 
 package Geo::OGR::Driver;
 use strict;
@@ -781,16 +781,20 @@ use Encode;
 use Scalar::Util 'blessed';
 %}
 
-%feature("shadow") OGRFeatureShadow()
+%feature("shadow") OGRFeatureShadow( OGRFeatureDefnShadow *feature_def )
 %{
 use Carp;
 sub new {
     my $pkg = shift;
-    if (blessed($_[0]) and $_[0]->isa('Geo::OGR::FeatureDefn')) {
-        return $pkg->new($_[0]);
+    my $arg = blessed($_[0]);
+    my $defn;
+    if ($arg && $arg eq 'Geo::OGR::FeatureDefn') {
+        $defn = $_[0];
     } else {
-        return $pkg->new(Geo::OGR::FeatureDefn->new(@_));
+        $defn = Geo::OGR::FeatureDefn->new(@_);
     }
+    my $self = Geo::OGRc::new_Feature($defn);
+    bless $self, $pkg if defined($self);
 }
 %}
 

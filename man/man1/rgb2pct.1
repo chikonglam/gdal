@@ -1,4 +1,4 @@
-.TH "rgb2pct" 1 "Tue Sep 15 2015" "GDAL" \" -*- nroff -*-
+.TH "rgb2pct" 1 "Fri Jan 22 2016" "GDAL" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -8,7 +8,6 @@ Convert a 24bit RGB image to 8bit paletted
 .PP
 .PP
 .nf
-
 rgb2pct.py [-n colors | -pct palette_file] [-of format] source_file dest_file
 .fi
 .PP
@@ -35,7 +34,6 @@ If it is desired to hand create the palette, likely the simplest text format is 
 .PP
 .PP
 .nf
-
 % rgb2pct.py -pct palette.vrt rgb.tif pseudo-colored.tif
 % more < palette.vrt
 <VRTDataset rasterXSize="226" rasterYSize="271">
@@ -53,4 +51,4 @@ If it is desired to hand create the palette, likely the simplest text format is 
 .PP
 .SH "AUTHOR"
 .PP
-Frank Warmerdam <warmerdam@pobox.com> 
+Frank Warmerdam warmerdam@pobox.com 

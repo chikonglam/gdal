@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdaladdo.cpp 28083 2014-12-05 18:58:42Z rouault $
+ * $Id: gdaladdo.cpp 31759 2015-11-25 15:40:59Z rouault $
  *
  * Project:  GDAL Utilities
  * Purpose:  Commandline application to build overviews. 
@@ -31,7 +31,7 @@
 #include "gdal_priv.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: gdaladdo.cpp 28083 2014-12-05 18:58:42Z rouault $");
+CPL_CVSID("$Id: gdaladdo.cpp 31759 2015-11-25 15:40:59Z rouault $");
 
 /************************************************************************/
 /*                               Usage()                                */
@@ -195,7 +195,7 @@ int main( int nArgc, char ** papszArgv )
     }
 
     if( hDataset == NULL )
-        hDataset = GDALOpenEx( pszFilename, GDAL_OF_RASTER, NULL, papszOpenOptions, NULL );
+        hDataset = GDALOpenEx( pszFilename, GDAL_OF_RASTER | GDAL_OF_VERBOSE_ERROR, NULL, papszOpenOptions, NULL );
 
     CSLDestroy(papszOpenOptions);
     papszOpenOptions = NULL;
