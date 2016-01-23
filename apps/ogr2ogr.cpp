@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr2ogr.cpp 30691 2015-09-24 18:00:57Z tamas $
+ * $Id: ogr2ogr.cpp 33112 2016-01-23 17:09:34Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Simple client for translating between formats.
@@ -39,7 +39,7 @@
 #include <map>
 #include <vector>
 
-CPL_CVSID("$Id: ogr2ogr.cpp 30691 2015-09-24 18:00:57Z tamas $");
+CPL_CVSID("$Id: ogr2ogr.cpp 33112 2016-01-23 17:09:34Z rouault $");
 
 static int bSkipFailures = FALSE;
 static int bLayerTransaction = -1;
@@ -4049,6 +4049,19 @@ int LayerTranslator::Translate( TargetLayerInfo* psInfo,
             {
                 CPLDebug( "OGR2OGR", "Unable to write feature " CPL_FRMT_GIB " into layer %s.\n",
                            poFeature->GetFID(), poSrcLayer->GetName() );
+                if( nGroupTransactions )
+                {
+                    if( bLayerTransaction )
+                    {
+                        poDstLayer->RollbackTransaction();
+                        poDstLayer->StartTransaction();
+                    }
+                    else
+                    {
+                        poODS->RollbackTransaction();
+                        poODS->StartTransaction(bForceTransaction);
+                    }
+                }
             }
 
 end_loop:
