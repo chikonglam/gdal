@@ -88,6 +88,7 @@ Description: Geospatial Data Abstraction Library
 
 Package: libgdal-dev
 Architecture: any
+Multi-arch: no
 Section: libdevel
 Depends: libgdal20 (= ${binary:Version}),
          libc6-dev,

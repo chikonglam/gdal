@@ -4,6 +4,7 @@ gdal (2.0.2~rc3+dfsg-1) UNRELEASED; urgency=medium
   * Update watch file for 2.0.2 pre-releases.
   * Drop hardening patch, applied upstream. Refresh remaining patches.
   * Add patches for various typos.
+  * Mark libgdal-dev as Multi-Arch: no, due to old style config file.
 
  -- Bas Couwenberg <sebastic@debian.org>  Mon, 25 Jan 2016 21:34:50 +0100
 
