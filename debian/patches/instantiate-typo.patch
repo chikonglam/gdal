@@ -1,0 +1,230 @@
+Description: Fix 'instanciate' typo, replace with 'instantiate'.
+Author: Bas Couwenberg <sebastic@debian.org>
+
+--- a/NEWS
++++ b/NEWS
+@@ -3849,7 +3849,7 @@ PostgreSQL driver:
+  * If the PG_USE_BASE64 configuration option is set to YES, geometries will be
+    requested as BASE64 encoded EWKB instead of canonical HEX encoded EWKB.
+    (useful when bandwidth is the limiting factor)
+- * Don't instanciate layer defn at layer creation. This can speed up
++ * Don't instantiate layer defn at layer creation. This can speed up
+    significantly database opening when they are many tables and the user just
+    needs to fetch one with GetLayerByName().
+  * Implement efficient OGRLayer::GetName() and OGRLayer::GetGeomType()
+--- a/apps/ogr2ogr.cpp
++++ b/apps/ogr2ogr.cpp
+@@ -2576,7 +2576,7 @@ static TargetLayerInfo* SetupTargetLayer
+ /*      Find the layer.                                                 */
+ /* -------------------------------------------------------------------- */
+ 
+-    /* GetLayerByName() can instanciate layers that would have been */
++    /* GetLayerByName() can instantiate layers that would have been */
+     /* 'hidden' otherwise, for example, non-spatial tables in a */
+     /* Postgis-enabled database, so this apparently useless command is */
+     /* not useless... (#4012) */
+--- a/apps/ogrlineref.cpp
++++ b/apps/ogrlineref.cpp
+@@ -170,7 +170,7 @@ static OGRLayer* SetupTargetLayer(OGRLay
+     /*      Find the layer.                                                 */
+     /* -------------------------------------------------------------------- */
+ 
+-    /* GetLayerByName() can instanciate layers that would have been */
++    /* GetLayerByName() can instantiate layers that would have been */
+     /* 'hidden' otherwise, for example, non-spatial tables in a */
+     /* Postgis-enabled database, so this apparently useless command is */
+     /* not useless... (#4012) */
+--- a/data/osmconf.ini
++++ b/data/osmconf.ini
+@@ -55,7 +55,7 @@ ignore=created_by,converted_by,source,ti
+ 
+ [multipolygons]
+ # common attributes
+-# note: for multipolygons, osm_id=yes instanciates a osm_id field for the id of relations
++# note: for multipolygons, osm_id=yes instantiates a osm_id field for the id of relations
+ # and a osm_way_id field for the id of closed ways. Both fields are exclusively set.
+ osm_id=yes
+ osm_version=no
+--- a/frmts/gtiff/geotiff.cpp
++++ b/frmts/gtiff/geotiff.cpp
+@@ -9793,7 +9793,7 @@ GTiffDataset::CreateCopy( const char * p
+         if (poDS->nOverviewCount != nSrcOverviews)
+         {
+             CPLError(CE_Failure, CPLE_AppDefined,
+-                     "Did only manage to instanciate %d overview levels, whereas source contains %d",
++                     "Did only manage to instantiate %d overview levels, whereas source contains %d",
+                      poDS->nOverviewCount, nSrcOverviews);
+             eErr = CE_Failure;
+         }
+--- a/frmts/gtiff/libtiff/tif_dirread.c
++++ b/frmts/gtiff/libtiff/tif_dirread.c
+@@ -3767,7 +3767,7 @@ TIFFReadDirectory(TIFF* tif)
+ 					uint32 countrequired;
+ 					uint32 incrementpersample;
+ 					uint16* value=NULL;
+-                    /* It would be dangerous to instanciate those tag values */
++                    /* It would be dangerous to instantiate those tag values */
+                     /* since if td_bitspersample has not yet been read (due to */
+                     /* unordered tags), it could be read afterwards with a */
+                     /* values greater than the default one (1), which may cause */
+--- a/frmts/jpeg/jpgdataset.cpp
++++ b/frmts/jpeg/jpgdataset.cpp
+@@ -1201,7 +1201,7 @@ void JPGDatasetCommon::InitInternalOverv
+     bHasInitInternalOverviews = TRUE;
+ 
+ /* -------------------------------------------------------------------- */
+-/*      Instanciate on-the-fly overviews (if no external ones).         */
++/*      Instantiate on-the-fly overviews (if no external ones).         */
+ /* -------------------------------------------------------------------- */
+     if( nScaleFactor == 1 && GetRasterBand(1)->GetOverviewCount() == 0 )
+     {
+--- a/frmts/postgisraster/postgisrasterdataset.cpp
++++ b/frmts/postgisraster/postgisrasterdataset.cpp
+@@ -64,7 +64,7 @@ CPL_C_END
+             During a IRasterIO() query,
+             i) we will do a SQL query to retrieve the PKID of tiles that intersect the query window.
+             ii) If some tiles are not registered as sources, then do a SQL query to fetch their metadata
+-            and instanciate them and register them.
++            and instantiate them and register them.
+             iii) If some tiles are not cached, then determine if the query window is not too big (w.r.t. GDAL cache),
+             and if not, then do a SQL query to fetch their raster column.
+ 
+--- a/frmts/vrt/vrtdataset.cpp
++++ b/frmts/vrt/vrtdataset.cpp
+@@ -1316,7 +1316,7 @@ CPLErr VRTDataset::IRasterIO( GDALRWFlag
+ 
+         CPLErr eErr = CE_None;
+         /* Use the last band, because when sources reference a GDALProxyDataset, they */
+-        /* don't necessary instanciate all underlying rasterbands */
++        /* don't necessary instantiate all underlying rasterbands */
+         VRTSourcedRasterBand* poBand = (VRTSourcedRasterBand* )papoBands[nBands - 1];
+         for(int iSource = 0; eErr == CE_None && iSource < poBand->nSources; iSource++)
+         {
+--- a/ogr/ogrfeaturestyle.cpp
++++ b/ogr/ogrfeaturestyle.cpp
+@@ -667,7 +667,7 @@ int OGR_SM_GetPartCount(OGRStyleMgrH hSM
+  *
+  * This method is the same as the C function OGR_SM_GetPart().
+  *
+- * This method instanciates a new object that should be freed with OGR_ST_Destroy().
++ * This method instantiates a new object that should be freed with OGR_ST_Destroy().
+  *
+  * @param nPartId the part number (0-based index).
+  * @param pszStyleString (optional) the style string on which to operate.
+@@ -720,7 +720,7 @@ OGRStyleTool *OGRStyleMgr::GetPart(int n
+  *
+  * This function is the same as the C++ method OGRStyleMgr::GetPart().
+  *
+- * This function instanciates a new object that should be freed with OGR_ST_Destroy().
++ * This function instantiates a new object that should be freed with OGR_ST_Destroy().
+  *
+  * @param hSM handle to the style manager.
+  * @param nPartId the part number (0-based index).
+--- a/ogr/ogrsf_frmts/libkml/ogrlibkmlgeometry.cpp
++++ b/ogr/ogrsf_frmts/libkml/ogrlibkmlgeometry.cpp
+@@ -573,7 +573,7 @@ OGRGeometry *kml2geom_rec (
+         poKmlMultiGeometry = AsMultiGeometry ( poKmlGeometry );
+         nGeom = poKmlMultiGeometry->get_geometry_array_size (  );
+ 
+-        /* Detect subgeometry type to instanciate appropriate Multi geometry type */
++        /* Detect subgeometry type to instantiate appropriate Multi geometry type */
+         kmldom::KmlDomType type = kmldom::Type_Unknown;
+         for ( i = 0; i < nGeom; i++ ) {
+             poKmlTmpGeometry = poKmlMultiGeometry->get_geometry_array_at ( i );
+--- a/ogr/ogrsf_frmts/mitab/mitab.h
++++ b/ogr/ogrsf_frmts/mitab/mitab.h
+@@ -1035,7 +1035,7 @@ class ITABFeatureSymbol
+  *
+  * TABFeature will be used as a base class for all the feature classes.
+  *
+- * This class will also be used to instanciate objects with no Geometry
++ * This class will also be used to instantiate objects with no Geometry
+  * (i.e. type TAB_GEOM_NONE) which is a valid case in MapInfo.
+  *
+  * The logic to read/write the object from/to the .DAT and .MAP files is also
+--- a/ogr/ogrsf_frmts/pg/ogrpgdatasource.cpp
++++ b/ogr/ogrsf_frmts/pg/ogrpgdatasource.cpp
+@@ -1310,7 +1310,7 @@ OGRPGDataSource::CreateLayer( const char
+         osSQLLayerName += pszTableName;
+     }
+ 
+-    /* GetLayerByName() can instanciate layers that would have been */
++    /* GetLayerByName() can instantiate layers that would have been */
+     /* 'hidden' otherwise, for example, non-spatial tables in a */
+     /* Postgis-enabled database, so this apparently useless command is */
+     /* not useless... (#4012) */
+--- a/ogr/ogrsf_frmts/vrt/ogrvrtdatasource.cpp
++++ b/ogr/ogrsf_frmts/vrt/ogrvrtdatasource.cpp
+@@ -160,7 +160,7 @@ OGRLayer*  OGRVRTDataSource::Instanciate
+     if( poSrcLayer == NULL )
+     {
+         CPLError( CE_Failure, CPLE_AppDefined,
+-                  "Cannot instanciate source layer" );
++                  "Cannot instantiate source layer" );
+         return NULL;
+     }
+ 
+--- a/ogr/ogrsf_frmts/vrt/ogrvrtlayer.cpp
++++ b/ogr/ogrsf_frmts/vrt/ogrvrtlayer.cpp
+@@ -788,7 +788,7 @@ try_again:
+         }
+         }
+ 
+-        /* Instanciate real geometry fields from VRT properties */
++        /* Instantiate real geometry fields from VRT properties */
+         poFeatureDefn->SetGeomType(wkbNone);
+         for( size_t i = 0; i < apoGeomFieldProps.size(); i ++ )
+         {
+--- a/port/cpl_multiproc.h
++++ b/port/cpl_multiproc.h
+@@ -86,7 +86,7 @@ CPL_C_END
+ 
+ #ifdef __cplusplus
+ 
+-/* Instanciates the mutex if not already done */
++/* Instantiates the mutex if not already done */
+ #define CPLMutexHolderD(x)  CPLMutexHolder oHolder(x,1000.0,__FILE__,__LINE__);
+ 
+ /* This variant assumes the the mutex has already been created. If not, it will */
+@@ -102,7 +102,7 @@ class CPL_DLL CPLMutexHolder
+ 
+   public:
+ 
+-    /* Instanciates the mutex if not already done */
++    /* Instantiates the mutex if not already done */
+     CPLMutexHolder( void **phMutex, double dfWaitInSeconds = 1000.0,
+                     const char *pszFile = __FILE__,
+                     int nLine = __LINE__ );
+--- a/swig/java/apps/ogr2ogr.java
++++ b/swig/java/apps/ogr2ogr.java
+@@ -1194,7 +1194,7 @@ public class ogr2ogr
+     /*      Find the layer.                                                 */
+     /* -------------------------------------------------------------------- */
+ 
+-        /* GetLayerByName() can instanciate layers that would have been */
++        /* GetLayerByName() can instantiate layers that would have been */
+         /* 'hidden' otherwise, for example, non-spatial tables in a */
+         /* Postgis-enabled database, so this apparently useless command is */
+         /* not useless... (#4012) */
+--- a/swig/java/javadoc.java
++++ b/swig/java/javadoc.java
+@@ -8179,7 +8179,7 @@ public class Geometry:public Geometry(in
+ /** 
+  * Create a new geometry.
+  * <p>
+- * The geometry can be instanciated by 4 different and exclusive way :
++ * The geometry can be instantiated by 4 different and exclusive way :
+  * <ul>
+  * <li> By specifying the geometry type (ogr.wkbPoint, etc..)</li>
+  * <li> By specifying the well known text representation (wkt)</li>
+--- a/swig/python/samples/ogr2ogr.py
++++ b/swig/python/samples/ogr2ogr.py
+@@ -1244,7 +1244,7 @@ def SetupTargetLayer( poSrcDS, poSrcLaye
+ #/*      Find the layer.                                                 */
+ #/* -------------------------------------------------------------------- */
+ 
+-    #/* GetLayerByName() can instanciate layers that would have been */
++    #/* GetLayerByName() can instantiate layers that would have been */
+     #*/ 'hidden' otherwise, for example, non-spatial tables in a */
+     #*/ Postgis-enabled database, so this apparently useless command is */
+     #/* not useless... (#4012) */
