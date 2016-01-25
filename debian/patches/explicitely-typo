@@ -5,7 +5,7 @@ Applied-Upstream: 2.0, http://trac.osgeo.org/gdal/changeset/28039
 
 --- a/NEWS
 +++ b/NEWS
-@@ -1889,7 +1889,7 @@ GML driver:
+@@ -1890,7 +1890,7 @@ GML driver:
   * Allow reading srsDimension attribute when set on LineString element, and not on posList (#4663)
   * Partial support for reading GML 3.3 compat encoding profile, limited to <gmlce:SimplePolygon>, <gmlce:SimpleRectangle>, <gmlce:SimpleTriangle>, <gmlce:SimpleMultiPoint> elements
   * Support WFS GetFeature response document to be piped and opened with /vsistdin/
@@ -14,7 +14,7 @@ Applied-Upstream: 2.0, http://trac.osgeo.org/gdal/changeset/28039
   * Improve detection of extent and srs for WFS 2.0
   * Allow ISO-8859-15 encoded files to be used by Expat parser (#4829)
   * Handle CompositeCurve like MultiCurve (for NAS)
-@@ -2690,7 +2690,7 @@ Core:
+@@ -2691,7 +2691,7 @@ Core:
   * OGR SQL: recognize optional ESCAPE escape_char clause
   * OGR SQL: allow NULL to be used as a value, so that 'SELECT *, NULL FROM foo works'
   * OGR SQL: Accept doublequoting of column_name in 'SELECT DISTINCT "column_name" FROM table_name' (#3966)

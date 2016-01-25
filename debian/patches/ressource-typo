@@ -5,7 +5,7 @@ Applied-Upstream: 2.0, http://trac.osgeo.org/gdal/changeset/28039
 
 --- a/NEWS
 +++ b/NEWS
-@@ -2635,7 +2635,7 @@ USGSDEM driver:
+@@ -2636,7 +2636,7 @@ USGSDEM driver:
  VRT driver:
   * Implement VRTDataset::IRasterIO() that can delegate to source Dataset::RasterIO() in particular cases
   * Implement GetMinimum() and GetMaximum()
@@ -14,7 +14,7 @@ Applied-Upstream: 2.0, http://trac.osgeo.org/gdal/changeset/28039
   * VRTComplexSource: correctly deal with complex data type (#3977)
   * Fix 2 segfaults related to using '<VRTDataset', but with invalid XML, as the target filename of VRTDataset::Create()
   * Fix 'VRTDerivedRasterBand with ComplexSource and nodata value yields potentially uninitialized buffer' (#4045)
-@@ -3157,7 +3157,7 @@ Port:
+@@ -3158,7 +3158,7 @@ Port:
  Core:
   * RFC 24: progressive/async raster reading
   * On Unix, add capability of opening the target of a symlink through GDALOpen()
@@ -23,7 +23,7 @@ Applied-Upstream: 2.0, http://trac.osgeo.org/gdal/changeset/28039
     GDAL virtual filenames in software offering only file explorers (#3902)
   * Assume anything less than 100000 for GDAL_CACHEMAX is measured in metabytes.
   * Read cartesian coordinates if applicable in GDALLoadOziMapFile().
-@@ -3577,7 +3577,7 @@ Core:
+@@ -3578,7 +3578,7 @@ Core:
   * Add OGRLayer::GetName() and OGRLayer::GetGeomType() virtual methods,
     and their C and SWIG mappings (#3719)
   * On Unix, add capability of opening the target of a symlink through OGROpen()

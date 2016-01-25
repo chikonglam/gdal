@@ -5,7 +5,7 @@ Applied-Upstream: 2.0, http://trac.osgeo.org/gdal/changeset/28039
 
 --- a/NEWS
 +++ b/NEWS
-@@ -3139,7 +3139,7 @@ Port:
+@@ -3140,7 +3140,7 @@ Port:
      - /vsitar/ : to read in .tar or .tgz/.tar.gz files
   * Add C API to create ZIP files
   * Add support for writable /vsizip/
@@ -14,7 +14,7 @@ Applied-Upstream: 2.0, http://trac.osgeo.org/gdal/changeset/28039
     doing backward seeks by a few bytes on underlying file handles for which
     backwardseeks are very slow, such as GZip handle
   * Add service for base64 decoding
-@@ -3157,7 +3157,7 @@ Port:
+@@ -3158,7 +3158,7 @@ Port:
  Core:
   * RFC 24: progressive/async raster reading
   * On Unix, add capability of opening the target of a symlink through GDALOpen()
@@ -23,7 +23,7 @@ Applied-Upstream: 2.0, http://trac.osgeo.org/gdal/changeset/28039
     GDAL virtual filenames in software offering only file explorers (#3902)
   * Assume anything less than 100000 for GDAL_CACHEMAX is measured in metabytes.
   * Read cartesian coordinates if applicable in GDALLoadOziMapFile().
-@@ -3577,7 +3577,7 @@ Core:
+@@ -3578,7 +3578,7 @@ Core:
   * Add OGRLayer::GetName() and OGRLayer::GetGeomType() virtual methods,
     and their C and SWIG mappings (#3719)
   * On Unix, add capability of opening the target of a symlink through OGROpen()
@@ -32,7 +32,7 @@ Applied-Upstream: 2.0, http://trac.osgeo.org/gdal/changeset/28039
     GDAL virtual filenames in software offering only file explorers (#3902)
   * Expat based XML readers : add support for reading files with Windows-1252
     encoding
-@@ -3847,7 +3847,7 @@ PostgreSQL driver:
+@@ -3848,7 +3848,7 @@ PostgreSQL driver:
     is set to YES
   * If the PG_USE_BASE64 configuration option is set to YES, geometries will be
     requested as BASE64 encoded EWKB instead of canonical HEX encoded EWKB.

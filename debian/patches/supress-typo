@@ -25,7 +25,7 @@ Applied-Upstream: 2.0, http://trac.osgeo.org/gdal/changeset/28039
  <dt> <b>-dsco</b> <em>NAME=VALUE</em>:</dt><dd> Dataset creation option 
 --- a/NEWS
 +++ b/NEWS
-@@ -2272,7 +2272,7 @@ Utilities:
+@@ -2273,7 +2273,7 @@ Utilities:
   * gdalwarp: speed-up when using -tps with large number of GCPs
   * gdalwarp: add support for optional use of libarmadillo to speed-up matrix inversion in -tps mode
   * gdalwarp: detect situations where the user will override the source file
@@ -34,7 +34,7 @@ Applied-Upstream: 2.0, http://trac.osgeo.org/gdal/changeset/28039
   * gdal_rasterize: fix half pixel shift when rasterizing points; make gdal_rasterize utility increase the computed raster extent by a half-pixel for point layers (#3774)
   * gdal_rasterize: when source datasource has a single layer, use it implicitely if none of -l or -sql is specified
   * nearblack: add -color option (#4085)
-@@ -3966,7 +3966,7 @@ Python bindings:
+@@ -3967,7 +3967,7 @@ Python bindings:
     when used and set to True, None is returned when GDALGetGeoTransform()
     returns CE_Failure (instead of the fake (0,1,0,0,0,1)); backward
     compatibility preserved when the parameter isn't specified

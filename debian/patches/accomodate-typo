@@ -5,7 +5,7 @@ Applied-Upstream: 2.0, http://trac.osgeo.org/gdal/changeset/28039
 
 --- a/NEWS
 +++ b/NEWS
-@@ -4243,7 +4243,7 @@ GeoTIFF driver :
+@@ -4244,7 +4244,7 @@ GeoTIFF driver :
   * Use official value for inverse flattening of the WGS84 ellipsoid (#2787)
   * Add metadata domain for XML documents (#2786)
   * Make GTiff driver friendly with files with huge number of bands and pixel interleaving (#2838)
