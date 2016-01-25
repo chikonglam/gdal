@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrili1layer.cpp 33090 2016-01-22 15:05:44Z pka $
+ * $Id: ogrili1layer.cpp 33156 2016-01-25 12:53:04Z rouault $
  *
  * Project:  Interlis 1 Translator
  * Purpose:  Implements OGRILI1Layer class.
@@ -33,7 +33,7 @@
 #include "cpl_string.h"
 #include "ogr_geos.h"
 
-CPL_CVSID("$Id: ogrili1layer.cpp 33090 2016-01-22 15:05:44Z pka $");
+CPL_CVSID("$Id: ogrili1layer.cpp 33156 2016-01-25 12:53:04Z rouault $");
 
 /************************************************************************/
 /*                           OGRILI1Layer()                              */
@@ -507,13 +507,16 @@ void OGRILI1Layer::JoinSurfaceLayer( OGRILI1Layer* poSurfaceLineLayer, int nSurf
                         surface_lines = new OGRCompoundCurve();
                         surface_lines->addCurve(line);
                     }
+                    if( line == surface_lines ) {
+                        delete surface_lines;
+                        surface_lines = NULL;
+                    }
                 }
                 if (ring) {
                     OGRErr error = poly->addRingDirectly(ring);
                     if (error != OGRERR_NONE) {
                         CPLError(CE_Warning, CPLE_AppDefined, "Added geometry: %s", ring->exportToJson() );
                     }
-                    surface_lines = 0;
                 }
             }
         } else {
