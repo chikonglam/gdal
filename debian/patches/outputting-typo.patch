@@ -1,0 +1,173 @@
+Description: Fix 'outputing' typo, replace with 'outputting'.
+Author: Bas Couwenberg <sebastic@debian.org>
+
+--- a/NEWS
++++ b/NEWS
+@@ -2929,7 +2929,7 @@ Utilities:
+  * gdalinfo: add '-sd num' option to report subdataset with the specified number.
+  * gdalinfo: add '-proj4' option to gdalinfo, to report a PROJ.4 string for the CRS
+  * gdal_translate: propagate INTERLEAVE metadata to intermediate VRT dataset
+- * gdal_translate: force quiet mode when outputing to /vsistdout/
++ * gdal_translate: force quiet mode when outputting to /vsistdout/
+  * gdalwarp: Disable CENTER_LONG rewrapping for cutline (#3932)
+  * gdalwarp: add -refine_gcps option to discard outliers GCPs before warping (#4143)
+  * gdalwarp: add warning if user specifies several of -order, -tps, -rpc or -geoloc options
+@@ -2959,7 +2959,7 @@ Multi-driver topics:
+  * Port DOQ1, DOQ2, ELAS, Idrisi, L1B, NDF, NWT_GRD, NWT_GRC, USGSDEM to VSI virtual file API
+  * PAM-enable BT and BLX drivers
+  * Implement Identify() for AAIGrid, ACE2, DTED, NWT_GRD, NWT_GRC, WMS, WCS, JDEM and BSB drivers
+- * Make GIF, JPEG and PNG drivers return a non NULL dataset when outputing to /vsistdout/
++ * Make GIF, JPEG and PNG drivers return a non NULL dataset when outputting to /vsistdout/
+  * HFA and GTiff: add explicit error message when trying to add external overviews when there are already internal overviews (#4044)
+  * Initialize overview manager to support external overviews for AAIGRID, DIPX, ELAS, GXF, FIT, FITS, GMT, GRIB, GSAG, GSBG, GS7BG, ILWIS, L1B, LCP, Leveller, NWT_GRD, NWT_GRC, RIK, SDTS and SAGA
+ 
+@@ -3055,7 +3055,7 @@ GeoRaster driver:
+  * Fix loading of small images, FlushCache issue (#4363)
+ 
+ GIF driver:
+- * Make CreateCopy() more friendly with outputing in /vsistdout/
++ * Make CreateCopy() more friendly with outputting in /vsistdout/
+ 
+ GRIB driver:
+  * Fix grid vs cell-center convention (#2637)
+@@ -4259,7 +4259,7 @@ Core:
+  * Make the GetStyleTable() SetStyleTable() SetStyleTableDirectly() methods on
+    datasources and layers virtual (#2978)
+  * Add OGRSFDriverRegistrar::DeregisterDriver() and OGRDeregisterDriver()
+- * Improve detection of rounding errors when outputing coordinates as text with
++ * Improve detection of rounding errors when outputting coordinates as text with
+    OGRMakeWktCoordinate()
+  * OGR SQL: allow comparing datetime columns in WHERE clause
+  * OGR indexing: re-use .ind file in read-write mode when calling CreateIndex()
+--- a/alg/gdalwarper.cpp
++++ b/alg/gdalwarper.cpp
+@@ -904,7 +904,7 @@ GDALWarpDstAlphaMasker( void *pMaskFuncA
+  * polygon.
+  *
+  * - OPTIMIZE_SIZE: This defaults to FALSE, but may be set to TRUE when
+- * outputing typically to a compressed dataset (GeoTIFF with COMPRESSED creation
++ * outputting typically to a compressed dataset (GeoTIFF with COMPRESSED creation
+  * option set for example) for achieving a smaller file size. This is achieved
+  * by writing at once data aligned on full blocks of the target dataset, which
+  * avoids partial writes of compressed blocks and lost space when they are rewritten
+@@ -916,8 +916,8 @@ GDALWarpDstAlphaMasker( void *pMaskFuncA
+  * warping. If not set, computation will be done in a single thread.
+  *
+  * - STREAMABLE_OUTPUT: (GDAL >= 2.0) This defaults to FALSE, but may be set to TRUE when
+- * outputing typically to a streamed file. The gdalwarp utility automatically
+- * sets this option when outputing to /vsistdout/ or a named pipe (on Unix).
++ * outputting typically to a streamed file. The gdalwarp utility automatically
++ * sets this option when outputting to /vsistdout/ or a named pipe (on Unix).
+  * This option has performance impacts for some reprojections.
+  * Note: band interleaved output is not currently supported by the warping algorithm in
+  * a streamable compabible way.
+--- a/apps/gdalwarp.cpp
++++ b/apps/gdalwarp.cpp
+@@ -238,7 +238,7 @@ use the -overwrite option.
+ Polygon cutlines may be used as a mask to restrict the area of the destination file
+ that may be updated, including blending.  If the OGR layer containing the cutline
+ features has no explicit SRS, the cutline features must be in the SRS of the
+-destination file. When outputing to a not yet existing target dataset,
++destination file. When outputting to a not yet existing target dataset,
+ its extent will be the one of the original raster unless -te or -crop_to_cutline are
+ specified.
+ 
+--- a/frmts/aaigrid/aaigriddataset.cpp
++++ b/frmts/aaigrid/aaigriddataset.cpp
+@@ -1232,7 +1232,7 @@ GDALDataset * AAIGDataset::CreateCopy(
+ /*      Re-open dataset, and copy any auxiliary pam information.         */
+ /* -------------------------------------------------------------------- */
+ 
+-    /* If outputing to stdout, we can't reopen it, so we'll return */
++    /* If outputting to stdout, we can't reopen it, so we'll return */
+     /* a fake dataset to make the caller happy */
+     CPLPushErrorHandler(CPLQuietErrorHandler);
+     GDALPamDataset* poDS = (GDALPamDataset*) GDALOpen(pszFilename, GA_ReadOnly);
+--- a/frmts/gif/gifdataset.cpp
++++ b/frmts/gif/gifdataset.cpp
+@@ -635,7 +635,7 @@ GIFDataset::CreateCopy( const char * psz
+ /*      Re-open dataset, and copy any auxiliary pam information.         */
+ /* -------------------------------------------------------------------- */
+ 
+-    /* If outputing to stdout, we can't reopen it, so we'll return */
++    /* If outputting to stdout, we can't reopen it, so we'll return */
+     /* a fake dataset to make the caller happy */
+     CPLPushErrorHandler(CPLQuietErrorHandler);
+     poDS = (GDALPamDataset*) GDALOpen(pszFilename, GA_ReadOnly);
+--- a/frmts/jpeg/jpgdataset.cpp
++++ b/frmts/jpeg/jpgdataset.cpp
+@@ -3580,7 +3580,7 @@ JPGDataset::CreateCopy( const char * psz
+ /*      Re-open dataset, and copy any auxiliary pam information.         */
+ /* -------------------------------------------------------------------- */
+ 
+-    /* If outputing to stdout, we can't reopen it, so we'll return */
++    /* If outputting to stdout, we can't reopen it, so we'll return */
+     /* a fake dataset to make the caller happy */
+     if( CSLTestBoolean(CPLGetConfigOption("GDAL_OPEN_AFTER_COPY", "YES")) )
+     {
+--- a/frmts/png/pngdataset.cpp
++++ b/frmts/png/pngdataset.cpp
+@@ -1890,7 +1890,7 @@ PNGDataset::CreateCopy( const char * psz
+ /*      Re-open dataset, and copy any auxiliary pam information.         */
+ /* -------------------------------------------------------------------- */
+ 
+-    /* If outputing to stdout, we can't reopen it, so we'll return */
++    /* If outputting to stdout, we can't reopen it, so we'll return */
+     /* a fake dataset to make the caller happy */
+     if( CSLTestBoolean(CPLGetConfigOption("GDAL_OPEN_AFTER_COPY", "YES")) )
+     {
+--- a/frmts/vrt/vrtsources.cpp
++++ b/frmts/vrt/vrtsources.cpp
+@@ -1924,7 +1924,7 @@ CPLErr VRTComplexSource::RasterIOInterna
+     if( eScalingType == VRT_SCALING_LINEAR && bNoDataSet == FALSE && dfScaleRatio == 0)
+     {
+ /* -------------------------------------------------------------------- */
+-/*      Optimization when outputing a constant value                    */
++/*      Optimization when outputting a constant value                   */
+ /*      (used by the -addalpha option of gdalbuildvrt)                  */
+ /* -------------------------------------------------------------------- */
+         pafData = NULL;
+--- a/frmts/webp/webpdataset.cpp
++++ b/frmts/webp/webpdataset.cpp
+@@ -805,7 +805,7 @@ WEBPDataset::CreateCopy( const char * ps
+ /* -------------------------------------------------------------------- */
+     GDALOpenInfo oOpenInfo(pszFilename, GA_ReadOnly);
+ 
+-    /* If outputing to stdout, we can't reopen it, so we'll return */
++    /* If outputting to stdout, we can't reopen it, so we'll return */
+     /* a fake dataset to make the caller happy */
+     CPLPushErrorHandler(CPLQuietErrorHandler);
+     WEBPDataset *poDS = (WEBPDataset*) WEBPDataset::Open( &oOpenInfo );
+--- a/frmts/xyz/xyzdataset.cpp
++++ b/frmts/xyz/xyzdataset.cpp
+@@ -1156,7 +1156,7 @@ GDALDataset* XYZDataset::CreateCopy( con
+     poXYZ_DS->nRasterYSize = nYSize;
+     poXYZ_DS->nBands = 1;
+     poXYZ_DS->SetBand( 1, new XYZRasterBand( poXYZ_DS, 1, eReqDT ) );
+-    /* If outputing to stdout, we can't reopen it --> silence warning */
++    /* If outputting to stdout, we can't reopen it --> silence warning */
+     CPLPushErrorHandler(CPLQuietErrorHandler);
+     poXYZ_DS->fp = VSIFOpenL( pszFilename, "rb" );
+     CPLPopErrorHandler();
+--- a/man/man1/gdalwarp.1
++++ b/man/man1/gdalwarp.1
+@@ -140,7 +140,7 @@ The destination file name\&.
+ .PP
+ Mosaicing into an existing output file is supported if the output file already exists\&. The spatial extent of the existing file will not be modified to accommodate new data, so you may have to remove it in that case, or use the -overwrite option\&.
+ .PP
+-Polygon cutlines may be used as a mask to restrict the area of the destination file that may be updated, including blending\&. If the OGR layer containing the cutline features has no explicit SRS, the cutline features must be in the SRS of the destination file\&. When outputing to a not yet existing target dataset, its extent will be the one of the original raster unless -te or -crop_to_cutline are specified\&.
++Polygon cutlines may be used as a mask to restrict the area of the destination file that may be updated, including blending\&. If the OGR layer containing the cutline features has no explicit SRS, the cutline features must be in the SRS of the destination file\&. When outputting to a not yet existing target dataset, its extent will be the one of the original raster unless -te or -crop_to_cutline are specified\&.
+ .SH "EXAMPLE"
+ .PP
+ For instance, an eight bit spot scene stored in GeoTIFF with control points mapping the corners to lat/long could be warped to a UTM projection with a command like this:
+--- a/swig/python/samples/build_jp2_from_xml.py
++++ b/swig/python/samples/build_jp2_from_xml.py
+@@ -315,7 +315,7 @@ def parse_jp2_box(xml_tree, out_f, src_j
+ 
+         vrt_ds = gdal.Open(serialized_xml_content)
+         if vrt_ds is None:
+-            print('Cannot decode VRTDataset. Outputing empty content')
++            print('Cannot decode VRTDataset. Outputting empty content')
+             binary_content = ''
+         else:
+             gdal.GetDriverByName('GTiff').CreateCopy('/vsimem/out.tif', vrt_ds)

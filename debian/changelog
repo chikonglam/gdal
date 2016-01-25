@@ -3,7 +3,7 @@ gdal (2.0.2~rc3+dfsg-1) UNRELEASED; urgency=medium
   * New upstream release candidate.
   * Update watch file for 2.0.2 pre-releases.
   * Drop hardening patch, applied upstream. Refresh remaining patches.
-  * Add patch to fix 'occurred' & 'occurrence' typos.
+  * Add patches for various typos.
 
  -- Bas Couwenberg <sebastic@debian.org>  Mon, 25 Jan 2016 21:34:50 +0100
 

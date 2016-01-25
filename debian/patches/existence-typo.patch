@@ -1,0 +1,536 @@
+Description: Fix 'existance' typo, replace with 'existence'.
+Author: Bas Couwenberg <sebastic@debian.org>
+
+--- a/frmts/vrt/vrtdataset.h
++++ b/frmts/vrt/vrtdataset.h
+@@ -265,7 +265,7 @@ class CPL_DLL VRTRasterBand : public GDA
+     int            bIsMaskBand;
+ 
+     int            bNoDataValueSet;
+-    int            bHideNoDataValue; // If set to true, will not report the existance of nodata
++    int            bHideNoDataValue; // If set to true, will not report the existence of nodata
+     double         dfNoDataValue;
+ 
+     GDALColorTable *poColorTable;
+--- a/m4/ax_lib_sqlite3.m4
++++ b/m4/ax_lib_sqlite3.m4
+@@ -6,7 +6,7 @@ dnl Test for the SQLite 3 library of a p
+ dnl
+ dnl This macro takes only one optional argument, required version
+ dnl of SQLite 3 library. If required version is not passed,
+-dnl 3.0.0 is used in the test of existance of SQLite 3.
++dnl 3.0.0 is used in the test of existence of SQLite 3.
+ dnl
+ dnl If no intallation prefix to the installed SQLite library is given
+ dnl the macro searches under /usr, /usr/local, and /opt.
+--- a/ogr/ogrfeaturedefn.cpp
++++ b/ogr/ogrfeaturedefn.cpp
+@@ -364,7 +364,7 @@ OGRFieldDefnH OGR_FD_GetFieldDefn( OGRFe
+  * function directly, but use OGRLayer::CreateField() instead.
+  *
+  * This method should only be called while there are no OGRFeature
+- * objects in existance based on this OGRFeatureDefn.  The OGRFieldDefn
++ * objects in existence based on this OGRFeatureDefn.  The OGRFieldDefn
+  * passed in is copied, and remains the responsibility of the caller.
+  *
+  * This method is the same as the C function OGR_FD_AddFieldDefn().
+@@ -394,7 +394,7 @@ void OGRFeatureDefn::AddFieldDefn( OGRFi
+  * function directly, but use OGR_L_CreateField() instead.
+  *
+  * This function  should only be called while there are no OGRFeature
+- * objects in existance based on this OGRFeatureDefn.  The OGRFieldDefn
++ * objects in existence based on this OGRFeatureDefn.  The OGRFieldDefn
+  * passed in is copied, and remains the responsibility of the caller.
+  *
+  * This function is the same as the C++ method OGRFeatureDefn::AddFieldDefn().
+@@ -421,7 +421,7 @@ void OGR_FD_AddFieldDefn( OGRFeatureDefn
+  * function directly, but use OGRLayer::DeleteField() instead.
+  *
+  * This method should only be called while there are no OGRFeature
+- * objects in existance based on this OGRFeatureDefn.
++ * objects in existence based on this OGRFeatureDefn.
+  *
+  * This method is the same as the C function OGR_FD_DeleteFieldDefn().
+  *
+@@ -462,7 +462,7 @@ OGRErr OGRFeatureDefn::DeleteFieldDefn(
+  * function directly, but use OGR_L_DeleteField() instead.
+  *
+  * This method should only be called while there are no OGRFeature
+- * objects in existance based on this OGRFeatureDefn.
++ * objects in existence based on this OGRFeatureDefn.
+  *
+  * This method is the same as the C++ method OGRFeatureDefn::DeleteFieldDefn().
+  *
+@@ -489,7 +489,7 @@ OGRErr OGR_FD_DeleteFieldDefn( OGRFeatur
+  * function directly, but use OGR_L_ReorderFields() instead.
+  *
+  * This method should only be called while there are no OGRFeature
+- * objects in existance based on this OGRFeatureDefn.
++ * objects in existence based on this OGRFeatureDefn.
+  *
+  * This method is the same as the C function OGR_FD_ReorderFieldDefns().
+  *
+@@ -536,7 +536,7 @@ OGRErr OGRFeatureDefn::ReorderFieldDefns
+  * function directly, but use OGR_L_ReorderFields() instead.
+  *
+  * This method should only be called while there are no OGRFeature
+- * objects in existance based on this OGRFeatureDefn.
++ * objects in existence based on this OGRFeatureDefn.
+  *
+  * This method is the same as the C++ method OGRFeatureDefn::ReorderFieldDefns().
+  *
+@@ -679,7 +679,7 @@ OGRGeomFieldDefnH OGR_FD_GetGeomFieldDef
+  * field definition.
+  *
+  * This method should only be called while there are no OGRFeature
+- * objects in existance based on this OGRFeatureDefn.  The OGRGeomFieldDefn
++ * objects in existence based on this OGRFeatureDefn.  The OGRGeomFieldDefn
+  * passed in is copied, and remains the responsibility of the caller.
+  *
+  * This method is the same as the C function OGR_FD_AddGeomFieldDefn().
+@@ -713,7 +713,7 @@ void OGRFeatureDefn::AddGeomFieldDefn( O
+  * function directly, but use OGR_L_CreateGeomField() instead.
+  *
+  * This function  should only be called while there are no OGRFeature
+- * objects in existance based on this OGRFeatureDefn.  The OGRGeomFieldDefn
++ * objects in existence based on this OGRFeatureDefn.  The OGRGeomFieldDefn
+  * passed in is copied, and remains the responsibility of the caller.
+  *
+  * This function is the same as the C++ method OGRFeatureDefn::AddGeomFieldDefn().
+@@ -742,7 +742,7 @@ void OGR_FD_AddGeomFieldDefn( OGRFeature
+  * function directly, but use OGRLayer::DeleteGeomField() instead.
+  *
+  * This method should only be called while there are no OGRFeature
+- * objects in existance based on this OGRFeatureDefn.
++ * objects in existence based on this OGRFeatureDefn.
+  *
+  * This method is the same as the C function OGR_FD_DeleteGeomFieldDefn().
+  *
+@@ -784,7 +784,7 @@ OGRErr OGRFeatureDefn::DeleteGeomFieldDe
+  * function directly, but use OGR_L_DeleteGeomField() instead (*not implemented yet*)
+  *
+  * This method should only be called while there are no OGRFeature
+- * objects in existance based on this OGRFeatureDefn.
++ * objects in existence based on this OGRFeatureDefn.
+  *
+  * This method is the same as the C++ method OGRFeatureDefn::DeleteGeomFieldDefn().
+  *
+--- a/ogr/ogrsf_frmts/ogrsf_frmts.dox
++++ b/ogr/ogrsf_frmts/ogrsf_frmts.dox
+@@ -2009,7 +2009,7 @@ on a real layer. Internally the OGRFeatu
+ to reflect the new field.  Applications should never modify the OGRFeatureDefn
+ used by a layer directly.
+ 
+-This method should not be called while there are feature objects in existance that
++This method should not be called while there are feature objects in existence that
+ were obtained or created with the previous layer definition.
+ 
+ Not all drivers support this method. You can query a layer to check if it supports it
+@@ -2041,7 +2041,7 @@ on a real layer. Internally the OGRFeatu
+ to reflect the new field.  Applications should never modify the OGRFeatureDefn
+ used by a layer directly.
+ 
+-This function should not be called while there are feature objects in existance that
++This function should not be called while there are feature objects in existence that
+ were obtained or created with the previous layer definition.
+ 
+ Not all drivers support this function. You can query a layer to check if it supports it
+@@ -2073,7 +2073,7 @@ on a real layer. Internally the OGRFeatu
+ to reflect the deleted field.  Applications should never modify the OGRFeatureDefn
+ used by a layer directly.
+ 
+-This method should not be called while there are feature objects in existance that
++This method should not be called while there are feature objects in existence that
+ were obtained or created with the previous layer definition.
+ 
+ Not all drivers support this method. You can query a layer to check if it supports it
+@@ -2101,7 +2101,7 @@ on a real layer. Internally the OGRFeatu
+ to reflect the deleted field.  Applications should never modify the OGRFeatureDefn
+ used by a layer directly.
+ 
+-This function should not be called while there are feature objects in existance that
++This function should not be called while there are feature objects in existence that
+ were obtained or created with the previous layer definition.
+ 
+ Not all drivers support this function. You can query a layer to check if it supports it
+@@ -2129,7 +2129,7 @@ on a real layer. Internally the OGRFeatu
+ to reflect the reordering of the fields.  Applications should never modify the OGRFeatureDefn
+ used by a layer directly.
+ 
+-This method should not be called while there are feature objects in existance that
++This method should not be called while there are feature objects in existence that
+ were obtained or created with the previous layer definition.
+ 
+ panMap is such that,for each field definition at position i after reordering,
+@@ -2164,7 +2164,7 @@ on a real layer. Internally the OGRFeatu
+ to reflect the reordering of the fields.  Applications should never modify the OGRFeatureDefn
+ used by a layer directly.
+ 
+-This function should not be called while there are feature objects in existance that
++This function should not be called while there are feature objects in existence that
+ were obtained or created with the previous layer definition.
+ 
+ panMap is such that,for each field definition at position i after reordering,
+@@ -2202,7 +2202,7 @@ on a real layer. Internally the OGRFeatu
+ to reflect the reordering of the fields.  Applications should never modify the OGRFeatureDefn
+ used by a layer directly.
+ 
+-This method should not be called while there are feature objects in existance that
++This method should not be called while there are feature objects in existence that
+ were obtained or created with the previous layer definition.
+ 
+ The field definition that was at initial position iOldFieldPos will be moved at
+@@ -2239,7 +2239,7 @@ on a real layer. Internally the OGRFeatu
+ to reflect the reordering of the fields.  Applications should never modify the OGRFeatureDefn
+ used by a layer directly.
+ 
+-This function should not be called while there are feature objects in existance that
++This function should not be called while there are feature objects in existence that
+ were obtained or created with the previous layer definition.
+ 
+ The field definition that was at initial position iOldFieldPos will be moved at
+@@ -2274,7 +2274,7 @@ Internally the OGRFeatureDefn for the la
+ to reflect the altered field.  Applications should never modify the OGRFeatureDefn
+ used by a layer directly.
+ 
+-This method should not be called while there are feature objects in existance that
++This method should not be called while there are feature objects in existence that
+ were obtained or created with the previous layer definition.
+ 
+ Not all drivers support this method. You can query a layer to check if it supports it
+@@ -2307,7 +2307,7 @@ Internally the OGRFeatureDefn for the la
+ to reflect the altered field.  Applications should never modify the OGRFeatureDefn
+ used by a layer directly.
+ 
+-This function should not be called while there are feature objects in existance that
++This function should not be called while there are feature objects in existence that
+ were obtained or created with the previous layer definition.
+ 
+ Not all drivers support this function. You can query a layer to check if it supports it
+@@ -2343,7 +2343,7 @@ on a real layer. Internally the OGRFeatu
+ to reflect the new field.  Applications should never modify the OGRFeatureDefn
+ used by a layer directly.
+ 
+-This method should not be called while there are feature objects in existance that
++This method should not be called while there are feature objects in existence that
+ were obtained or created with the previous layer definition.
+ 
+ Not all drivers support this method. You can query a layer to check if it supports it
+@@ -2377,7 +2377,7 @@ on a real layer. Internally the OGRFeatu
+ to reflect the new field.  Applications should never modify the OGRFeatureDefn
+ used by a layer directly.
+ 
+-This function should not be called while there are feature objects in existance that
++This function should not be called while there are feature objects in existence that
+ were obtained or created with the previous layer definition.
+ 
+ Not all drivers support this function. You can query a layer to check if it supports it
+--- a/ogr/ogrspatialreference.cpp
++++ b/ogr/ogrspatialreference.cpp
+@@ -771,7 +771,7 @@ OGRErr OSRImportFromWkt( OGRSpatialRefer
+  * \brief Set attribute value in spatial reference.
+  *
+  * Missing intermediate nodes in the path will be created if not already
+- * in existance.  If the attribute has no children one will be created and
++ * in existence.  If the attribute has no children one will be created and
+  * assigned the value otherwise the zeroth child will be assigned the value.
+  *
+  * This method does the same as the C function OSRSetAttrValue(). 
+--- a/port/cpl_conv.cpp
++++ b/port/cpl_conv.cpp
+@@ -2638,7 +2638,7 @@ void CPLCleanupSetlocaleMutex(void)
+ /************************************************************************/
+ 
+ /**
+- * Check for file existance.
++ * Check for file existence.
+  *
+  * The function checks if a named file exists in the filesystem, hopefully
+  * in an efficient fashion if a sibling file list is available.   It exists
+@@ -2651,7 +2651,7 @@ void CPLCleanupSetlocaleMutex(void)
+  * updated with the correct case and TRUE is returned. 
+  *
+  * If papszSiblingFiles is NULL, a VSIStatL() is used to test for the files
+- * existance, and no case insensitive testing is done. 
++ * existence, and no case insensitive testing is done. 
+  *
+  * @param pszFilename name of file to check for - filename case updated in some cases.
+  * @param papszSiblingFiles a list of files in the same directory as 
+--- a/port/cpl_vsi_mem.cpp
++++ b/port/cpl_vsi_mem.cpp
+@@ -905,7 +905,7 @@ VSILFILE *VSIFileFromMemBuffer( const ch
+  * This function returns a pointer to the memory buffer underlying a 
+  * virtual "in memory" file.  If bUnlinkAndSeize is TRUE the filesystem
+  * object will be deleted, and ownership of the buffer will pass to the 
+- * caller otherwise the underlying file will remain in existance. 
++ * caller otherwise the underlying file will remain in existence. 
+  *
+  * @param pszFilename the name of the file to grab the buffer of.
+  * @param pnDataLength (file) length returned in this variable.
+--- a/swig/include/python/docs/ogr_featuredef_docs.i
++++ b/swig/include/python/docs/ogr_featuredef_docs.i
+@@ -109,7 +109,7 @@ To add a new field definition to a layer
+ function directly, but use OGR_L_CreateField() instead.
+ 
+ This function should only be called while there are no OGRFeature
+-objects in existance based on this OGRFeatureDefn. The OGRFieldDefn
++objects in existence based on this OGRFeatureDefn. The OGRFieldDefn
+ passed in is copied, and remains the responsibility of the caller.
+ 
+ This function is the same as the C++ method
+@@ -132,7 +132,7 @@ To delete an existing field definition f
+ use this function directly, but use OGR_L_DeleteField() instead.
+ 
+ This method should only be called while there are no OGRFeature
+-objects in existance based on this OGRFeatureDefn.
++objects in existence based on this OGRFeatureDefn.
+ 
+ This method is the same as the C++ method
+ OGRFeatureDefn::DeleteFieldDefn().
+@@ -157,7 +157,7 @@ To reorder the field definitions in a la
+ this function directly, but use OGR_L_ReorderFields() instead.
+ 
+ This method should only be called while there are no OGRFeature
+-objects in existance based on this OGRFeatureDefn.
++objects in existence based on this OGRFeatureDefn.
+ 
+ This method is the same as the C++ method
+ OGRFeatureDefn::ReorderFieldDefns().
+@@ -349,4 +349,4 @@ on.
+ 
+ bIgnore:  ignore state ";
+ 
+-}
+\ No newline at end of file
++}
+--- a/swig/include/python/docs/ogr_layer_docs.i
++++ b/swig/include/python/docs/ogr_layer_docs.i
+@@ -261,7 +261,7 @@ Applications should never modify the OGR
+ directly.
+ 
+ This function should not be called while there are feature objects in
+-existance that were obtained or created with the previous layer
++existence that were obtained or created with the previous layer
+ definition.
+ 
+ Not all drivers support this function. You can query a layer to check
+@@ -295,7 +295,7 @@ the deleted field. Applications should n
+ used by a layer directly.
+ 
+ This function should not be called while there are feature objects in
+-existance that were obtained or created with the previous layer
++existence that were obtained or created with the previous layer
+ definition.
+ 
+ Not all drivers support this function. You can query a layer to check
+@@ -328,7 +328,7 @@ the reordering of the fields. Applicatio
+ OGRFeatureDefn used by a layer directly.
+ 
+ This function should not be called while there are feature objects in
+-existance that were obtained or created with the previous layer
++existence that were obtained or created with the previous layer
+ definition.
+ 
+ panMap is such that,for each field definition at position i after
+@@ -373,7 +373,7 @@ the reordering of the fields. Applicatio
+ OGRFeatureDefn used by a layer directly.
+ 
+ This function should not be called while there are feature objects in
+-existance that were obtained or created with the previous layer
++existence that were obtained or created with the previous layer
+ definition.
+ 
+ The field definition that was at initial position iOldFieldPos will be
+@@ -419,7 +419,7 @@ updated to reflect the altered field. Ap
+ the OGRFeatureDefn used by a layer directly.
+ 
+ This function should not be called while there are feature objects in
+-existance that were obtained or created with the previous layer
++existence that were obtained or created with the previous layer
+ definition.
+ 
+ Not all drivers support this function. You can query a layer to check
+@@ -894,4 +894,4 @@ is passed, the ignored list is cleared.
+ OGRERR_NONE if all field names have been resolved (even if the driver
+ does not support this method) ";
+ 
+-}
+\ No newline at end of file
++}
+--- a/swig/java/javadoc.java
++++ b/swig/java/javadoc.java
+@@ -6500,7 +6500,7 @@ on a real layer. Internally the FeatureD
+ to reflect the new field.  Applications should never modify the FeatureDefn
+ used by a layer directly.
+ <p>
+-This method should not be called while there are feature objects in existance that
++This method should not be called while there are feature objects in existence that
+ were obtained or created with the previous layer definition.
+ <p>
+ Not all drivers support this method. You can query a layer to check if it supports it
+@@ -6534,7 +6534,7 @@ on a real layer. Internally the FeatureD
+ to reflect the deleted field.  Applications should never modify the FeatureDefn
+ used by a layer directly.
+ <p>
+-This method should not be called while there are feature objects in existance that
++This method should not be called while there are feature objects in existence that
+ were obtained or created with the previous layer definition.
+ <p>
+ Not all drivers support this method. You can query a layer to check if it supports it
+@@ -6558,7 +6558,7 @@ on a real layer. Internally the FeatureD
+ to reflect the reordering of the fields.  Applications should never modify the FeatureDefn
+ used by a layer directly.
+ <p>
+-This method should not be called while there are feature objects in existance that
++This method should not be called while there are feature objects in existence that
+ were obtained or created with the previous layer definition.
+ <p>
+ panMap is such that,for each field definition at position i after reordering,
+@@ -6592,7 +6592,7 @@ on a real layer. Internally the FeatureD
+ to reflect the reordering of the fields.  Applications should never modify the FeatureDefn
+ used by a layer directly.
+ <p>
+-This method should not be called while there are feature objects in existance that
++This method should not be called while there are feature objects in existence that
+ were obtained or created with the previous layer definition.
+ <p>
+ The field definition that was at initial position iOldFieldPos will be moved at
+@@ -6623,7 +6623,7 @@ Internally the FeatureDefn for the layer
+ to reflect the altered field.  Applications should never modify the FeatureDefn
+ used by a layer directly.
+ <p>
+-This method should not be called while there are feature objects in existance that
++This method should not be called while there are feature objects in existence that
+ were obtained or created with the previous layer definition.
+ <p>
+ Not all drivers support this method. You can query a layer to check if it supports it
+@@ -9380,7 +9380,7 @@ public class FeatureDefn:public FeatureD
+  * function directly, but use Layer.<a href="Layer.html#CreateField(org.gdal.ogr.FieldDefn)">CreateField()</a> instead.
+  * <p>
+  * This method should only be called while there are no Feature
+- * objects in existance based on this FeatureDefn.  The FieldDefn
++ * objects in existence based on this FeatureDefn.  The FieldDefn
+  * passed in is copied, and remains the responsibility of the caller.
+  *
+  * @param defn the definition of the new field.
+@@ -11223,7 +11223,7 @@ public class SpatialReference:public int
+  * Set attribute value in spatial reference.
+  * <p>
+  * Missing intermediate nodes in the path will be created if not already
+- * in existance.  If the attribute has no children one will be created and
++ * in existence.  If the attribute has no children one will be created and
+  * assigned the value otherwise the zeroth child will be assigned the value.
+  *
+  * @param name full path to attribute to be set.  For instance
+--- a/swig/python/extensions/ogr_wrap.cpp
++++ b/swig/python/extensions/ogr_wrap.cpp
+@@ -24714,7 +24714,7 @@ static PyMethodDef SwigMethods[] = {
+ 		"directly.\n"
+ 		"\n"
+ 		"This function should not be called while there are feature objects in\n"
+-		"existance that were obtained or created with the previous layer\n"
++		"existence that were obtained or created with the previous layer\n"
+ 		"definition.\n"
+ 		"\n"
+ 		"Not all drivers support this function. You can query a layer to check\n"
+@@ -24751,7 +24751,7 @@ static PyMethodDef SwigMethods[] = {
+ 		"used by a layer directly.\n"
+ 		"\n"
+ 		"This function should not be called while there are feature objects in\n"
+-		"existance that were obtained or created with the previous layer\n"
++		"existence that were obtained or created with the previous layer\n"
+ 		"definition.\n"
+ 		"\n"
+ 		"Not all drivers support this function. You can query a layer to check\n"
+@@ -24791,7 +24791,7 @@ static PyMethodDef SwigMethods[] = {
+ 		"OGRFeatureDefn used by a layer directly.\n"
+ 		"\n"
+ 		"This function should not be called while there are feature objects in\n"
+-		"existance that were obtained or created with the previous layer\n"
++		"existence that were obtained or created with the previous layer\n"
+ 		"definition.\n"
+ 		"\n"
+ 		"The field definition that was at initial position iOldFieldPos will be\n"
+@@ -24839,7 +24839,7 @@ static PyMethodDef SwigMethods[] = {
+ 		"OGRFeatureDefn used by a layer directly.\n"
+ 		"\n"
+ 		"This function should not be called while there are feature objects in\n"
+-		"existance that were obtained or created with the previous layer\n"
++		"existence that were obtained or created with the previous layer\n"
+ 		"definition.\n"
+ 		"\n"
+ 		"panMap is such that,for each field definition at position i after\n"
+@@ -24884,7 +24884,7 @@ static PyMethodDef SwigMethods[] = {
+ 		"the OGRFeatureDefn used by a layer directly.\n"
+ 		"\n"
+ 		"This function should not be called while there are feature objects in\n"
+-		"existance that were obtained or created with the previous layer\n"
++		"existence that were obtained or created with the previous layer\n"
+ 		"definition.\n"
+ 		"\n"
+ 		"Not all drivers support this function. You can query a layer to check\n"
+@@ -25961,7 +25961,7 @@ static PyMethodDef SwigMethods[] = {
+ 		"function directly, but use OGR_L_CreateField() instead.\n"
+ 		"\n"
+ 		"This function should only be called while there are no OGRFeature\n"
+-		"objects in existance based on this OGRFeatureDefn. The OGRFieldDefn\n"
++		"objects in existence based on this OGRFeatureDefn. The OGRFieldDefn\n"
+ 		"passed in is copied, and remains the responsibility of the caller.\n"
+ 		"\n"
+ 		"This function is the same as the C++ method\n"
+--- a/swig/python/osgeo/ogr.py
++++ b/swig/python/osgeo/ogr.py
+@@ -1766,7 +1766,7 @@ class Layer(MajorObject):
+         directly.
+ 
+         This function should not be called while there are feature objects in
+-        existance that were obtained or created with the previous layer
++        existence that were obtained or created with the previous layer
+         definition.
+ 
+         Not all drivers support this function. You can query a layer to check
+@@ -1806,7 +1806,7 @@ class Layer(MajorObject):
+         used by a layer directly.
+ 
+         This function should not be called while there are feature objects in
+-        existance that were obtained or created with the previous layer
++        existence that were obtained or created with the previous layer
+         definition.
+ 
+         Not all drivers support this function. You can query a layer to check
+@@ -1849,7 +1849,7 @@ class Layer(MajorObject):
+         OGRFeatureDefn used by a layer directly.
+ 
+         This function should not be called while there are feature objects in
+-        existance that were obtained or created with the previous layer
++        existence that were obtained or created with the previous layer
+         definition.
+ 
+         The field definition that was at initial position iOldFieldPos will be
+@@ -1900,7 +1900,7 @@ class Layer(MajorObject):
+         OGRFeatureDefn used by a layer directly.
+ 
+         This function should not be called while there are feature objects in
+-        existance that were obtained or created with the previous layer
++        existence that were obtained or created with the previous layer
+         definition.
+ 
+         panMap is such that,for each field definition at position i after
+@@ -1948,7 +1948,7 @@ class Layer(MajorObject):
+         the OGRFeatureDefn used by a layer directly.
+ 
+         This function should not be called while there are feature objects in
+-        existance that were obtained or created with the previous layer
++        existence that were obtained or created with the previous layer
+         definition.
+ 
+         Not all drivers support this function. You can query a layer to check
+@@ -3553,7 +3553,7 @@ class FeatureDefn(_object):
+         function directly, but use OGR_L_CreateField() instead.
+ 
+         This function should only be called while there are no OGRFeature
+-        objects in existance based on this OGRFeatureDefn. The OGRFieldDefn
++        objects in existence based on this OGRFeatureDefn. The OGRFieldDefn
+         passed in is copied, and remains the responsibility of the caller.
+ 
+         This function is the same as the C++ method
