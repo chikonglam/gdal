@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr2ogr.cpp 30692 2015-09-24 18:01:28Z tamas $
+ * $Id: ogr2ogr.cpp 33113 2016-01-23 17:10:20Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Simple client for translating between formats.
@@ -39,7 +39,7 @@
 #include <map>
 #include <vector>
 
-CPL_CVSID("$Id: ogr2ogr.cpp 30692 2015-09-24 18:01:28Z tamas $");
+CPL_CVSID("$Id: ogr2ogr.cpp 33113 2016-01-23 17:10:20Z rouault $");
 
 static int bSkipFailures = FALSE;
 static int nGroupTransactions = 20000;
@@ -3592,6 +3592,11 @@ static int TranslateLayer( TargetLayerInfo* psInfo,
             {
                 CPLDebug( "OGR2OGR", "Unable to write feature %ld into layer %s.\n",
                            poFeature->GetFID(), poSrcLayer->GetName() );
+                if( nGroupTransactions )
+                {
+                    poDstLayer->RollbackTransaction();
+                    poDstLayer->StartTransaction();
+                }
             }
 
 end_loop:

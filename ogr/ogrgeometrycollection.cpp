@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrgeometrycollection.cpp 27610 2014-08-27 15:47:43Z rouault $
+ * $Id: ogrgeometrycollection.cpp 33154 2016-01-25 12:46:47Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  The OGRGeometryCollection class.
@@ -31,7 +31,7 @@
 #include "ogr_geometry.h"
 #include "ogr_p.h"
 
-CPL_CVSID("$Id: ogrgeometrycollection.cpp 27610 2014-08-27 15:47:43Z rouault $");
+CPL_CVSID("$Id: ogrgeometrycollection.cpp 33154 2016-01-25 12:46:47Z rouault $");
 
 /************************************************************************/
 /*                       OGRGeometryCollection()                        */
@@ -594,6 +594,16 @@ OGRErr  OGRGeometryCollection::exportToWkb( OGRwkbByteOrder eByteOrder,
     for( int iGeom = 0; iGeom < nGeomCount; iGeom++ )
     {
         papoGeoms[iGeom]->exportToWkb( eByteOrder, pabyData + nOffset, eWkbVariant );
+        // Should normally not happen if everyone else does its job
+        // but has happened sometimes (#6332)
+        if( papoGeoms[iGeom]->getCoordinateDimension() != getCoordinateDimension() )
+        {
+            CPLError( CE_Warning, CPLE_AppDefined,
+                      "Sub-geometry %d has coordinate dimension %d, but container has %d",
+                      iGeom,
+                      papoGeoms[iGeom]->getCoordinateDimension(),
+                      getCoordinateDimension() );
+        }
 
         nOffset += papoGeoms[iGeom]->WkbSize();
     }
