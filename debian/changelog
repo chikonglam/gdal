@@ -1,10 +1,10 @@
-gdal (1.11.4~rc2+dfsg-1~exp2) UNRELEASED; urgency=medium
+gdal (1.11.4~rc2+dfsg-1~exp2) experimental; urgency=medium
 
   * Revert Multi-Arch: no change for libgdal-dev.
   * Add lintian override for old-style-config-script-multiarch-path.
     See: https://lists.debian.org/debian-devel/2016/01/msg00688.html
 
- -- Bas Couwenberg <sebastic@debian.org>  Tue, 26 Jan 2016 20:42:11 +0100
+ -- Bas Couwenberg <sebastic@debian.org>  Tue, 26 Jan 2016 21:30:29 +0100
 
 gdal (1.11.4~rc2+dfsg-1~exp1) experimental; urgency=medium
 
