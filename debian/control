@@ -118,7 +118,6 @@ Description: Geospatial Data Abstraction Library - Transitional package
 
 Package: libgdal-dev
 Architecture: any
-Multi-arch: no
 Section: libdevel
 Depends: libgdal1i (= ${binary:Version}),
          libc6-dev,

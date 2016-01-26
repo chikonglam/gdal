@@ -4,7 +4,6 @@ gdal (1.11.4~rc2+dfsg-1~exp1) experimental; urgency=medium
   * Update watch file for 1.11.4 pre-releases.
   * Refresh patches.
   * Add patches for various typos.
-  * Mark libgdal-dev as Multi-Arch: no, due to old style config file.
 
  -- Bas Couwenberg <sebastic@debian.org>  Tue, 26 Jan 2016 06:10:18 +0100
 
