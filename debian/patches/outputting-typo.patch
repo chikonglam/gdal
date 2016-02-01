@@ -3,7 +3,7 @@ Author: Bas Couwenberg <sebastic@debian.org>
 
 --- a/NEWS
 +++ b/NEWS
-@@ -2929,7 +2929,7 @@ Utilities:
+@@ -2930,7 +2930,7 @@ Utilities:
   * gdalinfo: add '-sd num' option to report subdataset with the specified number.
   * gdalinfo: add '-proj4' option to gdalinfo, to report a PROJ.4 string for the CRS
   * gdal_translate: propagate INTERLEAVE metadata to intermediate VRT dataset
@@ -12,7 +12,7 @@ Author: Bas Couwenberg <sebastic@debian.org>
   * gdalwarp: Disable CENTER_LONG rewrapping for cutline (#3932)
   * gdalwarp: add -refine_gcps option to discard outliers GCPs before warping (#4143)
   * gdalwarp: add warning if user specifies several of -order, -tps, -rpc or -geoloc options
-@@ -2959,7 +2959,7 @@ Multi-driver topics:
+@@ -2960,7 +2960,7 @@ Multi-driver topics:
   * Port DOQ1, DOQ2, ELAS, Idrisi, L1B, NDF, NWT_GRD, NWT_GRC, USGSDEM to VSI virtual file API
   * PAM-enable BT and BLX drivers
   * Implement Identify() for AAIGrid, ACE2, DTED, NWT_GRD, NWT_GRC, WMS, WCS, JDEM and BSB drivers
@@ -21,7 +21,7 @@ Author: Bas Couwenberg <sebastic@debian.org>
   * HFA and GTiff: add explicit error message when trying to add external overviews when there are already internal overviews (#4044)
   * Initialize overview manager to support external overviews for AAIGRID, DIPX, ELAS, GXF, FIT, FITS, GMT, GRIB, GSAG, GSBG, GS7BG, ILWIS, L1B, LCP, Leveller, NWT_GRD, NWT_GRC, RIK, SDTS and SAGA
  
-@@ -3055,7 +3055,7 @@ GeoRaster driver:
+@@ -3056,7 +3056,7 @@ GeoRaster driver:
   * Fix loading of small images, FlushCache issue (#4363)
  
  GIF driver:
@@ -30,7 +30,7 @@ Author: Bas Couwenberg <sebastic@debian.org>
  
  GRIB driver:
   * Fix grid vs cell-center convention (#2637)
-@@ -4259,7 +4259,7 @@ Core:
+@@ -4260,7 +4260,7 @@ Core:
   * Make the GetStyleTable() SetStyleTable() SetStyleTableDirectly() methods on
     datasources and layers virtual (#2978)
   * Add OGRSFDriverRegistrar::DeregisterDriver() and OGRDeregisterDriver()

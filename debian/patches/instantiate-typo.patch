@@ -3,7 +3,7 @@ Author: Bas Couwenberg <sebastic@debian.org>
 
 --- a/NEWS
 +++ b/NEWS
-@@ -4512,7 +4512,7 @@ PostgreSQL driver:
+@@ -4513,7 +4513,7 @@ PostgreSQL driver:
   * If the PG_USE_BASE64 configuration option is set to YES, geometries will be
     requested as BASE64 encoded EWKB instead of canonical HEX encoded EWKB.
     (useful when bandwidth is the limiting factor)

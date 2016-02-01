@@ -3,7 +3,7 @@ Author: Bas Couwenberg <sebastic@debian.org>
 
 --- a/NEWS
 +++ b/NEWS
-@@ -465,7 +465,7 @@ Algorithms:
+@@ -466,7 +466,7 @@ Algorithms:
   * Warper: fix integer overflow when reprojecting into an area with (part of) bounds completely outside of the source projection (#5789)
   * Warper: add min,max,med,q1 and q3 resampling algorithms (#5868)
   * Warper: add a SRC_COORD_PRECISION warping option to help getting more reproducable output when -wm parameter changes (#5925)
