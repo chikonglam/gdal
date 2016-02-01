@@ -1,10 +1,10 @@
-gdal (2.0.2~rc4+dfsg-1) UNRELEASED; urgency=medium
+gdal (2.0.2+dfsg-1) UNRELEASED; urgency=medium
 
-  * New upstream release candidate.
+  * New upstream release.
   * Drop hardening patch, applied upstream. Refresh remaining patches.
   * Add patches for various typos.
 
- -- Bas Couwenberg <sebastic@debian.org>  Tue, 26 Jan 2016 22:15:29 +0100
+ -- Bas Couwenberg <sebastic@debian.org>  Mon, 01 Feb 2016 17:13:48 +0100
 
 gdal (2.0.1+dfsg-1~exp1) experimental; urgency=medium
 
