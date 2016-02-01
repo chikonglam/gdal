@@ -1,7 +1,6 @@
 gdal (2.0.2~rc4+dfsg-1) UNRELEASED; urgency=medium
 
   * New upstream release candidate.
-  * Update watch file for 2.0.2 pre-releases.
   * Drop hardening patch, applied upstream. Refresh remaining patches.
   * Add patches for various typos.
 
