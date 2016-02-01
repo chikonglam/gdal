@@ -1,9 +1,9 @@
-gdal (1.11.4+dfsg-1) UNRELEASED; urgency=medium
+gdal (1.11.4+dfsg-1~exp1) experimental; urgency=medium
 
   * New upstream release.
   * Update watch file for final releases.
 
- -- Bas Couwenberg <sebastic@debian.org>  Mon, 01 Feb 2016 16:13:00 +0100
+ -- Bas Couwenberg <sebastic@debian.org>  Mon, 01 Feb 2016 16:14:20 +0100
 
 gdal (1.11.4~rc2+dfsg-1~exp2) experimental; urgency=medium
 
