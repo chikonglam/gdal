@@ -1,6 +1,7 @@
 gdal (1.11.3+dfsg-3) UNRELEASED; urgency=medium
 
   * Update Vcs-Git URL to use HTTPS.
+  * Add upstream patch to fix crash with SQLite 3.10.0.
 
  -- Bas Couwenberg <sebastic@debian.org>  Wed, 10 Feb 2016 17:00:34 +0100
 

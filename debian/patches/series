@@ -29,3 +29,4 @@ hardening
 recommanded-typo
 perl-vendor
 libkml-pkgconfig
+sqlite-3.10.0
