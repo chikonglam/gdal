@@ -1,4 +1,4 @@
-gdal (2.0.2+dfsg-1) UNRELEASED; urgency=medium
+gdal (2.0.2+dfsg-1~exp1) experimental; urgency=medium
 
   * New upstream release.
   * Drop hardening patch, applied upstream. Refresh remaining patches.
@@ -6,7 +6,7 @@ gdal (2.0.2+dfsg-1) UNRELEASED; urgency=medium
   * Add upstream patch to fix crash with SQLite 3.10.0.
   * Enable parallel builds.
 
- -- Bas Couwenberg <sebastic@debian.org>  Mon, 01 Feb 2016 17:13:48 +0100
+ -- Bas Couwenberg <sebastic@debian.org>  Fri, 12 Feb 2016 19:41:57 +0100
 
 gdal (2.0.1+dfsg-1~exp1) experimental; urgency=medium
 
