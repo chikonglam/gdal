@@ -1,5 +1,6 @@
 Description: Fix 'existance' typo, replace with 'existence'.
 Author: Bas Couwenberg <sebastic@debian.org>
+Forwarded: not-needed
 
 --- a/frmts/vrt/vrtdataset.h
 +++ b/frmts/vrt/vrtdataset.h

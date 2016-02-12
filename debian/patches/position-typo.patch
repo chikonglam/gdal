@@ -1,5 +1,6 @@
 Description: Fix 'postion' typo, replace with 'position'.
 Author: Bas Couwenberg <sebastic@debian.org>
+Forwarded: not-needed
 
 --- a/apps/ogr_utilities.dox
 +++ b/apps/ogr_utilities.dox

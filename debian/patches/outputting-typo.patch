@@ -1,5 +1,6 @@
 Description: Fix 'outputing' typo, replace with 'outputting'.
 Author: Bas Couwenberg <sebastic@debian.org>
+Forwarded: not-needed
 
 --- a/NEWS
 +++ b/NEWS

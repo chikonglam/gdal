@@ -1,5 +1,6 @@
 Description: Fix 'responsiblity' typo, replace with 'responsibility'.
 Author: Bas Couwenberg <sebastic@debian.org>
+Forwarded: not-needed
 
 --- a/ogr/ogr_srsnode.cpp
 +++ b/ogr/ogr_srsnode.cpp

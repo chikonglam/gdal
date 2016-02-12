@@ -1,5 +1,6 @@
 Description: Fix 'instanciate' typo, replace with 'instantiate'.
 Author: Bas Couwenberg <sebastic@debian.org>
+Forwarded: not-needed
 
 --- a/NEWS
 +++ b/NEWS

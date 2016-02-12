@@ -1,5 +1,6 @@
 Description: Fix 'suported' typo, replace with 'supported'.
 Author: Bas Couwenberg <sebastic@debian.org>
+Forwarded: not-needed
 
 --- a/configure.in
 +++ b/configure.in

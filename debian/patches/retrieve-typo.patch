@@ -1,5 +1,6 @@
 Description: Fix 'retrive' typo, replace with 'retrieve'.
 Author: Bas Couwenberg <sebastic@debian.org>
+Forwarded: not-needed
 
 --- a/frmts/raw/ehdrdataset.cpp
 +++ b/frmts/raw/ehdrdataset.cpp
