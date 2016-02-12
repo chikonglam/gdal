@@ -29,6 +29,16 @@ gdal (2.0.1+dfsg-1~exp1) experimental; urgency=medium
 
  -- Bas Couwenberg <sebastic@debian.org>  Fri, 23 Oct 2015 17:01:12 +0200
 
+gdal (1.11.3+dfsg-3) unstable; urgency=medium
+
+  * Update Vcs-Git URL to use HTTPS.
+  * Add upstream patch to fix crash with SQLite 3.10.0.
+  * Add patches for various typos.
+  * Add lintian override for old-style-config-script-multiarch-path.
+    See: https://lists.debian.org/debian-devel/2016/01/msg00688.html
+
+ -- Bas Couwenberg <sebastic@debian.org>  Wed, 10 Feb 2016 19:06:55 +0100
+
 gdal (1.11.3+dfsg-2) unstable; urgency=medium
 
   * Update symbols for alpha, amd64, kfreebsd-amd64, ppc64el & s390x.
