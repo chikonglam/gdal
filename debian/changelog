@@ -4,6 +4,7 @@ gdal (2.0.2+dfsg-1) UNRELEASED; urgency=medium
   * Drop hardening patch, applied upstream. Refresh remaining patches.
   * Add patches for various typos.
   * Add upstream patch to fix crash with SQLite 3.10.0.
+  * Enable parallel builds.
 
  -- Bas Couwenberg <sebastic@debian.org>  Mon, 01 Feb 2016 17:13:48 +0100
 
