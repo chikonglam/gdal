@@ -416,7 +416,9 @@ libgdal.so.20 libgdal20 #MINVER#
  (c++)"GDALDataset::ProcessSQLCreateIndex(char const*)@Base" 2.0.1 1
  (c++)"GDALDataset::SetStyleTableDirectly(OGRStyleTable*)@Base" 2.0.1 1
  (c++)"GDALDataset::CloseDependentDatasets()@Base" 2.0.1 1
+ (c++)"GDALDataset::ReacquireReadWriteLock()@Base" 2.0.2 1
  (c++)"GDALDataset::BuildLayerFromSelectInfo(swq_select*, OGRGeometry*, char const*, swq_select_parse_options*)@Base" 2.0.1 1
+ (c++)"GDALDataset::TemporarilyDropReadWriteLock()@Base" 2.0.2 1
  (c++)"GDALDataset::ValidateLayerCreationOptions(char const* const*)@Base" 2.0.1 1
  (c++)"GDALDataset::ProcessSQLAlterTableAddColumn(char const*)@Base" 2.0.1 1
  (c++)"GDALDataset::ProcessSQLAlterTableDropColumn(char const*)@Base" 2.0.1 1

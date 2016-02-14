@@ -1342,6 +1342,7 @@
  OSRSetAngularUnits@Base 1.8.0
  OSRSetAttrValue@Base 1.8.0
  OSRSetAuthority@Base 1.8.0
+ OSRSetAxes@Base 2.0.2
  OSRSetBonne@Base 1.8.0
  OSRSetCEA@Base 1.8.0
  OSRSetCS@Base 1.8.0
@@ -1362,6 +1363,7 @@
  OSRSetGnomonic@Base 1.8.0
  OSRSetHOM2PNO@Base 1.8.0
  OSRSetHOM@Base 1.8.0
+ OSRSetHOMAC@Base 2.0.2
  OSRSetIGH@Base 1.9.0
  OSRSetIWMPolyconic@Base 1.8.0
  OSRSetKrovak@Base 1.8.0
@@ -1373,6 +1375,7 @@
  OSRSetLinearUnitsAndUpdateParameters@Base 1.8.0
  OSRSetLocalCS@Base 1.8.0
  OSRSetMC@Base 1.8.0
+ OSRSetMercator2SP@Base 2.0.2
  OSRSetMercator@Base 1.8.0
  OSRSetMollweide@Base 1.8.0
  OSRSetNZMG@Base 1.8.0
@@ -1396,10 +1399,12 @@
  OSRSetTMSO@Base 1.8.0
  OSRSetTMVariant@Base 1.8.0
  OSRSetTOWGS84@Base 1.8.0
+ OSRSetTPED@Base 2.0.2
  OSRSetTargetLinearUnits@Base 1.9.0
  OSRSetUTM@Base 1.8.0
  OSRSetVDG@Base 1.8.0
  OSRSetVertCS@Base 1.9.0
+ OSRSetWagner@Base 2.0.2
  OSRSetWellKnownGeogCS@Base 1.8.0
  OSRStripCTParms@Base 1.8.0
  OSRValidate@Base 1.8.0
