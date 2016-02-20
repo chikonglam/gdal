@@ -1,6 +1,6 @@
 gdal (2.0.2+dfsg-1~exp3) UNRELEASED; urgency=medium
 
-  * Update symbols for x32.
+  * Update symbols for hurd-i386 & x32.
 
  -- Bas Couwenberg <sebastic@debian.org>  Sat, 20 Feb 2016 00:23:55 +0100
 
