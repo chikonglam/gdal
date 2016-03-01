@@ -35,7 +35,7 @@ kmelero	      Ken Melero		   mrsid
               kmelero at sanz.com
 
 ajolma        Ari Jolma                    perl bindings
-              ari.jolma at tkk.fi
+              ari.jolma at gmail.com
 
 shalasz       Steve Halasz                 DebianGIS Packaging
               debian at adkgis.org
@@ -88,10 +88,8 @@ kosta         Dr. Konstantin Baumann       MySQL, SQLite
 rayg          Ray Gardener                 DEM drivers, leveller, terragen
               rayg@daylongraphics.com
 
-rouault       Even Rouault                 NITF/RPFTOC, BNA, GPX, ADRG,
-                                           XPlane, GeoRSS, PostgreSQL,
-                                           swig java bindings
-              even.rouault at mines-paris.org
+rouault       Even Rouault                 all
+              even.rouault at spatialys.com
 
 retsios       Bas Retsios                  ILWIS, GRIB
               retsios at itc.nl
@@ -177,6 +175,9 @@ jef           Juergen Fischer              OGR: NAS
 
 vmo           Vincent Mora                 wasp
               vincent.mora@oslandia.com
+
+jratike80     Jukka Rahkonen               documentation
+              jukka.rahkonen@latuviitta.fi
 
 ===============
 Past developers

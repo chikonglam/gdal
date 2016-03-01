@@ -183,6 +183,11 @@ public class RasterAttributeTable : IDisposable {
     return ret;
   }
 
+  public void DumpReadable() {
+    GdalPINVOKE.RasterAttributeTable_DumpReadable(swigCPtr);
+    if (GdalPINVOKE.SWIGPendingException.Pending) throw GdalPINVOKE.SWIGPendingException.Retrieve();
+  }
+
 }
 
 }

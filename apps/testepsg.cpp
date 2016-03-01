@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: testepsg.cpp 18987 2010-03-01 19:44:06Z rouault $
+ * $Id: testepsg.cpp 27942 2014-11-11 00:57:41Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Test mainline for translating EPSG definitions into WKT.
@@ -89,12 +89,12 @@ int main( int nArgc, char ** papszArgv )
             
             poCT = OGRCreateCoordinateTransformation( &oSourceSRS,
                                                       &oTargetSRS );
-            x = atof( papszArgv[i+3] );
-            y = atof( papszArgv[i+4] );
+            x = CPLAtof( papszArgv[i+3] );
+            y = CPLAtof( papszArgv[i+4] );
             if( i < nArgc - 5 
-                && (atof(papszArgv[i+5]) > 0.0 || papszArgv[i+5][0] == '0') )
+                && (CPLAtof(papszArgv[i+5]) > 0.0 || papszArgv[i+5][0] == '0') )
             {
-                z_orig = z = atof(papszArgv[i+5]);
+                z_orig = z = CPLAtof(papszArgv[i+5]);
                 nArgsUsed++;
             }
             else
@@ -104,8 +104,8 @@ int main( int nArgc, char ** papszArgv )
                 printf( "Transformation failed.\n" );
             else
                 printf( "(%f,%f,%f) -> (%f,%f,%f)\n", 
-                        atof( papszArgv[i+3] ),
-                        atof( papszArgv[i+4] ),
+                        CPLAtof( papszArgv[i+3] ),
+                        CPLAtof( papszArgv[i+4] ),
                         z_orig, 
                         x, y, z );
             

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ecrgtocdataset.cpp 32233 2015-12-18 12:31:18Z rouault $
+ * $Id: ecrgtocdataset.cpp 32232 2015-12-18 12:30:37Z rouault $
  *
  * Project:  ECRG TOC read Translator
  * Purpose:  Implementation of ECRGTOCDataset and ECRGTOCSubDataset.
@@ -35,7 +35,7 @@
 #include "cpl_minixml.h"
 #include <vector>
 
-CPL_CVSID("$Id: ecrgtocdataset.cpp 32233 2015-12-18 12:31:18Z rouault $");
+CPL_CVSID("$Id: ecrgtocdataset.cpp 32232 2015-12-18 12:30:37Z rouault $");
 
 /** Overview of used classes :
    - ECRGTOCDataset : lists the different subdatasets, listed in the .xml,
@@ -1125,6 +1125,7 @@ void GDALRegister_ECRGTOC()
         poDriver = new GDALDriver();
         
         poDriver->SetDescription( "ECRGTOC" );
+        poDriver->SetMetadataItem( GDAL_DCAP_RASTER, "YES" );
         poDriver->SetMetadataItem( GDAL_DMD_LONGNAME, 
                                    "ECRG TOC format" );
         

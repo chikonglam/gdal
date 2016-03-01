@@ -1,4 +1,4 @@
-.TH "ogrinfo" 1 "Mon Jan 25 2016" "GDAL" \" -*- nroff -*-
+.TH "ogrinfo" 1 "Tue Jan 26 2016" "GDAL" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -12,7 +12,9 @@ lists information about an OGR supported data source
 ogrinfo [--help-general] [-ro] [-q] [-where restricted_where]
         [-spat xmin ymin xmax ymax] [-geomfield field] [-fid fid]
         [-sql statement] [-dialect dialect] [-al] [-so] [-fields={YES/NO}]
-        [-geom={YES/NO/SUMMARY}][--formats]
+        [-geom={YES/NO/SUMMARY}] [-formats] [[-oo NAME=VALUE] ...]
+        [-nomd] [-listmdd] [-mdd domain|`all`]*
+        [-nocount] [-noextent]
         datasource_name [layer [layer ...]].fi
 .PP
 .SH "DESCRIPTION"
@@ -24,7 +26,7 @@ Open the data source in read-only mode\&.
 .IP "\fB\fB-al\fP:\fP" 1c
 List all features of all layers (used instead of having to give layer names as arguments)\&. 
 .IP "\fB\fB-so\fP:\fP" 1c
-Summary Only: supress listing of features, show only the summary information like projection, schema, feature count and extents\&. 
+Summary Only: suppress listing of features, show only the summary information like projection, schema, feature count and extents\&. 
 .IP "\fB\fB-q\fP:\fP" 1c
 Quiet verbose reporting of various information, including coordinate system, layer schema, extents, and feature count\&.  
 .IP "\fB\fB-where\fP \fIrestricted_where\fP:\fP" 1c
@@ -43,6 +45,18 @@ If provided, only the feature with this feature id will be reported\&. Operates 
 (starting with GDAL 1\&.6\&.0) If set to NO, the feature dump will not display field values\&. Default value is YES\&. 
 .IP "\fB\fB-geom\fP={YES/NO/SUMMARY}:\fP" 1c
 (starting with GDAL 1\&.6\&.0) If set to NO, the feature dump will not display the geometry\&. If set to SUMMARY, only a summary of the geometry will be displayed\&. If set to YES, the geometry will be reported in full OGC WKT format\&. Default value is YES\&. 
+.IP "\fB\fB-oo\fP \fINAME=VALUE\fP:\fP" 1c
+(starting with GDAL 2\&.0) Dataset open option (format specific) 
+.IP "\fB\fB-nomd\fP\fP" 1c
+(starting with GDAL 2\&.0) Suppress metadata printing\&. Some datasets may contain a lot of metadata strings\&. 
+.IP "\fB\fB-listmdd\fP\fP" 1c
+(starting with GDAL 2\&.0) List all metadata domains available for the dataset\&. 
+.IP "\fB\fB-mdd domain\fP\fP" 1c
+(starting with GDAL 2\&.0) Report metadata for the specified domain\&. 'all' can be used to report metadata in all domains 
+.IP "\fB\fB-nocount\fP\fP" 1c
+(starting with GDAL 2\&.0) Suppress feature count printing\&. 
+.IP "\fB\fB-noextent\fP\fP" 1c
+(starting with GDAL 2\&.0) Suppress spatial extent printing\&. 
 .IP "\fB\fB--formats\fP:\fP" 1c
 List the format drivers that are enabled\&. 
 .IP "\fB\fIdatasource_name\fP:\fP" 1c

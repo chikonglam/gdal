@@ -389,6 +389,24 @@ public CPLErr SetGCPs(GCP[] pGCPs, string pszGCPProjection) {
         return ret;
 }
 
+  public int StartTransaction(int force) {
+    int ret = GdalPINVOKE.Dataset_StartTransaction(swigCPtr, force);
+    if (GdalPINVOKE.SWIGPendingException.Pending) throw GdalPINVOKE.SWIGPendingException.Retrieve();
+    return ret;
+  }
+
+  public int CommitTransaction() {
+    int ret = GdalPINVOKE.Dataset_CommitTransaction(swigCPtr);
+    if (GdalPINVOKE.SWIGPendingException.Pending) throw GdalPINVOKE.SWIGPendingException.Retrieve();
+    return ret;
+  }
+
+  public int RollbackTransaction() {
+    int ret = GdalPINVOKE.Dataset_RollbackTransaction(swigCPtr);
+    if (GdalPINVOKE.SWIGPendingException.Pending) throw GdalPINVOKE.SWIGPendingException.Retrieve();
+    return ret;
+  }
+
   public CPLErr ReadRaster(int xOff, int yOff, int xSize, int ySize, IntPtr buffer, int buf_xSize, int buf_ySize, DataType buf_type, int bandCount, int[] bandMap, int pixelSpace, int lineSpace, int bandSpace) {
     CPLErr ret = (CPLErr)GdalPINVOKE.Dataset_ReadRaster(swigCPtr, xOff, yOff, xSize, ySize, buffer, buf_xSize, buf_ySize, (int)buf_type, bandCount, bandMap, pixelSpace, lineSpace, bandSpace);
     if (GdalPINVOKE.SWIGPendingException.Pending) throw GdalPINVOKE.SWIGPendingException.Retrieve();

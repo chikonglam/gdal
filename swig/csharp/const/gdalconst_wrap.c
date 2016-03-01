@@ -436,6 +436,86 @@ SWIGEXPORT int SWIGSTDCALL CSharp_GF_Write_get() {
 }
 
 
+SWIGEXPORT int SWIGSTDCALL CSharp_GRIORA_NearestNeighbour_get() {
+  int jresult ;
+  int result;
+  
+  result = (int)(GRIORA_NearestNeighbour);
+  jresult = result; 
+  return jresult;
+}
+
+
+SWIGEXPORT int SWIGSTDCALL CSharp_GRIORA_Bilinear_get() {
+  int jresult ;
+  int result;
+  
+  result = (int)(GRIORA_Bilinear);
+  jresult = result; 
+  return jresult;
+}
+
+
+SWIGEXPORT int SWIGSTDCALL CSharp_GRIORA_Cubic_get() {
+  int jresult ;
+  int result;
+  
+  result = (int)(GRIORA_Cubic);
+  jresult = result; 
+  return jresult;
+}
+
+
+SWIGEXPORT int SWIGSTDCALL CSharp_GRIORA_CubicSpline_get() {
+  int jresult ;
+  int result;
+  
+  result = (int)(GRIORA_CubicSpline);
+  jresult = result; 
+  return jresult;
+}
+
+
+SWIGEXPORT int SWIGSTDCALL CSharp_GRIORA_Lanczos_get() {
+  int jresult ;
+  int result;
+  
+  result = (int)(GRIORA_Lanczos);
+  jresult = result; 
+  return jresult;
+}
+
+
+SWIGEXPORT int SWIGSTDCALL CSharp_GRIORA_Average_get() {
+  int jresult ;
+  int result;
+  
+  result = (int)(GRIORA_Average);
+  jresult = result; 
+  return jresult;
+}
+
+
+SWIGEXPORT int SWIGSTDCALL CSharp_GRIORA_Mode_get() {
+  int jresult ;
+  int result;
+  
+  result = (int)(GRIORA_Mode);
+  jresult = result; 
+  return jresult;
+}
+
+
+SWIGEXPORT int SWIGSTDCALL CSharp_GRIORA_Gauss_get() {
+  int jresult ;
+  int result;
+  
+  result = (int)(GRIORA_Gauss);
+  jresult = result; 
+  return jresult;
+}
+
+
 SWIGEXPORT int SWIGSTDCALL CSharp_GCI_Undefined_get() {
   int jresult ;
   int result;
@@ -916,6 +996,76 @@ SWIGEXPORT int SWIGSTDCALL CSharp_CPLE_UserInterrupt_get() {
 }
 
 
+SWIGEXPORT int SWIGSTDCALL CSharp_OF_ALL_get() {
+  int jresult ;
+  int result;
+  
+  result = (int)(GDAL_OF_ALL);
+  jresult = result; 
+  return jresult;
+}
+
+
+SWIGEXPORT int SWIGSTDCALL CSharp_OF_RASTER_get() {
+  int jresult ;
+  int result;
+  
+  result = (int)(GDAL_OF_RASTER);
+  jresult = result; 
+  return jresult;
+}
+
+
+SWIGEXPORT int SWIGSTDCALL CSharp_OF_VECTOR_get() {
+  int jresult ;
+  int result;
+  
+  result = (int)(GDAL_OF_VECTOR);
+  jresult = result; 
+  return jresult;
+}
+
+
+SWIGEXPORT int SWIGSTDCALL CSharp_OF_READONLY_get() {
+  int jresult ;
+  int result;
+  
+  result = (int)(GDAL_OF_READONLY);
+  jresult = result; 
+  return jresult;
+}
+
+
+SWIGEXPORT int SWIGSTDCALL CSharp_OF_UPDATE_get() {
+  int jresult ;
+  int result;
+  
+  result = (int)(GDAL_OF_UPDATE);
+  jresult = result; 
+  return jresult;
+}
+
+
+SWIGEXPORT int SWIGSTDCALL CSharp_OF_SHARED_get() {
+  int jresult ;
+  int result;
+  
+  result = (int)(GDAL_OF_SHARED);
+  jresult = result; 
+  return jresult;
+}
+
+
+SWIGEXPORT int SWIGSTDCALL CSharp_OF_VERBOSE_ERROR_get() {
+  int jresult ;
+  int result;
+  
+  result = (int)(GDAL_OF_VERBOSE_ERROR);
+  jresult = result; 
+  return jresult;
+}
+
+
 SWIGEXPORT char * SWIGSTDCALL CSharp_GDAL_DMD_LONGNAME_get() {
   char * jresult ;
   char *result = 0 ;
@@ -956,6 +1106,26 @@ SWIGEXPORT char * SWIGSTDCALL CSharp_GDAL_DMD_EXTENSION_get() {
 }
 
 
+SWIGEXPORT char * SWIGSTDCALL CSharp_GDAL_DMD_EXTENSIONS_get() {
+  char * jresult ;
+  char *result = 0 ;
+  
+  result = (char *)("DMD_EXTENSIONS");
+  jresult = SWIG_csharp_string_callback((const char *)result); 
+  return jresult;
+}
+
+
+SWIGEXPORT char * SWIGSTDCALL CSharp_DMD_CONNECTION_PREFIX_get() {
+  char * jresult ;
+  char *result = 0 ;
+  
+  result = (char *)("DMD_CONNECTION_PREFIX");
+  jresult = SWIG_csharp_string_callback((const char *)result); 
+  return jresult;
+}
+
+
 SWIGEXPORT char * SWIGSTDCALL CSharp_GDAL_DMD_CREATIONOPTIONLIST_get() {
   char * jresult ;
   char *result = 0 ;
@@ -976,11 +1146,31 @@ SWIGEXPORT char * SWIGSTDCALL CSharp_GDAL_DMD_CREATIONDATATYPES_get() {
 }
 
 
+SWIGEXPORT char * SWIGSTDCALL CSharp_GDAL_DMD_CREATIONFIELDDATATYPES_get() {
+  char * jresult ;
+  char *result = 0 ;
+  
+  result = (char *)("DMD_CREATIONFIELDDATATYPES");
+  jresult = SWIG_csharp_string_callback((const char *)result); 
+  return jresult;
+}
+
+
 SWIGEXPORT char * SWIGSTDCALL CSharp_GDAL_DMD_SUBDATASETS_get() {
   char * jresult ;
   char *result = 0 ;
   
   result = (char *)("DMD_SUBDATASETS");
+  jresult = SWIG_csharp_string_callback((const char *)result); 
+  return jresult;
+}
+
+
+SWIGEXPORT char * SWIGSTDCALL CSharp_GDAL_DCAP_OPEN_get() {
+  char * jresult ;
+  char *result = 0 ;
+  
+  result = (char *)("DCAP_OPEN");
   jresult = SWIG_csharp_string_callback((const char *)result); 
   return jresult;
 }
@@ -1011,6 +1201,56 @@ SWIGEXPORT char * SWIGSTDCALL CSharp_GDAL_DCAP_VIRTUALIO_get() {
   char *result = 0 ;
   
   result = (char *)("DCAP_VIRTUALIO");
+  jresult = SWIG_csharp_string_callback((const char *)result); 
+  return jresult;
+}
+
+
+SWIGEXPORT char * SWIGSTDCALL CSharp_DCAP_RASTER_get() {
+  char * jresult ;
+  char *result = 0 ;
+  
+  result = (char *)("GDAL_DCAP_RASTER");
+  jresult = SWIG_csharp_string_callback((const char *)result); 
+  return jresult;
+}
+
+
+SWIGEXPORT char * SWIGSTDCALL CSharp_DCAP_VECTOR_get() {
+  char * jresult ;
+  char *result = 0 ;
+  
+  result = (char *)("GDAL_DCAP_VECTOR");
+  jresult = SWIG_csharp_string_callback((const char *)result); 
+  return jresult;
+}
+
+
+SWIGEXPORT char * SWIGSTDCALL CSharp_DCAP_NOTNULL_FIELDS_get() {
+  char * jresult ;
+  char *result = 0 ;
+  
+  result = (char *)("GDAL_DCAP_NOTNULL_FIELDS");
+  jresult = SWIG_csharp_string_callback((const char *)result); 
+  return jresult;
+}
+
+
+SWIGEXPORT char * SWIGSTDCALL CSharp_DCAP_DEFAULT_FIELDS_get() {
+  char * jresult ;
+  char *result = 0 ;
+  
+  result = (char *)("GDAL_DCAP_DEFAULT_FIELDS");
+  jresult = SWIG_csharp_string_callback((const char *)result); 
+  return jresult;
+}
+
+
+SWIGEXPORT char * SWIGSTDCALL CSharp_DCAP_NOTNULL_GEOMFIELDS_get() {
+  char * jresult ;
+  char *result = 0 ;
+  
+  result = (char *)("GDAL_DCAP_NOTNULL_GEOMFIELDS");
   jresult = SWIG_csharp_string_callback((const char *)result); 
   return jresult;
 }

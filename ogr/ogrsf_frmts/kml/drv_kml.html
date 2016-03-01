@@ -31,10 +31,10 @@ are able to be represented in the Simple Features geometry model, you will not b
 many KML-specific attributes from within GDAL/OGR. Please try
 a few test files to get a sense of what is possible.</p>
 
-<p>When outputting KML, the OGR KML driver will translate each OGR Layer into a KML Folder.
+<p>When outputting KML, the OGR KML driver will translate each OGR Layer into a KML Folder
 (you may encounter unexpected behavior
 if you try to mix the geometry types of elements in a layer, e.g. <code>LINESTRING</code> and
-<code>POINT</code> data. </p>
+<code>POINT</code> data).</p>
 
 <p>The KML Driver will rename some layers, or source KML folder names, into new names
 it considers valid, for example '<code>Layer #0</code>', the default name of the first unnamed
@@ -71,7 +71,7 @@ for example and change accordingly the <i>encoding</i> parameter value in the XM
 When writing a KML file, the driver expects UTF-8 content to be passed in.<p>
 
 <h3>Creation Options</h3>
-<p>The following creation options are supported:
+<p>The following dataset creation options are supported:
 <ul>
 <li><b>NameField</b>: Allows you to specify the field to use for the KML &lt;name&gt; element. Default value : 'Name'</li>
 <pre>ogr2ogr -f KML output.kml input.shp -dsco NameField=RegionName</pre>
@@ -121,8 +121,8 @@ Here is the whole discussion about this issue on the <a href="http://groups.goog
 
 <h2>See Also</h2>
 <ul>
-<li> <a href="http://earth.google.com/kml/kml_intro.html">KML Specification</a></li>
-<li> <a href="http://www.keyhole.com/kml/kml_tut.html">KML Tutorial</a></li>
+<li> <a href="https://developers.google.com/kml/?csw=1">KML Specification</a></li>
+<li> <a href="https://developers.google.com/kml/documentation/kml_tut">KML Tutorial</a></li>
 </ul>
 
 </body>

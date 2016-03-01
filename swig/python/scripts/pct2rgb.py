@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #******************************************************************************
-#  $Id: pct2rgb.py 27490 2014-07-02 17:43:54Z rouault $
+#  $Id: pct2rgb.py 28389 2015-01-30 19:26:09Z rouault $
 # 
 #  Name:     pct2rgb
 #  Project:  GDAL Python Interface
@@ -48,7 +48,6 @@ except ImportError:
 
 
 import sys
-import os.path
 
 def Usage():
     print('Usage: pct2rgb.py [-of format] [-b <band>] [-rgba] source_file dest_file')

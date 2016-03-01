@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdalgrid_priv.h 29315 2015-06-05 20:21:41Z rouault $
+ * $Id: gdalgrid_priv.h 29314 2015-06-05 20:21:11Z rouault $
  *
  * Project:  GDAL Gridding API.
  * Purpose:  Prototypes, and definitions for of GDAL scattered data gridder.
@@ -50,6 +50,21 @@ typedef struct
     const float *pafY;
     const float *pafZ;
 } GDALGridExtraParameters;
+
+#ifdef HAVE_SSE_AT_COMPILE_TIME
+int CPLHaveRuntimeSSE();
+
+CPLErr
+GDALGridInverseDistanceToAPower2NoSmoothingNoSearchSSE(
+                                        const void *poOptions,
+                                        GUInt32 nPoints,
+                                        const double *unused_padfX,
+                                        const double *unused_padfY,
+                                        const double *unused_padfZ,
+                                        double dfXPoint, double dfYPoint,
+                                        double *pdfValue,
+                                        void* hExtraParamsIn );
+#endif
 
 #ifdef HAVE_AVX_AT_COMPILE_TIME
 int CPLHaveRuntimeAVX();

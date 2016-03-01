@@ -536,7 +536,7 @@ class OsrPINVOKE {
   public static extern int SpatialReference_ImportFromMICoordSys(HandleRef jarg1, string jarg2);
 
   [DllImport("osr_wrap", EntryPoint="CSharp_SpatialReference_ImportFromOzi")]
-  public static extern int SpatialReference_ImportFromOzi(HandleRef jarg1, string jarg2, string jarg3, string jarg4);
+  public static extern int SpatialReference_ImportFromOzi(HandleRef jarg1, IntPtr[] jarg2);
 
   [DllImport("osr_wrap", EntryPoint="CSharp_SpatialReference_ExportToWkt")]
   public static extern int SpatialReference_ExportToWkt(HandleRef jarg1, out string jarg2);

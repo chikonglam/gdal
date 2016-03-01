@@ -314,7 +314,7 @@ class GdalPINVOKE {
   public static extern IntPtr VSIFOpenL(byte[] jarg1, string jarg2);
 
   [DllImport("gdal_wrap", EntryPoint="CSharp_VSIFCloseL")]
-  public static extern void VSIFCloseL(IntPtr jarg1);
+  public static extern int VSIFCloseL(IntPtr jarg1);
 
   [DllImport("gdal_wrap", EntryPoint="CSharp_VSIFSeekL")]
   public static extern int VSIFSeekL(IntPtr jarg1, int jarg2, int jarg3);
@@ -673,6 +673,15 @@ class GdalPINVOKE {
   [DllImport("gdal_wrap", EntryPoint="CSharp_Dataset_GetFileList")]
   public static extern IntPtr Dataset_GetFileList(HandleRef jarg1);
 
+  [DllImport("gdal_wrap", EntryPoint="CSharp_Dataset_StartTransaction")]
+  public static extern int Dataset_StartTransaction(HandleRef jarg1, int jarg2);
+
+  [DllImport("gdal_wrap", EntryPoint="CSharp_Dataset_CommitTransaction")]
+  public static extern int Dataset_CommitTransaction(HandleRef jarg1);
+
+  [DllImport("gdal_wrap", EntryPoint="CSharp_Dataset_RollbackTransaction")]
+  public static extern int Dataset_RollbackTransaction(HandleRef jarg1);
+
   [DllImport("gdal_wrap", EntryPoint="CSharp_Dataset_ReadRaster")]
   public static extern int Dataset_ReadRaster(HandleRef jarg1, int jarg2, int jarg3, int jarg4, int jarg5, IntPtr jarg6, int jarg7, int jarg8, int jarg9, int jarg10, int[] jarg11, int jarg12, int jarg13, int jarg14);
 
@@ -705,6 +714,9 @@ class GdalPINVOKE {
 
   [DllImport("gdal_wrap", EntryPoint="CSharp_Band_DataType_get")]
   public static extern int Band_DataType_get(HandleRef jarg1);
+
+  [DllImport("gdal_wrap", EntryPoint="CSharp_Band_GetDataset")]
+  public static extern IntPtr Band_GetDataset(HandleRef jarg1);
 
   [DllImport("gdal_wrap", EntryPoint="CSharp_Band_GetBand")]
   public static extern int Band_GetBand(HandleRef jarg1);
@@ -931,6 +943,9 @@ class GdalPINVOKE {
   [DllImport("gdal_wrap", EntryPoint="CSharp_RasterAttributeTable_ChangesAreWrittenToFile")]
   public static extern int RasterAttributeTable_ChangesAreWrittenToFile(HandleRef jarg1);
 
+  [DllImport("gdal_wrap", EntryPoint="CSharp_RasterAttributeTable_DumpReadable")]
+  public static extern void RasterAttributeTable_DumpReadable(HandleRef jarg1);
+
   [DllImport("gdal_wrap", EntryPoint="CSharp_ComputeMedianCutPCT")]
   public static extern int ComputeMedianCutPCT(HandleRef jarg1, HandleRef jarg2, HandleRef jarg3, int jarg4, HandleRef jarg5, Gdal.GDALProgressFuncDelegate jarg6, string jarg7);
 
@@ -1042,6 +1057,9 @@ class GdalPINVOKE {
   [DllImport("gdal_wrap", EntryPoint="CSharp_SerializeXMLTree")]
   public static extern string SerializeXMLTree(HandleRef jarg1);
 
+  [DllImport("gdal_wrap", EntryPoint="CSharp_GetJPEG2000StructureAsString")]
+  public static extern string GetJPEG2000StructureAsString(string jarg1, IntPtr[] jarg2);
+
   [DllImport("gdal_wrap", EntryPoint="CSharp_GetDriverCount")]
   public static extern int GetDriverCount();
 
@@ -1053,6 +1071,9 @@ class GdalPINVOKE {
 
   [DllImport("gdal_wrap", EntryPoint="CSharp_Open")]
   public static extern IntPtr Open(byte[] jarg1, int jarg2);
+
+  [DllImport("gdal_wrap", EntryPoint="CSharp_OpenEx")]
+  public static extern IntPtr OpenEx(byte[] jarg1, uint jarg2, IntPtr[] jarg3, IntPtr[] jarg4, IntPtr[] jarg5);
 
   [DllImport("gdal_wrap", EntryPoint="CSharp_OpenShared")]
   public static extern IntPtr OpenShared(byte[] jarg1, int jarg2);

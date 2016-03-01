@@ -1,7 +1,6 @@
-
-OBJ	=	pdfdataset.o pdfio.o pdfobject.o pdfcreatecopy.o
-
 include ../../GDALmake.opt
+
+OBJ	=	pdfdataset.o pdfio.o pdfobject.o pdfcreatecopy.o ogrpdflayer.o pdfwritabledataset.o pdfreadvectors.o
 
 ifeq ($(HAVE_POPPLER),yes)
 CPPFLAGS +=  -DHAVE_POPPLER
@@ -27,9 +26,9 @@ ifeq ($(HAVE_PODOFO),yes)
 CPPFLAGS +=  -DHAVE_PODOFO
 endif
 
-$(O_OBJ):       pdfobject.h pdfio.h pdfcreatecopy.h
+$(O_OBJ):       pdfobject.h pdfio.h pdfcreatecopy.h gdal_pdf.h
 
-CPPFLAGS	:=	$(GDAL_INCLUDE) $(CPPFLAGS) -I../vrt $(POPPLER_INC) $(PODOFO_INC)
+CPPFLAGS	:=	 $(CPPFLAGS) -I../vrt -I../mem -I../../ogr/ogrsf_frmts/mem $(POPPLER_INC) $(PODOFO_INC)
 
 default:	$(OBJ:.o=.$(OBJ_EXT))
 

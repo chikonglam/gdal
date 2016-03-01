@@ -132,7 +132,7 @@ public class Layer : IDisposable {
     return ret;
   }
 
-  public Feature GetFeature(int fid) {
+  public Feature GetFeature(long fid) {
     IntPtr cPtr = OgrPINVOKE.Layer_GetFeature(swigCPtr, fid);
     Feature ret = (cPtr == IntPtr.Zero) ? null : new Feature(cPtr, true, ThisOwn_true());
     if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
@@ -146,7 +146,7 @@ public class Layer : IDisposable {
     return ret;
   }
 
-  public int SetNextByIndex(int new_index) {
+  public int SetNextByIndex(long new_index) {
     int ret = OgrPINVOKE.Layer_SetNextByIndex(swigCPtr, new_index);
     if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
     return ret;
@@ -164,7 +164,7 @@ public class Layer : IDisposable {
     return ret;
   }
 
-  public int DeleteFeature(int fid) {
+  public int DeleteFeature(long fid) {
     int ret = OgrPINVOKE.Layer_DeleteFeature(swigCPtr, fid);
     if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
     return ret;
@@ -183,11 +183,11 @@ public class Layer : IDisposable {
     return ret;
   }
 
-  public int GetFeatureCount(int force) {
-    int ret = OgrPINVOKE.Layer_GetFeatureCount(swigCPtr, force);
+  public long GetFeatureCount(int force) {
+    long res = OgrPINVOKE.Layer_GetFeatureCount(swigCPtr, force);
     if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
-    return ret;
-  }
+    return res;
+}
 
   public int GetExtent(Envelope extent, int force) {
     int ret = OgrPINVOKE.Layer_GetExtent(swigCPtr, Envelope.getCPtr(extent), force);

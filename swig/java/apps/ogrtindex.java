@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrtindex.java 23738 2012-01-09 19:40:54Z rouault $
+ * $Id: ogrtindex.java 28375 2015-01-30 12:06:11Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Program to generate a UMN MapServer compatible tile index for a
@@ -250,7 +250,7 @@ public class ogrtindex {
       String[] existingLayersTab = null;
       SpatialReference alreadyExistingSpatialRef = null;
       boolean alreadyExistingSpatialRefValid = false;
-      nExistingLayers = poDstLayer.GetFeatureCount();
+      nExistingLayers = (int)poDstLayer.GetFeatureCount();
       if (nExistingLayers > 0)
       {
          existingLayersTab = new String[nExistingLayers];

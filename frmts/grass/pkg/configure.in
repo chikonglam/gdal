@@ -1,5 +1,5 @@
 dnl ***************************************************************************
-dnl $Id: configure.in 28712 2015-03-10 11:38:03Z martinl $
+dnl $Id: configure.in 28598 2015-03-03 07:34:28Z martinl $
 dnl
 dnl Project:  GDAL GRASS Plugin
 dnl Purpose:  Configure source file.

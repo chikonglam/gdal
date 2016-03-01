@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #/******************************************************************************
-# * $Id: ogrinfo.py 27044 2014-03-16 23:41:27Z rouault $
+# * $Id: ogrinfo.py 28395 2015-01-31 10:21:04Z rouault $
 # *
 # * Project:  OpenGIS Simple Features Reference Implementation
 # * Purpose:  Python port of a simple client for viewing OGR driver data.
@@ -200,7 +200,7 @@ def main(argv = None):
 
     poDS_Name = poDS.GetName()
     if str(type(pszDataSource)) == "<type 'unicode'>" and str(type(poDS_Name)) == "<type 'str'>":
-        poDS_Name = unicode(poDS_Name, "utf8")
+        poDS_Name = poDS_Name.decode("utf8")
     if bVerbose and pszDataSource != poDS_Name:
         print( "INFO: Internal data source name `%s'\n"
                 "      different from user name `%s'." % (poDS_Name, pszDataSource ))
@@ -436,7 +436,11 @@ def DumpReadableFeature( poFeature, options = None ):
                     ogr.GetFieldTypeName(poFDefn.GetType()) )
 
             if poFeature.IsFieldSet( iField ):
-                line = line + "%s" % (poFeature.GetFieldAsString( iField ) )
+                try:
+                    line = line + "%s" % (poFeature.GetFieldAsString( iField ) )
+                except:
+                    # For Python3 on non-UTF8 strings
+                    line = line + "%s" % (poFeature.GetFieldAsBinary( iField ) )
             else:
                 line = line + "(null)"
 
@@ -446,7 +450,7 @@ def DumpReadableFeature( poFeature, options = None ):
     if poFeature.GetStyleString() is not None:
 
         if 'DISPLAY_STYLE' not in options or EQUAL(options['DISPLAY_STYLE'], 'yes'):
-            print("  Style = %s" % GetStyleString() )
+            print("  Style = %s" % poFeature.GetStyleString() )
 
     nGeomFieldCount = poFeature.GetGeomFieldCount()
     if nGeomFieldCount > 0:

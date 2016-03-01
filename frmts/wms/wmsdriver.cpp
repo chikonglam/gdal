@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: wmsdriver.cpp 31395 2015-11-08 12:39:13Z rouault $
+ * $Id: wmsdriver.cpp 31240 2015-10-29 03:32:45Z rouault $
  *
  * Project:  WMS Client Driver
  * Purpose:  Implementation of Dataset and RasterBand classes for WMS
@@ -38,6 +38,7 @@
 #include "minidriver_tms.h"
 #include "minidriver_tiled_wms.h"
 #include "minidriver_virtualearth.h"
+#include "minidriver_arcgis_server.h"
 
 /************************************************************************/
 /*              GDALWMSDatasetGetConfigFromURL()                        */
@@ -209,8 +210,7 @@ CPLXMLNode * GDALWMSDatasetGetConfigFromURL(GDALOpenInfo *poOpenInfo)
     }
 
     char* pszEscapedURL = CPLEscapeString(osBaseURL.c_str(), -1, CPLES_XML);
-    char* pszEscapedLayerURL = CPLEscapeString(osLayer.c_str(), -1, CPLES_URL);
-    char* pszEscapedLayerXML = CPLEscapeString(pszEscapedLayerURL, -1, CPLES_XML);
+    char* pszEscapedLayerXML = CPLEscapeString(osLayer.c_str(), -1, CPLES_XML);
 
     CPLString osXML = CPLSPrintf(
             "<GDAL_WMS>\n"
@@ -252,7 +252,6 @@ CPLXMLNode * GDALWMSDatasetGetConfigFromURL(GDALOpenInfo *poOpenInfo)
             nOverviewCount);
 
     CPLFree(pszEscapedURL);
-    CPLFree(pszEscapedLayerURL);
     CPLFree(pszEscapedLayerXML);
 
     CSLDestroy(papszTokens);
@@ -683,6 +682,11 @@ int GDALWMSDataset::Identify(GDALOpenInfo *poOpenInfo)
     {
         return TRUE;
     }
+    else if (poOpenInfo->nHeaderBytes == 0 &&
+              EQUALN(pszFilename, "AGS:", 4))
+    {
+        return TRUE;
+    }
     else
         return FALSE;
 }
@@ -810,6 +814,11 @@ GDALDataset *GDALWMSDataset::Open(GDALOpenInfo *poOpenInfo)
         CPLDestroyXMLNode( psXML );
         return poRet;
     }
+    else if (poOpenInfo->nHeaderBytes == 0 &&
+              EQUALN(pszFilename, "AGS:", 4))
+    {
+		return NULL;
+    }
     else
         return NULL;
     if (config == NULL) return NULL;
@@ -821,7 +830,7 @@ GDALDataset *GDALWMSDataset::Open(GDALOpenInfo *poOpenInfo)
     {
         CPLDestroyXMLNode(config);
         CPLError( CE_Failure, CPLE_NotSupported, 
-                  "The WMS driver does not support update access to existing"
+                  "The WMS poDriver does not support update access to existing"
                   " datasets.\n" );
         return NULL;
     }
@@ -852,7 +861,8 @@ GDALDataset *GDALWMSDataset::Open(GDALOpenInfo *poOpenInfo)
 
 GDALDataset *GDALWMSDataset::CreateCopy( const char * pszFilename,
                                          GDALDataset *poSrcDS,
-                                         CPL_UNUSED int bStrict, CPL_UNUSED char ** papszOptions,
+                                         CPL_UNUSED int bStrict,
+                                         CPL_UNUSED char ** papszOptions,
                                          CPL_UNUSED GDALProgressFunc pfnProgress,
                                          CPL_UNUSED void * pProgressData )
 {
@@ -898,22 +908,23 @@ static void GDALDeregister_WMS( GDALDriver * )
 /************************************************************************/
 
 void GDALRegister_WMS() {
-    GDALDriver *driver;
+    GDALDriver *poDriver;
     if (GDALGetDriverByName("WMS") == NULL) {
-        driver = new GDALDriver();
+        poDriver = new GDALDriver();
 
-        driver->SetDescription("WMS");
-        driver->SetMetadataItem(GDAL_DMD_LONGNAME, "OGC Web Map Service");
-        driver->SetMetadataItem(GDAL_DMD_HELPTOPIC, "frmt_wms.html");
-        driver->SetMetadataItem( GDAL_DCAP_VIRTUALIO, "YES" );
-        driver->SetMetadataItem( GDAL_DMD_SUBDATASETS, "YES" );
+        poDriver->SetDescription("WMS");
+        poDriver->SetMetadataItem( GDAL_DCAP_RASTER, "YES" );
+        poDriver->SetMetadataItem(GDAL_DMD_LONGNAME, "OGC Web Map Service");
+        poDriver->SetMetadataItem(GDAL_DMD_HELPTOPIC, "frmt_wms.html");
+        poDriver->SetMetadataItem( GDAL_DCAP_VIRTUALIO, "YES" );
+        poDriver->SetMetadataItem( GDAL_DMD_SUBDATASETS, "YES" );
 
-        driver->pfnOpen = GDALWMSDataset::Open;
-        driver->pfnIdentify = GDALWMSDataset::Identify;
-        driver->pfnUnloadDriver = GDALDeregister_WMS;
-        driver->pfnCreateCopy = GDALWMSDataset::CreateCopy;
+        poDriver->pfnOpen = GDALWMSDataset::Open;
+        poDriver->pfnIdentify = GDALWMSDataset::Identify;
+        poDriver->pfnUnloadDriver = GDALDeregister_WMS;
+        poDriver->pfnCreateCopy = GDALWMSDataset::CreateCopy;
 
-        GetGDALDriverManager()->RegisterDriver(driver);
+        GetGDALDriverManager()->RegisterDriver(poDriver);
 
         GDALWMSMiniDriverManager *const mdm = GetGDALWMSMiniDriverManager();
         mdm->Register(new GDALWMSMiniDriverFactory_WMS());
@@ -922,5 +933,6 @@ void GDALRegister_WMS() {
         mdm->Register(new GDALWMSMiniDriverFactory_TMS());
         mdm->Register(new GDALWMSMiniDriverFactory_TiledWMS());
         mdm->Register(new GDALWMSMiniDriverFactory_VirtualEarth());
+        mdm->Register(new GDALWMSMiniDriverFactory_AGS());
     }
 }

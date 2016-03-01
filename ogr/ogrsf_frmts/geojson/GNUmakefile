@@ -19,7 +19,7 @@ OBJ = \
 	ogresrijsonreader.o \
 	ogrtopojsonreader.o
 
-CPPFLAGS	:= $(JSON_INCLUDE) -I. -I.. -I../.. $(GDAL_INCLUDE) $(CPPFLAGS)
+CPPFLAGS	:= $(JSON_INCLUDE) -I. -I.. -I../..  $(CPPFLAGS)
 
 default:        $(foreach d,$(SUBDIRS-yes),$(d)-target) $(O_OBJ:.o=.$(OBJ_EXT))
 
@@ -27,4 +27,4 @@ clean: $(foreach d,$(SUBDIRS-yes),$(d)-clean)
 	rm -f *.o $(O_OBJ)
 	rm -f *~
 
-$(O_OBJ):       ogr_geojson.h
+$(O_OBJ):       ogr_geojson.h ogrgeojsonreader.h

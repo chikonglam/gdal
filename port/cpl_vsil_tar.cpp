@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: cpl_vsil_tar.cpp 28589 2015-03-01 20:52:45Z rouault $
+ * $Id: cpl_vsil_tar.cpp 28588 2015-03-01 20:44:43Z rouault $
  *
  * Project:  CPL - Common Portability Library
  * Purpose:  Implement VSI large file api for tar files (.tar).
@@ -29,7 +29,7 @@
 
 #include "cpl_vsi_virtual.h"
 
-CPL_CVSID("$Id: cpl_vsil_tar.cpp 28589 2015-03-01 20:52:45Z rouault $");
+CPL_CVSID("$Id: cpl_vsil_tar.cpp 28588 2015-03-01 20:44:43Z rouault $");
 
 
 /************************************************************************/

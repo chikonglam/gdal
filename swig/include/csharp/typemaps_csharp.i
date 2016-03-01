@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: typemaps_csharp.i 26526 2013-10-11 11:49:24Z tamas $
+ * $Id: typemaps_csharp.i 29225 2015-05-21 16:28:00Z rouault $
  *
  * Name:     typemaps_csharp.i
  * Project:  GDAL CSharp Interface
@@ -32,6 +32,8 @@
 %include "typemaps.i"
 
 /* CSHARP TYPEMAPS */
+
+%apply (int) {VSI_RETVAL};
 
 %fragment("OGRErrMessages","header") %{
 static char const *
@@ -127,7 +129,9 @@ OPTIONAL_POD(int, int);
 %typemap(ctype, out="GIntBig") GIntBig  %{GIntBig%}
 %typemap(imtype, out="long") GIntBig "long"
 %typemap(cstype) GIntBig %{long%}
+%typemap(in) GIntBig %{ $1 = $input; %}
 %typemap(out) GIntBig %{ $result = $1; %}
+%typemap(csin) GIntBig "$csinput"
 %typemap(csout, excode=SWIGEXCODE) GIntBig {
     long res = $imcall;$excode
     return res;

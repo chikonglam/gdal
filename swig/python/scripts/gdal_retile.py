@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 ###############################################################################
-#  $Id: gdal_retile.py 27044 2014-03-16 23:41:27Z rouault $
+#  $Id: gdal_retile.py 28389 2015-01-30 19:26:09Z rouault $
 #
 # Purpose:  Module for retiling (merging) tiles and building tiled pyramids
 # Author:   Christian Meuller, christian.mueller@nvoe.at
@@ -34,19 +34,22 @@ try:
     from osgeo import gdal
     from osgeo import ogr
     from osgeo import osr
-    from osgeo.gdalconst import *
 except:
     import gdal
     import ogr
     import osr
-    from gdalconst import *
 
 import sys
 import os
 import math
 
+try:
+    progress = gdal.TermProgress_nocb
+except:
+    progress = gdal.TermProgress
+
 class AffineTransformDecorator:
-    """ A class providing some usefull methods for affine Transformations """
+    """ A class providing some useful methods for affine Transformations """
     def __init__(self, transform ):
         self.geotransform=transform
         self.scaleX=self.geotransform[1]
@@ -85,7 +88,7 @@ class DataSetCache:
             return self.dict[name]
         result = gdal.Open(name)
         if result is None:
-            print("Error openenig:%s" % NameError)
+            print("Error opening: %s" % NameError)
             sys.exit(1)
         if len(self.queue)==self.cacheSize:
             toRemove = self.queue.pop(0)
@@ -206,7 +209,7 @@ class mosaic_info:
         if envelope is None:
             return None
 
-        #enlarge to query rect if necessairy
+        #enlarge to query rect if necessary
         envelope= ( min(minx,envelope[0]),max(maxx,envelope[1]),
                     min(miny,envelope[2]),max(maxy,envelope[3]))
 
@@ -227,35 +230,53 @@ class mosaic_info:
             featureName =  feature.GetField(0)
             sourceDS=self.cache.get(featureName)
             dec = AffineTransformDecorator(sourceDS.GetGeoTransform())
-            #calculate read and write offsets
-            readOffsetX =int(round((minx-dec.ulx) / self.scaleX))
-            readOffsetY =int(round((maxy-dec.uly) / self.scaleY))
-            writeOffsetX=0
-            if readOffsetX<0:
-                writeOffsetX=readOffsetX*-1;
-                readOffsetX=0
-            writeOffsetY=0
-            if readOffsetY<0:
-                writeOffsetY=readOffsetY*-1;
-                readOffsetY=0
-            #calculate read and write dimensions
-            readX=min(resultSizeX,sourceDS.RasterXSize-readOffsetX,resultSizeX-writeOffsetX)
-            if readX<=0:
-                continue
-            readY=min(resultSizeY,sourceDS.RasterYSize-readOffsetY,resultSizeY-writeOffsetY)
-            if readY<=0:
+
+            dec.lrx = dec.ulx + sourceDS.RasterXSize * dec.scaleX
+            dec.lry = dec.uly + sourceDS.RasterYSize * dec.scaleY
+
+            # Find the intersection region
+            tgw_ulx = max(dec.ulx, minx)
+            tgw_lrx = min(dec.lrx, maxx)
+            if self.scaleY < 0:
+                tgw_uly = min(dec.uly, maxy)
+                tgw_lry = max(dec.lry, miny)
+            else:
+                tgw_uly = max(dec.uly, maxy)
+                tgw_lry = min(dec.lry, miny)
+
+            # Compute source window in pixel coordinates.
+            sw_xoff = int((tgw_ulx - dec.ulx) / dec.scaleX)
+            sw_yoff = int((tgw_uly - dec.uly) / dec.scaleY)
+            sw_xsize = int((tgw_lrx - dec.ulx) / dec.scaleX + 0.5) - sw_xoff
+            sw_ysize = int((tgw_lry - dec.uly) / dec.scaleY + 0.5) - sw_yoff
+            if sw_xsize <= 0 or sw_ysize <= 0:
                 continue
 
-#            print "READ",readOffsetX,readOffsetY,readX,readY
+            # Compute target window in pixel coordinates
+            tw_xoff = int((tgw_ulx - minx) / self.scaleX)
+            tw_yoff = int((tgw_uly - maxy) / self.scaleY)
+            tw_xsize = int((tgw_lrx - minx) / self.scaleX + 0.5) - tw_xoff
+            tw_ysize = int((tgw_lry - maxy) / self.scaleY + 0.5) - tw_yoff
+            if tw_xsize <= 0 or tw_ysize <= 0:
+                continue
 
-            for bandNr in range(1,self.bands+1):
+            assert tw_xoff >= 0
+            assert tw_yoff >= 0
+            assert sw_xoff >= 0
+            assert sw_yoff >= 0
+            
+            for bandNr in range(1, self.bands + 1):
                 s_band = sourceDS.GetRasterBand( bandNr )
                 t_band = resultDS.GetRasterBand( bandNr )
                 if self.ct is not None:
                     t_band.SetRasterColorTable(self.ct)
                 t_band.SetRasterColorInterpretation(self.ci[bandNr-1])
-                data = s_band.ReadRaster( readOffsetX,readOffsetY,readX,readY, readX,readY, self.band_type )
-                t_band.WriteRaster(writeOffsetX,writeOffsetY,readX,readY,data )
+                
+                data = s_band.ReadRaster( sw_xoff, sw_yoff, sw_xsize, sw_ysize, tw_xsize, tw_ysize, self.band_type )
+                if data is None:                    
+                    print(gdal.GetLastErrorMsg())
+
+                t_band.WriteRaster(tw_xoff, tw_yoff, tw_xsize, tw_ysize, data )
 
         return resultDS
 
@@ -330,6 +351,11 @@ def tileImage(minfo, ti ):
     yRange = list(range(1,ti.countTilesY+1))
     xRange = list(range(1,ti.countTilesX+1))
 
+    if not Quiet and not Verbose:
+        progress(0.0)
+        processed = 0
+        total = len(xRange) * len(yRange)
+
     for yIndex in yRange:
         for xIndex in xRange:
             offsetY=(yIndex-1)* ti.tileHeight
@@ -349,6 +375,9 @@ def tileImage(minfo, ti ):
                 tilename=getTileName(minfo,ti, xIndex, yIndex)
             createTile(minfo, offsetX, offsetY, width, height,tilename,OGRDS)
 
+            if not Quiet and not Verbose:
+                processed += 1
+                progress(processed / float(total))
 
     if TileIndexName is not None:
         if UseDirForEachRow and PyramidOnly == False:
@@ -466,6 +495,7 @@ def createPyramidTile(levelMosaicInfo, offsetX, offsetY, width, height,tileName,
 
     if MemDriver is not None:
         tt_fh = Driver.CreateCopy( tileName, t_fh, 0, CreateOptions )
+        tt_fh.FlushCache()
 
     if Verbose:
         print(tileName + " : " + str(offsetX)+"|"+str(offsetY)+"-->"+str(width)+"-"+str(height))
@@ -538,6 +568,7 @@ def createTile( minfo, offsetX,offsetY,width,height, tilename,OGRDS):
 
     if MemDriver is not None:
         tt_fh = Driver.CreateCopy( tilename, t_fh, 0, CreateOptions )
+        tt_fh.FlushCache()
 
     if Verbose:
         print(tilename + " : " + str(offsetX)+"|"+str(offsetY)+"-->"+str(width)+"-"+str(height))
@@ -690,7 +721,7 @@ def UsageFormat():
 # =============================================================================
 def Usage():
      print('Usage: gdal_retile.py ')
-     print('        [-v] [-co NAME=VALUE]* [-of out_format]')
+     print('        [-v] [-q] [-co NAME=VALUE]* [-of out_format]')
      print('        [-ps pixelWidth pixelHeight]')
      print('        [-ot  {Byte/Int16/UInt16/UInt32/Int32/Float32/Float64/')
      print('               CInt16/CInt32/CFloat32/CFloat64}]')
@@ -712,6 +743,7 @@ def Usage():
 def main(args = None):
 
     global Verbose
+    global Quiet
     global CreateOptions
     global Names
     global TileWidth
@@ -763,6 +795,8 @@ def main(args = None):
 
         elif arg == '-v':
             Verbose = True
+        elif arg == '-q':
+            Quiet = True
 
         elif arg == '-targetDir':
             i+=1
@@ -784,15 +818,15 @@ def main(args = None):
             i+=1
             ResamplingMethodString=argv[i]
             if ResamplingMethodString=="near":
-                ResamplingMethod=GRA_NearestNeighbour
+                ResamplingMethod=gdal.GRA_NearestNeighbour
             elif ResamplingMethodString=="bilinear":
-                 ResamplingMethod=GRA_Bilinear
+                 ResamplingMethod=gdal.GRA_Bilinear
             elif ResamplingMethodString=="cubic":
-                 ResamplingMethod=GRA_Cubic
+                 ResamplingMethod=gdal.GRA_Cubic
             elif ResamplingMethodString=="cubicspline":
-                 ResamplingMethod=GRA_CubicSpline
+                 ResamplingMethod=gdal.GRA_CubicSpline
             elif ResamplingMethodString=="lanczos":
-                ResamplingMethod=GRA_Lanczos
+                ResamplingMethod=gdal.GRA_Lanczos
             else:
                 print("Unknown resampling method: %s" % ResamplingMethodString)
                 return 1
@@ -885,7 +919,7 @@ def main(args = None):
 
 
     DriverMD = Driver.GetMetadata()
-    Extension=DriverMD.get(DMD_EXTENSION);
+    Extension=DriverMD.get(gdal.DMD_EXTENSION);
     if 'DCAP_CREATE' not in DriverMD:
         MemDriver=gdal.GetDriverByName("MEM")
 
@@ -965,7 +999,7 @@ def initGlobals():
 
     Source_SRS=None
     TargetDir=None
-    ResamplingMethod=GRA_NearestNeighbour
+    ResamplingMethod=gdal.GRA_NearestNeighbour
     Levels=0
     PyramidOnly=False
     LastRowIndx=-1
@@ -975,6 +1009,7 @@ def initGlobals():
 
 #global vars
 Verbose=False
+Quiet=False
 CreateOptions = []
 Names=[]
 TileWidth=256
@@ -991,7 +1026,7 @@ CsvDelimiter=";"
 CsvFileName=None
 Source_SRS=None
 TargetDir=None
-ResamplingMethod=GRA_NearestNeighbour
+ResamplingMethod=gdal.GRA_NearestNeighbour
 Levels=0
 PyramidOnly=False
 LastRowIndx=-1

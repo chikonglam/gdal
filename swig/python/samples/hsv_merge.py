@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #******************************************************************************
-#  $Id: hsv_merge.py 27044 2014-03-16 23:41:27Z rouault $
+#  $Id: hsv_merge.py 28391 2015-01-30 19:57:31Z rouault $
 # 
 #  Project:  GDAL Python Interface
 #  Purpose:  Script to merge greyscale as intensity into an RGB(A) image, for
@@ -31,8 +31,7 @@
 #  DEALINGS IN THE SOFTWARE.
 #******************************************************************************
 
-from osgeo import gdal, gdal_array
-from osgeo.gdalconst import *
+from osgeo import gdal
 import numpy
 import sys
 
@@ -158,10 +157,10 @@ while i < len(argv):
 if dst_color_filename is None:
     Usage()
 
-datatype = GDT_Byte
+datatype = gdal.GDT_Byte
 
-hilldataset = gdal.Open( src_greyscale_filename, GA_ReadOnly )
-colordataset = gdal.Open( src_color_filename, GA_ReadOnly )
+hilldataset = gdal.Open( src_greyscale_filename, gdal.GA_ReadOnly )
+colordataset = gdal.Open( src_color_filename, gdal.GA_ReadOnly )
 
 #check for 3 or 4 bands in the color file
 if (colordataset.RasterCount != 3 and colordataset.RasterCount != 4):

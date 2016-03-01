@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: grddataset.cpp 28503 2015-02-16 16:56:48Z rouault $
+ * $Id: grddataset.cpp 28502 2015-02-16 16:55:20Z rouault $
  *
  * Project:  GRD Reader
  * Purpose:  GDAL driver for Northwood Grid Format
@@ -166,7 +166,9 @@ GDALColorInterp NWT_GRDRasterBand::GetColorInterpretation()
 /************************************************************************/
 /*                             IReadBlock()                             */
 /************************************************************************/
-CPLErr NWT_GRDRasterBand::IReadBlock( CPL_UNUSED int nBlockXOff, int nBlockYOff, void *pImage )
+CPLErr NWT_GRDRasterBand::IReadBlock( CPL_UNUSED int nBlockXOff,
+                                      int nBlockYOff,
+                                      void *pImage )
 {
     NWT_GRDDataset *poGDS = (NWT_GRDDataset *) poDS;
     char *pszRecord;
@@ -391,7 +393,7 @@ GDALDataset *NWT_GRDDataset::Open( GDALOpenInfo * poOpenInfo )
 /* -------------------------------------------------------------------- */
 /*      Check for external overviews.                                   */
 /* -------------------------------------------------------------------- */
-    poDS->oOvManager.Initialize( poDS, poOpenInfo->pszFilename, poOpenInfo->papszSiblingFiles );
+    poDS->oOvManager.Initialize( poDS, poOpenInfo->pszFilename, poOpenInfo->GetSiblingFiles() );
 
     return (poDS);
 }
@@ -409,6 +411,7 @@ void GDALRegister_NWT_GRD()
         poDriver = new GDALDriver();
 
         poDriver->SetDescription( "NWT_GRD" );
+        poDriver->SetMetadataItem( GDAL_DCAP_RASTER, "YES" );
         poDriver->SetMetadataItem( GDAL_DMD_LONGNAME,
                                  "Northwood Numeric Grid Format .grd/.tab" );
         poDriver->SetMetadataItem( GDAL_DMD_HELPTOPIC, "frmt_various.html#grd");

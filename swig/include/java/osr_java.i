@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: osr_java.i 25229 2012-11-16 19:06:58Z rouault $
+ * $Id: osr_java.i 27384 2014-05-24 12:28:12Z rouault $
  *
  * Name:     osr_java.i
  * Project:  GDAL SWIG Interface
@@ -19,7 +19,10 @@
 
 %include arrays_java.i
 %include typemaps_java.i
+
+#ifndef FROM_GDAL_I
 %include java_exceptions.i
+#endif
 
 %pragma(java) jniclasscode=%{
   private static boolean available = false;

@@ -37,6 +37,8 @@ LIBS	=	$(SDE_LIB) @LIBS@ $(KAK_LIBS) $(DWG_LIBS) $(CURL_LIB) \
 		$(PCIDSK_LIB) $(RASDAMAN_LIB) $(CHARLS_LIB) $(SOSI_LIB) \
 		$(OPENCL_LIB) $(JVM_LIB) $(LIBICONV) $(FGDB_LIB) $(LIBXML2_LIB)
 
+SSEFLAGS = @SSEFLAGS@
+HAVE_SSE_AT_COMPILE_TIME = @HAVE_SSE_AT_COMPILE_TIME@
 AVXFLAGS = @AVXFLAGS@
 HAVE_AVX_AT_COMPILE_TIME = @HAVE_AVX_AT_COMPILE_TIME@
 
@@ -64,7 +66,7 @@ INST_DOCS	=	@exec_prefix@/doc
 INST_MAN	=	@mandir@
 INST_HTML	=	$(HOME)/www/gdal
 
-CPPFLAGS	= @CPPFLAGS@ -I$(GDAL_ROOT)/port @EXTRA_INCLUDES@
+CPPFLAGS	= @CPPFLAGS@ -I$(GDAL_ROOT)/port @EXTRA_INCLUDES@ -DGDAL_COMPILATION
 CFLAGS		= @CFLAGS@ @C_WFLAGS@ $(USER_DEFS)
 CXXFLAGS	= @CXXFLAGS@ @CXX_WFLAGS@ $(USER_DEFS)
 LDFLAGS     = @LDFLAGS@
@@ -86,9 +88,9 @@ GDAL_INCLUDE	=	-I$(GDAL_ROOT)/port -I$(GDAL_ROOT)/gcore \
 
 # libtool targets and help variables
 LIBGDAL	:=		libgdal.la
-LIBGDAL_CURRENT	:=	19
-LIBGDAL_REVISION	:=	4
-LIBGDAL_AGE	:=	18
+LIBGDAL_CURRENT	:=	20
+LIBGDAL_REVISION	:=	2
+LIBGDAL_AGE	:=	0
 
 # native build targets and variables
 GDAL_VER	=	@GDAL_VER@
@@ -133,12 +135,24 @@ LIBS	   +=	$(MYSQL_LIB)
 #
 HAVE_HDF4     = @HAVE_HDF4@
 HDF4_INCLUDE  = @HDF4_INCLUDE@ -I$(GDAL_ROOT)/ogr
+HDF4_HAS_MAXOPENFILES = @HDF4_HAS_MAXOPENFILES@
+ifeq ($(HDF4_HAS_MAXOPENFILES),yes)
+HDF4_FLAGS=-DHDF4_HAS_MAXOPENFILES
+endif
 
 #
 # HDF5 Support.
 #
 HAVE_HDF5     = @HAVE_HDF5@
 HDF5_INCLUDE  = @HDF5_INCLUDE@ 
+
+#
+# KEA Support.
+#
+HAVE_KEA     = @HAVE_KEA@
+KEA_INC      = @KEA_INC@ 
+KEA_LIB      = @KEA_LIB@
+LIBS       +=   $(KEA_LIB)
 
 #
 # NetCDF Support.
@@ -556,16 +570,16 @@ endif # HAVE_LIBTOOL
 O_OBJ =	$(foreach file,$(OBJ),../o/$(file))
 
 ../o/%.$(OBJ_EXT):	%.c
-	$(CC) $(CFLAGS) $(CPPFLAGS) -c -o $@ $<
+	$(CC) $(GDAL_INCLUDE) $(CFLAGS) $(CPPFLAGS) -c -o $@ $<
 
 ../o/%.$(OBJ_EXT):	%.cpp
-	$(CXX) $(CXXFLAGS) $(CPPFLAGS) -c -o $@ $<
+	$(CXX) $(GDAL_INCLUDE) $(CXXFLAGS) $(CPPFLAGS) -c -o $@ $<
 
 %.$(OBJ_EXT):	%.c
-	$(CC) $(CFLAGS) $(CPPFLAGS) -c -o $@ $<
+	$(CC) $(GDAL_INCLUDE) $(CFLAGS) $(CPPFLAGS) -c -o $@ $<
 
 %.$(OBJ_EXT):	%.cpp
-	$(CXX) $(CXXFLAGS) $(CPPFLAGS) -c -o $@ $<
+	$(CXX) $(GDAL_INCLUDE) $(CXXFLAGS) $(CPPFLAGS) -c -o $@ $<
 
 #
 # default rules for handling subdirectories

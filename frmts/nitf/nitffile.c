@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: nitffile.c 32466 2015-12-26 09:11:37Z rouault $
+ * $Id: nitffile.c 32465 2015-12-26 09:11:29Z rouault $
  *
  * Project:  NITF Read/Write Library
  * Purpose:  Module responsible for opening NITF file, populating NITFFile
@@ -34,7 +34,7 @@
 #include "cpl_conv.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: nitffile.c 32466 2015-12-26 09:11:37Z rouault $");
+CPL_CVSID("$Id: nitffile.c 32465 2015-12-26 09:11:29Z rouault $");
 
 static int NITFWriteBLOCKA( VSILFILE* fp, vsi_l_offset nOffsetUDIDL,
                             int *pnOffset,
@@ -60,13 +60,6 @@ NITFFile *NITFOpen( const char *pszFilename, int bUpdatable )
 
 {
     VSILFILE	*fp;
-    char        *pachHeader;
-    NITFFile    *psFile;
-    int         nHeaderLen, nOffset, nHeaderLenOffset;
-    GUIntBig    nNextData;
-    char        szTemp[128], achFSDWNG[6];
-    GIntBig     currentPos;
-    int         bTriedStreamingFileHeader = FALSE;
 
 /* -------------------------------------------------------------------- */
 /*      Open the file.                                                  */
@@ -84,9 +77,28 @@ NITFFile *NITFOpen( const char *pszFilename, int bUpdatable )
         return NULL;
     }
 
+    return NITFOpenEx(fp, pszFilename);
+}
+
+/************************************************************************/
+/*                             NITFOpenEx()                             */
+/************************************************************************/
+
+NITFFile *NITFOpenEx(VSILFILE *fp, const char *pszFilename)
+
+{
+    char        *pachHeader;
+    NITFFile    *psFile;
+    int         nHeaderLen, nOffset, nHeaderLenOffset;
+    GUIntBig    nNextData;
+    char        szTemp[128], achFSDWNG[6];
+    GIntBig     currentPos;
+    int         bTriedStreamingFileHeader = FALSE;
+
 /* -------------------------------------------------------------------- */
 /*      Check file type.                                                */
 /* -------------------------------------------------------------------- */
+    VSIFSeekL( fp, 0, SEEK_SET );
     VSIFReadL( szTemp, 1, 9, fp );
 
     if( !EQUALN(szTemp,"NITF",4) && !EQUALN(szTemp,"NSIF",4) )
@@ -275,7 +287,7 @@ retry_read_header:
             abyDELIM2_L2[2] == 0x14 && abyDELIM2_L2[3] == 0xBF)
         {
             int SFHL2 = atoi((const char*)(abyDELIM2_L2 + 4));
-            if (SFHL2 > 0 && nFileSize > (GUIntBig)(11 + SFHL2 + 11) )
+            if (SFHL2 > 0 && (nFileSize > (size_t)(11 + SFHL2 + 11)) )
             {
                 VSIFSeekL( fp, nFileSize - 11 - SFHL2 - 11 , SEEK_SET );
 
@@ -475,11 +487,11 @@ void NITFClose( NITFFile *psFile )
 
 static void NITFGotoOffset(VSILFILE* fp, GUIntBig nLocation)
 {
-    GUIntBig iFill;
     GUIntBig nCurrentLocation = VSIFTellL(fp);
     if (nLocation > nCurrentLocation)
     {
         GUIntBig nFileSize;
+        size_t iFill;
         char cSpace = ' ';
 
         VSIFSeekL(fp, 0, SEEK_END);
@@ -1645,7 +1657,7 @@ void NITFExtractMetadata( char ***ppapszMetadata, const char *pachHeader,
     char szWork[400];
     char* pszWork;
 
-    if ((size_t)nLength >= sizeof(szWork) - 1)
+    if (nLength >= (int)(sizeof(szWork) - 1))
         pszWork = (char*)CPLMalloc(nLength + 1);
     else
         pszWork = szWork;
@@ -1908,7 +1920,7 @@ const NITFSeries* NITFGetSeriesInfo(const char* pszFilename)
             {
                 seriesCode[0] = pszFilename[i+1];
                 seriesCode[1] = pszFilename[i+2];
-                for(i=0;(size_t)i<sizeof(nitfSeries) / sizeof(nitfSeries[0]); i++)
+                for(i=0;i < (int)(sizeof(nitfSeries) / sizeof(nitfSeries[0])); i++)
                 {
                     if (EQUAL(seriesCode, nitfSeries[i].code))
                     {
@@ -2217,7 +2229,7 @@ static char** NITFGenericMetadataReadTREInternal(char **papszMD,
             {
                 *pbError = TRUE;
                 CPLError( CE_Warning, CPLE_AppDefined,
-                          "Invalid item construct in %s TRE in XML ressource",
+                          "Invalid item construct in %s TRE in XML resource",
                           pszTREName );
                 break;
             }
@@ -2241,7 +2253,7 @@ static char** NITFGenericMetadataReadTREInternal(char **papszMD,
                 if (nIterations < 0)
                 {
                     CPLError( CE_Warning, CPLE_AppDefined,
-                            "Invalid loop construct in %s TRE in XML ressource : "
+                            "Invalid loop construct in %s TRE in XML resource : "
                             "invalid 'counter' %s",
                             pszTREName, pszCounter );
                     *pbError = TRUE;
@@ -2262,7 +2274,7 @@ static char** NITFGenericMetadataReadTREInternal(char **papszMD,
                 if (NPART < 0)
                 {
                     CPLError( CE_Warning, CPLE_AppDefined,
-                            "Invalid loop construct in %s TRE in XML ressource : "
+                            "Invalid loop construct in %s TRE in XML resource : "
                             "invalid 'counter' %s",
                             pszTREName, "NPART" );
                     *pbError = TRUE;
@@ -2280,7 +2292,7 @@ static char** NITFGenericMetadataReadTREInternal(char **papszMD,
                 if (NUMOPG < 0)
                 {
                     CPLError( CE_Warning, CPLE_AppDefined,
-                            "Invalid loop construct in %s TRE in XML ressource : "
+                            "Invalid loop construct in %s TRE in XML resource : "
                             "invalid 'counter' %s",
                             pszTREName, "NUMOPG" );
                     *pbError = TRUE;
@@ -2302,7 +2314,7 @@ static char** NITFGenericMetadataReadTREInternal(char **papszMD,
                 if (NPAR < 0)
                 {
                     CPLError( CE_Warning, CPLE_AppDefined,
-                            "Invalid loop construct in %s TRE in XML ressource : "
+                            "Invalid loop construct in %s TRE in XML resource : "
                             "invalid 'counter' %s",
                             pszTREName, "NPAR" );
                     *pbError = TRUE;
@@ -2311,7 +2323,7 @@ static char** NITFGenericMetadataReadTREInternal(char **papszMD,
                 if (NPARO < 0)
                 {
                     CPLError( CE_Warning, CPLE_AppDefined,
-                            "Invalid loop construct in %s TRE in XML ressource : "
+                            "Invalid loop construct in %s TRE in XML resource : "
                             "invalid 'counter' %s",
                             pszTREName, "NPAR0" );
                     *pbError = TRUE;
@@ -2329,7 +2341,7 @@ static char** NITFGenericMetadataReadTREInternal(char **papszMD,
                 if (NPLN < 0)
                 {
                     CPLError( CE_Warning, CPLE_AppDefined,
-                            "Invalid loop construct in %s TRE in XML ressource : "
+                            "Invalid loop construct in %s TRE in XML resource : "
                             "invalid 'counter' %s",
                             pszTREName, "NPLN" );
                     *pbError = TRUE;
@@ -2351,7 +2363,7 @@ static char** NITFGenericMetadataReadTREInternal(char **papszMD,
                 if (NXPTS < 0)
                 {
                     CPLError( CE_Warning, CPLE_AppDefined,
-                            "Invalid loop construct in %s TRE in XML ressource : "
+                            "Invalid loop construct in %s TRE in XML resource : "
                             "invalid 'counter' %s",
                             pszTREName, "NXPTS" );
                     *pbError = TRUE;
@@ -2360,7 +2372,7 @@ static char** NITFGenericMetadataReadTREInternal(char **papszMD,
                 if (NYPTS < 0)
                 {
                     CPLError( CE_Warning, CPLE_AppDefined,
-                            "Invalid loop construct in %s TRE in XML ressource : "
+                            "Invalid loop construct in %s TRE in XML resource : "
                             "invalid 'counter' %s",
                             pszTREName, "NYPTS" );
                     *pbError = TRUE;
@@ -2371,7 +2383,7 @@ static char** NITFGenericMetadataReadTREInternal(char **papszMD,
             else
             {
                 CPLError( CE_Warning, CPLE_AppDefined,
-                          "Invalid loop construct in %s TRE in XML ressource : "
+                          "Invalid loop construct in %s TRE in XML resource : "
                           "missing or invalid 'counter' or 'iterations' or 'formula'",
                           pszTREName );
                 *pbError = TRUE;
@@ -2556,7 +2568,7 @@ static char** NITFGenericMetadataReadTREInternal(char **papszMD,
             else
             {
                 CPLError( CE_Warning, CPLE_AppDefined,
-                          "Invalid if construct in %s TRE in XML ressource : "
+                          "Invalid if construct in %s TRE in XML resource : "
                           "missing or invalid 'cond' attribute",
                           pszTREName );
                 *pbError = TRUE;
@@ -2638,7 +2650,7 @@ char **NITFGenericMetadataReadTRE(char **papszMD,
     if (bError == FALSE && nTreLength > 0 && nTreOffset != nTreLength)
     {
         CPLError( CE_Warning, CPLE_AppDefined,
-                  "Inconsistant declaration of %s TRE",
+                  "Inconsistent declaration of %s TRE",
                   pszTREName );
     }
     if (nTreOffset < nTRESize)
@@ -2774,7 +2786,7 @@ CPLXMLNode* NITFCreateXMLTre(NITFFile* psFile,
     if (bError == FALSE && nTreLength > 0 && nTreOffset != nTreLength)
     {
         CPLError( CE_Warning, CPLE_AppDefined,
-                  "Inconsistant declaration of %s TRE",
+                  "Inconsistent declaration of %s TRE",
                   pszTREName );
     }
     if (nTreOffset < nTRESize)

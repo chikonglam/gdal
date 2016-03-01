@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdal.i 26832 2014-01-15 12:46:08Z rouault $
+ * $Id: gdal.i 29227 2015-05-21 16:58:30Z ajolma $
  *
  * Name:     gdal.i
  * Project:  GDAL Python Interface
@@ -72,9 +72,32 @@ typedef void GDALColorTableShadow;
 typedef void GDALRasterAttributeTableShadow;
 typedef void GDALTransformerInfoShadow;
 typedef void GDALAsyncReaderShadow;
+%}
 
+#if defined(SWIGPYTHON) || defined(SWIGJAVA)
+%{
+#ifdef DEBUG 
+typedef struct OGRSpatialReferenceHS OSRSpatialReferenceShadow;
+typedef struct OGRLayerHS OGRLayerShadow;
+typedef struct OGRGeometryHS OGRGeometryShadow;
+#else
+typedef void OSRSpatialReferenceShadow;
+typedef void OGRLayerShadow;
+typedef void OGRGeometryShadow;
+#endif
+typedef struct OGRStyleTableHS OGRStyleTableShadow;
+%}
+#endif /* #if defined(SWIGPYTHON) || defined(SWIGJAVA) */
+
+#if defined(SWIGCSHARP)
+typedef int OGRErr;
+#endif
+
+%{
 /* use this to not return the int returned by GDAL */
 typedef int RETURN_NONE;
+/* return value that is used for VSI methods that return -1 on error (and set errno) */
+typedef int VSI_RETVAL;
 
 %}
 
@@ -94,6 +117,7 @@ typedef int CPLErr;
 typedef int GDALResampleAlg;
 typedef int GDALAsyncStatusType;
 typedef int GDALRWFlag;
+typedef int GDALRIOResampleAlg;
 #else
 /*! Pixel data types */
 %rename (DataType) GDALDataType;
@@ -160,6 +184,20 @@ typedef enum {
     /*! Read data */   GF_Read = 0,
     /*! Write data */  GF_Write = 1
 } GDALRWFlag;
+
+%rename (RIOResampleAlg) GDALRIOResampleAlg;
+typedef enum
+{
+    /*! Nearest neighbour */                GRIORA_NearestNeighbour = 0,
+    /*! Bilinear (2x2 kernel) */            GRIORA_Bilinear = 1,
+    /*! Cubic Convolution Approximation  */ GRIORA_Cubic = 2,
+    /*! Cubic B-Spline Approximation */     GRIORA_CubicSpline = 3,
+    /*! Lanczos windowed sinc interpolation (6x6 kernel) */ GRIORA_Lanczos = 4,
+    /*! Average */                          GRIORA_Average = 5,
+    /*! Mode (selects the value which appears most often of all the sampled points) */
+                                            GRIORA_Mode = 6,
+    /*! Gauss bluring */                    GRIORA_Gauss = 7
+} GDALRIOResampleAlg;
 
 /*! Warp Resampling Algorithm */
 %rename (ResampleAlg) GDALResampleAlg;
@@ -245,6 +283,16 @@ $1;
 %include "Driver.i"
 
 
+
+#if defined(SWIGPYTHON) || defined(SWIGJAVA) || defined(SWIGPERL)
+/*
+ * We need to import ogr.i and osr.i for OGRLayer and OSRSpatialRefrerence
+ */
+#define FROM_GDAL_I
+%import ogr.i
+#endif /* #if defined(SWIGPYTHON) || defined(SWIGJAVA) */
+
+
 //************************************************************************
 //
 // Define renames.
@@ -290,7 +338,12 @@ $1;
 %rename (DecToPackedDMS) GDALDecToPackedDMS;
 %rename (ParseXMLString) CPLParseXMLString;
 %rename (SerializeXMLTree) CPLSerializeXMLTree;
+%rename (GetJPEG2000Structure) GDALGetJPEG2000Structure;
 #endif
+#ifdef SWIGPERL
+%include "gdal_perl_rename.i"
+#endif
+
 
 //************************************************************************
 //
@@ -411,9 +464,10 @@ void GDAL_GCP_Id_set( GDAL_GCP *gcp, const char * pszId ) {
     CPLFree( gcp->pszId );
   gcp->pszId = CPLStrdup(pszId);
 }
+%} //%inline 
 
-
-
+#if defined(SWIGCSHARP)
+%inline %{
 /* Duplicate, but transposed names for C# because 
 *  the C# module outputs backwards names
 */
@@ -463,8 +517,9 @@ void GDAL_GCP_set_Id( GDAL_GCP *gcp, const char * pszId ) {
     CPLFree( gcp->pszId );
   gcp->pszId = CPLStrdup(pszId);
 }
-
 %} //%inline 
+#endif //if defined(SWIGCSHARP)
+
 %clear GDAL_GCP *gcp;
 
 #ifdef SWIGJAVA
@@ -533,7 +588,14 @@ void GDALApplyGeoTransform( double padfGeoTransform[6],
 
 %apply (double argin[ANY]) {double gt_in[6]};
 %apply (double argout[ANY]) {double gt_out[6]};
+#ifdef SWIGJAVA
+// FIXME: we should implement correctly the IF_FALSE_RETURN_NONE typemap
 int GDALInvGeoTransform( double gt_in[6], double gt_out[6] );
+#else
+%apply (IF_FALSE_RETURN_NONE) { (RETURN_NONE) };
+RETURN_NONE GDALInvGeoTransform( double gt_in[6], double gt_out[6] );
+%clear (RETURN_NONE);
+#endif
 %clear (double *gt_in);
 %clear (double *gt_out);
 
@@ -556,7 +618,6 @@ void GDALAllRegister();
 void GDALDestroyDriverManager();
 
 #ifdef SWIGPYTHON
-%apply (GIntBig bigint) { GIntBig };
 %inline {
 GIntBig wrapper_GDALGetCacheMax()
 {
@@ -644,6 +705,24 @@ retStringAndCPLFree *CPLSerializeXMLTree( CPLXMLNode *xmlnode );
 char *CPLSerializeXMLTree( CPLXMLNode *xmlnode );
 #endif
 
+#if defined(SWIGPYTHON)
+%newobject GDALGetJPEG2000Structure;
+CPLXMLNode *GDALGetJPEG2000Structure( const char* pszFilename, char** options = NULL );
+#endif
+
+%inline {
+retStringAndCPLFree *GetJPEG2000StructureAsString( const char* pszFilename, char** options = NULL )
+{
+    CPLXMLNode* psNode = GDALGetJPEG2000Structure(pszFilename, options);
+    if( psNode == NULL )
+        return NULL;
+    char* pszXML = CPLSerializeXMLTree(psNode);
+    CPLDestroyXMLNode(psNode);
+    return pszXML;
+}
+}
+
+
 //************************************************************************
 //
 // Define the factory functions for Drivers and Datasets
@@ -694,6 +773,7 @@ GDALDatasetShadow* Open( char const* name ) {
   return Open( name, GA_ReadOnly );
 }
 %}
+
 #else
 %newobject Open;
 %inline %{
@@ -709,7 +789,35 @@ GDALDatasetShadow* Open( char const* utf8_path, GDALAccess eAccess = GA_ReadOnly
   return (GDALDatasetShadow*) ds;
 }
 %}
+
 #endif
+
+%newobject OpenEx;
+#ifndef SWIGJAVA
+%feature( "kwargs" ) OpenEx;
+#endif
+%apply (char **options) {char** allowed_drivers};
+%apply (char **options) {char** open_options};
+%apply (char **options) {char** sibling_files};
+%inline %{
+GDALDatasetShadow* OpenEx( char const* utf8_path, unsigned int nOpenFlags = 0,
+                           char** allowed_drivers = NULL, char** open_options = NULL,
+                           char** sibling_files = NULL ) {
+  CPLErrorReset();
+  GDALDatasetShadow *ds = GDALOpenEx( utf8_path, nOpenFlags, allowed_drivers,
+                                      open_options, sibling_files );
+  if( ds != NULL && CPLGetLastErrorType() == CE_Failure )
+  {
+      if ( GDALDereferenceDataset( ds ) <= 0 )
+          GDALClose(ds);
+      ds = NULL;
+  }
+  return (GDALDatasetShadow*) ds;
+}
+%}
+%clear char** allowed_drivers;
+%clear char** open_options;
+%clear char** sibling_files;
 
 %newobject OpenShared;
 %inline %{

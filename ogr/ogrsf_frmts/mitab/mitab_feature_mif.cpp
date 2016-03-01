@@ -282,7 +282,8 @@ int TABFeature::ReadRecordFromMIDFile(MIDDATAFile *fp)
                 if (strlen(papszToken[i]) == 9)
                 {
                     sscanf(papszToken[i],"%2d%2d%2d%3d",&nHour, &nMin, &nSec, &nMS);
-                    SetField(i, nYear, nMonth, nDay, nHour, nMin, nSec, 0);
+                    SetField(i, nYear, nMonth, nDay, nHour, nMin, nSec + nMS / 1000.0f,
+                             0);
                 }
                 break;
             }
@@ -301,7 +302,8 @@ int TABFeature::ReadRecordFromMIDFile(MIDDATAFile *fp)
                 {
                     sscanf(papszToken[i], "%4d%2d%2d%2d%2d%2d%3d",
                            &nYear, &nMonth, &nDay, &nHour, &nMin, &nSec, &nMS);
-                    SetField(i, nYear, nMonth, nDay, nHour, nMin, nSec, 0);
+                    SetField(i, nYear, nMonth, nDay, nHour, nMin, nSec + nMS / 1000.0f,
+                             0);
                 }
                 break;
             }
@@ -333,8 +335,9 @@ int TABFeature::WriteRecordToMIDFile(MIDDATAFile *fp)
     OGRFieldDefn        *poFDefn = NULL;
 #ifdef MITAB_USE_OFTDATETIME
     char szBuffer[20];
-    int nYear, nMonth, nDay, nHour, nMin, nSec, nMS, nTZFlag;
-    nYear = nMonth = nDay = nHour = nMin = nSec = nMS = nTZFlag = 0;
+    int nYear, nMonth, nDay, nHour, nMin, nMS, nTZFlag;
+    nYear = nMonth = nDay = nHour = nMin = nMS = nTZFlag = 0;
+    float fSec = 0.0f;
 #endif
 
     CPLAssert(fp);
@@ -346,7 +349,7 @@ int TABFeature::WriteRecordToMIDFile(MIDDATAFile *fp)
     for(iField=0; iField<numFields; iField++)
     {
         if (iField != 0)
-          fp->WriteLine(delimiter);
+          fp->WriteLine("%s", delimiter);
         poFDefn = GetFieldDefnRef( iField );
 
         switch(poFDefn->GetType())
@@ -396,8 +399,9 @@ int TABFeature::WriteRecordToMIDFile(MIDDATAFile *fp)
               else
               {
                   GetFieldAsDateTime(iField, &nYear, &nMonth, &nDay,
-                                     &nHour, &nMin, &nSec, &nTZFlag);
-                  sprintf(szBuffer, "%2.2d%2.2d%2.2d%3.3d", nHour, nMin, nSec, nMS);
+                                     &nHour, &nMin, &fSec, &nTZFlag);
+                  sprintf(szBuffer, "%2.2d%2.2d%2.2d%3.3d", nHour, nMin,
+                          (int)fSec, OGR_GET_MS(fSec));
               }
               fp->WriteLine("%s",szBuffer);
               break;
@@ -411,7 +415,7 @@ int TABFeature::WriteRecordToMIDFile(MIDDATAFile *fp)
               else
               {
                   GetFieldAsDateTime(iField, &nYear, &nMonth, &nDay,
-                                     &nHour, &nMin, &nSec, &nTZFlag);
+                                     &nHour, &nMin, &fSec, &nTZFlag);
                   sprintf(szBuffer, "%4.4d%2.2d%2.2d", nYear, nMonth, nDay);
               }
               fp->WriteLine("%s",szBuffer);
@@ -426,9 +430,10 @@ int TABFeature::WriteRecordToMIDFile(MIDDATAFile *fp)
               else
               {
                   GetFieldAsDateTime(iField, &nYear, &nMonth, &nDay,
-                                     &nHour, &nMin, &nSec, &nTZFlag);
+                                     &nHour, &nMin, &fSec, &nTZFlag);
                   sprintf(szBuffer, "%4.4d%2.2d%2.2d%2.2d%2.2d%2.2d%3.3d", 
-                          nYear, nMonth, nDay, nHour, nMin, nSec, nMS);
+                          nYear, nMonth, nDay, nHour, nMin,
+                          (int)fSec, OGR_GET_MS(fSec));
               }
               fp->WriteLine("%s",szBuffer);
               break;
@@ -515,8 +520,8 @@ int TABPoint::ReadGeometryFromMIFFile(MIDDATAFile *fp)
         return -1;
     }
     
-    dfX = fp->GetXTrans(atof(papszToken[1]));
-    dfY = fp->GetYTrans(atof(papszToken[2]));
+    dfX = fp->GetXTrans(CPLAtof(papszToken[1]));
+    dfY = fp->GetYTrans(CPLAtof(papszToken[2]));
 
     CSLDestroy(papszToken);
     papszToken = NULL;
@@ -601,8 +606,8 @@ int TABFontPoint::ReadGeometryFromMIFFile(MIDDATAFile *fp)
         return -1;
     }
 
-    dfX = fp->GetXTrans(atof(papszToken[1]));
-    dfY = fp->GetYTrans(atof(papszToken[2]));
+    dfX = fp->GetXTrans(CPLAtof(papszToken[1]));
+    dfY = fp->GetYTrans(CPLAtof(papszToken[2]));
     
     CSLDestroy(papszToken);
     
@@ -620,7 +625,7 @@ int TABFontPoint::ReadGeometryFromMIFFile(MIDDATAFile *fp)
     SetSymbolSize((GInt16)atoi(papszToken[3]));
     SetFontName(papszToken[4]);
     SetFontStyleMIFValue(atoi(papszToken[5]));
-    SetSymbolAngle(atof(papszToken[6]));
+    SetSymbolAngle(CPLAtof(papszToken[6]));
 
     CSLDestroy(papszToken);
     
@@ -689,8 +694,8 @@ int TABCustomPoint::ReadGeometryFromMIFFile(MIDDATAFile *fp)
         return -1;
     }
 
-    dfX = fp->GetXTrans(atof(papszToken[1]));
-    dfY = fp->GetYTrans(atof(papszToken[2]));
+    dfX = fp->GetXTrans(CPLAtof(papszToken[1]));
+    dfY = fp->GetYTrans(CPLAtof(papszToken[2]));
 
     CSLDestroy(papszToken);
     
@@ -785,10 +790,10 @@ int TABPolyline::ReadGeometryFromMIFFile(MIDDATAFile *fp)
 
         poLine = new OGRLineString();
         poLine->setNumPoints(2);
-        poLine->setPoint(0, fp->GetXTrans(atof(papszToken[1])),
-                         fp->GetYTrans(atof(papszToken[2])));
-        poLine->setPoint(1, fp->GetXTrans(atof(papszToken[3])),
-                         fp->GetYTrans(atof(papszToken[4])));
+        poLine->setPoint(0, fp->GetXTrans(CPLAtof(papszToken[1])),
+                         fp->GetYTrans(CPLAtof(papszToken[2])));
+        poLine->setPoint(1, fp->GetXTrans(CPLAtof(papszToken[3])),
+                         fp->GetYTrans(CPLAtof(papszToken[4])));
         SetGeometryDirectly(poLine);
         poLine->getEnvelope(&sEnvelope);
         SetMBR(sEnvelope.MinX, sEnvelope.MinY,sEnvelope.MaxX,sEnvelope.MaxY);
@@ -888,8 +893,8 @@ int TABPolyline::ReadGeometryFromMIFFile(MIDDATAFile *fp)
                         delete poMultiLine;
                         return -1;
                     }
-                    poLine->setPoint(i,fp->GetXTrans(atof(papszToken[0])),
-                                     fp->GetYTrans(atof(papszToken[1])));
+                    poLine->setPoint(i,fp->GetXTrans(CPLAtof(papszToken[0])),
+                                     fp->GetYTrans(CPLAtof(papszToken[1])));
                 }
                 if (poMultiLine->addGeometryDirectly(poLine) != OGRERR_NONE)
                 {
@@ -916,8 +921,8 @@ int TABPolyline::ReadGeometryFromMIFFile(MIDDATAFile *fp)
     
                 if (CSLCount(papszToken) != 2)
                   return -1;
-                poLine->setPoint(i,fp->GetXTrans(atof(papszToken[0])),
-                                 fp->GetYTrans(atof(papszToken[1])));
+                poLine->setPoint(i,fp->GetXTrans(CPLAtof(papszToken[0])),
+                                 fp->GetYTrans(CPLAtof(papszToken[1])));
             }
             SetGeometryDirectly(poLine);
             poLine->getEnvelope(&sEnvelope);
@@ -1101,8 +1106,8 @@ int TABRegion::ReadGeometryFromMIFFile(MIDDATAFile *fp)
                                                       TRUE,FALSE);
                 if (CSLCount(papszToken) == 2)
                 {              
-                    dX = fp->GetXTrans(atof(papszToken[0]));
-                    dY = fp->GetYTrans(atof(papszToken[1]));
+                    dX = fp->GetXTrans(CPLAtof(papszToken[0]));
+                    dY = fp->GetYTrans(CPLAtof(papszToken[1]));
                     poRing->setPoint(i, dX, dY);
                 }
                 CSLDestroy(papszToken);
@@ -1183,8 +1188,8 @@ int TABRegion::ReadGeometryFromMIFFile(MIDDATAFile *fp)
             {
                 if (CSLCount(papszToken) == 3)
                 {
-                    SetCenter(fp->GetXTrans(atof(papszToken[1])),
-                              fp->GetYTrans(atof(papszToken[2])) );
+                    SetCenter(fp->GetXTrans(CPLAtof(papszToken[1])),
+                              fp->GetYTrans(CPLAtof(papszToken[2])) );
                 }
             }
         }
@@ -1300,10 +1305,10 @@ int TABRectangle::ReadGeometryFromMIFFile(MIDDATAFile *fp)
         return -1;
     }
 
-    dXMin = fp->GetXTrans(atof(papszToken[1]));
-    dXMax = fp->GetXTrans(atof(papszToken[3]));
-    dYMin = fp->GetYTrans(atof(papszToken[2]));
-    dYMax = fp->GetYTrans(atof(papszToken[4]));
+    dXMin = fp->GetXTrans(CPLAtof(papszToken[1]));
+    dXMax = fp->GetXTrans(CPLAtof(papszToken[3]));
+    dYMin = fp->GetYTrans(CPLAtof(papszToken[2]));
+    dYMax = fp->GetYTrans(CPLAtof(papszToken[4]));
     
     /*-----------------------------------------------------------------
      * Call SetMBR() and GetMBR() now to make sure that min values are
@@ -1320,7 +1325,7 @@ int TABRectangle::ReadGeometryFromMIFFile(MIDDATAFile *fp)
     {
         m_bRoundCorners = TRUE;
         if (CSLCount(papszToken) == 6)
-          m_dRoundXRadius = m_dRoundYRadius = atof(papszToken[5])/2.0;
+          m_dRoundXRadius = m_dRoundYRadius = CPLAtof(papszToken[5])/2.0;
         else
         {
             CSLDestroy(papszToken);
@@ -1500,10 +1505,10 @@ int TABEllipse::ReadGeometryFromMIFFile(MIDDATAFile *fp)
         return -1;
     }
 
-    dXMin = fp->GetXTrans(atof(papszToken[1]));
-    dXMax = fp->GetXTrans(atof(papszToken[3]));
-    dYMin = fp->GetYTrans(atof(papszToken[2]));
-    dYMax = fp->GetYTrans(atof(papszToken[4]));
+    dXMin = fp->GetXTrans(CPLAtof(papszToken[1]));
+    dXMax = fp->GetXTrans(CPLAtof(papszToken[3]));
+    dYMin = fp->GetYTrans(CPLAtof(papszToken[2]));
+    dYMax = fp->GetYTrans(CPLAtof(papszToken[4]));
 
     CSLDestroy(papszToken);
     papszToken = NULL;
@@ -1631,10 +1636,10 @@ int TABArc::ReadGeometryFromMIFFile(MIDDATAFile *fp)
 
     if (CSLCount(papszToken) == 5)
     {
-        dXMin = fp->GetXTrans(atof(papszToken[1]));
-        dXMax = fp->GetXTrans(atof(papszToken[3]));
-        dYMin = fp->GetYTrans(atof(papszToken[2]));
-        dYMax = fp->GetYTrans(atof(papszToken[4]));
+        dXMin = fp->GetXTrans(CPLAtof(papszToken[1]));
+        dXMax = fp->GetXTrans(CPLAtof(papszToken[3]));
+        dYMin = fp->GetYTrans(CPLAtof(papszToken[2]));
+        dYMax = fp->GetYTrans(CPLAtof(papszToken[4]));
 
         CSLDestroy(papszToken);
         papszToken = CSLTokenizeString2(fp->GetLine(), 
@@ -1645,17 +1650,17 @@ int TABArc::ReadGeometryFromMIFFile(MIDDATAFile *fp)
             return -1;
         }
 
-        m_dStartAngle = atof(papszToken[0]);
-        m_dEndAngle = atof(papszToken[1]);
+        m_dStartAngle = CPLAtof(papszToken[0]);
+        m_dEndAngle = CPLAtof(papszToken[1]);
     }
     else if (CSLCount(papszToken) == 7)
     {
-        dXMin = fp->GetXTrans(atof(papszToken[1]));
-        dXMax = fp->GetXTrans(atof(papszToken[3]));
-        dYMin = fp->GetYTrans(atof(papszToken[2]));
-        dYMax = fp->GetYTrans(atof(papszToken[4]));
-        m_dStartAngle = atof(papszToken[5]);
-        m_dEndAngle = atof(papszToken[6]);
+        dXMin = fp->GetXTrans(CPLAtof(papszToken[1]));
+        dXMax = fp->GetXTrans(CPLAtof(papszToken[3]));
+        dYMin = fp->GetYTrans(CPLAtof(papszToken[2]));
+        dYMax = fp->GetYTrans(CPLAtof(papszToken[4]));
+        m_dStartAngle = CPLAtof(papszToken[5]);
+        m_dEndAngle = CPLAtof(papszToken[6]);
     }
     else
     {
@@ -1838,10 +1843,10 @@ int TABText::ReadGeometryFromMIFFile(MIDDATAFile *fp)
     }
     else
     {
-        dXMin = fp->GetXTrans(atof(papszToken[0]));
-        dXMax = fp->GetXTrans(atof(papszToken[2]));
-        dYMin = fp->GetYTrans(atof(papszToken[1]));
-        dYMax = fp->GetYTrans(atof(papszToken[3]));
+        dXMin = fp->GetXTrans(CPLAtof(papszToken[0]));
+        dXMax = fp->GetXTrans(CPLAtof(papszToken[2]));
+        dYMin = fp->GetYTrans(CPLAtof(papszToken[1]));
+        dYMax = fp->GetYTrans(CPLAtof(papszToken[3]));
 
         m_dHeight = dYMax - dYMin;  //SetTextBoxHeight(dYMax - dYMin);
         m_dWidth  = dXMax - dXMin;  //SetTextBoxWidth(dXMax - dXMin);
@@ -1908,14 +1913,14 @@ int TABText::ReadGeometryFromMIFFile(MIDDATAFile *fp)
                         if (EQUALN(papszToken[4],"simple",6))
                         {
                             SetTextLineType(TABTLSimple);
-                            SetTextLineEndPoint(fp->GetXTrans(atof(papszToken[5])),
-                                                fp->GetYTrans(atof(papszToken[6])));
+                            SetTextLineEndPoint(fp->GetXTrans(CPLAtof(papszToken[5])),
+                                                fp->GetYTrans(CPLAtof(papszToken[6])));
                         }
                         else if (EQUALN(papszToken[4],"arrow", 5))
                         {
                             SetTextLineType(TABTLArrow);
-                            SetTextLineEndPoint(fp->GetXTrans(atof(papszToken[5])),
-                                                fp->GetYTrans(atof(papszToken[6])));
+                            SetTextLineEndPoint(fp->GetXTrans(CPLAtof(papszToken[5])),
+                                                fp->GetYTrans(CPLAtof(papszToken[6])));
                         }
                     }
                 }               
@@ -1940,7 +1945,7 @@ int TABText::ReadGeometryFromMIFFile(MIDDATAFile *fp)
             {
                 if (CSLCount(papszToken) == 2)
                 {    
-                    SetTextAngle(atof(papszToken[1]));
+                    SetTextAngle(CPLAtof(papszToken[1]));
                 }
                 
             }
@@ -1951,14 +1956,14 @@ int TABText::ReadGeometryFromMIFFile(MIDDATAFile *fp)
                     if (EQUALN(papszToken[2],"simple",6))
                     {
                         SetTextLineType(TABTLSimple);
-                        SetTextLineEndPoint(fp->GetXTrans(atof(papszToken[3])),
-                                           fp->GetYTrans(atof(papszToken[4])));
+                        SetTextLineEndPoint(fp->GetXTrans(CPLAtof(papszToken[3])),
+                                           fp->GetYTrans(CPLAtof(papszToken[4])));
                     }
                     else if (EQUALN(papszToken[2],"arrow", 5))
                     {
                         SetTextLineType(TABTLArrow);
-                        SetTextLineEndPoint(fp->GetXTrans(atof(papszToken[3])),
-                                           fp->GetYTrans(atof(papszToken[4])));
+                        SetTextLineEndPoint(fp->GetXTrans(CPLAtof(papszToken[3])),
+                                           fp->GetYTrans(CPLAtof(papszToken[4])));
                     }
                 }
                 
@@ -2161,8 +2166,8 @@ int TABMultiPoint::ReadGeometryFromMIFFile(MIDDATAFile *fp)
             return -1;
         }
 
-        dfX = fp->GetXTrans(atof(papszToken[0]));
-        dfY = fp->GetXTrans(atof(papszToken[1]));
+        dfX = fp->GetXTrans(CPLAtof(papszToken[0]));
+        dfY = fp->GetXTrans(CPLAtof(papszToken[1]));
         poPoint = new OGRPoint(dfX, dfY);
         if ( poMultiPoint->addGeometryDirectly( poPoint ) != OGRERR_NONE)
         {
@@ -2434,7 +2439,3 @@ int TABDebugFeature::ReadGeometryFromMIFFile(MIDDATAFile *fp)
  *
  **********************************************************************/
 int TABDebugFeature::WriteGeometryToMIFFile(CPL_UNUSED MIDDATAFile *fp){ return -1; }
-
-
-
-

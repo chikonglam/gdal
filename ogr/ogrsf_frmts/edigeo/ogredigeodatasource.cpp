@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogredigeodatasource.cpp 29641 2015-08-13 20:17:52Z rouault $
+ * $Id: ogredigeodatasource.cpp 28039 2014-11-30 18:24:59Z rouault $
  *
  * Project:  EDIGEO Translator
  * Purpose:  Implements OGREDIGEODataSource class
@@ -31,7 +31,7 @@
 #include "cpl_conv.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: ogredigeodatasource.cpp 29641 2015-08-13 20:17:52Z rouault $");
+CPL_CVSID("$Id: ogredigeodatasource.cpp 28039 2014-11-30 18:24:59Z rouault $");
 
 #ifndef M_PI
 # define M_PI  3.1415926535897932384626433832795
@@ -270,7 +270,7 @@ int OGREDIGEODataSource::ReadGEO()
             poSRS->importFromProj4("+proj=lcc +lat_1=44 +lat_2=49 +lat_0=46.5 +lon_0=3 +x_0=700000 +y_0=6600000 +ellps=GRS81 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs");
         else
         {
-            CPLDebug("EDIGEO", "Cannot resolve %s SRS. Check that the IGNF file is in the directory of PROJ.4 ressource files", osREL.c_str());
+            CPLDebug("EDIGEO", "Cannot resolve %s SRS. Check that the IGNF file is in the directory of PROJ.4 resource files", osREL.c_str());
             delete poSRS;
             poSRS = NULL;
         }
@@ -1349,21 +1349,10 @@ static int OGREDIGEOSortForQGIS(const void* a, const void* b)
 /*                                Open()                                */
 /************************************************************************/
 
-int OGREDIGEODataSource::Open( const char * pszFilename, int bUpdateIn)
+int OGREDIGEODataSource::Open( const char * pszFilename )
 
 {
-    if (bUpdateIn)
-    {
-        return FALSE;
-    }
-
     pszName = CPLStrdup( pszFilename );
-
-/* -------------------------------------------------------------------- */
-/*      Does this appear to be a .THF file?                             */
-/* -------------------------------------------------------------------- */
-    if( !EQUAL(CPLGetExtension(pszFilename), "thf") )
-        return FALSE;
 
     fpTHF = VSIFOpenL(pszFilename, "rb");
     if (fpTHF == NULL)
@@ -1568,4 +1557,3 @@ void OGREDIGEODataSource::CreateLabelLayers()
 
     poLayer->ResetReading();
 }
-

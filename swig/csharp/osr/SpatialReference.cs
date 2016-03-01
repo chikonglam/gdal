@@ -660,8 +660,8 @@ public class SpatialReference : IDisposable {
     return ret;
   }
 
-  public int ImportFromOzi(string datum, string proj, string projParms) {
-    int ret = OsrPINVOKE.SpatialReference_ImportFromOzi(swigCPtr, datum, proj, projParms);
+  public int ImportFromOzi(string[] papszLines) {
+    int ret = OsrPINVOKE.SpatialReference_ImportFromOzi(swigCPtr, (papszLines != null)? new OsrPINVOKE.StringListMarshal(papszLines)._ar : null);
     if (OsrPINVOKE.SWIGPendingException.Pending) throw OsrPINVOKE.SWIGPendingException.Retrieve();
     return ret;
   }

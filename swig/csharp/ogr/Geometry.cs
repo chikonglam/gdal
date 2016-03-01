@@ -122,6 +122,12 @@ public int ExportToWkb( byte[] buffer, wkbByteOrder byte_order ) {
     return ret;
   }
 
+  public int ExportToIsoWkt(out string argout) {
+    int ret = OgrPINVOKE.Geometry_ExportToIsoWkt(swigCPtr, out argout);
+    if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
+    return ret;
+  }
+
   public string ExportToGML() {
     string ret = OgrPINVOKE.Geometry_ExportToGML__SWIG_0(swigCPtr);
     if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
@@ -523,6 +529,33 @@ public int ExportToWkb( byte[] buffer, wkbByteOrder byte_order ) {
 
   public int GetDimension() {
     int ret = OgrPINVOKE.Geometry_GetDimension(swigCPtr);
+    if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
+    return ret;
+  }
+
+  public int HasCurveGeometry(int bLookForCircular) {
+    int ret = OgrPINVOKE.Geometry_HasCurveGeometry(swigCPtr, bLookForCircular);
+    if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
+    return ret;
+  }
+
+  public Geometry GetLinearGeometry(double dfMaxAngleStepSizeDegrees, string[] options) {
+    IntPtr cPtr = OgrPINVOKE.Geometry_GetLinearGeometry(swigCPtr, dfMaxAngleStepSizeDegrees, (options != null)? new OgrPINVOKE.StringListMarshal(options)._ar : null);
+    Geometry ret = (cPtr == IntPtr.Zero) ? null : new Geometry(cPtr, true, ThisOwn_true());
+    if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
+    return ret;
+  }
+
+  public Geometry GetCurveGeometry(string[] options) {
+    IntPtr cPtr = OgrPINVOKE.Geometry_GetCurveGeometry(swigCPtr, (options != null)? new OgrPINVOKE.StringListMarshal(options)._ar : null);
+    Geometry ret = (cPtr == IntPtr.Zero) ? null : new Geometry(cPtr, true, ThisOwn_true());
+    if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
+    return ret;
+  }
+
+  public Geometry Value(double dfDistance) {
+    IntPtr cPtr = OgrPINVOKE.Geometry_Value(swigCPtr, dfDistance);
+    Geometry ret = (cPtr == IntPtr.Zero) ? null : new Geometry(cPtr, true, ThisOwn_true());
     if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
     return ret;
   }

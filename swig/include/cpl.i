@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: cpl.i 26526 2013-10-11 11:49:24Z tamas $
+ * $Id: cpl.i 29223 2015-05-21 15:19:08Z ajolma $
  *
  * Name:     cpl.i
  * Project:  GDAL Python Interface
@@ -359,11 +359,11 @@ void wrapper_VSIFileFromMemBuffer( const char* utf8_path, int nBytes, const GByt
 #endif
 
 /* Added in GDAL 1.7.0 */
-int VSIUnlink(const char * utf8_path );
+VSI_RETVAL VSIUnlink(const char * utf8_path );
 
 /* Added in GDAL 1.7.0 */
 /* Thread support is necessary for binding languages with threaded GC */
-/* even if the user doesn't explicitely use threads */
+/* even if the user doesn't explicitly use threads */
 %inline {
 int wrapper_HasThreadSupport()
 {
@@ -372,9 +372,9 @@ int wrapper_HasThreadSupport()
 }
 
 /* Added for GDAL 1.8 */
-int VSIMkdir(const char *utf8_path, int mode );
-int VSIRmdir(const char *utf8_path );
-int VSIRename(const char * pszOld, const char *pszNew );
+VSI_RETVAL VSIMkdir(const char *utf8_path, int mode );
+VSI_RETVAL VSIRmdir(const char *utf8_path );
+VSI_RETVAL VSIRename(const char * pszOld, const char *pszNew );
 
 /* Added for GDAL 1.8 
 
@@ -390,9 +390,7 @@ typedef void VSILFILE;
 #endif
 
 #if defined(SWIGPERL)
-%apply RETURN_NONE_TRUE_IS_ERROR {RETURN_NONE};
-RETURN_NONE VSIStatL( const char * utf8_path, VSIStatBufL *psStatBuf );
-%clear RETURN_NONE;
+VSI_RETVAL VSIStatL( const char * utf8_path, VSIStatBufL *psStatBuf );
 
 #elif defined(SWIGPYTHON)
 
@@ -411,13 +409,11 @@ typedef struct
 
 struct StatBuf
 {
-%apply (GIntBig bigint) { GIntBig };
 %immutable;
   int         mode;
   GIntBig     size;
   GIntBig     mtime;
 %mutable;
-%clear (GIntBig bigint);
 
 %extend {
   StatBuf( StatBuf *psStatBuf ) {
@@ -457,19 +453,25 @@ int wrapper_VSIStatL( const char * utf8_path, StatBuf *psStatBufOut, int nFlags 
 
 #endif
 
-VSILFILE   *VSIFOpenL( const char *utf8_path, const char *pszMode );
-void    VSIFCloseL( VSILFILE * );
+%rename (VSIFOpenL) wrapper_VSIFOpenL;
+%inline %{
+VSILFILE   *wrapper_VSIFOpenL( const char *utf8_path, const char *pszMode )
+{
+    if (!pszMode) /* would lead to segfault */
+        pszMode = "r";
+    return VSIFOpenL( utf8_path, pszMode );
+}
+%}
+VSI_RETVAL VSIFCloseL( VSILFILE * );
 
 #if defined(SWIGPYTHON)
-%apply (GIntBig bigint) { GIntBig };
 int     VSIFSeekL( VSILFILE *, GIntBig, int );
 GIntBig    VSIFTellL( VSILFILE * );
 int     VSIFTruncateL( VSILFILE *, GIntBig );
-%clear (GIntBig bigint);
 #else
-int     VSIFSeekL( VSILFILE *, long, int );
+VSI_RETVAL VSIFSeekL( VSILFILE *, long, int );
 long    VSIFTellL( VSILFILE * );
-int     VSIFTruncateL( VSILFILE *, long );
+VSI_RETVAL VSIFTruncateL( VSILFILE *, long );
 #endif
 
 #if defined(SWIGPYTHON)
@@ -479,7 +481,7 @@ int wrapper_VSIFWriteL( int nLen, char *pBuf, int size, int memb, VSILFILE * f)
 {
     if (nLen < size * memb)
     {
-        CPLError(CE_Failure, CPLE_AppDefined, "Inconsistant buffer size with 'size' and 'memb' values");
+        CPLError(CE_Failure, CPLE_AppDefined, "Inconsistent buffer size with 'size' and 'memb' values");
         return 0;
     }
     return VSIFWriteL(pBuf, size, memb, f);

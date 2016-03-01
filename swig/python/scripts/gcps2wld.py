@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #******************************************************************************
-#  $Id: gcps2wld.py 27044 2014-03-16 23:41:27Z rouault $
+#  $Id: gcps2wld.py 28389 2015-01-30 19:26:09Z rouault $
 # 
 #  Name:     gcps2wld
 #  Project:  GDAL Python Interface
@@ -37,7 +37,6 @@ except ImportError:
     import gdal
 
 import sys
-import os.path
 
 if len(sys.argv) < 2:
     print("Usage: gcps2wld.py source_file")

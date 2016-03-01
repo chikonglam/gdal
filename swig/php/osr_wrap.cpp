@@ -259,7 +259,7 @@ template <typename T> T SwigValueInit() {
    SWIG errors code.
 
    Finally, if the SWIG_CASTRANK_MODE is enabled, the result code
-   allows to return the 'cast rank', for example, if you have this
+   allows returning the 'cast rank', for example, if you have this
 
        int food(double)
        int fooi(int);
@@ -8280,6 +8280,7 @@ SWIG_STRING_CONSTANT(SRS_PT_LAMBERT_CONFORMAL_CONIC_2SP_BELGIUM, "Lambert_Confor
 SWIG_STRING_CONSTANT(SRS_PT_LAMBERT_AZIMUTHAL_EQUAL_AREA, "Lambert_Azimuthal_Equal_Area");
 SWIG_STRING_CONSTANT(SRS_PT_MERCATOR_1SP, "Mercator_1SP");
 SWIG_STRING_CONSTANT(SRS_PT_MERCATOR_2SP, "Mercator_2SP");
+SWIG_STRING_CONSTANT(SRS_PT_MERCATOR_AUXILIARY_SPHERE, "Mercator_Auxiliary_Sphere");
 SWIG_STRING_CONSTANT(SRS_PT_MILLER_CYLINDRICAL, "Miller_Cylindrical");
 SWIG_STRING_CONSTANT(SRS_PT_MOLLWEIDE, "Mollweide");
 SWIG_STRING_CONSTANT(SRS_PT_NEW_ZEALAND_MAP_GRID, "New_Zealand_Map_Grid");

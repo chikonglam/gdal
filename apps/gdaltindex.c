@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdaltindex.c 27741 2014-09-26 19:20:02Z goatbar $
+ * $Id: gdaltindex.c 28375 2015-01-30 12:06:11Z rouault $
  *
  * Project:  MapServer
  * Purpose:  Commandline App to build tile index for raster files.
@@ -35,7 +35,7 @@
 #include "cpl_conv.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: gdaltindex.c 27741 2014-09-26 19:20:02Z goatbar $");
+CPL_CVSID("$Id: gdaltindex.c 28375 2015-01-30 12:06:11Z rouault $");
 
 /************************************************************************/
 /*                               Usage()                                */
@@ -352,7 +352,7 @@ int main(int argc, char *argv[])
         i_SrcSRSName = OGR_FD_GetFieldIndex( hFDefn, pszSrcSRSName );
 
     /* Load in memory existing file names in SHP */
-    nExistingFiles = OGR_L_GetFeatureCount(hLayer, FALSE);
+    nExistingFiles = (int)OGR_L_GetFeatureCount(hLayer, FALSE);
     if( nExistingFiles < 0)
         nExistingFiles = 0;
     if (nExistingFiles > 0)

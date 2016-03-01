@@ -1,5 +1,5 @@
 /*
- * $Id: osr_python.i 18192 2009-12-06 19:41:32Z rouault $
+ * $Id: osr_python.i 27384 2014-05-24 12:28:12Z rouault $
  *
  * python specific code for ogr bindings.
  */
@@ -7,8 +7,10 @@
 
 %feature("autodoc");
 
+#ifndef FROM_GDAL_I
 %include "python_exceptions.i"
 %include "python_strings.i"
+#endif
 
 %{
 static PyObject *

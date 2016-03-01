@@ -1,5 +1,5 @@
 dnl ***************************************************************************
-dnl $Id: acinclude.m4 26534 2013-10-16 12:10:05Z rouault $
+dnl $Id: acinclude.m4 28182 2014-12-20 19:53:13Z goatbar $
 dnl
 dnl Project:  GDAL
 dnl Purpose:  Configure extra local definitions.
@@ -192,7 +192,15 @@ AC_DEFUN([AC_UNIX_STDIO_64],
   if test x"$with_unix_stdio_64" = x"yes" ; then
     AC_MSG_RESULT([yes])
 
-    AC_CHECK_FUNC(stat64, VSI_STAT64=stat64 VSI_STAT64_T=stat64, VSI_STAT64=stat VSI_STAT64_T=stat)
+    case "${host_os}" in
+      darwin*)
+        VSI_STAT64=stat
+        VSI_STAT64_T=stat
+        ;;
+      *)      
+        AC_CHECK_FUNC(stat64, VSI_STAT64=stat64 VSI_STAT64_T=stat64, VSI_STAT64=stat VSI_STAT64_T=stat)
+        ;;
+    esac
     AC_CHECK_FUNC(fopen64, VSI_FOPEN64=fopen64, VSI_FOPEN64=fopen)
     AC_CHECK_FUNC(ftruncate64, VSI_FTRUNCATE64=ftruncate64, VSI_FTRUNCATE64=ftruncate)
 

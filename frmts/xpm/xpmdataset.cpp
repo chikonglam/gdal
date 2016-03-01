@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: xpmdataset.cpp 31999 2015-12-04 20:03:13Z rouault $
+ * $Id: xpmdataset.cpp 31998 2015-12-04 20:03:08Z rouault $
  *
  * Project:  XPM Driver
  * Purpose:  Implement GDAL XPM Support
@@ -34,7 +34,7 @@
 #include "gdal_frmts.h"						      
 
 
-CPL_CVSID("$Id: xpmdataset.cpp 31999 2015-12-04 20:03:13Z rouault $");
+CPL_CVSID("$Id: xpmdataset.cpp 31998 2015-12-04 20:03:08Z rouault $");
 
 static unsigned char *ParseXPM( const char *pszInput,
                                 unsigned int nFileSize,
@@ -201,13 +201,16 @@ GDALDataset *XPMDataset::Open( GDALOpenInfo * poOpenInfo )
 /************************************************************************/
 
 static GDALDataset *
-XPMCreateCopy( const char * pszFilename, GDALDataset *poSrcDS, 
-               int bStrict, CPL_UNUSED char ** papszOptions, 
-               CPL_UNUSED GDALProgressFunc pfnProgress, CPL_UNUSED void * pProgressData )
+XPMCreateCopy( const char * pszFilename,
+               CPL_UNUSED GDALDataset *poSrcDS,
+               int bStrict,
+               CPL_UNUSED char ** papszOptions,
+               CPL_UNUSED GDALProgressFunc pfnProgress,
+               CPL_UNUSED void * pProgressData )
 {
-    const int  nBands = poSrcDS->GetRasterCount();
-    const int  nXSize = poSrcDS->GetRasterXSize();
-    const int  nYSize = poSrcDS->GetRasterYSize();
+    int  nBands = poSrcDS->GetRasterCount();
+    int  nXSize = poSrcDS->GetRasterXSize();
+    int  nYSize = poSrcDS->GetRasterYSize();
     GDALColorTable *poCT;
 
 /* -------------------------------------------------------------------- */
@@ -384,7 +387,7 @@ XPMCreateCopy( const char * pszFilename, GDALDataset *poSrcDS,
     for( iLine = 0; iLine < nYSize; iLine++ )
     {
         poBand->RasterIO( GF_Read, 0, iLine, nXSize, 1, 
-                          (void *) pabyScanline, nXSize, 1, GDT_Byte, 0, 0 );
+                          (void *) pabyScanline, nXSize, 1, GDT_Byte, 0, 0, NULL );
         
         VSIFPutcL( '"', fpPBM );
         for( int iPixel = 0; iPixel < nXSize; iPixel++ )
@@ -402,9 +405,9 @@ XPMCreateCopy( const char * pszFilename, GDALDataset *poSrcDS,
     VSIFCloseL( fpPBM );
 
 /* -------------------------------------------------------------------- */
-/*      Re-open dataset, and copy any auxilary pam information.         */
+/*      Re-open dataset, and copy any auxiliary pam information.         */
 /* -------------------------------------------------------------------- */
-    GDALPamDataset *poDS = (GDALPamDataset *) 
+    GDALPamDataset *poDS = (GDALPamDataset *)
         GDALOpen( pszFilename, GA_ReadOnly );
 
     if( poDS )
@@ -427,6 +430,7 @@ void GDALRegister_XPM()
         poDriver = new GDALDriver();
         
         poDriver->SetDescription( "XPM" );
+        poDriver->SetMetadataItem( GDAL_DCAP_RASTER, "YES" );
         poDriver->SetMetadataItem( GDAL_DMD_LONGNAME, 
                                    "X11 PixMap Format" );
         poDriver->SetMetadataItem( GDAL_DMD_HELPTOPIC, 
