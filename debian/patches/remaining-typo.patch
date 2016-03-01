@@ -1,0 +1,15 @@
+Description: Fix 'Remaing' typo, replace with 'Remaining'.
+Author: Bas Couwenberg <sebastic@debian.org>
+Forwarded: not-needed
+
+--- a/frmts/pdf/pdfreadvectors.cpp
++++ b/frmts/pdf/pdfreadvectors.cpp
+@@ -1166,7 +1166,7 @@ OGRGeometry* PDFDataset::ParseContent(co
+         {
+             nTokenStackSize--;
+             CPLDebug("PDF",
+-                     "Remaing values in stack : %s",
++                     "Remaining values in stack : %s",
+                      aszTokenStack[nTokenStackSize]);
+         }
+         return  NULL;

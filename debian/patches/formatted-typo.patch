@@ -1,0 +1,57 @@
+Description: Fix 'formated' typo, replace with 'formatted'.
+Author: Bas Couwenberg <sebastic@debian.org>
+Forwarded: not-needed
+
+--- a/frmts/grib/degrib18/degrib/clock.c
++++ b/frmts/grib/degrib18/degrib/clock.c
+@@ -902,7 +902,7 @@ void Clock_PrintDate (double clock, sInt
+  * Arthur Taylor / MDL
+  *
+  * PURPOSE
+- *   To create formated output from a time structure that is stored as a
++ *   To create formatted output from a time structure that is stored as a
+  * double.
+  *
+  * ARGUMENTS
+@@ -983,7 +983,7 @@ void Clock_Print (char *buffer, int n, d
+  * Arthur Taylor / MDL
+  *
+  * PURPOSE
+- *   To create formated output from a time structure that is stored as a
++ *   To create formatted output from a time structure that is stored as a
+  * double.  This is similar to Clock_Print, except it bases the timezone
+  * shift on what the user supplies rather than the system timezone, and
+  * accepts a flag that indicates whether to inquire about daylight savings.
+--- a/frmts/grib/degrib18/degrib/myutil.c
++++ b/frmts/grib/degrib18/degrib/myutil.c
+@@ -1081,7 +1081,7 @@ int myParseTime3 (const char *is, time_t
+    memset (&time, 0, sizeof (struct tm));
+    myAssert (strlen (is) == 14);
+    if (strlen (is) != 14) {
+-      printf ("%s is not formated correctly\n", is);
++      printf ("%s is not formatted correctly\n", is);
+       return 1;
+    }
+    strncpy (buffer, is, 4);
+--- a/gcore/gdalmajorobject.cpp
++++ b/gcore/gdalmajorobject.cpp
+@@ -226,7 +226,7 @@ GDALGetMetadataDomainList( GDALMajorObje
+  * \brief Fetch metadata.
+  *
+  * The returned string list is owned by the object, and may change at
+- * any time.  It is formated as a "Name=value" list with the last pointer
++ * any time.  It is formatted as a "Name=value" list with the last pointer
+  * value being NULL.  Use the the CPL StringList functions such as 
+  * CSLFetchNameValue() to manipulate it. 
+  *
+--- a/swig/java/add_javadoc.c
++++ b/swig/java/add_javadoc.c
+@@ -29,7 +29,7 @@
+ *******************************************************************************/
+ 
+ /* NOTE : this is really a quick and very dirty hack to put the javadoc contained */
+-/* in a special formated file, javadoc.java, into the SWIG generated java files */
++/* in a special formatted file, javadoc.java, into the SWIG generated java files */
+ /* This program leaks memory and would crash easily on unexpected inputs */
+ 
+ #include <stdio.h>
