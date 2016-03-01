@@ -1,9 +1,10 @@
 Description: Fix 'instanciate' typo, replace with 'instantiate'.
 Author: Bas Couwenberg <sebastic@debian.org>
+Forwarded: not-needed
 
 --- a/NEWS
 +++ b/NEWS
-@@ -3746,7 +3746,7 @@ PostgreSQL driver:
+@@ -4513,7 +4513,7 @@ PostgreSQL driver:
   * If the PG_USE_BASE64 configuration option is set to YES, geometries will be
     requested as BASE64 encoded EWKB instead of canonical HEX encoded EWKB.
     (useful when bandwidth is the limiting factor)
@@ -14,9 +15,9 @@ Author: Bas Couwenberg <sebastic@debian.org>
   * Implement efficient OGRLayer::GetName() and OGRLayer::GetGeomType()
 --- a/apps/ogr2ogr.cpp
 +++ b/apps/ogr2ogr.cpp
-@@ -2571,7 +2571,7 @@ static TargetLayerInfo* SetupTargetLayer
- /*      Find the layer.                                                 */
- /* -------------------------------------------------------------------- */
+@@ -2739,7 +2739,7 @@ static OGRLayer* GetLayerAndOverwriteIfN
+     if( pbErrorOccured )
+         *pbErrorOccured = FALSE;
  
 -    /* GetLayerByName() can instanciate layers that would have been */
 +    /* GetLayerByName() can instantiate layers that would have been */
@@ -25,7 +26,7 @@ Author: Bas Couwenberg <sebastic@debian.org>
      /* not useless... (#4012) */
 --- a/apps/ogrlineref.cpp
 +++ b/apps/ogrlineref.cpp
-@@ -170,7 +170,7 @@ static OGRLayer* SetupTargetLayer(OGRLay
+@@ -171,7 +171,7 @@ static OGRLayer* SetupTargetLayer(OGRLay
      /*      Find the layer.                                                 */
      /* -------------------------------------------------------------------- */
  
@@ -36,7 +37,7 @@ Author: Bas Couwenberg <sebastic@debian.org>
      /* not useless... (#4012) */
 --- a/data/osmconf.ini
 +++ b/data/osmconf.ini
-@@ -55,7 +55,7 @@ ignore=created_by,converted_by,source,ti
+@@ -66,7 +66,7 @@ z_order_sql="SELECT (CASE [highway] WHEN
  
  [multipolygons]
  # common attributes
@@ -47,7 +48,7 @@ Author: Bas Couwenberg <sebastic@debian.org>
  osm_version=no
 --- a/frmts/gtiff/geotiff.cpp
 +++ b/frmts/gtiff/geotiff.cpp
-@@ -9758,7 +9758,7 @@ GTiffDataset::CreateCopy( const char * p
+@@ -12453,7 +12453,7 @@ GTiffDataset::CreateCopy( const char * p
          if (poDS->nOverviewCount != nSrcOverviews)
          {
              CPLError(CE_Failure, CPLE_AppDefined,
@@ -69,7 +70,7 @@ Author: Bas Couwenberg <sebastic@debian.org>
                      /* values greater than the default one (1), which may cause */
 --- a/frmts/jpeg/jpgdataset.cpp
 +++ b/frmts/jpeg/jpgdataset.cpp
-@@ -1201,7 +1201,7 @@ void JPGDatasetCommon::InitInternalOverv
+@@ -1386,7 +1386,7 @@ void JPGDatasetCommon::InitInternalOverv
      bHasInitInternalOverviews = TRUE;
  
  /* -------------------------------------------------------------------- */
@@ -91,9 +92,9 @@ Author: Bas Couwenberg <sebastic@debian.org>
  
 --- a/frmts/vrt/vrtdataset.cpp
 +++ b/frmts/vrt/vrtdataset.cpp
-@@ -1317,7 +1317,7 @@ CPLErr VRTDataset::IRasterIO( GDALRWFlag
+@@ -1361,7 +1361,7 @@ CPLErr VRTDataset::IRasterIO( GDALRWFlag
+         void             *pProgressDataGlobal = psExtraArg->pProgressData;
  
-         CPLErr eErr = CE_None;
          /* Use the last band, because when sources reference a GDALProxyDataset, they */
 -        /* don't necessary instanciate all underlying rasterbands */
 +        /* don't necessary instantiate all underlying rasterbands */
@@ -122,7 +123,7 @@ Author: Bas Couwenberg <sebastic@debian.org>
   * @param nPartId the part number (0-based index).
 --- a/ogr/ogrsf_frmts/libkml/ogrlibkmlgeometry.cpp
 +++ b/ogr/ogrsf_frmts/libkml/ogrlibkmlgeometry.cpp
-@@ -573,7 +573,7 @@ OGRGeometry *kml2geom_rec (
+@@ -571,7 +571,7 @@ OGRGeometry *kml2geom_rec (
          poKmlMultiGeometry = AsMultiGeometry ( poKmlGeometry );
          nGeom = poKmlMultiGeometry->get_geometry_array_size (  );
  
@@ -133,7 +134,7 @@ Author: Bas Couwenberg <sebastic@debian.org>
              poKmlTmpGeometry = poKmlMultiGeometry->get_geometry_array_at ( i );
 --- a/ogr/ogrsf_frmts/mitab/mitab.h
 +++ b/ogr/ogrsf_frmts/mitab/mitab.h
-@@ -1035,7 +1035,7 @@ class ITABFeatureSymbol
+@@ -1017,7 +1017,7 @@ class ITABFeatureSymbol
   *
   * TABFeature will be used as a base class for all the feature classes.
   *
@@ -144,7 +145,7 @@ Author: Bas Couwenberg <sebastic@debian.org>
   * The logic to read/write the object from/to the .DAT and .MAP files is also
 --- a/ogr/ogrsf_frmts/pg/ogrpgdatasource.cpp
 +++ b/ogr/ogrsf_frmts/pg/ogrpgdatasource.cpp
-@@ -1310,7 +1310,7 @@ OGRPGDataSource::CreateLayer( const char
+@@ -1473,7 +1473,7 @@ OGRPGDataSource::ICreateLayer( const cha
          osSQLLayerName += pszTableName;
      }
  
@@ -155,7 +156,7 @@ Author: Bas Couwenberg <sebastic@debian.org>
      /* not useless... (#4012) */
 --- a/ogr/ogrsf_frmts/vrt/ogrvrtdatasource.cpp
 +++ b/ogr/ogrsf_frmts/vrt/ogrvrtdatasource.cpp
-@@ -160,7 +160,7 @@ OGRLayer*  OGRVRTDataSource::Instanciate
+@@ -168,7 +168,7 @@ OGRLayer*  OGRVRTDataSource::Instanciate
      if( poSrcLayer == NULL )
      {
          CPLError( CE_Failure, CPLE_AppDefined,
@@ -166,7 +167,7 @@ Author: Bas Couwenberg <sebastic@debian.org>
  
 --- a/ogr/ogrsf_frmts/vrt/ogrvrtlayer.cpp
 +++ b/ogr/ogrsf_frmts/vrt/ogrvrtlayer.cpp
-@@ -788,7 +788,7 @@ try_again:
+@@ -804,7 +804,7 @@ try_again:
          }
          }
  
@@ -177,24 +178,46 @@ Author: Bas Couwenberg <sebastic@debian.org>
          {
 --- a/port/cpl_multiproc.h
 +++ b/port/cpl_multiproc.h
-@@ -86,7 +86,7 @@ CPL_C_END
+@@ -123,10 +123,10 @@ CPL_C_END
  
  #ifdef __cplusplus
  
--/* Instanciates the mutex if not already done */
-+/* Instantiates the mutex if not already done */
+-/* Instanciates the mutex if not already done. The parameter x should be a (void**)  */
++/* Instantiates the mutex if not already done. The parameter x should be a (void**)  */
  #define CPLMutexHolderD(x)  CPLMutexHolder oHolder(x,1000.0,__FILE__,__LINE__);
  
- /* This variant assumes the the mutex has already been created. If not, it will */
-@@ -102,7 +102,7 @@ class CPL_DLL CPLMutexHolder
+-/* Instanciates the mutex with options if not already done. */
++/* Instantiates the mutex with options if not already done. */
+ /* The parameter x should be a (void**)  */
+ #define CPLMutexHolderExD(x, nOptions)  CPLMutexHolder oHolder(x,1000.0,__FILE__,__LINE__,nOptions);
+ 
+@@ -143,7 +143,7 @@ class CPL_DLL CPLMutexHolder
  
    public:
  
 -    /* Instanciates the mutex if not already done */
 +    /* Instantiates the mutex if not already done */
-     CPLMutexHolder( void **phMutex, double dfWaitInSeconds = 1000.0,
+     CPLMutexHolder( CPLMutex **phMutex, double dfWaitInSeconds = 1000.0,
                      const char *pszFile = __FILE__,
-                     int nLine = __LINE__ );
+                     int nLine = __LINE__,
+@@ -158,7 +158,7 @@ class CPL_DLL CPLMutexHolder
+     ~CPLMutexHolder();
+ };
+ 
+-/* Instanciates the lock if not already done. The parameter x should be a (CPLLock**) */
++/* Instantiates the lock if not already done. The parameter x should be a (CPLLock**) */
+ #define CPLLockHolderD(x, eType)  CPLLockHolder oHolder(x,eType,__FILE__,__LINE__);
+ 
+ /* This variant assumes the the lock has already been created. If not, it will */
+@@ -174,7 +174,7 @@ class CPL_DLL CPLLockHolder
+ 
+   public:
+ 
+-    /* Instanciates the lock if not already done */
++    /* Instantiates the lock if not already done */
+     CPLLockHolder( CPLLock **phSpin, CPLLockType eType,
+                     const char *pszFile = __FILE__,
+                     int nLine = __LINE__);
 --- a/swig/java/apps/ogr2ogr.java
 +++ b/swig/java/apps/ogr2ogr.java
 @@ -1194,7 +1194,7 @@ public class ogr2ogr
@@ -228,3 +251,36 @@ Author: Bas Couwenberg <sebastic@debian.org>
      #*/ 'hidden' otherwise, for example, non-spatial tables in a */
      #*/ Postgis-enabled database, so this apparently useless command is */
      #/* not useless... (#4012) */
+--- a/gcore/gdaldllmain.cpp
++++ b/gcore/gdaldllmain.cpp
+@@ -79,7 +79,7 @@ void GDALDestroy(void)
+     bInGDALGlobalDestructor = FALSE;
+ 
+     /* See https://trac.osgeo.org/gdal/ticket/6139 */
+-    /* Needed in case no driver manager has been instanciated */
++    /* Needed in case no driver manager has been instantiated */
+     CPLFreeConfig();
+     CPLFinalizeTLS();
+     CPLCleanupMasterMutex();
+--- a/ogr/ogr_arch.dox
++++ b/ogr/ogr_arch.dox
+@@ -240,7 +240,7 @@ A GDALDriver object is instantiated for
+ The GDALDriver objects are registered with the GDALDriverManager, a
+ singleton class that is normally used to open new datasets.<p>
+ 
+-It is intended that a new GDALDriver object is instanciated and define function
++It is intended that a new GDALDriver object is instantiated and define function
+ pointers for operations like Identify(), Open() for each
+ file format to be supported (along with a file format specific 
+ GDALDataset, and OGRLayer classes).<p>
+--- a/ogr/ogrsf_frmts/mitab/mitab_imapinfofile.cpp
++++ b/ogr/ogrsf_frmts/mitab/mitab_imapinfofile.cpp
+@@ -318,7 +318,7 @@ OGRFeature *IMapInfoFile::GetNextFeature
+ /**********************************************************************
+  *                   IMapInfoFile::CreateTABFeature()
+  *
+- * Instanciate a TABFeature* from a OGRFeature* (or NULL on error)
++ * Instantiate a TABFeature* from a OGRFeature* (or NULL on error)
+  **********************************************************************/
+ 
+ TABFeature* IMapInfoFile::CreateTABFeature(OGRFeature *poFeature)

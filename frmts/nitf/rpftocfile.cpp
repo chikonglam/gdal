@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: rpftocfile.cpp 29261 2015-05-29 09:15:58Z rouault $
+ * $Id: rpftocfile.cpp 29260 2015-05-29 09:13:17Z rouault $
  *
  * Project:  RPF A.TOC read Library
  * Purpose:  Module responsible for opening a RPF TOC file, populating RPFToc
@@ -49,7 +49,7 @@
 #include "cpl_conv.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: rpftocfile.cpp 29261 2015-05-29 09:15:58Z rouault $");
+CPL_CVSID("$Id: rpftocfile.cpp 29260 2015-05-29 09:13:17Z rouault $");
 
 /************************************************************************/
 /*                        RPFTOCTrim()                                    */

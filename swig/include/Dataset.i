@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: Dataset.i 26832 2014-01-15 12:46:08Z rouault $
+ * $Id: Dataset.i 28601 2015-03-03 11:06:40Z rouault $
  *
  * Name:     Dataset.i
  * Project:  GDAL Python Interface
@@ -33,7 +33,7 @@
 static
 GIntBig ComputeDatasetRasterIOSize (int buf_xsize, int buf_ysize, int nPixelSize,
                                 int nBands, int* bandMap, int nBandMapArrayLength,
-                                int nPixelSpace, int nLineSpace, int nBandSpace,
+                                GIntBig nPixelSpace, GIntBig nLineSpace, GIntBig nBandSpace,
                                 int bSpacingShouldBeMultipleOfPixelSize )
 {
 #if SIZEOF_VOIDP == 8
@@ -41,7 +41,7 @@ GIntBig ComputeDatasetRasterIOSize (int buf_xsize, int buf_ysize, int nPixelSize
 #else
     const GIntBig MAX_INT = 0x7fffffff;
 #endif
-    const GIntBig MAX_INT32 = 0x7fffffff;
+
     if (buf_xsize <= 0 || buf_ysize <= 0)
     {
         CPLError(CE_Failure, CPLE_IllegalArg, "Illegal values for buffer size");
@@ -70,11 +70,6 @@ GIntBig ComputeDatasetRasterIOSize (int buf_xsize, int buf_ysize, int nPixelSize
 
     if( nLineSpace == 0 )
     {
-        if (nPixelSpace > MAX_INT32 / buf_xsize)
-        {
-            CPLError(CE_Failure, CPLE_IllegalArg, "Integer overflow for nLineSpace");
-            return 0;
-        }
         nLineSpace = nPixelSpace * buf_xsize;
     }
     else if ( bSpacingShouldBeMultipleOfPixelSize && (nLineSpace % nPixelSize) != 0 )
@@ -85,11 +80,6 @@ GIntBig ComputeDatasetRasterIOSize (int buf_xsize, int buf_ysize, int nPixelSize
 
     if( nBandSpace == 0 )
     {
-        if (nLineSpace > MAX_INT32 / buf_ysize)
-        {
-            CPLError(CE_Failure, CPLE_IllegalArg, "Integer overflow for nBandSpace");
-            return 0;
-        }
         nBandSpace = nLineSpace * buf_ysize;
     }
     else if ( bSpacingShouldBeMultipleOfPixelSize && (nBandSpace % nPixelSize) != 0 )
@@ -124,7 +114,8 @@ CPLErr DSReadRaster_internal( GDALDatasetShadow *obj,
                             GDALDataType buf_type,
                             int *buf_size, char **buf,
                             int band_list, int *pband_list,
-                            int pixel_space, int line_space, int band_space)
+                            GIntBig pixel_space, GIntBig line_space, GIntBig band_space,
+                            GDALRasterIOExtraArg* psExtraArg)
 {
   CPLErr result;
 
@@ -146,9 +137,10 @@ CPLErr DSReadRaster_internal( GDALDatasetShadow *obj,
   *buf = (char*) malloc( *buf_size );
   if (*buf)
   {
-    result = GDALDatasetRasterIO(obj, GF_Read, xoff, yoff, xsize, ysize,
+    result = GDALDatasetRasterIOEx(obj, GF_Read, xoff, yoff, xsize, ysize,
                                     (void*) *buf, buf_xsize, buf_ysize, buf_type,
-                                    band_list, pband_list, pixel_space, line_space, band_space );
+                                    band_list, pband_list, pixel_space, line_space, band_space,
+                                    psExtraArg );
     if ( result != CE_None ) {
         free( *buf );
         *buf = 0;
@@ -596,7 +588,10 @@ CPLErr ReadRaster(  int xoff, int yoff, int xsize, int ysize,
                       int *buf_xsize = 0, int *buf_ysize = 0,
                       GDALDataType *buf_type = 0,
                       int band_list = 0, int *pband_list = 0,
-                      int* buf_pixel_space = 0, int* buf_line_space = 0, int* buf_band_space = 0 )
+                      int* buf_pixel_space = 0, int* buf_line_space = 0, int* buf_band_space = 0,
+                      GDALRIOResampleAlg resample_alg = GRIORA_NearestNeighbour,
+                      GDALProgressFunc callback = NULL,
+                      void* callback_data=NULL )
 {
     CPLErr eErr;
     int nxsize = (buf_xsize==0) ? xsize : *buf_xsize;
@@ -611,15 +606,21 @@ CPLErr ReadRaster(  int xoff, int yoff, int xsize, int ysize,
       ntype = GDALGetRasterDataType( GDALGetRasterBand( self, lastband ) );
     }
 
-    int pixel_space = (buf_pixel_space == 0) ? 0 : *buf_pixel_space;
-    int line_space = (buf_line_space == 0) ? 0 : *buf_line_space;
-    int band_space = (buf_band_space == 0) ? 0 : *buf_band_space;
+    GDALRasterIOExtraArg sExtraArg;
+    INIT_RASTERIO_EXTRA_ARG(sExtraArg);
+    sExtraArg.eResampleAlg = resample_alg;
+    sExtraArg.pfnProgress = callback;
+    sExtraArg.pProgressData = callback_data;
+
+    GIntBig pixel_space = (buf_pixel_space == 0) ? 0 : *buf_pixel_space;
+    GIntBig line_space = (buf_line_space == 0) ? 0 : *buf_line_space;
+    GIntBig band_space = (buf_band_space == 0) ? 0 : *buf_band_space;
                             
     eErr = DSReadRaster_internal( self, xoff, yoff, xsize, ysize,
                                 nxsize, nysize, ntype,
                                 buf_len, buf, 
                                 band_list, pband_list,
-                                pixel_space, line_space, band_space);
+                                pixel_space, line_space, band_space, &sExtraArg);
 
     return eErr;
 }
@@ -835,6 +836,113 @@ CPLErr ReadRaster(  int xoff, int yoff, int xsize, int ysize,
 %clear(int band_list, int *pband_list);
 
 #endif /* PYTHON */
+
+#if defined(SWIGPYTHON) || defined(SWIGJAVA)
+
+  /* Note that datasources own their layers */
+#ifndef SWIGJAVA
+  %feature( "kwargs" ) CreateLayer;
+#endif
+  OGRLayerShadow *CreateLayer(const char* name, 
+              OSRSpatialReferenceShadow* srs=NULL,
+              OGRwkbGeometryType geom_type=wkbUnknown,
+              char** options=0) {
+    OGRLayerShadow* layer = (OGRLayerShadow*) GDALDatasetCreateLayer( self,
+                                  name,
+                                  srs,
+                                  geom_type,
+                                  options);
+    return layer;
+  }
+
+#ifndef SWIGJAVA
+  %feature( "kwargs" ) CopyLayer;
+#endif
+%apply Pointer NONNULL {OGRLayerShadow *src_layer};
+  OGRLayerShadow *CopyLayer(OGRLayerShadow *src_layer,
+            const char* new_name,
+            char** options=0) {
+    OGRLayerShadow* layer = (OGRLayerShadow*) GDALDatasetCopyLayer( self,
+                                                      src_layer,
+                                                      new_name,
+                                                      options);
+    return layer;
+  }
+
+  OGRErr DeleteLayer(int index){
+    return GDALDatasetDeleteLayer(self, index);
+  }
+
+  int GetLayerCount() {
+    return GDALDatasetGetLayerCount(self);
+  }
+
+#ifdef SWIGJAVA
+  OGRLayerShadow *GetLayerByIndex( int index ) {
+#else
+  OGRLayerShadow *GetLayerByIndex( int index=0) {
+#endif
+    OGRLayerShadow* layer = (OGRLayerShadow*) GDALDatasetGetLayer(self, index);
+    return layer;
+  }
+
+  OGRLayerShadow *GetLayerByName( const char* layer_name) {
+    OGRLayerShadow* layer = (OGRLayerShadow*) GDALDatasetGetLayerByName(self, layer_name);
+    return layer;
+  }
+
+  bool TestCapability(const char * cap) {
+    return (GDALDatasetTestCapability(self, cap) > 0);
+  }
+
+#ifndef SWIGJAVA
+  %feature( "kwargs" ) ExecuteSQL;
+#endif
+  %apply Pointer NONNULL {const char * statement};
+  OGRLayerShadow *ExecuteSQL(const char* statement,
+                        OGRGeometryShadow* spatialFilter=NULL,
+                        const char* dialect="") {
+    OGRLayerShadow* layer = (OGRLayerShadow*) GDALDatasetExecuteSQL(self,
+                                                      statement,
+                                                      spatialFilter,
+                                                      dialect);
+    return layer;
+  }
+  
+%apply SWIGTYPE *DISOWN {OGRLayerShadow *layer};
+  void ReleaseResultSet(OGRLayerShadow *layer){
+    GDALDatasetReleaseResultSet(self, layer);
+  }
+%clear OGRLayerShadow *layer;
+  
+  OGRStyleTableShadow *GetStyleTable() {
+    return (OGRStyleTableShadow*) GDALDatasetGetStyleTable(self);
+  }
+
+  void SetStyleTable(OGRStyleTableShadow* table) {
+    if( table != NULL )
+        GDALDatasetSetStyleTable(self, (OGRStyleTableH) table);
+  }
+
+#endif /* defined(SWIGPYTHON) || defined(SWIGJAVA) */
+
+#ifndef SWIGJAVA
+  %feature( "kwargs" ) StartTransaction;
+#endif
+  OGRErr StartTransaction(int force = FALSE)
+  {
+    return GDALDatasetStartTransaction(self, force);
+  }
+
+  OGRErr CommitTransaction()
+  {
+    return GDALDatasetCommitTransaction(self);
+  }
+
+  OGRErr RollbackTransaction()
+  {
+    return GDALDatasetRollbackTransaction(self);
+  }
 
 } /* extend */
 }; /* GDALDatasetShadow */

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: grcdataset.cpp 28503 2015-02-16 16:56:48Z rouault $
+ * $Id: grcdataset.cpp 28502 2015-02-16 16:55:20Z rouault $
  *
  * Project:  GRC Reader
  * Purpose:  GDAL driver for Northwood Classified Format
@@ -217,8 +217,9 @@ GDALColorInterp NWT_GRCRasterBand::GetColorInterpretation()
 /************************************************************************/
 /*                             IReadBlock()                             */
 /************************************************************************/
-CPLErr NWT_GRCRasterBand::IReadBlock( CPL_UNUSED int nBlockXOff, int nBlockYOff,
-                                        void *pImage )
+CPLErr NWT_GRCRasterBand::IReadBlock( CPL_UNUSED int nBlockXOff,
+                                      int nBlockYOff,
+                                      void *pImage )
 {
     NWT_GRCDataset *poGDS =(NWT_GRCDataset *) poDS;
     int nRecordSize = nBlockXSize *( poGDS->pGrd->nBitsPerPixel / 8 );
@@ -384,7 +385,7 @@ GDALDataset *NWT_GRCDataset::Open( GDALOpenInfo * poOpenInfo )
 /* -------------------------------------------------------------------- */
 /*      Check for external overviews.                                   */
 /* -------------------------------------------------------------------- */
-    poDS->oOvManager.Initialize( poDS, poOpenInfo->pszFilename, poOpenInfo->papszSiblingFiles );
+    poDS->oOvManager.Initialize( poDS, poOpenInfo->pszFilename, poOpenInfo->GetSiblingFiles() );
 
     return (poDS);
 }
@@ -404,6 +405,7 @@ GDALRegister_NWT_GRC()
         poDriver = new GDALDriver();
 
         poDriver->SetDescription( "NWT_GRC" );
+        poDriver->SetMetadataItem( GDAL_DCAP_RASTER, "YES" );
         poDriver->SetMetadataItem( GDAL_DMD_LONGNAME,
                                  "Northwood Classified Grid Format .grc/.tab");
         poDriver->SetMetadataItem( GDAL_DMD_HELPTOPIC,

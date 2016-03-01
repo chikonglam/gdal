@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 ###############################################################################
-# $Id: mkgraticule.py 24538 2012-06-04 18:30:34Z antonio $
+# $Id: mkgraticule.py 28389 2015-01-30 19:26:09Z rouault $
 #
 # Project:  OGR Python samples
 # Purpose:  Produce a graticule (grid) dataset.
@@ -35,7 +35,6 @@ except ImportError:
     import osr
     import ogr
 
-import string
 import sys
 
 #############################################################################

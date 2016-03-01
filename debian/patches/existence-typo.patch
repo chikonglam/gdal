@@ -1,9 +1,10 @@
 Description: Fix 'existance' typo, replace with 'existence'.
 Author: Bas Couwenberg <sebastic@debian.org>
+Forwarded: not-needed
 
 --- a/frmts/vrt/vrtdataset.h
 +++ b/frmts/vrt/vrtdataset.h
-@@ -253,7 +253,7 @@ class CPL_DLL VRTRasterBand : public GDA
+@@ -265,7 +265,7 @@ class CPL_DLL VRTRasterBand : public GDA
      int            bIsMaskBand;
  
      int            bNoDataValueSet;
@@ -25,7 +26,7 @@ Author: Bas Couwenberg <sebastic@debian.org>
  dnl the macro searches under /usr, /usr/local, and /opt.
 --- a/ogr/ogrfeaturedefn.cpp
 +++ b/ogr/ogrfeaturedefn.cpp
-@@ -352,7 +352,7 @@ OGRFieldDefnH OGR_FD_GetFieldDefn( OGRFe
+@@ -364,7 +364,7 @@ OGRFieldDefnH OGR_FD_GetFieldDefn( OGRFe
   * function directly, but use OGRLayer::CreateField() instead.
   *
   * This method should only be called while there are no OGRFeature
@@ -34,7 +35,7 @@ Author: Bas Couwenberg <sebastic@debian.org>
   * passed in is copied, and remains the responsibility of the caller.
   *
   * This method is the same as the C function OGR_FD_AddFieldDefn().
-@@ -382,7 +382,7 @@ void OGRFeatureDefn::AddFieldDefn( OGRFi
+@@ -394,7 +394,7 @@ void OGRFeatureDefn::AddFieldDefn( OGRFi
   * function directly, but use OGR_L_CreateField() instead.
   *
   * This function  should only be called while there are no OGRFeature
@@ -43,7 +44,7 @@ Author: Bas Couwenberg <sebastic@debian.org>
   * passed in is copied, and remains the responsibility of the caller.
   *
   * This function is the same as the C++ method OGRFeatureDefn::AddFieldDefn().
-@@ -409,7 +409,7 @@ void OGR_FD_AddFieldDefn( OGRFeatureDefn
+@@ -421,7 +421,7 @@ void OGR_FD_AddFieldDefn( OGRFeatureDefn
   * function directly, but use OGRLayer::DeleteField() instead.
   *
   * This method should only be called while there are no OGRFeature
@@ -52,7 +53,7 @@ Author: Bas Couwenberg <sebastic@debian.org>
   *
   * This method is the same as the C function OGR_FD_DeleteFieldDefn().
   *
-@@ -450,7 +450,7 @@ OGRErr OGRFeatureDefn::DeleteFieldDefn(
+@@ -462,7 +462,7 @@ OGRErr OGRFeatureDefn::DeleteFieldDefn(
   * function directly, but use OGR_L_DeleteField() instead.
   *
   * This method should only be called while there are no OGRFeature
@@ -61,7 +62,7 @@ Author: Bas Couwenberg <sebastic@debian.org>
   *
   * This method is the same as the C++ method OGRFeatureDefn::DeleteFieldDefn().
   *
-@@ -477,7 +477,7 @@ OGRErr OGR_FD_DeleteFieldDefn( OGRFeatur
+@@ -489,7 +489,7 @@ OGRErr OGR_FD_DeleteFieldDefn( OGRFeatur
   * function directly, but use OGR_L_ReorderFields() instead.
   *
   * This method should only be called while there are no OGRFeature
@@ -70,7 +71,7 @@ Author: Bas Couwenberg <sebastic@debian.org>
   *
   * This method is the same as the C function OGR_FD_ReorderFieldDefns().
   *
-@@ -524,7 +524,7 @@ OGRErr OGRFeatureDefn::ReorderFieldDefns
+@@ -536,7 +536,7 @@ OGRErr OGRFeatureDefn::ReorderFieldDefns
   * function directly, but use OGR_L_ReorderFields() instead.
   *
   * This method should only be called while there are no OGRFeature
@@ -79,7 +80,7 @@ Author: Bas Couwenberg <sebastic@debian.org>
   *
   * This method is the same as the C++ method OGRFeatureDefn::ReorderFieldDefns().
   *
-@@ -654,7 +654,7 @@ OGRGeomFieldDefnH OGR_FD_GetGeomFieldDef
+@@ -679,7 +679,7 @@ OGRGeomFieldDefnH OGR_FD_GetGeomFieldDef
   * field definition.
   *
   * This method should only be called while there are no OGRFeature
@@ -88,7 +89,7 @@ Author: Bas Couwenberg <sebastic@debian.org>
   * passed in is copied, and remains the responsibility of the caller.
   *
   * This method is the same as the C function OGR_FD_AddGeomFieldDefn().
-@@ -688,7 +688,7 @@ void OGRFeatureDefn::AddGeomFieldDefn( O
+@@ -713,7 +713,7 @@ void OGRFeatureDefn::AddGeomFieldDefn( O
   * function directly, but use OGR_L_CreateGeomField() instead.
   *
   * This function  should only be called while there are no OGRFeature
@@ -97,7 +98,7 @@ Author: Bas Couwenberg <sebastic@debian.org>
   * passed in is copied, and remains the responsibility of the caller.
   *
   * This function is the same as the C++ method OGRFeatureDefn::AddGeomFieldDefn().
-@@ -717,7 +717,7 @@ void OGR_FD_AddGeomFieldDefn( OGRFeature
+@@ -742,7 +742,7 @@ void OGR_FD_AddGeomFieldDefn( OGRFeature
   * function directly, but use OGRLayer::DeleteGeomField() instead.
   *
   * This method should only be called while there are no OGRFeature
@@ -106,7 +107,7 @@ Author: Bas Couwenberg <sebastic@debian.org>
   *
   * This method is the same as the C function OGR_FD_DeleteGeomFieldDefn().
   *
-@@ -759,7 +759,7 @@ OGRErr OGRFeatureDefn::DeleteGeomFieldDe
+@@ -784,7 +784,7 @@ OGRErr OGRFeatureDefn::DeleteGeomFieldDe
   * function directly, but use OGR_L_DeleteGeomField() instead (*not implemented yet*)
   *
   * This method should only be called while there are no OGRFeature
@@ -115,20 +116,9 @@ Author: Bas Couwenberg <sebastic@debian.org>
   *
   * This method is the same as the C++ method OGRFeatureDefn::DeleteGeomFieldDefn().
   *
---- a/ogr/ogrsf_frmts/generic/ogrsfdriverregistrar.cpp
-+++ b/ogr/ogrsf_frmts/generic/ogrsfdriverregistrar.cpp
-@@ -169,7 +169,7 @@ void OGRCleanupAll()
-  *
-  * This static method should be used to fetch the singleton 
-  * registrar.  It will create a registrar if there is not already
-- * one in existance.
-+ * one in existence.
-  *
-  * @return the current driver registrar.
-  */
 --- a/ogr/ogrsf_frmts/ogrsf_frmts.dox
 +++ b/ogr/ogrsf_frmts/ogrsf_frmts.dox
-@@ -2690,7 +2690,7 @@ on a real layer. Internally the OGRFeatu
+@@ -2009,7 +2009,7 @@ on a real layer. Internally the OGRFeatu
  to reflect the new field.  Applications should never modify the OGRFeatureDefn
  used by a layer directly.
  
@@ -137,7 +127,7 @@ Author: Bas Couwenberg <sebastic@debian.org>
  were obtained or created with the previous layer definition.
  
  Not all drivers support this method. You can query a layer to check if it supports it
-@@ -2719,7 +2719,7 @@ on a real layer. Internally the OGRFeatu
+@@ -2041,7 +2041,7 @@ on a real layer. Internally the OGRFeatu
  to reflect the new field.  Applications should never modify the OGRFeatureDefn
  used by a layer directly.
  
@@ -146,7 +136,7 @@ Author: Bas Couwenberg <sebastic@debian.org>
  were obtained or created with the previous layer definition.
  
  Not all drivers support this function. You can query a layer to check if it supports it
-@@ -2748,7 +2748,7 @@ on a real layer. Internally the OGRFeatu
+@@ -2073,7 +2073,7 @@ on a real layer. Internally the OGRFeatu
  to reflect the deleted field.  Applications should never modify the OGRFeatureDefn
  used by a layer directly.
  
@@ -155,7 +145,7 @@ Author: Bas Couwenberg <sebastic@debian.org>
  were obtained or created with the previous layer definition.
  
  Not all drivers support this method. You can query a layer to check if it supports it
-@@ -2776,7 +2776,7 @@ on a real layer. Internally the OGRFeatu
+@@ -2101,7 +2101,7 @@ on a real layer. Internally the OGRFeatu
  to reflect the deleted field.  Applications should never modify the OGRFeatureDefn
  used by a layer directly.
  
@@ -164,7 +154,7 @@ Author: Bas Couwenberg <sebastic@debian.org>
  were obtained or created with the previous layer definition.
  
  Not all drivers support this function. You can query a layer to check if it supports it
-@@ -2804,7 +2804,7 @@ on a real layer. Internally the OGRFeatu
+@@ -2129,7 +2129,7 @@ on a real layer. Internally the OGRFeatu
  to reflect the reordering of the fields.  Applications should never modify the OGRFeatureDefn
  used by a layer directly.
  
@@ -173,7 +163,7 @@ Author: Bas Couwenberg <sebastic@debian.org>
  were obtained or created with the previous layer definition.
  
  panMap is such that,for each field definition at position i after reordering,
-@@ -2839,7 +2839,7 @@ on a real layer. Internally the OGRFeatu
+@@ -2164,7 +2164,7 @@ on a real layer. Internally the OGRFeatu
  to reflect the reordering of the fields.  Applications should never modify the OGRFeatureDefn
  used by a layer directly.
  
@@ -182,7 +172,7 @@ Author: Bas Couwenberg <sebastic@debian.org>
  were obtained or created with the previous layer definition.
  
  panMap is such that,for each field definition at position i after reordering,
-@@ -2877,7 +2877,7 @@ on a real layer. Internally the OGRFeatu
+@@ -2202,7 +2202,7 @@ on a real layer. Internally the OGRFeatu
  to reflect the reordering of the fields.  Applications should never modify the OGRFeatureDefn
  used by a layer directly.
  
@@ -191,7 +181,7 @@ Author: Bas Couwenberg <sebastic@debian.org>
  were obtained or created with the previous layer definition.
  
  The field definition that was at initial position iOldFieldPos will be moved at
-@@ -2914,7 +2914,7 @@ on a real layer. Internally the OGRFeatu
+@@ -2239,7 +2239,7 @@ on a real layer. Internally the OGRFeatu
  to reflect the reordering of the fields.  Applications should never modify the OGRFeatureDefn
  used by a layer directly.
  
@@ -200,7 +190,7 @@ Author: Bas Couwenberg <sebastic@debian.org>
  were obtained or created with the previous layer definition.
  
  The field definition that was at initial position iOldFieldPos will be moved at
-@@ -2949,7 +2949,7 @@ Internally the OGRFeatureDefn for the la
+@@ -2274,7 +2274,7 @@ Internally the OGRFeatureDefn for the la
  to reflect the altered field.  Applications should never modify the OGRFeatureDefn
  used by a layer directly.
  
@@ -209,7 +199,7 @@ Author: Bas Couwenberg <sebastic@debian.org>
  were obtained or created with the previous layer definition.
  
  Not all drivers support this method. You can query a layer to check if it supports it
-@@ -2981,7 +2981,7 @@ Internally the OGRFeatureDefn for the la
+@@ -2307,7 +2307,7 @@ Internally the OGRFeatureDefn for the la
  to reflect the altered field.  Applications should never modify the OGRFeatureDefn
  used by a layer directly.
  
@@ -218,7 +208,7 @@ Author: Bas Couwenberg <sebastic@debian.org>
  were obtained or created with the previous layer definition.
  
  Not all drivers support this function. You can query a layer to check if it supports it
-@@ -3016,7 +3016,7 @@ on a real layer. Internally the OGRFeatu
+@@ -2343,7 +2343,7 @@ on a real layer. Internally the OGRFeatu
  to reflect the new field.  Applications should never modify the OGRFeatureDefn
  used by a layer directly.
  
@@ -227,7 +217,7 @@ Author: Bas Couwenberg <sebastic@debian.org>
  were obtained or created with the previous layer definition.
  
  Not all drivers support this method. You can query a layer to check if it supports it
-@@ -3047,7 +3047,7 @@ on a real layer. Internally the OGRFeatu
+@@ -2377,7 +2377,7 @@ on a real layer. Internally the OGRFeatu
  to reflect the new field.  Applications should never modify the OGRFeatureDefn
  used by a layer directly.
  
@@ -238,7 +228,7 @@ Author: Bas Couwenberg <sebastic@debian.org>
  Not all drivers support this function. You can query a layer to check if it supports it
 --- a/ogr/ogrspatialreference.cpp
 +++ b/ogr/ogrspatialreference.cpp
-@@ -770,7 +770,7 @@ OGRErr OSRImportFromWkt( OGRSpatialRefer
+@@ -771,7 +771,7 @@ OGRErr OSRImportFromWkt( OGRSpatialRefer
   * \brief Set attribute value in spatial reference.
   *
   * Missing intermediate nodes in the path will be created if not already
@@ -247,20 +237,9 @@ Author: Bas Couwenberg <sebastic@debian.org>
   * assigned the value otherwise the zeroth child will be assigned the value.
   *
   * This method does the same as the C function OSRSetAttrValue(). 
---- a/ogr/wcts/html/index.html
-+++ b/ogr/wcts/html/index.html
-@@ -64,7 +64,7 @@ for user interface to WCTS services and
- 
- <h2>Other WCTS Implementations</h2>
- 
--Currently there is only one other WCTS implementation in existance.  That
-+Currently there is only one other WCTS implementation in existence.  That
- is the one done by <a href="http://www.lat-lon.de">lat/lon</a>, the folks
- that write the WCTS document.  That implementation is also open source, and
- can be found within the <a href="http://www.deegree.org">deegree</a> project.
 --- a/port/cpl_conv.cpp
 +++ b/port/cpl_conv.cpp
-@@ -2488,7 +2488,7 @@ void CPLCleanupSetlocaleMutex(void)
+@@ -2638,7 +2638,7 @@ void CPLCleanupSetlocaleMutex(void)
  /************************************************************************/
  
  /**
@@ -269,7 +248,7 @@ Author: Bas Couwenberg <sebastic@debian.org>
   *
   * The function checks if a named file exists in the filesystem, hopefully
   * in an efficient fashion if a sibling file list is available.   It exists
-@@ -2501,7 +2501,7 @@ void CPLCleanupSetlocaleMutex(void)
+@@ -2651,7 +2651,7 @@ void CPLCleanupSetlocaleMutex(void)
   * updated with the correct case and TRUE is returned. 
   *
   * If papszSiblingFiles is NULL, a VSIStatL() is used to test for the files
@@ -278,20 +257,9 @@ Author: Bas Couwenberg <sebastic@debian.org>
   *
   * @param pszFilename name of file to check for - filename case updated in some cases.
   * @param papszSiblingFiles a list of files in the same directory as 
---- a/port/cpl_strtod.cpp
-+++ b/port/cpl_strtod.cpp
-@@ -116,7 +116,7 @@ double CPLAtofDelim(const char *nptr, ch
-  * custom delimiter.
-  *
-  * IMPORTANT NOTE.
-- * Existance of this function does not mean you should always use it.
-+ * Existence of this function does not mean you should always use it.
-  * Sometimes you should use standard locale aware atof(3) and its family. When
-  * you need to process the user's input (for example, command line parameters)
-  * use atof(3), because user works in localized environment and her input will
 --- a/port/cpl_vsi_mem.cpp
 +++ b/port/cpl_vsi_mem.cpp
-@@ -869,7 +869,7 @@ VSILFILE *VSIFileFromMemBuffer( const ch
+@@ -905,7 +905,7 @@ VSILFILE *VSIFileFromMemBuffer( const ch
   * This function returns a pointer to the memory buffer underlying a 
   * virtual "in memory" file.  If bUnlinkAndSeize is TRUE the filesystem
   * object will be deleted, and ownership of the buffer will pass to the 
@@ -457,7 +425,7 @@ Author: Bas Couwenberg <sebastic@debian.org>
   * @param name full path to attribute to be set.  For instance
 --- a/swig/python/extensions/ogr_wrap.cpp
 +++ b/swig/python/extensions/ogr_wrap.cpp
-@@ -21580,7 +21580,7 @@ static PyMethodDef SwigMethods[] = {
+@@ -24714,7 +24714,7 @@ static PyMethodDef SwigMethods[] = {
  		"directly.\n"
  		"\n"
  		"This function should not be called while there are feature objects in\n"
@@ -466,7 +434,7 @@ Author: Bas Couwenberg <sebastic@debian.org>
  		"definition.\n"
  		"\n"
  		"Not all drivers support this function. You can query a layer to check\n"
-@@ -21617,7 +21617,7 @@ static PyMethodDef SwigMethods[] = {
+@@ -24751,7 +24751,7 @@ static PyMethodDef SwigMethods[] = {
  		"used by a layer directly.\n"
  		"\n"
  		"This function should not be called while there are feature objects in\n"
@@ -475,7 +443,7 @@ Author: Bas Couwenberg <sebastic@debian.org>
  		"definition.\n"
  		"\n"
  		"Not all drivers support this function. You can query a layer to check\n"
-@@ -21657,7 +21657,7 @@ static PyMethodDef SwigMethods[] = {
+@@ -24791,7 +24791,7 @@ static PyMethodDef SwigMethods[] = {
  		"OGRFeatureDefn used by a layer directly.\n"
  		"\n"
  		"This function should not be called while there are feature objects in\n"
@@ -484,7 +452,7 @@ Author: Bas Couwenberg <sebastic@debian.org>
  		"definition.\n"
  		"\n"
  		"The field definition that was at initial position iOldFieldPos will be\n"
-@@ -21705,7 +21705,7 @@ static PyMethodDef SwigMethods[] = {
+@@ -24839,7 +24839,7 @@ static PyMethodDef SwigMethods[] = {
  		"OGRFeatureDefn used by a layer directly.\n"
  		"\n"
  		"This function should not be called while there are feature objects in\n"
@@ -493,7 +461,7 @@ Author: Bas Couwenberg <sebastic@debian.org>
  		"definition.\n"
  		"\n"
  		"panMap is such that,for each field definition at position i after\n"
-@@ -21750,7 +21750,7 @@ static PyMethodDef SwigMethods[] = {
+@@ -24884,7 +24884,7 @@ static PyMethodDef SwigMethods[] = {
  		"the OGRFeatureDefn used by a layer directly.\n"
  		"\n"
  		"This function should not be called while there are feature objects in\n"
@@ -502,7 +470,7 @@ Author: Bas Couwenberg <sebastic@debian.org>
  		"definition.\n"
  		"\n"
  		"Not all drivers support this function. You can query a layer to check\n"
-@@ -22770,7 +22770,7 @@ static PyMethodDef SwigMethods[] = {
+@@ -25961,7 +25961,7 @@ static PyMethodDef SwigMethods[] = {
  		"function directly, but use OGR_L_CreateField() instead.\n"
  		"\n"
  		"This function should only be called while there are no OGRFeature\n"
@@ -513,7 +481,7 @@ Author: Bas Couwenberg <sebastic@debian.org>
  		"This function is the same as the C++ method\n"
 --- a/swig/python/osgeo/ogr.py
 +++ b/swig/python/osgeo/ogr.py
-@@ -1580,7 +1580,7 @@ class Layer(_object):
+@@ -1766,7 +1766,7 @@ class Layer(MajorObject):
          directly.
  
          This function should not be called while there are feature objects in
@@ -522,7 +490,7 @@ Author: Bas Couwenberg <sebastic@debian.org>
          definition.
  
          Not all drivers support this function. You can query a layer to check
-@@ -1620,7 +1620,7 @@ class Layer(_object):
+@@ -1806,7 +1806,7 @@ class Layer(MajorObject):
          used by a layer directly.
  
          This function should not be called while there are feature objects in
@@ -531,7 +499,7 @@ Author: Bas Couwenberg <sebastic@debian.org>
          definition.
  
          Not all drivers support this function. You can query a layer to check
-@@ -1663,7 +1663,7 @@ class Layer(_object):
+@@ -1849,7 +1849,7 @@ class Layer(MajorObject):
          OGRFeatureDefn used by a layer directly.
  
          This function should not be called while there are feature objects in
@@ -540,7 +508,7 @@ Author: Bas Couwenberg <sebastic@debian.org>
          definition.
  
          The field definition that was at initial position iOldFieldPos will be
-@@ -1714,7 +1714,7 @@ class Layer(_object):
+@@ -1900,7 +1900,7 @@ class Layer(MajorObject):
          OGRFeatureDefn used by a layer directly.
  
          This function should not be called while there are feature objects in
@@ -549,7 +517,7 @@ Author: Bas Couwenberg <sebastic@debian.org>
          definition.
  
          panMap is such that,for each field definition at position i after
-@@ -1762,7 +1762,7 @@ class Layer(_object):
+@@ -1948,7 +1948,7 @@ class Layer(MajorObject):
          the OGRFeatureDefn used by a layer directly.
  
          This function should not be called while there are feature objects in
@@ -558,7 +526,7 @@ Author: Bas Couwenberg <sebastic@debian.org>
          definition.
  
          Not all drivers support this function. You can query a layer to check
-@@ -3247,7 +3247,7 @@ class FeatureDefn(_object):
+@@ -3553,7 +3553,7 @@ class FeatureDefn(_object):
          function directly, but use OGR_L_CreateField() instead.
  
          This function should only be called while there are no OGRFeature

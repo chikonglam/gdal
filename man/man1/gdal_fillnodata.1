@@ -1,4 +1,4 @@
-.TH "gdal_fillnodata" 1 "Wed Sep 16 2015" "GDAL" \" -*- nroff -*-
+.TH "gdal_fillnodata" 1 "Tue Jan 26 2016" "GDAL" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -8,7 +8,6 @@ fill raster regions by interpolation from edges
 .PP
 .PP
 .nf
-
 gdal_fillnodata.py [-q] [-md max_distance] [-si smooth_iterations]
                 [-o name=value] [-b band]
                 srcfile [-nomask] [-mask filename] [-of format] [dstfile]
@@ -21,7 +20,7 @@ The gdal_fillnodata\&.py script fills selection regions (usually nodata areas) b
 Additional details on the algorithm are available in the GDALFillNodata() docs\&.
 .PP
 .IP "\fB\fB-q\fP:\fP" 1c
-The script runs in quiet mode\&. The progress monitor is supressed and routine messages are not displayed\&.
+The script runs in quiet mode\&. The progress monitor is suppressed and routine messages are not displayed\&.
 .PP
 .IP "\fB\fB-md\fP \fImax_distance\fP:\fP" 1c
 The maximum distance (in pixels) that the algorithm will search out for values to interpolate\&.
@@ -53,4 +52,4 @@ Select the output format\&. The default is GeoTIFF (GTiff)\&. Use the short form
 .PP
 .SH "AUTHORS"
 .PP
-Frank Warmerdam <warmerdam@pobox.com> 
+Frank Warmerdam warmerdam@pobox.com 

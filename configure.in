@@ -1,5 +1,5 @@
 dnl ***************************************************************************
-dnl $Id: configure.in 28600 2015-03-03 09:38:01Z rouault $
+dnl $Id: configure.in 33151 2016-01-24 21:26:46Z rouault $
 dnl
 dnl Project:  GDAL
 dnl Purpose:  Configure source file.
@@ -240,12 +240,12 @@ if test "$with_sse" = "yes" -o "$with_sse" = ""; then
     echo '#endif' >> detectsse.cpp
     if test -z "`${CXX} ${CXXFLAGS} -o detectsse detectsse.cpp 2>&1`" ; then
         AC_MSG_RESULT([yes])
-        SSEFLAGS="-DHAVE_SSE_AT_COMPILE_TIME"
+        SSEFLAGS=""
         HAVE_SSE_AT_COMPILE_TIME=yes
     else
         if test -z "`${CXX} ${CXXFLAGS} -msse -o detectsse detectsse.cpp 2>&1`" ; then
             AC_MSG_RESULT([yes])
-            SSEFLAGS="-msse -DHAVE_SSE_AT_COMPILE_TIME"
+            SSEFLAGS="-msse"
             HAVE_SSE_AT_COMPILE_TIME=yes
         else
             AC_MSG_RESULT([no])
@@ -257,7 +257,7 @@ if test "$with_sse" = "yes" -o "$with_sse" = ""; then
 
     dnl On Solaris, the presence of SSE instructions is flagged in the binary
     dnl and prevent it to run on non SSE hardware even if the instructions are
-    dnl not executed. So if the user did not explicitely requires SSE, test that
+    dnl not executed. So if the user did not explicitly requires SSE, test that
     dnl we can run SSE binaries
     if test "$HAVE_SSE_AT_COMPILE_TIME" = "yes"; then
        case $host_os in
@@ -270,7 +270,7 @@ if test "$with_sse" = "yes" -o "$with_sse" = ""; then
              if test "$with_sse" = "yes"; then
                echo "Caution: the generated binaries will not run on this system."
              else
-               echo "Disabling SSE as it is not explicitely required"
+               echo "Disabling SSE as it is not explicitly required"
                HAVE_SSE_AT_COMPILE_TIME=""
                SSEFLAGS=""
              fi
@@ -279,15 +279,13 @@ if test "$with_sse" = "yes" -o "$with_sse" = ""; then
        esac
     fi
 
-    if test "$HAVE_SSE_AT_COMPILE_TIME" = "yes"; then
-      CFLAGS="$CFLAGS $SSEFLAGS"
-      CXXFLAGS="$CXXFLAGS $SSEFLAGS"
-    fi
-
     rm -f detectsse*
 else
     AC_MSG_RESULT([no])
 fi
+
+AC_SUBST(SSEFLAGS,$SSEFLAGS)
+AC_SUBST(HAVE_SSE_AT_COMPILE_TIME,$HAVE_SSE_AT_COMPILE_TIME)
 
 dnl ---------------------------------------------------------------------------
 dnl Check AVX availability
@@ -326,7 +324,7 @@ if test "$with_avx" = "yes" -o "$with_avx" = ""; then
 
     dnl On Solaris, the presence of AVX instructions is flagged in the binary
     dnl and prevent it to run on non AVX hardware even if the instructions are
-    dnl not executed. So if the user did not explicitely requires AVX, test that
+    dnl not executed. So if the user did not explicitly requires AVX, test that
     dnl we can run AVX binaries
     if test "$HAVE_AVX_AT_COMPILE_TIME" = "yes"; then
        case $host_os in
@@ -339,7 +337,7 @@ if test "$with_avx" = "yes" -o "$with_avx" = ""; then
              if test "$with_avx" = "yes"; then
                echo "Caution: the generated binaries will not run on this system."
              else
-               echo "Disabling AVX as it is not explicitely required"
+               echo "Disabling AVX as it is not explicitly required"
                AVXFLAGS=""
                HAVE_AVX_AT_COMPILE_TIME=""
              fi
@@ -485,6 +483,10 @@ if test "$with_threads" = "yes" -o "$with_threads" = "" ; then
 
   if test -n "$THREAD_FLAG" ; then
       THREAD_LIB="-lpthread"
+  else
+    # For Android, pthread_create is in Bionic libc
+    unset ac_cv_lib_pthread_pthread_create
+    AC_CHECK_LIB(c,pthread_create,THREAD_FLAG=CPL_MULTIPROC_PTHREAD,,,)
   fi
 
   AC_MSG_CHECKING([for PTHREAD_MUTEX_RECURSIVE])
@@ -504,7 +506,42 @@ if test "$with_threads" = "yes" -o "$with_threads" = "" ; then
     AC_MSG_RESULT([no])
   ])
 
-  PTHREAD_ENABLED="yes"
+
+
+  AC_MSG_CHECKING([for PTHREAD_MUTEX_ADAPTIVE_NP])
+
+  AC_TRY_COMPILE(
+  [
+#define _GNU_SOURCE
+#include <pthread.h>
+  ], [
+    return PTHREAD_MUTEX_ADAPTIVE_NP;
+  ],
+  [
+    AC_MSG_RESULT([yes])
+    AC_DEFINE_UNQUOTED(HAVE_PTHREAD_MUTEX_ADAPTIVE_NP, 1,
+          [Define to 1 if you have the `PTHREAD_MUTEX_ADAPTIVE_NP' constant.])
+  ], [
+    AC_MSG_RESULT([no])
+  ])
+
+  AC_MSG_CHECKING([for pthread_spinlock_t])
+
+  AC_TRY_COMPILE(
+  [
+#define _GNU_SOURCE
+#include <pthread.h>
+  ], [
+    pthread_spinlock_t spin;
+    return 1;
+  ],
+  [
+    AC_MSG_RESULT([yes])
+    AC_DEFINE_UNQUOTED(HAVE_PTHREAD_SPINLOCK, 1,
+          [Define to 1 if you have the `pthread_spinlock_t' type.])
+  ], [
+    AC_MSG_RESULT([no])
+  ])
 
 elif test "$with_threads" != "no" ; then
 
@@ -514,8 +551,6 @@ elif test "$with_threads" != "no" ; then
   AC_CHECKING(whether we should include thread/mutex support...)
   AC_MSG_RESULT([        using threads with link options "$THREAD_LIB".])
 
-  PTHREAD_ENABLED="yes"
-
 else
   AC_CHECKING(whether we should include thread/mutex support...)
   AC_MSG_RESULT([        thread safe support disabled.])
@@ -523,9 +558,51 @@ fi
 
 if test "$THREAD_FLAG" = "CPL_MULTIPROC_PTHREAD" ; then
   AC_DEFINE_UNQUOTED(CPL_MULTIPROC_PTHREAD,1, [Define if you want to use pthreads based multiprocessing support])
+  PTHREAD_ENABLED="yes"
 fi
 
 LIBS="$THREAD_LIB $LIBS" 
+
+dnl ---------------------------------------------------------------------------
+dnl Check if mremap() with 5 args is available
+dnl ---------------------------------------------------------------------------
+
+AC_MSG_CHECKING([for 5 args mremap()])
+
+AC_TRY_COMPILE(
+[
+#define _GNU_SOURCE
+#include <sys/mman.h>
+], [
+return (mremap(0,0,0,0,0));
+],
+[
+AC_MSG_RESULT([yes])
+AC_DEFINE_UNQUOTED(HAVE_5ARGS_MREMAP, 1,
+        [Define to 1 if you have the 5 args `mremap' function.])
+], [
+AC_MSG_RESULT([no])
+])
+
+dnl ---------------------------------------------------------------------------
+dnl Check if _SC_PHYS_PAGES is available
+dnl ---------------------------------------------------------------------------
+
+AC_MSG_CHECKING([for _SC_PHYS_PAGES])
+
+AC_TRY_COMPILE(
+[
+#include <unistd.h>
+], [
+return (sysconf(_SC_PHYS_PAGES));
+],
+[
+AC_MSG_RESULT([yes])
+AC_DEFINE_UNQUOTED(HAVE_SC_PHYS_PAGES, 1,
+        [Define to 1 if you have the _SC_PHYS_PAGES' constant.])
+], [
+AC_MSG_RESULT([no])
+])
 
 dnl ---------------------------------------------------------------------------
 dnl Check if libz is available.
@@ -1593,6 +1670,14 @@ dnl Not found... again, with -lsz.
       LIBS="$HDF_LIB_NAME $ORIG_LIBS"
     fi
 
+    dnl HDF4 library newer than 4.2.5 has a SDreset_maxopenfiles/SDget_maxopenfiles interface
+    dnl which allows opening many HDF files simultaneously (the max number of files was previously
+    dnl hardcoded and too low, smth. like 32). Search for it and use if available.
+    AC_CHECK_LIB(mfhdfalt,SDget_maxopenfiles,HDF4_HAS_MAXOPENFILES=yes,HDF4_HAS_MAXOPENFILES=no,$HDF_LIB_NAME)
+    if test "$HDF4_HAS_MAXOPENFILES" = "no" ; then
+      AC_CHECK_LIB(mfhdf,SDget_maxopenfiles,HDF4_HAS_MAXOPENFILES=yes,HDF4_HAS_MAXOPENFILES=no,$HDF_LIB_NAME)
+    fi
+
   dnl Now search for headers
     if test "$with_hdf4" = "yes" -o "$with_hdf4" = "" -a -r /usr/include/hdf/hdf.h ; then
       HDF4_INCLUDE="-I/usr/include/hdf"
@@ -1623,6 +1708,7 @@ fi
 
 AC_SUBST(HAVE_HDF4,$HAVE_HDF4)
 AC_SUBST(HDF4_INCLUDE,$HDF4_INCLUDE)
+AC_SUBST(HDF4_HAS_MAXOPENFILES,$HDF4_HAS_MAXOPENFILES)
 
 if test "$HAVE_HDF4" != "no" ; then
   OPT_GDAL_FORMATS="hdf4 $OPT_GDAL_FORMATS"
@@ -1694,6 +1780,55 @@ AC_SUBST(HDF5_INCLUDE,$HDF5_INCLUDE)
 
 if test "$HAVE_HDF5" != "no" ; then
   OPT_GDAL_FORMATS="hdf5 $OPT_GDAL_FORMATS"
+fi
+
+dnl ---------------------------------------------------------------------------
+dnl Check if kealib library is available.
+dnl ---------------------------------------------------------------------------
+
+KEA_CONFIG=no
+
+AC_ARG_WITH(kea,[  --with-kea[=ARG]      Include kealib (ARG=path to kea-config) [[default=yes]]],,)
+
+if test "$with_kea" = "yes" -o "x$with_kea" = "x" ; then
+  AC_PATH_PROG(KEA_CONFIG, kea-config, no)
+else
+   KEA_CONFIG=$with_kea
+fi
+
+AC_MSG_CHECKING([for kea])
+
+if test "$KEA_CONFIG" = "no" ; then
+
+  HAVE_KEA=no
+  KEA_LIB=
+  KEA_INC=
+
+  AC_MSG_RESULT([no])
+
+else
+  if test -d $KEA_CONFIG ; then
+      AC_MSG_RESULT([no])
+      AC_MSG_ERROR([--with-kea argument is a directory.  It should be the path to the kea_config script, often somewhere like /usr/local/bin/kea_config.])
+  fi
+
+  if test \! -x $KEA_CONFIG ; then
+      AC_MSG_RESULT([no])
+      AC_MSG_ERROR([--with-kea argument is a not an executable file.  It should be the path to the kea_config script, often somewhere like /usr/local/bin/kea_config.])
+  fi
+
+  HAVE_KEA=yes
+  KEA_LIB="`$KEA_CONFIG --libs --hdflibs`"
+  KEA_INC="`$KEA_CONFIG --cflags --hdfcflags`"
+  AC_MSG_RESULT([yes]) 
+fi
+
+AC_SUBST(HAVE_KEA,$HAVE_KEA)
+AC_SUBST(KEA_INC,$KEA_INC)
+AC_SUBST(KEA_LIB,$KEA_LIB)
+
+if test "$HAVE_KEA" != "no" ; then
+  OPT_GDAL_FORMATS="kea $OPT_GDAL_FORMATS"
 fi
 
 dnl ---------------------------------------------------------------------------
@@ -2786,7 +2921,7 @@ if test "$CURL_SETTING" = "yes" ; then
   
   CURL_INC=`$LIBCURL_CONFIG --cflags`
   CURL_LIB=`$LIBCURL_CONFIG --libs`
-  OPT_GDAL_FORMATS="wcs wms $OPT_GDAL_FORMATS"
+  OPT_GDAL_FORMATS="wcs wms plmosaic $OPT_GDAL_FORMATS"
 
 fi
 
@@ -3295,7 +3430,7 @@ if test "$with_freexl" = "" -o "$with_freexl" = "yes" ; then
     rm -f testrlist.*
     echo '#include <freexl.h>' > testfreexl.c
     echo 'int main(int argc, char** argv) { FreeXL_CellValue s; freexl_get_cell_value (0,0,0,&s); return 0; } ' >> testfreexl.c
-    if test -z "`${CC} testfreexl.c -c 2>&1`" ; then
+    if test -z "`${CC} ${CFLAGS} testfreexl.c -c 2>&1`" ; then
         HAVE_FREEXL=yes
         LIBS="$FREEXL_LIBS $LIBS"
     else
@@ -3333,13 +3468,13 @@ elif test "$with_freexl" != "no"; then
     AC_CHECK_LIB(freexl,freexl_open,FREEXL_LIBS="-L$with_freexl/lib -lfreexl -liconv -lcharset",FREEXL_LIBS=missing,-L$with_freexl/lib -liconv -lcharset)
   fi
 
-  if test "FREEXL_LIBS" != "missing" -a -f "$with_freexl/include/freexl.h" ; then
+  if test "$FREEXL_LIBS" != "missing" -a -f "$with_freexl/include/freexl.h" ; then
 
     # Check that freexl is recent enough
     rm -f testrlist.*
     echo '#include <freexl.h>' > testfreexl.c
     echo 'int main(int argc, char** argv) { FreeXL_CellValue s; freexl_get_cell_value (0,0,0,&s); return 0; } ' >> testfreexl.c
-    if test -z "`${CC} -I$with_freexl/include testfreexl.c -c 2>&1`" ; then
+    if test -z "`${CC} ${CFLAGS} -I$with_freexl/include testfreexl.c -c 2>&1`" ; then
         HAVE_FREEXL=yes
         LIBS="$FREEXL_LIBS $LIBS"
         FREEXL_INCLUDE="-I$with_freexl/include"
@@ -3858,15 +3993,15 @@ dnl ---------------------------------------------------------------------------
 dnl Ruby bindings.
 dnl ---------------------------------------------------------------------------
 
-AC_ARG_WITH(ruby,[  --with-ruby           Enable Ruby bindings],,)
+dnl AC_ARG_WITH(ruby,[  --with-ruby           Enable Ruby bindings],,)
 
-AC_MSG_CHECKING([for ruby bindings])
-if test "$with_ruby" = "yes" ; then
-  BINDINGS="ruby $BINDINGS"
-  AC_MSG_RESULT([enabled])
-else
-  AC_MSG_RESULT([disabled])
-fi
+dnl AC_MSG_CHECKING([for ruby bindings])
+dnl if test "$with_ruby" = "yes" ; then
+dnl   BINDINGS="ruby $BINDINGS"
+dnl   AC_MSG_RESULT([enabled])
+dnl else
+dnl   AC_MSG_RESULT([disabled])
+dnl fi
 
 dnl ---------------------------------------------------------------------------
 dnl NG Python bindings.
@@ -3890,6 +4025,7 @@ elif test "x$with_python" != "x" -a "$with_python" != "no" ; then
   fi
   AC_MSG_RESULT([enabled])
 else
+  PYTHON=""
   AC_MSG_RESULT([disabled])
 fi
 
@@ -4217,18 +4353,25 @@ if test "$with_armadillo" = "yes" ; then
     rm -f testarmadillo
     echo '#include <armadillo>' > testarmadillo.cpp
     echo 'int main(int argc, char** argv) { arma::mat matInput(2,2); const arma::mat& matInv = arma::inv(matInput); return 0; } ' >> testarmadillo.cpp
-    if test -z "`${CXX} ${CPPFLAGS} testarmadillo.cpp -o testarmadillo -larmadillo ${LIBS} 2>&1`" ; then
+    if test -z "`${CXX} ${CPPFLAGS} testarmadillo.cpp -o testarmadillo -larmadillo 2>&1`" ; then
         HAVE_ARMADILLO=yes
         LIBS="-larmadillo ${LIBS}"
         AC_MSG_RESULT([yes])
     else
         dnl Try adding -llapack (#4923)
-        if test -z "`${CXX} ${CPPFLAGS} testarmadillo.cpp -o testarmadillo -larmadillo -llapack ${LIBS} 2>&1`" ; then
+        if test -z "`${CXX} ${CPPFLAGS} testarmadillo.cpp -o testarmadillo -larmadillo -llapack 2>&1`" ; then
             HAVE_ARMADILLO=yes
             LIBS="-larmadillo -llapack ${LIBS}"
             AC_MSG_RESULT([yes])
         else
-            AC_MSG_RESULT([no])
+            # clang 3.4 needs linking against libstdc++ (ubuntu 14.04)
+            if test -z "`${CXX} ${CPPFLAGS} testarmadillo.cpp -o testarmadillo -larmadillo -lstdc++ 2>&1`" ; then
+                HAVE_ARMADILLO=yes
+                LIBS="-larmadillo -lstdc++ ${LIBS}"
+                AC_MSG_RESULT([yes])
+            else
+                AC_MSG_RESULT([no])
+            fi
         fi
     fi
     rm -f testarmadillo.*
@@ -4240,14 +4383,14 @@ elif test -n "$with_armadillo" -a "$with_armadillo" != "no" ; then
     rm -f testarmadillo
     echo '#include <armadillo>' > testarmadillo.cpp
     echo 'int main(int argc, char** argv) { arma::mat matInput(2,2); const arma::mat& matInv = arma::inv(matInput); return 0; } ' >> testarmadillo.cpp
-    if test -z "`${CXX} ${CPPFLAGS} -I$with_armadillo/include testarmadillo.cpp -o testarmadillo -L$with_armadillo/lib -larmadillo ${LIBS} 2>&1`" ; then
+    if test -z "`${CXX} ${CPPFLAGS} -I$with_armadillo/include testarmadillo.cpp -o testarmadillo -L$with_armadillo/lib -larmadillo 2>&1`" ; then
         HAVE_ARMADILLO=yes
         LIBS="-L$with_armadillo/lib -larmadillo ${LIBS}"
         EXTRA_INCLUDES="-I$with_armadillo/include $EXTRA_INCLUDES"
         AC_MSG_RESULT([yes])
     else
         dnl Try adding -llapack (#4923)
-        if test -z "`${CXX} ${CPPFLAGS} -I$with_armadillo/include testarmadillo.cpp -o testarmadillo -L$with_armadillo/lib -larmadillo -llapack ${LIBS} 2>&1`" ; then
+        if test -z "`${CXX} ${CPPFLAGS} -I$with_armadillo/include testarmadillo.cpp -o testarmadillo -L$with_armadillo/lib -larmadillo -llapack 2>&1`" ; then
             HAVE_ARMADILLO=yes
             LIBS="-L$with_armadillo/lib -larmadillo -llapack ${LIBS}"
             EXTRA_INCLUDES="-I$with_armadillo/include $EXTRA_INCLUDES"
@@ -4298,6 +4441,7 @@ LOC_MSG([  LIBGIF support:            ${GIF_SETTING}])
 LOC_MSG([  OGDI support:              ${HAVE_OGDI}])
 LOC_MSG([  HDF4 support:              ${HAVE_HDF4}])
 LOC_MSG([  HDF5 support:              ${HAVE_HDF5}])
+LOC_MSG([  Kea support:               ${HAVE_KEA}])
 LOC_MSG([  NetCDF support:            ${NETCDF_SETTING}])
 LOC_MSG([  Kakadu support:            ${HAVE_KAKADU}])
 if test "x$HAVE_JASPER_UUID" != "x" ; then

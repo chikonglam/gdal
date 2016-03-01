@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: aaigriddataset.cpp 27729 2014-09-24 00:40:16Z goatbar $
+ * $Id: aaigriddataset.cpp 29614 2015-08-06 09:37:29Z rouault $
  *
  * Project:  GDAL
  * Purpose:  Implements Arc/Info ASCII Grid Format.
@@ -35,7 +35,7 @@
 #include "cpl_string.h"
 #include "ogr_spatialref.h"
 
-CPL_CVSID("$Id: aaigriddataset.cpp 27729 2014-09-24 00:40:16Z goatbar $");
+CPL_CVSID("$Id: aaigriddataset.cpp 29614 2015-08-06 09:37:29Z rouault $");
 
 CPL_C_START
 void    GDALRegister_AAIGrid(void);
@@ -741,6 +741,8 @@ GDALDataset *AAIGDataset::CommonOpen( GDALOpenInfo * poOpenInfo,
     const char* pszDataTypeOption = (eFormat == FORMAT_AAIG) ? "AAIGRID_DATATYPE":
                                                                "GRASSASCIIGRID_DATATYPE";
     const char* pszDataType = CPLGetConfigOption(pszDataTypeOption, NULL);
+    if( pszDataType == NULL )
+        pszDataType = CSLFetchNameValue( poOpenInfo->papszOpenOptions, "DATATYPE" );
     if (pszDataType != NULL)
     {
         poDS->eDataType = GDALGetDataTypeByName(pszDataType);
@@ -920,7 +922,7 @@ GDALDataset *AAIGDataset::CommonOpen( GDALOpenInfo * poOpenInfo,
 /* -------------------------------------------------------------------- */
 /*      Check for external overviews.                                   */
 /* -------------------------------------------------------------------- */
-    poDS->oOvManager.Initialize( poDS, poOpenInfo->pszFilename, poOpenInfo->papszSiblingFiles );
+    poDS->oOvManager.Initialize( poDS, poOpenInfo->pszFilename, poOpenInfo->GetSiblingFiles() );
 
     return( poDS );
 }
@@ -951,10 +953,10 @@ const char *AAIGDataset::GetProjectionRef()
 /************************************************************************/
 
 GDALDataset * AAIGDataset::CreateCopy(
-                const char * pszFilename, GDALDataset *poSrcDS,
-                CPL_UNUSED int bStrict, char ** papszOptions, 
-                GDALProgressFunc pfnProgress, void * pProgressData )
-
+    const char * pszFilename, GDALDataset *poSrcDS,
+    CPL_UNUSED int bStrict,
+    char ** papszOptions,
+    GDALProgressFunc pfnProgress, void * pProgressData )
 {
     int  nBands = poSrcDS->GetRasterCount();
     int  nXSize = poSrcDS->GetRasterXSize();
@@ -1002,7 +1004,7 @@ GDALDataset * AAIGDataset::CreateCopy(
     if( ABS(adfGeoTransform[1]+adfGeoTransform[5]) < 0.0000001 
         || ABS(adfGeoTransform[1]-adfGeoTransform[5]) < 0.0000001 
         || (pszForceCellsize && CSLTestBoolean(pszForceCellsize)) )
-        sprintf( szHeader, 
+        CPLsprintf( szHeader, 
                  "ncols        %d\n" 
                  "nrows        %d\n"
                  "xllcorner    %.12f\n"
@@ -1021,7 +1023,7 @@ GDALDataset * AAIGDataset::CreateCopy(
                       "FORCE_CELLSIZE=TRUE creation option to force use of DX for\n"
                       "even though this will be distorted.  Most ASCII Grid readers\n"
                       "(ArcGIS included) do not support the DX and DY parameters.\n" );
-        sprintf( szHeader, 
+        CPLsprintf( szHeader, 
                  "ncols        %d\n" 
                  "nrows        %d\n"
                  "xllcorner    %.12f\n"
@@ -1063,7 +1065,7 @@ GDALDataset * AAIGDataset::CreateCopy(
     {
         nPrecision = atoi( pszDecimalPrecision );
         if ( nPrecision >= 0 )
-            sprintf( szFormatFloat, " %%.%dlf", nPrecision );
+            sprintf( szFormatFloat, " %%.%df", nPrecision );
         CPLDebug( "AAIGrid", "Setting precision format: %s", szFormatFloat );
     }
 
@@ -1087,7 +1089,7 @@ GDALDataset * AAIGDataset::CreateCopy(
         if( bReadAsInt )
             sprintf( szHeader+strlen( szHeader ), "%d", (int)dfNoData );
         else
-            sprintf( szHeader+strlen( szHeader ), szFormatFloat, dfNoData );
+            CPLsprintf( szHeader+strlen( szHeader ), szFormatFloat, dfNoData );
         sprintf( szHeader+strlen( szHeader ), "\n" );
     }
 
@@ -1109,13 +1111,14 @@ GDALDataset * AAIGDataset::CreateCopy(
         padfScanline = (double *) CPLMalloc( nXSize *
                                     GDALGetDataTypeSize(GDT_Float64) / 8 );
 
+    int bHasOuputDecimalDot = FALSE;
     for( iLine = 0; eErr == CE_None && iLine < nYSize; iLine++ )
     {
         CPLString osBuf;
         eErr = poBand->RasterIO( GF_Read, 0, iLine, nXSize, 1, 
                                  (bReadAsInt) ? (void*)panScanline : (void*)padfScanline,
                                  nXSize, 1, (bReadAsInt) ? GDT_Int32 : GDT_Float64,
-                                 0, 0 );
+                                 0, 0, NULL );
 
         if( bReadAsInt )
         {
@@ -1140,7 +1143,20 @@ GDALDataset * AAIGDataset::CreateCopy(
         {
             for ( iPixel = 0; iPixel < nXSize; iPixel++ )
             {
-                sprintf( szHeader, szFormatFloat, padfScanline[iPixel] );
+                CPLsprintf( szHeader, szFormatFloat, padfScanline[iPixel] );
+
+                // Make sure that as least one value has a decimal point (#6060)
+                if( !bHasOuputDecimalDot )
+                {
+                    if( strchr(szHeader, '.') || strchr(szHeader, 'e') || strchr(szHeader, 'E') )
+                        bHasOuputDecimalDot = TRUE;
+                    else if( !CPLIsInf(padfScanline[iPixel]) && !CPLIsNan(padfScanline[iPixel]) )
+                    {
+                        strcat(szHeader, ".0");
+                        bHasOuputDecimalDot = TRUE;
+                    }
+                }
+
                 osBuf += szHeader;
                 if( (iPixel & 1023) == 0 || iPixel == nXSize - 1 )
                 {
@@ -1213,7 +1229,7 @@ GDALDataset * AAIGDataset::CreateCopy(
     }
     
 /* -------------------------------------------------------------------- */
-/*      Re-open dataset, and copy any auxilary pam information.         */
+/*      Re-open dataset, and copy any auxiliary pam information.         */
 /* -------------------------------------------------------------------- */
 
     /* If outputing to stdout, we can't reopen it, so we'll return */
@@ -1288,6 +1304,7 @@ void GDALRegister_AAIGrid()
         poDriver = new GDALDriver();
         
         poDriver->SetDescription( "AAIGrid" );
+        poDriver->SetMetadataItem( GDAL_DCAP_RASTER, "YES" );
         poDriver->SetMetadataItem( GDAL_DMD_LONGNAME, 
                                    "Arc/Info ASCII Grid" );
         poDriver->SetMetadataItem( GDAL_DMD_HELPTOPIC, 
@@ -1303,6 +1320,14 @@ void GDALRegister_AAIGrid()
 "   <Option name='DECIMAL_PRECISION' type='int' description='Number of decimal when writing floating-point numbers(%f).'/>\n"
 "   <Option name='SIGNIFICANT_DIGITS' type='int' description='Number of significant digits when writing floating-point numbers(%g).'/>\n"
 "</CreationOptionList>\n" );
+        poDriver->SetMetadataItem( GDAL_DMD_OPENOPTIONLIST, 
+"<OpenOptionLists>\n"
+"   <Option name='DATATYPE' type='string-select' description='Data type to be used.'>\n"
+"       <Value>Int32</Value>\n"
+"       <Value>Float32</Value>\n"
+"       <Value>Float64</Value>\n"
+"   </Option>\n"
+"</OpenOptionLists>\n" );
 
         poDriver->pfnOpen = AAIGDataset::Open;
         poDriver->pfnIdentify = AAIGDataset::Identify;
@@ -1326,6 +1351,7 @@ void GDALRegister_GRASSASCIIGrid()
         poDriver = new GDALDriver();
 
         poDriver->SetDescription( "GRASSASCIIGrid" );
+        poDriver->SetMetadataItem( GDAL_DCAP_RASTER, "YES" );
         poDriver->SetMetadataItem( GDAL_DMD_LONGNAME,
                                    "GRASS ASCII Grid" );
         poDriver->SetMetadataItem( GDAL_DMD_HELPTOPIC,

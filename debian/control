@@ -14,6 +14,8 @@ Build-Depends: debhelper (>= 9),
                libpng-dev,
                libjpeg-dev,
                libgif-dev,
+               libgeotiff-dev,
+               libtiff-dev,
                libwebp-dev,
                libhdf4-alt-dev,
                libhdf5-dev (>= 1.8.8),
@@ -52,25 +54,19 @@ Build-Depends: debhelper (>= 9),
                default-jdk,
                ant
 Build-Conflicts: python-setuptools
-Standards-Version: 3.9.6
+Standards-Version: 3.9.7
 Vcs-Browser: https://anonscm.debian.org/cgit/pkg-grass/gdal.git
 Vcs-Git: https://anonscm.debian.org/git/pkg-grass/gdal.git
 Homepage: http://www.gdal.org/
 X-Python3-Version: >= 3.2
 
-Package: libgdal1i
+Package: libgdal20
 Architecture: any
 Section: libs
 Depends: ${shlibs:Depends},
          ${misc:Depends}
 Recommends: proj-bin
-Breaks: libgdal1 (<= 1.10.0-0~),
-        libgdal1-1.6.0 (<= 1.10.0-0~),
-        libgdal1h (<< 1.11.2+dfsg-1~exp4)
-Replaces: libgdal1 (<= 1.10.0-0~),
-          libgdal1-1.6.0 (<= 1.10.0-0~),
-          libgdal1h (<< 1.11.2+dfsg-1~exp4)
-Provides: libgdal.so.1-1.11.3
+Provides: gdal-abi-2-0-2
 Description: Geospatial Data Abstraction Library
  GDAL is a translator library for raster geospatial data formats.
  As a library, it presents a single abstract data model to the
@@ -90,42 +86,18 @@ Description: Geospatial Data Abstraction Library
  .
  This package contains the shared library.
 
-Package: libgdal1-dev
-Architecture: all
-Section: libdevel
-Depends: libgdal-dev,
-         ${misc:Depends}
-Description: Geospatial Data Abstraction Library - Transitional package
- GDAL is a translator library for raster geospatial data formats.
- As a library, it presents a single abstract data model to the
- calling application for all supported formats. The related OGR
- library (which lives within the GDAL source tree) provides
- a similar capability for simple features vector data.
- .
- GDAL supports many popular data formats, including commonly used
- ones (GeoTIFF, JPEG, PNG and more) as well as the ones used in
- GIS and remote sensing software packages (ERDAS Imagine,
- ESRI Arc/Info, ENVI, PCI Geomatics). Also supported many remote
- sensing and scientific data distribution formats such as HDF,
- EOS FAST, NOAA L1B, NetCDF, FITS.
- .
- OGR library supports popular vector formats like ESRI Shapefile,
- TIGER data, S57, MapInfo File, DGN, GML and more.
- .
- This is a transitional dummy package that depends on libgdal-dev 
- and is used to allow versioned build dependencies to work in 
- any build environment.
-
 Package: libgdal-dev
 Architecture: any
 Section: libdevel
-Depends: libgdal1i (= ${binary:Version}),
+Depends: libgdal20 (= ${binary:Version}),
          libc6-dev,
          libnetcdf-dev,
          libjasper-dev,
          libpng-dev,
          libjpeg-dev,
          libgif-dev,
+         libgeotiff-dev,
+         libtiff-dev,
          libwebp-dev,
          libhdf4-alt-dev,
          libhdf5-dev,
@@ -141,8 +113,6 @@ Depends: libgdal1i (= ${binary:Version}),
          libdap-dev,
          ${misc:Depends}
 Suggests: libgdal-doc
-Breaks: libgdal1-dev (<< 1.9.0-1~)
-Replaces: libgdal1-dev (<< 1.9.0-1~)
 Description: Geospatial Data Abstraction Library - Development files
  GDAL is a translator library for raster geospatial data formats.
  As a library, it presents a single abstract data model to the
@@ -168,7 +138,7 @@ Architecture: all
 Section: doc
 Depends: libjs-jquery,
          ${misc:Depends}
-Suggests: libgdal1i
+Suggests: libgdal20
 Description: Documentation for the Geospatial Data Abstraction Library
  GDAL is a translator library for raster geospatial data formats.
  As a library, it presents a single abstract data model to the

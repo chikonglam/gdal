@@ -1,3 +1,5 @@
+use strict;
+use warnings;
 use Test::More qw(no_plan);
 BEGIN { use_ok('Geo::GDAL') };
 Geo::GDAL::PushFinderLocation('../../data');
@@ -109,7 +111,7 @@ if (0) {
     $b->FillNodata($r);
     #print STDERR "@$_\n" for (@{$b->ReadTile()});
 
-    my $histogram;
+    my @histogram;
     eval {
 	@histogram = $b->GetHistogram();
     };
@@ -117,7 +119,7 @@ if (0) {
     eval {
 	$b->SetDefaultHistogram(1,10,[0..255]);
     };
-    my ($min, $max);
+    my ($min, $max, $histogram);
     eval {
 	($min,$max,$histogram) = $b->GetDefaultHistogram();
     };
@@ -127,48 +129,16 @@ if (0) {
     };
     ok($#histogram == 19, "Histogram with parameters: @histogram");
 
-    my @o;
-    for (0..5) {
-	my $a = 0.1*$_;
-	push @o, "$a Generating Histogram 1";
-    }
-    my @out;
-    $callback = sub {
-    	      push @out, "@_";	
-    	      return $_[0] < 0.5 ? 1 : 0 };	
-    eval {
-	Geo::GDAL::ComputeMedianCutPCT($r,$g,$b,5,
-				       Geo::GDAL::ColorTable->new,
-				       $callback
-				       );
-    };
-    ok(is_deeply(\@out, \@o), "callback without callback_data");
-    @o = ();
-    for (0..5) {
-	my $a = 0.1*$_;
-	push @o, "$a Generating Histogram 6";
-    }
-    @out = ();
-    eval {
-	Geo::GDAL::ComputeMedianCutPCT($r,$g,$b,5,
-				       Geo::GDAL::ColorTable->new,
-				       $callback,6);
-    };
-    ok(is_deeply(\@out, \@o), "callback with callback_data");
-
-    # without callback only implicit test:
-    Geo::GDAL::ComputeMedianCutPCT($r,$g,$b,5,Geo::GDAL::ColorTable->new);
-
     Geo::GDAL::RegenerateOverview($r, $b, 'GAUSS');
     
     my $band = $r;
 
-    $colors = $band->ColorTable(Geo::GDAL::ColorTable->new);
-    @table = $colors->ColorTable([10,20,30,40],[20,20,30,40]);
+    my $colors = $band->ColorTable(Geo::GDAL::ColorTable->new);
+    my @table = $colors->ColorTable([10,20,30,40],[20,20,30,40]);
     for (@table) {
 	@$_ = (1,2,3,4) if $_->[0] == 10;
     }
-    @table2 = $colors->ColorTable(@table);
+    my @table2 = $colors->ColorTable(@table);
     ok($table[1]->[1] == 20, "colortable 1");
     ok($table2[0]->[2] == 3, "colortable 2");
 
@@ -194,52 +164,74 @@ if (0) {
 }
 
 {
+    my $DOWARN = 0;
+    BEGIN { $SIG{'__WARN__'} = sub { warn $_[0] if $DOWARN } }
     my $r = Geo::GDAL::RasterAttributeTable->new;
     my @t = $r->FieldTypes;
     my @u = $r->FieldUsages;
+    my %colors = (Red=>1, Green=>1, Blue=>1, Alpha=>1);
+    my @types;
+    my @usages;
     for my $u (@u) {
 	for my $t (@t) {
 	    $r->CreateColumn("$t $u", $t, $u);
+            push @types, $t;
+            push @usages, $u;
 	}
     }
+    $DOWARN = 1;
     my $n = $r->GetColumnCount;
     my $n2 = @t * @u;
     ok($n == $n2, "create rat column");
-    $r->SetRowCount(scalar(@t));
-    for (my $i = 0; $i < 10; $i++) {
-    	for (my $c = 0; $c < $n; $c++) {
-	    my $t = $r->GetTypeOfCol($c);
-	    if ($t =~ /Integer/) {
-		my $v = $r->Value($i, $c, 12);
-		ok($v == 12, "rat int");
-	    } elsif ($t =~ /Real/) {
-		my $v = $r->Value($i, $c, 1.23);
-		ok($v == 1.23, "$n ($i,$c) rat real '$v'");
-	    } elsif ($t =~ /String/) {
-		my $v = $r->Value($i, $c, "abc");
-		ok($v eq 'abc', "$n ($i,$c) rat str '$v'");
-	    }
-	}
+    $r->SetRowCount(1);
+    my $i = 0;
+    for my $c (0..$n-1) {
+        my $usage = $r->GetUsageOfCol($c);
+        ok($usage eq $usages[$c], "usage $usage eq $usages[$c]");
+        my $type = $r->GetTypeOfCol($c);
+        if ($colors{$usage}) {
+            ok($type eq 'Integer', "type $type eq 'Integer'");
+        } else {
+            ok($type eq $types[$c], "type $type eq $types[$c]");
+        }
+        for ($type) {
+            if (/Integer/) {
+                my $v = $r->Value($i, $c, 12);
+                ok($v == 12, "rat int ($i,$c): $v vs 12");
+            } elsif (/Real/) {
+                my $v = $r->Value($i, $c, 1.23);
+                ok($v == 1.23, "rat real ($i,$c): $v vs 1.23");
+            } elsif (/String/) {
+                my $v = $r->Value($i, $c, "abc");
+                ok($v eq 'abc', "rat str ($i,$c): $v vs 'abc'");
+            }
+        }
     }
 }
 
 gdal_tests();
 
-$src = Geo::OSR::SpatialReference->new();
-$src->ImportFromEPSG(2392);
+SKIP: {
+    my $src;
+    eval {
+        $src = Geo::OSR::SpatialReference->new(EPSG => 2392);
+    };
+    
+    skip "GDAL support files not found. Please set GDAL_DATA.", 1 if $@;
 
-$xml = $src->ExportToXML();
-$a = Geo::GDAL::ParseXMLString($xml);
-$xml = Geo::GDAL::SerializeXMLTree($a);
-$b = Geo::GDAL::ParseXMLString($xml);
-ok(is_deeply($a, $b), "xml parsing");
+    my $xml = $src->ExportToXML();
+    $a = Geo::GDAL::ParseXMLString($xml);
+    $xml = Geo::GDAL::SerializeXMLTree($a);
+    $b = Geo::GDAL::ParseXMLString($xml);
+    ok(is_deeply($a, $b), "xml parsing");
+}
 
 my @tmp = sort keys %available_driver;
 
-print STDERR "\nGDAL version: ",Geo::GDAL::VersionInfo,"\n";
-print STDERR "Unexpected failures:\n",@fails,"\n" if @fails;
-print STDERR "Available drivers were ",join(', ',@tmp),"\n";
-print STDERR "Drivers used in tests were: ",join(', ',@tested_drivers),"\n";
+#print STDERR "\nGDAL version: ",Geo::GDAL::VersionInfo,"\n";
+#print STDERR "Unexpected failures:\n",@fails,"\n" if @fails;
+#print STDERR "Available drivers were ",join(', ',@tmp),"\n";
+#print STDERR "Drivers used in tests were: ",join(', ',@tested_drivers),"\n";
 
 system "rm -rf tmp_ds_*" unless $^O eq 'MSWin32';
 
@@ -290,6 +282,8 @@ sub gdal_tests {
 	    mytest('skipped: does not work?',undef,$name,'dataset create');
 	    next;
 	}
+
+        next unless $driver->{ShortName} eq 'MEM';
 
 	push @tested_drivers,$name;
 	
@@ -362,8 +356,7 @@ sub gdal_tests {
 		
 	    } else 
 	    {
-		#my $colortable = Geo::GDAL::ColorTable->create('RGB');
-		my $colortable = Geo::GDAL::ColorTable->new($Geo::GDAL::Constc::GPI_Gray);
+		my $colortable = Geo::GDAL::ColorTable->new('Gray');
 		my @rgba = (255,0,0,255);
 		$colortable->SetColorEntry(0, \@rgba);
 		$band->ColorTable($colortable);
@@ -414,10 +407,10 @@ sub gdal_tests {
 		my $c = $dataset->GetGCPCount();
 		my $p = $dataset->GetGCPProjection();
 		my $gcps = $dataset->GetGCPs();
-		my $y1 = $gcps->[0]->{GCPY};
-		my $y2 = $gcps->[1]->{GCPY};
-		my $y1o = $gcps[0]->{GCPY};
-		my $y2o = $gcps[1]->{GCPY};
+		my $y1 = $gcps->[0]->{Y};
+		my $y2 = $gcps->[1]->{Y};
+		my $y1o = $gcps[0]->{Y};
+		my $y2o = $gcps[1]->{Y};
 		mytest(($c == 2 and $p eq $po and $y1 == $y1o and $y2 == $y2o),
 		       "$c != 2 or $p ne $po or $y1 != $y1o or $y2 != $y2o",$name,$type,'Set/GetGCPs');
 	    }

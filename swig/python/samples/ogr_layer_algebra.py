@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #******************************************************************************
-#  $Id: ogr_layer_algebra.py 29255 2015-05-27 12:46:09Z rouault $
+#  $Id: ogr_layer_algebra.py 29254 2015-05-27 12:45:56Z rouault $
 # 
 #  Project:  GDAL Python Interface
 #  Purpose:  Application for executing OGR layer algebra operations
@@ -29,7 +29,7 @@
 #  DEALINGS IN THE SOFTWARE.
 #******************************************************************************
 
-from osgeo import gdal, ogr
+from osgeo import gdal, ogr, osr
 import os
 import sys
 

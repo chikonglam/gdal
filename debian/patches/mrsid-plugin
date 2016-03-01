@@ -1,6 +1,8 @@
 Description: Add support for building the libgdal-mrsid plugin.
 Author: Alan Boudreault <aboudreault@mapgears.com>, Francesco Paolo Lovergine <frankie@debian.org>
 Last-Update: 2010-05-14
+Forwarded: not-needed
+
 --- a/frmts/mrsid/GNUmakefile
 +++ b/frmts/mrsid/GNUmakefile
 @@ -31,3 +31,10 @@ $(PLUGIN_DLL):  $(OBJ)

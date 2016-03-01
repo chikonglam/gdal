@@ -1,4 +1,4 @@
-.TH "gdalsrsinfo" 1 "Wed Sep 16 2015" "GDAL" \" -*- nroff -*-
+.TH "gdalsrsinfo" 1 "Tue Jan 26 2016" "GDAL" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -8,7 +8,6 @@ lists info about a given SRS in number of formats (WKT, PROJ\&.4, etc\&.)
 .PP
 .PP
 .nf
-
 Usage: gdalsrsinfo [options] srs_def
 
 srs_def may be the filename of a dataset supported by GDAL/OGR from which to extract SRS information
@@ -20,9 +19,7 @@ Options:
    [-V]                   Validate SRS
    [-o out_type]          Output type { default, all, wkt_all, proj4,
                                         wkt, wkt_simple, wkt_noct, wkt_esri,
-                                        mapinfo, xml }
-
-.fi
+                                        mapinfo, xml }.fi
 .PP
 .SH "DESCRIPTION"
 .PP
@@ -60,12 +57,10 @@ Output types:
 .PP
 
 .br
- 
 .SH "EXAMPLE"
 .PP
 .PP
 .nf
-
 $  gdalsrsinfo   "EPSG:4326"
 
 PROJ.4 : '+proj=longlat +datum=WGS84 +no_defs '
@@ -80,41 +75,31 @@ GEOGCS["WGS 84",
         AUTHORITY["EPSG","8901"]],
     UNIT["degree",0.0174532925199433,
         AUTHORITY["EPSG","9122"]],
-    AUTHORITY["EPSG","4326"]]
-
-.fi
+    AUTHORITY["EPSG","4326"]].fi
 .PP
 .PP
 
 .br
- 
 .PP
 .nf
-
 $ gdalsrsinfo -o proj4 osr/data/lcc_esri.prj
 '+proj=lcc +lat_1=34.33333333333334 +lat_2=36.16666666666666 +lat_0=33.75 +lon_0=-79 +x_0=609601.22 +y_0=0 +datum=NAD83 +units=m +no_defs '
-
 .fi
 .PP
 .PP
 
 .br
- 
 .PP
 .nf
-
 $ gdalsrsinfo -o proj4 landsat.tif
 PROJ.4 : '+proj=utm +zone=19 +south +datum=WGS84 +units=m +no_defs '
-
 .fi
 .PP
 .PP
 
 .br
- 
 .PP
 .nf
-
 $ gdalsrsinfo  -o wkt -p  "EPSG:32722"
 
 PROJCS["WGS 84 / UTM zone 22S",
@@ -139,16 +124,13 @@ PROJCS["WGS 84 / UTM zone 22S",
     AXIS["Easting",EAST],
     AXIS["Northing",NORTH],
     AUTHORITY["EPSG","32722"]]
-
 .fi
 .PP
 .PP
 
 .br
- 
 .PP
 .nf
-
 $ gdalsrsinfo  -o wkt_all  "EPSG:4618"
 
 OGC WKT :
@@ -185,9 +167,8 @@ GEOGCS["SAD69",
         SPHEROID["GRS_1967_Truncated",6378160,298.25]],
     PRIMEM["Greenwich",0],
     UNIT["Degree",0.017453292519943295]]
-
 .fi
 .PP
 .SH "AUTHORS"
 .PP
-Frank Warmerdam <warmerdam@pobox.com>, Etienne Tourigny <etourigny\&.dev-at-gmail-dot-com> 
+Frank Warmerdam warmerdam@pobox.com, Etienne Tourigny <etourigny\&.dev-at-gmail-dot-com> 

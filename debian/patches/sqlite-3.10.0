@@ -1,11 +1,11 @@
 Description: SQLite: fix crash on Unix systems with SQLite >= 3.10.0 when xCurrentTimeInt function is called
 Author: Even Rouault <even.rouault@mines-paris.org>
-Origin: https://trac.osgeo.org/gdal/changeset/33412
+Origin: https://trac.osgeo.org/gdal/changeset/33411
 Bug: https://trac.osgeo.org/gdal/ticket/6360
 
 --- a/ogr/ogrsf_frmts/sqlite/ogrsqlitevfs.cpp
 +++ b/ogr/ogrsf_frmts/sqlite/ogrsqlitevfs.cpp
-@@ -422,11 +422,51 @@ static int OGRSQLiteVFSSleep (sqlite3_vf
+@@ -380,11 +380,51 @@ static int OGRSQLiteVFSSleep (sqlite3_vf
      return pUnderlyingVFS->xSleep(pUnderlyingVFS, microseconds);
  }
  
@@ -61,7 +61,7 @@ Bug: https://trac.osgeo.org/gdal/ticket/6360
  }
  
  static int OGRSQLiteVFSGetLastError (sqlite3_vfs* pVFS, int p1, char *p2)
-@@ -449,7 +489,11 @@ sqlite3_vfs* OGRSQLiteCreateVFS(pfnNotif
+@@ -407,7 +447,11 @@ sqlite3_vfs* OGRSQLiteCreateVFS(pfnNotif
      pVFSAppData->pfnUserData = pfnUserData;
      pVFSAppData->nCounter = 0;
  
@@ -73,7 +73,7 @@ Bug: https://trac.osgeo.org/gdal/ticket/6360
      pMyVFS->szOsFile = sizeof(OGRSQLiteFileStruct);
      pMyVFS->mxPathname = pDefaultVFS->mxPathname;
      pMyVFS->zName = pVFSAppData->szVFSName;
-@@ -466,6 +510,11 @@ sqlite3_vfs* OGRSQLiteCreateVFS(pfnNotif
+@@ -424,6 +468,11 @@ sqlite3_vfs* OGRSQLiteCreateVFS(pfnNotif
      pMyVFS->xSleep = OGRSQLiteVFSSleep;
      pMyVFS->xCurrentTime = OGRSQLiteVFSCurrentTime;
      pMyVFS->xGetLastError = OGRSQLiteVFSGetLastError;

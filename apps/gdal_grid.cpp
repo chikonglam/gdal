@@ -1,5 +1,5 @@
 /* ****************************************************************************
- * $Id: gdal_grid.cpp 27128 2014-04-05 12:59:03Z rouault $
+ * $Id: gdal_grid.cpp 29330 2015-06-14 12:11:11Z rouault $
  *
  * Project:  GDAL Utilities
  * Purpose:  GDAL scattered data gridding (interpolation) tool
@@ -40,7 +40,7 @@
 #include "gdalgrid.h"
 #include "commonutils.h"
 
-CPL_CVSID("$Id: gdal_grid.cpp 27128 2014-04-05 12:59:03Z rouault $");
+CPL_CVSID("$Id: gdal_grid.cpp 29330 2015-06-14 12:11:11Z rouault $");
 
 /************************************************************************/
 /*                               Usage()                                */
@@ -103,7 +103,7 @@ static void PrintAlgorithmAndOptions( GDALGridAlgorithm eAlgorithm,
     {
         case GGA_InverseDistanceToAPower:
             printf( "Algorithm name: \"%s\".\n", szAlgNameInvDist );
-            printf( "Options are "
+            CPLprintf( "Options are "
                     "\"power=%f:smoothing=%f:radius1=%f:radius2=%f:angle=%f"
                     ":max_points=%lu:min_points=%lu:nodata=%f\"\n",
                 ((GDALGridInverseDistanceToAPowerOptions *)pOptions)->dfPower,
@@ -117,7 +117,7 @@ static void PrintAlgorithmAndOptions( GDALGridAlgorithm eAlgorithm,
             break;
         case GGA_MovingAverage:
             printf( "Algorithm name: \"%s\".\n", szAlgNameAverage );
-            printf( "Options are "
+            CPLprintf( "Options are "
                     "\"radius1=%f:radius2=%f:angle=%f:min_points=%lu"
                     ":nodata=%f\"\n",
                 ((GDALGridMovingAverageOptions *)pOptions)->dfRadius1,
@@ -128,7 +128,7 @@ static void PrintAlgorithmAndOptions( GDALGridAlgorithm eAlgorithm,
             break;
         case GGA_NearestNeighbor:
             printf( "Algorithm name: \"%s\".\n", szAlgNameNearest );
-            printf( "Options are "
+            CPLprintf( "Options are "
                     "\"radius1=%f:radius2=%f:angle=%f:nodata=%f\"\n",
                 ((GDALGridNearestNeighborOptions *)pOptions)->dfRadius1,
                 ((GDALGridNearestNeighborOptions *)pOptions)->dfRadius2,
@@ -137,7 +137,7 @@ static void PrintAlgorithmAndOptions( GDALGridAlgorithm eAlgorithm,
             break;
         case GGA_MetricMinimum:
             printf( "Algorithm name: \"%s\".\n", szAlgNameMinimum );
-            printf( "Options are "
+            CPLprintf( "Options are "
                     "\"radius1=%f:radius2=%f:angle=%f:min_points=%lu"
                     ":nodata=%f\"\n",
                 ((GDALGridDataMetricsOptions *)pOptions)->dfRadius1,
@@ -148,7 +148,7 @@ static void PrintAlgorithmAndOptions( GDALGridAlgorithm eAlgorithm,
             break;
         case GGA_MetricMaximum:
             printf( "Algorithm name: \"%s\".\n", szAlgNameMaximum );
-            printf( "Options are "
+            CPLprintf( "Options are "
                     "\"radius1=%f:radius2=%f:angle=%f:min_points=%lu"
                     ":nodata=%f\"\n",
                 ((GDALGridDataMetricsOptions *)pOptions)->dfRadius1,
@@ -159,7 +159,7 @@ static void PrintAlgorithmAndOptions( GDALGridAlgorithm eAlgorithm,
             break;
         case GGA_MetricRange:
             printf( "Algorithm name: \"%s\".\n", szAlgNameRange );
-            printf( "Options are "
+            CPLprintf( "Options are "
                     "\"radius1=%f:radius2=%f:angle=%f:min_points=%lu"
                     ":nodata=%f\"\n",
                 ((GDALGridDataMetricsOptions *)pOptions)->dfRadius1,
@@ -170,7 +170,7 @@ static void PrintAlgorithmAndOptions( GDALGridAlgorithm eAlgorithm,
             break;
         case GGA_MetricCount:
             printf( "Algorithm name: \"%s\".\n", szAlgNameCount );
-            printf( "Options are "
+            CPLprintf( "Options are "
                     "\"radius1=%f:radius2=%f:angle=%f:min_points=%lu"
                     ":nodata=%f\"\n",
                 ((GDALGridDataMetricsOptions *)pOptions)->dfRadius1,
@@ -181,7 +181,7 @@ static void PrintAlgorithmAndOptions( GDALGridAlgorithm eAlgorithm,
             break;
         case GGA_MetricAverageDistance:
             printf( "Algorithm name: \"%s\".\n", szAlgNameAverageDistance );
-            printf( "Options are "
+            CPLprintf( "Options are "
                     "\"radius1=%f:radius2=%f:angle=%f:min_points=%lu"
                     ":nodata=%f\"\n",
                 ((GDALGridDataMetricsOptions *)pOptions)->dfRadius1,
@@ -192,7 +192,7 @@ static void PrintAlgorithmAndOptions( GDALGridAlgorithm eAlgorithm,
             break;
         case GGA_MetricAverageDistancePts:
             printf( "Algorithm name: \"%s\".\n", szAlgNameAverageDistancePts );
-            printf( "Options are "
+            CPLprintf( "Options are "
                     "\"radius1=%f:radius2=%f:angle=%f:min_points=%lu"
                     ":nodata=%f\"\n",
                 ((GDALGridDataMetricsOptions *)pOptions)->dfRadius1,
@@ -415,10 +415,10 @@ static CPLErr ProcessLayer( OGRLayerH hSrcLayer, GDALDatasetH hDstDS,
         printf( "Grid data type is \"%s\"\n", GDALGetDataTypeName(eType) );
         printf( "Grid size = (%lu %lu).\n",
                 (unsigned long)nXSize, (unsigned long)nYSize );
-        printf( "Corner coordinates = (%f %f)-(%f %f).\n",
+        CPLprintf( "Corner coordinates = (%f %f)-(%f %f).\n",
                 dfXMin - dfDeltaX / 2, dfYMax + dfDeltaY / 2,
                 dfXMax + dfDeltaX / 2, dfYMin - dfDeltaY / 2 );
-        printf( "Grid cell size = (%f %f).\n", dfDeltaX, dfDeltaY );
+        CPLprintf( "Grid cell size = (%f %f).\n", dfDeltaX, dfDeltaY );
         printf( "Source point count = %lu.\n", (unsigned long)adfX.size() );
         PrintAlgorithmAndOptions( eAlgorithm, pOptions );
         printf("\n");
@@ -524,12 +524,12 @@ static OGRGeometryCollection* LoadGeometry( const char* pszDS,
                                             const char* pszLyr,
                                             const char* pszWhere )
 {
-    OGRDataSource       *poDS;
+    GDALDataset         *poDS;
     OGRLayer            *poLyr;
     OGRFeature          *poFeat;
     OGRGeometryCollection *poGeom = NULL;
         
-    poDS = OGRSFDriverRegistrar::Open( pszDS, FALSE );
+    poDS = (GDALDataset*) GDALOpen( pszDS, GA_ReadOnly );
     if ( poDS == NULL )
         return NULL;
 
@@ -544,7 +544,7 @@ static OGRGeometryCollection* LoadGeometry( const char* pszDS,
     {
         fprintf( stderr,
             "FAILURE: Failed to identify source layer from datasource.\n" );
-        OGRDataSource::DestroyDataSource( poDS );
+        GDALClose( (GDALDatasetH) poDS );
         return NULL;
     }
     
@@ -583,7 +583,7 @@ static OGRGeometryCollection* LoadGeometry( const char* pszDS,
                 OGRFeature::DestroyFeature( poFeat );
                 if ( pszSQL != NULL )
                     poDS->ReleaseResultSet( poLyr );
-                OGRDataSource::DestroyDataSource( poDS );
+                GDALClose( (GDALDatasetH) poDS );
                 return NULL;
             }
         }
@@ -593,7 +593,7 @@ static OGRGeometryCollection* LoadGeometry( const char* pszDS,
     
     if( pszSQL != NULL )
         poDS->ReleaseResultSet( poLyr );
-    OGRDataSource::DestroyDataSource( poDS );
+    GDALClose( (GDALDatasetH) poDS );
     
     return poGeom;
 }
@@ -610,7 +610,7 @@ int main( int argc, char ** argv )
 {
     GDALDriverH     hDriver;
     const char      *pszSource=NULL, *pszDest=NULL, *pszFormat = "GTiff";
-    int             bFormatExplicitelySet = FALSE;
+    int             bFormatExplicitlySet = FALSE;
     char            **papszLayers = NULL;
     const char      *pszBurnAttribute = NULL;
     double          dfIncreaseBurnValue = 0.0;
@@ -634,6 +634,8 @@ int main( int argc, char ** argv )
     const char      *pszClipSrcSQL = NULL;
     const char      *pszClipSrcLayer = NULL;
     const char      *pszClipSrcWhere = NULL;
+    int              bNoDataSet = FALSE;
+    double           dfNoDataValue = 0;
 
     /* Check strict compilation and runtime library version as we use C++ API */
     if (! GDAL_CHECK_VERSION(argv[0]))
@@ -663,7 +665,7 @@ int main( int argc, char ** argv )
         {
             CHECK_HAS_ENOUGH_ADDITIONAL_ARGS(1);
             pszFormat = argv[++i];
-            bFormatExplicitelySet = TRUE;
+            bFormatExplicitlySet = TRUE;
         }
 
         else if( EQUAL(argv[i],"-q") || EQUAL(argv[i],"-quiet") )
@@ -698,16 +700,16 @@ int main( int argc, char ** argv )
         else if( EQUAL(argv[i],"-txe") )
         {
             CHECK_HAS_ENOUGH_ADDITIONAL_ARGS(2);
-            dfXMin = atof(argv[++i]);
-            dfXMax = atof(argv[++i]);
+            dfXMin = CPLAtof(argv[++i]);
+            dfXMax = CPLAtof(argv[++i]);
             bIsXExtentSet = TRUE;
         }   
 
         else if( EQUAL(argv[i],"-tye") )
         {
             CHECK_HAS_ENOUGH_ADDITIONAL_ARGS(2);
-            dfYMin = atof(argv[++i]);
-            dfYMax = atof(argv[++i]);
+            dfYMin = CPLAtof(argv[++i]);
+            dfYMax = CPLAtof(argv[++i]);
             bIsYExtentSet = TRUE;
         }   
 
@@ -733,13 +735,13 @@ int main( int argc, char ** argv )
         else if( EQUAL(argv[i],"-z_increase") )
         {
             CHECK_HAS_ENOUGH_ADDITIONAL_ARGS(1);
-            dfIncreaseBurnValue = atof(argv[++i]);
+            dfIncreaseBurnValue = CPLAtof(argv[++i]);
         }
 
         else if( EQUAL(argv[i],"-z_multiply") )
         {
             CHECK_HAS_ENOUGH_ADDITIONAL_ARGS(1);
-            dfMultiplyBurnValue = atof(argv[++i]);
+            dfMultiplyBurnValue = CPLAtof(argv[++i]);
         }
 
         else if( EQUAL(argv[i],"-where") )
@@ -765,11 +767,11 @@ int main( int argc, char ** argv )
             CHECK_HAS_ENOUGH_ADDITIONAL_ARGS(4);
             OGRLinearRing  oRing;
 
-            oRing.addPoint( atof(argv[i+1]), atof(argv[i+2]) );
-            oRing.addPoint( atof(argv[i+1]), atof(argv[i+4]) );
-            oRing.addPoint( atof(argv[i+3]), atof(argv[i+4]) );
-            oRing.addPoint( atof(argv[i+3]), atof(argv[i+2]) );
-            oRing.addPoint( atof(argv[i+1]), atof(argv[i+2]) );
+            oRing.addPoint( CPLAtof(argv[i+1]), CPLAtof(argv[i+2]) );
+            oRing.addPoint( CPLAtof(argv[i+1]), CPLAtof(argv[i+4]) );
+            oRing.addPoint( CPLAtof(argv[i+3]), CPLAtof(argv[i+4]) );
+            oRing.addPoint( CPLAtof(argv[i+3]), CPLAtof(argv[i+2]) );
+            oRing.addPoint( CPLAtof(argv[i+1]), CPLAtof(argv[i+2]) );
 
             poSpatialFilter = new OGRPolygon();
             ((OGRPolygon *) poSpatialFilter)->addRing( &oRing );
@@ -791,11 +793,11 @@ int main( int argc, char ** argv )
             {
                 OGRLinearRing  oRing;
 
-                oRing.addPoint( atof(argv[i + 1]), atof(argv[i + 2]) );
-                oRing.addPoint( atof(argv[i + 1]), atof(argv[i + 4]) );
-                oRing.addPoint( atof(argv[i + 3]), atof(argv[i + 4]) );
-                oRing.addPoint( atof(argv[i + 3]), atof(argv[i + 2]) );
-                oRing.addPoint( atof(argv[i + 1]), atof(argv[i + 2]) );
+                oRing.addPoint( CPLAtof(argv[i + 1]), CPLAtof(argv[i + 2]) );
+                oRing.addPoint( CPLAtof(argv[i + 1]), CPLAtof(argv[i + 4]) );
+                oRing.addPoint( CPLAtof(argv[i + 3]), CPLAtof(argv[i + 4]) );
+                oRing.addPoint( CPLAtof(argv[i + 3]), CPLAtof(argv[i + 2]) );
+                oRing.addPoint( CPLAtof(argv[i + 1]), CPLAtof(argv[i + 2]) );
 
                 poClipSrc = new OGRPolygon();
                 ((OGRPolygon *) poClipSrc)->addRing( &oRing );
@@ -866,13 +868,23 @@ int main( int argc, char ** argv )
         else if( EQUAL(argv[i],"-a") )
         {
             CHECK_HAS_ENOUGH_ADDITIONAL_ARGS(1);
-            if ( ParseAlgorithmAndOptions( argv[++i], &eAlgorithm, &pOptions )
+            const char* pszAlgorithm = argv[++i];
+            if ( ParseAlgorithmAndOptions( pszAlgorithm, &eAlgorithm, &pOptions )
                  != CE_None )
             {
                 fprintf( stderr,
                          "Failed to process algorithm name and parameters.\n" );
                 exit( 1 );
             }
+            
+            char **papszParms = CSLTokenizeString2( pszAlgorithm, ":", FALSE );
+            const char* pszNoDataValue = CSLFetchNameValue( papszParms, "nodata" );
+            if( pszNoDataValue != NULL )
+            {
+                bNoDataSet = TRUE;
+                dfNoDataValue = CPLAtofM(pszNoDataValue);
+            }
+            CSLDestroy(papszParms);
         }
 
         else if( argv[i][0] == '-' )
@@ -966,9 +978,9 @@ int main( int argc, char ** argv )
         {
             GDALDriverH hDriver = GDALGetDriver(iDr);
 
-            if( GDALGetMetadataItem( hDriver, GDAL_DCAP_CREATE, NULL ) != NULL
-                || GDALGetMetadataItem( hDriver, GDAL_DCAP_CREATECOPY,
-                                        NULL ) != NULL )
+            if( GDALGetMetadataItem( hDriver, GDAL_DCAP_RASTER, NULL) != NULL &&
+                ( GDALGetMetadataItem( hDriver, GDAL_DCAP_CREATE, NULL ) != NULL
+                || GDALGetMetadataItem( hDriver, GDAL_DCAP_CREATECOPY, NULL ) != NULL) )
             {
                 fprintf( stderr, "  %s: %s\n",
                          GDALGetDriverShortName( hDriver  ),
@@ -1009,7 +1021,7 @@ int main( int argc, char ** argv )
     if ( nYSize == 0 )
         nYSize = 256;
 
-    if (!bQuiet && !bFormatExplicitelySet)
+    if (!bQuiet && !bFormatExplicitlySet)
         CheckExtensionConsistency(pszDest, pszFormat);
 
     hDstDS = GDALCreate( hDriver, pszDest, nXSize, nYSize, nBands,
@@ -1020,6 +1032,15 @@ int main( int argc, char ** argv )
                  pszDest );
         fprintf( stderr, "%s\n", CPLGetLastErrorMsg() );
         exit( 3 );
+    }
+    
+    if( bNoDataSet )
+    {
+        for( i = 1; i <= nBands; i++ )
+        {
+            GDALRasterBandH hBand = GDALGetRasterBand( hDstDS, i );
+            GDALSetRasterNoDataValue( hBand, dfNoDataValue );
+        }
     }
 
 /* -------------------------------------------------------------------- */

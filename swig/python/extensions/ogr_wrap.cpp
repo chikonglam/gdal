@@ -2722,28 +2722,31 @@ SWIG_Python_MustGetPtr(PyObject *obj, swig_type_info *ty, int argnum, int flags)
 
 /* -------- TYPES TABLE (BEGIN) -------- */
 
-#define SWIGTYPE_p_GDALProgressFunc swig_types[0]
-#define SWIGTYPE_p_GIntBig swig_types[1]
-#define SWIGTYPE_p_OGRDataSourceShadow swig_types[2]
-#define SWIGTYPE_p_OGRDriverShadow swig_types[3]
-#define SWIGTYPE_p_OGRFeatureDefnShadow swig_types[4]
-#define SWIGTYPE_p_OGRFeatureShadow swig_types[5]
-#define SWIGTYPE_p_OGRFieldDefnShadow swig_types[6]
-#define SWIGTYPE_p_OGRGeomFieldDefnShadow swig_types[7]
-#define SWIGTYPE_p_OGRGeometryShadow swig_types[8]
-#define SWIGTYPE_p_OGRLayerShadow swig_types[9]
-#define SWIGTYPE_p_OGRStyleTableShadow swig_types[10]
-#define SWIGTYPE_p_OSRCoordinateTransformationShadow swig_types[11]
-#define SWIGTYPE_p_OSRSpatialReferenceShadow swig_types[12]
-#define SWIGTYPE_p_char swig_types[13]
-#define SWIGTYPE_p_double swig_types[14]
-#define SWIGTYPE_p_f_double_p_q_const__char_p_void__int swig_types[15]
-#define SWIGTYPE_p_int swig_types[16]
-#define SWIGTYPE_p_p_char swig_types[17]
-#define SWIGTYPE_p_p_double swig_types[18]
-#define SWIGTYPE_p_p_int swig_types[19]
-static swig_type_info *swig_types[21];
-static swig_module_info swig_module = {swig_types, 20, 0, 0, 0, 0};
+#define SWIGTYPE_p_GDALMajorObjectShadow swig_types[0]
+#define SWIGTYPE_p_GDALProgressFunc swig_types[1]
+#define SWIGTYPE_p_GIntBig swig_types[2]
+#define SWIGTYPE_p_OGRDataSourceShadow swig_types[3]
+#define SWIGTYPE_p_OGRDriverShadow swig_types[4]
+#define SWIGTYPE_p_OGRFeatureDefnShadow swig_types[5]
+#define SWIGTYPE_p_OGRFeatureShadow swig_types[6]
+#define SWIGTYPE_p_OGRFieldDefnShadow swig_types[7]
+#define SWIGTYPE_p_OGRGeomFieldDefnShadow swig_types[8]
+#define SWIGTYPE_p_OGRGeometryShadow swig_types[9]
+#define SWIGTYPE_p_OGRLayerShadow swig_types[10]
+#define SWIGTYPE_p_OGRStyleTableShadow swig_types[11]
+#define SWIGTYPE_p_OSRCoordinateTransformationShadow swig_types[12]
+#define SWIGTYPE_p_OSRSpatialReferenceShadow swig_types[13]
+#define SWIGTYPE_p_char swig_types[14]
+#define SWIGTYPE_p_double swig_types[15]
+#define SWIGTYPE_p_f_double_p_q_const__char_p_void__int swig_types[16]
+#define SWIGTYPE_p_float swig_types[17]
+#define SWIGTYPE_p_int swig_types[18]
+#define SWIGTYPE_p_p_GIntBig swig_types[19]
+#define SWIGTYPE_p_p_char swig_types[20]
+#define SWIGTYPE_p_p_double swig_types[21]
+#define SWIGTYPE_p_p_int swig_types[22]
+static swig_type_info *swig_types[24];
+static swig_module_info swig_module = {swig_types, 23, 0, 0, 0, 0};
 #define SWIG_TypeQuery(name) SWIG_TypeQueryModule(&swig_module, &swig_module, name)
 #define SWIG_MangledTypeQuery(name) SWIG_MangledTypeQueryModule(&swig_module, &swig_module, name)
 
@@ -2846,12 +2849,15 @@ typedef char retStringAndCPLFree;
 #include <iostream>
 using namespace std;
 
+#include "gdal.h"
 #include "ogr_api.h"
 #include "ogr_p.h"
 #include "ogr_core.h"
 #include "cpl_port.h"
 #include "cpl_string.h"
 #include "ogr_srs_api.h"
+
+typedef void GDALMajorObjectShadow;
 
 #ifdef DEBUG 
 typedef struct OGRSpatialReferenceHS OSRSpatialReferenceShadow;
@@ -2937,7 +2943,7 @@ void CPL_STDCALL
 PythonBindingErrorHandler(CPLErr eclass, int code, const char *msg ) 
 {
   /* 
-  ** Generally we want to supress error reporting if we have exceptions
+  ** Generally we want to suppress error reporting if we have exceptions
   ** enabled as the error message will be in the exception thrown in 
   ** Python.  
   */
@@ -3110,12 +3116,12 @@ PyProgressProxy( double dfComplete, const char *pszMessage, void *pData )
     return bContinue;    
 }
 
-SWIGINTERN OGRStyleTableShadow *new_OGRStyleTableShadow(){
-        return (OGRStyleTableShadow*) OGR_STBL_Create();
-   }
-SWIGINTERN void delete_OGRStyleTableShadow(OGRStyleTableShadow *self){
-        OGR_STBL_Destroy( (OGRStyleTableH) self );
-   }
+
+#include "gdal.h"
+
+SWIGINTERN char const *GDALMajorObjectShadow_GetDescription(GDALMajorObjectShadow *self){
+    return GDALGetDescription( self );
+  }
 
 SWIGINTERN int
 SWIG_AsCharPtrAndSize(PyObject *obj, char** cptr, size_t* psize, int *alloc)
@@ -3195,6 +3201,39 @@ SWIG_AsCharPtrAndSize(PyObject *obj, char** cptr, size_t* psize, int *alloc)
 
 
 
+SWIGINTERN void GDALMajorObjectShadow_SetDescription(GDALMajorObjectShadow *self,char const *pszNewDesc){
+    GDALSetDescription( self, pszNewDesc );
+  }
+SWIGINTERN char **GDALMajorObjectShadow_GetMetadataDomainList(GDALMajorObjectShadow *self){
+    return GDALGetMetadataDomainList( self );
+  }
+SWIGINTERN char **GDALMajorObjectShadow_GetMetadata_Dict(GDALMajorObjectShadow *self,char const *pszDomain=""){
+    return GDALGetMetadata( self, pszDomain );
+  }
+SWIGINTERN char **GDALMajorObjectShadow_GetMetadata_List(GDALMajorObjectShadow *self,char const *pszDomain=""){
+    return GDALGetMetadata( self, pszDomain );
+  }
+SWIGINTERN CPLErr GDALMajorObjectShadow_SetMetadata__SWIG_0(GDALMajorObjectShadow *self,char **papszMetadata,char const *pszDomain=""){
+    return GDALSetMetadata( self, papszMetadata, pszDomain );
+  }
+SWIGINTERN CPLErr GDALMajorObjectShadow_SetMetadata__SWIG_1(GDALMajorObjectShadow *self,char *pszMetadataString,char const *pszDomain=""){
+    char *tmpList[2];
+    tmpList[0] = pszMetadataString;
+    tmpList[1] = 0;
+    return GDALSetMetadata( self, tmpList, pszDomain );
+  }
+SWIGINTERN char const *GDALMajorObjectShadow_GetMetadataItem(GDALMajorObjectShadow *self,char const *pszName,char const *pszDomain=""){
+    return GDALGetMetadataItem( self, pszName, pszDomain);
+  }
+SWIGINTERN CPLErr GDALMajorObjectShadow_SetMetadataItem(GDALMajorObjectShadow *self,char const *pszName,char const *pszValue,char const *pszDomain=""){
+    return GDALSetMetadataItem( self, pszName, pszValue, pszDomain);
+  }
+SWIGINTERN OGRStyleTableShadow *new_OGRStyleTableShadow(){
+        return (OGRStyleTableShadow*) OGR_STBL_Create();
+   }
+SWIGINTERN void delete_OGRStyleTableShadow(OGRStyleTableShadow *self){
+        OGR_STBL_Destroy( (OGRStyleTableH) self );
+   }
 SWIGINTERN int OGRStyleTableShadow_AddStyle(OGRStyleTableShadow *self,char const *pszName,char const *pszStyleString){
         return OGR_STBL_AddStyle( (OGRStyleTableH) self, pszName, pszStyleString);
    }
@@ -3452,6 +3491,8 @@ OGRErrMessages( int rc ) {
     return "OGR Error: Unsupported SRS";
   case OGRERR_INVALID_HANDLE:
     return "OGR Error: Invalid handle";
+  case OGRERR_NON_EXISTING_FEATURE:
+    return "OGR Error: Non existing feature";
   default:
     return "OGR Error: Unknown";
   }
@@ -3459,6 +3500,9 @@ OGRErrMessages( int rc ) {
 
 SWIGINTERN OGRErr OGRDataSourceShadow_SyncToDisk(OGRDataSourceShadow *self){
     return OGR_DS_SyncToDisk(self);
+  }
+SWIGINTERN void OGRDataSourceShadow_FlushCache(OGRDataSourceShadow *self){
+    GDALFlushCache( self );
   }
 SWIGINTERN OGRLayerShadow *OGRDataSourceShadow_CreateLayer(OGRDataSourceShadow *self,char const *name,OSRSpatialReferenceShadow *srs=NULL,OGRwkbGeometryType geom_type=wkbUnknown,char **options=0){
     OGRLayerShadow* layer = (OGRLayerShadow*) OGR_DS_CreateLayer( self,
@@ -3504,6 +3548,15 @@ SWIGINTERN void OGRDataSourceShadow_SetStyleTable(OGRDataSourceShadow *self,OGRS
     if( table != NULL )
         OGR_DS_SetStyleTable(self, (OGRStyleTableH) table);
   }
+SWIGINTERN OGRErr OGRDataSourceShadow_StartTransaction(OGRDataSourceShadow *self,int force=FALSE){
+    return GDALDatasetStartTransaction(self, force);
+  }
+SWIGINTERN OGRErr OGRDataSourceShadow_CommitTransaction(OGRDataSourceShadow *self){
+    return GDALDatasetCommitTransaction(self);
+  }
+SWIGINTERN OGRErr OGRDataSourceShadow_RollbackTransaction(OGRDataSourceShadow *self){
+    return GDALDatasetRollbackTransaction(self);
+  }
 SWIGINTERN int OGRLayerShadow_GetRefCount(OGRLayerShadow *self){
     return OGR_L_GetRefCount(self);
   }
@@ -3540,13 +3593,13 @@ SWIGINTERN char const *OGRLayerShadow_GetGeometryColumn(OGRLayerShadow *self){
 SWIGINTERN char const *OGRLayerShadow_GetFIDColumn(OGRLayerShadow *self){
     return OGR_L_GetFIDColumn(self);
   }
-SWIGINTERN OGRFeatureShadow *OGRLayerShadow_GetFeature(OGRLayerShadow *self,long fid){
+SWIGINTERN OGRFeatureShadow *OGRLayerShadow_GetFeature(OGRLayerShadow *self,GIntBig fid){
     return (OGRFeatureShadow*) OGR_L_GetFeature(self, fid);
   }
 SWIGINTERN OGRFeatureShadow *OGRLayerShadow_GetNextFeature(OGRLayerShadow *self){
     return (OGRFeatureShadow*) OGR_L_GetNextFeature(self);
   }
-SWIGINTERN OGRErr OGRLayerShadow_SetNextByIndex(OGRLayerShadow *self,long new_index){
+SWIGINTERN OGRErr OGRLayerShadow_SetNextByIndex(OGRLayerShadow *self,GIntBig new_index){
     return OGR_L_SetNextByIndex(self, new_index);
   }
 SWIGINTERN OGRErr OGRLayerShadow_SetFeature(OGRLayerShadow *self,OGRFeatureShadow *feature){
@@ -3555,7 +3608,7 @@ SWIGINTERN OGRErr OGRLayerShadow_SetFeature(OGRLayerShadow *self,OGRFeatureShado
 SWIGINTERN OGRErr OGRLayerShadow_CreateFeature(OGRLayerShadow *self,OGRFeatureShadow *feature){
     return OGR_L_CreateFeature(self, feature);
   }
-SWIGINTERN OGRErr OGRLayerShadow_DeleteFeature(OGRLayerShadow *self,long fid){
+SWIGINTERN OGRErr OGRLayerShadow_DeleteFeature(OGRLayerShadow *self,GIntBig fid){
     return OGR_L_DeleteFeature(self, fid);
   }
 SWIGINTERN OGRErr OGRLayerShadow_SyncToDisk(OGRLayerShadow *self){
@@ -3564,13 +3617,13 @@ SWIGINTERN OGRErr OGRLayerShadow_SyncToDisk(OGRLayerShadow *self){
 SWIGINTERN OGRFeatureDefnShadow *OGRLayerShadow_GetLayerDefn(OGRLayerShadow *self){
     return (OGRFeatureDefnShadow*) OGR_L_GetLayerDefn(self);
   }
-SWIGINTERN int OGRLayerShadow_GetFeatureCount(OGRLayerShadow *self,int force=1){
+SWIGINTERN GIntBig OGRLayerShadow_GetFeatureCount(OGRLayerShadow *self,int force=1){
     return OGR_L_GetFeatureCount(self, force);
   }
 SWIGINTERN void OGRLayerShadow_GetExtent(OGRLayerShadow *self,double argout[4],int *isvalid=NULL,int force=1,int can_return_null=0,int geom_field=0){
     OGRErr eErr = OGR_L_GetExtentEx(self, geom_field, (OGREnvelope*)argout, force);
     if (can_return_null)
-        *isvalid = (eErr == OGRERR_NONE);
+        *isvalid = (eErr == 0);
     else
         *isvalid = TRUE;
     return;
@@ -3593,7 +3646,7 @@ SWIGINTERN OGRErr OGRLayerShadow_ReorderFields(OGRLayerShadow *self,int nList,in
       CPLError(CE_Failure, CPLE_IllegalArg,
                "List should have %d elements",
                OGR_FD_GetFieldCount(OGR_L_GetLayerDefn(self)));
-      return OGRERR_FAILURE;
+      return 6;
     }
     return OGR_L_ReorderFields(self, pList);
   }
@@ -3681,7 +3734,7 @@ SWIGINTERN OGRErr OGRFeatureShadow_SetGeomField__SWIG_1(OGRFeatureShadow *self,c
       if (iField == -1)
       {
         CPLError(CE_Failure, 1, "No such field: '%s'", name);
-        return OGRERR_FAILURE;
+        return 6;
       }
       else
         return OGR_F_SetGeomField(self, iField, geom);
@@ -3694,7 +3747,7 @@ SWIGINTERN OGRErr OGRFeatureShadow_SetGeomFieldDirectly__SWIG_1(OGRFeatureShadow
       if (iField == -1)
       {
         CPLError(CE_Failure, 1, "No such field: '%s'", name);
-        return OGRERR_FAILURE;
+        return 6;
       }
       else
         return OGR_F_SetGeomFieldDirectly(self, iField, geom);
@@ -3768,6 +3821,17 @@ SWIGINTERN int OGRFeatureShadow_GetFieldAsInteger__SWIG_1(OGRFeatureShadow *self
 	  return OGR_F_GetFieldAsInteger(self, i);
       return 0;
   }
+SWIGINTERN GIntBig OGRFeatureShadow_GetFieldAsInteger64__SWIG_0(OGRFeatureShadow *self,int id){
+    return OGR_F_GetFieldAsInteger64(self, id);
+  }
+SWIGINTERN GIntBig OGRFeatureShadow_GetFieldAsInteger64__SWIG_1(OGRFeatureShadow *self,char const *name){
+      int i = OGR_F_GetFieldIndex(self, name);
+      if (i == -1)
+      CPLError(CE_Failure, 1, "No such field: '%s'", name);
+      else
+      return OGR_F_GetFieldAsInteger64(self, i);
+      return 0;
+  }
 SWIGINTERN double OGRFeatureShadow_GetFieldAsDouble__SWIG_0(OGRFeatureShadow *self,int id){
     return OGR_F_GetFieldAsDouble(self, id);
   }
@@ -3782,19 +3846,50 @@ SWIGINTERN double OGRFeatureShadow_GetFieldAsDouble__SWIG_1(OGRFeatureShadow *se
 	  return OGR_F_GetFieldAsDouble(self, i);
       return 0;
   }
-SWIGINTERN void OGRFeatureShadow_GetFieldAsDateTime(OGRFeatureShadow *self,int id,int *pnYear,int *pnMonth,int *pnDay,int *pnHour,int *pnMinute,int *pnSecond,int *pnTZFlag){
-      OGR_F_GetFieldAsDateTime(self, id, pnYear, pnMonth, pnDay,
-			       pnHour, pnMinute, pnSecond,
+
+SWIGINTERNINLINE PyObject *
+SWIG_From_float  (float value)
+{    
+  return SWIG_From_double  (value);
+}
+
+SWIGINTERN void OGRFeatureShadow_GetFieldAsDateTime(OGRFeatureShadow *self,int id,int *pnYear,int *pnMonth,int *pnDay,int *pnHour,int *pnMinute,float *pfSecond,int *pnTZFlag){
+      OGR_F_GetFieldAsDateTimeEx(self, id, pnYear, pnMonth, pnDay,
+			       pnHour, pnMinute, pfSecond,
 			       pnTZFlag);
   }
 SWIGINTERN void OGRFeatureShadow_GetFieldAsIntegerList(OGRFeatureShadow *self,int id,int *nLen,int const **pList){
       *pList = OGR_F_GetFieldAsIntegerList(self, id, nLen);
+  }
+SWIGINTERN void OGRFeatureShadow_GetFieldAsInteger64List(OGRFeatureShadow *self,int id,int *nLen,GIntBig const **pList){
+      *pList = OGR_F_GetFieldAsInteger64List(self, id, nLen);
   }
 SWIGINTERN void OGRFeatureShadow_GetFieldAsDoubleList(OGRFeatureShadow *self,int id,int *nLen,double const **pList){
       *pList = OGR_F_GetFieldAsDoubleList(self, id, nLen);
   }
 SWIGINTERN char **OGRFeatureShadow_GetFieldAsStringList(OGRFeatureShadow *self,int id){
       return OGR_F_GetFieldAsStringList(self, id);
+  }
+SWIGINTERN OGRErr OGRFeatureShadow_GetFieldAsBinary__SWIG_0(OGRFeatureShadow *self,int id,int *nLen,char **pBuf){
+    GByte* pabyBlob = OGR_F_GetFieldAsBinary(self, id, nLen);
+    *pBuf = (char*)malloc(*nLen);
+    memcpy(*pBuf, pabyBlob, *nLen);
+    return 0;
+  }
+SWIGINTERN OGRErr OGRFeatureShadow_GetFieldAsBinary__SWIG_1(OGRFeatureShadow *self,char const *name,int *nLen,char **pBuf){
+      int id = OGR_F_GetFieldIndex(self, name);
+      if (id == -1)
+      {
+        CPLError(CE_Failure, 1, "No such field: '%s'", name);
+        return 6;
+      }
+      else
+      {
+        GByte* pabyBlob = OGR_F_GetFieldAsBinary(self, id, nLen);
+        *pBuf = (char*)malloc(*nLen);
+        memcpy(*pBuf, pabyBlob, *nLen);
+        return 0;
+      }
   }
 SWIGINTERN bool OGRFeatureShadow_IsFieldSet__SWIG_0(OGRFeatureShadow *self,int id){
     return (OGR_F_IsFieldSet(self, id) > 0);
@@ -3813,10 +3908,10 @@ SWIGINTERN int OGRFeatureShadow_GetFieldIndex(OGRFeatureShadow *self,char const 
 SWIGINTERN int OGRFeatureShadow_GetGeomFieldIndex(OGRFeatureShadow *self,char const *name){
       return OGR_F_GetGeomFieldIndex(self, name);
   }
-SWIGINTERN int OGRFeatureShadow_GetFID(OGRFeatureShadow *self){
+SWIGINTERN GIntBig OGRFeatureShadow_GetFID(OGRFeatureShadow *self){
     return OGR_F_GetFID(self);
   }
-SWIGINTERN OGRErr OGRFeatureShadow_SetFID(OGRFeatureShadow *self,int fid){
+SWIGINTERN OGRErr OGRFeatureShadow_SetFID(OGRFeatureShadow *self,GIntBig fid){
     return OGR_F_SetFID(self, fid);
   }
 SWIGINTERN void OGRFeatureShadow_DumpReadable(OGRFeatureShadow *self){
@@ -3842,42 +3937,54 @@ SWIGINTERN void OGRFeatureShadow_SetField__SWIG_1(OGRFeatureShadow *self,char co
       else
 	  OGR_F_SetFieldString(self, i, value);
   }
-SWIGINTERN void OGRFeatureShadow_SetField__SWIG_2(OGRFeatureShadow *self,int id,int value){
-    OGR_F_SetFieldInteger(self, id, value);
+SWIGINTERN void OGRFeatureShadow_SetFieldInteger64(OGRFeatureShadow *self,int id,GIntBig value){
+    OGR_F_SetFieldInteger64(self, id, value);
   }
-SWIGINTERN void OGRFeatureShadow_SetField__SWIG_3(OGRFeatureShadow *self,char const *name,int value){
-      int i = OGR_F_GetFieldIndex(self, name);
-      if (i == -1)
-	  CPLError(CE_Failure, 1, "No such field: '%s'", name);
-      else
-	  OGR_F_SetFieldInteger(self, i, value);
-  }
-SWIGINTERN void OGRFeatureShadow_SetField__SWIG_4(OGRFeatureShadow *self,int id,double value){
+SWIGINTERN void OGRFeatureShadow_SetField__SWIG_2(OGRFeatureShadow *self,int id,double value){
     OGR_F_SetFieldDouble(self, id, value);
   }
-SWIGINTERN void OGRFeatureShadow_SetField__SWIG_5(OGRFeatureShadow *self,char const *name,double value){
+SWIGINTERN void OGRFeatureShadow_SetField__SWIG_3(OGRFeatureShadow *self,char const *name,double value){
       int i = OGR_F_GetFieldIndex(self, name);
       if (i == -1)
 	  CPLError(CE_Failure, 1, "No such field: '%s'", name);
       else
 	  OGR_F_SetFieldDouble(self, i, value);
   }
-SWIGINTERN void OGRFeatureShadow_SetField__SWIG_6(OGRFeatureShadow *self,int id,int year,int month,int day,int hour,int minute,int second,int tzflag){
-    OGR_F_SetFieldDateTime(self, id, year, month, day,
+
+SWIGINTERN int
+SWIG_AsVal_float (PyObject * obj, float *val)
+{
+  double v;
+  int res = SWIG_AsVal_double (obj, &v);
+  if (SWIG_IsOK(res)) {
+    if ((v < -FLT_MAX || v > FLT_MAX)) {
+      return SWIG_OverflowError;
+    } else {
+      if (val) *val = static_cast< float >(v);
+    }
+  }  
+  return res;
+}
+
+SWIGINTERN void OGRFeatureShadow_SetField__SWIG_4(OGRFeatureShadow *self,int id,int year,int month,int day,int hour,int minute,float second,int tzflag){
+    OGR_F_SetFieldDateTimeEx(self, id, year, month, day,
                              hour, minute, second, 
                              tzflag);
   }
-SWIGINTERN void OGRFeatureShadow_SetField__SWIG_7(OGRFeatureShadow *self,char const *name,int year,int month,int day,int hour,int minute,int second,int tzflag){
+SWIGINTERN void OGRFeatureShadow_SetField__SWIG_5(OGRFeatureShadow *self,char const *name,int year,int month,int day,int hour,int minute,float second,int tzflag){
       int i = OGR_F_GetFieldIndex(self, name);
       if (i == -1)
 	  CPLError(CE_Failure, 1, "No such field: '%s'", name);
       else
-	  OGR_F_SetFieldDateTime(self, i, year, month, day,
+	  OGR_F_SetFieldDateTimeEx(self, i, year, month, day,
 				 hour, minute, second, 
 				 tzflag);
   }
 SWIGINTERN void OGRFeatureShadow_SetFieldIntegerList(OGRFeatureShadow *self,int id,int nList,int *pList){
       OGR_F_SetFieldIntegerList(self, id, nList, pList);
+  }
+SWIGINTERN void OGRFeatureShadow_SetFieldInteger64List(OGRFeatureShadow *self,int id,int nList,GIntBig *pList){
+      OGR_F_SetFieldInteger64List(self, id, nList, pList);
   }
 SWIGINTERN void OGRFeatureShadow_SetFieldDoubleList(OGRFeatureShadow *self,int id,int nList,double *pList){
       OGR_F_SetFieldDoubleList(self, id, nList, pList);
@@ -3911,7 +4018,7 @@ SWIGINTERN OGRErr OGRFeatureShadow_SetFromWithMap(OGRFeatureShadow *self,OGRFeat
     {
         CPLError(CE_Failure, CPLE_AppDefined,
                  "The size of map doesn't match with the field count of the source feature");
-        return OGRERR_FAILURE;
+        return 6;
     }
     return OGR_F_SetFromWithMap(self, other, forgiving, pList);
   }
@@ -3922,17 +4029,28 @@ SWIGINTERN void OGRFeatureShadow_SetStyleString(OGRFeatureShadow *self,char cons
     OGR_F_SetStyleString(self, the_string);
   }
 SWIGINTERN OGRFieldType OGRFeatureShadow_GetFieldType__SWIG_0(OGRFeatureShadow *self,int id){
-    return (OGRFieldType) OGR_Fld_GetType( OGR_F_GetFieldDefnRef( self, id));
+      OGRFieldDefnH fd = OGR_F_GetFieldDefnRef( self,  id );
+      if (fd)
+          return (OGRFieldType) OGR_Fld_GetType( fd );
+      else
+          return (OGRFieldType)0;
   }
 SWIGINTERN OGRFieldType OGRFeatureShadow_GetFieldType__SWIG_1(OGRFeatureShadow *self,char const *name){
       int i = OGR_F_GetFieldIndex(self, name);
       if (i == -1) {
-	  CPLError(CE_Failure, 1, "No such field: '%s'", name);
-	  return (OGRFieldType)0;
+          CPLError(CE_Failure, 1, "No such field: '%s'", name);
+          return (OGRFieldType)0;
       } else
-	  return (OGRFieldType) OGR_Fld_GetType( 
-	      OGR_F_GetFieldDefnRef( self,  i )
-	      );
+          return (OGRFieldType) OGR_Fld_GetType( OGR_F_GetFieldDefnRef( self, i ) );
+  }
+SWIGINTERN int OGRFeatureShadow_Validate(OGRFeatureShadow *self,int flags=OGR_F_VAL_ALL,int bEmitError=TRUE){
+    return OGR_F_Validate(self, flags, bEmitError);
+  }
+SWIGINTERN void OGRFeatureShadow_FillUnsetWithDefault(OGRFeatureShadow *self,int bNotNullableOnly=FALSE,char **options=NULL){
+    OGR_F_FillUnsetWithDefault(self, bNotNullableOnly, options );
+  }
+SWIGINTERN void OGRFeatureShadow_SetFieldString(OGRFeatureShadow *self,int id,char const *value){
+    OGR_F_SetFieldString(self, id, value);
   }
 
     static int ValidateOGRGeometryType(OGRwkbGeometryType field_type)
@@ -3947,8 +4065,18 @@ SWIGINTERN OGRFieldType OGRFeatureShadow_GetFieldType__SWIG_1(OGRFeatureShadow *
             case wkbMultiLineString:
             case wkbMultiPolygon:
             case wkbGeometryCollection:
+            case wkbCircularString:
+            case wkbCompoundCurve:
+            case wkbCurvePolygon:
+            case wkbMultiCurve:
+            case wkbMultiSurface:
             case wkbNone:
             /*case wkbLinearRing:*/
+            case wkbCircularStringZ:
+            case wkbCompoundCurveZ:
+            case wkbCurvePolygonZ:
+            case wkbMultiCurveZ:
+            case wkbMultiSurfaceZ:
             case wkbPoint25D:
             case wkbLineString25D:
             case wkbPolygon25D:
@@ -4042,9 +4170,27 @@ SWIGINTERN int OGRFeatureDefnShadow_IsSame(OGRFeatureDefnShadow *self,OGRFeature
             case OFTDate:
             case OFTTime:
             case OFTDateTime:
+            case OFTInteger64:
+            case OFTInteger64List:
                 return TRUE;
             default:
                 CPLError(CE_Failure, CPLE_IllegalArg, "Illegal field type value");
+                return FALSE;
+        }
+    }
+
+
+    static int ValidateOGRFieldSubType(OGRFieldSubType field_subtype)
+    {
+        switch(field_subtype)
+        {
+            case OFSTNone:
+            case OFSTBoolean:
+            case OFSTInt16:
+            case OFSTFloat32:
+                return TRUE;
+            default:
+                CPLError(CE_Failure, CPLE_IllegalArg, "Illegal field subtype value");
                 return FALSE;
         }
     }
@@ -4074,6 +4220,13 @@ SWIGINTERN void OGRFieldDefnShadow_SetType(OGRFieldDefnShadow *self,OGRFieldType
     if (ValidateOGRFieldType(type))
         OGR_Fld_SetType(self, type);
   }
+SWIGINTERN OGRFieldSubType OGRFieldDefnShadow_GetSubType(OGRFieldDefnShadow *self){
+    return OGR_Fld_GetSubType(self);
+  }
+SWIGINTERN void OGRFieldDefnShadow_SetSubType(OGRFieldDefnShadow *self,OGRFieldSubType type){
+    if (ValidateOGRFieldSubType(type))
+        OGR_Fld_SetSubType(self, type);
+  }
 SWIGINTERN OGRJustification OGRFieldDefnShadow_GetJustify(OGRFieldDefnShadow *self){
     return OGR_Fld_GetJustify(self);
   }
@@ -4102,7 +4255,22 @@ SWIGINTERN int OGRFieldDefnShadow_IsIgnored(OGRFieldDefnShadow *self){
     return OGR_Fld_IsIgnored( self );
   }
 SWIGINTERN void OGRFieldDefnShadow_SetIgnored(OGRFieldDefnShadow *self,int bIgnored){
-    return OGR_Fld_SetIgnored( self, bIgnored );
+    OGR_Fld_SetIgnored( self, bIgnored );
+  }
+SWIGINTERN int OGRFieldDefnShadow_IsNullable(OGRFieldDefnShadow *self){
+    return OGR_Fld_IsNullable( self );
+  }
+SWIGINTERN void OGRFieldDefnShadow_SetNullable(OGRFieldDefnShadow *self,int bNullable){
+    OGR_Fld_SetNullable( self, bNullable );
+  }
+SWIGINTERN char const *OGRFieldDefnShadow_GetDefault(OGRFieldDefnShadow *self){
+    return OGR_Fld_GetDefault( self );
+  }
+SWIGINTERN void OGRFieldDefnShadow_SetDefault(OGRFieldDefnShadow *self,char const *pszValue){
+    OGR_Fld_SetDefault( self, pszValue );
+  }
+SWIGINTERN int OGRFieldDefnShadow_IsDefaultDriverSpecific(OGRFieldDefnShadow *self){
+    return OGR_Fld_IsDefaultDriverSpecific( self );
   }
 SWIGINTERN void delete_OGRGeomFieldDefnShadow(OGRGeomFieldDefnShadow *self){
     OGR_GFld_Destroy(self);
@@ -4143,6 +4311,12 @@ SWIGINTERN int OGRGeomFieldDefnShadow_IsIgnored(OGRGeomFieldDefnShadow *self){
   }
 SWIGINTERN void OGRGeomFieldDefnShadow_SetIgnored(OGRGeomFieldDefnShadow *self,int bIgnored){
     OGR_GFld_SetIgnored( self, bIgnored );
+  }
+SWIGINTERN int OGRGeomFieldDefnShadow_IsNullable(OGRGeomFieldDefnShadow *self){
+    return OGR_GFld_IsNullable( self );
+  }
+SWIGINTERN void OGRGeomFieldDefnShadow_SetNullable(OGRGeomFieldDefnShadow *self,int bNullable){
+    return OGR_GFld_SetNullable( self, bNullable );
   }
 
   OGRGeometryShadow* CreateGeometryFromWkb( int len, char *bin_string, 
@@ -4258,6 +4432,13 @@ OGRGeometryShadow* ForceToMultiLineString( OGRGeometryShadow *geom_in ) {
  return (OGRGeometryShadow* )OGR_G_ForceToMultiLineString( OGR_G_Clone(geom_in) );
 }
 
+
+OGRGeometryShadow* ForceTo( OGRGeometryShadow *geom_in, OGRwkbGeometryType eTargetType, char** options = NULL ) {
+ if (geom_in == NULL)
+     return NULL;
+ return (OGRGeometryShadow* )OGR_G_ForceTo( OGR_G_Clone(geom_in), eTargetType, options );
+}
+
 SWIGINTERN void delete_OGRGeometryShadow(OGRGeometryShadow *self){
     OGR_G_DestroyGeometry( self );
   }
@@ -4286,10 +4467,18 @@ SWIGINTERN OGRGeometryShadow *new_OGRGeometryShadow(OGRwkbGeometryType type=wkbU
 SWIGINTERN OGRErr OGRGeometryShadow_ExportToWkt(OGRGeometryShadow *self,char **argout){
     return OGR_G_ExportToWkt(self, argout);
   }
+SWIGINTERN OGRErr OGRGeometryShadow_ExportToIsoWkt(OGRGeometryShadow *self,char **argout){
+    return OGR_G_ExportToIsoWkt(self, argout);
+  }
 SWIGINTERN OGRErr OGRGeometryShadow_ExportToWkb(OGRGeometryShadow *self,int *nLen,char **pBuf,OGRwkbByteOrder byte_order=wkbXDR){
     *nLen = OGR_G_WkbSize( self );
     *pBuf = (char *) malloc( *nLen * sizeof(unsigned char) );
     return OGR_G_ExportToWkb(self, byte_order, (unsigned char*) *pBuf );
+  }
+SWIGINTERN OGRErr OGRGeometryShadow_ExportToIsoWkb(OGRGeometryShadow *self,int *nLen,char **pBuf,OGRwkbByteOrder byte_order=wkbXDR){
+    *nLen = OGR_G_WkbSize( self );
+    *pBuf = (char *) malloc( *nLen * sizeof(unsigned char) );
+    return OGR_G_ExportToIsoWkb(self, byte_order, (unsigned char*) *pBuf );
   }
 SWIGINTERN retStringAndCPLFree *OGRGeometryShadow_ExportToGML(OGRGeometryShadow *self,char **options=0){
     return (retStringAndCPLFree*) OGR_G_ExportToGMLEx(self, options);
@@ -4531,6 +4720,18 @@ SWIGINTERN void OGRGeometryShadow_SetCoordinateDimension(OGRGeometryShadow *self
 SWIGINTERN int OGRGeometryShadow_GetDimension(OGRGeometryShadow *self){
     return OGR_G_GetDimension(self);
   }
+SWIGINTERN int OGRGeometryShadow_HasCurveGeometry(OGRGeometryShadow *self,int bLookForCircular=FALSE){
+        return OGR_G_HasCurveGeometry(self, bLookForCircular);
+  }
+SWIGINTERN OGRGeometryShadow *OGRGeometryShadow_GetLinearGeometry(OGRGeometryShadow *self,double dfMaxAngleStepSizeDegrees=0.0,char **options=NULL){
+    return (OGRGeometryShadow* )OGR_G_GetLinearGeometry(self, dfMaxAngleStepSizeDegrees, options);
+  }
+SWIGINTERN OGRGeometryShadow *OGRGeometryShadow_GetCurveGeometry(OGRGeometryShadow *self,char **options=NULL){
+    return (OGRGeometryShadow* )OGR_G_GetCurveGeometry(self, options);
+  }
+SWIGINTERN OGRGeometryShadow *OGRGeometryShadow_Value(OGRGeometryShadow *self,double dfDistance){
+    return OGR_G_Value(self, dfDistance);
+  }
 
 char const *OGRDriverShadow_get_name( OGRDriverShadow *h ) {
   return OGR_Dr_GetName( h );
@@ -4546,6 +4747,12 @@ char const *OGRDriverShadow_name_get( OGRDriverShadow *h ) {
 
 char const *OGRDataSourceShadow_name_get( OGRDataSourceShadow *h ) {
   return OGR_DS_GetName( h );
+}
+
+
+OGRwkbGeometryType GT_SetModifier( OGRwkbGeometryType eType, int bSetZ, int bSetM = FALSE)
+{
+    return OGR_GT_SetModifier(eType, bSetZ, bSetM);
 }
 
 
@@ -4649,6 +4856,686 @@ fail:
   return NULL;
 }
 
+
+SWIGINTERN PyObject *_wrap_MajorObject_GetDescription(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  GDALMajorObjectShadow *arg1 = (GDALMajorObjectShadow *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  PyObject * obj0 = 0 ;
+  char *result = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"O:MajorObject_GetDescription",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_GDALMajorObjectShadow, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "MajorObject_GetDescription" "', argument " "1"" of type '" "GDALMajorObjectShadow *""'"); 
+  }
+  arg1 = reinterpret_cast< GDALMajorObjectShadow * >(argp1);
+  {
+    if ( bUseExceptions ) {
+      CPLErrorReset();
+    }
+    result = (char *)GDALMajorObjectShadow_GetDescription(arg1);
+    if ( bUseExceptions ) {
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        SWIG_exception( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+      }
+    }
+  }
+  resultobj = SWIG_FromCharPtr((const char *)result);
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_MajorObject_SetDescription(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  GDALMajorObjectShadow *arg1 = (GDALMajorObjectShadow *) 0 ;
+  char *arg2 = (char *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  int res2 ;
+  char *buf2 = 0 ;
+  int alloc2 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OO:MajorObject_SetDescription",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_GDALMajorObjectShadow, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "MajorObject_SetDescription" "', argument " "1"" of type '" "GDALMajorObjectShadow *""'"); 
+  }
+  arg1 = reinterpret_cast< GDALMajorObjectShadow * >(argp1);
+  res2 = SWIG_AsCharPtrAndSize(obj1, &buf2, NULL, &alloc2);
+  if (!SWIG_IsOK(res2)) {
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "MajorObject_SetDescription" "', argument " "2"" of type '" "char const *""'");
+  }
+  arg2 = reinterpret_cast< char * >(buf2);
+  {
+    if (!arg2) {
+      SWIG_exception(SWIG_ValueError,"Received a NULL pointer.");
+    }
+  }
+  {
+    if ( bUseExceptions ) {
+      CPLErrorReset();
+    }
+    GDALMajorObjectShadow_SetDescription(arg1,(char const *)arg2);
+    if ( bUseExceptions ) {
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        SWIG_exception( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+      }
+    }
+  }
+  resultobj = SWIG_Py_Void();
+  if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
+  return resultobj;
+fail:
+  if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_MajorObject_GetMetadataDomainList(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  GDALMajorObjectShadow *arg1 = (GDALMajorObjectShadow *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  PyObject * obj0 = 0 ;
+  char **result = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"O:MajorObject_GetMetadataDomainList",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_GDALMajorObjectShadow, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "MajorObject_GetMetadataDomainList" "', argument " "1"" of type '" "GDALMajorObjectShadow *""'"); 
+  }
+  arg1 = reinterpret_cast< GDALMajorObjectShadow * >(argp1);
+  {
+    if ( bUseExceptions ) {
+      CPLErrorReset();
+    }
+    result = (char **)GDALMajorObjectShadow_GetMetadataDomainList(arg1);
+    if ( bUseExceptions ) {
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        SWIG_exception( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+      }
+    }
+  }
+  {
+    /* %typemap(out) char **CSL -> ( string ) */
+    char **stringarray = result;
+    if ( stringarray == NULL ) {
+      resultobj = Py_None;
+      Py_INCREF( resultobj );
+    }
+    else {
+      int len = CSLCount( stringarray );
+      resultobj = PyList_New( len );
+      for ( int i = 0; i < len; ++i ) {
+        PyObject *o = GDALPythonObjectFromCStr( stringarray[i] );
+        PyList_SetItem(resultobj, i, o );
+      }
+    }
+    CSLDestroy(result);
+  }
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_MajorObject_GetMetadata_Dict(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  GDALMajorObjectShadow *arg1 = (GDALMajorObjectShadow *) 0 ;
+  char *arg2 = (char *) "" ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  int res2 ;
+  char *buf2 = 0 ;
+  int alloc2 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  char **result = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"O|O:MajorObject_GetMetadata_Dict",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_GDALMajorObjectShadow, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "MajorObject_GetMetadata_Dict" "', argument " "1"" of type '" "GDALMajorObjectShadow *""'"); 
+  }
+  arg1 = reinterpret_cast< GDALMajorObjectShadow * >(argp1);
+  if (obj1) {
+    res2 = SWIG_AsCharPtrAndSize(obj1, &buf2, NULL, &alloc2);
+    if (!SWIG_IsOK(res2)) {
+      SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "MajorObject_GetMetadata_Dict" "', argument " "2"" of type '" "char const *""'");
+    }
+    arg2 = reinterpret_cast< char * >(buf2);
+  }
+  {
+    if ( bUseExceptions ) {
+      CPLErrorReset();
+    }
+    result = (char **)GDALMajorObjectShadow_GetMetadata_Dict(arg1,(char const *)arg2);
+    if ( bUseExceptions ) {
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        SWIG_exception( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+      }
+    }
+  }
+  {
+    /* %typemap(out) char **dict */
+    char **stringarray = result;
+    resultobj = PyDict_New();
+    if ( stringarray != NULL ) {
+      while (*stringarray != NULL ) {
+        char const *valptr;
+        char *keyptr;
+        const char* pszSep = strchr( *stringarray, '=' );
+        if ( pszSep != NULL) {
+          keyptr = CPLStrdup(*stringarray);
+          keyptr[pszSep - *stringarray] = '\0';
+          valptr = pszSep + 1;
+          PyObject *nm = GDALPythonObjectFromCStr( keyptr );
+          PyObject *val = GDALPythonObjectFromCStr( valptr );
+          PyDict_SetItem(resultobj, nm, val );
+          Py_DECREF(nm);
+          Py_DECREF(val);
+          CPLFree( keyptr );
+        }
+        stringarray++;
+      }
+    }
+  }
+  if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
+  return resultobj;
+fail:
+  if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_MajorObject_GetMetadata_List(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  GDALMajorObjectShadow *arg1 = (GDALMajorObjectShadow *) 0 ;
+  char *arg2 = (char *) "" ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  int res2 ;
+  char *buf2 = 0 ;
+  int alloc2 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  char **result = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"O|O:MajorObject_GetMetadata_List",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_GDALMajorObjectShadow, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "MajorObject_GetMetadata_List" "', argument " "1"" of type '" "GDALMajorObjectShadow *""'"); 
+  }
+  arg1 = reinterpret_cast< GDALMajorObjectShadow * >(argp1);
+  if (obj1) {
+    res2 = SWIG_AsCharPtrAndSize(obj1, &buf2, NULL, &alloc2);
+    if (!SWIG_IsOK(res2)) {
+      SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "MajorObject_GetMetadata_List" "', argument " "2"" of type '" "char const *""'");
+    }
+    arg2 = reinterpret_cast< char * >(buf2);
+  }
+  {
+    if ( bUseExceptions ) {
+      CPLErrorReset();
+    }
+    result = (char **)GDALMajorObjectShadow_GetMetadata_List(arg1,(char const *)arg2);
+    if ( bUseExceptions ) {
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        SWIG_exception( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+      }
+    }
+  }
+  {
+    /* %typemap(out) char **options -> ( string ) */
+    char **stringarray = result;
+    if ( stringarray == NULL ) {
+      resultobj = Py_None;
+      Py_INCREF( resultobj );
+    }
+    else {
+      int len = CSLCount( stringarray );
+      resultobj = PyList_New( len );
+      for ( int i = 0; i < len; ++i ) {
+        PyObject *o = GDALPythonObjectFromCStr( stringarray[i] );
+        PyList_SetItem(resultobj, i, o );
+      }
+    }
+  }
+  if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
+  return resultobj;
+fail:
+  if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_MajorObject_SetMetadata__SWIG_0(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  GDALMajorObjectShadow *arg1 = (GDALMajorObjectShadow *) 0 ;
+  char **arg2 = (char **) 0 ;
+  char *arg3 = (char *) "" ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  int res3 ;
+  char *buf3 = 0 ;
+  int alloc3 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  PyObject * obj2 = 0 ;
+  CPLErr result;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OO|O:MajorObject_SetMetadata",&obj0,&obj1,&obj2)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_GDALMajorObjectShadow, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "MajorObject_SetMetadata" "', argument " "1"" of type '" "GDALMajorObjectShadow *""'"); 
+  }
+  arg1 = reinterpret_cast< GDALMajorObjectShadow * >(argp1);
+  {
+    /* %typemap(in) char **dict */
+    arg2 = NULL;
+    if ( PySequence_Check( obj1 ) ) {
+      int size = PySequence_Size(obj1);
+      for (int i = 0; i < size; i++) {
+        PyObject* pyObj = PySequence_GetItem(obj1,i);
+        int bFreeStr;
+        char* pszStr = GDALPythonObjectToCStr(pyObj, &bFreeStr);
+        if ( pszStr == NULL ) {
+          Py_DECREF(pyObj);
+          PyErr_SetString(PyExc_TypeError,"sequence must contain strings");
+          SWIG_fail;
+        }
+        arg2 = CSLAddString( arg2, pszStr );
+        GDALPythonFreeCStr(pszStr, bFreeStr);
+        Py_DECREF(pyObj);
+      }
+    }
+    else if ( PyMapping_Check( obj1 ) ) {
+      /* We need to use the dictionary form. */
+      int size = PyMapping_Length( obj1 );
+      if ( size > 0 ) {
+        PyObject *item_list = PyMapping_Items( obj1 );
+        for( int i=0; i<size; i++ ) {
+          PyObject *it = PySequence_GetItem( item_list, i );
+          
+          PyObject *k, *v;
+          if ( ! PyArg_ParseTuple( it, "OO", &k, &v ) ) {
+            Py_DECREF(it);
+            PyErr_SetString(PyExc_TypeError,"dictionnaire must contain tuples of strings");
+            SWIG_fail;
+          }
+          
+          int bFreeK, bFreeV;
+          char* pszK = GDALPythonObjectToCStr(k, &bFreeK);
+          char* pszV = GDALPythonObjectToCStr(v, &bFreeV);
+          if( pszK == NULL || pszV == NULL )
+          {
+            GDALPythonFreeCStr(pszK, bFreeK);
+            GDALPythonFreeCStr(pszV, bFreeV);
+            Py_DECREF(it);
+            PyErr_SetString(PyExc_TypeError,"dictionnaire must contain tuples of strings");
+            SWIG_fail;
+          }
+          arg2 = CSLAddNameValue( arg2, pszK, pszV );
+          
+          GDALPythonFreeCStr(pszK, bFreeK);
+          GDALPythonFreeCStr(pszV, bFreeV);
+          Py_DECREF(it);
+        }
+        Py_DECREF(item_list);
+      }
+    }
+    else {
+      PyErr_SetString(PyExc_TypeError,"Argument must be dictionary or sequence of strings");
+      SWIG_fail;
+    }
+  }
+  if (obj2) {
+    res3 = SWIG_AsCharPtrAndSize(obj2, &buf3, NULL, &alloc3);
+    if (!SWIG_IsOK(res3)) {
+      SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "MajorObject_SetMetadata" "', argument " "3"" of type '" "char const *""'");
+    }
+    arg3 = reinterpret_cast< char * >(buf3);
+  }
+  {
+    if ( bUseExceptions ) {
+      CPLErrorReset();
+    }
+    result = (CPLErr)GDALMajorObjectShadow_SetMetadata__SWIG_0(arg1,arg2,(char const *)arg3);
+    if ( bUseExceptions ) {
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        SWIG_exception( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+      }
+    }
+  }
+  resultobj = SWIG_From_int(static_cast< int >(result));
+  {
+    /* %typemap(freearg) char **dict */
+    CSLDestroy( arg2 );
+  }
+  if (alloc3 == SWIG_NEWOBJ) delete[] buf3;
+  {
+    /* %typemap(ret) CPLErr */
+    if ( bUseExceptions == 0 ) {
+      /* We're not using exceptions.  And no error has occurred */
+      if ( resultobj == 0 ) {
+        /* No other return values set so return ErrorCode */
+        resultobj = PyInt_FromLong(result);
+      }
+    }
+  }
+  return resultobj;
+fail:
+  {
+    /* %typemap(freearg) char **dict */
+    CSLDestroy( arg2 );
+  }
+  if (alloc3 == SWIG_NEWOBJ) delete[] buf3;
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_MajorObject_SetMetadata__SWIG_1(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  GDALMajorObjectShadow *arg1 = (GDALMajorObjectShadow *) 0 ;
+  char *arg2 = (char *) 0 ;
+  char *arg3 = (char *) "" ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  int res2 ;
+  char *buf2 = 0 ;
+  int alloc2 = 0 ;
+  int res3 ;
+  char *buf3 = 0 ;
+  int alloc3 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  PyObject * obj2 = 0 ;
+  CPLErr result;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OO|O:MajorObject_SetMetadata",&obj0,&obj1,&obj2)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_GDALMajorObjectShadow, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "MajorObject_SetMetadata" "', argument " "1"" of type '" "GDALMajorObjectShadow *""'"); 
+  }
+  arg1 = reinterpret_cast< GDALMajorObjectShadow * >(argp1);
+  res2 = SWIG_AsCharPtrAndSize(obj1, &buf2, NULL, &alloc2);
+  if (!SWIG_IsOK(res2)) {
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "MajorObject_SetMetadata" "', argument " "2"" of type '" "char *""'");
+  }
+  arg2 = reinterpret_cast< char * >(buf2);
+  if (obj2) {
+    res3 = SWIG_AsCharPtrAndSize(obj2, &buf3, NULL, &alloc3);
+    if (!SWIG_IsOK(res3)) {
+      SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "MajorObject_SetMetadata" "', argument " "3"" of type '" "char const *""'");
+    }
+    arg3 = reinterpret_cast< char * >(buf3);
+  }
+  {
+    if ( bUseExceptions ) {
+      CPLErrorReset();
+    }
+    result = (CPLErr)GDALMajorObjectShadow_SetMetadata__SWIG_1(arg1,arg2,(char const *)arg3);
+    if ( bUseExceptions ) {
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        SWIG_exception( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+      }
+    }
+  }
+  resultobj = SWIG_From_int(static_cast< int >(result));
+  if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
+  if (alloc3 == SWIG_NEWOBJ) delete[] buf3;
+  {
+    /* %typemap(ret) CPLErr */
+    if ( bUseExceptions == 0 ) {
+      /* We're not using exceptions.  And no error has occurred */
+      if ( resultobj == 0 ) {
+        /* No other return values set so return ErrorCode */
+        resultobj = PyInt_FromLong(result);
+      }
+    }
+  }
+  return resultobj;
+fail:
+  if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
+  if (alloc3 == SWIG_NEWOBJ) delete[] buf3;
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_MajorObject_SetMetadata(PyObject *self, PyObject *args) {
+  int argc;
+  PyObject *argv[4];
+  int ii;
+  
+  if (!PyTuple_Check(args)) SWIG_fail;
+  argc = (int)PyObject_Length(args);
+  for (ii = 0; (ii < argc) && (ii < 3); ii++) {
+    argv[ii] = PyTuple_GET_ITEM(args,ii);
+  }
+  if ((argc >= 2) && (argc <= 3)) {
+    int _v;
+    void *vptr = 0;
+    int res = SWIG_ConvertPtr(argv[0], &vptr, SWIGTYPE_p_GDALMajorObjectShadow, 0);
+    _v = SWIG_CheckState(res);
+    if (_v) {
+      {
+        /* %typecheck(SWIG_TYPECHECK_POINTER) (char **dict) */
+        /* Note: we exclude explicitly strings, because they can be considered as a sequence of characters, */
+        /* which is not desirable since it makes it impossible to define bindings such as SetMetadata(string) and SetMetadata(array_of_string) */
+        /* (see #4816) */
+        _v = ((PyMapping_Check(argv[1]) || PySequence_Check(argv[1]) ) && !SWIG_CheckState(SWIG_AsCharPtrAndSize(argv[1], 0, NULL, 0)) ) ? 1 : 0;
+      }
+      if (_v) {
+        if (argc <= 2) {
+          return _wrap_MajorObject_SetMetadata__SWIG_0(self, args);
+        }
+        int res = SWIG_AsCharPtrAndSize(argv[2], 0, NULL, 0);
+        _v = SWIG_CheckState(res);
+        if (_v) {
+          return _wrap_MajorObject_SetMetadata__SWIG_0(self, args);
+        }
+      }
+    }
+  }
+  if ((argc >= 2) && (argc <= 3)) {
+    int _v;
+    void *vptr = 0;
+    int res = SWIG_ConvertPtr(argv[0], &vptr, SWIGTYPE_p_GDALMajorObjectShadow, 0);
+    _v = SWIG_CheckState(res);
+    if (_v) {
+      int res = SWIG_AsCharPtrAndSize(argv[1], 0, NULL, 0);
+      _v = SWIG_CheckState(res);
+      if (_v) {
+        if (argc <= 2) {
+          return _wrap_MajorObject_SetMetadata__SWIG_1(self, args);
+        }
+        int res = SWIG_AsCharPtrAndSize(argv[2], 0, NULL, 0);
+        _v = SWIG_CheckState(res);
+        if (_v) {
+          return _wrap_MajorObject_SetMetadata__SWIG_1(self, args);
+        }
+      }
+    }
+  }
+  
+fail:
+  SWIG_SetErrorMsg(PyExc_NotImplementedError,"Wrong number of arguments for overloaded function 'MajorObject_SetMetadata'.\n"
+    "  Possible C/C++ prototypes are:\n"
+    "    SetMetadata(GDALMajorObjectShadow *,char **,char const *)\n"
+    "    SetMetadata(GDALMajorObjectShadow *,char *,char const *)\n");
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_MajorObject_GetMetadataItem(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  GDALMajorObjectShadow *arg1 = (GDALMajorObjectShadow *) 0 ;
+  char *arg2 = (char *) 0 ;
+  char *arg3 = (char *) "" ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  int res2 ;
+  char *buf2 = 0 ;
+  int alloc2 = 0 ;
+  int res3 ;
+  char *buf3 = 0 ;
+  int alloc3 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  PyObject * obj2 = 0 ;
+  char *result = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OO|O:MajorObject_GetMetadataItem",&obj0,&obj1,&obj2)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_GDALMajorObjectShadow, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "MajorObject_GetMetadataItem" "', argument " "1"" of type '" "GDALMajorObjectShadow *""'"); 
+  }
+  arg1 = reinterpret_cast< GDALMajorObjectShadow * >(argp1);
+  res2 = SWIG_AsCharPtrAndSize(obj1, &buf2, NULL, &alloc2);
+  if (!SWIG_IsOK(res2)) {
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "MajorObject_GetMetadataItem" "', argument " "2"" of type '" "char const *""'");
+  }
+  arg2 = reinterpret_cast< char * >(buf2);
+  if (obj2) {
+    res3 = SWIG_AsCharPtrAndSize(obj2, &buf3, NULL, &alloc3);
+    if (!SWIG_IsOK(res3)) {
+      SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "MajorObject_GetMetadataItem" "', argument " "3"" of type '" "char const *""'");
+    }
+    arg3 = reinterpret_cast< char * >(buf3);
+  }
+  {
+    if (!arg2) {
+      SWIG_exception(SWIG_ValueError,"Received a NULL pointer.");
+    }
+  }
+  {
+    if ( bUseExceptions ) {
+      CPLErrorReset();
+    }
+    result = (char *)GDALMajorObjectShadow_GetMetadataItem(arg1,(char const *)arg2,(char const *)arg3);
+    if ( bUseExceptions ) {
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        SWIG_exception( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+      }
+    }
+  }
+  resultobj = SWIG_FromCharPtr((const char *)result);
+  if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
+  if (alloc3 == SWIG_NEWOBJ) delete[] buf3;
+  return resultobj;
+fail:
+  if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
+  if (alloc3 == SWIG_NEWOBJ) delete[] buf3;
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_MajorObject_SetMetadataItem(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  GDALMajorObjectShadow *arg1 = (GDALMajorObjectShadow *) 0 ;
+  char *arg2 = (char *) 0 ;
+  char *arg3 = (char *) 0 ;
+  char *arg4 = (char *) "" ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  int res2 ;
+  char *buf2 = 0 ;
+  int alloc2 = 0 ;
+  int res3 ;
+  char *buf3 = 0 ;
+  int alloc3 = 0 ;
+  int res4 ;
+  char *buf4 = 0 ;
+  int alloc4 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  PyObject * obj2 = 0 ;
+  PyObject * obj3 = 0 ;
+  CPLErr result;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OOO|O:MajorObject_SetMetadataItem",&obj0,&obj1,&obj2,&obj3)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_GDALMajorObjectShadow, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "MajorObject_SetMetadataItem" "', argument " "1"" of type '" "GDALMajorObjectShadow *""'"); 
+  }
+  arg1 = reinterpret_cast< GDALMajorObjectShadow * >(argp1);
+  res2 = SWIG_AsCharPtrAndSize(obj1, &buf2, NULL, &alloc2);
+  if (!SWIG_IsOK(res2)) {
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "MajorObject_SetMetadataItem" "', argument " "2"" of type '" "char const *""'");
+  }
+  arg2 = reinterpret_cast< char * >(buf2);
+  res3 = SWIG_AsCharPtrAndSize(obj2, &buf3, NULL, &alloc3);
+  if (!SWIG_IsOK(res3)) {
+    SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "MajorObject_SetMetadataItem" "', argument " "3"" of type '" "char const *""'");
+  }
+  arg3 = reinterpret_cast< char * >(buf3);
+  if (obj3) {
+    res4 = SWIG_AsCharPtrAndSize(obj3, &buf4, NULL, &alloc4);
+    if (!SWIG_IsOK(res4)) {
+      SWIG_exception_fail(SWIG_ArgError(res4), "in method '" "MajorObject_SetMetadataItem" "', argument " "4"" of type '" "char const *""'");
+    }
+    arg4 = reinterpret_cast< char * >(buf4);
+  }
+  {
+    if (!arg2) {
+      SWIG_exception(SWIG_ValueError,"Received a NULL pointer.");
+    }
+  }
+  {
+    if ( bUseExceptions ) {
+      CPLErrorReset();
+    }
+    result = (CPLErr)GDALMajorObjectShadow_SetMetadataItem(arg1,(char const *)arg2,(char const *)arg3,(char const *)arg4);
+    if ( bUseExceptions ) {
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        SWIG_exception( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+      }
+    }
+  }
+  resultobj = SWIG_From_int(static_cast< int >(result));
+  if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
+  if (alloc3 == SWIG_NEWOBJ) delete[] buf3;
+  if (alloc4 == SWIG_NEWOBJ) delete[] buf4;
+  {
+    /* %typemap(ret) CPLErr */
+    if ( bUseExceptions == 0 ) {
+      /* We're not using exceptions.  And no error has occurred */
+      if ( resultobj == 0 ) {
+        /* No other return values set so return ErrorCode */
+        resultobj = PyInt_FromLong(result);
+      }
+    }
+  }
+  return resultobj;
+fail:
+  if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
+  if (alloc3 == SWIG_NEWOBJ) delete[] buf3;
+  if (alloc4 == SWIG_NEWOBJ) delete[] buf4;
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *MajorObject_swigregister(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *obj;
+  if (!PyArg_ParseTuple(args,(char*)"O:swigregister", &obj)) return NULL;
+  SWIG_TypeNewClientData(SWIGTYPE_p_GDALMajorObjectShadow, SWIG_NewClientData(obj));
+  return SWIG_Py_Void();
+}
 
 SWIGINTERN PyObject *_wrap_new_StyleTable(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
@@ -5896,6 +6783,38 @@ fail:
 }
 
 
+SWIGINTERN PyObject *_wrap_DataSource_FlushCache(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  OGRDataSourceShadow *arg1 = (OGRDataSourceShadow *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  PyObject * obj0 = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"O:DataSource_FlushCache",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_OGRDataSourceShadow, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "DataSource_FlushCache" "', argument " "1"" of type '" "OGRDataSourceShadow *""'"); 
+  }
+  arg1 = reinterpret_cast< OGRDataSourceShadow * >(argp1);
+  {
+    if ( bUseExceptions ) {
+      CPLErrorReset();
+    }
+    OGRDataSourceShadow_FlushCache(arg1);
+    if ( bUseExceptions ) {
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        SWIG_exception( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+      }
+    }
+  }
+  resultobj = SWIG_Py_Void();
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
 SWIGINTERN PyObject *_wrap_DataSource_CreateLayer(PyObject *SWIGUNUSEDPARM(self), PyObject *args, PyObject *kwargs) {
   PyObject *resultobj = 0;
   OGRDataSourceShadow *arg1 = (OGRDataSourceShadow *) 0 ;
@@ -6469,6 +7388,167 @@ SWIGINTERN PyObject *_wrap_DataSource_SetStyleTable(PyObject *SWIGUNUSEDPARM(sel
     }
   }
   resultobj = SWIG_Py_Void();
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_DataSource_StartTransaction(PyObject *SWIGUNUSEDPARM(self), PyObject *args, PyObject *kwargs) {
+  PyObject *resultobj = 0;
+  OGRDataSourceShadow *arg1 = (OGRDataSourceShadow *) 0 ;
+  int arg2 = (int) FALSE ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  int val2 ;
+  int ecode2 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  char *  kwnames[] = {
+    (char *) "self",(char *) "force", NULL 
+  };
+  OGRErr result;
+  
+  if (!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"O|O:DataSource_StartTransaction",kwnames,&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_OGRDataSourceShadow, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "DataSource_StartTransaction" "', argument " "1"" of type '" "OGRDataSourceShadow *""'"); 
+  }
+  arg1 = reinterpret_cast< OGRDataSourceShadow * >(argp1);
+  if (obj1) {
+    ecode2 = SWIG_AsVal_int(obj1, &val2);
+    if (!SWIG_IsOK(ecode2)) {
+      SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "DataSource_StartTransaction" "', argument " "2"" of type '" "int""'");
+    } 
+    arg2 = static_cast< int >(val2);
+  }
+  {
+    if ( bUseExceptions ) {
+      CPLErrorReset();
+    }
+    result = (OGRErr)OGRDataSourceShadow_StartTransaction(arg1,arg2);
+    if ( bUseExceptions ) {
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        SWIG_exception( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+      }
+    }
+  }
+  {
+    /* %typemap(out) OGRErr */
+    if ( result != 0 && bUseExceptions) {
+      PyErr_SetString( PyExc_RuntimeError, OGRErrMessages(result) );
+      SWIG_fail;
+    }
+  }
+  {
+    /* %typemap(ret) OGRErr */
+    if (resultobj == Py_None ) {
+      Py_DECREF(resultobj);
+      resultobj = 0;
+    }
+    if (resultobj == 0) {
+      resultobj = PyInt_FromLong( result );
+    }
+  }
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_DataSource_CommitTransaction(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  OGRDataSourceShadow *arg1 = (OGRDataSourceShadow *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  PyObject * obj0 = 0 ;
+  OGRErr result;
+  
+  if (!PyArg_ParseTuple(args,(char *)"O:DataSource_CommitTransaction",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_OGRDataSourceShadow, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "DataSource_CommitTransaction" "', argument " "1"" of type '" "OGRDataSourceShadow *""'"); 
+  }
+  arg1 = reinterpret_cast< OGRDataSourceShadow * >(argp1);
+  {
+    if ( bUseExceptions ) {
+      CPLErrorReset();
+    }
+    result = (OGRErr)OGRDataSourceShadow_CommitTransaction(arg1);
+    if ( bUseExceptions ) {
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        SWIG_exception( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+      }
+    }
+  }
+  {
+    /* %typemap(out) OGRErr */
+    if ( result != 0 && bUseExceptions) {
+      PyErr_SetString( PyExc_RuntimeError, OGRErrMessages(result) );
+      SWIG_fail;
+    }
+  }
+  {
+    /* %typemap(ret) OGRErr */
+    if (resultobj == Py_None ) {
+      Py_DECREF(resultobj);
+      resultobj = 0;
+    }
+    if (resultobj == 0) {
+      resultobj = PyInt_FromLong( result );
+    }
+  }
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_DataSource_RollbackTransaction(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  OGRDataSourceShadow *arg1 = (OGRDataSourceShadow *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  PyObject * obj0 = 0 ;
+  OGRErr result;
+  
+  if (!PyArg_ParseTuple(args,(char *)"O:DataSource_RollbackTransaction",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_OGRDataSourceShadow, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "DataSource_RollbackTransaction" "', argument " "1"" of type '" "OGRDataSourceShadow *""'"); 
+  }
+  arg1 = reinterpret_cast< OGRDataSourceShadow * >(argp1);
+  {
+    if ( bUseExceptions ) {
+      CPLErrorReset();
+    }
+    result = (OGRErr)OGRDataSourceShadow_RollbackTransaction(arg1);
+    if ( bUseExceptions ) {
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        SWIG_exception( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+      }
+    }
+  }
+  {
+    /* %typemap(out) OGRErr */
+    if ( result != 0 && bUseExceptions) {
+      PyErr_SetString( PyExc_RuntimeError, OGRErrMessages(result) );
+      SWIG_fail;
+    }
+  }
+  {
+    /* %typemap(ret) OGRErr */
+    if (resultobj == Py_None ) {
+      Py_DECREF(resultobj);
+      resultobj = 0;
+    }
+    if (resultobj == 0) {
+      resultobj = PyInt_FromLong( result );
+    }
+  }
   return resultobj;
 fail:
   return NULL;
@@ -7158,11 +8238,9 @@ fail:
 SWIGINTERN PyObject *_wrap_Layer_GetFeature(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   OGRLayerShadow *arg1 = (OGRLayerShadow *) 0 ;
-  long arg2 ;
+  GIntBig arg2 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
-  long val2 ;
-  int ecode2 = 0 ;
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
   OGRFeatureShadow *result = 0 ;
@@ -7173,11 +8251,14 @@ SWIGINTERN PyObject *_wrap_Layer_GetFeature(PyObject *SWIGUNUSEDPARM(self), PyOb
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Layer_GetFeature" "', argument " "1"" of type '" "OGRLayerShadow *""'"); 
   }
   arg1 = reinterpret_cast< OGRLayerShadow * >(argp1);
-  ecode2 = SWIG_AsVal_long(obj1, &val2);
-  if (!SWIG_IsOK(ecode2)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "Layer_GetFeature" "', argument " "2"" of type '" "long""'");
-  } 
-  arg2 = static_cast< long >(val2);
+  {
+    PY_LONG_LONG val;
+    if ( !PyArg_Parse(obj1,"L",&val) ) {
+      PyErr_SetString(PyExc_TypeError, "not an integer");
+      SWIG_fail;
+    }
+    arg2 = (GIntBig)val;
+  }
   {
     if ( bUseExceptions ) {
       CPLErrorReset();
@@ -7233,11 +8314,9 @@ fail:
 SWIGINTERN PyObject *_wrap_Layer_SetNextByIndex(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   OGRLayerShadow *arg1 = (OGRLayerShadow *) 0 ;
-  long arg2 ;
+  GIntBig arg2 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
-  long val2 ;
-  int ecode2 = 0 ;
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
   OGRErr result;
@@ -7248,11 +8327,14 @@ SWIGINTERN PyObject *_wrap_Layer_SetNextByIndex(PyObject *SWIGUNUSEDPARM(self), 
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Layer_SetNextByIndex" "', argument " "1"" of type '" "OGRLayerShadow *""'"); 
   }
   arg1 = reinterpret_cast< OGRLayerShadow * >(argp1);
-  ecode2 = SWIG_AsVal_long(obj1, &val2);
-  if (!SWIG_IsOK(ecode2)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "Layer_SetNextByIndex" "', argument " "2"" of type '" "long""'");
-  } 
-  arg2 = static_cast< long >(val2);
+  {
+    PY_LONG_LONG val;
+    if ( !PyArg_Parse(obj1,"L",&val) ) {
+      PyErr_SetString(PyExc_TypeError, "not an integer");
+      SWIG_fail;
+    }
+    arg2 = (GIntBig)val;
+  }
   {
     if ( bUseExceptions ) {
       CPLErrorReset();
@@ -7417,11 +8499,9 @@ fail:
 SWIGINTERN PyObject *_wrap_Layer_DeleteFeature(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   OGRLayerShadow *arg1 = (OGRLayerShadow *) 0 ;
-  long arg2 ;
+  GIntBig arg2 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
-  long val2 ;
-  int ecode2 = 0 ;
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
   OGRErr result;
@@ -7432,11 +8512,14 @@ SWIGINTERN PyObject *_wrap_Layer_DeleteFeature(PyObject *SWIGUNUSEDPARM(self), P
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Layer_DeleteFeature" "', argument " "1"" of type '" "OGRLayerShadow *""'"); 
   }
   arg1 = reinterpret_cast< OGRLayerShadow * >(argp1);
-  ecode2 = SWIG_AsVal_long(obj1, &val2);
-  if (!SWIG_IsOK(ecode2)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "Layer_DeleteFeature" "', argument " "2"" of type '" "long""'");
-  } 
-  arg2 = static_cast< long >(val2);
+  {
+    PY_LONG_LONG val;
+    if ( !PyArg_Parse(obj1,"L",&val) ) {
+      PyErr_SetString(PyExc_TypeError, "not an integer");
+      SWIG_fail;
+    }
+    arg2 = (GIntBig)val;
+  }
   {
     if ( bUseExceptions ) {
       CPLErrorReset();
@@ -7567,7 +8650,7 @@ SWIGINTERN PyObject *_wrap_Layer_GetFeatureCount(PyObject *SWIGUNUSEDPARM(self),
   char *  kwnames[] = {
     (char *) "self",(char *) "force", NULL 
   };
-  int result;
+  GIntBig result;
   
   if (!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"O|O:Layer_GetFeatureCount",kwnames,&obj0,&obj1)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_OGRLayerShadow, 0 |  0 );
@@ -7586,7 +8669,7 @@ SWIGINTERN PyObject *_wrap_Layer_GetFeatureCount(PyObject *SWIGUNUSEDPARM(self),
     if ( bUseExceptions ) {
       CPLErrorReset();
     }
-    result = (int)OGRLayerShadow_GetFeatureCount(arg1,arg2);
+    result = OGRLayerShadow_GetFeatureCount(arg1,arg2);
     if ( bUseExceptions ) {
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
@@ -7594,7 +8677,15 @@ SWIGINTERN PyObject *_wrap_Layer_GetFeatureCount(PyObject *SWIGUNUSEDPARM(self),
       }
     }
   }
-  resultobj = SWIG_From_int(static_cast< int >(result));
+  {
+    char szTmp[32];
+    sprintf(szTmp, CPL_FRMT_GIB, result);
+#if PY_VERSION_HEX>=0x03000000
+    resultobj = PyLong_FromString(szTmp, NULL, 10);
+#else
+    resultobj = PyInt_FromString(szTmp, NULL, 10);
+#endif
+  }
   return resultobj;
 fail:
   return NULL;
@@ -8443,7 +9534,15 @@ SWIGINTERN PyObject *_wrap_Layer_GetFeaturesRead(PyObject *SWIGUNUSEDPARM(self),
       }
     }
   }
-  resultobj = SWIG_NewPointerObj((new GIntBig(static_cast< const GIntBig& >(result))), SWIGTYPE_p_GIntBig, SWIG_POINTER_OWN |  0 );
+  {
+    char szTmp[32];
+    sprintf(szTmp, CPL_FRMT_GIB, result);
+#if PY_VERSION_HEX>=0x03000000
+    resultobj = PyLong_FromString(szTmp, NULL, 10);
+#else
+    resultobj = PyInt_FromString(szTmp, NULL, 10);
+#endif
+  }
   return resultobj;
 fail:
   return NULL;
@@ -11403,6 +12502,162 @@ fail:
 }
 
 
+SWIGINTERN PyObject *_wrap_Feature_GetFieldAsInteger64__SWIG_0(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  OGRFeatureShadow *arg1 = (OGRFeatureShadow *) 0 ;
+  int arg2 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  int val2 ;
+  int ecode2 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  GIntBig result;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OO:Feature_GetFieldAsInteger64",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_OGRFeatureShadow, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Feature_GetFieldAsInteger64" "', argument " "1"" of type '" "OGRFeatureShadow *""'"); 
+  }
+  arg1 = reinterpret_cast< OGRFeatureShadow * >(argp1);
+  ecode2 = SWIG_AsVal_int(obj1, &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "Feature_GetFieldAsInteger64" "', argument " "2"" of type '" "int""'");
+  } 
+  arg2 = static_cast< int >(val2);
+  {
+    if ( bUseExceptions ) {
+      CPLErrorReset();
+    }
+    result = OGRFeatureShadow_GetFieldAsInteger64__SWIG_0(arg1,arg2);
+    if ( bUseExceptions ) {
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        SWIG_exception( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+      }
+    }
+  }
+  {
+    char szTmp[32];
+    sprintf(szTmp, CPL_FRMT_GIB, result);
+#if PY_VERSION_HEX>=0x03000000
+    resultobj = PyLong_FromString(szTmp, NULL, 10);
+#else
+    resultobj = PyInt_FromString(szTmp, NULL, 10);
+#endif
+  }
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_Feature_GetFieldAsInteger64__SWIG_1(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  OGRFeatureShadow *arg1 = (OGRFeatureShadow *) 0 ;
+  char *arg2 = (char *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  int res2 ;
+  char *buf2 = 0 ;
+  int alloc2 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  GIntBig result;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OO:Feature_GetFieldAsInteger64",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_OGRFeatureShadow, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Feature_GetFieldAsInteger64" "', argument " "1"" of type '" "OGRFeatureShadow *""'"); 
+  }
+  arg1 = reinterpret_cast< OGRFeatureShadow * >(argp1);
+  res2 = SWIG_AsCharPtrAndSize(obj1, &buf2, NULL, &alloc2);
+  if (!SWIG_IsOK(res2)) {
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "Feature_GetFieldAsInteger64" "', argument " "2"" of type '" "char const *""'");
+  }
+  arg2 = reinterpret_cast< char * >(buf2);
+  {
+    if (!arg2) {
+      SWIG_exception(SWIG_ValueError,"Received a NULL pointer.");
+    }
+  }
+  {
+    if ( bUseExceptions ) {
+      CPLErrorReset();
+    }
+    result = OGRFeatureShadow_GetFieldAsInteger64__SWIG_1(arg1,(char const *)arg2);
+    if ( bUseExceptions ) {
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        SWIG_exception( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+      }
+    }
+  }
+  {
+    char szTmp[32];
+    sprintf(szTmp, CPL_FRMT_GIB, result);
+#if PY_VERSION_HEX>=0x03000000
+    resultobj = PyLong_FromString(szTmp, NULL, 10);
+#else
+    resultobj = PyInt_FromString(szTmp, NULL, 10);
+#endif
+  }
+  if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
+  return resultobj;
+fail:
+  if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_Feature_GetFieldAsInteger64(PyObject *self, PyObject *args) {
+  int argc;
+  PyObject *argv[3];
+  int ii;
+  
+  if (!PyTuple_Check(args)) SWIG_fail;
+  argc = (int)PyObject_Length(args);
+  for (ii = 0; (ii < argc) && (ii < 2); ii++) {
+    argv[ii] = PyTuple_GET_ITEM(args,ii);
+  }
+  if (argc == 2) {
+    int _v;
+    void *vptr = 0;
+    int res = SWIG_ConvertPtr(argv[0], &vptr, SWIGTYPE_p_OGRFeatureShadow, 0);
+    _v = SWIG_CheckState(res);
+    if (_v) {
+      {
+        int res = SWIG_AsVal_int(argv[1], NULL);
+        _v = SWIG_CheckState(res);
+      }
+      if (_v) {
+        return _wrap_Feature_GetFieldAsInteger64__SWIG_0(self, args);
+      }
+    }
+  }
+  if (argc == 2) {
+    int _v;
+    void *vptr = 0;
+    int res = SWIG_ConvertPtr(argv[0], &vptr, SWIGTYPE_p_OGRFeatureShadow, 0);
+    _v = SWIG_CheckState(res);
+    if (_v) {
+      int res = SWIG_AsCharPtrAndSize(argv[1], 0, NULL, 0);
+      _v = SWIG_CheckState(res);
+      if (_v) {
+        return _wrap_Feature_GetFieldAsInteger64__SWIG_1(self, args);
+      }
+    }
+  }
+  
+fail:
+  SWIG_SetErrorMsg(PyExc_NotImplementedError,"Wrong number of arguments for overloaded function 'Feature_GetFieldAsInteger64'.\n"
+    "  Possible C/C++ prototypes are:\n"
+    "    GetFieldAsInteger64(OGRFeatureShadow *,int)\n"
+    "    GetFieldAsInteger64(OGRFeatureShadow *,char const *)\n");
+  return NULL;
+}
+
+
 SWIGINTERN PyObject *_wrap_Feature_GetFieldAsDouble__SWIG_0(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   OGRFeatureShadow *arg1 = (OGRFeatureShadow *) 0 ;
@@ -11552,7 +12807,7 @@ SWIGINTERN PyObject *_wrap_Feature_GetFieldAsDateTime(PyObject *SWIGUNUSEDPARM(s
   int *arg5 = (int *) 0 ;
   int *arg6 = (int *) 0 ;
   int *arg7 = (int *) 0 ;
-  int *arg8 = (int *) 0 ;
+  float *arg8 = (float *) 0 ;
   int *arg9 = (int *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
@@ -11568,7 +12823,7 @@ SWIGINTERN PyObject *_wrap_Feature_GetFieldAsDateTime(PyObject *SWIGUNUSEDPARM(s
   int res6 = SWIG_TMPOBJ ;
   int temp7 ;
   int res7 = SWIG_TMPOBJ ;
-  int temp8 ;
+  float temp8 ;
   int res8 = SWIG_TMPOBJ ;
   int temp9 ;
   int res9 = SWIG_TMPOBJ ;
@@ -11637,10 +12892,10 @@ SWIGINTERN PyObject *_wrap_Feature_GetFieldAsDateTime(PyObject *SWIGUNUSEDPARM(s
     resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg7), SWIGTYPE_p_int, new_flags));
   }
   if (SWIG_IsTmpObj(res8)) {
-    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_int((*arg8)));
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_float((*arg8)));
   } else {
     int new_flags = SWIG_IsNewObj(res8) ? (SWIG_POINTER_OWN |  0 ) :  0 ;
-    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg8), SWIGTYPE_p_int, new_flags));
+    resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_NewPointerObj((void*)(arg8), SWIGTYPE_p_float, new_flags));
   }
   if (SWIG_IsTmpObj(res9)) {
     resultobj = SWIG_Python_AppendOutput(resultobj, SWIG_From_int((*arg9)));
@@ -11704,6 +12959,73 @@ SWIGINTERN PyObject *_wrap_Feature_GetFieldAsIntegerList(PyObject *SWIGUNUSEDPAR
     PyObject *out = PyList_New( *arg3 );
     for( int i=0; i<*arg3; i++ ) {
       PyObject *val = PyInt_FromLong( (*arg4)[i] );
+      PyList_SetItem( out, i, val );
+    }
+    resultobj = out;
+  }
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_Feature_GetFieldAsInteger64List(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  OGRFeatureShadow *arg1 = (OGRFeatureShadow *) 0 ;
+  int arg2 ;
+  int *arg3 = (int *) 0 ;
+  GIntBig **arg4 = (GIntBig **) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  int val2 ;
+  int ecode2 = 0 ;
+  int nLen3 ;
+  GIntBig *pList3 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  
+  {
+    /* %typemap(in,numinputs=0) (int *nLen3, const GIntBig **pList3) (int nLen3, GIntBig *pList3) */
+    arg3 = &nLen3;
+    arg4 = &pList3;
+  }
+  if (!PyArg_ParseTuple(args,(char *)"OO:Feature_GetFieldAsInteger64List",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_OGRFeatureShadow, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Feature_GetFieldAsInteger64List" "', argument " "1"" of type '" "OGRFeatureShadow *""'"); 
+  }
+  arg1 = reinterpret_cast< OGRFeatureShadow * >(argp1);
+  ecode2 = SWIG_AsVal_int(obj1, &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "Feature_GetFieldAsInteger64List" "', argument " "2"" of type '" "int""'");
+  } 
+  arg2 = static_cast< int >(val2);
+  {
+    if ( bUseExceptions ) {
+      CPLErrorReset();
+    }
+    OGRFeatureShadow_GetFieldAsInteger64List(arg1,arg2,arg3,(GIntBig const **)arg4);
+    if ( bUseExceptions ) {
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        SWIG_exception( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+      }
+    }
+  }
+  resultobj = SWIG_Py_Void();
+  {
+    /* %typemap(argout) (int *nLen, const GIntBig **pList ) */
+    Py_DECREF(resultobj);
+    PyObject *out = PyList_New( *arg3 );
+    for( int i=0; i<*arg3; i++ ) {
+      char szTmp[32];
+      sprintf(szTmp, CPL_FRMT_GIB, (*arg4)[i]);
+      PyObject* val;
+#if PY_VERSION_HEX>=0x03000000
+      val = PyLong_FromString(szTmp, NULL, 10);
+#else
+      val = PyInt_FromString(szTmp, NULL, 10);
+#endif
       PyList_SetItem( out, i, val );
     }
     resultobj = out;
@@ -11827,6 +13149,238 @@ SWIGINTERN PyObject *_wrap_Feature_GetFieldAsStringList(PyObject *SWIGUNUSEDPARM
   }
   return resultobj;
 fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_Feature_GetFieldAsBinary__SWIG_0(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  OGRFeatureShadow *arg1 = (OGRFeatureShadow *) 0 ;
+  int arg2 ;
+  int *arg3 = (int *) 0 ;
+  char **arg4 = (char **) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  int val2 ;
+  int ecode2 = 0 ;
+  int nLen3 = 0 ;
+  char *pBuf3 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  OGRErr result;
+  
+  {
+    /* %typemap(in,numinputs=0) (int *nLen3, char **pBuf3 ) */
+    arg3 = &nLen3;
+    arg4 = &pBuf3;
+  }
+  if (!PyArg_ParseTuple(args,(char *)"OO:Feature_GetFieldAsBinary",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_OGRFeatureShadow, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Feature_GetFieldAsBinary" "', argument " "1"" of type '" "OGRFeatureShadow *""'"); 
+  }
+  arg1 = reinterpret_cast< OGRFeatureShadow * >(argp1);
+  ecode2 = SWIG_AsVal_int(obj1, &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "Feature_GetFieldAsBinary" "', argument " "2"" of type '" "int""'");
+  } 
+  arg2 = static_cast< int >(val2);
+  {
+    if ( bUseExceptions ) {
+      CPLErrorReset();
+    }
+    result = (OGRErr)OGRFeatureShadow_GetFieldAsBinary__SWIG_0(arg1,arg2,arg3,arg4);
+    if ( bUseExceptions ) {
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        SWIG_exception( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+      }
+    }
+  }
+  {
+    /* %typemap(out) OGRErr */
+    if ( result != 0 && bUseExceptions) {
+      PyErr_SetString( PyExc_RuntimeError, OGRErrMessages(result) );
+      SWIG_fail;
+    }
+  }
+  {
+    /* %typemap(argout) (int *nLen, char **pBuf ) */
+    Py_XDECREF(resultobj);
+#if PY_VERSION_HEX >= 0x03000000
+    resultobj = PyBytes_FromStringAndSize( *arg4, *arg3 );
+#else
+    resultobj = PyString_FromStringAndSize( *arg4, *arg3 );
+#endif
+  }
+  {
+    /* %typemap(freearg) (int *nLen, char **pBuf ) */
+    if( *arg3 ) {
+      free( *arg4 );
+    }
+  }
+  {
+    /* %typemap(ret) OGRErr */
+    if (resultobj == Py_None ) {
+      Py_DECREF(resultobj);
+      resultobj = 0;
+    }
+    if (resultobj == 0) {
+      resultobj = PyInt_FromLong( result );
+    }
+  }
+  return resultobj;
+fail:
+  {
+    /* %typemap(freearg) (int *nLen, char **pBuf ) */
+    if( *arg3 ) {
+      free( *arg4 );
+    }
+  }
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_Feature_GetFieldAsBinary__SWIG_1(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  OGRFeatureShadow *arg1 = (OGRFeatureShadow *) 0 ;
+  char *arg2 = (char *) 0 ;
+  int *arg3 = (int *) 0 ;
+  char **arg4 = (char **) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  int res2 ;
+  char *buf2 = 0 ;
+  int alloc2 = 0 ;
+  int nLen3 = 0 ;
+  char *pBuf3 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  OGRErr result;
+  
+  {
+    /* %typemap(in,numinputs=0) (int *nLen3, char **pBuf3 ) */
+    arg3 = &nLen3;
+    arg4 = &pBuf3;
+  }
+  if (!PyArg_ParseTuple(args,(char *)"OO:Feature_GetFieldAsBinary",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_OGRFeatureShadow, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Feature_GetFieldAsBinary" "', argument " "1"" of type '" "OGRFeatureShadow *""'"); 
+  }
+  arg1 = reinterpret_cast< OGRFeatureShadow * >(argp1);
+  res2 = SWIG_AsCharPtrAndSize(obj1, &buf2, NULL, &alloc2);
+  if (!SWIG_IsOK(res2)) {
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "Feature_GetFieldAsBinary" "', argument " "2"" of type '" "char const *""'");
+  }
+  arg2 = reinterpret_cast< char * >(buf2);
+  {
+    if (!arg2) {
+      SWIG_exception(SWIG_ValueError,"Received a NULL pointer.");
+    }
+  }
+  {
+    if ( bUseExceptions ) {
+      CPLErrorReset();
+    }
+    result = (OGRErr)OGRFeatureShadow_GetFieldAsBinary__SWIG_1(arg1,(char const *)arg2,arg3,arg4);
+    if ( bUseExceptions ) {
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        SWIG_exception( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+      }
+    }
+  }
+  {
+    /* %typemap(out) OGRErr */
+    if ( result != 0 && bUseExceptions) {
+      PyErr_SetString( PyExc_RuntimeError, OGRErrMessages(result) );
+      SWIG_fail;
+    }
+  }
+  {
+    /* %typemap(argout) (int *nLen, char **pBuf ) */
+    Py_XDECREF(resultobj);
+#if PY_VERSION_HEX >= 0x03000000
+    resultobj = PyBytes_FromStringAndSize( *arg4, *arg3 );
+#else
+    resultobj = PyString_FromStringAndSize( *arg4, *arg3 );
+#endif
+  }
+  if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
+  {
+    /* %typemap(freearg) (int *nLen, char **pBuf ) */
+    if( *arg3 ) {
+      free( *arg4 );
+    }
+  }
+  {
+    /* %typemap(ret) OGRErr */
+    if (resultobj == Py_None ) {
+      Py_DECREF(resultobj);
+      resultobj = 0;
+    }
+    if (resultobj == 0) {
+      resultobj = PyInt_FromLong( result );
+    }
+  }
+  return resultobj;
+fail:
+  if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
+  {
+    /* %typemap(freearg) (int *nLen, char **pBuf ) */
+    if( *arg3 ) {
+      free( *arg4 );
+    }
+  }
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_Feature_GetFieldAsBinary(PyObject *self, PyObject *args) {
+  int argc;
+  PyObject *argv[3];
+  int ii;
+  
+  if (!PyTuple_Check(args)) SWIG_fail;
+  argc = (int)PyObject_Length(args);
+  for (ii = 0; (ii < argc) && (ii < 2); ii++) {
+    argv[ii] = PyTuple_GET_ITEM(args,ii);
+  }
+  if (argc == 2) {
+    int _v;
+    void *vptr = 0;
+    int res = SWIG_ConvertPtr(argv[0], &vptr, SWIGTYPE_p_OGRFeatureShadow, 0);
+    _v = SWIG_CheckState(res);
+    if (_v) {
+      {
+        int res = SWIG_AsVal_int(argv[1], NULL);
+        _v = SWIG_CheckState(res);
+      }
+      if (_v) {
+        return _wrap_Feature_GetFieldAsBinary__SWIG_0(self, args);
+      }
+    }
+  }
+  if (argc == 2) {
+    int _v;
+    void *vptr = 0;
+    int res = SWIG_ConvertPtr(argv[0], &vptr, SWIGTYPE_p_OGRFeatureShadow, 0);
+    _v = SWIG_CheckState(res);
+    if (_v) {
+      int res = SWIG_AsCharPtrAndSize(argv[1], 0, NULL, 0);
+      _v = SWIG_CheckState(res);
+      if (_v) {
+        return _wrap_Feature_GetFieldAsBinary__SWIG_1(self, args);
+      }
+    }
+  }
+  
+fail:
+  SWIG_SetErrorMsg(PyExc_NotImplementedError,"Wrong number of arguments for overloaded function 'Feature_GetFieldAsBinary'.\n"
+    "  Possible C/C++ prototypes are:\n"
+    "    GetFieldAsBinary(OGRFeatureShadow *,int,int *,char **)\n"
+    "    GetFieldAsBinary(OGRFeatureShadow *,char const *,int *,char **)\n");
   return NULL;
 }
 
@@ -12077,7 +13631,7 @@ SWIGINTERN PyObject *_wrap_Feature_GetFID(PyObject *SWIGUNUSEDPARM(self), PyObje
   void *argp1 = 0 ;
   int res1 = 0 ;
   PyObject * obj0 = 0 ;
-  int result;
+  GIntBig result;
   
   if (!PyArg_ParseTuple(args,(char *)"O:Feature_GetFID",&obj0)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_OGRFeatureShadow, 0 |  0 );
@@ -12089,7 +13643,7 @@ SWIGINTERN PyObject *_wrap_Feature_GetFID(PyObject *SWIGUNUSEDPARM(self), PyObje
     if ( bUseExceptions ) {
       CPLErrorReset();
     }
-    result = (int)OGRFeatureShadow_GetFID(arg1);
+    result = OGRFeatureShadow_GetFID(arg1);
     if ( bUseExceptions ) {
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
@@ -12097,7 +13651,15 @@ SWIGINTERN PyObject *_wrap_Feature_GetFID(PyObject *SWIGUNUSEDPARM(self), PyObje
       }
     }
   }
-  resultobj = SWIG_From_int(static_cast< int >(result));
+  {
+    char szTmp[32];
+    sprintf(szTmp, CPL_FRMT_GIB, result);
+#if PY_VERSION_HEX>=0x03000000
+    resultobj = PyLong_FromString(szTmp, NULL, 10);
+#else
+    resultobj = PyInt_FromString(szTmp, NULL, 10);
+#endif
+  }
   return resultobj;
 fail:
   return NULL;
@@ -12107,11 +13669,9 @@ fail:
 SWIGINTERN PyObject *_wrap_Feature_SetFID(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   OGRFeatureShadow *arg1 = (OGRFeatureShadow *) 0 ;
-  int arg2 ;
+  GIntBig arg2 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
-  int val2 ;
-  int ecode2 = 0 ;
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
   OGRErr result;
@@ -12122,11 +13682,14 @@ SWIGINTERN PyObject *_wrap_Feature_SetFID(PyObject *SWIGUNUSEDPARM(self), PyObje
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Feature_SetFID" "', argument " "1"" of type '" "OGRFeatureShadow *""'"); 
   }
   arg1 = reinterpret_cast< OGRFeatureShadow * >(argp1);
-  ecode2 = SWIG_AsVal_int(obj1, &val2);
-  if (!SWIG_IsOK(ecode2)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "Feature_SetFID" "', argument " "2"" of type '" "int""'");
-  } 
-  arg2 = static_cast< int >(val2);
+  {
+    PY_LONG_LONG val;
+    if ( !PyArg_Parse(obj1,"L",&val) ) {
+      PyErr_SetString(PyExc_TypeError, "not an integer");
+      SWIG_fail;
+    }
+    arg2 = (GIntBig)val;
+  }
   {
     if ( bUseExceptions ) {
       CPLErrorReset();
@@ -12482,16 +14045,67 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_Feature_SetField__SWIG_2(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_Feature_SetFieldInteger64(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   OGRFeatureShadow *arg1 = (OGRFeatureShadow *) 0 ;
   int arg2 ;
-  int arg3 ;
+  GIntBig arg3 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
   int val2 ;
   int ecode2 = 0 ;
-  int val3 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  PyObject * obj2 = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OOO:Feature_SetFieldInteger64",&obj0,&obj1,&obj2)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_OGRFeatureShadow, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Feature_SetFieldInteger64" "', argument " "1"" of type '" "OGRFeatureShadow *""'"); 
+  }
+  arg1 = reinterpret_cast< OGRFeatureShadow * >(argp1);
+  ecode2 = SWIG_AsVal_int(obj1, &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "Feature_SetFieldInteger64" "', argument " "2"" of type '" "int""'");
+  } 
+  arg2 = static_cast< int >(val2);
+  {
+    PY_LONG_LONG val;
+    if ( !PyArg_Parse(obj2,"L",&val) ) {
+      PyErr_SetString(PyExc_TypeError, "not an integer");
+      SWIG_fail;
+    }
+    arg3 = (GIntBig)val;
+  }
+  {
+    if ( bUseExceptions ) {
+      CPLErrorReset();
+    }
+    OGRFeatureShadow_SetFieldInteger64(arg1,arg2,arg3);
+    if ( bUseExceptions ) {
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        SWIG_exception( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+      }
+    }
+  }
+  resultobj = SWIG_Py_Void();
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_Feature_SetField__SWIG_2(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  OGRFeatureShadow *arg1 = (OGRFeatureShadow *) 0 ;
+  int arg2 ;
+  double arg3 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  int val2 ;
+  int ecode2 = 0 ;
+  double val3 ;
   int ecode3 = 0 ;
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
@@ -12508,11 +14122,11 @@ SWIGINTERN PyObject *_wrap_Feature_SetField__SWIG_2(PyObject *SWIGUNUSEDPARM(sel
     SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "Feature_SetField" "', argument " "2"" of type '" "int""'");
   } 
   arg2 = static_cast< int >(val2);
-  ecode3 = SWIG_AsVal_int(obj2, &val3);
+  ecode3 = SWIG_AsVal_double(obj2, &val3);
   if (!SWIG_IsOK(ecode3)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "Feature_SetField" "', argument " "3"" of type '" "int""'");
+    SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "Feature_SetField" "', argument " "3"" of type '" "double""'");
   } 
-  arg3 = static_cast< int >(val3);
+  arg3 = static_cast< double >(val3);
   {
     if ( bUseExceptions ) {
       CPLErrorReset();
@@ -12536,13 +14150,13 @@ SWIGINTERN PyObject *_wrap_Feature_SetField__SWIG_3(PyObject *SWIGUNUSEDPARM(sel
   PyObject *resultobj = 0;
   OGRFeatureShadow *arg1 = (OGRFeatureShadow *) 0 ;
   char *arg2 = (char *) 0 ;
-  int arg3 ;
+  double arg3 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
   int res2 ;
   char *buf2 = 0 ;
   int alloc2 = 0 ;
-  int val3 ;
+  double val3 ;
   int ecode3 = 0 ;
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
@@ -12559,11 +14173,11 @@ SWIGINTERN PyObject *_wrap_Feature_SetField__SWIG_3(PyObject *SWIGUNUSEDPARM(sel
     SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "Feature_SetField" "', argument " "2"" of type '" "char const *""'");
   }
   arg2 = reinterpret_cast< char * >(buf2);
-  ecode3 = SWIG_AsVal_int(obj2, &val3);
+  ecode3 = SWIG_AsVal_double(obj2, &val3);
   if (!SWIG_IsOK(ecode3)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "Feature_SetField" "', argument " "3"" of type '" "int""'");
+    SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "Feature_SetField" "', argument " "3"" of type '" "double""'");
   } 
-  arg3 = static_cast< int >(val3);
+  arg3 = static_cast< double >(val3);
   {
     if (!arg2) {
       SWIG_exception(SWIG_ValueError,"Received a NULL pointer.");
@@ -12594,18 +14208,42 @@ SWIGINTERN PyObject *_wrap_Feature_SetField__SWIG_4(PyObject *SWIGUNUSEDPARM(sel
   PyObject *resultobj = 0;
   OGRFeatureShadow *arg1 = (OGRFeatureShadow *) 0 ;
   int arg2 ;
-  double arg3 ;
+  int arg3 ;
+  int arg4 ;
+  int arg5 ;
+  int arg6 ;
+  int arg7 ;
+  float arg8 ;
+  int arg9 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
   int val2 ;
   int ecode2 = 0 ;
-  double val3 ;
+  int val3 ;
   int ecode3 = 0 ;
+  int val4 ;
+  int ecode4 = 0 ;
+  int val5 ;
+  int ecode5 = 0 ;
+  int val6 ;
+  int ecode6 = 0 ;
+  int val7 ;
+  int ecode7 = 0 ;
+  float val8 ;
+  int ecode8 = 0 ;
+  int val9 ;
+  int ecode9 = 0 ;
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
   PyObject * obj2 = 0 ;
+  PyObject * obj3 = 0 ;
+  PyObject * obj4 = 0 ;
+  PyObject * obj5 = 0 ;
+  PyObject * obj6 = 0 ;
+  PyObject * obj7 = 0 ;
+  PyObject * obj8 = 0 ;
   
-  if (!PyArg_ParseTuple(args,(char *)"OOO:Feature_SetField",&obj0,&obj1,&obj2)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"OOOOOOOOO:Feature_SetField",&obj0,&obj1,&obj2,&obj3,&obj4,&obj5,&obj6,&obj7,&obj8)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_OGRFeatureShadow, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Feature_SetField" "', argument " "1"" of type '" "OGRFeatureShadow *""'"); 
@@ -12616,16 +14254,46 @@ SWIGINTERN PyObject *_wrap_Feature_SetField__SWIG_4(PyObject *SWIGUNUSEDPARM(sel
     SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "Feature_SetField" "', argument " "2"" of type '" "int""'");
   } 
   arg2 = static_cast< int >(val2);
-  ecode3 = SWIG_AsVal_double(obj2, &val3);
+  ecode3 = SWIG_AsVal_int(obj2, &val3);
   if (!SWIG_IsOK(ecode3)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "Feature_SetField" "', argument " "3"" of type '" "double""'");
+    SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "Feature_SetField" "', argument " "3"" of type '" "int""'");
   } 
-  arg3 = static_cast< double >(val3);
+  arg3 = static_cast< int >(val3);
+  ecode4 = SWIG_AsVal_int(obj3, &val4);
+  if (!SWIG_IsOK(ecode4)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode4), "in method '" "Feature_SetField" "', argument " "4"" of type '" "int""'");
+  } 
+  arg4 = static_cast< int >(val4);
+  ecode5 = SWIG_AsVal_int(obj4, &val5);
+  if (!SWIG_IsOK(ecode5)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode5), "in method '" "Feature_SetField" "', argument " "5"" of type '" "int""'");
+  } 
+  arg5 = static_cast< int >(val5);
+  ecode6 = SWIG_AsVal_int(obj5, &val6);
+  if (!SWIG_IsOK(ecode6)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode6), "in method '" "Feature_SetField" "', argument " "6"" of type '" "int""'");
+  } 
+  arg6 = static_cast< int >(val6);
+  ecode7 = SWIG_AsVal_int(obj6, &val7);
+  if (!SWIG_IsOK(ecode7)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode7), "in method '" "Feature_SetField" "', argument " "7"" of type '" "int""'");
+  } 
+  arg7 = static_cast< int >(val7);
+  ecode8 = SWIG_AsVal_float(obj7, &val8);
+  if (!SWIG_IsOK(ecode8)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode8), "in method '" "Feature_SetField" "', argument " "8"" of type '" "float""'");
+  } 
+  arg8 = static_cast< float >(val8);
+  ecode9 = SWIG_AsVal_int(obj8, &val9);
+  if (!SWIG_IsOK(ecode9)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode9), "in method '" "Feature_SetField" "', argument " "9"" of type '" "int""'");
+  } 
+  arg9 = static_cast< int >(val9);
   {
     if ( bUseExceptions ) {
       CPLErrorReset();
     }
-    OGRFeatureShadow_SetField__SWIG_4(arg1,arg2,arg3);
+    OGRFeatureShadow_SetField__SWIG_4(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9);
     if ( bUseExceptions ) {
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
@@ -12644,174 +14312,12 @@ SWIGINTERN PyObject *_wrap_Feature_SetField__SWIG_5(PyObject *SWIGUNUSEDPARM(sel
   PyObject *resultobj = 0;
   OGRFeatureShadow *arg1 = (OGRFeatureShadow *) 0 ;
   char *arg2 = (char *) 0 ;
-  double arg3 ;
-  void *argp1 = 0 ;
-  int res1 = 0 ;
-  int res2 ;
-  char *buf2 = 0 ;
-  int alloc2 = 0 ;
-  double val3 ;
-  int ecode3 = 0 ;
-  PyObject * obj0 = 0 ;
-  PyObject * obj1 = 0 ;
-  PyObject * obj2 = 0 ;
-  
-  if (!PyArg_ParseTuple(args,(char *)"OOO:Feature_SetField",&obj0,&obj1,&obj2)) SWIG_fail;
-  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_OGRFeatureShadow, 0 |  0 );
-  if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Feature_SetField" "', argument " "1"" of type '" "OGRFeatureShadow *""'"); 
-  }
-  arg1 = reinterpret_cast< OGRFeatureShadow * >(argp1);
-  res2 = SWIG_AsCharPtrAndSize(obj1, &buf2, NULL, &alloc2);
-  if (!SWIG_IsOK(res2)) {
-    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "Feature_SetField" "', argument " "2"" of type '" "char const *""'");
-  }
-  arg2 = reinterpret_cast< char * >(buf2);
-  ecode3 = SWIG_AsVal_double(obj2, &val3);
-  if (!SWIG_IsOK(ecode3)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "Feature_SetField" "', argument " "3"" of type '" "double""'");
-  } 
-  arg3 = static_cast< double >(val3);
-  {
-    if (!arg2) {
-      SWIG_exception(SWIG_ValueError,"Received a NULL pointer.");
-    }
-  }
-  {
-    if ( bUseExceptions ) {
-      CPLErrorReset();
-    }
-    OGRFeatureShadow_SetField__SWIG_5(arg1,(char const *)arg2,arg3);
-    if ( bUseExceptions ) {
-      CPLErr eclass = CPLGetLastErrorType();
-      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception( SWIG_RuntimeError, CPLGetLastErrorMsg() );
-      }
-    }
-  }
-  resultobj = SWIG_Py_Void();
-  if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
-  return resultobj;
-fail:
-  if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
-  return NULL;
-}
-
-
-SWIGINTERN PyObject *_wrap_Feature_SetField__SWIG_6(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
-  PyObject *resultobj = 0;
-  OGRFeatureShadow *arg1 = (OGRFeatureShadow *) 0 ;
-  int arg2 ;
   int arg3 ;
   int arg4 ;
   int arg5 ;
   int arg6 ;
   int arg7 ;
-  int arg8 ;
-  int arg9 ;
-  void *argp1 = 0 ;
-  int res1 = 0 ;
-  int val2 ;
-  int ecode2 = 0 ;
-  int val3 ;
-  int ecode3 = 0 ;
-  int val4 ;
-  int ecode4 = 0 ;
-  int val5 ;
-  int ecode5 = 0 ;
-  int val6 ;
-  int ecode6 = 0 ;
-  int val7 ;
-  int ecode7 = 0 ;
-  int val8 ;
-  int ecode8 = 0 ;
-  int val9 ;
-  int ecode9 = 0 ;
-  PyObject * obj0 = 0 ;
-  PyObject * obj1 = 0 ;
-  PyObject * obj2 = 0 ;
-  PyObject * obj3 = 0 ;
-  PyObject * obj4 = 0 ;
-  PyObject * obj5 = 0 ;
-  PyObject * obj6 = 0 ;
-  PyObject * obj7 = 0 ;
-  PyObject * obj8 = 0 ;
-  
-  if (!PyArg_ParseTuple(args,(char *)"OOOOOOOOO:Feature_SetField",&obj0,&obj1,&obj2,&obj3,&obj4,&obj5,&obj6,&obj7,&obj8)) SWIG_fail;
-  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_OGRFeatureShadow, 0 |  0 );
-  if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Feature_SetField" "', argument " "1"" of type '" "OGRFeatureShadow *""'"); 
-  }
-  arg1 = reinterpret_cast< OGRFeatureShadow * >(argp1);
-  ecode2 = SWIG_AsVal_int(obj1, &val2);
-  if (!SWIG_IsOK(ecode2)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "Feature_SetField" "', argument " "2"" of type '" "int""'");
-  } 
-  arg2 = static_cast< int >(val2);
-  ecode3 = SWIG_AsVal_int(obj2, &val3);
-  if (!SWIG_IsOK(ecode3)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "Feature_SetField" "', argument " "3"" of type '" "int""'");
-  } 
-  arg3 = static_cast< int >(val3);
-  ecode4 = SWIG_AsVal_int(obj3, &val4);
-  if (!SWIG_IsOK(ecode4)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode4), "in method '" "Feature_SetField" "', argument " "4"" of type '" "int""'");
-  } 
-  arg4 = static_cast< int >(val4);
-  ecode5 = SWIG_AsVal_int(obj4, &val5);
-  if (!SWIG_IsOK(ecode5)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode5), "in method '" "Feature_SetField" "', argument " "5"" of type '" "int""'");
-  } 
-  arg5 = static_cast< int >(val5);
-  ecode6 = SWIG_AsVal_int(obj5, &val6);
-  if (!SWIG_IsOK(ecode6)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode6), "in method '" "Feature_SetField" "', argument " "6"" of type '" "int""'");
-  } 
-  arg6 = static_cast< int >(val6);
-  ecode7 = SWIG_AsVal_int(obj6, &val7);
-  if (!SWIG_IsOK(ecode7)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode7), "in method '" "Feature_SetField" "', argument " "7"" of type '" "int""'");
-  } 
-  arg7 = static_cast< int >(val7);
-  ecode8 = SWIG_AsVal_int(obj7, &val8);
-  if (!SWIG_IsOK(ecode8)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode8), "in method '" "Feature_SetField" "', argument " "8"" of type '" "int""'");
-  } 
-  arg8 = static_cast< int >(val8);
-  ecode9 = SWIG_AsVal_int(obj8, &val9);
-  if (!SWIG_IsOK(ecode9)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode9), "in method '" "Feature_SetField" "', argument " "9"" of type '" "int""'");
-  } 
-  arg9 = static_cast< int >(val9);
-  {
-    if ( bUseExceptions ) {
-      CPLErrorReset();
-    }
-    OGRFeatureShadow_SetField__SWIG_6(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9);
-    if ( bUseExceptions ) {
-      CPLErr eclass = CPLGetLastErrorType();
-      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception( SWIG_RuntimeError, CPLGetLastErrorMsg() );
-      }
-    }
-  }
-  resultobj = SWIG_Py_Void();
-  return resultobj;
-fail:
-  return NULL;
-}
-
-
-SWIGINTERN PyObject *_wrap_Feature_SetField__SWIG_7(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
-  PyObject *resultobj = 0;
-  OGRFeatureShadow *arg1 = (OGRFeatureShadow *) 0 ;
-  char *arg2 = (char *) 0 ;
-  int arg3 ;
-  int arg4 ;
-  int arg5 ;
-  int arg6 ;
-  int arg7 ;
-  int arg8 ;
+  float arg8 ;
   int arg9 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
@@ -12828,7 +14334,7 @@ SWIGINTERN PyObject *_wrap_Feature_SetField__SWIG_7(PyObject *SWIGUNUSEDPARM(sel
   int ecode6 = 0 ;
   int val7 ;
   int ecode7 = 0 ;
-  int val8 ;
+  float val8 ;
   int ecode8 = 0 ;
   int val9 ;
   int ecode9 = 0 ;
@@ -12878,11 +14384,11 @@ SWIGINTERN PyObject *_wrap_Feature_SetField__SWIG_7(PyObject *SWIGUNUSEDPARM(sel
     SWIG_exception_fail(SWIG_ArgError(ecode7), "in method '" "Feature_SetField" "', argument " "7"" of type '" "int""'");
   } 
   arg7 = static_cast< int >(val7);
-  ecode8 = SWIG_AsVal_int(obj7, &val8);
+  ecode8 = SWIG_AsVal_float(obj7, &val8);
   if (!SWIG_IsOK(ecode8)) {
-    SWIG_exception_fail(SWIG_ArgError(ecode8), "in method '" "Feature_SetField" "', argument " "8"" of type '" "int""'");
+    SWIG_exception_fail(SWIG_ArgError(ecode8), "in method '" "Feature_SetField" "', argument " "8"" of type '" "float""'");
   } 
-  arg8 = static_cast< int >(val8);
+  arg8 = static_cast< float >(val8);
   ecode9 = SWIG_AsVal_int(obj8, &val9);
   if (!SWIG_IsOK(ecode9)) {
     SWIG_exception_fail(SWIG_ArgError(ecode9), "in method '" "Feature_SetField" "', argument " "9"" of type '" "int""'");
@@ -12897,7 +14403,7 @@ SWIGINTERN PyObject *_wrap_Feature_SetField__SWIG_7(PyObject *SWIGUNUSEDPARM(sel
     if ( bUseExceptions ) {
       CPLErrorReset();
     }
-    OGRFeatureShadow_SetField__SWIG_7(arg1,(char const *)arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9);
+    OGRFeatureShadow_SetField__SWIG_5(arg1,(char const *)arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9);
     if ( bUseExceptions ) {
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
@@ -12936,32 +14442,11 @@ SWIGINTERN PyObject *_wrap_Feature_SetField(PyObject *self, PyObject *args) {
       }
       if (_v) {
         {
-          int res = SWIG_AsVal_int(argv[2], NULL);
-          _v = SWIG_CheckState(res);
-        }
-        if (_v) {
-          return _wrap_Feature_SetField__SWIG_2(self, args);
-        }
-      }
-    }
-  }
-  if (argc == 3) {
-    int _v;
-    void *vptr = 0;
-    int res = SWIG_ConvertPtr(argv[0], &vptr, SWIGTYPE_p_OGRFeatureShadow, 0);
-    _v = SWIG_CheckState(res);
-    if (_v) {
-      {
-        int res = SWIG_AsVal_int(argv[1], NULL);
-        _v = SWIG_CheckState(res);
-      }
-      if (_v) {
-        {
           int res = SWIG_AsVal_double(argv[2], NULL);
           _v = SWIG_CheckState(res);
         }
         if (_v) {
-          return _wrap_Feature_SetField__SWIG_4(self, args);
+          return _wrap_Feature_SetField__SWIG_2(self, args);
         }
       }
     }
@@ -12995,30 +14480,11 @@ SWIGINTERN PyObject *_wrap_Feature_SetField(PyObject *self, PyObject *args) {
       _v = SWIG_CheckState(res);
       if (_v) {
         {
-          int res = SWIG_AsVal_int(argv[2], NULL);
-          _v = SWIG_CheckState(res);
-        }
-        if (_v) {
-          return _wrap_Feature_SetField__SWIG_3(self, args);
-        }
-      }
-    }
-  }
-  if (argc == 3) {
-    int _v;
-    void *vptr = 0;
-    int res = SWIG_ConvertPtr(argv[0], &vptr, SWIGTYPE_p_OGRFeatureShadow, 0);
-    _v = SWIG_CheckState(res);
-    if (_v) {
-      int res = SWIG_AsCharPtrAndSize(argv[1], 0, NULL, 0);
-      _v = SWIG_CheckState(res);
-      if (_v) {
-        {
           int res = SWIG_AsVal_double(argv[2], NULL);
           _v = SWIG_CheckState(res);
         }
         if (_v) {
-          return _wrap_Feature_SetField__SWIG_5(self, args);
+          return _wrap_Feature_SetField__SWIG_3(self, args);
         }
       }
     }
@@ -13077,7 +14543,7 @@ SWIGINTERN PyObject *_wrap_Feature_SetField(PyObject *self, PyObject *args) {
                 }
                 if (_v) {
                   {
-                    int res = SWIG_AsVal_int(argv[7], NULL);
+                    int res = SWIG_AsVal_float(argv[7], NULL);
                     _v = SWIG_CheckState(res);
                   }
                   if (_v) {
@@ -13086,7 +14552,7 @@ SWIGINTERN PyObject *_wrap_Feature_SetField(PyObject *self, PyObject *args) {
                       _v = SWIG_CheckState(res);
                     }
                     if (_v) {
-                      return _wrap_Feature_SetField__SWIG_6(self, args);
+                      return _wrap_Feature_SetField__SWIG_4(self, args);
                     }
                   }
                 }
@@ -13132,7 +14598,7 @@ SWIGINTERN PyObject *_wrap_Feature_SetField(PyObject *self, PyObject *args) {
                 }
                 if (_v) {
                   {
-                    int res = SWIG_AsVal_int(argv[7], NULL);
+                    int res = SWIG_AsVal_float(argv[7], NULL);
                     _v = SWIG_CheckState(res);
                   }
                   if (_v) {
@@ -13141,7 +14607,7 @@ SWIGINTERN PyObject *_wrap_Feature_SetField(PyObject *self, PyObject *args) {
                       _v = SWIG_CheckState(res);
                     }
                     if (_v) {
-                      return _wrap_Feature_SetField__SWIG_7(self, args);
+                      return _wrap_Feature_SetField__SWIG_5(self, args);
                     }
                   }
                 }
@@ -13158,12 +14624,10 @@ fail:
     "  Possible C/C++ prototypes are:\n"
     "    SetField(OGRFeatureShadow *,int,char const *)\n"
     "    SetField(OGRFeatureShadow *,char const *,char const *)\n"
-    "    SetField(OGRFeatureShadow *,int,int)\n"
-    "    SetField(OGRFeatureShadow *,char const *,int)\n"
     "    SetField(OGRFeatureShadow *,int,double)\n"
     "    SetField(OGRFeatureShadow *,char const *,double)\n"
-    "    SetField(OGRFeatureShadow *,int,int,int,int,int,int,int,int)\n"
-    "    SetField(OGRFeatureShadow *,char const *,int,int,int,int,int,int,int)\n");
+    "    SetField(OGRFeatureShadow *,int,int,int,int,int,int,float,int)\n"
+    "    SetField(OGRFeatureShadow *,char const *,int,int,int,int,int,float,int)\n");
   return NULL;
 }
 
@@ -13235,6 +14699,83 @@ SWIGINTERN PyObject *_wrap_Feature_SetFieldIntegerList(PyObject *SWIGUNUSEDPARM(
 fail:
   {
     /* %typemap(freearg) (int nList, int* pList) */
+    if (arg4) {
+      free((void*) arg4);
+    }
+  }
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_Feature_SetFieldInteger64List(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  OGRFeatureShadow *arg1 = (OGRFeatureShadow *) 0 ;
+  int arg2 ;
+  int arg3 ;
+  GIntBig *arg4 = (GIntBig *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  int val2 ;
+  int ecode2 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  PyObject * obj2 = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OOO:Feature_SetFieldInteger64List",&obj0,&obj1,&obj2)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_OGRFeatureShadow, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Feature_SetFieldInteger64List" "', argument " "1"" of type '" "OGRFeatureShadow *""'"); 
+  }
+  arg1 = reinterpret_cast< OGRFeatureShadow * >(argp1);
+  ecode2 = SWIG_AsVal_int(obj1, &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "Feature_SetFieldInteger64List" "', argument " "2"" of type '" "int""'");
+  } 
+  arg2 = static_cast< int >(val2);
+  {
+    /* %typemap(in,numinputs=1) (int nList, GIntBig* pList)*/
+    /* check if is List */
+    if ( !PySequence_Check(obj2) ) {
+      PyErr_SetString(PyExc_TypeError, "not a sequence");
+      SWIG_fail;
+    }
+    arg3 = PySequence_Size(obj2);
+    arg4 = (GIntBig*) malloc(arg3*sizeof(GIntBig));
+    for( int i = 0; i<arg3; i++ ) {
+      PyObject *o = PySequence_GetItem(obj2,i);
+      PY_LONG_LONG val;
+      if ( !PyArg_Parse(o,"L",&val) ) {
+        PyErr_SetString(PyExc_TypeError, "not an integer");
+        Py_DECREF(o);
+        SWIG_fail;
+      }
+      arg4[i] = (GIntBig)val;
+      Py_DECREF(o);
+    }
+  }
+  {
+    if ( bUseExceptions ) {
+      CPLErrorReset();
+    }
+    OGRFeatureShadow_SetFieldInteger64List(arg1,arg2,arg3,arg4);
+    if ( bUseExceptions ) {
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        SWIG_exception( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+      }
+    }
+  }
+  resultobj = SWIG_Py_Void();
+  {
+    /* %typemap(freearg) (int nList, GIntBig* pList) */
+    if (arg4) {
+      free((void*) arg4);
+    }
+  }
+  return resultobj;
+fail:
+  {
+    /* %typemap(freearg) (int nList, GIntBig* pList) */
     if (arg4) {
       free((void*) arg4);
     }
@@ -13979,6 +15520,221 @@ fail:
     "  Possible C/C++ prototypes are:\n"
     "    GetFieldType(OGRFeatureShadow *,int)\n"
     "    GetFieldType(OGRFeatureShadow *,char const *)\n");
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_Feature_Validate(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  OGRFeatureShadow *arg1 = (OGRFeatureShadow *) 0 ;
+  int arg2 = (int) OGR_F_VAL_ALL ;
+  int arg3 = (int) TRUE ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  int val2 ;
+  int ecode2 = 0 ;
+  int val3 ;
+  int ecode3 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  PyObject * obj2 = 0 ;
+  int result;
+  
+  if (!PyArg_ParseTuple(args,(char *)"O|OO:Feature_Validate",&obj0,&obj1,&obj2)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_OGRFeatureShadow, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Feature_Validate" "', argument " "1"" of type '" "OGRFeatureShadow *""'"); 
+  }
+  arg1 = reinterpret_cast< OGRFeatureShadow * >(argp1);
+  if (obj1) {
+    ecode2 = SWIG_AsVal_int(obj1, &val2);
+    if (!SWIG_IsOK(ecode2)) {
+      SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "Feature_Validate" "', argument " "2"" of type '" "int""'");
+    } 
+    arg2 = static_cast< int >(val2);
+  }
+  if (obj2) {
+    ecode3 = SWIG_AsVal_int(obj2, &val3);
+    if (!SWIG_IsOK(ecode3)) {
+      SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "Feature_Validate" "', argument " "3"" of type '" "int""'");
+    } 
+    arg3 = static_cast< int >(val3);
+  }
+  {
+    if ( bUseExceptions ) {
+      CPLErrorReset();
+    }
+    result = (int)OGRFeatureShadow_Validate(arg1,arg2,arg3);
+    if ( bUseExceptions ) {
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        SWIG_exception( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+      }
+    }
+  }
+  resultobj = SWIG_From_int(static_cast< int >(result));
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_Feature_FillUnsetWithDefault(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  OGRFeatureShadow *arg1 = (OGRFeatureShadow *) 0 ;
+  int arg2 = (int) FALSE ;
+  char **arg3 = (char **) NULL ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  int val2 ;
+  int ecode2 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  PyObject * obj2 = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"O|OO:Feature_FillUnsetWithDefault",&obj0,&obj1,&obj2)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_OGRFeatureShadow, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Feature_FillUnsetWithDefault" "', argument " "1"" of type '" "OGRFeatureShadow *""'"); 
+  }
+  arg1 = reinterpret_cast< OGRFeatureShadow * >(argp1);
+  if (obj1) {
+    ecode2 = SWIG_AsVal_int(obj1, &val2);
+    if (!SWIG_IsOK(ecode2)) {
+      SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "Feature_FillUnsetWithDefault" "', argument " "2"" of type '" "int""'");
+    } 
+    arg2 = static_cast< int >(val2);
+  }
+  if (obj2) {
+    {
+      /* %typemap(in) char **options */
+      /* Check if is a list (and reject strings, that are seen as sequence of characters)  */
+      if ( ! PySequence_Check(obj2) || PyUnicode_Check(obj2)
+  #if PY_VERSION_HEX < 0x03000000
+        || PyString_Check(obj2)
+  #endif
+        ) {
+        PyErr_SetString(PyExc_TypeError,"not a sequence");
+        SWIG_fail;
+      }
+      
+      int size = PySequence_Size(obj2);
+      for (int i = 0; i < size; i++) {
+        PyObject* pyObj = PySequence_GetItem(obj2,i);
+        if (PyUnicode_Check(pyObj))
+        {
+          char *pszStr;
+          Py_ssize_t nLen;
+          PyObject* pyUTF8Str = PyUnicode_AsUTF8String(pyObj);
+#if PY_VERSION_HEX >= 0x03000000
+          PyBytes_AsStringAndSize(pyUTF8Str, &pszStr, &nLen);
+#else
+          PyString_AsStringAndSize(pyUTF8Str, &pszStr, &nLen);
+#endif
+          arg3 = CSLAddString( arg3, pszStr );
+          Py_XDECREF(pyUTF8Str);
+        }
+#if PY_VERSION_HEX >= 0x03000000
+        else if (PyBytes_Check(pyObj))
+        arg3 = CSLAddString( arg3, PyBytes_AsString(pyObj) );
+#else
+        else if (PyString_Check(pyObj))
+        arg3 = CSLAddString( arg3, PyString_AsString(pyObj) );
+#endif
+        else
+        {
+          Py_DECREF(pyObj);
+          PyErr_SetString(PyExc_TypeError,"sequence must contain strings");
+          SWIG_fail;
+        }
+        Py_DECREF(pyObj);
+      }
+    }
+  }
+  {
+    if ( bUseExceptions ) {
+      CPLErrorReset();
+    }
+    OGRFeatureShadow_FillUnsetWithDefault(arg1,arg2,arg3);
+    if ( bUseExceptions ) {
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        SWIG_exception( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+      }
+    }
+  }
+  resultobj = SWIG_Py_Void();
+  {
+    /* %typemap(freearg) char **options */
+    CSLDestroy( arg3 );
+  }
+  return resultobj;
+fail:
+  {
+    /* %typemap(freearg) char **options */
+    CSLDestroy( arg3 );
+  }
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_Feature_SetFieldString(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  OGRFeatureShadow *arg1 = (OGRFeatureShadow *) 0 ;
+  int arg2 ;
+  char *arg3 = (char *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  int val2 ;
+  int ecode2 = 0 ;
+  int bToFree3 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  PyObject * obj2 = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OOO:Feature_SetFieldString",&obj0,&obj1,&obj2)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_OGRFeatureShadow, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Feature_SetFieldString" "', argument " "1"" of type '" "OGRFeatureShadow *""'"); 
+  }
+  arg1 = reinterpret_cast< OGRFeatureShadow * >(argp1);
+  ecode2 = SWIG_AsVal_int(obj1, &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "Feature_SetFieldString" "', argument " "2"" of type '" "int""'");
+  } 
+  arg2 = static_cast< int >(val2);
+  {
+    /* %typemap(in) (const char *utf8_path) */
+    arg3 = GDALPythonObjectToCStr( obj2, &bToFree3 );
+    if (arg3 == NULL)
+    {
+      PyErr_SetString( PyExc_RuntimeError, "not a string" );
+      SWIG_fail;
+    }
+  }
+  {
+    if ( bUseExceptions ) {
+      CPLErrorReset();
+    }
+    OGRFeatureShadow_SetFieldString(arg1,arg2,(char const *)arg3);
+    if ( bUseExceptions ) {
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        SWIG_exception( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+      }
+    }
+  }
+  resultobj = SWIG_Py_Void();
+  {
+    /* %typemap(freearg) (const char *utf8_path) */
+    GDALPythonFreeCStr(arg3, bToFree3);
+  }
+  return resultobj;
+fail:
+  {
+    /* %typemap(freearg) (const char *utf8_path) */
+    GDALPythonFreeCStr(arg3, bToFree3);
+  }
   return NULL;
 }
 
@@ -15078,6 +16834,80 @@ fail:
 }
 
 
+SWIGINTERN PyObject *_wrap_FieldDefn_GetSubType(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  OGRFieldDefnShadow *arg1 = (OGRFieldDefnShadow *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  PyObject * obj0 = 0 ;
+  OGRFieldSubType result;
+  
+  if (!PyArg_ParseTuple(args,(char *)"O:FieldDefn_GetSubType",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_OGRFieldDefnShadow, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "FieldDefn_GetSubType" "', argument " "1"" of type '" "OGRFieldDefnShadow *""'"); 
+  }
+  arg1 = reinterpret_cast< OGRFieldDefnShadow * >(argp1);
+  {
+    if ( bUseExceptions ) {
+      CPLErrorReset();
+    }
+    result = (OGRFieldSubType)OGRFieldDefnShadow_GetSubType(arg1);
+    if ( bUseExceptions ) {
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        SWIG_exception( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+      }
+    }
+  }
+  resultobj = SWIG_From_int(static_cast< int >(result));
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_FieldDefn_SetSubType(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  OGRFieldDefnShadow *arg1 = (OGRFieldDefnShadow *) 0 ;
+  OGRFieldSubType arg2 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  int val2 ;
+  int ecode2 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OO:FieldDefn_SetSubType",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_OGRFieldDefnShadow, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "FieldDefn_SetSubType" "', argument " "1"" of type '" "OGRFieldDefnShadow *""'"); 
+  }
+  arg1 = reinterpret_cast< OGRFieldDefnShadow * >(argp1);
+  ecode2 = SWIG_AsVal_int(obj1, &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "FieldDefn_SetSubType" "', argument " "2"" of type '" "OGRFieldSubType""'");
+  } 
+  arg2 = static_cast< OGRFieldSubType >(val2);
+  {
+    if ( bUseExceptions ) {
+      CPLErrorReset();
+    }
+    OGRFieldDefnShadow_SetSubType(arg1,arg2);
+    if ( bUseExceptions ) {
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        SWIG_exception( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+      }
+    }
+  }
+  resultobj = SWIG_Py_Void();
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
 SWIGINTERN PyObject *_wrap_FieldDefn_GetJustify(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   OGRFieldDefnShadow *arg1 = (OGRFieldDefnShadow *) 0 ;
@@ -15443,6 +17273,190 @@ SWIGINTERN PyObject *_wrap_FieldDefn_SetIgnored(PyObject *SWIGUNUSEDPARM(self), 
     }
   }
   resultobj = SWIG_Py_Void();
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_FieldDefn_IsNullable(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  OGRFieldDefnShadow *arg1 = (OGRFieldDefnShadow *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  PyObject * obj0 = 0 ;
+  int result;
+  
+  if (!PyArg_ParseTuple(args,(char *)"O:FieldDefn_IsNullable",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_OGRFieldDefnShadow, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "FieldDefn_IsNullable" "', argument " "1"" of type '" "OGRFieldDefnShadow *""'"); 
+  }
+  arg1 = reinterpret_cast< OGRFieldDefnShadow * >(argp1);
+  {
+    if ( bUseExceptions ) {
+      CPLErrorReset();
+    }
+    result = (int)OGRFieldDefnShadow_IsNullable(arg1);
+    if ( bUseExceptions ) {
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        SWIG_exception( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+      }
+    }
+  }
+  resultobj = SWIG_From_int(static_cast< int >(result));
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_FieldDefn_SetNullable(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  OGRFieldDefnShadow *arg1 = (OGRFieldDefnShadow *) 0 ;
+  int arg2 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  int val2 ;
+  int ecode2 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OO:FieldDefn_SetNullable",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_OGRFieldDefnShadow, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "FieldDefn_SetNullable" "', argument " "1"" of type '" "OGRFieldDefnShadow *""'"); 
+  }
+  arg1 = reinterpret_cast< OGRFieldDefnShadow * >(argp1);
+  ecode2 = SWIG_AsVal_int(obj1, &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "FieldDefn_SetNullable" "', argument " "2"" of type '" "int""'");
+  } 
+  arg2 = static_cast< int >(val2);
+  {
+    if ( bUseExceptions ) {
+      CPLErrorReset();
+    }
+    OGRFieldDefnShadow_SetNullable(arg1,arg2);
+    if ( bUseExceptions ) {
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        SWIG_exception( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+      }
+    }
+  }
+  resultobj = SWIG_Py_Void();
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_FieldDefn_GetDefault(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  OGRFieldDefnShadow *arg1 = (OGRFieldDefnShadow *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  PyObject * obj0 = 0 ;
+  char *result = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"O:FieldDefn_GetDefault",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_OGRFieldDefnShadow, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "FieldDefn_GetDefault" "', argument " "1"" of type '" "OGRFieldDefnShadow *""'"); 
+  }
+  arg1 = reinterpret_cast< OGRFieldDefnShadow * >(argp1);
+  {
+    if ( bUseExceptions ) {
+      CPLErrorReset();
+    }
+    result = (char *)OGRFieldDefnShadow_GetDefault(arg1);
+    if ( bUseExceptions ) {
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        SWIG_exception( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+      }
+    }
+  }
+  resultobj = SWIG_FromCharPtr((const char *)result);
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_FieldDefn_SetDefault(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  OGRFieldDefnShadow *arg1 = (OGRFieldDefnShadow *) 0 ;
+  char *arg2 = (char *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  int res2 ;
+  char *buf2 = 0 ;
+  int alloc2 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OO:FieldDefn_SetDefault",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_OGRFieldDefnShadow, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "FieldDefn_SetDefault" "', argument " "1"" of type '" "OGRFieldDefnShadow *""'"); 
+  }
+  arg1 = reinterpret_cast< OGRFieldDefnShadow * >(argp1);
+  res2 = SWIG_AsCharPtrAndSize(obj1, &buf2, NULL, &alloc2);
+  if (!SWIG_IsOK(res2)) {
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "FieldDefn_SetDefault" "', argument " "2"" of type '" "char const *""'");
+  }
+  arg2 = reinterpret_cast< char * >(buf2);
+  {
+    if ( bUseExceptions ) {
+      CPLErrorReset();
+    }
+    OGRFieldDefnShadow_SetDefault(arg1,(char const *)arg2);
+    if ( bUseExceptions ) {
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        SWIG_exception( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+      }
+    }
+  }
+  resultobj = SWIG_Py_Void();
+  if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
+  return resultobj;
+fail:
+  if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_FieldDefn_IsDefaultDriverSpecific(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  OGRFieldDefnShadow *arg1 = (OGRFieldDefnShadow *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  PyObject * obj0 = 0 ;
+  int result;
+  
+  if (!PyArg_ParseTuple(args,(char *)"O:FieldDefn_IsDefaultDriverSpecific",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_OGRFieldDefnShadow, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "FieldDefn_IsDefaultDriverSpecific" "', argument " "1"" of type '" "OGRFieldDefnShadow *""'"); 
+  }
+  arg1 = reinterpret_cast< OGRFieldDefnShadow * >(argp1);
+  {
+    if ( bUseExceptions ) {
+      CPLErrorReset();
+    }
+    result = (int)OGRFieldDefnShadow_IsDefaultDriverSpecific(arg1);
+    if ( bUseExceptions ) {
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        SWIG_exception( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+      }
+    }
+  }
+  resultobj = SWIG_From_int(static_cast< int >(result));
   return resultobj;
 fail:
   return NULL;
@@ -15863,6 +17877,80 @@ SWIGINTERN PyObject *_wrap_GeomFieldDefn_SetIgnored(PyObject *SWIGUNUSEDPARM(sel
       CPLErrorReset();
     }
     OGRGeomFieldDefnShadow_SetIgnored(arg1,arg2);
+    if ( bUseExceptions ) {
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        SWIG_exception( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+      }
+    }
+  }
+  resultobj = SWIG_Py_Void();
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_GeomFieldDefn_IsNullable(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  OGRGeomFieldDefnShadow *arg1 = (OGRGeomFieldDefnShadow *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  PyObject * obj0 = 0 ;
+  int result;
+  
+  if (!PyArg_ParseTuple(args,(char *)"O:GeomFieldDefn_IsNullable",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_OGRGeomFieldDefnShadow, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "GeomFieldDefn_IsNullable" "', argument " "1"" of type '" "OGRGeomFieldDefnShadow *""'"); 
+  }
+  arg1 = reinterpret_cast< OGRGeomFieldDefnShadow * >(argp1);
+  {
+    if ( bUseExceptions ) {
+      CPLErrorReset();
+    }
+    result = (int)OGRGeomFieldDefnShadow_IsNullable(arg1);
+    if ( bUseExceptions ) {
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        SWIG_exception( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+      }
+    }
+  }
+  resultobj = SWIG_From_int(static_cast< int >(result));
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_GeomFieldDefn_SetNullable(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  OGRGeomFieldDefnShadow *arg1 = (OGRGeomFieldDefnShadow *) 0 ;
+  int arg2 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  int val2 ;
+  int ecode2 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OO:GeomFieldDefn_SetNullable",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_OGRGeomFieldDefnShadow, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "GeomFieldDefn_SetNullable" "', argument " "1"" of type '" "OGRGeomFieldDefnShadow *""'"); 
+  }
+  arg1 = reinterpret_cast< OGRGeomFieldDefnShadow * >(argp1);
+  ecode2 = SWIG_AsVal_int(obj1, &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "GeomFieldDefn_SetNullable" "', argument " "2"" of type '" "int""'");
+  } 
+  arg2 = static_cast< int >(val2);
+  {
+    if ( bUseExceptions ) {
+      CPLErrorReset();
+    }
+    OGRGeomFieldDefnShadow_SetNullable(arg1,arg2);
     if ( bUseExceptions ) {
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
@@ -16440,6 +18528,104 @@ fail:
 }
 
 
+SWIGINTERN PyObject *_wrap_ForceTo(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  OGRGeometryShadow *arg1 = (OGRGeometryShadow *) 0 ;
+  OGRwkbGeometryType arg2 ;
+  char **arg3 = (char **) NULL ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  int val2 ;
+  int ecode2 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  PyObject * obj2 = 0 ;
+  OGRGeometryShadow *result = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OO|O:ForceTo",&obj0,&obj1,&obj2)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_OGRGeometryShadow, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "ForceTo" "', argument " "1"" of type '" "OGRGeometryShadow *""'"); 
+  }
+  arg1 = reinterpret_cast< OGRGeometryShadow * >(argp1);
+  ecode2 = SWIG_AsVal_int(obj1, &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "ForceTo" "', argument " "2"" of type '" "OGRwkbGeometryType""'");
+  } 
+  arg2 = static_cast< OGRwkbGeometryType >(val2);
+  if (obj2) {
+    {
+      /* %typemap(in) char **options */
+      /* Check if is a list (and reject strings, that are seen as sequence of characters)  */
+      if ( ! PySequence_Check(obj2) || PyUnicode_Check(obj2)
+  #if PY_VERSION_HEX < 0x03000000
+        || PyString_Check(obj2)
+  #endif
+        ) {
+        PyErr_SetString(PyExc_TypeError,"not a sequence");
+        SWIG_fail;
+      }
+      
+      int size = PySequence_Size(obj2);
+      for (int i = 0; i < size; i++) {
+        PyObject* pyObj = PySequence_GetItem(obj2,i);
+        if (PyUnicode_Check(pyObj))
+        {
+          char *pszStr;
+          Py_ssize_t nLen;
+          PyObject* pyUTF8Str = PyUnicode_AsUTF8String(pyObj);
+#if PY_VERSION_HEX >= 0x03000000
+          PyBytes_AsStringAndSize(pyUTF8Str, &pszStr, &nLen);
+#else
+          PyString_AsStringAndSize(pyUTF8Str, &pszStr, &nLen);
+#endif
+          arg3 = CSLAddString( arg3, pszStr );
+          Py_XDECREF(pyUTF8Str);
+        }
+#if PY_VERSION_HEX >= 0x03000000
+        else if (PyBytes_Check(pyObj))
+        arg3 = CSLAddString( arg3, PyBytes_AsString(pyObj) );
+#else
+        else if (PyString_Check(pyObj))
+        arg3 = CSLAddString( arg3, PyString_AsString(pyObj) );
+#endif
+        else
+        {
+          Py_DECREF(pyObj);
+          PyErr_SetString(PyExc_TypeError,"sequence must contain strings");
+          SWIG_fail;
+        }
+        Py_DECREF(pyObj);
+      }
+    }
+  }
+  {
+    if ( bUseExceptions ) {
+      CPLErrorReset();
+    }
+    result = (OGRGeometryShadow *)ForceTo(arg1,arg2,arg3);
+    if ( bUseExceptions ) {
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        SWIG_exception( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+      }
+    }
+  }
+  resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_OGRGeometryShadow, SWIG_POINTER_OWN |  0 );
+  {
+    /* %typemap(freearg) char **options */
+    CSLDestroy( arg3 );
+  }
+  return resultobj;
+fail:
+  {
+    /* %typemap(freearg) char **options */
+    CSLDestroy( arg3 );
+  }
+  return NULL;
+}
+
+
 SWIGINTERN PyObject *_wrap_delete_Geometry(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   OGRGeometryShadow *arg1 = (OGRGeometryShadow *) 0 ;
@@ -16672,6 +18858,83 @@ fail:
 }
 
 
+SWIGINTERN PyObject *_wrap_Geometry_ExportToIsoWkt(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  OGRGeometryShadow *arg1 = (OGRGeometryShadow *) 0 ;
+  char **arg2 = (char **) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  char *argout2 = 0 ;
+  PyObject * obj0 = 0 ;
+  OGRErr result;
+  
+  {
+    /* %typemap(in,numinputs=0) (char **argout2) */
+    arg2 = &argout2;
+  }
+  if (!PyArg_ParseTuple(args,(char *)"O:Geometry_ExportToIsoWkt",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_OGRGeometryShadow, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Geometry_ExportToIsoWkt" "', argument " "1"" of type '" "OGRGeometryShadow *""'"); 
+  }
+  arg1 = reinterpret_cast< OGRGeometryShadow * >(argp1);
+  {
+    if ( bUseExceptions ) {
+      CPLErrorReset();
+    }
+    result = (OGRErr)OGRGeometryShadow_ExportToIsoWkt(arg1,arg2);
+    if ( bUseExceptions ) {
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        SWIG_exception( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+      }
+    }
+  }
+  {
+    /* %typemap(out) OGRErr */
+    if ( result != 0 && bUseExceptions) {
+      PyErr_SetString( PyExc_RuntimeError, OGRErrMessages(result) );
+      SWIG_fail;
+    }
+  }
+  {
+    /* %typemap(argout) (char **argout) */
+    PyObject *o;
+    if ( arg2 != NULL && *arg2 != NULL) {
+      o = GDALPythonObjectFromCStr( *arg2 );
+    }
+    else {
+      o = Py_None;
+      Py_INCREF( o );
+    }
+    resultobj = t_output_helper(resultobj, o);
+  }
+  {
+    /* %typemap(freearg) (char **argout) */
+    if ( *arg2 )
+    CPLFree( *arg2 );
+  }
+  {
+    /* %typemap(ret) OGRErr */
+    if (resultobj == Py_None ) {
+      Py_DECREF(resultobj);
+      resultobj = 0;
+    }
+    if (resultobj == 0) {
+      resultobj = PyInt_FromLong( result );
+    }
+  }
+  return resultobj;
+fail:
+  {
+    /* %typemap(freearg) (char **argout) */
+    if ( *arg2 )
+    CPLFree( *arg2 );
+  }
+  return NULL;
+}
+
+
 SWIGINTERN PyObject *_wrap_Geometry_ExportToWkb(PyObject *SWIGUNUSEDPARM(self), PyObject *args, PyObject *kwargs) {
   PyObject *resultobj = 0;
   OGRGeometryShadow *arg1 = (OGRGeometryShadow *) 0 ;
@@ -16714,6 +18977,99 @@ SWIGINTERN PyObject *_wrap_Geometry_ExportToWkb(PyObject *SWIGUNUSEDPARM(self), 
       CPLErrorReset();
     }
     result = (OGRErr)OGRGeometryShadow_ExportToWkb(arg1,arg2,arg3,arg4);
+    if ( bUseExceptions ) {
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        SWIG_exception( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+      }
+    }
+  }
+  {
+    /* %typemap(out) OGRErr */
+    if ( result != 0 && bUseExceptions) {
+      PyErr_SetString( PyExc_RuntimeError, OGRErrMessages(result) );
+      SWIG_fail;
+    }
+  }
+  {
+    /* %typemap(argout) (int *nLen, char **pBuf ) */
+    Py_XDECREF(resultobj);
+#if PY_VERSION_HEX >= 0x03000000
+    resultobj = PyBytes_FromStringAndSize( *arg3, *arg2 );
+#else
+    resultobj = PyString_FromStringAndSize( *arg3, *arg2 );
+#endif
+  }
+  {
+    /* %typemap(freearg) (int *nLen, char **pBuf ) */
+    if( *arg2 ) {
+      free( *arg3 );
+    }
+  }
+  {
+    /* %typemap(ret) OGRErr */
+    if (resultobj == Py_None ) {
+      Py_DECREF(resultobj);
+      resultobj = 0;
+    }
+    if (resultobj == 0) {
+      resultobj = PyInt_FromLong( result );
+    }
+  }
+  return resultobj;
+fail:
+  {
+    /* %typemap(freearg) (int *nLen, char **pBuf ) */
+    if( *arg2 ) {
+      free( *arg3 );
+    }
+  }
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_Geometry_ExportToIsoWkb(PyObject *SWIGUNUSEDPARM(self), PyObject *args, PyObject *kwargs) {
+  PyObject *resultobj = 0;
+  OGRGeometryShadow *arg1 = (OGRGeometryShadow *) 0 ;
+  int *arg2 = (int *) 0 ;
+  char **arg3 = (char **) 0 ;
+  OGRwkbByteOrder arg4 = (OGRwkbByteOrder) wkbXDR ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  int nLen2 = 0 ;
+  char *pBuf2 = 0 ;
+  int val4 ;
+  int ecode4 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  char *  kwnames[] = {
+    (char *) "self",(char *) "byte_order", NULL 
+  };
+  OGRErr result;
+  
+  {
+    /* %typemap(in,numinputs=0) (int *nLen2, char **pBuf2 ) */
+    arg2 = &nLen2;
+    arg3 = &pBuf2;
+  }
+  if (!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"O|O:Geometry_ExportToIsoWkb",kwnames,&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_OGRGeometryShadow, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Geometry_ExportToIsoWkb" "', argument " "1"" of type '" "OGRGeometryShadow *""'"); 
+  }
+  arg1 = reinterpret_cast< OGRGeometryShadow * >(argp1);
+  if (obj1) {
+    ecode4 = SWIG_AsVal_int(obj1, &val4);
+    if (!SWIG_IsOK(ecode4)) {
+      SWIG_exception_fail(SWIG_ArgError(ecode4), "in method '" "Geometry_ExportToIsoWkb" "', argument " "4"" of type '" "OGRwkbByteOrder""'");
+    } 
+    arg4 = static_cast< OGRwkbByteOrder >(val4);
+  }
+  {
+    if ( bUseExceptions ) {
+      CPLErrorReset();
+    }
+    result = (OGRErr)OGRGeometryShadow_ExportToIsoWkb(arg1,arg2,arg3,arg4);
     if ( bUseExceptions ) {
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
@@ -19821,6 +22177,287 @@ fail:
 }
 
 
+SWIGINTERN PyObject *_wrap_Geometry_HasCurveGeometry(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  OGRGeometryShadow *arg1 = (OGRGeometryShadow *) 0 ;
+  int arg2 = (int) FALSE ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  int val2 ;
+  int ecode2 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  int result;
+  
+  if (!PyArg_ParseTuple(args,(char *)"O|O:Geometry_HasCurveGeometry",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_OGRGeometryShadow, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Geometry_HasCurveGeometry" "', argument " "1"" of type '" "OGRGeometryShadow *""'"); 
+  }
+  arg1 = reinterpret_cast< OGRGeometryShadow * >(argp1);
+  if (obj1) {
+    ecode2 = SWIG_AsVal_int(obj1, &val2);
+    if (!SWIG_IsOK(ecode2)) {
+      SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "Geometry_HasCurveGeometry" "', argument " "2"" of type '" "int""'");
+    } 
+    arg2 = static_cast< int >(val2);
+  }
+  {
+    if ( bUseExceptions ) {
+      CPLErrorReset();
+    }
+    result = (int)OGRGeometryShadow_HasCurveGeometry(arg1,arg2);
+    if ( bUseExceptions ) {
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        SWIG_exception( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+      }
+    }
+  }
+  resultobj = SWIG_From_int(static_cast< int >(result));
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_Geometry_GetLinearGeometry(PyObject *SWIGUNUSEDPARM(self), PyObject *args, PyObject *kwargs) {
+  PyObject *resultobj = 0;
+  OGRGeometryShadow *arg1 = (OGRGeometryShadow *) 0 ;
+  double arg2 = (double) 0.0 ;
+  char **arg3 = (char **) NULL ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  double val2 ;
+  int ecode2 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  PyObject * obj2 = 0 ;
+  char *  kwnames[] = {
+    (char *) "self",(char *) "dfMaxAngleStepSizeDegrees",(char *) "options", NULL 
+  };
+  OGRGeometryShadow *result = 0 ;
+  
+  if (!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"O|OO:Geometry_GetLinearGeometry",kwnames,&obj0,&obj1,&obj2)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_OGRGeometryShadow, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Geometry_GetLinearGeometry" "', argument " "1"" of type '" "OGRGeometryShadow *""'"); 
+  }
+  arg1 = reinterpret_cast< OGRGeometryShadow * >(argp1);
+  if (obj1) {
+    ecode2 = SWIG_AsVal_double(obj1, &val2);
+    if (!SWIG_IsOK(ecode2)) {
+      SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "Geometry_GetLinearGeometry" "', argument " "2"" of type '" "double""'");
+    } 
+    arg2 = static_cast< double >(val2);
+  }
+  if (obj2) {
+    {
+      /* %typemap(in) char **options */
+      /* Check if is a list (and reject strings, that are seen as sequence of characters)  */
+      if ( ! PySequence_Check(obj2) || PyUnicode_Check(obj2)
+  #if PY_VERSION_HEX < 0x03000000
+        || PyString_Check(obj2)
+  #endif
+        ) {
+        PyErr_SetString(PyExc_TypeError,"not a sequence");
+        SWIG_fail;
+      }
+      
+      int size = PySequence_Size(obj2);
+      for (int i = 0; i < size; i++) {
+        PyObject* pyObj = PySequence_GetItem(obj2,i);
+        if (PyUnicode_Check(pyObj))
+        {
+          char *pszStr;
+          Py_ssize_t nLen;
+          PyObject* pyUTF8Str = PyUnicode_AsUTF8String(pyObj);
+#if PY_VERSION_HEX >= 0x03000000
+          PyBytes_AsStringAndSize(pyUTF8Str, &pszStr, &nLen);
+#else
+          PyString_AsStringAndSize(pyUTF8Str, &pszStr, &nLen);
+#endif
+          arg3 = CSLAddString( arg3, pszStr );
+          Py_XDECREF(pyUTF8Str);
+        }
+#if PY_VERSION_HEX >= 0x03000000
+        else if (PyBytes_Check(pyObj))
+        arg3 = CSLAddString( arg3, PyBytes_AsString(pyObj) );
+#else
+        else if (PyString_Check(pyObj))
+        arg3 = CSLAddString( arg3, PyString_AsString(pyObj) );
+#endif
+        else
+        {
+          Py_DECREF(pyObj);
+          PyErr_SetString(PyExc_TypeError,"sequence must contain strings");
+          SWIG_fail;
+        }
+        Py_DECREF(pyObj);
+      }
+    }
+  }
+  {
+    if ( bUseExceptions ) {
+      CPLErrorReset();
+    }
+    result = (OGRGeometryShadow *)OGRGeometryShadow_GetLinearGeometry(arg1,arg2,arg3);
+    if ( bUseExceptions ) {
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        SWIG_exception( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+      }
+    }
+  }
+  resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_OGRGeometryShadow, SWIG_POINTER_OWN |  0 );
+  {
+    /* %typemap(freearg) char **options */
+    CSLDestroy( arg3 );
+  }
+  return resultobj;
+fail:
+  {
+    /* %typemap(freearg) char **options */
+    CSLDestroy( arg3 );
+  }
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_Geometry_GetCurveGeometry(PyObject *SWIGUNUSEDPARM(self), PyObject *args, PyObject *kwargs) {
+  PyObject *resultobj = 0;
+  OGRGeometryShadow *arg1 = (OGRGeometryShadow *) 0 ;
+  char **arg2 = (char **) NULL ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  char *  kwnames[] = {
+    (char *) "self",(char *) "options", NULL 
+  };
+  OGRGeometryShadow *result = 0 ;
+  
+  if (!PyArg_ParseTupleAndKeywords(args,kwargs,(char *)"O|O:Geometry_GetCurveGeometry",kwnames,&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_OGRGeometryShadow, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Geometry_GetCurveGeometry" "', argument " "1"" of type '" "OGRGeometryShadow *""'"); 
+  }
+  arg1 = reinterpret_cast< OGRGeometryShadow * >(argp1);
+  if (obj1) {
+    {
+      /* %typemap(in) char **options */
+      /* Check if is a list (and reject strings, that are seen as sequence of characters)  */
+      if ( ! PySequence_Check(obj1) || PyUnicode_Check(obj1)
+  #if PY_VERSION_HEX < 0x03000000
+        || PyString_Check(obj1)
+  #endif
+        ) {
+        PyErr_SetString(PyExc_TypeError,"not a sequence");
+        SWIG_fail;
+      }
+      
+      int size = PySequence_Size(obj1);
+      for (int i = 0; i < size; i++) {
+        PyObject* pyObj = PySequence_GetItem(obj1,i);
+        if (PyUnicode_Check(pyObj))
+        {
+          char *pszStr;
+          Py_ssize_t nLen;
+          PyObject* pyUTF8Str = PyUnicode_AsUTF8String(pyObj);
+#if PY_VERSION_HEX >= 0x03000000
+          PyBytes_AsStringAndSize(pyUTF8Str, &pszStr, &nLen);
+#else
+          PyString_AsStringAndSize(pyUTF8Str, &pszStr, &nLen);
+#endif
+          arg2 = CSLAddString( arg2, pszStr );
+          Py_XDECREF(pyUTF8Str);
+        }
+#if PY_VERSION_HEX >= 0x03000000
+        else if (PyBytes_Check(pyObj))
+        arg2 = CSLAddString( arg2, PyBytes_AsString(pyObj) );
+#else
+        else if (PyString_Check(pyObj))
+        arg2 = CSLAddString( arg2, PyString_AsString(pyObj) );
+#endif
+        else
+        {
+          Py_DECREF(pyObj);
+          PyErr_SetString(PyExc_TypeError,"sequence must contain strings");
+          SWIG_fail;
+        }
+        Py_DECREF(pyObj);
+      }
+    }
+  }
+  {
+    if ( bUseExceptions ) {
+      CPLErrorReset();
+    }
+    result = (OGRGeometryShadow *)OGRGeometryShadow_GetCurveGeometry(arg1,arg2);
+    if ( bUseExceptions ) {
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        SWIG_exception( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+      }
+    }
+  }
+  resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_OGRGeometryShadow, SWIG_POINTER_OWN |  0 );
+  {
+    /* %typemap(freearg) char **options */
+    CSLDestroy( arg2 );
+  }
+  return resultobj;
+fail:
+  {
+    /* %typemap(freearg) char **options */
+    CSLDestroy( arg2 );
+  }
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_Geometry_Value(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  OGRGeometryShadow *arg1 = (OGRGeometryShadow *) 0 ;
+  double arg2 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  double val2 ;
+  int ecode2 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  OGRGeometryShadow *result = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OO:Geometry_Value",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_OGRGeometryShadow, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Geometry_Value" "', argument " "1"" of type '" "OGRGeometryShadow *""'"); 
+  }
+  arg1 = reinterpret_cast< OGRGeometryShadow * >(argp1);
+  ecode2 = SWIG_AsVal_double(obj1, &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "Geometry_Value" "', argument " "2"" of type '" "double""'");
+  } 
+  arg2 = static_cast< double >(val2);
+  {
+    if ( bUseExceptions ) {
+      CPLErrorReset();
+    }
+    result = (OGRGeometryShadow *)OGRGeometryShadow_Value(arg1,arg2);
+    if ( bUseExceptions ) {
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        SWIG_exception( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+      }
+    }
+  }
+  resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_OGRGeometryShadow, SWIG_POINTER_OWN |  0 );
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
 SWIGINTERN PyObject *Geometry_swigregister(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *obj;
   if (!PyArg_ParseTuple(args,(char*)"O:swigregister", &obj)) return NULL;
@@ -20008,6 +22645,487 @@ SWIGINTERN PyObject *_wrap_GetFieldTypeName(PyObject *SWIGUNUSEDPARM(self), PyOb
     }
   }
   resultobj = SWIG_FromCharPtr((const char *)result);
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_GetFieldSubTypeName(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  OGRFieldSubType arg1 ;
+  int val1 ;
+  int ecode1 = 0 ;
+  PyObject * obj0 = 0 ;
+  char *result = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"O:GetFieldSubTypeName",&obj0)) SWIG_fail;
+  ecode1 = SWIG_AsVal_int(obj0, &val1);
+  if (!SWIG_IsOK(ecode1)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode1), "in method '" "GetFieldSubTypeName" "', argument " "1"" of type '" "OGRFieldSubType""'");
+  } 
+  arg1 = static_cast< OGRFieldSubType >(val1);
+  {
+    if ( bUseExceptions ) {
+      CPLErrorReset();
+    }
+    result = (char *)OGR_GetFieldSubTypeName(arg1);
+    if ( bUseExceptions ) {
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        SWIG_exception( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+      }
+    }
+  }
+  resultobj = SWIG_FromCharPtr((const char *)result);
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_GT_Flatten(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  OGRwkbGeometryType arg1 ;
+  int val1 ;
+  int ecode1 = 0 ;
+  PyObject * obj0 = 0 ;
+  OGRwkbGeometryType result;
+  
+  if (!PyArg_ParseTuple(args,(char *)"O:GT_Flatten",&obj0)) SWIG_fail;
+  ecode1 = SWIG_AsVal_int(obj0, &val1);
+  if (!SWIG_IsOK(ecode1)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode1), "in method '" "GT_Flatten" "', argument " "1"" of type '" "OGRwkbGeometryType""'");
+  } 
+  arg1 = static_cast< OGRwkbGeometryType >(val1);
+  {
+    if ( bUseExceptions ) {
+      CPLErrorReset();
+    }
+    result = (OGRwkbGeometryType)OGR_GT_Flatten(arg1);
+    if ( bUseExceptions ) {
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        SWIG_exception( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+      }
+    }
+  }
+  resultobj = SWIG_From_int(static_cast< int >(result));
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_GT_SetZ(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  OGRwkbGeometryType arg1 ;
+  int val1 ;
+  int ecode1 = 0 ;
+  PyObject * obj0 = 0 ;
+  OGRwkbGeometryType result;
+  
+  if (!PyArg_ParseTuple(args,(char *)"O:GT_SetZ",&obj0)) SWIG_fail;
+  ecode1 = SWIG_AsVal_int(obj0, &val1);
+  if (!SWIG_IsOK(ecode1)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode1), "in method '" "GT_SetZ" "', argument " "1"" of type '" "OGRwkbGeometryType""'");
+  } 
+  arg1 = static_cast< OGRwkbGeometryType >(val1);
+  {
+    if ( bUseExceptions ) {
+      CPLErrorReset();
+    }
+    result = (OGRwkbGeometryType)OGR_GT_SetZ(arg1);
+    if ( bUseExceptions ) {
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        SWIG_exception( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+      }
+    }
+  }
+  resultobj = SWIG_From_int(static_cast< int >(result));
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_GT_SetModifier(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  OGRwkbGeometryType arg1 ;
+  int arg2 ;
+  int arg3 = (int) FALSE ;
+  int val1 ;
+  int ecode1 = 0 ;
+  int val2 ;
+  int ecode2 = 0 ;
+  int val3 ;
+  int ecode3 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  PyObject * obj2 = 0 ;
+  OGRwkbGeometryType result;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OO|O:GT_SetModifier",&obj0,&obj1,&obj2)) SWIG_fail;
+  ecode1 = SWIG_AsVal_int(obj0, &val1);
+  if (!SWIG_IsOK(ecode1)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode1), "in method '" "GT_SetModifier" "', argument " "1"" of type '" "OGRwkbGeometryType""'");
+  } 
+  arg1 = static_cast< OGRwkbGeometryType >(val1);
+  ecode2 = SWIG_AsVal_int(obj1, &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "GT_SetModifier" "', argument " "2"" of type '" "int""'");
+  } 
+  arg2 = static_cast< int >(val2);
+  if (obj2) {
+    ecode3 = SWIG_AsVal_int(obj2, &val3);
+    if (!SWIG_IsOK(ecode3)) {
+      SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "GT_SetModifier" "', argument " "3"" of type '" "int""'");
+    } 
+    arg3 = static_cast< int >(val3);
+  }
+  {
+    if ( bUseExceptions ) {
+      CPLErrorReset();
+    }
+    result = (OGRwkbGeometryType)GT_SetModifier(arg1,arg2,arg3);
+    if ( bUseExceptions ) {
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        SWIG_exception( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+      }
+    }
+  }
+  resultobj = SWIG_From_int(static_cast< int >(result));
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_GT_HasZ(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  OGRwkbGeometryType arg1 ;
+  int val1 ;
+  int ecode1 = 0 ;
+  PyObject * obj0 = 0 ;
+  int result;
+  
+  if (!PyArg_ParseTuple(args,(char *)"O:GT_HasZ",&obj0)) SWIG_fail;
+  ecode1 = SWIG_AsVal_int(obj0, &val1);
+  if (!SWIG_IsOK(ecode1)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode1), "in method '" "GT_HasZ" "', argument " "1"" of type '" "OGRwkbGeometryType""'");
+  } 
+  arg1 = static_cast< OGRwkbGeometryType >(val1);
+  {
+    if ( bUseExceptions ) {
+      CPLErrorReset();
+    }
+    result = (int)OGR_GT_HasZ(arg1);
+    if ( bUseExceptions ) {
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        SWIG_exception( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+      }
+    }
+  }
+  resultobj = SWIG_From_int(static_cast< int >(result));
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_GT_IsSubClassOf(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  OGRwkbGeometryType arg1 ;
+  OGRwkbGeometryType arg2 ;
+  int val1 ;
+  int ecode1 = 0 ;
+  int val2 ;
+  int ecode2 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  int result;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OO:GT_IsSubClassOf",&obj0,&obj1)) SWIG_fail;
+  ecode1 = SWIG_AsVal_int(obj0, &val1);
+  if (!SWIG_IsOK(ecode1)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode1), "in method '" "GT_IsSubClassOf" "', argument " "1"" of type '" "OGRwkbGeometryType""'");
+  } 
+  arg1 = static_cast< OGRwkbGeometryType >(val1);
+  ecode2 = SWIG_AsVal_int(obj1, &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "GT_IsSubClassOf" "', argument " "2"" of type '" "OGRwkbGeometryType""'");
+  } 
+  arg2 = static_cast< OGRwkbGeometryType >(val2);
+  {
+    if ( bUseExceptions ) {
+      CPLErrorReset();
+    }
+    result = (int)OGR_GT_IsSubClassOf(arg1,arg2);
+    if ( bUseExceptions ) {
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        SWIG_exception( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+      }
+    }
+  }
+  resultobj = SWIG_From_int(static_cast< int >(result));
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_GT_IsCurve(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  OGRwkbGeometryType arg1 ;
+  int val1 ;
+  int ecode1 = 0 ;
+  PyObject * obj0 = 0 ;
+  int result;
+  
+  if (!PyArg_ParseTuple(args,(char *)"O:GT_IsCurve",&obj0)) SWIG_fail;
+  ecode1 = SWIG_AsVal_int(obj0, &val1);
+  if (!SWIG_IsOK(ecode1)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode1), "in method '" "GT_IsCurve" "', argument " "1"" of type '" "OGRwkbGeometryType""'");
+  } 
+  arg1 = static_cast< OGRwkbGeometryType >(val1);
+  {
+    if ( bUseExceptions ) {
+      CPLErrorReset();
+    }
+    result = (int)OGR_GT_IsCurve(arg1);
+    if ( bUseExceptions ) {
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        SWIG_exception( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+      }
+    }
+  }
+  resultobj = SWIG_From_int(static_cast< int >(result));
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_GT_IsSurface(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  OGRwkbGeometryType arg1 ;
+  int val1 ;
+  int ecode1 = 0 ;
+  PyObject * obj0 = 0 ;
+  int result;
+  
+  if (!PyArg_ParseTuple(args,(char *)"O:GT_IsSurface",&obj0)) SWIG_fail;
+  ecode1 = SWIG_AsVal_int(obj0, &val1);
+  if (!SWIG_IsOK(ecode1)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode1), "in method '" "GT_IsSurface" "', argument " "1"" of type '" "OGRwkbGeometryType""'");
+  } 
+  arg1 = static_cast< OGRwkbGeometryType >(val1);
+  {
+    if ( bUseExceptions ) {
+      CPLErrorReset();
+    }
+    result = (int)OGR_GT_IsSurface(arg1);
+    if ( bUseExceptions ) {
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        SWIG_exception( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+      }
+    }
+  }
+  resultobj = SWIG_From_int(static_cast< int >(result));
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_GT_IsNonLinear(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  OGRwkbGeometryType arg1 ;
+  int val1 ;
+  int ecode1 = 0 ;
+  PyObject * obj0 = 0 ;
+  int result;
+  
+  if (!PyArg_ParseTuple(args,(char *)"O:GT_IsNonLinear",&obj0)) SWIG_fail;
+  ecode1 = SWIG_AsVal_int(obj0, &val1);
+  if (!SWIG_IsOK(ecode1)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode1), "in method '" "GT_IsNonLinear" "', argument " "1"" of type '" "OGRwkbGeometryType""'");
+  } 
+  arg1 = static_cast< OGRwkbGeometryType >(val1);
+  {
+    if ( bUseExceptions ) {
+      CPLErrorReset();
+    }
+    result = (int)OGR_GT_IsNonLinear(arg1);
+    if ( bUseExceptions ) {
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        SWIG_exception( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+      }
+    }
+  }
+  resultobj = SWIG_From_int(static_cast< int >(result));
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_GT_GetCollection(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  OGRwkbGeometryType arg1 ;
+  int val1 ;
+  int ecode1 = 0 ;
+  PyObject * obj0 = 0 ;
+  OGRwkbGeometryType result;
+  
+  if (!PyArg_ParseTuple(args,(char *)"O:GT_GetCollection",&obj0)) SWIG_fail;
+  ecode1 = SWIG_AsVal_int(obj0, &val1);
+  if (!SWIG_IsOK(ecode1)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode1), "in method '" "GT_GetCollection" "', argument " "1"" of type '" "OGRwkbGeometryType""'");
+  } 
+  arg1 = static_cast< OGRwkbGeometryType >(val1);
+  {
+    if ( bUseExceptions ) {
+      CPLErrorReset();
+    }
+    result = (OGRwkbGeometryType)OGR_GT_GetCollection(arg1);
+    if ( bUseExceptions ) {
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        SWIG_exception( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+      }
+    }
+  }
+  resultobj = SWIG_From_int(static_cast< int >(result));
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_GT_GetCurve(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  OGRwkbGeometryType arg1 ;
+  int val1 ;
+  int ecode1 = 0 ;
+  PyObject * obj0 = 0 ;
+  OGRwkbGeometryType result;
+  
+  if (!PyArg_ParseTuple(args,(char *)"O:GT_GetCurve",&obj0)) SWIG_fail;
+  ecode1 = SWIG_AsVal_int(obj0, &val1);
+  if (!SWIG_IsOK(ecode1)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode1), "in method '" "GT_GetCurve" "', argument " "1"" of type '" "OGRwkbGeometryType""'");
+  } 
+  arg1 = static_cast< OGRwkbGeometryType >(val1);
+  {
+    if ( bUseExceptions ) {
+      CPLErrorReset();
+    }
+    result = (OGRwkbGeometryType)OGR_GT_GetCurve(arg1);
+    if ( bUseExceptions ) {
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        SWIG_exception( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+      }
+    }
+  }
+  resultobj = SWIG_From_int(static_cast< int >(result));
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_GT_GetLinear(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  OGRwkbGeometryType arg1 ;
+  int val1 ;
+  int ecode1 = 0 ;
+  PyObject * obj0 = 0 ;
+  OGRwkbGeometryType result;
+  
+  if (!PyArg_ParseTuple(args,(char *)"O:GT_GetLinear",&obj0)) SWIG_fail;
+  ecode1 = SWIG_AsVal_int(obj0, &val1);
+  if (!SWIG_IsOK(ecode1)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode1), "in method '" "GT_GetLinear" "', argument " "1"" of type '" "OGRwkbGeometryType""'");
+  } 
+  arg1 = static_cast< OGRwkbGeometryType >(val1);
+  {
+    if ( bUseExceptions ) {
+      CPLErrorReset();
+    }
+    result = (OGRwkbGeometryType)OGR_GT_GetLinear(arg1);
+    if ( bUseExceptions ) {
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        SWIG_exception( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+      }
+    }
+  }
+  resultobj = SWIG_From_int(static_cast< int >(result));
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_SetNonLinearGeometriesEnabledFlag(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  int arg1 ;
+  int val1 ;
+  int ecode1 = 0 ;
+  PyObject * obj0 = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"O:SetNonLinearGeometriesEnabledFlag",&obj0)) SWIG_fail;
+  ecode1 = SWIG_AsVal_int(obj0, &val1);
+  if (!SWIG_IsOK(ecode1)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode1), "in method '" "SetNonLinearGeometriesEnabledFlag" "', argument " "1"" of type '" "int""'");
+  } 
+  arg1 = static_cast< int >(val1);
+  {
+    if ( bUseExceptions ) {
+      CPLErrorReset();
+    }
+    OGRSetNonLinearGeometriesEnabledFlag(arg1);
+    if ( bUseExceptions ) {
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        SWIG_exception( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+      }
+    }
+  }
+  resultobj = SWIG_Py_Void();
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_GetNonLinearGeometriesEnabledFlag(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  int result;
+  
+  if (!PyArg_ParseTuple(args,(char *)":GetNonLinearGeometriesEnabledFlag")) SWIG_fail;
+  {
+    if ( bUseExceptions ) {
+      CPLErrorReset();
+    }
+    result = (int)OGRGetNonLinearGeometriesEnabledFlag();
+    if ( bUseExceptions ) {
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        SWIG_exception( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+      }
+    }
+  }
+  resultobj = SWIG_From_int(static_cast< int >(result));
   return resultobj;
 fail:
   return NULL;
@@ -20406,6 +23524,18 @@ static PyMethodDef SwigMethods[] = {
 	 { (char *)"GetUseExceptions", _wrap_GetUseExceptions, METH_VARARGS, (char *)"GetUseExceptions() -> int"},
 	 { (char *)"UseExceptions", _wrap_UseExceptions, METH_VARARGS, (char *)"UseExceptions()"},
 	 { (char *)"DontUseExceptions", _wrap_DontUseExceptions, METH_VARARGS, (char *)"DontUseExceptions()"},
+	 { (char *)"MajorObject_GetDescription", _wrap_MajorObject_GetDescription, METH_VARARGS, (char *)"MajorObject_GetDescription(MajorObject self) -> char"},
+	 { (char *)"MajorObject_SetDescription", _wrap_MajorObject_SetDescription, METH_VARARGS, (char *)"MajorObject_SetDescription(MajorObject self, char pszNewDesc)"},
+	 { (char *)"MajorObject_GetMetadataDomainList", _wrap_MajorObject_GetMetadataDomainList, METH_VARARGS, (char *)"MajorObject_GetMetadataDomainList(MajorObject self) -> char"},
+	 { (char *)"MajorObject_GetMetadata_Dict", _wrap_MajorObject_GetMetadata_Dict, METH_VARARGS, (char *)"MajorObject_GetMetadata_Dict(MajorObject self, char pszDomain = \"\") -> char"},
+	 { (char *)"MajorObject_GetMetadata_List", _wrap_MajorObject_GetMetadata_List, METH_VARARGS, (char *)"MajorObject_GetMetadata_List(MajorObject self, char pszDomain = \"\") -> char"},
+	 { (char *)"MajorObject_SetMetadata", _wrap_MajorObject_SetMetadata, METH_VARARGS, (char *)"\n"
+		"SetMetadata(char papszMetadata, char pszDomain = \"\") -> CPLErr\n"
+		"MajorObject_SetMetadata(MajorObject self, char pszMetadataString, char pszDomain = \"\") -> CPLErr\n"
+		""},
+	 { (char *)"MajorObject_GetMetadataItem", _wrap_MajorObject_GetMetadataItem, METH_VARARGS, (char *)"MajorObject_GetMetadataItem(MajorObject self, char pszName, char pszDomain = \"\") -> char"},
+	 { (char *)"MajorObject_SetMetadataItem", _wrap_MajorObject_SetMetadataItem, METH_VARARGS, (char *)"MajorObject_SetMetadataItem(MajorObject self, char pszName, char pszValue, char pszDomain = \"\") -> CPLErr"},
+	 { (char *)"MajorObject_swigregister", MajorObject_swigregister, METH_VARARGS, NULL},
 	 { (char *)"new_StyleTable", _wrap_new_StyleTable, METH_VARARGS, (char *)"new_StyleTable() -> StyleTable"},
 	 { (char *)"delete_StyleTable", _wrap_delete_StyleTable, METH_VARARGS, (char *)"delete_StyleTable(StyleTable self)"},
 	 { (char *)"StyleTable_AddStyle", _wrap_StyleTable_AddStyle, METH_VARARGS, (char *)"StyleTable_AddStyle(StyleTable self, char pszName, char pszStyleString) -> int"},
@@ -20724,6 +23854,7 @@ static PyMethodDef SwigMethods[] = {
 		"OGRERR_NONE if no error occurs (even if nothing is done) or an error\n"
 		"code. \n"
 		""},
+	 { (char *)"DataSource_FlushCache", _wrap_DataSource_FlushCache, METH_VARARGS, (char *)"DataSource_FlushCache(DataSource self)"},
 	 { (char *)"DataSource_CreateLayer", (PyCFunction) _wrap_DataSource_CreateLayer, METH_VARARGS | METH_KEYWORDS, (char *)"\n"
 		"DataSource_CreateLayer(DataSource self, char name, SpatialReference srs = None, \n"
 		"    OGRwkbGeometryType geom_type = wkbUnknown, \n"
@@ -20887,7 +24018,7 @@ static PyMethodDef SwigMethods[] = {
 		"\n"
 		"pszDialect:  allows control of the statement dialect. If set to NULL,\n"
 		"the OGR SQL engine will be used, except for RDBMS drivers that will\n"
-		"use their dedicated SQL engine, unless OGRSQL is explicitely passed as\n"
+		"use their dedicated SQL engine, unless OGRSQL is explicitly passed as\n"
 		"the dialect.\n"
 		"\n"
 		"an handle to a OGRLayer containing the results of the query.\n"
@@ -20930,6 +24061,9 @@ static PyMethodDef SwigMethods[] = {
 		"OGR_DS_SetStyleTable(OGRDataSourceH hDS, OGRStyleTableH hStyleTable)\n"
 		"\n"
 		""},
+	 { (char *)"DataSource_StartTransaction", (PyCFunction) _wrap_DataSource_StartTransaction, METH_VARARGS | METH_KEYWORDS, (char *)"DataSource_StartTransaction(DataSource self, int force = True) -> OGRErr"},
+	 { (char *)"DataSource_CommitTransaction", _wrap_DataSource_CommitTransaction, METH_VARARGS, (char *)"DataSource_CommitTransaction(DataSource self) -> OGRErr"},
+	 { (char *)"DataSource_RollbackTransaction", _wrap_DataSource_RollbackTransaction, METH_VARARGS, (char *)"DataSource_RollbackTransaction(DataSource self) -> OGRErr"},
 	 { (char *)"DataSource_swigregister", DataSource_swigregister, METH_VARARGS, NULL},
 	 { (char *)"Layer_GetRefCount", _wrap_Layer_GetRefCount, METH_VARARGS, (char *)"\n"
 		"Layer_GetRefCount(Layer self) -> int\n"
@@ -21179,7 +24313,7 @@ static PyMethodDef SwigMethods[] = {
 		"fid column name. \n"
 		""},
 	 { (char *)"Layer_GetFeature", _wrap_Layer_GetFeature, METH_VARARGS, (char *)"\n"
-		"Layer_GetFeature(Layer self, long fid) -> Feature\n"
+		"Layer_GetFeature(Layer self, GIntBig fid) -> Feature\n"
 		"\n"
 		"OGRFeatureH\n"
 		"OGR_L_GetFeature(OGRLayerH hLayer, long nFeatureId)\n"
@@ -21246,7 +24380,7 @@ static PyMethodDef SwigMethods[] = {
 		"an handle to a feature, or NULL if no more features are available. \n"
 		""},
 	 { (char *)"Layer_SetNextByIndex", _wrap_Layer_SetNextByIndex, METH_VARARGS, (char *)"\n"
-		"Layer_SetNextByIndex(Layer self, long new_index) -> OGRErr\n"
+		"Layer_SetNextByIndex(Layer self, GIntBig new_index) -> OGRErr\n"
 		"\n"
 		"OGRErr\n"
 		"OGR_L_SetNextByIndex(OGRLayerH hLayer, long nIndex)\n"
@@ -21332,7 +24466,7 @@ static PyMethodDef SwigMethods[] = {
 		"OGRERR_NONE on success. \n"
 		""},
 	 { (char *)"Layer_DeleteFeature", _wrap_Layer_DeleteFeature, METH_VARARGS, (char *)"\n"
-		"Layer_DeleteFeature(Layer self, long fid) -> OGRErr\n"
+		"Layer_DeleteFeature(Layer self, GIntBig fid) -> OGRErr\n"
 		"\n"
 		"OGRErr\n"
 		"OGR_L_DeleteFeature(OGRLayerH hDS, long nFID)\n"
@@ -21408,7 +24542,7 @@ static PyMethodDef SwigMethods[] = {
 		"an handle to the feature definition. \n"
 		""},
 	 { (char *)"Layer_GetFeatureCount", (PyCFunction) _wrap_Layer_GetFeatureCount, METH_VARARGS | METH_KEYWORDS, (char *)"\n"
-		"Layer_GetFeatureCount(Layer self, int force = 1) -> int\n"
+		"Layer_GetFeatureCount(Layer self, int force = 1) -> GIntBig\n"
 		"\n"
 		"int\n"
 		"OGR_L_GetFeatureCount(OGRLayerH hLayer, int bForce)\n"
@@ -22198,6 +25332,10 @@ static PyMethodDef SwigMethods[] = {
 		"\n"
 		"the field value. \n"
 		""},
+	 { (char *)"Feature_GetFieldAsInteger64", _wrap_Feature_GetFieldAsInteger64, METH_VARARGS, (char *)"\n"
+		"GetFieldAsInteger64(int id) -> GIntBig\n"
+		"Feature_GetFieldAsInteger64(Feature self, char name) -> GIntBig\n"
+		""},
 	 { (char *)"Feature_GetFieldAsDouble", _wrap_Feature_GetFieldAsDouble, METH_VARARGS, (char *)"\n"
 		"GetFieldAsDouble(int id) -> double\n"
 		"Feature_GetFieldAsDouble(Feature self, char name) -> double\n"
@@ -22290,6 +25428,7 @@ static PyMethodDef SwigMethods[] = {
 		"freed. Its lifetime may be very brief. If *pnCount is zero on return\n"
 		"the returned pointer may be NULL or non-NULL. \n"
 		""},
+	 { (char *)"Feature_GetFieldAsInteger64List", _wrap_Feature_GetFieldAsInteger64List, METH_VARARGS, (char *)"Feature_GetFieldAsInteger64List(Feature self, int id)"},
 	 { (char *)"Feature_GetFieldAsDoubleList", _wrap_Feature_GetFieldAsDoubleList, METH_VARARGS, (char *)"\n"
 		"Feature_GetFieldAsDoubleList(Feature self, int id)\n"
 		"\n"
@@ -22343,6 +25482,32 @@ static PyMethodDef SwigMethods[] = {
 		"the field value. This list is internal, and should not be modified, or\n"
 		"freed. Its lifetime may be very brief. \n"
 		""},
+	 { (char *)"Feature_GetFieldAsBinary", _wrap_Feature_GetFieldAsBinary, METH_VARARGS, (char *)"\n"
+		"GetFieldAsBinary(int id) -> OGRErr\n"
+		"Feature_GetFieldAsBinary(Feature self, char name) -> OGRErr\n"
+		"\n"
+		"GByte*\n"
+		"OGR_F_GetFieldAsBinary(OGRFeatureH hFeat, int iField, int *pnBytes)\n"
+		"\n"
+		"Fetch field value as binary.\n"
+		"\n"
+		"Currently this method only works for OFTBinary fields.\n"
+		"\n"
+		"This function is the same as the C++ method\n"
+		"OGRFeature::GetFieldAsBinary().\n"
+		"\n"
+		"Parameters:\n"
+		"-----------\n"
+		"\n"
+		"hFeat:  handle to the feature that owned the field.\n"
+		"\n"
+		"iField:  the field to fetch, from 0 to GetFieldCount()-1.\n"
+		"\n"
+		"pnBytes:  location to place count of bytes returned.\n"
+		"\n"
+		"the field value. This list is internal, and should not be modified, or\n"
+		"freed. Its lifetime may be very brief. \n"
+		""},
 	 { (char *)"Feature_IsFieldSet", _wrap_Feature_IsFieldSet, METH_VARARGS, (char *)"\n"
 		"IsFieldSet(int id) -> bool\n"
 		"Feature_IsFieldSet(Feature self, char name) -> bool\n"
@@ -22387,7 +25552,7 @@ static PyMethodDef SwigMethods[] = {
 		""},
 	 { (char *)"Feature_GetGeomFieldIndex", _wrap_Feature_GetGeomFieldIndex, METH_VARARGS, (char *)"Feature_GetGeomFieldIndex(Feature self, char name) -> int"},
 	 { (char *)"Feature_GetFID", _wrap_Feature_GetFID, METH_VARARGS, (char *)"\n"
-		"Feature_GetFID(Feature self) -> int\n"
+		"Feature_GetFID(Feature self) -> GIntBig\n"
 		"\n"
 		"long OGR_F_GetFID(OGRFeatureH hFeat)\n"
 		"\n"
@@ -22404,7 +25569,7 @@ static PyMethodDef SwigMethods[] = {
 		"feature id or OGRNullFID if none has been assigned. \n"
 		""},
 	 { (char *)"Feature_SetFID", _wrap_Feature_SetFID, METH_VARARGS, (char *)"\n"
-		"Feature_SetFID(Feature self, int fid) -> OGRErr\n"
+		"Feature_SetFID(Feature self, GIntBig fid) -> OGRErr\n"
 		"\n"
 		"OGRErr OGR_F_SetFID(OGRFeatureH hFeat,\n"
 		"long nFID)\n"
@@ -22467,17 +25632,16 @@ static PyMethodDef SwigMethods[] = {
 		"\n"
 		"iField:  the field to unset. \n"
 		""},
+	 { (char *)"Feature_SetFieldInteger64", _wrap_Feature_SetFieldInteger64, METH_VARARGS, (char *)"Feature_SetFieldInteger64(Feature self, int id, GIntBig value)"},
 	 { (char *)"Feature_SetField", _wrap_Feature_SetField, METH_VARARGS, (char *)"\n"
 		"SetField(int id, char value)\n"
 		"SetField(char name, char value)\n"
-		"SetField(int id, int value)\n"
-		"SetField(char name, int value)\n"
 		"SetField(int id, double value)\n"
 		"SetField(char name, double value)\n"
 		"SetField(int id, int year, int month, int day, int hour, int minute, \n"
-		"    int second, int tzflag)\n"
+		"    float second, int tzflag)\n"
 		"Feature_SetField(Feature self, char name, int year, int month, int day, \n"
-		"    int hour, int minute, int second, int tzflag)\n"
+		"    int hour, int minute, float second, int tzflag)\n"
 		""},
 	 { (char *)"Feature_SetFieldIntegerList", _wrap_Feature_SetFieldIntegerList, METH_VARARGS, (char *)"\n"
 		"Feature_SetFieldIntegerList(Feature self, int id, int nList)\n"
@@ -22503,6 +25667,7 @@ static PyMethodDef SwigMethods[] = {
 		"\n"
 		"panValues:  the values to assign. \n"
 		""},
+	 { (char *)"Feature_SetFieldInteger64List", _wrap_Feature_SetFieldInteger64List, METH_VARARGS, (char *)"Feature_SetFieldInteger64List(Feature self, int id, int nList)"},
 	 { (char *)"Feature_SetFieldDoubleList", _wrap_Feature_SetFieldDoubleList, METH_VARARGS, (char *)"\n"
 		"Feature_SetFieldDoubleList(Feature self, int id, int nList)\n"
 		"\n"
@@ -22670,6 +25835,32 @@ static PyMethodDef SwigMethods[] = {
 	 { (char *)"Feature_GetFieldType", _wrap_Feature_GetFieldType, METH_VARARGS, (char *)"\n"
 		"GetFieldType(int id) -> OGRFieldType\n"
 		"Feature_GetFieldType(Feature self, char name) -> OGRFieldType\n"
+		""},
+	 { (char *)"Feature_Validate", _wrap_Feature_Validate, METH_VARARGS, (char *)"Feature_Validate(Feature self, int flags = OGR_F_VAL_ALL, int bEmitError = TRUE) -> int"},
+	 { (char *)"Feature_FillUnsetWithDefault", _wrap_Feature_FillUnsetWithDefault, METH_VARARGS, (char *)"Feature_FillUnsetWithDefault(Feature self, int bNotNullableOnly = True, char options = None)"},
+	 { (char *)"Feature_SetFieldString", _wrap_Feature_SetFieldString, METH_VARARGS, (char *)"\n"
+		"Feature_SetFieldString(Feature self, int id, char value)\n"
+		"\n"
+		"void\n"
+		"OGR_F_SetFieldString(OGRFeatureH hFeat, int iField, const char\n"
+		"*pszValue)\n"
+		"\n"
+		"Set field to string value.\n"
+		"\n"
+		"OFTInteger fields will be set based on an atoi() conversion of the\n"
+		"string. OFTReal fields will be set based on an atof() conversion of\n"
+		"the string. Other field types may be unaffected.\n"
+		"\n"
+		"This function is the same as the C++ method OGRFeature::SetField().\n"
+		"\n"
+		"Parameters:\n"
+		"-----------\n"
+		"\n"
+		"hFeat:  handle to the feature that owned the field.\n"
+		"\n"
+		"iField:  the field to fetch, from 0 to GetFieldCount()-1.\n"
+		"\n"
+		"pszValue:  the value to assign. \n"
 		""},
 	 { (char *)"Feature_swigregister", Feature_swigregister, METH_VARARGS, NULL},
 	 { (char *)"delete_FeatureDefn", _wrap_delete_FeatureDefn, METH_VARARGS, (char *)"delete_FeatureDefn(FeatureDefn self)"},
@@ -23003,6 +26194,8 @@ static PyMethodDef SwigMethods[] = {
 		"\n"
 		"eType:  the new field type. \n"
 		""},
+	 { (char *)"FieldDefn_GetSubType", _wrap_FieldDefn_GetSubType, METH_VARARGS, (char *)"FieldDefn_GetSubType(FieldDefn self) -> OGRFieldSubType"},
+	 { (char *)"FieldDefn_SetSubType", _wrap_FieldDefn_SetSubType, METH_VARARGS, (char *)"FieldDefn_SetSubType(FieldDefn self, OGRFieldSubType type)"},
 	 { (char *)"FieldDefn_GetJustify", _wrap_FieldDefn_GetJustify, METH_VARARGS, (char *)"\n"
 		"FieldDefn_GetJustify(FieldDefn self) -> OGRJustification\n"
 		"\n"
@@ -23148,6 +26341,11 @@ static PyMethodDef SwigMethods[] = {
 		"\n"
 		"ignore:  ignore state \n"
 		""},
+	 { (char *)"FieldDefn_IsNullable", _wrap_FieldDefn_IsNullable, METH_VARARGS, (char *)"FieldDefn_IsNullable(FieldDefn self) -> int"},
+	 { (char *)"FieldDefn_SetNullable", _wrap_FieldDefn_SetNullable, METH_VARARGS, (char *)"FieldDefn_SetNullable(FieldDefn self, int bNullable)"},
+	 { (char *)"FieldDefn_GetDefault", _wrap_FieldDefn_GetDefault, METH_VARARGS, (char *)"FieldDefn_GetDefault(FieldDefn self) -> char"},
+	 { (char *)"FieldDefn_SetDefault", _wrap_FieldDefn_SetDefault, METH_VARARGS, (char *)"FieldDefn_SetDefault(FieldDefn self, char pszValue)"},
+	 { (char *)"FieldDefn_IsDefaultDriverSpecific", _wrap_FieldDefn_IsDefaultDriverSpecific, METH_VARARGS, (char *)"FieldDefn_IsDefaultDriverSpecific(FieldDefn self) -> int"},
 	 { (char *)"FieldDefn_swigregister", FieldDefn_swigregister, METH_VARARGS, NULL},
 	 { (char *)"delete_GeomFieldDefn", _wrap_delete_GeomFieldDefn, METH_VARARGS, (char *)"delete_GeomFieldDefn(GeomFieldDefn self)"},
 	 { (char *)"new_GeomFieldDefn", (PyCFunction) _wrap_new_GeomFieldDefn, METH_VARARGS | METH_KEYWORDS, (char *)"new_GeomFieldDefn(char name_null_ok = \"\", OGRwkbGeometryType field_type = wkbUnknown) -> GeomFieldDefn"},
@@ -23160,6 +26358,8 @@ static PyMethodDef SwigMethods[] = {
 	 { (char *)"GeomFieldDefn_SetSpatialRef", _wrap_GeomFieldDefn_SetSpatialRef, METH_VARARGS, (char *)"GeomFieldDefn_SetSpatialRef(GeomFieldDefn self, SpatialReference srs)"},
 	 { (char *)"GeomFieldDefn_IsIgnored", _wrap_GeomFieldDefn_IsIgnored, METH_VARARGS, (char *)"GeomFieldDefn_IsIgnored(GeomFieldDefn self) -> int"},
 	 { (char *)"GeomFieldDefn_SetIgnored", _wrap_GeomFieldDefn_SetIgnored, METH_VARARGS, (char *)"GeomFieldDefn_SetIgnored(GeomFieldDefn self, int bIgnored)"},
+	 { (char *)"GeomFieldDefn_IsNullable", _wrap_GeomFieldDefn_IsNullable, METH_VARARGS, (char *)"GeomFieldDefn_IsNullable(GeomFieldDefn self) -> int"},
+	 { (char *)"GeomFieldDefn_SetNullable", _wrap_GeomFieldDefn_SetNullable, METH_VARARGS, (char *)"GeomFieldDefn_SetNullable(GeomFieldDefn self, int bNullable)"},
 	 { (char *)"GeomFieldDefn_swigregister", GeomFieldDefn_swigregister, METH_VARARGS, NULL},
 	 { (char *)"CreateGeometryFromWkb", (PyCFunction) _wrap_CreateGeometryFromWkb, METH_VARARGS | METH_KEYWORDS, (char *)"CreateGeometryFromWkb(int len, SpatialReference reference = None) -> Geometry"},
 	 { (char *)"CreateGeometryFromWkt", (PyCFunction) _wrap_CreateGeometryFromWkt, METH_VARARGS | METH_KEYWORDS, (char *)"CreateGeometryFromWkt(char val, SpatialReference reference = None) -> Geometry"},
@@ -23180,6 +26380,7 @@ static PyMethodDef SwigMethods[] = {
 	 { (char *)"ForceToMultiPolygon", _wrap_ForceToMultiPolygon, METH_VARARGS, (char *)"ForceToMultiPolygon(Geometry geom_in) -> Geometry"},
 	 { (char *)"ForceToMultiPoint", _wrap_ForceToMultiPoint, METH_VARARGS, (char *)"ForceToMultiPoint(Geometry geom_in) -> Geometry"},
 	 { (char *)"ForceToMultiLineString", _wrap_ForceToMultiLineString, METH_VARARGS, (char *)"ForceToMultiLineString(Geometry geom_in) -> Geometry"},
+	 { (char *)"ForceTo", _wrap_ForceTo, METH_VARARGS, (char *)"ForceTo(Geometry geom_in, OGRwkbGeometryType eTargetType, char options = None) -> Geometry"},
 	 { (char *)"delete_Geometry", _wrap_delete_Geometry, METH_VARARGS, (char *)"delete_Geometry(Geometry self)"},
 	 { (char *)"new_Geometry", (PyCFunction) _wrap_new_Geometry, METH_VARARGS | METH_KEYWORDS, (char *)"\n"
 		"new_Geometry(OGRwkbGeometryType type = wkbUnknown, char wkt = None, \n"
@@ -23208,6 +26409,7 @@ static PyMethodDef SwigMethods[] = {
 		"\n"
 		"Currently OGRERR_NONE is always returned. \n"
 		""},
+	 { (char *)"Geometry_ExportToIsoWkt", _wrap_Geometry_ExportToIsoWkt, METH_VARARGS, (char *)"Geometry_ExportToIsoWkt(Geometry self) -> OGRErr"},
 	 { (char *)"Geometry_ExportToWkb", (PyCFunction) _wrap_Geometry_ExportToWkb, METH_VARARGS | METH_KEYWORDS, (char *)"\n"
 		"Geometry_ExportToWkb(Geometry self, OGRwkbByteOrder byte_order = wkbXDR) -> OGRErr\n"
 		"\n"
@@ -23236,6 +26438,7 @@ static PyMethodDef SwigMethods[] = {
 		"\n"
 		"Currently OGRERR_NONE is always returned. \n"
 		""},
+	 { (char *)"Geometry_ExportToIsoWkb", (PyCFunction) _wrap_Geometry_ExportToIsoWkb, METH_VARARGS | METH_KEYWORDS, (char *)"Geometry_ExportToIsoWkb(Geometry self, OGRwkbByteOrder byte_order = wkbXDR) -> OGRErr"},
 	 { (char *)"Geometry_ExportToGML", (PyCFunction) _wrap_Geometry_ExportToGML, METH_VARARGS | METH_KEYWORDS, (char *)"Geometry_ExportToGML(Geometry self, char options = None) -> retStringAndCPLFree"},
 	 { (char *)"Geometry_ExportToKML", _wrap_Geometry_ExportToKML, METH_VARARGS, (char *)"Geometry_ExportToKML(Geometry self, char altitude_mode = None) -> retStringAndCPLFree"},
 	 { (char *)"Geometry_ExportToJson", (PyCFunction) _wrap_Geometry_ExportToJson, METH_VARARGS | METH_KEYWORDS, (char *)"Geometry_ExportToJson(Geometry self, char options = None) -> retStringAndCPLFree"},
@@ -24289,6 +27492,13 @@ static PyMethodDef SwigMethods[] = {
 		"\n"
 		"0 for points, 1 for lines and 2 for surfaces. \n"
 		""},
+	 { (char *)"Geometry_HasCurveGeometry", _wrap_Geometry_HasCurveGeometry, METH_VARARGS, (char *)"Geometry_HasCurveGeometry(Geometry self, int bLookForCircular = True) -> int"},
+	 { (char *)"Geometry_GetLinearGeometry", (PyCFunction) _wrap_Geometry_GetLinearGeometry, METH_VARARGS | METH_KEYWORDS, (char *)"\n"
+		"Geometry_GetLinearGeometry(Geometry self, double dfMaxAngleStepSizeDegrees = 0.0, \n"
+		"    char options = None) -> Geometry\n"
+		""},
+	 { (char *)"Geometry_GetCurveGeometry", (PyCFunction) _wrap_Geometry_GetCurveGeometry, METH_VARARGS | METH_KEYWORDS, (char *)"Geometry_GetCurveGeometry(Geometry self, char options = None) -> Geometry"},
+	 { (char *)"Geometry_Value", _wrap_Geometry_Value, METH_VARARGS, (char *)"Geometry_Value(Geometry self, double dfDistance) -> Geometry"},
 	 { (char *)"Geometry_swigregister", Geometry_swigregister, METH_VARARGS, NULL},
 	 { (char *)"GetDriverCount", _wrap_GetDriverCount, METH_VARARGS, (char *)"GetDriverCount() -> int"},
 	 { (char *)"GetOpenDSCount", _wrap_GetOpenDSCount, METH_VARARGS, (char *)"GetOpenDSCount() -> int"},
@@ -24296,6 +27506,20 @@ static PyMethodDef SwigMethods[] = {
 	 { (char *)"RegisterAll", _wrap_RegisterAll, METH_VARARGS, (char *)"RegisterAll()"},
 	 { (char *)"GeometryTypeToName", _wrap_GeometryTypeToName, METH_VARARGS, (char *)"GeometryTypeToName(OGRwkbGeometryType eType) -> char"},
 	 { (char *)"GetFieldTypeName", _wrap_GetFieldTypeName, METH_VARARGS, (char *)"GetFieldTypeName(OGRFieldType type) -> char"},
+	 { (char *)"GetFieldSubTypeName", _wrap_GetFieldSubTypeName, METH_VARARGS, (char *)"GetFieldSubTypeName(OGRFieldSubType type) -> char"},
+	 { (char *)"GT_Flatten", _wrap_GT_Flatten, METH_VARARGS, (char *)"GT_Flatten(OGRwkbGeometryType eType) -> OGRwkbGeometryType"},
+	 { (char *)"GT_SetZ", _wrap_GT_SetZ, METH_VARARGS, (char *)"GT_SetZ(OGRwkbGeometryType eType) -> OGRwkbGeometryType"},
+	 { (char *)"GT_SetModifier", _wrap_GT_SetModifier, METH_VARARGS, (char *)"GT_SetModifier(OGRwkbGeometryType eType, int bSetZ, int bSetM = True) -> OGRwkbGeometryType"},
+	 { (char *)"GT_HasZ", _wrap_GT_HasZ, METH_VARARGS, (char *)"GT_HasZ(OGRwkbGeometryType eType) -> int"},
+	 { (char *)"GT_IsSubClassOf", _wrap_GT_IsSubClassOf, METH_VARARGS, (char *)"GT_IsSubClassOf(OGRwkbGeometryType eType, OGRwkbGeometryType eSuperType) -> int"},
+	 { (char *)"GT_IsCurve", _wrap_GT_IsCurve, METH_VARARGS, (char *)"GT_IsCurve(OGRwkbGeometryType arg0) -> int"},
+	 { (char *)"GT_IsSurface", _wrap_GT_IsSurface, METH_VARARGS, (char *)"GT_IsSurface(OGRwkbGeometryType arg0) -> int"},
+	 { (char *)"GT_IsNonLinear", _wrap_GT_IsNonLinear, METH_VARARGS, (char *)"GT_IsNonLinear(OGRwkbGeometryType arg0) -> int"},
+	 { (char *)"GT_GetCollection", _wrap_GT_GetCollection, METH_VARARGS, (char *)"GT_GetCollection(OGRwkbGeometryType eType) -> OGRwkbGeometryType"},
+	 { (char *)"GT_GetCurve", _wrap_GT_GetCurve, METH_VARARGS, (char *)"GT_GetCurve(OGRwkbGeometryType eType) -> OGRwkbGeometryType"},
+	 { (char *)"GT_GetLinear", _wrap_GT_GetLinear, METH_VARARGS, (char *)"GT_GetLinear(OGRwkbGeometryType eType) -> OGRwkbGeometryType"},
+	 { (char *)"SetNonLinearGeometriesEnabledFlag", _wrap_SetNonLinearGeometriesEnabledFlag, METH_VARARGS, (char *)"SetNonLinearGeometriesEnabledFlag(int bFlag)"},
+	 { (char *)"GetNonLinearGeometriesEnabledFlag", _wrap_GetNonLinearGeometriesEnabledFlag, METH_VARARGS, (char *)"GetNonLinearGeometriesEnabledFlag() -> int"},
 	 { (char *)"GetOpenDS", _wrap_GetOpenDS, METH_VARARGS, (char *)"GetOpenDS(int ds_number) -> DataSource"},
 	 { (char *)"Open", (PyCFunction) _wrap_Open, METH_VARARGS | METH_KEYWORDS, (char *)"Open(char utf8_path, int update = 0) -> DataSource"},
 	 { (char *)"OpenShared", (PyCFunction) _wrap_OpenShared, METH_VARARGS | METH_KEYWORDS, (char *)"OpenShared(char utf8_path, int update = 0) -> DataSource"},
@@ -24309,6 +27533,16 @@ static PyMethodDef SwigMethods[] = {
 
 /* -------- TYPE CONVERSION AND EQUIVALENCE RULES (BEGIN) -------- */
 
+static void *_p_OGRDriverShadowTo_p_GDALMajorObjectShadow(void *x, int *SWIGUNUSEDPARM(newmemory)) {
+    return (void *)((GDALMajorObjectShadow *)  ((OGRDriverShadow *) x));
+}
+static void *_p_OGRLayerShadowTo_p_GDALMajorObjectShadow(void *x, int *SWIGUNUSEDPARM(newmemory)) {
+    return (void *)((GDALMajorObjectShadow *)  ((OGRLayerShadow *) x));
+}
+static void *_p_OGRDataSourceShadowTo_p_GDALMajorObjectShadow(void *x, int *SWIGUNUSEDPARM(newmemory)) {
+    return (void *)((GDALMajorObjectShadow *)  ((OGRDataSourceShadow *) x));
+}
+static swig_type_info _swigt__p_GDALMajorObjectShadow = {"_p_GDALMajorObjectShadow", "GDALMajorObjectShadow *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_GDALProgressFunc = {"_p_GDALProgressFunc", "GDALProgressFunc *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_GIntBig = {"_p_GIntBig", "GIntBig *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_OGRDataSourceShadow = {"_p_OGRDataSourceShadow", "OGRDataSourceShadow *", 0, 0, (void*)0, 0};
@@ -24325,12 +27559,15 @@ static swig_type_info _swigt__p_OSRSpatialReferenceShadow = {"_p_OSRSpatialRefer
 static swig_type_info _swigt__p_char = {"_p_char", "char *|retStringAndCPLFree *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_double = {"_p_double", "double *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_f_double_p_q_const__char_p_void__int = {"_p_f_double_p_q_const__char_p_void__int", "int (*)(double,char const *,void *)", 0, 0, (void*)0, 0};
-static swig_type_info _swigt__p_int = {"_p_int", "OGRFieldType *|int *|OGRwkbGeometryType *|OGRJustification *|OGRwkbByteOrder *|OGRErr *", 0, 0, (void*)0, 0};
+static swig_type_info _swigt__p_float = {"_p_float", "float *", 0, 0, (void*)0, 0};
+static swig_type_info _swigt__p_int = {"_p_int", "OGRFieldSubType *|OGRFieldType *|CPLErr *|int *|OGRwkbGeometryType *|OGRJustification *|OGRwkbByteOrder *|OGRErr *", 0, 0, (void*)0, 0};
+static swig_type_info _swigt__p_p_GIntBig = {"_p_p_GIntBig", "GIntBig **", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_p_char = {"_p_p_char", "char **", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_p_double = {"_p_p_double", "double **", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_p_int = {"_p_p_int", "int **", 0, 0, (void*)0, 0};
 
 static swig_type_info *swig_type_initial[] = {
+  &_swigt__p_GDALMajorObjectShadow,
   &_swigt__p_GDALProgressFunc,
   &_swigt__p_GIntBig,
   &_swigt__p_OGRDataSourceShadow,
@@ -24347,12 +27584,15 @@ static swig_type_info *swig_type_initial[] = {
   &_swigt__p_char,
   &_swigt__p_double,
   &_swigt__p_f_double_p_q_const__char_p_void__int,
+  &_swigt__p_float,
   &_swigt__p_int,
+  &_swigt__p_p_GIntBig,
   &_swigt__p_p_char,
   &_swigt__p_p_double,
   &_swigt__p_p_int,
 };
 
+static swig_cast_info _swigc__p_GDALMajorObjectShadow[] = {  {&_swigt__p_GDALMajorObjectShadow, 0, 0, 0},  {&_swigt__p_OGRDriverShadow, _p_OGRDriverShadowTo_p_GDALMajorObjectShadow, 0, 0},  {&_swigt__p_OGRLayerShadow, _p_OGRLayerShadowTo_p_GDALMajorObjectShadow, 0, 0},  {&_swigt__p_OGRDataSourceShadow, _p_OGRDataSourceShadowTo_p_GDALMajorObjectShadow, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_GDALProgressFunc[] = {  {&_swigt__p_GDALProgressFunc, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_GIntBig[] = {  {&_swigt__p_GIntBig, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_OGRDataSourceShadow[] = {  {&_swigt__p_OGRDataSourceShadow, 0, 0, 0},{0, 0, 0, 0}};
@@ -24369,12 +27609,15 @@ static swig_cast_info _swigc__p_OSRSpatialReferenceShadow[] = {  {&_swigt__p_OSR
 static swig_cast_info _swigc__p_char[] = {  {&_swigt__p_char, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_double[] = {  {&_swigt__p_double, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_f_double_p_q_const__char_p_void__int[] = {  {&_swigt__p_f_double_p_q_const__char_p_void__int, 0, 0, 0},{0, 0, 0, 0}};
+static swig_cast_info _swigc__p_float[] = {  {&_swigt__p_float, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_int[] = {  {&_swigt__p_int, 0, 0, 0},{0, 0, 0, 0}};
+static swig_cast_info _swigc__p_p_GIntBig[] = {  {&_swigt__p_p_GIntBig, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_p_char[] = {  {&_swigt__p_p_char, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_p_double[] = {  {&_swigt__p_p_double, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_p_int[] = {  {&_swigt__p_p_int, 0, 0, 0},{0, 0, 0, 0}};
 
 static swig_cast_info *swig_cast_initial[] = {
+  _swigc__p_GDALMajorObjectShadow,
   _swigc__p_GDALProgressFunc,
   _swigc__p_GIntBig,
   _swigc__p_OGRDataSourceShadow,
@@ -24391,7 +27634,9 @@ static swig_cast_info *swig_cast_initial[] = {
   _swigc__p_char,
   _swigc__p_double,
   _swigc__p_f_double_p_q_const__char_p_void__int,
+  _swigc__p_float,
   _swigc__p_int,
+  _swigc__p_p_GIntBig,
   _swigc__p_p_char,
   _swigc__p_p_double,
   _swigc__p_p_int,
@@ -24999,15 +28244,25 @@ SWIG_init(void) {
   SWIG_Python_SetConstant(d, "wkbMultiLineString",SWIG_From_int(static_cast< int >(5)));
   SWIG_Python_SetConstant(d, "wkbMultiPolygon",SWIG_From_int(static_cast< int >(6)));
   SWIG_Python_SetConstant(d, "wkbGeometryCollection",SWIG_From_int(static_cast< int >(7)));
+  SWIG_Python_SetConstant(d, "wkbCircularString",SWIG_From_int(static_cast< int >(8)));
+  SWIG_Python_SetConstant(d, "wkbCompoundCurve",SWIG_From_int(static_cast< int >(9)));
+  SWIG_Python_SetConstant(d, "wkbCurvePolygon",SWIG_From_int(static_cast< int >(10)));
+  SWIG_Python_SetConstant(d, "wkbMultiCurve",SWIG_From_int(static_cast< int >(11)));
+  SWIG_Python_SetConstant(d, "wkbMultiSurface",SWIG_From_int(static_cast< int >(12)));
   SWIG_Python_SetConstant(d, "wkbNone",SWIG_From_int(static_cast< int >(100)));
   SWIG_Python_SetConstant(d, "wkbLinearRing",SWIG_From_int(static_cast< int >(101)));
-  SWIG_Python_SetConstant(d, "wkbPoint25D",SWIG_From_int(static_cast< int >(wkbPoint+wkb25DBit)));
-  SWIG_Python_SetConstant(d, "wkbLineString25D",SWIG_From_int(static_cast< int >(wkbLineString+wkb25DBit)));
-  SWIG_Python_SetConstant(d, "wkbPolygon25D",SWIG_From_int(static_cast< int >(wkbPolygon+wkb25DBit)));
-  SWIG_Python_SetConstant(d, "wkbMultiPoint25D",SWIG_From_int(static_cast< int >(wkbMultiPoint+wkb25DBit)));
-  SWIG_Python_SetConstant(d, "wkbMultiLineString25D",SWIG_From_int(static_cast< int >(wkbMultiLineString+wkb25DBit)));
-  SWIG_Python_SetConstant(d, "wkbMultiPolygon25D",SWIG_From_int(static_cast< int >(wkbMultiPolygon+wkb25DBit)));
-  SWIG_Python_SetConstant(d, "wkbGeometryCollection25D",SWIG_From_int(static_cast< int >(wkbGeometryCollection+wkb25DBit)));
+  SWIG_Python_SetConstant(d, "wkbCircularStringZ",SWIG_From_int(static_cast< int >(1008)));
+  SWIG_Python_SetConstant(d, "wkbCompoundCurveZ",SWIG_From_int(static_cast< int >(1009)));
+  SWIG_Python_SetConstant(d, "wkbCurvePolygonZ",SWIG_From_int(static_cast< int >(1010)));
+  SWIG_Python_SetConstant(d, "wkbMultiCurveZ",SWIG_From_int(static_cast< int >(1011)));
+  SWIG_Python_SetConstant(d, "wkbMultiSurfaceZ",SWIG_From_int(static_cast< int >(1012)));
+  SWIG_Python_SetConstant(d, "wkbPoint25D",SWIG_From_int(static_cast< int >(0x80000001)));
+  SWIG_Python_SetConstant(d, "wkbLineString25D",SWIG_From_int(static_cast< int >(0x80000002)));
+  SWIG_Python_SetConstant(d, "wkbPolygon25D",SWIG_From_int(static_cast< int >(0x80000003)));
+  SWIG_Python_SetConstant(d, "wkbMultiPoint25D",SWIG_From_int(static_cast< int >(0x80000004)));
+  SWIG_Python_SetConstant(d, "wkbMultiLineString25D",SWIG_From_int(static_cast< int >(0x80000005)));
+  SWIG_Python_SetConstant(d, "wkbMultiPolygon25D",SWIG_From_int(static_cast< int >(0x80000006)));
+  SWIG_Python_SetConstant(d, "wkbGeometryCollection25D",SWIG_From_int(static_cast< int >(0x80000007)));
   SWIG_Python_SetConstant(d, "OFTInteger",SWIG_From_int(static_cast< int >(0)));
   SWIG_Python_SetConstant(d, "OFTIntegerList",SWIG_From_int(static_cast< int >(1)));
   SWIG_Python_SetConstant(d, "OFTReal",SWIG_From_int(static_cast< int >(2)));
@@ -25020,6 +28275,12 @@ SWIG_init(void) {
   SWIG_Python_SetConstant(d, "OFTDate",SWIG_From_int(static_cast< int >(9)));
   SWIG_Python_SetConstant(d, "OFTTime",SWIG_From_int(static_cast< int >(10)));
   SWIG_Python_SetConstant(d, "OFTDateTime",SWIG_From_int(static_cast< int >(11)));
+  SWIG_Python_SetConstant(d, "OFTInteger64",SWIG_From_int(static_cast< int >(12)));
+  SWIG_Python_SetConstant(d, "OFTInteger64List",SWIG_From_int(static_cast< int >(13)));
+  SWIG_Python_SetConstant(d, "OFSTNone",SWIG_From_int(static_cast< int >(0)));
+  SWIG_Python_SetConstant(d, "OFSTBoolean",SWIG_From_int(static_cast< int >(1)));
+  SWIG_Python_SetConstant(d, "OFSTInt16",SWIG_From_int(static_cast< int >(2)));
+  SWIG_Python_SetConstant(d, "OFSTFloat32",SWIG_From_int(static_cast< int >(3)));
   SWIG_Python_SetConstant(d, "OJUndefined",SWIG_From_int(static_cast< int >(0)));
   SWIG_Python_SetConstant(d, "OJLeft",SWIG_From_int(static_cast< int >(1)));
   SWIG_Python_SetConstant(d, "OJRight",SWIG_From_int(static_cast< int >(2)));
@@ -25029,7 +28290,14 @@ SWIG_init(void) {
   SWIG_Python_SetConstant(d, "ALTER_NAME_FLAG",SWIG_From_int(static_cast< int >(1)));
   SWIG_Python_SetConstant(d, "ALTER_TYPE_FLAG",SWIG_From_int(static_cast< int >(2)));
   SWIG_Python_SetConstant(d, "ALTER_WIDTH_PRECISION_FLAG",SWIG_From_int(static_cast< int >(4)));
-  SWIG_Python_SetConstant(d, "ALTER_ALL_FLAG",SWIG_From_int(static_cast< int >(1+2+4)));
+  SWIG_Python_SetConstant(d, "ALTER_NULLABLE_FLAG",SWIG_From_int(static_cast< int >(8)));
+  SWIG_Python_SetConstant(d, "ALTER_DEFAULT_FLAG",SWIG_From_int(static_cast< int >(16)));
+  SWIG_Python_SetConstant(d, "ALTER_ALL_FLAG",SWIG_From_int(static_cast< int >(1+2+4+8+16)));
+  SWIG_Python_SetConstant(d, "F_VAL_NULL",SWIG_From_int(static_cast< int >(0x00000001)));
+  SWIG_Python_SetConstant(d, "F_VAL_GEOM_TYPE",SWIG_From_int(static_cast< int >(0x00000002)));
+  SWIG_Python_SetConstant(d, "F_VAL_WIDTH",SWIG_From_int(static_cast< int >(0x00000004)));
+  SWIG_Python_SetConstant(d, "F_VAL_ALLOW_NULL_WHEN_DEFAULT",SWIG_From_int(static_cast< int >(0x00000008)));
+  SWIG_Python_SetConstant(d, "F_VAL_ALL",SWIG_From_int(static_cast< int >(0xFFFFFFFF)));
   SWIG_Python_SetConstant(d, "OLCRandomRead",SWIG_FromCharPtr("RandomRead"));
   SWIG_Python_SetConstant(d, "OLCSequentialWrite",SWIG_FromCharPtr("SequentialWrite"));
   SWIG_Python_SetConstant(d, "OLCRandomWrite",SWIG_FromCharPtr("RandomWrite"));
@@ -25046,11 +28314,26 @@ SWIG_init(void) {
   SWIG_Python_SetConstant(d, "OLCStringsAsUTF8",SWIG_FromCharPtr("StringsAsUTF8"));
   SWIG_Python_SetConstant(d, "OLCIgnoreFields",SWIG_FromCharPtr("IgnoreFields"));
   SWIG_Python_SetConstant(d, "OLCCreateGeomField",SWIG_FromCharPtr("CreateGeomField"));
+  SWIG_Python_SetConstant(d, "OLCCurveGeometries",SWIG_FromCharPtr("CurveGeometries"));
   SWIG_Python_SetConstant(d, "ODsCCreateLayer",SWIG_FromCharPtr("CreateLayer"));
   SWIG_Python_SetConstant(d, "ODsCDeleteLayer",SWIG_FromCharPtr("DeleteLayer"));
   SWIG_Python_SetConstant(d, "ODsCCreateGeomFieldAfterCreateLayer",SWIG_FromCharPtr("CreateGeomFieldAfterCreateLayer"));
+  SWIG_Python_SetConstant(d, "ODsCCurveGeometries",SWIG_FromCharPtr("CurveGeometries"));
+  SWIG_Python_SetConstant(d, "ODsCTransactions",SWIG_FromCharPtr("Transactions"));
+  SWIG_Python_SetConstant(d, "ODsCEmulatedTransactions",SWIG_FromCharPtr("EmulatedTransactions"));
   SWIG_Python_SetConstant(d, "ODrCCreateDataSource",SWIG_FromCharPtr("CreateDataSource"));
   SWIG_Python_SetConstant(d, "ODrCDeleteDataSource",SWIG_FromCharPtr("DeleteDataSource"));
+  SWIG_Python_SetConstant(d, "OLMD_FID64",SWIG_FromCharPtr("OLMD_FID64"));
+  SWIG_Python_SetConstant(d, "OGRERR_NONE",SWIG_From_int(static_cast< int >(0)));
+  SWIG_Python_SetConstant(d, "OGRERR_NOT_ENOUGH_DATA",SWIG_From_int(static_cast< int >(1)));
+  SWIG_Python_SetConstant(d, "OGRERR_NOT_ENOUGH_MEMORY",SWIG_From_int(static_cast< int >(2)));
+  SWIG_Python_SetConstant(d, "OGRERR_UNSUPPORTED_GEOMETRY_TYPE",SWIG_From_int(static_cast< int >(3)));
+  SWIG_Python_SetConstant(d, "OGRERR_UNSUPPORTED_OPERATION",SWIG_From_int(static_cast< int >(4)));
+  SWIG_Python_SetConstant(d, "OGRERR_CORRUPT_DATA",SWIG_From_int(static_cast< int >(5)));
+  SWIG_Python_SetConstant(d, "OGRERR_FAILURE",SWIG_From_int(static_cast< int >(6)));
+  SWIG_Python_SetConstant(d, "OGRERR_UNSUPPORTED_SRS",SWIG_From_int(static_cast< int >(7)));
+  SWIG_Python_SetConstant(d, "OGRERR_INVALID_HANDLE",SWIG_From_int(static_cast< int >(8)));
+  SWIG_Python_SetConstant(d, "OGRERR_NON_EXISTING_FEATURE",SWIG_From_int(static_cast< int >(9)));
   
   
   if ( OGRGetDriverCount() == 0 ) {

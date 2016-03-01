@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: xpmdataset.cpp 27729 2014-09-24 00:40:16Z goatbar $
+ * $Id: xpmdataset.cpp 31998 2015-12-04 20:03:08Z rouault $
  *
  * Project:  XPM Driver
  * Purpose:  Implement GDAL XPM Support
@@ -34,9 +34,10 @@
 #include "gdal_frmts.h"						      
 
 
-CPL_CVSID("$Id: xpmdataset.cpp 27729 2014-09-24 00:40:16Z goatbar $");
+CPL_CVSID("$Id: xpmdataset.cpp 31998 2015-12-04 20:03:08Z rouault $");
 
 static unsigned char *ParseXPM( const char *pszInput,
+                                unsigned int nFileSize,
                                 int *pnXSize, int *pnYSize, 
                                 GDALColorTable **ppoRetTable );
 
@@ -148,7 +149,7 @@ GDALDataset *XPMDataset::Open( GDALOpenInfo * poOpenInfo )
 
     CPLErrorReset();
 
-    pabyImage = ParseXPM( pszFileContents, &nXSize, &nYSize, &poCT );
+    pabyImage = ParseXPM( pszFileContents, nFileSize, &nXSize, &nYSize, &poCT );
     CPLFree( pszFileContents );
 
     if( pabyImage == NULL )
@@ -200,13 +201,16 @@ GDALDataset *XPMDataset::Open( GDALOpenInfo * poOpenInfo )
 /************************************************************************/
 
 static GDALDataset *
-XPMCreateCopy( const char * pszFilename, GDALDataset *poSrcDS, 
-               int bStrict, CPL_UNUSED char ** papszOptions, 
-               CPL_UNUSED GDALProgressFunc pfnProgress, CPL_UNUSED void * pProgressData )
+XPMCreateCopy( const char * pszFilename,
+               CPL_UNUSED GDALDataset *poSrcDS,
+               int bStrict,
+               CPL_UNUSED char ** papszOptions,
+               CPL_UNUSED GDALProgressFunc pfnProgress,
+               CPL_UNUSED void * pProgressData )
 {
-    const int  nBands = poSrcDS->GetRasterCount();
-    const int  nXSize = poSrcDS->GetRasterXSize();
-    const int  nYSize = poSrcDS->GetRasterYSize();
+    int  nBands = poSrcDS->GetRasterCount();
+    int  nXSize = poSrcDS->GetRasterXSize();
+    int  nYSize = poSrcDS->GetRasterYSize();
     GDALColorTable *poCT;
 
 /* -------------------------------------------------------------------- */
@@ -383,7 +387,7 @@ XPMCreateCopy( const char * pszFilename, GDALDataset *poSrcDS,
     for( iLine = 0; iLine < nYSize; iLine++ )
     {
         poBand->RasterIO( GF_Read, 0, iLine, nXSize, 1, 
-                          (void *) pabyScanline, nXSize, 1, GDT_Byte, 0, 0 );
+                          (void *) pabyScanline, nXSize, 1, GDT_Byte, 0, 0, NULL );
         
         VSIFPutcL( '"', fpPBM );
         for( int iPixel = 0; iPixel < nXSize; iPixel++ )
@@ -401,9 +405,9 @@ XPMCreateCopy( const char * pszFilename, GDALDataset *poSrcDS,
     VSIFCloseL( fpPBM );
 
 /* -------------------------------------------------------------------- */
-/*      Re-open dataset, and copy any auxilary pam information.         */
+/*      Re-open dataset, and copy any auxiliary pam information.         */
 /* -------------------------------------------------------------------- */
-    GDALPamDataset *poDS = (GDALPamDataset *) 
+    GDALPamDataset *poDS = (GDALPamDataset *)
         GDALOpen( pszFilename, GA_ReadOnly );
 
     if( poDS )
@@ -426,6 +430,7 @@ void GDALRegister_XPM()
         poDriver = new GDALDriver();
         
         poDriver->SetDescription( "XPM" );
+        poDriver->SetMetadataItem( GDAL_DCAP_RASTER, "YES" );
         poDriver->SetMetadataItem( GDAL_DMD_LONGNAME, 
                                    "X11 PixMap Format" );
         poDriver->SetMetadataItem( GDAL_DMD_HELPTOPIC, 
@@ -448,7 +453,9 @@ void GDALRegister_XPM()
 /************************************************************************/
 
 static unsigned char *
-ParseXPM( const char *pszInput, int *pnXSize, int *pnYSize, 
+ParseXPM( const char *pszInput,
+          unsigned int nFileSize,
+          int *pnXSize, int *pnYSize, 
           GDALColorTable **ppoRetTable )
 
 {
@@ -524,7 +531,9 @@ ParseXPM( const char *pszInput, int *pnXSize, int *pnYSize,
     int nColorCount, nCharsPerPixel;
 
     if( sscanf( papszXPMList[0], "%d %d %d %d", 
-                pnXSize, pnYSize, &nColorCount, &nCharsPerPixel ) != 4 )
+                pnXSize, pnYSize, &nColorCount, &nCharsPerPixel ) != 4 ||
+        *pnXSize <= 0 || *pnYSize <= 0 || nColorCount <= 0 || nColorCount > 256 ||
+        static_cast<GUIntBig>(*pnXSize) * static_cast<GUIntBig>(*pnYSize) > nFileSize )
     {
         CPLError( CE_Failure, CPLE_AppDefined,
                   "Image definition (%s) not well formed.",
@@ -553,6 +562,15 @@ ParseXPM( const char *pszInput, int *pnXSize, int *pnYSize,
 
     for( iColor = 0; iColor < nColorCount; iColor++ )
     {
+        if( papszXPMList[iColor+1] == NULL )
+        {
+            CPLError( CE_Failure, CPLE_AppDefined, 
+                      "Missing color definition for %d in XPM header.", 
+                      iColor+1 );
+            CSLDestroy( papszXPMList );
+            return NULL;
+        }
+
         char **papszTokens = CSLTokenizeString( papszXPMList[iColor+1]+1 );
         GDALColorEntry sColor;
         int            nRed, nGreen, nBlue;
@@ -567,7 +585,7 @@ ParseXPM( const char *pszInput, int *pnXSize, int *pnYSize,
             return NULL;
         }
 
-        anCharLookup[(int)papszXPMList[iColor+1][0]] = iColor;
+        anCharLookup[*(reinterpret_cast<GByte*>(papszXPMList[iColor+1]))] = iColor;
         
         if( EQUAL(papszTokens[1],"None") )
         {
@@ -621,9 +639,10 @@ ParseXPM( const char *pszInput, int *pnXSize, int *pnYSize,
 /* -------------------------------------------------------------------- */
     for( int iLine = 0; iLine < *pnYSize; iLine++ )
     {
-        const char *pszInLine = papszXPMList[iLine + nColorCount + 1];
+        const GByte *pabyInLine = reinterpret_cast<GByte*>(
+                                papszXPMList[iLine + nColorCount + 1]);
 
-        if( pszInLine == NULL )
+        if( pabyInLine == NULL )
         {
             CPLFree( pabyImage );
             CSLDestroy( papszXPMList );
@@ -632,11 +651,12 @@ ParseXPM( const char *pszInput, int *pnXSize, int *pnYSize,
             return NULL;
         }
 
-        for( int iPixel = 0; 
-             pszInLine[iPixel] != '\0' && iPixel < *pnXSize; 
+        for( int iPixel = 0;
+             pabyInLine[iPixel] != '\0' && iPixel < *pnXSize;
              iPixel++ )
         {
-            int nPixelValue = anCharLookup[(int)pszInLine[iPixel]];
+            const int nPixelValue
+                = anCharLookup[pabyInLine[iPixel]];
             if( nPixelValue != -1 )
                 pabyImage[iLine * *pnXSize + iPixel] = (GByte) nPixelValue;
         }

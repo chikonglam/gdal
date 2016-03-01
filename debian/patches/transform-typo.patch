@@ -1,17 +1,18 @@
 Description: Fix 'tranform' typo, replace with 'transform'.
 Author: Bas Couwenberg <sebastic@debian.org>
+Forwarded: not-needed
 
 --- a/NEWS
 +++ b/NEWS
-@@ -13,7 +13,7 @@ The 1.11.3 release is a bug fix release.
- 
- == Algorithms ==
-  * gdal_grid: fix crash in optimized mode with GCC 4.4 on 64bit (#5987)
-- * Fix failure in GDALSuggestedWarpOut2() when computing output image size in case the top-left and bottom-right corners tranform to the same point (#5980)
-+ * Fix failure in GDALSuggestedWarpOut2() when computing output image size in case the top-left and bottom-right corners transform to the same point (#5980)
-  * Rasterize: add check to avoid burning negative x values (#5641)
- 
- == GDAL core ==
+@@ -466,7 +466,7 @@ Algorithms:
+  * Warper: fix integer overflow when reprojecting into an area with (part of) bounds completely outside of the source projection (#5789)
+  * Warper: add min,max,med,q1 and q3 resampling algorithms (#5868)
+  * Warper: add a SRC_COORD_PRECISION warping option to help getting more reproducable output when -wm parameter changes (#5925)
+- * Warper: fix failure in GDALSuggestedWarpOut2() when top-left and bottom-right corners tranform to the same point (#5980)
++ * Warper: fix failure in GDALSuggestedWarpOut2() when top-left and bottom-right corners transform to the same point (#5980)
+  * GDALReprojectImage(): takes into account nodata values set on destination dataset
+  * Median cut and dithering: optimizations and enhancements to deal with 8-bit precision (only if using internal interface for now)
+  * rasterfill: add option to specify driver to use for temporary files
 --- a/frmts/grib/degrib18/degrib/tdlpack.cpp
 +++ b/frmts/grib/degrib18/degrib/tdlpack.cpp
 @@ -48,9 +48,9 @@ TDLP_TableType TDLP_V_Table[4] = {
@@ -43,7 +44,7 @@ Author: Bas Couwenberg <sebastic@debian.org>
     
 --- a/frmts/netcdf/netcdfdataset.cpp
 +++ b/frmts/netcdf/netcdfdataset.cpp
-@@ -3544,7 +3544,7 @@ CPLErr netCDFDataset::AddProjectionVars(
+@@ -3553,7 +3553,7 @@ CPLErr netCDFDataset::AddProjectionVars(
                           adfGeoTransform[i] );
                  strcat( szGeoTransform, szTemp );
              }
@@ -54,7 +55,7 @@ Author: Bas Couwenberg <sebastic@debian.org>
              //     nc_put_att_text( cdfid, NCDFVarID, "proj4",
 --- a/frmts/png/libpng/png.h
 +++ b/frmts/png/libpng/png.h
-@@ -1391,7 +1391,7 @@ struct png_struct_def
+@@ -1399,7 +1399,7 @@ struct png_struct_def
  #endif
  
  #if defined(PNG_READ_SHIFT_SUPPORTED) || defined(PNG_WRITE_SHIFT_SUPPORTED)

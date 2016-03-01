@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdallocationinfo.cpp 27044 2014-03-16 23:41:27Z rouault $
+ * $Id: gdallocationinfo.cpp 28800 2015-03-27 21:03:41Z rouault $
  *
  * Project:  GDAL
  * Purpose:  Commandline raster query tool.
@@ -34,7 +34,7 @@
 #include "cpl_minixml.h"
 #include <vector>
 
-CPL_CVSID("$Id: gdallocationinfo.cpp 27044 2014-03-16 23:41:27Z rouault $");
+CPL_CVSID("$Id: gdallocationinfo.cpp 28800 2015-03-27 21:03:41Z rouault $");
 
 /******************************************************************************/
 /*! \page gdallocationinfo gdallocationinfo
@@ -51,7 +51,7 @@ Usage:
 Usage: gdallocationinfo [--help-general] [-xml] [-lifonly] [-valonly]
                         [-b band]* [-overview overview_level]
                         [-l_srs srs_def] [-geoloc] [-wgs84]
-                        srcfile [x y]
+                        [-oo NAME=VALUE]* srcfile [x y]
 \endverbatim
 
 \section gdallocationinfo_description DESCRIPTION
@@ -91,6 +91,9 @@ pixel/line) must still be given with respect to the base band.</dd>
 
 <dt> <b>-wgs84</b>:</dt>
 <dd> Indicates input x,y points are WGS84 long, lat.</dd>
+
+<dt> <b>-oo</b> <em>NAME=VALUE</em>:</dt>
+<dd>(starting with GDAL 2.0) Dataset open option (format specific)</dd>
 
 <dt> <em>srcfile</em>:</dt><dd> The source GDAL raster datasource name.</dd>
 
@@ -173,7 +176,7 @@ static void Usage()
     printf( "Usage: gdallocationinfo [--help-general] [-xml] [-lifonly] [-valonly]\n"
             "                        [-b band]* [-overview overview_level]\n"
             "                        [-l_srs srs_def] [-geoloc] [-wgs84]\n"
-            "                        srcfile x y\n" 
+            "                        [-oo NAME=VALUE]* srcfile x y\n" 
             "\n" );
     exit( 1 );
 }
@@ -220,6 +223,7 @@ int main( int argc, char ** argv )
     bool               bAsXML = false, bLIFOnly = false;
     bool               bQuiet = false, bValOnly = false;
     int                nOverview = -1;
+    char             **papszOpenOptions = NULL;
 
     GDALAllRegister();
     argc = GDALGeneralCmdLineProcessor( argc, &argv, 0 );
@@ -276,6 +280,11 @@ int main( int argc, char ** argv )
             bValOnly = true;
             bQuiet = true;
         }
+        else if( EQUAL(argv[i], "-oo") && i < argc-1 )
+        {
+            papszOpenOptions = CSLAddString( papszOpenOptions,
+                                                argv[++i] );
+        }
         else if( argv[i][0] == '-' && !isdigit(argv[i][1]) )
             Usage();
 
@@ -300,7 +309,8 @@ int main( int argc, char ** argv )
 /* -------------------------------------------------------------------- */
     GDALDatasetH hSrcDS = NULL;
 
-    hSrcDS = GDALOpen( pszSrcFilename, GA_ReadOnly );
+    hSrcDS = GDALOpenEx( pszSrcFilename, GDAL_OF_RASTER, NULL,
+                           (const char* const* )papszOpenOptions, NULL );
     if( hSrcDS == NULL )
         exit( 1 );
 
@@ -616,6 +626,7 @@ int main( int argc, char ** argv )
     GDALDumpOpenDatasets( stderr );
     GDALDestroyDriverManager();
     CPLFree(pszSourceSRS);
+    CSLDestroy(papszOpenOptions);
 
     CSLDestroy( argv );
 

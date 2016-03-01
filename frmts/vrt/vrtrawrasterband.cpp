@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: vrtrawrasterband.cpp 27502 2014-07-06 15:18:51Z rouault $
+ * $Id: vrtrawrasterband.cpp 32756 2016-01-05 16:03:53Z rouault $
  *
  * Project:  Virtual GDAL Datasets
  * Purpose:  Implementation of VRTRawRasterBand
@@ -33,7 +33,7 @@
 #include "cpl_string.h"
 #include "rawdataset.h"
 
-CPL_CVSID("$Id: vrtrawrasterband.cpp 27502 2014-07-06 15:18:51Z rouault $");
+CPL_CVSID("$Id: vrtrawrasterband.cpp 32756 2016-01-05 16:03:53Z rouault $");
 
 /************************************************************************/
 /* ==================================================================== */
@@ -80,8 +80,9 @@ CPLErr VRTRawRasterBand::IRasterIO( GDALRWFlag eRWFlag,
                                  int nXOff, int nYOff, int nXSize, int nYSize,
                                  void * pData, int nBufXSize, int nBufYSize,
                                  GDALDataType eBufType,
-                                 int nPixelSpace, int nLineSpace )
-
+                                 GSpacing nPixelSpace,
+                                 GSpacing nLineSpace,
+                                 GDALRasterIOExtraArg* psExtraArg)
 {
     if( poRawRaster == NULL )
     {
@@ -108,7 +109,7 @@ CPLErr VRTRawRasterBand::IRasterIO( GDALRWFlag eRWFlag,
     {
         if( OverviewRasterIO( eRWFlag, nXOff, nYOff, nXSize, nYSize, 
                               pData, nBufXSize, nBufYSize, 
-                              eBufType, nPixelSpace, nLineSpace ) == CE_None )
+                              eBufType, nPixelSpace, nLineSpace, psExtraArg ) == CE_None )
             return CE_None;
     }
     
@@ -116,7 +117,7 @@ CPLErr VRTRawRasterBand::IRasterIO( GDALRWFlag eRWFlag,
 
     return poRawRaster->RasterIO( eRWFlag, nXOff, nYOff, nXSize, nYSize, 
                                   pData, nBufXSize, nBufYSize, 
-                                  eBufType, nPixelSpace, nLineSpace );
+                                  eBufType, nPixelSpace, nLineSpace, psExtraArg );
 }
 
 /************************************************************************/
@@ -328,12 +329,12 @@ CPLErr VRTRawRasterBand::XMLInit( CPLXMLNode * psTree,
 /* -------------------------------------------------------------------- */
 /*      Collect layout information.                                     */
 /* -------------------------------------------------------------------- */
-    vsi_l_offset nImageOffset;
     int nPixelOffset, nLineOffset;
     int nWordDataSize = GDALGetDataTypeSize( GetRasterDataType() ) / 8;
 
-    nImageOffset = CPLScanUIntBig(
-        CPLGetXMLValue( psTree, "ImageOffset", "0"), 20);
+    const char* pszImageOffset = CPLGetXMLValue( psTree, "ImageOffset", "0");
+    const vsi_l_offset nImageOffset = CPLScanUIntBig(
+                                    pszImageOffset, strlen(pszImageOffset));
 
     if( CPLGetXMLValue( psTree, "PixelOffset", NULL ) == NULL )
         nPixelOffset = nWordDataSize;

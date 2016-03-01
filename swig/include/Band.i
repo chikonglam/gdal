@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: Band.i 26832 2014-01-15 12:46:08Z rouault $
+ * $Id: Band.i 29216 2015-05-20 15:11:18Z ajolma $
  *
  * Name:     Band.i
  * Project:  GDAL Python Interface
@@ -39,15 +39,15 @@
 /* Returned size is in bytes or 0 if an error occured */
 static
 GIntBig ComputeBandRasterIOSize (int buf_xsize, int buf_ysize, int nPixelSize,
-                             int nPixelSpace, int nLineSpace,
-                             int bSpacingShouldBeMultipleOfPixelSize )
+                                 GIntBig nPixelSpace, GIntBig nLineSpace,
+                                 int bSpacingShouldBeMultipleOfPixelSize )
 {
 #if SIZEOF_VOIDP == 8
     const GIntBig MAX_INT = (((GIntBig)0x7fffffff) << 32) | 0xffffffff;
 #else
     const GIntBig MAX_INT = 0x7fffffff;
 #endif
-    const GIntBig MAX_INT32 = 0x7fffffff;
+
     if (buf_xsize <= 0 || buf_ysize <= 0)
     {
         CPLError(CE_Failure, CPLE_IllegalArg, "Illegal values for buffer size");
@@ -76,11 +76,6 @@ GIntBig ComputeBandRasterIOSize (int buf_xsize, int buf_ysize, int nPixelSize,
 
     if( nLineSpace == 0 )
     {
-        if (nPixelSpace > MAX_INT32 / buf_xsize)
-        {
-            CPLError(CE_Failure, CPLE_IllegalArg, "Integer overflow for nLineSpace");
-            return 0;
-        }
         nLineSpace = nPixelSpace * buf_xsize;
     }
     else if ( bSpacingShouldBeMultipleOfPixelSize && (nLineSpace % nPixelSize) != 0 )
@@ -108,7 +103,8 @@ CPLErr ReadRaster_internal( GDALRasterBandShadow *obj,
                             int buf_xsize, int buf_ysize,
                             GDALDataType buf_type,
                             int *buf_size, char **buf,
-                            int pixel_space, int line_space )
+                            GIntBig pixel_space, GIntBig line_space,
+                            GDALRasterIOExtraArg* psExtraArg )
 {
   CPLErr result;
 
@@ -130,9 +126,9 @@ CPLErr ReadRaster_internal( GDALRasterBandShadow *obj,
   *buf = (char*) malloc( *buf_size );
   if ( *buf )
   {
-    result =  GDALRasterIO( obj, GF_Read, xoff, yoff, xsize, ysize,
+    result =  GDALRasterIOEx( obj, GF_Read, xoff, yoff, xsize, ysize,
                                     (void *) *buf, buf_xsize, buf_ysize,
-                                    buf_type, pixel_space, line_space );
+                                    buf_type, pixel_space, line_space, psExtraArg );
     if ( result != CE_None )
     {
         free( *buf );
@@ -194,6 +190,12 @@ public:
   int YSize;
   GDALDataType DataType;
 %mutable;
+
+  /* Interface method added for GDAL 1.12.0 */
+  GDALDatasetShadow* GetDataset()
+  {
+    return (GDALDatasetShadow*) GDALGetBandDataset(self);
+  }
 
   /* Interface method added for GDAL 1.7.0 */
   int GetBand()
@@ -357,15 +359,26 @@ public:
                      int *buf_ysize = 0,
                      int *buf_type = 0,
                      int *buf_pixel_space = 0,
-                     int *buf_line_space = 0) {
+                     int *buf_line_space = 0,
+                     GDALRIOResampleAlg resample_alg = GRIORA_NearestNeighbour,
+                     GDALProgressFunc callback = NULL,
+                     void* callback_data=NULL ) {
     int nxsize = (buf_xsize==0) ? xsize : *buf_xsize;
     int nysize = (buf_ysize==0) ? ysize : *buf_ysize;
     GDALDataType ntype  = (buf_type==0) ? GDALGetRasterDataType(self)
                                         : (GDALDataType)*buf_type;
-    int pixel_space = (buf_pixel_space == 0) ? 0 : *buf_pixel_space;
-    int line_space = (buf_line_space == 0) ? 0 : *buf_line_space;
+    GIntBig pixel_space = (buf_pixel_space == 0) ? 0 : *buf_pixel_space;
+    GIntBig line_space = (buf_line_space == 0) ? 0 : *buf_line_space;
+
+    GDALRasterIOExtraArg sExtraArg;
+    INIT_RASTERIO_EXTRA_ARG(sExtraArg);
+    sExtraArg.eResampleAlg = resample_alg;
+    sExtraArg.pfnProgress = callback;
+    sExtraArg.pProgressData = callback_data;
+
     return ReadRaster_internal( self, xoff, yoff, xsize, ysize,
-                                nxsize, nysize, ntype, buf_len, buf, pixel_space, line_space );
+                                nxsize, nysize, ntype, buf_len, buf, pixel_space, line_space,
+                                &sExtraArg );
   }
 %clear (int *buf_len, char **buf );
 %clear (int*);
@@ -461,12 +474,34 @@ public:
       return GDALCreateMaskBand( self, nFlags );
   }
 
+#if defined(SWIGPYTHON) || defined(SWIGPERL)
+#if defined(SWIGPERL)
+%apply (int len, GUIntBig *output) {(int buckets, GUIntBig *panHistogram)};
+%apply (IF_ERROR_RETURN_NONE) { (CPLErr) }; 
+#endif
+%feature( "kwargs" ) GetHistogram;
+  CPLErr GetHistogram( double min=-0.5,
+                     double max=255.5,
+                     int buckets=256,
+                     GUIntBig *panHistogram = NULL,
+                     int include_out_of_range = 0,
+                     int approx_ok = 1,
+                     GDALProgressFunc callback = NULL,
+                     void* callback_data=NULL ) {
+    CPLErrorReset(); 
+    CPLErr err = GDALGetRasterHistogramEx( self, min, max, buckets, panHistogram,
+                                         include_out_of_range, approx_ok,
+                                         callback, callback_data );
+    return err;
+  }
+#if defined(SWIGPERL)
+%clear (int buckets, int *panHistogram);
+%clear (CPLErr);
+#endif
+#else
 #ifndef SWIGJAVA
 #if defined(SWIGCSHARP)
 %apply (int inout[ANY]) {int *panHistogram};
-#elif defined(SWIGPERL)
-%apply (int len, int *output) {(int buckets, int *panHistogram)};
-%apply (IF_ERROR_RETURN_NONE) { (CPLErr) }; 
 #endif
 %feature( "kwargs" ) GetHistogram;
   CPLErr GetHistogram( double min=-0.5,
@@ -485,18 +520,32 @@ public:
   }
 #if defined(SWIGCSHARP)
 %clear int *panHistogram;
-#elif defined(SWIGPERL)
-%clear (int buckets, int *panHistogram);
-%clear (CPLErr);
+#endif
 #endif
 #endif
 
-#ifndef SWIGJAVA
+#if defined(SWIGPYTHON) || defined(SWIGPERL)
 #if defined(SWIGPERL)
 %apply (double *OUTPUT){double *min_ret, double *max_ret}
-%apply (int *nLen, const int **pList) {(int *buckets_ret, int **ppanHistogram)};
+%apply (int *nLen, const GUIntBig **pList) {(int *buckets_ret, GUIntBig **ppanHistogram)};
 %apply (IF_ERROR_RETURN_NONE) { (CPLErr) }; 
 #endif
+%feature ("kwargs") GetDefaultHistogram;
+CPLErr GetDefaultHistogram( double *min_ret=NULL, double *max_ret=NULL, int *buckets_ret = NULL, 
+                            GUIntBig **ppanHistogram = NULL, int force = 1, 
+                            GDALProgressFunc callback = NULL,
+                            void* callback_data=NULL ) {
+    return GDALGetDefaultHistogramEx( self, min_ret, max_ret, buckets_ret,
+                                    ppanHistogram, force, 
+                                    callback, callback_data );
+}
+#if defined(SWIGPERL)
+%clear (double *min_ret, double *max_ret);
+%clear (int *buckets_ret, int **ppanHistogram);
+%clear (CPLErr);
+#endif
+#else
+#ifndef SWIGJAVA
 %feature ("kwargs") GetDefaultHistogram;
 CPLErr GetDefaultHistogram( double *min_ret=NULL, double *max_ret=NULL, int *buckets_ret = NULL, 
                             int **ppanHistogram = NULL, int force = 1, 
@@ -506,14 +555,19 @@ CPLErr GetDefaultHistogram( double *min_ret=NULL, double *max_ret=NULL, int *buc
                                     ppanHistogram, force, 
                                     callback, callback_data );
 }
-#if defined(SWIGPERL)
-%clear (double *min_ret, double *max_ret);
-%clear (int *buckets_ret, int **ppanHistogram);
-%clear (CPLErr);
 #endif
 #endif
 
-#if defined(SWIGPERL) || defined(SWIGPYTHON) || defined(SWIGJAVA)
+#if defined(SWIGPYTHON) || defined(SWIGPERL)
+%apply (int nList, GUIntBig* pList) {(int buckets_in, GUIntBig *panHistogram_in)}
+CPLErr SetDefaultHistogram( double min, double max, 
+                            int buckets_in, GUIntBig *panHistogram_in ) {
+    return GDALSetDefaultHistogramEx( self, min, max, 
+                                    buckets_in, panHistogram_in );
+}
+%clear (int buckets_in, GUIntBig *panHistogram_in);
+#else
+#if defined(SWIGJAVA)
 %apply (int nList, int* pList) {(int buckets_in, int *panHistogram_in)}
 #endif
 CPLErr SetDefaultHistogram( double min, double max, 
@@ -521,8 +575,9 @@ CPLErr SetDefaultHistogram( double min, double max,
     return GDALSetDefaultHistogram( self, min, max, 
     	   			    buckets_in, panHistogram_in );
 }
-#if defined(SWIGPERL) || defined(SWIGPYTHON) || defined(SWIGJAVA)
+#if defined(SWIGJAVA)
 %clear (int buckets_in, int *panHistogram_in);
+#endif
 #endif
 
   /* Interface method added for GDAL 1.7.0 */

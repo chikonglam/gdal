@@ -1,6 +1,8 @@
 Description: Add support for building the libgdal-ecw plugin.
 Author: Francesco Paolo Lovergine <frankie@debian.org>
 Last-Update: 2013-10-04
+Forwarded: not-needed
+
 --- a/frmts/ecw/GNUmakefile
 +++ b/frmts/ecw/GNUmakefile
 @@ -21,3 +21,12 @@ plugin: $(PLUGIN_SO)

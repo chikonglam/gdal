@@ -1,5 +1,5 @@
 /**********************************************************************
- * $Id: cpl_vsil_stdin.cpp 27722 2014-09-22 15:37:31Z goatbar $
+ * $Id: cpl_vsil_stdin.cpp 29616 2015-08-06 10:07:50Z rouault $
  *
  * Project:  CPL - Common Portability Library
  * Purpose:  Implement VSI large file api for stdin
@@ -37,7 +37,7 @@
 #include <fcntl.h>
 #endif
 
-CPL_CVSID("$Id: cpl_vsil_stdin.cpp 27722 2014-09-22 15:37:31Z goatbar $");
+CPL_CVSID("$Id: cpl_vsil_stdin.cpp 29616 2015-08-06 10:07:50Z rouault $");
 
 /* We buffer the first 1MB of standard input to enable drivers */
 /* to autodetect data. In the first MB, backward and forward seeking */
@@ -157,8 +157,11 @@ int VSIStdinHandle::Seek( vsi_l_offset nOffset, int nWhence )
         return 0;
 
     VSIStdinInit();
-    if (nBufferLen == 0)
-        nRealPos = nBufferLen = fread(pabyBuffer, 1, BUFFER_SIZE, stdin);
+    if (nRealPos < BUFFER_SIZE )
+    {
+        nRealPos += fread(pabyBuffer + nRealPos, 1, BUFFER_SIZE - (int)nRealPos, stdin);
+        nBufferLen = nRealPos;
+    }
 
     if (nWhence == SEEK_END)
     {
@@ -264,7 +267,8 @@ size_t VSIStdinHandle::Read( void * pBuffer, size_t nSize, size_t nCount )
 /*                               Write()                                */
 /************************************************************************/
 
-size_t VSIStdinHandle::Write( CPL_UNUSED const void * pBuffer, CPL_UNUSED size_t nSize, 
+size_t VSIStdinHandle::Write( CPL_UNUSED const void * pBuffer,
+                              CPL_UNUSED size_t nSize,
                               CPL_UNUSED size_t nCount )
 {
     CPLError(CE_Failure, CPLE_NotSupported,

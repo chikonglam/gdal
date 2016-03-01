@@ -1,6 +1,6 @@
 Description: pass INSTALLDIRS=vendor to Makefile.PL to get stuff into the right place
 Origin: vendor
-Forwarded: no
+Forwarded: not-needed
 Author: gregor herrmann <gregoa@debian.org>
 Last-Update: 2014-07-08
 

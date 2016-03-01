@@ -50,6 +50,23 @@ configuration option</a> may be used to override the encoding interpretation
 of the shapefile with any encoding supported by CPLRecode or to "" to avoid
 any recoding. (Recoding support is new for GDAL/OGR 1.9.0)</p>
 
+<h2>Open options</h2>
+
+<p>Starting with GDAL 2.0, the following open options are available.</p>
+<ul>
+<li><b>ENCODING</b>=encoding_name: to override the encoding interpretation of the
+sshapefile with any encoding supported by CPLRecode or to "" to avoid any
+recoding</li>
+<li><b>DBF_DATE_LAST_UPDATE=</b><i>YYYY-MM-DD</i>: Modification
+date to write in DBF header with year-month-day format. If not specified, current date is used.</li>
+<li><b>ADJUST_TYPE</b>=YES/NO: Set to YES (default is NO) to read the whole .dbf to adjust 
+Real->Integer/Integer64 or Integer64->Integer field types when possible. This
+can be used when field widths are ambiguous and that by default OGR would select
+the larger data type. For example, a numeric column with 0 decimal figures and with
+width of 10/11 character may hold Integer or Integer64, and with width 19/20 may
+hold Integer64 or larger integer (hold as Real)</li>
+</ul>
+
 <h2>Spatial and Attribute Indexing</h2>
 
 <p>The OGR Shapefile driver supports spatial indexing and a limited form of
@@ -126,7 +143,7 @@ with a serial number from 1 to 99. </p><p>For example:</p>
 <li>abcdefghijk &rarr; abcdefghij, abcdefghijkl &rarr; abcdefgh_1</li></ul>
 </li>
 
-<li><p> Only Integer, Real, String and Date (not DateTime, just year/month/day)
+<li><p> Only Integer, Integer64, Real, String and Date (not DateTime, just year/month/day)
 field types are supported.  The various list, and binary field types cannot
 be created.</p></li>
 
@@ -135,7 +152,11 @@ size in the .dbf file.  This means that strings longer than the field
 width, or numbers that don't fit into the indicated field format will suffer
 truncation.</p></li>
 
-<li><p> Integer fields without an explicit width are treated as width 11.</p></li>
+<li><p> Integer fields without an explicit width are treated as width 9, and
+extended to 10 or 11 if needed.</p></li>
+
+<li><p> Integer64 fields without an explicit width are treated as width 18, and
+extended to 19 or 20 if needed.</p></li>
 
 <li><p> Real (floating point) fields without an explicit width are treated as
 width 24 with 15 decimal places of precision.</p></li>
@@ -153,11 +174,14 @@ as well as deleting shapes.  Deleted shapes are marked for deletion in
 the .dbf file, and then ignored by OGR.  To actually remove them permanently
 (resulting in renumbering of FIDs) invoke the SQL 'REPACK &lt;tablename&gt;' via
 the datasource ExecuteSQL() method.</p>
+<p>Starting with GDAL 2.0, REPACK will also result in .shp being rewritten if
+a feature geometry has been modified with SetFeature() and resulted in a change
+of the size the binary encoding of the geometry in the .shp file.</p>
 
 <h2>Field sizes</h2>
 
 <p>Starting with GDAL/OGR 1.10, the driver knows to auto-extend string and integer fields
-(up to the 255 bytes limit imposed by the DBF format) to dynamically accomodate for
+(up to the 255 bytes limit imposed by the DBF format) to dynamically accommodate for
 the length of the data to be inserted.</p>
 
 <p>It is also possible to force a resize of the fields to the optimal width by issuing a
@@ -218,6 +242,12 @@ size. See above "Field sizes" section. Defaults to NO.</li>
 <li> <b>2GB_LIMIT=</b><i>YES/NO</i>: (OGR &gt;= 1.11) set the YES to enforce the 2GB file size
 for .SHP or .DBF files. Defaults to NO.</li>
 
+<li> <b>SPATIAL_INDEX=</b><i>YES/NO</i>: (OGR &gt;= 2.0) set the YES to create a spatial index (.qix). Defaults to NO.</li>
+
+<li> <b>DBF_DATE_LAST_UPDATE=</b><i>YYYY-MM-DD</i>: (OGR &gt;= 2.0) Modification
+date to write in DBF header with year-month-day format. If not specified, current date is used.
+Note: behaviour of past GDAL releases was to write 1995-07-26</li>
+
 </ul>
 
 <h3>VSI Virtual File System API support</h3>
@@ -257,6 +287,18 @@ find existing layers and append the features being copied.</p>
 
 
 </ul>
+
+<h3>Advanced topics</h3>
+
+<p>
+(GDAL &gt;= 2.0) The SHAPE_REWIND_ON_WRITE configuration option/environment
+variable can be set to NO to prevent the shapefile writer to correct the
+winding order of exterior/interior rings to be conformant with the one mandated
+by the Shapefile specification. This can be useful in some situations where
+a MultiPolygon passed to the shapefile writer is not really a compliant Single
+Feature polygon, but originates from example from a MultiPatch object (from
+a Shapefile/FileGDB/PGeo datasource).
+</p>
 
 <h3>See Also</h3>
 

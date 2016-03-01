@@ -1,6 +1,7 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 #******************************************************************************
-#  $Id: epsg_tr.py 27044 2014-03-16 23:41:27Z rouault $
+#  $Id: epsg_tr.py 28389 2015-01-30 19:26:09Z rouault $
 # 
 #  Project:  CFS OGC MapServer
 #  Purpose:  Script to create WKT and PROJ.4 dictionaries for EPSG GCS/PCS
@@ -50,8 +51,6 @@ def Usage():
 # =============================================================================
 def trHandleCode(code, gen_dict_line, report_error, output_format):
 
-    import time
-
     try:
         err = prj_srs.ImportFromEPSG( code )
     except:
@@ -80,9 +79,13 @@ def trHandleCode(code, gen_dict_line, report_error, output_format):
         if output_format == '-proj4':
             out_string = prj_srs.ExportToProj4()
 
-            name = prj_srs.GetAttrValue('PROJCS')
+            name = prj_srs.GetAttrValue('COMPD_CS')
+            if name is None:
+                name = prj_srs.GetAttrValue('PROJCS')
             if name is None:
                 name = prj_srs.GetAttrValue('GEOGCS')
+            if name is None:
+                name = prj_srs.GetAttrValue('GEOCCS')
 
             if name is None:
                 name = 'Unknown'
@@ -95,9 +98,14 @@ def trHandleCode(code, gen_dict_line, report_error, output_format):
                 print('#')
 
         if output_format == '-postgis':
-            name = prj_srs.GetAttrValue('PROJCS')
+
+            name = prj_srs.GetAttrValue('COMPD_CS')
+            if name is None:
+                name = prj_srs.GetAttrValue('PROJCS')
             if name is None:
                 name = prj_srs.GetAttrValue('GEOGCS')
+            if name is None:
+                name = prj_srs.GetAttrValue('GEOCCS')
 
             try:
                 proj4text = prj_srs.ExportToProj4()

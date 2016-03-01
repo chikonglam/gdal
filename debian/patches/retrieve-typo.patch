@@ -1,9 +1,10 @@
 Description: Fix 'retrive' typo, replace with 'retrieve'.
 Author: Bas Couwenberg <sebastic@debian.org>
+Forwarded: not-needed
 
 --- a/frmts/raw/ehdrdataset.cpp
 +++ b/frmts/raw/ehdrdataset.cpp
-@@ -1600,7 +1600,7 @@ GDALDataset *EHdrDataset::Open( GDALOpen
+@@ -1605,7 +1605,7 @@ GDALDataset *EHdrDataset::Open( GDALOpen
              }
              else
              {

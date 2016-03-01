@@ -5,16 +5,16 @@ Forwarded: https://trac.osgeo.org/gdal/ticket/6324
 
 --- a/NEWS
 +++ b/NEWS
-@@ -899,7 +899,7 @@ Core:
+@@ -1665,7 +1665,7 @@ Core:
   * introduce OGRLayer::FindFieldIndex() / OGR_L_FindFieldIndex() to lookup potentially laundered field names (RFC 42)
   * OGR SQL: upgrade to support RFC 41 (multiple geometry fields)
   * OGR SQL: more stricter checks
-- * OGR SQL: make parsing error report a usefull hint where the syntax error occured
-+ * OGR SQL: make parsing error report a usefull hint where the syntax error occurred
+- * OGR SQL: make parsing error report a useful hint where the syntax error occured
++ * OGR SQL: make parsing error report a useful hint where the syntax error occurred
   * OGR SQL: fix thread-safety of swq_op_registrar::GetOperator() (#5196)
-  * OGR SQL: support not explicitely specifying AS keyword for aliasing a column spec
+  * OGR SQL: support not explicitly specifying AS keyword for aliasing a column spec
   * OGR SQL: don't call CONCAT(a_column ...) or SUBSTR(a_column ...) as a_column
-@@ -2139,7 +2139,7 @@ Core:
+@@ -2906,7 +2906,7 @@ Core:
   * Fix performance problem when serializing huge color tables, metadata, CategoryNames and GCPs to VRT/PAM (#3961)
   * Be careful about Nan complex values getting histogram, avoid locale issues with statistics metadata
   * GDALRasterBand::IRasterIO() default implementation : don't try to use full-res band if I/O failed on the appropriate overview band (for WMS errors)
@@ -25,7 +25,7 @@ Forwarded: https://trac.osgeo.org/gdal/ticket/6324
   * Add GDALFindAssociatedFile() (#4008)
 --- a/alg/gdalwarper.cpp
 +++ b/alg/gdalwarper.cpp
-@@ -1397,7 +1397,7 @@ GDALWarpOptions * CPL_STDCALL GDALDeseri
+@@ -1522,7 +1522,7 @@ GDALWarpOptions * CPL_STDCALL GDALDeseri
      }
  
  /* -------------------------------------------------------------------- */
@@ -47,7 +47,7 @@ Forwarded: https://trac.osgeo.org/gdal/ticket/6324
              {
 --- a/frmts/bsb/bsb_read.c
 +++ b/frmts/bsb/bsb_read.c
-@@ -844,7 +844,7 @@ int BSBReadScanline( BSBInfo *psInfo, in
+@@ -831,7 +831,7 @@ int BSBReadScanline( BSBInfo *psInfo, in
  /*      For reasons that are unclear, some scanlines are exactly one    */
  /*      pixel short (such as in the BSB 3.0 354704.KAP product from     */
  /*      NDI/CHS) but are otherwise OK.  Just add a zero if this         */
@@ -58,7 +58,7 @@ Forwarded: https://trac.osgeo.org/gdal/ticket/6324
              pabyScanlineBuf[iPixel++] = 0;
 --- a/frmts/epsilon/epsilondataset.cpp
 +++ b/frmts/epsilon/epsilondataset.cpp
-@@ -900,7 +900,7 @@ EpsilonDatasetCreateCopy( const char * p
+@@ -903,7 +903,7 @@ EpsilonDatasetCreateCopy( const char * p
                                             (char*) pszFilter, eMode))
                  {
                      CPLError(CE_Failure, CPLE_AppDefined,
@@ -67,7 +67,7 @@ Forwarded: https://trac.osgeo.org/gdal/ticket/6324
                               nBlockXOff, nBlockYOff);
                      eErr = CE_Failure;
                  }
-@@ -921,7 +921,7 @@ EpsilonDatasetCreateCopy( const char * p
+@@ -924,7 +924,7 @@ EpsilonDatasetCreateCopy( const char * p
                                             (char*) pszFilter, eMode))
                  {
                      CPLError(CE_Failure, CPLE_AppDefined,
@@ -113,7 +113,7 @@ Forwarded: https://trac.osgeo.org/gdal/ticket/6324
      int nResult = poSFDefn->ExtractIntData( pachData, nBytesRemaining, 
 --- a/frmts/raw/envidataset.cpp
 +++ b/frmts/raw/envidataset.cpp
-@@ -2300,7 +2300,7 @@ GDALDataset *ENVIDataset::Open( GDALOpen
+@@ -2299,7 +2299,7 @@ GDALDataset *ENVIDataset::Open( GDALOpen
      {
          delete poDS;
          CPLError( CE_Failure, CPLE_AppDefined, 
@@ -124,7 +124,7 @@ Forwarded: https://trac.osgeo.org/gdal/ticket/6324
      
 --- a/frmts/raw/genbindataset.cpp
 +++ b/frmts/raw/genbindataset.cpp
-@@ -806,7 +806,7 @@ GDALDataset *GenBinDataset::Open( GDALOp
+@@ -808,7 +808,7 @@ GDALDataset *GenBinDataset::Open( GDALOp
      {
          delete poDS;
          CPLError( CE_Failure, CPLE_AppDefined, 
@@ -199,7 +199,7 @@ Forwarded: https://trac.osgeo.org/gdal/ticket/6324
   */
 --- a/gcore/gdal_misc.cpp
 +++ b/gcore/gdal_misc.cpp
-@@ -2758,7 +2758,7 @@ GDALDataset *GDALFindAssociatedAuxFile(
+@@ -2845,7 +2845,7 @@ GDALDataset *GDALFindAssociatedAuxFile(
  /*      file.  Check that we are the dependent file of the aux          */
  /*      file, or if we aren't verify that the dependent file does       */
  /*      not exist, likely mean it is us but some sort of renaming       */
@@ -221,7 +221,7 @@ Forwarded: https://trac.osgeo.org/gdal/ticket/6324
   * @param dfTimeout the number of seconds to wait for additional updates.  Use 
 --- a/gcore/gdalrasterband.cpp
 +++ b/gcore/gdalrasterband.cpp
-@@ -202,7 +202,7 @@ CPLErr GDALRasterBand::RasterIO( GDALRWF
+@@ -224,7 +224,7 @@ CPLErr GDALRasterBand::RasterIO( GDALRWF
      if( eRWFlag == GF_Write && eFlushBlockErr != CE_None )
      {
          ReportError(eFlushBlockErr, CPLE_AppDefined,
@@ -230,7 +230,7 @@ Forwarded: https://trac.osgeo.org/gdal/ticket/6324
          CPLErr eErr = eFlushBlockErr;
          eFlushBlockErr = CE_None;
          return eErr;
-@@ -521,7 +521,7 @@ CPLErr GDALRasterBand::WriteBlock( int n
+@@ -579,7 +579,7 @@ CPLErr GDALRasterBand::WriteBlock( int n
      if( eFlushBlockErr != CE_None )
      {
          ReportError(eFlushBlockErr, CPLE_AppDefined,
@@ -239,7 +239,7 @@ Forwarded: https://trac.osgeo.org/gdal/ticket/6324
          CPLErr eErr = eFlushBlockErr;
          eFlushBlockErr = CE_None;
          return eErr;
-@@ -855,7 +855,7 @@ CPLErr GDALRasterBand::FlushCache()
+@@ -918,7 +918,7 @@ CPLErr GDALRasterBand::FlushCache()
      if (eFlushBlockErr != CE_None)
      {
          ReportError(eFlushBlockErr, CPLE_AppDefined,
@@ -248,7 +248,7 @@ Forwarded: https://trac.osgeo.org/gdal/ticket/6324
          eFlushBlockErr = CE_None;
      }
  
-@@ -4901,9 +4901,9 @@ unsigned char* GDALRasterBand::GetIndexC
+@@ -5270,9 +5270,9 @@ unsigned char* GDALRasterBand::GetIndexC
  /************************************************************************/
  
  /**
@@ -262,21 +262,18 @@ Forwarded: https://trac.osgeo.org/gdal/ticket/6324
   * report that a dirty block could not be written correctly. This function
 --- a/gcore/overview.cpp
 +++ b/gcore/overview.cpp
-@@ -1630,9 +1630,9 @@ GDALRegenerateOverviews( GDALRasterBandH
- /*      amount of computation.                                          */
- /* -------------------------------------------------------------------- */
+@@ -2259,7 +2259,7 @@ GDALRegenerateOverviews( GDALRasterBandH
  
--    /* In case the mask made be computed from another band of the dataset, */
-+    /* In case the mask made be computed from another band of the dataset,   */
+     /* In case the mask made be computed from another band of the dataset, */
      /* we can't use cascaded generation, as the computation of the overviews */
 -    /* of the band used for the mask band may not have yet occured (#3033) */
-+    /* of the band used for the mask band may not have yet occurred (#3033)  */
-     if( (EQUALN(pszResampling,"AVER",4) || EQUALN(pszResampling,"GAUSS",5)) && nOverviewCount > 1
-          && !(bUseNoDataMask && nMaskFlags != GMF_NODATA))
-         return GDALRegenerateCascadingOverviews( poSrcBand, 
++    /* of the band used for the mask band may not have yet occurred (#3033) */
+     if( (EQUALN(pszResampling,"AVER",4) |
+          EQUALN(pszResampling,"GAUSS",5) ||
+          EQUAL(pszResampling,"CUBIC") ||
 --- a/gcore/rasterio.cpp
 +++ b/gcore/rasterio.cpp
-@@ -74,7 +74,7 @@ CPLErr GDALRasterBand::IRasterIO( GDALRW
+@@ -79,7 +79,7 @@ CPLErr GDALRasterBand::IRasterIO( GDALRW
      if( eRWFlag == GF_Write && eFlushBlockErr != CE_None )
      {
          CPLError(eFlushBlockErr, CPLE_AppDefined,
@@ -298,7 +295,7 @@ Forwarded: https://trac.osgeo.org/gdal/ticket/6324
  OGRErr OGR_SRSNode::applyRemapper( const char *pszNode, 
 --- a/ogr/ogrgeometry.cpp
 +++ b/ogr/ogrgeometry.cpp
-@@ -3660,7 +3660,7 @@ int OGR_G_Centroid( OGRGeometryH hGeom,
+@@ -4125,7 +4125,7 @@ int OGR_G_Centroid( OGRGeometryH hGeom,
   *
   * @param hGeom the geometry to operate on. 
   * @return a point guaranteed to lie on the surface or NULL if an error
@@ -353,7 +350,7 @@ Forwarded: https://trac.osgeo.org/gdal/ticket/6324
  #define GOTO_END_ERROR do { error_occured(__LINE__); goto end_error; } while(0)
 --- a/ogr/ogrsf_frmts/osm/ogrosmdatasource.cpp
 +++ b/ogr/ogrsf_frmts/osm/ogrosmdatasource.cpp
-@@ -3607,7 +3607,7 @@ int OGROSMDataSource::ParseNextChunk(int
+@@ -3729,7 +3729,7 @@ int OGROSMDataSource::ParseNextChunk(int
              else
              {
                  CPLError(CE_Failure, CPLE_AppDefined,
@@ -362,21 +359,10 @@ Forwarded: https://trac.osgeo.org/gdal/ticket/6324
                           OSM_GetBytesRead(psParser));
  
                  bStopParsing = TRUE;
---- a/ogr/ogrsf_frmts/pg/ogrpgdatasource.cpp
-+++ b/ogr/ogrsf_frmts/pg/ogrpgdatasource.cpp
-@@ -2388,7 +2388,7 @@ OGRLayer * OGRPGDataSource::ExecuteSQL(
-     }
- 
- /* -------------------------------------------------------------------- */
--/*      Generate an error report if an error occured.                   */
-+/*      Generate an error report if an error occurred.                  */
- /* -------------------------------------------------------------------- */
-     if( !hResult ||
-         (PQresultStatus(hResult) == PGRES_NONFATAL_ERROR
 --- a/ogr/ogrsf_frmts/pg/ogrpgutility.cpp
 +++ b/ogr/ogrsf_frmts/pg/ogrpgutility.cpp
-@@ -79,7 +79,7 @@ PGresult *OGRPG_PQexec(PGconn *conn, con
-         CPLDebug("PG", "PQexecParams(%s) = %s%s", query, pszRetCode, szNTuples);
+@@ -81,7 +81,7 @@ PGresult *OGRPG_PQexec(PGconn *conn, con
+ #endif
  
  /* -------------------------------------------------------------------- */
 -/*      Generate an error report if an error occured.                   */
@@ -386,18 +372,18 @@ Forwarded: https://trac.osgeo.org/gdal/ticket/6324
                        PQresultStatus(hResult) == PGRES_FATAL_ERROR ) )
 --- a/ogr/ogrsf_frmts/shape/shape2ogr.cpp
 +++ b/ogr/ogrsf_frmts/shape/shape2ogr.cpp
-@@ -1336,7 +1336,7 @@ OGRErr SHPWriteOGRFeature( SHPHandle hSH
+@@ -1429,7 +1429,7 @@ OGRErr SHPWriteOGRFeature( SHPHandle hSH
                  if( nCounter <= 10 )
                  {
                      CPLError(CE_Warning, CPLE_AppDefined,
--                             "Value %.18g of field %s with 0 decimal of feature %ld is bigger than 2^53. Precision loss likely occured or going to happen.%s",
-+                             "Value %.18g of field %s with 0 decimal of feature %ld is bigger than 2^53. Precision loss likely occurred or going to happen.%s",
+-                             "Value %.18g of field %s with 0 decimal of feature " CPL_FRMT_GIB " is bigger than 2^53. Precision loss likely occured or going to happen.%s",
++                             "Value %.18g of field %s with 0 decimal of feature " CPL_FRMT_GIB " is bigger than 2^53. Precision loss likely occurred or going to happen.%s",
                               dfVal, poFieldDefn->GetNameRef(), poFeature->GetFID(),
                               (nCounter == 10) ? " This warning will not be emitted anymore." : "");
                      nCounter ++;
 --- a/ogr/ogrsf_frmts/sqlite/ogrsqliteexecutesql.cpp
 +++ b/ogr/ogrsf_frmts/sqlite/ogrsqliteexecutesql.cpp
-@@ -645,7 +645,7 @@ CPL_UNUSED
+@@ -635,7 +635,7 @@ int OGR2SQLITEDealWithSpatialColumn(OGRL
      if( rc != SQLITE_OK )
      {
          CPLDebug("SQLITE",
@@ -406,7 +392,7 @@ Forwarded: https://trac.osgeo.org/gdal/ticket/6324
                      sqlite3_errmsg(hDB));
      }
  #else //  ENABLE_VIRTUAL_OGR_SPATIAL_INDEX
-@@ -701,7 +701,7 @@ CPL_UNUSED
+@@ -691,7 +691,7 @@ int OGR2SQLITEDealWithSpatialColumn(OGRL
      else
      {
          CPLDebug("SQLITE",
@@ -417,7 +403,7 @@ Forwarded: https://trac.osgeo.org/gdal/ticket/6324
      }
 --- a/ogr/ogrsf_frmts/tiger/tigercompletechain.cpp
 +++ b/ogr/ogrsf_frmts/tiger/tigercompletechain.cpp
-@@ -488,7 +488,7 @@ int TigerCompleteChain::AddShapePoints(
+@@ -489,7 +489,7 @@ int TigerCompleteChain::AddShapePoints(
  
      nShapeRecId = GetShapeRecordId( nRecordId, nTLID );
  
@@ -450,7 +436,7 @@ Forwarded: https://trac.osgeo.org/gdal/ticket/6324
      int n = context->pszLastValid - context->pszInput;
 --- a/port/cpl_error.cpp
 +++ b/port/cpl_error.cpp
-@@ -134,7 +134,7 @@ void* CPL_STDCALL CPLGetErrorHandlerUser
+@@ -135,7 +135,7 @@ void* CPL_STDCALL CPLGetErrorHandlerUser
   * The eErrClass argument can have the value CE_Warning indicating that the
   * message is an informational warning, CE_Failure indicating that the
   * action failed, but that normal recover mechanisms will be used or
@@ -461,7 +447,7 @@ Forwarded: https://trac.osgeo.org/gdal/ticket/6324
   * The default behaviour of CPLError() is to report errors to stderr,
 --- a/port/cpl_odbc.cpp
 +++ b/port/cpl_odbc.cpp
-@@ -761,7 +761,7 @@ short CPLODBCStatement::GetColNullable(
+@@ -802,7 +802,7 @@ const char *CPLODBCStatement::GetColColu
   * be considered reliable on all drivers. 
   *
   * Currently it isn't clear how to determine whether an error or a normal
@@ -483,7 +469,7 @@ Forwarded: https://trac.osgeo.org/gdal/ticket/6324
          CPLError(CE_Failure, CPLE_AppDefined, "[%s error] %s", papszArgv[0], pData);
 --- a/port/cpl_string.cpp
 +++ b/port/cpl_string.cpp
-@@ -1142,7 +1142,7 @@ const char *CSLFetchNameValue(char **pap
+@@ -1588,7 +1588,7 @@ const char *CSLFetchNameValue(char **pap
   * @param papszStrList the string list to search.
   * @param pszName the key value to look for (case insensitive).
   *
@@ -492,7 +478,7 @@ Forwarded: https://trac.osgeo.org/gdal/ticket/6324
   * matching the given key.
   */
  
-@@ -2083,7 +2083,7 @@ CPLValueType CPLGetValueType(const char*
+@@ -2559,7 +2559,7 @@ CPLValueType CPLGetValueType(const char*
  \verbatim
  char szDest[5];
  if (CPLStrlcpy(szDest, "abcde", sizeof(szDest)) >= sizeof(szDest))
@@ -501,7 +487,7 @@ Forwarded: https://trac.osgeo.org/gdal/ticket/6324
  \endverbatim
  
   * @param pszDest   destination buffer
-@@ -2135,7 +2135,7 @@ size_t CPLStrlcpy(char* pszDest, const c
+@@ -2611,7 +2611,7 @@ size_t CPLStrlcpy(char* pszDest, const c
  char szDest[5];
  CPLStrlcpy(szDest, "ab", sizeof(szDest));
  if (CPLStrlcat(szDest, "cde", sizeof(szDest)) >= sizeof(szDest))
@@ -512,7 +498,7 @@ Forwarded: https://trac.osgeo.org/gdal/ticket/6324
   * @param pszDest   destination buffer. Must be NUL terminated before running CPLStrlcat
 --- a/port/cpl_virtualmem.cpp
 +++ b/port/cpl_virtualmem.cpp
-@@ -66,7 +66,7 @@
+@@ -64,7 +64,7 @@
     - mremap() with 5 args is Linux specific. It is used when the user callback is invited
       to fill a page, we currently mmap() a writable page, let it filled it,
       and afterwards mremap() that temporary page onto the location where the
@@ -523,19 +509,19 @@ Forwarded: https://trac.osgeo.org/gdal/ticket/6324
       a non-paused thread could access a page that is in the middle of being
 --- a/port/cpl_vsil.cpp
 +++ b/port/cpl_vsil.cpp
-@@ -750,7 +750,7 @@ size_t VSIFWriteL( const void *pBuffer,
+@@ -754,7 +754,7 @@ size_t VSIFWriteL( const void *pBuffer,
  /**
   * \brief Test for end of file.
   *
 - * Returns TRUE (non-zero) if an end-of-file condition occured during the
 + * Returns TRUE (non-zero) if an end-of-file condition occurred during the
-  * previous read operation. The end-of-file flag is cleared by a successfull
+  * previous read operation. The end-of-file flag is cleared by a successful
   * VSIFSeekL() call.
   *
 --- a/swig/csharp/gdal/gdal_wrap.cpp
 +++ b/swig/csharp/gdal/gdal_wrap.cpp
-@@ -708,7 +708,7 @@ void GDAL_GCP_set_Id( GDAL_GCP *gcp, con
- 
+@@ -717,7 +717,7 @@ void GDAL_GCP_set_Id( GDAL_GCP *gcp, con
+ }
  
  
 -/* Returned size is in bytes or 0 if an error occured */
@@ -543,7 +529,7 @@ Forwarded: https://trac.osgeo.org/gdal/ticket/6324
  static
  GIntBig ComputeDatasetRasterIOSize (int buf_xsize, int buf_ysize, int nPixelSize,
                                  int nBands, int* bandMap, int nBandMapArrayLength,
-@@ -966,7 +966,7 @@ int GDALDatasetShadow_RasterCount_get( G
+@@ -997,7 +997,7 @@ int GDALDatasetShadow_RasterCount_get( G
  }
  
  
@@ -551,7 +537,7 @@ Forwarded: https://trac.osgeo.org/gdal/ticket/6324
 +/* Returned size is in bytes or 0 if an error occurred */
  static
  GIntBig ComputeBandRasterIOSize (int buf_xsize, int buf_ysize, int nPixelSize,
-                              int nPixelSpace, int nLineSpace,
+                                  GIntBig nPixelSpace, GIntBig nLineSpace,
 --- a/swig/include/Band.i
 +++ b/swig/include/Band.i
 @@ -36,7 +36,7 @@
@@ -562,7 +548,7 @@ Forwarded: https://trac.osgeo.org/gdal/ticket/6324
 +/* Returned size is in bytes or 0 if an error occurred */
  static
  GIntBig ComputeBandRasterIOSize (int buf_xsize, int buf_ysize, int nPixelSize,
-                              int nPixelSpace, int nLineSpace,
+                                  GIntBig nPixelSpace, GIntBig nLineSpace,
 --- a/swig/include/Dataset.i
 +++ b/swig/include/Dataset.i
 @@ -29,7 +29,7 @@
@@ -587,7 +573,7 @@ Forwarded: https://trac.osgeo.org/gdal/ticket/6324
   * The default behaviour of Error() is to report errors to stderr,
 --- a/swig/perl/gdal_wrap.cpp
 +++ b/swig/perl/gdal_wrap.cpp
-@@ -2259,7 +2259,7 @@ CreateArrayFromDoubleArray( double *firs
+@@ -2214,7 +2214,7 @@ CreateArrayFromDoubleArray( double *firs
  }
  
  
@@ -596,7 +582,7 @@ Forwarded: https://trac.osgeo.org/gdal/ticket/6324
  static
  GIntBig ComputeDatasetRasterIOSize (int buf_xsize, int buf_ysize, int nPixelSize,
                                  int nBands, int* bandMap, int nBandMapArrayLength,
-@@ -2607,7 +2607,7 @@ int GDALDatasetShadow_RasterCount_get( G
+@@ -2600,7 +2600,7 @@ int GDALDatasetShadow_RasterCount_get( G
  }
  
  
@@ -604,7 +590,7 @@ Forwarded: https://trac.osgeo.org/gdal/ticket/6324
 +/* Returned size is in bytes or 0 if an error occurred */
  static
  GIntBig ComputeBandRasterIOSize (int buf_xsize, int buf_ysize, int nPixelSize,
-                              int nPixelSpace, int nLineSpace,
+                                  GIntBig nPixelSpace, GIntBig nLineSpace,
 --- a/swig/php/gdal_wrap.cpp
 +++ b/swig/php/gdal_wrap.cpp
 @@ -1438,7 +1438,7 @@ t_output_helper( zval **target, zval *o)
@@ -627,7 +613,7 @@ Forwarded: https://trac.osgeo.org/gdal/ticket/6324
                               int nPixelSpace, int nLineSpace,
 --- a/swig/python/extensions/gdal_wrap.cpp
 +++ b/swig/python/extensions/gdal_wrap.cpp
-@@ -3843,7 +3843,7 @@ SWIGINTERN void CPLVirtualMemShadow_Pin(
+@@ -3819,7 +3819,7 @@ SWIGINTERN void CPLVirtualMemShadow_Pin(
          CPLVirtualMemPin(self->vmem, start_addr, nsize, bWriteOp);
      }
  
@@ -636,7 +622,7 @@ Forwarded: https://trac.osgeo.org/gdal/ticket/6324
  static
  GIntBig ComputeDatasetRasterIOSize (int buf_xsize, int buf_ysize, int nPixelSize,
                                  int nBands, int* bandMap, int nBandMapArrayLength,
-@@ -4364,7 +4364,7 @@ int GDALDatasetShadow_RasterCount_get( G
+@@ -4450,7 +4450,7 @@ int GDALDatasetShadow_RasterCount_get( G
  }
  
  
@@ -644,7 +630,7 @@ Forwarded: https://trac.osgeo.org/gdal/ticket/6324
 +/* Returned size is in bytes or 0 if an error occurred */
  static
  GIntBig ComputeBandRasterIOSize (int buf_xsize, int buf_ysize, int nPixelSize,
-                              int nPixelSpace, int nLineSpace,
+                                  GIntBig nPixelSpace, GIntBig nLineSpace,
 --- a/swig/python/samples/ogr_layer_algebra.py
 +++ b/swig/python/samples/ogr_layer_algebra.py
 @@ -430,7 +430,7 @@ def main(argv = None):
@@ -658,7 +644,7 @@ Forwarded: https://trac.osgeo.org/gdal/ticket/6324
      return 0
 --- a/swig/python/samples/ogrupdate.py
 +++ b/swig/python/samples/ogrupdate.py
-@@ -437,7 +437,7 @@ def ogrupdate_process(src_layer, dst_lay
+@@ -433,7 +433,7 @@ def ogrupdate_process(src_layer, dst_lay
          if ret != 0:
              if not skip_failures:
                  if gdal.GetLastErrorMsg() == '':
@@ -738,7 +724,7 @@ Forwarded: https://trac.osgeo.org/gdal/ticket/6324
          char    *pszValue = NULL;
 --- a/ogr/ogrsf_frmts/csv/drv_csv.html
 +++ b/ogr/ogrsf_frmts/csv/drv_csv.html
-@@ -52,7 +52,7 @@ if there's no other potential separator
+@@ -57,7 +57,7 @@ if there's no other potential separator
  Otherwise it will default to comma as separator.</p>
  
  <p>Complex attribute values (such as those containing commas, quotes or newlines) 
@@ -747,17 +733,6 @@ Forwarded: https://trac.osgeo.org/gdal/ticket/6324
  the quoted string should be doubled up to "escape" them.</p>
  
  <p>The driver attempts to treat the first line of the file as a list of field 
---- a/ogr/wcts/html/install.html
-+++ b/ogr/wcts/html/install.html
-@@ -113,7 +113,7 @@ wcts_capabilities.xml.0.1.0.  It should
- the nature of the service being setup.  In particular, the ContactInformation
- should be updated to refer to whoever is setting up the service.  Also, all
- the service URLs all need to be updated to reflect the url for the service
--as it is being installed.  Change each occurance of 
-+as it is being installed.  Change each occurrence of 
- "http://maps.gdal.org/cgi-bin/ogrwcts?to the appropriate value. <p>
- 
- <pre>
 --- a/vb6/README.TXT
 +++ b/vb6/README.TXT
 @@ -23,7 +23,7 @@ Quick Test Run
@@ -769,3 +744,105 @@ Forwarded: https://trac.osgeo.org/gdal/ticket/6324
  
     But for the test app to run, you need to have the sample files in the
     current directory, so you might as well just make a shortcut copy of your
+--- a/frmts/ecw/ecwdataset.cpp
++++ b/frmts/ecw/ecwdataset.cpp
+@@ -2389,7 +2389,7 @@ CNCSJP2FileView *ECWDataset::OpenFileVie
+     }
+     catch(...)
+     {
+-        CPLError(CE_Failure, CPLE_AppDefined, "Unexpected exception occured in ECW SDK");
++        CPLError(CE_Failure, CPLE_AppDefined, "Unexpected exception occurred in ECW SDK");
+         delete poFileView;
+         return NULL;
+     }
+--- a/frmts/plmosaic/plmosaicdataset.cpp
++++ b/frmts/plmosaic/plmosaicdataset.cpp
+@@ -670,7 +670,7 @@ static void ReplaceSubString(CPLString &
+                              CPLString osReplacement)
+ 
+ {
+-    // assumes only one occurance of osPattern
++    // assumes only one occurrence of osPattern
+     size_t pos = osTarget.find(osPattern);
+     if( pos == CPLString::npos )
+         return;
+--- a/gcore/gdaljp2metadatagenerator.cpp
++++ b/gcore/gdaljp2metadatagenerator.cpp
+@@ -772,7 +772,7 @@ static void GDALGMLJP2XPathErrorHandler(
+     }
+     else
+     {
+-        CPLError(CE_Failure, CPLE_AppDefined, "An error occured in libxml2");
++        CPLError(CE_Failure, CPLE_AppDefined, "An error occurred in libxml2");
+     }
+ }
+ 
+--- a/ogr/ogrfeature.cpp
++++ b/ogr/ogrfeature.cpp
+@@ -1324,7 +1324,7 @@ int OGRFeature::GetFieldAsInteger( int i
+             if( (GIntBig)nVal != nFID )
+             {
+                 CPLError(CE_Warning, CPLE_AppDefined,
+-                 "Integer overflow occured when trying to return 64bit integer. "
++                 "Integer overflow occurred when trying to return 64bit integer. "
+                  "Use GetFieldAsInteger64() instead");
+             }
+             return nVal;
+@@ -1358,7 +1358,7 @@ int OGRFeature::GetFieldAsInteger( int i
+         if( (GIntBig)nVal != nVal64 )
+         {
+             CPLError(CE_Warning, CPLE_AppDefined,
+-                 "Integer overflow occured when trying to return 64bit integer. "
++                 "Integer overflow occurred when trying to return 64bit integer. "
+                  "Use GetFieldAsInteger64() instead");
+         }
+         return nVal;
+@@ -2650,7 +2650,7 @@ void OGRFeature::SetField( int iField, G
+         if( (GIntBig)nVal32 != nValue )
+         {
+             CPLError(CE_Warning, CPLE_AppDefined,
+-                 "Integer overflow occured when trying to set 32bit field.");
++                 "Integer overflow occurred when trying to set 32bit field.");
+         }
+         SetField(iField, nVal32);
+     }
+@@ -2668,7 +2668,7 @@ void OGRFeature::SetField( int iField, G
+         if( (GIntBig)nVal32 != nValue )
+         {
+             CPLError(CE_Warning, CPLE_AppDefined,
+-                 "Integer overflow occured when trying to set 32bit field.");
++                 "Integer overflow occurred when trying to set 32bit field.");
+         }
+         SetField( iField, 1, &nVal32 );
+     }
+@@ -3172,7 +3172,7 @@ void OGRFeature::SetField( int iField, i
+             if( (GIntBig)nVal32 != nValue )
+             {
+                 CPLError(CE_Warning, CPLE_AppDefined,
+-                     "Integer overflow occured when trying to set 32bit field.");
++                     "Integer overflow occurred when trying to set 32bit field.");
+             }
+             anValues.push_back( nVal32 );
+         }
+--- a/ogr/ogrsf_frmts/filegdb/FGdbDatasource.cpp
++++ b/ogr/ogrsf_frmts/filegdb/FGdbDatasource.cpp
+@@ -507,7 +507,7 @@ OGRLayer * FGdbDataSource::ExecuteSQL( c
+     catch(...)
+     {
+         CPLError(CE_Failure, CPLE_AppDefined,
+-                 "Exception occured at executing '%s'. Application may become unstable", pszSQLCommand);
++                 "Exception occurred at executing '%s'. Application may become unstable", pszSQLCommand);
+         delete pEnumRows;
+         return NULL;
+     }
+--- a/port/cpl_conv.cpp
++++ b/port/cpl_conv.cpp
+@@ -978,7 +978,7 @@ int CPLAtoGIntBigExHasOverflow(const cha
+  * 
+  * @param pszString String containing 64 bit signed integer.
+  * @param bWarn Issue a warning if an overflow occurs during conversion
+- * @param pbOverflow Pointer to an integer to store if an overflow occured, or NULL
++ * @param pbOverflow Pointer to an integer to store if an overflow occurred, or NULL
+  * @return 64 bit signed integer.
+  * @since GDAL 2.0
+  */

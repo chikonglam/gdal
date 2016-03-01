@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdal_contour.cpp 27741 2014-09-26 19:20:02Z goatbar $
+ * $Id: gdal_contour.cpp 27942 2014-11-11 00:57:41Z rouault $
  *
  * Project:  Contour Generator
  * Purpose:  Contour Generator mainline.
@@ -35,7 +35,7 @@
 #include "ogr_api.h"
 #include "ogr_srs_api.h"
 
-CPL_CVSID("$Id: gdal_contour.cpp 27741 2014-09-26 19:20:02Z goatbar $");
+CPL_CVSID("$Id: gdal_contour.cpp 27942 2014-11-11 00:57:41Z rouault $");
 
 /************************************************************************/
 /*                            ArgIsNumeric()                            */
@@ -129,12 +129,12 @@ int main( int argc, char ** argv )
         else if( EQUAL(argv[i],"-off") )
         {
             CHECK_HAS_ENOUGH_ADDITIONAL_ARGS(1);
-            dfOffset = atof(argv[++i]);
+            dfOffset = CPLAtof(argv[++i]);
         }
         else if( EQUAL(argv[i],"-i") )
         {
             CHECK_HAS_ENOUGH_ADDITIONAL_ARGS(1);
-            dfInterval = atof(argv[++i]);
+            dfInterval = CPLAtof(argv[++i]);
         }
         else if( EQUAL(argv[i],"-fl") )
         {
@@ -144,7 +144,7 @@ int main( int argc, char ** argv )
                    && nFixedLevelCount 
                              < (int)(sizeof(adfFixedLevels)/sizeof(double))
                    && ArgIsNumeric(argv[i+1]) )
-                adfFixedLevels[nFixedLevelCount++] = atof(argv[++i]);
+                adfFixedLevels[nFixedLevelCount++] = CPLAtof(argv[++i]);
         }
         else if( EQUAL(argv[i],"-b") )
         {
@@ -174,7 +174,7 @@ int main( int argc, char ** argv )
         {
             CHECK_HAS_ENOUGH_ADDITIONAL_ARGS(1);
             bNoDataSet = TRUE;
-            dfNoData = atof(argv[++i]);
+            dfNoData = CPLAtof(argv[++i]);
         }
         else if( EQUAL(argv[i],"-nln") )
         {

@@ -1,4 +1,4 @@
-.TH "gdalbuildvrt" 1 "Wed Sep 16 2015" "GDAL" \" -*- nroff -*-
+.TH "gdalbuildvrt" 1 "Tue Jan 26 2016" "GDAL" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -8,7 +8,6 @@ Builds a VRT from a list of datasets\&. (compiled by default since GDAL 1\&.6\&.
 .PP
 .PP
 .nf
-
 gdalbuildvrt [-tileindex field_name]
              [-resolution {highest|lowest|average|user}]
              [-te xmin ymin xmax ymax] [-tr xres yres] [-tap]
@@ -17,6 +16,7 @@ gdalbuildvrt [-tileindex field_name]
              [-addalpha] [-hidenodata]
              [-srcnodata "value [value...]"] [-vrtnodata "value [value...]"] 
              [-a_srs srs_def]
+             [-r {nearest,bilinear,cubic,cubicspline,lanczos,average,mode}]
              [-input_file_list my_liste.txt] [-overwrite] output.vrt [gdalfile]*
 .fi
 .PP
@@ -76,6 +76,9 @@ In case the resolution of all input files is not the same, the -resolution flag 
 .IP "\fB\fB-a_srs\fP \fIsrs_def\fP:\fP" 1c
 (starting with GDAL 1\&.10) Override the projection for the output file\&. The \fIsrs_def\fP may be any of the usual GDAL/OGR forms, complete WKT, PROJ\&.4, EPSG:n or a file containing the WKT\&. 
 .PP
+.IP "\fB\fB-r\fP \fI{nearest (default),bilinear,cubic,cubicspline,lanczos,average,mode}\fP:\fP" 1c
+(GDAL >= 2\&.0) Select a resampling algorithm\&.
+.PP
 .IP "\fB\fB-input_file_list\fP:\fP" 1c
 To specify a text file with an input filename on each line 
 .PP
@@ -92,7 +95,6 @@ Overwrite the VRT if it already exists\&.
 Make a virtual mosaic from all TIFF files contained in a directory : 
 .PP
 .nf
-
 gdalbuildvrt doq_index.vrt doq/*.tif
 
 .fi
@@ -101,7 +103,6 @@ gdalbuildvrt doq_index.vrt doq/*.tif
 Make a virtual mosaic from files whose name is specified in a text file : 
 .PP
 .nf
-
 gdalbuildvrt -input_file_list my_liste.txt doq_index.vrt
 
 .fi
@@ -110,7 +111,6 @@ gdalbuildvrt -input_file_list my_liste.txt doq_index.vrt
 Make a RGB virtual mosaic from 3 single-band input files : 
 .PP
 .nf
-
 gdalbuildvrt -separate rgb.vrt red.tif green.tif blue.tif
 
 .fi
@@ -119,11 +119,10 @@ gdalbuildvrt -separate rgb.vrt red.tif green.tif blue.tif
 Make a virtual mosaic with blue background colour (RGB: 0 0 255) : 
 .PP
 .nf
-
 gdalbuildvrt -hidenodata -vrtnodata "0 0 255" doq_index.vrt doq/*.tif
 
 .fi
 .PP
 .SH "AUTHOR"
 .PP
-Even Rouault <even.rouault@mines-paris.org> 
+Even Rouault even.rouault@mines-paris.org 

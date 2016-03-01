@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_csharp.i 15475 2008-10-07 21:40:20Z tamas $
+ * $Id: ogr_csharp.i 27384 2014-05-24 12:28:12Z rouault $
  *
  * Name:     ogr_csharp.i
  * Project:  GDAL CSharp Interface
@@ -40,6 +40,7 @@
 
 DEFINE_EXTERNAL_CLASS(OSRSpatialReferenceShadow, OSGeo.OSR.SpatialReference)
 DEFINE_EXTERNAL_CLASS(OSRCoordinateTransformationShadow, OSGeo.OSR.CoordinateTransformation)
+DEFINE_EXTERNAL_CLASS(GDALMajorObjectShadow, OSGeo.GDAL.MajorObject)
 
 
 %typemap(cscode, noblock="1") OGRGeometryShadow {

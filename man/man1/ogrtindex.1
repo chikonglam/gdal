@@ -1,4 +1,4 @@
-.TH "ogrtindex" 1 "Wed Sep 16 2015" "GDAL" \" -*- nroff -*-
+.TH "ogrtindex" 1 "Tue Jan 26 2016" "GDAL" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -9,7 +9,6 @@ creates a tileindex
 .PP
 .PP
 .nf
-
 ogrtindex [-lnum n]... [-lname name]... [-f output_format]
           [-write_absolute_path] [-skip_different_projection]
                  output_dataset src_dataset...
@@ -31,6 +30,8 @@ The name to use for the dataset name\&. Defaults to LOCATION\&.
 Filenames are written with absolute paths 
 .IP "\fB\fB-skip_different_projection\fP:\fP" 1c
 Only layers with same projection ref as layers already inserted in the tileindex will be inserted\&. 
+.IP "\fB\fB-accept_different_schemas\fP:\fP" 1c
+By default ogrtindex checks that all layers inserted into the index have the same attribute schemas\&. If you specify this option, this test will be disabled\&. Be aware that resulting index may be incompatible with MapServer! 
 .PP
 .PP
 If no -lnum or -lname arguments are given it is assumed that all layers in source datasets should be added to the tile index as independent records\&.
@@ -43,11 +44,10 @@ It is a flaw of the current ogrtindex program that no attempt is made to copy th
 This example would create a shapefile (tindex\&.shp) containing a tile index of the BL2000_LINK layers in all the NTF files in the wrk directory: 
 .PP
 .nf
-
 % ogrtindex tindex.shp wrk/*.NTF
 
 .fi
 .PP
 .SH "AUTHORS"
 .PP
-Frank Warmerdam <warmerdam@pobox.com>, Silke Reimer <silke@intevation.de> 
+Frank Warmerdam warmerdam@pobox.com, Silke Reimer silke@intevation.de 

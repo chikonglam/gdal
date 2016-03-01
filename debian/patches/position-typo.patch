@@ -1,9 +1,10 @@
 Description: Fix 'postion' typo, replace with 'position'.
 Author: Bas Couwenberg <sebastic@debian.org>
+Forwarded: not-needed
 
 --- a/apps/ogr_utilities.dox
 +++ b/apps/ogr_utilities.dox
-@@ -503,7 +503,7 @@ format. Also some information writed to
+@@ -566,7 +566,7 @@ format. Also some information writed to
  <dt> <b>-of</b><em>field_name</em>:</dt><dd> The field name for storing the 
      uniq values of input lines</dd>
  <dt> <b>-s</b><em>step</em>:</dt><dd> The part size in linear units</dd>
@@ -14,7 +15,7 @@ Author: Bas Couwenberg <sebastic@debian.org>
  <dt> <b>-get_coord</b>:</dt><dd> Return point on path for input linear distance</dd>
 --- a/apps/ogrlineref.cpp
 +++ b/apps/ogrlineref.cpp
-@@ -113,7 +113,7 @@ static void Usage(const char* pszAdditio
+@@ -114,7 +114,7 @@ static void Usage(const char* pszAdditio
          " -lf field_name: Field name for uniq paths in layer (optional)\n"
          " -p src_repers_datasource_name: Datasource of repers name\n"
          " -pn layer_name: Layer name in datasource (optional)\n"
@@ -47,7 +48,7 @@ Author: Bas Couwenberg <sebastic@debian.org>
  
 --- a/frmts/netcdf/netcdfdataset.cpp
 +++ b/frmts/netcdf/netcdfdataset.cpp
-@@ -4339,7 +4339,7 @@ GDALDataset *netCDFDataset::Open( GDALOp
+@@ -4378,7 +4378,7 @@ GDALDataset *netCDFDataset::Open( GDALOp
      int          nVarID=-1;
  
      int          nTmpFormat=NCDF_FORMAT_NONE;
@@ -56,7 +57,7 @@ Author: Bas Couwenberg <sebastic@debian.org>
      int          *panBandZLev=NULL;
      int          *paDimIds=NULL;
      size_t       xdim, ydim;
-@@ -5277,7 +5277,7 @@ netCDFDataset::CreateCopy( const char *
+@@ -5325,7 +5325,7 @@ netCDFDataset::CreateCopy( const char *
      int status = NC_NOERR;
  
      int nDim = 2;
@@ -67,7 +68,7 @@ Author: Bas Couwenberg <sebastic@debian.org>
      int          *panDimVarIds=NULL;
 --- a/man/man1/ogrlineref.1
 +++ b/man/man1/ogrlineref.1
-@@ -76,7 +76,7 @@ The field name for storing the uniq valu
+@@ -75,7 +75,7 @@ The field name for storing the uniq valu
  .IP "\fB\fB-s\fP\fIstep\fP:\fP" 1c
  The part size in linear units 
  .IP "\fB\fB-get_pos\fP:\fP" 1c

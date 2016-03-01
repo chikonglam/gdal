@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdal_rasterize.cpp 27044 2014-03-16 23:41:27Z rouault $
+ * $Id: gdal_rasterize.cpp 28039 2014-11-30 18:24:59Z rouault $
  *
  * Project:  GDAL Utilities
  * Purpose:  Rasterize OGR shapes into a GDAL raster.
@@ -37,7 +37,7 @@
 #include "commonutils.h"
 #include <vector>
 
-CPL_CVSID("$Id: gdal_rasterize.cpp 27044 2014-03-16 23:41:27Z rouault $");
+CPL_CVSID("$Id: gdal_rasterize.cpp 28039 2014-11-30 18:24:59Z rouault $");
 
 /************************************************************************/
 /*                            ArgIsNumeric()                            */
@@ -58,7 +58,7 @@ static void Usage()
 {
     printf( 
         "Usage: gdal_rasterize [-b band]* [-i] [-at]\n"
-        "       [-burn value]* | [-a attribute_name] [-3d]\n"
+        "       [-burn value]* | [-a attribute_name] [-3d] [-add]\n"
         "       [-l layername]* [-where expression] [-sql select_statement]\n"
         "       [-of format] [-a_srs srs_def] [-co \"NAME=VALUE\"]*\n"
         "       [-a_nodata value] [-init value]*\n"
@@ -341,7 +341,7 @@ GDALDatasetH CreateOutputDataset(std::vector<OGRLayerH> ahLayers,
             }
 
             /* When rasterizing point layers and that the bounds have */
-            /* not been explicitely set, voluntary increase the extent by */
+            /* not been explicitly set, voluntary increase the extent by */
             /* a half-pixel size to avoid missing points on the border */
             if (wkbFlatten(OGR_L_GetGeomType(hLayer)) == wkbPoint &&
                 !bTargetAlignedPixels && dfXRes != 0 && dfYRes != 0)
@@ -479,7 +479,7 @@ int main( int argc, char ** argv )
     double dfXRes = 0, dfYRes = 0;
     int bCreateOutput = FALSE;
     const char* pszFormat = "GTiff";
-    int bFormatExplicitelySet = FALSE;
+    int bFormatExplicitlySet = FALSE;
     char **papszCreateOptions = NULL;
     GDALDriverH hDriver = NULL;
     GDALDataType eOutputType = GDT_Float64;
@@ -560,6 +560,17 @@ int main( int argc, char ** argv )
             papszRasterizeOptions = 
                 CSLSetNameValue( papszRasterizeOptions, "BURN_VALUE_FROM", "Z");
         }
+        else if( EQUAL(argv[i],"-add")  )
+        {
+            papszRasterizeOptions = 
+                CSLSetNameValue( papszRasterizeOptions, "MERGE_ALG", "ADD");
+        }
+        else if( EQUAL(argv[i],"-chunkysize") && i < argc-1 )
+        {
+            papszRasterizeOptions = 
+                CSLSetNameValue( papszRasterizeOptions, "CHUNKYSIZE", 
+                                 argv[++i] );
+        }
         else if( EQUAL(argv[i],"-i")  )
         {
             bInverse = TRUE;
@@ -577,7 +588,7 @@ int main( int argc, char ** argv )
                 char** papszIter = papszTokens;
                 while(papszIter && *papszIter)
                 {
-                    adfBurnValues.push_back(atof(*papszIter));
+                    adfBurnValues.push_back(CPLAtof(*papszIter));
                     papszIter ++;
                 }
                 CSLDestroy(papszTokens);
@@ -587,7 +598,7 @@ int main( int argc, char ** argv )
             {
                 while(i < argc-1 && ArgIsNumeric(argv[i+1]))
                 {
-                    adfBurnValues.push_back(atof(argv[i+1]));
+                    adfBurnValues.push_back(CPLAtof(argv[i+1]));
                     i += 1;
                 }
             }
@@ -607,7 +618,7 @@ int main( int argc, char ** argv )
         else if( EQUAL(argv[i],"-of") && i < argc-1 )
         {
             pszFormat = argv[++i];
-            bFormatExplicitelySet = TRUE;
+            bFormatExplicitlySet = TRUE;
             bCreateOutput = TRUE;
         }
         else if( EQUAL(argv[i],"-init") && i < argc - 1 )
@@ -618,7 +629,7 @@ int main( int argc, char ** argv )
                 char** papszIter = papszTokens;
                 while(papszIter && *papszIter)
                 {
-                    adfInitVals.push_back(atof(*papszIter));
+                    adfInitVals.push_back(CPLAtof(*papszIter));
                     papszIter ++;
                 }
                 CSLDestroy(papszTokens);
@@ -628,7 +639,7 @@ int main( int argc, char ** argv )
             {
                 while(i < argc-1 && ArgIsNumeric(argv[i+1]))
                 {
-                    adfInitVals.push_back(atof(argv[i+1]));
+                    adfInitVals.push_back(CPLAtof(argv[i+1]));
                     i += 1;
                 }
             }
@@ -636,7 +647,7 @@ int main( int argc, char ** argv )
         }
         else if( EQUAL(argv[i],"-a_nodata") && i < argc - 1 )
         {
-            dfNoData = atof(argv[i+1]);
+            dfNoData = CPLAtof(argv[i+1]);
             bNoDataSet = TRUE;
             i += 1;
             bCreateOutput = TRUE;
@@ -658,19 +669,19 @@ int main( int argc, char ** argv )
 
         else if( EQUAL(argv[i],"-te") && i < argc - 4 )
         {
-            sEnvelop.MinX = atof(argv[++i]);
-            sEnvelop.MinY = atof(argv[++i]);
-            sEnvelop.MaxX = atof(argv[++i]);
-            sEnvelop.MaxY = atof(argv[++i]);
+            sEnvelop.MinX = CPLAtof(argv[++i]);
+            sEnvelop.MinY = CPLAtof(argv[++i]);
+            sEnvelop.MaxX = CPLAtof(argv[++i]);
+            sEnvelop.MaxY = CPLAtof(argv[++i]);
             bGotBounds = TRUE;
             bCreateOutput = TRUE;
         }
         else if( EQUAL(argv[i],"-a_ullr") && i < argc - 4 )
         {
-            sEnvelop.MinX = atof(argv[++i]);
-            sEnvelop.MaxY = atof(argv[++i]);
-            sEnvelop.MaxX = atof(argv[++i]);
-            sEnvelop.MinY = atof(argv[++i]);
+            sEnvelop.MinX = CPLAtof(argv[++i]);
+            sEnvelop.MaxY = CPLAtof(argv[++i]);
+            sEnvelop.MaxX = CPLAtof(argv[++i]);
+            sEnvelop.MinY = CPLAtof(argv[++i]);
             bGotBounds = TRUE;
             bCreateOutput = TRUE;
         }
@@ -714,8 +725,8 @@ int main( int argc, char ** argv )
         }
         else if( EQUAL(argv[i],"-tr") && i < argc-2 )
         {
-            dfXRes = atof(argv[++i]);
-            dfYRes = fabs(atof(argv[++i]));
+            dfXRes = CPLAtof(argv[++i]);
+            dfYRes = fabs(CPLAtof(argv[++i]));
             if( dfXRes == 0 || dfYRes == 0 )
             {
                 printf( "Wrong value for -tr parameters\n");
@@ -859,7 +870,7 @@ int main( int argc, char ** argv )
             exit( 1 );
         }
 
-        if (!bQuiet && !bFormatExplicitelySet)
+        if (!bQuiet && !bFormatExplicitlySet)
             CheckExtensionConsistency(pszDstFilename, pszFormat);
     }
     else

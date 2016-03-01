@@ -7,7 +7,7 @@
  * Author:   Ivan Lucena [ivan.lucena at oracle.com]
  *
  ******************************************************************************
- * Copyright (c) 2008, Ivan Lucena
+ * Copyright (c) 2008, Ivan Lucena <ivan dot lucena at oracle dot com>
  * Copyright (c) 2013, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
@@ -120,7 +120,7 @@ GDALDataset* GeoRasterDataset::Open( GDALOpenInfo* poOpenInfo )
     //  It shouldn't have an open file pointer
     //  -------------------------------------------------------------------
 
-    if( poOpenInfo->fp != NULL )
+    if( poOpenInfo->fpL != NULL )
     {
         return NULL;
     }
@@ -1064,7 +1064,7 @@ GDALDataset *GeoRasterDataset::CreateCopy( const char* pszFilename,
                         nBlockCols, nBlockRows, pData,
                         nBlockCols, nBlockRows, eType,
                         nPixelSize,
-                        nPixelSize * nBlockXSize );
+                        nPixelSize * nBlockXSize, NULL );
 
                     if( eErr != CE_None )
                     {
@@ -1122,7 +1122,7 @@ GDALDataset *GeoRasterDataset::CreateCopy( const char* pszFilename,
                         nBlockCols, nBlockRows, pData,
                         nBlockCols, nBlockRows, eType,
                         nPixelSize,
-                        nPixelSize * nBlockXSize );
+                        nPixelSize * nBlockXSize, NULL );
 
                     if( eErr != CE_None )
                     {
@@ -1183,7 +1183,9 @@ CPLErr GeoRasterDataset::IRasterIO( GDALRWFlag eRWFlag,
                                     void *pData, int nBufXSize, int nBufYSize,
                                     GDALDataType eBufType,
                                     int nBandCount, int *panBandMap,
-                                    int nPixelSpace, int nLineSpace, int nBandSpace )
+                                    GSpacing nPixelSpace, GSpacing nLineSpace,
+                                    GSpacing nBandSpace,
+                                    GDALRasterIOExtraArg* psExtraArg )
 
 {
     if( poGeoRaster->nBandBlockSize > 1 )
@@ -1192,7 +1194,7 @@ CPLErr GeoRasterDataset::IRasterIO( GDALRWFlag eRWFlag,
             nXOff, nYOff, nXSize, nYSize,
             pData, nBufXSize, nBufYSize, eBufType,
             nBandCount, panBandMap, nPixelSpace,
-            nLineSpace, nBandSpace );
+            nLineSpace, nBandSpace, psExtraArg );
     }
     else
     {
@@ -1200,7 +1202,7 @@ CPLErr GeoRasterDataset::IRasterIO( GDALRWFlag eRWFlag,
             nXOff, nYOff, nXSize, nYSize,
             pData, nBufXSize, nBufYSize, eBufType,
             nBandCount, panBandMap,
-            nPixelSpace, nLineSpace, nBandSpace );
+            nPixelSpace, nLineSpace, nBandSpace, psExtraArg );
     }
 }
 
@@ -2284,6 +2286,7 @@ void CPL_DLL GDALRegister_GEOR()
         poDriver = new GDALDriver();
 
         poDriver->SetDescription(  "GeoRaster" );
+        poDriver->SetMetadataItem( GDAL_DCAP_RASTER, "YES" );
         poDriver->SetMetadataItem( GDAL_DMD_LONGNAME,
                                    "Oracle Spatial GeoRaster" );
         poDriver->SetMetadataItem( GDAL_DMD_HELPTOPIC, "frmt_georaster.html" );

@@ -1,4 +1,4 @@
-.TH "gdal_sieve" 1 "Wed Sep 16 2015" "GDAL" \" -*- nroff -*-
+.TH "gdal_sieve" 1 "Tue Jan 26 2016" "GDAL" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -8,7 +8,6 @@ removes small raster polygons
 .PP
 .PP
 .nf
-
 gdal_sieve.py [-q] [-st threshold] [-4] [-8] [-o name=value]
            srcfile [-nomask] [-mask filename] [-of format] [dstfile]
 .fi
@@ -20,7 +19,7 @@ The gdal_sieve\&.py script removes raster polygons smaller than a provided thres
 Additional details on the algorithm are available in the GDALSieveFilter() docs\&.
 .PP
 .IP "\fB\fB-q\fP:\fP" 1c
-The script runs in quiet mode\&. The progress monitor is supressed and routine messages are not displayed\&.
+The script runs in quiet mode\&. The progress monitor is suppressed and routine messages are not displayed\&.
 .PP
 .IP "\fB\fB-st\fP \fIthreshold\fP:\fP" 1c
 Set the size threshold in pixels\&. Only raster polygons smaller than this size will be removed\&.
@@ -52,4 +51,4 @@ Select the output format\&. The default is GeoTIFF (GTiff)\&. Use the short form
 .PP
 .SH "AUTHORS"
 .PP
-Frank Warmerdam <warmerdam@pobox.com> 
+Frank Warmerdam warmerdam@pobox.com 

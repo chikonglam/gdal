@@ -1,4 +1,4 @@
-.TH "gdal_calc" 1 "Wed Sep 16 2015" "GDAL" \" -*- nroff -*-
+.TH "gdal_calc" 1 "Tue Jan 26 2016" "GDAL" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -8,7 +8,6 @@ Command line raster calculator with numpy syntax
 .PP
 .PP
 .nf
-
 gdal_calc.py [-A <filename>] [--A_band] [-B...-Z filename] [other_options]
 
 Options:
@@ -17,7 +16,7 @@ Options:
                         numpy array functions (i.e. logical_and())
   -A A                  input gdal raster file, note you can use any letter
                         A-Z
-  --A_band=A_BAND       number of raster band for file A (default 0)
+  --A_band=A_BAND       number of raster band for file A (default 1)
   --outfile=OUTF        output file to generate or fill
   --NoDataValue=NODATAVALUE
                         set output nodata value (Defaults to datatype specific
@@ -43,7 +42,6 @@ Command line raster calculator with numpy syntax\&. Use any basic arithmetic sup
 add two files together 
 .PP
 .nf
-
 gdal_calc.py -A input1.tif -B input2.tif --outfile=result.tif --calc="A+B"
 
 .fi
@@ -52,7 +50,6 @@ gdal_calc.py -A input1.tif -B input2.tif --outfile=result.tif --calc="A+B"
 average of two layers 
 .PP
 .nf
-
 gdal_calc.py -A input.tif -B input2.tif --outfile=result.tif --calc="(A+B)/2"
 
 .fi
@@ -61,7 +58,6 @@ gdal_calc.py -A input.tif -B input2.tif --outfile=result.tif --calc="(A+B)/2"
 set values of zero and below to null 
 .PP
 .nf
-
 gdal_calc.py -A input.tif --outfile=result.tif --calc="A*(A>0)" --NoDataValue=0
 
 .fi

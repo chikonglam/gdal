@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #******************************************************************************
-#  $Id: gdal_sieve.py 27044 2014-03-16 23:41:27Z rouault $
+#  $Id: gdal_sieve.py 28389 2015-01-30 19:26:09Z rouault $
 # 
 #  Project:  GDAL Python Interface
 #  Purpose:  Application for applying sieve filter to raster data.
@@ -30,13 +30,11 @@
 #******************************************************************************
 
 try:
-    from osgeo import gdal, ogr
+    from osgeo import gdal
 except ImportError:
     import gdal
-    import ogr
 
 import sys
-import os.path
 
 def Usage():
     print("""

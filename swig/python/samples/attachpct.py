@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #******************************************************************************
-#  $Id: attachpct.py 25345 2012-12-25 21:19:27Z rouault $
+#  $Id: attachpct.py 28391 2015-01-30 19:57:31Z rouault $
 # 
 #  Project:  GDAL
 #  Purpose:  Simple command line program for copying the color table of a
@@ -36,7 +36,6 @@ except ImportError:
     import gdal
 
 import sys
-import string
 
 if len(sys.argv) < 3:
     print('Usage: attachpct.py <pctfile> <infile> <outfile>')

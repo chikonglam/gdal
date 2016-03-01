@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ersdataset.cpp 28475 2015-02-13 11:43:30Z rouault $
+ * $Id: ersdataset.cpp 28474 2015-02-13 11:42:37Z rouault $
  *
  * Project:  ERMapper .ers Driver
  * Purpose:  Implementation of .ers driver.
@@ -33,7 +33,7 @@
 #include "cpl_string.h"
 #include "ershdrnode.h"
 
-CPL_CVSID("$Id: ersdataset.cpp 28475 2015-02-13 11:43:30Z rouault $");
+CPL_CVSID("$Id: ersdataset.cpp 28474 2015-02-13 11:42:37Z rouault $");
 
 /************************************************************************/
 /* ==================================================================== */
@@ -700,12 +700,12 @@ void ERSDataset::ReadGCPs()
 
         CPLFree( psGCP->pszId );
         psGCP->pszId = CPLStrdup(papszTokens[iGCP*nItemsPerLine+0]);
-        psGCP->dfGCPPixel = atof(papszTokens[iGCP*nItemsPerLine+3]);
-        psGCP->dfGCPLine  = atof(papszTokens[iGCP*nItemsPerLine+4]);
-        psGCP->dfGCPX     = atof(papszTokens[iGCP*nItemsPerLine+5]);
-        psGCP->dfGCPY     = atof(papszTokens[iGCP*nItemsPerLine+6]);
+        psGCP->dfGCPPixel = CPLAtof(papszTokens[iGCP*nItemsPerLine+3]);
+        psGCP->dfGCPLine  = CPLAtof(papszTokens[iGCP*nItemsPerLine+4]);
+        psGCP->dfGCPX     = CPLAtof(papszTokens[iGCP*nItemsPerLine+5]);
+        psGCP->dfGCPY     = CPLAtof(papszTokens[iGCP*nItemsPerLine+6]);
         if( nItemsPerLine == 8 )
-            psGCP->dfGCPZ = atof(papszTokens[iGCP*nItemsPerLine+7]);
+            psGCP->dfGCPZ = CPLAtof(papszTokens[iGCP*nItemsPerLine+7]);
     }
     
     CSLDestroy( papszTokens );
@@ -1453,6 +1453,7 @@ void GDALRegister_ERS()
         poDriver = new GDALDriver();
         
         poDriver->SetDescription( "ERS" );
+        poDriver->SetMetadataItem( GDAL_DCAP_RASTER, "YES" );
         poDriver->SetMetadataItem( GDAL_DMD_LONGNAME, 
                                    "ERMapper .ers Labelled" );
         poDriver->SetMetadataItem( GDAL_DMD_HELPTOPIC, 

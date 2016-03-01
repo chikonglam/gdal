@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_srs_esri.cpp 30440 2015-09-16 09:59:19Z rouault $
+ * $Id: ogr_srs_esri.cpp 30733 2015-09-28 19:41:53Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  OGRSpatialReference translation to/from ESRI .prj definitions.
@@ -36,7 +36,7 @@
 
 #include "ogr_srs_esri_names.h"
 
-CPL_CVSID("$Id: ogr_srs_esri.cpp 30440 2015-09-16 09:59:19Z rouault $");
+CPL_CVSID("$Id: ogr_srs_esri.cpp 30733 2015-09-28 19:41:53Z rouault $");
 
 void  SetNewName( OGRSpatialReference* pOgr, const char* keyName, const char* newName );
 int   RemapImgWGSProjcsName(OGRSpatialReference* pOgr, const char* pszProjCSName, 
@@ -72,7 +72,6 @@ static const char *apszProjMapping[] = {
     "Van_der_Grinten_I", SRS_PT_VANDERGRINTEN,
     SRS_PT_TRANSVERSE_MERCATOR, SRS_PT_TRANSVERSE_MERCATOR,
     "Gauss_Kruger", SRS_PT_TRANSVERSE_MERCATOR,
-    "Mercator", SRS_PT_MERCATOR_1SP,
     NULL, NULL }; 
  
 static const char *apszAlbersMapping[] = {
@@ -84,10 +83,6 @@ static const char *apszAlbersMapping[] = {
 static const char *apszECMapping[] = {
     SRS_PP_CENTRAL_MERIDIAN, SRS_PP_LONGITUDE_OF_CENTER, 
     SRS_PP_LATITUDE_OF_ORIGIN, SRS_PP_LATITUDE_OF_CENTER, 
-    NULL, NULL };
-
-static const char *apszMercatorMapping[] = {
-    SRS_PP_STANDARD_PARALLEL_1, SRS_PP_LATITUDE_OF_ORIGIN,
     NULL, NULL };
 
 static const char *apszPolarStereographicMapping[] = {
@@ -104,7 +99,7 @@ static const char *apszLambertConformalConicMapping[] = {
     NULL, NULL };
 
 static char **papszDatumMapping = NULL;
-static void* hDatumMappingMutex = NULL;
+static CPLMutex* hDatumMappingMutex = NULL;
  
 static const char *apszDefaultDatumMapping[] = {
     "6267", "North_American_1927", SRS_DN_NAD27,
@@ -552,19 +547,19 @@ static double OSR_GDV( char **papszNV, const char * pszField,
             {
                 /* http://agdcftp1.wr.usgs.gov/pub/projects/lcc/akcan_lcc/akcan.tar.gz contains */
                 /* weird values for the second. Ignore it and the result looks correct */
-                double dfSecond = atof(papszTokens[2]);
+                double dfSecond = CPLAtof(papszTokens[2]);
                 if (dfSecond < 0.0 || dfSecond >= 60.0)
                     dfSecond = 0.0;
 
-                dfValue = ABS(atof(papszTokens[0]))
-                    + atof(papszTokens[1]) / 60.0
+                dfValue = ABS(CPLAtof(papszTokens[0]))
+                    + CPLAtof(papszTokens[1]) / 60.0
                     + dfSecond / 3600.0;
 
-                if( atof(papszTokens[0]) < 0.0 )
+                if( CPLAtof(papszTokens[0]) < 0.0 )
                     dfValue *= -1;
             }
             else if( CSLCount(papszTokens) > 0 )
-                dfValue = atof(papszTokens[0]);
+                dfValue = CPLAtof(papszTokens[0]);
             else
                 dfValue = dfDefaultValue;
 
@@ -585,7 +580,7 @@ static double OSR_GDV( char **papszNV, const char * pszField,
         if( papszNV[iLine] == NULL )
             return dfDefaultValue;
         else
-            return atof( papszNV[iLine] + strlen(pszField) );
+            return CPLAtof( papszNV[iLine] + strlen(pszField) );
     }
 }
 
@@ -839,6 +834,7 @@ OGRErr OGRSpatialReference::importFromESRI( char **papszPrj )
     {
        // This is EPSG:3875 Pseudo Mercator. We might as well import it from
        // the EPSG spec.
+       CPLString osAuxiliarySphereType;
        importFromEPSG(3857);
     }
 
@@ -944,10 +940,10 @@ OGRErr OGRSpatialReference::importFromESRI( char **papszPrj )
         if( EQUAL(osValue, "" ) )
             SetLinearUnitsAndUpdateParameters( SRS_UL_METER, 1.0 );
         else if( EQUAL(osValue,"FEET") )
-            SetLinearUnitsAndUpdateParameters( SRS_UL_US_FOOT, atof(SRS_UL_US_FOOT_CONV) );
-        else if( atof(osValue) != 0.0 )
+            SetLinearUnitsAndUpdateParameters( SRS_UL_US_FOOT, CPLAtof(SRS_UL_US_FOOT_CONV) );
+        else if( CPLAtof(osValue) != 0.0 )
             SetLinearUnitsAndUpdateParameters( "user-defined", 
-                                               1.0 / atof(osValue) );
+                                               1.0 / CPLAtof(osValue) );
         else
             SetLinearUnitsAndUpdateParameters( osValue, 1.0 );
 
@@ -988,7 +984,6 @@ OGRErr OGRSpatialReference::morphToESRI()
 {
     OGRErr      eErr;
 
-    CPLLocaleC localeC;
 /* -------------------------------------------------------------------- */
 /*      Fixup ordering, missing linear units, etc.                      */
 /* -------------------------------------------------------------------- */
@@ -1104,6 +1099,13 @@ OGRErr OGRSpatialReference::morphToESRI()
             poGeogCS->GetChild(0)->SetValue( "GCS_WGS_1984" );
             pszUTMPrefix = "WGS_1984";
         }
+        else if( nGCSCode == 4322 
+            || EQUAL(pszGeogCSName,"WGS72") 
+            || EQUAL(pszGeogCSName,"WGS 72") )
+        {
+            poGeogCS->GetChild(0)->SetValue( "GCS_WGS_1972" );
+            pszUTMPrefix = "WGS_1972";
+        }
         else if( nGCSCode == 4267
                  || EQUAL(pszGeogCSName,"NAD27") 
                  || EQUAL(pszGeogCSName,"NAD 27") )
@@ -1136,26 +1138,26 @@ OGRErr OGRSpatialReference::morphToESRI()
 /* -------------------------------------------------------------------- */
 /*      Force Unnamed to Unknown for most common locations.             */
 /* -------------------------------------------------------------------- */
-    static const char *apszUnknownMapping[] = { 
-        "Unknown", "Unnamed",
-        NULL, NULL 
-    };
+        static const char *apszUnknownMapping[] = { 
+            "Unknown", "Unnamed",
+            NULL, NULL 
+        };
 
-    GetRoot()->applyRemapper( "PROJCS", 
-                              (char **)apszUnknownMapping+1,
-                              (char **)apszUnknownMapping+0, 2 );
-    GetRoot()->applyRemapper( "GEOGCS", 
-                              (char **)apszUnknownMapping+1,
-                              (char **)apszUnknownMapping+0, 2 );
-    GetRoot()->applyRemapper( "DATUM", 
-                              (char **)apszUnknownMapping+1,
-                              (char **)apszUnknownMapping+0, 2 );
-    GetRoot()->applyRemapper( "SPHEROID", 
-                              (char **)apszUnknownMapping+1,
-                              (char **)apszUnknownMapping+0, 2 );
-    GetRoot()->applyRemapper( "PRIMEM", 
-                              (char **)apszUnknownMapping+1,
-                              (char **)apszUnknownMapping+0, 2 );
+        GetRoot()->applyRemapper( "PROJCS", 
+                                  (char **)apszUnknownMapping+1,
+                                  (char **)apszUnknownMapping+0, 2 );
+        GetRoot()->applyRemapper( "GEOGCS", 
+                                  (char **)apszUnknownMapping+1,
+                                  (char **)apszUnknownMapping+0, 2 );
+        GetRoot()->applyRemapper( "DATUM", 
+                                  (char **)apszUnknownMapping+1,
+                                  (char **)apszUnknownMapping+0, 2 );
+        GetRoot()->applyRemapper( "SPHEROID", 
+                                  (char **)apszUnknownMapping+1,
+                                  (char **)apszUnknownMapping+0, 2 );
+        GetRoot()->applyRemapper( "PRIMEM", 
+                                  (char **)apszUnknownMapping+1,
+                                  (char **)apszUnknownMapping+0, 2 );
     
 /* -------------------------------------------------------------------- */
 /*      If the PROJCS name is unset, use the PROJECTION name in         */
@@ -1252,7 +1254,7 @@ OGRErr OGRSpatialReference::morphToESRI()
     }
 
 /* -------------------------------------------------------------------- */
-/*      Remap parameters used for Albers and Mercator.                  */
+/*      Remap parameters used for Albers.                               */
 /* -------------------------------------------------------------------- */
     pszProjection = GetAttrValue("PROJECTION");
     poProjCS = GetAttrNode( "PROJCS" );
@@ -1271,12 +1273,6 @@ OGRErr OGRSpatialReference::morphToESRI()
         GetRoot()->applyRemapper( 
             "PARAMETER", (char **)apszECMapping + 1,
             (char **)apszECMapping + 0, 2 );
-
-    if( pszProjection != NULL && EQUAL(pszProjection,"Mercator") )
-        GetRoot()->applyRemapper( 
-            "PARAMETER",
-            (char **)apszMercatorMapping + 1,
-            (char **)apszMercatorMapping + 0, 2 );
 
     if( pszProjection != NULL 
         && EQUALN(pszProjection,"Stereographic_",14)
@@ -1310,6 +1306,39 @@ OGRErr OGRSpatialReference::morphToESRI()
             if( poPROJCS )
                 poPROJCS->DestroyChild( 
                     FindProjParm( SRS_PP_LATITUDE_OF_ORIGIN ) );
+        }
+    }
+
+    /* See #4861 */
+    if( pszProjection != NULL && EQUAL(pszProjection,SRS_PT_MERCATOR_2SP) )
+    {
+        SetNode( "PROJCS|PROJECTION", "Mercator" );
+        pszProjection = GetAttrValue("PROJECTION");
+    }
+    
+    /* See #4861 */
+    if( pszProjection != NULL && EQUAL(pszProjection,SRS_PT_MERCATOR_1SP) )
+    {
+        SetNode( "PROJCS|PROJECTION", "Mercator" );
+        pszProjection = GetAttrValue("PROJECTION");
+        
+        double dfK0 = GetNormProjParm(SRS_PP_SCALE_FACTOR, 1.0);
+        
+        double dfInvFlattening = GetInvFlattening();;
+        double e2 = 0.0;
+        if( dfInvFlattening != 0.0 )
+        {
+            double f = 1 / dfInvFlattening;
+            e2 = 2 *f - f*f;
+        }
+        double dfStdP1Lat = acos( sqrt( (1 - e2) / (1 / (dfK0 * dfK0)) - e2) ) / M_PI * 180.0;
+        if( poProjCS )
+        {
+            int iScaleFactorChild = FindProjParm( SRS_PP_SCALE_FACTOR, poProjCS );
+            if( iScaleFactorChild != -1 )
+                poProjCS->DestroyChild( iScaleFactorChild);
+            SetProjParm(SRS_PP_STANDARD_PARALLEL_1, dfStdP1Lat);
+            FixupOrdering();
         }
     }
 
@@ -1588,7 +1617,8 @@ OGRErr OGRSpatialReference::morphFromESRI()
     if( pszProjection != NULL &&
              EQUAL(pszProjection, SRS_PT_MERCATOR_AUXILIARY_SPHERE) )
     {
-       return importFromEPSG(3857);
+        CPLFree( pszDatumOrig );
+        return importFromEPSG(3857);
     }
 
 /* -------------------------------------------------------------------- */
@@ -1621,12 +1651,6 @@ OGRErr OGRSpatialReference::morphFromESRI()
         GetRoot()->applyRemapper( 
             "PARAMETER", (char **)apszECMapping + 0,
             (char **)apszECMapping + 1, 2 );
-
-    if( pszProjection != NULL && EQUAL(pszProjection,"Mercator") )
-        GetRoot()->applyRemapper( 
-            "PARAMETER",
-            (char **)apszMercatorMapping + 0,
-            (char **)apszMercatorMapping + 1, 2 );
 
     if( pszProjection != NULL && EQUAL(pszProjection,"Orthographic") )
         GetRoot()->applyRemapper( 
@@ -1674,6 +1698,23 @@ OGRErr OGRSpatialReference::morphFromESRI()
             (char **)apszPolarStereographicMapping + 1, 2 );
 #endif
 
+/* -------------------------------------------------------------------- */
+/*      Remap Mercator to Mercator_2SP (#4861)                          */
+/* -------------------------------------------------------------------- */
+    if( pszProjection != NULL && EQUAL(pszProjection,"Mercator") )
+    {
+        /* Such as found in #6134 */
+        if( GetAttrValue("PROJCS") != NULL &&
+            EQUAL(GetAttrValue("PROJCS"), "WGS_84_Pseudo_Mercator"))
+        {
+            CPLFree( pszDatumOrig );
+            return importFromEPSG(3857);
+        }
+
+        SetNode( "PROJCS|PROJECTION", SRS_PT_MERCATOR_2SP );
+        pszProjection = GetAttrValue("PROJECTION");
+    }
+
     /*
     ** Handle the value of Central_Parallel -> latitude_of_center.
     ** See ticket #3191.  Other mappings probably need to be added.
@@ -1685,6 +1726,25 @@ OGRErr OGRSpatialReference::morphFromESRI()
         GetRoot()->applyRemapper( 
             "PARAMETER", (char **)apszLambertConformalConicMapping + 0,
             (char **)apszLambertConformalConicMapping + 1, 2 );
+
+        /* LCC 1SP has duplicated parameters Standard_Parallel_1 and Latitude_Of_Origin */
+        /* http://trac.osgeo.org/gdal/ticket/2072 */
+        if( EQUAL( pszProjection, SRS_PT_LAMBERT_CONFORMAL_CONIC_1SP ) )
+        {
+            OGR_SRSNode *poPROJCS = GetAttrNode( "PROJCS" );
+            int iSP1Child = FindProjParm( "Standard_Parallel_1", poPROJCS );
+            int iLatOrigChild = FindProjParm( "Latitude_Of_Origin", poPROJCS );
+            if( iSP1Child != -1 && iLatOrigChild != 1 )
+            {
+                /* Do a sanity check before removing Standard_Parallel_1 */
+                if( EQUAL(poPROJCS->GetChild(iSP1Child)->GetValue(),
+                          poPROJCS->GetChild(iLatOrigChild)->GetValue()) )
+                {
+                    poPROJCS->DestroyChild( iSP1Child );
+                }
+            }
+        }
+
     }
 
 /* -------------------------------------------------------------------- */
@@ -1702,6 +1762,24 @@ OGRErr OGRSpatialReference::morphFromESRI()
     GetRoot()->applyRemapper( "DATUM", 
                               (char **)papszDatumMapping+1,
                               (char **)papszDatumMapping+2, 3 );
+
+/* -------------------------------------------------------------------- */
+/*      Special case for Peru96 related SRS that should use the         */
+/*      Peru96 DATUM, but in ESRI world, both Peru96 and SIRGAS-Chile   */
+/*      are translated as D_SIRGAS-Chile.                               */
+/* -------------------------------------------------------------------- */
+    int bPeru96Datum = FALSE;
+    if( poDatum != NULL && EQUAL(poDatum->GetValue(), "SIRGAS_Chile") )
+    {
+        const char* pszSRSName = GetAttrValue("PROJCS");
+        if( pszSRSName == NULL )
+            pszSRSName = GetAttrValue("GEOGCS");
+        if( strstr(pszSRSName, "Peru96") )
+        {
+            bPeru96Datum = TRUE;
+            poDatum->SetValue( "Peru96" );
+        }
+    }
 
 /* -------------------------------------------------------------------- */
 /*      Fix TOWGS84, DATUM or GEOGCS                                    */
@@ -1735,6 +1813,11 @@ OGRErr OGRSpatialReference::morphFromESRI()
                                                  DMGetEPSGCode(i), CC_Integer );
                 if ( papszRecord != NULL )
                 {
+                    /* skip the SIRGAS-Chile record for Peru96 related SRS */
+                    if( bPeru96Datum && EQUAL(CSLGetField( papszRecord,
+                                    CSVGetFileFieldId(pszFilename,"DATUM_NAME")), "SIRGAS-Chile") )
+                        continue;
+
                     /* make sure we got a valid EPSG code and it is not DEPRECATED */
                     int nGeogCS = atoi( CSLGetField( papszRecord,
                                                      CSVGetFileFieldId(pszFilename,"COORD_REF_SYS_CODE")) );
@@ -1895,12 +1978,12 @@ OGRErr OSRMorphFromESRI( OGRSpatialReferenceH hSRS )
 /************************************************************************/
 void SetNewName( OGRSpatialReference* pOgr, const char* keyName, const char* newName )
 {
-  OGR_SRSNode *poNode = pOgr->GetAttrNode( keyName );
-  OGR_SRSNode *poNodeChild = NULL;
-  if(poNode)
-    poNodeChild = poNode->GetChild(0);
-  if( poNodeChild)
-      poNodeChild->SetValue( newName);
+    OGR_SRSNode *poNode = pOgr->GetAttrNode( keyName );
+    OGR_SRSNode *poNodeChild = NULL;
+    if(poNode)
+        poNodeChild = poNode->GetChild(0);
+    if( poNodeChild)
+        poNodeChild->SetValue( newName);
 }
 
 /************************************************************************/
@@ -1910,16 +1993,16 @@ void SetNewName( OGRSpatialReference* pOgr, const char* keyName, const char* new
 /************************************************************************/
 int RemapImgWGSProjcsName( OGRSpatialReference* pOgr, const char* pszProjCSName, const char* pszProgCSName )
 {
-  if(EQUAL(pszProgCSName, "WGS_1972") || EQUAL(pszProgCSName, "WGS_1984") )
-  {
-    char* newName = (char *) CPLMalloc(strlen(pszProjCSName) + 10);
-    sprintf( newName, "%s_", pszProgCSName );
-    strcat(newName, pszProjCSName);
-    SetNewName( pOgr, "PROJCS", newName );
-    CPLFree( newName );
-    return 1;
-  }
-  return -1;
+    if(EQUAL(pszProgCSName, "WGS_1972") || EQUAL(pszProgCSName, "WGS_1984") )
+    {
+        char* newName = (char *) CPLMalloc(strlen(pszProjCSName) + 10);
+        sprintf( newName, "%s_", pszProgCSName );
+        strcat(newName, pszProjCSName);
+        SetNewName( pOgr, "PROJCS", newName );
+        CPLFree( newName );
+        return 1;
+    }
+    return -1;
 }
 
 /************************************************************************/
@@ -1929,52 +2012,52 @@ int RemapImgWGSProjcsName( OGRSpatialReference* pOgr, const char* pszProjCSName,
 /************************************************************************/
 
 int RemapImgUTMNames( OGRSpatialReference* pOgr, const char* pszProjCSName, const char* pszProgCSName, 
-                                          char **mappingTable )
+                      char **mappingTable )
 {
-  long i;
-  long iIndex = -1;
-  for( i = 0; mappingTable[i] != NULL; i += 5 )
-  {
-    if( EQUAL(pszProjCSName, mappingTable[i]) )
+    long i;
+    long iIndex = -1;
+    for( i = 0; mappingTable[i] != NULL; i += 5 )
     {
-      long j = i;
-      while(mappingTable[j] != NULL && EQUAL(mappingTable[i], mappingTable[j]))
-      {
-        if( EQUAL(pszProgCSName, mappingTable[j+1]) )
+        if( EQUAL(pszProjCSName, mappingTable[i]) )
         {
-          iIndex = j;
-          break;
+            long j = i;
+            while(mappingTable[j] != NULL && EQUAL(mappingTable[i], mappingTable[j]))
+            {
+                if( EQUAL(pszProgCSName, mappingTable[j+1]) )
+                {
+                    iIndex = j;
+                    break;
+                }
+                j += 5;
+            }
+            if (iIndex >= 0)
+                break;
         }
-        j += 5;
-      }
-      if (iIndex >= 0)
-        break;
     }
-  }
-  if(iIndex >= 0)
-  {
-    OGR_SRSNode *poNode = pOgr->GetAttrNode( "PROJCS" );
-    OGR_SRSNode *poNodeChild = NULL;
-    if(poNode)
-      poNodeChild = poNode->GetChild(0);
-    if( poNodeChild && strlen(poNodeChild->GetValue()) > 0 )
-        poNodeChild->SetValue( mappingTable[iIndex+2]);
+    if(iIndex >= 0)
+    {
+        OGR_SRSNode *poNode = pOgr->GetAttrNode( "PROJCS" );
+        OGR_SRSNode *poNodeChild = NULL;
+        if(poNode)
+            poNodeChild = poNode->GetChild(0);
+        if( poNodeChild && strlen(poNodeChild->GetValue()) > 0 )
+            poNodeChild->SetValue( mappingTable[iIndex+2]);
 
-    poNode = pOgr->GetAttrNode( "GEOGCS" );
-    poNodeChild = NULL;
-    if(poNode)
-      poNodeChild = poNode->GetChild(0);
-    if( poNodeChild && strlen(poNodeChild->GetValue()) > 0 )
-        poNodeChild->SetValue( mappingTable[iIndex+3]);
+        poNode = pOgr->GetAttrNode( "GEOGCS" );
+        poNodeChild = NULL;
+        if(poNode)
+            poNodeChild = poNode->GetChild(0);
+        if( poNodeChild && strlen(poNodeChild->GetValue()) > 0 )
+            poNodeChild->SetValue( mappingTable[iIndex+3]);
 
-    poNode = pOgr->GetAttrNode( "DATUM" );
-    poNodeChild = NULL;
-    if(poNode)
-      poNodeChild = poNode->GetChild(0);
-    if( poNodeChild && strlen(poNodeChild->GetValue()) > 0 )
-        poNodeChild->SetValue( mappingTable[iIndex+4]);
-  }
-  return iIndex;
+        poNode = pOgr->GetAttrNode( "DATUM" );
+        poNodeChild = NULL;
+        if(poNode)
+            poNodeChild = poNode->GetChild(0);
+        if( poNodeChild && strlen(poNodeChild->GetValue()) > 0 )
+            poNodeChild->SetValue( mappingTable[iIndex+4]);
+    }
+    return iIndex;
 }
 
 /************************************************************************/
@@ -1984,28 +2067,28 @@ int RemapImgUTMNames( OGRSpatialReference* pOgr, const char* pszProjCSName, cons
 /************************************************************************/
 
 int RemapNameBasedOnKeyName( OGRSpatialReference* pOgr, const char* pszName, const char* pszkeyName, 
-                                                 char **mappingTable )
+                             char **mappingTable )
 {
-  long i;
-  long iIndex = -1;
-  for( i = 0; mappingTable[i] != NULL; i += 2 )
-  {
-    if( EQUAL(pszName, mappingTable[i]) )
+    long i;
+    long iIndex = -1;
+    for( i = 0; mappingTable[i] != NULL; i += 2 )
     {
-      iIndex = i;
-      break;
+        if( EQUAL(pszName, mappingTable[i]) )
+        {
+            iIndex = i;
+            break;
+        }
     }
-  }
-  if(iIndex >= 0) 
-  {
-    OGR_SRSNode *poNode = pOgr->GetAttrNode( pszkeyName );
-    OGR_SRSNode *poNodeChild = NULL;
-    if(poNode)
-      poNodeChild = poNode->GetChild(0);
-    if( poNodeChild && strlen(poNodeChild->GetValue()) > 0 )
-        poNodeChild->SetValue( mappingTable[iIndex+1]);
-  }
-  return iIndex;
+    if(iIndex >= 0) 
+    {
+        OGR_SRSNode *poNode = pOgr->GetAttrNode( pszkeyName );
+        OGR_SRSNode *poNodeChild = NULL;
+        if(poNode)
+            poNodeChild = poNode->GetChild(0);
+        if( poNodeChild && strlen(poNodeChild->GetValue()) > 0 )
+            poNodeChild->SetValue( mappingTable[iIndex+1]);
+    }
+    return iIndex;
 }
 
 /************************************************************************/
@@ -2015,45 +2098,45 @@ int RemapNameBasedOnKeyName( OGRSpatialReference* pOgr, const char* pszName, con
 /************************************************************************/
 
 int RemapNamesBasedOnTwo( OGRSpatialReference* pOgr, const char* name1, const char* name2, 
-                                              char **mappingTable, long nTableStepSize, 
-                                              char** pszkeyNames, long nKeys )
+                          char **mappingTable, long nTableStepSize, 
+                          char** pszkeyNames, long nKeys )
 {
-  long i, n, n1;
-  long iIndex = -1;
-  for( i = 0; mappingTable[i] != NULL; i += nTableStepSize )
-  {
-    n = strlen(name1);
-    n1 = strlen(mappingTable[i]); 
-    if( EQUALN(name1, mappingTable[i], n1<=n? n1 : n) )
+    long i, n, n1;
+    long iIndex = -1;
+    for( i = 0; mappingTable[i] != NULL; i += nTableStepSize )
     {
-      long j = i;
-      while(mappingTable[j] != NULL && EQUAL(mappingTable[i], mappingTable[j]))
-      {
-        if( EQUALN(name2, mappingTable[j+1], strlen(mappingTable[j+1])) )
+        n = strlen(name1);
+        n1 = strlen(mappingTable[i]); 
+        if( EQUALN(name1, mappingTable[i], n1<=n? n1 : n) )
         {
-          iIndex = j;
-          break;
+            long j = i;
+            while(mappingTable[j] != NULL && EQUAL(mappingTable[i], mappingTable[j]))
+            {
+                if( EQUALN(name2, mappingTable[j+1], strlen(mappingTable[j+1])) )
+                {
+                    iIndex = j;
+                    break;
+                }
+                j += 3;
+            }
+            if (iIndex >= 0)
+                break;
         }
-        j += 3;
-      }
-      if (iIndex >= 0)
-        break;
     }
-  }
-  if(iIndex >= 0)
-  {
-    for( i = 0; i < nKeys; i ++ )
+    if(iIndex >= 0)
     {
-      OGR_SRSNode *poNode = pOgr->GetAttrNode( pszkeyNames[i] );
-      OGR_SRSNode *poNodeChild = NULL;
-      if(poNode)
-        poNodeChild = poNode->GetChild(0);
-      if( poNodeChild && strlen(poNodeChild->GetValue()) > 0 )
-          poNodeChild->SetValue( mappingTable[iIndex+i+2]);
-    }
+        for( i = 0; i < nKeys; i ++ )
+        {
+            OGR_SRSNode *poNode = pOgr->GetAttrNode( pszkeyNames[i] );
+            OGR_SRSNode *poNodeChild = NULL;
+            if(poNode)
+                poNodeChild = poNode->GetChild(0);
+            if( poNodeChild && strlen(poNodeChild->GetValue()) > 0 )
+                poNodeChild->SetValue( mappingTable[iIndex+i+2]);
+        }
 
-  }
-  return iIndex;
+    }
+    return iIndex;
 }
 
 /************************************************************************/
@@ -2063,37 +2146,37 @@ int RemapNamesBasedOnTwo( OGRSpatialReference* pOgr, const char* name1, const ch
 /************************************************************************/
 
 int RemapPValuesBasedOnProjCSAndPName( OGRSpatialReference* pOgr, const char* pszProgCSName, 
-                                                                      char **mappingTable )
+                                       char **mappingTable )
 {
-  long ret = 0;
-  OGR_SRSNode *poPROJCS = pOgr->GetAttrNode( "PROJCS" );
-  for( int i = 0; mappingTable[i] != NULL; i += 4 )
-  {
-    while( mappingTable[i] != NULL && EQUALN(pszProgCSName, mappingTable[i], strlen(mappingTable[i])) )
+    long ret = 0;
+    OGR_SRSNode *poPROJCS = pOgr->GetAttrNode( "PROJCS" );
+    for( int i = 0; mappingTable[i] != NULL; i += 4 )
     {
-      OGR_SRSNode *poParm;
-      const char* pszParamName = mappingTable[i+1];
-      const char* pszParamValue = mappingTable[i+2];
-      for( int iChild = 0; iChild < poPROJCS->GetChildCount(); iChild++ )
-      {
-          poParm = poPROJCS->GetChild( iChild );
+        while( mappingTable[i] != NULL && EQUALN(pszProgCSName, mappingTable[i], strlen(mappingTable[i])) )
+        {
+            OGR_SRSNode *poParm;
+            const char* pszParamName = mappingTable[i+1];
+            const char* pszParamValue = mappingTable[i+2];
+            for( int iChild = 0; iChild < poPROJCS->GetChildCount(); iChild++ )
+            {
+                poParm = poPROJCS->GetChild( iChild );
 
-          if( EQUAL(poParm->GetValue(),"PARAMETER") 
-              && poParm->GetChildCount() == 2 
-              && EQUAL(poParm->GetChild(0)->GetValue(),pszParamName) 
-              && EQUALN(poParm->GetChild(1)->GetValue(),pszParamValue, strlen(pszParamValue) ) )
-          {
-              poParm->GetChild(1)->SetValue( mappingTable[i+3] );
-              break;
-          }
-      }
-      ret ++;
-      i += 4;
+                if( EQUAL(poParm->GetValue(),"PARAMETER") 
+                    && poParm->GetChildCount() == 2 
+                    && EQUAL(poParm->GetChild(0)->GetValue(),pszParamName) 
+                    && EQUALN(poParm->GetChild(1)->GetValue(),pszParamValue, strlen(pszParamValue) ) )
+                {
+                    poParm->GetChild(1)->SetValue( mappingTable[i+3] );
+                    break;
+                }
+            }
+            ret ++;
+            i += 4;
+        }
+        if (ret > 0)
+            break;
     }
-    if (ret > 0)
-      break;
-  }
-  return ret;
+    return ret;
 }
 
 /************************************************************************/
@@ -2140,37 +2223,37 @@ int RemapPNamesBasedOnProjCSAndPName( OGRSpatialReference* pOgr, const char* psz
 /*      Delete non-ESRI parameters                                      */
 /************************************************************************/
 int DeleteParamBasedOnPrjName( OGRSpatialReference* pOgr, const char* pszProjectionName, 
-                                                             char **mappingTable )
+                               char **mappingTable )
 {
-  long iIndex = -1, ret = -1;
-  for( int i = 0; mappingTable[i] != NULL; i += 2 )
-  {
-    if( EQUALN(pszProjectionName, mappingTable[i], strlen(mappingTable[i])) )
+    long iIndex = -1, ret = -1;
+    for( int i = 0; mappingTable[i] != NULL; i += 2 )
     {
-      OGR_SRSNode *poPROJCS = pOgr->GetAttrNode( "PROJCS" );
-      OGR_SRSNode *poParm;
-      const char* pszParamName = mappingTable[i+1];
-      iIndex = -1;
-      for( int iChild = 0; iChild < poPROJCS->GetChildCount(); iChild++ )
-      {
-        poParm = poPROJCS->GetChild( iChild );
-
-        if( EQUAL(poParm->GetValue(),"PARAMETER") 
-            && poParm->GetChildCount() == 2 
-            && EQUAL(poParm->GetChild(0)->GetValue(),pszParamName) )
+        if( EQUALN(pszProjectionName, mappingTable[i], strlen(mappingTable[i])) )
         {
-          iIndex = iChild;
-          break;
+            OGR_SRSNode *poPROJCS = pOgr->GetAttrNode( "PROJCS" );
+            OGR_SRSNode *poParm;
+            const char* pszParamName = mappingTable[i+1];
+            iIndex = -1;
+            for( int iChild = 0; iChild < poPROJCS->GetChildCount(); iChild++ )
+            {
+                poParm = poPROJCS->GetChild( iChild );
+
+                if( EQUAL(poParm->GetValue(),"PARAMETER") 
+                    && poParm->GetChildCount() == 2 
+                    && EQUAL(poParm->GetChild(0)->GetValue(),pszParamName) )
+                {
+                    iIndex = iChild;
+                    break;
+                }
+            }
+            if(iIndex >= 0)
+            {
+                poPROJCS->DestroyChild( iIndex );
+                ret ++;
+            }
         }
-      }
-      if(iIndex >= 0)
-      {
-        poPROJCS->DestroyChild( iIndex );
-        ret ++;
-      }
     }
-  }
-  return ret;
+    return ret;
 }
 /************************************************************************/
 /*                          AddParamBasedOnPrjName()                    */
@@ -2178,36 +2261,36 @@ int DeleteParamBasedOnPrjName( OGRSpatialReference* pOgr, const char* pszProject
 /*      Add ESRI style parameters                                       */
 /************************************************************************/
 int AddParamBasedOnPrjName( OGRSpatialReference* pOgr, const char* pszProjectionName, 
-                                                          char **mappingTable )
+                            char **mappingTable )
 {
-  long ret = -1;
-  OGR_SRSNode *poPROJCS = pOgr->GetAttrNode( "PROJCS" );
-  for( int i = 0; mappingTable[i] != NULL; i += 3 )
-  {
-    if( EQUALN(pszProjectionName, mappingTable[i], strlen(mappingTable[i])) )
+    long ret = -1;
+    OGR_SRSNode *poPROJCS = pOgr->GetAttrNode( "PROJCS" );
+    for( int i = 0; mappingTable[i] != NULL; i += 3 )
     {
-      OGR_SRSNode *poParm;
-      int exist = 0;
-      for( int iChild = 0; iChild < poPROJCS->GetChildCount(); iChild++ )
-      {
-        poParm = poPROJCS->GetChild( iChild );
+        if( EQUALN(pszProjectionName, mappingTable[i], strlen(mappingTable[i])) )
+        {
+            OGR_SRSNode *poParm;
+            int exist = 0;
+            for( int iChild = 0; iChild < poPROJCS->GetChildCount(); iChild++ )
+            {
+                poParm = poPROJCS->GetChild( iChild );
 
-        if( EQUAL(poParm->GetValue(),"PARAMETER") 
-            && poParm->GetChildCount() == 2 
-            && EQUAL(poParm->GetChild(0)->GetValue(),mappingTable[i+1]) )
-          exist = 1;
-      }
-      if(!exist)
-      {
-        poParm = new OGR_SRSNode( "PARAMETER" );
-        poParm->AddChild( new OGR_SRSNode( mappingTable[i+1] ) );
-        poParm->AddChild( new OGR_SRSNode( mappingTable[i+2] ) );
-        poPROJCS->AddChild( poParm );
-        ret ++;
-      }
+                if( EQUAL(poParm->GetValue(),"PARAMETER") 
+                    && poParm->GetChildCount() == 2 
+                    && EQUAL(poParm->GetChild(0)->GetValue(),mappingTable[i+1]) )
+                    exist = 1;
+            }
+            if(!exist)
+            {
+                poParm = new OGR_SRSNode( "PARAMETER" );
+                poParm->AddChild( new OGR_SRSNode( mappingTable[i+1] ) );
+                poParm->AddChild( new OGR_SRSNode( mappingTable[i+2] ) );
+                poPROJCS->AddChild( poParm );
+                ret ++;
+            }
+        }
     }
-  }
-  return ret;
+    return ret;
 }
 
 /************************************************************************/
@@ -2217,27 +2300,27 @@ int AddParamBasedOnPrjName( OGRSpatialReference* pOgr, const char* pszProjection
 /************************************************************************/
 int RemapGeogCSName( OGRSpatialReference* pOgr, const char *pszGeogCSName )
 {
-  static const char *keyNamesG[] = {
-    "GEOGCS"};
-  int ret = -1;
+    static const char *keyNamesG[] = {
+        "GEOGCS"};
+    int ret = -1;
 
-  const char* pszUnitName = pOgr->GetAttrValue( "GEOGCS|UNIT");
-  if(pszUnitName)
-    ret = RemapNamesBasedOnTwo( pOgr, pszGeogCSName+4, pszUnitName, (char**)apszGcsNameMappingBasedOnUnit, 3, (char**)keyNamesG, 1);
-  if(ret < 0)
-  {
-    const char* pszPrimeName = pOgr->GetAttrValue("PRIMEM");
-    if(pszPrimeName)
-      ret = RemapNamesBasedOnTwo( pOgr, pszGeogCSName+4, pszPrimeName, (char**)apszGcsNameMappingBasedPrime, 3, (char**)keyNamesG, 1);
+    const char* pszUnitName = pOgr->GetAttrValue( "GEOGCS|UNIT");
+    if(pszUnitName)
+        ret = RemapNamesBasedOnTwo( pOgr, pszGeogCSName+4, pszUnitName, (char**)apszGcsNameMappingBasedOnUnit, 3, (char**)keyNamesG, 1);
     if(ret < 0)
-      ret = RemapNameBasedOnKeyName( pOgr, pszGeogCSName+4, "GEOGCS", (char**)apszGcsNameMapping);
-  }
-  if(ret < 0)
-  {
-    const char* pszProjCS = pOgr->GetAttrValue( "PROJCS" );
-    ret = RemapNamesBasedOnTwo( pOgr, pszProjCS, pszGeogCSName, (char**)apszGcsNameMappingBasedOnProjCS, 3, (char**)keyNamesG, 1);
-  }
-  return ret;
+    {
+        const char* pszPrimeName = pOgr->GetAttrValue("PRIMEM");
+        if(pszPrimeName)
+            ret = RemapNamesBasedOnTwo( pOgr, pszGeogCSName+4, pszPrimeName, (char**)apszGcsNameMappingBasedPrime, 3, (char**)keyNamesG, 1);
+        if(ret < 0)
+            ret = RemapNameBasedOnKeyName( pOgr, pszGeogCSName+4, "GEOGCS", (char**)apszGcsNameMapping);
+    }
+    if(ret < 0)
+    {
+        const char* pszProjCS = pOgr->GetAttrValue( "PROJCS" );
+        ret = RemapNamesBasedOnTwo( pOgr, pszProjCS, pszGeogCSName, (char**)apszGcsNameMappingBasedOnProjCS, 3, (char**)keyNamesG, 1);
+    }
+    return ret;
 }
 
 /************************************************************************/
@@ -2248,111 +2331,111 @@ int RemapGeogCSName( OGRSpatialReference* pOgr, const char *pszGeogCSName )
 
 OGRErr OGRSpatialReference::ImportFromESRIStatePlaneWKT(  int code, const char* datumName, const char* unitsName, int pcsCode, const char* csName )
 {
-  int i;
-  long searchCode = -1;
+    int i;
+    long searchCode = -1;
 
-  /* if the CS name is known */
-  if (code == 0 && !datumName && !unitsName && pcsCode == 32767 && csName)
-  {
-    char codeS[10];
-    if (FindCodeFromDict( "esri_StatePlane_extra.wkt", csName, codeS ) != OGRERR_NONE)
-      return OGRERR_FAILURE;
-    return importFromDict( "esri_StatePlane_extra.wkt", codeS);
-  }
-
-  /* Find state plane prj str by pcs code only */
-  if( code == 0 && !datumName && pcsCode != 32767 )
-  {
-
-    int unitCode = 1;
-    if( EQUAL(unitsName, "international_feet") )
-      unitCode = 3;
-    else if( strstr(unitsName, "feet") || strstr(unitsName, "foot") )
-      unitCode = 2;
-   for(i=0; statePlanePcsCodeToZoneCode[i] != 0; i+=2)
+    /* if the CS name is known */
+    if (code == 0 && !datumName && !unitsName && pcsCode == 32767 && csName)
     {
-      if( pcsCode == statePlanePcsCodeToZoneCode[i] )
-      {
-        searchCode = statePlanePcsCodeToZoneCode[i+1];
-        int unitIndex =  searchCode % 10;
-        if( (unitCode == 1 && !(unitIndex == 0 || unitIndex == 1)) 
-            || (unitCode == 2 && !(unitIndex == 2 || unitIndex == 3 || unitIndex == 4 ))
-            || (unitCode == 3 && !(unitIndex == 5 || unitIndex == 6 )) )
+        char codeS[10];
+        if (FindCodeFromDict( "esri_StatePlane_extra.wkt", csName, codeS ) != OGRERR_NONE)
+            return OGRERR_FAILURE;
+        return importFromDict( "esri_StatePlane_extra.wkt", codeS);
+    }
+
+    /* Find state plane prj str by pcs code only */
+    if( code == 0 && !datumName && pcsCode != 32767 )
+    {
+
+        int unitCode = 1;
+        if( EQUAL(unitsName, "international_feet") )
+            unitCode = 3;
+        else if( strstr(unitsName, "feet") || strstr(unitsName, "foot") )
+            unitCode = 2;
+        for(i=0; statePlanePcsCodeToZoneCode[i] != 0; i+=2)
         {
-          searchCode -= unitIndex; 
-          switch (unitIndex)
-          {
-          case 0:
-          case 3:
-          case 5:
-            if(unitCode == 2)
-              searchCode += 3;
-            else if(unitCode == 3)
-              searchCode += 5;
-            break;
-          case 1:
-          case 2:
-          case 6:
-            if(unitCode == 1)
-              searchCode += 1;
-            if(unitCode == 2)
-              searchCode += 2;
-            else if(unitCode == 3)
-              searchCode += 6;
-           break;
-          case 4:
-            if(unitCode == 2)
-              searchCode += 4;
-            break;
-          }
+            if( pcsCode == statePlanePcsCodeToZoneCode[i] )
+            {
+                searchCode = statePlanePcsCodeToZoneCode[i+1];
+                int unitIndex =  searchCode % 10;
+                if( (unitCode == 1 && !(unitIndex == 0 || unitIndex == 1)) 
+                    || (unitCode == 2 && !(unitIndex == 2 || unitIndex == 3 || unitIndex == 4 ))
+                    || (unitCode == 3 && !(unitIndex == 5 || unitIndex == 6 )) )
+                {
+                    searchCode -= unitIndex; 
+                    switch (unitIndex)
+                    {
+                      case 0:
+                      case 3:
+                      case 5:
+                        if(unitCode == 2)
+                            searchCode += 3;
+                        else if(unitCode == 3)
+                            searchCode += 5;
+                        break;
+                      case 1:
+                      case 2:
+                      case 6:
+                        if(unitCode == 1)
+                            searchCode += 1;
+                        if(unitCode == 2)
+                            searchCode += 2;
+                        else if(unitCode == 3)
+                            searchCode += 6;
+                        break;
+                      case 4:
+                        if(unitCode == 2)
+                            searchCode += 4;
+                        break;
+                    }
+                }
+                break;
+            }
         }
-        break;
-      }
     }
-  }
-  else /* Find state plane prj str by all inputs. */
-  {
-    /* Need to have a specail EPSG-ESRI zone code mapping first. */
-    for(i=0; statePlaneZoneMapping[i] != 0; i+=3)
+    else /* Find state plane prj str by all inputs. */
     {
-      if( code == statePlaneZoneMapping[i] 
-       && (statePlaneZoneMapping[i+1] == -1 || pcsCode == statePlaneZoneMapping[i+1]))
-      {
-        code = statePlaneZoneMapping[i+2];
-        break;
-      }
+        /* Need to have a specail EPSG-ESRI zone code mapping first. */
+        for(i=0; statePlaneZoneMapping[i] != 0; i+=3)
+        {
+            if( code == statePlaneZoneMapping[i] 
+                && (statePlaneZoneMapping[i+1] == -1 || pcsCode == statePlaneZoneMapping[i+1]))
+            {
+                code = statePlaneZoneMapping[i+2];
+                break;
+            }
+        }
+        searchCode = (long)code * 10;
+        if(EQUAL(datumName, "HARN"))
+        {
+            if( EQUAL(unitsName, "international_feet") )
+                searchCode += 5;
+            else if( strstr(unitsName, "feet") || strstr(unitsName, "foot") )
+                searchCode += 3;
+        }
+        else if(strstr(datumName, "NAD") && strstr(datumName, "83"))
+        {
+            if( EQUAL(unitsName, "meters") )
+                searchCode += 1;
+            else if( EQUAL(unitsName, "international_feet") )
+                searchCode += 6;
+            else if( strstr(unitsName, "feet") || strstr(unitsName, "foot") )
+                searchCode += 2;
+        }
+        else if(strstr(datumName, "NAD") && strstr(datumName, "27") && !EQUAL(unitsName, "meters"))
+        {
+            searchCode += 4;
+        }
+        else
+            searchCode = -1;
     }
-    searchCode = (long)code * 10;
-    if(EQUAL(datumName, "HARN"))
+    if(searchCode > 0)
     {
-      if( EQUAL(unitsName, "international_feet") )
-        searchCode += 5;
-      else if( strstr(unitsName, "feet") || strstr(unitsName, "foot") )
-        searchCode += 3;
+        char codeS[10];
+        sprintf(codeS, "%d", (int)searchCode);
+        return importFromDict( "esri_StatePlane_extra.wkt", codeS);
     }
-    else if(strstr(datumName, "NAD") && strstr(datumName, "83"))
-    {
-      if( EQUAL(unitsName, "meters") )
-         searchCode += 1;
-      else if( EQUAL(unitsName, "international_feet") )
-        searchCode += 6;
-      else if( strstr(unitsName, "feet") || strstr(unitsName, "foot") )
-         searchCode += 2;
-    }
-    else if(strstr(datumName, "NAD") && strstr(datumName, "27") && !EQUAL(unitsName, "meters"))
-    {
-      searchCode += 4;
-    }
-    else
-      searchCode = -1;
-  }
-  if(searchCode > 0)
-  {
-    char codeS[10];
-    sprintf(codeS, "%d", (int)searchCode);
-    return importFromDict( "esri_StatePlane_extra.wkt", codeS);
-  }
-  return OGRERR_FAILURE;
+    return OGRERR_FAILURE;
 }
 
 /************************************************************************/
@@ -2363,39 +2446,39 @@ OGRErr OGRSpatialReference::ImportFromESRIStatePlaneWKT(  int code, const char* 
 
 OGRErr OGRSpatialReference::ImportFromESRIWisconsinWKT( const char* prjName, double centralMeridian, double latOfOrigin, const char* unitsName, const char* csName )
 {
-  /* if the CS name is known */
-  if (!prjName && !unitsName && csName)
-  {
-    char codeS[10];
-    if (FindCodeFromDict( "esri_Wisconsin_extra.wkt", csName, codeS ) != OGRERR_NONE)
-      return OGRERR_FAILURE;
-    return importFromDict( "esri_Wisconsin_extra.wkt", codeS);
-  }
-  double* tableWISCRS;
-  if(EQUALN(prjName, "Lambert_Conformal_Conic", 22))
-    tableWISCRS = apszWISCRS_LCC_meter;
-  else if(EQUAL(prjName, SRS_PT_TRANSVERSE_MERCATOR))
-    tableWISCRS = apszWISCRS_TM_meter;
-  else
-    return OGRERR_FAILURE;
-  int k = -1;
-  for(int i=0; tableWISCRS[i] != 0; i+=3)
-  {
-    if( fabs(centralMeridian - tableWISCRS[i]) <= 0.0000000001 && fabs(latOfOrigin - tableWISCRS[i+1]) <= 0.0000000001) 
+    /* if the CS name is known */
+    if (!prjName && !unitsName && csName)
     {
-      k = (long)tableWISCRS[i+2];
-      break;
+        char codeS[10];
+        if (FindCodeFromDict( "esri_Wisconsin_extra.wkt", csName, codeS ) != OGRERR_NONE)
+            return OGRERR_FAILURE;
+        return importFromDict( "esri_Wisconsin_extra.wkt", codeS);
     }
-  }
-  if(k > 0)
-  {
-    if(!EQUAL(unitsName, "meters"))
-      k += 100;
-    char codeS[10];
-    sprintf(codeS, "%d", k);
-    return importFromDict( "esri_Wisconsin_extra.wkt", codeS);
-  }
-  return OGRERR_FAILURE;
+    double* tableWISCRS;
+    if(EQUALN(prjName, "Lambert_Conformal_Conic", 22))
+        tableWISCRS = apszWISCRS_LCC_meter;
+    else if(EQUAL(prjName, SRS_PT_TRANSVERSE_MERCATOR))
+        tableWISCRS = apszWISCRS_TM_meter;
+    else
+        return OGRERR_FAILURE;
+    int k = -1;
+    for(int i=0; tableWISCRS[i] != 0; i+=3)
+    {
+        if( fabs(centralMeridian - tableWISCRS[i]) <= 0.0000000001 && fabs(latOfOrigin - tableWISCRS[i+1]) <= 0.0000000001) 
+        {
+            k = (long)tableWISCRS[i+2];
+            break;
+        }
+    }
+    if(k > 0)
+    {
+        if(!EQUAL(unitsName, "meters"))
+            k += 100;
+        char codeS[10];
+        sprintf(codeS, "%d", k);
+        return importFromDict( "esri_Wisconsin_extra.wkt", codeS);
+    }
+    return OGRERR_FAILURE;
 }
 
 /************************************************************************/
