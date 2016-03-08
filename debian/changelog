@@ -1,10 +1,10 @@
-gdal (2.0.2+dfsg-3) UNRELEASED; urgency=medium
+gdal (2.0.2+dfsg-3) unstable; urgency=medium
 
   * Add patch to fix segfault when exiting with proper closing of datasource.
     (closes: #817146)
   * Add patch for 'message' typo.
 
- -- Bas Couwenberg <sebastic@debian.org>  Tue, 08 Mar 2016 22:50:58 +0100
+ -- Bas Couwenberg <sebastic@debian.org>  Tue, 08 Mar 2016 23:59:36 +0100
 
 gdal (2.0.2+dfsg-2) unstable; urgency=medium
 
