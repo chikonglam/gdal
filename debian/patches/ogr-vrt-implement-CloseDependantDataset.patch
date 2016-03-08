@@ -1,0 +1,60 @@
+Description: OGR_VRT: implement CloseDependantDataset?() so that exiting with proper closing of datasource doesn't crash.
+Author: Even Rouault <even dot rouault at spatialys dot com>
+Origin: https://trac.osgeo.org/gdal/changeset/33684
+Bug: https://trac.osgeo.org/gdal/ticket/6408
+Bug-Debian: https://bugs.debian.org/817146
+
+--- a/ogr/ogrsf_frmts/vrt/ogr_vrt.h
++++ b/ogr/ogrsf_frmts/vrt/ogr_vrt.h
+@@ -241,6 +241,8 @@ class OGRVRTDataSource : public OGRDataS
+                         OGRVRTDataSource(GDALDriver* poDriver);
+                         ~OGRVRTDataSource();
+ 
++    virtual int         CloseDependentDatasets();
++
+     OGRLayer*           InstanciateLayer(CPLXMLNode *psLTree,
+                                     const char *pszVRTDirectory,
+                                     int bUpdate,
+--- a/ogr/ogrsf_frmts/vrt/ogrvrtdatasource.cpp
++++ b/ogr/ogrsf_frmts/vrt/ogrvrtdatasource.cpp
+@@ -120,14 +120,10 @@ OGRVRTDataSource::OGRVRTDataSource(GDALD
+ OGRVRTDataSource::~OGRVRTDataSource()
+ 
+ {
+-    int         i;
+-
+     CPLFree( pszName );
+ 
+-    for( i = 0; i < nLayers; i++ )
+-        delete papoLayers[i];
+-    
+-    CPLFree( papoLayers );
++    CloseDependentDatasets();
++
+     CPLFree( paeLayerType );
+ 
+     if( psTree != NULL)
+@@ -137,6 +133,23 @@ OGRVRTDataSource::~OGRVRTDataSource()
+ }
+ 
+ /************************************************************************/
++/*                        CloseDependentDatasets()                      */
++/************************************************************************/
++
++int OGRVRTDataSource::CloseDependentDatasets()
++{
++    int bHasClosedDependentDatasets = (nLayers > 0);
++    for( int i = 0; i < nLayers; i++ )
++    {
++        delete papoLayers[i];
++    }
++    CPLFree( papoLayers );
++    nLayers = 0;
++    papoLayers = NULL;
++    return bHasClosedDependentDatasets;
++}
++
++/************************************************************************/
+ /*                        InstanciateWarpedLayer()                      */
+ /************************************************************************/
+ 
