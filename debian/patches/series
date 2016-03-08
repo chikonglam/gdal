@@ -21,3 +21,4 @@ sqlite-3.10.0
 formatted-typo.patch
 remaining-typo.patch
 ogr-vrt-implement-CloseDependantDataset.patch
+message-typo.patch

@@ -2,6 +2,7 @@ gdal (2.0.2+dfsg-3) UNRELEASED; urgency=medium
 
   * Add patch to fix segfault when exiting with proper closing of datasource.
     (closes: #817146)
+  * Add patch for 'message' typo.
 
  -- Bas Couwenberg <sebastic@debian.org>  Tue, 08 Mar 2016 22:50:58 +0100
 
