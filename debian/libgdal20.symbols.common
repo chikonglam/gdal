@@ -701,7 +701,6 @@
  GDALRegister_ISIS3@Base 1.8.0
  GDALRegister_JDEM@Base 1.8.0
  GDALRegister_JP2OpenJPEG@Base 1.11.2
- GDALRegister_JPEG2000@Base 1.8.0
  GDALRegister_JPEG@Base 1.8.0
  GDALRegister_KMLSUPEROVERLAY@Base 1.8.0
  GDALRegister_KRO@Base 1.11.0

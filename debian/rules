@@ -94,7 +94,6 @@ override_dh_auto_configure:
 			--with-libtiff=yes \
 			--with-geotiff=yes \
 			--with-webp \
-			--with-jasper \
 			--with-netcdf \
 			$(WITH_HDF5) \
 			--with-xerces \
