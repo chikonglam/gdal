@@ -1,6 +1,7 @@
 gdal (2.0.2+dfsg-4) UNRELEASED; urgency=medium
 
   * Disable JasPer support, will be removed from stretch.
+    (closes: #818198)
 
  -- Bas Couwenberg <sebastic@debian.org>  Wed, 09 Mar 2016 21:08:01 +0100
 
