@@ -8,6 +8,9 @@
 # Uncomment this to turn on verbose mode.
 #export DH_VERBOSE=1
 
+# Enable hardening build flags
+export DEB_BUILD_MAINT_OPTIONS=hardening=+all,-pie
+
 # Remove -Werror=format-security, causes build failure on ogrsxfdatasource.cpp
 CFLAGS   = $(shell dpkg-buildflags --get CFLAGS)
 CXXFLAGS = $(shell dpkg-buildflags --get CXXFLAGS)
