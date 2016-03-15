@@ -1,11 +1,11 @@
-gdal (2.0.2+dfsg-4) UNRELEASED; urgency=medium
+gdal (2.0.2+dfsg-4) unstable; urgency=medium
 
   * Disable JasPer support, will be removed from stretch.
     (closes: #818198)
   * Enable all hardening buildflags, disable pie
     which breaks the Python bindings.
 
- -- Bas Couwenberg <sebastic@debian.org>  Wed, 09 Mar 2016 21:08:01 +0100
+ -- Bas Couwenberg <sebastic@debian.org>  Tue, 15 Mar 2016 20:29:28 +0100
 
 gdal (2.0.2+dfsg-3) unstable; urgency=medium
 
