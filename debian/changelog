@@ -2,6 +2,7 @@ gdal (2.0.2+dfsg-5) UNRELEASED; urgency=medium
 
   * Build with external libjson-c instead of internal copy.
     (LP: #1565475)
+  * Have dh_numpy{,3} act on specific package only.
 
  -- Bas Couwenberg <sebastic@debian.org>  Sun, 03 Apr 2016 16:38:52 +0200
 
