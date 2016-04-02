@@ -13,6 +13,7 @@ gdal (2.1.0~beta1+dfsg-1) UNRELEASED; urgency=medium
   * Add patch to bump minimum Java version to 5 for annotations.
   * Include additional manpages in gdal-bin.
   * Have dh_numpy{,3} act on specific package only.
+  * Add patch to fix privacy-breach-logo issues in documentation.
 
  -- Bas Couwenberg <sebastic@debian.org>  Sat, 02 Apr 2016 11:15:12 +0200
 
