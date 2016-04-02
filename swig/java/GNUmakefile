@@ -31,10 +31,10 @@ makedir:
 	mkdir -p org/gdal/gdalconst
 	mkdir -p org/gdal/ogr
 	mkdir -p org/gdal/osr
+	mkdir -p org/gdal/gnm
 
-
-JAVA_MODULES = libgdaljni.$(SO_EXT) libogrjni.$(SO_EXT) libgdalconstjni.$(SO_EXT) libosrjni.$(SO_EXT)
-JAVA_OBJECTS = gdalconst_wrap.$(OBJ_EXT) gdal_wrap.$(OBJ_EXT) osr_wrap.$(OBJ_EXT) ogr_wrap.$(OBJ_EXT)
+JAVA_MODULES = libgdaljni.$(SO_EXT) libogrjni.$(SO_EXT) libgdalconstjni.$(SO_EXT) libosrjni.$(SO_EXT) libgnmjni.$(SO_EXT)
+JAVA_OBJECTS = gdalconst_wrap.$(OBJ_EXT) gdal_wrap.$(OBJ_EXT) osr_wrap.$(OBJ_EXT) ogr_wrap.$(OBJ_EXT) gnm_wrap.$(OBJ_EXT)
 
 clean:
 	-rm -f ${JAVA_MODULES}
@@ -87,6 +87,9 @@ test:
 	${JAVA_RUN} gdalinfo -checksum tmp_test/byte.tif
 	${JAVA_RUN} ogr2ogr tmp_test/out.shp test_data/poly.shp -progress -overwrite
 	${JAVA_RUN} ogrinfo -ro -al tmp_test/out.shp
+	${JAVA_RUN} ogr2ogr_new tmp_test/out2.shp test_data/poly.shp -progress -overwrite
+	${JAVA_RUN} ogr2ogr_new tmp_test/out2.shp test_data/poly.shp -append
+	${JAVA_RUN} ogrinfo -ro -al tmp_test/out2.shp
 	${JAVA_RUN} OSRTransform
 	${JAVA_RUN} gdalmajorobject
 	${JAVA_RUN} GDALTestIO

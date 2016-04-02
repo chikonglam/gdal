@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 ###############################################################################
-# $Id: val_repl.py 28391 2015-01-30 19:57:31Z rouault $
+# $Id: val_repl.py 31957 2015-12-02 12:44:54Z goatbar $
 #
 # Project:  GDAL Python samples
 # Purpose:  Script to replace specified values from the input raster file
@@ -12,7 +12,7 @@
 ###############################################################################
 # Copyright (c) 2003, Andrey Kiselev <dron@remotesensing.org>
 # Copyright (c) 2009-2010, Even Rouault <even dot rouault at mines-paris dot org>
-# 
+#
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
 # to deal in the Software without restriction, including without limitation
@@ -33,11 +33,8 @@
 ###############################################################################
 
 
-try:
-    from osgeo import gdal
-    gdal.TermProgress = gdal.TermProgress_nocb
-except ImportError:
-    import gdal
+from osgeo import gdal
+gdal.TermProgress = gdal.TermProgress_nocb
 
 try:
     import numpy

@@ -1,4 +1,4 @@
-.TH "gdal_translate" 1 "Tue Jan 26 2016" "GDAL" \" -*- nroff -*-
+.TH "gdal_translate" 1 "Fri Apr 1 2016" "GDAL" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -11,7 +11,7 @@ converts raster data between different formats
 gdal_translate [--help-general]
        [-ot {Byte/Int16/UInt16/UInt32/Int32/Float32/Float64/
              CInt16/CInt32/CFloat32/CFloat64}] [-strict]
-       [-of format] [-b band] [-mask band] [-expand {gray|rgb|rgba}]
+       [-of format] [-b band]* [-mask band] [-expand {gray|rgb|rgba}]
        [-outsize xsize[%]|0 ysize[%]|0] [-tr xres yres]
        [-r {nearest,bilinear,cubic,cubicspline,lanczos,average,mode}]
        [-unscale] [-scale[_bn] [src_min src_max [dst_min dst_max]]]* [-exponent[_bn] exp_val]*
@@ -50,7 +50,7 @@ Set the size of the output file\&. Outsize is in pixels and lines unless '%' is 
 .IP "\fB\fB-scale\fP \fI[src_min src_max [dst_min dst_max]]\fP:\fP" 1c
 Rescale the input pixels values from the range \fIsrc_min\fP to \fIsrc_max\fP to the range \fIdst_min\fP to \fIdst_max\fP\&. If omitted the output range is 0 to 255\&. If omitted the input range is automatically computed from the source data\&. Before GDAL 1\&.11, it can be specified only once, and in that case, it applies to all bands of the output dataset\&. Starting with GDAL 1\&.11, -scale can be repeated several times (if specified only once, it also applies to all bands of the output dataset), so as to specify per band parameters\&. It is also possible to use the '-scale_bn' syntax where bn is a band number (e\&.g\&. '-scale_2' for the 2nd band of the output dataset) to specify the parameters of one or several specific bands\&.  
 .IP "\fB\fB-exponent\fP \fI exp_val\fP:\fP" 1c
-(From GDAL 1\&.11) To apply non-linear scaling with a power function\&. exp_val is the exponent of the power function (must be postive)\&. This option must be used with the -scale option\&. If specified only once, -exponent applies to all bands of the output image\&. It can be repeated several times so as to specify per band parameters\&. It is also possible to use the '-exponent_bn' syntax where bn is a band number (e\&.g\&. '-exponent_2' for the 2nd band of the output dataset) to specify the parameters of one or several specific bands\&.  
+(From GDAL 1\&.11) To apply non-linear scaling with a power function\&. exp_val is the exponent of the power function (must be positive)\&. This option must be used with the -scale option\&. If specified only once, -exponent applies to all bands of the output image\&. It can be repeated several times so as to specify per band parameters\&. It is also possible to use the '-exponent_bn' syntax where bn is a band number (e\&.g\&. '-exponent_2' for the 2nd band of the output dataset) to specify the parameters of one or several specific bands\&.  
 .IP "\fB\fB-unscale\fP:\fP" 1c
 Apply the scale/offset metadata for the bands to convert scaled values to unscaled values\&. It is also often necessary to reset the output datatype with the \fB-ot\fP switch\&. 
 .IP "\fB\fB-srcwin\fP \fIxoff yoff xsize ysize\fP:\fP" 1c
@@ -90,6 +90,9 @@ The source dataset name\&. It can be either file name, URL of data source or sub
 .IP "\fB\fIdst_dataset\fP:\fP" 1c
 The destination file name\&. 
 .PP
+.SH "C API"
+.PP
+Starting with GDAL 2\&.1, this utility is also callable from C with GDALTranslate()\&.
 .SH "EXAMPLE"
 .PP
 .PP

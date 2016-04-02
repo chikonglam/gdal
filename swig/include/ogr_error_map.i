@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_error_map.i 28809 2015-03-28 17:10:07Z rouault $
+ * $Id: ogr_error_map.i 32864 2016-01-08 21:00:50Z goatbar $
  *
  * Project:  GDAL SWIG Interfaces.
  * Purpose:  OGRErr handling typemap.
@@ -28,9 +28,9 @@
  *****************************************************************************/
 
 #ifdef SWIGRUBY
-%header 
+%header
 #else
-%fragment("OGRErrMessages","header") 
+%fragment("OGRErrMessages","header")
 #endif
 %{
 

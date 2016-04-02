@@ -1,4 +1,4 @@
-.TH "gdal2tiles" 1 "Tue Jan 26 2016" "GDAL" \" -*- nroff -*-
+.TH "gdal2tiles" 1 "Fri Apr 1 2016" "GDAL" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -9,14 +9,14 @@ generates directory with TMS tiles, KMLs and simple web viewers
 .PP
 .nf
 gdal2tiles.py [-p profile] [-r resampling] [-s srs] [-z zoom]
-              [-e] [-a nodata] [-v] [-h] [-k] [-n] [-u url]
+              [-e] [-a nodata] [-v] [-q] [-h] [-k] [-n] [-u url]
               [-w webviewer] [-t title] [-c copyright]
               [-g googlekey] [-b bingkey] input_file [output_dir]
 .fi
 .PP
 .SH "DESCRIPTION"
 .PP
-This utility generates a directory with small tiles and metadata, following the OSGeo Tile Map Service Specification\&. Simple web pages with viewers based on Google Maps and OpenLayers are generated as well - so anybody can comfortably explore your maps on-line and you do not need to install or configure any special software (like MapServer) and the map displays very fast in the web browser\&. You only need to upload the generated directory onto a web server\&.
+This utility generates a directory with small tiles and metadata, following the OSGeo Tile Map Service Specification\&. Simple web pages with viewers based on Google Maps, OpenLayers and Leaflet are generated as well - so anybody can comfortably explore your maps on-line and you do not need to install or configure any special software (like MapServer) and the map displays very fast in the web browser\&. You only need to upload the generated directory onto a web server\&.
 .PP
 GDAL2Tiles also creates the necessary metadata for Google Earth (KML SuperOverlay), in case the supplied map uses EPSG:4326 projection\&.
 .PP
@@ -36,6 +36,8 @@ Resume mode\&. Generate only missing files\&.
 NODATA transparency value to assign to the input data\&. 
 .IP "\fB\fB-v, --verbose\fP \fP" 1c
 Generate verbose output of tile generation\&. 
+.IP "\fB\fB-q, --quiet\fP \fP" 1c
+Disable messages and status to stdout (GDAL >= 2\&.1)\&. 
 .IP "\fB\fB-h, --help\fP \fP" 1c
 Show help message and exit\&. 
 .IP "\fB\fB--version\fP \fP" 1c
@@ -57,7 +59,7 @@ URL address where the generated tiles are going to be published\&.
 .PP
 Options for generated HTML viewers a la Google Maps 
 .IP "\fB\fB-w\fP \fIWEBVIEWER\fP, --webviewer=\fIWEBVIEWER\fP: \fP" 1c
-Web viewer to generate (all,google,openlayers,none) - default 'all'\&. 
+Web viewer to generate (all,google,openlayers,leaflet,none) - default 'all'\&. 
 .IP "\fB\fB-t\fP \fITITLE\fP, --title=\fITITLE\fP: \fP" 1c
 Title of the map\&. 
 .IP "\fB\fB-c\fP \fICOPYRIGHT\fP, --copyright=\fICOPYRIGHT\fP: \fP" 1c

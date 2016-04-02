@@ -115,6 +115,14 @@
 </td><td> Yes
 </td></tr>
 
+<tr><td> <a href="frmt_cals.html">CALS Type I</a>
+</td><td> CALS
+</td><td> Yes
+</td><td> No
+</td><td> --
+</td><td> Yes
+</td></tr>
+
 <tr><td> <a href="frmt_various.html#CEOS">CEOS (Spot for instance)</a>
 </td><td> CEOS
 </td><td> No
@@ -155,12 +163,20 @@
 </td><td> Yes
 </td></tr>
 
+<tr><td> <a href="drv_db2_raster.html">DB2</a>
+</td><td> DB2
+</td><td> Yes
+</td><td> Yes
+</td><td> No limits
+</td><td> No, needs ODBC (and any or all of PNG, JPEG, WEBP drivers)
+</td></tr>
+
 <tr><td> <a href="frmt_various.html#DDS">DirectDraw Surface</a>
 </td><td> DDS
 </td><td> Yes
 </td><td> No
-</td><td> 
-</td><td> No
+</td><td>
+</td><td> No, needs Crunch Lib
 </td></tr>
 
 <tr><td> <a href="frmt_various.html#DIMAP">Spot DIMAP (metadata.dim)</a>
@@ -279,7 +295,7 @@
 </td><td> ERS
 </td><td> Yes
 </td><td> Yes
-</td><td> 
+</td><td>
 </td><td> Yes
 </td></tr>
 
@@ -447,7 +463,7 @@
 </td><td> GTX
 </td><td> Yes
 </td><td> Yes
-</td><td> 
+</td><td>
 </td><td> Yes
 </td></tr>
 
@@ -523,6 +539,14 @@
 </td><td> Yes
 </td></tr>
 
+<tr><td> <a href="frmt_isce.html">ISCE raster</a>
+</td><td> ISCE
+</td><td> Yes
+</td><td> No
+</td><td> --
+</td><td> Yes
+</td></tr>
+
 <tr><td> <a href="frmt_isis2.html">USGS Astrogeology ISIS cube (Version 2)</a>
 </td><td> ISIS2
 </td><td> Yes
@@ -559,7 +583,7 @@
 </td><td> JPEG
 </td><td> Yes
 </td><td> Yes
-</td><td> 4GiB (max dimentions 65500x65500)
+</td><td> 4GiB (max dimensions 65500x65500)
 </td><td> Yes (internal libjpeg provided)
 </td></tr>
 
@@ -599,7 +623,7 @@
 </td><td> JP2MrSID
 </td><td> Yes
 </td><td> Yes
-</td><td> 
+</td><td>
 </td><td> No, needs MrSID SDK
 </td></tr>
 
@@ -667,7 +691,7 @@
 </td><td> Yes
 </td></tr>
 
-<tr><td> <a href="frmt_leveller.html">Daylon Leveller Heightfield</a> 
+<tr><td> <a href="frmt_leveller.html">Daylon Leveller Heightfield</a>
 </td><td> Leveller
 </td><td> No
 </td><td> Yes
@@ -685,7 +709,7 @@
 
 <tr><td> <a href="frmt_mbtiles.html">MBTiles</a>
 </td><td> MBTiles
-</td><td> No
+</td><td> Yes
 </td><td> Yes
 </td><td> --
 </td><td> No (needs OGR SQLite driver)
@@ -703,7 +727,7 @@
 </td><td> MEM
 </td><td> Yes
 </td><td> Yes
-</td><td> 
+</td><td>
 </td><td> Yes
 </td></tr>
 
@@ -731,6 +755,14 @@
 </td><td> No, needs LIDAR SDK
 </td></tr>
 
+<tr><td> <a href="frmt_marfa.html">Meta Raster Format</a>
+</td><td> MRF
+</td><td> Yes
+</td><td> Yes
+</td><td> --
+</td><td> Yes
+</td></tr>
+
 <tr><td> <a href="frmt_mrsid.html">Multi-resolution Seamless Image Database</a>
 </td><td> MrSID
 </td><td> No
@@ -743,7 +775,7 @@
 </td><td> MSG
 </td><td> No
 </td><td> Yes
-</td><td> 
+</td><td>
 </td><td> No, needs msg library
 </td></tr>
 
@@ -751,7 +783,7 @@
 </td><td> MSGN
 </td><td> No
 </td><td> Yes
-</td><td> 
+</td><td>
 </td><td> Yes
 </td></tr>
 
@@ -856,7 +888,7 @@
 </td><td> Yes
 </td><td> Yes
 </td><td> --
-</td><td> Yes (but needs libpoppler or libpodofo for read support)
+</td><td> Yes (but needs libpoppler, libpodofo or PDFium for read support)
 </td></tr>
 
 <tr><td> <a href="frmt_pds.html">NASA Planetary Data System</a>
@@ -966,6 +998,22 @@
 <tr><td> <a href="frmt_Idrisi.html">Idrisi Raster</a>
 </td><td> RST
 </td><td> Yes
+</td><td> Yes
+</td><td> No limits
+</td><td> Yes
+</td></tr>
+
+<tr><td> <a href="frmt_safe.html">Sentinel 1 SAR SAFE (manifest.safe)</a>
+</td><td> SAFE
+</td><td> No
+</td><td> Yes
+</td><td> No limits
+</td><td> Yes
+</td></tr>
+
+<tr><td> <a href="frmt_sentinel2.html">Sentinel 2</a>
+</td><td> SENTINEL2
+</td><td> No
 </td><td> Yes
 </td><td> No limits
 </td><td> Yes
@@ -1099,8 +1147,16 @@
 </td><td> No, needs libwebp
 </td></tr>
 
-<tr><td> <a href="frmt_wms.html">OGC Web Map Service</a>
+<tr><td> <a href="frmt_wms.html">OGC Web Map Service, and TMS, WorldWind, On Earth tiled, VirtualEarth, ArcGIS REST, IIP)</a>
 </td><td> WMS
+</td><td> No
+</td><td> Yes
+</td><td> --
+</td><td> No, needs libcurl
+</td></tr>
+
+<tr><td> <a href="frmt_wmts.html">OGC Web Map Tile Service</a>
+</td><td> WMTS
 </td><td> No
 </td><td> Yes
 </td><td> --
@@ -1127,7 +1183,7 @@
 </td><td> ZMap
 </td><td> Yes
 </td><td> Yes
-</td><td> 
+</td><td>
 </td><td> Yes
 </td></tr>
 
@@ -1147,7 +1203,7 @@
 </p>
 
 <p>
-$Id: formats_list.html 28859 2015-04-07 08:40:10Z rouault $
+$Id: formats_list.html 33822 2016-03-31 12:35:35Z rouault $
 </p>
 
 </body>

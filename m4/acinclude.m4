@@ -1,5 +1,5 @@
 dnl ***************************************************************************
-dnl $Id: acinclude.m4 28182 2014-12-20 19:53:13Z goatbar $
+dnl $Id: acinclude.m4 31826 2015-11-29 15:39:57Z goatbar $
 dnl
 dnl Project:  GDAL
 dnl Purpose:  Configure extra local definitions.
@@ -62,12 +62,12 @@ void test_f()
 # AC_CHECK_FUNC_CUSTOM(FUNCTION, [INCLUDE], [CODE], 
 #                      [ACTION-IF-FOUND], [ACTION-IF-NOT-FOUND])
 # -----------------------------------------------------------------
-# This function is primariliy added to facilite testing that 
+# This function is primarily added to facilitate testing that 
 # function prototypes are properly found such that functions can
 # be compiled properly in C++.  In particular, we want to include
 # the real include file, not internal define prototypes. 
 #
-# eg.
+# e.g.
 # AC_LANG_PUSH(C++)
 # AC_CHECK_FUNC_CUSTOM(gmtime_r,[#include <time.h>],[time_t t; struct tm ltime; t = time(0); gmtime_r( &t, &ltime );])
 # AC_LANG_POP(C++)

@@ -1,4 +1,4 @@
-.TH "gdalwarp" 1 "Tue Jan 26 2016" "GDAL" \" -*- nroff -*-
+.TH "gdalwarp" 1 "Fri Apr 1 2016" "GDAL" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -22,6 +22,7 @@ gdalwarp [--help-general] [--formats]
     [-csql statement] [-cblend dist_in_pixels] [-crop_to_cutline]
     [-of format] [-co "NAME=VALUE"]* [-overwrite]
     [-nomd] [-cvmd meta_conflict_value] [-setci] [-oo NAME=VALUE]*
+    [-doo NAME=VALUE]*
     srcfile* dstfile
 .fi
 .PP
@@ -30,9 +31,9 @@ gdalwarp [--help-general] [--formats]
 The gdalwarp utility is an image mosaicing, reprojection and warping utility\&. The program can reproject to any supported projection, and can also apply GCPs stored with the image if the image is 'raw' with control information\&.
 .PP
 .IP "\fB\fB-s_srs\fP \fIsrs def\fP:\fP" 1c
-source spatial reference set\&. The coordinate systems that can be passed are anything supported by the OGRSpatialReference\&.SetFromUserInput() call, which includes EPSG PCS and GCSes (ie\&. EPSG:4296), PROJ\&.4 declarations (as above), or the name of a \&.prf file containing well known text\&. 
+source spatial reference set\&. The coordinate systems that can be passed are anything supported by the OGRSpatialReference\&.SetFromUserInput() call, which includes EPSG PCS and GCSes (i\&.e\&. EPSG:4296), PROJ\&.4 declarations (as above), or the name of a \&.prj file containing well known text\&. 
 .IP "\fB\fB-t_srs\fP \fIsrs_def\fP:\fP" 1c
-target spatial reference set\&. The coordinate systems that can be passed are anything supported by the OGRSpatialReference\&.SetFromUserInput() call, which includes EPSG PCS and GCSes (ie\&. EPSG:4296), PROJ\&.4 declarations (as above), or the name of a \&.prf file containing well known text\&. 
+target spatial reference set\&. The coordinate systems that can be passed are anything supported by the OGRSpatialReference\&.SetFromUserInput() call, which includes EPSG PCS and GCSes (i\&.e\&. EPSG:4296), PROJ\&.4 declarations (as above), or the name of a \&.prj file containing well known text\&. 
 .IP "\fB\fB-to\fP \fINAME=VALUE\fP:\fP" 1c
 set a transformer option suitable to pass to GDALCreateGenImgProjTransformer2()\&.  
 .IP "\fB\fB-order\fP \fIn\fP:\fP" 1c
@@ -44,13 +45,13 @@ Force use of RPCs\&.
 .IP "\fB\fB-geoloc\fP:\fP" 1c
 Force use of Geolocation Arrays\&. 
 .IP "\fB\fB-et\fP \fIerr_threshold\fP:\fP" 1c
-error threshold for transformation approximation (in pixel units - defaults to 0\&.125)\&. 
+error threshold for transformation approximation (in pixel units - defaults to 0\&.125, unless, starting with GDAL 2\&.1, the RPC_DEM warping option is specified, in which case, an exact transformer, i\&.e\&. err_threshold=0, will be used)\&. 
 .IP "\fB\fB-refine_gcps\fP \fItolerance minimum_gcps\fP:\fP" 1c
 (GDAL >= 1\&.9\&.0) refines the GCPs by automatically eliminating outliers\&. Outliers will be eliminated until minimum_gcps are left or when no outliers can be detected\&. The tolerance is passed to adjust when a GCP will be eliminated\&. Not that GCP refinement only works with polynomial interpolation\&. The tolerance is in pixel units if no projection is available, otherwise it is in SRS units\&. If minimum_gcps is not provided, the minimum GCPs according to the polynomial model is used\&. 
 .IP "\fB\fB-te\fP \fIxmin ymin xmax ymax\fP:\fP" 1c
 set georeferenced extents of output file to be created (in target SRS by default, or in the SRS specified with -te_srs)  
 .IP "\fB\fB-te_srs\fP \fIsrs_def\fP:\fP" 1c
-(GDAL >= 2\&.0) Specifies the SRS in which to interpret the coordinates given with -te\&. The \fIsrs_def\fP may be any of the usual GDAL/OGR forms, complete WKT, PROJ\&.4, EPSG:n or a file containing the WKT\&. This must not be confused with -t_srs which is the target SRS of the output dataset\&. -te_srs is a conveniency e\&.g\&. when knowing the output coordinates in a geodetic long/lat SRS, but still wanting a result in a projected coordinate system\&.  
+(GDAL >= 2\&.0) Specifies the SRS in which to interpret the coordinates given with -te\&. The \fIsrs_def\fP may be any of the usual GDAL/OGR forms, complete WKT, PROJ\&.4, EPSG:n or a file containing the WKT\&. This must not be confused with -t_srs which is the target SRS of the output dataset\&. -te_srs is a convenience e\&.g\&. when knowing the output coordinates in a geodetic long/lat SRS, but still wanting a result in a projected coordinate system\&.  
 .IP "\fB\fB-tr\fP \fIxres yres\fP:\fP" 1c
 set output file resolution (in target georeferenced units) 
 .IP "\fB\fB-tap\fP:\fP" 1c
@@ -58,7 +59,7 @@ set output file resolution (in target georeferenced units)
 .IP "\fB\fB-ts\fP \fIwidth height\fP:\fP" 1c
 set output file size in pixels and lines\&. If width or height is set to 0, the other dimension will be guessed from the computed resolution\&. Note that -ts cannot be used with -tr 
 .IP "\fB\fB-ovr\fP \fIlevel|AUTO|AUTO-n|NONE>\fP:\fP" 1c
-(GDAL >= 2\&.0) To specify which overview level of source files must be used\&. The default choice, AUTO, will select the overview level whose resolution is the closest to the target resolution\&. Specify an integer value (0-based, i\&.e\&. 0=1st overview level) to select a particular level\&. Specify AUTO-n where n is an integer greater or equal to 1, to select an overview level below the AUTO one\&. Or specify NONE to force the base resolution to be used\&. 
+(GDAL >= 2\&.0) To specify which overview level of source files must be used\&. The default choice, AUTO, will select the overview level whose resolution is the closest to the target resolution\&. Specify an integer value (0-based, i\&.e\&. 0=1st overview level) to select a particular level\&. Specify AUTO-n where n is an integer greater or equal to 1, to select an overview level below the AUTO one\&. Or specify NONE to force the base resolution to be used (can be useful if overviews have been generated with a low quality resampling method, and the warping is done using a higher quality resampling method)\&. 
 .IP "\fB\fB-wo\fP \fI'NAME=VALUE'\fP:\fP" 1c
 Set a warp option\&. The GDALWarpOptions::papszWarpOptions docs show all options\&. Multiple \fB-wo\fP options may be listed\&. 
 .IP "\fB\fB-ot\fP \fItype\fP:\fP" 1c
@@ -130,7 +131,9 @@ Set a blend distance to use to blend over cutlines (in pixels)\&.
 .IP "\fB\fB-setci\fP:\fP" 1c
 (GDAL >= 1\&.10\&.0) Set the color interpretation of the bands of the target dataset from the source dataset\&. 
 .IP "\fB\fB-oo\fP \fINAME=VALUE\fP:\fP" 1c
-(starting with GDAL 2\&.0) Dataset open option (format specific)
+(starting with GDAL 2\&.0) Dataset open option (format specific) 
+.IP "\fB\fB-doo\fP \fINAME=VALUE\fP:\fP" 1c
+(starting with GDAL 2\&.1) Output dataset open option (format specific)
 .PP
 .IP "\fB\fIsrcfile\fP:\fP" 1c
 The source file name(s)\&.  
@@ -140,7 +143,7 @@ The destination file name\&.
 .PP
 Mosaicing into an existing output file is supported if the output file already exists\&. The spatial extent of the existing file will not be modified to accommodate new data, so you may have to remove it in that case, or use the -overwrite option\&.
 .PP
-Polygon cutlines may be used as a mask to restrict the area of the destination file that may be updated, including blending\&. If the OGR layer containing the cutline features has no explicit SRS, the cutline features must be in the SRS of the destination file\&. When outputing to a not yet existing target dataset, its extent will be the one of the original raster unless -te or -crop_to_cutline are specified\&.
+Polygon cutlines may be used as a mask to restrict the area of the destination file that may be updated, including blending\&. If the OGR layer containing the cutline features has no explicit SRS, the cutline features must be in the SRS of the destination file\&. When writing to a not yet existing target dataset, its extent will be the one of the original raster unless -te or -crop_to_cutline are specified\&.
 .SH "EXAMPLE"
 .PP
 For instance, an eight bit spot scene stored in GeoTIFF with control points mapping the corners to lat/long could be warped to a UTM projection with a command like this:

@@ -15,7 +15,7 @@ public class Geometry : IDisposable {
   private HandleRef swigCPtr;
   protected bool swigCMemOwn;
   protected object swigParentRef;
-  
+
   protected static object ThisOwn_true() { return null; }
   protected object ThisOwn_false() { return this; }
 
@@ -72,7 +72,7 @@ public int ExportToWkb( byte[] buffer, wkbByteOrder byte_order ) {
       int size = WkbSize();
       if (buffer.Length < size)
         throw new ArgumentException("Buffer size is small (ExportToWkb)");
-        
+
       IntPtr ptr = Marshal.AllocHGlobal(size * Marshal.SizeOf(buffer[0]));
       try {
           retval = ExportToWkb(size, ptr, byte_order);
@@ -86,11 +86,11 @@ public int ExportToWkb( byte[] buffer, wkbByteOrder byte_order ) {
   public int ExportToWkb( byte[] buffer ) {
       return ExportToWkb( buffer, wkbByteOrder.wkbXDR);
   }
-  
+
   public static Geometry CreateFromWkb(byte[] wkb){
      if (wkb.Length == 0)
         throw new ArgumentException("Buffer size is small (CreateFromWkb)");
-     Geometry retval;   
+     Geometry retval;
      IntPtr ptr = Marshal.AllocHGlobal(wkb.Length * Marshal.SizeOf(wkb[0]));
      try {
          Marshal.Copy(wkb, 0, ptr, wkb.Length);
@@ -98,17 +98,17 @@ public int ExportToWkb( byte[] buffer, wkbByteOrder byte_order ) {
       } finally {
           Marshal.FreeHGlobal(ptr);
       }
-      return retval;  
+      return retval;
   }
-  
+
   public static Geometry CreateFromWkt(string wkt){
      return new Geometry(wkbGeometryType.wkbUnknown, wkt, 0, IntPtr.Zero, null);
   }
-  
+
   public static Geometry CreateFromGML(string gml){
      return new Geometry(wkbGeometryType.wkbUnknown, null, 0, IntPtr.Zero, gml);
   }
-  
+
   public Geometry(wkbGeometryType type) : this(OgrPINVOKE.new_Geometry((int)type, null, 0, IntPtr.Zero, null), true, null) {
     if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
   }
@@ -154,6 +154,16 @@ public int ExportToWkb( byte[] buffer, wkbByteOrder byte_order ) {
 
   public void AddPoint(double x, double y, double z) {
     OgrPINVOKE.Geometry_AddPoint(swigCPtr, x, y, z);
+    if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
+  }
+
+  public void AddPointM(double x, double y, double m) {
+    OgrPINVOKE.Geometry_AddPointM(swigCPtr, x, y, m);
+    if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
+  }
+
+  public void AddPointZM(double x, double y, double z, double m) {
+    OgrPINVOKE.Geometry_AddPointZM(swigCPtr, x, y, z, m);
     if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
   }
 
@@ -235,8 +245,19 @@ public int ExportToWkb( byte[] buffer, wkbByteOrder byte_order ) {
     return ret;
   }
 
+  public double GetM(int point) {
+    double ret = OgrPINVOKE.Geometry_GetM(swigCPtr, point);
+    if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
+    return ret;
+  }
+
   public void GetPoint(int iPoint, double[] argout) {
     OgrPINVOKE.Geometry_GetPoint(swigCPtr, iPoint, argout);
+    if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
+  }
+
+  public void GetPointZM(int iPoint, double[] argout) {
+    OgrPINVOKE.Geometry_GetPointZM(swigCPtr, iPoint, argout);
     if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
   }
 
@@ -253,6 +274,16 @@ public int ExportToWkb( byte[] buffer, wkbByteOrder byte_order ) {
 
   public void SetPoint(int point, double x, double y, double z) {
     OgrPINVOKE.Geometry_SetPoint(swigCPtr, point, x, y, z);
+    if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
+  }
+
+  public void SetPointM(int point, double x, double y, double m) {
+    OgrPINVOKE.Geometry_SetPointM(swigCPtr, point, x, y, m);
+    if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
+  }
+
+  public void SetPointZM(int point, double x, double y, double z, double m) {
+    OgrPINVOKE.Geometry_SetPointZM(swigCPtr, point, x, y, z, m);
     if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
   }
 
@@ -277,6 +308,13 @@ public int ExportToWkb( byte[] buffer, wkbByteOrder byte_order ) {
 
   public Geometry SimplifyPreserveTopology(double tolerance) {
     IntPtr cPtr = OgrPINVOKE.Geometry_SimplifyPreserveTopology(swigCPtr, tolerance);
+    Geometry ret = (cPtr == IntPtr.Zero) ? null : new Geometry(cPtr, true, ThisOwn_true());
+    if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
+    return ret;
+  }
+
+  public Geometry DelaunayTriangulation(double dfTolerance, int bOnlyEdges) {
+    IntPtr cPtr = OgrPINVOKE.Geometry_DelaunayTriangulation(swigCPtr, dfTolerance, bOnlyEdges);
     Geometry ret = (cPtr == IntPtr.Zero) ? null : new Geometry(cPtr, true, ThisOwn_true());
     if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
     return ret;
@@ -522,8 +560,36 @@ public int ExportToWkb( byte[] buffer, wkbByteOrder byte_order ) {
     return ret;
   }
 
+  public int CoordinateDimension() {
+    int ret = OgrPINVOKE.Geometry_CoordinateDimension(swigCPtr);
+    if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
+    return ret;
+  }
+
+  public int Is3D() {
+    int ret = OgrPINVOKE.Geometry_Is3D(swigCPtr);
+    if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
+    return ret;
+  }
+
+  public int IsMeasured() {
+    int ret = OgrPINVOKE.Geometry_IsMeasured(swigCPtr);
+    if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
+    return ret;
+  }
+
   public void SetCoordinateDimension(int dimension) {
     OgrPINVOKE.Geometry_SetCoordinateDimension(swigCPtr, dimension);
+    if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
+  }
+
+  public void Set3D(int b3D) {
+    OgrPINVOKE.Geometry_Set3D(swigCPtr, b3D);
+    if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
+  }
+
+  public void SetMeasured(int bMeasured) {
+    OgrPINVOKE.Geometry_SetMeasured(swigCPtr, bMeasured);
     if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
   }
 

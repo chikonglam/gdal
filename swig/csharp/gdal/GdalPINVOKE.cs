@@ -262,6 +262,12 @@ class GdalPINVOKE {
   [DllImport("gdal_wrap", EntryPoint="CSharp_GetLastErrorMsg")]
   public static extern string GetLastErrorMsg();
 
+  [DllImport("gdal_wrap", EntryPoint="CSharp_VSIGetLastErrorNo")]
+  public static extern int VSIGetLastErrorNo();
+
+  [DllImport("gdal_wrap", EntryPoint="CSharp_VSIGetLastErrorMsg")]
+  public static extern string VSIGetLastErrorMsg();
+
   [DllImport("gdal_wrap", EntryPoint="CSharp_PushFinderLocation")]
   public static extern void PushFinderLocation(byte[] jarg1);
 
@@ -275,7 +281,7 @@ class GdalPINVOKE {
   public static extern string FindFile(string jarg1, byte[] jarg2);
 
   [DllImport("gdal_wrap", EntryPoint="CSharp_ReadDir")]
-  public static extern IntPtr ReadDir(byte[] jarg1);
+  public static extern IntPtr ReadDir(byte[] jarg1, int jarg2);
 
   [DllImport("gdal_wrap", EntryPoint="CSharp_ReadDirRecursive")]
   public static extern IntPtr ReadDirRecursive(byte[] jarg1);
@@ -308,10 +314,13 @@ class GdalPINVOKE {
   public static extern int Rmdir(byte[] jarg1);
 
   [DllImport("gdal_wrap", EntryPoint="CSharp_Rename")]
-  public static extern int Rename(string jarg1, string jarg2);
+  public static extern int Rename(byte[] jarg1, byte[] jarg2);
 
   [DllImport("gdal_wrap", EntryPoint="CSharp_VSIFOpenL")]
   public static extern IntPtr VSIFOpenL(byte[] jarg1, string jarg2);
+
+  [DllImport("gdal_wrap", EntryPoint="CSharp_VSIFOpenExL")]
+  public static extern IntPtr VSIFOpenExL(byte[] jarg1, string jarg2, int jarg3);
 
   [DllImport("gdal_wrap", EntryPoint="CSharp_VSIFCloseL")]
   public static extern int VSIFCloseL(IntPtr jarg1);
@@ -327,6 +336,9 @@ class GdalPINVOKE {
 
   [DllImport("gdal_wrap", EntryPoint="CSharp_VSIFWriteL")]
   public static extern int VSIFWriteL(string jarg1, int jarg2, int jarg3, IntPtr jarg4);
+
+  [DllImport("gdal_wrap", EntryPoint="CSharp_ParseCommandLine")]
+  public static extern IntPtr ParseCommandLine(byte[] jarg1);
 
   [DllImport("gdal_wrap", EntryPoint="CSharp_XMLNode_Type_get")]
   public static extern int XMLNode_Type_get(HandleRef jarg1);
@@ -742,6 +754,9 @@ class GdalPINVOKE {
   [DllImport("gdal_wrap", EntryPoint="CSharp_Band_SetNoDataValue")]
   public static extern int Band_SetNoDataValue(HandleRef jarg1, double jarg2);
 
+  [DllImport("gdal_wrap", EntryPoint="CSharp_Band_DeleteNoDataValue")]
+  public static extern int Band_DeleteNoDataValue(HandleRef jarg1);
+
   [DllImport("gdal_wrap", EntryPoint="CSharp_Band_GetUnitType")]
   public static extern string Band_GetUnitType(HandleRef jarg1);
 
@@ -953,7 +968,7 @@ class GdalPINVOKE {
   public static extern int DitherRGB2PCT(HandleRef jarg1, HandleRef jarg2, HandleRef jarg3, HandleRef jarg4, HandleRef jarg5, Gdal.GDALProgressFuncDelegate jarg6, string jarg7);
 
   [DllImport("gdal_wrap", EntryPoint="CSharp_ReprojectImage")]
-  public static extern int ReprojectImage(HandleRef jarg1, HandleRef jarg2, string jarg3, string jarg4, int jarg5, double jarg6, double jarg7, Gdal.GDALProgressFuncDelegate jarg8, string jarg9);
+  public static extern int ReprojectImage(HandleRef jarg1, HandleRef jarg2, string jarg3, string jarg4, int jarg5, double jarg6, double jarg7, Gdal.GDALProgressFuncDelegate jarg8, string jarg9, IntPtr[] jarg10);
 
   [DllImport("gdal_wrap", EntryPoint="CSharp_ComputeProximity")]
   public static extern int ComputeProximity(HandleRef jarg1, HandleRef jarg2, IntPtr[] jarg3, Gdal.GDALProgressFuncDelegate jarg4, string jarg5);
@@ -963,6 +978,9 @@ class GdalPINVOKE {
 
   [DllImport("gdal_wrap", EntryPoint="CSharp_Polygonize")]
   public static extern int Polygonize(HandleRef jarg1, HandleRef jarg2, HandleRef jarg3, int jarg4, IntPtr[] jarg5, Gdal.GDALProgressFuncDelegate jarg6, string jarg7);
+
+  [DllImport("gdal_wrap", EntryPoint="CSharp_FPolygonize")]
+  public static extern int FPolygonize(HandleRef jarg1, HandleRef jarg2, HandleRef jarg3, int jarg4, IntPtr[] jarg5, Gdal.GDALProgressFuncDelegate jarg6, string jarg7);
 
   [DllImport("gdal_wrap", EntryPoint="CSharp_FillNodata")]
   public static extern int FillNodata(HandleRef jarg1, HandleRef jarg2, double jarg3, int jarg4, IntPtr[] jarg5, Gdal.GDALProgressFuncDelegate jarg6, string jarg7);
@@ -981,6 +999,9 @@ class GdalPINVOKE {
 
   [DllImport("gdal_wrap", EntryPoint="CSharp_AutoCreateWarpedVRT")]
   public static extern IntPtr AutoCreateWarpedVRT(HandleRef jarg1, string jarg2, string jarg3, int jarg4, double jarg5);
+
+  [DllImport("gdal_wrap", EntryPoint="CSharp_CreatePansharpenedVRT")]
+  public static extern IntPtr CreatePansharpenedVRT(string jarg1, HandleRef jarg2, int jarg3, HandleRef jarg4);
 
   [DllImport("gdal_wrap", EntryPoint="CSharp_new_Transformer")]
   public static extern IntPtr new_Transformer(HandleRef jarg1, HandleRef jarg2, IntPtr[] jarg3);
@@ -1095,6 +1116,102 @@ class GdalPINVOKE {
 
   [DllImport("gdal_wrap", EntryPoint="CSharp___FreeCArray_GDAL_GCP")]
   public static extern void __FreeCArray_GDAL_GCP(IntPtr jarg1);
+
+  [DllImport("gdal_wrap", EntryPoint="CSharp_new_GDALInfoOptions")]
+  public static extern IntPtr new_GDALInfoOptions(IntPtr[] jarg1);
+
+  [DllImport("gdal_wrap", EntryPoint="CSharp_delete_GDALInfoOptions")]
+  public static extern void delete_GDALInfoOptions(HandleRef jarg1);
+
+  [DllImport("gdal_wrap", EntryPoint="CSharp_GDALInfo")]
+  public static extern string GDALInfo(HandleRef jarg1, HandleRef jarg2);
+
+  [DllImport("gdal_wrap", EntryPoint="CSharp_new_GDALTranslateOptions")]
+  public static extern IntPtr new_GDALTranslateOptions(IntPtr[] jarg1);
+
+  [DllImport("gdal_wrap", EntryPoint="CSharp_delete_GDALTranslateOptions")]
+  public static extern void delete_GDALTranslateOptions(HandleRef jarg1);
+
+  [DllImport("gdal_wrap", EntryPoint="CSharp_wrapper_GDALTranslate")]
+  public static extern IntPtr wrapper_GDALTranslate(byte[] jarg1, HandleRef jarg2, HandleRef jarg3, Gdal.GDALProgressFuncDelegate jarg4, string jarg5);
+
+  [DllImport("gdal_wrap", EntryPoint="CSharp_new_GDALWarpAppOptions")]
+  public static extern IntPtr new_GDALWarpAppOptions(IntPtr[] jarg1);
+
+  [DllImport("gdal_wrap", EntryPoint="CSharp_delete_GDALWarpAppOptions")]
+  public static extern void delete_GDALWarpAppOptions(HandleRef jarg1);
+
+  [DllImport("gdal_wrap", EntryPoint="CSharp_wrapper_GDALWarpDestDS")]
+  public static extern int wrapper_GDALWarpDestDS(HandleRef jarg1, int jarg2, HandleRef jarg3, HandleRef jarg4, Gdal.GDALProgressFuncDelegate jarg5, string jarg6);
+
+  [DllImport("gdal_wrap", EntryPoint="CSharp_wrapper_GDALWarpDestName")]
+  public static extern IntPtr wrapper_GDALWarpDestName(byte[] jarg1, int jarg2, HandleRef jarg3, HandleRef jarg4, Gdal.GDALProgressFuncDelegate jarg5, string jarg6);
+
+  [DllImport("gdal_wrap", EntryPoint="CSharp_new_GDALVectorTranslateOptions")]
+  public static extern IntPtr new_GDALVectorTranslateOptions(IntPtr[] jarg1);
+
+  [DllImport("gdal_wrap", EntryPoint="CSharp_delete_GDALVectorTranslateOptions")]
+  public static extern void delete_GDALVectorTranslateOptions(HandleRef jarg1);
+
+  [DllImport("gdal_wrap", EntryPoint="CSharp_wrapper_GDALVectorTranslateDestDS")]
+  public static extern int wrapper_GDALVectorTranslateDestDS(HandleRef jarg1, HandleRef jarg2, HandleRef jarg3, Gdal.GDALProgressFuncDelegate jarg4, string jarg5);
+
+  [DllImport("gdal_wrap", EntryPoint="CSharp_wrapper_GDALVectorTranslateDestName")]
+  public static extern IntPtr wrapper_GDALVectorTranslateDestName(byte[] jarg1, HandleRef jarg2, HandleRef jarg3, Gdal.GDALProgressFuncDelegate jarg4, string jarg5);
+
+  [DllImport("gdal_wrap", EntryPoint="CSharp_new_GDALDEMProcessingOptions")]
+  public static extern IntPtr new_GDALDEMProcessingOptions(IntPtr[] jarg1);
+
+  [DllImport("gdal_wrap", EntryPoint="CSharp_delete_GDALDEMProcessingOptions")]
+  public static extern void delete_GDALDEMProcessingOptions(HandleRef jarg1);
+
+  [DllImport("gdal_wrap", EntryPoint="CSharp_wrapper_GDALDEMProcessing")]
+  public static extern IntPtr wrapper_GDALDEMProcessing(byte[] jarg1, HandleRef jarg2, string jarg3, string jarg4, HandleRef jarg5, Gdal.GDALProgressFuncDelegate jarg6, string jarg7);
+
+  [DllImport("gdal_wrap", EntryPoint="CSharp_new_GDALNearblackOptions")]
+  public static extern IntPtr new_GDALNearblackOptions(IntPtr[] jarg1);
+
+  [DllImport("gdal_wrap", EntryPoint="CSharp_delete_GDALNearblackOptions")]
+  public static extern void delete_GDALNearblackOptions(HandleRef jarg1);
+
+  [DllImport("gdal_wrap", EntryPoint="CSharp_wrapper_GDALNearblackDestDS")]
+  public static extern int wrapper_GDALNearblackDestDS(HandleRef jarg1, HandleRef jarg2, HandleRef jarg3, Gdal.GDALProgressFuncDelegate jarg4, string jarg5);
+
+  [DllImport("gdal_wrap", EntryPoint="CSharp_wrapper_GDALNearblackDestName")]
+  public static extern IntPtr wrapper_GDALNearblackDestName(byte[] jarg1, HandleRef jarg2, HandleRef jarg3, Gdal.GDALProgressFuncDelegate jarg4, string jarg5);
+
+  [DllImport("gdal_wrap", EntryPoint="CSharp_new_GDALGridOptions")]
+  public static extern IntPtr new_GDALGridOptions(IntPtr[] jarg1);
+
+  [DllImport("gdal_wrap", EntryPoint="CSharp_delete_GDALGridOptions")]
+  public static extern void delete_GDALGridOptions(HandleRef jarg1);
+
+  [DllImport("gdal_wrap", EntryPoint="CSharp_wrapper_GDALGrid")]
+  public static extern IntPtr wrapper_GDALGrid(byte[] jarg1, HandleRef jarg2, HandleRef jarg3, Gdal.GDALProgressFuncDelegate jarg4, string jarg5);
+
+  [DllImport("gdal_wrap", EntryPoint="CSharp_new_GDALRasterizeOptions")]
+  public static extern IntPtr new_GDALRasterizeOptions(IntPtr[] jarg1);
+
+  [DllImport("gdal_wrap", EntryPoint="CSharp_delete_GDALRasterizeOptions")]
+  public static extern void delete_GDALRasterizeOptions(HandleRef jarg1);
+
+  [DllImport("gdal_wrap", EntryPoint="CSharp_wrapper_GDALRasterizeDestDS")]
+  public static extern int wrapper_GDALRasterizeDestDS(HandleRef jarg1, HandleRef jarg2, HandleRef jarg3, Gdal.GDALProgressFuncDelegate jarg4, string jarg5);
+
+  [DllImport("gdal_wrap", EntryPoint="CSharp_wrapper_GDALRasterizeDestName")]
+  public static extern IntPtr wrapper_GDALRasterizeDestName(byte[] jarg1, HandleRef jarg2, HandleRef jarg3, Gdal.GDALProgressFuncDelegate jarg4, string jarg5);
+
+  [DllImport("gdal_wrap", EntryPoint="CSharp_new_GDALBuildVRTOptions")]
+  public static extern IntPtr new_GDALBuildVRTOptions(IntPtr[] jarg1);
+
+  [DllImport("gdal_wrap", EntryPoint="CSharp_delete_GDALBuildVRTOptions")]
+  public static extern void delete_GDALBuildVRTOptions(HandleRef jarg1);
+
+  [DllImport("gdal_wrap", EntryPoint="CSharp_wrapper_GDALBuildVRT_objects")]
+  public static extern IntPtr wrapper_GDALBuildVRT_objects(byte[] jarg1, int jarg2, HandleRef jarg3, HandleRef jarg4, Gdal.GDALProgressFuncDelegate jarg5, string jarg6);
+
+  [DllImport("gdal_wrap", EntryPoint="CSharp_wrapper_GDALBuildVRT_names")]
+  public static extern IntPtr wrapper_GDALBuildVRT_names(byte[] jarg1, IntPtr[] jarg2, HandleRef jarg3, Gdal.GDALProgressFuncDelegate jarg4, string jarg5);
 
   [DllImport("gdal_wrap", EntryPoint="CSharp_Driver_SWIGUpcast")]
   public static extern IntPtr Driver_SWIGUpcast(IntPtr jarg1);

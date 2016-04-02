@@ -1,4 +1,4 @@
-.TH "gdal_merge" 1 "Tue Jan 26 2016" "GDAL" \" -*- nroff -*-
+.TH "gdal_merge" 1 "Fri Apr 1 2016" "GDAL" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -9,8 +9,9 @@ mosaics a set of images
 .PP
 .nf
 gdal_merge.py [-o out_filename] [-of out_format] [-co NAME=VALUE]*
-              [-ps pixelsize_x pixelsize_y] [-tap] [-separate] [-v] [-pct]
-              [-ul_lr ulx uly lrx lry] [-n nodata_value] [-init "value [value...]"]
+              [-ps pixelsize_x pixelsize_y] [-tap] [-separate] [-q] [-v] [-pct]
+              [-ul_lr ulx uly lrx lry] [-init "value [value...]"]
+              [-n nodata_value] [-a_nodata output_nodata_value]
               [-ot datatype] [-createonly] input_files
 .fi
 .PP
@@ -25,7 +26,7 @@ Output format, defaults to GeoTIFF (GTiff)\&.
 .IP "\fB\fB-co\fP \fINAME=VALUE\fP:\fP" 1c
 Creation option for output file\&. Multiple options can be specified\&.  
 .IP "\fB\fB-ot\fP \fIdatatype\fP:\fP" 1c
-Force the output image bands to have a specific type\&. Use type names (ie\&. Byte, Int16,\&.\&.\&.)  
+Force the output image bands to have a specific type\&. Use type names (i\&.e\&. Byte, Int16,\&.\&.\&.)  
 .IP "\fB\fB-ps\fP \fIpixelsize_x pixelsize_y\fP:\fP" 1c
 Pixel size to be used for the output file\&. If not specified the resolution of the first input file will be used\&.
 .PP
@@ -38,9 +39,9 @@ The extents of the output file\&. If not specified the aggregate extents of all 
 .IP "\fB\fB-v\fP:\fP" 1c
 Generate verbose output of mosaicing operations as they are done\&. 
 .IP "\fB\fB-separate\fP:\fP" 1c
-Place each input file into a separate \fIstacked\fP band\&.  
+Place each input file into a separate band\&.  
 .IP "\fB\fB-pct\fP:\fP" 1c
-Grab a pseudocolor table from the first input image, and use it for the output\&. Merging pseudocolored images this way assumes that all input files use the same color table\&.  
+Grab a pseudo-color table from the first input image, and use it for the output\&. Merging pseudo-colored images this way assumes that all input files use the same color table\&.  
 .IP "\fB\fB-n\fP \fInodata_value\fP:\fP" 1c
 Ignore pixels from files being merged in with this pixel value\&.  
 .IP "\fB\fB-a_nodata\fP \fIoutput_nodata_value\fP:\fP" 1c

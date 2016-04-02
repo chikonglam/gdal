@@ -1,26 +1,26 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #******************************************************************************
-#  $Id: build_jp2_from_xml.py 29270 2015-06-01 13:35:43Z rouault $
-# 
+#  $Id: build_jp2_from_xml.py 32002 2015-12-05 06:03:16Z goatbar $
+#
 #  Project:  GDAL
 #  Purpose:  Build a JPEG2000 file from the XML structure dumped by dump_jp2.py
 #            Mostly useful to build non-conformant files
 #  Author:   Even Rouault, <even dot rouault at spatialys dot com>
-# 
+#
 #******************************************************************************
 #  Copyright (c) 2015, European Union (European Environment Agency)
-# 
+#
 #  Permission is hereby granted, free of charge, to any person obtaining a
 #  copy of this software and associated documentation files (the "Software"),
 #  to deal in the Software without restriction, including without limitation
 #  the rights to use, copy, modify, merge, publish, distribute, sublicense,
 #  and/or sell copies of the Software, and to permit persons to whom the
 #  Software is furnished to do so, subject to the following conditions:
-# 
+#
 #  The above copyright notice and this permission notice shall be included
 #  in all copies or substantial portions of the Software.
-# 
+#
 #  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
 #  OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 #  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
@@ -31,8 +31,9 @@
 #******************************************************************************
 
 import os
-import sys
 import struct
+import sys
+
 from osgeo import gdal
 
 XML_TYPE_IDX = 0
@@ -315,7 +316,7 @@ def parse_jp2_box(xml_tree, out_f, src_jp2file):
 
         vrt_ds = gdal.Open(serialized_xml_content)
         if vrt_ds is None:
-            print('Cannot decode VRTDataset. Outputing empty content')
+            print('Cannot decode VRTDataset. Outputting empty content')
             binary_content = ''
         else:
             gdal.GetDriverByName('GTiff').CreateCopy('/vsimem/out.tif', vrt_ds)

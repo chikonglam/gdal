@@ -15,7 +15,7 @@ public class MajorObject : IDisposable {
   private HandleRef swigCPtr;
   protected bool swigCMemOwn;
   protected object swigParentRef;
-  
+
   protected static object ThisOwn_true() { return null; }
   protected object ThisOwn_false() { return this; }
 
@@ -85,7 +85,7 @@ public class MajorObject : IDisposable {
                 ++count;
         }
         string[] ret = new string[count];
-        if (count > 0) {       
+        if (count > 0) {
 	        for(int cx = 0; cx < count; cx++) {
                 objPtr = System.Runtime.InteropServices.Marshal.ReadIntPtr(cPtr, cx * System.Runtime.InteropServices.Marshal.SizeOf(typeof(IntPtr)));
                 ret[cx]= (objPtr == IntPtr.Zero) ? null : System.Runtime.InteropServices.Marshal.PtrToStringAnsi(objPtr);
@@ -108,7 +108,7 @@ public class MajorObject : IDisposable {
                 ++count;
         }
         string[] ret = new string[count];
-        if (count > 0) {       
+        if (count > 0) {
 	        for(int cx = 0; cx < count; cx++) {
                 objPtr = System.Runtime.InteropServices.Marshal.ReadIntPtr(cPtr, cx * System.Runtime.InteropServices.Marshal.SizeOf(typeof(IntPtr)));
                 ret[cx]= (objPtr == IntPtr.Zero) ? null : System.Runtime.InteropServices.Marshal.PtrToStringAnsi(objPtr);
