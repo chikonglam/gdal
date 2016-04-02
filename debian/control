@@ -65,7 +65,7 @@ Section: libs
 Depends: ${shlibs:Depends},
          ${misc:Depends}
 Recommends: proj-bin
-Provides: gdal-abi-2-0-2
+Provides: gdal-abi-2-1-0
 Description: Geospatial Data Abstraction Library
  GDAL is a translator library for raster geospatial data formats.
  As a library, it presents a single abstract data model to the
