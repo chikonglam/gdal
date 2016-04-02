@@ -125,6 +125,7 @@ override_dh_auto_configure:
 			--with-liblzma=yes \
 			--with-epsilon=/usr \
 			--with-qhull=yes \
+			--with-cryptopp=yes \
 			CFLAGS="$(CFLAGS)" CXXFLAGS="$(CXXFLAGS)"; \
 		mv GDALmake.opt GDALmake.opt-$$V; \
 	done

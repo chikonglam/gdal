@@ -44,6 +44,7 @@ Build-Depends: debhelper (>= 9),
                libspatialite-dev (>= 4.3.0-3~),
                libepsilon-dev (>= 0.9.1-1~),
                libqhull-dev,
+               libcrypto++-dev,
                libpoppler-private-dev,
                liblzma-dev,
                libopenjp2-7-dev,
@@ -111,6 +112,7 @@ Depends: libgdal20 (= ${binary:Version}),
          libspatialite-dev,
          libdap-dev,
          libqhull-dev,
+         libcrypto++-dev,
          ${misc:Depends}
 Suggests: libgdal-doc
 Description: Geospatial Data Abstraction Library - Development files
