@@ -1,4 +1,4 @@
-.TH "nearblack" 1 "Tue Jan 26 2016" "GDAL" \" -*- nroff -*-
+.TH "nearblack" 1 "Fri Apr 1 2016" "GDAL" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -14,12 +14,12 @@ nearblack [-of format] [-white | [-color c1,c2,c3...cn]*] [-near dist] [-nb non_
 .PP
 .SH "DESCRIPTION"
 .PP
-This utility will scan an image and try to set all pixels that are nearly or exactly black, white or one or more custom colors around the collar to black or white\&. This is often used to 'fix up' lossy compressed airphotos so that color pixels can be treated as transparent when mosaicking\&.
+This utility will scan an image and try to set all pixels that are nearly or exactly black, white or one or more custom colors around the collar to black or white\&. This is often used to 'fix up' lossy compressed air photos so that color pixels can be treated as transparent when mosaicing\&.
 .PP
 .IP "\fB\fB-o\fP \fIoutfile\fP:\fP" 1c
 The name of the output file to be created\&. Newly created files are created with the HFA driver by default (Erdas Imagine - \&.img) 
 .IP "\fB\fB-of\fP \fIformat\fP:\fP" 1c
-(GDAL 1\&.8\&.0 or later) Select the output format\&. Use the short format name (GTiff for GeoTIFF for examle)\&. 
+(GDAL 1\&.8\&.0 or later) Select the output format\&. Use the short format name (GTiff for GeoTIFF for example)\&. 
 .IP "\fB\fB-co\fP \fI'NAME=VALUE'\fP:\fP" 1c
 (GDAL 1\&.8\&.0 or later) Passes a creation option to the output format driver\&. Multiple \fB-co\fP options may be listed\&. See format specific documentation for legal creation options for each format\&. Only valid when creating a new file 
 .IP "\fB\fB-white\fP:\fP" 1c
@@ -45,6 +45,9 @@ The algorithm processes the image one scanline at a time\&. A scan 'in' is done 
 The processing is all done in 8bit (Bytes)\&.
 .PP
 If the output file is omitted, the processed results will be written back to the input file - which must support update\&.
+.SH "C API"
+.PP
+Starting with GDAL 2\&.1, this utility is also callable from C with GDALNearblack()\&.
 .SH "AUTHORS"
 .PP
 Frank Warmerdam warmerdam@pobox.com 

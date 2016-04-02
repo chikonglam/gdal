@@ -1,4 +1,4 @@
-# $Id: makefile.vc 10656 2007-01-19 01:31:01Z mloskot $
+# $Id: makefile.vc 31687 2015-11-21 16:35:21Z rouault $
 #
 # Makefile to build libpng using NMAKE and Visual C++ compiler.
 #
@@ -23,7 +23,7 @@ OBJ = \
 
 GDAL_ROOT	=	..\..\..
 
-EXTRAFLAGS = 	-I..\..\zlib
+EXTRAFLAGS = 	-I..\..\zlib /wd4267 /wd4310 
 
 !INCLUDE $(GDAL_ROOT)\nmake.opt
 

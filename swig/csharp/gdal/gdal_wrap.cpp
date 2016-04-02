@@ -343,6 +343,7 @@ using namespace std;
 #include "cpl_string.h"
 #include "cpl_multiproc.h"
 #include "cpl_http.h"
+#include "cpl_vsi_error.h"
 
 #include "gdal.h"
 #include "gdal_priv.h"
@@ -365,11 +366,15 @@ typedef int RETURN_NONE;
 typedef int VSI_RETVAL;
 
 
-
-void VeryQuiteErrorHandler(CPLErr eclass, int code, const char *msg ) {
+void VeryQuietErrorHandler(CPLErr eclass, int code, const char *msg ) {
   /* If the error class is CE_Fatal, we want to have a message issued
      because the CPL support code does an abort() before any exception
      can be generated */
+#if defined(SWIGPERL)
+    AV* error_stack = get_av("Geo::GDAL::error", 0);
+    SV *error = newSVpv(msg, 0);
+    av_push(error_stack, error);
+#endif
   if (eclass == CE_Fatal ) {
     CPLDefaultErrorHandler(eclass, code, msg );
   }
@@ -377,7 +382,7 @@ void VeryQuiteErrorHandler(CPLErr eclass, int code, const char *msg ) {
 
 
 void UseExceptions() {
-  CPLSetErrorHandler( (CPLErrorHandler) VeryQuiteErrorHandler );
+  CPLSetErrorHandler( (CPLErrorHandler) VeryQuietErrorHandler );
 }
 
 void DontUseExceptions() {
@@ -441,7 +446,13 @@ typedef char retStringAndCPLFree;
 
 retStringAndCPLFree* EscapeString(int len, char *bin_string , int scheme) {
     return CPLEscapeString((const char*)bin_string, len, scheme);
-} 
+}
+
+
+char **wrapper_VSIReadDirEx( const char * utf8_path, int nMaxFiles = 0 )
+{
+    return VSIReadDirEx(utf8_path, nMaxFiles);
+}
 
 
 const char *wrapper_CPLGetConfigOption( const char * pszKey, const char * pszDefault = NULL )
@@ -474,8 +485,16 @@ VSILFILE   *wrapper_VSIFOpenL( const char *utf8_path, const char *pszMode )
     return VSIFOpenL( utf8_path, pszMode );
 }
 
+
+VSILFILE   *wrapper_VSIFOpenExL( const char *utf8_path, const char *pszMode, int bSetError )
+{
+    if (!pszMode) /* would lead to segfault */
+        pszMode = "r";
+    return VSIFOpenExL( utf8_path, pszMode, bSetError );
+}
+
 SWIGINTERN CPLXMLNode *new_CPLXMLNode__SWIG_0(char const *pszString){
-        return CPLParseXMLString( pszString );     
+        return CPLParseXMLString( pszString );
     }
 SWIGINTERN CPLXMLNode *new_CPLXMLNode__SWIG_1(CPLXMLNodeType eType,char const *pszText){
         return CPLCreateXMLNode(NULL, eType, pszText);
@@ -496,7 +515,7 @@ SWIGINTERN CPLXMLNode *CPLXMLNode_GetXMLNode(CPLXMLNode *self,char const *pszPat
         return CPLGetXMLNode( self, pszPath );
     }
 SWIGINTERN char const *CPLXMLNode_GetXMLValue(CPLXMLNode *self,char const *pszPath,char const *pszDefault){
-        return CPLGetXMLValue( self, pszPath, pszDefault );                    
+        return CPLGetXMLValue( self, pszPath, pszDefault );
     }
 SWIGINTERN void CPLXMLNode_AddXMLChild(CPLXMLNode *self,CPLXMLNode *psChild){
         CPLAddXMLChild( self, psChild );
@@ -508,7 +527,7 @@ SWIGINTERN void CPLXMLNode_AddXMLSibling(CPLXMLNode *self,CPLXMLNode *psNewSibli
         CPLAddXMLSibling( self, psNewSibling );
     }
 SWIGINTERN CPLXMLNode *CPLXMLNode_CreateXMLElementAndValue(CPLXMLNode *self,char const *pszName,char const *pszValue){
-        return CPLCreateXMLElementAndValue( self, pszName, pszValue );                                 
+        return CPLCreateXMLElementAndValue( self, pszName, pszValue );
     }
 SWIGINTERN CPLXMLNode *CPLXMLNode_CloneXMLTree(CPLXMLNode *self,CPLXMLNode *psTree){
         return CPLCloneXMLTree( psTree );
@@ -517,10 +536,10 @@ SWIGINTERN CPLXMLNode *CPLXMLNode_Clone(CPLXMLNode *self){
         return CPLCloneXMLTree( self );
     }
 SWIGINTERN int CPLXMLNode_SetXMLValue(CPLXMLNode *self,char const *pszPath,char const *pszValue){
-        return CPLSetXMLValue( self,  pszPath, pszValue );           
+        return CPLSetXMLValue( self,  pszPath, pszValue );
     }
 SWIGINTERN void CPLXMLNode_StripXMLNamespace(CPLXMLNode *self,char const *pszNamespace,int bRecurse){
-        CPLStripXMLNamespace( self, pszNamespace, bRecurse );                  
+        CPLStripXMLNamespace( self, pszNamespace, bRecurse );
     }
 SWIGINTERN char const *GDALMajorObjectShadow_GetDescription(GDALMajorObjectShadow *self){
     return GDALGetDescription( self );
@@ -551,23 +570,23 @@ SWIGINTERN CPLErr GDALMajorObjectShadow_SetMetadataItem(GDALMajorObjectShadow *s
   }
 SWIGINTERN GDALDatasetShadow *GDALDriverShadow_Create(GDALDriverShadow *self,char const *utf8_path,int xsize,int ysize,int bands=1,GDALDataType eType=GDT_Byte,char **options=0){
 
-    GDALDatasetShadow* ds = (GDALDatasetShadow*) GDALCreate(    self, 
-                                                                utf8_path, 
-                                                                xsize, 
-                                                                ysize, 
-                                                                bands, 
-                                                                eType, 
+    GDALDatasetShadow* ds = (GDALDatasetShadow*) GDALCreate(    self,
+                                                                utf8_path,
+                                                                xsize,
+                                                                ysize,
+                                                                bands,
+                                                                eType,
                                                                 options );
     return ds;
   }
 SWIGINTERN GDALDatasetShadow *GDALDriverShadow_CreateCopy(GDALDriverShadow *self,char const *utf8_path,GDALDatasetShadow *src,int strict=1,char **options=0,GDALProgressFunc callback=NULL,void *callback_data=NULL){
 
-    GDALDatasetShadow *ds = (GDALDatasetShadow*) GDALCreateCopy(    self, 
-                                                                    utf8_path, 
-                                                                    src, 
-                                                                    strict, 
-                                                                    options, 
-                                                                    callback, 
+    GDALDatasetShadow *ds = (GDALDatasetShadow*) GDALCreateCopy(    self,
+                                                                    utf8_path,
+                                                                    src,
+                                                                    strict,
+                                                                    options,
+                                                                    callback,
                                                                     callback_data );
     return ds;
   }
@@ -652,7 +671,7 @@ const char * GDAL_GCP_Info_get( GDAL_GCP *gcp ) {
   return gcp->pszInfo;
 }
 void GDAL_GCP_Info_set( GDAL_GCP *gcp, const char * pszInfo ) {
-  if ( gcp->pszInfo ) 
+  if ( gcp->pszInfo )
     CPLFree( gcp->pszInfo );
   gcp->pszInfo = CPLStrdup(pszInfo);
 }
@@ -660,13 +679,13 @@ const char * GDAL_GCP_Id_get( GDAL_GCP *gcp ) {
   return gcp->pszId;
 }
 void GDAL_GCP_Id_set( GDAL_GCP *gcp, const char * pszId ) {
-  if ( gcp->pszId ) 
+  if ( gcp->pszId )
     CPLFree( gcp->pszId );
   gcp->pszId = CPLStrdup(pszId);
 }
 
 
-/* Duplicate, but transposed names for C# because 
+/* Duplicate, but transposed names for C# because
 *  the C# module outputs backwards names
 */
 double GDAL_GCP_get_GCPX( GDAL_GCP *gcp ) {
@@ -703,7 +722,7 @@ const char * GDAL_GCP_get_Info( GDAL_GCP *gcp ) {
   return gcp->pszInfo;
 }
 void GDAL_GCP_set_Info( GDAL_GCP *gcp, const char * pszInfo ) {
-  if ( gcp->pszInfo ) 
+  if ( gcp->pszInfo )
     CPLFree( gcp->pszInfo );
   gcp->pszInfo = CPLStrdup(pszInfo);
 }
@@ -711,25 +730,19 @@ const char * GDAL_GCP_get_Id( GDAL_GCP *gcp ) {
   return gcp->pszId;
 }
 void GDAL_GCP_set_Id( GDAL_GCP *gcp, const char * pszId ) {
-  if ( gcp->pszId ) 
+  if ( gcp->pszId )
     CPLFree( gcp->pszId );
   gcp->pszId = CPLStrdup(pszId);
 }
 
 
-/* Returned size is in bytes or 0 if an error occured */
+/* Returned size is in bytes or 0 if an error occurred. */
 static
 GIntBig ComputeDatasetRasterIOSize (int buf_xsize, int buf_ysize, int nPixelSize,
                                 int nBands, int* bandMap, int nBandMapArrayLength,
                                 GIntBig nPixelSpace, GIntBig nLineSpace, GIntBig nBandSpace,
                                 int bSpacingShouldBeMultipleOfPixelSize )
 {
-#if SIZEOF_VOIDP == 8
-    const GIntBig MAX_INT = (((GIntBig)0x7fffffff) << 32) | 0xffffffff;
-#else
-    const GIntBig MAX_INT = 0x7fffffff;
-#endif
-
     if (buf_xsize <= 0 || buf_ysize <= 0)
     {
         CPLError(CE_Failure, CPLE_IllegalArg, "Illegal values for buffer size");
@@ -783,11 +796,13 @@ GIntBig ComputeDatasetRasterIOSize (int buf_xsize, int buf_ysize, int nPixelSize
     }
 
     GIntBig nRet = (GIntBig)(buf_ysize - 1) * nLineSpace + (GIntBig)(buf_xsize - 1) * nPixelSpace + (GIntBig)(nBands - 1) * nBandSpace + nPixelSize;
-    if (nRet > MAX_INT)
+#if SIZEOF_VOIDP == 4
+    if (nRet > INT_MAX)
     {
         CPLError(CE_Failure, CPLE_IllegalArg, "Integer overflow");
         return 0;
     }
+#endif
 
     return nRet;
 }
@@ -897,13 +912,13 @@ SWIGINTERN CPLErr GDALDatasetShadow_SetGeoTransform(GDALDatasetShadow *self,doub
   }
 SWIGINTERN int GDALDatasetShadow_BuildOverviews(GDALDatasetShadow *self,char const *resampling="NEAREST",int overviewlist=0,int *pOverviews=0,GDALProgressFunc callback=NULL,void *callback_data=NULL){
 
-    return GDALBuildOverviews(  self, 
-                                resampling ? resampling : "NEAREST", 
-                                overviewlist, 
-                                pOverviews, 
-                                0, 
-                                0, 
-                                callback, 
+    return GDALBuildOverviews(  self,
+                                resampling ? resampling : "NEAREST",
+                                overviewlist,
+                                pOverviews,
+                                0,
+                                0,
+                                callback,
                                 callback_data);
   }
 SWIGINTERN int GDALDatasetShadow_GetGCPCount(GDALDatasetShadow *self){
@@ -957,13 +972,13 @@ SWIGINTERN OGRErr GDALDatasetShadow_RollbackTransaction(GDALDatasetShadow *self)
     return GDALDatasetRollbackTransaction(self);
   }
 SWIGINTERN CPLErr GDALDatasetShadow_ReadRaster(GDALDatasetShadow *self,int xOff,int yOff,int xSize,int ySize,void *buffer,int buf_xSize,int buf_ySize,GDALDataType buf_type,int bandCount,int *bandMap,int pixelSpace,int lineSpace,int bandSpace){
-       return GDALDatasetRasterIO( self, GF_Read, xOff, yOff, xSize, ySize, 
-		        buffer, buf_xSize, buf_ySize, buf_type, bandCount, 
+       return GDALDatasetRasterIO( self, GF_Read, xOff, yOff, xSize, ySize,
+		        buffer, buf_xSize, buf_ySize, buf_type, bandCount,
 		        bandMap, pixelSpace, lineSpace, bandSpace);
     }
 SWIGINTERN CPLErr GDALDatasetShadow_WriteRaster(GDALDatasetShadow *self,int xOff,int yOff,int xSize,int ySize,void *buffer,int buf_xSize,int buf_ySize,GDALDataType buf_type,int bandCount,int *bandMap,int pixelSpace,int lineSpace,int bandSpace){
-       return GDALDatasetRasterIO( self, GF_Write, xOff, yOff, xSize, ySize, 
-		        buffer, buf_xSize, buf_ySize, buf_type, bandCount, 
+       return GDALDatasetRasterIO( self, GF_Write, xOff, yOff, xSize, ySize,
+		        buffer, buf_xSize, buf_ySize, buf_type, bandCount,
 		        bandMap, pixelSpace, lineSpace, bandSpace);
     }
 SWIGINTERN GDAL_GCP const *GDALDatasetShadow___GetGCPs(GDALDatasetShadow *self){
@@ -997,18 +1012,12 @@ int GDALDatasetShadow_RasterCount_get( GDALDatasetShadow *h ) {
 }
 
 
-/* Returned size is in bytes or 0 if an error occured */
+/* Returned size is in bytes or 0 if an error occurred. */
 static
 GIntBig ComputeBandRasterIOSize (int buf_xsize, int buf_ysize, int nPixelSize,
                                  GIntBig nPixelSpace, GIntBig nLineSpace,
                                  int bSpacingShouldBeMultipleOfPixelSize )
 {
-#if SIZEOF_VOIDP == 8
-    const GIntBig MAX_INT = (((GIntBig)0x7fffffff) << 32) | 0xffffffff;
-#else
-    const GIntBig MAX_INT = 0x7fffffff;
-#endif
-
     if (buf_xsize <= 0 || buf_ysize <= 0)
     {
         CPLError(CE_Failure, CPLE_IllegalArg, "Illegal values for buffer size");
@@ -1046,11 +1055,13 @@ GIntBig ComputeBandRasterIOSize (int buf_xsize, int buf_ysize, int nPixelSize,
     }
 
     GIntBig nRet = (GIntBig)(buf_ysize - 1) * nLineSpace + (GIntBig)(buf_xsize - 1) * nPixelSpace + nPixelSize;
-    if (nRet > MAX_INT)
+#if SIZEOF_VOIDP == 4
+    if (nRet > INT_MAX)
     {
         CPLError(CE_Failure, CPLE_IllegalArg, "Integer overflow");
         return 0;
     }
+#endif
 
     return nRet;
 }
@@ -1081,6 +1092,9 @@ SWIGINTERN void GDALRasterBandShadow_GetNoDataValue(GDALRasterBandShadow *self,d
   }
 SWIGINTERN CPLErr GDALRasterBandShadow_SetNoDataValue(GDALRasterBandShadow *self,double d){
     return GDALSetRasterNoDataValue( self, d );
+  }
+SWIGINTERN CPLErr GDALRasterBandShadow_DeleteNoDataValue(GDALRasterBandShadow *self){
+    return GDALDeleteRasterNoDataValue( self );
   }
 SWIGINTERN char const *GDALRasterBandShadow_GetUnitType(GDALRasterBandShadow *self){
       return GDALGetRasterUnitType( self );
@@ -1117,7 +1131,7 @@ SWIGINTERN CPLErr GDALRasterBandShadow_GetStatistics(GDALRasterBandShadow *self,
     if (max) *max = 0;
     if (mean) *mean = 0;
     if (stddev) *stddev = -1; /* This is the only way to recognize from Python if GetRasterStatistics() has updated the values */
-    return GDALGetRasterStatistics( self, approx_ok, force, 
+    return GDALGetRasterStatistics( self, approx_ok, force,
 				    min, max, mean, stddev );
   }
 SWIGINTERN CPLErr GDALRasterBandShadow_ComputeStatistics(GDALRasterBandShadow *self,bool approx_ok,double *min=NULL,double *max=NULL,double *mean=NULL,double *stddev=NULL,GDALProgressFunc callback=NULL,void *callback_data=NULL){
@@ -1141,7 +1155,7 @@ SWIGINTERN void GDALRasterBandShadow_ComputeRasterMinMax(GDALRasterBandShadow *s
     GDALComputeRasterMinMax( self, approx_ok, argout );
   }
 SWIGINTERN void GDALRasterBandShadow_ComputeBandStats(GDALRasterBandShadow *self,double argout[2],int samplestep=1){
-    GDALComputeBandStats( self, samplestep, argout+0, argout+1, 
+    GDALComputeBandStats( self, samplestep, argout+0, argout+1,
                           NULL, NULL );
   }
 SWIGINTERN CPLErr GDALRasterBandShadow_Fill(GDALRasterBandShadow *self,double real_fill,double imag_fill=0.0){
@@ -1162,7 +1176,7 @@ SWIGINTERN int GDALRasterBandShadow_SetRasterColorTable(GDALRasterBandShadow *se
 SWIGINTERN int GDALRasterBandShadow_SetColorTable(GDALRasterBandShadow *self,GDALColorTableShadow *arg){
     return GDALSetRasterColorTable( self, arg );
   }
-SWIGINTERN GDALRasterAttributeTableShadow *GDALRasterBandShadow_GetDefaultRAT(GDALRasterBandShadow *self){ 
+SWIGINTERN GDALRasterAttributeTableShadow *GDALRasterBandShadow_GetDefaultRAT(GDALRasterBandShadow *self){
       return (GDALRasterAttributeTableShadow*) GDALGetDefaultRAT(self);
   }
 SWIGINTERN int GDALRasterBandShadow_SetDefaultRAT(GDALRasterBandShadow *self,GDALRasterAttributeTableShadow *table){
@@ -1178,7 +1192,7 @@ SWIGINTERN CPLErr GDALRasterBandShadow_CreateMaskBand(GDALRasterBandShadow *self
       return GDALCreateMaskBand( self, nFlags );
   }
 SWIGINTERN CPLErr GDALRasterBandShadow_GetHistogram(GDALRasterBandShadow *self,double min=-0.5,double max=255.5,int buckets=256,int *panHistogram=NULL,int include_out_of_range=0,int approx_ok=1,GDALProgressFunc callback=NULL,void *callback_data=NULL){
-    CPLErrorReset(); 
+    CPLErrorReset();
     CPLErr err = GDALGetRasterHistogram( self, min, max, buckets, panHistogram,
                                          include_out_of_range, approx_ok,
                                          callback, callback_data );
@@ -1186,11 +1200,11 @@ SWIGINTERN CPLErr GDALRasterBandShadow_GetHistogram(GDALRasterBandShadow *self,d
   }
 SWIGINTERN CPLErr GDALRasterBandShadow_GetDefaultHistogram(GDALRasterBandShadow *self,double *min_ret=NULL,double *max_ret=NULL,int *buckets_ret=NULL,int **ppanHistogram=NULL,int force=1,GDALProgressFunc callback=NULL,void *callback_data=NULL){
     return GDALGetDefaultHistogram( self, min_ret, max_ret, buckets_ret,
-                                    ppanHistogram, force, 
+                                    ppanHistogram, force,
                                     callback, callback_data );
 }
 SWIGINTERN CPLErr GDALRasterBandShadow_SetDefaultHistogram(GDALRasterBandShadow *self,double min,double max,int buckets_in,int *panHistogram_in){
-    return GDALSetDefaultHistogram( self, min, max, 
+    return GDALSetDefaultHistogram( self, min, max,
     	   			    buckets_in, panHistogram_in );
 }
 SWIGINTERN bool GDALRasterBandShadow_HasArbitraryOverviews(GDALRasterBandShadow *self){
@@ -1203,11 +1217,11 @@ SWIGINTERN CPLErr GDALRasterBandShadow_SetCategoryNames(GDALRasterBandShadow *se
     return GDALSetRasterCategoryNames( self, papszCategoryNames );
   }
 SWIGINTERN CPLErr GDALRasterBandShadow_ReadRaster(GDALRasterBandShadow *self,int xOff,int yOff,int xSize,int ySize,void *buffer,int buf_xSize,int buf_ySize,GDALDataType buf_type,int pixelSpace,int lineSpace){
-       return GDALRasterIO( self, GF_Read, xOff, yOff, xSize, ySize, 
+       return GDALRasterIO( self, GF_Read, xOff, yOff, xSize, ySize,
 		        buffer, buf_xSize, buf_ySize, buf_type, pixelSpace, lineSpace );
     }
 SWIGINTERN CPLErr GDALRasterBandShadow_WriteRaster(GDALRasterBandShadow *self,int xOff,int yOff,int xSize,int ySize,void *buffer,int buf_xSize,int buf_ySize,GDALDataType buf_type,int pixelSpace,int lineSpace){
-       return GDALRasterIO( self, GF_Write, xOff, yOff, xSize, ySize, 
+       return GDALRasterIO( self, GF_Write, xOff, yOff, xSize, ySize,
 		        buffer, buf_xSize, buf_ySize, buf_type, pixelSpace, lineSpace );
     }
 
@@ -1249,7 +1263,7 @@ SWIGINTERN void GDALColorTableShadow_CreateColorRamp(GDALColorTableShadow *self,
         GDALCreateColorRamp(self, nStartIndex, startcolor, nEndIndex, endcolor);
     }
 SWIGINTERN GDALRasterAttributeTableShadow *new_GDALRasterAttributeTableShadow(){
-        return (GDALRasterAttributeTableShadow*) 
+        return (GDALRasterAttributeTableShadow*)
 		GDALCreateRasterAttributeTable();
     }
 SWIGINTERN void delete_GDALRasterAttributeTableShadow(GDALRasterAttributeTableShadow *self){
@@ -1258,10 +1272,10 @@ SWIGINTERN void delete_GDALRasterAttributeTableShadow(GDALRasterAttributeTableSh
 SWIGINTERN GDALRasterAttributeTableShadow *GDALRasterAttributeTableShadow_Clone(GDALRasterAttributeTableShadow *self){
         return (GDALRasterAttributeTableShadow*) GDALRATClone(self);
     }
-SWIGINTERN int GDALRasterAttributeTableShadow_GetColumnCount(GDALRasterAttributeTableShadow *self){ 
+SWIGINTERN int GDALRasterAttributeTableShadow_GetColumnCount(GDALRasterAttributeTableShadow *self){
         return GDALRATGetColumnCount( self );
     }
-SWIGINTERN char const *GDALRasterAttributeTableShadow_GetNameOfCol(GDALRasterAttributeTableShadow *self,int iCol){ 
+SWIGINTERN char const *GDALRasterAttributeTableShadow_GetNameOfCol(GDALRasterAttributeTableShadow *self,int iCol){
         return GDALRATGetNameOfCol( self, iCol );
     }
 SWIGINTERN GDALRATFieldUsage GDALRasterAttributeTableShadow_GetUsageOfCol(GDALRasterAttributeTableShadow *self,int iCol){
@@ -1273,25 +1287,25 @@ SWIGINTERN GDALRATFieldType GDALRasterAttributeTableShadow_GetTypeOfCol(GDALRast
 SWIGINTERN int GDALRasterAttributeTableShadow_GetColOfUsage(GDALRasterAttributeTableShadow *self,GDALRATFieldUsage eUsage){
         return GDALRATGetColOfUsage( self, eUsage );
     }
-SWIGINTERN int GDALRasterAttributeTableShadow_GetRowCount(GDALRasterAttributeTableShadow *self){ 
+SWIGINTERN int GDALRasterAttributeTableShadow_GetRowCount(GDALRasterAttributeTableShadow *self){
         return GDALRATGetRowCount( self );
     }
-SWIGINTERN char const *GDALRasterAttributeTableShadow_GetValueAsString(GDALRasterAttributeTableShadow *self,int iRow,int iCol){ 
+SWIGINTERN char const *GDALRasterAttributeTableShadow_GetValueAsString(GDALRasterAttributeTableShadow *self,int iRow,int iCol){
         return GDALRATGetValueAsString( self, iRow, iCol );
     }
-SWIGINTERN int GDALRasterAttributeTableShadow_GetValueAsInt(GDALRasterAttributeTableShadow *self,int iRow,int iCol){ 
+SWIGINTERN int GDALRasterAttributeTableShadow_GetValueAsInt(GDALRasterAttributeTableShadow *self,int iRow,int iCol){
         return GDALRATGetValueAsInt( self, iRow, iCol );
     }
-SWIGINTERN double GDALRasterAttributeTableShadow_GetValueAsDouble(GDALRasterAttributeTableShadow *self,int iRow,int iCol){ 
+SWIGINTERN double GDALRasterAttributeTableShadow_GetValueAsDouble(GDALRasterAttributeTableShadow *self,int iRow,int iCol){
         return GDALRATGetValueAsDouble( self, iRow, iCol );
     }
-SWIGINTERN void GDALRasterAttributeTableShadow_SetValueAsString(GDALRasterAttributeTableShadow *self,int iRow,int iCol,char const *pszValue){ 
+SWIGINTERN void GDALRasterAttributeTableShadow_SetValueAsString(GDALRasterAttributeTableShadow *self,int iRow,int iCol,char const *pszValue){
         GDALRATSetValueAsString( self, iRow, iCol, pszValue );
     }
-SWIGINTERN void GDALRasterAttributeTableShadow_SetValueAsInt(GDALRasterAttributeTableShadow *self,int iRow,int iCol,int nValue){ 
+SWIGINTERN void GDALRasterAttributeTableShadow_SetValueAsInt(GDALRasterAttributeTableShadow *self,int iRow,int iCol,int nValue){
         GDALRATSetValueAsInt( self, iRow, iCol, nValue );
     }
-SWIGINTERN void GDALRasterAttributeTableShadow_SetValueAsDouble(GDALRasterAttributeTableShadow *self,int iRow,int iCol,double dfValue){ 
+SWIGINTERN void GDALRasterAttributeTableShadow_SetValueAsDouble(GDALRasterAttributeTableShadow *self,int iRow,int iCol,double dfValue){
         GDALRATSetValueAsDouble( self, iRow, iCol, dfValue );
     }
 SWIGINTERN void GDALRasterAttributeTableShadow_SetRowCount(GDALRasterAttributeTableShadow *self,int nCount){
@@ -1318,7 +1332,7 @@ SWIGINTERN void GDALRasterAttributeTableShadow_DumpReadable(GDALRasterAttributeT
 
 #include "gdalgrid.h"
 
-#ifdef DEBUG 
+#ifdef DEBUG
 typedef struct OGRLayerHS OGRLayerShadow;
 typedef struct OGRGeometryHS OGRGeometryShadow;
 #else
@@ -1345,7 +1359,7 @@ int  ComputeMedianCutPCT ( GDALRasterBandShadow *red,
                                           colors,
                                           callback,
                                           callback_data);
-    
+
     return err;
 }
 
@@ -1367,7 +1381,7 @@ int  DitherRGB2PCT ( GDALRasterBandShadow *red,
                                   colors,
                                   callback,
                                   callback_data);
-    
+
     return err;
 }
 
@@ -1380,9 +1394,17 @@ CPLErr  ReprojectImage ( GDALDatasetShadow *src_ds,
                          double WarpMemoryLimit=0.0,
                          double maxerror = 0.0,
 			 GDALProgressFunc callback = NULL,
-                     	 void* callback_data=NULL) {
+                     	 void* callback_data=NULL,
+                         char** options = NULL ) {
 
     CPLErrorReset();
+
+    GDALWarpOptions* psOptions = NULL;
+    if( options != NULL )
+    {
+        psOptions = GDALCreateWarpOptions();
+        psOptions->papszWarpOptions = CSLDuplicate(options);
+    }
 
     CPLErr err = GDALReprojectImage( src_ds,
                                      src_wkt,
@@ -1393,8 +1415,11 @@ CPLErr  ReprojectImage ( GDALDatasetShadow *src_ds,
                                      maxerror,
                                      callback,
                                      callback_data,
-                                     NULL);
-    
+                                     psOptions);
+
+    if( psOptions != NULL )
+        GDALDestroyWarpOptions(psOptions);
+
     return err;
 }
 
@@ -1416,8 +1441,8 @@ int  RasterizeLayer( GDALDatasetShadow *dataset,
                  int bands, int *band_list,
                  OGRLayerShadow *layer,
                  void *pfnTransformer = NULL,
-                 void *pTransformArg = NULL, 
-		 int burn_values = 0, double *burn_values_list = NULL, 
+                 void *pTransformArg = NULL,
+		 int burn_values = 0, double *burn_values_list = NULL,
                  char **options = NULL,
                  GDALProgressFunc callback=NULL,
                  void* callback_data=NULL) {
@@ -1434,16 +1459,16 @@ int  RasterizeLayer( GDALDatasetShadow *dataset,
     }
     else if( burn_values != bands )
     {
-        CPLError( CE_Failure, CPLE_AppDefined, 
+        CPLError( CE_Failure, CPLE_AppDefined,
                   "Did not get the expected number of burn values in RasterizeLayer()" );
         return CE_Failure;
     }
 
     eErr = GDALRasterizeLayers( dataset, bands, band_list,
-                                1, &layer, 
-                                (GDALTransformerFunc) pfnTransformer, 
+                                1, &layer,
+                                (GDALTransformerFunc) pfnTransformer,
                                 pTransformArg,
-                                burn_values_list, options, 
+                                burn_values_list, options,
                                 callback, callback_data );
 
     if( burn_values == 0 )
@@ -1455,7 +1480,7 @@ int  RasterizeLayer( GDALDatasetShadow *dataset,
 
 int  Polygonize( GDALRasterBandShadow *srcBand,
      		 GDALRasterBandShadow *maskBand,
-  	         OGRLayerShadow *outLayer, 
+  	         OGRLayerShadow *outLayer,
                  int iPixValField,
                  char **options = NULL,
                  GDALProgressFunc callback=NULL,
@@ -1464,6 +1489,21 @@ int  Polygonize( GDALRasterBandShadow *srcBand,
     CPLErrorReset();
 
     return GDALPolygonize( srcBand, maskBand, outLayer, iPixValField,
+                           options, callback, callback_data );
+}
+
+
+int  FPolygonize( GDALRasterBandShadow *srcBand,
+                 GDALRasterBandShadow *maskBand,
+                 OGRLayerShadow *outLayer,
+                 int iPixValField,
+                 char **options = NULL,
+                 GDALProgressFunc callback=NULL,
+                 void* callback_data=NULL) {
+
+    CPLErrorReset();
+
+    return GDALFPolygonize( srcBand, maskBand, outLayer, iPixValField,
                            options, callback, callback_data );
 }
 
@@ -1478,8 +1518,8 @@ int  FillNodata( GDALRasterBandShadow *targetBand,
 
     CPLErrorReset();
 
-    return GDALFillNodata( targetBand, maskBand, maxSearchDist, 
-    	   		   0, smoothingIterations, options, 
+    return GDALFillNodata( targetBand, maskBand, maxSearchDist,
+    	   		   0, smoothingIterations, options,
 			   callback, callback_data );
 }
 
@@ -1494,7 +1534,7 @@ int  SieveFilter( GDALRasterBandShadow *srcBand,
 
     CPLErrorReset();
 
-    return GDALSieveFilter( srcBand, maskBand, dstBand, 
+    return GDALSieveFilter( srcBand, maskBand, dstBand,
                             threshold, connectedness,
                             options, callback, callback_data );
 }
@@ -1534,7 +1574,7 @@ int ContourGenerate( GDALRasterBandShadow *srcBand,
                      double *fixedLevels,
                      int useNoData,
                      double noDataValue,
-                     OGRLayerShadow* dstLayer, 
+                     OGRLayerShadow* dstLayer,
                      int idField,
                      int elevField,
                      GDALProgressFunc callback = NULL,
@@ -1575,12 +1615,24 @@ GDALDatasetShadow *AutoCreateWarpedVRT( GDALDatasetShadow *src_ds,
     /*throw CPLGetLastErrorMsg(); causes a SWIG_exception later*/
   }
   return ds;
-  
+
+}
+
+
+GDALDatasetShadow*  CreatePansharpenedVRT( const char* pszXML,
+                            GDALRasterBandShadow* panchroBand,
+                            int nInputSpectralBands,
+                            GDALRasterBandShadow** ahInputSpectralBands )
+{
+    CPLErrorReset();
+
+    return (GDALDatasetShadow*)GDALCreatePansharpenedVRT( pszXML, panchroBand,
+                                      nInputSpectralBands, ahInputSpectralBands );
 }
 
 SWIGINTERN GDALTransformerInfoShadow *new_GDALTransformerInfoShadow(GDALDatasetShadow *src,GDALDatasetShadow *dst,char **options){
-    GDALTransformerInfoShadow *obj = (GDALTransformerInfoShadow*) 
-       GDALCreateGenImgProjTransformer2( (GDALDatasetH)src, (GDALDatasetH)dst, 
+    GDALTransformerInfoShadow *obj = (GDALTransformerInfoShadow*)
+       GDALCreateGenImgProjTransformer2( (GDALDatasetH)src, (GDALDatasetH)dst,
                                          options );
     return obj;
   }
@@ -1590,20 +1642,20 @@ SWIGINTERN void delete_GDALTransformerInfoShadow(GDALTransformerInfoShadow *self
 SWIGINTERN int GDALTransformerInfoShadow_TransformPoint__SWIG_0(GDALTransformerInfoShadow *self,int bDstToSrc,double inout[3]){
     int nRet, nSuccess = TRUE;
 
-    nRet = GDALUseTransformer( self, bDstToSrc, 
-                               1, &inout[0], &inout[1], &inout[2], 
+    nRet = GDALUseTransformer( self, bDstToSrc,
+                               1, &inout[0], &inout[1], &inout[2],
                                &nSuccess );
 
     return nRet && nSuccess;
   }
 SWIGINTERN int GDALTransformerInfoShadow_TransformPoint__SWIG_1(GDALTransformerInfoShadow *self,double argout[3],int bDstToSrc,double x,double y,double z=0.0){
     int nRet, nSuccess = TRUE;
-    
+
     argout[0] = x;
     argout[1] = y;
     argout[2] = z;
-    nRet = GDALUseTransformer( self, bDstToSrc, 
-                               1, &argout[0], &argout[1], &argout[2], 
+    nRet = GDALUseTransformer( self, bDstToSrc,
+                               1, &argout[0], &argout[1], &argout[2],
                                &nSuccess );
 
     return nRet && nSuccess;
@@ -1619,7 +1671,7 @@ SWIGINTERN int GDALTransformerInfoShadow_TransformGeolocations(GDALTransformerIn
 
     CPLErrorReset();
 
-    return GDALTransformGeolocations( xBand, yBand, zBand, 
+    return GDALTransformGeolocations( xBand, yBand, zBand,
                                       GDALUseTransformer, self,
                             	      callback, callback_data, options );
   }
@@ -1658,6 +1710,7 @@ int GetDriverCount() {
 }
 
 
+static
 GDALDriverShadow* GetDriverByName( char const *name ) {
   return (GDALDriverShadow*) GDALGetDriverByName( name );
 }
@@ -1685,6 +1738,10 @@ GDALDatasetShadow* OpenEx( char const* utf8_path, unsigned int nOpenFlags = 0,
                            char** allowed_drivers = NULL, char** open_options = NULL,
                            char** sibling_files = NULL ) {
   CPLErrorReset();
+#ifdef SWIGPYTHON
+  if( GetUseExceptions() )
+      nOpenFlags |= GDAL_OF_VERBOSE_ERROR;
+#endif
   GDALDatasetShadow *ds = GDALOpenEx( utf8_path, nOpenFlags, allowed_drivers,
                                       open_options, sibling_files );
   if( ds != NULL && CPLGetLastErrorType() == CE_Failure )
@@ -1710,9 +1767,9 @@ GDALDatasetShadow* OpenShared( char const* utf8_path, GDALAccess eAccess = GA_Re
 }
 
 
-GDALDriverShadow *IdentifyDriver( const char *utf8_path, 
+GDALDriverShadow *IdentifyDriver( const char *utf8_path,
                                   char **papszSiblings = NULL ) {
-    return (GDALDriverShadow *) GDALIdentifyDriver( utf8_path, 
+    return (GDALDriverShadow *) GDALIdentifyDriver( utf8_path,
 	                                            papszSiblings );
 }
 
@@ -1720,8 +1777,11 @@ GDALDriverShadow *IdentifyDriver( const char *utf8_path,
   char **GeneralCmdLineProcessor( char **papszArgv, int nOptions = 0 ) {
     int nResArgCount;
 
-    nResArgCount = 
-      GDALGeneralCmdLineProcessor( CSLCount(papszArgv), &papszArgv, nOptions ); 
+    if( papszArgv == NULL )
+        return NULL;
+
+    nResArgCount =
+      GDALGeneralCmdLineProcessor( CSLCount(papszArgv), &papszArgv, nOptions );
 
     if( nResArgCount <= 0 )
         return NULL;
@@ -1749,6 +1809,377 @@ GDALDriverShadow *IdentifyDriver( const char *utf8_path,
        if (carray)
         CPLFree(carray);
     }
+
+
+#include "gdal_utils.h"
+
+SWIGINTERN GDALInfoOptions *new_GDALInfoOptions(char **options){
+        return GDALInfoOptionsNew(options, NULL);
+    }
+SWIGINTERN void delete_GDALInfoOptions(GDALInfoOptions *self){
+        GDALInfoOptionsFree( self );
+    }
+SWIGINTERN GDALTranslateOptions *new_GDALTranslateOptions(char **options){
+        return GDALTranslateOptionsNew(options, NULL);
+    }
+SWIGINTERN void delete_GDALTranslateOptions(GDALTranslateOptions *self){
+        GDALTranslateOptionsFree( self );
+    }
+
+GDALDatasetShadow* wrapper_GDALTranslate( const char* dest,
+                                      GDALDatasetShadow* dataset,
+                                      GDALTranslateOptions* translateOptions,
+                                      GDALProgressFunc callback=NULL,
+                                      void* callback_data=NULL)
+{
+    int usageError; /* ignored */
+    bool bFreeOptions = false;
+    if( callback )
+    {
+        if( translateOptions == NULL )
+        {
+            bFreeOptions = true;
+            translateOptions = GDALTranslateOptionsNew(NULL, NULL);
+        }
+        GDALTranslateOptionsSetProgress(translateOptions, callback, callback_data);
+    }
+    GDALDatasetH hDSRet = GDALTranslate(dest, dataset, translateOptions, &usageError);
+    if( bFreeOptions )
+        GDALTranslateOptionsFree(translateOptions);
+    return hDSRet;
+}
+
+SWIGINTERN GDALWarpAppOptions *new_GDALWarpAppOptions(char **options){
+        return GDALWarpAppOptionsNew(options, NULL);
+    }
+SWIGINTERN void delete_GDALWarpAppOptions(GDALWarpAppOptions *self){
+        GDALWarpAppOptionsFree( self );
+    }
+
+int wrapper_GDALWarpDestDS( GDALDatasetShadow* dstDS,
+                            int object_list_count, GDALDatasetShadow** poObjects,
+                            GDALWarpAppOptions* warpAppOptions,
+                            GDALProgressFunc callback=NULL,
+                            void* callback_data=NULL)
+{
+    int usageError; /* ignored */
+    bool bFreeOptions = false;
+    if( callback )
+    {
+        if( warpAppOptions == NULL )
+        {
+            bFreeOptions = true;
+            warpAppOptions = GDALWarpAppOptionsNew(NULL, NULL);
+        }
+        GDALWarpAppOptionsSetProgress(warpAppOptions, callback, callback_data);
+    }
+    int bRet = (GDALWarp(NULL, dstDS, object_list_count, poObjects, warpAppOptions, &usageError) != NULL);
+    if( bFreeOptions )
+        GDALWarpAppOptionsFree(warpAppOptions);
+    return bRet;
+}
+
+
+GDALDatasetShadow* wrapper_GDALWarpDestName( const char* dest,
+                                             int object_list_count, GDALDatasetShadow** poObjects,
+                                             GDALWarpAppOptions* warpAppOptions,
+                                             GDALProgressFunc callback=NULL,
+                                             void* callback_data=NULL)
+{
+    int usageError; /* ignored */
+    bool bFreeOptions = false;
+    if( callback )
+    {
+        if( warpAppOptions == NULL )
+        {
+            bFreeOptions = true;
+            warpAppOptions = GDALWarpAppOptionsNew(NULL, NULL);
+        }
+        GDALWarpAppOptionsSetProgress(warpAppOptions, callback, callback_data);
+    }
+    GDALDatasetH hDSRet = GDALWarp(dest, NULL, object_list_count, poObjects, warpAppOptions, &usageError);
+    if( bFreeOptions )
+        GDALWarpAppOptionsFree(warpAppOptions);
+    return hDSRet;
+}
+
+SWIGINTERN GDALVectorTranslateOptions *new_GDALVectorTranslateOptions(char **options){
+        return GDALVectorTranslateOptionsNew(options, NULL);
+    }
+SWIGINTERN void delete_GDALVectorTranslateOptions(GDALVectorTranslateOptions *self){
+        GDALVectorTranslateOptionsFree( self );
+    }
+
+int wrapper_GDALVectorTranslateDestDS( GDALDatasetShadow* dstDS,
+                                       GDALDatasetShadow* srcDS,
+                            GDALVectorTranslateOptions* options,
+                            GDALProgressFunc callback=NULL,
+                            void* callback_data=NULL)
+{
+    int usageError; /* ignored */
+    bool bFreeOptions = false;
+    if( callback )
+    {
+        if( options == NULL )
+        {
+            bFreeOptions = true;
+            options = GDALVectorTranslateOptionsNew(NULL, NULL);
+        }
+        GDALVectorTranslateOptionsSetProgress(options, callback, callback_data);
+    }
+    int bRet = (GDALVectorTranslate(NULL, dstDS, 1, &srcDS, options, &usageError) != NULL);
+    if( bFreeOptions )
+        GDALVectorTranslateOptionsFree(options);
+    return bRet;
+}
+
+
+GDALDatasetShadow* wrapper_GDALVectorTranslateDestName( const char* dest,
+                                             GDALDatasetShadow* srcDS,
+                                             GDALVectorTranslateOptions* options,
+                                             GDALProgressFunc callback=NULL,
+                                             void* callback_data=NULL)
+{
+    int usageError; /* ignored */
+    bool bFreeOptions = false;
+    if( callback )
+    {
+        if( options == NULL )
+        {
+            bFreeOptions = true;
+            options = GDALVectorTranslateOptionsNew(NULL, NULL);
+        }
+        GDALVectorTranslateOptionsSetProgress(options, callback, callback_data);
+    }
+    GDALDatasetH hDSRet = GDALVectorTranslate(dest, NULL, 1, &srcDS, options, &usageError);
+    if( bFreeOptions )
+        GDALVectorTranslateOptionsFree(options);
+    return hDSRet;
+}
+
+SWIGINTERN GDALDEMProcessingOptions *new_GDALDEMProcessingOptions(char **options){
+        return GDALDEMProcessingOptionsNew(options, NULL);
+    }
+SWIGINTERN void delete_GDALDEMProcessingOptions(GDALDEMProcessingOptions *self){
+        GDALDEMProcessingOptionsFree( self );
+    }
+
+GDALDatasetShadow* wrapper_GDALDEMProcessing( const char* dest,
+                                      GDALDatasetShadow* dataset,
+                                      const char* pszProcessing,
+                                      const char* pszColorFilename,
+                                      GDALDEMProcessingOptions* options,
+                                      GDALProgressFunc callback=NULL,
+                                      void* callback_data=NULL)
+{
+    int usageError; /* ignored */
+    bool bFreeOptions = false;
+    if( callback )
+    {
+        if( options == NULL )
+        {
+            bFreeOptions = true;
+            options = GDALDEMProcessingOptionsNew(NULL, NULL);
+        }
+        GDALDEMProcessingOptionsSetProgress(options, callback, callback_data);
+    }
+    GDALDatasetH hDSRet = GDALDEMProcessing(dest, dataset, pszProcessing, pszColorFilename, options, &usageError);
+    if( bFreeOptions )
+        GDALDEMProcessingOptionsFree(options);
+    return hDSRet;
+}
+
+SWIGINTERN GDALNearblackOptions *new_GDALNearblackOptions(char **options){
+        return GDALNearblackOptionsNew(options, NULL);
+    }
+SWIGINTERN void delete_GDALNearblackOptions(GDALNearblackOptions *self){
+        GDALNearblackOptionsFree( self );
+    }
+
+int wrapper_GDALNearblackDestDS( GDALDatasetShadow* dstDS,
+                            GDALDatasetShadow* srcDS,
+                            GDALNearblackOptions* options,
+                            GDALProgressFunc callback=NULL,
+                            void* callback_data=NULL)
+{
+    int usageError; /* ignored */
+    bool bFreeOptions = false;
+    if( callback )
+    {
+        if( options == NULL )
+        {
+            bFreeOptions = true;
+            options = GDALNearblackOptionsNew(NULL, NULL);
+        }
+        GDALNearblackOptionsSetProgress(options, callback, callback_data);
+    }
+    int bRet = (GDALNearblack(NULL, dstDS, srcDS, options, &usageError) != NULL);
+    if( bFreeOptions )
+        GDALNearblackOptionsFree(options);
+    return bRet;
+}
+
+
+GDALDatasetShadow* wrapper_GDALNearblackDestName( const char* dest,
+                                             GDALDatasetShadow* srcDS,
+                                             GDALNearblackOptions* options,
+                                             GDALProgressFunc callback=NULL,
+                                             void* callback_data=NULL)
+{
+    int usageError; /* ignored */
+    bool bFreeOptions = false;
+    if( callback )
+    {
+        if( options == NULL )
+        {
+            bFreeOptions = true;
+            options = GDALNearblackOptionsNew(NULL, NULL);
+        }
+        GDALNearblackOptionsSetProgress(options, callback, callback_data);
+    }
+    GDALDatasetH hDSRet = GDALNearblack(dest, NULL, srcDS, options, &usageError);
+    if( bFreeOptions )
+        GDALNearblackOptionsFree(options);
+    return hDSRet;
+}
+
+SWIGINTERN GDALGridOptions *new_GDALGridOptions(char **options){
+        return GDALGridOptionsNew(options, NULL);
+    }
+SWIGINTERN void delete_GDALGridOptions(GDALGridOptions *self){
+        GDALGridOptionsFree( self );
+    }
+
+GDALDatasetShadow* wrapper_GDALGrid( const char* dest,
+                                      GDALDatasetShadow* dataset,
+                                      GDALGridOptions* options,
+                                      GDALProgressFunc callback=NULL,
+                                      void* callback_data=NULL)
+{
+    int usageError; /* ignored */
+    bool bFreeOptions = false;
+    if( callback )
+    {
+        if( options == NULL )
+        {
+            bFreeOptions = true;
+            options = GDALGridOptionsNew(NULL, NULL);
+        }
+        GDALGridOptionsSetProgress(options, callback, callback_data);
+    }
+    GDALDatasetH hDSRet = GDALGrid(dest, dataset, options, &usageError);
+    if( bFreeOptions )
+        GDALGridOptionsFree(options);
+    return hDSRet;
+}
+
+SWIGINTERN GDALRasterizeOptions *new_GDALRasterizeOptions(char **options){
+        return GDALRasterizeOptionsNew(options, NULL);
+    }
+SWIGINTERN void delete_GDALRasterizeOptions(GDALRasterizeOptions *self){
+        GDALRasterizeOptionsFree( self );
+    }
+
+int wrapper_GDALRasterizeDestDS( GDALDatasetShadow* dstDS,
+                            GDALDatasetShadow* srcDS,
+                            GDALRasterizeOptions* options,
+                            GDALProgressFunc callback=NULL,
+                            void* callback_data=NULL)
+{
+    int usageError; /* ignored */
+    bool bFreeOptions = false;
+    if( callback )
+    {
+        if( options == NULL )
+        {
+            bFreeOptions = true;
+            options = GDALRasterizeOptionsNew(NULL, NULL);
+        }
+        GDALRasterizeOptionsSetProgress(options, callback, callback_data);
+    }
+    int bRet = (GDALRasterize(NULL, dstDS, srcDS, options, &usageError) != NULL);
+    if( bFreeOptions )
+        GDALRasterizeOptionsFree(options);
+    return bRet;
+}
+
+
+GDALDatasetShadow* wrapper_GDALRasterizeDestName( const char* dest,
+                                             GDALDatasetShadow* srcDS,
+                                             GDALRasterizeOptions* options,
+                                             GDALProgressFunc callback=NULL,
+                                             void* callback_data=NULL)
+{
+    int usageError; /* ignored */
+    bool bFreeOptions = false;
+    if( callback )
+    {
+        if( options == NULL )
+        {
+            bFreeOptions = true;
+            options = GDALRasterizeOptionsNew(NULL, NULL);
+        }
+        GDALRasterizeOptionsSetProgress(options, callback, callback_data);
+    }
+    GDALDatasetH hDSRet = GDALRasterize(dest, NULL, srcDS, options, &usageError);
+    if( bFreeOptions )
+        GDALRasterizeOptionsFree(options);
+    return hDSRet;
+}
+
+SWIGINTERN GDALBuildVRTOptions *new_GDALBuildVRTOptions(char **options){
+        return GDALBuildVRTOptionsNew(options, NULL);
+    }
+SWIGINTERN void delete_GDALBuildVRTOptions(GDALBuildVRTOptions *self){
+        GDALBuildVRTOptionsFree( self );
+    }
+
+GDALDatasetShadow* wrapper_GDALBuildVRT_objects( const char* dest,
+                                             int object_list_count, GDALDatasetShadow** poObjects,
+                                             GDALBuildVRTOptions* options,
+                                             GDALProgressFunc callback=NULL,
+                                             void* callback_data=NULL)
+{
+    int usageError; /* ignored */
+    bool bFreeOptions = false;
+    if( callback )
+    {
+        if( options == NULL )
+        {
+            bFreeOptions = true;
+            options = GDALBuildVRTOptionsNew(NULL, NULL);
+        }
+        GDALBuildVRTOptionsSetProgress(options, callback, callback_data);
+    }
+    GDALDatasetH hDSRet = GDALBuildVRT(dest, object_list_count, poObjects, NULL, options, &usageError);
+    if( bFreeOptions )
+        GDALBuildVRTOptionsFree(options);
+    return hDSRet;
+}
+
+
+GDALDatasetShadow* wrapper_GDALBuildVRT_names( const char* dest,
+                                         char ** source_filenames,
+                                         GDALBuildVRTOptions* options,
+                                         GDALProgressFunc callback=NULL,
+                                         void* callback_data=NULL)
+{
+    int usageError; /* ignored */
+    bool bFreeOptions = false;
+    if( callback )
+    {
+        if( options == NULL )
+        {
+            bFreeOptions = true;
+            options = GDALBuildVRTOptionsNew(NULL, NULL);
+        }
+        GDALBuildVRTOptionsSetProgress(options, callback, callback_data);
+    }
+    GDALDatasetH hDSRet = GDALBuildVRT(dest, CSLCount(source_filenames), NULL, source_filenames, options, &usageError);
+    if( bFreeOptions )
+        GDALBuildVRTOptionsFree(options);
+    return hDSRet;
+}
 
 
 #ifdef __cplusplus
@@ -2225,6 +2656,68 @@ SWIGEXPORT char * SWIGSTDCALL CSharp_GetLastErrorMsg() {
 }
 
 
+SWIGEXPORT int SWIGSTDCALL CSharp_VSIGetLastErrorNo() {
+  int jresult ;
+  int result;
+  
+  {
+    CPLErrorReset();
+    result = (int)VSIGetLastErrorNo();
+    CPLErr eclass = CPLGetLastErrorType();
+    if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+      SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
+      
+      
+      
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+  }
+  jresult = result; 
+  return jresult;
+}
+
+
+SWIGEXPORT char * SWIGSTDCALL CSharp_VSIGetLastErrorMsg() {
+  char * jresult ;
+  char *result = 0 ;
+  
+  {
+    CPLErrorReset();
+    result = (char *)VSIGetLastErrorMsg();
+    CPLErr eclass = CPLGetLastErrorType();
+    if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+      SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
+      
+      
+      
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+  }
+  jresult = SWIG_csharp_string_callback((const char *)result); 
+  return jresult;
+}
+
+
 SWIGEXPORT void SWIGSTDCALL CSharp_PushFinderLocation(char * jarg1) {
   char *arg1 = (char *) 0 ;
   
@@ -2355,12 +2848,14 @@ SWIGEXPORT char * SWIGSTDCALL CSharp_FindFile(char * jarg1, char * jarg2) {
 }
 
 
-SWIGEXPORT void * SWIGSTDCALL CSharp_ReadDir(char * jarg1) {
+SWIGEXPORT void * SWIGSTDCALL CSharp_ReadDir(char * jarg1, int jarg2) {
   void * jresult ;
   char *arg1 = (char *) 0 ;
+  int arg2 = (int) 0 ;
   char **result = 0 ;
   
   arg1 = (char *)jarg1; 
+  arg2 = (int)jarg2; 
   {
     if (!arg1) {
       {
@@ -2370,7 +2865,7 @@ SWIGEXPORT void * SWIGSTDCALL CSharp_ReadDir(char * jarg1) {
   }
   {
     CPLErrorReset();
-    result = (char **)VSIReadDir((char const *)arg1);
+    result = (char **)wrapper_VSIReadDirEx((char const *)arg1,arg2);
     CPLErr eclass = CPLGetLastErrorType();
     if ( eclass == CE_Failure || eclass == CE_Fatal ) {
       SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
@@ -2801,6 +3296,20 @@ SWIGEXPORT int SWIGSTDCALL CSharp_Rename(char * jarg1, char * jarg2) {
   arg1 = (char *)jarg1; 
   arg2 = (char *)jarg2; 
   {
+    if (!arg1) {
+      {
+        SWIG_CSharpException(SWIG_ValueError, "Received a NULL pointer."); return 0; 
+      };
+    }
+  }
+  {
+    if (!arg2) {
+      {
+        SWIG_CSharpException(SWIG_ValueError, "Received a NULL pointer."); return 0; 
+      };
+    }
+  }
+  {
     CPLErrorReset();
     result = VSIRename((char const *)arg1,(char const *)arg2);
     CPLErr eclass = CPLGetLastErrorType();
@@ -2869,12 +3378,63 @@ SWIGEXPORT void * SWIGSTDCALL CSharp_VSIFOpenL(char * jarg1, char * jarg2) {
 }
 
 
+SWIGEXPORT void * SWIGSTDCALL CSharp_VSIFOpenExL(char * jarg1, char * jarg2, int jarg3) {
+  void * jresult ;
+  char *arg1 = (char *) 0 ;
+  char *arg2 = (char *) 0 ;
+  int arg3 ;
+  VSILFILE *result = 0 ;
+  
+  arg1 = (char *)jarg1; 
+  arg2 = (char *)jarg2; 
+  arg3 = (int)jarg3; 
+  {
+    if (!arg1) {
+      {
+        SWIG_CSharpException(SWIG_ValueError, "Received a NULL pointer."); return 0; 
+      };
+    }
+  }
+  {
+    CPLErrorReset();
+    result = (VSILFILE *)wrapper_VSIFOpenExL((char const *)arg1,(char const *)arg2,arg3);
+    CPLErr eclass = CPLGetLastErrorType();
+    if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+      SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
+      
+      
+      
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+  }
+  jresult = result; 
+  return jresult;
+}
+
+
 SWIGEXPORT int SWIGSTDCALL CSharp_VSIFCloseL(void * jarg1) {
   int jresult ;
   VSILFILE *arg1 = (VSILFILE *) 0 ;
   VSI_RETVAL result;
   
   arg1 = (VSILFILE *)jarg1; 
+  {
+    if (!arg1) {
+      {
+        SWIG_CSharpException(SWIG_ValueError, "Received a NULL pointer."); return 0; 
+      };
+    }
+  }
   {
     CPLErrorReset();
     result = VSIFCloseL(arg1);
@@ -2913,6 +3473,13 @@ SWIGEXPORT int SWIGSTDCALL CSharp_VSIFSeekL(void * jarg1, long jarg2, int jarg3)
   arg2 = (long)jarg2; 
   arg3 = (int)jarg3; 
   {
+    if (!arg1) {
+      {
+        SWIG_CSharpException(SWIG_ValueError, "Received a NULL pointer."); return 0; 
+      };
+    }
+  }
+  {
     CPLErrorReset();
     result = VSIFSeekL(arg1,arg2,arg3);
     CPLErr eclass = CPLGetLastErrorType();
@@ -2945,6 +3512,13 @@ SWIGEXPORT long SWIGSTDCALL CSharp_VSIFTellL(void * jarg1) {
   long result;
   
   arg1 = (VSILFILE *)jarg1; 
+  {
+    if (!arg1) {
+      {
+        SWIG_CSharpException(SWIG_ValueError, "Received a NULL pointer."); return 0; 
+      };
+    }
+  }
   {
     CPLErrorReset();
     result = (long)VSIFTellL(arg1);
@@ -2980,6 +3554,13 @@ SWIGEXPORT int SWIGSTDCALL CSharp_VSIFTruncateL(void * jarg1, long jarg2) {
   
   arg1 = (VSILFILE *)jarg1; 
   arg2 = (long)jarg2; 
+  {
+    if (!arg1) {
+      {
+        SWIG_CSharpException(SWIG_ValueError, "Received a NULL pointer."); return 0; 
+      };
+    }
+  }
   {
     CPLErrorReset();
     result = VSIFTruncateL(arg1,arg2);
@@ -3020,8 +3601,55 @@ SWIGEXPORT int SWIGSTDCALL CSharp_VSIFWriteL(char * jarg1, int jarg2, int jarg3,
   arg3 = (int)jarg3; 
   arg4 = (VSILFILE *)jarg4; 
   {
+    if (!arg4) {
+      {
+        SWIG_CSharpException(SWIG_ValueError, "Received a NULL pointer."); return 0; 
+      };
+    }
+  }
+  {
     CPLErrorReset();
     result = (int)VSIFWriteL((char const *)arg1,arg2,arg3,arg4);
+    CPLErr eclass = CPLGetLastErrorType();
+    if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+      SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
+      
+      
+      
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+  }
+  jresult = result; 
+  return jresult;
+}
+
+
+SWIGEXPORT void * SWIGSTDCALL CSharp_ParseCommandLine(char * jarg1) {
+  void * jresult ;
+  char *arg1 = (char *) 0 ;
+  char **result = 0 ;
+  
+  arg1 = (char *)jarg1; 
+  {
+    if (!arg1) {
+      {
+        SWIG_CSharpException(SWIG_ValueError, "Received a NULL pointer."); return 0; 
+      };
+    }
+  }
+  {
+    CPLErrorReset();
+    result = (char **)CSLParseCommandLine((char const *)arg1);
     CPLErr eclass = CPLGetLastErrorType();
     if ( eclass == CE_Failure || eclass == CE_Fatal ) {
       SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
@@ -6156,7 +6784,7 @@ SWIGEXPORT int SWIGSTDCALL CSharp_GCPsToGeoTransform(int jarg1, void * jarg2, vo
   arg4 = (int)jarg4; 
   {
     CPLErrorReset();
-    result = GDALGCPsToGeoTransform(arg1,(GDAL_GCP const *)arg2,arg3,arg4);
+    result = (RETURN_NONE)GDALGCPsToGeoTransform(arg1,(GDAL_GCP const *)arg2,arg3,arg4);
     CPLErr eclass = CPLGetLastErrorType();
     if ( eclass == CE_Failure || eclass == CE_Fatal ) {
       SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
@@ -7776,6 +8404,39 @@ SWIGEXPORT int SWIGSTDCALL CSharp_Band_SetNoDataValue(void * jarg1, double jarg2
   {
     CPLErrorReset();
     result = (CPLErr)GDALRasterBandShadow_SetNoDataValue(arg1,arg2);
+    CPLErr eclass = CPLGetLastErrorType();
+    if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+      SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
+      
+      
+      
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+  }
+  jresult = result; 
+  return jresult;
+}
+
+
+SWIGEXPORT int SWIGSTDCALL CSharp_Band_DeleteNoDataValue(void * jarg1) {
+  int jresult ;
+  GDALRasterBandShadow *arg1 = (GDALRasterBandShadow *) 0 ;
+  CPLErr result;
+  
+  arg1 = (GDALRasterBandShadow *)jarg1; 
+  {
+    CPLErrorReset();
+    result = (CPLErr)GDALRasterBandShadow_DeleteNoDataValue(arg1);
     CPLErr eclass = CPLGetLastErrorType();
     if ( eclass == CE_Failure || eclass == CE_Fatal ) {
       SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
@@ -10461,7 +11122,7 @@ SWIGEXPORT int SWIGSTDCALL CSharp_DitherRGB2PCT(void * jarg1, void * jarg2, void
 }
 
 
-SWIGEXPORT int SWIGSTDCALL CSharp_ReprojectImage(void * jarg1, void * jarg2, char * jarg3, char * jarg4, int jarg5, double jarg6, double jarg7, void * jarg8, void * jarg9) {
+SWIGEXPORT int SWIGSTDCALL CSharp_ReprojectImage(void * jarg1, void * jarg2, char * jarg3, char * jarg4, int jarg5, double jarg6, double jarg7, void * jarg8, void * jarg9, void * jarg10) {
   int jresult ;
   GDALDatasetShadow *arg1 = (GDALDatasetShadow *) 0 ;
   GDALDatasetShadow *arg2 = (GDALDatasetShadow *) 0 ;
@@ -10472,6 +11133,7 @@ SWIGEXPORT int SWIGSTDCALL CSharp_ReprojectImage(void * jarg1, void * jarg2, cha
   double arg7 = (double) 0.0 ;
   GDALProgressFunc arg8 = (GDALProgressFunc) NULL ;
   void *arg9 = (void *) NULL ;
+  char **arg10 = (char **) NULL ;
   CPLErr result;
   
   arg1 = (GDALDatasetShadow *)jarg1; 
@@ -10483,6 +11145,7 @@ SWIGEXPORT int SWIGSTDCALL CSharp_ReprojectImage(void * jarg1, void * jarg2, cha
   arg7 = (double)jarg7; 
   arg8 = (GDALProgressFunc)jarg8; 
   arg9 = (void *)jarg9; 
+  arg10 = (char **)jarg10; 
   {
     if (!arg1) {
       {
@@ -10499,7 +11162,7 @@ SWIGEXPORT int SWIGSTDCALL CSharp_ReprojectImage(void * jarg1, void * jarg2, cha
   }
   {
     CPLErrorReset();
-    result = (CPLErr)ReprojectImage(arg1,arg2,(char const *)arg3,(char const *)arg4,arg5,arg6,arg7,arg8,arg9);
+    result = (CPLErr)ReprojectImage(arg1,arg2,(char const *)arg3,(char const *)arg4,arg5,arg6,arg7,arg8,arg9,arg10);
     CPLErr eclass = CPLGetLastErrorType();
     if ( eclass == CE_Failure || eclass == CE_Fatal ) {
       SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
@@ -10687,6 +11350,65 @@ SWIGEXPORT int SWIGSTDCALL CSharp_Polygonize(void * jarg1, void * jarg2, void * 
   {
     CPLErrorReset();
     result = (int)Polygonize(arg1,arg2,arg3,arg4,arg5,arg6,arg7);
+    CPLErr eclass = CPLGetLastErrorType();
+    if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+      SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
+      
+      
+      
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+  }
+  jresult = result; 
+  return jresult;
+}
+
+
+SWIGEXPORT int SWIGSTDCALL CSharp_FPolygonize(void * jarg1, void * jarg2, void * jarg3, int jarg4, void * jarg5, void * jarg6, void * jarg7) {
+  int jresult ;
+  GDALRasterBandShadow *arg1 = (GDALRasterBandShadow *) 0 ;
+  GDALRasterBandShadow *arg2 = (GDALRasterBandShadow *) 0 ;
+  OGRLayerShadow *arg3 = (OGRLayerShadow *) 0 ;
+  int arg4 ;
+  char **arg5 = (char **) NULL ;
+  GDALProgressFunc arg6 = (GDALProgressFunc) NULL ;
+  void *arg7 = (void *) NULL ;
+  int result;
+  
+  arg1 = (GDALRasterBandShadow *)jarg1; 
+  arg2 = (GDALRasterBandShadow *)jarg2; 
+  arg3 = (OGRLayerShadow *)jarg3; 
+  arg4 = (int)jarg4; 
+  arg5 = (char **)jarg5; 
+  arg6 = (GDALProgressFunc)jarg6; 
+  arg7 = (void *)jarg7; 
+  {
+    if (!arg1) {
+      {
+        SWIG_CSharpException(SWIG_ValueError, "Received a NULL pointer."); return 0; 
+      };
+    }
+  }
+  {
+    if (!arg3) {
+      {
+        SWIG_CSharpException(SWIG_ValueError, "Received a NULL pointer."); return 0; 
+      };
+    }
+  }
+  {
+    CPLErrorReset();
+    result = (int)FPolygonize(arg1,arg2,arg3,arg4,arg5,arg6,arg7);
     CPLErr eclass = CPLGetLastErrorType();
     if ( eclass == CE_Failure || eclass == CE_Fatal ) {
       SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
@@ -11049,6 +11771,52 @@ SWIGEXPORT void * SWIGSTDCALL CSharp_AutoCreateWarpedVRT(void * jarg1, char * ja
 }
 
 
+SWIGEXPORT void * SWIGSTDCALL CSharp_CreatePansharpenedVRT(char * jarg1, void * jarg2, int jarg3, void * jarg4) {
+  void * jresult ;
+  char *arg1 = (char *) 0 ;
+  GDALRasterBandShadow *arg2 = (GDALRasterBandShadow *) 0 ;
+  int arg3 ;
+  GDALRasterBandShadow **arg4 = (GDALRasterBandShadow **) 0 ;
+  GDALDatasetShadow *result = 0 ;
+  
+  arg1 = (char *)jarg1; 
+  arg2 = (GDALRasterBandShadow *)jarg2; 
+  arg3 = (int)jarg3; 
+  arg4 = (GDALRasterBandShadow **)jarg4; 
+  {
+    if (!arg2) {
+      {
+        SWIG_CSharpException(SWIG_ValueError, "Received a NULL pointer."); return 0; 
+      };
+    }
+  }
+  {
+    CPLErrorReset();
+    result = (GDALDatasetShadow *)CreatePansharpenedVRT((char const *)arg1,arg2,arg3,arg4);
+    CPLErr eclass = CPLGetLastErrorType();
+    if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+      SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
+      
+      
+      
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+  }
+  jresult = (void *)result; 
+  return jresult;
+}
+
+
 SWIGEXPORT void * SWIGSTDCALL CSharp_new_Transformer(void * jarg1, void * jarg2, void * jarg3) {
   void * jresult ;
   GDALDatasetShadow *arg1 = (GDALDatasetShadow *) 0 ;
@@ -11386,7 +12154,7 @@ SWIGEXPORT int SWIGSTDCALL CSharp_InvGeoTransform(void * jarg1, void * jarg2) {
   }
   {
     CPLErrorReset();
-    result = GDALInvGeoTransform(arg1,arg2);
+    result = (RETURN_NONE)GDALInvGeoTransform(arg1,arg2);
     CPLErr eclass = CPLGetLastErrorType();
     if ( eclass == CE_Failure || eclass == CE_Fatal ) {
       SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
@@ -12458,6 +13226,1244 @@ SWIGEXPORT void SWIGSTDCALL CSharp___FreeCArray_GDAL_GCP(void * jarg1) {
     
     
   }
+}
+
+
+SWIGEXPORT void * SWIGSTDCALL CSharp_new_GDALInfoOptions(void * jarg1) {
+  void * jresult ;
+  char **arg1 = (char **) 0 ;
+  GDALInfoOptions *result = 0 ;
+  
+  arg1 = (char **)jarg1; 
+  {
+    CPLErrorReset();
+    result = (GDALInfoOptions *)new_GDALInfoOptions(arg1);
+    CPLErr eclass = CPLGetLastErrorType();
+    if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+      SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
+      
+      
+      
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+  }
+  jresult = (void *)result; 
+  return jresult;
+}
+
+
+SWIGEXPORT void SWIGSTDCALL CSharp_delete_GDALInfoOptions(void * jarg1) {
+  GDALInfoOptions *arg1 = (GDALInfoOptions *) 0 ;
+  
+  arg1 = (GDALInfoOptions *)jarg1; 
+  {
+    CPLErrorReset();
+    delete_GDALInfoOptions(arg1);
+    CPLErr eclass = CPLGetLastErrorType();
+    if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+      SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
+      
+      
+      
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+  }
+}
+
+
+SWIGEXPORT char * SWIGSTDCALL CSharp_GDALInfo(void * jarg1, void * jarg2) {
+  char * jresult ;
+  GDALDatasetShadow *arg1 = (GDALDatasetShadow *) 0 ;
+  GDALInfoOptions *arg2 = (GDALInfoOptions *) 0 ;
+  retStringAndCPLFree *result = 0 ;
+  
+  arg1 = (GDALDatasetShadow *)jarg1; 
+  arg2 = (GDALInfoOptions *)jarg2; 
+  {
+    CPLErrorReset();
+    result = (retStringAndCPLFree *)GDALInfo(arg1,arg2);
+    CPLErr eclass = CPLGetLastErrorType();
+    if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+      SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
+      
+      
+      
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+  }
+  
+  /* %typemap(out) (retStringAndCPLFree*) */
+  if(result)
+  {
+    jresult = SWIG_csharp_string_callback((const char *)result);
+    CPLFree(result);
+  }
+  else
+  {
+    jresult = NULL;
+  }
+  
+  return jresult;
+}
+
+
+SWIGEXPORT void * SWIGSTDCALL CSharp_new_GDALTranslateOptions(void * jarg1) {
+  void * jresult ;
+  char **arg1 = (char **) 0 ;
+  GDALTranslateOptions *result = 0 ;
+  
+  arg1 = (char **)jarg1; 
+  {
+    CPLErrorReset();
+    result = (GDALTranslateOptions *)new_GDALTranslateOptions(arg1);
+    CPLErr eclass = CPLGetLastErrorType();
+    if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+      SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
+      
+      
+      
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+  }
+  jresult = (void *)result; 
+  return jresult;
+}
+
+
+SWIGEXPORT void SWIGSTDCALL CSharp_delete_GDALTranslateOptions(void * jarg1) {
+  GDALTranslateOptions *arg1 = (GDALTranslateOptions *) 0 ;
+  
+  arg1 = (GDALTranslateOptions *)jarg1; 
+  {
+    CPLErrorReset();
+    delete_GDALTranslateOptions(arg1);
+    CPLErr eclass = CPLGetLastErrorType();
+    if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+      SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
+      
+      
+      
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+  }
+}
+
+
+SWIGEXPORT void * SWIGSTDCALL CSharp_wrapper_GDALTranslate(char * jarg1, void * jarg2, void * jarg3, void * jarg4, void * jarg5) {
+  void * jresult ;
+  char *arg1 = (char *) 0 ;
+  GDALDatasetShadow *arg2 = (GDALDatasetShadow *) 0 ;
+  GDALTranslateOptions *arg3 = (GDALTranslateOptions *) 0 ;
+  GDALProgressFunc arg4 = (GDALProgressFunc) NULL ;
+  void *arg5 = (void *) NULL ;
+  GDALDatasetShadow *result = 0 ;
+  
+  arg1 = (char *)jarg1; 
+  arg2 = (GDALDatasetShadow *)jarg2; 
+  arg3 = (GDALTranslateOptions *)jarg3; 
+  arg4 = (GDALProgressFunc)jarg4; 
+  arg5 = (void *)jarg5; 
+  {
+    if (!arg1) {
+      {
+        SWIG_CSharpException(SWIG_ValueError, "Received a NULL pointer."); return 0; 
+      };
+    }
+  }
+  {
+    if (!arg2) {
+      {
+        SWIG_CSharpException(SWIG_ValueError, "Received a NULL pointer."); return 0; 
+      };
+    }
+  }
+  {
+    CPLErrorReset();
+    result = (GDALDatasetShadow *)wrapper_GDALTranslate((char const *)arg1,arg2,arg3,arg4,arg5);
+    CPLErr eclass = CPLGetLastErrorType();
+    if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+      SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
+      
+      
+      
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+  }
+  jresult = (void *)result; 
+  return jresult;
+}
+
+
+SWIGEXPORT void * SWIGSTDCALL CSharp_new_GDALWarpAppOptions(void * jarg1) {
+  void * jresult ;
+  char **arg1 = (char **) 0 ;
+  GDALWarpAppOptions *result = 0 ;
+  
+  arg1 = (char **)jarg1; 
+  {
+    CPLErrorReset();
+    result = (GDALWarpAppOptions *)new_GDALWarpAppOptions(arg1);
+    CPLErr eclass = CPLGetLastErrorType();
+    if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+      SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
+      
+      
+      
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+  }
+  jresult = (void *)result; 
+  return jresult;
+}
+
+
+SWIGEXPORT void SWIGSTDCALL CSharp_delete_GDALWarpAppOptions(void * jarg1) {
+  GDALWarpAppOptions *arg1 = (GDALWarpAppOptions *) 0 ;
+  
+  arg1 = (GDALWarpAppOptions *)jarg1; 
+  {
+    CPLErrorReset();
+    delete_GDALWarpAppOptions(arg1);
+    CPLErr eclass = CPLGetLastErrorType();
+    if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+      SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
+      
+      
+      
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+  }
+}
+
+
+SWIGEXPORT int SWIGSTDCALL CSharp_wrapper_GDALWarpDestDS(void * jarg1, int jarg2, void * jarg3, void * jarg4, void * jarg5, void * jarg6) {
+  int jresult ;
+  GDALDatasetShadow *arg1 = (GDALDatasetShadow *) 0 ;
+  int arg2 ;
+  GDALDatasetShadow **arg3 = (GDALDatasetShadow **) 0 ;
+  GDALWarpAppOptions *arg4 = (GDALWarpAppOptions *) 0 ;
+  GDALProgressFunc arg5 = (GDALProgressFunc) NULL ;
+  void *arg6 = (void *) NULL ;
+  int result;
+  
+  arg1 = (GDALDatasetShadow *)jarg1; 
+  arg2 = (int)jarg2; 
+  arg3 = (GDALDatasetShadow **)jarg3; 
+  arg4 = (GDALWarpAppOptions *)jarg4; 
+  arg5 = (GDALProgressFunc)jarg5; 
+  arg6 = (void *)jarg6; 
+  {
+    CPLErrorReset();
+    result = (int)wrapper_GDALWarpDestDS(arg1,arg2,arg3,arg4,arg5,arg6);
+    CPLErr eclass = CPLGetLastErrorType();
+    if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+      SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
+      
+      
+      
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+  }
+  jresult = result; 
+  return jresult;
+}
+
+
+SWIGEXPORT void * SWIGSTDCALL CSharp_wrapper_GDALWarpDestName(char * jarg1, int jarg2, void * jarg3, void * jarg4, void * jarg5, void * jarg6) {
+  void * jresult ;
+  char *arg1 = (char *) 0 ;
+  int arg2 ;
+  GDALDatasetShadow **arg3 = (GDALDatasetShadow **) 0 ;
+  GDALWarpAppOptions *arg4 = (GDALWarpAppOptions *) 0 ;
+  GDALProgressFunc arg5 = (GDALProgressFunc) NULL ;
+  void *arg6 = (void *) NULL ;
+  GDALDatasetShadow *result = 0 ;
+  
+  arg1 = (char *)jarg1; 
+  arg2 = (int)jarg2; 
+  arg3 = (GDALDatasetShadow **)jarg3; 
+  arg4 = (GDALWarpAppOptions *)jarg4; 
+  arg5 = (GDALProgressFunc)jarg5; 
+  arg6 = (void *)jarg6; 
+  {
+    if (!arg1) {
+      {
+        SWIG_CSharpException(SWIG_ValueError, "Received a NULL pointer."); return 0; 
+      };
+    }
+  }
+  {
+    CPLErrorReset();
+    result = (GDALDatasetShadow *)wrapper_GDALWarpDestName((char const *)arg1,arg2,arg3,arg4,arg5,arg6);
+    CPLErr eclass = CPLGetLastErrorType();
+    if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+      SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
+      
+      
+      
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+  }
+  jresult = (void *)result; 
+  return jresult;
+}
+
+
+SWIGEXPORT void * SWIGSTDCALL CSharp_new_GDALVectorTranslateOptions(void * jarg1) {
+  void * jresult ;
+  char **arg1 = (char **) 0 ;
+  GDALVectorTranslateOptions *result = 0 ;
+  
+  arg1 = (char **)jarg1; 
+  {
+    CPLErrorReset();
+    result = (GDALVectorTranslateOptions *)new_GDALVectorTranslateOptions(arg1);
+    CPLErr eclass = CPLGetLastErrorType();
+    if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+      SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
+      
+      
+      
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+  }
+  jresult = (void *)result; 
+  return jresult;
+}
+
+
+SWIGEXPORT void SWIGSTDCALL CSharp_delete_GDALVectorTranslateOptions(void * jarg1) {
+  GDALVectorTranslateOptions *arg1 = (GDALVectorTranslateOptions *) 0 ;
+  
+  arg1 = (GDALVectorTranslateOptions *)jarg1; 
+  {
+    CPLErrorReset();
+    delete_GDALVectorTranslateOptions(arg1);
+    CPLErr eclass = CPLGetLastErrorType();
+    if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+      SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
+      
+      
+      
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+  }
+}
+
+
+SWIGEXPORT int SWIGSTDCALL CSharp_wrapper_GDALVectorTranslateDestDS(void * jarg1, void * jarg2, void * jarg3, void * jarg4, void * jarg5) {
+  int jresult ;
+  GDALDatasetShadow *arg1 = (GDALDatasetShadow *) 0 ;
+  GDALDatasetShadow *arg2 = (GDALDatasetShadow *) 0 ;
+  GDALVectorTranslateOptions *arg3 = (GDALVectorTranslateOptions *) 0 ;
+  GDALProgressFunc arg4 = (GDALProgressFunc) NULL ;
+  void *arg5 = (void *) NULL ;
+  int result;
+  
+  arg1 = (GDALDatasetShadow *)jarg1; 
+  arg2 = (GDALDatasetShadow *)jarg2; 
+  arg3 = (GDALVectorTranslateOptions *)jarg3; 
+  arg4 = (GDALProgressFunc)jarg4; 
+  arg5 = (void *)jarg5; 
+  {
+    CPLErrorReset();
+    result = (int)wrapper_GDALVectorTranslateDestDS(arg1,arg2,arg3,arg4,arg5);
+    CPLErr eclass = CPLGetLastErrorType();
+    if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+      SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
+      
+      
+      
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+  }
+  jresult = result; 
+  return jresult;
+}
+
+
+SWIGEXPORT void * SWIGSTDCALL CSharp_wrapper_GDALVectorTranslateDestName(char * jarg1, void * jarg2, void * jarg3, void * jarg4, void * jarg5) {
+  void * jresult ;
+  char *arg1 = (char *) 0 ;
+  GDALDatasetShadow *arg2 = (GDALDatasetShadow *) 0 ;
+  GDALVectorTranslateOptions *arg3 = (GDALVectorTranslateOptions *) 0 ;
+  GDALProgressFunc arg4 = (GDALProgressFunc) NULL ;
+  void *arg5 = (void *) NULL ;
+  GDALDatasetShadow *result = 0 ;
+  
+  arg1 = (char *)jarg1; 
+  arg2 = (GDALDatasetShadow *)jarg2; 
+  arg3 = (GDALVectorTranslateOptions *)jarg3; 
+  arg4 = (GDALProgressFunc)jarg4; 
+  arg5 = (void *)jarg5; 
+  {
+    if (!arg1) {
+      {
+        SWIG_CSharpException(SWIG_ValueError, "Received a NULL pointer."); return 0; 
+      };
+    }
+  }
+  {
+    CPLErrorReset();
+    result = (GDALDatasetShadow *)wrapper_GDALVectorTranslateDestName((char const *)arg1,arg2,arg3,arg4,arg5);
+    CPLErr eclass = CPLGetLastErrorType();
+    if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+      SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
+      
+      
+      
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+  }
+  jresult = (void *)result; 
+  return jresult;
+}
+
+
+SWIGEXPORT void * SWIGSTDCALL CSharp_new_GDALDEMProcessingOptions(void * jarg1) {
+  void * jresult ;
+  char **arg1 = (char **) 0 ;
+  GDALDEMProcessingOptions *result = 0 ;
+  
+  arg1 = (char **)jarg1; 
+  {
+    CPLErrorReset();
+    result = (GDALDEMProcessingOptions *)new_GDALDEMProcessingOptions(arg1);
+    CPLErr eclass = CPLGetLastErrorType();
+    if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+      SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
+      
+      
+      
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+  }
+  jresult = (void *)result; 
+  return jresult;
+}
+
+
+SWIGEXPORT void SWIGSTDCALL CSharp_delete_GDALDEMProcessingOptions(void * jarg1) {
+  GDALDEMProcessingOptions *arg1 = (GDALDEMProcessingOptions *) 0 ;
+  
+  arg1 = (GDALDEMProcessingOptions *)jarg1; 
+  {
+    CPLErrorReset();
+    delete_GDALDEMProcessingOptions(arg1);
+    CPLErr eclass = CPLGetLastErrorType();
+    if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+      SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
+      
+      
+      
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+  }
+}
+
+
+SWIGEXPORT void * SWIGSTDCALL CSharp_wrapper_GDALDEMProcessing(char * jarg1, void * jarg2, char * jarg3, char * jarg4, void * jarg5, void * jarg6, void * jarg7) {
+  void * jresult ;
+  char *arg1 = (char *) 0 ;
+  GDALDatasetShadow *arg2 = (GDALDatasetShadow *) 0 ;
+  char *arg3 = (char *) 0 ;
+  char *arg4 = (char *) 0 ;
+  GDALDEMProcessingOptions *arg5 = (GDALDEMProcessingOptions *) 0 ;
+  GDALProgressFunc arg6 = (GDALProgressFunc) NULL ;
+  void *arg7 = (void *) NULL ;
+  GDALDatasetShadow *result = 0 ;
+  
+  arg1 = (char *)jarg1; 
+  arg2 = (GDALDatasetShadow *)jarg2; 
+  arg3 = (char *)jarg3; 
+  arg4 = (char *)jarg4; 
+  arg5 = (GDALDEMProcessingOptions *)jarg5; 
+  arg6 = (GDALProgressFunc)jarg6; 
+  arg7 = (void *)jarg7; 
+  {
+    if (!arg1) {
+      {
+        SWIG_CSharpException(SWIG_ValueError, "Received a NULL pointer."); return 0; 
+      };
+    }
+  }
+  {
+    if (!arg2) {
+      {
+        SWIG_CSharpException(SWIG_ValueError, "Received a NULL pointer."); return 0; 
+      };
+    }
+  }
+  {
+    if (!arg3) {
+      {
+        SWIG_CSharpException(SWIG_ValueError, "Received a NULL pointer."); return 0; 
+      };
+    }
+  }
+  {
+    CPLErrorReset();
+    result = (GDALDatasetShadow *)wrapper_GDALDEMProcessing((char const *)arg1,arg2,(char const *)arg3,(char const *)arg4,arg5,arg6,arg7);
+    CPLErr eclass = CPLGetLastErrorType();
+    if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+      SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
+      
+      
+      
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+  }
+  jresult = (void *)result; 
+  return jresult;
+}
+
+
+SWIGEXPORT void * SWIGSTDCALL CSharp_new_GDALNearblackOptions(void * jarg1) {
+  void * jresult ;
+  char **arg1 = (char **) 0 ;
+  GDALNearblackOptions *result = 0 ;
+  
+  arg1 = (char **)jarg1; 
+  {
+    CPLErrorReset();
+    result = (GDALNearblackOptions *)new_GDALNearblackOptions(arg1);
+    CPLErr eclass = CPLGetLastErrorType();
+    if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+      SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
+      
+      
+      
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+  }
+  jresult = (void *)result; 
+  return jresult;
+}
+
+
+SWIGEXPORT void SWIGSTDCALL CSharp_delete_GDALNearblackOptions(void * jarg1) {
+  GDALNearblackOptions *arg1 = (GDALNearblackOptions *) 0 ;
+  
+  arg1 = (GDALNearblackOptions *)jarg1; 
+  {
+    CPLErrorReset();
+    delete_GDALNearblackOptions(arg1);
+    CPLErr eclass = CPLGetLastErrorType();
+    if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+      SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
+      
+      
+      
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+  }
+}
+
+
+SWIGEXPORT int SWIGSTDCALL CSharp_wrapper_GDALNearblackDestDS(void * jarg1, void * jarg2, void * jarg3, void * jarg4, void * jarg5) {
+  int jresult ;
+  GDALDatasetShadow *arg1 = (GDALDatasetShadow *) 0 ;
+  GDALDatasetShadow *arg2 = (GDALDatasetShadow *) 0 ;
+  GDALNearblackOptions *arg3 = (GDALNearblackOptions *) 0 ;
+  GDALProgressFunc arg4 = (GDALProgressFunc) NULL ;
+  void *arg5 = (void *) NULL ;
+  int result;
+  
+  arg1 = (GDALDatasetShadow *)jarg1; 
+  arg2 = (GDALDatasetShadow *)jarg2; 
+  arg3 = (GDALNearblackOptions *)jarg3; 
+  arg4 = (GDALProgressFunc)jarg4; 
+  arg5 = (void *)jarg5; 
+  {
+    CPLErrorReset();
+    result = (int)wrapper_GDALNearblackDestDS(arg1,arg2,arg3,arg4,arg5);
+    CPLErr eclass = CPLGetLastErrorType();
+    if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+      SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
+      
+      
+      
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+  }
+  jresult = result; 
+  return jresult;
+}
+
+
+SWIGEXPORT void * SWIGSTDCALL CSharp_wrapper_GDALNearblackDestName(char * jarg1, void * jarg2, void * jarg3, void * jarg4, void * jarg5) {
+  void * jresult ;
+  char *arg1 = (char *) 0 ;
+  GDALDatasetShadow *arg2 = (GDALDatasetShadow *) 0 ;
+  GDALNearblackOptions *arg3 = (GDALNearblackOptions *) 0 ;
+  GDALProgressFunc arg4 = (GDALProgressFunc) NULL ;
+  void *arg5 = (void *) NULL ;
+  GDALDatasetShadow *result = 0 ;
+  
+  arg1 = (char *)jarg1; 
+  arg2 = (GDALDatasetShadow *)jarg2; 
+  arg3 = (GDALNearblackOptions *)jarg3; 
+  arg4 = (GDALProgressFunc)jarg4; 
+  arg5 = (void *)jarg5; 
+  {
+    if (!arg1) {
+      {
+        SWIG_CSharpException(SWIG_ValueError, "Received a NULL pointer."); return 0; 
+      };
+    }
+  }
+  {
+    CPLErrorReset();
+    result = (GDALDatasetShadow *)wrapper_GDALNearblackDestName((char const *)arg1,arg2,arg3,arg4,arg5);
+    CPLErr eclass = CPLGetLastErrorType();
+    if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+      SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
+      
+      
+      
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+  }
+  jresult = (void *)result; 
+  return jresult;
+}
+
+
+SWIGEXPORT void * SWIGSTDCALL CSharp_new_GDALGridOptions(void * jarg1) {
+  void * jresult ;
+  char **arg1 = (char **) 0 ;
+  GDALGridOptions *result = 0 ;
+  
+  arg1 = (char **)jarg1; 
+  {
+    CPLErrorReset();
+    result = (GDALGridOptions *)new_GDALGridOptions(arg1);
+    CPLErr eclass = CPLGetLastErrorType();
+    if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+      SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
+      
+      
+      
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+  }
+  jresult = (void *)result; 
+  return jresult;
+}
+
+
+SWIGEXPORT void SWIGSTDCALL CSharp_delete_GDALGridOptions(void * jarg1) {
+  GDALGridOptions *arg1 = (GDALGridOptions *) 0 ;
+  
+  arg1 = (GDALGridOptions *)jarg1; 
+  {
+    CPLErrorReset();
+    delete_GDALGridOptions(arg1);
+    CPLErr eclass = CPLGetLastErrorType();
+    if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+      SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
+      
+      
+      
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+  }
+}
+
+
+SWIGEXPORT void * SWIGSTDCALL CSharp_wrapper_GDALGrid(char * jarg1, void * jarg2, void * jarg3, void * jarg4, void * jarg5) {
+  void * jresult ;
+  char *arg1 = (char *) 0 ;
+  GDALDatasetShadow *arg2 = (GDALDatasetShadow *) 0 ;
+  GDALGridOptions *arg3 = (GDALGridOptions *) 0 ;
+  GDALProgressFunc arg4 = (GDALProgressFunc) NULL ;
+  void *arg5 = (void *) NULL ;
+  GDALDatasetShadow *result = 0 ;
+  
+  arg1 = (char *)jarg1; 
+  arg2 = (GDALDatasetShadow *)jarg2; 
+  arg3 = (GDALGridOptions *)jarg3; 
+  arg4 = (GDALProgressFunc)jarg4; 
+  arg5 = (void *)jarg5; 
+  {
+    if (!arg1) {
+      {
+        SWIG_CSharpException(SWIG_ValueError, "Received a NULL pointer."); return 0; 
+      };
+    }
+  }
+  {
+    if (!arg2) {
+      {
+        SWIG_CSharpException(SWIG_ValueError, "Received a NULL pointer."); return 0; 
+      };
+    }
+  }
+  {
+    CPLErrorReset();
+    result = (GDALDatasetShadow *)wrapper_GDALGrid((char const *)arg1,arg2,arg3,arg4,arg5);
+    CPLErr eclass = CPLGetLastErrorType();
+    if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+      SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
+      
+      
+      
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+  }
+  jresult = (void *)result; 
+  return jresult;
+}
+
+
+SWIGEXPORT void * SWIGSTDCALL CSharp_new_GDALRasterizeOptions(void * jarg1) {
+  void * jresult ;
+  char **arg1 = (char **) 0 ;
+  GDALRasterizeOptions *result = 0 ;
+  
+  arg1 = (char **)jarg1; 
+  {
+    CPLErrorReset();
+    result = (GDALRasterizeOptions *)new_GDALRasterizeOptions(arg1);
+    CPLErr eclass = CPLGetLastErrorType();
+    if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+      SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
+      
+      
+      
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+  }
+  jresult = (void *)result; 
+  return jresult;
+}
+
+
+SWIGEXPORT void SWIGSTDCALL CSharp_delete_GDALRasterizeOptions(void * jarg1) {
+  GDALRasterizeOptions *arg1 = (GDALRasterizeOptions *) 0 ;
+  
+  arg1 = (GDALRasterizeOptions *)jarg1; 
+  {
+    CPLErrorReset();
+    delete_GDALRasterizeOptions(arg1);
+    CPLErr eclass = CPLGetLastErrorType();
+    if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+      SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
+      
+      
+      
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+  }
+}
+
+
+SWIGEXPORT int SWIGSTDCALL CSharp_wrapper_GDALRasterizeDestDS(void * jarg1, void * jarg2, void * jarg3, void * jarg4, void * jarg5) {
+  int jresult ;
+  GDALDatasetShadow *arg1 = (GDALDatasetShadow *) 0 ;
+  GDALDatasetShadow *arg2 = (GDALDatasetShadow *) 0 ;
+  GDALRasterizeOptions *arg3 = (GDALRasterizeOptions *) 0 ;
+  GDALProgressFunc arg4 = (GDALProgressFunc) NULL ;
+  void *arg5 = (void *) NULL ;
+  int result;
+  
+  arg1 = (GDALDatasetShadow *)jarg1; 
+  arg2 = (GDALDatasetShadow *)jarg2; 
+  arg3 = (GDALRasterizeOptions *)jarg3; 
+  arg4 = (GDALProgressFunc)jarg4; 
+  arg5 = (void *)jarg5; 
+  {
+    CPLErrorReset();
+    result = (int)wrapper_GDALRasterizeDestDS(arg1,arg2,arg3,arg4,arg5);
+    CPLErr eclass = CPLGetLastErrorType();
+    if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+      SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
+      
+      
+      
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+  }
+  jresult = result; 
+  return jresult;
+}
+
+
+SWIGEXPORT void * SWIGSTDCALL CSharp_wrapper_GDALRasterizeDestName(char * jarg1, void * jarg2, void * jarg3, void * jarg4, void * jarg5) {
+  void * jresult ;
+  char *arg1 = (char *) 0 ;
+  GDALDatasetShadow *arg2 = (GDALDatasetShadow *) 0 ;
+  GDALRasterizeOptions *arg3 = (GDALRasterizeOptions *) 0 ;
+  GDALProgressFunc arg4 = (GDALProgressFunc) NULL ;
+  void *arg5 = (void *) NULL ;
+  GDALDatasetShadow *result = 0 ;
+  
+  arg1 = (char *)jarg1; 
+  arg2 = (GDALDatasetShadow *)jarg2; 
+  arg3 = (GDALRasterizeOptions *)jarg3; 
+  arg4 = (GDALProgressFunc)jarg4; 
+  arg5 = (void *)jarg5; 
+  {
+    if (!arg1) {
+      {
+        SWIG_CSharpException(SWIG_ValueError, "Received a NULL pointer."); return 0; 
+      };
+    }
+  }
+  {
+    CPLErrorReset();
+    result = (GDALDatasetShadow *)wrapper_GDALRasterizeDestName((char const *)arg1,arg2,arg3,arg4,arg5);
+    CPLErr eclass = CPLGetLastErrorType();
+    if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+      SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
+      
+      
+      
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+  }
+  jresult = (void *)result; 
+  return jresult;
+}
+
+
+SWIGEXPORT void * SWIGSTDCALL CSharp_new_GDALBuildVRTOptions(void * jarg1) {
+  void * jresult ;
+  char **arg1 = (char **) 0 ;
+  GDALBuildVRTOptions *result = 0 ;
+  
+  arg1 = (char **)jarg1; 
+  {
+    CPLErrorReset();
+    result = (GDALBuildVRTOptions *)new_GDALBuildVRTOptions(arg1);
+    CPLErr eclass = CPLGetLastErrorType();
+    if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+      SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
+      
+      
+      
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+  }
+  jresult = (void *)result; 
+  return jresult;
+}
+
+
+SWIGEXPORT void SWIGSTDCALL CSharp_delete_GDALBuildVRTOptions(void * jarg1) {
+  GDALBuildVRTOptions *arg1 = (GDALBuildVRTOptions *) 0 ;
+  
+  arg1 = (GDALBuildVRTOptions *)jarg1; 
+  {
+    CPLErrorReset();
+    delete_GDALBuildVRTOptions(arg1);
+    CPLErr eclass = CPLGetLastErrorType();
+    if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+      SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
+      
+      
+      
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+  }
+}
+
+
+SWIGEXPORT void * SWIGSTDCALL CSharp_wrapper_GDALBuildVRT_objects(char * jarg1, int jarg2, void * jarg3, void * jarg4, void * jarg5, void * jarg6) {
+  void * jresult ;
+  char *arg1 = (char *) 0 ;
+  int arg2 ;
+  GDALDatasetShadow **arg3 = (GDALDatasetShadow **) 0 ;
+  GDALBuildVRTOptions *arg4 = (GDALBuildVRTOptions *) 0 ;
+  GDALProgressFunc arg5 = (GDALProgressFunc) NULL ;
+  void *arg6 = (void *) NULL ;
+  GDALDatasetShadow *result = 0 ;
+  
+  arg1 = (char *)jarg1; 
+  arg2 = (int)jarg2; 
+  arg3 = (GDALDatasetShadow **)jarg3; 
+  arg4 = (GDALBuildVRTOptions *)jarg4; 
+  arg5 = (GDALProgressFunc)jarg5; 
+  arg6 = (void *)jarg6; 
+  {
+    if (!arg1) {
+      {
+        SWIG_CSharpException(SWIG_ValueError, "Received a NULL pointer."); return 0; 
+      };
+    }
+  }
+  {
+    CPLErrorReset();
+    result = (GDALDatasetShadow *)wrapper_GDALBuildVRT_objects((char const *)arg1,arg2,arg3,arg4,arg5,arg6);
+    CPLErr eclass = CPLGetLastErrorType();
+    if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+      SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
+      
+      
+      
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+  }
+  jresult = (void *)result; 
+  return jresult;
+}
+
+
+SWIGEXPORT void * SWIGSTDCALL CSharp_wrapper_GDALBuildVRT_names(char * jarg1, void * jarg2, void * jarg3, void * jarg4, void * jarg5) {
+  void * jresult ;
+  char *arg1 = (char *) 0 ;
+  char **arg2 = (char **) 0 ;
+  GDALBuildVRTOptions *arg3 = (GDALBuildVRTOptions *) 0 ;
+  GDALProgressFunc arg4 = (GDALProgressFunc) NULL ;
+  void *arg5 = (void *) NULL ;
+  GDALDatasetShadow *result = 0 ;
+  
+  arg1 = (char *)jarg1; 
+  arg2 = (char **)jarg2; 
+  arg3 = (GDALBuildVRTOptions *)jarg3; 
+  arg4 = (GDALProgressFunc)jarg4; 
+  arg5 = (void *)jarg5; 
+  {
+    if (!arg1) {
+      {
+        SWIG_CSharpException(SWIG_ValueError, "Received a NULL pointer."); return 0; 
+      };
+    }
+  }
+  {
+    CPLErrorReset();
+    result = (GDALDatasetShadow *)wrapper_GDALBuildVRT_names((char const *)arg1,arg2,arg3,arg4,arg5);
+    CPLErr eclass = CPLGetLastErrorType();
+    if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+      SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
+      
+      
+      
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+  }
+  jresult = (void *)result; 
+  return jresult;
 }
 
 

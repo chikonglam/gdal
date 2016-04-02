@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: GDALProximity.java 18104 2009-11-26 00:43:16Z ilucena $
+ * $Id: GDALProximity.java 32865 2016-01-08 21:22:17Z goatbar $
  *
  * Project: GDAL
  * Purpose: Compute each pixel's proximity to a set of target pixels.
@@ -112,7 +112,7 @@ public class GDALProximity {
         int TargetValues[] = new int[0];
         float DistMult = 1.0F;
         String Options = "";
-       
+
         for (int i = 0; i < args.length; i++) {
             if (args[i].equals("-of")) {
                 i++;
@@ -193,7 +193,7 @@ public class GDALProximity {
         WorkProximityDriver = gdal.IdentifyDriver(OutputFilename);
 
         if (WorkProximityDriver != null) {
-            
+
             WorkProximityDataset = gdal.Open(OutputFilename, gdalconstConstants.GA_Update);
 
             if (WorkProximityDataset == null) {
@@ -206,7 +206,7 @@ public class GDALProximity {
             /*
              * Create a new output dataset
              */
-          
+
             WorkProximityDriver = gdal.GetDriverByName(OutputFormat);
 
             WorkProximityDataset = WorkProximityDriver.Create(OutputFilename, 
@@ -231,7 +231,7 @@ public class GDALProximity {
 
         if( GeoUnits ) {
             double geoTransform[] = SourceDataset.GetGeoTransform();
-            
+
             if( Math.abs(geoTransform[1]) != Math.abs(geoTransform[5])) {
                 System.err.println("Pixels not square, distances will be inaccurate.");
             }
@@ -452,7 +452,7 @@ public class GDALProximity {
              */
 
             boolean isATarger = false;
-            
+
             if( TargetValues.length == 0) {
                 isATarger = scanlineArray[iPixel] != 0.0F;
             } else {
@@ -463,7 +463,7 @@ public class GDALProximity {
                     }
                 }
             }
-            
+
             if (isATarger) {
                 proximityArray[iPixel] = 0.0F;
                 nearXArray[iPixel] = (short) iPixel;

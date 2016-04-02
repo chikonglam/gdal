@@ -1,4 +1,4 @@
-.TH "gdallocationinfo" 1 "Tue Jan 26 2016" "GDAL" \" -*- nroff -*-
+.TH "gdallocationinfo" 1 "Fri Apr 1 2016" "GDAL" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -23,7 +23,7 @@ The gdallocationinfo utility provide a mechanism to query information about a pi
 The output report will be XML formatted for convenient post processing\&.
 .PP
 .IP "\fB\fB-lifonly\fP: \fP" 1c
-The only output is filenames production from the LocationInfo request against the database (ie\&. for identifying impacted file from VRT)\&.
+The only output is filenames production from the LocationInfo request against the database (i\&.e\&. for identifying impacted file from VRT)\&.
 .PP
 .IP "\fB\fB-valonly\fP: \fP" 1c
 The only output is the pixel values of the selected pixel on each of the selected bands\&.
@@ -70,7 +70,7 @@ The raster pixel value of that pixel for all or a subset of the bands\&.
 The unscaled pixel value if a Scale and/or Offset apply to the band\&. 
 .PP
 .PP
-The pixel selected is requested by x/y coordinate on the commandline, or read from stdin\&. More than one coordinate pair can be supplied when reading coordinatesis from stdin\&. By default pixel/line coordinates are expected\&. However with use of the -geoloc, -wgs84, or -l_srs switches it is possible to specify the location in other coordinate systems\&.
+The pixel selected is requested by x/y coordinate on the command line, or read from stdin\&. More than one coordinate pair can be supplied when reading coordinates from stdin\&. By default pixel/line coordinates are expected\&. However with use of the -geoloc, -wgs84, or -l_srs switches it is possible to specify the location in other coordinate systems\&.
 .PP
 The default report is in a human readable text format\&. It is possible to instead request xml output with the -xml switch\&.
 .PP

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: cplvirtualmem.i 26832 2014-01-15 12:46:08Z rouault $
+ * $Id: cplvirtualmem.i 32864 2016-01-08 21:00:50Z goatbar $
  *
  * Name:     cplvirtualmem.i
  * Project:  GDAL Python Interface
@@ -86,5 +86,5 @@ public:
         CPLVirtualMemPin(self->vmem, start_addr, nsize, bWriteOp);
     }
 } /* extend */
-}; /* CPLVirtualMemShadow */ 
+}; /* CPLVirtualMemShadow */
 #endif

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ReadXML.java 16344 2009-02-15 00:20:49Z rouault $
+ * $Id: ReadXML.java 32865 2016-01-08 21:22:17Z goatbar $
  *
  * Name:     ReadXML.java
  * Project:  GDAL Java Interface
@@ -49,10 +49,10 @@ import org.gdal.gdal.XMLNodeType;
 /// </summary> 
 
 public class ReadXML {
-    
+
     public static void usage() 
 
-    { 
+    {
             System.out.println("usage example: readxml {xml string}");
             System.exit(-1);
     }

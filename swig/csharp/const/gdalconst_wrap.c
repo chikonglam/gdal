@@ -1026,6 +1026,16 @@ SWIGEXPORT int SWIGSTDCALL CSharp_OF_VECTOR_get() {
 }
 
 
+SWIGEXPORT int SWIGSTDCALL CSharp_OF_GNM_get() {
+  int jresult ;
+  int result;
+  
+  result = (int)(GDAL_OF_GNM);
+  jresult = result; 
+  return jresult;
+}
+
+
 SWIGEXPORT int SWIGSTDCALL CSharp_OF_READONLY_get() {
   int jresult ;
   int result;

@@ -4,7 +4,6 @@ use File::Basename;
 use ExtUtils::MakeMaker;
 use Config;
 use Cwd;
-#use File::ShareDir::Install;
 
 # pick up our parameters from @ARGV
 my %ARGV;
@@ -58,6 +57,8 @@ my $source_tree;
 if ($ARGV{'--gdal-source-tree'}) {
     $source_tree = $ARGV{'--gdal-source-tree'};
     die "Path '$source_tree' does not exist." unless -e $source_tree && -d $source_tree;
+}
+elsif ($ARGV{'--gdal-source-tree'} eq '0') {
 }
 elsif (-r '../../GDALmake.opt.in') {
     $source_tree = '../..';
@@ -132,7 +133,7 @@ from the version these bindings were developed for (I have
 $my_gdal_version and $config has $gdal_version). 
 You can either
 
-- get GDAL development files from $uri or from whereever you get
+- get GDAL development files from $uri or from wherever you get
   development files for your system,
 
 - specify another gdal-config,
@@ -178,9 +179,6 @@ if ($ARGV{'--debug'}) {
     print "LIB = $LIB\n";
     print "INC = $INC\n";
 }
-
-#install_share 'share';
-#store_datadir_for_tests($source_tree, $config);
 
 for my $module (sort keys %object) {
     my $add = $module;
@@ -228,9 +226,8 @@ for my $module (sort keys %object) {
                        'ExtUtils::MakeMaker' => 0,
                        'Config' => 0,
                        'Cwd' => 0,
-#                       'File::Fetch' => 0,
-#                       'Capture::Tiny' => 0,
-#                       'File::ShareDir::Install' => 0 
+                       'File::Fetch' => 0,
+                       'Capture::Tiny' => 0,
                    },
                    BUILD_REQUIRES => {
                        'strict' => 0,
@@ -238,20 +235,22 @@ for my $module (sort keys %object) {
                        'File::Basename' => 0,
                        'ExtUtils::MakeMaker' => 0,
                        'Config' => 0,
-                       'Cwd' => 0,
-#                       'File::Fetch' => 0,
-#                       'Capture::Tiny' => 0,
-#                       'File::ShareDir::Install' => 0 
+                       'File::Fetch' => 0,
+                       'Capture::Tiny' => 0,
+                       'Cwd' => 0 
                    },
                    PREREQ_PM => {
                        Carp => 0,
                        Encode => 0,
                        'Scalar::Util' => 0,
-                       POSIX => 0 },
+                       POSIX => 0 
+                   },
                    TEST_REQUIRES => {
                        'Scalar::Util' => 0,
-#                       'File::Share' => 0,
-                       'Test::More' => 0 },
+                       'Test::More' => 0,
+                       'Encode' => 0,
+                       POSIX => 0
+                   }
         );
 }
 
@@ -460,24 +459,3 @@ sub parse_libtool_library_file_for_l {
     }
     return $l;
 }
-
-sub store_datadir_for_tests {
-    my ($source_tree, $config) = @_;
-    open(my $fh, ">", "share/gdal-datadir") or die "cannot open > share/gdal-datadir: $!";
-    if ($source_tree) {
-        $source_tree = Cwd::abs_path($source_tree);
-        print $fh "$source_tree/data\n";
-    }
-    elsif (-x $config) {
-        my $datadir;
-        chomp($datadir = `$config --datadir`);
-        print $fh "$datadir\n";
-    }
-    else {
-        print STDERR "I could not set GDAL data directory. Expect problems with tests.\n";
-    }
-    close $fh;
-}
-
-#package MY;
-#use File::ShareDir::Install qw(postamble);

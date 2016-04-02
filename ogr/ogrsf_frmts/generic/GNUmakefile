@@ -7,11 +7,9 @@ OBJ	=	ogrsfdriverregistrar.o ogrlayer.o ogrdatasource.o \
 		ogr_attrind.o ogr_miattrind.o ogrlayerdecorator.o \
 		ogrwarpedlayer.o ogrunionlayer.o ogrlayerpool.o \
 		ogrmutexedlayer.o ogrmutexeddatasource.o \
-		ogremulatedtransaction.o
+		ogremulatedtransaction.o ogreditablelayer.o
 
-CXXFLAGS :=     $(CXXFLAGS) -DINST_DATA=\"$(INST_DATA)\"
-
-ifeq ($(OGR_ENABLED),yes)
+CXXFLAGS :=     $(CXXFLAGS) $(SHADOW_WFLAGS) -DINST_DATA=\"$(INST_DATA)\"
 
 BASEFORMATS = \
 	-DAVCBIN_ENABLED \
@@ -54,7 +52,8 @@ BASEFORMATS = \
 	-DOPENFILEGDB_ENABLED \
 	-DWASP_ENABLED \
 	-DSELAFIN_ENABLED \
-	-DJML_ENABLED
+	-DJML_ENABLED \
+	-DVDV_ENABLED
 
 CXXFLAGS :=     $(CXXFLAGS) $(BASEFORMATS)
 
@@ -172,10 +171,6 @@ CXXFLAGS :=	$(CXXFLAGS) -DGFT_ENABLED
 endif
 
 ifeq ($(CURL_SETTING),yes)
-CXXFLAGS :=	$(CXXFLAGS) -DGME_ENABLED
-endif
-
-ifeq ($(CURL_SETTING),yes)
 CXXFLAGS :=	$(CXXFLAGS) -DCOUCHDB_ENABLED
 endif
 
@@ -212,9 +207,15 @@ CXXFLAGS :=	$(CXXFLAGS) -DCARTODB_ENABLED
 endif
 
 ifeq ($(CURL_SETTING),yes)
+CXXFLAGS :=	$(CXXFLAGS) -DAMIGOCLOUD_ENABLED
+endif
+
+ifeq ($(CURL_SETTING),yes)
 CXXFLAGS :=	$(CXXFLAGS) -DPLSCENES_ENABLED
 endif
 
+ifeq ($(HAVE_MONGODB),yes)
+CXXFLAGS :=	$(CXXFLAGS) -DMONGODB_ENABLED
 endif
 
 CPPFLAGS	:=	-I.. -I../..  $(CPPFLAGS)

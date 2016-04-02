@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdalconst.i 29019 2015-04-25 20:34:19Z rouault $
+ * $Id: gdalconst.i 32864 2016-01-08 21:00:50Z goatbar $
  *
  * Name:     gdalconst.i
  * Project:  GDAL Python Interface
@@ -33,7 +33,7 @@
 #elif defined(SWIGCSHARP)
 %module GdalConst
 #else
-%module gdalconst 
+%module gdalconst
 #endif
 
 #if defined(SWIGJAVA)
@@ -146,6 +146,7 @@
 %constant OF_ALL     = GDAL_OF_ALL;
 %constant OF_RASTER = GDAL_OF_RASTER;
 %constant OF_VECTOR = GDAL_OF_VECTOR;
+%constant OF_GNM = GDAL_OF_GNM;
 %constant OF_READONLY = GDAL_OF_READONLY;
 %constant OF_UPDATE = GDAL_OF_UPDATE;
 %constant OF_SHARED = GDAL_OF_SHARED;
@@ -207,8 +208,8 @@
 
 // GDALRATFieldType
 %constant GFT_Integer             = GFT_Integer;
-%constant GFT_Real                = GFT_Real;   
-%constant GFT_String              = GFT_String;  
+%constant GFT_Real                = GFT_Real;
+%constant GFT_String              = GFT_String;
 
 // GDALRATFieldUsage
 %constant GFU_Generic             = GFU_Generic;

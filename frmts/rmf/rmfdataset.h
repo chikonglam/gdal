@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: rmfdataset.h 20996 2010-10-28 18:38:15Z rouault $
+ * $Id: rmfdataset.h 33720 2016-03-15 00:39:53Z goatbar $
  *
  * Project:  Raster Matrix Format
  * Purpose:  Private class declarations for the RMF classes used to read/write
@@ -72,7 +72,7 @@ typedef struct
     GUInt32     nClrTblOffset;                  // Position and size
     GUInt32     nClrTblSize;                    // of the colour table
     GUInt32     nTileTblOffset;                 // Position and size of the
-    GUInt32     nTileTblSize;                   // tile offsets/sizes table 
+    GUInt32     nTileTblSize;                   // tile offsets/sizes table
     GInt32      iMapType;
     GInt32      iProjection;
     double      dfScale;
@@ -130,7 +130,7 @@ class RMFDataset : public GDALDataset
     GUInt32         nXTiles;
     GUInt32         nYTiles;
     GUInt32         *paiTiles;
-    
+
     GUInt32         nColorTableSize;
     GByte           *pabyColorTable;
     GDALColorTable  *poColorTable;
@@ -178,7 +178,7 @@ class RMFRasterBand : public GDALRasterBand
 
     GUInt32     nBytesPerPixel;
     GUInt32     nBlockSize, nBlockBytes;
-    GUInt32     nLastTileXBytes, nLastTileHeight;
+    GUInt32     nLastTileWidth, nLastTileHeight;
     GUInt32     nDataSize;
 
     CPLErr   ReadBuffer( GByte *, GUInt32 ) const;
@@ -190,10 +190,10 @@ class RMFRasterBand : public GDALRasterBand
 
     virtual CPLErr          IReadBlock( int, int, void * );
     virtual CPLErr          IWriteBlock( int, int, void * );
+    virtual double          GetNoDataValue(int *pbSuccess = NULL);
     virtual const char      *GetUnitType();
     virtual GDALColorInterp GetColorInterpretation();
     virtual GDALColorTable  *GetColorTable();
     virtual CPLErr          SetUnitType(const char *);
     virtual CPLErr          SetColorTable( GDALColorTable * );
 };
-

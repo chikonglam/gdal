@@ -1,4 +1,4 @@
-.TH "ogrinfo" 1 "Tue Jan 26 2016" "GDAL" \" -*- nroff -*-
+.TH "ogrinfo" 1 "Fri Apr 1 2016" "GDAL" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -9,10 +9,10 @@ lists information about an OGR supported data source
 .PP
 .PP
 .nf
-ogrinfo [--help-general] [-ro] [-q] [-where restricted_where]
+ogrinfo [--help-general] [-ro] [-q] [-where restricted_where|@filename]
         [-spat xmin ymin xmax ymax] [-geomfield field] [-fid fid]
-        [-sql statement] [-dialect dialect] [-al] [-so] [-fields={YES/NO}]
-        [-geom={YES/NO/SUMMARY}] [-formats] [[-oo NAME=VALUE] ...]
+        [-sql statement|@filename] [-dialect dialect] [-al] [-so] [-fields={YES/NO}]
+        [-geom={YES/NO/SUMMARY/WKT/ISO_WKT}] [-formats] [[-oo NAME=VALUE] ...]
         [-nomd] [-listmdd] [-mdd domain|`all`]*
         [-nocount] [-noextent]
         datasource_name [layer [layer ...]].fi
@@ -30,9 +30,9 @@ Summary Only: suppress listing of features, show only the summary information li
 .IP "\fB\fB-q\fP:\fP" 1c
 Quiet verbose reporting of various information, including coordinate system, layer schema, extents, and feature count\&.  
 .IP "\fB\fB-where\fP \fIrestricted_where\fP:\fP" 1c
-An attribute query in a restricted form of the queries used in the SQL WHERE statement\&. Only features matching the attribute query will be reported\&. 
+An attribute query in a restricted form of the queries used in the SQL WHERE statement\&. Only features matching the attribute query will be reported\&. Starting with GDAL 2\&.1, the  syntax can be used to indicate that the content is in the pointed filename\&. 
 .IP "\fB\fB-sql\fP \fIstatement\fP:\fP" 1c
-Execute the indicated SQL statement and return the result\&. 
+Execute the indicated SQL statement and return the result\&. Starting with GDAL 2\&.1, the  syntax can be used to indicate that the content is in the pointed filename\&. 
 .IP "\fB\fB-dialect\fP \fIdialect\fP:\fP" 1c
 SQL dialect\&. In some cases can be used to use (unoptimized) OGR SQL instead of the native SQL of an RDBMS by passing OGRSQL\&. Starting with GDAL 1\&.10, the 'SQLITE' dialect can also be used with any datasource\&. 
 .IP "\fB\fB-spat\fP \fIxmin ymin xmax ymax\fP:\fP" 1c
@@ -43,8 +43,8 @@ The area of interest\&. Only features within the rectangle will be reported\&.
 If provided, only the feature with this feature id will be reported\&. Operates exclusive of the spatial or attribute queries\&. Note: if you want to select several features based on their feature id, you can also use the fact the 'fid' is a special field recognized by OGR SQL\&. So, '-where 'fid in (1,3,5)'' would select features 1, 3 and 5\&. 
 .IP "\fB\fB-fields\fP={YES/NO}:\fP" 1c
 (starting with GDAL 1\&.6\&.0) If set to NO, the feature dump will not display field values\&. Default value is YES\&. 
-.IP "\fB\fB-geom\fP={YES/NO/SUMMARY}:\fP" 1c
-(starting with GDAL 1\&.6\&.0) If set to NO, the feature dump will not display the geometry\&. If set to SUMMARY, only a summary of the geometry will be displayed\&. If set to YES, the geometry will be reported in full OGC WKT format\&. Default value is YES\&. 
+.IP "\fB\fB-geom\fP={YES/NO/SUMMARY/WKT/ISO_WKT}:\fP" 1c
+(starting with GDAL 1\&.6\&.0) If set to NO, the feature dump will not display the geometry\&. If set to SUMMARY, only a summary of the geometry will be displayed\&. If set to YES or ISO_WKT, the geometry will be reported in full OGC WKT format\&. If set to WKT the geometry will be reported in legacy WKT\&. Default value is YES\&. (WKT and ISO_WKT are available starting with GDAL 2\&.1, which also changes the default to ISO_WKT) 
 .IP "\fB\fB-oo\fP \fINAME=VALUE\fP:\fP" 1c
 (starting with GDAL 2\&.0) Dataset open option (format specific) 
 .IP "\fB\fB-nomd\fP\fP" 1c
@@ -65,7 +65,7 @@ The data source to open\&. May be a filename, directory or other virtual name\&.
 One or more layer names may be reported\&. 
 .PP
 .PP
-If no layer names are passed then ogrinfo will report a list of available layers (and their layerwide geometry type)\&. If layer name(s) are given then their extents, coordinate system, feature count, geometry type, schema and all features matching query parameters will be reported to the terminal\&. If no query parameters are provided, all features are reported\&.
+If no layer names are passed then ogrinfo will report a list of available layers (and their layer wide geometry type)\&. If layer name(s) are given then their extents, coordinate system, feature count, geometry type, schema and all features matching query parameters will be reported to the terminal\&. If no query parameters are provided, all features are reported\&.
 .PP
 Geometries are reported in OGC WKT format\&.
 .SH "EXAMPLE"

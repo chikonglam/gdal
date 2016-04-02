@@ -357,10 +357,15 @@ typedef void OSRCoordinateTransformationShadow;
 #endif
 
 
-void VeryQuiteErrorHandler(CPLErr eclass, int code, const char *msg ) {
+void VeryQuietErrorHandler(CPLErr eclass, int code, const char *msg ) {
   /* If the error class is CE_Fatal, we want to have a message issued
      because the CPL support code does an abort() before any exception
      can be generated */
+#if defined(SWIGPERL)
+    AV* error_stack = get_av("Geo::GDAL::error", 0);
+    SV *error = newSVpv(msg, 0);
+    av_push(error_stack, error);
+#endif
   if (eclass == CE_Fatal ) {
     CPLDefaultErrorHandler(eclass, code, msg );
   }
@@ -368,7 +373,7 @@ void VeryQuiteErrorHandler(CPLErr eclass, int code, const char *msg ) {
 
 
 void UseExceptions() {
-  CPLSetErrorHandler( (CPLErrorHandler) VeryQuiteErrorHandler );
+  CPLSetErrorHandler( (CPLErrorHandler) VeryQuietErrorHandler );
 }
 
 void DontUseExceptions() {
@@ -385,7 +390,7 @@ OGRErr GetWellKnownGeogCSAsWKT( const char *name, char **argout ) {
   OGRSpatialReferenceH srs = OSRNewSpatialReference("");
   OGRErr rcode = OSRSetWellKnownGeogCS( srs, name );
   if( rcode == OGRERR_NONE )
-      rcode = OSRExportToWkt ( srs, argout );  
+      rcode = OSRExportToWkt ( srs, argout );
   OSRDestroySpatialReference( srs );
   return rcode;
 }
@@ -418,7 +423,7 @@ OGRErr GetUserInputAsWKT( const char *name, char **argout ) {
   OGRSpatialReferenceH srs = OSRNewSpatialReference("");
   OGRErr rcode = OSRSetFromUserInput( srs, name );
   if( rcode == OGRERR_NONE )
-      rcode = OSRExportToWkt ( srs, argout );  
+      rcode = OSRExportToWkt ( srs, argout );
   OSRDestroySpatialReference( srs );
   return rcode;
 }
@@ -476,7 +481,7 @@ SWIGINTERN char const *OSRSpatialReferenceShadow_GetAttrValue(OSRSpatialReferenc
     return OSRGetAttrValue( self, name, child );
   }
 SWIGINTERN OGRErr OSRSpatialReferenceShadow_SetAttrValue(OSRSpatialReferenceShadow *self,char const *name,char const *value){
-    return OSRSetAttrValue( self, name, value ); 
+    return OSRSetAttrValue( self, name, value );
   }
 SWIGINTERN OGRErr OSRSpatialReferenceShadow_SetAngularUnits(OSRSpatialReferenceShadow *self,char const *name,double to_radians){
     return OSRSetAngularUnits( self, name, to_radians );
@@ -507,7 +512,7 @@ SWIGINTERN char const *OSRSpatialReferenceShadow_GetLinearUnitsName(OSRSpatialRe
       name = OSRGetAttrValue( self, "LOCAL_CS|UNIT", 0 );
     }
 
-    if (name != 0) 
+    if (name != 0)
       return name;
 
     return "Meter";
@@ -522,8 +527,8 @@ SWIGINTERN OGRErr OSRSpatialReferenceShadow_SetUTM(OSRSpatialReferenceShadow *se
     return OSRSetUTM( self, zone, north );
   }
 SWIGINTERN int OSRSpatialReferenceShadow_GetUTMZone(OSRSpatialReferenceShadow *self){
-    // Note: we will return south zones as negative since it is 
-    // hard to return two values as the C API does. 
+    // Note: we will return south zones as negative since it is
+    // hard to return two values as the C API does.
     int bNorth = FALSE;
     int nZone = OSRGetUTMZone( self, &bNorth );
     if( !bNorth )
@@ -540,7 +545,7 @@ SWIGINTERN OGRErr OSRSpatialReferenceShadow_SetProjection(OSRSpatialReferenceSha
     return OSRSetProjection( self, arg );
   }
 SWIGINTERN OGRErr OSRSpatialReferenceShadow_SetProjParm(OSRSpatialReferenceShadow *self,char const *name,double val){
-    return OSRSetProjParm( self, name, val ); 
+    return OSRSetProjParm( self, name, val );
   }
 SWIGINTERN double OSRSpatialReferenceShadow_GetProjParm(OSRSpatialReferenceShadow *self,char const *name,double default_val=0.0){
     // Return code ignored.
@@ -566,26 +571,26 @@ SWIGINTERN double OSRSpatialReferenceShadow_GetInvFlattening(OSRSpatialReference
     return OSRGetInvFlattening( self, 0 );
   }
 SWIGINTERN OGRErr OSRSpatialReferenceShadow_SetACEA(OSRSpatialReferenceShadow *self,double stdp1,double stdp2,double clat,double clong,double fe,double fn){
-    return OSRSetACEA( self, stdp1, stdp2, clat, clong, 
+    return OSRSetACEA( self, stdp1, stdp2, clat, clong,
                        fe, fn );
   }
 SWIGINTERN OGRErr OSRSpatialReferenceShadow_SetAE(OSRSpatialReferenceShadow *self,double clat,double clong,double fe,double fn){
-    return OSRSetAE( self, clat, clong, 
+    return OSRSetAE( self, clat, clong,
                      fe, fn );
   }
 SWIGINTERN OGRErr OSRSpatialReferenceShadow_SetBonne(OSRSpatialReferenceShadow *self,double stdp,double cm,double fe,double fn){
     return OSRSetBonne( self, stdp, cm, fe, fn );
   }
 SWIGINTERN OGRErr OSRSpatialReferenceShadow_SetCEA(OSRSpatialReferenceShadow *self,double stdp1,double cm,double fe,double fn){
-    return OSRSetCEA( self, stdp1, cm, 
+    return OSRSetCEA( self, stdp1, cm,
                       fe, fn );
   }
 SWIGINTERN OGRErr OSRSpatialReferenceShadow_SetCS(OSRSpatialReferenceShadow *self,double clat,double clong,double fe,double fn){
-    return OSRSetCS( self, clat, clong, 
+    return OSRSetCS( self, clat, clong,
                      fe, fn );
   }
 SWIGINTERN OGRErr OSRSpatialReferenceShadow_SetEC(OSRSpatialReferenceShadow *self,double stdp1,double stdp2,double clat,double clong,double fe,double fn){
-    return OSRSetEC( self, stdp1, stdp2, clat, clong, 
+    return OSRSetEC( self, stdp1, stdp2, clat, clong,
                      fe, fn );
   }
 SWIGINTERN OGRErr OSRSpatialReferenceShadow_SetEckertIV(OSRSpatialReferenceShadow *self,double cm,double fe,double fn){
@@ -595,7 +600,7 @@ SWIGINTERN OGRErr OSRSpatialReferenceShadow_SetEckertVI(OSRSpatialReferenceShado
     return OSRSetEckertVI( self, cm, fe, fn);
   }
 SWIGINTERN OGRErr OSRSpatialReferenceShadow_SetEquirectangular(OSRSpatialReferenceShadow *self,double clat,double clong,double fe,double fn){
-    return OSRSetEquirectangular( self, clat, clong, 
+    return OSRSetEquirectangular( self, clat, clong,
                                   fe, fn );
   }
 SWIGINTERN OGRErr OSRSpatialReferenceShadow_SetEquirectangular2(OSRSpatialReferenceShadow *self,double clat,double clong,double pseudostdparallellat,double fe,double fn){
@@ -620,7 +625,7 @@ SWIGINTERN OGRErr OSRSpatialReferenceShadow_SetGEOS(OSRSpatialReferenceShadow *s
                        fe, fn );
   }
 SWIGINTERN OGRErr OSRSpatialReferenceShadow_SetGnomonic(OSRSpatialReferenceShadow *self,double clat,double clong,double fe,double fn){
-    return OSRSetGnomonic( self, clat, clong, 
+    return OSRSetGnomonic( self, clat, clong,
                            fe, fn );
   }
 SWIGINTERN OGRErr OSRSpatialReferenceShadow_SetHOM(OSRSpatialReferenceShadow *self,double clat,double clong,double azimuth,double recttoskew,double scale,double fe,double fn){
@@ -628,56 +633,56 @@ SWIGINTERN OGRErr OSRSpatialReferenceShadow_SetHOM(OSRSpatialReferenceShadow *se
                       scale, fe, fn );
   }
 SWIGINTERN OGRErr OSRSpatialReferenceShadow_SetHOM2PNO(OSRSpatialReferenceShadow *self,double clat,double dfLat1,double dfLong1,double dfLat2,double dfLong2,double scale,double fe,double fn){
-    return OSRSetHOM2PNO( self, clat, dfLat1, dfLong1, dfLat2, dfLong2, 
+    return OSRSetHOM2PNO( self, clat, dfLat1, dfLong1, dfLat2, dfLong2,
                           scale, fe, fn );
   }
 SWIGINTERN OGRErr OSRSpatialReferenceShadow_SetKrovak(OSRSpatialReferenceShadow *self,double clat,double clong,double azimuth,double pseudostdparallellat,double scale,double fe,double fn){
-    return OSRSetKrovak( self, clat, clong, 
-                         azimuth, pseudostdparallellat, 
+    return OSRSetKrovak( self, clat, clong,
+                         azimuth, pseudostdparallellat,
                          scale, fe, fn );
   }
 SWIGINTERN OGRErr OSRSpatialReferenceShadow_SetLAEA(OSRSpatialReferenceShadow *self,double clat,double clong,double fe,double fn){
-    return OSRSetLAEA( self, clat, clong, 
+    return OSRSetLAEA( self, clat, clong,
                        fe, fn );
   }
 SWIGINTERN OGRErr OSRSpatialReferenceShadow_SetLCC(OSRSpatialReferenceShadow *self,double stdp1,double stdp2,double clat,double clong,double fe,double fn){
-    return OSRSetLCC( self, stdp1, stdp2, clat, clong, 
+    return OSRSetLCC( self, stdp1, stdp2, clat, clong,
                       fe, fn );
   }
 SWIGINTERN OGRErr OSRSpatialReferenceShadow_SetLCC1SP(OSRSpatialReferenceShadow *self,double clat,double clong,double scale,double fe,double fn){
-    return OSRSetLCC1SP( self, clat, clong, scale, 
+    return OSRSetLCC1SP( self, clat, clong, scale,
                          fe, fn );
   }
 SWIGINTERN OGRErr OSRSpatialReferenceShadow_SetLCCB(OSRSpatialReferenceShadow *self,double stdp1,double stdp2,double clat,double clong,double fe,double fn){
-    return OSRSetLCCB( self, stdp1, stdp2, clat, clong, 
+    return OSRSetLCCB( self, stdp1, stdp2, clat, clong,
                        fe, fn );
   }
 SWIGINTERN OGRErr OSRSpatialReferenceShadow_SetMC(OSRSpatialReferenceShadow *self,double clat,double clong,double fe,double fn){
-    return OSRSetMC( self, clat, clong,    
+    return OSRSetMC( self, clat, clong,
                      fe, fn );
   }
 SWIGINTERN OGRErr OSRSpatialReferenceShadow_SetMercator(OSRSpatialReferenceShadow *self,double clat,double clong,double scale,double fe,double fn){
-    return OSRSetMercator( self, clat, clong, 
+    return OSRSetMercator( self, clat, clong,
                            scale, fe, fn );
   }
 SWIGINTERN OGRErr OSRSpatialReferenceShadow_SetMollweide(OSRSpatialReferenceShadow *self,double cm,double fe,double fn){
-    return OSRSetMollweide( self, cm, 
+    return OSRSetMollweide( self, cm,
                             fe, fn );
   }
 SWIGINTERN OGRErr OSRSpatialReferenceShadow_SetNZMG(OSRSpatialReferenceShadow *self,double clat,double clong,double fe,double fn){
-    return OSRSetNZMG( self, clat, clong, 
+    return OSRSetNZMG( self, clat, clong,
                        fe, fn );
   }
 SWIGINTERN OGRErr OSRSpatialReferenceShadow_SetOS(OSRSpatialReferenceShadow *self,double dfOriginLat,double dfCMeridian,double scale,double fe,double fn){
-    return OSRSetOS( self, dfOriginLat, dfCMeridian, scale, 
+    return OSRSetOS( self, dfOriginLat, dfCMeridian, scale,
                      fe, fn );
   }
 SWIGINTERN OGRErr OSRSpatialReferenceShadow_SetOrthographic(OSRSpatialReferenceShadow *self,double clat,double clong,double fe,double fn){
-    return OSRSetOrthographic( self, clat, clong, 
+    return OSRSetOrthographic( self, clat, clong,
                                fe, fn );
   }
 SWIGINTERN OGRErr OSRSpatialReferenceShadow_SetPolyconic(OSRSpatialReferenceShadow *self,double clat,double clong,double fe,double fn){
-    return OSRSetPolyconic( self, clat, clong, 
+    return OSRSetPolyconic( self, clat, clong,
                             fe, fn );
   }
 SWIGINTERN OGRErr OSRSpatialReferenceShadow_SetPS(OSRSpatialReferenceShadow *self,double clat,double clong,double scale,double fe,double fn){
@@ -691,7 +696,7 @@ SWIGINTERN OGRErr OSRSpatialReferenceShadow_SetSinusoidal(OSRSpatialReferenceSha
     return OSRSetSinusoidal( self, clong, fe, fn );
   }
 SWIGINTERN OGRErr OSRSpatialReferenceShadow_SetStereographic(OSRSpatialReferenceShadow *self,double clat,double clong,double scale,double fe,double fn){
-    return OSRSetStereographic( self, clat, clong, scale, 
+    return OSRSetStereographic( self, clat, clong, scale,
                                 fe, fn );
   }
 SWIGINTERN OGRErr OSRSpatialReferenceShadow_SetSOC(OSRSpatialReferenceShadow *self,double latitudeoforigin,double cm,double fe,double fn){
@@ -699,19 +704,19 @@ SWIGINTERN OGRErr OSRSpatialReferenceShadow_SetSOC(OSRSpatialReferenceShadow *se
 	              fe, fn );
   }
 SWIGINTERN OGRErr OSRSpatialReferenceShadow_SetTM(OSRSpatialReferenceShadow *self,double clat,double clong,double scale,double fe,double fn){
-    return OSRSetTM( self, clat, clong, scale, 
+    return OSRSetTM( self, clat, clong, scale,
                      fe, fn );
   }
 SWIGINTERN OGRErr OSRSpatialReferenceShadow_SetTMVariant(OSRSpatialReferenceShadow *self,char const *pszVariantName,double clat,double clong,double scale,double fe,double fn){
-    return OSRSetTMVariant( self, pszVariantName, clat, clong,  
+    return OSRSetTMVariant( self, pszVariantName, clat, clong,
                             scale, fe, fn );
   }
 SWIGINTERN OGRErr OSRSpatialReferenceShadow_SetTMG(OSRSpatialReferenceShadow *self,double clat,double clong,double fe,double fn){
-    return OSRSetTMG( self, clat, clong, 
+    return OSRSetTMG( self, clat, clong,
                       fe, fn );
   }
 SWIGINTERN OGRErr OSRSpatialReferenceShadow_SetTMSO(OSRSpatialReferenceShadow *self,double clat,double clong,double scale,double fe,double fn){
-    return OSRSetTMSO( self, clat, clong, scale, 
+    return OSRSetTMSO( self, clat, clong, scale,
                        fe, fn );
   }
 SWIGINTERN OGRErr OSRSpatialReferenceShadow_SetVDG(OSRSpatialReferenceShadow *self,double clong,double fe,double fn){
@@ -5183,7 +5188,7 @@ SWIGEXPORT int SWIGSTDCALL CSharp_SpatialReference_ImportFromWkt(void * jarg1, v
   
   arg1 = (OSRSpatialReferenceShadow *)jarg1; 
   /* %typemap(in) (char **ignorechange) */
-  char * savearg = *((char **)jarg2); 
+  char * savearg = *((char **)jarg2);
   arg2 = (char **)jarg2;
   {
     CPLErrorReset();

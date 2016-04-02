@@ -15,7 +15,7 @@ public class Feature : IDisposable {
   private HandleRef swigCPtr;
   protected bool swigCMemOwn;
   protected object swigParentRef;
-  
+
   protected static object ThisOwn_true() { return null; }
   protected object ThisOwn_false() { return this; }
 
@@ -244,7 +244,12 @@ public class Feature : IDisposable {
   }
 
   public void GetFieldAsDateTime(int id, out int pnYear, out int pnMonth, out int pnDay, out int pnHour, out int pnMinute, out float pfSecond, out int pnTZFlag) {
-    OgrPINVOKE.Feature_GetFieldAsDateTime(swigCPtr, id, out pnYear, out pnMonth, out pnDay, out pnHour, out pnMinute, out pfSecond, out pnTZFlag);
+    OgrPINVOKE.Feature_GetFieldAsDateTime__SWIG_0(swigCPtr, id, out pnYear, out pnMonth, out pnDay, out pnHour, out pnMinute, out pfSecond, out pnTZFlag);
+    if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
+  }
+
+  public void GetFieldAsDateTime(string name, out int pnYear, out int pnMonth, out int pnDay, out int pnHour, out int pnMinute, out float pfSecond, out int pnTZFlag) {
+    OgrPINVOKE.Feature_GetFieldAsDateTime__SWIG_1(swigCPtr, name, out pnYear, out pnMonth, out pnDay, out pnHour, out pnMinute, out pfSecond, out pnTZFlag);
     if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
   }
 
@@ -252,7 +257,7 @@ public class Feature : IDisposable {
         /* %typemap(csout) int *intList */
         IntPtr cPtr = OgrPINVOKE.Feature_GetFieldAsIntegerList(swigCPtr, id, out count);
         int[] ret = new int[count];
-        if (count > 0) {       
+        if (count > 0) {
 	        System.Runtime.InteropServices.Marshal.Copy(cPtr, ret, 0, count);
         }
         
@@ -264,7 +269,7 @@ public class Feature : IDisposable {
         /* %typemap(csout) int *intList */
         IntPtr cPtr = OgrPINVOKE.Feature_GetFieldAsDoubleList(swigCPtr, id, out count);
         double[] ret = new double[count];
-        if (count > 0) {       
+        if (count > 0) {
 	        System.Runtime.InteropServices.Marshal.Copy(cPtr, ret, 0, count);
         }
         
@@ -282,7 +287,7 @@ public class Feature : IDisposable {
                 ++count;
         }
         string[] ret = new string[count];
-        if (count > 0) {       
+        if (count > 0) {
 	        for(int cx = 0; cx < count; cx++) {
                 objPtr = System.Runtime.InteropServices.Marshal.ReadIntPtr(cPtr, cx * System.Runtime.InteropServices.Marshal.SizeOf(typeof(IntPtr)));
                 ret[cx]= (objPtr == IntPtr.Zero) ? null : System.Runtime.InteropServices.Marshal.PtrToStringAnsi(objPtr);
@@ -457,6 +462,28 @@ public class Feature : IDisposable {
 
   public void FillUnsetWithDefault(int bNotNullableOnly, string[] options) {
     OgrPINVOKE.Feature_FillUnsetWithDefault(swigCPtr, bNotNullableOnly, (options != null)? new OgrPINVOKE.StringListMarshal(options)._ar : null);
+    if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
+  }
+
+  public string GetNativeData() {
+    string ret = OgrPINVOKE.Feature_GetNativeData(swigCPtr);
+    if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
+    return ret;
+  }
+
+  public string GetNativeMediaType() {
+    string ret = OgrPINVOKE.Feature_GetNativeMediaType(swigCPtr);
+    if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
+    return ret;
+  }
+
+  public void SetNativeData(string nativeData) {
+    OgrPINVOKE.Feature_SetNativeData(swigCPtr, nativeData);
+    if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
+  }
+
+  public void SetNativeMediaType(string nativeMediaType) {
+    OgrPINVOKE.Feature_SetNativeMediaType(swigCPtr, nativeMediaType);
     if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
   }
 

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: kml.h 27044 2014-03-16 23:41:27Z rouault $
+ * $Id: kml.h 32177 2015-12-14 07:25:30Z goatbar $
  *
  * Project:  KML Driver
  * Purpose:  Class for reading, parsing and handling a kmlfile.
@@ -117,7 +117,7 @@ private:
 	std::string sError_;
 	// current KMLNode
 	KMLNode *poCurrent_;
-        
+
         XML_Parser oCurrentParser;
         int nDataHandlerCounter;
         int nWithoutEventCounter;

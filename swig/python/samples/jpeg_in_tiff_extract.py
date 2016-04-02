@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 ###############################################################################
-# $Id: jpeg_in_tiff_extract.py 28391 2015-01-30 19:57:31Z rouault $
+# $Id: jpeg_in_tiff_extract.py 31957 2015-12-02 12:44:54Z goatbar $
 #
 # Project:  GDAL/OGR samples
 # Purpose:  Extract a JPEG file from a JPEG-in-TIFF tile/strip
@@ -29,8 +29,9 @@
 # DEALINGS IN THE SOFTWARE.
 ###############################################################################
 
-from osgeo import gdal
 import sys
+
+from osgeo import gdal
 
 ###############################################################
 # Usage()

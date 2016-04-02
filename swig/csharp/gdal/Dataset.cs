@@ -63,12 +63,12 @@ public class Dataset : MajorObject {
     }
   }
 /*! Eight bit unsigned integer */ /*@SWIG:../include/csharp/gdal_csharp.i,93,%ds_rasterio_functions@*/
- public CPLErr ReadRaster(int xOff, int yOff, int xSize, int ySize, byte[] buffer, int buf_xSize, int buf_ySize, 
+ public CPLErr ReadRaster(int xOff, int yOff, int xSize, int ySize, byte[] buffer, int buf_xSize, int buf_ySize,
      int bandCount, int[] bandMap, int pixelSpace, int lineSpace, int bandSpace) {
       CPLErr retval;
       GCHandle handle = GCHandle.Alloc(buffer, GCHandleType.Pinned);
       try {
-          retval = ReadRaster(xOff, yOff, xSize, ySize, handle.AddrOfPinnedObject(), buf_xSize, buf_ySize, DataType.GDT_Byte, 
+          retval = ReadRaster(xOff, yOff, xSize, ySize, handle.AddrOfPinnedObject(), buf_xSize, buf_ySize, DataType.GDT_Byte,
                                bandCount, bandMap, pixelSpace, lineSpace, bandSpace);
       } finally {
           handle.Free();
@@ -89,15 +89,15 @@ public class Dataset : MajorObject {
       GC.KeepAlive(this);
       return retval;
   }
-  
+
 /*@SWIG@*/
 /*! Sixteen bit signed integer */ /*@SWIG:../include/csharp/gdal_csharp.i,93,%ds_rasterio_functions@*/
- public CPLErr ReadRaster(int xOff, int yOff, int xSize, int ySize, short[] buffer, int buf_xSize, int buf_ySize, 
+ public CPLErr ReadRaster(int xOff, int yOff, int xSize, int ySize, short[] buffer, int buf_xSize, int buf_ySize,
      int bandCount, int[] bandMap, int pixelSpace, int lineSpace, int bandSpace) {
       CPLErr retval;
       GCHandle handle = GCHandle.Alloc(buffer, GCHandleType.Pinned);
       try {
-          retval = ReadRaster(xOff, yOff, xSize, ySize, handle.AddrOfPinnedObject(), buf_xSize, buf_ySize, DataType.GDT_Int16, 
+          retval = ReadRaster(xOff, yOff, xSize, ySize, handle.AddrOfPinnedObject(), buf_xSize, buf_ySize, DataType.GDT_Int16,
                                bandCount, bandMap, pixelSpace, lineSpace, bandSpace);
       } finally {
           handle.Free();
@@ -118,15 +118,15 @@ public class Dataset : MajorObject {
       GC.KeepAlive(this);
       return retval;
   }
-  
+
 /*@SWIG@*/
 /*! Thirty two bit signed integer */ /*@SWIG:../include/csharp/gdal_csharp.i,93,%ds_rasterio_functions@*/
- public CPLErr ReadRaster(int xOff, int yOff, int xSize, int ySize, int[] buffer, int buf_xSize, int buf_ySize, 
+ public CPLErr ReadRaster(int xOff, int yOff, int xSize, int ySize, int[] buffer, int buf_xSize, int buf_ySize,
      int bandCount, int[] bandMap, int pixelSpace, int lineSpace, int bandSpace) {
       CPLErr retval;
       GCHandle handle = GCHandle.Alloc(buffer, GCHandleType.Pinned);
       try {
-          retval = ReadRaster(xOff, yOff, xSize, ySize, handle.AddrOfPinnedObject(), buf_xSize, buf_ySize, DataType.GDT_Int32, 
+          retval = ReadRaster(xOff, yOff, xSize, ySize, handle.AddrOfPinnedObject(), buf_xSize, buf_ySize, DataType.GDT_Int32,
                                bandCount, bandMap, pixelSpace, lineSpace, bandSpace);
       } finally {
           handle.Free();
@@ -147,15 +147,15 @@ public class Dataset : MajorObject {
       GC.KeepAlive(this);
       return retval;
   }
-  
+
 /*@SWIG@*/
 /*! Thirty two bit floating point */ /*@SWIG:../include/csharp/gdal_csharp.i,93,%ds_rasterio_functions@*/
- public CPLErr ReadRaster(int xOff, int yOff, int xSize, int ySize, float[] buffer, int buf_xSize, int buf_ySize, 
+ public CPLErr ReadRaster(int xOff, int yOff, int xSize, int ySize, float[] buffer, int buf_xSize, int buf_ySize,
      int bandCount, int[] bandMap, int pixelSpace, int lineSpace, int bandSpace) {
       CPLErr retval;
       GCHandle handle = GCHandle.Alloc(buffer, GCHandleType.Pinned);
       try {
-          retval = ReadRaster(xOff, yOff, xSize, ySize, handle.AddrOfPinnedObject(), buf_xSize, buf_ySize, DataType.GDT_Float32, 
+          retval = ReadRaster(xOff, yOff, xSize, ySize, handle.AddrOfPinnedObject(), buf_xSize, buf_ySize, DataType.GDT_Float32,
                                bandCount, bandMap, pixelSpace, lineSpace, bandSpace);
       } finally {
           handle.Free();
@@ -176,15 +176,15 @@ public class Dataset : MajorObject {
       GC.KeepAlive(this);
       return retval;
   }
-  
+
 /*@SWIG@*/
 /*! Sixty four bit floating point */ /*@SWIG:../include/csharp/gdal_csharp.i,93,%ds_rasterio_functions@*/
- public CPLErr ReadRaster(int xOff, int yOff, int xSize, int ySize, double[] buffer, int buf_xSize, int buf_ySize, 
+ public CPLErr ReadRaster(int xOff, int yOff, int xSize, int ySize, double[] buffer, int buf_xSize, int buf_ySize,
      int bandCount, int[] bandMap, int pixelSpace, int lineSpace, int bandSpace) {
       CPLErr retval;
       GCHandle handle = GCHandle.Alloc(buffer, GCHandleType.Pinned);
       try {
-          retval = ReadRaster(xOff, yOff, xSize, ySize, handle.AddrOfPinnedObject(), buf_xSize, buf_ySize, DataType.GDT_Float64, 
+          retval = ReadRaster(xOff, yOff, xSize, ySize, handle.AddrOfPinnedObject(), buf_xSize, buf_ySize, DataType.GDT_Float64,
                                bandCount, bandMap, pixelSpace, lineSpace, bandSpace);
       } finally {
           handle.Free();
@@ -205,14 +205,14 @@ public class Dataset : MajorObject {
       GC.KeepAlive(this);
       return retval;
   }
-  
+
 /*@SWIG@*/
 
 public int BuildOverviews( string resampling, int[] overviewlist, Gdal.GDALProgressFuncDelegate callback, string callback_data) {
       int retval;
       if (overviewlist.Length <= 0)
         throw new ArgumentException("overviewlist size is small (BuildOverviews)");
-        
+
       IntPtr ptr = Marshal.AllocHGlobal(overviewlist.Length * Marshal.SizeOf(overviewlist[0]));
       try {
           Marshal.Copy(overviewlist, 0, ptr, overviewlist.Length);
@@ -226,7 +226,7 @@ public int BuildOverviews( string resampling, int[] overviewlist, Gdal.GDALProgr
 public int BuildOverviews( string resampling, int[] overviewlist) {
       return BuildOverviews( resampling, overviewlist, null, null);
   }
-  
+
 public GCP[] GetGCPs() {
       /*hello*/
       IntPtr cPtr = __GetGCPs();
@@ -241,7 +241,7 @@ public GCP[] GetGCPs() {
       GC.KeepAlive(this);
       return ret;
   }
-  
+
 public CPLErr SetGCPs(GCP[] pGCPs, string pszGCPProjection) {
      CPLErr ret = 0;
      if (pGCPs != null && pGCPs.Length > 0)
@@ -249,11 +249,11 @@ public CPLErr SetGCPs(GCP[] pGCPs, string pszGCPProjection) {
          IntPtr cPtr = __AllocCArray_GDAL_GCP(pGCPs.Length);
          if (cPtr == IntPtr.Zero)
             throw new ApplicationException("Error allocating CArray with __AllocCArray_GDAL_GCP");
-            
+
          try {
              for (int i=0; i < pGCPs.Length; i++)
                 __WriteCArrayItem_GDAL_GCP(cPtr, i, pGCPs[i]);
-             
+
              ret = __SetGCPs(pGCPs.Length, cPtr, pszGCPProjection);
          }
          finally
@@ -376,7 +376,7 @@ public CPLErr SetGCPs(GCP[] pGCPs, string pszGCPProjection) {
                 ++count;
         }
         string[] ret = new string[count];
-        if (count > 0) {       
+        if (count > 0) {
 	        for(int cx = 0; cx < count; cx++) {
                 objPtr = System.Runtime.InteropServices.Marshal.ReadIntPtr(cPtr, cx * System.Runtime.InteropServices.Marshal.SizeOf(typeof(IntPtr)));
                 ret[cx]= (objPtr == IntPtr.Zero) ? null : System.Runtime.InteropServices.Marshal.PtrToStringAnsi(objPtr);

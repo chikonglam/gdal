@@ -88,6 +88,7 @@ public class GdalConst {
   public static readonly int OF_ALL = GdalConstPINVOKE.OF_ALL_get();
   public static readonly int OF_RASTER = GdalConstPINVOKE.OF_RASTER_get();
   public static readonly int OF_VECTOR = GdalConstPINVOKE.OF_VECTOR_get();
+  public static readonly int OF_GNM = GdalConstPINVOKE.OF_GNM_get();
   public static readonly int OF_READONLY = GdalConstPINVOKE.OF_READONLY_get();
   public static readonly int OF_UPDATE = GdalConstPINVOKE.OF_UPDATE_get();
   public static readonly int OF_SHARED = GdalConstPINVOKE.OF_SHARED_get();

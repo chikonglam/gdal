@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: testreprojmulti.cpp 28039 2014-11-30 18:24:59Z rouault $
+ * $Id: testreprojmulti.cpp 33011 2016-01-15 22:20:29Z goatbar $
  *
  * Project:  GDAL
  * Purpose:  Test multi-threaded reprojection
@@ -34,7 +34,7 @@
 #include "cpl_multiproc.h"
 #include "ogr_spatialref.h"
 
-CPL_CVSID("$Id: testreprojmulti.cpp 28039 2014-11-30 18:24:59Z rouault $");
+CPL_CVSID("$Id: testreprojmulti.cpp 33011 2016-01-15 22:20:29Z goatbar $");
 
 double* padfRefX;
 double* padfRefY;
@@ -55,7 +55,7 @@ void ReprojFunc(void* unused)
     OGRCoordinateTransformation *poCTInThread;
     if (!bCreateCTInThread)
         poCTInThread = poCT;
-    while(TRUE)
+    while( true )
     {
         if (bCreateCTInThread)
             poCTInThread = OGRCreateCoordinateTransformation(&oSrcSRS,&oDstSRS);
@@ -77,7 +77,7 @@ void ReprojFunc(void* unused)
 int main(int argc, char* argv[])
 {
     int nThreads = 2;
-    
+
     int i;
     for(i=0;i<argc;i++)
     {

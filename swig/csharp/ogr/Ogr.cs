@@ -15,7 +15,7 @@ public class Ogr {
 
   internal class OgrObject : IDisposable {
 	public virtual void Dispose() {
-      
+
     }
   }
   internal static OgrObject theOgrObject = new OgrObject();
@@ -35,21 +35,21 @@ public class Ogr {
   {
     if (str == null)
       return null;
-    
+
     int bytecount = System.Text.Encoding.UTF8.GetMaxByteCount(str.Length);
     byte[] bytes = new byte[bytecount + 1];
     System.Text.Encoding.UTF8.GetBytes(str, 0, str.Length, bytes, 0);
     return bytes;
   }
-  
+
   internal static string Utf8BytesToString(IntPtr pNativeData)
   {
     if (pNativeData == IntPtr.Zero)
         return null;
-        
+
     int length = Marshal.PtrToStringAnsi(pNativeData).Length;
-    byte[] strbuf = new byte[length];  
-    Marshal.Copy(pNativeData, strbuf, 0, length); 
+    byte[] strbuf = new byte[length];
+    Marshal.Copy(pNativeData, strbuf, 0, length);
     return System.Text.Encoding.UTF8.GetString(strbuf);
   }
 
@@ -197,6 +197,12 @@ public delegate int GDALProgressFuncDelegate(double Complete, IntPtr Message, In
     return ret;
   }
 
+  public static wkbGeometryType GT_SetM(wkbGeometryType eType) {
+    wkbGeometryType ret = (wkbGeometryType)OgrPINVOKE.GT_SetM((int)eType);
+    if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
+    return ret;
+  }
+
   public static wkbGeometryType GT_SetModifier(wkbGeometryType eType, int bSetZ, int bSetM) {
     wkbGeometryType ret = (wkbGeometryType)OgrPINVOKE.GT_SetModifier((int)eType, bSetZ, bSetM);
     if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
@@ -205,6 +211,12 @@ public delegate int GDALProgressFuncDelegate(double Complete, IntPtr Message, In
 
   public static int GT_HasZ(wkbGeometryType eType) {
     int ret = OgrPINVOKE.GT_HasZ((int)eType);
+    if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
+    return ret;
+  }
+
+  public static int GT_HasM(wkbGeometryType eType) {
+    int ret = OgrPINVOKE.GT_HasM((int)eType);
     if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
     return ret;
   }
@@ -307,7 +319,7 @@ public delegate int GDALProgressFuncDelegate(double Complete, IntPtr Message, In
                 ++count;
         }
         string[] ret = new string[count];
-        if (count > 0) {       
+        if (count > 0) {
 	        for(int cx = 0; cx < count; cx++) {
                 objPtr = System.Runtime.InteropServices.Marshal.ReadIntPtr(cPtr, cx * System.Runtime.InteropServices.Marshal.SizeOf(typeof(IntPtr)));
                 ret[cx]= (objPtr == IntPtr.Zero) ? null : System.Runtime.InteropServices.Marshal.PtrToStringAnsi(objPtr);
@@ -338,12 +350,14 @@ public delegate int GDALProgressFuncDelegate(double Complete, IntPtr Message, In
   public static readonly string OLCStringsAsUTF8 = OgrPINVOKE.OLCStringsAsUTF8_get();
   public static readonly string OLCCreateGeomField = OgrPINVOKE.OLCCreateGeomField_get();
   public static readonly string OLCCurveGeometries = OgrPINVOKE.OLCCurveGeometries_get();
+  public static readonly string OLCMeasuredGeometries = OgrPINVOKE.OLCMeasuredGeometries_get();
   public static readonly string ODsCCreateLayer = OgrPINVOKE.ODsCCreateLayer_get();
   public static readonly string ODsCDeleteLayer = OgrPINVOKE.ODsCDeleteLayer_get();
   public static readonly string ODsCCreateGeomFieldAfterCreateLayer = OgrPINVOKE.ODsCCreateGeomFieldAfterCreateLayer_get();
   public static readonly string ODsCCurveGeometries = OgrPINVOKE.ODsCCurveGeometries_get();
   public static readonly string ODsCTransactions = OgrPINVOKE.ODsCTransactions_get();
   public static readonly string ODsCEmulatedTransactions = OgrPINVOKE.ODsCEmulatedTransactions_get();
+  public static readonly string ODsCMeasuredGeometries = OgrPINVOKE.ODsCMeasuredGeometries_get();
   public static readonly string ODrCCreateDataSource = OgrPINVOKE.ODrCCreateDataSource_get();
   public static readonly string ODrCDeleteDataSource = OgrPINVOKE.ODrCDeleteDataSource_get();
   public static readonly string OLMD_FID64 = OgrPINVOKE.OLMD_FID64_get();

@@ -1,4 +1,5 @@
 MANIFEST
+Changes
 Doxyfile
 README
 Makefile
@@ -7,10 +8,12 @@ lib/Geo/GDAL/Const.pm
 lib/Geo/GDAL.pm
 lib/Geo/OGR.pm
 lib/Geo/OSR.pm
+lib/Geo/GNM.pm
 lib/Geo/GDAL/Const.dox
 lib/Geo/GDAL.dox
 lib/Geo/OGR.dox
 lib/Geo/OSR.dox
+lib/Geo/GNM.dox
 t/00.t
 t/01.t
 t/02.t
@@ -18,6 +21,9 @@ t/03.t
 t/gdal.t
 t/ogr.t
 t/osr.t
+t/open.t
+t/utf8.t
+t/gcp.t
 Makefile.PL
 gdalconst_wrap.c
 gdal_wrap.cpp

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: commonutils.cpp 29330 2015-06-14 12:11:11Z rouault $
+ * $Id: commonutils.cpp 29329 2015-06-14 11:20:13Z rouault $
  *
  * Project:  GDAL Utilities
  * Purpose:  Common utility routines
@@ -31,7 +31,7 @@
 #include "cpl_string.h"
 #include "gdal.h"
 
-CPL_CVSID("$Id: commonutils.cpp 29330 2015-06-14 12:11:11Z rouault $");
+CPL_CVSID("$Id: commonutils.cpp 29329 2015-06-14 11:20:13Z rouault $");
 
 /* -------------------------------------------------------------------- */
 /*                      CheckExtensionConsistency()                     */

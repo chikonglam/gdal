@@ -1,4 +1,4 @@
-dnl $Id: ax_lib_libkml.m4 30555 2015-09-19 11:47:36Z rouault $
+dnl $Id: ax_lib_libkml.m4 29715 2015-08-21 17:46:02Z rouault $
 dnl
 dnl @synopsis AX_LIB_LIBKML([MINIMUM-VERSION])
 dnl
@@ -39,7 +39,7 @@ dnl
 dnl @category InstalledPackages
 dnl @category Cxx
 dnl @author Mateusz Loskot <mateusz@loskot.net>
-dnl @version $Date: 2015-09-19 04:47:36 -0700 (Sat, 19 Sep 2015) $
+dnl @version $Date: 2015-08-21 10:46:02 -0700 (Fri, 21 Aug 2015) $
 dnl @license AllPermissive
 dnl          Copying and distribution of this file, with or without modification,
 dnl          are permitted in any medium without royalty provided the copyright notice and

@@ -417,6 +417,9 @@ class GdalConstPINVOKE {
   [DllImport("gdalconst_wrap", EntryPoint="CSharp_OF_VECTOR_get")]
   public static extern int OF_VECTOR_get();
 
+  [DllImport("gdalconst_wrap", EntryPoint="CSharp_OF_GNM_get")]
+  public static extern int OF_GNM_get();
+
   [DllImport("gdalconst_wrap", EntryPoint="CSharp_OF_READONLY_get")]
   public static extern int OF_READONLY_get();
 

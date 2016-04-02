@@ -81,7 +81,7 @@ public class Band : MajorObject {
       GC.KeepAlive(this);
       return retval;
   }
-  
+
 /*@SWIG@*/
 /*! Sixteen bit signed integer */ /*@SWIG:../include/csharp/gdal_csharp.i,52,%rasterio_functions@*/
  public CPLErr ReadRaster(int xOff, int yOff, int xSize, int ySize, short[] buffer, int buf_xSize, int buf_ySize, int pixelSpace, int lineSpace) {
@@ -106,7 +106,7 @@ public class Band : MajorObject {
       GC.KeepAlive(this);
       return retval;
   }
-  
+
 /*@SWIG@*/
 /*! Thirty two bit signed integer */ /*@SWIG:../include/csharp/gdal_csharp.i,52,%rasterio_functions@*/
  public CPLErr ReadRaster(int xOff, int yOff, int xSize, int ySize, int[] buffer, int buf_xSize, int buf_ySize, int pixelSpace, int lineSpace) {
@@ -131,7 +131,7 @@ public class Band : MajorObject {
       GC.KeepAlive(this);
       return retval;
   }
-  
+
 /*@SWIG@*/
 /*! Thirty two bit floating point */ /*@SWIG:../include/csharp/gdal_csharp.i,52,%rasterio_functions@*/
  public CPLErr ReadRaster(int xOff, int yOff, int xSize, int ySize, float[] buffer, int buf_xSize, int buf_ySize, int pixelSpace, int lineSpace) {
@@ -156,7 +156,7 @@ public class Band : MajorObject {
       GC.KeepAlive(this);
       return retval;
   }
-  
+
 /*@SWIG@*/
 /*! Sixty four bit floating point */ /*@SWIG:../include/csharp/gdal_csharp.i,52,%rasterio_functions@*/
  public CPLErr ReadRaster(int xOff, int yOff, int xSize, int ySize, double[] buffer, int buf_xSize, int buf_ySize, int pixelSpace, int lineSpace) {
@@ -181,7 +181,7 @@ public class Band : MajorObject {
       GC.KeepAlive(this);
       return retval;
   }
-  
+
 /*@SWIG@*/
   public int XSize {
     get {
@@ -260,6 +260,12 @@ public class Band : MajorObject {
     return ret;
   }
 
+  public CPLErr DeleteNoDataValue() {
+    CPLErr ret = (CPLErr)GdalPINVOKE.Band_DeleteNoDataValue(swigCPtr);
+    if (GdalPINVOKE.SWIGPendingException.Pending) throw GdalPINVOKE.SWIGPendingException.Retrieve();
+    return ret;
+  }
+
   public string GetUnitType() {
     string ret = GdalPINVOKE.Band_GetUnitType(swigCPtr);
     if (GdalPINVOKE.SWIGPendingException.Pending) throw GdalPINVOKE.SWIGPendingException.Retrieve();
@@ -282,7 +288,7 @@ public class Band : MajorObject {
                 ++count;
         }
         string[] ret = new string[count];
-        if (count > 0) {       
+        if (count > 0) {
 	        for(int cx = 0; cx < count; cx++) {
                 objPtr = System.Runtime.InteropServices.Marshal.ReadIntPtr(cPtr, cx * System.Runtime.InteropServices.Marshal.SizeOf(typeof(IntPtr)));
                 ret[cx]= (objPtr == IntPtr.Zero) ? null : System.Runtime.InteropServices.Marshal.PtrToStringAnsi(objPtr);
@@ -481,7 +487,7 @@ public class Band : MajorObject {
                 ++count;
         }
         string[] ret = new string[count];
-        if (count > 0) {       
+        if (count > 0) {
 	        for(int cx = 0; cx < count; cx++) {
                 objPtr = System.Runtime.InteropServices.Marshal.ReadIntPtr(cPtr, cx * System.Runtime.InteropServices.Marshal.SizeOf(typeof(IntPtr)));
                 ret[cx]= (objPtr == IntPtr.Zero) ? null : System.Runtime.InteropServices.Marshal.PtrToStringAnsi(objPtr);
