@@ -1,0 +1,17 @@
+Description: Bump minimum Java version to 5.
+Author: Bas Couwenberg <sebastic@debian.org>
+Bug: https://trac.osgeo.org/gdal/ticket/6433
+Forwarded: https://trac.osgeo.org/gdal/attachment/ticket/6433/java-version.patch
+Applied-Upstream: https://trac.osgeo.org/gdal/changeset/33866
+
+--- a/swig/java/build.xml
++++ b/swig/java/build.xml
+@@ -18,7 +18,7 @@
+ 	<target name="compile" depends="init" description="Compile the source files.">
+ 		<mkdir dir="build/classes"/>
+ 		<javac srcdir="org" destdir="build/classes" 
+-		       debug="on" source="1.4" target="1.4"
++		       debug="on" source="1.5" target="1.5"
+ 		       includeantruntime="false" deprecation="true">
+ 		</javac>
+ 		<echo>compilation complete</echo>
