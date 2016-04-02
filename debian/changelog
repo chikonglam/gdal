@@ -7,6 +7,7 @@ gdal (2.1.0~beta1+dfsg-1) UNRELEASED; urgency=medium
     - Update copyright years for Free Software Foundation, Inc.
     - Switch from GPL-2+ to GPL-3+ for config.{sub,guess}
     - Add license & copyright for Qhull
+  * Enable QHull support.
 
  -- Bas Couwenberg <sebastic@debian.org>  Sat, 02 Apr 2016 11:15:12 +0200
 
