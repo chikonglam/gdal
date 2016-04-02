@@ -1,4 +1,4 @@
-gdal (2.1.0~beta1+dfsg-1) UNRELEASED; urgency=medium
+gdal (2.1.0~beta1+dfsg-1~exp1) experimental; urgency=medium
 
   * New upstream beta release.
   * Update copyright file, changes:
@@ -16,7 +16,7 @@ gdal (2.1.0~beta1+dfsg-1) UNRELEASED; urgency=medium
   * Add patch to fix privacy-breach-logo issues in documentation.
   * Reorder (build) dependencies and configure options.
 
- -- Bas Couwenberg <sebastic@debian.org>  Sat, 02 Apr 2016 11:15:12 +0200
+ -- Bas Couwenberg <sebastic@debian.org>  Sat, 02 Apr 2016 16:51:24 +0200
 
 gdal (2.0.2+dfsg-4) unstable; urgency=medium
 
