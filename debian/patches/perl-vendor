@@ -17,7 +17,7 @@ Last-Update: 2014-07-08
  	$(MAKE) -f Makefile_Geo__GDAL test
 --- a/swig/perl/GNUmakefile
 +++ b/swig/perl/GNUmakefile
-@@ -26,7 +26,7 @@ build: gdal_wrap.cc Makefile_Geo__GDAL
+@@ -28,7 +28,7 @@ build: gdal_wrap.cc Makefile_Geo__GDAL
  gdal_wrap.cc: generate
  
  Makefile_Geo__GDAL:

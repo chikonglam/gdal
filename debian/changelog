@@ -9,6 +9,7 @@ gdal (2.1.0~beta1+dfsg-1) UNRELEASED; urgency=medium
     - Add license & copyright for Qhull
   * Enable QHull support.
   * Enable cryptopp support.
+  * Drop patches applied upstream. Refresh remaining patches.
 
  -- Bas Couwenberg <sebastic@debian.org>  Sat, 02 Apr 2016 11:15:12 +0200
 

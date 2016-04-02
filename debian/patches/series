@@ -1,4 +1,3 @@
-doc
 ogdi
 gdalpaths
 hdf4
@@ -8,17 +7,3 @@ mrsid-plugin
 spatialite
 java.opt
 perl-vendor
-occurred-typo.patch
-responsibility-typo.patch
-existence-typo.patch
-position-typo.patch
-outputting-typo.patch
-retrieve-typo.patch
-instantiate-typo.patch
-supported-typo.patch
-transform-typo.patch
-sqlite-3.10.0
-formatted-typo.patch
-remaining-typo.patch
-ogr-vrt-implement-CloseDependantDataset.patch
-message-typo.patch
