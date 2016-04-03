@@ -1593,15 +1593,5 @@
  VSIUngetc@Base 1.8.0
  VSIUnlink@Base 1.8.0
  _CPLAssert@Base 1.8.0
- gdal_json_object_array_add@Base 2.0.1
- gdal_json_object_new_array@Base 2.0.1
- gdal_json_object_new_double@Base 2.0.1
- gdal_json_object_new_int64@Base 2.0.1
- gdal_json_object_new_int@Base 2.0.1
- gdal_json_object_new_object@Base 2.0.1
- gdal_json_object_new_string@Base 2.0.1
- gdal_json_object_object_add@Base 2.0.1
- gdal_json_object_put@Base 2.0.1
- gdal_json_object_to_json_string_ext@Base 2.0.1
  json_object_new_double_with_precision@Base 2.0.1
  sqlite3_extension_init@Base 1.10.1

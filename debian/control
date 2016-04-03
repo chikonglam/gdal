@@ -50,6 +50,7 @@ Build-Depends: debhelper (>= 9),
                libfreexl-dev (>= 1.0.0),
                libkml-dev (>= 1.3.0~rc0-3),
                liburiparser-dev,
+               libjson-c-dev,
                default-jdk,
                ant
 Build-Conflicts: python-setuptools
@@ -109,6 +110,7 @@ Depends: libgdal20 (= ${binary:Version}),
          libcurl4-gnutls-dev | libcurl-ssl-dev,
          libspatialite-dev,
          libdap-dev,
+         libjson-c-dev,
          ${misc:Depends}
 Suggests: libgdal-doc
 Description: Geospatial Data Abstraction Library - Development files

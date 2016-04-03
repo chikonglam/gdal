@@ -124,6 +124,7 @@ override_dh_auto_configure:
 			--with-armadillo=yes \
 			--with-liblzma=yes \
 			--with-epsilon=/usr \
+			--with-libjson-c=/usr \
 			CFLAGS="$(CFLAGS)" CXXFLAGS="$(CXXFLAGS)"; \
 		mv GDALmake.opt GDALmake.opt-$$V; \
 	done
