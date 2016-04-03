@@ -25,6 +25,15 @@ gdal (2.1.0~beta1+dfsg-1~exp1) experimental; urgency=medium
 
  -- Bas Couwenberg <sebastic@debian.org>  Sat, 02 Apr 2016 16:51:24 +0200
 
+gdal (2.0.2+dfsg-5) unstable; urgency=medium
+
+  * Build with external libjson-c instead of internal copy.
+    (LP: #1565475)
+  * Have dh_numpy{,3} act on specific package only.
+  * Reorder (build) dependencies and configure options.
+
+ -- Bas Couwenberg <sebastic@debian.org>  Sun, 03 Apr 2016 20:01:55 +0200
+
 gdal (2.0.2+dfsg-4) unstable; urgency=medium
 
   * Disable JasPer support, will be removed from stretch.
