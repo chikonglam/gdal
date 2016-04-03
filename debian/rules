@@ -11,6 +11,8 @@
 # Enable hardening build flags
 export DEB_BUILD_MAINT_OPTIONS=hardening=+all,-pie
 
+UPSTREAM_VERSION = $(shell dpkg-parsechangelog | sed -ne 's/^Version: \(.*\)-.*/\1/p' | sed -e 's/\+.*//; s/^[0-9]://')
+
 # Remove -Werror=format-security, causes build failure on ogrsxfdatasource.cpp
 CFLAGS   = $(shell dpkg-buildflags --get CFLAGS)
 CXXFLAGS = $(shell dpkg-buildflags --get CXXFLAGS)
@@ -207,9 +209,9 @@ override_dh_python3:
 
 override_dh_makeshlibs:
 	# Forces failure ignoring to collect new symbols on all archs
-	dh_makeshlibs -Xlibgdal-java -- -v$(GDAL_MAJOR).$(GDAL_MINOR).$(GDAL_PATCH) -c0
+	dh_makeshlibs -Xlibgdal-java -- -v$(UPSTREAM_VERSION) -c0
 	# Forces failure when symbols change
-	#dh_makeshlibs -Xlibgdal-java -- -v$(GDAL_MAJOR).$(GDAL_MINOR).$(GDAL_PATCH)
+	#dh_makeshlibs -Xlibgdal-java -- -v$(UPSTREAM_VERSION)
 
 override_dh_shlibdeps:
 	dh_shlibdeps -L libgdal20 -l debian/libgdal20/usr/lib
