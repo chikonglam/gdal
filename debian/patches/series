@@ -22,4 +22,4 @@ formatted-typo.patch
 remaining-typo.patch
 ogr-vrt-implement-CloseDependantDataset.patch
 message-typo.patch
-libjson-c.patch
+r33882-link-libjson.patch

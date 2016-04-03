@@ -1,0 +1,98 @@
+Description: When using external libjson, explictly link GDAL utilities
+ (particularly gdalinfo that directly uses libjson) against it
+ (derived from patch by Sebastian Couwenberg, #6440)
+Author: Even Rouault <even.rouault@mines-paris.org>
+Origin: https://trac.osgeo.org/gdal/changeset/33882
+Bug: https://trac.osgeo.org/gdal/ticket/6440
+Bug-Ubuntu: https://bugs.launchpad.net/ubuntu/+source/gdal/+bug/1565475
+
+--- a/GDALmake.opt.in
++++ b/GDALmake.opt.in
+@@ -301,6 +301,7 @@ CURL_INC	=	@CURL_INC@
+ #
+ LIBJSONC_SETTING = @LIBJSONC_SETTING@
+ JSON_INCLUDE = @JSON_INCLUDE@
++LIBJSON_LINK = @LIBJSON_LINK@
+ 
+ # 
+ # OpenCL support
+--- a/apps/GNUmakefile
++++ b/apps/GNUmakefile
+@@ -30,6 +30,10 @@ ifeq ($(HAVE_GEOS),yes)
+ CPPFLAGS 	:=	$(CPPFLAGS) -DHAVE_GEOS=1 $(GEOS_CFLAGS)
+ endif
+ 
++ifeq ($(LIBJSONC_SETTING),external)
++LNK_FLAGS :=	$(LNK_FLAGS) $(LIBJSON_LINK)
++endif
++
+ NON_DEFAULT_LIST = 	multireadtest$(EXE) dumpoverviews$(EXE) \
+ 	gdalwarpsimple$(EXE) gdalflattenmask$(EXE) \
+ 	gdaltorture$(EXE) gdal2ogr$(EXE) test_ogrsf$(EXE) \
+--- a/configure
++++ b/configure
+@@ -662,6 +662,7 @@ POPPLER_HAS_OPTCONTENT
+ HAVE_POPPLER
+ PAM_SETTING
+ JSON_INCLUDE
++LIBJSON_LINK
+ LIBJSONC_SETTING
+ FREEXL_INCLUDE
+ HAVE_FREEXL
+@@ -28213,6 +28214,9 @@ else
+   LIBJSONC_SETTING=internal
+ fi
+ 
++  if test "$LIBJSONC_SETTING" = "external" ; then
++    LIBJSON_LINK="-ljson-c"
++  fi
+ elif test "$with_libjson_c" = "internal" ; then
+   LIBJSONC_SETTING=internal
+ elif test "$with_libjson_c" != "no"; then
+@@ -28259,6 +28263,9 @@ else
+   LIBJSONC_SETTING=internal
+ fi
+ 
++  if test "$LIBJSONC_SETTING" = "external" ; then
++    LIBJSON_LINK="-L$with_libjson_c/lib -ljson-c"
++  fi
+ else
+   as_fn_error $? "libjson-c (internal or external) is required" "$LINENO" 5
+ fi
+@@ -28284,6 +28291,8 @@ fi
+ 
+ LIBJSONC_SETTING=$LIBJSONC_SETTING
+ 
++LIBJSON_LINK=$LIBJSON_LINK
++
+ JSON_INCLUDE=$JSON_INCLUDE
+ 
+ 
+--- a/configure.in
++++ b/configure.in
+@@ -3503,11 +3503,17 @@ AC_ARG_WITH(libjson-c,[  --with-libjson-
+ 
+ if test "$with_libjson_c" = "external" -o "$with_libjson_c" = "" -o "$with_libjson_c" = "yes" ; then
+   AC_CHECK_LIB(json-c,json_object_set_serializer,LIBJSONC_SETTING=external,LIBJSONC_SETTING=internal,)
++  if test "$LIBJSONC_SETTING" = "external" ; then
++    LIBJSON_LINK="-ljson-c"
++  fi
+ elif test "$with_libjson_c" = "internal" ; then
+   LIBJSONC_SETTING=internal
+ elif test "$with_libjson_c" != "no"; then
+   LIBS="-L$with_libjson_c/lib $LIBS"
+   AC_CHECK_LIB(json-c,json_object_set_serializer,LIBJSONC_SETTING=external,LIBJSONC_SETTING=internal,-L$with_libjson_c/lib)
++  if test "$LIBJSONC_SETTING" = "external" ; then
++    LIBJSON_LINK="-L$with_libjson_c/lib -ljson-c"
++  fi
+ else
+   AC_MSG_ERROR([libjson-c (internal or external) is required])
+ fi
+@@ -3530,6 +3536,7 @@ else
+ fi
+ 
+ AC_SUBST(LIBJSONC_SETTING,$LIBJSONC_SETTING)
++AC_SUBST(LIBJSON_LINK,$LIBJSON_LINK)
+ AC_SUBST(JSON_INCLUDE,$JSON_INCLUDE)
+ 
+ 
