@@ -126,7 +126,6 @@ override_dh_auto_configure:
 			--with-java=/usr/lib/jvm/default-java \
 			--with-perl \
 			--with-python \
-			--with-ruby=no \
 			CFLAGS="$(CFLAGS)" CXXFLAGS="$(CXXFLAGS)"; \
 		mv GDALmake.opt GDALmake.opt-$$V; \
 	done
