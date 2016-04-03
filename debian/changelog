@@ -1,3 +1,10 @@
+gdal (2.1.0~beta1+dfsg-1~exp2) UNRELEASED; urgency=medium
+
+  * Update symbols for amd64, arm64, armel, armhf, i386, kfreebsd-{amd64,i386},
+    mips, mipsel, powerpc, ppc64el & s390x.
+
+ -- Bas Couwenberg <sebastic@debian.org>  Sun, 03 Apr 2016 12:13:04 +0200
+
 gdal (2.1.0~beta1+dfsg-1~exp1) experimental; urgency=medium
 
   * New upstream beta release.

@@ -4,6 +4,7 @@ libgdal.so.20 libgdal20 #MINVER#
  (c++)"PamGetProxy(char const*)@Base" 1.8.0 1
  (c++)"CPLURLAddKVP(char const*, char const*, char const*)@Base" 1.9.0 1
  (c++)"CPLURLGetValue(char const*, char const*)@Base" 1.9.0 1
+ (c++)"HFACreateLayer(hfainfo*, HFAEntry*, char const*, int, int, int, int, int, int, int, EPTType, char**, long long, long long, int, int)@Base" 2.1.0~beta1 1
  (c++)"OGRGetDayOfWeek(int, int, int)@Base" 1.8.0 1
  (c++)"OGRWktReadToken(char const*, char*)@Base" 1.8.0 1
  (c++)"PamCleanProxyDB()@Base" 1.8.0 1
@@ -12,8 +13,10 @@ libgdal.so.20 libgdal20 #MINVER#
  (c++)"PamAllocateProxy(char const*)@Base" 1.8.0 1
  (c++)"CPLHTTPFetchMulti(CPLHTTPRequest*, int, char const* const*)@Base" 1.8.0 1
  (c++)"OGRGetXMLDateTime(OGRField const*)@Base" 2.0.1 1
+ (c++)"OGRWktReadPointsM(char const*, OGRRawPoint**, double**, double**, int*, int*, int*)@Base" 2.1.0~beta1 1
  (c++)"PamParseHistogram(CPLXMLNode*, double*, double*, int*, unsigned long long**, int*, int*)@Base" 2.0.1 1
  (c++)"OGRFromOGCGeomType(char const*)@Base" 1.8.0 1
+ (c++)"OGRUpdateFieldType(OGRFieldDefn*, OGRFieldType, OGRFieldSubType)@Base" 2.1.0~beta1 1
  (c++)"OGRWriteToShapeBin(OGRGeometry*, unsigned char**, int*)@Base" 1.9.0 1
  (c++)"CPLUnixTimeToYMDHMS(long long, tm*)@Base" 1.8.0 1
  (c++)"CPLYMDHMSToUnixTime(tm const*)@Base" 1.8.0 1
@@ -22,11 +25,12 @@ libgdal.so.20 libgdal20 #MINVER#
  (c++)"OGRParseXMLDateTime(char const*, OGRField*)@Base" 2.0.1 1
  (c++)"OSRGetEllipsoidInfo(int, char**, double*, double*)@Base" 1.8.0 1
  (c++)"GDALCloneTransformer(void*)@Base" 1.10.1 1
- (c++)"OGRGeometryToHexEWKB(OGRGeometry*, int, int)@Base" 2.0.1 1
+ (c++)"OGRGeometryToHexEWKB(OGRGeometry*, int, int, int)@Base" 2.1.0~beta1 1
  (c++)"OGRGetRFC822DateTime(OGRField const*)@Base" 2.0.1 1
  (c++)"OGRMakeWktCoordinate(char*, double, double, double, int)@Base" 1.8.0 1
  (c++)"CPLHTTPCleanupRequest(CPLHTTPRequest*)@Base" 1.8.0 1
  (c++)"OGRCreateFromShapeBin(unsigned char*, OGRGeometry**, int)@Base" 1.9.0 1
+ (c++)"OGRMakeWktCoordinateM(char*, double, double, double, double, int, int)@Base" 2.1.0~beta1 1
  (c++)"PamHistogramToXMLTree(double, double, int, unsigned long long*, int, int)@Base" 2.0.1 1
  (c++)"VSICreateGZipWritable(VSIVirtualHandle*, int, int)@Base" 2.0.1 1
  (c++)"OGRGeometryFromHexEWKB(char const*, int*, int)@Base" 2.0.1 1
@@ -51,6 +55,7 @@ libgdal.so.20 libgdal20 #MINVER#
  (c++)"OGRWriteMultiPatchToShapeBin(OGRGeometry*, unsigned char**, int*)@Base" 1.11.0 1
  (c++)"S57GenerateStandardAttributes(OGRFeatureDefn*, int)@Base" 1.8.0 1
  (c++)"VSICreateBufferedReaderHandle(VSIVirtualHandle*)@Base" 2.0.1 1
+ (c++)"GDALRegenerateOverviewsMultiBand(int, GDALRasterBand**, int, GDALRasterBand***, char const*, int (*)(double, char const*, void*), void*)@Base" 2.1.0~beta1 1
  (c++)"OGRPGCommonLayerNormalizeDefault(OGRFieldDefn*, char const*)@Base" 2.0.1 1
  (c++)"OGRCreateCoordinateTransformation(OGRSpatialReference*, OGRSpatialReference*)@Base" 1.8.0 1
  (c++)"OGRPGCommonAppendCopyFieldsExceptGeom(CPLString&, OGRFeature*, char const*, int, CPLString (*)(void*, char const*, int, char const*, char const*), void*)@Base" 2.0.1 1
@@ -125,41 +130,11 @@ libgdal.so.20 libgdal20 #MINVER#
  (c++)"GMLFeature::GMLFeature(GMLFeatureClass*)@Base" 1.8.0 1
  (c++)"GMLFeature::~GMLFeature()@Base" 1.8.0 1
  (c++)"GMLFeature::~GMLFeature()@Base" 1.8.0 1
- (c++)"HFADataset::CreateCopy(char const*, GDALDataset*, int, char**, int (*)(double, char const*, void*), void*)@Base" 1.8.0 1
- (c++)"HFADataset::FlushCache()@Base" 1.8.0 1
- (c++)"HFADataset::GetFileList()@Base" 1.8.0 1
- (c++)"HFADataset::GetGCPCount()@Base" 1.8.0 1
- (c++)"HFADataset::SetMetadata(char**, char const*)@Base" 1.8.0 1
- (c++)"HFADataset::SetProjection(char const*)@Base" 1.8.0 1
- (c++)"HFADataset::UseXFormStack(int, Efga_Polynomial*, Efga_Polynomial*)@Base" 1.8.0 1
- (c++)"HFADataset::ReadProjection()@Base" 1.8.0 1
- (c++)"HFADataset::GetGeoTransform(double*)@Base" 1.8.0 1
- (c++)"HFADataset::IBuildOverviews(char const*, int, int*, int, int*, int (*)(double, char const*, void*), void*)@Base" 1.8.0 1
- (c++)"HFADataset::SetGeoTransform(double*)@Base" 1.8.0 1
- (c++)"HFADataset::SetMetadataItem(char const*, char const*, char const*)@Base" 1.8.0 1
- (c++)"HFADataset::WriteProjection()@Base" 1.8.0 1
- (c++)"HFADataset::GetGCPProjection()@Base" 1.8.0 1
- (c++)"HFADataset::GetProjectionRef()@Base" 1.8.0 1
- (c++)"HFADataset::Open(GDALOpenInfo*)@Base" 1.8.0 1
- (c++)"HFADataset::Create(char const*, int, int, int, GDALDataType, char**)@Base" 1.8.0 1
- (c++)"HFADataset::Rename(char const*, char const*)@Base" 1.8.0 1
- (c++)"HFADataset::GetGCPs()@Base" 1.8.0 1
- (c++)"HFADataset::Identify(GDALOpenInfo*)@Base" 1.8.0 1
- (c++)"HFADataset::CopyFiles(char const*, char const*)@Base" 1.8.0 1
- (c++)"HFADataset::IRasterIO(GDALRWFlag, int, int, int, int, void*, int, int, GDALDataType, int, int*, long long, long long, long long, GDALRasterIOExtraArg*)@Base" 2.0.1 1
- (c++)"HFADataset::HFADataset()@Base" 1.8.0 1
- (c++)"HFADataset::HFADataset()@Base" 1.8.0 1
- (c++)"HFADataset::~HFADataset()@Base" 1.8.0 1
- (c++)"HFADataset::~HFADataset()@Base" 1.8.0 1
- (c++)"HFADataset::~HFADataset()@Base" 1.8.0 1
  (c++)"IGMLReader::SetGlobalSRSName(char const*)@Base" 1.10.1 1
  (c++)"IGMLReader::SetFP(_IO_FILE*)@Base" 1.10.1 1
  (c++)"IGMLReader::~IGMLReader()@Base" 1.8.0 1
  (c++)"IGMLReader::~IGMLReader()@Base" 1.8.0 1
  (c++)"IGMLReader::~IGMLReader()@Base" 1.8.0 1
- (c++)"IVFKReader::~IVFKReader()@Base" 1.8.0 1
- (c++)"IVFKReader::~IVFKReader()@Base" 1.8.0 1
- (c++)"IVFKReader::~IVFKReader()@Base" 1.8.0 1
  (c++)"MAPDataset::GetFileList()@Base" 1.10.1 1
  (c++)"MAPDataset::GetGCPCount()@Base" 1.10.1 1
  (c++)"MAPDataset::GetGeoTransform(double*)@Base" 1.10.1 1
@@ -201,6 +176,7 @@ libgdal.so.20 libgdal20 #MINVER#
  (c++)"OGRFeature::CreateFeature(OGRFeatureDefn*)@Base" 1.8.0 1
  (c++)"OGRFeature::GetStyleTable()@Base" 1.8.0 1
  (c++)"OGRFeature::SetFieldsFrom(OGRFeature*, int*, int)@Base" 1.10.1 1
+ (c++)"OGRFeature::SetNativeData(char const*)@Base" 2.1.0~beta1 1
  (c++)"OGRFeature::SetStyleTable(OGRStyleTable*)@Base" 1.8.0 1
  (c++)"OGRFeature::StealGeometry(int)@Base" 1.11.0 1
  (c++)"OGRFeature::StealGeometry()@Base" 1.8.0 1
@@ -214,9 +190,11 @@ libgdal.so.20 libgdal20 #MINVER#
  (c++)"OGRFeature::GetFieldAsBinary(int, int*)@Base" 1.8.0 1
  (c++)"OGRFeature::GetFieldAsDouble(int)@Base" 1.8.0 1
  (c++)"OGRFeature::GetFieldAsString(int)@Base" 1.8.0 1
+ (c++)"OGRFeature::SetFieldInternal(int, OGRField*)@Base" 2.1.0~beta1 1
  (c++)"OGRFeature::GetFieldAsInteger(int)@Base" 1.8.0 1
  (c++)"OGRFeature::GetFieldAsDateTime(int, int*, int*, int*, int*, int*, float*, int*)@Base" 2.0.1 1
  (c++)"OGRFeature::GetFieldAsDateTime(int, int*, int*, int*, int*, int*, int*, int*)@Base" 1.8.0 1
+ (c++)"OGRFeature::SetNativeMediaType(char const*)@Base" 2.1.0~beta1 1
  (c++)"OGRFeature::GetFieldAsInteger64(int)@Base" 2.0.1 1
  (c++)"OGRFeature::SetGeometryDirectly(OGRGeometry*)@Base" 1.8.0 1
  (c++)"OGRFeature::FillUnsetWithDefault(int, char**)@Base" 2.0.1 1
@@ -259,11 +237,14 @@ libgdal.so.20 libgdal20 #MINVER#
  (c++)"OGRPolygon::stealInteriorRing(int)@Base" 1.11.0 1
  (c++)"OGRPolygon::CastToCurvePolygon(OGRPolygon*)@Base" 2.0.1 1
  (c++)"OGRPolygon::importFromWKTListOnly(char**, int, int, OGRRawPoint*&, int&, double*&)@Base" 2.0.1 1
+ (c++)"OGRPolygon::OGRPolygon(OGRPolygon const&)@Base" 2.1.0~beta1 1
  (c++)"OGRPolygon::OGRPolygon()@Base" 1.8.0 1
+ (c++)"OGRPolygon::OGRPolygon(OGRPolygon const&)@Base" 2.1.0~beta1 1
  (c++)"OGRPolygon::OGRPolygon()@Base" 1.8.0 1
  (c++)"OGRPolygon::~OGRPolygon()@Base" 1.8.0 1
  (c++)"OGRPolygon::~OGRPolygon()@Base" 1.8.0 1
  (c++)"OGRPolygon::~OGRPolygon()@Base" 1.8.0 1
+ (c++)"OGRPolygon::operator=(OGRPolygon const&)@Base" 2.1.0~beta1 1
  (c++)"OGRSurface::CastToPolygon(OGRSurface*)@Base" 2.0.1 1
  (c++)"OGRSurface::CastToCurvePolygon(OGRSurface*)@Base" 2.0.1 1
  (c++)"RawDataset::IRasterIO(GDALRWFlag, int, int, int, int, void*, int, int, GDALDataType, int, int*, long long, long long, long long, GDALRasterIOExtraArg*)@Base" 2.0.1 1
@@ -281,31 +262,22 @@ libgdal.so.20 libgdal20 #MINVER#
  (c++)"TILDataset::~TILDataset()@Base" 1.8.0 1
  (c++)"TILDataset::~TILDataset()@Base" 1.8.0 1
  (c++)"TILDataset::~TILDataset()@Base" 1.8.0 1
- (c++)"VFKFeature::SetProperty(int, char const*)@Base" 1.8.0 1
- (c++)"VFKFeature::SetProperties(char const*)@Base" 1.10.1 1
- (c++)"VFKFeature::LoadProperties(OGRFeature*)@Base" 1.10.1 1
- (c++)"VFKFeature::LoadGeometryPoint()@Base" 1.10.1 1
- (c++)"VFKFeature::LoadGeometryPolygon()@Base" 1.10.1 1
- (c++)"VFKFeature::LoadGeometryLineStringHP()@Base" 1.10.1 1
- (c++)"VFKFeature::LoadGeometryLineStringSBP()@Base" 1.10.1 1
- (c++)"VFKFeature::VFKFeature(IVFKDataBlock*, long long)@Base" 2.0.1 1
- (c++)"VFKFeature::VFKFeature(IVFKDataBlock*, long long)@Base" 2.0.1 1
- (c++)"VFKFeature::~VFKFeature()@Base" 1.8.0 1
- (c++)"VFKFeature::~VFKFeature()@Base" 1.8.0 1
- (c++)"VFKFeature::~VFKFeature()@Base" 1.8.0 1
  (c++)"VRTDataset::FlushCache()@Base" 1.8.0 1
  (c++)"VRTDataset::GetFileList()@Base" 1.8.0 1
  (c++)"VRTDataset::GetGCPCount()@Base" 1.8.0 1
+ (c++)"VRTDataset::GetMetadata(char const*)@Base" 2.1.0~beta1 1
  (c++)"VRTDataset::SetMaskBand(VRTRasterBand*)@Base" 1.8.0 1
  (c++)"VRTDataset::SetMetadata(char**, char const*)@Base" 1.8.0 1
  (c++)"VRTDataset::SetProjection(char const*)@Base" 1.8.0 1
  (c++)"VRTDataset::CreateMaskBand(int)@Base" 1.8.0 1
  (c++)"VRTDataset::SerializeToXML(char const*)@Base" 1.8.0 1
  (c++)"VRTDataset::GetGeoTransform(double*)@Base" 1.8.0 1
+ (c++)"VRTDataset::IBuildOverviews(char const*, int, int*, int, int*, int (*)(double, char const*, void*), void*)@Base" 2.1.0~beta1 1
  (c++)"VRTDataset::SetGeoTransform(double*)@Base" 1.8.0 1
  (c++)"VRTDataset::SetMetadataItem(char const*, char const*, char const*)@Base" 1.8.0 1
  (c++)"VRTDataset::GetGCPProjection()@Base" 1.8.0 1
  (c++)"VRTDataset::GetProjectionRef()@Base" 1.8.0 1
+ (c++)"VRTDataset::BuildVirtualOverviews()@Base" 2.1.0~beta1 1
  (c++)"VRTDataset::GetSingleSimpleSource()@Base" 1.10.1 1
  (c++)"VRTDataset::CloseDependentDatasets()@Base" 1.9.0 1
  (c++)"VRTDataset::CheckCompatibleForDatasetIO()@Base" 1.9.0 1
@@ -374,8 +346,10 @@ libgdal.so.20 libgdal20 #MINVER#
  (c++)"GDALDataset::GetFileList()@Base" 1.8.0 1
  (c++)"GDALDataset::GetGCPCount()@Base" 1.8.0 1
  (c++)"GDALDataset::ReportError(CPLErr, int, char const*, ...)@Base" 1.9.0 1
+ (c++)"GDALDataset::AcquireMutex()@Base" 2.1.0~beta1 1
  (c++)"GDALDataset::ICreateLayer(char const*, OGRSpatialReference*, OGRwkbGeometryType, char**)@Base" 2.0.1 1
  (c++)"GDALDataset::MarkAsShared()@Base" 1.8.0 1
+ (c++)"GDALDataset::ReleaseMutex()@Base" 2.1.0~beta1 1
  (c++)"GDALDataset::GetDriverName()@Base" 2.0.1 1
  (c++)"GDALDataset::GetLayerCount()@Base" 2.0.1 1
  (c++)"GDALDataset::GetRasterBand(int)@Base" 1.8.0 1
@@ -404,15 +378,19 @@ libgdal.so.20 libgdal20 #MINVER#
  (c++)"GDALDataset::RasterInitialize(int, int)@Base" 1.8.0 1
  (c++)"GDALDataset::ReleaseResultSet(OGRLayer*)@Base" 2.0.1 1
  (c++)"GDALDataset::StartTransaction(int)@Base" 2.0.1 1
+ (c++)"GDALDataset::BandBasedRasterIO(GDALRWFlag, int, int, int, int, void*, int, int, GDALDataType, int, int*, long long, long long, long long, GDALRasterIOExtraArg*)@Base" 2.1.0~beta1 1
  (c++)"GDALDataset::CommitTransaction()@Base" 2.0.1 1
  (c++)"GDALDataset::GetInternalHandle(char const*)@Base" 1.8.0 1
+ (c++)"GDALDataset::RasterIOResampled(GDALRWFlag, int, int, int, int, void*, int, int, GDALDataType, int, int*, long long, long long, long long, GDALRasterIOExtraArg*)@Base" 2.1.0~beta1 1
  (c++)"GDALDataset::BlockBasedRasterIO(GDALRWFlag, int, int, int, int, void*, int, int, GDALDataType, int, int*, long long, long long, long long, GDALRasterIOExtraArg*)@Base" 2.0.1 1
  (c++)"GDALDataset::IsGenericSQLDialect(char const*)@Base" 2.0.1 1
  (c++)"GDALDataset::ProcessSQLDropIndex(char const*)@Base" 2.0.1 1
  (c++)"GDALDataset::ProcessSQLDropTable(char const*)@Base" 2.0.1 1
  (c++)"GDALDataset::RollbackTransaction()@Base" 2.0.1 1
+ (c++)"GDALDataset::TryOverviewRasterIO(GDALRWFlag, int, int, int, int, void*, int, int, GDALDataType, int, int*, long long, long long, long long, GDALRasterIOExtraArg*, int*)@Base" 2.1.0~beta1 1
  (c++)"GDALDataset::AddToDatasetOpenList()@Base" 2.0.1 1
  (c++)"GDALDataset::BlockBasedFlushCache()@Base" 1.8.0 1
+ (c++)"GDALDataset::DisableReadWriteMutex()@Base" 2.1.0~beta1 1
  (c++)"GDALDataset::ProcessSQLCreateIndex(char const*)@Base" 2.0.1 1
  (c++)"GDALDataset::SetStyleTableDirectly(OGRStyleTable*)@Base" 2.0.1 1
  (c++)"GDALDataset::CloseDependentDatasets()@Base" 1.9.0 1
@@ -425,6 +403,7 @@ libgdal.so.20 libgdal20 #MINVER#
  (c++)"GDALDataset::ProcessSQLAlterTableAlterColumn(char const*)@Base" 2.0.1 1
  (c++)"GDALDataset::ProcessSQLAlterTableRenameColumn(char const*)@Base" 2.0.1 1
  (c++)"GDALDataset::ValidateRasterIOOrAdviseReadParameters(char const*, int*, int, int, int, int, int, int, int, int*)@Base" 1.11.0 1
+ (c++)"GDALDataset::Init(int)@Base" 2.1.0~beta1 1
  (c++)"GDALDataset::AddBand(GDALDataType, char**)@Base" 1.8.0 1
  (c++)"GDALDataset::GetGCPs()@Base" 1.8.0 1
  (c++)"GDALDataset::Release()@Base" 2.0.1 1
@@ -437,7 +416,9 @@ libgdal.so.20 libgdal20 #MINVER#
  (c++)"GDALDataset::GetShared()@Base" 1.8.0 1
  (c++)"GDALDataset::IRasterIO(GDALRWFlag, int, int, int, int, void*, int, int, GDALDataType, int, int*, long long, long long, long long, GDALRasterIOExtraArg*)@Base" 2.0.1 1
  (c++)"GDALDataset::Reference()@Base" 1.8.0 1
+ (c++)"GDALDataset::GDALDataset(int)@Base" 2.1.0~beta1 1
  (c++)"GDALDataset::GDALDataset()@Base" 1.8.0 1
+ (c++)"GDALDataset::GDALDataset(int)@Base" 2.1.0~beta1 1
  (c++)"GDALDataset::GDALDataset()@Base" 1.8.0 1
  (c++)"GDALDataset::~GDALDataset()@Base" 1.8.0 1
  (c++)"GDALDataset::~GDALDataset()@Base" 1.8.0 1
@@ -448,16 +429,6 @@ libgdal.so.20 libgdal20 #MINVER#
  (c++)"IILI2Reader::~IILI2Reader()@Base" 1.8.0 1
  (c++)"IILI2Reader::~IILI2Reader()@Base" 1.8.0 1
  (c++)"IILI2Reader::~IILI2Reader()@Base" 1.8.0 1
- (c++)"IVFKFeature::GetGeometry()@Base" 1.10.1 1
- (c++)"IVFKFeature::SetGeometry(OGRGeometry*, char const*)@Base" 2.0.1 1
- (c++)"IVFKFeature::LoadGeometry()@Base" 1.10.1 1
- (c++)"IVFKFeature::SetGeometryType(OGRwkbGeometryType)@Base" 1.10.1 1
- (c++)"IVFKFeature::SetFID(long long)@Base" 2.0.1 1
- (c++)"IVFKFeature::IVFKFeature(IVFKDataBlock*)@Base" 1.10.1 1
- (c++)"IVFKFeature::IVFKFeature(IVFKDataBlock*)@Base" 1.10.1 1
- (c++)"IVFKFeature::~IVFKFeature()@Base" 1.10.1 1
- (c++)"IVFKFeature::~IVFKFeature()@Base" 1.10.1 1
- (c++)"IVFKFeature::~IVFKFeature()@Base" 1.10.1 1
  (c++)"OGDIDataset::GetMetadata(char const*)@Base" 1.8.0 1
  (c++)"OGDIDataset::AddSubDataset(char const*, char const*)@Base" 1.8.0 1
  (c++)"OGDIDataset::CollectLayers(int, char***, char***)@Base" 1.8.0 1
@@ -474,23 +445,28 @@ libgdal.so.20 libgdal20 #MINVER#
  (c++)"OGRGeometry::closeRings()@Base" 1.8.0 1
  (c++)"OGRGeometry::segmentize(double)@Base" 1.8.0 1
  (c++)"OGRGeometry::CastToError(OGRGeometry*)@Base" 2.0.1 1
+ (c++)"OGRGeometry::setMeasured(int)@Base" 2.1.0~beta1 1
  (c++)"OGRGeometry::transformTo(OGRSpatialReference*)@Base" 1.8.0 1
  (c++)"OGRGeometry::CastToIdentity(OGRGeometry*)@Base" 2.0.1 1
  (c++)"OGRGeometry::freeGEOSContext(GEOSContextHandle_HS*)@Base" 1.11.0 1
  (c++)"OGRGeometry::createGEOSContext()@Base" 1.11.0 1
  (c++)"OGRGeometry::assignSpatialReference(OGRSpatialReference*)@Base" 1.8.0 1
- (c++)"OGRGeometry::importPreambuleFromWkb(unsigned char*, int, OGRwkbByteOrder&, int&, OGRwkbVariant)@Base" 2.0.1 1
- (c++)"OGRGeometry::importPreambuleFromWkt(char**, int*, int*)@Base" 2.0.1 1
+ (c++)"OGRGeometry::importPreambuleFromWkb(unsigned char*, int, OGRwkbByteOrder&, OGRwkbVariant)@Base" 2.1.0~beta1 1
+ (c++)"OGRGeometry::importPreambuleFromWkt(char**, int*, int*, bool*)@Base" 2.1.0~beta1 1
  (c++)"OGRGeometry::setCoordinateDimension(int)@Base" 1.8.0 1
  (c++)"OGRGeometry::bGenerate_DB2_V72_BYTE_ORDER@Base" 1.8.0 1
  (c++)"OGRGeometry::importCurveCollectionFromWkt(char**, int, int, int, int, int (*)(OGRGeometry*, OGRCurve*))@Base" 2.0.1 1
  (c++)"OGRGeometry::importPreambuleOfCollectionFromWkb(unsigned char*, int&, int&, OGRwkbByteOrder&, int, int&, OGRwkbVariant)@Base" 2.0.1 1
+ (c++)"OGRGeometry::set3D(int)@Base" 2.1.0~beta1 1
  (c++)"OGRGeometry::swapXY()@Base" 1.8.0 1
+ (c++)"OGRGeometry::OGRGeometry(OGRGeometry const&)@Base" 2.1.0~beta1 1
  (c++)"OGRGeometry::OGRGeometry()@Base" 1.8.0 1
+ (c++)"OGRGeometry::OGRGeometry(OGRGeometry const&)@Base" 2.1.0~beta1 1
  (c++)"OGRGeometry::OGRGeometry()@Base" 1.8.0 1
  (c++)"OGRGeometry::~OGRGeometry()@Base" 1.8.0 1
  (c++)"OGRGeometry::~OGRGeometry()@Base" 1.8.0 1
  (c++)"OGRGeometry::~OGRGeometry()@Base" 1.8.0 1
+ (c++)"OGRGeometry::operator=(OGRGeometry const&)@Base" 2.1.0~beta1 1
  (c++)"OGRSFDriver::CreateDataSource(char const*, char**)@Base" 1.8.0 1
  (c++)"OGRSFDriver::DeleteDataSource(char const*)@Base" 1.8.0 1
  (c++)"OGRSFDriver::~OGRSFDriver()@Base" 1.8.0 1
@@ -542,24 +518,9 @@ libgdal.so.20 libgdal20 #MINVER#
  (c++)"OGR_SRSNode::OGR_SRSNode(char const*)@Base" 1.8.0 1
  (c++)"OGR_SRSNode::~OGR_SRSNode()@Base" 1.8.0 1
  (c++)"OGR_SRSNode::~OGR_SRSNode()@Base" 1.8.0 1
- (c++)"VFKProperty::VFKProperty(char const*)@Base" 1.8.0 1
- (c++)"VFKProperty::VFKProperty(CPLString const&)@Base" 1.10.1 1
- (c++)"VFKProperty::VFKProperty(VFKProperty const&)@Base" 1.8.0 1
- (c++)"VFKProperty::VFKProperty(double)@Base" 1.8.0 1
- (c++)"VFKProperty::VFKProperty(int)@Base" 1.8.0 1
- (c++)"VFKProperty::VFKProperty()@Base" 1.8.0 1
- (c++)"VFKProperty::VFKProperty(char const*)@Base" 1.8.0 1
- (c++)"VFKProperty::VFKProperty(CPLString const&)@Base" 1.10.1 1
- (c++)"VFKProperty::VFKProperty(VFKProperty const&)@Base" 1.8.0 1
- (c++)"VFKProperty::VFKProperty(double)@Base" 1.8.0 1
- (c++)"VFKProperty::VFKProperty(int)@Base" 1.8.0 1
- (c++)"VFKProperty::VFKProperty()@Base" 1.8.0 1
- (c++)"VFKProperty::~VFKProperty()@Base" 1.8.0 1
- (c++)"VFKProperty::~VFKProperty()@Base" 1.8.0 1
- (c++)"VFKProperty::~VFKProperty()@Base" 1.8.0 1
- (c++)"VFKProperty::operator=(VFKProperty const&)@Base" 1.8.0 1
  (c++)"GDALOpenInfo::TryToIngest(int)@Base" 2.0.1 1
  (c++)"GDALOpenInfo::GetSiblingFiles()@Base" 2.0.1 1
+ (c++)"GDALOpenInfo::StealSiblingFiles()@Base" 2.1.0~beta1 1
  (c++)"GDALOpenInfo::GDALOpenInfo(char const*, int, char**)@Base" 2.0.1 1
  (c++)"GDALOpenInfo::GDALOpenInfo(char const*, int, char**)@Base" 2.0.1 1
  (c++)"GDALOpenInfo::~GDALOpenInfo()@Base" 1.8.0 1
@@ -604,17 +565,6 @@ libgdal.so.20 libgdal20 #MINVER#
  (c++)"OGRStyleTool::~OGRStyleTool()@Base" 1.8.0 1
  (c++)"OGRStyleTool::~OGRStyleTool()@Base" 1.8.0 1
  (c++)"OGRStyleTool::~OGRStyleTool()@Base" 1.8.0 1
- (c++)"VFKDataBlock::GetFeature(int, unsigned long long, std::vector<VFKFeature*, std::allocator<VFKFeature*> >*)@Base" 1.10.1 1
- (c++)"VFKDataBlock::GetFeatures(int, int, unsigned long long)@Base" 1.10.1 1
- (c++)"VFKDataBlock::GetFeatures(int, unsigned long long)@Base" 1.10.1 1
- (c++)"VFKDataBlock::GetFeatureCount(char const*, char const*)@Base" 1.8.0 1
- (c++)"VFKDataBlock::LoadGeometryPoint()@Base" 1.10.1 1
- (c++)"VFKDataBlock::LoadGeometryPolygon()@Base" 1.10.1 1
- (c++)"VFKDataBlock::LoadGeometryLineStringHP()@Base" 1.10.1 1
- (c++)"VFKDataBlock::LoadGeometryLineStringSBP()@Base" 1.10.1 1
- (c++)"VFKDataBlock::~VFKDataBlock()@Base" 1.8.0 1
- (c++)"VFKDataBlock::~VFKDataBlock()@Base" 1.8.0 1
- (c++)"VFKDataBlock::~VFKDataBlock()@Base" 1.8.0 1
  (c++)"CPLLockHolder::CPLLockHolder(_CPLLock*, char const*, int)@Base" 2.0.1 1
  (c++)"CPLLockHolder::CPLLockHolder(_CPLLock**, CPLLockType, char const*, int)@Base" 2.0.1 1
  (c++)"CPLLockHolder::CPLLockHolder(_CPLLock*, char const*, int)@Base" 2.0.1 1
@@ -644,27 +594,6 @@ libgdal.so.20 libgdal20 #MINVER#
  (c++)"CPLStringList::~CPLStringList()@Base" 1.9.0 1
  (c++)"CPLStringList::operator=(CPLStringList const&)@Base" 1.9.0 1
  (c++)"CPLStringList::operator[](int)@Base" 1.9.0 1
- (c++)"IVFKDataBlock::AddFeature(IVFKFeature*)@Base" 1.10.1 1
- (c++)"IVFKDataBlock::GetFeature(long long)@Base" 2.0.1 1
- (c++)"IVFKDataBlock::AddProperty(char const*, char const*)@Base" 1.10.1 1
- (c++)"IVFKDataBlock::LoadGeometry()@Base" 1.10.1 1
- (c++)"IVFKDataBlock::ResetReading(int)@Base" 1.10.1 1
- (c++)"IVFKDataBlock::SetProperties(char const*)@Base" 1.10.1 1
- (c++)"IVFKDataBlock::GetLastFeature()@Base" 1.10.1 1
- (c++)"IVFKDataBlock::GetNextFeature()@Base" 1.10.1 1
- (c++)"IVFKDataBlock::SetNextFeature(IVFKFeature const*)@Base" 1.10.1 1
- (c++)"IVFKDataBlock::GetFeatureCount()@Base" 1.10.1 1
- (c++)"IVFKDataBlock::GetFirstFeature()@Base" 1.10.1 1
- (c++)"IVFKDataBlock::SetFeatureCount(int, bool)@Base" 1.10.1 1
- (c++)"IVFKDataBlock::SetGeometryType()@Base" 1.10.1 1
- (c++)"IVFKDataBlock::AppendLineToRing(std::vector<std::vector<OGRPoint, std::allocator<OGRPoint> >*, std::allocator<std::vector<OGRPoint, std::allocator<OGRPoint> >*> >*, OGRLineString const*, bool, bool)@Base" 1.10.1 1
- (c++)"IVFKDataBlock::SetIncRecordCount(RecordType)@Base" 1.11.0 1
- (c++)"IVFKDataBlock::GetPreviousFeature()@Base" 1.10.1 1
- (c++)"IVFKDataBlock::IVFKDataBlock(char const*, IVFKReader const*)@Base" 1.10.1 1
- (c++)"IVFKDataBlock::IVFKDataBlock(char const*, IVFKReader const*)@Base" 1.10.1 1
- (c++)"IVFKDataBlock::~IVFKDataBlock()@Base" 1.10.1 1
- (c++)"IVFKDataBlock::~IVFKDataBlock()@Base" 1.10.1 1
- (c++)"IVFKDataBlock::~IVFKDataBlock()@Base" 1.10.1 1
  (c++)"MEMRasterBand::IReadBlock(int, int, void*)@Base" 1.8.0 1
  (c++)"MEMRasterBand::GetUnitType()@Base" 1.8.0 1
  (c++)"MEMRasterBand::IWriteBlock(int, int, void*)@Base" 1.8.0 1
@@ -675,6 +604,7 @@ libgdal.so.20 libgdal20 #MINVER#
  (c++)"MEMRasterBand::SetNoDataValue(double)@Base" 1.8.0 1
  (c++)"MEMRasterBand::GetCategoryNames()@Base" 1.8.0 1
  (c++)"MEMRasterBand::SetCategoryNames(char**)@Base" 1.8.0 1
+ (c++)"MEMRasterBand::DeleteNoDataValue()@Base" 2.1.0~beta1 1
  (c++)"MEMRasterBand::GetDefaultHistogram(double*, double*, int*, unsigned long long**, int, int (*)(double, char const*, void*), void*)@Base" 2.0.1 1
  (c++)"MEMRasterBand::SetDefaultHistogram(double, double, int, unsigned long long*)@Base" 2.0.1 1
  (c++)"MEMRasterBand::GetColorInterpretation()@Base" 1.8.0 1
@@ -694,38 +624,50 @@ libgdal.so.20 libgdal20 #MINVER#
  (c++)"OGRDataSource::OGRDataSource()@Base" 1.8.0 1
  (c++)"OGRLineString::CastToLinearRing(OGRLineString*)@Base" 2.0.1 1
  (c++)"OGRLineString::TransferMembersAndDestroy(OGRLineString*, OGRLineString*)@Base" 2.0.1 1
+ (c++)"OGRLineString::OGRLineString(OGRLineString const&)@Base" 2.1.0~beta1 1
  (c++)"OGRLineString::OGRLineString()@Base" 1.8.0 1
+ (c++)"OGRLineString::OGRLineString(OGRLineString const&)@Base" 2.1.0~beta1 1
  (c++)"OGRLineString::OGRLineString()@Base" 1.8.0 1
  (c++)"OGRLineString::~OGRLineString()@Base" 1.8.0 1
  (c++)"OGRLineString::~OGRLineString()@Base" 1.8.0 1
  (c++)"OGRLineString::~OGRLineString()@Base" 1.8.0 1
+ (c++)"OGRLineString::operator=(OGRLineString const&)@Base" 2.1.0~beta1 1
  (c++)"OGRLinearRing::closeRings()@Base" 1.8.0 1
  (c++)"OGRLinearRing::importFromWkb(unsigned char*, int, OGRwkbVariant)@Base" 2.0.1 1
  (c++)"OGRLinearRing::_importFromWkb(OGRwkbByteOrder, int, unsigned char*, int)@Base" 1.8.0 1
  (c++)"OGRLinearRing::CastToLineString(OGRLinearRing*)@Base" 2.0.1 1
  (c++)"OGRLinearRing::reverseWindingOrder()@Base" 1.8.0 1
  (c++)"OGRLinearRing::OGRLinearRing(OGRLinearRing*)@Base" 1.8.0 1
+ (c++)"OGRLinearRing::OGRLinearRing(OGRLinearRing const&)@Base" 2.1.0~beta1 1
  (c++)"OGRLinearRing::OGRLinearRing()@Base" 1.8.0 1
  (c++)"OGRLinearRing::OGRLinearRing(OGRLinearRing*)@Base" 1.8.0 1
+ (c++)"OGRLinearRing::OGRLinearRing(OGRLinearRing const&)@Base" 2.1.0~beta1 1
  (c++)"OGRLinearRing::OGRLinearRing()@Base" 1.8.0 1
  (c++)"OGRLinearRing::~OGRLinearRing()@Base" 1.8.0 1
  (c++)"OGRLinearRing::~OGRLinearRing()@Base" 1.8.0 1
  (c++)"OGRLinearRing::~OGRLinearRing()@Base" 1.8.0 1
+ (c++)"OGRLinearRing::operator=(OGRLinearRing const&)@Base" 2.1.0~beta1 1
  (c++)"OGRMultiCurve::importFromWkt(char**)@Base" 2.0.1 1
  (c++)"OGRMultiCurve::CastToMultiLineString(OGRMultiCurve*)@Base" 2.0.1 1
  (c++)"OGRMultiCurve::addCurveDirectlyFromWkt(OGRGeometry*, OGRCurve*)@Base" 2.0.1 1
+ (c++)"OGRMultiCurve::OGRMultiCurve(OGRMultiCurve const&)@Base" 2.1.0~beta1 1
  (c++)"OGRMultiCurve::OGRMultiCurve()@Base" 2.0.1 1
+ (c++)"OGRMultiCurve::OGRMultiCurve(OGRMultiCurve const&)@Base" 2.1.0~beta1 1
  (c++)"OGRMultiCurve::OGRMultiCurve()@Base" 2.0.1 1
  (c++)"OGRMultiCurve::~OGRMultiCurve()@Base" 2.0.1 1
  (c++)"OGRMultiCurve::~OGRMultiCurve()@Base" 2.0.1 1
  (c++)"OGRMultiCurve::~OGRMultiCurve()@Base" 2.0.1 1
+ (c++)"OGRMultiCurve::operator=(OGRMultiCurve const&)@Base" 2.1.0~beta1 1
  (c++)"OGRMultiPoint::importFromWkt(char**)@Base" 1.8.0 1
  (c++)"OGRMultiPoint::importFromWkt_Bracketed(char**, int, int)@Base" 1.8.0 1
+ (c++)"OGRMultiPoint::OGRMultiPoint(OGRMultiPoint const&)@Base" 2.1.0~beta1 1
  (c++)"OGRMultiPoint::OGRMultiPoint()@Base" 1.8.0 1
+ (c++)"OGRMultiPoint::OGRMultiPoint(OGRMultiPoint const&)@Base" 2.1.0~beta1 1
  (c++)"OGRMultiPoint::OGRMultiPoint()@Base" 1.8.0 1
  (c++)"OGRMultiPoint::~OGRMultiPoint()@Base" 1.8.0 1
  (c++)"OGRMultiPoint::~OGRMultiPoint()@Base" 1.8.0 1
  (c++)"OGRMultiPoint::~OGRMultiPoint()@Base" 1.8.0 1
+ (c++)"OGRMultiPoint::operator=(OGRMultiPoint const&)@Base" 2.1.0~beta1 1
  (c++)"OGRStyleBrush::GetParamDbl(ogr_style_tool_param_brush_id, int&)@Base" 1.8.0 1
  (c++)"OGRStyleBrush::GetParamNum(ogr_style_tool_param_brush_id, int&)@Base" 1.8.0 1
  (c++)"OGRStyleBrush::GetParamStr(ogr_style_tool_param_brush_id, int&)@Base" 1.8.0 1
@@ -774,7 +716,7 @@ libgdal.so.20 libgdal20 #MINVER#
  (c++)"RawRasterBand::FlushCache()@Base" 1.8.0 1
  (c++)"RawRasterBand::IReadBlock(int, int, void*)@Base" 1.8.0 1
  (c++)"RawRasterBand::Initialize()@Base" 1.8.0 1
- (c++)"RawRasterBand::AccessBlock(unsigned long long, int, void*)@Base" 1.8.0 1
+ (c++)"RawRasterBand::AccessBlock(unsigned long long, unsigned int, void*)@Base" 2.1.0~beta1 1
  (c++)"RawRasterBand::IWriteBlock(int, int, void*)@Base" 1.8.0 1
  (c++)"RawRasterBand::GetColorTable()@Base" 1.8.0 1
  (c++)"RawRasterBand::SetColorTable(GDALColorTable*)@Base" 1.8.0 1
@@ -821,12 +763,14 @@ libgdal.so.20 libgdal20 #MINVER#
  (c++)"VRTRasterBand::GetOverviewCount()@Base" 1.8.0 1
  (c++)"VRTRasterBand::SetCategoryNames(char**)@Base" 1.8.0 1
  (c++)"VRTRasterBand::UnsetNoDataValue()@Base" 1.8.0 1
+ (c++)"VRTRasterBand::DeleteNoDataValue()@Base" 2.1.0~beta1 1
  (c++)"VRTRasterBand::CopyCommonInfoFrom(GDALRasterBand*)@Base" 1.8.0 1
  (c++)"VRTRasterBand::GetDefaultHistogram(double*, double*, int*, unsigned long long**, int, int (*)(double, char const*, void*), void*)@Base" 2.0.1 1
  (c++)"VRTRasterBand::IsSourcedRasterBand()@Base" 1.9.0 1
  (c++)"VRTRasterBand::SetDefaultHistogram(double, double, int, unsigned long long*)@Base" 2.0.1 1
  (c++)"VRTRasterBand::CloseDependentDatasets()@Base" 1.9.0 1
  (c++)"VRTRasterBand::GetColorInterpretation()@Base" 1.8.0 1
+ (c++)"VRTRasterBand::IsPansharpenRasterBand()@Base" 2.1.0~beta1 1
  (c++)"VRTRasterBand::SetColorInterpretation(GDALColorInterp)@Base" 1.8.0 1
  (c++)"VRTRasterBand::XMLInit(CPLXMLNode*, char const*)@Base" 1.8.0 1
  (c++)"VRTRasterBand::GetScale(int*)@Base" 1.8.0 1
@@ -909,7 +853,7 @@ libgdal.so.20 libgdal20 #MINVER#
  (c++)"GDALPamDataset::~GDALPamDataset()@Base" 1.8.0 1
  (c++)"GDALPamDataset::~GDALPamDataset()@Base" 1.8.0 1
  (c++)"GDALPamDataset::~GDALPamDataset()@Base" 1.8.0 1
- (c++)"GDALRasterBand::AdoptBlock(int, int, GDALRasterBlock*)@Base" 1.8.0 1
+ (c++)"GDALRasterBand::AdoptBlock(GDALRasterBlock*)@Base" 2.1.0~beta1 1
  (c++)"GDALRasterBand::AdviseRead(int, int, int, int, int, int, GDALDataType, char**)@Base" 1.8.0 1
  (c++)"GDALRasterBand::FlushBlock(int, int, int)@Base" 1.8.0 1
  (c++)"GDALRasterBand::FlushCache()@Base" 1.8.0 1
@@ -944,16 +888,19 @@ libgdal.so.20 libgdal20 #MINVER#
  (c++)"GDALRasterBand::OverviewRasterIO(GDALRWFlag, int, int, int, int, void*, int, int, GDALDataType, long long, long long, GDALRasterIOExtraArg*)@Base" 2.0.1 1
  (c++)"GDALRasterBand::SetCategoryNames(char**)@Base" 1.8.0 1
  (c++)"GDALRasterBand::SetFlushBlockErr(CPLErr)@Base" 1.8.0 1
- (c++)"GDALRasterBand::UnreferenceBlock(int, int)@Base" 2.0.1 1
+ (c++)"GDALRasterBand::UnreferenceBlock(GDALRasterBlock*)@Base" 2.1.0~beta1 1
  (c++)"GDALRasterBand::ComputeStatistics(int, double*, double*, double*, double*, int (*)(double, char const*, void*), void*)@Base" 1.8.0 1
+ (c++)"GDALRasterBand::DeleteNoDataValue()@Base" 2.1.0~beta1 1
  (c++)"GDALRasterBand::GetLockedBlockRef(int, int, int)@Base" 1.8.0 1
  (c++)"GDALRasterBand::GetRasterDataType()@Base" 1.8.0 1
  (c++)"GDALRasterBand::GetVirtualMemAuto(GDALRWFlag, int*, long long*, char**)@Base" 1.11.0 1
  (c++)"GDALRasterBand::RasterIOResampled(GDALRWFlag, int, int, int, int, void*, int, int, GDALDataType, long long, long long, GDALRasterIOExtraArg*)@Base" 2.0.1 1
+ (c++)"GDALRasterBand::AddBlockToFreeList(GDALRasterBlock*)@Base" 2.1.0~beta1 1
  (c++)"GDALRasterBand::InvalidateMaskBand()@Base" 1.11.1 1
  (c++)"GDALRasterBand::ComputeRasterMinMax(int, double*)@Base" 1.8.0 1
  (c++)"GDALRasterBand::GetDefaultHistogram(double*, double*, int*, unsigned long long**, int, int (*)(double, char const*, void*), void*)@Base" 2.0.1 1
  (c++)"GDALRasterBand::SetDefaultHistogram(double, double, int, unsigned long long*)@Base" 2.0.1 1
+ (c++)"GDALRasterBand::TryOverviewRasterIO(GDALRWFlag, int, int, int, int, void*, int, int, GDALDataType, long long, long long, GDALRasterIOExtraArg*, int*)@Base" 2.1.0~beta1 1
  (c++)"GDALRasterBand::TryGetLockedBlockRef(int, int)@Base" 1.8.0 1
  (c++)"GDALRasterBand::HasArbitraryOverviews()@Base" 1.8.0 1
  (c++)"GDALRasterBand::GetColorInterpretation()@Base" 1.8.0 1
@@ -961,6 +908,7 @@ libgdal.so.20 libgdal20 #MINVER#
  (c++)"GDALRasterBand::GetRasterSampleOverview(unsigned long long)@Base" 2.0.1 1
  (c++)"GDALRasterBand::GetIndexColorTranslationTo(GDALRasterBand*, unsigned char*, int*)@Base" 1.8.0 1
  (c++)"GDALRasterBand::Fill(double, double)@Base" 1.8.0 1
+ (c++)"GDALRasterBand::Init(int)@Base" 2.1.0~beta1 1
  (c++)"GDALRasterBand::GetBand()@Base" 1.8.0 1
  (c++)"GDALRasterBand::GetScale(int*)@Base" 1.8.0 1
  (c++)"GDALRasterBand::GetXSize()@Base" 1.8.0 1
@@ -972,7 +920,9 @@ libgdal.so.20 libgdal20 #MINVER#
  (c++)"GDALRasterBand::IRasterIO(GDALRWFlag, int, int, int, int, void*, int, int, GDALDataType, long long, long long, GDALRasterIOExtraArg*)@Base" 2.0.1 1
  (c++)"GDALRasterBand::ReadBlock(int, int, void*)@Base" 1.8.0 1
  (c++)"GDALRasterBand::SetOffset(double)@Base" 1.8.0 1
+ (c++)"GDALRasterBand::GDALRasterBand(int)@Base" 2.1.0~beta1 1
  (c++)"GDALRasterBand::GDALRasterBand()@Base" 1.8.0 1
+ (c++)"GDALRasterBand::GDALRasterBand(int)@Base" 2.1.0~beta1 1
  (c++)"GDALRasterBand::GDALRasterBand()@Base" 1.8.0 1
  (c++)"GDALRasterBand::~GDALRasterBand()@Base" 1.8.0 1
  (c++)"GDALRasterBand::~GDALRasterBand()@Base" 1.8.0 1
@@ -1013,7 +963,10 @@ libgdal.so.20 libgdal20 #MINVER#
  (c++)"OGRFeatureDefn::~OGRFeatureDefn()@Base" 1.8.0 1
  (c++)"OGRFeatureDefn::~OGRFeatureDefn()@Base" 1.8.0 1
  (c++)"OGRSimpleCurve::segmentize(double)@Base" 2.0.1 1
+ (c++)"OGRSimpleCurve::setPointsM(int, OGRRawPoint*, double*)@Base" 2.1.0~beta1 1
+ (c++)"OGRSimpleCurve::setPointsM(int, double*, double*, double*)@Base" 2.1.0~beta1 1
  (c++)"OGRSimpleCurve::flattenTo2D()@Base" 2.0.1 1
+ (c++)"OGRSimpleCurve::setMeasured(int)@Base" 2.1.0~beta1 1
  (c++)"OGRSimpleCurve::setNumPoints(int, int)@Base" 2.0.1 1
  (c++)"OGRSimpleCurve::importFromWkb(unsigned char*, int, OGRwkbVariant)@Base" 2.0.1 1
  (c++)"OGRSimpleCurve::importFromWkt(char**)@Base" 2.0.1 1
@@ -1021,25 +974,38 @@ libgdal.so.20 libgdal20 #MINVER#
  (c++)"OGRSimpleCurve::addSubLineString(OGRLineString const*, int, int)@Base" 2.0.1 1
  (c++)"OGRSimpleCurve::importFromWKTListOnly(char**, int, int, OGRRawPoint*&, int&, double*&)@Base" 2.0.1 1
  (c++)"OGRSimpleCurve::setCoordinateDimension(int)@Base" 2.0.1 1
+ (c++)"OGRSimpleCurve::AddM()@Base" 2.1.0~beta1 1
+ (c++)"OGRSimpleCurve::setM(int, double)@Base" 2.1.0~beta1 1
  (c++)"OGRSimpleCurve::setZ(int, double)@Base" 2.0.1 1
  (c++)"OGRSimpleCurve::empty()@Base" 2.0.1 1
+ (c++)"OGRSimpleCurve::set3D(int)@Base" 2.1.0~beta1 1
  (c++)"OGRSimpleCurve::Make2D()@Base" 2.0.1 1
  (c++)"OGRSimpleCurve::Make3D()@Base" 2.0.1 1
  (c++)"OGRSimpleCurve::swapXY()@Base" 2.0.1 1
+ (c++)"OGRSimpleCurve::RemoveM()@Base" 2.1.0~beta1 1
  (c++)"OGRSimpleCurve::addPoint(OGRPoint*)@Base" 2.0.1 1
  (c++)"OGRSimpleCurve::addPoint(double, double)@Base" 2.0.1 1
  (c++)"OGRSimpleCurve::addPoint(double, double, double)@Base" 2.0.1 1
+ (c++)"OGRSimpleCurve::addPoint(double, double, double, double)@Base" 2.1.0~beta1 1
  (c++)"OGRSimpleCurve::setPoint(int, OGRPoint*)@Base" 2.0.1 1
  (c++)"OGRSimpleCurve::setPoint(int, double, double)@Base" 2.0.1 1
  (c++)"OGRSimpleCurve::setPoint(int, double, double, double)@Base" 2.0.1 1
+ (c++)"OGRSimpleCurve::setPoint(int, double, double, double, double)@Base" 2.1.0~beta1 1
+ (c++)"OGRSimpleCurve::addPointM(double, double, double)@Base" 2.1.0~beta1 1
+ (c++)"OGRSimpleCurve::setPointM(int, double, double, double)@Base" 2.1.0~beta1 1
  (c++)"OGRSimpleCurve::setPoints(int, OGRRawPoint*, double*)@Base" 2.0.1 1
+ (c++)"OGRSimpleCurve::setPoints(int, OGRRawPoint*, double*, double*)@Base" 2.1.0~beta1 1
  (c++)"OGRSimpleCurve::setPoints(int, double*, double*, double*)@Base" 2.0.1 1
+ (c++)"OGRSimpleCurve::setPoints(int, double*, double*, double*, double*)@Base" 2.1.0~beta1 1
  (c++)"OGRSimpleCurve::transform(OGRCoordinateTransformation*)@Base" 2.0.1 1
+ (c++)"OGRSimpleCurve::OGRSimpleCurve(OGRSimpleCurve const&)@Base" 2.1.0~beta1 1
  (c++)"OGRSimpleCurve::OGRSimpleCurve()@Base" 2.0.1 1
+ (c++)"OGRSimpleCurve::OGRSimpleCurve(OGRSimpleCurve const&)@Base" 2.1.0~beta1 1
  (c++)"OGRSimpleCurve::OGRSimpleCurve()@Base" 2.0.1 1
  (c++)"OGRSimpleCurve::~OGRSimpleCurve()@Base" 2.0.1 1
  (c++)"OGRSimpleCurve::~OGRSimpleCurve()@Base" 2.0.1 1
  (c++)"OGRSimpleCurve::~OGRSimpleCurve()@Base" 2.0.1 1
+ (c++)"OGRSimpleCurve::operator=(OGRSimpleCurve const&)@Base" 2.1.0~beta1 1
  (c++)"OGRStyleSymbol::GetParamDbl(ogr_style_tool_param_symbol_id, int&)@Base" 1.8.0 1
  (c++)"OGRStyleSymbol::GetParamNum(ogr_style_tool_param_symbol_id, int&)@Base" 1.8.0 1
  (c++)"OGRStyleSymbol::GetParamStr(ogr_style_tool_param_symbol_id, int&)@Base" 1.8.0 1
@@ -1108,21 +1074,25 @@ libgdal.so.20 libgdal20 #MINVER#
  (c++)"GDALMajorObject::~GDALMajorObject()@Base" 1.8.0 1
  (c++)"GDALMajorObject::~GDALMajorObject()@Base" 1.8.0 1
  (c++)"GDALMajorObject::~GDALMajorObject()@Base" 1.8.0 1
+ (c++)"GDALRasterBlock::RecycleFor(int, int)@Base" 2.1.0~beta1 1
  (c++)"GDALRasterBlock::Internalize()@Base" 1.8.0 1
- (c++)"GDALRasterBlock::SafeLockBlock(GDALRasterBlock**)@Base" 1.8.0 1
  (c++)"GDALRasterBlock::DestroyRBMutex()@Base" 1.11.0 1
  (c++)"GDALRasterBlock::Touch_unlocked()@Base" 2.0.1 1
  (c++)"GDALRasterBlock::Detach_unlocked()@Base" 2.0.1 1
  (c++)"GDALRasterBlock::FlushCacheBlock(int)@Base" 2.0.1 1
  (c++)"GDALRasterBlock::FlushDirtyBlocks()@Base" 2.0.1 1
+ (c++)"GDALRasterBlock::DropLockForRemovalFromStorage()@Base" 2.1.0~beta1 1
  (c++)"GDALRasterBlock::Touch()@Base" 1.8.0 1
  (c++)"GDALRasterBlock::Write()@Base" 1.8.0 1
  (c++)"GDALRasterBlock::Detach()@Base" 1.8.0 1
  (c++)"GDALRasterBlock::Verify()@Base" 1.8.0 1
+ (c++)"GDALRasterBlock::TakeLock()@Base" 2.1.0~beta1 1
  (c++)"GDALRasterBlock::MarkClean()@Base" 1.8.0 1
  (c++)"GDALRasterBlock::MarkDirty()@Base" 1.8.0 1
  (c++)"GDALRasterBlock::GDALRasterBlock(GDALRasterBand*, int, int)@Base" 1.8.0 1
+ (c++)"GDALRasterBlock::GDALRasterBlock(int, int)@Base" 2.1.0~beta1 1
  (c++)"GDALRasterBlock::GDALRasterBlock(GDALRasterBand*, int, int)@Base" 1.8.0 1
+ (c++)"GDALRasterBlock::GDALRasterBlock(int, int)@Base" 2.1.0~beta1 1
  (c++)"GDALRasterBlock::~GDALRasterBlock()@Base" 1.8.0 1
  (c++)"GDALRasterBlock::~GDALRasterBlock()@Base" 1.8.0 1
  (c++)"GDALRasterBlock::~GDALRasterBlock()@Base" 1.8.0 1
@@ -1150,13 +1120,14 @@ libgdal.so.20 libgdal20 #MINVER#
  (c++)"GMLFeatureClass::~GMLFeatureClass()@Base" 1.8.0 1
  (c++)"GMLPropertyDefn::SetCondition(char const*)@Base" 1.11.0 1
  (c++)"GMLPropertyDefn::SetSrcElement(char const*)@Base" 1.8.0 1
- (c++)"GMLPropertyDefn::AnalysePropertyValue(GMLProperty const*, int)@Base" 1.11.0 1
+ (c++)"GMLPropertyDefn::AnalysePropertyValue(GMLProperty const*, bool)@Base" 2.1.0~beta1 1
  (c++)"GMLPropertyDefn::GMLPropertyDefn(char const*, char const*)@Base" 1.8.0 1
  (c++)"GMLPropertyDefn::GMLPropertyDefn(char const*, char const*)@Base" 1.8.0 1
  (c++)"GMLPropertyDefn::~GMLPropertyDefn()@Base" 1.8.0 1
  (c++)"GMLPropertyDefn::~GMLPropertyDefn()@Base" 1.8.0 1
  (c++)"OGRCurvePolygon::segmentize(double)@Base" 2.0.1 1
  (c++)"OGRCurvePolygon::flattenTo2D()@Base" 2.0.1 1
+ (c++)"OGRCurvePolygon::setMeasured(int)@Base" 2.1.0~beta1 1
  (c++)"OGRCurvePolygon::CastToPolygon(OGRCurvePolygon*)@Base" 2.0.1 1
  (c++)"OGRCurvePolygon::importFromWkb(unsigned char*, int, OGRwkbVariant)@Base" 2.0.1 1
  (c++)"OGRCurvePolygon::importFromWkt(char**)@Base" 2.0.1 1
@@ -1169,14 +1140,18 @@ libgdal.so.20 libgdal20 #MINVER#
  (c++)"OGRCurvePolygon::addCurveDirectlyFromWkt(OGRGeometry*, OGRCurve*)@Base" 2.0.1 1
  (c++)"OGRCurvePolygon::addRingDirectlyInternal(OGRCurve*, int)@Base" 2.0.1 1
  (c++)"OGRCurvePolygon::empty()@Base" 2.0.1 1
+ (c++)"OGRCurvePolygon::set3D(int)@Base" 2.1.0~beta1 1
  (c++)"OGRCurvePolygon::swapXY()@Base" 2.0.1 1
  (c++)"OGRCurvePolygon::addRing(OGRCurve*)@Base" 2.0.1 1
  (c++)"OGRCurvePolygon::transform(OGRCoordinateTransformation*)@Base" 2.0.1 1
+ (c++)"OGRCurvePolygon::OGRCurvePolygon(OGRCurvePolygon const&)@Base" 2.1.0~beta1 1
  (c++)"OGRCurvePolygon::OGRCurvePolygon()@Base" 2.0.1 1
+ (c++)"OGRCurvePolygon::OGRCurvePolygon(OGRCurvePolygon const&)@Base" 2.1.0~beta1 1
  (c++)"OGRCurvePolygon::OGRCurvePolygon()@Base" 2.0.1 1
  (c++)"OGRCurvePolygon::~OGRCurvePolygon()@Base" 2.0.1 1
  (c++)"OGRCurvePolygon::~OGRCurvePolygon()@Base" 2.0.1 1
  (c++)"OGRCurvePolygon::~OGRCurvePolygon()@Base" 2.0.1 1
+ (c++)"OGRCurvePolygon::operator=(OGRCurvePolygon const&)@Base" 2.1.0~beta1 1
  (c++)"OGRFeatureQuery::CanUseIndex(swq_expr_node*, OGRLayer*)@Base" 1.10.1 1
  (c++)"OGRFeatureQuery::CanUseIndex(OGRLayer*)@Base" 1.10.1 1
  (c++)"OGRFeatureQuery::GetUsedFields()@Base" 1.8.0 1
@@ -1190,18 +1165,24 @@ libgdal.so.20 libgdal20 #MINVER#
  (c++)"OGRFeatureQuery::~OGRFeatureQuery()@Base" 1.8.0 1
  (c++)"OGRFeatureQuery::~OGRFeatureQuery()@Base" 1.8.0 1
  (c++)"OGRMultiPolygon::CastToMultiSurface(OGRMultiPolygon*)@Base" 2.0.1 1
+ (c++)"OGRMultiPolygon::OGRMultiPolygon(OGRMultiPolygon const&)@Base" 2.1.0~beta1 1
  (c++)"OGRMultiPolygon::OGRMultiPolygon()@Base" 1.8.0 1
+ (c++)"OGRMultiPolygon::OGRMultiPolygon(OGRMultiPolygon const&)@Base" 2.1.0~beta1 1
  (c++)"OGRMultiPolygon::OGRMultiPolygon()@Base" 1.8.0 1
  (c++)"OGRMultiPolygon::~OGRMultiPolygon()@Base" 1.8.0 1
  (c++)"OGRMultiPolygon::~OGRMultiPolygon()@Base" 1.8.0 1
  (c++)"OGRMultiPolygon::~OGRMultiPolygon()@Base" 1.8.0 1
+ (c++)"OGRMultiPolygon::operator=(OGRMultiPolygon const&)@Base" 2.1.0~beta1 1
  (c++)"OGRMultiSurface::importFromWkt(char**)@Base" 2.0.1 1
  (c++)"OGRMultiSurface::CastToMultiPolygon(OGRMultiSurface*)@Base" 2.0.1 1
+ (c++)"OGRMultiSurface::OGRMultiSurface(OGRMultiSurface const&)@Base" 2.1.0~beta1 1
  (c++)"OGRMultiSurface::OGRMultiSurface()@Base" 2.0.1 1
+ (c++)"OGRMultiSurface::OGRMultiSurface(OGRMultiSurface const&)@Base" 2.1.0~beta1 1
  (c++)"OGRMultiSurface::OGRMultiSurface()@Base" 2.0.1 1
  (c++)"OGRMultiSurface::~OGRMultiSurface()@Base" 2.0.1 1
  (c++)"OGRMultiSurface::~OGRMultiSurface()@Base" 2.0.1 1
  (c++)"OGRMultiSurface::~OGRMultiSurface()@Base" 2.0.1 1
+ (c++)"OGRMultiSurface::operator=(OGRMultiSurface const&)@Base" 2.1.0~beta1 1
  (c++)"OGRMutexedLayer::GetFeature(long long)@Base" 2.0.1 1
  (c++)"OGRMutexedLayer::SyncToDisk()@Base" 1.11.0 1
  (c++)"OGRMutexedLayer::CreateField(OGRFieldDefn*, int)@Base" 1.11.0 1
@@ -1246,18 +1227,13 @@ libgdal.so.20 libgdal20 #MINVER#
  (c++)"OGRMutexedLayer::~OGRMutexedLayer()@Base" 1.11.0 1
  (c++)"OGRMutexedLayer::~OGRMutexedLayer()@Base" 1.11.0 1
  (c++)"OGRMutexedLayer::~OGRMutexedLayer()@Base" 1.11.0 1
- (c++)"VFKPropertyDefn::VFKPropertyDefn(char const*, char const*, bool)@Base" 1.10.1 1
- (c++)"VFKPropertyDefn::VFKPropertyDefn(char const*, char const*, bool)@Base" 1.10.1 1
- (c++)"VFKPropertyDefn::~VFKPropertyDefn()@Base" 1.8.0 1
- (c++)"VFKPropertyDefn::~VFKPropertyDefn()@Base" 1.8.0 1
- (c++)"VFKPropertyDefn::~VFKPropertyDefn()@Base" 1.8.0 1
  (c++)"VRTSimpleSource::GetMaximum(int, int, int*)@Base" 1.11.0 1
  (c++)"VRTSimpleSource::GetMinimum(int, int, int*)@Base" 1.11.0 1
  (c++)"VRTSimpleSource::SetSrcBand(GDALRasterBand*)@Base" 1.11.0 1
  (c++)"VRTSimpleSource::GetFileList(char***, int*, int*, _CPLHashSet*)@Base" 1.11.0 1
  (c++)"VRTSimpleSource::GetHistogram(int, int, double, double, int, unsigned long long*, int, int, int (*)(double, char const*, void*), void*)@Base" 2.0.1 1
- (c++)"VRTSimpleSource::SetDstWindow(int, int, int, int)@Base" 1.11.0 1
- (c++)"VRTSimpleSource::SetSrcWindow(int, int, int, int)@Base" 1.11.0 1
+ (c++)"VRTSimpleSource::SetDstWindow(double, double, double, double)@Base" 2.1.0~beta1 1
+ (c++)"VRTSimpleSource::SetSrcWindow(double, double, double, double)@Base" 2.1.0~beta1 1
  (c++)"VRTSimpleSource::SetResampling(char const*)@Base" 2.0.1 1
  (c++)"VRTSimpleSource::IsSimpleSource()@Base" 1.11.0 1
  (c++)"VRTSimpleSource::SerializeToXML(char const*)@Base" 1.11.0 1
@@ -1275,7 +1251,9 @@ libgdal.so.20 libgdal20 #MINVER#
  (c++)"VRTSimpleSource::DstToSrc(double, double, double&, double&)@Base" 1.11.0 1
  (c++)"VRTSimpleSource::RasterIO(int, int, int, int, void*, int, int, GDALDataType, long long, long long, GDALRasterIOExtraArg*)@Base" 2.0.1 1
  (c++)"VRTSimpleSource::SrcToDst(double, double, double&, double&)@Base" 1.11.0 1
+ (c++)"VRTSimpleSource::VRTSimpleSource(VRTSimpleSource const*, double, double)@Base" 2.1.0~beta1 1
  (c++)"VRTSimpleSource::VRTSimpleSource()@Base" 1.11.0 1
+ (c++)"VRTSimpleSource::VRTSimpleSource(VRTSimpleSource const*, double, double)@Base" 2.1.0~beta1 1
  (c++)"VRTSimpleSource::VRTSimpleSource()@Base" 1.11.0 1
  (c++)"VRTSimpleSource::~VRTSimpleSource()@Base" 1.11.0 1
  (c++)"VRTSimpleSource::~VRTSimpleSource()@Base" 1.11.0 1
@@ -1314,6 +1292,10 @@ libgdal.so.20 libgdal20 #MINVER#
  (c++)"CPLODBCStatement::CPLODBCStatement(CPLODBCSession*)@Base" 1.8.0 1
  (c++)"CPLODBCStatement::~CPLODBCStatement()@Base" 1.8.0 1
  (c++)"CPLODBCStatement::~CPLODBCStatement()@Base" 1.8.0 1
+ (c++)"CPLThreadLocaleC::CPLThreadLocaleC()@Base" 2.1.0~beta1 1
+ (c++)"CPLThreadLocaleC::CPLThreadLocaleC()@Base" 2.1.0~beta1 1
+ (c++)"CPLThreadLocaleC::~CPLThreadLocaleC()@Base" 2.1.0~beta1 1
+ (c++)"CPLThreadLocaleC::~CPLThreadLocaleC()@Base" 2.1.0~beta1 1
  (c++)"GDALProxyDataset::AdviseRead(int, int, int, int, int, int, GDALDataType, int, int*, char**)@Base" 1.8.0 1
  (c++)"GDALProxyDataset::FlushCache()@Base" 1.8.0 1
  (c++)"GDALProxyDataset::GetFileList()@Base" 1.8.0 1
@@ -1339,6 +1321,7 @@ libgdal.so.20 libgdal20 #MINVER#
  (c++)"OGRCompoundCurve::segmentize(double)@Base" 2.0.1 1
  (c++)"OGRCompoundCurve::stealCurve(int)@Base" 2.0.1 1
  (c++)"OGRCompoundCurve::flattenTo2D()@Base" 2.0.1 1
+ (c++)"OGRCompoundCurve::setMeasured(int)@Base" 2.1.0~beta1 1
  (c++)"OGRCompoundCurve::importFromWkb(unsigned char*, int, OGRwkbVariant)@Base" 2.0.1 1
  (c++)"OGRCompoundCurve::importFromWkt(char**)@Base" 2.0.1 1
  (c++)"OGRCompoundCurve::CastToLineString(OGRCompoundCurve*)@Base" 2.0.1 1
@@ -1349,15 +1332,60 @@ libgdal.so.20 libgdal20 #MINVER#
  (c++)"OGRCompoundCurve::addCurveDirectlyFromWkt(OGRGeometry*, OGRCurve*)@Base" 2.0.1 1
  (c++)"OGRCompoundCurve::addCurveDirectlyInternal(OGRCurve*, double, int)@Base" 2.0.1 1
  (c++)"OGRCompoundCurve::empty()@Base" 2.0.1 1
+ (c++)"OGRCompoundCurve::set3D(int)@Base" 2.1.0~beta1 1
  (c++)"OGRCompoundCurve::swapXY()@Base" 2.0.1 1
  (c++)"OGRCompoundCurve::addCurve(OGRCurve*, double)@Base" 2.0.1 1
  (c++)"OGRCompoundCurve::getCurve(int)@Base" 2.0.1 1
  (c++)"OGRCompoundCurve::transform(OGRCoordinateTransformation*)@Base" 2.0.1 1
+ (c++)"OGRCompoundCurve::OGRCompoundCurve(OGRCompoundCurve const&)@Base" 2.1.0~beta1 1
  (c++)"OGRCompoundCurve::OGRCompoundCurve()@Base" 2.0.1 1
+ (c++)"OGRCompoundCurve::OGRCompoundCurve(OGRCompoundCurve const&)@Base" 2.1.0~beta1 1
  (c++)"OGRCompoundCurve::OGRCompoundCurve()@Base" 2.0.1 1
  (c++)"OGRCompoundCurve::~OGRCompoundCurve()@Base" 2.0.1 1
  (c++)"OGRCompoundCurve::~OGRCompoundCurve()@Base" 2.0.1 1
  (c++)"OGRCompoundCurve::~OGRCompoundCurve()@Base" 2.0.1 1
+ (c++)"OGRCompoundCurve::operator=(OGRCompoundCurve const&)@Base" 2.1.0~beta1 1
+ (c++)"OGREditableLayer::GetFeature(long long)@Base" 2.1.0~beta1 1
+ (c++)"OGREditableLayer::SetNextFID(long long)@Base" 2.1.0~beta1 1
+ (c++)"OGREditableLayer::SyncToDisk()@Base" 2.1.0~beta1 1
+ (c++)"OGREditableLayer::CreateField(OGRFieldDefn*, int)@Base" 2.1.0~beta1 1
+ (c++)"OGREditableLayer::DeleteField(int)@Base" 2.1.0~beta1 1
+ (c++)"OGREditableLayer::GetGeomType()@Base" 2.1.0~beta1 1
+ (c++)"OGREditableLayer::ISetFeature(OGRFeature*)@Base" 2.1.0~beta1 1
+ (c++)"OGREditableLayer::GetLayerDefn()@Base" 2.1.0~beta1 1
+ (c++)"OGREditableLayer::ResetReading()@Base" 2.1.0~beta1 1
+ (c++)"OGREditableLayer::DeleteFeature(long long)@Base" 2.1.0~beta1 1
+ (c++)"OGREditableLayer::DetectNextFID()@Base" 2.1.0~beta1 1
+ (c++)"OGREditableLayer::GetSpatialRef()@Base" 2.1.0~beta1 1
+ (c++)"OGREditableLayer::ReorderFields(int*)@Base" 2.1.0~beta1 1
+ (c++)"OGREditableLayer::AlterFieldDefn(int, OGRFieldDefn*, int)@Base" 2.1.0~beta1 1
+ (c++)"OGREditableLayer::GetNextFeature()@Base" 2.1.0~beta1 1
+ (c++)"OGREditableLayer::ICreateFeature(OGRFeature*)@Base" 2.1.0~beta1 1
+ (c++)"OGREditableLayer::SetNextByIndex(long long)@Base" 2.1.0~beta1 1
+ (c++)"OGREditableLayer::TestCapability(char const*)@Base" 2.1.0~beta1 1
+ (c++)"OGREditableLayer::CreateGeomField(OGRGeomFieldDefn*, int)@Base" 2.1.0~beta1 1
+ (c++)"OGREditableLayer::GetFeatureCount(int)@Base" 2.1.0~beta1 1
+ (c++)"OGREditableLayer::GetSpatialFilter()@Base" 2.1.0~beta1 1
+ (c++)"OGREditableLayer::SetSpatialFilter(OGRGeometry*)@Base" 2.1.0~beta1 1
+ (c++)"OGREditableLayer::SetSpatialFilter(int, OGRGeometry*)@Base" 2.1.0~beta1 1
+ (c++)"OGREditableLayer::StartTransaction()@Base" 2.1.0~beta1 1
+ (c++)"OGREditableLayer::CommitTransaction()@Base" 2.1.0~beta1 1
+ (c++)"OGREditableLayer::GetGeometryColumn()@Base" 2.1.0~beta1 1
+ (c++)"OGREditableLayer::SetAttributeFilter(char const*)@Base" 2.1.0~beta1 1
+ (c++)"OGREditableLayer::RollbackTransaction()@Base" 2.1.0~beta1 1
+ (c++)"OGREditableLayer::GetSrcGeomFieldIndex(int)@Base" 2.1.0~beta1 1
+ (c++)"OGREditableLayer::SetSpatialFilterRect(double, double, double, double)@Base" 2.1.0~beta1 1
+ (c++)"OGREditableLayer::SetSpatialFilterRect(int, double, double, double, double)@Base" 2.1.0~beta1 1
+ (c++)"OGREditableLayer::SetSupportsCreateGeomField(bool)@Base" 2.1.0~beta1 1
+ (c++)"OGREditableLayer::SetSupportsCurveGeometries(bool)@Base" 2.1.0~beta1 1
+ (c++)"OGREditableLayer::GetExtent(OGREnvelope*, int)@Base" 2.1.0~beta1 1
+ (c++)"OGREditableLayer::GetExtent(int, OGREnvelope*, int)@Base" 2.1.0~beta1 1
+ (c++)"OGREditableLayer::Translate(OGRFeatureDefn*, OGRFeature*, bool, bool)@Base" 2.1.0~beta1 1
+ (c++)"OGREditableLayer::OGREditableLayer(OGRLayer*, bool, IOGREditableLayerSynchronizer*, bool)@Base" 2.1.0~beta1 1
+ (c++)"OGREditableLayer::OGREditableLayer(OGRLayer*, bool, IOGREditableLayerSynchronizer*, bool)@Base" 2.1.0~beta1 1
+ (c++)"OGREditableLayer::~OGREditableLayer()@Base" 2.1.0~beta1 1
+ (c++)"OGREditableLayer::~OGREditableLayer()@Base" 2.1.0~beta1 1
+ (c++)"OGREditableLayer::~OGREditableLayer()@Base" 2.1.0~beta1 1
  (c++)"OGRGeomFieldDefn::Initialize(char const*, OGRwkbGeometryType)@Base" 1.11.0 1
  (c++)"OGRGeomFieldDefn::GetSpatialRef()@Base" 1.11.0 1
  (c++)"OGRGeomFieldDefn::SetSpatialRef(OGRSpatialReference*)@Base" 1.11.0 1
@@ -1375,24 +1403,6 @@ libgdal.so.20 libgdal20 #MINVER#
  (c++)"OGRPointIterator::~OGRPointIterator()@Base" 2.0.1 1
  (c++)"OGRPointIterator::~OGRPointIterator()@Base" 2.0.1 1
  (c++)"OGRPointIterator::~OGRPointIterator()@Base" 2.0.1 1
- (c++)"VFKFeatureSQLite::ExecuteSQL(char const*)@Base" 1.10.1 1
- (c++)"VFKFeatureSQLite::FinalizeSQL()@Base" 1.10.1 1
- (c++)"VFKFeatureSQLite::SetFIDFromDB()@Base" 1.10.1 1
- (c++)"VFKFeatureSQLite::LoadProperties(OGRFeature*)@Base" 1.10.1 1
- (c++)"VFKFeatureSQLite::LoadGeometryPoint()@Base" 1.10.1 1
- (c++)"VFKFeatureSQLite::LoadGeometryPolygon()@Base" 1.10.1 1
- (c++)"VFKFeatureSQLite::LoadGeometryLineStringHP()@Base" 1.10.1 1
- (c++)"VFKFeatureSQLite::LoadGeometryLineStringSBP()@Base" 1.10.1 1
- (c++)"VFKFeatureSQLite::SetRowId(int)@Base" 2.0.1 1
- (c++)"VFKFeatureSQLite::VFKFeatureSQLite(IVFKDataBlock*)@Base" 1.10.1 1
- (c++)"VFKFeatureSQLite::VFKFeatureSQLite(IVFKDataBlock*, int, long long)@Base" 2.0.1 1
- (c++)"VFKFeatureSQLite::VFKFeatureSQLite(VFKFeature const*)@Base" 1.10.1 1
- (c++)"VFKFeatureSQLite::VFKFeatureSQLite(IVFKDataBlock*)@Base" 1.10.1 1
- (c++)"VFKFeatureSQLite::VFKFeatureSQLite(IVFKDataBlock*, int, long long)@Base" 2.0.1 1
- (c++)"VFKFeatureSQLite::VFKFeatureSQLite(VFKFeature const*)@Base" 1.10.1 1
- (c++)"VFKFeatureSQLite::~VFKFeatureSQLite()@Base" 1.10.1 1
- (c++)"VFKFeatureSQLite::~VFKFeatureSQLite()@Base" 1.10.1 1
- (c++)"VFKFeatureSQLite::~VFKFeatureSQLite()@Base" 1.10.1 1
  (c++)"VRTComplexSource::GetMaximum(int, int, int*)@Base" 1.11.0 1
  (c++)"VRTComplexSource::GetMinimum(int, int, int*)@Base" 1.11.0 1
  (c++)"VRTComplexSource::LookupValue(double)@Base" 1.11.0 1
@@ -1407,7 +1417,9 @@ libgdal.so.20 libgdal20 #MINVER#
  (c++)"VRTComplexSource::GetType()@Base" 1.11.0 1
  (c++)"VRTComplexSource::XMLInit(CPLXMLNode*, char const*)@Base" 1.11.0 1
  (c++)"VRTComplexSource::RasterIO(int, int, int, int, void*, int, int, GDALDataType, long long, long long, GDALRasterIOExtraArg*)@Base" 2.0.1 1
+ (c++)"VRTComplexSource::VRTComplexSource(VRTComplexSource const*, double, double)@Base" 2.1.0~beta1 1
  (c++)"VRTComplexSource::VRTComplexSource()@Base" 1.11.0 1
+ (c++)"VRTComplexSource::VRTComplexSource(VRTComplexSource const*, double, double)@Base" 2.1.0~beta1 1
  (c++)"VRTComplexSource::VRTComplexSource()@Base" 1.11.0 1
  (c++)"VRTComplexSource::~VRTComplexSource()@Base" 1.11.0 1
  (c++)"VRTComplexSource::~VRTComplexSource()@Base" 1.11.0 1
@@ -1473,6 +1485,7 @@ libgdal.so.20 libgdal20 #MINVER#
  (c++)"GDALPamRasterBand::SetMetadataItem(char const*, char const*, char const*)@Base" 1.8.0 1
  (c++)"GDALPamRasterBand::GetCategoryNames()@Base" 1.8.0 1
  (c++)"GDALPamRasterBand::SetCategoryNames(char**)@Base" 1.8.0 1
+ (c++)"GDALPamRasterBand::DeleteNoDataValue()@Base" 2.1.0~beta1 1
  (c++)"GDALPamRasterBand::GetDefaultHistogram(double*, double*, int*, unsigned long long**, int, int (*)(double, char const*, void*), void*)@Base" 2.0.1 1
  (c++)"GDALPamRasterBand::SetDefaultHistogram(double, double, int, unsigned long long*)@Base" 2.0.1 1
  (c++)"GDALPamRasterBand::GetColorInterpretation()@Base" 1.8.0 1
@@ -1484,7 +1497,9 @@ libgdal.so.20 libgdal20 #MINVER#
  (c++)"GDALPamRasterBand::CloneInfo(GDALRasterBand*, int)@Base" 1.8.0 1
  (c++)"GDALPamRasterBand::GetOffset(int*)@Base" 1.8.0 1
  (c++)"GDALPamRasterBand::SetOffset(double)@Base" 1.8.0 1
+ (c++)"GDALPamRasterBand::GDALPamRasterBand(int)@Base" 2.1.0~beta1 1
  (c++)"GDALPamRasterBand::GDALPamRasterBand()@Base" 1.8.0 1
+ (c++)"GDALPamRasterBand::GDALPamRasterBand(int)@Base" 2.1.0~beta1 1
  (c++)"GDALPamRasterBand::GDALPamRasterBand()@Base" 1.8.0 1
  (c++)"GDALPamRasterBand::~GDALPamRasterBand()@Base" 1.8.0 1
  (c++)"GDALPamRasterBand::~GDALPamRasterBand()@Base" 1.8.0 1
@@ -1512,11 +1527,14 @@ libgdal.so.20 libgdal20 #MINVER#
  (c++)"OGRCircularString::segmentize(double)@Base" 2.0.1 1
  (c++)"OGRCircularString::importFromWkb(unsigned char*, int, OGRwkbVariant)@Base" 2.0.1 1
  (c++)"OGRCircularString::importFromWkt(char**)@Base" 2.0.1 1
+ (c++)"OGRCircularString::OGRCircularString(OGRCircularString const&)@Base" 2.1.0~beta1 1
  (c++)"OGRCircularString::OGRCircularString()@Base" 2.0.1 1
+ (c++)"OGRCircularString::OGRCircularString(OGRCircularString const&)@Base" 2.1.0~beta1 1
  (c++)"OGRCircularString::OGRCircularString()@Base" 2.0.1 1
  (c++)"OGRCircularString::~OGRCircularString()@Base" 2.0.1 1
  (c++)"OGRCircularString::~OGRCircularString()@Base" 2.0.1 1
  (c++)"OGRCircularString::~OGRCircularString()@Base" 2.0.1 1
+ (c++)"OGRCircularString::operator=(OGRCircularString const&)@Base" 2.1.0~beta1 1
  (c++)"OGRLayerAttrIndex::OGRLayerAttrIndex()@Base" 1.8.0 1
  (c++)"OGRLayerAttrIndex::OGRLayerAttrIndex()@Base" 1.8.0 1
  (c++)"OGRLayerAttrIndex::~OGRLayerAttrIndex()@Base" 1.8.0 1
@@ -1543,6 +1561,7 @@ libgdal.so.20 libgdal20 #MINVER#
  (c++)"OGRLayerDecorator::ICreateFeature(OGRFeature*)@Base" 2.0.1 1
  (c++)"OGRLayerDecorator::SetNextByIndex(long long)@Base" 2.0.1 1
  (c++)"OGRLayerDecorator::TestCapability(char const*)@Base" 2.0.1 1
+ (c++)"OGRLayerDecorator::CreateGeomField(OGRGeomFieldDefn*, int)@Base" 2.1.0~beta1 1
  (c++)"OGRLayerDecorator::GetFeatureCount(int)@Base" 2.0.1 1
  (c++)"OGRLayerDecorator::GetMetadataItem(char const*, char const*)@Base" 2.0.1 1
  (c++)"OGRLayerDecorator::SetMetadataItem(char const*, char const*, char const*)@Base" 2.0.1 1
@@ -1585,18 +1604,23 @@ libgdal.so.20 libgdal20 #MINVER#
  (c++)"OGRCurveCollection::segmentize(double)@Base" 2.0.1 1
  (c++)"OGRCurveCollection::stealCurve(int)@Base" 2.0.1 1
  (c++)"OGRCurveCollection::flattenTo2D(OGRGeometry*)@Base" 2.0.1 1
+ (c++)"OGRCurveCollection::setMeasured(OGRGeometry*, int)@Base" 2.1.0~beta1 1
  (c++)"OGRCurveCollection::addCurveDirectly(OGRGeometry*, OGRCurve*, int)@Base" 2.0.1 1
  (c++)"OGRCurveCollection::importBodyFromWkb(OGRGeometry*, unsigned char*, int, int, int, int (*)(OGRGeometry*, OGRCurve*), OGRwkbVariant)@Base" 2.0.1 1
  (c++)"OGRCurveCollection::importPreambuleFromWkb(OGRGeometry*, unsigned char*, int&, int&, OGRwkbByteOrder&, int, OGRwkbVariant)@Base" 2.0.1 1
  (c++)"OGRCurveCollection::setCoordinateDimension(OGRGeometry*, int)@Base" 2.0.1 1
  (c++)"OGRCurveCollection::empty(OGRGeometry*)@Base" 2.0.1 1
+ (c++)"OGRCurveCollection::set3D(OGRGeometry*, int)@Base" 2.1.0~beta1 1
  (c++)"OGRCurveCollection::swapXY()@Base" 2.0.1 1
  (c++)"OGRCurveCollection::getCurve(int)@Base" 2.0.1 1
  (c++)"OGRCurveCollection::transform(OGRGeometry*, OGRCoordinateTransformation*)@Base" 2.0.1 1
+ (c++)"OGRCurveCollection::OGRCurveCollection(OGRCurveCollection const&)@Base" 2.1.0~beta1 1
  (c++)"OGRCurveCollection::OGRCurveCollection()@Base" 2.0.1 1
+ (c++)"OGRCurveCollection::OGRCurveCollection(OGRCurveCollection const&)@Base" 2.1.0~beta1 1
  (c++)"OGRCurveCollection::OGRCurveCollection()@Base" 2.0.1 1
  (c++)"OGRCurveCollection::~OGRCurveCollection()@Base" 2.0.1 1
  (c++)"OGRCurveCollection::~OGRCurveCollection()@Base" 2.0.1 1
+ (c++)"OGRCurveCollection::operator=(OGRCurveCollection const&)@Base" 2.1.0~beta1 1
  (c++)"OGRGeometryFactory::createFromFgf(unsigned char*, OGRSpatialReference*, OGRGeometry**, int, int*)@Base" 1.8.0 1
  (c++)"OGRGeometryFactory::createFromGML(char const*)@Base" 1.8.0 1
  (c++)"OGRGeometryFactory::createFromWkb(unsigned char*, OGRSpatialReference*, OGRGeometry**, int, OGRwkbVariant)@Base" 2.0.1 1
@@ -1619,28 +1643,25 @@ libgdal.so.20 libgdal20 #MINVER#
  (c++)"OGRGeometryFactory::forceTo(OGRGeometry*, OGRwkbGeometryType, char const* const*)@Base" 2.0.1 1
  (c++)"OGRGeometryFactory::haveGEOS()@Base" 1.8.0 1
  (c++)"OGRMultiLineString::CastToMultiCurve(OGRMultiLineString*)@Base" 2.0.1 1
+ (c++)"OGRMultiLineString::OGRMultiLineString(OGRMultiLineString const&)@Base" 2.1.0~beta1 1
  (c++)"OGRMultiLineString::OGRMultiLineString()@Base" 1.8.0 1
+ (c++)"OGRMultiLineString::OGRMultiLineString(OGRMultiLineString const&)@Base" 2.1.0~beta1 1
  (c++)"OGRMultiLineString::OGRMultiLineString()@Base" 1.8.0 1
  (c++)"OGRMultiLineString::~OGRMultiLineString()@Base" 1.8.0 1
  (c++)"OGRMultiLineString::~OGRMultiLineString()@Base" 1.8.0 1
  (c++)"OGRMultiLineString::~OGRMultiLineString()@Base" 1.8.0 1
- (c++)"VFKDataBlockSQLite::GetFeature(char const*, unsigned long long, bool)@Base" 1.10.1 1
- (c++)"VFKDataBlockSQLite::GetFeature(char const**, unsigned long long*, int, bool)@Base" 1.10.1 1
- (c++)"VFKDataBlockSQLite::GetFeature(long long)@Base" 2.0.1 1
- (c++)"VFKDataBlockSQLite::GetFeatures(char const**, unsigned long long*, int)@Base" 1.10.1 1
- (c++)"VFKDataBlockSQLite::IsRingClosed(OGRLinearRing const*)@Base" 1.10.1 1
- (c++)"VFKDataBlockSQLite::UpdateVfkBlocks(int)@Base" 1.10.1 1
- (c++)"VFKDataBlockSQLite::SaveGeometryToDB(OGRGeometry const*, int)@Base" 1.10.1 1
- (c++)"VFKDataBlockSQLite::LoadGeometryPoint()@Base" 1.10.1 1
- (c++)"VFKDataBlockSQLite::LoadGeometryFromDB()@Base" 1.10.1 1
- (c++)"VFKDataBlockSQLite::LoadGeometryPolygon()@Base" 1.10.1 1
- (c++)"VFKDataBlockSQLite::SetGeometryLineString(VFKFeatureSQLite*, OGRLineString*, bool&, char const*, std::vector<int, std::allocator<int> >&, int&)@Base" 2.0.1 1
- (c++)"VFKDataBlockSQLite::LoadGeometryLineStringHP()@Base" 1.10.1 1
- (c++)"VFKDataBlockSQLite::LoadGeometryLineStringSBP()@Base" 1.10.1 1
- (c++)"VFKDataBlockSQLite::UpdateFID(long long, std::vector<int, std::allocator<int> >)@Base" 2.0.1 1
- (c++)"VFKDataBlockSQLite::~VFKDataBlockSQLite()@Base" 1.10.1 1
- (c++)"VFKDataBlockSQLite::~VFKDataBlockSQLite()@Base" 1.10.1 1
- (c++)"VFKDataBlockSQLite::~VFKDataBlockSQLite()@Base" 1.10.1 1
+ (c++)"OGRMultiLineString::operator=(OGRMultiLineString const&)@Base" 2.1.0~beta1 1
+ (c++)"CPLWorkerThreadPool::GetNextJob(CPLWorkerThread*)@Base" 2.1.0~beta1 1
+ (c++)"CPLWorkerThreadPool::SubmitJobs(void (*)(void*), std::vector<void*, std::allocator<void*> > const&)@Base" 2.1.0~beta1 1
+ (c++)"CPLWorkerThreadPool::WaitCompletion(int)@Base" 2.1.0~beta1 1
+ (c++)"CPLWorkerThreadPool::DeclareJobFinished()@Base" 2.1.0~beta1 1
+ (c++)"CPLWorkerThreadPool::WorkerThreadFunction(void*)@Base" 2.1.0~beta1 1
+ (c++)"CPLWorkerThreadPool::Setup(int, void (*)(void*), void**)@Base" 2.1.0~beta1 1
+ (c++)"CPLWorkerThreadPool::SubmitJob(void (*)(void*), void*)@Base" 2.1.0~beta1 1
+ (c++)"CPLWorkerThreadPool::CPLWorkerThreadPool()@Base" 2.1.0~beta1 1
+ (c++)"CPLWorkerThreadPool::CPLWorkerThreadPool()@Base" 2.1.0~beta1 1
+ (c++)"CPLWorkerThreadPool::~CPLWorkerThreadPool()@Base" 2.1.0~beta1 1
+ (c++)"CPLWorkerThreadPool::~CPLWorkerThreadPool()@Base" 2.1.0~beta1 1
  (c++)"GDALMDReaderManager::GetReader(char const*, char**, unsigned int)@Base" 2.0.1 1
  (c++)"GDALMDReaderManager::GDALMDReaderManager()@Base" 2.0.1 1
  (c++)"GDALMDReaderManager::GDALMDReaderManager()@Base" 2.0.1 1
@@ -1677,6 +1698,7 @@ libgdal.so.20 libgdal20 #MINVER#
  (c++)"GDALProxyRasterBand::GetOverviewCount()@Base" 1.8.0 1
  (c++)"GDALProxyRasterBand::SetCategoryNames(char**)@Base" 1.8.0 1
  (c++)"GDALProxyRasterBand::ComputeStatistics(int, double*, double*, double*, double*, int (*)(double, char const*, void*), void*)@Base" 1.8.0 1
+ (c++)"GDALProxyRasterBand::DeleteNoDataValue()@Base" 2.1.0~beta1 1
  (c++)"GDALProxyRasterBand::GetVirtualMemAuto(GDALRWFlag, int*, long long*, char**)@Base" 1.11.0 1
  (c++)"GDALProxyRasterBand::ComputeRasterMinMax(int, double*)@Base" 1.8.0 1
  (c++)"GDALProxyRasterBand::GetDefaultHistogram(double*, double*, int*, unsigned long long**, int, int (*)(double, char const*, void*), void*)@Base" 2.0.1 1
@@ -1786,6 +1808,7 @@ libgdal.so.20 libgdal20 #MINVER#
  (c++)"OGRSpatialReference::SetIGH()@Base" 1.9.0 1
  (c++)"OGRSpatialReference::SetLCC(double, double, double, double, double, double)@Base" 1.8.0 1
  (c++)"OGRSpatialReference::SetQSC(double, double)@Base" 2.0.1 1
+ (c++)"OGRSpatialReference::SetSCH(double, double, double, double)@Base" 2.1.0~beta1 1
  (c++)"OGRSpatialReference::SetSOC(double, double, double, double)@Base" 1.8.0 1
  (c++)"OGRSpatialReference::SetTMG(double, double, double, double)@Base" 1.8.0 1
  (c++)"OGRSpatialReference::SetUTM(int, int)@Base" 1.8.0 1
@@ -1853,6 +1876,7 @@ libgdal.so.20 libgdal20 #MINVER#
  (c++)"GDALDefaultOverviews::CleanOverviews()@Base" 1.8.0 1
  (c++)"GDALDefaultOverviews::CreateMaskBand(int, int)@Base" 1.8.0 1
  (c++)"GDALDefaultOverviews::GetOverviewCount(int)@Base" 1.8.0 1
+ (c++)"GDALDefaultOverviews::TransferSiblingFiles(char**)@Base" 2.1.0~beta1 1
  (c++)"GDALDefaultOverviews::CloseDependentDatasets()@Base" 1.9.0 1
  (c++)"GDALDefaultOverviews::BuildOverviewsSubDataset(char const*, char const*, int, int*, int, int*, int (*)(double, char const*, void*), void*)@Base" 1.8.0 1
  (c++)"GDALDefaultOverviews::GDALDefaultOverviews()@Base" 1.8.0 1
@@ -1952,12 +1976,12 @@ libgdal.so.20 libgdal20 #MINVER#
  (c++)"VRTSourcedRasterBand::GetHistogram(double, double, int, unsigned long long*, int, int, int (*)(double, char const*, void*), void*)@Base" 2.0.1 1
  (c++)"VRTSourcedRasterBand::AddFuncSource(CPLErr (*)(void*, int, int, int, int, void*), void*, double)@Base" 1.8.0 1
  (c++)"VRTSourcedRasterBand::SerializeToXML(char const*)@Base" 1.8.0 1
- (c++)"VRTSourcedRasterBand::AddSimpleSource(GDALRasterBand*, int, int, int, int, int, int, int, int, char const*, double)@Base" 1.8.0 1
- (c++)"VRTSourcedRasterBand::ConfigureSource(VRTSimpleSource*, GDALRasterBand*, int, int, int, int, int, int, int, int, int)@Base" 1.11.0 1
+ (c++)"VRTSourcedRasterBand::AddSimpleSource(GDALRasterBand*, double, double, double, double, double, double, double, double, char const*, double)@Base" 2.1.0~beta1 1
+ (c++)"VRTSourcedRasterBand::ConfigureSource(VRTSimpleSource*, GDALRasterBand*, int, double, double, double, double, double, double, double, double)@Base" 2.1.0~beta1 1
  (c++)"VRTSourcedRasterBand::GetMetadataItem(char const*, char const*)@Base" 1.8.0 1
  (c++)"VRTSourcedRasterBand::SetMetadataItem(char const*, char const*, char const*)@Base" 1.8.0 1
- (c++)"VRTSourcedRasterBand::AddComplexSource(GDALRasterBand*, int, int, int, int, int, int, int, int, double, double, double, int)@Base" 1.8.0 1
- (c++)"VRTSourcedRasterBand::AddMaskBandSource(GDALRasterBand*, int, int, int, int, int, int, int, int)@Base" 1.8.0 1
+ (c++)"VRTSourcedRasterBand::AddComplexSource(GDALRasterBand*, double, double, double, double, double, double, double, double, double, double, double, int)@Base" 2.1.0~beta1 1
+ (c++)"VRTSourcedRasterBand::AddMaskBandSource(GDALRasterBand*, double, double, double, double, double, double, double, double)@Base" 2.1.0~beta1 1
  (c++)"VRTSourcedRasterBand::ComputeStatistics(int, double*, double*, double*, double*, int (*)(double, char const*, void*), void*)@Base" 1.10.1 1
  (c++)"VRTSourcedRasterBand::ComputeRasterMinMax(int, double*)@Base" 1.10.1 1
  (c++)"VRTSourcedRasterBand::IsSourcedRasterBand()@Base" 1.9.0 1
@@ -1977,11 +2001,14 @@ libgdal.so.20 libgdal20 #MINVER#
  (c++)"VRTSourcedRasterBand::~VRTSourcedRasterBand()@Base" 1.8.0 1
  (c++)"VRTSourcedRasterBand::~VRTSourcedRasterBand()@Base" 1.8.0 1
  (c++)"VSIFilesystemHandler::IsCaseSensitive(char const*)@Base" 1.8.0 1
+ (c++)"VSIFilesystemHandler::GetDiskFreeSpace(char const*)@Base" 2.1.0~beta1 1
+ (c++)"VSIFilesystemHandler::Open(char const*, char const*)@Base" 2.1.0~beta1 1
  (c++)"VSIFilesystemHandler::Mkdir(char const*, long)@Base" 1.8.0 1
  (c++)"VSIFilesystemHandler::Rmdir(char const*)@Base" 1.8.0 1
  (c++)"VSIFilesystemHandler::Rename(char const*, char const*)@Base" 1.8.0 1
  (c++)"VSIFilesystemHandler::Unlink(char const*)@Base" 1.8.0 1
  (c++)"VSIFilesystemHandler::ReadDir(char const*)@Base" 1.8.0 1
+ (c++)"VSIFilesystemHandler::ReadDirEx(char const*, int)@Base" 2.1.0~beta1 1
  (c++)"OGRGenSQLResultsLayer::GetFeature(long long)@Base" 2.0.1 1
  (c++)"OGRGenSQLResultsLayer::ClearFilters()@Base" 1.8.0 1
  (c++)"OGRGenSQLResultsLayer::GetLayerDefn()@Base" 1.8.0 1
@@ -2017,6 +2044,7 @@ libgdal.so.20 libgdal20 #MINVER#
  (c++)"OGRGeometryCollection::segmentize(double)@Base" 1.8.0 1
  (c++)"OGRGeometryCollection::addGeometry(OGRGeometry const*)@Base" 1.8.0 1
  (c++)"OGRGeometryCollection::flattenTo2D()@Base" 1.8.0 1
+ (c++)"OGRGeometryCollection::setMeasured(int)@Base" 2.1.0~beta1 1
  (c++)"OGRGeometryCollection::importFromWkb(unsigned char*, int, OGRwkbVariant)@Base" 2.0.1 1
  (c++)"OGRGeometryCollection::importFromWkt(char**)@Base" 1.8.0 1
  (c++)"OGRGeometryCollection::getGeometryRef(int)@Base" 1.8.0 1
@@ -2027,13 +2055,17 @@ libgdal.so.20 libgdal20 #MINVER#
  (c++)"OGRGeometryCollection::setCoordinateDimension(int)@Base" 1.8.0 1
  (c++)"OGRGeometryCollection::TransferMembersAndDestroy(OGRGeometryCollection*, OGRGeometryCollection*)@Base" 2.0.1 1
  (c++)"OGRGeometryCollection::empty()@Base" 1.8.0 1
+ (c++)"OGRGeometryCollection::set3D(int)@Base" 2.1.0~beta1 1
  (c++)"OGRGeometryCollection::swapXY()@Base" 1.8.0 1
  (c++)"OGRGeometryCollection::transform(OGRCoordinateTransformation*)@Base" 1.8.0 1
+ (c++)"OGRGeometryCollection::OGRGeometryCollection(OGRGeometryCollection const&)@Base" 2.1.0~beta1 1
  (c++)"OGRGeometryCollection::OGRGeometryCollection()@Base" 1.8.0 1
+ (c++)"OGRGeometryCollection::OGRGeometryCollection(OGRGeometryCollection const&)@Base" 2.1.0~beta1 1
  (c++)"OGRGeometryCollection::OGRGeometryCollection()@Base" 1.8.0 1
  (c++)"OGRGeometryCollection::~OGRGeometryCollection()@Base" 1.8.0 1
  (c++)"OGRGeometryCollection::~OGRGeometryCollection()@Base" 1.8.0 1
  (c++)"OGRGeometryCollection::~OGRGeometryCollection()@Base" 1.8.0 1
+ (c++)"OGRGeometryCollection::operator=(OGRGeometryCollection const&)@Base" 2.1.0~beta1 1
  (c++)"CPLODBCDriverInstaller::RemoveDriver(char const*, int)@Base" 1.8.0 1
  (c++)"CPLODBCDriverInstaller::InstallDriver(char const*, char const*, unsigned short)@Base" 1.8.0 1
  (c++)"CPLODBCDriverInstaller::CPLODBCDriverInstaller()@Base" 1.8.0 1
@@ -2079,8 +2111,8 @@ libgdal.so.20 libgdal20 #MINVER#
  (c++)"GDALProxyPoolRasterBand::~GDALProxyPoolRasterBand()@Base" 1.8.0 1
  (c++)"GDALProxyPoolRasterBand::~GDALProxyPoolRasterBand()@Base" 1.8.0 1
  (c++)"GDALProxyPoolRasterBand::~GDALProxyPoolRasterBand()@Base" 1.8.0 1
- (c++)"GMLGeometryPropertyDefn::GMLGeometryPropertyDefn(char const*, char const*, int, int, int)@Base" 2.0.1 1
- (c++)"GMLGeometryPropertyDefn::GMLGeometryPropertyDefn(char const*, char const*, int, int, int)@Base" 2.0.1 1
+ (c++)"GMLGeometryPropertyDefn::GMLGeometryPropertyDefn(char const*, char const*, int, int, bool)@Base" 2.1.0~beta1 1
+ (c++)"GMLGeometryPropertyDefn::GMLGeometryPropertyDefn(char const*, char const*, int, int, bool)@Base" 2.1.0~beta1 1
  (c++)"GMLGeometryPropertyDefn::~GMLGeometryPropertyDefn()@Base" 1.11.0 1
  (c++)"GMLGeometryPropertyDefn::~GMLGeometryPropertyDefn()@Base" 1.11.0 1
  (c++)"GDALNoDataValuesMaskBand::IReadBlock(int, int, void*)@Base" 1.8.0 1
@@ -2105,7 +2137,20 @@ libgdal.so.20 libgdal20 #MINVER#
  (c++)"IOGRTransactionBehaviour::~IOGRTransactionBehaviour()@Base" 2.0.1 1
  (c++)"IOGRTransactionBehaviour::~IOGRTransactionBehaviour()@Base" 2.0.1 1
  (c++)"IOGRTransactionBehaviour::~IOGRTransactionBehaviour()@Base" 2.0.1 1
+ (c++)"GDALAbstractBandBlockCache::CreateBlock(int, int)@Base" 2.1.0~beta1 1
+ (c++)"GDALAbstractBandBlockCache::AddBlockToFreeList(GDALRasterBlock*)@Base" 2.1.0~beta1 1
+ (c++)"GDALAbstractBandBlockCache::FreeDanglingBlocks()@Base" 2.1.0~beta1 1
+ (c++)"GDALAbstractBandBlockCache::UnreferenceBlockBase()@Base" 2.1.0~beta1 1
+ (c++)"GDALAbstractBandBlockCache::WaitKeepAliveCounter()@Base" 2.1.0~beta1 1
+ (c++)"GDALAbstractBandBlockCache::GDALAbstractBandBlockCache(GDALRasterBand*)@Base" 2.1.0~beta1 1
+ (c++)"GDALAbstractBandBlockCache::GDALAbstractBandBlockCache(GDALRasterBand*)@Base" 2.1.0~beta1 1
+ (c++)"GDALAbstractBandBlockCache::~GDALAbstractBandBlockCache()@Base" 2.1.0~beta1 1
+ (c++)"GDALAbstractBandBlockCache::~GDALAbstractBandBlockCache()@Base" 2.1.0~beta1 1
+ (c++)"GDALAbstractBandBlockCache::~GDALAbstractBandBlockCache()@Base" 2.1.0~beta1 1
  (c++)"OGRCoordinateTransformation::DestroyCT(OGRCoordinateTransformation*)@Base" 1.8.0 1
+ (c++)"IOGREditableLayerSynchronizer::~IOGREditableLayerSynchronizer()@Base" 2.1.0~beta1 1
+ (c++)"IOGREditableLayerSynchronizer::~IOGREditableLayerSynchronizer()@Base" 2.1.0~beta1 1
+ (c++)"IOGREditableLayerSynchronizer::~IOGREditableLayerSynchronizer()@Base" 2.1.0~beta1 1
  (c++)"GDALDefaultRasterAttributeTable::SetRowCount(int)@Base" 1.11.0 1
  (c++)"GDALDefaultRasterAttributeTable::CreateColumn(char const*, GDALRATFieldType, GDALRATFieldUsage)@Base" 1.11.0 1
  (c++)"GDALDefaultRasterAttributeTable::AnalyseColumns()@Base" 1.11.0 1
@@ -2124,11 +2169,14 @@ libgdal.so.20 libgdal20 #MINVER#
  (c++)"OGRCurve::CastToLineString(OGRCurve*)@Base" 2.0.1 1
  (c++)"OGRCurve::CastToLinearRing(OGRCurve*)@Base" 2.0.1 1
  (c++)"OGRCurve::CastToCompoundCurve(OGRCurve*)@Base" 2.0.1 1
+ (c++)"OGRCurve::OGRCurve(OGRCurve const&)@Base" 2.1.0~beta1 1
  (c++)"OGRCurve::OGRCurve()@Base" 1.8.0 1
+ (c++)"OGRCurve::OGRCurve(OGRCurve const&)@Base" 2.1.0~beta1 1
  (c++)"OGRCurve::OGRCurve()@Base" 1.8.0 1
  (c++)"OGRCurve::~OGRCurve()@Base" 1.8.0 1
  (c++)"OGRCurve::~OGRCurve()@Base" 1.8.0 1
  (c++)"OGRCurve::~OGRCurve()@Base" 1.8.0 1
+ (c++)"OGRCurve::operator=(OGRCurve const&)@Base" 2.1.0~beta1 1
  (c++)"OGRLayer::GetFeature(long long)@Base" 2.0.1 1
  (c++)"OGRLayer::SetFeature(OGRFeature*)@Base" 1.8.0 1
  (c++)"OGRLayer::SyncToDisk()@Base" 1.8.0 1
@@ -2170,7 +2218,7 @@ libgdal.so.20 libgdal20 #MINVER#
  (c++)"OGRLayer::SetSpatialFilterRect(int, double, double, double, double)@Base" 1.11.0 1
  (c++)"OGRLayer::SetStyleTableDirectly(OGRStyleTable*)@Base" 1.8.0 1
  (c++)"OGRLayer::InitializeIndexSupport(char const*)@Base" 1.8.0 1
- (c++)"OGRLayer::ConvertNonLinearGeomsIfNecessary(OGRFeature*)@Base" 2.0.1 1
+ (c++)"OGRLayer::ConvertGeomsIfNecessary(OGRFeature*)@Base" 2.1.0~beta1 1
  (c++)"OGRLayer::AttributeFilterEvaluationNeedsGeometry()@Base" 1.9.0 1
  (c++)"OGRLayer::Clip(OGRLayer*, OGRLayer*, char**, int (*)(double, char const*, void*), void*)@Base" 1.10.1 1
  (c++)"OGRLayer::Erase(OGRLayer*, OGRLayer*, char**, int (*)(double, char const*, void*), void*)@Base" 1.10.1 1
@@ -2193,15 +2241,20 @@ libgdal.so.20 libgdal20 #MINVER#
  (c++)"OGRPoint::empty()@Base" 1.8.0 1
  (c++)"OGRPoint::swapXY()@Base" 1.8.0 1
  (c++)"OGRPoint::transform(OGRCoordinateTransformation*)@Base" 1.8.0 1
+ (c++)"OGRPoint::OGRPoint(OGRPoint const&)@Base" 2.1.0~beta1 1
  (c++)"OGRPoint::OGRPoint(double, double)@Base" 1.8.0 1
  (c++)"OGRPoint::OGRPoint(double, double, double)@Base" 1.8.0 1
+ (c++)"OGRPoint::OGRPoint(double, double, double, double)@Base" 2.1.0~beta1 1
  (c++)"OGRPoint::OGRPoint()@Base" 1.8.0 1
+ (c++)"OGRPoint::OGRPoint(OGRPoint const&)@Base" 2.1.0~beta1 1
  (c++)"OGRPoint::OGRPoint(double, double)@Base" 1.8.0 1
  (c++)"OGRPoint::OGRPoint(double, double, double)@Base" 1.8.0 1
+ (c++)"OGRPoint::OGRPoint(double, double, double, double)@Base" 2.1.0~beta1 1
  (c++)"OGRPoint::OGRPoint()@Base" 1.8.0 1
  (c++)"OGRPoint::~OGRPoint()@Base" 1.8.0 1
  (c++)"OGRPoint::~OGRPoint()@Base" 1.8.0 1
  (c++)"OGRPoint::~OGRPoint()@Base" 1.8.0 1
+ (c++)"OGRPoint::operator=(OGRPoint const&)@Base" 2.1.0~beta1 1
  (c++)"CPLString::Trim()@Base" 1.8.0 1
  (c++)"CPLString::Printf(char const*, ...)@Base" 1.8.0 1
  (c++)"CPLString::Recode(char const*, char const*)@Base" 1.8.0 1
@@ -2209,6 +2262,8 @@ libgdal.so.20 libgdal20 #MINVER#
  (c++)"CPLString::tolower()@Base" 1.9.0 1
  (c++)"CPLString::toupper()@Base" 1.9.0 1
  (c++)"CPLString::vPrintf(char const*, std::__va_list)@Base" 1.8.0 1
+ (c++)"CPLString::~CPLString()@Base" 2.1.0~beta1 1
+ (c++)"CPLString::~CPLString()@Base" 2.1.0~beta1 1
  (c++)"S57Reader::FetchPoint(int, int, double*, double*, double*)@Base" 1.8.0 1
  (c++)"S57Reader::ReadVector(int, int)@Base" 1.8.0 1
  (c++)"S57Reader::SetOptions(char**)@Base" 1.8.0 1
@@ -2283,8 +2338,6 @@ libgdal.so.20 libgdal20 #MINVER#
  (c++)"OGRPolygon::GetCasterToCurvePolygon() const@Base" 2.0.1 1
  (c++)"OGRPolygon::WkbSize() const@Base" 1.8.0 1
  (c++)"OGRPolygon::checkRing(OGRCurve*) const@Base" 2.0.1 1
- (c++)"VFKFeature::GetProperty(char const*) const@Base" 1.8.0 1
- (c++)"VFKFeature::GetProperty(int) const@Base" 1.8.0 1
  (c++)"GDALDataset::GetRefCount() const@Base" 2.0.1 1
  (c++)"GDALDataset::GetSummaryRefCount() const@Base" 2.0.1 1
  (c++)"OGRGeometry::ConvexHull() const@Base" 1.8.0 1
@@ -2304,7 +2357,10 @@ libgdal.so.20 libgdal20 #MINVER#
  (c++)"OGRGeometry::hasCurveGeometry(int) const@Base" 2.0.1 1
  (c++)"OGRGeometry::getLinearGeometry(double, char const* const*) const@Base" 2.0.1 1
  (c++)"OGRGeometry::getIsoGeometryType() const@Base" 1.11.0 1
+ (c++)"OGRGeometry::CoordinateDimension() const@Base" 2.1.0~beta1 1
  (c++)"OGRGeometry::SymmetricDifference(OGRGeometry const*) const@Base" 1.8.0 1
+ (c++)"OGRGeometry::DelaunayTriangulation(double, int) const@Base" 2.1.0~beta1 1
+ (c++)"OGRGeometry::PointOnSurfaceInternal(OGRPoint*) const@Base" 2.1.0~beta1 1
  (c++)"OGRGeometry::getCoordinateDimension() const@Base" 1.8.0 1
  (c++)"OGRGeometry::SimplifyPreserveTopology(double) const@Base" 1.9.0 1
  (c++)"OGRGeometry::Equal(OGRGeometry*) const@Base" 1.8.0 1
@@ -2313,6 +2369,7 @@ libgdal.so.20 libgdal20 #MINVER#
  (c++)"OGRGeometry::IsRing() const@Base" 1.8.0 1
  (c++)"OGRGeometry::Within(OGRGeometry const*) const@Base" 1.8.0 1
  (c++)"OGRGeometry::Crosses(OGRGeometry const*) const@Base" 1.8.0 1
+ (c++)"OGRGeometry::IsEmpty() const@Base" 2.1.0~beta1 1
  (c++)"OGRGeometry::IsValid() const@Base" 1.8.0 1
  (c++)"OGRGeometry::Touches(OGRGeometry const*) const@Base" 1.8.0 1
  (c++)"OGRGeometry::Boundary() const@Base" 1.8.0 1
@@ -2331,7 +2388,7 @@ libgdal.so.20 libgdal20 #MINVER#
  (c++)"OGR_SRSNode::GetNode(char const*) const@Base" 1.8.0 1
  (c++)"OGR_SRSNode::GetChild(int) const@Base" 1.8.0 1
  (c++)"OGR_SRSNode::FindChild(char const*) const@Base" 1.8.0 1
- (c++)"VFKProperty::GetValueS(bool) const@Base" 2.0.1 1
+ (c++)"GDALOpenInfo::AreSiblingFilesLoaded() const@Base" 2.1.0~beta1 1
  (c++)"OGRFieldDefn::GetDefault() const@Base" 2.0.1 1
  (c++)"OGRFieldDefn::IsDefaultDriverSpecific() const@Base" 2.0.1 1
  (c++)"OGRFieldDefn::IsSame(OGRFieldDefn const*) const@Base" 1.10.1 1
@@ -2340,12 +2397,8 @@ libgdal.so.20 libgdal20 #MINVER#
  (c++)"CPLStringList::FetchNameValueDef(char const*, char const*) const@Base" 1.9.0 1
  (c++)"CPLStringList::Count() const@Base" 1.9.0 1
  (c++)"CPLStringList::FindName(char const*) const@Base" 1.9.0 1
+ (c++)"CPLStringList::FetchBool(char const*, bool) const@Base" 2.1.0~beta1 1
  (c++)"CPLStringList::operator[](int) const@Base" 1.9.0 1
- (c++)"IVFKDataBlock::GetProperty(int) const@Base" 1.10.1 1
- (c++)"IVFKDataBlock::GetRecordCount(RecordType) const@Base" 1.11.0 1
- (c++)"IVFKDataBlock::GetGeometryType() const@Base" 1.10.1 1
- (c++)"IVFKDataBlock::GetPropertyIndex(char const*) const@Base" 1.10.1 1
- (c++)"IVFKDataBlock::GetFeatureByIndex(int) const@Base" 1.10.1 1
  (c++)"OGRLineString::CurveToLine(double, char const* const*) const@Base" 2.0.1 1
  (c++)"OGRLineString::getGeometryName() const@Base" 1.8.0 1
  (c++)"OGRLineString::getGeometryType() const@Base" 1.8.0 1
@@ -2393,6 +2446,7 @@ libgdal.so.20 libgdal20 #MINVER#
  (c++)"OGRSimpleCurve::getNumPoints() const@Base" 2.0.1 1
  (c++)"OGRSimpleCurve::get_LinearArea() const@Base" 2.0.1 1
  (c++)"OGRSimpleCurve::getPointIterator() const@Base" 2.0.1 1
+ (c++)"OGRSimpleCurve::getM(int) const@Base" 2.1.0~beta1 1
  (c++)"OGRSimpleCurve::getZ(int) const@Base" 2.0.1 1
  (c++)"OGRSimpleCurve::Value(double, OGRPoint*) const@Base" 2.0.1 1
  (c++)"OGRSimpleCurve::clone() const@Base" 2.0.1 1
@@ -2404,6 +2458,7 @@ libgdal.so.20 libgdal20 #MINVER#
  (c++)"OGRSimpleCurve::getPoint(int, OGRPoint*) const@Base" 2.0.1 1
  (c++)"OGRSimpleCurve::getPoints(OGRRawPoint*, double*) const@Base" 2.0.1 1
  (c++)"OGRSimpleCurve::getPoints(void*, int, void*, int, void*, int) const@Base" 2.0.1 1
+ (c++)"OGRSimpleCurve::getPoints(void*, int, void*, int, void*, int, void*, int) const@Base" 2.1.0~beta1 1
  (c++)"GDALMajorObject::GetDescription() const@Base" 1.8.0 1
  (c++)"GMLFeatureClass::GetProperty(int) const@Base" 1.8.0 1
  (c++)"GMLFeatureClass::GetElementName() const@Base" 1.8.0 1
@@ -2450,7 +2505,7 @@ libgdal.so.20 libgdal20 #MINVER#
  (c++)"OGRMultiSurface::getGeometryType() const@Base" 2.0.1 1
  (c++)"OGRMultiSurface::hasCurveGeometry(int) const@Base" 2.0.1 1
  (c++)"OGRMultiSurface::isCompatibleSubType(OGRwkbGeometryType) const@Base" 2.0.1 1
- (c++)"VFKPropertyDefn::GetTypeSQL() const@Base" 1.10.1 1
+ (c++)"VRTSimpleSource::NeedMaxValAdjustment() const@Base" 2.1.0~beta1 1
  (c++)"OGRCompoundCurve::StartPoint(OGRPoint*) const@Base" 2.0.1 1
  (c++)"OGRCompoundCurve::get_Length() const@Base" 2.0.1 1
  (c++)"OGRCompoundCurve::CurveToLine(double, char const* const*) const@Base" 2.0.1 1
@@ -2512,7 +2567,6 @@ libgdal.so.20 libgdal20 #MINVER#
  (c++)"OGRMultiLineString::getGeometryType() const@Base" 1.8.0 1
  (c++)"OGRMultiLineString::hasCurveGeometry(int) const@Base" 2.0.1 1
  (c++)"OGRMultiLineString::isCompatibleSubType(OGRwkbGeometryType) const@Base" 2.0.1 1
- (c++)"VFKDataBlockSQLite::GetKey() const@Base" 1.10.1 1
  (c++)"OGRSpatialReference::GetTOWGS84(double*, int) const@Base" 1.8.0 1
  (c++)"OGRSpatialReference::GetUTMZone(int*) const@Base" 1.8.0 1
  (c++)"OGRSpatialReference::IsCompound() const@Base" 1.9.0 1
@@ -2602,7 +2656,6 @@ libgdal.so.20 libgdal20 #MINVER#
  (c++)"OGRPoint::getDimension() const@Base" 1.8.0 1
  (c++)"OGRPoint::getGeometryName() const@Base" 1.8.0 1
  (c++)"OGRPoint::getGeometryType() const@Base" 1.8.0 1
- (c++)"OGRPoint::getCoordinateDimension() const@Base" 2.0.1 1
  (c++)"OGRPoint::clone() const@Base" 1.8.0 1
  (c++)"OGRPoint::Equals(OGRGeometry*) const@Base" 1.8.0 1
  (c++)"OGRPoint::Within(OGRGeometry const*) const@Base" 2.0.1 1
@@ -2610,6 +2663,7 @@ libgdal.so.20 libgdal20 #MINVER#
  (c++)"OGRPoint::WkbSize() const@Base" 1.8.0 1
  (c++)"CPLString::ifind(char const*, unsigned int) const@Base" 1.8.0 1
  (c++)"CPLString::ifind(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, unsigned int) const@Base" 2.0.1 1
+ (c++)"std::ctype<char>::do_widen(char) const@Base" 2.1.0~beta1 1
  (c++)"std::_Rb_tree<CPLString, CPLString, std::_Identity<CPLString>, std::less<CPLString>, std::allocator<CPLString> >::find(CPLString const&) const@Base" 1.10.1 1
  (c++)"std::_Rb_tree<CPLString, std::pair<CPLString const, CPLString>, std::_Select1st<std::pair<CPLString const, CPLString> >, std::less<CPLString>, std::allocator<std::pair<CPLString const, CPLString> > >::find(CPLString const&) const@Base" 1.10.1 1
  (c++)"std::_Deque_base<OGRFeature*, std::allocator<OGRFeature*> >::_M_initialize_map(unsigned int)@Base" 1.8.0 1
@@ -2623,12 +2677,16 @@ libgdal.so.20 libgdal20 #MINVER#
  (c++)"std::pair<CPLString, std::vector<CPLString, std::allocator<CPLString> > >* std::__uninitialized_copy<false>::__uninit_copy<std::pair<CPLString, std::vector<CPLString, std::allocator<CPLString> > >*, std::pair<CPLString, std::vector<CPLString, std::allocator<CPLString> > >*>(std::pair<CPLString, std::vector<CPLString, std::allocator<CPLString> > >*, std::pair<CPLString, std::vector<CPLString, std::allocator<CPLString> > >*, std::pair<CPLString, std::vector<CPLString, std::allocator<CPLString> > >*)@Base" 1.10.1 1
  (c++)"std::vector<std::pair<double, double>, std::allocator<std::pair<double, double> > >* std::__uninitialized_copy<false>::__uninit_copy<std::vector<std::pair<double, double>, std::allocator<std::pair<double, double> > >*, std::vector<std::pair<double, double>, std::allocator<std::pair<double, double> > >*>(std::vector<std::pair<double, double>, std::allocator<std::pair<double, double> > >*, std::vector<std::pair<double, double>, std::allocator<std::pair<double, double> > >*, std::vector<std::pair<double, double>, std::allocator<std::pair<double, double> > >*)@Base" 1.10.1 1
  (c++)"std::pair<CPLString, CPLString>* std::__uninitialized_fill_n<false>::__uninit_fill_n<std::pair<CPLString, CPLString>*, unsigned int, std::pair<CPLString, CPLString> >(std::pair<CPLString, CPLString>*, unsigned int, std::pair<CPLString, CPLString> const&)@Base" 2.0.1 1
+ (c++)"std::map<CPLString, OGREnvelope, std::less<CPLString>, std::allocator<std::pair<CPLString const, OGREnvelope> > >::operator[](CPLString const&)@Base" 2.1.0~beta1 1
  (c++)"std::map<CPLString, CPLErr (*)(void**, int, void*, int, int, GDALDataType, GDALDataType, int, int), std::less<CPLString>, std::allocator<std::pair<CPLString const, CPLErr (*)(void**, int, void*, int, int, GDALDataType, GDALDataType, int, int)> > >::~map()@Base" 1.9.0 1
  (c++)"std::map<CPLString, CPLErr (*)(void**, int, void*, int, int, GDALDataType, GDALDataType, int, int), std::less<CPLString>, std::allocator<std::pair<CPLString const, CPLErr (*)(void**, int, void*, int, int, GDALDataType, GDALDataType, int, int)> > >::~map()@Base" 1.9.0 1
  (c++)"std::map<CPLString, CPLString, std::less<CPLString>, std::allocator<std::pair<CPLString const, CPLString> > >::operator[](CPLString const&)@Base" 1.8.0 1
  (c++)"std::map<CPLString, std::pair<double, double>, std::less<CPLString>, std::allocator<std::pair<CPLString const, std::pair<double, double> > > >::operator[](CPLString const&)@Base" 1.9.0 1
  (c++)"std::map<CPLString, std::vector<CPLString, std::allocator<CPLString> >, std::less<CPLString>, std::allocator<std::pair<CPLString const, std::vector<CPLString, std::allocator<CPLString> > > > >::operator[](CPLString const&)@Base" 1.9.0 1
+ (c++)"std::map<CPLString, int, std::less<CPLString>, std::allocator<std::pair<CPLString const, int> > >::operator[](CPLString const&)@Base" 2.1.0~beta1 1
  (c++)"std::map<std::pair<CPLString, CPLString>, char*, std::less<std::pair<CPLString, CPLString> >, std::allocator<std::pair<std::pair<CPLString, CPLString> const, char*> > >::operator[](std::pair<CPLString, CPLString> const&)@Base" 2.0.1 1
+ (c++)"std::map<int, std::set<CPLString, std::less<CPLString>, std::allocator<CPLString> >, std::less<int>, std::allocator<std::pair<int const, std::set<CPLString, std::less<CPLString>, std::allocator<CPLString> > > > >::operator[](int const&)@Base" 2.1.0~beta1 1
+ (c++)"std::map<int, int, std::less<int>, std::allocator<std::pair<int const, int> > >::operator[](int const&)@Base" 2.1.0~beta1 1
  (c++)"std::pair<CPLString, CPLString>::~pair()@Base" 1.9.0 1
  (c++)"std::pair<CPLString, CPLString>::~pair()@Base" 1.9.0 1
  (c++)"std::pair<CPLString, std::vector<GMLGeometryPropertyDefn*, std::allocator<GMLGeometryPropertyDefn*> > >::~pair()@Base" 2.0.1 1
@@ -2650,13 +2708,14 @@ libgdal.so.20 libgdal20 #MINVER#
  (c++)"std::pair<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >::~pair()@Base" 2.0.1 1
  (c++)"std::pair<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >::~pair()@Base" 2.0.1 1
  (c++)"std::deque<OGRFeature*, std::allocator<OGRFeature*> >::_M_push_back_aux(OGRFeature* const&)@Base" 1.10.1 1
- (c++)"std::vector<VFKProperty, std::allocator<VFKProperty> >::_M_fill_assign(unsigned int, VFKProperty const&)@Base" 1.8.0 1
  (c++)"std::vector<OGRFieldType, std::allocator<OGRFieldType> >::_M_fill_insert(__gnu_cxx::__normal_iterator<OGRFieldType*, std::vector<OGRFieldType, std::allocator<OGRFieldType> > >, unsigned int, OGRFieldType const&)@Base" 2.0.1 1
+ (c++)"std::vector<GDALColorInterp, std::allocator<GDALColorInterp> >::_M_insert_aux(__gnu_cxx::__normal_iterator<GDALColorInterp*, std::vector<GDALColorInterp, std::allocator<GDALColorInterp> > >, GDALColorInterp const&)@Base" 2.1.0~beta1 1
  (c++)"std::vector<OGRPoint, std::allocator<OGRPoint> >::_M_insert_aux(__gnu_cxx::__normal_iterator<OGRPoint*, std::vector<OGRPoint, std::allocator<OGRPoint> > >, OGRPoint const&)@Base" 1.8.0 1
  (c++)"void std::vector<OGRPoint, std::allocator<OGRPoint> >::_M_range_insert<__gnu_cxx::__normal_iterator<OGRPoint*, std::vector<OGRPoint, std::allocator<OGRPoint> > > >(__gnu_cxx::__normal_iterator<OGRPoint*, std::vector<OGRPoint, std::allocator<OGRPoint> > >, __gnu_cxx::__normal_iterator<OGRPoint*, std::vector<OGRPoint, std::allocator<OGRPoint> > >, __gnu_cxx::__normal_iterator<OGRPoint*, std::vector<OGRPoint, std::allocator<OGRPoint> > >, std::forward_iterator_tag)@Base" 1.8.0 1
  (c++)"void std::vector<OGRPoint, std::allocator<OGRPoint> >::_M_range_insert<std::reverse_iterator<__gnu_cxx::__normal_iterator<OGRPoint*, std::vector<OGRPoint, std::allocator<OGRPoint> > > > >(__gnu_cxx::__normal_iterator<OGRPoint*, std::vector<OGRPoint, std::allocator<OGRPoint> > >, std::reverse_iterator<__gnu_cxx::__normal_iterator<OGRPoint*, std::vector<OGRPoint, std::allocator<OGRPoint> > > >, std::reverse_iterator<__gnu_cxx::__normal_iterator<OGRPoint*, std::vector<OGRPoint, std::allocator<OGRPoint> > > >, std::forward_iterator_tag)@Base" 1.8.0 1
  (c++)"std::vector<CPLString, std::allocator<CPLString> >::_M_insert_aux(__gnu_cxx::__normal_iterator<CPLString*, std::vector<CPLString, std::allocator<CPLString> > >, CPLString const&)@Base" 1.8.0 1
  (c++)"std::vector<CPLString, std::allocator<CPLString> >::_M_fill_insert(__gnu_cxx::__normal_iterator<CPLString*, std::vector<CPLString, std::allocator<CPLString> > >, unsigned int, CPLString const&)@Base" 1.8.0 1
+ (c++)"std::vector<CPLString, std::allocator<CPLString> >::insert(__gnu_cxx::__normal_iterator<CPLString*, std::vector<CPLString, std::allocator<CPLString> > >, CPLString const&)@Base" 2.1.0~beta1 1
  (c++)"std::vector<CPLString, std::allocator<CPLString> >::push_back(CPLString const&)@Base" 1.10.1 1
  (c++)"std::vector<CPLString, std::allocator<CPLString> >::vector(std::vector<CPLString, std::allocator<CPLString> > const&)@Base" 1.10.1 1
  (c++)"std::vector<CPLString, std::allocator<CPLString> >::vector(std::vector<CPLString, std::allocator<CPLString> > const&)@Base" 1.10.1 1
@@ -2672,11 +2731,11 @@ libgdal.so.20 libgdal20 #MINVER#
  (c++)"std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >::operator=(std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > const&)@Base" 2.0.1 1
  (c++)"std::vector<GDALJP2Box*, std::allocator<GDALJP2Box*> >::_M_insert_aux(__gnu_cxx::__normal_iterator<GDALJP2Box**, std::vector<GDALJP2Box*, std::allocator<GDALJP2Box*> > >, GDALJP2Box* const&)@Base" 2.0.1 1
  (c++)"std::vector<OGRFeature*, std::allocator<OGRFeature*> >::_M_insert_aux(__gnu_cxx::__normal_iterator<OGRFeature**, std::vector<OGRFeature*, std::allocator<OGRFeature*> > >, OGRFeature* const&)@Base" 1.8.0 1
+ (c++)"std::vector<OGRFeature*, std::allocator<OGRFeature*> >::_M_fill_insert(__gnu_cxx::__normal_iterator<OGRFeature**, std::vector<OGRFeature*, std::allocator<OGRFeature*> > >, unsigned int, OGRFeature* const&)@Base" 2.1.0~beta1 1
  (c++)"std::vector<OGRFeature*, std::allocator<OGRFeature*> >::operator=(std::vector<OGRFeature*, std::allocator<OGRFeature*> > const&)@Base" 1.8.0 1
- (c++)"std::vector<VFKFeature*, std::allocator<VFKFeature*> >::_M_insert_aux(__gnu_cxx::__normal_iterator<VFKFeature**, std::vector<VFKFeature*, std::allocator<VFKFeature*> > >, VFKFeature* const&)@Base" 1.8.0 1
- (c++)"std::vector<VFKFeature*, std::allocator<VFKFeature*> >::_M_erase(__gnu_cxx::__normal_iterator<VFKFeature**, std::vector<VFKFeature*, std::allocator<VFKFeature*> > >)@Base" 1.11.0 1
- (c++)"std::vector<VFKFeature*, std::allocator<VFKFeature*> >::operator=(std::vector<VFKFeature*, std::allocator<VFKFeature*> > const&)@Base" 1.8.0 1
  (c++)"std::vector<GDALDataset*, std::allocator<GDALDataset*> >::_M_insert_aux(__gnu_cxx::__normal_iterator<GDALDataset**, std::vector<GDALDataset*, std::allocator<GDALDataset*> > >, GDALDataset* const&)@Base" 1.8.0 1
+ (c++)"std::vector<GDALDataset*, std::allocator<GDALDataset*> >::_M_fill_insert(__gnu_cxx::__normal_iterator<GDALDataset**, std::vector<GDALDataset*, std::allocator<GDALDataset*> > >, unsigned int, GDALDataset* const&)@Base" 2.1.0~beta1 1
+ (c++)"std::vector<GDALDataset*, std::allocator<GDALDataset*> >::operator=(std::vector<GDALDataset*, std::allocator<GDALDataset*> > const&)@Base" 2.1.0~beta1 1
  (c++)"std::vector<OGRGeometry*, std::allocator<OGRGeometry*> >::_M_insert_aux(__gnu_cxx::__normal_iterator<OGRGeometry**, std::vector<OGRGeometry*, std::allocator<OGRGeometry*> > >, OGRGeometry* const&)@Base" 1.9.0 1
  (c++)"std::vector<S57AttrInfo*, std::allocator<S57AttrInfo*> >::_M_fill_insert(__gnu_cxx::__normal_iterator<S57AttrInfo**, std::vector<S57AttrInfo*, std::allocator<S57AttrInfo*> > >, unsigned int, S57AttrInfo* const&)@Base" 1.11.0 1
  (c++)"std::vector<OGRDataSource*, std::allocator<OGRDataSource*> >::_M_insert_aux(__gnu_cxx::__normal_iterator<OGRDataSource**, std::vector<OGRDataSource*, std::allocator<OGRDataSource*> > >, OGRDataSource* const&)@Base" 1.10.1 1
@@ -2684,12 +2743,13 @@ libgdal.so.20 libgdal20 #MINVER#
  (c++)"std::vector<GDALRasterBand*, std::allocator<GDALRasterBand*> >::_M_insert_aux(__gnu_cxx::__normal_iterator<GDALRasterBand**, std::vector<GDALRasterBand*, std::allocator<GDALRasterBand*> > >, GDALRasterBand* const&)@Base" 1.10.1 1
  (c++)"std::vector<GDALRasterBand*, std::allocator<GDALRasterBand*> >::_M_fill_insert(__gnu_cxx::__normal_iterator<GDALRasterBand**, std::vector<GDALRasterBand*, std::allocator<GDALRasterBand*> > >, unsigned int, GDALRasterBand* const&)@Base" 1.10.1 1
  (c++)"std::vector<OGRFeatureDefn*, std::allocator<OGRFeatureDefn*> >::_M_fill_insert(__gnu_cxx::__normal_iterator<OGRFeatureDefn**, std::vector<OGRFeatureDefn*, std::allocator<OGRFeatureDefn*> > >, unsigned int, OGRFeatureDefn* const&)@Base" 1.11.0 1
+ (c++)"std::vector<GDALRasterBlock*, std::allocator<GDALRasterBlock*> >::_M_insert_aux(__gnu_cxx::__normal_iterator<GDALRasterBlock**, std::vector<GDALRasterBlock*, std::allocator<GDALRasterBlock*> > >, GDALRasterBlock* const&)@Base" 2.1.0~beta1 1
  (c++)"std::vector<GMLFeatureClass*, std::allocator<GMLFeatureClass*> >::_M_insert_aux(__gnu_cxx::__normal_iterator<GMLFeatureClass**, std::vector<GMLFeatureClass*, std::allocator<GMLFeatureClass*> > >, GMLFeatureClass* const&)@Base" 1.8.0 1
  (c++)"std::vector<GMLFeatureClass*, std::allocator<GMLFeatureClass*> >::_M_fill_insert(__gnu_cxx::__normal_iterator<GMLFeatureClass**, std::vector<GMLFeatureClass*, std::allocator<GMLFeatureClass*> > >, unsigned int, GMLFeatureClass* const&)@Base" 2.0.1 1
  (c++)"std::vector<GMLPropertyDefn*, std::allocator<GMLPropertyDefn*> >::operator=(std::vector<GMLPropertyDefn*, std::allocator<GMLPropertyDefn*> > const&)@Base" 2.0.1 1
- (c++)"std::vector<VFKFeatureSQLite*, std::allocator<VFKFeatureSQLite*> >::_M_insert_aux(__gnu_cxx::__normal_iterator<VFKFeatureSQLite**, std::vector<VFKFeatureSQLite*, std::allocator<VFKFeatureSQLite*> > >, VFKFeatureSQLite* const&)@Base" 1.10.1 1
  (c++)"std::vector<OGRSpatialReference*, std::allocator<OGRSpatialReference*> >::_M_insert_aux(__gnu_cxx::__normal_iterator<OGRSpatialReference**, std::vector<OGRSpatialReference*, std::allocator<OGRSpatialReference*> > >, OGRSpatialReference* const&)@Base" 1.9.0 1
  (c++)"std::vector<GMLGeometryPropertyDefn*, std::allocator<GMLGeometryPropertyDefn*> >::operator=(std::vector<GMLGeometryPropertyDefn*, std::allocator<GMLGeometryPropertyDefn*> > const&)@Base" 2.0.1 1
+ (c++)"std::vector<OGRCoordinateTransformation*, std::allocator<OGRCoordinateTransformation*> >::_M_insert_aux(__gnu_cxx::__normal_iterator<OGRCoordinateTransformation**, std::vector<OGRCoordinateTransformation*, std::allocator<OGRCoordinateTransformation*> > >, OGRCoordinateTransformation* const&)@Base" 2.1.0~beta1 1
  (c++)"std::vector<OGRLayer*, std::allocator<OGRLayer*> >::_M_insert_aux(__gnu_cxx::__normal_iterator<OGRLayer**, std::vector<OGRLayer*, std::allocator<OGRLayer*> > >, OGRLayer* const&)@Base" 1.8.0 1
  (c++)"std::vector<std::vector<std::pair<double, double>, std::allocator<std::pair<double, double> > > const*, std::allocator<std::vector<std::pair<double, double>, std::allocator<std::pair<double, double> > > const*> >::_M_insert_aux(__gnu_cxx::__normal_iterator<std::vector<std::pair<double, double>, std::allocator<std::pair<double, double> > > const**, std::vector<std::vector<std::pair<double, double>, std::allocator<std::pair<double, double> > > const*, std::allocator<std::vector<std::pair<double, double>, std::allocator<std::pair<double, double> > > const*> > >, std::vector<std::pair<double, double>, std::allocator<std::pair<double, double> > > const* const&)@Base" 1.9.0 1
  (c++)"std::vector<char**, std::allocator<char**> >::_M_fill_insert(__gnu_cxx::__normal_iterator<char***, std::vector<char**, std::allocator<char**> > >, unsigned int, char** const&)@Base" 1.8.0 1
@@ -2697,9 +2757,15 @@ libgdal.so.20 libgdal20 #MINVER#
  (c++)"std::vector<char*, std::allocator<char*> >::_M_insert_aux(__gnu_cxx::__normal_iterator<char**, std::vector<char*, std::allocator<char*> > >, char* const&)@Base" 1.8.0 1
  (c++)"std::vector<char*, std::allocator<char*> >::push_back(char* const&)@Base" 1.10.1 1
  (c++)"std::vector<unsigned char*, std::allocator<unsigned char*> >::_M_insert_aux(__gnu_cxx::__normal_iterator<unsigned char**, std::vector<unsigned char*, std::allocator<unsigned char*> > >, unsigned char* const&)@Base" 1.8.0 1
+ (c++)"std::vector<void*, std::allocator<void*> >::_M_insert_aux(__gnu_cxx::__normal_iterator<void**, std::vector<void*, std::allocator<void*> > >, void* const&)@Base" 2.1.0~beta1 1
+ (c++)"std::vector<void*, std::allocator<void*> >::_M_fill_insert(__gnu_cxx::__normal_iterator<void**, std::vector<void*, std::allocator<void*> > >, unsigned int, void* const&)@Base" 2.1.0~beta1 1
+ (c++)"std::vector<std::vector<CPLString, std::allocator<CPLString> >, std::allocator<std::vector<CPLString, std::allocator<CPLString> > > >::_M_insert_aux(__gnu_cxx::__normal_iterator<std::vector<CPLString, std::allocator<CPLString> >*, std::vector<std::vector<CPLString, std::allocator<CPLString> >, std::allocator<std::vector<CPLString, std::allocator<CPLString> > > > >, std::vector<CPLString, std::allocator<CPLString> > const&)@Base" 2.1.0~beta1 1
+ (c++)"std::vector<std::vector<CPLString, std::allocator<CPLString> >, std::allocator<std::vector<CPLString, std::allocator<CPLString> > > >::~vector()@Base" 2.1.0~beta1 1
+ (c++)"std::vector<std::vector<CPLString, std::allocator<CPLString> >, std::allocator<std::vector<CPLString, std::allocator<CPLString> > > >::~vector()@Base" 2.1.0~beta1 1
  (c++)"std::vector<std::vector<GMLPropertyDefn*, std::allocator<GMLPropertyDefn*> >, std::allocator<std::vector<GMLPropertyDefn*, std::allocator<GMLPropertyDefn*> > > >::_M_insert_aux(__gnu_cxx::__normal_iterator<std::vector<GMLPropertyDefn*, std::allocator<GMLPropertyDefn*> >*, std::vector<std::vector<GMLPropertyDefn*, std::allocator<GMLPropertyDefn*> >, std::allocator<std::vector<GMLPropertyDefn*, std::allocator<GMLPropertyDefn*> > > > >, std::vector<GMLPropertyDefn*, std::allocator<GMLPropertyDefn*> > const&)@Base" 2.0.1 1
  (c++)"std::vector<std::vector<GMLPropertyDefn*, std::allocator<GMLPropertyDefn*> >, std::allocator<std::vector<GMLPropertyDefn*, std::allocator<GMLPropertyDefn*> > > >::_M_fill_insert(__gnu_cxx::__normal_iterator<std::vector<GMLPropertyDefn*, std::allocator<GMLPropertyDefn*> >*, std::vector<std::vector<GMLPropertyDefn*, std::allocator<GMLPropertyDefn*> >, std::allocator<std::vector<GMLPropertyDefn*, std::allocator<GMLPropertyDefn*> > > > >, unsigned int, std::vector<GMLPropertyDefn*, std::allocator<GMLPropertyDefn*> > const&)@Base" 2.0.1 1
  (c++)"std::vector<std::vector<std::pair<double, double>, std::allocator<std::pair<double, double> > >, std::allocator<std::vector<std::pair<double, double>, std::allocator<std::pair<double, double> > > > >::_M_insert_aux(__gnu_cxx::__normal_iterator<std::vector<std::pair<double, double>, std::allocator<std::pair<double, double> > >*, std::vector<std::vector<std::pair<double, double>, std::allocator<std::pair<double, double> > >, std::allocator<std::vector<std::pair<double, double>, std::allocator<std::pair<double, double> > > > > >, std::vector<std::pair<double, double>, std::allocator<std::pair<double, double> > > const&)@Base" 1.9.0 1
+ (c++)"std::vector<std::vector<int, std::allocator<int> >, std::allocator<std::vector<int, std::allocator<int> > > >::_M_insert_aux(__gnu_cxx::__normal_iterator<std::vector<int, std::allocator<int> >*, std::vector<std::vector<int, std::allocator<int> >, std::allocator<std::vector<int, std::allocator<int> > > > >, std::vector<int, std::allocator<int> > const&)@Base" 2.1.0~beta1 1
  (c++)"std::vector<std::vector<int, std::allocator<int> >, std::allocator<std::vector<int, std::allocator<int> > > >::_M_fill_insert(__gnu_cxx::__normal_iterator<std::vector<int, std::allocator<int> >*, std::vector<std::vector<int, std::allocator<int> >, std::allocator<std::vector<int, std::allocator<int> > > > >, unsigned int, std::vector<int, std::allocator<int> > const&)@Base" 1.8.0 1
  (c++)"std::vector<std::vector<int, std::allocator<int> >, std::allocator<std::vector<int, std::allocator<int> > > >::~vector()@Base" 1.9.0 1
  (c++)"std::vector<std::vector<int, std::allocator<int> >, std::allocator<std::vector<int, std::allocator<int> > > >::~vector()@Base" 1.9.0 1
@@ -2716,6 +2782,7 @@ libgdal.so.20 libgdal20 #MINVER#
  (c++)"std::vector<std::pair<CPLString, std::vector<CPLString, std::allocator<CPLString> > >, std::allocator<std::pair<CPLString, std::vector<CPLString, std::allocator<CPLString> > > > >::_M_insert_aux(__gnu_cxx::__normal_iterator<std::pair<CPLString, std::vector<CPLString, std::allocator<CPLString> > >*, std::vector<std::pair<CPLString, std::vector<CPLString, std::allocator<CPLString> > >, std::allocator<std::pair<CPLString, std::vector<CPLString, std::allocator<CPLString> > > > > >, std::pair<CPLString, std::vector<CPLString, std::allocator<CPLString> > > const&)@Base" 1.9.0 1
  (c++)"std::vector<std::pair<CPLString, std::vector<CPLString, std::allocator<CPLString> > >, std::allocator<std::pair<CPLString, std::vector<CPLString, std::allocator<CPLString> > > > >::~vector()@Base" 1.9.0 1
  (c++)"std::vector<std::pair<CPLString, std::vector<CPLString, std::allocator<CPLString> > >, std::allocator<std::pair<CPLString, std::vector<CPLString, std::allocator<CPLString> > > > >::~vector()@Base" 1.9.0 1
+ (c++)"std::vector<std::pair<CPLString, int>, std::allocator<std::pair<CPLString, int> > >::_M_insert_aux(__gnu_cxx::__normal_iterator<std::pair<CPLString, int>*, std::vector<std::pair<CPLString, int>, std::allocator<std::pair<CPLString, int> > > >, std::pair<CPLString, int> const&)@Base" 2.1.0~beta1 1
  (c++)"std::vector<std::pair<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, double>, std::allocator<std::pair<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, double> > >::_M_insert_aux(__gnu_cxx::__normal_iterator<std::pair<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, double>*, std::vector<std::pair<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, double>, std::allocator<std::pair<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, double> > > >, std::pair<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, double> const&)@Base" 2.0.1 1
  (c++)"std::vector<std::pair<double, double>, std::allocator<std::pair<double, double> > >::_M_insert_aux(__gnu_cxx::__normal_iterator<std::pair<double, double>*, std::vector<std::pair<double, double>, std::allocator<std::pair<double, double> > > >, std::pair<double, double> const&)@Base" 1.9.0 1
  (c++)"std::vector<std::pair<double, double>, std::allocator<std::pair<double, double> > >::_M_fill_insert(__gnu_cxx::__normal_iterator<std::pair<double, double>*, std::vector<std::pair<double, double>, std::allocator<std::pair<double, double> > > >, unsigned int, std::pair<double, double> const&)@Base" 1.10.1 1
@@ -2723,8 +2790,13 @@ libgdal.so.20 libgdal20 #MINVER#
  (c++)"std::vector<std::pair<double, double>, std::allocator<std::pair<double, double> > >::vector(std::vector<std::pair<double, double>, std::allocator<std::pair<double, double> > > const&)@Base" 1.10.1 1
  (c++)"std::vector<std::pair<double, double>, std::allocator<std::pair<double, double> > >::operator=(std::vector<std::pair<double, double>, std::allocator<std::pair<double, double> > > const&)@Base" 1.9.0 1
  (c++)"std::vector<std::pair<int, int>, std::allocator<std::pair<int, int> > >::_M_insert_aux(__gnu_cxx::__normal_iterator<std::pair<int, int>*, std::vector<std::pair<int, int>, std::allocator<std::pair<int, int> > > >, std::pair<int, int> const&)@Base" 1.11.2 1
- (c++)"std::vector<std::pair<int, int>, std::allocator<std::pair<int, int> > >::operator=(std::vector<std::pair<int, int>, std::allocator<std::pair<int, int> > > const&)@Base" 1.11.2 1
+ (c++)"std::vector<std::pair<short, unsigned int>, std::allocator<std::pair<short, unsigned int> > >::_M_fill_insert(__gnu_cxx::__normal_iterator<std::pair<short, unsigned int>*, std::vector<std::pair<short, unsigned int>, std::allocator<std::pair<short, unsigned int> > > >, unsigned int, std::pair<short, unsigned int> const&)@Base" 2.1.0~beta1 1
+ (c++)"std::vector<std::pair<short, unsigned int>, std::allocator<std::pair<short, unsigned int> > >::resize(unsigned int, std::pair<short, unsigned int>)@Base" 2.1.0~beta1 1
+ (c++)"std::vector<std::pair<short, unsigned int>, std::allocator<std::pair<short, unsigned int> > >::operator=(std::vector<std::pair<short, unsigned int>, std::allocator<std::pair<short, unsigned int> > > const&)@Base" 2.1.0~beta1 1
+ (c++)"std::vector<std::pair<short, short>, std::allocator<std::pair<short, short> > >::_M_fill_assign(unsigned int, std::pair<short, short> const&)@Base" 2.1.0~beta1 1
+ (c++)"std::vector<bool, std::allocator<bool> >::_M_insert_aux(std::_Bit_iterator, bool)@Base" 2.1.0~beta1 1
  (c++)"std::vector<bool, std::allocator<bool> >::_M_fill_insert(std::_Bit_iterator, unsigned int, bool)@Base" 1.9.0 1
+ (c++)"std::vector<char, std::allocator<char> >::_M_fill_insert(__gnu_cxx::__normal_iterator<char*, std::vector<char, std::allocator<char> > >, unsigned int, char const&)@Base" 2.1.0~beta1 1
  (c++)"std::vector<double, std::allocator<double> >::_M_insert_aux(__gnu_cxx::__normal_iterator<double*, std::vector<double, std::allocator<double> > >, double const&)@Base" 1.8.0 1
  (c++)"std::vector<double, std::allocator<double> >::_M_fill_insert(__gnu_cxx::__normal_iterator<double*, std::vector<double, std::allocator<double> > >, unsigned int, double const&)@Base" 1.8.0 1
  (c++)"std::vector<double, std::allocator<double> >::reserve(unsigned int)@Base" 1.8.0 1
@@ -2733,8 +2805,10 @@ libgdal.so.20 libgdal20 #MINVER#
  (c++)"std::vector<unsigned char, std::allocator<unsigned char> >::_M_fill_insert(__gnu_cxx::__normal_iterator<unsigned char*, std::vector<unsigned char, std::allocator<unsigned char> > >, unsigned int, unsigned char const&)@Base" 1.8.0 1
  (c++)"std::vector<int, std::allocator<int> >::_M_insert_aux(__gnu_cxx::__normal_iterator<int*, std::vector<int, std::allocator<int> > >, int const&)@Base" 1.8.0 1
  (c++)"std::vector<int, std::allocator<int> >::_M_fill_insert(__gnu_cxx::__normal_iterator<int*, std::vector<int, std::allocator<int> > >, unsigned int, int const&)@Base" 1.8.0 1
+ (c++)"std::vector<int, std::allocator<int> >::push_back(int const&)@Base" 2.1.0~beta1 1
  (c++)"std::vector<int, std::allocator<int> >::operator=(std::vector<int, std::allocator<int> > const&)@Base" 1.8.0 1
  (c++)"std::vector<unsigned int, std::allocator<unsigned int> >::_M_insert_aux(__gnu_cxx::__normal_iterator<unsigned int*, std::vector<unsigned int, std::allocator<unsigned int> > >, unsigned int const&)@Base" 1.8.0 1
+ (c++)"std::vector<unsigned int, std::allocator<unsigned int> >::_M_fill_assign(unsigned int, unsigned int const&)@Base" 2.1.0~beta1 1
  (c++)"std::vector<unsigned int, std::allocator<unsigned int> >::_M_fill_insert(__gnu_cxx::__normal_iterator<unsigned int*, std::vector<unsigned int, std::allocator<unsigned int> > >, unsigned int, unsigned int const&)@Base" 1.8.0 1
  (c++)"std::vector<unsigned int, std::allocator<unsigned int> >::insert(__gnu_cxx::__normal_iterator<unsigned int*, std::vector<unsigned int, std::allocator<unsigned int> > >, unsigned int const&)@Base" 1.8.0 1
  (c++)"std::vector<unsigned int, std::allocator<unsigned int> >::operator=(std::vector<unsigned int, std::allocator<unsigned int> > const&)@Base" 1.9.0 1
@@ -2757,12 +2831,20 @@ libgdal.so.20 libgdal20 #MINVER#
  (c++)"std::_Rb_tree<CPLString, CPLString, std::_Identity<CPLString>, std::less<CPLString>, std::allocator<CPLString> >::find(CPLString const&)@Base" 1.10.1 1
  (c++)"std::_Rb_tree<CPLString, CPLString, std::_Identity<CPLString>, std::less<CPLString>, std::allocator<CPLString> >::erase(CPLString const&)@Base" 2.0.1 1
  (c++)"std::_Rb_tree_node<CPLString>* std::_Rb_tree<CPLString, CPLString, std::_Identity<CPLString>, std::less<CPLString>, std::allocator<CPLString> >::_M_copy<std::_Rb_tree<CPLString, CPLString, std::_Identity<CPLString>, std::less<CPLString>, std::allocator<CPLString> >::_Alloc_node>(std::_Rb_tree_node<CPLString> const*, std::_Rb_tree_node<CPLString>*, std::_Rb_tree<CPLString, CPLString, std::_Identity<CPLString>, std::less<CPLString>, std::allocator<CPLString> >::_Alloc_node&)@Base" 2.0.1 1
+ (c++)"std::_Rb_tree_node<CPLString>* std::_Rb_tree<CPLString, CPLString, std::_Identity<CPLString>, std::less<CPLString>, std::allocator<CPLString> >::_M_copy<std::_Rb_tree<CPLString, CPLString, std::_Identity<CPLString>, std::less<CPLString>, std::allocator<CPLString> >::_Reuse_or_alloc_node>(std::_Rb_tree_node<CPLString> const*, std::_Rb_tree_node<CPLString>*, std::_Rb_tree<CPLString, CPLString, std::_Identity<CPLString>, std::less<CPLString>, std::allocator<CPLString> >::_Reuse_or_alloc_node&)@Base" 2.1.0~beta1 1
  (c++)"std::_Rb_tree<CPLString, CPLString, std::_Identity<CPLString>, std::less<CPLString>, std::allocator<CPLString> >::_M_erase(std::_Rb_tree_node<CPLString>*)@Base" 1.8.0 1
+ (c++)"std::_Rb_tree<CPLString, CPLString, std::_Identity<CPLString>, std::less<CPLString>, std::allocator<CPLString> >::operator=(std::_Rb_tree<CPLString, CPLString, std::_Identity<CPLString>, std::less<CPLString>, std::allocator<CPLString> > const&)@Base" 2.1.0~beta1 1
  (c++)"std::_Rb_tree<CPLString, std::pair<CPLString const, OGREnvelope>, std::_Select1st<std::pair<CPLString const, OGREnvelope> >, std::less<CPLString>, std::allocator<std::pair<CPLString const, OGREnvelope> > >::_M_get_insert_unique_pos(CPLString const&)@Base" 1.10.1 1
+ (c++)"std::_Rb_tree<CPLString, std::pair<CPLString const, OGREnvelope>, std::_Select1st<std::pair<CPLString const, OGREnvelope> >, std::less<CPLString>, std::allocator<std::pair<CPLString const, OGREnvelope> > >::find(CPLString const&)@Base" 2.1.0~beta1 1
  (c++)"std::_Rb_tree<CPLString, std::pair<CPLString const, OGREnvelope>, std::_Select1st<std::pair<CPLString const, OGREnvelope> >, std::less<CPLString>, std::allocator<std::pair<CPLString const, OGREnvelope> > >::_M_erase(std::_Rb_tree_node<std::pair<CPLString const, OGREnvelope> >*)@Base" 1.10.1 1
  (c++)"std::_Rb_tree<CPLString, std::pair<CPLString const, GDALDriver*>, std::_Select1st<std::pair<CPLString const, GDALDriver*> >, std::less<CPLString>, std::allocator<std::pair<CPLString const, GDALDriver*> > >::_M_get_insert_unique_pos(CPLString const&)@Base" 2.0.1 1
  (c++)"std::_Rb_tree<CPLString, std::pair<CPLString const, GDALDriver*>, std::_Select1st<std::pair<CPLString const, GDALDriver*> >, std::less<CPLString>, std::allocator<std::pair<CPLString const, GDALDriver*> > >::erase(CPLString const&)@Base" 2.0.1 1
  (c++)"std::_Rb_tree<CPLString, std::pair<CPLString const, GDALDriver*>, std::_Select1st<std::pair<CPLString const, GDALDriver*> >, std::less<CPLString>, std::allocator<std::pair<CPLString const, GDALDriver*> > >::_M_erase(std::_Rb_tree_node<std::pair<CPLString const, GDALDriver*> >*)@Base" 2.0.1 1
+ (c++)"std::_Rb_tree<CPLString, std::pair<CPLString const, GDALDataset*>, std::_Select1st<std::pair<CPLString const, GDALDataset*> >, std::less<CPLString>, std::allocator<std::pair<CPLString const, GDALDataset*> > >::_M_get_insert_unique_pos(CPLString const&)@Base" 2.1.0~beta1 1
+ (c++)"std::_Rb_tree<CPLString, std::pair<CPLString const, GDALDataset*>, std::_Select1st<std::pair<CPLString const, GDALDataset*> >, std::less<CPLString>, std::allocator<std::pair<CPLString const, GDALDataset*> > >::find(CPLString const&)@Base" 2.1.0~beta1 1
+ (c++)"std::_Rb_tree<CPLString, std::pair<CPLString const, GDALDataset*>, std::_Select1st<std::pair<CPLString const, GDALDataset*> >, std::less<CPLString>, std::allocator<std::pair<CPLString const, GDALDataset*> > >::_M_erase(std::_Rb_tree_node<std::pair<CPLString const, GDALDataset*> >*)@Base" 2.1.0~beta1 1
+ (c++)"std::_Rb_tree<CPLString, std::pair<CPLString const, GDALProxyPoolDataset*>, std::_Select1st<std::pair<CPLString const, GDALProxyPoolDataset*> >, std::less<CPLString>, std::allocator<std::pair<CPLString const, GDALProxyPoolDataset*> > >::_M_get_insert_unique_pos(CPLString const&)@Base" 2.1.0~beta1 1
+ (c++)"std::_Rb_tree<CPLString, std::pair<CPLString const, GDALProxyPoolDataset*>, std::_Select1st<std::pair<CPLString const, GDALProxyPoolDataset*> >, std::less<CPLString>, std::allocator<std::pair<CPLString const, GDALProxyPoolDataset*> > >::_M_erase(std::_Rb_tree_node<std::pair<CPLString const, GDALProxyPoolDataset*> >*)@Base" 2.1.0~beta1 1
  (c++)"std::_Rb_tree<CPLString, std::pair<CPLString const, OGRLayer*>, std::_Select1st<std::pair<CPLString const, OGRLayer*> >, std::less<CPLString>, std::allocator<std::pair<CPLString const, OGRLayer*> > >::_M_get_insert_unique_pos(CPLString const&)@Base" 1.10.1 1
  (c++)"std::_Rb_tree<CPLString, std::pair<CPLString const, OGRLayer*>, std::_Select1st<std::pair<CPLString const, OGRLayer*> >, std::less<CPLString>, std::allocator<std::pair<CPLString const, OGRLayer*> > >::_M_erase(std::_Rb_tree_node<std::pair<CPLString const, OGRLayer*> >*)@Base" 1.10.1 1
  (c++)"std::_Rb_tree<CPLString, std::pair<CPLString const, CPLErr (*)(void**, int, void*, int, int, GDALDataType, GDALDataType, int, int)>, std::_Select1st<std::pair<CPLString const, CPLErr (*)(void**, int, void*, int, int, GDALDataType, GDALDataType, int, int)> >, std::less<CPLString>, std::allocator<std::pair<CPLString const, CPLErr (*)(void**, int, void*, int, int, GDALDataType, GDALDataType, int, int)> > >::_M_get_insert_unique_pos(CPLString const&)@Base" 1.10.1 1
@@ -2778,6 +2860,7 @@ libgdal.so.20 libgdal20 #MINVER#
  (c++)"std::_Rb_tree_node<std::pair<CPLString const, CPLString> >* std::_Rb_tree<CPLString, std::pair<CPLString const, CPLString>, std::_Select1st<std::pair<CPLString const, CPLString> >, std::less<CPLString>, std::allocator<std::pair<CPLString const, CPLString> > >::_M_copy<std::_Rb_tree<CPLString, std::pair<CPLString const, CPLString>, std::_Select1st<std::pair<CPLString const, CPLString> >, std::less<CPLString>, std::allocator<std::pair<CPLString const, CPLString> > >::_Alloc_node>(std::_Rb_tree_node<std::pair<CPLString const, CPLString> > const*, std::_Rb_tree_node<std::pair<CPLString const, CPLString> >*, std::_Rb_tree<CPLString, std::pair<CPLString const, CPLString>, std::_Select1st<std::pair<CPLString const, CPLString> >, std::less<CPLString>, std::allocator<std::pair<CPLString const, CPLString> > >::_Alloc_node&)@Base" 2.0.1 1
  (c++)"std::_Rb_tree_node<std::pair<CPLString const, CPLString> >* std::_Rb_tree<CPLString, std::pair<CPLString const, CPLString>, std::_Select1st<std::pair<CPLString const, CPLString> >, std::less<CPLString>, std::allocator<std::pair<CPLString const, CPLString> > >::_M_copy<std::_Rb_tree<CPLString, std::pair<CPLString const, CPLString>, std::_Select1st<std::pair<CPLString const, CPLString> >, std::less<CPLString>, std::allocator<std::pair<CPLString const, CPLString> > >::_Reuse_or_alloc_node>(std::_Rb_tree_node<std::pair<CPLString const, CPLString> > const*, std::_Rb_tree_node<std::pair<CPLString const, CPLString> >*, std::_Rb_tree<CPLString, std::pair<CPLString const, CPLString>, std::_Select1st<std::pair<CPLString const, CPLString> >, std::less<CPLString>, std::allocator<std::pair<CPLString const, CPLString> > >::_Reuse_or_alloc_node&)@Base" 2.0.1 1
  (c++)"std::_Rb_tree<CPLString, std::pair<CPLString const, CPLString>, std::_Select1st<std::pair<CPLString const, CPLString> >, std::less<CPLString>, std::allocator<std::pair<CPLString const, CPLString> > >::_M_erase(std::_Rb_tree_node<std::pair<CPLString const, CPLString> >*)@Base" 1.8.0 1
+ (c++)"std::_Rb_tree<CPLString, std::pair<CPLString const, CPLString>, std::_Select1st<std::pair<CPLString const, CPLString> >, std::less<CPLString>, std::allocator<std::pair<CPLString const, CPLString> > >::operator=(std::_Rb_tree<CPLString, std::pair<CPLString const, CPLString>, std::_Select1st<std::pair<CPLString const, CPLString> >, std::less<CPLString>, std::allocator<std::pair<CPLString const, CPLString> > > const&)@Base" 2.1.0~beta1 1
  (c++)"std::_Rb_tree<CPLString, std::pair<CPLString const, std::pair<double, double> >, std::_Select1st<std::pair<CPLString const, std::pair<double, double> > >, std::less<CPLString>, std::allocator<std::pair<CPLString const, std::pair<double, double> > > >::_M_get_insert_unique_pos(CPLString const&)@Base" 1.10.1 1
  (c++)"std::_Rb_tree<CPLString, std::pair<CPLString const, std::pair<double, double> >, std::_Select1st<std::pair<CPLString const, std::pair<double, double> > >, std::less<CPLString>, std::allocator<std::pair<CPLString const, std::pair<double, double> > > >::_M_erase(std::_Rb_tree_node<std::pair<CPLString const, std::pair<double, double> > >*)@Base" 1.9.0 1
  (c++)"std::_Rb_tree<CPLString, std::pair<CPLString const, std::pair<int, int> >, std::_Select1st<std::pair<CPLString const, std::pair<int, int> > >, std::less<CPLString>, std::allocator<std::pair<CPLString const, std::pair<int, int> > > >::_M_get_insert_unique_pos(CPLString const&)@Base" 1.10.1 1
@@ -2826,22 +2909,29 @@ libgdal.so.20 libgdal20 #MINVER#
  (c++)"std::_Rb_tree<std::pair<CPLString, CPLString>, std::pair<std::pair<CPLString, CPLString> const, char*>, std::_Select1st<std::pair<std::pair<CPLString, CPLString> const, char*> >, std::less<std::pair<CPLString, CPLString> >, std::allocator<std::pair<std::pair<CPLString, CPLString> const, char*> > >::_M_get_insert_unique_pos(std::pair<CPLString, CPLString> const&)@Base" 1.10.1 1
  (c++)"std::_Rb_tree<std::pair<CPLString, CPLString>, std::pair<std::pair<CPLString, CPLString> const, char*>, std::_Select1st<std::pair<std::pair<CPLString, CPLString> const, char*> >, std::less<std::pair<CPLString, CPLString> >, std::allocator<std::pair<std::pair<CPLString, CPLString> const, char*> > >::find(std::pair<CPLString, CPLString> const&)@Base" 1.10.1 1
  (c++)"std::_Rb_tree<std::pair<CPLString, CPLString>, std::pair<std::pair<CPLString, CPLString> const, char*>, std::_Select1st<std::pair<std::pair<CPLString, CPLString> const, char*> >, std::less<std::pair<CPLString, CPLString> >, std::allocator<std::pair<std::pair<CPLString, CPLString> const, char*> > >::_M_erase(std::_Rb_tree_node<std::pair<std::pair<CPLString, CPLString> const, char*> >*)@Base" 1.10.1 1
+ (c++)"std::_Rb_tree<std::pair<CPLString, CPLString>, std::pair<CPLString, CPLString>, std::_Identity<std::pair<CPLString, CPLString> >, std::less<std::pair<CPLString, CPLString> >, std::allocator<std::pair<CPLString, CPLString> > >::_M_insert_unique(std::pair<CPLString, CPLString> const&)@Base" 2.1.0~beta1 1
+ (c++)"std::_Rb_tree<std::pair<CPLString, CPLString>, std::pair<CPLString, CPLString>, std::_Identity<std::pair<CPLString, CPLString> >, std::less<std::pair<CPLString, CPLString> >, std::allocator<std::pair<CPLString, CPLString> > >::_M_erase(std::_Rb_tree_node<std::pair<CPLString, CPLString> >*)@Base" 2.1.0~beta1 1
  (c++)"std::_Rb_tree<std::pair<double, double>, std::pair<std::pair<double, double> const, std::vector<int, std::allocator<int> > >, std::_Select1st<std::pair<std::pair<double, double> const, std::vector<int, std::allocator<int> > > >, std::less<std::pair<double, double> >, std::allocator<std::pair<std::pair<double, double> const, std::vector<int, std::allocator<int> > > > >::_M_get_insert_unique_pos(std::pair<double, double> const&)@Base" 1.11.0 1
  (c++)"std::_Rb_tree<std::pair<double, double>, std::pair<std::pair<double, double> const, std::vector<int, std::allocator<int> > >, std::_Select1st<std::pair<std::pair<double, double> const, std::vector<int, std::allocator<int> > > >, std::less<std::pair<double, double> >, std::allocator<std::pair<std::pair<double, double> const, std::vector<int, std::allocator<int> > > > >::_M_erase(std::_Rb_tree_node<std::pair<std::pair<double, double> const, std::vector<int, std::allocator<int> > > >*)@Base" 1.11.0 1
+ (c++)"std::_Rb_tree<std::pair<double, double>, std::pair<std::pair<double, double> const, int>, std::_Select1st<std::pair<std::pair<double, double> const, int> >, std::less<std::pair<double, double> >, std::allocator<std::pair<std::pair<double, double> const, int> > >::_M_get_insert_unique_pos(std::pair<double, double> const&)@Base" 2.1.0~beta1 1
+ (c++)"std::_Rb_tree<std::pair<double, double>, std::pair<std::pair<double, double> const, int>, std::_Select1st<std::pair<std::pair<double, double> const, int> >, std::less<std::pair<double, double> >, std::allocator<std::pair<std::pair<double, double> const, int> > >::find(std::pair<double, double> const&)@Base" 2.1.0~beta1 1
+ (c++)"std::_Rb_tree<std::pair<double, double>, std::pair<std::pair<double, double> const, int>, std::_Select1st<std::pair<std::pair<double, double> const, int> >, std::less<std::pair<double, double> >, std::allocator<std::pair<std::pair<double, double> const, int> > >::_M_erase(std::_Rb_tree_node<std::pair<std::pair<double, double> const, int> >*)@Base" 2.1.0~beta1 1
  (c++)"std::_Rb_tree<std::pair<int, int>, std::pair<std::pair<int, int> const, OGRCoordinateTransformation*>, std::_Select1st<std::pair<std::pair<int, int> const, OGRCoordinateTransformation*> >, std::less<std::pair<int, int> >, std::allocator<std::pair<std::pair<int, int> const, OGRCoordinateTransformation*> > >::_M_get_insert_unique_pos(std::pair<int, int> const&)@Base" 1.10.1 1
  (c++)"std::_Rb_tree<std::pair<int, int>, std::pair<std::pair<int, int> const, OGRCoordinateTransformation*>, std::_Select1st<std::pair<std::pair<int, int> const, OGRCoordinateTransformation*> >, std::less<std::pair<int, int> >, std::allocator<std::pair<std::pair<int, int> const, OGRCoordinateTransformation*> > >::_M_erase(std::_Rb_tree_node<std::pair<std::pair<int, int> const, OGRCoordinateTransformation*> >*)@Base" 1.10.1 1
  (c++)"std::_Rb_tree<std::pair<int, int>, std::pair<std::pair<int, int> const, int>, std::_Select1st<std::pair<std::pair<int, int> const, int> >, std::less<std::pair<int, int> >, std::allocator<std::pair<std::pair<int, int> const, int> > >::_M_get_insert_unique_pos(std::pair<int, int> const&)@Base" 2.0.1 1
  (c++)"std::_Rb_tree<std::pair<int, int>, std::pair<std::pair<int, int> const, int>, std::_Select1st<std::pair<std::pair<int, int> const, int> >, std::less<std::pair<int, int> >, std::allocator<std::pair<std::pair<int, int> const, int> > >::_M_erase(std::_Rb_tree_node<std::pair<std::pair<int, int> const, int> >*)@Base" 2.0.1 1
  (c++)"std::_Rb_tree<std::pair<int, int>, std::pair<int, int>, std::_Identity<std::pair<int, int> >, std::less<std::pair<int, int> >, std::allocator<std::pair<int, int> > >::_M_insert_unique(std::pair<int, int> const&)@Base" 1.10.1 1
  (c++)"std::_Rb_tree<std::pair<int, int>, std::pair<int, int>, std::_Identity<std::pair<int, int> >, std::less<std::pair<int, int> >, std::allocator<std::pair<int, int> > >::_M_erase(std::_Rb_tree_node<std::pair<int, int> >*)@Base" 1.10.1 1
+ (c++)"std::_Rb_tree<double, std::pair<double const, double>, std::_Select1st<std::pair<double const, double> >, std::less<double>, std::allocator<std::pair<double const, double> > >::_M_insert_equal(std::pair<double const, double> const&)@Base" 2.1.0~beta1 1
+ (c++)"std::_Rb_tree<double, std::pair<double const, double>, std::_Select1st<std::pair<double const, double> >, std::less<double>, std::allocator<std::pair<double const, double> > >::_M_erase(std::_Rb_tree_node<std::pair<double const, double> >*)@Base" 2.1.0~beta1 1
  (c++)"std::_Rb_tree<int, std::pair<int const, CPLString>, std::_Select1st<std::pair<int const, CPLString> >, std::less<int>, std::allocator<std::pair<int const, CPLString> > >::_M_get_insert_unique_pos(int const&)@Base" 1.11.0 1
  (c++)"std::_Rb_tree<int, std::pair<int const, CPLString>, std::_Select1st<std::pair<int const, CPLString> >, std::less<int>, std::allocator<std::pair<int const, CPLString> > >::_M_erase(std::_Rb_tree_node<std::pair<int const, CPLString> >*)@Base" 1.11.0 1
- (c++)"std::_Rb_tree<int, std::pair<int const, OGRFeature*>, std::_Select1st<std::pair<int const, OGRFeature*> >, std::less<int>, std::allocator<std::pair<int const, OGRFeature*> > >::_M_get_insert_unique_pos(int const&)@Base" 1.11.0 1
- (c++)"std::_Rb_tree<int, std::pair<int const, OGRFeature*>, std::_Select1st<std::pair<int const, OGRFeature*> >, std::less<int>, std::allocator<std::pair<int const, OGRFeature*> > >::_M_erase(std::_Rb_tree_node<std::pair<int const, OGRFeature*> >*)@Base" 1.11.0 1
  (c++)"std::_Rb_tree<int, std::pair<int const, OGRGeometry*>, std::_Select1st<std::pair<int const, OGRGeometry*> >, std::less<int>, std::allocator<std::pair<int const, OGRGeometry*> > >::_M_get_insert_unique_pos(int const&)@Base" 1.10.1 1
  (c++)"std::_Rb_tree<int, std::pair<int const, OGRGeometry*>, std::_Select1st<std::pair<int const, OGRGeometry*> >, std::less<int>, std::allocator<std::pair<int const, OGRGeometry*> > >::_M_erase(std::_Rb_tree_node<std::pair<int const, OGRGeometry*> >*)@Base" 1.10.1 1
  (c++)"std::_Rb_tree<int, std::pair<int const, GDALRasterBand*>, std::_Select1st<std::pair<int const, GDALRasterBand*> >, std::less<int>, std::allocator<std::pair<int const, GDALRasterBand*> > >::_M_get_insert_unique_pos(int const&)@Base" 1.10.1 1
  (c++)"std::_Rb_tree<int, std::pair<int const, GDALRasterBand*>, std::_Select1st<std::pair<int const, GDALRasterBand*> >, std::less<int>, std::allocator<std::pair<int const, GDALRasterBand*> > >::_M_erase(std::_Rb_tree_node<std::pair<int const, GDALRasterBand*> >*)@Base" 1.10.1 1
+ (c++)"std::_Rb_tree<int, std::pair<int const, std::set<CPLString, std::less<CPLString>, std::allocator<CPLString> > >, std::_Select1st<std::pair<int const, std::set<CPLString, std::less<CPLString>, std::allocator<CPLString> > > >, std::less<int>, std::allocator<std::pair<int const, std::set<CPLString, std::less<CPLString>, std::allocator<CPLString> > > > >::_M_get_insert_unique_pos(int const&)@Base" 2.1.0~beta1 1
+ (c++)"std::_Rb_tree<int, std::pair<int const, std::set<CPLString, std::less<CPLString>, std::allocator<CPLString> > >, std::_Select1st<std::pair<int const, std::set<CPLString, std::less<CPLString>, std::allocator<CPLString> > > >, std::less<int>, std::allocator<std::pair<int const, std::set<CPLString, std::less<CPLString>, std::allocator<CPLString> > > > >::_M_erase(std::_Rb_tree_node<std::pair<int const, std::set<CPLString, std::less<CPLString>, std::allocator<CPLString> > > >*)@Base" 2.1.0~beta1 1
  (c++)"std::_Rb_tree<int, std::pair<int const, int>, std::_Select1st<std::pair<int const, int> >, std::less<int>, std::allocator<std::pair<int const, int> > >::_M_get_insert_unique_pos(int const&)@Base" 1.10.1 1
  (c++)"std::_Rb_tree<int, std::pair<int const, int>, std::_Select1st<std::pair<int const, int> >, std::less<int>, std::allocator<std::pair<int const, int> > >::erase(int const&)@Base" 1.8.0 1
  (c++)"std::_Rb_tree<int, std::pair<int const, int>, std::_Select1st<std::pair<int const, int> >, std::less<int>, std::allocator<std::pair<int const, int> > >::_M_erase(std::_Rb_tree_node<std::pair<int const, int> >*)@Base" 1.8.0 1
@@ -2857,20 +2947,31 @@ libgdal.so.20 libgdal20 #MINVER#
  (c++)"std::_Rb_tree<long, std::pair<long const, unsigned long long>, std::_Select1st<std::pair<long const, unsigned long long> >, std::less<long>, std::allocator<std::pair<long const, unsigned long long> > >::_M_erase(std::_Rb_tree_node<std::pair<long const, unsigned long long> >*)@Base" 1.11.0 1
  (c++)"std::_Rb_tree<unsigned short, unsigned short, std::_Identity<unsigned short>, std::less<unsigned short>, std::allocator<unsigned short> >::_M_insert_unique(unsigned short const&)@Base" 1.11.0 1
  (c++)"std::_Rb_tree<unsigned short, unsigned short, std::_Identity<unsigned short>, std::less<unsigned short>, std::allocator<unsigned short> >::_M_erase(std::_Rb_tree_node<unsigned short>*)@Base" 1.11.0 1
+ (c++)"std::_Rb_tree<long long, std::pair<long long const, OGRFeature*>, std::_Select1st<std::pair<long long const, OGRFeature*> >, std::less<long long>, std::allocator<std::pair<long long const, OGRFeature*> > >::_M_get_insert_unique_pos(long long const&)@Base" 2.1.0~beta1 1
+ (c++)"std::_Rb_tree<long long, std::pair<long long const, OGRFeature*>, std::_Select1st<std::pair<long long const, OGRFeature*> >, std::less<long long>, std::allocator<std::pair<long long const, OGRFeature*> > >::find(long long const&)@Base" 2.1.0~beta1 1
+ (c++)"std::_Rb_tree<long long, std::pair<long long const, OGRFeature*>, std::_Select1st<std::pair<long long const, OGRFeature*> >, std::less<long long>, std::allocator<std::pair<long long const, OGRFeature*> > >::_M_erase(std::_Rb_tree_node<std::pair<long long const, OGRFeature*> >*)@Base" 2.1.0~beta1 1
+ (c++)"std::_Rb_tree<long long, std::pair<long long const, OGRLineString*>, std::_Select1st<std::pair<long long const, OGRLineString*> >, std::less<long long>, std::allocator<std::pair<long long const, OGRLineString*> > >::_M_get_insert_unique_pos(long long const&)@Base" 2.1.0~beta1 1
+ (c++)"std::_Rb_tree<long long, std::pair<long long const, OGRLineString*>, std::_Select1st<std::pair<long long const, OGRLineString*> >, std::less<long long>, std::allocator<std::pair<long long const, OGRLineString*> > >::find(long long const&)@Base" 2.1.0~beta1 1
+ (c++)"std::_Rb_tree<long long, std::pair<long long const, OGRLineString*>, std::_Select1st<std::pair<long long const, OGRLineString*> >, std::less<long long>, std::allocator<std::pair<long long const, OGRLineString*> > >::_M_erase(std::_Rb_tree_node<std::pair<long long const, OGRLineString*> >*)@Base" 2.1.0~beta1 1
+ (c++)"std::_Rb_tree<long long, std::pair<long long const, std::pair<double, double> >, std::_Select1st<std::pair<long long const, std::pair<double, double> > >, std::less<long long>, std::allocator<std::pair<long long const, std::pair<double, double> > > >::_M_get_insert_unique_pos(long long const&)@Base" 2.1.0~beta1 1
+ (c++)"std::_Rb_tree<long long, std::pair<long long const, std::pair<double, double> >, std::_Select1st<std::pair<long long const, std::pair<double, double> > >, std::less<long long>, std::allocator<std::pair<long long const, std::pair<double, double> > > >::find(long long const&)@Base" 2.1.0~beta1 1
+ (c++)"std::_Rb_tree<long long, std::pair<long long const, std::pair<double, double> >, std::_Select1st<std::pair<long long const, std::pair<double, double> > >, std::less<long long>, std::allocator<std::pair<long long const, std::pair<double, double> > > >::_M_erase(std::_Rb_tree_node<std::pair<long long const, std::pair<double, double> > >*)@Base" 2.1.0~beta1 1
  (c++)"std::_Rb_tree<long long, std::pair<long long const, std::pair<int, void*> >, std::_Select1st<std::pair<long long const, std::pair<int, void*> > >, std::less<long long>, std::allocator<std::pair<long long const, std::pair<int, void*> > > >::_M_get_insert_unique_pos(long long const&)@Base" 1.10.1 1
  (c++)"std::_Rb_tree<long long, std::pair<long long const, std::pair<int, void*> >, std::_Select1st<std::pair<long long const, std::pair<int, void*> > >, std::less<long long>, std::allocator<std::pair<long long const, std::pair<int, void*> > > >::find(long long const&)@Base" 1.10.1 1
  (c++)"std::_Rb_tree<long long, std::pair<long long const, std::pair<int, void*> >, std::_Select1st<std::pair<long long const, std::pair<int, void*> > >, std::less<long long>, std::allocator<std::pair<long long const, std::pair<int, void*> > > >::_M_erase(std::_Rb_tree_node<std::pair<long long const, std::pair<int, void*> > >*)@Base" 1.10.1 1
  (c++)"std::_Rb_tree<long long, std::pair<long long const, int>, std::_Select1st<std::pair<long long const, int> >, std::less<long long>, std::allocator<std::pair<long long const, int> > >::_M_get_insert_unique_pos(long long const&)@Base" 1.10.1 1
  (c++)"std::_Rb_tree<long long, std::pair<long long const, int>, std::_Select1st<std::pair<long long const, int> >, std::less<long long>, std::allocator<std::pair<long long const, int> > >::_M_erase(std::_Rb_tree_node<std::pair<long long const, int> >*)@Base" 1.10.1 1
+ (c++)"std::_Rb_tree<long long, long long, std::_Identity<long long>, std::less<long long>, std::allocator<long long> >::_M_insert_unique(long long const&)@Base" 2.1.0~beta1 1
+ (c++)"std::_Rb_tree<long long, long long, std::_Identity<long long>, std::less<long long>, std::allocator<long long> >::find(long long const&)@Base" 2.1.0~beta1 1
+ (c++)"std::_Rb_tree<long long, long long, std::_Identity<long long>, std::less<long long>, std::allocator<long long> >::erase(long long const&)@Base" 2.1.0~beta1 1
+ (c++)"std::_Rb_tree<long long, long long, std::_Identity<long long>, std::less<long long>, std::allocator<long long> >::_M_erase(std::_Rb_tree_node<long long>*)@Base" 2.1.0~beta1 1
  (c++)"__gnu_cxx::__enable_if<std::__is_char<char>::__value, bool>::__type std::operator==<char>(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)@Base" 2.0.1 1
  (c++)"std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > std::operator+<char, std::char_traits<char>, std::allocator<char> >(char const*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)@Base" 2.0.1 1
  (c++)"std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > std::operator+<char, std::char_traits<char>, std::allocator<char> >(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, char const*)@Base" 2.0.1 1
  (c++)"std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > std::operator+<char, std::char_traits<char>, std::allocator<char> >(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)@Base" 2.0.1 1
  (c++)"typeinfo for AIGDataset@Base" 1.8.0 1
  (c++)"typeinfo for GDALDriver@Base" 1.8.0 1
- (c++)"typeinfo for HFADataset@Base" 1.8.0 1
  (c++)"typeinfo for IGMLReader@Base" 1.8.0 1
- (c++)"typeinfo for IVFKReader@Base" 1.8.0 1
  (c++)"typeinfo for MAPDataset@Base" 1.10.1 1
  (c++)"typeinfo for MEMDataset@Base" 1.8.0 1
  (c++)"typeinfo for OGRFeature@Base" 1.8.0 1
@@ -2878,23 +2979,18 @@ libgdal.so.20 libgdal20 #MINVER#
  (c++)"typeinfo for OGRSurface@Base" 1.8.0 1
  (c++)"typeinfo for RawDataset@Base" 1.8.0 1
  (c++)"typeinfo for TILDataset@Base" 1.8.0 1
- (c++)"typeinfo for VFKFeature@Base" 1.10.1 1
  (c++)"typeinfo for VRTDataset@Base" 1.8.0 1
  (c++)"typeinfo for WCSDataset@Base" 1.8.0 1
  (c++)"typeinfo for AAIGDataset@Base" 1.8.0 1
  (c++)"typeinfo for GDALDataset@Base" 1.8.0 1
  (c++)"typeinfo for IILI1Reader@Base" 1.8.0 1
  (c++)"typeinfo for IILI2Reader@Base" 1.8.0 1
- (c++)"typeinfo for IVFKFeature@Base" 1.10.1 1
  (c++)"typeinfo for OGDIDataset@Base" 1.8.0 1
  (c++)"typeinfo for OGRGeometry@Base" 1.8.0 1
  (c++)"typeinfo for OGRSFDriver@Base" 1.8.0 1
  (c++)"typeinfo for OGRStylePen@Base" 1.8.0 1
- (c++)"typeinfo for VFKProperty@Base" 1.10.1 1
  (c++)"typeinfo for OGRAttrIndex@Base" 1.8.0 1
  (c++)"typeinfo for OGRStyleTool@Base" 1.8.0 1
- (c++)"typeinfo for VFKDataBlock@Base" 1.10.1 1
- (c++)"typeinfo for IVFKDataBlock@Base" 1.10.1 1
  (c++)"typeinfo for MEMRasterBand@Base" 1.8.0 1
  (c++)"typeinfo for OGRDataSource@Base" 1.8.0 1
  (c++)"typeinfo for OGRLineString@Base" 1.8.0 1
@@ -2918,13 +3014,12 @@ libgdal.so.20 libgdal20 #MINVER#
  (c++)"typeinfo for OGRMultiPolygon@Base" 1.8.0 1
  (c++)"typeinfo for OGRMultiSurface@Base" 2.0.1 1
  (c++)"typeinfo for OGRMutexedLayer@Base" 1.11.0 1
- (c++)"typeinfo for VFKPropertyDefn@Base" 1.10.1 1
  (c++)"typeinfo for VRTSimpleSource@Base" 1.11.0 1
  (c++)"typeinfo for GDALProxyDataset@Base" 1.8.0 1
  (c++)"typeinfo for OGRCompoundCurve@Base" 2.0.1 1
+ (c++)"typeinfo for OGREditableLayer@Base" 2.1.0~beta1 1
  (c++)"typeinfo for OGRGeomFieldDefn@Base" 1.11.0 1
  (c++)"typeinfo for OGRPointIterator@Base" 2.0.1 1
- (c++)"typeinfo for VFKFeatureSQLite@Base" 1.10.1 1
  (c++)"typeinfo for VRTComplexSource@Base" 1.11.0 1
  (c++)"typeinfo for VRTRawRasterBand@Base" 1.8.0 1
  (c++)"typeinfo for VRTWarpedDataset@Base" 1.8.0 1
@@ -2937,7 +3032,6 @@ libgdal.so.20 libgdal20 #MINVER#
  (c++)"typeinfo for OGRLayerDecorator@Base" 2.0.1 1
  (c++)"typeinfo for GDALNoDataMaskBand@Base" 1.8.0 1
  (c++)"typeinfo for OGRMultiLineString@Base" 1.8.0 1
- (c++)"typeinfo for VFKDataBlockSQLite@Base" 1.10.1 1
  (c++)"typeinfo for GDALMDReaderManager@Base" 2.0.1 1
  (c++)"typeinfo for GDALProxyRasterBand@Base" 1.8.0 1
  (c++)"typeinfo for OGRSpatialReference@Base" 1.8.0 1
@@ -2956,17 +3050,20 @@ libgdal.so.20 libgdal20 #MINVER#
  (c++)"typeinfo for GDALNoDataValuesMaskBand@Base" 1.8.0 1
  (c++)"typeinfo for GDALRasterAttributeTable@Base" 1.11.0 1
  (c++)"typeinfo for IOGRTransactionBehaviour@Base" 2.0.1 1
+ (c++)"typeinfo for GDALAbstractBandBlockCache@Base" 2.1.0~beta1 1
  (c++)"typeinfo for OGRCoordinateTransformation@Base" 1.8.0 1
+ (c++)"typeinfo for IOGREditableLayerSynchronizer@Base" 2.1.0~beta1 1
  (c++)"typeinfo for GDALDefaultRasterAttributeTable@Base" 1.11.0 1
+ (c++)"typeinfo for CPLErr@Base" 2.1.0~beta1 1
  (c++)"typeinfo for OGRCurve@Base" 1.8.0 1
  (c++)"typeinfo for OGRLayer@Base" 1.8.0 1
  (c++)"typeinfo for OGRPoint@Base" 1.8.0 1
+ (c++)"typeinfo for CPLString@Base" 2.1.0~beta1 1
  (c++)"typeinfo for VRTSource@Base" 1.11.0 1
+ (c++)"typeinfo for std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >@Base" 2.1.0~beta1 1
  (c++)"typeinfo name for AIGDataset@Base" 1.8.0 1
  (c++)"typeinfo name for GDALDriver@Base" 1.8.0 1
- (c++)"typeinfo name for HFADataset@Base" 1.8.0 1
  (c++)"typeinfo name for IGMLReader@Base" 1.8.0 1
- (c++)"typeinfo name for IVFKReader@Base" 1.8.0 1
  (c++)"typeinfo name for MAPDataset@Base" 1.10.1 1
  (c++)"typeinfo name for MEMDataset@Base" 1.8.0 1
  (c++)"typeinfo name for OGRFeature@Base" 1.8.0 1
@@ -2974,23 +3071,18 @@ libgdal.so.20 libgdal20 #MINVER#
  (c++)"typeinfo name for OGRSurface@Base" 1.8.0 1
  (c++)"typeinfo name for RawDataset@Base" 1.8.0 1
  (c++)"typeinfo name for TILDataset@Base" 1.8.0 1
- (c++)"typeinfo name for VFKFeature@Base" 1.10.1 1
  (c++)"typeinfo name for VRTDataset@Base" 1.8.0 1
  (c++)"typeinfo name for WCSDataset@Base" 1.8.0 1
  (c++)"typeinfo name for AAIGDataset@Base" 1.8.0 1
  (c++)"typeinfo name for GDALDataset@Base" 1.8.0 1
  (c++)"typeinfo name for IILI1Reader@Base" 1.8.0 1
  (c++)"typeinfo name for IILI2Reader@Base" 1.8.0 1
- (c++)"typeinfo name for IVFKFeature@Base" 1.10.1 1
  (c++)"typeinfo name for OGDIDataset@Base" 1.8.0 1
  (c++)"typeinfo name for OGRGeometry@Base" 1.8.0 1
  (c++)"typeinfo name for OGRSFDriver@Base" 1.8.0 1
  (c++)"typeinfo name for OGRStylePen@Base" 1.8.0 1
- (c++)"typeinfo name for VFKProperty@Base" 1.10.1 1
  (c++)"typeinfo name for OGRAttrIndex@Base" 1.8.0 1
  (c++)"typeinfo name for OGRStyleTool@Base" 1.8.0 1
- (c++)"typeinfo name for VFKDataBlock@Base" 1.10.1 1
- (c++)"typeinfo name for IVFKDataBlock@Base" 1.10.1 1
  (c++)"typeinfo name for MEMRasterBand@Base" 1.8.0 1
  (c++)"typeinfo name for OGRDataSource@Base" 1.8.0 1
  (c++)"typeinfo name for OGRLineString@Base" 1.8.0 1
@@ -3014,13 +3106,12 @@ libgdal.so.20 libgdal20 #MINVER#
  (c++)"typeinfo name for OGRMultiPolygon@Base" 1.8.0 1
  (c++)"typeinfo name for OGRMultiSurface@Base" 2.0.1 1
  (c++)"typeinfo name for OGRMutexedLayer@Base" 1.11.0 1
- (c++)"typeinfo name for VFKPropertyDefn@Base" 1.10.1 1
  (c++)"typeinfo name for VRTSimpleSource@Base" 1.11.0 1
  (c++)"typeinfo name for GDALProxyDataset@Base" 1.8.0 1
  (c++)"typeinfo name for OGRCompoundCurve@Base" 2.0.1 1
+ (c++)"typeinfo name for OGREditableLayer@Base" 2.1.0~beta1 1
  (c++)"typeinfo name for OGRGeomFieldDefn@Base" 1.11.0 1
  (c++)"typeinfo name for OGRPointIterator@Base" 2.0.1 1
- (c++)"typeinfo name for VFKFeatureSQLite@Base" 1.10.1 1
  (c++)"typeinfo name for VRTComplexSource@Base" 1.11.0 1
  (c++)"typeinfo name for VRTRawRasterBand@Base" 1.8.0 1
  (c++)"typeinfo name for VRTWarpedDataset@Base" 1.8.0 1
@@ -3033,7 +3124,6 @@ libgdal.so.20 libgdal20 #MINVER#
  (c++)"typeinfo name for OGRLayerDecorator@Base" 2.0.1 1
  (c++)"typeinfo name for GDALNoDataMaskBand@Base" 1.8.0 1
  (c++)"typeinfo name for OGRMultiLineString@Base" 1.8.0 1
- (c++)"typeinfo name for VFKDataBlockSQLite@Base" 1.10.1 1
  (c++)"typeinfo name for GDALMDReaderManager@Base" 2.0.1 1
  (c++)"typeinfo name for GDALProxyRasterBand@Base" 1.8.0 1
  (c++)"typeinfo name for OGRSpatialReference@Base" 1.8.0 1
@@ -3052,17 +3142,20 @@ libgdal.so.20 libgdal20 #MINVER#
  (c++)"typeinfo name for GDALNoDataValuesMaskBand@Base" 1.8.0 1
  (c++)"typeinfo name for GDALRasterAttributeTable@Base" 1.11.0 1
  (c++)"typeinfo name for IOGRTransactionBehaviour@Base" 2.0.1 1
+ (c++)"typeinfo name for GDALAbstractBandBlockCache@Base" 2.1.0~beta1 1
  (c++)"typeinfo name for OGRCoordinateTransformation@Base" 1.8.0 1
+ (c++)"typeinfo name for IOGREditableLayerSynchronizer@Base" 2.1.0~beta1 1
  (c++)"typeinfo name for GDALDefaultRasterAttributeTable@Base" 1.11.0 1
+ (c++)"typeinfo name for CPLErr@Base" 2.1.0~beta1 1
  (c++)"typeinfo name for OGRCurve@Base" 1.8.0 1
  (c++)"typeinfo name for OGRLayer@Base" 1.8.0 1
  (c++)"typeinfo name for OGRPoint@Base" 1.8.0 1
+ (c++)"typeinfo name for CPLString@Base" 2.1.0~beta1 1
  (c++)"typeinfo name for VRTSource@Base" 1.11.0 1
+ (c++)"typeinfo name for std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >@Base" 2.1.0~beta1 1
  (c++)"vtable for AIGDataset@Base" 1.8.0 1
  (c++)"vtable for GDALDriver@Base" 1.8.0 1
- (c++)"vtable for HFADataset@Base" 1.8.0 1
  (c++)"vtable for IGMLReader@Base" 1.8.0 1
- (c++)"vtable for IVFKReader@Base" 1.8.0 1
  (c++)"vtable for MAPDataset@Base" 1.10.1 1
  (c++)"vtable for MEMDataset@Base" 1.8.0 1
  (c++)"vtable for OGRFeature@Base" 1.8.0 1
@@ -3070,23 +3163,18 @@ libgdal.so.20 libgdal20 #MINVER#
  (c++)"vtable for OGRSurface@Base" 1.8.0 1
  (c++)"vtable for RawDataset@Base" 1.8.0 1
  (c++)"vtable for TILDataset@Base" 1.8.0 1
- (c++)"vtable for VFKFeature@Base" 1.10.1 1
  (c++)"vtable for VRTDataset@Base" 1.8.0 1
  (c++)"vtable for WCSDataset@Base" 1.8.0 1
  (c++)"vtable for AAIGDataset@Base" 1.8.0 1
  (c++)"vtable for GDALDataset@Base" 1.8.0 1
  (c++)"vtable for IILI1Reader@Base" 1.8.0 1
  (c++)"vtable for IILI2Reader@Base" 1.8.0 1
- (c++)"vtable for IVFKFeature@Base" 1.10.1 1
  (c++)"vtable for OGDIDataset@Base" 1.8.0 1
  (c++)"vtable for OGRGeometry@Base" 1.8.0 1
  (c++)"vtable for OGRSFDriver@Base" 1.8.0 1
  (c++)"vtable for OGRStylePen@Base" 1.8.0 1
- (c++)"vtable for VFKProperty@Base" 1.10.1 1
  (c++)"vtable for OGRAttrIndex@Base" 1.8.0 1
  (c++)"vtable for OGRStyleTool@Base" 1.8.0 1
- (c++)"vtable for VFKDataBlock@Base" 1.10.1 1
- (c++)"vtable for IVFKDataBlock@Base" 1.10.1 1
  (c++)"vtable for MEMRasterBand@Base" 1.8.0 1
  (c++)"vtable for OGRDataSource@Base" 1.8.0 1
  (c++)"vtable for OGRLineString@Base" 1.8.0 1
@@ -3110,13 +3198,12 @@ libgdal.so.20 libgdal20 #MINVER#
  (c++)"vtable for OGRMultiPolygon@Base" 1.8.0 1
  (c++)"vtable for OGRMultiSurface@Base" 2.0.1 1
  (c++)"vtable for OGRMutexedLayer@Base" 1.11.0 1
- (c++)"vtable for VFKPropertyDefn@Base" 1.10.1 1
  (c++)"vtable for VRTSimpleSource@Base" 1.11.0 1
  (c++)"vtable for GDALProxyDataset@Base" 1.8.0 1
  (c++)"vtable for OGRCompoundCurve@Base" 2.0.1 1
+ (c++)"vtable for OGREditableLayer@Base" 2.1.0~beta1 1
  (c++)"vtable for OGRGeomFieldDefn@Base" 1.11.0 1
  (c++)"vtable for OGRPointIterator@Base" 2.0.1 1
- (c++)"vtable for VFKFeatureSQLite@Base" 1.10.1 1
  (c++)"vtable for VRTComplexSource@Base" 1.11.0 1
  (c++)"vtable for VRTRawRasterBand@Base" 1.8.0 1
  (c++)"vtable for VRTWarpedDataset@Base" 1.8.0 1
@@ -3129,7 +3216,6 @@ libgdal.so.20 libgdal20 #MINVER#
  (c++)"vtable for OGRLayerDecorator@Base" 2.0.1 1
  (c++)"vtable for GDALNoDataMaskBand@Base" 1.8.0 1
  (c++)"vtable for OGRMultiLineString@Base" 1.8.0 1
- (c++)"vtable for VFKDataBlockSQLite@Base" 1.10.1 1
  (c++)"vtable for GDALMDReaderManager@Base" 2.0.1 1
  (c++)"vtable for GDALProxyRasterBand@Base" 1.8.0 1
  (c++)"vtable for OGRSpatialReference@Base" 1.8.0 1
@@ -3147,6 +3233,8 @@ libgdal.so.20 libgdal20 #MINVER#
  (c++)"vtable for GDALNoDataValuesMaskBand@Base" 1.8.0 1
  (c++)"vtable for GDALRasterAttributeTable@Base" 1.11.0 1
  (c++)"vtable for IOGRTransactionBehaviour@Base" 2.0.1 1
+ (c++)"vtable for GDALAbstractBandBlockCache@Base" 2.1.0~beta1 1
+ (c++)"vtable for IOGREditableLayerSynchronizer@Base" 2.1.0~beta1 1
  (c++)"vtable for GDALDefaultRasterAttributeTable@Base" 1.11.0 1
  (c++)"vtable for OGRCurve@Base" 1.8.0 1
  (c++)"vtable for OGRLayer@Base" 1.8.0 1

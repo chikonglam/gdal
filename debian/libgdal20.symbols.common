@@ -70,6 +70,7 @@
  CPLEscapeString@Base 1.8.0
  CPLExtractRelativePath@Base 1.8.0
  CPLFGets@Base 1.8.0
+ CPLFetchBool@Base 2.1.0~beta1
  CPLFindFile@Base 1.8.0
  CPLFinderClean@Base 1.8.0
  CPLForceToASCII@Base 1.8.0
@@ -80,6 +81,7 @@
  CPLGetBasename@Base 1.8.0
  CPLGetConfigOption@Base 1.8.0
  CPLGetCurrentDir@Base 1.8.0
+ CPLGetCurrentProcessID@Base 2.1.0~beta1
  CPLGetDirname@Base 1.8.0
  CPLGetErrorHandlerUserData@Base 1.9.0
  CPLGetExecPath@Base 1.8.0
@@ -96,6 +98,8 @@
  CPLGetSharedList@Base 1.8.0
  CPLGetSymbol@Base 1.8.0
  CPLGetTLS@Base 1.8.0
+ CPLGetTLSEx@Base 2.1.0~beta1
+ CPLGetThreadLocalConfigOption@Base 2.1.0~beta1
  CPLGetThreadingModel@Base 1.8.0
  CPLGetUsablePhysicalRAM@Base 2.0.1
  CPLGetValueType@Base 1.8.0
@@ -106,6 +110,7 @@
  CPLHTTPEnabled@Base 1.8.0
  CPLHTTPFetch@Base 1.8.0
  CPLHTTPParseMultipartMime@Base 1.8.0
+ CPLHashSetClear@Base 2.1.0~beta1
  CPLHashSetDestroy@Base 1.8.0
  CPLHashSetEqualPointer@Base 1.8.0
  CPLHashSetEqualStr@Base 1.8.0
@@ -116,6 +121,7 @@
  CPLHashSetLookup@Base 1.8.0
  CPLHashSetNew@Base 1.8.0
  CPLHashSetRemove@Base 1.8.0
+ CPLHashSetRemoveDeferRehash@Base 2.1.0~beta1
  CPLHashSetSize@Base 1.8.0
  CPLHexToBinary@Base 1.8.0
  CPLIsFilenameRelative@Base 1.8.0
@@ -193,10 +199,12 @@
  CPLSerializeXMLTree@Base 1.8.0
  CPLSerializeXMLTreeToFile@Base 1.8.0
  CPLSetConfigOption@Base 1.8.0
+ CPLSetCurrentErrorHandlerCatchDebug@Base 2.1.0~beta1
  CPLSetErrorHandler@Base 1.8.0
  CPLSetErrorHandlerEx@Base 1.9.0
  CPLSetTLS@Base 1.8.0
  CPLSetTLSWithFreeFunc@Base 1.8.0
+ CPLSetTLSWithFreeFuncEx@Base 2.1.0~beta1
  CPLSetThreadLocalConfigOption@Base 1.8.0
  CPLSetXMLValue@Base 1.8.0
  CPLSleep@Base 1.8.0
@@ -223,6 +231,9 @@
  CPLStrtodDelim@Base 1.8.0
  CPLStrtof@Base 1.8.0
  CPLStrtofDelim@Base 1.8.0
+ CPLSymlink@Base 2.1.0~beta1
+ CPLTestBool@Base 2.1.0~beta1
+ CPLTestBoolean@Base 2.1.0~beta1
  CPLUnescapeString@Base 1.8.0
  CPLUnlinkTree@Base 1.8.0
  CPLUnlockFile@Base 1.8.0
@@ -246,6 +257,11 @@
  CPLWriteFileInZip@Base 1.8.0
  CPLZLibDeflate@Base 1.10.1
  CPLZLibInflate@Base 1.10.1
+ CPL_HMAC_SHA256@Base 2.1.0~beta1
+ CPL_SHA256@Base 2.1.0~beta1
+ CPL_SHA256Final@Base 2.1.0~beta1
+ CPL_SHA256Init@Base 2.1.0~beta1
+ CPL_SHA256Update@Base 2.1.0~beta1
  CPLprintf@Base 2.0.1
  CPLsnprintf@Base 2.0.1
  CPLsprintf@Base 2.0.1
@@ -253,6 +269,7 @@
  CPLvsnprintf@Base 2.0.1
  CSLAddNameValue@Base 1.8.0
  CSLAddString@Base 1.8.0
+ CSLAddStringMayFail@Base 2.1.0~beta1
  CSLAppendPrintf@Base 1.8.0
  CSLCount@Base 1.8.0
  CSLDestroy@Base 1.8.0
@@ -270,6 +287,7 @@
  CSLLoad2@Base 1.8.0
  CSLLoad@Base 1.8.0
  CSLMerge@Base 1.8.0
+ CSLParseCommandLine@Base 2.1.0~beta1
  CSLPartialFindString@Base 1.8.0
  CSLPrint@Base 1.8.0
  CSLRemoveStrings@Base 1.8.0
@@ -285,13 +303,18 @@
  CSVFilename@Base 1.8.0
  CSVGetField@Base 1.8.0
  CSVGetFieldId@Base 1.8.0
+ CSVGetFieldIdL@Base 2.1.0~beta1
  CSVGetFileFieldId@Base 1.8.0
  CSVGetNextLine@Base 1.8.0
  CSVReadParseLine2@Base 1.8.0
+ CSVReadParseLine2L@Base 2.1.0~beta1
  CSVReadParseLine@Base 1.8.0
+ CSVReadParseLineL@Base 2.1.0~beta1
  CSVScanFile@Base 1.8.0
  CSVScanFileByName@Base 1.8.0
  CSVScanLines@Base 1.8.0
+ CSVScanLinesL@Base 2.1.0~beta1
+ CheckExtensionConsistency@Base 2.1.0~beta1
  DBFAddField@Base 1.8.0
  DBFAddNativeFieldType@Base 1.8.0
  DBFAlterFieldDefn@Base 1.9.0
@@ -374,11 +397,13 @@
  DGNUpdateElemCore@Base 1.8.0
  DGNUpdateElemCoreExtended@Base 1.8.0
  DGNWriteElement@Base 1.8.0
+ EarlySetConfigOptions@Base 2.1.0~beta1
  GDALARGetNextUpdatedRegion@Base 1.8.0
  GDALARLockBuffer@Base 1.8.0
  GDALARUnlockBuffer@Base 1.8.0
  GDALAddBand@Base 1.8.0
  GDALAddDerivedBandPixelFunc@Base 1.8.0
+ GDALAdjustValueToDataType@Base 2.1.0~beta1
  GDALAllRegister@Base 1.8.0
  GDALApplyGeoTransform@Base 1.8.0
  GDALApproxTransform@Base 1.8.0
@@ -388,6 +413,10 @@
  GDALBandGetBestOverviewLevel@Base 1.8.0
  GDALBeginAsyncReader@Base 1.8.0
  GDALBuildOverviews@Base 1.8.0
+ GDALBuildVRT@Base 2.1.0~beta1
+ GDALBuildVRTOptionsFree@Base 2.1.0~beta1
+ GDALBuildVRTOptionsNew@Base 2.1.0~beta1
+ GDALBuildVRTOptionsSetProgress@Base 2.1.0~beta1
  GDALCheckBandCount@Base 1.8.0
  GDALCheckDatasetDimensions@Base 1.8.0
  GDALCheckVersion@Base 1.8.0
@@ -395,6 +424,7 @@
  GDALChunkAndWarpImage@Base 1.8.0
  GDALChunkAndWarpMulti@Base 1.8.0
  GDALCloneColorTable@Base 1.8.0
+ GDALClonePansharpenOptions@Base 2.1.0~beta1
  GDALCloneWarpOptions@Base 1.8.0
  GDALClose@Base 1.8.0
  GDALComposeGeoTransforms@Base 1.11.0
@@ -424,6 +454,9 @@
  GDALCreateGenImgProjTransformer@Base 1.8.0
  GDALCreateGeoLocTransformer@Base 1.8.0
  GDALCreateMaskBand@Base 1.8.0
+ GDALCreatePansharpenOperation@Base 2.1.0~beta1
+ GDALCreatePansharpenOptions@Base 2.1.0~beta1
+ GDALCreatePansharpenedVRT@Base 2.1.0~beta1
  GDALCreateRPCTransformer@Base 1.8.0
  GDALCreateRasterAttributeTable@Base 1.8.0
  GDALCreateReprojectionTransformer@Base 1.8.0
@@ -432,6 +465,10 @@
  GDALCreateWarpOperation@Base 1.8.0
  GDALCreateWarpOptions@Base 1.8.0
  GDALCreateWarpedVRT@Base 1.8.0
+ GDALDEMProcessing@Base 2.1.0~beta1
+ GDALDEMProcessingOptionsFree@Base 2.1.0~beta1
+ GDALDEMProcessingOptionsNew@Base 2.1.0~beta1
+ GDALDEMProcessingOptionsSetProgress@Base 2.1.0~beta1
  GDALDataTypeIsComplex@Base 1.8.0
  GDALDataTypeUnion@Base 1.8.0
  GDALDatasetAdviseRead@Base 1.8.0
@@ -459,6 +496,7 @@
  GDALDecToPackedDMS@Base 1.8.0
  GDALDeinitGCPs@Base 1.8.0
  GDALDeleteDataset@Base 1.8.0
+ GDALDeleteRasterNoDataValue@Base 2.1.0~beta1
  GDALDereferenceDataset@Base 1.8.0
  GDALDeregisterDriver@Base 1.8.0
  GDALDeserializeTransformer@Base 1.8.0
@@ -471,6 +509,8 @@
  GDALDestroyGCPTransformer@Base 1.8.0
  GDALDestroyGenImgProjTransformer@Base 1.8.0
  GDALDestroyGeoLocTransformer@Base 1.8.0
+ GDALDestroyPansharpenOperation@Base 2.1.0~beta1
+ GDALDestroyPansharpenOptions@Base 2.1.0~beta1
  GDALDestroyRPCTransformer@Base 1.8.0
  GDALDestroyRasterAttributeTable@Base 1.8.0
  GDALDestroyReprojectionTransformer@Base 1.8.0
@@ -515,6 +555,8 @@
  GDALGetDataTypeByName@Base 1.8.0
  GDALGetDataTypeName@Base 1.8.0
  GDALGetDataTypeSize@Base 1.8.0
+ GDALGetDataTypeSizeBits@Base 2.1.0~beta1
+ GDALGetDataTypeSizeBytes@Base 2.1.0~beta1
  GDALGetDatasetDriver@Base 1.8.0
  GDALGetDefaultHistogram@Base 1.8.0
  GDALGetDefaultHistogramEx@Base 2.0.1
@@ -569,9 +611,20 @@
  GDALGetRasterXSize@Base 1.8.0
  GDALGetRasterYSize@Base 1.8.0
  GDALGetVirtualMemAuto@Base 1.11.0
+ GDALGrid@Base 2.1.0~beta1
+ GDALGridContextCreate@Base 2.1.0~beta1
+ GDALGridContextFree@Base 2.1.0~beta1
+ GDALGridContextProcess@Base 2.1.0~beta1
  GDALGridCreate@Base 1.8.0
+ GDALGridOptionsFree@Base 2.1.0~beta1
+ GDALGridOptionsNew@Base 2.1.0~beta1
+ GDALGridOptionsSetProgress@Base 2.1.0~beta1
  GDALHasArbitraryOverviews@Base 1.8.0
+ GDALHasTriangulation@Base 2.1.0~beta1
  GDALIdentifyDriver@Base 1.8.0
+ GDALInfo@Base 2.1.0~beta1
+ GDALInfoOptionsFree@Base 2.1.0~beta1
+ GDALInfoOptionsNew@Base 2.1.0~beta1
  GDALInitGCPs@Base 1.8.0
  GDALInitializeWarpedVRT@Base 1.8.0
  GDALInvGeoTransform@Base 1.8.0
@@ -579,6 +632,10 @@
  GDALLoadOziMapFile@Base 1.8.0
  GDALLoadTabFile@Base 1.8.0
  GDALLoadWorldFile@Base 1.8.0
+ GDALNearblack@Base 2.1.0~beta1
+ GDALNearblackOptionsFree@Base 2.1.0~beta1
+ GDALNearblackOptionsNew@Base 2.1.0~beta1
+ GDALNearblackOptionsSetProgress@Base 2.1.0~beta1
  GDALOpen@Base 1.8.0
  GDALOpenEx@Base 2.0.1
  GDALOpenShared@Base 1.8.0
@@ -586,6 +643,7 @@
  GDALOvLevelAdjust@Base 1.8.0
  GDALOverviewMagnitudeCorrection@Base 1.8.0
  GDALPackedDMSToDec@Base 1.8.0
+ GDALPansharpenProcessRegion@Base 2.1.0~beta1
  GDALParseGMLCoverage@Base 1.8.0
  GDALPolygonize@Base 1.8.0
  GDALProxyPoolDatasetAddSrcBandDescription@Base 1.8.0
@@ -624,9 +682,13 @@
  GDALRasterBandGetVirtualMem@Base 1.11.0
  GDALRasterIO@Base 1.8.0
  GDALRasterIOEx@Base 2.0.1
+ GDALRasterize@Base 2.1.0~beta1
  GDALRasterizeGeometries@Base 1.8.0
  GDALRasterizeLayers@Base 1.8.0
  GDALRasterizeLayersBuf@Base 1.8.0
+ GDALRasterizeOptionsFree@Base 2.1.0~beta1
+ GDALRasterizeOptionsNew@Base 2.1.0~beta1
+ GDALRasterizeOptionsSetProgress@Base 2.1.0~beta1
  GDALReadBlock@Base 1.8.0
  GDALReadOziMapFile@Base 1.8.0
  GDALReadTabFile@Base 1.8.0
@@ -647,6 +709,7 @@
  GDALRegister_BMP@Base 1.8.0
  GDALRegister_BSB@Base 1.8.0
  GDALRegister_BT@Base 1.8.0
+ GDALRegister_CALS@Base 2.1.0~beta1
  GDALRegister_CEOS@Base 1.8.0
  GDALRegister_COASP@Base 1.8.0
  GDALRegister_COSAR@Base 1.8.0
@@ -697,6 +760,7 @@
  GDALRegister_ILWIS@Base 1.8.0
  GDALRegister_INGR@Base 1.8.0
  GDALRegister_IRIS@Base 1.10.1
+ GDALRegister_ISCE@Base 2.1.0~beta1
  GDALRegister_ISIS2@Base 1.8.0
  GDALRegister_ISIS3@Base 1.8.0
  GDALRegister_JDEM@Base 1.8.0
@@ -739,9 +803,11 @@
  GDALRegister_RPFTOC@Base 1.8.0
  GDALRegister_RS2@Base 1.8.0
  GDALRegister_Rasterlite@Base 1.8.0
+ GDALRegister_SAFE@Base 2.1.0~beta1
  GDALRegister_SAGA@Base 1.8.0
  GDALRegister_SAR_CEOS@Base 1.8.0
  GDALRegister_SDTS@Base 1.8.0
+ GDALRegister_SENTINEL2@Base 2.1.0~beta1
  GDALRegister_SGI@Base 1.8.0
  GDALRegister_SNODAS@Base 1.9.0
  GDALRegister_SRP@Base 1.8.0
@@ -755,9 +821,11 @@
  GDALRegister_WCS@Base 1.8.0
  GDALRegister_WEBP@Base 1.10.1
  GDALRegister_WMS@Base 1.8.0
+ GDALRegister_WMTS@Base 2.1.0~beta1
  GDALRegister_XPM@Base 1.8.0
  GDALRegister_XYZ@Base 1.8.0
  GDALRegister_ZMap@Base 1.9.0
+ GDALRegister_mrf@Base 2.1.0~beta1
  GDALRegister_netCDF@Base 1.8.0
  GDALRenameDataset@Base 1.8.0
  GDALReprojectImage@Base 1.8.0
@@ -766,6 +834,9 @@
  GDALSerializeTransformer@Base 1.8.0
  GDALSerializeWarpOptions@Base 1.8.0
  GDALServerLoop@Base 1.10.1
+ GDALServerLoopInstanceCreateFromSocket@Base 2.1.0~beta1
+ GDALServerLoopInstanceDestroy@Base 2.1.0~beta1
+ GDALServerLoopInstanceRunIteration@Base 2.1.0~beta1
  GDALServerLoopSocket@Base 1.10.1
  GDALSetCacheMax64@Base 1.8.0
  GDALSetCacheMax@Base 1.8.0
@@ -793,12 +864,32 @@
  GDALSuggestedWarpOutput2@Base 1.8.0
  GDALSuggestedWarpOutput@Base 1.8.0
  GDALSwapWords@Base 1.8.0
+ GDALSwapWordsEx@Base 2.1.0~beta1
  GDALTPSTransform@Base 1.8.0
  GDALTermProgress@Base 1.8.0
  GDALTransformGeolocations@Base 1.10.1
+ GDALTranslate@Base 2.1.0~beta1
+ GDALTranslateOptionsFree@Base 2.1.0~beta1
+ GDALTranslateOptionsNew@Base 2.1.0~beta1
+ GDALTranslateOptionsSetProgress@Base 2.1.0~beta1
+ GDALTriangulationComputeBarycentricCoefficients@Base 2.1.0~beta1
+ GDALTriangulationComputeBarycentricCoordinates@Base 2.1.0~beta1
+ GDALTriangulationCreateDelaunay@Base 2.1.0~beta1
+ GDALTriangulationFindFacetBruteForce@Base 2.1.0~beta1
+ GDALTriangulationFindFacetDirected@Base 2.1.0~beta1
+ GDALTriangulationFree@Base 2.1.0~beta1
  GDALUseTransformer@Base 1.8.0
  GDALValidateCreationOptions@Base 1.8.0
+ GDALVectorTranslate@Base 2.1.0~beta1
+ GDALVectorTranslateOptionsFree@Base 2.1.0~beta1
+ GDALVectorTranslateOptionsNew@Base 2.1.0~beta1
+ GDALVectorTranslateOptionsSetProgress@Base 2.1.0~beta1
  GDALVersionInfo@Base 1.8.0
+ GDALWarp@Base 2.1.0~beta1
+ GDALWarpAppOptionsFree@Base 2.1.0~beta1
+ GDALWarpAppOptionsNew@Base 2.1.0~beta1
+ GDALWarpAppOptionsSetProgress@Base 2.1.0~beta1
+ GDALWarpAppOptionsSetWarpOption@Base 2.1.0~beta1
  GDALWarpCutlineMasker@Base 1.8.0
  GDALWarpDstAlphaMasker@Base 1.8.0
  GDALWarpNoDataMasker@Base 1.8.0
@@ -824,7 +915,6 @@
  HFAClose@Base 1.8.0
  HFACreate@Base 1.8.0
  HFACreateLL@Base 1.8.0
- HFACreateLayer@Base 1.8.0
  HFACreateOverview@Base 1.8.0
  HFADumpDictionary@Base 1.8.0
  HFADumpTree@Base 1.8.0
@@ -866,6 +956,7 @@
  HFAWriteXFormStack@Base 1.8.0
  LibgeotiffOneTimeInit@Base 1.10.1
  MEMCreateRasterBand@Base 1.8.0
+ MEMCreateRasterBandEx@Base 2.1.0~beta1
  NITFClose@Base 1.8.0
  NITFCollectAttachments@Base 1.8.0
  NITFCreate@Base 1.8.0
@@ -981,6 +1072,7 @@
  OGR_FD_IsStyleIgnored@Base 1.8.0
  OGR_FD_Reference@Base 1.8.0
  OGR_FD_Release@Base 1.8.0
+ OGR_FD_ReorderFieldDefns@Base 2.1.0~beta1
  OGR_FD_SetGeomType@Base 1.8.0
  OGR_FD_SetGeometryIgnored@Base 1.8.0
  OGR_FD_SetStyleIgnored@Base 1.8.0
@@ -1011,6 +1103,8 @@
  OGR_F_GetGeomFieldIndex@Base 1.11.0
  OGR_F_GetGeomFieldRef@Base 1.11.0
  OGR_F_GetGeometryRef@Base 1.8.0
+ OGR_F_GetNativeData@Base 2.1.0~beta1
+ OGR_F_GetNativeMediaType@Base 2.1.0~beta1
  OGR_F_GetRawFieldRef@Base 1.8.0
  OGR_F_GetStyleString@Base 1.8.0
  OGR_F_GetStyleTable@Base 1.8.0
@@ -1034,6 +1128,8 @@
  OGR_F_SetGeomFieldDirectly@Base 1.11.0
  OGR_F_SetGeometry@Base 1.8.0
  OGR_F_SetGeometryDirectly@Base 1.8.0
+ OGR_F_SetNativeData@Base 2.1.0~beta1
+ OGR_F_SetNativeMediaType@Base 2.1.0~beta1
  OGR_F_SetStyleString@Base 1.8.0
  OGR_F_SetStyleStringDirectly@Base 1.8.0
  OGR_F_SetStyleTable@Base 1.8.0
@@ -1079,16 +1175,20 @@
  OGR_GT_GetCollection@Base 2.0.1
  OGR_GT_GetCurve@Base 2.0.1
  OGR_GT_GetLinear@Base 2.0.1
+ OGR_GT_HasM@Base 2.1.0~beta1
  OGR_GT_HasZ@Base 2.0.1
  OGR_GT_IsCurve@Base 2.0.1
  OGR_GT_IsNonLinear@Base 2.0.1
  OGR_GT_IsSubClassOf@Base 2.0.1
  OGR_GT_IsSurface@Base 2.0.1
+ OGR_GT_SetM@Base 2.1.0~beta1
  OGR_GT_SetModifier@Base 2.0.1
  OGR_GT_SetZ@Base 2.0.1
  OGR_G_AddGeometry@Base 1.8.0
  OGR_G_AddGeometryDirectly@Base 1.8.0
  OGR_G_AddPoint@Base 1.8.0
+ OGR_G_AddPointM@Base 2.1.0~beta1
+ OGR_G_AddPointZM@Base 2.1.0~beta1
  OGR_G_AddPoint_2D@Base 1.8.0
  OGR_G_ApproximateArcAngles@Base 1.8.0
  OGR_G_Area@Base 1.8.0
@@ -1100,6 +1200,7 @@
  OGR_G_CloseRings@Base 1.8.0
  OGR_G_Contains@Base 1.8.0
  OGR_G_ConvexHull@Base 1.8.0
+ OGR_G_CoordinateDimension@Base 2.1.0~beta1
  OGR_G_CreateFromFgf@Base 1.8.0
  OGR_G_CreateFromGML@Base 1.8.0
  OGR_G_CreateFromGMLTree@Base 1.8.0
@@ -1108,6 +1209,7 @@
  OGR_G_CreateGeometry@Base 1.8.0
  OGR_G_CreateGeometryFromJson@Base 1.8.0
  OGR_G_Crosses@Base 1.8.0
+ OGR_G_DelaunayTriangulation@Base 2.1.0~beta1
  OGR_G_DestroyGeometry@Base 1.8.0
  OGR_G_Difference@Base 1.8.0
  OGR_G_Disjoint@Base 1.8.0
@@ -1146,9 +1248,12 @@
  OGR_G_GetGeometryRef@Base 1.8.0
  OGR_G_GetGeometryType@Base 1.8.0
  OGR_G_GetLinearGeometry@Base 2.0.1
+ OGR_G_GetM@Base 2.1.0~beta1
  OGR_G_GetPoint@Base 1.8.0
  OGR_G_GetPointCount@Base 1.8.0
+ OGR_G_GetPointZM@Base 2.1.0~beta1
  OGR_G_GetPoints@Base 1.9.0
+ OGR_G_GetPointsZM@Base 2.1.0~beta1
  OGR_G_GetSpatialReference@Base 1.8.0
  OGR_G_GetX@Base 1.8.0
  OGR_G_GetY@Base 1.8.0
@@ -1159,7 +1264,9 @@
  OGR_G_Intersect@Base 1.8.0
  OGR_G_Intersection@Base 1.8.0
  OGR_G_Intersects@Base 1.8.0
+ OGR_G_Is3D@Base 2.1.0~beta1
  OGR_G_IsEmpty@Base 1.8.0
+ OGR_G_IsMeasured@Base 2.1.0~beta1
  OGR_G_IsRing@Base 1.8.0
  OGR_G_IsSimple@Base 1.8.0
  OGR_G_IsValid@Base 1.8.0
@@ -1169,11 +1276,16 @@
  OGR_G_Polygonize@Base 1.9.0
  OGR_G_RemoveGeometry@Base 1.8.0
  OGR_G_Segmentize@Base 1.8.0
+ OGR_G_Set3D@Base 2.1.0~beta1
  OGR_G_SetCoordinateDimension@Base 1.8.0
+ OGR_G_SetMeasured@Base 2.1.0~beta1
  OGR_G_SetPoint@Base 1.8.0
  OGR_G_SetPointCount@Base 1.11.0
+ OGR_G_SetPointM@Base 2.1.0~beta1
+ OGR_G_SetPointZM@Base 2.1.0~beta1
  OGR_G_SetPoint_2D@Base 1.8.0
  OGR_G_SetPoints@Base 1.11.0
+ OGR_G_SetPointsZM@Base 2.1.0~beta1
  OGR_G_Simplify@Base 1.8.0
  OGR_G_SimplifyPreserveTopology@Base 1.9.0
  OGR_G_SymDifference@Base 1.8.0
@@ -1388,6 +1500,7 @@
  OSRSetProjection@Base 1.8.0
  OSRSetQSC@Base 2.0.1
  OSRSetRobinson@Base 1.8.0
+ OSRSetSCH@Base 2.1.0~beta1
  OSRSetSOC@Base 1.8.0
  OSRSetSinusoidal@Base 1.8.0
  OSRSetStatePlane@Base 1.8.0
@@ -1420,6 +1533,7 @@
  RegisterOGRAVCBin@Base 1.8.0
  RegisterOGRAVCE00@Base 1.8.0
  RegisterOGRAeronavFAA@Base 1.8.0
+ RegisterOGRAmigoCloud@Base 2.1.0~beta1
  RegisterOGRBNA@Base 1.8.0
  RegisterOGRCSV@Base 1.8.0
  RegisterOGRCSW@Base 2.0.1
@@ -1432,7 +1546,6 @@
  RegisterOGREDIGEO@Base 1.9.0
  RegisterOGRElastic@Base 1.10.1
  RegisterOGRGFT@Base 1.9.0
- RegisterOGRGME@Base 1.11.0
  RegisterOGRGML@Base 1.8.0
  RegisterOGRGMT@Base 1.8.0
  RegisterOGRGPSBabel@Base 1.8.0
@@ -1479,6 +1592,7 @@
  RegisterOGRShape@Base 1.8.0
  RegisterOGRTAB@Base 1.8.0
  RegisterOGRTiger@Base 1.8.0
+ RegisterOGRVDV@Base 2.1.0~beta1
  RegisterOGRVFK@Base 1.8.0
  RegisterOGRVRT@Base 1.8.0
  RegisterOGRWAsP@Base 1.11.0
@@ -1515,9 +1629,7 @@
  SHPSearchDiskTreeEx@Base 1.9.0
  SHPSetFastModeReadObject@Base 1.11.0
  SHPTreeAddShapeId@Base 1.8.0
- SHPTreeCollectShapeIds@Base 1.8.0
  SHPTreeFindLikelyShapes@Base 1.8.0
- SHPTreeSplitBounds@Base 1.8.0
  SHPTreeTrimExtraNodes@Base 1.8.0
  SHPTypeName@Base 1.8.0
  SHPWriteHeader@Base 1.8.0
@@ -1534,7 +1646,10 @@
  VRTSerializeToXML@Base 1.8.0
  VSICTime@Base 1.8.0
  VSICalloc@Base 1.8.0
+ VSICallocVerbose@Base 2.1.0~beta1
  VSICleanupFileManager@Base 1.8.0
+ VSIError@Base 2.1.0~beta1
+ VSIErrorReset@Base 2.1.0~beta1
  VSIFClose@Base 1.8.0
  VSIFCloseL@Base 1.8.0
  VSIFEof@Base 1.8.0
@@ -1545,6 +1660,7 @@
  VSIFGetc@Base 1.8.0
  VSIFGets@Base 1.8.0
  VSIFOpen@Base 1.8.0
+ VSIFOpenExL@Base 2.1.0~beta1
  VSIFOpenL@Base 1.8.0
  VSIFPrintf@Base 1.8.0
  VSIFPrintfL@Base 1.8.0
@@ -1564,8 +1680,12 @@
  VSIFileFromMemBuffer@Base 1.8.0
  VSIFree@Base 1.8.0
  VSIGMTime@Base 1.8.0
+ VSIGetDiskFreeSpace@Base 2.1.0~beta1
+ VSIGetLastErrorMsg@Base 2.1.0~beta1
+ VSIGetLastErrorNo@Base 2.1.0~beta1
  VSIGetMemFileBuffer@Base 1.8.0
  VSIIngestFile@Base 1.11.0
+ VSIInstallCryptFileHandler@Base 2.1.0~beta1
  VSIInstallLargeFileHandler@Base 1.8.0
  VSIInstallMemFileHandler@Base 1.8.0
  VSIInstallSparseFileHandler@Base 1.8.0
@@ -1573,23 +1693,31 @@
  VSIIsCaseSensitiveFS@Base 1.8.0
  VSILocalTime@Base 1.8.0
  VSIMalloc2@Base 1.8.0
+ VSIMalloc2Verbose@Base 2.1.0~beta1
  VSIMalloc3@Base 1.8.0
+ VSIMalloc3Verbose@Base 2.1.0~beta1
  VSIMalloc@Base 1.8.0
+ VSIMallocVerbose@Base 2.1.0~beta1
  VSIMkdir@Base 1.8.0
  VSIReadDir@Base 1.8.0
+ VSIReadDirEx@Base 2.1.0~beta1
  VSIReadDirRecursive@Base 1.10.1
  VSIRealloc@Base 1.8.0
+ VSIReallocVerbose@Base 2.1.0~beta1
  VSIRename@Base 1.8.0
  VSIRewind@Base 1.8.0
  VSIRewindL@Base 1.8.0
  VSIRmdir@Base 1.8.0
+ VSISetCryptKey@Base 2.1.0~beta1
  VSIStat@Base 1.8.0
  VSIStatExL@Base 1.8.0
  VSIStatL@Base 1.8.0
  VSIStdoutSetRedirection@Base 2.0.1
  VSIStrdup@Base 1.8.0
+ VSIStrdupVerbose@Base 2.1.0~beta1
  VSIStrerror@Base 1.8.0
  VSITime@Base 1.8.0
+ VSIToCPLError@Base 2.1.0~beta1
  VSIUngetc@Base 1.8.0
  VSIUnlink@Base 1.8.0
  _CPLAssert@Base 1.8.0
@@ -1604,4 +1732,5 @@
  gdal_json_object_put@Base 2.0.1
  gdal_json_object_to_json_string_ext@Base 2.0.1
  json_object_new_double_with_precision@Base 2.0.1
+ json_object_new_double_with_significant_figures@Base 2.1.0~beta1
  sqlite3_extension_init@Base 1.10.1
