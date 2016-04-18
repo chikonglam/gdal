@@ -5,6 +5,7 @@ gdal (2.1.0~rc1+dfsg-1) UNRELEASED; urgency=medium
   * Update watch file for 2.1.0 pre-releases.
   * New upstream release candidate.
   * Update copyright file, add license & copyright for JPNG_band.cpp.
+  * Drop java-version.patch, applied upstream. Refresh remaining patches.
 
  -- Bas Couwenberg <sebastic@debian.org>  Mon, 18 Apr 2016 19:33:05 +0200
 
