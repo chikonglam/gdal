@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: bsbdataset.cpp 33717 2016-03-14 06:29:14Z goatbar $
+ * $Id: bsbdataset.cpp 33936 2016-04-10 13:51:04Z rouault $
  *
  * Project:  BSB Reader
  * Purpose:  BSBDataset implementation for BSB format.
@@ -34,7 +34,7 @@
 #include "gdal_pam.h"
 #include "ogr_spatialref.h"
 
-CPL_CVSID("$Id: bsbdataset.cpp 33717 2016-03-14 06:29:14Z goatbar $");
+CPL_CVSID("$Id: bsbdataset.cpp 33936 2016-04-10 13:51:04Z rouault $");
 
 //Disabled as people may worry about the BSB patent
 //#define BSB_CREATE
@@ -873,8 +873,8 @@ static int BSBIsSRSOK(const char *pszWKT)
 
 static GDALDataset *
 BSBCreateCopy( const char * pszFilename, GDALDataset *poSrcDS,
-               int bStrict, char ** papszOptions,
-               GDALProgressFunc pfnProgress, void * pProgressData )
+               int bStrict, char ** /*papszOptions*/,
+               GDALProgressFunc /*pfnProgress*/, void * /*pProgressData*/ )
 
 {
 /* -------------------------------------------------------------------- */
@@ -959,7 +959,7 @@ BSBCreateCopy( const char * pszFilename, GDALDataset *poSrcDS,
         nPCTSize = nColorTableSize + 1;
 
         // Add entries for pixel values which apparently will not occur.
-        for( iColor = nPCTSize; iColor < 256; iColor++ )
+        for( int iColor = nPCTSize; iColor < 256; iColor++ )
             anRemap[iColor] = 1;
     }
 
@@ -1119,7 +1119,7 @@ BSBCreateCopy( const char * pszFilename, GDALDataset *poSrcDS,
     {
         eErr = poBand->RasterIO( GF_Read, 0, iLine, nXSize, 1,
                                  pabyScanline, nXSize, 1, GDT_Byte,
-                                 nBands, nBands * nXSize );
+                                 nBands, nBands * nXSize, NULL );
         if( eErr == CE_None )
         {
             for( int i = 0; i < nXSize; i++ )

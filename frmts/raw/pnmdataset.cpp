@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: pnmdataset.cpp 33673 2016-03-07 20:40:54Z goatbar $
+ * $Id: pnmdataset.cpp 33864 2016-04-02 11:50:14Z goatbar $
  *
  * Project:  PNM Driver
  * Purpose:  Portable anymap file format imlementation
@@ -33,7 +33,7 @@
 #include "rawdataset.h"
 #include <ctype.h>
 
-CPL_CVSID("$Id: pnmdataset.cpp 33673 2016-03-07 20:40:54Z goatbar $");
+CPL_CVSID("$Id: pnmdataset.cpp 33864 2016-04-02 11:50:14Z goatbar $");
 
 CPL_C_START
 void GDALRegister_PNM();
@@ -54,7 +54,7 @@ class PNMDataset : public RawDataset
 
   public:
                 PNMDataset();
-                ~PNMDataset();
+    virtual ~PNMDataset();
 
     virtual CPLErr GetGeoTransform( double * );
 

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrinfo.java 32865 2016-01-08 21:22:17Z goatbar $
+ * $Id: ogrinfo.java 34011 2016-04-18 16:22:21Z rouault $
  *
  * Name:     ogrinfo.java
  * Project:  GDAL SWIG Interface
@@ -79,6 +79,10 @@ public class ogrinfo
                 bReadOnly = true;
             else if (args[i].equals("-q"))
                 bVerbose = false;
+            else if (args[i].equals("-fid") && i + 1 < args.length)
+            {
+                nFetchFID = new Integer(args[++i]).intValue();
+            }
             else if (args[i].equals("-spat") && i + 4 < args.length)
             {
                 Geometry oRing = new Geometry(ogrConstants.wkbLinearRing);

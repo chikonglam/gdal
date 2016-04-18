@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: cpgdataset.cpp 33673 2016-03-07 20:40:54Z goatbar $
+ * $Id: cpgdataset.cpp 33928 2016-04-09 19:15:33Z goatbar $
  *
  * Project:  Polarimetric Workstation
  * Purpose:  Convair PolGASP data (.img/.hdr format).
@@ -33,13 +33,13 @@
 #include "ogr_spatialref.h"
 #include "rawdataset.h"
 
-CPL_CVSID("$Id: cpgdataset.cpp 33673 2016-03-07 20:40:54Z goatbar $");
+CPL_CVSID("$Id: cpgdataset.cpp 33928 2016-04-09 19:15:33Z goatbar $");
 
-enum Interleave {BSQ, BIL, BIP};
+enum Interleave { BSQ, BIL, BIP };
 
 /************************************************************************/
 /* ==================================================================== */
-/*				CPGDataset				*/
+/*                              CPGDataset                              */
 /* ==================================================================== */
 /************************************************************************/
 
@@ -51,7 +51,7 @@ class CPGDataset : public RawDataset
     friend class SIRC_QSLCRasterBand;
     friend class CPG_STOKESRasterBand;
 
-    FILE	*afpImage[4];
+    FILE *afpImage[4];
 
     int nGCPCount;
     GDAL_GCP *pasGCPList;
@@ -75,8 +75,8 @@ class CPGDataset : public RawDataset
   CPLErr LoadStokesLine( int iLine, int bNativeOrder );
 
   public:
-		CPGDataset();
-	        ~CPGDataset();
+                CPGDataset();
+    virtual ~CPGDataset();
 
     virtual int    GetGCPCount();
     virtual const char *GetGCPProjection();
@@ -150,6 +150,7 @@ class SIRC_QSLCRasterBand : public GDALRasterBand
 
   public:
                    SIRC_QSLCRasterBand( CPGDataset *, int, GDALDataType );
+    virtual ~SIRC_QSLCRasterBand() {}
 
     virtual CPLErr IReadBlock( int, int, void * );
 };
@@ -602,7 +603,7 @@ GDALDataset* CPGDataset::InitializeType1Or2Dataset( const char *pszFilename )
         }
         for( int iBand = 0; iBand < 4; iBand++ )
         {
-            SIRC_QSLCRasterBand	*poBand;
+            SIRC_QSLCRasterBand *poBand;
 
             poBand = new SIRC_QSLCRasterBand( poDS, iBand+1, GDT_CFloat32 );
             poDS->SetBand( iBand+1, poBand );
@@ -1123,7 +1124,7 @@ GDALDataset *CPGDataset::Open( GDALOpenInfo * poOpenInfo )
     poDS->SetDescription( poOpenInfo->pszFilename );
     poDS->TryLoadXML();
 
-    return( poDS );
+    return poDS;
 }
 
 /************************************************************************/
@@ -1174,7 +1175,7 @@ CPLErr CPGDataset::GetGeoTransform( double * padfTransform )
 
 {
     memcpy( padfTransform,  adfGeoTransform, sizeof(double) * 6 );
-    return( CE_None );
+    return CE_None;
 }
 
 /************************************************************************/

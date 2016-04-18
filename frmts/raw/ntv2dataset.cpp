@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ntv2dataset.cpp 33673 2016-03-07 20:40:54Z goatbar $
+ * $Id: ntv2dataset.cpp 33864 2016-04-02 11:50:14Z goatbar $
  *
  * Project:  Horizontal Datum Formats
  * Purpose:  Implementation of NTv2 datum shift format used in Canada, France,
@@ -35,7 +35,7 @@
 #include "ogr_srs_api.h"
 #include "rawdataset.h"
 
-CPL_CVSID("$Id: ntv2dataset.cpp 33673 2016-03-07 20:40:54Z goatbar $");
+CPL_CVSID("$Id: ntv2dataset.cpp 33864 2016-04-02 11:50:14Z goatbar $");
 
 /**
  * The header for the file, and each grid consists of 11 16byte records.
@@ -78,7 +78,7 @@ these both in the more conventional orientation.
 
 /************************************************************************/
 /* ==================================================================== */
-/*				NTv2Dataset				*/
+/*                              NTv2Dataset                             */
 /* ==================================================================== */
 /************************************************************************/
 
@@ -86,7 +86,7 @@ class NTv2Dataset : public RawDataset
 {
   public:
     bool        m_bMustSwap;
-    VSILFILE	*fpImage;	// image data file.
+    VSILFILE    *fpImage;  // image data file.
 
     int         nRecordLength;
     vsi_l_offset nGridOffset;
@@ -98,8 +98,8 @@ class NTv2Dataset : public RawDataset
     int         OpenGrid( char *pachGridHeader, vsi_l_offset nDataStart );
 
   public:
-    		NTv2Dataset();
-    	        ~NTv2Dataset();
+                NTv2Dataset();
+    virtual ~NTv2Dataset();
 
     virtual CPLErr SetGeoTransform( double * padfTransform );
     virtual CPLErr GetGeoTransform( double * padfTransform );
@@ -115,7 +115,7 @@ class NTv2Dataset : public RawDataset
 
 /************************************************************************/
 /* ==================================================================== */
-/*				NTv2Dataset				*/
+/*                              NTv2Dataset                             */
 /* ==================================================================== */
 /************************************************************************/
 

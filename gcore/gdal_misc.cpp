@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdal_misc.cpp 33839 2016-03-31 21:29:48Z rouault $
+ * $Id: gdal_misc.cpp 33873 2016-04-03 14:13:37Z rouault $
  *
  * Project:  GDAL Core
  * Purpose:  Free standing functions for GDAL.
@@ -41,7 +41,7 @@
 #include <limits>
 #include <string>
 
-CPL_CVSID("$Id: gdal_misc.cpp 33839 2016-03-31 21:29:48Z rouault $");
+CPL_CVSID("$Id: gdal_misc.cpp 33873 2016-04-03 14:13:37Z rouault $");
 
 /************************************************************************/
 /*                         GDALDataTypeUnion()                          */
@@ -3478,6 +3478,9 @@ void GDALRasterIOExtraArgSetResampleAlg(GDALRasterIOExtraArg* psExtraArg,
 int GDALCanFileAcceptSidecarFile(const char* pszFilename)
 {
     if( strstr(pszFilename, "/vsicurl/") && strchr(pszFilename, '?') )
+        return FALSE;
+    /* Do no attempt reading side-car files on /vsisubfile/ (#6241) */
+    if( strncmp(pszFilename, "/vsisubfile/", strlen("/vsisubfile/")) == 0 )
         return FALSE;
     return TRUE;
 }

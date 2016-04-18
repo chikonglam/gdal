@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: msgdataset.cpp 33720 2016-03-15 00:39:53Z goatbar $
+ * $Id: msgdataset.cpp 33951 2016-04-12 14:51:31Z rouault $
  *
  * Project:  MSG Driver
  * Purpose:  GDALDataset driver for MSG translator for read support.
@@ -138,7 +138,7 @@ GDALDataset *MSGDataset::Open( GDALOpenInfo * poOpenInfo )
     if (sErr.length() > 0)
     {
         if (sErr.compare("-") != 0) // this driver does not recognize this format .. be silent and return false so that another driver can try
-          CPLError( CE_Failure, CPLE_AppDefined, (sErr+"\n").c_str() );
+          CPLError( CE_Failure, CPLE_AppDefined, "%s", (sErr+"\n").c_str() );
         return FALSE;
     }
 
@@ -182,7 +182,7 @@ GDALDataset *MSGDataset::Open( GDALOpenInfo * poOpenInfo )
     else
     {
         std::string sErr = "The prologue of the data set could not be found at the location specified:\n" + sPrologueFileName + "\n";
-        CPLError( CE_Failure, CPLE_AppDefined,
+        CPLError( CE_Failure, CPLE_AppDefined, "%s",
                   sErr.c_str() );
         return FALSE;
     }

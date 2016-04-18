@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: srpdataset.cpp 33720 2016-03-15 00:39:53Z goatbar $
+ * $Id: srpdataset.cpp 33901 2016-04-06 16:31:31Z goatbar $
  * Purpose:  ASRP/USRP Reader
  * Author:   Frank Warmerdam (warmerdam@pobox.com)
  *
@@ -38,7 +38,7 @@
 // Uncomment to recognize also .gen files in addition to .img files
 // #define OPEN_GEN
 
-CPL_CVSID("$Id: srpdataset.cpp 33720 2016-03-15 00:39:53Z goatbar $");
+CPL_CVSID("$Id: srpdataset.cpp 33901 2016-04-06 16:31:31Z goatbar $");
 
 class SRPDataset : public GDALPamDataset
 {
@@ -848,8 +848,8 @@ char **SRPDataset::GetFileList()
 
 void SRPDataset::AddSubDataset( const char* pszGENFileName, const char* pszIMGFileName )
 {
-    char	szName[80];
-    int		nCount = CSLCount(papszSubDatasets ) / 2;
+    char szName[80];
+    int nCount = CSLCount(papszSubDatasets ) / 2;
 
     CPLString osSubDatasetName;
     osSubDatasetName = "SRP:";

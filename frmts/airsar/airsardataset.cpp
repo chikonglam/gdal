@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: airsardataset.cpp 33720 2016-03-15 00:39:53Z goatbar $
+ * $Id: airsardataset.cpp 33901 2016-04-06 16:31:31Z goatbar $
  *
  * Project:  AirSAR Reader
  * Purpose:  Implements read support for AirSAR Polarimetric data.
@@ -34,11 +34,11 @@
 #include "gdal_frmts.h"
 #include "gdal_pam.h"
 
-CPL_CVSID("$Id: airsardataset.cpp 33720 2016-03-15 00:39:53Z goatbar $");
+CPL_CVSID("$Id: airsardataset.cpp 33901 2016-04-06 16:31:31Z goatbar $");
 
 /************************************************************************/
 /* ==================================================================== */
-/*				AirSARDataset				*/
+/*                              AirSARDataset                           */
 /* ==================================================================== */
 /************************************************************************/
 
@@ -48,7 +48,7 @@ class AirSARDataset : public GDALPamDataset
 {
     friend class AirSARRasterBand;
 
-    VSILFILE	*fp;
+    VSILFILE    *fp;
 
     int         nLoadedLine;
     GByte       *pabyCompressedLine;
@@ -64,7 +64,7 @@ class AirSARDataset : public GDALPamDataset
 
   public:
                 AirSARDataset();
-		~AirSARDataset();
+                ~AirSARDataset();
 
     static GDALDataset *Open( GDALOpenInfo * );
 };
@@ -78,7 +78,7 @@ class AirSARDataset : public GDALPamDataset
 class AirSARRasterBand : public GDALPamRasterBand
 {
   public:
-    		AirSARRasterBand( AirSARDataset *, int );
+                AirSARRasterBand( AirSARDataset *, int );
     virtual     ~AirSARRasterBand();
 
     virtual CPLErr IReadBlock( int, int, void * );
@@ -258,7 +258,7 @@ CPLErr AirSARRasterBand::IReadBlock( int /* nBlockXOff */,
 
 /************************************************************************/
 /* ==================================================================== */
-/*				AirSARDataset				*/
+/*                              AirSARDataset                           */
 /* ==================================================================== */
 /************************************************************************/
 

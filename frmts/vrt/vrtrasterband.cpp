@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: vrtrasterband.cpp 33720 2016-03-15 00:39:53Z goatbar $
+ * $Id: vrtrasterband.cpp 33902 2016-04-06 19:07:34Z rouault $
  *
  * Project:  Virtual GDAL Datasets
  * Purpose:  Implementation of VRTRasterBand
@@ -34,7 +34,7 @@
 
 #include <algorithm>
 
-CPL_CVSID("$Id: vrtrasterband.cpp 33720 2016-03-15 00:39:53Z goatbar $");
+CPL_CVSID("$Id: vrtrasterband.cpp 33902 2016-04-06 19:07:34Z rouault $");
 
 /************************************************************************/
 /* ==================================================================== */
@@ -119,6 +119,8 @@ CPLErr VRTRasterBand::CopyCommonInfoFrom( GDALRasterBand * poSrcBand )
     SetMetadata( poSrcBand->GetMetadata() );
     const char* pszNBits = poSrcBand->GetMetadataItem("NBITS", "IMAGE_STRUCTURE");
     SetMetadataItem( "NBITS", pszNBits, "IMAGE_STRUCTURE" );
+    const char* pszPixelType = poSrcBand->GetMetadataItem("PIXELTYPE", "IMAGE_STRUCTURE");
+    SetMetadataItem( "PIXELTYPE", pszPixelType, "IMAGE_STRUCTURE" );
     SetColorTable( poSrcBand->GetColorTable() );
     SetColorInterpretation(poSrcBand->GetColorInterpretation());
     if( strlen(poSrcBand->GetDescription()) > 0 )

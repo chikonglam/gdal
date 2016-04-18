@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: cpl_vsil.cpp 33759 2016-03-21 09:33:06Z rouault $
+ * $Id: cpl_vsil.cpp 33853 2016-04-01 23:30:08Z goatbar $
  *
  * Project:  VSI Virtual File System
  * Purpose:  Implementation VSI*L File API and other file system access
@@ -36,7 +36,7 @@
 #include <cassert>
 #include <string>
 
-CPL_CVSID("$Id: cpl_vsil.cpp 33759 2016-03-21 09:33:06Z rouault $");
+CPL_CVSID("$Id: cpl_vsil.cpp 33853 2016-04-01 23:30:08Z goatbar $");
 
 /************************************************************************/
 /*                             VSIReadDir()                             */
@@ -68,7 +68,7 @@ char **VSIReadDir(const char *pszPath)
 }
 
 /************************************************************************/
-/*                             VSIReadDir()                             */
+/*                             VSIReadDirEx()                           */
 /************************************************************************/
 
 /**
@@ -89,7 +89,8 @@ char **VSIReadDir(const char *pszPath)
  *
  * @param pszPath the relative, or absolute path of a directory to read.
  * UTF-8 encoded.
- * @param nMaxFiles maximum number of files after which to stop, or 0 for no limit.
+ * @param nMaxFiles maximum number of files after which to stop, or 0 for no
+ * limit.
  * @return The list of entries in the directory, or NULL if the directory
  * doesn't exist.  Filenames are returned in UTF-8 encoding.
  * @since GDAL 2.1

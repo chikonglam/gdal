@@ -174,6 +174,12 @@ public class SpatialReference : IDisposable {
     return ret;
   }
 
+  public string GetAngularUnitsName() {
+    string ret = OsrPINVOKE.SpatialReference_GetAngularUnitsName(swigCPtr);
+    if (OsrPINVOKE.SWIGPendingException.Pending) throw OsrPINVOKE.SWIGPendingException.Retrieve();
+    return ret;
+  }
+
   public int SetTargetLinearUnits(string target, string name, double to_meters) {
     int ret = OsrPINVOKE.SpatialReference_SetTargetLinearUnits(swigCPtr, target, name, to_meters);
     if (OsrPINVOKE.SWIGPendingException.Pending) throw OsrPINVOKE.SWIGPendingException.Retrieve();
@@ -212,6 +218,18 @@ public class SpatialReference : IDisposable {
 
   public string GetAuthorityName(string target_key) {
     string ret = OsrPINVOKE.SpatialReference_GetAuthorityName(swigCPtr, target_key);
+    if (OsrPINVOKE.SWIGPendingException.Pending) throw OsrPINVOKE.SWIGPendingException.Retrieve();
+    return ret;
+  }
+
+  public string GetAxisName(string target_key, int iAxis) {
+    string ret = OsrPINVOKE.SpatialReference_GetAxisName(swigCPtr, target_key, iAxis);
+    if (OsrPINVOKE.SWIGPendingException.Pending) throw OsrPINVOKE.SWIGPendingException.Retrieve();
+    return ret;
+  }
+
+  public AxisOrientation GetAxisOrientation(string target_key, int iAxis) {
+    AxisOrientation ret = (AxisOrientation)OsrPINVOKE.SpatialReference_GetAxisOrientation(swigCPtr, target_key, iAxis);
     if (OsrPINVOKE.SWIGPendingException.Pending) throw OsrPINVOKE.SWIGPendingException.Retrieve();
     return ret;
   }

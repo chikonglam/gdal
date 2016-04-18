@@ -2,7 +2,7 @@
 #define SHAPEFILE_H_INCLUDED
 
 /******************************************************************************
- * $Id: shapefil.h 33713 2016-03-12 17:41:57Z goatbar $
+ * $Id: shapefil.h 33889 2016-04-04 09:16:07Z rouault $
  *
  * Project:  Shapelib
  * Purpose:  Primary include file for Shapelib.
@@ -384,6 +384,13 @@ SHPHandle SHPAPI_CALL
 SHPHandle SHPAPI_CALL
       SHPOpenLL( const char *pszShapeFile, const char *pszAccess,
                  SAHooks *psHooks );
+SHPHandle SHPAPI_CALL
+      SHPOpenLLEx( const char *pszShapeFile, const char *pszAccess,
+                  SAHooks *psHooks, int bRestoreSHX );
+
+int       SHPAPI_CALL
+      SHPRestoreSHX( const char *pszShapeFile, const char *pszAccess,
+                  SAHooks *psHooks );
 
 /* If setting bFastMode = TRUE, the content of SHPReadObject() is owned by the SHPHandle. */
 /* So you cannot have 2 valid instances of SHPReadObject() simultaneously. */

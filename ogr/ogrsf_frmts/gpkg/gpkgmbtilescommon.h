@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gpkgmbtilescommon.h 33820 2016-03-31 12:34:07Z rouault $
+ * $Id: gpkgmbtilescommon.h 34001 2016-04-18 15:29:00Z rouault $
  *
  * Project:  GeoPackage/MBTiles Translator
  * Purpose:  Definition of common classes for GeoPackage and MBTiles drivers.
@@ -89,6 +89,9 @@ class GDALGPKGMBTilesLikePseudoDataset
 #endif
     sqlite3            *m_hTempDB;
     CPLString           m_osTempDBFilename;
+    time_t              m_nLastSpaceCheckTimestamp;
+    bool                m_bForceTempDBCompaction;
+    GIntBig             m_nAge;
 
     int                 m_nTileInsertionCount;
 
@@ -111,10 +114,11 @@ class GDALGPKGMBTilesLikePseudoDataset
         CPLErr                  WriteTile();
 
         CPLErr                  FlushTiles();
-        CPLErr                  FlushRemainingShiftedTiles();
+        CPLErr                  FlushRemainingShiftedTiles(bool bPartialFlush);
         CPLErr                  WriteShiftedTile(int nRow, int nCol, int iBand,
                                                  int nDstXOffset, int nDstYOffset,
                                                  int nDstXSize, int nDstYSize);
+        CPLErr                  DoPartialFlushOfPartialTilesIfNecessary();
 
         virtual CPLErr                  IFlushCacheWithErrCode() = 0;
         virtual int                     IGetRasterCount() = 0;
@@ -147,6 +151,11 @@ class GDALGPKGMBTilesLikeRasterBand: public GDALPamRasterBand
 
         virtual GDALColorInterp GetColorInterpretation();
         virtual CPLErr          SetColorInterpretation( GDALColorInterp );
+
+    protected:
+        friend class GDALGPKGMBTilesLikePseudoDataset;
+
+        GDALRasterBlock*        AccessibleTryGetLockedBlockRef(int nBlockXOff, int nBlockYOff) { return TryGetLockedBlockRef(nBlockXOff, nBlockYOff); }
 
 };
 

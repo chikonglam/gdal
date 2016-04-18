@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: grass57dataset.cpp 33717 2016-03-14 06:29:14Z goatbar $
+ * $Id: grass57dataset.cpp 33893 2016-04-04 14:08:28Z rouault $
  *
  * Project:  GRASS Driver
  * Purpose:  Implement GRASS raster read/write support
@@ -33,6 +33,11 @@
 
 #include <stdlib.h>
 
+#include "cpl_string.h"
+#include "gdal_frmts.h"
+#include "gdal_priv.h"
+#include "ogr_spatialref.h"
+
 extern "C" {
 #ifdef __cplusplus
 #define class _class
@@ -41,11 +46,6 @@ extern "C" {
 #ifdef __cplusplus
 #undef class
 #endif
-
-#include "cpl_string.h"
-#include "gdal_frmts.h"
-#include "gdal_priv.h"
-#include "ogr_spatialref.h"
 
 #include <grass/version.h>
 #include <grass/gprojects.h>
@@ -64,7 +64,7 @@ char *GPJ_grass_to_wkt(struct Key_Value *,
 
 #define GRASS_MAX_COLORS 100000  // what is the right value
 
-CPL_CVSID("$Id: grass57dataset.cpp 33717 2016-03-14 06:29:14Z goatbar $");
+CPL_CVSID("$Id: grass57dataset.cpp 33893 2016-04-04 14:08:28Z rouault $");
 
 #if GRASS_VERSION_MAJOR  >= 7
 #define G_get_cellhd             Rast_get_cellhd

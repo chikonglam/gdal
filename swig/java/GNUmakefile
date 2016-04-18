@@ -31,10 +31,12 @@ makedir:
 	mkdir -p org/gdal/gdalconst
 	mkdir -p org/gdal/ogr
 	mkdir -p org/gdal/osr
-	mkdir -p org/gdal/gnm
+#	mkdir -p org/gdal/gnm
 
-JAVA_MODULES = libgdaljni.$(SO_EXT) libogrjni.$(SO_EXT) libgdalconstjni.$(SO_EXT) libosrjni.$(SO_EXT) libgnmjni.$(SO_EXT)
-JAVA_OBJECTS = gdalconst_wrap.$(OBJ_EXT) gdal_wrap.$(OBJ_EXT) osr_wrap.$(OBJ_EXT) ogr_wrap.$(OBJ_EXT) gnm_wrap.$(OBJ_EXT)
+JAVA_MODULES = libgdaljni.$(SO_EXT) libogrjni.$(SO_EXT) libgdalconstjni.$(SO_EXT) libosrjni.$(SO_EXT)
+#libgnmjni.$(SO_EXT)
+JAVA_OBJECTS = gdalconst_wrap.$(OBJ_EXT) gdal_wrap.$(OBJ_EXT) osr_wrap.$(OBJ_EXT) ogr_wrap.$(OBJ_EXT)
+#gnm_wrap.$(OBJ_EXT)
 
 clean:
 	-rm -f ${JAVA_MODULES}
@@ -47,10 +49,10 @@ clean:
 	ant clean
 
 veryclean: clean
-	-rm -f ${WRAPPERS}
+	-rm -f ${WRAPPERS_WITHOUT_GNM}
 	-rm -rf ${EXTRA_DIST}/*
 
-generate: makedir ${WRAPPERS}
+generate: makedir ${WRAPPERS_WITHOUT_GNM}
 
 build: generate ${JAVA_OBJECTS} ${JAVA_MODULES}
 ifeq ($(HAVE_LIBTOOL),yes)
@@ -87,6 +89,7 @@ test:
 	${JAVA_RUN} gdalinfo -checksum tmp_test/byte.tif
 	${JAVA_RUN} ogr2ogr tmp_test/out.shp test_data/poly.shp -progress -overwrite
 	${JAVA_RUN} ogrinfo -ro -al tmp_test/out.shp
+	${JAVA_RUN} ogrinfo -ro -al tmp_test/out.shp -fid 1
 	${JAVA_RUN} ogr2ogr_new tmp_test/out2.shp test_data/poly.shp -progress -overwrite
 	${JAVA_RUN} ogr2ogr_new tmp_test/out2.shp test_data/poly.shp -append
 	${JAVA_RUN} ogrinfo -ro -al tmp_test/out2.shp
@@ -96,6 +99,7 @@ test:
 	${JAVA_RUN} GDALContour -i 1 tmp_test/byte.tif tmp_test/contour.shp
 	${JAVA_RUN} testgetpoints
 	${JAVA_RUN} ogrtindex tmp_test/contour_index.shp tmp_test/contour.shp
+	${JAVA_RUN} OSRTest
 
 $(JAVA_MODULES): lib%jni.$(SO_EXT): %_wrap.$(OBJ_EXT)
 	$(LINK) $(LDFLAGS) $< $(CONFIG_LIBS) -o $@ $(LINK_EXTRAFLAGS)

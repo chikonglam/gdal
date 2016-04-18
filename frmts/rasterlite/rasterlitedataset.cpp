@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: rasterlitedataset.cpp 33010 2016-01-15 19:41:09Z rouault $
+ * $Id: rasterlitedataset.cpp 33869 2016-04-02 16:53:28Z rouault $
  *
  * Project:  GDAL Rasterlite driver
  * Purpose:  Implement GDAL Rasterlite support using OGR SQLite driver
@@ -36,7 +36,7 @@
 
 #include <algorithm>
 
-CPL_CVSID("$Id: rasterlitedataset.cpp 33010 2016-01-15 19:41:09Z rouault $");
+CPL_CVSID("$Id: rasterlitedataset.cpp 33869 2016-04-02 16:53:28Z rouault $");
 
 
 /************************************************************************/
@@ -950,7 +950,9 @@ int RasterliteDataset::Identify(GDALOpenInfo* poOpenInfo)
     if (!EQUAL(CPLGetExtension(poOpenInfo->pszFilename), "MBTILES") &&
         !EQUAL(CPLGetExtension(poOpenInfo->pszFilename), "GPKG") &&
         poOpenInfo->nHeaderBytes >= 1024 &&
-        STARTS_WITH_CI((const char*)poOpenInfo->pabyHeader, "SQLite Format 3"))
+        STARTS_WITH_CI((const char*)poOpenInfo->pabyHeader, "SQLite Format 3") &&
+        // Do not match direct Amazon S3 signed URLs that contains .mbtiles in the middle of the URL
+        strstr(poOpenInfo->pszFilename, ".mbtiles") == NULL)
     {
         // Could be a SQLite/Spatialite file as well
         return -1;

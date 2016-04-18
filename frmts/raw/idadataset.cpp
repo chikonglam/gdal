@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: idadataset.cpp 33673 2016-03-07 20:40:54Z goatbar $
+ * $Id: idadataset.cpp 33864 2016-04-02 11:50:14Z goatbar $
  *
  * Project:  IDA Raster Driver
  * Purpose:  Implemenents IDA driver/dataset/rasterband.
@@ -32,7 +32,7 @@
 #include "gdal_frmts.h"
 #include "gdal_rat.h"
 
-CPL_CVSID("$Id: idadataset.cpp 33673 2016-03-07 20:40:54Z goatbar $");
+CPL_CVSID("$Id: idadataset.cpp 33864 2016-04-02 11:50:14Z goatbar $");
 
 // convert a Turbo Pascal real into a double
 static double tp2c(GByte *r);
@@ -42,7 +42,7 @@ static void c2tp(double n, GByte *r);
 
 /************************************************************************/
 /* ==================================================================== */
-/*				IDADataset				*/
+/*                              IDADataset                              */
 /* ==================================================================== */
 /************************************************************************/
 
@@ -78,8 +78,8 @@ class IDADataset : public RawDataset
     void        ReadColorTable();
 
   public:
-    		IDADataset();
-    	        ~IDADataset();
+                IDADataset();
+    virtual ~IDADataset();
 
     virtual void FlushCache();
     virtual const char *GetProjectionRef(void);
@@ -98,7 +98,7 @@ class IDADataset : public RawDataset
 
 /************************************************************************/
 /* ==================================================================== */
-/*			        IDARasterBand                           */
+/*                              IDARasterBand                           */
 /* ==================================================================== */
 /************************************************************************/
 
@@ -110,7 +110,7 @@ class IDARasterBand : public RawRasterBand
     GDALColorTable       *poColorTable;
 
   public:
-    		IDARasterBand( IDADataset *poDSIn, VSILFILE *fpRaw, int nXSize );
+                 IDARasterBand( IDADataset *poDSIn, VSILFILE *fpRaw, int nXSize );
     virtual     ~IDARasterBand();
 
     virtual GDALRasterAttributeTable *GetDefaultRAT();
@@ -275,7 +275,7 @@ GDALRasterAttributeTable *IDARasterBand::GetDefaultRAT()
 
 /************************************************************************/
 /* ==================================================================== */
-/*				IDADataset				*/
+/*                              IDADataset                              */
 /* ==================================================================== */
 /************************************************************************/
 

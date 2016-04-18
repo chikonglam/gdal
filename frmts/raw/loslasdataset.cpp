@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: loslasdataset.cpp 33673 2016-03-07 20:40:54Z goatbar $
+ * $Id: loslasdataset.cpp 33864 2016-04-02 11:50:14Z goatbar $
  *
  * Project:  Horizontal Datum Formats
  * Purpose:  Implementation of NOAA/NADCON los/las datum shift format.
@@ -33,7 +33,7 @@
 #include "ogr_srs_api.h"
 #include "rawdataset.h"
 
-CPL_CVSID("$Id: loslasdataset.cpp 33673 2016-03-07 20:40:54Z goatbar $");
+CPL_CVSID("$Id: loslasdataset.cpp 33864 2016-04-02 11:50:14Z goatbar $");
 
 /**
 
@@ -68,22 +68,22 @@ even the header record is this length though it means some waste.
 
 /************************************************************************/
 /* ==================================================================== */
-/*				LOSLASDataset				*/
+/*                              LOSLASDataset                           */
 /* ==================================================================== */
 /************************************************************************/
 
 class LOSLASDataset : public RawDataset
 {
   public:
-    VSILFILE	*fpImage;	// image data file.
+    VSILFILE    *fpImage;  // image data file.
 
     int         nRecordLength;
 
     double      adfGeoTransform[6];
 
   public:
-    		LOSLASDataset();
-    	        ~LOSLASDataset();
+                LOSLASDataset();
+    virtual ~LOSLASDataset();
 
     virtual CPLErr GetGeoTransform( double * padfTransform );
     virtual const char *GetProjectionRef();
@@ -94,7 +94,7 @@ class LOSLASDataset : public RawDataset
 
 /************************************************************************/
 /* ==================================================================== */
-/*				LOSLASDataset				*/
+/*                              LOSLASDataset                           */
 /* ==================================================================== */
 /************************************************************************/
 

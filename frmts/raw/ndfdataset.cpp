@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ndfdataset.cpp 33673 2016-03-07 20:40:54Z goatbar $
+ * $Id: ndfdataset.cpp 33864 2016-04-02 11:50:14Z goatbar $
  *
  * Project:  NDF Driver
  * Purpose:  Implementation of NLAPS Data Format read support.
@@ -33,11 +33,11 @@
 #include "ogr_spatialref.h"
 #include "rawdataset.h"
 
-CPL_CVSID("$Id: ndfdataset.cpp 33673 2016-03-07 20:40:54Z goatbar $");
+CPL_CVSID("$Id: ndfdataset.cpp 33864 2016-04-02 11:50:14Z goatbar $");
 
 /************************************************************************/
 /* ==================================================================== */
-/*				NDFDataset				*/
+/*                              NDFDataset                              */
 /* ==================================================================== */
 /************************************************************************/
 
@@ -45,15 +45,15 @@ class NDFDataset : public RawDataset
 {
     double      adfGeoTransform[6];
 
-    char	*pszProjection;
+    char        *pszProjection;
     char       **papszExtraFiles;
 
     char        **papszHeader;
     const char  *Get( const char *pszKey, const char *pszDefault);
 
   public:
-    		NDFDataset();
-    	        ~NDFDataset();
+                NDFDataset();
+    virtual ~NDFDataset();
 
     virtual CPLErr  GetGeoTransform( double * padfTransform );
     virtual const char *GetProjectionRef(void);
@@ -239,7 +239,7 @@ GDALDataset *NDFDataset::Open( GDALOpenInfo * poOpenInfo )
 /* -------------------------------------------------------------------- */
 /*      Create a corresponding GDALDataset.                             */
 /* -------------------------------------------------------------------- */
-    NDFDataset 	*poDS = new NDFDataset();
+    NDFDataset *poDS = new NDFDataset();
     poDS->papszHeader = papszHeader;
 
     poDS->nRasterXSize = atoi(poDS->Get("PIXELS_PER_LINE",""));

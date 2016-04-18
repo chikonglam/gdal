@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrmssqlspatialtablelayer.cpp 33834 2016-03-31 18:36:27Z tamas $
+ * $Id: ogrmssqlspatialtablelayer.cpp 33891 2016-04-04 11:27:35Z tamas $
  *
  * Project:  MSSQL Spatial driver
  * Purpose:  Implements OGRMSSQLSpatialTableLayer class, access to an existing table.
@@ -34,7 +34,7 @@
 #include <sqlncli.h>
 #endif
 
-CPL_CVSID("$Id: ogrmssqlspatialtablelayer.cpp 33834 2016-03-31 18:36:27Z tamas $");
+CPL_CVSID("$Id: ogrmssqlspatialtablelayer.cpp 33891 2016-04-04 11:27:35Z tamas $");
 
 /************************************************************************/
 /*                         OGRMSSQLAppendEscaped( )                     */
@@ -2085,8 +2085,7 @@ OGRErr OGRMSSQLSpatialTableLayer::ICreateFeature( OGRFeature *poFeature )
                 CPLError( CE_Failure, CPLE_AppDefined,
                   "Native geometry upload is not supported" );
 
-                for( i = 0; i < bind_num; i++ )
-                    CPLFree(bind_buffer[i]);
+                // No need to free bind_buffer[i] since bind_num == 0 in that branch
                 CPLFree(bind_buffer);
 
                 return OGRERR_FAILURE;
@@ -2223,12 +2222,20 @@ OGRErr OGRMSSQLSpatialTableLayer::ICreateFeature( OGRFeature *poFeature )
             CPLFree(bind_buffer[i]);
         CPLFree(bind_buffer);
 
+#ifdef SQL_SS_UDT
+        CPLFree(bind_datalen);
+#endif
+
         return OGRERR_FAILURE;
     }
 
     for( i = 0; i < bind_num; i++ )
             CPLFree(bind_buffer[i]);
     CPLFree(bind_buffer);
+
+#ifdef SQL_SS_UDT
+    CPLFree(bind_datalen);
+#endif
 
     return OGRERR_NONE;
 }
