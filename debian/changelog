@@ -7,6 +7,7 @@ gdal (2.1.0~rc1+dfsg-1) UNRELEASED; urgency=medium
   * Update copyright file, add license & copyright for JPNG_band.cpp.
   * Drop java-version.patch, applied upstream. Refresh remaining patches.
   * Drop Homepage field from binary packages.
+  * Update upstream metadata URLs to use HTTPS.
 
  -- Bas Couwenberg <sebastic@debian.org>  Mon, 18 Apr 2016 19:33:05 +0200
 
