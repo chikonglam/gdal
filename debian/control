@@ -175,7 +175,6 @@ Description: Documentation for the Geospatial Data Abstraction Library
  TIGER data, S57, MapInfo File, DGN, GML and more.
  .
  This package contains documentation for GDAL/OGR API.
-Homepage: http://www.gdal.org/#index_userdocs
 
 Package: gdal-bin
 Architecture: any
@@ -203,7 +202,6 @@ Description: Geospatial Data Abstraction Library - Utility programs
  This package contains utility programs, based on GDAL/OGR library,
  namely gdal_translate, gdalinfo, gdaladdo, gdalwarp, ogr2ogr, ogrinfo,
  ogrtindex.
-Homepage: http://www.gdal.org/gdal_utilities.html
 
 Package: python-gdal
 Architecture: any
@@ -232,7 +230,6 @@ Description: Python bindings to the Geospatial Data Abstraction Library
  .
  This package contains Python bindings for GDAL/OGR library and
  a set of additional command line tools.
-Homepage: http://trac.osgeo.org/gdal/wiki/GdalOgrInPython
 
 Package: python3-gdal
 Architecture: any
@@ -261,7 +258,6 @@ Description: Python 3 bindings to the Geospatial Data Abstraction Library
  .
  This package contains Python 3 bindings for GDAL/OGR library and
  a set of additional command line tools.
-Homepage: http://trac.osgeo.org/gdal/wiki/GdalOgrInPython
 
 Package: libgdal-perl
 Architecture: any
@@ -287,7 +283,6 @@ Description: Perl bindings to the Geospatial Data Abstraction Library
  TIGER data, S57, MapInfo File, DGN, GML and more.
  .
  This package contains Perl bindings for GDAL/OGR library.
-Homepage: http://map.hut.fi/doc/Geo-GDAL/html/
 
 Package: libgdal-java
 Architecture: any
@@ -312,4 +307,4 @@ Description: Java bindings to the Geospatial Data Abstraction Library
  TIGER data, S57, MapInfo File, DGN, GML and more.
  .
  This package contains Java bindings for GDAL/OGR library.
-Homepage: http://map.hut.fi/doc/Geo-GDAL/html/
+
