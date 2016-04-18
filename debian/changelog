@@ -1,4 +1,4 @@
-gdal (2.1.0~rc1+dfsg-1) UNRELEASED; urgency=medium
+gdal (2.1.0~rc1+dfsg-1~exp1) experimental; urgency=medium
 
   * Update symbols for hppa & x32.
   * Bump Standards-Version to 3.9.8, no changes.
@@ -10,7 +10,7 @@ gdal (2.1.0~rc1+dfsg-1) UNRELEASED; urgency=medium
   * Update upstream metadata URLs to use HTTPS.
   * Update common symbols for 2.1.0~rc1.
 
- -- Bas Couwenberg <sebastic@debian.org>  Mon, 18 Apr 2016 19:33:05 +0200
+ -- Bas Couwenberg <sebastic@debian.org>  Mon, 18 Apr 2016 21:08:37 +0200
 
 gdal (2.1.0~beta1+dfsg-1~exp2) experimental; urgency=medium
 
