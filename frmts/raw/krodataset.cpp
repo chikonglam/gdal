@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: krodataset.cpp 33673 2016-03-07 20:40:54Z goatbar $
+ * $Id: krodataset.cpp 33862 2016-04-02 11:17:23Z goatbar $
  *
  * Project:  KRO format reader/writer
  * Purpose:  Implementation of KOLOR Raw Format
@@ -32,7 +32,7 @@
 #include "gdal_frmts.h"
 #include "rawdataset.h"
 
-CPL_CVSID("$Id: krodataset.cpp 33673 2016-03-07 20:40:54Z goatbar $");
+CPL_CVSID("$Id: krodataset.cpp 33862 2016-04-02 11:17:23Z goatbar $");
 
 /* http://www.autopano.net/wiki-en/Format_KRO */
 
@@ -45,7 +45,7 @@ CPL_CVSID("$Id: krodataset.cpp 33673 2016-03-07 20:40:54Z goatbar $");
 class KRODataset : public RawDataset
 {
   public:
-    VSILFILE	*fpImage;	// image data file.
+    VSILFILE    *fpImage;  // image data file.
 
   public:
                     KRODataset() : fpImage(NULL) {};
@@ -111,7 +111,7 @@ GDALDataset *KRODataset::Open( GDALOpenInfo * poOpenInfo )
 /* -------------------------------------------------------------------- */
 /*      Create a corresponding GDALDataset.                             */
 /* -------------------------------------------------------------------- */
-    KRODataset 	*poDS = new KRODataset();
+    KRODataset *poDS = new KRODataset();
     poDS->eAccess = poOpenInfo->eAccess;
 
 /* -------------------------------------------------------------------- */

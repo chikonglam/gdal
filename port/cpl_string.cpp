@@ -1,6 +1,6 @@
 
 /**********************************************************************
- * $Id: cpl_string.cpp 33786 2016-03-25 22:27:50Z goatbar $
+ * $Id: cpl_string.cpp 33960 2016-04-13 08:51:33Z rouault $
  *
  * Name:     cpl_string.cpp
  * Project:  CPL - Common Portability Library
@@ -53,7 +53,7 @@
 #include "cpl_string.h"
 #include "cpl_vsi.h"
 
-CPL_CVSID("$Id: cpl_string.cpp 33786 2016-03-25 22:27:50Z goatbar $");
+CPL_CVSID("$Id: cpl_string.cpp 33960 2016-04-13 08:51:33Z rouault $");
 
 /*=====================================================================
                     StringList manipulation functions.
@@ -1447,6 +1447,11 @@ int CPL_DLL CPLsscanf(const char* str, const char* fmt, ...)
                 error = true;
                 break;
             }
+        }
+        else if( isspace(*fmt) )
+        {
+            while( *str != '\0' && isspace(*str) )
+                ++str;
         }
         else if( *str != *fmt )
             break;

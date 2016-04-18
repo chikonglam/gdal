@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrshapedatasource.cpp 33713 2016-03-12 17:41:57Z goatbar $
+ * $Id: ogrshapedatasource.cpp 33889 2016-04-04 09:16:07Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implements OGRShapeDataSource class.
@@ -35,7 +35,7 @@
 
 //#define IMMEDIATE_OPENING 1
 
-CPL_CVSID("$Id: ogrshapedatasource.cpp 33713 2016-03-12 17:41:57Z goatbar $");
+CPL_CVSID("$Id: ogrshapedatasource.cpp 33889 2016-04-04 09:16:07Z rouault $");
 
 /************************************************************************/
 /*                          DS_SHPOpen()                                */
@@ -47,7 +47,11 @@ SHPHandle OGRShapeDataSource::DS_SHPOpen( const char * pszShapeFile, const char 
     if( STARTS_WITH(pszShapeFile, "/vsicurl/") &&
         strcmp(pszAccess, "r") == 0 )
         pszAccess = "rl";
-    SHPHandle hSHP = SHPOpenLL( pszShapeFile, pszAccess, (SAHooks*) VSI_SHP_GetHook(b2GBLimit) );
+
+    int bRestoreSHX = CPLTestBool( CPLGetConfigOption("SHAPE_RESTORE_SHX", "FALSE") );
+    SHPHandle hSHP = SHPOpenLLEx( pszShapeFile, pszAccess, (SAHooks*) VSI_SHP_GetHook(b2GBLimit),
+                                  bRestoreSHX );
+    
     if( hSHP != NULL )
         SHPSetFastModeReadObject( hSHP, TRUE );
     return hSHP;

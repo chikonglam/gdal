@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: cpl_port.h 33609 2016-03-01 22:54:50Z rouault $
+ * $Id: cpl_port.h 33907 2016-04-07 00:37:06Z goatbar $
  *
  * Project:  CPL - Common Portability Library
  * Author:   Frank Warmerdam, warmerdam@pobox.com
@@ -166,6 +166,17 @@
 /*      modified for new platforms.                                     */
 /* ==================================================================== */
 
+/* -------------------------------------------------------------------- */
+/*      Which versions of C++ are available.                            */
+/* -------------------------------------------------------------------- */
+
+#ifdef __cplusplus
+#  if __cplusplus >= 201103L
+#    define HAVE_CXX11 1
+#  endif
+/* TODO(schwehr): What are the correct tests for C++ 14 and 17? */
+#endif  /* __cpluscplus */
+
 /*---------------------------------------------------------------------
  *        types for 16 and 32 bits integers, etc...
  *--------------------------------------------------------------------*/
@@ -307,7 +318,7 @@ typedef int              GPtrDiff_t;
 
 // Define NULL_AS_NULLPTR together with -std=c++11 -Wzero-as-null-pointer-constant with GCC
 // to detect misuses of NULL
-#if defined(NULL_AS_NULLPTR) && defined(__cplusplus) && __cplusplus >= 201103L
+#if defined(NULL_AS_NULLPTR) && HAVE_CXX11
 
 #ifdef __GNUC__
 // We need to include all that bunch of system headers, otherwise
@@ -343,11 +354,11 @@ extern "C++" {
 
 #undef NULL
 #define NULL nullptr
-#else /* defined(NULL_AS_NULLPTR) && defined(__cplusplus) && __cplusplus >= 201103L */
+#else /* defined(NULL_AS_NULLPTR) && HAVE_CXX11 */
 #ifndef NULL
 #  define NULL  0
 #endif
-#endif /* defined(NULL_AS_NULLPTR) && defined(__cplusplus) && __cplusplus >= 201103L */
+#endif /* defined(NULL_AS_NULLPTR) && HAVE_CXX11 */
 
 
 #ifndef MAX
@@ -802,17 +813,17 @@ static const char *cvsid_aw() { return( cvsid_aw() ? NULL : cpl_cvsid ); }
 */
 #ifdef __cplusplus
 
-#if __cplusplus >= 201103L
-#define CPL_FINAL final
-#define CPL_DISALLOW_COPY_ASSIGN(ClassName) \
+#if HAVE_CXX11
+#  define CPL_FINAL final
+#  define CPL_DISALLOW_COPY_ASSIGN(ClassName) \
     ClassName( const ClassName & ) = delete; \
     ClassName &operator=( const ClassName & ) = delete;
 #else
-#define CPL_FINAL
-#define CPL_DISALLOW_COPY_ASSIGN(ClassName) \
+#  define CPL_FINAL
+#  define CPL_DISALLOW_COPY_ASSIGN(ClassName) \
     ClassName( const ClassName & ); \
     ClassName &operator=( const ClassName & );
-#endif
+#endif  /* HAVE_CXX11 */
 
 #endif /* __cplusplus */
 
@@ -952,7 +963,7 @@ inline bool operator!= (const bool& one, const MSVCPedanticBool& other) { return
 #endif
 
 #ifndef TRUE
-#  define TRUE  1
+#  define TRUE 1
 #endif
 
 #define EMULATED_BOOL bool

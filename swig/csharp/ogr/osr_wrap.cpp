@@ -490,6 +490,12 @@ SWIGINTERN double OSRSpatialReferenceShadow_GetAngularUnits(OSRSpatialReferenceS
     // Return code ignored.
     return OSRGetAngularUnits( self, 0 );
   }
+SWIGINTERN char const *OSRSpatialReferenceShadow_GetAngularUnitsName(OSRSpatialReferenceShadow *self){
+    char *name = 0;
+    OSRGetAngularUnits( self, &name );
+    // This is really a const char* that is returned and shouldn't be freed
+    return (const char*)name;
+  }
 SWIGINTERN OGRErr OSRSpatialReferenceShadow_SetTargetLinearUnits(OSRSpatialReferenceShadow *self,char const *target,char const *name,double to_meters){
     return OSRSetTargetLinearUnits( self, target, name, to_meters );
   }
@@ -522,6 +528,14 @@ SWIGINTERN char const *OSRSpatialReferenceShadow_GetAuthorityCode(OSRSpatialRefe
   }
 SWIGINTERN char const *OSRSpatialReferenceShadow_GetAuthorityName(OSRSpatialReferenceShadow *self,char const *target_key){
     return OSRGetAuthorityName( self, target_key );
+  }
+SWIGINTERN char const *OSRSpatialReferenceShadow_GetAxisName(OSRSpatialReferenceShadow *self,char const *target_key,int iAxis){
+    return OSRGetAxis( self, target_key, iAxis, NULL );
+  }
+SWIGINTERN OGRAxisOrientation OSRSpatialReferenceShadow_GetAxisOrientation(OSRSpatialReferenceShadow *self,char const *target_key,int iAxis){
+    OGRAxisOrientation orientation = OAO_Other;
+    OSRGetAxis( self, target_key, iAxis, &orientation );
+    return orientation;
   }
 SWIGINTERN OGRErr OSRSpatialReferenceShadow_SetUTM(OSRSpatialReferenceShadow *self,int zone,int north=1){
     return OSRSetUTM( self, zone, north );
@@ -1882,6 +1896,39 @@ SWIGEXPORT double SWIGSTDCALL CSharp_SpatialReference_GetAngularUnits(void * jar
 }
 
 
+SWIGEXPORT char * SWIGSTDCALL CSharp_SpatialReference_GetAngularUnitsName(void * jarg1) {
+  char * jresult ;
+  OSRSpatialReferenceShadow *arg1 = (OSRSpatialReferenceShadow *) 0 ;
+  char *result = 0 ;
+  
+  arg1 = (OSRSpatialReferenceShadow *)jarg1; 
+  {
+    CPLErrorReset();
+    result = (char *)OSRSpatialReferenceShadow_GetAngularUnitsName(arg1);
+    CPLErr eclass = CPLGetLastErrorType();
+    if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+      SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
+      
+      
+      
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+  }
+  jresult = SWIG_csharp_string_callback((const char *)result); 
+  return jresult;
+}
+
+
 SWIGEXPORT int SWIGSTDCALL CSharp_SpatialReference_SetTargetLinearUnits(void * jarg1, char * jarg2, char * jarg3, double jarg4) {
   int jresult ;
   OSRSpatialReferenceShadow *arg1 = (OSRSpatialReferenceShadow *) 0 ;
@@ -2169,6 +2216,80 @@ SWIGEXPORT char * SWIGSTDCALL CSharp_SpatialReference_GetAuthorityName(void * ja
     
   }
   jresult = SWIG_csharp_string_callback((const char *)result); 
+  return jresult;
+}
+
+
+SWIGEXPORT char * SWIGSTDCALL CSharp_SpatialReference_GetAxisName(void * jarg1, char * jarg2, int jarg3) {
+  char * jresult ;
+  OSRSpatialReferenceShadow *arg1 = (OSRSpatialReferenceShadow *) 0 ;
+  char *arg2 = (char *) 0 ;
+  int arg3 ;
+  char *result = 0 ;
+  
+  arg1 = (OSRSpatialReferenceShadow *)jarg1; 
+  arg2 = (char *)jarg2; 
+  arg3 = (int)jarg3; 
+  {
+    CPLErrorReset();
+    result = (char *)OSRSpatialReferenceShadow_GetAxisName(arg1,(char const *)arg2,arg3);
+    CPLErr eclass = CPLGetLastErrorType();
+    if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+      SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
+      
+      
+      
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+  }
+  jresult = SWIG_csharp_string_callback((const char *)result); 
+  return jresult;
+}
+
+
+SWIGEXPORT int SWIGSTDCALL CSharp_SpatialReference_GetAxisOrientation(void * jarg1, char * jarg2, int jarg3) {
+  int jresult ;
+  OSRSpatialReferenceShadow *arg1 = (OSRSpatialReferenceShadow *) 0 ;
+  char *arg2 = (char *) 0 ;
+  int arg3 ;
+  OGRAxisOrientation result;
+  
+  arg1 = (OSRSpatialReferenceShadow *)jarg1; 
+  arg2 = (char *)jarg2; 
+  arg3 = (int)jarg3; 
+  {
+    CPLErrorReset();
+    result = (OGRAxisOrientation)OSRSpatialReferenceShadow_GetAxisOrientation(arg1,(char const *)arg2,arg3);
+    CPLErr eclass = CPLGetLastErrorType();
+    if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+      SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
+      
+      
+      
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+  }
+  jresult = result; 
   return jresult;
 }
 

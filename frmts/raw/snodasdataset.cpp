@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: snodasdataset.cpp 32883 2016-01-09 18:24:40Z rouault $
+ * $Id: snodasdataset.cpp 33864 2016-04-02 11:50:14Z goatbar $
  *
  * Project:  SNODAS driver
  * Purpose:  Implementation of SNODASDataset
@@ -32,7 +32,7 @@
 #include "ogr_srs_api.h"
 #include "rawdataset.h"
 
-CPL_CVSID("$Id: snodasdataset.cpp 32883 2016-01-09 18:24:40Z rouault $");
+CPL_CVSID("$Id: snodasdataset.cpp 33864 2016-04-02 11:50:14Z goatbar $");
 
 // g++ -g -Wall -fPIC frmts/raw/snodasdataset.cpp -shared -o gdal_SNODAS.so -Iport -Igcore -Ifrmts/raw -Iogr -L. -lgdal
 
@@ -60,7 +60,7 @@ class SNODASDataset : public RawDataset
 
   public:
                     SNODASDataset();
-                    ~SNODASDataset();
+    virtual ~SNODASDataset();
 
     virtual CPLErr GetGeoTransform( double * padfTransform );
     virtual const char *GetProjectionRef(void);
@@ -80,12 +80,13 @@ class SNODASDataset : public RawDataset
 
 class SNODASRasterBand : public RawRasterBand
 {
-    public:
+  public:
             SNODASRasterBand(VSILFILE* fpRaw, int nXSize, int nYSize);
+    virtual ~SNODASRasterBand() {}
 
-        virtual double GetNoDataValue( int *pbSuccess = NULL );
-        virtual double GetMinimum( int *pbSuccess = NULL );
-        virtual double GetMaximum(int *pbSuccess = NULL );
+    virtual double GetNoDataValue( int *pbSuccess = NULL );
+    virtual double GetMinimum( int *pbSuccess = NULL );
+    virtual double GetMaximum(int *pbSuccess = NULL );
 };
 
 

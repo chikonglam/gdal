@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdal.h 33808 2016-03-29 21:15:28Z goatbar $
+ * $Id: gdal.h 33852 2016-04-01 23:27:53Z goatbar $
  *
  * Project:  GDAL Core
  * Purpose:  GDAL Core C/Public declarations.
@@ -55,7 +55,7 @@ CPL_C_START
 
 /*! Pixel data types */
 typedef enum {
-    /*! Unknown or unspecified type */ 		    GDT_Unknown = 0,
+    /*! Unknown or unspecified type */          GDT_Unknown = 0,
     /*! Eight bit unsigned integer */           GDT_Byte = 1,
     /*! Sixteen bit unsigned integer */         GDT_UInt16 = 2,
     /*! Sixteen bit signed integer */           GDT_Int16 = 3,

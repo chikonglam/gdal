@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: lcpdataset.cpp 32883 2016-01-09 18:24:40Z rouault $
+ * $Id: lcpdataset.cpp 33864 2016-04-02 11:50:14Z goatbar $
  *
  * Project:  LCP Driver
  * Purpose:  FARSITE v.4 Landscape file (.lcp) reader for GDAL
@@ -35,7 +35,7 @@
 #include "ogr_spatialref.h"
 #include "rawdataset.h"
 
-CPL_CVSID("$Id: lcpdataset.cpp 32883 2016-01-09 18:24:40Z rouault $");
+CPL_CVSID("$Id: lcpdataset.cpp 33864 2016-04-02 11:50:14Z goatbar $");
 
 static const size_t LCP_HEADER_SIZE = 7316;
 static const int LCP_MAX_BANDS = 10;
@@ -52,7 +52,7 @@ static const int LCP_MAX_CLASSES = 100;
 class LCPDataset : public RawDataset
 {
     VSILFILE    *fpImage;       // image data file.
-    char	pachHeader[LCP_HEADER_SIZE];
+    char        pachHeader[LCP_HEADER_SIZE];
 
     CPLString   osPrjFilename;
     char        *pszProjection;
@@ -63,7 +63,7 @@ class LCPDataset : public RawDataset
 
   public:
                 LCPDataset();
-                ~LCPDataset();
+    virtual ~LCPDataset();
 
     virtual char **GetFileList(void);
 

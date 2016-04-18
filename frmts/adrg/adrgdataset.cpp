@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: adrgdataset.cpp 33720 2016-03-15 00:39:53Z goatbar $
+ * $Id: adrgdataset.cpp 33901 2016-04-06 16:31:31Z goatbar $
  *
  * Purpose:  ADRG reader
  * Author:   Even Rouault, even.rouault at mines-paris.org
@@ -32,7 +32,7 @@
 #include "iso8211.h"
 #include "ogr_spatialref.h"
 
-CPL_CVSID("$Id: adrgdataset.cpp 33720 2016-03-15 00:39:53Z goatbar $");
+CPL_CVSID("$Id: adrgdataset.cpp 33901 2016-04-06 16:31:31Z goatbar $");
 
 #define N_ELEMENTS(x)  (sizeof(x)/sizeof(x[0]))
 
@@ -669,8 +669,8 @@ char ** ADRGDataset::GetFileList()
 
 void ADRGDataset::AddSubDataset( const char* pszGENFileName, const char* pszIMGFileName )
 {
-    char	szName[80];
-    int		nCount = CSLCount(papszSubDatasets ) / 2;
+    char szName[80];
+    int nCount = CSLCount(papszSubDatasets ) / 2;
 
     CPLString osSubDatasetName;
     osSubDatasetName = "ADRG:";

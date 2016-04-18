@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: roipacdataset.cpp 33718 2016-03-14 17:19:28Z rouault $
+ * $Id: roipacdataset.cpp 33864 2016-04-02 11:50:14Z goatbar $
  *
  * Project:  ROI_PAC Raster Reader
  * Purpose:  Implementation of the ROI_PAC raster reader
@@ -31,7 +31,7 @@
 #include "ogr_spatialref.h"
 #include "rawdataset.h"
 
-CPL_CVSID("$Id: roipacdataset.cpp 33718 2016-03-14 17:19:28Z rouault $");
+CPL_CVSID("$Id: roipacdataset.cpp 33864 2016-04-02 11:50:14Z goatbar $");
 
 /************************************************************************/
 /* ==================================================================== */
@@ -56,7 +56,7 @@ class ROIPACDataset : public RawDataset
 
   public:
                 ROIPACDataset( void );
-                ~ROIPACDataset( void );
+    virtual ~ROIPACDataset( void );
 
     static GDALDataset *Open( GDALOpenInfo *poOpenInfo );
     static int          Identify( GDALOpenInfo *poOpenInfo );

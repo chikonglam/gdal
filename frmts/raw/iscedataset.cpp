@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: iscedataset.cpp 33673 2016-03-07 20:40:54Z goatbar $
+ * $Id: iscedataset.cpp 33864 2016-04-02 11:50:14Z goatbar $
  *
  * Project:  ISCE Raster Reader
  * Purpose:  Implementation of the ISCE raster reader
@@ -30,7 +30,7 @@
 #include "gdal_frmts.h"
 #include "rawdataset.h"
 
-CPL_CVSID("$Id: iscedataset.cpp 33673 2016-03-07 20:40:54Z goatbar $");
+CPL_CVSID("$Id: iscedataset.cpp 33864 2016-04-02 11:50:14Z goatbar $");
 
 static const char * const apszISCE2GDALDatatypes[] = {
     "BYTE:Byte",
@@ -86,7 +86,7 @@ class ISCEDataset : public RawDataset
 
   public:
                 ISCEDataset();
-                ~ISCEDataset();
+    virtual ~ISCEDataset();
 
     virtual void        FlushCache();
     virtual char      **GetFileList();
@@ -449,21 +449,21 @@ GDALDataset *ISCEDataset::Open( GDALOpenInfo *poOpenInfo )
     int nPixelOffset, nLineOffset, nBandOffset;
     if ( EQUAL( sScheme, "BIL" ) )
     {
-		poDS->eScheme = BIL;
+                poDS->eScheme = BIL;
         nPixelOffset = GDALGetDataTypeSize(eDataType)/8;
         nLineOffset = nPixelOffset * nWidth * nBands;
         nBandOffset = GDALGetDataTypeSize(eDataType)/8 * nWidth;
     }
     else if ( EQUAL( sScheme, "BIP" ) )
     {
-		poDS->eScheme = BIP;
+        poDS->eScheme = BIP;
         nPixelOffset = GDALGetDataTypeSize(eDataType)/8 * nBands;
         nLineOffset = nPixelOffset * nWidth * nBands;
         nBandOffset = GDALGetDataTypeSize(eDataType)/8;
     }
     else if ( EQUAL( sScheme, "BSQ" ) )
     {
-		poDS->eScheme = BSQ;
+        poDS->eScheme = BSQ;
         nPixelOffset = GDALGetDataTypeSize(eDataType)/8;
         nLineOffset = nPixelOffset * nWidth;
         nBandOffset = nLineOffset * nFileLength;

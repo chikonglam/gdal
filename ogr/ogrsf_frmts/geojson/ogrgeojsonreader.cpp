@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrgeojsonreader.cpp 33714 2016-03-13 05:42:13Z goatbar $
+ * $Id: ogrgeojsonreader.cpp 33914 2016-04-07 19:38:01Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implementation of OGRGeoJSONReader class (OGR GeoJSON Driver).
@@ -1828,8 +1828,16 @@ json_object* json_ex_get_object_by_path(json_object* poObj, const char* pszPath 
     for( int i = 0; papszTokens[i] != NULL; i++ )
     {
         poObj = json_object_object_get(poObj, papszTokens[i]);
-        if( poObj == NULL || json_object_get_type(poObj) != json_type_object )
+        if( poObj == NULL )
             break;
+        if( papszTokens[i+1] != NULL )
+        {
+            if( json_object_get_type(poObj) != json_type_object )
+            {
+                poObj = NULL;
+                break;
+            }
+        }
     }
     CSLDestroy(papszTokens);
     return poObj;

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: mffdataset.cpp 33712 2016-03-12 10:51:56Z goatbar $
+ * $Id: mffdataset.cpp 33864 2016-04-02 11:50:14Z goatbar $
  *
  * Project:  GView
  * Purpose:  Implementation of Atlantis MFF Support
@@ -37,7 +37,7 @@
 #include <cctype>
 #include <algorithm>
 
-CPL_CVSID("$Id: mffdataset.cpp 33712 2016-03-12 10:51:56Z goatbar $");
+CPL_CVSID("$Id: mffdataset.cpp 33864 2016-04-02 11:50:14Z goatbar $");
 
 enum {
   MFFPRJ_NONE,
@@ -50,7 +50,7 @@ static int         GetMFFProjectionType(const char * pszNewProjection);
 
 /************************************************************************/
 /* ==================================================================== */
-/*				MFFDataset				*/
+/*                              MFFDataset                              */
 /* ==================================================================== */
 /************************************************************************/
 
@@ -67,10 +67,10 @@ class MFFDataset : public RawDataset
     void        ScanForProjectionInfo();
 
   public:
-    		MFFDataset();
-    	        ~MFFDataset();
+                MFFDataset();
+    virtual ~MFFDataset();
 
-    char	**papszHdrLines;
+    char        **papszHdrLines;
 
     VSILFILE        **pafpBandFiles;
 
@@ -110,7 +110,7 @@ class MFFTiledBand : public GDALRasterBand
 
                    MFFTiledBand( MFFDataset *, int, VSILFILE *, int, int,
                                  GDALDataType, int );
-                   ~MFFTiledBand();
+    virtual ~MFFTiledBand();
 
     virtual CPLErr IReadBlock( int, int, void * );
 };
@@ -229,7 +229,7 @@ MFFSpheroidList :: MFFSpheroidList()
 
 /************************************************************************/
 /* ==================================================================== */
-/*				MFFDataset				*/
+/*                              MFFDataset                              */
 /* ==================================================================== */
 /************************************************************************/
 
@@ -348,7 +348,7 @@ const GDAL_GCP *MFFDataset::GetGCPs()
 void MFFDataset::ScanForGCPs()
 
 {
-    int	    NUM_GCPS = 0;
+    int NUM_GCPS = 0;
 
     if( CSLFetchNameValue(papszHdrLines, "NUM_GCPS") != NULL )
         NUM_GCPS = atoi(CSLFetchNameValue(papszHdrLines, "NUM_GCPS"));
@@ -431,7 +431,7 @@ void MFFDataset::ScanForGCPs()
 /* -------------------------------------------------------------------- */
     for( int i = 0; i < NUM_GCPS; i++ )
     {
-        char	szName[25];
+        char szName[25];
         snprintf( szName, sizeof(szName), "GCP%d", i+1 );
         if( CSLFetchNameValue( papszHdrLines, szName ) == NULL )
             continue;
@@ -715,7 +715,7 @@ GDALDataset *MFFDataset::Open( GDALOpenInfo * poOpenInfo )
 /* -------------------------------------------------------------------- */
 /*      Create a corresponding GDALDataset.                             */
 /* -------------------------------------------------------------------- */
-    MFFDataset	*poDS = new MFFDataset();
+    MFFDataset *poDS = new MFFDataset();
 
     poDS->papszHdrLines = papszHdrLines;
 

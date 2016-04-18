@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: btdataset.cpp 33673 2016-03-07 20:40:54Z goatbar $
+ * $Id: btdataset.cpp 33927 2016-04-09 19:13:34Z goatbar $
  *
  * Project:  VTP .bt Driver
  * Purpose:  Implementation of VTP .bt elevation format read/write support.
@@ -33,7 +33,7 @@
 #include "ogr_spatialref.h"
 #include "rawdataset.h"
 
-CPL_CVSID("$Id: btdataset.cpp 33673 2016-03-07 20:40:54Z goatbar $");
+CPL_CVSID("$Id: btdataset.cpp 33927 2016-04-09 19:13:34Z goatbar $");
 
 /************************************************************************/
 /* ==================================================================== */
@@ -62,7 +62,7 @@ class BTDataset : public GDALPamDataset
   public:
 
                 BTDataset();
-                ~BTDataset();
+    virtual ~BTDataset();
 
     virtual const char *GetProjectionRef(void);
     virtual CPLErr SetProjection( const char * );
@@ -90,13 +90,14 @@ class BTRasterBand : public GDALPamRasterBand
   public:
                    BTRasterBand( GDALDataset * poDS, VSILFILE * fp,
                                  GDALDataType eType );
+    virtual ~BTRasterBand() {}
 
     virtual CPLErr IReadBlock( int, int, void * );
     virtual CPLErr IWriteBlock( int, int, void * );
 
     virtual const char* GetUnitType();
     virtual CPLErr SetUnitType(const char*);
-	virtual double GetNoDataValue( int* = NULL );
+    virtual double GetNoDataValue( int* = NULL );
     virtual CPLErr SetNoDataValue( double );
 };
 
@@ -104,7 +105,8 @@ class BTRasterBand : public GDALPamRasterBand
 /*                           BTRasterBand()                             */
 /************************************************************************/
 
-BTRasterBand::BTRasterBand( GDALDataset *poDSIn, VSILFILE *fp, GDALDataType eType ) :
+BTRasterBand::BTRasterBand( GDALDataset *poDSIn, VSILFILE *fp,
+                            GDALDataType eType ) :
     fpImage(fp)
 {
     poDS = poDSIn;
@@ -123,16 +125,16 @@ CPLErr BTRasterBand::IReadBlock( int nBlockXOff,
                                  CPL_UNUSED int nBlockYOff,
                                  void * pImage )
 {
-    int nDataSize = GDALGetDataTypeSize( eDataType ) / 8;
-    int i;
-
     CPLAssert( nBlockYOff == 0  );
+
+    const int nDataSize = GDALGetDataTypeSizeBytes( eDataType );
 
 /* -------------------------------------------------------------------- */
 /*      Seek to profile.                                                */
 /* -------------------------------------------------------------------- */
     if( VSIFSeekL( fpImage,
-                   256 + nBlockXOff * nDataSize * (vsi_l_offset) nRasterYSize,
+                   256 + nBlockXOff * nDataSize *
+                   static_cast<vsi_l_offset>( nRasterYSize ),
                    SEEK_SET ) != 0 )
     {
         CPLError( CE_Failure, CPLE_FileIO,
@@ -144,7 +146,7 @@ CPLErr BTRasterBand::IReadBlock( int nBlockXOff,
 /*      Read the profile.                                               */
 /* -------------------------------------------------------------------- */
     if( VSIFReadL( pImage, nDataSize, nRasterYSize, fpImage ) !=
-        (size_t) nRasterYSize )
+        static_cast<size_t>( nRasterYSize ) )
     {
         CPLError( CE_Failure, CPLE_FileIO,
                   ".bt Read failed:%s", VSIStrerror( errno ) );
@@ -162,15 +164,18 @@ CPLErr BTRasterBand::IReadBlock( int nBlockXOff,
 /*      Vertical flip, since GDAL expects values from top to bottom,    */
 /*      but in .bt they are bottom to top.                              */
 /* -------------------------------------------------------------------- */
-    for( i = 0; i < nRasterYSize / 2; i++ )
+    for( int i = 0; i < nRasterYSize / 2; i++ )
     {
-        GByte abyWrk[8];
+        GByte abyWrk[8] = { 0 };
 
-        memcpy( abyWrk, ((GByte *) pImage) + i * nDataSize, nDataSize );
-        memcpy( ((GByte *) pImage) + i * nDataSize,
-                ((GByte *) pImage) + (nRasterYSize - i - 1) * nDataSize,
+        memcpy( abyWrk, reinterpret_cast<GByte *>(pImage) + i * nDataSize,
                 nDataSize );
-        memcpy( ((GByte *) pImage) + (nRasterYSize - i - 1) * nDataSize,
+        memcpy( reinterpret_cast<GByte *>(pImage) + i * nDataSize,
+                reinterpret_cast<GByte *>(pImage) + (nRasterYSize - i - 1) *
+                nDataSize,
+                nDataSize );
+        memcpy( reinterpret_cast<GByte *>(pImage) + (nRasterYSize - i - 1) *
+                nDataSize,
                 abyWrk, nDataSize );
     }
 
@@ -186,11 +191,9 @@ CPLErr BTRasterBand::IWriteBlock( int nBlockXOff,
                                   void * pImage )
 
 {
-    int nDataSize = GDALGetDataTypeSize( eDataType ) / 8;
-    GByte *pabyWrkBlock;
-    int i;
-
     CPLAssert( nBlockYOff == 0  );
+
+    const int nDataSize = GDALGetDataTypeSizeBytes( eDataType );
 
 /* -------------------------------------------------------------------- */
 /*      Seek to profile.                                                */
@@ -207,17 +210,18 @@ CPLErr BTRasterBand::IWriteBlock( int nBlockXOff,
 /* -------------------------------------------------------------------- */
 /*      Allocate working buffer.                                        */
 /* -------------------------------------------------------------------- */
-    pabyWrkBlock = (GByte *) CPLMalloc(nDataSize * nRasterYSize);
+    GByte *pabyWrkBlock =
+        static_cast<GByte *>( CPLMalloc(nDataSize * nRasterYSize) );
 
 /* -------------------------------------------------------------------- */
 /*      Vertical flip data into work buffer, since GDAL expects         */
 /*      values from top to bottom, but in .bt they are bottom to        */
 /*      top.                                                            */
 /* -------------------------------------------------------------------- */
-    for( i = 0; i < nRasterYSize; i++ )
+    for( int i = 0; i < nRasterYSize; i++ )
     {
         memcpy( pabyWrkBlock + (nRasterYSize - i - 1) * nDataSize,
-                ((GByte *) pImage) + i * nDataSize, nDataSize );
+                reinterpret_cast<GByte *>(pImage) + i * nDataSize, nDataSize );
     }
 
 /* -------------------------------------------------------------------- */
@@ -231,7 +235,7 @@ CPLErr BTRasterBand::IWriteBlock( int nBlockXOff,
 /*      Read the profile.                                               */
 /* -------------------------------------------------------------------- */
     if( VSIFWriteL( pabyWrkBlock, nDataSize, nRasterYSize, fpImage ) !=
-        (size_t) nRasterYSize )
+        static_cast<size_t>( nRasterYSize ) )
     {
         CPLFree( pabyWrkBlock );
         CPLError( CE_Failure, CPLE_FileIO,
@@ -247,10 +251,10 @@ CPLErr BTRasterBand::IWriteBlock( int nBlockXOff,
 
 double BTRasterBand::GetNoDataValue( int* pbSuccess /*= NULL */ )
 {
-	if(pbSuccess != NULL)
-		*pbSuccess = TRUE;
+    if(pbSuccess != NULL)
+        *pbSuccess = TRUE;
 
-	return -32768;
+    return -32768;
 }
 
 CPLErr BTRasterBand::SetNoDataValue( double )
@@ -266,7 +270,7 @@ CPLErr BTRasterBand::SetNoDataValue( double )
 static bool approx_equals(float a, float b)
 {
     const float epsilon = (float)1e-5;
-    return (fabs(a-b) <= epsilon);
+    return fabs(a-b) <= epsilon;
 }
 
 const char* BTRasterBand::GetUnitType(void)
@@ -797,7 +801,7 @@ GDALDataset *BTDataset::Open( GDALOpenInfo * poOpenInfo )
 /* -------------------------------------------------------------------- */
     poDS->oOvManager.Initialize( poDS, poOpenInfo->pszFilename );
 
-    return( poDS );
+    return poDS;
 }
 
 /************************************************************************/
