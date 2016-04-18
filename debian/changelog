@@ -2,6 +2,7 @@ gdal (2.1.0~beta1+dfsg-1~exp3) UNRELEASED; urgency=medium
 
   * Update symbols for hppa & x32.
   * Bump Standards-Version to 3.9.8, no changes.
+  * Update watch file for 2.1.0 pre-releases.
 
  -- Bas Couwenberg <sebastic@debian.org>  Mon, 04 Apr 2016 21:15:26 +0200
 
