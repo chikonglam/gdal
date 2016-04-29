@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrfeaturequery.cpp 33631 2016-03-04 06:28:09Z goatbar $
+ * $Id: ogrfeaturequery.cpp 34092 2016-04-25 09:09:46Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implementation of simple SQL WHERE style attributes queries
@@ -35,7 +35,7 @@
 #include "ogr_p.h"
 #include "ogr_attrind.h"
 
-CPL_CVSID("$Id: ogrfeaturequery.cpp 33631 2016-03-04 06:28:09Z goatbar $");
+CPL_CVSID("$Id: ogrfeaturequery.cpp 34092 2016-04-25 09:09:46Z rouault $");
 
 /************************************************************************/
 /*     Support for special attributes (feature query and selection)     */
@@ -150,7 +150,7 @@ OGRErr OGRFeatureQuery::Compile( OGRFeatureDefn *poDefn,
     while (iField < SPECIAL_FIELD_COUNT)
     {
         papszFieldNames[poDefn->GetFieldCount() + iField] = (char *) SpecialFieldNames[iField];
-        paeFieldTypes[poDefn->GetFieldCount() + iField] = SpecialFieldTypes[iField];
+        paeFieldTypes[poDefn->GetFieldCount() + iField] = (iField == SPF_FID) ? SWQ_INTEGER64 : SpecialFieldTypes[iField];
         ++iField;
     }
 

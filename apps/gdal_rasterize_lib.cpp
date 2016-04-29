@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdal_rasterize_lib.cpp 33615 2016-03-02 20:19:22Z goatbar $
+ * $Id: gdal_rasterize_lib.cpp 34044 2016-04-21 08:23:14Z rouault $
  *
  * Project:  GDAL Utilities
  * Purpose:  Rasterize OGR shapes into a GDAL raster.
@@ -38,16 +38,18 @@
 #include "gdal_utils_priv.h"
 #include <vector>
 
-CPL_CVSID("$Id: gdal_rasterize_lib.cpp 33615 2016-03-02 20:19:22Z goatbar $");
+CPL_CVSID("$Id: gdal_rasterize_lib.cpp 34044 2016-04-21 08:23:14Z rouault $");
 
 /************************************************************************/
 /*                            ArgIsNumeric()                            */
 /************************************************************************/
 
-static int ArgIsNumeric( const char *pszArg )
+static bool ArgIsNumeric( const char *pszArg )
 
 {
-    return CPLGetValueType(pszArg) != CPL_VALUE_STRING;
+    char* pszEnd = NULL;
+    CPLStrtod(pszArg, &pszEnd);
+    return pszEnd != NULL && pszEnd[0] == '\0';
 }
 
 

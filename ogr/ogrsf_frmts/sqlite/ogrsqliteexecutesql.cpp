@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrsqliteexecutesql.cpp 33714 2016-03-13 05:42:13Z goatbar $
+ * $Id: ogrsqliteexecutesql.cpp 34082 2016-04-24 22:10:13Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Run SQL requests with SQLite SQL engine
@@ -599,7 +599,7 @@ int OGR2SQLITEDealWithSpatialColumn(OGRLayer* poLayer,
             osSQL.Printf("INSERT INTO geometry_columns (f_table_name, "
                         "f_geometry_column, geometry_type, coord_dimension, "
                         "srid, spatial_index_enabled) "
-                        "VALUES ('%s',Lower('%s'),%d ,%d ,%d, %d)",
+                        "VALUES (Lower('%s'),Lower('%s'),%d ,%d ,%d, %d)",
                         pszLayerNameEscaped,
                         pszGeomColEscaped, nGeomType,
                         nCoordDimension,
@@ -622,7 +622,13 @@ int OGR2SQLITEDealWithSpatialColumn(OGRLayer* poLayer,
         }
     }
 #endif // HAVE_SPATIALITE
-    int rc = sqlite3_exec( hDB, osSQL.c_str(), NULL, NULL, NULL );
+    char* pszErrMsg = NULL;
+    int rc = sqlite3_exec( hDB, osSQL.c_str(), NULL, NULL, &pszErrMsg );
+    if( pszErrMsg != NULL )
+    {
+        CPLDebug("SQLITE", "%s -> %s", osSQL.c_str(), pszErrMsg);
+        sqlite3_free(pszErrMsg);
+    }
 
 #ifdef HAVE_SPATIALITE
 /* -------------------------------------------------------------------- */

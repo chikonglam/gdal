@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrshapedatasource.cpp 33889 2016-04-04 09:16:07Z rouault $
+ * $Id: ogrshapedatasource.cpp 34069 2016-04-23 17:59:00Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implements OGRShapeDataSource class.
@@ -35,7 +35,7 @@
 
 //#define IMMEDIATE_OPENING 1
 
-CPL_CVSID("$Id: ogrshapedatasource.cpp 33889 2016-04-04 09:16:07Z rouault $");
+CPL_CVSID("$Id: ogrshapedatasource.cpp 34069 2016-04-23 17:59:00Z rouault $");
 
 /************************************************************************/
 /*                          DS_SHPOpen()                                */
@@ -471,7 +471,7 @@ OGRShapeDataSource::ICreateLayer( const char * pszLayerName,
 /* -------------------------------------------------------------------- */
 /*      Figure out what type of layer we need.                          */
 /* -------------------------------------------------------------------- */
-    if( eType == wkbUnknown || eType == wkbLineString )
+    if( wkbFlatten(eType) == wkbUnknown || eType == wkbLineString )
         nShapeType = SHPT_ARC;
     else if( eType == wkbPoint )
         nShapeType = SHPT_POINT;

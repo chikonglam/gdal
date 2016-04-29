@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrvrtlayer.cpp 33714 2016-03-13 05:42:13Z goatbar $
+ * $Id: ogrvrtlayer.cpp 34079 2016-04-24 18:44:29Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implements OGRVRTLayer class.
@@ -34,7 +34,7 @@
 #include "ogrpgeogeometry.h"
 #include <string>
 
-CPL_CVSID("$Id: ogrvrtlayer.cpp 33714 2016-03-13 05:42:13Z goatbar $");
+CPL_CVSID("$Id: ogrvrtlayer.cpp 34079 2016-04-24 18:44:29Z rouault $");
 
 #define UNSUPPORTED_OP_READ_ONLY "%s : unsupported operation on a read-only datasource."
 
@@ -809,6 +809,7 @@ try_again:
 /* -------------------------------------------------------------------- */
 /*      Figure out what should be used as an FID.                       */
 /* -------------------------------------------------------------------- */
+     bAttrFilterPassThrough = TRUE;
      pszSrcFIDFieldName = CPLGetXMLValue( psLTree, "FID", NULL );
 
      if( pszSrcFIDFieldName != NULL )
@@ -826,6 +827,9 @@ try_again:
          // User facing FID column name. If not defined we will report the
          // source FID column name only if it is exposed as a field too (#4637)
          osFIDFieldName = CPLGetXMLValue( psLTree, "FID.name", "" );
+
+         if( !EQUAL(pszSrcFIDFieldName, poSrcLayer->GetFIDColumn()) )
+             bAttrFilterPassThrough = FALSE;
      }
 
 /* -------------------------------------------------------------------- */
@@ -844,12 +848,14 @@ try_again:
                        pszStyleFieldName );
              goto error;
          }
+
+         if( !EQUAL(pszStyleFieldName, "OGR_STYLE") )
+             bAttrFilterPassThrough = FALSE;
      }
 
 /* ==================================================================== */
 /*      Search for schema definitions in the VRT.                       */
 /* ==================================================================== */
-     bAttrFilterPassThrough = TRUE;
      for( psChild = psLTree->psChild; psChild != NULL; psChild=psChild->psNext )
      {
          if( psChild->eType == CXT_Element && EQUAL(psChild->pszValue,"Field") )

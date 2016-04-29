@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: kml.cpp 33713 2016-03-12 17:41:57Z goatbar $
+ * $Id: kml.cpp 34104 2016-04-25 17:17:20Z rouault $
  *
  * Project:  KML Driver
  * Purpose:  Class for reading, parsing and handling a kmlfile.
@@ -621,4 +621,22 @@ Feature* KML::getFeature(std::size_t nNum, int& nLastAsked, int &nLastCount)
         return NULL;
 
     return poCurrent_->getFeature(nNum, nLastAsked, nLastCount);
+}
+
+void KML::unregisterLayerIfMatchingThisNode(KMLNode* poNode)
+{
+    for(int i=0;i<nNumLayers_;)
+    {
+        if( papoLayers_[i] == poNode )
+        {
+            if( i < nNumLayers_ - 1 )
+            {
+                memcpy( papoLayers_ + i, papoLayers_ + i + 1,
+                        (nNumLayers_ - 1 - i) * sizeof(KMLNode*) );
+            }
+            nNumLayers_ --;
+            continue;
+        }
+        i++;
+    }
 }

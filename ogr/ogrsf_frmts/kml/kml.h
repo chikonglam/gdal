@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: kml.h 32177 2015-12-14 07:25:30Z goatbar $
+ * $Id: kml.h 34104 2016-04-25 17:17:20Z rouault $
  *
  * Project:  KML Driver
  * Purpose:  Class for reading, parsing and handling a kmlfile.
@@ -88,6 +88,8 @@ public:
     int is25D() const;
     int getNumFeatures();
     Feature* getFeature(std::size_t nNum, int& nLastAsked, int &nLastCount);
+
+    void unregisterLayerIfMatchingThisNode(KMLNode* poNode);
 
 protected:
 	void checkValidity();

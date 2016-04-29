@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrvrtdatasource.cpp 33714 2016-03-13 05:42:13Z goatbar $
+ * $Id: ogrvrtdatasource.cpp 34048 2016-04-21 18:14:02Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implements OGRVRTDataSource class.
@@ -34,7 +34,7 @@
 #include "ogrwarpedlayer.h"
 #include "ogrunionlayer.h"
 
-CPL_CVSID("$Id: ogrvrtdatasource.cpp 33714 2016-03-13 05:42:13Z goatbar $");
+CPL_CVSID("$Id: ogrvrtdatasource.cpp 34048 2016-04-21 18:14:02Z rouault $");
 
 /************************************************************************/
 /*                       OGRVRTGetGeometryType()                        */
@@ -58,7 +58,7 @@ static const OGRGeomTypeName asGeomTypeNames[] = { /* 25D versions are implicit 
     { wkbCircularString, "wkbCircularString" },
     { wkbCompoundCurve, "wkbCompoundCurve" },
     { wkbCurvePolygon, "wkbCurvePolygon" },
-    { wkbGeometryCollection, "wkbMultiCurve" },
+    { wkbMultiCurve, "wkbMultiCurve" },
     { wkbMultiSurface, "wkbMultiSurface" },
     { wkbCurve, "wkbCurve" },
     { wkbSurface, "wkbSurface" },
@@ -83,7 +83,7 @@ OGRwkbGeometryType OGRVRTGetGeometryType(const char* pszGType, int* pbError)
 
             if( strstr(pszGType,"25D") != NULL || strstr(pszGType,"Z") != NULL )
                 eGeomType = wkbSetZ(eGeomType);
-            if( strstr(pszGType,"M") != NULL )
+            if( pszGType[strlen(pszGType)-1] == 'M' || pszGType[strlen(pszGType)-2] == 'M' )
                 eGeomType = wkbSetM(eGeomType);
             break;
         }
