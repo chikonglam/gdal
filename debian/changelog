@@ -1,3 +1,9 @@
+gdal (2.1.0~rc4+dfsg-1) UNRELEASED; urgency=medium
+
+  * New upstream release candidate.
+
+ -- Bas Couwenberg <sebastic@debian.org>  Fri, 29 Apr 2016 11:15:09 +0200
+
 gdal (2.1.0~rc1+dfsg-1~exp2) experimental; urgency=medium
 
   * Add automake1.11 to Build-Conflicts, causes FTBFS in experimental.
