@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: kmlnode.cpp 33713 2016-03-12 17:41:57Z goatbar $
+ * $Id: kmlnode.cpp 34104 2016-04-25 17:17:20Z rouault $
  *
  * Project:  KML Driver
  * Purpose:  Class for building up the node structure of the kml file.
@@ -337,6 +337,7 @@ void KMLNode::eliminateEmpty(KML* poKML)
            && (poKML->isContainer((*pvpoChildren_)[z]->sName_)
                || poKML->isFeatureContainer((*pvpoChildren_)[z]->sName_)))
         {
+            poKML->unregisterLayerIfMatchingThisNode((*pvpoChildren_)[z]);
             delete (*pvpoChildren_)[z];
             pvpoChildren_->erase(pvpoChildren_->begin() + z);
             z--;

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrshapelayer.cpp 33714 2016-03-13 05:42:13Z goatbar $
+ * $Id: ogrshapelayer.cpp 34069 2016-04-23 17:59:00Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implements OGRShapeLayer class.
@@ -40,7 +40,7 @@
 
 #define UNSUPPORTED_OP_READ_ONLY "%s : unsupported operation on a read-only datasource."
 
-CPL_CVSID("$Id: ogrshapelayer.cpp 33714 2016-03-13 05:42:13Z goatbar $");
+CPL_CVSID("$Id: ogrshapelayer.cpp 34069 2016-04-23 17:59:00Z rouault $");
 
 /************************************************************************/
 /*                           OGRShapeLayer()                            */
@@ -1014,7 +1014,7 @@ OGRErr OGRShapeLayer::ICreateFeature( OGRFeature *poFeature )
     poFeature->SetFID( OGRNullFID );
 
     if( nTotalShapeCount == 0
-        && eRequestedGeomType == wkbUnknown
+        && wkbFlatten(eRequestedGeomType) == wkbUnknown
         && poFeature->GetGeometryRef() != NULL )
     {
         OGRGeometry     *poGeom = poFeature->GetGeometryRef();
