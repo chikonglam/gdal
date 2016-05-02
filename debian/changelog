@@ -1,9 +1,9 @@
-gdal (2.1.0+dfsg-1) UNRELEASED; urgency=medium
+gdal (2.1.0+dfsg-1~exp1) experimental; urgency=medium
 
   * New upstream release.
   * Update symbols for mips64el & ppc64.
 
- -- Bas Couwenberg <sebastic@debian.org>  Mon, 02 May 2016 11:18:21 +0200
+ -- Bas Couwenberg <sebastic@debian.org>  Mon, 02 May 2016 11:20:36 +0200
 
 gdal (2.1.0~rc4+dfsg-1~exp1) experimental; urgency=medium
 
