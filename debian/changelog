@@ -1,9 +1,8 @@
-gdal (2.1.0+dfsg-1) unstable; urgency=medium
+gdal (2.1.0+dfsg-1~xenial0) xenial; urgency=medium
 
-  * Update symbols for sparc64.
-  * Move from experimental to unstable.
+  * Build for Xenial.
 
- -- Bas Couwenberg <sebastic@debian.org>  Tue, 10 May 2016 14:09:59 +0200
+ -- Angelos Tzotsos <gcpp.kalxas@gmail.com>  Mon, 09 May 2016 21:12:00 +0200
 
 gdal (2.1.0+dfsg-1~exp1) experimental; urgency=medium
 
