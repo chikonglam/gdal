@@ -28,7 +28,7 @@ Build-Depends: debhelper (>= 9),
                libhdf5-dev (>= 1.8.8),
                libjpeg-dev,
                libjson-c-dev,
-               libkml-dev (>= 1.3.0~rc0-3),
+               libkml-dev (>= 1.3.0~),
                liblzma-dev,
                libmysqlclient-dev,
                libnetcdf-dev (>= 1:4.0.0),
@@ -40,7 +40,7 @@ Build-Depends: debhelper (>= 9),
                libpq-dev,
                libproj-dev,
                libqhull-dev,
-               libspatialite-dev (>= 4.3.0-3~),
+               libspatialite-dev (>= 2.4.0~rc2-4),
                libsqlite3-dev,
                libtiff-dev,
                liburiparser-dev,
@@ -60,7 +60,7 @@ Build-Conflicts: automake1.11,
                  python-setuptools
 Standards-Version: 3.9.8
 Vcs-Browser: https://anonscm.debian.org/cgit/pkg-grass/gdal.git
-Vcs-Git: https://anonscm.debian.org/git/pkg-grass/gdal.git
+Vcs-Git: https://anonscm.debian.org/git/pkg-grass/gdal.git -b experimental-2.1
 Homepage: http://www.gdal.org/
 X-Python3-Version: >= 3.2
 

@@ -1,9 +1,8 @@
-gdal (2.1.0+dfsg-1) unstable; urgency=medium
+gdal (2.1.0+dfsg-1~trusty1) trusty; urgency=medium
 
-  * Update symbols for sparc64.
-  * Move from experimental to unstable.
+  * Backported to Trusty.
 
- -- Bas Couwenberg <sebastic@debian.org>  Tue, 10 May 2016 14:09:59 +0200
+ -- Angelos Tzotsos <gcpp.kalxas@gmail.com>  Mon, 09 May 2016 22:22:00 +0200
 
 gdal (2.1.0+dfsg-1~exp1) experimental; urgency=medium
 
