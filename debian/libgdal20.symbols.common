@@ -1622,10 +1622,10 @@
  SHPOpen@Base 1.8.0
  SHPOpenDiskTree@Base 1.9.0
  SHPOpenLL@Base 1.8.0
- SHPOpenLLEx@Base 2.1.0~rc1
+ SHPOpenLLEx@Base 2.1.0
  SHPPartTypeName@Base 1.8.0
  SHPReadObject@Base 1.8.0
- SHPRestoreSHX@Base 2.1.0~rc1
+ SHPRestoreSHX@Base 2.1.0
  SHPRewindObject@Base 1.8.0
  SHPSearchDiskTree@Base 1.8.0
  SHPSearchDiskTreeEx@Base 1.9.0
