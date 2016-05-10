@@ -1,3 +1,9 @@
+gdal (2.1.0+dfsg-1) unstable; urgency=medium
+
+  * Update symbols for sparc64.
+
+ -- Bas Couwenberg <sebastic@debian.org>  Tue, 10 May 2016 14:09:59 +0200
+
 gdal (2.1.0+dfsg-1~exp1) experimental; urgency=medium
 
   * New upstream release.
