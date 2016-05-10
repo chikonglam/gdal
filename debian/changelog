@@ -1,6 +1,7 @@
 gdal (2.1.0+dfsg-1) unstable; urgency=medium
 
   * Update symbols for sparc64.
+  * Move from experimental to unstable.
 
  -- Bas Couwenberg <sebastic@debian.org>  Tue, 10 May 2016 14:09:59 +0200
 
