@@ -1,6 +1,8 @@
 Description: Sort files passed as arguments to make the build reproducible.
 Author: Alexis Bienvenüe <pado@passoire.fr>
 Bug-Debian: https://bugs.debian.org/824808
+Forwarded: https://trac.osgeo.org/gdal/ticket/6520
+Applied-Upstream: 2.2.0, https://trac.osgeo.org/gdal/changeset/34257
 
 --- a/GNUmakefile
 +++ b/GNUmakefile
