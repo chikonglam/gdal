@@ -1,9 +1,9 @@
-gdal (2.1.0+dfsg-3) UNRELEASED; urgency=medium
+gdal (2.1.0+dfsg-3) unstable; urgency=medium
 
   * Add (modified) patch by Alexis Bienvenüe to make the build reproducible.
     (closes: #824808)
 
- -- Bas Couwenberg <sebastic@debian.org>  Fri, 20 May 2016 02:16:47 +0200
+ -- Bas Couwenberg <sebastic@debian.org>  Sat, 28 May 2016 12:11:11 +0200
 
 gdal (2.1.0+dfsg-2) unstable; urgency=medium
 
