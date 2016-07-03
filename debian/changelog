@@ -1,4 +1,4 @@
-gdal (2.1.1~rc1+dfsg-1) UNRELEASED; urgency=medium
+gdal (2.1.1~rc1+dfsg-1~exp1) experimental; urgency=medium
 
   * New upstream release candidate.
   * Fix python3-gdal description, tools only included in python-gdal.
@@ -6,7 +6,7 @@ gdal (2.1.1~rc1+dfsg-1) UNRELEASED; urgency=medium
   * Drop unused override for spelling-error-in-binary.
   * Add patch to fix spelling errors.
 
- -- Bas Couwenberg <sebastic@debian.org>  Sun, 03 Jul 2016 16:53:09 +0200
+ -- Bas Couwenberg <sebastic@debian.org>  Sun, 03 Jul 2016 18:32:39 +0200
 
 gdal (2.1.0+dfsg-3) unstable; urgency=medium
 
