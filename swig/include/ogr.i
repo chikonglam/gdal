@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr.i 33911 2016-04-07 12:34:39Z ajolma $
+ * $Id: ogr.i 34224 2016-05-13 06:04:34Z ajolma $
  *
  * Project:  OGR Core SWIG Interface declarations.
  * Purpose:  OGR declarations.
@@ -2020,8 +2020,7 @@ public:
   int GetGeomFieldIndex(int i) {
       if (i < 0 || i >= OGR_FD_GetGeomFieldCount(self))
           CPLError(CE_Failure, 1, FIELD_INDEX_ERROR_TMPL, i);
-      else
-          return i;
+      return i;
   }
 #endif
 

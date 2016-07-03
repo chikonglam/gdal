@@ -2837,8 +2837,7 @@ SWIGINTERN OGRGeomFieldDefnShadow *OGRFeatureDefnShadow_GetGeomFieldDefn__SWIG_1
 SWIGINTERN int OGRFeatureDefnShadow_GetGeomFieldIndex__SWIG_0(OGRFeatureDefnShadow *self,int i){
       if (i < 0 || i >= OGR_FD_GetGeomFieldCount(self))
           CPLError(CE_Failure, 1, FIELD_INDEX_ERROR_TMPL, i);
-      else
-          return i;
+      return i;
   }
 SWIGINTERN int OGRFeatureDefnShadow_GetGeomFieldIndex__SWIG_1(OGRFeatureDefnShadow *self,char const *name){
       // Do not issue an error if the field doesn't exist. It is intended to be silent

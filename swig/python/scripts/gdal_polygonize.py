@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #******************************************************************************
-#  $Id: gdal_polygonize.py 33790 2016-03-26 12:42:12Z goatbar $
+#  $Id: gdal_polygonize.py 34304 2016-05-27 17:46:17Z rouault $
 #
 #  Project:  GDAL Python Interface
 #  Purpose:  Application for converting raster data to a vector polygon layer.
@@ -182,7 +182,7 @@ if dst_layer is None:
         srs = osr.SpatialReference()
         srs.ImportFromWkt( src_ds.GetProjectionRef() )
 
-    dst_layer = dst_ds.CreateLayer(dst_layername, srs = srs )
+    dst_layer = dst_ds.CreateLayer(dst_layername, geom_type=ogr.wkbPolygon, srs = srs )
 
     if dst_fieldname is None:
         dst_fieldname = 'DN'
