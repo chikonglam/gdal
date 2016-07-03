@@ -2,6 +2,7 @@ gdal (2.1.1~rc1+dfsg-1) UNRELEASED; urgency=medium
 
   * New upstream release candidate.
   * Fix python3-gdal description, tools only included in python-gdal.
+  * Drop unused override for old-style-config-script-multiarch-path.
 
  -- Bas Couwenberg <sebastic@debian.org>  Sun, 03 Jul 2016 16:53:09 +0200
 

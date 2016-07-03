@@ -1,6 +1,3 @@
 # Man pages are automatically generated with sphinx.
 libgdal-dev: hyphen-used-as-minus-sign
 
-# False positive, libgdal-dev is not marked as Multi-Arch
-libgdal-dev: old-style-config-script-multiarch-path usr/bin/gdal-config *
-
