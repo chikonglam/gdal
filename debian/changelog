@@ -1,3 +1,9 @@
+gdal (2.1.1~rc1+dfsg-1) UNRELEASED; urgency=medium
+
+  * New upstream release candidate.
+
+ -- Bas Couwenberg <sebastic@debian.org>  Sun, 03 Jul 2016 16:53:09 +0200
+
 gdal (2.1.0+dfsg-3) unstable; urgency=medium
 
   * Add (modified) patch by Alexis Bienvenüe to make the build reproducible.
