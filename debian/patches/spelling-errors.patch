@@ -1,0 +1,79 @@
+Description: Fix spelling errors.
+ Reseting   -> Resetting
+ Overlaping -> Overlapping
+Author: Bas Couwenberg <sebastic@debian.org>
+Forwarded: not-needed
+
+--- a/NEWS
++++ b/NEWS
+@@ -772,7 +772,7 @@ PG driver:
+  * Add PRELUDE_STATEMENTS and CLOSING_STATEMENTS open option to be for example able to specify options, like statement_timeout, with pg_bouncer
+  * Fix 2.0 regression when overwriting several existing PostGIS layers with ogr2ogr (#6018)
+  * Update PG, PGDump and CartoDB drivers to correctly export POINT EMPTY for PostGIS 2.2
+- * avoid reseting error potentially emitted by ExecuteSQL() (#6194)
++ * avoid resetting error potentially emitted by ExecuteSQL() (#6194)
+  * sanitize management of quoting for FID column at layer creation
+  * fix to get SRID on result layer with PostGIS 2.2
+  * in copy mode (the default on layer creation), do not truncate the concatenated string list to the field width (#6356)
+--- a/ogr/ogrfielddefn.cpp
++++ b/ogr/ogrfielddefn.cpp
+@@ -280,7 +280,7 @@ void OGRFieldDefn::SetType( OGRFieldType
+     if( !OGR_AreTypeSubTypeCompatible(eTypeIn, eSubType) )
+     {
+         CPLError(CE_Warning, CPLE_AppDefined,
+-                 "Type and subtype of field definition are not compatible. Reseting to OFSTNone");
++                 "Type and subtype of field definition are not compatible. Resetting to OFSTNone");
+         eSubType = OFSTNone;
+     }
+     eType = eTypeIn;
+@@ -366,7 +366,7 @@ void OGRFieldDefn::SetSubType( OGRFieldS
+     if( !OGR_AreTypeSubTypeCompatible(eType, eSubTypeIn) )
+     {
+         CPLError(CE_Warning, CPLE_AppDefined,
+-                 "Type and subtype of field definition are not compatible. Reseting to OFSTNone");
++                 "Type and subtype of field definition are not compatible. Resetting to OFSTNone");
+         eSubType = OFSTNone;
+     }
+     else
+--- a/ogr/ogrsf_frmts/plscenes/ogrplscenesdataset.cpp
++++ b/ogr/ogrsf_frmts/plscenes/ogrplscenesdataset.cpp
+@@ -441,7 +441,7 @@ GDALDataset* OGRPLScenesDataset::OpenRas
+ 
+         CPLErrorReset();
+         poOutDS->SetDescription(poOpenInfo->pszFilename);
+-        CSLDestroy(poOutDS->GetFileList()); /* so as to probe all auxiliary files before reseting the allowed extensions */
++        CSLDestroy(poOutDS->GetFileList()); /* so as to probe all auxiliary files before resetting the allowed extensions */
+     }
+ 
+     if( bUseVSICURL )
+--- a/ogr/ogrsf_frmts/plscenes/ogrplscenesv1dataset.cpp
++++ b/ogr/ogrsf_frmts/plscenes/ogrplscenesv1dataset.cpp
+@@ -652,7 +652,7 @@ retry:
+ 
+         CPLErrorReset();
+         poOutDS->SetDescription(poOpenInfo->pszFilename);
+-        CSLDestroy(poOutDS->GetFileList()); /* so as to probe all auxiliary files before reseting the allowed extensions */
++        CSLDestroy(poOutDS->GetFileList()); /* so as to probe all auxiliary files before resetting the allowed extensions */
+     }
+     else if( CPLGetLastErrorType() == CE_None )
+     {
+--- a/ogr/ogrsf_frmts/wasp/ogrwasplayer.cpp
++++ b/ogr/ogrsf_frmts/wasp/ogrwasplayer.cpp
+@@ -496,7 +496,7 @@ OGRErr OGRWAsPLayer::WriteRoughness( OGR
+                             OGREnvelope oErrorRegion = oZones[i].oEnvelope;
+                             oErrorRegion.Intersect( oEnvelope );
+                             CPLError(CE_Failure, CPLE_NotSupported,
+-                                    "Overlaping polygons in rectangle (%.16g %.16g, %.16g %.16g))",
++                                    "Overlapping polygons in rectangle (%.16g %.16g, %.16g %.16g))",
+                                     oErrorRegion.MinX,
+                                     oErrorRegion.MinY,
+                                     oErrorRegion.MaxX,
+@@ -516,7 +516,7 @@ OGRErr OGRWAsPLayer::WriteRoughness( OGR
+                             OGREnvelope oErrorRegion = oZones[i].oEnvelope;
+                             oErrorRegion.Intersect( oEnvelope );
+                             CPLError(CE_Failure, CPLE_NotSupported,
+-                                    "Overlaping polygons in rectangle (%.16g %.16g, %.16g %.16g))",
++                                    "Overlapping polygons in rectangle (%.16g %.16g, %.16g %.16g))",
+                                     oErrorRegion.MinX,
+                                     oErrorRegion.MinY,
+                                     oErrorRegion.MaxX,
