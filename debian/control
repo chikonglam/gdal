@@ -257,8 +257,7 @@ Description: Python 3 bindings to the Geospatial Data Abstraction Library
  OGR library supports popular vector formats like ESRI Shapefile,
  TIGER data, S57, MapInfo File, DGN, GML and more.
  .
- This package contains Python 3 bindings for GDAL/OGR library and
- a set of additional command line tools.
+ This package contains Python 3 bindings for GDAL/OGR library.
 
 Package: libgdal-perl
 Architecture: any
