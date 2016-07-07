@@ -6,7 +6,7 @@ Forwarded: not-needed
 
 --- a/NEWS
 +++ b/NEWS
-@@ -772,7 +772,7 @@ PG driver:
+@@ -776,7 +776,7 @@ PG driver:
   * Add PRELUDE_STATEMENTS and CLOSING_STATEMENTS open option to be for example able to specify options, like statement_timeout, with pg_bouncer
   * Fix 2.0 regression when overwriting several existing PostGIS layers with ogr2ogr (#6018)
   * Update PG, PGDump and CartoDB drivers to correctly export POINT EMPTY for PostGIS 2.2
