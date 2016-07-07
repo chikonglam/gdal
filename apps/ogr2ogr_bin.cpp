@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr2ogr_bin.cpp 34466 2016-06-29 18:18:18Z rouault $
+ * $Id: ogr2ogr_bin.cpp 34578 2016-07-07 10:26:20Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Simple client for translating between formats.
@@ -33,7 +33,7 @@
 #include "gdal_utils_priv.h"
 #include "commonutils.h"
 
-CPL_CVSID("$Id: ogr2ogr_bin.cpp 34466 2016-06-29 18:18:18Z rouault $");
+CPL_CVSID("$Id: ogr2ogr_bin.cpp 34578 2016-07-07 10:26:20Z rouault $");
 
 static void Usage(int bShort = TRUE);
 static void Usage(const char* pszAdditionalMsg, int bShort = TRUE);
@@ -191,7 +191,8 @@ int main( int nArgc, char ** papszArgv )
     if( strcmp(psOptionsForBinary->pszDestDataSource, "/vsistdout/") == 0 )
         psOptionsForBinary->bQuiet = TRUE;
 
-    if (!psOptionsForBinary->bQuiet && !psOptionsForBinary->bFormatExplicitlySet)
+    if (!psOptionsForBinary->bQuiet && !psOptionsForBinary->bFormatExplicitlySet &&
+        psOptionsForBinary->eAccessMode == ACCESS_CREATION)
     {
         CheckDestDataSourceNameConsistency(psOptionsForBinary->pszDestDataSource,
                                            psOptionsForBinary->pszFormat);
