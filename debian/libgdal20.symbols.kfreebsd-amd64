@@ -24,7 +24,7 @@ libgdal.so.20 libgdal20 #MINVER#
  (c++)"OGRGeometryFromEWKB(unsigned char*, int, int*, int)@Base" 2.0.1 1
  (c++)"OGRParseXMLDateTime(char const*, OGRField*)@Base" 2.0.1 1
  (c++)"OSRGetEllipsoidInfo(int, char**, double*, double*)@Base" 1.10.0 1
- (c++)"VSICreateCachedFile(VSIVirtualHandle*, unsigned long, unsigned long)@Base" 2.1.1~rc1 1
+ (c++)"VSICreateCachedFile(VSIVirtualHandle*, unsigned long, unsigned long)@Base" 2.1.1 1
  (c++)"GDALCloneTransformer(void*)@Base" 1.10.0 1
  (c++)"OGRGeometryToHexEWKB(OGRGeometry*, int, int, int)@Base" 2.1.0 1
  (c++)"OGRGetRFC822DateTime(OGRField const*)@Base" 2.0.1 1
@@ -2683,7 +2683,7 @@ libgdal.so.20 libgdal20 #MINVER#
  (c++)"std::map<CPLString, CPLErr (*)(void**, int, void*, int, int, GDALDataType, GDALDataType, int, int), std::less<CPLString>, std::allocator<std::pair<CPLString const, CPLErr (*)(void**, int, void*, int, int, GDALDataType, GDALDataType, int, int)> > >::~map()@Base" 1.10.0 1
  (c++)"std::map<CPLString, CPLErr (*)(void**, int, void*, int, int, GDALDataType, GDALDataType, int, int), std::less<CPLString>, std::allocator<std::pair<CPLString const, CPLErr (*)(void**, int, void*, int, int, GDALDataType, GDALDataType, int, int)> > >::~map()@Base" 1.10.0 1
  (c++)"std::map<CPLString, CPLString, std::less<CPLString>, std::allocator<std::pair<CPLString const, CPLString> > >::operator[](CPLString const&)@Base" 1.10.0 1
- (c++)"std::map<CPLString, std::set<CPLString, std::less<CPLString>, std::allocator<CPLString> >, std::less<CPLString>, std::allocator<std::pair<CPLString const, std::set<CPLString, std::less<CPLString>, std::allocator<CPLString> > > > >::operator[](CPLString const&)@Base" 2.1.1~rc1 1
+ (c++)"std::map<CPLString, std::set<CPLString, std::less<CPLString>, std::allocator<CPLString> >, std::less<CPLString>, std::allocator<std::pair<CPLString const, std::set<CPLString, std::less<CPLString>, std::allocator<CPLString> > > > >::operator[](CPLString const&)@Base" 2.1.1 1
  (c++)"std::map<CPLString, std::pair<double, double>, std::less<CPLString>, std::allocator<std::pair<CPLString const, std::pair<double, double> > > >::operator[](CPLString const&)@Base" 1.10.0 1
  (c++)"std::map<CPLString, std::vector<CPLString, std::allocator<CPLString> >, std::less<CPLString>, std::allocator<std::pair<CPLString const, std::vector<CPLString, std::allocator<CPLString> > > > >::operator[](CPLString const&)@Base" 1.10.0 1
  (c++)"std::map<CPLString, int, std::less<CPLString>, std::allocator<std::pair<CPLString const, int> > >::operator[](CPLString const&)@Base" 2.1.0 1
@@ -2823,7 +2823,7 @@ libgdal.so.20 libgdal20 #MINVER#
  (c++)"std::vector<unsigned long long, std::allocator<unsigned long long> >::_M_insert_aux(__gnu_cxx::__normal_iterator<unsigned long long*, std::vector<unsigned long long, std::allocator<unsigned long long> > >, unsigned long long const&)@Base" 1.10.0 1
  (c++)"std::vector<unsigned long long, std::allocator<unsigned long long> >::_M_fill_insert(__gnu_cxx::__normal_iterator<unsigned long long*, std::vector<unsigned long long, std::allocator<unsigned long long> > >, unsigned long, unsigned long long const&)@Base" 1.10.0 1
  (c++)"std::vector<unsigned long long, std::allocator<unsigned long long> >::operator=(std::vector<unsigned long long, std::allocator<unsigned long long> > const&)@Base" 1.10.0 1
- (c++)"std::__cxx11::_List_base<CPLString, std::allocator<CPLString> >::_M_clear()@Base" 2.1.1~rc1 1
+ (c++)"std::__cxx11::_List_base<CPLString, std::allocator<CPLString> >::_M_clear()@Base" 2.1.1 1
  (c++)"std::__cxx11::_List_base<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >::_M_clear()@Base" 2.0.1 1
  (c++)"std::__cxx11::basic_stringbuf<char, std::char_traits<char>, std::allocator<char> >::~basic_stringbuf()@Base" 2.0.1 1
  (c++)"std::__cxx11::basic_stringbuf<char, std::char_traits<char>, std::allocator<char> >::~basic_stringbuf()@Base" 2.0.1 1
@@ -2982,7 +2982,7 @@ libgdal.so.20 libgdal20 #MINVER#
  (c++)"std::_Rb_tree<int, std::pair<int const, unsigned int>, std::_Select1st<std::pair<int const, unsigned int> >, std::less<int>, std::allocator<std::pair<int const, unsigned int> > >::_M_get_insert_hint_unique_pos(std::_Rb_tree_const_iterator<std::pair<int const, unsigned int> >, int const&)@Base" 1.10.0 1
  (c++)"std::_Rb_tree<int, std::pair<int const, unsigned int>, std::_Select1st<std::pair<int const, unsigned int> >, std::less<int>, std::allocator<std::pair<int const, unsigned int> > >::_M_erase(std::_Rb_tree_node<std::pair<int const, unsigned int> >*)@Base" 1.10.0 1
  (c++)"std::_Rb_tree<int, int, std::_Identity<int>, std::less<int>, std::allocator<int> >::_M_insert_unique(int const&)@Base" 1.10.0 1
- (c++)"std::_Rb_tree<int, int, std::_Identity<int>, std::less<int>, std::allocator<int> >::erase(int const&)@Base" 2.1.1~rc1 1
+ (c++)"std::_Rb_tree<int, int, std::_Identity<int>, std::less<int>, std::allocator<int> >::erase(int const&)@Base" 2.1.1 1
  (c++)"std::_Rb_tree<int, int, std::_Identity<int>, std::less<int>, std::allocator<int> >::_M_erase(std::_Rb_tree_node<int>*)@Base" 1.10.0 1
  (c++)"std::_Rb_tree<unsigned int, std::pair<unsigned int const, CPLString>, std::_Select1st<std::pair<unsigned int const, CPLString> >, std::less<unsigned int>, std::allocator<std::pair<unsigned int const, CPLString> > >::_M_get_insert_unique_pos(unsigned int const&)@Base" 1.11.0 1
  (c++)"std::_Rb_tree<unsigned int, std::pair<unsigned int const, CPLString>, std::_Select1st<std::pair<unsigned int const, CPLString> >, std::less<unsigned int>, std::allocator<std::pair<unsigned int const, CPLString> > >::_M_get_insert_hint_unique_pos(std::_Rb_tree_const_iterator<std::pair<unsigned int const, CPLString> >, unsigned int const&)@Base" 1.11.0 1
