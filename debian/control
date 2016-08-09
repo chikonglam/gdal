@@ -181,7 +181,8 @@ Package: gdal-bin
 Architecture: any
 Depends: ${shlibs:Depends},
          ${misc:Depends}
-Suggests: python-gdal
+Suggests: libgdal-grass,
+          python-gdal
 Breaks: gdal-bin (<< 1.10.0-0~)
 Description: Geospatial Data Abstraction Library - Utility programs
  GDAL is a translator library for raster geospatial data formats.
