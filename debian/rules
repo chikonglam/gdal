@@ -13,13 +13,6 @@ export DEB_BUILD_MAINT_OPTIONS=hardening=+all,-pie
 
 UPSTREAM_VERSION = $(shell dpkg-parsechangelog | sed -ne 's/^Version: \(.*\)-.*/\1/p' | sed -e 's/\+.*//; s/^[0-9]://')
 
-# Remove -Werror=format-security, causes build failure on ogrsxfdatasource.cpp
-CFLAGS   = $(shell dpkg-buildflags --get CFLAGS)
-CXXFLAGS = $(shell dpkg-buildflags --get CXXFLAGS)
-
-CFLAGS   := $(filter-out -Werror=format-security, $(CFLAGS))
-CXXFLAGS := $(filter-out -Werror=format-security, $(CXXFLAGS))
-
 PYVERS=$(shell pyversions -v -r debian/control) $(shell py3versions -v -r)
 PYDEF=$(shell pyversions -dv)
 PERLDEF=$(shell perl -V:version|cut -d\' -f2)
@@ -127,8 +120,7 @@ override_dh_auto_configure:
 			--with-static-proj4=yes \
 			--with-java=/usr/lib/jvm/default-java \
 			--with-perl \
-			--with-python \
-			CFLAGS="$(CFLAGS)" CXXFLAGS="$(CXXFLAGS)"; \
+			--with-python; \
 		mv GDALmake.opt GDALmake.opt-$$V; \
 	done
 
