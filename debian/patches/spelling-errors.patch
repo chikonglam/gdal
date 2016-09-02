@@ -1,6 +1,7 @@
 Description: Fix spelling errors.
  Reseting   -> Resetting
  Overlaping -> Overlapping
+ Collumn    -> Column
 Author: Bas Couwenberg <sebastic@debian.org>
 Forwarded: not-needed
 
@@ -77,3 +78,14 @@ Forwarded: not-needed
                                      oErrorRegion.MinX,
                                      oErrorRegion.MinY,
                                      oErrorRegion.MaxX,
+--- a/frmts/pcraster/libcsf/mperror.c
++++ b/frmts/pcraster/libcsf/mperror.c
+@@ -12,7 +12,7 @@ static const char * const errolist[ERROR
+ "Illegal cell representation constant",
+ "Access denied",
+ "Row number to big",
+-"Collumn number to big",
++"Column number to big",
+ "Map is not a raster file",
+ "Illegal conversion",
+ "No space on device to write",
