@@ -1,7 +1,7 @@
 gdal (2.1.1+dfsg-2) UNRELEASED; urgency=medium
 
   * Strip pre-releases from symbols version.
-  * Update symbols for alpha, hppa & sparc64.
+  * Update symbols for rebuild with GCC 6.2.
   * Add libgdal-grass to gdal-bin Suggests.
   * Don't filter out -Werror=format-security, fixed upstream.
     (closes: #834174)
