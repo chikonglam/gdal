@@ -1,9 +1,9 @@
-gdal (2.1.1+dfsg-4) UNRELEASED; urgency=medium
+gdal (2.1.1+dfsg-4) unstable; urgency=medium
 
   * Remove MySQL support. The dependencies via default-libmysqlclient-dev
     cannot be satisfied on all release architectures.
 
- -- Bas Couwenberg <sebastic@debian.org>  Wed, 07 Sep 2016 21:12:20 +0200
+ -- Bas Couwenberg <sebastic@debian.org>  Wed, 07 Sep 2016 21:17:25 +0200
 
 gdal (2.1.1+dfsg-3) unstable; urgency=medium
 
