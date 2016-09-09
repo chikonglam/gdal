@@ -88,7 +88,7 @@ override_dh_auto_configure:
 			--with-rename-internal-libtiff-symbols=yes \
 			--with-rename-internal-libgeotiff-symbols=yes \
 			--with-threads \
-			--with-armadillo=yes \
+			--with-armadillo=no \
 			--with-cfitsio=no \
 			--with-cryptopp=yes \
 			--with-curl \
