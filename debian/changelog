@@ -1,10 +1,3 @@
-gdal (2.1.1+dfsg-5) UNRELEASED; urgency=medium
-
-  * Disable armadillo support.
-    armadillo 6.700.6 requires superlu < 4.4, but 5.2 is now in unstable.
-
- -- Bas Couwenberg <sebastic@debian.org>  Fri, 09 Sep 2016 12:07:33 +0200
-
 gdal (2.1.1+dfsg-4) unstable; urgency=medium
 
   * Remove MySQL support. The dependencies via default-libmysqlclient-dev
