@@ -104,6 +104,7 @@ override_dh_auto_configure:
 			--with-liblzma=yes \
 			--with-libtiff=yes \
 			--with-mrsid=no \
+			--with-mysql \
 			--with-netcdf \
 			--with-odbc \
 			--with-ogdi \

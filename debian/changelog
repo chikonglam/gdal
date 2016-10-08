@@ -1,6 +1,11 @@
 gdal (2.1.1+dfsg-5) UNRELEASED; urgency=medium
 
   * Update spelling-errors.patch to fix additional typos.
+  * Reinstate MySQL/MariaDB support, mariadb-10.0 available on mips64el now.
+    Changes:
+    - Add default-libmysqlclient-dev (build) dependency
+    - Add --with-mysql configure option
+    - Add RegisterOGRMySQL@Base symbol
 
  -- Bas Couwenberg <sebastic@debian.org>  Sat, 08 Oct 2016 14:51:56 +0200
 

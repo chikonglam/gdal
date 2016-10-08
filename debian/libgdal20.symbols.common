@@ -1565,6 +1565,7 @@
  RegisterOGRLIBKML@Base 1.9.0
  RegisterOGRMEM@Base 1.8.0
  RegisterOGRMSSQLSpatial@Base 1.8.0
+ RegisterOGRMySQL@Base 1.8.0
  RegisterOGRNAS@Base 1.8.0
  RegisterOGRNTF@Base 1.8.0
  RegisterOGRODBC@Base 1.8.0
