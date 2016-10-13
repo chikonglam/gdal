@@ -1,4 +1,4 @@
-gdal (2.1.1+dfsg-5) UNRELEASED; urgency=medium
+gdal (2.1.1+dfsg-5) unstable; urgency=medium
 
   * Update spelling-errors.patch to fix additional typos.
   * Reinstate MySQL/MariaDB support, mariadb-10.0 available on mips64el now.
@@ -7,7 +7,7 @@ gdal (2.1.1+dfsg-5) UNRELEASED; urgency=medium
     - Add --with-mysql configure option
     - Add RegisterOGRMySQL@Base symbol
 
- -- Bas Couwenberg <sebastic@debian.org>  Sat, 08 Oct 2016 14:51:56 +0200
+ -- Bas Couwenberg <sebastic@debian.org>  Thu, 13 Oct 2016 07:30:43 +0200
 
 gdal (2.1.1+dfsg-4) unstable; urgency=medium
 
