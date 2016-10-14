@@ -1,5 +1,4 @@
 /******************************************************************************
- * $Id: ogrocitablelayer.cpp 33713 2016-03-12 17:41:57Z goatbar $
  *
  * Project:  Oracle Spatial Driver
  * Purpose:  Implementation of the OGROCITableLayer class.  This class provides
@@ -33,7 +32,7 @@
 #include "cpl_conv.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: ogrocitablelayer.cpp 33713 2016-03-12 17:41:57Z goatbar $");
+CPL_CVSID("$Id: ogrocitablelayer.cpp 34888 2016-08-03 19:59:19Z ilucena $");
 
 static int nDiscarded = 0;
 static int nHits = 0;
@@ -903,9 +902,35 @@ OGRErr OGROCITableLayer::ICreateFeature( OGRFeature *poFeature )
     }
 
 /* -------------------------------------------------------------------- */
+/*      Get the first id value from open options                        */
+/* -------------------------------------------------------------------- */
+
+    this->nFirstId = -1;
+
+    if (CSLFetchNameValue( papszOptions, "FIRST_ID" ) != NULL)
+    {
+        this->nFirstId = atoi( CSLFetchNameValue( papszOptions, "FIRST_ID" ) );
+    }
+
+/* -------------------------------------------------------------------- */
+/*      Get the multi load count value from open options                */
+/* -------------------------------------------------------------------- */
+
+    this->bMultiLoad = CSLFetchBoolean( papszOptions, "MULTI_LOAD", true );
+
+    this->nMultiLoadCount = 100;
+
+    if (CSLFetchNameValue( papszOptions, "MULTI_LOAD_COUNT" ) != NULL)
+    {
+        this->nMultiLoadCount = atoi( CSLFetchNameValue( papszOptions,
+                                                         "MULTI_LOAD_COUNT" ) );
+        this->bMultiLoad = true; // overwrites MULTI_LOAD=NO
+    }
+
+/* -------------------------------------------------------------------- */
 /*      Do the actual creation.                                         */
 /* -------------------------------------------------------------------- */
-    if( CSLFetchBoolean( papszOptions, "MULTI_LOAD", true ) )
+    if( bMultiLoad )
         return BoundCreateFeature( poFeature );
     else
         return UnboundCreateFeature( poFeature );
@@ -1628,14 +1653,14 @@ int OGROCITableLayer::AllocAndBindForWrite()
 /*      Decide on the number of rows we want to be able to cache at     */
 /*      a time.                                                         */
 /* -------------------------------------------------------------------- */
-    nWriteCacheMax = 100;
+    nWriteCacheMax = nMultiLoadCount;
 
 /* -------------------------------------------------------------------- */
 /*      Collect the INSERT statement.                                   */
 /* -------------------------------------------------------------------- */
     OGROCIStringBuf oCmdBuf;
 
-    oCmdBuf.Append( "INSERT INTO \"" );
+    oCmdBuf.Append( "INSERT /*+ APPEND */ INTO \"" );
     oCmdBuf.Append( poFeatureDefn->GetName() );
     oCmdBuf.Append( "\"(\"" );
     oCmdBuf.Append( pszFIDName );
@@ -2118,8 +2143,8 @@ void OGROCITableLayer::CreateSpatialIndex()
 /*      If the user has disabled INDEX support then don't create the    */
 /*      index.                                                          */
 /* -------------------------------------------------------------------- */
-        if( !CSLFetchBoolean( papszOptions, "SPATIAL_INDEX", TRUE ) ||
-            !CSLFetchBoolean( papszOptions, "INDEX", TRUE ) )
+        if( !CSLFetchBoolean( papszOptions, "SPATIAL_INDEX", true ) ||
+            !CSLFetchBoolean( papszOptions, "INDEX", true ) )
             return;
 
 /* -------------------------------------------------------------------- */
@@ -2205,6 +2230,9 @@ void OGROCITableLayer::CreateSpatialIndex()
 
 int OGROCITableLayer::GetMaxFID()
 {
+    if( nFirstId > 0 )
+        return nFirstId - 1;
+
     if( pszFIDName == NULL )
         return 0;
 

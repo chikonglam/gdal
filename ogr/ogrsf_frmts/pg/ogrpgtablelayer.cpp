@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrpgtablelayer.cpp 33713 2016-03-12 17:41:57Z goatbar $
+ * $Id: ogrpgtablelayer.cpp 35632 2016-10-07 13:45:42Z rouault $
 
  *
  * Project:  OpenGIS Simple Features Reference Implementation
@@ -37,7 +37,7 @@
 
 #define PQexec this_is_an_error
 
-CPL_CVSID("$Id: ogrpgtablelayer.cpp 33713 2016-03-12 17:41:57Z goatbar $");
+CPL_CVSID("$Id: ogrpgtablelayer.cpp 35632 2016-10-07 13:45:42Z rouault $");
 
 
 #define USE_COPY_UNSET  -10
@@ -646,7 +646,7 @@ int OGRPGTableLayer::ReadTableDefinition()
 
       /* Get the geometry type and dimensions from the table, or */
       /* from its parents if it is a derived table, or from the parent of the parent, etc.. */
-      int bGoOn = TRUE;
+      int bGoOn = poDS->m_bHasGeometryColumns;
       int bHasPostGISGeometry =
         (poGeomFieldDefn->ePostgisType == GEOM_TYPE_GEOMETRY);
 
@@ -2837,6 +2837,11 @@ void OGRPGTableLayer::ResolveSRID(OGRPGGeomFieldDefn* poGFldDefn)
     CPLString    osCommand;
 
     int nSRSId = poDS->GetUndefinedSRID();
+    if( !poDS->m_bHasGeometryColumns )
+    {
+        poGFldDefn->nSRSId = nSRSId;
+        return;
+    }
 
     osCommand.Printf(
                 "SELECT srid FROM geometry_columns "

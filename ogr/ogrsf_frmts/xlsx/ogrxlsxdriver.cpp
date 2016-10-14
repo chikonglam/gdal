@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrxlsxdriver.cpp 32110 2015-12-10 17:19:40Z goatbar $
+ * $Id: ogrxlsxdriver.cpp 35710 2016-10-13 07:21:17Z rouault $
  *
  * Project:  XLSX Translator
  * Purpose:  Implements OGRXLSXDriver.
@@ -30,7 +30,7 @@
 #include "ogr_xlsx.h"
 #include "cpl_conv.h"
 
-CPL_CVSID("$Id: ogrxlsxdriver.cpp 32110 2015-12-10 17:19:40Z goatbar $");
+CPL_CVSID("$Id: ogrxlsxdriver.cpp 35710 2016-10-13 07:21:17Z rouault $");
 
 extern "C" void RegisterOGRXLSX();
 
@@ -102,12 +102,19 @@ OGRDataSource *OGRXLSXDriver::Open( const char * pszFilename, int bUpdate )
     if (fpWorkbook == NULL)
         return NULL;
 
+    VSILFILE* fpWorkbookRels = VSIFOpenL(CPLSPrintf("/vsizip/%s/xl/_rels/workbook.xml.rels", pszFilename), "rb");
+    if (fpWorkbookRels == NULL)
+    {
+        VSIFCloseL(fpWorkbook);
+        return NULL;
+    }
+
     VSILFILE* fpSharedStrings = VSIFOpenL(CPLSPrintf("/vsizip/%s/xl/sharedStrings.xml", pszFilename), "rb");
     VSILFILE* fpStyles = VSIFOpenL(CPLSPrintf("/vsizip/%s/xl/styles.xml", pszFilename), "rb");
 
     OGRXLSXDataSource   *poDS = new OGRXLSXDataSource();
 
-    if( !poDS->Open( pszFilename, fpWorkbook, fpSharedStrings, fpStyles, bUpdate ) )
+    if( !poDS->Open( pszFilename, fpWorkbook, fpWorkbookRels, fpSharedStrings, fpStyles, bUpdate ) )
     {
         delete poDS;
         poDS = NULL;

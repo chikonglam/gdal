@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdal_translate_lib.cpp 33967 2016-04-13 21:29:33Z rouault $
+ * $Id: gdal_translate_lib.cpp 34813 2016-07-28 16:38:56Z rouault $
  *
  * Project:  GDAL Utilities
  * Purpose:  GDAL Image Translator Program
@@ -38,7 +38,7 @@
 #include "commonutils.h"
 #include "gdal_utils_priv.h"
 
-CPL_CVSID("$Id: gdal_translate_lib.cpp 33967 2016-04-13 21:29:33Z rouault $");
+CPL_CVSID("$Id: gdal_translate_lib.cpp 34813 2016-07-28 16:38:56Z rouault $");
 
 static int ArgIsNumeric( const char * );
 static void AttachMetadata( GDALDatasetH, char ** );
@@ -728,6 +728,16 @@ GDALDatasetH GDALTranslate( const char *pszDest, GDALDatasetH hSrcDataset,
 
         psOptions->adfSrcWin[2] = (psOptions->dfLRX - psOptions->dfULX) / adfGeoTransform[1];
         psOptions->adfSrcWin[3] = (psOptions->dfLRY - psOptions->dfULY) / adfGeoTransform[5];
+        
+        // In case of nearest resampling, round to integer pixels (#6610)
+        if( psOptions->pszResampling == NULL ||
+            EQUALN(psOptions->pszResampling, "NEAR", 4) )
+        {
+            psOptions->adfSrcWin[0] = floor(psOptions->adfSrcWin[0] + 0.001); 
+            psOptions->adfSrcWin[1] = floor(psOptions->adfSrcWin[1] + 0.001);
+            psOptions->adfSrcWin[2] = floor(psOptions->adfSrcWin[2] + 0.5);
+            psOptions->adfSrcWin[3] = floor(psOptions->adfSrcWin[3] + 0.5);
+        }
 
         /*if( !bQuiet )
             fprintf( stdout,

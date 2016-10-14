@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gpkgmbtilescommon.h 34001 2016-04-18 15:29:00Z rouault $
+ * $Id: gpkgmbtilescommon.h 35697 2016-10-11 18:44:52Z rouault $
  *
  * Project:  GeoPackage/MBTiles Translator
  * Purpose:  Definition of common classes for GeoPackage and MBTiles drivers.
@@ -59,6 +59,7 @@ class GDALGPKGMBTilesLikePseudoDataset
 
   protected:
     bool                m_bNew;
+    bool                m_bHasModifiedTiles;
 
     CPLString           m_osRasterTable;
     int                 m_nZoomLevel;
@@ -126,8 +127,8 @@ class GDALGPKGMBTilesLikePseudoDataset
         virtual sqlite3                *IGetDB() = 0;
         virtual bool                    IGetUpdate() = 0;
         virtual bool                    ICanIWriteBlock() = 0;
-        virtual void                    IStartTransaction() = 0;
-        virtual void                    ICommitTransaction() = 0;
+        virtual OGRErr                  IStartTransaction() = 0;
+        virtual OGRErr                  ICommitTransaction() = 0;
         virtual const char             *IGetFilename() = 0;
         virtual int                     GetRowFromIntoTopConvention(int nRow) = 0;
 };

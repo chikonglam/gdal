@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrregisterall.cpp 32427 2015-12-22 11:18:32Z rouault $
+ * $Id: ogrregisterall.cpp 34979 2016-08-08 09:30:34Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Function to register all known OGR drivers.
@@ -30,7 +30,7 @@
 
 #include "ogrsf_frmts.h"
 
-CPL_CVSID("$Id: ogrregisterall.cpp 32427 2015-12-22 11:18:32Z rouault $");
+CPL_CVSID("$Id: ogrregisterall.cpp 34979 2016-08-08 09:30:34Z rouault $");
 
 /************************************************************************/
 /*                           OGRRegisterAll()                           */
@@ -261,8 +261,8 @@ void OGRRegisterAllInternal()
 #ifdef WALK_ENABLED
     RegisterOGRWalk();
 #endif
-#ifdef CARTODB_ENABLED
-    RegisterOGRCartoDB();
+#ifdef CARTO_ENABLED
+    RegisterOGRCarto();
 #endif
 #ifdef AMIGOCLOUD_ENABLED
     RegisterOGRAmigoCloud();

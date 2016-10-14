@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: vrtdataset.cpp 33808 2016-03-29 21:15:28Z goatbar $
+ * $Id: vrtdataset.cpp 34730 2016-07-20 09:12:13Z rouault $
  *
  * Project:  Virtual GDAL Datasets
  * Purpose:  Implementation of VRTDataset
@@ -35,8 +35,9 @@
 #include "ogr_spatialref.h"
 
 #include <algorithm>
+#include <typeinfo>
 
-CPL_CVSID("$Id: vrtdataset.cpp 33808 2016-03-29 21:15:28Z goatbar $");
+CPL_CVSID("$Id: vrtdataset.cpp 34730 2016-07-20 09:12:13Z rouault $");
 
 /************************************************************************/
 /*                            VRTDataset()                             */
@@ -1256,6 +1257,10 @@ int VRTDataset::CheckCompatibleForDatasetIO()
 
         VRTSourcedRasterBand* poBand
             = reinterpret_cast<VRTSourcedRasterBand*>( papoBands[iBand] );
+
+        // Do not allow VRTDerivedRasterBand for example
+        if( typeid(*poBand) != typeid(VRTSourcedRasterBand) )
+            return FALSE;
 
         if (iBand == 0)
         {

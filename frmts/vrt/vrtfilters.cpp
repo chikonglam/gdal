@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: vrtfilters.cpp 33720 2016-03-15 00:39:53Z goatbar $
+ * $Id: vrtfilters.cpp 35350 2016-09-07 07:21:52Z rouault $
  *
  * Project:  Virtual GDAL Datasets
  * Purpose:  Implementation of some filter types.
@@ -32,7 +32,7 @@
 #include "cpl_minixml.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: vrtfilters.cpp 33720 2016-03-15 00:39:53Z goatbar $");
+CPL_CVSID("$Id: vrtfilters.cpp 35350 2016-09-07 07:21:52Z rouault $");
 
 /************************************************************************/
 /* ==================================================================== */
@@ -273,12 +273,14 @@ VRTFilteredSource::RasterIO( int nXOff, int nYOff, int nXSize, int nYSize,
 /* -------------------------------------------------------------------- */
 /*      Load the data.                                                  */
 /* -------------------------------------------------------------------- */
+    const bool bIsComplex = CPL_TO_BOOL( GDALDataTypeIsComplex(eOperDataType) );
     CPLErr eErr
-        = VRTComplexSource::RasterIOInternal(
+        = VRTComplexSource::RasterIOInternal<float>(
             nFileXOff, nFileYOff, nFileXSize, nFileYSize,
             pabyWorkData + nLineOffset * nTopFill + nPixelOffset * nLeftFill,
             nFileXSize, nFileYSize, eOperDataType,
-            nPixelOffset, nLineOffset, psExtraArg );
+            nPixelOffset, nLineOffset, psExtraArg,
+            bIsComplex ? GDT_CFloat32 : GDT_Float32 );
 
     if( eErr != CE_None )
     {

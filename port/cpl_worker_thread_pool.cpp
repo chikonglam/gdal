@@ -1,5 +1,5 @@
 /**********************************************************************
- * $Id: cpl_worker_thread_pool.cpp 32171 2015-12-13 20:39:43Z goatbar $
+ * $Id: cpl_worker_thread_pool.cpp 35363 2016-09-08 07:35:28Z rouault $
  *
  * Project:  CPL - Common Portability Library
  * Purpose:  CPL worker thread pool
@@ -65,7 +65,9 @@ CPLWorkerThreadPool::~CPLWorkerThreadPool()
     {
         WaitCompletion();
 
+        CPLAcquireMutex(hMutex, 1000.0);
         eState = CPLWTS_STOP;
+        CPLReleaseMutex(hMutex);
 
         for(size_t i=0;i<aWT.size();i++)
         {

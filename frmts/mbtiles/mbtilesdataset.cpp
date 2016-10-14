@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: mbtilesdataset.cpp 34004 2016-04-18 15:35:13Z rouault $
+ * $Id: mbtilesdataset.cpp 35569 2016-09-30 19:39:05Z rouault $
  *
  * Project:  GDAL MBTiles driver
  * Purpose:  Implement GDAL MBTiles support using OGR SQLite driver
@@ -39,7 +39,7 @@
 
 #include <math.h>
 
-CPL_CVSID("$Id: mbtilesdataset.cpp 34004 2016-04-18 15:35:13Z rouault $");
+CPL_CVSID("$Id: mbtilesdataset.cpp 35569 2016-09-30 19:39:05Z rouault $");
 
 static const char * const apszAllowedDrivers[] = {"JPEG", "PNG", NULL};
 
@@ -169,8 +169,8 @@ class MBTilesDataset : public GDALPamDataset, public GDALGPKGMBTilesLikePseudoDa
         virtual sqlite3                *IGetDB() { return hDB; }
         virtual bool                    IGetUpdate() { return eAccess == GA_Update; }
         virtual bool                    ICanIWriteBlock();
-        virtual void                    IStartTransaction();
-        virtual void                    ICommitTransaction();
+        virtual OGRErr                  IStartTransaction();
+        virtual OGRErr                  ICommitTransaction();
         virtual const char             *IGetFilename() { return GetDescription(); }
         virtual int                     GetRowFromIntoTopConvention(int nRow);
 
@@ -793,18 +793,40 @@ MBTilesDataset::~MBTilesDataset()
 /*                         IStartTransaction()                          */
 /************************************************************************/
 
-void MBTilesDataset::IStartTransaction()
+OGRErr MBTilesDataset::IStartTransaction()
 {
-    sqlite3_exec( hDB, "BEGIN", NULL, NULL, NULL );
+    char *pszErrMsg = NULL;
+    const int rc = sqlite3_exec( hDB, "BEGIN", NULL, NULL, &pszErrMsg );
+    if( rc != SQLITE_OK )
+    {
+        CPLError( CE_Failure, CPLE_AppDefined,
+                  "%s transaction failed: %s",
+                  "BEGIN", pszErrMsg );
+        sqlite3_free( pszErrMsg );
+        return OGRERR_FAILURE;
+    }
+
+    return OGRERR_NONE;
 }
 
 /************************************************************************/
 /*                         ICommitTransaction()                         */
 /************************************************************************/
 
-void MBTilesDataset::ICommitTransaction()
+OGRErr MBTilesDataset::ICommitTransaction()
 {
-    sqlite3_exec( hDB, "COMMIT", NULL, NULL, NULL );
+    char *pszErrMsg = NULL;
+    const int rc = sqlite3_exec( hDB, "COMMIT", NULL, NULL, &pszErrMsg );
+    if( rc != SQLITE_OK )
+    {
+        CPLError( CE_Failure, CPLE_AppDefined,
+                  "%s transaction failed: %s",
+                  "COMMIT", pszErrMsg );
+        sqlite3_free( pszErrMsg );
+        return OGRERR_FAILURE;
+    }
+
+    return OGRERR_NONE;
 }
 
 /************************************************************************/

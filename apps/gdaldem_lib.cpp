@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdaldem_lib.cpp 33782 2016-03-24 10:41:09Z rouault $
+ * $Id: gdaldem_lib.cpp 34979 2016-08-08 09:30:34Z rouault $
  *
  * Project:  GDAL DEM Utilities
  * Purpose:
@@ -96,7 +96,7 @@
 #include "gdal_priv.h"
 #include "gdal_utils_priv.h"
 
-CPL_CVSID("$Id: gdaldem_lib.cpp 33782 2016-03-24 10:41:09Z rouault $");
+CPL_CVSID("$Id: gdaldem_lib.cpp 34979 2016-08-08 09:30:34Z rouault $");
 
 #define INTERPOL(a,b) ((bSrcHasNoData && (ARE_REAL_EQUAL(a, fSrcNoDataValue) || ARE_REAL_EQUAL(b, fSrcNoDataValue))) ? fSrcNoDataValue : 2 * (a) - (b))
 

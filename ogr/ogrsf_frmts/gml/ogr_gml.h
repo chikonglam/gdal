@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_gml.h 33702 2016-03-11 06:20:16Z goatbar $
+ * $Id: ogr_gml.h 35690 2016-10-11 09:56:31Z rouault $
  *
  * Project:  GML Reader
  * Purpose:  Declarations for OGR wrapper classes for GML, and GML<->OGR
@@ -34,6 +34,7 @@
 
 #include "ogrsf_frmts.h"
 #include "gmlreader.h"
+#include "gmlutils.h"
 
 class OGRGMLDataSource;
 
@@ -147,6 +148,7 @@ class OGRGMLDataSource : public OGRDataSource
 
     bool                m_bInvertAxisOrderIfLatLong;
     bool                m_bConsiderEPSGAsURN;
+    GMLSwapCoordinatesEnum m_eSwapCoordinates;
     bool                m_bGetSecondaryGeometryOption;
 
     ReadMode            eReadMode;
@@ -199,6 +201,7 @@ class OGRGMLDataSource : public OGRDataSource
 
     bool                GetInvertAxisOrderIfLatLong() const { return m_bInvertAxisOrderIfLatLong; }
     bool                GetConsiderEPSGAsURN() const { return m_bConsiderEPSGAsURN; }
+    GMLSwapCoordinatesEnum GetSwapCoordinates() const { return m_eSwapCoordinates; }
     bool                GetSecondaryGeometryOption() const { return m_bGetSecondaryGeometryOption; }
 
     ReadMode            GetReadMode() const { return eReadMode; }

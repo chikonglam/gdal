@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrmssqlspatialselectlayer.cpp 28375 2015-01-30 12:06:11Z rouault $
+ * $Id: ogrmssqlspatialselectlayer.cpp 35339 2016-09-05 21:50:17Z tamas $
  *
  * Project:  MSSQL Spatial driver
  * Purpose:  Implements OGRMSSQLSpatialSelectLayer class, layer access to the results
@@ -30,8 +30,11 @@
 
 #include "cpl_conv.h"
 #include "ogr_mssqlspatial.h"
+#ifdef SQLNCLI_VERSION
+#include <sqlncli.h>
+#endif
 
-CPL_CVSID("$Id: ogrmssqlspatialselectlayer.cpp 28375 2015-01-30 12:06:11Z rouault $");
+CPL_CVSID("$Id: ogrmssqlspatialselectlayer.cpp 35339 2016-09-05 21:50:17Z tamas $");
 /************************************************************************/
 /*                     OGRMSSQLSpatialSelectLayer()                     */
 /************************************************************************/
@@ -91,6 +94,29 @@ OGRMSSQLSpatialSelectLayer::OGRMSSQLSpatialSelectLayer( OGRMSSQLSpatialDataSourc
             pszGeomColumn = CPLStrdup(poStmt->GetColName(iColumn));
             break;
         }
+        else if ( EQUAL(poStmt->GetColTypeName( iColumn ), "udt") )
+        {
+#ifdef SQL_CA_SS_UDT_TYPE_NAME
+            SQLCHAR     szUDTTypeName[256];
+            SQLSMALLINT nUDTTypeNameLength = 0;
+
+            SQLColAttribute(poStmt->GetStatement(), (SQLSMALLINT)(iColumn + 1), SQL_CA_SS_UDT_TYPE_NAME,
+                                     szUDTTypeName, sizeof(szUDTTypeName),
+                                     &nUDTTypeNameLength, NULL);
+
+            if ( EQUAL((char*)szUDTTypeName, "geometry") )
+            {
+                nGeomColumnType = MSSQLCOLTYPE_GEOMETRY;
+                pszGeomColumn = CPLStrdup(poStmt->GetColName(iColumn));
+            }
+            else if ( EQUAL((char*)szUDTTypeName, "geography") )
+            {
+                nGeomColumnType = MSSQLCOLTYPE_GEOGRAPHY;
+                pszGeomColumn = CPLStrdup(poStmt->GetColName(iColumn));
+            }
+#endif
+            break;
+        }   
     }
 
     if (pszGeomColumn == NULL && iImageCol >= 0)

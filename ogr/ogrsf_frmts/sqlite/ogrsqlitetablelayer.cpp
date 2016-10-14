@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrsqlitetablelayer.cpp 33714 2016-03-13 05:42:13Z goatbar $
+ * $Id: ogrsqlitetablelayer.cpp 35500 2016-09-23 14:10:22Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implements OGRSQLiteTableLayer class, access to an existing table.
@@ -37,7 +37,7 @@
 
 #define UNSUPPORTED_OP_READ_ONLY "%s : unsupported operation on a read-only datasource."
 
-CPL_CVSID("$Id: ogrsqlitetablelayer.cpp 33714 2016-03-13 05:42:13Z goatbar $");
+CPL_CVSID("$Id: ogrsqlitetablelayer.cpp 35500 2016-09-23 14:10:22Z rouault $");
 
 /************************************************************************/
 /*                        OGRSQLiteTableLayer()                         */
@@ -1445,6 +1445,19 @@ OGRErr OGRSQLiteTableLayer::CreateGeomField( OGRGeomFieldDefn *poGeomFieldIn,
         CPLError(CE_Failure, CPLE_AppDefined,
                  "Cannot create geometry field of type wkbNone");
         return OGRERR_FAILURE;
+    }
+    if ( poDS->IsSpatialiteDB() )
+    {
+        // We need to catch this right now as AddGeometryColumn does not
+        // return an error
+        OGRwkbGeometryType eFType = wkbFlatten(eType);
+        if( eFType > wkbGeometryCollection )
+        {
+            CPLError(CE_Failure, CPLE_NotSupported,
+                    "Cannot create geometry field of type %s",
+                    OGRToOGCGeomType(eType));
+            return OGRERR_FAILURE;
+        }
     }
 
     OGRSQLiteGeomFieldDefn *poGeomField =
@@ -3374,7 +3387,8 @@ OGRErr OGRSQLiteTableLayer::RunDeferredCreationIfNecessary()
         {
             OGRSQLiteGeomFieldDefn* poGeomFieldDefn =
                 poFeatureDefn->myGetGeomFieldDefn(i);
-            RunAddGeometryColumn(poGeomFieldDefn, FALSE);
+            if( RunAddGeometryColumn(poGeomFieldDefn, FALSE) != OGRERR_NONE )
+                return OGRERR_FAILURE;
         }
     }
 

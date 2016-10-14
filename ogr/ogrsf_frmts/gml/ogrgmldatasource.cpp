@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrgmldatasource.cpp 33702 2016-03-11 06:20:16Z goatbar $
+ * $Id: ogrgmldatasource.cpp 35690 2016-10-11 09:56:31Z rouault $
  *
  * Project:  OGR
  * Purpose:  Implements OGRGMLDataSource class.
@@ -47,7 +47,7 @@
 
 #include <vector>
 
-CPL_CVSID("$Id: ogrgmldatasource.cpp 33702 2016-03-11 06:20:16Z goatbar $");
+CPL_CVSID("$Id: ogrgmldatasource.cpp 35690 2016-10-11 09:56:31Z rouault $");
 
 static bool ExtractSRSName(const char* pszXML, char* szSRSName,
                            size_t sizeof_szSRSName);
@@ -116,6 +116,7 @@ OGRGMLDataSource::OGRGMLDataSource()
 
     m_bInvertAxisOrderIfLatLong = false;
     m_bConsiderEPSGAsURN = false;
+    m_eSwapCoordinates = GML_SWAP_AUTO;
     m_bGetSecondaryGeometryOption = false;
     bEmptyAsNull = true;
 }
@@ -567,6 +568,13 @@ bool OGRGMLDataSource::Open( GDALOpenInfo* poOpenInfo )
     else
         m_bConsiderEPSGAsURN = false;
 
+    const char* pszSwapCoordinates =
+        CSLFetchNameValueDef(poOpenInfo->papszOpenOptions,
+                             "SWAP_COORDINATES",
+            CPLGetConfigOption("GML_SWAP_COORDINATES", "AUTO"));
+    m_eSwapCoordinates = EQUAL(pszSwapCoordinates, "AUTO") ? GML_SWAP_AUTO:
+                         CPLTestBool(pszSwapCoordinates) ? GML_SWAP_YES: GML_SWAP_NO;
+
     m_bGetSecondaryGeometryOption = CPLTestBool(CPLGetConfigOption("GML_GET_SECONDARY_GEOM", "NO"));
 
     /* EXPAT is faster than Xerces, so when it is safe to use it, use it ! */
@@ -587,6 +595,7 @@ bool OGRGMLDataSource::Open( GDALOpenInfo* poOpenInfo )
     poReader = CreateGMLReader( bUseExpatParserPreferably,
                                 m_bInvertAxisOrderIfLatLong,
                                 m_bConsiderEPSGAsURN,
+                                m_eSwapCoordinates,
                                 m_bGetSecondaryGeometryOption );
     if( poReader == NULL )
     {

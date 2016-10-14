@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gmlutils.h 33702 2016-03-11 06:20:16Z goatbar $
+ * $Id: gmlutils.h 35690 2016-10-11 09:56:31Z rouault $
  *
  * Project:  GML Utils
  * Purpose:  GML reader
@@ -36,6 +36,13 @@
 
 #include "ogr_geometry.h"
 
+typedef enum
+{
+    GML_SWAP_AUTO,
+    GML_SWAP_YES,
+    GML_SWAP_NO,
+} GMLSwapCoordinatesEnum;
+
 const char* GML_ExtractSrsNameFromGeometry(const CPLXMLNode* const * papsGeometry,
                                      std::string& osWork,
                                      bool bConsiderEPSGAsURN);
@@ -50,6 +57,7 @@ OGRGeometry* GML_BuildOGRGeometryFromList(const CPLXMLNode* const * papsGeometry
                                           bool bInvertAxisOrderIfLatLong,
                                           const char* pszDefaultSRSName,
                                           bool bConsiderEPSGAsURN,
+                                          GMLSwapCoordinatesEnum eSwapCoordinates,
                                           int nPseudoBoolGetSecondaryGeometryOption,
                                           void* hCacheSRS,
                                           bool bFaceHoleNegative = false );

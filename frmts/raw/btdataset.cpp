@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: btdataset.cpp 33927 2016-04-09 19:13:34Z goatbar $
+ * $Id: btdataset.cpp 34979 2016-08-08 09:30:34Z rouault $
  *
  * Project:  VTP .bt Driver
  * Purpose:  Implementation of VTP .bt elevation format read/write support.
@@ -33,7 +33,7 @@
 #include "ogr_spatialref.h"
 #include "rawdataset.h"
 
-CPL_CVSID("$Id: btdataset.cpp 33927 2016-04-09 19:13:34Z goatbar $");
+CPL_CVSID("$Id: btdataset.cpp 34979 2016-08-08 09:30:34Z rouault $");
 
 /************************************************************************/
 /* ==================================================================== */

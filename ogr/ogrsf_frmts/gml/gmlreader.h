@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gmlreader.h 33702 2016-03-11 06:20:16Z goatbar $
+ * $Id: gmlreader.h 35690 2016-10-11 09:56:31Z rouault $
  *
  * Project:  GML Reader
  * Purpose:  Public Declarations for OGR free GML Reader code.
@@ -34,6 +34,7 @@
 #include "cpl_port.h"
 #include "cpl_vsi.h"
 #include "cpl_minixml.h"
+#include "gmlutils.h"
 
 #include <vector>
 
@@ -322,6 +323,7 @@ public:
 IGMLReader *CreateGMLReader(bool bUseExpatParserPreferably,
                             bool bInvertAxisOrderIfLatLong,
                             bool bConsiderEPSGAsURN,
+                            GMLSwapCoordinatesEnum eSwapCoordinates,
                             bool bGetSecondaryGeometryOption);
 
 

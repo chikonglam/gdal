@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrsf_frmts.h 33631 2016-03-04 06:28:09Z goatbar $
+ * $Id: ogrsf_frmts.h 35040 2016-08-10 14:02:46Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Classes related to format registration, and file opening.
@@ -412,7 +412,8 @@ void CPL_DLL RegisterOGRXLSX();
 void CPL_DLL RegisterOGRElastic();
 void CPL_DLL RegisterOGRGeoPackage();
 void CPL_DLL RegisterOGRWalk();
-void CPL_DLL RegisterOGRCartoDB();
+void CPL_DLL RegisterOGRCarto();
+void CPL_DLL RegisterOGRCartoDB(); // Just kept for C ABI stability
 void CPL_DLL RegisterOGRAmigoCloud();
 void CPL_DLL RegisterOGRSXF();
 void CPL_DLL RegisterOGROpenFileGDB();

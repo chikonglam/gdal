@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr2ogr_lib.cpp 34384 2016-06-20 17:09:24Z rouault $
+ * $Id: ogr2ogr_lib.cpp 34858 2016-08-02 12:42:28Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Simple client for translating between formats.
@@ -42,7 +42,7 @@
 #include <map>
 #include <vector>
 
-CPL_CVSID("$Id: ogr2ogr_lib.cpp 34384 2016-06-20 17:09:24Z rouault $");
+CPL_CVSID("$Id: ogr2ogr_lib.cpp 34858 2016-08-02 12:42:28Z rouault $");
 
 typedef enum
 {
@@ -1265,6 +1265,10 @@ GDALDatasetH GDALVectorTranslate( const char *pszDest, GDALDatasetH hDstDS, int 
     else if ( psOptions->eAccessMode == ACCESS_OVERWRITE )
     {
         bOverwrite = true;
+        bUpdate = true;
+    }
+    else if( hDstDS != NULL )
+    {
         bUpdate = true;
     }
 
