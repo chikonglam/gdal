@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: vrtdataset.h 33794 2016-03-26 13:19:07Z goatbar $
+ * $Id: vrtdataset.h 35350 2016-09-07 07:21:52Z rouault $
  *
  * Project:  Virtual GDAL Datasets
  * Purpose:  Declaration of virtual gdal dataset classes.
@@ -865,12 +865,14 @@ protected:
 
     int            m_nColorTableComponent;
 
+    template <class WorkingDT>
     CPLErr          RasterIOInternal( int nReqXOff, int nReqYOff,
                                       int nReqXSize, int nReqYSize,
                                       void *pData, int nOutXSize, int nOutYSize,
                                       GDALDataType eBufType,
                                       GSpacing nPixelSpace, GSpacing nLineSpace,
-                                      GDALRasterIOExtraArg* psExtraArg );
+                                      GDALRasterIOExtraArg* psExtraArg,
+                                      GDALDataType eWrkDataType );
 
 public:
                    VRTComplexSource();

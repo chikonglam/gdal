@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdalrasterband.cpp 33808 2016-03-29 21:15:28Z goatbar $
+ * $Id: gdalrasterband.cpp 35549 2016-09-29 22:56:53Z rouault $
  *
  * Project:  GDAL Core
  * Purpose:  Base class for format specific band class implementation.  This
@@ -33,7 +33,7 @@
 #include "gdal_rat.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: gdalrasterband.cpp 33808 2016-03-29 21:15:28Z goatbar $");
+CPL_CVSID("$Id: gdalrasterband.cpp 35549 2016-09-29 22:56:53Z rouault $");
 
 /************************************************************************/
 /*                           GDALRasterBand()                           */
@@ -1140,21 +1140,24 @@ GDALRasterBlock * GDALRasterBand::GetLockedBlockRef( int nXBlockOff,
             return( NULL );
         }
 
-        if( !bJustInitialize
-         && IReadBlock(nXBlockOff,nYBlockOff,poBlock->GetDataRef()) != CE_None)
-        {
-            poBlock->DropLock();
-            FlushBlock( nXBlockOff, nYBlockOff );
-            ReportError( CE_Failure, CPLE_AppDefined,
-                "IReadBlock failed at X offset %d, Y offset %d",
-                nXBlockOff, nYBlockOff );
-            return( NULL );
-        }
-
         if( !bJustInitialize )
         {
+            int bCallLeaveReadWrite = EnterReadWrite(GF_Read);
+            eErr = IReadBlock(nXBlockOff,nYBlockOff,poBlock->GetDataRef());
+            if( bCallLeaveReadWrite) LeaveReadWrite();
+            if( eErr != CE_None )
+            {
+                poBlock->DropLock();
+                FlushBlock( nXBlockOff, nYBlockOff );
+                ReportError( CE_Failure, CPLE_AppDefined,
+                    "IReadBlock failed at X offset %d, Y offset %d",
+                    nXBlockOff, nYBlockOff );
+                return NULL;
+            }
+
             nBlockReads++;
-            if( static_cast<GIntBig>(nBlockReads) == static_cast<GIntBig>(nBlocksPerRow) * nBlocksPerColumn + 1
+            if( static_cast<GIntBig>(nBlockReads) ==
+                static_cast<GIntBig>(nBlocksPerRow) * nBlocksPerColumn + 1
                 && nBand == 1 && poDS != NULL )
             {
                 CPLDebug( "GDAL", "Potential thrashing on band %d of %s.",
@@ -5299,4 +5302,14 @@ void GDALRasterBand::LeaveReadWrite()
 {
     if( poDS != NULL )
         poDS->LeaveReadWrite();
+}
+
+/************************************************************************/
+/*                           InitRWLock()                               */
+/************************************************************************/
+
+void GDALRasterBand::InitRWLock()
+{
+    if( poDS != NULL )
+        poDS->InitRWLock();
 }

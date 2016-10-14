@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdaldrivermanager.cpp 33711 2016-03-12 06:29:35Z goatbar $
+ * $Id: gdaldrivermanager.cpp 34979 2016-08-08 09:30:34Z rouault $
  *
  * Project:  GDAL Core
  * Purpose:  Implementation of GDALDriverManager class.
@@ -42,7 +42,7 @@
 #  endif
 #endif
 
-CPL_CVSID("$Id: gdaldrivermanager.cpp 33711 2016-03-12 06:29:35Z goatbar $");
+CPL_CVSID("$Id: gdaldrivermanager.cpp 34979 2016-08-08 09:30:34Z rouault $");
 
 /************************************************************************/
 /* ==================================================================== */
@@ -550,6 +550,10 @@ GDALDriver * GDALDriverManager::GetDriverByName( const char * pszName )
 
 {
     CPLMutexHolderD( &hDMMutex );
+
+    // Alias old name to new name
+    if( EQUAL(pszName, "CartoDB") )
+        pszName = "Carto";
 
     return oMapNameToDrivers[CPLString(pszName).toupper()];
 }

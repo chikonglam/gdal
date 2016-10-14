@@ -1,5 +1,5 @@
 /**********************************************************************
- * $Id: gmlhandler.cpp 33702 2016-03-11 06:20:16Z goatbar $
+ * $Id: gmlhandler.cpp 34706 2016-07-18 21:08:52Z rouault $
  *
  * Project:  GML Reader
  * Purpose:  Implementation of GMLHandler class.
@@ -542,6 +542,9 @@ GMLHandler::GMLHandler( GMLReader *poReader )
 
     nStackDepth = 0;
     stateStack[0] = STATE_TOP;
+
+    m_nSRSDimensionIfMissing = atoi(
+                    CPLGetConfigOption("GML_SRS_DIMENSION_IF_MISSING", "0") );
 }
 
 /************************************************************************/
@@ -696,12 +699,12 @@ OGRErr GMLHandler::startElementGeometry(const char *pszName, int nLenName, void*
     /* Some CityGML lack a srsDimension="3" in posList, such as in */
     /* http://www.citygml.org/fileadmin/count.php?f=fileadmin%2Fcitygml%2Fdocs%2FFrankfurt_Street_Setting_LOD3.zip */
     /* So we have to add it manually */
-    if (eAppSchemaType == APPSCHEMA_CITYGML && nLenName == 7 &&
-        strcmp(pszName, "posList") == 0 &&
-        CPLGetXMLValue(psCurNode, "srsDimension", NULL) == NULL)
+    if (strcmp(pszName, "posList") == 0 &&
+        CPLGetXMLValue(psCurNode, "srsDimension", NULL) == NULL &&
+        m_nSRSDimensionIfMissing != 0 )
     {
         CPLXMLNode* psChild = CPLCreateXMLNode(NULL, CXT_Attribute, "srsDimension");
-        CPLCreateXMLNode(psChild, CXT_Text, "3");
+        CPLCreateXMLNode(psChild, CXT_Text, (m_nSRSDimensionIfMissing == 3) ? "3" : "2");
 
         if (psLastChildCurNode == NULL)
             psCurNode->psChild = psChild;

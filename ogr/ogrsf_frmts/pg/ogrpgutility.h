@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrpgutility.h 27784 2014-10-02 15:43:18Z rouault $
+ * $Id: ogrpgutility.h 35632 2016-10-07 13:45:42Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Private utilities for OGR/PostgreSQL driver.
@@ -52,6 +52,8 @@ inline void OGRPGClearResult( PGresult*& hResult )
         hResult = NULL;
     }
 }
+
+bool OGRPG_Check_Table_Exists(PGconn *hPGConn, const char * pszTableName);
 
 #endif /* ndef OGRPGUTILITY_H_INCLUDED */
 

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrplscenesv1dataset.cpp 33924 2016-04-09 17:59:16Z rouault $
+ * $Id: ogrplscenesv1dataset.cpp 35486 2016-09-17 16:39:10Z rouault $
  *
  * Project:  PlanetLabs scene driver
  * Purpose:  Implements OGRPLScenesV1Dataset
@@ -30,7 +30,7 @@
 #include "ogr_plscenes.h"
 #include <time.h>
 
-CPL_CVSID("$Id: ogrplscenesv1dataset.cpp 33924 2016-04-09 17:59:16Z rouault $");
+CPL_CVSID("$Id: ogrplscenesv1dataset.cpp 35486 2016-09-17 16:39:10Z rouault $");
 
 /************************************************************************/
 /*                         OGRPLScenesV1Dataset()                       */
@@ -270,6 +270,7 @@ json_object* OGRPLScenesV1Dataset::RunRequest(const char* pszURL,
         papszOptions = CSLSetNameValue(papszOptions, "HEADERS", osHeaders);
         papszOptions = CSLSetNameValue(papszOptions, "POSTFIELDS", pszPostContent);
     }
+    papszOptions = CSLSetNameValue(papszOptions, "MAX_RETRY", "3");
     CPLHTTPResult * psResult;
     if( STARTS_WITH(m_osBaseURL, "/vsimem/") &&
         STARTS_WITH(pszURL, "/vsimem/") )

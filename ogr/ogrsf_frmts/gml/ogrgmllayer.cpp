@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrgmllayer.cpp 33702 2016-03-11 06:20:16Z goatbar $
+ * $Id: ogrgmllayer.cpp 35690 2016-10-11 09:56:31Z rouault $
  *
  * Project:  OGR
  * Purpose:  Implements OGRGMLLayer class.
@@ -36,7 +36,7 @@
 #include "ogr_p.h"
 #include "ogr_api.h"
 
-CPL_CVSID("$Id: ogrgmllayer.cpp 33702 2016-03-11 06:20:16Z goatbar $");
+CPL_CVSID("$Id: ogrgmllayer.cpp 35690 2016-10-11 09:56:31Z rouault $");
 
 /************************************************************************/
 /*                           OGRGMLLayer()                              */
@@ -291,6 +291,7 @@ OGRFeature *OGRGMLLayer::GetNextFeature()
                                                   poDS->GetInvertAxisOrderIfLatLong(),
                                                   pszSRSName,
                                                   poDS->GetConsiderEPSGAsURN(),
+                                                  poDS->GetSwapCoordinates(),
                                                   poDS->GetSecondaryGeometryOption(),
                                                   hCacheSRS,
                                                   bFaceHoleNegative );
@@ -339,6 +340,7 @@ OGRFeature *OGRGMLLayer::GetNextFeature()
                                                   poDS->GetInvertAxisOrderIfLatLong(),
                                                   pszSRSName,
                                                   poDS->GetConsiderEPSGAsURN(),
+                                                  poDS->GetSwapCoordinates(),
                                                   poDS->GetSecondaryGeometryOption(),
                                                   hCacheSRS,
                                                   bFaceHoleNegative );

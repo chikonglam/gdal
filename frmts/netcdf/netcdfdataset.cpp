@@ -1,6 +1,6 @@
 
 /******************************************************************************
- * $Id: netcdfdataset.cpp 33794 2016-03-26 13:19:07Z goatbar $
+ * $Id: netcdfdataset.cpp 35360 2016-09-08 00:35:56Z rouault $
  *
  * Project:  netCDF read/write Driver
  * Purpose:  GDAL bindings over netCDF library.
@@ -40,7 +40,7 @@
 #include <map> //for NCDFWriteProjAttribs()
 #include <limits>
 
-CPL_CVSID("$Id: netcdfdataset.cpp 33794 2016-03-26 13:19:07Z goatbar $");
+CPL_CVSID("$Id: netcdfdataset.cpp 35360 2016-09-08 00:35:56Z rouault $");
 
 /* Internal function declarations */
 
@@ -8211,6 +8211,14 @@ static CPLErr NCDFGet1DVar( int nCdfId, int nVarId, char **pszValue )
     char *pszVarValue = reinterpret_cast<char *> (
         CPLCalloc( nVarValueSize, sizeof( char ) ) );
     *pszVarValue = '\0';
+
+    if ( nVarLen == 0 )
+    {
+        /* set return values */
+        *pszValue = pszVarValue;
+
+        return CE_None;
+    }
 
     if ( nVarLen > 1 && nVarType != NC_CHAR )
         NCDFSafeStrcat(&pszVarValue, "{", &nVarValueSize);

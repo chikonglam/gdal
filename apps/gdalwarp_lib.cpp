@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdalwarp_lib.cpp 34210 2016-05-10 21:08:22Z rouault $
+ * $Id: gdalwarp_lib.cpp 34790 2016-07-26 16:52:37Z rouault $
  *
  * Project:  High Performance Image Reprojector
  * Purpose:  Test program for high performance warper API.
@@ -42,7 +42,7 @@
 #include <algorithm>
 #include "gdal_utils_priv.h"
 
-CPL_CVSID("$Id: gdalwarp_lib.cpp 34210 2016-05-10 21:08:22Z rouault $");
+CPL_CVSID("$Id: gdalwarp_lib.cpp 34790 2016-07-26 16:52:37Z rouault $");
 
 /************************************************************************/
 /*                        GDALWarpAppOptions                            */
@@ -529,7 +529,7 @@ GDALDatasetH GDALWarp( const char *pszDest, GDALDatasetH hDstDS, int nSrcCount,
     if( psOptions->dfErrorThreshold < 0 )
     {
         // By default, use approximate transformer unless RPC_DEM is specified
-        if( CSLFetchNameValue(psOptions->papszWarpOptions, "RPC_DEM") != NULL )
+        if( CSLFetchNameValue(psOptions->papszTO, "RPC_DEM") != NULL )
             psOptions->dfErrorThreshold = 0.0;
         else
             psOptions->dfErrorThreshold = 0.125;

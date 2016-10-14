@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_pg.h 33713 2016-03-12 17:41:57Z goatbar $
+ * $Id: ogr_pg.h 35632 2016-10-07 13:45:42Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Private definitions for OGR/PostgreSQL driver.
@@ -501,6 +501,9 @@ class OGRPGDataSource : public OGRDataSource
     int                 bUseBinaryCursor;
     int                 bBinaryTimeFormatIsInt8;
     int                 bUseEscapeStringSyntax;
+
+    bool                m_bHasGeometryColumns;
+    bool                m_bHasSpatialRefSys;
 
     int                GetUndefinedSRID() const { return nUndefinedSRID; }
 

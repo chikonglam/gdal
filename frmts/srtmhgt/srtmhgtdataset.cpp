@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: srtmhgtdataset.cpp 33720 2016-03-15 00:39:53Z goatbar $
+ * $Id: srtmhgtdataset.cpp 34884 2016-08-03 16:05:33Z rouault $
  *
  * Project:  SRTM HGT Driver
  * Purpose:  SRTM HGT File Read Support.
@@ -41,7 +41,7 @@
 
 static const GInt16 SRTMHG_NODATA_VALUE = -32768;
 
-CPL_CVSID("$Id: srtmhgtdataset.cpp 33720 2016-03-15 00:39:53Z goatbar $");
+CPL_CVSID("$Id: srtmhgtdataset.cpp 34884 2016-08-03 16:05:33Z rouault $");
 
 /************************************************************************/
 /* ==================================================================== */
@@ -264,9 +264,11 @@ int SRTMHGTDataset::Identify( GDALOpenInfo * poOpenInfo )
 
 {
   const char* fileName = CPLGetFilename(poOpenInfo->pszFilename);
-  if( strlen(fileName) < 11 || !STARTS_WITH_CI(&fileName[7], ".hgt") )
+  if( strlen(fileName) < 11 || fileName[7] != '.' )
     return FALSE;
-
+  
+  if( !EQUAL(fileName + strlen(fileName) - strlen(".hgt"), ".hgt") )
+    return FALSE;
 /* -------------------------------------------------------------------- */
 /*	We check the file size to see if it is 25,934,402 bytes	        */
 /*	(SRTM 1) or 2,884,802 bytes (SRTM 3)				*/

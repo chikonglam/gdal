@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrgmldriver.cpp 32110 2015-12-10 17:19:40Z goatbar $
+ * $Id: ogrgmldriver.cpp 35690 2016-10-11 09:56:31Z rouault $
  *
  * Project:  OGR
  * Purpose:  OGRGMLDriver implementation
@@ -32,7 +32,7 @@
 #include "cpl_multiproc.h"
 #include "gmlreaderp.h"
 
-CPL_CVSID("$Id: ogrgmldriver.cpp 32110 2015-12-10 17:19:40Z goatbar $");
+CPL_CVSID("$Id: ogrgmldriver.cpp 35690 2016-10-11 09:56:31Z rouault $");
 
 /************************************************************************/
 /*                        OGRGMLDriverUnload()                          */
@@ -167,6 +167,13 @@ void RegisterOGRGML()
 "  <Option name='GML_ATTRIBUTES_TO_OGR_FIELDS' type='boolean' description='Whether GML attributes should be reported as OGR fields' default='NO'/>"
 "  <Option name='INVERT_AXIS_ORDER_IF_LAT_LONG' type='boolean' description='Whether to present SRS and coordinate ordering in traditional GIS order' default='YES'/>"
 "  <Option name='CONSIDER_EPSG_AS_URN' type='string-select' description='Whether to consider srsName like EPSG:XXXX as respecting EPSG axis order' default='AUTO'>"
+"    <Value>AUTO</Value>"
+"    <Value>YES</Value>"
+"    <Value>NO</Value>"
+"  </Option>"
+"  <Option name='SWAP_COORDINATES' type='string-select' "
+    "description='Whether the order of geometry coordinates should be inverted.' "
+    "default='AUTO'>"
 "    <Value>AUTO</Value>"
 "    <Value>YES</Value>"
 "    <Value>NO</Value>"

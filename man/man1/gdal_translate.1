@@ -1,4 +1,4 @@
-.TH "gdal_translate" 1 "Thu Jul 7 2016" "GDAL" \" -*- nroff -*-
+.TH "gdal_translate" 1 "Fri Oct 14 2016" "GDAL" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -56,7 +56,7 @@ Apply the scale/offset metadata for the bands to convert scaled values to unscal
 .IP "\fB\fB-srcwin\fP \fIxoff yoff xsize ysize\fP:\fP" 1c
 Selects a subwindow from the source image for copying based on pixel/line location\&.  
 .IP "\fB\fB-projwin\fP \fIulx uly lrx lry\fP:\fP" 1c
-Selects a subwindow from the source image for copying (like \fB-srcwin\fP) but with the corners given in georeferenced coordinates (by default expressed in the SRS of the dataset\&. Can be changed with -projwin_srs)\&.  
+Selects a subwindow from the source image for copying (like \fB-srcwin\fP) but with the corners given in georeferenced coordinates (by default expressed in the SRS of the dataset\&. Can be changed with -projwin_srs)\&. Note: in GDAL 2\&.1\&.0 and 2\&.1\&.1, using -projwin with coordinates not aligned with pixels will result in a sub-pixel shift\&. This has been corrected in later versions\&. When selecting non-nearest neighbour resampling, starting with GDAL 2\&.1\&.0, sub-pixel accuracy is however used\&. 
 .IP "\fB\fB-projwin_srs\fP \fIsrs_def\fP:\fP" 1c
 (GDAL >= 2\&.0) Specifies the SRS in which to interpret the coordinates given with -projwin\&. The \fIsrs_def\fP may be any of the usual GDAL/OGR forms, complete WKT, PROJ\&.4, EPSG:n or a file containing the WKT\&. Note that this does not cause reprojection of the dataset to the specified SRS\&.  
 .IP "\fB\fB-epo\fP: (Error when Partially Outside)\fP" 1c

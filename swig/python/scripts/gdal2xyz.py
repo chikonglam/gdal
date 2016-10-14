@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 ###############################################################################
-# $Id: gdal2xyz.py 33790 2016-03-26 12:42:12Z goatbar $
+# $Id: gdal2xyz.py 35367 2016-09-08 09:30:10Z rouault $
 #
 # Project:  GDAL
 # Purpose:  Script to translate GDAL supported raster into XYZ ASCII
@@ -129,7 +129,11 @@ if __name__ == '__main__':
     else:
         dst_fh = sys.stdout
 
-    band_format = (("%g" + delim) * len(bands)).rstrip(delim) + '\n'
+    dt = srcds.GetRasterBand(1).DataType
+    if dt == gdal.GDT_Int32 or dt == gdal.GDT_UInt32:
+        band_format = (("%d" + delim) * len(bands)).rstrip(delim) + '\n'
+    else:
+        band_format = (("%g" + delim) * len(bands)).rstrip(delim) + '\n'
 
     # Setup an appropriate print format.
     if abs(gt[0]) < 180 and abs(gt[3]) < 180 \

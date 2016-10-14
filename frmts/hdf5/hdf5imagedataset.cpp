@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: hdf5imagedataset.cpp 33794 2016-03-26 13:19:07Z goatbar $
+ * $Id: hdf5imagedataset.cpp 35557 2016-09-30 11:12:06Z rouault $
  *
  * Project:  Hierarchical Data Format Release 5 (HDF5)
  * Purpose:  Read subdatasets of HDF5 file.
@@ -49,7 +49,7 @@
 #include "hdf5dataset.h"
 #include "ogr_spatialref.h"
 
-CPL_CVSID("$Id: hdf5imagedataset.cpp 33794 2016-03-26 13:19:07Z goatbar $");
+CPL_CVSID("$Id: hdf5imagedataset.cpp 35557 2016-09-30 11:12:06Z rouault $");
 
 /* release 1.6.3 or 1.6.4 changed the type of count in some api functions */
 
@@ -825,7 +825,7 @@ CPLErr HDF5ImageDataset::CreateProjections()
     /* -------------------------------------------------------------------- */
     /*  Fill the GCPs list.                                                 */
     /* -------------------------------------------------------------------- */
-        nGCPCount = nRasterYSize/nDeltaLat * nRasterXSize/nDeltaLon;
+        nGCPCount = (nRasterYSize/nDeltaLat) * (nRasterXSize/nDeltaLon);
 
         pasGCPList = static_cast<GDAL_GCP *>(
             CPLCalloc( nGCPCount, sizeof( GDAL_GCP ) ) );
@@ -835,12 +835,41 @@ CPLErr HDF5ImageDataset::CreateProjections()
 
         const int nYLimit = (static_cast<int>(nRasterYSize)/nDeltaLat) * nDeltaLat;
         const int nXLimit = (static_cast<int>(nRasterXSize)/nDeltaLon) * nDeltaLon;
+
+        // The original code in https://trac.osgeo.org/gdal/changeset/8066
+        // always add +180 to the longitudes, but without justification
+        // I suspect this might be due to handling products crossing the
+        // antimeridian. Trying to do it just when needed through a heuristics.
+        bool bHasLonNearMinus180 = false;
+        bool bHasLonNearPlus180 = false;
+        bool bHasLonNearZero = false;
         for( int j = 0; j < nYLimit; j+=nDeltaLat )
         {
             for( int i = 0; i < nXLimit; i+=nDeltaLon )
             {
                 const int iGCP =  j * nRasterXSize + i;
-                pasGCPList[k].dfGCPX = static_cast<double>(Longitude[iGCP])+180.0;
+                if( Longitude[iGCP] > 170 && Longitude[iGCP] <= 180 )
+                    bHasLonNearPlus180 = true;
+                if( Longitude[iGCP] < -170 && Longitude[iGCP] >= -180 )
+                    bHasLonNearMinus180 = true;
+                if( fabs(Longitude[iGCP]) < 90 )
+                    bHasLonNearZero = true;
+            }
+        }
+        const char* pszShiftGCP =
+                CPLGetConfigOption("HDF5_SHIFT_GCPX_BY_180", NULL);
+        const bool bAdd180 = (bHasLonNearPlus180 && bHasLonNearMinus180 &&
+                              !bHasLonNearZero && pszShiftGCP == NULL) ||
+                             (pszShiftGCP != NULL && CPLTestBool(pszShiftGCP));
+
+        for( int j = 0; j < nYLimit; j+=nDeltaLat )
+        {
+            for( int i = 0; i < nXLimit; i+=nDeltaLon )
+            {
+                const int iGCP =  j * nRasterXSize + i;
+                pasGCPList[k].dfGCPX = static_cast<double>(Longitude[iGCP]);
+                if( bAdd180 )
+                    pasGCPList[k].dfGCPX += 180.0;
                 pasGCPList[k].dfGCPY = static_cast<double>(Latitude[iGCP]);
 
                 pasGCPList[k].dfGCPPixel = i + 0.5;
