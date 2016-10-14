@@ -1,10 +1,10 @@
-gdal (2.1.2~rc1+dfsg-1) UNRELEASED; urgency=medium
+gdal (2.1.2~rc1+dfsg-1~exp1) experimental; urgency=medium
 
   * New upstream release candidate.
   * Refresh patches.
   * Update spelling-errors.patch to fix 'occurred' typo.
 
- -- Bas Couwenberg <sebastic@debian.org>  Fri, 14 Oct 2016 13:53:57 +0200
+ -- Bas Couwenberg <sebastic@debian.org>  Fri, 14 Oct 2016 18:13:51 +0200
 
 gdal (2.1.1+dfsg-5) unstable; urgency=medium
 
