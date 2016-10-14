@@ -1,6 +1,7 @@
 gdal (2.1.2~rc1+dfsg-1) UNRELEASED; urgency=medium
 
   * New upstream release candidate.
+  * Refresh patches.
 
  -- Bas Couwenberg <sebastic@debian.org>  Fri, 14 Oct 2016 13:53:57 +0200
 

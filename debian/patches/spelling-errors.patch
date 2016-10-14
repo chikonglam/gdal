@@ -7,17 +7,6 @@ Description: Fix spelling errors.
 Author: Bas Couwenberg <sebastic@debian.org>
 Forwarded: not-needed
 
---- a/NEWS
-+++ b/NEWS
-@@ -776,7 +776,7 @@ PG driver:
-  * Add PRELUDE_STATEMENTS and CLOSING_STATEMENTS open option to be for example able to specify options, like statement_timeout, with pg_bouncer
-  * Fix 2.0 regression when overwriting several existing PostGIS layers with ogr2ogr (#6018)
-  * Update PG, PGDump and CartoDB drivers to correctly export POINT EMPTY for PostGIS 2.2
-- * avoid reseting error potentially emitted by ExecuteSQL() (#6194)
-+ * avoid resetting error potentially emitted by ExecuteSQL() (#6194)
-  * sanitize management of quoting for FID column at layer creation
-  * fix to get SRID on result layer with PostGIS 2.2
-  * in copy mode (the default on layer creation), do not truncate the concatenated string list to the field width (#6356)
 --- a/ogr/ogrfielddefn.cpp
 +++ b/ogr/ogrfielddefn.cpp
 @@ -280,7 +280,7 @@ void OGRFieldDefn::SetType( OGRFieldType
@@ -40,7 +29,7 @@ Forwarded: not-needed
      else
 --- a/ogr/ogrsf_frmts/plscenes/ogrplscenesdataset.cpp
 +++ b/ogr/ogrsf_frmts/plscenes/ogrplscenesdataset.cpp
-@@ -441,7 +441,7 @@ GDALDataset* OGRPLScenesDataset::OpenRas
+@@ -442,7 +442,7 @@ GDALDataset* OGRPLScenesDataset::OpenRas
  
          CPLErrorReset();
          poOutDS->SetDescription(poOpenInfo->pszFilename);
@@ -51,7 +40,7 @@ Forwarded: not-needed
      if( bUseVSICURL )
 --- a/ogr/ogrsf_frmts/plscenes/ogrplscenesv1dataset.cpp
 +++ b/ogr/ogrsf_frmts/plscenes/ogrplscenesv1dataset.cpp
-@@ -652,7 +652,7 @@ retry:
+@@ -653,7 +653,7 @@ retry:
  
          CPLErrorReset();
          poOutDS->SetDescription(poOpenInfo->pszFilename);
