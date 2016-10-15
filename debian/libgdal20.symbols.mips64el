@@ -341,6 +341,7 @@ libgdal.so.20 libgdal20 #MINVER#
  (c++)"GDALDataset::ExecuteSQL(char const*, OGRGeometry*, char const*)@Base" 2.0.1 1
  (c++)"GDALDataset::ExecuteSQL(char const*, OGRGeometry*, char const*, swq_select_parse_options*)@Base" 2.0.1 1
  (c++)"GDALDataset::FlushCache()@Base" 2.0.1 1
+ (c++)"GDALDataset::InitRWLock()@Base" 2.1.2~rc1 1
  (c++)"GDALDataset::CreateLayer(char const*, OGRSpatialReference*, OGRwkbGeometryType, char**)@Base" 2.0.1 1
  (c++)"GDALDataset::DeleteLayer(int)@Base" 2.0.1 1
  (c++)"GDALDataset::Dereference()@Base" 2.0.1 1
@@ -861,6 +862,7 @@ libgdal.so.20 libgdal20 #MINVER#
  (c++)"GDALRasterBand::GetDataset()@Base" 2.0.1 1
  (c++)"GDALRasterBand::GetMaximum(int*)@Base" 2.0.1 1
  (c++)"GDALRasterBand::GetMinimum(int*)@Base" 2.0.1 1
+ (c++)"GDALRasterBand::InitRWLock()@Base" 2.1.2~rc1 1
  (c++)"GDALRasterBand::WriteBlock(int, int, void*)@Base" 2.0.1 1
  (c++)"GDALRasterBand::GetMaskBand()@Base" 2.0.1 1
  (c++)"GDALRasterBand::GetOverview(int)@Base" 2.0.1 1
@@ -1410,7 +1412,8 @@ libgdal.so.20 libgdal20 #MINVER#
  (c++)"VRTComplexSource::GetHistogram(int, int, double, double, int, unsigned long long*, int, int, int (*)(double, char const*, void*), void*)@Base" 2.0.1 1
  (c++)"VRTComplexSource::SerializeToXML(char const*)@Base" 2.0.1 1
  (c++)"VRTComplexSource::SetPowerScaling(double, double, double, double, double)@Base" 2.0.1 1
- (c++)"VRTComplexSource::RasterIOInternal(int, int, int, int, void*, int, int, GDALDataType, long long, long long, GDALRasterIOExtraArg*)@Base" 2.0.1 1
+ (c++)"CPLErr VRTComplexSource::RasterIOInternal<double>(int, int, int, int, void*, int, int, GDALDataType, long long, long long, GDALRasterIOExtraArg*, GDALDataType)@Base" 2.1.2~rc1 1
+ (c++)"CPLErr VRTComplexSource::RasterIOInternal<float>(int, int, int, int, void*, int, int, GDALDataType, long long, long long, GDALRasterIOExtraArg*, GDALDataType)@Base" 2.1.2~rc1 1
  (c++)"VRTComplexSource::SetLinearScaling(double, double)@Base" 2.0.1 1
  (c++)"VRTComplexSource::ComputeStatistics(int, int, int, double*, double*, double*, double*, int (*)(double, char const*, void*), void*)@Base" 2.0.1 1
  (c++)"VRTComplexSource::ComputeRasterMinMax(int, int, int, double*)@Base" 2.0.1 1
@@ -2726,6 +2729,8 @@ libgdal.so.20 libgdal20 #MINVER#
  (c++)"std::vector<GDALDataset*, std::allocator<GDALDataset*> >::operator=(std::vector<GDALDataset*, std::allocator<GDALDataset*> > const&)@Base" 2.1.0 1
  (c++)"void std::vector<OGRGeometry*, std::allocator<OGRGeometry*> >::_M_emplace_back_aux<OGRGeometry*>(OGRGeometry*&&)@Base" 2.1.1 1
  (c++)"std::vector<S57AttrInfo*, std::allocator<S57AttrInfo*> >::_M_default_append(unsigned long)@Base" 2.1.1 1
+ (c++)"void std::vector<OGRFieldDefn*, std::allocator<OGRFieldDefn*> >::emplace_back<OGRFieldDefn*>(OGRFieldDefn*&&)@Base" 2.1.2~rc1 1
+ (c++)"void std::vector<OGRFieldDefn*, std::allocator<OGRFieldDefn*> >::_M_emplace_back_aux<OGRFieldDefn*>(OGRFieldDefn*&&)@Base" 2.1.2~rc1 1
  (c++)"void std::vector<OGRDataSource*, std::allocator<OGRDataSource*> >::_M_emplace_back_aux<OGRDataSource* const&>(OGRDataSource* const&)@Base" 2.1.1 1
  (c++)"void std::vector<OGRLinearRing*, std::allocator<OGRLinearRing*> >::_M_emplace_back_aux<OGRLinearRing* const&>(OGRLinearRing* const&)@Base" 2.1.1 1
  (c++)"void std::vector<OGRLinearRing*, std::allocator<OGRLinearRing*> >::_M_emplace_back_aux<OGRLinearRing*>(OGRLinearRing*&&)@Base" 2.1.1 1
@@ -3293,3 +3298,5 @@ libgdal.so.20 libgdal20 #MINVER#
  (c++)"vtable for OGRLayer@Base" 2.0.1 1
  (c++)"vtable for OGRPoint@Base" 2.0.1 1
  (c++)"vtable for VRTSource@Base" 2.0.1 1
+ (c++)"CPLErr VRTComplexSource::RasterIOInternal<double>(int, int, int, int, void*, int, int, GDALDataType, long long, long long, GDALRasterIOExtraArg*, GDALDataType)::bHasWarned@Base" 2.1.2~rc1 1
+ (c++)"CPLErr VRTComplexSource::RasterIOInternal<float>(int, int, int, int, void*, int, int, GDALDataType, long long, long long, GDALRasterIOExtraArg*, GDALDataType)::bHasWarned@Base" 2.1.2~rc1 1

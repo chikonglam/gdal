@@ -1,3 +1,10 @@
+gdal (2.1.2~rc1+dfsg-1~exp2) UNRELEASED; urgency=medium
+
+  * Update symbols for amd64, arm*, i386, kfreebsd-*, mips*, powerpc, ppc64*,
+    s390x & sparc64.
+
+ -- Bas Couwenberg <sebastic@debian.org>  Sat, 15 Oct 2016 11:16:06 +0200
+
 gdal (2.1.2~rc1+dfsg-1~exp1) experimental; urgency=medium
 
   * New upstream release candidate.
