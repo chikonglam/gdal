@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrili1layer.cpp 33325 2016-02-02 14:30:48Z rouault $
+ * $Id: ogrili1layer.cpp 35780 2016-10-17 10:07:12Z rouault $
  *
  * Project:  Interlis 1 Translator
  * Purpose:  Implements OGRILI1Layer class.
@@ -33,7 +33,7 @@
 #include "ogr_geos.h"
 #include "ogr_ili1.h"
 
-CPL_CVSID("$Id: ogrili1layer.cpp 33325 2016-02-02 14:30:48Z rouault $");
+CPL_CVSID("$Id: ogrili1layer.cpp 35780 2016-10-17 10:07:12Z rouault $");
 
 /************************************************************************/
 /*                           OGRILI1Layer()                              */
@@ -524,7 +524,7 @@ void OGRILI1Layer::JoinSurfaceLayer( OGRILI1Layer* poSurfaceLineLayer,
                         feature->GetGeomFieldRef(nSurfaceFieldIndex) );
             OGRMultiCurve *lines = reinterpret_cast<OGRMultiCurve *>(
                 linefeature->GetGeomFieldRef(0) );
-            for( int i = 0; i < lines->getNumGeometries(); i++ ) {
+            for( int i = 0; lines != NULL && i < lines->getNumGeometries(); i++ ) {
                 OGRCurve *line = reinterpret_cast<OGRCurve*>(lines->getGeometryRef(i));
                 OGRCurve *ring = NULL;
                 if (surface_lines) {

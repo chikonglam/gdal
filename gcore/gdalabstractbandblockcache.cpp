@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdalabstractbandblockcache.cpp 31703 2015-11-21 22:11:38Z rouault $
+ * $Id: gdalabstractbandblockcache.cpp 35731 2016-10-14 17:07:59Z rouault $
  *
  * Project:  GDAL Core
  * Purpose:  Store cached blocks
@@ -31,7 +31,7 @@
 #include "cpl_multiproc.h"
 #include <new>
 
-CPL_CVSID("$Id: gdalabstractbandblockcache.cpp 31703 2015-11-21 22:11:38Z rouault $");
+CPL_CVSID("$Id: gdalabstractbandblockcache.cpp 35731 2016-10-14 17:07:59Z rouault $");
 
 #ifdef DEBUG_VERBOSE_ABBC
 static int nAllBandsKeptAlivedBlocks = 0;
@@ -108,12 +108,12 @@ void GDALAbstractBandBlockCache::AddBlockToFreeList( GDALRasterBlock *poBlock )
     }
 
     // If no more blocks in transient state, then warn WaitKeepAliveCounter()
+    CPLAcquireMutex(hCondMutex, 1000);
     if( CPLAtomicDec(&nKeepAliveCounter) == 0 )
     {
-        CPLAcquireMutex(hCondMutex, 1000);
         CPLCondSignal(hCond);
-        CPLReleaseMutex(hCondMutex);
     }
+    CPLReleaseMutex(hCondMutex);
 }
 
 /************************************************************************/

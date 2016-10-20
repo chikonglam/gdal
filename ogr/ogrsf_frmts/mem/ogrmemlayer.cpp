@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrmemlayer.cpp 33400 2016-02-10 07:55:48Z ajolma $
+ * $Id: ogrmemlayer.cpp 35794 2016-10-17 19:29:48Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implements OGRMemLayer class.
@@ -32,7 +32,7 @@
 #include "ogr_mem.h"
 #include "ogr_p.h"
 
-CPL_CVSID("$Id: ogrmemlayer.cpp 33400 2016-02-10 07:55:48Z ajolma $");
+CPL_CVSID("$Id: ogrmemlayer.cpp 35794 2016-10-17 19:29:48Z rouault $");
 
 /************************************************************************/
 /*                      IOGRMemLayerFeatureIterator                     */
@@ -678,7 +678,8 @@ OGRErr OGRMemLayer::AlterFieldDefn( int iField, OGRFieldDefn* poNewFieldDefn,
     OGRFieldDefn* poFieldDefn = m_poFeatureDefn->GetFieldDefn(iField);
 
     if ((nFlagsIn & ALTER_TYPE_FLAG) &&
-        poFieldDefn->GetType() != poNewFieldDefn->GetType())
+        (poFieldDefn->GetType() != poNewFieldDefn->GetType() ||
+         poFieldDefn->GetSubType() != poNewFieldDefn->GetSubType()) )
     {
         if ((poNewFieldDefn->GetType() == OFTDate ||
              poNewFieldDefn->GetType() == OFTTime ||
@@ -781,7 +782,9 @@ OGRErr OGRMemLayer::AlterFieldDefn( int iField, OGRFieldDefn* poNewFieldDefn,
             delete poIter;
         }
 
+        poFieldDefn->SetSubType(OFSTNone);
         poFieldDefn->SetType(poNewFieldDefn->GetType());
+        poFieldDefn->SetSubType(poNewFieldDefn->GetSubType());
     }
 
     if (nFlagsIn & ALTER_NAME_FLAG)
