@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrplscenesv1dataset.cpp 35486 2016-09-17 16:39:10Z rouault $
+ * $Id: ogrplscenesv1dataset.cpp 35828 2016-10-19 23:23:39Z rouault $
  *
  * Project:  PlanetLabs scene driver
  * Purpose:  Implements OGRPLScenesV1Dataset
@@ -30,7 +30,7 @@
 #include "ogr_plscenes.h"
 #include <time.h>
 
-CPL_CVSID("$Id: ogrplscenesv1dataset.cpp 35486 2016-09-17 16:39:10Z rouault $");
+CPL_CVSID("$Id: ogrplscenesv1dataset.cpp 35828 2016-10-19 23:23:39Z rouault $");
 
 /************************************************************************/
 /*                         OGRPLScenesV1Dataset()                       */
@@ -590,12 +590,14 @@ retry:
     osRasterURL = InsertAPIKeyInURL(osRasterURL);
 
     CPLString osOldHead(CPLGetConfigOption("CPL_VSIL_CURL_USE_HEAD", ""));
-    CPLString osOldExt(CPLGetConfigOption("CPL_VSIL_CURL_ALLOWED_EXTENSIONS", ""));
+    CPLString osOldAllowedFilename(CPLGetConfigOption("CPL_VSIL_CURL_ALLOWED_FILENAME", ""));
 
     int bUseVSICURL = CSLFetchBoolean(poOpenInfo->papszOpenOptions, "RANDOM_ACCESS", TRUE);
     if( bUseVSICURL && !(STARTS_WITH(m_osBaseURL, "/vsimem/")) )
     {
         CPLSetThreadLocalConfigOption("CPL_VSIL_CURL_USE_HEAD", "NO");
+        CPLSetThreadLocalConfigOption("CPL_VSIL_CURL_ALLOWED_FILENAME",
+                                      ("/vsicurl/" + osRasterURL).c_str());
 
         VSIStatBufL sStat;
         if( VSIStatL(("/vsicurl/" + osRasterURL).c_str(), &sStat) == 0 &&
@@ -607,10 +609,6 @@ retry:
         {
             CPLDebug("PLSCENES", "Cannot use random access for that file");
         }
-
-        // URLs with tokens can have . in them which confuses CPL_VSIL_CURL_ALLOWED_EXTENSIONS={noext} if
-        // it is run before the previous VSIStatL()
-        CPLSetThreadLocalConfigOption("CPL_VSIL_CURL_ALLOWED_EXTENSIONS", "{noext}");
     }
 
     GDALDataset* poOutDS = (GDALDataset*) GDALOpenEx(osRasterURL, GDAL_OF_RASTER, NULL, NULL, NULL);
@@ -675,8 +673,8 @@ retry:
     {
         CPLSetThreadLocalConfigOption("CPL_VSIL_CURL_USE_HEAD",
                                     osOldHead.size() ? osOldHead.c_str(): NULL);
-        CPLSetThreadLocalConfigOption("CPL_VSIL_CURL_ALLOWED_EXTENSIONS",
-                                    osOldExt.size() ? osOldExt.c_str(): NULL);
+        CPLSetThreadLocalConfigOption("CPL_VSIL_CURL_ALLOWED_FILENAME",
+                                    osOldAllowedFilename.size() ? osOldAllowedFilename.c_str(): NULL);
     }
 
     return poOutDS;

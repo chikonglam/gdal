@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrpgtablelayer.cpp 35632 2016-10-07 13:45:42Z rouault $
+ * $Id: ogrpgtablelayer.cpp 35794 2016-10-17 19:29:48Z rouault $
 
  *
  * Project:  OpenGIS Simple Features Reference Implementation
@@ -37,7 +37,7 @@
 
 #define PQexec this_is_an_error
 
-CPL_CVSID("$Id: ogrpgtablelayer.cpp 35632 2016-10-07 13:45:42Z rouault $");
+CPL_CVSID("$Id: ogrpgtablelayer.cpp 35794 2016-10-17 19:29:48Z rouault $");
 
 
 #define USE_COPY_UNSET  -10
@@ -2523,7 +2523,11 @@ OGRErr OGRPGTableLayer::AlterFieldDefn( int iField, OGRFieldDefn* poNewFieldDefn
     poDS->SoftStartTransaction();
 
     if (!(nFlagsIn & ALTER_TYPE_FLAG))
+    {
+        oField.SetSubType(OFSTNone);
         oField.SetType(poFieldDefn->GetType());
+        oField.SetSubType(poFieldDefn->GetSubType());
+    }
 
     if (!(nFlagsIn & ALTER_WIDTH_PRECISION_FLAG))
     {
@@ -2677,7 +2681,11 @@ OGRErr OGRPGTableLayer::AlterFieldDefn( int iField, OGRFieldDefn* poNewFieldDefn
     if (nFlagsIn & ALTER_NAME_FLAG)
         poFieldDefn->SetName(oField.GetNameRef());
     if (nFlagsIn & ALTER_TYPE_FLAG)
+    {
+        poFieldDefn->SetSubType(OFSTNone);
         poFieldDefn->SetType(oField.GetType());
+        poFieldDefn->SetSubType(oField.GetSubType());
+    }
     if (nFlagsIn & ALTER_WIDTH_PRECISION_FLAG)
     {
         poFieldDefn->SetWidth(oField.GetWidth());

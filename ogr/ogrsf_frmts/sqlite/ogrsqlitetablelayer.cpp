@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrsqlitetablelayer.cpp 35500 2016-09-23 14:10:22Z rouault $
+ * $Id: ogrsqlitetablelayer.cpp 35792 2016-10-17 19:19:40Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implements OGRSQLiteTableLayer class, access to an existing table.
@@ -37,7 +37,7 @@
 
 #define UNSUPPORTED_OP_READ_ONLY "%s : unsupported operation on a read-only datasource."
 
-CPL_CVSID("$Id: ogrsqlitetablelayer.cpp 35500 2016-09-23 14:10:22Z rouault $");
+CPL_CVSID("$Id: ogrsqlitetablelayer.cpp 35792 2016-10-17 19:19:40Z rouault $");
 
 /************************************************************************/
 /*                        OGRSQLiteTableLayer()                         */
@@ -2163,7 +2163,11 @@ OGRErr OGRSQLiteTableLayer::AlterFieldDefn( int iFieldToAlter, OGRFieldDefn* poN
             if( (nFlagsIn & ALTER_NAME_FLAG) )
                 oTmpFieldDefn.SetName(poNewFieldDefn->GetNameRef());
             if( (nFlagsIn & ALTER_TYPE_FLAG) )
+            {
+                oTmpFieldDefn.SetSubType(OFSTNone);
                 oTmpFieldDefn.SetType(poNewFieldDefn->GetType());
+                oTmpFieldDefn.SetSubType(poNewFieldDefn->GetSubType());
+            }
             if (nFlagsIn & ALTER_WIDTH_PRECISION_FLAG)
             {
                 oTmpFieldDefn.SetWidth(poNewFieldDefn->GetWidth());
@@ -2240,7 +2244,9 @@ OGRErr OGRSQLiteTableLayer::AlterFieldDefn( int iFieldToAlter, OGRFieldDefn* poN
             papszCompressedColumns = CSLRemoveStrings(papszCompressedColumns,
                                                       iIdx, 1, NULL);
         }
+        poFieldDefn->SetSubType(OFSTNone);
         poFieldDefn->SetType(poNewFieldDefn->GetType());
+        poFieldDefn->SetSubType(poNewFieldDefn->GetSubType());
     }
     if (nFlagsIn & ALTER_NAME_FLAG)
     {

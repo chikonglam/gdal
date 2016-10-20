@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdaldataset.cpp 35553 2016-09-29 23:19:16Z rouault $
+ * $Id: gdaldataset.cpp 35731 2016-10-14 17:07:59Z rouault $
  *
  * Project:  GDAL Core
  * Purpose:  Base class for raster file formats.
@@ -48,7 +48,7 @@
 #include <map>
 #include <new>
 
-CPL_CVSID("$Id: gdaldataset.cpp 35553 2016-09-29 23:19:16Z rouault $");
+CPL_CVSID("$Id: gdaldataset.cpp 35731 2016-10-14 17:07:59Z rouault $");
 
 CPL_C_START
 GDALAsyncReader *
@@ -75,6 +75,9 @@ class GDALDatasetPrivate
     public:
         CPLMutex* hMutex;
         std::map<GIntBig, int> oMapThreadToMutexTakenCount;
+#ifdef DEBUG_EXTRA
+        std::map<GIntBig, int> oMapThreadToMutexTakenCountSaved;
+#endif
         GDALAllowReadWriteMutexState eStateReadWriteMutex;
 
         GDALDatasetPrivate() :
@@ -6105,10 +6108,7 @@ int GDALDataset::EnterReadWrite(GDALRWFlag eRWFlag)
             CPLDebug("GDAL", "[Thread " CPL_FRMT_GIB "] Acquiring RW mutex for %s",
                      CPLGetPID(), GetDescription());
 #endif
-            if( psPrivate->hMutex == NULL )
-                psPrivate->hMutex = CPLCreateMutex();
-            else
-                CPLAcquireMutex(psPrivate->hMutex, 1000.0);
+            CPLCreateOrAcquireMutex( &(psPrivate->hMutex), 1000.0 );
             psPrivate->oMapThreadToMutexTakenCount[ CPLGetPID() ] ++; /* not sure if we can have recursive calls, so ...*/
             return TRUE;
         }
@@ -6182,8 +6182,12 @@ void GDALDataset::TemporarilyDropReadWriteLock()
                  "Temporarily drop RW mutex for %s",
                  CPLGetPID(), GetDescription());
 #endif
+        CPLAcquireMutex(psPrivate->hMutex, 1000.0);
         const int nCount = psPrivate->oMapThreadToMutexTakenCount[ CPLGetPID() ];
-        for(int i=0;i<nCount;i++)
+#ifdef DEBUG_EXTRA
+        psPrivate->oMapThreadToMutexTakenCountSaved[ CPLGetPID() ] = nCount;
+#endif
+        for(int i=0;i<nCount + 1;i++)
         {
             CPLReleaseMutex(psPrivate->hMutex);
         }
@@ -6204,8 +6208,14 @@ void GDALDataset::ReacquireReadWriteLock()
                  "Reacquire temporarily dropped RW mutex for %s",
                  CPLGetPID(), GetDescription());
 #endif
+        CPLAcquireMutex(psPrivate->hMutex, 1000.0);
         const int nCount = psPrivate->oMapThreadToMutexTakenCount[ CPLGetPID() ];
-        for(int i=0;i<nCount;i++)
+#ifdef DEBUG_EXTRA
+        CPLAssert( nCount == psPrivate->oMapThreadToMutexTakenCountSaved[ CPLGetPID() ] );
+#endif
+        if( nCount == 0 )
+            CPLReleaseMutex(psPrivate->hMutex);
+        for(int i=0;i<nCount - 1;i++)
         {
             CPLAcquireMutex(psPrivate->hMutex, 1000.0);
         }

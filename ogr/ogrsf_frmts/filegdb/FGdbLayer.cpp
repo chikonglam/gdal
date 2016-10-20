@@ -1,5 +1,5 @@
 /******************************************************************************
-* $Id: FGdbLayer.cpp 33563 2016-02-26 14:57:06Z rouault $
+* $Id: FGdbLayer.cpp 35794 2016-10-17 19:29:48Z rouault $
 *
 * Project:  OpenGIS Simple Features Reference Implementation
 * Purpose:  Implements FileGDB OGR layer.
@@ -37,7 +37,7 @@
 #include "FGdbUtils.h"
 #include "cpl_minixml.h" // the only way right now to extract schema information
 
-CPL_CVSID("$Id: FGdbLayer.cpp 33563 2016-02-26 14:57:06Z rouault $");
+CPL_CVSID("$Id: FGdbLayer.cpp 35794 2016-10-17 19:29:48Z rouault $");
 
 using std::string;
 using std::wstring;
@@ -1860,7 +1860,11 @@ OGRErr FGdbLayer::AlterFieldDefn( int iFieldToAlter, OGRFieldDefn* poNewFieldDef
     OGRFieldDefn oField(poFieldDefn);
 
     if (nFlags & ALTER_TYPE_FLAG)
+    {
+        oField.SetSubType(OFSTNone);
         oField.SetType(poNewFieldDefn->GetType());
+        oField.SetSubType(poNewFieldDefn->GetSubType());
+    }
     if (nFlags & ALTER_NAME_FLAG)
     {
         if (strcmp(poNewFieldDefn->GetNameRef(), oField.GetNameRef()) != 0)
@@ -1901,7 +1905,9 @@ OGRErr FGdbLayer::AlterFieldDefn( int iFieldToAlter, OGRFieldDefn* poNewFieldDef
 
     m_vOGRFieldToESRIFieldType[iFieldToAlter] = gdbFieldType;
 
+    poFieldDefn->SetSubType(OFSTNone);
     poFieldDefn->SetType(oField.GetType());
+    poFieldDefn->SetType(oField.GetSubType());
     poFieldDefn->SetWidth(oField.GetWidth());
     poFieldDefn->SetPrecision(oField.GetPrecision());
 
