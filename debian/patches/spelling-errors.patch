@@ -30,7 +30,7 @@ Forwarded: not-needed
      else
 --- a/ogr/ogrsf_frmts/plscenes/ogrplscenesdataset.cpp
 +++ b/ogr/ogrsf_frmts/plscenes/ogrplscenesdataset.cpp
-@@ -442,7 +442,7 @@ GDALDataset* OGRPLScenesDataset::OpenRas
+@@ -444,7 +444,7 @@ GDALDataset* OGRPLScenesDataset::OpenRas
  
          CPLErrorReset();
          poOutDS->SetDescription(poOpenInfo->pszFilename);
@@ -41,7 +41,7 @@ Forwarded: not-needed
      if( bUseVSICURL )
 --- a/ogr/ogrsf_frmts/plscenes/ogrplscenesv1dataset.cpp
 +++ b/ogr/ogrsf_frmts/plscenes/ogrplscenesv1dataset.cpp
-@@ -653,7 +653,7 @@ retry:
+@@ -651,7 +651,7 @@ retry:
  
          CPLErrorReset();
          poOutDS->SetDescription(poOpenInfo->pszFilename);
