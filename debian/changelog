@@ -3,6 +3,7 @@ gdal (2.1.2~rc2+dfsg-1) UNRELEASED; urgency=medium
   * New upstream release candidate.
   * Update symbols for amd64, arm*, i386, kfreebsd-*, mips*, powerpc, ppc64*,
     s390x & sparc64.
+  * Drop unused override for hardening-no-pie.
 
  -- Bas Couwenberg <sebastic@debian.org>  Thu, 20 Oct 2016 09:50:45 +0200
 
