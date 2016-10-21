@@ -1,3 +1,9 @@
+gdal (2.1.2~rc3+dfsg-1) UNRELEASED; urgency=medium
+
+  * New upstream release candidate.
+
+ -- Bas Couwenberg <sebastic@debian.org>  Fri, 21 Oct 2016 11:49:25 +0200
+
 gdal (2.1.2~rc2+dfsg-1~exp1) experimental; urgency=medium
 
   * New upstream release candidate.
