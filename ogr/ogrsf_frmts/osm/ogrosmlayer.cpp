@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrosmlayer.cpp 33332 2016-02-02 23:01:31Z rouault $
+ * $Id: ogrosmlayer.cpp 35846 2016-10-21 05:20:10Z goatbar $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implements OGROSMLayer class
@@ -33,7 +33,7 @@
 #include "cpl_time.h"
 #include "ogr_p.h"
 
-CPL_CVSID("$Id: ogrosmlayer.cpp 33332 2016-02-02 23:01:31Z rouault $");
+CPL_CVSID("$Id: ogrosmlayer.cpp 35846 2016-10-21 05:20:10Z goatbar $");
 
 #define SWITCH_THRESHOLD   10000
 #define MAX_THRESHOLD      100000
@@ -419,7 +419,8 @@ const char* OGROSMLayer::GetLaunderedFieldName(const char* pszName)
     if( poDS->DoesAttributeNameLaundering()  &&
         strchr(pszName, ':') != NULL )
     {
-        for( size_t i = 0;
+        size_t i = 0;
+        for( ;
              i < sizeof(szLaunderedFieldName) - 1 && pszName[i] != '\0';
              i++ )
         {
@@ -428,7 +429,7 @@ const char* OGROSMLayer::GetLaunderedFieldName(const char* pszName)
             else
                 szLaunderedFieldName[i] = pszName[i];
         }
-        szLaunderedFieldName[sizeof(szLaunderedFieldName) - 1] = '\0';
+        szLaunderedFieldName[i] = '\0';
         return szLaunderedFieldName;
     }
 
