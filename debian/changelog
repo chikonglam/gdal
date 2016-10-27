@@ -1,3 +1,9 @@
+gdal (2.1.2+dfsg-1) unstable; urgency=medium
+
+  * Move from experimental to unstable.
+
+ -- Bas Couwenberg <sebastic@debian.org>  Fri, 28 Oct 2016 00:00:50 +0200
+
 gdal (2.1.2+dfsg-1~exp1) experimental; urgency=medium
 
   * New upstream release. 
