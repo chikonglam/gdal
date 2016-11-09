@@ -1,10 +1,10 @@
-gdal (2.1.0+dfsg-1~xenial1) UNRELEASED; urgency=medium
+gdal (2.1.0+dfsg-1~xenial1) xenial; urgency=medium
 
   * Update branch in gbp.conf & Vcs-Git URL.
   * Add upstream patch to fix crash on URLs that are not DODS servers.
     (LP: #1640360)
 
- -- Bas Couwenberg <sebastic@debian.org>  Wed, 09 Nov 2016 20:16:21 +0100
+ -- Bas Couwenberg <sebastic@debian.org>  Wed, 09 Nov 2016 20:17:34 +0100
 
 gdal (2.1.0+dfsg-1~xenial0) xenial; urgency=medium
 
