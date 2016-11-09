@@ -60,7 +60,7 @@ Build-Conflicts: automake1.11,
                  python-setuptools
 Standards-Version: 3.9.8
 Vcs-Browser: https://anonscm.debian.org/cgit/pkg-grass/gdal.git
-Vcs-Git: https://anonscm.debian.org/git/pkg-grass/gdal.git -b experimental-2.1
+Vcs-Git: https://anonscm.debian.org/git/pkg-grass/gdal.git -b ubuntu/xenial
 Homepage: http://www.gdal.org/
 X-Python3-Version: >= 3.2
 
