@@ -90,7 +90,6 @@ override_dh_auto_configure:
 			--with-threads \
 			--with-armadillo=yes \
 			--with-cfitsio=no \
-			--with-cryptopp=yes \
 			--with-curl \
 			--with-ecw=no \
 			--with-epsilon=/usr \
