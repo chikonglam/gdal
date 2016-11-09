@@ -8,3 +8,4 @@ spatialite
 java.opt
 perl-vendor
 privacy-breach-logo.patch
+svn-r36175-DODS-fix-crash-on-URL-that-are-not-DODS-servers.patch
