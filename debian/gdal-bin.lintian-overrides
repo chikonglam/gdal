@@ -7,3 +7,6 @@ gdal-bin: binary-without-manpage
 # in pre-1.10 versions distributed in experimental. Just for safety.
 gdal-bin: package-relation-with-self breaks: gdal-bin (<< 1.10.0-0~)
 
+# PIE breaks the Python bindings
+gdal-bin: hardening-no-pie *
+
