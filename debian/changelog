@@ -1,10 +1,10 @@
-gdal (2.1.0+dfsg-1~trusty2) UNRELEASED; urgency=medium
+gdal (2.1.0+dfsg-1~trusty2) trusty; urgency=medium
 
   * Update branch in gbp.conf & Vcs-Git URL.
   * Add upstream patch to fix crash on URLs that are not DODS servers.
     (LP: #1640360)
 
- -- Bas Couwenberg <sebastic@debian.org>  Wed, 09 Nov 2016 20:12:00 +0100
+ -- Bas Couwenberg <sebastic@debian.org>  Wed, 09 Nov 2016 20:14:03 +0100
 
 gdal (2.1.0+dfsg-1~trusty1) trusty; urgency=medium
 
