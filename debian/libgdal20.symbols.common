@@ -1537,7 +1537,7 @@
  RegisterOGRBNA@Base 1.8.0
  RegisterOGRCSV@Base 1.8.0
  RegisterOGRCSW@Base 2.0.1
- RegisterOGRCarto@Base 2.1.2~rc1
+ RegisterOGRCarto@Base 2.1.2
  RegisterOGRCartoDB@Base 1.11.0
  RegisterOGRCloudant@Base 2.0.1
  RegisterOGRCouchDB@Base 1.9.0
