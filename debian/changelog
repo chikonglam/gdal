@@ -1,11 +1,11 @@
-gdal (2.1.3~rc1+dfsg-1) UNRELEASED; urgency=medium
+gdal (2.1.3~rc1+dfsg-1~exp1) experimental; urgency=medium
 
   * New upstream release candidate.
   * Update watch file for 2.1.3 (pre-)releases.
   * Drop svn-r36175-DODS-fix-crash-on-URL-that-are-not-DODS-servers.patch,
     included upstream. Refresh remaining patches.
 
- -- Bas Couwenberg <sebastic@debian.org>  Fri, 20 Jan 2017 10:21:56 +0100
+ -- Bas Couwenberg <sebastic@debian.org>  Fri, 20 Jan 2017 10:35:53 +0100
 
 gdal (2.1.2+dfsg-2) unstable; urgency=medium
 
