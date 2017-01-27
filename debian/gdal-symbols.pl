@@ -1139,6 +1139,7 @@ sub new_architecture_symbols {
 					my $upstream_version = upstream_version($versions[-1]);
 
 					(my $abi = $upstream_version) =~ s/\./-/g;
+					$abi =~ s/\~\w+$//;
 
 					my $i = 0;
 					foreach(read_file($filt)) {
