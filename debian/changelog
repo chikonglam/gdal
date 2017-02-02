@@ -1,6 +1,8 @@
 gdal (2.1.3+dfsg-1~exp2) UNRELEASED; urgency=medium
 
   * Update symbols for kfreebsd-{amd64,i386}.
+  * Add upstream patch to fix _gdal_array ImportError with Python 3.
+    (closes: #853900)
 
  -- Bas Couwenberg <sebastic@debian.org>  Sat, 28 Jan 2017 14:02:09 +0100
 

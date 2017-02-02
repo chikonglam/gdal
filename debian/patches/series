@@ -10,3 +10,4 @@ perl-vendor
 privacy-breach-logo.patch
 sort-files-in-static-library.patch
 spelling-errors.patch
+python3-import-gdal_array.patch
