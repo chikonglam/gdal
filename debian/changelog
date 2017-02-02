@@ -1,3 +1,10 @@
+gdal (2.1.2+dfsg-3) UNRELEASED; urgency=medium
+
+  * Add upstream patch to fix _gdal_array ImportError with Python 3.
+    (closes: #853900)
+
+ -- Bas Couwenberg <sebastic@debian.org>  Thu, 02 Feb 2017 20:15:19 +0100
+
 gdal (2.1.2+dfsg-2) unstable; urgency=medium
 
   * Add upstream patch to fix crash on URLs that are not DODS servers.
