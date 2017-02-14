@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: FGdbUtils.h 23796 2012-01-24 19:10:16Z rouault $
+ * $Id: FGdbUtils.h 33563 2016-02-26 14:57:06Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Various FileGDB OGR Datasource utility functions
@@ -28,8 +28,8 @@
  ****************************************************************************/
 
 
-#ifndef _FGDB_UTILS_H_INCLUDED
-#define _FGDB_UTILS_H_INCLUDED
+#ifndef FGDB_UTILS_H_INCLUDED
+#define FGDB_UTILS_H_INCLUDED
 
 #include "ogr_fgdb.h"
 #include <iostream>
@@ -44,8 +44,8 @@ std::string WStringToString(const std::wstring& s);
 //
 
 // Type mapping
-bool GDBToOGRGeometry(std::string geoType, bool hasZ, OGRwkbGeometryType* pOut);
-bool OGRGeometryToGDB(OGRwkbGeometryType ogrType, std::string *gdbType, bool *hasZ);
+bool GDBToOGRGeometry(std::string geoType, bool hasZ, bool hasM, OGRwkbGeometryType* pOut);
+bool OGRGeometryToGDB(OGRwkbGeometryType ogrType, std::string *gdbType, bool *hasZ, bool *hasM);
 
 
 bool GDBToOGRSpatialReference(const std::string & wkt, OGRSpatialReference** ppSR);
@@ -60,8 +60,8 @@ bool GhettoGDBGeometryToOGRGeometry(bool forceMulti, FileGDBAPI::ShapeBuffer* pG
 //
 // GDB API to OGR Field Mapping
 //
-bool GDBToOGRFieldType(std::string gdbType, OGRFieldType* ogrType);
-bool OGRToGDBFieldType(OGRFieldType ogrType, std::string* gdbType);
+bool GDBToOGRFieldType(std::string gdbType, OGRFieldType* ogrType, OGRFieldSubType* pSubType);
+bool OGRToGDBFieldType(OGRFieldType ogrType, OGRFieldSubType eSubType, std::string* gdbType);
 
 //
 // GDB Field Width defaults
@@ -71,7 +71,7 @@ bool GDBFieldTypeToWidthPrecision(std::string &gdbType, int *width, int *precisi
 //
 // GDBAPI error to OGR
 //
-bool GDBErr(long hr, std::string desc);
+bool GDBErr(long hr, std::string desc, CPLErr errType = CE_Failure, const char* pszAddMsg = "");
 bool GDBDebug(long hr, std::string desc);
 
 //

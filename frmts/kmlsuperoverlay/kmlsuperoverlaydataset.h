@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: kmlsuperoverlaydataset.h 
+ * $Id: kmlsuperoverlaydataset.h
  *
  * Project:  KmlSuperOverlay
  * Purpose:  Implements write support for KML superoverlay - KMZ.
@@ -27,7 +27,7 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  ****************************************************************************/
- 
+
 #ifndef KMLSUPEROVERLAYDATASET_H_INCLUDED
 #define KMLSUPEROVERLAYDATASET_H_INCLUDED
 
@@ -37,7 +37,7 @@
 #include <map>
 
 CPL_C_START
-void CPL_DLL GDALRegister_KMLSUPEROVERLAY(void);
+void CPL_DLL GDALRegister_KMLSUPEROVERLAY();
 CPL_C_END
 
 /************************************************************************/
@@ -90,13 +90,15 @@ class KmlSuperOverlayReadDataset : public GDALDataset
 
     virtual CPLErr GetGeoTransform( double * );
     virtual const char *GetProjectionRef();
-    
+
     virtual CPLErr IRasterIO( GDALRWFlag eRWFlag,
                                int nXOff, int nYOff, int nXSize, int nYSize,
                                void * pData, int nBufXSize, int nBufYSize,
-                               GDALDataType eBufType, 
+                               GDALDataType eBufType,
                                int nBandCount, int *panBandMap,
-                               int nPixelSpace, int nLineSpace, int nBandSpace);
+                               GSpacing nPixelSpace, GSpacing nLineSpace,
+                               GSpacing nBandSpace,
+                               GDALRasterIOExtraArg* psExtraArg);
 };
 
 /************************************************************************/
@@ -112,7 +114,8 @@ class KmlSuperOverlayRasterBand: public GDALRasterBand
     virtual CPLErr IReadBlock( int, int, void * );
     virtual CPLErr IRasterIO( GDALRWFlag, int, int, int, int,
                               void *, int, int, GDALDataType,
-                              int, int );
+                              GSpacing nPixelSpace, GSpacing nLineSpace,
+                              GDALRasterIOExtraArg* psExtraArg);
     virtual GDALColorInterp GetColorInterpretation();
 
     virtual int GetOverviewCount();
@@ -120,4 +123,3 @@ class KmlSuperOverlayRasterBand: public GDALRasterBand
 };
 
 #endif /* ndef KMLSUPEROVERLAYDATASET_H_INCLUDED */
-

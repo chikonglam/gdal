@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_mem.h 27044 2014-03-16 23:41:27Z rouault $
+ * $Id: ogr_mem.h 32896 2016-01-10 13:37:26Z goatbar $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Private definitions within the OGR Memory driver.
@@ -28,30 +28,46 @@
  * DEALINGS IN THE SOFTWARE.
  ****************************************************************************/
 
-#ifndef _OGRMEM_H_INCLUDED
-#define _OGRMEM_H_INCLUDED
+#ifndef OGRMEM_H_INCLUDED
+#define OGRMEM_H_INCLUDED
 
 #include "ogrsf_frmts.h"
+
+#include <map>
 
 /************************************************************************/
 /*                             OGRMemLayer                              */
 /************************************************************************/
+class OGRMemDataSource;
+
+class IOGRMemLayerFeatureIterator;
 
 class OGRMemLayer : public OGRLayer
 {
-    OGRFeatureDefn     *poFeatureDefn;
-    
-    int                 nFeatureCount;
-    int                 nMaxFeatureCount;
-    OGRFeature        **papoFeatures;
+    typedef std::map<GIntBig, OGRFeature*>           FeatureMap;
+    typedef std::map<GIntBig, OGRFeature*>::iterator FeatureIterator;
 
-    int                 iNextReadFID;
-    int                 iNextCreateFID;
+    OGRFeatureDefn     *m_poFeatureDefn;
 
-    int                 bUpdatable;
-    int                 bAdvertizeUTF8;
+    GIntBig             m_nFeatureCount;
 
-    int                 bHasHoles;
+    GIntBig             m_iNextReadFID;
+    GIntBig             m_nMaxFeatureCount; // max size of papoFeatures
+    OGRFeature        **m_papoFeatures;
+    bool                m_bHasHoles;
+
+    FeatureMap          m_oMapFeatures;
+    FeatureIterator     m_oMapFeaturesIter;
+
+    GIntBig             m_iNextCreateFID;
+
+    bool                m_bUpdatable;
+    bool                m_bAdvertizeUTF8;
+
+    bool                m_bUpdated;
+
+    // only use it in the lifetime of a function where the list of features doesn't change
+    IOGRMemLayerFeatureIterator* GetIterator();
 
   public:
                         OGRMemLayer( const char * pszName,
@@ -61,16 +77,16 @@ class OGRMemLayer : public OGRLayer
 
     void                ResetReading();
     OGRFeature *        GetNextFeature();
-    virtual OGRErr      SetNextByIndex( long nIndex );
+    virtual OGRErr      SetNextByIndex( GIntBig nIndex );
 
-    OGRFeature         *GetFeature( long nFeatureId );
-    OGRErr              SetFeature( OGRFeature *poFeature );
-    OGRErr              CreateFeature( OGRFeature *poFeature );
-    virtual OGRErr      DeleteFeature( long nFID );
-    
-    OGRFeatureDefn *    GetLayerDefn() { return poFeatureDefn; }
+    OGRFeature         *GetFeature( GIntBig nFeatureId );
+    OGRErr              ISetFeature( OGRFeature *poFeature );
+    OGRErr              ICreateFeature( OGRFeature *poFeature );
+    virtual OGRErr      DeleteFeature( GIntBig nFID );
 
-    int                 GetFeatureCount( int );
+    OGRFeatureDefn *    GetLayerDefn() { return m_poFeatureDefn; }
+
+    GIntBig             GetFeatureCount( int );
 
     virtual OGRErr      CreateField( OGRFieldDefn *poField,
                                      int bApproxOK = TRUE );
@@ -82,10 +98,13 @@ class OGRMemLayer : public OGRLayer
 
     int                 TestCapability( const char * );
 
-    void                SetUpdatable(int bUpdatableIn) { bUpdatable = bUpdatableIn; }
-    void                SetAdvertizeUTF8(int bAdvertizeUTF8In) { bAdvertizeUTF8 = bAdvertizeUTF8In; }
+    void                SetUpdatable( bool bUpdatableIn ) { m_bUpdatable = bUpdatableIn; }
+    void                SetAdvertizeUTF8( bool bAdvertizeUTF8In ) { m_bAdvertizeUTF8 = bAdvertizeUTF8In; }
 
-    int                 GetNextReadFID() { return iNextReadFID; }
+    bool                HasBeenUpdated() const { return m_bUpdated; }
+    void                SetUpdated(bool bUpdated) { m_bUpdated = bUpdated; }
+
+    GIntBig             GetNextReadFID() { return m_iNextReadFID; }
 };
 
 /************************************************************************/
@@ -94,9 +113,9 @@ class OGRMemLayer : public OGRLayer
 
 class OGRMemDataSource : public OGRDataSource
 {
-    OGRMemLayer     **papoLayers;
+    OGRMemLayer       **papoLayers;
     int                 nLayers;
-    
+
     char                *pszName;
 
   public:
@@ -107,7 +126,7 @@ class OGRMemDataSource : public OGRDataSource
     int                 GetLayerCount() { return nLayers; }
     OGRLayer            *GetLayer( int );
 
-    virtual OGRLayer    *CreateLayer( const char *, 
+    virtual OGRLayer    *ICreateLayer( const char *,
                                       OGRSpatialReference * = NULL,
                                       OGRwkbGeometryType = wkbUnknown,
                                       char ** = NULL );
@@ -124,15 +143,15 @@ class OGRMemDriver : public OGRSFDriver
 {
   public:
                 ~OGRMemDriver();
-                
+
     const char *GetName();
     OGRDataSource *Open( const char *, int );
 
     virtual OGRDataSource *CreateDataSource( const char *pszName,
                                              char ** = NULL );
-    
+
     int                 TestCapability( const char * );
 };
 
 
-#endif /* ndef _OGRMEM_H_INCLUDED */
+#endif /* ndef OGRMEM_H_INCLUDED */

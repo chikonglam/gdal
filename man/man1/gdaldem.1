@@ -1,4 +1,4 @@
-.TH "gdaldem" 1 "Mon Jan 25 2016" "GDAL" \" -*- nroff -*-
+.TH "gdaldem" 1 "Fri Jan 20 2017" "GDAL" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -87,7 +87,7 @@ Select the output format\&. The default is GeoTIFF (GTiff)\&. Use the short form
 .IP "\fB\fB-compute_edges\fP:\fP" 1c
 (GDAL >= 1\&.8\&.0) Do the computation at raster edges and near nodata values 
 .IP "\fB\fB-alg\fP \fIZevenbergenThorne\fP:\fP" 1c
-(GDAL >= 1\&.8\&.0) Use Zevenbergen & Thorne formula, instead of Horn's formula, to compute slope & aspect\&. The litterature suggests Zevenbergen & Thorne to be more suited to smooth landscapes, whereas Horn's formula to perform better on rougher terrain\&. 
+(GDAL >= 1\&.8\&.0) Use Zevenbergen & Thorne formula, instead of Horn's formula, to compute slope & aspect\&. The literature suggests Zevenbergen & Thorne to be more suited to smooth landscapes, whereas Horn's formula to perform better on rougher terrain\&. 
 .IP "\fB\fB-b\fP \fIband\fP:\fP" 1c
 Select an input \fIband\fP to be processed\&. Bands are numbered from 1\&. 
 .IP "\fB\fB-co\fP \fI'NAME=VALUE'\fP:\fP" 1c
@@ -196,6 +196,9 @@ This command outputs a single-band raster with values computed from the elevatio
 The value -9999 is used as the output nodata value\&.
 .PP
 There are no specific options\&.
+.SH "C API"
+.PP
+Starting with GDAL 2\&.1, this utility is also callable from C with GDALDEMProcessing()\&.
 .SH "AUTHORS"
 .PP
 Matthew Perry perrygeo@gmail.com, Even Rouault even.rouault@mines-paris.org, Howard Butler hobu.inc@gmail.com, Chris Yesson chris.yesson@ioz.ac.uk

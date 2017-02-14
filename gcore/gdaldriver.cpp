@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdaldriver.cpp 27044 2014-03-16 23:41:27Z rouault $
+ * $Id: gdaldriver.cpp 33711 2016-03-12 06:29:35Z goatbar $
  *
  * Project:  GDAL Core
  * Purpose:  Implementation of GDALDriver class (and C wrappers)
@@ -29,8 +29,9 @@
  ****************************************************************************/
 
 #include "gdal_priv.h"
+#include "ogrsf_frmts.h"
 
-CPL_CVSID("$Id: gdaldriver.cpp 27044 2014-03-16 23:41:27Z rouault $");
+CPL_CVSID("$Id: gdaldriver.cpp 33711 2016-03-12 06:29:35Z goatbar $");
 
 CPL_C_START
 const char* GDALClientDatasetGetFilename(const char* pszFilename);
@@ -52,6 +53,9 @@ GDALDriver::GDALDriver()
     pfnIdentify = NULL;
     pfnRename = NULL;
     pfnCopyFiles = NULL;
+    pfnOpenWithDriverArg = NULL;
+    pfnCreateVectorOnly = NULL;
+    pfnDeleteDataSource = NULL;
 }
 
 /************************************************************************/
@@ -71,20 +75,19 @@ GDALDriver::~GDALDriver()
 
 /**
  * \brief Destroy a GDALDriver.
- * 
- * This is roughly equivelent to deleting the driver, but is guaranteed
+ *
+ * This is roughly equivalent to deleting the driver, but is guaranteed
  * to take place in the GDAL heap.  It is important this that function
  * not be called on a driver that is registered with the GDALDriverManager.
- * 
+ *
  * @param hDriver the driver to destroy.
  */
 
 void CPL_STDCALL GDALDestroyDriver( GDALDriverH hDriver )
 
 {
-    VALIDATE_POINTER0( hDriver, "GDALDestroyDriver" );
-
-    delete ((GDALDriver *) hDriver);
+    if( hDriver != NULL )
+        delete ((GDALDriver *) hDriver);
 }
 
 /************************************************************************/
@@ -109,14 +112,19 @@ void CPL_STDCALL GDALDestroyDriver( GDALDriverH hDriver )
  * In some situations, the new dataset can be created in another process through the
  * \ref gdal_api_proxy mechanism.
  *
- * Equivelent of the C function GDALCreate().
- * 
+ * In GDAL 2, the arguments nXSize, nYSize and nBands can be passed to 0 when
+ * creating a vector-only dataset for a compatible driver.
+ *
+ * Equivalent of the C function GDALCreate().
+ *
  * @param pszFilename the name of the dataset to create.  UTF-8 encoded.
  * @param nXSize width of created raster in pixels.
  * @param nYSize height of created raster in pixels.
  * @param nBands number of bands.
  * @param eType type of raster.
  * @param papszOptions list of driver specific control parameters.
+ * The APPEND_SUBDATASET=YES option can be
+ * specified to avoid prior destruction of existing dataset.
  *
  * @return NULL on failure, or a new GDALDataset.
  */
@@ -126,12 +134,12 @@ GDALDataset * GDALDriver::Create( const char * pszFilename,
                                   GDALDataType eType, char ** papszOptions )
 
 {
-    CPLLocaleC  oLocaleForcer;
+    //CPLLocaleC  oLocaleForcer;
 
 /* -------------------------------------------------------------------- */
 /*      Does this format support creation.                              */
 /* -------------------------------------------------------------------- */
-    if( pfnCreate == NULL )
+    if( pfnCreate == NULL && pfnCreateVectorOnly == NULL )
     {
         CPLError( CE_Failure, CPLE_NotSupported,
                   "GDALDriver::Create() ... no create method implemented"
@@ -151,7 +159,9 @@ GDALDataset * GDALDriver::Create( const char * pszFilename,
         return NULL;
     }
 
-    if( nXSize < 1 || nYSize < 1 )
+    if( GetMetadataItem(GDAL_DCAP_RASTER) != NULL &&
+        GetMetadataItem(GDAL_DCAP_VECTOR) == NULL &&
+        (nXSize < 1 || nYSize < 1) )
     {
         CPLError( CE_Failure, CPLE_AppDefined,
                   "Attempt to create %dx%d dataset is illegal,"
@@ -180,7 +190,7 @@ GDALDataset * GDALDriver::Create( const char * pszFilename,
 
             if( poDstDS != NULL )
             {
-                if( poDstDS->GetDescription() == NULL 
+                if( poDstDS->GetDescription() == NULL
                     || strlen(poDstDS->GetDescription()) == 0 )
                     poDstDS->SetDescription( pszFilename );
 
@@ -204,7 +214,7 @@ GDALDataset * GDALDriver::Create( const char * pszFilename,
 /* -------------------------------------------------------------------- */
 /*      Validate creation options.                                      */
 /* -------------------------------------------------------------------- */
-    if (CSLTestBoolean(CPLGetConfigOption("GDAL_VALIDATE_CREATION_OPTIONS", "YES")))
+    if (CPLTestBool(CPLGetConfigOption("GDAL_VALIDATE_CREATION_OPTIONS", "YES")))
         GDALValidateCreationOptions( this, papszOptions );
 
 /* -------------------------------------------------------------------- */
@@ -213,21 +223,33 @@ GDALDataset * GDALDriver::Create( const char * pszFilename,
     GDALDataset *poDS;
 
     CPLDebug( "GDAL", "GDALDriver::Create(%s,%s,%d,%d,%d,%s,%p)",
-              GetDescription(), pszFilename, nXSize, nYSize, nBands, 
-              GDALGetDataTypeName( eType ), 
+              GetDescription(), pszFilename, nXSize, nYSize, nBands,
+              GDALGetDataTypeName( eType ),
               papszOptions );
-    
-    poDS = pfnCreate( pszFilename, nXSize, nYSize, nBands, eType,
-                      papszOptions );
+
+    if( pfnCreate != NULL )
+    {
+        poDS = pfnCreate( pszFilename, nXSize, nYSize, nBands, eType,
+                          papszOptions );
+    }
+    else
+    {
+        if( nBands > 0 )
+            poDS = NULL;
+        else
+            poDS = pfnCreateVectorOnly( this, pszFilename, papszOptions );
+    }
 
     if( poDS != NULL )
     {
         if( poDS->GetDescription() == NULL
             || strlen(poDS->GetDescription()) == 0 )
             poDS->SetDescription( pszFilename );
-        
+
         if( poDS->poDriver == NULL )
             poDS->poDriver = this;
+
+        poDS->AddToDatasetOpenList();
     }
 
     return poDS;
@@ -243,7 +265,7 @@ GDALDataset * GDALDriver::Create( const char * pszFilename,
  * @see GDALDriver::Create()
  */
 
-GDALDatasetH CPL_DLL CPL_STDCALL 
+GDALDatasetH CPL_DLL CPL_STDCALL
 GDALCreate( GDALDriverH hDriver, const char * pszFilename,
             int nXSize, int nYSize, int nBands, GDALDataType eBandType,
             char ** papszOptions )
@@ -265,7 +287,7 @@ CPLErr GDALDriver::DefaultCopyMasks( GDALDataset *poSrcDS,
                                      int bStrict )
 
 {
-    CPLErr eErr = CE_None;	
+    CPLErr eErr = CE_None;
 
     int nBands = poSrcDS->GetRasterCount();
     if (nBands == 0)
@@ -276,8 +298,8 @@ CPLErr GDALDriver::DefaultCopyMasks( GDALDataset *poSrcDS,
 /* -------------------------------------------------------------------- */
 /*      Try to copy mask if it seems appropriate.                       */
 /* -------------------------------------------------------------------- */
-    for( int iBand = 0; 
-         eErr == CE_None && iBand < nBands; 
+    for( int iBand = 0;
+         eErr == CE_None && iBand < nBands;
          iBand++ )
     {
         GDALRasterBand *poSrcBand = poSrcDS->GetRasterBand( iBand+1 );
@@ -309,7 +331,7 @@ CPLErr GDALDriver::DefaultCopyMasks( GDALDataset *poSrcDS,
 /* -------------------------------------------------------------------- */
     int nMaskFlags = poSrcDS->GetRasterBand(1)->GetMaskFlags();
     if( eErr == CE_None
-        && !(nMaskFlags & (GMF_ALL_VALID|GMF_ALPHA|GMF_NODATA) ) 
+        && !(nMaskFlags & (GMF_ALL_VALID|GMF_ALPHA|GMF_NODATA) )
         && (nMaskFlags & GMF_PER_DATASET) )
     {
         eErr = poDstDS->CreateMaskBand( nMaskFlags );
@@ -332,8 +354,8 @@ CPLErr GDALDriver::DefaultCopyMasks( GDALDataset *poSrcDS,
 /*                         DefaultCreateCopy()                          */
 /************************************************************************/
 
-GDALDataset *GDALDriver::DefaultCreateCopy( const char * pszFilename, 
-                                            GDALDataset * poSrcDS, 
+GDALDataset *GDALDriver::DefaultCreateCopy( const char * pszFilename,
+                                            GDALDataset * poSrcDS,
                                             int bStrict, char ** papszOptions,
                                             GDALProgressFunc pfnProgress,
                                             void * pProgressData )
@@ -341,14 +363,8 @@ GDALDataset *GDALDriver::DefaultCreateCopy( const char * pszFilename,
 {
     if( pfnProgress == NULL )
         pfnProgress = GDALDummyProgress;
-    
-    CPLErrorReset();
 
-    if( !pfnProgress( 0.0, NULL, pProgressData ) )
-    {
-        CPLError( CE_Failure, CPLE_UserInterrupt, "User terminated" );
-        return NULL;
-    }
+    CPLErrorReset();
 
 /* -------------------------------------------------------------------- */
 /*      Validate that we can create the output as requested.            */
@@ -359,30 +375,57 @@ GDALDataset *GDALDriver::DefaultCreateCopy( const char * pszFilename,
 
     CPLDebug( "GDAL", "Using default GDALDriver::CreateCopy implementation." );
 
-    if (nBands == 0)
+    int nLayerCount = poSrcDS->GetLayerCount();
+    if (nBands == 0 && nLayerCount == 0 && GetMetadataItem(GDAL_DCAP_VECTOR) == NULL )
     {
         CPLError( CE_Failure, CPLE_NotSupported,
                   "GDALDriver::DefaultCreateCopy does not support zero band" );
         return NULL;
     }
+    if( poSrcDS->GetDriver() != NULL &&
+        poSrcDS->GetDriver()->GetMetadataItem(GDAL_DCAP_RASTER) != NULL &&
+        poSrcDS->GetDriver()->GetMetadataItem(GDAL_DCAP_VECTOR) == NULL &&
+        GetMetadataItem(GDAL_DCAP_RASTER) == NULL &&
+        GetMetadataItem(GDAL_DCAP_VECTOR) != NULL )
+    {
+        CPLError( CE_Failure, CPLE_NotSupported,
+                  "Source driver is raster-only whereas output driver is vector-only" );
+        return NULL;
+    }
+    else if( poSrcDS->GetDriver() != NULL &&
+        poSrcDS->GetDriver()->GetMetadataItem(GDAL_DCAP_RASTER) == NULL &&
+        poSrcDS->GetDriver()->GetMetadataItem(GDAL_DCAP_VECTOR) != NULL &&
+        GetMetadataItem(GDAL_DCAP_RASTER) != NULL &&
+        GetMetadataItem(GDAL_DCAP_VECTOR) == NULL )
+    {
+        CPLError( CE_Failure, CPLE_NotSupported,
+                  "Source driver is vector-only whereas output driver is raster-only" );
+        return NULL;
+    }
+
+    if( !pfnProgress( 0.0, NULL, pProgressData ) )
+    {
+        CPLError( CE_Failure, CPLE_UserInterrupt, "User terminated" );
+        return NULL;
+    }
 
 /* -------------------------------------------------------------------- */
-/*      Propogate some specific structural metadata as options if it    */
+/*      Propagate some specific structural metadata as options if it    */
 /*      appears to be supported by the target driver and the caller     */
 /*      didn't provide values.                                          */
 /* -------------------------------------------------------------------- */
     char **papszCreateOptions = CSLDuplicate( papszOptions );
     int  iOptItem;
-    static const char *apszOptItems[] = {
+    static const char * const apszOptItems[] = {
         "NBITS", "IMAGE_STRUCTURE",
-        "PIXELTYPE", "IMAGE_STRUCTURE", 
+        "PIXELTYPE", "IMAGE_STRUCTURE",
         NULL };
 
-    for( iOptItem = 0; apszOptItems[iOptItem] != NULL; iOptItem += 2 )
+    for( iOptItem = 0; nBands > 0 && apszOptItems[iOptItem] != NULL; iOptItem += 2 )
     {
         // does the source have this metadata item on the first band?
-        const char *pszValue = 
-            poSrcDS->GetRasterBand(1)->GetMetadataItem( 
+        const char *pszValue =
+            poSrcDS->GetRasterBand(1)->GetMetadataItem(
                 apszOptItems[iOptItem], apszOptItems[iOptItem+1] );
 
         if( pszValue == NULL )
@@ -394,32 +437,46 @@ GDALDataset *GDALDriver::DefaultCreateCopy( const char * pszFilename,
 
         // Does this appear to be a supported creation option on this driver?
         const char *pszOptionList =
-            GetMetadataItem( GDAL_DMD_CREATIONDATATYPES );
+            GetMetadataItem( GDAL_DMD_CREATIONOPTIONLIST );
 
-        if( pszOptionList == NULL 
-            || strstr(pszOptionList,apszOptItems[iOptItem]) != NULL )
+        if( pszOptionList == NULL
+            || strstr(pszOptionList,apszOptItems[iOptItem]) == NULL )
             continue;
 
         papszCreateOptions = CSLSetNameValue( papszCreateOptions,
-                                              apszOptItems[iOptItem], 
+                                              apszOptItems[iOptItem],
                                               pszValue );
     }
-    
+
 /* -------------------------------------------------------------------- */
 /*      Create destination dataset.                                     */
 /* -------------------------------------------------------------------- */
     GDALDataset  *poDstDS;
-    GDALDataType eType;
+    GDALDataType eType = GDT_Unknown;
     CPLErr       eErr = CE_None;
 
-    eType = poSrcDS->GetRasterBand(1)->GetRasterDataType();
-    poDstDS = Create( pszFilename, nXSize, nYSize, 
+    if( nBands > 0 )
+        eType = poSrcDS->GetRasterBand(1)->GetRasterDataType();
+    poDstDS = Create( pszFilename, nXSize, nYSize,
                       nBands, eType, papszCreateOptions );
-                      
+
     CSLDestroy(papszCreateOptions);
 
     if( poDstDS == NULL )
         return NULL;
+    int nDstBands = poDstDS->GetRasterCount();
+    if( nDstBands != nBands )
+    {
+        if( GetMetadataItem(GDAL_DCAP_RASTER) != NULL )
+        {
+            /* Should not happen for a well-behaved driver */
+            CPLError(CE_Failure, CPLE_AppDefined,
+                     "Output driver created only %d bands whereas %d were expected",
+                     nDstBands, nBands);
+            eErr = CE_Failure;
+        }
+        nDstBands = 0;
+    }
 
 /* -------------------------------------------------------------------- */
 /*      Try setting the projection and geotransform if it seems         */
@@ -427,9 +484,12 @@ GDALDataset *GDALDriver::DefaultCreateCopy( const char * pszFilename,
 /* -------------------------------------------------------------------- */
     double      adfGeoTransform[6];
 
+    if( nDstBands == 0 && !bStrict )
+        CPLPushErrorHandler(CPLQuietErrorHandler);
+
     if( eErr == CE_None
-        && poSrcDS->GetGeoTransform( adfGeoTransform ) == CE_None 
-        && (adfGeoTransform[0] != 0.0 
+        && poSrcDS->GetGeoTransform( adfGeoTransform ) == CE_None
+        && (adfGeoTransform[0] != 0.0
             || adfGeoTransform[1] != 1.0
             || adfGeoTransform[2] != 0.0
             || adfGeoTransform[3] != 0.0
@@ -441,7 +501,7 @@ GDALDataset *GDALDriver::DefaultCreateCopy( const char * pszFilename,
             eErr = CE_None;
     }
 
-    if( eErr == CE_None 
+    if( eErr == CE_None
         && poSrcDS->GetProjectionRef() != NULL
         && strlen(poSrcDS->GetProjectionRef()) > 0 )
     {
@@ -456,11 +516,14 @@ GDALDataset *GDALDriver::DefaultCreateCopy( const char * pszFilename,
     if( poSrcDS->GetGCPCount() > 0 && eErr == CE_None )
     {
         eErr = poDstDS->SetGCPs( poSrcDS->GetGCPCount(),
-                                 poSrcDS->GetGCPs(), 
+                                 poSrcDS->GetGCPs(),
                                  poSrcDS->GetGCPProjection() );
         if( !bStrict )
             eErr = CE_None;
     }
+
+    if( nDstBands == 0 && !bStrict )
+        CPLPopErrorHandler();
 
 /* -------------------------------------------------------------------- */
 /*      Copy metadata.                                                  */
@@ -470,7 +533,7 @@ GDALDataset *GDALDriver::DefaultCreateCopy( const char * pszFilename,
 
 /* -------------------------------------------------------------------- */
 /*      Copy transportable special domain metadata (RPCs).  It would    */
-/*      be nice to copy geolocation, but is is pretty fragile.          */
+/*      be nice to copy geolocation, but it is pretty fragile.          */
 /* -------------------------------------------------------------------- */
     char **papszMD = poSrcDS->GetMetadata( "RPC" );
     if( papszMD )
@@ -479,8 +542,8 @@ GDALDataset *GDALDriver::DefaultCreateCopy( const char * pszFilename,
 /* -------------------------------------------------------------------- */
 /*      Loop copying bands.                                             */
 /* -------------------------------------------------------------------- */
-    for( int iBand = 0; 
-         eErr == CE_None && iBand < nBands; 
+    for( int iBand = 0;
+         eErr == CE_None && iBand < nDstBands;
          iBand++ )
     {
         GDALRasterBand *poSrcBand = poSrcDS->GetRasterBand( iBand+1 );
@@ -523,15 +586,15 @@ GDALDataset *GDALDriver::DefaultCreateCopy( const char * pszFilename,
         if( bSuccess )
             poDstBand->SetNoDataValue( dfValue );
 
-        if( poSrcBand->GetColorInterpretation() != GCI_Undefined 
+        if( poSrcBand->GetColorInterpretation() != GCI_Undefined
             && poSrcBand->GetColorInterpretation()
             != poDstBand->GetColorInterpretation() )
-            poDstBand->SetColorInterpretation( 
+            poDstBand->SetColorInterpretation(
                 poSrcBand->GetColorInterpretation() );
 
         char** papszCatNames;
         papszCatNames = poSrcBand->GetCategoryNames();
-        if (0 != papszCatNames)
+        if (NULL != papszCatNames)
             poDstBand->SetCategoryNames( papszCatNames );
 
         if( !bStrict )
@@ -539,23 +602,43 @@ GDALDataset *GDALDriver::DefaultCreateCopy( const char * pszFilename,
             CPLPopErrorHandler();
             CPLErrorReset();
         }
-        else 
+        else
             eErr = CPLGetLastErrorType();
     }
 
 /* -------------------------------------------------------------------- */
 /*      Copy image data.                                                */
 /* -------------------------------------------------------------------- */
-    if( eErr == CE_None )
-        eErr = GDALDatasetCopyWholeRaster( (GDALDatasetH) poSrcDS, 
-                                           (GDALDatasetH) poDstDS, 
+    if( eErr == CE_None && nDstBands > 0 )
+        eErr = GDALDatasetCopyWholeRaster( (GDALDatasetH) poSrcDS,
+                                           (GDALDatasetH) poDstDS,
                                            NULL, pfnProgress, pProgressData );
 
 /* -------------------------------------------------------------------- */
 /*      Should we copy some masks over?                                 */
 /* -------------------------------------------------------------------- */
-    if( eErr == CE_None )
+    if( eErr == CE_None && nDstBands > 0 )
         eErr = DefaultCopyMasks( poSrcDS, poDstDS, eErr );
+
+/* -------------------------------------------------------------------- */
+/*      Copy vector layers                                              */
+/* -------------------------------------------------------------------- */
+
+    if( eErr == CE_None )
+    {
+        if( nLayerCount > 0 && poDstDS->TestCapability(ODsCCreateLayer) )
+        {
+            for( int iLayer = 0; iLayer < nLayerCount; iLayer++ )
+            {
+                OGRLayer        *poLayer = poSrcDS->GetLayer(iLayer);
+
+                if( poLayer == NULL )
+                    continue;
+
+                poDstDS->CopyLayer( poLayer, poLayer->GetName(), NULL );
+            }
+        }
+    }
 
 /* -------------------------------------------------------------------- */
 /*      Try to cleanup the output dataset if the translation failed.    */
@@ -580,15 +663,15 @@ GDALDataset *GDALDriver::DefaultCreateCopy( const char * pszFilename,
  * \brief Create a copy of a dataset.
  *
  * This method will attempt to create a copy of a raster dataset with the
- * indicated filename, and in this drivers format.  Band number, size, 
+ * indicated filename, and in this drivers format.  Band number, size,
  * type, projection, geotransform and so forth are all to be copied from
- * the provided template dataset.  
+ * the provided template dataset.
  *
  * Note that many sequential write once formats (such as JPEG and PNG) don't
  * implement the Create() method but do implement this CreateCopy() method.
  * If the driver doesn't implement CreateCopy(), but does implement Create()
  * then the default CreateCopy() mechanism built on calling Create() will
- * be used.                                                             
+ * be used.
  *
  * It is intended that CreateCopy() will often be used with a source dataset
  * which is a virtual dataset allowing configuration of band types, and
@@ -608,26 +691,27 @@ GDALDataset *GDALDriver::DefaultCreateCopy( const char * pszFilename,
  * \ref gdal_api_proxy mechanism.
  *
  * @param pszFilename the name for the new dataset.  UTF-8 encoded.
- * @param poSrcDS the dataset being duplicated. 
- * @param bStrict TRUE if the copy must be strictly equivelent, or more
- * normally FALSE indicating that the copy may adapt as needed for the 
- * output format. 
- * @param papszOptions additional format dependent options controlling 
- * creation of the output file. 
+ * @param poSrcDS the dataset being duplicated.
+ * @param bStrict TRUE if the copy must be strictly equivalent, or more
+ * normally FALSE indicating that the copy may adapt as needed for the
+ * output format.
+ * @param papszOptions additional format dependent options controlling
+ * creation of the output file. The APPEND_SUBDATASET=YES option can be
+ * specified to avoid prior destruction of existing dataset.
  * @param pfnProgress a function to be used to report progress of the copy.
  * @param pProgressData application data passed into progress function.
  *
  * @return a pointer to the newly created dataset (may be read-only access).
  */
 
-GDALDataset *GDALDriver::CreateCopy( const char * pszFilename, 
-                                     GDALDataset * poSrcDS, 
+GDALDataset *GDALDriver::CreateCopy( const char * pszFilename,
+                                     GDALDataset * poSrcDS,
                                      int bStrict, char ** papszOptions,
                                      GDALProgressFunc pfnProgress,
                                      void * pProgressData )
 
 {
-    CPLLocaleC  oLocaleForcer;
+    //CPLLocaleC  oLocaleForcer;
 
     if( pfnProgress == NULL )
         pfnProgress = GDALDummyProgress;
@@ -649,7 +733,7 @@ GDALDataset *GDALDriver::CreateCopy( const char * pszFilename,
                 pfnProgress, pProgressData);
             if( poDstDS != NULL )
             {
-                if( poDstDS->GetDescription() == NULL 
+                if( poDstDS->GetDescription() == NULL
                     || strlen(poDstDS->GetDescription()) == 0 )
                     poDstDS->SetDescription( pszFilename );
 
@@ -668,23 +752,43 @@ GDALDataset *GDALDriver::CreateCopy( const char * pszFilename,
 /*      name.  But even if that seems to fail we will continue since    */
 /*      it might just be a corrupt file or something.                   */
 /* -------------------------------------------------------------------- */
-    if( !CSLFetchBoolean(papszOptions, "APPEND_SUBDATASET", FALSE) &&
+    const bool bAppendSubdataset
+        = CPL_TO_BOOL(CSLFetchBoolean(papszOptions, "APPEND_SUBDATASET", FALSE));
+    if( !bAppendSubdataset &&
         CSLFetchBoolean(papszOptions, "QUIET_DELETE_ON_CREATE_COPY", TRUE) )
         QuietDelete( pszFilename );
 
-    int iIdxQuietDeleteOnCreateCopy = 
-        CSLPartialFindString(papszOptions, "QUIET_DELETE_ON_CREATE_COPY=");
     char** papszOptionsToDelete = NULL;
+    int iIdxQuietDeleteOnCreateCopy =
+        CSLPartialFindString(papszOptions, "QUIET_DELETE_ON_CREATE_COPY=");
     if( iIdxQuietDeleteOnCreateCopy >= 0 )
     {
-        papszOptions = CSLRemoveStrings(CSLDuplicate(papszOptions), iIdxQuietDeleteOnCreateCopy, 1, NULL);
+        if( papszOptionsToDelete == NULL )
+            papszOptionsToDelete = CSLDuplicate(papszOptions);
+        papszOptions = CSLRemoveStrings(papszOptionsToDelete, iIdxQuietDeleteOnCreateCopy, 1, NULL);
         papszOptionsToDelete = papszOptions;
     }
-    
+
+/* -------------------------------------------------------------------- */
+/*      If _INTERNAL_DATASET=YES, the returned dataset will not be      */
+/*      registered in the global list of open datasets.                 */
+/* -------------------------------------------------------------------- */
+    int iIdxInternalDataset =
+        CSLPartialFindString(papszOptions, "_INTERNAL_DATASET=");
+    bool bInternalDataset = false;
+    if( iIdxInternalDataset >= 0 )
+    {
+        bInternalDataset = CPL_TO_BOOL(CSLFetchBoolean(papszOptions, "_INTERNAL_DATASET", FALSE));
+        if( papszOptionsToDelete == NULL )
+            papszOptionsToDelete = CSLDuplicate(papszOptions);
+        papszOptions = CSLRemoveStrings(papszOptionsToDelete, iIdxInternalDataset, 1, NULL);
+        papszOptionsToDelete = papszOptions;
+    }
+
 /* -------------------------------------------------------------------- */
 /*      Validate creation options.                                      */
 /* -------------------------------------------------------------------- */
-    if (CSLTestBoolean(CPLGetConfigOption("GDAL_VALIDATE_CREATION_OPTIONS", "YES")))
+    if (CPLTestBool(CPLGetConfigOption("GDAL_VALIDATE_CREATION_OPTIONS", "YES")))
         GDALValidateCreationOptions( this, papszOptions);
 
 /* -------------------------------------------------------------------- */
@@ -693,23 +797,28 @@ GDALDataset *GDALDriver::CreateCopy( const char * pszFilename,
 /*      Create() method.                                                */
 /* -------------------------------------------------------------------- */
     GDALDataset *poDstDS;
-    if( pfnCreateCopy != NULL && !CSLTestBoolean(CPLGetConfigOption("GDAL_DEFAULT_CREATE_COPY", "NO")) )
+    if( pfnCreateCopy != NULL && !CPLTestBool(CPLGetConfigOption("GDAL_DEFAULT_CREATE_COPY", "NO")) )
     {
         poDstDS = pfnCreateCopy( pszFilename, poSrcDS, bStrict, papszOptions,
                                  pfnProgress, pProgressData );
         if( poDstDS != NULL )
         {
-            if( poDstDS->GetDescription() == NULL 
+            if( poDstDS->GetDescription() == NULL
                 || strlen(poDstDS->GetDescription()) == 0 )
                 poDstDS->SetDescription( pszFilename );
 
             if( poDstDS->poDriver == NULL )
                 poDstDS->poDriver = this;
+
+            if( !bInternalDataset )
+                poDstDS->AddToDatasetOpenList();
         }
     }
     else
-        poDstDS = DefaultCreateCopy( pszFilename, poSrcDS, bStrict, 
+    {
+        poDstDS = DefaultCreateCopy( pszFilename, poSrcDS, bStrict,
                                   papszOptions, pfnProgress, pProgressData );
+    }
 
     CSLDestroy(papszOptionsToDelete);
     return poDstDS;
@@ -725,9 +834,9 @@ GDALDataset *GDALDriver::CreateCopy( const char * pszFilename,
  * @see GDALDriver::CreateCopy()
  */
 
-GDALDatasetH CPL_STDCALL GDALCreateCopy( GDALDriverH hDriver, 
-                             const char * pszFilename, 
-                             GDALDatasetH hSrcDS, 
+GDALDatasetH CPL_STDCALL GDALCreateCopy( GDALDriverH hDriver,
+                             const char * pszFilename,
+                             GDALDatasetH hSrcDS,
                              int bStrict, char ** papszOptions,
                              GDALProgressFunc pfnProgress,
                              void * pProgressData )
@@ -735,7 +844,7 @@ GDALDatasetH CPL_STDCALL GDALCreateCopy( GDALDriverH hDriver,
 {
     VALIDATE_POINTER1( hDriver, "GDALCreateCopy", NULL );
     VALIDATE_POINTER1( hSrcDS, "GDALCreateCopy", NULL );
-    
+
     return (GDALDatasetH) ((GDALDriver *) hDriver)->
         CreateCopy( pszFilename, (GDALDataset *) hSrcDS, bStrict, papszOptions,
                     pfnProgress, pProgressData );
@@ -765,14 +874,43 @@ GDALDatasetH CPL_STDCALL GDALCreateCopy( GDALDriverH hDriver,
 CPLErr GDALDriver::QuietDelete( const char *pszName )
 
 {
+    VSIStatBufL sStat;
+    int bExists = VSIStatExL(pszName, &sStat, VSI_STAT_EXISTS_FLAG | VSI_STAT_NATURE_FLAG) == 0;
+
+#ifdef S_ISFIFO
+    if( bExists && S_ISFIFO(sStat.st_mode) )
+        return CE_None;
+#endif
+
+    if( bExists &&
+        VSI_ISDIR(sStat.st_mode) )
+    {
+        /* It is not desirable to remove directories quietly */
+        /* Necessary to avoid ogr_mitab_12 to destroy file created at ogr_mitab_7 */
+        return CE_None;
+    }
+
+    CPLPushErrorHandler(CPLQuietErrorHandler);
     GDALDriver *poDriver = (GDALDriver*) GDALIdentifyDriver( pszName, NULL );
+    CPLPopErrorHandler();
 
     if( poDriver == NULL )
         return CE_None;
 
     CPLDebug( "GDAL", "QuietDelete(%s) invoking Delete()", pszName );
 
-    return poDriver->Delete( pszName );
+    CPLErr eErr;
+    int bQuiet = ( !bExists && poDriver->pfnDelete == NULL && poDriver->pfnDeleteDataSource == NULL );
+    if( bQuiet )
+        CPLPushErrorHandler(CPLQuietErrorHandler);
+    eErr  = poDriver->Delete( pszName );
+    if( bQuiet )
+    {
+        CPLPopErrorHandler();
+        CPLErrorReset();
+        eErr = CE_None;
+    }
+    return eErr;
 }
 
 /************************************************************************/
@@ -791,7 +929,7 @@ CPLErr GDALDriver::QuietDelete( const char *pszName )
  * It is unwise to have open dataset handles on this dataset when it is
  * deleted.
  *
- * Equivelent of the C function GDALDeleteDataset().
+ * Equivalent of the C function GDALDeleteDataset().
  *
  * @param pszFilename name of dataset to delete.
  *
@@ -803,28 +941,30 @@ CPLErr GDALDriver::Delete( const char * pszFilename )
 {
     if( pfnDelete != NULL )
         return pfnDelete( pszFilename );
+    else if( pfnDeleteDataSource != NULL )
+        return pfnDeleteDataSource( this, pszFilename );
 
 /* -------------------------------------------------------------------- */
 /*      Collect file list.                                              */
 /* -------------------------------------------------------------------- */
-    GDALDatasetH hDS = (GDALDataset *) GDALOpen(pszFilename,GA_ReadOnly);
-        
+    GDALDatasetH hDS = (GDALDataset *) GDALOpenEx(pszFilename,0,NULL,NULL,NULL);
+
     if( hDS == NULL )
     {
         if( CPLGetLastErrorNo() == 0 )
-            CPLError( CE_Failure, CPLE_OpenFailed, 
+            CPLError( CE_Failure, CPLE_OpenFailed,
                       "Unable to open %s to obtain file list.", pszFilename );
 
         return CE_Failure;
     }
 
     char **papszFileList = GDALGetFileList( hDS );
-        
+
     GDALClose( hDS );
 
     if( CSLCount( papszFileList ) == 0 )
     {
-        CPLError( CE_Failure, CPLE_NotSupported, 
+        CPLError( CE_Failure, CPLE_NotSupported,
                   "Unable to determine files associated with %s,\n"
                   "delete fails.", pszFilename );
 
@@ -872,7 +1012,7 @@ CPLErr CPL_STDCALL GDALDeleteDataset( GDALDriverH hDriver, const char * pszFilen
 
     if( hDriver == NULL )
     {
-        CPLError( CE_Failure, CPLE_AppDefined, 
+        CPLError( CE_Failure, CPLE_AppDefined,
                   "No identifiable driver for %s.",
                   pszFilename );
         return CE_Failure;
@@ -888,7 +1028,7 @@ CPLErr CPL_STDCALL GDALDeleteDataset( GDALDriverH hDriver, const char * pszFilen
 /*      there is no format specific implementation.                     */
 /************************************************************************/
 
-CPLErr GDALDriver::DefaultRename( const char * pszNewName, 
+CPLErr GDALDriver::DefaultRename( const char * pszNewName,
                                   const char *pszOldName )
 
 {
@@ -896,23 +1036,23 @@ CPLErr GDALDriver::DefaultRename( const char * pszNewName,
 /*      Collect file list.                                              */
 /* -------------------------------------------------------------------- */
     GDALDatasetH hDS = (GDALDataset *) GDALOpen(pszOldName,GA_ReadOnly);
-        
+
     if( hDS == NULL )
     {
         if( CPLGetLastErrorNo() == 0 )
-            CPLError( CE_Failure, CPLE_OpenFailed, 
+            CPLError( CE_Failure, CPLE_OpenFailed,
                       "Unable to open %s to obtain file list.", pszOldName );
 
         return CE_Failure;
     }
 
     char **papszFileList = GDALGetFileList( hDS );
-        
+
     GDALClose( hDS );
 
     if( CSLCount( papszFileList ) == 0 )
     {
-        CPLError( CE_Failure, CPLE_NotSupported, 
+        CPLError( CE_Failure, CPLE_NotSupported,
                   "Unable to determine files associated with %s,\n"
                   "rename fails.", pszOldName );
 
@@ -925,7 +1065,7 @@ CPLErr GDALDriver::DefaultRename( const char * pszNewName,
 /* -------------------------------------------------------------------- */
     CPLErr eErr = CE_None;
     int i;
-    char **papszNewFileList = 
+    char **papszNewFileList =
         CPLCorrespondingPaths( pszOldName, pszNewName, papszFileList );
 
     if( papszNewFileList == NULL )
@@ -936,7 +1076,7 @@ CPLErr GDALDriver::DefaultRename( const char * pszNewName,
         if( CPLMoveFile( papszNewFileList[i], papszFileList[i] ) != 0 )
         {
             eErr = CE_Failure;
-            // Try to put the ones we moved back. 
+            // Try to put the ones we moved back.
             for( --i; i >= 0; i-- )
                 CPLMoveFile( papszFileList[i], papszNewFileList[i] );
             break;
@@ -957,12 +1097,12 @@ CPLErr GDALDriver::DefaultRename( const char * pszNewName,
  * \brief Rename a dataset.
  *
  * Rename a dataset. This may including moving the dataset to a new directory
- * or even a new filesystem.  
+ * or even a new filesystem.
  *
  * It is unwise to have open dataset handles on this dataset when it is
- * being renamed. 
+ * being renamed.
  *
- * Equivelent of the C function GDALRenameDataset().
+ * Equivalent of the C function GDALRenameDataset().
  *
  * @param pszNewName new name for the dataset.
  * @param pszOldName old name for the dataset.
@@ -989,17 +1129,17 @@ CPLErr GDALDriver::Rename( const char * pszNewName, const char *pszOldName )
  * @see GDALDriver::Rename()
  */
 
-CPLErr CPL_STDCALL GDALRenameDataset( GDALDriverH hDriver, 
+CPLErr CPL_STDCALL GDALRenameDataset( GDALDriverH hDriver,
                                       const char * pszNewName,
                                       const char * pszOldName )
 
 {
     if( hDriver == NULL )
         hDriver = GDALIdentifyDriver( pszOldName, NULL );
-    
+
     if( hDriver == NULL )
     {
-        CPLError( CE_Failure, CPLE_AppDefined, 
+        CPLError( CE_Failure, CPLE_AppDefined,
                   "No identifiable driver for %s.",
                   pszOldName );
         return CE_Failure;
@@ -1015,7 +1155,7 @@ CPLErr CPL_STDCALL GDALRenameDataset( GDALDriverH hDriver,
 /*      there is no format specific implementation.                     */
 /************************************************************************/
 
-CPLErr GDALDriver::DefaultCopyFiles( const char * pszNewName, 
+CPLErr GDALDriver::DefaultCopyFiles( const char * pszNewName,
                                      const char *pszOldName )
 
 {
@@ -1023,23 +1163,23 @@ CPLErr GDALDriver::DefaultCopyFiles( const char * pszNewName,
 /*      Collect file list.                                              */
 /* -------------------------------------------------------------------- */
     GDALDatasetH hDS = (GDALDataset *) GDALOpen(pszOldName,GA_ReadOnly);
-        
+
     if( hDS == NULL )
     {
         if( CPLGetLastErrorNo() == 0 )
-            CPLError( CE_Failure, CPLE_OpenFailed, 
+            CPLError( CE_Failure, CPLE_OpenFailed,
                       "Unable to open %s to obtain file list.", pszOldName );
 
         return CE_Failure;
     }
 
     char **papszFileList = GDALGetFileList( hDS );
-        
+
     GDALClose( hDS );
 
     if( CSLCount( papszFileList ) == 0 )
     {
-        CPLError( CE_Failure, CPLE_NotSupported, 
+        CPLError( CE_Failure, CPLE_NotSupported,
                   "Unable to determine files associated with %s,\n"
                   "rename fails.", pszOldName );
 
@@ -1052,7 +1192,7 @@ CPLErr GDALDriver::DefaultCopyFiles( const char * pszNewName,
 /* -------------------------------------------------------------------- */
     CPLErr eErr = CE_None;
     int i;
-    char **papszNewFileList = 
+    char **papszNewFileList =
         CPLCorrespondingPaths( pszOldName, pszNewName, papszFileList );
 
     if( papszNewFileList == NULL )
@@ -1063,7 +1203,7 @@ CPLErr GDALDriver::DefaultCopyFiles( const char * pszNewName,
         if( CPLCopyFile( papszNewFileList[i], papszFileList[i] ) != 0 )
         {
             eErr = CE_Failure;
-            // Try to put the ones we moved back. 
+            // Try to put the ones we moved back.
             for( --i; i >= 0; i-- )
                 VSIUnlink( papszNewFileList[i] );
             break;
@@ -1085,7 +1225,7 @@ CPLErr GDALDriver::DefaultCopyFiles( const char * pszNewName,
  *
  * Copy all the files associated with a dataset.
  *
- * Equivelent of the C function GDALCopyDatasetFiles().
+ * Equivalent of the C function GDALCopyDatasetFiles().
  *
  * @param pszNewName new name for the dataset.
  * @param pszOldName old name for the dataset.
@@ -1112,17 +1252,17 @@ CPLErr GDALDriver::CopyFiles( const char * pszNewName, const char *pszOldName )
  * @see GDALDriver::CopyFiles()
  */
 
-CPLErr CPL_STDCALL GDALCopyDatasetFiles( GDALDriverH hDriver, 
+CPLErr CPL_STDCALL GDALCopyDatasetFiles( GDALDriverH hDriver,
                                          const char * pszNewName,
                                          const char * pszOldName )
 
 {
     if( hDriver == NULL )
         hDriver = GDALIdentifyDriver( pszOldName, NULL );
-    
+
     if( hDriver == NULL )
     {
-        CPLError( CE_Failure, CPLE_AppDefined, 
+        CPLError( CE_Failure, CPLE_AppDefined,
                   "No identifiable driver for %s.",
                   pszOldName );
         return CE_Failure;
@@ -1175,7 +1315,7 @@ const char * CPL_STDCALL GDALGetDriverLongName( GDALDriverH hDriver )
 {
     VALIDATE_POINTER1( hDriver, "GDALGetDriverLongName", NULL );
 
-    const char *pszLongName = 
+    const char *pszLongName =
         ((GDALDriver *) hDriver)->GetMetadataItem( GDAL_DMD_LONGNAME );
 
     if( pszLongName == NULL )
@@ -1229,7 +1369,7 @@ const char * CPL_STDCALL GDALGetDriverCreationOptionList( GDALDriverH hDriver )
 {
     VALIDATE_POINTER1( hDriver, "GDALGetDriverCreationOptionList", NULL );
 
-    const char *pszOptionList = 
+    const char *pszOptionList =
         ((GDALDriver *) hDriver)->GetMetadataItem( GDAL_DMD_CREATIONOPTIONLIST );
 
     if( pszOptionList == NULL )
@@ -1254,7 +1394,7 @@ const char * CPL_STDCALL GDALGetDriverCreationOptionList( GDALDriverH hDriver )
  * function will return TRUE. Otherwise it will check that the keys and values
  * in the list of creation options are compatible with the capabilities declared
  * by the GDAL_DMD_CREATIONOPTIONLIST metadata item. In case of incompatibility
- * a (non fatal) warning will be emited and FALSE will be returned.
+ * a (non fatal) warning will be emitted and FALSE will be returned.
  *
  * @param hDriver the handle of the driver with whom the lists of creation option
  *                must be validated
@@ -1267,39 +1407,97 @@ const char * CPL_STDCALL GDALGetDriverCreationOptionList( GDALDriverH hDriver )
 int CPL_STDCALL GDALValidateCreationOptions( GDALDriverH hDriver,
                                              char** papszCreationOptions)
 {
-    int bRet = TRUE;
     VALIDATE_POINTER1( hDriver, "GDALValidateCreationOptions", FALSE );
-
-    const char *pszOptionList = 
+    const char *pszOptionList =
         ((GDALDriver *) hDriver)->GetMetadataItem( GDAL_DMD_CREATIONOPTIONLIST );
+    CPLString osDriver;
+    osDriver.Printf("driver %s", ((GDALDriver *) hDriver)->GetDescription());
+    char** papszOptionsToValidate = papszCreationOptions;
+    char** papszOptionsToFree = NULL;
+    if( CSLFetchNameValue( papszCreationOptions, "APPEND_SUBDATASET") )
+    {
+        papszOptionsToValidate = papszOptionsToFree =
+            CSLSetNameValue(CSLDuplicate(papszCreationOptions), "APPEND_SUBDATASET", NULL);
+    }
+    int bRet = GDALValidateOptions( pszOptionList,
+                                (const char* const* )papszOptionsToValidate,
+                                "creation option",
+                                osDriver);
+    CSLDestroy(papszOptionsToFree);
+    return bRet;
+}
 
-    if( papszCreationOptions == NULL || *papszCreationOptions == NULL)
+/************************************************************************/
+/*                     GDALValidateOpenOptions()                        */
+/************************************************************************/
+
+int GDALValidateOpenOptions( GDALDriverH hDriver,
+                             const char* const* papszOpenOptions)
+{
+    VALIDATE_POINTER1( hDriver, "GDALValidateOpenOptions", FALSE );
+    const char *pszOptionList =
+        ((GDALDriver *) hDriver)->GetMetadataItem( GDAL_DMD_OPENOPTIONLIST );
+    CPLString osDriver;
+    osDriver.Printf("driver %s", ((GDALDriver *) hDriver)->GetDescription());
+    return GDALValidateOptions( pszOptionList, papszOpenOptions,
+                                "open option",
+                                osDriver);
+}
+
+/************************************************************************/
+/*                           GDALValidateOptions()                      */
+/************************************************************************/
+
+int GDALValidateOptions( const char* pszOptionList,
+                         const char* const* papszOptionsToValidate,
+                         const char* pszErrorMessageOptionType,
+                         const char* pszErrorMessageContainerName)
+{
+    int bRet = TRUE;
+
+    if( papszOptionsToValidate == NULL || *papszOptionsToValidate == NULL)
         return TRUE;
     if( pszOptionList == NULL )
         return TRUE;
-    
+
     CPLXMLNode* psNode = CPLParseXMLString(pszOptionList);
     if (psNode == NULL)
     {
         CPLError(CE_Warning, CPLE_AppDefined,
-                 "Could not parse creation option list of driver %s. Assuming creation options are valid.",
-                 ((GDALDriver *) hDriver)->GetDescription());
+                 "Could not parse %s list of %s. Assuming options are valid.",
+                 pszErrorMessageOptionType, pszErrorMessageContainerName);
         return TRUE;
     }
 
-    while(*papszCreationOptions)
+    while(*papszOptionsToValidate)
     {
         char* pszKey = NULL;
-        const char* pszValue = CPLParseNameValue(*papszCreationOptions, &pszKey);
+        const char* pszValue = CPLParseNameValue(*papszOptionsToValidate, &pszKey);
         if (pszKey == NULL)
         {
             CPLError(CE_Warning, CPLE_NotSupported,
-                     "Creation option '%s' is not formatted with the key=value format",
-                     *papszCreationOptions);
+                     "%s '%s' is not formatted with the key=value format",
+                     pszErrorMessageOptionType,
+                     *papszOptionsToValidate);
             bRet = FALSE;
 
-            papszCreationOptions ++;
+            papszOptionsToValidate ++;
             continue;
+        }
+
+        if( EQUAL(pszKey, "VALIDATE_OPEN_OPTIONS") )
+        {
+            papszOptionsToValidate ++;
+            CPLFree(pszKey);
+            continue;
+        }
+
+        // Must we be forgiving in case of missing option ?
+        bool bWarnIfMissingKey = true;
+        if( pszKey[0] == '@' )
+        {
+            bWarnIfMissingKey = false;
+            memmove(pszKey, pszKey + 1, strlen(pszKey+1)+1);
         }
 
         CPLXMLNode* psChildNode = psNode->psChild;
@@ -1316,9 +1514,24 @@ int CPL_STDCALL GDALValidateCreationOptions( GDALDriverH hDriver,
                     break;
                 }
 
-                if (EQUAL(pszOptionName, pszKey) ||
-                    EQUAL(CPLGetXMLValue(psChildNode, "alias", ""), pszKey))
+                /* For option names beginning by a wildcard */
+                if( pszOptionName[0] == '*' &&
+                    strlen(pszKey) > strlen(pszOptionName) &&
+                    EQUAL( pszKey + strlen(pszKey) - strlen(pszOptionName + 1), pszOptionName + 1 ) )
                 {
+                    break;
+                }
+
+                if (EQUAL(pszOptionName, pszKey) )
+                {
+                    break;
+                }
+                const char* pszAlias = CPLGetXMLValue(psChildNode, "alias",
+                            CPLGetXMLValue(psChildNode, "deprecated_alias", ""));
+                if (EQUAL(pszAlias, pszKey) )
+                {
+                    CPLDebug("GDAL", "Using deprecated alias '%s'. New name is '%s'",
+                             pszAlias, pszOptionName);
                     break;
                 }
             }
@@ -1326,17 +1539,57 @@ int CPL_STDCALL GDALValidateCreationOptions( GDALDriverH hDriver,
         }
         if (psChildNode == NULL)
         {
-            CPLError(CE_Warning, CPLE_NotSupported,
-                     "Driver %s does not support %s creation option",
-                     ((GDALDriver *) hDriver)->GetDescription(),
-                     pszKey);
-            CPLFree(pszKey);
-            bRet = FALSE;
+            if( bWarnIfMissingKey &&
+                (!EQUAL(pszErrorMessageOptionType, "open option") ||
+                 CSLFetchBoolean((char**)papszOptionsToValidate, "VALIDATE_OPEN_OPTIONS", TRUE)) )
+            {
+                CPLError(CE_Warning, CPLE_NotSupported,
+                        "%s does not support %s %s",
+                        pszErrorMessageContainerName,
+                        pszErrorMessageOptionType,
+                        pszKey);
+                bRet = FALSE;
+            }
 
-            papszCreationOptions ++;
+            CPLFree(pszKey);
+            papszOptionsToValidate ++;
             continue;
         }
+
+#ifdef DEBUG
+        CPLXMLNode* psChildSubNode = psChildNode->psChild;
+        while(psChildSubNode)
+        {
+            if( psChildSubNode->eType == CXT_Attribute )
+            {
+                if( !(EQUAL(psChildSubNode->pszValue, "name") ||
+                      EQUAL(psChildSubNode->pszValue, "alias") ||
+                      EQUAL(psChildSubNode->pszValue, "deprecated_alias") ||
+                      EQUAL(psChildSubNode->pszValue, "alt_config_option") ||
+                      EQUAL(psChildSubNode->pszValue, "description") ||
+                      EQUAL(psChildSubNode->pszValue, "type") ||
+                      EQUAL(psChildSubNode->pszValue, "min") ||
+                      EQUAL(psChildSubNode->pszValue, "max") ||
+                      EQUAL(psChildSubNode->pszValue, "default") ||
+                      EQUAL(psChildSubNode->pszValue, "maxsize") ||
+                      EQUAL(psChildSubNode->pszValue, "required")) )
+                {
+                    /* Driver error */
+                    CPLError(CE_Warning, CPLE_NotSupported,
+                             "%s : unhandled attribute '%s' for %s %s.",
+                             pszErrorMessageContainerName,
+                             psChildSubNode->pszValue,
+                             pszKey,
+                             pszErrorMessageOptionType);
+                }
+            }
+            psChildSubNode = psChildSubNode->psNext;
+        }
+#endif
+
         const char* pszType = CPLGetXMLValue(psChildNode, "type", NULL);
+        const char* pszMin = CPLGetXMLValue(psChildNode, "min", NULL);
+        const char* pszMax = CPLGetXMLValue(psChildNode, "max", NULL);
         if (pszType != NULL)
         {
             if (EQUAL(pszType, "INT") || EQUAL(pszType, "INTEGER"))
@@ -1348,12 +1601,29 @@ int CPL_STDCALL GDALValidateCreationOptions( GDALDriverH hDriver,
                            *pszValueIter == '+' || *pszValueIter == '-'))
                     {
                         CPLError(CE_Warning, CPLE_NotSupported,
-                             "'%s' is an unexpected value for %s creation option of type int.",
-                             pszValue, pszKey);
+                             "'%s' is an unexpected value for %s %s of type int.",
+                             pszValue, pszKey, pszErrorMessageOptionType);
                         bRet = FALSE;
                         break;
                     }
                     pszValueIter++;
+                }
+                if( *pszValueIter == '0' )
+                {
+                    if( pszMin && atoi(pszValue) < atoi(pszMin) )
+                    {
+                        CPLError(CE_Warning, CPLE_NotSupported,
+                             "'%s' is an unexpected value for %s %s that should be >= %s.",
+                             pszValue, pszKey, pszErrorMessageOptionType, pszMin);
+                        break;
+                    }
+                    if( pszMax && atoi(pszValue) > atoi(pszMax) )
+                    {
+                        CPLError(CE_Warning, CPLE_NotSupported,
+                             "'%s' is an unexpected value for %s %s that should be <= %s.",
+                             pszValue, pszKey, pszErrorMessageOptionType, pszMax);
+                        break;
+                    }
                 }
             }
             else if (EQUAL(pszType, "UNSIGNED INT"))
@@ -1365,24 +1635,60 @@ int CPL_STDCALL GDALValidateCreationOptions( GDALDriverH hDriver,
                            *pszValueIter == '+'))
                     {
                         CPLError(CE_Warning, CPLE_NotSupported,
-                             "'%s' is an unexpected value for %s creation option of type unsigned int.",
-                             pszValue, pszKey);
+                             "'%s' is an unexpected value for %s %s of type unsigned int.",
+                             pszValue, pszKey, pszErrorMessageOptionType);
                         bRet = FALSE;
                         break;
                     }
                     pszValueIter++;
+                    if( *pszValueIter == '0' )
+                    {
+                        if( pszMin && atoi(pszValue) < atoi(pszMin) )
+                        {
+                            CPLError(CE_Warning, CPLE_NotSupported,
+                                "'%s' is an unexpected value for %s %s that should be >= %s.",
+                                pszValue, pszKey, pszErrorMessageOptionType, pszMin);
+                            break;
+                        }
+                        if( pszMax && atoi(pszValue) > atoi(pszMax) )
+                        {
+                            CPLError(CE_Warning, CPLE_NotSupported,
+                                "'%s' is an unexpected value for %s %s that should be <= %s.",
+                                pszValue, pszKey, pszErrorMessageOptionType, pszMax);
+                            break;
+                        }
+                    }
                 }
             }
             else if (EQUAL(pszType, "FLOAT"))
             {
                 char* endPtr = NULL;
-                CPLStrtod(pszValue, &endPtr);
+                double dfVal = CPLStrtod(pszValue, &endPtr);
                 if ( !(endPtr == NULL || *endPtr == '\0') )
                 {
                     CPLError(CE_Warning, CPLE_NotSupported,
-                             "'%s' is an unexpected value for %s creation option of type float.",
-                             pszValue, pszKey);
+                             "'%s' is an unexpected value for %s %s of type float.",
+                             pszValue, pszKey, pszErrorMessageOptionType);
                     bRet = FALSE;
+                }
+                else
+                {
+                    if( pszMin && dfVal < CPLAtof(pszMin) )
+                    {
+                        CPLError(CE_Warning, CPLE_NotSupported,
+                             "'%s' is an unexpected value for %s %s that should be >= %s.",
+                             pszValue, pszKey, pszErrorMessageOptionType, pszMin);
+                        CPLFree(pszKey);
+                        break;
+                    }
+                    if( pszMax && dfVal > CPLAtof(pszMax) )
+                    {
+                        CPLError(CE_Warning, CPLE_NotSupported,
+                             "'%s' is an unexpected value for %s %s that should be <= %s.",
+                             pszValue, pszKey, pszErrorMessageOptionType, pszMax);
+                        CPLFree(pszKey);
+                        break;
+                    }
                 }
             }
             else if (EQUAL(pszType, "BOOLEAN"))
@@ -1391,14 +1697,14 @@ int CPL_STDCALL GDALValidateCreationOptions( GDALDriverH hDriver,
                       EQUAL(pszValue, "OFF") || EQUAL(pszValue, "FALSE") || EQUAL(pszValue, "NO")))
                 {
                     CPLError(CE_Warning, CPLE_NotSupported,
-                             "'%s' is an unexpected value for %s creation option of type boolean.",
-                             pszValue, pszKey);
+                             "'%s' is an unexpected value for %s %s of type boolean.",
+                             pszValue, pszKey, pszErrorMessageOptionType);
                     bRet = FALSE;
                 }
             }
             else if (EQUAL(pszType, "STRING-SELECT"))
             {
-                int bMatchFound = FALSE;
+                bool bMatchFound = false;
                 CPLXMLNode* psStringSelect = psChildNode->psChild;
                 while(psStringSelect)
                 {
@@ -1411,7 +1717,7 @@ int CPL_STDCALL GDALValidateCreationOptions( GDALDriverH hDriver,
                             if (psOptionNode->eType == CXT_Text &&
                                 EQUAL(psOptionNode->pszValue, pszValue))
                             {
-                                bMatchFound = TRUE;
+                                bMatchFound = true;
                                 break;
                             }
                             psOptionNode = psOptionNode->psNext;
@@ -1424,8 +1730,8 @@ int CPL_STDCALL GDALValidateCreationOptions( GDALDriverH hDriver,
                 if (!bMatchFound)
                 {
                     CPLError(CE_Warning, CPLE_NotSupported,
-                             "'%s' is an unexpected value for %s creation option of type string-select.",
-                             pszValue, pszKey);
+                             "'%s' is an unexpected value for %s %s of type string-select.",
+                             pszValue, pszKey, pszErrorMessageOptionType);
                     bRet = FALSE;
                 }
             }
@@ -1437,8 +1743,9 @@ int CPL_STDCALL GDALValidateCreationOptions( GDALDriverH hDriver,
                     if ((int)strlen(pszValue) > atoi(pszMaxSize))
                     {
                         CPLError(CE_Warning, CPLE_NotSupported,
-                             "'%s' is of size %d, whereas maximum size for %s creation option is %d.",
-                             pszValue, (int)strlen(pszValue), pszKey, atoi(pszMaxSize));
+                             "'%s' is of size %d, whereas maximum size for %s %s is %d.",
+                             pszValue, (int)strlen(pszValue), pszKey,
+                                 pszErrorMessageOptionType, atoi(pszMaxSize));
                         bRet = FALSE;
                     }
                 }
@@ -1447,22 +1754,24 @@ int CPL_STDCALL GDALValidateCreationOptions( GDALDriverH hDriver,
             {
                 /* Driver error */
                 CPLError(CE_Warning, CPLE_NotSupported,
-                     "Driver %s : type '%s' for %s creation option is not recognized.",
-                     ((GDALDriver *) hDriver)->GetDescription(),
-                     pszType,
-                     pszKey);
+                         "%s : type '%s' for %s %s is not recognized.",
+                         pszErrorMessageContainerName,
+                         pszType,
+                         pszKey,
+                         pszErrorMessageOptionType);
             }
         }
         else
         {
             /* Driver error */
             CPLError(CE_Warning, CPLE_NotSupported,
-                     "Driver %s : no type for %s creation option.",
-                     ((GDALDriver *) hDriver)->GetDescription(),
-                     pszKey);
+                     "%s : no type for %s %s.",
+                     pszErrorMessageContainerName,
+                     pszKey,
+                     pszErrorMessageOptionType);
         }
         CPLFree(pszKey);
-        papszCreationOptions++;
+        papszOptionsToValidate++;
     }
 
     CPLDestroyXMLNode(psNode);
@@ -1477,7 +1786,7 @@ int CPL_STDCALL GDALValidateCreationOptions( GDALDriverH hDriver,
  * \brief Identify the driver that can open a raster file.
  *
  * This function will try to identify the driver that can open the passed file
- * name by invoking the Identify method of each registered GDALDriver in turn. 
+ * name by invoking the Identify method of each registered GDALDriver in turn.
  * The first driver that successful identifies the file name will be returned.
  * If all drivers fail then NULL is returned.
  *
@@ -1485,7 +1794,7 @@ int CPL_STDCALL GDALValidateCreationOptions( GDALDriverH hDriver,
  * file system machinery, it is possible to give an optional list of files.
  * This is the list of all files at the same level in the file system as the
  * target file, including the target file. The filenames will not include any
- * path components, are an essentially just the output of CPLReadDir() on the
+ * path components, are an essentially just the output of VSIReadDir() on the
  * parent directory. If the target object does not have filesystem semantics
  * then the file list should be NULL.
  *
@@ -1498,24 +1807,46 @@ int CPL_STDCALL GDALValidateCreationOptions( GDALDriverH hDriver,
  * value may be NULL.
  *
  * @return A GDALDriverH handle or NULL on failure.  For C++ applications
- * this handle can be cast to a GDALDriver *. 
+ * this handle can be cast to a GDALDriver *.
  */
 
 
-GDALDriverH CPL_STDCALL 
-GDALIdentifyDriver( const char * pszFilename, 
+GDALDriverH CPL_STDCALL
+GDALIdentifyDriver( const char * pszFilename,
                     char **papszFileList )
 
 {
     int         	iDriver;
     GDALDriverManager  *poDM = GetGDALDriverManager();
     GDALOpenInfo        oOpenInfo( pszFilename, GA_ReadOnly, papszFileList );
-    CPLLocaleC          oLocaleForcer;
+    //CPLLocaleC          oLocaleForcer;
 
     CPLErrorReset();
     CPLAssert( NULL != poDM );
-    
-    for( iDriver = -1; iDriver < poDM->GetDriverCount(); iDriver++ )
+
+    int nDriverCount = poDM->GetDriverCount();
+
+    // First pass: only use drivers that have a pfnIdentify implementation
+    for( iDriver = -1; iDriver < nDriverCount; iDriver++ )
+    {
+        GDALDriver      *poDriver;
+
+        if( iDriver < 0 )
+            poDriver = GDALGetAPIPROXYDriver();
+        else
+            poDriver = poDM->GetDriver( iDriver );
+
+        VALIDATE_POINTER1( poDriver, "GDALIdentifyDriver", NULL );
+
+        if( poDriver->pfnIdentify != NULL )
+        {
+            if( poDriver->pfnIdentify( &oOpenInfo ) > 0 )
+                return (GDALDriverH) poDriver;
+        }
+    }
+
+    // Second pass: slow method
+    for( iDriver = -1; iDriver < nDriverCount; iDriver++ )
     {
         GDALDriver      *poDriver;
         GDALDataset     *poDS;
@@ -1529,12 +1860,25 @@ GDALIdentifyDriver( const char * pszFilename,
 
         if( poDriver->pfnIdentify != NULL )
         {
-            if( poDriver->pfnIdentify( &oOpenInfo ) )
-                return (GDALDriverH) poDriver;
+            if( poDriver->pfnIdentify( &oOpenInfo ) == 0 )
+                continue;
         }
-        else if( poDriver->pfnOpen != NULL )
+
+        if( poDriver->pfnOpen != NULL )
         {
             poDS = poDriver->pfnOpen( &oOpenInfo );
+            if( poDS != NULL )
+            {
+                delete poDS;
+                return (GDALDriverH) poDriver;
+            }
+
+            if( CPLGetLastErrorNo() != 0 )
+                return NULL;
+        }
+        else if( poDriver->pfnOpenWithDriverArg != NULL )
+        {
+            poDS = poDriver->pfnOpenWithDriverArg( poDriver, &oOpenInfo );
             if( poDS != NULL )
             {
                 delete poDS;
@@ -1547,4 +1891,25 @@ GDALIdentifyDriver( const char * pszFilename,
     }
 
     return NULL;
+}
+
+/************************************************************************/
+/*                          SetMetadataItem()                           */
+/************************************************************************/
+
+CPLErr GDALDriver::SetMetadataItem( const char * pszName,
+                                    const char * pszValue,
+                                    const char * pszDomain )
+
+{
+    if( pszDomain == NULL || pszDomain[0] == '\0' )
+    {
+        /* Automatically sets GDAL_DMD_EXTENSIONS from GDAL_DMD_EXTENSION */
+        if( EQUAL(pszName, GDAL_DMD_EXTENSION) &&
+            GDALMajorObject::GetMetadataItem(GDAL_DMD_EXTENSIONS) == NULL )
+        {
+            GDALMajorObject::SetMetadataItem(GDAL_DMD_EXTENSIONS, pszValue);
+        }
+    }
+    return GDALMajorObject::SetMetadataItem(pszName, pszValue, pszDomain);
 }

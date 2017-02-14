@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogridblayer.cpp 10645 2007-01-18 02:22:39Z warmerdam $
+ * $Id: ogridblayer.cpp 33714 2016-03-13 05:42:13Z goatbar $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implements OGRIDBLayer class, code shared between
@@ -33,7 +33,7 @@
 #include "ogr_idb.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: ogridblayer.cpp 10645 2007-01-18 02:22:39Z warmerdam $");
+CPL_CVSID("$Id: ogridblayer.cpp 33714 2016-03-13 05:42:13Z goatbar $");
 
 /************************************************************************/
 /*                            OGRIDBLayer()                            */
@@ -53,7 +53,7 @@ OGRIDBLayer::OGRIDBLayer()
     iNextShapeId = 0;
 
     poSRS = NULL;
-    nSRSId = -2; // we haven't even queried the database for it yet. 
+    nSRSId = -2; // we haven't even queried the database for it yet.
 }
 
 /************************************************************************/
@@ -93,11 +93,12 @@ OGRIDBLayer::~OGRIDBLayer()
 /*      set on a statement.  Sift out geometry and FID fields.          */
 /************************************************************************/
 
-CPLErr OGRIDBLayer::BuildFeatureDefn( const char *pszLayerName, 
+CPLErr OGRIDBLayer::BuildFeatureDefn( const char *pszLayerName,
                                     ITCursor *poCurr )
 
 {
     poFeatureDefn = new OGRFeatureDefn( pszLayerName );
+    SetDescription( poFeatureDefn->GetName() );
     const ITTypeInfo * poInfo = poCurr->RowType();
     int    nRawColumns = poInfo->ColumnCount();
 
@@ -116,7 +117,7 @@ CPLErr OGRIDBLayer::BuildFeatureDefn( const char *pszLayerName,
         if ( pszGeomColumn != NULL && EQUAL(pszColName,pszGeomColumn) )
             continue;
 
-        if ( EQUALN("st_", pszTypName, 3) && pszGeomColumn == NULL )
+        if ( STARTS_WITH_CI(pszTypName, "st_") && pszGeomColumn == NULL )
         {
             // We found spatial column!
             pszGeomColumn = CPLStrdup(pszColName);
@@ -142,17 +143,17 @@ CPLErr OGRIDBLayer::BuildFeatureDefn( const char *pszLayerName,
              EQUAL( pszTypName, "byte" ) ||
              EQUAL( pszTypName, "opaque" ) ||
              EQUAL( pszTypName, "text" ) ||
-             EQUALN( pszTypName, "list", 4 ) ||
-             EQUALN( pszTypName, "collection", 10 ) ||
-             EQUALN( pszTypName, "row", 3 ) ||
-             EQUALN( pszTypName, "set", 3 ) )
+             STARTS_WITH_CI(pszTypName, "list") ||
+             STARTS_WITH_CI(pszTypName, "collection") ||
+             STARTS_WITH_CI(pszTypName, "row") ||
+             STARTS_WITH_CI(pszTypName, "set") )
         {
             CPLDebug( "OGR_IDB", "'%s' column type not supported yet. Column '%s'",
                       pszTypName, pszColName );
             continue;
         }
 
-        if ( EQUALN( pszTypName, "st_", 3 ) )
+        if ( STARTS_WITH_CI(pszTypName, "st_") )
         {
             oField.SetType( OFTBinary );
         }
@@ -188,7 +189,7 @@ CPLErr OGRIDBLayer::BuildFeatureDefn( const char *pszLayerName,
         else
         {
             // leave as string:
-            // *char, character, character varing, *varchar
+            // *char, character, character varying, *varchar
             // interval. int8, serial8
         }
 
@@ -234,7 +235,7 @@ void OGRIDBLayer::ResetReading()
 OGRFeature *OGRIDBLayer::GetNextFeature()
 
 {
-    for( ; TRUE; )
+    while( true )
     {
         OGRFeature      *poFeature;
 
@@ -389,7 +390,7 @@ OGRFeature *OGRIDBLayer::GetNextRawFeature()
 /*                             GetFeature()                             */
 /************************************************************************/
 
-OGRFeature *OGRIDBLayer::GetFeature( long nFeatureId )
+OGRFeature *OGRIDBLayer::GetFeature( GIntBig nFeatureId )
 
 {
     /* This should be implemented directly! */

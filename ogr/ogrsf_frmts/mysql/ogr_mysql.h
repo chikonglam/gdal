@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_mysql.h 27044 2014-03-16 23:41:27Z rouault $
+ * $Id: ogr_mysql.h 33713 2016-03-12 17:41:57Z goatbar $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Declarations for MySQL OGR Driver Classes.
@@ -29,11 +29,23 @@
  * DEALINGS IN THE SOFTWARE.
  ****************************************************************************/
 
-#ifndef _OGR_MYSQL_H_INCLUDED
-#define _OGR_MYSQL_H_INCLUDED
+#ifndef OGR_MYSQL_H_INCLUDED
+#define OGR_MYSQL_H_INCLUDED
+
+
+#ifdef _MSC_VER
+#pragma warning( push )
+#pragma warning( disable : 4324 ) /* 'my_alignment_imp<0x02>' : structure was padded due to __declspec(align()) */
+#pragma warning( disable : 4201 ) /* nonstandard extension used : nameless struct/union */
+#pragma warning( disable : 4211 ) /* nonstandard extension used : redefined extern to static */
+#endif
 
 #include <my_global.h>
 #include <mysql.h>
+
+#ifdef _MSC_VER
+#pragma warning( pop )
+#endif
 
 /* my_global.h from mysql 5.1 declares the min and max macros. */
 /* This conflicts with templates in g++-4.3.2 header files. Grrr */
@@ -56,7 +68,7 @@
 /************************************************************************/
 
 class OGRMySQLDataSource;
-    
+
 class OGRMySQLLayer : public OGRLayer
 {
   protected:
@@ -66,10 +78,10 @@ class OGRMySQLLayer : public OGRLayer
     OGRSpatialReference *poSRS;
     int                 nSRSId;
 
-    int                 iNextShapeId;
+    GIntBig             iNextShapeId;
 
     OGRMySQLDataSource    *poDS;
- 
+
     char               *pszQueryStatement;
 
     int                 nResultOffset;
@@ -93,8 +105,8 @@ class OGRMySQLLayer : public OGRLayer
 
     virtual OGRFeature *GetNextFeature();
 
-    virtual OGRFeature *GetFeature( long nFeatureId );
-    
+    virtual OGRFeature *GetFeature( GIntBig nFeatureId );
+
     OGRFeatureDefn *    GetLayerDefn() { return poFeatureDefn; }
 
     virtual OGRSpatialReference *GetSpatialRef();
@@ -126,7 +138,7 @@ class OGRMySQLTableLayer : public OGRMySQLLayer
 
     int                 bLaunderColumnNames;
     int                 bPreservePrecision;
-    
+
   public:
                         OGRMySQLTableLayer( OGRMySQLDataSource *,
                                          const char * pszName,
@@ -134,28 +146,32 @@ class OGRMySQLTableLayer : public OGRMySQLLayer
                         ~OGRMySQLTableLayer();
 
     OGRErr              Initialize(const char* pszTableName);
-    
-    virtual OGRFeature *GetFeature( long nFeatureId );
+
+    virtual OGRFeature *GetFeature( GIntBig nFeatureId );
     virtual void        ResetReading();
-    virtual int         GetFeatureCount( int );
+    virtual GIntBig     GetFeatureCount( int );
 
     void                SetSpatialFilter( OGRGeometry * );
+    virtual void        SetSpatialFilter( int iGeomField, OGRGeometry *poGeom )
+                { OGRLayer::SetSpatialFilter(iGeomField, poGeom); }
 
     virtual OGRErr      SetAttributeFilter( const char * );
-    virtual OGRErr      CreateFeature( OGRFeature *poFeature );
-    virtual OGRErr      DeleteFeature( long nFID );
-    virtual OGRErr      SetFeature( OGRFeature *poFeature );
-    
+    virtual OGRErr      ICreateFeature( OGRFeature *poFeature );
+    virtual OGRErr      DeleteFeature( GIntBig nFID );
+    virtual OGRErr      ISetFeature( OGRFeature *poFeature );
+
     virtual OGRErr      CreateField( OGRFieldDefn *poField,
                                      int bApproxOK = TRUE );
 
     void                SetLaunderFlag( int bFlag )
                                 { bLaunderColumnNames = bFlag; }
     void                SetPrecisionFlag( int bFlag )
-                                { bPreservePrecision = bFlag; }    
+                                { bPreservePrecision = bFlag; }
 
     virtual int         TestCapability( const char * );
-	virtual OGRErr      GetExtent(OGREnvelope *psExtent, int bForce = TRUE);
+    virtual OGRErr      GetExtent(OGREnvelope *psExtent, int bForce = TRUE);
+    virtual OGRErr      GetExtent(int iGeomField, OGREnvelope *psExtent, int bForce)
+                { return OGRLayer::GetExtent(iGeomField, psExtent, bForce); }
 };
 
 /************************************************************************/
@@ -167,10 +183,10 @@ class OGRMySQLResultLayer : public OGRMySQLLayer
     void                BuildFullQueryStatement(void);
 
     char                *pszRawStatement;
-    
+
     // Layer srid.
     int                 nSRSId;
-    
+
   public:
                         OGRMySQLResultLayer( OGRMySQLDataSource *,
                                              const char * pszRawStatement,
@@ -181,7 +197,7 @@ class OGRMySQLResultLayer : public OGRMySQLLayer
 
 
     virtual void        ResetReading();
-    virtual int         GetFeatureCount( int );
+    virtual GIntBig     GetFeatureCount( int );
 
     virtual int         TestCapability( const char * );
 };
@@ -194,25 +210,23 @@ class OGRMySQLDataSource : public OGRDataSource
 {
     OGRMySQLLayer       **papoLayers;
     int                 nLayers;
-    
+
     char               *pszName;
 
     int                 bDSUpdate;
 
-    int                 nSoftTransactionLevel;
-
     MYSQL              *hConn;
 
-    int                DeleteLayer( int iLayer );
+    OGRErr              DeleteLayer( int iLayer );
 
     // We maintain a list of known SRID to reduce the number of trips to
-    // the database to get SRSes. 
+    // the database to get SRSes.
     int                 nKnownSRID;
     int                *panSRID;
     OGRSpatialReference **papoSRS;
 
     OGRMySQLLayer      *poLongResultLayer;
-    
+
   public:
                         OGRMySQLDataSource();
                         ~OGRMySQLDataSource();
@@ -226,14 +240,14 @@ class OGRMySQLDataSource : public OGRDataSource
 
     OGRErr              InitializeMetadataTables();
 
-    int                 Open( const char *, int bUpdate, int bTestOpen );
-    int                 OpenTable( const char *, int bUpdate, int bTestOpen );
+    int                 Open( const char *, char** papszOpenOptions, int bUpdate );
+    int                 OpenTable( const char *, int bUpdate );
 
     const char          *GetName() { return pszName; }
     int                 GetLayerCount() { return nLayers; }
     OGRLayer            *GetLayer( int );
 
-    virtual OGRLayer    *CreateLayer( const char *, 
+    virtual OGRLayer    *ICreateLayer( const char *,
                                       OGRSpatialReference * = NULL,
                                       OGRwkbGeometryType = wkbUnknown,
                                       char ** = NULL );
@@ -249,30 +263,11 @@ class OGRMySQLDataSource : public OGRDataSource
     // nonstandard
 
     void                ReportError( const char * = NULL );
-    
+
     char               *LaunderName( const char * );
 
     void                RequestLongResult( OGRMySQLLayer * );
     void                InterruptLongResult();
 };
 
-/************************************************************************/
-/*                            OGRMySQLDriver                            */
-/************************************************************************/
-
-class OGRMySQLDriver : public OGRSFDriver
-{
-  public:
-                ~OGRMySQLDriver();
-                
-    const char *GetName();
-    OGRDataSource *Open( const char *, int );
-    virtual OGRDataSource *CreateDataSource( const char *pszName,
-                                             char ** = NULL );
-    int                 TestCapability( const char * );
-};
-
-
-#endif /* ndef _OGR_MYSQL_H_INCLUDED */
-
-
+#endif /* ndef OGR_MYSQL_H_INCLUDED */

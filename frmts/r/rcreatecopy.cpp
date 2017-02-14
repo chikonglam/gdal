@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: rcreatecopy.cpp 27729 2014-09-24 00:40:16Z goatbar $
+ * $Id: rcreatecopy.cpp 33841 2016-04-01 01:16:15Z goatbar $
  *
  * Project:  R Format Driver
  * Purpose:  CreateCopy() implementation for R stats package object format.
@@ -27,10 +27,16 @@
  * DEALINGS IN THE SOFTWARE.
  ****************************************************************************/
 
-#include "gdal_pam.h"
 #include "cpl_string.h"
+#include "gdal_pam.h"
 
-CPL_CVSID("$Id: rcreatecopy.cpp 27729 2014-09-24 00:40:16Z goatbar $");
+CPL_CVSID("$Id: rcreatecopy.cpp 33841 2016-04-01 01:16:15Z goatbar $");
+
+
+GDALDataset *
+RCreateCopy( const char * pszFilename, GDALDataset *poSrcDS,
+             int bStrict, char ** papszOptions,
+             GDALProgressFunc pfnProgress, void * pProgressData );
 
 /************************************************************************/
 /* ==================================================================== */
@@ -47,8 +53,8 @@ static void RWriteInteger( VSILFILE *fp, int bASCII, int nValue )
 {
     if( bASCII )
     {
-        char szOutput[50];
-        sprintf( szOutput, "%d\n", nValue );
+        char szOutput[50] = { '\0' };
+        snprintf( szOutput, sizeof(szOutput), "%d\n", nValue );
         VSIFWriteL( szOutput, 1, strlen(szOutput), fp );
     }
     else
@@ -67,7 +73,7 @@ static void RWriteString( VSILFILE *fp, int bASCII, const char *pszValue )
 {
     RWriteInteger( fp, bASCII, 4105 );
     RWriteInteger( fp, bASCII, (int) strlen(pszValue) );
-    
+
     if( bASCII )
     {
         VSIFWriteL( pszValue, 1, strlen(pszValue), fp );
@@ -84,16 +90,19 @@ static void RWriteString( VSILFILE *fp, int bASCII, const char *pszValue )
 /************************************************************************/
 
 GDALDataset *
-RCreateCopy( const char * pszFilename, GDALDataset *poSrcDS, 
-             CPL_UNUSED int bStrict, char ** papszOptions, 
-             GDALProgressFunc pfnProgress, void * pProgressData )
-
+RCreateCopy( const char * pszFilename,
+             GDALDataset *poSrcDS,
+             CPL_UNUSED int bStrict,
+             char ** papszOptions,
+             GDALProgressFunc pfnProgress,
+             void * pProgressData )
 {
-    int  nBands = poSrcDS->GetRasterCount();
-    int  nXSize = poSrcDS->GetRasterXSize();
-    int  nYSize = poSrcDS->GetRasterYSize();
-    int  bASCII = CSLFetchBoolean( papszOptions, "ASCII", FALSE );
-    int  bCompressed = CSLFetchBoolean( papszOptions, "COMPRESS", !bASCII );
+    const int nBands = poSrcDS->GetRasterCount();
+    const int nXSize = poSrcDS->GetRasterXSize();
+    const int nYSize = poSrcDS->GetRasterYSize();
+    const int bASCII = CSLFetchBoolean( papszOptions, "ASCII", FALSE );
+    const bool bCompressed =
+        CPL_TO_BOOL( CSLFetchBoolean( papszOptions, "COMPRESS", !bASCII ) );
 
 /* -------------------------------------------------------------------- */
 /*      Some some rudimentary checks                                    */
@@ -113,13 +122,11 @@ RCreateCopy( const char * pszFilename, GDALDataset *poSrcDS,
 /* -------------------------------------------------------------------- */
 /*      Create the file.                                                */
 /* -------------------------------------------------------------------- */
-    VSILFILE	*fp;
-
-    fp = VSIFOpenL( osAdjustedFilename, "wb" );
+    VSILFILE *fp = VSIFOpenL( osAdjustedFilename, "wb" );
     if( fp == NULL )
     {
-        CPLError( CE_Failure, CPLE_OpenFailed, 
-                  "Unable to create file %s.\n", 
+        CPLError( CE_Failure, CPLE_OpenFailed,
+                  "Unable to create file %s.",
                   pszFilename );
         return NULL;
     }
@@ -146,7 +153,7 @@ RCreateCopy( const char * pszFilename, GDALDataset *poSrcDS,
 /*      Establish the primary pairlist with one component object.       */
 /* -------------------------------------------------------------------- */
     RWriteInteger( fp, bASCII, 1026 );
-    RWriteInteger( fp, bASCII, 1 );  
+    RWriteInteger( fp, bASCII, 1 );
 
 /* -------------------------------------------------------------------- */
 /*      Write the object name.  Eventually we should derive this        */
@@ -165,30 +172,30 @@ RCreateCopy( const char * pszFilename, GDALDataset *poSrcDS,
 /* -------------------------------------------------------------------- */
 /*      Write the raster data.                                          */
 /* -------------------------------------------------------------------- */
-    double 	*padfScanline;
-    CPLErr      eErr = CE_None;
-    int         iLine;
+    CPLErr eErr = CE_None;
 
-    padfScanline = (double *) CPLMalloc( nXSize * sizeof(double) );
+    double *padfScanline =
+        static_cast<double *>( CPLMalloc( nXSize * sizeof(double) ) );
 
     for( int iBand = 0; iBand < nBands; iBand++ )
     {
-        GDALRasterBand * poBand = poSrcDS->GetRasterBand( iBand+1 );
+        GDALRasterBand *poBand = poSrcDS->GetRasterBand( iBand+1 );
 
-        for( iLine = 0; iLine < nYSize && eErr == CE_None; iLine++ )
+        for( int iLine = 0; iLine < nYSize && eErr == CE_None; iLine++ )
         {
             int iValue;
 
-            eErr = poBand->RasterIO( GF_Read, 0, iLine, nXSize, 1, 
+            eErr = poBand->RasterIO( GF_Read, 0, iLine, nXSize, 1,
                                      padfScanline, nXSize, 1, GDT_Float64,
-                                     sizeof(double), 0 );
+                                     sizeof(double), 0, NULL );
 
             if( bASCII )
             {
                 for( iValue = 0; iValue < nXSize; iValue++ )
                 {
-                    char szValue[128];
-                    sprintf(szValue,"%.16g\n", padfScanline[iValue] );
+                    char szValue[128] = { '\0' };
+                    CPLsnprintf( szValue, sizeof(szValue), "%.16g\n",
+                                 padfScanline[iValue] );
                     VSIFWriteL( szValue, 1, strlen(szValue), fp );
                 }
             }
@@ -199,7 +206,7 @@ RCreateCopy( const char * pszFilename, GDALDataset *poSrcDS,
 
                 VSIFWriteL( padfScanline, 8, nXSize, fp );
             }
-            
+
             if( eErr == CE_None
                 && !pfnProgress( (iLine+1) / (double) nYSize,
                                  NULL, pProgressData ) )
@@ -217,8 +224,8 @@ RCreateCopy( const char * pszFilename, GDALDataset *poSrcDS,
 /*      Write out the dims attribute.                                   */
 /* -------------------------------------------------------------------- */
     RWriteInteger( fp, bASCII, 1026 );
-    RWriteInteger( fp, bASCII, 1 );  
-    
+    RWriteInteger( fp, bASCII, 1 );
+
     RWriteString( fp, bASCII, "dim" );
 
     RWriteInteger( fp, bASCII, 13 );
@@ -243,14 +250,13 @@ RCreateCopy( const char * pszFilename, GDALDataset *poSrcDS,
         return NULL;
 
 /* -------------------------------------------------------------------- */
-/*      Re-open dataset, and copy any auxilary pam information.         */
+/*      Re-open dataset, and copy any auxiliary pam information.         */
 /* -------------------------------------------------------------------- */
-    GDALPamDataset *poDS = 
-        (GDALPamDataset *) GDALOpen( pszFilename, GA_ReadOnly );
+    GDALPamDataset *poDS =
+        static_cast<GDALPamDataset *>( GDALOpen( pszFilename, GA_ReadOnly ) );
 
     if( poDS )
         poDS->CloneInfo( poSrcDS, GCIF_PAM_DEFAULT );
 
     return poDS;
 }
-

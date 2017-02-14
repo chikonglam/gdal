@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_s57.h 26465 2013-09-13 21:18:16Z rouault $
+ * $Id: ogr_s57.h 32433 2015-12-23 23:48:56Z goatbar $
  *
  * Project:  S-57 Translator
  * Purpose:  Declarations for classes binding S57 support onto OGRLayer,
@@ -28,8 +28,8 @@
  * DEALINGS IN THE SOFTWARE.
  ****************************************************************************/
 
-#ifndef _OGR_S57_H_INCLUDED
-#define _OGR_S57_H_INCLUDED
+#ifndef OGR_S57_H_INCLUDED
+#define OGR_S57_H_INCLUDED
 
 #include "ogrsf_frmts.h"
 #include "s57.h"
@@ -63,14 +63,16 @@ class OGRS57Layer : public OGRLayer
     void                ResetReading();
     OGRFeature *        GetNextFeature();
     OGRFeature *        GetNextUnfilteredFeature();
-    virtual OGRFeature *GetFeature( long nFeatureId );
-    
-    virtual int         GetFeatureCount( int bForce = TRUE );
+    virtual OGRFeature *GetFeature( GIntBig nFeatureId );
+
+    virtual GIntBig     GetFeatureCount( int bForce = TRUE );
     virtual OGRErr      GetExtent(OGREnvelope *psExtent, int bForce = TRUE);
+    virtual OGRErr      GetExtent(int iGeomField, OGREnvelope *psExtent, int bForce)
+                { return OGRLayer::GetExtent(iGeomField, psExtent, bForce); }
 
     OGRFeatureDefn *    GetLayerDefn() { return poFeatureDefn; }
 
-    virtual OGRErr      CreateFeature( OGRFeature *poFeature );
+    virtual OGRErr      ICreateFeature( OGRFeature *poFeature );
     int                 TestCapability( const char * );
 };
 
@@ -88,7 +90,7 @@ class OGRS57DataSource : public OGRDataSource
     OGRSpatialReference *poSpatialRef;
 
     char                **papszOptions;
-    
+
     int                 nModules;
     S57Reader           **papoModules;
 
@@ -96,17 +98,17 @@ class OGRS57DataSource : public OGRDataSource
 
     S57ClassContentExplorer* poClassContentExplorer;
 
-    int                 bExtentsSet;
+    bool                bExtentsSet;
     OGREnvelope         oExtents;
-    
+
   public:
-                        OGRS57DataSource();
+                        OGRS57DataSource(char** papszOpenOptions = NULL);
                         ~OGRS57DataSource();
 
     void                SetOptionList( char ** );
     const char         *GetOption( const char * );
-    
-    int                 Open( const char * pszName, int bTestOpen = FALSE );
+
+    int                 Open( const char * pszName );
     int                 Create( const char *pszName, char **papszOptions );
 
     const char          *GetName() { return pszName; }
@@ -128,21 +130,20 @@ class OGRS57DataSource : public OGRDataSource
 /*                            OGRS57Driver                              */
 /************************************************************************/
 
-class OGRS57Driver : public OGRSFDriver
+class OGRS57Driver : public GDALDriver
 {
     static S57ClassRegistrar *poRegistrar;
 
   public:
                  OGRS57Driver();
                 ~OGRS57Driver();
-                
-    const char *GetName();
-    OGRDataSource *Open( const char *, int );
-    virtual OGRDataSource *CreateDataSource( const char *pszName,
-                                             char ** = NULL );
-    int                 TestCapability( const char * );
+
+    static GDALDataset *Open( GDALOpenInfo* poOpenInfo );
+    static GDALDataset *Create( const char * pszName,
+                                int nBands, int nXSize, int nYSize, GDALDataType eDT,
+                                char **papszOptions );
 
     static S57ClassRegistrar *GetS57Registrar();
 };
 
-#endif /* ndef _OGR_S57_H_INCLUDED */
+#endif /* ndef OGR_S57_H_INCLUDED */

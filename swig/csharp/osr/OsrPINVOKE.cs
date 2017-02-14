@@ -292,6 +292,9 @@ class OsrPINVOKE {
   [DllImport("osr_wrap", EntryPoint="CSharp_SpatialReference_GetAngularUnits")]
   public static extern double SpatialReference_GetAngularUnits(HandleRef jarg1);
 
+  [DllImport("osr_wrap", EntryPoint="CSharp_SpatialReference_GetAngularUnitsName")]
+  public static extern string SpatialReference_GetAngularUnitsName(HandleRef jarg1);
+
   [DllImport("osr_wrap", EntryPoint="CSharp_SpatialReference_SetTargetLinearUnits")]
   public static extern int SpatialReference_SetTargetLinearUnits(HandleRef jarg1, string jarg2, string jarg3, double jarg4);
 
@@ -312,6 +315,12 @@ class OsrPINVOKE {
 
   [DllImport("osr_wrap", EntryPoint="CSharp_SpatialReference_GetAuthorityName")]
   public static extern string SpatialReference_GetAuthorityName(HandleRef jarg1, string jarg2);
+
+  [DllImport("osr_wrap", EntryPoint="CSharp_SpatialReference_GetAxisName")]
+  public static extern string SpatialReference_GetAxisName(HandleRef jarg1, string jarg2, int jarg3);
+
+  [DllImport("osr_wrap", EntryPoint="CSharp_SpatialReference_GetAxisOrientation")]
+  public static extern int SpatialReference_GetAxisOrientation(HandleRef jarg1, string jarg2, int jarg3);
 
   [DllImport("osr_wrap", EntryPoint="CSharp_SpatialReference_SetUTM")]
   public static extern int SpatialReference_SetUTM(HandleRef jarg1, int jarg2, int jarg3);
@@ -536,7 +545,7 @@ class OsrPINVOKE {
   public static extern int SpatialReference_ImportFromMICoordSys(HandleRef jarg1, string jarg2);
 
   [DllImport("osr_wrap", EntryPoint="CSharp_SpatialReference_ImportFromOzi")]
-  public static extern int SpatialReference_ImportFromOzi(HandleRef jarg1, string jarg2, string jarg3, string jarg4);
+  public static extern int SpatialReference_ImportFromOzi(HandleRef jarg1, IntPtr[] jarg2);
 
   [DllImport("osr_wrap", EntryPoint="CSharp_SpatialReference_ExportToWkt")]
   public static extern int SpatialReference_ExportToWkt(HandleRef jarg1, out string jarg2);

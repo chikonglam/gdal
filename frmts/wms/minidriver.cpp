@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: minidriver.cpp 27729 2014-09-24 00:40:16Z goatbar $
+ * $Id: minidriver.cpp 33717 2016-03-14 06:29:14Z goatbar $
  *
  * Project:  WMS Client Driver
  * Purpose:  GDALWMSMiniDriver base class implementation.
@@ -30,10 +30,10 @@
 #include "wmsdriver.h"
 
 static volatile GDALWMSMiniDriverManager *g_mini_driver_manager = NULL;
-static void *g_mini_driver_manager_mutex = NULL;
+static CPLMutex *g_mini_driver_manager_mutex = NULL;
 
 GDALWMSMiniDriver::GDALWMSMiniDriver() {
-    m_parent_dataset = 0;
+    m_parent_dataset = NULL;
 }
 
 GDALWMSMiniDriver::~GDALWMSMiniDriver() {
@@ -46,8 +46,7 @@ CPLErr GDALWMSMiniDriver::Initialize(CPL_UNUSED CPLXMLNode *config) {
 void GDALWMSMiniDriver::GetCapabilities(CPL_UNUSED GDALWMSMiniDriverCapabilities *caps) {
 }
 
-void GDALWMSMiniDriver::ImageRequest(CPL_UNUSED CPLString *url,
-                                     CPL_UNUSED const GDALWMSImageRequestInfo &iri) {
+void GDALWMSMiniDriver::ImageRequest(CPL_UNUSED CPLString *url, CPL_UNUSED const GDALWMSImageRequestInfo &iri) {
 }
 
 void GDALWMSMiniDriver::TiledImageRequest(CPL_UNUSED CPLString *url,
@@ -87,12 +86,20 @@ GDALWMSMiniDriverManager *GetGDALWMSMiniDriverManager() {
 void DestroyWMSMiniDriverManager()
 
 {
-    CPLMutexHolderD(&g_mini_driver_manager_mutex);
-
-    if( g_mini_driver_manager != 0 )
     {
-        delete g_mini_driver_manager;
-        g_mini_driver_manager = NULL;
+        CPLMutexHolderD(&g_mini_driver_manager_mutex);
+
+        if( g_mini_driver_manager != NULL )
+        {
+            delete g_mini_driver_manager;
+            g_mini_driver_manager = NULL;
+        }
+    }
+
+    if( g_mini_driver_manager_mutex != NULL )
+    {
+        CPLDestroyMutex(g_mini_driver_manager_mutex);
+        g_mini_driver_manager_mutex = NULL;
     }
 }
 
@@ -100,7 +107,7 @@ GDALWMSMiniDriverManager::GDALWMSMiniDriverManager() {
 }
 
 GDALWMSMiniDriverManager::~GDALWMSMiniDriverManager() {
-    for (std::list<GDALWMSMiniDriverFactory *>::iterator it = m_mdfs.begin(); 
+    for (std::list<GDALWMSMiniDriverFactory *>::iterator it = m_mdfs.begin();
          it != m_mdfs.end(); ++it) {
         GDALWMSMiniDriverFactory *mdf = *it;
         delete mdf;

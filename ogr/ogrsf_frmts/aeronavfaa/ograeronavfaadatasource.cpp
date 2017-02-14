@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ograeronavfaadatasource.cpp 27729 2014-09-24 00:40:16Z goatbar $
+ * $Id: ograeronavfaadatasource.cpp 32247 2015-12-19 07:05:52Z goatbar $
  *
  * Project:  AeronavFAA Translator
  * Purpose:  Implements OGRAeronavFAADataSource class
@@ -31,20 +31,17 @@
 #include "cpl_conv.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: ograeronavfaadatasource.cpp 27729 2014-09-24 00:40:16Z goatbar $");
+CPL_CVSID("$Id: ograeronavfaadatasource.cpp 32247 2015-12-19 07:05:52Z goatbar $");
 
 /************************************************************************/
 /*                      OGRAeronavFAADataSource()                       */
 /************************************************************************/
 
-OGRAeronavFAADataSource::OGRAeronavFAADataSource()
-
-{
-    papoLayers = NULL;
-    nLayers = 0;
-
-    pszName = NULL;
-}
+OGRAeronavFAADataSource::OGRAeronavFAADataSource() :
+    pszName(NULL),
+    papoLayers(NULL),
+    nLayers(0)
+{}
 
 /************************************************************************/
 /*                     ~OGRAeronavFAADataSource()                       */
@@ -86,21 +83,14 @@ OGRLayer *OGRAeronavFAADataSource::GetLayer( int iLayer )
 /*                                Open()                                */
 /************************************************************************/
 
-int OGRAeronavFAADataSource::Open( const char * pszFilename, int bUpdateIn)
+int OGRAeronavFAADataSource::Open( const char * pszFilename )
 
 {
-    if (bUpdateIn)
-    {
-        return FALSE;
-    }
-
     pszName = CPLStrdup( pszFilename );
 
 // --------------------------------------------------------------------
 //      Does this appear to be a .dat file?
 // --------------------------------------------------------------------
-    if( !EQUAL(CPLGetExtension(pszFilename), "dat") )
-        return FALSE;
 
     VSILFILE* fp = VSIFOpenL(pszFilename, "rb");
     if (fp == NULL)
@@ -113,13 +103,13 @@ int OGRAeronavFAADataSource::Open( const char * pszFilename, int bUpdateIn)
     int bIsDOF = (szBuffer[128] == 13 && szBuffer[128+1] == 10 &&
                   szBuffer[130+128] == 13 && szBuffer[130+129] == 10 &&
                   szBuffer[2*130+128] == 13 && szBuffer[2*130+129] == 10 &&
-                  strncmp(szBuffer + 3 * 130, "------------------------------------------------------------------------------------------------------------------------- ", 122) == 0);
+                  STARTS_WITH(szBuffer + 3 * 130, "------------------------------------------------------------------------------------------------------------------------- "));
 
     int bIsNAVAID = (szBuffer[132] == 13 && szBuffer[132+1] == 10 &&
-                     strncmp(szBuffer + 20 - 1, "CREATION DATE", strlen("CREATION DATE")) == 0 &&
+                     STARTS_WITH(szBuffer + 20 - 1, "CREATION DATE") &&
                      szBuffer[134 + 132] == 13 && szBuffer[134 + 132+1] == 10);
 
-    int bIsROUTE = strncmp(szBuffer, "           UNITED STATES GOVERNMENT FLIGHT INFORMATION PUBLICATION             149343", 85) == 0 &&
+    int bIsROUTE = STARTS_WITH(szBuffer, "           UNITED STATES GOVERNMENT FLIGHT INFORMATION PUBLICATION             149343") &&
                    szBuffer[85] == 13 && szBuffer[85+1] == 10;
 
     int bIsIAP = strstr(szBuffer, "INSTRUMENT APPROACH PROCEDURE NAVAID & FIX DATA") != NULL &&

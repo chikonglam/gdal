@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrxlsdatasource.cpp 27044 2014-03-16 23:41:27Z rouault $
+ * $Id: ogrxlsdatasource.cpp 33713 2016-03-12 17:41:57Z goatbar $
  *
  * Project:  XLS Translator
  * Purpose:  Implements OGRXLSDataSource class
@@ -37,7 +37,7 @@
 #include "cpl_conv.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: ogrxlsdatasource.cpp 27044 2014-03-16 23:41:27Z rouault $");
+CPL_CVSID("$Id: ogrxlsdatasource.cpp 33713 2016-03-12 17:41:57Z goatbar $");
 
 /************************************************************************/
 /*                          OGRXLSDataSource()                          */
@@ -75,7 +75,7 @@ OGRXLSDataSource::~OGRXLSDataSource()
 /*                           TestCapability()                           */
 /************************************************************************/
 
-int OGRXLSDataSource::TestCapability( const char * pszCap )
+int OGRXLSDataSource::TestCapability( CPL_UNUSED const char * pszCap )
 
 {
     return FALSE;
@@ -107,7 +107,7 @@ int OGRXLSDataSource::Open( const char * pszFilename, int bUpdateIn)
     }
 
 #ifdef _WIN32
-    if( CSLTestBoolean( CPLGetConfigOption( "GDAL_FILENAME_IS_UTF8", "YES" ) ) )
+    if( CPLTestBool( CPLGetConfigOption( "GDAL_FILENAME_IS_UTF8", "YES" ) ) )
         pszName = CPLRecode( pszFilename, CPL_ENC_UTF8, CPLString().Printf( "CP%d", GetACP() ) );
     else
         pszName = CPLStrdup( pszFilename );
@@ -115,7 +115,7 @@ int OGRXLSDataSource::Open( const char * pszFilename, int bUpdateIn)
     pszName = CPLStrdup( pszFilename );
 #endif
 
-// -------------------------------------------------------------------- 
+// --------------------------------------------------------------------
 //      Does this appear to be a .xls file?
 // --------------------------------------------------------------------
 
@@ -127,7 +127,7 @@ int OGRXLSDataSource::Open( const char * pszFilename, int bUpdateIn)
     if (freexl_get_info (xlshandle, FREEXL_BIFF_SHEET_COUNT, &nSheets) != FREEXL_OK)
         return FALSE;
 
-    for(int i=0; i<(int)nSheets; i++)
+    for(unsigned short i=0; i<(unsigned short)nSheets; i++)
     {
         freexl_select_active_worksheet(xlshandle, i);
 

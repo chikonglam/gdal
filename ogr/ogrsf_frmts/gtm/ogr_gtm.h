@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_gtm.h 27044 2014-03-16 23:41:27Z rouault $
+ * $Id: ogr_gtm.h 33714 2016-03-13 05:42:13Z goatbar $
  *
  * Project:  GTM Driver
  * Purpose:  Declarations for OGR wrapper classes for GTM, and OGR->GTM
@@ -93,11 +93,11 @@ public:
     OGRFeatureDefn* GetLayerDefn();
     virtual void ResetReading() = 0;
     virtual OGRFeature* GetNextFeature() = 0;
-    virtual int GetFeatureCount(int bForce = TRUE) = 0;
-    virtual OGRErr CreateFeature (OGRFeature *poFeature) = 0;
+    virtual GIntBig GetFeatureCount(int bForce = TRUE) = 0;
+    virtual OGRErr ICreateFeature(OGRFeature *poFeature) = 0;
 
     int TestCapability( const char* pszCap );
-    
+
     OGRErr CreateField( OGRFieldDefn *poField, int bApproxOK );
 
 protected:
@@ -109,9 +109,9 @@ protected:
     OGRFeatureDefn* poFeatureDefn;
     int nNextFID;
     int nTotalFCount;
-    
-    int bError;
-    
+
+    bool bError;
+
     static OGRErr CheckAndFixCoordinatesValidity( double& pdfLatitude, double& pdfLongitude );
 
 };
@@ -128,10 +128,10 @@ public:
                       int bWriterIn,
                       OGRGTMDataSource* poDSIn );
     ~GTMWaypointLayer();
-    OGRErr CreateFeature (OGRFeature *poFeature);
+    OGRErr ICreateFeature(OGRFeature *poFeature);
     void ResetReading();
     OGRFeature* GetNextFeature();
-    int GetFeatureCount(int bForce = TRUE);
+    GIntBig GetFeatureCount(int bForce = TRUE);
 
     enum WaypointFields{NAME, COMMENT, ICON, DATE};
 private:
@@ -149,10 +149,10 @@ public:
                    int bWriterIn,
                    OGRGTMDataSource* poDSIn );
     ~GTMTrackLayer();
-    OGRErr CreateFeature (OGRFeature *poFeature);
+    OGRErr ICreateFeature(OGRFeature *poFeature);
     void ResetReading();
     OGRFeature* GetNextFeature();
-    int GetFeatureCount(int bForce = TRUE);
+    GIntBig GetFeatureCount(int bForce = TRUE);
     enum TrackFields{NAME, TYPE, COLOR};
 
 private:
@@ -181,9 +181,9 @@ public:
 
     OGRLayer* GetLayer( int );
 
-    OGRLayer* CreateLayer (const char *pszName, 
-                           OGRSpatialReference *poSpatialRef=NULL, 
-                           OGRwkbGeometryType eGType=wkbUnknown, 
+    OGRLayer* ICreateLayer(const char *pszName,
+                           OGRSpatialReference *poSpatialRef=NULL,
+                           OGRwkbGeometryType eGType=wkbUnknown,
                            char **papszOptions=NULL);
     int TestCapability( const char * );
 
@@ -199,7 +199,7 @@ public:
     bool hasNextWaypoint();
     Waypoint* fetchNextWaypoint();
     void rewindWaypoint();
-  
+
     /* Functions to handle with tracks */
     int getNTracks();
     bool hasNextTrack();
@@ -215,21 +215,21 @@ public:
 
     void checkBounds(float newLat,
                      float newLon);
-    int getNumWaypoints() { return numWaypoints; } 
+    int getNumWaypoints() { return numWaypoints; }
     int getNumTrackpoints() { return numTrackpoints; }
     int getTracks() { return numTracks; };
 
-    int incNumWaypoints() { return ++numWaypoints; } 
+    int incNumWaypoints() { return ++numWaypoints; }
     int incNumTrackpoints() { return ++numTrackpoints; }
     int incNumTracks() { return ++numTracks; };
 private:
     VSILFILE* fpOutput;
-  
+
     /* GTM is not a contiguous file. We need two temporary files because
        trackpoints and tracks are stored separated and we don't know in
        advance how many trackpoints and tracks the new file will
-       have. So, we create temporary file and append the at the end of
-       the gtm file whe everything is done, that is, in the
+       have. So, we create temporary file and append at the end of
+       the gtm file when everything is done, that is, in the
        destructor. */
     VSILFILE* fpTmpTrackpoints;
     char* pszTmpTrackpoints;
@@ -239,10 +239,10 @@ private:
 
     GTM* poGTMFile;
     char* pszName;
-  
+
     OGRGTMLayer **papoLayers;
     int nLayers;
-  
+
     bool bIssuedCTError;
 
     /* Used for creating a new file */
@@ -257,25 +257,6 @@ private:
 
     void AppendTemporaryFiles();
     void WriteWaypointStyles();
-};
-
-/************************************************************************/
-/*                             OGRGTMDriver                             */
-/************************************************************************/
-
-class OGRGTMDriver : public OGRSFDriver
-{
-public:
-    ~OGRGTMDriver();
-
-    //
-    // OGRSFDriver Interface
-    //
-    const char* GetName();
-    OGRDataSource* Open( const char * pszName_, int bUpdate );
-    OGRDataSource* CreateDataSource( const char *pszName_, char** papszOptions );
-
-    int TestCapability( const char* pszCap );
 };
 
 #endif //OGR_GTM_H_INCLUDED

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrwarpedlayer.h 27044 2014-03-16 23:41:27Z rouault $
+ * $Id: ogrwarpedlayer.h 31777 2015-11-26 14:14:41Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Defines OGRWarpedLayer class
@@ -27,8 +27,8 @@
  * DEALINGS IN THE SOFTWARE.
  ****************************************************************************/
 
-#ifndef _OGRWARPEDLAYER_H_INCLUDED
-#define _OGRWARPEDLAYER_H_INCLUDED
+#ifndef OGRWARPEDLAYER_H_INCLUDED
+#define OGRWARPEDLAYER_H_INCLUDED
 
 #include "ogrlayerdecorator.h"
 
@@ -73,19 +73,19 @@ class OGRWarpedLayer : public OGRLayerDecorator
                                               double dfMaxX, double dfMaxY );
 
     virtual OGRFeature *GetNextFeature();
-    virtual OGRFeature *GetFeature( long nFID );
-    virtual OGRErr      SetFeature( OGRFeature *poFeature );
-    virtual OGRErr      CreateFeature( OGRFeature *poFeature );
+    virtual OGRFeature *GetFeature( GIntBig nFID );
+    virtual OGRErr      ISetFeature( OGRFeature *poFeature );
+    virtual OGRErr      ICreateFeature( OGRFeature *poFeature );
 
     virtual OGRFeatureDefn *GetLayerDefn();
 
     virtual OGRSpatialReference *GetSpatialRef();
 
-    virtual int         GetFeatureCount( int bForce = TRUE );
+    virtual GIntBig     GetFeatureCount( int bForce = TRUE );
     virtual OGRErr      GetExtent(int iGeomField, OGREnvelope *psExtent, int bForce = TRUE);
     virtual OGRErr      GetExtent(OGREnvelope *psExtent, int bForce = TRUE);
 
     virtual int         TestCapability( const char * );
 };
 
-#endif //  _OGRWARPEDLAYER_H_INCLUDED
+#endif //  OGRWARPEDLAYER_H_INCLUDED

@@ -1,5 +1,5 @@
 /**********************************************************************
- * $Id: cpl_vsil_stdout.cpp 30997 2015-10-13 16:57:35Z rouault $
+ * $Id: cpl_vsil_stdout.cpp 33758 2016-03-21 09:06:22Z rouault $
  *
  * Project:  CPL - Common Portability Library
  * Purpose:  Implement VSI large file api for stdout
@@ -14,16 +14,16 @@
  * the rights to use, copy, modify, merge, publish, distribute, sublicense,
  * and/or sell copies of the Software, and to permit persons to whom the
  * Software is furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included
  * in all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
  * THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  ****************************************************************************/
 
@@ -37,7 +37,29 @@
 #include <fcntl.h>
 #endif
 
-CPL_CVSID("$Id: cpl_vsil_stdout.cpp 30997 2015-10-13 16:57:35Z rouault $");
+CPL_CVSID("$Id: cpl_vsil_stdout.cpp 33758 2016-03-21 09:06:22Z rouault $");
+
+static VSIWriteFunction pWriteFunction = fwrite;
+static FILE* pWriteStream = stdout;
+
+/************************************************************************/
+/*                        VSIStdoutSetRedirection()                     */
+/************************************************************************/
+
+/** Set an alternative write function and output file handle instead of
+ *  fwrite() / stdout.
+ *
+ * @param pFct Function with same signature as fwrite()
+ * @param stream File handle on which to output. Passed to pFct.
+ *
+ * @since GDAL 2.0
+ */
+void VSIStdoutSetRedirection( VSIWriteFunction pFct, FILE* stream )
+{
+    pWriteFunction = pFct;
+    pWriteStream = stream;
+}
+
 
 /************************************************************************/
 /* ==================================================================== */
@@ -45,11 +67,14 @@ CPL_CVSID("$Id: cpl_vsil_stdout.cpp 30997 2015-10-13 16:57:35Z rouault $");
 /* ==================================================================== */
 /************************************************************************/
 
-class VSIStdoutFilesystemHandler : public VSIFilesystemHandler
+class VSIStdoutFilesystemHandler CPL_FINAL : public VSIFilesystemHandler
 {
 public:
-    virtual VSIVirtualHandle *Open( const char *pszFilename, 
-                                    const char *pszAccess);
+    using VSIFilesystemHandler::Open;
+
+    virtual VSIVirtualHandle *Open( const char *pszFilename,
+                                    const char *pszAccess,
+                                    bool bSetError );
     virtual int      Stat( const char *pszFilename, VSIStatBufL *pStatBuf, int nFlags );
 };
 
@@ -59,9 +84,12 @@ public:
 /* ==================================================================== */
 /************************************************************************/
 
-class VSIStdoutHandle : public VSIVirtualHandle
+class VSIStdoutHandle CPL_FINAL : public VSIVirtualHandle
 {
+    vsi_l_offset      m_nOffset;
+
   public:
+                      VSIStdoutHandle() : m_nOffset(0) {}
 
     virtual int       Seek( vsi_l_offset nOffset, int nWhence );
     virtual vsi_l_offset Tell();
@@ -93,7 +121,7 @@ int VSIStdoutHandle::Seek( vsi_l_offset nOffset, int nWhence )
 
 vsi_l_offset VSIStdoutHandle::Tell()
 {
-    return ftell(stdout);
+    return m_nOffset;
 }
 
 /************************************************************************/
@@ -103,14 +131,19 @@ vsi_l_offset VSIStdoutHandle::Tell()
 int VSIStdoutHandle::Flush()
 
 {
-    return fflush( stdout );
+    if( pWriteStream == stdout )
+        return fflush( stdout );
+    else
+        return 0;
 }
 
 /************************************************************************/
 /*                                Read()                                */
 /************************************************************************/
 
-size_t VSIStdoutHandle::Read( CPL_UNUSED void * pBuffer, CPL_UNUSED size_t nSize, CPL_UNUSED size_t nCount )
+size_t VSIStdoutHandle::Read( CPL_UNUSED void * pBuffer,
+                              CPL_UNUSED size_t nSize,
+                              CPL_UNUSED size_t nCount )
 {
     CPLError(CE_Failure, CPLE_NotSupported, "Read() unsupported on /vsistdout");
     return 0;
@@ -120,11 +153,13 @@ size_t VSIStdoutHandle::Read( CPL_UNUSED void * pBuffer, CPL_UNUSED size_t nSize
 /*                               Write()                                */
 /************************************************************************/
 
-size_t VSIStdoutHandle::Write( const void * pBuffer, size_t nSize, 
-                                  size_t nCount )
+size_t VSIStdoutHandle::Write( const void * pBuffer, size_t nSize,
+                               size_t nCount )
 
 {
-    return fwrite(pBuffer, nSize, nCount, stdout);
+    size_t nRet = pWriteFunction(pBuffer, nSize, nCount, pWriteStream);
+    m_nOffset += nSize * nRet;
+    return nRet;
 }
 
 /************************************************************************/
@@ -134,7 +169,7 @@ size_t VSIStdoutHandle::Write( const void * pBuffer, size_t nSize,
 int VSIStdoutHandle::Eof()
 
 {
-    return feof(stdout);
+    return 0;
 }
 
 /************************************************************************/
@@ -158,8 +193,9 @@ int VSIStdoutHandle::Close()
 /************************************************************************/
 
 VSIVirtualHandle *
-VSIStdoutFilesystemHandler::Open( CPL_UNUSED const char *pszFilename, 
-                                  const char *pszAccess )
+VSIStdoutFilesystemHandler::Open( CPL_UNUSED const char *pszFilename,
+                                  const char *pszAccess,
+                                  bool /* bSetError */ )
 {
     if ( strchr(pszAccess, 'r') != NULL ||
          strchr(pszAccess, '+') != NULL )
@@ -184,6 +220,7 @@ VSIStdoutFilesystemHandler::Open( CPL_UNUSED const char *pszFilename,
 int VSIStdoutFilesystemHandler::Stat( CPL_UNUSED const char * pszFilename,
                                       VSIStatBufL * pStatBuf,
                                       CPL_UNUSED int nFlags )
+
 {
     memset( pStatBuf, 0, sizeof(VSIStatBufL) );
 
@@ -198,11 +235,14 @@ int VSIStdoutFilesystemHandler::Stat( CPL_UNUSED const char * pszFilename,
 /* ==================================================================== */
 /************************************************************************/
 
-class VSIStdoutRedirectFilesystemHandler : public VSIFilesystemHandler
+class VSIStdoutRedirectFilesystemHandler CPL_FINAL : public VSIFilesystemHandler
 {
 public:
+    using VSIFilesystemHandler::Open;
+
     virtual VSIVirtualHandle *Open( const char *pszFilename,
-                                    const char *pszAccess);
+                                    const char *pszAccess,
+                                    bool bSetError );
     virtual int      Stat( const char *pszFilename, VSIStatBufL *pStatBuf, int nFlags );
 };
 
@@ -212,9 +252,9 @@ public:
 /* ==================================================================== */
 /************************************************************************/
 
-class VSIStdoutRedirectHandle : public VSIVirtualHandle
+class VSIStdoutRedirectHandle CPL_FINAL : public VSIVirtualHandle
 {
-    VSIVirtualHandle* poHandle;
+    VSIVirtualHandle* m_poHandle;
   public:
                       VSIStdoutRedirectHandle(VSIVirtualHandle* poHandle);
                      ~VSIStdoutRedirectHandle();
@@ -234,7 +274,7 @@ class VSIStdoutRedirectHandle : public VSIVirtualHandle
 
 VSIStdoutRedirectHandle::VSIStdoutRedirectHandle(VSIVirtualHandle* poHandle)
 {
-    this->poHandle = poHandle;
+    m_poHandle = poHandle;
 }
 
 /************************************************************************/
@@ -243,14 +283,15 @@ VSIStdoutRedirectHandle::VSIStdoutRedirectHandle(VSIVirtualHandle* poHandle)
 
 VSIStdoutRedirectHandle::~VSIStdoutRedirectHandle()
 {
-    delete poHandle;
+    delete m_poHandle;
 }
 
 /************************************************************************/
 /*                                Seek()                                */
 /************************************************************************/
 
-int VSIStdoutRedirectHandle::Seek( CPL_UNUSED vsi_l_offset nOffset, CPL_UNUSED int nWhence )
+int VSIStdoutRedirectHandle::Seek( CPL_UNUSED vsi_l_offset nOffset,
+                                   CPL_UNUSED int nWhence )
 {
     CPLError(CE_Failure, CPLE_NotSupported, "Seek() unsupported on /vsistdout_redirect");
     return -1;
@@ -262,7 +303,7 @@ int VSIStdoutRedirectHandle::Seek( CPL_UNUSED vsi_l_offset nOffset, CPL_UNUSED i
 
 vsi_l_offset VSIStdoutRedirectHandle::Tell()
 {
-    return poHandle->Tell();
+    return m_poHandle->Tell();
 }
 
 /************************************************************************/
@@ -272,14 +313,16 @@ vsi_l_offset VSIStdoutRedirectHandle::Tell()
 int VSIStdoutRedirectHandle::Flush()
 
 {
-    return poHandle->Flush();
+    return m_poHandle->Flush();
 }
 
 /************************************************************************/
 /*                                Read()                                */
 /************************************************************************/
 
-size_t VSIStdoutRedirectHandle::Read( CPL_UNUSED void * pBuffer, CPL_UNUSED size_t nSize, CPL_UNUSED size_t nCount )
+size_t VSIStdoutRedirectHandle::Read( CPL_UNUSED void * pBuffer,
+                                      CPL_UNUSED size_t nSize,
+                                      CPL_UNUSED size_t nCount )
 {
     CPLError(CE_Failure, CPLE_NotSupported, "Read() unsupported on /vsistdout_redirect");
     return 0;
@@ -293,7 +336,7 @@ size_t VSIStdoutRedirectHandle::Write( const void * pBuffer, size_t nSize,
                                   size_t nCount )
 
 {
-    return poHandle->Write(pBuffer, nSize, nCount);
+    return m_poHandle->Write(pBuffer, nSize, nCount);
 }
 
 /************************************************************************/
@@ -303,7 +346,7 @@ size_t VSIStdoutRedirectHandle::Write( const void * pBuffer, size_t nSize,
 int VSIStdoutRedirectHandle::Eof()
 
 {
-    return poHandle->Eof();
+    return m_poHandle->Eof();
 }
 
 /************************************************************************/
@@ -313,7 +356,7 @@ int VSIStdoutRedirectHandle::Eof()
 int VSIStdoutRedirectHandle::Close()
 
 {
-    return poHandle->Close();
+    return m_poHandle->Close();
 }
 
 /************************************************************************/
@@ -328,7 +371,8 @@ int VSIStdoutRedirectHandle::Close()
 
 VSIVirtualHandle *
 VSIStdoutRedirectFilesystemHandler::Open( const char *pszFilename,
-                                          const char *pszAccess )
+                                          const char *pszAccess,
+                                          bool /* bSetError */ )
 
 {
     if ( strchr(pszAccess, 'r') != NULL ||
@@ -352,8 +396,8 @@ VSIStdoutRedirectFilesystemHandler::Open( const char *pszFilename,
 /************************************************************************/
 
 int VSIStdoutRedirectFilesystemHandler::Stat( CPL_UNUSED const char * pszFilename,
-                                      VSIStatBufL * pStatBuf,
-                                      CPL_UNUSED int nFlags )
+                                              VSIStatBufL * pStatBuf,
+                                              CPL_UNUSED int nFlags )
 {
     memset( pStatBuf, 0, sizeof(VSIStatBufL) );
 

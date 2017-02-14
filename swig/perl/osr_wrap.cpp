@@ -1578,6 +1578,25 @@ SWIG_From_double  SWIG_PERL_DECL_ARGS_1(double value)
 }
 
 
+SWIGINTERNINLINE SV *
+SWIG_From_long  SWIG_PERL_DECL_ARGS_1(long value)
+{
+  SV *sv;
+  if (value >= IV_MIN && value <= IV_MAX)
+    sv = newSViv(value);
+  else
+    sv = newSVpvf("%ld", value);
+  return sv_2mortal(sv);
+}
+
+
+SWIGINTERNINLINE SV *
+SWIG_From_int  SWIG_PERL_DECL_ARGS_1(int value)
+{    
+  return SWIG_From_long  SWIG_PERL_CALL_ARGS_1(value);
+}
+
+
 typedef char retStringAndCPLFree;
 
 
@@ -1599,10 +1618,48 @@ typedef void OSRCoordinateTransformationShadow;
 #endif
 
 
-void VeryQuiteErrorHandler(CPLErr eclass, int code, const char *msg ) {
+    void do_confess(const char *error, int push_to_error_stack) {
+        SV *sv = newSVpv(error, 0);
+        if (push_to_error_stack) {
+            AV* error_stack = get_av("Geo::GDAL::error", 0);
+            av_push(error_stack, sv);
+        } else {
+            sv = sv_2mortal(sv);
+        }
+        dSP;
+        ENTER;
+        SAVETMPS;
+        PUSHMARK(SP);
+        XPUSHs( sv );
+        PUTBACK;
+        call_pv("Carp::confess", G_DISCARD);
+        /*
+        confess never returns, so these will not get executed:
+        FREETMPS;
+        LEAVE;
+        */
+    }
+    #define OUT_OF_MEMORY "Out of memory."
+    #define CALL_FAILED "Call failed. Possible reason is an index out of range, mathematical problem, or something else."
+    #define NEED_DEF "A parameter which must be defined or not empty, is not."
+    #define WRONG_CLASS "Object has a wrong class."
+    #define NEED_REF "A parameter which must be a reference, is not."
+    #define NEED_ARRAY_REF "A parameter/item which must be an array reference, is not."
+    #define NEED_BINARY_DATA "A parameter which must be binary data, is not."
+    #define NEED_CODE_REF "A parameter which must be an anonymous subroutine, is not."
+    #define WRONG_ITEM_IN_ARRAY "An item in an array parameter has wrong type."
+    #define ARRAY_TO_XML_FAILED "An array parameter cannot be converted to an XMLTree."
+
+
+void VeryQuietErrorHandler(CPLErr eclass, int code, const char *msg ) {
   /* If the error class is CE_Fatal, we want to have a message issued
      because the CPL support code does an abort() before any exception
      can be generated */
+#if defined(SWIGPERL)
+    AV* error_stack = get_av("Geo::GDAL::error", 0);
+    SV *error = newSVpv(msg, 0);
+    av_push(error_stack, error);
+#endif
   if (eclass == CE_Fatal ) {
     CPLDefaultErrorHandler(eclass, code, msg );
   }
@@ -1610,7 +1667,7 @@ void VeryQuiteErrorHandler(CPLErr eclass, int code, const char *msg ) {
 
 
 void UseExceptions() {
-  CPLSetErrorHandler( (CPLErrorHandler) VeryQuiteErrorHandler );
+  CPLSetErrorHandler( (CPLErrorHandler) VeryQuietErrorHandler );
 }
 
 void DontUseExceptions() {
@@ -1622,11 +1679,37 @@ OGRErr GetWellKnownGeogCSAsWKT( const char *name, char **argout ) {
   OGRSpatialReferenceH srs = OSRNewSpatialReference("");
   OGRErr rcode = OSRSetWellKnownGeogCS( srs, name );
   if( rcode == OGRERR_NONE )
-      rcode = OSRExportToWkt ( srs, argout );  
+      rcode = OSRExportToWkt ( srs, argout );
   OSRDestroySpatialReference( srs );
   return rcode;
 }
 
+
+    char *sv_to_utf8_string(SV *sv, U8 **tmpbuf) {
+        /* if tmpbuf, only tmpbuf is freed; if not, ret is freed*/
+        char *ret;
+        if (SvOK(sv)) {
+            STRLEN len;
+            ret = SvPV(sv, len);
+            if (!SvUTF8(sv)) {
+                if (tmpbuf) {
+                    *tmpbuf = bytes_to_utf8((const U8*)ret, &len);
+                    ret = (char *)(*tmpbuf);
+                } else {
+                    ret = (char *)bytes_to_utf8((const U8*)ret, &len);
+                }
+            } else {
+                if (!tmpbuf)
+                    ret = strdup(ret);
+            }
+        } else {
+            ret = (char*)""; /* avoid "Use of uninitialized value in subroutine entry" errors */
+            if (!tmpbuf)
+                ret = strdup(ret);
+        }
+        return ret;
+    }
+    
 
 SWIGINTERN swig_type_info*
 SWIG_pchar_descriptor(void)
@@ -1707,6 +1790,8 @@ OGRErrMessages( int rc ) {
     return "OGR Error: Unsupported SRS";
   case OGRERR_INVALID_HANDLE:
     return "OGR Error: Invalid handle";
+  case OGRERR_NON_EXISTING_FEATURE:
+    return "OGR Error: Non existing feature";
   default:
     return "OGR Error: Unknown";
   }
@@ -1717,7 +1802,7 @@ OGRErr GetUserInputAsWKT( const char *name, char **argout ) {
   OGRSpatialReferenceH srs = OSRNewSpatialReference("");
   OGRErr rcode = OSRSetFromUserInput( srs, name );
   if( rcode == OGRERR_NONE )
-      rcode = OSRExportToWkt ( srs, argout );  
+      rcode = OSRExportToWkt ( srs, argout );
   OSRDestroySpatialReference( srs );
   return rcode;
 }
@@ -1730,33 +1815,9 @@ SWIGINTERN void delete_OSRSpatialReferenceShadow(OSRSpatialReferenceShadow *self
       OSRDestroySpatialReference( self );
     }
   }
-SWIGINTERN retStringAndCPLFree *OSRSpatialReferenceShadow___str__(OSRSpatialReferenceShadow *self){
-    char *buf = 0;
-    OSRExportToPrettyWkt( self, &buf, 0 );
-    return buf;
-  }
 SWIGINTERN int OSRSpatialReferenceShadow_IsSame(OSRSpatialReferenceShadow *self,OSRSpatialReferenceShadow *rhs){
     return OSRIsSame( self, rhs );
   }
-
-SWIGINTERNINLINE SV *
-SWIG_From_long  SWIG_PERL_DECL_ARGS_1(long value)
-{
-  SV *sv;
-  if (value >= IV_MIN && value <= IV_MAX)
-    sv = newSViv(value);
-  else
-    sv = newSVpvf("%ld", value);
-  return sv_2mortal(sv);
-}
-
-
-SWIGINTERNINLINE SV *
-SWIG_From_int  SWIG_PERL_DECL_ARGS_1(int value)
-{    
-  return SWIG_From_long  SWIG_PERL_CALL_ARGS_1(value);
-}
-
 SWIGINTERN int OSRSpatialReferenceShadow_IsSameGeogCS(OSRSpatialReferenceShadow *self,OSRSpatialReferenceShadow *rhs){
     return OSRIsSameGeogCS( self, rhs );
   }
@@ -1935,7 +1996,7 @@ SWIGINTERN char const *OSRSpatialReferenceShadow_GetAttrValue(OSRSpatialReferenc
     return OSRGetAttrValue( self, name, child );
   }
 SWIGINTERN OGRErr OSRSpatialReferenceShadow_SetAttrValue(OSRSpatialReferenceShadow *self,char const *name,char const *value){
-    return OSRSetAttrValue( self, name, value ); 
+    return OSRSetAttrValue( self, name, value );
   }
 SWIGINTERN OGRErr OSRSpatialReferenceShadow_SetAngularUnits(OSRSpatialReferenceShadow *self,char const *name,double to_radians){
     return OSRSetAngularUnits( self, name, to_radians );
@@ -1943,6 +2004,12 @@ SWIGINTERN OGRErr OSRSpatialReferenceShadow_SetAngularUnits(OSRSpatialReferenceS
 SWIGINTERN double OSRSpatialReferenceShadow_GetAngularUnits(OSRSpatialReferenceShadow *self){
     // Return code ignored.
     return OSRGetAngularUnits( self, 0 );
+  }
+SWIGINTERN char const *OSRSpatialReferenceShadow_GetAngularUnitsName(OSRSpatialReferenceShadow *self){
+    char *name = 0;
+    OSRGetAngularUnits( self, &name );
+    // This is really a const char* that is returned and shouldn't be freed
+    return (const char*)name;
   }
 SWIGINTERN OGRErr OSRSpatialReferenceShadow_SetTargetLinearUnits(OSRSpatialReferenceShadow *self,char const *target,char const *name,double to_meters){
     return OSRSetTargetLinearUnits( self, target, name, to_meters );
@@ -1966,7 +2033,7 @@ SWIGINTERN char const *OSRSpatialReferenceShadow_GetLinearUnitsName(OSRSpatialRe
       name = OSRGetAttrValue( self, "LOCAL_CS|UNIT", 0 );
     }
 
-    if (name != 0) 
+    if (name != 0)
       return name;
 
     return "Meter";
@@ -1977,12 +2044,20 @@ SWIGINTERN char const *OSRSpatialReferenceShadow_GetAuthorityCode(OSRSpatialRefe
 SWIGINTERN char const *OSRSpatialReferenceShadow_GetAuthorityName(OSRSpatialReferenceShadow *self,char const *target_key){
     return OSRGetAuthorityName( self, target_key );
   }
+SWIGINTERN char const *OSRSpatialReferenceShadow_GetAxisName(OSRSpatialReferenceShadow *self,char const *target_key,int iAxis){
+    return OSRGetAxis( self, target_key, iAxis, NULL );
+  }
+SWIGINTERN OGRAxisOrientation OSRSpatialReferenceShadow_GetAxisOrientation(OSRSpatialReferenceShadow *self,char const *target_key,int iAxis){
+    OGRAxisOrientation orientation = OAO_Other;
+    OSRGetAxis( self, target_key, iAxis, &orientation );
+    return orientation;
+  }
 SWIGINTERN OGRErr OSRSpatialReferenceShadow_SetUTM(OSRSpatialReferenceShadow *self,int zone,int north=1){
     return OSRSetUTM( self, zone, north );
   }
 SWIGINTERN int OSRSpatialReferenceShadow_GetUTMZone(OSRSpatialReferenceShadow *self){
-    // Note: we will return south zones as negative since it is 
-    // hard to return two values as the C API does. 
+    // Note: we will return south zones as negative since it is
+    // hard to return two values as the C API does.
     int bNorth = FALSE;
     int nZone = OSRGetUTMZone( self, &bNorth );
     if( !bNorth )
@@ -1999,7 +2074,7 @@ SWIGINTERN OGRErr OSRSpatialReferenceShadow_SetProjection(OSRSpatialReferenceSha
     return OSRSetProjection( self, arg );
   }
 SWIGINTERN OGRErr OSRSpatialReferenceShadow_SetProjParm(OSRSpatialReferenceShadow *self,char const *name,double val){
-    return OSRSetProjParm( self, name, val ); 
+    return OSRSetProjParm( self, name, val );
   }
 SWIGINTERN double OSRSpatialReferenceShadow_GetProjParm(OSRSpatialReferenceShadow *self,char const *name,double default_val=0.0){
     // Return code ignored.
@@ -2025,26 +2100,26 @@ SWIGINTERN double OSRSpatialReferenceShadow_GetInvFlattening(OSRSpatialReference
     return OSRGetInvFlattening( self, 0 );
   }
 SWIGINTERN OGRErr OSRSpatialReferenceShadow_SetACEA(OSRSpatialReferenceShadow *self,double stdp1,double stdp2,double clat,double clong,double fe,double fn){
-    return OSRSetACEA( self, stdp1, stdp2, clat, clong, 
+    return OSRSetACEA( self, stdp1, stdp2, clat, clong,
                        fe, fn );
   }
 SWIGINTERN OGRErr OSRSpatialReferenceShadow_SetAE(OSRSpatialReferenceShadow *self,double clat,double clong,double fe,double fn){
-    return OSRSetAE( self, clat, clong, 
+    return OSRSetAE( self, clat, clong,
                      fe, fn );
   }
 SWIGINTERN OGRErr OSRSpatialReferenceShadow_SetBonne(OSRSpatialReferenceShadow *self,double stdp,double cm,double fe,double fn){
     return OSRSetBonne( self, stdp, cm, fe, fn );
   }
 SWIGINTERN OGRErr OSRSpatialReferenceShadow_SetCEA(OSRSpatialReferenceShadow *self,double stdp1,double cm,double fe,double fn){
-    return OSRSetCEA( self, stdp1, cm, 
+    return OSRSetCEA( self, stdp1, cm,
                       fe, fn );
   }
 SWIGINTERN OGRErr OSRSpatialReferenceShadow_SetCS(OSRSpatialReferenceShadow *self,double clat,double clong,double fe,double fn){
-    return OSRSetCS( self, clat, clong, 
+    return OSRSetCS( self, clat, clong,
                      fe, fn );
   }
 SWIGINTERN OGRErr OSRSpatialReferenceShadow_SetEC(OSRSpatialReferenceShadow *self,double stdp1,double stdp2,double clat,double clong,double fe,double fn){
-    return OSRSetEC( self, stdp1, stdp2, clat, clong, 
+    return OSRSetEC( self, stdp1, stdp2, clat, clong,
                      fe, fn );
   }
 SWIGINTERN OGRErr OSRSpatialReferenceShadow_SetEckertIV(OSRSpatialReferenceShadow *self,double cm,double fe,double fn){
@@ -2054,7 +2129,7 @@ SWIGINTERN OGRErr OSRSpatialReferenceShadow_SetEckertVI(OSRSpatialReferenceShado
     return OSRSetEckertVI( self, cm, fe, fn);
   }
 SWIGINTERN OGRErr OSRSpatialReferenceShadow_SetEquirectangular(OSRSpatialReferenceShadow *self,double clat,double clong,double fe,double fn){
-    return OSRSetEquirectangular( self, clat, clong, 
+    return OSRSetEquirectangular( self, clat, clong,
                                   fe, fn );
   }
 SWIGINTERN OGRErr OSRSpatialReferenceShadow_SetEquirectangular2(OSRSpatialReferenceShadow *self,double clat,double clong,double pseudostdparallellat,double fe,double fn){
@@ -2079,7 +2154,7 @@ SWIGINTERN OGRErr OSRSpatialReferenceShadow_SetGEOS(OSRSpatialReferenceShadow *s
                        fe, fn );
   }
 SWIGINTERN OGRErr OSRSpatialReferenceShadow_SetGnomonic(OSRSpatialReferenceShadow *self,double clat,double clong,double fe,double fn){
-    return OSRSetGnomonic( self, clat, clong, 
+    return OSRSetGnomonic( self, clat, clong,
                            fe, fn );
   }
 SWIGINTERN OGRErr OSRSpatialReferenceShadow_SetHOM(OSRSpatialReferenceShadow *self,double clat,double clong,double azimuth,double recttoskew,double scale,double fe,double fn){
@@ -2087,56 +2162,56 @@ SWIGINTERN OGRErr OSRSpatialReferenceShadow_SetHOM(OSRSpatialReferenceShadow *se
                       scale, fe, fn );
   }
 SWIGINTERN OGRErr OSRSpatialReferenceShadow_SetHOM2PNO(OSRSpatialReferenceShadow *self,double clat,double dfLat1,double dfLong1,double dfLat2,double dfLong2,double scale,double fe,double fn){
-    return OSRSetHOM2PNO( self, clat, dfLat1, dfLong1, dfLat2, dfLong2, 
+    return OSRSetHOM2PNO( self, clat, dfLat1, dfLong1, dfLat2, dfLong2,
                           scale, fe, fn );
   }
 SWIGINTERN OGRErr OSRSpatialReferenceShadow_SetKrovak(OSRSpatialReferenceShadow *self,double clat,double clong,double azimuth,double pseudostdparallellat,double scale,double fe,double fn){
-    return OSRSetKrovak( self, clat, clong, 
-                         azimuth, pseudostdparallellat, 
+    return OSRSetKrovak( self, clat, clong,
+                         azimuth, pseudostdparallellat,
                          scale, fe, fn );
   }
 SWIGINTERN OGRErr OSRSpatialReferenceShadow_SetLAEA(OSRSpatialReferenceShadow *self,double clat,double clong,double fe,double fn){
-    return OSRSetLAEA( self, clat, clong, 
+    return OSRSetLAEA( self, clat, clong,
                        fe, fn );
   }
 SWIGINTERN OGRErr OSRSpatialReferenceShadow_SetLCC(OSRSpatialReferenceShadow *self,double stdp1,double stdp2,double clat,double clong,double fe,double fn){
-    return OSRSetLCC( self, stdp1, stdp2, clat, clong, 
+    return OSRSetLCC( self, stdp1, stdp2, clat, clong,
                       fe, fn );
   }
 SWIGINTERN OGRErr OSRSpatialReferenceShadow_SetLCC1SP(OSRSpatialReferenceShadow *self,double clat,double clong,double scale,double fe,double fn){
-    return OSRSetLCC1SP( self, clat, clong, scale, 
+    return OSRSetLCC1SP( self, clat, clong, scale,
                          fe, fn );
   }
 SWIGINTERN OGRErr OSRSpatialReferenceShadow_SetLCCB(OSRSpatialReferenceShadow *self,double stdp1,double stdp2,double clat,double clong,double fe,double fn){
-    return OSRSetLCCB( self, stdp1, stdp2, clat, clong, 
+    return OSRSetLCCB( self, stdp1, stdp2, clat, clong,
                        fe, fn );
   }
 SWIGINTERN OGRErr OSRSpatialReferenceShadow_SetMC(OSRSpatialReferenceShadow *self,double clat,double clong,double fe,double fn){
-    return OSRSetMC( self, clat, clong,    
+    return OSRSetMC( self, clat, clong,
                      fe, fn );
   }
 SWIGINTERN OGRErr OSRSpatialReferenceShadow_SetMercator(OSRSpatialReferenceShadow *self,double clat,double clong,double scale,double fe,double fn){
-    return OSRSetMercator( self, clat, clong, 
+    return OSRSetMercator( self, clat, clong,
                            scale, fe, fn );
   }
 SWIGINTERN OGRErr OSRSpatialReferenceShadow_SetMollweide(OSRSpatialReferenceShadow *self,double cm,double fe,double fn){
-    return OSRSetMollweide( self, cm, 
+    return OSRSetMollweide( self, cm,
                             fe, fn );
   }
 SWIGINTERN OGRErr OSRSpatialReferenceShadow_SetNZMG(OSRSpatialReferenceShadow *self,double clat,double clong,double fe,double fn){
-    return OSRSetNZMG( self, clat, clong, 
+    return OSRSetNZMG( self, clat, clong,
                        fe, fn );
   }
 SWIGINTERN OGRErr OSRSpatialReferenceShadow_SetOS(OSRSpatialReferenceShadow *self,double dfOriginLat,double dfCMeridian,double scale,double fe,double fn){
-    return OSRSetOS( self, dfOriginLat, dfCMeridian, scale, 
+    return OSRSetOS( self, dfOriginLat, dfCMeridian, scale,
                      fe, fn );
   }
 SWIGINTERN OGRErr OSRSpatialReferenceShadow_SetOrthographic(OSRSpatialReferenceShadow *self,double clat,double clong,double fe,double fn){
-    return OSRSetOrthographic( self, clat, clong, 
+    return OSRSetOrthographic( self, clat, clong,
                                fe, fn );
   }
 SWIGINTERN OGRErr OSRSpatialReferenceShadow_SetPolyconic(OSRSpatialReferenceShadow *self,double clat,double clong,double fe,double fn){
-    return OSRSetPolyconic( self, clat, clong, 
+    return OSRSetPolyconic( self, clat, clong,
                             fe, fn );
   }
 SWIGINTERN OGRErr OSRSpatialReferenceShadow_SetPS(OSRSpatialReferenceShadow *self,double clat,double clong,double scale,double fe,double fn){
@@ -2150,7 +2225,7 @@ SWIGINTERN OGRErr OSRSpatialReferenceShadow_SetSinusoidal(OSRSpatialReferenceSha
     return OSRSetSinusoidal( self, clong, fe, fn );
   }
 SWIGINTERN OGRErr OSRSpatialReferenceShadow_SetStereographic(OSRSpatialReferenceShadow *self,double clat,double clong,double scale,double fe,double fn){
-    return OSRSetStereographic( self, clat, clong, scale, 
+    return OSRSetStereographic( self, clat, clong, scale,
                                 fe, fn );
   }
 SWIGINTERN OGRErr OSRSpatialReferenceShadow_SetSOC(OSRSpatialReferenceShadow *self,double latitudeoforigin,double cm,double fe,double fn){
@@ -2158,19 +2233,19 @@ SWIGINTERN OGRErr OSRSpatialReferenceShadow_SetSOC(OSRSpatialReferenceShadow *se
 	              fe, fn );
   }
 SWIGINTERN OGRErr OSRSpatialReferenceShadow_SetTM(OSRSpatialReferenceShadow *self,double clat,double clong,double scale,double fe,double fn){
-    return OSRSetTM( self, clat, clong, scale, 
+    return OSRSetTM( self, clat, clong, scale,
                      fe, fn );
   }
 SWIGINTERN OGRErr OSRSpatialReferenceShadow_SetTMVariant(OSRSpatialReferenceShadow *self,char const *pszVariantName,double clat,double clong,double scale,double fe,double fn){
-    return OSRSetTMVariant( self, pszVariantName, clat, clong,  
+    return OSRSetTMVariant( self, pszVariantName, clat, clong,
                             scale, fe, fn );
   }
 SWIGINTERN OGRErr OSRSpatialReferenceShadow_SetTMG(OSRSpatialReferenceShadow *self,double clat,double clong,double fe,double fn){
-    return OSRSetTMG( self, clat, clong, 
+    return OSRSetTMG( self, clat, clong,
                       fe, fn );
   }
 SWIGINTERN OGRErr OSRSpatialReferenceShadow_SetTMSO(OSRSpatialReferenceShadow *self,double clat,double clong,double scale,double fe,double fn){
-    return OSRSetTMSO( self, clat, clong, scale, 
+    return OSRSetTMSO( self, clat, clong, scale,
                        fe, fn );
   }
 SWIGINTERN OGRErr OSRSpatialReferenceShadow_SetVDG(OSRSpatialReferenceShadow *self,double clong,double fe,double fn){
@@ -2190,16 +2265,16 @@ SWIGINTERN OGRErr OSRSpatialReferenceShadow_SetTOWGS84(OSRSpatialReferenceShadow
     return OSRSetTOWGS84( self, p1, p2, p3, p4, p5, p6, p7 );
   }
 
-static SV *
-CreateArrayFromDoubleArray( double *first, unsigned int size ) {
-  AV *av = (AV*)sv_2mortal((SV*)newAV());
-  for( unsigned int i=0; i<size; i++ ) {
-    av_store(av,i,newSVnv(*first));
-    ++first;
-  }
-  return sv_2mortal(newRV((SV*)av));
-}
-
+    static SV *
+        CreateArrayFromDoubleArray( double *first, unsigned int size ) {
+        AV *av = (AV*)sv_2mortal((SV*)newAV());
+        for( unsigned int i=0; i<size; i++ ) {
+            av_store(av,i,newSVnv(*first));
+            ++first;
+        }
+        return sv_2mortal(newRV((SV*)av));
+    }
+    
 SWIGINTERN OGRErr OSRSpatialReferenceShadow_GetTOWGS84(OSRSpatialReferenceShadow *self,double argout[7]){
     return OSRGetTOWGS84( self, argout, 7 );
   }
@@ -2256,8 +2331,8 @@ SWIGINTERN OGRErr OSRSpatialReferenceShadow_ImportFromERM(OSRSpatialReferenceSha
 SWIGINTERN OGRErr OSRSpatialReferenceShadow_ImportFromMICoordSys(OSRSpatialReferenceShadow *self,char const *pszCoordSys){
     return OSRImportFromMICoordSys( self, pszCoordSys );
   }
-SWIGINTERN OGRErr OSRSpatialReferenceShadow_ImportFromOzi(OSRSpatialReferenceShadow *self,char const *datum,char const *proj,char const *projParms){
-    return OSRImportFromOzi( self, datum, proj, projParms );
+SWIGINTERN OGRErr OSRSpatialReferenceShadow_ImportFromOzi(OSRSpatialReferenceShadow *self,char const *const *papszLines){
+    return OSRImportFromOzi( self, papszLines );
   }
 SWIGINTERN OGRErr OSRSpatialReferenceShadow_ExportToWkt(OSRSpatialReferenceShadow *self,char **argout){
     return OSRExportToWkt( self, argout );
@@ -2402,6 +2477,7 @@ XS(_wrap_GetWellKnownGeogCSAsWKT) {
   {
     char *arg1 = (char *) 0 ;
     char **arg2 = (char **) 0 ;
+    U8 *tmpbuf1 = NULL ;
     char *argout2 = 0 ;
     int argvi = 0;
     OGRErr result;
@@ -2416,8 +2492,7 @@ XS(_wrap_GetWellKnownGeogCSAsWKT) {
     }
     {
       /* %typemap(in,numinputs=1) (const char* name) */
-      sv_utf8_upgrade(ST(0));
-      arg1 = SvPV_nolen(ST(0));
+      arg1 = sv_to_utf8_string(ST(0), &tmpbuf1);
     }
     {
       if (!arg1) {
@@ -2429,7 +2504,7 @@ XS(_wrap_GetWellKnownGeogCSAsWKT) {
       result = (OGRErr)GetWellKnownGeogCSAsWKT((char const *)arg1,arg2);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -2438,7 +2513,7 @@ XS(_wrap_GetWellKnownGeogCSAsWKT) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -2452,8 +2527,8 @@ XS(_wrap_GetWellKnownGeogCSAsWKT) {
       /* %typemap(out) OGRErr */
       if ( result != 0 ) {
         const char *err = CPLGetLastErrorMsg();
-        if (err and *err) SWIG_croak(err); /* this is usually better */
-        SWIG_croak( OGRErrMessages(result) );
+        if (err and *err) do_confess(err, 0); /* this is usually better */
+        do_confess( OGRErrMessages(result), 1 );
       }
     }
     {
@@ -2466,12 +2541,20 @@ XS(_wrap_GetWellKnownGeogCSAsWKT) {
       argvi++;
     }
     {
+      /* %typemap(freearg) (const char* name) */
+      if (tmpbuf1) free(tmpbuf1);
+    }
+    {
       /* %typemap(freearg) (char **argout) */
       if ( *arg2 )
       CPLFree( *arg2 );
     }
     XSRETURN(argvi);
   fail:
+    {
+      /* %typemap(freearg) (const char* name) */
+      if (tmpbuf1) free(tmpbuf1);
+    }
     {
       /* %typemap(freearg) (char **argout) */
       if ( *arg2 )
@@ -2486,6 +2569,7 @@ XS(_wrap_GetUserInputAsWKT) {
   {
     char *arg1 = (char *) 0 ;
     char **arg2 = (char **) 0 ;
+    U8 *tmpbuf1 = NULL ;
     char *argout2 = 0 ;
     int argvi = 0;
     OGRErr result;
@@ -2500,8 +2584,7 @@ XS(_wrap_GetUserInputAsWKT) {
     }
     {
       /* %typemap(in,numinputs=1) (const char* name) */
-      sv_utf8_upgrade(ST(0));
-      arg1 = SvPV_nolen(ST(0));
+      arg1 = sv_to_utf8_string(ST(0), &tmpbuf1);
     }
     {
       if (!arg1) {
@@ -2513,7 +2596,7 @@ XS(_wrap_GetUserInputAsWKT) {
       result = (OGRErr)GetUserInputAsWKT((char const *)arg1,arg2);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -2522,7 +2605,7 @@ XS(_wrap_GetUserInputAsWKT) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -2536,8 +2619,8 @@ XS(_wrap_GetUserInputAsWKT) {
       /* %typemap(out) OGRErr */
       if ( result != 0 ) {
         const char *err = CPLGetLastErrorMsg();
-        if (err and *err) SWIG_croak(err); /* this is usually better */
-        SWIG_croak( OGRErrMessages(result) );
+        if (err and *err) do_confess(err, 0); /* this is usually better */
+        do_confess( OGRErrMessages(result), 1 );
       }
     }
     {
@@ -2550,12 +2633,20 @@ XS(_wrap_GetUserInputAsWKT) {
       argvi++;
     }
     {
+      /* %typemap(freearg) (const char* name) */
+      if (tmpbuf1) free(tmpbuf1);
+    }
+    {
       /* %typemap(freearg) (char **argout) */
       if ( *arg2 )
       CPLFree( *arg2 );
     }
     XSRETURN(argvi);
   fail:
+    {
+      /* %typemap(freearg) (const char* name) */
+      if (tmpbuf1) free(tmpbuf1);
+    }
     {
       /* %typemap(freearg) (char **argout) */
       if ( *arg2 )
@@ -2580,7 +2671,7 @@ XS(_wrap_GetProjectionMethods) {
       result = (char **)OPTGetProjectionMethods();
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -2589,7 +2680,7 @@ XS(_wrap_GetProjectionMethods) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -2603,9 +2694,10 @@ XS(_wrap_GetProjectionMethods) {
       /* %typemap(out) char **CSL */
       if (GIMME_V == G_ARRAY) {
         if (result) {
+          int n = CSLCount(result);
+          EXTEND(SP, argvi+n-items+1);
           int i;
           for (i = 0; result[i]; i++) {
-            if (argvi > items-1) EXTEND(SP, 1);
             SV *sv = newSVpv(result[i], 0);
             SvUTF8_on(sv); /* expecting GDAL to give us UTF-8 */
             ST(argvi++) = sv_2mortal(sv);
@@ -2619,8 +2711,7 @@ XS(_wrap_GetProjectionMethods) {
           for (i = 0; result[i]; i++) {
             SV *sv = newSVpv(result[i], 0);
             SvUTF8_on(sv); /* expecting GDAL to give us UTF-8 */
-            if (!av_store(av, i, sv))
-            SvREFCNT_dec(sv);
+            av_push(av, sv);
           }
           CSLDestroy(result);
         }
@@ -2663,14 +2754,14 @@ XS(_wrap_GetProjectionMethodParameterList) {
     {
       /* %typemap(check) (char *method) */
       if (!arg1)
-      SWIG_croak("The method must not be undefined when it is an argument to a Geo::GDAL method");
+      do_confess(NEED_DEF, 1);
     }
     {
       CPLErrorReset();
       result = (char **)OPTGetParameterList(arg1,arg2);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -2679,7 +2770,7 @@ XS(_wrap_GetProjectionMethodParameterList) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -2697,8 +2788,7 @@ XS(_wrap_GetProjectionMethodParameterList) {
         for (i = 0; result[i]; i++) {
           SV *sv = newSVpv(result[i], 0);
           SvUTF8_on(sv); /* expecting GDAL to give us UTF-8 */
-          if (!av_store(av, i, sv))
-          SvREFCNT_dec(sv);
+          av_push(av, sv);
         }
         CSLDestroy(result);
       }
@@ -2771,14 +2861,14 @@ XS(_wrap_GetProjectionMethodParamInfo) {
     {
       /* %typemap(check) (char *method) */
       if (!arg1)
-      SWIG_croak("The method must not be undefined when it is an argument to a Geo::GDAL method");
+      do_confess(NEED_DEF, 1);
     }
     {
       CPLErrorReset();
       OPTGetParameterInfo(arg1,arg2,arg3,arg4,arg5);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -2787,7 +2877,7 @@ XS(_wrap_GetProjectionMethodParamInfo) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -2866,7 +2956,7 @@ XS(_wrap_new_SpatialReference) {
       result = (OSRSpatialReferenceShadow *)new_OSRSpatialReferenceShadow((char const *)arg1);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -2875,7 +2965,7 @@ XS(_wrap_new_SpatialReference) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -2916,7 +3006,7 @@ XS(_wrap_delete_SpatialReference) {
       delete_OSRSpatialReferenceShadow(arg1);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -2925,7 +3015,7 @@ XS(_wrap_delete_SpatialReference) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -2938,69 +3028,6 @@ XS(_wrap_delete_SpatialReference) {
     {
       /* %typemap(out) void */
     }
-    
-    XSRETURN(argvi);
-  fail:
-    
-    SWIG_croak_null();
-  }
-}
-
-
-XS(_wrap_SpatialReference___str__) {
-  {
-    OSRSpatialReferenceShadow *arg1 = (OSRSpatialReferenceShadow *) 0 ;
-    void *argp1 = 0 ;
-    int res1 = 0 ;
-    int argvi = 0;
-    retStringAndCPLFree *result = 0 ;
-    dXSARGS;
-    
-    if ((items < 1) || (items > 1)) {
-      SWIG_croak("Usage: SpatialReference___str__(self);");
-    }
-    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OSRSpatialReferenceShadow, 0 |  0 );
-    if (!SWIG_IsOK(res1)) {
-      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "SpatialReference___str__" "', argument " "1"" of type '" "OSRSpatialReferenceShadow *""'"); 
-    }
-    arg1 = reinterpret_cast< OSRSpatialReferenceShadow * >(argp1);
-    {
-      CPLErrorReset();
-      result = (retStringAndCPLFree *)OSRSpatialReferenceShadow___str__(arg1);
-      CPLErr eclass = CPLGetLastErrorType();
-      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
-        
-        
-        
-        
-        
-      }
-      
-      
-      /* 
-          Make warnings regular Perl warnings. This duplicates the warning
-          message if DontUseExceptions() is in effect (it is not by default).
-          */
-      if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg(), "%s" );
-      }
-      
-      
-    }
-    
-    /* %typemap(out) (retStringAndCPLFree*) */
-    if(result)
-    {
-      ST(argvi) = SWIG_FromCharPtr((const char *)result);
-      CPLFree(result);
-    }
-    else
-    {
-      ST(argvi) = &PL_sv_undef;
-    }
-    argvi++ ;
-    
     
     XSRETURN(argvi);
   fail:
@@ -3045,7 +3072,7 @@ XS(_wrap_SpatialReference_IsSame) {
       result = (int)OSRSpatialReferenceShadow_IsSame(arg1,arg2);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -3054,7 +3081,7 @@ XS(_wrap_SpatialReference_IsSame) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -3111,7 +3138,7 @@ XS(_wrap_SpatialReference_IsSameGeogCS) {
       result = (int)OSRSpatialReferenceShadow_IsSameGeogCS(arg1,arg2);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -3120,7 +3147,7 @@ XS(_wrap_SpatialReference_IsSameGeogCS) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -3177,7 +3204,7 @@ XS(_wrap_SpatialReference_IsSameVertCS) {
       result = (int)OSRSpatialReferenceShadow_IsSameVertCS(arg1,arg2);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -3186,7 +3213,7 @@ XS(_wrap_SpatialReference_IsSameVertCS) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -3230,7 +3257,7 @@ XS(_wrap_SpatialReference_IsGeographic) {
       result = (int)OSRSpatialReferenceShadow_IsGeographic(arg1);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -3239,7 +3266,7 @@ XS(_wrap_SpatialReference_IsGeographic) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -3281,7 +3308,7 @@ XS(_wrap_SpatialReference_IsProjected) {
       result = (int)OSRSpatialReferenceShadow_IsProjected(arg1);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -3290,7 +3317,7 @@ XS(_wrap_SpatialReference_IsProjected) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -3332,7 +3359,7 @@ XS(_wrap_SpatialReference_IsCompound) {
       result = (int)OSRSpatialReferenceShadow_IsCompound(arg1);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -3341,7 +3368,7 @@ XS(_wrap_SpatialReference_IsCompound) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -3383,7 +3410,7 @@ XS(_wrap_SpatialReference_IsGeocentric) {
       result = (int)OSRSpatialReferenceShadow_IsGeocentric(arg1);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -3392,7 +3419,7 @@ XS(_wrap_SpatialReference_IsGeocentric) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -3434,7 +3461,7 @@ XS(_wrap_SpatialReference_IsLocal) {
       result = (int)OSRSpatialReferenceShadow_IsLocal(arg1);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -3443,7 +3470,7 @@ XS(_wrap_SpatialReference_IsLocal) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -3485,7 +3512,7 @@ XS(_wrap_SpatialReference_IsVertical) {
       result = (int)OSRSpatialReferenceShadow_IsVertical(arg1);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -3494,7 +3521,7 @@ XS(_wrap_SpatialReference_IsVertical) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -3536,7 +3563,7 @@ XS(_wrap_SpatialReference_EPSGTreatsAsLatLong) {
       result = (int)OSRSpatialReferenceShadow_EPSGTreatsAsLatLong(arg1);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -3545,7 +3572,7 @@ XS(_wrap_SpatialReference_EPSGTreatsAsLatLong) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -3587,7 +3614,7 @@ XS(_wrap_SpatialReference_EPSGTreatsAsNorthingEasting) {
       result = (int)OSRSpatialReferenceShadow_EPSGTreatsAsNorthingEasting(arg1);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -3596,7 +3623,7 @@ XS(_wrap_SpatialReference_EPSGTreatsAsNorthingEasting) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -3664,7 +3691,7 @@ XS(_wrap_SpatialReference_SetAuthority) {
       result = (OGRErr)OSRSpatialReferenceShadow_SetAuthority(arg1,(char const *)arg2,(char const *)arg3,arg4);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -3673,7 +3700,7 @@ XS(_wrap_SpatialReference_SetAuthority) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -3687,8 +3714,8 @@ XS(_wrap_SpatialReference_SetAuthority) {
       /* %typemap(out) OGRErr */
       if ( result != 0 ) {
         const char *err = CPLGetLastErrorMsg();
-        if (err and *err) SWIG_croak(err); /* this is usually better */
-        SWIG_croak( OGRErrMessages(result) );
+        if (err and *err) do_confess(err, 0); /* this is usually better */
+        do_confess( OGRErrMessages(result), 1 );
       }
     }
     
@@ -3713,6 +3740,7 @@ XS(_wrap_SpatialReference_GetAttrValue) {
     int arg3 = (int) 0 ;
     void *argp1 = 0 ;
     int res1 = 0 ;
+    U8 *tmpbuf2 = NULL ;
     int val3 ;
     int ecode3 = 0 ;
     int argvi = 0;
@@ -3729,8 +3757,7 @@ XS(_wrap_SpatialReference_GetAttrValue) {
     arg1 = reinterpret_cast< OSRSpatialReferenceShadow * >(argp1);
     {
       /* %typemap(in,numinputs=1) (const char* name) */
-      sv_utf8_upgrade(ST(1));
-      arg2 = SvPV_nolen(ST(1));
+      arg2 = sv_to_utf8_string(ST(1), &tmpbuf2);
     }
     if (items > 2) {
       ecode3 = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(2), &val3);
@@ -3749,7 +3776,7 @@ XS(_wrap_SpatialReference_GetAttrValue) {
       result = (char *)OSRSpatialReferenceShadow_GetAttrValue(arg1,(char const *)arg2,arg3);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -3758,7 +3785,7 @@ XS(_wrap_SpatialReference_GetAttrValue) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -3776,10 +3803,18 @@ XS(_wrap_SpatialReference_GetAttrValue) {
       argvi++;
     }
     
+    {
+      /* %typemap(freearg) (const char* name) */
+      if (tmpbuf2) free(tmpbuf2);
+    }
     
     XSRETURN(argvi);
   fail:
     
+    {
+      /* %typemap(freearg) (const char* name) */
+      if (tmpbuf2) free(tmpbuf2);
+    }
     
     SWIG_croak_null();
   }
@@ -3793,6 +3828,7 @@ XS(_wrap_SpatialReference_SetAttrValue) {
     char *arg3 = (char *) 0 ;
     void *argp1 = 0 ;
     int res1 = 0 ;
+    U8 *tmpbuf2 = NULL ;
     int res3 ;
     char *buf3 = 0 ;
     int alloc3 = 0 ;
@@ -3810,8 +3846,7 @@ XS(_wrap_SpatialReference_SetAttrValue) {
     arg1 = reinterpret_cast< OSRSpatialReferenceShadow * >(argp1);
     {
       /* %typemap(in,numinputs=1) (const char* name) */
-      sv_utf8_upgrade(ST(1));
-      arg2 = SvPV_nolen(ST(1));
+      arg2 = sv_to_utf8_string(ST(1), &tmpbuf2);
     }
     res3 = SWIG_AsCharPtrAndSize(ST(2), &buf3, NULL, &alloc3);
     if (!SWIG_IsOK(res3)) {
@@ -3828,7 +3863,7 @@ XS(_wrap_SpatialReference_SetAttrValue) {
       result = (OGRErr)OSRSpatialReferenceShadow_SetAttrValue(arg1,(char const *)arg2,(char const *)arg3);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -3837,7 +3872,7 @@ XS(_wrap_SpatialReference_SetAttrValue) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -3851,15 +3886,23 @@ XS(_wrap_SpatialReference_SetAttrValue) {
       /* %typemap(out) OGRErr */
       if ( result != 0 ) {
         const char *err = CPLGetLastErrorMsg();
-        if (err and *err) SWIG_croak(err); /* this is usually better */
-        SWIG_croak( OGRErrMessages(result) );
+        if (err and *err) do_confess(err, 0); /* this is usually better */
+        do_confess( OGRErrMessages(result), 1 );
       }
     }
     
+    {
+      /* %typemap(freearg) (const char* name) */
+      if (tmpbuf2) free(tmpbuf2);
+    }
     if (alloc3 == SWIG_NEWOBJ) delete[] buf3;
     XSRETURN(argvi);
   fail:
     
+    {
+      /* %typemap(freearg) (const char* name) */
+      if (tmpbuf2) free(tmpbuf2);
+    }
     if (alloc3 == SWIG_NEWOBJ) delete[] buf3;
     SWIG_croak_null();
   }
@@ -3873,6 +3916,7 @@ XS(_wrap_SpatialReference_SetAngularUnits) {
     double arg3 ;
     void *argp1 = 0 ;
     int res1 = 0 ;
+    U8 *tmpbuf2 = NULL ;
     double val3 ;
     int ecode3 = 0 ;
     int argvi = 0;
@@ -3889,8 +3933,7 @@ XS(_wrap_SpatialReference_SetAngularUnits) {
     arg1 = reinterpret_cast< OSRSpatialReferenceShadow * >(argp1);
     {
       /* %typemap(in,numinputs=1) (const char* name) */
-      sv_utf8_upgrade(ST(1));
-      arg2 = SvPV_nolen(ST(1));
+      arg2 = sv_to_utf8_string(ST(1), &tmpbuf2);
     }
     ecode3 = SWIG_AsVal_double SWIG_PERL_CALL_ARGS_2(ST(2), &val3);
     if (!SWIG_IsOK(ecode3)) {
@@ -3907,7 +3950,7 @@ XS(_wrap_SpatialReference_SetAngularUnits) {
       result = (OGRErr)OSRSpatialReferenceShadow_SetAngularUnits(arg1,(char const *)arg2,arg3);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -3916,7 +3959,7 @@ XS(_wrap_SpatialReference_SetAngularUnits) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -3930,15 +3973,23 @@ XS(_wrap_SpatialReference_SetAngularUnits) {
       /* %typemap(out) OGRErr */
       if ( result != 0 ) {
         const char *err = CPLGetLastErrorMsg();
-        if (err and *err) SWIG_croak(err); /* this is usually better */
-        SWIG_croak( OGRErrMessages(result) );
+        if (err and *err) do_confess(err, 0); /* this is usually better */
+        do_confess( OGRErrMessages(result), 1 );
       }
     }
     
+    {
+      /* %typemap(freearg) (const char* name) */
+      if (tmpbuf2) free(tmpbuf2);
+    }
     
     XSRETURN(argvi);
   fail:
     
+    {
+      /* %typemap(freearg) (const char* name) */
+      if (tmpbuf2) free(tmpbuf2);
+    }
     
     SWIG_croak_null();
   }
@@ -3967,7 +4018,7 @@ XS(_wrap_SpatialReference_GetAngularUnits) {
       result = (double)OSRSpatialReferenceShadow_GetAngularUnits(arg1);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -3976,7 +4027,7 @@ XS(_wrap_SpatialReference_GetAngularUnits) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -3987,6 +4038,63 @@ XS(_wrap_SpatialReference_GetAngularUnits) {
       
     }
     ST(argvi) = SWIG_From_double  SWIG_PERL_CALL_ARGS_1(static_cast< double >(result)); argvi++ ;
+    
+    XSRETURN(argvi);
+  fail:
+    
+    SWIG_croak_null();
+  }
+}
+
+
+XS(_wrap_SpatialReference_GetAngularUnitsName) {
+  {
+    OSRSpatialReferenceShadow *arg1 = (OSRSpatialReferenceShadow *) 0 ;
+    void *argp1 = 0 ;
+    int res1 = 0 ;
+    int argvi = 0;
+    char *result = 0 ;
+    dXSARGS;
+    
+    if ((items < 1) || (items > 1)) {
+      SWIG_croak("Usage: SpatialReference_GetAngularUnitsName(self);");
+    }
+    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OSRSpatialReferenceShadow, 0 |  0 );
+    if (!SWIG_IsOK(res1)) {
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "SpatialReference_GetAngularUnitsName" "', argument " "1"" of type '" "OSRSpatialReferenceShadow *""'"); 
+    }
+    arg1 = reinterpret_cast< OSRSpatialReferenceShadow * >(argp1);
+    {
+      CPLErrorReset();
+      result = (char *)OSRSpatialReferenceShadow_GetAngularUnitsName(arg1);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        do_confess( CPLGetLastErrorMsg(), 0 );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /*
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
+    {
+      /* %typemap(out) const char * */
+      ST(argvi) = newSVpv(result, 0);
+      SvUTF8_on(ST(argvi)); /* expecting GDAL to give us UTF-8 */
+      sv_2mortal(ST(argvi));
+      argvi++;
+    }
     
     XSRETURN(argvi);
   fail:
@@ -4007,6 +4115,7 @@ XS(_wrap_SpatialReference_SetTargetLinearUnits) {
     int res2 ;
     char *buf2 = 0 ;
     int alloc2 = 0 ;
+    U8 *tmpbuf3 = NULL ;
     double val4 ;
     int ecode4 = 0 ;
     int argvi = 0;
@@ -4028,8 +4137,7 @@ XS(_wrap_SpatialReference_SetTargetLinearUnits) {
     arg2 = reinterpret_cast< char * >(buf2);
     {
       /* %typemap(in,numinputs=1) (const char* name) */
-      sv_utf8_upgrade(ST(2));
-      arg3 = SvPV_nolen(ST(2));
+      arg3 = sv_to_utf8_string(ST(2), &tmpbuf3);
     }
     ecode4 = SWIG_AsVal_double SWIG_PERL_CALL_ARGS_2(ST(3), &val4);
     if (!SWIG_IsOK(ecode4)) {
@@ -4046,7 +4154,7 @@ XS(_wrap_SpatialReference_SetTargetLinearUnits) {
       result = (OGRErr)OSRSpatialReferenceShadow_SetTargetLinearUnits(arg1,(char const *)arg2,(char const *)arg3,arg4);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -4055,7 +4163,7 @@ XS(_wrap_SpatialReference_SetTargetLinearUnits) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -4069,17 +4177,25 @@ XS(_wrap_SpatialReference_SetTargetLinearUnits) {
       /* %typemap(out) OGRErr */
       if ( result != 0 ) {
         const char *err = CPLGetLastErrorMsg();
-        if (err and *err) SWIG_croak(err); /* this is usually better */
-        SWIG_croak( OGRErrMessages(result) );
+        if (err and *err) do_confess(err, 0); /* this is usually better */
+        do_confess( OGRErrMessages(result), 1 );
       }
     }
     
     if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
+    {
+      /* %typemap(freearg) (const char* name) */
+      if (tmpbuf3) free(tmpbuf3);
+    }
     
     XSRETURN(argvi);
   fail:
     
     if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
+    {
+      /* %typemap(freearg) (const char* name) */
+      if (tmpbuf3) free(tmpbuf3);
+    }
     
     SWIG_croak_null();
   }
@@ -4093,6 +4209,7 @@ XS(_wrap_SpatialReference_SetLinearUnits) {
     double arg3 ;
     void *argp1 = 0 ;
     int res1 = 0 ;
+    U8 *tmpbuf2 = NULL ;
     double val3 ;
     int ecode3 = 0 ;
     int argvi = 0;
@@ -4109,8 +4226,7 @@ XS(_wrap_SpatialReference_SetLinearUnits) {
     arg1 = reinterpret_cast< OSRSpatialReferenceShadow * >(argp1);
     {
       /* %typemap(in,numinputs=1) (const char* name) */
-      sv_utf8_upgrade(ST(1));
-      arg2 = SvPV_nolen(ST(1));
+      arg2 = sv_to_utf8_string(ST(1), &tmpbuf2);
     }
     ecode3 = SWIG_AsVal_double SWIG_PERL_CALL_ARGS_2(ST(2), &val3);
     if (!SWIG_IsOK(ecode3)) {
@@ -4127,7 +4243,7 @@ XS(_wrap_SpatialReference_SetLinearUnits) {
       result = (OGRErr)OSRSpatialReferenceShadow_SetLinearUnits(arg1,(char const *)arg2,arg3);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -4136,7 +4252,7 @@ XS(_wrap_SpatialReference_SetLinearUnits) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -4150,15 +4266,23 @@ XS(_wrap_SpatialReference_SetLinearUnits) {
       /* %typemap(out) OGRErr */
       if ( result != 0 ) {
         const char *err = CPLGetLastErrorMsg();
-        if (err and *err) SWIG_croak(err); /* this is usually better */
-        SWIG_croak( OGRErrMessages(result) );
+        if (err and *err) do_confess(err, 0); /* this is usually better */
+        do_confess( OGRErrMessages(result), 1 );
       }
     }
     
+    {
+      /* %typemap(freearg) (const char* name) */
+      if (tmpbuf2) free(tmpbuf2);
+    }
     
     XSRETURN(argvi);
   fail:
     
+    {
+      /* %typemap(freearg) (const char* name) */
+      if (tmpbuf2) free(tmpbuf2);
+    }
     
     SWIG_croak_null();
   }
@@ -4172,6 +4296,7 @@ XS(_wrap_SpatialReference_SetLinearUnitsAndUpdateParameters) {
     double arg3 ;
     void *argp1 = 0 ;
     int res1 = 0 ;
+    U8 *tmpbuf2 = NULL ;
     double val3 ;
     int ecode3 = 0 ;
     int argvi = 0;
@@ -4188,8 +4313,7 @@ XS(_wrap_SpatialReference_SetLinearUnitsAndUpdateParameters) {
     arg1 = reinterpret_cast< OSRSpatialReferenceShadow * >(argp1);
     {
       /* %typemap(in,numinputs=1) (const char* name) */
-      sv_utf8_upgrade(ST(1));
-      arg2 = SvPV_nolen(ST(1));
+      arg2 = sv_to_utf8_string(ST(1), &tmpbuf2);
     }
     ecode3 = SWIG_AsVal_double SWIG_PERL_CALL_ARGS_2(ST(2), &val3);
     if (!SWIG_IsOK(ecode3)) {
@@ -4206,7 +4330,7 @@ XS(_wrap_SpatialReference_SetLinearUnitsAndUpdateParameters) {
       result = (OGRErr)OSRSpatialReferenceShadow_SetLinearUnitsAndUpdateParameters(arg1,(char const *)arg2,arg3);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -4215,7 +4339,7 @@ XS(_wrap_SpatialReference_SetLinearUnitsAndUpdateParameters) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -4229,15 +4353,23 @@ XS(_wrap_SpatialReference_SetLinearUnitsAndUpdateParameters) {
       /* %typemap(out) OGRErr */
       if ( result != 0 ) {
         const char *err = CPLGetLastErrorMsg();
-        if (err and *err) SWIG_croak(err); /* this is usually better */
-        SWIG_croak( OGRErrMessages(result) );
+        if (err and *err) do_confess(err, 0); /* this is usually better */
+        do_confess( OGRErrMessages(result), 1 );
       }
     }
     
+    {
+      /* %typemap(freearg) (const char* name) */
+      if (tmpbuf2) free(tmpbuf2);
+    }
     
     XSRETURN(argvi);
   fail:
     
+    {
+      /* %typemap(freearg) (const char* name) */
+      if (tmpbuf2) free(tmpbuf2);
+    }
     
     SWIG_croak_null();
   }
@@ -4266,7 +4398,7 @@ XS(_wrap_SpatialReference_GetLinearUnits) {
       result = (double)OSRSpatialReferenceShadow_GetLinearUnits(arg1);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -4275,7 +4407,7 @@ XS(_wrap_SpatialReference_GetLinearUnits) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -4317,7 +4449,7 @@ XS(_wrap_SpatialReference_GetLinearUnitsName) {
       result = (char *)OSRSpatialReferenceShadow_GetLinearUnitsName(arg1);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -4326,7 +4458,7 @@ XS(_wrap_SpatialReference_GetLinearUnitsName) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -4389,7 +4521,7 @@ XS(_wrap_SpatialReference_GetAuthorityCode) {
       result = (char *)OSRSpatialReferenceShadow_GetAuthorityCode(arg1,(char const *)arg2);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -4398,7 +4530,7 @@ XS(_wrap_SpatialReference_GetAuthorityCode) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -4463,7 +4595,7 @@ XS(_wrap_SpatialReference_GetAuthorityName) {
       result = (char *)OSRSpatialReferenceShadow_GetAuthorityName(arg1,(char const *)arg2);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -4472,7 +4604,7 @@ XS(_wrap_SpatialReference_GetAuthorityName) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -4495,6 +4627,172 @@ XS(_wrap_SpatialReference_GetAuthorityName) {
   fail:
     
     if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
+    SWIG_croak_null();
+  }
+}
+
+
+XS(_wrap_SpatialReference_GetAxisName) {
+  {
+    OSRSpatialReferenceShadow *arg1 = (OSRSpatialReferenceShadow *) 0 ;
+    char *arg2 = (char *) 0 ;
+    int arg3 ;
+    void *argp1 = 0 ;
+    int res1 = 0 ;
+    int res2 ;
+    char *buf2 = 0 ;
+    int alloc2 = 0 ;
+    int val3 ;
+    int ecode3 = 0 ;
+    int argvi = 0;
+    char *result = 0 ;
+    dXSARGS;
+    
+    {
+      /* %typemap(default) const char * target_key */
+      arg2 = NULL;
+    }
+    if ((items < 1) || (items > 3)) {
+      SWIG_croak("Usage: SpatialReference_GetAxisName(self,target_key,iAxis);");
+    }
+    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OSRSpatialReferenceShadow, 0 |  0 );
+    if (!SWIG_IsOK(res1)) {
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "SpatialReference_GetAxisName" "', argument " "1"" of type '" "OSRSpatialReferenceShadow *""'"); 
+    }
+    arg1 = reinterpret_cast< OSRSpatialReferenceShadow * >(argp1);
+    if (items > 1) {
+      res2 = SWIG_AsCharPtrAndSize(ST(1), &buf2, NULL, &alloc2);
+      if (!SWIG_IsOK(res2)) {
+        SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "SpatialReference_GetAxisName" "', argument " "2"" of type '" "char const *""'");
+      }
+      arg2 = reinterpret_cast< char * >(buf2);
+    }
+    if (items > 2) {
+      ecode3 = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(2), &val3);
+      if (!SWIG_IsOK(ecode3)) {
+        SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "SpatialReference_GetAxisName" "', argument " "3"" of type '" "int""'");
+      } 
+      arg3 = static_cast< int >(val3);
+    }
+    {
+      CPLErrorReset();
+      result = (char *)OSRSpatialReferenceShadow_GetAxisName(arg1,(char const *)arg2,arg3);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        do_confess( CPLGetLastErrorMsg(), 0 );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /*
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
+    {
+      /* %typemap(out) const char * */
+      ST(argvi) = newSVpv(result, 0);
+      SvUTF8_on(ST(argvi)); /* expecting GDAL to give us UTF-8 */
+      sv_2mortal(ST(argvi));
+      argvi++;
+    }
+    
+    if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
+    
+    XSRETURN(argvi);
+  fail:
+    
+    if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
+    
+    SWIG_croak_null();
+  }
+}
+
+
+XS(_wrap_SpatialReference_GetAxisOrientation) {
+  {
+    OSRSpatialReferenceShadow *arg1 = (OSRSpatialReferenceShadow *) 0 ;
+    char *arg2 = (char *) 0 ;
+    int arg3 ;
+    void *argp1 = 0 ;
+    int res1 = 0 ;
+    int res2 ;
+    char *buf2 = 0 ;
+    int alloc2 = 0 ;
+    int val3 ;
+    int ecode3 = 0 ;
+    int argvi = 0;
+    OGRAxisOrientation result;
+    dXSARGS;
+    
+    {
+      /* %typemap(default) const char * target_key */
+      arg2 = NULL;
+    }
+    if ((items < 1) || (items > 3)) {
+      SWIG_croak("Usage: SpatialReference_GetAxisOrientation(self,target_key,iAxis);");
+    }
+    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OSRSpatialReferenceShadow, 0 |  0 );
+    if (!SWIG_IsOK(res1)) {
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "SpatialReference_GetAxisOrientation" "', argument " "1"" of type '" "OSRSpatialReferenceShadow *""'"); 
+    }
+    arg1 = reinterpret_cast< OSRSpatialReferenceShadow * >(argp1);
+    if (items > 1) {
+      res2 = SWIG_AsCharPtrAndSize(ST(1), &buf2, NULL, &alloc2);
+      if (!SWIG_IsOK(res2)) {
+        SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "SpatialReference_GetAxisOrientation" "', argument " "2"" of type '" "char const *""'");
+      }
+      arg2 = reinterpret_cast< char * >(buf2);
+    }
+    if (items > 2) {
+      ecode3 = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(2), &val3);
+      if (!SWIG_IsOK(ecode3)) {
+        SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "SpatialReference_GetAxisOrientation" "', argument " "3"" of type '" "int""'");
+      } 
+      arg3 = static_cast< int >(val3);
+    }
+    {
+      CPLErrorReset();
+      result = (OGRAxisOrientation)OSRSpatialReferenceShadow_GetAxisOrientation(arg1,(char const *)arg2,arg3);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        do_confess( CPLGetLastErrorMsg(), 0 );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /*
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
+    ST(argvi) = SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(result)); argvi++ ;
+    
+    if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
+    
+    XSRETURN(argvi);
+  fail:
+    
+    if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
+    
     SWIG_croak_null();
   }
 }
@@ -4540,7 +4838,7 @@ XS(_wrap_SpatialReference_SetUTM) {
       result = (OGRErr)OSRSpatialReferenceShadow_SetUTM(arg1,arg2,arg3);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -4549,7 +4847,7 @@ XS(_wrap_SpatialReference_SetUTM) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -4563,8 +4861,8 @@ XS(_wrap_SpatialReference_SetUTM) {
       /* %typemap(out) OGRErr */
       if ( result != 0 ) {
         const char *err = CPLGetLastErrorMsg();
-        if (err and *err) SWIG_croak(err); /* this is usually better */
-        SWIG_croak( OGRErrMessages(result) );
+        if (err and *err) do_confess(err, 0); /* this is usually better */
+        do_confess( OGRErrMessages(result), 1 );
       }
     }
     
@@ -4602,7 +4900,7 @@ XS(_wrap_SpatialReference__GetUTMZone) {
       result = (int)OSRSpatialReferenceShadow_GetUTMZone(arg1);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -4611,7 +4909,7 @@ XS(_wrap_SpatialReference__GetUTMZone) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -4692,7 +4990,7 @@ XS(_wrap_SpatialReference_SetStatePlane) {
       result = (OGRErr)OSRSpatialReferenceShadow_SetStatePlane(arg1,arg2,arg3,(char const *)arg4,arg5);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -4701,7 +4999,7 @@ XS(_wrap_SpatialReference_SetStatePlane) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -4715,8 +5013,8 @@ XS(_wrap_SpatialReference_SetStatePlane) {
       /* %typemap(out) OGRErr */
       if ( result != 0 ) {
         const char *err = CPLGetLastErrorMsg();
-        if (err and *err) SWIG_croak(err); /* this is usually better */
-        SWIG_croak( OGRErrMessages(result) );
+        if (err and *err) do_confess(err, 0); /* this is usually better */
+        do_confess( OGRErrMessages(result), 1 );
       }
     }
     
@@ -4758,7 +5056,7 @@ XS(_wrap_SpatialReference_AutoIdentifyEPSG) {
       result = (OGRErr)OSRSpatialReferenceShadow_AutoIdentifyEPSG(arg1);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -4767,7 +5065,7 @@ XS(_wrap_SpatialReference_AutoIdentifyEPSG) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -4781,8 +5079,8 @@ XS(_wrap_SpatialReference_AutoIdentifyEPSG) {
       /* %typemap(out) OGRErr */
       if ( result != 0 ) {
         const char *err = CPLGetLastErrorMsg();
-        if (err and *err) SWIG_croak(err); /* this is usually better */
-        SWIG_croak( OGRErrMessages(result) );
+        if (err and *err) do_confess(err, 0); /* this is usually better */
+        do_confess( OGRErrMessages(result), 1 );
       }
     }
     
@@ -4825,7 +5123,7 @@ XS(_wrap_SpatialReference_SetProjection) {
       result = (OGRErr)OSRSpatialReferenceShadow_SetProjection(arg1,(char const *)arg2);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -4834,7 +5132,7 @@ XS(_wrap_SpatialReference_SetProjection) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -4848,8 +5146,8 @@ XS(_wrap_SpatialReference_SetProjection) {
       /* %typemap(out) OGRErr */
       if ( result != 0 ) {
         const char *err = CPLGetLastErrorMsg();
-        if (err and *err) SWIG_croak(err); /* this is usually better */
-        SWIG_croak( OGRErrMessages(result) );
+        if (err and *err) do_confess(err, 0); /* this is usually better */
+        do_confess( OGRErrMessages(result), 1 );
       }
     }
     
@@ -4870,6 +5168,7 @@ XS(_wrap_SpatialReference_SetProjParm) {
     double arg3 ;
     void *argp1 = 0 ;
     int res1 = 0 ;
+    U8 *tmpbuf2 = NULL ;
     double val3 ;
     int ecode3 = 0 ;
     int argvi = 0;
@@ -4886,8 +5185,7 @@ XS(_wrap_SpatialReference_SetProjParm) {
     arg1 = reinterpret_cast< OSRSpatialReferenceShadow * >(argp1);
     {
       /* %typemap(in,numinputs=1) (const char* name) */
-      sv_utf8_upgrade(ST(1));
-      arg2 = SvPV_nolen(ST(1));
+      arg2 = sv_to_utf8_string(ST(1), &tmpbuf2);
     }
     ecode3 = SWIG_AsVal_double SWIG_PERL_CALL_ARGS_2(ST(2), &val3);
     if (!SWIG_IsOK(ecode3)) {
@@ -4904,7 +5202,7 @@ XS(_wrap_SpatialReference_SetProjParm) {
       result = (OGRErr)OSRSpatialReferenceShadow_SetProjParm(arg1,(char const *)arg2,arg3);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -4913,7 +5211,7 @@ XS(_wrap_SpatialReference_SetProjParm) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -4927,15 +5225,23 @@ XS(_wrap_SpatialReference_SetProjParm) {
       /* %typemap(out) OGRErr */
       if ( result != 0 ) {
         const char *err = CPLGetLastErrorMsg();
-        if (err and *err) SWIG_croak(err); /* this is usually better */
-        SWIG_croak( OGRErrMessages(result) );
+        if (err and *err) do_confess(err, 0); /* this is usually better */
+        do_confess( OGRErrMessages(result), 1 );
       }
     }
     
+    {
+      /* %typemap(freearg) (const char* name) */
+      if (tmpbuf2) free(tmpbuf2);
+    }
     
     XSRETURN(argvi);
   fail:
     
+    {
+      /* %typemap(freearg) (const char* name) */
+      if (tmpbuf2) free(tmpbuf2);
+    }
     
     SWIG_croak_null();
   }
@@ -4949,6 +5255,7 @@ XS(_wrap_SpatialReference_GetProjParm) {
     double arg3 = (double) 0.0 ;
     void *argp1 = 0 ;
     int res1 = 0 ;
+    U8 *tmpbuf2 = NULL ;
     double val3 ;
     int ecode3 = 0 ;
     int argvi = 0;
@@ -4965,8 +5272,7 @@ XS(_wrap_SpatialReference_GetProjParm) {
     arg1 = reinterpret_cast< OSRSpatialReferenceShadow * >(argp1);
     {
       /* %typemap(in,numinputs=1) (const char* name) */
-      sv_utf8_upgrade(ST(1));
-      arg2 = SvPV_nolen(ST(1));
+      arg2 = sv_to_utf8_string(ST(1), &tmpbuf2);
     }
     if (items > 2) {
       ecode3 = SWIG_AsVal_double SWIG_PERL_CALL_ARGS_2(ST(2), &val3);
@@ -4985,7 +5291,7 @@ XS(_wrap_SpatialReference_GetProjParm) {
       result = (double)OSRSpatialReferenceShadow_GetProjParm(arg1,(char const *)arg2,arg3);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -4994,7 +5300,7 @@ XS(_wrap_SpatialReference_GetProjParm) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -5006,10 +5312,18 @@ XS(_wrap_SpatialReference_GetProjParm) {
     }
     ST(argvi) = SWIG_From_double  SWIG_PERL_CALL_ARGS_1(static_cast< double >(result)); argvi++ ;
     
+    {
+      /* %typemap(freearg) (const char* name) */
+      if (tmpbuf2) free(tmpbuf2);
+    }
     
     XSRETURN(argvi);
   fail:
     
+    {
+      /* %typemap(freearg) (const char* name) */
+      if (tmpbuf2) free(tmpbuf2);
+    }
     
     SWIG_croak_null();
   }
@@ -5023,6 +5337,7 @@ XS(_wrap_SpatialReference_SetNormProjParm) {
     double arg3 ;
     void *argp1 = 0 ;
     int res1 = 0 ;
+    U8 *tmpbuf2 = NULL ;
     double val3 ;
     int ecode3 = 0 ;
     int argvi = 0;
@@ -5039,8 +5354,7 @@ XS(_wrap_SpatialReference_SetNormProjParm) {
     arg1 = reinterpret_cast< OSRSpatialReferenceShadow * >(argp1);
     {
       /* %typemap(in,numinputs=1) (const char* name) */
-      sv_utf8_upgrade(ST(1));
-      arg2 = SvPV_nolen(ST(1));
+      arg2 = sv_to_utf8_string(ST(1), &tmpbuf2);
     }
     ecode3 = SWIG_AsVal_double SWIG_PERL_CALL_ARGS_2(ST(2), &val3);
     if (!SWIG_IsOK(ecode3)) {
@@ -5057,7 +5371,7 @@ XS(_wrap_SpatialReference_SetNormProjParm) {
       result = (OGRErr)OSRSpatialReferenceShadow_SetNormProjParm(arg1,(char const *)arg2,arg3);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -5066,7 +5380,7 @@ XS(_wrap_SpatialReference_SetNormProjParm) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -5080,15 +5394,23 @@ XS(_wrap_SpatialReference_SetNormProjParm) {
       /* %typemap(out) OGRErr */
       if ( result != 0 ) {
         const char *err = CPLGetLastErrorMsg();
-        if (err and *err) SWIG_croak(err); /* this is usually better */
-        SWIG_croak( OGRErrMessages(result) );
+        if (err and *err) do_confess(err, 0); /* this is usually better */
+        do_confess( OGRErrMessages(result), 1 );
       }
     }
     
+    {
+      /* %typemap(freearg) (const char* name) */
+      if (tmpbuf2) free(tmpbuf2);
+    }
     
     XSRETURN(argvi);
   fail:
     
+    {
+      /* %typemap(freearg) (const char* name) */
+      if (tmpbuf2) free(tmpbuf2);
+    }
     
     SWIG_croak_null();
   }
@@ -5102,6 +5424,7 @@ XS(_wrap_SpatialReference_GetNormProjParm) {
     double arg3 = (double) 0.0 ;
     void *argp1 = 0 ;
     int res1 = 0 ;
+    U8 *tmpbuf2 = NULL ;
     double val3 ;
     int ecode3 = 0 ;
     int argvi = 0;
@@ -5118,8 +5441,7 @@ XS(_wrap_SpatialReference_GetNormProjParm) {
     arg1 = reinterpret_cast< OSRSpatialReferenceShadow * >(argp1);
     {
       /* %typemap(in,numinputs=1) (const char* name) */
-      sv_utf8_upgrade(ST(1));
-      arg2 = SvPV_nolen(ST(1));
+      arg2 = sv_to_utf8_string(ST(1), &tmpbuf2);
     }
     if (items > 2) {
       ecode3 = SWIG_AsVal_double SWIG_PERL_CALL_ARGS_2(ST(2), &val3);
@@ -5138,7 +5460,7 @@ XS(_wrap_SpatialReference_GetNormProjParm) {
       result = (double)OSRSpatialReferenceShadow_GetNormProjParm(arg1,(char const *)arg2,arg3);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -5147,7 +5469,7 @@ XS(_wrap_SpatialReference_GetNormProjParm) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -5159,10 +5481,18 @@ XS(_wrap_SpatialReference_GetNormProjParm) {
     }
     ST(argvi) = SWIG_From_double  SWIG_PERL_CALL_ARGS_1(static_cast< double >(result)); argvi++ ;
     
+    {
+      /* %typemap(freearg) (const char* name) */
+      if (tmpbuf2) free(tmpbuf2);
+    }
     
     XSRETURN(argvi);
   fail:
     
+    {
+      /* %typemap(freearg) (const char* name) */
+      if (tmpbuf2) free(tmpbuf2);
+    }
     
     SWIG_croak_null();
   }
@@ -5191,7 +5521,7 @@ XS(_wrap_SpatialReference_GetSemiMajor) {
       result = (double)OSRSpatialReferenceShadow_GetSemiMajor(arg1);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -5200,7 +5530,7 @@ XS(_wrap_SpatialReference_GetSemiMajor) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -5242,7 +5572,7 @@ XS(_wrap_SpatialReference_GetSemiMinor) {
       result = (double)OSRSpatialReferenceShadow_GetSemiMinor(arg1);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -5251,7 +5581,7 @@ XS(_wrap_SpatialReference_GetSemiMinor) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -5293,7 +5623,7 @@ XS(_wrap_SpatialReference_GetInvFlattening) {
       result = (double)OSRSpatialReferenceShadow_GetInvFlattening(arg1);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -5302,7 +5632,7 @@ XS(_wrap_SpatialReference_GetInvFlattening) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -5392,7 +5722,7 @@ XS(_wrap_SpatialReference_SetACEA) {
       result = (OGRErr)OSRSpatialReferenceShadow_SetACEA(arg1,arg2,arg3,arg4,arg5,arg6,arg7);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -5401,7 +5731,7 @@ XS(_wrap_SpatialReference_SetACEA) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -5415,8 +5745,8 @@ XS(_wrap_SpatialReference_SetACEA) {
       /* %typemap(out) OGRErr */
       if ( result != 0 ) {
         const char *err = CPLGetLastErrorMsg();
-        if (err and *err) SWIG_croak(err); /* this is usually better */
-        SWIG_croak( OGRErrMessages(result) );
+        if (err and *err) do_confess(err, 0); /* this is usually better */
+        do_confess( OGRErrMessages(result), 1 );
       }
     }
     
@@ -5494,7 +5824,7 @@ XS(_wrap_SpatialReference_SetAE) {
       result = (OGRErr)OSRSpatialReferenceShadow_SetAE(arg1,arg2,arg3,arg4,arg5);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -5503,7 +5833,7 @@ XS(_wrap_SpatialReference_SetAE) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -5517,8 +5847,8 @@ XS(_wrap_SpatialReference_SetAE) {
       /* %typemap(out) OGRErr */
       if ( result != 0 ) {
         const char *err = CPLGetLastErrorMsg();
-        if (err and *err) SWIG_croak(err); /* this is usually better */
-        SWIG_croak( OGRErrMessages(result) );
+        if (err and *err) do_confess(err, 0); /* this is usually better */
+        do_confess( OGRErrMessages(result), 1 );
       }
     }
     
@@ -5592,7 +5922,7 @@ XS(_wrap_SpatialReference_SetBonne) {
       result = (OGRErr)OSRSpatialReferenceShadow_SetBonne(arg1,arg2,arg3,arg4,arg5);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -5601,7 +5931,7 @@ XS(_wrap_SpatialReference_SetBonne) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -5615,8 +5945,8 @@ XS(_wrap_SpatialReference_SetBonne) {
       /* %typemap(out) OGRErr */
       if ( result != 0 ) {
         const char *err = CPLGetLastErrorMsg();
-        if (err and *err) SWIG_croak(err); /* this is usually better */
-        SWIG_croak( OGRErrMessages(result) );
+        if (err and *err) do_confess(err, 0); /* this is usually better */
+        do_confess( OGRErrMessages(result), 1 );
       }
     }
     
@@ -5690,7 +6020,7 @@ XS(_wrap_SpatialReference_SetCEA) {
       result = (OGRErr)OSRSpatialReferenceShadow_SetCEA(arg1,arg2,arg3,arg4,arg5);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -5699,7 +6029,7 @@ XS(_wrap_SpatialReference_SetCEA) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -5713,8 +6043,8 @@ XS(_wrap_SpatialReference_SetCEA) {
       /* %typemap(out) OGRErr */
       if ( result != 0 ) {
         const char *err = CPLGetLastErrorMsg();
-        if (err and *err) SWIG_croak(err); /* this is usually better */
-        SWIG_croak( OGRErrMessages(result) );
+        if (err and *err) do_confess(err, 0); /* this is usually better */
+        do_confess( OGRErrMessages(result), 1 );
       }
     }
     
@@ -5788,7 +6118,7 @@ XS(_wrap_SpatialReference_SetCS) {
       result = (OGRErr)OSRSpatialReferenceShadow_SetCS(arg1,arg2,arg3,arg4,arg5);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -5797,7 +6127,7 @@ XS(_wrap_SpatialReference_SetCS) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -5811,8 +6141,8 @@ XS(_wrap_SpatialReference_SetCS) {
       /* %typemap(out) OGRErr */
       if ( result != 0 ) {
         const char *err = CPLGetLastErrorMsg();
-        if (err and *err) SWIG_croak(err); /* this is usually better */
-        SWIG_croak( OGRErrMessages(result) );
+        if (err and *err) do_confess(err, 0); /* this is usually better */
+        do_confess( OGRErrMessages(result), 1 );
       }
     }
     
@@ -5902,7 +6232,7 @@ XS(_wrap_SpatialReference_SetEC) {
       result = (OGRErr)OSRSpatialReferenceShadow_SetEC(arg1,arg2,arg3,arg4,arg5,arg6,arg7);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -5911,7 +6241,7 @@ XS(_wrap_SpatialReference_SetEC) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -5925,8 +6255,8 @@ XS(_wrap_SpatialReference_SetEC) {
       /* %typemap(out) OGRErr */
       if ( result != 0 ) {
         const char *err = CPLGetLastErrorMsg();
-        if (err and *err) SWIG_croak(err); /* this is usually better */
-        SWIG_croak( OGRErrMessages(result) );
+        if (err and *err) do_confess(err, 0); /* this is usually better */
+        do_confess( OGRErrMessages(result), 1 );
       }
     }
     
@@ -5996,7 +6326,7 @@ XS(_wrap_SpatialReference_SetEckertIV) {
       result = (OGRErr)OSRSpatialReferenceShadow_SetEckertIV(arg1,arg2,arg3,arg4);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -6005,7 +6335,7 @@ XS(_wrap_SpatialReference_SetEckertIV) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -6019,8 +6349,8 @@ XS(_wrap_SpatialReference_SetEckertIV) {
       /* %typemap(out) OGRErr */
       if ( result != 0 ) {
         const char *err = CPLGetLastErrorMsg();
-        if (err and *err) SWIG_croak(err); /* this is usually better */
-        SWIG_croak( OGRErrMessages(result) );
+        if (err and *err) do_confess(err, 0); /* this is usually better */
+        do_confess( OGRErrMessages(result), 1 );
       }
     }
     
@@ -6084,7 +6414,7 @@ XS(_wrap_SpatialReference_SetEckertVI) {
       result = (OGRErr)OSRSpatialReferenceShadow_SetEckertVI(arg1,arg2,arg3,arg4);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -6093,7 +6423,7 @@ XS(_wrap_SpatialReference_SetEckertVI) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -6107,8 +6437,8 @@ XS(_wrap_SpatialReference_SetEckertVI) {
       /* %typemap(out) OGRErr */
       if ( result != 0 ) {
         const char *err = CPLGetLastErrorMsg();
-        if (err and *err) SWIG_croak(err); /* this is usually better */
-        SWIG_croak( OGRErrMessages(result) );
+        if (err and *err) do_confess(err, 0); /* this is usually better */
+        do_confess( OGRErrMessages(result), 1 );
       }
     }
     
@@ -6180,7 +6510,7 @@ XS(_wrap_SpatialReference_SetEquirectangular) {
       result = (OGRErr)OSRSpatialReferenceShadow_SetEquirectangular(arg1,arg2,arg3,arg4,arg5);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -6189,7 +6519,7 @@ XS(_wrap_SpatialReference_SetEquirectangular) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -6203,8 +6533,8 @@ XS(_wrap_SpatialReference_SetEquirectangular) {
       /* %typemap(out) OGRErr */
       if ( result != 0 ) {
         const char *err = CPLGetLastErrorMsg();
-        if (err and *err) SWIG_croak(err); /* this is usually better */
-        SWIG_croak( OGRErrMessages(result) );
+        if (err and *err) do_confess(err, 0); /* this is usually better */
+        do_confess( OGRErrMessages(result), 1 );
       }
     }
     
@@ -6286,7 +6616,7 @@ XS(_wrap_SpatialReference_SetEquirectangular2) {
       result = (OGRErr)OSRSpatialReferenceShadow_SetEquirectangular2(arg1,arg2,arg3,arg4,arg5,arg6);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -6295,7 +6625,7 @@ XS(_wrap_SpatialReference_SetEquirectangular2) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -6309,8 +6639,8 @@ XS(_wrap_SpatialReference_SetEquirectangular2) {
       /* %typemap(out) OGRErr */
       if ( result != 0 ) {
         const char *err = CPLGetLastErrorMsg();
-        if (err and *err) SWIG_croak(err); /* this is usually better */
-        SWIG_croak( OGRErrMessages(result) );
+        if (err and *err) do_confess(err, 0); /* this is usually better */
+        do_confess( OGRErrMessages(result), 1 );
       }
     }
     
@@ -6394,7 +6724,7 @@ XS(_wrap_SpatialReference_SetGaussSchreiberTMercator) {
       result = (OGRErr)OSRSpatialReferenceShadow_SetGaussSchreiberTMercator(arg1,arg2,arg3,arg4,arg5,arg6);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -6403,7 +6733,7 @@ XS(_wrap_SpatialReference_SetGaussSchreiberTMercator) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -6417,8 +6747,8 @@ XS(_wrap_SpatialReference_SetGaussSchreiberTMercator) {
       /* %typemap(out) OGRErr */
       if ( result != 0 ) {
         const char *err = CPLGetLastErrorMsg();
-        if (err and *err) SWIG_croak(err); /* this is usually better */
-        SWIG_croak( OGRErrMessages(result) );
+        if (err and *err) do_confess(err, 0); /* this is usually better */
+        do_confess( OGRErrMessages(result), 1 );
       }
     }
     
@@ -6486,7 +6816,7 @@ XS(_wrap_SpatialReference_SetGS) {
       result = (OGRErr)OSRSpatialReferenceShadow_SetGS(arg1,arg2,arg3,arg4);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -6495,7 +6825,7 @@ XS(_wrap_SpatialReference_SetGS) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -6509,8 +6839,8 @@ XS(_wrap_SpatialReference_SetGS) {
       /* %typemap(out) OGRErr */
       if ( result != 0 ) {
         const char *err = CPLGetLastErrorMsg();
-        if (err and *err) SWIG_croak(err); /* this is usually better */
-        SWIG_croak( OGRErrMessages(result) );
+        if (err and *err) do_confess(err, 0); /* this is usually better */
+        do_confess( OGRErrMessages(result), 1 );
       }
     }
     
@@ -6574,7 +6904,7 @@ XS(_wrap_SpatialReference_SetGH) {
       result = (OGRErr)OSRSpatialReferenceShadow_SetGH(arg1,arg2,arg3,arg4);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -6583,7 +6913,7 @@ XS(_wrap_SpatialReference_SetGH) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -6597,8 +6927,8 @@ XS(_wrap_SpatialReference_SetGH) {
       /* %typemap(out) OGRErr */
       if ( result != 0 ) {
         const char *err = CPLGetLastErrorMsg();
-        if (err and *err) SWIG_croak(err); /* this is usually better */
-        SWIG_croak( OGRErrMessages(result) );
+        if (err and *err) do_confess(err, 0); /* this is usually better */
+        do_confess( OGRErrMessages(result), 1 );
       }
     }
     
@@ -6638,7 +6968,7 @@ XS(_wrap_SpatialReference_SetIGH) {
       result = (OGRErr)OSRSpatialReferenceShadow_SetIGH(arg1);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -6647,7 +6977,7 @@ XS(_wrap_SpatialReference_SetIGH) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -6661,8 +6991,8 @@ XS(_wrap_SpatialReference_SetIGH) {
       /* %typemap(out) OGRErr */
       if ( result != 0 ) {
         const char *err = CPLGetLastErrorMsg();
-        if (err and *err) SWIG_croak(err); /* this is usually better */
-        SWIG_croak( OGRErrMessages(result) );
+        if (err and *err) do_confess(err, 0); /* this is usually better */
+        do_confess( OGRErrMessages(result), 1 );
       }
     }
     
@@ -6728,7 +7058,7 @@ XS(_wrap_SpatialReference_SetGEOS) {
       result = (OGRErr)OSRSpatialReferenceShadow_SetGEOS(arg1,arg2,arg3,arg4,arg5);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -6737,7 +7067,7 @@ XS(_wrap_SpatialReference_SetGEOS) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -6751,8 +7081,8 @@ XS(_wrap_SpatialReference_SetGEOS) {
       /* %typemap(out) OGRErr */
       if ( result != 0 ) {
         const char *err = CPLGetLastErrorMsg();
-        if (err and *err) SWIG_croak(err); /* this is usually better */
-        SWIG_croak( OGRErrMessages(result) );
+        if (err and *err) do_confess(err, 0); /* this is usually better */
+        do_confess( OGRErrMessages(result), 1 );
       }
     }
     
@@ -6826,7 +7156,7 @@ XS(_wrap_SpatialReference_SetGnomonic) {
       result = (OGRErr)OSRSpatialReferenceShadow_SetGnomonic(arg1,arg2,arg3,arg4,arg5);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -6835,7 +7165,7 @@ XS(_wrap_SpatialReference_SetGnomonic) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -6849,8 +7179,8 @@ XS(_wrap_SpatialReference_SetGnomonic) {
       /* %typemap(out) OGRErr */
       if ( result != 0 ) {
         const char *err = CPLGetLastErrorMsg();
-        if (err and *err) SWIG_croak(err); /* this is usually better */
-        SWIG_croak( OGRErrMessages(result) );
+        if (err and *err) do_confess(err, 0); /* this is usually better */
+        do_confess( OGRErrMessages(result), 1 );
       }
     }
     
@@ -6948,7 +7278,7 @@ XS(_wrap_SpatialReference_SetHOM) {
       result = (OGRErr)OSRSpatialReferenceShadow_SetHOM(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -6957,7 +7287,7 @@ XS(_wrap_SpatialReference_SetHOM) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -6971,8 +7301,8 @@ XS(_wrap_SpatialReference_SetHOM) {
       /* %typemap(out) OGRErr */
       if ( result != 0 ) {
         const char *err = CPLGetLastErrorMsg();
-        if (err and *err) SWIG_croak(err); /* this is usually better */
-        SWIG_croak( OGRErrMessages(result) );
+        if (err and *err) do_confess(err, 0); /* this is usually better */
+        do_confess( OGRErrMessages(result), 1 );
       }
     }
     
@@ -7084,7 +7414,7 @@ XS(_wrap_SpatialReference_SetHOM2PNO) {
       result = (OGRErr)OSRSpatialReferenceShadow_SetHOM2PNO(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -7093,7 +7423,7 @@ XS(_wrap_SpatialReference_SetHOM2PNO) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -7107,8 +7437,8 @@ XS(_wrap_SpatialReference_SetHOM2PNO) {
       /* %typemap(out) OGRErr */
       if ( result != 0 ) {
         const char *err = CPLGetLastErrorMsg();
-        if (err and *err) SWIG_croak(err); /* this is usually better */
-        SWIG_croak( OGRErrMessages(result) );
+        if (err and *err) do_confess(err, 0); /* this is usually better */
+        do_confess( OGRErrMessages(result), 1 );
       }
     }
     
@@ -7214,7 +7544,7 @@ XS(_wrap_SpatialReference_SetKrovak) {
       result = (OGRErr)OSRSpatialReferenceShadow_SetKrovak(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -7223,7 +7553,7 @@ XS(_wrap_SpatialReference_SetKrovak) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -7237,8 +7567,8 @@ XS(_wrap_SpatialReference_SetKrovak) {
       /* %typemap(out) OGRErr */
       if ( result != 0 ) {
         const char *err = CPLGetLastErrorMsg();
-        if (err and *err) SWIG_croak(err); /* this is usually better */
-        SWIG_croak( OGRErrMessages(result) );
+        if (err and *err) do_confess(err, 0); /* this is usually better */
+        do_confess( OGRErrMessages(result), 1 );
       }
     }
     
@@ -7318,7 +7648,7 @@ XS(_wrap_SpatialReference_SetLAEA) {
       result = (OGRErr)OSRSpatialReferenceShadow_SetLAEA(arg1,arg2,arg3,arg4,arg5);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -7327,7 +7657,7 @@ XS(_wrap_SpatialReference_SetLAEA) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -7341,8 +7671,8 @@ XS(_wrap_SpatialReference_SetLAEA) {
       /* %typemap(out) OGRErr */
       if ( result != 0 ) {
         const char *err = CPLGetLastErrorMsg();
-        if (err and *err) SWIG_croak(err); /* this is usually better */
-        SWIG_croak( OGRErrMessages(result) );
+        if (err and *err) do_confess(err, 0); /* this is usually better */
+        do_confess( OGRErrMessages(result), 1 );
       }
     }
     
@@ -7432,7 +7762,7 @@ XS(_wrap_SpatialReference_SetLCC) {
       result = (OGRErr)OSRSpatialReferenceShadow_SetLCC(arg1,arg2,arg3,arg4,arg5,arg6,arg7);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -7441,7 +7771,7 @@ XS(_wrap_SpatialReference_SetLCC) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -7455,8 +7785,8 @@ XS(_wrap_SpatialReference_SetLCC) {
       /* %typemap(out) OGRErr */
       if ( result != 0 ) {
         const char *err = CPLGetLastErrorMsg();
-        if (err and *err) SWIG_croak(err); /* this is usually better */
-        SWIG_croak( OGRErrMessages(result) );
+        if (err and *err) do_confess(err, 0); /* this is usually better */
+        do_confess( OGRErrMessages(result), 1 );
       }
     }
     
@@ -7542,7 +7872,7 @@ XS(_wrap_SpatialReference_SetLCC1SP) {
       result = (OGRErr)OSRSpatialReferenceShadow_SetLCC1SP(arg1,arg2,arg3,arg4,arg5,arg6);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -7551,7 +7881,7 @@ XS(_wrap_SpatialReference_SetLCC1SP) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -7565,8 +7895,8 @@ XS(_wrap_SpatialReference_SetLCC1SP) {
       /* %typemap(out) OGRErr */
       if ( result != 0 ) {
         const char *err = CPLGetLastErrorMsg();
-        if (err and *err) SWIG_croak(err); /* this is usually better */
-        SWIG_croak( OGRErrMessages(result) );
+        if (err and *err) do_confess(err, 0); /* this is usually better */
+        do_confess( OGRErrMessages(result), 1 );
       }
     }
     
@@ -7658,7 +7988,7 @@ XS(_wrap_SpatialReference_SetLCCB) {
       result = (OGRErr)OSRSpatialReferenceShadow_SetLCCB(arg1,arg2,arg3,arg4,arg5,arg6,arg7);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -7667,7 +7997,7 @@ XS(_wrap_SpatialReference_SetLCCB) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -7681,8 +8011,8 @@ XS(_wrap_SpatialReference_SetLCCB) {
       /* %typemap(out) OGRErr */
       if ( result != 0 ) {
         const char *err = CPLGetLastErrorMsg();
-        if (err and *err) SWIG_croak(err); /* this is usually better */
-        SWIG_croak( OGRErrMessages(result) );
+        if (err and *err) do_confess(err, 0); /* this is usually better */
+        do_confess( OGRErrMessages(result), 1 );
       }
     }
     
@@ -7760,7 +8090,7 @@ XS(_wrap_SpatialReference_SetMC) {
       result = (OGRErr)OSRSpatialReferenceShadow_SetMC(arg1,arg2,arg3,arg4,arg5);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -7769,7 +8099,7 @@ XS(_wrap_SpatialReference_SetMC) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -7783,8 +8113,8 @@ XS(_wrap_SpatialReference_SetMC) {
       /* %typemap(out) OGRErr */
       if ( result != 0 ) {
         const char *err = CPLGetLastErrorMsg();
-        if (err and *err) SWIG_croak(err); /* this is usually better */
-        SWIG_croak( OGRErrMessages(result) );
+        if (err and *err) do_confess(err, 0); /* this is usually better */
+        do_confess( OGRErrMessages(result), 1 );
       }
     }
     
@@ -7866,7 +8196,7 @@ XS(_wrap_SpatialReference_SetMercator) {
       result = (OGRErr)OSRSpatialReferenceShadow_SetMercator(arg1,arg2,arg3,arg4,arg5,arg6);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -7875,7 +8205,7 @@ XS(_wrap_SpatialReference_SetMercator) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -7889,8 +8219,8 @@ XS(_wrap_SpatialReference_SetMercator) {
       /* %typemap(out) OGRErr */
       if ( result != 0 ) {
         const char *err = CPLGetLastErrorMsg();
-        if (err and *err) SWIG_croak(err); /* this is usually better */
-        SWIG_croak( OGRErrMessages(result) );
+        if (err and *err) do_confess(err, 0); /* this is usually better */
+        do_confess( OGRErrMessages(result), 1 );
       }
     }
     
@@ -7958,7 +8288,7 @@ XS(_wrap_SpatialReference_SetMollweide) {
       result = (OGRErr)OSRSpatialReferenceShadow_SetMollweide(arg1,arg2,arg3,arg4);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -7967,7 +8297,7 @@ XS(_wrap_SpatialReference_SetMollweide) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -7981,8 +8311,8 @@ XS(_wrap_SpatialReference_SetMollweide) {
       /* %typemap(out) OGRErr */
       if ( result != 0 ) {
         const char *err = CPLGetLastErrorMsg();
-        if (err and *err) SWIG_croak(err); /* this is usually better */
-        SWIG_croak( OGRErrMessages(result) );
+        if (err and *err) do_confess(err, 0); /* this is usually better */
+        do_confess( OGRErrMessages(result), 1 );
       }
     }
     
@@ -8054,7 +8384,7 @@ XS(_wrap_SpatialReference_SetNZMG) {
       result = (OGRErr)OSRSpatialReferenceShadow_SetNZMG(arg1,arg2,arg3,arg4,arg5);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -8063,7 +8393,7 @@ XS(_wrap_SpatialReference_SetNZMG) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -8077,8 +8407,8 @@ XS(_wrap_SpatialReference_SetNZMG) {
       /* %typemap(out) OGRErr */
       if ( result != 0 ) {
         const char *err = CPLGetLastErrorMsg();
-        if (err and *err) SWIG_croak(err); /* this is usually better */
-        SWIG_croak( OGRErrMessages(result) );
+        if (err and *err) do_confess(err, 0); /* this is usually better */
+        do_confess( OGRErrMessages(result), 1 );
       }
     }
     
@@ -8160,7 +8490,7 @@ XS(_wrap_SpatialReference_SetOS) {
       result = (OGRErr)OSRSpatialReferenceShadow_SetOS(arg1,arg2,arg3,arg4,arg5,arg6);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -8169,7 +8499,7 @@ XS(_wrap_SpatialReference_SetOS) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -8183,8 +8513,8 @@ XS(_wrap_SpatialReference_SetOS) {
       /* %typemap(out) OGRErr */
       if ( result != 0 ) {
         const char *err = CPLGetLastErrorMsg();
-        if (err and *err) SWIG_croak(err); /* this is usually better */
-        SWIG_croak( OGRErrMessages(result) );
+        if (err and *err) do_confess(err, 0); /* this is usually better */
+        do_confess( OGRErrMessages(result), 1 );
       }
     }
     
@@ -8260,7 +8590,7 @@ XS(_wrap_SpatialReference_SetOrthographic) {
       result = (OGRErr)OSRSpatialReferenceShadow_SetOrthographic(arg1,arg2,arg3,arg4,arg5);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -8269,7 +8599,7 @@ XS(_wrap_SpatialReference_SetOrthographic) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -8283,8 +8613,8 @@ XS(_wrap_SpatialReference_SetOrthographic) {
       /* %typemap(out) OGRErr */
       if ( result != 0 ) {
         const char *err = CPLGetLastErrorMsg();
-        if (err and *err) SWIG_croak(err); /* this is usually better */
-        SWIG_croak( OGRErrMessages(result) );
+        if (err and *err) do_confess(err, 0); /* this is usually better */
+        do_confess( OGRErrMessages(result), 1 );
       }
     }
     
@@ -8358,7 +8688,7 @@ XS(_wrap_SpatialReference_SetPolyconic) {
       result = (OGRErr)OSRSpatialReferenceShadow_SetPolyconic(arg1,arg2,arg3,arg4,arg5);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -8367,7 +8697,7 @@ XS(_wrap_SpatialReference_SetPolyconic) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -8381,8 +8711,8 @@ XS(_wrap_SpatialReference_SetPolyconic) {
       /* %typemap(out) OGRErr */
       if ( result != 0 ) {
         const char *err = CPLGetLastErrorMsg();
-        if (err and *err) SWIG_croak(err); /* this is usually better */
-        SWIG_croak( OGRErrMessages(result) );
+        if (err and *err) do_confess(err, 0); /* this is usually better */
+        do_confess( OGRErrMessages(result), 1 );
       }
     }
     
@@ -8464,7 +8794,7 @@ XS(_wrap_SpatialReference_SetPS) {
       result = (OGRErr)OSRSpatialReferenceShadow_SetPS(arg1,arg2,arg3,arg4,arg5,arg6);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -8473,7 +8803,7 @@ XS(_wrap_SpatialReference_SetPS) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -8487,8 +8817,8 @@ XS(_wrap_SpatialReference_SetPS) {
       /* %typemap(out) OGRErr */
       if ( result != 0 ) {
         const char *err = CPLGetLastErrorMsg();
-        if (err and *err) SWIG_croak(err); /* this is usually better */
-        SWIG_croak( OGRErrMessages(result) );
+        if (err and *err) do_confess(err, 0); /* this is usually better */
+        do_confess( OGRErrMessages(result), 1 );
       }
     }
     
@@ -8556,7 +8886,7 @@ XS(_wrap_SpatialReference_SetRobinson) {
       result = (OGRErr)OSRSpatialReferenceShadow_SetRobinson(arg1,arg2,arg3,arg4);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -8565,7 +8895,7 @@ XS(_wrap_SpatialReference_SetRobinson) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -8579,8 +8909,8 @@ XS(_wrap_SpatialReference_SetRobinson) {
       /* %typemap(out) OGRErr */
       if ( result != 0 ) {
         const char *err = CPLGetLastErrorMsg();
-        if (err and *err) SWIG_croak(err); /* this is usually better */
-        SWIG_croak( OGRErrMessages(result) );
+        if (err and *err) do_confess(err, 0); /* this is usually better */
+        do_confess( OGRErrMessages(result), 1 );
       }
     }
     
@@ -8644,7 +8974,7 @@ XS(_wrap_SpatialReference_SetSinusoidal) {
       result = (OGRErr)OSRSpatialReferenceShadow_SetSinusoidal(arg1,arg2,arg3,arg4);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -8653,7 +8983,7 @@ XS(_wrap_SpatialReference_SetSinusoidal) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -8667,8 +8997,8 @@ XS(_wrap_SpatialReference_SetSinusoidal) {
       /* %typemap(out) OGRErr */
       if ( result != 0 ) {
         const char *err = CPLGetLastErrorMsg();
-        if (err and *err) SWIG_croak(err); /* this is usually better */
-        SWIG_croak( OGRErrMessages(result) );
+        if (err and *err) do_confess(err, 0); /* this is usually better */
+        do_confess( OGRErrMessages(result), 1 );
       }
     }
     
@@ -8748,7 +9078,7 @@ XS(_wrap_SpatialReference_SetStereographic) {
       result = (OGRErr)OSRSpatialReferenceShadow_SetStereographic(arg1,arg2,arg3,arg4,arg5,arg6);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -8757,7 +9087,7 @@ XS(_wrap_SpatialReference_SetStereographic) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -8771,8 +9101,8 @@ XS(_wrap_SpatialReference_SetStereographic) {
       /* %typemap(out) OGRErr */
       if ( result != 0 ) {
         const char *err = CPLGetLastErrorMsg();
-        if (err and *err) SWIG_croak(err); /* this is usually better */
-        SWIG_croak( OGRErrMessages(result) );
+        if (err and *err) do_confess(err, 0); /* this is usually better */
+        do_confess( OGRErrMessages(result), 1 );
       }
     }
     
@@ -8848,7 +9178,7 @@ XS(_wrap_SpatialReference_SetSOC) {
       result = (OGRErr)OSRSpatialReferenceShadow_SetSOC(arg1,arg2,arg3,arg4,arg5);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -8857,7 +9187,7 @@ XS(_wrap_SpatialReference_SetSOC) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -8871,8 +9201,8 @@ XS(_wrap_SpatialReference_SetSOC) {
       /* %typemap(out) OGRErr */
       if ( result != 0 ) {
         const char *err = CPLGetLastErrorMsg();
-        if (err and *err) SWIG_croak(err); /* this is usually better */
-        SWIG_croak( OGRErrMessages(result) );
+        if (err and *err) do_confess(err, 0); /* this is usually better */
+        do_confess( OGRErrMessages(result), 1 );
       }
     }
     
@@ -8954,7 +9284,7 @@ XS(_wrap_SpatialReference_SetTM) {
       result = (OGRErr)OSRSpatialReferenceShadow_SetTM(arg1,arg2,arg3,arg4,arg5,arg6);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -8963,7 +9293,7 @@ XS(_wrap_SpatialReference_SetTM) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -8977,8 +9307,8 @@ XS(_wrap_SpatialReference_SetTM) {
       /* %typemap(out) OGRErr */
       if ( result != 0 ) {
         const char *err = CPLGetLastErrorMsg();
-        if (err and *err) SWIG_croak(err); /* this is usually better */
-        SWIG_croak( OGRErrMessages(result) );
+        if (err and *err) do_confess(err, 0); /* this is usually better */
+        do_confess( OGRErrMessages(result), 1 );
       }
     }
     
@@ -9071,7 +9401,7 @@ XS(_wrap_SpatialReference_SetTMVariant) {
       result = (OGRErr)OSRSpatialReferenceShadow_SetTMVariant(arg1,(char const *)arg2,arg3,arg4,arg5,arg6,arg7);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -9080,7 +9410,7 @@ XS(_wrap_SpatialReference_SetTMVariant) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -9094,8 +9424,8 @@ XS(_wrap_SpatialReference_SetTMVariant) {
       /* %typemap(out) OGRErr */
       if ( result != 0 ) {
         const char *err = CPLGetLastErrorMsg();
-        if (err and *err) SWIG_croak(err); /* this is usually better */
-        SWIG_croak( OGRErrMessages(result) );
+        if (err and *err) do_confess(err, 0); /* this is usually better */
+        do_confess( OGRErrMessages(result), 1 );
       }
     }
     
@@ -9173,7 +9503,7 @@ XS(_wrap_SpatialReference_SetTMG) {
       result = (OGRErr)OSRSpatialReferenceShadow_SetTMG(arg1,arg2,arg3,arg4,arg5);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -9182,7 +9512,7 @@ XS(_wrap_SpatialReference_SetTMG) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -9196,8 +9526,8 @@ XS(_wrap_SpatialReference_SetTMG) {
       /* %typemap(out) OGRErr */
       if ( result != 0 ) {
         const char *err = CPLGetLastErrorMsg();
-        if (err and *err) SWIG_croak(err); /* this is usually better */
-        SWIG_croak( OGRErrMessages(result) );
+        if (err and *err) do_confess(err, 0); /* this is usually better */
+        do_confess( OGRErrMessages(result), 1 );
       }
     }
     
@@ -9279,7 +9609,7 @@ XS(_wrap_SpatialReference_SetTMSO) {
       result = (OGRErr)OSRSpatialReferenceShadow_SetTMSO(arg1,arg2,arg3,arg4,arg5,arg6);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -9288,7 +9618,7 @@ XS(_wrap_SpatialReference_SetTMSO) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -9302,8 +9632,8 @@ XS(_wrap_SpatialReference_SetTMSO) {
       /* %typemap(out) OGRErr */
       if ( result != 0 ) {
         const char *err = CPLGetLastErrorMsg();
-        if (err and *err) SWIG_croak(err); /* this is usually better */
-        SWIG_croak( OGRErrMessages(result) );
+        if (err and *err) do_confess(err, 0); /* this is usually better */
+        do_confess( OGRErrMessages(result), 1 );
       }
     }
     
@@ -9371,7 +9701,7 @@ XS(_wrap_SpatialReference_SetVDG) {
       result = (OGRErr)OSRSpatialReferenceShadow_SetVDG(arg1,arg2,arg3,arg4);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -9380,7 +9710,7 @@ XS(_wrap_SpatialReference_SetVDG) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -9394,8 +9724,8 @@ XS(_wrap_SpatialReference_SetVDG) {
       /* %typemap(out) OGRErr */
       if ( result != 0 ) {
         const char *err = CPLGetLastErrorMsg();
-        if (err and *err) SWIG_croak(err); /* this is usually better */
-        SWIG_croak( OGRErrMessages(result) );
+        if (err and *err) do_confess(err, 0); /* this is usually better */
+        do_confess( OGRErrMessages(result), 1 );
       }
     }
     
@@ -9419,6 +9749,7 @@ XS(_wrap_SpatialReference_SetWellKnownGeogCS) {
     char *arg2 = (char *) 0 ;
     void *argp1 = 0 ;
     int res1 = 0 ;
+    U8 *tmpbuf2 = NULL ;
     int argvi = 0;
     OGRErr result;
     dXSARGS;
@@ -9433,8 +9764,7 @@ XS(_wrap_SpatialReference_SetWellKnownGeogCS) {
     arg1 = reinterpret_cast< OSRSpatialReferenceShadow * >(argp1);
     {
       /* %typemap(in,numinputs=1) (const char* name) */
-      sv_utf8_upgrade(ST(1));
-      arg2 = SvPV_nolen(ST(1));
+      arg2 = sv_to_utf8_string(ST(1), &tmpbuf2);
     }
     {
       if (!arg2) {
@@ -9446,7 +9776,7 @@ XS(_wrap_SpatialReference_SetWellKnownGeogCS) {
       result = (OGRErr)OSRSpatialReferenceShadow_SetWellKnownGeogCS(arg1,(char const *)arg2);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -9455,7 +9785,7 @@ XS(_wrap_SpatialReference_SetWellKnownGeogCS) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -9469,14 +9799,22 @@ XS(_wrap_SpatialReference_SetWellKnownGeogCS) {
       /* %typemap(out) OGRErr */
       if ( result != 0 ) {
         const char *err = CPLGetLastErrorMsg();
-        if (err and *err) SWIG_croak(err); /* this is usually better */
-        SWIG_croak( OGRErrMessages(result) );
+        if (err and *err) do_confess(err, 0); /* this is usually better */
+        do_confess( OGRErrMessages(result), 1 );
       }
     }
     
+    {
+      /* %typemap(freearg) (const char* name) */
+      if (tmpbuf2) free(tmpbuf2);
+    }
     XSRETURN(argvi);
   fail:
     
+    {
+      /* %typemap(freearg) (const char* name) */
+      if (tmpbuf2) free(tmpbuf2);
+    }
     SWIG_croak_null();
   }
 }
@@ -9488,6 +9826,7 @@ XS(_wrap_SpatialReference_SetFromUserInput) {
     char *arg2 = (char *) 0 ;
     void *argp1 = 0 ;
     int res1 = 0 ;
+    U8 *tmpbuf2 = NULL ;
     int argvi = 0;
     OGRErr result;
     dXSARGS;
@@ -9502,8 +9841,7 @@ XS(_wrap_SpatialReference_SetFromUserInput) {
     arg1 = reinterpret_cast< OSRSpatialReferenceShadow * >(argp1);
     {
       /* %typemap(in,numinputs=1) (const char* name) */
-      sv_utf8_upgrade(ST(1));
-      arg2 = SvPV_nolen(ST(1));
+      arg2 = sv_to_utf8_string(ST(1), &tmpbuf2);
     }
     {
       if (!arg2) {
@@ -9515,7 +9853,7 @@ XS(_wrap_SpatialReference_SetFromUserInput) {
       result = (OGRErr)OSRSpatialReferenceShadow_SetFromUserInput(arg1,(char const *)arg2);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -9524,7 +9862,7 @@ XS(_wrap_SpatialReference_SetFromUserInput) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -9538,14 +9876,22 @@ XS(_wrap_SpatialReference_SetFromUserInput) {
       /* %typemap(out) OGRErr */
       if ( result != 0 ) {
         const char *err = CPLGetLastErrorMsg();
-        if (err and *err) SWIG_croak(err); /* this is usually better */
-        SWIG_croak( OGRErrMessages(result) );
+        if (err and *err) do_confess(err, 0); /* this is usually better */
+        do_confess( OGRErrMessages(result), 1 );
       }
     }
     
+    {
+      /* %typemap(freearg) (const char* name) */
+      if (tmpbuf2) free(tmpbuf2);
+    }
     XSRETURN(argvi);
   fail:
     
+    {
+      /* %typemap(freearg) (const char* name) */
+      if (tmpbuf2) free(tmpbuf2);
+    }
     SWIG_croak_null();
   }
 }
@@ -9586,7 +9932,7 @@ XS(_wrap_SpatialReference_CopyGeogCSFrom) {
       result = (OGRErr)OSRSpatialReferenceShadow_CopyGeogCSFrom(arg1,arg2);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -9595,7 +9941,7 @@ XS(_wrap_SpatialReference_CopyGeogCSFrom) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -9609,8 +9955,8 @@ XS(_wrap_SpatialReference_CopyGeogCSFrom) {
       /* %typemap(out) OGRErr */
       if ( result != 0 ) {
         const char *err = CPLGetLastErrorMsg();
-        if (err and *err) SWIG_croak(err); /* this is usually better */
-        SWIG_croak( OGRErrMessages(result) );
+        if (err and *err) do_confess(err, 0); /* this is usually better */
+        do_confess( OGRErrMessages(result), 1 );
       }
     }
     
@@ -9710,7 +10056,7 @@ XS(_wrap_SpatialReference_SetTOWGS84) {
       result = (OGRErr)OSRSpatialReferenceShadow_SetTOWGS84(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -9719,7 +10065,7 @@ XS(_wrap_SpatialReference_SetTOWGS84) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -9733,8 +10079,8 @@ XS(_wrap_SpatialReference_SetTOWGS84) {
       /* %typemap(out) OGRErr */
       if ( result != 0 ) {
         const char *err = CPLGetLastErrorMsg();
-        if (err and *err) SWIG_croak(err); /* this is usually better */
-        SWIG_croak( OGRErrMessages(result) );
+        if (err and *err) do_confess(err, 0); /* this is usually better */
+        do_confess( OGRErrMessages(result), 1 );
       }
     }
     
@@ -9788,7 +10134,7 @@ XS(_wrap_SpatialReference_GetTOWGS84) {
       result = (OGRErr)OSRSpatialReferenceShadow_GetTOWGS84(arg1,arg2);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -9797,7 +10143,7 @@ XS(_wrap_SpatialReference_GetTOWGS84) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -9811,8 +10157,8 @@ XS(_wrap_SpatialReference_GetTOWGS84) {
       /* %typemap(out) OGRErr */
       if ( result != 0 ) {
         const char *err = CPLGetLastErrorMsg();
-        if (err and *err) SWIG_croak(err); /* this is usually better */
-        SWIG_croak( OGRErrMessages(result) );
+        if (err and *err) do_confess(err, 0); /* this is usually better */
+        do_confess( OGRErrMessages(result), 1 );
       }
     }
     {
@@ -9826,7 +10172,7 @@ XS(_wrap_SpatialReference_GetTOWGS84) {
       } else {
         ST(argvi) = CreateArrayFromDoubleArray( arg2, 7 );
         argvi++;
-      }  
+      }
     }
     
     
@@ -9870,7 +10216,7 @@ XS(_wrap_SpatialReference_SetLocalCS) {
       result = (OGRErr)OSRSpatialReferenceShadow_SetLocalCS(arg1,(char const *)arg2);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -9879,7 +10225,7 @@ XS(_wrap_SpatialReference_SetLocalCS) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -9893,8 +10239,8 @@ XS(_wrap_SpatialReference_SetLocalCS) {
       /* %typemap(out) OGRErr */
       if ( result != 0 ) {
         const char *err = CPLGetLastErrorMsg();
-        if (err and *err) SWIG_croak(err); /* this is usually better */
-        SWIG_croak( OGRErrMessages(result) );
+        if (err and *err) do_confess(err, 0); /* this is usually better */
+        do_confess( OGRErrMessages(result), 1 );
       }
     }
     
@@ -10015,7 +10361,7 @@ XS(_wrap_SpatialReference_SetGeogCS) {
       result = (OGRErr)OSRSpatialReferenceShadow_SetGeogCS(arg1,(char const *)arg2,(char const *)arg3,(char const *)arg4,arg5,arg6,(char const *)arg7,arg8,(char const *)arg9,arg10);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -10024,7 +10370,7 @@ XS(_wrap_SpatialReference_SetGeogCS) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -10038,8 +10384,8 @@ XS(_wrap_SpatialReference_SetGeogCS) {
       /* %typemap(out) OGRErr */
       if ( result != 0 ) {
         const char *err = CPLGetLastErrorMsg();
-        if (err and *err) SWIG_croak(err); /* this is usually better */
-        SWIG_croak( OGRErrMessages(result) );
+        if (err and *err) do_confess(err, 0); /* this is usually better */
+        do_confess( OGRErrMessages(result), 1 );
       }
     }
     
@@ -10075,6 +10421,7 @@ XS(_wrap_SpatialReference_SetProjCS) {
     char *arg2 = (char *) "unnamed" ;
     void *argp1 = 0 ;
     int res1 = 0 ;
+    U8 *tmpbuf2 = NULL ;
     int argvi = 0;
     OGRErr result;
     dXSARGS;
@@ -10090,8 +10437,7 @@ XS(_wrap_SpatialReference_SetProjCS) {
     if (items > 1) {
       {
         /* %typemap(in,numinputs=1) (const char* name) */
-        sv_utf8_upgrade(ST(1));
-        arg2 = SvPV_nolen(ST(1));
+        arg2 = sv_to_utf8_string(ST(1), &tmpbuf2);
       }
     }
     {
@@ -10104,7 +10450,7 @@ XS(_wrap_SpatialReference_SetProjCS) {
       result = (OGRErr)OSRSpatialReferenceShadow_SetProjCS(arg1,(char const *)arg2);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -10113,7 +10459,7 @@ XS(_wrap_SpatialReference_SetProjCS) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -10127,14 +10473,22 @@ XS(_wrap_SpatialReference_SetProjCS) {
       /* %typemap(out) OGRErr */
       if ( result != 0 ) {
         const char *err = CPLGetLastErrorMsg();
-        if (err and *err) SWIG_croak(err); /* this is usually better */
-        SWIG_croak( OGRErrMessages(result) );
+        if (err and *err) do_confess(err, 0); /* this is usually better */
+        do_confess( OGRErrMessages(result), 1 );
       }
     }
     
+    {
+      /* %typemap(freearg) (const char* name) */
+      if (tmpbuf2) free(tmpbuf2);
+    }
     XSRETURN(argvi);
   fail:
     
+    {
+      /* %typemap(freearg) (const char* name) */
+      if (tmpbuf2) free(tmpbuf2);
+    }
     SWIG_croak_null();
   }
 }
@@ -10146,6 +10500,7 @@ XS(_wrap_SpatialReference_SetGeocCS) {
     char *arg2 = (char *) "unnamed" ;
     void *argp1 = 0 ;
     int res1 = 0 ;
+    U8 *tmpbuf2 = NULL ;
     int argvi = 0;
     OGRErr result;
     dXSARGS;
@@ -10161,8 +10516,7 @@ XS(_wrap_SpatialReference_SetGeocCS) {
     if (items > 1) {
       {
         /* %typemap(in,numinputs=1) (const char* name) */
-        sv_utf8_upgrade(ST(1));
-        arg2 = SvPV_nolen(ST(1));
+        arg2 = sv_to_utf8_string(ST(1), &tmpbuf2);
       }
     }
     {
@@ -10175,7 +10529,7 @@ XS(_wrap_SpatialReference_SetGeocCS) {
       result = (OGRErr)OSRSpatialReferenceShadow_SetGeocCS(arg1,(char const *)arg2);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -10184,7 +10538,7 @@ XS(_wrap_SpatialReference_SetGeocCS) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -10198,14 +10552,22 @@ XS(_wrap_SpatialReference_SetGeocCS) {
       /* %typemap(out) OGRErr */
       if ( result != 0 ) {
         const char *err = CPLGetLastErrorMsg();
-        if (err and *err) SWIG_croak(err); /* this is usually better */
-        SWIG_croak( OGRErrMessages(result) );
+        if (err and *err) do_confess(err, 0); /* this is usually better */
+        do_confess( OGRErrMessages(result), 1 );
       }
     }
     
+    {
+      /* %typemap(freearg) (const char* name) */
+      if (tmpbuf2) free(tmpbuf2);
+    }
     XSRETURN(argvi);
   fail:
     
+    {
+      /* %typemap(freearg) (const char* name) */
+      if (tmpbuf2) free(tmpbuf2);
+    }
     SWIG_croak_null();
   }
 }
@@ -10265,7 +10627,7 @@ XS(_wrap_SpatialReference_SetVertCS) {
       result = (OGRErr)OSRSpatialReferenceShadow_SetVertCS(arg1,(char const *)arg2,(char const *)arg3,arg4);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -10274,7 +10636,7 @@ XS(_wrap_SpatialReference_SetVertCS) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -10288,8 +10650,8 @@ XS(_wrap_SpatialReference_SetVertCS) {
       /* %typemap(out) OGRErr */
       if ( result != 0 ) {
         const char *err = CPLGetLastErrorMsg();
-        if (err and *err) SWIG_croak(err); /* this is usually better */
-        SWIG_croak( OGRErrMessages(result) );
+        if (err and *err) do_confess(err, 0); /* this is usually better */
+        do_confess( OGRErrMessages(result), 1 );
       }
     }
     
@@ -10315,6 +10677,7 @@ XS(_wrap_SpatialReference_SetCompoundCS) {
     OSRSpatialReferenceShadow *arg4 = (OSRSpatialReferenceShadow *) 0 ;
     void *argp1 = 0 ;
     int res1 = 0 ;
+    U8 *tmpbuf2 = NULL ;
     void *argp3 = 0 ;
     int res3 = 0 ;
     void *argp4 = 0 ;
@@ -10333,8 +10696,7 @@ XS(_wrap_SpatialReference_SetCompoundCS) {
     arg1 = reinterpret_cast< OSRSpatialReferenceShadow * >(argp1);
     {
       /* %typemap(in,numinputs=1) (const char* name) */
-      sv_utf8_upgrade(ST(1));
-      arg2 = SvPV_nolen(ST(1));
+      arg2 = sv_to_utf8_string(ST(1), &tmpbuf2);
     }
     res3 = SWIG_ConvertPtr(ST(2), &argp3,SWIGTYPE_p_OSRSpatialReferenceShadow, 0 |  0 );
     if (!SWIG_IsOK(res3)) {
@@ -10366,7 +10728,7 @@ XS(_wrap_SpatialReference_SetCompoundCS) {
       result = (OGRErr)OSRSpatialReferenceShadow_SetCompoundCS(arg1,(char const *)arg2,arg3,arg4);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -10375,7 +10737,7 @@ XS(_wrap_SpatialReference_SetCompoundCS) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -10389,16 +10751,24 @@ XS(_wrap_SpatialReference_SetCompoundCS) {
       /* %typemap(out) OGRErr */
       if ( result != 0 ) {
         const char *err = CPLGetLastErrorMsg();
-        if (err and *err) SWIG_croak(err); /* this is usually better */
-        SWIG_croak( OGRErrMessages(result) );
+        if (err and *err) do_confess(err, 0); /* this is usually better */
+        do_confess( OGRErrMessages(result), 1 );
       }
     }
     
+    {
+      /* %typemap(freearg) (const char* name) */
+      if (tmpbuf2) free(tmpbuf2);
+    }
     
     
     XSRETURN(argvi);
   fail:
     
+    {
+      /* %typemap(freearg) (const char* name) */
+      if (tmpbuf2) free(tmpbuf2);
+    }
     
     
     SWIG_croak_null();
@@ -10413,6 +10783,7 @@ XS(_wrap_SpatialReference_ImportFromWkt) {
     void *argp1 = 0 ;
     int res1 = 0 ;
     char *val2 ;
+    U8 *tmpbuf2 = NULL ;
     int argvi = 0;
     OGRErr result;
     dXSARGS;
@@ -10427,8 +10798,7 @@ XS(_wrap_SpatialReference_ImportFromWkt) {
     arg1 = reinterpret_cast< OSRSpatialReferenceShadow * >(argp1);
     {
       /* %typemap(in) (char **ignorechange) */
-      sv_utf8_upgrade(ST(1)); /* GDAL expects UTF-8 */
-      val2 = SvPV_nolen(ST(1));
+      val2 = sv_to_utf8_string(ST(1), &tmpbuf2);
       arg2 = &val2;
     }
     {
@@ -10436,7 +10806,7 @@ XS(_wrap_SpatialReference_ImportFromWkt) {
       result = (OGRErr)OSRSpatialReferenceShadow_ImportFromWkt(arg1,arg2);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -10445,7 +10815,7 @@ XS(_wrap_SpatialReference_ImportFromWkt) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -10459,16 +10829,22 @@ XS(_wrap_SpatialReference_ImportFromWkt) {
       /* %typemap(out) OGRErr */
       if ( result != 0 ) {
         const char *err = CPLGetLastErrorMsg();
-        if (err and *err) SWIG_croak(err); /* this is usually better */
-        SWIG_croak( OGRErrMessages(result) );
+        if (err and *err) do_confess(err, 0); /* this is usually better */
+        do_confess( OGRErrMessages(result), 1 );
       }
     }
     
-    
+    {
+      /* %typemap(freearg) (char **ignorechange) */
+      if (tmpbuf2) free(tmpbuf2);
+    }
     XSRETURN(argvi);
   fail:
     
-    
+    {
+      /* %typemap(freearg) (char **ignorechange) */
+      if (tmpbuf2) free(tmpbuf2);
+    }
     SWIG_croak_null();
   }
 }
@@ -10505,7 +10881,7 @@ XS(_wrap_SpatialReference_ImportFromProj4) {
       result = (OGRErr)OSRSpatialReferenceShadow_ImportFromProj4(arg1,arg2);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -10514,7 +10890,7 @@ XS(_wrap_SpatialReference_ImportFromProj4) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -10528,8 +10904,8 @@ XS(_wrap_SpatialReference_ImportFromProj4) {
       /* %typemap(out) OGRErr */
       if ( result != 0 ) {
         const char *err = CPLGetLastErrorMsg();
-        if (err and *err) SWIG_croak(err); /* this is usually better */
-        SWIG_croak( OGRErrMessages(result) );
+        if (err and *err) do_confess(err, 0); /* this is usually better */
+        do_confess( OGRErrMessages(result), 1 );
       }
     }
     
@@ -10579,7 +10955,7 @@ XS(_wrap_SpatialReference_ImportFromUrl) {
       result = (OGRErr)OSRSpatialReferenceShadow_ImportFromUrl(arg1,arg2);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -10588,7 +10964,7 @@ XS(_wrap_SpatialReference_ImportFromUrl) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -10602,8 +10978,8 @@ XS(_wrap_SpatialReference_ImportFromUrl) {
       /* %typemap(out) OGRErr */
       if ( result != 0 ) {
         const char *err = CPLGetLastErrorMsg();
-        if (err and *err) SWIG_croak(err); /* this is usually better */
-        SWIG_croak( OGRErrMessages(result) );
+        if (err and *err) do_confess(err, 0); /* this is usually better */
+        do_confess( OGRErrMessages(result), 1 );
       }
     }
     
@@ -10643,9 +11019,9 @@ XS(_wrap_SpatialReference_ImportFromESRI) {
             AV *av = (AV*)(SvRV(ST(1)));
             for (int i = 0; i < av_len(av)+1; i++) {
               SV *sv = *(av_fetch(av, i, 0));
-              sv_utf8_upgrade(sv); /* GDAL expects UTF-8 */
-              char *pszItem = SvPV_nolen(sv);
-              arg2 = CSLAddString( arg2, pszItem );
+              char *tmp = sv_to_utf8_string(sv, NULL);
+              arg2 = CSLAddString(arg2, tmp);
+              free(tmp);
             }
           } else if (SvTYPE(SvRV(ST(1)))==SVt_PVHV) {
             HV *hv = (HV*)SvRV(ST(1));
@@ -10654,14 +11030,15 @@ XS(_wrap_SpatialReference_ImportFromESRI) {
             I32 klen;
             arg2 = NULL;
             hv_iterinit(hv);
-            while(sv = hv_iternextsv(hv,&key,&klen)) {
-              sv_utf8_upgrade(sv); /* GDAL expects UTF-8 */
-              arg2 = CSLAddNameValue( arg2, key, SvPV_nolen(sv) );
+            while(sv = hv_iternextsv(hv, &key, &klen)) {
+              char *tmp = sv_to_utf8_string(sv, NULL);
+              arg2 = CSLAddNameValue(arg2, key, tmp);
+              free(tmp);
             }
           } else
-          SWIG_croak("the 'options' argument to a Geo::GDAL method is not a reference to an array or hash");
+          do_confess(NEED_REF, 1);
         } else
-        SWIG_croak("the 'options' argument to a Geo::GDAL method is not a reference");   
+        do_confess(NEED_REF, 1);
       }
     }
     {
@@ -10669,7 +11046,7 @@ XS(_wrap_SpatialReference_ImportFromESRI) {
       result = (OGRErr)OSRSpatialReferenceShadow_ImportFromESRI(arg1,arg2);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -10678,7 +11055,7 @@ XS(_wrap_SpatialReference_ImportFromESRI) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -10692,8 +11069,8 @@ XS(_wrap_SpatialReference_ImportFromESRI) {
       /* %typemap(out) OGRErr */
       if ( result != 0 ) {
         const char *err = CPLGetLastErrorMsg();
-        if (err and *err) SWIG_croak(err); /* this is usually better */
-        SWIG_croak( OGRErrMessages(result) );
+        if (err and *err) do_confess(err, 0); /* this is usually better */
+        do_confess( OGRErrMessages(result), 1 );
       }
     }
     
@@ -10743,7 +11120,7 @@ XS(_wrap_SpatialReference_ImportFromEPSG) {
       result = (OGRErr)OSRSpatialReferenceShadow_ImportFromEPSG(arg1,arg2);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -10752,7 +11129,7 @@ XS(_wrap_SpatialReference_ImportFromEPSG) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -10766,8 +11143,8 @@ XS(_wrap_SpatialReference_ImportFromEPSG) {
       /* %typemap(out) OGRErr */
       if ( result != 0 ) {
         const char *err = CPLGetLastErrorMsg();
-        if (err and *err) SWIG_croak(err); /* this is usually better */
-        SWIG_croak( OGRErrMessages(result) );
+        if (err and *err) do_confess(err, 0); /* this is usually better */
+        do_confess( OGRErrMessages(result), 1 );
       }
     }
     
@@ -10811,7 +11188,7 @@ XS(_wrap_SpatialReference_ImportFromEPSGA) {
       result = (OGRErr)OSRSpatialReferenceShadow_ImportFromEPSGA(arg1,arg2);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -10820,7 +11197,7 @@ XS(_wrap_SpatialReference_ImportFromEPSGA) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -10834,8 +11211,8 @@ XS(_wrap_SpatialReference_ImportFromEPSGA) {
       /* %typemap(out) OGRErr */
       if ( result != 0 ) {
         const char *err = CPLGetLastErrorMsg();
-        if (err and *err) SWIG_croak(err); /* this is usually better */
-        SWIG_croak( OGRErrMessages(result) );
+        if (err and *err) do_confess(err, 0); /* this is usually better */
+        do_confess( OGRErrMessages(result), 1 );
       }
     }
     
@@ -10892,12 +11269,14 @@ XS(_wrap_SpatialReference_ImportFromPCI) {
       {
         /* %typemap(in) (double argin4[ANY]) */
         if (!(SvROK(ST(3)) && (SvTYPE(SvRV(ST(3)))==SVt_PVAV)))
-        SWIG_croak("expected a reference to an array as an argument to a Geo::GDAL method");
+        do_confess(NEED_ARRAY_REF, 1);
         arg4 = argin4;
         AV *av = (AV*)(SvRV(ST(3)));
         for (unsigned int i=0; i<17; i++) {
-          SV **sv = av_fetch(av, i, 0);
-          arg4[i] =  SvNV(*sv);
+          SV *sv = *av_fetch(av, i, 0);
+          if (!SvOK(sv))
+          do_confess(NEED_DEF, 1);
+          arg4[i] =  SvNV(sv);
         }
       }
     }
@@ -10906,7 +11285,7 @@ XS(_wrap_SpatialReference_ImportFromPCI) {
       result = (OGRErr)OSRSpatialReferenceShadow_ImportFromPCI(arg1,(char const *)arg2,(char const *)arg3,arg4);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -10915,7 +11294,7 @@ XS(_wrap_SpatialReference_ImportFromPCI) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -10929,8 +11308,8 @@ XS(_wrap_SpatialReference_ImportFromPCI) {
       /* %typemap(out) OGRErr */
       if ( result != 0 ) {
         const char *err = CPLGetLastErrorMsg();
-        if (err and *err) SWIG_croak(err); /* this is usually better */
-        SWIG_croak( OGRErrMessages(result) );
+        if (err and *err) do_confess(err, 0); /* this is usually better */
+        do_confess( OGRErrMessages(result), 1 );
       }
     }
     
@@ -10992,12 +11371,14 @@ XS(_wrap_SpatialReference_ImportFromUSGS) {
       {
         /* %typemap(in) (double argin4[ANY]) */
         if (!(SvROK(ST(3)) && (SvTYPE(SvRV(ST(3)))==SVt_PVAV)))
-        SWIG_croak("expected a reference to an array as an argument to a Geo::GDAL method");
+        do_confess(NEED_ARRAY_REF, 1);
         arg4 = argin4;
         AV *av = (AV*)(SvRV(ST(3)));
         for (unsigned int i=0; i<15; i++) {
-          SV **sv = av_fetch(av, i, 0);
-          arg4[i] =  SvNV(*sv);
+          SV *sv = *av_fetch(av, i, 0);
+          if (!SvOK(sv))
+          do_confess(NEED_DEF, 1);
+          arg4[i] =  SvNV(sv);
         }
       }
     }
@@ -11013,7 +11394,7 @@ XS(_wrap_SpatialReference_ImportFromUSGS) {
       result = (OGRErr)OSRSpatialReferenceShadow_ImportFromUSGS(arg1,arg2,arg3,arg4,arg5);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -11022,7 +11403,7 @@ XS(_wrap_SpatialReference_ImportFromUSGS) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -11036,8 +11417,8 @@ XS(_wrap_SpatialReference_ImportFromUSGS) {
       /* %typemap(out) OGRErr */
       if ( result != 0 ) {
         const char *err = CPLGetLastErrorMsg();
-        if (err and *err) SWIG_croak(err); /* this is usually better */
-        SWIG_croak( OGRErrMessages(result) );
+        if (err and *err) do_confess(err, 0); /* this is usually better */
+        do_confess( OGRErrMessages(result), 1 );
       }
     }
     
@@ -11088,7 +11469,7 @@ XS(_wrap_SpatialReference_ImportFromXML) {
       result = (OGRErr)OSRSpatialReferenceShadow_ImportFromXML(arg1,(char const *)arg2);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -11097,7 +11478,7 @@ XS(_wrap_SpatialReference_ImportFromXML) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -11111,8 +11492,8 @@ XS(_wrap_SpatialReference_ImportFromXML) {
       /* %typemap(out) OGRErr */
       if ( result != 0 ) {
         const char *err = CPLGetLastErrorMsg();
-        if (err and *err) SWIG_croak(err); /* this is usually better */
-        SWIG_croak( OGRErrMessages(result) );
+        if (err and *err) do_confess(err, 0); /* this is usually better */
+        do_confess( OGRErrMessages(result), 1 );
       }
     }
     
@@ -11185,7 +11566,7 @@ XS(_wrap_SpatialReference_ImportFromERM) {
       result = (OGRErr)OSRSpatialReferenceShadow_ImportFromERM(arg1,(char const *)arg2,(char const *)arg3,(char const *)arg4);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -11194,7 +11575,7 @@ XS(_wrap_SpatialReference_ImportFromERM) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -11208,8 +11589,8 @@ XS(_wrap_SpatialReference_ImportFromERM) {
       /* %typemap(out) OGRErr */
       if ( result != 0 ) {
         const char *err = CPLGetLastErrorMsg();
-        if (err and *err) SWIG_croak(err); /* this is usually better */
-        SWIG_croak( OGRErrMessages(result) );
+        if (err and *err) do_confess(err, 0); /* this is usually better */
+        do_confess( OGRErrMessages(result), 1 );
       }
     }
     
@@ -11258,7 +11639,7 @@ XS(_wrap_SpatialReference_ImportFromMICoordSys) {
       result = (OGRErr)OSRSpatialReferenceShadow_ImportFromMICoordSys(arg1,(char const *)arg2);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -11267,7 +11648,7 @@ XS(_wrap_SpatialReference_ImportFromMICoordSys) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -11281,8 +11662,8 @@ XS(_wrap_SpatialReference_ImportFromMICoordSys) {
       /* %typemap(out) OGRErr */
       if ( result != 0 ) {
         const char *err = CPLGetLastErrorMsg();
-        if (err and *err) SWIG_croak(err); /* this is usually better */
-        SWIG_croak( OGRErrMessages(result) );
+        if (err and *err) do_confess(err, 0); /* this is usually better */
+        do_confess( OGRErrMessages(result), 1 );
       }
     }
     
@@ -11299,68 +11680,62 @@ XS(_wrap_SpatialReference_ImportFromMICoordSys) {
 XS(_wrap_SpatialReference_ImportFromOzi) {
   {
     OSRSpatialReferenceShadow *arg1 = (OSRSpatialReferenceShadow *) 0 ;
-    char *arg2 = (char *) 0 ;
-    char *arg3 = (char *) 0 ;
-    char *arg4 = (char *) 0 ;
+    char **arg2 = (char **) 0 ;
     void *argp1 = 0 ;
     int res1 = 0 ;
-    int res2 ;
-    char *buf2 = 0 ;
-    int alloc2 = 0 ;
-    int res3 ;
-    char *buf3 = 0 ;
-    int alloc3 = 0 ;
-    int res4 ;
-    char *buf4 = 0 ;
-    int alloc4 = 0 ;
     int argvi = 0;
     OGRErr result;
     dXSARGS;
     
-    if ((items < 4) || (items > 4)) {
-      SWIG_croak("Usage: SpatialReference_ImportFromOzi(self,datum,proj,projParms);");
+    if ((items < 2) || (items > 2)) {
+      SWIG_croak("Usage: SpatialReference_ImportFromOzi(self,papszLines);");
     }
     res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OSRSpatialReferenceShadow, 0 |  0 );
     if (!SWIG_IsOK(res1)) {
       SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "SpatialReference_ImportFromOzi" "', argument " "1"" of type '" "OSRSpatialReferenceShadow *""'"); 
     }
     arg1 = reinterpret_cast< OSRSpatialReferenceShadow * >(argp1);
-    res2 = SWIG_AsCharPtrAndSize(ST(1), &buf2, NULL, &alloc2);
-    if (!SWIG_IsOK(res2)) {
-      SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "SpatialReference_ImportFromOzi" "', argument " "2"" of type '" "char const *""'");
+    {
+      /* %typemap(in) char **options */
+      if (SvOK(ST(1))) {
+        if (SvROK(ST(1))) {
+          if (SvTYPE(SvRV(ST(1)))==SVt_PVAV) {
+            AV *av = (AV*)(SvRV(ST(1)));
+            for (int i = 0; i < av_len(av)+1; i++) {
+              SV *sv = *(av_fetch(av, i, 0));
+              char *tmp = sv_to_utf8_string(sv, NULL);
+              arg2 = CSLAddString(arg2, tmp);
+              free(tmp);
+            }
+          } else if (SvTYPE(SvRV(ST(1)))==SVt_PVHV) {
+            HV *hv = (HV*)SvRV(ST(1));
+            SV *sv;
+            char *key;
+            I32 klen;
+            arg2 = NULL;
+            hv_iterinit(hv);
+            while(sv = hv_iternextsv(hv, &key, &klen)) {
+              char *tmp = sv_to_utf8_string(sv, NULL);
+              arg2 = CSLAddNameValue(arg2, key, tmp);
+              free(tmp);
+            }
+          } else
+          do_confess(NEED_REF, 1);
+        } else
+        do_confess(NEED_REF, 1);
+      }
     }
-    arg2 = reinterpret_cast< char * >(buf2);
-    res3 = SWIG_AsCharPtrAndSize(ST(2), &buf3, NULL, &alloc3);
-    if (!SWIG_IsOK(res3)) {
-      SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "SpatialReference_ImportFromOzi" "', argument " "3"" of type '" "char const *""'");
-    }
-    arg3 = reinterpret_cast< char * >(buf3);
-    res4 = SWIG_AsCharPtrAndSize(ST(3), &buf4, NULL, &alloc4);
-    if (!SWIG_IsOK(res4)) {
-      SWIG_exception_fail(SWIG_ArgError(res4), "in method '" "SpatialReference_ImportFromOzi" "', argument " "4"" of type '" "char const *""'");
-    }
-    arg4 = reinterpret_cast< char * >(buf4);
     {
       if (!arg2) {
         SWIG_exception(SWIG_ValueError,"Received a NULL pointer.");
       }
     }
     {
-      if (!arg3) {
-        SWIG_exception(SWIG_ValueError,"Received a NULL pointer.");
-      }
-    }
-    {
-      if (!arg4) {
-        SWIG_exception(SWIG_ValueError,"Received a NULL pointer.");
-      }
-    }
-    {
       CPLErrorReset();
-      result = (OGRErr)OSRSpatialReferenceShadow_ImportFromOzi(arg1,(char const *)arg2,(char const *)arg3,(char const *)arg4);
+      result = (OGRErr)OSRSpatialReferenceShadow_ImportFromOzi(arg1,(char const *const *)arg2);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -11369,7 +11744,7 @@ XS(_wrap_SpatialReference_ImportFromOzi) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -11383,20 +11758,22 @@ XS(_wrap_SpatialReference_ImportFromOzi) {
       /* %typemap(out) OGRErr */
       if ( result != 0 ) {
         const char *err = CPLGetLastErrorMsg();
-        if (err and *err) SWIG_croak(err); /* this is usually better */
-        SWIG_croak( OGRErrMessages(result) );
+        if (err and *err) do_confess(err, 0); /* this is usually better */
+        do_confess( OGRErrMessages(result), 1 );
       }
     }
     
-    if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
-    if (alloc3 == SWIG_NEWOBJ) delete[] buf3;
-    if (alloc4 == SWIG_NEWOBJ) delete[] buf4;
+    {
+      /* %typemap(freearg) char **options */
+      if (arg2) CSLDestroy( arg2 );
+    }
     XSRETURN(argvi);
   fail:
     
-    if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
-    if (alloc3 == SWIG_NEWOBJ) delete[] buf3;
-    if (alloc4 == SWIG_NEWOBJ) delete[] buf4;
+    {
+      /* %typemap(freearg) char **options */
+      if (arg2) CSLDestroy( arg2 );
+    }
     SWIG_croak_null();
   }
 }
@@ -11430,7 +11807,7 @@ XS(_wrap_SpatialReference_ExportToWkt) {
       result = (OGRErr)OSRSpatialReferenceShadow_ExportToWkt(arg1,arg2);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -11439,7 +11816,7 @@ XS(_wrap_SpatialReference_ExportToWkt) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -11453,8 +11830,8 @@ XS(_wrap_SpatialReference_ExportToWkt) {
       /* %typemap(out) OGRErr */
       if ( result != 0 ) {
         const char *err = CPLGetLastErrorMsg();
-        if (err and *err) SWIG_croak(err); /* this is usually better */
-        SWIG_croak( OGRErrMessages(result) );
+        if (err and *err) do_confess(err, 0); /* this is usually better */
+        do_confess( OGRErrMessages(result), 1 );
       }
     }
     {
@@ -11523,7 +11900,7 @@ XS(_wrap_SpatialReference_ExportToPrettyWkt) {
       result = (OGRErr)OSRSpatialReferenceShadow_ExportToPrettyWkt(arg1,arg2,arg3);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -11532,7 +11909,7 @@ XS(_wrap_SpatialReference_ExportToPrettyWkt) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -11546,8 +11923,8 @@ XS(_wrap_SpatialReference_ExportToPrettyWkt) {
       /* %typemap(out) OGRErr */
       if ( result != 0 ) {
         const char *err = CPLGetLastErrorMsg();
-        if (err and *err) SWIG_croak(err); /* this is usually better */
-        SWIG_croak( OGRErrMessages(result) );
+        if (err and *err) do_confess(err, 0); /* this is usually better */
+        do_confess( OGRErrMessages(result), 1 );
       }
     }
     {
@@ -11608,7 +11985,7 @@ XS(_wrap_SpatialReference_ExportToProj4) {
       result = (OGRErr)OSRSpatialReferenceShadow_ExportToProj4(arg1,arg2);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -11617,7 +11994,7 @@ XS(_wrap_SpatialReference_ExportToProj4) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -11631,8 +12008,8 @@ XS(_wrap_SpatialReference_ExportToProj4) {
       /* %typemap(out) OGRErr */
       if ( result != 0 ) {
         const char *err = CPLGetLastErrorMsg();
-        if (err and *err) SWIG_croak(err); /* this is usually better */
-        SWIG_croak( OGRErrMessages(result) );
+        if (err and *err) do_confess(err, 0); /* this is usually better */
+        do_confess( OGRErrMessages(result), 1 );
       }
     }
     {
@@ -11703,7 +12080,7 @@ XS(_wrap_SpatialReference_ExportToPCI) {
       result = (OGRErr)OSRSpatialReferenceShadow_ExportToPCI(arg1,arg2,arg3,arg4);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -11712,7 +12089,7 @@ XS(_wrap_SpatialReference_ExportToPCI) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -11726,8 +12103,8 @@ XS(_wrap_SpatialReference_ExportToPCI) {
       /* %typemap(out) OGRErr */
       if ( result != 0 ) {
         const char *err = CPLGetLastErrorMsg();
-        if (err and *err) SWIG_croak(err); /* this is usually better */
-        SWIG_croak( OGRErrMessages(result) );
+        if (err and *err) do_confess(err, 0); /* this is usually better */
+        do_confess( OGRErrMessages(result), 1 );
       }
     }
     {
@@ -11830,7 +12207,7 @@ XS(_wrap_SpatialReference_ExportToUSGS) {
       result = (OGRErr)OSRSpatialReferenceShadow_ExportToUSGS(arg1,arg2,arg3,arg4,arg5);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -11839,7 +12216,7 @@ XS(_wrap_SpatialReference_ExportToUSGS) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -11853,8 +12230,8 @@ XS(_wrap_SpatialReference_ExportToUSGS) {
       /* %typemap(out) OGRErr */
       if ( result != 0 ) {
         const char *err = CPLGetLastErrorMsg();
-        if (err and *err) SWIG_croak(err); /* this is usually better */
-        SWIG_croak( OGRErrMessages(result) );
+        if (err and *err) do_confess(err, 0); /* this is usually better */
+        do_confess( OGRErrMessages(result), 1 );
       }
     }
     if (SWIG_IsTmpObj(res2)) {
@@ -11942,7 +12319,7 @@ XS(_wrap_SpatialReference_ExportToXML) {
       result = (OGRErr)OSRSpatialReferenceShadow_ExportToXML(arg1,arg2,(char const *)arg3);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -11951,7 +12328,7 @@ XS(_wrap_SpatialReference_ExportToXML) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -11965,8 +12342,8 @@ XS(_wrap_SpatialReference_ExportToXML) {
       /* %typemap(out) OGRErr */
       if ( result != 0 ) {
         const char *err = CPLGetLastErrorMsg();
-        if (err and *err) SWIG_croak(err); /* this is usually better */
-        SWIG_croak( OGRErrMessages(result) );
+        if (err and *err) do_confess(err, 0); /* this is usually better */
+        do_confess( OGRErrMessages(result), 1 );
       }
     }
     {
@@ -12027,7 +12404,7 @@ XS(_wrap_SpatialReference_ExportToMICoordSys) {
       result = (OGRErr)OSRSpatialReferenceShadow_ExportToMICoordSys(arg1,arg2);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -12036,7 +12413,7 @@ XS(_wrap_SpatialReference_ExportToMICoordSys) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -12050,8 +12427,8 @@ XS(_wrap_SpatialReference_ExportToMICoordSys) {
       /* %typemap(out) OGRErr */
       if ( result != 0 ) {
         const char *err = CPLGetLastErrorMsg();
-        if (err and *err) SWIG_croak(err); /* this is usually better */
-        SWIG_croak( OGRErrMessages(result) );
+        if (err and *err) do_confess(err, 0); /* this is usually better */
+        do_confess( OGRErrMessages(result), 1 );
       }
     }
     {
@@ -12104,7 +12481,7 @@ XS(_wrap_SpatialReference_CloneGeogCS) {
       result = (OSRSpatialReferenceShadow *)OSRSpatialReferenceShadow_CloneGeogCS(arg1);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -12113,7 +12490,7 @@ XS(_wrap_SpatialReference_CloneGeogCS) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -12155,7 +12532,7 @@ XS(_wrap_SpatialReference_Clone) {
       result = (OSRSpatialReferenceShadow *)OSRSpatialReferenceShadow_Clone(arg1);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -12164,7 +12541,7 @@ XS(_wrap_SpatialReference_Clone) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -12206,7 +12583,7 @@ XS(_wrap_SpatialReference_Validate) {
       result = (OGRErr)OSRSpatialReferenceShadow_Validate(arg1);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -12215,7 +12592,7 @@ XS(_wrap_SpatialReference_Validate) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -12229,8 +12606,8 @@ XS(_wrap_SpatialReference_Validate) {
       /* %typemap(out) OGRErr */
       if ( result != 0 ) {
         const char *err = CPLGetLastErrorMsg();
-        if (err and *err) SWIG_croak(err); /* this is usually better */
-        SWIG_croak( OGRErrMessages(result) );
+        if (err and *err) do_confess(err, 0); /* this is usually better */
+        do_confess( OGRErrMessages(result), 1 );
       }
     }
     
@@ -12264,7 +12641,7 @@ XS(_wrap_SpatialReference_StripCTParms) {
       result = (OGRErr)OSRSpatialReferenceShadow_StripCTParms(arg1);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -12273,7 +12650,7 @@ XS(_wrap_SpatialReference_StripCTParms) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -12287,8 +12664,8 @@ XS(_wrap_SpatialReference_StripCTParms) {
       /* %typemap(out) OGRErr */
       if ( result != 0 ) {
         const char *err = CPLGetLastErrorMsg();
-        if (err and *err) SWIG_croak(err); /* this is usually better */
-        SWIG_croak( OGRErrMessages(result) );
+        if (err and *err) do_confess(err, 0); /* this is usually better */
+        do_confess( OGRErrMessages(result), 1 );
       }
     }
     
@@ -12322,7 +12699,7 @@ XS(_wrap_SpatialReference_FixupOrdering) {
       result = (OGRErr)OSRSpatialReferenceShadow_FixupOrdering(arg1);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -12331,7 +12708,7 @@ XS(_wrap_SpatialReference_FixupOrdering) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -12345,8 +12722,8 @@ XS(_wrap_SpatialReference_FixupOrdering) {
       /* %typemap(out) OGRErr */
       if ( result != 0 ) {
         const char *err = CPLGetLastErrorMsg();
-        if (err and *err) SWIG_croak(err); /* this is usually better */
-        SWIG_croak( OGRErrMessages(result) );
+        if (err and *err) do_confess(err, 0); /* this is usually better */
+        do_confess( OGRErrMessages(result), 1 );
       }
     }
     
@@ -12380,7 +12757,7 @@ XS(_wrap_SpatialReference_Fixup) {
       result = (OGRErr)OSRSpatialReferenceShadow_Fixup(arg1);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -12389,7 +12766,7 @@ XS(_wrap_SpatialReference_Fixup) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -12403,8 +12780,8 @@ XS(_wrap_SpatialReference_Fixup) {
       /* %typemap(out) OGRErr */
       if ( result != 0 ) {
         const char *err = CPLGetLastErrorMsg();
-        if (err and *err) SWIG_croak(err); /* this is usually better */
-        SWIG_croak( OGRErrMessages(result) );
+        if (err and *err) do_confess(err, 0); /* this is usually better */
+        do_confess( OGRErrMessages(result), 1 );
       }
     }
     
@@ -12438,7 +12815,7 @@ XS(_wrap_SpatialReference_MorphToESRI) {
       result = (OGRErr)OSRSpatialReferenceShadow_MorphToESRI(arg1);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -12447,7 +12824,7 @@ XS(_wrap_SpatialReference_MorphToESRI) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -12461,8 +12838,8 @@ XS(_wrap_SpatialReference_MorphToESRI) {
       /* %typemap(out) OGRErr */
       if ( result != 0 ) {
         const char *err = CPLGetLastErrorMsg();
-        if (err and *err) SWIG_croak(err); /* this is usually better */
-        SWIG_croak( OGRErrMessages(result) );
+        if (err and *err) do_confess(err, 0); /* this is usually better */
+        do_confess( OGRErrMessages(result), 1 );
       }
     }
     
@@ -12496,7 +12873,7 @@ XS(_wrap_SpatialReference_MorphFromESRI) {
       result = (OGRErr)OSRSpatialReferenceShadow_MorphFromESRI(arg1);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -12505,7 +12882,7 @@ XS(_wrap_SpatialReference_MorphFromESRI) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -12519,8 +12896,8 @@ XS(_wrap_SpatialReference_MorphFromESRI) {
       /* %typemap(out) OGRErr */
       if ( result != 0 ) {
         const char *err = CPLGetLastErrorMsg();
-        if (err and *err) SWIG_croak(err); /* this is usually better */
-        SWIG_croak( OGRErrMessages(result) );
+        if (err and *err) do_confess(err, 0); /* this is usually better */
+        do_confess( OGRErrMessages(result), 1 );
       }
     }
     
@@ -12562,7 +12939,7 @@ XS(_wrap_new_CoordinateTransformation) {
       result = (OSRCoordinateTransformationShadow *)new_OSRCoordinateTransformationShadow(arg1,arg2);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -12571,7 +12948,7 @@ XS(_wrap_new_CoordinateTransformation) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -12612,14 +12989,14 @@ XS(_wrap_delete_CoordinateTransformation) {
     {
       /* %typemap(check) (OSRCoordinateTransformationShadow *) */
       if (!arg1)
-      SWIG_croak("The coordinate transformation must not be undefined when it is an argument to a Geo::GDAL method");
+      do_confess(NEED_DEF, 1);
     }
     {
       CPLErrorReset();
       delete_OSRCoordinateTransformationShadow(arg1);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -12628,7 +13005,7 @@ XS(_wrap_delete_CoordinateTransformation) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -12672,18 +13049,20 @@ XS(_wrap_CoordinateTransformation_TransformPoint__SWIG_0) {
     {
       /* %typemap(in) (double argin2[ANY]) */
       if (!(SvROK(ST(1)) && (SvTYPE(SvRV(ST(1)))==SVt_PVAV)))
-      SWIG_croak("expected a reference to an array as an argument to a Geo::GDAL method");
+      do_confess(NEED_ARRAY_REF, 1);
       arg2 = argin2;
       AV *av = (AV*)(SvRV(ST(1)));
       for (unsigned int i=0; i<3; i++) {
-        SV **sv = av_fetch(av, i, 0);
-        arg2[i] =  SvNV(*sv);
+        SV *sv = *av_fetch(av, i, 0);
+        if (!SvOK(sv))
+        do_confess(NEED_DEF, 1);
+        arg2[i] =  SvNV(sv);
       }
     }
     {
       /* %typemap(check) (OSRCoordinateTransformationShadow *) */
       if (!arg1)
-      SWIG_croak("The coordinate transformation must not be undefined when it is an argument to a Geo::GDAL method");
+      do_confess(NEED_DEF, 1);
     }
     _saved[0] = ST(1);
     {
@@ -12691,7 +13070,7 @@ XS(_wrap_CoordinateTransformation_TransformPoint__SWIG_0) {
       OSRCoordinateTransformationShadow_TransformPoint__SWIG_0(arg1,arg2);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -12700,7 +13079,7 @@ XS(_wrap_CoordinateTransformation_TransformPoint__SWIG_0) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -12724,7 +13103,7 @@ XS(_wrap_CoordinateTransformation_TransformPoint__SWIG_0) {
       } else {
         ST(argvi) = CreateArrayFromDoubleArray( arg2, 3 );
         argvi++;
-      }  
+      }
     }
     
     
@@ -12788,14 +13167,14 @@ XS(_wrap_CoordinateTransformation_TransformPoint__SWIG_1) {
     {
       /* %typemap(check) (OSRCoordinateTransformationShadow *) */
       if (!arg1)
-      SWIG_croak("The coordinate transformation must not be undefined when it is an argument to a Geo::GDAL method");
+      do_confess(NEED_DEF, 1);
     }
     {
       CPLErrorReset();
       OSRCoordinateTransformationShadow_TransformPoint__SWIG_1(arg1,arg2,arg3,arg4,arg5);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -12804,7 +13183,7 @@ XS(_wrap_CoordinateTransformation_TransformPoint__SWIG_1) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -12828,7 +13207,7 @@ XS(_wrap_CoordinateTransformation_TransformPoint__SWIG_1) {
       } else {
         ST(argvi) = CreateArrayFromDoubleArray( arg2, 3 );
         argvi++;
-      }  
+      }
     }
     
     
@@ -12975,18 +13354,20 @@ XS(_wrap_CoordinateTransformation__TransformPoints) {
       /* %typemap(in) (int nCount, double *x, double *y, double *z) */
       /* ST(1) is a ref to a list of refs to point lists */
       if (! (SvROK(ST(1)) && (SvTYPE(SvRV(ST(1)))==SVt_PVAV)))
-      SWIG_croak("expected a reference to an array as an argument to a Geo::GDAL method");
+      do_confess(NEED_ARRAY_REF, 1);
       AV *av = (AV*)(SvRV(ST(1)));
       arg2 = av_len(av)+1;
-      arg3 = (double*) malloc(arg2*sizeof(double));
-      arg4 = (double*) malloc(arg2*sizeof(double));
-      arg5 = (double*) malloc(arg2*sizeof(double));
+      arg3 = (double*)CPLMalloc(arg2*sizeof(double));
+      if (arg3)
+      arg4 = (double*)CPLMalloc(arg2*sizeof(double));
+      if (arg3 && arg4)
+      arg5 = (double*)CPLMalloc(arg2*sizeof(double));
       if (!arg3 or !arg4 or !arg5)
-      SWIG_croak("out of memory in Geo::GDAL");
+      SWIG_fail;
       for (int i = 0; i < arg2; i++) {
         SV **sv = av_fetch(av, i, 0); /* ref to one point list */
         if (!(SvROK(*sv) && (SvTYPE(SvRV(*sv))==SVt_PVAV)))
-        SWIG_croak("expected a reference to a list of coordinates as an argument to a Geo::GDAL method");
+        do_confess(WRONG_ITEM_IN_ARRAY, 1);
         AV *ac = (AV*)(SvRV(*sv));
         int n = av_len(ac)+1;
         SV **c = av_fetch(ac, 0, 0);
@@ -13004,7 +13385,7 @@ XS(_wrap_CoordinateTransformation__TransformPoints) {
     {
       /* %typemap(check) (OSRCoordinateTransformationShadow *) */
       if (!arg1)
-      SWIG_croak("The coordinate transformation must not be undefined when it is an argument to a Geo::GDAL method");
+      do_confess(NEED_DEF, 1);
     }
     _saved[0] = ST(1);
     {
@@ -13012,7 +13393,7 @@ XS(_wrap_CoordinateTransformation__TransformPoints) {
       OSRCoordinateTransformationShadow_TransformPoints(arg1,arg2,arg3,arg4,arg5);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -13021,7 +13402,7 @@ XS(_wrap_CoordinateTransformation__TransformPoints) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -13055,18 +13436,18 @@ XS(_wrap_CoordinateTransformation__TransformPoints) {
     
     {
       /* %typemap(freearg) (int nCount, double *x, double *y, double *z) */
-      if (arg3) free(arg3);
-      if (arg4) free(arg4);
-      if (arg5) free(arg5);
+      CPLFree(arg3);
+      CPLFree(arg4);
+      CPLFree(arg5);
     }
     XSRETURN(argvi);
   fail:
     
     {
       /* %typemap(freearg) (int nCount, double *x, double *y, double *z) */
-      if (arg3) free(arg3);
-      if (arg4) free(arg4);
-      if (arg5) free(arg5);
+      CPLFree(arg3);
+      CPLFree(arg4);
+      CPLFree(arg5);
     }
     SWIG_croak_null();
   }
@@ -13103,7 +13484,7 @@ XS(_wrap_CreateCoordinateTransformation) {
       result = (OSRCoordinateTransformationShadow *)CreateCoordinateTransformation(arg1,arg2);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -13112,7 +13493,7 @@ XS(_wrap_CreateCoordinateTransformation) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -13141,7 +13522,7 @@ static swig_type_info _swigt__p_OSRCoordinateTransformationShadow = {"_p_OSRCoor
 static swig_type_info _swigt__p_OSRSpatialReferenceShadow = {"_p_OSRSpatialReferenceShadow", "OSRSpatialReferenceShadow *", 0, 0, (void*)"Geo::OSR::SpatialReference", 0};
 static swig_type_info _swigt__p_char = {"_p_char", "char *|retStringAndCPLFree *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_double = {"_p_double", "double *", 0, 0, (void*)0, 0};
-static swig_type_info _swigt__p_int = {"_p_int", "int *|OGRErr *", 0, 0, (void*)0, 0};
+static swig_type_info _swigt__p_int = {"_p_int", "int *|OGRAxisOrientation *|OGRErr *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_long = {"_p_long", "long *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_p_char = {"_p_p_char", "char **", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_p_double = {"_p_p_double", "double **", 0, 0, (void*)0, 0};
@@ -13199,7 +13580,6 @@ static swig_command_info swig_commands[] = {
 {"Geo::OSRc::GetProjectionMethodParamInfo", _wrap_GetProjectionMethodParamInfo},
 {"Geo::OSRc::new_SpatialReference", _wrap_new_SpatialReference},
 {"Geo::OSRc::delete_SpatialReference", _wrap_delete_SpatialReference},
-{"Geo::OSRc::SpatialReference___str__", _wrap_SpatialReference___str__},
 {"Geo::OSRc::SpatialReference_IsSame", _wrap_SpatialReference_IsSame},
 {"Geo::OSRc::SpatialReference_IsSameGeogCS", _wrap_SpatialReference_IsSameGeogCS},
 {"Geo::OSRc::SpatialReference_IsSameVertCS", _wrap_SpatialReference_IsSameVertCS},
@@ -13216,6 +13596,7 @@ static swig_command_info swig_commands[] = {
 {"Geo::OSRc::SpatialReference_SetAttrValue", _wrap_SpatialReference_SetAttrValue},
 {"Geo::OSRc::SpatialReference_SetAngularUnits", _wrap_SpatialReference_SetAngularUnits},
 {"Geo::OSRc::SpatialReference_GetAngularUnits", _wrap_SpatialReference_GetAngularUnits},
+{"Geo::OSRc::SpatialReference_GetAngularUnitsName", _wrap_SpatialReference_GetAngularUnitsName},
 {"Geo::OSRc::SpatialReference_SetTargetLinearUnits", _wrap_SpatialReference_SetTargetLinearUnits},
 {"Geo::OSRc::SpatialReference_SetLinearUnits", _wrap_SpatialReference_SetLinearUnits},
 {"Geo::OSRc::SpatialReference_SetLinearUnitsAndUpdateParameters", _wrap_SpatialReference_SetLinearUnitsAndUpdateParameters},
@@ -13223,6 +13604,8 @@ static swig_command_info swig_commands[] = {
 {"Geo::OSRc::SpatialReference_GetLinearUnitsName", _wrap_SpatialReference_GetLinearUnitsName},
 {"Geo::OSRc::SpatialReference_GetAuthorityCode", _wrap_SpatialReference_GetAuthorityCode},
 {"Geo::OSRc::SpatialReference_GetAuthorityName", _wrap_SpatialReference_GetAuthorityName},
+{"Geo::OSRc::SpatialReference_GetAxisName", _wrap_SpatialReference_GetAxisName},
+{"Geo::OSRc::SpatialReference_GetAxisOrientation", _wrap_SpatialReference_GetAxisOrientation},
 {"Geo::OSRc::SpatialReference_SetUTM", _wrap_SpatialReference_SetUTM},
 {"Geo::OSRc::SpatialReference__GetUTMZone", _wrap_SpatialReference__GetUTMZone},
 {"Geo::OSRc::SpatialReference_SetStatePlane", _wrap_SpatialReference_SetStatePlane},
@@ -13617,7 +14000,7 @@ XS(SWIG_init) {
   
   /*@SWIG:/home/rouault/install-swig-2.0.12/share/swig/2.0.12/perl5/perltypemaps.swg,65,%set_constant@*/ do {
     SV *sv = get_sv((char*) SWIG_prefix "SRS_WKT_WGS84", TRUE | 0x2 | GV_ADDMULTI);
-    sv_setsv(sv, SWIG_FromCharPtr("GEOGCS[\"WGS 84\",DATUM[\"WGS_1984\",SPHEROID[\"WGS 84\",6378137,298.257223563,AUTHORITY[\"EPSG\",\"7030\"]],TOWGS84[0,0,0,0,0,0,0],AUTHORITY[\"EPSG\",\"6326\"]],PRIMEM[\"Greenwich\",0,AUTHORITY[\"EPSG\",\"8901\"]],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9108\"]],AUTHORITY[\"EPSG\",\"4326\"]]"));
+    sv_setsv(sv, SWIG_FromCharPtr("GEOGCS[\"WGS 84\",DATUM[\"WGS_1984\",SPHEROID[\"WGS 84\",6378137,298.257223563,AUTHORITY[\"EPSG\",\"7030\"]],AUTHORITY[\"EPSG\",\"6326\"]],PRIMEM[\"Greenwich\",0,AUTHORITY[\"EPSG\",\"8901\"]],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AUTHORITY[\"EPSG\",\"4326\"]]"));
     SvREADONLY_on(sv);
   } while(0) /*@SWIG@*/;
   /*@SWIG:/home/rouault/install-swig-2.0.12/share/swig/2.0.12/perl5/perltypemaps.swg,65,%set_constant@*/ do {
@@ -13921,6 +14304,51 @@ XS(SWIG_init) {
     SvREADONLY_on(sv);
   } while(0) /*@SWIG@*/;
   /*@SWIG:/home/rouault/install-swig-2.0.12/share/swig/2.0.12/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+    SV *sv = get_sv((char*) SWIG_prefix "SRS_PT_QSC", TRUE | 0x2 | GV_ADDMULTI);
+    sv_setsv(sv, SWIG_FromCharPtr("Quadrilateralized_Spherical_Cube"));
+    SvREADONLY_on(sv);
+  } while(0) /*@SWIG@*/;
+  /*@SWIG:/home/rouault/install-swig-2.0.12/share/swig/2.0.12/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+    SV *sv = get_sv((char*) SWIG_prefix "SRS_PT_AITOFF", TRUE | 0x2 | GV_ADDMULTI);
+    sv_setsv(sv, SWIG_FromCharPtr("Aitoff"));
+    SvREADONLY_on(sv);
+  } while(0) /*@SWIG@*/;
+  /*@SWIG:/home/rouault/install-swig-2.0.12/share/swig/2.0.12/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+    SV *sv = get_sv((char*) SWIG_prefix "SRS_PT_WINKEL_I", TRUE | 0x2 | GV_ADDMULTI);
+    sv_setsv(sv, SWIG_FromCharPtr("Winkel_I"));
+    SvREADONLY_on(sv);
+  } while(0) /*@SWIG@*/;
+  /*@SWIG:/home/rouault/install-swig-2.0.12/share/swig/2.0.12/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+    SV *sv = get_sv((char*) SWIG_prefix "SRS_PT_WINKEL_II", TRUE | 0x2 | GV_ADDMULTI);
+    sv_setsv(sv, SWIG_FromCharPtr("Winkel_II"));
+    SvREADONLY_on(sv);
+  } while(0) /*@SWIG@*/;
+  /*@SWIG:/home/rouault/install-swig-2.0.12/share/swig/2.0.12/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+    SV *sv = get_sv((char*) SWIG_prefix "SRS_PT_WINKEL_TRIPEL", TRUE | 0x2 | GV_ADDMULTI);
+    sv_setsv(sv, SWIG_FromCharPtr("Winkel_Tripel"));
+    SvREADONLY_on(sv);
+  } while(0) /*@SWIG@*/;
+  /*@SWIG:/home/rouault/install-swig-2.0.12/share/swig/2.0.12/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+    SV *sv = get_sv((char*) SWIG_prefix "SRS_PT_CRASTER_PARABOLIC", TRUE | 0x2 | GV_ADDMULTI);
+    sv_setsv(sv, SWIG_FromCharPtr("Craster_Parabolic"));
+    SvREADONLY_on(sv);
+  } while(0) /*@SWIG@*/;
+  /*@SWIG:/home/rouault/install-swig-2.0.12/share/swig/2.0.12/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+    SV *sv = get_sv((char*) SWIG_prefix "SRS_PT_LOXIMUTHAL", TRUE | 0x2 | GV_ADDMULTI);
+    sv_setsv(sv, SWIG_FromCharPtr("Loximuthal"));
+    SvREADONLY_on(sv);
+  } while(0) /*@SWIG@*/;
+  /*@SWIG:/home/rouault/install-swig-2.0.12/share/swig/2.0.12/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+    SV *sv = get_sv((char*) SWIG_prefix "SRS_PT_QUARTIC_AUTHALIC", TRUE | 0x2 | GV_ADDMULTI);
+    sv_setsv(sv, SWIG_FromCharPtr("Quartic_Authalic"));
+    SvREADONLY_on(sv);
+  } while(0) /*@SWIG@*/;
+  /*@SWIG:/home/rouault/install-swig-2.0.12/share/swig/2.0.12/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+    SV *sv = get_sv((char*) SWIG_prefix "SRS_PT_SCH", TRUE | 0x2 | GV_ADDMULTI);
+    sv_setsv(sv, SWIG_FromCharPtr("Spherical_Cross_Track_Height"));
+    SvREADONLY_on(sv);
+  } while(0) /*@SWIG@*/;
+  /*@SWIG:/home/rouault/install-swig-2.0.12/share/swig/2.0.12/perl5/perltypemaps.swg,65,%set_constant@*/ do {
     SV *sv = get_sv((char*) SWIG_prefix "SRS_PP_CENTRAL_MERIDIAN", TRUE | 0x2 | GV_ADDMULTI);
     sv_setsv(sv, SWIG_FromCharPtr("central_meridian"));
     SvREADONLY_on(sv);
@@ -14063,6 +14491,26 @@ XS(SWIG_init) {
   /*@SWIG:/home/rouault/install-swig-2.0.12/share/swig/2.0.12/perl5/perltypemaps.swg,65,%set_constant@*/ do {
     SV *sv = get_sv((char*) SWIG_prefix "SRS_PP_LONGITUDE_OF_2ND_POINT", TRUE | 0x2 | GV_ADDMULTI);
     sv_setsv(sv, SWIG_FromCharPtr("Longitude_Of_2nd_Point"));
+    SvREADONLY_on(sv);
+  } while(0) /*@SWIG@*/;
+  /*@SWIG:/home/rouault/install-swig-2.0.12/share/swig/2.0.12/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+    SV *sv = get_sv((char*) SWIG_prefix "SRS_PP_PEG_POINT_LATITUDE", TRUE | 0x2 | GV_ADDMULTI);
+    sv_setsv(sv, SWIG_FromCharPtr("peg_point_latitude"));
+    SvREADONLY_on(sv);
+  } while(0) /*@SWIG@*/;
+  /*@SWIG:/home/rouault/install-swig-2.0.12/share/swig/2.0.12/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+    SV *sv = get_sv((char*) SWIG_prefix "SRS_PP_PEG_POINT_LONGITUDE", TRUE | 0x2 | GV_ADDMULTI);
+    sv_setsv(sv, SWIG_FromCharPtr("peg_point_longitude"));
+    SvREADONLY_on(sv);
+  } while(0) /*@SWIG@*/;
+  /*@SWIG:/home/rouault/install-swig-2.0.12/share/swig/2.0.12/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+    SV *sv = get_sv((char*) SWIG_prefix "SRS_PP_PEG_POINT_HEADING", TRUE | 0x2 | GV_ADDMULTI);
+    sv_setsv(sv, SWIG_FromCharPtr("peg_point_heading"));
+    SvREADONLY_on(sv);
+  } while(0) /*@SWIG@*/;
+  /*@SWIG:/home/rouault/install-swig-2.0.12/share/swig/2.0.12/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+    SV *sv = get_sv((char*) SWIG_prefix "SRS_PP_PEG_POINT_HEIGHT", TRUE | 0x2 | GV_ADDMULTI);
+    sv_setsv(sv, SWIG_FromCharPtr("peg_point_height"));
     SvREADONLY_on(sv);
   } while(0) /*@SWIG@*/;
   /*@SWIG:/home/rouault/install-swig-2.0.12/share/swig/2.0.12/perl5/perltypemaps.swg,65,%set_constant@*/ do {
@@ -14378,6 +14826,41 @@ XS(SWIG_init) {
   /*@SWIG:/home/rouault/install-swig-2.0.12/share/swig/2.0.12/perl5/perltypemaps.swg,65,%set_constant@*/ do {
     SV *sv = get_sv((char*) SWIG_prefix "SRS_WGS84_INVFLATTENING", TRUE | 0x2 | GV_ADDMULTI);
     sv_setsv(sv, SWIG_From_double  SWIG_PERL_CALL_ARGS_1(static_cast< double >(298.257223563)));
+    SvREADONLY_on(sv);
+  } while(0) /*@SWIG@*/;
+  /*@SWIG:/home/rouault/install-swig-2.0.12/share/swig/2.0.12/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+    SV *sv = get_sv((char*) SWIG_prefix "OAO_Other", TRUE | 0x2 | GV_ADDMULTI);
+    sv_setsv(sv, SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(0)));
+    SvREADONLY_on(sv);
+  } while(0) /*@SWIG@*/;
+  /*@SWIG:/home/rouault/install-swig-2.0.12/share/swig/2.0.12/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+    SV *sv = get_sv((char*) SWIG_prefix "OAO_North", TRUE | 0x2 | GV_ADDMULTI);
+    sv_setsv(sv, SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(1)));
+    SvREADONLY_on(sv);
+  } while(0) /*@SWIG@*/;
+  /*@SWIG:/home/rouault/install-swig-2.0.12/share/swig/2.0.12/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+    SV *sv = get_sv((char*) SWIG_prefix "OAO_South", TRUE | 0x2 | GV_ADDMULTI);
+    sv_setsv(sv, SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(2)));
+    SvREADONLY_on(sv);
+  } while(0) /*@SWIG@*/;
+  /*@SWIG:/home/rouault/install-swig-2.0.12/share/swig/2.0.12/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+    SV *sv = get_sv((char*) SWIG_prefix "OAO_East", TRUE | 0x2 | GV_ADDMULTI);
+    sv_setsv(sv, SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(3)));
+    SvREADONLY_on(sv);
+  } while(0) /*@SWIG@*/;
+  /*@SWIG:/home/rouault/install-swig-2.0.12/share/swig/2.0.12/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+    SV *sv = get_sv((char*) SWIG_prefix "OAO_West", TRUE | 0x2 | GV_ADDMULTI);
+    sv_setsv(sv, SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(4)));
+    SvREADONLY_on(sv);
+  } while(0) /*@SWIG@*/;
+  /*@SWIG:/home/rouault/install-swig-2.0.12/share/swig/2.0.12/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+    SV *sv = get_sv((char*) SWIG_prefix "OAO_Up", TRUE | 0x2 | GV_ADDMULTI);
+    sv_setsv(sv, SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(5)));
+    SvREADONLY_on(sv);
+  } while(0) /*@SWIG@*/;
+  /*@SWIG:/home/rouault/install-swig-2.0.12/share/swig/2.0.12/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+    SV *sv = get_sv((char*) SWIG_prefix "OAO_Down", TRUE | 0x2 | GV_ADDMULTI);
+    sv_setsv(sv, SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(6)));
     SvREADONLY_on(sv);
   } while(0) /*@SWIG@*/;
   SWIG_TypeClientData(SWIGTYPE_p_OSRSpatialReferenceShadow, (void*) "Geo::OSR::SpatialReference");

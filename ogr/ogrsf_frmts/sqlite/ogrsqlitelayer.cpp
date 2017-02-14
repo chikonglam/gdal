@@ -1,8 +1,8 @@
 /******************************************************************************
- * $Id: ogrsqlitelayer.cpp 28178 2014-12-19 21:14:05Z rouault $
+ * $Id: ogrsqlitelayer.cpp 35899 2016-10-24 11:56:25Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
- * Purpose:  Implements OGRSQLiteLayer class, code shared between 
+ * Purpose:  Implements OGRSQLiteLayer class, code shared between
  *           the direct table access, and the generic SQL results.
  * Author:   Frank Warmerdam, warmerdam@pobox.com
  *
@@ -11,7 +11,7 @@
  * Contributor: Alessandro Furieri, a.furieri@lqt.it
  * Portions of this module supporting SpatiaLite's own 3D geometries
  * [XY, XYM, XYZ and XYZM] available since v.2.4.0
- * Developed for Faunalia ( http://www.faunalia.it) with funding from 
+ * Developed for Faunalia ( http://www.faunalia.it) with funding from
  * Regione Toscana - Settore SISTEMA INFORMATIVO TERRITORIALE ED AMBIENTALE
  *
  ******************************************************************************
@@ -42,7 +42,7 @@
 #include "ogr_sqlite.h"
 #include <cassert>
 
-CPL_CVSID("$Id: ogrsqlitelayer.cpp 28178 2014-12-19 21:14:05Z rouault $");
+CPL_CVSID("$Id: ogrsqlitelayer.cpp 35899 2016-10-24 11:56:25Z rouault $");
 
 /************************************************************************/
 /*                           OGRSQLiteLayer()                           */
@@ -58,17 +58,17 @@ OGRSQLiteLayer::OGRSQLiteLayer()
     hStmt = NULL;
     bDoStep = TRUE;
 
+    poFeatureDefn = NULL;
     iNextShapeId = 0;
 
     panFieldOrdinals = NULL;
     iFIDCol = -1;
-
-    bHasSpatialIndex = FALSE;
-    bHasM = FALSE;
+    iOGRNativeDataCol = -1;
+    iOGRNativeMediaTypeCol = -1;
 
     bIsVirtualShape = FALSE;
 
-    bUseComprGeom = CSLTestBoolean(CPLGetConfigOption("COMPRESS_GEOM", "FALSE"));
+    bUseComprGeom = CPLTestBool(CPLGetConfigOption("COMPRESS_GEOM", "FALSE"));
 
     papszCompressedColumns = NULL;
 
@@ -98,7 +98,7 @@ void OGRSQLiteLayer::Finalize()
     if( m_nFeaturesRead > 0 && poFeatureDefn != NULL )
     {
         CPLDebug( "SQLite", "%d features read on layer '%s'.",
-                  (int) m_nFeaturesRead, 
+                  (int) m_nFeaturesRead,
                   poFeatureDefn->GetName() );
     }
 
@@ -128,12 +128,14 @@ void OGRSQLiteLayer::Finalize()
 /************************************************************************/
 
 static
-int OGRIsBinaryGeomCol( sqlite3_stmt *hStmt, int iCol,
+int OGRIsBinaryGeomCol( sqlite3_stmt *hStmt,
+                        int iCol,
                         CPL_UNUSED OGRFieldDefn& oField,
                         OGRSQLiteGeomFormat& eGeomFormat )
 {
     OGRGeometry* poGeometry = NULL;
     const int nBytes = sqlite3_column_bytes( hStmt, iCol );
+    int nBytesConsumed = 0;
     CPLPushErrorHandler(CPLQuietErrorHandler);
     /* Try as spatialite first since createFromWkb() can sometimes */
     /* interpret spatialite blobs as WKB for certain SRID values */
@@ -149,9 +151,10 @@ int OGRIsBinaryGeomCol( sqlite3_stmt *hStmt, int iCol,
     {
         eGeomFormat = OSGF_WKB;
     }
-    else if( OGRGeometryFactory::createFromFgf( 
+    else if( OGRGeometryFactory::createFromFgf(
             (GByte*)sqlite3_column_blob( hStmt, iCol ),
-            NULL, &poGeometry, nBytes, NULL ) == OGRERR_NONE )
+            NULL, &poGeometry, nBytes, &nBytesConsumed ) == OGRERR_NONE &&
+             nBytes == nBytesConsumed )
     {
         eGeomFormat = OSGF_FGF;
     }
@@ -173,23 +176,23 @@ int OGRIsBinaryGeomCol( sqlite3_stmt *hStmt, int iCol,
 /************************************************************************/
 
 void OGRSQLiteLayer::BuildFeatureDefn( const char *pszLayerName,
-                                       sqlite3_stmt *hStmt,
-                                       const char* pszExpectedGeomCol,
-                                       const std::set<CPLString>& aosGeomCols )
+                                       sqlite3_stmt *hStmtIn,
+                                       const std::set<CPLString>* paosGeomCols,
+                                       const std::set<CPLString>& aosIgnoredCols )
 
 {
     poFeatureDefn = new OGRSQLiteFeatureDefn( pszLayerName );
     poFeatureDefn->SetGeomType(wkbNone);
     poFeatureDefn->Reference();
 
-    int    nRawColumns = sqlite3_column_count( hStmt );
+    int    nRawColumns = sqlite3_column_count( hStmtIn );
 
     panFieldOrdinals = (int *) CPLMalloc( sizeof(int) * nRawColumns );
 
     int iCol;
     for( iCol = 0; iCol < nRawColumns; iCol++ )
     {
-        OGRFieldDefn    oField( OGRSQLiteParamsUnquote(sqlite3_column_name( hStmt, iCol )),
+        OGRFieldDefn    oField( OGRSQLiteParamsUnquote(sqlite3_column_name( hStmtIn, iCol )),
                                 OFTString );
 
         // In some cases, particularly when there is a real name for
@@ -197,6 +200,18 @@ void OGRSQLiteLayer::BuildFeatureDefn( const char *pszLayerName,
         // primary key column appearing twice.  Ignore any repeated names.
         if( poFeatureDefn->GetFieldIndex( oField.GetNameRef() ) != -1 )
             continue;
+
+        if( EQUAL(oField.GetNameRef(), "OGR_NATIVE_DATA") )
+        {
+            iOGRNativeDataCol = iCol;
+            continue;
+        }
+
+        if( EQUAL(oField.GetNameRef(), "OGR_NATIVE_MEDIA_TYPE") )
+        {
+            iOGRNativeMediaTypeCol = iCol;
+            continue;
+        }
 
         /* In the case of Spatialite VirtualShape, the PKUID */
         /* should be considered as a primary key */
@@ -211,32 +226,100 @@ void OGRSQLiteLayer::BuildFeatureDefn( const char *pszLayerName,
 
         //oField.SetWidth( MAX(0,poStmt->GetColSize( iCol )) );
 
-        if( pszExpectedGeomCol != NULL
-            && EQUAL(oField.GetNameRef(),pszExpectedGeomCol) )
+        if( aosIgnoredCols.find( CPLString(oField.GetNameRef()).tolower() ) != aosIgnoredCols.end() )
+        {
+            continue;
+        }
+        if( paosGeomCols != NULL &&
+            paosGeomCols->find( CPLString(oField.GetNameRef()).tolower() ) != paosGeomCols->end() )
         {
             OGRSQLiteGeomFieldDefn* poGeomFieldDefn =
                 new OGRSQLiteGeomFieldDefn(oField.GetNameRef(), iCol);
             poFeatureDefn->AddGeomFieldDefn(poGeomFieldDefn, FALSE);
             continue;
         }
-        if( aosGeomCols.find( oField.GetNameRef() ) != aosGeomCols.end() )
-            continue;
 
-        int nColType = sqlite3_column_type( hStmt, iCol );
-        const char * pszDeclType = sqlite3_column_decltype(hStmt, iCol);
+        int nColType = sqlite3_column_type( hStmtIn, iCol );
+        switch( nColType )
+        {
+          case SQLITE_INTEGER:
+            if( CPLTestBool(CPLGetConfigOption("OGR_PROMOTE_TO_INTEGER64", "FALSE")) )
+                oField.SetType( OFTInteger64 );
+            else
+            {
+                GIntBig nVal = sqlite3_column_int64(hStmtIn, iCol);
+                if( CPL_INT64_FITS_ON_INT32(nVal) )
+                    oField.SetType( OFTInteger );
+                else
+                    oField.SetType( OFTInteger64 );
+            }
+            break;
+
+          case SQLITE_FLOAT:
+            oField.SetType( OFTReal );
+            break;
+
+          case SQLITE_BLOB:
+            oField.SetType( OFTBinary );
+            break;
+
+          default:
+            /* leave it as OFTString */;
+        }
+
+        const char * pszDeclType = sqlite3_column_decltype(hStmtIn, iCol);
         //CPLDebug("SQLITE", "decltype(%s) = %s",
         //         oField.GetNameRef(), pszDeclType ? pszDeclType : "null");
         OGRFieldType eFieldType = OFTString;
         if (pszDeclType != NULL)
         {
-            if (EQUAL(pszDeclType, "INTEGER"))
-                nColType = SQLITE_INTEGER;
+            if (EQUAL(pszDeclType, "INTEGER_BOOLEAN"))
+            {
+                oField.SetType(OFTInteger);
+                oField.SetSubType(OFSTBoolean);
+            }
+            else if (EQUAL(pszDeclType, "INTEGER_INT16"))
+            {
+                oField.SetType(OFTInteger);
+                oField.SetSubType(OFSTInt16);
+            }
+            else if (EQUAL(pszDeclType, "INTEGERLIST"))
+            {
+                oField.SetType(OFTIntegerList);
+            }
+            else if (EQUAL(pszDeclType, "INTEGER64LIST"))
+            {
+                oField.SetType(OFTInteger64List);
+            }
+            else if (EQUAL(pszDeclType, "REALLIST"))
+            {
+                oField.SetType(OFTRealList);
+            }
+            else if (EQUAL(pszDeclType, "STRINGLIST"))
+            {
+                oField.SetType(OFTStringList);
+            }
+            else if (EQUAL(pszDeclType, "BIGINT") || EQUAL(pszDeclType, "INT8"))
+            {
+                oField.SetType(OFTInteger64);
+            }
+            else if (STARTS_WITH_CI(pszDeclType, "INTEGER"))
+            {
+                oField.SetType(OFTInteger);
+            }
+            else if (EQUAL(pszDeclType, "FLOAT_FLOAT32"))
+            {
+                oField.SetType(OFTReal);
+                oField.SetSubType(OFSTFloat32);
+            }
             else if (EQUAL(pszDeclType, "FLOAT") ||
                      EQUAL(pszDeclType, "DECIMAL"))
-                nColType = SQLITE_FLOAT;
-            else if (EQUALN(pszDeclType, "BLOB", 4))
             {
-                nColType = SQLITE_BLOB;
+                oField.SetType(OFTReal);
+            }
+            else if (STARTS_WITH_CI(pszDeclType, "BLOB"))
+            {
+                oField.SetType( OFTBinary );
                 /* Parse format like BLOB_POINT_25D_4326 created by */
                 /* OGRSQLiteExecuteSQL() */
                 if( pszDeclType[4] == '_' )
@@ -261,9 +344,12 @@ void OGRSQLiteLayer::BuildFeatureDefn( const char *pszLayerName,
 
                         OGRwkbGeometryType eGeomType =
                             OGRFromOGCGeomType(pszGeomType);
-                        if( EQUAL(pszCoordDimension, "25D") )
-                            eGeomType = (OGRwkbGeometryType)
-                                (eGeomType | wkb25DBit);
+                        if( EQUAL(pszCoordDimension, "XYZ") )
+                            eGeomType = wkbSetZ(eGeomType);
+                        else if( EQUAL(pszCoordDimension, "XYM") )
+                            eGeomType = wkbSetM(eGeomType);
+                        else if( EQUAL(pszCoordDimension, "XYZM") )
+                            eGeomType = wkbSetM(wkbSetZ(eGeomType));
                         OGRSpatialReference* poSRS = poDS->FetchSRS(nSRID);
                         OGRSQLiteGeomFieldDefn* poGeomFieldDefn =
                             new OGRSQLiteGeomFieldDefn(oField.GetNameRef(), iCol);
@@ -278,9 +364,9 @@ void OGRSQLiteLayer::BuildFeatureDefn( const char *pszLayerName,
                 }
             }
             else if (EQUAL(pszDeclType, "TEXT") ||
-                     EQUALN(pszDeclType, "VARCHAR", 7))
+                     STARTS_WITH_CI(pszDeclType, "VARCHAR"))
             {
-                nColType = SQLITE_TEXT;
+                oField.SetType( OFTString );
                 if( strstr(pszDeclType, "_deflate") != NULL )
                 {
                     if( CSLFindString(papszCompressedColumns,
@@ -294,41 +380,42 @@ void OGRSQLiteLayer::BuildFeatureDefn( const char *pszLayerName,
             }
             else if ((EQUAL(pszDeclType, "TIMESTAMP") ||
                       EQUAL(pszDeclType, "DATETIME")) &&
-                     (nColType == SQLITE_TEXT || nColType == SQLITE_NULL))
+                     (nColType == SQLITE_TEXT || nColType == SQLITE_FLOAT || nColType == SQLITE_NULL))
                 eFieldType = OFTDateTime;
             else if (EQUAL(pszDeclType, "DATE") &&
-                     (nColType == SQLITE_TEXT || nColType == SQLITE_NULL))
+                     (nColType == SQLITE_TEXT || nColType == SQLITE_FLOAT || nColType == SQLITE_NULL))
                 eFieldType = OFTDate;
             else if (EQUAL(pszDeclType, "TIME") &&
-                     (nColType == SQLITE_TEXT || nColType == SQLITE_NULL))
+                     (nColType == SQLITE_TEXT || nColType == SQLITE_FLOAT || nColType == SQLITE_NULL))
                 eFieldType = OFTTime;
         }
         else if( nColType == SQLITE_TEXT &&
-                 (EQUALN(oField.GetNameRef(), "MIN(", 4) ||
-                  EQUALN(oField.GetNameRef(), "MAX(", 4)) &&
-                 sqlite3_column_text( hStmt, iCol ) != NULL )
+                 (STARTS_WITH_CI(oField.GetNameRef(), "MIN(") ||
+                  STARTS_WITH_CI(oField.GetNameRef(), "MAX(")) &&
+                 sqlite3_column_text( hStmtIn, iCol ) != NULL )
         {
             int nRet = OGRSQLITEStringToDateTimeField(NULL, 0,
-                              (const char*)sqlite3_column_text( hStmt, iCol ));
+                              (const char*)sqlite3_column_text( hStmtIn, iCol ));
             if( nRet > 0 )
                 eFieldType = (OGRFieldType) nRet;
         }
 
         // Recognise some common geometry column names.
-        if( (EQUAL(oField.GetNameRef(),"wkt_geometry") 
+        if( paosGeomCols == NULL &&
+            (EQUAL(oField.GetNameRef(),"wkt_geometry")
              || EQUAL(oField.GetNameRef(),"geometry")
-             || EQUALN(oField.GetNameRef(), "asbinary(", 9)
-             || EQUALN(oField.GetNameRef(), "astext(", 7)
-             || (EQUALN(oField.GetNameRef(), "st_", 3) && nColType == SQLITE_BLOB ) )
+             || STARTS_WITH_CI(oField.GetNameRef(), "asbinary(")
+             || STARTS_WITH_CI(oField.GetNameRef(), "astext(")
+             || (STARTS_WITH_CI(oField.GetNameRef(), "st_") && nColType == SQLITE_BLOB ) )
             && (bAllowMultipleGeomFields || poFeatureDefn->GetGeomFieldCount() == 0) )
         {
             if( nColType == SQLITE_BLOB )
             {
-                const int nBytes = sqlite3_column_bytes( hStmt, iCol );
+                const int nBytes = sqlite3_column_bytes( hStmtIn, iCol );
                 if( nBytes > 0 )
                 {
                     OGRSQLiteGeomFormat eGeomFormat = OSGF_None;
-                    if( OGRIsBinaryGeomCol( hStmt, iCol, oField, eGeomFormat ) )
+                    if( OGRIsBinaryGeomCol( hStmtIn, iCol, oField, eGeomFormat ) )
                     {
                         OGRSQLiteGeomFieldDefn* poGeomFieldDefn =
                             new OGRSQLiteGeomFieldDefn(oField.GetNameRef(), iCol);
@@ -351,13 +438,13 @@ void OGRSQLiteLayer::BuildFeatureDefn( const char *pszLayerName,
             }
             else if( nColType == SQLITE_TEXT )
             {
-                char* pszText = (char*) sqlite3_column_text( hStmt, iCol );
+                char* pszText = (char*) sqlite3_column_text( hStmtIn, iCol );
                 if( pszText != NULL )
                 {
                     OGRSQLiteGeomFormat eGeomFormat = OSGF_None;
                     CPLPushErrorHandler(CPLQuietErrorHandler);
                     OGRGeometry* poGeometry = NULL;
-                    if( OGRGeometryFactory::createFromWkt( 
+                    if( OGRGeometryFactory::createFromWkt(
                         &pszText, NULL, &poGeometry ) == OGRERR_NONE )
                     {
                         eGeomFormat = OSGF_WKT;
@@ -384,7 +471,8 @@ void OGRSQLiteLayer::BuildFeatureDefn( const char *pszLayerName,
         }
 
         // SpatialLite / Gaia
-        if( EQUAL(oField.GetNameRef(),"GaiaGeometry") 
+        if( paosGeomCols == NULL &&
+            EQUAL(oField.GetNameRef(),"GaiaGeometry")
             && (bAllowMultipleGeomFields || poFeatureDefn->GetGeomFieldCount() == 0) )
         {
             OGRSQLiteGeomFieldDefn* poGeomFieldDefn =
@@ -395,13 +483,14 @@ void OGRSQLiteLayer::BuildFeatureDefn( const char *pszLayerName,
         }
 
         // Recognize a geometry column from trying to build the geometry
-        // Usefull for OGRSQLiteSelectLayer
-        if( nColType == SQLITE_BLOB && 
+        // Useful for OGRSQLiteSelectLayer
+        if( paosGeomCols == NULL &&
+            nColType == SQLITE_BLOB &&
             (bAllowMultipleGeomFields || poFeatureDefn->GetGeomFieldCount() == 0) )
         {
-            const int nBytes = sqlite3_column_bytes( hStmt, iCol );
+            const int nBytes = sqlite3_column_bytes( hStmtIn, iCol );
             OGRSQLiteGeomFormat eGeomFormat = OSGF_None;
-            if( nBytes > 0 && OGRIsBinaryGeomCol( hStmt, iCol, oField,
+            if( nBytes > 0 && OGRIsBinaryGeomCol( hStmtIn, iCol, oField,
                                                   eGeomFormat ) )
             {
                 OGRSQLiteGeomFieldDefn* poGeomFieldDefn =
@@ -420,28 +509,10 @@ void OGRSQLiteLayer::BuildFeatureDefn( const char *pszLayerName,
         if( EQUAL(oField.GetNameRef(),"OGC_FID") )
             continue;
 
-        switch( nColType )
-        {
-          case SQLITE_INTEGER:
-            oField.SetType( OFTInteger );
-            break;
-
-          case SQLITE_FLOAT:
-            oField.SetType( OFTReal );
-            break;
-
-          case SQLITE_BLOB:
-            oField.SetType( OFTBinary );
-            break;
-
-          default:
-            /* leave it as OFTString */;
-        }
-        
-        /* config option just in case we wouldn't want that in some cases */
+        /* Config option just in case we would not want that in some cases */
         if( (eFieldType == OFTTime || eFieldType == OFTDate ||
              eFieldType == OFTDateTime) &&
-            CSLTestBoolean(
+            CPLTestBool(
                 CPLGetConfigOption("OGR_SQLITE_ENABLE_DATETIME", "YES")) )
         {
             oField.SetType( eFieldType );
@@ -455,7 +526,7 @@ void OGRSQLiteLayer::BuildFeatureDefn( const char *pszLayerName,
     {
         for( iCol = 0; iCol < nRawColumns; iCol++ )
         {
-            if( EQUAL(OGRSQLiteParamsUnquote(sqlite3_column_name(hStmt,iCol)).c_str(),
+            if( EQUAL(OGRSQLiteParamsUnquote(sqlite3_column_name(hStmtIn,iCol)).c_str(),
                       pszFIDColumn) )
             {
                 iFIDCol = iCol;
@@ -469,7 +540,7 @@ void OGRSQLiteLayer::BuildFeatureDefn( const char *pszLayerName,
 /*                            GetFIDColumn()                            */
 /************************************************************************/
 
-const char *OGRSQLiteLayer::GetFIDColumn() 
+const char *OGRSQLiteLayer::GetFIDColumn()
 
 {
     GetLayerDefn();
@@ -497,7 +568,7 @@ void OGRSQLiteLayer::ResetReading()
 OGRFeature *OGRSQLiteLayer::GetNextFeature()
 
 {
-    for( ; TRUE; )
+    while( true )
     {
         OGRFeature      *poFeature;
 
@@ -589,11 +660,8 @@ OGRFeature *OGRSQLiteLayer::GetNextRawFeature()
 
                 pszWKT = (char *) sqlite3_column_text( hStmt, poGeomFieldDefn->iCol );
                 pszWKTCopy = pszWKT;
-                if( OGRGeometryFactory::createFromWkt( 
-                        &pszWKTCopy, NULL, &poGeometry ) == OGRERR_NONE )
-                {
-                    poFeature->SetGeomFieldDirectly( iField, poGeometry );
-                }
+                OGRGeometryFactory::createFromWkt(
+                        &pszWKTCopy, NULL, &poGeometry );
             }
             else if ( poGeomFieldDefn->eGeomFormat == OSGF_WKB )
             {
@@ -605,49 +673,45 @@ OGRFeature *OGRSQLiteLayer::GetNextRawFeature()
                 {
                     /* If the layer is the result of a sql select, we cannot be sure if it is */
                     /* WKB or SpatialLite format */
-                    if( ImportSpatiaLiteGeometry( 
+                    if( ImportSpatiaLiteGeometry(
                         (GByte*)sqlite3_column_blob( hStmt, poGeomFieldDefn->iCol ), nBytes,
                         &poGeometry ) == OGRERR_NONE )
                     {
-                        poFeature->SetGeomFieldDirectly( iField, poGeometry );
                         poGeomFieldDefn->eGeomFormat = OSGF_SpatiaLite;
                     }
                     poGeomFieldDefn->bTriedAsSpatiaLite = TRUE;
                 }
 
-                if( poGeomFieldDefn->eGeomFormat == OSGF_WKB &&
-                    OGRGeometryFactory::createFromWkb( 
-                        (GByte*)sqlite3_column_blob( hStmt, poGeomFieldDefn->iCol ),
-                        NULL, &poGeometry, nBytes ) == OGRERR_NONE )
+                if( poGeomFieldDefn->eGeomFormat == OSGF_WKB )
                 {
-                    poFeature->SetGeomFieldDirectly( iField, poGeometry );
+                    CPL_IGNORE_RET_VAL(OGRGeometryFactory::createFromWkb(
+                        (GByte*)sqlite3_column_blob( hStmt, poGeomFieldDefn->iCol ),
+                        NULL, &poGeometry, nBytes ));
                 }
             }
             else if ( poGeomFieldDefn->eGeomFormat == OSGF_FGF )
             {
                 const int nBytes = sqlite3_column_bytes( hStmt, poGeomFieldDefn->iCol );
 
-                if( OGRGeometryFactory::createFromFgf( 
+                OGRGeometryFactory::createFromFgf(
                         (GByte*)sqlite3_column_blob( hStmt, poGeomFieldDefn->iCol ),
-                        NULL, &poGeometry, nBytes, NULL ) == OGRERR_NONE )
-                {
-                    poFeature->SetGeomFieldDirectly( iField, poGeometry );
-                }
+                        NULL, &poGeometry, nBytes, NULL );
             }
             else if ( poGeomFieldDefn->eGeomFormat == OSGF_SpatiaLite )
             {
                 const int nBytes = sqlite3_column_bytes( hStmt, poGeomFieldDefn->iCol );
 
-                if( ImportSpatiaLiteGeometry( 
+                CPL_IGNORE_RET_VAL(ImportSpatiaLiteGeometry(
                         (GByte*)sqlite3_column_blob( hStmt, poGeomFieldDefn->iCol ), nBytes,
-                        &poGeometry ) == OGRERR_NONE )
-                {
-                    poFeature->SetGeomFieldDirectly( iField, poGeometry );
-                }
+                        &poGeometry ));
             }
 
-            if (poGeometry != NULL && poGeomFieldDefn->GetSpatialRef() != NULL)
-                poGeometry->assignSpatialReference(poGeomFieldDefn->GetSpatialRef());
+            if (poGeometry != NULL )
+            {
+                if( poGeomFieldDefn->GetSpatialRef() != NULL)
+                    poGeometry->assignSpatialReference(poGeomFieldDefn->GetSpatialRef());
+                poFeature->SetGeomFieldDirectly( iField, poGeometry );
+            }
         }
     }
 
@@ -662,21 +726,36 @@ OGRFeature *OGRSQLiteLayer::GetNextRawFeature()
 
         int iRawField = panFieldOrdinals[iField];
 
-        if( sqlite3_column_type( hStmt, iRawField ) == SQLITE_NULL )
+        int nSQLite3Type = sqlite3_column_type( hStmt, iRawField );
+        if( nSQLite3Type == SQLITE_NULL )
             continue;
 
         switch( poFieldDefn->GetType() )
         {
         case OFTInteger:
-            //FIXME use int64 when OGR has 64bit integer support
-            poFeature->SetField( iField, 
-                sqlite3_column_int( hStmt, iRawField ) );
+        case OFTInteger64:
+        {
+            /* Possible since SQLite3 has no strong typing */
+            if( nSQLite3Type == SQLITE_TEXT )
+                poFeature->SetField( iField,
+                        (const char *)sqlite3_column_text( hStmt, iRawField ) );
+            else
+                poFeature->SetField( iField,
+                    sqlite3_column_int64( hStmt, iRawField ) );
             break;
+        }
 
         case OFTReal:
-            poFeature->SetField( iField, 
-                sqlite3_column_double( hStmt, iRawField ) );
+        {
+            /* Possible since SQLite3 has no strong typing */
+            if( nSQLite3Type == SQLITE_TEXT )
+                poFeature->SetField( iField,
+                        (const char *)sqlite3_column_text( hStmt, iRawField ) );
+            else
+                poFeature->SetField( iField,
+                    sqlite3_column_double( hStmt, iRawField ) );
             break;
+        }
 
         case OFTBinary:
             {
@@ -688,6 +767,10 @@ OGRFeature *OGRSQLiteLayer::GetNextRawFeature()
             break;
 
         case OFTString:
+        case OFTIntegerList:
+        case OFTInteger64List:
+        case OFTRealList:
+        case OFTStringList:
         {
             if( CSLFindString(papszCompressedColumns,
                               poFeatureDefn->GetFieldDefn(iField)->GetNameRef()) >= 0 )
@@ -703,15 +786,15 @@ OGRFeature *OGRSQLiteLayer::GetNextRawFeature()
                 }
                 else
                 {
-                    poFeature->SetField( iField, 
-                        (const char *) 
+                    poFeature->SetField( iField,
+                        (const char *)
                         sqlite3_column_text( hStmt, iRawField ) );
                 }
             }
             else
             {
-                poFeature->SetField( iField, 
-                    (const char *) 
+                poFeature->SetField( iField,
+                    (const char *)
                     sqlite3_column_text( hStmt, iRawField ) );
             }
             break;
@@ -723,9 +806,23 @@ OGRFeature *OGRSQLiteLayer::GetNextRawFeature()
         {
             if( sqlite3_column_type( hStmt, iRawField ) == SQLITE_TEXT )
             {
-                const char* pszValue = (const char *) 
+                const char* pszValue = (const char *)
                     sqlite3_column_text( hStmt, iRawField );
                 OGRSQLITEStringToDateTimeField( poFeature, iField, pszValue );
+            }
+            else if( sqlite3_column_type( hStmt, iRawField ) == SQLITE_FLOAT )
+            {
+                // Try converting from Julian day
+                char** papszResult = NULL;
+                sqlite3_get_table( poDS->GetDB(),
+                                   CPLSPrintf("SELECT strftime('%%Y-%%m-%%d %%H:%%M:%%S', %.16g)",
+                                               sqlite3_column_double(hStmt, iRawField)),
+                                   &papszResult, NULL, NULL, NULL );
+                if( papszResult && papszResult[0] && papszResult[1] )
+                {
+                    OGRSQLITEStringToDateTimeField( poFeature, iField,  papszResult[1] );
+                }
+                sqlite3_free_table(papszResult);
             }
             break;
         }
@@ -735,6 +832,20 @@ OGRFeature *OGRSQLiteLayer::GetNextRawFeature()
         }
     }
 
+/* -------------------------------------------------------------------- */
+/*      Set native data if found                                        */
+/* -------------------------------------------------------------------- */
+    if( iOGRNativeDataCol >= 0 &&
+        sqlite3_column_type( hStmt, iOGRNativeDataCol ) == SQLITE_TEXT )
+    {
+        poFeature->SetNativeData( (const char*)sqlite3_column_text( hStmt, iOGRNativeDataCol ) );
+    }
+    if( iOGRNativeMediaTypeCol >= 0 &&
+        sqlite3_column_type( hStmt, iOGRNativeMediaTypeCol ) == SQLITE_TEXT )
+    {
+        poFeature->SetNativeMediaType( (const char*)sqlite3_column_text( hStmt, iOGRNativeMediaTypeCol ) );
+    }
+
     return poFeature;
 }
 
@@ -742,7 +853,7 @@ OGRFeature *OGRSQLiteLayer::GetNextRawFeature()
 /*                             GetFeature()                             */
 /************************************************************************/
 
-OGRFeature *OGRSQLiteLayer::GetFeature( long nFeatureId )
+OGRFeature *OGRSQLiteLayer::GetFeature( GIntBig nFeatureId )
 
 {
     return OGRLayer::GetFeature( nFeatureId );
@@ -772,7 +883,6 @@ OGRErr OGRSQLiteLayer::createFromSpatialiteInternal(const GByte *pabyData,
                                                     int* pnBytesConsumed,
                                                     int nRecLevel)
 {
-    OGRErr      eErr = OGRERR_NONE;
     OGRGeometry *poGeom = NULL;
     GInt32       nGType;
     GInt32       compressedSize;
@@ -783,8 +893,9 @@ OGRErr OGRSQLiteLayer::createFromSpatialiteInternal(const GByte *pabyData,
     if( nRecLevel == 32 )
     {
         CPLError( CE_Failure, CPLE_AppDefined,
-                    "Too many recursiong level (%d) while parsing Spatialite geometry.",
-                    nRecLevel );
+                  "Too many recursion levels (%d) while parsing "
+                  "Spatialite geometry.",
+                  nRecLevel );
         return OGRERR_CORRUPT_DATA;
     }
 
@@ -798,21 +909,21 @@ OGRErr OGRSQLiteLayer::createFromSpatialiteInternal(const GByte *pabyData,
     if (NEED_SWAP_SPATIALITE())
         CPL_SWAP32PTR( &nGType );
 
-    if( ( nGType >= OGRSplitePointXY && 
+    if( ( nGType >= OGRSplitePointXY &&
           nGType <= OGRSpliteGeometryCollectionXY ) ||       // XY types
-        ( nGType >= OGRSplitePointXYZ && 
+        ( nGType >= OGRSplitePointXYZ &&
           nGType <= OGRSpliteGeometryCollectionXYZ ) ||      // XYZ types
-        ( nGType >= OGRSplitePointXYM && 
+        ( nGType >= OGRSplitePointXYM &&
           nGType <= OGRSpliteGeometryCollectionXYM ) ||      // XYM types
-        ( nGType >= OGRSplitePointXYZM && 
+        ( nGType >= OGRSplitePointXYZM &&
           nGType <= OGRSpliteGeometryCollectionXYZM ) ||     // XYZM types
-        ( nGType >= OGRSpliteComprLineStringXY && 
+        ( nGType >= OGRSpliteComprLineStringXY &&
           nGType <= OGRSpliteComprGeometryCollectionXY ) ||  // XY compressed
-        ( nGType >= OGRSpliteComprLineStringXYZ && 
+        ( nGType >= OGRSpliteComprLineStringXYZ &&
           nGType <= OGRSpliteComprGeometryCollectionXYZ ) || // XYZ compressed
-        ( nGType >= OGRSpliteComprLineStringXYM && 
+        ( nGType >= OGRSpliteComprLineStringXYM &&
           nGType <= OGRSpliteComprGeometryCollectionXYM ) || // XYM compressed
-        ( nGType >= OGRSpliteComprLineStringXYZM && 
+        ( nGType >= OGRSpliteComprLineStringXYZM &&
           nGType <= OGRSpliteComprGeometryCollectionXYZM ) ) // XYZM compressed
         ;
     else
@@ -882,7 +993,9 @@ OGRErr OGRSQLiteLayer::createFromSpatialiteInternal(const GByte *pabyData,
             CPL_SWAP64PTR( adfTuple + 2 );
         }
 
-        poGeom = new OGRPoint( adfTuple[0], adfTuple[1] );
+        OGRPoint* poPoint = new OGRPoint( adfTuple[0], adfTuple[1] );
+        poPoint->setM( adfTuple[2] );
+        poGeom = poPoint;
 
         if( pnBytesConsumed )
             *pnBytesConsumed = 4 + 3 * 8;
@@ -907,7 +1020,7 @@ OGRErr OGRSQLiteLayer::createFromSpatialiteInternal(const GByte *pabyData,
             CPL_SWAP64PTR( adfTuple + 3 );
         }
 
-        poGeom = new OGRPoint( adfTuple[0], adfTuple[1], adfTuple[2] );
+        poGeom = new OGRPoint( adfTuple[0], adfTuple[1], adfTuple[2], adfTuple[3] );
 
         if( pnBytesConsumed )
             *pnBytesConsumed = 4 + 4 * 8;
@@ -1036,7 +1149,7 @@ OGRErr OGRSQLiteLayer::createFromSpatialiteInternal(const GByte *pabyData,
                 CPL_SWAP64PTR( adfTuple + 2 );
             }
 
-            poLS->setPoint( iPoint, adfTuple[0], adfTuple[1] );
+            poLS->setPointM( iPoint, adfTuple[0], adfTuple[1], adfTuple[2] );
         }
 
         if( pnBytesConsumed )
@@ -1080,7 +1193,7 @@ OGRErr OGRSQLiteLayer::createFromSpatialiteInternal(const GByte *pabyData,
                 CPL_SWAP64PTR( adfTuple + 3 );
             }
 
-            poLS->setPoint( iPoint, adfTuple[0], adfTuple[1], adfTuple[2] );
+            poLS->setPoint( iPoint, adfTuple[0], adfTuple[1], adfTuple[2], adfTuple[3] );
         }
 
         if( pnBytesConsumed )
@@ -1110,7 +1223,7 @@ OGRErr OGRSQLiteLayer::createFromSpatialiteInternal(const GByte *pabyData,
         if( nPointCount < 0 || nPointCount - 2 > (INT_MAX - 16 * 2) / 8)
             return OGRERR_CORRUPT_DATA;
 
-        compressedSize = 16 * 2;                  // first and last Points 
+        compressedSize = 16 * 2;                  // first and last Points
         compressedSize += 8 * (nPointCount - 2);  // intermediate Points
 
         if (nBytes - 8 < compressedSize )
@@ -1122,15 +1235,15 @@ OGRErr OGRSQLiteLayer::createFromSpatialiteInternal(const GByte *pabyData,
         nNextByte = 8;
         adfTupleBase[0] = 0.0;
         adfTupleBase[1] = 0.0;
-		
+
         for( iPoint = 0; iPoint < nPointCount; iPoint++ )
         {
             if ( iPoint == 0 || iPoint == (nPointCount - 1 ) )
             {
-                // first and last Points are uncompressed 
+                // first and last Points are uncompressed
                 memcpy( adfTuple, pabyData + nNextByte, 2*8 );
                 nNextByte += 2 * 8;
-			
+
                 if (NEED_SWAP_SPATIALITE())
                 {
                     CPL_SWAP64PTR( adfTuple );
@@ -1197,12 +1310,12 @@ OGRErr OGRSQLiteLayer::createFromSpatialiteInternal(const GByte *pabyData,
         adfTupleBase[0] = 0.0;
         adfTupleBase[1] = 0.0;
         adfTupleBase[2] = 0.0;
-		
+
         for( iPoint = 0; iPoint < nPointCount; iPoint++ )
         {
             if ( iPoint == 0 || iPoint == (nPointCount - 1 ) )
             {
-                // first and last Points are uncompressed 
+                // first and last Points are uncompressed
                 memcpy( adfTuple, pabyData + nNextByte, 3*8 );
                 nNextByte += 3 * 8;
 
@@ -1215,7 +1328,7 @@ OGRErr OGRSQLiteLayer::createFromSpatialiteInternal(const GByte *pabyData,
             }
             else
             {
-                // any other intermediate Point is compressed 
+                // any other intermediate Point is compressed
                 memcpy( asfTuple, pabyData + nNextByte, 3*4 );
                 nNextByte += 3 * 4;
 
@@ -1245,7 +1358,7 @@ OGRErr OGRSQLiteLayer::createFromSpatialiteInternal(const GByte *pabyData,
 /* -------------------------------------------------------------------- */
     else if( nGType == OGRSpliteComprLineStringXYM )
     {
-        double adfTuple[2];
+        double adfTuple[3];
         double adfTupleBase[2];
         float asfTuple[2];
         GInt32 nPointCount;
@@ -1275,37 +1388,40 @@ OGRErr OGRSQLiteLayer::createFromSpatialiteInternal(const GByte *pabyData,
         nNextByte = 8;
         adfTupleBase[0] = 0.0;
         adfTupleBase[1] = 0.0;
-		
+
         for( iPoint = 0; iPoint < nPointCount; iPoint++ )
         {
             if ( iPoint == 0 || iPoint == (nPointCount - 1 ) )
             {
-                // first and last Points are uncompressed 
-                memcpy( adfTuple, pabyData + nNextByte, 2*8 );
+                // first and last Points are uncompressed
+                memcpy( adfTuple, pabyData + nNextByte, 3*8 );
                 nNextByte += 3 * 8;
 
                 if (NEED_SWAP_SPATIALITE())
                 {
                     CPL_SWAP64PTR( adfTuple );
                     CPL_SWAP64PTR( adfTuple + 1 );
+                    CPL_SWAP64PTR( adfTuple + 2 );
                 }
             }
             else
             {
                 // any other intermediate Point is compressed
                 memcpy( asfTuple, pabyData + nNextByte, 2*4 );
+                memcpy( adfTuple + 2, pabyData + nNextByte + 2*4, 8 );
                 nNextByte += 2 * 4 + 8;
 
                 if (NEED_SWAP_SPATIALITE())
                 {
                     CPL_SWAP32PTR( asfTuple );
                     CPL_SWAP32PTR( asfTuple + 1 );
+                    CPL_SWAP64PTR( adfTuple + 2 ); /* adfTuple and not asfTuple is intended */
                 }
                 adfTuple[0] = asfTuple[0] + adfTupleBase[0];
                 adfTuple[1] = asfTuple[1] + adfTupleBase[1];
             }
 
-            poLS->setPoint( iPoint, adfTuple[0], adfTuple[1] );
+            poLS->setPointM( iPoint, adfTuple[0], adfTuple[1], adfTuple[2] );
             adfTupleBase[0] = adfTuple[0];
             adfTupleBase[1] = adfTuple[1];
         }
@@ -1319,7 +1435,7 @@ OGRErr OGRSQLiteLayer::createFromSpatialiteInternal(const GByte *pabyData,
 /* -------------------------------------------------------------------- */
     else if( nGType == OGRSpliteComprLineStringXYZM )
     {
-        double adfTuple[3];
+        double adfTuple[4];
         double adfTupleBase[3];
         float asfTuple[3];
         GInt32 nPointCount;
@@ -1351,13 +1467,13 @@ OGRErr OGRSQLiteLayer::createFromSpatialiteInternal(const GByte *pabyData,
         adfTupleBase[0] = 0.0;
         adfTupleBase[1] = 0.0;
         adfTupleBase[2] = 0.0;
-		
+
         for( iPoint = 0; iPoint < nPointCount; iPoint++ )
         {
             if ( iPoint == 0 || iPoint == (nPointCount - 1 ) )
             {
                 // first and last Points are uncompressed
-                memcpy( adfTuple, pabyData + nNextByte, 3*8 );
+                memcpy( adfTuple, pabyData + nNextByte, 4*8 );
                 nNextByte += 4 * 8;
 
                 if (NEED_SWAP_SPATIALITE())
@@ -1365,12 +1481,14 @@ OGRErr OGRSQLiteLayer::createFromSpatialiteInternal(const GByte *pabyData,
                     CPL_SWAP64PTR( adfTuple );
                     CPL_SWAP64PTR( adfTuple + 1 );
                     CPL_SWAP64PTR( adfTuple + 2 );
+                    CPL_SWAP64PTR( adfTuple + 3 );
                 }
             }
             else
             {
                 // any other intermediate Point is compressed
                 memcpy( asfTuple, pabyData + nNextByte, 3*4 );
+                memcpy( adfTuple + 3, pabyData + nNextByte + 3*4, 8 );
                 nNextByte += 3 * 4 + 8;
 
                 if (NEED_SWAP_SPATIALITE())
@@ -1378,13 +1496,14 @@ OGRErr OGRSQLiteLayer::createFromSpatialiteInternal(const GByte *pabyData,
                     CPL_SWAP32PTR( asfTuple );
                     CPL_SWAP32PTR( asfTuple + 1 );
                     CPL_SWAP32PTR( asfTuple + 2 );
+                    CPL_SWAP64PTR( adfTuple + 3 ); /* adfTuple and not asfTuple is intended */
                 }
                 adfTuple[0] = asfTuple[0] + adfTupleBase[0];
                 adfTuple[1] = asfTuple[1] + adfTupleBase[1];
                 adfTuple[2] = asfTuple[2] + adfTupleBase[2];
             }
 
-            poLS->setPoint( iPoint, adfTuple[0], adfTuple[1], adfTuple[2] );
+            poLS->setPoint( iPoint, adfTuple[0], adfTuple[1], adfTuple[2], adfTuple[3] );
             adfTupleBase[0] = adfTuple[0];
             adfTupleBase[1] = adfTuple[1];
             adfTupleBase[2] = adfTuple[2];
@@ -1417,12 +1536,12 @@ OGRErr OGRSQLiteLayer::createFromSpatialiteInternal(const GByte *pabyData,
         if (nRingCount < 0 || nRingCount > INT_MAX / 4)
             return OGRERR_CORRUPT_DATA;
 
-        // Each ring has a minimum of 4 bytes 
+        // Each ring has a minimum of 4 bytes
         if (nBytes - 8 < nRingCount * 4)
             return OGRERR_NOT_ENOUGH_DATA;
 
         nNextByte = 8;
-        
+
         poGeom = poPoly = new OGRPolygon();
 
         for( iRing = 0; iRing < nRingCount; iRing++ )
@@ -1505,7 +1624,7 @@ OGRErr OGRSQLiteLayer::createFromSpatialiteInternal(const GByte *pabyData,
             return OGRERR_NOT_ENOUGH_DATA;
 
         nNextByte = 8;
-        
+
         poGeom = poPoly = new OGRPolygon();
 
         for( iRing = 0; iRing < nRingCount; iRing++ )
@@ -1536,7 +1655,7 @@ OGRErr OGRSQLiteLayer::createFromSpatialiteInternal(const GByte *pabyData,
 
             poLR = new OGRLinearRing();
             poLR->setNumPoints( nPointCount, FALSE );
-            
+
             for( iPoint = 0; iPoint < nPointCount; iPoint++ )
             {
                 memcpy( adfTuple, pabyData + nNextByte, 3*8 );
@@ -1582,12 +1701,12 @@ OGRErr OGRSQLiteLayer::createFromSpatialiteInternal(const GByte *pabyData,
         if (nRingCount < 0 || nRingCount > INT_MAX / 4)
             return OGRERR_CORRUPT_DATA;
 
-        // Each ring has a minimum of 4 bytes 
+        // Each ring has a minimum of 4 bytes
         if (nBytes - 8 < nRingCount * 4)
             return OGRERR_NOT_ENOUGH_DATA;
 
         nNextByte = 8;
-        
+
         poGeom = poPoly = new OGRPolygon();
 
         for( iRing = 0; iRing < nRingCount; iRing++ )
@@ -1618,7 +1737,7 @@ OGRErr OGRSQLiteLayer::createFromSpatialiteInternal(const GByte *pabyData,
 
             poLR = new OGRLinearRing();
             poLR->setNumPoints( nPointCount, FALSE );
-            
+
             for( iPoint = 0; iPoint < nPointCount; iPoint++ )
             {
                 memcpy( adfTuple, pabyData + nNextByte, 3*8 );
@@ -1631,7 +1750,7 @@ OGRErr OGRSQLiteLayer::createFromSpatialiteInternal(const GByte *pabyData,
                     CPL_SWAP64PTR( adfTuple + 2 );
                 }
 
-                poLR->setPoint( iPoint, adfTuple[0], adfTuple[1] );
+                poLR->setPointM( iPoint, adfTuple[0], adfTuple[1], adfTuple[2] );
             }
 
             poPoly->addRingDirectly( poLR );
@@ -1664,12 +1783,12 @@ OGRErr OGRSQLiteLayer::createFromSpatialiteInternal(const GByte *pabyData,
         if (nRingCount < 0 || nRingCount > INT_MAX / 4)
             return OGRERR_CORRUPT_DATA;
 
-        // Each ring has a minimum of 4 bytes 
+        // Each ring has a minimum of 4 bytes
         if (nBytes - 8 < nRingCount * 4)
             return OGRERR_NOT_ENOUGH_DATA;
 
         nNextByte = 8;
-        
+
         poGeom = poPoly = new OGRPolygon();
 
         for( iRing = 0; iRing < nRingCount; iRing++ )
@@ -1700,7 +1819,7 @@ OGRErr OGRSQLiteLayer::createFromSpatialiteInternal(const GByte *pabyData,
 
             poLR = new OGRLinearRing();
             poLR->setNumPoints( nPointCount, FALSE );
-            
+
             for( iPoint = 0; iPoint < nPointCount; iPoint++ )
             {
                 memcpy( adfTuple, pabyData + nNextByte, 4*8 );
@@ -1714,7 +1833,7 @@ OGRErr OGRSQLiteLayer::createFromSpatialiteInternal(const GByte *pabyData,
                     CPL_SWAP64PTR( adfTuple + 3 );
                 }
 
-                poLR->setPoint( iPoint, adfTuple[0], adfTuple[1], adfTuple[2] );
+                poLR->setPoint( iPoint, adfTuple[0], adfTuple[1], adfTuple[2], adfTuple[3] );
             }
 
             poPoly->addRingDirectly( poLR );
@@ -1754,7 +1873,7 @@ OGRErr OGRSQLiteLayer::createFromSpatialiteInternal(const GByte *pabyData,
             return OGRERR_NOT_ENOUGH_DATA;
 
         nNextByte = 8;
-        
+
         poGeom = poPoly = new OGRPolygon();
 
         for( iRing = 0; iRing < nRingCount; iRing++ )
@@ -1790,12 +1909,12 @@ OGRErr OGRSQLiteLayer::createFromSpatialiteInternal(const GByte *pabyData,
 
             poLR = new OGRLinearRing();
             poLR->setNumPoints( nPointCount, FALSE );
-            
+
             for( iPoint = 0; iPoint < nPointCount; iPoint++ )
             {
                 if ( iPoint == 0 || iPoint == (nPointCount - 1 ) )
                 {
-                    // first and last Points are uncompressed 
+                    // first and last Points are uncompressed
                     memcpy( adfTuple, pabyData + nNextByte, 2*8 );
                     nNextByte += 2 * 8;
 
@@ -1862,7 +1981,7 @@ OGRErr OGRSQLiteLayer::createFromSpatialiteInternal(const GByte *pabyData,
             return OGRERR_NOT_ENOUGH_DATA;
 
         nNextByte = 8;
-        
+
         poGeom = poPoly = new OGRPolygon();
 
         for( iRing = 0; iRing < nRingCount; iRing++ )
@@ -1899,12 +2018,12 @@ OGRErr OGRSQLiteLayer::createFromSpatialiteInternal(const GByte *pabyData,
 
             poLR = new OGRLinearRing();
             poLR->setNumPoints( nPointCount, FALSE );
-            
+
             for( iPoint = 0; iPoint < nPointCount; iPoint++ )
             {
                 if ( iPoint == 0 || iPoint == (nPointCount - 1 ) )
                 {
-                    // first and last Points are uncompressed 
+                    // first and last Points are uncompressed
                     memcpy( adfTuple, pabyData + nNextByte, 3*8 );
                     nNextByte += 3 * 8;
 
@@ -1950,8 +2069,8 @@ OGRErr OGRSQLiteLayer::createFromSpatialiteInternal(const GByte *pabyData,
 /* -------------------------------------------------------------------- */
     else if( nGType == OGRSpliteComprPolygonXYM )
     {
-        double adfTuple[2];
-        double adfTupleBase[3];
+        double adfTuple[3];
+        double adfTupleBase[2];
         float asfTuple[2];
         GInt32 nPointCount;
         GInt32 nRingCount;
@@ -1975,7 +2094,7 @@ OGRErr OGRSQLiteLayer::createFromSpatialiteInternal(const GByte *pabyData,
             return OGRERR_NOT_ENOUGH_DATA;
 
         nNextByte = 8;
-        
+
         poGeom = poPoly = new OGRPolygon();
 
         for( iRing = 0; iRing < nRingCount; iRing++ )
@@ -2012,37 +2131,40 @@ OGRErr OGRSQLiteLayer::createFromSpatialiteInternal(const GByte *pabyData,
 
             poLR = new OGRLinearRing();
             poLR->setNumPoints( nPointCount, FALSE );
-            
+
             for( iPoint = 0; iPoint < nPointCount; iPoint++ )
             {
                 if ( iPoint == 0 || iPoint == (nPointCount - 1 ) )
                 {
-                    // first and last Points are uncompressed 
-                    memcpy( adfTuple, pabyData + nNextByte, 2*8 );
-                    nNextByte += 2 * 8;
+                    // first and last Points are uncompressed
+                    memcpy( adfTuple, pabyData + nNextByte, 3*8 );
+                    nNextByte += 3 * 8;
 
                     if (NEED_SWAP_SPATIALITE())
                     {
                         CPL_SWAP64PTR( adfTuple );
                         CPL_SWAP64PTR( adfTuple + 1 );
+                        CPL_SWAP64PTR( adfTuple + 2 );
                     }
                 }
                 else
                 {
                     // any other intermediate Point is compressed
                     memcpy( asfTuple, pabyData + nNextByte, 2*4 );
+                    memcpy( adfTuple + 2, pabyData + nNextByte + 2*4, 8 );
                     nNextByte += 2 * 4 + 8;
 
                     if (NEED_SWAP_SPATIALITE())
                     {
                         CPL_SWAP32PTR( asfTuple );
                         CPL_SWAP32PTR( asfTuple + 1 );
+                        CPL_SWAP64PTR( adfTuple + 2 ); /* adfTuple and not asfTuple is intended */
                     }
                     adfTuple[0] = asfTuple[0] + adfTupleBase[0];
                     adfTuple[1] = asfTuple[1] + adfTupleBase[1];
                 }
 
-                poLR->setPoint( iPoint, adfTuple[0], adfTuple[1] );
+                poLR->setPointM( iPoint, adfTuple[0], adfTuple[1], adfTuple[2] );
                 adfTupleBase[0] = adfTuple[0];
                 adfTupleBase[1] = adfTuple[1];
             }
@@ -2059,7 +2181,7 @@ OGRErr OGRSQLiteLayer::createFromSpatialiteInternal(const GByte *pabyData,
 /* -------------------------------------------------------------------- */
     else if( nGType == OGRSpliteComprPolygonXYZM )
     {
-        double adfTuple[3];
+        double adfTuple[4];
         double adfTupleBase[3];
         float asfTuple[3];
         GInt32 nPointCount;
@@ -2079,12 +2201,12 @@ OGRErr OGRSQLiteLayer::createFromSpatialiteInternal(const GByte *pabyData,
         if (nRingCount < 0 || nRingCount > INT_MAX / 4)
             return OGRERR_CORRUPT_DATA;
 
-        // Each ring has a minimum of 4 bytes 
+        // Each ring has a minimum of 4 bytes
         if (nBytes - 8 < nRingCount * 4)
             return OGRERR_NOT_ENOUGH_DATA;
 
         nNextByte = 8;
-        
+
         poGeom = poPoly = new OGRPolygon();
 
         for( iRing = 0; iRing < nRingCount; iRing++ )
@@ -2122,13 +2244,13 @@ OGRErr OGRSQLiteLayer::createFromSpatialiteInternal(const GByte *pabyData,
 
             poLR = new OGRLinearRing();
             poLR->setNumPoints( nPointCount, FALSE );
-            
+
             for( iPoint = 0; iPoint < nPointCount; iPoint++ )
             {
                 if ( iPoint == 0 || iPoint == (nPointCount - 1 ) )
                 {
                     // first and last Points are uncompressed
-                    memcpy( adfTuple, pabyData + nNextByte, 3*8 );
+                    memcpy( adfTuple, pabyData + nNextByte, 4*8 );
                     nNextByte += 4 * 8;
 
                     if (NEED_SWAP_SPATIALITE())
@@ -2136,12 +2258,14 @@ OGRErr OGRSQLiteLayer::createFromSpatialiteInternal(const GByte *pabyData,
                         CPL_SWAP64PTR( adfTuple );
                         CPL_SWAP64PTR( adfTuple + 1 );
                         CPL_SWAP64PTR( adfTuple + 2 );
+                        CPL_SWAP64PTR( adfTuple + 3 );
                     }
                 }
                 else
                 {
-                    // any other intermediate Point is compressed 
+                    // any other intermediate Point is compressed
                     memcpy( asfTuple, pabyData + nNextByte, 3*4 );
+                    memcpy( adfTuple + 3, pabyData + nNextByte + 3*4, 8 );
                     nNextByte += 3 * 4 + 8;
 
                     if (NEED_SWAP_SPATIALITE())
@@ -2149,13 +2273,14 @@ OGRErr OGRSQLiteLayer::createFromSpatialiteInternal(const GByte *pabyData,
                         CPL_SWAP32PTR( asfTuple );
                         CPL_SWAP32PTR( asfTuple + 1 );
                         CPL_SWAP32PTR( asfTuple + 2 );
+                        CPL_SWAP64PTR( adfTuple + 3 ); /* adfTuple and not asfTuple is intended */
                     }
                     adfTuple[0] = asfTuple[0] + adfTupleBase[0];
                     adfTuple[1] = asfTuple[1] + adfTupleBase[1];
                     adfTuple[2] = asfTuple[2] + adfTupleBase[2];
                 }
 
-                poLR->setPoint( iPoint, adfTuple[0], adfTuple[1], adfTuple[2] );
+                poLR->setPoint( iPoint, adfTuple[0], adfTuple[1], adfTuple[2], adfTuple[3] );
                 adfTupleBase[0] = adfTuple[0];
                 adfTupleBase[1] = adfTuple[1];
                 adfTupleBase[2] = adfTuple[2];
@@ -2176,7 +2301,7 @@ OGRErr OGRSQLiteLayer::createFromSpatialiteInternal(const GByte *pabyData,
              ( nGType >= OGRSpliteMultiPointXYZ &&
                nGType <= OGRSpliteGeometryCollectionXYZ ) ||      // XYZ types
              ( nGType >= OGRSpliteMultiPointXYM &&
-               nGType <= OGRSpliteGeometryCollectionXYM ) ||      // XYM types 
+               nGType <= OGRSpliteGeometryCollectionXYM ) ||      // XYM types
              ( nGType >= OGRSpliteMultiPointXYZM &&
                nGType <= OGRSpliteGeometryCollectionXYZM ) ||     // XYZM types
              ( nGType >= OGRSpliteComprMultiLineStringXY &&
@@ -2191,49 +2316,6 @@ OGRErr OGRSQLiteLayer::createFromSpatialiteInternal(const GByte *pabyData,
         OGRGeometryCollection *poGC = NULL;
         GInt32 nGeomCount = 0;
         int iGeom = 0;
-        int nBytesUsed = 0;
-
-        switch ( nGType )
-        {
-            case OGRSpliteMultiPointXY:
-            case OGRSpliteMultiPointXYZ: 
-            case OGRSpliteMultiPointXYM: 
-            case OGRSpliteMultiPointXYZM:
-                poGC = new OGRMultiPoint();
-                break;
-            case OGRSpliteMultiLineStringXY: 
-            case OGRSpliteMultiLineStringXYZ: 
-            case OGRSpliteMultiLineStringXYM: 
-            case OGRSpliteMultiLineStringXYZM:
-            case OGRSpliteComprMultiLineStringXY: 
-            case OGRSpliteComprMultiLineStringXYZ: 
-            case OGRSpliteComprMultiLineStringXYM: 
-            case OGRSpliteComprMultiLineStringXYZM:
-                poGC = new OGRMultiLineString();
-                break;
-            case OGRSpliteMultiPolygonXY: 
-            case OGRSpliteMultiPolygonXYZ: 
-            case OGRSpliteMultiPolygonXYM: 
-            case OGRSpliteMultiPolygonXYZM:
-            case OGRSpliteComprMultiPolygonXY: 
-            case OGRSpliteComprMultiPolygonXYZ: 
-            case OGRSpliteComprMultiPolygonXYM: 
-            case OGRSpliteComprMultiPolygonXYZM:
-                poGC = new OGRMultiPolygon();
-                break;
-            case OGRSpliteGeometryCollectionXY: 
-            case OGRSpliteGeometryCollectionXYZ: 
-            case OGRSpliteGeometryCollectionXYM: 
-            case OGRSpliteGeometryCollectionXYZM:
-            case OGRSpliteComprGeometryCollectionXY: 
-            case OGRSpliteComprGeometryCollectionXYZ: 
-            case OGRSpliteComprGeometryCollectionXYM: 
-            case OGRSpliteComprGeometryCollectionXYZM:
-                poGC = new OGRGeometryCollection();
-                break;
-        }
-
-        assert(NULL != poGC);
 
         if( nBytes < 8 )
             return OGRERR_NOT_ENOUGH_DATA;
@@ -2249,7 +2331,49 @@ OGRErr OGRSQLiteLayer::createFromSpatialiteInternal(const GByte *pabyData,
         if (nBytes - 8 < nGeomCount * 9)
             return OGRERR_NOT_ENOUGH_DATA;
 
-        nBytesUsed = 8;
+        int nBytesUsed = 8;
+
+        switch ( nGType )
+        {
+            case OGRSpliteMultiPointXY:
+            case OGRSpliteMultiPointXYZ:
+            case OGRSpliteMultiPointXYM:
+            case OGRSpliteMultiPointXYZM:
+                poGC = new OGRMultiPoint();
+                break;
+            case OGRSpliteMultiLineStringXY:
+            case OGRSpliteMultiLineStringXYZ:
+            case OGRSpliteMultiLineStringXYM:
+            case OGRSpliteMultiLineStringXYZM:
+            case OGRSpliteComprMultiLineStringXY:
+            case OGRSpliteComprMultiLineStringXYZ:
+            case OGRSpliteComprMultiLineStringXYM:
+            case OGRSpliteComprMultiLineStringXYZM:
+                poGC = new OGRMultiLineString();
+                break;
+            case OGRSpliteMultiPolygonXY:
+            case OGRSpliteMultiPolygonXYZ:
+            case OGRSpliteMultiPolygonXYM:
+            case OGRSpliteMultiPolygonXYZM:
+            case OGRSpliteComprMultiPolygonXY:
+            case OGRSpliteComprMultiPolygonXYZ:
+            case OGRSpliteComprMultiPolygonXYM:
+            case OGRSpliteComprMultiPolygonXYZM:
+                poGC = new OGRMultiPolygon();
+                break;
+            case OGRSpliteGeometryCollectionXY:
+            case OGRSpliteGeometryCollectionXYZ:
+            case OGRSpliteGeometryCollectionXYM:
+            case OGRSpliteGeometryCollectionXYZM:
+            case OGRSpliteComprGeometryCollectionXY:
+            case OGRSpliteComprGeometryCollectionXYZ:
+            case OGRSpliteComprGeometryCollectionXYM:
+            case OGRSpliteComprGeometryCollectionXYZM:
+                poGC = new OGRGeometryCollection();
+                break;
+        }
+
+        assert(NULL != poGC);
 
         for( iGeom = 0; iGeom < nGeomCount; iGeom++ )
         {
@@ -2270,7 +2394,7 @@ OGRErr OGRSQLiteLayer::createFromSpatialiteInternal(const GByte *pabyData,
 
             nBytesUsed ++;
 
-            eErr = createFromSpatialiteInternal( pabyData + nBytesUsed,
+            OGRErr eErr = createFromSpatialiteInternal( pabyData + nBytesUsed,
                                                  &poThisGeom, nBytes - nBytesUsed,
                                                  eByteOrder, &nThisGeomSize, nRecLevel + 1);
             if( eErr != OGRERR_NONE )
@@ -2301,19 +2425,8 @@ OGRErr OGRSQLiteLayer::createFromSpatialiteInternal(const GByte *pabyData,
         return OGRERR_UNSUPPORTED_GEOMETRY_TYPE;
     }
 
-/* -------------------------------------------------------------------- */
-/*      Assign spatial reference system.                                */
-/* -------------------------------------------------------------------- */
-    if( eErr == OGRERR_NONE )
-    {
-        *ppoReturn = poGeom;
-    }
-    else
-    {
-        delete poGeom;
-    }
-
-    return eErr;
+    *ppoReturn = poGeom;
+    return OGRERR_NONE;
 }
 
 /************************************************************************/
@@ -2362,8 +2475,33 @@ OGRErr OGRSQLiteLayer::ImportSpatiaLiteGeometry( const GByte *pabyData,
         *pnSRID = nSRID;
     }
 
-    return createFromSpatialiteInternal(pabyData + 39, ppoGeometry,
-                                        nBytes - 39, eByteOrder, NULL, 0);
+    int nBytesConsumed = 0;
+    OGRErr eErr = createFromSpatialiteInternal(pabyData + 39, ppoGeometry,
+                                        nBytes - 39, eByteOrder, &nBytesConsumed, 0);
+    if( eErr == OGRERR_NONE )
+    {
+        /* This is a hack: in OGR2SQLITE_ExportGeometry(), we may have added */
+        /* the original curve geometry after the spatialite blob, so in case */
+        /* we detect that there's still binary */
+        /* content after the spatialite blob, this may be our original geometry */
+        if( pabyData[39 + nBytesConsumed] == 0xFE && 39 + nBytesConsumed + 1 < nBytes )
+        {
+            OGRGeometry* poOriginalGeometry = NULL;
+            eErr = OGRGeometryFactory::createFromWkb(
+                    (unsigned char*)(pabyData + 39 + nBytesConsumed + 1),
+                    NULL, &poOriginalGeometry, nBytes - (39 + nBytesConsumed + 1 + 1));
+            delete *ppoGeometry;
+            if( eErr == OGRERR_NONE )
+            {
+                *ppoGeometry = poOriginalGeometry;
+            }
+            else
+            {
+                *ppoGeometry = NULL;
+            }
+        }
+    }
+    return eErr;
 }
 
 /************************************************************************/
@@ -2424,7 +2562,7 @@ int OGRSQLiteLayer::CanBeCompressedSpatialiteGeometry(const OGRGeometry *poGeome
 /************************************************************************/
 
 int OGRSQLiteLayer::ComputeSpatiaLiteGeometrySize(const OGRGeometry *poGeometry,
-                                                  int bHasM, int bSpatialite2D,
+                                                  int bSpatialite2D,
                                                   int bUseComprGeom)
 {
     switch (wkbFlatten(poGeometry->getGeometryType()))
@@ -2432,20 +2570,7 @@ int OGRSQLiteLayer::ComputeSpatiaLiteGeometrySize(const OGRGeometry *poGeometry,
         case wkbPoint:
             if ( bSpatialite2D == TRUE )
                 return 16;
-            else if (poGeometry->getCoordinateDimension() == 3)
-            {
-                if (bHasM == TRUE)
-                    return 32;
-                else
-                    return 24;
-            }
-            else
-            {
-                if (bHasM == TRUE)
-                    return 24;
-                else
-                    return 16;
-            }
+            return 8 * poGeometry->CoordinateDimension();
 
         case wkbLineString:
         case wkbLinearRing:
@@ -2454,10 +2579,11 @@ int OGRSQLiteLayer::ComputeSpatiaLiteGeometrySize(const OGRGeometry *poGeometry,
             int nDimension;
             int nPointsDouble = nPoints;
             int nPointsFloat = 0;
+            bool bHasM = CPL_TO_BOOL(poGeometry->IsMeasured());
             if ( bSpatialite2D == TRUE )
             {
                 nDimension = 2;
-                bHasM = FALSE;
+                bHasM = false;
             }
             else
             {
@@ -2466,7 +2592,7 @@ int OGRSQLiteLayer::ComputeSpatiaLiteGeometrySize(const OGRGeometry *poGeometry,
                     nPointsDouble = 2;
                     nPointsFloat = nPoints - 2;
                 }
-                nDimension = poGeometry->getCoordinateDimension();
+                nDimension = poGeometry->Is3D() ? 3 : 2;
             }
             return 4 + nDimension * (8 * nPointsDouble + 4 * nPointsFloat) + ((bHasM) ? nPoints * 8 : 0);
         }
@@ -2479,12 +2605,12 @@ int OGRSQLiteLayer::ComputeSpatiaLiteGeometrySize(const OGRGeometry *poGeometry,
             if (poPoly->getExteriorRing() != NULL)
             {
                 nSize += ComputeSpatiaLiteGeometrySize(poPoly->getExteriorRing(),
-                                                       bHasM, bSpatialite2D, bUseComprGeom);
+                                                       bSpatialite2D, bUseComprGeom);
 
                 int nInteriorRingCount = poPoly->getNumInteriorRings();
                 for(int i=0;i<nInteriorRingCount;i++)
                     nSize += ComputeSpatiaLiteGeometrySize(poPoly->getInteriorRing(i),
-                                                           bHasM, bSpatialite2D, bUseComprGeom );
+                                                           bSpatialite2D, bUseComprGeom );
             }
             return nSize;
         }
@@ -2499,7 +2625,7 @@ int OGRSQLiteLayer::ComputeSpatiaLiteGeometrySize(const OGRGeometry *poGeometry,
             int nParts = poGeomCollection->getNumGeometries();
             for(int i=0;i<nParts;i++)
                 nSize += 5 + ComputeSpatiaLiteGeometrySize(poGeomCollection->getGeometryRef(i),
-                                                           bHasM, bSpatialite2D, bUseComprGeom );
+                                                           bSpatialite2D, bUseComprGeom );
             return nSize;
         }
 
@@ -2514,7 +2640,7 @@ int OGRSQLiteLayer::ComputeSpatiaLiteGeometrySize(const OGRGeometry *poGeometry,
 /************************************************************************/
 
 int OGRSQLiteLayer::GetSpatialiteGeometryCode(const OGRGeometry *poGeometry,
-                                              int bHasM, int bSpatialite2D,
+                                              int bSpatialite2D,
                                               int bUseComprGeom,
                                               int bAcceptMultiGeom)
 {
@@ -2524,16 +2650,16 @@ int OGRSQLiteLayer::GetSpatialiteGeometryCode(const OGRGeometry *poGeometry,
         case wkbPoint:
             if ( bSpatialite2D == TRUE )
                 return OGRSplitePointXY;
-            else if (poGeometry->getCoordinateDimension() == 3)
+            else if (poGeometry->Is3D())
             {
-                if (bHasM == TRUE)
+                if (poGeometry->IsMeasured())
                     return OGRSplitePointXYZM;
                 else
                     return OGRSplitePointXYZ;
              }
              else
              {
-                if (bHasM == TRUE)
+                if (poGeometry->IsMeasured())
                     return OGRSplitePointXYM;
                 else
                     return OGRSplitePointXY;
@@ -2544,16 +2670,16 @@ int OGRSQLiteLayer::GetSpatialiteGeometryCode(const OGRGeometry *poGeometry,
         case wkbLinearRing:
             if ( bSpatialite2D == TRUE )
                 return OGRSpliteLineStringXY;
-            else if (poGeometry->getCoordinateDimension() == 3)
+            else if (poGeometry->Is3D())
             {
-                if (bHasM == TRUE)
+                if (poGeometry->IsMeasured())
                     return (bUseComprGeom) ? OGRSpliteComprLineStringXYZM : OGRSpliteLineStringXYZM;
                 else
                     return (bUseComprGeom) ? OGRSpliteComprLineStringXYZ : OGRSpliteLineStringXYZ;
             }
             else
             {
-                if (bHasM == TRUE)
+                if (poGeometry->IsMeasured())
                     return (bUseComprGeom) ? OGRSpliteComprLineStringXYM : OGRSpliteLineStringXYM;
                 else
                     return (bUseComprGeom) ? OGRSpliteComprLineStringXY : OGRSpliteLineStringXY;
@@ -2563,16 +2689,16 @@ int OGRSQLiteLayer::GetSpatialiteGeometryCode(const OGRGeometry *poGeometry,
         case wkbPolygon:
             if ( bSpatialite2D == TRUE )
                 return OGRSplitePolygonXY;
-            else if (poGeometry->getCoordinateDimension() == 3)
+            else if (poGeometry->Is3D())
             {
-                if (bHasM == TRUE)
+                if (poGeometry->IsMeasured())
                     return (bUseComprGeom) ? OGRSpliteComprPolygonXYZM : OGRSplitePolygonXYZM;
                 else
                     return (bUseComprGeom) ? OGRSpliteComprPolygonXYZ : OGRSplitePolygonXYZ;
             }
             else
             {
-                if (bHasM == TRUE)
+                if (poGeometry->IsMeasured())
                     return (bUseComprGeom) ? OGRSpliteComprPolygonXYM : OGRSplitePolygonXYM;
                 else
                     return (bUseComprGeom) ? OGRSpliteComprPolygonXY : OGRSplitePolygonXY;
@@ -2594,16 +2720,16 @@ int OGRSQLiteLayer::GetSpatialiteGeometryCode(const OGRGeometry *poGeometry,
         case wkbMultiPoint:
             if ( bSpatialite2D == TRUE )
                 return OGRSpliteMultiPointXY;
-            else if (poGeometry->getCoordinateDimension() == 3)
+            else if (poGeometry->Is3D())
             {
-                if (bHasM == TRUE)
+                if (poGeometry->IsMeasured())
                     return OGRSpliteMultiPointXYZM;
                 else
                     return OGRSpliteMultiPointXYZ;
             }
             else
             {
-                if (bHasM == TRUE)
+                if (poGeometry->IsMeasured())
                     return OGRSpliteMultiPointXYM;
                 else
                     return OGRSpliteMultiPointXY;
@@ -2613,16 +2739,16 @@ int OGRSQLiteLayer::GetSpatialiteGeometryCode(const OGRGeometry *poGeometry,
         case wkbMultiLineString:
             if ( bSpatialite2D == TRUE )
                 return OGRSpliteMultiLineStringXY;
-            else if (poGeometry->getCoordinateDimension() == 3)
+            else if (poGeometry->Is3D())
             {
-                if (bHasM == TRUE)
+                if (poGeometry->IsMeasured())
                     return /*(bUseComprGeom) ? OGRSpliteComprMultiLineStringXYZM :*/ OGRSpliteMultiLineStringXYZM;
                 else
                     return /*(bUseComprGeom) ? OGRSpliteComprMultiLineStringXYZ :*/ OGRSpliteMultiLineStringXYZ;
             }
             else
             {
-                if (bHasM == TRUE)
+                if (poGeometry->IsMeasured())
                     return /*(bUseComprGeom) ? OGRSpliteComprMultiLineStringXYM :*/ OGRSpliteMultiLineStringXYM;
                 else
                     return /*(bUseComprGeom) ? OGRSpliteComprMultiLineStringXY :*/ OGRSpliteMultiLineStringXY;
@@ -2632,16 +2758,16 @@ int OGRSQLiteLayer::GetSpatialiteGeometryCode(const OGRGeometry *poGeometry,
         case wkbMultiPolygon:
             if ( bSpatialite2D == TRUE )
                 return OGRSpliteMultiPolygonXY;
-            else if (poGeometry->getCoordinateDimension() == 3)
+            else if (poGeometry->Is3D())
             {
-                if (bHasM == TRUE)
+                if (poGeometry->IsMeasured())
                     return /*(bUseComprGeom) ? OGRSpliteComprMultiPolygonXYZM :*/ OGRSpliteMultiPolygonXYZM;
                 else
                     return /*(bUseComprGeom) ? OGRSpliteComprMultiPolygonXYZ :*/ OGRSpliteMultiPolygonXYZ;
             }
             else
             {
-                if (bHasM == TRUE)
+                if (poGeometry->IsMeasured())
                     return /*(bUseComprGeom) ? OGRSpliteComprMultiPolygonXYM :*/ OGRSpliteMultiPolygonXYM;
                 else
                     return /*(bUseComprGeom) ? OGRSpliteComprMultiPolygonXY :*/ OGRSpliteMultiPolygonXY;
@@ -2652,16 +2778,16 @@ int OGRSQLiteLayer::GetSpatialiteGeometryCode(const OGRGeometry *poGeometry,
         case wkbGeometryCollection:
             if ( bSpatialite2D == TRUE )
                 return OGRSpliteGeometryCollectionXY;
-            else if (poGeometry->getCoordinateDimension() == 3)
+            else if (poGeometry->Is3D())
             {
-                if (bHasM == TRUE)
+                if (poGeometry->IsMeasured())
                     return /*(bUseComprGeom) ? OGRSpliteComprGeometryCollectionXYZM :*/ OGRSpliteGeometryCollectionXYZM;
                 else
                     return /*(bUseComprGeom) ? OGRSpliteComprGeometryCollectionXYZ :*/ OGRSpliteGeometryCollectionXYZ;
             }
             else
             {
-                if (bHasM == TRUE)
+                if (poGeometry->IsMeasured())
                     return /*(bUseComprGeom) ? OGRSpliteComprGeometryCollectionXYM :*/ OGRSpliteGeometryCollectionXYM;
                 else
                     return /*(bUseComprGeom) ? OGRSpliteComprGeometryCollectionXY :*/ OGRSpliteGeometryCollectionXY;
@@ -2675,12 +2801,12 @@ int OGRSQLiteLayer::GetSpatialiteGeometryCode(const OGRGeometry *poGeometry,
 }
 
 /************************************************************************/
-/*                      ExportSpatiaLiteGeometry()                      */
+/*                    ExportSpatiaLiteGeometryInternal()                */
 /************************************************************************/
 
 int OGRSQLiteLayer::ExportSpatiaLiteGeometryInternal(const OGRGeometry *poGeometry,
                                                      OGRwkbByteOrder eByteOrder,
-                                                     int bHasM, int bSpatialite2D,
+                                                     int bSpatialite2D,
                                                      int bUseComprGeom,
                                                      GByte* pabyData )
 {
@@ -2700,15 +2826,15 @@ int OGRSQLiteLayer::ExportSpatiaLiteGeometryInternal(const OGRGeometry *poGeomet
             }
             if ( bSpatialite2D == TRUE )
                 return 16;
-            else if (poGeometry->getCoordinateDimension() == 3)
+            else if (poGeometry->Is3D())
             {
                 double z = poPoint->getZ();
                 memcpy(pabyData + 16, &z, 8);
                 if (NEED_SWAP_SPATIALITE())
                     CPL_SWAP64PTR( pabyData + 16 );
-                if (bHasM == TRUE)
+                if( poGeometry->IsMeasured() )
                 {
-                    double m = 0.0;
+                    double m = poPoint->getM();
                     memcpy(pabyData + 24, &m, 8);
                     if (NEED_SWAP_SPATIALITE())
                         CPL_SWAP64PTR( pabyData + 24 );
@@ -2719,9 +2845,9 @@ int OGRSQLiteLayer::ExportSpatiaLiteGeometryInternal(const OGRGeometry *poGeomet
             }
             else
             {
-                if (bHasM == TRUE)
+                if( poGeometry->IsMeasured() )
                 {
-                    double m = 0.0;
+                    double m = poPoint->getM();
                     memcpy(pabyData + 16, &m, 8);
                     if (NEED_SWAP_SPATIALITE())
                         CPL_SWAP64PTR( pabyData + 16 );
@@ -2742,6 +2868,14 @@ int OGRSQLiteLayer::ExportSpatiaLiteGeometryInternal(const OGRGeometry *poGeomet
             if (NEED_SWAP_SPATIALITE())
                 CPL_SWAP32PTR( pabyData );
 
+            if( !bUseComprGeom && !NEED_SWAP_SPATIALITE() &&
+                poGeometry->CoordinateDimension() == 2 )
+            {
+                poLineString->getPoints((OGRRawPoint*)(pabyData + 4), NULL);
+                nTotalSize += nPointCount * 16;
+                return nTotalSize;
+            }
+
             for(int i=0;i<nPointCount;i++)
             {
                 double x = poLineString->getX(i);
@@ -2756,15 +2890,15 @@ int OGRSQLiteLayer::ExportSpatiaLiteGeometryInternal(const OGRGeometry *poGeomet
                         CPL_SWAP64PTR( pabyData + nTotalSize );
                         CPL_SWAP64PTR( pabyData + nTotalSize + 8 );
                     }
-                    if (!bSpatialite2D && poGeometry->getCoordinateDimension() == 3)
+                    if (!bSpatialite2D && poGeometry->Is3D())
                     {
                         double z = poLineString->getZ(i);
                         memcpy(pabyData + nTotalSize + 16, &z, 8);
                         if (NEED_SWAP_SPATIALITE())
                             CPL_SWAP64PTR( pabyData + nTotalSize + 16 );
-                        if (bHasM == TRUE)
+                        if( poGeometry->IsMeasured() )
                         {
-                            double m = 0.0;
+                            double m = poLineString->getM(i);
                             memcpy(pabyData + nTotalSize + 24, &m, 8);
                             if (NEED_SWAP_SPATIALITE())
                                 CPL_SWAP64PTR( pabyData + nTotalSize + 24 );
@@ -2775,9 +2909,9 @@ int OGRSQLiteLayer::ExportSpatiaLiteGeometryInternal(const OGRGeometry *poGeomet
                     }
                     else
                     {
-                        if (bHasM == TRUE)
+                        if( poGeometry->IsMeasured() )
                         {
-                            double m = 0.0;
+                            double m = poLineString->getM(i);
                             memcpy(pabyData + nTotalSize + 16, &m, 8);
                             if (NEED_SWAP_SPATIALITE())
                                 CPL_SWAP64PTR( pabyData + nTotalSize + 16 );
@@ -2798,16 +2932,16 @@ int OGRSQLiteLayer::ExportSpatiaLiteGeometryInternal(const OGRGeometry *poGeomet
                         CPL_SWAP32PTR( pabyData + nTotalSize );
                         CPL_SWAP32PTR( pabyData + nTotalSize + 4 );
                     }
-                    if (poGeometry->getCoordinateDimension() == 3)
+                    if (poGeometry->Is3D())
                     {
                         double z = poLineString->getZ(i);
                         float deltaz = (float)(z - poLineString->getZ(i-1));
                         memcpy(pabyData + nTotalSize + 8, &deltaz, 4);
                         if (NEED_SWAP_SPATIALITE())
                             CPL_SWAP32PTR( pabyData + nTotalSize + 8 );
-                        if (bHasM == TRUE)
+                        if( poGeometry->IsMeasured() )
                         {
-                            double m = 0.0;
+                            double m = poLineString->getM(i);
                             memcpy(pabyData + nTotalSize + 12, &m, 8);
                             if (NEED_SWAP_SPATIALITE())
                                 CPL_SWAP64PTR( pabyData + nTotalSize + 12 );
@@ -2818,9 +2952,9 @@ int OGRSQLiteLayer::ExportSpatiaLiteGeometryInternal(const OGRGeometry *poGeomet
                     }
                     else
                     {
-                        if (bHasM == TRUE)
+                        if( poGeometry->IsMeasured() )
                         {
-                            double m = 0.0;
+                            double m = poLineString->getM(i);
                             memcpy(pabyData + nTotalSize + 8, &m, 8);
                             if (NEED_SWAP_SPATIALITE())
                                 CPL_SWAP64PTR( pabyData + nTotalSize + 8 );
@@ -2849,7 +2983,7 @@ int OGRSQLiteLayer::ExportSpatiaLiteGeometryInternal(const OGRGeometry *poGeomet
 
                 nTotalSize += ExportSpatiaLiteGeometryInternal(poPoly->getExteriorRing(),
                                                               eByteOrder,
-                                                              bHasM, bSpatialite2D,
+                                                              bSpatialite2D,
                                                               bUseComprGeom,
                                                               pabyData + nTotalSize);
 
@@ -2857,7 +2991,7 @@ int OGRSQLiteLayer::ExportSpatiaLiteGeometryInternal(const OGRGeometry *poGeomet
                 {
                     nTotalSize += ExportSpatiaLiteGeometryInternal(poPoly->getInteriorRing(i),
                                                                    eByteOrder,
-                                                                   bHasM, bSpatialite2D,
+                                                                   bSpatialite2D,
                                                                    bUseComprGeom,
                                                                    pabyData + nTotalSize);
                 }
@@ -2886,7 +3020,7 @@ int OGRSQLiteLayer::ExportSpatiaLiteGeometryInternal(const OGRGeometry *poGeomet
                 pabyData[nTotalSize] = 0x69;
                 nTotalSize ++;
                 int nCode = GetSpatialiteGeometryCode(poGeomCollection->getGeometryRef(i),
-                                                      bHasM, bSpatialite2D,
+                                                      bSpatialite2D,
                                                       bUseComprGeom, FALSE);
                 if (nCode == 0)
                     return 0;
@@ -2896,7 +3030,7 @@ int OGRSQLiteLayer::ExportSpatiaLiteGeometryInternal(const OGRGeometry *poGeomet
                 nTotalSize += 4;
                 nTotalSize += ExportSpatiaLiteGeometryInternal(poGeomCollection->getGeometryRef(i),
                                                                eByteOrder,
-                                                               bHasM, bSpatialite2D,
+                                                               bSpatialite2D,
                                                                bUseComprGeom,
                                                                pabyData + nTotalSize);
             }
@@ -2912,17 +3046,22 @@ int OGRSQLiteLayer::ExportSpatiaLiteGeometryInternal(const OGRGeometry *poGeomet
 OGRErr OGRSQLiteLayer::ExportSpatiaLiteGeometry( const OGRGeometry *poGeometry,
                                                  GInt32 nSRID,
                                                  OGRwkbByteOrder eByteOrder,
-                                                 int bHasM, int bSpatialite2D,
+                                                 int bSpatialite2D,
                                                  int bUseComprGeom,
                                                  GByte **ppabyData,
-                                                 int *pnDataLenght )
+                                                 int *pnDataLength )
 
 {
+    /* Spatialite does not support curve geometries */
+    const OGRGeometry* poWorkGeom;
+    if( poGeometry->hasCurveGeometry() )
+        poWorkGeom = poGeometry->getLinearGeometry();
+    else
+        poWorkGeom = poGeometry;
 
-    bUseComprGeom = bUseComprGeom && !bSpatialite2D && CanBeCompressedSpatialiteGeometry(poGeometry);
+    bUseComprGeom = bUseComprGeom && !bSpatialite2D && CanBeCompressedSpatialiteGeometry(poWorkGeom);
 
-    int     nDataLen = 44 + ComputeSpatiaLiteGeometrySize( poGeometry,
-                                                           bHasM, 
+    int     nDataLen = 44 + ComputeSpatiaLiteGeometrySize( poWorkGeom,
                                                            bSpatialite2D,
                                                            bUseComprGeom );
     OGREnvelope sEnvelope;
@@ -2944,29 +3083,32 @@ OGRErr OGRSQLiteLayer::ExportSpatiaLiteGeometry( const OGRGeometry *poGeometry,
 
     (*ppabyData)[38] = 0x7C;
 
-    int nCode = GetSpatialiteGeometryCode(poGeometry,
-                                          bHasM, bSpatialite2D,
+    int nCode = GetSpatialiteGeometryCode(poWorkGeom,
+                                          bSpatialite2D,
                                           bUseComprGeom, TRUE);
     if (nCode == 0)
     {
         CPLFree(*ppabyData);
         *ppabyData = NULL;
-        *pnDataLenght = 0;
-        return CE_Failure;
+        *pnDataLength = 0;
+        if( poWorkGeom != poGeometry ) delete poWorkGeom;
+        return OGRERR_FAILURE;
     }
     memcpy( *ppabyData + 39, &nCode, 4 );
 
-    int nWritten = ExportSpatiaLiteGeometryInternal(poGeometry, 
-                                                    eByteOrder, 
-                                                    bHasM, bSpatialite2D,
+    int nWritten = ExportSpatiaLiteGeometryInternal(poWorkGeom,
+                                                    eByteOrder,
+                                                    bSpatialite2D,
                                                     bUseComprGeom,
                                                     *ppabyData + 43);
+    if( poWorkGeom != poGeometry ) delete poWorkGeom;
+
     if (nWritten == 0)
     {
         CPLFree(*ppabyData);
         *ppabyData = NULL;
-        *pnDataLenght = 0;
-        return CE_Failure;
+        *pnDataLength = 0;
+        return OGRERR_FAILURE;
     }
 
     (*ppabyData)[nDataLen - 1] = 0xFE;
@@ -2981,9 +3123,9 @@ OGRErr OGRSQLiteLayer::ExportSpatiaLiteGeometry( const OGRGeometry *poGeometry,
         CPL_SWAP32PTR( *ppabyData + 39 );
     }
 
-    *pnDataLenght = nDataLen;
+    *pnDataLength = nDataLen;
 
-    return CE_None;
+    return OGRERR_NONE;
 }
 
 /************************************************************************/
@@ -3003,12 +3145,12 @@ int OGRSQLiteLayer::TestCapability( const char * pszCap )
         return FALSE;
 
     else if( EQUAL(pszCap,OLCIgnoreFields) )
-        return TRUE; 
+        return TRUE;
 
     else if( EQUAL(pszCap,OLCTransactions) )
         return TRUE;
 
-    else 
+    else
         return FALSE;
 }
 
@@ -3019,7 +3161,7 @@ int OGRSQLiteLayer::TestCapability( const char * pszCap )
 OGRErr OGRSQLiteLayer::StartTransaction()
 
 {
-    return poDS->SoftStartTransaction();
+    return poDS->StartTransaction();
 }
 
 /************************************************************************/
@@ -3029,7 +3171,7 @@ OGRErr OGRSQLiteLayer::StartTransaction()
 OGRErr OGRSQLiteLayer::CommitTransaction()
 
 {
-    return poDS->SoftCommit();
+    return poDS->CommitTransaction();
 }
 
 /************************************************************************/
@@ -3039,7 +3181,7 @@ OGRErr OGRSQLiteLayer::CommitTransaction()
 OGRErr OGRSQLiteLayer::RollbackTransaction()
 
 {
-    return poDS->SoftRollback();
+    return poDS->RollbackTransaction();
 }
 
 /************************************************************************/
@@ -3064,89 +3206,135 @@ void OGRSQLiteLayer::ClearStatement()
 int OGRSQLITEStringToDateTimeField( OGRFeature* poFeature, int iField,
                                     const char* pszValue )
 {
-    int nYear = 0, nMonth = 0, nDay = 0,
-        nHour = 0, nMinute = 0;
-    float fSecond = 0;
+    int nYear = 0;
+    int nMonth = 0;
+    int nDay = 0;
+    int nHour = 0;
+    int nMinute = 0;
+    float fSecond = 0.0f;
 
-    /* YYYY-MM-DD HH:MM:SS or YYYY-MM-DD HH:MM:SS.SSS */
-    nYear = 0; nMonth = 0; nDay = 0; nHour = 0;
-    nMinute = 0; fSecond = 0;
+    /* YYYY-MM-DD HH:MM:SS.SSS */
     if( sscanf(pszValue, "%04d-%02d-%02d %02d:%02d:%f",
+                &nYear, &nMonth, &nDay, &nHour, &nMinute, &fSecond) == 6 ||
+        sscanf(pszValue, "%04d/%02d/%02d %02d:%02d:%f",
+                &nYear, &nMonth, &nDay, &nHour, &nMinute, &fSecond) == 6 ||
+        sscanf(pszValue, "%04d-%02d-%02dT%02d:%02d:%f",
                 &nYear, &nMonth, &nDay, &nHour, &nMinute, &fSecond) == 6 )
     {
         if( poFeature )
             poFeature->SetField( iField, nYear, nMonth,
-                                nDay, nHour, nMinute, (int)(fSecond + 0.5), 0 );
+                                 nDay, nHour, nMinute, fSecond, 0);
         return OFTDateTime;
     }
 
     /* YYYY-MM-DD HH:MM */
-    nYear = 0; nMonth = 0; nDay = 0; nHour = 0;
-    nMinute = 0;
     if( sscanf(pszValue, "%04d-%02d-%02d %02d:%02d",
+                &nYear, &nMonth, &nDay, &nHour, &nMinute) == 5 ||
+        sscanf(pszValue, "%04d/%02d/%02d %02d:%02d",
+                &nYear, &nMonth, &nDay, &nHour, &nMinute) == 5 ||
+        sscanf(pszValue, "%04d-%02d-%02dT%02d:%02d",
                 &nYear, &nMonth, &nDay, &nHour, &nMinute) == 5 )
     {
         if( poFeature )
             poFeature->SetField( iField, nYear, nMonth,
-                                nDay, nHour, nMinute, 0, 0 );
-        return OFTDateTime;
-    }
-
-    /*  YYYY-MM-DDTHH:MM:SS or YYYY-MM-DDTHH:MM:SS.SSS */
-    nYear = 0; nMonth = 0; nDay = 0; nHour = 0;
-    nMinute = 0; fSecond = 0;
-    if( sscanf(pszValue, "%04d-%02d-%02dT%02d:%02d:%f",
-                &nYear, &nMonth, &nDay, &nHour, &nMinute, &fSecond) == 6 )
-    {
-        if( poFeature )
-            poFeature->SetField( iField, nYear, nMonth, nDay,
-                                nHour, nMinute, (int)(fSecond + 0.5), 0 );
-        return OFTDateTime;
-    }
-
-    /* YYYY-MM-DDTHH:MM */
-    nYear = 0; nMonth = 0; nDay = 0; nHour = 0;
-    nMinute = 0;
-    if( sscanf(pszValue, "%04d-%02d-%02dT%02d:%02d",
-                &nYear, &nMonth, &nDay, &nHour, &nMinute) == 5 )
-    {
-        if( poFeature )
-            poFeature->SetField( iField, nYear, nMonth, nDay,
-                                nHour, nMinute, 0, 0 );
+                                 nDay, nHour, nMinute, 0, 0);
         return OFTDateTime;
     }
 
     /* YYYY-MM-DD */
-    nYear = 0; nMonth = 0; nDay = 0;
     if( sscanf(pszValue, "%04d-%02d-%02d",
+                &nYear, &nMonth, &nDay) == 3 ||
+        sscanf(pszValue, "%04d/%02d/%02d",
                 &nYear, &nMonth, &nDay) == 3 )
     {
         if( poFeature )
             poFeature->SetField( iField, nYear, nMonth, nDay,
-                                0, 0, 0, 0 );
+                                 0, 0, 0, 0 );
         return OFTDate;
     }
 
-    /*  HH:MM:SS or HH:MM:SS.SSS */
-    nDay = 0; nHour = 0; fSecond = 0;
+    /*  HH:MM:SS.SSS */
     if( sscanf(pszValue, "%02d:%02d:%f",
         &nHour, &nMinute, &fSecond) == 3 )
     {
         if( poFeature )
             poFeature->SetField( iField, 0, 0, 0,
-                                nHour, nMinute, (int)(fSecond + 0.5), 0 );
+                                 nHour, nMinute, fSecond, 0 );
         return OFTTime;
     }
 
     /*  HH:MM */
-    nHour = 0; nMinute = 0;
     if( sscanf(pszValue, "%02d:%02d", &nHour, &nMinute) == 2 )
     {
         if( poFeature )
             poFeature->SetField( iField, 0, 0, 0,
-                                nHour, nMinute, 0, 0 );
+                                 nHour, nMinute, 0, 0 );
         return OFTTime;
     }
 
     return FALSE;
+}
+
+/************************************************************************/
+/*                     FormatSpatialFilterFromRTree()                   */
+/************************************************************************/
+
+CPLString OGRSQLiteLayer::FormatSpatialFilterFromRTree(OGRGeometry* poFilterGeom,
+                                                       const char* pszRowIDName,
+                                                       const char* pszEscapedTable,
+                                                       const char* pszEscapedGeomCol)
+{
+    CPLString osSpatialWHERE;
+    OGREnvelope  sEnvelope;
+
+    poFilterGeom->getEnvelope( &sEnvelope );
+
+    if( CPLIsInf(sEnvelope.MinX) && sEnvelope.MinX < 0 &&
+        CPLIsInf(sEnvelope.MinY) && sEnvelope.MinY < 0 &&
+        CPLIsInf(sEnvelope.MaxX) && sEnvelope.MaxX > 0 &&
+        CPLIsInf(sEnvelope.MaxY) && sEnvelope.MaxY > 0 )
+        return "";
+
+    osSpatialWHERE.Printf("%s IN ( SELECT pkid FROM 'idx_%s_%s' WHERE "
+                    "xmax >= %s AND xmin <= %s AND ymax >= %s AND ymin <= %s)",
+                    pszRowIDName,
+                    pszEscapedTable,
+                    pszEscapedGeomCol,
+                    // Insure that only Decimal.Points are used, never local settings such as Decimal.Comma.
+                    CPLString().FormatC(sEnvelope.MinX - 1e-11,"%.12f").c_str(),
+                    CPLString().FormatC(sEnvelope.MaxX + 1e-11,"%.12f").c_str(),
+                    CPLString().FormatC(sEnvelope.MinY - 1e-11,"%.12f").c_str(),
+                    CPLString().FormatC(sEnvelope.MaxY + 1e-11,"%.12f").c_str());
+
+    return osSpatialWHERE;
+}
+
+/************************************************************************/
+/*                     FormatSpatialFilterFromMBR()                     */
+/************************************************************************/
+
+CPLString OGRSQLiteLayer::FormatSpatialFilterFromMBR(OGRGeometry* poFilterGeom,
+                                                     const char* pszEscapedGeomColName)
+{
+    CPLString osSpatialWHERE;
+    OGREnvelope  sEnvelope;
+
+    poFilterGeom->getEnvelope( &sEnvelope );
+
+    if( CPLIsInf(sEnvelope.MinX) && sEnvelope.MinX < 0 &&
+        CPLIsInf(sEnvelope.MinY) && sEnvelope.MinY < 0 &&
+        CPLIsInf(sEnvelope.MaxX) && sEnvelope.MaxX > 0 &&
+        CPLIsInf(sEnvelope.MaxY) && sEnvelope.MaxY > 0 )
+        return "";
+
+    /* A bit inefficient but still faster than OGR filtering */
+    osSpatialWHERE.Printf("MBRIntersects(\"%s\", BuildMBR(%s, %s, %s, %s))",
+                    pszEscapedGeomColName,
+                    // Insure that only Decimal.Points are used, never local settings such as Decimal.Comma.
+                    CPLString().FormatC(sEnvelope.MinX - 1e-11,"%.12f").c_str(),
+                    CPLString().FormatC(sEnvelope.MinY - 1e-11,"%.12f").c_str(),
+                    CPLString().FormatC(sEnvelope.MaxX + 1e-11,"%.12f").c_str(),
+                    CPLString().FormatC(sEnvelope.MaxY + 1e-11,"%.12f").c_str());
+
+    return osSpatialWHERE;
 }

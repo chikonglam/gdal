@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_odbc.h 24957 2012-09-23 17:03:30Z rouault $
+ * $Id: ogr_odbc.h 33713 2016-03-12 17:41:57Z goatbar $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Private definitions for OGR/ODBC driver.
@@ -27,8 +27,8 @@
  * DEALINGS IN THE SOFTWARE.
  ****************************************************************************/
 
-#ifndef _OGR_ODBC_H_INCLUDED
-#define _OGR_ODBC_H_INCLUDED
+#ifndef OGR_ODBC_H_INCLUDED
+#define OGR_ODBC_H_INCLUDED
 
 #include "ogrsf_frmts.h"
 #include "cpl_odbc.h"
@@ -39,7 +39,7 @@
 /************************************************************************/
 
 class OGRODBCDataSource;
-    
+
 class OGRODBCLayer : public OGRLayer
 {
   protected:
@@ -51,7 +51,7 @@ class OGRODBCLayer : public OGRLayer
     OGRSpatialReference *poSRS;
     int                 nSRSId;
 
-    int                 iNextShapeId;
+    GIntBig             iNextShapeId;
 
     OGRODBCDataSource    *poDS;
 
@@ -74,8 +74,8 @@ class OGRODBCLayer : public OGRLayer
     virtual OGRFeature *GetNextRawFeature();
     virtual OGRFeature *GetNextFeature();
 
-    virtual OGRFeature *GetFeature( long nFeatureId );
-    
+    virtual OGRFeature *GetFeature( GIntBig nFeatureId );
+
     OGRFeatureDefn *    GetLayerDefn() { return poFeatureDefn; }
 
     virtual OGRSpatialReference *GetSpatialRef();
@@ -107,31 +107,31 @@ class OGRODBCTableLayer : public OGRODBCLayer
                         OGRODBCTableLayer( OGRODBCDataSource * );
                         ~OGRODBCTableLayer();
 
-    CPLErr              Initialize( const char *pszTableName, 
+    CPLErr              Initialize( const char *pszTableName,
                                     const char *pszGeomCol );
 
     virtual void        ResetReading();
-    virtual int         GetFeatureCount( int );
+    virtual GIntBig     GetFeatureCount( int );
 
     virtual OGRErr      SetAttributeFilter( const char * );
 #ifdef notdef
-    virtual OGRErr      SetFeature( OGRFeature *poFeature );
-    virtual OGRErr      CreateFeature( OGRFeature *poFeature );
-    
+    virtual OGRErr      ISetFeature( OGRFeature *poFeature );
+    virtual OGRErr      ICreateFeature( OGRFeature *poFeature );
+
     virtual OGRErr      CreateField( OGRFieldDefn *poField,
                                      int bApproxOK = TRUE );
-#endif    
-    virtual OGRFeature *GetFeature( long nFeatureId );
-    
+#endif
+    virtual OGRFeature *GetFeature( GIntBig nFeatureId );
+
     virtual OGRSpatialReference *GetSpatialRef();
 
     virtual int         TestCapability( const char * );
 
 #ifdef notdef
     // follow methods are not base class overrides
-    void                SetLaunderFlag( int bFlag ) 
+    void                SetLaunderFlag( int bFlag )
                                 { bLaunderColumnNames = bFlag; }
-    void                SetPrecisionFlag( int bFlag ) 
+    void                SetPrecisionFlag( int bFlag )
                                 { bPreservePrecision = bFlag; }
 #endif
 };
@@ -150,16 +150,18 @@ class OGRODBCSelectLayer : public OGRODBCLayer
     virtual CPLODBCStatement *  GetStatement();
 
   public:
-                        OGRODBCSelectLayer( OGRODBCDataSource *, 
+                        OGRODBCSelectLayer( OGRODBCDataSource *,
                                            CPLODBCStatement * );
                         ~OGRODBCSelectLayer();
 
     virtual void        ResetReading();
-    virtual int         GetFeatureCount( int );
+    virtual GIntBig     GetFeatureCount( int );
 
-    virtual OGRFeature *GetFeature( long nFeatureId );
-    
+    virtual OGRFeature *GetFeature( GIntBig nFeatureId );
+
     virtual OGRErr      GetExtent(OGREnvelope *psExtent, int bForce = TRUE);
+    virtual OGRErr      GetExtent(int iGeomField, OGREnvelope *psExtent, int bForce)
+                { return OGRLayer::GetExtent(iGeomField, psExtent, bForce); }
 
     virtual int         TestCapability( const char * );
 };
@@ -172,26 +174,26 @@ class OGRODBCDataSource : public OGRDataSource
 {
     OGRODBCLayer        **papoLayers;
     int                 nLayers;
-    
+
     char               *pszName;
 
     int                 bDSUpdate;
     CPLODBCSession      oSession;
 
     // We maintain a list of known SRID to reduce the number of trips to
-    // the database to get SRSes. 
+    // the database to get SRSes.
     int                 nKnownSRID;
     int                *panSRID;
     OGRSpatialReference **papoSRS;
-    
+
     int                 OpenMDB( const char *, int bUpdate );
-    
+
   public:
                         OGRODBCDataSource();
                         ~OGRODBCDataSource();
 
     int                 Open( const char *, int bUpdate, int bTestOpen );
-    int                 OpenTable( const char *pszTableName, 
+    int                 OpenTable( const char *pszTableName,
                                    const char *pszGeomCol,
                                    int bUpdate );
 
@@ -219,17 +221,15 @@ class OGRODBCDriver : public OGRSFDriver
 {
   public:
                 ~OGRODBCDriver();
-                
+
     const char *GetName();
     OGRDataSource *Open( const char *, int );
 
     virtual OGRDataSource *CreateDataSource( const char *pszName,
                                              char ** = NULL );
-    
+
     int                 TestCapability( const char * );
 };
 
 
-#endif /* ndef _OGR_ODBC_H_INCLUDED */
-
-
+#endif /* ndef OGR_ODBC_H_INCLUDED */

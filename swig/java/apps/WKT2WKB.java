@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: WKT2WKB.java 16344 2009-02-15 00:20:49Z rouault $
+ * $Id: WKT2WKB.java 32865 2016-01-08 21:22:17Z goatbar $
  *
  * Name:     WKT2WKB.java
  * Project:  GDAL Java Interface
@@ -48,9 +48,9 @@ import org.gdal.ogr.Geometry;
 /// </summary> 
 
 public class WKT2WKB {
-        
+
         public static void usage() 
-        { 
+        {
                 System.out.println("usage example: wkt2wkb \"POINT(47.0 19.2)\"");
                 System.exit(-1);
         }

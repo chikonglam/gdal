@@ -33,18 +33,16 @@
 
 CPL_CVSID("$Id$");
 
-                                      
-
 /************************************************************************/
 /*                     GDALTransformGeolocations()                      */
 /************************************************************************/
 
-/** 
+/**
  * Transform locations held in bands.
  *
  * The X/Y and possibly Z values in the identified bands are transformed
  * using a spatial transformer.  The changes values are written back to the
- * source bands so they need to updatable.  
+ * source bands so they need to updatable.
  *
  * @param hXBand the band containing the X locations (usually long/easting).
  * @param hYBand the band containing the Y locations (usually lat/northing).
@@ -60,12 +58,12 @@ CPL_CVSID("$Id$");
  */
 
 CPLErr
-GDALTransformGeolocations( GDALRasterBandH hXBand, 
-                           GDALRasterBandH hYBand, 
+GDALTransformGeolocations( GDALRasterBandH hXBand,
+                           GDALRasterBandH hYBand,
                            GDALRasterBandH hZBand,
-                           GDALTransformerFunc pfnTransformer, 
-                           void *pTransformArg, 
-                           GDALProgressFunc pfnProgress, 
+                           GDALTransformerFunc pfnTransformer,
+                           void *pTransformArg,
+                           GDALProgressFunc pfnProgress,
                            void *pProgressArg,
                            CPL_UNUSED char **papszOptions )
 
@@ -109,16 +107,16 @@ GDALTransformGeolocations( GDALRasterBandH hXBand,
     for( iLine = 0; eErr == CE_None && iLine < nYSize; iLine++ )
     {
         eErr = poXBand->RasterIO( GF_Read, 0, iLine, nXSize, 1,
-                                  padfX, nXSize, 1, GDT_Float64, 0, 0 );
+                                  padfX, nXSize, 1, GDT_Float64, 0, 0, NULL );
         if( eErr == CE_None )
             eErr = poYBand->RasterIO( GF_Read, 0, iLine, nXSize, 1,
-                                      padfY, nXSize, 1, GDT_Float64, 0, 0 );
+                                      padfY, nXSize, 1, GDT_Float64, 0, 0, NULL );
         if( eErr == CE_None && poZBand != NULL )
             eErr = poZBand->RasterIO( GF_Read, 0, iLine, nXSize, 1,
-                                      padfZ, nXSize, 1, GDT_Float64, 0, 0 );
+                                      padfZ, nXSize, 1, GDT_Float64, 0, 0, NULL );
         else
             memset( padfZ, 0, sizeof(double) * nXSize);
-        
+
         if( eErr == CE_None )
         {
             pfnTransformer( pTransformArg, FALSE, nXSize,
@@ -127,18 +125,18 @@ GDALTransformGeolocations( GDALRasterBandH hXBand,
 
         if( eErr == CE_None )
             eErr = poXBand->RasterIO( GF_Write, 0, iLine, nXSize, 1,
-                                      padfX, nXSize, 1, GDT_Float64, 0, 0 );
+                                      padfX, nXSize, 1, GDT_Float64, 0, 0, NULL );
         if( eErr == CE_None )
             eErr = poYBand->RasterIO( GF_Write, 0, iLine, nXSize, 1,
-                                      padfY, nXSize, 1, GDT_Float64, 0, 0 );
+                                      padfY, nXSize, 1, GDT_Float64, 0, 0, NULL );
         if( eErr == CE_None && poZBand != NULL )
             eErr = poZBand->RasterIO( GF_Write, 0, iLine, nXSize, 1,
-                                      padfZ, nXSize, 1, GDT_Float64, 0, 0 );
+                                      padfZ, nXSize, 1, GDT_Float64, 0, 0, NULL );
 
         if( eErr == CE_None )
             pfnProgress( (iLine+1) / (double) nYSize, "", pProgressArg );
     }
-    
+
 /* -------------------------------------------------------------------- */
 /*      Cleanup                                                         */
 /* -------------------------------------------------------------------- */

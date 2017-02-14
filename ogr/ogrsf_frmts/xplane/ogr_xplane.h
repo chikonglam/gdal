@@ -27,8 +27,8 @@
  * DEALINGS IN THE SOFTWARE.
  ****************************************************************************/
 
-#ifndef _OGR_XPLANE_H_INCLUDED
-#define _OGR_XPLANE_H_INCLUDED
+#ifndef OGR_XPLANE_H_INCLUDED
+#define OGR_XPLANE_H_INCLUDED
 
 #include "ogrsf_frmts.h"
 
@@ -46,10 +46,10 @@ class OGRXPlaneLayer : public OGRLayer
     int                nFeatureArraySize;
     int                nFeatureArrayMaxSize;
     int                nFeatureArrayIndex;
-    
+
     OGRFeature**       papoFeatures;
     OGRSpatialReference *poSRS;
-    
+
     OGRXPlaneDataSource* poDS;
 
   protected:
@@ -61,7 +61,7 @@ class OGRXPlaneLayer : public OGRLayer
 
   public:
     virtual                   ~OGRXPlaneLayer();
-    
+
     void                      SetDataSource(OGRXPlaneDataSource* poDS);
 
     void                      SetReader(OGRXPlaneReader* poReader);
@@ -70,9 +70,9 @@ class OGRXPlaneLayer : public OGRLayer
 
     virtual void              ResetReading();
     virtual OGRFeature *      GetNextFeature();
-    virtual OGRFeature *      GetFeature( long nFID );
-    virtual OGRErr            SetNextByIndex( long nIndex );
-    virtual int               GetFeatureCount( int bForce = TRUE );
+    virtual OGRFeature *      GetFeature( GIntBig nFID );
+    virtual OGRErr            SetNextByIndex( GIntBig nIndex );
+    virtual GIntBig           GetFeatureCount( int bForce = TRUE );
 
     virtual OGRFeatureDefn *  GetLayerDefn();
     virtual int               TestCapability( const char * pszCap );
@@ -109,7 +109,7 @@ class OGRXPlaneDataSource : public OGRDataSource
     virtual const char* GetName() { return pszName; }
 
     virtual int         TestCapability( const char * pszCap );
-    
+
     void                ReadWholeFileIfNecessary();
 };
 
@@ -128,4 +128,4 @@ class OGRXPlaneDriver : public OGRSFDriver
 };
 
 
-#endif /* ndef _OGR_XPLANE_H_INCLUDED */
+#endif /* ndef OGR_XPLANE_H_INCLUDED */

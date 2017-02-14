@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: fyba_melding.cpp 27044 2014-03-16 23:41:27Z rouault $
+ * $Id: fyba_melding.cpp 33128 2016-01-23 20:05:32Z rouault $
  *
  * Project:  FYBA Callbacks
  * Purpose:  Needed by FYBA - however we do not want to display most messages
@@ -40,18 +40,15 @@ void LC_Error(short feil_nr, const char *logtx, const char *vartx)
    char *pszFeilmelding;
 
 
+   // Translate all to English.
    // Egen enkel implementasjon av feilhandtering
    /* Hent feilmeldingstekst og strategi */
    strategi = LC_StrError(feil_nr,&pszFeilmelding);
    switch(strategi) {
-      case 2:  sprintf(szErrMsg,"%s","Observer følgende! \n\n");break;
-      case 3:  sprintf(szErrMsg,"%s","Det er oppstått en feil! \n\n");break;
+      case 2:  sprintf(szErrMsg,"%s","Observer fÃ¸lgende! \n\n");break;
+      case 3:  sprintf(szErrMsg,"%s","Det er oppstÃ¥tt en feil! \n\n");break;
       case 4:  sprintf(szErrMsg,"%s","Alvorlig feil avslutt programmet! \n\n");break;
       default: szErrMsg[0]='\0';
-   }
-
-   if (strategi > 2) {
-      Beep(100,500);
    }
 }
 
@@ -60,7 +57,7 @@ void LC_StartMessage(const char *pszFilnavn)
 {
 }
 
-void LC_ShowMessage(double prosent)
+void LC_ShowMessage(double prosent) // TODO: prosent?
 {
 }
 

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrsegukooadatasource.cpp 27729 2014-09-24 00:40:16Z goatbar $
+ * $Id: ogrsegukooadatasource.cpp 31122 2015-10-25 09:28:57Z rouault $
  *
  * Project:  SEG-P1 / UKOOA P1-90 Translator
  * Purpose:  Implements OGRSEGUKOOADataSource class
@@ -31,7 +31,7 @@
 #include "cpl_conv.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: ogrsegukooadatasource.cpp 27729 2014-09-24 00:40:16Z goatbar $");
+CPL_CVSID("$Id: ogrsegukooadatasource.cpp 31122 2015-10-25 09:28:57Z rouault $");
 
 /************************************************************************/
 /*                        OGRSEGUKOOADataSource()                       */
@@ -86,14 +86,9 @@ OGRLayer *OGRSEGUKOOADataSource::GetLayer( int iLayer )
 /*                                Open()                                */
 /************************************************************************/
 
-int OGRSEGUKOOADataSource::Open( const char * pszFilename, int bUpdateIn)
+int OGRSEGUKOOADataSource::Open( const char * pszFilename )
 
 {
-    if (bUpdateIn)
-    {
-        return FALSE;
-    }
-
     pszName = CPLStrdup( pszFilename );
 
     VSILFILE* fp = VSIFOpenL(pszFilename, "rb");
@@ -117,7 +112,7 @@ int OGRSEGUKOOADataSource::Open( const char * pszFilename, int bUpdateIn)
 //      Does this appear to be a UKOOA P1/90 file?
 // --------------------------------------------------------------------
 
-    if (strncmp(pszLine, "H0100 ", 6) == 0)
+    if (STARTS_WITH(pszLine, "H0100 "))
     {
         VSIFSeekL( fp, 0, SEEK_SET );
 

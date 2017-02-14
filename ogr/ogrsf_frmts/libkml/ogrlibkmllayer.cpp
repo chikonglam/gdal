@@ -27,12 +27,12 @@
  * DEALINGS IN THE SOFTWARE.
  *****************************************************************************/
 
+#include "libkml_headers.h"
+
 #include "ogr_libkml.h"
 //#include "cpl_conv.h"
 //#include "cpl_string.h"
 #include "cpl_error.h"
-
-#include <kml/dom.h>
 
 using kmldom::KmlFactory;
 using kmldom::PlacemarkPtr;
@@ -71,7 +71,7 @@ using kmldom::DeletePtr;
 CPLString OGRLIBKMLGetSanitizedNCName(const char* pszName)
 {
     CPLString osName(pszName);
-    /* (Approximate) validation rules for a valic NCName */
+    /* (Approximate) validation rules for a valid NCName */
     for(size_t i = 0; i < osName.size(); i++)
     {
         char ch = osName[i];
@@ -107,10 +107,10 @@ CPLString OGRLIBKMLGetSanitizedNCName(const char* pszName)
                 poKmlContainer  pointer to the kml container of the layer
                 pszFileName     the filename of the layer
                 bNew            true if its a new layer
-                bUpdate         true if the layer is writeable
- 
+                bUpdate         true if the layer is writable
+
  Returns:       nothing
-                
+
 ******************************************************************************/
 
 OGRLIBKMLLayer::OGRLIBKMLLayer ( const char *pszLayerName,
@@ -122,7 +122,7 @@ OGRLIBKMLLayer::OGRLIBKMLLayer ( const char *pszLayerName,
                                  UpdatePtr poKmlUpdate,
                                  const char *pszFileName,
                                  int bNew,
-                                 int bUpdate )
+                                 int bUpdateIn )
 {
 
     m_poStyleTable = NULL;
@@ -130,7 +130,7 @@ OGRLIBKMLLayer::OGRLIBKMLLayer ( const char *pszLayerName,
     nFeatures = 0;
     nFID = 1;
 
-    this->bUpdate = bUpdate;
+    this->bUpdate = bUpdateIn;
     bUpdated = FALSE;
     m_pszName = CPLStrdup ( pszLayerName );
     m_pszFileName = CPLStrdup ( pszFileName );
@@ -140,6 +140,7 @@ OGRLIBKMLLayer::OGRLIBKMLLayer ( const char *pszLayerName,
     m_poOgrSRS->SetWellKnownGeogCS ( "WGS84" );
 
     m_poOgrFeatureDefn = new OGRFeatureDefn ( pszLayerName );
+    SetDescription( m_poOgrFeatureDefn->GetName() );
     m_poOgrFeatureDefn->Reference (  );
     m_poOgrFeatureDefn->SetGeomType ( eGType );
     if( m_poOgrFeatureDefn->GetGeomFieldCount() != 0 )
@@ -148,11 +149,11 @@ OGRLIBKMLLayer::OGRLIBKMLLayer ( const char *pszLayerName,
     /***** store the root element pointer *****/
 
     m_poKmlLayerRoot = poKmlRoot;
-    
+
     /***** store the layers container *****/
 
     m_poKmlLayer = poKmlContainer;
-    
+
     /* update container */
     m_poKmlUpdate = poKmlUpdate;
 
@@ -172,9 +173,11 @@ OGRLIBKMLLayer::OGRLIBKMLLayer ( const char *pszLayerName,
     m_dfRegionMaxY = -200;
 
 
-    m_bReadGroundOverlay = CSLTestBoolean(CPLGetConfigOption("LIBKML_READ_GROUND_OVERLAY", "YES"));
-    m_bUseSimpleField = CSLTestBoolean(CPLGetConfigOption("LIBKML_USE_SIMPLEFIELD", "YES"));
-    
+    m_bReadGroundOverlay = CPLTestBool(
+        CPLGetConfigOption("LIBKML_READ_GROUND_OVERLAY", "YES"));
+    m_bUseSimpleField = CPLTestBool(
+        CPLGetConfigOption("LIBKML_USE_SIMPLEFIELD", "YES"));
+
     m_bUpdateIsFolder = FALSE;
 
     /***** was the layer created from a DS::Open *****/
@@ -183,20 +186,20 @@ OGRLIBKMLLayer::OGRLIBKMLLayer ( const char *pszLayerName,
 
         /***** get the number of features on the layer *****/
 
-        nFeatures = m_poKmlLayer->get_feature_array_size (  );
+        nFeatures = static_cast<int>(m_poKmlLayer->get_feature_array_size (  ));
 
         /***** get the field config *****/
-        
+
         struct fieldconfig oFC;
         get_fieldconfig( &oFC );
 
         /***** name field *****/
-        
+
         OGRFieldDefn oOgrFieldName ( oFC.namefield,OFTString );
         m_poOgrFeatureDefn->AddFieldDefn ( &oOgrFieldName );
 
-        /***** descripton field *****/
-        
+        /***** description field *****/
+
         OGRFieldDefn oOgrFieldDesc ( oFC.descfield, OFTString );
         m_poOgrFeatureDefn->AddFieldDefn ( &oOgrFieldDesc );
 
@@ -344,7 +347,7 @@ OGRLIBKMLLayer::OGRLIBKMLLayer ( const char *pszLayerName,
                     /* Use the <Data> of the first placemark to build the feature definition */
                     /* If others have different fields, too bad... */
                     int bLaunderFieldNames =
-                        CSLTestBoolean(CPLGetConfigOption("LIBKML_LAUNDER_FIELD_NAMES", "YES"));
+                        CPLTestBool(CPLGetConfigOption("LIBKML_LAUNDER_FIELD_NAMES", "YES"));
                     size_t nDataArraySize = poKmlExtendedData->get_data_array_size();
                     for(size_t i=0; i < nDataArraySize; i++)
                     {
@@ -389,9 +392,9 @@ OGRLIBKMLLayer::OGRLIBKMLLayer ( const char *pszLayerName,
  OGRLIBKMLLayer Destructor
 
  Args:          none
- 
+
  Returns:       nothing
-                
+
 ******************************************************************************/
 
 OGRLIBKMLLayer::~OGRLIBKMLLayer (  )
@@ -411,7 +414,7 @@ OGRLIBKMLLayer::~OGRLIBKMLLayer (  )
  Method to get the next feature on the layer
 
  Args:          none
- 
+
  Returns:       The next feature, or NULL if there is no more
 
  this function copyed from the sqlite driver
@@ -420,7 +423,7 @@ OGRLIBKMLLayer::~OGRLIBKMLLayer (  )
 OGRFeature *OGRLIBKMLLayer::GetNextFeature()
 
 {
-    for( ; TRUE; )
+    while( true )
     {
         OGRFeature      *poFeature;
 
@@ -442,9 +445,9 @@ OGRFeature *OGRLIBKMLLayer::GetNextFeature()
  Method to get the next feature on the layer
 
  Args:          none
- 
+
  Returns:       The next feature, or NULL if there is no more
-                
+
 ******************************************************************************/
 
 OGRFeature *OGRLIBKMLLayer::GetNextRawFeature (
@@ -452,7 +455,7 @@ OGRFeature *OGRLIBKMLLayer::GetNextRawFeature (
 {
     FeaturePtr poKmlFeature;
     OGRFeature *poOgrFeature = NULL;
-    
+
     if( m_poKmlLayer == NULL )
         return NULL;
 
@@ -463,7 +466,7 @@ OGRFeature *OGRLIBKMLLayer::GetNextRawFeature (
             break;
 
         /***** get the next kml feature in the container *****/
-        
+
         poKmlFeature = m_poKmlLayer->get_feature_array_at ( iFeature++ );
 
         /***** what type of kml feature in the container? *****/
@@ -474,7 +477,7 @@ OGRFeature *OGRLIBKMLLayer::GetNextRawFeature (
                 poOgrFeature = kml2feat ( AsPlacemark ( poKmlFeature ),
                                           m_poOgrDS, this,
                                           m_poOgrFeatureDefn, m_poOgrSRS );
-                break;    
+                break;
 
             case kmldom::Type_GroundOverlay:
                 if (m_bReadGroundOverlay) {
@@ -485,7 +488,7 @@ OGRFeature *OGRLIBKMLLayer::GetNextRawFeature (
                                                 m_poOgrSRS );
                 }
                 break;
-                
+
             default:
                 break;
 
@@ -494,10 +497,10 @@ OGRFeature *OGRLIBKMLLayer::GetNextRawFeature (
     } while ( !poOgrFeature );
 
     /***** set the FID on the ogr feature *****/
-    
+
     if (poOgrFeature)
         poOgrFeature->SetFID(nFID ++);
-    
+
     return poOgrFeature;
 }
 
@@ -505,13 +508,13 @@ OGRFeature *OGRLIBKMLLayer::GetNextRawFeature (
  method to add a feature to a layer
 
  Args:          poOgrFeat   pointer to the feature to add
- 
+
  Returns:       OGRERR_NONE, or OGRERR_UNSUPPORTED_OPERATION of the layer is
-                not writeable
-                
+                not writable
+
 ******************************************************************************/
 
-OGRErr OGRLIBKMLLayer::CreateFeature (
+OGRErr OGRLIBKMLLayer::ICreateFeature (
     OGRFeature * poOgrFeat )
 {
 
@@ -556,7 +559,7 @@ OGRErr OGRLIBKMLLayer::CreateFeature (
     if( m_poKmlLayer != NULL )
     {
         nFeatures++;
-        
+
         const char* pszId = CPLSPrintf("%s.%d",
                         OGRLIBKMLGetSanitizedNCName(GetName()).c_str(), nFeatures);
         poOgrFeat->SetFID(nFeatures);
@@ -571,12 +574,12 @@ OGRErr OGRLIBKMLLayer::CreateFeature (
             {
                 bAlreadyWarned = TRUE;
                 CPLError(CE_Warning, CPLE_AppDefined,
-                         "It is recommanded to define a FID when calling CreateFeature() in a update document");
+                         "It is recommended to define a FID when calling CreateFeature() in a update document");
             }
         }
         else
         {
-            const char* pszId = CPLSPrintf("%s.%ld",
+            const char* pszId = CPLSPrintf("%s." CPL_FRMT_GIB,
                     OGRLIBKMLGetSanitizedNCName(GetName()).c_str(), poOgrFeat->GetFID());
             poOgrFeat->SetFID(nFeatures);
             poKmlFeature->set_id(pszId);
@@ -596,13 +599,13 @@ OGRErr OGRLIBKMLLayer::CreateFeature (
  method to update a feature to a layer. Only work on a NetworkLinkControl/Update
 
  Args:          poOgrFeat   pointer to the feature to update
- 
+
  Returns:       OGRERR_NONE, or OGRERR_UNSUPPORTED_OPERATION of the layer is
-                not writeable
+                not writable
 
 ******************************************************************************/
 
-OGRErr OGRLIBKMLLayer::SetFeature ( OGRFeature * poOgrFeat )
+OGRErr OGRLIBKMLLayer::ISetFeature ( OGRFeature * poOgrFeat )
 {
     if( !bUpdate || m_poKmlUpdate == NULL )
         return OGRERR_UNSUPPORTED_OPERATION;
@@ -617,8 +620,8 @@ OGRErr OGRLIBKMLLayer::SetFeature ( OGRFeature * poOgrFeat )
     ChangePtr poChange = poKmlFactory->CreateChange();
     poChange->add_object(poKmlFeature);
     m_poKmlUpdate->add_updateoperation(poChange);
-    
-    const char* pszId = CPLSPrintf("%s.%ld",
+
+    const char* pszId = CPLSPrintf("%s." CPL_FRMT_GIB,
                     OGRLIBKMLGetSanitizedNCName(GetName()).c_str(), poOgrFeat->GetFID());
     poKmlFeature->set_targetid(pszId);
 
@@ -634,13 +637,13 @@ OGRErr OGRLIBKMLLayer::SetFeature ( OGRFeature * poOgrFeat )
  method to delete a feature to a layer. Only work on a NetworkLinkControl/Update
 
  Args:          nFID   id of the feature to delete
- 
+
  Returns:       OGRERR_NONE, or OGRERR_UNSUPPORTED_OPERATION of the layer is
-                not writeable
+                not writable
 
 ******************************************************************************/
 
-OGRErr OGRLIBKMLLayer::DeleteFeature( long nFID )
+OGRErr OGRLIBKMLLayer::DeleteFeature( GIntBig nFIDIn )
 {
     if( !bUpdate || m_poKmlUpdate == NULL )
         return OGRERR_UNSUPPORTED_OPERATION;
@@ -650,9 +653,9 @@ OGRErr OGRLIBKMLLayer::DeleteFeature( long nFID )
     m_poKmlUpdate->add_updateoperation(poDelete);
     PlacemarkPtr poKmlPlacemark = poKmlFactory->CreatePlacemark();
     poDelete->add_feature(poKmlPlacemark);
-    
-    const char* pszId = CPLSPrintf("%s.%ld",
-                    OGRLIBKMLGetSanitizedNCName(GetName()).c_str(), nFID);
+
+    const char* pszId = CPLSPrintf("%s." CPL_FRMT_GIB,
+                    OGRLIBKMLGetSanitizedNCName(GetName()).c_str(), nFIDIn);
     poKmlPlacemark->set_targetid(pszId);
 
     /***** mark the layer as updated *****/
@@ -667,26 +670,26 @@ OGRErr OGRLIBKMLLayer::DeleteFeature( long nFID )
  method to get the number of features on the layer
 
  Args:          bForce      no effect as of now
- 
+
  Returns:       the number of features on the layer
 
  Note:          the result can include links, folders and other items that are
                 not supported by OGR
-                
+
 ******************************************************************************/
 
-int OGRLIBKMLLayer::GetFeatureCount (
+GIntBig OGRLIBKMLLayer::GetFeatureCount (
                                      int bForce )
 {
 
 
-    int i = 0; 
+    int i = 0;
     if (m_poFilterGeom != NULL || m_poAttrQuery != NULL ) {
-        i = OGRLayer::GetFeatureCount( bForce );
+        i = static_cast<int>(OGRLayer::GetFeatureCount( bForce ));
     }
 
     else if( m_poKmlLayer != NULL ) {
-        size_t iKmlFeature; 
+        size_t iKmlFeature;
         size_t nKmlFeatures = m_poKmlLayer->get_feature_array_size (  );
         FeaturePtr poKmlFeature;
 
@@ -711,7 +714,7 @@ int OGRLIBKMLLayer::GetFeatureCount (
                 default:
                     break;
 
-            } 
+            }
         }
     }
 
@@ -722,10 +725,10 @@ int OGRLIBKMLLayer::GetFeatureCount (
  GetExtent()
 
  Args:          psExtent    pointer to the Envelope to store the result in
-                bForce      no effect as of now 
- 
+                bForce      no effect as of now
+
  Returns:       nothing
-                
+
 ******************************************************************************/
 
 OGRErr OGRLIBKMLLayer::GetExtent (
@@ -758,7 +761,7 @@ OGRErr OGRLIBKMLLayer::GetExtent (
                 bApproxOK   no effect as of now
 
  Returns:       OGRERR_NONE on success or OGRERR_UNSUPPORTED_OPERATION if the
-                layer is not writeable
+                layer is not writable
 
 ******************************************************************************/
 
@@ -812,7 +815,7 @@ OGRErr OGRLIBKMLLayer::CreateField (
  Args:      none
 
  Returns    nothing
-                
+
 ******************************************************************************/
 
 OGRErr OGRLIBKMLLayer::SyncToDisk (
@@ -824,12 +827,12 @@ OGRErr OGRLIBKMLLayer::SyncToDisk (
 
 /******************************************************************************
  method to get a layers style table
- 
+
  Args:          none
- 
+
  Returns:       pointer to the layers style table, or NULL if it does
                 not have one
-                
+
 ******************************************************************************/
 
 OGRStyleTable *OGRLIBKMLLayer::GetStyleTable (
@@ -841,9 +844,9 @@ OGRStyleTable *OGRLIBKMLLayer::GetStyleTable (
 
 /******************************************************************************
  method to write a style table to a layer
- 
+
  Args:          poStyleTable    pointer to the style table to add
- 
+
  Returns:       nothing
 
  note: this method assumes ownership of the style table
@@ -868,7 +871,7 @@ void OGRLIBKMLLayer::SetStyleTableDirectly (
         /***** delete all the styles *****/
 
         DocumentPtr poKmlDocument = AsDocument ( m_poKmlLayer );
-        size_t nKmlStyles = poKmlDocument->get_schema_array_size (  );
+        int nKmlStyles = static_cast<int>(poKmlDocument->get_schema_array_size (  ));
         int iKmlStyle;
 
         for ( iKmlStyle = nKmlStyles - 1; iKmlStyle >= 0; iKmlStyle-- ) {
@@ -892,12 +895,12 @@ void OGRLIBKMLLayer::SetStyleTableDirectly (
 
 /******************************************************************************
  method to write a style table to a layer
- 
+
  Args:          poStyleTable    pointer to the style table to add
- 
+
  Returns:       nothing
 
- note:  this method copys the style table, and the user will still be
+ note:  This method copies the style table, and the user will still be
         responsible for its destruction
 ******************************************************************************/
 
@@ -919,7 +922,7 @@ void OGRLIBKMLLayer::SetStyleTable (
  Test if capability is available.
 
  Args:          pszCap  layer capability name to test
- 
+
  Returns:       True if the layer supports the capability, otherwise false
 
 ******************************************************************************/
@@ -1160,7 +1163,7 @@ static int LIBKMLGetUnits(const char* pszUnits)
 static void LIBKMLSetVec2(kmldom::Vec2Ptr vec2, const char* pszX, const char* pszY,
                     const char* pszXUnits, const char* pszYUnits)
 {
-    double dfX = CPLAtof(pszX); 
+    double dfX = CPLAtof(pszX);
     double dfY = CPLAtof(pszY);
     vec2->set_x(dfX);
     vec2->set_y(dfY);

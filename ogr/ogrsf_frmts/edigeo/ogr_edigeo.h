@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_edigeo.h 27044 2014-03-16 23:41:27Z rouault $
+ * $Id: ogr_edigeo.h 31777 2015-11-26 14:14:41Z rouault $
  *
  * Project:  EDIGEO Translator
  * Purpose:  Definition of classes for OGR .edigeo driver.
@@ -27,8 +27,8 @@
  * DEALINGS IN THE SOFTWARE.
  ****************************************************************************/
 
-#ifndef _OGR_EDIGEO_H_INCLUDED
-#define _OGR_EDIGEO_H_INCLUDED
+#ifndef OGR_EDIGEO_H_INCLUDED
+#define OGR_EDIGEO_H_INCLUDED
 
 #include "ogrsf_frmts.h"
 #include <vector>
@@ -66,15 +66,16 @@ class OGREDIGEOLayer : public OGRLayer
 
     virtual void                ResetReading();
     virtual OGRFeature *        GetNextFeature();
-    virtual OGRFeature *        GetFeature(long nFID);
-    virtual int                 GetFeatureCount( int bForce );
+    virtual OGRFeature *        GetFeature(GIntBig nFID);
+    virtual GIntBig             GetFeatureCount( int bForce );
 
     virtual OGRFeatureDefn *    GetLayerDefn() { return poFeatureDefn; }
 
     virtual int                 TestCapability( const char * );
 
     virtual OGRErr              GetExtent(OGREnvelope *psExtent, int bForce);
-
+    virtual OGRErr      GetExtent(int iGeomField, OGREnvelope *psExtent, int bForce)
+                { return OGRLayer::GetExtent(iGeomField, psExtent, bForce); }
 
     void                        AddFeature(OGRFeature* poFeature);
 
@@ -119,7 +120,7 @@ class OGREDIGEOObjectDescriptor
 class OGREDIGEOAttributeDescriptor
 {
     public:
-        OGREDIGEOAttributeDescriptor() {}
+        OGREDIGEOAttributeDescriptor() : nWidth(0) {}
 
         CPLString osRID;        /* e.g. TEX2_id */
         CPLString osNameRID;    /* e.g. ID_N_ATT_TEX2 */
@@ -150,6 +151,7 @@ class OGREDIGEODataSource : public OGRDataSource
     VSILFILE*           OpenFile(const char *pszType,
                                  const CPLString& osExt);
 
+    // TODO: Tranlate comments to English.
     CPLString osLON; /* Nom du lot */
     CPLString osGNN; /* Nom du sous-ensemble de données générales */
     CPLString osGON; /* Nom du sous-ensemble de la référence de coordonnées */
@@ -228,8 +230,7 @@ class OGREDIGEODataSource : public OGRDataSource
                         OGREDIGEODataSource();
                         ~OGREDIGEODataSource();
 
-    int                 Open( const char * pszFilename,
-                              int bUpdate );
+    int                 Open( const char * pszFilename );
 
     virtual const char*         GetName() { return pszName; }
 
@@ -241,19 +242,5 @@ class OGREDIGEODataSource : public OGRDataSource
     int                         HasUTF8ContentOnly() { return bHasUTF8ContentOnly; }
 };
 
-/************************************************************************/
-/*                           OGREDIGEODriver                            */
-/************************************************************************/
 
-class OGREDIGEODriver : public OGRSFDriver
-{
-  public:
-                ~OGREDIGEODriver();
-
-    virtual const char*         GetName();
-    virtual OGRDataSource*      Open( const char *, int );
-    virtual int                 TestCapability( const char * );
-};
-
-
-#endif /* ndef _OGR_EDIGEO_H_INCLUDED */
+#endif /* ndef OGR_EDIGEO_H_INCLUDED */

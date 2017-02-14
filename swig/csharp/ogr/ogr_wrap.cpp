@@ -342,6 +342,7 @@ typedef char retStringAndCPLFree;
 #include <iostream>
 using namespace std;
 
+#include "gdal.h"
 #include "ogr_api.h"
 #include "ogr_p.h"
 #include "ogr_core.h"
@@ -349,10 +350,17 @@ using namespace std;
 #include "cpl_string.h"
 #include "ogr_srs_api.h"
 
-#ifdef DEBUG 
+#define FIELD_INDEX_ERROR_TMPL "Invalid field index: '%i'"
+#define FIELD_NAME_ERROR_TMPL "Invalid field name: '%s'"
+
+typedef void GDALMajorObjectShadow;
+
+#ifdef DEBUG
 typedef struct OGRSpatialReferenceHS OSRSpatialReferenceShadow;
+#ifndef SWIGPERL
 typedef struct OGRDriverHS OGRDriverShadow;
 typedef struct OGRDataSourceHS OGRDataSourceShadow;
+#endif
 typedef struct OGRLayerHS OGRLayerShadow;
 typedef struct OGRFeatureHS OGRFeatureShadow;
 typedef struct OGRFeatureDefnHS OGRFeatureDefnShadow;
@@ -362,8 +370,10 @@ typedef struct OGRCoordinateTransformationHS OGRCoordinateTransformationShadow;
 typedef struct OGRFieldDefnHS OGRFieldDefnShadow;
 #else
 typedef void OSRSpatialReferenceShadow;
+#ifndef SWIGPERL
 typedef void OGRDriverShadow;
 typedef void OGRDataSourceShadow;
+#endif
 typedef void OGRLayerShadow;
 typedef void OGRFeatureShadow;
 typedef void OGRFeatureDefnShadow;
@@ -375,10 +385,15 @@ typedef struct OGRStyleTableHS OGRStyleTableShadow;
 typedef struct OGRGeomFieldDefnHS OGRGeomFieldDefnShadow;
 
 
-void VeryQuiteErrorHandler(CPLErr eclass, int code, const char *msg ) {
+void VeryQuietErrorHandler(CPLErr eclass, int code, const char *msg ) {
   /* If the error class is CE_Fatal, we want to have a message issued
      because the CPL support code does an abort() before any exception
      can be generated */
+#if defined(SWIGPERL)
+    AV* error_stack = get_av("Geo::GDAL::error", 0);
+    SV *error = newSVpv(msg, 0);
+    av_push(error_stack, error);
+#endif
   if (eclass == CE_Fatal ) {
     CPLDefaultErrorHandler(eclass, code, msg );
   }
@@ -386,7 +401,7 @@ void VeryQuiteErrorHandler(CPLErr eclass, int code, const char *msg ) {
 
 
 void UseExceptions() {
-  CPLSetErrorHandler( (CPLErrorHandler) VeryQuiteErrorHandler );
+  CPLSetErrorHandler( (CPLErrorHandler) VeryQuietErrorHandler );
 }
 
 void DontUseExceptions() {
@@ -511,6 +526,9 @@ OGRErrMessages( int rc ) {
 SWIGINTERN OGRErr OGRDataSourceShadow_SyncToDisk(OGRDataSourceShadow *self){
     return OGR_DS_SyncToDisk(self);
   }
+SWIGINTERN void OGRDataSourceShadow_FlushCache(OGRDataSourceShadow *self){
+    GDALFlushCache( self );
+  }
 SWIGINTERN OGRLayerShadow *OGRDataSourceShadow_CreateLayer(OGRDataSourceShadow *self,char const *name,OSRSpatialReferenceShadow *srs=NULL,OGRwkbGeometryType geom_type=wkbUnknown,char **options=0){
     OGRLayerShadow* layer = (OGRLayerShadow*) OGR_DS_CreateLayer( self,
 								  name,
@@ -555,6 +573,15 @@ SWIGINTERN void OGRDataSourceShadow_SetStyleTable(OGRDataSourceShadow *self,OGRS
     if( table != NULL )
         OGR_DS_SetStyleTable(self, (OGRStyleTableH) table);
   }
+SWIGINTERN OGRErr OGRDataSourceShadow_StartTransaction(OGRDataSourceShadow *self,int force=FALSE){
+    return GDALDatasetStartTransaction(self, force);
+  }
+SWIGINTERN OGRErr OGRDataSourceShadow_CommitTransaction(OGRDataSourceShadow *self){
+    return GDALDatasetCommitTransaction(self);
+  }
+SWIGINTERN OGRErr OGRDataSourceShadow_RollbackTransaction(OGRDataSourceShadow *self){
+    return GDALDatasetRollbackTransaction(self);
+  }
 SWIGINTERN int OGRLayerShadow_GetRefCount(OGRLayerShadow *self){
     return OGR_L_GetRefCount(self);
   }
@@ -591,13 +618,13 @@ SWIGINTERN char const *OGRLayerShadow_GetGeometryColumn(OGRLayerShadow *self){
 SWIGINTERN char const *OGRLayerShadow_GetFIDColumn(OGRLayerShadow *self){
     return OGR_L_GetFIDColumn(self);
   }
-SWIGINTERN OGRFeatureShadow *OGRLayerShadow_GetFeature(OGRLayerShadow *self,long fid){
+SWIGINTERN OGRFeatureShadow *OGRLayerShadow_GetFeature(OGRLayerShadow *self,GIntBig fid){
     return (OGRFeatureShadow*) OGR_L_GetFeature(self, fid);
   }
 SWIGINTERN OGRFeatureShadow *OGRLayerShadow_GetNextFeature(OGRLayerShadow *self){
     return (OGRFeatureShadow*) OGR_L_GetNextFeature(self);
   }
-SWIGINTERN OGRErr OGRLayerShadow_SetNextByIndex(OGRLayerShadow *self,long new_index){
+SWIGINTERN OGRErr OGRLayerShadow_SetNextByIndex(OGRLayerShadow *self,GIntBig new_index){
     return OGR_L_SetNextByIndex(self, new_index);
   }
 SWIGINTERN OGRErr OGRLayerShadow_SetFeature(OGRLayerShadow *self,OGRFeatureShadow *feature){
@@ -606,7 +633,7 @@ SWIGINTERN OGRErr OGRLayerShadow_SetFeature(OGRLayerShadow *self,OGRFeatureShado
 SWIGINTERN OGRErr OGRLayerShadow_CreateFeature(OGRLayerShadow *self,OGRFeatureShadow *feature){
     return OGR_L_CreateFeature(self, feature);
   }
-SWIGINTERN OGRErr OGRLayerShadow_DeleteFeature(OGRLayerShadow *self,long fid){
+SWIGINTERN OGRErr OGRLayerShadow_DeleteFeature(OGRLayerShadow *self,GIntBig fid){
     return OGR_L_DeleteFeature(self, fid);
   }
 SWIGINTERN OGRErr OGRLayerShadow_SyncToDisk(OGRLayerShadow *self){
@@ -615,7 +642,7 @@ SWIGINTERN OGRErr OGRLayerShadow_SyncToDisk(OGRLayerShadow *self){
 SWIGINTERN OGRFeatureDefnShadow *OGRLayerShadow_GetLayerDefn(OGRLayerShadow *self){
     return (OGRFeatureDefnShadow*) OGR_L_GetLayerDefn(self);
   }
-SWIGINTERN int OGRLayerShadow_GetFeatureCount(OGRLayerShadow *self,int force=1){
+SWIGINTERN GIntBig OGRLayerShadow_GetFeatureCount(OGRLayerShadow *self,int force=1){
     return OGR_L_GetFeatureCount(self, force);
   }
 SWIGINTERN OGRErr OGRLayerShadow_GetExtent(OGRLayerShadow *self,OGREnvelope *extent,int force=1){
@@ -726,11 +753,11 @@ SWIGINTERN OGRErr OGRFeatureShadow_SetGeomField__SWIG_1(OGRFeatureShadow *self,c
       int iField = OGR_F_GetGeomFieldIndex(self, name);
       if (iField == -1)
       {
-        CPLError(CE_Failure, 1, "No such field: '%s'", name);
-        return 6;
+          CPLError(CE_Failure, 1, FIELD_NAME_ERROR_TMPL, name);
+          return 6;
       }
       else
-        return OGR_F_SetGeomField(self, iField, geom);
+          return OGR_F_SetGeomField(self, iField, geom);
   }
 SWIGINTERN OGRErr OGRFeatureShadow_SetGeomFieldDirectly__SWIG_0(OGRFeatureShadow *self,int iField,OGRGeometryShadow *geom){
     return OGR_F_SetGeomFieldDirectly(self, iField, geom);
@@ -739,24 +766,24 @@ SWIGINTERN OGRErr OGRFeatureShadow_SetGeomFieldDirectly__SWIG_1(OGRFeatureShadow
       int iField = OGR_F_GetGeomFieldIndex(self, name);
       if (iField == -1)
       {
-        CPLError(CE_Failure, 1, "No such field: '%s'", name);
-        return 6;
+          CPLError(CE_Failure, 1, FIELD_NAME_ERROR_TMPL, name);
+          return 6;
       }
       else
-        return OGR_F_SetGeomFieldDirectly(self, iField, geom);
+          return OGR_F_SetGeomFieldDirectly(self, iField, geom);
   }
 SWIGINTERN OGRGeometryShadow *OGRFeatureShadow_GetGeomFieldRef__SWIG_0(OGRFeatureShadow *self,int iField){
     return (OGRGeometryShadow*) OGR_F_GetGeomFieldRef(self, iField);
   }
 SWIGINTERN OGRGeometryShadow *OGRFeatureShadow_GetGeomFieldRef__SWIG_1(OGRFeatureShadow *self,char const *name){
-    int i = OGR_F_GetGeomFieldIndex(self, name);
-    if (i == -1)
-    {
-      CPLError(CE_Failure, 1, "No such field: '%s'", name);
-      return NULL;
-    }
-    else
-      return (OGRGeometryShadow*) OGR_F_GetGeomFieldRef(self, i);
+      int i = OGR_F_GetGeomFieldIndex(self, name);
+      if (i == -1)
+      {
+          CPLError(CE_Failure, 1, FIELD_NAME_ERROR_TMPL, name);
+          return NULL;
+      }
+      else
+          return (OGRGeometryShadow*) OGR_F_GetGeomFieldRef(self, i);
   }
 SWIGINTERN OGRFeatureShadow *OGRFeatureShadow_Clone(OGRFeatureShadow *self){
     return (OGRFeatureShadow*) OGR_F_Clone(self);
@@ -773,23 +800,23 @@ SWIGINTERN OGRFieldDefnShadow *OGRFeatureShadow_GetFieldDefnRef__SWIG_0(OGRFeatu
 SWIGINTERN OGRFieldDefnShadow *OGRFeatureShadow_GetFieldDefnRef__SWIG_1(OGRFeatureShadow *self,char const *name){
       int i = OGR_F_GetFieldIndex(self, name);
       if (i == -1)
-	  CPLError(CE_Failure, 1, "No such field: '%s'", name);
+          CPLError(CE_Failure, 1, FIELD_NAME_ERROR_TMPL, name);
       else
-	  return (OGRFieldDefnShadow *) OGR_F_GetFieldDefnRef(self, i);
+          return (OGRFieldDefnShadow *) OGR_F_GetFieldDefnRef(self, i);
       return NULL;
   }
 SWIGINTERN int OGRFeatureShadow_GetGeomFieldCount(OGRFeatureShadow *self){
     return OGR_F_GetGeomFieldCount(self);
   }
 SWIGINTERN OGRGeomFieldDefnShadow *OGRFeatureShadow_GetGeomFieldDefnRef__SWIG_0(OGRFeatureShadow *self,int id){
-    return (OGRGeomFieldDefnShadow *) OGR_F_GetGeomFieldDefnRef(self, id);
+      return (OGRGeomFieldDefnShadow *) OGR_F_GetGeomFieldDefnRef(self, id);
   }
 SWIGINTERN OGRGeomFieldDefnShadow *OGRFeatureShadow_GetGeomFieldDefnRef__SWIG_1(OGRFeatureShadow *self,char const *name){
       int i = OGR_F_GetGeomFieldIndex(self, name);
       if (i == -1)
-      CPLError(CE_Failure, 1, "No such field: '%s'", name);
+          CPLError(CE_Failure, 1, FIELD_NAME_ERROR_TMPL, name);
       else
-      return (OGRGeomFieldDefnShadow *) OGR_F_GetGeomFieldDefnRef(self, i);
+          return (OGRGeomFieldDefnShadow *) OGR_F_GetGeomFieldDefnRef(self, i);
       return NULL;
   }
 SWIGINTERN char const *OGRFeatureShadow_GetFieldAsString__SWIG_0(OGRFeatureShadow *self,int id){
@@ -798,7 +825,7 @@ SWIGINTERN char const *OGRFeatureShadow_GetFieldAsString__SWIG_0(OGRFeatureShado
 SWIGINTERN char const *OGRFeatureShadow_GetFieldAsString__SWIG_1(OGRFeatureShadow *self,char const *name){
       int i = OGR_F_GetFieldIndex(self, name);
       if (i == -1)
-	  CPLError(CE_Failure, 1, "No such field: '%s'", name);
+	  CPLError(CE_Failure, 1, FIELD_NAME_ERROR_TMPL, name);
       else
 	  return (const char *) OGR_F_GetFieldAsString(self, i);
       return NULL;
@@ -809,9 +836,20 @@ SWIGINTERN int OGRFeatureShadow_GetFieldAsInteger__SWIG_0(OGRFeatureShadow *self
 SWIGINTERN int OGRFeatureShadow_GetFieldAsInteger__SWIG_1(OGRFeatureShadow *self,char const *name){
       int i = OGR_F_GetFieldIndex(self, name);
       if (i == -1)
-	  CPLError(CE_Failure, 1, "No such field: '%s'", name);
+	  CPLError(CE_Failure, 1, FIELD_NAME_ERROR_TMPL, name);
       else
 	  return OGR_F_GetFieldAsInteger(self, i);
+      return 0;
+  }
+SWIGINTERN GIntBig OGRFeatureShadow_GetFieldAsInteger64__SWIG_0(OGRFeatureShadow *self,int id){
+    return OGR_F_GetFieldAsInteger64(self, id);
+  }
+SWIGINTERN GIntBig OGRFeatureShadow_GetFieldAsInteger64__SWIG_1(OGRFeatureShadow *self,char const *name){
+      int i = OGR_F_GetFieldIndex(self, name);
+      if (i == -1)
+          CPLError(CE_Failure, 1, FIELD_NAME_ERROR_TMPL, name);
+      else
+          return OGR_F_GetFieldAsInteger64(self, i);
       return 0;
   }
 SWIGINTERN double OGRFeatureShadow_GetFieldAsDouble__SWIG_0(OGRFeatureShadow *self,int id){
@@ -820,14 +858,23 @@ SWIGINTERN double OGRFeatureShadow_GetFieldAsDouble__SWIG_0(OGRFeatureShadow *se
 SWIGINTERN double OGRFeatureShadow_GetFieldAsDouble__SWIG_1(OGRFeatureShadow *self,char const *name){
       int i = OGR_F_GetFieldIndex(self, name);
       if (i == -1)
-	  CPLError(CE_Failure, 1, "No such field: '%s'", name);
+          CPLError(CE_Failure, 1, FIELD_NAME_ERROR_TMPL, name);
       else
-	  return OGR_F_GetFieldAsDouble(self, i);
+          return OGR_F_GetFieldAsDouble(self, i);
       return 0;
   }
-SWIGINTERN void OGRFeatureShadow_GetFieldAsDateTime(OGRFeatureShadow *self,int id,int *pnYear,int *pnMonth,int *pnDay,int *pnHour,int *pnMinute,int *pnSecond,int *pnTZFlag){
-      OGR_F_GetFieldAsDateTime(self, id, pnYear, pnMonth, pnDay,
-			       pnHour, pnMinute, pnSecond,
+SWIGINTERN void OGRFeatureShadow_GetFieldAsDateTime__SWIG_0(OGRFeatureShadow *self,int id,int *pnYear,int *pnMonth,int *pnDay,int *pnHour,int *pnMinute,float *pfSecond,int *pnTZFlag){
+      OGR_F_GetFieldAsDateTimeEx(self, id, pnYear, pnMonth, pnDay,
+			       pnHour, pnMinute, pfSecond,
+			       pnTZFlag);
+  }
+SWIGINTERN void OGRFeatureShadow_GetFieldAsDateTime__SWIG_1(OGRFeatureShadow *self,char const *name,int *pnYear,int *pnMonth,int *pnDay,int *pnHour,int *pnMinute,float *pfSecond,int *pnTZFlag){
+      int id = OGR_F_GetFieldIndex(self, name);
+      if (id == -1)
+	  CPLError(CE_Failure, 1, FIELD_NAME_ERROR_TMPL, name);
+      else
+	  OGR_F_GetFieldAsDateTimeEx(self, id, pnYear, pnMonth, pnDay,
+			       pnHour, pnMinute, pfSecond,
 			       pnTZFlag);
   }
 SWIGINTERN int const *OGRFeatureShadow_GetFieldAsIntegerList(OGRFeatureShadow *self,int id,int *count){
@@ -845,21 +892,23 @@ SWIGINTERN bool OGRFeatureShadow_IsFieldSet__SWIG_0(OGRFeatureShadow *self,int i
 SWIGINTERN bool OGRFeatureShadow_IsFieldSet__SWIG_1(OGRFeatureShadow *self,char const *name){
       int i = OGR_F_GetFieldIndex(self, name);
       if (i == -1)
-	  CPLError(CE_Failure, 1, "No such field: '%s'", name);
+	  CPLError(CE_Failure, 1, FIELD_NAME_ERROR_TMPL, name);
       else
 	  return (OGR_F_IsFieldSet(self, i) > 0);
       return false;
   }
 SWIGINTERN int OGRFeatureShadow_GetFieldIndex(OGRFeatureShadow *self,char const *name){
+      // Do not issue an error if the field doesn't exist. It is intended to be silent
       return OGR_F_GetFieldIndex(self, name);
   }
 SWIGINTERN int OGRFeatureShadow_GetGeomFieldIndex(OGRFeatureShadow *self,char const *name){
+      // Do not issue an error if the field doesn't exist. It is intended to be silent
       return OGR_F_GetGeomFieldIndex(self, name);
   }
-SWIGINTERN int OGRFeatureShadow_GetFID(OGRFeatureShadow *self){
+SWIGINTERN GIntBig OGRFeatureShadow_GetFID(OGRFeatureShadow *self){
     return OGR_F_GetFID(self);
   }
-SWIGINTERN OGRErr OGRFeatureShadow_SetFID(OGRFeatureShadow *self,int fid){
+SWIGINTERN OGRErr OGRFeatureShadow_SetFID(OGRFeatureShadow *self,GIntBig fid){
     return OGR_F_SetFID(self, fid);
   }
 SWIGINTERN void OGRFeatureShadow_DumpReadable(OGRFeatureShadow *self){
@@ -871,9 +920,9 @@ SWIGINTERN void OGRFeatureShadow_UnsetField__SWIG_0(OGRFeatureShadow *self,int i
 SWIGINTERN void OGRFeatureShadow_UnsetField__SWIG_1(OGRFeatureShadow *self,char const *name){
       int i = OGR_F_GetFieldIndex(self, name);
       if (i == -1)
-	  CPLError(CE_Failure, 1, "No such field: '%s'", name);
+          CPLError(CE_Failure, 1, FIELD_NAME_ERROR_TMPL, name);
       else
-	  OGR_F_UnsetField(self, i);
+          OGR_F_UnsetField(self, i);
   }
 SWIGINTERN void OGRFeatureShadow_SetField__SWIG_0(OGRFeatureShadow *self,int id,char const *value){
     OGR_F_SetFieldString(self, id, value);
@@ -881,9 +930,12 @@ SWIGINTERN void OGRFeatureShadow_SetField__SWIG_0(OGRFeatureShadow *self,int id,
 SWIGINTERN void OGRFeatureShadow_SetField__SWIG_1(OGRFeatureShadow *self,char const *name,char const *value){
       int i = OGR_F_GetFieldIndex(self, name);
       if (i == -1)
-	  CPLError(CE_Failure, 1, "No such field: '%s'", name);
+          CPLError(CE_Failure, 1, FIELD_NAME_ERROR_TMPL, name);
       else
-	  OGR_F_SetFieldString(self, i, value);
+          OGR_F_SetFieldString(self, i, value);
+  }
+SWIGINTERN void OGRFeatureShadow_SetFieldInteger64(OGRFeatureShadow *self,int id,GIntBig value){
+    OGR_F_SetFieldInteger64(self, id, value);
   }
 SWIGINTERN void OGRFeatureShadow_SetField__SWIG_2(OGRFeatureShadow *self,int id,int value){
     OGR_F_SetFieldInteger(self, id, value);
@@ -891,7 +943,7 @@ SWIGINTERN void OGRFeatureShadow_SetField__SWIG_2(OGRFeatureShadow *self,int id,
 SWIGINTERN void OGRFeatureShadow_SetField__SWIG_3(OGRFeatureShadow *self,char const *name,int value){
       int i = OGR_F_GetFieldIndex(self, name);
       if (i == -1)
-	  CPLError(CE_Failure, 1, "No such field: '%s'", name);
+	  CPLError(CE_Failure, 1, FIELD_NAME_ERROR_TMPL, name);
       else
 	  OGR_F_SetFieldInteger(self, i, value);
   }
@@ -901,22 +953,22 @@ SWIGINTERN void OGRFeatureShadow_SetField__SWIG_4(OGRFeatureShadow *self,int id,
 SWIGINTERN void OGRFeatureShadow_SetField__SWIG_5(OGRFeatureShadow *self,char const *name,double value){
       int i = OGR_F_GetFieldIndex(self, name);
       if (i == -1)
-	  CPLError(CE_Failure, 1, "No such field: '%s'", name);
+	  CPLError(CE_Failure, 1, FIELD_NAME_ERROR_TMPL, name);
       else
 	  OGR_F_SetFieldDouble(self, i, value);
   }
-SWIGINTERN void OGRFeatureShadow_SetField__SWIG_6(OGRFeatureShadow *self,int id,int year,int month,int day,int hour,int minute,int second,int tzflag){
-    OGR_F_SetFieldDateTime(self, id, year, month, day,
-                             hour, minute, second, 
+SWIGINTERN void OGRFeatureShadow_SetField__SWIG_6(OGRFeatureShadow *self,int id,int year,int month,int day,int hour,int minute,float second,int tzflag){
+    OGR_F_SetFieldDateTimeEx(self, id, year, month, day,
+                             hour, minute, second,
                              tzflag);
   }
-SWIGINTERN void OGRFeatureShadow_SetField__SWIG_7(OGRFeatureShadow *self,char const *name,int year,int month,int day,int hour,int minute,int second,int tzflag){
+SWIGINTERN void OGRFeatureShadow_SetField__SWIG_7(OGRFeatureShadow *self,char const *name,int year,int month,int day,int hour,int minute,float second,int tzflag){
       int i = OGR_F_GetFieldIndex(self, name);
       if (i == -1)
-	  CPLError(CE_Failure, 1, "No such field: '%s'", name);
+	  CPLError(CE_Failure, 1, FIELD_NAME_ERROR_TMPL, name);
       else
-	  OGR_F_SetFieldDateTime(self, i, year, month, day,
-				 hour, minute, second, 
+	  OGR_F_SetFieldDateTimeEx(self, i, year, month, day,
+				 hour, minute, second,
 				 tzflag);
   }
 SWIGINTERN void OGRFeatureShadow_SetFieldIntegerList(OGRFeatureShadow *self,int id,int nList,int *pList){
@@ -937,13 +989,13 @@ SWIGINTERN void OGRFeatureShadow_SetFieldBinaryFromHexString__SWIG_0(OGRFeatureS
 SWIGINTERN void OGRFeatureShadow_SetFieldBinaryFromHexString__SWIG_1(OGRFeatureShadow *self,char const *name,char const *pszValue){
       int i = OGR_F_GetFieldIndex(self, name);
       if (i == -1)
-        CPLError(CE_Failure, 1, "No such field: '%s'", name);
+          CPLError(CE_Failure, 1, FIELD_NAME_ERROR_TMPL, name);
       else
       {
-        int nBytes;
-        GByte* pabyBuf = CPLHexToBinary(pszValue, &nBytes );
-        OGR_F_SetFieldBinary(self, i, nBytes, pabyBuf);
-        CPLFree(pabyBuf);
+          int nBytes;
+          GByte* pabyBuf = CPLHexToBinary(pszValue, &nBytes );
+          OGR_F_SetFieldBinary(self, i, nBytes, pabyBuf);
+          CPLFree(pabyBuf);
       }
   }
 SWIGINTERN OGRErr OGRFeatureShadow_SetFrom(OGRFeatureShadow *self,OGRFeatureShadow *other,int forgiving=1){
@@ -965,17 +1017,37 @@ SWIGINTERN void OGRFeatureShadow_SetStyleString(OGRFeatureShadow *self,char cons
     OGR_F_SetStyleString(self, the_string);
   }
 SWIGINTERN OGRFieldType OGRFeatureShadow_GetFieldType__SWIG_0(OGRFeatureShadow *self,int id){
-    return (OGRFieldType) OGR_Fld_GetType( OGR_F_GetFieldDefnRef( self, id));
+      OGRFieldDefnH fd = OGR_F_GetFieldDefnRef( self,  id );
+      if (fd)
+          return (OGRFieldType) OGR_Fld_GetType( fd );
+      else
+          return (OGRFieldType)0;
   }
 SWIGINTERN OGRFieldType OGRFeatureShadow_GetFieldType__SWIG_1(OGRFeatureShadow *self,char const *name){
       int i = OGR_F_GetFieldIndex(self, name);
       if (i == -1) {
-	  CPLError(CE_Failure, 1, "No such field: '%s'", name);
-	  return (OGRFieldType)0;
+          CPLError(CE_Failure, 1, FIELD_NAME_ERROR_TMPL, name);
+          return (OGRFieldType)0;
       } else
-	  return (OGRFieldType) OGR_Fld_GetType( 
-	      OGR_F_GetFieldDefnRef( self,  i )
-	      );
+          return (OGRFieldType) OGR_Fld_GetType( OGR_F_GetFieldDefnRef( self, i ) );
+  }
+SWIGINTERN int OGRFeatureShadow_Validate(OGRFeatureShadow *self,int flags=OGR_F_VAL_ALL,int bEmitError=TRUE){
+    return OGR_F_Validate(self, flags, bEmitError);
+  }
+SWIGINTERN void OGRFeatureShadow_FillUnsetWithDefault(OGRFeatureShadow *self,int bNotNullableOnly=FALSE,char **options=NULL){
+    OGR_F_FillUnsetWithDefault(self, bNotNullableOnly, options );
+  }
+SWIGINTERN char const *OGRFeatureShadow_GetNativeData(OGRFeatureShadow *self){
+    return OGR_F_GetNativeData(self);
+  }
+SWIGINTERN char const *OGRFeatureShadow_GetNativeMediaType(OGRFeatureShadow *self){
+    return OGR_F_GetNativeMediaType(self);
+  }
+SWIGINTERN void OGRFeatureShadow_SetNativeData(OGRFeatureShadow *self,char const *nativeData){
+    OGR_F_SetNativeData(self, nativeData);
+  }
+SWIGINTERN void OGRFeatureShadow_SetNativeMediaType(OGRFeatureShadow *self,char const *nativeMediaType){
+    OGR_F_SetNativeMediaType(self, nativeMediaType);
   }
 
     static int ValidateOGRGeometryType(OGRwkbGeometryType field_type)
@@ -990,8 +1062,18 @@ SWIGINTERN OGRFieldType OGRFeatureShadow_GetFieldType__SWIG_1(OGRFeatureShadow *
             case wkbMultiLineString:
             case wkbMultiPolygon:
             case wkbGeometryCollection:
+            case wkbCircularString:
+            case wkbCompoundCurve:
+            case wkbCurvePolygon:
+            case wkbMultiCurve:
+            case wkbMultiSurface:
             case wkbNone:
             /*case wkbLinearRing:*/
+            case wkbCircularStringZ:
+            case wkbCompoundCurveZ:
+            case wkbCurvePolygonZ:
+            case wkbMultiCurveZ:
+            case wkbMultiSurfaceZ:
             case wkbPoint25D:
             case wkbLineString25D:
             case wkbPolygon25D:
@@ -999,6 +1081,30 @@ SWIGINTERN OGRFieldType OGRFeatureShadow_GetFieldType__SWIG_1(OGRFeatureShadow *
             case wkbMultiLineString25D:
             case wkbMultiPolygon25D:
             case wkbGeometryCollection25D:
+            case wkbPointM:
+            case wkbLineStringM:
+            case wkbPolygonM:
+            case wkbMultiPointM:
+            case wkbMultiLineStringM:
+            case wkbMultiPolygonM:
+            case wkbGeometryCollectionM:
+            case wkbCircularStringM:
+            case wkbCompoundCurveM:
+            case wkbCurvePolygonM:
+            case wkbMultiCurveM:
+            case wkbMultiSurfaceM:
+            case wkbPointZM:
+            case wkbLineStringZM:
+            case wkbPolygonZM:
+            case wkbMultiPointZM:
+            case wkbMultiLineStringZM:
+            case wkbMultiPolygonZM:
+            case wkbGeometryCollectionZM:
+            case wkbCircularStringZM:
+            case wkbCompoundCurveZM:
+            case wkbCurvePolygonZM:
+            case wkbMultiCurveZM:
+            case wkbMultiSurfaceZM:
                 return TRUE;
             default:
                 CPLError(CE_Failure, CPLE_IllegalArg, "Illegal geometry type value");
@@ -1025,6 +1131,7 @@ SWIGINTERN OGRFieldDefnShadow *OGRFeatureDefnShadow_GetFieldDefn(OGRFeatureDefnS
     return (OGRFieldDefnShadow*) OGR_FD_GetFieldDefn(self, i);
   }
 SWIGINTERN int OGRFeatureDefnShadow_GetFieldIndex(OGRFeatureDefnShadow *self,char const *name){
+      // Do not issue an error if the field doesn't exist. It is intended to be silent
       return OGR_FD_GetFieldIndex(self, name);
   }
 SWIGINTERN void OGRFeatureDefnShadow_AddFieldDefn(OGRFeatureDefnShadow *self,OGRFieldDefnShadow *defn){
@@ -1037,6 +1144,7 @@ SWIGINTERN OGRGeomFieldDefnShadow *OGRFeatureDefnShadow_GetGeomFieldDefn(OGRFeat
     return (OGRGeomFieldDefnShadow*) OGR_FD_GetGeomFieldDefn(self, i);
   }
 SWIGINTERN int OGRFeatureDefnShadow_GetGeomFieldIndex(OGRFeatureDefnShadow *self,char const *name){
+      // Do not issue an error if the field doesn't exist. It is intended to be silent
       return OGR_FD_GetGeomFieldIndex(self, name);
   }
 SWIGINTERN void OGRFeatureDefnShadow_AddGeomFieldDefn(OGRFeatureDefnShadow *self,OGRGeomFieldDefnShadow *defn){
@@ -1085,9 +1193,27 @@ SWIGINTERN int OGRFeatureDefnShadow_IsSame(OGRFeatureDefnShadow *self,OGRFeature
             case OFTDate:
             case OFTTime:
             case OFTDateTime:
+            case OFTInteger64:
+            case OFTInteger64List:
                 return TRUE;
             default:
                 CPLError(CE_Failure, CPLE_IllegalArg, "Illegal field type value");
+                return FALSE;
+        }
+    }
+
+
+    static int ValidateOGRFieldSubType(OGRFieldSubType field_subtype)
+    {
+        switch(field_subtype)
+        {
+            case OFSTNone:
+            case OFSTBoolean:
+            case OFSTInt16:
+            case OFSTFloat32:
+                return TRUE;
+            default:
+                CPLError(CE_Failure, CPLE_IllegalArg, "Illegal field subtype value");
                 return FALSE;
         }
     }
@@ -1117,6 +1243,13 @@ SWIGINTERN void OGRFieldDefnShadow_SetType(OGRFieldDefnShadow *self,OGRFieldType
     if (ValidateOGRFieldType(type))
         OGR_Fld_SetType(self, type);
   }
+SWIGINTERN OGRFieldSubType OGRFieldDefnShadow_GetSubType(OGRFieldDefnShadow *self){
+    return OGR_Fld_GetSubType(self);
+  }
+SWIGINTERN void OGRFieldDefnShadow_SetSubType(OGRFieldDefnShadow *self,OGRFieldSubType type){
+    if (ValidateOGRFieldSubType(type))
+        OGR_Fld_SetSubType(self, type);
+  }
 SWIGINTERN OGRJustification OGRFieldDefnShadow_GetJustify(OGRFieldDefnShadow *self){
     return OGR_Fld_GetJustify(self);
   }
@@ -1145,7 +1278,22 @@ SWIGINTERN int OGRFieldDefnShadow_IsIgnored(OGRFieldDefnShadow *self){
     return OGR_Fld_IsIgnored( self );
   }
 SWIGINTERN void OGRFieldDefnShadow_SetIgnored(OGRFieldDefnShadow *self,int bIgnored){
-    return OGR_Fld_SetIgnored( self, bIgnored );
+    OGR_Fld_SetIgnored( self, bIgnored );
+  }
+SWIGINTERN int OGRFieldDefnShadow_IsNullable(OGRFieldDefnShadow *self){
+    return OGR_Fld_IsNullable( self );
+  }
+SWIGINTERN void OGRFieldDefnShadow_SetNullable(OGRFieldDefnShadow *self,int bNullable){
+    OGR_Fld_SetNullable( self, bNullable );
+  }
+SWIGINTERN char const *OGRFieldDefnShadow_GetDefault(OGRFieldDefnShadow *self){
+    return OGR_Fld_GetDefault( self );
+  }
+SWIGINTERN void OGRFieldDefnShadow_SetDefault(OGRFieldDefnShadow *self,char const *pszValue){
+    OGR_Fld_SetDefault( self, pszValue );
+  }
+SWIGINTERN int OGRFieldDefnShadow_IsDefaultDriverSpecific(OGRFieldDefnShadow *self){
+    return OGR_Fld_IsDefaultDriverSpecific( self );
   }
 SWIGINTERN void delete_OGRGeomFieldDefnShadow(OGRGeomFieldDefnShadow *self){
     OGR_GFld_Destroy(self);
@@ -1187,8 +1335,14 @@ SWIGINTERN int OGRGeomFieldDefnShadow_IsIgnored(OGRGeomFieldDefnShadow *self){
 SWIGINTERN void OGRGeomFieldDefnShadow_SetIgnored(OGRGeomFieldDefnShadow *self,int bIgnored){
     OGR_GFld_SetIgnored( self, bIgnored );
   }
+SWIGINTERN int OGRGeomFieldDefnShadow_IsNullable(OGRGeomFieldDefnShadow *self){
+    return OGR_GFld_IsNullable( self );
+  }
+SWIGINTERN void OGRGeomFieldDefnShadow_SetNullable(OGRGeomFieldDefnShadow *self,int bNullable){
+    return OGR_GFld_SetNullable( self, bNullable );
+  }
 
-  OGRGeometryShadow* CreateGeometryFromWkb( int len, char *bin_string, 
+  OGRGeometryShadow* CreateGeometryFromWkb( int len, char *bin_string,
                                             OSRSpatialReferenceShadow *reference=NULL ) {
     OGRGeometryH geom = NULL;
     OGRErr err = OGR_G_CreateFromWkb( (unsigned char *) bin_string,
@@ -1201,10 +1355,10 @@ SWIGINTERN void OGRGeomFieldDefnShadow_SetIgnored(OGRGeomFieldDefnShadow *self,i
     }
     return (OGRGeometryShadow*) geom;
   }
- 
 
 
-  OGRGeometryShadow* CreateGeometryFromWkt( char **val, 
+
+  OGRGeometryShadow* CreateGeometryFromWkt( char **val,
                                       OSRSpatialReferenceShadow *reference=NULL ) {
     OGRGeometryH geom = NULL;
     OGRErr err = OGR_G_CreateFromWkt(val,
@@ -1216,33 +1370,33 @@ SWIGINTERN void OGRGeomFieldDefnShadow_SetIgnored(OGRGeomFieldDefnShadow *self,i
     }
     return (OGRGeometryShadow*) geom;
   }
- 
+
 
 
   OGRGeometryShadow *CreateGeometryFromGML( const char * input_string ) {
     OGRGeometryShadow* geom = (OGRGeometryShadow*)OGR_G_CreateFromGML(input_string);
     return geom;
   }
- 
+
 
 
   OGRGeometryShadow *CreateGeometryFromJson( const char * input_string ) {
     OGRGeometryShadow* geom = (OGRGeometryShadow*)OGR_G_CreateGeometryFromJson(input_string);
     return geom;
   }
- 
 
 
-  OGRGeometryShadow* BuildPolygonFromEdges( OGRGeometryShadow*  hLineCollection,  
-                                            int bBestEffort = 0, 
-                                            int bAutoClose = 0, 
+
+  OGRGeometryShadow* BuildPolygonFromEdges( OGRGeometryShadow*  hLineCollection,
+                                            int bBestEffort = 0,
+                                            int bAutoClose = 0,
                                             double dfTolerance=0) {
-  
+
   OGRGeometryH hPolygon = NULL;
-  
+
   OGRErr eErr;
 
-  hPolygon = OGRBuildPolygonFromEdges( hLineCollection, bBestEffort, 
+  hPolygon = OGRBuildPolygonFromEdges( hLineCollection, bBestEffort,
                                        bAutoClose, dfTolerance, &eErr );
 
   if (eErr != OGRERR_NONE ) {
@@ -1254,14 +1408,14 @@ SWIGINTERN void OGRGeomFieldDefnShadow_SetIgnored(OGRGeomFieldDefnShadow *self,i
   }
 
 
-  OGRGeometryShadow* ApproximateArcAngles( 
+  OGRGeometryShadow* ApproximateArcAngles(
         double dfCenterX, double dfCenterY, double dfZ,
-  	double dfPrimaryRadius, double dfSecondaryAxis, double dfRotation, 
+  	double dfPrimaryRadius, double dfSecondaryAxis, double dfRotation,
         double dfStartAngle, double dfEndAngle,
         double dfMaxAngleStepSizeDegrees ) {
-  
-  return (OGRGeometryShadow* )OGR_G_ApproximateArcAngles( 
-             dfCenterX, dfCenterY, dfZ, 
+
+  return (OGRGeometryShadow* )OGR_G_ApproximateArcAngles(
+             dfCenterX, dfCenterY, dfZ,
              dfPrimaryRadius, dfSecondaryAxis, dfRotation,
              dfStartAngle, dfEndAngle, dfMaxAngleStepSizeDegrees );
   }
@@ -1301,6 +1455,13 @@ OGRGeometryShadow* ForceToMultiLineString( OGRGeometryShadow *geom_in ) {
  return (OGRGeometryShadow* )OGR_G_ForceToMultiLineString( OGR_G_Clone(geom_in) );
 }
 
+
+OGRGeometryShadow* ForceTo( OGRGeometryShadow *geom_in, OGRwkbGeometryType eTargetType, char** options = NULL ) {
+ if (geom_in == NULL)
+     return NULL;
+ return (OGRGeometryShadow* )OGR_G_ForceTo( OGR_G_Clone(geom_in), eTargetType, options );
+}
+
 SWIGINTERN void delete_OGRGeometryShadow(OGRGeometryShadow *self){
     OGR_G_DestroyGeometry( self );
   }
@@ -1326,6 +1487,9 @@ SWIGINTERN OGRGeometryShadow *new_OGRGeometryShadow(OGRwkbGeometryType type=wkbU
 SWIGINTERN OGRErr OGRGeometryShadow_ExportToWkt(OGRGeometryShadow *self,char **argout){
     return OGR_G_ExportToWkt(self, argout);
   }
+SWIGINTERN OGRErr OGRGeometryShadow_ExportToIsoWkt(OGRGeometryShadow *self,char **argout){
+    return OGR_G_ExportToIsoWkt(self, argout);
+  }
 SWIGINTERN retStringAndCPLFree *OGRGeometryShadow_ExportToGML__SWIG_0(OGRGeometryShadow *self){
     return (retStringAndCPLFree*) OGR_G_ExportToGMLEx(self, NULL);
   }
@@ -1340,6 +1504,12 @@ SWIGINTERN retStringAndCPLFree *OGRGeometryShadow_ExportToJson(OGRGeometryShadow
   }
 SWIGINTERN void OGRGeometryShadow_AddPoint(OGRGeometryShadow *self,double x,double y,double z=0){
     OGR_G_AddPoint( self, x, y, z );
+  }
+SWIGINTERN void OGRGeometryShadow_AddPointM(OGRGeometryShadow *self,double x,double y,double m){
+      OGR_G_AddPointM( self, x, y, m );
+  }
+SWIGINTERN void OGRGeometryShadow_AddPointZM(OGRGeometryShadow *self,double x,double y,double z,double m){
+      OGR_G_AddPointZM( self, x, y, z, m );
   }
 SWIGINTERN void OGRGeometryShadow_AddPoint_2D(OGRGeometryShadow *self,double x,double y){
     OGR_G_AddPoint_2D( self, x, y );
@@ -1380,9 +1550,16 @@ SWIGINTERN double OGRGeometryShadow_GetY(OGRGeometryShadow *self,int point=0){
 SWIGINTERN double OGRGeometryShadow_GetZ(OGRGeometryShadow *self,int point=0){
     return OGR_G_GetZ(self, point);
   }
+SWIGINTERN double OGRGeometryShadow_GetM(OGRGeometryShadow *self,int point=0){
+    return OGR_G_GetM(self, point);
+  }
 SWIGINTERN void OGRGeometryShadow_GetPoint(OGRGeometryShadow *self,int iPoint=0,double argout[3]=NULL){
 
     OGR_G_GetPoint( self, iPoint, argout+0, argout+1, argout+2 );
+  }
+SWIGINTERN void OGRGeometryShadow_GetPointZM(OGRGeometryShadow *self,int iPoint=0,double argout[4]=NULL){
+
+      OGR_G_GetPointZM( self, iPoint, argout+0, argout+1, argout+2, argout+3 );
   }
 SWIGINTERN void OGRGeometryShadow_GetPoint_2D(OGRGeometryShadow *self,int iPoint=0,double argout[2]=NULL){
 
@@ -1393,6 +1570,12 @@ SWIGINTERN int OGRGeometryShadow_GetGeometryCount(OGRGeometryShadow *self){
   }
 SWIGINTERN void OGRGeometryShadow_SetPoint(OGRGeometryShadow *self,int point,double x,double y,double z=0){
     OGR_G_SetPoint(self, point, x, y, z);
+  }
+SWIGINTERN void OGRGeometryShadow_SetPointM(OGRGeometryShadow *self,int point,double x,double y,double m){
+      OGR_G_SetPointM(self, point, x, y, m);
+  }
+SWIGINTERN void OGRGeometryShadow_SetPointZM(OGRGeometryShadow *self,int point,double x,double y,double z,double m){
+      OGR_G_SetPointZM(self, point, x, y, z, m);
   }
 SWIGINTERN void OGRGeometryShadow_SetPoint_2D(OGRGeometryShadow *self,int point,double x,double y){
     OGR_G_SetPoint_2D(self, point, x, y);
@@ -1405,6 +1588,9 @@ SWIGINTERN OGRGeometryShadow *OGRGeometryShadow_Simplify(OGRGeometryShadow *self
   }
 SWIGINTERN OGRGeometryShadow *OGRGeometryShadow_SimplifyPreserveTopology(OGRGeometryShadow *self,double tolerance){
     return (OGRGeometryShadow*) OGR_G_SimplifyPreserveTopology(self, tolerance);
+  }
+SWIGINTERN OGRGeometryShadow *OGRGeometryShadow_DelaunayTriangulation(OGRGeometryShadow *self,double dfTolerance=0.0,int bOnlyEdges=FALSE){
+    return (OGRGeometryShadow*) OGR_G_DelaunayTriangulation(self, dfTolerance, bOnlyEdges);
   }
 SWIGINTERN OGRGeometryShadow *OGRGeometryShadow_Boundary(OGRGeometryShadow *self){
     return (OGRGeometryShadow*) OGR_G_Boundary(self);
@@ -1528,11 +1714,38 @@ SWIGINTERN int OGRGeometryShadow_WkbSize(OGRGeometryShadow *self){
 SWIGINTERN int OGRGeometryShadow_GetCoordinateDimension(OGRGeometryShadow *self){
     return OGR_G_GetCoordinateDimension(self);
   }
+SWIGINTERN int OGRGeometryShadow_CoordinateDimension(OGRGeometryShadow *self){
+    return OGR_G_CoordinateDimension(self);
+  }
+SWIGINTERN int OGRGeometryShadow_Is3D(OGRGeometryShadow *self){
+      return OGR_G_Is3D(self);
+  }
+SWIGINTERN int OGRGeometryShadow_IsMeasured(OGRGeometryShadow *self){
+      return OGR_G_IsMeasured(self);
+  }
 SWIGINTERN void OGRGeometryShadow_SetCoordinateDimension(OGRGeometryShadow *self,int dimension){
     OGR_G_SetCoordinateDimension(self, dimension);
   }
+SWIGINTERN void OGRGeometryShadow_Set3D(OGRGeometryShadow *self,int b3D){
+      OGR_G_Set3D(self, b3D);
+  }
+SWIGINTERN void OGRGeometryShadow_SetMeasured(OGRGeometryShadow *self,int bMeasured){
+      OGR_G_SetMeasured(self, bMeasured);
+  }
 SWIGINTERN int OGRGeometryShadow_GetDimension(OGRGeometryShadow *self){
     return OGR_G_GetDimension(self);
+  }
+SWIGINTERN int OGRGeometryShadow_HasCurveGeometry(OGRGeometryShadow *self,int bLookForCircular=FALSE){
+        return OGR_G_HasCurveGeometry(self, bLookForCircular);
+  }
+SWIGINTERN OGRGeometryShadow *OGRGeometryShadow_GetLinearGeometry(OGRGeometryShadow *self,double dfMaxAngleStepSizeDegrees=0.0,char **options=NULL){
+    return (OGRGeometryShadow* )OGR_G_GetLinearGeometry(self, dfMaxAngleStepSizeDegrees, options);
+  }
+SWIGINTERN OGRGeometryShadow *OGRGeometryShadow_GetCurveGeometry(OGRGeometryShadow *self,char **options=NULL){
+    return (OGRGeometryShadow* )OGR_G_GetCurveGeometry(self, options);
+  }
+SWIGINTERN OGRGeometryShadow *OGRGeometryShadow_Value(OGRGeometryShadow *self,double dfDistance){
+    return OGR_G_Value(self, dfDistance);
   }
 SWIGINTERN OGRErr OGRGeometryShadow_ExportToWkb(OGRGeometryShadow *self,int bufLen,char *buffer,OGRwkbByteOrder byte_order){
       if (bufLen < OGR_G_WkbSize( self ))
@@ -1557,6 +1770,12 @@ char const *OGRDataSourceShadow_name_get( OGRDataSourceShadow *h ) {
 }
 
 
+OGRwkbGeometryType GT_SetModifier( OGRwkbGeometryType eType, int bSetZ, int bSetM = FALSE)
+{
+    return OGR_GT_SetModifier(eType, bSetZ, bSetM);
+}
+
+
   OGRDataSourceShadow* GetOpenDS(int ds_number) {
     OGRDataSourceShadow* layer = (OGRDataSourceShadow*) OGRGetOpenDS(ds_number);
     return layer;
@@ -1568,13 +1787,13 @@ char const *OGRDataSourceShadow_name_get( OGRDataSourceShadow *h ) {
     OGRDataSourceShadow* ds = (OGRDataSourceShadow*)OGROpen(utf8_path,update,NULL);
     if( CPLGetLastErrorType() == CE_Failure && ds != NULL )
     {
-        CPLDebug( "SWIG", 
+        CPLDebug( "SWIG",
 		  "OGROpen() succeeded, but an error is posted, so we destroy"
 		  " the datasource and fail at swig level." );
         OGRReleaseDataSource(ds);
         ds = NULL;
     }
-	
+
     return ds;
   }
 
@@ -1587,15 +1806,17 @@ char const *OGRDataSourceShadow_name_get( OGRDataSourceShadow *h ) {
         OGRReleaseDataSource(ds);
         ds = NULL;
     }
-	
+
     return ds;
   }
 
 
+static
 OGRDriverShadow* GetDriverByName( char const *name ) {
   return (OGRDriverShadow*) OGRGetDriverByName( name );
 }
 
+static
 OGRDriverShadow* GetDriver(int driver_number) {
   return (OGRDriverShadow*) OGRGetDriver(driver_number);
 }
@@ -1604,8 +1825,11 @@ OGRDriverShadow* GetDriver(int driver_number) {
   char **GeneralCmdLineProcessor( char **papszArgv, int nOptions = 0 ) {
     int nResArgCount;
 
-    nResArgCount = 
-      OGRGeneralCmdLineProcessor( CSLCount(papszArgv), &papszArgv, nOptions ); 
+    if( papszArgv == NULL )
+        return NULL;
+
+    nResArgCount =
+      OGRGeneralCmdLineProcessor( CSLCount(papszArgv), &papszArgv, nOptions );
 
     if( nResArgCount <= 0 )
         return NULL;
@@ -1808,6 +2032,26 @@ SWIGEXPORT char * SWIGSTDCALL CSharp_OLCCreateGeomField_get() {
 }
 
 
+SWIGEXPORT char * SWIGSTDCALL CSharp_OLCCurveGeometries_get() {
+  char * jresult ;
+  char *result = 0 ;
+  
+  result = (char *)("CurveGeometries");
+  jresult = SWIG_csharp_string_callback((const char *)result); 
+  return jresult;
+}
+
+
+SWIGEXPORT char * SWIGSTDCALL CSharp_OLCMeasuredGeometries_get() {
+  char * jresult ;
+  char *result = 0 ;
+  
+  result = (char *)("MeasuredGeometries");
+  jresult = SWIG_csharp_string_callback((const char *)result); 
+  return jresult;
+}
+
+
 SWIGEXPORT char * SWIGSTDCALL CSharp_ODsCCreateLayer_get() {
   char * jresult ;
   char *result = 0 ;
@@ -1838,6 +2082,46 @@ SWIGEXPORT char * SWIGSTDCALL CSharp_ODsCCreateGeomFieldAfterCreateLayer_get() {
 }
 
 
+SWIGEXPORT char * SWIGSTDCALL CSharp_ODsCCurveGeometries_get() {
+  char * jresult ;
+  char *result = 0 ;
+  
+  result = (char *)("CurveGeometries");
+  jresult = SWIG_csharp_string_callback((const char *)result); 
+  return jresult;
+}
+
+
+SWIGEXPORT char * SWIGSTDCALL CSharp_ODsCTransactions_get() {
+  char * jresult ;
+  char *result = 0 ;
+  
+  result = (char *)("Transactions");
+  jresult = SWIG_csharp_string_callback((const char *)result); 
+  return jresult;
+}
+
+
+SWIGEXPORT char * SWIGSTDCALL CSharp_ODsCEmulatedTransactions_get() {
+  char * jresult ;
+  char *result = 0 ;
+  
+  result = (char *)("EmulatedTransactions");
+  jresult = SWIG_csharp_string_callback((const char *)result); 
+  return jresult;
+}
+
+
+SWIGEXPORT char * SWIGSTDCALL CSharp_ODsCMeasuredGeometries_get() {
+  char * jresult ;
+  char *result = 0 ;
+  
+  result = (char *)("MeasuredGeometries");
+  jresult = SWIG_csharp_string_callback((const char *)result); 
+  return jresult;
+}
+
+
 SWIGEXPORT char * SWIGSTDCALL CSharp_ODrCCreateDataSource_get() {
   char * jresult ;
   char *result = 0 ;
@@ -1853,6 +2137,16 @@ SWIGEXPORT char * SWIGSTDCALL CSharp_ODrCDeleteDataSource_get() {
   char *result = 0 ;
   
   result = (char *)("DeleteDataSource");
+  jresult = SWIG_csharp_string_callback((const char *)result); 
+  return jresult;
+}
+
+
+SWIGEXPORT char * SWIGSTDCALL CSharp_OLMD_FID64_get() {
+  char * jresult ;
+  char *result = 0 ;
+  
+  result = (char *)("OLMD_FID64");
   jresult = SWIG_csharp_string_callback((const char *)result); 
   return jresult;
 }
@@ -1933,6 +2227,26 @@ SWIGEXPORT int SWIGSTDCALL CSharp_OGRERR_UNSUPPORTED_SRS_get() {
   int result;
   
   result = (int)(7);
+  jresult = result; 
+  return jresult;
+}
+
+
+SWIGEXPORT int SWIGSTDCALL CSharp_OGRERR_INVALID_HANDLE_get() {
+  int jresult ;
+  int result;
+  
+  result = (int)(8);
+  jresult = result; 
+  return jresult;
+}
+
+
+SWIGEXPORT int SWIGSTDCALL CSharp_OGRERR_NON_EXISTING_FEATURE_get() {
+  int jresult ;
+  int result;
+  
+  result = (int)(9);
   jresult = result; 
   return jresult;
 }
@@ -3237,6 +3551,35 @@ SWIGEXPORT int SWIGSTDCALL CSharp_DataSource_SyncToDisk(void * jarg1) {
 }
 
 
+SWIGEXPORT void SWIGSTDCALL CSharp_DataSource_FlushCache(void * jarg1) {
+  OGRDataSourceShadow *arg1 = (OGRDataSourceShadow *) 0 ;
+  
+  arg1 = (OGRDataSourceShadow *)jarg1; 
+  {
+    CPLErrorReset();
+    OGRDataSourceShadow_FlushCache(arg1);
+    CPLErr eclass = CPLGetLastErrorType();
+    if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+      SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
+      
+      
+      
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+  }
+}
+
+
 SWIGEXPORT void * SWIGSTDCALL CSharp_DataSource_CreateLayer(void * jarg1, char * jarg2, void * jarg3, int jarg4, void * jarg5) {
   void * jresult ;
   OGRDataSourceShadow *arg1 = (OGRDataSourceShadow *) 0 ;
@@ -3581,6 +3924,128 @@ SWIGEXPORT void SWIGSTDCALL CSharp_DataSource_SetStyleTable(void * jarg1, void *
     
     
   }
+}
+
+
+SWIGEXPORT int SWIGSTDCALL CSharp_DataSource_StartTransaction(void * jarg1, int jarg2) {
+  int jresult ;
+  OGRDataSourceShadow *arg1 = (OGRDataSourceShadow *) 0 ;
+  int arg2 = (int) FALSE ;
+  OGRErr result;
+  
+  arg1 = (OGRDataSourceShadow *)jarg1; 
+  arg2 = (int)jarg2; 
+  {
+    CPLErrorReset();
+    result = (OGRErr)OGRDataSourceShadow_StartTransaction(arg1,arg2);
+    CPLErr eclass = CPLGetLastErrorType();
+    if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+      SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
+      
+      
+      
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+  }
+  {
+    /* %typemap(out,fragment="OGRErrMessages",canthrow=1) OGRErr */
+    jresult = result;
+  }
+  {
+    /* %typemap(ret) OGRErr */
+    
+  }
+  return jresult;
+}
+
+
+SWIGEXPORT int SWIGSTDCALL CSharp_DataSource_CommitTransaction(void * jarg1) {
+  int jresult ;
+  OGRDataSourceShadow *arg1 = (OGRDataSourceShadow *) 0 ;
+  OGRErr result;
+  
+  arg1 = (OGRDataSourceShadow *)jarg1; 
+  {
+    CPLErrorReset();
+    result = (OGRErr)OGRDataSourceShadow_CommitTransaction(arg1);
+    CPLErr eclass = CPLGetLastErrorType();
+    if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+      SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
+      
+      
+      
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+  }
+  {
+    /* %typemap(out,fragment="OGRErrMessages",canthrow=1) OGRErr */
+    jresult = result;
+  }
+  {
+    /* %typemap(ret) OGRErr */
+    
+  }
+  return jresult;
+}
+
+
+SWIGEXPORT int SWIGSTDCALL CSharp_DataSource_RollbackTransaction(void * jarg1) {
+  int jresult ;
+  OGRDataSourceShadow *arg1 = (OGRDataSourceShadow *) 0 ;
+  OGRErr result;
+  
+  arg1 = (OGRDataSourceShadow *)jarg1; 
+  {
+    CPLErrorReset();
+    result = (OGRErr)OGRDataSourceShadow_RollbackTransaction(arg1);
+    CPLErr eclass = CPLGetLastErrorType();
+    if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+      SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
+      
+      
+      
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+  }
+  {
+    /* %typemap(out,fragment="OGRErrMessages",canthrow=1) OGRErr */
+    jresult = result;
+  }
+  {
+    /* %typemap(ret) OGRErr */
+    
+  }
+  return jresult;
 }
 
 
@@ -3993,14 +4458,14 @@ SWIGEXPORT char * SWIGSTDCALL CSharp_Layer_GetFIDColumn(void * jarg1) {
 }
 
 
-SWIGEXPORT void * SWIGSTDCALL CSharp_Layer_GetFeature(void * jarg1, long jarg2) {
+SWIGEXPORT void * SWIGSTDCALL CSharp_Layer_GetFeature(void * jarg1, GIntBig jarg2) {
   void * jresult ;
   OGRLayerShadow *arg1 = (OGRLayerShadow *) 0 ;
-  long arg2 ;
+  GIntBig arg2 ;
   OGRFeatureShadow *result = 0 ;
   
   arg1 = (OGRLayerShadow *)jarg1; 
-  arg2 = (long)jarg2; 
+  arg2 = jarg2; 
   {
     CPLErrorReset();
     result = (OGRFeatureShadow *)OGRLayerShadow_GetFeature(arg1,arg2);
@@ -4061,14 +4526,14 @@ SWIGEXPORT void * SWIGSTDCALL CSharp_Layer_GetNextFeature(void * jarg1) {
 }
 
 
-SWIGEXPORT int SWIGSTDCALL CSharp_Layer_SetNextByIndex(void * jarg1, long jarg2) {
+SWIGEXPORT int SWIGSTDCALL CSharp_Layer_SetNextByIndex(void * jarg1, GIntBig jarg2) {
   int jresult ;
   OGRLayerShadow *arg1 = (OGRLayerShadow *) 0 ;
-  long arg2 ;
+  GIntBig arg2 ;
   OGRErr result;
   
   arg1 = (OGRLayerShadow *)jarg1; 
-  arg2 = (long)jarg2; 
+  arg2 = jarg2; 
   {
     CPLErrorReset();
     result = (OGRErr)OGRLayerShadow_SetNextByIndex(arg1,arg2);
@@ -4201,14 +4666,14 @@ SWIGEXPORT int SWIGSTDCALL CSharp_Layer_CreateFeature(void * jarg1, void * jarg2
 }
 
 
-SWIGEXPORT int SWIGSTDCALL CSharp_Layer_DeleteFeature(void * jarg1, long jarg2) {
+SWIGEXPORT int SWIGSTDCALL CSharp_Layer_DeleteFeature(void * jarg1, GIntBig jarg2) {
   int jresult ;
   OGRLayerShadow *arg1 = (OGRLayerShadow *) 0 ;
-  long arg2 ;
+  GIntBig arg2 ;
   OGRErr result;
   
   arg1 = (OGRLayerShadow *)jarg1; 
-  arg2 = (long)jarg2; 
+  arg2 = jarg2; 
   {
     CPLErrorReset();
     result = (OGRErr)OGRLayerShadow_DeleteFeature(arg1,arg2);
@@ -4316,17 +4781,17 @@ SWIGEXPORT void * SWIGSTDCALL CSharp_Layer_GetLayerDefn(void * jarg1) {
 }
 
 
-SWIGEXPORT int SWIGSTDCALL CSharp_Layer_GetFeatureCount(void * jarg1, int jarg2) {
-  int jresult ;
+SWIGEXPORT GIntBig SWIGSTDCALL CSharp_Layer_GetFeatureCount(void * jarg1, int jarg2) {
+  GIntBig jresult ;
   OGRLayerShadow *arg1 = (OGRLayerShadow *) 0 ;
   int arg2 = (int) 1 ;
-  int result;
+  GIntBig result;
   
   arg1 = (OGRLayerShadow *)jarg1; 
   arg2 = (int)jarg2; 
   {
     CPLErrorReset();
-    result = (int)OGRLayerShadow_GetFeatureCount(arg1,arg2);
+    result = OGRLayerShadow_GetFeatureCount(arg1,arg2);
     CPLErr eclass = CPLGetLastErrorType();
     if ( eclass == CE_Failure || eclass == CE_Fatal ) {
       SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
@@ -6339,6 +6804,83 @@ SWIGEXPORT int SWIGSTDCALL CSharp_Feature_GetFieldAsInteger__SWIG_1(void * jarg1
 }
 
 
+SWIGEXPORT GIntBig SWIGSTDCALL CSharp_Feature_GetFieldAsInteger64__SWIG_0(void * jarg1, int jarg2) {
+  GIntBig jresult ;
+  OGRFeatureShadow *arg1 = (OGRFeatureShadow *) 0 ;
+  int arg2 ;
+  GIntBig result;
+  
+  arg1 = (OGRFeatureShadow *)jarg1; 
+  arg2 = (int)jarg2; 
+  {
+    CPLErrorReset();
+    result = OGRFeatureShadow_GetFieldAsInteger64__SWIG_0(arg1,arg2);
+    CPLErr eclass = CPLGetLastErrorType();
+    if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+      SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
+      
+      
+      
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+  }
+  jresult = result; 
+  return jresult;
+}
+
+
+SWIGEXPORT GIntBig SWIGSTDCALL CSharp_Feature_GetFieldAsInteger64__SWIG_1(void * jarg1, char * jarg2) {
+  GIntBig jresult ;
+  OGRFeatureShadow *arg1 = (OGRFeatureShadow *) 0 ;
+  char *arg2 = (char *) 0 ;
+  GIntBig result;
+  
+  arg1 = (OGRFeatureShadow *)jarg1; 
+  arg2 = (char *)jarg2; 
+  {
+    if (!arg2) {
+      {
+        SWIG_CSharpException(SWIG_ValueError, "Received a NULL pointer."); return 0; 
+      };
+    }
+  }
+  {
+    CPLErrorReset();
+    result = OGRFeatureShadow_GetFieldAsInteger64__SWIG_1(arg1,(char const *)arg2);
+    CPLErr eclass = CPLGetLastErrorType();
+    if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+      SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
+      
+      
+      
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+  }
+  jresult = result; 
+  return jresult;
+}
+
+
 SWIGEXPORT double SWIGSTDCALL CSharp_Feature_GetFieldAsDouble__SWIG_0(void * jarg1, int jarg2) {
   double jresult ;
   OGRFeatureShadow *arg1 = (OGRFeatureShadow *) 0 ;
@@ -6416,7 +6958,7 @@ SWIGEXPORT double SWIGSTDCALL CSharp_Feature_GetFieldAsDouble__SWIG_1(void * jar
 }
 
 
-SWIGEXPORT void SWIGSTDCALL CSharp_Feature_GetFieldAsDateTime(void * jarg1, int jarg2, int * jarg3, int * jarg4, int * jarg5, int * jarg6, int * jarg7, int * jarg8, int * jarg9) {
+SWIGEXPORT void SWIGSTDCALL CSharp_Feature_GetFieldAsDateTime__SWIG_0(void * jarg1, int jarg2, int * jarg3, int * jarg4, int * jarg5, int * jarg6, int * jarg7, float * jarg8, int * jarg9) {
   OGRFeatureShadow *arg1 = (OGRFeatureShadow *) 0 ;
   int arg2 ;
   int *arg3 = (int *) 0 ;
@@ -6424,7 +6966,7 @@ SWIGEXPORT void SWIGSTDCALL CSharp_Feature_GetFieldAsDateTime(void * jarg1, int 
   int *arg5 = (int *) 0 ;
   int *arg6 = (int *) 0 ;
   int *arg7 = (int *) 0 ;
-  int *arg8 = (int *) 0 ;
+  float *arg8 = (float *) 0 ;
   int *arg9 = (int *) 0 ;
   
   arg1 = (OGRFeatureShadow *)jarg1; 
@@ -6434,11 +6976,63 @@ SWIGEXPORT void SWIGSTDCALL CSharp_Feature_GetFieldAsDateTime(void * jarg1, int 
   arg5 = (int *)jarg5; 
   arg6 = (int *)jarg6; 
   arg7 = (int *)jarg7; 
-  arg8 = (int *)jarg8; 
+  arg8 = (float *)jarg8; 
   arg9 = (int *)jarg9; 
   {
     CPLErrorReset();
-    OGRFeatureShadow_GetFieldAsDateTime(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9);
+    OGRFeatureShadow_GetFieldAsDateTime__SWIG_0(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9);
+    CPLErr eclass = CPLGetLastErrorType();
+    if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+      SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
+      
+      
+      
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+  }
+}
+
+
+SWIGEXPORT void SWIGSTDCALL CSharp_Feature_GetFieldAsDateTime__SWIG_1(void * jarg1, char * jarg2, int * jarg3, int * jarg4, int * jarg5, int * jarg6, int * jarg7, float * jarg8, int * jarg9) {
+  OGRFeatureShadow *arg1 = (OGRFeatureShadow *) 0 ;
+  char *arg2 = (char *) 0 ;
+  int *arg3 = (int *) 0 ;
+  int *arg4 = (int *) 0 ;
+  int *arg5 = (int *) 0 ;
+  int *arg6 = (int *) 0 ;
+  int *arg7 = (int *) 0 ;
+  float *arg8 = (float *) 0 ;
+  int *arg9 = (int *) 0 ;
+  
+  arg1 = (OGRFeatureShadow *)jarg1; 
+  arg2 = (char *)jarg2; 
+  arg3 = (int *)jarg3; 
+  arg4 = (int *)jarg4; 
+  arg5 = (int *)jarg5; 
+  arg6 = (int *)jarg6; 
+  arg7 = (int *)jarg7; 
+  arg8 = (float *)jarg8; 
+  arg9 = (int *)jarg9; 
+  {
+    if (!arg2) {
+      {
+        SWIG_CSharpException(SWIG_ValueError, "Received a NULL pointer."); return ; 
+      };
+    }
+  }
+  {
+    CPLErrorReset();
+    OGRFeatureShadow_GetFieldAsDateTime__SWIG_1(arg1,(char const *)arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9);
     CPLErr eclass = CPLGetLastErrorType();
     if ( eclass == CE_Failure || eclass == CE_Fatal ) {
       SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
@@ -6737,15 +7331,15 @@ SWIGEXPORT int SWIGSTDCALL CSharp_Feature_GetGeomFieldIndex(void * jarg1, char *
 }
 
 
-SWIGEXPORT int SWIGSTDCALL CSharp_Feature_GetFID(void * jarg1) {
-  int jresult ;
+SWIGEXPORT GIntBig SWIGSTDCALL CSharp_Feature_GetFID(void * jarg1) {
+  GIntBig jresult ;
   OGRFeatureShadow *arg1 = (OGRFeatureShadow *) 0 ;
-  int result;
+  GIntBig result;
   
   arg1 = (OGRFeatureShadow *)jarg1; 
   {
     CPLErrorReset();
-    result = (int)OGRFeatureShadow_GetFID(arg1);
+    result = OGRFeatureShadow_GetFID(arg1);
     CPLErr eclass = CPLGetLastErrorType();
     if ( eclass == CE_Failure || eclass == CE_Fatal ) {
       SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
@@ -6770,14 +7364,14 @@ SWIGEXPORT int SWIGSTDCALL CSharp_Feature_GetFID(void * jarg1) {
 }
 
 
-SWIGEXPORT int SWIGSTDCALL CSharp_Feature_SetFID(void * jarg1, int jarg2) {
+SWIGEXPORT int SWIGSTDCALL CSharp_Feature_SetFID(void * jarg1, GIntBig jarg2) {
   int jresult ;
   OGRFeatureShadow *arg1 = (OGRFeatureShadow *) 0 ;
-  int arg2 ;
+  GIntBig arg2 ;
   OGRErr result;
   
   arg1 = (OGRFeatureShadow *)jarg1; 
-  arg2 = (int)jarg2; 
+  arg2 = jarg2; 
   {
     CPLErrorReset();
     result = (OGRErr)OGRFeatureShadow_SetFID(arg1,arg2);
@@ -6983,6 +7577,39 @@ SWIGEXPORT void SWIGSTDCALL CSharp_Feature_SetField__SWIG_1(void * jarg1, char *
 }
 
 
+SWIGEXPORT void SWIGSTDCALL CSharp_Feature_SetFieldInteger64(void * jarg1, int jarg2, GIntBig jarg3) {
+  OGRFeatureShadow *arg1 = (OGRFeatureShadow *) 0 ;
+  int arg2 ;
+  GIntBig arg3 ;
+  
+  arg1 = (OGRFeatureShadow *)jarg1; 
+  arg2 = (int)jarg2; 
+  arg3 = jarg3; 
+  {
+    CPLErrorReset();
+    OGRFeatureShadow_SetFieldInteger64(arg1,arg2,arg3);
+    CPLErr eclass = CPLGetLastErrorType();
+    if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+      SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
+      
+      
+      
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+  }
+}
+
+
 SWIGEXPORT void SWIGSTDCALL CSharp_Feature_SetField__SWIG_2(void * jarg1, int jarg2, int jarg3) {
   OGRFeatureShadow *arg1 = (OGRFeatureShadow *) 0 ;
   int arg2 ;
@@ -7129,7 +7756,7 @@ SWIGEXPORT void SWIGSTDCALL CSharp_Feature_SetField__SWIG_5(void * jarg1, char *
 }
 
 
-SWIGEXPORT void SWIGSTDCALL CSharp_Feature_SetField__SWIG_6(void * jarg1, int jarg2, int jarg3, int jarg4, int jarg5, int jarg6, int jarg7, int jarg8, int jarg9) {
+SWIGEXPORT void SWIGSTDCALL CSharp_Feature_SetField__SWIG_6(void * jarg1, int jarg2, int jarg3, int jarg4, int jarg5, int jarg6, int jarg7, float jarg8, int jarg9) {
   OGRFeatureShadow *arg1 = (OGRFeatureShadow *) 0 ;
   int arg2 ;
   int arg3 ;
@@ -7137,7 +7764,7 @@ SWIGEXPORT void SWIGSTDCALL CSharp_Feature_SetField__SWIG_6(void * jarg1, int ja
   int arg5 ;
   int arg6 ;
   int arg7 ;
-  int arg8 ;
+  float arg8 ;
   int arg9 ;
   
   arg1 = (OGRFeatureShadow *)jarg1; 
@@ -7147,7 +7774,7 @@ SWIGEXPORT void SWIGSTDCALL CSharp_Feature_SetField__SWIG_6(void * jarg1, int ja
   arg5 = (int)jarg5; 
   arg6 = (int)jarg6; 
   arg7 = (int)jarg7; 
-  arg8 = (int)jarg8; 
+  arg8 = (float)jarg8; 
   arg9 = (int)jarg9; 
   {
     CPLErrorReset();
@@ -7174,7 +7801,7 @@ SWIGEXPORT void SWIGSTDCALL CSharp_Feature_SetField__SWIG_6(void * jarg1, int ja
 }
 
 
-SWIGEXPORT void SWIGSTDCALL CSharp_Feature_SetField__SWIG_7(void * jarg1, char * jarg2, int jarg3, int jarg4, int jarg5, int jarg6, int jarg7, int jarg8, int jarg9) {
+SWIGEXPORT void SWIGSTDCALL CSharp_Feature_SetField__SWIG_7(void * jarg1, char * jarg2, int jarg3, int jarg4, int jarg5, int jarg6, int jarg7, float jarg8, int jarg9) {
   OGRFeatureShadow *arg1 = (OGRFeatureShadow *) 0 ;
   char *arg2 = (char *) 0 ;
   int arg3 ;
@@ -7182,7 +7809,7 @@ SWIGEXPORT void SWIGSTDCALL CSharp_Feature_SetField__SWIG_7(void * jarg1, char *
   int arg5 ;
   int arg6 ;
   int arg7 ;
-  int arg8 ;
+  float arg8 ;
   int arg9 ;
   
   arg1 = (OGRFeatureShadow *)jarg1; 
@@ -7192,7 +7819,7 @@ SWIGEXPORT void SWIGSTDCALL CSharp_Feature_SetField__SWIG_7(void * jarg1, char *
   arg5 = (int)jarg5; 
   arg6 = (int)jarg6; 
   arg7 = (int)jarg7; 
-  arg8 = (int)jarg8; 
+  arg8 = (float)jarg8; 
   arg9 = (int)jarg9; 
   {
     if (!arg2) {
@@ -7655,6 +8282,204 @@ SWIGEXPORT int SWIGSTDCALL CSharp_Feature_GetFieldType__SWIG_1(void * jarg1, cha
   }
   jresult = result; 
   return jresult;
+}
+
+
+SWIGEXPORT int SWIGSTDCALL CSharp_Feature_Validate(void * jarg1, int jarg2, int jarg3) {
+  int jresult ;
+  OGRFeatureShadow *arg1 = (OGRFeatureShadow *) 0 ;
+  int arg2 = (int) OGR_F_VAL_ALL ;
+  int arg3 = (int) TRUE ;
+  int result;
+  
+  arg1 = (OGRFeatureShadow *)jarg1; 
+  arg2 = (int)jarg2; 
+  arg3 = (int)jarg3; 
+  {
+    CPLErrorReset();
+    result = (int)OGRFeatureShadow_Validate(arg1,arg2,arg3);
+    CPLErr eclass = CPLGetLastErrorType();
+    if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+      SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
+      
+      
+      
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+  }
+  jresult = result; 
+  return jresult;
+}
+
+
+SWIGEXPORT void SWIGSTDCALL CSharp_Feature_FillUnsetWithDefault(void * jarg1, int jarg2, void * jarg3) {
+  OGRFeatureShadow *arg1 = (OGRFeatureShadow *) 0 ;
+  int arg2 = (int) FALSE ;
+  char **arg3 = (char **) NULL ;
+  
+  arg1 = (OGRFeatureShadow *)jarg1; 
+  arg2 = (int)jarg2; 
+  arg3 = (char **)jarg3; 
+  {
+    CPLErrorReset();
+    OGRFeatureShadow_FillUnsetWithDefault(arg1,arg2,arg3);
+    CPLErr eclass = CPLGetLastErrorType();
+    if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+      SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
+      
+      
+      
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+  }
+}
+
+
+SWIGEXPORT char * SWIGSTDCALL CSharp_Feature_GetNativeData(void * jarg1) {
+  char * jresult ;
+  OGRFeatureShadow *arg1 = (OGRFeatureShadow *) 0 ;
+  char *result = 0 ;
+  
+  arg1 = (OGRFeatureShadow *)jarg1; 
+  {
+    CPLErrorReset();
+    result = (char *)OGRFeatureShadow_GetNativeData(arg1);
+    CPLErr eclass = CPLGetLastErrorType();
+    if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+      SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
+      
+      
+      
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+  }
+  jresult = SWIG_csharp_string_callback((const char *)result); 
+  return jresult;
+}
+
+
+SWIGEXPORT char * SWIGSTDCALL CSharp_Feature_GetNativeMediaType(void * jarg1) {
+  char * jresult ;
+  OGRFeatureShadow *arg1 = (OGRFeatureShadow *) 0 ;
+  char *result = 0 ;
+  
+  arg1 = (OGRFeatureShadow *)jarg1; 
+  {
+    CPLErrorReset();
+    result = (char *)OGRFeatureShadow_GetNativeMediaType(arg1);
+    CPLErr eclass = CPLGetLastErrorType();
+    if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+      SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
+      
+      
+      
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+  }
+  jresult = SWIG_csharp_string_callback((const char *)result); 
+  return jresult;
+}
+
+
+SWIGEXPORT void SWIGSTDCALL CSharp_Feature_SetNativeData(void * jarg1, char * jarg2) {
+  OGRFeatureShadow *arg1 = (OGRFeatureShadow *) 0 ;
+  char *arg2 = (char *) 0 ;
+  
+  arg1 = (OGRFeatureShadow *)jarg1; 
+  arg2 = (char *)jarg2; 
+  {
+    CPLErrorReset();
+    OGRFeatureShadow_SetNativeData(arg1,(char const *)arg2);
+    CPLErr eclass = CPLGetLastErrorType();
+    if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+      SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
+      
+      
+      
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+  }
+}
+
+
+SWIGEXPORT void SWIGSTDCALL CSharp_Feature_SetNativeMediaType(void * jarg1, char * jarg2) {
+  OGRFeatureShadow *arg1 = (OGRFeatureShadow *) 0 ;
+  char *arg2 = (char *) 0 ;
+  
+  arg1 = (OGRFeatureShadow *)jarg1; 
+  arg2 = (char *)jarg2; 
+  {
+    CPLErrorReset();
+    OGRFeatureShadow_SetNativeMediaType(arg1,(char const *)arg2);
+    CPLErr eclass = CPLGetLastErrorType();
+    if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+      SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
+      
+      
+      
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+  }
 }
 
 
@@ -8590,6 +9415,70 @@ SWIGEXPORT void SWIGSTDCALL CSharp_FieldDefn_SetType(void * jarg1, int jarg2) {
 }
 
 
+SWIGEXPORT int SWIGSTDCALL CSharp_FieldDefn_GetSubType(void * jarg1) {
+  int jresult ;
+  OGRFieldDefnShadow *arg1 = (OGRFieldDefnShadow *) 0 ;
+  OGRFieldSubType result;
+  
+  arg1 = (OGRFieldDefnShadow *)jarg1; 
+  {
+    CPLErrorReset();
+    result = (OGRFieldSubType)OGRFieldDefnShadow_GetSubType(arg1);
+    CPLErr eclass = CPLGetLastErrorType();
+    if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+      SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
+      
+      
+      
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+  }
+  jresult = result; 
+  return jresult;
+}
+
+
+SWIGEXPORT void SWIGSTDCALL CSharp_FieldDefn_SetSubType(void * jarg1, int jarg2) {
+  OGRFieldDefnShadow *arg1 = (OGRFieldDefnShadow *) 0 ;
+  OGRFieldSubType arg2 ;
+  
+  arg1 = (OGRFieldDefnShadow *)jarg1; 
+  arg2 = (OGRFieldSubType)jarg2; 
+  {
+    CPLErrorReset();
+    OGRFieldDefnShadow_SetSubType(arg1,arg2);
+    CPLErr eclass = CPLGetLastErrorType();
+    if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+      SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
+      
+      
+      
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+  }
+}
+
+
 SWIGEXPORT int SWIGSTDCALL CSharp_FieldDefn_GetJustify(void * jarg1) {
   int jresult ;
   OGRFieldDefnShadow *arg1 = (OGRFieldDefnShadow *) 0 ;
@@ -8911,6 +9800,167 @@ SWIGEXPORT void SWIGSTDCALL CSharp_FieldDefn_SetIgnored(void * jarg1, int jarg2)
     
     
   }
+}
+
+
+SWIGEXPORT int SWIGSTDCALL CSharp_FieldDefn_IsNullable(void * jarg1) {
+  int jresult ;
+  OGRFieldDefnShadow *arg1 = (OGRFieldDefnShadow *) 0 ;
+  int result;
+  
+  arg1 = (OGRFieldDefnShadow *)jarg1; 
+  {
+    CPLErrorReset();
+    result = (int)OGRFieldDefnShadow_IsNullable(arg1);
+    CPLErr eclass = CPLGetLastErrorType();
+    if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+      SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
+      
+      
+      
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+  }
+  jresult = result; 
+  return jresult;
+}
+
+
+SWIGEXPORT void SWIGSTDCALL CSharp_FieldDefn_SetNullable(void * jarg1, int jarg2) {
+  OGRFieldDefnShadow *arg1 = (OGRFieldDefnShadow *) 0 ;
+  int arg2 ;
+  
+  arg1 = (OGRFieldDefnShadow *)jarg1; 
+  arg2 = (int)jarg2; 
+  {
+    CPLErrorReset();
+    OGRFieldDefnShadow_SetNullable(arg1,arg2);
+    CPLErr eclass = CPLGetLastErrorType();
+    if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+      SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
+      
+      
+      
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+  }
+}
+
+
+SWIGEXPORT char * SWIGSTDCALL CSharp_FieldDefn_GetDefault(void * jarg1) {
+  char * jresult ;
+  OGRFieldDefnShadow *arg1 = (OGRFieldDefnShadow *) 0 ;
+  char *result = 0 ;
+  
+  arg1 = (OGRFieldDefnShadow *)jarg1; 
+  {
+    CPLErrorReset();
+    result = (char *)OGRFieldDefnShadow_GetDefault(arg1);
+    CPLErr eclass = CPLGetLastErrorType();
+    if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+      SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
+      
+      
+      
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+  }
+  jresult = SWIG_csharp_string_callback((const char *)result); 
+  return jresult;
+}
+
+
+SWIGEXPORT void SWIGSTDCALL CSharp_FieldDefn_SetDefault(void * jarg1, char * jarg2) {
+  OGRFieldDefnShadow *arg1 = (OGRFieldDefnShadow *) 0 ;
+  char *arg2 = (char *) 0 ;
+  
+  arg1 = (OGRFieldDefnShadow *)jarg1; 
+  arg2 = (char *)jarg2; 
+  {
+    CPLErrorReset();
+    OGRFieldDefnShadow_SetDefault(arg1,(char const *)arg2);
+    CPLErr eclass = CPLGetLastErrorType();
+    if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+      SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
+      
+      
+      
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+  }
+}
+
+
+SWIGEXPORT int SWIGSTDCALL CSharp_FieldDefn_IsDefaultDriverSpecific(void * jarg1) {
+  int jresult ;
+  OGRFieldDefnShadow *arg1 = (OGRFieldDefnShadow *) 0 ;
+  int result;
+  
+  arg1 = (OGRFieldDefnShadow *)jarg1; 
+  {
+    CPLErrorReset();
+    result = (int)OGRFieldDefnShadow_IsDefaultDriverSpecific(arg1);
+    CPLErr eclass = CPLGetLastErrorType();
+    if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+      SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
+      
+      
+      
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+  }
+  jresult = result; 
+  return jresult;
 }
 
 
@@ -9274,6 +10324,70 @@ SWIGEXPORT void SWIGSTDCALL CSharp_GeomFieldDefn_SetIgnored(void * jarg1, int ja
 }
 
 
+SWIGEXPORT int SWIGSTDCALL CSharp_GeomFieldDefn_IsNullable(void * jarg1) {
+  int jresult ;
+  OGRGeomFieldDefnShadow *arg1 = (OGRGeomFieldDefnShadow *) 0 ;
+  int result;
+  
+  arg1 = (OGRGeomFieldDefnShadow *)jarg1; 
+  {
+    CPLErrorReset();
+    result = (int)OGRGeomFieldDefnShadow_IsNullable(arg1);
+    CPLErr eclass = CPLGetLastErrorType();
+    if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+      SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
+      
+      
+      
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+  }
+  jresult = result; 
+  return jresult;
+}
+
+
+SWIGEXPORT void SWIGSTDCALL CSharp_GeomFieldDefn_SetNullable(void * jarg1, int jarg2) {
+  OGRGeomFieldDefnShadow *arg1 = (OGRGeomFieldDefnShadow *) 0 ;
+  int arg2 ;
+  
+  arg1 = (OGRGeomFieldDefnShadow *)jarg1; 
+  arg2 = (int)jarg2; 
+  {
+    CPLErrorReset();
+    OGRGeomFieldDefnShadow_SetNullable(arg1,arg2);
+    CPLErr eclass = CPLGetLastErrorType();
+    if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+      SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
+      
+      
+      
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+  }
+}
+
+
 SWIGEXPORT void * SWIGSTDCALL CSharp_CreateGeometryFromWkb(int jarg1, char * jarg2, void * jarg3) {
   void * jresult ;
   int arg1 ;
@@ -9318,7 +10432,7 @@ SWIGEXPORT void * SWIGSTDCALL CSharp_CreateGeometryFromWkt(void * jarg1, void * 
   OGRGeometryShadow *result = 0 ;
   
   /* %typemap(in) (char **ignorechange) */
-  char * savearg = *((char **)jarg1); 
+  char * savearg = *((char **)jarg1);
   arg1 = (char **)jarg1;
   arg2 = (OSRSpatialReferenceShadow *)jarg2; 
   {
@@ -9671,6 +10785,43 @@ SWIGEXPORT void * SWIGSTDCALL CSharp_ForceToMultiLineString(void * jarg1) {
 }
 
 
+SWIGEXPORT void * SWIGSTDCALL CSharp_ForceTo(void * jarg1, int jarg2, void * jarg3) {
+  void * jresult ;
+  OGRGeometryShadow *arg1 = (OGRGeometryShadow *) 0 ;
+  OGRwkbGeometryType arg2 ;
+  char **arg3 = (char **) NULL ;
+  OGRGeometryShadow *result = 0 ;
+  
+  arg1 = (OGRGeometryShadow *)jarg1; 
+  arg2 = (OGRwkbGeometryType)jarg2; 
+  arg3 = (char **)jarg3; 
+  {
+    CPLErrorReset();
+    result = (OGRGeometryShadow *)ForceTo(arg1,arg2,arg3);
+    CPLErr eclass = CPLGetLastErrorType();
+    if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+      SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
+      
+      
+      
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+  }
+  jresult = (void *)result; 
+  return jresult;
+}
+
+
 SWIGEXPORT void SWIGSTDCALL CSharp_delete_Geometry(void * jarg1) {
   OGRGeometryShadow *arg1 = (OGRGeometryShadow *) 0 ;
   
@@ -9755,6 +10906,59 @@ SWIGEXPORT int SWIGSTDCALL CSharp_Geometry_ExportToWkt(void * jarg1, void * jarg
   {
     CPLErrorReset();
     result = (OGRErr)OGRGeometryShadow_ExportToWkt(arg1,arg2);
+    CPLErr eclass = CPLGetLastErrorType();
+    if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+      SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
+      
+      
+      
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+  }
+  {
+    /* %typemap(out,fragment="OGRErrMessages",canthrow=1) OGRErr */
+    jresult = result;
+  }
+  {
+    /* %typemap(argout) (char **argout) */
+    char* temp_string;
+    temp_string = SWIG_csharp_string_callback(*arg2);
+    if (*arg2)
+    CPLFree(*arg2);
+    *arg2 = temp_string;
+  }
+  {
+    /* %typemap(ret) OGRErr */
+    
+  }
+  return jresult;
+}
+
+
+SWIGEXPORT int SWIGSTDCALL CSharp_Geometry_ExportToIsoWkt(void * jarg1, void * jarg2) {
+  int jresult ;
+  OGRGeometryShadow *arg1 = (OGRGeometryShadow *) 0 ;
+  char **arg2 = (char **) 0 ;
+  OGRErr result;
+  
+  arg1 = (OGRGeometryShadow *)jarg1; 
+  {
+    /* %typemap(in) (char **argout) */
+    arg2 = (char **)jarg2;
+  }
+  {
+    CPLErrorReset();
+    result = (OGRErr)OGRGeometryShadow_ExportToIsoWkt(arg1,arg2);
     CPLErr eclass = CPLGetLastErrorType();
     if ( eclass == CE_Failure || eclass == CE_Fatal ) {
       SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
@@ -9989,6 +11193,78 @@ SWIGEXPORT void SWIGSTDCALL CSharp_Geometry_AddPoint(void * jarg1, double jarg2,
   {
     CPLErrorReset();
     OGRGeometryShadow_AddPoint(arg1,arg2,arg3,arg4);
+    CPLErr eclass = CPLGetLastErrorType();
+    if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+      SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
+      
+      
+      
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+  }
+}
+
+
+SWIGEXPORT void SWIGSTDCALL CSharp_Geometry_AddPointM(void * jarg1, double jarg2, double jarg3, double jarg4) {
+  OGRGeometryShadow *arg1 = (OGRGeometryShadow *) 0 ;
+  double arg2 ;
+  double arg3 ;
+  double arg4 ;
+  
+  arg1 = (OGRGeometryShadow *)jarg1; 
+  arg2 = (double)jarg2; 
+  arg3 = (double)jarg3; 
+  arg4 = (double)jarg4; 
+  {
+    CPLErrorReset();
+    OGRGeometryShadow_AddPointM(arg1,arg2,arg3,arg4);
+    CPLErr eclass = CPLGetLastErrorType();
+    if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+      SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
+      
+      
+      
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+  }
+}
+
+
+SWIGEXPORT void SWIGSTDCALL CSharp_Geometry_AddPointZM(void * jarg1, double jarg2, double jarg3, double jarg4, double jarg5) {
+  OGRGeometryShadow *arg1 = (OGRGeometryShadow *) 0 ;
+  double arg2 ;
+  double arg3 ;
+  double arg4 ;
+  double arg5 ;
+  
+  arg1 = (OGRGeometryShadow *)jarg1; 
+  arg2 = (double)jarg2; 
+  arg3 = (double)jarg3; 
+  arg4 = (double)jarg4; 
+  arg5 = (double)jarg5; 
+  {
+    CPLErrorReset();
+    OGRGeometryShadow_AddPointZM(arg1,arg2,arg3,arg4,arg5);
     CPLErr eclass = CPLGetLastErrorType();
     if ( eclass == CE_Failure || eclass == CE_Fatal ) {
       SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
@@ -10478,6 +11754,41 @@ SWIGEXPORT double SWIGSTDCALL CSharp_Geometry_GetZ(void * jarg1, int jarg2) {
 }
 
 
+SWIGEXPORT double SWIGSTDCALL CSharp_Geometry_GetM(void * jarg1, int jarg2) {
+  double jresult ;
+  OGRGeometryShadow *arg1 = (OGRGeometryShadow *) 0 ;
+  int arg2 = (int) 0 ;
+  double result;
+  
+  arg1 = (OGRGeometryShadow *)jarg1; 
+  arg2 = (int)jarg2; 
+  {
+    CPLErrorReset();
+    result = (double)OGRGeometryShadow_GetM(arg1,arg2);
+    CPLErr eclass = CPLGetLastErrorType();
+    if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+      SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
+      
+      
+      
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+  }
+  jresult = result; 
+  return jresult;
+}
+
+
 SWIGEXPORT void SWIGSTDCALL CSharp_Geometry_GetPoint(void * jarg1, int jarg2, void * jarg3) {
   OGRGeometryShadow *arg1 = (OGRGeometryShadow *) 0 ;
   int arg2 = (int) 0 ;
@@ -10492,6 +11803,42 @@ SWIGEXPORT void SWIGSTDCALL CSharp_Geometry_GetPoint(void * jarg1, int jarg2, vo
   {
     CPLErrorReset();
     OGRGeometryShadow_GetPoint(arg1,arg2,arg3);
+    CPLErr eclass = CPLGetLastErrorType();
+    if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+      SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
+      
+      
+      
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+  }
+}
+
+
+SWIGEXPORT void SWIGSTDCALL CSharp_Geometry_GetPointZM(void * jarg1, int jarg2, void * jarg3) {
+  OGRGeometryShadow *arg1 = (OGRGeometryShadow *) 0 ;
+  int arg2 = (int) 0 ;
+  double *arg3 = (double *) (double *)NULL ;
+  
+  arg1 = (OGRGeometryShadow *)jarg1; 
+  arg2 = (int)jarg2; 
+  {
+    /* %typemap(in) (double argout[ANY]) */
+    arg3 = (double *)jarg3;
+  }
+  {
+    CPLErrorReset();
+    OGRGeometryShadow_GetPointZM(arg1,arg2,arg3);
     CPLErr eclass = CPLGetLastErrorType();
     if ( eclass == CE_Failure || eclass == CE_Fatal ) {
       SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
@@ -10598,6 +11945,82 @@ SWIGEXPORT void SWIGSTDCALL CSharp_Geometry_SetPoint(void * jarg1, int jarg2, do
   {
     CPLErrorReset();
     OGRGeometryShadow_SetPoint(arg1,arg2,arg3,arg4,arg5);
+    CPLErr eclass = CPLGetLastErrorType();
+    if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+      SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
+      
+      
+      
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+  }
+}
+
+
+SWIGEXPORT void SWIGSTDCALL CSharp_Geometry_SetPointM(void * jarg1, int jarg2, double jarg3, double jarg4, double jarg5) {
+  OGRGeometryShadow *arg1 = (OGRGeometryShadow *) 0 ;
+  int arg2 ;
+  double arg3 ;
+  double arg4 ;
+  double arg5 ;
+  
+  arg1 = (OGRGeometryShadow *)jarg1; 
+  arg2 = (int)jarg2; 
+  arg3 = (double)jarg3; 
+  arg4 = (double)jarg4; 
+  arg5 = (double)jarg5; 
+  {
+    CPLErrorReset();
+    OGRGeometryShadow_SetPointM(arg1,arg2,arg3,arg4,arg5);
+    CPLErr eclass = CPLGetLastErrorType();
+    if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+      SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
+      
+      
+      
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+  }
+}
+
+
+SWIGEXPORT void SWIGSTDCALL CSharp_Geometry_SetPointZM(void * jarg1, int jarg2, double jarg3, double jarg4, double jarg5, double jarg6) {
+  OGRGeometryShadow *arg1 = (OGRGeometryShadow *) 0 ;
+  int arg2 ;
+  double arg3 ;
+  double arg4 ;
+  double arg5 ;
+  double arg6 ;
+  
+  arg1 = (OGRGeometryShadow *)jarg1; 
+  arg2 = (int)jarg2; 
+  arg3 = (double)jarg3; 
+  arg4 = (double)jarg4; 
+  arg5 = (double)jarg5; 
+  arg6 = (double)jarg6; 
+  {
+    CPLErrorReset();
+    OGRGeometryShadow_SetPointZM(arg1,arg2,arg3,arg4,arg5,arg6);
     CPLErr eclass = CPLGetLastErrorType();
     if ( eclass == CE_Failure || eclass == CE_Fatal ) {
       SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
@@ -10736,6 +12159,43 @@ SWIGEXPORT void * SWIGSTDCALL CSharp_Geometry_SimplifyPreserveTopology(void * ja
   {
     CPLErrorReset();
     result = (OGRGeometryShadow *)OGRGeometryShadow_SimplifyPreserveTopology(arg1,arg2);
+    CPLErr eclass = CPLGetLastErrorType();
+    if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+      SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
+      
+      
+      
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+  }
+  jresult = (void *)result; 
+  return jresult;
+}
+
+
+SWIGEXPORT void * SWIGSTDCALL CSharp_Geometry_DelaunayTriangulation(void * jarg1, double jarg2, int jarg3) {
+  void * jresult ;
+  OGRGeometryShadow *arg1 = (OGRGeometryShadow *) 0 ;
+  double arg2 = (double) 0.0 ;
+  int arg3 = (int) FALSE ;
+  OGRGeometryShadow *result = 0 ;
+  
+  arg1 = (OGRGeometryShadow *)jarg1; 
+  arg2 = (double)jarg2; 
+  arg3 = (int)jarg3; 
+  {
+    CPLErrorReset();
+    result = (OGRGeometryShadow *)OGRGeometryShadow_DelaunayTriangulation(arg1,arg2,arg3);
     CPLErr eclass = CPLGetLastErrorType();
     if ( eclass == CE_Failure || eclass == CE_Fatal ) {
       SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
@@ -12207,6 +13667,105 @@ SWIGEXPORT int SWIGSTDCALL CSharp_Geometry_GetCoordinateDimension(void * jarg1) 
 }
 
 
+SWIGEXPORT int SWIGSTDCALL CSharp_Geometry_CoordinateDimension(void * jarg1) {
+  int jresult ;
+  OGRGeometryShadow *arg1 = (OGRGeometryShadow *) 0 ;
+  int result;
+  
+  arg1 = (OGRGeometryShadow *)jarg1; 
+  {
+    CPLErrorReset();
+    result = (int)OGRGeometryShadow_CoordinateDimension(arg1);
+    CPLErr eclass = CPLGetLastErrorType();
+    if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+      SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
+      
+      
+      
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+  }
+  jresult = result; 
+  return jresult;
+}
+
+
+SWIGEXPORT int SWIGSTDCALL CSharp_Geometry_Is3D(void * jarg1) {
+  int jresult ;
+  OGRGeometryShadow *arg1 = (OGRGeometryShadow *) 0 ;
+  int result;
+  
+  arg1 = (OGRGeometryShadow *)jarg1; 
+  {
+    CPLErrorReset();
+    result = (int)OGRGeometryShadow_Is3D(arg1);
+    CPLErr eclass = CPLGetLastErrorType();
+    if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+      SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
+      
+      
+      
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+  }
+  jresult = result; 
+  return jresult;
+}
+
+
+SWIGEXPORT int SWIGSTDCALL CSharp_Geometry_IsMeasured(void * jarg1) {
+  int jresult ;
+  OGRGeometryShadow *arg1 = (OGRGeometryShadow *) 0 ;
+  int result;
+  
+  arg1 = (OGRGeometryShadow *)jarg1; 
+  {
+    CPLErrorReset();
+    result = (int)OGRGeometryShadow_IsMeasured(arg1);
+    CPLErr eclass = CPLGetLastErrorType();
+    if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+      SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
+      
+      
+      
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+  }
+  jresult = result; 
+  return jresult;
+}
+
+
 SWIGEXPORT void SWIGSTDCALL CSharp_Geometry_SetCoordinateDimension(void * jarg1, int jarg2) {
   OGRGeometryShadow *arg1 = (OGRGeometryShadow *) 0 ;
   int arg2 ;
@@ -12216,6 +13775,68 @@ SWIGEXPORT void SWIGSTDCALL CSharp_Geometry_SetCoordinateDimension(void * jarg1,
   {
     CPLErrorReset();
     OGRGeometryShadow_SetCoordinateDimension(arg1,arg2);
+    CPLErr eclass = CPLGetLastErrorType();
+    if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+      SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
+      
+      
+      
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+  }
+}
+
+
+SWIGEXPORT void SWIGSTDCALL CSharp_Geometry_Set3D(void * jarg1, int jarg2) {
+  OGRGeometryShadow *arg1 = (OGRGeometryShadow *) 0 ;
+  int arg2 ;
+  
+  arg1 = (OGRGeometryShadow *)jarg1; 
+  arg2 = (int)jarg2; 
+  {
+    CPLErrorReset();
+    OGRGeometryShadow_Set3D(arg1,arg2);
+    CPLErr eclass = CPLGetLastErrorType();
+    if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+      SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
+      
+      
+      
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+  }
+}
+
+
+SWIGEXPORT void SWIGSTDCALL CSharp_Geometry_SetMeasured(void * jarg1, int jarg2) {
+  OGRGeometryShadow *arg1 = (OGRGeometryShadow *) 0 ;
+  int arg2 ;
+  
+  arg1 = (OGRGeometryShadow *)jarg1; 
+  arg2 = (int)jarg2; 
+  {
+    CPLErrorReset();
+    OGRGeometryShadow_SetMeasured(arg1,arg2);
     CPLErr eclass = CPLGetLastErrorType();
     if ( eclass == CE_Failure || eclass == CE_Fatal ) {
       SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
@@ -12267,6 +13888,148 @@ SWIGEXPORT int SWIGSTDCALL CSharp_Geometry_GetDimension(void * jarg1) {
     
   }
   jresult = result; 
+  return jresult;
+}
+
+
+SWIGEXPORT int SWIGSTDCALL CSharp_Geometry_HasCurveGeometry(void * jarg1, int jarg2) {
+  int jresult ;
+  OGRGeometryShadow *arg1 = (OGRGeometryShadow *) 0 ;
+  int arg2 = (int) FALSE ;
+  int result;
+  
+  arg1 = (OGRGeometryShadow *)jarg1; 
+  arg2 = (int)jarg2; 
+  {
+    CPLErrorReset();
+    result = (int)OGRGeometryShadow_HasCurveGeometry(arg1,arg2);
+    CPLErr eclass = CPLGetLastErrorType();
+    if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+      SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
+      
+      
+      
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+  }
+  jresult = result; 
+  return jresult;
+}
+
+
+SWIGEXPORT void * SWIGSTDCALL CSharp_Geometry_GetLinearGeometry(void * jarg1, double jarg2, void * jarg3) {
+  void * jresult ;
+  OGRGeometryShadow *arg1 = (OGRGeometryShadow *) 0 ;
+  double arg2 = (double) 0.0 ;
+  char **arg3 = (char **) NULL ;
+  OGRGeometryShadow *result = 0 ;
+  
+  arg1 = (OGRGeometryShadow *)jarg1; 
+  arg2 = (double)jarg2; 
+  arg3 = (char **)jarg3; 
+  {
+    CPLErrorReset();
+    result = (OGRGeometryShadow *)OGRGeometryShadow_GetLinearGeometry(arg1,arg2,arg3);
+    CPLErr eclass = CPLGetLastErrorType();
+    if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+      SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
+      
+      
+      
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+  }
+  jresult = (void *)result; 
+  return jresult;
+}
+
+
+SWIGEXPORT void * SWIGSTDCALL CSharp_Geometry_GetCurveGeometry(void * jarg1, void * jarg2) {
+  void * jresult ;
+  OGRGeometryShadow *arg1 = (OGRGeometryShadow *) 0 ;
+  char **arg2 = (char **) NULL ;
+  OGRGeometryShadow *result = 0 ;
+  
+  arg1 = (OGRGeometryShadow *)jarg1; 
+  arg2 = (char **)jarg2; 
+  {
+    CPLErrorReset();
+    result = (OGRGeometryShadow *)OGRGeometryShadow_GetCurveGeometry(arg1,arg2);
+    CPLErr eclass = CPLGetLastErrorType();
+    if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+      SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
+      
+      
+      
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+  }
+  jresult = (void *)result; 
+  return jresult;
+}
+
+
+SWIGEXPORT void * SWIGSTDCALL CSharp_Geometry_Value(void * jarg1, double jarg2) {
+  void * jresult ;
+  OGRGeometryShadow *arg1 = (OGRGeometryShadow *) 0 ;
+  double arg2 ;
+  OGRGeometryShadow *result = 0 ;
+  
+  arg1 = (OGRGeometryShadow *)jarg1; 
+  arg2 = (double)jarg2; 
+  {
+    CPLErrorReset();
+    result = (OGRGeometryShadow *)OGRGeometryShadow_Value(arg1,arg2);
+    CPLErr eclass = CPLGetLastErrorType();
+    if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+      SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
+      
+      
+      
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+  }
+  jresult = (void *)result; 
   return jresult;
 }
 
@@ -12507,6 +14270,534 @@ SWIGEXPORT char * SWIGSTDCALL CSharp_GetFieldTypeName(int jarg1) {
     
   }
   jresult = SWIG_csharp_string_callback((const char *)result); 
+  return jresult;
+}
+
+
+SWIGEXPORT char * SWIGSTDCALL CSharp_GetFieldSubTypeName(int jarg1) {
+  char * jresult ;
+  OGRFieldSubType arg1 ;
+  char *result = 0 ;
+  
+  arg1 = (OGRFieldSubType)jarg1; 
+  {
+    CPLErrorReset();
+    result = (char *)OGR_GetFieldSubTypeName(arg1);
+    CPLErr eclass = CPLGetLastErrorType();
+    if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+      SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
+      
+      
+      
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+  }
+  jresult = SWIG_csharp_string_callback((const char *)result); 
+  return jresult;
+}
+
+
+SWIGEXPORT int SWIGSTDCALL CSharp_GT_Flatten(int jarg1) {
+  int jresult ;
+  OGRwkbGeometryType arg1 ;
+  OGRwkbGeometryType result;
+  
+  arg1 = (OGRwkbGeometryType)jarg1; 
+  {
+    CPLErrorReset();
+    result = (OGRwkbGeometryType)OGR_GT_Flatten(arg1);
+    CPLErr eclass = CPLGetLastErrorType();
+    if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+      SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
+      
+      
+      
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+  }
+  jresult = result; 
+  return jresult;
+}
+
+
+SWIGEXPORT int SWIGSTDCALL CSharp_GT_SetZ(int jarg1) {
+  int jresult ;
+  OGRwkbGeometryType arg1 ;
+  OGRwkbGeometryType result;
+  
+  arg1 = (OGRwkbGeometryType)jarg1; 
+  {
+    CPLErrorReset();
+    result = (OGRwkbGeometryType)OGR_GT_SetZ(arg1);
+    CPLErr eclass = CPLGetLastErrorType();
+    if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+      SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
+      
+      
+      
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+  }
+  jresult = result; 
+  return jresult;
+}
+
+
+SWIGEXPORT int SWIGSTDCALL CSharp_GT_SetM(int jarg1) {
+  int jresult ;
+  OGRwkbGeometryType arg1 ;
+  OGRwkbGeometryType result;
+  
+  arg1 = (OGRwkbGeometryType)jarg1; 
+  {
+    CPLErrorReset();
+    result = (OGRwkbGeometryType)OGR_GT_SetM(arg1);
+    CPLErr eclass = CPLGetLastErrorType();
+    if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+      SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
+      
+      
+      
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+  }
+  jresult = result; 
+  return jresult;
+}
+
+
+SWIGEXPORT int SWIGSTDCALL CSharp_GT_SetModifier(int jarg1, int jarg2, int jarg3) {
+  int jresult ;
+  OGRwkbGeometryType arg1 ;
+  int arg2 ;
+  int arg3 = (int) FALSE ;
+  OGRwkbGeometryType result;
+  
+  arg1 = (OGRwkbGeometryType)jarg1; 
+  arg2 = (int)jarg2; 
+  arg3 = (int)jarg3; 
+  {
+    CPLErrorReset();
+    result = (OGRwkbGeometryType)GT_SetModifier(arg1,arg2,arg3);
+    CPLErr eclass = CPLGetLastErrorType();
+    if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+      SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
+      
+      
+      
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+  }
+  jresult = result; 
+  return jresult;
+}
+
+
+SWIGEXPORT int SWIGSTDCALL CSharp_GT_HasZ(int jarg1) {
+  int jresult ;
+  OGRwkbGeometryType arg1 ;
+  int result;
+  
+  arg1 = (OGRwkbGeometryType)jarg1; 
+  {
+    CPLErrorReset();
+    result = (int)OGR_GT_HasZ(arg1);
+    CPLErr eclass = CPLGetLastErrorType();
+    if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+      SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
+      
+      
+      
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+  }
+  jresult = result; 
+  return jresult;
+}
+
+
+SWIGEXPORT int SWIGSTDCALL CSharp_GT_HasM(int jarg1) {
+  int jresult ;
+  OGRwkbGeometryType arg1 ;
+  int result;
+  
+  arg1 = (OGRwkbGeometryType)jarg1; 
+  {
+    CPLErrorReset();
+    result = (int)OGR_GT_HasM(arg1);
+    CPLErr eclass = CPLGetLastErrorType();
+    if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+      SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
+      
+      
+      
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+  }
+  jresult = result; 
+  return jresult;
+}
+
+
+SWIGEXPORT int SWIGSTDCALL CSharp_GT_IsSubClassOf(int jarg1, int jarg2) {
+  int jresult ;
+  OGRwkbGeometryType arg1 ;
+  OGRwkbGeometryType arg2 ;
+  int result;
+  
+  arg1 = (OGRwkbGeometryType)jarg1; 
+  arg2 = (OGRwkbGeometryType)jarg2; 
+  {
+    CPLErrorReset();
+    result = (int)OGR_GT_IsSubClassOf(arg1,arg2);
+    CPLErr eclass = CPLGetLastErrorType();
+    if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+      SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
+      
+      
+      
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+  }
+  jresult = result; 
+  return jresult;
+}
+
+
+SWIGEXPORT int SWIGSTDCALL CSharp_GT_IsCurve(int jarg1) {
+  int jresult ;
+  OGRwkbGeometryType arg1 ;
+  int result;
+  
+  arg1 = (OGRwkbGeometryType)jarg1; 
+  {
+    CPLErrorReset();
+    result = (int)OGR_GT_IsCurve(arg1);
+    CPLErr eclass = CPLGetLastErrorType();
+    if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+      SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
+      
+      
+      
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+  }
+  jresult = result; 
+  return jresult;
+}
+
+
+SWIGEXPORT int SWIGSTDCALL CSharp_GT_IsSurface(int jarg1) {
+  int jresult ;
+  OGRwkbGeometryType arg1 ;
+  int result;
+  
+  arg1 = (OGRwkbGeometryType)jarg1; 
+  {
+    CPLErrorReset();
+    result = (int)OGR_GT_IsSurface(arg1);
+    CPLErr eclass = CPLGetLastErrorType();
+    if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+      SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
+      
+      
+      
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+  }
+  jresult = result; 
+  return jresult;
+}
+
+
+SWIGEXPORT int SWIGSTDCALL CSharp_GT_IsNonLinear(int jarg1) {
+  int jresult ;
+  OGRwkbGeometryType arg1 ;
+  int result;
+  
+  arg1 = (OGRwkbGeometryType)jarg1; 
+  {
+    CPLErrorReset();
+    result = (int)OGR_GT_IsNonLinear(arg1);
+    CPLErr eclass = CPLGetLastErrorType();
+    if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+      SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
+      
+      
+      
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+  }
+  jresult = result; 
+  return jresult;
+}
+
+
+SWIGEXPORT int SWIGSTDCALL CSharp_GT_GetCollection(int jarg1) {
+  int jresult ;
+  OGRwkbGeometryType arg1 ;
+  OGRwkbGeometryType result;
+  
+  arg1 = (OGRwkbGeometryType)jarg1; 
+  {
+    CPLErrorReset();
+    result = (OGRwkbGeometryType)OGR_GT_GetCollection(arg1);
+    CPLErr eclass = CPLGetLastErrorType();
+    if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+      SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
+      
+      
+      
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+  }
+  jresult = result; 
+  return jresult;
+}
+
+
+SWIGEXPORT int SWIGSTDCALL CSharp_GT_GetCurve(int jarg1) {
+  int jresult ;
+  OGRwkbGeometryType arg1 ;
+  OGRwkbGeometryType result;
+  
+  arg1 = (OGRwkbGeometryType)jarg1; 
+  {
+    CPLErrorReset();
+    result = (OGRwkbGeometryType)OGR_GT_GetCurve(arg1);
+    CPLErr eclass = CPLGetLastErrorType();
+    if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+      SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
+      
+      
+      
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+  }
+  jresult = result; 
+  return jresult;
+}
+
+
+SWIGEXPORT int SWIGSTDCALL CSharp_GT_GetLinear(int jarg1) {
+  int jresult ;
+  OGRwkbGeometryType arg1 ;
+  OGRwkbGeometryType result;
+  
+  arg1 = (OGRwkbGeometryType)jarg1; 
+  {
+    CPLErrorReset();
+    result = (OGRwkbGeometryType)OGR_GT_GetLinear(arg1);
+    CPLErr eclass = CPLGetLastErrorType();
+    if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+      SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
+      
+      
+      
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+  }
+  jresult = result; 
+  return jresult;
+}
+
+
+SWIGEXPORT void SWIGSTDCALL CSharp_SetNonLinearGeometriesEnabledFlag(int jarg1) {
+  int arg1 ;
+  
+  arg1 = (int)jarg1; 
+  {
+    CPLErrorReset();
+    OGRSetNonLinearGeometriesEnabledFlag(arg1);
+    CPLErr eclass = CPLGetLastErrorType();
+    if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+      SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
+      
+      
+      
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+  }
+}
+
+
+SWIGEXPORT int SWIGSTDCALL CSharp_GetNonLinearGeometriesEnabledFlag() {
+  int jresult ;
+  int result;
+  
+  {
+    CPLErrorReset();
+    result = (int)OGRGetNonLinearGeometriesEnabledFlag();
+    CPLErr eclass = CPLGetLastErrorType();
+    if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+      SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
+      
+      
+      
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+  }
+  jresult = result; 
   return jresult;
 }
 

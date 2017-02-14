@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: tigeroverunder.cpp 27729 2014-09-24 00:40:16Z goatbar $
+ * $Id: tigeroverunder.cpp 33706 2016-03-11 13:33:27Z goatbar $
  *
  * Project:  TIGER/Line Translator
  * Purpose:  Implements TigerOverUnder, providing access to .RTU files.
@@ -30,7 +30,7 @@
 #include "ogr_tiger.h"
 #include "cpl_conv.h"
 
-CPL_CVSID("$Id: tigeroverunder.cpp 27729 2014-09-24 00:40:16Z goatbar $");
+CPL_CVSID("$Id: tigeroverunder.cpp 33706 2016-03-11 13:33:27Z goatbar $");
 
 #define FILE_CODE       "U"
 
@@ -60,8 +60,8 @@ static const TigerRecordInfo rtU_info =
 /************************************************************************/
 
 TigerOverUnder::TigerOverUnder( OGRTigerDataSource * poDSIn,
-                                CPL_UNUSED const char * pszPrototypeModule )
-  : TigerPoint(TRUE, &rtU_info, FILE_CODE)
+                                CPL_UNUSED const char * pszPrototypeModule ) :
+    TigerPoint(TRUE, &rtU_info, FILE_CODE)
 {
     poDS = poDSIn;
     poFeatureDefn = new OGRFeatureDefn( "OverUnder" );
@@ -81,6 +81,6 @@ OGRFeature *TigerOverUnder::GetFeature( int nRecordId )
 
 OGRErr TigerOverUnder::CreateFeature( OGRFeature *poFeature )
 {
-  return TigerPoint::CreateFeature( poFeature, 
+  return TigerPoint::CreateFeature( poFeature,
                                     62 );
 }

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_gensql.h 27044 2014-03-16 23:41:27Z rouault $
+ * $Id: ogr_gensql.h 33714 2016-03-13 05:42:13Z goatbar $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Classes related to generic implementation of ExecuteSQL().
@@ -28,8 +28,8 @@
  * DEALINGS IN THE SOFTWARE.
  ****************************************************************************/
 
-#ifndef _OGR_GENSQL_H_INCLUDED
-#define _OGR_GENSQL_H_INCLUDED
+#ifndef OGR_GENSQL_H_INCLUDED
+#define OGR_GENSQL_H_INCLUDED
 
 #include "ogrsf_frmts.h"
 #include "swq.h"
@@ -52,7 +52,7 @@
 class CPL_DLL OGRGenSQLResultsLayer : public OGRLayer
 {
   private:
-    OGRDataSource *poSrcDS;
+    GDALDataset *poSrcDS;
     OGRLayer    *poSrcLayer;
     void        *pSelectInfo;
 
@@ -62,26 +62,26 @@ class CPL_DLL OGRGenSQLResultsLayer : public OGRLayer
 
     OGRFeatureDefn *poDefn;
 
-    int         PrepareSummary();
-    
     int        *panGeomFieldToSrcGeomField;
 
-    int         nIndexSize;
-    long       *panFIDIndex;
+    GIntBig     nIndexSize;
+    GIntBig    *panFIDIndex;
     int         bOrderByValid;
 
-    int         nNextIndexFID;
+    GIntBig      nNextIndexFID;
     OGRFeature  *poSummaryFeature;
 
     int         iFIDFieldIndex;
 
     int         nExtraDSCount;
-    OGRDataSource **papoExtraDS;
+    GDALDataset **papoExtraDS;
+
+    int         PrepareSummary();
 
     OGRFeature *TranslateFeature( OGRFeature * );
     void        CreateOrderByIndex();
-    void        SortIndexSection( OGRField *pasIndexFields, 
-                                  int nStart, int nEntries );
+    int         SortIndexSection( OGRField *pasIndexFields,
+                                  GIntBig nStart, GIntBig nEntries );
     int         Compare( OGRField *pasFirst, OGRField *pasSecond );
 
     void        ClearFilters();
@@ -94,11 +94,11 @@ class CPL_DLL OGRGenSQLResultsLayer : public OGRLayer
     int         ContainGeomSpecialField(swq_expr_node* expr);
 
     void        InvalidateOrderByIndex();
-    
+
     int         MustEvaluateSpatialFilterOnGenSQL();
 
   public:
-                OGRGenSQLResultsLayer( OGRDataSource *poSrcDS, 
+                OGRGenSQLResultsLayer( GDALDataset *poSrcDS,
                                        void *pSelectInfo,
                                        OGRGeometry *poSpatFilter,
                                        const char *pszWHERE,
@@ -109,12 +109,12 @@ class CPL_DLL OGRGenSQLResultsLayer : public OGRLayer
 
     virtual void        ResetReading();
     virtual OGRFeature *GetNextFeature();
-    virtual OGRErr      SetNextByIndex( long nIndex );
-    virtual OGRFeature *GetFeature( long nFID );
+    virtual OGRErr      SetNextByIndex( GIntBig nIndex );
+    virtual OGRFeature *GetFeature( GIntBig nFID );
 
     virtual OGRFeatureDefn *GetLayerDefn();
 
-    virtual int         GetFeatureCount( int bForce = TRUE );
+    virtual GIntBig     GetFeatureCount( int bForce = TRUE );
     virtual OGRErr      GetExtent(OGREnvelope *psExtent, int bForce = TRUE) { return GetExtent(0, psExtent, bForce); }
     virtual OGRErr      GetExtent(int iGeomField, OGREnvelope *psExtent, int bForce = TRUE);
 
@@ -125,5 +125,4 @@ class CPL_DLL OGRGenSQLResultsLayer : public OGRLayer
     virtual OGRErr      SetAttributeFilter( const char * );
 };
 
-#endif /* ndef _OGR_GENSQL_H_INCLUDED */
-
+#endif /* ndef OGR_GENSQL_H_INCLUDED */

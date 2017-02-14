@@ -1,25 +1,25 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #******************************************************************************
-# 
+#
 #  Project:  GDAL
 #  Purpose:  Command line raster calculator with numpy syntax
 #  Author:   Chris Yesson, chris.yesson@ioz.ac.uk
-# 
+#
 #******************************************************************************
 #  Copyright (c) 2010, Chris Yesson <chris.yesson@ioz.ac.uk>
 #  Copyright (c) 2010-2011, Even Rouault <even dot rouault at mines-paris dot org>
-# 
+#
 #  Permission is hereby granted, free of charge, to any person obtaining a
 #  copy of this software and associated documentation files (the "Software"),
 #  to deal in the Software without restriction, including without limitation
 #  the rights to use, copy, modify, merge, publish, distribute, sublicense,
 #  and/or sell copies of the Software, and to permit persons to whom the
 #  Software is furnished to do so, subject to the following conditions:
-# 
+#
 #  The above copyright notice and this permission notice shall be included
 #  in all copies or substantial portions of the Software.
-# 
+#
 #  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
 #  OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 #  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
@@ -42,16 +42,15 @@
 # gdal_calc.py -A input.tif --outfile=result.tif --calc="A*(A>0)" --NoDataValue=0
 ################################################################
 
-try:
-    from osgeo import gdal
-    from osgeo.gdalnumeric import *
-except ImportError:
-    import gdal
-    from gdalnumeric import *
-
 from optparse import OptionParser
-import sys
 import os
+import sys
+
+import numpy
+
+from osgeo import gdal
+from osgeo import gdalnumeric
+
 
 # create alphabetic list for storing input layers
 AlphaList=["A","B","C","D","E","F","G","H","I","J","K","L","M",
@@ -67,6 +66,10 @@ def doit(opts, args):
 
     if opts.debug:
         print("gdal_calc.py starting calculation %s" %(opts.calc))
+
+    # set up global namespace for eval with all functions of gdalnumeric
+    global_namespace = dict([(key, getattr(gdalnumeric, key))
+        for key in dir(gdalnumeric) if not key.startswith('__')])
 
     ################################################################
     # fetch details of input layers
@@ -177,10 +180,10 @@ def doit(opts, args):
             myOutB=None
 
     if opts.debug:
-        print("output file: %s, dimensions: %s, %s, type: %s" %(opts.outF,myOut.RasterXSize,myOut.RasterYSize,gdal.GetDataTypeName(myOutB.DataType)))
+        print("output file: %s, dimensions: %s, %s, type: %s" %(opts.outF,myOut.RasterXSize,myOut.RasterYSize,myOutType))
 
     ################################################################
-    # find block size to chop grids into bite-sized chunks 
+    # find block size to chop grids into bite-sized chunks
     ################################################################
 
     # use the block size of the first layer to read efficiently
@@ -200,7 +203,7 @@ def doit(opts, args):
     ProgressCt=-1
     ProgressMk=-1
     ProgressEnd=nXBlocks*nYBlocks*allBandsCount
-    
+
     ################################################################
     # start looping through each band in allBandsCount
     ################################################################
@@ -250,6 +253,9 @@ def doit(opts, args):
                 myNDVs=numpy.zeros(myBufSize)
                 myNDVs.shape=(nYValid,nXValid)
 
+                # modules available to calculation
+                local_namespace = {}
+
                 # fetch data for each input layer
                 for i,Alpha in enumerate(myAlphaList):
 
@@ -258,32 +264,32 @@ def doit(opts, args):
                         myBandNo=bandNo
                     else:
                         myBandNo=myBands[i]
-                    myval=BandReadAsArray(myFiles[i].GetRasterBand(myBandNo),
+                    myval=gdalnumeric.BandReadAsArray(myFiles[i].GetRasterBand(myBandNo),
                                           xoff=myX, yoff=myY,
                                           win_xsize=nXValid, win_ysize=nYValid)
 
                     # fill in nodata values
                     myNDVs=1*numpy.logical_or(myNDVs==1, myval==myNDV[i])
 
-                    # create an array of values for this block
-                    exec("%s=myval" %Alpha)
+                    # add an array of values for this block to the eval namespace
+                    local_namespace[Alpha] = myval
                     myval=None
 
 
                 # try the calculation on the array blocks
                 try:
-                    myResult = eval(opts.calc)
+                    myResult = eval(opts.calc, global_namespace, local_namespace)
                 except:
                     print("evaluation of calculation %s failed" %(opts.calc))
                     raise
 
-                # propogate nodata values 
-                # (set nodata cells to zero then add nodata value to these cells)
+                # Propagate nodata values (set nodata cells to zero
+                # then add nodata value to these cells).
                 myResult = ((1*(myNDVs==0))*myResult) + (myOutNDV*myNDVs)
 
                 # write data block to the output file
                 myOutB=myOut.GetRasterBand(bandNo)
-                BandWriteArray(myOutB, myResult, xoff=myX, yoff=myY)
+                gdalnumeric.BandWriteArray(myOutB, myResult, xoff=myX, yoff=myY)
 
     print("100 - Done")
     #print("Finished - Results written to %s" %opts.outF)
@@ -292,7 +298,7 @@ def doit(opts, args):
 
 ################################################################
 def main():
-    usage = "usage: %prog [-A <filename>] [--A_band] [-B...-Z filename] [other_options]"
+    usage = "usage: %prog [-A <filename>] [--A_band=n] [-B...-Z filename] [other_options]"
     parser = OptionParser(usage)
 
     # define options
@@ -300,7 +306,7 @@ def main():
     # hack to limit the number of input file options close to required number
     for myAlpha in AlphaList[0:len(sys.argv)-1]:
         eval('parser.add_option("-%s", dest="%s", help="input gdal raster file, note you can use any letter A-Z")' %(myAlpha, myAlpha))
-        eval('parser.add_option("--%s_band", dest="%s_band", default=0, type=int, help="number of raster band for file %s (default 0)")' %(myAlpha, myAlpha, myAlpha))
+        eval('parser.add_option("--%s_band", dest="%s_band", default=1, type=int, help="number of raster band for file %s (default 1)")' %(myAlpha, myAlpha, myAlpha))
 
     parser.add_option("--outfile", dest="outF", default='gdal_calc.tif', help="output file to generate or fill")
     parser.add_option("--NoDataValue", dest="NoDataValue", type=float, help="set output nodata value (Defaults to datatype specific value)")

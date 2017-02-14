@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_gft.h 27044 2014-03-16 23:41:27Z rouault $
+ * $Id: ogr_gft.h 33138 2016-01-24 11:18:11Z rouault $
  *
  * Project:  GFT Translator
  * Purpose:  Definition of classes for OGR Google Fusion Tables driver.
@@ -27,8 +27,8 @@
  * DEALINGS IN THE SOFTWARE.
  ****************************************************************************/
 
-#ifndef _OGR_GFT_H_INCLUDED
-#define _OGR_GFT_H_INCLUDED
+#ifndef OGR_GFT_H_INCLUDED
+#define OGR_GFT_H_INCLUDED
 
 #include "ogrsf_frmts.h"
 #include "cpl_http.h"
@@ -81,7 +81,7 @@ protected:
 
     virtual int                 TestCapability( const char * );
 
-    virtual OGRErr              SetNextByIndex( long nIndex );
+    virtual OGRErr              SetNextByIndex( GIntBig nIndex );
 
     const char *        GetDefaultGeometryColumnName() { return "geometry"; }
 
@@ -137,18 +137,21 @@ class OGRGFTTableLayer : public OGRGFTLayer
     virtual OGRFeatureDefn *    GetLayerDefn();
 
     virtual const char *        GetName() { return osTableName.c_str(); }
-    virtual int         GetFeatureCount( int bForce = TRUE );
+    virtual GIntBig     GetFeatureCount( int bForce = TRUE );
 
-    virtual OGRFeature *        GetFeature( long nFID );
+    virtual OGRFeature *        GetFeature( GIntBig nFID );
 
     virtual void        SetSpatialFilter( OGRGeometry * );
+    virtual void        SetSpatialFilter( int iGeomField, OGRGeometry *poGeom )
+                { OGRLayer::SetSpatialFilter(iGeomField, poGeom); }
+
     virtual OGRErr      SetAttributeFilter( const char * );
 
     virtual OGRErr      CreateField( OGRFieldDefn *poField,
                                      int bApproxOK = TRUE );
-    virtual OGRErr      CreateFeature( OGRFeature *poFeature );
-    virtual OGRErr      SetFeature( OGRFeature *poFeature );
-    virtual OGRErr      DeleteFeature( long nFID );
+    virtual OGRErr      ICreateFeature( OGRFeature *poFeature );
+    virtual OGRErr      ISetFeature( OGRFeature *poFeature );
+    virtual OGRErr      DeleteFeature( GIntBig nFID );
 
     virtual OGRErr      StartTransaction();
     virtual OGRErr      CommitTransaction();
@@ -204,7 +207,7 @@ class OGRGFTDataSource : public OGRDataSource
 
     void                DeleteLayer( const char *pszLayerName );
 
-    int                 bMustCleanPersistant;
+    int                 bMustCleanPersistent;
 
     static CPLStringList ParseSimpleJson(const char *pszJSon);
 
@@ -223,7 +226,7 @@ class OGRGFTDataSource : public OGRDataSource
 
     virtual int         TestCapability( const char * );
 
-    virtual OGRLayer   *CreateLayer( const char *pszName,
+    virtual OGRLayer   *ICreateLayer( const char *pszName,
                                      OGRSpatialReference *poSpatialRef = NULL,
                                      OGRwkbGeometryType eGType = wkbUnknown,
                                      char ** papszOptions = NULL );
@@ -260,4 +263,4 @@ class OGRGFTDriver : public OGRSFDriver
 char **OGRGFTCSVSplitLine( const char *pszString, char chDelimiter );
 char* OGRGFTGotoNextLine(char* pszData);
 
-#endif /* ndef _OGR_GFT_H_INCLUDED */
+#endif /* ndef OGR_GFT_H_INCLUDED */

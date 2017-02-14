@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrshapedatasource.cpp 27044 2014-03-16 23:41:27Z rouault $
+ * $Id: ogrshapedatasource.cpp 34069 2016-04-23 17:59:00Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implements OGRShapeDataSource class.
@@ -35,8 +35,7 @@
 
 //#define IMMEDIATE_OPENING 1
 
-CPL_CVSID("$Id: ogrshapedatasource.cpp 27044 2014-03-16 23:41:27Z rouault $");
-
+CPL_CVSID("$Id: ogrshapedatasource.cpp 34069 2016-04-23 17:59:00Z rouault $");
 
 /************************************************************************/
 /*                          DS_SHPOpen()                                */
@@ -44,7 +43,15 @@ CPL_CVSID("$Id: ogrshapedatasource.cpp 27044 2014-03-16 23:41:27Z rouault $");
 
 SHPHandle OGRShapeDataSource::DS_SHPOpen( const char * pszShapeFile, const char * pszAccess )
 {
-    SHPHandle hSHP = SHPOpenLL( pszShapeFile, pszAccess, (SAHooks*) VSI_SHP_GetHook(b2GBLimit) );
+    /* Do lazy shx loading for /vsicurl/ */
+    if( STARTS_WITH(pszShapeFile, "/vsicurl/") &&
+        strcmp(pszAccess, "r") == 0 )
+        pszAccess = "rl";
+
+    int bRestoreSHX = CPLTestBool( CPLGetConfigOption("SHAPE_RESTORE_SHX", "FALSE") );
+    SHPHandle hSHP = SHPOpenLLEx( pszShapeFile, pszAccess, (SAHooks*) VSI_SHP_GetHook(b2GBLimit),
+                                  bRestoreSHX );
+    
     if( hSHP != NULL )
         SHPSetFastModeReadObject( hSHP, TRUE );
     return hSHP;
@@ -64,16 +71,18 @@ DBFHandle OGRShapeDataSource::DS_DBFOpen( const char * pszDBFFile, const char * 
 /*                         OGRShapeDataSource()                         */
 /************************************************************************/
 
-OGRShapeDataSource::OGRShapeDataSource()
-
+OGRShapeDataSource::OGRShapeDataSource() :
+    papoLayers(NULL),
+    nLayers(0),
+    pszName(NULL),
+    bDSUpdate(FALSE),
+    bSingleFileDataSource(FALSE),
+    papszOpenOptions(NULL)
 {
-    pszName = NULL;
-    papoLayers = NULL;
-    nLayers = 0;
-    bSingleFileDataSource = FALSE;
     poPool = new OGRLayerPool();
-    b2GBLimit = CSLTestBoolean(CPLGetConfigOption("SHAPE_2GB_LIMIT", "FALSE"));
+    b2GBLimit = CPLTestBool(CPLGetConfigOption("SHAPE_2GB_LIMIT", "FALSE"));
 }
+
 
 /************************************************************************/
 /*                        ~OGRShapeDataSource()                         */
@@ -94,20 +103,23 @@ OGRShapeDataSource::~OGRShapeDataSource()
     delete poPool;
 
     CPLFree( papoLayers );
+    CSLDestroy( papszOpenOptions );
 }
 
 /************************************************************************/
 /*                                Open()                                */
 /************************************************************************/
 
-int OGRShapeDataSource::Open( const char * pszNewName, int bUpdate,
+int OGRShapeDataSource::Open( GDALOpenInfo* poOpenInfo,
                               int bTestOpen, int bForceSingleFileDataSource )
 
 {
-    VSIStatBufL  stat;
-    
     CPLAssert( nLayers == 0 );
-    
+
+    const char * pszNewName = poOpenInfo->pszFilename;
+    int bUpdate = poOpenInfo->eAccess == GA_Update;
+    papszOpenOptions = CSLDuplicate( poOpenInfo->papszOpenOptions );
+
     pszName = CPLStrdup( pszNewName );
 
     bDSUpdate = bUpdate;
@@ -115,20 +127,20 @@ int OGRShapeDataSource::Open( const char * pszNewName, int bUpdate,
     bSingleFileDataSource = bForceSingleFileDataSource;
 
 /* -------------------------------------------------------------------- */
-/*      If  bSingleFileDataSource is TRUE we don't try to do anything else.     */
+/*      If bSingleFileDataSource is TRUE we don't try to do anything    */
+/*      else.                                                           */
 /*      This is only utilized when the OGRShapeDriver::Create()         */
 /*      method wants to create a stub OGRShapeDataSource for a          */
 /*      single shapefile.  The driver will take care of creating the    */
-/*      file by calling CreateLayer().                                  */
+/*      file by calling ICreateLayer().                                 */
 /* -------------------------------------------------------------------- */
     if( bSingleFileDataSource )
         return TRUE;
-    
+
 /* -------------------------------------------------------------------- */
 /*      Is the given path a directory or a regular file?                */
 /* -------------------------------------------------------------------- */
-    if( VSIStatExL( pszNewName, &stat, VSI_STAT_EXISTS_FLAG | VSI_STAT_NATURE_FLAG ) != 0 
-        || (!VSI_ISDIR(stat.st_mode) && !VSI_ISREG(stat.st_mode)) )
+    if( !poOpenInfo->bStatOK )
     {
         if( !bTestOpen )
             CPLError( CE_Failure, CPLE_AppDefined,
@@ -137,11 +149,11 @@ int OGRShapeDataSource::Open( const char * pszNewName, int bUpdate,
 
         return FALSE;
     }
-    
+
 /* -------------------------------------------------------------------- */
 /*      Build a list of filenames we figure are Shape files.            */
 /* -------------------------------------------------------------------- */
-    if( VSI_ISREG(stat.st_mode) )
+    if( !poOpenInfo->bIsDirectory )
     {
         if( !OpenFile( pszNewName, bUpdate, bTestOpen ) )
         {
@@ -160,7 +172,7 @@ int OGRShapeDataSource::Open( const char * pszNewName, int bUpdate,
     }
     else
     {
-        char      **papszCandidates = CPLReadDir( pszNewName );
+        char      **papszCandidates = VSIReadDir( pszNewName );
         int       iCan, nCandidateCount = CSLCount( papszCandidates );
         int       bMightBeOldCoverage = FALSE;
         std::set<CPLString> osLayerNameSet;
@@ -207,7 +219,7 @@ int OGRShapeDataSource::Open( const char * pszNewName, int bUpdate,
             CPLFree( pszFilename );
         }
 
-        // Try and .dbf files without apparent associated shapefiles. 
+        // Try and .dbf files without apparent associated shapefiles.
         for( iCan = 0; iCan < nCandidateCount; iCan++ )
         {
             char        *pszFilename;
@@ -220,7 +232,7 @@ int OGRShapeDataSource::Open( const char * pszNewName, int bUpdate,
 
             // We don't consume .dbf files in a directory that looks like
             // an old style Arc/Info (for PC?) that unless we found at least
-            // some shapefiles.  See Bug 493. 
+            // some shapefiles.  See Bug 493.
             if( bMightBeOldCoverage && osLayerNameSet.size() == 0 )
                 continue;
 
@@ -274,7 +286,7 @@ int OGRShapeDataSource::Open( const char * pszNewName, int bUpdate,
 #ifdef IMMEDIATE_OPENING
         int nDirLayers = nLayers;
 #else
-        int nDirLayers = oVectorLayerName.size();
+        int nDirLayers = static_cast<int>(oVectorLayerName.size());
 #endif
 
         CPLErrorReset();
@@ -303,7 +315,7 @@ int OGRShapeDataSource::OpenFile( const char *pszNewName, int bUpdate,
 
 /* -------------------------------------------------------------------- */
 /*      SHPOpen() should include better (CPL based) error reporting,    */
-/*      and we should be trying to distinquish at this point whether    */
+/*      and we should be trying to distinguish at this point whether    */
 /*      failure is a result of trying to open a non-shapefile, or       */
 /*      whether it was a shapefile and we want to report the error      */
 /*      up.                                                             */
@@ -318,8 +330,8 @@ int OGRShapeDataSource::OpenFile( const char *pszNewName, int bUpdate,
         hSHP = DS_SHPOpen( pszNewName, "r" );
     CPLPopErrorHandler();
 
-    if( hSHP == NULL 
-        && (!EQUAL(CPLGetExtension(pszNewName),"dbf") 
+    if( hSHP == NULL
+        && (!EQUAL(CPLGetExtension(pszNewName),"dbf")
             || strstr(CPLGetLastErrorMsg(),".shp") == NULL) )
     {
         CPLString osMsg = CPLGetLastErrorMsg();
@@ -329,7 +341,7 @@ int OGRShapeDataSource::OpenFile( const char *pszNewName, int bUpdate,
         return FALSE;
     }
     CPLErrorReset();
-    
+
 /* -------------------------------------------------------------------- */
 /*      Open the .dbf file, if it exists.  To open a dbf file, the      */
 /*      filename has to either refer to a successfully opened shp       */
@@ -370,7 +382,7 @@ int OGRShapeDataSource::OpenFile( const char *pszNewName, int bUpdate,
     }
     else
         hDBF = NULL;
-        
+
     if( hDBF == NULL && hSHP == NULL )
         return FALSE;
 
@@ -381,6 +393,8 @@ int OGRShapeDataSource::OpenFile( const char *pszNewName, int bUpdate,
 
     poLayer = new OGRShapeLayer( this, pszNewName, hSHP, hDBF, NULL, FALSE, bUpdate,
                                  wkbNone );
+    poLayer->SetModificationDate(
+            CSLFetchNameValue( papszOpenOptions, "DBF_DATE_LAST_UPDATE" ) );
 
 /* -------------------------------------------------------------------- */
 /*      Add layer to data source layer list.                            */
@@ -414,11 +428,11 @@ void OGRShapeDataSource::AddLayer(OGRShapeLayer* poLayer)
 }
 
 /************************************************************************/
-/*                            CreateLayer()                             */
+/*                           ICreateLayer()                             */
 /************************************************************************/
 
 OGRLayer *
-OGRShapeDataSource::CreateLayer( const char * pszLayerName,
+OGRShapeDataSource::ICreateLayer( const char * pszLayerName,
                                  OGRSpatialReference *poSRS,
                                  OGRwkbGeometryType eType,
                                  char ** papszOptions )
@@ -457,7 +471,7 @@ OGRShapeDataSource::CreateLayer( const char * pszLayerName,
 /* -------------------------------------------------------------------- */
 /*      Figure out what type of layer we need.                          */
 /* -------------------------------------------------------------------- */
-    if( eType == wkbUnknown || eType == wkbLineString )
+    if( wkbFlatten(eType) == wkbUnknown || eType == wkbLineString )
         nShapeType = SHPT_ARC;
     else if( eType == wkbPoint )
         nShapeType = SHPT_POINT;
@@ -467,19 +481,43 @@ OGRShapeDataSource::CreateLayer( const char * pszLayerName,
         nShapeType = SHPT_MULTIPOINT;
     else if( eType == wkbPoint25D )
         nShapeType = SHPT_POINTZ;
+    else if( eType == wkbPointM )
+        nShapeType = SHPT_POINTM;
+    else if( eType == wkbPointZM )
+        nShapeType = SHPT_POINTZ;
     else if( eType == wkbLineString25D )
+        nShapeType = SHPT_ARCZ;
+    else if( eType == wkbLineStringM )
+        nShapeType = SHPT_ARCM;
+    else if( eType == wkbLineStringZM )
         nShapeType = SHPT_ARCZ;
     else if( eType == wkbMultiLineString )
         nShapeType = SHPT_ARC;
     else if( eType == wkbMultiLineString25D )
         nShapeType = SHPT_ARCZ;
+    else if( eType == wkbMultiLineStringM )
+        nShapeType = SHPT_ARCM;
+    else if( eType == wkbMultiLineStringZM )
+        nShapeType = SHPT_ARCZ;
     else if( eType == wkbPolygon25D )
+        nShapeType = SHPT_POLYGONZ;
+    else if( eType == wkbPolygonM )
+        nShapeType = SHPT_POLYGONM;
+    else if( eType == wkbPolygonZM )
         nShapeType = SHPT_POLYGONZ;
     else if( eType == wkbMultiPolygon )
         nShapeType = SHPT_POLYGON;
     else if( eType == wkbMultiPolygon25D )
         nShapeType = SHPT_POLYGONZ;
+    else if( eType == wkbMultiPolygonM )
+        nShapeType = SHPT_POLYGONM;
+    else if( eType == wkbMultiPolygonZM )
+        nShapeType = SHPT_POLYGONZ;
     else if( eType == wkbMultiPoint25D )
+        nShapeType = SHPT_MULTIPOINTZ;
+    else if( eType == wkbMultiPointM )
+        nShapeType = SHPT_MULTIPOINTM;
+    else if( eType == wkbMultiPointZM )
         nShapeType = SHPT_MULTIPOINTZ;
     else if( eType == wkbNone )
         nShapeType = SHPT_NULL;
@@ -534,6 +572,46 @@ OGRShapeDataSource::CreateLayer( const char * pszLayerName,
         nShapeType = SHPT_MULTIPOINTZ;
         eType = wkbMultiPoint25D;
     }
+    else if( EQUAL(pszOverride,"POINTM") )
+    {
+        nShapeType = SHPT_POINTM;
+        eType = wkbPointM;
+    }
+    else if( EQUAL(pszOverride,"ARCM") )
+    {
+        nShapeType = SHPT_ARCM;
+        eType = wkbLineStringM;
+    }
+    else if( EQUAL(pszOverride,"POLYGONM") )
+    {
+        nShapeType = SHPT_POLYGONM;
+        eType = wkbPolygonM;
+    }
+    else if( EQUAL(pszOverride,"MULTIPOINTM") )
+    {
+        nShapeType = SHPT_MULTIPOINTM;
+        eType = wkbMultiPointM;
+    }
+    else if( EQUAL(pszOverride,"POINTZM") )
+    {
+        nShapeType = SHPT_POINTZ;
+        eType = wkbPointZM;
+    }
+    else if( EQUAL(pszOverride,"ARCZM") )
+    {
+        nShapeType = SHPT_ARCZ;
+        eType = wkbLineStringZM;
+    }
+    else if( EQUAL(pszOverride,"POLYGONZM") )
+    {
+        nShapeType = SHPT_POLYGONZ;
+        eType = wkbPolygonZM;
+    }
+    else if( EQUAL(pszOverride,"MULTIPOINTZM") )
+    {
+        nShapeType = SHPT_MULTIPOINTZ;
+        eType = wkbMultiPointZM;
+    }
     else if( EQUAL(pszOverride,"NONE") || EQUAL(pszOverride,"NULL") )
     {
         nShapeType = SHPT_NULL;
@@ -558,7 +636,7 @@ OGRShapeDataSource::CreateLayer( const char * pszLayerName,
                   OGRGeometryTypeToName(eType) );
         return NULL;
     }
-    
+
 /* -------------------------------------------------------------------- */
 /*      What filename do we use, excluding the extension?               */
 /* -------------------------------------------------------------------- */
@@ -594,14 +672,14 @@ OGRShapeDataSource::CreateLayer( const char * pszLayerName,
 /* -------------------------------------------------------------------- */
     char        *pszFilename;
 
-    int b2GBLimit = CSLTestBoolean(CSLFetchNameValueDef( papszOptions, "2GB_LIMIT", "FALSE" ));
+    int l_b2GBLimit = CPLTestBool(CSLFetchNameValueDef( papszOptions, "2GB_LIMIT", "FALSE" ));
 
     if( nShapeType != SHPT_NULL )
     {
         pszFilename = CPLStrdup(CPLFormFilename( NULL, pszFilenameWithoutExt, "shp" ));
 
-        hSHP = SHPCreateLL( pszFilename, nShapeType, (SAHooks*) VSI_SHP_GetHook(b2GBLimit) );
-        
+        hSHP = SHPCreateLL( pszFilename, nShapeType, (SAHooks*) VSI_SHP_GetHook(l_b2GBLimit) );
+
         if( hSHP == NULL )
         {
             CPLError( CE_Failure, CPLE_OpenFailed,
@@ -611,7 +689,7 @@ OGRShapeDataSource::CreateLayer( const char * pszLayerName,
             CPLFree( pszFilenameWithoutExt );
             return NULL;
         }
-        
+
         SHPSetFastModeReadObject( hSHP, TRUE );
 
         CPLFree( pszFilename );
@@ -660,7 +738,7 @@ OGRShapeDataSource::CreateLayer( const char * pszLayerName,
         poSRS = poSRS->Clone();
         poSRS->morphToESRI();
 
-        if( poSRS->exportToWkt( &pszWKT ) == OGRERR_NONE 
+        if( poSRS->exportToWkt( &pszWKT ) == OGRERR_NONE
             && (fp = VSIFOpenL( osPrjFile, "wt" )) != NULL )
         {
             VSIFWriteL( pszWKT, strlen(pszWKT), 1, fp );
@@ -689,6 +767,9 @@ OGRShapeDataSource::CreateLayer( const char * pszLayerName,
     CPLFree( pszFilename );
 
     poLayer->SetResizeAtClose( CSLFetchBoolean( papszOptions, "RESIZE", FALSE ) );
+    poLayer->CreateSpatialIndexAtClose( CSLFetchBoolean( papszOptions, "SPATIAL_INDEX", FALSE ) );
+    poLayer->SetModificationDate(
+        CSLFetchNameValue( papszOptions, "DBF_DATE_LAST_UPDATE" ) );
 
 /* -------------------------------------------------------------------- */
 /*      Add layer to data source layer list.                            */
@@ -709,6 +790,8 @@ int OGRShapeDataSource::TestCapability( const char * pszCap )
         return bDSUpdate;
     else if( EQUAL(pszCap,ODsCDeleteLayer) )
         return bDSUpdate;
+    else if( EQUAL(pszCap,ODsCMeasuredGeometries) )
+        return TRUE;
     else
         return FALSE;
 }
@@ -847,9 +930,9 @@ OGRLayer * OGRShapeDataSource::ExecuteSQL( const char *pszStatement,
 /* ==================================================================== */
 /*      Handle command to drop a spatial index.                         */
 /* ==================================================================== */
-    if( EQUALN(pszStatement, "REPACK ", 7) )
+    if( STARTS_WITH_CI(pszStatement, "REPACK ") )
     {
-        OGRShapeLayer *poLayer = (OGRShapeLayer *) 
+        OGRShapeLayer *poLayer = (OGRShapeLayer *)
             GetLayerByName( pszStatement + 7 );
 
         if( poLayer != NULL )
@@ -863,8 +946,8 @@ OGRLayer * OGRShapeDataSource::ExecuteSQL( const char *pszStatement,
         }
         else
         {
-            CPLError( CE_Failure, CPLE_AppDefined, 
-                      "No such layer as '%s' in REPACK.", 
+            CPLError( CE_Failure, CPLE_AppDefined,
+                      "No such layer as '%s' in REPACK.",
                       pszStatement + 7 );
         }
         return NULL;
@@ -873,7 +956,7 @@ OGRLayer * OGRShapeDataSource::ExecuteSQL( const char *pszStatement,
 /* ==================================================================== */
 /*      Handle command to shrink columns to their minimum size.         */
 /* ==================================================================== */
-    if( EQUALN(pszStatement, "RESIZE ", 7) )
+    if( STARTS_WITH_CI(pszStatement, "RESIZE ") )
     {
         OGRShapeLayer *poLayer = (OGRShapeLayer *)
             GetLayerByName( pszStatement + 7 );
@@ -892,45 +975,45 @@ OGRLayer * OGRShapeDataSource::ExecuteSQL( const char *pszStatement,
 /* ==================================================================== */
 /*      Handle command to recompute extent                             */
 /* ==================================================================== */
-    if( EQUALN(pszStatement, "RECOMPUTE EXTENT ON ", 20) )
+    if( STARTS_WITH_CI(pszStatement, "RECOMPUTE EXTENT ON ") )
     {
-        OGRShapeLayer *poLayer = (OGRShapeLayer *) 
+        OGRShapeLayer *poLayer = (OGRShapeLayer *)
             GetLayerByName( pszStatement + 20 );
 
         if( poLayer != NULL )
             poLayer->RecomputeExtent();
         else
         {
-            CPLError( CE_Failure, CPLE_AppDefined, 
-                      "No such layer as '%s' in RECOMPUTE EXTENT.", 
+            CPLError( CE_Failure, CPLE_AppDefined,
+                      "No such layer as '%s' in RECOMPUTE EXTENT.",
                       pszStatement + 20 );
         }
         return NULL;
     }
-    
+
 /* ==================================================================== */
 /*      Handle command to drop a spatial index.                         */
 /* ==================================================================== */
-    if( EQUALN(pszStatement, "DROP SPATIAL INDEX ON ", 22) )
+    if( STARTS_WITH_CI(pszStatement, "DROP SPATIAL INDEX ON ") )
     {
-        OGRShapeLayer *poLayer = (OGRShapeLayer *) 
+        OGRShapeLayer *poLayer = (OGRShapeLayer *)
             GetLayerByName( pszStatement + 22 );
 
         if( poLayer != NULL )
             poLayer->DropSpatialIndex();
         else
         {
-            CPLError( CE_Failure, CPLE_AppDefined, 
-                      "No such layer as '%s' in DROP SPATIAL INDEX.", 
+            CPLError( CE_Failure, CPLE_AppDefined,
+                      "No such layer as '%s' in DROP SPATIAL INDEX.",
                       pszStatement + 22 );
         }
         return NULL;
     }
-    
+
 /* ==================================================================== */
-/*      Handle all comands except spatial index creation generically.   */
+/*      Handle all commands except spatial index creation generically.  */
 /* ==================================================================== */
-    if( !EQUALN(pszStatement,"CREATE SPATIAL INDEX ON ",24) )
+    if( !STARTS_WITH_CI(pszStatement, "CREATE SPATIAL INDEX ON ") )
     {
         char **papszTokens = CSLTokenizeString( pszStatement );
         if( CSLCount(papszTokens) >=4
@@ -944,7 +1027,7 @@ OGRLayer * OGRShapeDataSource::ExecuteSQL( const char *pszStatement,
         }
         CSLDestroy( papszTokens );
 
-        return OGRDataSource::ExecuteSQL( pszStatement, poSpatialFilter, 
+        return OGRDataSource::ExecuteSQL( pszStatement, poSpatialFilter,
                                           pszDialect );
     }
 
@@ -952,20 +1035,21 @@ OGRLayer * OGRShapeDataSource::ExecuteSQL( const char *pszStatement,
 /*      Parse into keywords.                                            */
 /* -------------------------------------------------------------------- */
     char **papszTokens = CSLTokenizeString( pszStatement );
-    
+
     if( CSLCount(papszTokens) < 5
         || !EQUAL(papszTokens[0],"CREATE")
         || !EQUAL(papszTokens[1],"SPATIAL")
-        || !EQUAL(papszTokens[2],"INDEX") 
-        || !EQUAL(papszTokens[3],"ON") 
-        || CSLCount(papszTokens) > 7 
+        || !EQUAL(papszTokens[2],"INDEX")
+        || !EQUAL(papszTokens[3],"ON")
+        || CSLCount(papszTokens) > 7
         || (CSLCount(papszTokens) == 7 && !EQUAL(papszTokens[5],"DEPTH")) )
     {
         CSLDestroy( papszTokens );
-        CPLError( CE_Failure, CPLE_AppDefined, 
+        CPLError( CE_Failure, CPLE_AppDefined,
                   "Syntax error in CREATE SPATIAL INDEX command.\n"
                   "Was '%s'\n"
-                  "Should be of form 'CREATE SPATIAL INDEX ON <table> [DEPTH <n>]'",
+                  "Should be of form 'CREATE SPATIAL INDEX ON <table> "
+                  "[DEPTH <n>]'",
                   pszStatement );
         return NULL;
     }
@@ -984,8 +1068,8 @@ OGRLayer * OGRShapeDataSource::ExecuteSQL( const char *pszStatement,
 
     if( poLayer == NULL )
     {
-        CPLError( CE_Failure, CPLE_AppDefined, 
-                  "Layer %s not recognised.", 
+        CPLError( CE_Failure, CPLE_AppDefined,
+                  "Layer %s not recognised.",
                   papszTokens[4] );
         CSLDestroy( papszTokens );
         return NULL;
@@ -1005,8 +1089,6 @@ OGRLayer * OGRShapeDataSource::ExecuteSQL( const char *pszStatement,
 OGRErr OGRShapeDataSource::DeleteLayer( int iLayer )
 
 {
-    char *pszFilename;
-
 /* -------------------------------------------------------------------- */
 /*      Verify we are in update mode.                                   */
 /* -------------------------------------------------------------------- */
@@ -1014,7 +1096,7 @@ OGRErr OGRShapeDataSource::DeleteLayer( int iLayer )
     {
         CPLError( CE_Failure, CPLE_NoWriteAccess,
                   "Data source %s opened read-only.\n"
-                  "Layer %d cannot be deleted.\n",
+                  "Layer %d cannot be deleted.",
                   pszName, iLayer );
 
         return OGRERR_FAILURE;
@@ -1022,15 +1104,15 @@ OGRErr OGRShapeDataSource::DeleteLayer( int iLayer )
 
     if( iLayer < 0 || iLayer >= nLayers )
     {
-        CPLError( CE_Failure, CPLE_AppDefined, 
-                  "Layer %d not in legal range of 0 to %d.", 
+        CPLError( CE_Failure, CPLE_AppDefined,
+                  "Layer %d not in legal range of 0 to %d.",
                   iLayer, nLayers-1 );
         return OGRERR_FAILURE;
     }
 
     OGRShapeLayer* poLayerToDelete = (OGRShapeLayer*) papoLayers[iLayer];
 
-    pszFilename = CPLStrdup(poLayerToDelete->GetFullName());
+    char *pszFilename = CPLStrdup(poLayerToDelete->GetFullName());
 
     delete poLayerToDelete;
 
@@ -1064,7 +1146,7 @@ void OGRShapeDataSource::SetLastUsedLayer( OGRShapeLayer* poLayer )
     /* The only rationale for that test is to avoid breaking applications */
     /* that would deal with layers of the same datasource in different */
     /* threads. In GDAL < 1.9.0, this would work in most cases I can */
-    /* imagine as shapefile layers are pretty much independant from each */
+    /* imagine as shapefile layers are pretty much independent from each */
     /* others (although it has never been guaranteed to be a valid use case, */
     /* and the shape driver is likely more the exception than the rule in */
     /* permitting accessing layers from different threads !) */
@@ -1077,4 +1159,20 @@ void OGRShapeDataSource::SetLastUsedLayer( OGRShapeLayer* poLayer )
         return;
 
     poPool->SetLastUsedLayer(poLayer);
+}
+
+/************************************************************************/
+/*                            GetFileList()                             */
+/************************************************************************/
+
+char** OGRShapeDataSource::GetFileList()
+{
+    CPLStringList       oFileList;
+    GetLayerCount();
+    for(int i=0;i<nLayers;i++)
+    {
+        OGRShapeLayer* poLayer = papoLayers[i];
+        poLayer->AddToFileList(oFileList);
+    }
+    return oFileList.StealList();
 }

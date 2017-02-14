@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_geomedia.h 27044 2014-03-16 23:41:27Z rouault $
+ * $Id: ogr_geomedia.h 33713 2016-03-12 17:41:57Z goatbar $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Private definitions for Geomedia MDB driver.
@@ -28,8 +28,8 @@
  * DEALINGS IN THE SOFTWARE.
  ****************************************************************************/
 
-#ifndef _OGR_GEOMEDIA_H_INCLUDED
-#define _OGR_GEOMEDIA_H_INCLUDED
+#ifndef OGR_GEOMEDIA_H_INCLUDED
+#define OGR_GEOMEDIA_H_INCLUDED
 
 #include "ogrsf_frmts.h"
 #include "cpl_odbc.h"
@@ -41,7 +41,7 @@
 /************************************************************************/
 
 class OGRGeomediaDataSource;
-    
+
 class OGRGeomediaLayer : public OGRLayer
 {
   protected:
@@ -53,7 +53,7 @@ class OGRGeomediaLayer : public OGRLayer
     OGRSpatialReference *poSRS;
     int                 nSRSId;
 
-    int                 iNextShapeId;
+    GIntBig             iNextShapeId;
 
     OGRGeomediaDataSource    *poDS;
 
@@ -77,10 +77,10 @@ class OGRGeomediaLayer : public OGRLayer
     virtual OGRFeature *GetNextRawFeature();
     virtual OGRFeature *GetNextFeature();
 
-    virtual OGRFeature *GetFeature( long nFeatureId );
-    
+    virtual OGRFeature *GetFeature( GIntBig nFeatureId );
+
     OGRFeatureDefn *    GetLayerDefn() { return poFeatureDefn; }
-    
+
     virtual int         TestCapability( const char * );
 
     virtual const char *GetFIDColumn();
@@ -106,16 +106,16 @@ class OGRGeomediaTableLayer : public OGRGeomediaLayer
                         OGRGeomediaTableLayer( OGRGeomediaDataSource * );
                         ~OGRGeomediaTableLayer();
 
-    CPLErr              Initialize( const char *pszTableName, 
+    CPLErr              Initialize( const char *pszTableName,
                                     const char *pszGeomCol,
                                     OGRSpatialReference* poSRS );
 
     virtual void        ResetReading();
-    virtual int         GetFeatureCount( int );
+    virtual GIntBig     GetFeatureCount( int );
 
     virtual OGRErr      SetAttributeFilter( const char * );
-    virtual OGRFeature *GetFeature( long nFeatureId );
-    
+    virtual OGRFeature *GetFeature( GIntBig nFeatureId );
+
     virtual int         TestCapability( const char * );
 };
 
@@ -138,10 +138,10 @@ class OGRGeomediaSelectLayer : public OGRGeomediaLayer
                         ~OGRGeomediaSelectLayer();
 
     virtual void        ResetReading();
-    virtual int         GetFeatureCount( int );
+    virtual GIntBig     GetFeatureCount( int );
 
-    virtual OGRFeature *GetFeature( long nFeatureId );
-    
+    virtual OGRFeature *GetFeature( GIntBig nFeatureId );
+
     virtual int         TestCapability( const char * );
 };
 
@@ -171,7 +171,7 @@ class OGRGeomediaDataSource : public OGRDataSource
                         ~OGRGeomediaDataSource();
 
     int                 Open( const char *, int bUpdate, int bTestOpen );
-    int                 OpenTable( const char *pszTableName, 
+    int                 OpenTable( const char *pszTableName,
                                    const char *pszGeomCol,
                                    int bUpdate );
 
@@ -199,7 +199,7 @@ class OGRGeomediaDriver : public OGRODBCMDBDriver
 {
   public:
                 ~OGRGeomediaDriver();
-                
+
     const char  *GetName();
     OGRDataSource *Open( const char *, int );
 

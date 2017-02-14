@@ -95,7 +95,7 @@ int main(int argc, char* argv[])
         else if( EQUAL(argv[i],"-a_nodata") && i < argc - 1 )
         {
             bSetNoData = TRUE;
-            dfDstNoData = atof(argv[++i]);
+            dfDstNoData = CPLAtof(argv[++i]);
         }
         else if( EQUAL(argv[i], "-set_alpha"))
         {
@@ -181,7 +181,7 @@ int main(int argc, char* argv[])
 /* -------------------------------------------------------------------- */
 /*      Write geotransform, projection, color interpretations, no data  */
 /*      values, color tables, metadata, etc. before the file is         */
-/*       crystalized                                                    */
+/*      crystallized.                                                   */
 /* -------------------------------------------------------------------- */
     if( GDALGetGeoTransform( hSrcDS, adfGeoTransform ) == CE_None )
     {

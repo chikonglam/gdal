@@ -1506,9 +1506,9 @@ SWIG_Perl_SetModule(swig_module_info *module) {
 
 /* -------- TYPES TABLE (BEGIN) -------- */
 
-#define SWIGTYPE_p_GDALProgressFunc swig_types[0]
-#define SWIGTYPE_p_OGRDataSourceShadow swig_types[1]
-#define SWIGTYPE_p_OGRDriverShadow swig_types[2]
+#define SWIGTYPE_p_GDALMajorObjectShadow swig_types[0]
+#define SWIGTYPE_p_GDALProgressFunc swig_types[1]
+#define SWIGTYPE_p_GIntBig swig_types[2]
 #define SWIGTYPE_p_OGRFeatureDefnShadow swig_types[3]
 #define SWIGTYPE_p_OGRFeatureShadow swig_types[4]
 #define SWIGTYPE_p_OGRFieldDefnShadow swig_types[5]
@@ -1521,13 +1521,15 @@ SWIG_Perl_SetModule(swig_module_info *module) {
 #define SWIGTYPE_p_char swig_types[12]
 #define SWIGTYPE_p_double swig_types[13]
 #define SWIGTYPE_p_f_double_p_q_const__char_p_void__int swig_types[14]
-#define SWIGTYPE_p_int swig_types[15]
-#define SWIGTYPE_p_p_char swig_types[16]
-#define SWIGTYPE_p_p_double swig_types[17]
-#define SWIGTYPE_p_p_int swig_types[18]
-#define SWIGTYPE_p_p_p_char swig_types[19]
-static swig_type_info *swig_types[21];
-static swig_module_info swig_module = {swig_types, 20, 0, 0, 0, 0};
+#define SWIGTYPE_p_float swig_types[15]
+#define SWIGTYPE_p_int swig_types[16]
+#define SWIGTYPE_p_p_GIntBig swig_types[17]
+#define SWIGTYPE_p_p_char swig_types[18]
+#define SWIGTYPE_p_p_double swig_types[19]
+#define SWIGTYPE_p_p_int swig_types[20]
+#define SWIGTYPE_p_p_p_char swig_types[21]
+static swig_type_info *swig_types[23];
+static swig_module_info swig_module = {swig_types, 22, 0, 0, 0, 0};
 #define SWIG_TypeQuery(name) SWIG_TypeQueryModule(&swig_module, &swig_module, name)
 #define SWIG_MangledTypeQuery(name) SWIG_MangledTypeQueryModule(&swig_module, &swig_module, name)
 
@@ -1569,6 +1571,7 @@ typedef char retStringAndCPLFree;
 #include <iostream>
 using namespace std;
 
+#include "gdal.h"
 #include "ogr_api.h"
 #include "ogr_p.h"
 #include "ogr_core.h"
@@ -1576,10 +1579,17 @@ using namespace std;
 #include "cpl_string.h"
 #include "ogr_srs_api.h"
 
-#ifdef DEBUG 
+#define FIELD_INDEX_ERROR_TMPL "Invalid field index: '%i'"
+#define FIELD_NAME_ERROR_TMPL "Invalid field name: '%s'"
+
+typedef void GDALMajorObjectShadow;
+
+#ifdef DEBUG
 typedef struct OGRSpatialReferenceHS OSRSpatialReferenceShadow;
+#ifndef SWIGPERL
 typedef struct OGRDriverHS OGRDriverShadow;
 typedef struct OGRDataSourceHS OGRDataSourceShadow;
+#endif
 typedef struct OGRLayerHS OGRLayerShadow;
 typedef struct OGRFeatureHS OGRFeatureShadow;
 typedef struct OGRFeatureDefnHS OGRFeatureDefnShadow;
@@ -1589,8 +1599,10 @@ typedef struct OGRCoordinateTransformationHS OGRCoordinateTransformationShadow;
 typedef struct OGRFieldDefnHS OGRFieldDefnShadow;
 #else
 typedef void OSRSpatialReferenceShadow;
+#ifndef SWIGPERL
 typedef void OGRDriverShadow;
 typedef void OGRDataSourceShadow;
+#endif
 typedef void OGRLayerShadow;
 typedef void OGRFeatureShadow;
 typedef void OGRFeatureDefnShadow;
@@ -1644,67 +1656,116 @@ SWIG_FromCharPtr(const char *cptr)
     #ifndef SWIG
     typedef struct
     {
-	SV *fct;
-	SV *data;
+        SV *fct;
+        SV *data;
     } SavedEnv;
     #endif
     int callback_d_cp_vp(double d, const char *cp, void *vp)
     {
-	int count, ret;
-	SavedEnv *env_ptr = (SavedEnv *)vp;
-	dSP;
-	ENTER;
-	SAVETMPS;
-	PUSHMARK(SP);
-	XPUSHs(sv_2mortal(newSVnv(d)));
-	XPUSHs(sv_2mortal(newSVpv(cp, 0)));
-	if (env_ptr->data)
-	    XPUSHs(env_ptr->data);
-	PUTBACK;
-	count = call_sv(env_ptr->fct, G_SCALAR);
-	SPAGAIN;
-	if (count != 1) {
-	    fprintf(stderr, "The callback must return only one value.\n");
-	    return 0; /* interrupt */
-	}
-	ret = POPi;
-	PUTBACK;
-	FREETMPS;
-	LEAVE;
-	return ret;
+        int count, ret;
+        SavedEnv *env_ptr = (SavedEnv *)vp;
+        dSP;
+        ENTER;
+        SAVETMPS;
+        PUSHMARK(SP);
+        XPUSHs(sv_2mortal(newSVnv(d)));
+        XPUSHs(sv_2mortal(newSVpv(cp, 0)));
+        if (env_ptr->data)
+            XPUSHs(env_ptr->data);
+        PUTBACK;
+        count = call_sv(env_ptr->fct, G_SCALAR);
+        SPAGAIN;
+        if (count != 1) {
+            fprintf(stderr, "The callback must return only one value.\n");
+            return 0; /* interrupt */
+        }
+        ret = POPi;
+        PUTBACK;
+        FREETMPS;
+        LEAVE;
+        return ret;
+    }
+    #ifndef SWIG
+    static SV *VSIStdoutSetRedirectionFct = &PL_sv_undef;
+    #endif
+    size_t callback_fwrite(const void *ptr, size_t size, size_t nmemb,
+                           FILE *stream)
+    {
+        dSP;
+        ENTER;
+        SAVETMPS;
+        PUSHMARK(SP);
+        XPUSHs(sv_2mortal(newSVpv((const char*)ptr, size*nmemb)));
+        PUTBACK;
+        call_sv(VSIStdoutSetRedirectionFct, G_DISCARD);
+        FREETMPS;
+        LEAVE;
+        return size*nmemb;
     }
 
 
-SWIGINTERN int
-SWIG_AsVal_double SWIG_PERL_DECL_ARGS_2(SV *obj, double *val)
-{
-  if (SvNIOK(obj)) {
-    if (val) *val = SvNV(obj);
-    return SWIG_OK;
-  } else if (SvIOK(obj)) {
-    if (val) *val = (double) SvIV(obj);
-    return SWIG_AddCast(SWIG_OK);
-  } else {
-    const char *nptr = SvPV_nolen(obj);
-    if (nptr) {
-      char *endptr;
-      double v;
-      errno = 0;
-      v = strtod(nptr, &endptr);
-      if (errno == ERANGE) {
-	errno = 0;
-	return SWIG_OverflowError;
-      } else {
-	if (*endptr == '\0') {
-	  if (val) *val = v;
-	  return SWIG_Str2NumCast(SWIG_OK);
-	}
-      }
+    void do_confess(const char *error, int push_to_error_stack) {
+        SV *sv = newSVpv(error, 0);
+        if (push_to_error_stack) {
+            AV* error_stack = get_av("Geo::GDAL::error", 0);
+            av_push(error_stack, sv);
+        } else {
+            sv = sv_2mortal(sv);
+        }
+        dSP;
+        ENTER;
+        SAVETMPS;
+        PUSHMARK(SP);
+        XPUSHs( sv );
+        PUTBACK;
+        call_pv("Carp::confess", G_DISCARD);
+        /*
+        confess never returns, so these will not get executed:
+        FREETMPS;
+        LEAVE;
+        */
     }
+    #define OUT_OF_MEMORY "Out of memory."
+    #define CALL_FAILED "Call failed. Possible reason is an index out of range, mathematical problem, or something else."
+    #define NEED_DEF "A parameter which must be defined or not empty, is not."
+    #define WRONG_CLASS "Object has a wrong class."
+    #define NEED_REF "A parameter which must be a reference, is not."
+    #define NEED_ARRAY_REF "A parameter/item which must be an array reference, is not."
+    #define NEED_BINARY_DATA "A parameter which must be binary data, is not."
+    #define NEED_CODE_REF "A parameter which must be an anonymous subroutine, is not."
+    #define WRONG_ITEM_IN_ARRAY "An item in an array parameter has wrong type."
+    #define ARRAY_TO_XML_FAILED "An array parameter cannot be converted to an XMLTree."
+
+
+void VeryQuietErrorHandler(CPLErr eclass, int code, const char *msg ) {
+  /* If the error class is CE_Fatal, we want to have a message issued
+     because the CPL support code does an abort() before any exception
+     can be generated */
+#if defined(SWIGPERL)
+    AV* error_stack = get_av("Geo::GDAL::error", 0);
+    SV *error = newSVpv(msg, 0);
+    av_push(error_stack, error);
+#endif
+  if (eclass == CE_Fatal ) {
+    CPLDefaultErrorHandler(eclass, code, msg );
   }
-  return SWIG_TypeError;
 }
 
+
+void UseExceptions() {
+  CPLSetErrorHandler( (CPLErrorHandler) VeryQuietErrorHandler );
+}
+
+void DontUseExceptions() {
+  CPLSetErrorHandler( CPLDefaultErrorHandler );
+}
+
+SWIGINTERN OGRStyleTableShadow *new_OGRStyleTableShadow(){
+        return (OGRStyleTableShadow*) OGR_STBL_Create();
+   }
+SWIGINTERN void delete_OGRStyleTableShadow(OGRStyleTableShadow *self){
+        OGR_STBL_Destroy( (OGRStyleTableH) self );
+   }
 
 SWIGINTERN swig_type_info*
 SWIG_pchar_descriptor(void)
@@ -1761,34 +1822,35 @@ SWIG_AsCharPtrAndSize(SV *obj, char** cptr, size_t* psize, int *alloc)
 
 
 
-
-void VeryQuiteErrorHandler(CPLErr eclass, int code, const char *msg ) {
-  /* If the error class is CE_Fatal, we want to have a message issued
-     because the CPL support code does an abort() before any exception
-     can be generated */
-  if (eclass == CE_Fatal ) {
-    CPLDefaultErrorHandler(eclass, code, msg );
-  }
-}
-
-
-void UseExceptions() {
-  CPLSetErrorHandler( (CPLErrorHandler) VeryQuiteErrorHandler );
-}
-
-void DontUseExceptions() {
-  CPLSetErrorHandler( CPLDefaultErrorHandler );
-}
-
-SWIGINTERN OGRStyleTableShadow *new_OGRStyleTableShadow(){
-        return (OGRStyleTableShadow*) OGR_STBL_Create();
-   }
-SWIGINTERN void delete_OGRStyleTableShadow(OGRStyleTableShadow *self){
-        OGR_STBL_Destroy( (OGRStyleTableH) self );
-   }
 SWIGINTERN int OGRStyleTableShadow_AddStyle(OGRStyleTableShadow *self,char const *pszName,char const *pszStyleString){
         return OGR_STBL_AddStyle( (OGRStyleTableH) self, pszName, pszStyleString);
    }
+
+    char *sv_to_utf8_string(SV *sv, U8 **tmpbuf) {
+        /* if tmpbuf, only tmpbuf is freed; if not, ret is freed*/
+        char *ret;
+        if (SvOK(sv)) {
+            STRLEN len;
+            ret = SvPV(sv, len);
+            if (!SvUTF8(sv)) {
+                if (tmpbuf) {
+                    *tmpbuf = bytes_to_utf8((const U8*)ret, &len);
+                    ret = (char *)(*tmpbuf);
+                } else {
+                    ret = (char *)bytes_to_utf8((const U8*)ret, &len);
+                }
+            } else {
+                if (!tmpbuf)
+                    ret = strdup(ret);
+            }
+        } else {
+            ret = (char*)""; /* avoid "Use of uninitialized value in subroutine entry" errors */
+            if (!tmpbuf)
+                ret = strdup(ret);
+        }
+        return ret;
+    }
+    
 SWIGINTERN int OGRStyleTableShadow_LoadStyleTable(OGRStyleTableShadow *self,char const *utf8_path){
         return OGR_STBL_LoadStyleTable( (OGRStyleTableH) self, utf8_path );
    }
@@ -1807,13 +1869,45 @@ SWIGINTERN char const *OGRStyleTableShadow_GetNextStyle(OGRStyleTableShadow *sel
 SWIGINTERN char const *OGRStyleTableShadow_GetLastStyleName(OGRStyleTableShadow *self){
         return OGR_STBL_GetLastStyleName( (OGRStyleTableH) self );
    }
-SWIGINTERN OGRDataSourceShadow *OGRDriverShadow_CreateDataSource(OGRDriverShadow *self,char const *utf8_path,char **options=0){
-    OGRDataSourceShadow *ds = (OGRDataSourceShadow*) OGR_Dr_CreateDataSource( self, utf8_path, options);
-    return ds;
+SWIGINTERN int OGRLayerShadow_GetRefCount(OGRLayerShadow *self){
+    return OGR_L_GetRefCount(self);
   }
-SWIGINTERN OGRDataSourceShadow *OGRDriverShadow_CopyDataSource(OGRDriverShadow *self,OGRDataSourceShadow *copy_ds,char const *utf8_path,char **options=0){
-    OGRDataSourceShadow *ds = (OGRDataSourceShadow*) OGR_Dr_CopyDataSource(self, copy_ds, utf8_path, options);
-    return ds;
+SWIGINTERN void OGRLayerShadow_SetSpatialFilter__SWIG_0(OGRLayerShadow *self,OGRGeometryShadow *filter){
+    OGR_L_SetSpatialFilter (self, filter);
+  }
+
+SWIGINTERN int
+SWIG_AsVal_double SWIG_PERL_DECL_ARGS_2(SV *obj, double *val)
+{
+  if (SvNIOK(obj)) {
+    if (val) *val = SvNV(obj);
+    return SWIG_OK;
+  } else if (SvIOK(obj)) {
+    if (val) *val = (double) SvIV(obj);
+    return SWIG_AddCast(SWIG_OK);
+  } else {
+    const char *nptr = SvPV_nolen(obj);
+    if (nptr) {
+      char *endptr;
+      double v;
+      errno = 0;
+      v = strtod(nptr, &endptr);
+      if (errno == ERANGE) {
+	errno = 0;
+	return SWIG_OverflowError;
+      } else {
+	if (*endptr == '\0') {
+	  if (val) *val = v;
+	  return SWIG_Str2NumCast(SWIG_OK);
+	}
+      }
+    }
+  }
+  return SWIG_TypeError;
+}
+
+SWIGINTERN void OGRLayerShadow_SetSpatialFilterRect__SWIG_0(OGRLayerShadow *self,double minx,double miny,double maxx,double maxy){
+    OGR_L_SetSpatialFilterRect(self, minx, miny, maxx, maxy);
   }
 
 #include <limits.h>
@@ -1925,64 +2019,17 @@ SWIG_AsVal_int SWIG_PERL_DECL_ARGS_2(SV * obj, int *val)
   return res;
 }
 
-SWIGINTERN OGRDataSourceShadow *OGRDriverShadow_Open(OGRDriverShadow *self,char const *utf8_path,int update=0){
-    CPLErrorReset();
-    OGRDataSourceShadow* ds = (OGRDataSourceShadow*) OGR_Dr_Open(self, utf8_path, update);
-    if( CPLGetLastErrorType() == CE_Failure && ds != NULL )
-    {
-        CPLDebug(
-            "SWIG",
-            "OGR_Dr_Open() succeeded, but an error is posted, so we destroy"
-            " the datasource and fail at swig level.\nError:%s",
-            CPLGetLastErrorMsg() );
-        OGRReleaseDataSource(ds);
-        ds = NULL;
-    }
-    return ds;
+SWIGINTERN void OGRLayerShadow_SetSpatialFilter__SWIG_1(OGRLayerShadow *self,int iGeomField,OGRGeometryShadow *filter){
+    OGR_L_SetSpatialFilterEx (self, iGeomField, filter);
   }
-SWIGINTERN int OGRDriverShadow_DeleteDataSource(OGRDriverShadow *self,char const *utf8_path){
-
-    return OGR_Dr_DeleteDataSource( self, utf8_path );
+SWIGINTERN void OGRLayerShadow_SetSpatialFilterRect__SWIG_1(OGRLayerShadow *self,int iGeomField,double minx,double miny,double maxx,double maxy){
+    OGR_L_SetSpatialFilterRectEx(self, iGeomField, minx, miny, maxx, maxy);
   }
-SWIGINTERN bool OGRDriverShadow_TestCapability(OGRDriverShadow *self,char const *cap){
-    return (OGR_Dr_TestCapability(self, cap) > 0);
+SWIGINTERN OGRGeometryShadow *OGRLayerShadow_GetSpatialFilter(OGRLayerShadow *self){
+    return (OGRGeometryShadow *) OGR_L_GetSpatialFilter(self);
   }
-
-SWIGINTERNINLINE SV *
-SWIG_From_bool  SWIG_PERL_DECL_ARGS_1(bool value)
-{
-  return boolSV(value);
-}
-
-SWIGINTERN char const *OGRDriverShadow_GetName(OGRDriverShadow *self){
-    return OGR_Dr_GetName( self );
-  }
-SWIGINTERN void OGRDriverShadow_Register(OGRDriverShadow *self){
-    OGRRegisterDriver( self );
-  }
-SWIGINTERN void OGRDriverShadow_Deregister(OGRDriverShadow *self){
-    OGRDeregisterDriver( self );
-  }
-SWIGINTERN void delete_OGRDataSourceShadow(OGRDataSourceShadow *self){
-    OGRReleaseDataSource(self);
-  }
-SWIGINTERN int OGRDataSourceShadow_GetRefCount(OGRDataSourceShadow *self){
-    return OGR_DS_GetRefCount(self);
-  }
-SWIGINTERN int OGRDataSourceShadow_GetSummaryRefCount(OGRDataSourceShadow *self){
-    return OGR_DS_GetSummaryRefCount(self);
-  }
-SWIGINTERN int OGRDataSourceShadow_GetLayerCount(OGRDataSourceShadow *self){
-    return OGR_DS_GetLayerCount(self);
-  }
-SWIGINTERN OGRDriverShadow *OGRDataSourceShadow_GetDriver(OGRDataSourceShadow *self){
-    return (OGRDriverShadow *) OGR_DS_GetDriver( self );
-  }
-SWIGINTERN char const *OGRDataSourceShadow_GetName(OGRDataSourceShadow *self){
-    return OGR_DS_GetName(self);
-  }
-SWIGINTERN OGRErr OGRDataSourceShadow_DeleteLayer(OGRDataSourceShadow *self,int index){
-    return OGR_DS_DeleteLayer(self, index);
+SWIGINTERN OGRErr OGRLayerShadow_SetAttributeFilter(OGRLayerShadow *self,char *filter_string){
+    return OGR_L_SetAttributeFilter((OGRLayerShadow*)self, filter_string);
   }
 
 
@@ -2008,79 +2055,13 @@ OGRErrMessages( int rc ) {
     return "OGR Error: Unsupported SRS";
   case OGRERR_INVALID_HANDLE:
     return "OGR Error: Invalid handle";
+  case OGRERR_NON_EXISTING_FEATURE:
+    return "OGR Error: Non existing feature";
   default:
     return "OGR Error: Unknown";
   }
 }
 
-SWIGINTERN OGRErr OGRDataSourceShadow_SyncToDisk(OGRDataSourceShadow *self){
-    return OGR_DS_SyncToDisk(self);
-  }
-SWIGINTERN OGRLayerShadow *OGRDataSourceShadow_CreateLayer(OGRDataSourceShadow *self,char const *name,OSRSpatialReferenceShadow *srs=NULL,OGRwkbGeometryType geom_type=wkbUnknown,char **options=0){
-    OGRLayerShadow* layer = (OGRLayerShadow*) OGR_DS_CreateLayer( self,
-								  name,
-								  srs,
-								  geom_type,
-								  options);
-    return layer;
-  }
-SWIGINTERN OGRLayerShadow *OGRDataSourceShadow_CopyLayer(OGRDataSourceShadow *self,OGRLayerShadow *src_layer,char const *new_name,char **options=0){
-    OGRLayerShadow* layer = (OGRLayerShadow*) OGR_DS_CopyLayer( self,
-                                                      src_layer,
-                                                      new_name,
-                                                      options);
-    return layer;
-  }
-SWIGINTERN OGRLayerShadow *OGRDataSourceShadow_GetLayerByIndex(OGRDataSourceShadow *self,int index=0){
-
-    OGRLayerShadow* layer = (OGRLayerShadow*) OGR_DS_GetLayer(self, index);
-    return layer;
-  }
-SWIGINTERN OGRLayerShadow *OGRDataSourceShadow_GetLayerByName(OGRDataSourceShadow *self,char const *layer_name){
-    OGRLayerShadow* layer = (OGRLayerShadow*) OGR_DS_GetLayerByName(self, layer_name);
-    return layer;
-  }
-SWIGINTERN bool OGRDataSourceShadow_TestCapability(OGRDataSourceShadow *self,char const *cap){
-    return (OGR_DS_TestCapability(self, cap) > 0);
-  }
-SWIGINTERN OGRLayerShadow *OGRDataSourceShadow_ExecuteSQL(OGRDataSourceShadow *self,char const *statement,OGRGeometryShadow *spatialFilter=NULL,char const *dialect=""){
-    OGRLayerShadow* layer = (OGRLayerShadow*) OGR_DS_ExecuteSQL((OGRDataSourceShadow*)self,
-                                                      statement,
-                                                      spatialFilter,
-                                                      dialect);
-    return layer;
-  }
-SWIGINTERN void OGRDataSourceShadow_ReleaseResultSet(OGRDataSourceShadow *self,OGRLayerShadow *layer){
-    OGR_DS_ReleaseResultSet(self, layer);
-  }
-SWIGINTERN OGRStyleTableShadow *OGRDataSourceShadow_GetStyleTable(OGRDataSourceShadow *self){
-    return (OGRStyleTableShadow*) OGR_DS_GetStyleTable(self);
-  }
-SWIGINTERN void OGRDataSourceShadow_SetStyleTable(OGRDataSourceShadow *self,OGRStyleTableShadow *table){
-    if( table != NULL )
-        OGR_DS_SetStyleTable(self, (OGRStyleTableH) table);
-  }
-SWIGINTERN int OGRLayerShadow_GetRefCount(OGRLayerShadow *self){
-    return OGR_L_GetRefCount(self);
-  }
-SWIGINTERN void OGRLayerShadow_SetSpatialFilter__SWIG_0(OGRLayerShadow *self,OGRGeometryShadow *filter){
-    OGR_L_SetSpatialFilter (self, filter);
-  }
-SWIGINTERN void OGRLayerShadow_SetSpatialFilterRect__SWIG_0(OGRLayerShadow *self,double minx,double miny,double maxx,double maxy){
-    OGR_L_SetSpatialFilterRect(self, minx, miny, maxx, maxy);
-  }
-SWIGINTERN void OGRLayerShadow_SetSpatialFilter__SWIG_1(OGRLayerShadow *self,int iGeomField,OGRGeometryShadow *filter){
-    OGR_L_SetSpatialFilterEx (self, iGeomField, filter);
-  }
-SWIGINTERN void OGRLayerShadow_SetSpatialFilterRect__SWIG_1(OGRLayerShadow *self,int iGeomField,double minx,double miny,double maxx,double maxy){
-    OGR_L_SetSpatialFilterRectEx(self, iGeomField, minx, miny, maxx, maxy);
-  }
-SWIGINTERN OGRGeometryShadow *OGRLayerShadow_GetSpatialFilter(OGRLayerShadow *self){
-    return (OGRGeometryShadow *) OGR_L_GetSpatialFilter(self);
-  }
-SWIGINTERN OGRErr OGRLayerShadow_SetAttributeFilter(OGRLayerShadow *self,char *filter_string){
-    return OGR_L_SetAttributeFilter((OGRLayerShadow*)self, filter_string);
-  }
 SWIGINTERN void OGRLayerShadow_ResetReading(OGRLayerShadow *self){
     OGR_L_ResetReading(self);
   }
@@ -2096,13 +2077,13 @@ SWIGINTERN char const *OGRLayerShadow_GetGeometryColumn(OGRLayerShadow *self){
 SWIGINTERN char const *OGRLayerShadow_GetFIDColumn(OGRLayerShadow *self){
     return OGR_L_GetFIDColumn(self);
   }
-SWIGINTERN OGRFeatureShadow *OGRLayerShadow_GetFeature(OGRLayerShadow *self,long fid){
+SWIGINTERN OGRFeatureShadow *OGRLayerShadow_GetFeature(OGRLayerShadow *self,GIntBig fid){
     return (OGRFeatureShadow*) OGR_L_GetFeature(self, fid);
   }
 SWIGINTERN OGRFeatureShadow *OGRLayerShadow_GetNextFeature(OGRLayerShadow *self){
     return (OGRFeatureShadow*) OGR_L_GetNextFeature(self);
   }
-SWIGINTERN OGRErr OGRLayerShadow_SetNextByIndex(OGRLayerShadow *self,long new_index){
+SWIGINTERN OGRErr OGRLayerShadow_SetNextByIndex(OGRLayerShadow *self,GIntBig new_index){
     return OGR_L_SetNextByIndex(self, new_index);
   }
 SWIGINTERN OGRErr OGRLayerShadow_SetFeature(OGRLayerShadow *self,OGRFeatureShadow *feature){
@@ -2111,7 +2092,7 @@ SWIGINTERN OGRErr OGRLayerShadow_SetFeature(OGRLayerShadow *self,OGRFeatureShado
 SWIGINTERN OGRErr OGRLayerShadow_CreateFeature(OGRLayerShadow *self,OGRFeatureShadow *feature){
     return OGR_L_CreateFeature(self, feature);
   }
-SWIGINTERN OGRErr OGRLayerShadow_DeleteFeature(OGRLayerShadow *self,long fid){
+SWIGINTERN OGRErr OGRLayerShadow_DeleteFeature(OGRLayerShadow *self,GIntBig fid){
     return OGR_L_DeleteFeature(self, fid);
   }
 SWIGINTERN OGRErr OGRLayerShadow_SyncToDisk(OGRLayerShadow *self){
@@ -2120,20 +2101,20 @@ SWIGINTERN OGRErr OGRLayerShadow_SyncToDisk(OGRLayerShadow *self){
 SWIGINTERN OGRFeatureDefnShadow *OGRLayerShadow_GetLayerDefn(OGRLayerShadow *self){
     return (OGRFeatureDefnShadow*) OGR_L_GetLayerDefn(self);
   }
-SWIGINTERN int OGRLayerShadow_GetFeatureCount(OGRLayerShadow *self,int force=1){
+SWIGINTERN GIntBig OGRLayerShadow_GetFeatureCount(OGRLayerShadow *self,int force=1){
     return OGR_L_GetFeatureCount(self, force);
   }
 
-static SV *
-CreateArrayFromDoubleArray( double *first, unsigned int size ) {
-  AV *av = (AV*)sv_2mortal((SV*)newAV());
-  for( unsigned int i=0; i<size; i++ ) {
-    av_store(av,i,newSVnv(*first));
-    ++first;
-  }
-  return sv_2mortal(newRV((SV*)av));
-}
-
+    static SV *
+        CreateArrayFromDoubleArray( double *first, unsigned int size ) {
+        AV *av = (AV*)sv_2mortal((SV*)newAV());
+        for( unsigned int i=0; i<size; i++ ) {
+            av_store(av,i,newSVnv(*first));
+            ++first;
+        }
+        return sv_2mortal(newRV((SV*)av));
+    }
+    
 SWIGINTERN OGRErr OGRLayerShadow_GetExtent(OGRLayerShadow *self,double argout[4],int force=1){
 
 
@@ -2143,6 +2124,13 @@ SWIGINTERN OGRErr OGRLayerShadow_GetExtent(OGRLayerShadow *self,double argout[4]
 SWIGINTERN bool OGRLayerShadow_TestCapability(OGRLayerShadow *self,char const *cap){
     return (OGR_L_TestCapability(self, cap) > 0);
   }
+
+SWIGINTERNINLINE SV *
+SWIG_From_bool  SWIG_PERL_DECL_ARGS_1(bool value)
+{
+  return boolSV(value);
+}
+
 SWIGINTERN OGRErr OGRLayerShadow_CreateField(OGRLayerShadow *self,OGRFieldDefnShadow *field_def,int approx_ok=1){
     return OGR_L_CreateField(self, field_def, approx_ok);
   }
@@ -2245,11 +2233,11 @@ SWIGINTERN OGRErr OGRFeatureShadow_SetGeomField__SWIG_1(OGRFeatureShadow *self,c
       int iField = OGR_F_GetGeomFieldIndex(self, name);
       if (iField == -1)
       {
-        CPLError(CE_Failure, 1, "No such field: '%s'", name);
-        return OGRERR_FAILURE;
+          CPLError(CE_Failure, 1, FIELD_NAME_ERROR_TMPL, name);
+          return OGRERR_FAILURE;
       }
       else
-        return OGR_F_SetGeomField(self, iField, geom);
+          return OGR_F_SetGeomField(self, iField, geom);
   }
 SWIGINTERN OGRErr OGRFeatureShadow_SetGeomFieldDirectly__SWIG_0(OGRFeatureShadow *self,int iField,OGRGeometryShadow *geom){
     return OGR_F_SetGeomFieldDirectly(self, iField, geom);
@@ -2258,24 +2246,24 @@ SWIGINTERN OGRErr OGRFeatureShadow_SetGeomFieldDirectly__SWIG_1(OGRFeatureShadow
       int iField = OGR_F_GetGeomFieldIndex(self, name);
       if (iField == -1)
       {
-        CPLError(CE_Failure, 1, "No such field: '%s'", name);
-        return OGRERR_FAILURE;
+          CPLError(CE_Failure, 1, FIELD_NAME_ERROR_TMPL, name);
+          return OGRERR_FAILURE;
       }
       else
-        return OGR_F_SetGeomFieldDirectly(self, iField, geom);
+          return OGR_F_SetGeomFieldDirectly(self, iField, geom);
   }
 SWIGINTERN OGRGeometryShadow *OGRFeatureShadow_GetGeomFieldRef__SWIG_0(OGRFeatureShadow *self,int iField){
     return (OGRGeometryShadow*) OGR_F_GetGeomFieldRef(self, iField);
   }
 SWIGINTERN OGRGeometryShadow *OGRFeatureShadow_GetGeomFieldRef__SWIG_1(OGRFeatureShadow *self,char const *name){
-    int i = OGR_F_GetGeomFieldIndex(self, name);
-    if (i == -1)
-    {
-      CPLError(CE_Failure, 1, "No such field: '%s'", name);
-      return NULL;
-    }
-    else
-      return (OGRGeometryShadow*) OGR_F_GetGeomFieldRef(self, i);
+      int i = OGR_F_GetGeomFieldIndex(self, name);
+      if (i == -1)
+      {
+          CPLError(CE_Failure, 1, FIELD_NAME_ERROR_TMPL, name);
+          return NULL;
+      }
+      else
+          return (OGRGeometryShadow*) OGR_F_GetGeomFieldRef(self, i);
   }
 SWIGINTERN OGRFeatureShadow *OGRFeatureShadow_Clone(OGRFeatureShadow *self){
     return (OGRFeatureShadow*) OGR_F_Clone(self);
@@ -2292,32 +2280,59 @@ SWIGINTERN OGRFieldDefnShadow *OGRFeatureShadow_GetFieldDefnRef__SWIG_0(OGRFeatu
 SWIGINTERN OGRFieldDefnShadow *OGRFeatureShadow_GetFieldDefnRef__SWIG_1(OGRFeatureShadow *self,char const *name){
       int i = OGR_F_GetFieldIndex(self, name);
       if (i == -1)
-	  CPLError(CE_Failure, 1, "No such field: '%s'", name);
+          CPLError(CE_Failure, 1, FIELD_NAME_ERROR_TMPL, name);
       else
-	  return (OGRFieldDefnShadow *) OGR_F_GetFieldDefnRef(self, i);
+          return (OGRFieldDefnShadow *) OGR_F_GetFieldDefnRef(self, i);
       return NULL;
   }
 SWIGINTERN int OGRFeatureShadow_GetGeomFieldCount(OGRFeatureShadow *self){
     return OGR_F_GetGeomFieldCount(self);
   }
 SWIGINTERN OGRGeomFieldDefnShadow *OGRFeatureShadow_GetGeomFieldDefnRef__SWIG_0(OGRFeatureShadow *self,int id){
-    return (OGRGeomFieldDefnShadow *) OGR_F_GetGeomFieldDefnRef(self, id);
+      return (OGRGeomFieldDefnShadow *) OGR_F_GetGeomFieldDefnRef(self, id);
   }
 SWIGINTERN OGRGeomFieldDefnShadow *OGRFeatureShadow_GetGeomFieldDefnRef__SWIG_1(OGRFeatureShadow *self,char const *name){
       int i = OGR_F_GetGeomFieldIndex(self, name);
       if (i == -1)
-      CPLError(CE_Failure, 1, "No such field: '%s'", name);
+          CPLError(CE_Failure, 1, FIELD_NAME_ERROR_TMPL, name);
       else
-      return (OGRGeomFieldDefnShadow *) OGR_F_GetGeomFieldDefnRef(self, i);
+          return (OGRGeomFieldDefnShadow *) OGR_F_GetGeomFieldDefnRef(self, i);
       return NULL;
   }
-SWIGINTERN char const *OGRFeatureShadow_GetFieldAsString(OGRFeatureShadow *self,int id){
+SWIGINTERN char const *OGRFeatureShadow_GetFieldAsString__SWIG_0(OGRFeatureShadow *self,int id){
     return (const char *) OGR_F_GetFieldAsString(self, id);
   }
-SWIGINTERN int OGRFeatureShadow_GetFieldAsInteger(OGRFeatureShadow *self,int id){
+SWIGINTERN char const *OGRFeatureShadow_GetFieldAsString__SWIG_1(OGRFeatureShadow *self,char const *name){
+      int i = OGR_F_GetFieldIndex(self, name);
+      if (i == -1)
+	  CPLError(CE_Failure, 1, FIELD_NAME_ERROR_TMPL, name);
+      else
+	  return (const char *) OGR_F_GetFieldAsString(self, i);
+      return NULL;
+  }
+SWIGINTERN int OGRFeatureShadow_GetFieldAsInteger__SWIG_0(OGRFeatureShadow *self,int id){
     return OGR_F_GetFieldAsInteger(self, id);
   }
-SWIGINTERN double OGRFeatureShadow_GetFieldAsDouble(OGRFeatureShadow *self,int id){
+SWIGINTERN int OGRFeatureShadow_GetFieldAsInteger__SWIG_1(OGRFeatureShadow *self,char const *name){
+      int i = OGR_F_GetFieldIndex(self, name);
+      if (i == -1)
+	  CPLError(CE_Failure, 1, FIELD_NAME_ERROR_TMPL, name);
+      else
+	  return OGR_F_GetFieldAsInteger(self, i);
+      return 0;
+  }
+SWIGINTERN GIntBig OGRFeatureShadow_GetFieldAsInteger64__SWIG_0(OGRFeatureShadow *self,int id){
+    return OGR_F_GetFieldAsInteger64(self, id);
+  }
+SWIGINTERN GIntBig OGRFeatureShadow_GetFieldAsInteger64__SWIG_1(OGRFeatureShadow *self,char const *name){
+      int i = OGR_F_GetFieldIndex(self, name);
+      if (i == -1)
+          CPLError(CE_Failure, 1, FIELD_NAME_ERROR_TMPL, name);
+      else
+          return OGR_F_GetFieldAsInteger64(self, i);
+      return 0;
+  }
+SWIGINTERN double OGRFeatureShadow_GetFieldAsDouble__SWIG_0(OGRFeatureShadow *self,int id){
     return OGR_F_GetFieldAsDouble(self, id);
   }
 
@@ -2327,43 +2342,133 @@ SWIG_From_double  SWIG_PERL_DECL_ARGS_1(double value)
   return sv_2mortal(newSVnv(value));
 }
 
-SWIGINTERN void OGRFeatureShadow_GetFieldAsDateTime(OGRFeatureShadow *self,int id,int *pnYear,int *pnMonth,int *pnDay,int *pnHour,int *pnMinute,int *pnSecond,int *pnTZFlag){
-      OGR_F_GetFieldAsDateTime(self, id, pnYear, pnMonth, pnDay,
-			       pnHour, pnMinute, pnSecond,
+SWIGINTERN double OGRFeatureShadow_GetFieldAsDouble__SWIG_1(OGRFeatureShadow *self,char const *name){
+      int i = OGR_F_GetFieldIndex(self, name);
+      if (i == -1)
+          CPLError(CE_Failure, 1, FIELD_NAME_ERROR_TMPL, name);
+      else
+          return OGR_F_GetFieldAsDouble(self, i);
+      return 0;
+  }
+
+SWIGINTERNINLINE SV *
+SWIG_From_float  SWIG_PERL_DECL_ARGS_1(float value)
+{    
+  return SWIG_From_double  SWIG_PERL_CALL_ARGS_1(value);
+}
+
+SWIGINTERN void OGRFeatureShadow_GetFieldAsDateTime__SWIG_0(OGRFeatureShadow *self,int id,int *pnYear,int *pnMonth,int *pnDay,int *pnHour,int *pnMinute,float *pfSecond,int *pnTZFlag){
+      OGR_F_GetFieldAsDateTimeEx(self, id, pnYear, pnMonth, pnDay,
+			       pnHour, pnMinute, pfSecond,
+			       pnTZFlag);
+  }
+SWIGINTERN void OGRFeatureShadow_GetFieldAsDateTime__SWIG_1(OGRFeatureShadow *self,char const *name,int *pnYear,int *pnMonth,int *pnDay,int *pnHour,int *pnMinute,float *pfSecond,int *pnTZFlag){
+      int id = OGR_F_GetFieldIndex(self, name);
+      if (id == -1)
+	  CPLError(CE_Failure, 1, FIELD_NAME_ERROR_TMPL, name);
+      else
+	  OGR_F_GetFieldAsDateTimeEx(self, id, pnYear, pnMonth, pnDay,
+			       pnHour, pnMinute, pfSecond,
 			       pnTZFlag);
   }
 
-static SV *
-CreateArrayFromIntArray( int *first, unsigned int size ) {
-  AV *av = (AV*)sv_2mortal((SV*)newAV());
-  for( unsigned int i=0; i<size; i++ ) {
-    av_store(av,i,newSViv(*first));
-    ++first;
-  }
-  return sv_2mortal(newRV((SV*)av));
-}
-
-SWIGINTERN void OGRFeatureShadow_GetFieldAsIntegerList(OGRFeatureShadow *self,int id,int *nLen,int const **pList){
+    static SV *
+        CreateArrayFromIntArray( int *first, unsigned int size ) {
+        AV *av = (AV*)sv_2mortal((SV*)newAV());
+        for( unsigned int i=0; i<size; i++ ) {
+            av_store(av,i,newSViv(*first));
+            ++first;
+        }
+        return sv_2mortal(newRV((SV*)av));
+    }
+    
+SWIGINTERN void OGRFeatureShadow_GetFieldAsIntegerList__SWIG_0(OGRFeatureShadow *self,int id,int *nLen,int const **pList){
       *pList = OGR_F_GetFieldAsIntegerList(self, id, nLen);
   }
-SWIGINTERN void OGRFeatureShadow_GetFieldAsDoubleList(OGRFeatureShadow *self,int id,int *nLen,double const **pList){
+SWIGINTERN void OGRFeatureShadow_GetFieldAsIntegerList__SWIG_1(OGRFeatureShadow *self,char const *name,int *nLen,int const **pList){
+      int id = OGR_F_GetFieldIndex(self, name);
+      if (id == -1)
+          CPLError(CE_Failure, 1, FIELD_NAME_ERROR_TMPL, name);
+      else
+          *pList = OGR_F_GetFieldAsIntegerList(self, id, nLen);
+  }
+
+#define LENGTH_OF_GIntBig_AS_STRING 30
+    static SV *
+        CreateArrayFromGIntBigArray( GIntBig *first, unsigned int size ) {
+        AV *av = (AV*)sv_2mortal((SV*)newAV());
+        for( unsigned int i=0; i<size; i++ ) {
+            char s[LENGTH_OF_GIntBig_AS_STRING];
+            snprintf(s, LENGTH_OF_GIntBig_AS_STRING-1, CPL_FRMT_GIB, *first);
+            av_store(av,i,newSVpv(s, 0));
+            ++first;
+        }
+        return sv_2mortal(newRV((SV*)av));
+    }
+    
+SWIGINTERN void OGRFeatureShadow_GetFieldAsInteger64List__SWIG_0(OGRFeatureShadow *self,int id,int *nLen,GIntBig const **pList){
+      *pList = OGR_F_GetFieldAsInteger64List(self, id, nLen);
+  }
+SWIGINTERN void OGRFeatureShadow_GetFieldAsInteger64List__SWIG_1(OGRFeatureShadow *self,char const *name,int *nLen,GIntBig const **pList){
+      int id = OGR_F_GetFieldIndex(self, name);
+      if (id == -1)
+          CPLError(CE_Failure, 1, FIELD_NAME_ERROR_TMPL, name);
+      else
+          *pList = OGR_F_GetFieldAsInteger64List(self, id, nLen);
+  }
+SWIGINTERN void OGRFeatureShadow_GetFieldAsDoubleList__SWIG_0(OGRFeatureShadow *self,int id,int *nLen,double const **pList){
       *pList = OGR_F_GetFieldAsDoubleList(self, id, nLen);
   }
-
-static SV *
-CreateArrayFromStringArray( char **first ) {
-  AV *av = (AV*)sv_2mortal((SV*)newAV());
-  for( unsigned int i = 0; *first != NULL; i++ ) {
-    SV *sv = newSVpv(*first, strlen(*first));
-    SvUTF8_on(sv); /* expecting UTF-8 from GDAL */
-    av_store(av,i,sv);
-    ++first;
+SWIGINTERN void OGRFeatureShadow_GetFieldAsDoubleList__SWIG_1(OGRFeatureShadow *self,char const *name,int *nLen,double const **pList){
+      int id = OGR_F_GetFieldIndex(self, name);
+      if (id == -1)
+          CPLError(CE_Failure, 1, FIELD_NAME_ERROR_TMPL, name);
+      else
+          *pList = OGR_F_GetFieldAsDoubleList(self, id, nLen);
   }
-  return sv_2mortal(newRV((SV*)av));
-}
 
-SWIGINTERN void OGRFeatureShadow_GetFieldAsStringList(OGRFeatureShadow *self,int id,char ***pList){
+    static SV *
+        CreateArrayFromStringArray( char **first ) {
+        AV *av = (AV*)sv_2mortal((SV*)newAV());
+        for( unsigned int i = 0; *first != NULL; i++ ) {
+            SV *sv = newSVpv(*first, strlen(*first));
+            SvUTF8_on(sv); /* expecting UTF-8 from GDAL */
+            av_store(av,i,sv);
+            ++first;
+        }
+        return sv_2mortal(newRV((SV*)av));
+    }
+    
+SWIGINTERN void OGRFeatureShadow_GetFieldAsStringList__SWIG_0(OGRFeatureShadow *self,int id,char ***pList){
       *pList = OGR_F_GetFieldAsStringList(self, id);
+  }
+SWIGINTERN void OGRFeatureShadow_GetFieldAsStringList__SWIG_1(OGRFeatureShadow *self,char const *name,char ***pList){
+      int id = OGR_F_GetFieldIndex(self, name);
+      if (id == -1)
+          CPLError(CE_Failure, 1, FIELD_NAME_ERROR_TMPL, name);
+      else
+          *pList = OGR_F_GetFieldAsStringList(self, id);
+  }
+SWIGINTERN OGRErr OGRFeatureShadow_GetFieldAsBinary__SWIG_0(OGRFeatureShadow *self,int id,int *nLen,char **pBuf){
+    GByte* pabyBlob = OGR_F_GetFieldAsBinary(self, id, nLen);
+    *pBuf = (char*)malloc(*nLen);
+    memcpy(*pBuf, pabyBlob, *nLen);
+    return OGRERR_NONE;
+  }
+SWIGINTERN OGRErr OGRFeatureShadow_GetFieldAsBinary__SWIG_1(OGRFeatureShadow *self,char const *name,int *nLen,char **pBuf){
+      int id = OGR_F_GetFieldIndex(self, name);
+      if (id == -1)
+      {
+        CPLError(CE_Failure, 1, FIELD_NAME_ERROR_TMPL, name);
+        return OGRERR_FAILURE;
+      }
+      else
+      {
+        GByte* pabyBlob = OGR_F_GetFieldAsBinary(self, id, nLen);
+        *pBuf = (char*)malloc(*nLen);
+        memcpy(*pBuf, pabyBlob, *nLen);
+        return OGRERR_NONE;
+      }
   }
 SWIGINTERN bool OGRFeatureShadow_IsFieldSet__SWIG_0(OGRFeatureShadow *self,int id){
     return (OGR_F_IsFieldSet(self, id) > 0);
@@ -2371,51 +2476,187 @@ SWIGINTERN bool OGRFeatureShadow_IsFieldSet__SWIG_0(OGRFeatureShadow *self,int i
 SWIGINTERN bool OGRFeatureShadow_IsFieldSet__SWIG_1(OGRFeatureShadow *self,char const *name){
       int i = OGR_F_GetFieldIndex(self, name);
       if (i == -1)
-	  CPLError(CE_Failure, 1, "No such field: '%s'", name);
+	  CPLError(CE_Failure, 1, FIELD_NAME_ERROR_TMPL, name);
       else
 	  return (OGR_F_IsFieldSet(self, i) > 0);
       return false;
   }
-SWIGINTERN int OGRFeatureShadow_GetFieldIndex(OGRFeatureShadow *self,char const *name){
-      return OGR_F_GetFieldIndex(self, name);
+SWIGINTERN int OGRFeatureShadow_GetFieldIndex__SWIG_0(OGRFeatureShadow *self,int i){
+      if (i < 0 || i >= OGR_F_GetFieldCount(self))
+          CPLError(CE_Failure, 1, FIELD_INDEX_ERROR_TMPL, i);
+      return i;
   }
-SWIGINTERN int OGRFeatureShadow_GetGeomFieldIndex(OGRFeatureShadow *self,char const *name){
-      return OGR_F_GetGeomFieldIndex(self, name);
+SWIGINTERN int OGRFeatureShadow_GetFieldIndex__SWIG_1(OGRFeatureShadow *self,char const *name){
+      // Perl bindings let Swig handle overloaded methods. Thus they need to behave similarly.
+      int i = OGR_F_GetFieldIndex(self, name);
+      if (i < 0)
+          CPLError(CE_Failure, 1, FIELD_NAME_ERROR_TMPL, name);
+      return i;
   }
-SWIGINTERN int OGRFeatureShadow_GetFID(OGRFeatureShadow *self){
+SWIGINTERN int OGRFeatureShadow_GetGeomFieldIndex__SWIG_0(OGRFeatureShadow *self,int i){
+      if (i < 0 || i >= OGR_F_GetGeomFieldCount(self))
+          CPLError(CE_Failure, 1, FIELD_INDEX_ERROR_TMPL, i);
+      return i;
+  }
+SWIGINTERN int OGRFeatureShadow_GetGeomFieldIndex__SWIG_1(OGRFeatureShadow *self,char const *name){
+      // Perl bindings let Swig handle overloaded methods. Thus they need to behave similarly.
+      int i = OGR_F_GetGeomFieldIndex(self, name);
+      if (i < 0)
+          CPLError(CE_Failure, 1, FIELD_NAME_ERROR_TMPL, name);
+      return i;
+  }
+SWIGINTERN GIntBig OGRFeatureShadow_GetFID(OGRFeatureShadow *self){
     return OGR_F_GetFID(self);
   }
-SWIGINTERN OGRErr OGRFeatureShadow_SetFID(OGRFeatureShadow *self,int fid){
+SWIGINTERN OGRErr OGRFeatureShadow_SetFID(OGRFeatureShadow *self,GIntBig fid){
     return OGR_F_SetFID(self, fid);
   }
 SWIGINTERN void OGRFeatureShadow_DumpReadable(OGRFeatureShadow *self){
     OGR_F_DumpReadable(self, NULL);
   }
-SWIGINTERN void OGRFeatureShadow_UnsetField(OGRFeatureShadow *self,int id){
+SWIGINTERN void OGRFeatureShadow_UnsetField__SWIG_0(OGRFeatureShadow *self,int id){
     OGR_F_UnsetField(self, id);
+  }
+SWIGINTERN void OGRFeatureShadow_UnsetField__SWIG_1(OGRFeatureShadow *self,char const *name){
+      int i = OGR_F_GetFieldIndex(self, name);
+      if (i == -1)
+          CPLError(CE_Failure, 1, FIELD_NAME_ERROR_TMPL, name);
+      else
+          OGR_F_UnsetField(self, i);
   }
 SWIGINTERN void OGRFeatureShadow_SetField__SWIG_0(OGRFeatureShadow *self,int id,char const *value){
     OGR_F_SetFieldString(self, id, value);
   }
-SWIGINTERN void OGRFeatureShadow_SetField__SWIG_1(OGRFeatureShadow *self,int id,int value){
+SWIGINTERN void OGRFeatureShadow_SetField__SWIG_1(OGRFeatureShadow *self,char const *name,char const *value){
+      int i = OGR_F_GetFieldIndex(self, name);
+      if (i == -1)
+          CPLError(CE_Failure, 1, FIELD_NAME_ERROR_TMPL, name);
+      else
+          OGR_F_SetFieldString(self, i, value);
+  }
+SWIGINTERN void OGRFeatureShadow_SetFieldInteger64(OGRFeatureShadow *self,int id,GIntBig value){
+    OGR_F_SetFieldInteger64(self, id, value);
+  }
+SWIGINTERN void OGRFeatureShadow_SetField__SWIG_2(OGRFeatureShadow *self,int id,int value){
     OGR_F_SetFieldInteger(self, id, value);
   }
-SWIGINTERN void OGRFeatureShadow_SetField__SWIG_2(OGRFeatureShadow *self,int id,double value){
+SWIGINTERN void OGRFeatureShadow_SetField__SWIG_3(OGRFeatureShadow *self,char const *name,int value){
+      int i = OGR_F_GetFieldIndex(self, name);
+      if (i == -1)
+	  CPLError(CE_Failure, 1, FIELD_NAME_ERROR_TMPL, name);
+      else
+	  OGR_F_SetFieldInteger(self, i, value);
+  }
+SWIGINTERN void OGRFeatureShadow_SetField__SWIG_4(OGRFeatureShadow *self,int id,double value){
     OGR_F_SetFieldDouble(self, id, value);
   }
-SWIGINTERN void OGRFeatureShadow_SetField__SWIG_3(OGRFeatureShadow *self,int id,int year,int month,int day,int hour,int minute,int second,int tzflag){
-    OGR_F_SetFieldDateTime(self, id, year, month, day,
-                             hour, minute, second, 
+SWIGINTERN void OGRFeatureShadow_SetField__SWIG_5(OGRFeatureShadow *self,char const *name,double value){
+      int i = OGR_F_GetFieldIndex(self, name);
+      if (i == -1)
+	  CPLError(CE_Failure, 1, FIELD_NAME_ERROR_TMPL, name);
+      else
+	  OGR_F_SetFieldDouble(self, i, value);
+  }
+
+/* Getting isfinite working pre C99 across multiple platforms is non-trivial. Users can provide SWIG_isfinite on older platforms. */
+#ifndef SWIG_isfinite
+# if defined(isfinite)
+#  define SWIG_isfinite(X) (isfinite(X))
+# elif defined(_MSC_VER)
+#  define SWIG_isfinite(X) (_finite(X))
+# elif defined(__sun) && defined(__SVR4)
+#  include <ieeefp.h>
+#  define SWIG_isfinite(X) (finite(X))
+# endif
+#endif
+
+
+/* Accept infinite as a valid float value unless we are unable to check if a value is finite */
+#ifdef SWIG_isfinite
+# define SWIG_Float_Overflow_Check(X) ((X < -FLT_MAX || X > FLT_MAX) && SWIG_isfinite(X))
+#else
+# define SWIG_Float_Overflow_Check(X) ((X < -FLT_MAX || X > FLT_MAX))
+#endif
+
+
+SWIGINTERN int
+SWIG_AsVal_float SWIG_PERL_DECL_ARGS_2(SV * obj, float *val)
+{
+  double v;
+  int res = SWIG_AsVal_double SWIG_PERL_CALL_ARGS_2(obj, &v);
+  if (SWIG_IsOK(res)) {
+    if (SWIG_Float_Overflow_Check(v)) {
+      return SWIG_OverflowError;
+    } else {
+      if (val) *val = static_cast< float >(v);
+    }
+  }  
+  return res;
+}
+
+SWIGINTERN void OGRFeatureShadow_SetField__SWIG_6(OGRFeatureShadow *self,int id,int year,int month,int day,int hour,int minute,float second,int tzflag){
+    OGR_F_SetFieldDateTimeEx(self, id, year, month, day,
+                             hour, minute, second,
                              tzflag);
   }
-SWIGINTERN void OGRFeatureShadow_SetFieldIntegerList(OGRFeatureShadow *self,int id,int nList,int *pList){
+SWIGINTERN void OGRFeatureShadow_SetField__SWIG_7(OGRFeatureShadow *self,char const *name,int year,int month,int day,int hour,int minute,float second,int tzflag){
+      int i = OGR_F_GetFieldIndex(self, name);
+      if (i == -1)
+	  CPLError(CE_Failure, 1, FIELD_NAME_ERROR_TMPL, name);
+      else
+	  OGR_F_SetFieldDateTimeEx(self, i, year, month, day,
+				 hour, minute, second,
+				 tzflag);
+  }
+SWIGINTERN void OGRFeatureShadow_SetFieldIntegerList__SWIG_0(OGRFeatureShadow *self,int id,int nList,int *pList){
       OGR_F_SetFieldIntegerList(self, id, nList, pList);
   }
-SWIGINTERN void OGRFeatureShadow_SetFieldDoubleList(OGRFeatureShadow *self,int id,int nList,double *pList){
+SWIGINTERN void OGRFeatureShadow_SetFieldIntegerList__SWIG_1(OGRFeatureShadow *self,char const *name,int nList,int *pList){
+      int id = OGR_F_GetFieldIndex(self, name);
+      if (id == -1)
+          CPLError(CE_Failure, 1, FIELD_NAME_ERROR_TMPL, name);
+      else
+       	  OGR_F_SetFieldIntegerList(self, id, nList, pList);
+  }
+SWIGINTERN void OGRFeatureShadow_SetFieldInteger64List__SWIG_0(OGRFeatureShadow *self,int id,int nList,GIntBig *pList){
+      OGR_F_SetFieldInteger64List(self, id, nList, pList);
+  }
+SWIGINTERN void OGRFeatureShadow_SetFieldInteger64List__SWIG_1(OGRFeatureShadow *self,char const *name,int nList,GIntBig *pList){
+      int id = OGR_F_GetFieldIndex(self, name);
+      if (id == -1)
+          CPLError(CE_Failure, 1, FIELD_NAME_ERROR_TMPL, name);
+      else
+          OGR_F_SetFieldInteger64List(self, id, nList, pList);
+  }
+SWIGINTERN void OGRFeatureShadow_SetFieldDoubleList__SWIG_0(OGRFeatureShadow *self,int id,int nList,double *pList){
       OGR_F_SetFieldDoubleList(self, id, nList, pList);
   }
-SWIGINTERN void OGRFeatureShadow_SetFieldStringList(OGRFeatureShadow *self,int id,char **pList){
+SWIGINTERN void OGRFeatureShadow_SetFieldDoubleList__SWIG_1(OGRFeatureShadow *self,char const *name,int nList,double *pList){
+      int id = OGR_F_GetFieldIndex(self, name);
+      if (id == -1)
+          CPLError(CE_Failure, 1, FIELD_NAME_ERROR_TMPL, name);
+      else
+          OGR_F_SetFieldDoubleList(self, id, nList, pList);
+  }
+SWIGINTERN void OGRFeatureShadow_SetFieldStringList__SWIG_0(OGRFeatureShadow *self,int id,char **pList){
       OGR_F_SetFieldStringList(self, id, pList);
+  }
+SWIGINTERN void OGRFeatureShadow_SetFieldStringList__SWIG_1(OGRFeatureShadow *self,char const *name,char **pList){
+      int id = OGR_F_GetFieldIndex(self, name);
+      if (id == -1)
+          CPLError(CE_Failure, 1, FIELD_NAME_ERROR_TMPL, name);
+      else
+          OGR_F_SetFieldStringList(self, id, pList);
+  }
+SWIGINTERN void OGRFeatureShadow_SetFieldBinary__SWIG_0(OGRFeatureShadow *self,int i,int nBytes,GByte *pabyBuf){
+      OGR_F_SetFieldBinary(self, i, nBytes, pabyBuf);
+  }
+SWIGINTERN void OGRFeatureShadow_SetFieldBinary__SWIG_1(OGRFeatureShadow *self,char const *name,int nBytes,GByte *pabyBuf){
+      int i = OGR_F_GetFieldIndex(self, name);
+      if (i == -1)
+          CPLError(CE_Failure, 1, FIELD_NAME_ERROR_TMPL, name);
+      else
+          OGR_F_SetFieldBinary(self, i, nBytes, pabyBuf);
   }
 SWIGINTERN void OGRFeatureShadow_SetFieldBinaryFromHexString__SWIG_0(OGRFeatureShadow *self,int id,char const *pszValue){
      int nBytes;
@@ -2426,13 +2667,13 @@ SWIGINTERN void OGRFeatureShadow_SetFieldBinaryFromHexString__SWIG_0(OGRFeatureS
 SWIGINTERN void OGRFeatureShadow_SetFieldBinaryFromHexString__SWIG_1(OGRFeatureShadow *self,char const *name,char const *pszValue){
       int i = OGR_F_GetFieldIndex(self, name);
       if (i == -1)
-        CPLError(CE_Failure, 1, "No such field: '%s'", name);
+          CPLError(CE_Failure, 1, FIELD_NAME_ERROR_TMPL, name);
       else
       {
-        int nBytes;
-        GByte* pabyBuf = CPLHexToBinary(pszValue, &nBytes );
-        OGR_F_SetFieldBinary(self, i, nBytes, pabyBuf);
-        CPLFree(pabyBuf);
+          int nBytes;
+          GByte* pabyBuf = CPLHexToBinary(pszValue, &nBytes );
+          OGR_F_SetFieldBinary(self, i, nBytes, pabyBuf);
+          CPLFree(pabyBuf);
       }
   }
 SWIGINTERN OGRErr OGRFeatureShadow_SetFrom(OGRFeatureShadow *self,OGRFeatureShadow *other,int forgiving=1){
@@ -2454,17 +2695,37 @@ SWIGINTERN void OGRFeatureShadow_SetStyleString(OGRFeatureShadow *self,char cons
     OGR_F_SetStyleString(self, the_string);
   }
 SWIGINTERN OGRFieldType OGRFeatureShadow_GetFieldType__SWIG_0(OGRFeatureShadow *self,int id){
-    return (OGRFieldType) OGR_Fld_GetType( OGR_F_GetFieldDefnRef( self, id));
+      OGRFieldDefnH fd = OGR_F_GetFieldDefnRef( self,  id );
+      if (fd)
+          return (OGRFieldType) OGR_Fld_GetType( fd );
+      else
+          return (OGRFieldType)0;
   }
 SWIGINTERN OGRFieldType OGRFeatureShadow_GetFieldType__SWIG_1(OGRFeatureShadow *self,char const *name){
       int i = OGR_F_GetFieldIndex(self, name);
       if (i == -1) {
-	  CPLError(CE_Failure, 1, "No such field: '%s'", name);
-	  return (OGRFieldType)0;
+          CPLError(CE_Failure, 1, FIELD_NAME_ERROR_TMPL, name);
+          return (OGRFieldType)0;
       } else
-	  return (OGRFieldType) OGR_Fld_GetType( 
-	      OGR_F_GetFieldDefnRef( self,  i )
-	      );
+          return (OGRFieldType) OGR_Fld_GetType( OGR_F_GetFieldDefnRef( self, i ) );
+  }
+SWIGINTERN int OGRFeatureShadow_Validate(OGRFeatureShadow *self,int flags=OGR_F_VAL_ALL,int bEmitError=TRUE){
+    return OGR_F_Validate(self, flags, bEmitError);
+  }
+SWIGINTERN void OGRFeatureShadow_FillUnsetWithDefault(OGRFeatureShadow *self,int bNotNullableOnly=FALSE,char **options=NULL){
+    OGR_F_FillUnsetWithDefault(self, bNotNullableOnly, options );
+  }
+SWIGINTERN char const *OGRFeatureShadow_GetNativeData(OGRFeatureShadow *self){
+    return OGR_F_GetNativeData(self);
+  }
+SWIGINTERN char const *OGRFeatureShadow_GetNativeMediaType(OGRFeatureShadow *self){
+    return OGR_F_GetNativeMediaType(self);
+  }
+SWIGINTERN void OGRFeatureShadow_SetNativeData(OGRFeatureShadow *self,char const *nativeData){
+    OGR_F_SetNativeData(self, nativeData);
+  }
+SWIGINTERN void OGRFeatureShadow_SetNativeMediaType(OGRFeatureShadow *self,char const *nativeMediaType){
+    OGR_F_SetNativeMediaType(self, nativeMediaType);
   }
 
     static int ValidateOGRGeometryType(OGRwkbGeometryType field_type)
@@ -2479,8 +2740,18 @@ SWIGINTERN OGRFieldType OGRFeatureShadow_GetFieldType__SWIG_1(OGRFeatureShadow *
             case wkbMultiLineString:
             case wkbMultiPolygon:
             case wkbGeometryCollection:
+            case wkbCircularString:
+            case wkbCompoundCurve:
+            case wkbCurvePolygon:
+            case wkbMultiCurve:
+            case wkbMultiSurface:
             case wkbNone:
             /*case wkbLinearRing:*/
+            case wkbCircularStringZ:
+            case wkbCompoundCurveZ:
+            case wkbCurvePolygonZ:
+            case wkbMultiCurveZ:
+            case wkbMultiSurfaceZ:
             case wkbPoint25D:
             case wkbLineString25D:
             case wkbPolygon25D:
@@ -2488,6 +2759,30 @@ SWIGINTERN OGRFieldType OGRFeatureShadow_GetFieldType__SWIG_1(OGRFeatureShadow *
             case wkbMultiLineString25D:
             case wkbMultiPolygon25D:
             case wkbGeometryCollection25D:
+            case wkbPointM:
+            case wkbLineStringM:
+            case wkbPolygonM:
+            case wkbMultiPointM:
+            case wkbMultiLineStringM:
+            case wkbMultiPolygonM:
+            case wkbGeometryCollectionM:
+            case wkbCircularStringM:
+            case wkbCompoundCurveM:
+            case wkbCurvePolygonM:
+            case wkbMultiCurveM:
+            case wkbMultiSurfaceM:
+            case wkbPointZM:
+            case wkbLineStringZM:
+            case wkbPolygonZM:
+            case wkbMultiPointZM:
+            case wkbMultiLineStringZM:
+            case wkbMultiPolygonZM:
+            case wkbGeometryCollectionZM:
+            case wkbCircularStringZM:
+            case wkbCompoundCurveZM:
+            case wkbCurvePolygonZM:
+            case wkbMultiCurveZM:
+            case wkbMultiSurfaceZM:
                 return TRUE;
             default:
                 CPLError(CE_Failure, CPLE_IllegalArg, "Illegal geometry type value");
@@ -2513,7 +2808,13 @@ SWIGINTERN int OGRFeatureDefnShadow_GetFieldCount(OGRFeatureDefnShadow *self){
 SWIGINTERN OGRFieldDefnShadow *OGRFeatureDefnShadow_GetFieldDefn(OGRFeatureDefnShadow *self,int i){
     return (OGRFieldDefnShadow*) OGR_FD_GetFieldDefn(self, i);
   }
-SWIGINTERN int OGRFeatureDefnShadow_GetFieldIndex(OGRFeatureDefnShadow *self,char const *name){
+SWIGINTERN int OGRFeatureDefnShadow_GetFieldIndex__SWIG_0(OGRFeatureDefnShadow *self,int i){
+      if (i < 0 || i >= OGR_FD_GetFieldCount(self))
+          CPLError(CE_Failure, 1, FIELD_INDEX_ERROR_TMPL, i);
+      return i;
+  }
+SWIGINTERN int OGRFeatureDefnShadow_GetFieldIndex__SWIG_1(OGRFeatureDefnShadow *self,char const *name){
+      // Do not issue an error if the field doesn't exist. It is intended to be silent
       return OGR_FD_GetFieldIndex(self, name);
   }
 SWIGINTERN void OGRFeatureDefnShadow_AddFieldDefn(OGRFeatureDefnShadow *self,OGRFieldDefnShadow *defn){
@@ -2522,10 +2823,24 @@ SWIGINTERN void OGRFeatureDefnShadow_AddFieldDefn(OGRFeatureDefnShadow *self,OGR
 SWIGINTERN int OGRFeatureDefnShadow_GetGeomFieldCount(OGRFeatureDefnShadow *self){
     return OGR_FD_GetGeomFieldCount(self);
   }
-SWIGINTERN OGRGeomFieldDefnShadow *OGRFeatureDefnShadow_GetGeomFieldDefn(OGRFeatureDefnShadow *self,int i){
+SWIGINTERN OGRGeomFieldDefnShadow *OGRFeatureDefnShadow_GetGeomFieldDefn__SWIG_0(OGRFeatureDefnShadow *self,int i){
     return (OGRGeomFieldDefnShadow*) OGR_FD_GetGeomFieldDefn(self, i);
   }
-SWIGINTERN int OGRFeatureDefnShadow_GetGeomFieldIndex(OGRFeatureDefnShadow *self,char const *name){
+SWIGINTERN OGRGeomFieldDefnShadow *OGRFeatureDefnShadow_GetGeomFieldDefn__SWIG_1(OGRFeatureDefnShadow *self,char const *name){
+      int iField = OGR_FD_GetGeomFieldIndex(self, name);
+      if (iField == -1)
+          CPLError(CE_Failure, 1, FIELD_NAME_ERROR_TMPL, name);
+      else
+          return (OGRGeomFieldDefnShadow*) OGR_FD_GetGeomFieldDefn(self, iField);
+      return NULL;
+  }
+SWIGINTERN int OGRFeatureDefnShadow_GetGeomFieldIndex__SWIG_0(OGRFeatureDefnShadow *self,int i){
+      if (i < 0 || i >= OGR_FD_GetGeomFieldCount(self))
+          CPLError(CE_Failure, 1, FIELD_INDEX_ERROR_TMPL, i);
+      return i;
+  }
+SWIGINTERN int OGRFeatureDefnShadow_GetGeomFieldIndex__SWIG_1(OGRFeatureDefnShadow *self,char const *name){
+      // Do not issue an error if the field doesn't exist. It is intended to be silent
       return OGR_FD_GetGeomFieldIndex(self, name);
   }
 SWIGINTERN void OGRFeatureDefnShadow_AddGeomFieldDefn(OGRFeatureDefnShadow *self,OGRGeomFieldDefnShadow *defn){
@@ -2574,9 +2889,27 @@ SWIGINTERN int OGRFeatureDefnShadow_IsSame(OGRFeatureDefnShadow *self,OGRFeature
             case OFTDate:
             case OFTTime:
             case OFTDateTime:
+            case OFTInteger64:
+            case OFTInteger64List:
                 return TRUE;
             default:
                 CPLError(CE_Failure, CPLE_IllegalArg, "Illegal field type value");
+                return FALSE;
+        }
+    }
+
+
+    static int ValidateOGRFieldSubType(OGRFieldSubType field_subtype)
+    {
+        switch(field_subtype)
+        {
+            case OFSTNone:
+            case OFSTBoolean:
+            case OFSTInt16:
+            case OFSTFloat32:
+                return TRUE;
+            default:
+                CPLError(CE_Failure, CPLE_IllegalArg, "Illegal field subtype value");
                 return FALSE;
         }
     }
@@ -2606,6 +2939,13 @@ SWIGINTERN void OGRFieldDefnShadow_SetType(OGRFieldDefnShadow *self,OGRFieldType
     if (ValidateOGRFieldType(type))
         OGR_Fld_SetType(self, type);
   }
+SWIGINTERN OGRFieldSubType OGRFieldDefnShadow_GetSubType(OGRFieldDefnShadow *self){
+    return OGR_Fld_GetSubType(self);
+  }
+SWIGINTERN void OGRFieldDefnShadow_SetSubType(OGRFieldDefnShadow *self,OGRFieldSubType type){
+    if (ValidateOGRFieldSubType(type))
+        OGR_Fld_SetSubType(self, type);
+  }
 SWIGINTERN OGRJustification OGRFieldDefnShadow_GetJustify(OGRFieldDefnShadow *self){
     return OGR_Fld_GetJustify(self);
   }
@@ -2634,7 +2974,22 @@ SWIGINTERN int OGRFieldDefnShadow_IsIgnored(OGRFieldDefnShadow *self){
     return OGR_Fld_IsIgnored( self );
   }
 SWIGINTERN void OGRFieldDefnShadow_SetIgnored(OGRFieldDefnShadow *self,int bIgnored){
-    return OGR_Fld_SetIgnored( self, bIgnored );
+    OGR_Fld_SetIgnored( self, bIgnored );
+  }
+SWIGINTERN int OGRFieldDefnShadow_IsNullable(OGRFieldDefnShadow *self){
+    return OGR_Fld_IsNullable( self );
+  }
+SWIGINTERN void OGRFieldDefnShadow_SetNullable(OGRFieldDefnShadow *self,int bNullable){
+    OGR_Fld_SetNullable( self, bNullable );
+  }
+SWIGINTERN char const *OGRFieldDefnShadow_GetDefault(OGRFieldDefnShadow *self){
+    return OGR_Fld_GetDefault( self );
+  }
+SWIGINTERN void OGRFieldDefnShadow_SetDefault(OGRFieldDefnShadow *self,char const *pszValue){
+    OGR_Fld_SetDefault( self, pszValue );
+  }
+SWIGINTERN int OGRFieldDefnShadow_IsDefaultDriverSpecific(OGRFieldDefnShadow *self){
+    return OGR_Fld_IsDefaultDriverSpecific( self );
   }
 SWIGINTERN void delete_OGRGeomFieldDefnShadow(OGRGeomFieldDefnShadow *self){
     OGR_GFld_Destroy(self);
@@ -2676,8 +3031,14 @@ SWIGINTERN int OGRGeomFieldDefnShadow_IsIgnored(OGRGeomFieldDefnShadow *self){
 SWIGINTERN void OGRGeomFieldDefnShadow_SetIgnored(OGRGeomFieldDefnShadow *self,int bIgnored){
     OGR_GFld_SetIgnored( self, bIgnored );
   }
+SWIGINTERN int OGRGeomFieldDefnShadow_IsNullable(OGRGeomFieldDefnShadow *self){
+    return OGR_GFld_IsNullable( self );
+  }
+SWIGINTERN void OGRGeomFieldDefnShadow_SetNullable(OGRGeomFieldDefnShadow *self,int bNullable){
+    return OGR_GFld_SetNullable( self, bNullable );
+  }
 
-  OGRGeometryShadow* CreateGeometryFromWkb( int len, char *bin_string, 
+  OGRGeometryShadow* CreateGeometryFromWkb( int len, char *bin_string,
                                             OSRSpatialReferenceShadow *reference=NULL ) {
     OGRGeometryH geom = NULL;
     OGRErr err = OGR_G_CreateFromWkb( (unsigned char *) bin_string,
@@ -2690,10 +3051,10 @@ SWIGINTERN void OGRGeomFieldDefnShadow_SetIgnored(OGRGeomFieldDefnShadow *self,i
     }
     return (OGRGeometryShadow*) geom;
   }
- 
 
 
-  OGRGeometryShadow* CreateGeometryFromWkt( char **val, 
+
+  OGRGeometryShadow* CreateGeometryFromWkt( char **val,
                                       OSRSpatialReferenceShadow *reference=NULL ) {
     OGRGeometryH geom = NULL;
     OGRErr err = OGR_G_CreateFromWkt(val,
@@ -2705,33 +3066,33 @@ SWIGINTERN void OGRGeomFieldDefnShadow_SetIgnored(OGRGeomFieldDefnShadow *self,i
     }
     return (OGRGeometryShadow*) geom;
   }
- 
+
 
 
   OGRGeometryShadow *CreateGeometryFromGML( const char * input_string ) {
     OGRGeometryShadow* geom = (OGRGeometryShadow*)OGR_G_CreateFromGML(input_string);
     return geom;
   }
- 
+
 
 
   OGRGeometryShadow *CreateGeometryFromJson( const char * input_string ) {
     OGRGeometryShadow* geom = (OGRGeometryShadow*)OGR_G_CreateGeometryFromJson(input_string);
     return geom;
   }
- 
 
 
-  OGRGeometryShadow* BuildPolygonFromEdges( OGRGeometryShadow*  hLineCollection,  
-                                            int bBestEffort = 0, 
-                                            int bAutoClose = 0, 
+
+  OGRGeometryShadow* BuildPolygonFromEdges( OGRGeometryShadow*  hLineCollection,
+                                            int bBestEffort = 0,
+                                            int bAutoClose = 0,
                                             double dfTolerance=0) {
-  
+
   OGRGeometryH hPolygon = NULL;
-  
+
   OGRErr eErr;
 
-  hPolygon = OGRBuildPolygonFromEdges( hLineCollection, bBestEffort, 
+  hPolygon = OGRBuildPolygonFromEdges( hLineCollection, bBestEffort,
                                        bAutoClose, dfTolerance, &eErr );
 
   if (eErr != OGRERR_NONE ) {
@@ -2743,14 +3104,14 @@ SWIGINTERN void OGRGeomFieldDefnShadow_SetIgnored(OGRGeomFieldDefnShadow *self,i
   }
 
 
-  OGRGeometryShadow* ApproximateArcAngles( 
+  OGRGeometryShadow* ApproximateArcAngles(
         double dfCenterX, double dfCenterY, double dfZ,
-  	double dfPrimaryRadius, double dfSecondaryAxis, double dfRotation, 
+  	double dfPrimaryRadius, double dfSecondaryAxis, double dfRotation,
         double dfStartAngle, double dfEndAngle,
         double dfMaxAngleStepSizeDegrees ) {
-  
-  return (OGRGeometryShadow* )OGR_G_ApproximateArcAngles( 
-             dfCenterX, dfCenterY, dfZ, 
+
+  return (OGRGeometryShadow* )OGR_G_ApproximateArcAngles(
+             dfCenterX, dfCenterY, dfZ,
              dfPrimaryRadius, dfSecondaryAxis, dfRotation,
              dfStartAngle, dfEndAngle, dfMaxAngleStepSizeDegrees );
   }
@@ -2790,6 +3151,13 @@ OGRGeometryShadow* ForceToMultiLineString( OGRGeometryShadow *geom_in ) {
  return (OGRGeometryShadow* )OGR_G_ForceToMultiLineString( OGR_G_Clone(geom_in) );
 }
 
+
+OGRGeometryShadow* ForceTo( OGRGeometryShadow *geom_in, OGRwkbGeometryType eTargetType, char** options = NULL ) {
+ if (geom_in == NULL)
+     return NULL;
+ return (OGRGeometryShadow* )OGR_G_ForceTo( OGR_G_Clone(geom_in), eTargetType, options );
+}
+
 SWIGINTERN void delete_OGRGeometryShadow(OGRGeometryShadow *self){
     OGR_G_DestroyGeometry( self );
   }
@@ -2815,10 +3183,18 @@ SWIGINTERN OGRGeometryShadow *new_OGRGeometryShadow(OGRwkbGeometryType type=wkbU
 SWIGINTERN OGRErr OGRGeometryShadow_ExportToWkt(OGRGeometryShadow *self,char **argout){
     return OGR_G_ExportToWkt(self, argout);
   }
+SWIGINTERN OGRErr OGRGeometryShadow_ExportToIsoWkt(OGRGeometryShadow *self,char **argout){
+    return OGR_G_ExportToIsoWkt(self, argout);
+  }
 SWIGINTERN OGRErr OGRGeometryShadow_ExportToWkb(OGRGeometryShadow *self,int *nLen,char **pBuf,OGRwkbByteOrder byte_order=wkbXDR){
     *nLen = OGR_G_WkbSize( self );
-    *pBuf = (char *) malloc( *nLen * sizeof(unsigned char) );
+    *pBuf = (char *) malloc( *nLen );
     return OGR_G_ExportToWkb(self, byte_order, (unsigned char*) *pBuf );
+  }
+SWIGINTERN OGRErr OGRGeometryShadow_ExportToIsoWkb(OGRGeometryShadow *self,int *nLen,char **pBuf,OGRwkbByteOrder byte_order=wkbXDR){
+    *nLen = OGR_G_WkbSize( self );
+    *pBuf = (char *) malloc( *nLen );
+    return OGR_G_ExportToIsoWkb(self, byte_order, (unsigned char*) *pBuf );
   }
 SWIGINTERN retStringAndCPLFree *OGRGeometryShadow_ExportToGML(OGRGeometryShadow *self,char **options=0){
     return (retStringAndCPLFree*) OGR_G_ExportToGMLEx(self, options);
@@ -2831,6 +3207,12 @@ SWIGINTERN retStringAndCPLFree *OGRGeometryShadow_ExportToJson(OGRGeometryShadow
   }
 SWIGINTERN void OGRGeometryShadow_AddPoint(OGRGeometryShadow *self,double x,double y,double z=0){
     OGR_G_AddPoint( self, x, y, z );
+  }
+SWIGINTERN void OGRGeometryShadow_AddPointM(OGRGeometryShadow *self,double x,double y,double m){
+      OGR_G_AddPointM( self, x, y, m );
+  }
+SWIGINTERN void OGRGeometryShadow_AddPointZM(OGRGeometryShadow *self,double x,double y,double z,double m){
+      OGR_G_AddPointZM( self, x, y, z, m );
   }
 SWIGINTERN void OGRGeometryShadow_AddPoint_2D(OGRGeometryShadow *self,double x,double y){
     OGR_G_AddPoint_2D( self, x, y );
@@ -2871,9 +3253,16 @@ SWIGINTERN double OGRGeometryShadow_GetY(OGRGeometryShadow *self,int point=0){
 SWIGINTERN double OGRGeometryShadow_GetZ(OGRGeometryShadow *self,int point=0){
     return OGR_G_GetZ(self, point);
   }
+SWIGINTERN double OGRGeometryShadow_GetM(OGRGeometryShadow *self,int point=0){
+    return OGR_G_GetM(self, point);
+  }
 SWIGINTERN void OGRGeometryShadow_GetPoint(OGRGeometryShadow *self,int iPoint=0,double argout[3]=NULL){
 
     OGR_G_GetPoint( self, iPoint, argout+0, argout+1, argout+2 );
+  }
+SWIGINTERN void OGRGeometryShadow_GetPointZM(OGRGeometryShadow *self,int iPoint=0,double argout[4]=NULL){
+
+      OGR_G_GetPointZM( self, iPoint, argout+0, argout+1, argout+2, argout+3 );
   }
 SWIGINTERN void OGRGeometryShadow_GetPoint_2D(OGRGeometryShadow *self,int iPoint=0,double argout[2]=NULL){
 
@@ -2884,6 +3273,12 @@ SWIGINTERN int OGRGeometryShadow_GetGeometryCount(OGRGeometryShadow *self){
   }
 SWIGINTERN void OGRGeometryShadow_SetPoint(OGRGeometryShadow *self,int point,double x,double y,double z=0){
     OGR_G_SetPoint(self, point, x, y, z);
+  }
+SWIGINTERN void OGRGeometryShadow_SetPointM(OGRGeometryShadow *self,int point,double x,double y,double m){
+      OGR_G_SetPointM(self, point, x, y, m);
+  }
+SWIGINTERN void OGRGeometryShadow_SetPointZM(OGRGeometryShadow *self,int point,double x,double y,double z,double m){
+      OGR_G_SetPointZM(self, point, x, y, z, m);
   }
 SWIGINTERN void OGRGeometryShadow_SetPoint_2D(OGRGeometryShadow *self,int point,double x,double y){
     OGR_G_SetPoint_2D(self, point, x, y);
@@ -2896,6 +3291,9 @@ SWIGINTERN OGRGeometryShadow *OGRGeometryShadow_Simplify(OGRGeometryShadow *self
   }
 SWIGINTERN OGRGeometryShadow *OGRGeometryShadow_SimplifyPreserveTopology(OGRGeometryShadow *self,double tolerance){
     return (OGRGeometryShadow*) OGR_G_SimplifyPreserveTopology(self, tolerance);
+  }
+SWIGINTERN OGRGeometryShadow *OGRGeometryShadow_DelaunayTriangulation(OGRGeometryShadow *self,double dfTolerance=0.0,int bOnlyEdges=FALSE){
+    return (OGRGeometryShadow*) OGR_G_DelaunayTriangulation(self, dfTolerance, bOnlyEdges);
   }
 SWIGINTERN OGRGeometryShadow *OGRGeometryShadow_Boundary(OGRGeometryShadow *self){
     return (OGRGeometryShadow*) OGR_G_Boundary(self);
@@ -3019,24 +3417,51 @@ SWIGINTERN int OGRGeometryShadow_WkbSize(OGRGeometryShadow *self){
 SWIGINTERN int OGRGeometryShadow_GetCoordinateDimension(OGRGeometryShadow *self){
     return OGR_G_GetCoordinateDimension(self);
   }
+SWIGINTERN int OGRGeometryShadow_CoordinateDimension(OGRGeometryShadow *self){
+    return OGR_G_CoordinateDimension(self);
+  }
+SWIGINTERN int OGRGeometryShadow_Is3D(OGRGeometryShadow *self){
+      return OGR_G_Is3D(self);
+  }
+SWIGINTERN int OGRGeometryShadow_IsMeasured(OGRGeometryShadow *self){
+      return OGR_G_IsMeasured(self);
+  }
 SWIGINTERN void OGRGeometryShadow_SetCoordinateDimension(OGRGeometryShadow *self,int dimension){
     OGR_G_SetCoordinateDimension(self, dimension);
+  }
+SWIGINTERN void OGRGeometryShadow_Set3D(OGRGeometryShadow *self,int b3D){
+      OGR_G_Set3D(self, b3D);
+  }
+SWIGINTERN void OGRGeometryShadow_SetMeasured(OGRGeometryShadow *self,int bMeasured){
+      OGR_G_SetMeasured(self, bMeasured);
   }
 SWIGINTERN int OGRGeometryShadow_GetDimension(OGRGeometryShadow *self){
     return OGR_G_GetDimension(self);
   }
+SWIGINTERN int OGRGeometryShadow_HasCurveGeometry(OGRGeometryShadow *self,int bLookForCircular=FALSE){
+        return OGR_G_HasCurveGeometry(self, bLookForCircular);
+  }
+SWIGINTERN OGRGeometryShadow *OGRGeometryShadow_GetLinearGeometry(OGRGeometryShadow *self,double dfMaxAngleStepSizeDegrees=0.0,char **options=NULL){
+    return (OGRGeometryShadow* )OGR_G_GetLinearGeometry(self, dfMaxAngleStepSizeDegrees, options);
+  }
+SWIGINTERN OGRGeometryShadow *OGRGeometryShadow_GetCurveGeometry(OGRGeometryShadow *self,char **options=NULL){
+    return (OGRGeometryShadow* )OGR_G_GetCurveGeometry(self, options);
+  }
+SWIGINTERN OGRGeometryShadow *OGRGeometryShadow_Value(OGRGeometryShadow *self,double dfDistance){
+    return OGR_G_Value(self, dfDistance);
+  }
 SWIGINTERN void OGRGeometryShadow_Move(OGRGeometryShadow *self,double dx,double dy,double dz=0){
-	int n = OGR_G_GetGeometryCount(self);
-	if (n > 0) {
-	    int i;
-	    for (i = 0; i < n; i++) {
-		OGRGeometryShadow *g = (OGRGeometryShadow*)OGR_G_GetGeometryRef(self, i);
-		OGRGeometryShadow_Move(g, dx, dy, dz);
-	    }
-	} else {
-	    int i;
-	    int d = OGR_G_GetCoordinateDimension(self);
-	    for (i = 0; i < OGR_G_GetPointCount(self); i++) {
+        int n = OGR_G_GetGeometryCount(self);
+        if (n > 0) {
+            int i;
+            for (i = 0; i < n; i++) {
+                OGRGeometryShadow *g = (OGRGeometryShadow*)OGR_G_GetGeometryRef(self, i);
+                OGRGeometryShadow_Move(g, dx, dy, dz);
+            }
+        } else {
+            int i;
+            int d = OGR_G_GetCoordinateDimension(self);
+            for (i = 0; i < OGR_G_GetPointCount(self); i++) {
                 if (d == 0) {
                 } else {
                     double x = OGR_G_GetX(self, i);
@@ -3048,84 +3473,17 @@ SWIGINTERN void OGRGeometryShadow_Move(OGRGeometryShadow *self,double dx,double 
                         OGR_G_SetPoint(self, i, x+dx, y+dy, z+dz);
                     }
                 }
-	    }
-	}
+            }
+        }
     }
 
-char const *OGRDriverShadow_get_name( OGRDriverShadow *h ) {
-  return OGR_Dr_GetName( h );
-}
-
-char const *OGRDataSourceShadow_get_name( OGRDataSourceShadow *h ) {
-  return OGR_DS_GetName( h );
-}
-
-char const *OGRDriverShadow_name_get( OGRDriverShadow *h ) {
-  return OGR_Dr_GetName( h );
-}
-
-char const *OGRDataSourceShadow_name_get( OGRDataSourceShadow *h ) {
-  return OGR_DS_GetName( h );
+int GT_SetModifier( int eType, int bSetZ, int bSetM)
+{
+    return OGR_GT_SetModifier((OGRwkbGeometryType)eType, bSetZ, bSetM);
 }
 
 
-  OGRDataSourceShadow* GetOpenDS(int ds_number) {
-    OGRDataSourceShadow* layer = (OGRDataSourceShadow*) OGRGetOpenDS(ds_number);
-    return layer;
-  }
-
-
-  OGRDataSourceShadow* Open( const char *utf8_path, int update =0 ) {
-    CPLErrorReset();
-    OGRDataSourceShadow* ds = (OGRDataSourceShadow*)OGROpen(utf8_path,update,NULL);
-    if( CPLGetLastErrorType() == CE_Failure && ds != NULL )
-    {
-        CPLDebug( "SWIG", 
-		  "OGROpen() succeeded, but an error is posted, so we destroy"
-		  " the datasource and fail at swig level." );
-        OGRReleaseDataSource(ds);
-        ds = NULL;
-    }
-	
-    return ds;
-  }
-
-
-  OGRDataSourceShadow* OpenShared( const char *utf8_path, int update =0 ) {
-    CPLErrorReset();
-    OGRDataSourceShadow* ds = (OGRDataSourceShadow*)OGROpenShared(utf8_path,update,NULL);
-    if( CPLGetLastErrorType() == CE_Failure && ds != NULL )
-    {
-        OGRReleaseDataSource(ds);
-        ds = NULL;
-    }
-	
-    return ds;
-  }
-
-
-OGRDriverShadow* GetDriverByName( char const *name ) {
-  return (OGRDriverShadow*) OGRGetDriverByName( name );
-}
-
-OGRDriverShadow* GetDriver(int driver_number) {
-  return (OGRDriverShadow*) OGRGetDriver(driver_number);
-}
-
-
-  char **GeneralCmdLineProcessor( char **papszArgv, int nOptions = 0 ) {
-    int nResArgCount;
-
-    nResArgCount = 
-      OGRGeneralCmdLineProcessor( CSLCount(papszArgv), &papszArgv, nOptions ); 
-
-    if( nResArgCount <= 0 )
-        return NULL;
-    else
-        return papszArgv;
-  }
-
-
+static
 int GDALTermProgress_nocb( double dfProgress, const char * pszMessage=NULL, void *pData=NULL ) {
   return GDALTermProgress( dfProgress, pszMessage, pData);
 }
@@ -3159,53 +3517,6 @@ SWIGCLASS_STATIC int swig_magic_readonly(pTHX_ SV *SWIGUNUSEDPARM(sv), MAGIC *SW
 #ifdef __cplusplus
 extern "C" {
 #endif
-XS(_wrap_callback_d_cp_vp) {
-  {
-    double arg1 ;
-    char *arg2 = (char *) 0 ;
-    void *arg3 = (void *) 0 ;
-    double val1 ;
-    int ecode1 = 0 ;
-    int res2 ;
-    char *buf2 = 0 ;
-    int alloc2 = 0 ;
-    int res3 ;
-    int argvi = 0;
-    int result;
-    dXSARGS;
-    
-    if ((items < 3) || (items > 3)) {
-      SWIG_croak("Usage: callback_d_cp_vp(d,cp,vp);");
-    }
-    ecode1 = SWIG_AsVal_double SWIG_PERL_CALL_ARGS_2(ST(0), &val1);
-    if (!SWIG_IsOK(ecode1)) {
-      SWIG_exception_fail(SWIG_ArgError(ecode1), "in method '" "callback_d_cp_vp" "', argument " "1"" of type '" "double""'");
-    } 
-    arg1 = static_cast< double >(val1);
-    res2 = SWIG_AsCharPtrAndSize(ST(1), &buf2, NULL, &alloc2);
-    if (!SWIG_IsOK(res2)) {
-      SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "callback_d_cp_vp" "', argument " "2"" of type '" "char const *""'");
-    }
-    arg2 = reinterpret_cast< char * >(buf2);
-    res3 = SWIG_ConvertPtr(ST(2),SWIG_as_voidptrptr(&arg3), 0, 0);
-    if (!SWIG_IsOK(res3)) {
-      SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "callback_d_cp_vp" "', argument " "3"" of type '" "void *""'"); 
-    }
-    result = (int)callback_d_cp_vp(arg1,(char const *)arg2,arg3);
-    ST(argvi) = SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(result)); argvi++ ;
-    
-    if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
-    
-    XSRETURN(argvi);
-  fail:
-    
-    if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
-    
-    SWIG_croak_null();
-  }
-}
-
-
 XS(_wrap_UseExceptions) {
   {
     int argvi = 0;
@@ -3254,7 +3565,7 @@ XS(_wrap_new_StyleTable) {
       result = (OGRStyleTableShadow *)new_OGRStyleTableShadow();
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -3263,7 +3574,7 @@ XS(_wrap_new_StyleTable) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -3302,7 +3613,7 @@ XS(_wrap_delete_StyleTable) {
       delete_OGRStyleTableShadow(arg1);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -3311,7 +3622,7 @@ XS(_wrap_delete_StyleTable) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -3373,7 +3684,7 @@ XS(_wrap_StyleTable_AddStyle) {
       result = (int)OGRStyleTableShadow_AddStyle(arg1,(char const *)arg2,(char const *)arg3);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -3382,7 +3693,7 @@ XS(_wrap_StyleTable_AddStyle) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -3412,6 +3723,7 @@ XS(_wrap_StyleTable_LoadStyleTable) {
     char *arg2 = (char *) 0 ;
     void *argp1 = 0 ;
     int res1 = 0 ;
+    U8 *tmpbuf2 = NULL ;
     int argvi = 0;
     int result;
     dXSARGS;
@@ -3430,9 +3742,8 @@ XS(_wrap_StyleTable_LoadStyleTable) {
     arg1 = reinterpret_cast< OGRStyleTableShadow * >(argp1);
     if (items > 1) {
       {
-        /* %typemap(in,numinputs=1) (const char* utf8_path) */
-        sv_utf8_upgrade(ST(1));
-        arg2 = SvPV_nolen(ST(1));
+        /* %typemap(in,numinputs=1) (const char* utf8_path) (U8 *tmpbuf2) */
+        arg2 = sv_to_utf8_string(ST(1), &tmpbuf2);
       }
     }
     {
@@ -3440,7 +3751,7 @@ XS(_wrap_StyleTable_LoadStyleTable) {
       result = (int)OGRStyleTableShadow_LoadStyleTable(arg1,(char const *)arg2);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -3449,7 +3760,7 @@ XS(_wrap_StyleTable_LoadStyleTable) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -3461,9 +3772,17 @@ XS(_wrap_StyleTable_LoadStyleTable) {
     }
     ST(argvi) = SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(result)); argvi++ ;
     
+    {
+      /* %typemap(freearg) (const char* utf8_path) */
+      if (tmpbuf2) free(tmpbuf2);
+    }
     XSRETURN(argvi);
   fail:
     
+    {
+      /* %typemap(freearg) (const char* utf8_path) */
+      if (tmpbuf2) free(tmpbuf2);
+    }
     SWIG_croak_null();
   }
 }
@@ -3475,6 +3794,7 @@ XS(_wrap_StyleTable_SaveStyleTable) {
     char *arg2 = (char *) 0 ;
     void *argp1 = 0 ;
     int res1 = 0 ;
+    U8 *tmpbuf2 = NULL ;
     int argvi = 0;
     int result;
     dXSARGS;
@@ -3493,9 +3813,8 @@ XS(_wrap_StyleTable_SaveStyleTable) {
     arg1 = reinterpret_cast< OGRStyleTableShadow * >(argp1);
     if (items > 1) {
       {
-        /* %typemap(in,numinputs=1) (const char* utf8_path) */
-        sv_utf8_upgrade(ST(1));
-        arg2 = SvPV_nolen(ST(1));
+        /* %typemap(in,numinputs=1) (const char* utf8_path) (U8 *tmpbuf2) */
+        arg2 = sv_to_utf8_string(ST(1), &tmpbuf2);
       }
     }
     {
@@ -3503,7 +3822,7 @@ XS(_wrap_StyleTable_SaveStyleTable) {
       result = (int)OGRStyleTableShadow_SaveStyleTable(arg1,(char const *)arg2);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -3512,7 +3831,7 @@ XS(_wrap_StyleTable_SaveStyleTable) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -3524,9 +3843,17 @@ XS(_wrap_StyleTable_SaveStyleTable) {
     }
     ST(argvi) = SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(result)); argvi++ ;
     
+    {
+      /* %typemap(freearg) (const char* utf8_path) */
+      if (tmpbuf2) free(tmpbuf2);
+    }
     XSRETURN(argvi);
   fail:
     
+    {
+      /* %typemap(freearg) (const char* utf8_path) */
+      if (tmpbuf2) free(tmpbuf2);
+    }
     SWIG_croak_null();
   }
 }
@@ -3563,7 +3890,7 @@ XS(_wrap_StyleTable_Find) {
       result = (char *)OGRStyleTableShadow_Find(arg1,(char const *)arg2);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -3572,7 +3899,7 @@ XS(_wrap_StyleTable_Find) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -3621,7 +3948,7 @@ XS(_wrap_StyleTable_ResetStyleStringReading) {
       OGRStyleTableShadow_ResetStyleStringReading(arg1);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -3630,7 +3957,7 @@ XS(_wrap_StyleTable_ResetStyleStringReading) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -3674,7 +4001,7 @@ XS(_wrap_StyleTable_GetNextStyle) {
       result = (char *)OGRStyleTableShadow_GetNextStyle(arg1);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -3683,7 +4010,7 @@ XS(_wrap_StyleTable_GetNextStyle) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -3731,7 +4058,7 @@ XS(_wrap_StyleTable_GetLastStyleName) {
       result = (char *)OGRStyleTableShadow_GetLastStyleName(arg1);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -3740,7 +4067,7 @@ XS(_wrap_StyleTable_GetLastStyleName) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -3760,1836 +4087,6 @@ XS(_wrap_StyleTable_GetLastStyleName) {
     
     XSRETURN(argvi);
   fail:
-    
-    SWIG_croak_null();
-  }
-}
-
-
-XS(_wrap_Driver_name_get) {
-  {
-    OGRDriverShadow *arg1 = (OGRDriverShadow *) 0 ;
-    void *argp1 = 0 ;
-    int res1 = 0 ;
-    int argvi = 0;
-    char *result = 0 ;
-    dXSARGS;
-    
-    if ((items < 1) || (items > 1)) {
-      SWIG_croak("Usage: Driver_name_get(self);");
-    }
-    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OGRDriverShadow, 0 |  0 );
-    if (!SWIG_IsOK(res1)) {
-      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Driver_name_get" "', argument " "1"" of type '" "OGRDriverShadow *""'"); 
-    }
-    arg1 = reinterpret_cast< OGRDriverShadow * >(argp1);
-    {
-      CPLErrorReset();
-      result = (char *)OGRDriverShadow_name_get(arg1);
-      CPLErr eclass = CPLGetLastErrorType();
-      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
-        
-        
-        
-        
-        
-      }
-      
-      
-      /* 
-          Make warnings regular Perl warnings. This duplicates the warning
-          message if DontUseExceptions() is in effect (it is not by default).
-          */
-      if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg(), "%s" );
-      }
-      
-      
-    }
-    {
-      /* %typemap(out) const char * */
-      ST(argvi) = newSVpv(result, 0);
-      SvUTF8_on(ST(argvi)); /* expecting GDAL to give us UTF-8 */
-      sv_2mortal(ST(argvi));
-      argvi++;
-    }
-    
-    XSRETURN(argvi);
-  fail:
-    
-    SWIG_croak_null();
-  }
-}
-
-
-XS(_wrap_Driver_CreateDataSource) {
-  {
-    OGRDriverShadow *arg1 = (OGRDriverShadow *) 0 ;
-    char *arg2 = (char *) 0 ;
-    char **arg3 = (char **) 0 ;
-    void *argp1 = 0 ;
-    int res1 = 0 ;
-    int argvi = 0;
-    OGRDataSourceShadow *result = 0 ;
-    dXSARGS;
-    
-    {
-      /* %typemap(default) const char * utf8_path */
-      arg2 = (char *)"";
-    }
-    if ((items < 1) || (items > 3)) {
-      SWIG_croak("Usage: Driver_CreateDataSource(self,utf8_path,options);");
-    }
-    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OGRDriverShadow, 0 |  0 );
-    if (!SWIG_IsOK(res1)) {
-      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Driver_CreateDataSource" "', argument " "1"" of type '" "OGRDriverShadow *""'"); 
-    }
-    arg1 = reinterpret_cast< OGRDriverShadow * >(argp1);
-    if (items > 1) {
-      {
-        /* %typemap(in,numinputs=1) (const char* utf8_path) */
-        sv_utf8_upgrade(ST(1));
-        arg2 = SvPV_nolen(ST(1));
-      }
-    }
-    if (items > 2) {
-      {
-        /* %typemap(in) char **options */
-        if (SvOK(ST(2))) {
-          if (SvROK(ST(2))) {
-            if (SvTYPE(SvRV(ST(2)))==SVt_PVAV) {
-              AV *av = (AV*)(SvRV(ST(2)));
-              for (int i = 0; i < av_len(av)+1; i++) {
-                SV *sv = *(av_fetch(av, i, 0));
-                sv_utf8_upgrade(sv); /* GDAL expects UTF-8 */
-                char *pszItem = SvPV_nolen(sv);
-                arg3 = CSLAddString( arg3, pszItem );
-              }
-            } else if (SvTYPE(SvRV(ST(2)))==SVt_PVHV) {
-              HV *hv = (HV*)SvRV(ST(2));
-              SV *sv;
-              char *key;
-              I32 klen;
-              arg3 = NULL;
-              hv_iterinit(hv);
-              while(sv = hv_iternextsv(hv,&key,&klen)) {
-                sv_utf8_upgrade(sv); /* GDAL expects UTF-8 */
-                arg3 = CSLAddNameValue( arg3, key, SvPV_nolen(sv) );
-              }
-            } else
-            SWIG_croak("the 'options' argument to a Geo::GDAL method is not a reference to an array or hash");
-          } else
-          SWIG_croak("the 'options' argument to a Geo::GDAL method is not a reference");   
-        }
-      }
-    }
-    {
-      CPLErrorReset();
-      result = (OGRDataSourceShadow *)OGRDriverShadow_CreateDataSource(arg1,(char const *)arg2,arg3);
-      CPLErr eclass = CPLGetLastErrorType();
-      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
-        
-        
-        
-        
-        
-      }
-      
-      
-      /* 
-          Make warnings regular Perl warnings. This duplicates the warning
-          message if DontUseExceptions() is in effect (it is not by default).
-          */
-      if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg(), "%s" );
-      }
-      
-      
-    }
-    ST(argvi) = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_OGRDataSourceShadow, SWIG_OWNER | SWIG_SHADOW); argvi++ ;
-    
-    {
-      /* %typemap(freearg) char **options */
-      if (arg3) CSLDestroy( arg3 );
-    }
-    XSRETURN(argvi);
-  fail:
-    
-    {
-      /* %typemap(freearg) char **options */
-      if (arg3) CSLDestroy( arg3 );
-    }
-    SWIG_croak_null();
-  }
-}
-
-
-XS(_wrap_Driver_CopyDataSource) {
-  {
-    OGRDriverShadow *arg1 = (OGRDriverShadow *) 0 ;
-    OGRDataSourceShadow *arg2 = (OGRDataSourceShadow *) 0 ;
-    char *arg3 = (char *) 0 ;
-    char **arg4 = (char **) 0 ;
-    void *argp1 = 0 ;
-    int res1 = 0 ;
-    void *argp2 = 0 ;
-    int res2 = 0 ;
-    int argvi = 0;
-    OGRDataSourceShadow *result = 0 ;
-    dXSARGS;
-    
-    {
-      /* %typemap(default) const char * utf8_path */
-      arg3 = (char *)"";
-    }
-    if ((items < 2) || (items > 4)) {
-      SWIG_croak("Usage: Driver_CopyDataSource(self,copy_ds,utf8_path,options);");
-    }
-    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OGRDriverShadow, 0 |  0 );
-    if (!SWIG_IsOK(res1)) {
-      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Driver_CopyDataSource" "', argument " "1"" of type '" "OGRDriverShadow *""'"); 
-    }
-    arg1 = reinterpret_cast< OGRDriverShadow * >(argp1);
-    res2 = SWIG_ConvertPtr(ST(1), &argp2,SWIGTYPE_p_OGRDataSourceShadow, 0 |  0 );
-    if (!SWIG_IsOK(res2)) {
-      SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "Driver_CopyDataSource" "', argument " "2"" of type '" "OGRDataSourceShadow *""'"); 
-    }
-    arg2 = reinterpret_cast< OGRDataSourceShadow * >(argp2);
-    if (items > 2) {
-      {
-        /* %typemap(in,numinputs=1) (const char* utf8_path) */
-        sv_utf8_upgrade(ST(2));
-        arg3 = SvPV_nolen(ST(2));
-      }
-    }
-    if (items > 3) {
-      {
-        /* %typemap(in) char **options */
-        if (SvOK(ST(3))) {
-          if (SvROK(ST(3))) {
-            if (SvTYPE(SvRV(ST(3)))==SVt_PVAV) {
-              AV *av = (AV*)(SvRV(ST(3)));
-              for (int i = 0; i < av_len(av)+1; i++) {
-                SV *sv = *(av_fetch(av, i, 0));
-                sv_utf8_upgrade(sv); /* GDAL expects UTF-8 */
-                char *pszItem = SvPV_nolen(sv);
-                arg4 = CSLAddString( arg4, pszItem );
-              }
-            } else if (SvTYPE(SvRV(ST(3)))==SVt_PVHV) {
-              HV *hv = (HV*)SvRV(ST(3));
-              SV *sv;
-              char *key;
-              I32 klen;
-              arg4 = NULL;
-              hv_iterinit(hv);
-              while(sv = hv_iternextsv(hv,&key,&klen)) {
-                sv_utf8_upgrade(sv); /* GDAL expects UTF-8 */
-                arg4 = CSLAddNameValue( arg4, key, SvPV_nolen(sv) );
-              }
-            } else
-            SWIG_croak("the 'options' argument to a Geo::GDAL method is not a reference to an array or hash");
-          } else
-          SWIG_croak("the 'options' argument to a Geo::GDAL method is not a reference");   
-        }
-      }
-    }
-    {
-      CPLErrorReset();
-      result = (OGRDataSourceShadow *)OGRDriverShadow_CopyDataSource(arg1,arg2,(char const *)arg3,arg4);
-      CPLErr eclass = CPLGetLastErrorType();
-      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
-        
-        
-        
-        
-        
-      }
-      
-      
-      /* 
-          Make warnings regular Perl warnings. This duplicates the warning
-          message if DontUseExceptions() is in effect (it is not by default).
-          */
-      if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg(), "%s" );
-      }
-      
-      
-    }
-    ST(argvi) = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_OGRDataSourceShadow, SWIG_OWNER | SWIG_SHADOW); argvi++ ;
-    
-    
-    {
-      /* %typemap(freearg) char **options */
-      if (arg4) CSLDestroy( arg4 );
-    }
-    XSRETURN(argvi);
-  fail:
-    
-    
-    {
-      /* %typemap(freearg) char **options */
-      if (arg4) CSLDestroy( arg4 );
-    }
-    SWIG_croak_null();
-  }
-}
-
-
-XS(_wrap_Driver_Open) {
-  {
-    OGRDriverShadow *arg1 = (OGRDriverShadow *) 0 ;
-    char *arg2 = (char *) 0 ;
-    int arg3 = (int) 0 ;
-    void *argp1 = 0 ;
-    int res1 = 0 ;
-    int val3 ;
-    int ecode3 = 0 ;
-    int argvi = 0;
-    OGRDataSourceShadow *result = 0 ;
-    dXSARGS;
-    
-    {
-      /* %typemap(default) const char * utf8_path */
-      arg2 = (char *)"";
-    }
-    if ((items < 1) || (items > 3)) {
-      SWIG_croak("Usage: Driver_Open(self,utf8_path,update);");
-    }
-    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OGRDriverShadow, 0 |  0 );
-    if (!SWIG_IsOK(res1)) {
-      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Driver_Open" "', argument " "1"" of type '" "OGRDriverShadow *""'"); 
-    }
-    arg1 = reinterpret_cast< OGRDriverShadow * >(argp1);
-    if (items > 1) {
-      {
-        /* %typemap(in,numinputs=1) (const char* utf8_path) */
-        sv_utf8_upgrade(ST(1));
-        arg2 = SvPV_nolen(ST(1));
-      }
-    }
-    if (items > 2) {
-      ecode3 = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(2), &val3);
-      if (!SWIG_IsOK(ecode3)) {
-        SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "Driver_Open" "', argument " "3"" of type '" "int""'");
-      } 
-      arg3 = static_cast< int >(val3);
-    }
-    {
-      CPLErrorReset();
-      result = (OGRDataSourceShadow *)OGRDriverShadow_Open(arg1,(char const *)arg2,arg3);
-      CPLErr eclass = CPLGetLastErrorType();
-      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
-        
-        
-        
-        
-        
-      }
-      
-      
-      /* 
-          Make warnings regular Perl warnings. This duplicates the warning
-          message if DontUseExceptions() is in effect (it is not by default).
-          */
-      if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg(), "%s" );
-      }
-      
-      
-    }
-    ST(argvi) = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_OGRDataSourceShadow, SWIG_OWNER | SWIG_SHADOW); argvi++ ;
-    
-    
-    XSRETURN(argvi);
-  fail:
-    
-    
-    SWIG_croak_null();
-  }
-}
-
-
-XS(_wrap_Driver_DeleteDataSource) {
-  {
-    OGRDriverShadow *arg1 = (OGRDriverShadow *) 0 ;
-    char *arg2 = (char *) 0 ;
-    void *argp1 = 0 ;
-    int res1 = 0 ;
-    int argvi = 0;
-    int result;
-    dXSARGS;
-    
-    {
-      /* %typemap(default) const char * utf8_path */
-      arg2 = (char *)"";
-    }
-    if ((items < 1) || (items > 2)) {
-      SWIG_croak("Usage: Driver_DeleteDataSource(self,utf8_path);");
-    }
-    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OGRDriverShadow, 0 |  0 );
-    if (!SWIG_IsOK(res1)) {
-      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Driver_DeleteDataSource" "', argument " "1"" of type '" "OGRDriverShadow *""'"); 
-    }
-    arg1 = reinterpret_cast< OGRDriverShadow * >(argp1);
-    if (items > 1) {
-      {
-        /* %typemap(in,numinputs=1) (const char* utf8_path) */
-        sv_utf8_upgrade(ST(1));
-        arg2 = SvPV_nolen(ST(1));
-      }
-    }
-    {
-      CPLErrorReset();
-      result = (int)OGRDriverShadow_DeleteDataSource(arg1,(char const *)arg2);
-      CPLErr eclass = CPLGetLastErrorType();
-      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
-        
-        
-        
-        
-        
-      }
-      
-      
-      /* 
-          Make warnings regular Perl warnings. This duplicates the warning
-          message if DontUseExceptions() is in effect (it is not by default).
-          */
-      if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg(), "%s" );
-      }
-      
-      
-    }
-    ST(argvi) = SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(result)); argvi++ ;
-    
-    XSRETURN(argvi);
-  fail:
-    
-    SWIG_croak_null();
-  }
-}
-
-
-XS(_wrap_Driver__TestCapability) {
-  {
-    OGRDriverShadow *arg1 = (OGRDriverShadow *) 0 ;
-    char *arg2 = (char *) 0 ;
-    void *argp1 = 0 ;
-    int res1 = 0 ;
-    int res2 ;
-    char *buf2 = 0 ;
-    int alloc2 = 0 ;
-    int argvi = 0;
-    bool result;
-    dXSARGS;
-    
-    if ((items < 2) || (items > 2)) {
-      SWIG_croak("Usage: Driver__TestCapability(self,cap);");
-    }
-    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OGRDriverShadow, 0 |  0 );
-    if (!SWIG_IsOK(res1)) {
-      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Driver__TestCapability" "', argument " "1"" of type '" "OGRDriverShadow *""'"); 
-    }
-    arg1 = reinterpret_cast< OGRDriverShadow * >(argp1);
-    res2 = SWIG_AsCharPtrAndSize(ST(1), &buf2, NULL, &alloc2);
-    if (!SWIG_IsOK(res2)) {
-      SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "Driver__TestCapability" "', argument " "2"" of type '" "char const *""'");
-    }
-    arg2 = reinterpret_cast< char * >(buf2);
-    {
-      if (!arg2) {
-        SWIG_exception(SWIG_ValueError,"Received a NULL pointer.");
-      }
-    }
-    {
-      CPLErrorReset();
-      result = (bool)OGRDriverShadow_TestCapability(arg1,(char const *)arg2);
-      CPLErr eclass = CPLGetLastErrorType();
-      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
-        
-        
-        
-        
-        
-      }
-      
-      
-      /* 
-          Make warnings regular Perl warnings. This duplicates the warning
-          message if DontUseExceptions() is in effect (it is not by default).
-          */
-      if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg(), "%s" );
-      }
-      
-      
-    }
-    ST(argvi) = SWIG_From_bool  SWIG_PERL_CALL_ARGS_1(static_cast< bool >(result)); argvi++ ;
-    
-    if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
-    XSRETURN(argvi);
-  fail:
-    
-    if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
-    SWIG_croak_null();
-  }
-}
-
-
-XS(_wrap_Driver_GetName) {
-  {
-    OGRDriverShadow *arg1 = (OGRDriverShadow *) 0 ;
-    void *argp1 = 0 ;
-    int res1 = 0 ;
-    int argvi = 0;
-    char *result = 0 ;
-    dXSARGS;
-    
-    if ((items < 1) || (items > 1)) {
-      SWIG_croak("Usage: Driver_GetName(self);");
-    }
-    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OGRDriverShadow, 0 |  0 );
-    if (!SWIG_IsOK(res1)) {
-      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Driver_GetName" "', argument " "1"" of type '" "OGRDriverShadow *""'"); 
-    }
-    arg1 = reinterpret_cast< OGRDriverShadow * >(argp1);
-    {
-      CPLErrorReset();
-      result = (char *)OGRDriverShadow_GetName(arg1);
-      CPLErr eclass = CPLGetLastErrorType();
-      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
-        
-        
-        
-        
-        
-      }
-      
-      
-      /* 
-          Make warnings regular Perl warnings. This duplicates the warning
-          message if DontUseExceptions() is in effect (it is not by default).
-          */
-      if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg(), "%s" );
-      }
-      
-      
-    }
-    {
-      /* %typemap(out) const char * */
-      ST(argvi) = newSVpv(result, 0);
-      SvUTF8_on(ST(argvi)); /* expecting GDAL to give us UTF-8 */
-      sv_2mortal(ST(argvi));
-      argvi++;
-    }
-    
-    XSRETURN(argvi);
-  fail:
-    
-    SWIG_croak_null();
-  }
-}
-
-
-XS(_wrap_Driver_Register) {
-  {
-    OGRDriverShadow *arg1 = (OGRDriverShadow *) 0 ;
-    void *argp1 = 0 ;
-    int res1 = 0 ;
-    int argvi = 0;
-    dXSARGS;
-    
-    if ((items < 1) || (items > 1)) {
-      SWIG_croak("Usage: Driver_Register(self);");
-    }
-    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OGRDriverShadow, 0 |  0 );
-    if (!SWIG_IsOK(res1)) {
-      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Driver_Register" "', argument " "1"" of type '" "OGRDriverShadow *""'"); 
-    }
-    arg1 = reinterpret_cast< OGRDriverShadow * >(argp1);
-    {
-      CPLErrorReset();
-      OGRDriverShadow_Register(arg1);
-      CPLErr eclass = CPLGetLastErrorType();
-      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
-        
-        
-        
-        
-        
-      }
-      
-      
-      /* 
-          Make warnings regular Perl warnings. This duplicates the warning
-          message if DontUseExceptions() is in effect (it is not by default).
-          */
-      if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg(), "%s" );
-      }
-      
-      
-    }
-    {
-      /* %typemap(out) void */
-    }
-    
-    XSRETURN(argvi);
-  fail:
-    
-    SWIG_croak_null();
-  }
-}
-
-
-XS(_wrap_Driver_Deregister) {
-  {
-    OGRDriverShadow *arg1 = (OGRDriverShadow *) 0 ;
-    void *argp1 = 0 ;
-    int res1 = 0 ;
-    int argvi = 0;
-    dXSARGS;
-    
-    if ((items < 1) || (items > 1)) {
-      SWIG_croak("Usage: Driver_Deregister(self);");
-    }
-    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OGRDriverShadow, 0 |  0 );
-    if (!SWIG_IsOK(res1)) {
-      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Driver_Deregister" "', argument " "1"" of type '" "OGRDriverShadow *""'"); 
-    }
-    arg1 = reinterpret_cast< OGRDriverShadow * >(argp1);
-    {
-      CPLErrorReset();
-      OGRDriverShadow_Deregister(arg1);
-      CPLErr eclass = CPLGetLastErrorType();
-      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
-        
-        
-        
-        
-        
-      }
-      
-      
-      /* 
-          Make warnings regular Perl warnings. This duplicates the warning
-          message if DontUseExceptions() is in effect (it is not by default).
-          */
-      if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg(), "%s" );
-      }
-      
-      
-    }
-    {
-      /* %typemap(out) void */
-    }
-    
-    XSRETURN(argvi);
-  fail:
-    
-    SWIG_croak_null();
-  }
-}
-
-
-XS(_wrap_DataSource_name_get) {
-  {
-    OGRDataSourceShadow *arg1 = (OGRDataSourceShadow *) 0 ;
-    void *argp1 = 0 ;
-    int res1 = 0 ;
-    int argvi = 0;
-    char *result = 0 ;
-    dXSARGS;
-    
-    if ((items < 1) || (items > 1)) {
-      SWIG_croak("Usage: DataSource_name_get(self);");
-    }
-    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OGRDataSourceShadow, 0 |  0 );
-    if (!SWIG_IsOK(res1)) {
-      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "DataSource_name_get" "', argument " "1"" of type '" "OGRDataSourceShadow *""'"); 
-    }
-    arg1 = reinterpret_cast< OGRDataSourceShadow * >(argp1);
-    {
-      CPLErrorReset();
-      result = (char *)OGRDataSourceShadow_name_get(arg1);
-      CPLErr eclass = CPLGetLastErrorType();
-      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
-        
-        
-        
-        
-        
-      }
-      
-      
-      /* 
-          Make warnings regular Perl warnings. This duplicates the warning
-          message if DontUseExceptions() is in effect (it is not by default).
-          */
-      if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg(), "%s" );
-      }
-      
-      
-    }
-    {
-      /* %typemap(out) const char * */
-      ST(argvi) = newSVpv(result, 0);
-      SvUTF8_on(ST(argvi)); /* expecting GDAL to give us UTF-8 */
-      sv_2mortal(ST(argvi));
-      argvi++;
-    }
-    
-    XSRETURN(argvi);
-  fail:
-    
-    SWIG_croak_null();
-  }
-}
-
-
-XS(_wrap_delete_DataSource) {
-  {
-    OGRDataSourceShadow *arg1 = (OGRDataSourceShadow *) 0 ;
-    void *argp1 = 0 ;
-    int res1 = 0 ;
-    int argvi = 0;
-    dXSARGS;
-    
-    if ((items < 1) || (items > 1)) {
-      SWIG_croak("Usage: delete_DataSource(self);");
-    }
-    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OGRDataSourceShadow, SWIG_POINTER_DISOWN |  0 );
-    if (!SWIG_IsOK(res1)) {
-      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "delete_DataSource" "', argument " "1"" of type '" "OGRDataSourceShadow *""'"); 
-    }
-    arg1 = reinterpret_cast< OGRDataSourceShadow * >(argp1);
-    {
-      CPLErrorReset();
-      delete_OGRDataSourceShadow(arg1);
-      CPLErr eclass = CPLGetLastErrorType();
-      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
-        
-        
-        
-        
-        
-      }
-      
-      
-      /* 
-          Make warnings regular Perl warnings. This duplicates the warning
-          message if DontUseExceptions() is in effect (it is not by default).
-          */
-      if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg(), "%s" );
-      }
-      
-      
-    }
-    {
-      /* %typemap(out) void */
-    }
-    
-    XSRETURN(argvi);
-  fail:
-    
-    SWIG_croak_null();
-  }
-}
-
-
-XS(_wrap_DataSource_GetRefCount) {
-  {
-    OGRDataSourceShadow *arg1 = (OGRDataSourceShadow *) 0 ;
-    void *argp1 = 0 ;
-    int res1 = 0 ;
-    int argvi = 0;
-    int result;
-    dXSARGS;
-    
-    if ((items < 1) || (items > 1)) {
-      SWIG_croak("Usage: DataSource_GetRefCount(self);");
-    }
-    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OGRDataSourceShadow, 0 |  0 );
-    if (!SWIG_IsOK(res1)) {
-      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "DataSource_GetRefCount" "', argument " "1"" of type '" "OGRDataSourceShadow *""'"); 
-    }
-    arg1 = reinterpret_cast< OGRDataSourceShadow * >(argp1);
-    {
-      CPLErrorReset();
-      result = (int)OGRDataSourceShadow_GetRefCount(arg1);
-      CPLErr eclass = CPLGetLastErrorType();
-      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
-        
-        
-        
-        
-        
-      }
-      
-      
-      /* 
-          Make warnings regular Perl warnings. This duplicates the warning
-          message if DontUseExceptions() is in effect (it is not by default).
-          */
-      if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg(), "%s" );
-      }
-      
-      
-    }
-    ST(argvi) = SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(result)); argvi++ ;
-    
-    XSRETURN(argvi);
-  fail:
-    
-    SWIG_croak_null();
-  }
-}
-
-
-XS(_wrap_DataSource_GetSummaryRefCount) {
-  {
-    OGRDataSourceShadow *arg1 = (OGRDataSourceShadow *) 0 ;
-    void *argp1 = 0 ;
-    int res1 = 0 ;
-    int argvi = 0;
-    int result;
-    dXSARGS;
-    
-    if ((items < 1) || (items > 1)) {
-      SWIG_croak("Usage: DataSource_GetSummaryRefCount(self);");
-    }
-    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OGRDataSourceShadow, 0 |  0 );
-    if (!SWIG_IsOK(res1)) {
-      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "DataSource_GetSummaryRefCount" "', argument " "1"" of type '" "OGRDataSourceShadow *""'"); 
-    }
-    arg1 = reinterpret_cast< OGRDataSourceShadow * >(argp1);
-    {
-      CPLErrorReset();
-      result = (int)OGRDataSourceShadow_GetSummaryRefCount(arg1);
-      CPLErr eclass = CPLGetLastErrorType();
-      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
-        
-        
-        
-        
-        
-      }
-      
-      
-      /* 
-          Make warnings regular Perl warnings. This duplicates the warning
-          message if DontUseExceptions() is in effect (it is not by default).
-          */
-      if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg(), "%s" );
-      }
-      
-      
-    }
-    ST(argvi) = SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(result)); argvi++ ;
-    
-    XSRETURN(argvi);
-  fail:
-    
-    SWIG_croak_null();
-  }
-}
-
-
-XS(_wrap_DataSource_GetLayerCount) {
-  {
-    OGRDataSourceShadow *arg1 = (OGRDataSourceShadow *) 0 ;
-    void *argp1 = 0 ;
-    int res1 = 0 ;
-    int argvi = 0;
-    int result;
-    dXSARGS;
-    
-    if ((items < 1) || (items > 1)) {
-      SWIG_croak("Usage: DataSource_GetLayerCount(self);");
-    }
-    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OGRDataSourceShadow, 0 |  0 );
-    if (!SWIG_IsOK(res1)) {
-      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "DataSource_GetLayerCount" "', argument " "1"" of type '" "OGRDataSourceShadow *""'"); 
-    }
-    arg1 = reinterpret_cast< OGRDataSourceShadow * >(argp1);
-    {
-      CPLErrorReset();
-      result = (int)OGRDataSourceShadow_GetLayerCount(arg1);
-      CPLErr eclass = CPLGetLastErrorType();
-      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
-        
-        
-        
-        
-        
-      }
-      
-      
-      /* 
-          Make warnings regular Perl warnings. This duplicates the warning
-          message if DontUseExceptions() is in effect (it is not by default).
-          */
-      if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg(), "%s" );
-      }
-      
-      
-    }
-    ST(argvi) = SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(result)); argvi++ ;
-    
-    XSRETURN(argvi);
-  fail:
-    
-    SWIG_croak_null();
-  }
-}
-
-
-XS(_wrap_DataSource__GetDriver) {
-  {
-    OGRDataSourceShadow *arg1 = (OGRDataSourceShadow *) 0 ;
-    void *argp1 = 0 ;
-    int res1 = 0 ;
-    int argvi = 0;
-    OGRDriverShadow *result = 0 ;
-    dXSARGS;
-    
-    if ((items < 1) || (items > 1)) {
-      SWIG_croak("Usage: DataSource__GetDriver(self);");
-    }
-    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OGRDataSourceShadow, 0 |  0 );
-    if (!SWIG_IsOK(res1)) {
-      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "DataSource__GetDriver" "', argument " "1"" of type '" "OGRDataSourceShadow *""'"); 
-    }
-    arg1 = reinterpret_cast< OGRDataSourceShadow * >(argp1);
-    {
-      CPLErrorReset();
-      result = (OGRDriverShadow *)OGRDataSourceShadow_GetDriver(arg1);
-      CPLErr eclass = CPLGetLastErrorType();
-      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
-        
-        
-        
-        
-        
-      }
-      
-      
-      /* 
-          Make warnings regular Perl warnings. This duplicates the warning
-          message if DontUseExceptions() is in effect (it is not by default).
-          */
-      if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg(), "%s" );
-      }
-      
-      
-    }
-    ST(argvi) = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_OGRDriverShadow, 0 | SWIG_SHADOW); argvi++ ;
-    
-    XSRETURN(argvi);
-  fail:
-    
-    SWIG_croak_null();
-  }
-}
-
-
-XS(_wrap_DataSource_GetName) {
-  {
-    OGRDataSourceShadow *arg1 = (OGRDataSourceShadow *) 0 ;
-    void *argp1 = 0 ;
-    int res1 = 0 ;
-    int argvi = 0;
-    char *result = 0 ;
-    dXSARGS;
-    
-    if ((items < 1) || (items > 1)) {
-      SWIG_croak("Usage: DataSource_GetName(self);");
-    }
-    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OGRDataSourceShadow, 0 |  0 );
-    if (!SWIG_IsOK(res1)) {
-      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "DataSource_GetName" "', argument " "1"" of type '" "OGRDataSourceShadow *""'"); 
-    }
-    arg1 = reinterpret_cast< OGRDataSourceShadow * >(argp1);
-    {
-      CPLErrorReset();
-      result = (char *)OGRDataSourceShadow_GetName(arg1);
-      CPLErr eclass = CPLGetLastErrorType();
-      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
-        
-        
-        
-        
-        
-      }
-      
-      
-      /* 
-          Make warnings regular Perl warnings. This duplicates the warning
-          message if DontUseExceptions() is in effect (it is not by default).
-          */
-      if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg(), "%s" );
-      }
-      
-      
-    }
-    {
-      /* %typemap(out) const char * */
-      ST(argvi) = newSVpv(result, 0);
-      SvUTF8_on(ST(argvi)); /* expecting GDAL to give us UTF-8 */
-      sv_2mortal(ST(argvi));
-      argvi++;
-    }
-    
-    XSRETURN(argvi);
-  fail:
-    
-    SWIG_croak_null();
-  }
-}
-
-
-XS(_wrap_DataSource__DeleteLayer) {
-  {
-    OGRDataSourceShadow *arg1 = (OGRDataSourceShadow *) 0 ;
-    int arg2 ;
-    void *argp1 = 0 ;
-    int res1 = 0 ;
-    int val2 ;
-    int ecode2 = 0 ;
-    int argvi = 0;
-    OGRErr result;
-    dXSARGS;
-    
-    if ((items < 2) || (items > 2)) {
-      SWIG_croak("Usage: DataSource__DeleteLayer(self,index);");
-    }
-    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OGRDataSourceShadow, 0 |  0 );
-    if (!SWIG_IsOK(res1)) {
-      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "DataSource__DeleteLayer" "', argument " "1"" of type '" "OGRDataSourceShadow *""'"); 
-    }
-    arg1 = reinterpret_cast< OGRDataSourceShadow * >(argp1);
-    ecode2 = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(1), &val2);
-    if (!SWIG_IsOK(ecode2)) {
-      SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "DataSource__DeleteLayer" "', argument " "2"" of type '" "int""'");
-    } 
-    arg2 = static_cast< int >(val2);
-    {
-      CPLErrorReset();
-      result = (OGRErr)OGRDataSourceShadow_DeleteLayer(arg1,arg2);
-      CPLErr eclass = CPLGetLastErrorType();
-      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
-        
-        
-        
-        
-        
-      }
-      
-      
-      /* 
-          Make warnings regular Perl warnings. This duplicates the warning
-          message if DontUseExceptions() is in effect (it is not by default).
-          */
-      if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg(), "%s" );
-      }
-      
-      
-    }
-    {
-      /* %typemap(out) OGRErr */
-      if ( result != 0 ) {
-        const char *err = CPLGetLastErrorMsg();
-        if (err and *err) SWIG_croak(err); /* this is usually better */
-        SWIG_croak( OGRErrMessages(result) );
-      }
-    }
-    
-    
-    XSRETURN(argvi);
-  fail:
-    
-    
-    SWIG_croak_null();
-  }
-}
-
-
-XS(_wrap_DataSource_SyncToDisk) {
-  {
-    OGRDataSourceShadow *arg1 = (OGRDataSourceShadow *) 0 ;
-    void *argp1 = 0 ;
-    int res1 = 0 ;
-    int argvi = 0;
-    OGRErr result;
-    dXSARGS;
-    
-    if ((items < 1) || (items > 1)) {
-      SWIG_croak("Usage: DataSource_SyncToDisk(self);");
-    }
-    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OGRDataSourceShadow, 0 |  0 );
-    if (!SWIG_IsOK(res1)) {
-      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "DataSource_SyncToDisk" "', argument " "1"" of type '" "OGRDataSourceShadow *""'"); 
-    }
-    arg1 = reinterpret_cast< OGRDataSourceShadow * >(argp1);
-    {
-      CPLErrorReset();
-      result = (OGRErr)OGRDataSourceShadow_SyncToDisk(arg1);
-      CPLErr eclass = CPLGetLastErrorType();
-      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
-        
-        
-        
-        
-        
-      }
-      
-      
-      /* 
-          Make warnings regular Perl warnings. This duplicates the warning
-          message if DontUseExceptions() is in effect (it is not by default).
-          */
-      if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg(), "%s" );
-      }
-      
-      
-    }
-    {
-      /* %typemap(out) OGRErr */
-      if ( result != 0 ) {
-        const char *err = CPLGetLastErrorMsg();
-        if (err and *err) SWIG_croak(err); /* this is usually better */
-        SWIG_croak( OGRErrMessages(result) );
-      }
-    }
-    
-    XSRETURN(argvi);
-  fail:
-    
-    SWIG_croak_null();
-  }
-}
-
-
-XS(_wrap_DataSource__CreateLayer) {
-  {
-    OGRDataSourceShadow *arg1 = (OGRDataSourceShadow *) 0 ;
-    char *arg2 = (char *) 0 ;
-    OSRSpatialReferenceShadow *arg3 = (OSRSpatialReferenceShadow *) NULL ;
-    OGRwkbGeometryType arg4 = (OGRwkbGeometryType) wkbUnknown ;
-    char **arg5 = (char **) 0 ;
-    void *argp1 = 0 ;
-    int res1 = 0 ;
-    void *argp3 = 0 ;
-    int res3 = 0 ;
-    int val4 ;
-    int ecode4 = 0 ;
-    int argvi = 0;
-    OGRLayerShadow *result = 0 ;
-    dXSARGS;
-    
-    if ((items < 2) || (items > 5)) {
-      SWIG_croak("Usage: DataSource__CreateLayer(self,name,srs,geom_type,options);");
-    }
-    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OGRDataSourceShadow, 0 |  0 );
-    if (!SWIG_IsOK(res1)) {
-      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "DataSource__CreateLayer" "', argument " "1"" of type '" "OGRDataSourceShadow *""'"); 
-    }
-    arg1 = reinterpret_cast< OGRDataSourceShadow * >(argp1);
-    {
-      /* %typemap(in,numinputs=1) (const char* name) */
-      sv_utf8_upgrade(ST(1));
-      arg2 = SvPV_nolen(ST(1));
-    }
-    if (items > 2) {
-      res3 = SWIG_ConvertPtr(ST(2), &argp3,SWIGTYPE_p_OSRSpatialReferenceShadow, 0 |  0 );
-      if (!SWIG_IsOK(res3)) {
-        SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "DataSource__CreateLayer" "', argument " "3"" of type '" "OSRSpatialReferenceShadow *""'"); 
-      }
-      arg3 = reinterpret_cast< OSRSpatialReferenceShadow * >(argp3);
-    }
-    if (items > 3) {
-      ecode4 = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(3), &val4);
-      if (!SWIG_IsOK(ecode4)) {
-        SWIG_exception_fail(SWIG_ArgError(ecode4), "in method '" "DataSource__CreateLayer" "', argument " "4"" of type '" "OGRwkbGeometryType""'");
-      } 
-      arg4 = static_cast< OGRwkbGeometryType >(val4);
-    }
-    if (items > 4) {
-      {
-        /* %typemap(in) char **options */
-        if (SvOK(ST(4))) {
-          if (SvROK(ST(4))) {
-            if (SvTYPE(SvRV(ST(4)))==SVt_PVAV) {
-              AV *av = (AV*)(SvRV(ST(4)));
-              for (int i = 0; i < av_len(av)+1; i++) {
-                SV *sv = *(av_fetch(av, i, 0));
-                sv_utf8_upgrade(sv); /* GDAL expects UTF-8 */
-                char *pszItem = SvPV_nolen(sv);
-                arg5 = CSLAddString( arg5, pszItem );
-              }
-            } else if (SvTYPE(SvRV(ST(4)))==SVt_PVHV) {
-              HV *hv = (HV*)SvRV(ST(4));
-              SV *sv;
-              char *key;
-              I32 klen;
-              arg5 = NULL;
-              hv_iterinit(hv);
-              while(sv = hv_iternextsv(hv,&key,&klen)) {
-                sv_utf8_upgrade(sv); /* GDAL expects UTF-8 */
-                arg5 = CSLAddNameValue( arg5, key, SvPV_nolen(sv) );
-              }
-            } else
-            SWIG_croak("the 'options' argument to a Geo::GDAL method is not a reference to an array or hash");
-          } else
-          SWIG_croak("the 'options' argument to a Geo::GDAL method is not a reference");   
-        }
-      }
-    }
-    {
-      if (!arg2) {
-        SWIG_exception(SWIG_ValueError,"Received a NULL pointer.");
-      }
-    }
-    {
-      CPLErrorReset();
-      result = (OGRLayerShadow *)OGRDataSourceShadow_CreateLayer(arg1,(char const *)arg2,arg3,arg4,arg5);
-      CPLErr eclass = CPLGetLastErrorType();
-      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
-        
-        
-        
-        
-        
-      }
-      
-      
-      /* 
-          Make warnings regular Perl warnings. This duplicates the warning
-          message if DontUseExceptions() is in effect (it is not by default).
-          */
-      if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg(), "%s" );
-      }
-      
-      
-    }
-    ST(argvi) = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_OGRLayerShadow, 0 | SWIG_SHADOW); argvi++ ;
-    
-    
-    
-    {
-      /* %typemap(freearg) char **options */
-      if (arg5) CSLDestroy( arg5 );
-    }
-    XSRETURN(argvi);
-  fail:
-    
-    
-    
-    {
-      /* %typemap(freearg) char **options */
-      if (arg5) CSLDestroy( arg5 );
-    }
-    SWIG_croak_null();
-  }
-}
-
-
-XS(_wrap_DataSource_CopyLayer) {
-  {
-    OGRDataSourceShadow *arg1 = (OGRDataSourceShadow *) 0 ;
-    OGRLayerShadow *arg2 = (OGRLayerShadow *) 0 ;
-    char *arg3 = (char *) 0 ;
-    char **arg4 = (char **) 0 ;
-    void *argp1 = 0 ;
-    int res1 = 0 ;
-    void *argp2 = 0 ;
-    int res2 = 0 ;
-    int res3 ;
-    char *buf3 = 0 ;
-    int alloc3 = 0 ;
-    int argvi = 0;
-    OGRLayerShadow *result = 0 ;
-    dXSARGS;
-    
-    if ((items < 3) || (items > 4)) {
-      SWIG_croak("Usage: DataSource_CopyLayer(self,src_layer,new_name,options);");
-    }
-    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OGRDataSourceShadow, 0 |  0 );
-    if (!SWIG_IsOK(res1)) {
-      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "DataSource_CopyLayer" "', argument " "1"" of type '" "OGRDataSourceShadow *""'"); 
-    }
-    arg1 = reinterpret_cast< OGRDataSourceShadow * >(argp1);
-    res2 = SWIG_ConvertPtr(ST(1), &argp2,SWIGTYPE_p_OGRLayerShadow, 0 |  0 );
-    if (!SWIG_IsOK(res2)) {
-      SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "DataSource_CopyLayer" "', argument " "2"" of type '" "OGRLayerShadow *""'"); 
-    }
-    arg2 = reinterpret_cast< OGRLayerShadow * >(argp2);
-    res3 = SWIG_AsCharPtrAndSize(ST(2), &buf3, NULL, &alloc3);
-    if (!SWIG_IsOK(res3)) {
-      SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "DataSource_CopyLayer" "', argument " "3"" of type '" "char const *""'");
-    }
-    arg3 = reinterpret_cast< char * >(buf3);
-    if (items > 3) {
-      {
-        /* %typemap(in) char **options */
-        if (SvOK(ST(3))) {
-          if (SvROK(ST(3))) {
-            if (SvTYPE(SvRV(ST(3)))==SVt_PVAV) {
-              AV *av = (AV*)(SvRV(ST(3)));
-              for (int i = 0; i < av_len(av)+1; i++) {
-                SV *sv = *(av_fetch(av, i, 0));
-                sv_utf8_upgrade(sv); /* GDAL expects UTF-8 */
-                char *pszItem = SvPV_nolen(sv);
-                arg4 = CSLAddString( arg4, pszItem );
-              }
-            } else if (SvTYPE(SvRV(ST(3)))==SVt_PVHV) {
-              HV *hv = (HV*)SvRV(ST(3));
-              SV *sv;
-              char *key;
-              I32 klen;
-              arg4 = NULL;
-              hv_iterinit(hv);
-              while(sv = hv_iternextsv(hv,&key,&klen)) {
-                sv_utf8_upgrade(sv); /* GDAL expects UTF-8 */
-                arg4 = CSLAddNameValue( arg4, key, SvPV_nolen(sv) );
-              }
-            } else
-            SWIG_croak("the 'options' argument to a Geo::GDAL method is not a reference to an array or hash");
-          } else
-          SWIG_croak("the 'options' argument to a Geo::GDAL method is not a reference");   
-        }
-      }
-    }
-    {
-      if (!arg2) {
-        SWIG_exception(SWIG_ValueError,"Received a NULL pointer.");
-      }
-    }
-    {
-      CPLErrorReset();
-      result = (OGRLayerShadow *)OGRDataSourceShadow_CopyLayer(arg1,arg2,(char const *)arg3,arg4);
-      CPLErr eclass = CPLGetLastErrorType();
-      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
-        
-        
-        
-        
-        
-      }
-      
-      
-      /* 
-          Make warnings regular Perl warnings. This duplicates the warning
-          message if DontUseExceptions() is in effect (it is not by default).
-          */
-      if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg(), "%s" );
-      }
-      
-      
-    }
-    ST(argvi) = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_OGRLayerShadow, 0 | SWIG_SHADOW); argvi++ ;
-    
-    
-    if (alloc3 == SWIG_NEWOBJ) delete[] buf3;
-    {
-      /* %typemap(freearg) char **options */
-      if (arg4) CSLDestroy( arg4 );
-    }
-    XSRETURN(argvi);
-  fail:
-    
-    
-    if (alloc3 == SWIG_NEWOBJ) delete[] buf3;
-    {
-      /* %typemap(freearg) char **options */
-      if (arg4) CSLDestroy( arg4 );
-    }
-    SWIG_croak_null();
-  }
-}
-
-
-XS(_wrap_DataSource__GetLayerByIndex) {
-  {
-    OGRDataSourceShadow *arg1 = (OGRDataSourceShadow *) 0 ;
-    int arg2 = (int) 0 ;
-    void *argp1 = 0 ;
-    int res1 = 0 ;
-    int val2 ;
-    int ecode2 = 0 ;
-    int argvi = 0;
-    OGRLayerShadow *result = 0 ;
-    dXSARGS;
-    
-    if ((items < 1) || (items > 2)) {
-      SWIG_croak("Usage: DataSource__GetLayerByIndex(self,index);");
-    }
-    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OGRDataSourceShadow, 0 |  0 );
-    if (!SWIG_IsOK(res1)) {
-      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "DataSource__GetLayerByIndex" "', argument " "1"" of type '" "OGRDataSourceShadow *""'"); 
-    }
-    arg1 = reinterpret_cast< OGRDataSourceShadow * >(argp1);
-    if (items > 1) {
-      ecode2 = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(1), &val2);
-      if (!SWIG_IsOK(ecode2)) {
-        SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "DataSource__GetLayerByIndex" "', argument " "2"" of type '" "int""'");
-      } 
-      arg2 = static_cast< int >(val2);
-    }
-    {
-      CPLErrorReset();
-      result = (OGRLayerShadow *)OGRDataSourceShadow_GetLayerByIndex(arg1,arg2);
-      CPLErr eclass = CPLGetLastErrorType();
-      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
-        
-        
-        
-        
-        
-      }
-      
-      
-      /* 
-          Make warnings regular Perl warnings. This duplicates the warning
-          message if DontUseExceptions() is in effect (it is not by default).
-          */
-      if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg(), "%s" );
-      }
-      
-      
-    }
-    ST(argvi) = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_OGRLayerShadow, 0 | SWIG_SHADOW); argvi++ ;
-    
-    
-    XSRETURN(argvi);
-  fail:
-    
-    
-    SWIG_croak_null();
-  }
-}
-
-
-XS(_wrap_DataSource__GetLayerByName) {
-  {
-    OGRDataSourceShadow *arg1 = (OGRDataSourceShadow *) 0 ;
-    char *arg2 = (char *) 0 ;
-    void *argp1 = 0 ;
-    int res1 = 0 ;
-    int argvi = 0;
-    OGRLayerShadow *result = 0 ;
-    dXSARGS;
-    
-    if ((items < 2) || (items > 2)) {
-      SWIG_croak("Usage: DataSource__GetLayerByName(self,layer_name);");
-    }
-    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OGRDataSourceShadow, 0 |  0 );
-    if (!SWIG_IsOK(res1)) {
-      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "DataSource__GetLayerByName" "', argument " "1"" of type '" "OGRDataSourceShadow *""'"); 
-    }
-    arg1 = reinterpret_cast< OGRDataSourceShadow * >(argp1);
-    {
-      /* %typemap(in,numinputs=1) (const char* layer_name) */
-      sv_utf8_upgrade(ST(1));
-      arg2 = SvPV_nolen(ST(1));
-    }
-    {
-      CPLErrorReset();
-      result = (OGRLayerShadow *)OGRDataSourceShadow_GetLayerByName(arg1,(char const *)arg2);
-      CPLErr eclass = CPLGetLastErrorType();
-      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
-        
-        
-        
-        
-        
-      }
-      
-      
-      /* 
-          Make warnings regular Perl warnings. This duplicates the warning
-          message if DontUseExceptions() is in effect (it is not by default).
-          */
-      if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg(), "%s" );
-      }
-      
-      
-    }
-    ST(argvi) = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_OGRLayerShadow, 0 | SWIG_SHADOW); argvi++ ;
-    
-    XSRETURN(argvi);
-  fail:
-    
-    SWIG_croak_null();
-  }
-}
-
-
-XS(_wrap_DataSource__TestCapability) {
-  {
-    OGRDataSourceShadow *arg1 = (OGRDataSourceShadow *) 0 ;
-    char *arg2 = (char *) 0 ;
-    void *argp1 = 0 ;
-    int res1 = 0 ;
-    int res2 ;
-    char *buf2 = 0 ;
-    int alloc2 = 0 ;
-    int argvi = 0;
-    bool result;
-    dXSARGS;
-    
-    if ((items < 2) || (items > 2)) {
-      SWIG_croak("Usage: DataSource__TestCapability(self,cap);");
-    }
-    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OGRDataSourceShadow, 0 |  0 );
-    if (!SWIG_IsOK(res1)) {
-      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "DataSource__TestCapability" "', argument " "1"" of type '" "OGRDataSourceShadow *""'"); 
-    }
-    arg1 = reinterpret_cast< OGRDataSourceShadow * >(argp1);
-    res2 = SWIG_AsCharPtrAndSize(ST(1), &buf2, NULL, &alloc2);
-    if (!SWIG_IsOK(res2)) {
-      SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "DataSource__TestCapability" "', argument " "2"" of type '" "char const *""'");
-    }
-    arg2 = reinterpret_cast< char * >(buf2);
-    {
-      if (!arg2) {
-        SWIG_exception(SWIG_ValueError,"Received a NULL pointer.");
-      }
-    }
-    {
-      CPLErrorReset();
-      result = (bool)OGRDataSourceShadow_TestCapability(arg1,(char const *)arg2);
-      CPLErr eclass = CPLGetLastErrorType();
-      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
-        
-        
-        
-        
-        
-      }
-      
-      
-      /* 
-          Make warnings regular Perl warnings. This duplicates the warning
-          message if DontUseExceptions() is in effect (it is not by default).
-          */
-      if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg(), "%s" );
-      }
-      
-      
-    }
-    ST(argvi) = SWIG_From_bool  SWIG_PERL_CALL_ARGS_1(static_cast< bool >(result)); argvi++ ;
-    
-    if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
-    XSRETURN(argvi);
-  fail:
-    
-    if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
-    SWIG_croak_null();
-  }
-}
-
-
-XS(_wrap_DataSource__ExecuteSQL) {
-  {
-    OGRDataSourceShadow *arg1 = (OGRDataSourceShadow *) 0 ;
-    char *arg2 = (char *) 0 ;
-    OGRGeometryShadow *arg3 = (OGRGeometryShadow *) NULL ;
-    char *arg4 = (char *) "" ;
-    void *argp1 = 0 ;
-    int res1 = 0 ;
-    int res2 ;
-    char *buf2 = 0 ;
-    int alloc2 = 0 ;
-    void *argp3 = 0 ;
-    int res3 = 0 ;
-    int res4 ;
-    char *buf4 = 0 ;
-    int alloc4 = 0 ;
-    int argvi = 0;
-    OGRLayerShadow *result = 0 ;
-    dXSARGS;
-    
-    if ((items < 2) || (items > 4)) {
-      SWIG_croak("Usage: DataSource__ExecuteSQL(self,statement,spatialFilter,dialect);");
-    }
-    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OGRDataSourceShadow, 0 |  0 );
-    if (!SWIG_IsOK(res1)) {
-      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "DataSource__ExecuteSQL" "', argument " "1"" of type '" "OGRDataSourceShadow *""'"); 
-    }
-    arg1 = reinterpret_cast< OGRDataSourceShadow * >(argp1);
-    res2 = SWIG_AsCharPtrAndSize(ST(1), &buf2, NULL, &alloc2);
-    if (!SWIG_IsOK(res2)) {
-      SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "DataSource__ExecuteSQL" "', argument " "2"" of type '" "char const *""'");
-    }
-    arg2 = reinterpret_cast< char * >(buf2);
-    if (items > 2) {
-      res3 = SWIG_ConvertPtr(ST(2), &argp3,SWIGTYPE_p_OGRGeometryShadow, 0 |  0 );
-      if (!SWIG_IsOK(res3)) {
-        SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "DataSource__ExecuteSQL" "', argument " "3"" of type '" "OGRGeometryShadow *""'"); 
-      }
-      arg3 = reinterpret_cast< OGRGeometryShadow * >(argp3);
-    }
-    if (items > 3) {
-      res4 = SWIG_AsCharPtrAndSize(ST(3), &buf4, NULL, &alloc4);
-      if (!SWIG_IsOK(res4)) {
-        SWIG_exception_fail(SWIG_ArgError(res4), "in method '" "DataSource__ExecuteSQL" "', argument " "4"" of type '" "char const *""'");
-      }
-      arg4 = reinterpret_cast< char * >(buf4);
-    }
-    {
-      if (!arg2) {
-        SWIG_exception(SWIG_ValueError,"Received a NULL pointer.");
-      }
-    }
-    {
-      CPLErrorReset();
-      result = (OGRLayerShadow *)OGRDataSourceShadow_ExecuteSQL(arg1,(char const *)arg2,arg3,(char const *)arg4);
-      CPLErr eclass = CPLGetLastErrorType();
-      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
-        
-        
-        
-        
-        
-      }
-      
-      
-      /* 
-          Make warnings regular Perl warnings. This duplicates the warning
-          message if DontUseExceptions() is in effect (it is not by default).
-          */
-      if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg(), "%s" );
-      }
-      
-      
-    }
-    ST(argvi) = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_OGRLayerShadow, 0 | SWIG_SHADOW); argvi++ ;
-    
-    if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
-    
-    if (alloc4 == SWIG_NEWOBJ) delete[] buf4;
-    XSRETURN(argvi);
-  fail:
-    
-    if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
-    
-    if (alloc4 == SWIG_NEWOBJ) delete[] buf4;
-    SWIG_croak_null();
-  }
-}
-
-
-XS(_wrap_DataSource_ReleaseResultSet) {
-  {
-    OGRDataSourceShadow *arg1 = (OGRDataSourceShadow *) 0 ;
-    OGRLayerShadow *arg2 = (OGRLayerShadow *) 0 ;
-    void *argp1 = 0 ;
-    int res1 = 0 ;
-    int res2 = 0 ;
-    int argvi = 0;
-    dXSARGS;
-    
-    if ((items < 2) || (items > 2)) {
-      SWIG_croak("Usage: DataSource_ReleaseResultSet(self,layer);");
-    }
-    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OGRDataSourceShadow, 0 |  0 );
-    if (!SWIG_IsOK(res1)) {
-      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "DataSource_ReleaseResultSet" "', argument " "1"" of type '" "OGRDataSourceShadow *""'"); 
-    }
-    arg1 = reinterpret_cast< OGRDataSourceShadow * >(argp1);
-    res2 = SWIG_ConvertPtr(ST(1), SWIG_as_voidptrptr(&arg2), SWIGTYPE_p_OGRLayerShadow, SWIG_POINTER_DISOWN |  0 );
-    if (!SWIG_IsOK(res2)) {
-      SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "DataSource_ReleaseResultSet" "', argument " "2"" of type '" "OGRLayerShadow *""'");
-    }
-    {
-      CPLErrorReset();
-      OGRDataSourceShadow_ReleaseResultSet(arg1,arg2);
-      CPLErr eclass = CPLGetLastErrorType();
-      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
-        
-        
-        
-        
-        
-      }
-      
-      
-      /* 
-          Make warnings regular Perl warnings. This duplicates the warning
-          message if DontUseExceptions() is in effect (it is not by default).
-          */
-      if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg(), "%s" );
-      }
-      
-      
-    }
-    {
-      /* %typemap(out) void */
-    }
-    
-    
-    XSRETURN(argvi);
-  fail:
-    
-    
-    SWIG_croak_null();
-  }
-}
-
-
-XS(_wrap_DataSource_GetStyleTable) {
-  {
-    OGRDataSourceShadow *arg1 = (OGRDataSourceShadow *) 0 ;
-    void *argp1 = 0 ;
-    int res1 = 0 ;
-    int argvi = 0;
-    OGRStyleTableShadow *result = 0 ;
-    dXSARGS;
-    
-    if ((items < 1) || (items > 1)) {
-      SWIG_croak("Usage: DataSource_GetStyleTable(self);");
-    }
-    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OGRDataSourceShadow, 0 |  0 );
-    if (!SWIG_IsOK(res1)) {
-      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "DataSource_GetStyleTable" "', argument " "1"" of type '" "OGRDataSourceShadow *""'"); 
-    }
-    arg1 = reinterpret_cast< OGRDataSourceShadow * >(argp1);
-    {
-      CPLErrorReset();
-      result = (OGRStyleTableShadow *)OGRDataSourceShadow_GetStyleTable(arg1);
-      CPLErr eclass = CPLGetLastErrorType();
-      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
-        
-        
-        
-        
-        
-      }
-      
-      
-      /* 
-          Make warnings regular Perl warnings. This duplicates the warning
-          message if DontUseExceptions() is in effect (it is not by default).
-          */
-      if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg(), "%s" );
-      }
-      
-      
-    }
-    ST(argvi) = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_OGRStyleTableShadow, 0 | SWIG_SHADOW); argvi++ ;
-    
-    XSRETURN(argvi);
-  fail:
-    
-    SWIG_croak_null();
-  }
-}
-
-
-XS(_wrap_DataSource_SetStyleTable) {
-  {
-    OGRDataSourceShadow *arg1 = (OGRDataSourceShadow *) 0 ;
-    OGRStyleTableShadow *arg2 = (OGRStyleTableShadow *) 0 ;
-    void *argp1 = 0 ;
-    int res1 = 0 ;
-    void *argp2 = 0 ;
-    int res2 = 0 ;
-    int argvi = 0;
-    dXSARGS;
-    
-    if ((items < 2) || (items > 2)) {
-      SWIG_croak("Usage: DataSource_SetStyleTable(self,table);");
-    }
-    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OGRDataSourceShadow, 0 |  0 );
-    if (!SWIG_IsOK(res1)) {
-      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "DataSource_SetStyleTable" "', argument " "1"" of type '" "OGRDataSourceShadow *""'"); 
-    }
-    arg1 = reinterpret_cast< OGRDataSourceShadow * >(argp1);
-    res2 = SWIG_ConvertPtr(ST(1), &argp2,SWIGTYPE_p_OGRStyleTableShadow, 0 |  0 );
-    if (!SWIG_IsOK(res2)) {
-      SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "DataSource_SetStyleTable" "', argument " "2"" of type '" "OGRStyleTableShadow *""'"); 
-    }
-    arg2 = reinterpret_cast< OGRStyleTableShadow * >(argp2);
-    {
-      CPLErrorReset();
-      OGRDataSourceShadow_SetStyleTable(arg1,arg2);
-      CPLErr eclass = CPLGetLastErrorType();
-      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
-        
-        
-        
-        
-        
-      }
-      
-      
-      /* 
-          Make warnings regular Perl warnings. This duplicates the warning
-          message if DontUseExceptions() is in effect (it is not by default).
-          */
-      if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg(), "%s" );
-      }
-      
-      
-    }
-    {
-      /* %typemap(out) void */
-    }
-    
-    
-    XSRETURN(argvi);
-  fail:
-    
     
     SWIG_croak_null();
   }
@@ -5618,7 +4115,7 @@ XS(_wrap_Layer_GetRefCount) {
       result = (int)OGRLayerShadow_GetRefCount(arg1);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -5627,7 +4124,7 @@ XS(_wrap_Layer_GetRefCount) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -5676,7 +4173,7 @@ XS(_wrap_Layer_SetSpatialFilter__SWIG_0) {
       OGRLayerShadow_SetSpatialFilter__SWIG_0(arg1,arg2);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -5685,7 +4182,7 @@ XS(_wrap_Layer_SetSpatialFilter__SWIG_0) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -5762,7 +4259,7 @@ XS(_wrap_Layer_SetSpatialFilterRect__SWIG_0) {
       OGRLayerShadow_SetSpatialFilterRect__SWIG_0(arg1,arg2,arg3,arg4,arg5);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -5771,7 +4268,7 @@ XS(_wrap_Layer_SetSpatialFilterRect__SWIG_0) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -5838,7 +4335,7 @@ XS(_wrap_Layer_SetSpatialFilter__SWIG_1) {
       OGRLayerShadow_SetSpatialFilter__SWIG_1(arg1,arg2,arg3);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -5847,7 +4344,7 @@ XS(_wrap_Layer_SetSpatialFilter__SWIG_1) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -6024,7 +4521,7 @@ XS(_wrap_Layer_SetSpatialFilterRect__SWIG_1) {
       OGRLayerShadow_SetSpatialFilterRect__SWIG_1(arg1,arg2,arg3,arg4,arg5,arg6);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -6033,7 +4530,7 @@ XS(_wrap_Layer_SetSpatialFilterRect__SWIG_1) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -6239,7 +4736,7 @@ XS(_wrap_Layer_GetSpatialFilter) {
       result = (OGRGeometryShadow *)OGRLayerShadow_GetSpatialFilter(arg1);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -6248,7 +4745,7 @@ XS(_wrap_Layer_GetSpatialFilter) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -6299,7 +4796,7 @@ XS(_wrap_Layer_SetAttributeFilter) {
       result = (OGRErr)OGRLayerShadow_SetAttributeFilter(arg1,arg2);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -6308,7 +4805,7 @@ XS(_wrap_Layer_SetAttributeFilter) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -6322,8 +4819,8 @@ XS(_wrap_Layer_SetAttributeFilter) {
       /* %typemap(out) OGRErr */
       if ( result != 0 ) {
         const char *err = CPLGetLastErrorMsg();
-        if (err and *err) SWIG_croak(err); /* this is usually better */
-        SWIG_croak( OGRErrMessages(result) );
+        if (err and *err) do_confess(err, 0); /* this is usually better */
+        do_confess( OGRErrMessages(result), 1 );
       }
     }
     
@@ -6358,7 +4855,7 @@ XS(_wrap_Layer_ResetReading) {
       OGRLayerShadow_ResetReading(arg1);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -6367,7 +4864,7 @@ XS(_wrap_Layer_ResetReading) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -6411,7 +4908,7 @@ XS(_wrap_Layer_GetName) {
       result = (char *)OGRLayerShadow_GetName(arg1);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -6420,7 +4917,7 @@ XS(_wrap_Layer_GetName) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -6468,7 +4965,7 @@ XS(_wrap_Layer_GetGeomType) {
       result = (OGRwkbGeometryType)OGRLayerShadow_GetGeomType(arg1);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -6477,7 +4974,7 @@ XS(_wrap_Layer_GetGeomType) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -6519,7 +5016,7 @@ XS(_wrap_Layer_GetGeometryColumn) {
       result = (char *)OGRLayerShadow_GetGeometryColumn(arg1);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -6528,7 +5025,7 @@ XS(_wrap_Layer_GetGeometryColumn) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -6576,7 +5073,7 @@ XS(_wrap_Layer_GetFIDColumn) {
       result = (char *)OGRLayerShadow_GetFIDColumn(arg1);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -6585,7 +5082,7 @@ XS(_wrap_Layer_GetFIDColumn) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -6611,37 +5108,33 @@ XS(_wrap_Layer_GetFIDColumn) {
 }
 
 
-XS(_wrap_Layer_GetFeature) {
+XS(_wrap_Layer__GetFeature) {
   {
     OGRLayerShadow *arg1 = (OGRLayerShadow *) 0 ;
-    long arg2 ;
+    GIntBig arg2 ;
     void *argp1 = 0 ;
     int res1 = 0 ;
-    long val2 ;
-    int ecode2 = 0 ;
     int argvi = 0;
     OGRFeatureShadow *result = 0 ;
     dXSARGS;
     
     if ((items < 2) || (items > 2)) {
-      SWIG_croak("Usage: Layer_GetFeature(self,fid);");
+      SWIG_croak("Usage: Layer__GetFeature(self,fid);");
     }
     res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OGRLayerShadow, 0 |  0 );
     if (!SWIG_IsOK(res1)) {
-      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Layer_GetFeature" "', argument " "1"" of type '" "OGRLayerShadow *""'"); 
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Layer__GetFeature" "', argument " "1"" of type '" "OGRLayerShadow *""'"); 
     }
     arg1 = reinterpret_cast< OGRLayerShadow * >(argp1);
-    ecode2 = SWIG_AsVal_long SWIG_PERL_CALL_ARGS_2(ST(1), &val2);
-    if (!SWIG_IsOK(ecode2)) {
-      SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "Layer_GetFeature" "', argument " "2"" of type '" "long""'");
-    } 
-    arg2 = static_cast< long >(val2);
+    {
+      arg2 = CPLAtoGIntBig(SvPV_nolen(ST(1)));
+    }
     {
       CPLErrorReset();
       result = (OGRFeatureShadow *)OGRLayerShadow_GetFeature(arg1,arg2);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -6650,7 +5143,7 @@ XS(_wrap_Layer_GetFeature) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -6662,10 +5155,8 @@ XS(_wrap_Layer_GetFeature) {
     }
     ST(argvi) = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_OGRFeatureShadow, SWIG_OWNER | SWIG_SHADOW); argvi++ ;
     
-    
     XSRETURN(argvi);
   fail:
-    
     
     SWIG_croak_null();
   }
@@ -6694,7 +5185,7 @@ XS(_wrap_Layer_GetNextFeature) {
       result = (OGRFeatureShadow *)OGRLayerShadow_GetNextFeature(arg1);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -6703,7 +5194,7 @@ XS(_wrap_Layer_GetNextFeature) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -6726,11 +5217,9 @@ XS(_wrap_Layer_GetNextFeature) {
 XS(_wrap_Layer_SetNextByIndex) {
   {
     OGRLayerShadow *arg1 = (OGRLayerShadow *) 0 ;
-    long arg2 ;
+    GIntBig arg2 ;
     void *argp1 = 0 ;
     int res1 = 0 ;
-    long val2 ;
-    int ecode2 = 0 ;
     int argvi = 0;
     OGRErr result;
     dXSARGS;
@@ -6743,17 +5232,15 @@ XS(_wrap_Layer_SetNextByIndex) {
       SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Layer_SetNextByIndex" "', argument " "1"" of type '" "OGRLayerShadow *""'"); 
     }
     arg1 = reinterpret_cast< OGRLayerShadow * >(argp1);
-    ecode2 = SWIG_AsVal_long SWIG_PERL_CALL_ARGS_2(ST(1), &val2);
-    if (!SWIG_IsOK(ecode2)) {
-      SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "Layer_SetNextByIndex" "', argument " "2"" of type '" "long""'");
-    } 
-    arg2 = static_cast< long >(val2);
+    {
+      arg2 = CPLAtoGIntBig(SvPV_nolen(ST(1)));
+    }
     {
       CPLErrorReset();
       result = (OGRErr)OGRLayerShadow_SetNextByIndex(arg1,arg2);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -6762,7 +5249,7 @@ XS(_wrap_Layer_SetNextByIndex) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -6776,15 +5263,13 @@ XS(_wrap_Layer_SetNextByIndex) {
       /* %typemap(out) OGRErr */
       if ( result != 0 ) {
         const char *err = CPLGetLastErrorMsg();
-        if (err and *err) SWIG_croak(err); /* this is usually better */
-        SWIG_croak( OGRErrMessages(result) );
+        if (err and *err) do_confess(err, 0); /* this is usually better */
+        do_confess( OGRErrMessages(result), 1 );
       }
     }
     
-    
     XSRETURN(argvi);
   fail:
-    
     
     SWIG_croak_null();
   }
@@ -6826,7 +5311,7 @@ XS(_wrap_Layer_SetFeature) {
       result = (OGRErr)OGRLayerShadow_SetFeature(arg1,arg2);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -6835,7 +5320,7 @@ XS(_wrap_Layer_SetFeature) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -6849,8 +5334,8 @@ XS(_wrap_Layer_SetFeature) {
       /* %typemap(out) OGRErr */
       if ( result != 0 ) {
         const char *err = CPLGetLastErrorMsg();
-        if (err and *err) SWIG_croak(err); /* this is usually better */
-        SWIG_croak( OGRErrMessages(result) );
+        if (err and *err) do_confess(err, 0); /* this is usually better */
+        do_confess( OGRErrMessages(result), 1 );
       }
     }
     
@@ -6899,7 +5384,7 @@ XS(_wrap_Layer_CreateFeature) {
       result = (OGRErr)OGRLayerShadow_CreateFeature(arg1,arg2);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -6908,7 +5393,7 @@ XS(_wrap_Layer_CreateFeature) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -6922,8 +5407,8 @@ XS(_wrap_Layer_CreateFeature) {
       /* %typemap(out) OGRErr */
       if ( result != 0 ) {
         const char *err = CPLGetLastErrorMsg();
-        if (err and *err) SWIG_croak(err); /* this is usually better */
-        SWIG_croak( OGRErrMessages(result) );
+        if (err and *err) do_confess(err, 0); /* this is usually better */
+        do_confess( OGRErrMessages(result), 1 );
       }
     }
     
@@ -6940,11 +5425,9 @@ XS(_wrap_Layer_CreateFeature) {
 XS(_wrap_Layer_DeleteFeature) {
   {
     OGRLayerShadow *arg1 = (OGRLayerShadow *) 0 ;
-    long arg2 ;
+    GIntBig arg2 ;
     void *argp1 = 0 ;
     int res1 = 0 ;
-    long val2 ;
-    int ecode2 = 0 ;
     int argvi = 0;
     OGRErr result;
     dXSARGS;
@@ -6957,17 +5440,15 @@ XS(_wrap_Layer_DeleteFeature) {
       SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Layer_DeleteFeature" "', argument " "1"" of type '" "OGRLayerShadow *""'"); 
     }
     arg1 = reinterpret_cast< OGRLayerShadow * >(argp1);
-    ecode2 = SWIG_AsVal_long SWIG_PERL_CALL_ARGS_2(ST(1), &val2);
-    if (!SWIG_IsOK(ecode2)) {
-      SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "Layer_DeleteFeature" "', argument " "2"" of type '" "long""'");
-    } 
-    arg2 = static_cast< long >(val2);
+    {
+      arg2 = CPLAtoGIntBig(SvPV_nolen(ST(1)));
+    }
     {
       CPLErrorReset();
       result = (OGRErr)OGRLayerShadow_DeleteFeature(arg1,arg2);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -6976,7 +5457,7 @@ XS(_wrap_Layer_DeleteFeature) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -6990,15 +5471,13 @@ XS(_wrap_Layer_DeleteFeature) {
       /* %typemap(out) OGRErr */
       if ( result != 0 ) {
         const char *err = CPLGetLastErrorMsg();
-        if (err and *err) SWIG_croak(err); /* this is usually better */
-        SWIG_croak( OGRErrMessages(result) );
+        if (err and *err) do_confess(err, 0); /* this is usually better */
+        do_confess( OGRErrMessages(result), 1 );
       }
     }
     
-    
     XSRETURN(argvi);
   fail:
-    
     
     SWIG_croak_null();
   }
@@ -7027,7 +5506,7 @@ XS(_wrap_Layer_SyncToDisk) {
       result = (OGRErr)OGRLayerShadow_SyncToDisk(arg1);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -7036,7 +5515,7 @@ XS(_wrap_Layer_SyncToDisk) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -7050,8 +5529,8 @@ XS(_wrap_Layer_SyncToDisk) {
       /* %typemap(out) OGRErr */
       if ( result != 0 ) {
         const char *err = CPLGetLastErrorMsg();
-        if (err and *err) SWIG_croak(err); /* this is usually better */
-        SWIG_croak( OGRErrMessages(result) );
+        if (err and *err) do_confess(err, 0); /* this is usually better */
+        do_confess( OGRErrMessages(result), 1 );
       }
     }
     
@@ -7085,7 +5564,7 @@ XS(_wrap_Layer_GetLayerDefn) {
       result = (OGRFeatureDefnShadow *)OGRLayerShadow_GetLayerDefn(arg1);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -7094,7 +5573,7 @@ XS(_wrap_Layer_GetLayerDefn) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -7123,7 +5602,7 @@ XS(_wrap_Layer_GetFeatureCount) {
     int val2 ;
     int ecode2 = 0 ;
     int argvi = 0;
-    int result;
+    GIntBig result;
     dXSARGS;
     
     if ((items < 1) || (items > 2)) {
@@ -7143,10 +5622,10 @@ XS(_wrap_Layer_GetFeatureCount) {
     }
     {
       CPLErrorReset();
-      result = (int)OGRLayerShadow_GetFeatureCount(arg1,arg2);
+      result = OGRLayerShadow_GetFeatureCount(arg1,arg2);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -7155,7 +5634,7 @@ XS(_wrap_Layer_GetFeatureCount) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -7165,7 +5644,12 @@ XS(_wrap_Layer_GetFeatureCount) {
       
       
     }
-    ST(argvi) = SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(result)); argvi++ ;
+    {
+      char temp[256];
+      sprintf(temp, ""CPL_FRMT_GIB"", result);
+      ST(argvi) = sv_2mortal(newSVpv(temp, 0));
+      argvi++;
+    }
     
     
     XSRETURN(argvi);
@@ -7215,7 +5699,7 @@ XS(_wrap_Layer_GetExtent) {
       result = (OGRErr)OGRLayerShadow_GetExtent(arg1,arg2,arg3);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -7224,7 +5708,7 @@ XS(_wrap_Layer_GetExtent) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -7238,8 +5722,8 @@ XS(_wrap_Layer_GetExtent) {
       /* %typemap(out) OGRErr */
       if ( result != 0 ) {
         const char *err = CPLGetLastErrorMsg();
-        if (err and *err) SWIG_croak(err); /* this is usually better */
-        SWIG_croak( OGRErrMessages(result) );
+        if (err and *err) do_confess(err, 0); /* this is usually better */
+        do_confess( OGRErrMessages(result), 1 );
       }
     }
     {
@@ -7253,7 +5737,7 @@ XS(_wrap_Layer_GetExtent) {
       } else {
         ST(argvi) = CreateArrayFromDoubleArray( arg2, 4 );
         argvi++;
-      }  
+      }
     }
     
     
@@ -7295,16 +5779,16 @@ XS(_wrap_Layer__TestCapability) {
     }
     arg2 = reinterpret_cast< char * >(buf2);
     {
-      if (!arg2) {
-        SWIG_exception(SWIG_ValueError,"Received a NULL pointer.");
-      }
+      /* %typemap(check) (const char *cap) */
+      if (!arg2)
+      do_confess(NEED_DEF, 1);
     }
     {
       CPLErrorReset();
       result = (bool)OGRLayerShadow_TestCapability(arg1,(char const *)arg2);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -7313,7 +5797,7 @@ XS(_wrap_Layer__TestCapability) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -7380,7 +5864,7 @@ XS(_wrap_Layer__CreateField) {
       result = (OGRErr)OGRLayerShadow_CreateField(arg1,arg2,arg3);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -7389,7 +5873,7 @@ XS(_wrap_Layer__CreateField) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -7403,8 +5887,8 @@ XS(_wrap_Layer__CreateField) {
       /* %typemap(out) OGRErr */
       if ( result != 0 ) {
         const char *err = CPLGetLastErrorMsg();
-        if (err and *err) SWIG_croak(err); /* this is usually better */
-        SWIG_croak( OGRErrMessages(result) );
+        if (err and *err) do_confess(err, 0); /* this is usually better */
+        do_confess( OGRErrMessages(result), 1 );
       }
     }
     
@@ -7450,7 +5934,7 @@ XS(_wrap_Layer__DeleteField) {
       result = (OGRErr)OGRLayerShadow_DeleteField(arg1,arg2);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -7459,7 +5943,7 @@ XS(_wrap_Layer__DeleteField) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -7473,8 +5957,8 @@ XS(_wrap_Layer__DeleteField) {
       /* %typemap(out) OGRErr */
       if ( result != 0 ) {
         const char *err = CPLGetLastErrorMsg();
-        if (err and *err) SWIG_croak(err); /* this is usually better */
-        SWIG_croak( OGRErrMessages(result) );
+        if (err and *err) do_confess(err, 0); /* this is usually better */
+        do_confess( OGRErrMessages(result), 1 );
       }
     }
     
@@ -7526,7 +6010,7 @@ XS(_wrap_Layer_ReorderField) {
       result = (OGRErr)OGRLayerShadow_ReorderField(arg1,arg2,arg3);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -7535,7 +6019,7 @@ XS(_wrap_Layer_ReorderField) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -7549,8 +6033,8 @@ XS(_wrap_Layer_ReorderField) {
       /* %typemap(out) OGRErr */
       if ( result != 0 ) {
         const char *err = CPLGetLastErrorMsg();
-        if (err and *err) SWIG_croak(err); /* this is usually better */
-        SWIG_croak( OGRErrMessages(result) );
+        if (err and *err) do_confess(err, 0); /* this is usually better */
+        do_confess( OGRErrMessages(result), 1 );
       }
     }
     
@@ -7588,21 +6072,24 @@ XS(_wrap_Layer_ReorderFields) {
     {
       /* %typemap(in,numinputs=1) (int nList, int* pList) */
       if (!(SvROK(ST(1)) && (SvTYPE(SvRV(ST(1)))==SVt_PVAV)))
-      SWIG_croak("expected a reference to an array as an argument to a Geo::GDAL method");
+      do_confess(NEED_ARRAY_REF, 1);
       AV *av = (AV*)(SvRV(ST(1)));
       arg2 = av_len(av)+1;
-      arg3 = (int*) malloc(arg2*sizeof(int));
-      for( int i = 0; i<arg2; i++ ) {
-        SV **sv = av_fetch(av, i, 0);
-        arg3[i] =  SvIV(*sv);
-      }
+      arg3 = (int*)CPLMalloc(arg2*sizeof(int));
+      if (arg3) {
+        for( int i = 0; i<arg2; i++ ) {
+          SV **sv = av_fetch(av, i, 0);
+          arg3[i] =  SvIV(*sv);
+        }
+      } else
+      SWIG_fail;
     }
     {
       CPLErrorReset();
       result = (OGRErr)OGRLayerShadow_ReorderFields(arg1,arg2,arg3);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -7611,7 +6098,7 @@ XS(_wrap_Layer_ReorderFields) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -7625,30 +6112,28 @@ XS(_wrap_Layer_ReorderFields) {
       /* %typemap(out) OGRErr */
       if ( result != 0 ) {
         const char *err = CPLGetLastErrorMsg();
-        if (err and *err) SWIG_croak(err); /* this is usually better */
-        SWIG_croak( OGRErrMessages(result) );
+        if (err and *err) do_confess(err, 0); /* this is usually better */
+        do_confess( OGRErrMessages(result), 1 );
       }
     }
     
     {
       /* %typemap(freearg) (int nList, int* pList) */
-      if (arg3)
-      free((void*) arg3);
+      CPLFree((void*) arg3);
     }
     XSRETURN(argvi);
   fail:
     
     {
       /* %typemap(freearg) (int nList, int* pList) */
-      if (arg3)
-      free((void*) arg3);
+      CPLFree((void*) arg3);
     }
     SWIG_croak_null();
   }
 }
 
 
-XS(_wrap_Layer_AlterFieldDefn) {
+XS(_wrap_Layer__AlterFieldDefn) {
   {
     OGRLayerShadow *arg1 = (OGRLayerShadow *) 0 ;
     int arg2 ;
@@ -7667,26 +6152,26 @@ XS(_wrap_Layer_AlterFieldDefn) {
     dXSARGS;
     
     if ((items < 4) || (items > 4)) {
-      SWIG_croak("Usage: Layer_AlterFieldDefn(self,iField,field_def,nFlags);");
+      SWIG_croak("Usage: Layer__AlterFieldDefn(self,iField,field_def,nFlags);");
     }
     res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OGRLayerShadow, 0 |  0 );
     if (!SWIG_IsOK(res1)) {
-      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Layer_AlterFieldDefn" "', argument " "1"" of type '" "OGRLayerShadow *""'"); 
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Layer__AlterFieldDefn" "', argument " "1"" of type '" "OGRLayerShadow *""'"); 
     }
     arg1 = reinterpret_cast< OGRLayerShadow * >(argp1);
     ecode2 = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(1), &val2);
     if (!SWIG_IsOK(ecode2)) {
-      SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "Layer_AlterFieldDefn" "', argument " "2"" of type '" "int""'");
+      SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "Layer__AlterFieldDefn" "', argument " "2"" of type '" "int""'");
     } 
     arg2 = static_cast< int >(val2);
     res3 = SWIG_ConvertPtr(ST(2), &argp3,SWIGTYPE_p_OGRFieldDefnShadow, 0 |  0 );
     if (!SWIG_IsOK(res3)) {
-      SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "Layer_AlterFieldDefn" "', argument " "3"" of type '" "OGRFieldDefnShadow *""'"); 
+      SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "Layer__AlterFieldDefn" "', argument " "3"" of type '" "OGRFieldDefnShadow *""'"); 
     }
     arg3 = reinterpret_cast< OGRFieldDefnShadow * >(argp3);
     ecode4 = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(3), &val4);
     if (!SWIG_IsOK(ecode4)) {
-      SWIG_exception_fail(SWIG_ArgError(ecode4), "in method '" "Layer_AlterFieldDefn" "', argument " "4"" of type '" "int""'");
+      SWIG_exception_fail(SWIG_ArgError(ecode4), "in method '" "Layer__AlterFieldDefn" "', argument " "4"" of type '" "int""'");
     } 
     arg4 = static_cast< int >(val4);
     {
@@ -7699,7 +6184,7 @@ XS(_wrap_Layer_AlterFieldDefn) {
       result = (OGRErr)OGRLayerShadow_AlterFieldDefn(arg1,arg2,arg3,arg4);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -7708,7 +6193,7 @@ XS(_wrap_Layer_AlterFieldDefn) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -7722,8 +6207,8 @@ XS(_wrap_Layer_AlterFieldDefn) {
       /* %typemap(out) OGRErr */
       if ( result != 0 ) {
         const char *err = CPLGetLastErrorMsg();
-        if (err and *err) SWIG_croak(err); /* this is usually better */
-        SWIG_croak( OGRErrMessages(result) );
+        if (err and *err) do_confess(err, 0); /* this is usually better */
+        do_confess( OGRErrMessages(result), 1 );
       }
     }
     
@@ -7786,7 +6271,7 @@ XS(_wrap_Layer_CreateGeomField) {
       result = (OGRErr)OGRLayerShadow_CreateGeomField(arg1,arg2,arg3);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -7795,7 +6280,7 @@ XS(_wrap_Layer_CreateGeomField) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -7809,8 +6294,8 @@ XS(_wrap_Layer_CreateGeomField) {
       /* %typemap(out) OGRErr */
       if ( result != 0 ) {
         const char *err = CPLGetLastErrorMsg();
-        if (err and *err) SWIG_croak(err); /* this is usually better */
-        SWIG_croak( OGRErrMessages(result) );
+        if (err and *err) do_confess(err, 0); /* this is usually better */
+        do_confess( OGRErrMessages(result), 1 );
       }
     }
     
@@ -7848,7 +6333,7 @@ XS(_wrap_Layer_StartTransaction) {
       result = (OGRErr)OGRLayerShadow_StartTransaction(arg1);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -7857,7 +6342,7 @@ XS(_wrap_Layer_StartTransaction) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -7871,8 +6356,8 @@ XS(_wrap_Layer_StartTransaction) {
       /* %typemap(out) OGRErr */
       if ( result != 0 ) {
         const char *err = CPLGetLastErrorMsg();
-        if (err and *err) SWIG_croak(err); /* this is usually better */
-        SWIG_croak( OGRErrMessages(result) );
+        if (err and *err) do_confess(err, 0); /* this is usually better */
+        do_confess( OGRErrMessages(result), 1 );
       }
     }
     
@@ -7906,7 +6391,7 @@ XS(_wrap_Layer_CommitTransaction) {
       result = (OGRErr)OGRLayerShadow_CommitTransaction(arg1);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -7915,7 +6400,7 @@ XS(_wrap_Layer_CommitTransaction) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -7929,8 +6414,8 @@ XS(_wrap_Layer_CommitTransaction) {
       /* %typemap(out) OGRErr */
       if ( result != 0 ) {
         const char *err = CPLGetLastErrorMsg();
-        if (err and *err) SWIG_croak(err); /* this is usually better */
-        SWIG_croak( OGRErrMessages(result) );
+        if (err and *err) do_confess(err, 0); /* this is usually better */
+        do_confess( OGRErrMessages(result), 1 );
       }
     }
     
@@ -7964,7 +6449,7 @@ XS(_wrap_Layer_RollbackTransaction) {
       result = (OGRErr)OGRLayerShadow_RollbackTransaction(arg1);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -7973,7 +6458,7 @@ XS(_wrap_Layer_RollbackTransaction) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -7987,8 +6472,8 @@ XS(_wrap_Layer_RollbackTransaction) {
       /* %typemap(out) OGRErr */
       if ( result != 0 ) {
         const char *err = CPLGetLastErrorMsg();
-        if (err and *err) SWIG_croak(err); /* this is usually better */
-        SWIG_croak( OGRErrMessages(result) );
+        if (err and *err) do_confess(err, 0); /* this is usually better */
+        do_confess( OGRErrMessages(result), 1 );
       }
     }
     
@@ -8039,7 +6524,7 @@ XS(_wrap_Layer_FindFieldIndex) {
       result = (int)OGRLayerShadow_FindFieldIndex(arg1,(char const *)arg2,arg3);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -8048,7 +6533,7 @@ XS(_wrap_Layer_FindFieldIndex) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -8094,7 +6579,7 @@ XS(_wrap_Layer_GetSpatialRef) {
       result = (OSRSpatialReferenceShadow *)OGRLayerShadow_GetSpatialRef(arg1);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -8103,7 +6588,7 @@ XS(_wrap_Layer_GetSpatialRef) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -8145,7 +6630,7 @@ XS(_wrap_Layer_GetFeaturesRead) {
       result = OGRLayerShadow_GetFeaturesRead(arg1);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -8154,7 +6639,7 @@ XS(_wrap_Layer_GetFeaturesRead) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -8165,9 +6650,9 @@ XS(_wrap_Layer_GetFeaturesRead) {
       
     }
     {
-      /* %typemap(out) GIntBig */
-      ST(argvi) = sv_newmortal();
-      sv_setiv(ST(argvi), (IV) result);
+      char temp[256];
+      sprintf(temp, ""CPL_FRMT_GIB"", result);
+      ST(argvi) = sv_2mortal(newSVpv(temp, 0));
       argvi++;
     }
     
@@ -8205,9 +6690,9 @@ XS(_wrap_Layer_SetIgnoredFields) {
             AV *av = (AV*)(SvRV(ST(1)));
             for (int i = 0; i < av_len(av)+1; i++) {
               SV *sv = *(av_fetch(av, i, 0));
-              sv_utf8_upgrade(sv); /* GDAL expects UTF-8 */
-              char *pszItem = SvPV_nolen(sv);
-              arg2 = CSLAddString( arg2, pszItem );
+              char *tmp = sv_to_utf8_string(sv, NULL);
+              arg2 = CSLAddString(arg2, tmp);
+              free(tmp);
             }
           } else if (SvTYPE(SvRV(ST(1)))==SVt_PVHV) {
             HV *hv = (HV*)SvRV(ST(1));
@@ -8216,14 +6701,15 @@ XS(_wrap_Layer_SetIgnoredFields) {
             I32 klen;
             arg2 = NULL;
             hv_iterinit(hv);
-            while(sv = hv_iternextsv(hv,&key,&klen)) {
-              sv_utf8_upgrade(sv); /* GDAL expects UTF-8 */
-              arg2 = CSLAddNameValue( arg2, key, SvPV_nolen(sv) );
+            while(sv = hv_iternextsv(hv, &key, &klen)) {
+              char *tmp = sv_to_utf8_string(sv, NULL);
+              arg2 = CSLAddNameValue(arg2, key, tmp);
+              free(tmp);
             }
           } else
-          SWIG_croak("the 'options' argument to a Geo::GDAL method is not a reference to an array or hash");
+          do_confess(NEED_REF, 1);
         } else
-        SWIG_croak("the 'options' argument to a Geo::GDAL method is not a reference");   
+        do_confess(NEED_REF, 1);
       }
     }
     {
@@ -8231,7 +6717,7 @@ XS(_wrap_Layer_SetIgnoredFields) {
       result = (OGRErr)OGRLayerShadow_SetIgnoredFields(arg1,(char const **)arg2);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -8240,7 +6726,7 @@ XS(_wrap_Layer_SetIgnoredFields) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -8254,8 +6740,8 @@ XS(_wrap_Layer_SetIgnoredFields) {
       /* %typemap(out) OGRErr */
       if ( result != 0 ) {
         const char *err = CPLGetLastErrorMsg();
-        if (err and *err) SWIG_croak(err); /* this is usually better */
-        SWIG_croak( OGRErrMessages(result) );
+        if (err and *err) do_confess(err, 0); /* this is usually better */
+        do_confess( OGRErrMessages(result), 1 );
       }
     }
     
@@ -8325,9 +6811,9 @@ XS(_wrap_Layer_Intersection) {
               AV *av = (AV*)(SvRV(ST(3)));
               for (int i = 0; i < av_len(av)+1; i++) {
                 SV *sv = *(av_fetch(av, i, 0));
-                sv_utf8_upgrade(sv); /* GDAL expects UTF-8 */
-                char *pszItem = SvPV_nolen(sv);
-                arg4 = CSLAddString( arg4, pszItem );
+                char *tmp = sv_to_utf8_string(sv, NULL);
+                arg4 = CSLAddString(arg4, tmp);
+                free(tmp);
               }
             } else if (SvTYPE(SvRV(ST(3)))==SVt_PVHV) {
               HV *hv = (HV*)SvRV(ST(3));
@@ -8336,14 +6822,15 @@ XS(_wrap_Layer_Intersection) {
               I32 klen;
               arg4 = NULL;
               hv_iterinit(hv);
-              while(sv = hv_iternextsv(hv,&key,&klen)) {
-                sv_utf8_upgrade(sv); /* GDAL expects UTF-8 */
-                arg4 = CSLAddNameValue( arg4, key, SvPV_nolen(sv) );
+              while(sv = hv_iternextsv(hv, &key, &klen)) {
+                char *tmp = sv_to_utf8_string(sv, NULL);
+                arg4 = CSLAddNameValue(arg4, key, tmp);
+                free(tmp);
               }
             } else
-            SWIG_croak("the 'options' argument to a Geo::GDAL method is not a reference to an array or hash");
+            do_confess(NEED_REF, 1);
           } else
-          SWIG_croak("the 'options' argument to a Geo::GDAL method is not a reference");   
+          do_confess(NEED_REF, 1);
         }
       }
     }
@@ -8353,13 +6840,13 @@ XS(_wrap_Layer_Intersection) {
         if (SvOK(ST(4))) {
           if (SvROK(ST(4))) {
             if (SvTYPE(SvRV(ST(4))) != SVt_PVCV) {
-              SWIG_croak("the callback argument of a Geo::GDAL method must be a reference to a subroutine");
+              do_confess(NEED_CODE_REF, 1);
             } else {
               saved_env.fct = (SV *)ST(4);
               arg5 = &callback_d_cp_vp;
             }
           } else {
-            SWIG_croak("the callback argument of a Geo::GDAL method must be a reference to a subroutine");
+            do_confess(NEED_CODE_REF, 1);
           }
         }
       }
@@ -8376,7 +6863,7 @@ XS(_wrap_Layer_Intersection) {
       result = (OGRErr)OGRLayerShadow_Intersection(arg1,arg2,arg3,arg4,arg5,arg6);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -8385,7 +6872,7 @@ XS(_wrap_Layer_Intersection) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -8399,8 +6886,8 @@ XS(_wrap_Layer_Intersection) {
       /* %typemap(out) OGRErr */
       if ( result != 0 ) {
         const char *err = CPLGetLastErrorMsg();
-        if (err and *err) SWIG_croak(err); /* this is usually better */
-        SWIG_croak( OGRErrMessages(result) );
+        if (err and *err) do_confess(err, 0); /* this is usually better */
+        do_confess( OGRErrMessages(result), 1 );
       }
     }
     
@@ -8476,9 +6963,9 @@ XS(_wrap_Layer_Union) {
               AV *av = (AV*)(SvRV(ST(3)));
               for (int i = 0; i < av_len(av)+1; i++) {
                 SV *sv = *(av_fetch(av, i, 0));
-                sv_utf8_upgrade(sv); /* GDAL expects UTF-8 */
-                char *pszItem = SvPV_nolen(sv);
-                arg4 = CSLAddString( arg4, pszItem );
+                char *tmp = sv_to_utf8_string(sv, NULL);
+                arg4 = CSLAddString(arg4, tmp);
+                free(tmp);
               }
             } else if (SvTYPE(SvRV(ST(3)))==SVt_PVHV) {
               HV *hv = (HV*)SvRV(ST(3));
@@ -8487,14 +6974,15 @@ XS(_wrap_Layer_Union) {
               I32 klen;
               arg4 = NULL;
               hv_iterinit(hv);
-              while(sv = hv_iternextsv(hv,&key,&klen)) {
-                sv_utf8_upgrade(sv); /* GDAL expects UTF-8 */
-                arg4 = CSLAddNameValue( arg4, key, SvPV_nolen(sv) );
+              while(sv = hv_iternextsv(hv, &key, &klen)) {
+                char *tmp = sv_to_utf8_string(sv, NULL);
+                arg4 = CSLAddNameValue(arg4, key, tmp);
+                free(tmp);
               }
             } else
-            SWIG_croak("the 'options' argument to a Geo::GDAL method is not a reference to an array or hash");
+            do_confess(NEED_REF, 1);
           } else
-          SWIG_croak("the 'options' argument to a Geo::GDAL method is not a reference");   
+          do_confess(NEED_REF, 1);
         }
       }
     }
@@ -8504,13 +6992,13 @@ XS(_wrap_Layer_Union) {
         if (SvOK(ST(4))) {
           if (SvROK(ST(4))) {
             if (SvTYPE(SvRV(ST(4))) != SVt_PVCV) {
-              SWIG_croak("the callback argument of a Geo::GDAL method must be a reference to a subroutine");
+              do_confess(NEED_CODE_REF, 1);
             } else {
               saved_env.fct = (SV *)ST(4);
               arg5 = &callback_d_cp_vp;
             }
           } else {
-            SWIG_croak("the callback argument of a Geo::GDAL method must be a reference to a subroutine");
+            do_confess(NEED_CODE_REF, 1);
           }
         }
       }
@@ -8527,7 +7015,7 @@ XS(_wrap_Layer_Union) {
       result = (OGRErr)OGRLayerShadow_Union(arg1,arg2,arg3,arg4,arg5,arg6);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -8536,7 +7024,7 @@ XS(_wrap_Layer_Union) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -8550,8 +7038,8 @@ XS(_wrap_Layer_Union) {
       /* %typemap(out) OGRErr */
       if ( result != 0 ) {
         const char *err = CPLGetLastErrorMsg();
-        if (err and *err) SWIG_croak(err); /* this is usually better */
-        SWIG_croak( OGRErrMessages(result) );
+        if (err and *err) do_confess(err, 0); /* this is usually better */
+        do_confess( OGRErrMessages(result), 1 );
       }
     }
     
@@ -8627,9 +7115,9 @@ XS(_wrap_Layer_SymDifference) {
               AV *av = (AV*)(SvRV(ST(3)));
               for (int i = 0; i < av_len(av)+1; i++) {
                 SV *sv = *(av_fetch(av, i, 0));
-                sv_utf8_upgrade(sv); /* GDAL expects UTF-8 */
-                char *pszItem = SvPV_nolen(sv);
-                arg4 = CSLAddString( arg4, pszItem );
+                char *tmp = sv_to_utf8_string(sv, NULL);
+                arg4 = CSLAddString(arg4, tmp);
+                free(tmp);
               }
             } else if (SvTYPE(SvRV(ST(3)))==SVt_PVHV) {
               HV *hv = (HV*)SvRV(ST(3));
@@ -8638,14 +7126,15 @@ XS(_wrap_Layer_SymDifference) {
               I32 klen;
               arg4 = NULL;
               hv_iterinit(hv);
-              while(sv = hv_iternextsv(hv,&key,&klen)) {
-                sv_utf8_upgrade(sv); /* GDAL expects UTF-8 */
-                arg4 = CSLAddNameValue( arg4, key, SvPV_nolen(sv) );
+              while(sv = hv_iternextsv(hv, &key, &klen)) {
+                char *tmp = sv_to_utf8_string(sv, NULL);
+                arg4 = CSLAddNameValue(arg4, key, tmp);
+                free(tmp);
               }
             } else
-            SWIG_croak("the 'options' argument to a Geo::GDAL method is not a reference to an array or hash");
+            do_confess(NEED_REF, 1);
           } else
-          SWIG_croak("the 'options' argument to a Geo::GDAL method is not a reference");   
+          do_confess(NEED_REF, 1);
         }
       }
     }
@@ -8655,13 +7144,13 @@ XS(_wrap_Layer_SymDifference) {
         if (SvOK(ST(4))) {
           if (SvROK(ST(4))) {
             if (SvTYPE(SvRV(ST(4))) != SVt_PVCV) {
-              SWIG_croak("the callback argument of a Geo::GDAL method must be a reference to a subroutine");
+              do_confess(NEED_CODE_REF, 1);
             } else {
               saved_env.fct = (SV *)ST(4);
               arg5 = &callback_d_cp_vp;
             }
           } else {
-            SWIG_croak("the callback argument of a Geo::GDAL method must be a reference to a subroutine");
+            do_confess(NEED_CODE_REF, 1);
           }
         }
       }
@@ -8678,7 +7167,7 @@ XS(_wrap_Layer_SymDifference) {
       result = (OGRErr)OGRLayerShadow_SymDifference(arg1,arg2,arg3,arg4,arg5,arg6);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -8687,7 +7176,7 @@ XS(_wrap_Layer_SymDifference) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -8701,8 +7190,8 @@ XS(_wrap_Layer_SymDifference) {
       /* %typemap(out) OGRErr */
       if ( result != 0 ) {
         const char *err = CPLGetLastErrorMsg();
-        if (err and *err) SWIG_croak(err); /* this is usually better */
-        SWIG_croak( OGRErrMessages(result) );
+        if (err and *err) do_confess(err, 0); /* this is usually better */
+        do_confess( OGRErrMessages(result), 1 );
       }
     }
     
@@ -8778,9 +7267,9 @@ XS(_wrap_Layer_Identity) {
               AV *av = (AV*)(SvRV(ST(3)));
               for (int i = 0; i < av_len(av)+1; i++) {
                 SV *sv = *(av_fetch(av, i, 0));
-                sv_utf8_upgrade(sv); /* GDAL expects UTF-8 */
-                char *pszItem = SvPV_nolen(sv);
-                arg4 = CSLAddString( arg4, pszItem );
+                char *tmp = sv_to_utf8_string(sv, NULL);
+                arg4 = CSLAddString(arg4, tmp);
+                free(tmp);
               }
             } else if (SvTYPE(SvRV(ST(3)))==SVt_PVHV) {
               HV *hv = (HV*)SvRV(ST(3));
@@ -8789,14 +7278,15 @@ XS(_wrap_Layer_Identity) {
               I32 klen;
               arg4 = NULL;
               hv_iterinit(hv);
-              while(sv = hv_iternextsv(hv,&key,&klen)) {
-                sv_utf8_upgrade(sv); /* GDAL expects UTF-8 */
-                arg4 = CSLAddNameValue( arg4, key, SvPV_nolen(sv) );
+              while(sv = hv_iternextsv(hv, &key, &klen)) {
+                char *tmp = sv_to_utf8_string(sv, NULL);
+                arg4 = CSLAddNameValue(arg4, key, tmp);
+                free(tmp);
               }
             } else
-            SWIG_croak("the 'options' argument to a Geo::GDAL method is not a reference to an array or hash");
+            do_confess(NEED_REF, 1);
           } else
-          SWIG_croak("the 'options' argument to a Geo::GDAL method is not a reference");   
+          do_confess(NEED_REF, 1);
         }
       }
     }
@@ -8806,13 +7296,13 @@ XS(_wrap_Layer_Identity) {
         if (SvOK(ST(4))) {
           if (SvROK(ST(4))) {
             if (SvTYPE(SvRV(ST(4))) != SVt_PVCV) {
-              SWIG_croak("the callback argument of a Geo::GDAL method must be a reference to a subroutine");
+              do_confess(NEED_CODE_REF, 1);
             } else {
               saved_env.fct = (SV *)ST(4);
               arg5 = &callback_d_cp_vp;
             }
           } else {
-            SWIG_croak("the callback argument of a Geo::GDAL method must be a reference to a subroutine");
+            do_confess(NEED_CODE_REF, 1);
           }
         }
       }
@@ -8829,7 +7319,7 @@ XS(_wrap_Layer_Identity) {
       result = (OGRErr)OGRLayerShadow_Identity(arg1,arg2,arg3,arg4,arg5,arg6);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -8838,7 +7328,7 @@ XS(_wrap_Layer_Identity) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -8852,8 +7342,8 @@ XS(_wrap_Layer_Identity) {
       /* %typemap(out) OGRErr */
       if ( result != 0 ) {
         const char *err = CPLGetLastErrorMsg();
-        if (err and *err) SWIG_croak(err); /* this is usually better */
-        SWIG_croak( OGRErrMessages(result) );
+        if (err and *err) do_confess(err, 0); /* this is usually better */
+        do_confess( OGRErrMessages(result), 1 );
       }
     }
     
@@ -8929,9 +7419,9 @@ XS(_wrap_Layer_Update) {
               AV *av = (AV*)(SvRV(ST(3)));
               for (int i = 0; i < av_len(av)+1; i++) {
                 SV *sv = *(av_fetch(av, i, 0));
-                sv_utf8_upgrade(sv); /* GDAL expects UTF-8 */
-                char *pszItem = SvPV_nolen(sv);
-                arg4 = CSLAddString( arg4, pszItem );
+                char *tmp = sv_to_utf8_string(sv, NULL);
+                arg4 = CSLAddString(arg4, tmp);
+                free(tmp);
               }
             } else if (SvTYPE(SvRV(ST(3)))==SVt_PVHV) {
               HV *hv = (HV*)SvRV(ST(3));
@@ -8940,14 +7430,15 @@ XS(_wrap_Layer_Update) {
               I32 klen;
               arg4 = NULL;
               hv_iterinit(hv);
-              while(sv = hv_iternextsv(hv,&key,&klen)) {
-                sv_utf8_upgrade(sv); /* GDAL expects UTF-8 */
-                arg4 = CSLAddNameValue( arg4, key, SvPV_nolen(sv) );
+              while(sv = hv_iternextsv(hv, &key, &klen)) {
+                char *tmp = sv_to_utf8_string(sv, NULL);
+                arg4 = CSLAddNameValue(arg4, key, tmp);
+                free(tmp);
               }
             } else
-            SWIG_croak("the 'options' argument to a Geo::GDAL method is not a reference to an array or hash");
+            do_confess(NEED_REF, 1);
           } else
-          SWIG_croak("the 'options' argument to a Geo::GDAL method is not a reference");   
+          do_confess(NEED_REF, 1);
         }
       }
     }
@@ -8957,13 +7448,13 @@ XS(_wrap_Layer_Update) {
         if (SvOK(ST(4))) {
           if (SvROK(ST(4))) {
             if (SvTYPE(SvRV(ST(4))) != SVt_PVCV) {
-              SWIG_croak("the callback argument of a Geo::GDAL method must be a reference to a subroutine");
+              do_confess(NEED_CODE_REF, 1);
             } else {
               saved_env.fct = (SV *)ST(4);
               arg5 = &callback_d_cp_vp;
             }
           } else {
-            SWIG_croak("the callback argument of a Geo::GDAL method must be a reference to a subroutine");
+            do_confess(NEED_CODE_REF, 1);
           }
         }
       }
@@ -8980,7 +7471,7 @@ XS(_wrap_Layer_Update) {
       result = (OGRErr)OGRLayerShadow_Update(arg1,arg2,arg3,arg4,arg5,arg6);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -8989,7 +7480,7 @@ XS(_wrap_Layer_Update) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -9003,8 +7494,8 @@ XS(_wrap_Layer_Update) {
       /* %typemap(out) OGRErr */
       if ( result != 0 ) {
         const char *err = CPLGetLastErrorMsg();
-        if (err and *err) SWIG_croak(err); /* this is usually better */
-        SWIG_croak( OGRErrMessages(result) );
+        if (err and *err) do_confess(err, 0); /* this is usually better */
+        do_confess( OGRErrMessages(result), 1 );
       }
     }
     
@@ -9080,9 +7571,9 @@ XS(_wrap_Layer_Clip) {
               AV *av = (AV*)(SvRV(ST(3)));
               for (int i = 0; i < av_len(av)+1; i++) {
                 SV *sv = *(av_fetch(av, i, 0));
-                sv_utf8_upgrade(sv); /* GDAL expects UTF-8 */
-                char *pszItem = SvPV_nolen(sv);
-                arg4 = CSLAddString( arg4, pszItem );
+                char *tmp = sv_to_utf8_string(sv, NULL);
+                arg4 = CSLAddString(arg4, tmp);
+                free(tmp);
               }
             } else if (SvTYPE(SvRV(ST(3)))==SVt_PVHV) {
               HV *hv = (HV*)SvRV(ST(3));
@@ -9091,14 +7582,15 @@ XS(_wrap_Layer_Clip) {
               I32 klen;
               arg4 = NULL;
               hv_iterinit(hv);
-              while(sv = hv_iternextsv(hv,&key,&klen)) {
-                sv_utf8_upgrade(sv); /* GDAL expects UTF-8 */
-                arg4 = CSLAddNameValue( arg4, key, SvPV_nolen(sv) );
+              while(sv = hv_iternextsv(hv, &key, &klen)) {
+                char *tmp = sv_to_utf8_string(sv, NULL);
+                arg4 = CSLAddNameValue(arg4, key, tmp);
+                free(tmp);
               }
             } else
-            SWIG_croak("the 'options' argument to a Geo::GDAL method is not a reference to an array or hash");
+            do_confess(NEED_REF, 1);
           } else
-          SWIG_croak("the 'options' argument to a Geo::GDAL method is not a reference");   
+          do_confess(NEED_REF, 1);
         }
       }
     }
@@ -9108,13 +7600,13 @@ XS(_wrap_Layer_Clip) {
         if (SvOK(ST(4))) {
           if (SvROK(ST(4))) {
             if (SvTYPE(SvRV(ST(4))) != SVt_PVCV) {
-              SWIG_croak("the callback argument of a Geo::GDAL method must be a reference to a subroutine");
+              do_confess(NEED_CODE_REF, 1);
             } else {
               saved_env.fct = (SV *)ST(4);
               arg5 = &callback_d_cp_vp;
             }
           } else {
-            SWIG_croak("the callback argument of a Geo::GDAL method must be a reference to a subroutine");
+            do_confess(NEED_CODE_REF, 1);
           }
         }
       }
@@ -9131,7 +7623,7 @@ XS(_wrap_Layer_Clip) {
       result = (OGRErr)OGRLayerShadow_Clip(arg1,arg2,arg3,arg4,arg5,arg6);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -9140,7 +7632,7 @@ XS(_wrap_Layer_Clip) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -9154,8 +7646,8 @@ XS(_wrap_Layer_Clip) {
       /* %typemap(out) OGRErr */
       if ( result != 0 ) {
         const char *err = CPLGetLastErrorMsg();
-        if (err and *err) SWIG_croak(err); /* this is usually better */
-        SWIG_croak( OGRErrMessages(result) );
+        if (err and *err) do_confess(err, 0); /* this is usually better */
+        do_confess( OGRErrMessages(result), 1 );
       }
     }
     
@@ -9231,9 +7723,9 @@ XS(_wrap_Layer_Erase) {
               AV *av = (AV*)(SvRV(ST(3)));
               for (int i = 0; i < av_len(av)+1; i++) {
                 SV *sv = *(av_fetch(av, i, 0));
-                sv_utf8_upgrade(sv); /* GDAL expects UTF-8 */
-                char *pszItem = SvPV_nolen(sv);
-                arg4 = CSLAddString( arg4, pszItem );
+                char *tmp = sv_to_utf8_string(sv, NULL);
+                arg4 = CSLAddString(arg4, tmp);
+                free(tmp);
               }
             } else if (SvTYPE(SvRV(ST(3)))==SVt_PVHV) {
               HV *hv = (HV*)SvRV(ST(3));
@@ -9242,14 +7734,15 @@ XS(_wrap_Layer_Erase) {
               I32 klen;
               arg4 = NULL;
               hv_iterinit(hv);
-              while(sv = hv_iternextsv(hv,&key,&klen)) {
-                sv_utf8_upgrade(sv); /* GDAL expects UTF-8 */
-                arg4 = CSLAddNameValue( arg4, key, SvPV_nolen(sv) );
+              while(sv = hv_iternextsv(hv, &key, &klen)) {
+                char *tmp = sv_to_utf8_string(sv, NULL);
+                arg4 = CSLAddNameValue(arg4, key, tmp);
+                free(tmp);
               }
             } else
-            SWIG_croak("the 'options' argument to a Geo::GDAL method is not a reference to an array or hash");
+            do_confess(NEED_REF, 1);
           } else
-          SWIG_croak("the 'options' argument to a Geo::GDAL method is not a reference");   
+          do_confess(NEED_REF, 1);
         }
       }
     }
@@ -9259,13 +7752,13 @@ XS(_wrap_Layer_Erase) {
         if (SvOK(ST(4))) {
           if (SvROK(ST(4))) {
             if (SvTYPE(SvRV(ST(4))) != SVt_PVCV) {
-              SWIG_croak("the callback argument of a Geo::GDAL method must be a reference to a subroutine");
+              do_confess(NEED_CODE_REF, 1);
             } else {
               saved_env.fct = (SV *)ST(4);
               arg5 = &callback_d_cp_vp;
             }
           } else {
-            SWIG_croak("the callback argument of a Geo::GDAL method must be a reference to a subroutine");
+            do_confess(NEED_CODE_REF, 1);
           }
         }
       }
@@ -9282,7 +7775,7 @@ XS(_wrap_Layer_Erase) {
       result = (OGRErr)OGRLayerShadow_Erase(arg1,arg2,arg3,arg4,arg5,arg6);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -9291,7 +7784,7 @@ XS(_wrap_Layer_Erase) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -9305,8 +7798,8 @@ XS(_wrap_Layer_Erase) {
       /* %typemap(out) OGRErr */
       if ( result != 0 ) {
         const char *err = CPLGetLastErrorMsg();
-        if (err and *err) SWIG_croak(err); /* this is usually better */
-        SWIG_croak( OGRErrMessages(result) );
+        if (err and *err) do_confess(err, 0); /* this is usually better */
+        do_confess( OGRErrMessages(result), 1 );
       }
     }
     
@@ -9354,7 +7847,7 @@ XS(_wrap_Layer_GetStyleTable) {
       result = (OGRStyleTableShadow *)OGRLayerShadow_GetStyleTable(arg1);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -9363,7 +7856,7 @@ XS(_wrap_Layer_GetStyleTable) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -9412,7 +7905,7 @@ XS(_wrap_Layer_SetStyleTable) {
       OGRLayerShadow_SetStyleTable(arg1,arg2);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -9421,7 +7914,7 @@ XS(_wrap_Layer_SetStyleTable) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -9466,7 +7959,7 @@ XS(_wrap_delete_Feature) {
       delete_OGRFeatureShadow(arg1);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -9475,7 +7968,7 @@ XS(_wrap_delete_Feature) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -9524,7 +8017,7 @@ XS(_wrap_new_Feature) {
       result = (OGRFeatureShadow *)new_OGRFeatureShadow(arg1);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -9533,7 +8026,7 @@ XS(_wrap_new_Feature) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -9575,7 +8068,7 @@ XS(_wrap_Feature_GetDefnRef) {
       result = (OGRFeatureDefnShadow *)OGRFeatureShadow_GetDefnRef(arg1);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -9584,7 +8077,7 @@ XS(_wrap_Feature_GetDefnRef) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -9604,7 +8097,7 @@ XS(_wrap_Feature_GetDefnRef) {
 }
 
 
-XS(_wrap_Feature_SetGeometry) {
+XS(_wrap_Feature__SetGeometry) {
   {
     OGRFeatureShadow *arg1 = (OGRFeatureShadow *) 0 ;
     OGRGeometryShadow *arg2 = (OGRGeometryShadow *) 0 ;
@@ -9617,29 +8110,29 @@ XS(_wrap_Feature_SetGeometry) {
     dXSARGS;
     
     if ((items < 2) || (items > 2)) {
-      SWIG_croak("Usage: Feature_SetGeometry(self,geom);");
+      SWIG_croak("Usage: Feature__SetGeometry(self,geom);");
     }
     res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OGRFeatureShadow, 0 |  0 );
     if (!SWIG_IsOK(res1)) {
-      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Feature_SetGeometry" "', argument " "1"" of type '" "OGRFeatureShadow *""'"); 
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Feature__SetGeometry" "', argument " "1"" of type '" "OGRFeatureShadow *""'"); 
     }
     arg1 = reinterpret_cast< OGRFeatureShadow * >(argp1);
     res2 = SWIG_ConvertPtr(ST(1), &argp2,SWIGTYPE_p_OGRGeometryShadow, 0 |  0 );
     if (!SWIG_IsOK(res2)) {
-      SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "Feature_SetGeometry" "', argument " "2"" of type '" "OGRGeometryShadow *""'"); 
+      SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "Feature__SetGeometry" "', argument " "2"" of type '" "OGRGeometryShadow *""'"); 
     }
     arg2 = reinterpret_cast< OGRGeometryShadow * >(argp2);
     {
       /* %typemap(check) (OGRGeometryShadow *geom) */
       if (!arg2)
-      SWIG_croak("The geometry must not be undefined when it is an argument to a Geo::GDAL method");
+      do_confess(NEED_DEF, 1);
     }
     {
       CPLErrorReset();
       result = (OGRErr)OGRFeatureShadow_SetGeometry(arg1,arg2);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -9648,7 +8141,7 @@ XS(_wrap_Feature_SetGeometry) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -9662,8 +8155,8 @@ XS(_wrap_Feature_SetGeometry) {
       /* %typemap(out) OGRErr */
       if ( result != 0 ) {
         const char *err = CPLGetLastErrorMsg();
-        if (err and *err) SWIG_croak(err); /* this is usually better */
-        SWIG_croak( OGRErrMessages(result) );
+        if (err and *err) do_confess(err, 0); /* this is usually better */
+        do_confess( OGRErrMessages(result), 1 );
       }
     }
     
@@ -9677,7 +8170,7 @@ XS(_wrap_Feature_SetGeometry) {
 }
 
 
-XS(_wrap_Feature__SetGeometryDirectly) {
+XS(_wrap_Feature_SetGeometryDirectly) {
   {
     OGRFeatureShadow *arg1 = (OGRFeatureShadow *) 0 ;
     OGRGeometryShadow *arg2 = (OGRGeometryShadow *) 0 ;
@@ -9689,28 +8182,28 @@ XS(_wrap_Feature__SetGeometryDirectly) {
     dXSARGS;
     
     if ((items < 2) || (items > 2)) {
-      SWIG_croak("Usage: Feature__SetGeometryDirectly(self,geom);");
+      SWIG_croak("Usage: Feature_SetGeometryDirectly(self,geom);");
     }
     res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OGRFeatureShadow, 0 |  0 );
     if (!SWIG_IsOK(res1)) {
-      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Feature__SetGeometryDirectly" "', argument " "1"" of type '" "OGRFeatureShadow *""'"); 
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Feature_SetGeometryDirectly" "', argument " "1"" of type '" "OGRFeatureShadow *""'"); 
     }
     arg1 = reinterpret_cast< OGRFeatureShadow * >(argp1);
     res2 = SWIG_ConvertPtr(ST(1), SWIG_as_voidptrptr(&arg2), SWIGTYPE_p_OGRGeometryShadow, SWIG_POINTER_DISOWN |  0 );
     if (!SWIG_IsOK(res2)) {
-      SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "Feature__SetGeometryDirectly" "', argument " "2"" of type '" "OGRGeometryShadow *""'");
+      SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "Feature_SetGeometryDirectly" "', argument " "2"" of type '" "OGRGeometryShadow *""'");
     }
     {
       /* %typemap(check) (OGRGeometryShadow *geom) */
       if (!arg2)
-      SWIG_croak("The geometry must not be undefined when it is an argument to a Geo::GDAL method");
+      do_confess(NEED_DEF, 1);
     }
     {
       CPLErrorReset();
       result = (OGRErr)OGRFeatureShadow_SetGeometryDirectly(arg1,arg2);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -9719,7 +8212,7 @@ XS(_wrap_Feature__SetGeometryDirectly) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -9733,8 +8226,8 @@ XS(_wrap_Feature__SetGeometryDirectly) {
       /* %typemap(out) OGRErr */
       if ( result != 0 ) {
         const char *err = CPLGetLastErrorMsg();
-        if (err and *err) SWIG_croak(err); /* this is usually better */
-        SWIG_croak( OGRErrMessages(result) );
+        if (err and *err) do_confess(err, 0); /* this is usually better */
+        do_confess( OGRErrMessages(result), 1 );
       }
     }
     
@@ -9770,7 +8263,7 @@ XS(_wrap_Feature_GetGeometryRef) {
       result = (OGRGeometryShadow *)OGRFeatureShadow_GetGeometryRef(arg1);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -9779,7 +8272,7 @@ XS(_wrap_Feature_GetGeometryRef) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -9837,7 +8330,7 @@ XS(_wrap_Feature_SetGeomField__SWIG_0) {
       result = (OGRErr)OGRFeatureShadow_SetGeomField__SWIG_0(arg1,arg2,arg3);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -9846,7 +8339,7 @@ XS(_wrap_Feature_SetGeomField__SWIG_0) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -9860,8 +8353,8 @@ XS(_wrap_Feature_SetGeomField__SWIG_0) {
       /* %typemap(out) OGRErr */
       if ( result != 0 ) {
         const char *err = CPLGetLastErrorMsg();
-        if (err and *err) SWIG_croak(err); /* this is usually better */
-        SWIG_croak( OGRErrMessages(result) );
+        if (err and *err) do_confess(err, 0); /* this is usually better */
+        do_confess( OGRErrMessages(result), 1 );
       }
     }
     
@@ -9884,6 +8377,7 @@ XS(_wrap_Feature_SetGeomField__SWIG_1) {
     OGRGeometryShadow *arg3 = (OGRGeometryShadow *) 0 ;
     void *argp1 = 0 ;
     int res1 = 0 ;
+    U8 *tmpbuf2 = NULL ;
     void *argp3 = 0 ;
     int res3 = 0 ;
     int argvi = 0;
@@ -9900,8 +8394,7 @@ XS(_wrap_Feature_SetGeomField__SWIG_1) {
     arg1 = reinterpret_cast< OGRFeatureShadow * >(argp1);
     {
       /* %typemap(in,numinputs=1) (const char* name) */
-      sv_utf8_upgrade(ST(1));
-      arg2 = SvPV_nolen(ST(1));
+      arg2 = sv_to_utf8_string(ST(1), &tmpbuf2);
     }
     res3 = SWIG_ConvertPtr(ST(2), &argp3,SWIGTYPE_p_OGRGeometryShadow, 0 |  0 );
     if (!SWIG_IsOK(res3)) {
@@ -9918,7 +8411,7 @@ XS(_wrap_Feature_SetGeomField__SWIG_1) {
       result = (OGRErr)OGRFeatureShadow_SetGeomField__SWIG_1(arg1,(char const *)arg2,arg3);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -9927,7 +8420,7 @@ XS(_wrap_Feature_SetGeomField__SWIG_1) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -9941,15 +8434,23 @@ XS(_wrap_Feature_SetGeomField__SWIG_1) {
       /* %typemap(out) OGRErr */
       if ( result != 0 ) {
         const char *err = CPLGetLastErrorMsg();
-        if (err and *err) SWIG_croak(err); /* this is usually better */
-        SWIG_croak( OGRErrMessages(result) );
+        if (err and *err) do_confess(err, 0); /* this is usually better */
+        do_confess( OGRErrMessages(result), 1 );
       }
     }
     
+    {
+      /* %typemap(freearg) (const char* name) */
+      if (tmpbuf2) free(tmpbuf2);
+    }
     
     XSRETURN(argvi);
   fail:
     
+    {
+      /* %typemap(freearg) (const char* name) */
+      if (tmpbuf2) free(tmpbuf2);
+    }
     
     SWIG_croak_null();
   }
@@ -10090,7 +8591,7 @@ XS(_wrap_Feature_SetGeomFieldDirectly__SWIG_0) {
       result = (OGRErr)OGRFeatureShadow_SetGeomFieldDirectly__SWIG_0(arg1,arg2,arg3);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -10099,7 +8600,7 @@ XS(_wrap_Feature_SetGeomFieldDirectly__SWIG_0) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -10113,8 +8614,8 @@ XS(_wrap_Feature_SetGeomFieldDirectly__SWIG_0) {
       /* %typemap(out) OGRErr */
       if ( result != 0 ) {
         const char *err = CPLGetLastErrorMsg();
-        if (err and *err) SWIG_croak(err); /* this is usually better */
-        SWIG_croak( OGRErrMessages(result) );
+        if (err and *err) do_confess(err, 0); /* this is usually better */
+        do_confess( OGRErrMessages(result), 1 );
       }
     }
     
@@ -10137,6 +8638,7 @@ XS(_wrap_Feature_SetGeomFieldDirectly__SWIG_1) {
     OGRGeometryShadow *arg3 = (OGRGeometryShadow *) 0 ;
     void *argp1 = 0 ;
     int res1 = 0 ;
+    U8 *tmpbuf2 = NULL ;
     int res3 = 0 ;
     int argvi = 0;
     OGRErr result;
@@ -10152,8 +8654,7 @@ XS(_wrap_Feature_SetGeomFieldDirectly__SWIG_1) {
     arg1 = reinterpret_cast< OGRFeatureShadow * >(argp1);
     {
       /* %typemap(in,numinputs=1) (const char* name) */
-      sv_utf8_upgrade(ST(1));
-      arg2 = SvPV_nolen(ST(1));
+      arg2 = sv_to_utf8_string(ST(1), &tmpbuf2);
     }
     res3 = SWIG_ConvertPtr(ST(2), SWIG_as_voidptrptr(&arg3), SWIGTYPE_p_OGRGeometryShadow, SWIG_POINTER_DISOWN |  0 );
     if (!SWIG_IsOK(res3)) {
@@ -10169,7 +8670,7 @@ XS(_wrap_Feature_SetGeomFieldDirectly__SWIG_1) {
       result = (OGRErr)OGRFeatureShadow_SetGeomFieldDirectly__SWIG_1(arg1,(char const *)arg2,arg3);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -10178,7 +8679,7 @@ XS(_wrap_Feature_SetGeomFieldDirectly__SWIG_1) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -10192,15 +8693,23 @@ XS(_wrap_Feature_SetGeomFieldDirectly__SWIG_1) {
       /* %typemap(out) OGRErr */
       if ( result != 0 ) {
         const char *err = CPLGetLastErrorMsg();
-        if (err and *err) SWIG_croak(err); /* this is usually better */
-        SWIG_croak( OGRErrMessages(result) );
+        if (err and *err) do_confess(err, 0); /* this is usually better */
+        do_confess( OGRErrMessages(result), 1 );
       }
     }
     
+    {
+      /* %typemap(freearg) (const char* name) */
+      if (tmpbuf2) free(tmpbuf2);
+    }
     
     XSRETURN(argvi);
   fail:
     
+    {
+      /* %typemap(freearg) (const char* name) */
+      if (tmpbuf2) free(tmpbuf2);
+    }
     
     SWIG_croak_null();
   }
@@ -10335,7 +8844,7 @@ XS(_wrap_Feature_GetGeomFieldRef__SWIG_0) {
       result = (OGRGeometryShadow *)OGRFeatureShadow_GetGeomFieldRef__SWIG_0(arg1,arg2);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -10344,7 +8853,7 @@ XS(_wrap_Feature_GetGeomFieldRef__SWIG_0) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -10372,6 +8881,7 @@ XS(_wrap_Feature_GetGeomFieldRef__SWIG_1) {
     char *arg2 = (char *) 0 ;
     void *argp1 = 0 ;
     int res1 = 0 ;
+    U8 *tmpbuf2 = NULL ;
     int argvi = 0;
     OGRGeometryShadow *result = 0 ;
     dXSARGS;
@@ -10386,8 +8896,7 @@ XS(_wrap_Feature_GetGeomFieldRef__SWIG_1) {
     arg1 = reinterpret_cast< OGRFeatureShadow * >(argp1);
     {
       /* %typemap(in,numinputs=1) (const char* name) */
-      sv_utf8_upgrade(ST(1));
-      arg2 = SvPV_nolen(ST(1));
+      arg2 = sv_to_utf8_string(ST(1), &tmpbuf2);
     }
     {
       if (!arg2) {
@@ -10399,7 +8908,7 @@ XS(_wrap_Feature_GetGeomFieldRef__SWIG_1) {
       result = (OGRGeometryShadow *)OGRFeatureShadow_GetGeomFieldRef__SWIG_1(arg1,(char const *)arg2);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -10408,7 +8917,7 @@ XS(_wrap_Feature_GetGeomFieldRef__SWIG_1) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -10420,9 +8929,17 @@ XS(_wrap_Feature_GetGeomFieldRef__SWIG_1) {
     }
     ST(argvi) = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_OGRGeometryShadow, 0 | SWIG_SHADOW); argvi++ ;
     
+    {
+      /* %typemap(freearg) (const char* name) */
+      if (tmpbuf2) free(tmpbuf2);
+    }
     XSRETURN(argvi);
   fail:
     
+    {
+      /* %typemap(freearg) (const char* name) */
+      if (tmpbuf2) free(tmpbuf2);
+    }
     SWIG_croak_null();
   }
 }
@@ -10530,7 +9047,7 @@ XS(_wrap_Feature_Clone) {
       result = (OGRFeatureShadow *)OGRFeatureShadow_Clone(arg1);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -10539,7 +9056,7 @@ XS(_wrap_Feature_Clone) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -10594,7 +9111,7 @@ XS(_wrap_Feature_Equal) {
       result = (bool)OGRFeatureShadow_Equal(arg1,arg2);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -10603,7 +9120,7 @@ XS(_wrap_Feature_Equal) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -10647,7 +9164,7 @@ XS(_wrap_Feature_GetFieldCount) {
       result = (int)OGRFeatureShadow_GetFieldCount(arg1);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -10656,7 +9173,7 @@ XS(_wrap_Feature_GetFieldCount) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -10706,7 +9223,7 @@ XS(_wrap_Feature_GetFieldDefnRef__SWIG_0) {
       result = (OGRFieldDefnShadow *)OGRFeatureShadow_GetFieldDefnRef__SWIG_0(arg1,arg2);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -10715,7 +9232,7 @@ XS(_wrap_Feature_GetFieldDefnRef__SWIG_0) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -10743,6 +9260,7 @@ XS(_wrap_Feature_GetFieldDefnRef__SWIG_1) {
     char *arg2 = (char *) 0 ;
     void *argp1 = 0 ;
     int res1 = 0 ;
+    U8 *tmpbuf2 = NULL ;
     int argvi = 0;
     OGRFieldDefnShadow *result = 0 ;
     dXSARGS;
@@ -10757,8 +9275,7 @@ XS(_wrap_Feature_GetFieldDefnRef__SWIG_1) {
     arg1 = reinterpret_cast< OGRFeatureShadow * >(argp1);
     {
       /* %typemap(in,numinputs=1) (const char* name) */
-      sv_utf8_upgrade(ST(1));
-      arg2 = SvPV_nolen(ST(1));
+      arg2 = sv_to_utf8_string(ST(1), &tmpbuf2);
     }
     {
       if (!arg2) {
@@ -10770,7 +9287,7 @@ XS(_wrap_Feature_GetFieldDefnRef__SWIG_1) {
       result = (OGRFieldDefnShadow *)OGRFeatureShadow_GetFieldDefnRef__SWIG_1(arg1,(char const *)arg2);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -10779,7 +9296,7 @@ XS(_wrap_Feature_GetFieldDefnRef__SWIG_1) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -10791,9 +9308,17 @@ XS(_wrap_Feature_GetFieldDefnRef__SWIG_1) {
     }
     ST(argvi) = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_OGRFieldDefnShadow, 0 | SWIG_SHADOW); argvi++ ;
     
+    {
+      /* %typemap(freearg) (const char* name) */
+      if (tmpbuf2) free(tmpbuf2);
+    }
     XSRETURN(argvi);
   fail:
     
+    {
+      /* %typemap(freearg) (const char* name) */
+      if (tmpbuf2) free(tmpbuf2);
+    }
     SWIG_croak_null();
   }
 }
@@ -10901,7 +9426,7 @@ XS(_wrap_Feature_GetGeomFieldCount) {
       result = (int)OGRFeatureShadow_GetGeomFieldCount(arg1);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -10910,7 +9435,7 @@ XS(_wrap_Feature_GetGeomFieldCount) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -10960,7 +9485,7 @@ XS(_wrap_Feature_GetGeomFieldDefnRef__SWIG_0) {
       result = (OGRGeomFieldDefnShadow *)OGRFeatureShadow_GetGeomFieldDefnRef__SWIG_0(arg1,arg2);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -10969,7 +9494,7 @@ XS(_wrap_Feature_GetGeomFieldDefnRef__SWIG_0) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -10997,6 +9522,7 @@ XS(_wrap_Feature_GetGeomFieldDefnRef__SWIG_1) {
     char *arg2 = (char *) 0 ;
     void *argp1 = 0 ;
     int res1 = 0 ;
+    U8 *tmpbuf2 = NULL ;
     int argvi = 0;
     OGRGeomFieldDefnShadow *result = 0 ;
     dXSARGS;
@@ -11011,8 +9537,7 @@ XS(_wrap_Feature_GetGeomFieldDefnRef__SWIG_1) {
     arg1 = reinterpret_cast< OGRFeatureShadow * >(argp1);
     {
       /* %typemap(in,numinputs=1) (const char* name) */
-      sv_utf8_upgrade(ST(1));
-      arg2 = SvPV_nolen(ST(1));
+      arg2 = sv_to_utf8_string(ST(1), &tmpbuf2);
     }
     {
       if (!arg2) {
@@ -11024,7 +9549,7 @@ XS(_wrap_Feature_GetGeomFieldDefnRef__SWIG_1) {
       result = (OGRGeomFieldDefnShadow *)OGRFeatureShadow_GetGeomFieldDefnRef__SWIG_1(arg1,(char const *)arg2);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -11033,7 +9558,7 @@ XS(_wrap_Feature_GetGeomFieldDefnRef__SWIG_1) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -11045,9 +9570,17 @@ XS(_wrap_Feature_GetGeomFieldDefnRef__SWIG_1) {
     }
     ST(argvi) = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_OGRGeomFieldDefnShadow, 0 | SWIG_SHADOW); argvi++ ;
     
+    {
+      /* %typemap(freearg) (const char* name) */
+      if (tmpbuf2) free(tmpbuf2);
+    }
     XSRETURN(argvi);
   fail:
     
+    {
+      /* %typemap(freearg) (const char* name) */
+      if (tmpbuf2) free(tmpbuf2);
+    }
     SWIG_croak_null();
   }
 }
@@ -11133,7 +9666,7 @@ XS(_wrap_Feature_GetGeomFieldDefnRef) {
 }
 
 
-XS(_wrap_Feature_GetFieldAsString) {
+XS(_wrap_Feature_GetFieldAsString__SWIG_0) {
   {
     OGRFeatureShadow *arg1 = (OGRFeatureShadow *) 0 ;
     int arg2 ;
@@ -11160,10 +9693,10 @@ XS(_wrap_Feature_GetFieldAsString) {
     arg2 = static_cast< int >(val2);
     {
       CPLErrorReset();
-      result = (char *)OGRFeatureShadow_GetFieldAsString(arg1,arg2);
+      result = (char *)OGRFeatureShadow_GetFieldAsString__SWIG_0(arg1,arg2);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -11172,7 +9705,7 @@ XS(_wrap_Feature_GetFieldAsString) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -11200,7 +9733,163 @@ XS(_wrap_Feature_GetFieldAsString) {
 }
 
 
-XS(_wrap_Feature_GetFieldAsInteger) {
+XS(_wrap_Feature_GetFieldAsString__SWIG_1) {
+  {
+    OGRFeatureShadow *arg1 = (OGRFeatureShadow *) 0 ;
+    char *arg2 = (char *) 0 ;
+    void *argp1 = 0 ;
+    int res1 = 0 ;
+    U8 *tmpbuf2 = NULL ;
+    int argvi = 0;
+    char *result = 0 ;
+    dXSARGS;
+    
+    if ((items < 2) || (items > 2)) {
+      SWIG_croak("Usage: Feature_GetFieldAsString(self,name);");
+    }
+    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OGRFeatureShadow, 0 |  0 );
+    if (!SWIG_IsOK(res1)) {
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Feature_GetFieldAsString" "', argument " "1"" of type '" "OGRFeatureShadow *""'"); 
+    }
+    arg1 = reinterpret_cast< OGRFeatureShadow * >(argp1);
+    {
+      /* %typemap(in,numinputs=1) (const char* name) */
+      arg2 = sv_to_utf8_string(ST(1), &tmpbuf2);
+    }
+    {
+      if (!arg2) {
+        SWIG_exception(SWIG_ValueError,"Received a NULL pointer.");
+      }
+    }
+    {
+      CPLErrorReset();
+      result = (char *)OGRFeatureShadow_GetFieldAsString__SWIG_1(arg1,(char const *)arg2);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        do_confess( CPLGetLastErrorMsg(), 0 );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /*
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
+    {
+      /* %typemap(out) const char * */
+      ST(argvi) = newSVpv(result, 0);
+      SvUTF8_on(ST(argvi)); /* expecting GDAL to give us UTF-8 */
+      sv_2mortal(ST(argvi));
+      argvi++;
+    }
+    
+    {
+      /* %typemap(freearg) (const char* name) */
+      if (tmpbuf2) free(tmpbuf2);
+    }
+    XSRETURN(argvi);
+  fail:
+    
+    {
+      /* %typemap(freearg) (const char* name) */
+      if (tmpbuf2) free(tmpbuf2);
+    }
+    SWIG_croak_null();
+  }
+}
+
+
+XS(_wrap_Feature_GetFieldAsString) {
+  dXSARGS;
+  
+  {
+    unsigned long _index = 0;
+    SWIG_TypeRank _rank = 0; 
+    if (items == 2) {
+      SWIG_TypeRank _ranki = 0;
+      SWIG_TypeRank _rankm = 0;
+      SWIG_TypeRank _pi = 1;
+      int _v = 0;
+      {
+        void *vptr = 0;
+        int res = SWIG_ConvertPtr(ST(0), &vptr, SWIGTYPE_p_OGRFeatureShadow, 0);
+        _v = SWIG_CheckState(res);
+      }
+      if (!_v) goto check_1;
+      _ranki += _v*_pi;
+      _rankm += _pi;
+      _pi *= SWIG_MAXCASTRANK;
+      {
+        {
+          int res = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(1), NULL);
+          _v = SWIG_CheckState(res);
+        }
+      }
+      if (!_v) goto check_1;
+      _ranki += _v*_pi;
+      _rankm += _pi;
+      _pi *= SWIG_MAXCASTRANK;
+      if (!_index || (_ranki < _rank)) {
+        _rank = _ranki; _index = 1;
+        if (_rank == _rankm) goto dispatch;
+      }
+    }
+  check_1:
+    
+    if (items == 2) {
+      SWIG_TypeRank _ranki = 0;
+      SWIG_TypeRank _rankm = 0;
+      SWIG_TypeRank _pi = 1;
+      int _v = 0;
+      {
+        void *vptr = 0;
+        int res = SWIG_ConvertPtr(ST(0), &vptr, SWIGTYPE_p_OGRFeatureShadow, 0);
+        _v = SWIG_CheckState(res);
+      }
+      if (!_v) goto check_2;
+      _ranki += _v*_pi;
+      _rankm += _pi;
+      _pi *= SWIG_MAXCASTRANK;
+      {
+        int res = SWIG_AsCharPtrAndSize(ST(1), 0, NULL, 0);
+        _v = SWIG_CheckState(res);
+      }
+      if (!_v) goto check_2;
+      _ranki += _v*_pi;
+      _rankm += _pi;
+      _pi *= SWIG_MAXCASTRANK;
+      if (!_index || (_ranki < _rank)) {
+        _rank = _ranki; _index = 2;
+        if (_rank == _rankm) goto dispatch;
+      }
+    }
+  check_2:
+    
+  dispatch:
+    switch(_index) {
+    case 1:
+      PUSHMARK(MARK); SWIG_CALLXS(_wrap_Feature_GetFieldAsString__SWIG_0); return;
+    case 2:
+      PUSHMARK(MARK); SWIG_CALLXS(_wrap_Feature_GetFieldAsString__SWIG_1); return;
+    }
+  }
+  
+  croak("No matching function for overloaded 'Feature_GetFieldAsString'");
+  XSRETURN(0);
+}
+
+
+XS(_wrap_Feature_GetFieldAsInteger__SWIG_0) {
   {
     OGRFeatureShadow *arg1 = (OGRFeatureShadow *) 0 ;
     int arg2 ;
@@ -11227,10 +9916,10 @@ XS(_wrap_Feature_GetFieldAsInteger) {
     arg2 = static_cast< int >(val2);
     {
       CPLErrorReset();
-      result = (int)OGRFeatureShadow_GetFieldAsInteger(arg1,arg2);
+      result = (int)OGRFeatureShadow_GetFieldAsInteger__SWIG_0(arg1,arg2);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -11239,7 +9928,7 @@ XS(_wrap_Feature_GetFieldAsInteger) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -11261,7 +9950,378 @@ XS(_wrap_Feature_GetFieldAsInteger) {
 }
 
 
-XS(_wrap_Feature_GetFieldAsDouble) {
+XS(_wrap_Feature_GetFieldAsInteger__SWIG_1) {
+  {
+    OGRFeatureShadow *arg1 = (OGRFeatureShadow *) 0 ;
+    char *arg2 = (char *) 0 ;
+    void *argp1 = 0 ;
+    int res1 = 0 ;
+    U8 *tmpbuf2 = NULL ;
+    int argvi = 0;
+    int result;
+    dXSARGS;
+    
+    if ((items < 2) || (items > 2)) {
+      SWIG_croak("Usage: Feature_GetFieldAsInteger(self,name);");
+    }
+    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OGRFeatureShadow, 0 |  0 );
+    if (!SWIG_IsOK(res1)) {
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Feature_GetFieldAsInteger" "', argument " "1"" of type '" "OGRFeatureShadow *""'"); 
+    }
+    arg1 = reinterpret_cast< OGRFeatureShadow * >(argp1);
+    {
+      /* %typemap(in,numinputs=1) (const char* name) */
+      arg2 = sv_to_utf8_string(ST(1), &tmpbuf2);
+    }
+    {
+      if (!arg2) {
+        SWIG_exception(SWIG_ValueError,"Received a NULL pointer.");
+      }
+    }
+    {
+      CPLErrorReset();
+      result = (int)OGRFeatureShadow_GetFieldAsInteger__SWIG_1(arg1,(char const *)arg2);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        do_confess( CPLGetLastErrorMsg(), 0 );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /*
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
+    ST(argvi) = SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(result)); argvi++ ;
+    
+    {
+      /* %typemap(freearg) (const char* name) */
+      if (tmpbuf2) free(tmpbuf2);
+    }
+    XSRETURN(argvi);
+  fail:
+    
+    {
+      /* %typemap(freearg) (const char* name) */
+      if (tmpbuf2) free(tmpbuf2);
+    }
+    SWIG_croak_null();
+  }
+}
+
+
+XS(_wrap_Feature_GetFieldAsInteger) {
+  dXSARGS;
+  
+  {
+    unsigned long _index = 0;
+    SWIG_TypeRank _rank = 0; 
+    if (items == 2) {
+      SWIG_TypeRank _ranki = 0;
+      SWIG_TypeRank _rankm = 0;
+      SWIG_TypeRank _pi = 1;
+      int _v = 0;
+      {
+        void *vptr = 0;
+        int res = SWIG_ConvertPtr(ST(0), &vptr, SWIGTYPE_p_OGRFeatureShadow, 0);
+        _v = SWIG_CheckState(res);
+      }
+      if (!_v) goto check_1;
+      _ranki += _v*_pi;
+      _rankm += _pi;
+      _pi *= SWIG_MAXCASTRANK;
+      {
+        {
+          int res = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(1), NULL);
+          _v = SWIG_CheckState(res);
+        }
+      }
+      if (!_v) goto check_1;
+      _ranki += _v*_pi;
+      _rankm += _pi;
+      _pi *= SWIG_MAXCASTRANK;
+      if (!_index || (_ranki < _rank)) {
+        _rank = _ranki; _index = 1;
+        if (_rank == _rankm) goto dispatch;
+      }
+    }
+  check_1:
+    
+    if (items == 2) {
+      SWIG_TypeRank _ranki = 0;
+      SWIG_TypeRank _rankm = 0;
+      SWIG_TypeRank _pi = 1;
+      int _v = 0;
+      {
+        void *vptr = 0;
+        int res = SWIG_ConvertPtr(ST(0), &vptr, SWIGTYPE_p_OGRFeatureShadow, 0);
+        _v = SWIG_CheckState(res);
+      }
+      if (!_v) goto check_2;
+      _ranki += _v*_pi;
+      _rankm += _pi;
+      _pi *= SWIG_MAXCASTRANK;
+      {
+        int res = SWIG_AsCharPtrAndSize(ST(1), 0, NULL, 0);
+        _v = SWIG_CheckState(res);
+      }
+      if (!_v) goto check_2;
+      _ranki += _v*_pi;
+      _rankm += _pi;
+      _pi *= SWIG_MAXCASTRANK;
+      if (!_index || (_ranki < _rank)) {
+        _rank = _ranki; _index = 2;
+        if (_rank == _rankm) goto dispatch;
+      }
+    }
+  check_2:
+    
+  dispatch:
+    switch(_index) {
+    case 1:
+      PUSHMARK(MARK); SWIG_CALLXS(_wrap_Feature_GetFieldAsInteger__SWIG_0); return;
+    case 2:
+      PUSHMARK(MARK); SWIG_CALLXS(_wrap_Feature_GetFieldAsInteger__SWIG_1); return;
+    }
+  }
+  
+  croak("No matching function for overloaded 'Feature_GetFieldAsInteger'");
+  XSRETURN(0);
+}
+
+
+XS(_wrap_Feature_GetFieldAsInteger64__SWIG_0) {
+  {
+    OGRFeatureShadow *arg1 = (OGRFeatureShadow *) 0 ;
+    int arg2 ;
+    void *argp1 = 0 ;
+    int res1 = 0 ;
+    int val2 ;
+    int ecode2 = 0 ;
+    int argvi = 0;
+    GIntBig result;
+    dXSARGS;
+    
+    if ((items < 2) || (items > 2)) {
+      SWIG_croak("Usage: Feature_GetFieldAsInteger64(self,id);");
+    }
+    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OGRFeatureShadow, 0 |  0 );
+    if (!SWIG_IsOK(res1)) {
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Feature_GetFieldAsInteger64" "', argument " "1"" of type '" "OGRFeatureShadow *""'"); 
+    }
+    arg1 = reinterpret_cast< OGRFeatureShadow * >(argp1);
+    ecode2 = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(1), &val2);
+    if (!SWIG_IsOK(ecode2)) {
+      SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "Feature_GetFieldAsInteger64" "', argument " "2"" of type '" "int""'");
+    } 
+    arg2 = static_cast< int >(val2);
+    {
+      CPLErrorReset();
+      result = OGRFeatureShadow_GetFieldAsInteger64__SWIG_0(arg1,arg2);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        do_confess( CPLGetLastErrorMsg(), 0 );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /*
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
+    {
+      char temp[256];
+      sprintf(temp, ""CPL_FRMT_GIB"", result);
+      ST(argvi) = sv_2mortal(newSVpv(temp, 0));
+      argvi++;
+    }
+    
+    
+    XSRETURN(argvi);
+  fail:
+    
+    
+    SWIG_croak_null();
+  }
+}
+
+
+XS(_wrap_Feature_GetFieldAsInteger64__SWIG_1) {
+  {
+    OGRFeatureShadow *arg1 = (OGRFeatureShadow *) 0 ;
+    char *arg2 = (char *) 0 ;
+    void *argp1 = 0 ;
+    int res1 = 0 ;
+    U8 *tmpbuf2 = NULL ;
+    int argvi = 0;
+    GIntBig result;
+    dXSARGS;
+    
+    if ((items < 2) || (items > 2)) {
+      SWIG_croak("Usage: Feature_GetFieldAsInteger64(self,name);");
+    }
+    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OGRFeatureShadow, 0 |  0 );
+    if (!SWIG_IsOK(res1)) {
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Feature_GetFieldAsInteger64" "', argument " "1"" of type '" "OGRFeatureShadow *""'"); 
+    }
+    arg1 = reinterpret_cast< OGRFeatureShadow * >(argp1);
+    {
+      /* %typemap(in,numinputs=1) (const char* name) */
+      arg2 = sv_to_utf8_string(ST(1), &tmpbuf2);
+    }
+    {
+      if (!arg2) {
+        SWIG_exception(SWIG_ValueError,"Received a NULL pointer.");
+      }
+    }
+    {
+      CPLErrorReset();
+      result = OGRFeatureShadow_GetFieldAsInteger64__SWIG_1(arg1,(char const *)arg2);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        do_confess( CPLGetLastErrorMsg(), 0 );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /*
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
+    {
+      char temp[256];
+      sprintf(temp, ""CPL_FRMT_GIB"", result);
+      ST(argvi) = sv_2mortal(newSVpv(temp, 0));
+      argvi++;
+    }
+    
+    {
+      /* %typemap(freearg) (const char* name) */
+      if (tmpbuf2) free(tmpbuf2);
+    }
+    XSRETURN(argvi);
+  fail:
+    
+    {
+      /* %typemap(freearg) (const char* name) */
+      if (tmpbuf2) free(tmpbuf2);
+    }
+    SWIG_croak_null();
+  }
+}
+
+
+XS(_wrap_Feature_GetFieldAsInteger64) {
+  dXSARGS;
+  
+  {
+    unsigned long _index = 0;
+    SWIG_TypeRank _rank = 0; 
+    if (items == 2) {
+      SWIG_TypeRank _ranki = 0;
+      SWIG_TypeRank _rankm = 0;
+      SWIG_TypeRank _pi = 1;
+      int _v = 0;
+      {
+        void *vptr = 0;
+        int res = SWIG_ConvertPtr(ST(0), &vptr, SWIGTYPE_p_OGRFeatureShadow, 0);
+        _v = SWIG_CheckState(res);
+      }
+      if (!_v) goto check_1;
+      _ranki += _v*_pi;
+      _rankm += _pi;
+      _pi *= SWIG_MAXCASTRANK;
+      {
+        {
+          int res = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(1), NULL);
+          _v = SWIG_CheckState(res);
+        }
+      }
+      if (!_v) goto check_1;
+      _ranki += _v*_pi;
+      _rankm += _pi;
+      _pi *= SWIG_MAXCASTRANK;
+      if (!_index || (_ranki < _rank)) {
+        _rank = _ranki; _index = 1;
+        if (_rank == _rankm) goto dispatch;
+      }
+    }
+  check_1:
+    
+    if (items == 2) {
+      SWIG_TypeRank _ranki = 0;
+      SWIG_TypeRank _rankm = 0;
+      SWIG_TypeRank _pi = 1;
+      int _v = 0;
+      {
+        void *vptr = 0;
+        int res = SWIG_ConvertPtr(ST(0), &vptr, SWIGTYPE_p_OGRFeatureShadow, 0);
+        _v = SWIG_CheckState(res);
+      }
+      if (!_v) goto check_2;
+      _ranki += _v*_pi;
+      _rankm += _pi;
+      _pi *= SWIG_MAXCASTRANK;
+      {
+        int res = SWIG_AsCharPtrAndSize(ST(1), 0, NULL, 0);
+        _v = SWIG_CheckState(res);
+      }
+      if (!_v) goto check_2;
+      _ranki += _v*_pi;
+      _rankm += _pi;
+      _pi *= SWIG_MAXCASTRANK;
+      if (!_index || (_ranki < _rank)) {
+        _rank = _ranki; _index = 2;
+        if (_rank == _rankm) goto dispatch;
+      }
+    }
+  check_2:
+    
+  dispatch:
+    switch(_index) {
+    case 1:
+      PUSHMARK(MARK); SWIG_CALLXS(_wrap_Feature_GetFieldAsInteger64__SWIG_0); return;
+    case 2:
+      PUSHMARK(MARK); SWIG_CALLXS(_wrap_Feature_GetFieldAsInteger64__SWIG_1); return;
+    }
+  }
+  
+  croak("No matching function for overloaded 'Feature_GetFieldAsInteger64'");
+  XSRETURN(0);
+}
+
+
+XS(_wrap_Feature_GetFieldAsDouble__SWIG_0) {
   {
     OGRFeatureShadow *arg1 = (OGRFeatureShadow *) 0 ;
     int arg2 ;
@@ -11288,10 +10348,10 @@ XS(_wrap_Feature_GetFieldAsDouble) {
     arg2 = static_cast< int >(val2);
     {
       CPLErrorReset();
-      result = (double)OGRFeatureShadow_GetFieldAsDouble(arg1,arg2);
+      result = (double)OGRFeatureShadow_GetFieldAsDouble__SWIG_0(arg1,arg2);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -11300,7 +10360,7 @@ XS(_wrap_Feature_GetFieldAsDouble) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -11322,7 +10382,157 @@ XS(_wrap_Feature_GetFieldAsDouble) {
 }
 
 
-XS(_wrap_Feature_GetFieldAsDateTime) {
+XS(_wrap_Feature_GetFieldAsDouble__SWIG_1) {
+  {
+    OGRFeatureShadow *arg1 = (OGRFeatureShadow *) 0 ;
+    char *arg2 = (char *) 0 ;
+    void *argp1 = 0 ;
+    int res1 = 0 ;
+    U8 *tmpbuf2 = NULL ;
+    int argvi = 0;
+    double result;
+    dXSARGS;
+    
+    if ((items < 2) || (items > 2)) {
+      SWIG_croak("Usage: Feature_GetFieldAsDouble(self,name);");
+    }
+    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OGRFeatureShadow, 0 |  0 );
+    if (!SWIG_IsOK(res1)) {
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Feature_GetFieldAsDouble" "', argument " "1"" of type '" "OGRFeatureShadow *""'"); 
+    }
+    arg1 = reinterpret_cast< OGRFeatureShadow * >(argp1);
+    {
+      /* %typemap(in,numinputs=1) (const char* name) */
+      arg2 = sv_to_utf8_string(ST(1), &tmpbuf2);
+    }
+    {
+      if (!arg2) {
+        SWIG_exception(SWIG_ValueError,"Received a NULL pointer.");
+      }
+    }
+    {
+      CPLErrorReset();
+      result = (double)OGRFeatureShadow_GetFieldAsDouble__SWIG_1(arg1,(char const *)arg2);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        do_confess( CPLGetLastErrorMsg(), 0 );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /*
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
+    ST(argvi) = SWIG_From_double  SWIG_PERL_CALL_ARGS_1(static_cast< double >(result)); argvi++ ;
+    
+    {
+      /* %typemap(freearg) (const char* name) */
+      if (tmpbuf2) free(tmpbuf2);
+    }
+    XSRETURN(argvi);
+  fail:
+    
+    {
+      /* %typemap(freearg) (const char* name) */
+      if (tmpbuf2) free(tmpbuf2);
+    }
+    SWIG_croak_null();
+  }
+}
+
+
+XS(_wrap_Feature_GetFieldAsDouble) {
+  dXSARGS;
+  
+  {
+    unsigned long _index = 0;
+    SWIG_TypeRank _rank = 0; 
+    if (items == 2) {
+      SWIG_TypeRank _ranki = 0;
+      SWIG_TypeRank _rankm = 0;
+      SWIG_TypeRank _pi = 1;
+      int _v = 0;
+      {
+        void *vptr = 0;
+        int res = SWIG_ConvertPtr(ST(0), &vptr, SWIGTYPE_p_OGRFeatureShadow, 0);
+        _v = SWIG_CheckState(res);
+      }
+      if (!_v) goto check_1;
+      _ranki += _v*_pi;
+      _rankm += _pi;
+      _pi *= SWIG_MAXCASTRANK;
+      {
+        {
+          int res = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(1), NULL);
+          _v = SWIG_CheckState(res);
+        }
+      }
+      if (!_v) goto check_1;
+      _ranki += _v*_pi;
+      _rankm += _pi;
+      _pi *= SWIG_MAXCASTRANK;
+      if (!_index || (_ranki < _rank)) {
+        _rank = _ranki; _index = 1;
+        if (_rank == _rankm) goto dispatch;
+      }
+    }
+  check_1:
+    
+    if (items == 2) {
+      SWIG_TypeRank _ranki = 0;
+      SWIG_TypeRank _rankm = 0;
+      SWIG_TypeRank _pi = 1;
+      int _v = 0;
+      {
+        void *vptr = 0;
+        int res = SWIG_ConvertPtr(ST(0), &vptr, SWIGTYPE_p_OGRFeatureShadow, 0);
+        _v = SWIG_CheckState(res);
+      }
+      if (!_v) goto check_2;
+      _ranki += _v*_pi;
+      _rankm += _pi;
+      _pi *= SWIG_MAXCASTRANK;
+      {
+        int res = SWIG_AsCharPtrAndSize(ST(1), 0, NULL, 0);
+        _v = SWIG_CheckState(res);
+      }
+      if (!_v) goto check_2;
+      _ranki += _v*_pi;
+      _rankm += _pi;
+      _pi *= SWIG_MAXCASTRANK;
+      if (!_index || (_ranki < _rank)) {
+        _rank = _ranki; _index = 2;
+        if (_rank == _rankm) goto dispatch;
+      }
+    }
+  check_2:
+    
+  dispatch:
+    switch(_index) {
+    case 1:
+      PUSHMARK(MARK); SWIG_CALLXS(_wrap_Feature_GetFieldAsDouble__SWIG_0); return;
+    case 2:
+      PUSHMARK(MARK); SWIG_CALLXS(_wrap_Feature_GetFieldAsDouble__SWIG_1); return;
+    }
+  }
+  
+  croak("No matching function for overloaded 'Feature_GetFieldAsDouble'");
+  XSRETURN(0);
+}
+
+
+XS(_wrap_Feature_GetFieldAsDateTime__SWIG_0) {
   {
     OGRFeatureShadow *arg1 = (OGRFeatureShadow *) 0 ;
     int arg2 ;
@@ -11331,7 +10541,7 @@ XS(_wrap_Feature_GetFieldAsDateTime) {
     int *arg5 = (int *) 0 ;
     int *arg6 = (int *) 0 ;
     int *arg7 = (int *) 0 ;
-    int *arg8 = (int *) 0 ;
+    float *arg8 = (float *) 0 ;
     int *arg9 = (int *) 0 ;
     void *argp1 = 0 ;
     int res1 = 0 ;
@@ -11347,7 +10557,7 @@ XS(_wrap_Feature_GetFieldAsDateTime) {
     int res6 = SWIG_TMPOBJ ;
     int temp7 ;
     int res7 = SWIG_TMPOBJ ;
-    int temp8 ;
+    float temp8 ;
     int res8 = SWIG_TMPOBJ ;
     int temp9 ;
     int res9 = SWIG_TMPOBJ ;
@@ -11376,10 +10586,10 @@ XS(_wrap_Feature_GetFieldAsDateTime) {
     arg2 = static_cast< int >(val2);
     {
       CPLErrorReset();
-      OGRFeatureShadow_GetFieldAsDateTime(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9);
+      OGRFeatureShadow_GetFieldAsDateTime__SWIG_0(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -11388,7 +10598,7 @@ XS(_wrap_Feature_GetFieldAsDateTime) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -11432,10 +10642,10 @@ XS(_wrap_Feature_GetFieldAsDateTime) {
       if (argvi >= items) EXTEND(sp,1);  ST(argvi) = SWIG_NewPointerObj((void*)(arg7), SWIGTYPE_p_int, new_flags); argvi++  ;
     }
     if (SWIG_IsTmpObj(res8)) {
-      if (argvi >= items) EXTEND(sp,1);  ST(argvi) = SWIG_From_int  SWIG_PERL_CALL_ARGS_1((*arg8)); argvi++  ;
+      if (argvi >= items) EXTEND(sp,1);  ST(argvi) = SWIG_From_float  SWIG_PERL_CALL_ARGS_1((*arg8)); argvi++  ;
     } else {
       int new_flags = SWIG_IsNewObj(res8) ? (SWIG_POINTER_OWN | 0) : 0;
-      if (argvi >= items) EXTEND(sp,1);  ST(argvi) = SWIG_NewPointerObj((void*)(arg8), SWIGTYPE_p_int, new_flags); argvi++  ;
+      if (argvi >= items) EXTEND(sp,1);  ST(argvi) = SWIG_NewPointerObj((void*)(arg8), SWIGTYPE_p_float, new_flags); argvi++  ;
     }
     if (SWIG_IsTmpObj(res9)) {
       if (argvi >= items) EXTEND(sp,1);  ST(argvi) = SWIG_From_int  SWIG_PERL_CALL_ARGS_1((*arg9)); argvi++  ;
@@ -11468,7 +10678,242 @@ XS(_wrap_Feature_GetFieldAsDateTime) {
 }
 
 
-XS(_wrap_Feature_GetFieldAsIntegerList) {
+XS(_wrap_Feature_GetFieldAsDateTime__SWIG_1) {
+  {
+    OGRFeatureShadow *arg1 = (OGRFeatureShadow *) 0 ;
+    char *arg2 = (char *) 0 ;
+    int *arg3 = (int *) 0 ;
+    int *arg4 = (int *) 0 ;
+    int *arg5 = (int *) 0 ;
+    int *arg6 = (int *) 0 ;
+    int *arg7 = (int *) 0 ;
+    float *arg8 = (float *) 0 ;
+    int *arg9 = (int *) 0 ;
+    void *argp1 = 0 ;
+    int res1 = 0 ;
+    U8 *tmpbuf2 = NULL ;
+    int temp3 ;
+    int res3 = SWIG_TMPOBJ ;
+    int temp4 ;
+    int res4 = SWIG_TMPOBJ ;
+    int temp5 ;
+    int res5 = SWIG_TMPOBJ ;
+    int temp6 ;
+    int res6 = SWIG_TMPOBJ ;
+    int temp7 ;
+    int res7 = SWIG_TMPOBJ ;
+    float temp8 ;
+    int res8 = SWIG_TMPOBJ ;
+    int temp9 ;
+    int res9 = SWIG_TMPOBJ ;
+    int argvi = 0;
+    dXSARGS;
+    
+    arg3 = &temp3;
+    arg4 = &temp4;
+    arg5 = &temp5;
+    arg6 = &temp6;
+    arg7 = &temp7;
+    arg8 = &temp8;
+    arg9 = &temp9;
+    if ((items < 2) || (items > 2)) {
+      SWIG_croak("Usage: Feature_GetFieldAsDateTime(self,name);");
+    }
+    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OGRFeatureShadow, 0 |  0 );
+    if (!SWIG_IsOK(res1)) {
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Feature_GetFieldAsDateTime" "', argument " "1"" of type '" "OGRFeatureShadow *""'"); 
+    }
+    arg1 = reinterpret_cast< OGRFeatureShadow * >(argp1);
+    {
+      /* %typemap(in,numinputs=1) (const char* name) */
+      arg2 = sv_to_utf8_string(ST(1), &tmpbuf2);
+    }
+    {
+      if (!arg2) {
+        SWIG_exception(SWIG_ValueError,"Received a NULL pointer.");
+      }
+    }
+    {
+      CPLErrorReset();
+      OGRFeatureShadow_GetFieldAsDateTime__SWIG_1(arg1,(char const *)arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        do_confess( CPLGetLastErrorMsg(), 0 );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /*
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
+    {
+      /* %typemap(out) void */
+    }
+    if (SWIG_IsTmpObj(res3)) {
+      if (argvi >= items) EXTEND(sp,1);  ST(argvi) = SWIG_From_int  SWIG_PERL_CALL_ARGS_1((*arg3)); argvi++  ;
+    } else {
+      int new_flags = SWIG_IsNewObj(res3) ? (SWIG_POINTER_OWN | 0) : 0;
+      if (argvi >= items) EXTEND(sp,1);  ST(argvi) = SWIG_NewPointerObj((void*)(arg3), SWIGTYPE_p_int, new_flags); argvi++  ;
+    }
+    if (SWIG_IsTmpObj(res4)) {
+      if (argvi >= items) EXTEND(sp,1);  ST(argvi) = SWIG_From_int  SWIG_PERL_CALL_ARGS_1((*arg4)); argvi++  ;
+    } else {
+      int new_flags = SWIG_IsNewObj(res4) ? (SWIG_POINTER_OWN | 0) : 0;
+      if (argvi >= items) EXTEND(sp,1);  ST(argvi) = SWIG_NewPointerObj((void*)(arg4), SWIGTYPE_p_int, new_flags); argvi++  ;
+    }
+    if (SWIG_IsTmpObj(res5)) {
+      if (argvi >= items) EXTEND(sp,1);  ST(argvi) = SWIG_From_int  SWIG_PERL_CALL_ARGS_1((*arg5)); argvi++  ;
+    } else {
+      int new_flags = SWIG_IsNewObj(res5) ? (SWIG_POINTER_OWN | 0) : 0;
+      if (argvi >= items) EXTEND(sp,1);  ST(argvi) = SWIG_NewPointerObj((void*)(arg5), SWIGTYPE_p_int, new_flags); argvi++  ;
+    }
+    if (SWIG_IsTmpObj(res6)) {
+      if (argvi >= items) EXTEND(sp,1);  ST(argvi) = SWIG_From_int  SWIG_PERL_CALL_ARGS_1((*arg6)); argvi++  ;
+    } else {
+      int new_flags = SWIG_IsNewObj(res6) ? (SWIG_POINTER_OWN | 0) : 0;
+      if (argvi >= items) EXTEND(sp,1);  ST(argvi) = SWIG_NewPointerObj((void*)(arg6), SWIGTYPE_p_int, new_flags); argvi++  ;
+    }
+    if (SWIG_IsTmpObj(res7)) {
+      if (argvi >= items) EXTEND(sp,1);  ST(argvi) = SWIG_From_int  SWIG_PERL_CALL_ARGS_1((*arg7)); argvi++  ;
+    } else {
+      int new_flags = SWIG_IsNewObj(res7) ? (SWIG_POINTER_OWN | 0) : 0;
+      if (argvi >= items) EXTEND(sp,1);  ST(argvi) = SWIG_NewPointerObj((void*)(arg7), SWIGTYPE_p_int, new_flags); argvi++  ;
+    }
+    if (SWIG_IsTmpObj(res8)) {
+      if (argvi >= items) EXTEND(sp,1);  ST(argvi) = SWIG_From_float  SWIG_PERL_CALL_ARGS_1((*arg8)); argvi++  ;
+    } else {
+      int new_flags = SWIG_IsNewObj(res8) ? (SWIG_POINTER_OWN | 0) : 0;
+      if (argvi >= items) EXTEND(sp,1);  ST(argvi) = SWIG_NewPointerObj((void*)(arg8), SWIGTYPE_p_float, new_flags); argvi++  ;
+    }
+    if (SWIG_IsTmpObj(res9)) {
+      if (argvi >= items) EXTEND(sp,1);  ST(argvi) = SWIG_From_int  SWIG_PERL_CALL_ARGS_1((*arg9)); argvi++  ;
+    } else {
+      int new_flags = SWIG_IsNewObj(res9) ? (SWIG_POINTER_OWN | 0) : 0;
+      if (argvi >= items) EXTEND(sp,1);  ST(argvi) = SWIG_NewPointerObj((void*)(arg9), SWIGTYPE_p_int, new_flags); argvi++  ;
+    }
+    
+    {
+      /* %typemap(freearg) (const char* name) */
+      if (tmpbuf2) free(tmpbuf2);
+    }
+    
+    
+    
+    
+    
+    
+    
+    XSRETURN(argvi);
+  fail:
+    
+    {
+      /* %typemap(freearg) (const char* name) */
+      if (tmpbuf2) free(tmpbuf2);
+    }
+    
+    
+    
+    
+    
+    
+    
+    SWIG_croak_null();
+  }
+}
+
+
+XS(_wrap_Feature_GetFieldAsDateTime) {
+  dXSARGS;
+  
+  {
+    unsigned long _index = 0;
+    SWIG_TypeRank _rank = 0; 
+    if (items == 2) {
+      SWIG_TypeRank _ranki = 0;
+      SWIG_TypeRank _rankm = 0;
+      SWIG_TypeRank _pi = 1;
+      int _v = 0;
+      {
+        void *vptr = 0;
+        int res = SWIG_ConvertPtr(ST(0), &vptr, SWIGTYPE_p_OGRFeatureShadow, 0);
+        _v = SWIG_CheckState(res);
+      }
+      if (!_v) goto check_1;
+      _ranki += _v*_pi;
+      _rankm += _pi;
+      _pi *= SWIG_MAXCASTRANK;
+      {
+        {
+          int res = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(1), NULL);
+          _v = SWIG_CheckState(res);
+        }
+      }
+      if (!_v) goto check_1;
+      _ranki += _v*_pi;
+      _rankm += _pi;
+      _pi *= SWIG_MAXCASTRANK;
+      if (!_index || (_ranki < _rank)) {
+        _rank = _ranki; _index = 1;
+        if (_rank == _rankm) goto dispatch;
+      }
+    }
+  check_1:
+    
+    if (items == 2) {
+      SWIG_TypeRank _ranki = 0;
+      SWIG_TypeRank _rankm = 0;
+      SWIG_TypeRank _pi = 1;
+      int _v = 0;
+      {
+        void *vptr = 0;
+        int res = SWIG_ConvertPtr(ST(0), &vptr, SWIGTYPE_p_OGRFeatureShadow, 0);
+        _v = SWIG_CheckState(res);
+      }
+      if (!_v) goto check_2;
+      _ranki += _v*_pi;
+      _rankm += _pi;
+      _pi *= SWIG_MAXCASTRANK;
+      {
+        int res = SWIG_AsCharPtrAndSize(ST(1), 0, NULL, 0);
+        _v = SWIG_CheckState(res);
+      }
+      if (!_v) goto check_2;
+      _ranki += _v*_pi;
+      _rankm += _pi;
+      _pi *= SWIG_MAXCASTRANK;
+      if (!_index || (_ranki < _rank)) {
+        _rank = _ranki; _index = 2;
+        if (_rank == _rankm) goto dispatch;
+      }
+    }
+  check_2:
+    
+  dispatch:
+    switch(_index) {
+    case 1:
+      PUSHMARK(MARK); SWIG_CALLXS(_wrap_Feature_GetFieldAsDateTime__SWIG_0); return;
+    case 2:
+      PUSHMARK(MARK); SWIG_CALLXS(_wrap_Feature_GetFieldAsDateTime__SWIG_1); return;
+    }
+  }
+  
+  croak("No matching function for overloaded 'Feature_GetFieldAsDateTime'");
+  XSRETURN(0);
+}
+
+
+XS(_wrap_Feature_GetFieldAsIntegerList__SWIG_0) {
   {
     OGRFeatureShadow *arg1 = (OGRFeatureShadow *) 0 ;
     int arg2 ;
@@ -11503,10 +10948,10 @@ XS(_wrap_Feature_GetFieldAsIntegerList) {
     arg2 = static_cast< int >(val2);
     {
       CPLErrorReset();
-      OGRFeatureShadow_GetFieldAsIntegerList(arg1,arg2,arg3,(int const **)arg4);
+      OGRFeatureShadow_GetFieldAsIntegerList__SWIG_0(arg1,arg2,arg3,(int const **)arg4);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -11515,7 +10960,7 @@ XS(_wrap_Feature_GetFieldAsIntegerList) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -11544,7 +10989,413 @@ XS(_wrap_Feature_GetFieldAsIntegerList) {
 }
 
 
-XS(_wrap_Feature_GetFieldAsDoubleList) {
+XS(_wrap_Feature_GetFieldAsIntegerList__SWIG_1) {
+  {
+    OGRFeatureShadow *arg1 = (OGRFeatureShadow *) 0 ;
+    char *arg2 = (char *) 0 ;
+    int *arg3 = (int *) 0 ;
+    int **arg4 = (int **) 0 ;
+    void *argp1 = 0 ;
+    int res1 = 0 ;
+    U8 *tmpbuf2 = NULL ;
+    int nLen3 ;
+    int *pList3 ;
+    int argvi = 0;
+    dXSARGS;
+    
+    {
+      /* %typemap(in,numinputs=0) (int *nLen3, const int **pList3) */
+      arg3 = &nLen3;
+      arg4 = &pList3;
+    }
+    if ((items < 2) || (items > 2)) {
+      SWIG_croak("Usage: Feature_GetFieldAsIntegerList(self,name,pList);");
+    }
+    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OGRFeatureShadow, 0 |  0 );
+    if (!SWIG_IsOK(res1)) {
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Feature_GetFieldAsIntegerList" "', argument " "1"" of type '" "OGRFeatureShadow *""'"); 
+    }
+    arg1 = reinterpret_cast< OGRFeatureShadow * >(argp1);
+    {
+      /* %typemap(in,numinputs=1) (const char* name) */
+      arg2 = sv_to_utf8_string(ST(1), &tmpbuf2);
+    }
+    {
+      if (!arg2) {
+        SWIG_exception(SWIG_ValueError,"Received a NULL pointer.");
+      }
+    }
+    {
+      CPLErrorReset();
+      OGRFeatureShadow_GetFieldAsIntegerList__SWIG_1(arg1,(char const *)arg2,arg3,(int const **)arg4);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        do_confess( CPLGetLastErrorMsg(), 0 );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /*
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
+    {
+      /* %typemap(out) void */
+    }
+    {
+      /* %typemap(argout) (int *nLen, const int **pList) */
+      ST(argvi) = CreateArrayFromIntArray( *(arg4), *(arg3) );
+      argvi++;
+    }
+    
+    {
+      /* %typemap(freearg) (const char* name) */
+      if (tmpbuf2) free(tmpbuf2);
+    }
+    XSRETURN(argvi);
+  fail:
+    
+    {
+      /* %typemap(freearg) (const char* name) */
+      if (tmpbuf2) free(tmpbuf2);
+    }
+    SWIG_croak_null();
+  }
+}
+
+
+XS(_wrap_Feature_GetFieldAsIntegerList) {
+  dXSARGS;
+  
+  {
+    unsigned long _index = 0;
+    SWIG_TypeRank _rank = 0; 
+    if (items == 2) {
+      SWIG_TypeRank _ranki = 0;
+      SWIG_TypeRank _rankm = 0;
+      SWIG_TypeRank _pi = 1;
+      int _v = 0;
+      {
+        void *vptr = 0;
+        int res = SWIG_ConvertPtr(ST(0), &vptr, SWIGTYPE_p_OGRFeatureShadow, 0);
+        _v = SWIG_CheckState(res);
+      }
+      if (!_v) goto check_1;
+      _ranki += _v*_pi;
+      _rankm += _pi;
+      _pi *= SWIG_MAXCASTRANK;
+      {
+        {
+          int res = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(1), NULL);
+          _v = SWIG_CheckState(res);
+        }
+      }
+      if (!_v) goto check_1;
+      _ranki += _v*_pi;
+      _rankm += _pi;
+      _pi *= SWIG_MAXCASTRANK;
+      if (!_index || (_ranki < _rank)) {
+        _rank = _ranki; _index = 1;
+        if (_rank == _rankm) goto dispatch;
+      }
+    }
+  check_1:
+    
+    if (items == 2) {
+      SWIG_TypeRank _ranki = 0;
+      SWIG_TypeRank _rankm = 0;
+      SWIG_TypeRank _pi = 1;
+      int _v = 0;
+      {
+        void *vptr = 0;
+        int res = SWIG_ConvertPtr(ST(0), &vptr, SWIGTYPE_p_OGRFeatureShadow, 0);
+        _v = SWIG_CheckState(res);
+      }
+      if (!_v) goto check_2;
+      _ranki += _v*_pi;
+      _rankm += _pi;
+      _pi *= SWIG_MAXCASTRANK;
+      {
+        int res = SWIG_AsCharPtrAndSize(ST(1), 0, NULL, 0);
+        _v = SWIG_CheckState(res);
+      }
+      if (!_v) goto check_2;
+      _ranki += _v*_pi;
+      _rankm += _pi;
+      _pi *= SWIG_MAXCASTRANK;
+      if (!_index || (_ranki < _rank)) {
+        _rank = _ranki; _index = 2;
+        if (_rank == _rankm) goto dispatch;
+      }
+    }
+  check_2:
+    
+  dispatch:
+    switch(_index) {
+    case 1:
+      PUSHMARK(MARK); SWIG_CALLXS(_wrap_Feature_GetFieldAsIntegerList__SWIG_0); return;
+    case 2:
+      PUSHMARK(MARK); SWIG_CALLXS(_wrap_Feature_GetFieldAsIntegerList__SWIG_1); return;
+    }
+  }
+  
+  croak("No matching function for overloaded 'Feature_GetFieldAsIntegerList'");
+  XSRETURN(0);
+}
+
+
+XS(_wrap_Feature_GetFieldAsInteger64List__SWIG_0) {
+  {
+    OGRFeatureShadow *arg1 = (OGRFeatureShadow *) 0 ;
+    int arg2 ;
+    int *arg3 = (int *) 0 ;
+    GIntBig **arg4 = (GIntBig **) 0 ;
+    void *argp1 = 0 ;
+    int res1 = 0 ;
+    int val2 ;
+    int ecode2 = 0 ;
+    int nLen3 ;
+    GIntBig *pList3 ;
+    int argvi = 0;
+    dXSARGS;
+    
+    {
+      /* %typemap(in,numinputs=0) (int *nLen3, const GIntBig **pList3) */
+      arg3 = &nLen3;
+      arg4 = &pList3;
+    }
+    if ((items < 2) || (items > 2)) {
+      SWIG_croak("Usage: Feature_GetFieldAsInteger64List(self,id,pList);");
+    }
+    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OGRFeatureShadow, 0 |  0 );
+    if (!SWIG_IsOK(res1)) {
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Feature_GetFieldAsInteger64List" "', argument " "1"" of type '" "OGRFeatureShadow *""'"); 
+    }
+    arg1 = reinterpret_cast< OGRFeatureShadow * >(argp1);
+    ecode2 = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(1), &val2);
+    if (!SWIG_IsOK(ecode2)) {
+      SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "Feature_GetFieldAsInteger64List" "', argument " "2"" of type '" "int""'");
+    } 
+    arg2 = static_cast< int >(val2);
+    {
+      CPLErrorReset();
+      OGRFeatureShadow_GetFieldAsInteger64List__SWIG_0(arg1,arg2,arg3,(GIntBig const **)arg4);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        do_confess( CPLGetLastErrorMsg(), 0 );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /*
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
+    {
+      /* %typemap(out) void */
+    }
+    {
+      /* %typemap(argout) (int *nLen, const GIntBig **pList) */
+      ST(argvi) = CreateArrayFromGIntBigArray( *(arg4), *(arg3) );
+      argvi++;
+    }
+    
+    
+    XSRETURN(argvi);
+  fail:
+    
+    
+    SWIG_croak_null();
+  }
+}
+
+
+XS(_wrap_Feature_GetFieldAsInteger64List__SWIG_1) {
+  {
+    OGRFeatureShadow *arg1 = (OGRFeatureShadow *) 0 ;
+    char *arg2 = (char *) 0 ;
+    int *arg3 = (int *) 0 ;
+    GIntBig **arg4 = (GIntBig **) 0 ;
+    void *argp1 = 0 ;
+    int res1 = 0 ;
+    U8 *tmpbuf2 = NULL ;
+    int nLen3 ;
+    GIntBig *pList3 ;
+    int argvi = 0;
+    dXSARGS;
+    
+    {
+      /* %typemap(in,numinputs=0) (int *nLen3, const GIntBig **pList3) */
+      arg3 = &nLen3;
+      arg4 = &pList3;
+    }
+    if ((items < 2) || (items > 2)) {
+      SWIG_croak("Usage: Feature_GetFieldAsInteger64List(self,name,pList);");
+    }
+    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OGRFeatureShadow, 0 |  0 );
+    if (!SWIG_IsOK(res1)) {
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Feature_GetFieldAsInteger64List" "', argument " "1"" of type '" "OGRFeatureShadow *""'"); 
+    }
+    arg1 = reinterpret_cast< OGRFeatureShadow * >(argp1);
+    {
+      /* %typemap(in,numinputs=1) (const char* name) */
+      arg2 = sv_to_utf8_string(ST(1), &tmpbuf2);
+    }
+    {
+      if (!arg2) {
+        SWIG_exception(SWIG_ValueError,"Received a NULL pointer.");
+      }
+    }
+    {
+      CPLErrorReset();
+      OGRFeatureShadow_GetFieldAsInteger64List__SWIG_1(arg1,(char const *)arg2,arg3,(GIntBig const **)arg4);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        do_confess( CPLGetLastErrorMsg(), 0 );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /*
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
+    {
+      /* %typemap(out) void */
+    }
+    {
+      /* %typemap(argout) (int *nLen, const GIntBig **pList) */
+      ST(argvi) = CreateArrayFromGIntBigArray( *(arg4), *(arg3) );
+      argvi++;
+    }
+    
+    {
+      /* %typemap(freearg) (const char* name) */
+      if (tmpbuf2) free(tmpbuf2);
+    }
+    XSRETURN(argvi);
+  fail:
+    
+    {
+      /* %typemap(freearg) (const char* name) */
+      if (tmpbuf2) free(tmpbuf2);
+    }
+    SWIG_croak_null();
+  }
+}
+
+
+XS(_wrap_Feature_GetFieldAsInteger64List) {
+  dXSARGS;
+  
+  {
+    unsigned long _index = 0;
+    SWIG_TypeRank _rank = 0; 
+    if (items == 2) {
+      SWIG_TypeRank _ranki = 0;
+      SWIG_TypeRank _rankm = 0;
+      SWIG_TypeRank _pi = 1;
+      int _v = 0;
+      {
+        void *vptr = 0;
+        int res = SWIG_ConvertPtr(ST(0), &vptr, SWIGTYPE_p_OGRFeatureShadow, 0);
+        _v = SWIG_CheckState(res);
+      }
+      if (!_v) goto check_1;
+      _ranki += _v*_pi;
+      _rankm += _pi;
+      _pi *= SWIG_MAXCASTRANK;
+      {
+        {
+          int res = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(1), NULL);
+          _v = SWIG_CheckState(res);
+        }
+      }
+      if (!_v) goto check_1;
+      _ranki += _v*_pi;
+      _rankm += _pi;
+      _pi *= SWIG_MAXCASTRANK;
+      if (!_index || (_ranki < _rank)) {
+        _rank = _ranki; _index = 1;
+        if (_rank == _rankm) goto dispatch;
+      }
+    }
+  check_1:
+    
+    if (items == 2) {
+      SWIG_TypeRank _ranki = 0;
+      SWIG_TypeRank _rankm = 0;
+      SWIG_TypeRank _pi = 1;
+      int _v = 0;
+      {
+        void *vptr = 0;
+        int res = SWIG_ConvertPtr(ST(0), &vptr, SWIGTYPE_p_OGRFeatureShadow, 0);
+        _v = SWIG_CheckState(res);
+      }
+      if (!_v) goto check_2;
+      _ranki += _v*_pi;
+      _rankm += _pi;
+      _pi *= SWIG_MAXCASTRANK;
+      {
+        int res = SWIG_AsCharPtrAndSize(ST(1), 0, NULL, 0);
+        _v = SWIG_CheckState(res);
+      }
+      if (!_v) goto check_2;
+      _ranki += _v*_pi;
+      _rankm += _pi;
+      _pi *= SWIG_MAXCASTRANK;
+      if (!_index || (_ranki < _rank)) {
+        _rank = _ranki; _index = 2;
+        if (_rank == _rankm) goto dispatch;
+      }
+    }
+  check_2:
+    
+  dispatch:
+    switch(_index) {
+    case 1:
+      PUSHMARK(MARK); SWIG_CALLXS(_wrap_Feature_GetFieldAsInteger64List__SWIG_0); return;
+    case 2:
+      PUSHMARK(MARK); SWIG_CALLXS(_wrap_Feature_GetFieldAsInteger64List__SWIG_1); return;
+    }
+  }
+  
+  croak("No matching function for overloaded 'Feature_GetFieldAsInteger64List'");
+  XSRETURN(0);
+}
+
+
+XS(_wrap_Feature_GetFieldAsDoubleList__SWIG_0) {
   {
     OGRFeatureShadow *arg1 = (OGRFeatureShadow *) 0 ;
     int arg2 ;
@@ -11579,10 +11430,10 @@ XS(_wrap_Feature_GetFieldAsDoubleList) {
     arg2 = static_cast< int >(val2);
     {
       CPLErrorReset();
-      OGRFeatureShadow_GetFieldAsDoubleList(arg1,arg2,arg3,(double const **)arg4);
+      OGRFeatureShadow_GetFieldAsDoubleList__SWIG_0(arg1,arg2,arg3,(double const **)arg4);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -11591,7 +11442,7 @@ XS(_wrap_Feature_GetFieldAsDoubleList) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -11620,7 +11471,172 @@ XS(_wrap_Feature_GetFieldAsDoubleList) {
 }
 
 
-XS(_wrap_Feature_GetFieldAsStringList) {
+XS(_wrap_Feature_GetFieldAsDoubleList__SWIG_1) {
+  {
+    OGRFeatureShadow *arg1 = (OGRFeatureShadow *) 0 ;
+    char *arg2 = (char *) 0 ;
+    int *arg3 = (int *) 0 ;
+    double **arg4 = (double **) 0 ;
+    void *argp1 = 0 ;
+    int res1 = 0 ;
+    U8 *tmpbuf2 = NULL ;
+    int nLen3 ;
+    double *pList3 ;
+    int argvi = 0;
+    dXSARGS;
+    
+    {
+      /* %typemap(in,numinputs=0) (int *nLen3, const double **pList3) */
+      arg3 = &nLen3;
+      arg4 = &pList3;
+    }
+    if ((items < 2) || (items > 2)) {
+      SWIG_croak("Usage: Feature_GetFieldAsDoubleList(self,name,pList);");
+    }
+    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OGRFeatureShadow, 0 |  0 );
+    if (!SWIG_IsOK(res1)) {
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Feature_GetFieldAsDoubleList" "', argument " "1"" of type '" "OGRFeatureShadow *""'"); 
+    }
+    arg1 = reinterpret_cast< OGRFeatureShadow * >(argp1);
+    {
+      /* %typemap(in,numinputs=1) (const char* name) */
+      arg2 = sv_to_utf8_string(ST(1), &tmpbuf2);
+    }
+    {
+      if (!arg2) {
+        SWIG_exception(SWIG_ValueError,"Received a NULL pointer.");
+      }
+    }
+    {
+      CPLErrorReset();
+      OGRFeatureShadow_GetFieldAsDoubleList__SWIG_1(arg1,(char const *)arg2,arg3,(double const **)arg4);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        do_confess( CPLGetLastErrorMsg(), 0 );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /*
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
+    {
+      /* %typemap(out) void */
+    }
+    {
+      /* %typemap(argout) (int *nLen, const double **pList) */
+      ST(argvi) = CreateArrayFromDoubleArray( *(arg4), *(arg3) );
+      argvi++;
+    }
+    
+    {
+      /* %typemap(freearg) (const char* name) */
+      if (tmpbuf2) free(tmpbuf2);
+    }
+    XSRETURN(argvi);
+  fail:
+    
+    {
+      /* %typemap(freearg) (const char* name) */
+      if (tmpbuf2) free(tmpbuf2);
+    }
+    SWIG_croak_null();
+  }
+}
+
+
+XS(_wrap_Feature_GetFieldAsDoubleList) {
+  dXSARGS;
+  
+  {
+    unsigned long _index = 0;
+    SWIG_TypeRank _rank = 0; 
+    if (items == 2) {
+      SWIG_TypeRank _ranki = 0;
+      SWIG_TypeRank _rankm = 0;
+      SWIG_TypeRank _pi = 1;
+      int _v = 0;
+      {
+        void *vptr = 0;
+        int res = SWIG_ConvertPtr(ST(0), &vptr, SWIGTYPE_p_OGRFeatureShadow, 0);
+        _v = SWIG_CheckState(res);
+      }
+      if (!_v) goto check_1;
+      _ranki += _v*_pi;
+      _rankm += _pi;
+      _pi *= SWIG_MAXCASTRANK;
+      {
+        {
+          int res = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(1), NULL);
+          _v = SWIG_CheckState(res);
+        }
+      }
+      if (!_v) goto check_1;
+      _ranki += _v*_pi;
+      _rankm += _pi;
+      _pi *= SWIG_MAXCASTRANK;
+      if (!_index || (_ranki < _rank)) {
+        _rank = _ranki; _index = 1;
+        if (_rank == _rankm) goto dispatch;
+      }
+    }
+  check_1:
+    
+    if (items == 2) {
+      SWIG_TypeRank _ranki = 0;
+      SWIG_TypeRank _rankm = 0;
+      SWIG_TypeRank _pi = 1;
+      int _v = 0;
+      {
+        void *vptr = 0;
+        int res = SWIG_ConvertPtr(ST(0), &vptr, SWIGTYPE_p_OGRFeatureShadow, 0);
+        _v = SWIG_CheckState(res);
+      }
+      if (!_v) goto check_2;
+      _ranki += _v*_pi;
+      _rankm += _pi;
+      _pi *= SWIG_MAXCASTRANK;
+      {
+        int res = SWIG_AsCharPtrAndSize(ST(1), 0, NULL, 0);
+        _v = SWIG_CheckState(res);
+      }
+      if (!_v) goto check_2;
+      _ranki += _v*_pi;
+      _rankm += _pi;
+      _pi *= SWIG_MAXCASTRANK;
+      if (!_index || (_ranki < _rank)) {
+        _rank = _ranki; _index = 2;
+        if (_rank == _rankm) goto dispatch;
+      }
+    }
+  check_2:
+    
+  dispatch:
+    switch(_index) {
+    case 1:
+      PUSHMARK(MARK); SWIG_CALLXS(_wrap_Feature_GetFieldAsDoubleList__SWIG_0); return;
+    case 2:
+      PUSHMARK(MARK); SWIG_CALLXS(_wrap_Feature_GetFieldAsDoubleList__SWIG_1); return;
+    }
+  }
+  
+  croak("No matching function for overloaded 'Feature_GetFieldAsDoubleList'");
+  XSRETURN(0);
+}
+
+
+XS(_wrap_Feature_GetFieldAsStringList__SWIG_0) {
   {
     OGRFeatureShadow *arg1 = (OGRFeatureShadow *) 0 ;
     int arg2 ;
@@ -11652,10 +11668,10 @@ XS(_wrap_Feature_GetFieldAsStringList) {
     arg2 = static_cast< int >(val2);
     {
       CPLErrorReset();
-      OGRFeatureShadow_GetFieldAsStringList(arg1,arg2,arg3);
+      OGRFeatureShadow_GetFieldAsStringList__SWIG_0(arg1,arg2,arg3);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -11664,7 +11680,7 @@ XS(_wrap_Feature_GetFieldAsStringList) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -11692,6 +11708,447 @@ XS(_wrap_Feature_GetFieldAsStringList) {
     
     SWIG_croak_null();
   }
+}
+
+
+XS(_wrap_Feature_GetFieldAsStringList__SWIG_1) {
+  {
+    OGRFeatureShadow *arg1 = (OGRFeatureShadow *) 0 ;
+    char *arg2 = (char *) 0 ;
+    char ***arg3 = (char ***) 0 ;
+    void *argp1 = 0 ;
+    int res1 = 0 ;
+    U8 *tmpbuf2 = NULL ;
+    char **pList3 ;
+    int argvi = 0;
+    dXSARGS;
+    
+    {
+      /* %typemap(in,numinputs=0) (char ***pList3) */
+      arg3 = &pList3;
+    }
+    if ((items < 2) || (items > 2)) {
+      SWIG_croak("Usage: Feature_GetFieldAsStringList(self,name);");
+    }
+    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OGRFeatureShadow, 0 |  0 );
+    if (!SWIG_IsOK(res1)) {
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Feature_GetFieldAsStringList" "', argument " "1"" of type '" "OGRFeatureShadow *""'"); 
+    }
+    arg1 = reinterpret_cast< OGRFeatureShadow * >(argp1);
+    {
+      /* %typemap(in,numinputs=1) (const char* name) */
+      arg2 = sv_to_utf8_string(ST(1), &tmpbuf2);
+    }
+    {
+      if (!arg2) {
+        SWIG_exception(SWIG_ValueError,"Received a NULL pointer.");
+      }
+    }
+    {
+      CPLErrorReset();
+      OGRFeatureShadow_GetFieldAsStringList__SWIG_1(arg1,(char const *)arg2,arg3);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        do_confess( CPLGetLastErrorMsg(), 0 );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /*
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
+    {
+      /* %typemap(out) void */
+    }
+    {
+      /* %typemap(argout) (char ***pList) */
+      ST(argvi) = CreateArrayFromStringArray( *(arg3) );
+      argvi++;
+    }
+    
+    {
+      /* %typemap(freearg) (const char* name) */
+      if (tmpbuf2) free(tmpbuf2);
+    }
+    
+    XSRETURN(argvi);
+  fail:
+    
+    {
+      /* %typemap(freearg) (const char* name) */
+      if (tmpbuf2) free(tmpbuf2);
+    }
+    
+    SWIG_croak_null();
+  }
+}
+
+
+XS(_wrap_Feature_GetFieldAsStringList) {
+  dXSARGS;
+  
+  {
+    unsigned long _index = 0;
+    SWIG_TypeRank _rank = 0; 
+    if (items == 2) {
+      SWIG_TypeRank _ranki = 0;
+      SWIG_TypeRank _rankm = 0;
+      SWIG_TypeRank _pi = 1;
+      int _v = 0;
+      {
+        void *vptr = 0;
+        int res = SWIG_ConvertPtr(ST(0), &vptr, SWIGTYPE_p_OGRFeatureShadow, 0);
+        _v = SWIG_CheckState(res);
+      }
+      if (!_v) goto check_1;
+      _ranki += _v*_pi;
+      _rankm += _pi;
+      _pi *= SWIG_MAXCASTRANK;
+      {
+        {
+          int res = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(1), NULL);
+          _v = SWIG_CheckState(res);
+        }
+      }
+      if (!_v) goto check_1;
+      _ranki += _v*_pi;
+      _rankm += _pi;
+      _pi *= SWIG_MAXCASTRANK;
+      if (!_index || (_ranki < _rank)) {
+        _rank = _ranki; _index = 1;
+        if (_rank == _rankm) goto dispatch;
+      }
+    }
+  check_1:
+    
+    if (items == 2) {
+      SWIG_TypeRank _ranki = 0;
+      SWIG_TypeRank _rankm = 0;
+      SWIG_TypeRank _pi = 1;
+      int _v = 0;
+      {
+        void *vptr = 0;
+        int res = SWIG_ConvertPtr(ST(0), &vptr, SWIGTYPE_p_OGRFeatureShadow, 0);
+        _v = SWIG_CheckState(res);
+      }
+      if (!_v) goto check_2;
+      _ranki += _v*_pi;
+      _rankm += _pi;
+      _pi *= SWIG_MAXCASTRANK;
+      {
+        int res = SWIG_AsCharPtrAndSize(ST(1), 0, NULL, 0);
+        _v = SWIG_CheckState(res);
+      }
+      if (!_v) goto check_2;
+      _ranki += _v*_pi;
+      _rankm += _pi;
+      _pi *= SWIG_MAXCASTRANK;
+      if (!_index || (_ranki < _rank)) {
+        _rank = _ranki; _index = 2;
+        if (_rank == _rankm) goto dispatch;
+      }
+    }
+  check_2:
+    
+  dispatch:
+    switch(_index) {
+    case 1:
+      PUSHMARK(MARK); SWIG_CALLXS(_wrap_Feature_GetFieldAsStringList__SWIG_0); return;
+    case 2:
+      PUSHMARK(MARK); SWIG_CALLXS(_wrap_Feature_GetFieldAsStringList__SWIG_1); return;
+    }
+  }
+  
+  croak("No matching function for overloaded 'Feature_GetFieldAsStringList'");
+  XSRETURN(0);
+}
+
+
+XS(_wrap_Feature_GetFieldAsBinary__SWIG_0) {
+  {
+    OGRFeatureShadow *arg1 = (OGRFeatureShadow *) 0 ;
+    int arg2 ;
+    int *arg3 = (int *) 0 ;
+    char **arg4 = (char **) 0 ;
+    void *argp1 = 0 ;
+    int res1 = 0 ;
+    int val2 ;
+    int ecode2 = 0 ;
+    int nLen3 = 0 ;
+    char *pBuf3 = 0 ;
+    int argvi = 0;
+    OGRErr result;
+    dXSARGS;
+    
+    {
+      /* %typemap(in,numinputs=0) (int *nLen3, char **pBuf3 ) */
+      arg3 = &nLen3;
+      arg4 = &pBuf3;
+    }
+    if ((items < 2) || (items > 2)) {
+      SWIG_croak("Usage: Feature_GetFieldAsBinary(self,id,pBuf);");
+    }
+    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OGRFeatureShadow, 0 |  0 );
+    if (!SWIG_IsOK(res1)) {
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Feature_GetFieldAsBinary" "', argument " "1"" of type '" "OGRFeatureShadow *""'"); 
+    }
+    arg1 = reinterpret_cast< OGRFeatureShadow * >(argp1);
+    ecode2 = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(1), &val2);
+    if (!SWIG_IsOK(ecode2)) {
+      SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "Feature_GetFieldAsBinary" "', argument " "2"" of type '" "int""'");
+    } 
+    arg2 = static_cast< int >(val2);
+    {
+      CPLErrorReset();
+      result = (OGRErr)OGRFeatureShadow_GetFieldAsBinary__SWIG_0(arg1,arg2,arg3,arg4);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        do_confess( CPLGetLastErrorMsg(), 0 );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /*
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
+    {
+      /* %typemap(out) OGRErr */
+      if ( result != 0 ) {
+        const char *err = CPLGetLastErrorMsg();
+        if (err and *err) do_confess(err, 0); /* this is usually better */
+        do_confess( OGRErrMessages(result), 1 );
+      }
+    }
+    {
+      /* %typemap(argout) (int *nLen, char **pBuf ) */
+      ST(argvi) = sv_2mortal(newSVpv( *arg4, *arg3 ));
+      argvi++;
+    }
+    
+    
+    {
+      /* %typemap(freearg) (int *nLen, char **pBuf ) */
+      if( *arg3 ) {
+        free( *arg4 );
+      }
+    }
+    XSRETURN(argvi);
+  fail:
+    
+    
+    {
+      /* %typemap(freearg) (int *nLen, char **pBuf ) */
+      if( *arg3 ) {
+        free( *arg4 );
+      }
+    }
+    SWIG_croak_null();
+  }
+}
+
+
+XS(_wrap_Feature_GetFieldAsBinary__SWIG_1) {
+  {
+    OGRFeatureShadow *arg1 = (OGRFeatureShadow *) 0 ;
+    char *arg2 = (char *) 0 ;
+    int *arg3 = (int *) 0 ;
+    char **arg4 = (char **) 0 ;
+    void *argp1 = 0 ;
+    int res1 = 0 ;
+    U8 *tmpbuf2 = NULL ;
+    int nLen3 = 0 ;
+    char *pBuf3 = 0 ;
+    int argvi = 0;
+    OGRErr result;
+    dXSARGS;
+    
+    {
+      /* %typemap(in,numinputs=0) (int *nLen3, char **pBuf3 ) */
+      arg3 = &nLen3;
+      arg4 = &pBuf3;
+    }
+    if ((items < 2) || (items > 2)) {
+      SWIG_croak("Usage: Feature_GetFieldAsBinary(self,name,pBuf);");
+    }
+    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OGRFeatureShadow, 0 |  0 );
+    if (!SWIG_IsOK(res1)) {
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Feature_GetFieldAsBinary" "', argument " "1"" of type '" "OGRFeatureShadow *""'"); 
+    }
+    arg1 = reinterpret_cast< OGRFeatureShadow * >(argp1);
+    {
+      /* %typemap(in,numinputs=1) (const char* name) */
+      arg2 = sv_to_utf8_string(ST(1), &tmpbuf2);
+    }
+    {
+      if (!arg2) {
+        SWIG_exception(SWIG_ValueError,"Received a NULL pointer.");
+      }
+    }
+    {
+      CPLErrorReset();
+      result = (OGRErr)OGRFeatureShadow_GetFieldAsBinary__SWIG_1(arg1,(char const *)arg2,arg3,arg4);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        do_confess( CPLGetLastErrorMsg(), 0 );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /*
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
+    {
+      /* %typemap(out) OGRErr */
+      if ( result != 0 ) {
+        const char *err = CPLGetLastErrorMsg();
+        if (err and *err) do_confess(err, 0); /* this is usually better */
+        do_confess( OGRErrMessages(result), 1 );
+      }
+    }
+    {
+      /* %typemap(argout) (int *nLen, char **pBuf ) */
+      ST(argvi) = sv_2mortal(newSVpv( *arg4, *arg3 ));
+      argvi++;
+    }
+    
+    {
+      /* %typemap(freearg) (const char* name) */
+      if (tmpbuf2) free(tmpbuf2);
+    }
+    {
+      /* %typemap(freearg) (int *nLen, char **pBuf ) */
+      if( *arg3 ) {
+        free( *arg4 );
+      }
+    }
+    XSRETURN(argvi);
+  fail:
+    
+    {
+      /* %typemap(freearg) (const char* name) */
+      if (tmpbuf2) free(tmpbuf2);
+    }
+    {
+      /* %typemap(freearg) (int *nLen, char **pBuf ) */
+      if( *arg3 ) {
+        free( *arg4 );
+      }
+    }
+    SWIG_croak_null();
+  }
+}
+
+
+XS(_wrap_Feature_GetFieldAsBinary) {
+  dXSARGS;
+  
+  {
+    unsigned long _index = 0;
+    SWIG_TypeRank _rank = 0; 
+    if (items == 2) {
+      SWIG_TypeRank _ranki = 0;
+      SWIG_TypeRank _rankm = 0;
+      SWIG_TypeRank _pi = 1;
+      int _v = 0;
+      {
+        void *vptr = 0;
+        int res = SWIG_ConvertPtr(ST(0), &vptr, SWIGTYPE_p_OGRFeatureShadow, 0);
+        _v = SWIG_CheckState(res);
+      }
+      if (!_v) goto check_1;
+      _ranki += _v*_pi;
+      _rankm += _pi;
+      _pi *= SWIG_MAXCASTRANK;
+      {
+        {
+          int res = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(1), NULL);
+          _v = SWIG_CheckState(res);
+        }
+      }
+      if (!_v) goto check_1;
+      _ranki += _v*_pi;
+      _rankm += _pi;
+      _pi *= SWIG_MAXCASTRANK;
+      if (!_index || (_ranki < _rank)) {
+        _rank = _ranki; _index = 1;
+        if (_rank == _rankm) goto dispatch;
+      }
+    }
+  check_1:
+    
+    if (items == 2) {
+      SWIG_TypeRank _ranki = 0;
+      SWIG_TypeRank _rankm = 0;
+      SWIG_TypeRank _pi = 1;
+      int _v = 0;
+      {
+        void *vptr = 0;
+        int res = SWIG_ConvertPtr(ST(0), &vptr, SWIGTYPE_p_OGRFeatureShadow, 0);
+        _v = SWIG_CheckState(res);
+      }
+      if (!_v) goto check_2;
+      _ranki += _v*_pi;
+      _rankm += _pi;
+      _pi *= SWIG_MAXCASTRANK;
+      {
+        int res = SWIG_AsCharPtrAndSize(ST(1), 0, NULL, 0);
+        _v = SWIG_CheckState(res);
+      }
+      if (!_v) goto check_2;
+      _ranki += _v*_pi;
+      _rankm += _pi;
+      _pi *= SWIG_MAXCASTRANK;
+      if (!_index || (_ranki < _rank)) {
+        _rank = _ranki; _index = 2;
+        if (_rank == _rankm) goto dispatch;
+      }
+    }
+  check_2:
+    
+  dispatch:
+    switch(_index) {
+    case 1:
+      PUSHMARK(MARK); SWIG_CALLXS(_wrap_Feature_GetFieldAsBinary__SWIG_0); return;
+    case 2:
+      PUSHMARK(MARK); SWIG_CALLXS(_wrap_Feature_GetFieldAsBinary__SWIG_1); return;
+    }
+  }
+  
+  croak("No matching function for overloaded 'Feature_GetFieldAsBinary'");
+  XSRETURN(0);
 }
 
 
@@ -11725,7 +12182,7 @@ XS(_wrap_Feature_IsFieldSet__SWIG_0) {
       result = (bool)OGRFeatureShadow_IsFieldSet__SWIG_0(arg1,arg2);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -11734,7 +12191,7 @@ XS(_wrap_Feature_IsFieldSet__SWIG_0) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -11762,6 +12219,7 @@ XS(_wrap_Feature_IsFieldSet__SWIG_1) {
     char *arg2 = (char *) 0 ;
     void *argp1 = 0 ;
     int res1 = 0 ;
+    U8 *tmpbuf2 = NULL ;
     int argvi = 0;
     bool result;
     dXSARGS;
@@ -11776,8 +12234,7 @@ XS(_wrap_Feature_IsFieldSet__SWIG_1) {
     arg1 = reinterpret_cast< OGRFeatureShadow * >(argp1);
     {
       /* %typemap(in,numinputs=1) (const char* name) */
-      sv_utf8_upgrade(ST(1));
-      arg2 = SvPV_nolen(ST(1));
+      arg2 = sv_to_utf8_string(ST(1), &tmpbuf2);
     }
     {
       if (!arg2) {
@@ -11789,7 +12246,7 @@ XS(_wrap_Feature_IsFieldSet__SWIG_1) {
       result = (bool)OGRFeatureShadow_IsFieldSet__SWIG_1(arg1,(char const *)arg2);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -11798,7 +12255,7 @@ XS(_wrap_Feature_IsFieldSet__SWIG_1) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -11810,9 +12267,17 @@ XS(_wrap_Feature_IsFieldSet__SWIG_1) {
     }
     ST(argvi) = SWIG_From_bool  SWIG_PERL_CALL_ARGS_1(static_cast< bool >(result)); argvi++ ;
     
+    {
+      /* %typemap(freearg) (const char* name) */
+      if (tmpbuf2) free(tmpbuf2);
+    }
     XSRETURN(argvi);
   fail:
     
+    {
+      /* %typemap(freearg) (const char* name) */
+      if (tmpbuf2) free(tmpbuf2);
+    }
     SWIG_croak_null();
   }
 }
@@ -11898,12 +12363,74 @@ XS(_wrap_Feature_IsFieldSet) {
 }
 
 
-XS(_wrap_Feature_GetFieldIndex) {
+XS(_wrap_Feature_GetFieldIndex__SWIG_0) {
+  {
+    OGRFeatureShadow *arg1 = (OGRFeatureShadow *) 0 ;
+    int arg2 ;
+    void *argp1 = 0 ;
+    int res1 = 0 ;
+    int val2 ;
+    int ecode2 = 0 ;
+    int argvi = 0;
+    int result;
+    dXSARGS;
+    
+    if ((items < 2) || (items > 2)) {
+      SWIG_croak("Usage: Feature_GetFieldIndex(self,i);");
+    }
+    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OGRFeatureShadow, 0 |  0 );
+    if (!SWIG_IsOK(res1)) {
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Feature_GetFieldIndex" "', argument " "1"" of type '" "OGRFeatureShadow *""'"); 
+    }
+    arg1 = reinterpret_cast< OGRFeatureShadow * >(argp1);
+    ecode2 = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(1), &val2);
+    if (!SWIG_IsOK(ecode2)) {
+      SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "Feature_GetFieldIndex" "', argument " "2"" of type '" "int""'");
+    } 
+    arg2 = static_cast< int >(val2);
+    {
+      CPLErrorReset();
+      result = (int)OGRFeatureShadow_GetFieldIndex__SWIG_0(arg1,arg2);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        do_confess( CPLGetLastErrorMsg(), 0 );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /*
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
+    ST(argvi) = SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(result)); argvi++ ;
+    
+    
+    XSRETURN(argvi);
+  fail:
+    
+    
+    SWIG_croak_null();
+  }
+}
+
+
+XS(_wrap_Feature_GetFieldIndex__SWIG_1) {
   {
     OGRFeatureShadow *arg1 = (OGRFeatureShadow *) 0 ;
     char *arg2 = (char *) 0 ;
     void *argp1 = 0 ;
     int res1 = 0 ;
+    U8 *tmpbuf2 = NULL ;
     int argvi = 0;
     int result;
     dXSARGS;
@@ -11918,8 +12445,7 @@ XS(_wrap_Feature_GetFieldIndex) {
     arg1 = reinterpret_cast< OGRFeatureShadow * >(argp1);
     {
       /* %typemap(in,numinputs=1) (const char* name) */
-      sv_utf8_upgrade(ST(1));
-      arg2 = SvPV_nolen(ST(1));
+      arg2 = sv_to_utf8_string(ST(1), &tmpbuf2);
     }
     {
       if (!arg2) {
@@ -11928,10 +12454,10 @@ XS(_wrap_Feature_GetFieldIndex) {
     }
     {
       CPLErrorReset();
-      result = (int)OGRFeatureShadow_GetFieldIndex(arg1,(char const *)arg2);
+      result = (int)OGRFeatureShadow_GetFieldIndex__SWIG_1(arg1,(char const *)arg2);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -11940,7 +12466,7 @@ XS(_wrap_Feature_GetFieldIndex) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -11952,20 +12478,170 @@ XS(_wrap_Feature_GetFieldIndex) {
     }
     ST(argvi) = SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(result)); argvi++ ;
     
+    {
+      /* %typemap(freearg) (const char* name) */
+      if (tmpbuf2) free(tmpbuf2);
+    }
     XSRETURN(argvi);
   fail:
+    
+    {
+      /* %typemap(freearg) (const char* name) */
+      if (tmpbuf2) free(tmpbuf2);
+    }
+    SWIG_croak_null();
+  }
+}
+
+
+XS(_wrap_Feature_GetFieldIndex) {
+  dXSARGS;
+  
+  {
+    unsigned long _index = 0;
+    SWIG_TypeRank _rank = 0; 
+    if (items == 2) {
+      SWIG_TypeRank _ranki = 0;
+      SWIG_TypeRank _rankm = 0;
+      SWIG_TypeRank _pi = 1;
+      int _v = 0;
+      {
+        void *vptr = 0;
+        int res = SWIG_ConvertPtr(ST(0), &vptr, SWIGTYPE_p_OGRFeatureShadow, 0);
+        _v = SWIG_CheckState(res);
+      }
+      if (!_v) goto check_1;
+      _ranki += _v*_pi;
+      _rankm += _pi;
+      _pi *= SWIG_MAXCASTRANK;
+      {
+        {
+          int res = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(1), NULL);
+          _v = SWIG_CheckState(res);
+        }
+      }
+      if (!_v) goto check_1;
+      _ranki += _v*_pi;
+      _rankm += _pi;
+      _pi *= SWIG_MAXCASTRANK;
+      if (!_index || (_ranki < _rank)) {
+        _rank = _ranki; _index = 1;
+        if (_rank == _rankm) goto dispatch;
+      }
+    }
+  check_1:
+    
+    if (items == 2) {
+      SWIG_TypeRank _ranki = 0;
+      SWIG_TypeRank _rankm = 0;
+      SWIG_TypeRank _pi = 1;
+      int _v = 0;
+      {
+        void *vptr = 0;
+        int res = SWIG_ConvertPtr(ST(0), &vptr, SWIGTYPE_p_OGRFeatureShadow, 0);
+        _v = SWIG_CheckState(res);
+      }
+      if (!_v) goto check_2;
+      _ranki += _v*_pi;
+      _rankm += _pi;
+      _pi *= SWIG_MAXCASTRANK;
+      {
+        int res = SWIG_AsCharPtrAndSize(ST(1), 0, NULL, 0);
+        _v = SWIG_CheckState(res);
+      }
+      if (!_v) goto check_2;
+      _ranki += _v*_pi;
+      _rankm += _pi;
+      _pi *= SWIG_MAXCASTRANK;
+      if (!_index || (_ranki < _rank)) {
+        _rank = _ranki; _index = 2;
+        if (_rank == _rankm) goto dispatch;
+      }
+    }
+  check_2:
+    
+  dispatch:
+    switch(_index) {
+    case 1:
+      PUSHMARK(MARK); SWIG_CALLXS(_wrap_Feature_GetFieldIndex__SWIG_0); return;
+    case 2:
+      PUSHMARK(MARK); SWIG_CALLXS(_wrap_Feature_GetFieldIndex__SWIG_1); return;
+    }
+  }
+  
+  croak("No matching function for overloaded 'Feature_GetFieldIndex'");
+  XSRETURN(0);
+}
+
+
+XS(_wrap_Feature_GetGeomFieldIndex__SWIG_0) {
+  {
+    OGRFeatureShadow *arg1 = (OGRFeatureShadow *) 0 ;
+    int arg2 ;
+    void *argp1 = 0 ;
+    int res1 = 0 ;
+    int val2 ;
+    int ecode2 = 0 ;
+    int argvi = 0;
+    int result;
+    dXSARGS;
+    
+    if ((items < 2) || (items > 2)) {
+      SWIG_croak("Usage: Feature_GetGeomFieldIndex(self,i);");
+    }
+    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OGRFeatureShadow, 0 |  0 );
+    if (!SWIG_IsOK(res1)) {
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Feature_GetGeomFieldIndex" "', argument " "1"" of type '" "OGRFeatureShadow *""'"); 
+    }
+    arg1 = reinterpret_cast< OGRFeatureShadow * >(argp1);
+    ecode2 = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(1), &val2);
+    if (!SWIG_IsOK(ecode2)) {
+      SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "Feature_GetGeomFieldIndex" "', argument " "2"" of type '" "int""'");
+    } 
+    arg2 = static_cast< int >(val2);
+    {
+      CPLErrorReset();
+      result = (int)OGRFeatureShadow_GetGeomFieldIndex__SWIG_0(arg1,arg2);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        do_confess( CPLGetLastErrorMsg(), 0 );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /*
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
+    ST(argvi) = SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(result)); argvi++ ;
+    
+    
+    XSRETURN(argvi);
+  fail:
+    
     
     SWIG_croak_null();
   }
 }
 
 
-XS(_wrap_Feature_GetGeomFieldIndex) {
+XS(_wrap_Feature_GetGeomFieldIndex__SWIG_1) {
   {
     OGRFeatureShadow *arg1 = (OGRFeatureShadow *) 0 ;
     char *arg2 = (char *) 0 ;
     void *argp1 = 0 ;
     int res1 = 0 ;
+    U8 *tmpbuf2 = NULL ;
     int argvi = 0;
     int result;
     dXSARGS;
@@ -11980,8 +12656,7 @@ XS(_wrap_Feature_GetGeomFieldIndex) {
     arg1 = reinterpret_cast< OGRFeatureShadow * >(argp1);
     {
       /* %typemap(in,numinputs=1) (const char* name) */
-      sv_utf8_upgrade(ST(1));
-      arg2 = SvPV_nolen(ST(1));
+      arg2 = sv_to_utf8_string(ST(1), &tmpbuf2);
     }
     {
       if (!arg2) {
@@ -11990,10 +12665,10 @@ XS(_wrap_Feature_GetGeomFieldIndex) {
     }
     {
       CPLErrorReset();
-      result = (int)OGRFeatureShadow_GetGeomFieldIndex(arg1,(char const *)arg2);
+      result = (int)OGRFeatureShadow_GetGeomFieldIndex__SWIG_1(arg1,(char const *)arg2);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -12002,7 +12677,7 @@ XS(_wrap_Feature_GetGeomFieldIndex) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -12014,11 +12689,99 @@ XS(_wrap_Feature_GetGeomFieldIndex) {
     }
     ST(argvi) = SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(result)); argvi++ ;
     
+    {
+      /* %typemap(freearg) (const char* name) */
+      if (tmpbuf2) free(tmpbuf2);
+    }
     XSRETURN(argvi);
   fail:
     
+    {
+      /* %typemap(freearg) (const char* name) */
+      if (tmpbuf2) free(tmpbuf2);
+    }
     SWIG_croak_null();
   }
+}
+
+
+XS(_wrap_Feature_GetGeomFieldIndex) {
+  dXSARGS;
+  
+  {
+    unsigned long _index = 0;
+    SWIG_TypeRank _rank = 0; 
+    if (items == 2) {
+      SWIG_TypeRank _ranki = 0;
+      SWIG_TypeRank _rankm = 0;
+      SWIG_TypeRank _pi = 1;
+      int _v = 0;
+      {
+        void *vptr = 0;
+        int res = SWIG_ConvertPtr(ST(0), &vptr, SWIGTYPE_p_OGRFeatureShadow, 0);
+        _v = SWIG_CheckState(res);
+      }
+      if (!_v) goto check_1;
+      _ranki += _v*_pi;
+      _rankm += _pi;
+      _pi *= SWIG_MAXCASTRANK;
+      {
+        {
+          int res = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(1), NULL);
+          _v = SWIG_CheckState(res);
+        }
+      }
+      if (!_v) goto check_1;
+      _ranki += _v*_pi;
+      _rankm += _pi;
+      _pi *= SWIG_MAXCASTRANK;
+      if (!_index || (_ranki < _rank)) {
+        _rank = _ranki; _index = 1;
+        if (_rank == _rankm) goto dispatch;
+      }
+    }
+  check_1:
+    
+    if (items == 2) {
+      SWIG_TypeRank _ranki = 0;
+      SWIG_TypeRank _rankm = 0;
+      SWIG_TypeRank _pi = 1;
+      int _v = 0;
+      {
+        void *vptr = 0;
+        int res = SWIG_ConvertPtr(ST(0), &vptr, SWIGTYPE_p_OGRFeatureShadow, 0);
+        _v = SWIG_CheckState(res);
+      }
+      if (!_v) goto check_2;
+      _ranki += _v*_pi;
+      _rankm += _pi;
+      _pi *= SWIG_MAXCASTRANK;
+      {
+        int res = SWIG_AsCharPtrAndSize(ST(1), 0, NULL, 0);
+        _v = SWIG_CheckState(res);
+      }
+      if (!_v) goto check_2;
+      _ranki += _v*_pi;
+      _rankm += _pi;
+      _pi *= SWIG_MAXCASTRANK;
+      if (!_index || (_ranki < _rank)) {
+        _rank = _ranki; _index = 2;
+        if (_rank == _rankm) goto dispatch;
+      }
+    }
+  check_2:
+    
+  dispatch:
+    switch(_index) {
+    case 1:
+      PUSHMARK(MARK); SWIG_CALLXS(_wrap_Feature_GetGeomFieldIndex__SWIG_0); return;
+    case 2:
+      PUSHMARK(MARK); SWIG_CALLXS(_wrap_Feature_GetGeomFieldIndex__SWIG_1); return;
+    }
+  }
+  
+  croak("No matching function for overloaded 'Feature_GetGeomFieldIndex'");
+  XSRETURN(0);
 }
 
 
@@ -12028,7 +12791,7 @@ XS(_wrap_Feature_GetFID) {
     void *argp1 = 0 ;
     int res1 = 0 ;
     int argvi = 0;
-    int result;
+    GIntBig result;
     dXSARGS;
     
     if ((items < 1) || (items > 1)) {
@@ -12041,10 +12804,10 @@ XS(_wrap_Feature_GetFID) {
     arg1 = reinterpret_cast< OGRFeatureShadow * >(argp1);
     {
       CPLErrorReset();
-      result = (int)OGRFeatureShadow_GetFID(arg1);
+      result = OGRFeatureShadow_GetFID(arg1);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -12053,7 +12816,7 @@ XS(_wrap_Feature_GetFID) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -12063,7 +12826,12 @@ XS(_wrap_Feature_GetFID) {
       
       
     }
-    ST(argvi) = SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(result)); argvi++ ;
+    {
+      char temp[256];
+      sprintf(temp, ""CPL_FRMT_GIB"", result);
+      ST(argvi) = sv_2mortal(newSVpv(temp, 0));
+      argvi++;
+    }
     
     XSRETURN(argvi);
   fail:
@@ -12076,11 +12844,9 @@ XS(_wrap_Feature_GetFID) {
 XS(_wrap_Feature_SetFID) {
   {
     OGRFeatureShadow *arg1 = (OGRFeatureShadow *) 0 ;
-    int arg2 ;
+    GIntBig arg2 ;
     void *argp1 = 0 ;
     int res1 = 0 ;
-    int val2 ;
-    int ecode2 = 0 ;
     int argvi = 0;
     OGRErr result;
     dXSARGS;
@@ -12093,17 +12859,15 @@ XS(_wrap_Feature_SetFID) {
       SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Feature_SetFID" "', argument " "1"" of type '" "OGRFeatureShadow *""'"); 
     }
     arg1 = reinterpret_cast< OGRFeatureShadow * >(argp1);
-    ecode2 = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(1), &val2);
-    if (!SWIG_IsOK(ecode2)) {
-      SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "Feature_SetFID" "', argument " "2"" of type '" "int""'");
-    } 
-    arg2 = static_cast< int >(val2);
+    {
+      arg2 = CPLAtoGIntBig(SvPV_nolen(ST(1)));
+    }
     {
       CPLErrorReset();
       result = (OGRErr)OGRFeatureShadow_SetFID(arg1,arg2);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -12112,7 +12876,7 @@ XS(_wrap_Feature_SetFID) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -12126,15 +12890,13 @@ XS(_wrap_Feature_SetFID) {
       /* %typemap(out) OGRErr */
       if ( result != 0 ) {
         const char *err = CPLGetLastErrorMsg();
-        if (err and *err) SWIG_croak(err); /* this is usually better */
-        SWIG_croak( OGRErrMessages(result) );
+        if (err and *err) do_confess(err, 0); /* this is usually better */
+        do_confess( OGRErrMessages(result), 1 );
       }
     }
     
-    
     XSRETURN(argvi);
   fail:
-    
     
     SWIG_croak_null();
   }
@@ -12162,7 +12924,7 @@ XS(_wrap_Feature_DumpReadable) {
       OGRFeatureShadow_DumpReadable(arg1);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -12171,7 +12933,7 @@ XS(_wrap_Feature_DumpReadable) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -12193,7 +12955,7 @@ XS(_wrap_Feature_DumpReadable) {
 }
 
 
-XS(_wrap_Feature__UnsetField) {
+XS(_wrap_Feature__UnsetField__SWIG_0) {
   {
     OGRFeatureShadow *arg1 = (OGRFeatureShadow *) 0 ;
     int arg2 ;
@@ -12219,10 +12981,10 @@ XS(_wrap_Feature__UnsetField) {
     arg2 = static_cast< int >(val2);
     {
       CPLErrorReset();
-      OGRFeatureShadow_UnsetField(arg1,arg2);
+      OGRFeatureShadow_UnsetField__SWIG_0(arg1,arg2);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -12231,7 +12993,7 @@ XS(_wrap_Feature__UnsetField) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -12255,6 +13017,157 @@ XS(_wrap_Feature__UnsetField) {
 }
 
 
+XS(_wrap_Feature__UnsetField__SWIG_1) {
+  {
+    OGRFeatureShadow *arg1 = (OGRFeatureShadow *) 0 ;
+    char *arg2 = (char *) 0 ;
+    void *argp1 = 0 ;
+    int res1 = 0 ;
+    U8 *tmpbuf2 = NULL ;
+    int argvi = 0;
+    dXSARGS;
+    
+    if ((items < 2) || (items > 2)) {
+      SWIG_croak("Usage: Feature__UnsetField(self,name);");
+    }
+    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OGRFeatureShadow, 0 |  0 );
+    if (!SWIG_IsOK(res1)) {
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Feature__UnsetField" "', argument " "1"" of type '" "OGRFeatureShadow *""'"); 
+    }
+    arg1 = reinterpret_cast< OGRFeatureShadow * >(argp1);
+    {
+      /* %typemap(in,numinputs=1) (const char* name) */
+      arg2 = sv_to_utf8_string(ST(1), &tmpbuf2);
+    }
+    {
+      if (!arg2) {
+        SWIG_exception(SWIG_ValueError,"Received a NULL pointer.");
+      }
+    }
+    {
+      CPLErrorReset();
+      OGRFeatureShadow_UnsetField__SWIG_1(arg1,(char const *)arg2);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        do_confess( CPLGetLastErrorMsg(), 0 );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /*
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
+    {
+      /* %typemap(out) void */
+    }
+    
+    {
+      /* %typemap(freearg) (const char* name) */
+      if (tmpbuf2) free(tmpbuf2);
+    }
+    XSRETURN(argvi);
+  fail:
+    
+    {
+      /* %typemap(freearg) (const char* name) */
+      if (tmpbuf2) free(tmpbuf2);
+    }
+    SWIG_croak_null();
+  }
+}
+
+
+XS(_wrap_Feature__UnsetField) {
+  dXSARGS;
+  
+  {
+    unsigned long _index = 0;
+    SWIG_TypeRank _rank = 0; 
+    if (items == 2) {
+      SWIG_TypeRank _ranki = 0;
+      SWIG_TypeRank _rankm = 0;
+      SWIG_TypeRank _pi = 1;
+      int _v = 0;
+      {
+        void *vptr = 0;
+        int res = SWIG_ConvertPtr(ST(0), &vptr, SWIGTYPE_p_OGRFeatureShadow, 0);
+        _v = SWIG_CheckState(res);
+      }
+      if (!_v) goto check_1;
+      _ranki += _v*_pi;
+      _rankm += _pi;
+      _pi *= SWIG_MAXCASTRANK;
+      {
+        {
+          int res = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(1), NULL);
+          _v = SWIG_CheckState(res);
+        }
+      }
+      if (!_v) goto check_1;
+      _ranki += _v*_pi;
+      _rankm += _pi;
+      _pi *= SWIG_MAXCASTRANK;
+      if (!_index || (_ranki < _rank)) {
+        _rank = _ranki; _index = 1;
+        if (_rank == _rankm) goto dispatch;
+      }
+    }
+  check_1:
+    
+    if (items == 2) {
+      SWIG_TypeRank _ranki = 0;
+      SWIG_TypeRank _rankm = 0;
+      SWIG_TypeRank _pi = 1;
+      int _v = 0;
+      {
+        void *vptr = 0;
+        int res = SWIG_ConvertPtr(ST(0), &vptr, SWIGTYPE_p_OGRFeatureShadow, 0);
+        _v = SWIG_CheckState(res);
+      }
+      if (!_v) goto check_2;
+      _ranki += _v*_pi;
+      _rankm += _pi;
+      _pi *= SWIG_MAXCASTRANK;
+      {
+        int res = SWIG_AsCharPtrAndSize(ST(1), 0, NULL, 0);
+        _v = SWIG_CheckState(res);
+      }
+      if (!_v) goto check_2;
+      _ranki += _v*_pi;
+      _rankm += _pi;
+      _pi *= SWIG_MAXCASTRANK;
+      if (!_index || (_ranki < _rank)) {
+        _rank = _ranki; _index = 2;
+        if (_rank == _rankm) goto dispatch;
+      }
+    }
+  check_2:
+    
+  dispatch:
+    switch(_index) {
+    case 1:
+      PUSHMARK(MARK); SWIG_CALLXS(_wrap_Feature__UnsetField__SWIG_0); return;
+    case 2:
+      PUSHMARK(MARK); SWIG_CALLXS(_wrap_Feature__UnsetField__SWIG_1); return;
+    }
+  }
+  
+  croak("No matching function for overloaded 'Feature__UnsetField'");
+  XSRETURN(0);
+}
+
+
 XS(_wrap_Feature__SetField__SWIG_0) {
   {
     OGRFeatureShadow *arg1 = (OGRFeatureShadow *) 0 ;
@@ -12264,6 +13177,7 @@ XS(_wrap_Feature__SetField__SWIG_0) {
     int res1 = 0 ;
     int val2 ;
     int ecode2 = 0 ;
+    U8 *tmpbuf3 = NULL ;
     int argvi = 0;
     dXSARGS;
     
@@ -12282,15 +13196,14 @@ XS(_wrap_Feature__SetField__SWIG_0) {
     arg2 = static_cast< int >(val2);
     {
       /* %typemap(in) (tostring argin) */
-      sv_utf8_upgrade(ST(2)); /* GDAL expects UTF-8 */
-      arg3 = SvPV_nolen( ST(2) ); 
+      arg3 = sv_to_utf8_string(ST(2), &tmpbuf3);
     }
     {
       CPLErrorReset();
       OGRFeatureShadow_SetField__SWIG_0(arg1,arg2,(char const *)arg3);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -12299,7 +13212,166 @@ XS(_wrap_Feature__SetField__SWIG_0) {
       }
       
       
-      /* 
+      /*
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
+    {
+      /* %typemap(out) void */
+    }
+    
+    
+    {
+      /* %typemap(freearg) (tostring argin) */
+      if (tmpbuf3) free(tmpbuf3);
+    }
+    XSRETURN(argvi);
+  fail:
+    
+    
+    {
+      /* %typemap(freearg) (tostring argin) */
+      if (tmpbuf3) free(tmpbuf3);
+    }
+    SWIG_croak_null();
+  }
+}
+
+
+XS(_wrap_Feature__SetField__SWIG_1) {
+  {
+    OGRFeatureShadow *arg1 = (OGRFeatureShadow *) 0 ;
+    char *arg2 = (char *) 0 ;
+    char *arg3 = (char *) 0 ;
+    void *argp1 = 0 ;
+    int res1 = 0 ;
+    U8 *tmpbuf2 = NULL ;
+    U8 *tmpbuf3 = NULL ;
+    int argvi = 0;
+    dXSARGS;
+    
+    if ((items < 3) || (items > 3)) {
+      SWIG_croak("Usage: Feature__SetField(self,name,value);");
+    }
+    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OGRFeatureShadow, 0 |  0 );
+    if (!SWIG_IsOK(res1)) {
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Feature__SetField" "', argument " "1"" of type '" "OGRFeatureShadow *""'"); 
+    }
+    arg1 = reinterpret_cast< OGRFeatureShadow * >(argp1);
+    {
+      /* %typemap(in,numinputs=1) (const char* name) */
+      arg2 = sv_to_utf8_string(ST(1), &tmpbuf2);
+    }
+    {
+      /* %typemap(in) (tostring argin) */
+      arg3 = sv_to_utf8_string(ST(2), &tmpbuf3);
+    }
+    {
+      if (!arg2) {
+        SWIG_exception(SWIG_ValueError,"Received a NULL pointer.");
+      }
+    }
+    {
+      CPLErrorReset();
+      OGRFeatureShadow_SetField__SWIG_1(arg1,(char const *)arg2,(char const *)arg3);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        do_confess( CPLGetLastErrorMsg(), 0 );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /*
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
+    {
+      /* %typemap(out) void */
+    }
+    
+    {
+      /* %typemap(freearg) (const char* name) */
+      if (tmpbuf2) free(tmpbuf2);
+    }
+    {
+      /* %typemap(freearg) (tostring argin) */
+      if (tmpbuf3) free(tmpbuf3);
+    }
+    XSRETURN(argvi);
+  fail:
+    
+    {
+      /* %typemap(freearg) (const char* name) */
+      if (tmpbuf2) free(tmpbuf2);
+    }
+    {
+      /* %typemap(freearg) (tostring argin) */
+      if (tmpbuf3) free(tmpbuf3);
+    }
+    SWIG_croak_null();
+  }
+}
+
+
+XS(_wrap_Feature_SetFieldInteger64) {
+  {
+    OGRFeatureShadow *arg1 = (OGRFeatureShadow *) 0 ;
+    int arg2 ;
+    GIntBig arg3 ;
+    void *argp1 = 0 ;
+    int res1 = 0 ;
+    int val2 ;
+    int ecode2 = 0 ;
+    int argvi = 0;
+    dXSARGS;
+    
+    if ((items < 3) || (items > 3)) {
+      SWIG_croak("Usage: Feature_SetFieldInteger64(self,id,value);");
+    }
+    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OGRFeatureShadow, 0 |  0 );
+    if (!SWIG_IsOK(res1)) {
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Feature_SetFieldInteger64" "', argument " "1"" of type '" "OGRFeatureShadow *""'"); 
+    }
+    arg1 = reinterpret_cast< OGRFeatureShadow * >(argp1);
+    ecode2 = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(1), &val2);
+    if (!SWIG_IsOK(ecode2)) {
+      SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "Feature_SetFieldInteger64" "', argument " "2"" of type '" "int""'");
+    } 
+    arg2 = static_cast< int >(val2);
+    {
+      arg3 = CPLAtoGIntBig(SvPV_nolen(ST(2)));
+    }
+    {
+      CPLErrorReset();
+      OGRFeatureShadow_SetFieldInteger64(arg1,arg2,arg3);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        do_confess( CPLGetLastErrorMsg(), 0 );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -12323,7 +13395,7 @@ XS(_wrap_Feature__SetField__SWIG_0) {
 }
 
 
-XS(_wrap_Feature__SetField__SWIG_1) {
+XS(_wrap_Feature__SetField__SWIG_2) {
   {
     OGRFeatureShadow *arg1 = (OGRFeatureShadow *) 0 ;
     int arg2 ;
@@ -12357,10 +13429,10 @@ XS(_wrap_Feature__SetField__SWIG_1) {
     arg3 = static_cast< int >(val3);
     {
       CPLErrorReset();
-      OGRFeatureShadow_SetField__SWIG_1(arg1,arg2,arg3);
+      OGRFeatureShadow_SetField__SWIG_2(arg1,arg2,arg3);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -12369,7 +13441,7 @@ XS(_wrap_Feature__SetField__SWIG_1) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -12395,7 +13467,88 @@ XS(_wrap_Feature__SetField__SWIG_1) {
 }
 
 
-XS(_wrap_Feature__SetField__SWIG_2) {
+XS(_wrap_Feature__SetField__SWIG_3) {
+  {
+    OGRFeatureShadow *arg1 = (OGRFeatureShadow *) 0 ;
+    char *arg2 = (char *) 0 ;
+    int arg3 ;
+    void *argp1 = 0 ;
+    int res1 = 0 ;
+    U8 *tmpbuf2 = NULL ;
+    int val3 ;
+    int ecode3 = 0 ;
+    int argvi = 0;
+    dXSARGS;
+    
+    if ((items < 3) || (items > 3)) {
+      SWIG_croak("Usage: Feature__SetField(self,name,value);");
+    }
+    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OGRFeatureShadow, 0 |  0 );
+    if (!SWIG_IsOK(res1)) {
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Feature__SetField" "', argument " "1"" of type '" "OGRFeatureShadow *""'"); 
+    }
+    arg1 = reinterpret_cast< OGRFeatureShadow * >(argp1);
+    {
+      /* %typemap(in,numinputs=1) (const char* name) */
+      arg2 = sv_to_utf8_string(ST(1), &tmpbuf2);
+    }
+    ecode3 = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(2), &val3);
+    if (!SWIG_IsOK(ecode3)) {
+      SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "Feature__SetField" "', argument " "3"" of type '" "int""'");
+    } 
+    arg3 = static_cast< int >(val3);
+    {
+      if (!arg2) {
+        SWIG_exception(SWIG_ValueError,"Received a NULL pointer.");
+      }
+    }
+    {
+      CPLErrorReset();
+      OGRFeatureShadow_SetField__SWIG_3(arg1,(char const *)arg2,arg3);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        do_confess( CPLGetLastErrorMsg(), 0 );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /*
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
+    {
+      /* %typemap(out) void */
+    }
+    
+    {
+      /* %typemap(freearg) (const char* name) */
+      if (tmpbuf2) free(tmpbuf2);
+    }
+    
+    XSRETURN(argvi);
+  fail:
+    
+    {
+      /* %typemap(freearg) (const char* name) */
+      if (tmpbuf2) free(tmpbuf2);
+    }
+    
+    SWIG_croak_null();
+  }
+}
+
+
+XS(_wrap_Feature__SetField__SWIG_4) {
   {
     OGRFeatureShadow *arg1 = (OGRFeatureShadow *) 0 ;
     int arg2 ;
@@ -12429,10 +13582,10 @@ XS(_wrap_Feature__SetField__SWIG_2) {
     arg3 = static_cast< double >(val3);
     {
       CPLErrorReset();
-      OGRFeatureShadow_SetField__SWIG_2(arg1,arg2,arg3);
+      OGRFeatureShadow_SetField__SWIG_4(arg1,arg2,arg3);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -12441,7 +13594,7 @@ XS(_wrap_Feature__SetField__SWIG_2) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -12467,7 +13620,88 @@ XS(_wrap_Feature__SetField__SWIG_2) {
 }
 
 
-XS(_wrap_Feature__SetField__SWIG_3) {
+XS(_wrap_Feature__SetField__SWIG_5) {
+  {
+    OGRFeatureShadow *arg1 = (OGRFeatureShadow *) 0 ;
+    char *arg2 = (char *) 0 ;
+    double arg3 ;
+    void *argp1 = 0 ;
+    int res1 = 0 ;
+    U8 *tmpbuf2 = NULL ;
+    double val3 ;
+    int ecode3 = 0 ;
+    int argvi = 0;
+    dXSARGS;
+    
+    if ((items < 3) || (items > 3)) {
+      SWIG_croak("Usage: Feature__SetField(self,name,value);");
+    }
+    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OGRFeatureShadow, 0 |  0 );
+    if (!SWIG_IsOK(res1)) {
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Feature__SetField" "', argument " "1"" of type '" "OGRFeatureShadow *""'"); 
+    }
+    arg1 = reinterpret_cast< OGRFeatureShadow * >(argp1);
+    {
+      /* %typemap(in,numinputs=1) (const char* name) */
+      arg2 = sv_to_utf8_string(ST(1), &tmpbuf2);
+    }
+    ecode3 = SWIG_AsVal_double SWIG_PERL_CALL_ARGS_2(ST(2), &val3);
+    if (!SWIG_IsOK(ecode3)) {
+      SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "Feature__SetField" "', argument " "3"" of type '" "double""'");
+    } 
+    arg3 = static_cast< double >(val3);
+    {
+      if (!arg2) {
+        SWIG_exception(SWIG_ValueError,"Received a NULL pointer.");
+      }
+    }
+    {
+      CPLErrorReset();
+      OGRFeatureShadow_SetField__SWIG_5(arg1,(char const *)arg2,arg3);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        do_confess( CPLGetLastErrorMsg(), 0 );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /*
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
+    {
+      /* %typemap(out) void */
+    }
+    
+    {
+      /* %typemap(freearg) (const char* name) */
+      if (tmpbuf2) free(tmpbuf2);
+    }
+    
+    XSRETURN(argvi);
+  fail:
+    
+    {
+      /* %typemap(freearg) (const char* name) */
+      if (tmpbuf2) free(tmpbuf2);
+    }
+    
+    SWIG_croak_null();
+  }
+}
+
+
+XS(_wrap_Feature__SetField__SWIG_6) {
   {
     OGRFeatureShadow *arg1 = (OGRFeatureShadow *) 0 ;
     int arg2 ;
@@ -12476,7 +13710,7 @@ XS(_wrap_Feature__SetField__SWIG_3) {
     int arg5 ;
     int arg6 ;
     int arg7 ;
-    int arg8 ;
+    float arg8 ;
     int arg9 ;
     void *argp1 = 0 ;
     int res1 = 0 ;
@@ -12492,7 +13726,7 @@ XS(_wrap_Feature__SetField__SWIG_3) {
     int ecode6 = 0 ;
     int val7 ;
     int ecode7 = 0 ;
-    int val8 ;
+    float val8 ;
     int ecode8 = 0 ;
     int val9 ;
     int ecode9 = 0 ;
@@ -12537,11 +13771,11 @@ XS(_wrap_Feature__SetField__SWIG_3) {
       SWIG_exception_fail(SWIG_ArgError(ecode7), "in method '" "Feature__SetField" "', argument " "7"" of type '" "int""'");
     } 
     arg7 = static_cast< int >(val7);
-    ecode8 = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(7), &val8);
+    ecode8 = SWIG_AsVal_float SWIG_PERL_CALL_ARGS_2(ST(7), &val8);
     if (!SWIG_IsOK(ecode8)) {
-      SWIG_exception_fail(SWIG_ArgError(ecode8), "in method '" "Feature__SetField" "', argument " "8"" of type '" "int""'");
+      SWIG_exception_fail(SWIG_ArgError(ecode8), "in method '" "Feature__SetField" "', argument " "8"" of type '" "float""'");
     } 
-    arg8 = static_cast< int >(val8);
+    arg8 = static_cast< float >(val8);
     ecode9 = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(8), &val9);
     if (!SWIG_IsOK(ecode9)) {
       SWIG_exception_fail(SWIG_ArgError(ecode9), "in method '" "Feature__SetField" "', argument " "9"" of type '" "int""'");
@@ -12549,10 +13783,10 @@ XS(_wrap_Feature__SetField__SWIG_3) {
     arg9 = static_cast< int >(val9);
     {
       CPLErrorReset();
-      OGRFeatureShadow_SetField__SWIG_3(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9);
+      OGRFeatureShadow_SetField__SWIG_6(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -12561,7 +13795,7 @@ XS(_wrap_Feature__SetField__SWIG_3) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -12587,6 +13821,147 @@ XS(_wrap_Feature__SetField__SWIG_3) {
   fail:
     
     
+    
+    
+    
+    
+    
+    
+    
+    SWIG_croak_null();
+  }
+}
+
+
+XS(_wrap_Feature__SetField__SWIG_7) {
+  {
+    OGRFeatureShadow *arg1 = (OGRFeatureShadow *) 0 ;
+    char *arg2 = (char *) 0 ;
+    int arg3 ;
+    int arg4 ;
+    int arg5 ;
+    int arg6 ;
+    int arg7 ;
+    float arg8 ;
+    int arg9 ;
+    void *argp1 = 0 ;
+    int res1 = 0 ;
+    U8 *tmpbuf2 = NULL ;
+    int val3 ;
+    int ecode3 = 0 ;
+    int val4 ;
+    int ecode4 = 0 ;
+    int val5 ;
+    int ecode5 = 0 ;
+    int val6 ;
+    int ecode6 = 0 ;
+    int val7 ;
+    int ecode7 = 0 ;
+    float val8 ;
+    int ecode8 = 0 ;
+    int val9 ;
+    int ecode9 = 0 ;
+    int argvi = 0;
+    dXSARGS;
+    
+    if ((items < 9) || (items > 9)) {
+      SWIG_croak("Usage: Feature__SetField(self,name,year,month,day,hour,minute,second,tzflag);");
+    }
+    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OGRFeatureShadow, 0 |  0 );
+    if (!SWIG_IsOK(res1)) {
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Feature__SetField" "', argument " "1"" of type '" "OGRFeatureShadow *""'"); 
+    }
+    arg1 = reinterpret_cast< OGRFeatureShadow * >(argp1);
+    {
+      /* %typemap(in,numinputs=1) (const char* name) */
+      arg2 = sv_to_utf8_string(ST(1), &tmpbuf2);
+    }
+    ecode3 = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(2), &val3);
+    if (!SWIG_IsOK(ecode3)) {
+      SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "Feature__SetField" "', argument " "3"" of type '" "int""'");
+    } 
+    arg3 = static_cast< int >(val3);
+    ecode4 = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(3), &val4);
+    if (!SWIG_IsOK(ecode4)) {
+      SWIG_exception_fail(SWIG_ArgError(ecode4), "in method '" "Feature__SetField" "', argument " "4"" of type '" "int""'");
+    } 
+    arg4 = static_cast< int >(val4);
+    ecode5 = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(4), &val5);
+    if (!SWIG_IsOK(ecode5)) {
+      SWIG_exception_fail(SWIG_ArgError(ecode5), "in method '" "Feature__SetField" "', argument " "5"" of type '" "int""'");
+    } 
+    arg5 = static_cast< int >(val5);
+    ecode6 = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(5), &val6);
+    if (!SWIG_IsOK(ecode6)) {
+      SWIG_exception_fail(SWIG_ArgError(ecode6), "in method '" "Feature__SetField" "', argument " "6"" of type '" "int""'");
+    } 
+    arg6 = static_cast< int >(val6);
+    ecode7 = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(6), &val7);
+    if (!SWIG_IsOK(ecode7)) {
+      SWIG_exception_fail(SWIG_ArgError(ecode7), "in method '" "Feature__SetField" "', argument " "7"" of type '" "int""'");
+    } 
+    arg7 = static_cast< int >(val7);
+    ecode8 = SWIG_AsVal_float SWIG_PERL_CALL_ARGS_2(ST(7), &val8);
+    if (!SWIG_IsOK(ecode8)) {
+      SWIG_exception_fail(SWIG_ArgError(ecode8), "in method '" "Feature__SetField" "', argument " "8"" of type '" "float""'");
+    } 
+    arg8 = static_cast< float >(val8);
+    ecode9 = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(8), &val9);
+    if (!SWIG_IsOK(ecode9)) {
+      SWIG_exception_fail(SWIG_ArgError(ecode9), "in method '" "Feature__SetField" "', argument " "9"" of type '" "int""'");
+    } 
+    arg9 = static_cast< int >(val9);
+    {
+      if (!arg2) {
+        SWIG_exception(SWIG_ValueError,"Received a NULL pointer.");
+      }
+    }
+    {
+      CPLErrorReset();
+      OGRFeatureShadow_SetField__SWIG_7(arg1,(char const *)arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        do_confess( CPLGetLastErrorMsg(), 0 );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /*
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
+    {
+      /* %typemap(out) void */
+    }
+    
+    {
+      /* %typemap(freearg) (const char* name) */
+      if (tmpbuf2) free(tmpbuf2);
+    }
+    
+    
+    
+    
+    
+    
+    
+    XSRETURN(argvi);
+  fail:
+    
+    {
+      /* %typemap(freearg) (const char* name) */
+      if (tmpbuf2) free(tmpbuf2);
+    }
     
     
     
@@ -12728,7 +14103,7 @@ XS(_wrap_Feature__SetField) {
     }
   check_3:
     
-    if (items == 9) {
+    if (items == 3) {
       SWIG_TypeRank _ranki = 0;
       SWIG_TypeRank _rankm = 0;
       SWIG_TypeRank _pi = 1;
@@ -12743,10 +14118,8 @@ XS(_wrap_Feature__SetField) {
       _rankm += _pi;
       _pi *= SWIG_MAXCASTRANK;
       {
-        {
-          int res = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(1), NULL);
-          _v = SWIG_CheckState(res);
-        }
+        int res = SWIG_AsCharPtrAndSize(ST(1), 0, NULL, 0);
+        _v = SWIG_CheckState(res);
       }
       if (!_v) goto check_4;
       _ranki += _v*_pi;
@@ -12754,68 +14127,8 @@ XS(_wrap_Feature__SetField) {
       _pi *= SWIG_MAXCASTRANK;
       {
         {
-          int res = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(2), NULL);
-          _v = SWIG_CheckState(res);
-        }
-      }
-      if (!_v) goto check_4;
-      _ranki += _v*_pi;
-      _rankm += _pi;
-      _pi *= SWIG_MAXCASTRANK;
-      {
-        {
-          int res = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(3), NULL);
-          _v = SWIG_CheckState(res);
-        }
-      }
-      if (!_v) goto check_4;
-      _ranki += _v*_pi;
-      _rankm += _pi;
-      _pi *= SWIG_MAXCASTRANK;
-      {
-        {
-          int res = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(4), NULL);
-          _v = SWIG_CheckState(res);
-        }
-      }
-      if (!_v) goto check_4;
-      _ranki += _v*_pi;
-      _rankm += _pi;
-      _pi *= SWIG_MAXCASTRANK;
-      {
-        {
-          int res = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(5), NULL);
-          _v = SWIG_CheckState(res);
-        }
-      }
-      if (!_v) goto check_4;
-      _ranki += _v*_pi;
-      _rankm += _pi;
-      _pi *= SWIG_MAXCASTRANK;
-      {
-        {
-          int res = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(6), NULL);
-          _v = SWIG_CheckState(res);
-        }
-      }
-      if (!_v) goto check_4;
-      _ranki += _v*_pi;
-      _rankm += _pi;
-      _pi *= SWIG_MAXCASTRANK;
-      {
-        {
-          int res = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(7), NULL);
-          _v = SWIG_CheckState(res);
-        }
-      }
-      if (!_v) goto check_4;
-      _ranki += _v*_pi;
-      _rankm += _pi;
-      _pi *= SWIG_MAXCASTRANK;
-      {
-        {
-          int res = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(8), NULL);
-          _v = SWIG_CheckState(res);
+          /* %typemap(typecheck,precedence=SWIG_TYPECHECK_POINTER) (tostring argin) */
+          _v = 1;
         }
       }
       if (!_v) goto check_4;
@@ -12829,16 +14142,302 @@ XS(_wrap_Feature__SetField) {
     }
   check_4:
     
+    if (items == 3) {
+      SWIG_TypeRank _ranki = 0;
+      SWIG_TypeRank _rankm = 0;
+      SWIG_TypeRank _pi = 1;
+      int _v = 0;
+      {
+        void *vptr = 0;
+        int res = SWIG_ConvertPtr(ST(0), &vptr, SWIGTYPE_p_OGRFeatureShadow, 0);
+        _v = SWIG_CheckState(res);
+      }
+      if (!_v) goto check_5;
+      _ranki += _v*_pi;
+      _rankm += _pi;
+      _pi *= SWIG_MAXCASTRANK;
+      {
+        int res = SWIG_AsCharPtrAndSize(ST(1), 0, NULL, 0);
+        _v = SWIG_CheckState(res);
+      }
+      if (!_v) goto check_5;
+      _ranki += _v*_pi;
+      _rankm += _pi;
+      _pi *= SWIG_MAXCASTRANK;
+      {
+        {
+          int res = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(2), NULL);
+          _v = SWIG_CheckState(res);
+        }
+      }
+      if (!_v) goto check_5;
+      _ranki += _v*_pi;
+      _rankm += _pi;
+      _pi *= SWIG_MAXCASTRANK;
+      if (!_index || (_ranki < _rank)) {
+        _rank = _ranki; _index = 5;
+        if (_rank == _rankm) goto dispatch;
+      }
+    }
+  check_5:
+    
+    if (items == 3) {
+      SWIG_TypeRank _ranki = 0;
+      SWIG_TypeRank _rankm = 0;
+      SWIG_TypeRank _pi = 1;
+      int _v = 0;
+      {
+        void *vptr = 0;
+        int res = SWIG_ConvertPtr(ST(0), &vptr, SWIGTYPE_p_OGRFeatureShadow, 0);
+        _v = SWIG_CheckState(res);
+      }
+      if (!_v) goto check_6;
+      _ranki += _v*_pi;
+      _rankm += _pi;
+      _pi *= SWIG_MAXCASTRANK;
+      {
+        int res = SWIG_AsCharPtrAndSize(ST(1), 0, NULL, 0);
+        _v = SWIG_CheckState(res);
+      }
+      if (!_v) goto check_6;
+      _ranki += _v*_pi;
+      _rankm += _pi;
+      _pi *= SWIG_MAXCASTRANK;
+      {
+        {
+          int res = SWIG_AsVal_double SWIG_PERL_CALL_ARGS_2(ST(2), NULL);
+          _v = SWIG_CheckState(res);
+        }
+      }
+      if (!_v) goto check_6;
+      _ranki += _v*_pi;
+      _rankm += _pi;
+      _pi *= SWIG_MAXCASTRANK;
+      if (!_index || (_ranki < _rank)) {
+        _rank = _ranki; _index = 6;
+        if (_rank == _rankm) goto dispatch;
+      }
+    }
+  check_6:
+    
+    if (items == 9) {
+      SWIG_TypeRank _ranki = 0;
+      SWIG_TypeRank _rankm = 0;
+      SWIG_TypeRank _pi = 1;
+      int _v = 0;
+      {
+        void *vptr = 0;
+        int res = SWIG_ConvertPtr(ST(0), &vptr, SWIGTYPE_p_OGRFeatureShadow, 0);
+        _v = SWIG_CheckState(res);
+      }
+      if (!_v) goto check_7;
+      _ranki += _v*_pi;
+      _rankm += _pi;
+      _pi *= SWIG_MAXCASTRANK;
+      {
+        {
+          int res = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(1), NULL);
+          _v = SWIG_CheckState(res);
+        }
+      }
+      if (!_v) goto check_7;
+      _ranki += _v*_pi;
+      _rankm += _pi;
+      _pi *= SWIG_MAXCASTRANK;
+      {
+        {
+          int res = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(2), NULL);
+          _v = SWIG_CheckState(res);
+        }
+      }
+      if (!_v) goto check_7;
+      _ranki += _v*_pi;
+      _rankm += _pi;
+      _pi *= SWIG_MAXCASTRANK;
+      {
+        {
+          int res = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(3), NULL);
+          _v = SWIG_CheckState(res);
+        }
+      }
+      if (!_v) goto check_7;
+      _ranki += _v*_pi;
+      _rankm += _pi;
+      _pi *= SWIG_MAXCASTRANK;
+      {
+        {
+          int res = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(4), NULL);
+          _v = SWIG_CheckState(res);
+        }
+      }
+      if (!_v) goto check_7;
+      _ranki += _v*_pi;
+      _rankm += _pi;
+      _pi *= SWIG_MAXCASTRANK;
+      {
+        {
+          int res = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(5), NULL);
+          _v = SWIG_CheckState(res);
+        }
+      }
+      if (!_v) goto check_7;
+      _ranki += _v*_pi;
+      _rankm += _pi;
+      _pi *= SWIG_MAXCASTRANK;
+      {
+        {
+          int res = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(6), NULL);
+          _v = SWIG_CheckState(res);
+        }
+      }
+      if (!_v) goto check_7;
+      _ranki += _v*_pi;
+      _rankm += _pi;
+      _pi *= SWIG_MAXCASTRANK;
+      {
+        {
+          int res = SWIG_AsVal_float SWIG_PERL_CALL_ARGS_2(ST(7), NULL);
+          _v = SWIG_CheckState(res);
+        }
+      }
+      if (!_v) goto check_7;
+      _ranki += _v*_pi;
+      _rankm += _pi;
+      _pi *= SWIG_MAXCASTRANK;
+      {
+        {
+          int res = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(8), NULL);
+          _v = SWIG_CheckState(res);
+        }
+      }
+      if (!_v) goto check_7;
+      _ranki += _v*_pi;
+      _rankm += _pi;
+      _pi *= SWIG_MAXCASTRANK;
+      if (!_index || (_ranki < _rank)) {
+        _rank = _ranki; _index = 7;
+        if (_rank == _rankm) goto dispatch;
+      }
+    }
+  check_7:
+    
+    if (items == 9) {
+      SWIG_TypeRank _ranki = 0;
+      SWIG_TypeRank _rankm = 0;
+      SWIG_TypeRank _pi = 1;
+      int _v = 0;
+      {
+        void *vptr = 0;
+        int res = SWIG_ConvertPtr(ST(0), &vptr, SWIGTYPE_p_OGRFeatureShadow, 0);
+        _v = SWIG_CheckState(res);
+      }
+      if (!_v) goto check_8;
+      _ranki += _v*_pi;
+      _rankm += _pi;
+      _pi *= SWIG_MAXCASTRANK;
+      {
+        int res = SWIG_AsCharPtrAndSize(ST(1), 0, NULL, 0);
+        _v = SWIG_CheckState(res);
+      }
+      if (!_v) goto check_8;
+      _ranki += _v*_pi;
+      _rankm += _pi;
+      _pi *= SWIG_MAXCASTRANK;
+      {
+        {
+          int res = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(2), NULL);
+          _v = SWIG_CheckState(res);
+        }
+      }
+      if (!_v) goto check_8;
+      _ranki += _v*_pi;
+      _rankm += _pi;
+      _pi *= SWIG_MAXCASTRANK;
+      {
+        {
+          int res = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(3), NULL);
+          _v = SWIG_CheckState(res);
+        }
+      }
+      if (!_v) goto check_8;
+      _ranki += _v*_pi;
+      _rankm += _pi;
+      _pi *= SWIG_MAXCASTRANK;
+      {
+        {
+          int res = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(4), NULL);
+          _v = SWIG_CheckState(res);
+        }
+      }
+      if (!_v) goto check_8;
+      _ranki += _v*_pi;
+      _rankm += _pi;
+      _pi *= SWIG_MAXCASTRANK;
+      {
+        {
+          int res = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(5), NULL);
+          _v = SWIG_CheckState(res);
+        }
+      }
+      if (!_v) goto check_8;
+      _ranki += _v*_pi;
+      _rankm += _pi;
+      _pi *= SWIG_MAXCASTRANK;
+      {
+        {
+          int res = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(6), NULL);
+          _v = SWIG_CheckState(res);
+        }
+      }
+      if (!_v) goto check_8;
+      _ranki += _v*_pi;
+      _rankm += _pi;
+      _pi *= SWIG_MAXCASTRANK;
+      {
+        {
+          int res = SWIG_AsVal_float SWIG_PERL_CALL_ARGS_2(ST(7), NULL);
+          _v = SWIG_CheckState(res);
+        }
+      }
+      if (!_v) goto check_8;
+      _ranki += _v*_pi;
+      _rankm += _pi;
+      _pi *= SWIG_MAXCASTRANK;
+      {
+        {
+          int res = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(8), NULL);
+          _v = SWIG_CheckState(res);
+        }
+      }
+      if (!_v) goto check_8;
+      _ranki += _v*_pi;
+      _rankm += _pi;
+      _pi *= SWIG_MAXCASTRANK;
+      if (!_index || (_ranki < _rank)) {
+        _rank = _ranki; _index = 8;
+        if (_rank == _rankm) goto dispatch;
+      }
+    }
+  check_8:
+    
   dispatch:
     switch(_index) {
     case 1:
       PUSHMARK(MARK); SWIG_CALLXS(_wrap_Feature__SetField__SWIG_0); return;
     case 2:
-      PUSHMARK(MARK); SWIG_CALLXS(_wrap_Feature__SetField__SWIG_1); return;
-    case 3:
       PUSHMARK(MARK); SWIG_CALLXS(_wrap_Feature__SetField__SWIG_2); return;
+    case 3:
+      PUSHMARK(MARK); SWIG_CALLXS(_wrap_Feature__SetField__SWIG_4); return;
     case 4:
+      PUSHMARK(MARK); SWIG_CALLXS(_wrap_Feature__SetField__SWIG_1); return;
+    case 5:
       PUSHMARK(MARK); SWIG_CALLXS(_wrap_Feature__SetField__SWIG_3); return;
+    case 6:
+      PUSHMARK(MARK); SWIG_CALLXS(_wrap_Feature__SetField__SWIG_5); return;
+    case 7:
+      PUSHMARK(MARK); SWIG_CALLXS(_wrap_Feature__SetField__SWIG_6); return;
+    case 8:
+      PUSHMARK(MARK); SWIG_CALLXS(_wrap_Feature__SetField__SWIG_7); return;
     }
   }
   
@@ -12847,7 +14446,7 @@ XS(_wrap_Feature__SetField) {
 }
 
 
-XS(_wrap_Feature_SetFieldIntegerList) {
+XS(_wrap_Feature_SetFieldIntegerList__SWIG_0) {
   {
     OGRFeatureShadow *arg1 = (OGRFeatureShadow *) 0 ;
     int arg2 ;
@@ -12876,21 +14475,24 @@ XS(_wrap_Feature_SetFieldIntegerList) {
     {
       /* %typemap(in,numinputs=1) (int nList, int* pList) */
       if (!(SvROK(ST(2)) && (SvTYPE(SvRV(ST(2)))==SVt_PVAV)))
-      SWIG_croak("expected a reference to an array as an argument to a Geo::GDAL method");
+      do_confess(NEED_ARRAY_REF, 1);
       AV *av = (AV*)(SvRV(ST(2)));
       arg3 = av_len(av)+1;
-      arg4 = (int*) malloc(arg3*sizeof(int));
-      for( int i = 0; i<arg3; i++ ) {
-        SV **sv = av_fetch(av, i, 0);
-        arg4[i] =  SvIV(*sv);
-      }
+      arg4 = (int*)CPLMalloc(arg3*sizeof(int));
+      if (arg4) {
+        for( int i = 0; i<arg3; i++ ) {
+          SV **sv = av_fetch(av, i, 0);
+          arg4[i] =  SvIV(*sv);
+        }
+      } else
+      SWIG_fail;
     }
     {
       CPLErrorReset();
-      OGRFeatureShadow_SetFieldIntegerList(arg1,arg2,arg3,arg4);
+      OGRFeatureShadow_SetFieldIntegerList__SWIG_0(arg1,arg2,arg3,arg4);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -12899,7 +14501,7 @@ XS(_wrap_Feature_SetFieldIntegerList) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -12916,8 +14518,7 @@ XS(_wrap_Feature_SetFieldIntegerList) {
     
     {
       /* %typemap(freearg) (int nList, int* pList) */
-      if (arg4)
-      free((void*) arg4);
+      CPLFree((void*) arg4);
     }
     XSRETURN(argvi);
   fail:
@@ -12925,15 +14526,541 @@ XS(_wrap_Feature_SetFieldIntegerList) {
     
     {
       /* %typemap(freearg) (int nList, int* pList) */
-      if (arg4)
-      free((void*) arg4);
+      CPLFree((void*) arg4);
     }
     SWIG_croak_null();
   }
 }
 
 
-XS(_wrap_Feature_SetFieldDoubleList) {
+XS(_wrap_Feature_SetFieldIntegerList__SWIG_1) {
+  {
+    OGRFeatureShadow *arg1 = (OGRFeatureShadow *) 0 ;
+    char *arg2 = (char *) 0 ;
+    int arg3 ;
+    int *arg4 = (int *) 0 ;
+    void *argp1 = 0 ;
+    int res1 = 0 ;
+    U8 *tmpbuf2 = NULL ;
+    int argvi = 0;
+    dXSARGS;
+    
+    if ((items < 3) || (items > 3)) {
+      SWIG_croak("Usage: Feature_SetFieldIntegerList(self,name,nList,pList);");
+    }
+    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OGRFeatureShadow, 0 |  0 );
+    if (!SWIG_IsOK(res1)) {
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Feature_SetFieldIntegerList" "', argument " "1"" of type '" "OGRFeatureShadow *""'"); 
+    }
+    arg1 = reinterpret_cast< OGRFeatureShadow * >(argp1);
+    {
+      /* %typemap(in,numinputs=1) (const char* name) */
+      arg2 = sv_to_utf8_string(ST(1), &tmpbuf2);
+    }
+    {
+      /* %typemap(in,numinputs=1) (int nList, int* pList) */
+      if (!(SvROK(ST(2)) && (SvTYPE(SvRV(ST(2)))==SVt_PVAV)))
+      do_confess(NEED_ARRAY_REF, 1);
+      AV *av = (AV*)(SvRV(ST(2)));
+      arg3 = av_len(av)+1;
+      arg4 = (int*)CPLMalloc(arg3*sizeof(int));
+      if (arg4) {
+        for( int i = 0; i<arg3; i++ ) {
+          SV **sv = av_fetch(av, i, 0);
+          arg4[i] =  SvIV(*sv);
+        }
+      } else
+      SWIG_fail;
+    }
+    {
+      if (!arg2) {
+        SWIG_exception(SWIG_ValueError,"Received a NULL pointer.");
+      }
+    }
+    {
+      CPLErrorReset();
+      OGRFeatureShadow_SetFieldIntegerList__SWIG_1(arg1,(char const *)arg2,arg3,arg4);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        do_confess( CPLGetLastErrorMsg(), 0 );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /*
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
+    {
+      /* %typemap(out) void */
+    }
+    
+    {
+      /* %typemap(freearg) (const char* name) */
+      if (tmpbuf2) free(tmpbuf2);
+    }
+    {
+      /* %typemap(freearg) (int nList, int* pList) */
+      CPLFree((void*) arg4);
+    }
+    XSRETURN(argvi);
+  fail:
+    
+    {
+      /* %typemap(freearg) (const char* name) */
+      if (tmpbuf2) free(tmpbuf2);
+    }
+    {
+      /* %typemap(freearg) (int nList, int* pList) */
+      CPLFree((void*) arg4);
+    }
+    SWIG_croak_null();
+  }
+}
+
+
+XS(_wrap_Feature_SetFieldIntegerList) {
+  dXSARGS;
+  
+  {
+    unsigned long _index = 0;
+    SWIG_TypeRank _rank = 0; 
+    if (items == 3) {
+      SWIG_TypeRank _ranki = 0;
+      SWIG_TypeRank _rankm = 0;
+      SWIG_TypeRank _pi = 1;
+      int _v = 0;
+      {
+        void *vptr = 0;
+        int res = SWIG_ConvertPtr(ST(0), &vptr, SWIGTYPE_p_OGRFeatureShadow, 0);
+        _v = SWIG_CheckState(res);
+      }
+      if (!_v) goto check_1;
+      _ranki += _v*_pi;
+      _rankm += _pi;
+      _pi *= SWIG_MAXCASTRANK;
+      {
+        {
+          int res = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(1), NULL);
+          _v = SWIG_CheckState(res);
+        }
+      }
+      if (!_v) goto check_1;
+      _ranki += _v*_pi;
+      _rankm += _pi;
+      _pi *= SWIG_MAXCASTRANK;
+      {
+        {
+          /* %typemap(typecheck, precedence=SWIG_TYPECHECK_INTEGER) int nList, GUIntBig* pList */
+          _v = 1;
+        }
+      }
+      if (!_v) goto check_1;
+      _ranki += _v*_pi;
+      _rankm += _pi;
+      _pi *= SWIG_MAXCASTRANK;
+      if (items > 3) {
+        {
+          {
+            /* %typemap(typecheck, precedence=SWIG_TYPECHECK_INTEGER) int nList, int* pList */
+            _v = 1;
+          }
+        }
+        if (!_v) goto check_1;
+        _ranki += _v*_pi;
+        _rankm += _pi;
+        _pi *= SWIG_MAXCASTRANK;
+      }
+      if (!_index || (_ranki < _rank)) {
+        _rank = _ranki; _index = 1;
+        if (_rank == _rankm) goto dispatch;
+      }
+    }
+  check_1:
+    
+    if (items == 3) {
+      SWIG_TypeRank _ranki = 0;
+      SWIG_TypeRank _rankm = 0;
+      SWIG_TypeRank _pi = 1;
+      int _v = 0;
+      {
+        void *vptr = 0;
+        int res = SWIG_ConvertPtr(ST(0), &vptr, SWIGTYPE_p_OGRFeatureShadow, 0);
+        _v = SWIG_CheckState(res);
+      }
+      if (!_v) goto check_2;
+      _ranki += _v*_pi;
+      _rankm += _pi;
+      _pi *= SWIG_MAXCASTRANK;
+      {
+        int res = SWIG_AsCharPtrAndSize(ST(1), 0, NULL, 0);
+        _v = SWIG_CheckState(res);
+      }
+      if (!_v) goto check_2;
+      _ranki += _v*_pi;
+      _rankm += _pi;
+      _pi *= SWIG_MAXCASTRANK;
+      {
+        {
+          /* %typemap(typecheck, precedence=SWIG_TYPECHECK_INTEGER) int nList, GUIntBig* pList */
+          _v = 1;
+        }
+      }
+      if (!_v) goto check_2;
+      _ranki += _v*_pi;
+      _rankm += _pi;
+      _pi *= SWIG_MAXCASTRANK;
+      if (items > 3) {
+        {
+          {
+            /* %typemap(typecheck, precedence=SWIG_TYPECHECK_INTEGER) int nList, int* pList */
+            _v = 1;
+          }
+        }
+        if (!_v) goto check_2;
+        _ranki += _v*_pi;
+        _rankm += _pi;
+        _pi *= SWIG_MAXCASTRANK;
+      }
+      if (!_index || (_ranki < _rank)) {
+        _rank = _ranki; _index = 2;
+        if (_rank == _rankm) goto dispatch;
+      }
+    }
+  check_2:
+    
+  dispatch:
+    switch(_index) {
+    case 1:
+      PUSHMARK(MARK); SWIG_CALLXS(_wrap_Feature_SetFieldIntegerList__SWIG_0); return;
+    case 2:
+      PUSHMARK(MARK); SWIG_CALLXS(_wrap_Feature_SetFieldIntegerList__SWIG_1); return;
+    }
+  }
+  
+  croak("No matching function for overloaded 'Feature_SetFieldIntegerList'");
+  XSRETURN(0);
+}
+
+
+XS(_wrap_Feature_SetFieldInteger64List__SWIG_0) {
+  {
+    OGRFeatureShadow *arg1 = (OGRFeatureShadow *) 0 ;
+    int arg2 ;
+    int arg3 ;
+    GIntBig *arg4 = (GIntBig *) 0 ;
+    void *argp1 = 0 ;
+    int res1 = 0 ;
+    int val2 ;
+    int ecode2 = 0 ;
+    int argvi = 0;
+    dXSARGS;
+    
+    if ((items < 3) || (items > 3)) {
+      SWIG_croak("Usage: Feature_SetFieldInteger64List(self,id,nList,pList);");
+    }
+    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OGRFeatureShadow, 0 |  0 );
+    if (!SWIG_IsOK(res1)) {
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Feature_SetFieldInteger64List" "', argument " "1"" of type '" "OGRFeatureShadow *""'"); 
+    }
+    arg1 = reinterpret_cast< OGRFeatureShadow * >(argp1);
+    ecode2 = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(1), &val2);
+    if (!SWIG_IsOK(ecode2)) {
+      SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "Feature_SetFieldInteger64List" "', argument " "2"" of type '" "int""'");
+    } 
+    arg2 = static_cast< int >(val2);
+    {
+      /* %typemap(in,numinputs=1) (int nList, GIntBig* pList) */
+      if (!(SvROK(ST(2)) && (SvTYPE(SvRV(ST(2)))==SVt_PVAV)))
+      do_confess(NEED_ARRAY_REF, 1);
+      AV *av = (AV*)(SvRV(ST(2)));
+      arg3 = av_len(av)+1;
+      arg4 = (GIntBig*)CPLMalloc(arg3*sizeof(GIntBig));
+      if (arg4) {
+        for( int i = 0; i<arg3; i++ ) {
+          SV **sv = av_fetch(av, i, 0);
+          arg4[i] =  CPLAtoGIntBig(SvPV_nolen(*sv));
+        }
+      } else
+      SWIG_fail;
+    }
+    {
+      CPLErrorReset();
+      OGRFeatureShadow_SetFieldInteger64List__SWIG_0(arg1,arg2,arg3,arg4);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        do_confess( CPLGetLastErrorMsg(), 0 );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /*
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
+    {
+      /* %typemap(out) void */
+    }
+    
+    
+    {
+      /* %typemap(freearg) (int nList, GIntBig* pList) */
+      CPLFree((void*) arg4);
+    }
+    XSRETURN(argvi);
+  fail:
+    
+    
+    {
+      /* %typemap(freearg) (int nList, GIntBig* pList) */
+      CPLFree((void*) arg4);
+    }
+    SWIG_croak_null();
+  }
+}
+
+
+XS(_wrap_Feature_SetFieldInteger64List__SWIG_1) {
+  {
+    OGRFeatureShadow *arg1 = (OGRFeatureShadow *) 0 ;
+    char *arg2 = (char *) 0 ;
+    int arg3 ;
+    GIntBig *arg4 = (GIntBig *) 0 ;
+    void *argp1 = 0 ;
+    int res1 = 0 ;
+    U8 *tmpbuf2 = NULL ;
+    int argvi = 0;
+    dXSARGS;
+    
+    if ((items < 3) || (items > 3)) {
+      SWIG_croak("Usage: Feature_SetFieldInteger64List(self,name,nList,pList);");
+    }
+    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OGRFeatureShadow, 0 |  0 );
+    if (!SWIG_IsOK(res1)) {
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Feature_SetFieldInteger64List" "', argument " "1"" of type '" "OGRFeatureShadow *""'"); 
+    }
+    arg1 = reinterpret_cast< OGRFeatureShadow * >(argp1);
+    {
+      /* %typemap(in,numinputs=1) (const char* name) */
+      arg2 = sv_to_utf8_string(ST(1), &tmpbuf2);
+    }
+    {
+      /* %typemap(in,numinputs=1) (int nList, GIntBig* pList) */
+      if (!(SvROK(ST(2)) && (SvTYPE(SvRV(ST(2)))==SVt_PVAV)))
+      do_confess(NEED_ARRAY_REF, 1);
+      AV *av = (AV*)(SvRV(ST(2)));
+      arg3 = av_len(av)+1;
+      arg4 = (GIntBig*)CPLMalloc(arg3*sizeof(GIntBig));
+      if (arg4) {
+        for( int i = 0; i<arg3; i++ ) {
+          SV **sv = av_fetch(av, i, 0);
+          arg4[i] =  CPLAtoGIntBig(SvPV_nolen(*sv));
+        }
+      } else
+      SWIG_fail;
+    }
+    {
+      if (!arg2) {
+        SWIG_exception(SWIG_ValueError,"Received a NULL pointer.");
+      }
+    }
+    {
+      CPLErrorReset();
+      OGRFeatureShadow_SetFieldInteger64List__SWIG_1(arg1,(char const *)arg2,arg3,arg4);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        do_confess( CPLGetLastErrorMsg(), 0 );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /*
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
+    {
+      /* %typemap(out) void */
+    }
+    
+    {
+      /* %typemap(freearg) (const char* name) */
+      if (tmpbuf2) free(tmpbuf2);
+    }
+    {
+      /* %typemap(freearg) (int nList, GIntBig* pList) */
+      CPLFree((void*) arg4);
+    }
+    XSRETURN(argvi);
+  fail:
+    
+    {
+      /* %typemap(freearg) (const char* name) */
+      if (tmpbuf2) free(tmpbuf2);
+    }
+    {
+      /* %typemap(freearg) (int nList, GIntBig* pList) */
+      CPLFree((void*) arg4);
+    }
+    SWIG_croak_null();
+  }
+}
+
+
+XS(_wrap_Feature_SetFieldInteger64List) {
+  dXSARGS;
+  
+  {
+    unsigned long _index = 0;
+    SWIG_TypeRank _rank = 0; 
+    if (items == 3) {
+      SWIG_TypeRank _ranki = 0;
+      SWIG_TypeRank _rankm = 0;
+      SWIG_TypeRank _pi = 1;
+      int _v = 0;
+      {
+        void *vptr = 0;
+        int res = SWIG_ConvertPtr(ST(0), &vptr, SWIGTYPE_p_OGRFeatureShadow, 0);
+        _v = SWIG_CheckState(res);
+      }
+      if (!_v) goto check_1;
+      _ranki += _v*_pi;
+      _rankm += _pi;
+      _pi *= SWIG_MAXCASTRANK;
+      {
+        {
+          int res = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(1), NULL);
+          _v = SWIG_CheckState(res);
+        }
+      }
+      if (!_v) goto check_1;
+      _ranki += _v*_pi;
+      _rankm += _pi;
+      _pi *= SWIG_MAXCASTRANK;
+      {
+        {
+          /* %typemap(typecheck, precedence=SWIG_TYPECHECK_INTEGER) int nList, GUIntBig* pList */
+          _v = 1;
+        }
+      }
+      if (!_v) goto check_1;
+      _ranki += _v*_pi;
+      _rankm += _pi;
+      _pi *= SWIG_MAXCASTRANK;
+      if (items > 3) {
+        {
+          {
+            /* %typemap(typecheck, precedence=SWIG_TYPECHECK_INTEGER) int nList, GIntBig* pList */
+            _v = 1;
+          }
+        }
+        if (!_v) goto check_1;
+        _ranki += _v*_pi;
+        _rankm += _pi;
+        _pi *= SWIG_MAXCASTRANK;
+      }
+      if (!_index || (_ranki < _rank)) {
+        _rank = _ranki; _index = 1;
+        if (_rank == _rankm) goto dispatch;
+      }
+    }
+  check_1:
+    
+    if (items == 3) {
+      SWIG_TypeRank _ranki = 0;
+      SWIG_TypeRank _rankm = 0;
+      SWIG_TypeRank _pi = 1;
+      int _v = 0;
+      {
+        void *vptr = 0;
+        int res = SWIG_ConvertPtr(ST(0), &vptr, SWIGTYPE_p_OGRFeatureShadow, 0);
+        _v = SWIG_CheckState(res);
+      }
+      if (!_v) goto check_2;
+      _ranki += _v*_pi;
+      _rankm += _pi;
+      _pi *= SWIG_MAXCASTRANK;
+      {
+        int res = SWIG_AsCharPtrAndSize(ST(1), 0, NULL, 0);
+        _v = SWIG_CheckState(res);
+      }
+      if (!_v) goto check_2;
+      _ranki += _v*_pi;
+      _rankm += _pi;
+      _pi *= SWIG_MAXCASTRANK;
+      {
+        {
+          /* %typemap(typecheck, precedence=SWIG_TYPECHECK_INTEGER) int nList, GUIntBig* pList */
+          _v = 1;
+        }
+      }
+      if (!_v) goto check_2;
+      _ranki += _v*_pi;
+      _rankm += _pi;
+      _pi *= SWIG_MAXCASTRANK;
+      if (items > 3) {
+        {
+          {
+            /* %typemap(typecheck, precedence=SWIG_TYPECHECK_INTEGER) int nList, GIntBig* pList */
+            _v = 1;
+          }
+        }
+        if (!_v) goto check_2;
+        _ranki += _v*_pi;
+        _rankm += _pi;
+        _pi *= SWIG_MAXCASTRANK;
+      }
+      if (!_index || (_ranki < _rank)) {
+        _rank = _ranki; _index = 2;
+        if (_rank == _rankm) goto dispatch;
+      }
+    }
+  check_2:
+    
+  dispatch:
+    switch(_index) {
+    case 1:
+      PUSHMARK(MARK); SWIG_CALLXS(_wrap_Feature_SetFieldInteger64List__SWIG_0); return;
+    case 2:
+      PUSHMARK(MARK); SWIG_CALLXS(_wrap_Feature_SetFieldInteger64List__SWIG_1); return;
+    }
+  }
+  
+  croak("No matching function for overloaded 'Feature_SetFieldInteger64List'");
+  XSRETURN(0);
+}
+
+
+XS(_wrap_Feature_SetFieldDoubleList__SWIG_0) {
   {
     OGRFeatureShadow *arg1 = (OGRFeatureShadow *) 0 ;
     int arg2 ;
@@ -12962,21 +15089,24 @@ XS(_wrap_Feature_SetFieldDoubleList) {
     {
       /* %typemap(in,numinputs=1) (int nList, double* pList) */
       if (!(SvROK(ST(2)) && (SvTYPE(SvRV(ST(2)))==SVt_PVAV)))
-      SWIG_croak("expected a reference to an array as an argument to a Geo::GDAL method");
+      do_confess(NEED_ARRAY_REF, 1);
       AV *av = (AV*)(SvRV(ST(2)));
       arg3 = av_len(av)+1;
-      arg4 = (double*) malloc(arg3*sizeof(double));
-      for( int i = 0; i<arg3; i++ ) {
-        SV **sv = av_fetch(av, i, 0);
-        arg4[i] =  SvNV(*sv);
-      }
+      arg4 = (double*)CPLMalloc(arg3*sizeof(double));
+      if (arg4) {
+        for( int i = 0; i<arg3; i++ ) {
+          SV **sv = av_fetch(av, i, 0);
+          arg4[i] =  SvNV(*sv);
+        }
+      } else
+      SWIG_fail;
     }
     {
       CPLErrorReset();
-      OGRFeatureShadow_SetFieldDoubleList(arg1,arg2,arg3,arg4);
+      OGRFeatureShadow_SetFieldDoubleList__SWIG_0(arg1,arg2,arg3,arg4);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -12985,7 +15115,7 @@ XS(_wrap_Feature_SetFieldDoubleList) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -13002,8 +15132,7 @@ XS(_wrap_Feature_SetFieldDoubleList) {
     
     {
       /* %typemap(freearg) (int nList, double* pList) */
-      if (arg4)
-      free((void*) arg4);
+      CPLFree((void*) arg4);
     }
     XSRETURN(argvi);
   fail:
@@ -13011,15 +15140,232 @@ XS(_wrap_Feature_SetFieldDoubleList) {
     
     {
       /* %typemap(freearg) (int nList, double* pList) */
-      if (arg4)
-      free((void*) arg4);
+      CPLFree((void*) arg4);
     }
     SWIG_croak_null();
   }
 }
 
 
-XS(_wrap_Feature_SetFieldStringList) {
+XS(_wrap_Feature_SetFieldDoubleList__SWIG_1) {
+  {
+    OGRFeatureShadow *arg1 = (OGRFeatureShadow *) 0 ;
+    char *arg2 = (char *) 0 ;
+    int arg3 ;
+    double *arg4 = (double *) 0 ;
+    void *argp1 = 0 ;
+    int res1 = 0 ;
+    U8 *tmpbuf2 = NULL ;
+    int argvi = 0;
+    dXSARGS;
+    
+    if ((items < 3) || (items > 3)) {
+      SWIG_croak("Usage: Feature_SetFieldDoubleList(self,name,nList,pList);");
+    }
+    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OGRFeatureShadow, 0 |  0 );
+    if (!SWIG_IsOK(res1)) {
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Feature_SetFieldDoubleList" "', argument " "1"" of type '" "OGRFeatureShadow *""'"); 
+    }
+    arg1 = reinterpret_cast< OGRFeatureShadow * >(argp1);
+    {
+      /* %typemap(in,numinputs=1) (const char* name) */
+      arg2 = sv_to_utf8_string(ST(1), &tmpbuf2);
+    }
+    {
+      /* %typemap(in,numinputs=1) (int nList, double* pList) */
+      if (!(SvROK(ST(2)) && (SvTYPE(SvRV(ST(2)))==SVt_PVAV)))
+      do_confess(NEED_ARRAY_REF, 1);
+      AV *av = (AV*)(SvRV(ST(2)));
+      arg3 = av_len(av)+1;
+      arg4 = (double*)CPLMalloc(arg3*sizeof(double));
+      if (arg4) {
+        for( int i = 0; i<arg3; i++ ) {
+          SV **sv = av_fetch(av, i, 0);
+          arg4[i] =  SvNV(*sv);
+        }
+      } else
+      SWIG_fail;
+    }
+    {
+      if (!arg2) {
+        SWIG_exception(SWIG_ValueError,"Received a NULL pointer.");
+      }
+    }
+    {
+      CPLErrorReset();
+      OGRFeatureShadow_SetFieldDoubleList__SWIG_1(arg1,(char const *)arg2,arg3,arg4);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        do_confess( CPLGetLastErrorMsg(), 0 );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /*
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
+    {
+      /* %typemap(out) void */
+    }
+    
+    {
+      /* %typemap(freearg) (const char* name) */
+      if (tmpbuf2) free(tmpbuf2);
+    }
+    {
+      /* %typemap(freearg) (int nList, double* pList) */
+      CPLFree((void*) arg4);
+    }
+    XSRETURN(argvi);
+  fail:
+    
+    {
+      /* %typemap(freearg) (const char* name) */
+      if (tmpbuf2) free(tmpbuf2);
+    }
+    {
+      /* %typemap(freearg) (int nList, double* pList) */
+      CPLFree((void*) arg4);
+    }
+    SWIG_croak_null();
+  }
+}
+
+
+XS(_wrap_Feature_SetFieldDoubleList) {
+  dXSARGS;
+  
+  {
+    unsigned long _index = 0;
+    SWIG_TypeRank _rank = 0; 
+    if (items == 3) {
+      SWIG_TypeRank _ranki = 0;
+      SWIG_TypeRank _rankm = 0;
+      SWIG_TypeRank _pi = 1;
+      int _v = 0;
+      {
+        void *vptr = 0;
+        int res = SWIG_ConvertPtr(ST(0), &vptr, SWIGTYPE_p_OGRFeatureShadow, 0);
+        _v = SWIG_CheckState(res);
+      }
+      if (!_v) goto check_1;
+      _ranki += _v*_pi;
+      _rankm += _pi;
+      _pi *= SWIG_MAXCASTRANK;
+      {
+        {
+          int res = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(1), NULL);
+          _v = SWIG_CheckState(res);
+        }
+      }
+      if (!_v) goto check_1;
+      _ranki += _v*_pi;
+      _rankm += _pi;
+      _pi *= SWIG_MAXCASTRANK;
+      {
+        {
+          /* %typemap(typecheck, precedence=SWIG_TYPECHECK_INTEGER) int nList, GUIntBig* pList */
+          _v = 1;
+        }
+      }
+      if (!_v) goto check_1;
+      _ranki += _v*_pi;
+      _rankm += _pi;
+      _pi *= SWIG_MAXCASTRANK;
+      if (items > 3) {
+        {
+          void *vptr = 0;
+          int res = SWIG_ConvertPtr(ST(3), &vptr, SWIGTYPE_p_double, 0);
+          _v = SWIG_CheckState(res);
+        }
+        if (!_v) goto check_1;
+        _ranki += _v*_pi;
+        _rankm += _pi;
+        _pi *= SWIG_MAXCASTRANK;
+      }
+      if (!_index || (_ranki < _rank)) {
+        _rank = _ranki; _index = 1;
+        if (_rank == _rankm) goto dispatch;
+      }
+    }
+  check_1:
+    
+    if (items == 3) {
+      SWIG_TypeRank _ranki = 0;
+      SWIG_TypeRank _rankm = 0;
+      SWIG_TypeRank _pi = 1;
+      int _v = 0;
+      {
+        void *vptr = 0;
+        int res = SWIG_ConvertPtr(ST(0), &vptr, SWIGTYPE_p_OGRFeatureShadow, 0);
+        _v = SWIG_CheckState(res);
+      }
+      if (!_v) goto check_2;
+      _ranki += _v*_pi;
+      _rankm += _pi;
+      _pi *= SWIG_MAXCASTRANK;
+      {
+        int res = SWIG_AsCharPtrAndSize(ST(1), 0, NULL, 0);
+        _v = SWIG_CheckState(res);
+      }
+      if (!_v) goto check_2;
+      _ranki += _v*_pi;
+      _rankm += _pi;
+      _pi *= SWIG_MAXCASTRANK;
+      {
+        {
+          /* %typemap(typecheck, precedence=SWIG_TYPECHECK_INTEGER) int nList, GUIntBig* pList */
+          _v = 1;
+        }
+      }
+      if (!_v) goto check_2;
+      _ranki += _v*_pi;
+      _rankm += _pi;
+      _pi *= SWIG_MAXCASTRANK;
+      if (items > 3) {
+        {
+          void *vptr = 0;
+          int res = SWIG_ConvertPtr(ST(3), &vptr, SWIGTYPE_p_double, 0);
+          _v = SWIG_CheckState(res);
+        }
+        if (!_v) goto check_2;
+        _ranki += _v*_pi;
+        _rankm += _pi;
+        _pi *= SWIG_MAXCASTRANK;
+      }
+      if (!_index || (_ranki < _rank)) {
+        _rank = _ranki; _index = 2;
+        if (_rank == _rankm) goto dispatch;
+      }
+    }
+  check_2:
+    
+  dispatch:
+    switch(_index) {
+    case 1:
+      PUSHMARK(MARK); SWIG_CALLXS(_wrap_Feature_SetFieldDoubleList__SWIG_0); return;
+    case 2:
+      PUSHMARK(MARK); SWIG_CALLXS(_wrap_Feature_SetFieldDoubleList__SWIG_1); return;
+    }
+  }
+  
+  croak("No matching function for overloaded 'Feature_SetFieldDoubleList'");
+  XSRETURN(0);
+}
+
+
+XS(_wrap_Feature_SetFieldStringList__SWIG_0) {
   {
     OGRFeatureShadow *arg1 = (OGRFeatureShadow *) 0 ;
     int arg2 ;
@@ -13052,9 +15398,9 @@ XS(_wrap_Feature_SetFieldStringList) {
             AV *av = (AV*)(SvRV(ST(2)));
             for (int i = 0; i < av_len(av)+1; i++) {
               SV *sv = *(av_fetch(av, i, 0));
-              sv_utf8_upgrade(sv); /* GDAL expects UTF-8 */
-              char *pszItem = SvPV_nolen(sv);
-              arg3 = CSLAddString( arg3, pszItem );
+              char *tmp = sv_to_utf8_string(sv, NULL);
+              arg3 = CSLAddString(arg3, tmp);
+              free(tmp);
             }
           } else if (SvTYPE(SvRV(ST(2)))==SVt_PVHV) {
             HV *hv = (HV*)SvRV(ST(2));
@@ -13063,22 +15409,23 @@ XS(_wrap_Feature_SetFieldStringList) {
             I32 klen;
             arg3 = NULL;
             hv_iterinit(hv);
-            while(sv = hv_iternextsv(hv,&key,&klen)) {
-              sv_utf8_upgrade(sv); /* GDAL expects UTF-8 */
-              arg3 = CSLAddNameValue( arg3, key, SvPV_nolen(sv) );
+            while(sv = hv_iternextsv(hv, &key, &klen)) {
+              char *tmp = sv_to_utf8_string(sv, NULL);
+              arg3 = CSLAddNameValue(arg3, key, tmp);
+              free(tmp);
             }
           } else
-          SWIG_croak("the 'options' argument to a Geo::GDAL method is not a reference to an array or hash");
+          do_confess(NEED_REF, 1);
         } else
-        SWIG_croak("the 'options' argument to a Geo::GDAL method is not a reference");   
+        do_confess(NEED_REF, 1);
       }
     }
     {
       CPLErrorReset();
-      OGRFeatureShadow_SetFieldStringList(arg1,arg2,arg3);
+      OGRFeatureShadow_SetFieldStringList__SWIG_0(arg1,arg2,arg3);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -13087,7 +15434,7 @@ XS(_wrap_Feature_SetFieldStringList) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -13116,6 +15463,487 @@ XS(_wrap_Feature_SetFieldStringList) {
     }
     SWIG_croak_null();
   }
+}
+
+
+XS(_wrap_Feature_SetFieldStringList__SWIG_1) {
+  {
+    OGRFeatureShadow *arg1 = (OGRFeatureShadow *) 0 ;
+    char *arg2 = (char *) 0 ;
+    char **arg3 = (char **) 0 ;
+    void *argp1 = 0 ;
+    int res1 = 0 ;
+    U8 *tmpbuf2 = NULL ;
+    int argvi = 0;
+    dXSARGS;
+    
+    if ((items < 3) || (items > 3)) {
+      SWIG_croak("Usage: Feature_SetFieldStringList(self,name,pList);");
+    }
+    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OGRFeatureShadow, 0 |  0 );
+    if (!SWIG_IsOK(res1)) {
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Feature_SetFieldStringList" "', argument " "1"" of type '" "OGRFeatureShadow *""'"); 
+    }
+    arg1 = reinterpret_cast< OGRFeatureShadow * >(argp1);
+    {
+      /* %typemap(in,numinputs=1) (const char* name) */
+      arg2 = sv_to_utf8_string(ST(1), &tmpbuf2);
+    }
+    {
+      /* %typemap(in) char **options */
+      if (SvOK(ST(2))) {
+        if (SvROK(ST(2))) {
+          if (SvTYPE(SvRV(ST(2)))==SVt_PVAV) {
+            AV *av = (AV*)(SvRV(ST(2)));
+            for (int i = 0; i < av_len(av)+1; i++) {
+              SV *sv = *(av_fetch(av, i, 0));
+              char *tmp = sv_to_utf8_string(sv, NULL);
+              arg3 = CSLAddString(arg3, tmp);
+              free(tmp);
+            }
+          } else if (SvTYPE(SvRV(ST(2)))==SVt_PVHV) {
+            HV *hv = (HV*)SvRV(ST(2));
+            SV *sv;
+            char *key;
+            I32 klen;
+            arg3 = NULL;
+            hv_iterinit(hv);
+            while(sv = hv_iternextsv(hv, &key, &klen)) {
+              char *tmp = sv_to_utf8_string(sv, NULL);
+              arg3 = CSLAddNameValue(arg3, key, tmp);
+              free(tmp);
+            }
+          } else
+          do_confess(NEED_REF, 1);
+        } else
+        do_confess(NEED_REF, 1);
+      }
+    }
+    {
+      if (!arg2) {
+        SWIG_exception(SWIG_ValueError,"Received a NULL pointer.");
+      }
+    }
+    {
+      CPLErrorReset();
+      OGRFeatureShadow_SetFieldStringList__SWIG_1(arg1,(char const *)arg2,arg3);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        do_confess( CPLGetLastErrorMsg(), 0 );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /*
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
+    {
+      /* %typemap(out) void */
+    }
+    
+    {
+      /* %typemap(freearg) (const char* name) */
+      if (tmpbuf2) free(tmpbuf2);
+    }
+    {
+      /* %typemap(freearg) char **options */
+      if (arg3) CSLDestroy( arg3 );
+    }
+    XSRETURN(argvi);
+  fail:
+    
+    {
+      /* %typemap(freearg) (const char* name) */
+      if (tmpbuf2) free(tmpbuf2);
+    }
+    {
+      /* %typemap(freearg) char **options */
+      if (arg3) CSLDestroy( arg3 );
+    }
+    SWIG_croak_null();
+  }
+}
+
+
+XS(_wrap_Feature_SetFieldStringList) {
+  dXSARGS;
+  
+  {
+    unsigned long _index = 0;
+    SWIG_TypeRank _rank = 0; 
+    if (items == 3) {
+      SWIG_TypeRank _ranki = 0;
+      SWIG_TypeRank _rankm = 0;
+      SWIG_TypeRank _pi = 1;
+      int _v = 0;
+      {
+        void *vptr = 0;
+        int res = SWIG_ConvertPtr(ST(0), &vptr, SWIGTYPE_p_OGRFeatureShadow, 0);
+        _v = SWIG_CheckState(res);
+      }
+      if (!_v) goto check_1;
+      _ranki += _v*_pi;
+      _rankm += _pi;
+      _pi *= SWIG_MAXCASTRANK;
+      {
+        {
+          int res = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(1), NULL);
+          _v = SWIG_CheckState(res);
+        }
+      }
+      if (!_v) goto check_1;
+      _ranki += _v*_pi;
+      _rankm += _pi;
+      _pi *= SWIG_MAXCASTRANK;
+      {
+        {
+          /* %typemap(typecheck,precedence=SWIG_TYPECHECK_POINTER) char **options */
+          _v = 1;
+        }
+      }
+      if (!_v) goto check_1;
+      _ranki += _v*_pi;
+      _rankm += _pi;
+      _pi *= SWIG_MAXCASTRANK;
+      if (!_index || (_ranki < _rank)) {
+        _rank = _ranki; _index = 1;
+        if (_rank == _rankm) goto dispatch;
+      }
+    }
+  check_1:
+    
+    if (items == 3) {
+      SWIG_TypeRank _ranki = 0;
+      SWIG_TypeRank _rankm = 0;
+      SWIG_TypeRank _pi = 1;
+      int _v = 0;
+      {
+        void *vptr = 0;
+        int res = SWIG_ConvertPtr(ST(0), &vptr, SWIGTYPE_p_OGRFeatureShadow, 0);
+        _v = SWIG_CheckState(res);
+      }
+      if (!_v) goto check_2;
+      _ranki += _v*_pi;
+      _rankm += _pi;
+      _pi *= SWIG_MAXCASTRANK;
+      {
+        int res = SWIG_AsCharPtrAndSize(ST(1), 0, NULL, 0);
+        _v = SWIG_CheckState(res);
+      }
+      if (!_v) goto check_2;
+      _ranki += _v*_pi;
+      _rankm += _pi;
+      _pi *= SWIG_MAXCASTRANK;
+      {
+        {
+          /* %typemap(typecheck,precedence=SWIG_TYPECHECK_POINTER) char **options */
+          _v = 1;
+        }
+      }
+      if (!_v) goto check_2;
+      _ranki += _v*_pi;
+      _rankm += _pi;
+      _pi *= SWIG_MAXCASTRANK;
+      if (!_index || (_ranki < _rank)) {
+        _rank = _ranki; _index = 2;
+        if (_rank == _rankm) goto dispatch;
+      }
+    }
+  check_2:
+    
+  dispatch:
+    switch(_index) {
+    case 1:
+      PUSHMARK(MARK); SWIG_CALLXS(_wrap_Feature_SetFieldStringList__SWIG_0); return;
+    case 2:
+      PUSHMARK(MARK); SWIG_CALLXS(_wrap_Feature_SetFieldStringList__SWIG_1); return;
+    }
+  }
+  
+  croak("No matching function for overloaded 'Feature_SetFieldStringList'");
+  XSRETURN(0);
+}
+
+
+XS(_wrap_Feature_SetFieldBinary__SWIG_0) {
+  {
+    OGRFeatureShadow *arg1 = (OGRFeatureShadow *) 0 ;
+    int arg2 ;
+    int arg3 ;
+    GByte *arg4 = (GByte *) 0 ;
+    void *argp1 = 0 ;
+    int res1 = 0 ;
+    int val2 ;
+    int ecode2 = 0 ;
+    int argvi = 0;
+    dXSARGS;
+    
+    if ((items < 3) || (items > 3)) {
+      SWIG_croak("Usage: Feature_SetFieldBinary(self,i,nBytes,pabyBuf);");
+    }
+    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OGRFeatureShadow, 0 |  0 );
+    if (!SWIG_IsOK(res1)) {
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Feature_SetFieldBinary" "', argument " "1"" of type '" "OGRFeatureShadow *""'"); 
+    }
+    arg1 = reinterpret_cast< OGRFeatureShadow * >(argp1);
+    ecode2 = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(1), &val2);
+    if (!SWIG_IsOK(ecode2)) {
+      SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "Feature_SetFieldBinary" "', argument " "2"" of type '" "int""'");
+    } 
+    arg2 = static_cast< int >(val2);
+    {
+      /* %typemap(in,numinputs=1) (int nBytes, GByte* pabyBuf) */
+      arg3 = SvCUR(ST(2));
+      arg4 = (GByte*)SvPV_nolen(ST(2));
+    }
+    {
+      CPLErrorReset();
+      OGRFeatureShadow_SetFieldBinary__SWIG_0(arg1,arg2,arg3,arg4);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        do_confess( CPLGetLastErrorMsg(), 0 );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /*
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
+    {
+      /* %typemap(out) void */
+    }
+    
+    
+    XSRETURN(argvi);
+  fail:
+    
+    
+    SWIG_croak_null();
+  }
+}
+
+
+XS(_wrap_Feature_SetFieldBinary__SWIG_1) {
+  {
+    OGRFeatureShadow *arg1 = (OGRFeatureShadow *) 0 ;
+    char *arg2 = (char *) 0 ;
+    int arg3 ;
+    GByte *arg4 = (GByte *) 0 ;
+    void *argp1 = 0 ;
+    int res1 = 0 ;
+    U8 *tmpbuf2 = NULL ;
+    int argvi = 0;
+    dXSARGS;
+    
+    if ((items < 3) || (items > 3)) {
+      SWIG_croak("Usage: Feature_SetFieldBinary(self,name,nBytes,pabyBuf);");
+    }
+    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OGRFeatureShadow, 0 |  0 );
+    if (!SWIG_IsOK(res1)) {
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Feature_SetFieldBinary" "', argument " "1"" of type '" "OGRFeatureShadow *""'"); 
+    }
+    arg1 = reinterpret_cast< OGRFeatureShadow * >(argp1);
+    {
+      /* %typemap(in,numinputs=1) (const char* name) */
+      arg2 = sv_to_utf8_string(ST(1), &tmpbuf2);
+    }
+    {
+      /* %typemap(in,numinputs=1) (int nBytes, GByte* pabyBuf) */
+      arg3 = SvCUR(ST(2));
+      arg4 = (GByte*)SvPV_nolen(ST(2));
+    }
+    {
+      if (!arg2) {
+        SWIG_exception(SWIG_ValueError,"Received a NULL pointer.");
+      }
+    }
+    {
+      CPLErrorReset();
+      OGRFeatureShadow_SetFieldBinary__SWIG_1(arg1,(char const *)arg2,arg3,arg4);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        do_confess( CPLGetLastErrorMsg(), 0 );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /*
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
+    {
+      /* %typemap(out) void */
+    }
+    
+    {
+      /* %typemap(freearg) (const char* name) */
+      if (tmpbuf2) free(tmpbuf2);
+    }
+    XSRETURN(argvi);
+  fail:
+    
+    {
+      /* %typemap(freearg) (const char* name) */
+      if (tmpbuf2) free(tmpbuf2);
+    }
+    SWIG_croak_null();
+  }
+}
+
+
+XS(_wrap_Feature_SetFieldBinary) {
+  dXSARGS;
+  
+  {
+    unsigned long _index = 0;
+    SWIG_TypeRank _rank = 0; 
+    if (items == 3) {
+      SWIG_TypeRank _ranki = 0;
+      SWIG_TypeRank _rankm = 0;
+      SWIG_TypeRank _pi = 1;
+      int _v = 0;
+      {
+        void *vptr = 0;
+        int res = SWIG_ConvertPtr(ST(0), &vptr, SWIGTYPE_p_OGRFeatureShadow, 0);
+        _v = SWIG_CheckState(res);
+      }
+      if (!_v) goto check_1;
+      _ranki += _v*_pi;
+      _rankm += _pi;
+      _pi *= SWIG_MAXCASTRANK;
+      {
+        {
+          int res = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(1), NULL);
+          _v = SWIG_CheckState(res);
+        }
+      }
+      if (!_v) goto check_1;
+      _ranki += _v*_pi;
+      _rankm += _pi;
+      _pi *= SWIG_MAXCASTRANK;
+      {
+        {
+          /* %typemap(typecheck, precedence=SWIG_TYPECHECK_INTEGER) int nBytes, GByte* pabyBuf */
+          _v = 1;
+        }
+      }
+      if (!_v) goto check_1;
+      _ranki += _v*_pi;
+      _rankm += _pi;
+      _pi *= SWIG_MAXCASTRANK;
+      if (items > 3) {
+        {
+          {
+            /* %typemap(typecheck, precedence=SWIG_TYPECHECK_INTEGER) int nBytes, GByte* pabyBuf */
+            _v = 1;
+          }
+        }
+        if (!_v) goto check_1;
+        _ranki += _v*_pi;
+        _rankm += _pi;
+        _pi *= SWIG_MAXCASTRANK;
+      }
+      if (!_index || (_ranki < _rank)) {
+        _rank = _ranki; _index = 1;
+        if (_rank == _rankm) goto dispatch;
+      }
+    }
+  check_1:
+    
+    if (items == 3) {
+      SWIG_TypeRank _ranki = 0;
+      SWIG_TypeRank _rankm = 0;
+      SWIG_TypeRank _pi = 1;
+      int _v = 0;
+      {
+        void *vptr = 0;
+        int res = SWIG_ConvertPtr(ST(0), &vptr, SWIGTYPE_p_OGRFeatureShadow, 0);
+        _v = SWIG_CheckState(res);
+      }
+      if (!_v) goto check_2;
+      _ranki += _v*_pi;
+      _rankm += _pi;
+      _pi *= SWIG_MAXCASTRANK;
+      {
+        int res = SWIG_AsCharPtrAndSize(ST(1), 0, NULL, 0);
+        _v = SWIG_CheckState(res);
+      }
+      if (!_v) goto check_2;
+      _ranki += _v*_pi;
+      _rankm += _pi;
+      _pi *= SWIG_MAXCASTRANK;
+      {
+        {
+          /* %typemap(typecheck, precedence=SWIG_TYPECHECK_INTEGER) int nBytes, GByte* pabyBuf */
+          _v = 1;
+        }
+      }
+      if (!_v) goto check_2;
+      _ranki += _v*_pi;
+      _rankm += _pi;
+      _pi *= SWIG_MAXCASTRANK;
+      if (items > 3) {
+        {
+          {
+            /* %typemap(typecheck, precedence=SWIG_TYPECHECK_INTEGER) int nBytes, GByte* pabyBuf */
+            _v = 1;
+          }
+        }
+        if (!_v) goto check_2;
+        _ranki += _v*_pi;
+        _rankm += _pi;
+        _pi *= SWIG_MAXCASTRANK;
+      }
+      if (!_index || (_ranki < _rank)) {
+        _rank = _ranki; _index = 2;
+        if (_rank == _rankm) goto dispatch;
+      }
+    }
+  check_2:
+    
+  dispatch:
+    switch(_index) {
+    case 1:
+      PUSHMARK(MARK); SWIG_CALLXS(_wrap_Feature_SetFieldBinary__SWIG_0); return;
+    case 2:
+      PUSHMARK(MARK); SWIG_CALLXS(_wrap_Feature_SetFieldBinary__SWIG_1); return;
+    }
+  }
+  
+  croak("No matching function for overloaded 'Feature_SetFieldBinary'");
+  XSRETURN(0);
 }
 
 
@@ -13157,7 +15985,7 @@ XS(_wrap_Feature_SetFieldBinaryFromHexString__SWIG_0) {
       OGRFeatureShadow_SetFieldBinaryFromHexString__SWIG_0(arg1,arg2,(char const *)arg3);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -13166,7 +15994,7 @@ XS(_wrap_Feature_SetFieldBinaryFromHexString__SWIG_0) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -13199,6 +16027,7 @@ XS(_wrap_Feature_SetFieldBinaryFromHexString__SWIG_1) {
     char *arg3 = (char *) 0 ;
     void *argp1 = 0 ;
     int res1 = 0 ;
+    U8 *tmpbuf2 = NULL ;
     int res3 ;
     char *buf3 = 0 ;
     int alloc3 = 0 ;
@@ -13215,8 +16044,7 @@ XS(_wrap_Feature_SetFieldBinaryFromHexString__SWIG_1) {
     arg1 = reinterpret_cast< OGRFeatureShadow * >(argp1);
     {
       /* %typemap(in,numinputs=1) (const char* name) */
-      sv_utf8_upgrade(ST(1));
-      arg2 = SvPV_nolen(ST(1));
+      arg2 = sv_to_utf8_string(ST(1), &tmpbuf2);
     }
     res3 = SWIG_AsCharPtrAndSize(ST(2), &buf3, NULL, &alloc3);
     if (!SWIG_IsOK(res3)) {
@@ -13233,7 +16061,7 @@ XS(_wrap_Feature_SetFieldBinaryFromHexString__SWIG_1) {
       OGRFeatureShadow_SetFieldBinaryFromHexString__SWIG_1(arg1,(char const *)arg2,(char const *)arg3);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -13242,7 +16070,7 @@ XS(_wrap_Feature_SetFieldBinaryFromHexString__SWIG_1) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -13256,10 +16084,18 @@ XS(_wrap_Feature_SetFieldBinaryFromHexString__SWIG_1) {
       /* %typemap(out) void */
     }
     
+    {
+      /* %typemap(freearg) (const char* name) */
+      if (tmpbuf2) free(tmpbuf2);
+    }
     if (alloc3 == SWIG_NEWOBJ) delete[] buf3;
     XSRETURN(argvi);
   fail:
     
+    {
+      /* %typemap(freearg) (const char* name) */
+      if (tmpbuf2) free(tmpbuf2);
+    }
     if (alloc3 == SWIG_NEWOBJ) delete[] buf3;
     SWIG_croak_null();
   }
@@ -13407,7 +16243,7 @@ XS(_wrap_Feature__SetFrom) {
       result = (OGRErr)OGRFeatureShadow_SetFrom(arg1,arg2,arg3);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -13416,7 +16252,7 @@ XS(_wrap_Feature__SetFrom) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -13430,8 +16266,8 @@ XS(_wrap_Feature__SetFrom) {
       /* %typemap(out) OGRErr */
       if ( result != 0 ) {
         const char *err = CPLGetLastErrorMsg();
-        if (err and *err) SWIG_croak(err); /* this is usually better */
-        SWIG_croak( OGRErrMessages(result) );
+        if (err and *err) do_confess(err, 0); /* this is usually better */
+        do_confess( OGRErrMessages(result), 1 );
       }
     }
     
@@ -13485,14 +16321,17 @@ XS(_wrap_Feature_SetFromWithMap) {
     {
       /* %typemap(in,numinputs=1) (int nList, int* pList) */
       if (!(SvROK(ST(3)) && (SvTYPE(SvRV(ST(3)))==SVt_PVAV)))
-      SWIG_croak("expected a reference to an array as an argument to a Geo::GDAL method");
+      do_confess(NEED_ARRAY_REF, 1);
       AV *av = (AV*)(SvRV(ST(3)));
       arg4 = av_len(av)+1;
-      arg5 = (int*) malloc(arg4*sizeof(int));
-      for( int i = 0; i<arg4; i++ ) {
-        SV **sv = av_fetch(av, i, 0);
-        arg5[i] =  SvIV(*sv);
-      }
+      arg5 = (int*)CPLMalloc(arg4*sizeof(int));
+      if (arg5) {
+        for( int i = 0; i<arg4; i++ ) {
+          SV **sv = av_fetch(av, i, 0);
+          arg5[i] =  SvIV(*sv);
+        }
+      } else
+      SWIG_fail;
     }
     {
       if (!arg2) {
@@ -13504,7 +16343,7 @@ XS(_wrap_Feature_SetFromWithMap) {
       result = (OGRErr)OGRFeatureShadow_SetFromWithMap(arg1,arg2,arg3,arg4,arg5);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -13513,7 +16352,7 @@ XS(_wrap_Feature_SetFromWithMap) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -13527,8 +16366,8 @@ XS(_wrap_Feature_SetFromWithMap) {
       /* %typemap(out) OGRErr */
       if ( result != 0 ) {
         const char *err = CPLGetLastErrorMsg();
-        if (err and *err) SWIG_croak(err); /* this is usually better */
-        SWIG_croak( OGRErrMessages(result) );
+        if (err and *err) do_confess(err, 0); /* this is usually better */
+        do_confess( OGRErrMessages(result), 1 );
       }
     }
     
@@ -13536,8 +16375,7 @@ XS(_wrap_Feature_SetFromWithMap) {
     
     {
       /* %typemap(freearg) (int nList, int* pList) */
-      if (arg5)
-      free((void*) arg5);
+      CPLFree((void*) arg5);
     }
     XSRETURN(argvi);
   fail:
@@ -13546,8 +16384,7 @@ XS(_wrap_Feature_SetFromWithMap) {
     
     {
       /* %typemap(freearg) (int nList, int* pList) */
-      if (arg5)
-      free((void*) arg5);
+      CPLFree((void*) arg5);
     }
     SWIG_croak_null();
   }
@@ -13576,7 +16413,7 @@ XS(_wrap_Feature_GetStyleString) {
       result = (char *)OGRFeatureShadow_GetStyleString(arg1);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -13585,7 +16422,7 @@ XS(_wrap_Feature_GetStyleString) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -13641,7 +16478,7 @@ XS(_wrap_Feature_SetStyleString) {
       OGRFeatureShadow_SetStyleString(arg1,(char const *)arg2);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -13650,7 +16487,7 @@ XS(_wrap_Feature_SetStyleString) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -13674,7 +16511,7 @@ XS(_wrap_Feature_SetStyleString) {
 }
 
 
-XS(_wrap_Feature__GetFieldType__SWIG_0) {
+XS(_wrap_Feature_GetFieldType__SWIG_0) {
   {
     OGRFeatureShadow *arg1 = (OGRFeatureShadow *) 0 ;
     int arg2 ;
@@ -13687,16 +16524,16 @@ XS(_wrap_Feature__GetFieldType__SWIG_0) {
     dXSARGS;
     
     if ((items < 2) || (items > 2)) {
-      SWIG_croak("Usage: Feature__GetFieldType(self,id);");
+      SWIG_croak("Usage: Feature_GetFieldType(self,id);");
     }
     res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OGRFeatureShadow, 0 |  0 );
     if (!SWIG_IsOK(res1)) {
-      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Feature__GetFieldType" "', argument " "1"" of type '" "OGRFeatureShadow *""'"); 
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Feature_GetFieldType" "', argument " "1"" of type '" "OGRFeatureShadow *""'"); 
     }
     arg1 = reinterpret_cast< OGRFeatureShadow * >(argp1);
     ecode2 = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(1), &val2);
     if (!SWIG_IsOK(ecode2)) {
-      SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "Feature__GetFieldType" "', argument " "2"" of type '" "int""'");
+      SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "Feature_GetFieldType" "', argument " "2"" of type '" "int""'");
     } 
     arg2 = static_cast< int >(val2);
     {
@@ -13704,7 +16541,7 @@ XS(_wrap_Feature__GetFieldType__SWIG_0) {
       result = (OGRFieldType)OGRFeatureShadow_GetFieldType__SWIG_0(arg1,arg2);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -13713,7 +16550,7 @@ XS(_wrap_Feature__GetFieldType__SWIG_0) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -13735,28 +16572,28 @@ XS(_wrap_Feature__GetFieldType__SWIG_0) {
 }
 
 
-XS(_wrap_Feature__GetFieldType__SWIG_1) {
+XS(_wrap_Feature_GetFieldType__SWIG_1) {
   {
     OGRFeatureShadow *arg1 = (OGRFeatureShadow *) 0 ;
     char *arg2 = (char *) 0 ;
     void *argp1 = 0 ;
     int res1 = 0 ;
+    U8 *tmpbuf2 = NULL ;
     int argvi = 0;
     OGRFieldType result;
     dXSARGS;
     
     if ((items < 2) || (items > 2)) {
-      SWIG_croak("Usage: Feature__GetFieldType(self,name);");
+      SWIG_croak("Usage: Feature_GetFieldType(self,name);");
     }
     res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OGRFeatureShadow, 0 |  0 );
     if (!SWIG_IsOK(res1)) {
-      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Feature__GetFieldType" "', argument " "1"" of type '" "OGRFeatureShadow *""'"); 
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Feature_GetFieldType" "', argument " "1"" of type '" "OGRFeatureShadow *""'"); 
     }
     arg1 = reinterpret_cast< OGRFeatureShadow * >(argp1);
     {
       /* %typemap(in,numinputs=1) (const char* name) */
-      sv_utf8_upgrade(ST(1));
-      arg2 = SvPV_nolen(ST(1));
+      arg2 = sv_to_utf8_string(ST(1), &tmpbuf2);
     }
     {
       if (!arg2) {
@@ -13768,7 +16605,7 @@ XS(_wrap_Feature__GetFieldType__SWIG_1) {
       result = (OGRFieldType)OGRFeatureShadow_GetFieldType__SWIG_1(arg1,(char const *)arg2);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -13777,7 +16614,7 @@ XS(_wrap_Feature__GetFieldType__SWIG_1) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -13789,15 +16626,23 @@ XS(_wrap_Feature__GetFieldType__SWIG_1) {
     }
     ST(argvi) = SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(result)); argvi++ ;
     
+    {
+      /* %typemap(freearg) (const char* name) */
+      if (tmpbuf2) free(tmpbuf2);
+    }
     XSRETURN(argvi);
   fail:
     
+    {
+      /* %typemap(freearg) (const char* name) */
+      if (tmpbuf2) free(tmpbuf2);
+    }
     SWIG_croak_null();
   }
 }
 
 
-XS(_wrap_Feature__GetFieldType) {
+XS(_wrap_Feature_GetFieldType) {
   dXSARGS;
   
   {
@@ -13866,14 +16711,434 @@ XS(_wrap_Feature__GetFieldType) {
   dispatch:
     switch(_index) {
     case 1:
-      PUSHMARK(MARK); SWIG_CALLXS(_wrap_Feature__GetFieldType__SWIG_0); return;
+      PUSHMARK(MARK); SWIG_CALLXS(_wrap_Feature_GetFieldType__SWIG_0); return;
     case 2:
-      PUSHMARK(MARK); SWIG_CALLXS(_wrap_Feature__GetFieldType__SWIG_1); return;
+      PUSHMARK(MARK); SWIG_CALLXS(_wrap_Feature_GetFieldType__SWIG_1); return;
     }
   }
   
-  croak("No matching function for overloaded 'Feature__GetFieldType'");
+  croak("No matching function for overloaded 'Feature_GetFieldType'");
   XSRETURN(0);
+}
+
+
+XS(_wrap_Feature__Validate) {
+  {
+    OGRFeatureShadow *arg1 = (OGRFeatureShadow *) 0 ;
+    int arg2 = (int) OGR_F_VAL_ALL ;
+    int arg3 = (int) TRUE ;
+    void *argp1 = 0 ;
+    int res1 = 0 ;
+    int val2 ;
+    int ecode2 = 0 ;
+    int val3 ;
+    int ecode3 = 0 ;
+    int argvi = 0;
+    int result;
+    dXSARGS;
+    
+    if ((items < 1) || (items > 3)) {
+      SWIG_croak("Usage: Feature__Validate(self,flags,bEmitError);");
+    }
+    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OGRFeatureShadow, 0 |  0 );
+    if (!SWIG_IsOK(res1)) {
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Feature__Validate" "', argument " "1"" of type '" "OGRFeatureShadow *""'"); 
+    }
+    arg1 = reinterpret_cast< OGRFeatureShadow * >(argp1);
+    if (items > 1) {
+      ecode2 = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(1), &val2);
+      if (!SWIG_IsOK(ecode2)) {
+        SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "Feature__Validate" "', argument " "2"" of type '" "int""'");
+      } 
+      arg2 = static_cast< int >(val2);
+    }
+    if (items > 2) {
+      ecode3 = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(2), &val3);
+      if (!SWIG_IsOK(ecode3)) {
+        SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "Feature__Validate" "', argument " "3"" of type '" "int""'");
+      } 
+      arg3 = static_cast< int >(val3);
+    }
+    {
+      CPLErrorReset();
+      result = (int)OGRFeatureShadow_Validate(arg1,arg2,arg3);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        do_confess( CPLGetLastErrorMsg(), 0 );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /*
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
+    ST(argvi) = SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(result)); argvi++ ;
+    
+    
+    
+    XSRETURN(argvi);
+  fail:
+    
+    
+    
+    SWIG_croak_null();
+  }
+}
+
+
+XS(_wrap_Feature_FillUnsetWithDefault) {
+  {
+    OGRFeatureShadow *arg1 = (OGRFeatureShadow *) 0 ;
+    int arg2 = (int) FALSE ;
+    char **arg3 = (char **) NULL ;
+    void *argp1 = 0 ;
+    int res1 = 0 ;
+    int val2 ;
+    int ecode2 = 0 ;
+    int argvi = 0;
+    dXSARGS;
+    
+    if ((items < 1) || (items > 3)) {
+      SWIG_croak("Usage: Feature_FillUnsetWithDefault(self,bNotNullableOnly,options);");
+    }
+    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OGRFeatureShadow, 0 |  0 );
+    if (!SWIG_IsOK(res1)) {
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Feature_FillUnsetWithDefault" "', argument " "1"" of type '" "OGRFeatureShadow *""'"); 
+    }
+    arg1 = reinterpret_cast< OGRFeatureShadow * >(argp1);
+    if (items > 1) {
+      ecode2 = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(1), &val2);
+      if (!SWIG_IsOK(ecode2)) {
+        SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "Feature_FillUnsetWithDefault" "', argument " "2"" of type '" "int""'");
+      } 
+      arg2 = static_cast< int >(val2);
+    }
+    if (items > 2) {
+      {
+        /* %typemap(in) char **options */
+        if (SvOK(ST(2))) {
+          if (SvROK(ST(2))) {
+            if (SvTYPE(SvRV(ST(2)))==SVt_PVAV) {
+              AV *av = (AV*)(SvRV(ST(2)));
+              for (int i = 0; i < av_len(av)+1; i++) {
+                SV *sv = *(av_fetch(av, i, 0));
+                char *tmp = sv_to_utf8_string(sv, NULL);
+                arg3 = CSLAddString(arg3, tmp);
+                free(tmp);
+              }
+            } else if (SvTYPE(SvRV(ST(2)))==SVt_PVHV) {
+              HV *hv = (HV*)SvRV(ST(2));
+              SV *sv;
+              char *key;
+              I32 klen;
+              arg3 = NULL;
+              hv_iterinit(hv);
+              while(sv = hv_iternextsv(hv, &key, &klen)) {
+                char *tmp = sv_to_utf8_string(sv, NULL);
+                arg3 = CSLAddNameValue(arg3, key, tmp);
+                free(tmp);
+              }
+            } else
+            do_confess(NEED_REF, 1);
+          } else
+          do_confess(NEED_REF, 1);
+        }
+      }
+    }
+    {
+      CPLErrorReset();
+      OGRFeatureShadow_FillUnsetWithDefault(arg1,arg2,arg3);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        do_confess( CPLGetLastErrorMsg(), 0 );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /*
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
+    {
+      /* %typemap(out) void */
+    }
+    
+    
+    {
+      /* %typemap(freearg) char **options */
+      if (arg3) CSLDestroy( arg3 );
+    }
+    XSRETURN(argvi);
+  fail:
+    
+    
+    {
+      /* %typemap(freearg) char **options */
+      if (arg3) CSLDestroy( arg3 );
+    }
+    SWIG_croak_null();
+  }
+}
+
+
+XS(_wrap_Feature_GetNativeData) {
+  {
+    OGRFeatureShadow *arg1 = (OGRFeatureShadow *) 0 ;
+    void *argp1 = 0 ;
+    int res1 = 0 ;
+    int argvi = 0;
+    char *result = 0 ;
+    dXSARGS;
+    
+    if ((items < 1) || (items > 1)) {
+      SWIG_croak("Usage: Feature_GetNativeData(self);");
+    }
+    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OGRFeatureShadow, 0 |  0 );
+    if (!SWIG_IsOK(res1)) {
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Feature_GetNativeData" "', argument " "1"" of type '" "OGRFeatureShadow *""'"); 
+    }
+    arg1 = reinterpret_cast< OGRFeatureShadow * >(argp1);
+    {
+      CPLErrorReset();
+      result = (char *)OGRFeatureShadow_GetNativeData(arg1);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        do_confess( CPLGetLastErrorMsg(), 0 );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /*
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
+    {
+      /* %typemap(out) const char * */
+      ST(argvi) = newSVpv(result, 0);
+      SvUTF8_on(ST(argvi)); /* expecting GDAL to give us UTF-8 */
+      sv_2mortal(ST(argvi));
+      argvi++;
+    }
+    
+    XSRETURN(argvi);
+  fail:
+    
+    SWIG_croak_null();
+  }
+}
+
+
+XS(_wrap_Feature_GetNativeMediaType) {
+  {
+    OGRFeatureShadow *arg1 = (OGRFeatureShadow *) 0 ;
+    void *argp1 = 0 ;
+    int res1 = 0 ;
+    int argvi = 0;
+    char *result = 0 ;
+    dXSARGS;
+    
+    if ((items < 1) || (items > 1)) {
+      SWIG_croak("Usage: Feature_GetNativeMediaType(self);");
+    }
+    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OGRFeatureShadow, 0 |  0 );
+    if (!SWIG_IsOK(res1)) {
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Feature_GetNativeMediaType" "', argument " "1"" of type '" "OGRFeatureShadow *""'"); 
+    }
+    arg1 = reinterpret_cast< OGRFeatureShadow * >(argp1);
+    {
+      CPLErrorReset();
+      result = (char *)OGRFeatureShadow_GetNativeMediaType(arg1);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        do_confess( CPLGetLastErrorMsg(), 0 );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /*
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
+    {
+      /* %typemap(out) const char * */
+      ST(argvi) = newSVpv(result, 0);
+      SvUTF8_on(ST(argvi)); /* expecting GDAL to give us UTF-8 */
+      sv_2mortal(ST(argvi));
+      argvi++;
+    }
+    
+    XSRETURN(argvi);
+  fail:
+    
+    SWIG_croak_null();
+  }
+}
+
+
+XS(_wrap_Feature_SetNativeData) {
+  {
+    OGRFeatureShadow *arg1 = (OGRFeatureShadow *) 0 ;
+    char *arg2 = (char *) 0 ;
+    void *argp1 = 0 ;
+    int res1 = 0 ;
+    int res2 ;
+    char *buf2 = 0 ;
+    int alloc2 = 0 ;
+    int argvi = 0;
+    dXSARGS;
+    
+    if ((items < 2) || (items > 2)) {
+      SWIG_croak("Usage: Feature_SetNativeData(self,nativeData);");
+    }
+    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OGRFeatureShadow, 0 |  0 );
+    if (!SWIG_IsOK(res1)) {
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Feature_SetNativeData" "', argument " "1"" of type '" "OGRFeatureShadow *""'"); 
+    }
+    arg1 = reinterpret_cast< OGRFeatureShadow * >(argp1);
+    res2 = SWIG_AsCharPtrAndSize(ST(1), &buf2, NULL, &alloc2);
+    if (!SWIG_IsOK(res2)) {
+      SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "Feature_SetNativeData" "', argument " "2"" of type '" "char const *""'");
+    }
+    arg2 = reinterpret_cast< char * >(buf2);
+    {
+      CPLErrorReset();
+      OGRFeatureShadow_SetNativeData(arg1,(char const *)arg2);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        do_confess( CPLGetLastErrorMsg(), 0 );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /*
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
+    {
+      /* %typemap(out) void */
+    }
+    
+    if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
+    XSRETURN(argvi);
+  fail:
+    
+    if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
+    SWIG_croak_null();
+  }
+}
+
+
+XS(_wrap_Feature_SetNativeMediaType) {
+  {
+    OGRFeatureShadow *arg1 = (OGRFeatureShadow *) 0 ;
+    char *arg2 = (char *) 0 ;
+    void *argp1 = 0 ;
+    int res1 = 0 ;
+    int res2 ;
+    char *buf2 = 0 ;
+    int alloc2 = 0 ;
+    int argvi = 0;
+    dXSARGS;
+    
+    if ((items < 2) || (items > 2)) {
+      SWIG_croak("Usage: Feature_SetNativeMediaType(self,nativeMediaType);");
+    }
+    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OGRFeatureShadow, 0 |  0 );
+    if (!SWIG_IsOK(res1)) {
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Feature_SetNativeMediaType" "', argument " "1"" of type '" "OGRFeatureShadow *""'"); 
+    }
+    arg1 = reinterpret_cast< OGRFeatureShadow * >(argp1);
+    res2 = SWIG_AsCharPtrAndSize(ST(1), &buf2, NULL, &alloc2);
+    if (!SWIG_IsOK(res2)) {
+      SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "Feature_SetNativeMediaType" "', argument " "2"" of type '" "char const *""'");
+    }
+    arg2 = reinterpret_cast< char * >(buf2);
+    {
+      CPLErrorReset();
+      OGRFeatureShadow_SetNativeMediaType(arg1,(char const *)arg2);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        do_confess( CPLGetLastErrorMsg(), 0 );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /*
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
+    {
+      /* %typemap(out) void */
+    }
+    
+    if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
+    XSRETURN(argvi);
+  fail:
+    
+    if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
+    SWIG_croak_null();
+  }
 }
 
 
@@ -13898,7 +17163,7 @@ XS(_wrap_delete_FeatureDefn) {
       delete_OGRFeatureDefnShadow(arg1);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -13907,7 +17172,7 @@ XS(_wrap_delete_FeatureDefn) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -13954,7 +17219,7 @@ XS(_wrap_new_FeatureDefn) {
       result = (OGRFeatureDefnShadow *)new_OGRFeatureDefnShadow((char const *)arg1);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -13963,7 +17228,7 @@ XS(_wrap_new_FeatureDefn) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -14005,7 +17270,7 @@ XS(_wrap_FeatureDefn_GetName) {
       result = (char *)OGRFeatureDefnShadow_GetName(arg1);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -14014,7 +17279,7 @@ XS(_wrap_FeatureDefn_GetName) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -14062,7 +17327,7 @@ XS(_wrap_FeatureDefn_GetFieldCount) {
       result = (int)OGRFeatureDefnShadow_GetFieldCount(arg1);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -14071,7 +17336,7 @@ XS(_wrap_FeatureDefn_GetFieldCount) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -14121,7 +17386,7 @@ XS(_wrap_FeatureDefn_GetFieldDefn) {
       result = (OGRFieldDefnShadow *)OGRFeatureDefnShadow_GetFieldDefn(arg1,arg2);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -14130,7 +17395,7 @@ XS(_wrap_FeatureDefn_GetFieldDefn) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -14152,12 +17417,74 @@ XS(_wrap_FeatureDefn_GetFieldDefn) {
 }
 
 
-XS(_wrap_FeatureDefn_GetFieldIndex) {
+XS(_wrap_FeatureDefn_GetFieldIndex__SWIG_0) {
+  {
+    OGRFeatureDefnShadow *arg1 = (OGRFeatureDefnShadow *) 0 ;
+    int arg2 ;
+    void *argp1 = 0 ;
+    int res1 = 0 ;
+    int val2 ;
+    int ecode2 = 0 ;
+    int argvi = 0;
+    int result;
+    dXSARGS;
+    
+    if ((items < 2) || (items > 2)) {
+      SWIG_croak("Usage: FeatureDefn_GetFieldIndex(self,i);");
+    }
+    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OGRFeatureDefnShadow, 0 |  0 );
+    if (!SWIG_IsOK(res1)) {
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "FeatureDefn_GetFieldIndex" "', argument " "1"" of type '" "OGRFeatureDefnShadow *""'"); 
+    }
+    arg1 = reinterpret_cast< OGRFeatureDefnShadow * >(argp1);
+    ecode2 = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(1), &val2);
+    if (!SWIG_IsOK(ecode2)) {
+      SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "FeatureDefn_GetFieldIndex" "', argument " "2"" of type '" "int""'");
+    } 
+    arg2 = static_cast< int >(val2);
+    {
+      CPLErrorReset();
+      result = (int)OGRFeatureDefnShadow_GetFieldIndex__SWIG_0(arg1,arg2);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        do_confess( CPLGetLastErrorMsg(), 0 );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /*
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
+    ST(argvi) = SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(result)); argvi++ ;
+    
+    
+    XSRETURN(argvi);
+  fail:
+    
+    
+    SWIG_croak_null();
+  }
+}
+
+
+XS(_wrap_FeatureDefn_GetFieldIndex__SWIG_1) {
   {
     OGRFeatureDefnShadow *arg1 = (OGRFeatureDefnShadow *) 0 ;
     char *arg2 = (char *) 0 ;
     void *argp1 = 0 ;
     int res1 = 0 ;
+    U8 *tmpbuf2 = NULL ;
     int argvi = 0;
     int result;
     dXSARGS;
@@ -14172,8 +17499,7 @@ XS(_wrap_FeatureDefn_GetFieldIndex) {
     arg1 = reinterpret_cast< OGRFeatureDefnShadow * >(argp1);
     {
       /* %typemap(in,numinputs=1) (const char* name) */
-      sv_utf8_upgrade(ST(1));
-      arg2 = SvPV_nolen(ST(1));
+      arg2 = sv_to_utf8_string(ST(1), &tmpbuf2);
     }
     {
       if (!arg2) {
@@ -14182,10 +17508,10 @@ XS(_wrap_FeatureDefn_GetFieldIndex) {
     }
     {
       CPLErrorReset();
-      result = (int)OGRFeatureDefnShadow_GetFieldIndex(arg1,(char const *)arg2);
+      result = (int)OGRFeatureDefnShadow_GetFieldIndex__SWIG_1(arg1,(char const *)arg2);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -14194,7 +17520,7 @@ XS(_wrap_FeatureDefn_GetFieldIndex) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -14206,11 +17532,99 @@ XS(_wrap_FeatureDefn_GetFieldIndex) {
     }
     ST(argvi) = SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(result)); argvi++ ;
     
+    {
+      /* %typemap(freearg) (const char* name) */
+      if (tmpbuf2) free(tmpbuf2);
+    }
     XSRETURN(argvi);
   fail:
     
+    {
+      /* %typemap(freearg) (const char* name) */
+      if (tmpbuf2) free(tmpbuf2);
+    }
     SWIG_croak_null();
   }
+}
+
+
+XS(_wrap_FeatureDefn_GetFieldIndex) {
+  dXSARGS;
+  
+  {
+    unsigned long _index = 0;
+    SWIG_TypeRank _rank = 0; 
+    if (items == 2) {
+      SWIG_TypeRank _ranki = 0;
+      SWIG_TypeRank _rankm = 0;
+      SWIG_TypeRank _pi = 1;
+      int _v = 0;
+      {
+        void *vptr = 0;
+        int res = SWIG_ConvertPtr(ST(0), &vptr, SWIGTYPE_p_OGRFeatureDefnShadow, 0);
+        _v = SWIG_CheckState(res);
+      }
+      if (!_v) goto check_1;
+      _ranki += _v*_pi;
+      _rankm += _pi;
+      _pi *= SWIG_MAXCASTRANK;
+      {
+        {
+          int res = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(1), NULL);
+          _v = SWIG_CheckState(res);
+        }
+      }
+      if (!_v) goto check_1;
+      _ranki += _v*_pi;
+      _rankm += _pi;
+      _pi *= SWIG_MAXCASTRANK;
+      if (!_index || (_ranki < _rank)) {
+        _rank = _ranki; _index = 1;
+        if (_rank == _rankm) goto dispatch;
+      }
+    }
+  check_1:
+    
+    if (items == 2) {
+      SWIG_TypeRank _ranki = 0;
+      SWIG_TypeRank _rankm = 0;
+      SWIG_TypeRank _pi = 1;
+      int _v = 0;
+      {
+        void *vptr = 0;
+        int res = SWIG_ConvertPtr(ST(0), &vptr, SWIGTYPE_p_OGRFeatureDefnShadow, 0);
+        _v = SWIG_CheckState(res);
+      }
+      if (!_v) goto check_2;
+      _ranki += _v*_pi;
+      _rankm += _pi;
+      _pi *= SWIG_MAXCASTRANK;
+      {
+        int res = SWIG_AsCharPtrAndSize(ST(1), 0, NULL, 0);
+        _v = SWIG_CheckState(res);
+      }
+      if (!_v) goto check_2;
+      _ranki += _v*_pi;
+      _rankm += _pi;
+      _pi *= SWIG_MAXCASTRANK;
+      if (!_index || (_ranki < _rank)) {
+        _rank = _ranki; _index = 2;
+        if (_rank == _rankm) goto dispatch;
+      }
+    }
+  check_2:
+    
+  dispatch:
+    switch(_index) {
+    case 1:
+      PUSHMARK(MARK); SWIG_CALLXS(_wrap_FeatureDefn_GetFieldIndex__SWIG_0); return;
+    case 2:
+      PUSHMARK(MARK); SWIG_CALLXS(_wrap_FeatureDefn_GetFieldIndex__SWIG_1); return;
+    }
+  }
+  
+  croak("No matching function for overloaded 'FeatureDefn_GetFieldIndex'");
+  XSRETURN(0);
 }
 
 
@@ -14248,7 +17662,7 @@ XS(_wrap_FeatureDefn_AddFieldDefn) {
       OGRFeatureDefnShadow_AddFieldDefn(arg1,arg2);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -14257,7 +17671,7 @@ XS(_wrap_FeatureDefn_AddFieldDefn) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -14303,7 +17717,7 @@ XS(_wrap_FeatureDefn_GetGeomFieldCount) {
       result = (int)OGRFeatureDefnShadow_GetGeomFieldCount(arg1);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -14312,7 +17726,7 @@ XS(_wrap_FeatureDefn_GetGeomFieldCount) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -14332,7 +17746,7 @@ XS(_wrap_FeatureDefn_GetGeomFieldCount) {
 }
 
 
-XS(_wrap_FeatureDefn_GetGeomFieldDefn) {
+XS(_wrap_FeatureDefn_GetGeomFieldDefn__SWIG_0) {
   {
     OGRFeatureDefnShadow *arg1 = (OGRFeatureDefnShadow *) 0 ;
     int arg2 ;
@@ -14359,10 +17773,10 @@ XS(_wrap_FeatureDefn_GetGeomFieldDefn) {
     arg2 = static_cast< int >(val2);
     {
       CPLErrorReset();
-      result = (OGRGeomFieldDefnShadow *)OGRFeatureDefnShadow_GetGeomFieldDefn(arg1,arg2);
+      result = (OGRGeomFieldDefnShadow *)OGRFeatureDefnShadow_GetGeomFieldDefn__SWIG_0(arg1,arg2);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -14371,7 +17785,7 @@ XS(_wrap_FeatureDefn_GetGeomFieldDefn) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -14393,12 +17807,224 @@ XS(_wrap_FeatureDefn_GetGeomFieldDefn) {
 }
 
 
-XS(_wrap_FeatureDefn_GetGeomFieldIndex) {
+XS(_wrap_FeatureDefn_GetGeomFieldDefn__SWIG_1) {
   {
     OGRFeatureDefnShadow *arg1 = (OGRFeatureDefnShadow *) 0 ;
     char *arg2 = (char *) 0 ;
     void *argp1 = 0 ;
     int res1 = 0 ;
+    U8 *tmpbuf2 = NULL ;
+    int argvi = 0;
+    OGRGeomFieldDefnShadow *result = 0 ;
+    dXSARGS;
+    
+    if ((items < 2) || (items > 2)) {
+      SWIG_croak("Usage: FeatureDefn_GetGeomFieldDefn(self,name);");
+    }
+    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OGRFeatureDefnShadow, 0 |  0 );
+    if (!SWIG_IsOK(res1)) {
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "FeatureDefn_GetGeomFieldDefn" "', argument " "1"" of type '" "OGRFeatureDefnShadow *""'"); 
+    }
+    arg1 = reinterpret_cast< OGRFeatureDefnShadow * >(argp1);
+    {
+      /* %typemap(in,numinputs=1) (const char* name) */
+      arg2 = sv_to_utf8_string(ST(1), &tmpbuf2);
+    }
+    {
+      if (!arg2) {
+        SWIG_exception(SWIG_ValueError,"Received a NULL pointer.");
+      }
+    }
+    {
+      CPLErrorReset();
+      result = (OGRGeomFieldDefnShadow *)OGRFeatureDefnShadow_GetGeomFieldDefn__SWIG_1(arg1,(char const *)arg2);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        do_confess( CPLGetLastErrorMsg(), 0 );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /*
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
+    ST(argvi) = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_OGRGeomFieldDefnShadow, 0 | SWIG_SHADOW); argvi++ ;
+    
+    {
+      /* %typemap(freearg) (const char* name) */
+      if (tmpbuf2) free(tmpbuf2);
+    }
+    XSRETURN(argvi);
+  fail:
+    
+    {
+      /* %typemap(freearg) (const char* name) */
+      if (tmpbuf2) free(tmpbuf2);
+    }
+    SWIG_croak_null();
+  }
+}
+
+
+XS(_wrap_FeatureDefn_GetGeomFieldDefn) {
+  dXSARGS;
+  
+  {
+    unsigned long _index = 0;
+    SWIG_TypeRank _rank = 0; 
+    if (items == 2) {
+      SWIG_TypeRank _ranki = 0;
+      SWIG_TypeRank _rankm = 0;
+      SWIG_TypeRank _pi = 1;
+      int _v = 0;
+      {
+        void *vptr = 0;
+        int res = SWIG_ConvertPtr(ST(0), &vptr, SWIGTYPE_p_OGRFeatureDefnShadow, 0);
+        _v = SWIG_CheckState(res);
+      }
+      if (!_v) goto check_1;
+      _ranki += _v*_pi;
+      _rankm += _pi;
+      _pi *= SWIG_MAXCASTRANK;
+      {
+        {
+          int res = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(1), NULL);
+          _v = SWIG_CheckState(res);
+        }
+      }
+      if (!_v) goto check_1;
+      _ranki += _v*_pi;
+      _rankm += _pi;
+      _pi *= SWIG_MAXCASTRANK;
+      if (!_index || (_ranki < _rank)) {
+        _rank = _ranki; _index = 1;
+        if (_rank == _rankm) goto dispatch;
+      }
+    }
+  check_1:
+    
+    if (items == 2) {
+      SWIG_TypeRank _ranki = 0;
+      SWIG_TypeRank _rankm = 0;
+      SWIG_TypeRank _pi = 1;
+      int _v = 0;
+      {
+        void *vptr = 0;
+        int res = SWIG_ConvertPtr(ST(0), &vptr, SWIGTYPE_p_OGRFeatureDefnShadow, 0);
+        _v = SWIG_CheckState(res);
+      }
+      if (!_v) goto check_2;
+      _ranki += _v*_pi;
+      _rankm += _pi;
+      _pi *= SWIG_MAXCASTRANK;
+      {
+        int res = SWIG_AsCharPtrAndSize(ST(1), 0, NULL, 0);
+        _v = SWIG_CheckState(res);
+      }
+      if (!_v) goto check_2;
+      _ranki += _v*_pi;
+      _rankm += _pi;
+      _pi *= SWIG_MAXCASTRANK;
+      if (!_index || (_ranki < _rank)) {
+        _rank = _ranki; _index = 2;
+        if (_rank == _rankm) goto dispatch;
+      }
+    }
+  check_2:
+    
+  dispatch:
+    switch(_index) {
+    case 1:
+      PUSHMARK(MARK); SWIG_CALLXS(_wrap_FeatureDefn_GetGeomFieldDefn__SWIG_0); return;
+    case 2:
+      PUSHMARK(MARK); SWIG_CALLXS(_wrap_FeatureDefn_GetGeomFieldDefn__SWIG_1); return;
+    }
+  }
+  
+  croak("No matching function for overloaded 'FeatureDefn_GetGeomFieldDefn'");
+  XSRETURN(0);
+}
+
+
+XS(_wrap_FeatureDefn_GetGeomFieldIndex__SWIG_0) {
+  {
+    OGRFeatureDefnShadow *arg1 = (OGRFeatureDefnShadow *) 0 ;
+    int arg2 ;
+    void *argp1 = 0 ;
+    int res1 = 0 ;
+    int val2 ;
+    int ecode2 = 0 ;
+    int argvi = 0;
+    int result;
+    dXSARGS;
+    
+    if ((items < 2) || (items > 2)) {
+      SWIG_croak("Usage: FeatureDefn_GetGeomFieldIndex(self,i);");
+    }
+    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OGRFeatureDefnShadow, 0 |  0 );
+    if (!SWIG_IsOK(res1)) {
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "FeatureDefn_GetGeomFieldIndex" "', argument " "1"" of type '" "OGRFeatureDefnShadow *""'"); 
+    }
+    arg1 = reinterpret_cast< OGRFeatureDefnShadow * >(argp1);
+    ecode2 = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(1), &val2);
+    if (!SWIG_IsOK(ecode2)) {
+      SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "FeatureDefn_GetGeomFieldIndex" "', argument " "2"" of type '" "int""'");
+    } 
+    arg2 = static_cast< int >(val2);
+    {
+      CPLErrorReset();
+      result = (int)OGRFeatureDefnShadow_GetGeomFieldIndex__SWIG_0(arg1,arg2);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        do_confess( CPLGetLastErrorMsg(), 0 );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /*
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
+    ST(argvi) = SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(result)); argvi++ ;
+    
+    
+    XSRETURN(argvi);
+  fail:
+    
+    
+    SWIG_croak_null();
+  }
+}
+
+
+XS(_wrap_FeatureDefn_GetGeomFieldIndex__SWIG_1) {
+  {
+    OGRFeatureDefnShadow *arg1 = (OGRFeatureDefnShadow *) 0 ;
+    char *arg2 = (char *) 0 ;
+    void *argp1 = 0 ;
+    int res1 = 0 ;
+    U8 *tmpbuf2 = NULL ;
     int argvi = 0;
     int result;
     dXSARGS;
@@ -14413,8 +18039,7 @@ XS(_wrap_FeatureDefn_GetGeomFieldIndex) {
     arg1 = reinterpret_cast< OGRFeatureDefnShadow * >(argp1);
     {
       /* %typemap(in,numinputs=1) (const char* name) */
-      sv_utf8_upgrade(ST(1));
-      arg2 = SvPV_nolen(ST(1));
+      arg2 = sv_to_utf8_string(ST(1), &tmpbuf2);
     }
     {
       if (!arg2) {
@@ -14423,10 +18048,10 @@ XS(_wrap_FeatureDefn_GetGeomFieldIndex) {
     }
     {
       CPLErrorReset();
-      result = (int)OGRFeatureDefnShadow_GetGeomFieldIndex(arg1,(char const *)arg2);
+      result = (int)OGRFeatureDefnShadow_GetGeomFieldIndex__SWIG_1(arg1,(char const *)arg2);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -14435,7 +18060,7 @@ XS(_wrap_FeatureDefn_GetGeomFieldIndex) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -14447,11 +18072,99 @@ XS(_wrap_FeatureDefn_GetGeomFieldIndex) {
     }
     ST(argvi) = SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(result)); argvi++ ;
     
+    {
+      /* %typemap(freearg) (const char* name) */
+      if (tmpbuf2) free(tmpbuf2);
+    }
     XSRETURN(argvi);
   fail:
     
+    {
+      /* %typemap(freearg) (const char* name) */
+      if (tmpbuf2) free(tmpbuf2);
+    }
     SWIG_croak_null();
   }
+}
+
+
+XS(_wrap_FeatureDefn_GetGeomFieldIndex) {
+  dXSARGS;
+  
+  {
+    unsigned long _index = 0;
+    SWIG_TypeRank _rank = 0; 
+    if (items == 2) {
+      SWIG_TypeRank _ranki = 0;
+      SWIG_TypeRank _rankm = 0;
+      SWIG_TypeRank _pi = 1;
+      int _v = 0;
+      {
+        void *vptr = 0;
+        int res = SWIG_ConvertPtr(ST(0), &vptr, SWIGTYPE_p_OGRFeatureDefnShadow, 0);
+        _v = SWIG_CheckState(res);
+      }
+      if (!_v) goto check_1;
+      _ranki += _v*_pi;
+      _rankm += _pi;
+      _pi *= SWIG_MAXCASTRANK;
+      {
+        {
+          int res = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(1), NULL);
+          _v = SWIG_CheckState(res);
+        }
+      }
+      if (!_v) goto check_1;
+      _ranki += _v*_pi;
+      _rankm += _pi;
+      _pi *= SWIG_MAXCASTRANK;
+      if (!_index || (_ranki < _rank)) {
+        _rank = _ranki; _index = 1;
+        if (_rank == _rankm) goto dispatch;
+      }
+    }
+  check_1:
+    
+    if (items == 2) {
+      SWIG_TypeRank _ranki = 0;
+      SWIG_TypeRank _rankm = 0;
+      SWIG_TypeRank _pi = 1;
+      int _v = 0;
+      {
+        void *vptr = 0;
+        int res = SWIG_ConvertPtr(ST(0), &vptr, SWIGTYPE_p_OGRFeatureDefnShadow, 0);
+        _v = SWIG_CheckState(res);
+      }
+      if (!_v) goto check_2;
+      _ranki += _v*_pi;
+      _rankm += _pi;
+      _pi *= SWIG_MAXCASTRANK;
+      {
+        int res = SWIG_AsCharPtrAndSize(ST(1), 0, NULL, 0);
+        _v = SWIG_CheckState(res);
+      }
+      if (!_v) goto check_2;
+      _ranki += _v*_pi;
+      _rankm += _pi;
+      _pi *= SWIG_MAXCASTRANK;
+      if (!_index || (_ranki < _rank)) {
+        _rank = _ranki; _index = 2;
+        if (_rank == _rankm) goto dispatch;
+      }
+    }
+  check_2:
+    
+  dispatch:
+    switch(_index) {
+    case 1:
+      PUSHMARK(MARK); SWIG_CALLXS(_wrap_FeatureDefn_GetGeomFieldIndex__SWIG_0); return;
+    case 2:
+      PUSHMARK(MARK); SWIG_CALLXS(_wrap_FeatureDefn_GetGeomFieldIndex__SWIG_1); return;
+    }
+  }
+  
+  croak("No matching function for overloaded 'FeatureDefn_GetGeomFieldIndex'");
+  XSRETURN(0);
 }
 
 
@@ -14489,7 +18202,7 @@ XS(_wrap_FeatureDefn_AddGeomFieldDefn) {
       OGRFeatureDefnShadow_AddGeomFieldDefn(arg1,arg2);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -14498,7 +18211,7 @@ XS(_wrap_FeatureDefn_AddGeomFieldDefn) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -14552,7 +18265,7 @@ XS(_wrap_FeatureDefn_DeleteGeomFieldDefn) {
       result = (OGRErr)OGRFeatureDefnShadow_DeleteGeomFieldDefn(arg1,arg2);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -14561,7 +18274,7 @@ XS(_wrap_FeatureDefn_DeleteGeomFieldDefn) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -14575,8 +18288,8 @@ XS(_wrap_FeatureDefn_DeleteGeomFieldDefn) {
       /* %typemap(out) OGRErr */
       if ( result != 0 ) {
         const char *err = CPLGetLastErrorMsg();
-        if (err and *err) SWIG_croak(err); /* this is usually better */
-        SWIG_croak( OGRErrMessages(result) );
+        if (err and *err) do_confess(err, 0); /* this is usually better */
+        do_confess( OGRErrMessages(result), 1 );
       }
     }
     
@@ -14612,7 +18325,7 @@ XS(_wrap_FeatureDefn_GetGeomType) {
       result = (OGRwkbGeometryType)OGRFeatureDefnShadow_GetGeomType(arg1);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -14621,7 +18334,7 @@ XS(_wrap_FeatureDefn_GetGeomType) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -14670,7 +18383,7 @@ XS(_wrap_FeatureDefn_SetGeomType) {
       OGRFeatureDefnShadow_SetGeomType(arg1,arg2);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -14679,7 +18392,7 @@ XS(_wrap_FeatureDefn_SetGeomType) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -14725,7 +18438,7 @@ XS(_wrap_FeatureDefn_GetReferenceCount) {
       result = (int)OGRFeatureDefnShadow_GetReferenceCount(arg1);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -14734,7 +18447,7 @@ XS(_wrap_FeatureDefn_GetReferenceCount) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -14776,7 +18489,7 @@ XS(_wrap_FeatureDefn_IsGeometryIgnored) {
       result = (int)OGRFeatureDefnShadow_IsGeometryIgnored(arg1);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -14785,7 +18498,7 @@ XS(_wrap_FeatureDefn_IsGeometryIgnored) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -14834,7 +18547,7 @@ XS(_wrap_FeatureDefn_SetGeometryIgnored) {
       OGRFeatureDefnShadow_SetGeometryIgnored(arg1,arg2);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -14843,7 +18556,7 @@ XS(_wrap_FeatureDefn_SetGeometryIgnored) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -14889,7 +18602,7 @@ XS(_wrap_FeatureDefn_IsStyleIgnored) {
       result = (int)OGRFeatureDefnShadow_IsStyleIgnored(arg1);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -14898,7 +18611,7 @@ XS(_wrap_FeatureDefn_IsStyleIgnored) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -14947,7 +18660,7 @@ XS(_wrap_FeatureDefn_SetStyleIgnored) {
       OGRFeatureDefnShadow_SetStyleIgnored(arg1,arg2);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -14956,7 +18669,7 @@ XS(_wrap_FeatureDefn_SetStyleIgnored) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -15015,7 +18728,7 @@ XS(_wrap_FeatureDefn_IsSame) {
       result = (int)OGRFeatureDefnShadow_IsSame(arg1,arg2);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -15024,7 +18737,7 @@ XS(_wrap_FeatureDefn_IsSame) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -15067,7 +18780,7 @@ XS(_wrap_delete_FieldDefn) {
       delete_OGRFieldDefnShadow(arg1);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -15076,7 +18789,7 @@ XS(_wrap_delete_FieldDefn) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -15133,7 +18846,7 @@ XS(_wrap_new_FieldDefn) {
       result = (OGRFieldDefnShadow *)new_OGRFieldDefnShadow((char const *)arg1,arg2);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -15142,7 +18855,7 @@ XS(_wrap_new_FieldDefn) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -15186,7 +18899,7 @@ XS(_wrap_FieldDefn_GetName) {
       result = (char *)OGRFieldDefnShadow_GetName(arg1);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -15195,7 +18908,7 @@ XS(_wrap_FieldDefn_GetName) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -15243,7 +18956,7 @@ XS(_wrap_FieldDefn_GetNameRef) {
       result = (char *)OGRFieldDefnShadow_GetNameRef(arg1);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -15252,7 +18965,7 @@ XS(_wrap_FieldDefn_GetNameRef) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -15284,6 +18997,7 @@ XS(_wrap_FieldDefn_SetName) {
     char *arg2 = (char *) 0 ;
     void *argp1 = 0 ;
     int res1 = 0 ;
+    U8 *tmpbuf2 = NULL ;
     int argvi = 0;
     dXSARGS;
     
@@ -15297,8 +19011,7 @@ XS(_wrap_FieldDefn_SetName) {
     arg1 = reinterpret_cast< OGRFieldDefnShadow * >(argp1);
     {
       /* %typemap(in,numinputs=1) (const char* name) */
-      sv_utf8_upgrade(ST(1));
-      arg2 = SvPV_nolen(ST(1));
+      arg2 = sv_to_utf8_string(ST(1), &tmpbuf2);
     }
     {
       if (!arg2) {
@@ -15310,7 +19023,7 @@ XS(_wrap_FieldDefn_SetName) {
       OGRFieldDefnShadow_SetName(arg1,(char const *)arg2);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -15319,7 +19032,7 @@ XS(_wrap_FieldDefn_SetName) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -15333,9 +19046,17 @@ XS(_wrap_FieldDefn_SetName) {
       /* %typemap(out) void */
     }
     
+    {
+      /* %typemap(freearg) (const char* name) */
+      if (tmpbuf2) free(tmpbuf2);
+    }
     XSRETURN(argvi);
   fail:
     
+    {
+      /* %typemap(freearg) (const char* name) */
+      if (tmpbuf2) free(tmpbuf2);
+    }
     SWIG_croak_null();
   }
 }
@@ -15363,7 +19084,7 @@ XS(_wrap_FieldDefn_GetType) {
       result = (OGRFieldType)OGRFieldDefnShadow_GetType(arg1);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -15372,7 +19093,7 @@ XS(_wrap_FieldDefn_GetType) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -15421,7 +19142,7 @@ XS(_wrap_FieldDefn_SetType) {
       OGRFieldDefnShadow_SetType(arg1,arg2);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -15430,7 +19151,120 @@ XS(_wrap_FieldDefn_SetType) {
       }
       
       
-      /* 
+      /*
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
+    {
+      /* %typemap(out) void */
+    }
+    
+    
+    XSRETURN(argvi);
+  fail:
+    
+    
+    SWIG_croak_null();
+  }
+}
+
+
+XS(_wrap_FieldDefn_GetSubType) {
+  {
+    OGRFieldDefnShadow *arg1 = (OGRFieldDefnShadow *) 0 ;
+    void *argp1 = 0 ;
+    int res1 = 0 ;
+    int argvi = 0;
+    OGRFieldSubType result;
+    dXSARGS;
+    
+    if ((items < 1) || (items > 1)) {
+      SWIG_croak("Usage: FieldDefn_GetSubType(self);");
+    }
+    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OGRFieldDefnShadow, 0 |  0 );
+    if (!SWIG_IsOK(res1)) {
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "FieldDefn_GetSubType" "', argument " "1"" of type '" "OGRFieldDefnShadow *""'"); 
+    }
+    arg1 = reinterpret_cast< OGRFieldDefnShadow * >(argp1);
+    {
+      CPLErrorReset();
+      result = (OGRFieldSubType)OGRFieldDefnShadow_GetSubType(arg1);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        do_confess( CPLGetLastErrorMsg(), 0 );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /*
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
+    ST(argvi) = SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(result)); argvi++ ;
+    
+    XSRETURN(argvi);
+  fail:
+    
+    SWIG_croak_null();
+  }
+}
+
+
+XS(_wrap_FieldDefn_SetSubType) {
+  {
+    OGRFieldDefnShadow *arg1 = (OGRFieldDefnShadow *) 0 ;
+    OGRFieldSubType arg2 ;
+    void *argp1 = 0 ;
+    int res1 = 0 ;
+    int val2 ;
+    int ecode2 = 0 ;
+    int argvi = 0;
+    dXSARGS;
+    
+    if ((items < 2) || (items > 2)) {
+      SWIG_croak("Usage: FieldDefn_SetSubType(self,type);");
+    }
+    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OGRFieldDefnShadow, 0 |  0 );
+    if (!SWIG_IsOK(res1)) {
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "FieldDefn_SetSubType" "', argument " "1"" of type '" "OGRFieldDefnShadow *""'"); 
+    }
+    arg1 = reinterpret_cast< OGRFieldDefnShadow * >(argp1);
+    ecode2 = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(1), &val2);
+    if (!SWIG_IsOK(ecode2)) {
+      SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "FieldDefn_SetSubType" "', argument " "2"" of type '" "OGRFieldSubType""'");
+    } 
+    arg2 = static_cast< OGRFieldSubType >(val2);
+    {
+      CPLErrorReset();
+      OGRFieldDefnShadow_SetSubType(arg1,arg2);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        do_confess( CPLGetLastErrorMsg(), 0 );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -15476,7 +19310,7 @@ XS(_wrap_FieldDefn_GetJustify) {
       result = (OGRJustification)OGRFieldDefnShadow_GetJustify(arg1);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -15485,7 +19319,7 @@ XS(_wrap_FieldDefn_GetJustify) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -15534,7 +19368,7 @@ XS(_wrap_FieldDefn_SetJustify) {
       OGRFieldDefnShadow_SetJustify(arg1,arg2);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -15543,7 +19377,7 @@ XS(_wrap_FieldDefn_SetJustify) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -15589,7 +19423,7 @@ XS(_wrap_FieldDefn_GetWidth) {
       result = (int)OGRFieldDefnShadow_GetWidth(arg1);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -15598,7 +19432,7 @@ XS(_wrap_FieldDefn_GetWidth) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -15647,7 +19481,7 @@ XS(_wrap_FieldDefn_SetWidth) {
       OGRFieldDefnShadow_SetWidth(arg1,arg2);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -15656,7 +19490,7 @@ XS(_wrap_FieldDefn_SetWidth) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -15702,7 +19536,7 @@ XS(_wrap_FieldDefn_GetPrecision) {
       result = (int)OGRFieldDefnShadow_GetPrecision(arg1);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -15711,7 +19545,7 @@ XS(_wrap_FieldDefn_GetPrecision) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -15760,7 +19594,7 @@ XS(_wrap_FieldDefn_SetPrecision) {
       OGRFieldDefnShadow_SetPrecision(arg1,arg2);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -15769,7 +19603,7 @@ XS(_wrap_FieldDefn_SetPrecision) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -15815,7 +19649,7 @@ XS(_wrap_FieldDefn_GetTypeName) {
       result = (char *)OGRFieldDefnShadow_GetTypeName(arg1);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -15824,7 +19658,7 @@ XS(_wrap_FieldDefn_GetTypeName) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -15880,7 +19714,7 @@ XS(_wrap_FieldDefn_GetFieldTypeName) {
       result = (char *)OGRFieldDefnShadow_GetFieldTypeName(arg1,arg2);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -15889,7 +19723,7 @@ XS(_wrap_FieldDefn_GetFieldTypeName) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -15939,7 +19773,7 @@ XS(_wrap_FieldDefn_IsIgnored) {
       result = (int)OGRFieldDefnShadow_IsIgnored(arg1);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -15948,7 +19782,7 @@ XS(_wrap_FieldDefn_IsIgnored) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -15997,7 +19831,7 @@ XS(_wrap_FieldDefn_SetIgnored) {
       OGRFieldDefnShadow_SetIgnored(arg1,arg2);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -16006,7 +19840,7 @@ XS(_wrap_FieldDefn_SetIgnored) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -16024,6 +19858,290 @@ XS(_wrap_FieldDefn_SetIgnored) {
     XSRETURN(argvi);
   fail:
     
+    
+    SWIG_croak_null();
+  }
+}
+
+
+XS(_wrap_FieldDefn_IsNullable) {
+  {
+    OGRFieldDefnShadow *arg1 = (OGRFieldDefnShadow *) 0 ;
+    void *argp1 = 0 ;
+    int res1 = 0 ;
+    int argvi = 0;
+    int result;
+    dXSARGS;
+    
+    if ((items < 1) || (items > 1)) {
+      SWIG_croak("Usage: FieldDefn_IsNullable(self);");
+    }
+    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OGRFieldDefnShadow, 0 |  0 );
+    if (!SWIG_IsOK(res1)) {
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "FieldDefn_IsNullable" "', argument " "1"" of type '" "OGRFieldDefnShadow *""'"); 
+    }
+    arg1 = reinterpret_cast< OGRFieldDefnShadow * >(argp1);
+    {
+      CPLErrorReset();
+      result = (int)OGRFieldDefnShadow_IsNullable(arg1);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        do_confess( CPLGetLastErrorMsg(), 0 );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /*
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
+    ST(argvi) = SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(result)); argvi++ ;
+    
+    XSRETURN(argvi);
+  fail:
+    
+    SWIG_croak_null();
+  }
+}
+
+
+XS(_wrap_FieldDefn_SetNullable) {
+  {
+    OGRFieldDefnShadow *arg1 = (OGRFieldDefnShadow *) 0 ;
+    int arg2 ;
+    void *argp1 = 0 ;
+    int res1 = 0 ;
+    int val2 ;
+    int ecode2 = 0 ;
+    int argvi = 0;
+    dXSARGS;
+    
+    if ((items < 2) || (items > 2)) {
+      SWIG_croak("Usage: FieldDefn_SetNullable(self,bNullable);");
+    }
+    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OGRFieldDefnShadow, 0 |  0 );
+    if (!SWIG_IsOK(res1)) {
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "FieldDefn_SetNullable" "', argument " "1"" of type '" "OGRFieldDefnShadow *""'"); 
+    }
+    arg1 = reinterpret_cast< OGRFieldDefnShadow * >(argp1);
+    ecode2 = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(1), &val2);
+    if (!SWIG_IsOK(ecode2)) {
+      SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "FieldDefn_SetNullable" "', argument " "2"" of type '" "int""'");
+    } 
+    arg2 = static_cast< int >(val2);
+    {
+      CPLErrorReset();
+      OGRFieldDefnShadow_SetNullable(arg1,arg2);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        do_confess( CPLGetLastErrorMsg(), 0 );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /*
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
+    {
+      /* %typemap(out) void */
+    }
+    
+    
+    XSRETURN(argvi);
+  fail:
+    
+    
+    SWIG_croak_null();
+  }
+}
+
+
+XS(_wrap_FieldDefn_GetDefault) {
+  {
+    OGRFieldDefnShadow *arg1 = (OGRFieldDefnShadow *) 0 ;
+    void *argp1 = 0 ;
+    int res1 = 0 ;
+    int argvi = 0;
+    char *result = 0 ;
+    dXSARGS;
+    
+    if ((items < 1) || (items > 1)) {
+      SWIG_croak("Usage: FieldDefn_GetDefault(self);");
+    }
+    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OGRFieldDefnShadow, 0 |  0 );
+    if (!SWIG_IsOK(res1)) {
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "FieldDefn_GetDefault" "', argument " "1"" of type '" "OGRFieldDefnShadow *""'"); 
+    }
+    arg1 = reinterpret_cast< OGRFieldDefnShadow * >(argp1);
+    {
+      CPLErrorReset();
+      result = (char *)OGRFieldDefnShadow_GetDefault(arg1);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        do_confess( CPLGetLastErrorMsg(), 0 );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /*
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
+    {
+      /* %typemap(out) const char * */
+      ST(argvi) = newSVpv(result, 0);
+      SvUTF8_on(ST(argvi)); /* expecting GDAL to give us UTF-8 */
+      sv_2mortal(ST(argvi));
+      argvi++;
+    }
+    
+    XSRETURN(argvi);
+  fail:
+    
+    SWIG_croak_null();
+  }
+}
+
+
+XS(_wrap_FieldDefn_SetDefault) {
+  {
+    OGRFieldDefnShadow *arg1 = (OGRFieldDefnShadow *) 0 ;
+    char *arg2 = (char *) 0 ;
+    void *argp1 = 0 ;
+    int res1 = 0 ;
+    int res2 ;
+    char *buf2 = 0 ;
+    int alloc2 = 0 ;
+    int argvi = 0;
+    dXSARGS;
+    
+    if ((items < 2) || (items > 2)) {
+      SWIG_croak("Usage: FieldDefn_SetDefault(self,pszValue);");
+    }
+    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OGRFieldDefnShadow, 0 |  0 );
+    if (!SWIG_IsOK(res1)) {
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "FieldDefn_SetDefault" "', argument " "1"" of type '" "OGRFieldDefnShadow *""'"); 
+    }
+    arg1 = reinterpret_cast< OGRFieldDefnShadow * >(argp1);
+    res2 = SWIG_AsCharPtrAndSize(ST(1), &buf2, NULL, &alloc2);
+    if (!SWIG_IsOK(res2)) {
+      SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "FieldDefn_SetDefault" "', argument " "2"" of type '" "char const *""'");
+    }
+    arg2 = reinterpret_cast< char * >(buf2);
+    {
+      CPLErrorReset();
+      OGRFieldDefnShadow_SetDefault(arg1,(char const *)arg2);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        do_confess( CPLGetLastErrorMsg(), 0 );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /*
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
+    {
+      /* %typemap(out) void */
+    }
+    
+    if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
+    XSRETURN(argvi);
+  fail:
+    
+    if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
+    SWIG_croak_null();
+  }
+}
+
+
+XS(_wrap_FieldDefn_IsDefaultDriverSpecific) {
+  {
+    OGRFieldDefnShadow *arg1 = (OGRFieldDefnShadow *) 0 ;
+    void *argp1 = 0 ;
+    int res1 = 0 ;
+    int argvi = 0;
+    int result;
+    dXSARGS;
+    
+    if ((items < 1) || (items > 1)) {
+      SWIG_croak("Usage: FieldDefn_IsDefaultDriverSpecific(self);");
+    }
+    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OGRFieldDefnShadow, 0 |  0 );
+    if (!SWIG_IsOK(res1)) {
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "FieldDefn_IsDefaultDriverSpecific" "', argument " "1"" of type '" "OGRFieldDefnShadow *""'"); 
+    }
+    arg1 = reinterpret_cast< OGRFieldDefnShadow * >(argp1);
+    {
+      CPLErrorReset();
+      result = (int)OGRFieldDefnShadow_IsDefaultDriverSpecific(arg1);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        do_confess( CPLGetLastErrorMsg(), 0 );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /*
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
+    ST(argvi) = SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(result)); argvi++ ;
+    
+    XSRETURN(argvi);
+  fail:
     
     SWIG_croak_null();
   }
@@ -16051,7 +20169,7 @@ XS(_wrap_delete_GeomFieldDefn) {
       delete_OGRGeomFieldDefnShadow(arg1);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -16060,7 +20178,7 @@ XS(_wrap_delete_GeomFieldDefn) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -16117,7 +20235,7 @@ XS(_wrap_new_GeomFieldDefn) {
       result = (OGRGeomFieldDefnShadow *)new_OGRGeomFieldDefnShadow((char const *)arg1,arg2);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -16126,7 +20244,7 @@ XS(_wrap_new_GeomFieldDefn) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -16170,7 +20288,7 @@ XS(_wrap_GeomFieldDefn_GetName) {
       result = (char *)OGRGeomFieldDefnShadow_GetName(arg1);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -16179,7 +20297,7 @@ XS(_wrap_GeomFieldDefn_GetName) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -16227,7 +20345,7 @@ XS(_wrap_GeomFieldDefn_GetNameRef) {
       result = (char *)OGRGeomFieldDefnShadow_GetNameRef(arg1);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -16236,7 +20354,7 @@ XS(_wrap_GeomFieldDefn_GetNameRef) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -16268,6 +20386,7 @@ XS(_wrap_GeomFieldDefn_SetName) {
     char *arg2 = (char *) 0 ;
     void *argp1 = 0 ;
     int res1 = 0 ;
+    U8 *tmpbuf2 = NULL ;
     int argvi = 0;
     dXSARGS;
     
@@ -16281,8 +20400,7 @@ XS(_wrap_GeomFieldDefn_SetName) {
     arg1 = reinterpret_cast< OGRGeomFieldDefnShadow * >(argp1);
     {
       /* %typemap(in,numinputs=1) (const char* name) */
-      sv_utf8_upgrade(ST(1));
-      arg2 = SvPV_nolen(ST(1));
+      arg2 = sv_to_utf8_string(ST(1), &tmpbuf2);
     }
     {
       if (!arg2) {
@@ -16294,7 +20412,7 @@ XS(_wrap_GeomFieldDefn_SetName) {
       OGRGeomFieldDefnShadow_SetName(arg1,(char const *)arg2);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -16303,7 +20421,7 @@ XS(_wrap_GeomFieldDefn_SetName) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -16317,9 +20435,17 @@ XS(_wrap_GeomFieldDefn_SetName) {
       /* %typemap(out) void */
     }
     
+    {
+      /* %typemap(freearg) (const char* name) */
+      if (tmpbuf2) free(tmpbuf2);
+    }
     XSRETURN(argvi);
   fail:
     
+    {
+      /* %typemap(freearg) (const char* name) */
+      if (tmpbuf2) free(tmpbuf2);
+    }
     SWIG_croak_null();
   }
 }
@@ -16347,7 +20473,7 @@ XS(_wrap_GeomFieldDefn_GetType) {
       result = (OGRwkbGeometryType)OGRGeomFieldDefnShadow_GetType(arg1);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -16356,7 +20482,7 @@ XS(_wrap_GeomFieldDefn_GetType) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -16405,7 +20531,7 @@ XS(_wrap_GeomFieldDefn_SetType) {
       OGRGeomFieldDefnShadow_SetType(arg1,arg2);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -16414,7 +20540,7 @@ XS(_wrap_GeomFieldDefn_SetType) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -16460,7 +20586,7 @@ XS(_wrap_GeomFieldDefn_GetSpatialRef) {
       result = (OSRSpatialReferenceShadow *)OGRGeomFieldDefnShadow_GetSpatialRef(arg1);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -16469,7 +20595,7 @@ XS(_wrap_GeomFieldDefn_GetSpatialRef) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -16518,7 +20644,7 @@ XS(_wrap_GeomFieldDefn_SetSpatialRef) {
       OGRGeomFieldDefnShadow_SetSpatialRef(arg1,arg2);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -16527,7 +20653,7 @@ XS(_wrap_GeomFieldDefn_SetSpatialRef) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -16573,7 +20699,7 @@ XS(_wrap_GeomFieldDefn_IsIgnored) {
       result = (int)OGRGeomFieldDefnShadow_IsIgnored(arg1);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -16582,7 +20708,7 @@ XS(_wrap_GeomFieldDefn_IsIgnored) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -16631,7 +20757,7 @@ XS(_wrap_GeomFieldDefn_SetIgnored) {
       OGRGeomFieldDefnShadow_SetIgnored(arg1,arg2);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -16640,7 +20766,120 @@ XS(_wrap_GeomFieldDefn_SetIgnored) {
       }
       
       
-      /* 
+      /*
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
+    {
+      /* %typemap(out) void */
+    }
+    
+    
+    XSRETURN(argvi);
+  fail:
+    
+    
+    SWIG_croak_null();
+  }
+}
+
+
+XS(_wrap_GeomFieldDefn_IsNullable) {
+  {
+    OGRGeomFieldDefnShadow *arg1 = (OGRGeomFieldDefnShadow *) 0 ;
+    void *argp1 = 0 ;
+    int res1 = 0 ;
+    int argvi = 0;
+    int result;
+    dXSARGS;
+    
+    if ((items < 1) || (items > 1)) {
+      SWIG_croak("Usage: GeomFieldDefn_IsNullable(self);");
+    }
+    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OGRGeomFieldDefnShadow, 0 |  0 );
+    if (!SWIG_IsOK(res1)) {
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "GeomFieldDefn_IsNullable" "', argument " "1"" of type '" "OGRGeomFieldDefnShadow *""'"); 
+    }
+    arg1 = reinterpret_cast< OGRGeomFieldDefnShadow * >(argp1);
+    {
+      CPLErrorReset();
+      result = (int)OGRGeomFieldDefnShadow_IsNullable(arg1);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        do_confess( CPLGetLastErrorMsg(), 0 );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /*
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
+    ST(argvi) = SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(result)); argvi++ ;
+    
+    XSRETURN(argvi);
+  fail:
+    
+    SWIG_croak_null();
+  }
+}
+
+
+XS(_wrap_GeomFieldDefn_SetNullable) {
+  {
+    OGRGeomFieldDefnShadow *arg1 = (OGRGeomFieldDefnShadow *) 0 ;
+    int arg2 ;
+    void *argp1 = 0 ;
+    int res1 = 0 ;
+    int val2 ;
+    int ecode2 = 0 ;
+    int argvi = 0;
+    dXSARGS;
+    
+    if ((items < 2) || (items > 2)) {
+      SWIG_croak("Usage: GeomFieldDefn_SetNullable(self,bNullable);");
+    }
+    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OGRGeomFieldDefnShadow, 0 |  0 );
+    if (!SWIG_IsOK(res1)) {
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "GeomFieldDefn_SetNullable" "', argument " "1"" of type '" "OGRGeomFieldDefnShadow *""'"); 
+    }
+    arg1 = reinterpret_cast< OGRGeomFieldDefnShadow * >(argp1);
+    ecode2 = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(1), &val2);
+    if (!SWIG_IsOK(ecode2)) {
+      SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "GeomFieldDefn_SetNullable" "', argument " "2"" of type '" "int""'");
+    } 
+    arg2 = static_cast< int >(val2);
+    {
+      CPLErrorReset();
+      OGRGeomFieldDefnShadow_SetNullable(arg1,arg2);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        do_confess( CPLGetLastErrorMsg(), 0 );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -16681,10 +20920,13 @@ XS(_wrap_CreateGeometryFromWkb) {
     {
       /* %typemap(in,numinputs=1) (int nLen, char *pBuf ) */
       if (SvOK(ST(0))) {
-        if (!SvPOK(ST(0)))
-        SWIG_croak("expected binary data as input");
-        STRLEN len = SvCUR(ST(0));
-        arg2 = SvPV_nolen(ST(0));
+        SV *sv = ST(0);
+        if (SvROK(sv) && SvTYPE(SvRV(sv)) < SVt_PVAV)
+        sv = SvRV(sv);
+        if (!SvPOK(sv))
+        do_confess(NEED_BINARY_DATA, 1);
+        STRLEN len = SvCUR(sv);
+        arg2 = SvPV_nolen(sv);
         arg1 = len;
       } else {
         arg2 = NULL;
@@ -16703,7 +20945,7 @@ XS(_wrap_CreateGeometryFromWkb) {
       result = (OGRGeometryShadow *)CreateGeometryFromWkb(arg1,arg2,arg3);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -16712,7 +20954,7 @@ XS(_wrap_CreateGeometryFromWkb) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -16737,6 +20979,7 @@ XS(_wrap_CreateGeometryFromWkt) {
     char **arg1 = (char **) 0 ;
     OSRSpatialReferenceShadow *arg2 = (OSRSpatialReferenceShadow *) NULL ;
     char *val1 ;
+    U8 *tmpbuf1 = NULL ;
     void *argp2 = 0 ;
     int res2 = 0 ;
     int argvi = 0;
@@ -16748,8 +20991,7 @@ XS(_wrap_CreateGeometryFromWkt) {
     }
     {
       /* %typemap(in) (char **ignorechange) */
-      sv_utf8_upgrade(ST(0)); /* GDAL expects UTF-8 */
-      val1 = SvPV_nolen(ST(0));
+      val1 = sv_to_utf8_string(ST(0), &tmpbuf1);
       arg1 = &val1;
     }
     if (items > 1) {
@@ -16764,7 +21006,7 @@ XS(_wrap_CreateGeometryFromWkt) {
       result = (OGRGeometryShadow *)CreateGeometryFromWkt(arg1,arg2);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -16773,7 +21015,7 @@ XS(_wrap_CreateGeometryFromWkt) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -16784,11 +21026,17 @@ XS(_wrap_CreateGeometryFromWkt) {
       
     }
     ST(argvi) = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_OGRGeometryShadow, SWIG_OWNER | SWIG_SHADOW); argvi++ ;
-    
+    {
+      /* %typemap(freearg) (char **ignorechange) */
+      if (tmpbuf1) free(tmpbuf1);
+    }
     
     XSRETURN(argvi);
   fail:
-    
+    {
+      /* %typemap(freearg) (char **ignorechange) */
+      if (tmpbuf1) free(tmpbuf1);
+    }
     
     SWIG_croak_null();
   }
@@ -16818,7 +21066,7 @@ XS(_wrap_CreateGeometryFromGML) {
       result = (OGRGeometryShadow *)CreateGeometryFromGML((char const *)arg1);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -16827,7 +21075,7 @@ XS(_wrap_CreateGeometryFromGML) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -16870,7 +21118,7 @@ XS(_wrap_CreateGeometryFromJson) {
       result = (OGRGeometryShadow *)CreateGeometryFromJson((char const *)arg1);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -16879,7 +21127,7 @@ XS(_wrap_CreateGeometryFromJson) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -16951,7 +21199,7 @@ XS(_wrap_BuildPolygonFromEdges) {
       result = (OGRGeometryShadow *)BuildPolygonFromEdges(arg1,arg2,arg3,arg4);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -16960,7 +21208,7 @@ XS(_wrap_BuildPolygonFromEdges) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -17072,7 +21320,7 @@ XS(_wrap_ApproximateArcAngles) {
       result = (OGRGeometryShadow *)ApproximateArcAngles(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -17081,7 +21329,7 @@ XS(_wrap_ApproximateArcAngles) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -17139,7 +21387,7 @@ XS(_wrap_ForceToPolygon) {
       result = (OGRGeometryShadow *)ForceToPolygon(arg1);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -17148,7 +21396,7 @@ XS(_wrap_ForceToPolygon) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -17190,7 +21438,7 @@ XS(_wrap_ForceToLineString) {
       result = (OGRGeometryShadow *)ForceToLineString(arg1);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -17199,7 +21447,7 @@ XS(_wrap_ForceToLineString) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -17241,7 +21489,7 @@ XS(_wrap_ForceToMultiPolygon) {
       result = (OGRGeometryShadow *)ForceToMultiPolygon(arg1);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -17250,7 +21498,7 @@ XS(_wrap_ForceToMultiPolygon) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -17292,7 +21540,7 @@ XS(_wrap_ForceToMultiPoint) {
       result = (OGRGeometryShadow *)ForceToMultiPoint(arg1);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -17301,7 +21549,7 @@ XS(_wrap_ForceToMultiPoint) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -17343,7 +21591,7 @@ XS(_wrap_ForceToMultiLineString) {
       result = (OGRGeometryShadow *)ForceToMultiLineString(arg1);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -17352,7 +21600,7 @@ XS(_wrap_ForceToMultiLineString) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -17367,6 +21615,108 @@ XS(_wrap_ForceToMultiLineString) {
     XSRETURN(argvi);
   fail:
     
+    SWIG_croak_null();
+  }
+}
+
+
+XS(_wrap_ForceTo) {
+  {
+    OGRGeometryShadow *arg1 = (OGRGeometryShadow *) 0 ;
+    OGRwkbGeometryType arg2 ;
+    char **arg3 = (char **) NULL ;
+    void *argp1 = 0 ;
+    int res1 = 0 ;
+    int val2 ;
+    int ecode2 = 0 ;
+    int argvi = 0;
+    OGRGeometryShadow *result = 0 ;
+    dXSARGS;
+    
+    if ((items < 2) || (items > 3)) {
+      SWIG_croak("Usage: ForceTo(geom_in,eTargetType,options);");
+    }
+    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OGRGeometryShadow, 0 |  0 );
+    if (!SWIG_IsOK(res1)) {
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "ForceTo" "', argument " "1"" of type '" "OGRGeometryShadow *""'"); 
+    }
+    arg1 = reinterpret_cast< OGRGeometryShadow * >(argp1);
+    ecode2 = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(1), &val2);
+    if (!SWIG_IsOK(ecode2)) {
+      SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "ForceTo" "', argument " "2"" of type '" "OGRwkbGeometryType""'");
+    } 
+    arg2 = static_cast< OGRwkbGeometryType >(val2);
+    if (items > 2) {
+      {
+        /* %typemap(in) char **options */
+        if (SvOK(ST(2))) {
+          if (SvROK(ST(2))) {
+            if (SvTYPE(SvRV(ST(2)))==SVt_PVAV) {
+              AV *av = (AV*)(SvRV(ST(2)));
+              for (int i = 0; i < av_len(av)+1; i++) {
+                SV *sv = *(av_fetch(av, i, 0));
+                char *tmp = sv_to_utf8_string(sv, NULL);
+                arg3 = CSLAddString(arg3, tmp);
+                free(tmp);
+              }
+            } else if (SvTYPE(SvRV(ST(2)))==SVt_PVHV) {
+              HV *hv = (HV*)SvRV(ST(2));
+              SV *sv;
+              char *key;
+              I32 klen;
+              arg3 = NULL;
+              hv_iterinit(hv);
+              while(sv = hv_iternextsv(hv, &key, &klen)) {
+                char *tmp = sv_to_utf8_string(sv, NULL);
+                arg3 = CSLAddNameValue(arg3, key, tmp);
+                free(tmp);
+              }
+            } else
+            do_confess(NEED_REF, 1);
+          } else
+          do_confess(NEED_REF, 1);
+        }
+      }
+    }
+    {
+      CPLErrorReset();
+      result = (OGRGeometryShadow *)ForceTo(arg1,arg2,arg3);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        do_confess( CPLGetLastErrorMsg(), 0 );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /*
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
+    ST(argvi) = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_OGRGeometryShadow, SWIG_OWNER | SWIG_SHADOW); argvi++ ;
+    
+    
+    {
+      /* %typemap(freearg) char **options */
+      if (arg3) CSLDestroy( arg3 );
+    }
+    XSRETURN(argvi);
+  fail:
+    
+    
+    {
+      /* %typemap(freearg) char **options */
+      if (arg3) CSLDestroy( arg3 );
+    }
     SWIG_croak_null();
   }
 }
@@ -17393,7 +21743,7 @@ XS(_wrap_delete_Geometry) {
       delete_OGRGeometryShadow(arg1);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -17402,7 +21752,7 @@ XS(_wrap_delete_Geometry) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -17464,10 +21814,13 @@ XS(_wrap_new_Geometry) {
       {
         /* %typemap(in,numinputs=1) (int nLen, char *pBuf ) */
         if (SvOK(ST(2))) {
-          if (!SvPOK(ST(2)))
-          SWIG_croak("expected binary data as input");
-          STRLEN len = SvCUR(ST(2));
-          arg4 = SvPV_nolen(ST(2));
+          SV *sv = ST(2);
+          if (SvROK(sv) && SvTYPE(SvRV(sv)) < SVt_PVAV)
+          sv = SvRV(sv);
+          if (!SvPOK(sv))
+          do_confess(NEED_BINARY_DATA, 1);
+          STRLEN len = SvCUR(sv);
+          arg4 = SvPV_nolen(sv);
           arg3 = len;
         } else {
           arg4 = NULL;
@@ -17487,7 +21840,7 @@ XS(_wrap_new_Geometry) {
       result = (OGRGeometryShadow *)new_OGRGeometryShadow(arg1,arg2,arg3,arg4,arg5);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -17496,7 +21849,7 @@ XS(_wrap_new_Geometry) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -17548,7 +21901,7 @@ XS(_wrap_Geometry_ExportToWkt) {
       result = (OGRErr)OGRGeometryShadow_ExportToWkt(arg1,arg2);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -17557,7 +21910,7 @@ XS(_wrap_Geometry_ExportToWkt) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -17571,8 +21924,91 @@ XS(_wrap_Geometry_ExportToWkt) {
       /* %typemap(out) OGRErr */
       if ( result != 0 ) {
         const char *err = CPLGetLastErrorMsg();
-        if (err and *err) SWIG_croak(err); /* this is usually better */
-        SWIG_croak( OGRErrMessages(result) );
+        if (err and *err) do_confess(err, 0); /* this is usually better */
+        do_confess( OGRErrMessages(result), 1 );
+      }
+    }
+    {
+      /* %typemap(argout) (char **argout) */
+      ST(argvi) = sv_newmortal();
+      if ( arg2 ) {
+        sv_setpv(ST(argvi), *arg2);
+        SvUTF8_on(ST(argvi)); /* expecting UTF-8 from GDAL */
+      }
+      argvi++;
+    }
+    
+    {
+      /* %typemap(freearg) (char **argout) */
+      if ( *arg2 )
+      CPLFree( *arg2 );
+    }
+    XSRETURN(argvi);
+  fail:
+    
+    {
+      /* %typemap(freearg) (char **argout) */
+      if ( *arg2 )
+      CPLFree( *arg2 );
+    }
+    SWIG_croak_null();
+  }
+}
+
+
+XS(_wrap_Geometry_ExportToIsoWkt) {
+  {
+    OGRGeometryShadow *arg1 = (OGRGeometryShadow *) 0 ;
+    char **arg2 = (char **) 0 ;
+    void *argp1 = 0 ;
+    int res1 = 0 ;
+    char *argout2 = 0 ;
+    int argvi = 0;
+    OGRErr result;
+    dXSARGS;
+    
+    {
+      /* %typemap(in,numinputs=0) (char **argout2) */
+      arg2 = &argout2;
+    }
+    if ((items < 1) || (items > 1)) {
+      SWIG_croak("Usage: Geometry_ExportToIsoWkt(self);");
+    }
+    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OGRGeometryShadow, 0 |  0 );
+    if (!SWIG_IsOK(res1)) {
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Geometry_ExportToIsoWkt" "', argument " "1"" of type '" "OGRGeometryShadow *""'"); 
+    }
+    arg1 = reinterpret_cast< OGRGeometryShadow * >(argp1);
+    {
+      CPLErrorReset();
+      result = (OGRErr)OGRGeometryShadow_ExportToIsoWkt(arg1,arg2);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        do_confess( CPLGetLastErrorMsg(), 0 );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /*
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
+    {
+      /* %typemap(out) OGRErr */
+      if ( result != 0 ) {
+        const char *err = CPLGetLastErrorMsg();
+        if (err and *err) do_confess(err, 0); /* this is usually better */
+        do_confess( OGRErrMessages(result), 1 );
       }
     }
     {
@@ -17644,7 +22080,7 @@ XS(_wrap_Geometry__ExportToWkb) {
       result = (OGRErr)OGRGeometryShadow_ExportToWkb(arg1,arg2,arg3,arg4);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -17653,7 +22089,7 @@ XS(_wrap_Geometry__ExportToWkb) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -17667,8 +22103,104 @@ XS(_wrap_Geometry__ExportToWkb) {
       /* %typemap(out) OGRErr */
       if ( result != 0 ) {
         const char *err = CPLGetLastErrorMsg();
-        if (err and *err) SWIG_croak(err); /* this is usually better */
-        SWIG_croak( OGRErrMessages(result) );
+        if (err and *err) do_confess(err, 0); /* this is usually better */
+        do_confess( OGRErrMessages(result), 1 );
+      }
+    }
+    {
+      /* %typemap(argout) (int *nLen, char **pBuf ) */
+      ST(argvi) = sv_2mortal(newSVpv( *arg3, *arg2 ));
+      argvi++;
+    }
+    
+    {
+      /* %typemap(freearg) (int *nLen, char **pBuf ) */
+      if( *arg2 ) {
+        free( *arg3 );
+      }
+    }
+    
+    XSRETURN(argvi);
+  fail:
+    
+    {
+      /* %typemap(freearg) (int *nLen, char **pBuf ) */
+      if( *arg2 ) {
+        free( *arg3 );
+      }
+    }
+    
+    SWIG_croak_null();
+  }
+}
+
+
+XS(_wrap_Geometry_ExportToIsoWkb) {
+  {
+    OGRGeometryShadow *arg1 = (OGRGeometryShadow *) 0 ;
+    int *arg2 = (int *) 0 ;
+    char **arg3 = (char **) 0 ;
+    OGRwkbByteOrder arg4 = (OGRwkbByteOrder) wkbXDR ;
+    void *argp1 = 0 ;
+    int res1 = 0 ;
+    int nLen2 = 0 ;
+    char *pBuf2 = 0 ;
+    int val4 ;
+    int ecode4 = 0 ;
+    int argvi = 0;
+    OGRErr result;
+    dXSARGS;
+    
+    {
+      /* %typemap(in,numinputs=0) (int *nLen2, char **pBuf2 ) */
+      arg2 = &nLen2;
+      arg3 = &pBuf2;
+    }
+    if ((items < 1) || (items > 2)) {
+      SWIG_croak("Usage: Geometry_ExportToIsoWkb(self,pBuf,byte_order);");
+    }
+    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OGRGeometryShadow, 0 |  0 );
+    if (!SWIG_IsOK(res1)) {
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Geometry_ExportToIsoWkb" "', argument " "1"" of type '" "OGRGeometryShadow *""'"); 
+    }
+    arg1 = reinterpret_cast< OGRGeometryShadow * >(argp1);
+    if (items > 1) {
+      ecode4 = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(1), &val4);
+      if (!SWIG_IsOK(ecode4)) {
+        SWIG_exception_fail(SWIG_ArgError(ecode4), "in method '" "Geometry_ExportToIsoWkb" "', argument " "4"" of type '" "OGRwkbByteOrder""'");
+      } 
+      arg4 = static_cast< OGRwkbByteOrder >(val4);
+    }
+    {
+      CPLErrorReset();
+      result = (OGRErr)OGRGeometryShadow_ExportToIsoWkb(arg1,arg2,arg3,arg4);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        do_confess( CPLGetLastErrorMsg(), 0 );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /*
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
+    {
+      /* %typemap(out) OGRErr */
+      if ( result != 0 ) {
+        const char *err = CPLGetLastErrorMsg();
+        if (err and *err) do_confess(err, 0); /* this is usually better */
+        do_confess( OGRErrMessages(result), 1 );
       }
     }
     {
@@ -17726,9 +22258,9 @@ XS(_wrap_Geometry_ExportToGML) {
               AV *av = (AV*)(SvRV(ST(1)));
               for (int i = 0; i < av_len(av)+1; i++) {
                 SV *sv = *(av_fetch(av, i, 0));
-                sv_utf8_upgrade(sv); /* GDAL expects UTF-8 */
-                char *pszItem = SvPV_nolen(sv);
-                arg2 = CSLAddString( arg2, pszItem );
+                char *tmp = sv_to_utf8_string(sv, NULL);
+                arg2 = CSLAddString(arg2, tmp);
+                free(tmp);
               }
             } else if (SvTYPE(SvRV(ST(1)))==SVt_PVHV) {
               HV *hv = (HV*)SvRV(ST(1));
@@ -17737,14 +22269,15 @@ XS(_wrap_Geometry_ExportToGML) {
               I32 klen;
               arg2 = NULL;
               hv_iterinit(hv);
-              while(sv = hv_iternextsv(hv,&key,&klen)) {
-                sv_utf8_upgrade(sv); /* GDAL expects UTF-8 */
-                arg2 = CSLAddNameValue( arg2, key, SvPV_nolen(sv) );
+              while(sv = hv_iternextsv(hv, &key, &klen)) {
+                char *tmp = sv_to_utf8_string(sv, NULL);
+                arg2 = CSLAddNameValue(arg2, key, tmp);
+                free(tmp);
               }
             } else
-            SWIG_croak("the 'options' argument to a Geo::GDAL method is not a reference to an array or hash");
+            do_confess(NEED_REF, 1);
           } else
-          SWIG_croak("the 'options' argument to a Geo::GDAL method is not a reference");   
+          do_confess(NEED_REF, 1);
         }
       }
     }
@@ -17753,7 +22286,7 @@ XS(_wrap_Geometry_ExportToGML) {
       result = (retStringAndCPLFree *)OGRGeometryShadow_ExportToGML(arg1,arg2);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -17762,7 +22295,7 @@ XS(_wrap_Geometry_ExportToGML) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -17835,7 +22368,7 @@ XS(_wrap_Geometry_ExportToKML) {
       result = (retStringAndCPLFree *)OGRGeometryShadow_ExportToKML(arg1,(char const *)arg2);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -17844,7 +22377,7 @@ XS(_wrap_Geometry_ExportToKML) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -17905,9 +22438,9 @@ XS(_wrap_Geometry_ExportToJson) {
               AV *av = (AV*)(SvRV(ST(1)));
               for (int i = 0; i < av_len(av)+1; i++) {
                 SV *sv = *(av_fetch(av, i, 0));
-                sv_utf8_upgrade(sv); /* GDAL expects UTF-8 */
-                char *pszItem = SvPV_nolen(sv);
-                arg2 = CSLAddString( arg2, pszItem );
+                char *tmp = sv_to_utf8_string(sv, NULL);
+                arg2 = CSLAddString(arg2, tmp);
+                free(tmp);
               }
             } else if (SvTYPE(SvRV(ST(1)))==SVt_PVHV) {
               HV *hv = (HV*)SvRV(ST(1));
@@ -17916,14 +22449,15 @@ XS(_wrap_Geometry_ExportToJson) {
               I32 klen;
               arg2 = NULL;
               hv_iterinit(hv);
-              while(sv = hv_iternextsv(hv,&key,&klen)) {
-                sv_utf8_upgrade(sv); /* GDAL expects UTF-8 */
-                arg2 = CSLAddNameValue( arg2, key, SvPV_nolen(sv) );
+              while(sv = hv_iternextsv(hv, &key, &klen)) {
+                char *tmp = sv_to_utf8_string(sv, NULL);
+                arg2 = CSLAddNameValue(arg2, key, tmp);
+                free(tmp);
               }
             } else
-            SWIG_croak("the 'options' argument to a Geo::GDAL method is not a reference to an array or hash");
+            do_confess(NEED_REF, 1);
           } else
-          SWIG_croak("the 'options' argument to a Geo::GDAL method is not a reference");   
+          do_confess(NEED_REF, 1);
         }
       }
     }
@@ -17932,7 +22466,7 @@ XS(_wrap_Geometry_ExportToJson) {
       result = (retStringAndCPLFree *)OGRGeometryShadow_ExportToJson(arg1,arg2);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -17941,7 +22475,7 @@ XS(_wrap_Geometry_ExportToJson) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -18028,7 +22562,7 @@ XS(_wrap_Geometry_AddPoint_3D) {
       OGRGeometryShadow_AddPoint(arg1,arg2,arg3,arg4);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -18037,7 +22571,7 @@ XS(_wrap_Geometry_AddPoint_3D) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -18056,6 +22590,180 @@ XS(_wrap_Geometry_AddPoint_3D) {
     
     XSRETURN(argvi);
   fail:
+    
+    
+    
+    
+    SWIG_croak_null();
+  }
+}
+
+
+XS(_wrap_Geometry_AddPointM) {
+  {
+    OGRGeometryShadow *arg1 = (OGRGeometryShadow *) 0 ;
+    double arg2 ;
+    double arg3 ;
+    double arg4 ;
+    void *argp1 = 0 ;
+    int res1 = 0 ;
+    double val2 ;
+    int ecode2 = 0 ;
+    double val3 ;
+    int ecode3 = 0 ;
+    double val4 ;
+    int ecode4 = 0 ;
+    int argvi = 0;
+    dXSARGS;
+    
+    if ((items < 4) || (items > 4)) {
+      SWIG_croak("Usage: Geometry_AddPointM(self,x,y,m);");
+    }
+    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OGRGeometryShadow, 0 |  0 );
+    if (!SWIG_IsOK(res1)) {
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Geometry_AddPointM" "', argument " "1"" of type '" "OGRGeometryShadow *""'"); 
+    }
+    arg1 = reinterpret_cast< OGRGeometryShadow * >(argp1);
+    ecode2 = SWIG_AsVal_double SWIG_PERL_CALL_ARGS_2(ST(1), &val2);
+    if (!SWIG_IsOK(ecode2)) {
+      SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "Geometry_AddPointM" "', argument " "2"" of type '" "double""'");
+    } 
+    arg2 = static_cast< double >(val2);
+    ecode3 = SWIG_AsVal_double SWIG_PERL_CALL_ARGS_2(ST(2), &val3);
+    if (!SWIG_IsOK(ecode3)) {
+      SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "Geometry_AddPointM" "', argument " "3"" of type '" "double""'");
+    } 
+    arg3 = static_cast< double >(val3);
+    ecode4 = SWIG_AsVal_double SWIG_PERL_CALL_ARGS_2(ST(3), &val4);
+    if (!SWIG_IsOK(ecode4)) {
+      SWIG_exception_fail(SWIG_ArgError(ecode4), "in method '" "Geometry_AddPointM" "', argument " "4"" of type '" "double""'");
+    } 
+    arg4 = static_cast< double >(val4);
+    {
+      CPLErrorReset();
+      OGRGeometryShadow_AddPointM(arg1,arg2,arg3,arg4);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        do_confess( CPLGetLastErrorMsg(), 0 );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /*
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
+    {
+      /* %typemap(out) void */
+    }
+    
+    
+    
+    
+    XSRETURN(argvi);
+  fail:
+    
+    
+    
+    
+    SWIG_croak_null();
+  }
+}
+
+
+XS(_wrap_Geometry_AddPointZM) {
+  {
+    OGRGeometryShadow *arg1 = (OGRGeometryShadow *) 0 ;
+    double arg2 ;
+    double arg3 ;
+    double arg4 ;
+    double arg5 ;
+    void *argp1 = 0 ;
+    int res1 = 0 ;
+    double val2 ;
+    int ecode2 = 0 ;
+    double val3 ;
+    int ecode3 = 0 ;
+    double val4 ;
+    int ecode4 = 0 ;
+    double val5 ;
+    int ecode5 = 0 ;
+    int argvi = 0;
+    dXSARGS;
+    
+    if ((items < 5) || (items > 5)) {
+      SWIG_croak("Usage: Geometry_AddPointZM(self,x,y,z,m);");
+    }
+    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OGRGeometryShadow, 0 |  0 );
+    if (!SWIG_IsOK(res1)) {
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Geometry_AddPointZM" "', argument " "1"" of type '" "OGRGeometryShadow *""'"); 
+    }
+    arg1 = reinterpret_cast< OGRGeometryShadow * >(argp1);
+    ecode2 = SWIG_AsVal_double SWIG_PERL_CALL_ARGS_2(ST(1), &val2);
+    if (!SWIG_IsOK(ecode2)) {
+      SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "Geometry_AddPointZM" "', argument " "2"" of type '" "double""'");
+    } 
+    arg2 = static_cast< double >(val2);
+    ecode3 = SWIG_AsVal_double SWIG_PERL_CALL_ARGS_2(ST(2), &val3);
+    if (!SWIG_IsOK(ecode3)) {
+      SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "Geometry_AddPointZM" "', argument " "3"" of type '" "double""'");
+    } 
+    arg3 = static_cast< double >(val3);
+    ecode4 = SWIG_AsVal_double SWIG_PERL_CALL_ARGS_2(ST(3), &val4);
+    if (!SWIG_IsOK(ecode4)) {
+      SWIG_exception_fail(SWIG_ArgError(ecode4), "in method '" "Geometry_AddPointZM" "', argument " "4"" of type '" "double""'");
+    } 
+    arg4 = static_cast< double >(val4);
+    ecode5 = SWIG_AsVal_double SWIG_PERL_CALL_ARGS_2(ST(4), &val5);
+    if (!SWIG_IsOK(ecode5)) {
+      SWIG_exception_fail(SWIG_ArgError(ecode5), "in method '" "Geometry_AddPointZM" "', argument " "5"" of type '" "double""'");
+    } 
+    arg5 = static_cast< double >(val5);
+    {
+      CPLErrorReset();
+      OGRGeometryShadow_AddPointZM(arg1,arg2,arg3,arg4,arg5);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        do_confess( CPLGetLastErrorMsg(), 0 );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /*
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
+    {
+      /* %typemap(out) void */
+    }
+    
+    
+    
+    
+    
+    XSRETURN(argvi);
+  fail:
+    
     
     
     
@@ -18102,7 +22810,7 @@ XS(_wrap_Geometry_AddPoint_2D) {
       OGRGeometryShadow_AddPoint_2D(arg1,arg2,arg3);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -18111,7 +22819,7 @@ XS(_wrap_Geometry_AddPoint_2D) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -18170,7 +22878,7 @@ XS(_wrap_Geometry_AddGeometryDirectly) {
       result = (OGRErr)OGRGeometryShadow_AddGeometryDirectly(arg1,arg2);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -18179,7 +22887,7 @@ XS(_wrap_Geometry_AddGeometryDirectly) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -18193,8 +22901,8 @@ XS(_wrap_Geometry_AddGeometryDirectly) {
       /* %typemap(out) OGRErr */
       if ( result != 0 ) {
         const char *err = CPLGetLastErrorMsg();
-        if (err and *err) SWIG_croak(err); /* this is usually better */
-        SWIG_croak( OGRErrMessages(result) );
+        if (err and *err) do_confess(err, 0); /* this is usually better */
+        do_confess( OGRErrMessages(result), 1 );
       }
     }
     
@@ -18243,7 +22951,7 @@ XS(_wrap_Geometry_AddGeometry) {
       result = (OGRErr)OGRGeometryShadow_AddGeometry(arg1,arg2);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -18252,7 +22960,7 @@ XS(_wrap_Geometry_AddGeometry) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -18266,8 +22974,8 @@ XS(_wrap_Geometry_AddGeometry) {
       /* %typemap(out) OGRErr */
       if ( result != 0 ) {
         const char *err = CPLGetLastErrorMsg();
-        if (err and *err) SWIG_croak(err); /* this is usually better */
-        SWIG_croak( OGRErrMessages(result) );
+        if (err and *err) do_confess(err, 0); /* this is usually better */
+        do_confess( OGRErrMessages(result), 1 );
       }
     }
     
@@ -18303,7 +23011,7 @@ XS(_wrap_Geometry_Clone) {
       result = (OGRGeometryShadow *)OGRGeometryShadow_Clone(arg1);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -18312,7 +23020,7 @@ XS(_wrap_Geometry_Clone) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -18354,7 +23062,7 @@ XS(_wrap_Geometry_GetGeometryType) {
       result = (OGRwkbGeometryType)OGRGeometryShadow_GetGeometryType(arg1);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -18363,7 +23071,7 @@ XS(_wrap_Geometry_GetGeometryType) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -18405,7 +23113,7 @@ XS(_wrap_Geometry_GetGeometryName) {
       result = (char *)OGRGeometryShadow_GetGeometryName(arg1);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -18414,7 +23122,7 @@ XS(_wrap_Geometry_GetGeometryName) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -18462,7 +23170,7 @@ XS(_wrap_Geometry_Length) {
       result = (double)OGRGeometryShadow_Length(arg1);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -18471,7 +23179,7 @@ XS(_wrap_Geometry_Length) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -18513,7 +23221,7 @@ XS(_wrap_Geometry_Area) {
       result = (double)OGRGeometryShadow_Area(arg1);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -18522,7 +23230,7 @@ XS(_wrap_Geometry_Area) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -18564,7 +23272,7 @@ XS(_wrap_Geometry_GetArea) {
       result = (double)OGRGeometryShadow_GetArea(arg1);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -18573,7 +23281,7 @@ XS(_wrap_Geometry_GetArea) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -18615,7 +23323,7 @@ XS(_wrap_Geometry_GetPointCount) {
       result = (int)OGRGeometryShadow_GetPointCount(arg1);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -18624,7 +23332,7 @@ XS(_wrap_Geometry_GetPointCount) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -18676,7 +23384,7 @@ XS(_wrap_Geometry_GetX) {
       result = (double)OGRGeometryShadow_GetX(arg1,arg2);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -18685,7 +23393,7 @@ XS(_wrap_Geometry_GetX) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -18739,7 +23447,7 @@ XS(_wrap_Geometry_GetY) {
       result = (double)OGRGeometryShadow_GetY(arg1,arg2);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -18748,7 +23456,7 @@ XS(_wrap_Geometry_GetY) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -18802,7 +23510,7 @@ XS(_wrap_Geometry_GetZ) {
       result = (double)OGRGeometryShadow_GetZ(arg1,arg2);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -18811,7 +23519,70 @@ XS(_wrap_Geometry_GetZ) {
       }
       
       
-      /* 
+      /*
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
+    ST(argvi) = SWIG_From_double  SWIG_PERL_CALL_ARGS_1(static_cast< double >(result)); argvi++ ;
+    
+    
+    XSRETURN(argvi);
+  fail:
+    
+    
+    SWIG_croak_null();
+  }
+}
+
+
+XS(_wrap_Geometry_GetM) {
+  {
+    OGRGeometryShadow *arg1 = (OGRGeometryShadow *) 0 ;
+    int arg2 = (int) 0 ;
+    void *argp1 = 0 ;
+    int res1 = 0 ;
+    int val2 ;
+    int ecode2 = 0 ;
+    int argvi = 0;
+    double result;
+    dXSARGS;
+    
+    if ((items < 1) || (items > 2)) {
+      SWIG_croak("Usage: Geometry_GetM(self,point);");
+    }
+    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OGRGeometryShadow, 0 |  0 );
+    if (!SWIG_IsOK(res1)) {
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Geometry_GetM" "', argument " "1"" of type '" "OGRGeometryShadow *""'"); 
+    }
+    arg1 = reinterpret_cast< OGRGeometryShadow * >(argp1);
+    if (items > 1) {
+      ecode2 = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(1), &val2);
+      if (!SWIG_IsOK(ecode2)) {
+        SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "Geometry_GetM" "', argument " "2"" of type '" "int""'");
+      } 
+      arg2 = static_cast< int >(val2);
+    }
+    {
+      CPLErrorReset();
+      result = (double)OGRGeometryShadow_GetM(arg1,arg2);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        do_confess( CPLGetLastErrorMsg(), 0 );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -18870,7 +23641,7 @@ XS(_wrap_Geometry_GetPoint_3D) {
       OGRGeometryShadow_GetPoint(arg1,arg2,arg3);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -18879,7 +23650,7 @@ XS(_wrap_Geometry_GetPoint_3D) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -18903,7 +23674,92 @@ XS(_wrap_Geometry_GetPoint_3D) {
       } else {
         ST(argvi) = CreateArrayFromDoubleArray( arg3, 3 );
         argvi++;
-      }  
+      }
+    }
+    
+    
+    
+    XSRETURN(argvi);
+  fail:
+    
+    
+    
+    SWIG_croak_null();
+  }
+}
+
+
+XS(_wrap_Geometry_GetPointZM) {
+  {
+    OGRGeometryShadow *arg1 = (OGRGeometryShadow *) 0 ;
+    int arg2 = (int) 0 ;
+    double *arg3 = (double *) (double *)NULL ;
+    void *argp1 = 0 ;
+    int res1 = 0 ;
+    int val2 ;
+    int ecode2 = 0 ;
+    double argout3[4] ;
+    int argvi = 0;
+    dXSARGS;
+    
+    {
+      /* %typemap(in,numinputs=0) (double argout3[ANY]) */
+      arg3 = argout3;
+    }
+    if ((items < 1) || (items > 2)) {
+      SWIG_croak("Usage: Geometry_GetPointZM(self,iPoint);");
+    }
+    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OGRGeometryShadow, 0 |  0 );
+    if (!SWIG_IsOK(res1)) {
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Geometry_GetPointZM" "', argument " "1"" of type '" "OGRGeometryShadow *""'"); 
+    }
+    arg1 = reinterpret_cast< OGRGeometryShadow * >(argp1);
+    if (items > 1) {
+      ecode2 = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(1), &val2);
+      if (!SWIG_IsOK(ecode2)) {
+        SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "Geometry_GetPointZM" "', argument " "2"" of type '" "int""'");
+      } 
+      arg2 = static_cast< int >(val2);
+    }
+    {
+      CPLErrorReset();
+      OGRGeometryShadow_GetPointZM(arg1,arg2,arg3);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        do_confess( CPLGetLastErrorMsg(), 0 );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /*
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
+    {
+      /* %typemap(out) void */
+    }
+    {
+      /* %typemap(argout) (double argout[ANY]) */
+      if (GIMME_V == G_ARRAY) {
+        /* return a list */
+        int i;
+        EXTEND(SP, argvi+4-items+1);
+        for (i = 0; i < 4; i++)
+        ST(argvi++) = sv_2mortal(newSVnv(arg3[i]));
+      } else {
+        ST(argvi) = CreateArrayFromDoubleArray( arg3, 4 );
+        argvi++;
+      }
     }
     
     
@@ -18955,7 +23811,7 @@ XS(_wrap_Geometry_GetPoint_2D) {
       OGRGeometryShadow_GetPoint_2D(arg1,arg2,arg3);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -18964,7 +23820,7 @@ XS(_wrap_Geometry_GetPoint_2D) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -18988,7 +23844,7 @@ XS(_wrap_Geometry_GetPoint_2D) {
       } else {
         ST(argvi) = CreateArrayFromDoubleArray( arg3, 2 );
         argvi++;
-      }  
+      }
     }
     
     
@@ -19025,7 +23881,7 @@ XS(_wrap_Geometry_GetGeometryCount) {
       result = (int)OGRGeometryShadow_GetGeometryCount(arg1);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -19034,7 +23890,7 @@ XS(_wrap_Geometry_GetGeometryCount) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -19109,7 +23965,7 @@ XS(_wrap_Geometry_SetPoint_3D) {
       OGRGeometryShadow_SetPoint(arg1,arg2,arg3,arg4,arg5);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -19118,7 +23974,7 @@ XS(_wrap_Geometry_SetPoint_3D) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -19138,6 +23994,200 @@ XS(_wrap_Geometry_SetPoint_3D) {
     
     XSRETURN(argvi);
   fail:
+    
+    
+    
+    
+    
+    SWIG_croak_null();
+  }
+}
+
+
+XS(_wrap_Geometry_SetPointM) {
+  {
+    OGRGeometryShadow *arg1 = (OGRGeometryShadow *) 0 ;
+    int arg2 ;
+    double arg3 ;
+    double arg4 ;
+    double arg5 ;
+    void *argp1 = 0 ;
+    int res1 = 0 ;
+    int val2 ;
+    int ecode2 = 0 ;
+    double val3 ;
+    int ecode3 = 0 ;
+    double val4 ;
+    int ecode4 = 0 ;
+    double val5 ;
+    int ecode5 = 0 ;
+    int argvi = 0;
+    dXSARGS;
+    
+    if ((items < 5) || (items > 5)) {
+      SWIG_croak("Usage: Geometry_SetPointM(self,point,x,y,m);");
+    }
+    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OGRGeometryShadow, 0 |  0 );
+    if (!SWIG_IsOK(res1)) {
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Geometry_SetPointM" "', argument " "1"" of type '" "OGRGeometryShadow *""'"); 
+    }
+    arg1 = reinterpret_cast< OGRGeometryShadow * >(argp1);
+    ecode2 = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(1), &val2);
+    if (!SWIG_IsOK(ecode2)) {
+      SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "Geometry_SetPointM" "', argument " "2"" of type '" "int""'");
+    } 
+    arg2 = static_cast< int >(val2);
+    ecode3 = SWIG_AsVal_double SWIG_PERL_CALL_ARGS_2(ST(2), &val3);
+    if (!SWIG_IsOK(ecode3)) {
+      SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "Geometry_SetPointM" "', argument " "3"" of type '" "double""'");
+    } 
+    arg3 = static_cast< double >(val3);
+    ecode4 = SWIG_AsVal_double SWIG_PERL_CALL_ARGS_2(ST(3), &val4);
+    if (!SWIG_IsOK(ecode4)) {
+      SWIG_exception_fail(SWIG_ArgError(ecode4), "in method '" "Geometry_SetPointM" "', argument " "4"" of type '" "double""'");
+    } 
+    arg4 = static_cast< double >(val4);
+    ecode5 = SWIG_AsVal_double SWIG_PERL_CALL_ARGS_2(ST(4), &val5);
+    if (!SWIG_IsOK(ecode5)) {
+      SWIG_exception_fail(SWIG_ArgError(ecode5), "in method '" "Geometry_SetPointM" "', argument " "5"" of type '" "double""'");
+    } 
+    arg5 = static_cast< double >(val5);
+    {
+      CPLErrorReset();
+      OGRGeometryShadow_SetPointM(arg1,arg2,arg3,arg4,arg5);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        do_confess( CPLGetLastErrorMsg(), 0 );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /*
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
+    {
+      /* %typemap(out) void */
+    }
+    
+    
+    
+    
+    
+    XSRETURN(argvi);
+  fail:
+    
+    
+    
+    
+    
+    SWIG_croak_null();
+  }
+}
+
+
+XS(_wrap_Geometry_SetPointZM) {
+  {
+    OGRGeometryShadow *arg1 = (OGRGeometryShadow *) 0 ;
+    int arg2 ;
+    double arg3 ;
+    double arg4 ;
+    double arg5 ;
+    double arg6 ;
+    void *argp1 = 0 ;
+    int res1 = 0 ;
+    int val2 ;
+    int ecode2 = 0 ;
+    double val3 ;
+    int ecode3 = 0 ;
+    double val4 ;
+    int ecode4 = 0 ;
+    double val5 ;
+    int ecode5 = 0 ;
+    double val6 ;
+    int ecode6 = 0 ;
+    int argvi = 0;
+    dXSARGS;
+    
+    if ((items < 6) || (items > 6)) {
+      SWIG_croak("Usage: Geometry_SetPointZM(self,point,x,y,z,m);");
+    }
+    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OGRGeometryShadow, 0 |  0 );
+    if (!SWIG_IsOK(res1)) {
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Geometry_SetPointZM" "', argument " "1"" of type '" "OGRGeometryShadow *""'"); 
+    }
+    arg1 = reinterpret_cast< OGRGeometryShadow * >(argp1);
+    ecode2 = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(1), &val2);
+    if (!SWIG_IsOK(ecode2)) {
+      SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "Geometry_SetPointZM" "', argument " "2"" of type '" "int""'");
+    } 
+    arg2 = static_cast< int >(val2);
+    ecode3 = SWIG_AsVal_double SWIG_PERL_CALL_ARGS_2(ST(2), &val3);
+    if (!SWIG_IsOK(ecode3)) {
+      SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "Geometry_SetPointZM" "', argument " "3"" of type '" "double""'");
+    } 
+    arg3 = static_cast< double >(val3);
+    ecode4 = SWIG_AsVal_double SWIG_PERL_CALL_ARGS_2(ST(3), &val4);
+    if (!SWIG_IsOK(ecode4)) {
+      SWIG_exception_fail(SWIG_ArgError(ecode4), "in method '" "Geometry_SetPointZM" "', argument " "4"" of type '" "double""'");
+    } 
+    arg4 = static_cast< double >(val4);
+    ecode5 = SWIG_AsVal_double SWIG_PERL_CALL_ARGS_2(ST(4), &val5);
+    if (!SWIG_IsOK(ecode5)) {
+      SWIG_exception_fail(SWIG_ArgError(ecode5), "in method '" "Geometry_SetPointZM" "', argument " "5"" of type '" "double""'");
+    } 
+    arg5 = static_cast< double >(val5);
+    ecode6 = SWIG_AsVal_double SWIG_PERL_CALL_ARGS_2(ST(5), &val6);
+    if (!SWIG_IsOK(ecode6)) {
+      SWIG_exception_fail(SWIG_ArgError(ecode6), "in method '" "Geometry_SetPointZM" "', argument " "6"" of type '" "double""'");
+    } 
+    arg6 = static_cast< double >(val6);
+    {
+      CPLErrorReset();
+      OGRGeometryShadow_SetPointZM(arg1,arg2,arg3,arg4,arg5,arg6);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        do_confess( CPLGetLastErrorMsg(), 0 );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /*
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
+    {
+      /* %typemap(out) void */
+    }
+    
+    
+    
+    
+    
+    
+    XSRETURN(argvi);
+  fail:
+    
     
     
     
@@ -19193,7 +24243,7 @@ XS(_wrap_Geometry_SetPoint_2D) {
       OGRGeometryShadow_SetPoint_2D(arg1,arg2,arg3,arg4);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -19202,7 +24252,7 @@ XS(_wrap_Geometry_SetPoint_2D) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -19260,7 +24310,7 @@ XS(_wrap_Geometry_GetGeometryRef) {
       result = (OGRGeometryShadow *)OGRGeometryShadow_GetGeometryRef(arg1,arg2);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -19269,7 +24319,7 @@ XS(_wrap_Geometry_GetGeometryRef) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -19321,7 +24371,7 @@ XS(_wrap_Geometry_Simplify) {
       result = (OGRGeometryShadow *)OGRGeometryShadow_Simplify(arg1,arg2);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -19330,7 +24380,7 @@ XS(_wrap_Geometry_Simplify) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -19382,7 +24432,7 @@ XS(_wrap_Geometry_SimplifyPreserveTopology) {
       result = (OGRGeometryShadow *)OGRGeometryShadow_SimplifyPreserveTopology(arg1,arg2);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -19391,7 +24441,7 @@ XS(_wrap_Geometry_SimplifyPreserveTopology) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -19406,6 +24456,81 @@ XS(_wrap_Geometry_SimplifyPreserveTopology) {
     
     XSRETURN(argvi);
   fail:
+    
+    
+    SWIG_croak_null();
+  }
+}
+
+
+XS(_wrap_Geometry_DelaunayTriangulation) {
+  {
+    OGRGeometryShadow *arg1 = (OGRGeometryShadow *) 0 ;
+    double arg2 = (double) 0.0 ;
+    int arg3 = (int) FALSE ;
+    void *argp1 = 0 ;
+    int res1 = 0 ;
+    double val2 ;
+    int ecode2 = 0 ;
+    int val3 ;
+    int ecode3 = 0 ;
+    int argvi = 0;
+    OGRGeometryShadow *result = 0 ;
+    dXSARGS;
+    
+    if ((items < 1) || (items > 3)) {
+      SWIG_croak("Usage: Geometry_DelaunayTriangulation(self,dfTolerance,bOnlyEdges);");
+    }
+    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OGRGeometryShadow, 0 |  0 );
+    if (!SWIG_IsOK(res1)) {
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Geometry_DelaunayTriangulation" "', argument " "1"" of type '" "OGRGeometryShadow *""'"); 
+    }
+    arg1 = reinterpret_cast< OGRGeometryShadow * >(argp1);
+    if (items > 1) {
+      ecode2 = SWIG_AsVal_double SWIG_PERL_CALL_ARGS_2(ST(1), &val2);
+      if (!SWIG_IsOK(ecode2)) {
+        SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "Geometry_DelaunayTriangulation" "', argument " "2"" of type '" "double""'");
+      } 
+      arg2 = static_cast< double >(val2);
+    }
+    if (items > 2) {
+      ecode3 = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(2), &val3);
+      if (!SWIG_IsOK(ecode3)) {
+        SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "Geometry_DelaunayTriangulation" "', argument " "3"" of type '" "int""'");
+      } 
+      arg3 = static_cast< int >(val3);
+    }
+    {
+      CPLErrorReset();
+      result = (OGRGeometryShadow *)OGRGeometryShadow_DelaunayTriangulation(arg1,arg2,arg3);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        do_confess( CPLGetLastErrorMsg(), 0 );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /*
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
+    ST(argvi) = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_OGRGeometryShadow, SWIG_OWNER | SWIG_SHADOW); argvi++ ;
+    
+    
+    
+    XSRETURN(argvi);
+  fail:
+    
     
     
     SWIG_croak_null();
@@ -19435,7 +24560,7 @@ XS(_wrap_Geometry_Boundary) {
       result = (OGRGeometryShadow *)OGRGeometryShadow_Boundary(arg1);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -19444,7 +24569,7 @@ XS(_wrap_Geometry_Boundary) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -19486,7 +24611,7 @@ XS(_wrap_Geometry_GetBoundary) {
       result = (OGRGeometryShadow *)OGRGeometryShadow_GetBoundary(arg1);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -19495,7 +24620,7 @@ XS(_wrap_Geometry_GetBoundary) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -19537,7 +24662,7 @@ XS(_wrap_Geometry_ConvexHull) {
       result = (OGRGeometryShadow *)OGRGeometryShadow_ConvexHull(arg1);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -19546,7 +24671,7 @@ XS(_wrap_Geometry_ConvexHull) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -19606,7 +24731,7 @@ XS(_wrap_Geometry_Buffer) {
       result = (OGRGeometryShadow *)OGRGeometryShadow_Buffer(arg1,arg2,arg3);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -19615,7 +24740,7 @@ XS(_wrap_Geometry_Buffer) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -19674,7 +24799,7 @@ XS(_wrap_Geometry_Intersection) {
       result = (OGRGeometryShadow *)OGRGeometryShadow_Intersection(arg1,arg2);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -19683,7 +24808,7 @@ XS(_wrap_Geometry_Intersection) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -19740,7 +24865,7 @@ XS(_wrap_Geometry_Union) {
       result = (OGRGeometryShadow *)OGRGeometryShadow_Union(arg1,arg2);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -19749,7 +24874,7 @@ XS(_wrap_Geometry_Union) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -19793,7 +24918,7 @@ XS(_wrap_Geometry_UnionCascaded) {
       result = (OGRGeometryShadow *)OGRGeometryShadow_UnionCascaded(arg1);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -19802,7 +24927,7 @@ XS(_wrap_Geometry_UnionCascaded) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -19857,7 +24982,7 @@ XS(_wrap_Geometry_Difference) {
       result = (OGRGeometryShadow *)OGRGeometryShadow_Difference(arg1,arg2);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -19866,7 +24991,7 @@ XS(_wrap_Geometry_Difference) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -19923,7 +25048,7 @@ XS(_wrap_Geometry_SymDifference) {
       result = (OGRGeometryShadow *)OGRGeometryShadow_SymDifference(arg1,arg2);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -19932,7 +25057,7 @@ XS(_wrap_Geometry_SymDifference) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -19989,7 +25114,7 @@ XS(_wrap_Geometry_SymmetricDifference) {
       result = (OGRGeometryShadow *)OGRGeometryShadow_SymmetricDifference(arg1,arg2);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -19998,7 +25123,7 @@ XS(_wrap_Geometry_SymmetricDifference) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -20055,7 +25180,7 @@ XS(_wrap_Geometry_Distance) {
       result = (double)OGRGeometryShadow_Distance(arg1,arg2);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -20064,7 +25189,7 @@ XS(_wrap_Geometry_Distance) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -20107,7 +25232,7 @@ XS(_wrap_Geometry_Empty) {
       OGRGeometryShadow_Empty(arg1);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -20116,7 +25241,7 @@ XS(_wrap_Geometry_Empty) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -20160,7 +25285,7 @@ XS(_wrap_Geometry_IsEmpty) {
       result = (bool)OGRGeometryShadow_IsEmpty(arg1);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -20169,7 +25294,7 @@ XS(_wrap_Geometry_IsEmpty) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -20211,7 +25336,7 @@ XS(_wrap_Geometry_IsValid) {
       result = (bool)OGRGeometryShadow_IsValid(arg1);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -20220,7 +25345,7 @@ XS(_wrap_Geometry_IsValid) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -20262,7 +25387,7 @@ XS(_wrap_Geometry_IsSimple) {
       result = (bool)OGRGeometryShadow_IsSimple(arg1);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -20271,7 +25396,7 @@ XS(_wrap_Geometry_IsSimple) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -20313,7 +25438,7 @@ XS(_wrap_Geometry_IsRing) {
       result = (bool)OGRGeometryShadow_IsRing(arg1);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -20322,7 +25447,7 @@ XS(_wrap_Geometry_IsRing) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -20377,7 +25502,7 @@ XS(_wrap_Geometry_Intersects) {
       result = (bool)OGRGeometryShadow_Intersects(arg1,arg2);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -20386,7 +25511,7 @@ XS(_wrap_Geometry_Intersects) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -20443,7 +25568,7 @@ XS(_wrap_Geometry_Intersect) {
       result = (bool)OGRGeometryShadow_Intersect(arg1,arg2);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -20452,7 +25577,7 @@ XS(_wrap_Geometry_Intersect) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -20509,7 +25634,7 @@ XS(_wrap_Geometry_Equals) {
       result = (bool)OGRGeometryShadow_Equals(arg1,arg2);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -20518,7 +25643,7 @@ XS(_wrap_Geometry_Equals) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -20575,7 +25700,7 @@ XS(_wrap_Geometry_Equal) {
       result = (bool)OGRGeometryShadow_Equal(arg1,arg2);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -20584,7 +25709,7 @@ XS(_wrap_Geometry_Equal) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -20641,7 +25766,7 @@ XS(_wrap_Geometry_Disjoint) {
       result = (bool)OGRGeometryShadow_Disjoint(arg1,arg2);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -20650,7 +25775,7 @@ XS(_wrap_Geometry_Disjoint) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -20707,7 +25832,7 @@ XS(_wrap_Geometry_Touches) {
       result = (bool)OGRGeometryShadow_Touches(arg1,arg2);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -20716,7 +25841,7 @@ XS(_wrap_Geometry_Touches) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -20773,7 +25898,7 @@ XS(_wrap_Geometry_Crosses) {
       result = (bool)OGRGeometryShadow_Crosses(arg1,arg2);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -20782,7 +25907,7 @@ XS(_wrap_Geometry_Crosses) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -20839,7 +25964,7 @@ XS(_wrap_Geometry_Within) {
       result = (bool)OGRGeometryShadow_Within(arg1,arg2);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -20848,7 +25973,7 @@ XS(_wrap_Geometry_Within) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -20905,7 +26030,7 @@ XS(_wrap_Geometry_Contains) {
       result = (bool)OGRGeometryShadow_Contains(arg1,arg2);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -20914,7 +26039,7 @@ XS(_wrap_Geometry_Contains) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -20971,7 +26096,7 @@ XS(_wrap_Geometry_Overlaps) {
       result = (bool)OGRGeometryShadow_Overlaps(arg1,arg2);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -20980,7 +26105,7 @@ XS(_wrap_Geometry_Overlaps) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -21037,7 +26162,7 @@ XS(_wrap_Geometry_TransformTo) {
       result = (OGRErr)OGRGeometryShadow_TransformTo(arg1,arg2);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -21046,7 +26171,7 @@ XS(_wrap_Geometry_TransformTo) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -21060,8 +26185,8 @@ XS(_wrap_Geometry_TransformTo) {
       /* %typemap(out) OGRErr */
       if ( result != 0 ) {
         const char *err = CPLGetLastErrorMsg();
-        if (err and *err) SWIG_croak(err); /* this is usually better */
-        SWIG_croak( OGRErrMessages(result) );
+        if (err and *err) do_confess(err, 0); /* this is usually better */
+        do_confess( OGRErrMessages(result), 1 );
       }
     }
     
@@ -21110,7 +26235,7 @@ XS(_wrap_Geometry_Transform) {
       result = (OGRErr)OGRGeometryShadow_Transform(arg1,arg2);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -21119,7 +26244,7 @@ XS(_wrap_Geometry_Transform) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -21133,8 +26258,8 @@ XS(_wrap_Geometry_Transform) {
       /* %typemap(out) OGRErr */
       if ( result != 0 ) {
         const char *err = CPLGetLastErrorMsg();
-        if (err and *err) SWIG_croak(err); /* this is usually better */
-        SWIG_croak( OGRErrMessages(result) );
+        if (err and *err) do_confess(err, 0); /* this is usually better */
+        do_confess( OGRErrMessages(result), 1 );
       }
     }
     
@@ -21170,7 +26295,7 @@ XS(_wrap_Geometry_GetSpatialReference) {
       result = (OSRSpatialReferenceShadow *)OGRGeometryShadow_GetSpatialReference(arg1);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -21179,7 +26304,7 @@ XS(_wrap_Geometry_GetSpatialReference) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -21228,7 +26353,7 @@ XS(_wrap_Geometry_AssignSpatialReference) {
       OGRGeometryShadow_AssignSpatialReference(arg1,arg2);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -21237,7 +26362,7 @@ XS(_wrap_Geometry_AssignSpatialReference) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -21282,7 +26407,7 @@ XS(_wrap_Geometry_CloseRings) {
       OGRGeometryShadow_CloseRings(arg1);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -21291,7 +26416,7 @@ XS(_wrap_Geometry_CloseRings) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -21334,7 +26459,7 @@ XS(_wrap_Geometry_FlattenTo2D) {
       OGRGeometryShadow_FlattenTo2D(arg1);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -21343,7 +26468,7 @@ XS(_wrap_Geometry_FlattenTo2D) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -21394,7 +26519,7 @@ XS(_wrap_Geometry_Segmentize) {
       OGRGeometryShadow_Segmentize(arg1,arg2);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -21403,7 +26528,7 @@ XS(_wrap_Geometry_Segmentize) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -21454,7 +26579,7 @@ XS(_wrap_Geometry_GetEnvelope) {
       OGRGeometryShadow_GetEnvelope(arg1,arg2);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -21463,7 +26588,7 @@ XS(_wrap_Geometry_GetEnvelope) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -21487,7 +26612,7 @@ XS(_wrap_Geometry_GetEnvelope) {
       } else {
         ST(argvi) = CreateArrayFromDoubleArray( arg2, 4 );
         argvi++;
-      }  
+      }
     }
     
     
@@ -21527,7 +26652,7 @@ XS(_wrap_Geometry_GetEnvelope3D) {
       OGRGeometryShadow_GetEnvelope3D(arg1,arg2);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -21536,7 +26661,7 @@ XS(_wrap_Geometry_GetEnvelope3D) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -21560,7 +26685,7 @@ XS(_wrap_Geometry_GetEnvelope3D) {
       } else {
         ST(argvi) = CreateArrayFromDoubleArray( arg2, 6 );
         argvi++;
-      }  
+      }
     }
     
     
@@ -21595,7 +26720,7 @@ XS(_wrap_Geometry_Centroid) {
       result = (OGRGeometryShadow *)OGRGeometryShadow_Centroid(arg1);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -21604,7 +26729,7 @@ XS(_wrap_Geometry_Centroid) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -21646,7 +26771,7 @@ XS(_wrap_Geometry_PointOnSurface) {
       result = (OGRGeometryShadow *)OGRGeometryShadow_PointOnSurface(arg1);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -21655,7 +26780,7 @@ XS(_wrap_Geometry_PointOnSurface) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -21697,7 +26822,7 @@ XS(_wrap_Geometry_WkbSize) {
       result = (int)OGRGeometryShadow_WkbSize(arg1);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -21706,7 +26831,7 @@ XS(_wrap_Geometry_WkbSize) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -21748,7 +26873,7 @@ XS(_wrap_Geometry_GetCoordinateDimension) {
       result = (int)OGRGeometryShadow_GetCoordinateDimension(arg1);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -21757,7 +26882,160 @@ XS(_wrap_Geometry_GetCoordinateDimension) {
       }
       
       
-      /* 
+      /*
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
+    ST(argvi) = SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(result)); argvi++ ;
+    
+    XSRETURN(argvi);
+  fail:
+    
+    SWIG_croak_null();
+  }
+}
+
+
+XS(_wrap_Geometry_CoordinateDimension) {
+  {
+    OGRGeometryShadow *arg1 = (OGRGeometryShadow *) 0 ;
+    void *argp1 = 0 ;
+    int res1 = 0 ;
+    int argvi = 0;
+    int result;
+    dXSARGS;
+    
+    if ((items < 1) || (items > 1)) {
+      SWIG_croak("Usage: Geometry_CoordinateDimension(self);");
+    }
+    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OGRGeometryShadow, 0 |  0 );
+    if (!SWIG_IsOK(res1)) {
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Geometry_CoordinateDimension" "', argument " "1"" of type '" "OGRGeometryShadow *""'"); 
+    }
+    arg1 = reinterpret_cast< OGRGeometryShadow * >(argp1);
+    {
+      CPLErrorReset();
+      result = (int)OGRGeometryShadow_CoordinateDimension(arg1);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        do_confess( CPLGetLastErrorMsg(), 0 );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /*
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
+    ST(argvi) = SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(result)); argvi++ ;
+    
+    XSRETURN(argvi);
+  fail:
+    
+    SWIG_croak_null();
+  }
+}
+
+
+XS(_wrap_Geometry_Is3D) {
+  {
+    OGRGeometryShadow *arg1 = (OGRGeometryShadow *) 0 ;
+    void *argp1 = 0 ;
+    int res1 = 0 ;
+    int argvi = 0;
+    int result;
+    dXSARGS;
+    
+    if ((items < 1) || (items > 1)) {
+      SWIG_croak("Usage: Geometry_Is3D(self);");
+    }
+    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OGRGeometryShadow, 0 |  0 );
+    if (!SWIG_IsOK(res1)) {
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Geometry_Is3D" "', argument " "1"" of type '" "OGRGeometryShadow *""'"); 
+    }
+    arg1 = reinterpret_cast< OGRGeometryShadow * >(argp1);
+    {
+      CPLErrorReset();
+      result = (int)OGRGeometryShadow_Is3D(arg1);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        do_confess( CPLGetLastErrorMsg(), 0 );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /*
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
+    ST(argvi) = SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(result)); argvi++ ;
+    
+    XSRETURN(argvi);
+  fail:
+    
+    SWIG_croak_null();
+  }
+}
+
+
+XS(_wrap_Geometry_IsMeasured) {
+  {
+    OGRGeometryShadow *arg1 = (OGRGeometryShadow *) 0 ;
+    void *argp1 = 0 ;
+    int res1 = 0 ;
+    int argvi = 0;
+    int result;
+    dXSARGS;
+    
+    if ((items < 1) || (items > 1)) {
+      SWIG_croak("Usage: Geometry_IsMeasured(self);");
+    }
+    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OGRGeometryShadow, 0 |  0 );
+    if (!SWIG_IsOK(res1)) {
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Geometry_IsMeasured" "', argument " "1"" of type '" "OGRGeometryShadow *""'"); 
+    }
+    arg1 = reinterpret_cast< OGRGeometryShadow * >(argp1);
+    {
+      CPLErrorReset();
+      result = (int)OGRGeometryShadow_IsMeasured(arg1);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        do_confess( CPLGetLastErrorMsg(), 0 );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -21806,7 +27084,7 @@ XS(_wrap_Geometry_SetCoordinateDimension) {
       OGRGeometryShadow_SetCoordinateDimension(arg1,arg2);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -21815,7 +27093,131 @@ XS(_wrap_Geometry_SetCoordinateDimension) {
       }
       
       
-      /* 
+      /*
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
+    {
+      /* %typemap(out) void */
+    }
+    
+    
+    XSRETURN(argvi);
+  fail:
+    
+    
+    SWIG_croak_null();
+  }
+}
+
+
+XS(_wrap_Geometry_Set3D) {
+  {
+    OGRGeometryShadow *arg1 = (OGRGeometryShadow *) 0 ;
+    int arg2 ;
+    void *argp1 = 0 ;
+    int res1 = 0 ;
+    int val2 ;
+    int ecode2 = 0 ;
+    int argvi = 0;
+    dXSARGS;
+    
+    if ((items < 2) || (items > 2)) {
+      SWIG_croak("Usage: Geometry_Set3D(self,b3D);");
+    }
+    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OGRGeometryShadow, 0 |  0 );
+    if (!SWIG_IsOK(res1)) {
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Geometry_Set3D" "', argument " "1"" of type '" "OGRGeometryShadow *""'"); 
+    }
+    arg1 = reinterpret_cast< OGRGeometryShadow * >(argp1);
+    ecode2 = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(1), &val2);
+    if (!SWIG_IsOK(ecode2)) {
+      SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "Geometry_Set3D" "', argument " "2"" of type '" "int""'");
+    } 
+    arg2 = static_cast< int >(val2);
+    {
+      CPLErrorReset();
+      OGRGeometryShadow_Set3D(arg1,arg2);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        do_confess( CPLGetLastErrorMsg(), 0 );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /*
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
+    {
+      /* %typemap(out) void */
+    }
+    
+    
+    XSRETURN(argvi);
+  fail:
+    
+    
+    SWIG_croak_null();
+  }
+}
+
+
+XS(_wrap_Geometry_SetMeasured) {
+  {
+    OGRGeometryShadow *arg1 = (OGRGeometryShadow *) 0 ;
+    int arg2 ;
+    void *argp1 = 0 ;
+    int res1 = 0 ;
+    int val2 ;
+    int ecode2 = 0 ;
+    int argvi = 0;
+    dXSARGS;
+    
+    if ((items < 2) || (items > 2)) {
+      SWIG_croak("Usage: Geometry_SetMeasured(self,bMeasured);");
+    }
+    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OGRGeometryShadow, 0 |  0 );
+    if (!SWIG_IsOK(res1)) {
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Geometry_SetMeasured" "', argument " "1"" of type '" "OGRGeometryShadow *""'"); 
+    }
+    arg1 = reinterpret_cast< OGRGeometryShadow * >(argp1);
+    ecode2 = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(1), &val2);
+    if (!SWIG_IsOK(ecode2)) {
+      SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "Geometry_SetMeasured" "', argument " "2"" of type '" "int""'");
+    } 
+    arg2 = static_cast< int >(val2);
+    {
+      CPLErrorReset();
+      OGRGeometryShadow_SetMeasured(arg1,arg2);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        do_confess( CPLGetLastErrorMsg(), 0 );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -21861,7 +27263,7 @@ XS(_wrap_Geometry_GetDimension) {
       result = (int)OGRGeometryShadow_GetDimension(arg1);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -21870,7 +27272,7 @@ XS(_wrap_Geometry_GetDimension) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -21884,6 +27286,326 @@ XS(_wrap_Geometry_GetDimension) {
     
     XSRETURN(argvi);
   fail:
+    
+    SWIG_croak_null();
+  }
+}
+
+
+XS(_wrap_Geometry_HasCurveGeometry) {
+  {
+    OGRGeometryShadow *arg1 = (OGRGeometryShadow *) 0 ;
+    int arg2 = (int) FALSE ;
+    void *argp1 = 0 ;
+    int res1 = 0 ;
+    int val2 ;
+    int ecode2 = 0 ;
+    int argvi = 0;
+    int result;
+    dXSARGS;
+    
+    if ((items < 1) || (items > 2)) {
+      SWIG_croak("Usage: Geometry_HasCurveGeometry(self,bLookForCircular);");
+    }
+    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OGRGeometryShadow, 0 |  0 );
+    if (!SWIG_IsOK(res1)) {
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Geometry_HasCurveGeometry" "', argument " "1"" of type '" "OGRGeometryShadow *""'"); 
+    }
+    arg1 = reinterpret_cast< OGRGeometryShadow * >(argp1);
+    if (items > 1) {
+      ecode2 = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(1), &val2);
+      if (!SWIG_IsOK(ecode2)) {
+        SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "Geometry_HasCurveGeometry" "', argument " "2"" of type '" "int""'");
+      } 
+      arg2 = static_cast< int >(val2);
+    }
+    {
+      CPLErrorReset();
+      result = (int)OGRGeometryShadow_HasCurveGeometry(arg1,arg2);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        do_confess( CPLGetLastErrorMsg(), 0 );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /*
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
+    ST(argvi) = SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(result)); argvi++ ;
+    
+    
+    XSRETURN(argvi);
+  fail:
+    
+    
+    SWIG_croak_null();
+  }
+}
+
+
+XS(_wrap_Geometry_GetLinearGeometry) {
+  {
+    OGRGeometryShadow *arg1 = (OGRGeometryShadow *) 0 ;
+    double arg2 = (double) 0.0 ;
+    char **arg3 = (char **) NULL ;
+    void *argp1 = 0 ;
+    int res1 = 0 ;
+    double val2 ;
+    int ecode2 = 0 ;
+    int argvi = 0;
+    OGRGeometryShadow *result = 0 ;
+    dXSARGS;
+    
+    if ((items < 1) || (items > 3)) {
+      SWIG_croak("Usage: Geometry_GetLinearGeometry(self,dfMaxAngleStepSizeDegrees,options);");
+    }
+    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OGRGeometryShadow, 0 |  0 );
+    if (!SWIG_IsOK(res1)) {
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Geometry_GetLinearGeometry" "', argument " "1"" of type '" "OGRGeometryShadow *""'"); 
+    }
+    arg1 = reinterpret_cast< OGRGeometryShadow * >(argp1);
+    if (items > 1) {
+      ecode2 = SWIG_AsVal_double SWIG_PERL_CALL_ARGS_2(ST(1), &val2);
+      if (!SWIG_IsOK(ecode2)) {
+        SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "Geometry_GetLinearGeometry" "', argument " "2"" of type '" "double""'");
+      } 
+      arg2 = static_cast< double >(val2);
+    }
+    if (items > 2) {
+      {
+        /* %typemap(in) char **options */
+        if (SvOK(ST(2))) {
+          if (SvROK(ST(2))) {
+            if (SvTYPE(SvRV(ST(2)))==SVt_PVAV) {
+              AV *av = (AV*)(SvRV(ST(2)));
+              for (int i = 0; i < av_len(av)+1; i++) {
+                SV *sv = *(av_fetch(av, i, 0));
+                char *tmp = sv_to_utf8_string(sv, NULL);
+                arg3 = CSLAddString(arg3, tmp);
+                free(tmp);
+              }
+            } else if (SvTYPE(SvRV(ST(2)))==SVt_PVHV) {
+              HV *hv = (HV*)SvRV(ST(2));
+              SV *sv;
+              char *key;
+              I32 klen;
+              arg3 = NULL;
+              hv_iterinit(hv);
+              while(sv = hv_iternextsv(hv, &key, &klen)) {
+                char *tmp = sv_to_utf8_string(sv, NULL);
+                arg3 = CSLAddNameValue(arg3, key, tmp);
+                free(tmp);
+              }
+            } else
+            do_confess(NEED_REF, 1);
+          } else
+          do_confess(NEED_REF, 1);
+        }
+      }
+    }
+    {
+      CPLErrorReset();
+      result = (OGRGeometryShadow *)OGRGeometryShadow_GetLinearGeometry(arg1,arg2,arg3);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        do_confess( CPLGetLastErrorMsg(), 0 );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /*
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
+    ST(argvi) = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_OGRGeometryShadow, SWIG_OWNER | SWIG_SHADOW); argvi++ ;
+    
+    
+    {
+      /* %typemap(freearg) char **options */
+      if (arg3) CSLDestroy( arg3 );
+    }
+    XSRETURN(argvi);
+  fail:
+    
+    
+    {
+      /* %typemap(freearg) char **options */
+      if (arg3) CSLDestroy( arg3 );
+    }
+    SWIG_croak_null();
+  }
+}
+
+
+XS(_wrap_Geometry_GetCurveGeometry) {
+  {
+    OGRGeometryShadow *arg1 = (OGRGeometryShadow *) 0 ;
+    char **arg2 = (char **) NULL ;
+    void *argp1 = 0 ;
+    int res1 = 0 ;
+    int argvi = 0;
+    OGRGeometryShadow *result = 0 ;
+    dXSARGS;
+    
+    if ((items < 1) || (items > 2)) {
+      SWIG_croak("Usage: Geometry_GetCurveGeometry(self,options);");
+    }
+    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OGRGeometryShadow, 0 |  0 );
+    if (!SWIG_IsOK(res1)) {
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Geometry_GetCurveGeometry" "', argument " "1"" of type '" "OGRGeometryShadow *""'"); 
+    }
+    arg1 = reinterpret_cast< OGRGeometryShadow * >(argp1);
+    if (items > 1) {
+      {
+        /* %typemap(in) char **options */
+        if (SvOK(ST(1))) {
+          if (SvROK(ST(1))) {
+            if (SvTYPE(SvRV(ST(1)))==SVt_PVAV) {
+              AV *av = (AV*)(SvRV(ST(1)));
+              for (int i = 0; i < av_len(av)+1; i++) {
+                SV *sv = *(av_fetch(av, i, 0));
+                char *tmp = sv_to_utf8_string(sv, NULL);
+                arg2 = CSLAddString(arg2, tmp);
+                free(tmp);
+              }
+            } else if (SvTYPE(SvRV(ST(1)))==SVt_PVHV) {
+              HV *hv = (HV*)SvRV(ST(1));
+              SV *sv;
+              char *key;
+              I32 klen;
+              arg2 = NULL;
+              hv_iterinit(hv);
+              while(sv = hv_iternextsv(hv, &key, &klen)) {
+                char *tmp = sv_to_utf8_string(sv, NULL);
+                arg2 = CSLAddNameValue(arg2, key, tmp);
+                free(tmp);
+              }
+            } else
+            do_confess(NEED_REF, 1);
+          } else
+          do_confess(NEED_REF, 1);
+        }
+      }
+    }
+    {
+      CPLErrorReset();
+      result = (OGRGeometryShadow *)OGRGeometryShadow_GetCurveGeometry(arg1,arg2);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        do_confess( CPLGetLastErrorMsg(), 0 );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /*
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
+    ST(argvi) = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_OGRGeometryShadow, SWIG_OWNER | SWIG_SHADOW); argvi++ ;
+    
+    {
+      /* %typemap(freearg) char **options */
+      if (arg2) CSLDestroy( arg2 );
+    }
+    XSRETURN(argvi);
+  fail:
+    
+    {
+      /* %typemap(freearg) char **options */
+      if (arg2) CSLDestroy( arg2 );
+    }
+    SWIG_croak_null();
+  }
+}
+
+
+XS(_wrap_Geometry_Value) {
+  {
+    OGRGeometryShadow *arg1 = (OGRGeometryShadow *) 0 ;
+    double arg2 ;
+    void *argp1 = 0 ;
+    int res1 = 0 ;
+    double val2 ;
+    int ecode2 = 0 ;
+    int argvi = 0;
+    OGRGeometryShadow *result = 0 ;
+    dXSARGS;
+    
+    if ((items < 2) || (items > 2)) {
+      SWIG_croak("Usage: Geometry_Value(self,dfDistance);");
+    }
+    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OGRGeometryShadow, 0 |  0 );
+    if (!SWIG_IsOK(res1)) {
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Geometry_Value" "', argument " "1"" of type '" "OGRGeometryShadow *""'"); 
+    }
+    arg1 = reinterpret_cast< OGRGeometryShadow * >(argp1);
+    ecode2 = SWIG_AsVal_double SWIG_PERL_CALL_ARGS_2(ST(1), &val2);
+    if (!SWIG_IsOK(ecode2)) {
+      SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "Geometry_Value" "', argument " "2"" of type '" "double""'");
+    } 
+    arg2 = static_cast< double >(val2);
+    {
+      CPLErrorReset();
+      result = (OGRGeometryShadow *)OGRGeometryShadow_Value(arg1,arg2);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        do_confess( CPLGetLastErrorMsg(), 0 );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /*
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
+    ST(argvi) = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_OGRGeometryShadow, SWIG_OWNER | SWIG_SHADOW); argvi++ ;
+    
+    
+    XSRETURN(argvi);
+  fail:
+    
     
     SWIG_croak_null();
   }
@@ -21937,7 +27659,7 @@ XS(_wrap_Geometry_Move) {
       OGRGeometryShadow_Move(arg1,arg2,arg3,arg4);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -21946,7 +27668,7 @@ XS(_wrap_Geometry_Move) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -21988,7 +27710,7 @@ XS(_wrap_GetDriverCount) {
       result = (int)OGRGetDriverCount();
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -21997,7 +27719,7 @@ XS(_wrap_GetDriverCount) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -22029,7 +27751,7 @@ XS(_wrap_GetOpenDSCount) {
       result = (int)OGRGetOpenDSCount();
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -22038,7 +27760,7 @@ XS(_wrap_GetOpenDSCount) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -22078,7 +27800,7 @@ XS(_wrap_SetGenerate_DB2_V72_BYTE_ORDER) {
       result = (OGRErr)OGRSetGenerate_DB2_V72_BYTE_ORDER(arg1);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -22087,7 +27809,7 @@ XS(_wrap_SetGenerate_DB2_V72_BYTE_ORDER) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -22101,8 +27823,8 @@ XS(_wrap_SetGenerate_DB2_V72_BYTE_ORDER) {
       /* %typemap(out) OGRErr */
       if ( result != 0 ) {
         const char *err = CPLGetLastErrorMsg();
-        if (err and *err) SWIG_croak(err); /* this is usually better */
-        SWIG_croak( OGRErrMessages(result) );
+        if (err and *err) do_confess(err, 0); /* this is usually better */
+        do_confess( OGRErrMessages(result), 1 );
       }
     }
     
@@ -22127,7 +27849,7 @@ XS(_wrap_RegisterAll) {
       OGRRegisterAll();
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -22136,7 +27858,7 @@ XS(_wrap_RegisterAll) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -22178,7 +27900,7 @@ XS(_wrap_GeometryTypeToName) {
       result = (char *)OGRGeometryTypeToName(arg1);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -22187,7 +27909,7 @@ XS(_wrap_GeometryTypeToName) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -22235,7 +27957,7 @@ XS(_wrap_GetFieldTypeName) {
       result = (char *)OGR_GetFieldTypeName(arg1);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -22244,7 +27966,7 @@ XS(_wrap_GetFieldTypeName) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -22270,29 +27992,29 @@ XS(_wrap_GetFieldTypeName) {
 }
 
 
-XS(_wrap_GetOpenDS) {
+XS(_wrap_GetFieldSubTypeName) {
   {
-    int arg1 ;
+    OGRFieldSubType arg1 ;
     int val1 ;
     int ecode1 = 0 ;
     int argvi = 0;
-    OGRDataSourceShadow *result = 0 ;
+    char *result = 0 ;
     dXSARGS;
     
     if ((items < 1) || (items > 1)) {
-      SWIG_croak("Usage: GetOpenDS(ds_number);");
+      SWIG_croak("Usage: GetFieldSubTypeName(type);");
     }
     ecode1 = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(0), &val1);
     if (!SWIG_IsOK(ecode1)) {
-      SWIG_exception_fail(SWIG_ArgError(ecode1), "in method '" "GetOpenDS" "', argument " "1"" of type '" "int""'");
+      SWIG_exception_fail(SWIG_ArgError(ecode1), "in method '" "GetFieldSubTypeName" "', argument " "1"" of type '" "OGRFieldSubType""'");
     } 
-    arg1 = static_cast< int >(val1);
+    arg1 = static_cast< OGRFieldSubType >(val1);
     {
       CPLErrorReset();
-      result = (OGRDataSourceShadow *)GetOpenDS(arg1);
+      result = (char *)OGR_GetFieldSubTypeName(arg1);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -22301,323 +28023,7 @@ XS(_wrap_GetOpenDS) {
       }
       
       
-      /* 
-          Make warnings regular Perl warnings. This duplicates the warning
-          message if DontUseExceptions() is in effect (it is not by default).
-          */
-      if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg(), "%s" );
-      }
-      
-      
-    }
-    ST(argvi) = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_OGRDataSourceShadow, 0 | SWIG_SHADOW); argvi++ ;
-    
-    XSRETURN(argvi);
-  fail:
-    
-    SWIG_croak_null();
-  }
-}
-
-
-XS(_wrap_Open) {
-  {
-    char *arg1 = (char *) 0 ;
-    int arg2 = (int) 0 ;
-    int val2 ;
-    int ecode2 = 0 ;
-    int argvi = 0;
-    OGRDataSourceShadow *result = 0 ;
-    dXSARGS;
-    
-    {
-      /* %typemap(default) const char * utf8_path */
-      arg1 = (char *)"";
-    }
-    if ((items < 0) || (items > 2)) {
-      SWIG_croak("Usage: Open(utf8_path,update);");
-    }
-    if (items > 0) {
-      {
-        /* %typemap(in,numinputs=1) (const char* utf8_path) */
-        sv_utf8_upgrade(ST(0));
-        arg1 = SvPV_nolen(ST(0));
-      }
-    }
-    if (items > 1) {
-      ecode2 = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(1), &val2);
-      if (!SWIG_IsOK(ecode2)) {
-        SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "Open" "', argument " "2"" of type '" "int""'");
-      } 
-      arg2 = static_cast< int >(val2);
-    }
-    {
-      CPLErrorReset();
-      result = (OGRDataSourceShadow *)Open((char const *)arg1,arg2);
-      CPLErr eclass = CPLGetLastErrorType();
-      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
-        
-        
-        
-        
-        
-      }
-      
-      
-      /* 
-          Make warnings regular Perl warnings. This duplicates the warning
-          message if DontUseExceptions() is in effect (it is not by default).
-          */
-      if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg(), "%s" );
-      }
-      
-      
-    }
-    ST(argvi) = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_OGRDataSourceShadow, SWIG_OWNER | SWIG_SHADOW); argvi++ ;
-    
-    XSRETURN(argvi);
-  fail:
-    
-    SWIG_croak_null();
-  }
-}
-
-
-XS(_wrap_OpenShared) {
-  {
-    char *arg1 = (char *) 0 ;
-    int arg2 = (int) 0 ;
-    int val2 ;
-    int ecode2 = 0 ;
-    int argvi = 0;
-    OGRDataSourceShadow *result = 0 ;
-    dXSARGS;
-    
-    {
-      /* %typemap(default) const char * utf8_path */
-      arg1 = (char *)"";
-    }
-    if ((items < 0) || (items > 2)) {
-      SWIG_croak("Usage: OpenShared(utf8_path,update);");
-    }
-    if (items > 0) {
-      {
-        /* %typemap(in,numinputs=1) (const char* utf8_path) */
-        sv_utf8_upgrade(ST(0));
-        arg1 = SvPV_nolen(ST(0));
-      }
-    }
-    if (items > 1) {
-      ecode2 = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(1), &val2);
-      if (!SWIG_IsOK(ecode2)) {
-        SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "OpenShared" "', argument " "2"" of type '" "int""'");
-      } 
-      arg2 = static_cast< int >(val2);
-    }
-    {
-      CPLErrorReset();
-      result = (OGRDataSourceShadow *)OpenShared((char const *)arg1,arg2);
-      CPLErr eclass = CPLGetLastErrorType();
-      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
-        
-        
-        
-        
-        
-      }
-      
-      
-      /* 
-          Make warnings regular Perl warnings. This duplicates the warning
-          message if DontUseExceptions() is in effect (it is not by default).
-          */
-      if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg(), "%s" );
-      }
-      
-      
-    }
-    ST(argvi) = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_OGRDataSourceShadow, SWIG_OWNER | SWIG_SHADOW); argvi++ ;
-    
-    XSRETURN(argvi);
-  fail:
-    
-    SWIG_croak_null();
-  }
-}
-
-
-XS(_wrap_GetDriverByName) {
-  {
-    char *arg1 = (char *) 0 ;
-    int argvi = 0;
-    OGRDriverShadow *result = 0 ;
-    dXSARGS;
-    
-    if ((items < 1) || (items > 1)) {
-      SWIG_croak("Usage: GetDriverByName(name);");
-    }
-    {
-      /* %typemap(in,numinputs=1) (const char* name) */
-      sv_utf8_upgrade(ST(0));
-      arg1 = SvPV_nolen(ST(0));
-    }
-    {
-      if (!arg1) {
-        SWIG_exception(SWIG_ValueError,"Received a NULL pointer.");
-      }
-    }
-    {
-      CPLErrorReset();
-      result = (OGRDriverShadow *)GetDriverByName((char const *)arg1);
-      CPLErr eclass = CPLGetLastErrorType();
-      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
-        
-        
-        
-        
-        
-      }
-      
-      
-      /* 
-          Make warnings regular Perl warnings. This duplicates the warning
-          message if DontUseExceptions() is in effect (it is not by default).
-          */
-      if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg(), "%s" );
-      }
-      
-      
-    }
-    ST(argvi) = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_OGRDriverShadow, 0 | SWIG_SHADOW); argvi++ ;
-    XSRETURN(argvi);
-  fail:
-    SWIG_croak_null();
-  }
-}
-
-
-XS(_wrap__GetDriver) {
-  {
-    int arg1 ;
-    int val1 ;
-    int ecode1 = 0 ;
-    int argvi = 0;
-    OGRDriverShadow *result = 0 ;
-    dXSARGS;
-    
-    if ((items < 1) || (items > 1)) {
-      SWIG_croak("Usage: _GetDriver(driver_number);");
-    }
-    ecode1 = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(0), &val1);
-    if (!SWIG_IsOK(ecode1)) {
-      SWIG_exception_fail(SWIG_ArgError(ecode1), "in method '" "_GetDriver" "', argument " "1"" of type '" "int""'");
-    } 
-    arg1 = static_cast< int >(val1);
-    {
-      CPLErrorReset();
-      result = (OGRDriverShadow *)GetDriver(arg1);
-      CPLErr eclass = CPLGetLastErrorType();
-      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
-        
-        
-        
-        
-        
-      }
-      
-      
-      /* 
-          Make warnings regular Perl warnings. This duplicates the warning
-          message if DontUseExceptions() is in effect (it is not by default).
-          */
-      if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg(), "%s" );
-      }
-      
-      
-    }
-    ST(argvi) = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_OGRDriverShadow, 0 | SWIG_SHADOW); argvi++ ;
-    
-    XSRETURN(argvi);
-  fail:
-    
-    SWIG_croak_null();
-  }
-}
-
-
-XS(_wrap_GeneralCmdLineProcessor) {
-  {
-    char **arg1 = (char **) 0 ;
-    int arg2 = (int) 0 ;
-    int val2 ;
-    int ecode2 = 0 ;
-    int argvi = 0;
-    char **result = 0 ;
-    dXSARGS;
-    
-    if ((items < 1) || (items > 2)) {
-      SWIG_croak("Usage: GeneralCmdLineProcessor(papszArgv,nOptions);");
-    }
-    {
-      /* %typemap(in) char **options */
-      if (SvOK(ST(0))) {
-        if (SvROK(ST(0))) {
-          if (SvTYPE(SvRV(ST(0)))==SVt_PVAV) {
-            AV *av = (AV*)(SvRV(ST(0)));
-            for (int i = 0; i < av_len(av)+1; i++) {
-              SV *sv = *(av_fetch(av, i, 0));
-              sv_utf8_upgrade(sv); /* GDAL expects UTF-8 */
-              char *pszItem = SvPV_nolen(sv);
-              arg1 = CSLAddString( arg1, pszItem );
-            }
-          } else if (SvTYPE(SvRV(ST(0)))==SVt_PVHV) {
-            HV *hv = (HV*)SvRV(ST(0));
-            SV *sv;
-            char *key;
-            I32 klen;
-            arg1 = NULL;
-            hv_iterinit(hv);
-            while(sv = hv_iternextsv(hv,&key,&klen)) {
-              sv_utf8_upgrade(sv); /* GDAL expects UTF-8 */
-              arg1 = CSLAddNameValue( arg1, key, SvPV_nolen(sv) );
-            }
-          } else
-          SWIG_croak("the 'options' argument to a Geo::GDAL method is not a reference to an array or hash");
-        } else
-        SWIG_croak("the 'options' argument to a Geo::GDAL method is not a reference");   
-      }
-    }
-    if (items > 1) {
-      ecode2 = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(1), &val2);
-      if (!SWIG_IsOK(ecode2)) {
-        SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "GeneralCmdLineProcessor" "', argument " "2"" of type '" "int""'");
-      } 
-      arg2 = static_cast< int >(val2);
-    }
-    {
-      CPLErrorReset();
-      result = (char **)GeneralCmdLineProcessor(arg1,arg2);
-      CPLErr eclass = CPLGetLastErrorType();
-      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
-        
-        
-        
-        
-        
-      }
-      
-      
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -22628,34 +28034,802 @@ XS(_wrap_GeneralCmdLineProcessor) {
       
     }
     {
-      /* %typemap(out) char **options -> ( string ) */
-      AV* av = (AV*)sv_2mortal((SV*)newAV());
-      char **stringarray = result;
-      if ( stringarray != NULL ) {
-        int n = CSLCount( stringarray );
-        for ( int i = 0; i < n; i++ ) {
-          SV *sv = newSVpv(stringarray[i], 0);
-          SvUTF8_on(sv); /* expecting UTF-8 from GDAL */
-          if (!av_store(av, i, sv))
-          SvREFCNT_dec(sv);
-        }
-      }
-      ST(argvi) = newRV((SV*)av);
+      /* %typemap(out) const char * */
+      ST(argvi) = newSVpv(result, 0);
+      SvUTF8_on(ST(argvi)); /* expecting GDAL to give us UTF-8 */
       sv_2mortal(ST(argvi));
       argvi++;
     }
+    
+    XSRETURN(argvi);
+  fail:
+    
+    SWIG_croak_null();
+  }
+}
+
+
+XS(_wrap_GT_Flatten) {
+  {
+    OGRwkbGeometryType arg1 ;
+    int val1 ;
+    int ecode1 = 0 ;
+    int argvi = 0;
+    OGRwkbGeometryType result;
+    dXSARGS;
+    
+    if ((items < 1) || (items > 1)) {
+      SWIG_croak("Usage: GT_Flatten(eType);");
+    }
+    ecode1 = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(0), &val1);
+    if (!SWIG_IsOK(ecode1)) {
+      SWIG_exception_fail(SWIG_ArgError(ecode1), "in method '" "GT_Flatten" "', argument " "1"" of type '" "OGRwkbGeometryType""'");
+    } 
+    arg1 = static_cast< OGRwkbGeometryType >(val1);
     {
-      /* %typemap(freearg) char **options */
-      if (arg1) CSLDestroy( arg1 );
+      CPLErrorReset();
+      result = (OGRwkbGeometryType)OGR_GT_Flatten(arg1);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        do_confess( CPLGetLastErrorMsg(), 0 );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /*
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
+    ST(argvi) = SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(result)); argvi++ ;
+    
+    XSRETURN(argvi);
+  fail:
+    
+    SWIG_croak_null();
+  }
+}
+
+
+XS(_wrap_GT_SetZ) {
+  {
+    OGRwkbGeometryType arg1 ;
+    int val1 ;
+    int ecode1 = 0 ;
+    int argvi = 0;
+    OGRwkbGeometryType result;
+    dXSARGS;
+    
+    if ((items < 1) || (items > 1)) {
+      SWIG_croak("Usage: GT_SetZ(eType);");
+    }
+    ecode1 = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(0), &val1);
+    if (!SWIG_IsOK(ecode1)) {
+      SWIG_exception_fail(SWIG_ArgError(ecode1), "in method '" "GT_SetZ" "', argument " "1"" of type '" "OGRwkbGeometryType""'");
+    } 
+    arg1 = static_cast< OGRwkbGeometryType >(val1);
+    {
+      CPLErrorReset();
+      result = (OGRwkbGeometryType)OGR_GT_SetZ(arg1);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        do_confess( CPLGetLastErrorMsg(), 0 );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /*
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
+    ST(argvi) = SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(result)); argvi++ ;
+    
+    XSRETURN(argvi);
+  fail:
+    
+    SWIG_croak_null();
+  }
+}
+
+
+XS(_wrap_GT_SetM) {
+  {
+    OGRwkbGeometryType arg1 ;
+    int val1 ;
+    int ecode1 = 0 ;
+    int argvi = 0;
+    OGRwkbGeometryType result;
+    dXSARGS;
+    
+    if ((items < 1) || (items > 1)) {
+      SWIG_croak("Usage: GT_SetM(eType);");
+    }
+    ecode1 = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(0), &val1);
+    if (!SWIG_IsOK(ecode1)) {
+      SWIG_exception_fail(SWIG_ArgError(ecode1), "in method '" "GT_SetM" "', argument " "1"" of type '" "OGRwkbGeometryType""'");
+    } 
+    arg1 = static_cast< OGRwkbGeometryType >(val1);
+    {
+      CPLErrorReset();
+      result = (OGRwkbGeometryType)OGR_GT_SetM(arg1);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        do_confess( CPLGetLastErrorMsg(), 0 );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /*
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
+    ST(argvi) = SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(result)); argvi++ ;
+    
+    XSRETURN(argvi);
+  fail:
+    
+    SWIG_croak_null();
+  }
+}
+
+
+XS(_wrap_GT_SetModifier) {
+  {
+    int arg1 ;
+    int arg2 ;
+    int arg3 ;
+    int val1 ;
+    int ecode1 = 0 ;
+    int val2 ;
+    int ecode2 = 0 ;
+    int val3 ;
+    int ecode3 = 0 ;
+    int argvi = 0;
+    int result;
+    dXSARGS;
+    
+    if ((items < 3) || (items > 3)) {
+      SWIG_croak("Usage: GT_SetModifier(eType,bSetZ,bSetM);");
+    }
+    ecode1 = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(0), &val1);
+    if (!SWIG_IsOK(ecode1)) {
+      SWIG_exception_fail(SWIG_ArgError(ecode1), "in method '" "GT_SetModifier" "', argument " "1"" of type '" "int""'");
+    } 
+    arg1 = static_cast< int >(val1);
+    ecode2 = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(1), &val2);
+    if (!SWIG_IsOK(ecode2)) {
+      SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "GT_SetModifier" "', argument " "2"" of type '" "int""'");
+    } 
+    arg2 = static_cast< int >(val2);
+    ecode3 = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(2), &val3);
+    if (!SWIG_IsOK(ecode3)) {
+      SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "GT_SetModifier" "', argument " "3"" of type '" "int""'");
+    } 
+    arg3 = static_cast< int >(val3);
+    {
+      CPLErrorReset();
+      result = (int)GT_SetModifier(arg1,arg2,arg3);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        do_confess( CPLGetLastErrorMsg(), 0 );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /*
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
+    ST(argvi) = SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(result)); argvi++ ;
+    
+    
+    
+    XSRETURN(argvi);
+  fail:
+    
+    
+    
+    SWIG_croak_null();
+  }
+}
+
+
+XS(_wrap_GT_HasZ) {
+  {
+    OGRwkbGeometryType arg1 ;
+    int val1 ;
+    int ecode1 = 0 ;
+    int argvi = 0;
+    int result;
+    dXSARGS;
+    
+    if ((items < 1) || (items > 1)) {
+      SWIG_croak("Usage: GT_HasZ(eType);");
+    }
+    ecode1 = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(0), &val1);
+    if (!SWIG_IsOK(ecode1)) {
+      SWIG_exception_fail(SWIG_ArgError(ecode1), "in method '" "GT_HasZ" "', argument " "1"" of type '" "OGRwkbGeometryType""'");
+    } 
+    arg1 = static_cast< OGRwkbGeometryType >(val1);
+    {
+      CPLErrorReset();
+      result = (int)OGR_GT_HasZ(arg1);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        do_confess( CPLGetLastErrorMsg(), 0 );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /*
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
+    ST(argvi) = SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(result)); argvi++ ;
+    
+    XSRETURN(argvi);
+  fail:
+    
+    SWIG_croak_null();
+  }
+}
+
+
+XS(_wrap_GT_HasM) {
+  {
+    OGRwkbGeometryType arg1 ;
+    int val1 ;
+    int ecode1 = 0 ;
+    int argvi = 0;
+    int result;
+    dXSARGS;
+    
+    if ((items < 1) || (items > 1)) {
+      SWIG_croak("Usage: GT_HasM(eType);");
+    }
+    ecode1 = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(0), &val1);
+    if (!SWIG_IsOK(ecode1)) {
+      SWIG_exception_fail(SWIG_ArgError(ecode1), "in method '" "GT_HasM" "', argument " "1"" of type '" "OGRwkbGeometryType""'");
+    } 
+    arg1 = static_cast< OGRwkbGeometryType >(val1);
+    {
+      CPLErrorReset();
+      result = (int)OGR_GT_HasM(arg1);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        do_confess( CPLGetLastErrorMsg(), 0 );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /*
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
+    ST(argvi) = SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(result)); argvi++ ;
+    
+    XSRETURN(argvi);
+  fail:
+    
+    SWIG_croak_null();
+  }
+}
+
+
+XS(_wrap_GT_IsSubClassOf) {
+  {
+    OGRwkbGeometryType arg1 ;
+    OGRwkbGeometryType arg2 ;
+    int val1 ;
+    int ecode1 = 0 ;
+    int val2 ;
+    int ecode2 = 0 ;
+    int argvi = 0;
+    int result;
+    dXSARGS;
+    
+    if ((items < 2) || (items > 2)) {
+      SWIG_croak("Usage: GT_IsSubClassOf(eType,eSuperType);");
+    }
+    ecode1 = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(0), &val1);
+    if (!SWIG_IsOK(ecode1)) {
+      SWIG_exception_fail(SWIG_ArgError(ecode1), "in method '" "GT_IsSubClassOf" "', argument " "1"" of type '" "OGRwkbGeometryType""'");
+    } 
+    arg1 = static_cast< OGRwkbGeometryType >(val1);
+    ecode2 = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(1), &val2);
+    if (!SWIG_IsOK(ecode2)) {
+      SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "GT_IsSubClassOf" "', argument " "2"" of type '" "OGRwkbGeometryType""'");
+    } 
+    arg2 = static_cast< OGRwkbGeometryType >(val2);
+    {
+      CPLErrorReset();
+      result = (int)OGR_GT_IsSubClassOf(arg1,arg2);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        do_confess( CPLGetLastErrorMsg(), 0 );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /*
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
+    ST(argvi) = SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(result)); argvi++ ;
+    
+    
+    XSRETURN(argvi);
+  fail:
+    
+    
+    SWIG_croak_null();
+  }
+}
+
+
+XS(_wrap_GT_IsCurve) {
+  {
+    OGRwkbGeometryType arg1 ;
+    int val1 ;
+    int ecode1 = 0 ;
+    int argvi = 0;
+    int result;
+    dXSARGS;
+    
+    if ((items < 1) || (items > 1)) {
+      SWIG_croak("Usage: GT_IsCurve(OGRwkbGeometryType);");
+    }
+    ecode1 = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(0), &val1);
+    if (!SWIG_IsOK(ecode1)) {
+      SWIG_exception_fail(SWIG_ArgError(ecode1), "in method '" "GT_IsCurve" "', argument " "1"" of type '" "OGRwkbGeometryType""'");
+    } 
+    arg1 = static_cast< OGRwkbGeometryType >(val1);
+    {
+      CPLErrorReset();
+      result = (int)OGR_GT_IsCurve(arg1);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        do_confess( CPLGetLastErrorMsg(), 0 );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /*
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
+    ST(argvi) = SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(result)); argvi++ ;
+    
+    XSRETURN(argvi);
+  fail:
+    
+    SWIG_croak_null();
+  }
+}
+
+
+XS(_wrap_GT_IsSurface) {
+  {
+    OGRwkbGeometryType arg1 ;
+    int val1 ;
+    int ecode1 = 0 ;
+    int argvi = 0;
+    int result;
+    dXSARGS;
+    
+    if ((items < 1) || (items > 1)) {
+      SWIG_croak("Usage: GT_IsSurface(OGRwkbGeometryType);");
+    }
+    ecode1 = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(0), &val1);
+    if (!SWIG_IsOK(ecode1)) {
+      SWIG_exception_fail(SWIG_ArgError(ecode1), "in method '" "GT_IsSurface" "', argument " "1"" of type '" "OGRwkbGeometryType""'");
+    } 
+    arg1 = static_cast< OGRwkbGeometryType >(val1);
+    {
+      CPLErrorReset();
+      result = (int)OGR_GT_IsSurface(arg1);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        do_confess( CPLGetLastErrorMsg(), 0 );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /*
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
+    ST(argvi) = SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(result)); argvi++ ;
+    
+    XSRETURN(argvi);
+  fail:
+    
+    SWIG_croak_null();
+  }
+}
+
+
+XS(_wrap_GT_IsNonLinear) {
+  {
+    OGRwkbGeometryType arg1 ;
+    int val1 ;
+    int ecode1 = 0 ;
+    int argvi = 0;
+    int result;
+    dXSARGS;
+    
+    if ((items < 1) || (items > 1)) {
+      SWIG_croak("Usage: GT_IsNonLinear(OGRwkbGeometryType);");
+    }
+    ecode1 = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(0), &val1);
+    if (!SWIG_IsOK(ecode1)) {
+      SWIG_exception_fail(SWIG_ArgError(ecode1), "in method '" "GT_IsNonLinear" "', argument " "1"" of type '" "OGRwkbGeometryType""'");
+    } 
+    arg1 = static_cast< OGRwkbGeometryType >(val1);
+    {
+      CPLErrorReset();
+      result = (int)OGR_GT_IsNonLinear(arg1);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        do_confess( CPLGetLastErrorMsg(), 0 );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /*
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
+    ST(argvi) = SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(result)); argvi++ ;
+    
+    XSRETURN(argvi);
+  fail:
+    
+    SWIG_croak_null();
+  }
+}
+
+
+XS(_wrap_GT_GetCollection) {
+  {
+    OGRwkbGeometryType arg1 ;
+    int val1 ;
+    int ecode1 = 0 ;
+    int argvi = 0;
+    OGRwkbGeometryType result;
+    dXSARGS;
+    
+    if ((items < 1) || (items > 1)) {
+      SWIG_croak("Usage: GT_GetCollection(eType);");
+    }
+    ecode1 = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(0), &val1);
+    if (!SWIG_IsOK(ecode1)) {
+      SWIG_exception_fail(SWIG_ArgError(ecode1), "in method '" "GT_GetCollection" "', argument " "1"" of type '" "OGRwkbGeometryType""'");
+    } 
+    arg1 = static_cast< OGRwkbGeometryType >(val1);
+    {
+      CPLErrorReset();
+      result = (OGRwkbGeometryType)OGR_GT_GetCollection(arg1);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        do_confess( CPLGetLastErrorMsg(), 0 );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /*
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
+    ST(argvi) = SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(result)); argvi++ ;
+    
+    XSRETURN(argvi);
+  fail:
+    
+    SWIG_croak_null();
+  }
+}
+
+
+XS(_wrap_GT_GetCurve) {
+  {
+    OGRwkbGeometryType arg1 ;
+    int val1 ;
+    int ecode1 = 0 ;
+    int argvi = 0;
+    OGRwkbGeometryType result;
+    dXSARGS;
+    
+    if ((items < 1) || (items > 1)) {
+      SWIG_croak("Usage: GT_GetCurve(eType);");
+    }
+    ecode1 = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(0), &val1);
+    if (!SWIG_IsOK(ecode1)) {
+      SWIG_exception_fail(SWIG_ArgError(ecode1), "in method '" "GT_GetCurve" "', argument " "1"" of type '" "OGRwkbGeometryType""'");
+    } 
+    arg1 = static_cast< OGRwkbGeometryType >(val1);
+    {
+      CPLErrorReset();
+      result = (OGRwkbGeometryType)OGR_GT_GetCurve(arg1);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        do_confess( CPLGetLastErrorMsg(), 0 );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /*
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
+    ST(argvi) = SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(result)); argvi++ ;
+    
+    XSRETURN(argvi);
+  fail:
+    
+    SWIG_croak_null();
+  }
+}
+
+
+XS(_wrap_GT_GetLinear) {
+  {
+    OGRwkbGeometryType arg1 ;
+    int val1 ;
+    int ecode1 = 0 ;
+    int argvi = 0;
+    OGRwkbGeometryType result;
+    dXSARGS;
+    
+    if ((items < 1) || (items > 1)) {
+      SWIG_croak("Usage: GT_GetLinear(eType);");
+    }
+    ecode1 = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(0), &val1);
+    if (!SWIG_IsOK(ecode1)) {
+      SWIG_exception_fail(SWIG_ArgError(ecode1), "in method '" "GT_GetLinear" "', argument " "1"" of type '" "OGRwkbGeometryType""'");
+    } 
+    arg1 = static_cast< OGRwkbGeometryType >(val1);
+    {
+      CPLErrorReset();
+      result = (OGRwkbGeometryType)OGR_GT_GetLinear(arg1);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        do_confess( CPLGetLastErrorMsg(), 0 );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /*
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
+    ST(argvi) = SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(result)); argvi++ ;
+    
+    XSRETURN(argvi);
+  fail:
+    
+    SWIG_croak_null();
+  }
+}
+
+
+XS(_wrap_SetNonLinearGeometriesEnabledFlag) {
+  {
+    int arg1 ;
+    int val1 ;
+    int ecode1 = 0 ;
+    int argvi = 0;
+    dXSARGS;
+    
+    if ((items < 1) || (items > 1)) {
+      SWIG_croak("Usage: SetNonLinearGeometriesEnabledFlag(bFlag);");
+    }
+    ecode1 = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(0), &val1);
+    if (!SWIG_IsOK(ecode1)) {
+      SWIG_exception_fail(SWIG_ArgError(ecode1), "in method '" "SetNonLinearGeometriesEnabledFlag" "', argument " "1"" of type '" "int""'");
+    } 
+    arg1 = static_cast< int >(val1);
+    {
+      CPLErrorReset();
+      OGRSetNonLinearGeometriesEnabledFlag(arg1);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        do_confess( CPLGetLastErrorMsg(), 0 );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /*
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
+    {
+      /* %typemap(out) void */
     }
     
     XSRETURN(argvi);
   fail:
-    {
-      /* %typemap(freearg) char **options */
-      if (arg1) CSLDestroy( arg1 );
-    }
     
+    SWIG_croak_null();
+  }
+}
+
+
+XS(_wrap_GetNonLinearGeometriesEnabledFlag) {
+  {
+    int argvi = 0;
+    int result;
+    dXSARGS;
+    
+    if ((items < 0) || (items > 0)) {
+      SWIG_croak("Usage: GetNonLinearGeometriesEnabledFlag();");
+    }
+    {
+      CPLErrorReset();
+      result = (int)OGRGetNonLinearGeometriesEnabledFlag();
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        do_confess( CPLGetLastErrorMsg(), 0 );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /*
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
+    ST(argvi) = SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(result)); argvi++ ;
+    XSRETURN(argvi);
+  fail:
     SWIG_croak_null();
   }
 }
@@ -22702,7 +28876,7 @@ XS(_wrap_TermProgress_nocb) {
       result = (int)GDALTermProgress_nocb(arg1,(char const *)arg2,arg3);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        SWIG_exception_fail( SWIG_RuntimeError, CPLGetLastErrorMsg() );
+        do_confess( CPLGetLastErrorMsg(), 0 );
         
         
         
@@ -22711,7 +28885,7 @@ XS(_wrap_TermProgress_nocb) {
       }
       
       
-      /* 
+      /*
           Make warnings regular Perl warnings. This duplicates the warning
           message if DontUseExceptions() is in effect (it is not by default).
           */
@@ -22738,9 +28912,12 @@ XS(_wrap_TermProgress_nocb) {
 
 /* -------- TYPE CONVERSION AND EQUIVALENCE RULES (BEGIN) -------- */
 
+static void *_p_OGRLayerShadowTo_p_GDALMajorObjectShadow(void *x, int *SWIGUNUSEDPARM(newmemory)) {
+    return (void *)((GDALMajorObjectShadow *)  ((OGRLayerShadow *) x));
+}
+static swig_type_info _swigt__p_GDALMajorObjectShadow = {"_p_GDALMajorObjectShadow", "GDALMajorObjectShadow *", 0, 0, (void*)"Geo::GDAL::MajorObject", 0};
 static swig_type_info _swigt__p_GDALProgressFunc = {"_p_GDALProgressFunc", "GDALProgressFunc *", 0, 0, (void*)0, 0};
-static swig_type_info _swigt__p_OGRDataSourceShadow = {"_p_OGRDataSourceShadow", "OGRDataSourceShadow *", 0, 0, (void*)"Geo::OGR::DataSource", 0};
-static swig_type_info _swigt__p_OGRDriverShadow = {"_p_OGRDriverShadow", "OGRDriverShadow *", 0, 0, (void*)"Geo::OGR::Driver", 0};
+static swig_type_info _swigt__p_GIntBig = {"_p_GIntBig", "GIntBig *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_OGRFeatureDefnShadow = {"_p_OGRFeatureDefnShadow", "OGRFeatureDefnShadow *", 0, 0, (void*)"Geo::OGR::FeatureDefn", 0};
 static swig_type_info _swigt__p_OGRFeatureShadow = {"_p_OGRFeatureShadow", "OGRFeatureShadow *", 0, 0, (void*)"Geo::OGR::Feature", 0};
 static swig_type_info _swigt__p_OGRFieldDefnShadow = {"_p_OGRFieldDefnShadow", "OGRFieldDefnShadow *", 0, 0, (void*)"Geo::OGR::FieldDefn", 0};
@@ -22753,16 +28930,18 @@ static swig_type_info _swigt__p_OSRSpatialReferenceShadow = {"_p_OSRSpatialRefer
 static swig_type_info _swigt__p_char = {"_p_char", "char *|retStringAndCPLFree *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_double = {"_p_double", "double *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_f_double_p_q_const__char_p_void__int = {"_p_f_double_p_q_const__char_p_void__int", "int (*)(double,char const *,void *)", 0, 0, (void*)0, 0};
-static swig_type_info _swigt__p_int = {"_p_int", "OGRFieldType *|int *|OGRwkbGeometryType *|OGRJustification *|OGRwkbByteOrder *|OGRErr *", 0, 0, (void*)0, 0};
+static swig_type_info _swigt__p_float = {"_p_float", "float *", 0, 0, (void*)0, 0};
+static swig_type_info _swigt__p_int = {"_p_int", "OGRFieldSubType *|OGRFieldType *|int *|OGRwkbGeometryType *|OGRJustification *|OGRAxisOrientation *|OGRwkbByteOrder *|OGRErr *", 0, 0, (void*)0, 0};
+static swig_type_info _swigt__p_p_GIntBig = {"_p_p_GIntBig", "GIntBig **", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_p_char = {"_p_p_char", "char **", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_p_double = {"_p_p_double", "double **", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_p_int = {"_p_p_int", "int **", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_p_p_char = {"_p_p_p_char", "char ***", 0, 0, (void*)0, 0};
 
 static swig_type_info *swig_type_initial[] = {
+  &_swigt__p_GDALMajorObjectShadow,
   &_swigt__p_GDALProgressFunc,
-  &_swigt__p_OGRDataSourceShadow,
-  &_swigt__p_OGRDriverShadow,
+  &_swigt__p_GIntBig,
   &_swigt__p_OGRFeatureDefnShadow,
   &_swigt__p_OGRFeatureShadow,
   &_swigt__p_OGRFieldDefnShadow,
@@ -22775,16 +28954,18 @@ static swig_type_info *swig_type_initial[] = {
   &_swigt__p_char,
   &_swigt__p_double,
   &_swigt__p_f_double_p_q_const__char_p_void__int,
+  &_swigt__p_float,
   &_swigt__p_int,
+  &_swigt__p_p_GIntBig,
   &_swigt__p_p_char,
   &_swigt__p_p_double,
   &_swigt__p_p_int,
   &_swigt__p_p_p_char,
 };
 
+static swig_cast_info _swigc__p_GDALMajorObjectShadow[] = {  {&_swigt__p_GDALMajorObjectShadow, 0, 0, 0},  {&_swigt__p_OGRLayerShadow, _p_OGRLayerShadowTo_p_GDALMajorObjectShadow, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_GDALProgressFunc[] = {  {&_swigt__p_GDALProgressFunc, 0, 0, 0},{0, 0, 0, 0}};
-static swig_cast_info _swigc__p_OGRDataSourceShadow[] = {  {&_swigt__p_OGRDataSourceShadow, 0, 0, 0},{0, 0, 0, 0}};
-static swig_cast_info _swigc__p_OGRDriverShadow[] = {  {&_swigt__p_OGRDriverShadow, 0, 0, 0},{0, 0, 0, 0}};
+static swig_cast_info _swigc__p_GIntBig[] = {  {&_swigt__p_GIntBig, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_OGRFeatureDefnShadow[] = {  {&_swigt__p_OGRFeatureDefnShadow, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_OGRFeatureShadow[] = {  {&_swigt__p_OGRFeatureShadow, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_OGRFieldDefnShadow[] = {  {&_swigt__p_OGRFieldDefnShadow, 0, 0, 0},{0, 0, 0, 0}};
@@ -22797,16 +28978,18 @@ static swig_cast_info _swigc__p_OSRSpatialReferenceShadow[] = {  {&_swigt__p_OSR
 static swig_cast_info _swigc__p_char[] = {  {&_swigt__p_char, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_double[] = {  {&_swigt__p_double, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_f_double_p_q_const__char_p_void__int[] = {  {&_swigt__p_f_double_p_q_const__char_p_void__int, 0, 0, 0},{0, 0, 0, 0}};
+static swig_cast_info _swigc__p_float[] = {  {&_swigt__p_float, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_int[] = {  {&_swigt__p_int, 0, 0, 0},{0, 0, 0, 0}};
+static swig_cast_info _swigc__p_p_GIntBig[] = {  {&_swigt__p_p_GIntBig, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_p_char[] = {  {&_swigt__p_p_char, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_p_double[] = {  {&_swigt__p_p_double, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_p_int[] = {  {&_swigt__p_p_int, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_p_p_char[] = {  {&_swigt__p_p_p_char, 0, 0, 0},{0, 0, 0, 0}};
 
 static swig_cast_info *swig_cast_initial[] = {
+  _swigc__p_GDALMajorObjectShadow,
   _swigc__p_GDALProgressFunc,
-  _swigc__p_OGRDataSourceShadow,
-  _swigc__p_OGRDriverShadow,
+  _swigc__p_GIntBig,
   _swigc__p_OGRFeatureDefnShadow,
   _swigc__p_OGRFeatureShadow,
   _swigc__p_OGRFieldDefnShadow,
@@ -22819,7 +29002,9 @@ static swig_cast_info *swig_cast_initial[] = {
   _swigc__p_char,
   _swigc__p_double,
   _swigc__p_f_double_p_q_const__char_p_void__int,
+  _swigc__p_float,
   _swigc__p_int,
+  _swigc__p_p_GIntBig,
   _swigc__p_p_char,
   _swigc__p_p_double,
   _swigc__p_p_int,
@@ -22839,7 +29024,6 @@ static swig_variable_info swig_variables[] = {
 {0,0,0,0}
 };
 static swig_command_info swig_commands[] = {
-{"Geo::OGRc::callback_d_cp_vp", _wrap_callback_d_cp_vp},
 {"Geo::OGRc::UseExceptions", _wrap_UseExceptions},
 {"Geo::OGRc::DontUseExceptions", _wrap_DontUseExceptions},
 {"Geo::OGRc::new_StyleTable", _wrap_new_StyleTable},
@@ -22851,33 +29035,6 @@ static swig_command_info swig_commands[] = {
 {"Geo::OGRc::StyleTable_ResetStyleStringReading", _wrap_StyleTable_ResetStyleStringReading},
 {"Geo::OGRc::StyleTable_GetNextStyle", _wrap_StyleTable_GetNextStyle},
 {"Geo::OGRc::StyleTable_GetLastStyleName", _wrap_StyleTable_GetLastStyleName},
-{"Geo::OGRc::Driver_name_get", _wrap_Driver_name_get},
-{"Geo::OGRc::Driver_CreateDataSource", _wrap_Driver_CreateDataSource},
-{"Geo::OGRc::Driver_CopyDataSource", _wrap_Driver_CopyDataSource},
-{"Geo::OGRc::Driver_Open", _wrap_Driver_Open},
-{"Geo::OGRc::Driver_DeleteDataSource", _wrap_Driver_DeleteDataSource},
-{"Geo::OGRc::Driver__TestCapability", _wrap_Driver__TestCapability},
-{"Geo::OGRc::Driver_GetName", _wrap_Driver_GetName},
-{"Geo::OGRc::Driver_Register", _wrap_Driver_Register},
-{"Geo::OGRc::Driver_Deregister", _wrap_Driver_Deregister},
-{"Geo::OGRc::DataSource_name_get", _wrap_DataSource_name_get},
-{"Geo::OGRc::delete_DataSource", _wrap_delete_DataSource},
-{"Geo::OGRc::DataSource_GetRefCount", _wrap_DataSource_GetRefCount},
-{"Geo::OGRc::DataSource_GetSummaryRefCount", _wrap_DataSource_GetSummaryRefCount},
-{"Geo::OGRc::DataSource_GetLayerCount", _wrap_DataSource_GetLayerCount},
-{"Geo::OGRc::DataSource__GetDriver", _wrap_DataSource__GetDriver},
-{"Geo::OGRc::DataSource_GetName", _wrap_DataSource_GetName},
-{"Geo::OGRc::DataSource__DeleteLayer", _wrap_DataSource__DeleteLayer},
-{"Geo::OGRc::DataSource_SyncToDisk", _wrap_DataSource_SyncToDisk},
-{"Geo::OGRc::DataSource__CreateLayer", _wrap_DataSource__CreateLayer},
-{"Geo::OGRc::DataSource_CopyLayer", _wrap_DataSource_CopyLayer},
-{"Geo::OGRc::DataSource__GetLayerByIndex", _wrap_DataSource__GetLayerByIndex},
-{"Geo::OGRc::DataSource__GetLayerByName", _wrap_DataSource__GetLayerByName},
-{"Geo::OGRc::DataSource__TestCapability", _wrap_DataSource__TestCapability},
-{"Geo::OGRc::DataSource__ExecuteSQL", _wrap_DataSource__ExecuteSQL},
-{"Geo::OGRc::DataSource_ReleaseResultSet", _wrap_DataSource_ReleaseResultSet},
-{"Geo::OGRc::DataSource_GetStyleTable", _wrap_DataSource_GetStyleTable},
-{"Geo::OGRc::DataSource_SetStyleTable", _wrap_DataSource_SetStyleTable},
 {"Geo::OGRc::Layer_GetRefCount", _wrap_Layer_GetRefCount},
 {"Geo::OGRc::Layer_SetSpatialFilter", _wrap_Layer_SetSpatialFilter},
 {"Geo::OGRc::Layer_SetSpatialFilterRect", _wrap_Layer_SetSpatialFilterRect},
@@ -22888,7 +29045,7 @@ static swig_command_info swig_commands[] = {
 {"Geo::OGRc::Layer_GetGeomType", _wrap_Layer_GetGeomType},
 {"Geo::OGRc::Layer_GetGeometryColumn", _wrap_Layer_GetGeometryColumn},
 {"Geo::OGRc::Layer_GetFIDColumn", _wrap_Layer_GetFIDColumn},
-{"Geo::OGRc::Layer_GetFeature", _wrap_Layer_GetFeature},
+{"Geo::OGRc::Layer__GetFeature", _wrap_Layer__GetFeature},
 {"Geo::OGRc::Layer_GetNextFeature", _wrap_Layer_GetNextFeature},
 {"Geo::OGRc::Layer_SetNextByIndex", _wrap_Layer_SetNextByIndex},
 {"Geo::OGRc::Layer_SetFeature", _wrap_Layer_SetFeature},
@@ -22903,7 +29060,7 @@ static swig_command_info swig_commands[] = {
 {"Geo::OGRc::Layer__DeleteField", _wrap_Layer__DeleteField},
 {"Geo::OGRc::Layer_ReorderField", _wrap_Layer_ReorderField},
 {"Geo::OGRc::Layer_ReorderFields", _wrap_Layer_ReorderFields},
-{"Geo::OGRc::Layer_AlterFieldDefn", _wrap_Layer_AlterFieldDefn},
+{"Geo::OGRc::Layer__AlterFieldDefn", _wrap_Layer__AlterFieldDefn},
 {"Geo::OGRc::Layer_CreateGeomField", _wrap_Layer_CreateGeomField},
 {"Geo::OGRc::Layer_StartTransaction", _wrap_Layer_StartTransaction},
 {"Geo::OGRc::Layer_CommitTransaction", _wrap_Layer_CommitTransaction},
@@ -22924,8 +29081,8 @@ static swig_command_info swig_commands[] = {
 {"Geo::OGRc::delete_Feature", _wrap_delete_Feature},
 {"Geo::OGRc::new_Feature", _wrap_new_Feature},
 {"Geo::OGRc::Feature_GetDefnRef", _wrap_Feature_GetDefnRef},
-{"Geo::OGRc::Feature_SetGeometry", _wrap_Feature_SetGeometry},
-{"Geo::OGRc::Feature__SetGeometryDirectly", _wrap_Feature__SetGeometryDirectly},
+{"Geo::OGRc::Feature__SetGeometry", _wrap_Feature__SetGeometry},
+{"Geo::OGRc::Feature_SetGeometryDirectly", _wrap_Feature_SetGeometryDirectly},
 {"Geo::OGRc::Feature_GetGeometryRef", _wrap_Feature_GetGeometryRef},
 {"Geo::OGRc::Feature_SetGeomField", _wrap_Feature_SetGeomField},
 {"Geo::OGRc::Feature_SetGeomFieldDirectly", _wrap_Feature_SetGeomFieldDirectly},
@@ -22938,11 +29095,14 @@ static swig_command_info swig_commands[] = {
 {"Geo::OGRc::Feature_GetGeomFieldDefnRef", _wrap_Feature_GetGeomFieldDefnRef},
 {"Geo::OGRc::Feature_GetFieldAsString", _wrap_Feature_GetFieldAsString},
 {"Geo::OGRc::Feature_GetFieldAsInteger", _wrap_Feature_GetFieldAsInteger},
+{"Geo::OGRc::Feature_GetFieldAsInteger64", _wrap_Feature_GetFieldAsInteger64},
 {"Geo::OGRc::Feature_GetFieldAsDouble", _wrap_Feature_GetFieldAsDouble},
 {"Geo::OGRc::Feature_GetFieldAsDateTime", _wrap_Feature_GetFieldAsDateTime},
 {"Geo::OGRc::Feature_GetFieldAsIntegerList", _wrap_Feature_GetFieldAsIntegerList},
+{"Geo::OGRc::Feature_GetFieldAsInteger64List", _wrap_Feature_GetFieldAsInteger64List},
 {"Geo::OGRc::Feature_GetFieldAsDoubleList", _wrap_Feature_GetFieldAsDoubleList},
 {"Geo::OGRc::Feature_GetFieldAsStringList", _wrap_Feature_GetFieldAsStringList},
+{"Geo::OGRc::Feature_GetFieldAsBinary", _wrap_Feature_GetFieldAsBinary},
 {"Geo::OGRc::Feature_IsFieldSet", _wrap_Feature_IsFieldSet},
 {"Geo::OGRc::Feature_GetFieldIndex", _wrap_Feature_GetFieldIndex},
 {"Geo::OGRc::Feature_GetGeomFieldIndex", _wrap_Feature_GetGeomFieldIndex},
@@ -22950,16 +29110,25 @@ static swig_command_info swig_commands[] = {
 {"Geo::OGRc::Feature_SetFID", _wrap_Feature_SetFID},
 {"Geo::OGRc::Feature_DumpReadable", _wrap_Feature_DumpReadable},
 {"Geo::OGRc::Feature__UnsetField", _wrap_Feature__UnsetField},
+{"Geo::OGRc::Feature_SetFieldInteger64", _wrap_Feature_SetFieldInteger64},
 {"Geo::OGRc::Feature__SetField", _wrap_Feature__SetField},
 {"Geo::OGRc::Feature_SetFieldIntegerList", _wrap_Feature_SetFieldIntegerList},
+{"Geo::OGRc::Feature_SetFieldInteger64List", _wrap_Feature_SetFieldInteger64List},
 {"Geo::OGRc::Feature_SetFieldDoubleList", _wrap_Feature_SetFieldDoubleList},
 {"Geo::OGRc::Feature_SetFieldStringList", _wrap_Feature_SetFieldStringList},
+{"Geo::OGRc::Feature_SetFieldBinary", _wrap_Feature_SetFieldBinary},
 {"Geo::OGRc::Feature_SetFieldBinaryFromHexString", _wrap_Feature_SetFieldBinaryFromHexString},
 {"Geo::OGRc::Feature__SetFrom", _wrap_Feature__SetFrom},
 {"Geo::OGRc::Feature_SetFromWithMap", _wrap_Feature_SetFromWithMap},
 {"Geo::OGRc::Feature_GetStyleString", _wrap_Feature_GetStyleString},
 {"Geo::OGRc::Feature_SetStyleString", _wrap_Feature_SetStyleString},
-{"Geo::OGRc::Feature__GetFieldType", _wrap_Feature__GetFieldType},
+{"Geo::OGRc::Feature_GetFieldType", _wrap_Feature_GetFieldType},
+{"Geo::OGRc::Feature__Validate", _wrap_Feature__Validate},
+{"Geo::OGRc::Feature_FillUnsetWithDefault", _wrap_Feature_FillUnsetWithDefault},
+{"Geo::OGRc::Feature_GetNativeData", _wrap_Feature_GetNativeData},
+{"Geo::OGRc::Feature_GetNativeMediaType", _wrap_Feature_GetNativeMediaType},
+{"Geo::OGRc::Feature_SetNativeData", _wrap_Feature_SetNativeData},
+{"Geo::OGRc::Feature_SetNativeMediaType", _wrap_Feature_SetNativeMediaType},
 {"Geo::OGRc::delete_FeatureDefn", _wrap_delete_FeatureDefn},
 {"Geo::OGRc::new_FeatureDefn", _wrap_new_FeatureDefn},
 {"Geo::OGRc::FeatureDefn_GetName", _wrap_FeatureDefn_GetName},
@@ -22987,6 +29156,8 @@ static swig_command_info swig_commands[] = {
 {"Geo::OGRc::FieldDefn_SetName", _wrap_FieldDefn_SetName},
 {"Geo::OGRc::FieldDefn_GetType", _wrap_FieldDefn_GetType},
 {"Geo::OGRc::FieldDefn_SetType", _wrap_FieldDefn_SetType},
+{"Geo::OGRc::FieldDefn_GetSubType", _wrap_FieldDefn_GetSubType},
+{"Geo::OGRc::FieldDefn_SetSubType", _wrap_FieldDefn_SetSubType},
 {"Geo::OGRc::FieldDefn_GetJustify", _wrap_FieldDefn_GetJustify},
 {"Geo::OGRc::FieldDefn_SetJustify", _wrap_FieldDefn_SetJustify},
 {"Geo::OGRc::FieldDefn_GetWidth", _wrap_FieldDefn_GetWidth},
@@ -22997,6 +29168,11 @@ static swig_command_info swig_commands[] = {
 {"Geo::OGRc::FieldDefn_GetFieldTypeName", _wrap_FieldDefn_GetFieldTypeName},
 {"Geo::OGRc::FieldDefn_IsIgnored", _wrap_FieldDefn_IsIgnored},
 {"Geo::OGRc::FieldDefn_SetIgnored", _wrap_FieldDefn_SetIgnored},
+{"Geo::OGRc::FieldDefn_IsNullable", _wrap_FieldDefn_IsNullable},
+{"Geo::OGRc::FieldDefn_SetNullable", _wrap_FieldDefn_SetNullable},
+{"Geo::OGRc::FieldDefn_GetDefault", _wrap_FieldDefn_GetDefault},
+{"Geo::OGRc::FieldDefn_SetDefault", _wrap_FieldDefn_SetDefault},
+{"Geo::OGRc::FieldDefn_IsDefaultDriverSpecific", _wrap_FieldDefn_IsDefaultDriverSpecific},
 {"Geo::OGRc::delete_GeomFieldDefn", _wrap_delete_GeomFieldDefn},
 {"Geo::OGRc::new_GeomFieldDefn", _wrap_new_GeomFieldDefn},
 {"Geo::OGRc::GeomFieldDefn_GetName", _wrap_GeomFieldDefn_GetName},
@@ -23008,6 +29184,8 @@ static swig_command_info swig_commands[] = {
 {"Geo::OGRc::GeomFieldDefn_SetSpatialRef", _wrap_GeomFieldDefn_SetSpatialRef},
 {"Geo::OGRc::GeomFieldDefn_IsIgnored", _wrap_GeomFieldDefn_IsIgnored},
 {"Geo::OGRc::GeomFieldDefn_SetIgnored", _wrap_GeomFieldDefn_SetIgnored},
+{"Geo::OGRc::GeomFieldDefn_IsNullable", _wrap_GeomFieldDefn_IsNullable},
+{"Geo::OGRc::GeomFieldDefn_SetNullable", _wrap_GeomFieldDefn_SetNullable},
 {"Geo::OGRc::CreateGeometryFromWkb", _wrap_CreateGeometryFromWkb},
 {"Geo::OGRc::CreateGeometryFromWkt", _wrap_CreateGeometryFromWkt},
 {"Geo::OGRc::CreateGeometryFromGML", _wrap_CreateGeometryFromGML},
@@ -23019,14 +29197,19 @@ static swig_command_info swig_commands[] = {
 {"Geo::OGRc::ForceToMultiPolygon", _wrap_ForceToMultiPolygon},
 {"Geo::OGRc::ForceToMultiPoint", _wrap_ForceToMultiPoint},
 {"Geo::OGRc::ForceToMultiLineString", _wrap_ForceToMultiLineString},
+{"Geo::OGRc::ForceTo", _wrap_ForceTo},
 {"Geo::OGRc::delete_Geometry", _wrap_delete_Geometry},
 {"Geo::OGRc::new_Geometry", _wrap_new_Geometry},
 {"Geo::OGRc::Geometry_ExportToWkt", _wrap_Geometry_ExportToWkt},
+{"Geo::OGRc::Geometry_ExportToIsoWkt", _wrap_Geometry_ExportToIsoWkt},
 {"Geo::OGRc::Geometry__ExportToWkb", _wrap_Geometry__ExportToWkb},
+{"Geo::OGRc::Geometry_ExportToIsoWkb", _wrap_Geometry_ExportToIsoWkb},
 {"Geo::OGRc::Geometry_ExportToGML", _wrap_Geometry_ExportToGML},
 {"Geo::OGRc::Geometry_ExportToKML", _wrap_Geometry_ExportToKML},
 {"Geo::OGRc::Geometry_ExportToJson", _wrap_Geometry_ExportToJson},
 {"Geo::OGRc::Geometry_AddPoint_3D", _wrap_Geometry_AddPoint_3D},
+{"Geo::OGRc::Geometry_AddPointM", _wrap_Geometry_AddPointM},
+{"Geo::OGRc::Geometry_AddPointZM", _wrap_Geometry_AddPointZM},
 {"Geo::OGRc::Geometry_AddPoint_2D", _wrap_Geometry_AddPoint_2D},
 {"Geo::OGRc::Geometry_AddGeometryDirectly", _wrap_Geometry_AddGeometryDirectly},
 {"Geo::OGRc::Geometry_AddGeometry", _wrap_Geometry_AddGeometry},
@@ -23040,14 +29223,19 @@ static swig_command_info swig_commands[] = {
 {"Geo::OGRc::Geometry_GetX", _wrap_Geometry_GetX},
 {"Geo::OGRc::Geometry_GetY", _wrap_Geometry_GetY},
 {"Geo::OGRc::Geometry_GetZ", _wrap_Geometry_GetZ},
+{"Geo::OGRc::Geometry_GetM", _wrap_Geometry_GetM},
 {"Geo::OGRc::Geometry_GetPoint_3D", _wrap_Geometry_GetPoint_3D},
+{"Geo::OGRc::Geometry_GetPointZM", _wrap_Geometry_GetPointZM},
 {"Geo::OGRc::Geometry_GetPoint_2D", _wrap_Geometry_GetPoint_2D},
 {"Geo::OGRc::Geometry_GetGeometryCount", _wrap_Geometry_GetGeometryCount},
 {"Geo::OGRc::Geometry_SetPoint_3D", _wrap_Geometry_SetPoint_3D},
+{"Geo::OGRc::Geometry_SetPointM", _wrap_Geometry_SetPointM},
+{"Geo::OGRc::Geometry_SetPointZM", _wrap_Geometry_SetPointZM},
 {"Geo::OGRc::Geometry_SetPoint_2D", _wrap_Geometry_SetPoint_2D},
 {"Geo::OGRc::Geometry_GetGeometryRef", _wrap_Geometry_GetGeometryRef},
 {"Geo::OGRc::Geometry_Simplify", _wrap_Geometry_Simplify},
 {"Geo::OGRc::Geometry_SimplifyPreserveTopology", _wrap_Geometry_SimplifyPreserveTopology},
+{"Geo::OGRc::Geometry_DelaunayTriangulation", _wrap_Geometry_DelaunayTriangulation},
 {"Geo::OGRc::Geometry_Boundary", _wrap_Geometry_Boundary},
 {"Geo::OGRc::Geometry_GetBoundary", _wrap_Geometry_GetBoundary},
 {"Geo::OGRc::Geometry_ConvexHull", _wrap_Geometry_ConvexHull},
@@ -23087,8 +29275,17 @@ static swig_command_info swig_commands[] = {
 {"Geo::OGRc::Geometry_PointOnSurface", _wrap_Geometry_PointOnSurface},
 {"Geo::OGRc::Geometry_WkbSize", _wrap_Geometry_WkbSize},
 {"Geo::OGRc::Geometry_GetCoordinateDimension", _wrap_Geometry_GetCoordinateDimension},
+{"Geo::OGRc::Geometry_CoordinateDimension", _wrap_Geometry_CoordinateDimension},
+{"Geo::OGRc::Geometry_Is3D", _wrap_Geometry_Is3D},
+{"Geo::OGRc::Geometry_IsMeasured", _wrap_Geometry_IsMeasured},
 {"Geo::OGRc::Geometry_SetCoordinateDimension", _wrap_Geometry_SetCoordinateDimension},
+{"Geo::OGRc::Geometry_Set3D", _wrap_Geometry_Set3D},
+{"Geo::OGRc::Geometry_SetMeasured", _wrap_Geometry_SetMeasured},
 {"Geo::OGRc::Geometry_GetDimension", _wrap_Geometry_GetDimension},
+{"Geo::OGRc::Geometry_HasCurveGeometry", _wrap_Geometry_HasCurveGeometry},
+{"Geo::OGRc::Geometry_GetLinearGeometry", _wrap_Geometry_GetLinearGeometry},
+{"Geo::OGRc::Geometry_GetCurveGeometry", _wrap_Geometry_GetCurveGeometry},
+{"Geo::OGRc::Geometry_Value", _wrap_Geometry_Value},
 {"Geo::OGRc::Geometry_Move", _wrap_Geometry_Move},
 {"Geo::OGRc::GetDriverCount", _wrap_GetDriverCount},
 {"Geo::OGRc::GetOpenDSCount", _wrap_GetOpenDSCount},
@@ -23096,12 +29293,22 @@ static swig_command_info swig_commands[] = {
 {"Geo::OGRc::RegisterAll", _wrap_RegisterAll},
 {"Geo::OGRc::GeometryTypeToName", _wrap_GeometryTypeToName},
 {"Geo::OGRc::GetFieldTypeName", _wrap_GetFieldTypeName},
-{"Geo::OGRc::GetOpenDS", _wrap_GetOpenDS},
-{"Geo::OGRc::Open", _wrap_Open},
-{"Geo::OGRc::OpenShared", _wrap_OpenShared},
-{"Geo::OGRc::GetDriverByName", _wrap_GetDriverByName},
-{"Geo::OGRc::_GetDriver", _wrap__GetDriver},
-{"Geo::OGRc::GeneralCmdLineProcessor", _wrap_GeneralCmdLineProcessor},
+{"Geo::OGRc::GetFieldSubTypeName", _wrap_GetFieldSubTypeName},
+{"Geo::OGRc::GT_Flatten", _wrap_GT_Flatten},
+{"Geo::OGRc::GT_SetZ", _wrap_GT_SetZ},
+{"Geo::OGRc::GT_SetM", _wrap_GT_SetM},
+{"Geo::OGRc::GT_SetModifier", _wrap_GT_SetModifier},
+{"Geo::OGRc::GT_HasZ", _wrap_GT_HasZ},
+{"Geo::OGRc::GT_HasM", _wrap_GT_HasM},
+{"Geo::OGRc::GT_IsSubClassOf", _wrap_GT_IsSubClassOf},
+{"Geo::OGRc::GT_IsCurve", _wrap_GT_IsCurve},
+{"Geo::OGRc::GT_IsSurface", _wrap_GT_IsSurface},
+{"Geo::OGRc::GT_IsNonLinear", _wrap_GT_IsNonLinear},
+{"Geo::OGRc::GT_GetCollection", _wrap_GT_GetCollection},
+{"Geo::OGRc::GT_GetCurve", _wrap_GT_GetCurve},
+{"Geo::OGRc::GT_GetLinear", _wrap_GT_GetLinear},
+{"Geo::OGRc::SetNonLinearGeometriesEnabledFlag", _wrap_SetNonLinearGeometriesEnabledFlag},
+{"Geo::OGRc::GetNonLinearGeometriesEnabledFlag", _wrap_GetNonLinearGeometriesEnabledFlag},
 {"Geo::OGRc::TermProgress_nocb", _wrap_TermProgress_nocb},
 {0,0}
 };
@@ -23451,6 +29658,51 @@ XS(SWIG_init) {
     SvREADONLY_on(sv);
   } while(0) /*@SWIG@*/;
   /*@SWIG:/home/rouault/install-swig-2.0.12/share/swig/2.0.12/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+    SV *sv = get_sv((char*) SWIG_prefix "wkbCircularString", TRUE | 0x2 | GV_ADDMULTI);
+    sv_setsv(sv, SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(8)));
+    SvREADONLY_on(sv);
+  } while(0) /*@SWIG@*/;
+  /*@SWIG:/home/rouault/install-swig-2.0.12/share/swig/2.0.12/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+    SV *sv = get_sv((char*) SWIG_prefix "wkbCompoundCurve", TRUE | 0x2 | GV_ADDMULTI);
+    sv_setsv(sv, SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(9)));
+    SvREADONLY_on(sv);
+  } while(0) /*@SWIG@*/;
+  /*@SWIG:/home/rouault/install-swig-2.0.12/share/swig/2.0.12/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+    SV *sv = get_sv((char*) SWIG_prefix "wkbCurvePolygon", TRUE | 0x2 | GV_ADDMULTI);
+    sv_setsv(sv, SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(10)));
+    SvREADONLY_on(sv);
+  } while(0) /*@SWIG@*/;
+  /*@SWIG:/home/rouault/install-swig-2.0.12/share/swig/2.0.12/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+    SV *sv = get_sv((char*) SWIG_prefix "wkbMultiCurve", TRUE | 0x2 | GV_ADDMULTI);
+    sv_setsv(sv, SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(11)));
+    SvREADONLY_on(sv);
+  } while(0) /*@SWIG@*/;
+  /*@SWIG:/home/rouault/install-swig-2.0.12/share/swig/2.0.12/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+    SV *sv = get_sv((char*) SWIG_prefix "wkbMultiSurface", TRUE | 0x2 | GV_ADDMULTI);
+    sv_setsv(sv, SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(12)));
+    SvREADONLY_on(sv);
+  } while(0) /*@SWIG@*/;
+  /*@SWIG:/home/rouault/install-swig-2.0.12/share/swig/2.0.12/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+    SV *sv = get_sv((char*) SWIG_prefix "wkbCurve", TRUE | 0x2 | GV_ADDMULTI);
+    sv_setsv(sv, SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(13)));
+    SvREADONLY_on(sv);
+  } while(0) /*@SWIG@*/;
+  /*@SWIG:/home/rouault/install-swig-2.0.12/share/swig/2.0.12/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+    SV *sv = get_sv((char*) SWIG_prefix "wkbSurface", TRUE | 0x2 | GV_ADDMULTI);
+    sv_setsv(sv, SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(14)));
+    SvREADONLY_on(sv);
+  } while(0) /*@SWIG@*/;
+  /*@SWIG:/home/rouault/install-swig-2.0.12/share/swig/2.0.12/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+    SV *sv = get_sv((char*) SWIG_prefix "wkbPolyhedralSurface", TRUE | 0x2 | GV_ADDMULTI);
+    sv_setsv(sv, SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(15)));
+    SvREADONLY_on(sv);
+  } while(0) /*@SWIG@*/;
+  /*@SWIG:/home/rouault/install-swig-2.0.12/share/swig/2.0.12/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+    SV *sv = get_sv((char*) SWIG_prefix "wkbTIN", TRUE | 0x2 | GV_ADDMULTI);
+    sv_setsv(sv, SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(16)));
+    SvREADONLY_on(sv);
+  } while(0) /*@SWIG@*/;
+  /*@SWIG:/home/rouault/install-swig-2.0.12/share/swig/2.0.12/perl5/perltypemaps.swg,65,%set_constant@*/ do {
     SV *sv = get_sv((char*) SWIG_prefix "wkbNone", TRUE | 0x2 | GV_ADDMULTI);
     sv_setsv(sv, SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(100)));
     SvREADONLY_on(sv);
@@ -23461,38 +29713,243 @@ XS(SWIG_init) {
     SvREADONLY_on(sv);
   } while(0) /*@SWIG@*/;
   /*@SWIG:/home/rouault/install-swig-2.0.12/share/swig/2.0.12/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+    SV *sv = get_sv((char*) SWIG_prefix "wkbCircularStringZ", TRUE | 0x2 | GV_ADDMULTI);
+    sv_setsv(sv, SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(1008)));
+    SvREADONLY_on(sv);
+  } while(0) /*@SWIG@*/;
+  /*@SWIG:/home/rouault/install-swig-2.0.12/share/swig/2.0.12/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+    SV *sv = get_sv((char*) SWIG_prefix "wkbCompoundCurveZ", TRUE | 0x2 | GV_ADDMULTI);
+    sv_setsv(sv, SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(1009)));
+    SvREADONLY_on(sv);
+  } while(0) /*@SWIG@*/;
+  /*@SWIG:/home/rouault/install-swig-2.0.12/share/swig/2.0.12/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+    SV *sv = get_sv((char*) SWIG_prefix "wkbCurvePolygonZ", TRUE | 0x2 | GV_ADDMULTI);
+    sv_setsv(sv, SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(1010)));
+    SvREADONLY_on(sv);
+  } while(0) /*@SWIG@*/;
+  /*@SWIG:/home/rouault/install-swig-2.0.12/share/swig/2.0.12/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+    SV *sv = get_sv((char*) SWIG_prefix "wkbMultiCurveZ", TRUE | 0x2 | GV_ADDMULTI);
+    sv_setsv(sv, SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(1011)));
+    SvREADONLY_on(sv);
+  } while(0) /*@SWIG@*/;
+  /*@SWIG:/home/rouault/install-swig-2.0.12/share/swig/2.0.12/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+    SV *sv = get_sv((char*) SWIG_prefix "wkbMultiSurfaceZ", TRUE | 0x2 | GV_ADDMULTI);
+    sv_setsv(sv, SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(1012)));
+    SvREADONLY_on(sv);
+  } while(0) /*@SWIG@*/;
+  /*@SWIG:/home/rouault/install-swig-2.0.12/share/swig/2.0.12/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+    SV *sv = get_sv((char*) SWIG_prefix "wkbCurveZ", TRUE | 0x2 | GV_ADDMULTI);
+    sv_setsv(sv, SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(1013)));
+    SvREADONLY_on(sv);
+  } while(0) /*@SWIG@*/;
+  /*@SWIG:/home/rouault/install-swig-2.0.12/share/swig/2.0.12/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+    SV *sv = get_sv((char*) SWIG_prefix "wkbSurfaceZ", TRUE | 0x2 | GV_ADDMULTI);
+    sv_setsv(sv, SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(1014)));
+    SvREADONLY_on(sv);
+  } while(0) /*@SWIG@*/;
+  /*@SWIG:/home/rouault/install-swig-2.0.12/share/swig/2.0.12/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+    SV *sv = get_sv((char*) SWIG_prefix "wkbPolyhedralSurfaceZ", TRUE | 0x2 | GV_ADDMULTI);
+    sv_setsv(sv, SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(1015)));
+    SvREADONLY_on(sv);
+  } while(0) /*@SWIG@*/;
+  /*@SWIG:/home/rouault/install-swig-2.0.12/share/swig/2.0.12/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+    SV *sv = get_sv((char*) SWIG_prefix "wkbTINZ", TRUE | 0x2 | GV_ADDMULTI);
+    sv_setsv(sv, SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(1016)));
+    SvREADONLY_on(sv);
+  } while(0) /*@SWIG@*/;
+  /*@SWIG:/home/rouault/install-swig-2.0.12/share/swig/2.0.12/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+    SV *sv = get_sv((char*) SWIG_prefix "wkbPointM", TRUE | 0x2 | GV_ADDMULTI);
+    sv_setsv(sv, SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(2001)));
+    SvREADONLY_on(sv);
+  } while(0) /*@SWIG@*/;
+  /*@SWIG:/home/rouault/install-swig-2.0.12/share/swig/2.0.12/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+    SV *sv = get_sv((char*) SWIG_prefix "wkbLineStringM", TRUE | 0x2 | GV_ADDMULTI);
+    sv_setsv(sv, SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(2002)));
+    SvREADONLY_on(sv);
+  } while(0) /*@SWIG@*/;
+  /*@SWIG:/home/rouault/install-swig-2.0.12/share/swig/2.0.12/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+    SV *sv = get_sv((char*) SWIG_prefix "wkbPolygonM", TRUE | 0x2 | GV_ADDMULTI);
+    sv_setsv(sv, SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(2003)));
+    SvREADONLY_on(sv);
+  } while(0) /*@SWIG@*/;
+  /*@SWIG:/home/rouault/install-swig-2.0.12/share/swig/2.0.12/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+    SV *sv = get_sv((char*) SWIG_prefix "wkbMultiPointM", TRUE | 0x2 | GV_ADDMULTI);
+    sv_setsv(sv, SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(2004)));
+    SvREADONLY_on(sv);
+  } while(0) /*@SWIG@*/;
+  /*@SWIG:/home/rouault/install-swig-2.0.12/share/swig/2.0.12/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+    SV *sv = get_sv((char*) SWIG_prefix "wkbMultiLineStringM", TRUE | 0x2 | GV_ADDMULTI);
+    sv_setsv(sv, SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(2005)));
+    SvREADONLY_on(sv);
+  } while(0) /*@SWIG@*/;
+  /*@SWIG:/home/rouault/install-swig-2.0.12/share/swig/2.0.12/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+    SV *sv = get_sv((char*) SWIG_prefix "wkbMultiPolygonM", TRUE | 0x2 | GV_ADDMULTI);
+    sv_setsv(sv, SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(2006)));
+    SvREADONLY_on(sv);
+  } while(0) /*@SWIG@*/;
+  /*@SWIG:/home/rouault/install-swig-2.0.12/share/swig/2.0.12/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+    SV *sv = get_sv((char*) SWIG_prefix "wkbGeometryCollectionM", TRUE | 0x2 | GV_ADDMULTI);
+    sv_setsv(sv, SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(2007)));
+    SvREADONLY_on(sv);
+  } while(0) /*@SWIG@*/;
+  /*@SWIG:/home/rouault/install-swig-2.0.12/share/swig/2.0.12/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+    SV *sv = get_sv((char*) SWIG_prefix "wkbCircularStringM", TRUE | 0x2 | GV_ADDMULTI);
+    sv_setsv(sv, SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(2008)));
+    SvREADONLY_on(sv);
+  } while(0) /*@SWIG@*/;
+  /*@SWIG:/home/rouault/install-swig-2.0.12/share/swig/2.0.12/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+    SV *sv = get_sv((char*) SWIG_prefix "wkbCompoundCurveM", TRUE | 0x2 | GV_ADDMULTI);
+    sv_setsv(sv, SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(2009)));
+    SvREADONLY_on(sv);
+  } while(0) /*@SWIG@*/;
+  /*@SWIG:/home/rouault/install-swig-2.0.12/share/swig/2.0.12/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+    SV *sv = get_sv((char*) SWIG_prefix "wkbCurvePolygonM", TRUE | 0x2 | GV_ADDMULTI);
+    sv_setsv(sv, SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(2010)));
+    SvREADONLY_on(sv);
+  } while(0) /*@SWIG@*/;
+  /*@SWIG:/home/rouault/install-swig-2.0.12/share/swig/2.0.12/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+    SV *sv = get_sv((char*) SWIG_prefix "wkbMultiCurveM", TRUE | 0x2 | GV_ADDMULTI);
+    sv_setsv(sv, SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(2011)));
+    SvREADONLY_on(sv);
+  } while(0) /*@SWIG@*/;
+  /*@SWIG:/home/rouault/install-swig-2.0.12/share/swig/2.0.12/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+    SV *sv = get_sv((char*) SWIG_prefix "wkbMultiSurfaceM", TRUE | 0x2 | GV_ADDMULTI);
+    sv_setsv(sv, SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(2012)));
+    SvREADONLY_on(sv);
+  } while(0) /*@SWIG@*/;
+  /*@SWIG:/home/rouault/install-swig-2.0.12/share/swig/2.0.12/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+    SV *sv = get_sv((char*) SWIG_prefix "wkbCurveM", TRUE | 0x2 | GV_ADDMULTI);
+    sv_setsv(sv, SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(2013)));
+    SvREADONLY_on(sv);
+  } while(0) /*@SWIG@*/;
+  /*@SWIG:/home/rouault/install-swig-2.0.12/share/swig/2.0.12/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+    SV *sv = get_sv((char*) SWIG_prefix "wkbSurfaceM", TRUE | 0x2 | GV_ADDMULTI);
+    sv_setsv(sv, SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(2014)));
+    SvREADONLY_on(sv);
+  } while(0) /*@SWIG@*/;
+  /*@SWIG:/home/rouault/install-swig-2.0.12/share/swig/2.0.12/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+    SV *sv = get_sv((char*) SWIG_prefix "wkbPolyhedralSurfaceM", TRUE | 0x2 | GV_ADDMULTI);
+    sv_setsv(sv, SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(2015)));
+    SvREADONLY_on(sv);
+  } while(0) /*@SWIG@*/;
+  /*@SWIG:/home/rouault/install-swig-2.0.12/share/swig/2.0.12/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+    SV *sv = get_sv((char*) SWIG_prefix "wkbTINM", TRUE | 0x2 | GV_ADDMULTI);
+    sv_setsv(sv, SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(2016)));
+    SvREADONLY_on(sv);
+  } while(0) /*@SWIG@*/;
+  /*@SWIG:/home/rouault/install-swig-2.0.12/share/swig/2.0.12/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+    SV *sv = get_sv((char*) SWIG_prefix "wkbPointZM", TRUE | 0x2 | GV_ADDMULTI);
+    sv_setsv(sv, SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(3001)));
+    SvREADONLY_on(sv);
+  } while(0) /*@SWIG@*/;
+  /*@SWIG:/home/rouault/install-swig-2.0.12/share/swig/2.0.12/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+    SV *sv = get_sv((char*) SWIG_prefix "wkbLineStringZM", TRUE | 0x2 | GV_ADDMULTI);
+    sv_setsv(sv, SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(3002)));
+    SvREADONLY_on(sv);
+  } while(0) /*@SWIG@*/;
+  /*@SWIG:/home/rouault/install-swig-2.0.12/share/swig/2.0.12/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+    SV *sv = get_sv((char*) SWIG_prefix "wkbPolygonZM", TRUE | 0x2 | GV_ADDMULTI);
+    sv_setsv(sv, SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(3003)));
+    SvREADONLY_on(sv);
+  } while(0) /*@SWIG@*/;
+  /*@SWIG:/home/rouault/install-swig-2.0.12/share/swig/2.0.12/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+    SV *sv = get_sv((char*) SWIG_prefix "wkbMultiPointZM", TRUE | 0x2 | GV_ADDMULTI);
+    sv_setsv(sv, SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(3004)));
+    SvREADONLY_on(sv);
+  } while(0) /*@SWIG@*/;
+  /*@SWIG:/home/rouault/install-swig-2.0.12/share/swig/2.0.12/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+    SV *sv = get_sv((char*) SWIG_prefix "wkbMultiLineStringZM", TRUE | 0x2 | GV_ADDMULTI);
+    sv_setsv(sv, SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(3005)));
+    SvREADONLY_on(sv);
+  } while(0) /*@SWIG@*/;
+  /*@SWIG:/home/rouault/install-swig-2.0.12/share/swig/2.0.12/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+    SV *sv = get_sv((char*) SWIG_prefix "wkbMultiPolygonZM", TRUE | 0x2 | GV_ADDMULTI);
+    sv_setsv(sv, SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(3006)));
+    SvREADONLY_on(sv);
+  } while(0) /*@SWIG@*/;
+  /*@SWIG:/home/rouault/install-swig-2.0.12/share/swig/2.0.12/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+    SV *sv = get_sv((char*) SWIG_prefix "wkbGeometryCollectionZM", TRUE | 0x2 | GV_ADDMULTI);
+    sv_setsv(sv, SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(3007)));
+    SvREADONLY_on(sv);
+  } while(0) /*@SWIG@*/;
+  /*@SWIG:/home/rouault/install-swig-2.0.12/share/swig/2.0.12/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+    SV *sv = get_sv((char*) SWIG_prefix "wkbCircularStringZM", TRUE | 0x2 | GV_ADDMULTI);
+    sv_setsv(sv, SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(3008)));
+    SvREADONLY_on(sv);
+  } while(0) /*@SWIG@*/;
+  /*@SWIG:/home/rouault/install-swig-2.0.12/share/swig/2.0.12/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+    SV *sv = get_sv((char*) SWIG_prefix "wkbCompoundCurveZM", TRUE | 0x2 | GV_ADDMULTI);
+    sv_setsv(sv, SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(3009)));
+    SvREADONLY_on(sv);
+  } while(0) /*@SWIG@*/;
+  /*@SWIG:/home/rouault/install-swig-2.0.12/share/swig/2.0.12/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+    SV *sv = get_sv((char*) SWIG_prefix "wkbCurvePolygonZM", TRUE | 0x2 | GV_ADDMULTI);
+    sv_setsv(sv, SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(3010)));
+    SvREADONLY_on(sv);
+  } while(0) /*@SWIG@*/;
+  /*@SWIG:/home/rouault/install-swig-2.0.12/share/swig/2.0.12/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+    SV *sv = get_sv((char*) SWIG_prefix "wkbMultiCurveZM", TRUE | 0x2 | GV_ADDMULTI);
+    sv_setsv(sv, SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(3011)));
+    SvREADONLY_on(sv);
+  } while(0) /*@SWIG@*/;
+  /*@SWIG:/home/rouault/install-swig-2.0.12/share/swig/2.0.12/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+    SV *sv = get_sv((char*) SWIG_prefix "wkbMultiSurfaceZM", TRUE | 0x2 | GV_ADDMULTI);
+    sv_setsv(sv, SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(3012)));
+    SvREADONLY_on(sv);
+  } while(0) /*@SWIG@*/;
+  /*@SWIG:/home/rouault/install-swig-2.0.12/share/swig/2.0.12/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+    SV *sv = get_sv((char*) SWIG_prefix "wkbCurveZM", TRUE | 0x2 | GV_ADDMULTI);
+    sv_setsv(sv, SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(3013)));
+    SvREADONLY_on(sv);
+  } while(0) /*@SWIG@*/;
+  /*@SWIG:/home/rouault/install-swig-2.0.12/share/swig/2.0.12/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+    SV *sv = get_sv((char*) SWIG_prefix "wkbSurfaceZM", TRUE | 0x2 | GV_ADDMULTI);
+    sv_setsv(sv, SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(3014)));
+    SvREADONLY_on(sv);
+  } while(0) /*@SWIG@*/;
+  /*@SWIG:/home/rouault/install-swig-2.0.12/share/swig/2.0.12/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+    SV *sv = get_sv((char*) SWIG_prefix "wkbPolyhedralSurfaceZM", TRUE | 0x2 | GV_ADDMULTI);
+    sv_setsv(sv, SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(3015)));
+    SvREADONLY_on(sv);
+  } while(0) /*@SWIG@*/;
+  /*@SWIG:/home/rouault/install-swig-2.0.12/share/swig/2.0.12/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+    SV *sv = get_sv((char*) SWIG_prefix "wkbTINZM", TRUE | 0x2 | GV_ADDMULTI);
+    sv_setsv(sv, SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(3016)));
+    SvREADONLY_on(sv);
+  } while(0) /*@SWIG@*/;
+  /*@SWIG:/home/rouault/install-swig-2.0.12/share/swig/2.0.12/perl5/perltypemaps.swg,65,%set_constant@*/ do {
     SV *sv = get_sv((char*) SWIG_prefix "wkbPoint25D", TRUE | 0x2 | GV_ADDMULTI);
-    sv_setsv(sv, SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(wkbPoint+wkb25DBit)));
+    sv_setsv(sv, SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(0x80000001)));
     SvREADONLY_on(sv);
   } while(0) /*@SWIG@*/;
   /*@SWIG:/home/rouault/install-swig-2.0.12/share/swig/2.0.12/perl5/perltypemaps.swg,65,%set_constant@*/ do {
     SV *sv = get_sv((char*) SWIG_prefix "wkbLineString25D", TRUE | 0x2 | GV_ADDMULTI);
-    sv_setsv(sv, SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(wkbLineString+wkb25DBit)));
+    sv_setsv(sv, SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(0x80000002)));
     SvREADONLY_on(sv);
   } while(0) /*@SWIG@*/;
   /*@SWIG:/home/rouault/install-swig-2.0.12/share/swig/2.0.12/perl5/perltypemaps.swg,65,%set_constant@*/ do {
     SV *sv = get_sv((char*) SWIG_prefix "wkbPolygon25D", TRUE | 0x2 | GV_ADDMULTI);
-    sv_setsv(sv, SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(wkbPolygon+wkb25DBit)));
+    sv_setsv(sv, SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(0x80000003)));
     SvREADONLY_on(sv);
   } while(0) /*@SWIG@*/;
   /*@SWIG:/home/rouault/install-swig-2.0.12/share/swig/2.0.12/perl5/perltypemaps.swg,65,%set_constant@*/ do {
     SV *sv = get_sv((char*) SWIG_prefix "wkbMultiPoint25D", TRUE | 0x2 | GV_ADDMULTI);
-    sv_setsv(sv, SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(wkbMultiPoint+wkb25DBit)));
+    sv_setsv(sv, SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(0x80000004)));
     SvREADONLY_on(sv);
   } while(0) /*@SWIG@*/;
   /*@SWIG:/home/rouault/install-swig-2.0.12/share/swig/2.0.12/perl5/perltypemaps.swg,65,%set_constant@*/ do {
     SV *sv = get_sv((char*) SWIG_prefix "wkbMultiLineString25D", TRUE | 0x2 | GV_ADDMULTI);
-    sv_setsv(sv, SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(wkbMultiLineString+wkb25DBit)));
+    sv_setsv(sv, SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(0x80000005)));
     SvREADONLY_on(sv);
   } while(0) /*@SWIG@*/;
   /*@SWIG:/home/rouault/install-swig-2.0.12/share/swig/2.0.12/perl5/perltypemaps.swg,65,%set_constant@*/ do {
     SV *sv = get_sv((char*) SWIG_prefix "wkbMultiPolygon25D", TRUE | 0x2 | GV_ADDMULTI);
-    sv_setsv(sv, SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(wkbMultiPolygon+wkb25DBit)));
+    sv_setsv(sv, SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(0x80000006)));
     SvREADONLY_on(sv);
   } while(0) /*@SWIG@*/;
   /*@SWIG:/home/rouault/install-swig-2.0.12/share/swig/2.0.12/perl5/perltypemaps.swg,65,%set_constant@*/ do {
     SV *sv = get_sv((char*) SWIG_prefix "wkbGeometryCollection25D", TRUE | 0x2 | GV_ADDMULTI);
-    sv_setsv(sv, SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(wkbGeometryCollection+wkb25DBit)));
+    sv_setsv(sv, SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(0x80000007)));
     SvREADONLY_on(sv);
   } while(0) /*@SWIG@*/;
   /*@SWIG:/home/rouault/install-swig-2.0.12/share/swig/2.0.12/perl5/perltypemaps.swg,65,%set_constant@*/ do {
@@ -23556,6 +30013,36 @@ XS(SWIG_init) {
     SvREADONLY_on(sv);
   } while(0) /*@SWIG@*/;
   /*@SWIG:/home/rouault/install-swig-2.0.12/share/swig/2.0.12/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+    SV *sv = get_sv((char*) SWIG_prefix "OFTInteger64", TRUE | 0x2 | GV_ADDMULTI);
+    sv_setsv(sv, SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(12)));
+    SvREADONLY_on(sv);
+  } while(0) /*@SWIG@*/;
+  /*@SWIG:/home/rouault/install-swig-2.0.12/share/swig/2.0.12/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+    SV *sv = get_sv((char*) SWIG_prefix "OFTInteger64List", TRUE | 0x2 | GV_ADDMULTI);
+    sv_setsv(sv, SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(13)));
+    SvREADONLY_on(sv);
+  } while(0) /*@SWIG@*/;
+  /*@SWIG:/home/rouault/install-swig-2.0.12/share/swig/2.0.12/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+    SV *sv = get_sv((char*) SWIG_prefix "OFSTNone", TRUE | 0x2 | GV_ADDMULTI);
+    sv_setsv(sv, SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(0)));
+    SvREADONLY_on(sv);
+  } while(0) /*@SWIG@*/;
+  /*@SWIG:/home/rouault/install-swig-2.0.12/share/swig/2.0.12/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+    SV *sv = get_sv((char*) SWIG_prefix "OFSTBoolean", TRUE | 0x2 | GV_ADDMULTI);
+    sv_setsv(sv, SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(1)));
+    SvREADONLY_on(sv);
+  } while(0) /*@SWIG@*/;
+  /*@SWIG:/home/rouault/install-swig-2.0.12/share/swig/2.0.12/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+    SV *sv = get_sv((char*) SWIG_prefix "OFSTInt16", TRUE | 0x2 | GV_ADDMULTI);
+    sv_setsv(sv, SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(2)));
+    SvREADONLY_on(sv);
+  } while(0) /*@SWIG@*/;
+  /*@SWIG:/home/rouault/install-swig-2.0.12/share/swig/2.0.12/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+    SV *sv = get_sv((char*) SWIG_prefix "OFSTFloat32", TRUE | 0x2 | GV_ADDMULTI);
+    sv_setsv(sv, SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(3)));
+    SvREADONLY_on(sv);
+  } while(0) /*@SWIG@*/;
+  /*@SWIG:/home/rouault/install-swig-2.0.12/share/swig/2.0.12/perl5/perltypemaps.swg,65,%set_constant@*/ do {
     SV *sv = get_sv((char*) SWIG_prefix "OJUndefined", TRUE | 0x2 | GV_ADDMULTI);
     sv_setsv(sv, SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(0)));
     SvREADONLY_on(sv);
@@ -23601,8 +30088,43 @@ XS(SWIG_init) {
     SvREADONLY_on(sv);
   } while(0) /*@SWIG@*/;
   /*@SWIG:/home/rouault/install-swig-2.0.12/share/swig/2.0.12/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+    SV *sv = get_sv((char*) SWIG_prefix "ALTER_NULLABLE_FLAG", TRUE | 0x2 | GV_ADDMULTI);
+    sv_setsv(sv, SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(8)));
+    SvREADONLY_on(sv);
+  } while(0) /*@SWIG@*/;
+  /*@SWIG:/home/rouault/install-swig-2.0.12/share/swig/2.0.12/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+    SV *sv = get_sv((char*) SWIG_prefix "ALTER_DEFAULT_FLAG", TRUE | 0x2 | GV_ADDMULTI);
+    sv_setsv(sv, SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(16)));
+    SvREADONLY_on(sv);
+  } while(0) /*@SWIG@*/;
+  /*@SWIG:/home/rouault/install-swig-2.0.12/share/swig/2.0.12/perl5/perltypemaps.swg,65,%set_constant@*/ do {
     SV *sv = get_sv((char*) SWIG_prefix "ALTER_ALL_FLAG", TRUE | 0x2 | GV_ADDMULTI);
-    sv_setsv(sv, SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(1+2+4)));
+    sv_setsv(sv, SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(1+2+4+8+16)));
+    SvREADONLY_on(sv);
+  } while(0) /*@SWIG@*/;
+  /*@SWIG:/home/rouault/install-swig-2.0.12/share/swig/2.0.12/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+    SV *sv = get_sv((char*) SWIG_prefix "F_VAL_NULL", TRUE | 0x2 | GV_ADDMULTI);
+    sv_setsv(sv, SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(0x00000001)));
+    SvREADONLY_on(sv);
+  } while(0) /*@SWIG@*/;
+  /*@SWIG:/home/rouault/install-swig-2.0.12/share/swig/2.0.12/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+    SV *sv = get_sv((char*) SWIG_prefix "F_VAL_GEOM_TYPE", TRUE | 0x2 | GV_ADDMULTI);
+    sv_setsv(sv, SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(0x00000002)));
+    SvREADONLY_on(sv);
+  } while(0) /*@SWIG@*/;
+  /*@SWIG:/home/rouault/install-swig-2.0.12/share/swig/2.0.12/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+    SV *sv = get_sv((char*) SWIG_prefix "F_VAL_WIDTH", TRUE | 0x2 | GV_ADDMULTI);
+    sv_setsv(sv, SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(0x00000004)));
+    SvREADONLY_on(sv);
+  } while(0) /*@SWIG@*/;
+  /*@SWIG:/home/rouault/install-swig-2.0.12/share/swig/2.0.12/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+    SV *sv = get_sv((char*) SWIG_prefix "F_VAL_ALLOW_NULL_WHEN_DEFAULT", TRUE | 0x2 | GV_ADDMULTI);
+    sv_setsv(sv, SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(0x00000008)));
+    SvREADONLY_on(sv);
+  } while(0) /*@SWIG@*/;
+  /*@SWIG:/home/rouault/install-swig-2.0.12/share/swig/2.0.12/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+    SV *sv = get_sv((char*) SWIG_prefix "F_VAL_ALL", TRUE | 0x2 | GV_ADDMULTI);
+    sv_setsv(sv, SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(0xFFFFFFFF)));
     SvREADONLY_on(sv);
   } while(0) /*@SWIG@*/;
   /*@SWIG:/home/rouault/install-swig-2.0.12/share/swig/2.0.12/perl5/perltypemaps.swg,65,%set_constant@*/ do {
@@ -23686,6 +30208,16 @@ XS(SWIG_init) {
     SvREADONLY_on(sv);
   } while(0) /*@SWIG@*/;
   /*@SWIG:/home/rouault/install-swig-2.0.12/share/swig/2.0.12/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+    SV *sv = get_sv((char*) SWIG_prefix "OLCCurveGeometries", TRUE | 0x2 | GV_ADDMULTI);
+    sv_setsv(sv, SWIG_FromCharPtr("CurveGeometries"));
+    SvREADONLY_on(sv);
+  } while(0) /*@SWIG@*/;
+  /*@SWIG:/home/rouault/install-swig-2.0.12/share/swig/2.0.12/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+    SV *sv = get_sv((char*) SWIG_prefix "OLCMeasuredGeometries", TRUE | 0x2 | GV_ADDMULTI);
+    sv_setsv(sv, SWIG_FromCharPtr("MeasuredGeometries"));
+    SvREADONLY_on(sv);
+  } while(0) /*@SWIG@*/;
+  /*@SWIG:/home/rouault/install-swig-2.0.12/share/swig/2.0.12/perl5/perltypemaps.swg,65,%set_constant@*/ do {
     SV *sv = get_sv((char*) SWIG_prefix "ODsCCreateLayer", TRUE | 0x2 | GV_ADDMULTI);
     sv_setsv(sv, SWIG_FromCharPtr("CreateLayer"));
     SvREADONLY_on(sv);
@@ -23701,6 +30233,26 @@ XS(SWIG_init) {
     SvREADONLY_on(sv);
   } while(0) /*@SWIG@*/;
   /*@SWIG:/home/rouault/install-swig-2.0.12/share/swig/2.0.12/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+    SV *sv = get_sv((char*) SWIG_prefix "ODsCCurveGeometries", TRUE | 0x2 | GV_ADDMULTI);
+    sv_setsv(sv, SWIG_FromCharPtr("CurveGeometries"));
+    SvREADONLY_on(sv);
+  } while(0) /*@SWIG@*/;
+  /*@SWIG:/home/rouault/install-swig-2.0.12/share/swig/2.0.12/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+    SV *sv = get_sv((char*) SWIG_prefix "ODsCTransactions", TRUE | 0x2 | GV_ADDMULTI);
+    sv_setsv(sv, SWIG_FromCharPtr("Transactions"));
+    SvREADONLY_on(sv);
+  } while(0) /*@SWIG@*/;
+  /*@SWIG:/home/rouault/install-swig-2.0.12/share/swig/2.0.12/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+    SV *sv = get_sv((char*) SWIG_prefix "ODsCEmulatedTransactions", TRUE | 0x2 | GV_ADDMULTI);
+    sv_setsv(sv, SWIG_FromCharPtr("EmulatedTransactions"));
+    SvREADONLY_on(sv);
+  } while(0) /*@SWIG@*/;
+  /*@SWIG:/home/rouault/install-swig-2.0.12/share/swig/2.0.12/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+    SV *sv = get_sv((char*) SWIG_prefix "ODsCMeasuredGeometries", TRUE | 0x2 | GV_ADDMULTI);
+    sv_setsv(sv, SWIG_FromCharPtr("MeasuredGeometries"));
+    SvREADONLY_on(sv);
+  } while(0) /*@SWIG@*/;
+  /*@SWIG:/home/rouault/install-swig-2.0.12/share/swig/2.0.12/perl5/perltypemaps.swg,65,%set_constant@*/ do {
     SV *sv = get_sv((char*) SWIG_prefix "ODrCCreateDataSource", TRUE | 0x2 | GV_ADDMULTI);
     sv_setsv(sv, SWIG_FromCharPtr("CreateDataSource"));
     SvREADONLY_on(sv);
@@ -23708,6 +30260,11 @@ XS(SWIG_init) {
   /*@SWIG:/home/rouault/install-swig-2.0.12/share/swig/2.0.12/perl5/perltypemaps.swg,65,%set_constant@*/ do {
     SV *sv = get_sv((char*) SWIG_prefix "ODrCDeleteDataSource", TRUE | 0x2 | GV_ADDMULTI);
     sv_setsv(sv, SWIG_FromCharPtr("DeleteDataSource"));
+    SvREADONLY_on(sv);
+  } while(0) /*@SWIG@*/;
+  /*@SWIG:/home/rouault/install-swig-2.0.12/share/swig/2.0.12/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+    SV *sv = get_sv((char*) SWIG_prefix "OLMD_FID64", TRUE | 0x2 | GV_ADDMULTI);
+    sv_setsv(sv, SWIG_FromCharPtr("OLMD_FID64"));
     SvREADONLY_on(sv);
   } while(0) /*@SWIG@*/;
   
@@ -23719,8 +30276,6 @@ XS(SWIG_init) {
   
   
   SWIG_TypeClientData(SWIGTYPE_p_OGRStyleTableShadow, (void*) "Geo::OGR::StyleTable");
-  SWIG_TypeClientData(SWIGTYPE_p_OGRDriverShadow, (void*) "Geo::OGR::Driver");
-  SWIG_TypeClientData(SWIGTYPE_p_OGRDataSourceShadow, (void*) "Geo::OGR::DataSource");
   SWIG_TypeClientData(SWIGTYPE_p_OGRLayerShadow, (void*) "Geo::OGR::Layer");
   SWIG_TypeClientData(SWIGTYPE_p_OGRFeatureShadow, (void*) "Geo::OGR::Feature");
   SWIG_TypeClientData(SWIGTYPE_p_OGRFeatureDefnShadow, (void*) "Geo::OGR::FeatureDefn");

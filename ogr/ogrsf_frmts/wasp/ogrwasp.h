@@ -26,14 +26,20 @@
  * DEALINGS IN THE SOFTWARE.
  ****************************************************************************/
 
-#ifndef _OGR_WASP_H_INCLUDED
-#define _OGR_WASP_H_INCLUDED
+#ifndef OGR_WASP_H_INCLUDED
+#define OGR_WASP_H_INCLUDED
 
 #include "ogrsf_frmts.h"
 
 #include <memory>
 #include <fstream>
 #include <vector>
+
+#if __cplusplus >= 201103L
+#define UNIQUEPTR       std::unique_ptr
+#else
+#define UNIQUEPTR       std::auto_ptr
+#endif
 
 /************************************************************************/
 /*                             OGRWAsPLayer                             */
@@ -73,7 +79,7 @@ class OGRWAsPLayer : public OGRLayer
     VSILFILE *            hFile;
 
     /* for roughness zone, two fields for linestrings (left/right), one for polygons */
-    /* for elevation, one fiels (height) */
+    /* for elevation, one field (height) */
     const CPLString       sFirstField;
     const CPLString       sSecondField;
     const CPLString       sGeomField;
@@ -89,7 +95,9 @@ class OGRWAsPLayer : public OGRLayer
     enum OpenMode {READ_ONLY, WRITE_ONLY};
     OpenMode              eMode;
 
-    std::auto_ptr<double> pdfTolerance;
+    UNIQUEPTR<double> pdfTolerance;
+    UNIQUEPTR<double> pdfAdjacentPointTolerance;
+    UNIQUEPTR<double> pdfPointToCircleRadius;
 
     OGRErr                WriteRoughness( OGRLineString *,
                                           const double & dfZleft,
@@ -107,20 +115,37 @@ class OGRWAsPLayer : public OGRLayer
     static double AvgZ( OGRPolygon * poGeom );
     static double AvgZ( OGRGeometryCollection * poGeom );
     static double AvgZ( OGRGeometry * poGeom );
+
+    /* return a simplified line (caller is responsible for resource)
+     *
+     * if pdfTolerance is not NULL,
+     *     calls GEOS simplify
+     *
+     * if pdfAdjacentPointTolerance is not NULL,
+     *     remove consecutive points that are less than tolerance apart
+     *     in x and y
+     *
+     * if pdfPointToCircleRadius is not NULL,
+     *     lines that have been simplified to a point are converted to a 8 pt circle
+     * */
+    OGRLineString * Simplify( const OGRLineString & line ) const;
+
   public:
                         /* For writing */
                         /* Takes ownership of poTolerance */
-                        OGRWAsPLayer( const char * pszName, 
+                        OGRWAsPLayer( const char * pszName,
                                       VSILFILE * hFile,
                                       OGRSpatialReference * poSpatialRef,
                                       const CPLString & sFirstField,
                                       const CPLString & sSecondField,
                                       const CPLString & sGeomField,
                                       bool bMerge,
-                                      double * poTolerance );
+                                      double * pdfTolerance,
+                                      double * pdfAdjacentPointTolerance,
+                                      double * pdfPointToCircleRadius );
 
                         /* For reading */
-                        OGRWAsPLayer( const char * pszName, 
+                        OGRWAsPLayer( const char * pszName,
                                       VSILFILE * hFile,
                                       OGRSpatialReference * poSpatialRef );
 
@@ -136,7 +161,7 @@ class OGRWAsPLayer : public OGRLayer
     virtual OGRErr      CreateGeomField( OGRGeomFieldDefn *poGeomField,
                                          int bApproxOK = TRUE );
 
-    virtual OGRErr      CreateFeature( OGRFeature * poFeature );
+    virtual OGRErr      ICreateFeature( OGRFeature * poFeature );
 
     virtual OGRFeature *GetNextFeature();
     OGRFeature *GetNextRawFeature();
@@ -153,15 +178,15 @@ class OGRWAsPDataSource : public OGRDataSource
 {
     CPLString                     sFilename;
     VSILFILE *                    hFile;
-    std::auto_ptr<OGRWAsPLayer>   oLayer;
+    UNIQUEPTR<OGRWAsPLayer>   oLayer;
 
-    void               GetOptions(CPLString & sFirstField, 
+    void               GetOptions(CPLString & sFirstField,
                                   CPLString & sSecondField,
                                   CPLString & sGeomField,
                                   bool &      bMerge) const;
   public:
                         /** @note takes ownership of hFile (i.e. responsibility for closing) */
-                        OGRWAsPDataSource( const char * pszName, 
+                        OGRWAsPDataSource( const char * pszName,
                                            VSILFILE * hFile );
                         ~OGRWAsPDataSource();
 
@@ -170,11 +195,11 @@ class OGRWAsPDataSource : public OGRDataSource
     virtual OGRLayer   *GetLayer( int );
     virtual OGRLayer   *GetLayerByName( const char * );
 
-    virtual OGRLayer   *CreateLayer( const char *pszName, 
+    virtual OGRLayer   *ICreateLayer( const char *pszName,
                                      OGRSpatialReference *poSpatialRef = NULL,
                                      OGRwkbGeometryType eGType = wkbUnknown,
                                      char ** papszOptions = NULL );
-    
+
     virtual int        TestCapability( const char * );
     OGRErr             Load( bool bSilent = false );
 };
@@ -191,7 +216,7 @@ class OGRWAsPDriver : public OGRSFDriver
 
     virtual const char*         GetName() { return "WAsP"; }
     virtual OGRDataSource*      Open( const char *, int );
-    
+
     virtual OGRDataSource       *CreateDataSource( const char *pszName,
                                                    char ** = NULL );
 
@@ -201,4 +226,4 @@ class OGRWAsPDriver : public OGRSFDriver
 };
 
 
-#endif /* ndef _OGR_WASP_H_INCLUDED */
+#endif /* ndef OGR_WASP_H_INCLUDED */

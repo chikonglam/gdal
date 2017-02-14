@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ograrcgendatasource.cpp 27729 2014-09-24 00:40:16Z goatbar $
+ * $Id: ograrcgendatasource.cpp 32119 2015-12-11 05:47:58Z goatbar $
  *
  * Project:  Arc/Info Generate Translator
  * Purpose:  Implements OGRARCGENDataSource class
@@ -31,20 +31,17 @@
 #include "cpl_conv.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: ograrcgendatasource.cpp 27729 2014-09-24 00:40:16Z goatbar $");
+CPL_CVSID("$Id: ograrcgendatasource.cpp 32119 2015-12-11 05:47:58Z goatbar $");
 
 /************************************************************************/
 /*                          OGRARCGENDataSource()                          */
 /************************************************************************/
 
-OGRARCGENDataSource::OGRARCGENDataSource()
-
-{
-    papoLayers = NULL;
-    nLayers = 0;
-
-    pszName = NULL;
-}
+OGRARCGENDataSource::OGRARCGENDataSource() :
+    pszName(NULL),
+    papoLayers(NULL),
+    nLayers(0)
+{}
 
 /************************************************************************/
 /*                         ~OGRARCGENDataSource()                          */
@@ -64,7 +61,7 @@ OGRARCGENDataSource::~OGRARCGENDataSource()
 /*                           TestCapability()                           */
 /************************************************************************/
 
-int OGRARCGENDataSource::TestCapability( CPL_UNUSED const char * pszCap )
+int OGRARCGENDataSource::TestCapability( const char * /* pszCap */ )
 {
     return FALSE;
 }
@@ -78,79 +75,26 @@ OGRLayer *OGRARCGENDataSource::GetLayer( int iLayer )
 {
     if( iLayer < 0 || iLayer >= nLayers )
         return NULL;
-    else
-        return papoLayers[iLayer];
+
+    return papoLayers[iLayer];
 }
 
 /************************************************************************/
 /*                                Open()                                */
 /************************************************************************/
 
-int OGRARCGENDataSource::Open( const char * pszFilename, int bUpdateIn)
+int OGRARCGENDataSource::Open( const char * pszFilename )
 
 {
-    if (bUpdateIn)
-    {
-        return FALSE;
-    }
-
     pszName = CPLStrdup( pszFilename );
 
-// -------------------------------------------------------------------- 
+// --------------------------------------------------------------------
 //      Does this appear to be a Arc/Info generate file?
 // --------------------------------------------------------------------
 
     VSILFILE* fp = VSIFOpenL(pszFilename, "rb");
     if (fp == NULL)
         return FALSE;
-
-    /* Check that the first line is compatible with a generate file */
-    /* and in particular contain >= 32 && <= 127 bytes */
-    char szFirstLine[256+1];
-    int nRet = VSIFReadL(szFirstLine, 1, 256, fp);
-    szFirstLine[nRet] = '\0';
-
-    int i;
-    int bFoundEOL = FALSE;
-    for(i=0;szFirstLine[i] != '\0';i++)
-    {
-        if (szFirstLine[i] == '\n' || szFirstLine[i] == '\r')
-        {
-            bFoundEOL = TRUE;
-            szFirstLine[i] = '\0';
-            break;
-        }
-        if (szFirstLine[i] < 32)
-        {
-            VSIFCloseL(fp);
-            return FALSE;
-        }
-    }
-
-    if (!bFoundEOL)
-    {
-        VSIFCloseL(fp);
-        return FALSE;
-    }
-
-    char** papszTokens = CSLTokenizeString2( szFirstLine, " ,", 0 );
-    int nTokens = CSLCount(papszTokens);
-    if (nTokens != 1 && nTokens != 3 && nTokens != 4)
-    {
-        VSIFCloseL(fp);
-        CSLDestroy(papszTokens);
-        return FALSE;
-    }
-    for(int i=0;i<nTokens;i++)
-    {
-        if( CPLGetValueType(papszTokens[i]) == CPL_VALUE_STRING )
-        {
-            VSIFCloseL(fp);
-            CSLDestroy(papszTokens);
-            return FALSE;
-        }
-    }
-    CSLDestroy(papszTokens);
 
     /* Go to end of file, and count the number of END keywords */
     /* If there's 1, it's a point layer */
@@ -169,7 +113,6 @@ int OGRARCGENDataSource::Open( const char * pszFilename, int bUpdateIn)
 
     VSIFSeekL( fp, 0, SEEK_SET );
 
-    OGRwkbGeometryType eType;
     const char* szPtr = szBuffer;
     const char* szEnd = strstr(szPtr, "END");
     if (szEnd == NULL) szEnd = strstr(szPtr, "end");
@@ -181,6 +124,8 @@ int OGRARCGENDataSource::Open( const char * pszFilename, int bUpdateIn)
     szPtr = szEnd + 3;
     szEnd = strstr(szPtr, "END");
     if (szEnd == NULL) szEnd = strstr(szPtr, "end");
+
+    OGRwkbGeometryType eType;
     if (szEnd == NULL)
     {
         const char* pszLine = CPLReadLine2L(fp,256,NULL);
@@ -263,7 +208,7 @@ int OGRARCGENDataSource::Open( const char * pszFilename, int bUpdateIn)
     VSIFSeekL( fp, 0, SEEK_SET );
 
     nLayers = 1;
-    papoLayers = (OGRLayer**) CPLMalloc(sizeof(OGRLayer*));
+    papoLayers = static_cast<OGRLayer**>( CPLMalloc( sizeof(OGRLayer*) ) );
     papoLayers[0] = new OGRARCGENLayer(pszName, fp, eType);
 
     return TRUE;

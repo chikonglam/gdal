@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrnulldriver.cpp 27044 2014-03-16 23:41:27Z rouault $
+ * $Id: ogrnulldriver.cpp 32110 2015-12-10 17:19:40Z goatbar $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  NULL output driver.
@@ -27,14 +27,16 @@
  * DEALINGS IN THE SOFTWARE.
  ****************************************************************************/
 
-/* NOTE: this driver is only usefull for debugging and is not included in the build process */
-/* To compile it as a pluing under Linux :
+/* NOTE: this driver is only useful for debugging and is not included
+   in the build process */
+
+/* To compile it as a plugin under Linux :
     g++ -Wall -DDEBUG -fPIC -g ogr/ogrsf_frmts/null/ogrnulldriver.cpp  -shared -o ogr_NULL.so -L. -lgdal -Iport -Igcore -Iogr -Iogr/ogrsf_frmts
 */
 
 #include "ogrsf_frmts.h"
 
-CPL_CVSID("$Id: ogrnulldriver.cpp 27044 2014-03-16 23:41:27Z rouault $");
+CPL_CVSID("$Id: ogrnulldriver.cpp 32110 2015-12-10 17:19:40Z goatbar $");
 
 extern "C" void CPL_DLL RegisterOGRNULL();
 
@@ -61,7 +63,7 @@ class OGRNULLLayer : public OGRLayer
 
     virtual OGRFeature *GetNextFeature() { return NULL; }
 
-    virtual OGRErr      CreateFeature( OGRFeature *poFeature ) { return OGRERR_NONE; }
+    virtual OGRErr      ICreateFeature( OGRFeature *poFeature ) { return OGRERR_NONE; }
 
     virtual OGRErr      CreateField( OGRFieldDefn *poField,
                                      int bApproxOK = TRUE );
@@ -85,7 +87,7 @@ class OGRNULLDataSource : public OGRDataSource
     virtual int         GetLayerCount() { return nLayers; }
     virtual OGRLayer   *GetLayer( int );
 
-    virtual OGRLayer    *CreateLayer( const char *pszLayerName,
+    virtual OGRLayer    *ICreateLayer( const char *pszLayerName,
                                       OGRSpatialReference *poSRS,
                                       OGRwkbGeometryType eType,
                                       char **papszOptions );
@@ -120,6 +122,7 @@ OGRNULLLayer::OGRNULLLayer( const char *pszLayerName,
                             OGRwkbGeometryType eType )
 {
     poFeatureDefn = new OGRFeatureDefn(pszLayerName);
+    SetDescription( poFeatureDefn->GetName() );
     poFeatureDefn->SetGeomType(eType);
     poFeatureDefn->Reference();
 
@@ -191,10 +194,10 @@ OGRNULLDataSource::~OGRNULLDataSource()
 }
 
 /************************************************************************/
-/*                            CreateLayer()                             */
+/*                           ICreateLayer()                             */
 /************************************************************************/
 
-OGRLayer    *OGRNULLDataSource::CreateLayer( const char *pszLayerName,
+OGRLayer    *OGRNULLDataSource::ICreateLayer( const char *pszLayerName,
                                              OGRSpatialReference *poSRS,
                                              OGRwkbGeometryType eType,
                                              char **papszOptions )
@@ -258,7 +261,7 @@ int OGRNULLDriver::TestCapability( const char * pszCap )
 
 void RegisterOGRNULL()
 {
-    if (! GDAL_CHECK_VERSION("OGR/NULL driver"))
+    if( !GDAL_CHECK_VERSION("OGR/NULL driver") )
         return;
 
     OGRSFDriverRegistrar::GetRegistrar()->RegisterDriver( new OGRNULLDriver );

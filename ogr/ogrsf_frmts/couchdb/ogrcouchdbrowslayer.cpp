@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrcouchdbrowslayer.cpp 27044 2014-03-16 23:41:27Z rouault $
+ * $Id: ogrcouchdbrowslayer.cpp 32370 2015-12-20 19:40:13Z rouault $
  *
  * Project:  CouchDB Translator
  * Purpose:  Implements OGRCouchDBRowsLayer class.
@@ -29,15 +29,15 @@
 
 #include "ogr_couchdb.h"
 
-CPL_CVSID("$Id: ogrcouchdbrowslayer.cpp 27044 2014-03-16 23:41:27Z rouault $");
+CPL_CVSID("$Id: ogrcouchdbrowslayer.cpp 32370 2015-12-20 19:40:13Z rouault $");
 
 /************************************************************************/
 /*                         OGRCouchDBRowsLayer()                        */
 /************************************************************************/
 
-OGRCouchDBRowsLayer::OGRCouchDBRowsLayer(OGRCouchDBDataSource* poDS) :
-                                                    OGRCouchDBLayer(poDS)
-
+OGRCouchDBRowsLayer::OGRCouchDBRowsLayer(OGRCouchDBDataSource* poDSIn) :
+    OGRCouchDBLayer(poDSIn),
+    bAllInOne(FALSE)
 {
     poFeatureDefn = new OGRFeatureDefn( "rows" );
     poFeatureDefn->Reference();
@@ -48,17 +48,14 @@ OGRCouchDBRowsLayer::OGRCouchDBRowsLayer(OGRCouchDBDataSource* poDS) :
     OGRFieldDefn oFieldRev("_rev", OFTString);
     poFeatureDefn->AddFieldDefn(&oFieldRev);
 
-    bAllInOne = FALSE;
+    SetDescription( poFeatureDefn->GetName() );
 }
 
 /************************************************************************/
 /*                        ~OGRCouchDBRowsLayer()                        */
 /************************************************************************/
 
-OGRCouchDBRowsLayer::~OGRCouchDBRowsLayer()
-
-{
-}
+OGRCouchDBRowsLayer::~OGRCouchDBRowsLayer() {}
 
 /************************************************************************/
 /*                            ResetReading()                            */
@@ -109,7 +106,7 @@ int OGRCouchDBRowsLayer::FetchNextRows()
     {
         if (!bHasEsperluet)
         {
-            bHasEsperluet = TRUE;
+            /*bHasEsperluet = TRUE;*/
             osURI += "?";
         }
 

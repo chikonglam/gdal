@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrsqlitevirtualogr.h 27044 2014-03-16 23:41:27Z rouault $
+ * $Id: ogrsqlitevirtualogr.h 31777 2015-11-26 14:14:41Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  SQLite Virtual Table module using OGR layers
@@ -27,8 +27,8 @@
  * DEALINGS IN THE SOFTWARE.
  ****************************************************************************/
 
-#ifndef _OGR_SQLITE_VIRTUAL_OGR_H_INCLUDED
-#define _OGR_SQLITE_VIRTUAL_OGR_H_INCLUDED
+#ifndef OGR_SQLITE_VIRTUAL_OGR_H_INCLUDED
+#define OGR_SQLITE_VIRTUAL_OGR_H_INCLUDED
 
 #include "ogr_sqlite.h"
 
@@ -36,7 +36,7 @@
 
 class OGR2SQLITEModule;
 
-OGR2SQLITEModule* OGR2SQLITE_Setup(OGRDataSource* poDS,
+OGR2SQLITEModule* OGR2SQLITE_Setup(GDALDataset* poDS,
                                    OGRSQLiteDataSource* poSQLiteDS);
 
 int OGR2SQLITE_AddExtraDS(OGR2SQLITEModule* poModule, OGRDataSource* poDS);
@@ -47,4 +47,4 @@ CPLString OGR2SQLITE_GetNameForGeometryColumn(OGRLayer* poLayer);
 
 #endif // HAVE_SQLITE_VFS
 
-#endif // _OGR_SQLITE_VIRTUAL_OGR_H_INCLUDED
+#endif // OGR_SQLITE_VIRTUAL_OGR_H_INCLUDED

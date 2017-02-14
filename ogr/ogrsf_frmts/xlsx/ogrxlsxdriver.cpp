@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrxlsxdriver.cpp 27044 2014-03-16 23:41:27Z rouault $
+ * $Id: ogrxlsxdriver.cpp 35710 2016-10-13 07:21:17Z rouault $
  *
  * Project:  XLSX Translator
  * Purpose:  Implements OGRXLSXDriver.
@@ -30,9 +30,11 @@
 #include "ogr_xlsx.h"
 #include "cpl_conv.h"
 
-CPL_CVSID("$Id: ogrxlsxdriver.cpp 27044 2014-03-16 23:41:27Z rouault $");
+CPL_CVSID("$Id: ogrxlsxdriver.cpp 35710 2016-10-13 07:21:17Z rouault $");
 
 extern "C" void RegisterOGRXLSX();
+
+using namespace OGRXLSX;
 
 // g++ -DHAVE_EXPAT -g -Wall -fPIC ogr/ogrsf_frmts/xlsx/*.cpp -shared -o ogr_XLSX.so -Iport -Igcore -Iogr -Iogr/ogrsf_frmts -Iogr/ogrsf_frmts/mem -Iogr/ogrsf_frmts/xlsx -L. -lgdal
 
@@ -100,12 +102,19 @@ OGRDataSource *OGRXLSXDriver::Open( const char * pszFilename, int bUpdate )
     if (fpWorkbook == NULL)
         return NULL;
 
+    VSILFILE* fpWorkbookRels = VSIFOpenL(CPLSPrintf("/vsizip/%s/xl/_rels/workbook.xml.rels", pszFilename), "rb");
+    if (fpWorkbookRels == NULL)
+    {
+        VSIFCloseL(fpWorkbook);
+        return NULL;
+    }
+
     VSILFILE* fpSharedStrings = VSIFOpenL(CPLSPrintf("/vsizip/%s/xl/sharedStrings.xml", pszFilename), "rb");
     VSILFILE* fpStyles = VSIFOpenL(CPLSPrintf("/vsizip/%s/xl/styles.xml", pszFilename), "rb");
 
     OGRXLSXDataSource   *poDS = new OGRXLSXDataSource();
 
-    if( !poDS->Open( pszFilename, fpWorkbook, fpSharedStrings, fpStyles, bUpdate ) )
+    if( !poDS->Open( pszFilename, fpWorkbook, fpWorkbookRels, fpSharedStrings, fpStyles, bUpdate ) )
     {
         delete poDS;
         poDS = NULL;
@@ -192,6 +201,17 @@ int OGRXLSXDriver::TestCapability( const char * pszCap )
 void RegisterOGRXLSX()
 
 {
-    OGRSFDriverRegistrar::GetRegistrar()->RegisterDriver( new OGRXLSXDriver );
+    OGRSFDriver* poDriver = new OGRXLSXDriver;
+
+    poDriver->SetMetadataItem( GDAL_DMD_LONGNAME,
+                               "MS Office Open XML spreadsheet" );
+    poDriver->SetMetadataItem( GDAL_DMD_EXTENSION, "xlsx" );
+    poDriver->SetMetadataItem( GDAL_DMD_HELPTOPIC, "drv_xlsx.html" );
+    poDriver->SetMetadataItem( GDAL_DCAP_VIRTUALIO, "YES" );
+    poDriver->SetMetadataItem( GDAL_DMD_CREATIONFIELDDATATYPES,
+                               "Integer Integer64 Real String Date DateTime "
+                               "Time" );
+
+    OGRSFDriverRegistrar::GetRegistrar()->RegisterDriver( poDriver );
 }
 

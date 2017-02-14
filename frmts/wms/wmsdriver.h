@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: wmsdriver.h 27044 2014-03-16 23:41:27Z rouault $
+ * $Id: wmsdriver.h 33717 2016-03-14 06:29:14Z goatbar $
  *
  * Project:  WMS Client Driver
  * Purpose:  Implementation of Dataset and RasterBand classes for WMS
@@ -58,14 +58,14 @@ class GDALWMSRasterBand;
 CPLString MD5String(const char *s);
 CPLString ProjToWKT(const CPLString &proj);
 void URLAppend(CPLString *url, const char *s);
-void URLAppendF(CPLString *url, const char *s, ...);
+void URLAppendF(CPLString *url, const char *s, ...) CPL_PRINT_FUNC_FORMAT (2, 3);
 void URLAppend(CPLString *url, const CPLString &s);
 CPLString BufferToVSIFile(GByte *buffer, size_t size);
 CPLErr MakeDirs(const char *path);
 
 
 int StrToBool(const char *p);
-int URLSearchAndReplace (CPLString *base, const char *search, const char *fmt, ...);
+int URLSearchAndReplace (CPLString *base, const char *search, const char *fmt, ...) CPL_PRINT_FUNC_FORMAT (3, 4);
 /* Convert a.b.c.d to a * 0x1000000 + b * 0x10000 + c * 0x100 + d */
 int VersionStringToInt(const char *version);
 
@@ -102,14 +102,40 @@ public:
 
 class GDALWMSRasterIOHint {
 public:
-    int m_x0, m_y0;
-    int m_sx, m_sy;
+  GDALWMSRasterIOHint() :
+      m_x0(0),
+      m_y0(0),
+      m_sx(0),
+      m_sy(0),
+      m_overview(0),
+      m_valid(false)
+  {}
+    int m_x0;
+    int m_y0;
+    int m_sx;
+    int m_sy;
     int m_overview;
     bool m_valid;
 };
 
+typedef enum
+{
+    OVERVIEW_ROUNDED,
+    OVERVIEW_FLOOR
+} GDALWMSOverviewDimComputationMethod;
+
 class GDALWMSMiniDriverCapabilities {
 public:
+  GDALWMSMiniDriverCapabilities() :
+      m_capabilities_version(0),
+      m_has_image_request(0),
+      m_has_tiled_image_requeset(0),
+      m_has_arb_overviews(0),
+      m_max_overview_count(-1),
+      m_overview_dim_computation_method(OVERVIEW_ROUNDED),
+      m_has_geotransform(true)
+  {}
+
 /* Version N capabilities require all version N and earlier variables to be set to correct values */
     int m_capabilities_version;
 
@@ -118,6 +144,8 @@ public:
     int m_has_tiled_image_requeset;     // 1 if TiledImageRequest method is implemented
     int m_has_arb_overviews;            // 1 if ImageRequest method supports arbitrary overviews / resolutions
     int m_max_overview_count;               // Maximum number of overviews supported if known, -1 otherwise
+    GDALWMSOverviewDimComputationMethod m_overview_dim_computation_method;
+    bool m_has_geotransform;
 };
 
 /* All data returned by mini-driver as pointer should remain valid for mini-driver lifetime
@@ -246,7 +274,7 @@ public:
     virtual CPLErr GetGeoTransform(double *gt);
     virtual CPLErr SetGeoTransform(double *gt);
     virtual CPLErr AdviseRead(int x0, int y0, int sx, int sy, int bsx, int bsy, GDALDataType bdt, int band_count, int *band_map, char **options);
-    
+
     virtual char      **GetMetadataDomainList();
     virtual const char *GetMetadataItem( const char * pszName,
                                          const char * pszDomain = "" );
@@ -314,7 +342,7 @@ public:
     void WMSSetNeedsDataWindow(int flag) {
         m_bNeedsDataWindow = flag;
     }
-    
+
     static void list2vec(std::vector<double> &v,const char *pszList) {
         if ((pszList==NULL)||(pszList[0]==0)) return;
         char **papszTokens=CSLTokenizeString2(pszList," \t\n\r",
@@ -346,7 +374,12 @@ public:
                                     void * pProgressData );
 
 protected:
-    virtual CPLErr IRasterIO(GDALRWFlag rw, int x0, int y0, int sx, int sy, void *buffer, int bsx, int bsy, GDALDataType bdt, int band_count, int *band_map, int pixel_space, int line_space, int band_space);
+    virtual CPLErr IRasterIO(GDALRWFlag rw, int x0, int y0, int sx, int sy, void *buffer,
+                             int bsx, int bsy, GDALDataType bdt,
+                             int band_count, int *band_map,
+                             GSpacing nPixelSpace, GSpacing nLineSpace,
+                             GSpacing nBandSpace,
+                             GDALRasterIOExtraArg* psExtraArg);
     CPLErr Initialize(CPLXMLNode *config);
 
     GDALWMSDataWindow m_data_window;
@@ -357,7 +390,8 @@ protected:
     GDALColorTable *m_poColorTable;
     std::vector<double> vNoData, vMin, vMax;
     GDALDataType m_data_type;
-    int m_block_size_x, m_block_size_y;
+    int m_block_size_x;
+    int m_block_size_y;
     GDALWMSRasterIOHint m_hint;
     int m_use_advise_read;
     int m_verify_advise_read;
@@ -410,7 +444,9 @@ public:
     virtual GDALColorInterp GetColorInterpretation();
     virtual CPLErr SetColorInterpretation( GDALColorInterp );
     virtual CPLErr IReadBlock(int x, int y, void *buffer);
-    virtual CPLErr IRasterIO(GDALRWFlag rw, int x0, int y0, int sx, int sy, void *buffer, int bsx, int bsy, GDALDataType bdt, int pixel_space, int line_space);
+    virtual CPLErr IRasterIO(GDALRWFlag rw, int x0, int y0, int sx, int sy, void *buffer, int bsx, int bsy, GDALDataType bdt,
+                             GSpacing nPixelSpace, GSpacing nLineSpace,
+                             GDALRasterIOExtraArg* psExtraArg);
     virtual int HasArbitraryOverviews();
     virtual int GetOverviewCount();
     virtual GDALRasterBand *GetOverview(int n);

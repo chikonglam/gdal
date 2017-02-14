@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_sua.h 27044 2014-03-16 23:41:27Z rouault $
+ * $Id: ogr_sua.h 31777 2015-11-26 14:14:41Z rouault $
  *
  * Project:  SUA Translator
  * Purpose:  Definition of classes for OGR .sua driver.
@@ -27,8 +27,8 @@
  * DEALINGS IN THE SOFTWARE.
  ****************************************************************************/
 
-#ifndef _OGR_SUA_H_INCLUDED
-#define _OGR_SUA_H_INCLUDED
+#ifndef OGR_SUA_H_INCLUDED
+#define OGR_SUA_H_INCLUDED
 
 #include "ogrsf_frmts.h"
 
@@ -78,8 +78,7 @@ class OGRSUADataSource : public OGRDataSource
                         OGRSUADataSource();
                         ~OGRSUADataSource();
 
-    int                 Open( const char * pszFilename,
-                              int bUpdate );
+    int                 Open( const char * pszFilename );
 
     virtual const char*         GetName() { return pszName; }
 
@@ -89,19 +88,4 @@ class OGRSUADataSource : public OGRDataSource
     virtual int                 TestCapability( const char * );
 };
 
-/************************************************************************/
-/*                             OGRSUADriver                             */
-/************************************************************************/
-
-class OGRSUADriver : public OGRSFDriver
-{
-  public:
-                ~OGRSUADriver();
-
-    virtual const char*         GetName();
-    virtual OGRDataSource*      Open( const char *, int );
-    virtual int                 TestCapability( const char * );
-};
-
-
-#endif /* ndef _OGR_SUA_H_INCLUDED */
+#endif /* ndef OGR_SUA_H_INCLUDED */

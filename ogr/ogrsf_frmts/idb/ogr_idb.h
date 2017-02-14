@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_idb.h 15583 2008-10-23 00:04:33Z warmerdam $
+ * $Id: ogr_idb.h 33714 2016-03-13 05:42:13Z goatbar $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implements OGRIDBTableLayer class, access to an existing table
@@ -28,8 +28,8 @@
  * DEALINGS IN THE SOFTWARE.
  ****************************************************************************/
 
-#ifndef _OGR_IDB_H_INCLUDED_
-#define _OGR_IDB_H_INCLUDED_
+#ifndef OGR_IDB_H_INCLUDED_
+#define OGR_IDB_H_INCLUDED_
 
 #include "ogrsf_frmts.h"
 #include "cpl_error.h"
@@ -73,7 +73,7 @@ class OGRIDBLayer : public OGRLayer
     virtual OGRFeature *GetNextRawFeature();
     virtual OGRFeature *GetNextFeature();
 
-    virtual OGRFeature *GetFeature( long nFeatureId );
+    virtual OGRFeature *GetFeature( GIntBig nFeatureId );
 
     OGRFeatureDefn *    GetLayerDefn() { return poFeatureDefn; }
 
@@ -106,23 +106,23 @@ class OGRIDBTableLayer : public OGRIDBLayer
                         OGRIDBTableLayer( OGRIDBDataSource * );
                         ~OGRIDBTableLayer();
 
-    CPLErr              Initialize( const char *pszTableName, 
+    CPLErr              Initialize( const char *pszTableName,
                                     const char *pszGeomCol,
                                     int bUpdate
                                   );
 
     virtual void        ResetReading();
-    virtual int         GetFeatureCount( int );
+    virtual GIntBig     GetFeatureCount( int );
 
     virtual OGRErr      SetAttributeFilter( const char * );
-    virtual OGRErr      SetFeature( OGRFeature *poFeature );
-    virtual OGRErr      CreateFeature( OGRFeature *poFeature );
+    virtual OGRErr      ISetFeature( OGRFeature *poFeature );
+    virtual OGRErr      ICreateFeature( OGRFeature *poFeature );
 
 #if 0
     virtual OGRErr      CreateField( OGRFieldDefn *poField,
                                      int bApproxOK = TRUE );
-#endif    
-    virtual OGRFeature *GetFeature( long nFeatureId );
+#endif
+    virtual OGRFeature *GetFeature( GIntBig nFeatureId );
 
     virtual OGRSpatialReference *GetSpatialRef();
 
@@ -148,11 +148,13 @@ class OGRIDBSelectLayer : public OGRIDBLayer
                         ~OGRIDBSelectLayer();
 
     virtual void        ResetReading();
-    virtual int         GetFeatureCount( int );
+    virtual GIntBig     GetFeatureCount( int );
 
-    virtual OGRFeature *GetFeature( long nFeatureId );
+    virtual OGRFeature *GetFeature( GIntBig nFeatureId );
 
     virtual OGRErr      GetExtent(OGREnvelope *psExtent, int bForce = TRUE);
+    virtual OGRErr      GetExtent(int iGeomField, OGREnvelope *psExtent, int bForce)
+                { return OGRLayer::GetExtent(iGeomField, psExtent, bForce); }
 
     virtual int         TestCapability( const char * );
 };
@@ -176,7 +178,7 @@ class OGRIDBDataSource : public OGRDataSource
                         ~OGRIDBDataSource();
 
     int                 Open( const char *, int bUpdate, int bTestOpen );
-    int                 OpenTable( const char *pszTableName, 
+    int                 OpenTable( const char *pszTableName,
                                    const char *pszGeomCol,
                                    int bUpdate );
 
@@ -216,5 +218,3 @@ ITCallbackResult
 IDBErrorHandler( const ITErrorManager &err, void * userdata, long errorlevel );
 
 #endif /* ndef _OGR_idb_H_INCLUDED_ */
-
-

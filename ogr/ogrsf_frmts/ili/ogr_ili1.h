@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_ili1.h 26979 2014-02-23 21:55:20Z pka $
+ * $Id: ogr_ili1.h 36502 2016-11-25 14:21:53Z rouault $
  *
  * Project:  Interlis 1 Translator
  * Purpose:   Definition of classes for OGR Interlis 1 driver.
@@ -27,8 +27,8 @@
  * DEALINGS IN THE SOFTWARE.
  ****************************************************************************/
 
-#ifndef _OGR_ILI1_H_INCLUDED
-#define _OGR_ILI1_H_INCLUDED
+#ifndef OGR_ILI1_H_INCLUDED
+#define OGR_ILI1_H_INCLUDED
 
 #include "ogrsf_frmts.h"
 #include "ili1reader.h"
@@ -44,7 +44,9 @@ class OGRILI1DataSource;
 class OGRILI1Layer : public OGRLayer
 {
 private:
+#if 0
     OGRSpatialReference *poSRS;
+#endif
     OGRFeatureDefn      *poFeatureDefn;
     GeomFieldInfos      oGeomFieldInfos;
 
@@ -52,9 +54,7 @@ private:
     OGRFeature          **papoFeatures;
     int                 nFeatureIdx;
 
-    int                 bWriter;
-
-    int                 bGeomsJoined;
+    bool                bGeomsJoined;
 
     OGRILI1DataSource   *poDS;
 
@@ -70,14 +70,16 @@ private:
     void                ResetReading();
     OGRFeature *        GetNextFeature();
     OGRFeature *        GetNextFeatureRef();
-    OGRFeature *        GetFeatureRef( long nFID );
+    OGRFeature *        GetFeatureRef( GIntBig nFid );
+    OGRFeature *        GetFeatureRef( const char* );
 
-    int                 GetFeatureCount( int bForce = TRUE );
+    GIntBig             GetFeatureCount( int bForce = TRUE );
 
-    OGRErr              CreateFeature( OGRFeature *poFeature );
+    OGRErr              ICreateFeature( OGRFeature *poFeature );
     int                 GeometryAppend( OGRGeometry *poGeometry );
 
     OGRFeatureDefn *    GetLayerDefn() { return poFeatureDefn; }
+    GeomFieldInfos      GetGeomFieldInfos() { return oGeomFieldInfos; }
 
     OGRErr              CreateField( OGRFieldDefn *poField, int bApproxOK = TRUE );
 
@@ -85,7 +87,7 @@ private:
 
   private:
     void                JoinGeomLayers();
-    void                JoinSurfaceLayer( OGRILI1Layer* poSurfacePolyLayer, int nSurfaceFieldIndex );
+    void                JoinSurfaceLayer( OGRILI1Layer* poSurfaceLineLayer, int nSurfaceFieldIndex );
     OGRMultiPolygon*    Polygonize( OGRGeometryCollection* poLines, bool fix_crossing_lines = false );
     void                PolygonizeAreaLayer( OGRILI1Layer* poAreaLineLayer, int nAreaFieldIndex, int nPointFieldIndex );
 };
@@ -109,7 +111,7 @@ class OGRILI1DataSource : public OGRDataSource
                 OGRILI1DataSource();
                ~OGRILI1DataSource();
 
-    int         Open( const char *, int bTestOpen );
+    int         Open( const char *, char** papszOpenOptions, int bTestOpen );
     int         Create( const char *pszFile, char **papszOptions );
 
     const char *GetName() { return pszName; }
@@ -119,7 +121,7 @@ class OGRILI1DataSource : public OGRDataSource
 
     FILE       *GetTransferFile() { return fpTransfer; }
 
-    virtual OGRLayer *CreateLayer( const char *,
+    virtual OGRLayer *ICreateLayer( const char *,
                                       OGRSpatialReference * = NULL,
                                       OGRwkbGeometryType = wkbUnknown,
                                       char ** = NULL );
@@ -127,22 +129,4 @@ class OGRILI1DataSource : public OGRDataSource
     int         TestCapability( const char * );
 };
 
-/************************************************************************/
-/*                            OGRILI1Driver                             */
-/************************************************************************/
-
-class OGRILI1Driver : public OGRSFDriver
-{
-  public:
-                ~OGRILI1Driver();
-
-    const char *GetName();
-    OGRDataSource *Open( const char *, int );
-
-    virtual OGRDataSource *CreateDataSource( const char *pszName,
-                                             char ** = NULL );
-
-    int                 TestCapability( const char * );
-};
-
-#endif /* _OGR_ILI1_H_INCLUDED */
+#endif /* OGR_ILI1_H_INCLUDED */

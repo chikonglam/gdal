@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_avc.h 14784 2008-06-28 22:25:49Z warmerdam $
+ * $Id: ogr_avc.h 33713 2016-03-12 17:41:57Z goatbar $
  *
  * Project:  Arc/Info Coverage (E00 & Binary) Reader
  * Purpose:  Declarations for OGR wrapper classes for coverage access.
@@ -14,21 +14,21 @@
  * the rights to use, copy, modify, merge, publish, distribute, sublicense,
  * and/or sell copies of the Software, and to permit persons to whom the
  * Software is furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included
  * in all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
  * THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  ****************************************************************************/
 
-#ifndef _OGR_AVC_H_INCLUDED
-#define _OGR_AVC_H_INCLUDED
+#ifndef OGR_AVC_H_INCLUDED
+#define OGR_AVC_H_INCLUDED
 
 #include "ogrsf_frmts.h"
 #include "avc.h"
@@ -45,29 +45,29 @@ class OGRAVCLayer : public OGRLayer
     OGRFeatureDefn      *poFeatureDefn;
 
     OGRAVCDataSource    *poDS;
-    
+
     AVCFileType         eSectionType;
 
-    int                 SetupFeatureDefinition( const char *pszName ); 
+    int                 SetupFeatureDefinition( const char *pszName );
     int                 AppendTableDefinition( AVCTableDef *psTableDef );
 
     int                 MatchesSpatialFilter( void * );
     OGRFeature          *TranslateFeature( void * );
 
-    int                 TranslateTableFields( OGRFeature *poFeature, 
-                                              int nFieldBase, 
+    int                 TranslateTableFields( OGRFeature *poFeature,
+                                              int nFieldBase,
                                               AVCTableDef *psTableDef,
                                               AVCField *pasFields );
 
   public:
-                        OGRAVCLayer( AVCFileType eSectionType, 
+                        OGRAVCLayer( AVCFileType eSectionType,
                                      OGRAVCDataSource *poDS );
     			~OGRAVCLayer();
 
     OGRFeatureDefn *	GetLayerDefn() { return poFeatureDefn; }
 
     virtual OGRSpatialReference *GetSpatialRef();
-    
+
     virtual int         TestCapability( const char * );
 };
 
@@ -102,7 +102,7 @@ class OGRAVCBinDataSource;
 
 class OGRAVCBinLayer : public OGRAVCLayer
 {
-    AVCE00Section       *psSection;
+    AVCE00Section       *m_psSection;
     AVCBinFile          *hFile;
 
     OGRAVCBinLayer      *poArcLayer;
@@ -129,7 +129,7 @@ class OGRAVCBinLayer : public OGRAVCLayer
 
     void		ResetReading();
     OGRFeature *	GetNextFeature();
-    OGRFeature *	GetFeature( long nFID );
+    OGRFeature *	GetFeature( GIntBig nFID );
 
     int                 TestCapability( const char * );
 };
@@ -142,11 +142,11 @@ class OGRAVCBinDataSource : public OGRAVCDataSource
 {
     OGRLayer            **papoLayers;
     int			nLayers;
-    
+
     char		*pszName;
 
     AVCE00ReadPtr       psAVC;
-    
+
   public:
     			OGRAVCBinDataSource();
     			~OGRAVCBinDataSource();
@@ -160,21 +160,6 @@ class OGRAVCBinDataSource : public OGRAVCDataSource
     int                 TestCapability( const char * );
 
     AVCE00ReadPtr       GetInfo() { return psAVC; }
-};
-
-/************************************************************************/
-/*                           OGRAVCBinDriver                            */
-/************************************************************************/
-
-class OGRAVCBinDriver : public OGRSFDriver
-{
-  public:
-    		~OGRAVCBinDriver();
-                
-    const char *GetName();
-    OGRDataSource *Open( const char *, int );
-
-    int                 TestCapability( const char * );
 };
 
 /* ==================================================================== */
@@ -210,8 +195,8 @@ class OGRAVCE00Layer : public OGRAVCLayer
 
     void		ResetReading();
     OGRFeature *	GetNextFeature();
-    OGRFeature *GetFeature( long nFID );
-    int GetFeatureCount(int bForce);
+    OGRFeature *GetFeature( GIntBig nFID );
+    GIntBig GetFeatureCount(int bForce);
     int CheckSetupTable(AVCE00Section *psTblSectionIn);
     int AppendTableFields( OGRFeature *poFeature );
 };
@@ -245,19 +230,5 @@ class OGRAVCE00DataSource : public OGRAVCDataSource
     virtual OGRSpatialReference *GetSpatialRef();
 };
 
-/************************************************************************/
-/*                           OGRAVCE00Driver                            */
-/************************************************************************/
 
-class OGRAVCE00Driver : public OGRSFDriver
-{
-  public:
-    		~OGRAVCE00Driver();
-                
-    const char *GetName();
-    OGRDataSource *Open( const char *, int );
-
-    int                 TestCapability( const char * );
-};
-
-#endif /* _OGR_AVC_H_INCLUDED */
+#endif /* OGR_AVC_H_INCLUDED */

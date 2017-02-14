@@ -6,7 +6,10 @@ OBJ	=	ogrsfdriverregistrar.o ogrlayer.o ogrdatasource.o \
 		ogrsfdriver.o ogrregisterall.o ogr_gensql.o \
 		ogr_attrind.o ogr_miattrind.o ogrlayerdecorator.o \
 		ogrwarpedlayer.o ogrunionlayer.o ogrlayerpool.o \
-		ogrmutexedlayer.o ogrmutexeddatasource.o
+		ogrmutexedlayer.o ogrmutexeddatasource.o \
+		ogremulatedtransaction.o ogreditablelayer.o
+
+CXXFLAGS :=     $(CXXFLAGS) $(SHADOW_WFLAGS) -DINST_DATA=\"$(INST_DATA)\"
 
 BASEFORMATS = \
 	-DAVCBIN_ENABLED \
@@ -47,9 +50,12 @@ BASEFORMATS = \
 	-DSEGY_ENABLED \
 	-DSXF_ENABLED \
 	-DOPENFILEGDB_ENABLED \
-	-DWASP_ENABLED
+	-DWASP_ENABLED \
+	-DSELAFIN_ENABLED \
+	-DJML_ENABLED \
+	-DVDV_ENABLED
 
-CXXFLAGS :=     $(CXXFLAGS) -DINST_DATA=\"$(INST_DATA)\" $(BASEFORMATS)
+CXXFLAGS :=     $(CXXFLAGS) $(BASEFORMATS)
 
 ifeq ($(HAVE_OGDI),yes)
 CXXFLAGS :=	$(CXXFLAGS) -DOGDI_ENABLED
@@ -149,6 +155,7 @@ endif
 
 ifeq ($(CURL_SETTING),yes)
 CXXFLAGS :=	$(CXXFLAGS) -DWFS_ENABLED
+CXXFLAGS :=	$(CXXFLAGS) -DCSW_ENABLED
 endif
 
 ifeq ($(GEOMEDIA_SETTING),yes)
@@ -164,11 +171,11 @@ CXXFLAGS :=	$(CXXFLAGS) -DGFT_ENABLED
 endif
 
 ifeq ($(CURL_SETTING),yes)
-CXXFLAGS :=	$(CXXFLAGS) -DGME_ENABLED
+CXXFLAGS :=	$(CXXFLAGS) -DCOUCHDB_ENABLED
 endif
 
 ifeq ($(CURL_SETTING),yes)
-CXXFLAGS :=	$(CXXFLAGS) -DCOUCHDB_ENABLED
+CXXFLAGS :=	$(CXXFLAGS) -DCLOUDANT_ENABLED
 endif
 
 ifeq ($(HAVE_FREEXL),yes)
@@ -191,19 +198,27 @@ ifeq ($(HAVE_SQLITE),yes)
 CXXFLAGS :=	$(CXXFLAGS) -DOSM_ENABLED
 endif
 
-ifneq ($(LIBZ_SETTING),no)
-CXXFLAGS :=	$(CXXFLAGS) -DPDF_ENABLED
-endif
-
 ifeq ($(ODBC_SETTING),yes)
 CXXFLAGS :=	$(CXXFLAGS) -DWALK_ENABLED
 endif
 
 ifeq ($(CURL_SETTING),yes)
-CXXFLAGS :=	$(CXXFLAGS) -DCARTODB_ENABLED
+CXXFLAGS :=	$(CXXFLAGS) -DCARTO_ENABLED
 endif
 
-CPPFLAGS	:=	-I.. -I../.. $(GDAL_INCLUDE) $(CPPFLAGS)
+ifeq ($(CURL_SETTING),yes)
+CXXFLAGS :=	$(CXXFLAGS) -DAMIGOCLOUD_ENABLED
+endif
+
+ifeq ($(CURL_SETTING),yes)
+CXXFLAGS :=	$(CXXFLAGS) -DPLSCENES_ENABLED
+endif
+
+ifeq ($(HAVE_MONGODB),yes)
+CXXFLAGS :=	$(CXXFLAGS) -DMONGODB_ENABLED
+endif
+
+CPPFLAGS	:=	-I.. -I../..  $(CPPFLAGS)
 
 default:	$(O_OBJ:.o=.$(OBJ_EXT))
 

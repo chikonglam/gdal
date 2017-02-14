@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrogdi.h 26688 2013-12-02 19:07:41Z rouault $
+ * $Id: ogrogdi.h 33714 2016-03-13 05:42:13Z goatbar $
  *
  * Project:  OGDI Bridge
  * Purpose:  Private definitions within the OGDI driver to implement
@@ -29,8 +29,8 @@
  * DEALINGS IN THE SOFTWARE.
  ****************************************************************************/
 
-#ifndef _OGDOGDI_H_INCLUDED
-#define _OGDOGDI_H_INCLUDED
+#ifndef OGDOGDI_H_INCLUDED
+#define OGDOGDI_H_INCLUDED
 
 #include <math.h>
 extern "C" {
@@ -58,25 +58,27 @@ class OGROGDILayer : public OGRLayer
     int                 m_iNextShapeId;
     int                 m_nTotalShapeCount;
     int                 m_nFilteredOutShapes;
-    
+
     OGRFeature *        GetNextRawFeature();
 
   public:
-                        OGROGDILayer(OGROGDIDataSource *, const char *, 
+                        OGROGDILayer(OGROGDIDataSource *, const char *,
                                      ecs_Family);
                         ~OGROGDILayer();
 
     virtual void        SetSpatialFilter( OGRGeometry * );
+    virtual void        SetSpatialFilter( int iGeomField, OGRGeometry *poGeom )
+                { OGRLayer::SetSpatialFilter(iGeomField, poGeom); }
     virtual OGRErr      SetAttributeFilter( const char *pszQuery );
 
     void                ResetReading();
     OGRFeature *        GetNextFeature();
 
-    OGRFeature         *GetFeature( long nFeatureId );
+    OGRFeature         *GetFeature( GIntBig nFeatureId );
 
     OGRFeatureDefn *    GetLayerDefn() { return m_poFeatureDefn; }
 
-    int                 GetFeatureCount( int );
+    GIntBig             GetFeatureCount( int );
 
     int                 TestCapability( const char * );
 
@@ -92,7 +94,7 @@ class OGROGDIDataSource : public OGRDataSource
 {
     OGROGDILayer      **m_papoLayers;
     int                 m_nLayers;
-    
+
     int                 m_nClientID;
 
     ecs_Region          m_sGlobalBounds;
@@ -104,7 +106,7 @@ class OGROGDIDataSource : public OGRDataSource
 
     int                 m_bLaunderLayerNames;
 
-    void                IAddLayer( const char *pszLayerName, 
+    void                IAddLayer( const char *pszLayerName,
                                    ecs_Family eFamily );
 
   public:
@@ -137,7 +139,7 @@ class OGROGDIDriver : public OGRSFDriver
 {
   public:
                 ~OGROGDIDriver();
-                
+
     const char *GetName();
     OGRDataSource *Open( const char *, int );
 
@@ -145,4 +147,4 @@ class OGROGDIDriver : public OGRSFDriver
 };
 
 
-#endif /* _OGDOGDI_H_INCLUDED */
+#endif /* OGDOGDI_H_INCLUDED */

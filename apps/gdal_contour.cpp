@@ -1,12 +1,12 @@
 /******************************************************************************
- * $Id: gdal_contour.cpp 27741 2014-09-26 19:20:02Z goatbar $
+ * $Id: gdal_contour.cpp 33615 2016-03-02 20:19:22Z goatbar $
  *
  * Project:  Contour Generator
  * Purpose:  Contour Generator mainline.
  * Author:   Frank Warmerdam <warmerdam@pobox.com>
  *
  ******************************************************************************
- * Copyright (c) 2003, Applied Coherent Technology (www.actgate.com). 
+ * Copyright (c) 2003, Applied Coherent Technology (www.actgate.com).
  * Copyright (c) 2008-2013, Even Rouault <even dot rouault at mines-paris dot org>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
@@ -35,7 +35,7 @@
 #include "ogr_api.h"
 #include "ogr_srs_api.h"
 
-CPL_CVSID("$Id: gdal_contour.cpp 27741 2014-09-26 19:20:02Z goatbar $");
+CPL_CVSID("$Id: gdal_contour.cpp 33615 2016-03-02 20:19:22Z goatbar $");
 
 /************************************************************************/
 /*                            ArgIsNumeric()                            */
@@ -54,11 +54,11 @@ static int ArgIsNumeric( const char *pszArg )
 static void Usage(const char* pszErrorMsg = NULL)
 
 {
-    printf( 
+    printf(
         "Usage: gdal_contour [-b <band>] [-a <attribute_name>] [-3d] [-inodata]\n"
         "                    [-snodata n] [-f <formatname>] [-i <interval>]\n"
-        "                    [-f <formatname>] [[-dsco NAME=VALUE] ...] [[-lco NAME=VALUE] ...]\n"   
-        "                    [-off <offset>] [-fl <level> <level>...]\n" 
+        "                    [-f <formatname>] [[-dsco NAME=VALUE] ...] [[-lco NAME=VALUE] ...]\n"
+        "                    [-off <offset>] [-fl <level> <level>...]\n"
         "                    [-nln <outlayername>] [-q]\n"
         "                    <src_filename> <dst_filename>\n" );
 
@@ -117,6 +117,7 @@ int main( int argc, char ** argv )
         {
             printf("%s was compiled against GDAL %s and is running against GDAL %s\n",
                    argv[0], GDAL_RELEASE_NAME, GDALVersionInfo("RELEASE_NAME"));
+            CSLDestroy( argv );
             return 0;
         }
         else if( EQUAL(argv[i], "--help") )
@@ -129,22 +130,22 @@ int main( int argc, char ** argv )
         else if( EQUAL(argv[i],"-off") )
         {
             CHECK_HAS_ENOUGH_ADDITIONAL_ARGS(1);
-            dfOffset = atof(argv[++i]);
+            dfOffset = CPLAtof(argv[++i]);
         }
         else if( EQUAL(argv[i],"-i") )
         {
             CHECK_HAS_ENOUGH_ADDITIONAL_ARGS(1);
-            dfInterval = atof(argv[++i]);
+            dfInterval = CPLAtof(argv[++i]);
         }
         else if( EQUAL(argv[i],"-fl") )
         {
             if( i >= argc-1 )
                 Usage(CPLSPrintf("%s option requires at least 1 argument", argv[i]));
-            while( i < argc-1 
-                   && nFixedLevelCount 
+            while( i < argc-1
+                   && nFixedLevelCount
                              < (int)(sizeof(adfFixedLevels)/sizeof(double))
                    && ArgIsNumeric(argv[i+1]) )
-                adfFixedLevels[nFixedLevelCount++] = atof(argv[++i]);
+                adfFixedLevels[nFixedLevelCount++] = CPLAtof(argv[++i]);
         }
         else if( EQUAL(argv[i],"-b") )
         {
@@ -174,7 +175,7 @@ int main( int argc, char ** argv )
         {
             CHECK_HAS_ENOUGH_ADDITIONAL_ARGS(1);
             bNoDataSet = TRUE;
-            dfNoData = atof(argv[++i]);
+            dfNoData = CPLAtof(argv[++i]);
         }
         else if( EQUAL(argv[i],"-nln") )
         {
@@ -215,7 +216,7 @@ int main( int argc, char ** argv )
     {
         Usage("Missing destination filename.");
     }
-    
+
     if (!bQuiet)
         pfnProgress = GDALTermProgress;
 
@@ -231,8 +232,8 @@ int main( int argc, char ** argv )
     hBand = GDALGetRasterBand( hSrcDS, nBandIn );
     if( hBand == NULL )
     {
-        CPLError( CE_Failure, CPLE_AppDefined, 
-                  "Band %d does not exist on dataset.", 
+        CPLError( CE_Failure, CPLE_AppDefined,
+                  "Band %d does not exist on dataset.",
                   nBandIn );
         exit(2);
     }
@@ -251,7 +252,7 @@ int main( int argc, char ** argv )
         hSRS = OSRNewSpatialReference( pszWKT );
 
 /* -------------------------------------------------------------------- */
-/*      Create the outputfile.                                          */
+/*      Create the output file.                                          */
 /* -------------------------------------------------------------------- */
     OGRDataSourceH hDS;
     OGRSFDriverH hDriver = OGRGetDriverByName( pszFormat );
@@ -260,7 +261,7 @@ int main( int argc, char ** argv )
 
     if( hDriver == NULL )
     {
-        fprintf( stderr, "Unable to find format driver named %s.\n", 
+        fprintf( stderr, "Unable to find format driver named %s.\n",
                  pszFormat );
         exit( 10 );
     }
@@ -269,7 +270,7 @@ int main( int argc, char ** argv )
     if( hDS == NULL )
         exit( 1 );
 
-    hLayer = OGR_DS_CreateLayer( hDS, pszNewLayerName, hSRS, 
+    hLayer = OGR_DS_CreateLayer( hDS, pszNewLayerName, hSRS,
                                  b3D ? wkbLineString25D : wkbLineString,
                                  papszLCO );
     if( hLayer == NULL )

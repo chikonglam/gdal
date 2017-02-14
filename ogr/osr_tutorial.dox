@@ -4,7 +4,7 @@
 
 The OGRSpatialReference, and OGRCoordinateTransformation classes provide
 services to represent coordinate systems (projections and datums) and to
-transform between them.  These services are loosely modelled on the 
+transform between them.  These services are loosely modeled on the 
 OpenGIS Coordinate Transformations specification, and use the same 
 Well Known Text format for describing coordinate systems. 
 
@@ -27,7 +27,7 @@ is projected (such as UTM - positions are measured in meters or feet).
 
 A Geographic coordinate system contains information on the datum (which implies
 an spheroid described by a semi-major axis, and inverse flattening), prime 
-meridian(normally Greenwich), and an angular units type which is normally 
+meridian (normally Greenwich), and an angular units type which is normally 
 degrees.  The following code initializes a geographic coordinate system 
 on supplying all this information along with a user visible name for the
 geographic coordinate system. 
@@ -64,7 +64,7 @@ be set by it's GCS code number if the EPSG database is available.
 	oSRS.SetWellKnownGeogCS( "EPSG:4326" );
 \endcode
 
-For serializization, and transmission of projection definitions to other
+For serialization, and transmission of projection definitions to other
 packages, the OpenGIS Well Known Text format for coordinate systems is
 used.  An OGRSpatialReference can be initialized from well known text, or
 converted back into well known text.
@@ -112,7 +112,7 @@ A projected coordinate system (such as UTM, Lambert Conformal Conic, etc)
 requires and underlying geographic coordinate system as well as a definition
 for the projection transform used to translate between linear positions
 (in meters or feet) and angular long/lat positions.  The following code
-defines a UTM zone 17 projected coordinate system with and underlying 
+defines a UTM zone 17 projected coordinate system with an underlying 
 geographic coordinate system (datum) of WGS84.
 
 \code
@@ -255,10 +255,10 @@ if any of the points fail to transform.  The point array is
 left in an indeterminate state on error.
 
 Though not shown above, the coordinate transformation service can
-take 3D points, and will adjust elevations for elevation differents
+take 3D points, and will adjust elevations for elevation differences
 in spheroids, and datums.  At some point in the future shifts 
 between different vertical datums may also be applied.  If no Z is
-passed, it is assume that the point is on the geoide. 
+passed, it is assume that the point is on the geoid. 
 
 The following example shows how to conveniently create a lat/long coordinate
 system using the same geographic coordinate system as a projected coordinate

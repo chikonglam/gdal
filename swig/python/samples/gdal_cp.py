@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 ###############################################################################
-# $Id: gdal_cp.py 27044 2014-03-16 23:41:27Z rouault $
+# $Id: gdal_cp.py 31957 2015-12-02 12:44:54Z goatbar $
 #
 #  Project:  GDAL samples
 #  Purpose:  Copy a virtual file
@@ -28,10 +28,12 @@
 #  DEALINGS IN THE SOFTWARE.
 ###############################################################################
 
-from osgeo import gdal
-import sys
-import os
 import fnmatch
+import os
+import sys
+
+from osgeo import gdal
+
 
 def needsVSICurl(filename):
     return filename.startswith('http://') or filename.startswith('https://') or filename.startswith('ftp://')

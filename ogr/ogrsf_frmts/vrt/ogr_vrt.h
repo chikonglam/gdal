@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_vrt.h 27044 2014-03-16 23:41:27Z rouault $
+ * $Id: ogr_vrt.h 34203 2016-05-10 14:06:35Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Private definitions for OGR/VRT driver.
@@ -28,8 +28,8 @@
  * DEALINGS IN THE SOFTWARE.
  ****************************************************************************/
 
-#ifndef _OGR_VRT_H_INCLUDED
-#define _OGR_VRT_H_INCLUDED
+#ifndef OGR_VRT_H_INCLUDED
+#define OGR_VRT_H_INCLUDED
 
 #include "ogrsf_frmts.h"
 #include "cpl_error.h"
@@ -40,11 +40,11 @@
 #include <string>
 #include <set>
 
-typedef enum { 
+typedef enum {
     VGS_None,
     VGS_Direct,
-    VGS_PointFromColumns, 
-    VGS_WKT, 
+    VGS_PointFromColumns,
+    VGS_WKT,
     VGS_WKB,
     VGS_Shape
 } OGRVRTGeometryStyle;
@@ -70,11 +70,13 @@ class OGRVRTGeomFieldProps
         int                 iGeomField;
 
                             // VGS_PointFromColumn
-        int                 iGeomXField, iGeomYField, iGeomZField;
+        int                 iGeomXField, iGeomYField, iGeomZField, iGeomMField;
         int                 bReportSrcColumn;
         int                 bUseSpatialSubquery;
 
         OGREnvelope         sStaticEnvelope;
+
+        int                 bNullable;
 
                         OGRVRTGeomFieldProps();
                        ~OGRVRTGeomFieldProps();
@@ -99,7 +101,7 @@ class OGRVRTLayer : public OGRLayer
 
     OGRFeatureDefn      *poFeatureDefn;
 
-    OGRDataSource       *poSrcDS;
+    GDALDataset         *poSrcDS;
     OGRLayer            *poSrcLayer;
     OGRFeatureDefn      *poSrcFeatureDefn;
     int                 bNeedReset;
@@ -109,7 +111,8 @@ class OGRVRTLayer : public OGRLayer
 
     char                *pszAttrFilter;
 
-    int                 iFIDField; // -1 means pass through. 
+    int                 iFIDField; // -1 means pass through.
+    CPLString           osFIDFieldName;
     int                 iStyleField; // -1 means pass through.
 
     // Attribute Mapping
@@ -128,7 +131,7 @@ class OGRVRTLayer : public OGRLayer
     OGRFeatureDefn     *GetSrcLayerDefn();
     void                ClipAndAssignSRS(OGRFeature* poFeature);
 
-    int                 nFeatureCount;
+    GIntBig             nFeatureCount;
 
     int                 bError;
 
@@ -151,19 +154,19 @@ class OGRVRTLayer : public OGRLayer
 /*      Caution : all the below methods should care of calling          */
 /*      FullInitialize() if not already done                            */
 /* -------------------------------------------------------------------- */
-    
+
     virtual void        ResetReading();
     virtual OGRFeature *GetNextFeature();
 
-    virtual OGRFeature *GetFeature( long nFeatureId );
+    virtual OGRFeature *GetFeature( GIntBig nFeatureId );
 
-    virtual OGRErr      SetNextByIndex( long nIndex );
+    virtual OGRErr      SetNextByIndex( GIntBig nIndex );
 
     virtual OGRFeatureDefn *GetLayerDefn();
 
     virtual OGRSpatialReference *GetSpatialRef();
 
-    virtual int         GetFeatureCount( int );
+    virtual GIntBig     GetFeatureCount( int );
 
     virtual OGRErr      SetAttributeFilter( const char * );
 
@@ -176,11 +179,11 @@ class OGRVRTLayer : public OGRLayer
     virtual void        SetSpatialFilter( OGRGeometry * poGeomIn );
     virtual void        SetSpatialFilter( int iGeomField, OGRGeometry * poGeomIn );
 
-    virtual OGRErr      CreateFeature( OGRFeature* poFeature );
+    virtual OGRErr      ICreateFeature( OGRFeature* poFeature );
 
-    virtual OGRErr      SetFeature( OGRFeature* poFeature );
+    virtual OGRErr      ISetFeature( OGRFeature* poFeature );
 
-    virtual OGRErr      DeleteFeature( long nFID );
+    virtual OGRErr      DeleteFeature( GIntBig nFID );
 
     virtual OGRErr      SyncToDisk();
 
@@ -191,17 +194,27 @@ class OGRVRTLayer : public OGRLayer
     virtual OGRErr      RollbackTransaction();
 
     virtual OGRErr      SetIgnoredFields( const char **papszFields );
+
+    GDALDataset*        GetSrcDataset();
 };
 
 /************************************************************************/
 /*                           OGRVRTDataSource                            */
 /************************************************************************/
 
+typedef enum
+{
+    OGR_VRT_PROXIED_LAYER,
+    OGR_VRT_LAYER,
+    OGR_VRT_OTHER_LAYER,
+} OGRLayerType;
+
 class OGRVRTDataSource : public OGRDataSource
 {
     OGRLayer          **papoLayers;
+    OGRLayerType       *paeLayerType;
     int                 nLayers;
-    
+
     char               *pszName;
 
     CPLXMLNode         *psTree;
@@ -210,11 +223,11 @@ class OGRVRTDataSource : public OGRDataSource
 
     std::set<std::string> aosOtherDSNameSet;
 
-    OGRLayer*           InstanciateWarpedLayer(CPLXMLNode *psLTree,
+    OGRLayer*           InstantiateWarpedLayer(CPLXMLNode *psLTree,
                                                const char *pszVRTDirectory,
                                                int bUpdate,
                                                int nRecLevel);
-    OGRLayer*           InstanciateUnionLayer(CPLXMLNode *psLTree,
+    OGRLayer*           InstantiateUnionLayer(CPLXMLNode *psLTree,
                                                const char *pszVRTDirectory,
                                                int bUpdate,
                                                int nRecLevel);
@@ -225,15 +238,17 @@ class OGRVRTDataSource : public OGRDataSource
     int                 bRecursionDetected;
 
   public:
-                        OGRVRTDataSource();
+                        OGRVRTDataSource(GDALDriver* poDriver);
                         ~OGRVRTDataSource();
 
-    OGRLayer*           InstanciateLayer(CPLXMLNode *psLTree,
+    virtual int         CloseDependentDatasets();
+
+    OGRLayer*           InstantiateLayer(CPLXMLNode *psLTree,
                                     const char *pszVRTDirectory,
                                     int bUpdate,
                                     int nRecLevel = 0);
 
-    OGRLayer*           InstanciateLayerInternal(CPLXMLNode *psLTree,
+    OGRLayer*           InstantiateLayerInternal(CPLXMLNode *psLTree,
                                             const char *pszVRTDirectory,
                                             int bUpdate,
                                             int nRecLevel);
@@ -246,6 +261,8 @@ class OGRVRTDataSource : public OGRDataSource
     OGRLayer            *GetLayer( int );
 
     int                 TestCapability( const char * );
+
+    virtual char      **GetFileList();
 
     /* Anti-recursion mechanism for standard Open */
     void                SetCallLevel(int nCallLevelIn) { nCallLevel = nCallLevelIn; }
@@ -262,22 +279,6 @@ class OGRVRTDataSource : public OGRDataSource
     int                 IsInForbiddenNames(const char* pszOtherDSName);
 };
 
-/************************************************************************/
-/*                             OGRVRTDriver                             */
-/************************************************************************/
-
-class OGRVRTDriver : public OGRSFDriver
-{
-  public:
-                ~OGRVRTDriver();
-                
-    const char *GetName();
-    OGRDataSource *Open( const char *, int );
-    int         TestCapability( const char * );
-};
-
 OGRwkbGeometryType OGRVRTGetGeometryType(const char* pszGType, int* pbError);
 
-#endif /* ndef _OGR_VRT_H_INCLUDED */
-
-
+#endif /* ndef OGR_VRT_H_INCLUDED */

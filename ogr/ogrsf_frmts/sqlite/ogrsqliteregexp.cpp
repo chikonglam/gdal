@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrsqliteregexp.cpp 27741 2014-09-26 19:20:02Z goatbar $
+ * $Id: ogrsqliteregexp.cpp 32982 2016-01-14 16:53:57Z goatbar $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  SQLite REGEXP function
@@ -156,7 +156,7 @@ void OGRSQLiteREGEXPFunction(sqlite3_context *ctx, CPL_UNUSED int argc, sqlite3_
 
     int rc;
     CPLAssert(p);
-    rc = pcre_exec(p, e, str, strlen(str), 0, 0, NULL, 0);
+    rc = pcre_exec(p, e, str, static_cast<int>(strlen(str)), 0, 0, NULL, 0);
     sqlite3_result_int(ctx, rc >= 0);
 }
 
@@ -167,16 +167,16 @@ void OGRSQLiteREGEXPFunction(sqlite3_context *ctx, CPL_UNUSED int argc, sqlite3_
 /************************************************************************/
 
 static
-void* OGRSQLiteRegisterRegExpFunction(
-#ifndef HAVE_PCRE
-CPL_UNUSED
+void* OGRSQLiteRegisterRegExpFunction(sqlite3*
+#ifdef HAVE_PCRE
+                                       hDB
 #endif
-                                      sqlite3* hDB)
+                                      )
 {
 #ifdef HAVE_PCRE
 
     /* For debugging purposes mostly */
-    if( !CSLTestBoolean(CPLGetConfigOption("OGR_SQLITE_REGEXP", "YES")) )
+    if( !CPLTestBool(CPLGetConfigOption("OGR_SQLITE_REGEXP", "YES")) )
         return NULL;
 
     /* Check if we really need to define our own REGEXP function */
@@ -205,11 +205,11 @@ CPL_UNUSED
 /************************************************************************/
 
 static
-void OGRSQLiteFreeRegExpCache(
-#ifndef HAVE_PCRE
-CPL_UNUSED
+void OGRSQLiteFreeRegExpCache(void*
+#ifdef HAVE_PCRE
+                              hRegExpCache
 #endif
-                              void* hRegExpCache)
+                              )
 {
 #ifdef HAVE_PCRE
     if( hRegExpCache == NULL )

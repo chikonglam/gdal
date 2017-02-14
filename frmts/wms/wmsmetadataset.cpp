@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: wmsmetadataset.cpp 27729 2014-09-24 00:40:16Z goatbar $
+ * $Id: wmsmetadataset.cpp 32078 2015-12-08 09:09:45Z rouault $
  *
  * Project:  WMS Client Driver
  * Purpose:  Definition of GDALWMSMetaDataset class
@@ -58,11 +58,11 @@ void GDALWMSMetaDataset::AddSubDataset(const char* pszName,
     char    szName[80];
     int     nCount = CSLCount(papszSubDatasets ) / 2;
 
-    sprintf( szName, "SUBDATASET_%d_NAME", nCount+1 );
+    snprintf( szName, sizeof(szName), "SUBDATASET_%d_NAME", nCount+1 );
     papszSubDatasets =
         CSLSetNameValue( papszSubDatasets, szName, pszName );
 
-    sprintf( szName, "SUBDATASET_%d_DESC", nCount+1 );
+    snprintf( szName, sizeof(szName), "SUBDATASET_%d_DESC", nCount+1 );
     papszSubDatasets =
         CSLSetNameValue( papszSubDatasets, szName, pszDesc);
 }
@@ -74,7 +74,7 @@ void GDALWMSMetaDataset::AddSubDataset(const char* pszName,
 GDALDataset *GDALWMSMetaDataset::DownloadGetCapabilities(GDALOpenInfo *poOpenInfo)
 {
     const char* pszURL = poOpenInfo->pszFilename;
-    if (EQUALN(pszURL, "WMS:", 4))
+    if (STARTS_WITH_CI(pszURL, "WMS:"))
         pszURL += 4;
 
     CPLString osFormat = CPLURLGetValue(pszURL, "FORMAT");
@@ -149,7 +149,7 @@ GDALDataset *GDALWMSMetaDataset::DownloadGetCapabilities(GDALOpenInfo *poOpenInf
 GDALDataset *GDALWMSMetaDataset::DownloadGetTileService(GDALOpenInfo *poOpenInfo)
 {
     const char* pszURL = poOpenInfo->pszFilename;
-    if (EQUALN(pszURL, "WMS:", 4))
+    if (STARTS_WITH_CI(pszURL, "WMS:"))
         pszURL += 4;
 
     CPLString osURL(pszURL);
@@ -244,14 +244,15 @@ void GDALWMSMetaDataset::AddSubDataset( const char* pszLayerName,
                                         const char* pszMaxY,
                                         CPLString osFormat,
                                         CPLString osTransparent)
-
 {
     CPLString osSubdatasetName = "WMS:";
     osSubdatasetName += osGetURL;
     osSubdatasetName = CPLURLAddKVP(osSubdatasetName, "SERVICE", "WMS");
     osSubdatasetName = CPLURLAddKVP(osSubdatasetName, "VERSION", osVersion);
     osSubdatasetName = CPLURLAddKVP(osSubdatasetName, "REQUEST", "GetMap");
-    osSubdatasetName = CPLURLAddKVP(osSubdatasetName, "LAYERS", pszLayerName);
+    char* pszEscapedLayerName = CPLEscapeString(pszLayerName, -1, CPLES_URL);
+    osSubdatasetName = CPLURLAddKVP(osSubdatasetName, "LAYERS", pszEscapedLayerName);
+    CPLFree(pszEscapedLayerName);
     if(VersionStringToInt(osVersion.c_str())>= VersionStringToInt("1.3.0"))
     {
         osSubdatasetName = CPLURLAddKVP(osSubdatasetName, "CRS", pszSRS);
@@ -760,4 +761,3 @@ GDALDataset* GDALWMSMetaDataset::AnalyzeTileMapService(CPLXMLNode* psXML)
 
     return poDS;
 }
-

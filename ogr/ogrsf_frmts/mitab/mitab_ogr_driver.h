@@ -9,6 +9,7 @@
  *
  **********************************************************************
  * Copyright (c) 1999, 2000, Stephane Villeneuve
+ * Copyright (c) 2014, Even Rouault <even.rouault at spatialys.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -16,16 +17,16 @@
  * the rights to use, copy, modify, merge, publish, distribute, sublicense,
  * and/or sell copies of the Software, and to permit persons to whom the
  * Software is furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included
  * in all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
  * THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  **********************************************************************
  *
@@ -79,12 +80,12 @@
 #include "mitab.h"
 #include "ogrsf_frmts.h"
 
-#ifndef _MITAB_OGR_DRIVER_H_INCLUDED_
-#define _MITAB_OGR_DRIVER_H_INCLUDED_
+#ifndef MITAB_OGR_DRIVER_H_INCLUDED_
+#define MITAB_OGR_DRIVER_H_INCLUDED_
 
 /*=====================================================================
  *            OGRTABDataSource Class
- * 
+ *
  * These classes handle all the file types supported by the MITAB lib.
  * through the IMapInfoFile interface.
  *====================================================================*/
@@ -102,41 +103,29 @@ class OGRTABDataSource : public OGRDataSource
     int                 m_bSingleFile;
     int                 m_bSingleLayerAlreadyCreated;
     GBool               m_bQuickSpatialIndexMode;
+    int                 m_bUpdate;
+    int                 m_nBlockSize;
 
   public:
                 OGRTABDataSource();
     virtual     ~OGRTABDataSource();
 
-    int         Open( const char *pszName, int bTestOpen );
+    int         Open( GDALOpenInfo* poOpenInfo, int bTestOpen );
     int         Create( const char *pszName, char ** papszOptions );
 
     const char  *GetName() { return m_pszName; }
     int          GetLayerCount();
     OGRLayer    *GetLayer( int );
     int          TestCapability( const char * );
-    
-    OGRLayer    *CreateLayer(const char *, 
+
+    OGRLayer    *ICreateLayer(const char *,
                              OGRSpatialReference * = NULL,
                              OGRwkbGeometryType = wkbUnknown,
                              char ** = NULL );
-};
- 
-/************************************************************************/
-/*                             OGRTABDriver                             */
-/************************************************************************/
 
-class OGRTABDriver : public OGRSFDriver
-{
-public:
-    virtual     ~OGRTABDriver();
-
-    const char  *GetName();
-    OGRDataSource *Open ( const char *,int );
-    int         TestCapability( const char * );
-    virtual OGRDataSource *CreateDataSource( const char *, char ** = NULL );
-    virtual OGRErr DeleteDataSource( const char * );
+    char        **GetFileList();
 };
 
 void CPL_DLL RegisterOGRTAB();
 
-#endif /* _MITAB_OGR_DRIVER_H_INCLUDED_ */
+#endif /* MITAB_OGR_DRIVER_H_INCLUDED_ */

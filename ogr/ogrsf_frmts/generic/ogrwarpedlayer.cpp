@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrwarpedlayer.cpp 27044 2014-03-16 23:41:27Z rouault $
+ * $Id: ogrwarpedlayer.cpp 32177 2015-12-14 07:25:30Z goatbar $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Implements OGRWarpedLayer class
@@ -29,7 +29,7 @@
 
 #include "ogrwarpedlayer.h"
 
-CPL_CVSID("$Id: ogrwarpedlayer.cpp 27044 2014-03-16 23:41:27Z rouault $");
+CPL_CVSID("$Id: ogrwarpedlayer.cpp 32177 2015-12-14 07:25:30Z goatbar $");
 
 /************************************************************************/
 /*                          OGRWarpedLayer()                            */
@@ -47,6 +47,7 @@ OGRWarpedLayer::OGRWarpedLayer( OGRLayer* poDecoratedLayer,
                                       m_poReversedCT(poReversedCT)
 {
     CPLAssert(poCT != NULL);
+    SetDescription( poDecoratedLayer->GetDescription() );
 
     m_poFeatureDefn = NULL;
 
@@ -220,7 +221,7 @@ OGRFeature *OGRWarpedLayer::WarpedFeatureToSrcFeature(OGRFeature* poFeature)
 
 OGRFeature *OGRWarpedLayer::GetNextFeature()
 {
-    while(TRUE)
+    while( true )
     {
         OGRFeature* poFeature = m_poDecoratedLayer->GetNextFeature();
         if( poFeature == NULL )
@@ -244,7 +245,7 @@ OGRFeature *OGRWarpedLayer::GetNextFeature()
 /*                             GetFeature()                             */
 /************************************************************************/
 
-OGRFeature *OGRWarpedLayer::GetFeature( long nFID )
+OGRFeature *OGRWarpedLayer::GetFeature( GIntBig nFID )
 {
     OGRFeature* poFeature = m_poDecoratedLayer->GetFeature(nFID);
     if( poFeature != NULL )
@@ -257,10 +258,10 @@ OGRFeature *OGRWarpedLayer::GetFeature( long nFID )
 }
 
 /************************************************************************/
-/*                             SetFeature()                             */
+/*                             ISetFeature()                             */
 /************************************************************************/
 
-OGRErr      OGRWarpedLayer::SetFeature( OGRFeature *poFeature )
+OGRErr      OGRWarpedLayer::ISetFeature( OGRFeature *poFeature )
 {
     OGRErr eErr;
 
@@ -276,17 +277,17 @@ OGRErr      OGRWarpedLayer::SetFeature( OGRFeature *poFeature )
 }
 
 /************************************************************************/
-/*                            CreateFeature()                           */
+/*                            ICreateFeature()                           */
 /************************************************************************/
 
-OGRErr      OGRWarpedLayer::CreateFeature( OGRFeature *poFeature )
+OGRErr      OGRWarpedLayer::ICreateFeature( OGRFeature *poFeature )
 {
     OGRErr eErr;
 
     OGRFeature* poFeatureNew = WarpedFeatureToSrcFeature(poFeature);
     if( poFeatureNew == NULL )
         return OGRERR_FAILURE;
-   
+
     eErr = m_poDecoratedLayer->CreateFeature(poFeatureNew);
 
     delete poFeatureNew;
@@ -328,7 +329,7 @@ OGRSpatialReference *OGRWarpedLayer::GetSpatialRef()
 /*                           GetFeatureCount()                          */
 /************************************************************************/
 
-int OGRWarpedLayer::GetFeatureCount( int bForce )
+GIntBig OGRWarpedLayer::GetFeatureCount( int bForce )
 {
     if( m_poFilterGeom == NULL )
         return m_poDecoratedLayer->GetFeatureCount(bForce);
@@ -438,9 +439,9 @@ int OGRWarpedLayer::ReprojectEnvelope( OGREnvelope* psEnvelope,
     double *padfX, *padfY;
     int* pabSuccess;
 
-    padfX = (double*) VSIMalloc((NSTEP + 1) * (NSTEP + 1) * sizeof(double));
-    padfY = (double*) VSIMalloc((NSTEP + 1) * (NSTEP + 1) * sizeof(double));
-    pabSuccess = (int*) VSIMalloc((NSTEP + 1) * (NSTEP + 1) * sizeof(int));
+    padfX = (double*) VSI_MALLOC_VERBOSE((NSTEP + 1) * (NSTEP + 1) * sizeof(double));
+    padfY = (double*) VSI_MALLOC_VERBOSE((NSTEP + 1) * (NSTEP + 1) * sizeof(double));
+    pabSuccess = (int*) VSI_MALLOC_VERBOSE((NSTEP + 1) * (NSTEP + 1) * sizeof(int));
     if( padfX == NULL || padfY == NULL || pabSuccess == NULL)
     {
         VSIFree(padfX);

@@ -15,7 +15,7 @@ public class GeomFieldDefn : IDisposable {
   private HandleRef swigCPtr;
   protected bool swigCMemOwn;
   protected object swigParentRef;
-  
+
   protected static object ThisOwn_true() { return null; }
   protected object ThisOwn_false() { return this; }
 
@@ -120,6 +120,17 @@ public class GeomFieldDefn : IDisposable {
 
   public void SetIgnored(int bIgnored) {
     OgrPINVOKE.GeomFieldDefn_SetIgnored(swigCPtr, bIgnored);
+    if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
+  }
+
+  public int IsNullable() {
+    int ret = OgrPINVOKE.GeomFieldDefn_IsNullable(swigCPtr);
+    if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
+    return ret;
+  }
+
+  public void SetNullable(int bNullable) {
+    OgrPINVOKE.GeomFieldDefn_SetNullable(swigCPtr, bNullable);
     if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
   }
 

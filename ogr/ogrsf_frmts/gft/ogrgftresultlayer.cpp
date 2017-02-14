@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrgftresultlayer.cpp 27044 2014-03-16 23:41:27Z rouault $
+ * $Id: ogrgftresultlayer.cpp 32177 2015-12-14 07:25:30Z goatbar $
  *
  * Project:  GFT Translator
  * Purpose:  Implements OGRGFTResultLayer class.
@@ -29,14 +29,14 @@
 
 #include "ogr_gft.h"
 
-CPL_CVSID("$Id: ogrgftresultlayer.cpp 27044 2014-03-16 23:41:27Z rouault $");
+CPL_CVSID("$Id: ogrgftresultlayer.cpp 32177 2015-12-14 07:25:30Z goatbar $");
 
 /************************************************************************/
 /*                        OGRGFTResultLayer()                           */
 /************************************************************************/
 
-OGRGFTResultLayer::OGRGFTResultLayer(OGRGFTDataSource* poDS,
-                                     const char* pszSQL) : OGRGFTLayer(poDS)
+OGRGFTResultLayer::OGRGFTResultLayer(OGRGFTDataSource* poDSIn,
+                                     const char* pszSQL) : OGRGFTLayer(poDSIn)
 
 {
     osSQL = PatchSQL(pszSQL);
@@ -47,6 +47,8 @@ OGRGFTResultLayer::OGRGFTResultLayer(OGRGFTDataSource* poDS,
     poFeatureDefn->Reference();
     poFeatureDefn->SetGeomType( wkbUnknown );
     poFeatureDefn->GetGeomFieldDefn(0)->SetSpatialRef(poSRS);
+
+    SetDescription( poFeatureDefn->GetName() );
 }
 
 /************************************************************************/
@@ -80,7 +82,7 @@ void OGRGFTResultLayer::ResetReading()
 
 int OGRGFTResultLayer::FetchNextRows()
 {
-    if (!EQUALN(osSQL.c_str(), "SELECT", 6))
+    if (!STARTS_WITH_CI(osSQL.c_str(), "SELECT"))
         return FALSE;
 
     aosRows.resize(0);
@@ -179,7 +181,7 @@ int OGRGFTResultLayer::RunSQL()
     OGRGFTTableLayer* poTableLayer = NULL;
     OGRFeatureDefn* poTableDefn = NULL;
     CPLString osTableId;
-    if (EQUALN(osSQL.c_str(), "SELECT", 6))
+    if (STARTS_WITH_CI(osSQL.c_str(), "SELECT"))
     {
         size_t nPosFROM = osSQL.ifind(" FROM ");
         if (nPosFROM == std::string::npos)
@@ -237,9 +239,9 @@ int OGRGFTResultLayer::RunSQL()
         return FALSE;
     }
 
-    if (EQUALN(osSQL.c_str(), "SELECT", 6) ||
+    if (STARTS_WITH_CI(osSQL.c_str(), "SELECT") ||
         EQUAL(osSQL.c_str(), "SHOW TABLES") ||
-        EQUALN(osSQL.c_str(), "DESCRIBE", 8))
+        STARTS_WITH_CI(osSQL.c_str(), "DESCRIBE"))
     {
         ParseCSVResponse(pszLine, aosRows);
         if (aosRows.size() > 0)

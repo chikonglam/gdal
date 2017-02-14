@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrgeojsonreader.h 28350 2015-01-23 17:53:57Z rouault $
+ * $Id: ogrgeojsonreader.h 37099 2017-01-11 12:21:34Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Defines GeoJSON reader within OGR OGRGeoJSON Driver.
@@ -31,7 +31,10 @@
 #define OGR_GEOJSONREADER_H_INCLUDED
 
 #include <ogr_core.h>
+#include "cpl_string.h"
+#include "ogrsf_frmts.h"
 #include <json.h> // JSON-C
+#include <set>
 
 /************************************************************************/
 /*                         FORWARD DECLARATIONS                         */
@@ -70,7 +73,7 @@ struct GeoJSONObject
         eFeature,
         eFeatureCollection
     };
-    
+
     enum CoordinateDimension
     {
         eMinCoordinateDimension = 2,
@@ -93,6 +96,9 @@ public:
 
     void SetPreserveGeometryType( bool bPreserve );
     void SetSkipAttributes( bool bSkip );
+    void SetFlattenNestedAttributes( bool bFlatten, char chSeparator );
+    void SetStoreNativeData( bool bStoreNativeData );
+    void SetArrayAsString( bool bArrayAsString );
 
     OGRErr Parse( const char* pszText );
     void ReadLayers( OGRGeoJSONDataSource* poDS );
@@ -100,15 +106,28 @@ public:
                     const char* pszName,
                     json_object* poObj );
 
+    json_object* GetJSonObject() { return poGJObject_; }
+
 private:
 
     json_object* poGJObject_;
 
     bool bGeometryPreserve_;
     bool bAttributesSkip_;
+    bool bFlattenNestedAttributes_;
+    char chNestedAttributeSeparator_;
+    bool bStoreNativeData_;
+    bool bArrayAsString_;
+    std::set<int> aoSetUndeterminedTypeFields_;
 
+    // bFlatten... is a tri-state boolean with -1 being unset.
     int bFlattenGeocouchSpatiallistFormat;
-    bool bFoundId, bFoundRev, bFoundTypeFeature, bIsGeocouchSpatiallistFormat;
+
+    bool bFoundId;
+    bool bFoundRev;
+    bool bFoundTypeFeature;
+    bool bIsGeocouchSpatiallistFormat;
+    bool bFoundFeatureId;
 
     //
     // Copy operations not supported.
@@ -129,12 +148,31 @@ private:
     void ReadFeatureCollection( OGRGeoJSONLayer* poLayer, json_object* poObj );
 };
 
+void OGRGeoJSONReaderSetField(OGRLayer* poLayer,
+                              OGRFeature* poFeature,
+                              int nField,
+                              const char* pszAttrPrefix,
+                              json_object* poVal,
+                              bool bFlattenNestedAttributes,
+                              char chNestedAttributeSeparator);
+void OGRGeoJSONReaderAddOrUpdateField(OGRFeatureDefn* poDefn,
+                                      const char* pszKey,
+                                      json_object* poVal,
+                                      bool bFlattenNestedAttributes,
+                                      char chNestedAttributeSeparator,
+                                      bool bArrayAsString,
+                                      std::set<int>& aoSetUndeterminedTypeFields);
+
 /************************************************************************/
 /*                 GeoJSON Parsing Utilities                            */
 /************************************************************************/
 
 json_object* OGRGeoJSONFindMemberByName(json_object* poObj,  const char* pszName );
 GeoJSONObject::Type OGRGeoJSONGetType( json_object* poObj );
+
+json_object* json_ex_get_object_by_path(json_object* poObj, const char* pszPath );
+
+bool OGRJSonParse(const char* pszText, json_object** ppoObj, bool bVerboseError = true);
 
 /************************************************************************/
 /*                 GeoJSON Geometry Translators                         */
@@ -168,6 +206,8 @@ public:
     OGRErr Parse( const char* pszText );
     void ReadLayers( OGRGeoJSONDataSource* poDS );
 
+    json_object* GetJSonObject() { return poGJObject_; }
+
 private:
 
     json_object* poGJObject_;
@@ -194,7 +234,7 @@ private:
 OGRSpatialReference* OGRESRIJSONReadSpatialReference( json_object* poObj );
 OGRwkbGeometryType OGRESRIJSONGetGeometryType( json_object* poObj );
 OGRPoint* OGRESRIJSONReadPoint( json_object* poObj);
-OGRLineString* OGRESRIJSONReadLineString( json_object* poObj);
+OGRGeometry* OGRESRIJSONReadLineString( json_object* poObj);
 OGRGeometry* OGRESRIJSONReadPolygon( json_object* poObj);
 OGRMultiPoint* OGRESRIJSONReadMultiPoint( json_object* poObj);
 

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_gpsbabel.h 27044 2014-03-16 23:41:27Z rouault $
+ * $Id: ogr_gpsbabel.h 32577 2015-12-31 06:39:56Z goatbar $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Private definitions for OGR/GPSBabel driver.
@@ -27,8 +27,8 @@
  * DEALINGS IN THE SOFTWARE.
  ****************************************************************************/
 
-#ifndef _OGR_GPSBABEL_H_INCLUDED
-#define _OGR_GPSBABEL_H_INCLUDED
+#ifndef OGR_GPSBABEL_H_INCLUDED
+#define OGR_GPSBABEL_H_INCLUDED
 
 #include "ogrsf_frmts.h"
 #include "cpl_string.h"
@@ -45,11 +45,13 @@ class OGRGPSBabelDataSource : public OGRDataSource
     char               *pszGPSBabelDriverName;
     char               *pszFilename;
     CPLString           osTmpFileName;
-    OGRDataSource      *poGPXDS;
+    GDALDataset        *poGPXDS;
 
   public:
                         OGRGPSBabelDataSource();
                         ~OGRGPSBabelDataSource();
+
+    virtual int         CloseDependentDatasets();
 
     virtual const char  *GetName() { return pszName; }
     virtual int         GetLayerCount() { return nLayers; }
@@ -57,7 +59,9 @@ class OGRGPSBabelDataSource : public OGRDataSource
 
     virtual int         TestCapability( const char * );
 
-    int                 Open ( const char* pszFilename, int bUpdateIn );
+    int                 Open ( const char* pszFilename,
+                               const char* pszGPSBabelDriverNameIn,
+                               char** papszOpenOptions );
 
     static int          IsSpecialFile(const char* pszFilename);
     static int          IsValidDriverName(const char* pszGPSBabelDriverName);
@@ -74,7 +78,7 @@ class OGRGPSBabelWriteDataSource : public OGRDataSource
     char               *pszGPSBabelDriverName;
     char               *pszFilename;
     CPLString           osTmpFileName;
-    OGRDataSource      *poGPXDS;
+    GDALDataset        *poGPXDS;
 
     int                 Convert();
 
@@ -88,7 +92,7 @@ class OGRGPSBabelWriteDataSource : public OGRDataSource
 
     virtual int         TestCapability( const char * );
 
-    virtual OGRLayer   *CreateLayer( const char * pszLayerName,
+    virtual OGRLayer   *ICreateLayer( const char * pszLayerName,
                                      OGRSpatialReference *poSRS,
                                      OGRwkbGeometryType eType,
                                      char ** papszOptions );
@@ -96,23 +100,4 @@ class OGRGPSBabelWriteDataSource : public OGRDataSource
     int                 Create ( const char* pszFilename, char **papszOptions );
 };
 
-/************************************************************************/
-/*                        OGRGPSBabelDriver                             */
-/************************************************************************/
-
-class OGRGPSBabelDriver : public OGRSFDriver
-{
-  public:
-                ~OGRGPSBabelDriver();
-
-    virtual const char    *GetName();
-    virtual OGRDataSource *Open( const char *, int );
-    virtual OGRDataSource *CreateDataSource( const char * pszName,
-                                             char **papszOptions );
-    virtual OGRErr         DeleteDataSource( const char *pszFilename );
-
-    virtual int            TestCapability( const char * );
-};
-
-#endif /* ndef _OGR_GPSBABEL_H_INCLUDED */
-
+#endif /* ndef OGR_GPSBABEL_H_INCLUDED */

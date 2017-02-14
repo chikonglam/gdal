@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gt_jpeg_copy.cpp 27899 2014-10-23 13:36:59Z rouault $
+ * $Id: gt_jpeg_copy.cpp 33806 2016-03-28 22:26:19Z goatbar $
  *
  * Project:  GeoTIFF Driver
  * Purpose:  Specialized copy of JPEG content into TIFF.
@@ -29,15 +29,20 @@
 
 #include "cpl_vsi.h"
 #include "gt_jpeg_copy.h"
+#if defined(JPEG_DIRECT_COPY) || defined(HAVE_LIBJPEG)
+#  include "vrt/vrtdataset.h"
+#endif
+
+#ifndef BIGTIFF_SUPPORT
+#define tmsize_t tsize_t
+#endif
 
 /* Note: JPEG_DIRECT_COPY is not defined by default, because it is mainly */
-/* usefull for debugging purposes */
+/* useful for debugging purposes */
 
-CPL_CVSID("$Id: gt_jpeg_copy.cpp 27899 2014-10-23 13:36:59Z rouault $");
+CPL_CVSID("$Id: gt_jpeg_copy.cpp 33806 2016-03-28 22:26:19Z goatbar $");
 
 #if defined(JPEG_DIRECT_COPY) || defined(HAVE_LIBJPEG)
-
-#include "vrt/vrtdataset.h"
 
 /************************************************************************/
 /*                      GetUnderlyingDataset()                          */
@@ -79,7 +84,7 @@ static int IsBaselineDCTJPEG(VSILFILE* fp)
     }
 
     int nOffset = 2;
-    while(TRUE)
+    while( true )
     {
         VSIFSeekL(fp, nOffset, SEEK_SET);
         if (VSIFReadL(abyBuf, 1, 4, fp) != 4 ||
@@ -162,7 +167,7 @@ int GTIFF_CanDirectCopyFromJPEG(GDALDataset* poSrcDS, char** &papszCreateOptions
         papszCreateOptions = CSLSetNameValue(papszCreateOptions, "JPEG_QUALITY", NULL);
     }
     if (fpJPEG)
-        VSIFCloseL(fpJPEG);
+        CPL_IGNORE_RET_VAL(VSIFCloseL(fpJPEG));
 
     return bJPEGDirectCopy;
 }
@@ -194,7 +199,7 @@ CPLErr GTIFF_DirectCopyFromJPEG(GDALDataset* poDS, GDALDataset* poSrcDS,
     void* pabyJPEGData = VSIMalloc(nSize);
     if (pabyJPEGData == NULL)
     {
-        VSIFCloseL(fpJPEG);
+        CPL_IGNORE_RET_VAL(VSIFCloseL(fpJPEG));
         return CE_Failure;
     }
 
@@ -216,7 +221,8 @@ CPLErr GTIFF_DirectCopyFromJPEG(GDALDataset* poDS, GDALDataset* poSrcDS,
     }
 
     VSIFree(pabyJPEGData);
-    VSIFCloseL(fpJPEG);
+    if VSIFCloseL(fpJPEG) != 0 )
+        eErr = CE_Failure;
 
     return eErr;
 }
@@ -339,18 +345,38 @@ static void GTIFF_ErrorExitJPEG(j_common_ptr cinfo)
 /*                      GTIFF_Set_TIFFTAG_JPEGTABLES()                  */
 /************************************************************************/
 
+static
 void GTIFF_Set_TIFFTAG_JPEGTABLES(TIFF* hTIFF,
                                   jpeg_decompress_struct& sDInfo,
                                   jpeg_compress_struct& sCInfo)
 {
     char szTmpFilename[128];
-    sprintf(szTmpFilename, "/vsimem/tables_%p", &sDInfo);
+    snprintf(szTmpFilename, sizeof(szTmpFilename), "/vsimem/tables_%p", &sDInfo);
     VSILFILE* fpTABLES = VSIFOpenL(szTmpFilename, "wb+");
 
+    uint16  nPhotometric;
+    TIFFGetField( hTIFF, TIFFTAG_PHOTOMETRIC, &nPhotometric );
+
     jpeg_vsiio_dest( &sCInfo, fpTABLES );
+
+    // Avoid unnecessary tables to be emitted
+    if( nPhotometric != PHOTOMETRIC_YCBCR )
+    {
+        JQUANT_TBL* qtbl;
+        JHUFF_TBL* htbl;
+        qtbl = sCInfo.quant_tbl_ptrs[1];
+        if (qtbl != NULL)
+            qtbl->sent_table = TRUE;
+        htbl = sCInfo.dc_huff_tbl_ptrs[1];
+        if (htbl != NULL)
+            htbl->sent_table = TRUE;
+        htbl = sCInfo.ac_huff_tbl_ptrs[1];
+        if (htbl != NULL)
+            htbl->sent_table = TRUE;
+    }
     jpeg_write_tables( &sCInfo );
 
-    VSIFCloseL(fpTABLES);
+    CPL_IGNORE_RET_VAL(VSIFCloseL(fpTABLES));
 
     vsi_l_offset nSizeTables = 0;
     GByte* pabyJPEGTablesData = VSIGetMemFileBuffer(szTmpFilename, &nSizeTables, FALSE);
@@ -383,7 +409,7 @@ CPLErr GTIFF_CopyFromJPEG_WriteAdditionalTags(TIFF* hTIFF,
     jmp_buf setjmp_buffer;
     if (setjmp(setjmp_buffer))
     {
-        VSIFCloseL(fpJPEG);
+        CPL_IGNORE_RET_VAL(VSIFCloseL(fpJPEG));
         return CE_Failure;
     }
 
@@ -474,7 +500,8 @@ CPLErr GTIFF_CopyFromJPEG_WriteAdditionalTags(TIFF* hTIFF,
     jpeg_abort_decompress( &sDInfo );
     jpeg_destroy_decompress( &sDInfo );
 
-    VSIFCloseL(fpJPEG);
+    if( VSIFCloseL(fpJPEG) != 0 )
+        return CE_Failure;
 
     return CE_None;
 }
@@ -483,38 +510,60 @@ CPLErr GTIFF_CopyFromJPEG_WriteAdditionalTags(TIFF* hTIFF,
 /*                    GTIFF_CopyBlockFromJPEG()                         */
 /************************************************************************/
 
-static CPLErr GTIFF_CopyBlockFromJPEG(TIFF* hTIFF,
-                                      jpeg_decompress_struct& sDInfo,
-                                      int iX, int iY,
-                                      int nXBlocks, CPL_UNUSED int nYBlocks,
-                                      int nXSize, int nYSize,
-                                      int nBlockXSize, int nBlockYSize,
-                                      int iMCU_sample_width, int iMCU_sample_height,
-                                      jvirt_barray_ptr *pSrcCoeffs)
+typedef struct
 {
-    CPLString osTmpFilename(CPLSPrintf("/vsimem/%p", &sDInfo));
+    TIFF* hTIFF;
+    jpeg_decompress_struct* psDInfo;
+    int iX;
+    int iY;
+    int nXBlocks;
+    int nXSize;
+    int nYSize;
+    int nBlockXSize;
+    int nBlockYSize;
+    int iMCU_sample_width;
+    int iMCU_sample_height;
+    jvirt_barray_ptr *pSrcCoeffs;
+} GTIFF_CopyBlockFromJPEGArgs;
+
+static CPLErr GTIFF_CopyBlockFromJPEG(GTIFF_CopyBlockFromJPEGArgs* psArgs)
+{
+    CPLString osTmpFilename(CPLSPrintf("/vsimem/%p", psArgs->psDInfo));
     VSILFILE* fpMEM = VSIFOpenL(osTmpFilename, "wb+");
 
 /* -------------------------------------------------------------------- */
 /*      Initialization of the compressor                                */
 /* -------------------------------------------------------------------- */
-    struct jpeg_error_mgr sJErr;
-    struct jpeg_compress_struct sCInfo;
     jmp_buf setjmp_buffer;
     if (setjmp(setjmp_buffer))
     {
-        VSIFCloseL(fpMEM);
+        CPL_IGNORE_RET_VAL(VSIFCloseL(fpMEM));
         VSIUnlink(osTmpFilename);
         return CE_Failure;
     }
 
+    TIFF* hTIFF = psArgs->hTIFF;
+    jpeg_decompress_struct* psDInfo = psArgs->psDInfo;
+    const int iX = psArgs->iX;
+    const int iY = psArgs->iY;
+    const int nXBlocks = psArgs->nXBlocks;
+    const int nXSize = psArgs->nXSize;
+    const int nYSize = psArgs->nYSize;
+    const int nBlockXSize = psArgs->nBlockXSize;
+    const int nBlockYSize = psArgs->nBlockYSize;
+    const int iMCU_sample_width = psArgs->iMCU_sample_width;
+    const int iMCU_sample_height = psArgs->iMCU_sample_height;
+    jvirt_barray_ptr *pSrcCoeffs = psArgs->pSrcCoeffs;
+
+    struct jpeg_error_mgr sJErr;
+    struct jpeg_compress_struct sCInfo;
     sCInfo.err = jpeg_std_error( &sJErr );
     sJErr.error_exit = GTIFF_ErrorExitJPEG;
     sCInfo.client_data = (void *) &setjmp_buffer;
 
     /* Initialize destination compression parameters from source values */
     jpeg_create_compress(&sCInfo);
-    jpeg_copy_critical_parameters(&sDInfo, &sCInfo);
+    jpeg_copy_critical_parameters(psDInfo, &sCInfo);
 
     /* ensure libjpeg won't write any extraneous markers */
     sCInfo.write_JFIF_header = FALSE;
@@ -597,8 +646,8 @@ static CPLErr GTIFF_CopyBlockFromJPEG(TIFF* hTIFF,
         jpeg_component_info *compptr = sCInfo.comp_info + ci;
         int x_crop_blocks = x_crop_offset * compptr->h_samp_factor;
         int y_crop_blocks = y_crop_offset * compptr->v_samp_factor;
-        JDIMENSION nSrcWidthInBlocks = sDInfo.comp_info[ci].width_in_blocks;
-        JDIMENSION nSrcHeightInBlocks = sDInfo.comp_info[ci].height_in_blocks;
+        JDIMENSION nSrcWidthInBlocks = psDInfo->comp_info[ci].width_in_blocks;
+        JDIMENSION nSrcHeightInBlocks = psDInfo->comp_info[ci].height_in_blocks;
 
         JDIMENSION nXBlocksToCopy = compptr->width_in_blocks;
         if (x_crop_blocks + compptr->width_in_blocks > nSrcWidthInBlocks)
@@ -608,22 +657,21 @@ static CPLErr GTIFF_CopyBlockFromJPEG(TIFF* hTIFF,
                         dst_blk_y < compptr->height_in_blocks;
                         dst_blk_y += compptr->v_samp_factor)
         {
-            JBLOCKARRAY dst_buffer = (*sDInfo.mem->access_virt_barray)
-                            ((j_common_ptr) &sDInfo, pDstCoeffs[ci],
+            JBLOCKARRAY dst_buffer = (*psDInfo->mem->access_virt_barray)
+                            ((j_common_ptr) psDInfo, pDstCoeffs[ci],
                                 dst_blk_y,
                                 (JDIMENSION) compptr->v_samp_factor, TRUE);
 
             int offset_y = 0;
-            int nYBlocks = compptr->v_samp_factor;
             if( bIsTiled &&
                 dst_blk_y + y_crop_blocks + compptr->v_samp_factor >
                                                         nSrcHeightInBlocks)
             {
-                nYBlocks = nSrcHeightInBlocks - (dst_blk_y + y_crop_blocks);
+                int nYBlocks = nSrcHeightInBlocks - (dst_blk_y + y_crop_blocks);
                 if (nYBlocks > 0)
                 {
-                    JBLOCKARRAY src_buffer = (*sDInfo.mem->access_virt_barray)
-                                ((j_common_ptr) &sDInfo, pSrcCoeffs[ci],
+                    JBLOCKARRAY src_buffer = (*psDInfo->mem->access_virt_barray)
+                                ((j_common_ptr) psDInfo, pSrcCoeffs[ci],
                                 dst_blk_y + y_crop_blocks,
                                     (JDIMENSION) 1, FALSE);
                     for (; offset_y < nYBlocks; offset_y++)
@@ -648,8 +696,8 @@ static CPLErr GTIFF_CopyBlockFromJPEG(TIFF* hTIFF,
             }
             else
             {
-                JBLOCKARRAY src_buffer = (*sDInfo.mem->access_virt_barray)
-                                ((j_common_ptr) &sDInfo, pSrcCoeffs[ci],
+                JBLOCKARRAY src_buffer = (*psDInfo->mem->access_virt_barray)
+                                ((j_common_ptr) psDInfo, pSrcCoeffs[ci],
                                 dst_blk_y + y_crop_blocks,
                                 (JDIMENSION) compptr->v_samp_factor, FALSE);
                 for (; offset_y < compptr->v_samp_factor; offset_y++)
@@ -671,7 +719,7 @@ static CPLErr GTIFF_CopyBlockFromJPEG(TIFF* hTIFF,
     jpeg_finish_compress(&sCInfo);
     jpeg_destroy_compress(&sCInfo);
 
-    VSIFCloseL(fpMEM);
+    CPL_IGNORE_RET_VAL( VSIFCloseL(fpMEM) );
 
 /* -------------------------------------------------------------------- */
 /*      Write the JPEG content with libtiff raw API                     */
@@ -684,13 +732,13 @@ static CPLErr GTIFF_CopyBlockFromJPEG(TIFF* hTIFF,
     if ( bIsTiled )
     {
         if ((vsi_l_offset)TIFFWriteRawTile(hTIFF, iX + iY * nXBlocks,
-                                           pabyJPEGData, nSize) != nSize)
+                                           pabyJPEGData, static_cast<tmsize_t>(nSize)) != nSize)
             eErr = CE_Failure;
     }
     else
     {
         if ((vsi_l_offset)TIFFWriteRawStrip(hTIFF, iX + iY * nXBlocks,
-                                            pabyJPEGData, nSize) != nSize)
+                                            pabyJPEGData, static_cast<tmsize_t>(nSize)) != nSize)
             eErr = CE_Failure;
     }
 
@@ -724,10 +772,12 @@ CPLErr GTIFF_CopyFromJPEG(GDALDataset* poDS, GDALDataset* poSrcDS,
 /* -------------------------------------------------------------------- */
     struct jpeg_error_mgr sJErr;
     struct jpeg_decompress_struct sDInfo;
+    memset(&sDInfo, 0, sizeof(sDInfo));
     jmp_buf setjmp_buffer;
     if (setjmp(setjmp_buffer))
     {
-        VSIFCloseL(fpJPEG);
+        CPL_IGNORE_RET_VAL(VSIFCloseL(fpJPEG));
+        jpeg_destroy_decompress(&sDInfo);
         return CE_Failure;
     }
 
@@ -820,15 +870,21 @@ CPLErr GTIFF_CopyFromJPEG(GDALDataset* poDS, GDALDataset* poSrcDS,
     {
         for(int iX=0;iX<nXBlocks && eErr == CE_None;iX++)
         {
-            eErr = GTIFF_CopyBlockFromJPEG( hTIFF,
-                                            sDInfo,
-                                            iX, iY,
-                                            nXBlocks, nYBlocks,
-                                            nXSize, nYSize,
-                                            nBlockXSize, nBlockYSize,
-                                            iMCU_sample_width,
-                                            iMCU_sample_height,
-                                            pSrcCoeffs );
+            GTIFF_CopyBlockFromJPEGArgs sArgs;
+            sArgs.hTIFF = hTIFF;
+            sArgs.psDInfo = &sDInfo;
+            sArgs.iX = iX;
+            sArgs.iY = iY;
+            sArgs.nXBlocks = nXBlocks;
+            sArgs.nXSize = nXSize;
+            sArgs.nYSize = nYSize;
+            sArgs.nBlockXSize = nBlockXSize;
+            sArgs.nBlockYSize = nBlockYSize;
+            sArgs.iMCU_sample_width = iMCU_sample_width;
+            sArgs.iMCU_sample_height = iMCU_sample_height;
+            sArgs.pSrcCoeffs = pSrcCoeffs;
+
+            eErr = GTIFF_CopyBlockFromJPEG( &sArgs );
 
             if (!pfnProgress((iY * nXBlocks + iX + 1) * 1.0 /
                                 (nXBlocks * nYBlocks),
@@ -844,7 +900,8 @@ CPLErr GTIFF_CopyFromJPEG(GDALDataset* poDS, GDALDataset* poSrcDS,
     jpeg_finish_decompress( &sDInfo );
     jpeg_destroy_decompress( &sDInfo );
 
-    VSIFCloseL(fpJPEG);
+    if( VSIFCloseL(fpJPEG) != 0 )
+        eErr = CE_Failure;
 
     return eErr;
 }

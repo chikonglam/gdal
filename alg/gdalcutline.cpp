@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: gdalcutline.cpp 27729 2014-09-24 00:40:16Z goatbar $
+ * $Id: gdalcutline.cpp 33715 2016-03-13 08:52:06Z goatbar $
  *
  * Project:  High Performance Image Reprojector
  * Purpose:  Implement cutline/blend mask generator.
@@ -35,20 +35,30 @@
 #include "ogr_geometry.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: gdalcutline.cpp 27729 2014-09-24 00:40:16Z goatbar $");
+CPL_CVSID("$Id: gdalcutline.cpp 33715 2016-03-13 08:52:06Z goatbar $");
 
 /************************************************************************/
 /*                         BlendMaskGenerator()                         */
 /************************************************************************/
 
 static CPLErr
-BlendMaskGenerator( int nXOff, int nYOff, int nXSize, int nYSize, 
+BlendMaskGenerator(
+#ifndef HAVE_GEOS
+                    CPL_UNUSED int nXOff, CPL_UNUSED int nYOff,
+                    CPL_UNUSED int nXSize, CPL_UNUSED int nYSize,
+                    CPL_UNUSED GByte *pabyPolyMask,
+                    CPL_UNUSED float *pafValidityMask,
+                    CPL_UNUSED OGRGeometryH hPolygon,
+                    CPL_UNUSED double dfBlendDist
+#else
+                    int nXOff, int nYOff, int nXSize, int nYSize,
                     GByte *pabyPolyMask, float *pafValidityMask,
-                    OGRGeometryH hPolygon, double dfBlendDist )
-
+                    OGRGeometryH hPolygon, double dfBlendDist
+#endif
+)
 {
-#ifndef HAVE_GEOS 
-    CPLError( CE_Failure, CPLE_AppDefined, 
+#ifndef HAVE_GEOS
+    CPLError( CE_Failure, CPLE_AppDefined,
               "Blend distance support not available without the GEOS library.");
     return CE_Failure;
 
@@ -59,42 +69,41 @@ BlendMaskGenerator( int nXOff, int nYOff, int nXSize, int nYSize,
 /*      measure distance from the edge even on the inside.              */
 /* -------------------------------------------------------------------- */
     OGRGeometry *poLines
-        = OGRGeometryFactory::forceToMultiLineString( 
+        = OGRGeometryFactory::forceToMultiLineString(
             ((OGRGeometry *) hPolygon)->clone() );
 
 /* -------------------------------------------------------------------- */
 /*      Prepare a clipping polygon a bit bigger than the area of        */
 /*      interest in the hopes of simplifying the cutline down to        */
-/*      stuff that will be relavent for this area of interest.          */
+/*      stuff that will be relevant for this area of interest.          */
 /* -------------------------------------------------------------------- */
     CPLString osClipRectWKT;
 
-    osClipRectWKT.Printf( "POLYGON((%g %g,%g %g,%g %g,%g %g,%g %g))", 
-                          nXOff - (dfBlendDist+1), 
-                          nYOff - (dfBlendDist+1), 
-                          nXOff + nXSize + (dfBlendDist+1), 
-                          nYOff - (dfBlendDist+1), 
-                          nXOff + nXSize + (dfBlendDist+1), 
-                          nYOff + nYSize + (dfBlendDist+1), 
-                          nXOff - (dfBlendDist+1), 
-                          nYOff + nYSize + (dfBlendDist+1), 
-                          nXOff - (dfBlendDist+1), 
+    osClipRectWKT.Printf( "POLYGON((%g %g,%g %g,%g %g,%g %g,%g %g))",
+                          nXOff - (dfBlendDist+1),
+                          nYOff - (dfBlendDist+1),
+                          nXOff + nXSize + (dfBlendDist+1),
+                          nYOff - (dfBlendDist+1),
+                          nXOff + nXSize + (dfBlendDist+1),
+                          nYOff + nYSize + (dfBlendDist+1),
+                          nXOff - (dfBlendDist+1),
+                          nYOff + nYSize + (dfBlendDist+1),
+                          nXOff - (dfBlendDist+1),
                           nYOff - (dfBlendDist+1) );
-    
+
     OGRPolygon *poClipRect = NULL;
     char *pszWKT = (char *) osClipRectWKT.c_str();
-    
-    OGRGeometryFactory::createFromWkt( &pszWKT, NULL, 
+
+    OGRGeometryFactory::createFromWkt( &pszWKT, NULL,
                                        (OGRGeometry**) (&poClipRect) );
 
     if( poClipRect )
     {
 
-        /***** if it doesnt intersect the polym zero the mask and return *****/
+        // If it does not intersect the polym zero the mask and return.
 
         if ( ! ((OGRGeometry *) hPolygon)->Intersects( poClipRect ) )
         {
-            
             memset( pafValidityMask, 0, sizeof(float) * nXSize * nYSize );
 
             delete poLines;
@@ -103,8 +112,8 @@ BlendMaskGenerator( int nXOff, int nYOff, int nXSize, int nYSize,
             return CE_None;
         }
 
-        /***** if it doesnt intersect the line at all just return *****/
-         
+        // If it does not intersect the line at all just return.
+
         else if ( ! ((OGRGeometry *) poLines)->Intersects( poClipRect ) )
         {
             delete poLines;
@@ -113,7 +122,7 @@ BlendMaskGenerator( int nXOff, int nYOff, int nXSize, int nYSize,
             return CE_None;
         }
 
-        OGRGeometry *poClippedLines = 
+        OGRGeometry *poClippedLines =
             poLines->Intersection( poClipRect );
         delete poLines;
         poLines = poClippedLines;
@@ -137,8 +146,8 @@ BlendMaskGenerator( int nXOff, int nYOff, int nXSize, int nYSize,
     /***** this check was already done in the calling *****/
     /***** function and should never be true          *****/
 
-    /*if( sEnvelope.MinY - dfBlendDist > nYOff+nYSize 
-        || sEnvelope.MaxY + dfBlendDist < nYOff 
+    /*if( sEnvelope.MinY - dfBlendDist > nYOff+nYSize
+        || sEnvelope.MaxY + dfBlendDist < nYOff
         || sEnvelope.MinX - dfBlendDist > nXOff+nXSize
         || sEnvelope.MaxX + dfBlendDist < nXOff )
         return CE_None;
@@ -156,7 +165,7 @@ BlendMaskGenerator( int nXOff, int nYOff, int nXSize, int nYSize,
 /* -------------------------------------------------------------------- */
     int iY, iX;
     double dfLastDist;
-    
+
     for( iY = 0; iY < nYSize; iY++ )
     {
         dfLastDist = 0.0;
@@ -173,7 +182,7 @@ BlendMaskGenerator( int nXOff, int nYOff, int nXSize, int nYSize,
                 dfLastDist -= 1.0;
                 continue;
             }
-            
+
             double dfDist, dfRatio;
             CPLString osPointWKT;
             GEOSGeom poGEOSPoint;
@@ -199,11 +208,11 @@ BlendMaskGenerator( int nXOff, int nYOff, int nXSize, int nYSize,
                 /* outside */
                 dfRatio = 0.5 - (dfDist / dfBlendDist) * 0.5;
             }
-            else 
+            else
             {
                 /* inside */
                 dfRatio = 0.5 + (dfDist / dfBlendDist) * 0.5;
-            }                
+            }
 
             pafValidityMask[iX + iY * nXSize] *= (float)dfRatio;
         }
@@ -227,14 +236,17 @@ BlendMaskGenerator( int nXOff, int nYOff, int nXSize, int nYSize,
 /*      relative to the current chunk.                                  */
 /************************************************************************/
 
-static int CutlineTransformer( void *pTransformArg, int bDstToSrc, 
-                               int nPointCount, 
-                               double *x, double *y, CPL_UNUSED double *z, 
+static int CutlineTransformer( void *pTransformArg,
+                               int bDstToSrc,
+                               int nPointCount,
+                               double *x,
+                               double *y,
+                               CPL_UNUSED double *z,
                                CPL_UNUSED int *panSuccess )
-
 {
     int nXOff = ((int *) pTransformArg)[0];
-    int nYOff = ((int *) pTransformArg)[1];				
+    int nYOff = ((int *) pTransformArg)[1];
+    int i;
 
     if( bDstToSrc )
     {
@@ -242,12 +254,12 @@ static int CutlineTransformer( void *pTransformArg, int bDstToSrc,
         nYOff *= -1;
     }
 
-    for( int i = 0; i < nPointCount; i++ )
+    for( i = 0; i < nPointCount; i++ )
     {
         x[i] -= nXOff;
         y[i] -= nYOff;
     }
-    
+
     return TRUE;
 }
 
@@ -259,8 +271,10 @@ static int CutlineTransformer( void *pTransformArg, int bDstToSrc,
 /*      provided cutline, and optional blend distance.                  */
 /************************************************************************/
 
-CPLErr 
-GDALWarpCutlineMasker( void *pMaskFuncArg, CPL_UNUSED int nBandCount, CPL_UNUSED GDALDataType eType,
+CPLErr
+GDALWarpCutlineMasker( void *pMaskFuncArg,
+                       CPL_UNUSED int nBandCount,
+                       CPL_UNUSED GDALDataType eType,
                        int nXOff, int nYOff, int nXSize, int nYSize,
                        GByte ** /*ppImageData */,
                        int bMaskIsFloat, void *pValidityMask )
@@ -335,12 +349,12 @@ GDALWarpCutlineMasker( void *pMaskFuncArg, CPL_UNUSED int nBandCount, CPL_UNUSED
     char *apszOptions[] = { szDataPointer, NULL };
 
     memset( szDataPointer, 0, sizeof(szDataPointer) );
-    sprintf( szDataPointer, "DATAPOINTER=" );
-    CPLPrintPointer( szDataPointer+strlen(szDataPointer), 
-                    pabyPolyMask, 
-                     sizeof(szDataPointer) - strlen(szDataPointer) );
+    snprintf( szDataPointer, sizeof(szDataPointer), "DATAPOINTER=" );
+    CPLPrintPointer( szDataPointer+strlen(szDataPointer),
+                     pabyPolyMask,
+                     static_cast<int>(sizeof(szDataPointer) - strlen(szDataPointer)) );
 
-    hMemDS = GDALCreate( hMemDriver, "warp_temp", 
+    hMemDS = GDALCreate( hMemDriver, "warp_temp",
                          nXSize, nYSize, 0, GDT_Byte, NULL );
     GDALAddBand( hMemDS, GDT_Byte, apszOptions );
     GDALSetGeoTransform( hMemDS, adfGeoTransform );
@@ -352,20 +366,19 @@ GDALWarpCutlineMasker( void *pMaskFuncArg, CPL_UNUSED int nBandCount, CPL_UNUSED
     double dfBurnValue = 255.0;
     int    anXYOff[2];
     char   **papszRasterizeOptions = NULL;
-    
 
     if( CSLFetchBoolean( psWO->papszWarpOptions, "CUTLINE_ALL_TOUCHED", FALSE ))
-        papszRasterizeOptions = 
+        papszRasterizeOptions =
             CSLSetNameValue( papszRasterizeOptions, "ALL_TOUCHED", "TRUE" );
 
     anXYOff[0] = nXOff;
     anXYOff[1] = nYOff;
 
-    eErr = 
-        GDALRasterizeGeometries( hMemDS, 1, &nTargetBand, 
-                                 1, &hPolygon, 
-                                 CutlineTransformer, anXYOff, 
-                                 &dfBurnValue, papszRasterizeOptions, 
+    eErr =
+        GDALRasterizeGeometries( hMemDS, 1, &nTargetBand,
+                                 1, &hPolygon,
+                                 CutlineTransformer, anXYOff,
+                                 &dfBurnValue, papszRasterizeOptions,
                                  NULL, NULL );
 
     CSLDestroy( papszRasterizeOptions );
@@ -389,7 +402,7 @@ GDALWarpCutlineMasker( void *pMaskFuncArg, CPL_UNUSED int nBandCount, CPL_UNUSED
     }
     else
     {
-        eErr = BlendMaskGenerator( nXOff, nYOff, nXSize, nYSize, 
+        eErr = BlendMaskGenerator( nXOff, nYOff, nXSize, nYSize,
                                    pabyPolyMask, (float *) pValidityMask,
                                    hPolygon, psWO->dfCutlineBlendDist );
     }
@@ -401,4 +414,3 @@ GDALWarpCutlineMasker( void *pMaskFuncArg, CPL_UNUSED int nBandCount, CPL_UNUSED
 
     return eErr;
 }
-

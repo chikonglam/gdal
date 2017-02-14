@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrsegylayer.cpp 27044 2014-03-16 23:41:27Z rouault $
+ * $Id: ogrsegylayer.cpp 32011 2015-12-06 10:19:18Z rouault $
  *
  * Project:  SEG-Y Translator
  * Purpose:  Implements OGRSEGYLayer class.
@@ -33,7 +33,7 @@
 #include "ogr_p.h"
 #include "ogr_srs_api.h"
 
-CPL_CVSID("$Id: ogrsegylayer.cpp 27044 2014-03-16 23:41:27Z rouault $");
+CPL_CVSID("$Id: ogrsegylayer.cpp 32011 2015-12-06 10:19:18Z rouault $");
 
 #define DT_IBM_4BYTES_FP         1
 #define DT_4BYTES_INT            2
@@ -226,11 +226,11 @@ static float SEGYReadMSBFloat32(const GByte* pabyVal)
 
 
 OGRSEGYLayer::OGRSEGYLayer( const char* pszFilename,
-                            VSILFILE* fp,
+                            VSILFILE* fpIn,
                             SEGYBinaryFileHeader* psBFH )
 
 {
-    this->fp = fp;
+    this->fp = fpIn;
     nNextFID = 0;
     bEOF = FALSE;
     memcpy(&sBFH, psBFH, sizeof(sBFH));
@@ -309,7 +309,7 @@ OGRFeature *OGRSEGYLayer::GetNextFeature()
 {
     OGRFeature  *poFeature;
 
-    while(TRUE)
+    while( true )
     {
         poFeature = GetNextRawFeature();
         if (poFeature == NULL)
@@ -573,8 +573,8 @@ OGRFeature *OGRSEGYLayer::GetNextRawFeature()
     }
 #endif
 
-    GByte* pabyData = (GByte*) VSIMalloc( nDataSize * nSamples );
-    double* padfValues = (double*) VSICalloc( nSamples, sizeof(double) );
+    GByte* pabyData = (GByte*) VSI_MALLOC_VERBOSE( nDataSize * nSamples );
+    double* padfValues = (double*) VSI_CALLOC_VERBOSE( nSamples, sizeof(double) );
     if (pabyData == NULL || padfValues == NULL)
     {
         VSIFSeekL( fp, nDataSize * nSamples, SEEK_CUR );
@@ -805,14 +805,15 @@ static const FieldDesc SEGYHeaderFields[] =
 
 OGRSEGYHeaderLayer::OGRSEGYHeaderLayer( const char* pszLayerName,
                                         SEGYBinaryFileHeader* psBFH,
-                                        char* pszHeaderTextIn )
+                                        const char* pszHeaderTextIn )
 
 {
     bEOF = FALSE;
     memcpy(&sBFH, psBFH, sizeof(sBFH));
-    pszHeaderText = pszHeaderTextIn;
+    pszHeaderText = CPLStrdup(pszHeaderTextIn);
 
     poFeatureDefn = new OGRFeatureDefn( pszLayerName );
+    SetDescription( poFeatureDefn->GetName() );
     poFeatureDefn->Reference();
     poFeatureDefn->SetGeomType( wkbNone );
 
@@ -856,7 +857,7 @@ OGRFeature *OGRSEGYHeaderLayer::GetNextFeature()
 {
     OGRFeature  *poFeature;
 
-    while(TRUE)
+    while( true )
     {
         poFeature = GetNextRawFeature();
         if (poFeature == NULL)

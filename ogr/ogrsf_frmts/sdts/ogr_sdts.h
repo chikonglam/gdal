@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_sdts.h 26466 2013-09-14 09:07:46Z rouault $
+ * $Id: ogr_sdts.h 32177 2015-12-14 07:25:30Z goatbar $
  *
  * Project:  STS Translator
  * Purpose:  Definition of classes finding SDTS support into OGRDriver
@@ -28,8 +28,8 @@
  * DEALINGS IN THE SOFTWARE.
  ****************************************************************************/
 
-#ifndef _OGR_SDTS_H_INCLUDED
-#define _OGR_SDTS_H_INCLUDED
+#ifndef OGR_SDTS_H_INCLUDED
+#define OGR_SDTS_H_INCLUDED
 
 #include "sdts_al.h"
 #include "ogrsf_frmts.h"
@@ -54,7 +54,7 @@ class OGRSDTSLayer : public OGRLayer
 
     void                BuildPolygons();
     int                 bPolygonsBuilt;
-    
+
   public:
                         OGRSDTSLayer( SDTSTransfer *, int, OGRSDTSDataSource*);
                         ~OGRSDTSLayer();
@@ -62,12 +62,12 @@ class OGRSDTSLayer : public OGRLayer
     void                ResetReading();
     OGRFeature *        GetNextFeature();
 
-//    OGRFeature         *GetFeature( long nFeatureId );
-    
+//    OGRFeature         *GetFeature( GIntBig nFeatureId );
+
     OGRFeatureDefn *    GetLayerDefn() { return poFeatureDefn; }
 
-//    int                 GetFeatureCount( int );
-    
+//    GIntBig             GetFeatureCount( int );
+
     int                 TestCapability( const char * );
 };
 
@@ -84,13 +84,13 @@ class OGRSDTSDataSource : public OGRDataSource
     OGRSDTSLayer        **papoLayers;
 
     OGRSpatialReference *poSRS;
-    
+
   public:
                         OGRSDTSDataSource();
                         ~OGRSDTSDataSource();
 
     int                 Open( const char * pszFilename, int bTestOpen );
-    
+
     const char          *GetName() { return pszName; }
     int                 GetLayerCount() { return nLayers; }
     OGRLayer            *GetLayer( int );
@@ -99,19 +99,4 @@ class OGRSDTSDataSource : public OGRDataSource
     OGRSpatialReference *GetSpatialRef() { return poSRS; }
 };
 
-/************************************************************************/
-/*                            OGRSDTSDriver                             */
-/************************************************************************/
-
-class OGRSDTSDriver : public OGRSFDriver
-{
-  public:
-                ~OGRSDTSDriver();
-                
-    const char *GetName();
-    OGRDataSource *Open( const char *, int );
-    int         TestCapability( const char * );
-};
-
-
-#endif /* ndef _OGR_SDTS_H_INCLUDED */
+#endif /* ndef OGR_SDTS_H_INCLUDED */

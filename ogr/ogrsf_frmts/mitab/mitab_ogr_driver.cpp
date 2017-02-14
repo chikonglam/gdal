@@ -10,6 +10,7 @@
  *
  **********************************************************************
  * Copyright (c) 1999, 2000, Stephane Villeneuve
+ * Copyright (c) 2014, Even Rouault <even.rouault at spatialys.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -17,16 +18,16 @@
  * the rights to use, copy, modify, merge, publish, distribute, sublicense,
  * and/or sell copies of the Software, and to permit persons to whom the
  * Software is furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included
  * in all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
  * THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  **********************************************************************
  *
@@ -75,41 +76,84 @@
 
 
 /************************************************************************/
-/*                           ~OGRTABDriver()                            */
+/*                  OGRTABDriverIdentify()                              */
 /************************************************************************/
 
-OGRTABDriver::~OGRTABDriver()
+static int OGRTABDriverIdentify( GDALOpenInfo* poOpenInfo )
 
 {
-}
-
-/************************************************************************/
-/*                OGRTABDriver::GetName()                               */
-/************************************************************************/
-
-const char *OGRTABDriver::GetName()
-
-{
-    return "MapInfo File";
+    /* Files not ending with .tab, .mif or .mid are not handled by this driver */
+    if( !poOpenInfo->bStatOK )
+        return FALSE;
+    if( poOpenInfo->bIsDirectory )
+        return -1; /* unsure */
+    if( poOpenInfo->fpL == NULL )
+        return FALSE;
+    if (EQUAL(CPLGetExtension(poOpenInfo->pszFilename), "MIF") ||
+        EQUAL(CPLGetExtension(poOpenInfo->pszFilename), "MID") )
+    {
+        return TRUE;
+    }
+    if (EQUAL(CPLGetExtension(poOpenInfo->pszFilename), "TAB") )
+    {
+        for( int i = 0; i < poOpenInfo->nHeaderBytes; i++)
+        {
+            const char* pszLine = (const char*)poOpenInfo->pabyHeader + i;
+            if (STARTS_WITH_CI(pszLine, "Fields"))
+                return TRUE;
+            else if (STARTS_WITH_CI(pszLine, "create view"))
+                return TRUE;
+            else if (STARTS_WITH_CI(pszLine, "\"\\IsSeamless\" = \"TRUE\""))
+                return TRUE;
+        }
+    }
+#ifdef DEBUG
+    /* For AFL, so that .cur_input is detected as the archive filename */
+    if( !STARTS_WITH(poOpenInfo->pszFilename, "/vsitar/") &&
+        EQUAL(CPLGetFilename(poOpenInfo->pszFilename), ".cur_input") )
+    {
+        return -1;
+    }
+#endif
+    return FALSE;
 }
 
 /************************************************************************/
 /*                  OGRTABDriver::Open()                                */
 /************************************************************************/
 
-OGRDataSource *OGRTABDriver::Open( const char * pszFilename,
-                                   int bUpdate )
+static GDALDataset *OGRTABDriverOpen( GDALOpenInfo* poOpenInfo )
 
 {
     OGRTABDataSource    *poDS;
-    
-    if( bUpdate )
+
+    if( OGRTABDriverIdentify(poOpenInfo) == FALSE )
     {
         return NULL;
     }
 
+    if (EQUAL(CPLGetExtension(poOpenInfo->pszFilename), "MIF") ||
+        EQUAL(CPLGetExtension(poOpenInfo->pszFilename), "MID") )
+    {
+        if( poOpenInfo->eAccess == GA_Update )
+            return NULL;
+    }
+
+#ifdef DEBUG
+    /* For AFL, so that .cur_input is detected as the archive filename */
+    if( poOpenInfo->fpL != NULL &&
+        !STARTS_WITH(poOpenInfo->pszFilename, "/vsitar/") &&
+        EQUAL(CPLGetFilename(poOpenInfo->pszFilename), ".cur_input") )
+    {
+        GDALOpenInfo oOpenInfo( (CPLString("/vsitar/") + poOpenInfo->pszFilename).c_str(),
+                                poOpenInfo->nOpenFlags );
+        oOpenInfo.papszOpenOptions = poOpenInfo->papszOpenOptions;
+        return OGRTABDriverOpen(&oOpenInfo);
+    }
+#endif
+
     poDS = new OGRTABDataSource();
-    if( poDS->Open( pszFilename, TRUE ) )
+    if( poDS->Open( poOpenInfo, TRUE ) )
         return poDS;
     else
     {
@@ -120,12 +164,15 @@ OGRDataSource *OGRTABDriver::Open( const char * pszFilename,
 
 
 /************************************************************************/
-/*                          CreateDataSource()                          */
+/*                              Create()                                */
 /************************************************************************/
 
-OGRDataSource *OGRTABDriver::CreateDataSource( const char * pszName,
-                                               char ** papszOptions )
-
+static GDALDataset *OGRTABDriverCreate( const char * pszName,
+                                        CPL_UNUSED int nBands,
+                                        CPL_UNUSED int nXSize,
+                                        CPL_UNUSED int nYSize,
+                                        CPL_UNUSED GDALDataType eDT,
+                                        char **papszOptions )
 {
     OGRTABDataSource *poDS;
 
@@ -143,78 +190,49 @@ OGRDataSource *OGRTABDriver::CreateDataSource( const char * pszName,
 }
 
 /************************************************************************/
-/*                           TestCapability()                           */
+/*                              Delete()                                */
 /************************************************************************/
 
-int OGRTABDriver::TestCapability( const char * pszCap )
+static CPLErr OGRTABDriverDelete( const char *pszDataSource )
 
 {
-    if( EQUAL(pszCap,ODrCCreateDataSource) )
-        return TRUE;
-    else if( EQUAL(pszCap,ODrCDeleteDataSource) )
-        return TRUE;
-    else
-        return FALSE;
-}
-
-/************************************************************************/
-/*                          DeleteDataSource()                          */
-/************************************************************************/
-
-OGRErr OGRTABDriver::DeleteDataSource( const char *pszDataSource )
-
-{
-    int iExt;
-    VSIStatBuf sStatBuf;
-    static const char *apszExtensions[] = 
-        { "mif", "mid", "tab", "map", "ind", "dat", "id", NULL };
-
-    if( VSIStat( pszDataSource, &sStatBuf ) != 0 )
+    GDALDataset* poDS;
     {
-        CPLError( CE_Failure, CPLE_AppDefined,
-                  "%s does not appear to be a file or directory.",
-                  pszDataSource );
-
-        return OGRERR_FAILURE;
+        // Make sure that the file opened by GDALOpenInfo is closed
+        // when the object goes out of scope
+        GDALOpenInfo oOpenInfo(pszDataSource, GA_ReadOnly);
+        poDS = OGRTABDriverOpen(&oOpenInfo);
     }
+    if( poDS == NULL )
+        return CE_Failure;
+    char** papszFileList = poDS->GetFileList();
+    delete poDS;
 
-    if( VSI_ISREG(sStatBuf.st_mode) 
-        && (EQUAL(CPLGetExtension(pszDataSource),"mif")
-            || EQUAL(CPLGetExtension(pszDataSource),"mid")
-            || EQUAL(CPLGetExtension(pszDataSource),"tab")) )
+    char** papszIter = papszFileList;
+    while( papszIter && *papszIter )
     {
-        for( iExt=0; apszExtensions[iExt] != NULL; iExt++ )
-        {
-            const char *pszFile = CPLResetExtension(pszDataSource,
-                                                    apszExtensions[iExt] );
-            if( VSIStat( pszFile, &sStatBuf ) == 0 )
-                VSIUnlink( pszFile );
-        }
+        VSIUnlink( *papszIter );
+        papszIter ++;
     }
-    else if( VSI_ISDIR(sStatBuf.st_mode) )
+    CSLDestroy(papszFileList);
+
+    VSIStatBufL sStatBuf;
+    if( VSIStatL( pszDataSource, &sStatBuf ) == 0 &&
+        VSI_ISDIR(sStatBuf.st_mode) )
     {
-        char **papszDirEntries = CPLReadDir( pszDataSource );
-        int  iFile;
-
-        for( iFile = 0; 
-             papszDirEntries != NULL && papszDirEntries[iFile] != NULL;
-             iFile++ )
-        {
-            if( CSLFindString( (char **) apszExtensions, 
-                               CPLGetExtension(papszDirEntries[iFile])) != -1)
-            {
-                VSIUnlink( CPLFormFilename( pszDataSource, 
-                                            papszDirEntries[iFile], 
-                                            NULL ) );
-            }
-        }
-
-        CSLDestroy( papszDirEntries );
-
         VSIRmdir( pszDataSource );
     }
 
-    return OGRERR_NONE;
+    return CE_None;
+}
+
+/************************************************************************/
+/*                          OGRTABDriverUnload()                        */
+/************************************************************************/
+
+static void OGRTABDriverUnload(CPL_UNUSED GDALDriver* poDriver)
+{
+    MITABFreeCoordSysTable();
 }
 
 /************************************************************************/
@@ -227,7 +245,45 @@ extern "C"
 void RegisterOGRTAB()
 
 {
-    OGRSFDriverRegistrar::GetRegistrar()->RegisterDriver( new OGRTABDriver );
+    if( GDALGetDriverByName( "MapInfo File" ) != NULL )
+        return;
+
+    GDALDriver *poDriver = new GDALDriver();
+
+    poDriver->SetDescription( "MapInfo File" );
+    poDriver->SetMetadataItem( GDAL_DCAP_VECTOR, "YES" );
+    poDriver->SetMetadataItem( GDAL_DMD_LONGNAME, "MapInfo File" );
+    poDriver->SetMetadataItem( GDAL_DMD_EXTENSIONS, "tab mif mid" );
+    poDriver->SetMetadataItem( GDAL_DMD_HELPTOPIC, "drv_mitab.html" );
+    poDriver->SetMetadataItem( GDAL_DCAP_VIRTUALIO, "YES" );
+    poDriver->SetMetadataItem( GDAL_DS_LAYER_CREATIONOPTIONLIST,
+"<LayerCreationOptionList>"
+"  <Option name='BOUNDS' type='string' description='Custom bounds. Expect format is xmin,ymin,xmax,ymax'/>"
+"</LayerCreationOptionList>");
+
+    poDriver->SetMetadataItem( GDAL_DMD_CREATIONOPTIONLIST,
+"<CreationOptionList>"
+"  <Option name='FORMAT' type='string-select' description='type of MapInfo format'>"
+"    <Value>MIF</Value>"
+"    <Value>TAB</Value>"
+"  </Option>"
+"  <Option name='SPATIAL_INDEX_MODE' type='string-select' description='type of spatial index' default='QUICK'>"
+"    <Value>QUICK</Value>"
+"    <Value>OPTIMIZED</Value>"
+"  </Option>"
+"  <Option name='BLOCKSIZE' type='int' description='.map block size' min='512' max='32256' default='512'/>"
+"</CreationOptionList>");
+
+    poDriver->SetMetadataItem( GDAL_DMD_CREATIONFIELDDATATYPES,
+                               "Integer Real String Date DateTime Time" );
+
+    poDriver->pfnOpen = OGRTABDriverOpen;
+    poDriver->pfnIdentify = OGRTABDriverIdentify;
+    poDriver->pfnCreate = OGRTABDriverCreate;
+    poDriver->pfnDelete = OGRTABDriverDelete;
+    poDriver->pfnUnloadDriver = OGRTABDriverUnload;
+
+    GetGDALDriverManager()->RegisterDriver( poDriver );
 }
 
 }

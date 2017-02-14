@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: testreprojmulti.cpp 27044 2014-03-16 23:41:27Z rouault $
+ * $Id: testreprojmulti.cpp 33011 2016-01-15 22:20:29Z goatbar $
  *
  * Project:  GDAL
  * Purpose:  Test multi-threaded reprojection
@@ -34,7 +34,7 @@
 #include "cpl_multiproc.h"
 #include "ogr_spatialref.h"
 
-CPL_CVSID("$Id: testreprojmulti.cpp 27044 2014-03-16 23:41:27Z rouault $");
+CPL_CVSID("$Id: testreprojmulti.cpp 33011 2016-01-15 22:20:29Z goatbar $");
 
 double* padfRefX;
 double* padfRefY;
@@ -55,7 +55,7 @@ void ReprojFunc(void* unused)
     OGRCoordinateTransformation *poCTInThread;
     if (!bCreateCTInThread)
         poCTInThread = poCT;
-    while(TRUE)
+    while( true )
     {
         if (bCreateCTInThread)
             poCTInThread = OGRCreateCoordinateTransformation(&oSrcSRS,&oDstSRS);
@@ -65,7 +65,7 @@ void ReprojFunc(void* unused)
         memcpy(padfResultY, padfRefY, 1024 * sizeof(double));
         poCT->TransformEx( 1024, padfResultX, padfResultY, NULL, NULL );
 
-        /* Check that the results are consistant with the reference results */
+        /* Check that the results are consistent with the reference results */
         assert(memcmp(padfResultX, padfRefResultX, 1024 * sizeof(double)) == 0);
         assert(memcmp(padfResultY, padfRefResultY, 1024 * sizeof(double)) == 0);
 
@@ -77,7 +77,7 @@ void ReprojFunc(void* unused)
 int main(int argc, char* argv[])
 {
     int nThreads = 2;
-    
+
     int i;
     for(i=0;i<argc;i++)
     {

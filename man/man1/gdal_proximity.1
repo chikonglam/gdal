@@ -1,4 +1,4 @@
-.TH "gdal_proximity" 1 "Mon Jan 25 2016" "GDAL" \" -*- nroff -*-
+.TH "gdal_proximity" 1 "Fri Jan 20 2017" "GDAL" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -12,7 +12,8 @@ gdal_proximity.py srcfile dstfile [-srcband n] [-dstband n]
                   [-of format] [-co name=value]*
                   [-ot Byte/Int16/Int32/Float32/etc]
                   [-values n,n,n] [-distunits PIXEL/GEO]
-                  [-maxdist n] [-nodata n] [-fixed-buf-val n]
+                  [-maxdist n] [-nodata n] [-use_input_nodata YES/NO]
+                  [-fixed-buf-val n] 
 .fi
 .PP
 .SH "DESCRIPTION"
@@ -38,7 +39,7 @@ Select the output format\&. The default is GeoTIFF (GTiff)\&. Use the short form
 passes a creation option to the output format driver\&. Multiple \fB-co\fP options may be listed\&. See format specific documentation for legal creation options for each format\&. 
 .PP
 .IP "\fB\fB-ot\fP \fIdatatype\fP:\fP" 1c
-Force the output image bands to have a specific type\&. Use type names (ie\&. Byte, Int16,\&.\&.\&.) 
+Force the output image bands to have a specific type\&. Use type names (i\&.e\&. Byte, Int16,\&.\&.\&.) 
 .PP
 .IP "\fB\fB-values\fP \fIn,n,n\fP:\fP" 1c
 A list of target pixel values in the source image to be considered target pixels\&. If not specified, all non-zero pixels will be considered target pixels\&. 
@@ -47,10 +48,13 @@ A list of target pixel values in the source image to be considered target pixels
 Indicate whether distances generated should be in pixel or georeferenced coordinates (default PIXEL)\&. 
 .PP
 .IP "\fB\fB-maxdist\fP \fIn\fP:\fP" 1c
-The maximum distance to be generated\&. All pixels beyond this distance will be assigned either the nodata value, or 65535\&. Distance is interpreted in pixels unless -distunits GEO is specified\&. 
+The maximum distance to be generated\&. The nodata value will be used for pixels beyond this distance\&. If a nodata value is not provided, the output band will be queried for its nodata value\&. If the output band does not have a nodata value, then the value 65535 will be used\&. Distance is interpreted in pixels unless -distunits GEO is specified\&. 
 .PP
 .IP "\fB\fB-nodata\fP \fIn\fP:\fP" 1c
 Specify a nodata value to use for the destination proximity raster\&. 
+.PP
+.IP "\fB\fB-use_input_nodata\fP \fIYES/NO\fP:\fP" 1c
+(GDAL >= 2\&.0) Indicate whether nodata pixels in the input raster should be nodata in the output raster (default NO)\&. 
 .PP
 .IP "\fB\fB-fixed-buf-val\fP \fIn\fP:\fP" 1c
 Specify a value to be applied to all pixels that are within the -maxdist of target pixels (including the target pixels) instead of a distance value\&. 

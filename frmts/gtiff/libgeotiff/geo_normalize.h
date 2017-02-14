@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: geo_normalize.h 1983 2011-03-10 02:10:00Z warmerdam $
+ * $Id: geo_normalize.h 2233 2012-10-09 01:33:11Z warmerdam $
  *
  * Project:  libgeotiff
  * Purpose:  Include file related to geo_normalize.c containing Code to
@@ -43,7 +43,7 @@ extern "C" {
  *
  * Include file for extended projection definition normalization api.
  */
-    
+
 #define MAX_GTIF_PROJPARMS 	10
 
 /**
@@ -60,7 +60,7 @@ typedef struct {
 
     /** From GeographicTypeGeoKey tag.  For example GCS_WGS_84 or
         GCS_Voirol_1875_Paris.  Includes datum and prime meridian value. */
-    short	GCS;	      
+    short	GCS;
 
     /** From ProjLinearUnitsGeoKey.  For example Linear_Meter. */
     short	UOMLength;
@@ -73,7 +73,7 @@ typedef struct {
 
     /** One UOMAngle = UOMLengthInDegrees degrees. */
     double      UOMAngleInDegrees;
-    
+
     /** Datum from GeogGeodeticDatumGeoKey tag. For example Datum_WGS84 */
     short	Datum;
 
@@ -95,11 +95,15 @@ typedef struct {
     /** The length of the semi minor ellipse axis in meters. */
     double	SemiMinor;
 
+  /* This #if is primary intended to maintain binary compatibility with older
+     versions of libgeotiff for MrSID binaries (for example). */
+#if !defined(GEO_NORMALIZE_DISABLE_TOWGS84)
     /** TOWGS84 transformation values (0/3/7) */
     short       TOWGS84Count;
 
     /** TOWGS84 transformation values */
     double      TOWGS84[7];
+#endif /* !defined(GEO_NORMALIZE_DISABLE_TOWGS84) */
 
     /** Projection id from ProjectionGeoKey.  For example Proj_UTM_11S. */
     short	ProjCode;
@@ -109,9 +113,9 @@ typedef struct {
     short	Projection;
 
     /** GeoTIFF identifier for underlying projection method.  While some of
-      these values have corresponding vlaues in EPSG (Projection field),
+      these values have corresponding values in EPSG (Projection field),
       others do not.  For example CT_TransverseMercator. */
-    short	CTProjection;   
+    short	CTProjection;
 
     /** Number of projection parameters in ProjParm and ProjParmId. */
     int		nParms;
@@ -140,7 +144,7 @@ typedef struct {
 } GTIFDefn;
 
 int CPL_DLL GTIFGetPCSInfo( int nPCSCode, char **ppszEPSGName,
-                            short *pnProjOp, 
+                            short *pnProjOp,
                             short *pnUOMLengthCode, short *pnGeogCS );
 int CPL_DLL GTIFGetProjTRFInfo( int nProjTRFCode,
                                 char ** ppszProjTRFName,
@@ -164,7 +168,7 @@ int CPL_DLL GTIFGetUOMAngleInfo( int nUOMAngleCode,
                                  char **ppszUOMName,
                                  double * pdfInDegrees );
 double CPL_DLL GTIFAngleToDD( double dfAngle, int nUOMAngle );
-    
+
 
 /* this should be used to free strings returned by GTIFGet... funcs */
 void CPL_DLL GTIFFreeMemory( char * );
@@ -172,7 +176,8 @@ void CPL_DLL GTIFDeaccessCSV( void );
 
 int CPL_DLL GTIFGetDefn( GTIF *psGTIF, GTIFDefn * psDefn );
 void CPL_DLL GTIFPrintDefn( GTIFDefn *, FILE * );
-void CPL_DLL GTIFFreeDefn( GTIF * );
+GTIFDefn CPL_DLL *GTIFAllocDefn( void );
+void CPL_DLL GTIFFreeDefn( GTIFDefn * );
 
 void CPL_DLL SetCSVFilenameHook( const char *(*CSVFileOverride)(const char *) );
 
@@ -210,5 +215,5 @@ int  CPL_DLL  GTIFSetFromProj4( GTIF *gtif, const char *proj4 );
 #ifdef __cplusplus
 }
 #endif
-    
+
 #endif /* ndef GEO_NORMALIZE_H_INCLUDED */

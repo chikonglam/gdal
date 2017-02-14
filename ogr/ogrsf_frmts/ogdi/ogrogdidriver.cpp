@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrogdidriver.cpp 16861 2009-04-26 19:22:29Z rouault $
+ * $Id: ogrogdidriver.cpp 33199 2016-01-29 15:48:41Z rouault $
  *
  * Project:  OGDI Bridge
  * Purpose:  Implements OGROGDIDriver class.
@@ -31,7 +31,7 @@
 #include "ogrogdi.h"
 #include "cpl_conv.h"
 
-CPL_CVSID("$Id: ogrogdidriver.cpp 16861 2009-04-26 19:22:29Z rouault $");
+CPL_CVSID("$Id: ogrogdidriver.cpp 33199 2016-01-29 15:48:41Z rouault $");
 
 /************************************************************************/
 /*                           ~OGROGDIDriver()                           */
@@ -49,7 +49,7 @@ OGROGDIDriver::~OGROGDIDriver()
 const char *OGROGDIDriver::GetName()
 
 {
-    return "OGDI";
+    return "OGR_OGDI";
 }
 
 /************************************************************************/
@@ -61,6 +61,9 @@ OGRDataSource *OGROGDIDriver::Open( const char * pszFilename,
 
 {
     OGROGDIDataSource   *poDS;
+
+    if( !STARTS_WITH_CI(pszFilename, "gltp:") )
+        return NULL;
 
     poDS = new OGROGDIDataSource();
 
@@ -77,7 +80,7 @@ OGRDataSource *OGROGDIDriver::Open( const char * pszFilename,
         delete poDS;
         poDS = NULL;
     }
- 
+
     return poDS;
 }
 
@@ -86,7 +89,7 @@ OGRDataSource *OGROGDIDriver::Open( const char * pszFilename,
 /*                           TestCapability()                           */
 /************************************************************************/
 
-int OGROGDIDriver::TestCapability( const char * pszCap )
+int OGROGDIDriver::TestCapability( CPL_UNUSED const char * pszCap )
 
 {
     return FALSE;
@@ -99,8 +102,14 @@ int OGROGDIDriver::TestCapability( const char * pszCap )
 void RegisterOGROGDI()
 
 {
-    if (! GDAL_CHECK_VERSION("OGR/OGDI driver"))
+    if( !GDAL_CHECK_VERSION("OGR/OGDI driver") )
         return;
-    OGRSFDriverRegistrar::GetRegistrar()->RegisterDriver( new OGROGDIDriver );
+
+    OGRSFDriver* poDriver = new OGROGDIDriver;
+    poDriver->SetMetadataItem( GDAL_DMD_LONGNAME,
+                               "OGDI Vectors (VPF, VMAP, DCW)" );
+    poDriver->SetMetadataItem( GDAL_DMD_HELPTOPIC, "drv_ogdi.html" );
+
+    OGRSFDriverRegistrar::GetRegistrar()->RegisterDriver( poDriver );
 }
 

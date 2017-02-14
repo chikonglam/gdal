@@ -15,7 +15,7 @@ public class RasterAttributeTable : IDisposable {
   private HandleRef swigCPtr;
   protected bool swigCMemOwn;
   protected object swigParentRef;
-  
+
   protected static object ThisOwn_true() { return null; }
   protected object ThisOwn_false() { return this; }
 
@@ -181,6 +181,11 @@ public class RasterAttributeTable : IDisposable {
     int ret = GdalPINVOKE.RasterAttributeTable_ChangesAreWrittenToFile(swigCPtr);
     if (GdalPINVOKE.SWIGPendingException.Pending) throw GdalPINVOKE.SWIGPendingException.Retrieve();
     return ret;
+  }
+
+  public void DumpReadable() {
+    GdalPINVOKE.RasterAttributeTable_DumpReadable(swigCPtr);
+    if (GdalPINVOKE.SWIGPendingException.Pending) throw GdalPINVOKE.SWIGPendingException.Retrieve();
   }
 
 }

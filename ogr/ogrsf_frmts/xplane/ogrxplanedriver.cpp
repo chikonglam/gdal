@@ -49,12 +49,16 @@ OGRDataSource *OGRXPlaneDriver::Open( const char * pszFilename, int bUpdate )
 {
     if ( bUpdate )
     {
-        return FALSE;
+        return NULL;
     }
+
+    if( !EQUAL(CPLGetExtension(pszFilename), "dat") )
+        return NULL;
 
     OGRXPlaneDataSource   *poDS = new OGRXPlaneDataSource();
 
-    int bReadWholeFile = CSLTestBoolean(CPLGetConfigOption("OGR_XPLANE_READ_WHOLE_FILE", "TRUE"));
+    bool bReadWholeFile = CPLTestBool(
+        CPLGetConfigOption("OGR_XPLANE_READ_WHOLE_FILE", "TRUE"));
 
     if( !poDS->Open( pszFilename, bReadWholeFile ) )
     {
@@ -81,6 +85,13 @@ int OGRXPlaneDriver::TestCapability( CPL_UNUSED const char * pszCap )
 void RegisterOGRXPlane()
 
 {
-    OGRSFDriverRegistrar::GetRegistrar()->RegisterDriver( new OGRXPlaneDriver );
-}
+    OGRSFDriver* poDriver = new OGRXPlaneDriver;
 
+    poDriver->SetMetadataItem( GDAL_DMD_LONGNAME,
+                               "X-Plane/Flightgear aeronautical data" );
+    poDriver->SetMetadataItem( GDAL_DMD_EXTENSION, "dat" );
+    poDriver->SetMetadataItem( GDAL_DMD_HELPTOPIC, "drv_xplane.html" );
+    poDriver->SetMetadataItem( GDAL_DCAP_VIRTUALIO, "YES" );
+
+    OGRSFDriverRegistrar::GetRegistrar()->RegisterDriver( poDriver );
+}

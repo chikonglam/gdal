@@ -6,6 +6,15 @@
 /* Define to 1 if you have the `PTHREAD_MUTEX_RECURSIVE' constant. */
 #undef HAVE_PTHREAD_MUTEX_RECURSIVE
 
+/* Define to 1 if you have the `PTHREAD_MUTEX_ADAPTIVE_NP' constant. */
+#undef HAVE_PTHREAD_MUTEX_ADAPTIVE_NP
+
+/* Define to 1 if you have the `pthread_spinlock_t' type. */
+#undef HAVE_PTHREAD_SPINLOCK
+
+/* Define to 1 if you have the 5 args `mremap' function. */
+#undef HAVE_5ARGS_MREMAP
+
 /* --prefix directory for GDAL install */
 #undef GDAL_PREFIX
 
@@ -49,7 +58,7 @@
 /* Define if you have the iconv() function and it works. */
 #undef HAVE_ICONV
 
-/* Define as 0 or 1 according to the floating point format suported by the
+/* Define as 0 or 1 according to the floating point format supported by the
    machine */
 #undef HAVE_IEEEFP
 
@@ -140,6 +149,15 @@
 /* Define to 1 if you have the `vfork' function. */
 #undef HAVE_VFORK
 
+/* Define to 1 if you have the `mmap' function. */
+#undef HAVE_MMAP
+
+/* Define to 1 if you have the statvfs' function. */
+#undef HAVE_STATVFS
+
+/* Define to 1 if you have the `statvfs64' function. */
+#undef HAVE_STATVFS64
+
 /* Define to 1 if you have the `lstat' function. */
 #undef HAVE_LSTAT
 
@@ -214,7 +232,13 @@
 /* Define to 1 if you have the `getaddrinfo' function. */
 #undef HAVE_GETADDRINFO
 
+/* Define to 1 if you have the _SC_PHYS_PAGES' constant. */
+#undef HAVE_SC_PHYS_PAGES
+
 /* Use this file to override settings in instances where you're doing FAT compiles
-   on Apple.  It is currently off by default because it doesn't seem to work with 
-   newish ( XCode >= 3/28/11) XCodes */
+   on Apple.  It is currently off by default because it doesn't seem to work with
+   XCode >= 3/28/11 */
 /* #include "cpl_config_extras.h" */
+
+/* Define to 1 if you have the `uselocale' function. */
+#undef HAVE_USELOCALE

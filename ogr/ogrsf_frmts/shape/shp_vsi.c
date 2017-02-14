@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: shp_vsi.c 27044 2014-03-16 23:41:27Z rouault $
+ * $Id: shp_vsi.c 33714 2016-03-13 05:42:13Z goatbar $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  IO Redirection via VSI services for shp/dbf io.
@@ -32,7 +32,7 @@
 #include "cpl_error.h"
 #include "cpl_conv.h"
 
-CPL_CVSID("$Id: shp_vsi.c 27044 2014-03-16 23:41:27Z rouault $");
+CPL_CVSID("$Id: shp_vsi.c 33714 2016-03-13 05:42:13Z goatbar $");
 
 typedef struct
 {
@@ -51,6 +51,16 @@ VSILFILE* VSI_SHP_GetVSIL( SAFile file )
 {
     OGRSHPDBFFile* pFile = (OGRSHPDBFFile*) file;
     return pFile->fp;
+}
+
+/************************************************************************/
+/*                        VSI_SHP_GetFilename()                         */
+/************************************************************************/
+
+const char* VSI_SHP_GetFilename( SAFile file )
+{
+    OGRSHPDBFFile* pFile = (OGRSHPDBFFile*) file;
+    return pFile->pszFilename;
 }
 
 /************************************************************************/
@@ -105,7 +115,7 @@ SAOffset VSI_SHP_Read( void *p, SAOffset size, SAOffset nmemb, SAFile file )
 
 {
     OGRSHPDBFFile* pFile = (OGRSHPDBFFile*) file;
-    SAOffset ret = (SAOffset) VSIFReadL( p, (size_t) size, (size_t) nmemb, 
+    SAOffset ret = (SAOffset) VSIFReadL( p, (size_t) size, (size_t) nmemb,
                                  pFile->fp );
     pFile->nCurOffset += ret * size;
     return ret;
@@ -150,7 +160,7 @@ SAOffset VSI_SHP_Write( void *p, SAOffset size, SAOffset nmemb, SAFile file )
     SAOffset ret;
     if( !VSI_SHP_WriteMoreDataOK( file, size * nmemb ) )
         return 0;
-    ret = (SAOffset) VSIFWriteL( p, (size_t) size, (size_t) nmemb, 
+    ret = (SAOffset) VSIFWriteL( p, (size_t) size, (size_t) nmemb,
                                   pFile->fp );
     pFile->nCurOffset += ret * size;
     return ret;

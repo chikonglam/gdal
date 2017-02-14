@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: rasterlitedataset.h 27044 2014-03-16 23:41:27Z rouault $
+ * $Id: rasterlitedataset.h 31167 2015-10-27 21:33:35Z goatbar $
  *
  * Project:  GDAL Rasterlite driver
  * Purpose:  Implement GDAL Rasterlite support using OGR SQLite driver
@@ -31,8 +31,17 @@
 #define RASTERLITE_DATASET_INCLUDED
 
 #include "gdal_pam.h"
+#include "ogr_api.h"
 
 char** RasterliteGetTileDriverOptions(char** papszOptions);
+
+OGRDataSourceH RasterliteOpenSQLiteDB(const char* pszFilename,
+                                      GDALAccess eAccess);
+CPLString RasterliteGetPixelSizeCond(double dfPixelXSize,
+                                     double dfPixelYSize,
+                                     const char* pszTablePrefixWithDot = "");
+CPLString RasterliteGetSpatialFilterCond(double minx, double miny,
+                                         double maxx, double maxy);
 
 class RasterliteBand;
 
@@ -45,22 +54,22 @@ class RasterliteBand;
 class RasterliteDataset : public GDALPamDataset
 {
     friend class RasterliteBand;
-    
+
   public:
                  RasterliteDataset();
                  RasterliteDataset(RasterliteDataset* poMainDS, int nLevel);
-                 
+
     virtual     ~RasterliteDataset();
-    
+
     virtual char      **GetMetadataDomainList();
     virtual char **GetMetadata( const char *pszDomain );
     virtual const char *GetMetadataItem( const char *pszName, 
                                          const char *pszDomain );
     virtual CPLErr GetGeoTransform( double* padfGeoTransform );
     virtual const char* GetProjectionRef();
-    
+
     virtual char** GetFileList();
-    
+
     virtual CPLErr IBuildOverviews( const char * pszResampling, 
                                     int nOverviews, int * panOverviewList,
                                     int nBands, int * panBandList,
@@ -73,34 +82,34 @@ class RasterliteDataset : public GDALPamDataset
     virtual int         CloseDependentDatasets();
 
   private:
-  
     int bMustFree;
     RasterliteDataset* poMainDS;
     int nLevel;
-    
+
     char** papszMetadata;
     char** papszImageStructure;
     char** papszSubDatasets;
-    
+
     int nResolutions;
-    double* padfXResolutions, *padfYResolutions;
+    double *padfXResolutions;
+    double *padfYResolutions;
     RasterliteDataset** papoOverviews;
     int nLimitOvrCount;
-    
+
     int bValidGeoTransform;
     double adfGeoTransform[6];
     char* pszSRS;
-    
+
     GDALColorTable* poCT;
-    
+
     CPLString osTableName;
     CPLString osFileName;
-    
+
     int bCheckForExistingOverview;
     CPLString osOvrFileName;
 
     OGRDataSourceH hDS;
-    
+
     void AddSubDataset( const char* pszDSName);
     int  GetBlockParams(OGRLayerH hRasterLyr, int nLevel, int* pnBands,
                         GDALDataType* peDataType,

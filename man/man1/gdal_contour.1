@@ -1,4 +1,4 @@
-.TH "gdal_contour" 1 "Mon Jan 25 2016" "GDAL" \" -*- nroff -*-
+.TH "gdal_contour" 1 "Fri Jan 20 2017" "GDAL" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -55,6 +55,9 @@ Name one or more 'fixed levels' to extract\&.
 .IP "\fB\fB-nln\fP \fIoutlayername\fP: \fP" 1c
 Provide a name for the output vector layer\&. Defaults to 'contour'\&. 
 .PP
+.SH "C API"
+.PP
+Functionality of this utility can be done from C with GDALContourGenerate()\&.
 .SH "EXAMPLE"
 .PP
 This would create 10meter contours from the DEM data in dem\&.tif and produce a shapefile in contour\&.shp/shx/dbf with the contour elevations in the 'elev' attribute\&.

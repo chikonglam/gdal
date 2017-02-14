@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: vfkproperty.cpp 25702 2013-03-07 17:17:54Z martinl $
+ * $Id: vfkproperty.cpp 33713 2016-03-12 17:41:57Z goatbar $
  *
  * Project:  VFK Reader - Property definition
  * Purpose:  Implements VFKProperty class.
@@ -46,7 +46,7 @@ VFKProperty::VFKProperty()
 /*!
   \brief Set VFK property (integer)
 */
-VFKProperty::VFKProperty(int iValue) 
+VFKProperty::VFKProperty(int iValue)
     : m_bIsNull(FALSE), m_nValue(iValue), m_dValue(0.0)
 {
 }
@@ -63,7 +63,7 @@ VFKProperty::VFKProperty(double dValue)
   \brief Set VFK property (string)
 */
 VFKProperty::VFKProperty(const char *pszValue)
-    : m_bIsNull(FALSE), m_nValue(0), m_dValue(0.0), m_strValue(0 != pszValue ? pszValue : "")
+    : m_bIsNull(FALSE), m_nValue(0), m_dValue(0.0), m_strValue(NULL != pszValue ? pszValue : "")
 {
 }
 
@@ -103,4 +103,28 @@ VFKProperty& VFKProperty::operator=(VFKProperty const& other)
         m_strValue = other.m_strValue;
     }
     return *this;
+}
+
+/*!
+  \brief Get string property
+
+  \param escape TRUE to escape characters for SQL
+
+  \return string buffer
+*/
+const char *VFKProperty::GetValueS(bool escape) const
+{
+    size_t ipos;
+
+    if (!escape)
+        return m_strValue.c_str();
+
+    CPLString strValue(m_strValue);
+    ipos = 0;
+    while (std::string::npos != (ipos = strValue.find("'", ipos))) {
+        strValue.replace(ipos, 1, "\'\'", 2);
+        ipos += 2;
+    }
+
+    return CPLSPrintf("%s", strValue.c_str());
 }

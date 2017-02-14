@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_idrisi.h 27044 2014-03-16 23:41:27Z rouault $
+ * $Id: ogr_idrisi.h 32745 2016-01-04 23:16:43Z goatbar $
  *
  * Project:  Idrisi Translator
  * Purpose:  Definition of classes for OGR Idrisi driver.
@@ -27,8 +27,8 @@
  * DEALINGS IN THE SOFTWARE.
  ****************************************************************************/
 
-#ifndef _OGR_IDRISI_H_INCLUDED
-#define _OGR_IDRISI_H_INCLUDED
+#ifndef OGR_IDRISI_H_INCLUDED
+#define OGR_IDRISI_H_INCLUDED
 
 #include "ogrsf_frmts.h"
 
@@ -45,11 +45,11 @@ protected:
 
     VSILFILE*          fp;
     VSILFILE*          fpAVL;
-    int                bEOF;
+    bool               bEOF;
 
     int                nNextFID;
 
-    int                bExtentValid;
+    bool               bExtentValid;
     double             dfMinX;
     double             dfMinY;
     double             dfMaxX;
@@ -78,8 +78,10 @@ protected:
 
     void SetExtent(double dfMinX, double dfMinY, double dfMaxX, double dfMaxY);
     virtual OGRErr      GetExtent(OGREnvelope *psExtent, int bForce = TRUE);
+    virtual OGRErr      GetExtent(int iGeomField, OGREnvelope *psExtent, int bForce)
+                { return OGRLayer::GetExtent(iGeomField, psExtent, bForce); }
 
-    virtual int         GetFeatureCount( int bForce = TRUE );
+    virtual GIntBig         GetFeatureCount( int bForce = TRUE );
 };
 
 /************************************************************************/
@@ -97,8 +99,7 @@ class OGRIdrisiDataSource : public OGRDataSource
                         OGRIdrisiDataSource();
                         ~OGRIdrisiDataSource();
 
-    int                 Open( const char * pszFilename,
-                              int bUpdate );
+    int                 Open( const char * pszFilename );
 
     virtual const char*         GetName() { return pszName; }
 
@@ -123,4 +124,4 @@ class OGRIdrisiDriver : public OGRSFDriver
 };
 
 
-#endif /* ndef _OGR_IDRISI_H_INCLUDED */
+#endif /* ndef OGR_IDRISI_H_INCLUDED */

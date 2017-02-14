@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: nitfdataset.h 27044 2014-03-16 23:41:27Z rouault $
+ * $Id: nitfdataset.h 33794 2016-03-26 13:19:07Z goatbar $
  *
  * Project:  NITF Read/Write Translator
  * Purpose:  GDALDataset/GDALRasterBand declarations.
@@ -37,7 +37,7 @@
 #include "gdal_proxy.h"
 #include <map>
 
-CPLErr NITFSetColorInterpretation( NITFImage *psImage, 
+CPLErr NITFSetColorInterpretation( NITFImage *psImage,
                                    int nBand,
                                    GDALColorInterp eInterp );
 
@@ -70,10 +70,10 @@ class NITFDataset : public GDALPamDataset
     NITFFile    *psFile;
     NITFImage   *psImage;
 
-    GDALPamDataset *poJ2KDataset;
+    GDALDataset *poJ2KDataset;
     int         bJP2Writing;
 
-    GDALPamDataset *poJPEGDataset;
+    GDALDataset *poJPEGDataset;
 
     int         bGotGeoTransform;
     double      adfGeoTransform[6];
@@ -110,13 +110,13 @@ class NITFDataset : public GDALPamDataset
     CPLString    osNITFFilename;
 
     CPLString    osRSetVRT;
-    int          CheckForRSets( const char *pszFilename );
+    int          CheckForRSets( const char *pszFilename, char** papszSiblingFiles );
 
     char       **papszTextMDToWrite;
     char       **papszCgmMDToWrite;
-    
+
     int          bInLoadXML;
-    
+
     int          bExposeUnderlyingJPEGDatasetOverviews;
     int          ExposeUnderlyingJPEGDatasetOverviews() const { return bExposeUnderlyingJPEGDatasetOverviews; }
 
@@ -125,17 +125,20 @@ class NITFDataset : public GDALPamDataset
 
   public:
                  NITFDataset();
-                 ~NITFDataset();
+    virtual ~NITFDataset();
 
     virtual CPLErr AdviseRead( int nXOff, int nYOff, int nXSize, int nYSize,
-                               int nBufXSize, int nBufYSize, 
-                               GDALDataType eDT, 
+                               int nBufXSize, int nBufYSize,
+                               GDALDataType eDT,
                                int nBandCount, int *panBandList,
                                char **papszOptions );
 
     virtual CPLErr IRasterIO( GDALRWFlag, int, int, int, int,
                               void *, int, int, GDALDataType,
-                              int, int *, int, int, int );
+                              int, int *,
+                              GSpacing nPixelSpace, GSpacing nLineSpace,
+                              GSpacing nBandSpace,
+                              GDALRasterIOExtraArg* psExtraArg );
 
     virtual const char *GetProjectionRef(void);
     virtual CPLErr SetProjection( const char * );
@@ -163,7 +166,7 @@ class NITFDataset : public GDALPamDataset
     static GDALDataset *Open( GDALOpenInfo * );
     static GDALDataset *
     NITFCreateCopy( const char *pszFilename, GDALDataset *poSrcDS,
-                    int bStrict, char **papszOptions, 
+                    int bStrict, char **papszOptions,
                     GDALProgressFunc pfnProgress, void * pProgressData );
     static GDALDataset *
              NITFDatasetCreate( const char *pszFilename,
@@ -192,7 +195,7 @@ class NITFRasterBand : public GDALPamRasterBand
 
   public:
                    NITFRasterBand( NITFDataset *, int );
-                  ~NITFRasterBand();
+    virtual ~NITFRasterBand();
 
     virtual CPLErr IReadBlock( int, int, void * );
     virtual CPLErr IWriteBlock( int, int, void * );
@@ -200,7 +203,7 @@ class NITFRasterBand : public GDALPamRasterBand
     virtual GDALColorInterp GetColorInterpretation();
     virtual CPLErr SetColorInterpretation( GDALColorInterp );
     virtual GDALColorTable *GetColorTable();
-    virtual CPLErr SetColorTable( GDALColorTable * ); 
+    virtual CPLErr SetColorTable( GDALColorTable * );
     virtual double GetNoDataValue( int *pbSuccess = NULL );
 
     void Unpack(GByte* pData);
@@ -215,7 +218,7 @@ class NITFRasterBand : public GDALPamRasterBand
 /* This class is potentially of general interest and could be moved to gdal_proxy.h */
 /* We don't proxy all methods. Generally speaking, the getters go to PAM first and */
 /* then to the underlying band if no value exist in PAM. The setters aren't */
-/* overriden, so they go to PAM */
+/* overridden, so they go to PAM */
 
 class NITFProxyPamRasterBand : public GDALPamRasterBand
 {
@@ -230,10 +233,11 @@ class NITFProxyPamRasterBand : public GDALPamRasterBand
         virtual CPLErr IWriteBlock( int, int, void * );
         virtual CPLErr IRasterIO( GDALRWFlag, int, int, int, int,
                                 void *, int, int, GDALDataType,
-                                int, int );
+                                GSpacing nPixelSpace, GSpacing nLineSpace,
+                                GDALRasterIOExtraArg* psExtraArg);
 
     public:
-                         ~NITFProxyPamRasterBand();
+        virtual ~NITFProxyPamRasterBand();
 
         virtual char      **GetMetadata( const char * pszDomain = ""  );
         /*virtual CPLErr      SetMetadata( char ** papszMetadata,
@@ -279,7 +283,7 @@ class NITFProxyPamRasterBand : public GDALPamRasterBand
         virtual int HasArbitraryOverviews();
         virtual int GetOverviewCount();
         virtual GDALRasterBand *GetOverview(int);
-        virtual GDALRasterBand *GetRasterSampleOverview( int );
+        virtual GDALRasterBand *GetRasterSampleOverview( GUIntBig );
         virtual CPLErr BuildOverviews( const char *, int, int *,
                                     GDALProgressFunc, void * );
 
@@ -288,16 +292,16 @@ class NITFProxyPamRasterBand : public GDALPamRasterBand
                                 GDALDataType eDT, char **papszOptions );
 
         /*virtual CPLErr  GetHistogram( double dfMin, double dfMax,
-                            int nBuckets, int * panHistogram,
+                            int nBuckets, GUIntBig * panHistogram,
                             int bIncludeOutOfRange, int bApproxOK,
                             GDALProgressFunc, void *pProgressData );
 
         virtual CPLErr GetDefaultHistogram( double *pdfMin, double *pdfMax,
-                                            int *pnBuckets, int ** ppanHistogram,
+                                            int *pnBuckets, GUIntBig ** ppanHistogram,
                                             int bForce,
                                             GDALProgressFunc, void *pProgressData);
         virtual CPLErr SetDefaultHistogram( double dfMin, double dfMax,
-                                            int nBuckets, int *panHistogram );*/
+                                            int nBuckets, GUIntBig *panHistogram );*/
 
         /*virtual const GDALRasterAttributeTable *GetDefaultRAT();
         virtual CPLErr SetDefaultRAT( const GDALRasterAttributeTable * );*/
@@ -336,18 +340,17 @@ class NITFWrapperRasterBand : public NITFProxyPamRasterBand
                    NITFWrapperRasterBand( NITFDataset * poDS,
                                           GDALRasterBand* poBaseBand,
                                           int nBand);
-                  ~NITFWrapperRasterBand();
-    
+    virtual ~NITFWrapperRasterBand();
+
     /* Methods from GDALRasterBand we want to override */
     virtual GDALColorInterp GetColorInterpretation();
     virtual CPLErr          SetColorInterpretation( GDALColorInterp );
-    
+
     virtual GDALColorTable *GetColorTable();
 
     virtual int             GetOverviewCount();
     virtual GDALRasterBand *GetOverview(int);
 
     /* Specific method */
-    void                    SetColorTableFromNITFBandInfo(); 
+    void                    SetColorTableFromNITFBandInfo();
 };
-

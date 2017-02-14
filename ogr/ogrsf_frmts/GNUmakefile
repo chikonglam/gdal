@@ -6,7 +6,7 @@ SUBDIRS-yes	:= \
 	mitab ntf gpx rec s57 sdts shape tiger vrt \
 	geoconcept xplane georss gtm dxf pgdump gpsbabel \
 	sua openair pds htf aeronavfaa edigeo svg idrisi \
-	arcgen segukooa segy sxf openfilegdb wasp
+	arcgen segukooa segy sxf openfilegdb wasp selafin jml vdv
 
 SUBDIRS-$(HAVE_DODS)	+= dods
 SUBDIRS-$(HAVE_DWGDIRECT) += dxfdwg
@@ -30,8 +30,8 @@ SUBDIRS-$(HAVE_LIBKML)  += libkml
 SUBDIRS-$(CURL_SETTING) += wfs
 SUBDIRS-$(MDB_ENABLED)  += mdb
 SUBDIRS-$(CURL_SETTING) += gft
-SUBDIRS-$(CURL_SETTING) += gme
 SUBDIRS-$(CURL_SETTING) += couchdb
+SUBDIRS-$(CURL_SETTING) += cloudant
 SUBDIRS-$(HAVE_FREEXL)  += xls
 SUBDIRS-$(HAVE_EXPAT)   += ods
 SUBDIRS-$(HAVE_EXPAT)   += xlsx
@@ -39,18 +39,11 @@ SUBDIRS-$(CURL_SETTING) += elastic
 SUBDIRS-$(HAVE_SQLITE)	+= gpkg
 SUBDIRS-$(HAVE_SQLITE)	+= osm
 SUBDIRS-$(HAVE_SOSI)	+= sosi
-SUBDIRS-$(CURL_SETTING) += cartodb
-
-ifeq ($(PCIDSK_SETTING),internal)
-SUBDIRS-yes  += pcidsk
-endif
-ifeq ($(PCIDSK_SETTING),external)
-SUBDIRS-yes  += pcidsk
-endif
-
-ifneq ($(LIBZ_SETTING),no)
-SUBDIRS-yes  += pdf
-endif
+SUBDIRS-$(CURL_SETTING) += carto
+SUBDIRS-$(CURL_SETTING) += amigocloud
+SUBDIRS-$(CURL_SETTING) += plscenes
+SUBDIRS-$(CURL_SETTING) += csw
+SUBDIRS-$(HAVE_MONGODB) += mongodb
 
 default:	$(foreach d,$(SUBDIRS-yes),$(d)-target)
 

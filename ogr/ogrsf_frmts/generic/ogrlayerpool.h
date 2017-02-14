@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrlayerpool.h 27044 2014-03-16 23:41:27Z rouault $
+ * $Id: ogrlayerpool.h 32177 2015-12-14 07:25:30Z goatbar $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Defines OGRLayerPool and OGRProxiedLayer class
@@ -27,8 +27,8 @@
  * DEALINGS IN THE SOFTWARE.
  ****************************************************************************/
 
-#ifndef _OGRLAYERPOOL_H_INCLUDED
-#define _OGRLAYERPOOL_H_INCLUDED
+#ifndef OGRLAYERPOOL_H_INCLUDED
+#define OGRLAYERPOOL_H_INCLUDED
 
 #include "ogrsf_frmts.h"
 
@@ -108,6 +108,8 @@ class OGRProxiedLayer : public OGRAbstractProxiedLayer
                                         void* pUserData);
     virtual            ~OGRProxiedLayer();
 
+    OGRLayer           *GetUnderlyingLayer();
+
     virtual OGRGeometry *GetSpatialFilter();
     virtual void        SetSpatialFilter( OGRGeometry * );
     virtual void        SetSpatialFilter( int iGeomField, OGRGeometry * );
@@ -116,11 +118,11 @@ class OGRProxiedLayer : public OGRAbstractProxiedLayer
 
     virtual void        ResetReading();
     virtual OGRFeature *GetNextFeature();
-    virtual OGRErr      SetNextByIndex( long nIndex );
-    virtual OGRFeature *GetFeature( long nFID );
-    virtual OGRErr      SetFeature( OGRFeature *poFeature );
-    virtual OGRErr      CreateFeature( OGRFeature *poFeature );
-    virtual OGRErr      DeleteFeature( long nFID );
+    virtual OGRErr      SetNextByIndex( GIntBig nIndex );
+    virtual OGRFeature *GetFeature( GIntBig nFID );
+    virtual OGRErr      ISetFeature( OGRFeature *poFeature );
+    virtual OGRErr      ICreateFeature( OGRFeature *poFeature );
+    virtual OGRErr      DeleteFeature( GIntBig nFID );
 
     virtual const char *GetName();
     virtual OGRwkbGeometryType GetGeomType();
@@ -128,14 +130,11 @@ class OGRProxiedLayer : public OGRAbstractProxiedLayer
 
     virtual OGRSpatialReference *GetSpatialRef();
 
-    virtual int         GetFeatureCount( int bForce = TRUE );
+    virtual GIntBig     GetFeatureCount( int bForce = TRUE );
     virtual OGRErr      GetExtent(int iGeomField, OGREnvelope *psExtent, int bForce = TRUE);
     virtual OGRErr      GetExtent(OGREnvelope *psExtent, int bForce = TRUE);
 
     virtual int         TestCapability( const char * );
-
-    /* Deprecated (and un-implemented method) --> we won't decorate it ! */
-    /* virtual const char *GetInfo( const char * ); */
 
     virtual OGRErr      CreateField( OGRFieldDefn *poField,
                                      int bApproxOK = TRUE );
@@ -160,4 +159,4 @@ class OGRProxiedLayer : public OGRAbstractProxiedLayer
     virtual OGRErr      SetIgnoredFields( const char **papszFields );
 };
 
-#endif // _OGRLAYERPOOL_H_INCLUDED
+#endif // OGRLAYERPOOL_H_INCLUDED

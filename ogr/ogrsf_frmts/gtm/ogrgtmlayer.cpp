@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrgtmlayer.cpp 27729 2014-09-24 00:40:16Z goatbar $
+ * $Id: ogrgtmlayer.cpp 32698 2016-01-03 18:07:36Z goatbar $
  *
  * Project:  GTM Driver
  * Purpose:  Implementation of OGRGTMLayer class.
@@ -29,17 +29,16 @@
 
 #include "ogr_gtm.h"
 
-OGRGTMLayer::OGRGTMLayer()
-{
-    poDS = NULL;
-    poSRS = NULL;
-    poCT = NULL;
-    pszName = NULL;
-    poFeatureDefn = NULL;
-    nNextFID = 0;
-    nTotalFCount = 0;
-    bError = FALSE;
-}
+OGRGTMLayer::OGRGTMLayer() :
+    poDS(NULL),
+    poSRS(NULL),
+    poCT(NULL),
+    pszName(NULL),
+    poFeatureDefn(NULL),
+    nNextFID(0),
+    nTotalFCount(0),
+    bError(false)
+{}
 
 OGRGTMLayer::~OGRGTMLayer()
 {
@@ -77,13 +76,19 @@ OGRFeatureDefn* OGRGTMLayer::GetLayerDefn()
 /*                           TestCapability()                           */
 /************************************************************************/
 
-int OGRGTMLayer::TestCapability( const char * pszCap ) 
+int OGRGTMLayer::TestCapability( const char * pszCap )
 {
     if (EQUAL(pszCap,OLCFastFeatureCount) &&
         m_poFilterGeom == NULL && m_poAttrQuery == NULL )
         return TRUE;
-    else
-        return FALSE;
+
+    if( EQUAL(pszCap,OLCCreateField) )
+        return poDS != NULL && poDS->getOutputFP() != NULL;
+
+    if( EQUAL(pszCap,OLCSequentialWrite) )
+        return poDS != NULL && poDS->getOutputFP() != NULL;
+
+    return FALSE;
 }
 
 
@@ -103,7 +108,7 @@ OGRErr OGRGTMLayer::CheckAndFixCoordinatesValidity( double& pdfLatitude, double&
                      pdfLatitude);
             bFirstWarning = FALSE;
         }
-        return CE_Failure;
+        return OGRERR_FAILURE;
     }
 
     if (pdfLongitude < -180 || pdfLongitude > 180)
@@ -122,18 +127,18 @@ OGRErr OGRGTMLayer::CheckAndFixCoordinatesValidity( double& pdfLatitude, double&
         else if (pdfLongitude < -180)
             pdfLongitude += ((int) (180 - pdfLongitude)/360)*360;
 
-        return CE_None;
+        return OGRERR_NONE;
     }
 
-    return CE_None;
+    return OGRERR_NONE;
 }
 
 /************************************************************************/
 /*                            CreateField()                             */
 /************************************************************************/
 
-OGRErr OGRGTMLayer::CreateField( OGRFieldDefn *poField, CPL_UNUSED int bApproxOK )
-
+OGRErr OGRGTMLayer::CreateField( OGRFieldDefn *poField,
+                                 int /* bApproxOK */ )
 {
     for( int iField = 0; iField < poFeatureDefn->GetFieldCount(); iField++ )
     {

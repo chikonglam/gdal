@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrunionlayer.h 27044 2014-03-16 23:41:27Z rouault $
+ * $Id: ogrunionlayer.h 31777 2015-11-26 14:14:41Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Defines OGRUnionLayer class
@@ -27,8 +27,8 @@
  * DEALINGS IN THE SOFTWARE.
  ****************************************************************************/
 
-#ifndef _OGRUNIONLAYER_H_INCLUDED
-#define _OGRUNIONLAYER_H_INCLUDED
+#ifndef OGRUNIONLAYER_H_INCLUDED
+#define OGRUNIONLAYER_H_INCLUDED
 
 #include "ogrsf_frmts.h"
 
@@ -80,7 +80,7 @@ class OGRUnionLayer : public OGRLayer
 
     int                 bPreserveSrcFID;
 
-    int                 nFeatureCount;
+    GIntBig             nFeatureCount;
 
     int                 iCurLayer;
     char               *pszAttributeFilter;
@@ -102,7 +102,7 @@ class OGRUnionLayer : public OGRLayer
   public:
                         OGRUnionLayer( const char* pszName,
                                        int nSrcLayers, /* must be >= 1 */
-                                       OGRLayer** papoSrcLayers, /* array itself ownership always transfered, layer ownership depending on bTakeLayerOwnership */
+                                       OGRLayer** papoSrcLayers, /* array itself ownership always transferred, layer ownership depending on bTakeLayerOwnership */
                                        int bTakeLayerOwnership);
 
     virtual             ~OGRUnionLayer();
@@ -112,7 +112,7 @@ class OGRUnionLayer : public OGRLayer
     void                SetFields(FieldUnionStrategy eFieldStrategy,
                                   int nFields,
                                   OGRFieldDefn** papoFields,  /* duplicated by the method */
-                                  int nGeomFields, /* maybe -1 to explicitely disable geometry fields */
+                                  int nGeomFields, /* maybe -1 to explicitly disable geometry fields */
                                   OGRUnionLayerGeomFieldDefn** papoGeomFields  /* duplicated by the method */);
     void                SetSourceLayerFieldName(const char* pszSourceLayerFieldName);
     void                SetPreserveSrcFID(int bPreserveSrcFID);
@@ -123,17 +123,17 @@ class OGRUnionLayer : public OGRLayer
     virtual void        ResetReading();
     virtual OGRFeature *GetNextFeature();
 
-    virtual OGRFeature *GetFeature( long nFeatureId );
+    virtual OGRFeature *GetFeature( GIntBig nFeatureId );
 
-    virtual OGRErr      CreateFeature( OGRFeature* poFeature );
+    virtual OGRErr      ICreateFeature( OGRFeature* poFeature );
 
-    virtual OGRErr      SetFeature( OGRFeature* poFeature );
+    virtual OGRErr      ISetFeature( OGRFeature* poFeature );
 
     virtual OGRFeatureDefn *GetLayerDefn();
 
     virtual OGRSpatialReference *GetSpatialRef();
 
-    virtual int         GetFeatureCount( int );
+    virtual GIntBig     GetFeatureCount( int );
 
     virtual OGRErr      SetAttributeFilter( const char * );
 
@@ -150,4 +150,4 @@ class OGRUnionLayer : public OGRLayer
     virtual OGRErr      SyncToDisk();
 };
 
-#endif // _OGRUNIONLAYER_H_INCLUDED
+#endif // OGRUNIONLAYER_H_INCLUDED

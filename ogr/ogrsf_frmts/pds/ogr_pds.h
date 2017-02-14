@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_pds.h 27044 2014-03-16 23:41:27Z rouault $
+ * $Id: ogr_pds.h 33714 2016-03-13 05:42:13Z goatbar $
  *
  * Project:  PDS Translator
  * Purpose:  Definition of classes for OGR .pdstable driver.
@@ -27,11 +27,13 @@
  * DEALINGS IN THE SOFTWARE.
  ****************************************************************************/
 
-#ifndef _OGR_PDS_H_INCLUDED
-#define _OGR_PDS_H_INCLUDED
+#ifndef OGR_PDS_H_INCLUDED
+#define OGR_PDS_H_INCLUDED
 
 #include "ogrsf_frmts.h"
 #include "nasakeywordhandler.h"
+
+namespace OGRPDS {
 
 /************************************************************************/
 /*                              OGRPDSLayer                             */
@@ -71,7 +73,7 @@ class OGRPDSLayer : public OGRLayer
     int                nLatitudeIndex;
 
     FieldDesc*         pasFieldDesc;
-    
+
     void               ReadStructure(CPLString osStructureFilename);
     OGRFeature        *GetNextRawFeature();
 
@@ -82,7 +84,7 @@ class OGRPDSLayer : public OGRLayer
                                          CPLString osStructureFilename,
                                          int nRecords,
                                          int nStartBytes, int nRecordSize,
-                                         GByte* pabyRecord, int bIsASCII);
+                                         GByte* pabyRecord, bool bIsASCII);
                         ~OGRPDSLayer();
 
 
@@ -93,12 +95,14 @@ class OGRPDSLayer : public OGRLayer
 
     virtual int                 TestCapability( const char * );
 
-    virtual int                 GetFeatureCount(int bForce = TRUE );
+    virtual GIntBig             GetFeatureCount(int bForce = TRUE );
 
-    virtual OGRFeature         *GetFeature( long nFID );
+    virtual OGRFeature         *GetFeature( GIntBig nFID );
 
-    virtual OGRErr              SetNextByIndex( long nIndex );
+    virtual OGRErr              SetNextByIndex( GIntBig nIndex );
 };
+
+} /* end of OGRPDS namespace */
 
 /************************************************************************/
 /*                           OGRPDSDataSource                           */
@@ -114,7 +118,7 @@ class OGRPDSDataSource : public OGRDataSource
     NASAKeywordHandler  oKeywords;
 
     CPLString           osTempResult;
-    const char         *GetKeywordSub( const char *pszPath, 
+    const char         *GetKeywordSub( const char *pszPath,
                                        int iSubscript,
                                        const char *pszDefault );
 
@@ -126,8 +130,7 @@ class OGRPDSDataSource : public OGRDataSource
                         OGRPDSDataSource();
                         ~OGRPDSDataSource();
 
-    int                 Open( const char * pszFilename,
-                              int bUpdate );
+    int                 Open( const char * pszFilename );
 
     virtual const char*         GetName() { return pszName; }
 
@@ -139,19 +142,4 @@ class OGRPDSDataSource : public OGRDataSource
     static void         CleanString( CPLString &osInput );
 };
 
-/************************************************************************/
-/*                              OGRPDSDriver                            */
-/************************************************************************/
-
-class OGRPDSDriver : public OGRSFDriver
-{
-  public:
-                ~OGRPDSDriver();
-
-    virtual const char*         GetName();
-    virtual OGRDataSource*      Open( const char *, int );
-    virtual int                 TestCapability( const char * );
-};
-
-
-#endif /* ndef _OGR_PDS_H_INCLUDED */
+#endif /* ndef OGR_PDS_H_INCLUDED */

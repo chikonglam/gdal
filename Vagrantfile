@@ -7,23 +7,29 @@ require 'socket'
 VAGRANTFILE_API_VERSION = "2"
 
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
+
+  vm_ram = ENV['VAGRANT_VM_RAM'] || 1024
+  vm_cpu = ENV['VAGRANT_VM_CPU'] || 2
+
   config.vm.box = "precise64"
 
   config.vm.hostname = "gdal-vagrant"
   config.vm.box_url = "http://files.vagrantup.com/precise64.box"
   config.vm.host_name = "gdal-vagrant"
-  
+
   config.vm.network :forwarded_port, guest: 80, host: 8080
 
+  config.vm.synced_folder "../autotest/", "/home/vagrant/autotest/"
+
   config.vm.provider :virtualbox do |vb|
-     vb.customize ["modifyvm", :id, "--memory", "1024"]
-     vb.customize ["modifyvm", :id, "--cpus", "2"]
+     vb.customize ["modifyvm", :id, "--memory", vm_ram]
+     vb.customize ["modifyvm", :id, "--cpus", vm_cpu]
      vb.customize ["modifyvm", :id, "--ioapic", "on"]
      vb.name = "gdal-vagrant"
-   end  
+   end
 
   ppaRepos = [
-    "ppa:ubuntugis/ppa", "ppa:marlam/gta"
+    "ppa:ubuntugis/ubuntugis-unstable", "ppa:marlam/gta"
   ]
 
   packageList = [
@@ -33,6 +39,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     "postgis",
     "postgresql-server-dev-9.1",
     "postgresql-9.1-postgis",
+    "postgresql-9.1-postgis-scripts",
     "libmysqlclient-dev",
     #"mysql-server",
     "libpq-dev",
@@ -72,8 +79,18 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     "cmake", # for openjpeg
     "bison",
     "flex",
-    "vim"
+    "doxygen",
+    "vim",
+    "ant",
+    "mono-mcs"
   ];
+
+  unless File.exists?(".no_apt_cache")
+    cache_dir = "apt-cache/#{config.vm.box}"
+    FileUtils.mkdir_p(cache_dir) unless Dir.exists?(cache_dir)
+    puts "Using local apt cache, #{cache_dir}"
+    config.vm.synced_folder cache_dir, "/var/cache/apt/archives"
+  end
 
   if Dir.glob("#{File.dirname(__FILE__)}/.vagrant/machines/default/*/id").empty?
 	  pkg_cmd = "sed -i 's#deb http://us.archive.ubuntu.com/ubuntu/#deb mirror://mirrors.ubuntu.com/mirrors.txt#' /etc/apt/sources.list; "
@@ -89,6 +106,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 	  pkg_cmd << "apt-get install -q -y " + packageList.join(" ") << " ; "
 	  config.vm.provision :shell, :inline => pkg_cmd
     scripts = [
+      "swig-1.3.40.sh",
       "libkml.sh",
       "openjpeg.sh",
       "gdal.sh",

@@ -4,9 +4,9 @@ include ../../GDALmake.opt
 
 OBJ	=	vrtdataset.o vrtrasterband.o vrtdriver.o vrtsources.o \
 		vrtfilters.o vrtsourcedrasterband.o vrtrawrasterband.o \
-		vrtwarped.o vrtderivedrasterband.o
+		vrtwarped.o vrtderivedrasterband.o vrtpansharpened.o
 
-CPPFLAGS	:=	-I../raw $(GDAL_INCLUDE) $(CPPFLAGS)
+CPPFLAGS	:=	-I../raw  $(CPPFLAGS)
 
 default:	$(OBJ:.o=.$(OBJ_EXT))
 

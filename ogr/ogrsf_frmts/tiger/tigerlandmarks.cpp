@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: tigerlandmarks.cpp 27729 2014-09-24 00:40:16Z goatbar $
+ * $Id: tigerlandmarks.cpp 33706 2016-03-11 13:33:27Z goatbar $
  *
  * Project:  TIGER/Line Translator
  * Purpose:  Implements TigerLandmarks, providing access to .RT7 files.
@@ -30,7 +30,7 @@
 #include "ogr_tiger.h"
 #include "cpl_conv.h"
 
-CPL_CVSID("$Id: tigerlandmarks.cpp 27729 2014-09-24 00:40:16Z goatbar $");
+CPL_CVSID("$Id: tigerlandmarks.cpp 33706 2016-03-11 13:33:27Z goatbar $");
 
 #define FILE_CODE "7"
 
@@ -102,6 +102,6 @@ OGRFeature *TigerLandmarks::GetFeature( int nRecordId )
 
 OGRErr TigerLandmarks::CreateFeature( OGRFeature *poFeature )
 {
-  return TigerPoint::CreateFeature( poFeature, 
+  return TigerPoint::CreateFeature( poFeature,
                                     55 );
 }

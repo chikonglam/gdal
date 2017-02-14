@@ -7,14 +7,14 @@ OBJ	=	oci_utils.o ogrocisession.o ogrocistatement.o \
 		ogrocitablelayer.o ogrociselectlayer.o ogrocistringbuf.o \
 		ogrociwritablelayer.o ogrociloaderlayer.o ogrocistroke.o
 
-CPPFLAGS	:=	$(GDAL_INCLUDE) $(OCI_INCLUDE) $(CPPFLAGS) -fPIC
+CPPFLAGS	:=	$(GDAL_INCLUDE) $(OCI_INCLUDE) $(XTRA_OPT) $(CPPFLAGS) -fPIC
 
 PLUGIN_SO	=	ogr_OCI.so
 
 default:	$(O_OBJ:.o=.$(OBJ_EXT))
 
 clean:
-	rm -f *.o $(O_OBJ)
+	rm -f *.o $(O_OBJ) $(PLUGIN_SO)
 
 $(O_OBJ):	ogr_oci.h 
 

@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_sosi.h 27044 2014-03-16 23:41:27Z rouault $
+ * $Id: ogr_sosi.h 34420 2016-06-24 21:06:03Z rouault $
  *
  * Project:  SOSI Translator
  * Purpose:  Implements OGRSOSIDriver.
@@ -28,12 +28,17 @@
  * DEALINGS IN THE SOFTWARE.
  ****************************************************************************/
 
-#ifndef _OGR_SOSI_H_INCLUDED
-#define _OGR_SOSI_H_INCLUDED
+#ifndef OGR_SOSI_H_INCLUDED
+#define OGR_SOSI_H_INCLUDED
 
 #include "ogrsf_frmts.h"
 #include "fyba.h"
 #include <map>
+
+// Note: WRITE_SUPPORT not defined, since this is only partially implemented
+
+/* interpolation of arcs(BUEP) creates # points for a full circle */
+#define ARC_INTERPOLATION_FULL_CIRCLE 36.0
 
 typedef std::map<CPLString, CPLString> S2S;
 typedef std::map<CPLString, unsigned int> S2I;
@@ -42,25 +47,6 @@ void RegisterOGRSOSI();
 
 class ORGSOSILayer;      /* defined below */
 class OGRSOSIDataSource; /* defined below */
-
-/************************************************************************
- *                           OGRSOSIDriver                              *
- * OGRSOSIDriver is the main driver class. It does not much, except     *
- * reporting on its capabilities and opening a single data source       *
- * currently                                                            *
- ************************************************************************/
-
-class OGRSOSIDriver : public OGRSFDriver {
-public:
-
-    OGRSOSIDriver();
-    ~OGRSOSIDriver();
-
-    const char    *GetName();
-    OGRDataSource *Open( const char *, int );
-    int            TestCapability( const char * );
-    OGRDataSource *CreateDataSource( const char *pszName, char **papszOptions = NULL);
-};
 
 /************************************************************************
  *                           OGRSOSILayer                               *
@@ -87,8 +73,10 @@ public:
     void                ResetReading();
     OGRFeature *        GetNextFeature();
     OGRFeatureDefn *    GetLayerDefn();
+#ifdef WRITE_SUPPORT
     OGRErr              CreateField(OGRFieldDefn *poField, int bApproxOK=TRUE);
-    OGRErr              CreateFeature(OGRFeature *poFeature);
+    OGRErr              ICreateFeature(OGRFeature *poFeature);
+#endif
     int                 TestCapability( const char * );
 };
 
@@ -101,14 +89,15 @@ class OGRSOSIDataSource : public OGRDataSource {
     char                *pszName;
     OGRSOSILayer        **papoLayers;
     int                 nLayers;
-    
+
 #define MODE_READING 0
-#define MODE_WRITING 1    
+#define MODE_WRITING 1
     int                 nMode;
 
     void                buildOGRPoint(long nSerial);
     void                buildOGRLineString(int nNumCoo, long nSerial);
     void                buildOGRMultiPoint(int nNumCoo, long nSerial);
+    void                buildOGRLineStringFromArc(long nSerial);
 
 public:
 
@@ -130,7 +119,9 @@ public:
     ~OGRSOSIDataSource();
 
     int                 Open  ( const char * pszFilename, int bUpdate);
+#ifdef WRITE_SUPPORT
     int                 Create( const char * pszFilename );
+#endif
     const char          *GetName() {
         return pszName;
     }
@@ -138,8 +129,61 @@ public:
         return nLayers;
     }
     OGRLayer            *GetLayer( int );
-    OGRLayer            *CreateLayer( const char *pszName, OGRSpatialReference  *poSpatialRef=NULL, OGRwkbGeometryType eGType=wkbUnknown, char **papszOptions=NULL);
+#ifdef WRITE_SUPPORT
+    OGRLayer            *ICreateLayer( const char *pszName, OGRSpatialReference  *poSpatialRef=NULL, OGRwkbGeometryType eGType=wkbUnknown, char **papszOptions=NULL);
+#endif
     int                 TestCapability( const char * );
 };
 
-#endif /* _OGR_SOSI_H_INCLUDED */
+
+/************************************************************************
+ *                           OGRSOSIDataTypes                           *
+ * OGRSOSIDataTypes provides the correct data types for some of the     *
+ * most common SOSI elements.                                           *
+ ************************************************************************/
+
+class OGRSOSISimpleDataType {
+    const char          *pszName; 
+    OGRFieldType        nType;
+
+public:
+    OGRSOSISimpleDataType ();
+    OGRSOSISimpleDataType (const char *pszName, OGRFieldType nType);
+    ~OGRSOSISimpleDataType();
+
+    void setType (const char *pszName, OGRFieldType nType);
+    const char          *GetName() {
+        return pszName;
+    };
+    OGRFieldType        GetType() {
+        return nType;
+    };
+
+};
+
+class OGRSOSIDataType {
+    OGRSOSISimpleDataType* poElements;
+    int                    nElementCount;
+public:
+    OGRSOSIDataType (int nSize);
+    ~OGRSOSIDataType();
+
+    void setElement(int nIndex, const char *name, OGRFieldType type);
+    OGRSOSISimpleDataType* getElements() {
+        return poElements;
+    };
+    int getElementCount() {
+        return nElementCount;
+    };
+};
+
+typedef std::map<CPLString, OGRSOSIDataType> C2F;
+
+void SOSIInitTypes();
+OGRSOSIDataType* SOSIGetType(CPLString name);
+int  SOSITypeToInt(const char* value);
+double  SOSITypeToReal(const char* value);
+void SOSITypeToDate(const char* value, int* date);
+void SOSITypeToDateTime(const char* value, int* date);
+
+#endif /* OGR_SOSI_H_INCLUDED */

@@ -1,4 +1,4 @@
-.TH "ogrtindex" 1 "Mon Jan 25 2016" "GDAL" \" -*- nroff -*-
+.TH "ogrtindex" 1 "Fri Jan 20 2017" "GDAL" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -30,6 +30,8 @@ The name to use for the dataset name\&. Defaults to LOCATION\&.
 Filenames are written with absolute paths 
 .IP "\fB\fB-skip_different_projection\fP:\fP" 1c
 Only layers with same projection ref as layers already inserted in the tileindex will be inserted\&. 
+.IP "\fB\fB-accept_different_schemas\fP:\fP" 1c
+By default ogrtindex checks that all layers inserted into the index have the same attribute schemas\&. If you specify this option, this test will be disabled\&. Be aware that resulting index may be incompatible with MapServer! 
 .PP
 .PP
 If no -lnum or -lname arguments are given it is assumed that all layers in source datasets should be added to the tile index as independent records\&.

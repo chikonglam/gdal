@@ -1,4 +1,4 @@
-.TH "gdaltransform" 1 "Mon Jan 25 2016" "GDAL" \" -*- nroff -*-
+.TH "gdaltransform" 1 "Fri Jan 20 2017" "GDAL" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -11,7 +11,7 @@ transforms coordinates
 gdaltransform [--help-general]
     [-i] [-s_srs srs_def] [-t_srs srs_def] [-to "NAME=VALUE"]
     [-order n] [-tps] [-rpc] [-geoloc]
-    [-gcp pixel line easting northing [elevation]]*
+    [-gcp pixel line easting northing [elevation]]* [-output_xy]
     [srcfile [dstfile]]
 .fi
 .PP
@@ -20,9 +20,9 @@ gdaltransform [--help-general]
 The gdaltransform utility reprojects a list of coordinates into any supported projection,including GCP-based transformations\&.
 .PP
 .IP "\fB\fB-s_srs\fP \fIsrs def\fP:\fP" 1c
-source spatial reference set\&. The coordinate systems that can be passed are anything supported by the OGRSpatialReference\&.SetFromUserInput() call, which includes EPSG PCS and GCSes (ie\&. EPSG:4296), PROJ\&.4 declarations (as above), or the name of a \&.prf file containing well known text\&. 
+source spatial reference set\&. The coordinate systems that can be passed are anything supported by the OGRSpatialReference\&.SetFromUserInput() call, which includes EPSG PCS and GCSes (i\&.e\&. EPSG:4296), PROJ\&.4 declarations (as above), or the name of a \&.prj file containing well known text\&. 
 .IP "\fB\fB-t_srs\fP \fIsrs_def\fP:\fP" 1c
-target spatial reference set\&. The coordinate systems that can be passed are anything supported by the OGRSpatialReference\&.SetFromUserInput() call, which includes EPSG PCS and GCSes (ie\&. EPSG:4296), PROJ\&.4 declarations (as above), or the name of a \&.prf file containing well known text\&. 
+target spatial reference set\&. The coordinate systems that can be passed are anything supported by the OGRSpatialReference\&.SetFromUserInput() call, which includes EPSG PCS and GCSes (i\&.e\&. EPSG:4296), PROJ\&.4 declarations (as above), or the name of a \&.prj file containing well known text\&. 
 .IP "\fB\fB-to\fP \fINAME=VALUE\fP:\fP" 1c
 set a transformer option suitable to pass to GDALCreateGenImgProjTransformer2()\&.  
 .IP "\fB\fB-order\fP \fIn\fP:\fP" 1c
@@ -37,6 +37,8 @@ Force use of Geolocation Arrays\&.
 Inverse transformation: from destination to source\&. 
 .IP "\fB\fB-gcp\fP\fIpixel line easting northing [elevation]\fP: \fP" 1c
 Provide a GCP to be used for transformation (generally three or more are required) 
+.IP "\fB\fB-output_xy\fP: \fP" 1c
+(GDAL >= 2\&.0) Restrict output to 'x y' instead of 'x y z' 
 .IP "\fB\fIsrcfile\fP:\fP" 1c
 File with source projection definition or GCP's\&. If not given, source projection is read from the command-line -s_srs or -gcp parameters  
 .IP "\fB\fIdstfile\fP:\fP" 1c

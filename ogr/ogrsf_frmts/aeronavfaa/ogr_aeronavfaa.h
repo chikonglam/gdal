@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogr_aeronavfaa.h 27044 2014-03-16 23:41:27Z rouault $
+ * $Id: ogr_aeronavfaa.h 31777 2015-11-26 14:14:41Z rouault $
  *
  * Project:  AeronavFAA Translator
  * Purpose:  Definition of classes for OGR AeronavFAA driver.
@@ -27,8 +27,8 @@
  * DEALINGS IN THE SOFTWARE.
  ****************************************************************************/
 
-#ifndef _OGR_AeronavFAA_H_INCLUDED
-#define _OGR_AeronavFAA_H_INCLUDED
+#ifndef OGR_AeronavFAA_H_INCLUDED
+#define OGR_AeronavFAA_H_INCLUDED
 
 #include "ogrsf_frmts.h"
 
@@ -174,8 +174,7 @@ class OGRAeronavFAADataSource : public OGRDataSource
                         OGRAeronavFAADataSource();
                         ~OGRAeronavFAADataSource();
 
-    int                 Open( const char * pszFilename,
-                              int bUpdate );
+    int                 Open( const char * pszFilename );
 
     virtual const char*         GetName() { return pszName; }
 
@@ -185,19 +184,5 @@ class OGRAeronavFAADataSource : public OGRDataSource
     virtual int                 TestCapability( const char * );
 };
 
-/************************************************************************/
-/*                         OGRAeronavFAADriver                          */
-/************************************************************************/
 
-class OGRAeronavFAADriver : public OGRSFDriver
-{
-  public:
-                ~OGRAeronavFAADriver();
-
-    virtual const char*         GetName();
-    virtual OGRDataSource*      Open( const char *, int );
-    virtual int                 TestCapability( const char * );
-};
-
-
-#endif /* ndef _OGR_AeronavFAA_H_INCLUDED */
+#endif /* ndef OGR_AeronavFAA_H_INCLUDED */

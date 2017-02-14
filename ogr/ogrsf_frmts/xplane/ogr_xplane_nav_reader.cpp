@@ -29,7 +29,7 @@
 
 #include "ogr_xplane_nav_reader.h"
 
-CPL_CVSID("$Id: ogr_xplane_nav_reader.cpp 27741 2014-09-26 19:20:02Z goatbar $");
+CPL_CVSID("$Id: ogr_xplane_nav_reader.cpp 31120 2015-10-24 19:55:09Z rouault $");
 
 /************************************************************************/
 /*                   OGRXPlaneCreateNavFileReader                       */
@@ -112,8 +112,8 @@ OGRXPlaneReader* OGRXPlaneNavReader::CloneForLayer(OGRXPlaneLayer* poLayer)
 
 int OGRXPlaneNavReader::IsRecognizedVersion( const char* pszVersionString)
 {
-    return EQUALN(pszVersionString, "810 Version", 11) ||
-           EQUALN(pszVersionString, "740 Version", 11);
+    return STARTS_WITH_CI(pszVersionString, "810 Version") ||
+           STARTS_WITH_CI(pszVersionString, "740 Version");
 }
 
 /************************************************************************/
@@ -417,7 +417,7 @@ OGRXPlaneILSLayer::OGRXPlaneILSLayer() : OGRXPlaneLayer("ILS")
     poFeatureDefn->AddFieldDefn( &oFieldID );
 
     OGRFieldDefn oFieldAptICAO("apt_icao", OFTString );
-    oFieldAptICAO.SetWidth( 4 );
+    oFieldAptICAO.SetWidth( 5 );
     poFeatureDefn->AddFieldDefn( &oFieldAptICAO );
 
     OGRFieldDefn oFieldRwyNum("rwy_num", OFTString );
@@ -631,7 +631,7 @@ OGRXPlaneGSLayer::OGRXPlaneGSLayer() : OGRXPlaneLayer("GS")
     poFeatureDefn->AddFieldDefn( &oFieldID );
 
     OGRFieldDefn oFieldAptICAO("apt_icao", OFTString );
-    oFieldAptICAO.SetWidth( 4 );
+    oFieldAptICAO.SetWidth( 5 );
     poFeatureDefn->AddFieldDefn( &oFieldAptICAO );
 
     OGRFieldDefn oFieldRwyNum("rwy_num", OFTString );
@@ -707,7 +707,7 @@ OGRXPlaneMarkerLayer::OGRXPlaneMarkerLayer() : OGRXPlaneLayer("Marker")
     poFeatureDefn->SetGeomType( wkbPoint );
 
     OGRFieldDefn oFieldAptICAO("apt_icao", OFTString );
-    oFieldAptICAO.SetWidth( 4 );
+    oFieldAptICAO.SetWidth( 5 );
     poFeatureDefn->AddFieldDefn( &oFieldAptICAO );
 
     OGRFieldDefn oFieldRwyNum("rwy_num", OFTString );
@@ -769,7 +769,7 @@ OGRXPlaneDMEILSLayer::OGRXPlaneDMEILSLayer() : OGRXPlaneLayer("DMEILS")
     poFeatureDefn->AddFieldDefn( &oFieldID );
 
     OGRFieldDefn oFieldAptICAO("apt_icao", OFTString );
-    oFieldAptICAO.SetWidth( 4 );
+    oFieldAptICAO.SetWidth( 5 );
     poFeatureDefn->AddFieldDefn( &oFieldAptICAO );
 
     OGRFieldDefn oFieldRwyNum("rwy_num", OFTString );
