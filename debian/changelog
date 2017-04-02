@@ -31,6 +31,21 @@ gdal (2.1.3~rc1+dfsg-1~exp1) experimental; urgency=medium
 
  -- Bas Couwenberg <sebastic@debian.org>  Fri, 20 Jan 2017 10:35:53 +0100
 
+gdal (2.1.2+dfsg-4) unstable; urgency=medium
+
+  * Enable PIE hardening flags.
+    (closes: #859368)
+  * Drop unused hardening-no-pie lintian override.
+
+ -- Bas Couwenberg <sebastic@debian.org>  Sun, 02 Apr 2017 23:35:22 +0200
+
+gdal (2.1.2+dfsg-3) unstable; urgency=medium
+
+  * Add upstream patch to fix _gdal_array ImportError with Python 3.
+    (closes: #853900)
+
+ -- Bas Couwenberg <sebastic@debian.org>  Thu, 02 Feb 2017 20:15:59 +0100
+
 gdal (2.1.2+dfsg-2) unstable; urgency=medium
 
   * Add upstream patch to fix crash on URLs that are not DODS servers.
