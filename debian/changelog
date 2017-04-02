@@ -1,10 +1,10 @@
-gdal (2.1.2+dfsg-4) UNRELEASED; urgency=medium
+gdal (2.1.2+dfsg-4) unstable; urgency=medium
 
   * Enable PIE hardening flags.
     (closes: #859368)
   * Drop unused hardening-no-pie lintian override.
 
- -- Bas Couwenberg <sebastic@debian.org>  Sun, 02 Apr 2017 22:41:40 +0200
+ -- Bas Couwenberg <sebastic@debian.org>  Sun, 02 Apr 2017 23:35:22 +0200
 
 gdal (2.1.2+dfsg-3) unstable; urgency=medium
 
