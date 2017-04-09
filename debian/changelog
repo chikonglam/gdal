@@ -1,3 +1,10 @@
+gdal (2.1.2+dfsg-5) UNRELEASED; urgency=medium
+
+  * Mark libgdal20 as breaking libgdal1h to fix upgrades.
+    (closes: #859918)
+
+ -- Bas Couwenberg <sebastic@debian.org>  Sun, 09 Apr 2017 13:20:51 +0200
+
 gdal (2.1.2+dfsg-4) unstable; urgency=medium
 
   * Enable PIE hardening flags.
