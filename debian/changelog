@@ -33,6 +33,13 @@ gdal (2.1.3~rc1+dfsg-1~exp1) experimental; urgency=medium
 
  -- Bas Couwenberg <sebastic@debian.org>  Fri, 20 Jan 2017 10:35:53 +0100
 
+gdal (2.1.2+dfsg-5) unstable; urgency=medium
+
+  * Mark libgdal20 as breaking libgdal1h to fix upgrades.
+    (closes: #859918)
+
+ -- Bas Couwenberg <sebastic@debian.org>  Sun, 09 Apr 2017 13:22:29 +0200
+
 gdal (2.1.2+dfsg-4) unstable; urgency=medium
 
   * Enable PIE hardening flags.
