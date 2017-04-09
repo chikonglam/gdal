@@ -2,6 +2,7 @@ gdal (2.1.3+dfsg-1~exp4) UNRELEASED; urgency=medium
 
   * Merge changes from gdal (2.1.2+dfsg-5).
     (closes: #859918)
+  * Update symbols for hppa.
 
  -- Bas Couwenberg <sebastic@debian.org>  Sun, 09 Apr 2017 15:41:53 +0200
 
