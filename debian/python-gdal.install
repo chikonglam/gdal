@@ -18,5 +18,6 @@ usr/share/man/man1/gdal_retile.1
 usr/share/man/man1/gdal_sieve.1
 usr/share/man/man1/gdalcompare.1
 usr/share/man/man1/gdalmove.1
+usr/share/man/man1/ogrmerge.1
 usr/share/man/man1/pct2rgb.1
 usr/share/man/man1/rgb2pct.1
