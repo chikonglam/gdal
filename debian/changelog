@@ -3,6 +3,7 @@ gdal (2.2.0~beta1+dfsg-1) UNRELEASED; urgency=medium
   * New upstream beta release.
   * Update watch file for 2.2.0 (pre-)releases.
   * Drop patches applied upstream. Refresh remaining patches.
+  * Move data files to architecture independent gdal-data package.
 
  -- Bas Couwenberg <sebastic@debian.org>  Fri, 14 Apr 2017 11:25:30 +0200
 
