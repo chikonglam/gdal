@@ -1,9 +1,8 @@
-.TH "gdal_pansharpen" 1 "Fri Jan 20 2017" "GDAL" \" -*- nroff -*-
+.TH "gdal_pansharpen" 1 "Fri Apr 14 2017" "GDAL" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
-gdal_pansharpen \- gdal_pansharpen\&.py 
-Perform a pansharpen operation\&.
+gdal_pansharpen \- Perform a pansharpen operation\&.
 .PP
 (Since GDAL 2\&.1)
 .SH "SYNOPSIS"
@@ -41,7 +40,7 @@ Specify nodata value for bands\&. Used for the resampling and pan-sharpening com
 .IP "\fB\fB-spat_adjust\fP \fI{union (default),intersection,none,nonewithoutwarning}\fP:\fP" 1c
 Select behaviour when bands have not the same extent\&. See \fISpatialExtentAdjustment\fP documentation in \fCVRT tutorial\fP 
 .IP "\fB\fB-co\fP \fI'NAME=VALUE'\fP:\fP" 1c
-Passes a creation option to the output format driver\&. Multiple \fB-co\fP options may be listed\&. See format specific documentation for legal creation options for each format\&. 
+Passes a creation option to the output format driver\&. Multiple \fB-co\fP options may be listed\&. See \fCformat specific documentation for legal creation options for each format\fP\&. 
 .IP "\fB\fB-q\fP:\fP" 1c
 Suppress progress monitor and other non-error output\&. 
 .IP "\fB\fIpan_dataset\fP\fP" 1c

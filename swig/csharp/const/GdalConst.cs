@@ -143,6 +143,9 @@ public class GdalConst {
   public static readonly int GMF_PER_DATASET = GdalConstPINVOKE.GMF_PER_DATASET_get();
   public static readonly int GMF_ALPHA = GdalConstPINVOKE.GMF_ALPHA_get();
   public static readonly int GMF_NODATA = GdalConstPINVOKE.GMF_NODATA_get();
+  public static readonly int GDAL_DATA_COVERAGE_STATUS_UNIMPLEMENTED = GdalConstPINVOKE.GDAL_DATA_COVERAGE_STATUS_UNIMPLEMENTED_get();
+  public static readonly int GDAL_DATA_COVERAGE_STATUS_DATA = GdalConstPINVOKE.GDAL_DATA_COVERAGE_STATUS_DATA_get();
+  public static readonly int GDAL_DATA_COVERAGE_STATUS_EMPTY = GdalConstPINVOKE.GDAL_DATA_COVERAGE_STATUS_EMPTY_get();
   public static readonly int GARIO_PENDING = GdalConstPINVOKE.GARIO_PENDING_get();
   public static readonly int GARIO_UPDATE = GdalConstPINVOKE.GARIO_UPDATE_get();
   public static readonly int GARIO_ERROR = GdalConstPINVOKE.GARIO_ERROR_get();

@@ -1,4 +1,4 @@
-.TH "gdalwarp" 1 "Fri Jan 20 2017" "GDAL" \" -*- nroff -*-
+.TH "gdalwarp" 1 "Fri Apr 14 2017" "GDAL" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -10,13 +10,14 @@ image reprojection and warping utility
 .PP
 .nf
 gdalwarp [--help-general] [--formats]
-    [-s_srs srs_def] [-t_srs srs_def] [-to "NAME=VALUE"]
+    [-s_srs srs_def] [-t_srs srs_def] [-to "NAME=VALUE"] [-novshiftgrid]
     [-order n | -tps | -rpc | -geoloc] [-et err_threshold]
     [-refine_gcps tolerance [minimum_gcps]]
     [-te xmin ymin xmax ymax] [-te_srs srs_def]
     [-tr xres yres] [-tap] [-ts width height]
     [-ovr level|AUTO|AUTO-n|NONE] [-wo "NAME=VALUE"] [-ot Byte/Int16/...] [-wt Byte/Int16]
-    [-srcnodata "value [value...]"] [-dstnodata "value [value...]"] -dstalpha
+    [-srcnodata "value [value...]"] [-dstnodata "value [value...]"]
+    [-srcalpha|-nosrcalpha] [-dstalpha]
     [-r resampling_method] [-wm memory_in_mb] [-multi] [-q]
     [-cutline datasource] [-cl layer] [-cwhere expression]
     [-csql statement] [-cblend dist_in_pixels] [-crop_to_cutline]
@@ -31,11 +32,13 @@ gdalwarp [--help-general] [--formats]
 The gdalwarp utility is an image mosaicing, reprojection and warping utility\&. The program can reproject to any supported projection, and can also apply GCPs stored with the image if the image is 'raw' with control information\&.
 .PP
 .IP "\fB\fB-s_srs\fP \fIsrs def\fP:\fP" 1c
-source spatial reference set\&. The coordinate systems that can be passed are anything supported by the OGRSpatialReference\&.SetFromUserInput() call, which includes EPSG PCS and GCSes (i\&.e\&. EPSG:4296), PROJ\&.4 declarations (as above), or the name of a \&.prj file containing well known text\&. 
+source spatial reference set\&. The coordinate systems that can be passed are anything supported by the OGRSpatialReference\&.SetFromUserInput() call, which includes EPSG PCS and GCSes (i\&.e\&. EPSG:4296), PROJ\&.4 declarations (as above), or the name of a \&.prj file containing well known text\&. Starting with GDAL 2\&.2, if the SRS has an explicit vertical datum that points to a PROJ\&.4 geoidgrids, and the input dataset is a single band dataset, a vertical correction will be applied to the values of the dataset\&. 
 .IP "\fB\fB-t_srs\fP \fIsrs_def\fP:\fP" 1c
-target spatial reference set\&. The coordinate systems that can be passed are anything supported by the OGRSpatialReference\&.SetFromUserInput() call, which includes EPSG PCS and GCSes (i\&.e\&. EPSG:4296), PROJ\&.4 declarations (as above), or the name of a \&.prj file containing well known text\&. 
+target spatial reference set\&. The coordinate systems that can be passed are anything supported by the OGRSpatialReference\&.SetFromUserInput() call, which includes EPSG PCS and GCSes (i\&.e\&. EPSG:4296), PROJ\&.4 declarations (as above), or the name of a \&.prj file containing well known text\&. Starting with GDAL 2\&.2, if the SRS has an explicit vertical datum that points to a PROJ\&.4 geoidgrids, and the input dataset is a single band dataset, a vertical correction will be applied to the values of the dataset\&. 
 .IP "\fB\fB-to\fP \fINAME=VALUE\fP:\fP" 1c
 set a transformer option suitable to pass to GDALCreateGenImgProjTransformer2()\&.  
+.IP "\fB\fB-novshiftgrid\fP\fP" 1c
+(GDAL >= 2\&.2) Disable the use of vertical datum shift grids when one of the source or target SRS has an explicit vertical datum, and the input dataset is a single band dataset\&. 
 .IP "\fB\fB-order\fP \fIn\fP:\fP" 1c
 order of polynomial used for warping (1 to 3)\&. The default is to select a polynomial order based on the number of GCPs\&. 
 .IP "\fB\fB-tps\fP:\fP" 1c
@@ -97,6 +100,10 @@ third quartile resampling, selects the third quartile value of all non-NODATA co
 Set nodata masking values for input bands (different values can be supplied for each band)\&. If more than one value is supplied all values should be quoted to keep them together as a single operating system argument\&. Masked values will not be used in interpolation\&. Use a value of \fCNone\fP to ignore intrinsic nodata settings on the source dataset\&. 
 .IP "\fB\fB-dstnodata\fP \fIvalue [value\&.\&.\&.]\fP:\fP" 1c
 Set nodata values for output bands (different values can be supplied for each band)\&. If more than one value is supplied all values should be quoted to keep them together as a single operating system argument\&. New files will be initialized to this value and if possible the nodata value will be recorded in the output file\&. Use a value of \fCNone\fP to ensure that nodata is not defined (GDAL>=1\&.11)\&. If this argument is not used then nodata values will be copied from the source dataset (GDAL>=1\&.11)\&. 
+.IP "\fB\fB-srcalpha\fP:\fP" 1c
+Force the last band of a source image to be considered as a source alpha band\&.  
+.IP "\fB\fB-nosrcalpha\fP:\fP" 1c
+Prevent the alpha band of a source image to be considered as such (it will be warped as a regular band) (GDAL>=2\&.2)\&.  
 .IP "\fB\fB-dstalpha\fP:\fP" 1c
 Create an output alpha band to identify nodata (unset/transparent) pixels\&.  
 .IP "\fB\fB-wm\fP \fImemory_in_mb\fP:\fP" 1c
@@ -108,7 +115,7 @@ Be quiet\&.
 .IP "\fB\fB-of\fP \fIformat\fP:\fP" 1c
 Select the output format\&. The default is GeoTIFF (GTiff)\&. Use the short format name\&.  
 .IP "\fB\fB-co\fP \fI'NAME=VALUE'\fP:\fP" 1c
-passes a creation option to the output format driver\&. Multiple \fB-co\fP options may be listed\&. See format specific documentation for legal creation options for each format\&. 
+passes a creation option to the output format driver\&. Multiple \fB-co\fP options may be listed\&. See \fCformat specific documentation for legal creation options for each format\fP 
 .PP
 .IP "\fB\fB-cutline\fP \fIdatasource\fP:\fP" 1c
 Enable use of a blend cutline from the name OGR support datasource\&. 
@@ -144,21 +151,56 @@ The destination file name\&.
 Mosaicing into an existing output file is supported if the output file already exists\&. The spatial extent of the existing file will not be modified to accommodate new data, so you may have to remove it in that case, or use the -overwrite option\&.
 .PP
 Polygon cutlines may be used as a mask to restrict the area of the destination file that may be updated, including blending\&. If the OGR layer containing the cutline features has no explicit SRS, the cutline features must be in the SRS of the destination file\&. When writing to a not yet existing target dataset, its extent will be the one of the original raster unless -te or -crop_to_cutline are specified\&.
-.SH "EXAMPLE"
 .PP
+When doing vertical shift adjustments, the transformer option -to ERROR_ON_MISSING_VERT_SHIFT=YES can be used to error out as soon as a vertical shift value is missing (instead of 0 being used)\&.
+.SH "EXAMPLES"
+.PP
+.IP "\(bu" 2
 For instance, an eight bit spot scene stored in GeoTIFF with control points mapping the corners to lat/long could be warped to a UTM projection with a command like this:
 .PP
 .PP
+.PP
 .nf
-gdalwarp -t_srs '+proj=utm +zone=11 +datum=WGS84' raw_spot.tif utm11.tif
+gdalwarp -t_srs '+proj=utm +zone=11 +datum=WGS84' -overwrite raw_spot.tif utm11.tif
 .fi
 .PP
 .PP
+.IP "\(bu" 2
 For instance, the second channel of an ASTER image stored in HDF with control points mapping the corners to lat/long could be warped to a UTM projection with a command like this:
 .PP
 .PP
+.PP
 .nf
-gdalwarp HDF4_SDS:ASTER_L1B:"pg-PR1B0000-2002031402_100_001":2 pg-PR1B0000-2002031402_100_001_2.tif
+gdalwarp -overwrite HDF4_SDS:ASTER_L1B:"pg-PR1B0000-2002031402_100_001":2 pg-PR1B0000-2002031402_100_001_2.tif
+.fi
+.PP
+.PP
+.IP "\(bu" 2
+(GDAL >= 2\&.2) To apply a cutline on a un-georeferenced image and clip from pixel (220,60) to pixel (1160,690):
+.PP
+.PP
+.PP
+.nf
+gdalwarp -overwrite -to SRC_METHOD=NO_GEOTRANSFORM -to DST_METHOD=NO_GEOTRANSFORM -te 220 60 1160 690 -cutline cutline.csv in.png out.tif
+.fi
+.PP
+.PP
+where cutline\&.csv content is like: 
+.PP
+.nf
+id,WKT
+1,"POLYGON((....))"
+
+.fi
+.PP
+.PP
+.IP "\(bu" 2
+(GDAL >= 2\&.2) To transform a DEM from geoid elevations (using EGM96) to WGS84 ellipsoidal heights:
+.PP
+.PP
+.PP
+.nf
+gdalwarp -override in_dem.tif out_dem.tif -s_srs EPSG:4326+5773 -t_srs EPSG:4979
 .fi
 .PP
 .SH "SEE ALSO"

@@ -1,5 +1,4 @@
 /******************************************************************************
- * $Id: s57featuredefns.cpp 33271 2016-01-30 16:01:55Z goatbar $
  *
  * Project:  S-57 Translator
  * Purpose:  Implements methods to create OGRFeatureDefns for various
@@ -33,8 +32,7 @@
 #include "ogr_api.h"
 #include "s57.h"
 
-CPL_CVSID("$Id: s57featuredefns.cpp 33271 2016-01-30 16:01:55Z goatbar $");
-
+CPL_CVSID("$Id: s57featuredefns.cpp 35911 2016-10-24 15:03:26Z goatbar $");
 
 /************************************************************************/
 /*                     S57GenerateGeomFeatureDefn()                     */
@@ -424,7 +422,8 @@ OGRFeatureDefn *S57GenerateObjectClassDefn(
 /* -------------------------------------------------------------------- */
 /*      Do we need to add DEPTH attributes to soundings?                */
 /* -------------------------------------------------------------------- */
-    if( EQUAL(poClassContentExplorer->GetAcronym(), "SOUNDG")
+    const char* pszClassAcronym = poClassContentExplorer->GetAcronym();
+    if( pszClassAcronym != NULL && EQUAL(pszClassAcronym, "SOUNDG")
         && (nOptionFlags & S57M_ADD_SOUNDG_DEPTH) )
     {
         OGRFieldDefn oField( "DEPTH", OFTReal );

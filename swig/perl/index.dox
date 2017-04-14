@@ -3,7 +3,7 @@
 \section index_version Version
 
 These pages document the development version of the GDAL Perl API,
-which is extended from the released versions APIs. Old versions: 
+which is extended from the released versions APIs. Old versions:
 <a href="../1.4/index.html">1.4</a>
 <a href="../1.5/index.html">1.5</a>
 <a href="../1.6/index.html">1.6</a>
@@ -13,6 +13,7 @@ which is extended from the released versions APIs. Old versions:
 <a href="../1.10/index.html">1.10</a>
 <a href="../1.11/index.html">1.11</a>
 <a href="../2.0/index.html">2.0</a>
+<a href="../2.1/index.html">2.1</a>
 
 \section index_intro Introduction
 
@@ -200,17 +201,17 @@ OGR Error: Unsupported geometry type at <long path>/OGR.pm line 652.
 and
 
 \code
-BEGIN { 
-    $SIG{__WARN__} = sub {  print STDERR "Warning: @_"; } 
+BEGIN {
+    $SIG{__WARN__} = sub {  print STDERR "Warning: @_"; }
 }
-Geo::GDAL::GetDriver('GTiff')->Create( Name => 'my.tiff', 
-                                       Width => 100, 
-                                       Height => 100, 
-                                       Type => 'Byte', 
+Geo::GDAL::GetDriver('GTiff')->Create( Name => 'my.tiff',
+                                       Width => 100,
+                                       Height => 100,
+                                       Type => 'Byte',
                                        Options => { my_unknown_option => 'b' } );
 \endcode
 
-Produces: 
+Produces:
 \code
 Warning: Driver GTiff does not support my_unknown_option creation option at site/lib/Geo/GDAL.pm line 771.
 \endcode
@@ -238,7 +239,7 @@ Prints
 
 OGR: OGRMultiPoint::exportToWkt() - skipping POINT EMPTY.
 
-to STDERR, and 
+to STDERR, and
 
 MULTIPOINT ((1 1))
 
@@ -259,7 +260,7 @@ ProgressData, the method will happily recognize also progress_data.
 
 Some methods accept a callback function for reporting the
 progress. The progress subroutine is called with three arguments: a
-number, a string, and user defined data. The user defined data 
+number, a string, and user defined data. The user defined data
 is an argument to the method.
 
 \code
@@ -301,14 +302,14 @@ GDAL maintains its own reference counting but this is largely lost in
 the bindings.
 
 The Perl bindings attempt to maintain these dependencies by keeping
-the parent objects alive under the hood, independent of their existence 
+the parent objects alive under the hood, independent of their existence
 in the user space. Thus it is perfectly legal to do something like
 
 \code
 my $layer = Geo::OGR::Driver('Memory')->
     Create()->
-        CreateLayer(Name => 'layer', 
-                    Fields => [{Name => 'test', Type => 'Integer'}, 
+        CreateLayer(Name => 'layer',
+                    Fields => [{Name => 'test', Type => 'Integer'},
                                {Name => 'geom', Type => 'Point'}]);
 \endcode
 
@@ -341,16 +342,29 @@ my $feature = $lauer->InsertFeature({test => 13, geom => {WKT => 'POINT (10 20)'
 my $geom = $feature->{geom}; # will lead to memory error!
 \endcode
 
+\section index_processing_options Processing options
+
+Some methods are thin wrappers for <a
+href="http://www.gdal.org/pages.html">GDAL command line tools</a>.
+
+The options for these methods should be given in an anonymous hash
+where the key is the option name (-ot, -mask, etc) and the value is
+the option value. If the option expects a list of values, the list
+should be given as a reference to an array.
+
+In addition to the above, the API supports giving the options in an
+anonymous array; keys without hyphen (not if the options are in an
+array); and lists of values given as a string, separated with
+whitespace (only for lists of numeric values).
+
 \section index_footer Note
 
 This documentation is generated from files within the GDAL
 distribution (directory swig/perl) with Doxygen using a Perl module <a
-href="http://search.cpan.org/~jordan/Doxygen-Filter-Perl/">Doxygen::Filter::Perl</a>
-(see also <a
-href="https://rt.cpan.org/Public/Dist/Display.html?Name=Doxygen-Filter-Perl">the
-Doxygen::Filter::Perl bug reports</a>). A tailor made preprocessor in
-the GDAL distribution is used to process and put all Perl code and
-documentation into a single file (all.pm) for Doxygen.
+href="http://search.cpan.org/~jordan/Doxygen-Filter-Perl/">Doxygen::Filter::Perl</a>.
+A tailor made preprocessor in the GDAL distribution is used to process
+and put all Perl code and documentation into a single file (all.pm)
+for Doxygen-Filter-Perl and Doxygen.
 
 Many methods are just interfaces to non-Perl code in the bindings or
 GDAL and thus their code show as blank on these pages. The bindings

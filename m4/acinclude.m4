@@ -1,5 +1,5 @@
 dnl ***************************************************************************
-dnl $Id: acinclude.m4 31826 2015-11-29 15:39:57Z goatbar $
+dnl $Id: acinclude.m4 37079 2017-01-09 22:46:26Z rouault $
 dnl
 dnl Project:  GDAL
 dnl Purpose:  Configure extra local definitions.
@@ -323,7 +323,9 @@ AC_DEFUN([AC_LD_SHARED],
 
   if test "$with_ld_shared" != "" ; then
     if test "$with_ld_shared" = "no" ; then
-      echo "user disabled shared library support."	
+      echo "user disabled shared library support."
+    elif test "$with_ld_shared" = "yes" ; then
+      AC_MSG_ERROR([--with-ld-shared not supported])
     else
       echo "using user supplied .so link command ... $with_ld_shared"	
     fi

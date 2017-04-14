@@ -1,4 +1,4 @@
-# $Id: GNUmakefile 31315 2015-11-02 15:10:52Z rouault $
+# $Id: GNUmakefile 35922 2016-10-25 05:46:08Z goatbar $
 #
 # Makefile to build libpng using GNU Make and GCC.
 #
@@ -31,7 +31,7 @@ else
 OBJ	=	pngdataset.o
 endif
 
-ifeq ($(LIBZ_SETTING),internal) 
+ifeq ($(LIBZ_SETTING),internal)
 XTRA_OPT	:=	$(XTRA_OPT) -I../zlib
 endif
 

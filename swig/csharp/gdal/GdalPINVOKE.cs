@@ -1021,6 +1021,9 @@ class GdalPINVOKE {
   [DllImport("gdal_wrap", EntryPoint="CSharp_Transformer_TransformGeolocations")]
   public static extern int Transformer_TransformGeolocations(HandleRef jarg1, HandleRef jarg2, HandleRef jarg3, HandleRef jarg4, Gdal.GDALProgressFuncDelegate jarg5, string jarg6, IntPtr[] jarg7);
 
+  [DllImport("gdal_wrap", EntryPoint="CSharp_ApplyVerticalShiftGrid")]
+  public static extern IntPtr ApplyVerticalShiftGrid(HandleRef jarg1, HandleRef jarg2, bool jarg3, double jarg4, double jarg5, IntPtr[] jarg6);
+
   [DllImport("gdal_wrap", EntryPoint="CSharp_ApplyGeoTransform")]
   public static extern void ApplyGeoTransform(double[] jarg1, double jarg2, double jarg3, out double jarg4, out double jarg5);
 
@@ -1101,6 +1104,9 @@ class GdalPINVOKE {
 
   [DllImport("gdal_wrap", EntryPoint="CSharp_IdentifyDriver")]
   public static extern IntPtr IdentifyDriver(byte[] jarg1, IntPtr[] jarg2);
+
+  [DllImport("gdal_wrap", EntryPoint="CSharp_IdentifyDriverEx")]
+  public static extern IntPtr IdentifyDriverEx(byte[] jarg1, uint jarg2, IntPtr[] jarg3, IntPtr[] jarg4);
 
   [DllImport("gdal_wrap", EntryPoint="CSharp_GeneralCmdLineProcessor")]
   public static extern IntPtr GeneralCmdLineProcessor(IntPtr[] jarg1, int jarg2);

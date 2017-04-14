@@ -619,6 +619,13 @@ public delegate int GDALProgressFuncDelegate(double Complete, IntPtr Message, In
     return ret;
   }
 
+  public static Dataset ApplyVerticalShiftGrid(Dataset src_ds, Dataset grid_ds, bool inverse, double srcUnitToMeter, double dstUnitToMeter, string[] options) {
+    IntPtr cPtr = GdalPINVOKE.ApplyVerticalShiftGrid(Dataset.getCPtr(src_ds), Dataset.getCPtr(grid_ds), inverse, srcUnitToMeter, dstUnitToMeter, (options != null)? new GdalPINVOKE.StringListMarshal(options)._ar : null);
+    Dataset ret = (cPtr == IntPtr.Zero) ? null : new Dataset(cPtr, true, ThisOwn_true());
+    if (GdalPINVOKE.SWIGPendingException.Pending) throw GdalPINVOKE.SWIGPendingException.Retrieve();
+    return ret;
+  }
+
   public static void ApplyGeoTransform(double[] padfGeoTransform, double dfPixel, double dfLine, out double pdfGeoX, out double pdfGeoY) {
     GdalPINVOKE.ApplyGeoTransform(padfGeoTransform, dfPixel, dfLine, out pdfGeoX, out pdfGeoY);
     if (GdalPINVOKE.SWIGPendingException.Pending) throw GdalPINVOKE.SWIGPendingException.Retrieve();
@@ -779,6 +786,13 @@ public delegate int GDALProgressFuncDelegate(double Complete, IntPtr Message, In
 
   public static Driver IdentifyDriver(string utf8_path, string[] papszSiblings) {
     IntPtr cPtr = GdalPINVOKE.IdentifyDriver(Gdal.StringToUtf8Bytes(utf8_path), (papszSiblings != null)? new GdalPINVOKE.StringListMarshal(papszSiblings)._ar : null);
+    Driver ret = (cPtr == IntPtr.Zero) ? null : new Driver(cPtr, false, ThisOwn_false());
+    if (GdalPINVOKE.SWIGPendingException.Pending) throw GdalPINVOKE.SWIGPendingException.Retrieve();
+    return ret;
+  }
+
+  public static Driver IdentifyDriverEx(string utf8_path, uint nIdentifyFlags, string[] allowed_drivers, string[] sibling_files) {
+    IntPtr cPtr = GdalPINVOKE.IdentifyDriverEx(Gdal.StringToUtf8Bytes(utf8_path), nIdentifyFlags, (allowed_drivers != null)? new GdalPINVOKE.StringListMarshal(allowed_drivers)._ar : null, (sibling_files != null)? new GdalPINVOKE.StringListMarshal(sibling_files)._ar : null);
     Driver ret = (cPtr == IntPtr.Zero) ? null : new Driver(cPtr, false, ThisOwn_false());
     if (GdalPINVOKE.SWIGPendingException.Pending) throw GdalPINVOKE.SWIGPendingException.Retrieve();
     return ret;

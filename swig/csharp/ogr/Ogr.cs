@@ -358,6 +358,8 @@ public delegate int GDALProgressFuncDelegate(double Complete, IntPtr Message, In
   public static readonly string ODsCTransactions = OgrPINVOKE.ODsCTransactions_get();
   public static readonly string ODsCEmulatedTransactions = OgrPINVOKE.ODsCEmulatedTransactions_get();
   public static readonly string ODsCMeasuredGeometries = OgrPINVOKE.ODsCMeasuredGeometries_get();
+  public static readonly string ODsCRandomLayerRead = OgrPINVOKE.ODsCRandomLayerRead_get();
+  public static readonly string ODsCRandomLayerWrite = OgrPINVOKE.ODsCRandomLayerWrite_get();
   public static readonly string ODrCCreateDataSource = OgrPINVOKE.ODrCCreateDataSource_get();
   public static readonly string ODrCDeleteDataSource = OgrPINVOKE.ODrCDeleteDataSource_get();
   public static readonly string OLMD_FID64 = OgrPINVOKE.OLMD_FID64_get();

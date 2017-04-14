@@ -1,9 +1,8 @@
-.TH "gdal_translate" 1 "Fri Jan 20 2017" "GDAL" \" -*- nroff -*-
+.TH "gdal_translate" 1 "Fri Apr 14 2017" "GDAL" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
-gdal_translate \- gdal_translate 
-converts raster data between different formats
+gdal_translate \- Converts raster data between different formats\&.
 .SH "SYNOPSIS"
 .PP
 .PP
@@ -44,7 +43,7 @@ Select an input band \fIband\fP for output\&. Bands are numbered from 1\&. Multi
 .IP "\fB\fB-outsize\fP \fIxsize[%]|0 ysize[%]|0\fP:\fP" 1c
 Set the size of the output file\&. Outsize is in pixels and lines unless '%' is attached in which case it is as a fraction of the input image size\&. Starting with GDAL 2\&.0, if one of the 2 values is set to 0, its value will be determined from the other one, while maintaining the aspect ratio of the source dataset\&. 
 .IP "\fB\fB-tr\fP xres yres :\fP" 1c
-(starting with GDAL 2\&.0) set target resolution\&. The values must be expressed in georeferenced units\&. Both must be positive values\&. This is exclusive with -outsize and -a_ullr\&.  
+(starting with GDAL 2\&.0) set target resolution\&. The values must be expressed in georeferenced units\&. Both must be positive values\&. This is mutually exclusive with -outsize and -a_ullr\&.  
 .IP "\fB\fB-r\fP \fI{nearest (default),bilinear,cubic,cubicspline,lanczos,average,mode}\fP:\fP" 1c
 (GDAL >= 2\&.0) Select a resampling algorithm\&. 
 .IP "\fB\fB-scale\fP \fI[src_min src_max [dst_min dst_max]]\fP:\fP" 1c
@@ -56,7 +55,7 @@ Apply the scale/offset metadata for the bands to convert scaled values to unscal
 .IP "\fB\fB-srcwin\fP \fIxoff yoff xsize ysize\fP:\fP" 1c
 Selects a subwindow from the source image for copying based on pixel/line location\&.  
 .IP "\fB\fB-projwin\fP \fIulx uly lrx lry\fP:\fP" 1c
-Selects a subwindow from the source image for copying (like \fB-srcwin\fP) but with the corners given in georeferenced coordinates (by default expressed in the SRS of the dataset\&. Can be changed with -projwin_srs)\&. Note: in GDAL 2\&.1\&.0 and 2\&.1\&.1, using -projwin with coordinates not aligned with pixels will result in a sub-pixel shift\&. This has been corrected in later versions\&. When selecting non-nearest neighbour resampling, starting with GDAL 2\&.1\&.0, sub-pixel accuracy is however used\&. 
+Selects a subwindow from the source image for copying (like \fB-srcwin\fP) but with the corners given in georeferenced coordinates (by default expressed in the SRS of the dataset\&. Can be changed with -projwin_srs)\&. Note: in GDAL 2\&.1\&.0 and 2\&.1\&.1, using -projwin with coordinates not aligned with pixels will result in a sub-pixel shift\&. This has been corrected in later versions\&. When selecting non-nearest neighbour resampling, starting with GDAL 2\&.1\&.0, sub-pixel accuracy is however used to get better results\&. 
 .IP "\fB\fB-projwin_srs\fP \fIsrs_def\fP:\fP" 1c
 (GDAL >= 2\&.0) Specifies the SRS in which to interpret the coordinates given with -projwin\&. The \fIsrs_def\fP may be any of the usual GDAL/OGR forms, complete WKT, PROJ\&.4, EPSG:n or a file containing the WKT\&. Note that this does not cause reprojection of the dataset to the specified SRS\&.  
 .IP "\fB\fB-epo\fP: (Error when Partially Outside)\fP" 1c
@@ -72,7 +71,7 @@ Assign a specified nodata value to output bands\&. Starting with GDAL 1\&.8\&.0,
 .IP "\fB\fB-mo\fP \fI'META-TAG=VALUE'\fP:\fP" 1c
 Passes a metadata key and value to set on the output dataset if possible\&. 
 .IP "\fB\fB-co\fP \fI'NAME=VALUE'\fP:\fP" 1c
-Passes a creation option to the output format driver\&. Multiple \fB-co\fP options may be listed\&. See format specific documentation for legal creation options for each format\&. 
+Passes a creation option to the output format driver\&. Multiple \fB-co\fP options may be listed\&. See \fCformat specific documentation for legal creation options for each format\fP\&. 
 .IP "\fB\fB-gcp\fP \fIpixel line easting northing elevation\fP:\fP" 1c
 Add the indicated ground control point to the output dataset\&. This option may be provided multiple times to provide a set of GCPs\&.  
 .IP "\fB\fB-q\fP:\fP" 1c

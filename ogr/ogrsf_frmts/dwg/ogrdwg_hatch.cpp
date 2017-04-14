@@ -1,5 +1,4 @@
 /******************************************************************************
- * $Id: ogrdwg_hatch.cpp 33713 2016-03-12 17:41:57Z goatbar $
  *
  * Project:  DWG Translator
  * Purpose:  Implements translation support for HATCH elements as part
@@ -32,17 +31,9 @@
 #include "cpl_conv.h"
 #include "ogr_api.h"
 
-#include "DbHatch.h"
-
 #include "ogrdxf_polyline_smooth.h"
 
-#include "Ge/GePoint2dArray.h"
-#include "Ge/GeCurve2d.h"
-#include "Ge/GeCircArc2d.h"
-#include "Ge/GeEllipArc2d.h"
-
-CPL_CVSID("$Id: ogrdwg_hatch.cpp 33713 2016-03-12 17:41:57Z goatbar $");
-
+CPL_CVSID("$Id: ogrdwg_hatch.cpp 37946 2017-04-10 14:37:01Z rouault $");
 
 static OGRErr DWGCollectBoundaryLoop( OdDbHatchPtr poHatch, int iLoop,
                                       OGRGeometryCollection *poGC );

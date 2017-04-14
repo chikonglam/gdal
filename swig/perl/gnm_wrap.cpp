@@ -1513,12 +1513,11 @@ SWIG_Perl_SetModule(swig_module_info *module) {
 #define SWIGTYPE_p_GNMNetworkShadow swig_types[4]
 #define SWIGTYPE_p_OGRFeatureShadow swig_types[5]
 #define SWIGTYPE_p_OGRLayerShadow swig_types[6]
-#define SWIGTYPE_p_OGRwkbGeometryType swig_types[7]
-#define SWIGTYPE_p_OSRSpatialReferenceShadow swig_types[8]
-#define SWIGTYPE_p_char swig_types[9]
-#define SWIGTYPE_p_int swig_types[10]
-static swig_type_info *swig_types[12];
-static swig_module_info swig_module = {swig_types, 11, 0, 0, 0, 0};
+#define SWIGTYPE_p_OSRSpatialReferenceShadow swig_types[7]
+#define SWIGTYPE_p_char swig_types[8]
+#define SWIGTYPE_p_int swig_types[9]
+static swig_type_info *swig_types[11];
+static swig_module_info swig_module = {swig_types, 10, 0, 0, 0, 0};
 #define SWIG_TypeQuery(name) SWIG_TypeQueryModule(&swig_module, &swig_module, name)
 #define SWIG_MangledTypeQuery(name) SWIG_MangledTypeQueryModule(&swig_module, &swig_module, name)
 
@@ -1580,117 +1579,60 @@ SWIGEXPORT void SWIG_init (CV *cv, CPerlObj *);
     #define NEED_DEF "A parameter which must be defined or not empty, is not."
     #define WRONG_CLASS "Object has a wrong class."
     #define NEED_REF "A parameter which must be a reference, is not."
+    #define NEED_HASH_REF "A parameter/item which must be a hash reference, is not."
     #define NEED_ARRAY_REF "A parameter/item which must be an array reference, is not."
     #define NEED_BINARY_DATA "A parameter which must be binary data, is not."
     #define NEED_CODE_REF "A parameter which must be an anonymous subroutine, is not."
     #define WRONG_ITEM_IN_ARRAY "An item in an array parameter has wrong type."
     #define ARRAY_TO_XML_FAILED "An array parameter cannot be converted to an XMLTree."
+    #define NOT_ENOUGH_ELEMENTS "The supplied array does not have enough elements."
 
+
+#include <iostream>
+using namespace std;
 
 #include "gdal.h"
+#include "ogr_api.h"
+#include "ogr_p.h"
+#include "ogr_core.h"
+#include "cpl_port.h"
+#include "cpl_string.h"
+#include "ogr_srs_api.h"
 #include "gnm_api.h"
 
 typedef void GDALMajorObjectShadow;
 typedef void GNMNetworkShadow;
 typedef void GNMGenericNetworkShadow;
 
-
 #ifdef DEBUG
+typedef struct OGRSpatialReferenceHS OSRSpatialReferenceShadow;
+#ifndef SWIGPERL
+typedef struct OGRDriverHS OGRDriverShadow;
+typedef struct OGRDataSourceHS OGRDataSourceShadow;
+#endif
 typedef struct OGRLayerHS OGRLayerShadow;
 typedef struct OGRFeatureHS OGRFeatureShadow;
-typedef struct OGRSpatialReferenceHS OSRSpatialReferenceShadow;
+typedef struct OGRFeatureDefnHS OGRFeatureDefnShadow;
+typedef struct OGRGeometryHS OGRGeometryShadow;
+typedef struct OGRCoordinateTransformationHS OSRCoordinateTransformationShadow;
+typedef struct OGRCoordinateTransformationHS OGRCoordinateTransformationShadow;
+typedef struct OGRFieldDefnHS OGRFieldDefnShadow;
 #else
+typedef void OSRSpatialReferenceShadow;
+#ifndef SWIGPERL
+typedef void OGRDriverShadow;
+typedef void OGRDataSourceShadow;
+#endif
 typedef void OGRLayerShadow;
 typedef void OGRFeatureShadow;
-typedef void OSRSpatialReferenceShadow;
+typedef void OGRFeatureDefnShadow;
+typedef void OGRGeometryShadow;
+typedef void OSRCoordinateTransformationShadow;
+typedef void OGRFieldDefnShadow;
 #endif
+typedef struct OGRStyleTableHS OGRStyleTableShadow;
+typedef struct OGRGeomFieldDefnHS OGRGeomFieldDefnShadow;
 
-SWIGINTERN char const *GDALMajorObjectShadow_GetDescription(GDALMajorObjectShadow *self){
-    return GDALGetDescription( self );
-  }
-
-SWIGINTERN swig_type_info*
-SWIG_pchar_descriptor(void)
-{
-  static int init = 0;
-  static swig_type_info* info = 0;
-  if (!init) {
-    info = SWIG_TypeQuery("_p_char");
-    init = 1;
-  }
-  return info;
-}
-
-
-SWIGINTERN int
-SWIG_AsCharPtrAndSize(SV *obj, char** cptr, size_t* psize, int *alloc)
-{
-  if (SvMAGICAL(obj)) {
-     SV *tmp = sv_newmortal();
-     SvSetSV(tmp, obj);
-     obj = tmp;
-  }
-  if (SvPOK(obj)) {
-    STRLEN len = 0;
-    char *cstr = SvPV(obj, len); 
-    size_t size = len + 1;
-    if (cptr)  {
-      if (alloc) {
-	if (*alloc == SWIG_NEWOBJ) {
-	  *cptr = reinterpret_cast< char* >(memcpy((new char[size]), cstr, sizeof(char)*(size)));
-	} else {
-	  *cptr = cstr;
-	  *alloc = SWIG_OLDOBJ;
-	}
-      }
-    }
-    if (psize) *psize = size;
-    return SWIG_OK;
-  } else {
-    swig_type_info* pchar_descriptor = SWIG_pchar_descriptor();
-    if (pchar_descriptor) {
-      char* vptr = 0; 
-      if (SWIG_ConvertPtr(obj, (void**)&vptr, pchar_descriptor, 0) == SWIG_OK) {
-	if (cptr) *cptr = vptr;
-	if (psize) *psize = vptr ? (strlen(vptr) + 1) : 0;
-	if (alloc) *alloc = SWIG_OLDOBJ;
-	return SWIG_OK;
-      }
-    }
-  }
-  return SWIG_TypeError;
-}
-
-
-
-
-SWIGINTERN void GDALMajorObjectShadow_SetDescription(GDALMajorObjectShadow *self,char const *pszNewDesc){
-    GDALSetDescription( self, pszNewDesc );
-  }
-SWIGINTERN char **GDALMajorObjectShadow_GetMetadataDomainList(GDALMajorObjectShadow *self){
-    return GDALGetMetadataDomainList( self );
-  }
-SWIGINTERN char **GDALMajorObjectShadow_GetMetadata_Dict(GDALMajorObjectShadow *self,char const *pszDomain=""){
-    return GDALGetMetadata( self, pszDomain );
-  }
-SWIGINTERN char **GDALMajorObjectShadow_GetMetadata_List(GDALMajorObjectShadow *self,char const *pszDomain=""){
-    return GDALGetMetadata( self, pszDomain );
-  }
-SWIGINTERN CPLErr GDALMajorObjectShadow_SetMetadata__SWIG_0(GDALMajorObjectShadow *self,char **papszMetadata,char const *pszDomain=""){
-    return GDALSetMetadata( self, papszMetadata, pszDomain );
-  }
-SWIGINTERN CPLErr GDALMajorObjectShadow_SetMetadata__SWIG_1(GDALMajorObjectShadow *self,char *pszMetadataString,char const *pszDomain=""){
-    char *tmpList[2];
-    tmpList[0] = pszMetadataString;
-    tmpList[1] = 0;
-    return GDALSetMetadata( self, tmpList, pszDomain );
-  }
-SWIGINTERN char const *GDALMajorObjectShadow_GetMetadataItem(GDALMajorObjectShadow *self,char const *pszName,char const *pszDomain=""){
-    return GDALGetMetadataItem( self, pszName, pszDomain);
-  }
-SWIGINTERN CPLErr GDALMajorObjectShadow_SetMetadataItem(GDALMajorObjectShadow *self,char const *pszName,char const *pszValue,char const *pszDomain=""){
-    return GDALSetMetadataItem( self, pszName, pszValue, pszDomain);
-  }
 
 SWIGINTERNINLINE SV *
 SWIG_From_long  SWIG_PERL_DECL_ARGS_1(long value)
@@ -1719,9 +1661,6 @@ SWIG_From_int  SWIG_PERL_DECL_ARGS_1(int value)
   GNMGenericNetworkShadow* CastToGenericNetwork(GDALMajorObjectShadow* base) {
       return (GNMGenericNetworkShadow*)dynamic_cast<GNMGenericNetwork*>((GDALMajorObject*)base);
   }
-
-
-typedef char retStringAndCPLFree;
 
 SWIGINTERN void delete_GNMNetworkShadow(GNMNetworkShadow *self){
             if ( GDALDereferenceDataset( self ) <= 0 ) {
@@ -1882,9 +1821,11 @@ SWIG_AsVal_int SWIG_PERL_DECL_ARGS_2(SV * obj, int *val)
 }
 
 
-    char *sv_to_utf8_string(SV *sv, U8 **tmpbuf) {
-        /* if tmpbuf, only tmpbuf is freed; if not, ret is freed*/
+    char *sv_to_utf8_string(SV *sv, U8 **tmpbuf, bool *safefree = NULL) {
+        /* if tmpbuf is given, only tmpbuf needs to be freed, use Safefree!
+           if not, ret needs to be freed, if safefree use Safefree else use free! */
         char *ret;
+        if (safefree) *safefree = false;
         if (SvOK(sv)) {
             STRLEN len;
             ret = SvPV(sv, len);
@@ -1895,6 +1836,7 @@ SWIG_AsVal_int SWIG_PERL_DECL_ARGS_2(SV * obj, int *val)
                 } else {
                     ret = (char *)bytes_to_utf8((const U8*)ret, &len);
                 }
+                if (safefree) *safefree = true;
             } else {
                 if (!tmpbuf)
                     ret = strdup(ret);
@@ -1922,6 +1864,62 @@ SWIGINTERN char const *GNMNetworkShadow_GetProjectionRef(GNMNetworkShadow *self)
 SWIGINTERN char **GNMNetworkShadow_GetFileList(GNMNetworkShadow *self){
             return GDALGetFileList( self );
         }
+
+SWIGINTERN swig_type_info*
+SWIG_pchar_descriptor(void)
+{
+  static int init = 0;
+  static swig_type_info* info = 0;
+  if (!init) {
+    info = SWIG_TypeQuery("_p_char");
+    init = 1;
+  }
+  return info;
+}
+
+
+SWIGINTERN int
+SWIG_AsCharPtrAndSize(SV *obj, char** cptr, size_t* psize, int *alloc)
+{
+  if (SvMAGICAL(obj)) {
+     SV *tmp = sv_newmortal();
+     SvSetSV(tmp, obj);
+     obj = tmp;
+  }
+  if (SvPOK(obj)) {
+    STRLEN len = 0;
+    char *cstr = SvPV(obj, len); 
+    size_t size = len + 1;
+    if (cptr)  {
+      if (alloc) {
+	if (*alloc == SWIG_NEWOBJ) {
+	  *cptr = reinterpret_cast< char* >(memcpy((new char[size]), cstr, sizeof(char)*(size)));
+	} else {
+	  *cptr = cstr;
+	  *alloc = SWIG_OLDOBJ;
+	}
+      }
+    }
+    if (psize) *psize = size;
+    return SWIG_OK;
+  } else {
+    swig_type_info* pchar_descriptor = SWIG_pchar_descriptor();
+    if (pchar_descriptor) {
+      char* vptr = 0; 
+      if (SWIG_ConvertPtr(obj, (void**)&vptr, pchar_descriptor, 0) == SWIG_OK) {
+	if (cptr) *cptr = vptr;
+	if (psize) *psize = vptr ? (strlen(vptr) + 1) : 0;
+	if (alloc) *alloc = SWIG_OLDOBJ;
+	return SWIG_OK;
+      }
+    }
+  }
+  return SWIG_TypeError;
+}
+
+
+
+
 SWIGINTERN OGRLayerShadow *GNMNetworkShadow_CreateLayer(GNMNetworkShadow *self,char const *name,OSRSpatialReferenceShadow *srs=NULL,OGRwkbGeometryType geom_type=wkbUnknown,char **options=0){
             OGRLayerShadow* layer = (OGRLayerShadow*) GDALDatasetCreateLayer( self,
                                       name,
@@ -2089,610 +2087,6 @@ SWIGCLASS_STATIC int swig_magic_readonly(pTHX_ SV *SWIGUNUSEDPARM(sv), MAGIC *SW
 #ifdef __cplusplus
 extern "C" {
 #endif
-XS(_wrap_MajorObject_GetDescription) {
-  {
-    GDALMajorObjectShadow *arg1 = (GDALMajorObjectShadow *) 0 ;
-    void *argp1 = 0 ;
-    int res1 = 0 ;
-    int argvi = 0;
-    char *result = 0 ;
-    dXSARGS;
-    
-    if ((items < 1) || (items > 1)) {
-      SWIG_croak("Usage: MajorObject_GetDescription(self);");
-    }
-    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_GDALMajorObjectShadow, 0 |  0 );
-    if (!SWIG_IsOK(res1)) {
-      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "MajorObject_GetDescription" "', argument " "1"" of type '" "GDALMajorObjectShadow *""'"); 
-    }
-    arg1 = reinterpret_cast< GDALMajorObjectShadow * >(argp1);
-    result = (char *)GDALMajorObjectShadow_GetDescription(arg1);
-    {
-      /* %typemap(out) const char * */
-      ST(argvi) = newSVpv(result, 0);
-      SvUTF8_on(ST(argvi)); /* expecting GDAL to give us UTF-8 */
-      sv_2mortal(ST(argvi));
-      argvi++;
-    }
-    
-    XSRETURN(argvi);
-  fail:
-    
-    SWIG_croak_null();
-  }
-}
-
-
-XS(_wrap_MajorObject_SetDescription) {
-  {
-    GDALMajorObjectShadow *arg1 = (GDALMajorObjectShadow *) 0 ;
-    char *arg2 = (char *) 0 ;
-    void *argp1 = 0 ;
-    int res1 = 0 ;
-    int res2 ;
-    char *buf2 = 0 ;
-    int alloc2 = 0 ;
-    int argvi = 0;
-    dXSARGS;
-    
-    if ((items < 2) || (items > 2)) {
-      SWIG_croak("Usage: MajorObject_SetDescription(self,pszNewDesc);");
-    }
-    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_GDALMajorObjectShadow, 0 |  0 );
-    if (!SWIG_IsOK(res1)) {
-      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "MajorObject_SetDescription" "', argument " "1"" of type '" "GDALMajorObjectShadow *""'"); 
-    }
-    arg1 = reinterpret_cast< GDALMajorObjectShadow * >(argp1);
-    res2 = SWIG_AsCharPtrAndSize(ST(1), &buf2, NULL, &alloc2);
-    if (!SWIG_IsOK(res2)) {
-      SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "MajorObject_SetDescription" "', argument " "2"" of type '" "char const *""'");
-    }
-    arg2 = reinterpret_cast< char * >(buf2);
-    {
-      if (!arg2) {
-        SWIG_exception(SWIG_ValueError,"Received a NULL pointer.");
-      }
-    }
-    GDALMajorObjectShadow_SetDescription(arg1,(char const *)arg2);
-    {
-      /* %typemap(out) void */
-    }
-    
-    if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
-    XSRETURN(argvi);
-  fail:
-    
-    if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
-    SWIG_croak_null();
-  }
-}
-
-
-XS(_wrap_MajorObject_GetMetadataDomainList) {
-  {
-    GDALMajorObjectShadow *arg1 = (GDALMajorObjectShadow *) 0 ;
-    void *argp1 = 0 ;
-    int res1 = 0 ;
-    int argvi = 0;
-    char **result = 0 ;
-    dXSARGS;
-    
-    if ((items < 1) || (items > 1)) {
-      SWIG_croak("Usage: MajorObject_GetMetadataDomainList(self);");
-    }
-    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_GDALMajorObjectShadow, 0 |  0 );
-    if (!SWIG_IsOK(res1)) {
-      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "MajorObject_GetMetadataDomainList" "', argument " "1"" of type '" "GDALMajorObjectShadow *""'"); 
-    }
-    arg1 = reinterpret_cast< GDALMajorObjectShadow * >(argp1);
-    result = (char **)GDALMajorObjectShadow_GetMetadataDomainList(arg1);
-    {
-      /* %typemap(out) char **CSL */
-      if (GIMME_V == G_ARRAY) {
-        if (result) {
-          int n = CSLCount(result);
-          EXTEND(SP, argvi+n-items+1);
-          int i;
-          for (i = 0; result[i]; i++) {
-            SV *sv = newSVpv(result[i], 0);
-            SvUTF8_on(sv); /* expecting GDAL to give us UTF-8 */
-            ST(argvi++) = sv_2mortal(sv);
-          }
-          CSLDestroy(result);
-        }
-      } else {
-        AV *av = (AV*)sv_2mortal((SV*)newAV());
-        if (result) {
-          int i;
-          for (i = 0; result[i]; i++) {
-            SV *sv = newSVpv(result[i], 0);
-            SvUTF8_on(sv); /* expecting GDAL to give us UTF-8 */
-            av_push(av, sv);
-          }
-          CSLDestroy(result);
-        }
-        ST(argvi) = newRV((SV*)av);
-        sv_2mortal(ST(argvi));
-        argvi++;
-      }
-    }
-    
-    XSRETURN(argvi);
-  fail:
-    
-    SWIG_croak_null();
-  }
-}
-
-
-XS(_wrap_MajorObject_GetMetadata_Dict) {
-  {
-    GDALMajorObjectShadow *arg1 = (GDALMajorObjectShadow *) 0 ;
-    char *arg2 = (char *) "" ;
-    void *argp1 = 0 ;
-    int res1 = 0 ;
-    int res2 ;
-    char *buf2 = 0 ;
-    int alloc2 = 0 ;
-    int argvi = 0;
-    char **result = 0 ;
-    dXSARGS;
-    
-    if ((items < 1) || (items > 2)) {
-      SWIG_croak("Usage: MajorObject_GetMetadata_Dict(self,pszDomain);");
-    }
-    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_GDALMajorObjectShadow, 0 |  0 );
-    if (!SWIG_IsOK(res1)) {
-      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "MajorObject_GetMetadata_Dict" "', argument " "1"" of type '" "GDALMajorObjectShadow *""'"); 
-    }
-    arg1 = reinterpret_cast< GDALMajorObjectShadow * >(argp1);
-    if (items > 1) {
-      res2 = SWIG_AsCharPtrAndSize(ST(1), &buf2, NULL, &alloc2);
-      if (!SWIG_IsOK(res2)) {
-        SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "MajorObject_GetMetadata_Dict" "', argument " "2"" of type '" "char const *""'");
-      }
-      arg2 = reinterpret_cast< char * >(buf2);
-    }
-    result = (char **)GDALMajorObjectShadow_GetMetadata_Dict(arg1,(char const *)arg2);
-    {
-      /* %typemap(out) char **dict */
-      char **stringarray = result;
-      HV *hv = (HV*)sv_2mortal((SV*)newHV());
-      if ( stringarray != NULL ) {
-        while (*stringarray != NULL ) {
-          char const *valptr;
-          char *keyptr;
-          valptr = CPLParseNameValue( *stringarray, &keyptr );
-          if ( valptr != 0 ) {
-            hv_store(hv, keyptr, strlen(keyptr), newSVpv(valptr, strlen(valptr)), 0);
-            CPLFree( keyptr );
-          }
-          stringarray++;
-        }
-      }
-      ST(argvi) = newRV((SV*)hv);
-      sv_2mortal(ST(argvi));
-      argvi++;
-    }
-    
-    if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
-    XSRETURN(argvi);
-  fail:
-    
-    if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
-    SWIG_croak_null();
-  }
-}
-
-
-XS(_wrap_MajorObject_GetMetadata_List) {
-  {
-    GDALMajorObjectShadow *arg1 = (GDALMajorObjectShadow *) 0 ;
-    char *arg2 = (char *) "" ;
-    void *argp1 = 0 ;
-    int res1 = 0 ;
-    int res2 ;
-    char *buf2 = 0 ;
-    int alloc2 = 0 ;
-    int argvi = 0;
-    char **result = 0 ;
-    dXSARGS;
-    
-    if ((items < 1) || (items > 2)) {
-      SWIG_croak("Usage: MajorObject_GetMetadata_List(self,pszDomain);");
-    }
-    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_GDALMajorObjectShadow, 0 |  0 );
-    if (!SWIG_IsOK(res1)) {
-      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "MajorObject_GetMetadata_List" "', argument " "1"" of type '" "GDALMajorObjectShadow *""'"); 
-    }
-    arg1 = reinterpret_cast< GDALMajorObjectShadow * >(argp1);
-    if (items > 1) {
-      res2 = SWIG_AsCharPtrAndSize(ST(1), &buf2, NULL, &alloc2);
-      if (!SWIG_IsOK(res2)) {
-        SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "MajorObject_GetMetadata_List" "', argument " "2"" of type '" "char const *""'");
-      }
-      arg2 = reinterpret_cast< char * >(buf2);
-    }
-    result = (char **)GDALMajorObjectShadow_GetMetadata_List(arg1,(char const *)arg2);
-    {
-      /* %typemap(out) char **options -> ( string ) */
-      AV* av = (AV*)sv_2mortal((SV*)newAV());
-      char **stringarray = result;
-      if ( stringarray != NULL ) {
-        int n = CSLCount( stringarray );
-        for ( int i = 0; i < n; i++ ) {
-          SV *sv = newSVpv(stringarray[i], 0);
-          SvUTF8_on(sv); /* expecting UTF-8 from GDAL */
-          if (!av_store(av, i, sv))
-          SvREFCNT_dec(sv);
-        }
-      }
-      ST(argvi) = newRV((SV*)av);
-      sv_2mortal(ST(argvi));
-      argvi++;
-    }
-    
-    if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
-    XSRETURN(argvi);
-  fail:
-    
-    if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
-    SWIG_croak_null();
-  }
-}
-
-
-XS(_wrap_MajorObject_SetMetadata__SWIG_0) {
-  {
-    GDALMajorObjectShadow *arg1 = (GDALMajorObjectShadow *) 0 ;
-    char **arg2 = (char **) 0 ;
-    char *arg3 = (char *) "" ;
-    void *argp1 = 0 ;
-    int res1 = 0 ;
-    int res3 ;
-    char *buf3 = 0 ;
-    int alloc3 = 0 ;
-    int argvi = 0;
-    CPLErr result;
-    dXSARGS;
-    
-    if ((items < 2) || (items > 3)) {
-      SWIG_croak("Usage: MajorObject_SetMetadata(self,papszMetadata,pszDomain);");
-    }
-    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_GDALMajorObjectShadow, 0 |  0 );
-    if (!SWIG_IsOK(res1)) {
-      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "MajorObject_SetMetadata" "', argument " "1"" of type '" "GDALMajorObjectShadow *""'"); 
-    }
-    arg1 = reinterpret_cast< GDALMajorObjectShadow * >(argp1);
-    {
-      /* %typemap(in) char **dict */
-      HV *hv = (HV*)SvRV(ST(1));
-      SV *sv;
-      char *key;
-      I32 klen;
-      arg2 = NULL;
-      hv_iterinit(hv);
-      while(sv = hv_iternextsv(hv,&key,&klen)) {
-        arg2 = CSLAddNameValue( arg2, key, SvPV_nolen(sv) );
-      }
-    }
-    if (items > 2) {
-      res3 = SWIG_AsCharPtrAndSize(ST(2), &buf3, NULL, &alloc3);
-      if (!SWIG_IsOK(res3)) {
-        SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "MajorObject_SetMetadata" "', argument " "3"" of type '" "char const *""'");
-      }
-      arg3 = reinterpret_cast< char * >(buf3);
-    }
-    result = (CPLErr)GDALMajorObjectShadow_SetMetadata__SWIG_0(arg1,arg2,(char const *)arg3);
-    {
-      /* %typemap(out) CPLErr */
-    }
-    
-    {
-      /* %typemap(freearg) char **dict */
-      CSLDestroy( arg2 );
-    }
-    if (alloc3 == SWIG_NEWOBJ) delete[] buf3;
-    XSRETURN(argvi);
-  fail:
-    
-    {
-      /* %typemap(freearg) char **dict */
-      CSLDestroy( arg2 );
-    }
-    if (alloc3 == SWIG_NEWOBJ) delete[] buf3;
-    SWIG_croak_null();
-  }
-}
-
-
-XS(_wrap_MajorObject_SetMetadata__SWIG_1) {
-  {
-    GDALMajorObjectShadow *arg1 = (GDALMajorObjectShadow *) 0 ;
-    char *arg2 = (char *) 0 ;
-    char *arg3 = (char *) "" ;
-    void *argp1 = 0 ;
-    int res1 = 0 ;
-    int res2 ;
-    char *buf2 = 0 ;
-    int alloc2 = 0 ;
-    int res3 ;
-    char *buf3 = 0 ;
-    int alloc3 = 0 ;
-    int argvi = 0;
-    CPLErr result;
-    dXSARGS;
-    
-    if ((items < 2) || (items > 3)) {
-      SWIG_croak("Usage: MajorObject_SetMetadata(self,pszMetadataString,pszDomain);");
-    }
-    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_GDALMajorObjectShadow, 0 |  0 );
-    if (!SWIG_IsOK(res1)) {
-      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "MajorObject_SetMetadata" "', argument " "1"" of type '" "GDALMajorObjectShadow *""'"); 
-    }
-    arg1 = reinterpret_cast< GDALMajorObjectShadow * >(argp1);
-    res2 = SWIG_AsCharPtrAndSize(ST(1), &buf2, NULL, &alloc2);
-    if (!SWIG_IsOK(res2)) {
-      SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "MajorObject_SetMetadata" "', argument " "2"" of type '" "char *""'");
-    }
-    arg2 = reinterpret_cast< char * >(buf2);
-    if (items > 2) {
-      res3 = SWIG_AsCharPtrAndSize(ST(2), &buf3, NULL, &alloc3);
-      if (!SWIG_IsOK(res3)) {
-        SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "MajorObject_SetMetadata" "', argument " "3"" of type '" "char const *""'");
-      }
-      arg3 = reinterpret_cast< char * >(buf3);
-    }
-    result = (CPLErr)GDALMajorObjectShadow_SetMetadata__SWIG_1(arg1,arg2,(char const *)arg3);
-    {
-      /* %typemap(out) CPLErr */
-    }
-    
-    if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
-    if (alloc3 == SWIG_NEWOBJ) delete[] buf3;
-    XSRETURN(argvi);
-  fail:
-    
-    if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
-    if (alloc3 == SWIG_NEWOBJ) delete[] buf3;
-    SWIG_croak_null();
-  }
-}
-
-
-XS(_wrap_MajorObject_SetMetadata) {
-  dXSARGS;
-  
-  {
-    unsigned long _index = 0;
-    SWIG_TypeRank _rank = 0; 
-    if ((items >= 2) && (items <= 3)) {
-      SWIG_TypeRank _ranki = 0;
-      SWIG_TypeRank _rankm = 0;
-      SWIG_TypeRank _pi = 1;
-      int _v = 0;
-      {
-        void *vptr = 0;
-        int res = SWIG_ConvertPtr(ST(0), &vptr, SWIGTYPE_p_GDALMajorObjectShadow, 0);
-        _v = SWIG_CheckState(res);
-      }
-      if (!_v) goto check_1;
-      _ranki += _v*_pi;
-      _rankm += _pi;
-      _pi *= SWIG_MAXCASTRANK;
-      {
-        {
-          /* %typecheck(SWIG_TYPECHECK_POINTER) (char **dict) */
-          _v = (SvROK(ST(1)) && (SvTYPE(SvRV(ST(1)))==SVt_PVHV)) ? 1 : 0;
-        }
-      }
-      if (!_v) goto check_1;
-      _ranki += _v*_pi;
-      _rankm += _pi;
-      _pi *= SWIG_MAXCASTRANK;
-      if (items > 2) {
-        {
-          int res = SWIG_AsCharPtrAndSize(ST(2), 0, NULL, 0);
-          _v = SWIG_CheckState(res);
-        }
-        if (!_v) goto check_1;
-        _ranki += _v*_pi;
-        _rankm += _pi;
-        _pi *= SWIG_MAXCASTRANK;
-      }
-      if (!_index || (_ranki < _rank)) {
-        _rank = _ranki; _index = 1;
-        if (_rank == _rankm) goto dispatch;
-      }
-    }
-  check_1:
-    
-    if ((items >= 2) && (items <= 3)) {
-      SWIG_TypeRank _ranki = 0;
-      SWIG_TypeRank _rankm = 0;
-      SWIG_TypeRank _pi = 1;
-      int _v = 0;
-      {
-        void *vptr = 0;
-        int res = SWIG_ConvertPtr(ST(0), &vptr, SWIGTYPE_p_GDALMajorObjectShadow, 0);
-        _v = SWIG_CheckState(res);
-      }
-      if (!_v) goto check_2;
-      _ranki += _v*_pi;
-      _rankm += _pi;
-      _pi *= SWIG_MAXCASTRANK;
-      {
-        int res = SWIG_AsCharPtrAndSize(ST(1), 0, NULL, 0);
-        _v = SWIG_CheckState(res);
-      }
-      if (!_v) goto check_2;
-      _ranki += _v*_pi;
-      _rankm += _pi;
-      _pi *= SWIG_MAXCASTRANK;
-      if (items > 2) {
-        {
-          int res = SWIG_AsCharPtrAndSize(ST(2), 0, NULL, 0);
-          _v = SWIG_CheckState(res);
-        }
-        if (!_v) goto check_2;
-        _ranki += _v*_pi;
-        _rankm += _pi;
-        _pi *= SWIG_MAXCASTRANK;
-      }
-      if (!_index || (_ranki < _rank)) {
-        _rank = _ranki; _index = 2;
-        if (_rank == _rankm) goto dispatch;
-      }
-    }
-  check_2:
-    
-  dispatch:
-    switch(_index) {
-    case 1:
-      PUSHMARK(MARK); SWIG_CALLXS(_wrap_MajorObject_SetMetadata__SWIG_0); return;
-    case 2:
-      PUSHMARK(MARK); SWIG_CALLXS(_wrap_MajorObject_SetMetadata__SWIG_1); return;
-    }
-  }
-  
-  croak("No matching function for overloaded 'MajorObject_SetMetadata'");
-  XSRETURN(0);
-}
-
-
-XS(_wrap_MajorObject_GetMetadataItem) {
-  {
-    GDALMajorObjectShadow *arg1 = (GDALMajorObjectShadow *) 0 ;
-    char *arg2 = (char *) 0 ;
-    char *arg3 = (char *) "" ;
-    void *argp1 = 0 ;
-    int res1 = 0 ;
-    int res2 ;
-    char *buf2 = 0 ;
-    int alloc2 = 0 ;
-    int res3 ;
-    char *buf3 = 0 ;
-    int alloc3 = 0 ;
-    int argvi = 0;
-    char *result = 0 ;
-    dXSARGS;
-    
-    if ((items < 2) || (items > 3)) {
-      SWIG_croak("Usage: MajorObject_GetMetadataItem(self,pszName,pszDomain);");
-    }
-    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_GDALMajorObjectShadow, 0 |  0 );
-    if (!SWIG_IsOK(res1)) {
-      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "MajorObject_GetMetadataItem" "', argument " "1"" of type '" "GDALMajorObjectShadow *""'"); 
-    }
-    arg1 = reinterpret_cast< GDALMajorObjectShadow * >(argp1);
-    res2 = SWIG_AsCharPtrAndSize(ST(1), &buf2, NULL, &alloc2);
-    if (!SWIG_IsOK(res2)) {
-      SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "MajorObject_GetMetadataItem" "', argument " "2"" of type '" "char const *""'");
-    }
-    arg2 = reinterpret_cast< char * >(buf2);
-    if (items > 2) {
-      res3 = SWIG_AsCharPtrAndSize(ST(2), &buf3, NULL, &alloc3);
-      if (!SWIG_IsOK(res3)) {
-        SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "MajorObject_GetMetadataItem" "', argument " "3"" of type '" "char const *""'");
-      }
-      arg3 = reinterpret_cast< char * >(buf3);
-    }
-    {
-      if (!arg2) {
-        SWIG_exception(SWIG_ValueError,"Received a NULL pointer.");
-      }
-    }
-    result = (char *)GDALMajorObjectShadow_GetMetadataItem(arg1,(char const *)arg2,(char const *)arg3);
-    {
-      /* %typemap(out) const char * */
-      ST(argvi) = newSVpv(result, 0);
-      SvUTF8_on(ST(argvi)); /* expecting GDAL to give us UTF-8 */
-      sv_2mortal(ST(argvi));
-      argvi++;
-    }
-    
-    if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
-    if (alloc3 == SWIG_NEWOBJ) delete[] buf3;
-    XSRETURN(argvi);
-  fail:
-    
-    if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
-    if (alloc3 == SWIG_NEWOBJ) delete[] buf3;
-    SWIG_croak_null();
-  }
-}
-
-
-XS(_wrap_MajorObject_SetMetadataItem) {
-  {
-    GDALMajorObjectShadow *arg1 = (GDALMajorObjectShadow *) 0 ;
-    char *arg2 = (char *) 0 ;
-    char *arg3 = (char *) 0 ;
-    char *arg4 = (char *) "" ;
-    void *argp1 = 0 ;
-    int res1 = 0 ;
-    int res2 ;
-    char *buf2 = 0 ;
-    int alloc2 = 0 ;
-    int res3 ;
-    char *buf3 = 0 ;
-    int alloc3 = 0 ;
-    int res4 ;
-    char *buf4 = 0 ;
-    int alloc4 = 0 ;
-    int argvi = 0;
-    CPLErr result;
-    dXSARGS;
-    
-    if ((items < 3) || (items > 4)) {
-      SWIG_croak("Usage: MajorObject_SetMetadataItem(self,pszName,pszValue,pszDomain);");
-    }
-    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_GDALMajorObjectShadow, 0 |  0 );
-    if (!SWIG_IsOK(res1)) {
-      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "MajorObject_SetMetadataItem" "', argument " "1"" of type '" "GDALMajorObjectShadow *""'"); 
-    }
-    arg1 = reinterpret_cast< GDALMajorObjectShadow * >(argp1);
-    res2 = SWIG_AsCharPtrAndSize(ST(1), &buf2, NULL, &alloc2);
-    if (!SWIG_IsOK(res2)) {
-      SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "MajorObject_SetMetadataItem" "', argument " "2"" of type '" "char const *""'");
-    }
-    arg2 = reinterpret_cast< char * >(buf2);
-    res3 = SWIG_AsCharPtrAndSize(ST(2), &buf3, NULL, &alloc3);
-    if (!SWIG_IsOK(res3)) {
-      SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "MajorObject_SetMetadataItem" "', argument " "3"" of type '" "char const *""'");
-    }
-    arg3 = reinterpret_cast< char * >(buf3);
-    if (items > 3) {
-      res4 = SWIG_AsCharPtrAndSize(ST(3), &buf4, NULL, &alloc4);
-      if (!SWIG_IsOK(res4)) {
-        SWIG_exception_fail(SWIG_ArgError(res4), "in method '" "MajorObject_SetMetadataItem" "', argument " "4"" of type '" "char const *""'");
-      }
-      arg4 = reinterpret_cast< char * >(buf4);
-    }
-    {
-      if (!arg2) {
-        SWIG_exception(SWIG_ValueError,"Received a NULL pointer.");
-      }
-    }
-    result = (CPLErr)GDALMajorObjectShadow_SetMetadataItem(arg1,(char const *)arg2,(char const *)arg3,(char const *)arg4);
-    {
-      /* %typemap(out) CPLErr */
-    }
-    
-    if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
-    if (alloc3 == SWIG_NEWOBJ) delete[] buf3;
-    if (alloc4 == SWIG_NEWOBJ) delete[] buf4;
-    XSRETURN(argvi);
-  fail:
-    
-    if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
-    if (alloc3 == SWIG_NEWOBJ) delete[] buf3;
-    if (alloc4 == SWIG_NEWOBJ) delete[] buf4;
-    SWIG_croak_null();
-  }
-}
-
-
 XS(_wrap_CastToNetwork) {
   {
     GDALMajorObjectShadow *arg1 = (GDALMajorObjectShadow *) 0 ;
@@ -2710,7 +2104,30 @@ XS(_wrap_CastToNetwork) {
       SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "CastToNetwork" "', argument " "1"" of type '" "GDALMajorObjectShadow *""'"); 
     }
     arg1 = reinterpret_cast< GDALMajorObjectShadow * >(argp1);
-    result = (GNMNetworkShadow *)CastToNetwork(arg1);
+    {
+      CPLErrorReset();
+      result = (GNMNetworkShadow *)CastToNetwork(arg1);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        do_confess( CPLGetLastErrorMsg(), 0 );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /*
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
     ST(argvi) = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_GNMNetworkShadow, 0 | SWIG_SHADOW); argvi++ ;
     
     XSRETURN(argvi);
@@ -2738,7 +2155,30 @@ XS(_wrap_CastToGenericNetwork) {
       SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "CastToGenericNetwork" "', argument " "1"" of type '" "GDALMajorObjectShadow *""'"); 
     }
     arg1 = reinterpret_cast< GDALMajorObjectShadow * >(argp1);
-    result = (GNMGenericNetworkShadow *)CastToGenericNetwork(arg1);
+    {
+      CPLErrorReset();
+      result = (GNMGenericNetworkShadow *)CastToGenericNetwork(arg1);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        do_confess( CPLGetLastErrorMsg(), 0 );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /*
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
     ST(argvi) = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_GNMGenericNetworkShadow, 0 | SWIG_SHADOW); argvi++ ;
     
     XSRETURN(argvi);
@@ -2765,7 +2205,30 @@ XS(_wrap_delete_Network) {
       SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "delete_Network" "', argument " "1"" of type '" "GNMNetworkShadow *""'"); 
     }
     arg1 = reinterpret_cast< GNMNetworkShadow * >(argp1);
-    delete_GNMNetworkShadow(arg1);
+    {
+      CPLErrorReset();
+      delete_GNMNetworkShadow(arg1);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        do_confess( CPLGetLastErrorMsg(), 0 );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /*
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
     {
       /* %typemap(out) void */
     }
@@ -2778,7 +2241,7 @@ XS(_wrap_delete_Network) {
 }
 
 
-XS(_wrap_Network_ReleaseResultSet) {
+XS(_wrap_Network__ReleaseResultSet) {
   {
     GNMNetworkShadow *arg1 = (GNMNetworkShadow *) 0 ;
     OGRLayerShadow *arg2 = (OGRLayerShadow *) 0 ;
@@ -2789,18 +2252,41 @@ XS(_wrap_Network_ReleaseResultSet) {
     dXSARGS;
     
     if ((items < 2) || (items > 2)) {
-      SWIG_croak("Usage: Network_ReleaseResultSet(self,layer);");
+      SWIG_croak("Usage: Network__ReleaseResultSet(self,layer);");
     }
     res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_GNMNetworkShadow, 0 |  0 );
     if (!SWIG_IsOK(res1)) {
-      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Network_ReleaseResultSet" "', argument " "1"" of type '" "GNMNetworkShadow *""'"); 
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Network__ReleaseResultSet" "', argument " "1"" of type '" "GNMNetworkShadow *""'"); 
     }
     arg1 = reinterpret_cast< GNMNetworkShadow * >(argp1);
     res2 = SWIG_ConvertPtr(ST(1), SWIG_as_voidptrptr(&arg2), SWIGTYPE_p_OGRLayerShadow, SWIG_POINTER_DISOWN |  0 );
     if (!SWIG_IsOK(res2)) {
-      SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "Network_ReleaseResultSet" "', argument " "2"" of type '" "OGRLayerShadow *""'");
+      SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "Network__ReleaseResultSet" "', argument " "2"" of type '" "OGRLayerShadow *""'");
     }
-    GNMNetworkShadow_ReleaseResultSet(arg1,arg2);
+    {
+      CPLErrorReset();
+      GNMNetworkShadow_ReleaseResultSet(arg1,arg2);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        do_confess( CPLGetLastErrorMsg(), 0 );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /*
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
     {
       /* %typemap(out) void */
     }
@@ -2832,7 +2318,30 @@ XS(_wrap_Network_GetVersion) {
       SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Network_GetVersion" "', argument " "1"" of type '" "GNMNetworkShadow *""'"); 
     }
     arg1 = reinterpret_cast< GNMNetworkShadow * >(argp1);
-    result = (int)GNMNetworkShadow_GetVersion(arg1);
+    {
+      CPLErrorReset();
+      result = (int)GNMNetworkShadow_GetVersion(arg1);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        do_confess( CPLGetLastErrorMsg(), 0 );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /*
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
     ST(argvi) = SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(result)); argvi++ ;
     
     XSRETURN(argvi);
@@ -2860,7 +2369,30 @@ XS(_wrap_Network_GetName) {
       SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Network_GetName" "', argument " "1"" of type '" "GNMNetworkShadow *""'"); 
     }
     arg1 = reinterpret_cast< GNMNetworkShadow * >(argp1);
-    result = (char *)GNMNetworkShadow_GetName(arg1);
+    {
+      CPLErrorReset();
+      result = (char *)GNMNetworkShadow_GetName(arg1);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        do_confess( CPLGetLastErrorMsg(), 0 );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /*
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
     {
       /* %typemap(out) const char * */
       ST(argvi) = newSVpv(result, 0);
@@ -2898,8 +2430,31 @@ XS(_wrap_Network_GetFeatureByGlobalFID) {
     {
       arg2 = CPLAtoGIntBig(SvPV_nolen(ST(1)));
     }
-    result = (OGRFeatureShadow *)GNMNetworkShadow_GetFeatureByGlobalFID(arg1,arg2);
-    ST(argvi) = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_OGRFeatureShadow, SWIG_OWNER | 0); argvi++ ;
+    {
+      CPLErrorReset();
+      result = (OGRFeatureShadow *)GNMNetworkShadow_GetFeatureByGlobalFID(arg1,arg2);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        do_confess( CPLGetLastErrorMsg(), 0 );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /*
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
+    ST(argvi) = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_OGRFeatureShadow, SWIG_OWNER | SWIG_SHADOW); argvi++ ;
     
     XSRETURN(argvi);
   fail:
@@ -2952,9 +2507,10 @@ XS(_wrap_Network_GetPath) {
               AV *av = (AV*)(SvRV(ST(4)));
               for (int i = 0; i < av_len(av)+1; i++) {
                 SV *sv = *(av_fetch(av, i, 0));
-                char *tmp = sv_to_utf8_string(sv, NULL);
+                bool sf;
+                char *tmp = sv_to_utf8_string(sv, NULL, &sf);
                 arg5 = CSLAddString(arg5, tmp);
-                free(tmp);
+                if (sf) Safefree(tmp); else free(tmp);
               }
             } else if (SvTYPE(SvRV(ST(4)))==SVt_PVHV) {
               HV *hv = (HV*)SvRV(ST(4));
@@ -2964,9 +2520,10 @@ XS(_wrap_Network_GetPath) {
               arg5 = NULL;
               hv_iterinit(hv);
               while(sv = hv_iternextsv(hv, &key, &klen)) {
-                char *tmp = sv_to_utf8_string(sv, NULL);
+                bool sf;
+                char *tmp = sv_to_utf8_string(sv, NULL, &sf);
                 arg5 = CSLAddNameValue(arg5, key, tmp);
-                free(tmp);
+                if (sf) Safefree(tmp); else free(tmp);
               }
             } else
             do_confess(NEED_REF, 1);
@@ -2975,8 +2532,31 @@ XS(_wrap_Network_GetPath) {
         }
       }
     }
-    result = (OGRLayerShadow *)GNMNetworkShadow_GetPath(arg1,arg2,arg3,arg4,arg5);
-    ST(argvi) = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_OGRLayerShadow, SWIG_OWNER | 0); argvi++ ;
+    {
+      CPLErrorReset();
+      result = (OGRLayerShadow *)GNMNetworkShadow_GetPath(arg1,arg2,arg3,arg4,arg5);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        do_confess( CPLGetLastErrorMsg(), 0 );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /*
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
+    ST(argvi) = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_OGRLayerShadow, SWIG_OWNER | SWIG_SHADOW); argvi++ ;
     
     
     {
@@ -3013,7 +2593,30 @@ XS(_wrap_Network_DisconnectAll) {
       SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Network_DisconnectAll" "', argument " "1"" of type '" "GNMNetworkShadow *""'"); 
     }
     arg1 = reinterpret_cast< GNMNetworkShadow * >(argp1);
-    result = (CPLErr)GNMNetworkShadow_DisconnectAll(arg1);
+    {
+      CPLErrorReset();
+      result = (CPLErr)GNMNetworkShadow_DisconnectAll(arg1);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        do_confess( CPLGetLastErrorMsg(), 0 );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /*
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
     {
       /* %typemap(out) CPLErr */
     }
@@ -3043,7 +2646,30 @@ XS(_wrap_Network_GetProjection) {
       SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Network_GetProjection" "', argument " "1"" of type '" "GNMNetworkShadow *""'"); 
     }
     arg1 = reinterpret_cast< GNMNetworkShadow * >(argp1);
-    result = (char *)GNMNetworkShadow_GetProjection(arg1);
+    {
+      CPLErrorReset();
+      result = (char *)GNMNetworkShadow_GetProjection(arg1);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        do_confess( CPLGetLastErrorMsg(), 0 );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /*
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
     {
       /* %typemap(out) const char * */
       ST(argvi) = newSVpv(result, 0);
@@ -3077,7 +2703,30 @@ XS(_wrap_Network_GetProjectionRef) {
       SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Network_GetProjectionRef" "', argument " "1"" of type '" "GNMNetworkShadow *""'"); 
     }
     arg1 = reinterpret_cast< GNMNetworkShadow * >(argp1);
-    result = (char *)GNMNetworkShadow_GetProjectionRef(arg1);
+    {
+      CPLErrorReset();
+      result = (char *)GNMNetworkShadow_GetProjectionRef(arg1);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        do_confess( CPLGetLastErrorMsg(), 0 );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /*
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
     {
       /* %typemap(out) const char * */
       ST(argvi) = newSVpv(result, 0);
@@ -3111,7 +2760,30 @@ XS(_wrap_Network_GetFileList) {
       SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Network_GetFileList" "', argument " "1"" of type '" "GNMNetworkShadow *""'"); 
     }
     arg1 = reinterpret_cast< GNMNetworkShadow * >(argp1);
-    result = (char **)GNMNetworkShadow_GetFileList(arg1);
+    {
+      CPLErrorReset();
+      result = (char **)GNMNetworkShadow_GetFileList(arg1);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        do_confess( CPLGetLastErrorMsg(), 0 );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /*
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
     {
       /* %typemap(out) char **CSL */
       if (GIMME_V == G_ARRAY) {
@@ -3151,7 +2823,7 @@ XS(_wrap_Network_GetFileList) {
 }
 
 
-XS(_wrap_Network_CreateLayer) {
+XS(_wrap_Network__CreateLayer) {
   {
     GNMNetworkShadow *arg1 = (GNMNetworkShadow *) 0 ;
     char *arg2 = (char *) 0 ;
@@ -3163,18 +2835,18 @@ XS(_wrap_Network_CreateLayer) {
     U8 *tmpbuf2 = NULL ;
     void *argp3 = 0 ;
     int res3 = 0 ;
-    void *argp4 ;
-    int res4 = 0 ;
+    int val4 ;
+    int ecode4 = 0 ;
     int argvi = 0;
     OGRLayerShadow *result = 0 ;
     dXSARGS;
     
     if ((items < 2) || (items > 5)) {
-      SWIG_croak("Usage: Network_CreateLayer(self,name,srs,geom_type,options);");
+      SWIG_croak("Usage: Network__CreateLayer(self,name,srs,geom_type,options);");
     }
     res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_GNMNetworkShadow, 0 |  0 );
     if (!SWIG_IsOK(res1)) {
-      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Network_CreateLayer" "', argument " "1"" of type '" "GNMNetworkShadow *""'"); 
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Network__CreateLayer" "', argument " "1"" of type '" "GNMNetworkShadow *""'"); 
     }
     arg1 = reinterpret_cast< GNMNetworkShadow * >(argp1);
     {
@@ -3184,22 +2856,16 @@ XS(_wrap_Network_CreateLayer) {
     if (items > 2) {
       res3 = SWIG_ConvertPtr(ST(2), &argp3,SWIGTYPE_p_OSRSpatialReferenceShadow, 0 |  0 );
       if (!SWIG_IsOK(res3)) {
-        SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "Network_CreateLayer" "', argument " "3"" of type '" "OSRSpatialReferenceShadow *""'"); 
+        SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "Network__CreateLayer" "', argument " "3"" of type '" "OSRSpatialReferenceShadow *""'"); 
       }
       arg3 = reinterpret_cast< OSRSpatialReferenceShadow * >(argp3);
     }
     if (items > 3) {
-      {
-        res4 = SWIG_ConvertPtr(ST(3), &argp4, SWIGTYPE_p_OGRwkbGeometryType,  0 );
-        if (!SWIG_IsOK(res4)) {
-          SWIG_exception_fail(SWIG_ArgError(res4), "in method '" "Network_CreateLayer" "', argument " "4"" of type '" "OGRwkbGeometryType""'"); 
-        }  
-        if (!argp4) {
-          SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "Network_CreateLayer" "', argument " "4"" of type '" "OGRwkbGeometryType""'");
-        } else {
-          arg4 = *(reinterpret_cast< OGRwkbGeometryType * >(argp4));
-        }
-      }
+      ecode4 = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(3), &val4);
+      if (!SWIG_IsOK(ecode4)) {
+        SWIG_exception_fail(SWIG_ArgError(ecode4), "in method '" "Network__CreateLayer" "', argument " "4"" of type '" "OGRwkbGeometryType""'");
+      } 
+      arg4 = static_cast< OGRwkbGeometryType >(val4);
     }
     if (items > 4) {
       {
@@ -3210,9 +2876,10 @@ XS(_wrap_Network_CreateLayer) {
               AV *av = (AV*)(SvRV(ST(4)));
               for (int i = 0; i < av_len(av)+1; i++) {
                 SV *sv = *(av_fetch(av, i, 0));
-                char *tmp = sv_to_utf8_string(sv, NULL);
+                bool sf;
+                char *tmp = sv_to_utf8_string(sv, NULL, &sf);
                 arg5 = CSLAddString(arg5, tmp);
-                free(tmp);
+                if (sf) Safefree(tmp); else free(tmp);
               }
             } else if (SvTYPE(SvRV(ST(4)))==SVt_PVHV) {
               HV *hv = (HV*)SvRV(ST(4));
@@ -3222,9 +2889,10 @@ XS(_wrap_Network_CreateLayer) {
               arg5 = NULL;
               hv_iterinit(hv);
               while(sv = hv_iternextsv(hv, &key, &klen)) {
-                char *tmp = sv_to_utf8_string(sv, NULL);
+                bool sf;
+                char *tmp = sv_to_utf8_string(sv, NULL, &sf);
                 arg5 = CSLAddNameValue(arg5, key, tmp);
-                free(tmp);
+                if (sf) Safefree(tmp); else free(tmp);
               }
             } else
             do_confess(NEED_REF, 1);
@@ -3234,17 +2902,41 @@ XS(_wrap_Network_CreateLayer) {
       }
     }
     {
-      /* %typemap(check) (const char *name) */
-      if (!arg2)
-      do_confess(NEED_DEF, 1);
+      if (!arg2) {
+        SWIG_exception(SWIG_ValueError,"Received a NULL pointer.");
+      }
     }
-    result = (OGRLayerShadow *)GNMNetworkShadow_CreateLayer(arg1,(char const *)arg2,arg3,arg4,arg5);
-    ST(argvi) = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_OGRLayerShadow, 0 | 0); argvi++ ;
+    {
+      CPLErrorReset();
+      result = (OGRLayerShadow *)GNMNetworkShadow_CreateLayer(arg1,(char const *)arg2,arg3,arg4,arg5);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        do_confess( CPLGetLastErrorMsg(), 0 );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /*
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
+    ST(argvi) = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_OGRLayerShadow, 0 | SWIG_SHADOW); argvi++ ;
     
     {
       /* %typemap(freearg) (const char* name) */
-      if (tmpbuf2) free(tmpbuf2);
+      if (tmpbuf2) Safefree(tmpbuf2);
     }
+    
     
     {
       /* %typemap(freearg) char **options */
@@ -3255,8 +2947,9 @@ XS(_wrap_Network_CreateLayer) {
     
     {
       /* %typemap(freearg) (const char* name) */
-      if (tmpbuf2) free(tmpbuf2);
+      if (tmpbuf2) Safefree(tmpbuf2);
     }
+    
     
     {
       /* %typemap(freearg) char **options */
@@ -3311,9 +3004,10 @@ XS(_wrap_Network_CopyLayer) {
               AV *av = (AV*)(SvRV(ST(3)));
               for (int i = 0; i < av_len(av)+1; i++) {
                 SV *sv = *(av_fetch(av, i, 0));
-                char *tmp = sv_to_utf8_string(sv, NULL);
+                bool sf;
+                char *tmp = sv_to_utf8_string(sv, NULL, &sf);
                 arg4 = CSLAddString(arg4, tmp);
-                free(tmp);
+                if (sf) Safefree(tmp); else free(tmp);
               }
             } else if (SvTYPE(SvRV(ST(3)))==SVt_PVHV) {
               HV *hv = (HV*)SvRV(ST(3));
@@ -3323,9 +3017,10 @@ XS(_wrap_Network_CopyLayer) {
               arg4 = NULL;
               hv_iterinit(hv);
               while(sv = hv_iternextsv(hv, &key, &klen)) {
-                char *tmp = sv_to_utf8_string(sv, NULL);
+                bool sf;
+                char *tmp = sv_to_utf8_string(sv, NULL, &sf);
                 arg4 = CSLAddNameValue(arg4, key, tmp);
-                free(tmp);
+                if (sf) Safefree(tmp); else free(tmp);
               }
             } else
             do_confess(NEED_REF, 1);
@@ -3339,8 +3034,31 @@ XS(_wrap_Network_CopyLayer) {
         SWIG_exception(SWIG_ValueError,"Received a NULL pointer.");
       }
     }
-    result = (OGRLayerShadow *)GNMNetworkShadow_CopyLayer(arg1,arg2,(char const *)arg3,arg4);
-    ST(argvi) = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_OGRLayerShadow, 0 | 0); argvi++ ;
+    {
+      CPLErrorReset();
+      result = (OGRLayerShadow *)GNMNetworkShadow_CopyLayer(arg1,arg2,(char const *)arg3,arg4);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        do_confess( CPLGetLastErrorMsg(), 0 );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /*
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
+    ST(argvi) = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_OGRLayerShadow, 0 | SWIG_SHADOW); argvi++ ;
     
     
     if (alloc3 == SWIG_NEWOBJ) delete[] buf3;
@@ -3362,7 +3080,7 @@ XS(_wrap_Network_CopyLayer) {
 }
 
 
-XS(_wrap_Network_DeleteLayer) {
+XS(_wrap_Network__DeleteLayer) {
   {
     GNMNetworkShadow *arg1 = (GNMNetworkShadow *) 0 ;
     int arg2 ;
@@ -3375,19 +3093,42 @@ XS(_wrap_Network_DeleteLayer) {
     dXSARGS;
     
     if ((items < 2) || (items > 2)) {
-      SWIG_croak("Usage: Network_DeleteLayer(self,index);");
+      SWIG_croak("Usage: Network__DeleteLayer(self,index);");
     }
     res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_GNMNetworkShadow, 0 |  0 );
     if (!SWIG_IsOK(res1)) {
-      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Network_DeleteLayer" "', argument " "1"" of type '" "GNMNetworkShadow *""'"); 
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Network__DeleteLayer" "', argument " "1"" of type '" "GNMNetworkShadow *""'"); 
     }
     arg1 = reinterpret_cast< GNMNetworkShadow * >(argp1);
     ecode2 = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(1), &val2);
     if (!SWIG_IsOK(ecode2)) {
-      SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "Network_DeleteLayer" "', argument " "2"" of type '" "int""'");
+      SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "Network__DeleteLayer" "', argument " "2"" of type '" "int""'");
     } 
     arg2 = static_cast< int >(val2);
-    result = GNMNetworkShadow_DeleteLayer(arg1,arg2);
+    {
+      CPLErrorReset();
+      result = (OGRErr)GNMNetworkShadow_DeleteLayer(arg1,arg2);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        do_confess( CPLGetLastErrorMsg(), 0 );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /*
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
     {
       /* %typemap(out) OGRErr */
       if ( result != 0 ) {
@@ -3424,7 +3165,30 @@ XS(_wrap_Network_GetLayerCount) {
       SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Network_GetLayerCount" "', argument " "1"" of type '" "GNMNetworkShadow *""'"); 
     }
     arg1 = reinterpret_cast< GNMNetworkShadow * >(argp1);
-    result = (int)GNMNetworkShadow_GetLayerCount(arg1);
+    {
+      CPLErrorReset();
+      result = (int)GNMNetworkShadow_GetLayerCount(arg1);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        do_confess( CPLGetLastErrorMsg(), 0 );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /*
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
     ST(argvi) = SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(result)); argvi++ ;
     
     XSRETURN(argvi);
@@ -3462,8 +3226,31 @@ XS(_wrap_Network_GetLayerByIndex) {
       } 
       arg2 = static_cast< int >(val2);
     }
-    result = (OGRLayerShadow *)GNMNetworkShadow_GetLayerByIndex(arg1,arg2);
-    ST(argvi) = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_OGRLayerShadow, 0 | 0); argvi++ ;
+    {
+      CPLErrorReset();
+      result = (OGRLayerShadow *)GNMNetworkShadow_GetLayerByIndex(arg1,arg2);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        do_confess( CPLGetLastErrorMsg(), 0 );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /*
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
+    ST(argvi) = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_OGRLayerShadow, 0 | SWIG_SHADOW); argvi++ ;
     
     
     XSRETURN(argvi);
@@ -3498,26 +3285,49 @@ XS(_wrap_Network_GetLayerByName) {
       /* %typemap(in,numinputs=1) (const char* layer_name) */
       arg2 = sv_to_utf8_string(ST(1), &tmpbuf2);
     }
-    result = (OGRLayerShadow *)GNMNetworkShadow_GetLayerByName(arg1,(char const *)arg2);
-    ST(argvi) = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_OGRLayerShadow, 0 | 0); argvi++ ;
+    {
+      CPLErrorReset();
+      result = (OGRLayerShadow *)GNMNetworkShadow_GetLayerByName(arg1,(char const *)arg2);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        do_confess( CPLGetLastErrorMsg(), 0 );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /*
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
+    ST(argvi) = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_OGRLayerShadow, 0 | SWIG_SHADOW); argvi++ ;
     
     {
       /* %typemap(freearg) (const char* layer_name) */
-      if (tmpbuf2) free(tmpbuf2);
+      if (tmpbuf2) Safefree(tmpbuf2);
     }
     XSRETURN(argvi);
   fail:
     
     {
       /* %typemap(freearg) (const char* layer_name) */
-      if (tmpbuf2) free(tmpbuf2);
+      if (tmpbuf2) Safefree(tmpbuf2);
     }
     SWIG_croak_null();
   }
 }
 
 
-XS(_wrap_Network_TestCapability) {
+XS(_wrap_Network__TestCapability) {
   {
     GNMNetworkShadow *arg1 = (GNMNetworkShadow *) 0 ;
     char *arg2 = (char *) 0 ;
@@ -3531,16 +3341,16 @@ XS(_wrap_Network_TestCapability) {
     dXSARGS;
     
     if ((items < 2) || (items > 2)) {
-      SWIG_croak("Usage: Network_TestCapability(self,cap);");
+      SWIG_croak("Usage: Network__TestCapability(self,cap);");
     }
     res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_GNMNetworkShadow, 0 |  0 );
     if (!SWIG_IsOK(res1)) {
-      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Network_TestCapability" "', argument " "1"" of type '" "GNMNetworkShadow *""'"); 
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Network__TestCapability" "', argument " "1"" of type '" "GNMNetworkShadow *""'"); 
     }
     arg1 = reinterpret_cast< GNMNetworkShadow * >(argp1);
     res2 = SWIG_AsCharPtrAndSize(ST(1), &buf2, NULL, &alloc2);
     if (!SWIG_IsOK(res2)) {
-      SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "Network_TestCapability" "', argument " "2"" of type '" "char const *""'");
+      SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "Network__TestCapability" "', argument " "2"" of type '" "char const *""'");
     }
     arg2 = reinterpret_cast< char * >(buf2);
     {
@@ -3548,7 +3358,30 @@ XS(_wrap_Network_TestCapability) {
       if (!arg2)
       do_confess(NEED_DEF, 1);
     }
-    result = (bool)GNMNetworkShadow_TestCapability(arg1,(char const *)arg2);
+    {
+      CPLErrorReset();
+      result = (bool)GNMNetworkShadow_TestCapability(arg1,(char const *)arg2);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        do_confess( CPLGetLastErrorMsg(), 0 );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /*
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
     ST(argvi) = SWIG_From_bool  SWIG_PERL_CALL_ARGS_1(static_cast< bool >(result)); argvi++ ;
     
     if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
@@ -3588,7 +3421,30 @@ XS(_wrap_Network_StartTransaction) {
       } 
       arg2 = static_cast< int >(val2);
     }
-    result = GNMNetworkShadow_StartTransaction(arg1,arg2);
+    {
+      CPLErrorReset();
+      result = (OGRErr)GNMNetworkShadow_StartTransaction(arg1,arg2);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        do_confess( CPLGetLastErrorMsg(), 0 );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /*
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
     {
       /* %typemap(out) OGRErr */
       if ( result != 0 ) {
@@ -3625,7 +3481,30 @@ XS(_wrap_Network_CommitTransaction) {
       SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Network_CommitTransaction" "', argument " "1"" of type '" "GNMNetworkShadow *""'"); 
     }
     arg1 = reinterpret_cast< GNMNetworkShadow * >(argp1);
-    result = GNMNetworkShadow_CommitTransaction(arg1);
+    {
+      CPLErrorReset();
+      result = (OGRErr)GNMNetworkShadow_CommitTransaction(arg1);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        do_confess( CPLGetLastErrorMsg(), 0 );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /*
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
     {
       /* %typemap(out) OGRErr */
       if ( result != 0 ) {
@@ -3660,7 +3539,30 @@ XS(_wrap_Network_RollbackTransaction) {
       SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Network_RollbackTransaction" "', argument " "1"" of type '" "GNMNetworkShadow *""'"); 
     }
     arg1 = reinterpret_cast< GNMNetworkShadow * >(argp1);
-    result = GNMNetworkShadow_RollbackTransaction(arg1);
+    {
+      CPLErrorReset();
+      result = (OGRErr)GNMNetworkShadow_RollbackTransaction(arg1);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        do_confess( CPLGetLastErrorMsg(), 0 );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /*
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
     {
       /* %typemap(out) OGRErr */
       if ( result != 0 ) {
@@ -3694,7 +3596,30 @@ XS(_wrap_delete_GenericNetwork) {
       SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "delete_GenericNetwork" "', argument " "1"" of type '" "GNMGenericNetworkShadow *""'"); 
     }
     arg1 = reinterpret_cast< GNMGenericNetworkShadow * >(argp1);
-    delete_GNMGenericNetworkShadow(arg1);
+    {
+      CPLErrorReset();
+      delete_GNMGenericNetworkShadow(arg1);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        do_confess( CPLGetLastErrorMsg(), 0 );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /*
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
     {
       /* %typemap(out) void */
     }
@@ -3760,7 +3685,30 @@ XS(_wrap_GenericNetwork_ConnectFeatures) {
       SWIG_exception_fail(SWIG_ArgError(ecode7), "in method '" "GenericNetwork_ConnectFeatures" "', argument " "7"" of type '" "GNMDirection""'");
     } 
     arg7 = static_cast< GNMDirection >(val7);
-    result = (CPLErr)GNMGenericNetworkShadow_ConnectFeatures(arg1,arg2,arg3,arg4,arg5,arg6,arg7);
+    {
+      CPLErrorReset();
+      result = (CPLErr)GNMGenericNetworkShadow_ConnectFeatures(arg1,arg2,arg3,arg4,arg5,arg6,arg7);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        do_confess( CPLGetLastErrorMsg(), 0 );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /*
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
     {
       /* %typemap(out) CPLErr */
     }
@@ -3808,7 +3756,30 @@ XS(_wrap_GenericNetwork_DisconnectFeatures) {
     {
       arg4 = CPLAtoGIntBig(SvPV_nolen(ST(3)));
     }
-    result = (CPLErr)GNMGenericNetworkShadow_DisconnectFeatures(arg1,arg2,arg3,arg4);
+    {
+      CPLErrorReset();
+      result = (CPLErr)GNMGenericNetworkShadow_DisconnectFeatures(arg1,arg2,arg3,arg4);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        do_confess( CPLGetLastErrorMsg(), 0 );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /*
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
     {
       /* %typemap(out) CPLErr */
     }
@@ -3842,7 +3813,30 @@ XS(_wrap_GenericNetwork_DisconnectFeaturesWithId) {
     {
       arg2 = CPLAtoGIntBig(SvPV_nolen(ST(1)));
     }
-    result = (CPLErr)GNMGenericNetworkShadow_DisconnectFeaturesWithId(arg1,arg2);
+    {
+      CPLErrorReset();
+      result = (CPLErr)GNMGenericNetworkShadow_DisconnectFeaturesWithId(arg1,arg2);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        do_confess( CPLGetLastErrorMsg(), 0 );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /*
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
     {
       /* %typemap(out) CPLErr */
     }
@@ -3908,7 +3902,30 @@ XS(_wrap_GenericNetwork_ReconnectFeatures) {
       SWIG_exception_fail(SWIG_ArgError(ecode7), "in method '" "GenericNetwork_ReconnectFeatures" "', argument " "7"" of type '" "GNMDirection""'");
     } 
     arg7 = static_cast< GNMDirection >(val7);
-    result = (CPLErr)GNMGenericNetworkShadow_ReconnectFeatures(arg1,arg2,arg3,arg4,arg5,arg6,arg7);
+    {
+      CPLErrorReset();
+      result = (CPLErr)GNMGenericNetworkShadow_ReconnectFeatures(arg1,arg2,arg3,arg4,arg5,arg6,arg7);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        do_confess( CPLGetLastErrorMsg(), 0 );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /*
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
     {
       /* %typemap(out) CPLErr */
     }
@@ -3958,7 +3975,30 @@ XS(_wrap_GenericNetwork_CreateRule) {
         SWIG_exception(SWIG_ValueError,"Received a NULL pointer.");
       }
     }
-    result = (CPLErr)GNMGenericNetworkShadow_CreateRule(arg1,(char const *)arg2);
+    {
+      CPLErrorReset();
+      result = (CPLErr)GNMGenericNetworkShadow_CreateRule(arg1,(char const *)arg2);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        do_confess( CPLGetLastErrorMsg(), 0 );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /*
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
     {
       /* %typemap(out) CPLErr */
     }
@@ -3990,7 +4030,30 @@ XS(_wrap_GenericNetwork_DeleteAllRules) {
       SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "GenericNetwork_DeleteAllRules" "', argument " "1"" of type '" "GNMGenericNetworkShadow *""'"); 
     }
     arg1 = reinterpret_cast< GNMGenericNetworkShadow * >(argp1);
-    result = (CPLErr)GNMGenericNetworkShadow_DeleteAllRules(arg1);
+    {
+      CPLErrorReset();
+      result = (CPLErr)GNMGenericNetworkShadow_DeleteAllRules(arg1);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        do_confess( CPLGetLastErrorMsg(), 0 );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /*
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
     {
       /* %typemap(out) CPLErr */
     }
@@ -4034,7 +4097,30 @@ XS(_wrap_GenericNetwork_DeleteRule) {
         SWIG_exception(SWIG_ValueError,"Received a NULL pointer.");
       }
     }
-    result = (CPLErr)GNMGenericNetworkShadow_DeleteRule(arg1,(char const *)arg2);
+    {
+      CPLErrorReset();
+      result = (CPLErr)GNMGenericNetworkShadow_DeleteRule(arg1,(char const *)arg2);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        do_confess( CPLGetLastErrorMsg(), 0 );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /*
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
     {
       /* %typemap(out) CPLErr */
     }
@@ -4066,7 +4152,30 @@ XS(_wrap_GenericNetwork_GetRules) {
       SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "GenericNetwork_GetRules" "', argument " "1"" of type '" "GNMGenericNetworkShadow *""'"); 
     }
     arg1 = reinterpret_cast< GNMGenericNetworkShadow * >(argp1);
-    result = (char **)GNMGenericNetworkShadow_GetRules(arg1);
+    {
+      CPLErrorReset();
+      result = (char **)GNMGenericNetworkShadow_GetRules(arg1);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        do_confess( CPLGetLastErrorMsg(), 0 );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /*
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
     {
       /* %typemap(out) char **CSL */
       if (GIMME_V == G_ARRAY) {
@@ -4144,9 +4253,10 @@ XS(_wrap_GenericNetwork_ConnectPointsByLines) {
             AV *av = (AV*)(SvRV(ST(1)));
             for (int i = 0; i < av_len(av)+1; i++) {
               SV *sv = *(av_fetch(av, i, 0));
-              char *tmp = sv_to_utf8_string(sv, NULL);
+              bool sf;
+              char *tmp = sv_to_utf8_string(sv, NULL, &sf);
               arg2 = CSLAddString(arg2, tmp);
-              free(tmp);
+              if (sf) Safefree(tmp); else free(tmp);
             }
           } else if (SvTYPE(SvRV(ST(1)))==SVt_PVHV) {
             HV *hv = (HV*)SvRV(ST(1));
@@ -4156,9 +4266,10 @@ XS(_wrap_GenericNetwork_ConnectPointsByLines) {
             arg2 = NULL;
             hv_iterinit(hv);
             while(sv = hv_iternextsv(hv, &key, &klen)) {
-              char *tmp = sv_to_utf8_string(sv, NULL);
+              bool sf;
+              char *tmp = sv_to_utf8_string(sv, NULL, &sf);
               arg2 = CSLAddNameValue(arg2, key, tmp);
-              free(tmp);
+              if (sf) Safefree(tmp); else free(tmp);
             }
           } else
           do_confess(NEED_REF, 1);
@@ -4186,7 +4297,30 @@ XS(_wrap_GenericNetwork_ConnectPointsByLines) {
       SWIG_exception_fail(SWIG_ArgError(ecode6), "in method '" "GenericNetwork_ConnectPointsByLines" "', argument " "6"" of type '" "GNMDirection""'");
     } 
     arg6 = static_cast< GNMDirection >(val6);
-    result = (CPLErr)GNMGenericNetworkShadow_ConnectPointsByLines(arg1,arg2,arg3,arg4,arg5,arg6);
+    {
+      CPLErrorReset();
+      result = (CPLErr)GNMGenericNetworkShadow_ConnectPointsByLines(arg1,arg2,arg3,arg4,arg5,arg6);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        do_confess( CPLGetLastErrorMsg(), 0 );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /*
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
     {
       /* %typemap(out) CPLErr */
     }
@@ -4244,7 +4378,30 @@ XS(_wrap_GenericNetwork_ChangeBlockState) {
       SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "GenericNetwork_ChangeBlockState" "', argument " "3"" of type '" "bool""'");
     } 
     arg3 = static_cast< bool >(val3);
-    result = (CPLErr)GNMGenericNetworkShadow_ChangeBlockState(arg1,arg2,arg3);
+    {
+      CPLErrorReset();
+      result = (CPLErr)GNMGenericNetworkShadow_ChangeBlockState(arg1,arg2,arg3);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        do_confess( CPLGetLastErrorMsg(), 0 );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /*
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
     {
       /* %typemap(out) CPLErr */
     }
@@ -4286,7 +4443,30 @@ XS(_wrap_GenericNetwork_ChangeAllBlockState) {
       } 
       arg2 = static_cast< bool >(val2);
     }
-    result = (CPLErr)GNMGenericNetworkShadow_ChangeAllBlockState(arg1,arg2);
+    {
+      CPLErrorReset();
+      result = (CPLErr)GNMGenericNetworkShadow_ChangeAllBlockState(arg1,arg2);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        do_confess( CPLGetLastErrorMsg(), 0 );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /*
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
     {
       /* %typemap(out) CPLErr */
     }
@@ -4304,6 +4484,9 @@ XS(_wrap_GenericNetwork_ChangeAllBlockState) {
 
 /* -------- TYPE CONVERSION AND EQUIVALENCE RULES (BEGIN) -------- */
 
+static void *_p_OGRLayerShadowTo_p_GDALMajorObjectShadow(void *x, int *SWIGUNUSEDPARM(newmemory)) {
+    return (void *)((GDALMajorObjectShadow *)  ((OGRLayerShadow *) x));
+}
 static void *_p_GNMNetworkShadowTo_p_GDALMajorObjectShadow(void *x, int *SWIGUNUSEDPARM(newmemory)) {
     return (void *)((GDALMajorObjectShadow *)  ((GNMNetworkShadow *) x));
 }
@@ -4313,17 +4496,16 @@ static void *_p_GNMGenericNetworkShadowTo_p_GDALMajorObjectShadow(void *x, int *
 static void *_p_GNMGenericNetworkShadowTo_p_GNMNetworkShadow(void *x, int *SWIGUNUSEDPARM(newmemory)) {
     return (void *)((GNMNetworkShadow *)  ((GNMGenericNetworkShadow *) x));
 }
-static swig_type_info _swigt__p_GDALMajorObjectShadow = {"_p_GDALMajorObjectShadow", "GDALMajorObjectShadow *", 0, 0, (void*)"Geo::GNM::MajorObject", 0};
+static swig_type_info _swigt__p_GDALMajorObjectShadow = {"_p_GDALMajorObjectShadow", "GDALMajorObjectShadow *", 0, 0, (void*)"Geo::GDAL::MajorObject", 0};
 static swig_type_info _swigt__p_GIntBig = {"_p_GIntBig", "GIntBig *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_GNMGenericNetworkShadow = {"_p_GNMGenericNetworkShadow", "GNMGenericNetworkShadow *", 0, 0, (void*)"Geo::GNM::GenericNetwork", 0};
 static swig_type_info _swigt__p_GNMGraphAlgorithmType = {"_p_GNMGraphAlgorithmType", "enum GNMGraphAlgorithmType *|GNMGraphAlgorithmType *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_GNMNetworkShadow = {"_p_GNMNetworkShadow", "GNMNetworkShadow *", 0, 0, (void*)"Geo::GNM::Network", 0};
-static swig_type_info _swigt__p_OGRFeatureShadow = {"_p_OGRFeatureShadow", "OGRFeatureShadow *", 0, 0, (void*)0, 0};
-static swig_type_info _swigt__p_OGRLayerShadow = {"_p_OGRLayerShadow", "OGRLayerShadow *", 0, 0, (void*)0, 0};
-static swig_type_info _swigt__p_OGRwkbGeometryType = {"_p_OGRwkbGeometryType", "OGRwkbGeometryType *", 0, 0, (void*)0, 0};
-static swig_type_info _swigt__p_OSRSpatialReferenceShadow = {"_p_OSRSpatialReferenceShadow", "OSRSpatialReferenceShadow *", 0, 0, (void*)0, 0};
+static swig_type_info _swigt__p_OGRFeatureShadow = {"_p_OGRFeatureShadow", "OGRFeatureShadow *", 0, 0, (void*)"Geo::OGR::Feature", 0};
+static swig_type_info _swigt__p_OGRLayerShadow = {"_p_OGRLayerShadow", "OGRLayerShadow *", 0, 0, (void*)"Geo::OGR::Layer", 0};
+static swig_type_info _swigt__p_OSRSpatialReferenceShadow = {"_p_OSRSpatialReferenceShadow", "OSRSpatialReferenceShadow *", 0, 0, (void*)"Geo::OSR::SpatialReference", 0};
 static swig_type_info _swigt__p_char = {"_p_char", "char *|retStringAndCPLFree *", 0, 0, (void*)0, 0};
-static swig_type_info _swigt__p_int = {"_p_int", "CPLErr *|int *|GNMDirection *", 0, 0, (void*)0, 0};
+static swig_type_info _swigt__p_int = {"_p_int", "OGRFieldSubType *|OGRFieldType *|CPLErr *|int *|OGRwkbGeometryType *|OGRJustification *|OGRAxisOrientation *|GNMDirection *|OGRwkbByteOrder *|OGRErr *", 0, 0, (void*)0, 0};
 
 static swig_type_info *swig_type_initial[] = {
   &_swigt__p_GDALMajorObjectShadow,
@@ -4333,20 +4515,18 @@ static swig_type_info *swig_type_initial[] = {
   &_swigt__p_GNMNetworkShadow,
   &_swigt__p_OGRFeatureShadow,
   &_swigt__p_OGRLayerShadow,
-  &_swigt__p_OGRwkbGeometryType,
   &_swigt__p_OSRSpatialReferenceShadow,
   &_swigt__p_char,
   &_swigt__p_int,
 };
 
-static swig_cast_info _swigc__p_GDALMajorObjectShadow[] = {  {&_swigt__p_GDALMajorObjectShadow, 0, 0, 0},  {&_swigt__p_GNMNetworkShadow, _p_GNMNetworkShadowTo_p_GDALMajorObjectShadow, 0, 0},  {&_swigt__p_GNMGenericNetworkShadow, _p_GNMGenericNetworkShadowTo_p_GDALMajorObjectShadow, 0, 0},{0, 0, 0, 0}};
+static swig_cast_info _swigc__p_GDALMajorObjectShadow[] = {  {&_swigt__p_GDALMajorObjectShadow, 0, 0, 0},  {&_swigt__p_OGRLayerShadow, _p_OGRLayerShadowTo_p_GDALMajorObjectShadow, 0, 0},  {&_swigt__p_GNMNetworkShadow, _p_GNMNetworkShadowTo_p_GDALMajorObjectShadow, 0, 0},  {&_swigt__p_GNMGenericNetworkShadow, _p_GNMGenericNetworkShadowTo_p_GDALMajorObjectShadow, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_GIntBig[] = {  {&_swigt__p_GIntBig, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_GNMGenericNetworkShadow[] = {  {&_swigt__p_GNMGenericNetworkShadow, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_GNMGraphAlgorithmType[] = {  {&_swigt__p_GNMGraphAlgorithmType, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_GNMNetworkShadow[] = {  {&_swigt__p_GNMNetworkShadow, 0, 0, 0},  {&_swigt__p_GNMGenericNetworkShadow, _p_GNMGenericNetworkShadowTo_p_GNMNetworkShadow, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_OGRFeatureShadow[] = {  {&_swigt__p_OGRFeatureShadow, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_OGRLayerShadow[] = {  {&_swigt__p_OGRLayerShadow, 0, 0, 0},{0, 0, 0, 0}};
-static swig_cast_info _swigc__p_OGRwkbGeometryType[] = {  {&_swigt__p_OGRwkbGeometryType, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_OSRSpatialReferenceShadow[] = {  {&_swigt__p_OSRSpatialReferenceShadow, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_char[] = {  {&_swigt__p_char, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_int[] = {  {&_swigt__p_int, 0, 0, 0},{0, 0, 0, 0}};
@@ -4359,7 +4539,6 @@ static swig_cast_info *swig_cast_initial[] = {
   _swigc__p_GNMNetworkShadow,
   _swigc__p_OGRFeatureShadow,
   _swigc__p_OGRLayerShadow,
-  _swigc__p_OGRwkbGeometryType,
   _swigc__p_OSRSpatialReferenceShadow,
   _swigc__p_char,
   _swigc__p_int,
@@ -4378,18 +4557,10 @@ static swig_variable_info swig_variables[] = {
 {0,0,0,0}
 };
 static swig_command_info swig_commands[] = {
-{"Geo::GNMc::MajorObject_GetDescription", _wrap_MajorObject_GetDescription},
-{"Geo::GNMc::MajorObject_SetDescription", _wrap_MajorObject_SetDescription},
-{"Geo::GNMc::MajorObject_GetMetadataDomainList", _wrap_MajorObject_GetMetadataDomainList},
-{"Geo::GNMc::MajorObject_GetMetadata_Dict", _wrap_MajorObject_GetMetadata_Dict},
-{"Geo::GNMc::MajorObject_GetMetadata_List", _wrap_MajorObject_GetMetadata_List},
-{"Geo::GNMc::MajorObject_SetMetadata", _wrap_MajorObject_SetMetadata},
-{"Geo::GNMc::MajorObject_GetMetadataItem", _wrap_MajorObject_GetMetadataItem},
-{"Geo::GNMc::MajorObject_SetMetadataItem", _wrap_MajorObject_SetMetadataItem},
 {"Geo::GNMc::CastToNetwork", _wrap_CastToNetwork},
 {"Geo::GNMc::CastToGenericNetwork", _wrap_CastToGenericNetwork},
 {"Geo::GNMc::delete_Network", _wrap_delete_Network},
-{"Geo::GNMc::Network_ReleaseResultSet", _wrap_Network_ReleaseResultSet},
+{"Geo::GNMc::Network__ReleaseResultSet", _wrap_Network__ReleaseResultSet},
 {"Geo::GNMc::Network_GetVersion", _wrap_Network_GetVersion},
 {"Geo::GNMc::Network_GetName", _wrap_Network_GetName},
 {"Geo::GNMc::Network_GetFeatureByGlobalFID", _wrap_Network_GetFeatureByGlobalFID},
@@ -4398,13 +4569,13 @@ static swig_command_info swig_commands[] = {
 {"Geo::GNMc::Network_GetProjection", _wrap_Network_GetProjection},
 {"Geo::GNMc::Network_GetProjectionRef", _wrap_Network_GetProjectionRef},
 {"Geo::GNMc::Network_GetFileList", _wrap_Network_GetFileList},
-{"Geo::GNMc::Network_CreateLayer", _wrap_Network_CreateLayer},
+{"Geo::GNMc::Network__CreateLayer", _wrap_Network__CreateLayer},
 {"Geo::GNMc::Network_CopyLayer", _wrap_Network_CopyLayer},
-{"Geo::GNMc::Network_DeleteLayer", _wrap_Network_DeleteLayer},
+{"Geo::GNMc::Network__DeleteLayer", _wrap_Network__DeleteLayer},
 {"Geo::GNMc::Network_GetLayerCount", _wrap_Network_GetLayerCount},
 {"Geo::GNMc::Network_GetLayerByIndex", _wrap_Network_GetLayerByIndex},
 {"Geo::GNMc::Network_GetLayerByName", _wrap_Network_GetLayerByName},
-{"Geo::GNMc::Network_TestCapability", _wrap_Network_TestCapability},
+{"Geo::GNMc::Network__TestCapability", _wrap_Network__TestCapability},
 {"Geo::GNMc::Network_StartTransaction", _wrap_Network_StartTransaction},
 {"Geo::GNMc::Network_CommitTransaction", _wrap_Network_CommitTransaction},
 {"Geo::GNMc::Network_RollbackTransaction", _wrap_Network_RollbackTransaction},
@@ -4717,7 +4888,6 @@ XS(SWIG_init) {
     SvREADONLY_on(sv);
   }
   
-  SWIG_TypeClientData(SWIGTYPE_p_GDALMajorObjectShadow, (void*) "Geo::GNM::MajorObject");
   /*@SWIG:/home/rouault/install-swig-2.0.12/share/swig/2.0.12/perl5/perltypemaps.swg,65,%set_constant@*/ do {
     SV *sv = get_sv((char*) SWIG_prefix "GATDijkstraShortestPath", TRUE | 0x2 | GV_ADDMULTI);
     sv_setsv(sv, SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(GATDijkstraShortestPath)));

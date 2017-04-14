@@ -1576,6 +1576,36 @@ SWIGEXPORT int SWIGSTDCALL CSharp_GMF_NODATA_get() {
 }
 
 
+SWIGEXPORT int SWIGSTDCALL CSharp_GDAL_DATA_COVERAGE_STATUS_UNIMPLEMENTED_get() {
+  int jresult ;
+  int result;
+  
+  result = (int)(0x01);
+  jresult = result; 
+  return jresult;
+}
+
+
+SWIGEXPORT int SWIGSTDCALL CSharp_GDAL_DATA_COVERAGE_STATUS_DATA_get() {
+  int jresult ;
+  int result;
+  
+  result = (int)(0x02);
+  jresult = result; 
+  return jresult;
+}
+
+
+SWIGEXPORT int SWIGSTDCALL CSharp_GDAL_DATA_COVERAGE_STATUS_EMPTY_get() {
+  int jresult ;
+  int result;
+  
+  result = (int)(0x04);
+  jresult = result; 
+  return jresult;
+}
+
+
 SWIGEXPORT int SWIGSTDCALL CSharp_GARIO_PENDING_get() {
   int jresult ;
   int result;

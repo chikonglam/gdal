@@ -1,9 +1,8 @@
-.TH "gdal_grid" 1 "Fri Jan 20 2017" "GDAL" \" -*- nroff -*-
+.TH "gdal_grid" 1 "Fri Apr 14 2017" "GDAL" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
-gdal_grid \- gdal_grid 
-creates regular grid from the scattered data
+gdal_grid \- Creates regular grid from the scattered data\&.
 .SH "SYNOPSIS"
 .PP
 .PP
@@ -83,7 +82,7 @@ An optional SQL WHERE style query expression to be applied to select features to
 An SQL statement to be evaluated against the datasource to produce a virtual layer of features to be processed\&.
 .PP
 .IP "\fB\fB-co\fP \fI'NAME=VALUE'\fP:\fP" 1c
-Passes a creation option to the output format driver\&. Multiple \fB-co\fP options may be listed\&. See format specific documentation for legal creation options for each format\&.
+Passes a creation option to the output format driver\&. Multiple \fB-co\fP options may be listed\&. See \fCformat specific documentation for legal creation options for each format\fP\&.
 .PP
 .IP "\fB\fB-q\fP:\fP" 1c
 Suppress progress monitor and other non-error output\&.
@@ -123,6 +122,8 @@ NODATA marker to fill empty points (default 0\&.0)\&.
 .PP
 .IP "\fB\fIpower\fP: \fP" 1c
 Weighting power (default 2\&.0)\&. 
+.IP "\fB\fIsmoothing\fP: \fP" 1c
+Smoothing parameter (default 0\&.0)\&. 
 .IP "\fB\fIradius\fP: \fP" 1c
 The radius of the search circle, which should be non-zero\&. Default is 1\&.0\&. 
 .IP "\fB\fImax_points\fP: \fP" 1c
@@ -233,9 +234,9 @@ For above data we will create \fIdem\&.vrt\fP header with the following content:
 .nf
 <OGRVRTDataSource>
     <OGRVRTLayer name="dem">
-        <SrcDataSource>dem.csv</SrcDataSource> 
-        <GeometryType>wkbPoint</GeometryType> 
-        <GeometryField encoding="PointFromColumns" x="Easting" y="Northing" z="Elevation"/> 
+        <SrcDataSource>dem.csv</SrcDataSource>
+        <GeometryType>wkbPoint</GeometryType>
+        <GeometryField encoding="PointFromColumns" x="Easting" y="Northing" z="Elevation"/>
     </OGRVRTLayer>
 </OGRVRTDataSource>
 .fi

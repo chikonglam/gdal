@@ -1532,24 +1532,25 @@ SWIG_Perl_SetModule(swig_module_info *module) {
 #define SWIGTYPE_p_GDAL_GCP swig_types[23]
 #define SWIGTYPE_p_GIntBig swig_types[24]
 #define SWIGTYPE_p_GUIntBig swig_types[25]
-#define SWIGTYPE_p_OGRGeometryShadow swig_types[26]
-#define SWIGTYPE_p_OGRLayerShadow swig_types[27]
-#define SWIGTYPE_p_OGRStyleTableShadow swig_types[28]
-#define SWIGTYPE_p_OSRSpatialReferenceShadow swig_types[29]
-#define SWIGTYPE_p_VSIStatBufL swig_types[30]
-#define SWIGTYPE_p_VSIWriteFunction swig_types[31]
-#define SWIGTYPE_p_char swig_types[32]
-#define SWIGTYPE_p_double swig_types[33]
-#define SWIGTYPE_p_f_double_p_q_const__char_p_void__int swig_types[34]
-#define SWIGTYPE_p_int swig_types[35]
-#define SWIGTYPE_p_p_GDALDatasetShadow swig_types[36]
-#define SWIGTYPE_p_p_GDALRasterBandShadow swig_types[37]
-#define SWIGTYPE_p_p_GDAL_GCP swig_types[38]
-#define SWIGTYPE_p_p_GUIntBig swig_types[39]
-#define SWIGTYPE_p_p_char swig_types[40]
-#define SWIGTYPE_p_void swig_types[41]
-static swig_type_info *swig_types[43];
-static swig_module_info swig_module = {swig_types, 42, 0, 0, 0, 0};
+#define SWIGTYPE_p_OGRFeatureShadow swig_types[26]
+#define SWIGTYPE_p_OGRGeometryShadow swig_types[27]
+#define SWIGTYPE_p_OGRLayerShadow swig_types[28]
+#define SWIGTYPE_p_OGRStyleTableShadow swig_types[29]
+#define SWIGTYPE_p_OSRSpatialReferenceShadow swig_types[30]
+#define SWIGTYPE_p_VSIStatBufL swig_types[31]
+#define SWIGTYPE_p_VSIWriteFunction swig_types[32]
+#define SWIGTYPE_p_char swig_types[33]
+#define SWIGTYPE_p_double swig_types[34]
+#define SWIGTYPE_p_f_double_p_q_const__char_p_void__int swig_types[35]
+#define SWIGTYPE_p_int swig_types[36]
+#define SWIGTYPE_p_p_GDALDatasetShadow swig_types[37]
+#define SWIGTYPE_p_p_GDALRasterBandShadow swig_types[38]
+#define SWIGTYPE_p_p_GDAL_GCP swig_types[39]
+#define SWIGTYPE_p_p_GUIntBig swig_types[40]
+#define SWIGTYPE_p_p_char swig_types[41]
+#define SWIGTYPE_p_void swig_types[42]
+static swig_type_info *swig_types[44];
+static swig_module_info swig_module = {swig_types, 43, 0, 0, 0, 0};
 #define SWIG_TypeQuery(name) SWIG_TypeQueryModule(&swig_module, &swig_module, name)
 #define SWIG_MangledTypeQuery(name) SWIG_MangledTypeQueryModule(&swig_module, &swig_module, name)
 
@@ -1612,10 +1613,12 @@ typedef void GDALAsyncReaderShadow;
 #ifdef DEBUG
 typedef struct OGRSpatialReferenceHS OSRSpatialReferenceShadow;
 typedef struct OGRLayerHS OGRLayerShadow;
+typedef struct OGRFeatureHS OGRFeatureShadow;
 typedef struct OGRGeometryHS OGRGeometryShadow;
 #else
 typedef void OSRSpatialReferenceShadow;
 typedef void OGRLayerShadow;
+typedef void OGRFeatureShadow;
 typedef void OGRGeometryShadow;
 #endif
 typedef struct OGRStyleTableHS OGRStyleTableShadow;
@@ -1704,11 +1707,13 @@ typedef int VSI_RETVAL;
     #define NEED_DEF "A parameter which must be defined or not empty, is not."
     #define WRONG_CLASS "Object has a wrong class."
     #define NEED_REF "A parameter which must be a reference, is not."
+    #define NEED_HASH_REF "A parameter/item which must be a hash reference, is not."
     #define NEED_ARRAY_REF "A parameter/item which must be an array reference, is not."
     #define NEED_BINARY_DATA "A parameter which must be binary data, is not."
     #define NEED_CODE_REF "A parameter which must be an anonymous subroutine, is not."
     #define WRONG_ITEM_IN_ARRAY "An item in an array parameter has wrong type."
     #define ARRAY_TO_XML_FAILED "An array parameter cannot be converted to an XMLTree."
+    #define NOT_ENOUGH_ELEMENTS "The supplied array does not have enough elements."
 
 
 void VeryQuietErrorHandler(CPLErr eclass, int code, const char *msg ) {
@@ -1735,7 +1740,116 @@ void DontUseExceptions() {
 }
 
 
-typedef void OGRLayerShadow;
+  double NVClassify(int comparison, double nv, AV* classifier, const char **error) {
+     /* recursive, return nv < classifier[0] ? classifier[1] : classifier[2]
+        returns error if there are not three values in the classifier,
+        first is not a number, or second or third are not a number of arrayref
+     */
+     SV** f = av_fetch(classifier, 0, 0);
+     SV** s = av_fetch(classifier, 1, 0);
+     SV** t = av_fetch(classifier, 2, 0);
+     if (f && SvNOK(*f)) {
+         switch(comparison) {
+         case 0: /* lt */
+         if (nv < SvNV(*f))
+             t = s;
+         break;
+         case 1: /* lte */
+         if (nv <= SvNV(*f))
+             t = s;
+         break;
+         case 2: /* gt */
+         if (nv > SvNV(*f))
+             t = s;
+         break;
+         case 3: /* gte */
+         if (nv >= SvNV(*f))
+             t = s;
+         break;
+         }
+         if (t && SvNOK(*t))
+             return SvNV(*t);
+         else if (t && SvROK(*t) && (SvTYPE(SvRV(*t)) == SVt_PVAV))
+             return NVClassify(comparison, nv, (AV*)(SvRV(*t)), error);
+         else {
+             *error = "The decision in a classifier must be a number or a reference to a classifier.";
+             return 0;
+         }
+     } else {
+         *error = "The first value in a classifier must be a number.";
+         return 0;
+     }
+  }
+  void NVClass(int comparison, double nv, AV* classifier, int *klass, const char **error) {
+     /* recursive, return nv < classifier[0] ? classifier[1] : classifier[2]
+        returns NULL if there are not three values in the classifier,
+        first is not a number, or second or third are not a number of arrayref
+     */
+     SV** f = av_fetch(classifier, 0, 0);
+     SV** s = av_fetch(classifier, 1, 0);
+     SV** t = av_fetch(classifier, 2, 0);
+     if (f && SvNOK(*f)) {
+         ++*klass;
+         switch(comparison) {
+         case 0: /* lt */
+         if (nv < SvNV(*f))
+             --*klass;
+             t = s;
+         break;
+         case 1: /* lte */
+         if (nv <= SvNV(*f))
+             --*klass;
+             t = s;
+         break;
+         case 2: /* gt */
+         if (nv > SvNV(*f))
+             --*klass;
+             t = s;
+         break;
+         case 3: /* gte */
+         if (nv >= SvNV(*f))
+             --*klass;
+             t = s;
+         break;
+         }
+         if (t && SvNOK(*t))
+             return;
+         else if (t && SvROK(*t) && (SvTYPE(SvRV(*t)) == SVt_PVAV))
+             NVClass(comparison, nv, (AV*)(SvRV(*t)), klass, error);
+         else {
+             *error = "The decision in a classifier must be a number or a reference to a classifier.";
+             return;
+         }
+     } else {
+         *error = "The first value in a classifier must be a number.";
+         return;
+     }
+  }
+  AV* to_array_classifier(SV* classifier, int* comparison, const char **error) {
+      if (SvROK(classifier) && (SvTYPE(SvRV(classifier)) == SVt_PVAV)) {
+          SV** f = av_fetch((AV*)SvRV(classifier), 0, 0);
+          SV** s = av_fetch((AV*)SvRV(classifier), 1, 0);
+          if (f && SvPOK(*f)) {
+              char *c = SvPV_nolen(*f);
+              if (strcmp(c, "<") == 0)
+                  *comparison = 0;
+              else if (strcmp(c, "<=") == 0)
+                  *comparison = 1;
+              else if (strcmp(c, ">") == 0)
+                  *comparison = 2;
+              else if (strcmp(c, ">=") == 0)
+                  *comparison = 3;
+              else
+                  *error = "The first element in classifier object must be a comparison.";
+          }
+          if (s && SvROK(*s) && (SvTYPE(SvRV(*s)) == SVt_PVAV))
+              return (AV*)SvRV(*s);
+          else
+              *error = "The second element in classifier object must be an array reference.";
+      } else {
+          *error = NEED_ARRAY_REF;
+      }
+  }
 
 
 typedef char retStringAndCPLFree;
@@ -2008,9 +2122,11 @@ SWIG_From_int  SWIG_PERL_DECL_ARGS_1(int value)
 }
 
 
-    char *sv_to_utf8_string(SV *sv, U8 **tmpbuf) {
-        /* if tmpbuf, only tmpbuf is freed; if not, ret is freed*/
+    char *sv_to_utf8_string(SV *sv, U8 **tmpbuf, bool *safefree = NULL) {
+        /* if tmpbuf is given, only tmpbuf needs to be freed, use Safefree!
+           if not, ret needs to be freed, if safefree use Safefree else use free! */
         char *ret;
+        if (safefree) *safefree = false;
         if (SvOK(sv)) {
             STRLEN len;
             ret = SvPV(sv, len);
@@ -2021,6 +2137,7 @@ SWIG_From_int  SWIG_PERL_DECL_ARGS_1(int value)
                 } else {
                     ret = (char *)bytes_to_utf8((const U8*)ret, &len);
                 }
+                if (safefree) *safefree = true;
             } else {
                 if (!tmpbuf)
                     ret = strdup(ret);
@@ -2451,7 +2568,7 @@ CPLErr DSReadRaster_internal( GDALDatasetShadow *obj,
   }
   else
   {
-    CPLError(CE_Failure, CPLE_OutOfMemory, "Not enough memory to allocate "CPL_FRMT_GIB" bytes", *buf_size);
+    CPLError(CE_Failure, CPLE_OutOfMemory, "Not enough memory to allocate " CPL_FRMT_GIB " bytes", *buf_size);
     result = CE_Failure;
     *buf = 0;
     *buf_size = 0;
@@ -2730,6 +2847,12 @@ SWIGINTERN OGRLayerShadow *GDALDatasetShadow_GetLayerByName(GDALDatasetShadow *s
     OGRLayerShadow* layer = (OGRLayerShadow*) GDALDatasetGetLayerByName(self, layer_name);
     return layer;
   }
+SWIGINTERN void GDALDatasetShadow_ResetReading(GDALDatasetShadow *self){
+    GDALDatasetResetReading( self );
+  }
+SWIGINTERN OGRFeatureShadow *GDALDatasetShadow_GetNextFeature(GDALDatasetShadow *self){
+    return GDALDatasetGetNextFeature( self, NULL, NULL, NULL, NULL );
+  }
 SWIGINTERN bool GDALDatasetShadow_TestCapability(GDALDatasetShadow *self,char const *cap){
     return (GDALDatasetTestCapability(self, cap) > 0);
   }
@@ -2868,7 +2991,7 @@ CPLErr ReadRaster_internal( GDALRasterBandShadow *obj,
   }
   else
   {
-    CPLError(CE_Failure, CPLE_OutOfMemory, "Not enough memory to allocate "CPL_FRMT_GIB" bytes", *buf_size);
+    CPLError(CE_Failure, CPLE_OutOfMemory, "Not enough memory to allocate " CPL_FRMT_GIB " bytes", *buf_size);
     result = CE_Failure;
     *buf = 0;
     *buf_size = 0;
@@ -3117,6 +3240,284 @@ SWIGINTERN CPLErr GDALRasterBandShadow_ContourGenerate(GDALRasterBandShadow *sel
                                     hLayer, iIDField, iElevField,
                                     progress,
                                     progress_data );
+    }
+SWIGINTERN SV *GDALRasterBandShadow_ClassCounts__SWIG_0(GDALRasterBandShadow *self,GDALProgressFunc callback=NULL,void *callback_data=NULL){
+        GDALDataType dt = GDALGetRasterDataType(self);
+        if (!(dt == GDT_Byte || dt == GDT_UInt16 || dt == GDT_Int16 || dt == GDT_UInt32 || dt == GDT_Int32)) {
+            do_confess("ClassCounts without classifier requires an integer band.", 1);
+        }
+        HV* hash = newHV();
+        int XBlockSize, YBlockSize;
+        GDALGetBlockSize( self, &XBlockSize, &YBlockSize );
+        int XBlocks = (GDALGetRasterBandXSize(self) + XBlockSize - 1) / XBlockSize;
+        int YBlocks = (GDALGetRasterBandYSize(self) + YBlockSize - 1) / YBlockSize;
+        void *data = CPLMalloc(XBlockSize * YBlockSize * GDALGetDataTypeSizeBytes(dt));
+        for (int yb = 0; yb < YBlocks; ++yb) {
+            if (callback) {
+                double p = (double)yb/(double)YBlocks;
+                if (!callback(p, "", callback_data)) {
+                    CPLError(CE_Failure, CPLE_UserInterrupt, "User terminated");
+                    hv_undef(hash);
+                    hash = NULL;
+                    break;
+                }
+            }
+            for (int xb = 0; xb < XBlocks; ++xb) {
+                int XValid, YValid;
+                CPLErr e = GDALReadBlock(self, xb, yb, data);
+                GDALGetActualBlockSize(self, xb, yb, &XValid, &YValid);
+                for (int iY = 0; iY < YValid; ++iY) {
+                    for (int iX = 0; iX < XValid; ++iX) {
+                        int32_t k;
+                        switch(dt) {
+                        case GDT_Byte:
+                          k = ((GByte*)(data))[iX + iY * XBlockSize];
+                          break;
+                        case GDT_UInt16:
+                          k = ((GUInt16*)(data))[iX + iY * XBlockSize];
+                          break;
+                        case GDT_Int16:
+                          k = ((GInt16*)(data))[iX + iY * XBlockSize];
+                          break;
+                        case GDT_UInt32:
+                          k = ((GUInt32*)(data))[iX + iY * XBlockSize];
+                          break;
+                        case GDT_Int32:
+                          k = ((GInt32*)(data))[iX + iY * XBlockSize];
+                          break;
+                        }
+                        char key[12];
+                        int klen = sprintf(key, "%i", k);
+                        SV* sv;
+                        SV** sv2 = hv_fetch(hash, key, klen, 0);
+                        if (sv2 && SvOK(*sv2)) {
+                            sv = *sv2;
+                            sv_setiv(sv, SvIV(sv)+1);
+                            SvREFCNT_inc(sv);
+                        } else {
+                            sv = newSViv(1);
+                        }
+                        if (!hv_store(hash, key, klen, sv, 0))
+                            SvREFCNT_dec(sv);
+                    }
+                }
+            }
+        }
+        CPLFree(data);
+        if (hash)
+            return newRV_noinc((SV*)hash);
+        else
+            return &PL_sv_undef;
+    }
+SWIGINTERN SV *GDALRasterBandShadow_ClassCounts__SWIG_1(GDALRasterBandShadow *self,SV *classifier,GDALProgressFunc callback=NULL,void *callback_data=NULL){
+                    
+        const char *error = NULL;
+        GDALDataType dt = GDALGetRasterDataType(self);
+        if (!(dt == GDT_Float32 || dt == GDT_Float64)) {
+            do_confess("ClassCounts with classifier requires a float band.", 1);
+        }
+
+        AV* array_classifier = NULL;
+        int comparison = 0;
+
+        array_classifier = to_array_classifier(classifier, &comparison, &error);
+        if (error) do_confess(error, 1);
+
+        HV* hash = newHV();
+        int XBlockSize, YBlockSize;
+        GDALGetBlockSize( self, &XBlockSize, &YBlockSize );
+        int XBlocks = (GDALGetRasterBandXSize(self) + XBlockSize - 1) / XBlockSize;
+        int YBlocks = (GDALGetRasterBandYSize(self) + YBlockSize - 1) / YBlockSize;
+        void *data = CPLMalloc(XBlockSize * YBlockSize * GDALGetDataTypeSizeBytes(dt));
+
+        for (int yb = 0; yb < YBlocks; ++yb) {
+            if (callback) {
+                double p = (double)yb/(double)YBlocks;
+                if (!callback(p, "", callback_data)) {
+                    CPLError(CE_Failure, CPLE_UserInterrupt, "User terminated");
+                    hv_undef(hash);
+                    hash = NULL;
+                    break;
+                }
+            }
+            for (int xb = 0; xb < XBlocks; ++xb) {
+                int XValid, YValid;
+                CPLErr e = GDALReadBlock(self, xb, yb, data);
+                GDALGetActualBlockSize(self, xb, yb, &XValid, &YValid);
+                for (int iY = 0; iY < YValid; ++iY) {
+                    for (int iX = 0; iX < XValid; ++iX) {
+                        double nv = 0;
+                        switch(dt) {
+                        case GDT_Float32:
+                          nv = ((float*)(data))[iX + iY * XBlockSize];
+                          break;
+                        case GDT_Float64:
+                          nv = ((double*)(data))[iX + iY * XBlockSize];
+                          break;
+                        }
+                        int k = 0;
+                        NVClass(comparison, nv, array_classifier, &k, &error);
+                        if (error) goto fail;
+                        char key[12];
+                        int klen = sprintf(key, "%i", k);
+                        SV* sv;
+                        SV** sv2 = hv_fetch(hash, key, klen, 0);
+                        if (sv2 && SvOK(*sv2)) {
+                            sv = *sv2;
+                            sv_setiv(sv, SvIV(sv)+1);
+                            SvREFCNT_inc(sv);
+                        } else {
+                            sv = newSViv(1);
+                        }
+                        if (!hv_store(hash, key, klen, sv, 0))
+                            SvREFCNT_dec(sv);
+                    }
+                }
+            }
+        }
+        
+        CPLFree(data);
+        if (hash)
+            return newRV_noinc((SV*)hash);
+        else
+            return &PL_sv_undef;
+        fail:
+        CPLFree(data);
+        do_confess(error, 1);
+        return &PL_sv_undef;
+    }
+SWIGINTERN void GDALRasterBandShadow_Reclassify(GDALRasterBandShadow *self,SV *classifier,GDALProgressFunc callback=NULL,void *callback_data=NULL){
+                    
+        const char *error = NULL;
+        
+        GDALDataType dt = GDALGetRasterDataType(self);
+        
+        bool is_integer_raster = true;
+        HV* hash_classifier = NULL;
+        bool has_default = false;
+        int32_t deflt = 0;
+
+        AV* array_classifier = NULL;
+        int comparison = 0;
+        
+        if (dt == GDT_Byte || dt == GDT_UInt16 || dt == GDT_Int16 || dt == GDT_UInt32 || dt == GDT_Int32) {
+            if (SvROK(classifier) && (SvTYPE(SvRV(classifier)) == SVt_PVHV)) {
+                hash_classifier = (HV*)SvRV(classifier);
+                SV** sv = hv_fetch(hash_classifier, "*", 1, 0);
+                if (sv && SvOK(*sv)) {
+                    has_default = true;
+                    deflt = SvIV(*sv);
+                }
+            } else {
+                do_confess(NEED_HASH_REF, 1);
+            }
+        } else if (dt == GDT_Float32 || dt == GDT_Float64) {
+            is_integer_raster = false;
+            array_classifier = to_array_classifier(classifier, &comparison, &error);
+            if (error) do_confess(error, 1);
+        } else {
+            do_confess("Only integer and float rasters can be reclassified.", 1);
+        }
+        
+        int has_no_data;
+        double no_data = GDALGetRasterNoDataValue(self, &has_no_data);
+        int XBlockSize, YBlockSize;
+        GDALGetBlockSize( self, &XBlockSize, &YBlockSize );
+        int XBlocks = (GDALGetRasterBandXSize(self) + XBlockSize - 1) / XBlockSize;
+        int YBlocks = (GDALGetRasterBandYSize(self) + YBlockSize - 1) / YBlockSize;
+        void *data = CPLMalloc(XBlockSize * YBlockSize * GDALGetDataTypeSizeBytes(dt));
+
+        for (int yb = 0; yb < YBlocks; ++yb) {
+            if (callback) {
+                double p = (double)yb/(double)YBlocks;
+                if (!callback(p, "", callback_data)) {
+                    CPLError(CE_Failure, CPLE_UserInterrupt, "User terminated");
+                    break;
+                }
+            }
+            for (int xb = 0; xb < XBlocks; ++xb) {
+                int XValid, YValid;
+                CPLErr e = GDALReadBlock(self, xb, yb, data);
+                GDALGetActualBlockSize(self, xb, yb, &XValid, &YValid);
+                for (int iY = 0; iY < YValid; ++iY) {
+                    for (int iX = 0; iX < XValid; ++iX) {
+                        int32_t k = 0;
+                        double nv = 0;
+                        switch(dt) {
+                        case GDT_Byte:
+                          k = ((GByte*)(data))[iX + iY * XBlockSize];
+                          break;
+                        case GDT_UInt16:
+                          k = ((GUInt16*)(data))[iX + iY * XBlockSize];
+                          break;
+                        case GDT_Int16:
+                          k = ((GInt16*)(data))[iX + iY * XBlockSize];
+                          break;
+                        case GDT_UInt32:
+                          k = ((GUInt32*)(data))[iX + iY * XBlockSize];
+                          break;
+                        case GDT_Int32:
+                          k = ((GInt32*)(data))[iX + iY * XBlockSize];
+                          break;
+                        case GDT_Float32:
+                          nv = ((float*)(data))[iX + iY * XBlockSize];
+                          break;
+                        case GDT_Float64:
+                          nv = ((double*)(data))[iX + iY * XBlockSize];
+                          break;
+                        }
+
+                        if (is_integer_raster) {
+                            char key[12];
+                            int klen = sprintf(key, "%i", k);
+                            SV** sv = hv_fetch(hash_classifier, key, klen, 0);
+                            if (sv && SvOK(*sv)) {
+                                k = SvIV(*sv);
+                            } else if (has_default) {
+                                if (!(has_no_data && k == no_data))
+                                    k = deflt;
+                                else
+                                    continue;
+                            }
+                        } else {
+                            nv = NVClassify(comparison, nv, array_classifier, &error);
+                            if (error) goto fail;
+                        }
+
+                        switch(dt) {
+                        case GDT_Byte:
+                          ((GByte*)(data))[iX + iY * XBlockSize] = k;
+                          break;
+                        case GDT_UInt16:
+                          ((GUInt16*)(data))[iX + iY * XBlockSize] = k;
+                          break;
+                        case GDT_Int16:
+                          ((GInt16*)(data))[iX + iY * XBlockSize] = k;
+                          break;
+                        case GDT_UInt32:
+                          ((GUInt32*)(data))[iX + iY * XBlockSize] = k;
+                          break;
+                        case GDT_Int32:
+                          ((GInt32*)(data))[iX + iY * XBlockSize] = k;
+                          break;
+                        case GDT_Float32:
+                          ((float*)(data))[iX + iY * XBlockSize] = nv;
+                          break;
+                        case GDT_Float64:
+                          ((double*)(data))[iX + iY * XBlockSize] = nv;
+                          break;
+                        }
+                    }
+                }
+                e = GDALWriteBlock(self, xb, yb, data);
+            }
+        }
+        CPLFree(data);
+        return;
+        fail:
+        CPLFree(data);
+        do_confess(error, 1);        
+        return;
     }
 
 GDALDataType GDALRasterBandShadow_DataType_get( GDALRasterBandShadow *h ) {
@@ -3576,6 +3977,22 @@ SWIGINTERN int GDALTransformerInfoShadow_TransformGeolocations(GDALTransformerIn
                             	      callback, callback_data, options );
   }
 
+GDALDatasetShadow* ApplyVerticalShiftGrid( GDALDatasetShadow *src_ds,
+                                           GDALDatasetShadow *grid_ds,
+                                           bool inverse = false,
+                                           double srcUnitToMeter = 1.0,
+                                           double dstUnitToMeter = 1.0,
+                                           char** options = NULL ) {
+  GDALDatasetShadow *ds = GDALApplyVerticalShiftGrid( src_ds, grid_ds,
+                                                      inverse,
+                                                      srcUnitToMeter,
+                                                      dstUnitToMeter,
+                                                      options );
+  return ds;
+
+}
+
+
 GIntBig wrapper_GDALGetCacheMax()
 {
     return GDALGetCacheMax64();
@@ -3646,9 +4063,10 @@ void wrapper_GDALSetCacheMax(GIntBig nBytes)
 
         nType = SvIV(*(av_fetch(av,0,0)));
         SV *sv = *(av_fetch(av,1,0));
-        char *tmp = sv_to_utf8_string(sv, NULL);
+        bool sf;
+        char *tmp = sv_to_utf8_string(sv, NULL, &sf);
         psThisNode = CPLCreateXMLNode(NULL, (CPLXMLNodeType)nType, tmp);
-        free(tmp);
+        if (sf) Safefree(tmp); else free(tmp);
 
         for( iChild = 0; iChild < nChildCount; iChild++ )
         {
@@ -3770,6 +4188,18 @@ GDALDriverShadow *IdentifyDriver( const char *utf8_path,
                                   char **papszSiblings = NULL ) {
     return (GDALDriverShadow *) GDALIdentifyDriver( utf8_path,
 	                                            papszSiblings );
+}
+
+
+GDALDriverShadow *IdentifyDriverEx( const char* utf8_path,
+                                    unsigned int nIdentifyFlags = 0,
+                                    char** allowed_drivers = NULL,
+                                    char** sibling_files = NULL )
+{
+    return  (GDALDriverShadow *) GDALIdentifyDriverEx( utf8_path,
+                                                nIdentifyFlags,
+                                                allowed_drivers,
+                                                sibling_files );
 }
 
 
@@ -5250,13 +5680,13 @@ XS(_wrap_PushFinderLocation) {
     }
     {
       /* %typemap(freearg) (const char* utf8_path) */
-      if (tmpbuf1) free(tmpbuf1);
+      if (tmpbuf1) Safefree(tmpbuf1);
     }
     XSRETURN(argvi);
   fail:
     {
       /* %typemap(freearg) (const char* utf8_path) */
-      if (tmpbuf1) free(tmpbuf1);
+      if (tmpbuf1) Safefree(tmpbuf1);
     }
     SWIG_croak_null();
   }
@@ -5416,14 +5846,14 @@ XS(_wrap_FindFile) {
     if (alloc1 == SWIG_NEWOBJ) delete[] buf1;
     {
       /* %typemap(freearg) (const char* utf8_path) */
-      if (tmpbuf2) free(tmpbuf2);
+      if (tmpbuf2) Safefree(tmpbuf2);
     }
     XSRETURN(argvi);
   fail:
     if (alloc1 == SWIG_NEWOBJ) delete[] buf1;
     {
       /* %typemap(freearg) (const char* utf8_path) */
-      if (tmpbuf2) free(tmpbuf2);
+      if (tmpbuf2) Safefree(tmpbuf2);
     }
     SWIG_croak_null();
   }
@@ -5522,14 +5952,14 @@ XS(_wrap_ReadDir) {
     }
     {
       /* %typemap(freearg) (const char* utf8_path) */
-      if (tmpbuf1) free(tmpbuf1);
+      if (tmpbuf1) Safefree(tmpbuf1);
     }
     
     XSRETURN(argvi);
   fail:
     {
       /* %typemap(freearg) (const char* utf8_path) */
-      if (tmpbuf1) free(tmpbuf1);
+      if (tmpbuf1) Safefree(tmpbuf1);
     }
     
     SWIG_croak_null();
@@ -5619,13 +6049,13 @@ XS(_wrap_ReadDirRecursive) {
     }
     {
       /* %typemap(freearg) (const char* utf8_path) */
-      if (tmpbuf1) free(tmpbuf1);
+      if (tmpbuf1) Safefree(tmpbuf1);
     }
     XSRETURN(argvi);
   fail:
     {
       /* %typemap(freearg) (const char* utf8_path) */
-      if (tmpbuf1) free(tmpbuf1);
+      if (tmpbuf1) Safefree(tmpbuf1);
     }
     SWIG_croak_null();
   }
@@ -5988,7 +6418,7 @@ XS(_wrap_FileFromMemBuffer) {
     }
     {
       /* %typemap(freearg) (const char* utf8_path) */
-      if (tmpbuf1) free(tmpbuf1);
+      if (tmpbuf1) Safefree(tmpbuf1);
     }
     
     
@@ -5996,7 +6426,7 @@ XS(_wrap_FileFromMemBuffer) {
   fail:
     {
       /* %typemap(freearg) (const char* utf8_path) */
-      if (tmpbuf1) free(tmpbuf1);
+      if (tmpbuf1) Safefree(tmpbuf1);
     }
     
     
@@ -6060,7 +6490,7 @@ XS(_wrap_Unlink) {
     }
     {
       /* %typemap(freearg) (const char* utf8_path) */
-      if (tmpbuf1) free(tmpbuf1);
+      if (tmpbuf1) Safefree(tmpbuf1);
     }
     {
       /* %typemap(ret) VSI_RETVAL */
@@ -6072,7 +6502,7 @@ XS(_wrap_Unlink) {
   fail:
     {
       /* %typemap(freearg) (const char* utf8_path) */
-      if (tmpbuf1) free(tmpbuf1);
+      if (tmpbuf1) Safefree(tmpbuf1);
     }
     SWIG_croak_null();
   }
@@ -6185,7 +6615,7 @@ XS(_wrap_Mkdir) {
     }
     {
       /* %typemap(freearg) (const char* utf8_path) */
-      if (tmpbuf1) free(tmpbuf1);
+      if (tmpbuf1) Safefree(tmpbuf1);
     }
     
     {
@@ -6198,7 +6628,7 @@ XS(_wrap_Mkdir) {
   fail:
     {
       /* %typemap(freearg) (const char* utf8_path) */
-      if (tmpbuf1) free(tmpbuf1);
+      if (tmpbuf1) Safefree(tmpbuf1);
     }
     
     SWIG_croak_null();
@@ -6261,7 +6691,7 @@ XS(_wrap_Rmdir) {
     }
     {
       /* %typemap(freearg) (const char* utf8_path) */
-      if (tmpbuf1) free(tmpbuf1);
+      if (tmpbuf1) Safefree(tmpbuf1);
     }
     {
       /* %typemap(ret) VSI_RETVAL */
@@ -6273,7 +6703,7 @@ XS(_wrap_Rmdir) {
   fail:
     {
       /* %typemap(freearg) (const char* utf8_path) */
-      if (tmpbuf1) free(tmpbuf1);
+      if (tmpbuf1) Safefree(tmpbuf1);
     }
     SWIG_croak_null();
   }
@@ -6352,11 +6782,11 @@ XS(_wrap_Rename) {
     }
     {
       /* %typemap(freearg) (const char* utf8_path) */
-      if (tmpbuf1) free(tmpbuf1);
+      if (tmpbuf1) Safefree(tmpbuf1);
     }
     {
       /* %typemap(freearg) (const char* utf8_path) */
-      if (tmpbuf2) free(tmpbuf2);
+      if (tmpbuf2) Safefree(tmpbuf2);
     }
     {
       /* %typemap(ret) VSI_RETVAL */
@@ -6368,11 +6798,11 @@ XS(_wrap_Rename) {
   fail:
     {
       /* %typemap(freearg) (const char* utf8_path) */
-      if (tmpbuf1) free(tmpbuf1);
+      if (tmpbuf1) Safefree(tmpbuf1);
     }
     {
       /* %typemap(freearg) (const char* utf8_path) */
-      if (tmpbuf2) free(tmpbuf2);
+      if (tmpbuf2) Safefree(tmpbuf2);
     }
     SWIG_croak_null();
   }
@@ -6456,7 +6886,7 @@ XS(_wrap_Stat) {
     }
     {
       /* %typemap(freearg) (const char* utf8_path) */
-      if (tmpbuf1) free(tmpbuf1);
+      if (tmpbuf1) Safefree(tmpbuf1);
     }
     
     {
@@ -6469,7 +6899,7 @@ XS(_wrap_Stat) {
   fail:
     {
       /* %typemap(freearg) (const char* utf8_path) */
-      if (tmpbuf1) free(tmpbuf1);
+      if (tmpbuf1) Safefree(tmpbuf1);
     }
     
     SWIG_croak_null();
@@ -6541,14 +6971,14 @@ XS(_wrap_VSIFOpenL) {
     ST(argvi) = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_void, 0 | 0); argvi++ ;
     {
       /* %typemap(freearg) (const char* utf8_path) */
-      if (tmpbuf1) free(tmpbuf1);
+      if (tmpbuf1) Safefree(tmpbuf1);
     }
     if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
     XSRETURN(argvi);
   fail:
     {
       /* %typemap(freearg) (const char* utf8_path) */
-      if (tmpbuf1) free(tmpbuf1);
+      if (tmpbuf1) Safefree(tmpbuf1);
     }
     if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
     SWIG_croak_null();
@@ -6630,7 +7060,7 @@ XS(_wrap_VSIFOpenExL) {
     ST(argvi) = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_void, 0 | 0); argvi++ ;
     {
       /* %typemap(freearg) (const char* utf8_path) */
-      if (tmpbuf1) free(tmpbuf1);
+      if (tmpbuf1) Safefree(tmpbuf1);
     }
     if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
     
@@ -6638,7 +7068,7 @@ XS(_wrap_VSIFOpenExL) {
   fail:
     {
       /* %typemap(freearg) (const char* utf8_path) */
-      if (tmpbuf1) free(tmpbuf1);
+      if (tmpbuf1) Safefree(tmpbuf1);
     }
     if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
     
@@ -7250,13 +7680,13 @@ XS(_wrap_ParseCommandLine) {
     }
     {
       /* %typemap(freearg) (const char* utf8_path) */
-      if (tmpbuf1) free(tmpbuf1);
+      if (tmpbuf1) Safefree(tmpbuf1);
     }
     XSRETURN(argvi);
   fail:
     {
       /* %typemap(freearg) (const char* utf8_path) */
-      if (tmpbuf1) free(tmpbuf1);
+      if (tmpbuf1) Safefree(tmpbuf1);
     }
     SWIG_croak_null();
   }
@@ -8244,9 +8674,10 @@ XS(_wrap_Driver__Create) {
               AV *av = (AV*)(SvRV(ST(6)));
               for (int i = 0; i < av_len(av)+1; i++) {
                 SV *sv = *(av_fetch(av, i, 0));
-                char *tmp = sv_to_utf8_string(sv, NULL);
+                bool sf;
+                char *tmp = sv_to_utf8_string(sv, NULL, &sf);
                 arg7 = CSLAddString(arg7, tmp);
-                free(tmp);
+                if (sf) Safefree(tmp); else free(tmp);
               }
             } else if (SvTYPE(SvRV(ST(6)))==SVt_PVHV) {
               HV *hv = (HV*)SvRV(ST(6));
@@ -8256,9 +8687,10 @@ XS(_wrap_Driver__Create) {
               arg7 = NULL;
               hv_iterinit(hv);
               while(sv = hv_iternextsv(hv, &key, &klen)) {
-                char *tmp = sv_to_utf8_string(sv, NULL);
+                bool sf;
+                char *tmp = sv_to_utf8_string(sv, NULL, &sf);
                 arg7 = CSLAddNameValue(arg7, key, tmp);
-                free(tmp);
+                if (sf) Safefree(tmp); else free(tmp);
               }
             } else
             do_confess(NEED_REF, 1);
@@ -8300,7 +8732,7 @@ XS(_wrap_Driver__Create) {
     
     {
       /* %typemap(freearg) (const char* utf8_path) */
-      if (tmpbuf2) free(tmpbuf2);
+      if (tmpbuf2) Safefree(tmpbuf2);
     }
     
     
@@ -8315,7 +8747,7 @@ XS(_wrap_Driver__Create) {
     
     {
       /* %typemap(freearg) (const char* utf8_path) */
-      if (tmpbuf2) free(tmpbuf2);
+      if (tmpbuf2) Safefree(tmpbuf2);
     }
     
     
@@ -8400,9 +8832,10 @@ XS(_wrap_Driver__CreateCopy) {
               AV *av = (AV*)(SvRV(ST(4)));
               for (int i = 0; i < av_len(av)+1; i++) {
                 SV *sv = *(av_fetch(av, i, 0));
-                char *tmp = sv_to_utf8_string(sv, NULL);
+                bool sf;
+                char *tmp = sv_to_utf8_string(sv, NULL, &sf);
                 arg5 = CSLAddString(arg5, tmp);
-                free(tmp);
+                if (sf) Safefree(tmp); else free(tmp);
               }
             } else if (SvTYPE(SvRV(ST(4)))==SVt_PVHV) {
               HV *hv = (HV*)SvRV(ST(4));
@@ -8412,9 +8845,10 @@ XS(_wrap_Driver__CreateCopy) {
               arg5 = NULL;
               hv_iterinit(hv);
               while(sv = hv_iternextsv(hv, &key, &klen)) {
-                char *tmp = sv_to_utf8_string(sv, NULL);
+                bool sf;
+                char *tmp = sv_to_utf8_string(sv, NULL, &sf);
                 arg5 = CSLAddNameValue(arg5, key, tmp);
-                free(tmp);
+                if (sf) Safefree(tmp); else free(tmp);
               }
             } else
             do_confess(NEED_REF, 1);
@@ -8485,7 +8919,7 @@ XS(_wrap_Driver__CreateCopy) {
     
     {
       /* %typemap(freearg) (const char* utf8_path) */
-      if (tmpbuf2) free(tmpbuf2);
+      if (tmpbuf2) Safefree(tmpbuf2);
     }
     
     
@@ -8499,7 +8933,7 @@ XS(_wrap_Driver__CreateCopy) {
     
     {
       /* %typemap(freearg) (const char* utf8_path) */
-      if (tmpbuf2) free(tmpbuf2);
+      if (tmpbuf2) Safefree(tmpbuf2);
     }
     
     
@@ -8577,14 +9011,14 @@ XS(_wrap_Driver_Delete) {
     
     {
       /* %typemap(freearg) (const char* utf8_path) */
-      if (tmpbuf2) free(tmpbuf2);
+      if (tmpbuf2) Safefree(tmpbuf2);
     }
     XSRETURN(argvi);
   fail:
     
     {
       /* %typemap(freearg) (const char* utf8_path) */
-      if (tmpbuf2) free(tmpbuf2);
+      if (tmpbuf2) Safefree(tmpbuf2);
     }
     SWIG_croak_null();
   }
@@ -11738,6 +12172,8 @@ XS(_wrap_Dataset_SetGeoTransform) {
       do_confess(NEED_ARRAY_REF, 1);
       arg2 = argin2;
       AV *av = (AV*)(SvRV(ST(1)));
+      if (av_len(av)+1 < 6)
+      do_confess(NOT_ENOUGH_ELEMENTS, 1);
       for (unsigned int i=0; i<6; i++) {
         SV *sv = *av_fetch(av, i, 0);
         if (!SvOK(sv))
@@ -12304,9 +12740,10 @@ XS(_wrap_Dataset__AddBand) {
               AV *av = (AV*)(SvRV(ST(2)));
               for (int i = 0; i < av_len(av)+1; i++) {
                 SV *sv = *(av_fetch(av, i, 0));
-                char *tmp = sv_to_utf8_string(sv, NULL);
+                bool sf;
+                char *tmp = sv_to_utf8_string(sv, NULL, &sf);
                 arg3 = CSLAddString(arg3, tmp);
-                free(tmp);
+                if (sf) Safefree(tmp); else free(tmp);
               }
             } else if (SvTYPE(SvRV(ST(2)))==SVt_PVHV) {
               HV *hv = (HV*)SvRV(ST(2));
@@ -12316,9 +12753,10 @@ XS(_wrap_Dataset__AddBand) {
               arg3 = NULL;
               hv_iterinit(hv);
               while(sv = hv_iternextsv(hv, &key, &klen)) {
-                char *tmp = sv_to_utf8_string(sv, NULL);
+                bool sf;
+                char *tmp = sv_to_utf8_string(sv, NULL, &sf);
                 arg3 = CSLAddNameValue(arg3, key, tmp);
-                free(tmp);
+                if (sf) Safefree(tmp); else free(tmp);
               }
             } else
             do_confess(NEED_REF, 1);
@@ -13113,9 +13551,10 @@ XS(_wrap_Dataset__CreateLayer) {
               AV *av = (AV*)(SvRV(ST(4)));
               for (int i = 0; i < av_len(av)+1; i++) {
                 SV *sv = *(av_fetch(av, i, 0));
-                char *tmp = sv_to_utf8_string(sv, NULL);
+                bool sf;
+                char *tmp = sv_to_utf8_string(sv, NULL, &sf);
                 arg5 = CSLAddString(arg5, tmp);
-                free(tmp);
+                if (sf) Safefree(tmp); else free(tmp);
               }
             } else if (SvTYPE(SvRV(ST(4)))==SVt_PVHV) {
               HV *hv = (HV*)SvRV(ST(4));
@@ -13125,9 +13564,10 @@ XS(_wrap_Dataset__CreateLayer) {
               arg5 = NULL;
               hv_iterinit(hv);
               while(sv = hv_iternextsv(hv, &key, &klen)) {
-                char *tmp = sv_to_utf8_string(sv, NULL);
+                bool sf;
+                char *tmp = sv_to_utf8_string(sv, NULL, &sf);
                 arg5 = CSLAddNameValue(arg5, key, tmp);
-                free(tmp);
+                if (sf) Safefree(tmp); else free(tmp);
               }
             } else
             do_confess(NEED_REF, 1);
@@ -13237,9 +13677,10 @@ XS(_wrap_Dataset_CopyLayer) {
               AV *av = (AV*)(SvRV(ST(3)));
               for (int i = 0; i < av_len(av)+1; i++) {
                 SV *sv = *(av_fetch(av, i, 0));
-                char *tmp = sv_to_utf8_string(sv, NULL);
+                bool sf;
+                char *tmp = sv_to_utf8_string(sv, NULL, &sf);
                 arg4 = CSLAddString(arg4, tmp);
-                free(tmp);
+                if (sf) Safefree(tmp); else free(tmp);
               }
             } else if (SvTYPE(SvRV(ST(3)))==SVt_PVHV) {
               HV *hv = (HV*)SvRV(ST(3));
@@ -13249,9 +13690,10 @@ XS(_wrap_Dataset_CopyLayer) {
               arg4 = NULL;
               hv_iterinit(hv);
               while(sv = hv_iternextsv(hv, &key, &klen)) {
-                char *tmp = sv_to_utf8_string(sv, NULL);
+                bool sf;
+                char *tmp = sv_to_utf8_string(sv, NULL, &sf);
                 arg4 = CSLAddNameValue(arg4, key, tmp);
-                free(tmp);
+                if (sf) Safefree(tmp); else free(tmp);
               }
             } else
             do_confess(NEED_REF, 1);
@@ -13560,15 +14002,126 @@ XS(_wrap_Dataset_GetLayerByName) {
     
     {
       /* %typemap(freearg) (const char* layer_name) */
-      if (tmpbuf2) free(tmpbuf2);
+      if (tmpbuf2) Safefree(tmpbuf2);
     }
     XSRETURN(argvi);
   fail:
     
     {
       /* %typemap(freearg) (const char* layer_name) */
-      if (tmpbuf2) free(tmpbuf2);
+      if (tmpbuf2) Safefree(tmpbuf2);
     }
+    SWIG_croak_null();
+  }
+}
+
+
+XS(_wrap_Dataset_ResetReading) {
+  {
+    GDALDatasetShadow *arg1 = (GDALDatasetShadow *) 0 ;
+    int argvi = 0;
+    dXSARGS;
+    
+    if ((items < 1) || (items > 1)) {
+      SWIG_croak("Usage: Dataset_ResetReading(self);");
+    }
+    {
+      /* %typemap(in) (GDALDatasetShadow *) */
+      void *argp = 0;
+      int res = SWIG_ConvertPtr(ST(0), &argp, SWIGTYPE_p_GDALDatasetShadow, 0 |  0 );
+      if (!SWIG_IsOK(res)) {
+        do_confess(WRONG_CLASS, 1);
+      }
+      arg1 = reinterpret_cast< GDALDatasetShadow * >(argp);
+      if (arg1 == NULL)
+      do_confess(NEED_DEF, 1);
+    }
+    {
+      CPLErrorReset();
+      GDALDatasetShadow_ResetReading(arg1);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        do_confess( CPLGetLastErrorMsg(), 0 );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /*
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
+    {
+      /* %typemap(out) void */
+    }
+    
+    XSRETURN(argvi);
+  fail:
+    
+    SWIG_croak_null();
+  }
+}
+
+
+XS(_wrap_Dataset_GetNextFeature) {
+  {
+    GDALDatasetShadow *arg1 = (GDALDatasetShadow *) 0 ;
+    int argvi = 0;
+    OGRFeatureShadow *result = 0 ;
+    dXSARGS;
+    
+    if ((items < 1) || (items > 1)) {
+      SWIG_croak("Usage: Dataset_GetNextFeature(self);");
+    }
+    {
+      /* %typemap(in) (GDALDatasetShadow *) */
+      void *argp = 0;
+      int res = SWIG_ConvertPtr(ST(0), &argp, SWIGTYPE_p_GDALDatasetShadow, 0 |  0 );
+      if (!SWIG_IsOK(res)) {
+        do_confess(WRONG_CLASS, 1);
+      }
+      arg1 = reinterpret_cast< GDALDatasetShadow * >(argp);
+      if (arg1 == NULL)
+      do_confess(NEED_DEF, 1);
+    }
+    {
+      CPLErrorReset();
+      result = (OGRFeatureShadow *)GDALDatasetShadow_GetNextFeature(arg1);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        do_confess( CPLGetLastErrorMsg(), 0 );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /*
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
+    ST(argvi) = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_OGRFeatureShadow, SWIG_OWNER | SWIG_SHADOW); argvi++ ;
+    
+    XSRETURN(argvi);
+  fail:
+    
     SWIG_croak_null();
   }
 }
@@ -15092,9 +15645,10 @@ XS(_wrap_Band_SetRasterCategoryNames) {
             AV *av = (AV*)(SvRV(ST(1)));
             for (int i = 0; i < av_len(av)+1; i++) {
               SV *sv = *(av_fetch(av, i, 0));
-              char *tmp = sv_to_utf8_string(sv, NULL);
+              bool sf;
+              char *tmp = sv_to_utf8_string(sv, NULL, &sf);
               arg2 = CSLAddString(arg2, tmp);
-              free(tmp);
+              if (sf) Safefree(tmp); else free(tmp);
             }
           } else if (SvTYPE(SvRV(ST(1)))==SVt_PVHV) {
             HV *hv = (HV*)SvRV(ST(1));
@@ -15104,9 +15658,10 @@ XS(_wrap_Band_SetRasterCategoryNames) {
             arg2 = NULL;
             hv_iterinit(hv);
             while(sv = hv_iternextsv(hv, &key, &klen)) {
-              char *tmp = sv_to_utf8_string(sv, NULL);
+              bool sf;
+              char *tmp = sv_to_utf8_string(sv, NULL, &sf);
               arg2 = CSLAddNameValue(arg2, key, tmp);
-              free(tmp);
+              if (sf) Safefree(tmp); else free(tmp);
             }
           } else
           do_confess(NEED_REF, 1);
@@ -17950,9 +18505,10 @@ XS(_wrap_Band_SetCategoryNames) {
             AV *av = (AV*)(SvRV(ST(1)));
             for (int i = 0; i < av_len(av)+1; i++) {
               SV *sv = *(av_fetch(av, i, 0));
-              char *tmp = sv_to_utf8_string(sv, NULL);
+              bool sf;
+              char *tmp = sv_to_utf8_string(sv, NULL, &sf);
               arg2 = CSLAddString(arg2, tmp);
-              free(tmp);
+              if (sf) Safefree(tmp); else free(tmp);
             }
           } else if (SvTYPE(SvRV(ST(1)))==SVt_PVHV) {
             HV *hv = (HV*)SvRV(ST(1));
@@ -17962,9 +18518,10 @@ XS(_wrap_Band_SetCategoryNames) {
             arg2 = NULL;
             hv_iterinit(hv);
             while(sv = hv_iternextsv(hv, &key, &klen)) {
-              char *tmp = sv_to_utf8_string(sv, NULL);
+              bool sf;
+              char *tmp = sv_to_utf8_string(sv, NULL, &sf);
               arg2 = CSLAddNameValue(arg2, key, tmp);
-              free(tmp);
+              if (sf) Safefree(tmp); else free(tmp);
             }
           } else
           do_confess(NEED_REF, 1);
@@ -18165,6 +18722,382 @@ XS(_wrap_Band_ContourGenerate) {
       CPLFree((void*) arg5);
     }
     
+    
+    
+    
+    SWIG_croak_null();
+  }
+}
+
+
+XS(_wrap_Band_ClassCounts__SWIG_0) {
+  {
+    GDALRasterBandShadow *arg1 = (GDALRasterBandShadow *) 0 ;
+    GDALProgressFunc arg2 = (GDALProgressFunc) NULL ;
+    void *arg3 = (void *) NULL ;
+    void *argp1 = 0 ;
+    int res1 = 0 ;
+    int argvi = 0;
+    SV *result = 0 ;
+    dXSARGS;
+    
+    /* %typemap(arginit, noblock=1) ( void* callback_data = NULL) */
+    SavedEnv saved_env;
+    saved_env.fct = NULL;
+    saved_env.data = &PL_sv_undef;
+    arg3 = (void *)(&saved_env);
+    if ((items < 1) || (items > 3)) {
+      SWIG_croak("Usage: Band_ClassCounts(self,callback,callback_data);");
+    }
+    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_GDALRasterBandShadow, 0 |  0 );
+    if (!SWIG_IsOK(res1)) {
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Band_ClassCounts" "', argument " "1"" of type '" "GDALRasterBandShadow *""'"); 
+    }
+    arg1 = reinterpret_cast< GDALRasterBandShadow * >(argp1);
+    if (items > 1) {
+      {
+        /* %typemap(in) (GDALProgressFunc callback = NULL) */
+        if (SvOK(ST(1))) {
+          if (SvROK(ST(1))) {
+            if (SvTYPE(SvRV(ST(1))) != SVt_PVCV) {
+              do_confess(NEED_CODE_REF, 1);
+            } else {
+              saved_env.fct = (SV *)ST(1);
+              arg2 = &callback_d_cp_vp;
+            }
+          } else {
+            do_confess(NEED_CODE_REF, 1);
+          }
+        }
+      }
+    }
+    if (items > 2) {
+      {
+        /* %typemap(in) (void* callback_data=NULL) */
+        if (SvOK(ST(2)))
+        saved_env.data = (SV *)ST(2);
+      }
+    }
+    {
+      CPLErrorReset();
+      result = (SV *)GDALRasterBandShadow_ClassCounts__SWIG_0(arg1,arg2,arg3);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        do_confess( CPLGetLastErrorMsg(), 0 );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /*
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
+    ST(argvi) = result; argvi++ ;
+    
+    
+    XSRETURN(argvi);
+  fail:
+    
+    
+    SWIG_croak_null();
+  }
+}
+
+
+XS(_wrap_Band_ClassCounts__SWIG_1) {
+  {
+    GDALRasterBandShadow *arg1 = (GDALRasterBandShadow *) 0 ;
+    SV *arg2 = (SV *) 0 ;
+    GDALProgressFunc arg3 = (GDALProgressFunc) NULL ;
+    void *arg4 = (void *) NULL ;
+    void *argp1 = 0 ;
+    int res1 = 0 ;
+    int argvi = 0;
+    SV *result = 0 ;
+    dXSARGS;
+    
+    /* %typemap(arginit, noblock=1) ( void* callback_data = NULL) */
+    SavedEnv saved_env;
+    saved_env.fct = NULL;
+    saved_env.data = &PL_sv_undef;
+    arg4 = (void *)(&saved_env);
+    if ((items < 2) || (items > 4)) {
+      SWIG_croak("Usage: Band_ClassCounts(self,classifier,callback,callback_data);");
+    }
+    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_GDALRasterBandShadow, 0 |  0 );
+    if (!SWIG_IsOK(res1)) {
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Band_ClassCounts" "', argument " "1"" of type '" "GDALRasterBandShadow *""'"); 
+    }
+    arg1 = reinterpret_cast< GDALRasterBandShadow * >(argp1);
+    arg2 = ST(1);
+    if (items > 2) {
+      {
+        /* %typemap(in) (GDALProgressFunc callback = NULL) */
+        if (SvOK(ST(2))) {
+          if (SvROK(ST(2))) {
+            if (SvTYPE(SvRV(ST(2))) != SVt_PVCV) {
+              do_confess(NEED_CODE_REF, 1);
+            } else {
+              saved_env.fct = (SV *)ST(2);
+              arg3 = &callback_d_cp_vp;
+            }
+          } else {
+            do_confess(NEED_CODE_REF, 1);
+          }
+        }
+      }
+    }
+    if (items > 3) {
+      {
+        /* %typemap(in) (void* callback_data=NULL) */
+        if (SvOK(ST(3)))
+        saved_env.data = (SV *)ST(3);
+      }
+    }
+    {
+      CPLErrorReset();
+      result = (SV *)GDALRasterBandShadow_ClassCounts__SWIG_1(arg1,arg2,arg3,arg4);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        do_confess( CPLGetLastErrorMsg(), 0 );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /*
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
+    ST(argvi) = result; argvi++ ;
+    
+    
+    
+    XSRETURN(argvi);
+  fail:
+    
+    
+    
+    SWIG_croak_null();
+  }
+}
+
+
+XS(_wrap_Band_ClassCounts) {
+  dXSARGS;
+  
+  {
+    unsigned long _index = 0;
+    SWIG_TypeRank _rank = 0; 
+    if ((items >= 1) && (items <= 3)) {
+      SWIG_TypeRank _ranki = 0;
+      SWIG_TypeRank _rankm = 0;
+      SWIG_TypeRank _pi = 1;
+      int _v = 0;
+      {
+        void *vptr = 0;
+        int res = SWIG_ConvertPtr(ST(0), &vptr, SWIGTYPE_p_GDALRasterBandShadow, 0);
+        _v = SWIG_CheckState(res);
+      }
+      if (!_v) goto check_1;
+      _ranki += _v*_pi;
+      _rankm += _pi;
+      _pi *= SWIG_MAXCASTRANK;
+      if (items > 1) {
+        {
+          {
+            /* %typemap(typecheck, precedence=SWIG_TYPECHECK_INTEGER) GDALProgressFunc callback */
+            _v = SvOK(ST(1)) && SvROK(ST(1)) && SvTYPE(SvRV(ST(1))) == SVt_PVCV;
+          }
+        }
+        if (!_v) goto check_1;
+        _ranki += _v*_pi;
+        _rankm += _pi;
+        _pi *= SWIG_MAXCASTRANK;
+        if (items > 2) {
+          {
+            void *ptr = 0;
+            int res = SWIG_ConvertPtr(ST(2), &ptr, 0, 0);
+            _v = SWIG_CheckState(res);
+          }
+          if (!_v) goto check_1;
+          _ranki += _v*_pi;
+          _rankm += _pi;
+          _pi *= SWIG_MAXCASTRANK;
+        }
+      }
+      if (!_index || (_ranki < _rank)) {
+        _rank = _ranki; _index = 1;
+        if (_rank == _rankm) goto dispatch;
+      }
+    }
+  check_1:
+    
+    if ((items >= 2) && (items <= 4)) {
+      SWIG_TypeRank _ranki = 0;
+      SWIG_TypeRank _rankm = 0;
+      SWIG_TypeRank _pi = 1;
+      int _v = 0;
+      {
+        void *vptr = 0;
+        int res = SWIG_ConvertPtr(ST(0), &vptr, SWIGTYPE_p_GDALRasterBandShadow, 0);
+        _v = SWIG_CheckState(res);
+      }
+      if (!_v) goto check_2;
+      _ranki += _v*_pi;
+      _rankm += _pi;
+      _pi *= SWIG_MAXCASTRANK;
+      {
+        _v = (ST(1) != 0);
+      }
+      if (!_v) goto check_2;
+      _ranki += _v*_pi;
+      _rankm += _pi;
+      _pi *= SWIG_MAXCASTRANK;
+      if (items > 2) {
+        {
+          {
+            /* %typemap(typecheck, precedence=SWIG_TYPECHECK_INTEGER) GDALProgressFunc callback */
+            _v = SvOK(ST(2)) && SvROK(ST(2)) && SvTYPE(SvRV(ST(2))) == SVt_PVCV;
+          }
+        }
+        if (!_v) goto check_2;
+        _ranki += _v*_pi;
+        _rankm += _pi;
+        _pi *= SWIG_MAXCASTRANK;
+        if (items > 3) {
+          {
+            void *ptr = 0;
+            int res = SWIG_ConvertPtr(ST(3), &ptr, 0, 0);
+            _v = SWIG_CheckState(res);
+          }
+          if (!_v) goto check_2;
+          _ranki += _v*_pi;
+          _rankm += _pi;
+          _pi *= SWIG_MAXCASTRANK;
+        }
+      }
+      if (!_index || (_ranki < _rank)) {
+        _rank = _ranki; _index = 2;
+        if (_rank == _rankm) goto dispatch;
+      }
+    }
+  check_2:
+    
+  dispatch:
+    switch(_index) {
+    case 1:
+      PUSHMARK(MARK); SWIG_CALLXS(_wrap_Band_ClassCounts__SWIG_0); return;
+    case 2:
+      PUSHMARK(MARK); SWIG_CALLXS(_wrap_Band_ClassCounts__SWIG_1); return;
+    }
+  }
+  
+  croak("No matching function for overloaded 'Band_ClassCounts'");
+  XSRETURN(0);
+}
+
+
+XS(_wrap_Band_Reclassify) {
+  {
+    GDALRasterBandShadow *arg1 = (GDALRasterBandShadow *) 0 ;
+    SV *arg2 = (SV *) 0 ;
+    GDALProgressFunc arg3 = (GDALProgressFunc) NULL ;
+    void *arg4 = (void *) NULL ;
+    void *argp1 = 0 ;
+    int res1 = 0 ;
+    int argvi = 0;
+    dXSARGS;
+    
+    /* %typemap(arginit, noblock=1) ( void* callback_data = NULL) */
+    SavedEnv saved_env;
+    saved_env.fct = NULL;
+    saved_env.data = &PL_sv_undef;
+    arg4 = (void *)(&saved_env);
+    if ((items < 2) || (items > 4)) {
+      SWIG_croak("Usage: Band_Reclassify(self,classifier,callback,callback_data);");
+    }
+    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_GDALRasterBandShadow, 0 |  0 );
+    if (!SWIG_IsOK(res1)) {
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Band_Reclassify" "', argument " "1"" of type '" "GDALRasterBandShadow *""'"); 
+    }
+    arg1 = reinterpret_cast< GDALRasterBandShadow * >(argp1);
+    arg2 = ST(1);
+    if (items > 2) {
+      {
+        /* %typemap(in) (GDALProgressFunc callback = NULL) */
+        if (SvOK(ST(2))) {
+          if (SvROK(ST(2))) {
+            if (SvTYPE(SvRV(ST(2))) != SVt_PVCV) {
+              do_confess(NEED_CODE_REF, 1);
+            } else {
+              saved_env.fct = (SV *)ST(2);
+              arg3 = &callback_d_cp_vp;
+            }
+          } else {
+            do_confess(NEED_CODE_REF, 1);
+          }
+        }
+      }
+    }
+    if (items > 3) {
+      {
+        /* %typemap(in) (void* callback_data=NULL) */
+        if (SvOK(ST(3)))
+        saved_env.data = (SV *)ST(3);
+      }
+    }
+    {
+      CPLErrorReset();
+      GDALRasterBandShadow_Reclassify(arg1,arg2,arg3,arg4);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        do_confess( CPLGetLastErrorMsg(), 0 );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /*
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
+    {
+      /* %typemap(out) void */
+    }
+    
+    
+    
+    XSRETURN(argvi);
+  fail:
     
     
     
@@ -19622,7 +20555,7 @@ XS(_wrap_RasterAttributeTable_SetValueAsString) {
     
     {
       /* %typemap(freearg) (tostring argin) */
-      if (tmpbuf4) free(tmpbuf4);
+      if (tmpbuf4) Safefree(tmpbuf4);
     }
     XSRETURN(argvi);
   fail:
@@ -19631,7 +20564,7 @@ XS(_wrap_RasterAttributeTable_SetValueAsString) {
     
     {
       /* %typemap(freearg) (tostring argin) */
-      if (tmpbuf4) free(tmpbuf4);
+      if (tmpbuf4) Safefree(tmpbuf4);
     }
     SWIG_croak_null();
   }
@@ -20749,9 +21682,10 @@ XS(_wrap__ReprojectImage) {
               AV *av = (AV*)(SvRV(ST(9)));
               for (int i = 0; i < av_len(av)+1; i++) {
                 SV *sv = *(av_fetch(av, i, 0));
-                char *tmp = sv_to_utf8_string(sv, NULL);
+                bool sf;
+                char *tmp = sv_to_utf8_string(sv, NULL, &sf);
                 arg10 = CSLAddString(arg10, tmp);
-                free(tmp);
+                if (sf) Safefree(tmp); else free(tmp);
               }
             } else if (SvTYPE(SvRV(ST(9)))==SVt_PVHV) {
               HV *hv = (HV*)SvRV(ST(9));
@@ -20761,9 +21695,10 @@ XS(_wrap__ReprojectImage) {
               arg10 = NULL;
               hv_iterinit(hv);
               while(sv = hv_iternextsv(hv, &key, &klen)) {
-                char *tmp = sv_to_utf8_string(sv, NULL);
+                bool sf;
+                char *tmp = sv_to_utf8_string(sv, NULL, &sf);
                 arg10 = CSLAddNameValue(arg10, key, tmp);
-                free(tmp);
+                if (sf) Safefree(tmp); else free(tmp);
               }
             } else
             do_confess(NEED_REF, 1);
@@ -20880,9 +21815,10 @@ XS(_wrap_ComputeProximity) {
               AV *av = (AV*)(SvRV(ST(2)));
               for (int i = 0; i < av_len(av)+1; i++) {
                 SV *sv = *(av_fetch(av, i, 0));
-                char *tmp = sv_to_utf8_string(sv, NULL);
+                bool sf;
+                char *tmp = sv_to_utf8_string(sv, NULL, &sf);
                 arg3 = CSLAddString(arg3, tmp);
-                free(tmp);
+                if (sf) Safefree(tmp); else free(tmp);
               }
             } else if (SvTYPE(SvRV(ST(2)))==SVt_PVHV) {
               HV *hv = (HV*)SvRV(ST(2));
@@ -20892,9 +21828,10 @@ XS(_wrap_ComputeProximity) {
               arg3 = NULL;
               hv_iterinit(hv);
               while(sv = hv_iternextsv(hv, &key, &klen)) {
-                char *tmp = sv_to_utf8_string(sv, NULL);
+                bool sf;
+                char *tmp = sv_to_utf8_string(sv, NULL, &sf);
                 arg3 = CSLAddNameValue(arg3, key, tmp);
-                free(tmp);
+                if (sf) Safefree(tmp); else free(tmp);
               }
             } else
             do_confess(NEED_REF, 1);
@@ -21081,9 +22018,10 @@ XS(_wrap_RasterizeLayer) {
               AV *av = (AV*)(SvRV(ST(6)));
               for (int i = 0; i < av_len(av)+1; i++) {
                 SV *sv = *(av_fetch(av, i, 0));
-                char *tmp = sv_to_utf8_string(sv, NULL);
+                bool sf;
+                char *tmp = sv_to_utf8_string(sv, NULL, &sf);
                 arg9 = CSLAddString(arg9, tmp);
-                free(tmp);
+                if (sf) Safefree(tmp); else free(tmp);
               }
             } else if (SvTYPE(SvRV(ST(6)))==SVt_PVHV) {
               HV *hv = (HV*)SvRV(ST(6));
@@ -21093,9 +22031,10 @@ XS(_wrap_RasterizeLayer) {
               arg9 = NULL;
               hv_iterinit(hv);
               while(sv = hv_iternextsv(hv, &key, &klen)) {
-                char *tmp = sv_to_utf8_string(sv, NULL);
+                bool sf;
+                char *tmp = sv_to_utf8_string(sv, NULL, &sf);
                 arg9 = CSLAddNameValue(arg9, key, tmp);
-                free(tmp);
+                if (sf) Safefree(tmp); else free(tmp);
               }
             } else
             do_confess(NEED_REF, 1);
@@ -21262,9 +22201,10 @@ XS(_wrap__Polygonize) {
               AV *av = (AV*)(SvRV(ST(4)));
               for (int i = 0; i < av_len(av)+1; i++) {
                 SV *sv = *(av_fetch(av, i, 0));
-                char *tmp = sv_to_utf8_string(sv, NULL);
+                bool sf;
+                char *tmp = sv_to_utf8_string(sv, NULL, &sf);
                 arg5 = CSLAddString(arg5, tmp);
-                free(tmp);
+                if (sf) Safefree(tmp); else free(tmp);
               }
             } else if (SvTYPE(SvRV(ST(4)))==SVt_PVHV) {
               HV *hv = (HV*)SvRV(ST(4));
@@ -21274,9 +22214,10 @@ XS(_wrap__Polygonize) {
               arg5 = NULL;
               hv_iterinit(hv);
               while(sv = hv_iternextsv(hv, &key, &klen)) {
-                char *tmp = sv_to_utf8_string(sv, NULL);
+                bool sf;
+                char *tmp = sv_to_utf8_string(sv, NULL, &sf);
                 arg5 = CSLAddNameValue(arg5, key, tmp);
-                free(tmp);
+                if (sf) Safefree(tmp); else free(tmp);
               }
             } else
             do_confess(NEED_REF, 1);
@@ -21427,9 +22368,10 @@ XS(_wrap_FPolygonize) {
               AV *av = (AV*)(SvRV(ST(4)));
               for (int i = 0; i < av_len(av)+1; i++) {
                 SV *sv = *(av_fetch(av, i, 0));
-                char *tmp = sv_to_utf8_string(sv, NULL);
+                bool sf;
+                char *tmp = sv_to_utf8_string(sv, NULL, &sf);
                 arg5 = CSLAddString(arg5, tmp);
-                free(tmp);
+                if (sf) Safefree(tmp); else free(tmp);
               }
             } else if (SvTYPE(SvRV(ST(4)))==SVt_PVHV) {
               HV *hv = (HV*)SvRV(ST(4));
@@ -21439,9 +22381,10 @@ XS(_wrap_FPolygonize) {
               arg5 = NULL;
               hv_iterinit(hv);
               while(sv = hv_iternextsv(hv, &key, &klen)) {
-                char *tmp = sv_to_utf8_string(sv, NULL);
+                bool sf;
+                char *tmp = sv_to_utf8_string(sv, NULL, &sf);
                 arg5 = CSLAddNameValue(arg5, key, tmp);
-                free(tmp);
+                if (sf) Safefree(tmp); else free(tmp);
               }
             } else
             do_confess(NEED_REF, 1);
@@ -21592,9 +22535,10 @@ XS(_wrap_FillNodata) {
               AV *av = (AV*)(SvRV(ST(4)));
               for (int i = 0; i < av_len(av)+1; i++) {
                 SV *sv = *(av_fetch(av, i, 0));
-                char *tmp = sv_to_utf8_string(sv, NULL);
+                bool sf;
+                char *tmp = sv_to_utf8_string(sv, NULL, &sf);
                 arg5 = CSLAddString(arg5, tmp);
-                free(tmp);
+                if (sf) Safefree(tmp); else free(tmp);
               }
             } else if (SvTYPE(SvRV(ST(4)))==SVt_PVHV) {
               HV *hv = (HV*)SvRV(ST(4));
@@ -21604,9 +22548,10 @@ XS(_wrap_FillNodata) {
               arg5 = NULL;
               hv_iterinit(hv);
               while(sv = hv_iternextsv(hv, &key, &klen)) {
-                char *tmp = sv_to_utf8_string(sv, NULL);
+                bool sf;
+                char *tmp = sv_to_utf8_string(sv, NULL, &sf);
                 arg5 = CSLAddNameValue(arg5, key, tmp);
-                free(tmp);
+                if (sf) Safefree(tmp); else free(tmp);
               }
             } else
             do_confess(NEED_REF, 1);
@@ -21762,9 +22707,10 @@ XS(_wrap_SieveFilter) {
               AV *av = (AV*)(SvRV(ST(5)));
               for (int i = 0; i < av_len(av)+1; i++) {
                 SV *sv = *(av_fetch(av, i, 0));
-                char *tmp = sv_to_utf8_string(sv, NULL);
+                bool sf;
+                char *tmp = sv_to_utf8_string(sv, NULL, &sf);
                 arg6 = CSLAddString(arg6, tmp);
-                free(tmp);
+                if (sf) Safefree(tmp); else free(tmp);
               }
             } else if (SvTYPE(SvRV(ST(5)))==SVt_PVHV) {
               HV *hv = (HV*)SvRV(ST(5));
@@ -21774,9 +22720,10 @@ XS(_wrap_SieveFilter) {
               arg6 = NULL;
               hv_iterinit(hv);
               while(sv = hv_iternextsv(hv, &key, &klen)) {
-                char *tmp = sv_to_utf8_string(sv, NULL);
+                bool sf;
+                char *tmp = sv_to_utf8_string(sv, NULL, &sf);
                 arg6 = CSLAddNameValue(arg6, key, tmp);
-                free(tmp);
+                if (sf) Safefree(tmp); else free(tmp);
               }
             } else
             do_confess(NEED_REF, 1);
@@ -22556,9 +23503,10 @@ XS(_wrap_new_Transformer) {
             AV *av = (AV*)(SvRV(ST(2)));
             for (int i = 0; i < av_len(av)+1; i++) {
               SV *sv = *(av_fetch(av, i, 0));
-              char *tmp = sv_to_utf8_string(sv, NULL);
+              bool sf;
+              char *tmp = sv_to_utf8_string(sv, NULL, &sf);
               arg3 = CSLAddString(arg3, tmp);
-              free(tmp);
+              if (sf) Safefree(tmp); else free(tmp);
             }
           } else if (SvTYPE(SvRV(ST(2)))==SVt_PVHV) {
             HV *hv = (HV*)SvRV(ST(2));
@@ -22568,9 +23516,10 @@ XS(_wrap_new_Transformer) {
             arg3 = NULL;
             hv_iterinit(hv);
             while(sv = hv_iternextsv(hv, &key, &klen)) {
-              char *tmp = sv_to_utf8_string(sv, NULL);
+              bool sf;
+              char *tmp = sv_to_utf8_string(sv, NULL, &sf);
               arg3 = CSLAddNameValue(arg3, key, tmp);
-              free(tmp);
+              if (sf) Safefree(tmp); else free(tmp);
             }
           } else
           do_confess(NEED_REF, 1);
@@ -22708,6 +23657,8 @@ XS(_wrap_Transformer_TransformPoint__SWIG_0) {
       do_confess(NEED_ARRAY_REF, 1);
       arg3 = argin3;
       AV *av = (AV*)(SvRV(ST(2)));
+      if (av_len(av)+1 < 3)
+      do_confess(NOT_ENOUGH_ELEMENTS, 1);
       for (unsigned int i=0; i<3; i++) {
         SV *sv = *av_fetch(av, i, 0);
         if (!SvOK(sv))
@@ -23225,9 +24176,10 @@ XS(_wrap_Transformer_TransformGeolocations) {
               AV *av = (AV*)(SvRV(ST(6)));
               for (int i = 0; i < av_len(av)+1; i++) {
                 SV *sv = *(av_fetch(av, i, 0));
-                char *tmp = sv_to_utf8_string(sv, NULL);
+                bool sf;
+                char *tmp = sv_to_utf8_string(sv, NULL, &sf);
                 arg7 = CSLAddString(arg7, tmp);
-                free(tmp);
+                if (sf) Safefree(tmp); else free(tmp);
               }
             } else if (SvTYPE(SvRV(ST(6)))==SVt_PVHV) {
               HV *hv = (HV*)SvRV(ST(6));
@@ -23237,9 +24189,10 @@ XS(_wrap_Transformer_TransformGeolocations) {
               arg7 = NULL;
               hv_iterinit(hv);
               while(sv = hv_iternextsv(hv, &key, &klen)) {
-                char *tmp = sv_to_utf8_string(sv, NULL);
+                bool sf;
+                char *tmp = sv_to_utf8_string(sv, NULL, &sf);
                 arg7 = CSLAddNameValue(arg7, key, tmp);
-                free(tmp);
+                if (sf) Safefree(tmp); else free(tmp);
               }
             } else
             do_confess(NEED_REF, 1);
@@ -23313,6 +24266,164 @@ XS(_wrap_Transformer_TransformGeolocations) {
 }
 
 
+XS(_wrap_ApplyVerticalShiftGrid) {
+  {
+    GDALDatasetShadow *arg1 = (GDALDatasetShadow *) 0 ;
+    GDALDatasetShadow *arg2 = (GDALDatasetShadow *) 0 ;
+    bool arg3 = (bool) false ;
+    double arg4 = (double) 1.0 ;
+    double arg5 = (double) 1.0 ;
+    char **arg6 = (char **) NULL ;
+    bool val3 ;
+    int ecode3 = 0 ;
+    double val4 ;
+    int ecode4 = 0 ;
+    double val5 ;
+    int ecode5 = 0 ;
+    int argvi = 0;
+    GDALDatasetShadow *result = 0 ;
+    dXSARGS;
+    
+    if ((items < 2) || (items > 6)) {
+      SWIG_croak("Usage: ApplyVerticalShiftGrid(src_ds,grid_ds,inverse,srcUnitToMeter,dstUnitToMeter,options);");
+    }
+    {
+      /* %typemap(in) (GDALDatasetShadow *) */
+      void *argp = 0;
+      int res = SWIG_ConvertPtr(ST(0), &argp, SWIGTYPE_p_GDALDatasetShadow, 0 |  0 );
+      if (!SWIG_IsOK(res)) {
+        do_confess(WRONG_CLASS, 1);
+      }
+      arg1 = reinterpret_cast< GDALDatasetShadow * >(argp);
+      if (arg1 == NULL)
+      do_confess(NEED_DEF, 1);
+    }
+    {
+      /* %typemap(in) (GDALDatasetShadow *) */
+      void *argp = 0;
+      int res = SWIG_ConvertPtr(ST(1), &argp, SWIGTYPE_p_GDALDatasetShadow, 0 |  0 );
+      if (!SWIG_IsOK(res)) {
+        do_confess(WRONG_CLASS, 1);
+      }
+      arg2 = reinterpret_cast< GDALDatasetShadow * >(argp);
+      if (arg2 == NULL)
+      do_confess(NEED_DEF, 1);
+    }
+    if (items > 2) {
+      ecode3 = SWIG_AsVal_bool SWIG_PERL_CALL_ARGS_2(ST(2), &val3);
+      if (!SWIG_IsOK(ecode3)) {
+        SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "ApplyVerticalShiftGrid" "', argument " "3"" of type '" "bool""'");
+      } 
+      arg3 = static_cast< bool >(val3);
+    }
+    if (items > 3) {
+      ecode4 = SWIG_AsVal_double SWIG_PERL_CALL_ARGS_2(ST(3), &val4);
+      if (!SWIG_IsOK(ecode4)) {
+        SWIG_exception_fail(SWIG_ArgError(ecode4), "in method '" "ApplyVerticalShiftGrid" "', argument " "4"" of type '" "double""'");
+      } 
+      arg4 = static_cast< double >(val4);
+    }
+    if (items > 4) {
+      ecode5 = SWIG_AsVal_double SWIG_PERL_CALL_ARGS_2(ST(4), &val5);
+      if (!SWIG_IsOK(ecode5)) {
+        SWIG_exception_fail(SWIG_ArgError(ecode5), "in method '" "ApplyVerticalShiftGrid" "', argument " "5"" of type '" "double""'");
+      } 
+      arg5 = static_cast< double >(val5);
+    }
+    if (items > 5) {
+      {
+        /* %typemap(in) char **options */
+        if (SvOK(ST(5))) {
+          if (SvROK(ST(5))) {
+            if (SvTYPE(SvRV(ST(5)))==SVt_PVAV) {
+              AV *av = (AV*)(SvRV(ST(5)));
+              for (int i = 0; i < av_len(av)+1; i++) {
+                SV *sv = *(av_fetch(av, i, 0));
+                bool sf;
+                char *tmp = sv_to_utf8_string(sv, NULL, &sf);
+                arg6 = CSLAddString(arg6, tmp);
+                if (sf) Safefree(tmp); else free(tmp);
+              }
+            } else if (SvTYPE(SvRV(ST(5)))==SVt_PVHV) {
+              HV *hv = (HV*)SvRV(ST(5));
+              SV *sv;
+              char *key;
+              I32 klen;
+              arg6 = NULL;
+              hv_iterinit(hv);
+              while(sv = hv_iternextsv(hv, &key, &klen)) {
+                bool sf;
+                char *tmp = sv_to_utf8_string(sv, NULL, &sf);
+                arg6 = CSLAddNameValue(arg6, key, tmp);
+                if (sf) Safefree(tmp); else free(tmp);
+              }
+            } else
+            do_confess(NEED_REF, 1);
+          } else
+          do_confess(NEED_REF, 1);
+        }
+      }
+    }
+    {
+      if (!arg1) {
+        SWIG_exception(SWIG_ValueError,"Received a NULL pointer.");
+      }
+    }
+    {
+      if (!arg2) {
+        SWIG_exception(SWIG_ValueError,"Received a NULL pointer.");
+      }
+    }
+    {
+      CPLErrorReset();
+      result = (GDALDatasetShadow *)ApplyVerticalShiftGrid(arg1,arg2,arg3,arg4,arg5,arg6);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        do_confess( CPLGetLastErrorMsg(), 0 );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /*
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
+    ST(argvi) = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_GDALDatasetShadow, SWIG_OWNER | SWIG_SHADOW); argvi++ ;
+    
+    
+    
+    
+    
+    {
+      /* %typemap(freearg) char **options */
+      if (arg6) CSLDestroy( arg6 );
+    }
+    XSRETURN(argvi);
+  fail:
+    
+    
+    
+    
+    
+    {
+      /* %typemap(freearg) char **options */
+      if (arg6) CSLDestroy( arg6 );
+    }
+    SWIG_croak_null();
+  }
+}
+
+
 XS(_wrap_ApplyGeoTransform) {
   {
     double *arg1 ;
@@ -23343,6 +24454,8 @@ XS(_wrap_ApplyGeoTransform) {
       do_confess(NEED_ARRAY_REF, 1);
       arg1 = argin1;
       AV *av = (AV*)(SvRV(ST(0)));
+      if (av_len(av)+1 < 6)
+      do_confess(NOT_ENOUGH_ELEMENTS, 1);
       for (unsigned int i=0; i<6; i++) {
         SV *sv = *av_fetch(av, i, 0);
         if (!SvOK(sv))
@@ -23439,6 +24552,8 @@ XS(_wrap_InvGeoTransform) {
       do_confess(NEED_ARRAY_REF, 1);
       arg1 = argin1;
       AV *av = (AV*)(SvRV(ST(0)));
+      if (av_len(av)+1 < 6)
+      do_confess(NOT_ENOUGH_ELEMENTS, 1);
       for (unsigned int i=0; i<6; i++) {
         SV *sv = *av_fetch(av, i, 0);
         if (!SvOK(sv))
@@ -23687,7 +24802,7 @@ XS(_wrap_GetCacheMax) {
     }
     {
       char temp[256];
-      sprintf(temp, ""CPL_FRMT_GIB"", result);
+      sprintf(temp, "" CPL_FRMT_GIB "", result);
       ST(argvi) = sv_2mortal(newSVpv(temp, 0));
       argvi++;
     }
@@ -23733,7 +24848,7 @@ XS(_wrap_GetCacheUsed) {
     }
     {
       char temp[256];
-      sprintf(temp, ""CPL_FRMT_GIB"", result);
+      sprintf(temp, "" CPL_FRMT_GIB "", result);
       ST(argvi) = sv_2mortal(newSVpv(temp, 0));
       argvi++;
     }
@@ -24378,9 +25493,9 @@ XS(_wrap_SerializeXMLTree) {
       if ( !arg1 ) {
         switch (err) {
         case 1:
-          do_confess(ARRAY_TO_XML_FAILED" "NEED_DEF, 1);
+          do_confess(ARRAY_TO_XML_FAILED " " NEED_DEF, 1);
         case 2:
-          do_confess(ARRAY_TO_XML_FAILED" "NEED_ARRAY_REF, 1);
+          do_confess(ARRAY_TO_XML_FAILED " " NEED_ARRAY_REF, 1);
         }
       }
     }
@@ -24464,9 +25579,10 @@ XS(_wrap_GetJPEG2000StructureAsString) {
               AV *av = (AV*)(SvRV(ST(1)));
               for (int i = 0; i < av_len(av)+1; i++) {
                 SV *sv = *(av_fetch(av, i, 0));
-                char *tmp = sv_to_utf8_string(sv, NULL);
+                bool sf;
+                char *tmp = sv_to_utf8_string(sv, NULL, &sf);
                 arg2 = CSLAddString(arg2, tmp);
-                free(tmp);
+                if (sf) Safefree(tmp); else free(tmp);
               }
             } else if (SvTYPE(SvRV(ST(1)))==SVt_PVHV) {
               HV *hv = (HV*)SvRV(ST(1));
@@ -24476,9 +25592,10 @@ XS(_wrap_GetJPEG2000StructureAsString) {
               arg2 = NULL;
               hv_iterinit(hv);
               while(sv = hv_iternextsv(hv, &key, &klen)) {
-                char *tmp = sv_to_utf8_string(sv, NULL);
+                bool sf;
+                char *tmp = sv_to_utf8_string(sv, NULL, &sf);
                 arg2 = CSLAddNameValue(arg2, key, tmp);
-                free(tmp);
+                if (sf) Safefree(tmp); else free(tmp);
               }
             } else
             do_confess(NEED_REF, 1);
@@ -24877,14 +25994,14 @@ XS(_wrap__Open) {
     ST(argvi) = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_GDALDatasetShadow, SWIG_OWNER | SWIG_SHADOW); argvi++ ;
     {
       /* %typemap(freearg) (const char* utf8_path) */
-      if (tmpbuf1) free(tmpbuf1);
+      if (tmpbuf1) Safefree(tmpbuf1);
     }
     
     XSRETURN(argvi);
   fail:
     {
       /* %typemap(freearg) (const char* utf8_path) */
-      if (tmpbuf1) free(tmpbuf1);
+      if (tmpbuf1) Safefree(tmpbuf1);
     }
     
     SWIG_croak_null();
@@ -24935,9 +26052,10 @@ XS(_wrap__OpenEx) {
               AV *av = (AV*)(SvRV(ST(2)));
               for (int i = 0; i < av_len(av)+1; i++) {
                 SV *sv = *(av_fetch(av, i, 0));
-                char *tmp = sv_to_utf8_string(sv, NULL);
+                bool sf;
+                char *tmp = sv_to_utf8_string(sv, NULL, &sf);
                 arg3 = CSLAddString(arg3, tmp);
-                free(tmp);
+                if (sf) Safefree(tmp); else free(tmp);
               }
             } else if (SvTYPE(SvRV(ST(2)))==SVt_PVHV) {
               HV *hv = (HV*)SvRV(ST(2));
@@ -24947,9 +26065,10 @@ XS(_wrap__OpenEx) {
               arg3 = NULL;
               hv_iterinit(hv);
               while(sv = hv_iternextsv(hv, &key, &klen)) {
-                char *tmp = sv_to_utf8_string(sv, NULL);
+                bool sf;
+                char *tmp = sv_to_utf8_string(sv, NULL, &sf);
                 arg3 = CSLAddNameValue(arg3, key, tmp);
-                free(tmp);
+                if (sf) Safefree(tmp); else free(tmp);
               }
             } else
             do_confess(NEED_REF, 1);
@@ -24967,9 +26086,10 @@ XS(_wrap__OpenEx) {
               AV *av = (AV*)(SvRV(ST(3)));
               for (int i = 0; i < av_len(av)+1; i++) {
                 SV *sv = *(av_fetch(av, i, 0));
-                char *tmp = sv_to_utf8_string(sv, NULL);
+                bool sf;
+                char *tmp = sv_to_utf8_string(sv, NULL, &sf);
                 arg4 = CSLAddString(arg4, tmp);
-                free(tmp);
+                if (sf) Safefree(tmp); else free(tmp);
               }
             } else if (SvTYPE(SvRV(ST(3)))==SVt_PVHV) {
               HV *hv = (HV*)SvRV(ST(3));
@@ -24979,9 +26099,10 @@ XS(_wrap__OpenEx) {
               arg4 = NULL;
               hv_iterinit(hv);
               while(sv = hv_iternextsv(hv, &key, &klen)) {
-                char *tmp = sv_to_utf8_string(sv, NULL);
+                bool sf;
+                char *tmp = sv_to_utf8_string(sv, NULL, &sf);
                 arg4 = CSLAddNameValue(arg4, key, tmp);
-                free(tmp);
+                if (sf) Safefree(tmp); else free(tmp);
               }
             } else
             do_confess(NEED_REF, 1);
@@ -24999,9 +26120,10 @@ XS(_wrap__OpenEx) {
               AV *av = (AV*)(SvRV(ST(4)));
               for (int i = 0; i < av_len(av)+1; i++) {
                 SV *sv = *(av_fetch(av, i, 0));
-                char *tmp = sv_to_utf8_string(sv, NULL);
+                bool sf;
+                char *tmp = sv_to_utf8_string(sv, NULL, &sf);
                 arg5 = CSLAddString(arg5, tmp);
-                free(tmp);
+                if (sf) Safefree(tmp); else free(tmp);
               }
             } else if (SvTYPE(SvRV(ST(4)))==SVt_PVHV) {
               HV *hv = (HV*)SvRV(ST(4));
@@ -25011,9 +26133,10 @@ XS(_wrap__OpenEx) {
               arg5 = NULL;
               hv_iterinit(hv);
               while(sv = hv_iternextsv(hv, &key, &klen)) {
-                char *tmp = sv_to_utf8_string(sv, NULL);
+                bool sf;
+                char *tmp = sv_to_utf8_string(sv, NULL, &sf);
                 arg5 = CSLAddNameValue(arg5, key, tmp);
-                free(tmp);
+                if (sf) Safefree(tmp); else free(tmp);
               }
             } else
             do_confess(NEED_REF, 1);
@@ -25054,7 +26177,7 @@ XS(_wrap__OpenEx) {
     ST(argvi) = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_GDALDatasetShadow, SWIG_OWNER | SWIG_SHADOW); argvi++ ;
     {
       /* %typemap(freearg) (const char* utf8_path) */
-      if (tmpbuf1) free(tmpbuf1);
+      if (tmpbuf1) Safefree(tmpbuf1);
     }
     
     {
@@ -25073,7 +26196,7 @@ XS(_wrap__OpenEx) {
   fail:
     {
       /* %typemap(freearg) (const char* utf8_path) */
-      if (tmpbuf1) free(tmpbuf1);
+      if (tmpbuf1) Safefree(tmpbuf1);
     }
     
     {
@@ -25156,14 +26279,14 @@ XS(_wrap__OpenShared) {
     ST(argvi) = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_GDALDatasetShadow, SWIG_OWNER | SWIG_SHADOW); argvi++ ;
     {
       /* %typemap(freearg) (const char* utf8_path) */
-      if (tmpbuf1) free(tmpbuf1);
+      if (tmpbuf1) Safefree(tmpbuf1);
     }
     
     XSRETURN(argvi);
   fail:
     {
       /* %typemap(freearg) (const char* utf8_path) */
-      if (tmpbuf1) free(tmpbuf1);
+      if (tmpbuf1) Safefree(tmpbuf1);
     }
     
     SWIG_croak_null();
@@ -25202,9 +26325,10 @@ XS(_wrap_IdentifyDriver) {
               AV *av = (AV*)(SvRV(ST(1)));
               for (int i = 0; i < av_len(av)+1; i++) {
                 SV *sv = *(av_fetch(av, i, 0));
-                char *tmp = sv_to_utf8_string(sv, NULL);
+                bool sf;
+                char *tmp = sv_to_utf8_string(sv, NULL, &sf);
                 arg2 = CSLAddString(arg2, tmp);
-                free(tmp);
+                if (sf) Safefree(tmp); else free(tmp);
               }
             } else if (SvTYPE(SvRV(ST(1)))==SVt_PVHV) {
               HV *hv = (HV*)SvRV(ST(1));
@@ -25214,9 +26338,10 @@ XS(_wrap_IdentifyDriver) {
               arg2 = NULL;
               hv_iterinit(hv);
               while(sv = hv_iternextsv(hv, &key, &klen)) {
-                char *tmp = sv_to_utf8_string(sv, NULL);
+                bool sf;
+                char *tmp = sv_to_utf8_string(sv, NULL, &sf);
                 arg2 = CSLAddNameValue(arg2, key, tmp);
-                free(tmp);
+                if (sf) Safefree(tmp); else free(tmp);
               }
             } else
             do_confess(NEED_REF, 1);
@@ -25257,7 +26382,7 @@ XS(_wrap_IdentifyDriver) {
     ST(argvi) = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_GDALDriverShadow, 0 | SWIG_SHADOW); argvi++ ;
     {
       /* %typemap(freearg) (const char* utf8_path) */
-      if (tmpbuf1) free(tmpbuf1);
+      if (tmpbuf1) Safefree(tmpbuf1);
     }
     {
       /* %typemap(freearg) char **options */
@@ -25267,11 +26392,175 @@ XS(_wrap_IdentifyDriver) {
   fail:
     {
       /* %typemap(freearg) (const char* utf8_path) */
-      if (tmpbuf1) free(tmpbuf1);
+      if (tmpbuf1) Safefree(tmpbuf1);
     }
     {
       /* %typemap(freearg) char **options */
       if (arg2) CSLDestroy( arg2 );
+    }
+    SWIG_croak_null();
+  }
+}
+
+
+XS(_wrap_IdentifyDriverEx) {
+  {
+    char *arg1 = (char *) 0 ;
+    unsigned int arg2 = (unsigned int) 0 ;
+    char **arg3 = (char **) NULL ;
+    char **arg4 = (char **) NULL ;
+    U8 *tmpbuf1 = NULL ;
+    unsigned int val2 ;
+    int ecode2 = 0 ;
+    int argvi = 0;
+    GDALDriverShadow *result = 0 ;
+    dXSARGS;
+    
+    {
+      /* %typemap(default) const char * utf8_path */
+      arg1 = (char *)"";
+    }
+    if ((items < 0) || (items > 4)) {
+      SWIG_croak("Usage: IdentifyDriverEx(utf8_path,nIdentifyFlags,allowed_drivers,sibling_files);");
+    }
+    if (items > 0) {
+      {
+        /* %typemap(in,numinputs=1) (const char* utf8_path) (U8 *tmpbuf1) */
+        arg1 = sv_to_utf8_string(ST(0), &tmpbuf1);
+      }
+    }
+    if (items > 1) {
+      ecode2 = SWIG_AsVal_unsigned_SS_int SWIG_PERL_CALL_ARGS_2(ST(1), &val2);
+      if (!SWIG_IsOK(ecode2)) {
+        SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "IdentifyDriverEx" "', argument " "2"" of type '" "unsigned int""'");
+      } 
+      arg2 = static_cast< unsigned int >(val2);
+    }
+    if (items > 2) {
+      {
+        /* %typemap(in) char **options */
+        if (SvOK(ST(2))) {
+          if (SvROK(ST(2))) {
+            if (SvTYPE(SvRV(ST(2)))==SVt_PVAV) {
+              AV *av = (AV*)(SvRV(ST(2)));
+              for (int i = 0; i < av_len(av)+1; i++) {
+                SV *sv = *(av_fetch(av, i, 0));
+                bool sf;
+                char *tmp = sv_to_utf8_string(sv, NULL, &sf);
+                arg3 = CSLAddString(arg3, tmp);
+                if (sf) Safefree(tmp); else free(tmp);
+              }
+            } else if (SvTYPE(SvRV(ST(2)))==SVt_PVHV) {
+              HV *hv = (HV*)SvRV(ST(2));
+              SV *sv;
+              char *key;
+              I32 klen;
+              arg3 = NULL;
+              hv_iterinit(hv);
+              while(sv = hv_iternextsv(hv, &key, &klen)) {
+                bool sf;
+                char *tmp = sv_to_utf8_string(sv, NULL, &sf);
+                arg3 = CSLAddNameValue(arg3, key, tmp);
+                if (sf) Safefree(tmp); else free(tmp);
+              }
+            } else
+            do_confess(NEED_REF, 1);
+          } else
+          do_confess(NEED_REF, 1);
+        }
+      }
+    }
+    if (items > 3) {
+      {
+        /* %typemap(in) char **options */
+        if (SvOK(ST(3))) {
+          if (SvROK(ST(3))) {
+            if (SvTYPE(SvRV(ST(3)))==SVt_PVAV) {
+              AV *av = (AV*)(SvRV(ST(3)));
+              for (int i = 0; i < av_len(av)+1; i++) {
+                SV *sv = *(av_fetch(av, i, 0));
+                bool sf;
+                char *tmp = sv_to_utf8_string(sv, NULL, &sf);
+                arg4 = CSLAddString(arg4, tmp);
+                if (sf) Safefree(tmp); else free(tmp);
+              }
+            } else if (SvTYPE(SvRV(ST(3)))==SVt_PVHV) {
+              HV *hv = (HV*)SvRV(ST(3));
+              SV *sv;
+              char *key;
+              I32 klen;
+              arg4 = NULL;
+              hv_iterinit(hv);
+              while(sv = hv_iternextsv(hv, &key, &klen)) {
+                bool sf;
+                char *tmp = sv_to_utf8_string(sv, NULL, &sf);
+                arg4 = CSLAddNameValue(arg4, key, tmp);
+                if (sf) Safefree(tmp); else free(tmp);
+              }
+            } else
+            do_confess(NEED_REF, 1);
+          } else
+          do_confess(NEED_REF, 1);
+        }
+      }
+    }
+    {
+      if (!arg1) {
+        SWIG_exception(SWIG_ValueError,"Received a NULL pointer.");
+      }
+    }
+    {
+      CPLErrorReset();
+      result = (GDALDriverShadow *)IdentifyDriverEx((char const *)arg1,arg2,arg3,arg4);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        do_confess( CPLGetLastErrorMsg(), 0 );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /*
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
+    ST(argvi) = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_GDALDriverShadow, 0 | SWIG_SHADOW); argvi++ ;
+    {
+      /* %typemap(freearg) (const char* utf8_path) */
+      if (tmpbuf1) Safefree(tmpbuf1);
+    }
+    
+    {
+      /* %typemap(freearg) char **options */
+      if (arg3) CSLDestroy( arg3 );
+    }
+    {
+      /* %typemap(freearg) char **options */
+      if (arg4) CSLDestroy( arg4 );
+    }
+    XSRETURN(argvi);
+  fail:
+    {
+      /* %typemap(freearg) (const char* utf8_path) */
+      if (tmpbuf1) Safefree(tmpbuf1);
+    }
+    
+    {
+      /* %typemap(freearg) char **options */
+      if (arg3) CSLDestroy( arg3 );
+    }
+    {
+      /* %typemap(freearg) char **options */
+      if (arg4) CSLDestroy( arg4 );
     }
     SWIG_croak_null();
   }
@@ -25299,9 +26588,10 @@ XS(_wrap_GeneralCmdLineProcessor) {
             AV *av = (AV*)(SvRV(ST(0)));
             for (int i = 0; i < av_len(av)+1; i++) {
               SV *sv = *(av_fetch(av, i, 0));
-              char *tmp = sv_to_utf8_string(sv, NULL);
+              bool sf;
+              char *tmp = sv_to_utf8_string(sv, NULL, &sf);
               arg1 = CSLAddString(arg1, tmp);
-              free(tmp);
+              if (sf) Safefree(tmp); else free(tmp);
             }
           } else if (SvTYPE(SvRV(ST(0)))==SVt_PVHV) {
             HV *hv = (HV*)SvRV(ST(0));
@@ -25311,9 +26601,10 @@ XS(_wrap_GeneralCmdLineProcessor) {
             arg1 = NULL;
             hv_iterinit(hv);
             while(sv = hv_iternextsv(hv, &key, &klen)) {
-              char *tmp = sv_to_utf8_string(sv, NULL);
+              bool sf;
+              char *tmp = sv_to_utf8_string(sv, NULL, &sf);
               arg1 = CSLAddNameValue(arg1, key, tmp);
-              free(tmp);
+              if (sf) Safefree(tmp); else free(tmp);
             }
           } else
           do_confess(NEED_REF, 1);
@@ -25404,9 +26695,10 @@ XS(_wrap_new_GDALInfoOptions) {
             AV *av = (AV*)(SvRV(ST(0)));
             for (int i = 0; i < av_len(av)+1; i++) {
               SV *sv = *(av_fetch(av, i, 0));
-              char *tmp = sv_to_utf8_string(sv, NULL);
+              bool sf;
+              char *tmp = sv_to_utf8_string(sv, NULL, &sf);
               arg1 = CSLAddString(arg1, tmp);
-              free(tmp);
+              if (sf) Safefree(tmp); else free(tmp);
             }
           } else if (SvTYPE(SvRV(ST(0)))==SVt_PVHV) {
             HV *hv = (HV*)SvRV(ST(0));
@@ -25416,9 +26708,10 @@ XS(_wrap_new_GDALInfoOptions) {
             arg1 = NULL;
             hv_iterinit(hv);
             while(sv = hv_iternextsv(hv, &key, &klen)) {
-              char *tmp = sv_to_utf8_string(sv, NULL);
+              bool sf;
+              char *tmp = sv_to_utf8_string(sv, NULL, &sf);
               arg1 = CSLAddNameValue(arg1, key, tmp);
-              free(tmp);
+              if (sf) Safefree(tmp); else free(tmp);
             }
           } else
           do_confess(NEED_REF, 1);
@@ -25613,9 +26906,10 @@ XS(_wrap_new_GDALTranslateOptions) {
             AV *av = (AV*)(SvRV(ST(0)));
             for (int i = 0; i < av_len(av)+1; i++) {
               SV *sv = *(av_fetch(av, i, 0));
-              char *tmp = sv_to_utf8_string(sv, NULL);
+              bool sf;
+              char *tmp = sv_to_utf8_string(sv, NULL, &sf);
               arg1 = CSLAddString(arg1, tmp);
-              free(tmp);
+              if (sf) Safefree(tmp); else free(tmp);
             }
           } else if (SvTYPE(SvRV(ST(0)))==SVt_PVHV) {
             HV *hv = (HV*)SvRV(ST(0));
@@ -25625,9 +26919,10 @@ XS(_wrap_new_GDALTranslateOptions) {
             arg1 = NULL;
             hv_iterinit(hv);
             while(sv = hv_iternextsv(hv, &key, &klen)) {
-              char *tmp = sv_to_utf8_string(sv, NULL);
+              bool sf;
+              char *tmp = sv_to_utf8_string(sv, NULL, &sf);
               arg1 = CSLAddNameValue(arg1, key, tmp);
-              free(tmp);
+              if (sf) Safefree(tmp); else free(tmp);
             }
           } else
           do_confess(NEED_REF, 1);
@@ -25840,7 +27135,7 @@ XS(_wrap_wrapper_GDALTranslate) {
     ST(argvi) = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_GDALDatasetShadow, SWIG_OWNER | SWIG_SHADOW); argvi++ ;
     {
       /* %typemap(freearg) (const char* utf8_path) */
-      if (tmpbuf1) free(tmpbuf1);
+      if (tmpbuf1) Safefree(tmpbuf1);
     }
     
     
@@ -25849,7 +27144,7 @@ XS(_wrap_wrapper_GDALTranslate) {
   fail:
     {
       /* %typemap(freearg) (const char* utf8_path) */
-      if (tmpbuf1) free(tmpbuf1);
+      if (tmpbuf1) Safefree(tmpbuf1);
     }
     
     
@@ -25877,9 +27172,10 @@ XS(_wrap_new_GDALWarpAppOptions) {
             AV *av = (AV*)(SvRV(ST(0)));
             for (int i = 0; i < av_len(av)+1; i++) {
               SV *sv = *(av_fetch(av, i, 0));
-              char *tmp = sv_to_utf8_string(sv, NULL);
+              bool sf;
+              char *tmp = sv_to_utf8_string(sv, NULL, &sf);
               arg1 = CSLAddString(arg1, tmp);
-              free(tmp);
+              if (sf) Safefree(tmp); else free(tmp);
             }
           } else if (SvTYPE(SvRV(ST(0)))==SVt_PVHV) {
             HV *hv = (HV*)SvRV(ST(0));
@@ -25889,9 +27185,10 @@ XS(_wrap_new_GDALWarpAppOptions) {
             arg1 = NULL;
             hv_iterinit(hv);
             while(sv = hv_iternextsv(hv, &key, &klen)) {
-              char *tmp = sv_to_utf8_string(sv, NULL);
+              bool sf;
+              char *tmp = sv_to_utf8_string(sv, NULL, &sf);
               arg1 = CSLAddNameValue(arg1, key, tmp);
-              free(tmp);
+              if (sf) Safefree(tmp); else free(tmp);
             }
           } else
           do_confess(NEED_REF, 1);
@@ -26225,7 +27522,7 @@ XS(_wrap_wrapper_GDALWarpDestName) {
     ST(argvi) = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_GDALDatasetShadow, SWIG_OWNER | SWIG_SHADOW); argvi++ ;
     {
       /* %typemap(freearg) (const char* utf8_path) */
-      if (tmpbuf1) free(tmpbuf1);
+      if (tmpbuf1) Safefree(tmpbuf1);
     }
     
     
@@ -26233,7 +27530,7 @@ XS(_wrap_wrapper_GDALWarpDestName) {
   fail:
     {
       /* %typemap(freearg) (const char* utf8_path) */
-      if (tmpbuf1) free(tmpbuf1);
+      if (tmpbuf1) Safefree(tmpbuf1);
     }
     
     
@@ -26260,9 +27557,10 @@ XS(_wrap_new_GDALVectorTranslateOptions) {
             AV *av = (AV*)(SvRV(ST(0)));
             for (int i = 0; i < av_len(av)+1; i++) {
               SV *sv = *(av_fetch(av, i, 0));
-              char *tmp = sv_to_utf8_string(sv, NULL);
+              bool sf;
+              char *tmp = sv_to_utf8_string(sv, NULL, &sf);
               arg1 = CSLAddString(arg1, tmp);
-              free(tmp);
+              if (sf) Safefree(tmp); else free(tmp);
             }
           } else if (SvTYPE(SvRV(ST(0)))==SVt_PVHV) {
             HV *hv = (HV*)SvRV(ST(0));
@@ -26272,9 +27570,10 @@ XS(_wrap_new_GDALVectorTranslateOptions) {
             arg1 = NULL;
             hv_iterinit(hv);
             while(sv = hv_iternextsv(hv, &key, &klen)) {
-              char *tmp = sv_to_utf8_string(sv, NULL);
+              bool sf;
+              char *tmp = sv_to_utf8_string(sv, NULL, &sf);
               arg1 = CSLAddNameValue(arg1, key, tmp);
-              free(tmp);
+              if (sf) Safefree(tmp); else free(tmp);
             }
           } else
           do_confess(NEED_REF, 1);
@@ -26594,7 +27893,7 @@ XS(_wrap_wrapper_GDALVectorTranslateDestName) {
     ST(argvi) = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_GDALDatasetShadow, SWIG_OWNER | SWIG_SHADOW); argvi++ ;
     {
       /* %typemap(freearg) (const char* utf8_path) */
-      if (tmpbuf1) free(tmpbuf1);
+      if (tmpbuf1) Safefree(tmpbuf1);
     }
     
     
@@ -26603,7 +27902,7 @@ XS(_wrap_wrapper_GDALVectorTranslateDestName) {
   fail:
     {
       /* %typemap(freearg) (const char* utf8_path) */
-      if (tmpbuf1) free(tmpbuf1);
+      if (tmpbuf1) Safefree(tmpbuf1);
     }
     
     
@@ -26631,9 +27930,10 @@ XS(_wrap_new_GDALDEMProcessingOptions) {
             AV *av = (AV*)(SvRV(ST(0)));
             for (int i = 0; i < av_len(av)+1; i++) {
               SV *sv = *(av_fetch(av, i, 0));
-              char *tmp = sv_to_utf8_string(sv, NULL);
+              bool sf;
+              char *tmp = sv_to_utf8_string(sv, NULL, &sf);
               arg1 = CSLAddString(arg1, tmp);
-              free(tmp);
+              if (sf) Safefree(tmp); else free(tmp);
             }
           } else if (SvTYPE(SvRV(ST(0)))==SVt_PVHV) {
             HV *hv = (HV*)SvRV(ST(0));
@@ -26643,9 +27943,10 @@ XS(_wrap_new_GDALDEMProcessingOptions) {
             arg1 = NULL;
             hv_iterinit(hv);
             while(sv = hv_iternextsv(hv, &key, &klen)) {
-              char *tmp = sv_to_utf8_string(sv, NULL);
+              bool sf;
+              char *tmp = sv_to_utf8_string(sv, NULL, &sf);
               arg1 = CSLAddNameValue(arg1, key, tmp);
-              free(tmp);
+              if (sf) Safefree(tmp); else free(tmp);
             }
           } else
           do_confess(NEED_REF, 1);
@@ -26885,7 +28186,7 @@ XS(_wrap_wrapper_GDALDEMProcessing) {
     ST(argvi) = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_GDALDatasetShadow, SWIG_OWNER | SWIG_SHADOW); argvi++ ;
     {
       /* %typemap(freearg) (const char* utf8_path) */
-      if (tmpbuf1) free(tmpbuf1);
+      if (tmpbuf1) Safefree(tmpbuf1);
     }
     
     if (alloc3 == SWIG_NEWOBJ) delete[] buf3;
@@ -26896,7 +28197,7 @@ XS(_wrap_wrapper_GDALDEMProcessing) {
   fail:
     {
       /* %typemap(freearg) (const char* utf8_path) */
-      if (tmpbuf1) free(tmpbuf1);
+      if (tmpbuf1) Safefree(tmpbuf1);
     }
     
     if (alloc3 == SWIG_NEWOBJ) delete[] buf3;
@@ -26926,9 +28227,10 @@ XS(_wrap_new_GDALNearblackOptions) {
             AV *av = (AV*)(SvRV(ST(0)));
             for (int i = 0; i < av_len(av)+1; i++) {
               SV *sv = *(av_fetch(av, i, 0));
-              char *tmp = sv_to_utf8_string(sv, NULL);
+              bool sf;
+              char *tmp = sv_to_utf8_string(sv, NULL, &sf);
               arg1 = CSLAddString(arg1, tmp);
-              free(tmp);
+              if (sf) Safefree(tmp); else free(tmp);
             }
           } else if (SvTYPE(SvRV(ST(0)))==SVt_PVHV) {
             HV *hv = (HV*)SvRV(ST(0));
@@ -26938,9 +28240,10 @@ XS(_wrap_new_GDALNearblackOptions) {
             arg1 = NULL;
             hv_iterinit(hv);
             while(sv = hv_iternextsv(hv, &key, &klen)) {
-              char *tmp = sv_to_utf8_string(sv, NULL);
+              bool sf;
+              char *tmp = sv_to_utf8_string(sv, NULL, &sf);
               arg1 = CSLAddNameValue(arg1, key, tmp);
-              free(tmp);
+              if (sf) Safefree(tmp); else free(tmp);
             }
           } else
           do_confess(NEED_REF, 1);
@@ -27260,7 +28563,7 @@ XS(_wrap_wrapper_GDALNearblackDestName) {
     ST(argvi) = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_GDALDatasetShadow, SWIG_OWNER | SWIG_SHADOW); argvi++ ;
     {
       /* %typemap(freearg) (const char* utf8_path) */
-      if (tmpbuf1) free(tmpbuf1);
+      if (tmpbuf1) Safefree(tmpbuf1);
     }
     
     
@@ -27269,7 +28572,7 @@ XS(_wrap_wrapper_GDALNearblackDestName) {
   fail:
     {
       /* %typemap(freearg) (const char* utf8_path) */
-      if (tmpbuf1) free(tmpbuf1);
+      if (tmpbuf1) Safefree(tmpbuf1);
     }
     
     
@@ -27297,9 +28600,10 @@ XS(_wrap_new_GDALGridOptions) {
             AV *av = (AV*)(SvRV(ST(0)));
             for (int i = 0; i < av_len(av)+1; i++) {
               SV *sv = *(av_fetch(av, i, 0));
-              char *tmp = sv_to_utf8_string(sv, NULL);
+              bool sf;
+              char *tmp = sv_to_utf8_string(sv, NULL, &sf);
               arg1 = CSLAddString(arg1, tmp);
-              free(tmp);
+              if (sf) Safefree(tmp); else free(tmp);
             }
           } else if (SvTYPE(SvRV(ST(0)))==SVt_PVHV) {
             HV *hv = (HV*)SvRV(ST(0));
@@ -27309,9 +28613,10 @@ XS(_wrap_new_GDALGridOptions) {
             arg1 = NULL;
             hv_iterinit(hv);
             while(sv = hv_iternextsv(hv, &key, &klen)) {
-              char *tmp = sv_to_utf8_string(sv, NULL);
+              bool sf;
+              char *tmp = sv_to_utf8_string(sv, NULL, &sf);
               arg1 = CSLAddNameValue(arg1, key, tmp);
-              free(tmp);
+              if (sf) Safefree(tmp); else free(tmp);
             }
           } else
           do_confess(NEED_REF, 1);
@@ -27524,7 +28829,7 @@ XS(_wrap_wrapper_GDALGrid) {
     ST(argvi) = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_GDALDatasetShadow, SWIG_OWNER | SWIG_SHADOW); argvi++ ;
     {
       /* %typemap(freearg) (const char* utf8_path) */
-      if (tmpbuf1) free(tmpbuf1);
+      if (tmpbuf1) Safefree(tmpbuf1);
     }
     
     
@@ -27533,7 +28838,7 @@ XS(_wrap_wrapper_GDALGrid) {
   fail:
     {
       /* %typemap(freearg) (const char* utf8_path) */
-      if (tmpbuf1) free(tmpbuf1);
+      if (tmpbuf1) Safefree(tmpbuf1);
     }
     
     
@@ -27561,9 +28866,10 @@ XS(_wrap_new_GDALRasterizeOptions) {
             AV *av = (AV*)(SvRV(ST(0)));
             for (int i = 0; i < av_len(av)+1; i++) {
               SV *sv = *(av_fetch(av, i, 0));
-              char *tmp = sv_to_utf8_string(sv, NULL);
+              bool sf;
+              char *tmp = sv_to_utf8_string(sv, NULL, &sf);
               arg1 = CSLAddString(arg1, tmp);
-              free(tmp);
+              if (sf) Safefree(tmp); else free(tmp);
             }
           } else if (SvTYPE(SvRV(ST(0)))==SVt_PVHV) {
             HV *hv = (HV*)SvRV(ST(0));
@@ -27573,9 +28879,10 @@ XS(_wrap_new_GDALRasterizeOptions) {
             arg1 = NULL;
             hv_iterinit(hv);
             while(sv = hv_iternextsv(hv, &key, &klen)) {
-              char *tmp = sv_to_utf8_string(sv, NULL);
+              bool sf;
+              char *tmp = sv_to_utf8_string(sv, NULL, &sf);
               arg1 = CSLAddNameValue(arg1, key, tmp);
-              free(tmp);
+              if (sf) Safefree(tmp); else free(tmp);
             }
           } else
           do_confess(NEED_REF, 1);
@@ -27895,7 +29202,7 @@ XS(_wrap_wrapper_GDALRasterizeDestName) {
     ST(argvi) = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_GDALDatasetShadow, SWIG_OWNER | SWIG_SHADOW); argvi++ ;
     {
       /* %typemap(freearg) (const char* utf8_path) */
-      if (tmpbuf1) free(tmpbuf1);
+      if (tmpbuf1) Safefree(tmpbuf1);
     }
     
     
@@ -27904,7 +29211,7 @@ XS(_wrap_wrapper_GDALRasterizeDestName) {
   fail:
     {
       /* %typemap(freearg) (const char* utf8_path) */
-      if (tmpbuf1) free(tmpbuf1);
+      if (tmpbuf1) Safefree(tmpbuf1);
     }
     
     
@@ -27932,9 +29239,10 @@ XS(_wrap_new_GDALBuildVRTOptions) {
             AV *av = (AV*)(SvRV(ST(0)));
             for (int i = 0; i < av_len(av)+1; i++) {
               SV *sv = *(av_fetch(av, i, 0));
-              char *tmp = sv_to_utf8_string(sv, NULL);
+              bool sf;
+              char *tmp = sv_to_utf8_string(sv, NULL, &sf);
               arg1 = CSLAddString(arg1, tmp);
-              free(tmp);
+              if (sf) Safefree(tmp); else free(tmp);
             }
           } else if (SvTYPE(SvRV(ST(0)))==SVt_PVHV) {
             HV *hv = (HV*)SvRV(ST(0));
@@ -27944,9 +29252,10 @@ XS(_wrap_new_GDALBuildVRTOptions) {
             arg1 = NULL;
             hv_iterinit(hv);
             while(sv = hv_iternextsv(hv, &key, &klen)) {
-              char *tmp = sv_to_utf8_string(sv, NULL);
+              bool sf;
+              char *tmp = sv_to_utf8_string(sv, NULL, &sf);
               arg1 = CSLAddNameValue(arg1, key, tmp);
-              free(tmp);
+              if (sf) Safefree(tmp); else free(tmp);
             }
           } else
           do_confess(NEED_REF, 1);
@@ -28162,7 +29471,7 @@ XS(_wrap_wrapper_GDALBuildVRT_objects) {
     ST(argvi) = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_GDALDatasetShadow, SWIG_OWNER | SWIG_SHADOW); argvi++ ;
     {
       /* %typemap(freearg) (const char* utf8_path) */
-      if (tmpbuf1) free(tmpbuf1);
+      if (tmpbuf1) Safefree(tmpbuf1);
     }
     
     
@@ -28170,7 +29479,7 @@ XS(_wrap_wrapper_GDALBuildVRT_objects) {
   fail:
     {
       /* %typemap(freearg) (const char* utf8_path) */
-      if (tmpbuf1) free(tmpbuf1);
+      if (tmpbuf1) Safefree(tmpbuf1);
     }
     
     
@@ -28220,9 +29529,10 @@ XS(_wrap_wrapper_GDALBuildVRT_names) {
               AV *av = (AV*)(SvRV(ST(1)));
               for (int i = 0; i < av_len(av)+1; i++) {
                 SV *sv = *(av_fetch(av, i, 0));
-                char *tmp = sv_to_utf8_string(sv, NULL);
+                bool sf;
+                char *tmp = sv_to_utf8_string(sv, NULL, &sf);
                 arg2 = CSLAddString(arg2, tmp);
-                free(tmp);
+                if (sf) Safefree(tmp); else free(tmp);
               }
             } else if (SvTYPE(SvRV(ST(1)))==SVt_PVHV) {
               HV *hv = (HV*)SvRV(ST(1));
@@ -28232,9 +29542,10 @@ XS(_wrap_wrapper_GDALBuildVRT_names) {
               arg2 = NULL;
               hv_iterinit(hv);
               while(sv = hv_iternextsv(hv, &key, &klen)) {
-                char *tmp = sv_to_utf8_string(sv, NULL);
+                bool sf;
+                char *tmp = sv_to_utf8_string(sv, NULL, &sf);
                 arg2 = CSLAddNameValue(arg2, key, tmp);
-                free(tmp);
+                if (sf) Safefree(tmp); else free(tmp);
               }
             } else
             do_confess(NEED_REF, 1);
@@ -28306,7 +29617,7 @@ XS(_wrap_wrapper_GDALBuildVRT_names) {
     ST(argvi) = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_GDALDatasetShadow, SWIG_OWNER | SWIG_SHADOW); argvi++ ;
     {
       /* %typemap(freearg) (const char* utf8_path) */
-      if (tmpbuf1) free(tmpbuf1);
+      if (tmpbuf1) Safefree(tmpbuf1);
     }
     {
       /* %typemap(freearg) char **options */
@@ -28318,7 +29629,7 @@ XS(_wrap_wrapper_GDALBuildVRT_names) {
   fail:
     {
       /* %typemap(freearg) (const char* utf8_path) */
-      if (tmpbuf1) free(tmpbuf1);
+      if (tmpbuf1) Safefree(tmpbuf1);
     }
     {
       /* %typemap(freearg) char **options */
@@ -28372,6 +29683,7 @@ static swig_type_info _swigt__p_GDALWarpAppOptions = {"_p_GDALWarpAppOptions", "
 static swig_type_info _swigt__p_GDAL_GCP = {"_p_GDAL_GCP", "GDAL_GCP *", 0, 0, (void*)"Geo::GDAL::GCP", 0};
 static swig_type_info _swigt__p_GIntBig = {"_p_GIntBig", "GIntBig *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_GUIntBig = {"_p_GUIntBig", "GUIntBig *", 0, 0, (void*)0, 0};
+static swig_type_info _swigt__p_OGRFeatureShadow = {"_p_OGRFeatureShadow", "OGRFeatureShadow *", 0, 0, (void*)"Geo::OGR::Feature", 0};
 static swig_type_info _swigt__p_OGRGeometryShadow = {"_p_OGRGeometryShadow", "OGRGeometryShadow *", 0, 0, (void*)"Geo::OGR::Geometry", 0};
 static swig_type_info _swigt__p_OGRLayerShadow = {"_p_OGRLayerShadow", "OGRLayerShadow *", 0, 0, (void*)"Geo::OGR::Layer", 0};
 static swig_type_info _swigt__p_OGRStyleTableShadow = {"_p_OGRStyleTableShadow", "OGRStyleTableShadow *", 0, 0, (void*)"Geo::OGR::StyleTable", 0};
@@ -28416,6 +29728,7 @@ static swig_type_info *swig_type_initial[] = {
   &_swigt__p_GDAL_GCP,
   &_swigt__p_GIntBig,
   &_swigt__p_GUIntBig,
+  &_swigt__p_OGRFeatureShadow,
   &_swigt__p_OGRGeometryShadow,
   &_swigt__p_OGRLayerShadow,
   &_swigt__p_OGRStyleTableShadow,
@@ -28460,6 +29773,7 @@ static swig_cast_info _swigc__p_GDALWarpAppOptions[] = {  {&_swigt__p_GDALWarpAp
 static swig_cast_info _swigc__p_GDAL_GCP[] = {  {&_swigt__p_GDAL_GCP, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_GIntBig[] = {  {&_swigt__p_GIntBig, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_GUIntBig[] = {  {&_swigt__p_GUIntBig, 0, 0, 0},{0, 0, 0, 0}};
+static swig_cast_info _swigc__p_OGRFeatureShadow[] = {  {&_swigt__p_OGRFeatureShadow, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_OGRGeometryShadow[] = {  {&_swigt__p_OGRGeometryShadow, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_OGRLayerShadow[] = {  {&_swigt__p_OGRLayerShadow, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_OGRStyleTableShadow[] = {  {&_swigt__p_OGRStyleTableShadow, 0, 0, 0},{0, 0, 0, 0}};
@@ -28504,6 +29818,7 @@ static swig_cast_info *swig_cast_initial[] = {
   _swigc__p_GDAL_GCP,
   _swigc__p_GIntBig,
   _swigc__p_GUIntBig,
+  _swigc__p_OGRFeatureShadow,
   _swigc__p_OGRGeometryShadow,
   _swigc__p_OGRLayerShadow,
   _swigc__p_OGRStyleTableShadow,
@@ -28660,6 +29975,8 @@ static swig_command_info swig_commands[] = {
 {"Geo::GDALc::Dataset_GetLayerCount", _wrap_Dataset_GetLayerCount},
 {"Geo::GDALc::Dataset_GetLayerByIndex", _wrap_Dataset_GetLayerByIndex},
 {"Geo::GDALc::Dataset_GetLayerByName", _wrap_Dataset_GetLayerByName},
+{"Geo::GDALc::Dataset_ResetReading", _wrap_Dataset_ResetReading},
+{"Geo::GDALc::Dataset_GetNextFeature", _wrap_Dataset_GetNextFeature},
 {"Geo::GDALc::Dataset__TestCapability", _wrap_Dataset__TestCapability},
 {"Geo::GDALc::Dataset_ExecuteSQL", _wrap_Dataset_ExecuteSQL},
 {"Geo::GDALc::Dataset__ReleaseResultSet", _wrap_Dataset__ReleaseResultSet},
@@ -28719,6 +30036,8 @@ static swig_command_info swig_commands[] = {
 {"Geo::GDALc::Band_GetCategoryNames", _wrap_Band_GetCategoryNames},
 {"Geo::GDALc::Band_SetCategoryNames", _wrap_Band_SetCategoryNames},
 {"Geo::GDALc::Band_ContourGenerate", _wrap_Band_ContourGenerate},
+{"Geo::GDALc::Band_ClassCounts", _wrap_Band_ClassCounts},
+{"Geo::GDALc::Band_Reclassify", _wrap_Band_Reclassify},
 {"Geo::GDALc::new_ColorTable", _wrap_new_ColorTable},
 {"Geo::GDALc::delete_ColorTable", _wrap_delete_ColorTable},
 {"Geo::GDALc::ColorTable_Clone", _wrap_ColorTable_Clone},
@@ -28770,6 +30089,7 @@ static swig_command_info swig_commands[] = {
 {"Geo::GDALc::Transformer_TransformPoint", _wrap_Transformer_TransformPoint},
 {"Geo::GDALc::Transformer__TransformPoints", _wrap_Transformer__TransformPoints},
 {"Geo::GDALc::Transformer_TransformGeolocations", _wrap_Transformer_TransformGeolocations},
+{"Geo::GDALc::ApplyVerticalShiftGrid", _wrap_ApplyVerticalShiftGrid},
 {"Geo::GDALc::ApplyGeoTransform", _wrap_ApplyGeoTransform},
 {"Geo::GDALc::InvGeoTransform", _wrap_InvGeoTransform},
 {"Geo::GDALc::VersionInfo", _wrap_VersionInfo},
@@ -28797,6 +30117,7 @@ static swig_command_info swig_commands[] = {
 {"Geo::GDALc::_OpenEx", _wrap__OpenEx},
 {"Geo::GDALc::_OpenShared", _wrap__OpenShared},
 {"Geo::GDALc::IdentifyDriver", _wrap_IdentifyDriver},
+{"Geo::GDALc::IdentifyDriverEx", _wrap_IdentifyDriverEx},
 {"Geo::GDALc::GeneralCmdLineProcessor", _wrap_GeneralCmdLineProcessor},
 {"Geo::GDALc::new_GDALInfoOptions", _wrap_new_GDALInfoOptions},
 {"Geo::GDALc::delete_GDALInfoOptions", _wrap_delete_GDALInfoOptions},

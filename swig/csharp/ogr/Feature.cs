@@ -310,6 +310,30 @@ public class Feature : IDisposable {
     return ret;
   }
 
+  public bool IsFieldNull(int id) {
+    bool ret = OgrPINVOKE.Feature_IsFieldNull__SWIG_0(swigCPtr, id);
+    if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
+    return ret;
+  }
+
+  public bool IsFieldNull(string name) {
+    bool ret = OgrPINVOKE.Feature_IsFieldNull__SWIG_1(swigCPtr, name);
+    if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
+    return ret;
+  }
+
+  public bool IsFieldSetAndNotNull(int id) {
+    bool ret = OgrPINVOKE.Feature_IsFieldSetAndNotNull__SWIG_0(swigCPtr, id);
+    if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
+    return ret;
+  }
+
+  public bool IsFieldSetAndNotNull(string name) {
+    bool ret = OgrPINVOKE.Feature_IsFieldSetAndNotNull__SWIG_1(swigCPtr, name);
+    if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
+    return ret;
+  }
+
   public int GetFieldIndex(string name) {
     int ret = OgrPINVOKE.Feature_GetFieldIndex(swigCPtr, name);
     if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
@@ -346,6 +370,16 @@ public class Feature : IDisposable {
 
   public void UnsetField(string name) {
     OgrPINVOKE.Feature_UnsetField__SWIG_1(swigCPtr, name);
+    if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
+  }
+
+  public void SetFieldNull(int id) {
+    OgrPINVOKE.Feature_SetFieldNull__SWIG_0(swigCPtr, id);
+    if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
+  }
+
+  public void SetFieldNull(string name) {
+    OgrPINVOKE.Feature_SetFieldNull__SWIG_1(swigCPtr, name);
     if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
   }
 
