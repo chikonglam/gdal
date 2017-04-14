@@ -1,8 +1,9 @@
-gdal (2.1.3+dfsg-1~exp5) UNRELEASED; urgency=medium
+gdal (2.2.0~beta1+dfsg-1) UNRELEASED; urgency=medium
 
+  * New upstream beta release.
   * Update watch file for 2.2.0 (pre-)releases.
 
- -- Bas Couwenberg <sebastic@debian.org>  Fri, 14 Apr 2017 11:09:16 +0200
+ -- Bas Couwenberg <sebastic@debian.org>  Fri, 14 Apr 2017 11:25:30 +0200
 
 gdal (2.1.3+dfsg-1~exp4) experimental; urgency=medium
 
