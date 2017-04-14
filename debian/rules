@@ -115,6 +115,7 @@ override_dh_auto_configure:
 			--with-pg \
 			--with-poppler=yes \
 			--with-qhull=yes \
+			--with-sosi=yes \
 			--with-spatialite=/usr \
 			--with-sqlite3 \
 			--with-webp \
