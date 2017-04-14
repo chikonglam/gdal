@@ -5,7 +5,7 @@ Forwarded: not-needed
 
 --- a/gcore/gdaldrivermanager.cpp
 +++ b/gcore/gdaldrivermanager.cpp
-@@ -705,7 +705,7 @@ void GDALDriverManager::AutoLoadDrivers(
+@@ -740,7 +740,7 @@ void GDALDriverManager::AutoLoadDrivers(
      #ifdef MACOSX_FRAMEWORK
                                          GDAL_PREFIX "/PlugIns");
      #else
@@ -16,12 +16,12 @@ Forwarded: not-needed
          char szExecPath[1024];
 --- a/port/cpl_findfile.cpp
 +++ b/port/cpl_findfile.cpp
-@@ -113,7 +113,7 @@ static FindFileTLS* CPLFinderInit()
+@@ -118,7 +118,7 @@ static FindFileTLS* CPLFinderInit()
    #ifdef MACOSX_FRAMEWORK
              CPLPushFinderLocation( GDAL_PREFIX "/Resources/gdal" );
    #else
 -            CPLPushFinderLocation( GDAL_PREFIX "/share/gdal" );
 +            CPLPushFinderLocation( GDAL_PREFIX "/share/gdal/2.2" );
    #endif
- #else
-             CPLPushFinderLocation( "/usr/local/share/gdal" );
+ #endif
+         }
