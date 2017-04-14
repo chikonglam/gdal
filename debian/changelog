@@ -10,6 +10,7 @@ gdal (2.2.0~beta1+dfsg-1) UNRELEASED; urgency=medium
     - Add license & copyright for minidriver_mrf.cpp
   * Enable SOSI support.
   * Include ogrmerge.py in python-gdal package.
+  * Include gnmanalyse & gnmmanage in gdal-bin package.
 
  -- Bas Couwenberg <sebastic@debian.org>  Fri, 14 Apr 2017 11:25:30 +0200
 
