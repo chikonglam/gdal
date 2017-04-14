@@ -505,6 +505,10 @@ SWIGINTERN OGRErr OSRSpatialReferenceShadow_SetLinearUnits(OSRSpatialReferenceSh
 SWIGINTERN OGRErr OSRSpatialReferenceShadow_SetLinearUnitsAndUpdateParameters(OSRSpatialReferenceShadow *self,char const *name,double to_meters){
     return OSRSetLinearUnitsAndUpdateParameters( self, name, to_meters );
   }
+SWIGINTERN double OSRSpatialReferenceShadow_GetTargetLinearUnits(OSRSpatialReferenceShadow *self,char const *target_key){
+    // Return code ignored.
+    return OSRGetTargetLinearUnits( self, target_key, 0 );
+  }
 SWIGINTERN double OSRSpatialReferenceShadow_GetLinearUnits(OSRSpatialReferenceShadow *self){
     // Return code ignored.
     return OSRGetLinearUnits( self, 0 );
@@ -2080,6 +2084,41 @@ SWIGEXPORT int SWIGSTDCALL CSharp_SpatialReference_SetLinearUnitsAndUpdateParame
     /* %typemap(ret) OGRErr */
     
   }
+  return jresult;
+}
+
+
+SWIGEXPORT double SWIGSTDCALL CSharp_SpatialReference_GetTargetLinearUnits(void * jarg1, char * jarg2) {
+  double jresult ;
+  OSRSpatialReferenceShadow *arg1 = (OSRSpatialReferenceShadow *) 0 ;
+  char *arg2 = (char *) 0 ;
+  double result;
+  
+  arg1 = (OSRSpatialReferenceShadow *)jarg1; 
+  arg2 = (char *)jarg2; 
+  {
+    CPLErrorReset();
+    result = (double)OSRSpatialReferenceShadow_GetTargetLinearUnits(arg1,(char const *)arg2);
+    CPLErr eclass = CPLGetLastErrorType();
+    if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+      SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
+      
+      
+      
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+  }
+  jresult = result; 
   return jresult;
 }
 

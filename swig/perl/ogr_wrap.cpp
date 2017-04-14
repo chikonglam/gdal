@@ -1507,29 +1507,28 @@ SWIG_Perl_SetModule(swig_module_info *module) {
 /* -------- TYPES TABLE (BEGIN) -------- */
 
 #define SWIGTYPE_p_GDALMajorObjectShadow swig_types[0]
-#define SWIGTYPE_p_GDALProgressFunc swig_types[1]
-#define SWIGTYPE_p_GIntBig swig_types[2]
-#define SWIGTYPE_p_OGRFeatureDefnShadow swig_types[3]
-#define SWIGTYPE_p_OGRFeatureShadow swig_types[4]
-#define SWIGTYPE_p_OGRFieldDefnShadow swig_types[5]
-#define SWIGTYPE_p_OGRGeomFieldDefnShadow swig_types[6]
-#define SWIGTYPE_p_OGRGeometryShadow swig_types[7]
-#define SWIGTYPE_p_OGRLayerShadow swig_types[8]
-#define SWIGTYPE_p_OGRStyleTableShadow swig_types[9]
-#define SWIGTYPE_p_OSRCoordinateTransformationShadow swig_types[10]
-#define SWIGTYPE_p_OSRSpatialReferenceShadow swig_types[11]
-#define SWIGTYPE_p_char swig_types[12]
-#define SWIGTYPE_p_double swig_types[13]
-#define SWIGTYPE_p_f_double_p_q_const__char_p_void__int swig_types[14]
-#define SWIGTYPE_p_float swig_types[15]
-#define SWIGTYPE_p_int swig_types[16]
-#define SWIGTYPE_p_p_GIntBig swig_types[17]
-#define SWIGTYPE_p_p_char swig_types[18]
-#define SWIGTYPE_p_p_double swig_types[19]
-#define SWIGTYPE_p_p_int swig_types[20]
-#define SWIGTYPE_p_p_p_char swig_types[21]
-static swig_type_info *swig_types[23];
-static swig_module_info swig_module = {swig_types, 22, 0, 0, 0, 0};
+#define SWIGTYPE_p_GIntBig swig_types[1]
+#define SWIGTYPE_p_OGRFeatureDefnShadow swig_types[2]
+#define SWIGTYPE_p_OGRFeatureShadow swig_types[3]
+#define SWIGTYPE_p_OGRFieldDefnShadow swig_types[4]
+#define SWIGTYPE_p_OGRGeomFieldDefnShadow swig_types[5]
+#define SWIGTYPE_p_OGRGeometryShadow swig_types[6]
+#define SWIGTYPE_p_OGRLayerShadow swig_types[7]
+#define SWIGTYPE_p_OGRStyleTableShadow swig_types[8]
+#define SWIGTYPE_p_OSRCoordinateTransformationShadow swig_types[9]
+#define SWIGTYPE_p_OSRSpatialReferenceShadow swig_types[10]
+#define SWIGTYPE_p_char swig_types[11]
+#define SWIGTYPE_p_double swig_types[12]
+#define SWIGTYPE_p_f_double_p_q_const__char_p_void__int swig_types[13]
+#define SWIGTYPE_p_float swig_types[14]
+#define SWIGTYPE_p_int swig_types[15]
+#define SWIGTYPE_p_p_GIntBig swig_types[16]
+#define SWIGTYPE_p_p_char swig_types[17]
+#define SWIGTYPE_p_p_double swig_types[18]
+#define SWIGTYPE_p_p_int swig_types[19]
+#define SWIGTYPE_p_p_p_char swig_types[20]
+static swig_type_info *swig_types[22];
+static swig_module_info swig_module = {swig_types, 21, 0, 0, 0, 0};
 #define SWIG_TypeQuery(name) SWIG_TypeQueryModule(&swig_module, &swig_module, name)
 #define SWIG_MangledTypeQuery(name) SWIG_MangledTypeQueryModule(&swig_module, &swig_module, name)
 
@@ -1730,11 +1729,13 @@ SWIG_FromCharPtr(const char *cptr)
     #define NEED_DEF "A parameter which must be defined or not empty, is not."
     #define WRONG_CLASS "Object has a wrong class."
     #define NEED_REF "A parameter which must be a reference, is not."
+    #define NEED_HASH_REF "A parameter/item which must be a hash reference, is not."
     #define NEED_ARRAY_REF "A parameter/item which must be an array reference, is not."
     #define NEED_BINARY_DATA "A parameter which must be binary data, is not."
     #define NEED_CODE_REF "A parameter which must be an anonymous subroutine, is not."
     #define WRONG_ITEM_IN_ARRAY "An item in an array parameter has wrong type."
     #define ARRAY_TO_XML_FAILED "An array parameter cannot be converted to an XMLTree."
+    #define NOT_ENOUGH_ELEMENTS "The supplied array does not have enough elements."
 
 
 void VeryQuietErrorHandler(CPLErr eclass, int code, const char *msg ) {
@@ -1826,9 +1827,11 @@ SWIGINTERN int OGRStyleTableShadow_AddStyle(OGRStyleTableShadow *self,char const
         return OGR_STBL_AddStyle( (OGRStyleTableH) self, pszName, pszStyleString);
    }
 
-    char *sv_to_utf8_string(SV *sv, U8 **tmpbuf) {
-        /* if tmpbuf, only tmpbuf is freed; if not, ret is freed*/
+    char *sv_to_utf8_string(SV *sv, U8 **tmpbuf, bool *safefree = NULL) {
+        /* if tmpbuf is given, only tmpbuf needs to be freed, use Safefree!
+           if not, ret needs to be freed, if safefree use Safefree else use free! */
         char *ret;
+        if (safefree) *safefree = false;
         if (SvOK(sv)) {
             STRLEN len;
             ret = SvPV(sv, len);
@@ -1839,6 +1842,7 @@ SWIGINTERN int OGRStyleTableShadow_AddStyle(OGRStyleTableShadow *self,char const
                 } else {
                     ret = (char *)bytes_to_utf8((const U8*)ret, &len);
                 }
+                if (safefree) *safefree = true;
             } else {
                 if (!tmpbuf)
                     ret = strdup(ret);
@@ -2274,65 +2278,25 @@ SWIGINTERN bool OGRFeatureShadow_Equal(OGRFeatureShadow *self,OGRFeatureShadow *
 SWIGINTERN int OGRFeatureShadow_GetFieldCount(OGRFeatureShadow *self){
     return OGR_F_GetFieldCount(self);
   }
-SWIGINTERN OGRFieldDefnShadow *OGRFeatureShadow_GetFieldDefnRef__SWIG_0(OGRFeatureShadow *self,int id){
+SWIGINTERN OGRFieldDefnShadow *OGRFeatureShadow_GetFieldDefnRef(OGRFeatureShadow *self,int id){
     return (OGRFieldDefnShadow *) OGR_F_GetFieldDefnRef(self, id);
-  }
-SWIGINTERN OGRFieldDefnShadow *OGRFeatureShadow_GetFieldDefnRef__SWIG_1(OGRFeatureShadow *self,char const *name){
-      int i = OGR_F_GetFieldIndex(self, name);
-      if (i == -1)
-          CPLError(CE_Failure, 1, FIELD_NAME_ERROR_TMPL, name);
-      else
-          return (OGRFieldDefnShadow *) OGR_F_GetFieldDefnRef(self, i);
-      return NULL;
   }
 SWIGINTERN int OGRFeatureShadow_GetGeomFieldCount(OGRFeatureShadow *self){
     return OGR_F_GetGeomFieldCount(self);
   }
-SWIGINTERN OGRGeomFieldDefnShadow *OGRFeatureShadow_GetGeomFieldDefnRef__SWIG_0(OGRFeatureShadow *self,int id){
+SWIGINTERN OGRGeomFieldDefnShadow *OGRFeatureShadow_GetGeomFieldDefnRef(OGRFeatureShadow *self,int id){
       return (OGRGeomFieldDefnShadow *) OGR_F_GetGeomFieldDefnRef(self, id);
   }
-SWIGINTERN OGRGeomFieldDefnShadow *OGRFeatureShadow_GetGeomFieldDefnRef__SWIG_1(OGRFeatureShadow *self,char const *name){
-      int i = OGR_F_GetGeomFieldIndex(self, name);
-      if (i == -1)
-          CPLError(CE_Failure, 1, FIELD_NAME_ERROR_TMPL, name);
-      else
-          return (OGRGeomFieldDefnShadow *) OGR_F_GetGeomFieldDefnRef(self, i);
-      return NULL;
-  }
-SWIGINTERN char const *OGRFeatureShadow_GetFieldAsString__SWIG_0(OGRFeatureShadow *self,int id){
+SWIGINTERN char const *OGRFeatureShadow_GetFieldAsString(OGRFeatureShadow *self,int id){
     return (const char *) OGR_F_GetFieldAsString(self, id);
   }
-SWIGINTERN char const *OGRFeatureShadow_GetFieldAsString__SWIG_1(OGRFeatureShadow *self,char const *name){
-      int i = OGR_F_GetFieldIndex(self, name);
-      if (i == -1)
-	  CPLError(CE_Failure, 1, FIELD_NAME_ERROR_TMPL, name);
-      else
-	  return (const char *) OGR_F_GetFieldAsString(self, i);
-      return NULL;
-  }
-SWIGINTERN int OGRFeatureShadow_GetFieldAsInteger__SWIG_0(OGRFeatureShadow *self,int id){
+SWIGINTERN int OGRFeatureShadow_GetFieldAsInteger(OGRFeatureShadow *self,int id){
     return OGR_F_GetFieldAsInteger(self, id);
   }
-SWIGINTERN int OGRFeatureShadow_GetFieldAsInteger__SWIG_1(OGRFeatureShadow *self,char const *name){
-      int i = OGR_F_GetFieldIndex(self, name);
-      if (i == -1)
-	  CPLError(CE_Failure, 1, FIELD_NAME_ERROR_TMPL, name);
-      else
-	  return OGR_F_GetFieldAsInteger(self, i);
-      return 0;
-  }
-SWIGINTERN GIntBig OGRFeatureShadow_GetFieldAsInteger64__SWIG_0(OGRFeatureShadow *self,int id){
+SWIGINTERN GIntBig OGRFeatureShadow_GetFieldAsInteger64(OGRFeatureShadow *self,int id){
     return OGR_F_GetFieldAsInteger64(self, id);
   }
-SWIGINTERN GIntBig OGRFeatureShadow_GetFieldAsInteger64__SWIG_1(OGRFeatureShadow *self,char const *name){
-      int i = OGR_F_GetFieldIndex(self, name);
-      if (i == -1)
-          CPLError(CE_Failure, 1, FIELD_NAME_ERROR_TMPL, name);
-      else
-          return OGR_F_GetFieldAsInteger64(self, i);
-      return 0;
-  }
-SWIGINTERN double OGRFeatureShadow_GetFieldAsDouble__SWIG_0(OGRFeatureShadow *self,int id){
+SWIGINTERN double OGRFeatureShadow_GetFieldAsDouble(OGRFeatureShadow *self,int id){
     return OGR_F_GetFieldAsDouble(self, id);
   }
 
@@ -2342,14 +2306,6 @@ SWIG_From_double  SWIG_PERL_DECL_ARGS_1(double value)
   return sv_2mortal(newSVnv(value));
 }
 
-SWIGINTERN double OGRFeatureShadow_GetFieldAsDouble__SWIG_1(OGRFeatureShadow *self,char const *name){
-      int i = OGR_F_GetFieldIndex(self, name);
-      if (i == -1)
-          CPLError(CE_Failure, 1, FIELD_NAME_ERROR_TMPL, name);
-      else
-          return OGR_F_GetFieldAsDouble(self, i);
-      return 0;
-  }
 
 SWIGINTERNINLINE SV *
 SWIG_From_float  SWIG_PERL_DECL_ARGS_1(float value)
@@ -2357,17 +2313,8 @@ SWIG_From_float  SWIG_PERL_DECL_ARGS_1(float value)
   return SWIG_From_double  SWIG_PERL_CALL_ARGS_1(value);
 }
 
-SWIGINTERN void OGRFeatureShadow_GetFieldAsDateTime__SWIG_0(OGRFeatureShadow *self,int id,int *pnYear,int *pnMonth,int *pnDay,int *pnHour,int *pnMinute,float *pfSecond,int *pnTZFlag){
+SWIGINTERN void OGRFeatureShadow_GetFieldAsDateTime(OGRFeatureShadow *self,int id,int *pnYear,int *pnMonth,int *pnDay,int *pnHour,int *pnMinute,float *pfSecond,int *pnTZFlag){
       OGR_F_GetFieldAsDateTimeEx(self, id, pnYear, pnMonth, pnDay,
-			       pnHour, pnMinute, pfSecond,
-			       pnTZFlag);
-  }
-SWIGINTERN void OGRFeatureShadow_GetFieldAsDateTime__SWIG_1(OGRFeatureShadow *self,char const *name,int *pnYear,int *pnMonth,int *pnDay,int *pnHour,int *pnMinute,float *pfSecond,int *pnTZFlag){
-      int id = OGR_F_GetFieldIndex(self, name);
-      if (id == -1)
-	  CPLError(CE_Failure, 1, FIELD_NAME_ERROR_TMPL, name);
-      else
-	  OGR_F_GetFieldAsDateTimeEx(self, id, pnYear, pnMonth, pnDay,
 			       pnHour, pnMinute, pfSecond,
 			       pnTZFlag);
   }
@@ -2382,15 +2329,8 @@ SWIGINTERN void OGRFeatureShadow_GetFieldAsDateTime__SWIG_1(OGRFeatureShadow *se
         return sv_2mortal(newRV((SV*)av));
     }
     
-SWIGINTERN void OGRFeatureShadow_GetFieldAsIntegerList__SWIG_0(OGRFeatureShadow *self,int id,int *nLen,int const **pList){
+SWIGINTERN void OGRFeatureShadow_GetFieldAsIntegerList(OGRFeatureShadow *self,int id,int *nLen,int const **pList){
       *pList = OGR_F_GetFieldAsIntegerList(self, id, nLen);
-  }
-SWIGINTERN void OGRFeatureShadow_GetFieldAsIntegerList__SWIG_1(OGRFeatureShadow *self,char const *name,int *nLen,int const **pList){
-      int id = OGR_F_GetFieldIndex(self, name);
-      if (id == -1)
-          CPLError(CE_Failure, 1, FIELD_NAME_ERROR_TMPL, name);
-      else
-          *pList = OGR_F_GetFieldAsIntegerList(self, id, nLen);
   }
 
 #define LENGTH_OF_GIntBig_AS_STRING 30
@@ -2406,25 +2346,11 @@ SWIGINTERN void OGRFeatureShadow_GetFieldAsIntegerList__SWIG_1(OGRFeatureShadow 
         return sv_2mortal(newRV((SV*)av));
     }
     
-SWIGINTERN void OGRFeatureShadow_GetFieldAsInteger64List__SWIG_0(OGRFeatureShadow *self,int id,int *nLen,GIntBig const **pList){
+SWIGINTERN void OGRFeatureShadow_GetFieldAsInteger64List(OGRFeatureShadow *self,int id,int *nLen,GIntBig const **pList){
       *pList = OGR_F_GetFieldAsInteger64List(self, id, nLen);
   }
-SWIGINTERN void OGRFeatureShadow_GetFieldAsInteger64List__SWIG_1(OGRFeatureShadow *self,char const *name,int *nLen,GIntBig const **pList){
-      int id = OGR_F_GetFieldIndex(self, name);
-      if (id == -1)
-          CPLError(CE_Failure, 1, FIELD_NAME_ERROR_TMPL, name);
-      else
-          *pList = OGR_F_GetFieldAsInteger64List(self, id, nLen);
-  }
-SWIGINTERN void OGRFeatureShadow_GetFieldAsDoubleList__SWIG_0(OGRFeatureShadow *self,int id,int *nLen,double const **pList){
+SWIGINTERN void OGRFeatureShadow_GetFieldAsDoubleList(OGRFeatureShadow *self,int id,int *nLen,double const **pList){
       *pList = OGR_F_GetFieldAsDoubleList(self, id, nLen);
-  }
-SWIGINTERN void OGRFeatureShadow_GetFieldAsDoubleList__SWIG_1(OGRFeatureShadow *self,char const *name,int *nLen,double const **pList){
-      int id = OGR_F_GetFieldIndex(self, name);
-      if (id == -1)
-          CPLError(CE_Failure, 1, FIELD_NAME_ERROR_TMPL, name);
-      else
-          *pList = OGR_F_GetFieldAsDoubleList(self, id, nLen);
   }
 
     static SV *
@@ -2439,71 +2365,31 @@ SWIGINTERN void OGRFeatureShadow_GetFieldAsDoubleList__SWIG_1(OGRFeatureShadow *
         return sv_2mortal(newRV((SV*)av));
     }
     
-SWIGINTERN void OGRFeatureShadow_GetFieldAsStringList__SWIG_0(OGRFeatureShadow *self,int id,char ***pList){
+SWIGINTERN void OGRFeatureShadow_GetFieldAsStringList(OGRFeatureShadow *self,int id,char ***pList){
       *pList = OGR_F_GetFieldAsStringList(self, id);
   }
-SWIGINTERN void OGRFeatureShadow_GetFieldAsStringList__SWIG_1(OGRFeatureShadow *self,char const *name,char ***pList){
-      int id = OGR_F_GetFieldIndex(self, name);
-      if (id == -1)
-          CPLError(CE_Failure, 1, FIELD_NAME_ERROR_TMPL, name);
-      else
-          *pList = OGR_F_GetFieldAsStringList(self, id);
-  }
-SWIGINTERN OGRErr OGRFeatureShadow_GetFieldAsBinary__SWIG_0(OGRFeatureShadow *self,int id,int *nLen,char **pBuf){
+SWIGINTERN OGRErr OGRFeatureShadow_GetFieldAsBinary(OGRFeatureShadow *self,int id,int *nLen,char **pBuf){
     GByte* pabyBlob = OGR_F_GetFieldAsBinary(self, id, nLen);
     *pBuf = (char*)malloc(*nLen);
     memcpy(*pBuf, pabyBlob, *nLen);
     return OGRERR_NONE;
   }
-SWIGINTERN OGRErr OGRFeatureShadow_GetFieldAsBinary__SWIG_1(OGRFeatureShadow *self,char const *name,int *nLen,char **pBuf){
-      int id = OGR_F_GetFieldIndex(self, name);
-      if (id == -1)
-      {
-        CPLError(CE_Failure, 1, FIELD_NAME_ERROR_TMPL, name);
-        return OGRERR_FAILURE;
-      }
-      else
-      {
-        GByte* pabyBlob = OGR_F_GetFieldAsBinary(self, id, nLen);
-        *pBuf = (char*)malloc(*nLen);
-        memcpy(*pBuf, pabyBlob, *nLen);
-        return OGRERR_NONE;
-      }
-  }
-SWIGINTERN bool OGRFeatureShadow_IsFieldSet__SWIG_0(OGRFeatureShadow *self,int id){
+SWIGINTERN bool OGRFeatureShadow_IsFieldSet(OGRFeatureShadow *self,int id){
     return (OGR_F_IsFieldSet(self, id) > 0);
   }
-SWIGINTERN bool OGRFeatureShadow_IsFieldSet__SWIG_1(OGRFeatureShadow *self,char const *name){
-      int i = OGR_F_GetFieldIndex(self, name);
-      if (i == -1)
-	  CPLError(CE_Failure, 1, FIELD_NAME_ERROR_TMPL, name);
-      else
-	  return (OGR_F_IsFieldSet(self, i) > 0);
-      return false;
+SWIGINTERN bool OGRFeatureShadow_IsFieldNull(OGRFeatureShadow *self,int id){
+    return (OGR_F_IsFieldNull(self, id) > 0);
   }
-SWIGINTERN int OGRFeatureShadow_GetFieldIndex__SWIG_0(OGRFeatureShadow *self,int i){
-      if (i < 0 || i >= OGR_F_GetFieldCount(self))
-          CPLError(CE_Failure, 1, FIELD_INDEX_ERROR_TMPL, i);
-      return i;
+SWIGINTERN bool OGRFeatureShadow_IsFieldSetAndNotNull(OGRFeatureShadow *self,int id){
+    return (OGR_F_IsFieldSetAndNotNull(self, id) > 0);
   }
-SWIGINTERN int OGRFeatureShadow_GetFieldIndex__SWIG_1(OGRFeatureShadow *self,char const *name){
-      // Perl bindings let Swig handle overloaded methods. Thus they need to behave similarly.
-      int i = OGR_F_GetFieldIndex(self, name);
-      if (i < 0)
-          CPLError(CE_Failure, 1, FIELD_NAME_ERROR_TMPL, name);
-      return i;
+SWIGINTERN int OGRFeatureShadow_GetFieldIndex(OGRFeatureShadow *self,char const *name){
+      // Do not issue an error if the field doesn't exist. It is intended to be silent
+      return OGR_F_GetFieldIndex(self, name);
   }
-SWIGINTERN int OGRFeatureShadow_GetGeomFieldIndex__SWIG_0(OGRFeatureShadow *self,int i){
-      if (i < 0 || i >= OGR_F_GetGeomFieldCount(self))
-          CPLError(CE_Failure, 1, FIELD_INDEX_ERROR_TMPL, i);
-      return i;
-  }
-SWIGINTERN int OGRFeatureShadow_GetGeomFieldIndex__SWIG_1(OGRFeatureShadow *self,char const *name){
-      // Perl bindings let Swig handle overloaded methods. Thus they need to behave similarly.
-      int i = OGR_F_GetGeomFieldIndex(self, name);
-      if (i < 0)
-          CPLError(CE_Failure, 1, FIELD_NAME_ERROR_TMPL, name);
-      return i;
+SWIGINTERN int OGRFeatureShadow_GetGeomFieldIndex(OGRFeatureShadow *self,char const *name){
+      // Do not issue an error if the field doesn't exist. It is intended to be silent
+      return OGR_F_GetGeomFieldIndex(self, name);
   }
 SWIGINTERN GIntBig OGRFeatureShadow_GetFID(OGRFeatureShadow *self){
     return OGR_F_GetFID(self);
@@ -2514,48 +2400,23 @@ SWIGINTERN OGRErr OGRFeatureShadow_SetFID(OGRFeatureShadow *self,GIntBig fid){
 SWIGINTERN void OGRFeatureShadow_DumpReadable(OGRFeatureShadow *self){
     OGR_F_DumpReadable(self, NULL);
   }
-SWIGINTERN void OGRFeatureShadow_UnsetField__SWIG_0(OGRFeatureShadow *self,int id){
+SWIGINTERN void OGRFeatureShadow_UnsetField(OGRFeatureShadow *self,int id){
     OGR_F_UnsetField(self, id);
   }
-SWIGINTERN void OGRFeatureShadow_UnsetField__SWIG_1(OGRFeatureShadow *self,char const *name){
-      int i = OGR_F_GetFieldIndex(self, name);
-      if (i == -1)
-          CPLError(CE_Failure, 1, FIELD_NAME_ERROR_TMPL, name);
-      else
-          OGR_F_UnsetField(self, i);
+SWIGINTERN void OGRFeatureShadow_SetFieldNull(OGRFeatureShadow *self,int id){
+    OGR_F_SetFieldNull(self, id);
   }
 SWIGINTERN void OGRFeatureShadow_SetField__SWIG_0(OGRFeatureShadow *self,int id,char const *value){
     OGR_F_SetFieldString(self, id, value);
   }
-SWIGINTERN void OGRFeatureShadow_SetField__SWIG_1(OGRFeatureShadow *self,char const *name,char const *value){
-      int i = OGR_F_GetFieldIndex(self, name);
-      if (i == -1)
-          CPLError(CE_Failure, 1, FIELD_NAME_ERROR_TMPL, name);
-      else
-          OGR_F_SetFieldString(self, i, value);
-  }
 SWIGINTERN void OGRFeatureShadow_SetFieldInteger64(OGRFeatureShadow *self,int id,GIntBig value){
     OGR_F_SetFieldInteger64(self, id, value);
   }
-SWIGINTERN void OGRFeatureShadow_SetField__SWIG_2(OGRFeatureShadow *self,int id,int value){
+SWIGINTERN void OGRFeatureShadow_SetField__SWIG_1(OGRFeatureShadow *self,int id,int value){
     OGR_F_SetFieldInteger(self, id, value);
   }
-SWIGINTERN void OGRFeatureShadow_SetField__SWIG_3(OGRFeatureShadow *self,char const *name,int value){
-      int i = OGR_F_GetFieldIndex(self, name);
-      if (i == -1)
-	  CPLError(CE_Failure, 1, FIELD_NAME_ERROR_TMPL, name);
-      else
-	  OGR_F_SetFieldInteger(self, i, value);
-  }
-SWIGINTERN void OGRFeatureShadow_SetField__SWIG_4(OGRFeatureShadow *self,int id,double value){
+SWIGINTERN void OGRFeatureShadow_SetField__SWIG_2(OGRFeatureShadow *self,int id,double value){
     OGR_F_SetFieldDouble(self, id, value);
-  }
-SWIGINTERN void OGRFeatureShadow_SetField__SWIG_5(OGRFeatureShadow *self,char const *name,double value){
-      int i = OGR_F_GetFieldIndex(self, name);
-      if (i == -1)
-	  CPLError(CE_Failure, 1, FIELD_NAME_ERROR_TMPL, name);
-      else
-	  OGR_F_SetFieldDouble(self, i, value);
   }
 
 /* Getting isfinite working pre C99 across multiple platforms is non-trivial. Users can provide SWIG_isfinite on older platforms. */
@@ -2594,87 +2455,31 @@ SWIG_AsVal_float SWIG_PERL_DECL_ARGS_2(SV * obj, float *val)
   return res;
 }
 
-SWIGINTERN void OGRFeatureShadow_SetField__SWIG_6(OGRFeatureShadow *self,int id,int year,int month,int day,int hour,int minute,float second,int tzflag){
+SWIGINTERN void OGRFeatureShadow_SetField__SWIG_3(OGRFeatureShadow *self,int id,int year,int month,int day,int hour,int minute,float second,int tzflag){
     OGR_F_SetFieldDateTimeEx(self, id, year, month, day,
                              hour, minute, second,
                              tzflag);
   }
-SWIGINTERN void OGRFeatureShadow_SetField__SWIG_7(OGRFeatureShadow *self,char const *name,int year,int month,int day,int hour,int minute,float second,int tzflag){
-      int i = OGR_F_GetFieldIndex(self, name);
-      if (i == -1)
-	  CPLError(CE_Failure, 1, FIELD_NAME_ERROR_TMPL, name);
-      else
-	  OGR_F_SetFieldDateTimeEx(self, i, year, month, day,
-				 hour, minute, second,
-				 tzflag);
-  }
-SWIGINTERN void OGRFeatureShadow_SetFieldIntegerList__SWIG_0(OGRFeatureShadow *self,int id,int nList,int *pList){
+SWIGINTERN void OGRFeatureShadow_SetFieldIntegerList(OGRFeatureShadow *self,int id,int nList,int *pList){
       OGR_F_SetFieldIntegerList(self, id, nList, pList);
   }
-SWIGINTERN void OGRFeatureShadow_SetFieldIntegerList__SWIG_1(OGRFeatureShadow *self,char const *name,int nList,int *pList){
-      int id = OGR_F_GetFieldIndex(self, name);
-      if (id == -1)
-          CPLError(CE_Failure, 1, FIELD_NAME_ERROR_TMPL, name);
-      else
-       	  OGR_F_SetFieldIntegerList(self, id, nList, pList);
-  }
-SWIGINTERN void OGRFeatureShadow_SetFieldInteger64List__SWIG_0(OGRFeatureShadow *self,int id,int nList,GIntBig *pList){
+SWIGINTERN void OGRFeatureShadow_SetFieldInteger64List(OGRFeatureShadow *self,int id,int nList,GIntBig *pList){
       OGR_F_SetFieldInteger64List(self, id, nList, pList);
   }
-SWIGINTERN void OGRFeatureShadow_SetFieldInteger64List__SWIG_1(OGRFeatureShadow *self,char const *name,int nList,GIntBig *pList){
-      int id = OGR_F_GetFieldIndex(self, name);
-      if (id == -1)
-          CPLError(CE_Failure, 1, FIELD_NAME_ERROR_TMPL, name);
-      else
-          OGR_F_SetFieldInteger64List(self, id, nList, pList);
-  }
-SWIGINTERN void OGRFeatureShadow_SetFieldDoubleList__SWIG_0(OGRFeatureShadow *self,int id,int nList,double *pList){
+SWIGINTERN void OGRFeatureShadow_SetFieldDoubleList(OGRFeatureShadow *self,int id,int nList,double *pList){
       OGR_F_SetFieldDoubleList(self, id, nList, pList);
   }
-SWIGINTERN void OGRFeatureShadow_SetFieldDoubleList__SWIG_1(OGRFeatureShadow *self,char const *name,int nList,double *pList){
-      int id = OGR_F_GetFieldIndex(self, name);
-      if (id == -1)
-          CPLError(CE_Failure, 1, FIELD_NAME_ERROR_TMPL, name);
-      else
-          OGR_F_SetFieldDoubleList(self, id, nList, pList);
-  }
-SWIGINTERN void OGRFeatureShadow_SetFieldStringList__SWIG_0(OGRFeatureShadow *self,int id,char **pList){
+SWIGINTERN void OGRFeatureShadow_SetFieldStringList(OGRFeatureShadow *self,int id,char **pList){
       OGR_F_SetFieldStringList(self, id, pList);
   }
-SWIGINTERN void OGRFeatureShadow_SetFieldStringList__SWIG_1(OGRFeatureShadow *self,char const *name,char **pList){
-      int id = OGR_F_GetFieldIndex(self, name);
-      if (id == -1)
-          CPLError(CE_Failure, 1, FIELD_NAME_ERROR_TMPL, name);
-      else
-          OGR_F_SetFieldStringList(self, id, pList);
-  }
-SWIGINTERN void OGRFeatureShadow_SetFieldBinary__SWIG_0(OGRFeatureShadow *self,int i,int nBytes,GByte *pabyBuf){
+SWIGINTERN void OGRFeatureShadow_SetFieldBinary(OGRFeatureShadow *self,int i,int nBytes,GByte *pabyBuf){
       OGR_F_SetFieldBinary(self, i, nBytes, pabyBuf);
   }
-SWIGINTERN void OGRFeatureShadow_SetFieldBinary__SWIG_1(OGRFeatureShadow *self,char const *name,int nBytes,GByte *pabyBuf){
-      int i = OGR_F_GetFieldIndex(self, name);
-      if (i == -1)
-          CPLError(CE_Failure, 1, FIELD_NAME_ERROR_TMPL, name);
-      else
-          OGR_F_SetFieldBinary(self, i, nBytes, pabyBuf);
-  }
-SWIGINTERN void OGRFeatureShadow_SetFieldBinaryFromHexString__SWIG_0(OGRFeatureShadow *self,int id,char const *pszValue){
+SWIGINTERN void OGRFeatureShadow_SetFieldBinaryFromHexString(OGRFeatureShadow *self,int id,char const *pszValue){
      int nBytes;
      GByte* pabyBuf = CPLHexToBinary(pszValue, &nBytes );
      OGR_F_SetFieldBinary(self, id, nBytes, pabyBuf);
      CPLFree(pabyBuf);
-  }
-SWIGINTERN void OGRFeatureShadow_SetFieldBinaryFromHexString__SWIG_1(OGRFeatureShadow *self,char const *name,char const *pszValue){
-      int i = OGR_F_GetFieldIndex(self, name);
-      if (i == -1)
-          CPLError(CE_Failure, 1, FIELD_NAME_ERROR_TMPL, name);
-      else
-      {
-          int nBytes;
-          GByte* pabyBuf = CPLHexToBinary(pszValue, &nBytes );
-          OGR_F_SetFieldBinary(self, i, nBytes, pabyBuf);
-          CPLFree(pabyBuf);
-      }
   }
 SWIGINTERN OGRErr OGRFeatureShadow_SetFrom(OGRFeatureShadow *self,OGRFeatureShadow *other,int forgiving=1){
     return OGR_F_SetFrom(self, other, forgiving);
@@ -2694,20 +2499,12 @@ SWIGINTERN char const *OGRFeatureShadow_GetStyleString(OGRFeatureShadow *self){
 SWIGINTERN void OGRFeatureShadow_SetStyleString(OGRFeatureShadow *self,char const *the_string){
     OGR_F_SetStyleString(self, the_string);
   }
-SWIGINTERN OGRFieldType OGRFeatureShadow_GetFieldType__SWIG_0(OGRFeatureShadow *self,int id){
+SWIGINTERN OGRFieldType OGRFeatureShadow_GetFieldType(OGRFeatureShadow *self,int id){
       OGRFieldDefnH fd = OGR_F_GetFieldDefnRef( self,  id );
       if (fd)
           return (OGRFieldType) OGR_Fld_GetType( fd );
       else
           return (OGRFieldType)0;
-  }
-SWIGINTERN OGRFieldType OGRFeatureShadow_GetFieldType__SWIG_1(OGRFeatureShadow *self,char const *name){
-      int i = OGR_F_GetFieldIndex(self, name);
-      if (i == -1) {
-          CPLError(CE_Failure, 1, FIELD_NAME_ERROR_TMPL, name);
-          return (OGRFieldType)0;
-      } else
-          return (OGRFieldType) OGR_Fld_GetType( OGR_F_GetFieldDefnRef( self, i ) );
   }
 SWIGINTERN int OGRFeatureShadow_Validate(OGRFeatureShadow *self,int flags=OGR_F_VAL_ALL,int bEmitError=TRUE){
     return OGR_F_Validate(self, flags, bEmitError);
@@ -2745,6 +2542,11 @@ SWIGINTERN void OGRFeatureShadow_SetNativeMediaType(OGRFeatureShadow *self,char 
             case wkbCurvePolygon:
             case wkbMultiCurve:
             case wkbMultiSurface:
+            case wkbCurve:
+            case wkbSurface:
+            case wkbTriangle:
+            case wkbTIN:
+            case wkbPolyhedralSurface:
             case wkbNone:
             /*case wkbLinearRing:*/
             case wkbCircularStringZ:
@@ -2752,6 +2554,11 @@ SWIGINTERN void OGRFeatureShadow_SetNativeMediaType(OGRFeatureShadow *self,char 
             case wkbCurvePolygonZ:
             case wkbMultiCurveZ:
             case wkbMultiSurfaceZ:
+            case wkbCurveZ:
+            case wkbSurfaceZ:
+            case wkbTriangleZ:
+            case wkbTINZ:
+            case wkbPolyhedralSurfaceZ:
             case wkbPoint25D:
             case wkbLineString25D:
             case wkbPolygon25D:
@@ -2771,6 +2578,11 @@ SWIGINTERN void OGRFeatureShadow_SetNativeMediaType(OGRFeatureShadow *self,char 
             case wkbCurvePolygonM:
             case wkbMultiCurveM:
             case wkbMultiSurfaceM:
+            case wkbCurveM:
+            case wkbSurfaceM:
+            case wkbTriangleM:
+            case wkbTINM:
+            case wkbPolyhedralSurfaceM:
             case wkbPointZM:
             case wkbLineStringZM:
             case wkbPolygonZM:
@@ -2783,6 +2595,11 @@ SWIGINTERN void OGRFeatureShadow_SetNativeMediaType(OGRFeatureShadow *self,char 
             case wkbCurvePolygonZM:
             case wkbMultiCurveZM:
             case wkbMultiSurfaceZM:
+            case wkbCurveZM:
+            case wkbSurfaceZM:
+            case wkbTriangleZM:
+            case wkbTINZM:
+            case wkbPolyhedralSurfaceZM:
                 return TRUE;
             default:
                 CPLError(CE_Failure, CPLE_IllegalArg, "Illegal geometry type value");
@@ -2808,12 +2625,7 @@ SWIGINTERN int OGRFeatureDefnShadow_GetFieldCount(OGRFeatureDefnShadow *self){
 SWIGINTERN OGRFieldDefnShadow *OGRFeatureDefnShadow_GetFieldDefn(OGRFeatureDefnShadow *self,int i){
     return (OGRFieldDefnShadow*) OGR_FD_GetFieldDefn(self, i);
   }
-SWIGINTERN int OGRFeatureDefnShadow_GetFieldIndex__SWIG_0(OGRFeatureDefnShadow *self,int i){
-      if (i < 0 || i >= OGR_FD_GetFieldCount(self))
-          CPLError(CE_Failure, 1, FIELD_INDEX_ERROR_TMPL, i);
-      return i;
-  }
-SWIGINTERN int OGRFeatureDefnShadow_GetFieldIndex__SWIG_1(OGRFeatureDefnShadow *self,char const *name){
+SWIGINTERN int OGRFeatureDefnShadow_GetFieldIndex(OGRFeatureDefnShadow *self,char const *name){
       // Do not issue an error if the field doesn't exist. It is intended to be silent
       return OGR_FD_GetFieldIndex(self, name);
   }
@@ -2823,23 +2635,10 @@ SWIGINTERN void OGRFeatureDefnShadow_AddFieldDefn(OGRFeatureDefnShadow *self,OGR
 SWIGINTERN int OGRFeatureDefnShadow_GetGeomFieldCount(OGRFeatureDefnShadow *self){
     return OGR_FD_GetGeomFieldCount(self);
   }
-SWIGINTERN OGRGeomFieldDefnShadow *OGRFeatureDefnShadow_GetGeomFieldDefn__SWIG_0(OGRFeatureDefnShadow *self,int i){
+SWIGINTERN OGRGeomFieldDefnShadow *OGRFeatureDefnShadow_GetGeomFieldDefn(OGRFeatureDefnShadow *self,int i){
     return (OGRGeomFieldDefnShadow*) OGR_FD_GetGeomFieldDefn(self, i);
   }
-SWIGINTERN OGRGeomFieldDefnShadow *OGRFeatureDefnShadow_GetGeomFieldDefn__SWIG_1(OGRFeatureDefnShadow *self,char const *name){
-      int iField = OGR_FD_GetGeomFieldIndex(self, name);
-      if (iField == -1)
-          CPLError(CE_Failure, 1, FIELD_NAME_ERROR_TMPL, name);
-      else
-          return (OGRGeomFieldDefnShadow*) OGR_FD_GetGeomFieldDefn(self, iField);
-      return NULL;
-  }
-SWIGINTERN int OGRFeatureDefnShadow_GetGeomFieldIndex__SWIG_0(OGRFeatureDefnShadow *self,int i){
-      if (i < 0 || i >= OGR_FD_GetGeomFieldCount(self))
-          CPLError(CE_Failure, 1, FIELD_INDEX_ERROR_TMPL, i);
-      return i;
-  }
-SWIGINTERN int OGRFeatureDefnShadow_GetGeomFieldIndex__SWIG_1(OGRFeatureDefnShadow *self,char const *name){
+SWIGINTERN int OGRFeatureDefnShadow_GetGeomFieldIndex(OGRFeatureDefnShadow *self,char const *name){
       // Do not issue an error if the field doesn't exist. It is intended to be silent
       return OGR_FD_GetGeomFieldIndex(self, name);
   }
@@ -3328,6 +3127,9 @@ SWIGINTERN OGRGeometryShadow *OGRGeometryShadow_SymmetricDifference(OGRGeometryS
 SWIGINTERN double OGRGeometryShadow_Distance(OGRGeometryShadow *self,OGRGeometryShadow *other){
     return OGR_G_Distance(self, other);
   }
+SWIGINTERN double OGRGeometryShadow_Distance3D(OGRGeometryShadow *self,OGRGeometryShadow *other){
+    return OGR_G_Distance3D(self, other);
+  }
 SWIGINTERN void OGRGeometryShadow_Empty(OGRGeometryShadow *self){
     OGR_G_Empty(self);
   }
@@ -3774,14 +3576,14 @@ XS(_wrap_StyleTable_LoadStyleTable) {
     
     {
       /* %typemap(freearg) (const char* utf8_path) */
-      if (tmpbuf2) free(tmpbuf2);
+      if (tmpbuf2) Safefree(tmpbuf2);
     }
     XSRETURN(argvi);
   fail:
     
     {
       /* %typemap(freearg) (const char* utf8_path) */
-      if (tmpbuf2) free(tmpbuf2);
+      if (tmpbuf2) Safefree(tmpbuf2);
     }
     SWIG_croak_null();
   }
@@ -3845,14 +3647,14 @@ XS(_wrap_StyleTable_SaveStyleTable) {
     
     {
       /* %typemap(freearg) (const char* utf8_path) */
-      if (tmpbuf2) free(tmpbuf2);
+      if (tmpbuf2) Safefree(tmpbuf2);
     }
     XSRETURN(argvi);
   fail:
     
     {
       /* %typemap(freearg) (const char* utf8_path) */
-      if (tmpbuf2) free(tmpbuf2);
+      if (tmpbuf2) Safefree(tmpbuf2);
     }
     SWIG_croak_null();
   }
@@ -5646,7 +5448,7 @@ XS(_wrap_Layer_GetFeatureCount) {
     }
     {
       char temp[256];
-      sprintf(temp, ""CPL_FRMT_GIB"", result);
+      sprintf(temp, "" CPL_FRMT_GIB "", result);
       ST(argvi) = sv_2mortal(newSVpv(temp, 0));
       argvi++;
     }
@@ -6651,7 +6453,7 @@ XS(_wrap_Layer_GetFeaturesRead) {
     }
     {
       char temp[256];
-      sprintf(temp, ""CPL_FRMT_GIB"", result);
+      sprintf(temp, "" CPL_FRMT_GIB "", result);
       ST(argvi) = sv_2mortal(newSVpv(temp, 0));
       argvi++;
     }
@@ -6690,9 +6492,10 @@ XS(_wrap_Layer_SetIgnoredFields) {
             AV *av = (AV*)(SvRV(ST(1)));
             for (int i = 0; i < av_len(av)+1; i++) {
               SV *sv = *(av_fetch(av, i, 0));
-              char *tmp = sv_to_utf8_string(sv, NULL);
+              bool sf;
+              char *tmp = sv_to_utf8_string(sv, NULL, &sf);
               arg2 = CSLAddString(arg2, tmp);
-              free(tmp);
+              if (sf) Safefree(tmp); else free(tmp);
             }
           } else if (SvTYPE(SvRV(ST(1)))==SVt_PVHV) {
             HV *hv = (HV*)SvRV(ST(1));
@@ -6702,9 +6505,10 @@ XS(_wrap_Layer_SetIgnoredFields) {
             arg2 = NULL;
             hv_iterinit(hv);
             while(sv = hv_iternextsv(hv, &key, &klen)) {
-              char *tmp = sv_to_utf8_string(sv, NULL);
+              bool sf;
+              char *tmp = sv_to_utf8_string(sv, NULL, &sf);
               arg2 = CSLAddNameValue(arg2, key, tmp);
-              free(tmp);
+              if (sf) Safefree(tmp); else free(tmp);
             }
           } else
           do_confess(NEED_REF, 1);
@@ -6811,9 +6615,10 @@ XS(_wrap_Layer_Intersection) {
               AV *av = (AV*)(SvRV(ST(3)));
               for (int i = 0; i < av_len(av)+1; i++) {
                 SV *sv = *(av_fetch(av, i, 0));
-                char *tmp = sv_to_utf8_string(sv, NULL);
+                bool sf;
+                char *tmp = sv_to_utf8_string(sv, NULL, &sf);
                 arg4 = CSLAddString(arg4, tmp);
-                free(tmp);
+                if (sf) Safefree(tmp); else free(tmp);
               }
             } else if (SvTYPE(SvRV(ST(3)))==SVt_PVHV) {
               HV *hv = (HV*)SvRV(ST(3));
@@ -6823,9 +6628,10 @@ XS(_wrap_Layer_Intersection) {
               arg4 = NULL;
               hv_iterinit(hv);
               while(sv = hv_iternextsv(hv, &key, &klen)) {
-                char *tmp = sv_to_utf8_string(sv, NULL);
+                bool sf;
+                char *tmp = sv_to_utf8_string(sv, NULL, &sf);
                 arg4 = CSLAddNameValue(arg4, key, tmp);
-                free(tmp);
+                if (sf) Safefree(tmp); else free(tmp);
               }
             } else
             do_confess(NEED_REF, 1);
@@ -6963,9 +6769,10 @@ XS(_wrap_Layer_Union) {
               AV *av = (AV*)(SvRV(ST(3)));
               for (int i = 0; i < av_len(av)+1; i++) {
                 SV *sv = *(av_fetch(av, i, 0));
-                char *tmp = sv_to_utf8_string(sv, NULL);
+                bool sf;
+                char *tmp = sv_to_utf8_string(sv, NULL, &sf);
                 arg4 = CSLAddString(arg4, tmp);
-                free(tmp);
+                if (sf) Safefree(tmp); else free(tmp);
               }
             } else if (SvTYPE(SvRV(ST(3)))==SVt_PVHV) {
               HV *hv = (HV*)SvRV(ST(3));
@@ -6975,9 +6782,10 @@ XS(_wrap_Layer_Union) {
               arg4 = NULL;
               hv_iterinit(hv);
               while(sv = hv_iternextsv(hv, &key, &klen)) {
-                char *tmp = sv_to_utf8_string(sv, NULL);
+                bool sf;
+                char *tmp = sv_to_utf8_string(sv, NULL, &sf);
                 arg4 = CSLAddNameValue(arg4, key, tmp);
-                free(tmp);
+                if (sf) Safefree(tmp); else free(tmp);
               }
             } else
             do_confess(NEED_REF, 1);
@@ -7115,9 +6923,10 @@ XS(_wrap_Layer_SymDifference) {
               AV *av = (AV*)(SvRV(ST(3)));
               for (int i = 0; i < av_len(av)+1; i++) {
                 SV *sv = *(av_fetch(av, i, 0));
-                char *tmp = sv_to_utf8_string(sv, NULL);
+                bool sf;
+                char *tmp = sv_to_utf8_string(sv, NULL, &sf);
                 arg4 = CSLAddString(arg4, tmp);
-                free(tmp);
+                if (sf) Safefree(tmp); else free(tmp);
               }
             } else if (SvTYPE(SvRV(ST(3)))==SVt_PVHV) {
               HV *hv = (HV*)SvRV(ST(3));
@@ -7127,9 +6936,10 @@ XS(_wrap_Layer_SymDifference) {
               arg4 = NULL;
               hv_iterinit(hv);
               while(sv = hv_iternextsv(hv, &key, &klen)) {
-                char *tmp = sv_to_utf8_string(sv, NULL);
+                bool sf;
+                char *tmp = sv_to_utf8_string(sv, NULL, &sf);
                 arg4 = CSLAddNameValue(arg4, key, tmp);
-                free(tmp);
+                if (sf) Safefree(tmp); else free(tmp);
               }
             } else
             do_confess(NEED_REF, 1);
@@ -7267,9 +7077,10 @@ XS(_wrap_Layer_Identity) {
               AV *av = (AV*)(SvRV(ST(3)));
               for (int i = 0; i < av_len(av)+1; i++) {
                 SV *sv = *(av_fetch(av, i, 0));
-                char *tmp = sv_to_utf8_string(sv, NULL);
+                bool sf;
+                char *tmp = sv_to_utf8_string(sv, NULL, &sf);
                 arg4 = CSLAddString(arg4, tmp);
-                free(tmp);
+                if (sf) Safefree(tmp); else free(tmp);
               }
             } else if (SvTYPE(SvRV(ST(3)))==SVt_PVHV) {
               HV *hv = (HV*)SvRV(ST(3));
@@ -7279,9 +7090,10 @@ XS(_wrap_Layer_Identity) {
               arg4 = NULL;
               hv_iterinit(hv);
               while(sv = hv_iternextsv(hv, &key, &klen)) {
-                char *tmp = sv_to_utf8_string(sv, NULL);
+                bool sf;
+                char *tmp = sv_to_utf8_string(sv, NULL, &sf);
                 arg4 = CSLAddNameValue(arg4, key, tmp);
-                free(tmp);
+                if (sf) Safefree(tmp); else free(tmp);
               }
             } else
             do_confess(NEED_REF, 1);
@@ -7419,9 +7231,10 @@ XS(_wrap_Layer_Update) {
               AV *av = (AV*)(SvRV(ST(3)));
               for (int i = 0; i < av_len(av)+1; i++) {
                 SV *sv = *(av_fetch(av, i, 0));
-                char *tmp = sv_to_utf8_string(sv, NULL);
+                bool sf;
+                char *tmp = sv_to_utf8_string(sv, NULL, &sf);
                 arg4 = CSLAddString(arg4, tmp);
-                free(tmp);
+                if (sf) Safefree(tmp); else free(tmp);
               }
             } else if (SvTYPE(SvRV(ST(3)))==SVt_PVHV) {
               HV *hv = (HV*)SvRV(ST(3));
@@ -7431,9 +7244,10 @@ XS(_wrap_Layer_Update) {
               arg4 = NULL;
               hv_iterinit(hv);
               while(sv = hv_iternextsv(hv, &key, &klen)) {
-                char *tmp = sv_to_utf8_string(sv, NULL);
+                bool sf;
+                char *tmp = sv_to_utf8_string(sv, NULL, &sf);
                 arg4 = CSLAddNameValue(arg4, key, tmp);
-                free(tmp);
+                if (sf) Safefree(tmp); else free(tmp);
               }
             } else
             do_confess(NEED_REF, 1);
@@ -7571,9 +7385,10 @@ XS(_wrap_Layer_Clip) {
               AV *av = (AV*)(SvRV(ST(3)));
               for (int i = 0; i < av_len(av)+1; i++) {
                 SV *sv = *(av_fetch(av, i, 0));
-                char *tmp = sv_to_utf8_string(sv, NULL);
+                bool sf;
+                char *tmp = sv_to_utf8_string(sv, NULL, &sf);
                 arg4 = CSLAddString(arg4, tmp);
-                free(tmp);
+                if (sf) Safefree(tmp); else free(tmp);
               }
             } else if (SvTYPE(SvRV(ST(3)))==SVt_PVHV) {
               HV *hv = (HV*)SvRV(ST(3));
@@ -7583,9 +7398,10 @@ XS(_wrap_Layer_Clip) {
               arg4 = NULL;
               hv_iterinit(hv);
               while(sv = hv_iternextsv(hv, &key, &klen)) {
-                char *tmp = sv_to_utf8_string(sv, NULL);
+                bool sf;
+                char *tmp = sv_to_utf8_string(sv, NULL, &sf);
                 arg4 = CSLAddNameValue(arg4, key, tmp);
-                free(tmp);
+                if (sf) Safefree(tmp); else free(tmp);
               }
             } else
             do_confess(NEED_REF, 1);
@@ -7723,9 +7539,10 @@ XS(_wrap_Layer_Erase) {
               AV *av = (AV*)(SvRV(ST(3)));
               for (int i = 0; i < av_len(av)+1; i++) {
                 SV *sv = *(av_fetch(av, i, 0));
-                char *tmp = sv_to_utf8_string(sv, NULL);
+                bool sf;
+                char *tmp = sv_to_utf8_string(sv, NULL, &sf);
                 arg4 = CSLAddString(arg4, tmp);
-                free(tmp);
+                if (sf) Safefree(tmp); else free(tmp);
               }
             } else if (SvTYPE(SvRV(ST(3)))==SVt_PVHV) {
               HV *hv = (HV*)SvRV(ST(3));
@@ -7735,9 +7552,10 @@ XS(_wrap_Layer_Erase) {
               arg4 = NULL;
               hv_iterinit(hv);
               while(sv = hv_iternextsv(hv, &key, &klen)) {
-                char *tmp = sv_to_utf8_string(sv, NULL);
+                bool sf;
+                char *tmp = sv_to_utf8_string(sv, NULL, &sf);
                 arg4 = CSLAddNameValue(arg4, key, tmp);
-                free(tmp);
+                if (sf) Safefree(tmp); else free(tmp);
               }
             } else
             do_confess(NEED_REF, 1);
@@ -8441,7 +8259,7 @@ XS(_wrap_Feature_SetGeomField__SWIG_1) {
     
     {
       /* %typemap(freearg) (const char* name) */
-      if (tmpbuf2) free(tmpbuf2);
+      if (tmpbuf2) Safefree(tmpbuf2);
     }
     
     XSRETURN(argvi);
@@ -8449,7 +8267,7 @@ XS(_wrap_Feature_SetGeomField__SWIG_1) {
     
     {
       /* %typemap(freearg) (const char* name) */
-      if (tmpbuf2) free(tmpbuf2);
+      if (tmpbuf2) Safefree(tmpbuf2);
     }
     
     SWIG_croak_null();
@@ -8700,7 +8518,7 @@ XS(_wrap_Feature_SetGeomFieldDirectly__SWIG_1) {
     
     {
       /* %typemap(freearg) (const char* name) */
-      if (tmpbuf2) free(tmpbuf2);
+      if (tmpbuf2) Safefree(tmpbuf2);
     }
     
     XSRETURN(argvi);
@@ -8708,7 +8526,7 @@ XS(_wrap_Feature_SetGeomFieldDirectly__SWIG_1) {
     
     {
       /* %typemap(freearg) (const char* name) */
-      if (tmpbuf2) free(tmpbuf2);
+      if (tmpbuf2) Safefree(tmpbuf2);
     }
     
     SWIG_croak_null();
@@ -8931,14 +8749,14 @@ XS(_wrap_Feature_GetGeomFieldRef__SWIG_1) {
     
     {
       /* %typemap(freearg) (const char* name) */
-      if (tmpbuf2) free(tmpbuf2);
+      if (tmpbuf2) Safefree(tmpbuf2);
     }
     XSRETURN(argvi);
   fail:
     
     {
       /* %typemap(freearg) (const char* name) */
-      if (tmpbuf2) free(tmpbuf2);
+      if (tmpbuf2) Safefree(tmpbuf2);
     }
     SWIG_croak_null();
   }
@@ -9193,7 +9011,7 @@ XS(_wrap_Feature_GetFieldCount) {
 }
 
 
-XS(_wrap_Feature_GetFieldDefnRef__SWIG_0) {
+XS(_wrap_Feature_GetFieldDefnRef) {
   {
     OGRFeatureShadow *arg1 = (OGRFeatureShadow *) 0 ;
     int arg2 ;
@@ -9220,7 +9038,7 @@ XS(_wrap_Feature_GetFieldDefnRef__SWIG_0) {
     arg2 = static_cast< int >(val2);
     {
       CPLErrorReset();
-      result = (OGRFieldDefnShadow *)OGRFeatureShadow_GetFieldDefnRef__SWIG_0(arg1,arg2);
+      result = (OGRFieldDefnShadow *)OGRFeatureShadow_GetFieldDefnRef(arg1,arg2);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
         do_confess( CPLGetLastErrorMsg(), 0 );
@@ -9251,156 +9069,6 @@ XS(_wrap_Feature_GetFieldDefnRef__SWIG_0) {
     
     SWIG_croak_null();
   }
-}
-
-
-XS(_wrap_Feature_GetFieldDefnRef__SWIG_1) {
-  {
-    OGRFeatureShadow *arg1 = (OGRFeatureShadow *) 0 ;
-    char *arg2 = (char *) 0 ;
-    void *argp1 = 0 ;
-    int res1 = 0 ;
-    U8 *tmpbuf2 = NULL ;
-    int argvi = 0;
-    OGRFieldDefnShadow *result = 0 ;
-    dXSARGS;
-    
-    if ((items < 2) || (items > 2)) {
-      SWIG_croak("Usage: Feature_GetFieldDefnRef(self,name);");
-    }
-    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OGRFeatureShadow, 0 |  0 );
-    if (!SWIG_IsOK(res1)) {
-      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Feature_GetFieldDefnRef" "', argument " "1"" of type '" "OGRFeatureShadow *""'"); 
-    }
-    arg1 = reinterpret_cast< OGRFeatureShadow * >(argp1);
-    {
-      /* %typemap(in,numinputs=1) (const char* name) */
-      arg2 = sv_to_utf8_string(ST(1), &tmpbuf2);
-    }
-    {
-      if (!arg2) {
-        SWIG_exception(SWIG_ValueError,"Received a NULL pointer.");
-      }
-    }
-    {
-      CPLErrorReset();
-      result = (OGRFieldDefnShadow *)OGRFeatureShadow_GetFieldDefnRef__SWIG_1(arg1,(char const *)arg2);
-      CPLErr eclass = CPLGetLastErrorType();
-      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        do_confess( CPLGetLastErrorMsg(), 0 );
-        
-        
-        
-        
-        
-      }
-      
-      
-      /*
-          Make warnings regular Perl warnings. This duplicates the warning
-          message if DontUseExceptions() is in effect (it is not by default).
-          */
-      if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg(), "%s" );
-      }
-      
-      
-    }
-    ST(argvi) = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_OGRFieldDefnShadow, 0 | SWIG_SHADOW); argvi++ ;
-    
-    {
-      /* %typemap(freearg) (const char* name) */
-      if (tmpbuf2) free(tmpbuf2);
-    }
-    XSRETURN(argvi);
-  fail:
-    
-    {
-      /* %typemap(freearg) (const char* name) */
-      if (tmpbuf2) free(tmpbuf2);
-    }
-    SWIG_croak_null();
-  }
-}
-
-
-XS(_wrap_Feature_GetFieldDefnRef) {
-  dXSARGS;
-  
-  {
-    unsigned long _index = 0;
-    SWIG_TypeRank _rank = 0; 
-    if (items == 2) {
-      SWIG_TypeRank _ranki = 0;
-      SWIG_TypeRank _rankm = 0;
-      SWIG_TypeRank _pi = 1;
-      int _v = 0;
-      {
-        void *vptr = 0;
-        int res = SWIG_ConvertPtr(ST(0), &vptr, SWIGTYPE_p_OGRFeatureShadow, 0);
-        _v = SWIG_CheckState(res);
-      }
-      if (!_v) goto check_1;
-      _ranki += _v*_pi;
-      _rankm += _pi;
-      _pi *= SWIG_MAXCASTRANK;
-      {
-        {
-          int res = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(1), NULL);
-          _v = SWIG_CheckState(res);
-        }
-      }
-      if (!_v) goto check_1;
-      _ranki += _v*_pi;
-      _rankm += _pi;
-      _pi *= SWIG_MAXCASTRANK;
-      if (!_index || (_ranki < _rank)) {
-        _rank = _ranki; _index = 1;
-        if (_rank == _rankm) goto dispatch;
-      }
-    }
-  check_1:
-    
-    if (items == 2) {
-      SWIG_TypeRank _ranki = 0;
-      SWIG_TypeRank _rankm = 0;
-      SWIG_TypeRank _pi = 1;
-      int _v = 0;
-      {
-        void *vptr = 0;
-        int res = SWIG_ConvertPtr(ST(0), &vptr, SWIGTYPE_p_OGRFeatureShadow, 0);
-        _v = SWIG_CheckState(res);
-      }
-      if (!_v) goto check_2;
-      _ranki += _v*_pi;
-      _rankm += _pi;
-      _pi *= SWIG_MAXCASTRANK;
-      {
-        int res = SWIG_AsCharPtrAndSize(ST(1), 0, NULL, 0);
-        _v = SWIG_CheckState(res);
-      }
-      if (!_v) goto check_2;
-      _ranki += _v*_pi;
-      _rankm += _pi;
-      _pi *= SWIG_MAXCASTRANK;
-      if (!_index || (_ranki < _rank)) {
-        _rank = _ranki; _index = 2;
-        if (_rank == _rankm) goto dispatch;
-      }
-    }
-  check_2:
-    
-  dispatch:
-    switch(_index) {
-    case 1:
-      PUSHMARK(MARK); SWIG_CALLXS(_wrap_Feature_GetFieldDefnRef__SWIG_0); return;
-    case 2:
-      PUSHMARK(MARK); SWIG_CALLXS(_wrap_Feature_GetFieldDefnRef__SWIG_1); return;
-    }
-  }
-  
-  croak("No matching function for overloaded 'Feature_GetFieldDefnRef'");
-  XSRETURN(0);
 }
 
 
@@ -9455,7 +9123,7 @@ XS(_wrap_Feature_GetGeomFieldCount) {
 }
 
 
-XS(_wrap_Feature_GetGeomFieldDefnRef__SWIG_0) {
+XS(_wrap_Feature_GetGeomFieldDefnRef) {
   {
     OGRFeatureShadow *arg1 = (OGRFeatureShadow *) 0 ;
     int arg2 ;
@@ -9482,7 +9150,7 @@ XS(_wrap_Feature_GetGeomFieldDefnRef__SWIG_0) {
     arg2 = static_cast< int >(val2);
     {
       CPLErrorReset();
-      result = (OGRGeomFieldDefnShadow *)OGRFeatureShadow_GetGeomFieldDefnRef__SWIG_0(arg1,arg2);
+      result = (OGRGeomFieldDefnShadow *)OGRFeatureShadow_GetGeomFieldDefnRef(arg1,arg2);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
         do_confess( CPLGetLastErrorMsg(), 0 );
@@ -9516,157 +9184,7 @@ XS(_wrap_Feature_GetGeomFieldDefnRef__SWIG_0) {
 }
 
 
-XS(_wrap_Feature_GetGeomFieldDefnRef__SWIG_1) {
-  {
-    OGRFeatureShadow *arg1 = (OGRFeatureShadow *) 0 ;
-    char *arg2 = (char *) 0 ;
-    void *argp1 = 0 ;
-    int res1 = 0 ;
-    U8 *tmpbuf2 = NULL ;
-    int argvi = 0;
-    OGRGeomFieldDefnShadow *result = 0 ;
-    dXSARGS;
-    
-    if ((items < 2) || (items > 2)) {
-      SWIG_croak("Usage: Feature_GetGeomFieldDefnRef(self,name);");
-    }
-    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OGRFeatureShadow, 0 |  0 );
-    if (!SWIG_IsOK(res1)) {
-      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Feature_GetGeomFieldDefnRef" "', argument " "1"" of type '" "OGRFeatureShadow *""'"); 
-    }
-    arg1 = reinterpret_cast< OGRFeatureShadow * >(argp1);
-    {
-      /* %typemap(in,numinputs=1) (const char* name) */
-      arg2 = sv_to_utf8_string(ST(1), &tmpbuf2);
-    }
-    {
-      if (!arg2) {
-        SWIG_exception(SWIG_ValueError,"Received a NULL pointer.");
-      }
-    }
-    {
-      CPLErrorReset();
-      result = (OGRGeomFieldDefnShadow *)OGRFeatureShadow_GetGeomFieldDefnRef__SWIG_1(arg1,(char const *)arg2);
-      CPLErr eclass = CPLGetLastErrorType();
-      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        do_confess( CPLGetLastErrorMsg(), 0 );
-        
-        
-        
-        
-        
-      }
-      
-      
-      /*
-          Make warnings regular Perl warnings. This duplicates the warning
-          message if DontUseExceptions() is in effect (it is not by default).
-          */
-      if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg(), "%s" );
-      }
-      
-      
-    }
-    ST(argvi) = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_OGRGeomFieldDefnShadow, 0 | SWIG_SHADOW); argvi++ ;
-    
-    {
-      /* %typemap(freearg) (const char* name) */
-      if (tmpbuf2) free(tmpbuf2);
-    }
-    XSRETURN(argvi);
-  fail:
-    
-    {
-      /* %typemap(freearg) (const char* name) */
-      if (tmpbuf2) free(tmpbuf2);
-    }
-    SWIG_croak_null();
-  }
-}
-
-
-XS(_wrap_Feature_GetGeomFieldDefnRef) {
-  dXSARGS;
-  
-  {
-    unsigned long _index = 0;
-    SWIG_TypeRank _rank = 0; 
-    if (items == 2) {
-      SWIG_TypeRank _ranki = 0;
-      SWIG_TypeRank _rankm = 0;
-      SWIG_TypeRank _pi = 1;
-      int _v = 0;
-      {
-        void *vptr = 0;
-        int res = SWIG_ConvertPtr(ST(0), &vptr, SWIGTYPE_p_OGRFeatureShadow, 0);
-        _v = SWIG_CheckState(res);
-      }
-      if (!_v) goto check_1;
-      _ranki += _v*_pi;
-      _rankm += _pi;
-      _pi *= SWIG_MAXCASTRANK;
-      {
-        {
-          int res = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(1), NULL);
-          _v = SWIG_CheckState(res);
-        }
-      }
-      if (!_v) goto check_1;
-      _ranki += _v*_pi;
-      _rankm += _pi;
-      _pi *= SWIG_MAXCASTRANK;
-      if (!_index || (_ranki < _rank)) {
-        _rank = _ranki; _index = 1;
-        if (_rank == _rankm) goto dispatch;
-      }
-    }
-  check_1:
-    
-    if (items == 2) {
-      SWIG_TypeRank _ranki = 0;
-      SWIG_TypeRank _rankm = 0;
-      SWIG_TypeRank _pi = 1;
-      int _v = 0;
-      {
-        void *vptr = 0;
-        int res = SWIG_ConvertPtr(ST(0), &vptr, SWIGTYPE_p_OGRFeatureShadow, 0);
-        _v = SWIG_CheckState(res);
-      }
-      if (!_v) goto check_2;
-      _ranki += _v*_pi;
-      _rankm += _pi;
-      _pi *= SWIG_MAXCASTRANK;
-      {
-        int res = SWIG_AsCharPtrAndSize(ST(1), 0, NULL, 0);
-        _v = SWIG_CheckState(res);
-      }
-      if (!_v) goto check_2;
-      _ranki += _v*_pi;
-      _rankm += _pi;
-      _pi *= SWIG_MAXCASTRANK;
-      if (!_index || (_ranki < _rank)) {
-        _rank = _ranki; _index = 2;
-        if (_rank == _rankm) goto dispatch;
-      }
-    }
-  check_2:
-    
-  dispatch:
-    switch(_index) {
-    case 1:
-      PUSHMARK(MARK); SWIG_CALLXS(_wrap_Feature_GetGeomFieldDefnRef__SWIG_0); return;
-    case 2:
-      PUSHMARK(MARK); SWIG_CALLXS(_wrap_Feature_GetGeomFieldDefnRef__SWIG_1); return;
-    }
-  }
-  
-  croak("No matching function for overloaded 'Feature_GetGeomFieldDefnRef'");
-  XSRETURN(0);
-}
-
-
-XS(_wrap_Feature_GetFieldAsString__SWIG_0) {
+XS(_wrap_Feature_GetFieldAsString) {
   {
     OGRFeatureShadow *arg1 = (OGRFeatureShadow *) 0 ;
     int arg2 ;
@@ -9693,7 +9211,7 @@ XS(_wrap_Feature_GetFieldAsString__SWIG_0) {
     arg2 = static_cast< int >(val2);
     {
       CPLErrorReset();
-      result = (char *)OGRFeatureShadow_GetFieldAsString__SWIG_0(arg1,arg2);
+      result = (char *)OGRFeatureShadow_GetFieldAsString(arg1,arg2);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
         do_confess( CPLGetLastErrorMsg(), 0 );
@@ -9733,163 +9251,7 @@ XS(_wrap_Feature_GetFieldAsString__SWIG_0) {
 }
 
 
-XS(_wrap_Feature_GetFieldAsString__SWIG_1) {
-  {
-    OGRFeatureShadow *arg1 = (OGRFeatureShadow *) 0 ;
-    char *arg2 = (char *) 0 ;
-    void *argp1 = 0 ;
-    int res1 = 0 ;
-    U8 *tmpbuf2 = NULL ;
-    int argvi = 0;
-    char *result = 0 ;
-    dXSARGS;
-    
-    if ((items < 2) || (items > 2)) {
-      SWIG_croak("Usage: Feature_GetFieldAsString(self,name);");
-    }
-    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OGRFeatureShadow, 0 |  0 );
-    if (!SWIG_IsOK(res1)) {
-      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Feature_GetFieldAsString" "', argument " "1"" of type '" "OGRFeatureShadow *""'"); 
-    }
-    arg1 = reinterpret_cast< OGRFeatureShadow * >(argp1);
-    {
-      /* %typemap(in,numinputs=1) (const char* name) */
-      arg2 = sv_to_utf8_string(ST(1), &tmpbuf2);
-    }
-    {
-      if (!arg2) {
-        SWIG_exception(SWIG_ValueError,"Received a NULL pointer.");
-      }
-    }
-    {
-      CPLErrorReset();
-      result = (char *)OGRFeatureShadow_GetFieldAsString__SWIG_1(arg1,(char const *)arg2);
-      CPLErr eclass = CPLGetLastErrorType();
-      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        do_confess( CPLGetLastErrorMsg(), 0 );
-        
-        
-        
-        
-        
-      }
-      
-      
-      /*
-          Make warnings regular Perl warnings. This duplicates the warning
-          message if DontUseExceptions() is in effect (it is not by default).
-          */
-      if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg(), "%s" );
-      }
-      
-      
-    }
-    {
-      /* %typemap(out) const char * */
-      ST(argvi) = newSVpv(result, 0);
-      SvUTF8_on(ST(argvi)); /* expecting GDAL to give us UTF-8 */
-      sv_2mortal(ST(argvi));
-      argvi++;
-    }
-    
-    {
-      /* %typemap(freearg) (const char* name) */
-      if (tmpbuf2) free(tmpbuf2);
-    }
-    XSRETURN(argvi);
-  fail:
-    
-    {
-      /* %typemap(freearg) (const char* name) */
-      if (tmpbuf2) free(tmpbuf2);
-    }
-    SWIG_croak_null();
-  }
-}
-
-
-XS(_wrap_Feature_GetFieldAsString) {
-  dXSARGS;
-  
-  {
-    unsigned long _index = 0;
-    SWIG_TypeRank _rank = 0; 
-    if (items == 2) {
-      SWIG_TypeRank _ranki = 0;
-      SWIG_TypeRank _rankm = 0;
-      SWIG_TypeRank _pi = 1;
-      int _v = 0;
-      {
-        void *vptr = 0;
-        int res = SWIG_ConvertPtr(ST(0), &vptr, SWIGTYPE_p_OGRFeatureShadow, 0);
-        _v = SWIG_CheckState(res);
-      }
-      if (!_v) goto check_1;
-      _ranki += _v*_pi;
-      _rankm += _pi;
-      _pi *= SWIG_MAXCASTRANK;
-      {
-        {
-          int res = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(1), NULL);
-          _v = SWIG_CheckState(res);
-        }
-      }
-      if (!_v) goto check_1;
-      _ranki += _v*_pi;
-      _rankm += _pi;
-      _pi *= SWIG_MAXCASTRANK;
-      if (!_index || (_ranki < _rank)) {
-        _rank = _ranki; _index = 1;
-        if (_rank == _rankm) goto dispatch;
-      }
-    }
-  check_1:
-    
-    if (items == 2) {
-      SWIG_TypeRank _ranki = 0;
-      SWIG_TypeRank _rankm = 0;
-      SWIG_TypeRank _pi = 1;
-      int _v = 0;
-      {
-        void *vptr = 0;
-        int res = SWIG_ConvertPtr(ST(0), &vptr, SWIGTYPE_p_OGRFeatureShadow, 0);
-        _v = SWIG_CheckState(res);
-      }
-      if (!_v) goto check_2;
-      _ranki += _v*_pi;
-      _rankm += _pi;
-      _pi *= SWIG_MAXCASTRANK;
-      {
-        int res = SWIG_AsCharPtrAndSize(ST(1), 0, NULL, 0);
-        _v = SWIG_CheckState(res);
-      }
-      if (!_v) goto check_2;
-      _ranki += _v*_pi;
-      _rankm += _pi;
-      _pi *= SWIG_MAXCASTRANK;
-      if (!_index || (_ranki < _rank)) {
-        _rank = _ranki; _index = 2;
-        if (_rank == _rankm) goto dispatch;
-      }
-    }
-  check_2:
-    
-  dispatch:
-    switch(_index) {
-    case 1:
-      PUSHMARK(MARK); SWIG_CALLXS(_wrap_Feature_GetFieldAsString__SWIG_0); return;
-    case 2:
-      PUSHMARK(MARK); SWIG_CALLXS(_wrap_Feature_GetFieldAsString__SWIG_1); return;
-    }
-  }
-  
-  croak("No matching function for overloaded 'Feature_GetFieldAsString'");
-  XSRETURN(0);
-}
-
-
-XS(_wrap_Feature_GetFieldAsInteger__SWIG_0) {
+XS(_wrap_Feature_GetFieldAsInteger) {
   {
     OGRFeatureShadow *arg1 = (OGRFeatureShadow *) 0 ;
     int arg2 ;
@@ -9916,7 +9278,7 @@ XS(_wrap_Feature_GetFieldAsInteger__SWIG_0) {
     arg2 = static_cast< int >(val2);
     {
       CPLErrorReset();
-      result = (int)OGRFeatureShadow_GetFieldAsInteger__SWIG_0(arg1,arg2);
+      result = (int)OGRFeatureShadow_GetFieldAsInteger(arg1,arg2);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
         do_confess( CPLGetLastErrorMsg(), 0 );
@@ -9950,157 +9312,7 @@ XS(_wrap_Feature_GetFieldAsInteger__SWIG_0) {
 }
 
 
-XS(_wrap_Feature_GetFieldAsInteger__SWIG_1) {
-  {
-    OGRFeatureShadow *arg1 = (OGRFeatureShadow *) 0 ;
-    char *arg2 = (char *) 0 ;
-    void *argp1 = 0 ;
-    int res1 = 0 ;
-    U8 *tmpbuf2 = NULL ;
-    int argvi = 0;
-    int result;
-    dXSARGS;
-    
-    if ((items < 2) || (items > 2)) {
-      SWIG_croak("Usage: Feature_GetFieldAsInteger(self,name);");
-    }
-    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OGRFeatureShadow, 0 |  0 );
-    if (!SWIG_IsOK(res1)) {
-      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Feature_GetFieldAsInteger" "', argument " "1"" of type '" "OGRFeatureShadow *""'"); 
-    }
-    arg1 = reinterpret_cast< OGRFeatureShadow * >(argp1);
-    {
-      /* %typemap(in,numinputs=1) (const char* name) */
-      arg2 = sv_to_utf8_string(ST(1), &tmpbuf2);
-    }
-    {
-      if (!arg2) {
-        SWIG_exception(SWIG_ValueError,"Received a NULL pointer.");
-      }
-    }
-    {
-      CPLErrorReset();
-      result = (int)OGRFeatureShadow_GetFieldAsInteger__SWIG_1(arg1,(char const *)arg2);
-      CPLErr eclass = CPLGetLastErrorType();
-      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        do_confess( CPLGetLastErrorMsg(), 0 );
-        
-        
-        
-        
-        
-      }
-      
-      
-      /*
-          Make warnings regular Perl warnings. This duplicates the warning
-          message if DontUseExceptions() is in effect (it is not by default).
-          */
-      if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg(), "%s" );
-      }
-      
-      
-    }
-    ST(argvi) = SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(result)); argvi++ ;
-    
-    {
-      /* %typemap(freearg) (const char* name) */
-      if (tmpbuf2) free(tmpbuf2);
-    }
-    XSRETURN(argvi);
-  fail:
-    
-    {
-      /* %typemap(freearg) (const char* name) */
-      if (tmpbuf2) free(tmpbuf2);
-    }
-    SWIG_croak_null();
-  }
-}
-
-
-XS(_wrap_Feature_GetFieldAsInteger) {
-  dXSARGS;
-  
-  {
-    unsigned long _index = 0;
-    SWIG_TypeRank _rank = 0; 
-    if (items == 2) {
-      SWIG_TypeRank _ranki = 0;
-      SWIG_TypeRank _rankm = 0;
-      SWIG_TypeRank _pi = 1;
-      int _v = 0;
-      {
-        void *vptr = 0;
-        int res = SWIG_ConvertPtr(ST(0), &vptr, SWIGTYPE_p_OGRFeatureShadow, 0);
-        _v = SWIG_CheckState(res);
-      }
-      if (!_v) goto check_1;
-      _ranki += _v*_pi;
-      _rankm += _pi;
-      _pi *= SWIG_MAXCASTRANK;
-      {
-        {
-          int res = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(1), NULL);
-          _v = SWIG_CheckState(res);
-        }
-      }
-      if (!_v) goto check_1;
-      _ranki += _v*_pi;
-      _rankm += _pi;
-      _pi *= SWIG_MAXCASTRANK;
-      if (!_index || (_ranki < _rank)) {
-        _rank = _ranki; _index = 1;
-        if (_rank == _rankm) goto dispatch;
-      }
-    }
-  check_1:
-    
-    if (items == 2) {
-      SWIG_TypeRank _ranki = 0;
-      SWIG_TypeRank _rankm = 0;
-      SWIG_TypeRank _pi = 1;
-      int _v = 0;
-      {
-        void *vptr = 0;
-        int res = SWIG_ConvertPtr(ST(0), &vptr, SWIGTYPE_p_OGRFeatureShadow, 0);
-        _v = SWIG_CheckState(res);
-      }
-      if (!_v) goto check_2;
-      _ranki += _v*_pi;
-      _rankm += _pi;
-      _pi *= SWIG_MAXCASTRANK;
-      {
-        int res = SWIG_AsCharPtrAndSize(ST(1), 0, NULL, 0);
-        _v = SWIG_CheckState(res);
-      }
-      if (!_v) goto check_2;
-      _ranki += _v*_pi;
-      _rankm += _pi;
-      _pi *= SWIG_MAXCASTRANK;
-      if (!_index || (_ranki < _rank)) {
-        _rank = _ranki; _index = 2;
-        if (_rank == _rankm) goto dispatch;
-      }
-    }
-  check_2:
-    
-  dispatch:
-    switch(_index) {
-    case 1:
-      PUSHMARK(MARK); SWIG_CALLXS(_wrap_Feature_GetFieldAsInteger__SWIG_0); return;
-    case 2:
-      PUSHMARK(MARK); SWIG_CALLXS(_wrap_Feature_GetFieldAsInteger__SWIG_1); return;
-    }
-  }
-  
-  croak("No matching function for overloaded 'Feature_GetFieldAsInteger'");
-  XSRETURN(0);
-}
-
-
-XS(_wrap_Feature_GetFieldAsInteger64__SWIG_0) {
+XS(_wrap_Feature_GetFieldAsInteger64) {
   {
     OGRFeatureShadow *arg1 = (OGRFeatureShadow *) 0 ;
     int arg2 ;
@@ -10127,7 +9339,7 @@ XS(_wrap_Feature_GetFieldAsInteger64__SWIG_0) {
     arg2 = static_cast< int >(val2);
     {
       CPLErrorReset();
-      result = OGRFeatureShadow_GetFieldAsInteger64__SWIG_0(arg1,arg2);
+      result = OGRFeatureShadow_GetFieldAsInteger64(arg1,arg2);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
         do_confess( CPLGetLastErrorMsg(), 0 );
@@ -10151,7 +9363,7 @@ XS(_wrap_Feature_GetFieldAsInteger64__SWIG_0) {
     }
     {
       char temp[256];
-      sprintf(temp, ""CPL_FRMT_GIB"", result);
+      sprintf(temp, "" CPL_FRMT_GIB "", result);
       ST(argvi) = sv_2mortal(newSVpv(temp, 0));
       argvi++;
     }
@@ -10166,162 +9378,7 @@ XS(_wrap_Feature_GetFieldAsInteger64__SWIG_0) {
 }
 
 
-XS(_wrap_Feature_GetFieldAsInteger64__SWIG_1) {
-  {
-    OGRFeatureShadow *arg1 = (OGRFeatureShadow *) 0 ;
-    char *arg2 = (char *) 0 ;
-    void *argp1 = 0 ;
-    int res1 = 0 ;
-    U8 *tmpbuf2 = NULL ;
-    int argvi = 0;
-    GIntBig result;
-    dXSARGS;
-    
-    if ((items < 2) || (items > 2)) {
-      SWIG_croak("Usage: Feature_GetFieldAsInteger64(self,name);");
-    }
-    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OGRFeatureShadow, 0 |  0 );
-    if (!SWIG_IsOK(res1)) {
-      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Feature_GetFieldAsInteger64" "', argument " "1"" of type '" "OGRFeatureShadow *""'"); 
-    }
-    arg1 = reinterpret_cast< OGRFeatureShadow * >(argp1);
-    {
-      /* %typemap(in,numinputs=1) (const char* name) */
-      arg2 = sv_to_utf8_string(ST(1), &tmpbuf2);
-    }
-    {
-      if (!arg2) {
-        SWIG_exception(SWIG_ValueError,"Received a NULL pointer.");
-      }
-    }
-    {
-      CPLErrorReset();
-      result = OGRFeatureShadow_GetFieldAsInteger64__SWIG_1(arg1,(char const *)arg2);
-      CPLErr eclass = CPLGetLastErrorType();
-      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        do_confess( CPLGetLastErrorMsg(), 0 );
-        
-        
-        
-        
-        
-      }
-      
-      
-      /*
-          Make warnings regular Perl warnings. This duplicates the warning
-          message if DontUseExceptions() is in effect (it is not by default).
-          */
-      if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg(), "%s" );
-      }
-      
-      
-    }
-    {
-      char temp[256];
-      sprintf(temp, ""CPL_FRMT_GIB"", result);
-      ST(argvi) = sv_2mortal(newSVpv(temp, 0));
-      argvi++;
-    }
-    
-    {
-      /* %typemap(freearg) (const char* name) */
-      if (tmpbuf2) free(tmpbuf2);
-    }
-    XSRETURN(argvi);
-  fail:
-    
-    {
-      /* %typemap(freearg) (const char* name) */
-      if (tmpbuf2) free(tmpbuf2);
-    }
-    SWIG_croak_null();
-  }
-}
-
-
-XS(_wrap_Feature_GetFieldAsInteger64) {
-  dXSARGS;
-  
-  {
-    unsigned long _index = 0;
-    SWIG_TypeRank _rank = 0; 
-    if (items == 2) {
-      SWIG_TypeRank _ranki = 0;
-      SWIG_TypeRank _rankm = 0;
-      SWIG_TypeRank _pi = 1;
-      int _v = 0;
-      {
-        void *vptr = 0;
-        int res = SWIG_ConvertPtr(ST(0), &vptr, SWIGTYPE_p_OGRFeatureShadow, 0);
-        _v = SWIG_CheckState(res);
-      }
-      if (!_v) goto check_1;
-      _ranki += _v*_pi;
-      _rankm += _pi;
-      _pi *= SWIG_MAXCASTRANK;
-      {
-        {
-          int res = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(1), NULL);
-          _v = SWIG_CheckState(res);
-        }
-      }
-      if (!_v) goto check_1;
-      _ranki += _v*_pi;
-      _rankm += _pi;
-      _pi *= SWIG_MAXCASTRANK;
-      if (!_index || (_ranki < _rank)) {
-        _rank = _ranki; _index = 1;
-        if (_rank == _rankm) goto dispatch;
-      }
-    }
-  check_1:
-    
-    if (items == 2) {
-      SWIG_TypeRank _ranki = 0;
-      SWIG_TypeRank _rankm = 0;
-      SWIG_TypeRank _pi = 1;
-      int _v = 0;
-      {
-        void *vptr = 0;
-        int res = SWIG_ConvertPtr(ST(0), &vptr, SWIGTYPE_p_OGRFeatureShadow, 0);
-        _v = SWIG_CheckState(res);
-      }
-      if (!_v) goto check_2;
-      _ranki += _v*_pi;
-      _rankm += _pi;
-      _pi *= SWIG_MAXCASTRANK;
-      {
-        int res = SWIG_AsCharPtrAndSize(ST(1), 0, NULL, 0);
-        _v = SWIG_CheckState(res);
-      }
-      if (!_v) goto check_2;
-      _ranki += _v*_pi;
-      _rankm += _pi;
-      _pi *= SWIG_MAXCASTRANK;
-      if (!_index || (_ranki < _rank)) {
-        _rank = _ranki; _index = 2;
-        if (_rank == _rankm) goto dispatch;
-      }
-    }
-  check_2:
-    
-  dispatch:
-    switch(_index) {
-    case 1:
-      PUSHMARK(MARK); SWIG_CALLXS(_wrap_Feature_GetFieldAsInteger64__SWIG_0); return;
-    case 2:
-      PUSHMARK(MARK); SWIG_CALLXS(_wrap_Feature_GetFieldAsInteger64__SWIG_1); return;
-    }
-  }
-  
-  croak("No matching function for overloaded 'Feature_GetFieldAsInteger64'");
-  XSRETURN(0);
-}
-
-
-XS(_wrap_Feature_GetFieldAsDouble__SWIG_0) {
+XS(_wrap_Feature_GetFieldAsDouble) {
   {
     OGRFeatureShadow *arg1 = (OGRFeatureShadow *) 0 ;
     int arg2 ;
@@ -10348,7 +9405,7 @@ XS(_wrap_Feature_GetFieldAsDouble__SWIG_0) {
     arg2 = static_cast< int >(val2);
     {
       CPLErrorReset();
-      result = (double)OGRFeatureShadow_GetFieldAsDouble__SWIG_0(arg1,arg2);
+      result = (double)OGRFeatureShadow_GetFieldAsDouble(arg1,arg2);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
         do_confess( CPLGetLastErrorMsg(), 0 );
@@ -10382,157 +9439,7 @@ XS(_wrap_Feature_GetFieldAsDouble__SWIG_0) {
 }
 
 
-XS(_wrap_Feature_GetFieldAsDouble__SWIG_1) {
-  {
-    OGRFeatureShadow *arg1 = (OGRFeatureShadow *) 0 ;
-    char *arg2 = (char *) 0 ;
-    void *argp1 = 0 ;
-    int res1 = 0 ;
-    U8 *tmpbuf2 = NULL ;
-    int argvi = 0;
-    double result;
-    dXSARGS;
-    
-    if ((items < 2) || (items > 2)) {
-      SWIG_croak("Usage: Feature_GetFieldAsDouble(self,name);");
-    }
-    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OGRFeatureShadow, 0 |  0 );
-    if (!SWIG_IsOK(res1)) {
-      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Feature_GetFieldAsDouble" "', argument " "1"" of type '" "OGRFeatureShadow *""'"); 
-    }
-    arg1 = reinterpret_cast< OGRFeatureShadow * >(argp1);
-    {
-      /* %typemap(in,numinputs=1) (const char* name) */
-      arg2 = sv_to_utf8_string(ST(1), &tmpbuf2);
-    }
-    {
-      if (!arg2) {
-        SWIG_exception(SWIG_ValueError,"Received a NULL pointer.");
-      }
-    }
-    {
-      CPLErrorReset();
-      result = (double)OGRFeatureShadow_GetFieldAsDouble__SWIG_1(arg1,(char const *)arg2);
-      CPLErr eclass = CPLGetLastErrorType();
-      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        do_confess( CPLGetLastErrorMsg(), 0 );
-        
-        
-        
-        
-        
-      }
-      
-      
-      /*
-          Make warnings regular Perl warnings. This duplicates the warning
-          message if DontUseExceptions() is in effect (it is not by default).
-          */
-      if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg(), "%s" );
-      }
-      
-      
-    }
-    ST(argvi) = SWIG_From_double  SWIG_PERL_CALL_ARGS_1(static_cast< double >(result)); argvi++ ;
-    
-    {
-      /* %typemap(freearg) (const char* name) */
-      if (tmpbuf2) free(tmpbuf2);
-    }
-    XSRETURN(argvi);
-  fail:
-    
-    {
-      /* %typemap(freearg) (const char* name) */
-      if (tmpbuf2) free(tmpbuf2);
-    }
-    SWIG_croak_null();
-  }
-}
-
-
-XS(_wrap_Feature_GetFieldAsDouble) {
-  dXSARGS;
-  
-  {
-    unsigned long _index = 0;
-    SWIG_TypeRank _rank = 0; 
-    if (items == 2) {
-      SWIG_TypeRank _ranki = 0;
-      SWIG_TypeRank _rankm = 0;
-      SWIG_TypeRank _pi = 1;
-      int _v = 0;
-      {
-        void *vptr = 0;
-        int res = SWIG_ConvertPtr(ST(0), &vptr, SWIGTYPE_p_OGRFeatureShadow, 0);
-        _v = SWIG_CheckState(res);
-      }
-      if (!_v) goto check_1;
-      _ranki += _v*_pi;
-      _rankm += _pi;
-      _pi *= SWIG_MAXCASTRANK;
-      {
-        {
-          int res = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(1), NULL);
-          _v = SWIG_CheckState(res);
-        }
-      }
-      if (!_v) goto check_1;
-      _ranki += _v*_pi;
-      _rankm += _pi;
-      _pi *= SWIG_MAXCASTRANK;
-      if (!_index || (_ranki < _rank)) {
-        _rank = _ranki; _index = 1;
-        if (_rank == _rankm) goto dispatch;
-      }
-    }
-  check_1:
-    
-    if (items == 2) {
-      SWIG_TypeRank _ranki = 0;
-      SWIG_TypeRank _rankm = 0;
-      SWIG_TypeRank _pi = 1;
-      int _v = 0;
-      {
-        void *vptr = 0;
-        int res = SWIG_ConvertPtr(ST(0), &vptr, SWIGTYPE_p_OGRFeatureShadow, 0);
-        _v = SWIG_CheckState(res);
-      }
-      if (!_v) goto check_2;
-      _ranki += _v*_pi;
-      _rankm += _pi;
-      _pi *= SWIG_MAXCASTRANK;
-      {
-        int res = SWIG_AsCharPtrAndSize(ST(1), 0, NULL, 0);
-        _v = SWIG_CheckState(res);
-      }
-      if (!_v) goto check_2;
-      _ranki += _v*_pi;
-      _rankm += _pi;
-      _pi *= SWIG_MAXCASTRANK;
-      if (!_index || (_ranki < _rank)) {
-        _rank = _ranki; _index = 2;
-        if (_rank == _rankm) goto dispatch;
-      }
-    }
-  check_2:
-    
-  dispatch:
-    switch(_index) {
-    case 1:
-      PUSHMARK(MARK); SWIG_CALLXS(_wrap_Feature_GetFieldAsDouble__SWIG_0); return;
-    case 2:
-      PUSHMARK(MARK); SWIG_CALLXS(_wrap_Feature_GetFieldAsDouble__SWIG_1); return;
-    }
-  }
-  
-  croak("No matching function for overloaded 'Feature_GetFieldAsDouble'");
-  XSRETURN(0);
-}
-
-
-XS(_wrap_Feature_GetFieldAsDateTime__SWIG_0) {
+XS(_wrap_Feature_GetFieldAsDateTime) {
   {
     OGRFeatureShadow *arg1 = (OGRFeatureShadow *) 0 ;
     int arg2 ;
@@ -10586,7 +9493,7 @@ XS(_wrap_Feature_GetFieldAsDateTime__SWIG_0) {
     arg2 = static_cast< int >(val2);
     {
       CPLErrorReset();
-      OGRFeatureShadow_GetFieldAsDateTime__SWIG_0(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9);
+      OGRFeatureShadow_GetFieldAsDateTime(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
         do_confess( CPLGetLastErrorMsg(), 0 );
@@ -10678,242 +9585,7 @@ XS(_wrap_Feature_GetFieldAsDateTime__SWIG_0) {
 }
 
 
-XS(_wrap_Feature_GetFieldAsDateTime__SWIG_1) {
-  {
-    OGRFeatureShadow *arg1 = (OGRFeatureShadow *) 0 ;
-    char *arg2 = (char *) 0 ;
-    int *arg3 = (int *) 0 ;
-    int *arg4 = (int *) 0 ;
-    int *arg5 = (int *) 0 ;
-    int *arg6 = (int *) 0 ;
-    int *arg7 = (int *) 0 ;
-    float *arg8 = (float *) 0 ;
-    int *arg9 = (int *) 0 ;
-    void *argp1 = 0 ;
-    int res1 = 0 ;
-    U8 *tmpbuf2 = NULL ;
-    int temp3 ;
-    int res3 = SWIG_TMPOBJ ;
-    int temp4 ;
-    int res4 = SWIG_TMPOBJ ;
-    int temp5 ;
-    int res5 = SWIG_TMPOBJ ;
-    int temp6 ;
-    int res6 = SWIG_TMPOBJ ;
-    int temp7 ;
-    int res7 = SWIG_TMPOBJ ;
-    float temp8 ;
-    int res8 = SWIG_TMPOBJ ;
-    int temp9 ;
-    int res9 = SWIG_TMPOBJ ;
-    int argvi = 0;
-    dXSARGS;
-    
-    arg3 = &temp3;
-    arg4 = &temp4;
-    arg5 = &temp5;
-    arg6 = &temp6;
-    arg7 = &temp7;
-    arg8 = &temp8;
-    arg9 = &temp9;
-    if ((items < 2) || (items > 2)) {
-      SWIG_croak("Usage: Feature_GetFieldAsDateTime(self,name);");
-    }
-    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OGRFeatureShadow, 0 |  0 );
-    if (!SWIG_IsOK(res1)) {
-      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Feature_GetFieldAsDateTime" "', argument " "1"" of type '" "OGRFeatureShadow *""'"); 
-    }
-    arg1 = reinterpret_cast< OGRFeatureShadow * >(argp1);
-    {
-      /* %typemap(in,numinputs=1) (const char* name) */
-      arg2 = sv_to_utf8_string(ST(1), &tmpbuf2);
-    }
-    {
-      if (!arg2) {
-        SWIG_exception(SWIG_ValueError,"Received a NULL pointer.");
-      }
-    }
-    {
-      CPLErrorReset();
-      OGRFeatureShadow_GetFieldAsDateTime__SWIG_1(arg1,(char const *)arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9);
-      CPLErr eclass = CPLGetLastErrorType();
-      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        do_confess( CPLGetLastErrorMsg(), 0 );
-        
-        
-        
-        
-        
-      }
-      
-      
-      /*
-          Make warnings regular Perl warnings. This duplicates the warning
-          message if DontUseExceptions() is in effect (it is not by default).
-          */
-      if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg(), "%s" );
-      }
-      
-      
-    }
-    {
-      /* %typemap(out) void */
-    }
-    if (SWIG_IsTmpObj(res3)) {
-      if (argvi >= items) EXTEND(sp,1);  ST(argvi) = SWIG_From_int  SWIG_PERL_CALL_ARGS_1((*arg3)); argvi++  ;
-    } else {
-      int new_flags = SWIG_IsNewObj(res3) ? (SWIG_POINTER_OWN | 0) : 0;
-      if (argvi >= items) EXTEND(sp,1);  ST(argvi) = SWIG_NewPointerObj((void*)(arg3), SWIGTYPE_p_int, new_flags); argvi++  ;
-    }
-    if (SWIG_IsTmpObj(res4)) {
-      if (argvi >= items) EXTEND(sp,1);  ST(argvi) = SWIG_From_int  SWIG_PERL_CALL_ARGS_1((*arg4)); argvi++  ;
-    } else {
-      int new_flags = SWIG_IsNewObj(res4) ? (SWIG_POINTER_OWN | 0) : 0;
-      if (argvi >= items) EXTEND(sp,1);  ST(argvi) = SWIG_NewPointerObj((void*)(arg4), SWIGTYPE_p_int, new_flags); argvi++  ;
-    }
-    if (SWIG_IsTmpObj(res5)) {
-      if (argvi >= items) EXTEND(sp,1);  ST(argvi) = SWIG_From_int  SWIG_PERL_CALL_ARGS_1((*arg5)); argvi++  ;
-    } else {
-      int new_flags = SWIG_IsNewObj(res5) ? (SWIG_POINTER_OWN | 0) : 0;
-      if (argvi >= items) EXTEND(sp,1);  ST(argvi) = SWIG_NewPointerObj((void*)(arg5), SWIGTYPE_p_int, new_flags); argvi++  ;
-    }
-    if (SWIG_IsTmpObj(res6)) {
-      if (argvi >= items) EXTEND(sp,1);  ST(argvi) = SWIG_From_int  SWIG_PERL_CALL_ARGS_1((*arg6)); argvi++  ;
-    } else {
-      int new_flags = SWIG_IsNewObj(res6) ? (SWIG_POINTER_OWN | 0) : 0;
-      if (argvi >= items) EXTEND(sp,1);  ST(argvi) = SWIG_NewPointerObj((void*)(arg6), SWIGTYPE_p_int, new_flags); argvi++  ;
-    }
-    if (SWIG_IsTmpObj(res7)) {
-      if (argvi >= items) EXTEND(sp,1);  ST(argvi) = SWIG_From_int  SWIG_PERL_CALL_ARGS_1((*arg7)); argvi++  ;
-    } else {
-      int new_flags = SWIG_IsNewObj(res7) ? (SWIG_POINTER_OWN | 0) : 0;
-      if (argvi >= items) EXTEND(sp,1);  ST(argvi) = SWIG_NewPointerObj((void*)(arg7), SWIGTYPE_p_int, new_flags); argvi++  ;
-    }
-    if (SWIG_IsTmpObj(res8)) {
-      if (argvi >= items) EXTEND(sp,1);  ST(argvi) = SWIG_From_float  SWIG_PERL_CALL_ARGS_1((*arg8)); argvi++  ;
-    } else {
-      int new_flags = SWIG_IsNewObj(res8) ? (SWIG_POINTER_OWN | 0) : 0;
-      if (argvi >= items) EXTEND(sp,1);  ST(argvi) = SWIG_NewPointerObj((void*)(arg8), SWIGTYPE_p_float, new_flags); argvi++  ;
-    }
-    if (SWIG_IsTmpObj(res9)) {
-      if (argvi >= items) EXTEND(sp,1);  ST(argvi) = SWIG_From_int  SWIG_PERL_CALL_ARGS_1((*arg9)); argvi++  ;
-    } else {
-      int new_flags = SWIG_IsNewObj(res9) ? (SWIG_POINTER_OWN | 0) : 0;
-      if (argvi >= items) EXTEND(sp,1);  ST(argvi) = SWIG_NewPointerObj((void*)(arg9), SWIGTYPE_p_int, new_flags); argvi++  ;
-    }
-    
-    {
-      /* %typemap(freearg) (const char* name) */
-      if (tmpbuf2) free(tmpbuf2);
-    }
-    
-    
-    
-    
-    
-    
-    
-    XSRETURN(argvi);
-  fail:
-    
-    {
-      /* %typemap(freearg) (const char* name) */
-      if (tmpbuf2) free(tmpbuf2);
-    }
-    
-    
-    
-    
-    
-    
-    
-    SWIG_croak_null();
-  }
-}
-
-
-XS(_wrap_Feature_GetFieldAsDateTime) {
-  dXSARGS;
-  
-  {
-    unsigned long _index = 0;
-    SWIG_TypeRank _rank = 0; 
-    if (items == 2) {
-      SWIG_TypeRank _ranki = 0;
-      SWIG_TypeRank _rankm = 0;
-      SWIG_TypeRank _pi = 1;
-      int _v = 0;
-      {
-        void *vptr = 0;
-        int res = SWIG_ConvertPtr(ST(0), &vptr, SWIGTYPE_p_OGRFeatureShadow, 0);
-        _v = SWIG_CheckState(res);
-      }
-      if (!_v) goto check_1;
-      _ranki += _v*_pi;
-      _rankm += _pi;
-      _pi *= SWIG_MAXCASTRANK;
-      {
-        {
-          int res = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(1), NULL);
-          _v = SWIG_CheckState(res);
-        }
-      }
-      if (!_v) goto check_1;
-      _ranki += _v*_pi;
-      _rankm += _pi;
-      _pi *= SWIG_MAXCASTRANK;
-      if (!_index || (_ranki < _rank)) {
-        _rank = _ranki; _index = 1;
-        if (_rank == _rankm) goto dispatch;
-      }
-    }
-  check_1:
-    
-    if (items == 2) {
-      SWIG_TypeRank _ranki = 0;
-      SWIG_TypeRank _rankm = 0;
-      SWIG_TypeRank _pi = 1;
-      int _v = 0;
-      {
-        void *vptr = 0;
-        int res = SWIG_ConvertPtr(ST(0), &vptr, SWIGTYPE_p_OGRFeatureShadow, 0);
-        _v = SWIG_CheckState(res);
-      }
-      if (!_v) goto check_2;
-      _ranki += _v*_pi;
-      _rankm += _pi;
-      _pi *= SWIG_MAXCASTRANK;
-      {
-        int res = SWIG_AsCharPtrAndSize(ST(1), 0, NULL, 0);
-        _v = SWIG_CheckState(res);
-      }
-      if (!_v) goto check_2;
-      _ranki += _v*_pi;
-      _rankm += _pi;
-      _pi *= SWIG_MAXCASTRANK;
-      if (!_index || (_ranki < _rank)) {
-        _rank = _ranki; _index = 2;
-        if (_rank == _rankm) goto dispatch;
-      }
-    }
-  check_2:
-    
-  dispatch:
-    switch(_index) {
-    case 1:
-      PUSHMARK(MARK); SWIG_CALLXS(_wrap_Feature_GetFieldAsDateTime__SWIG_0); return;
-    case 2:
-      PUSHMARK(MARK); SWIG_CALLXS(_wrap_Feature_GetFieldAsDateTime__SWIG_1); return;
-    }
-  }
-  
-  croak("No matching function for overloaded 'Feature_GetFieldAsDateTime'");
-  XSRETURN(0);
-}
-
-
-XS(_wrap_Feature_GetFieldAsIntegerList__SWIG_0) {
+XS(_wrap_Feature_GetFieldAsIntegerList) {
   {
     OGRFeatureShadow *arg1 = (OGRFeatureShadow *) 0 ;
     int arg2 ;
@@ -10948,7 +9620,7 @@ XS(_wrap_Feature_GetFieldAsIntegerList__SWIG_0) {
     arg2 = static_cast< int >(val2);
     {
       CPLErrorReset();
-      OGRFeatureShadow_GetFieldAsIntegerList__SWIG_0(arg1,arg2,arg3,(int const **)arg4);
+      OGRFeatureShadow_GetFieldAsIntegerList(arg1,arg2,arg3,(int const **)arg4);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
         do_confess( CPLGetLastErrorMsg(), 0 );
@@ -10989,172 +9661,7 @@ XS(_wrap_Feature_GetFieldAsIntegerList__SWIG_0) {
 }
 
 
-XS(_wrap_Feature_GetFieldAsIntegerList__SWIG_1) {
-  {
-    OGRFeatureShadow *arg1 = (OGRFeatureShadow *) 0 ;
-    char *arg2 = (char *) 0 ;
-    int *arg3 = (int *) 0 ;
-    int **arg4 = (int **) 0 ;
-    void *argp1 = 0 ;
-    int res1 = 0 ;
-    U8 *tmpbuf2 = NULL ;
-    int nLen3 ;
-    int *pList3 ;
-    int argvi = 0;
-    dXSARGS;
-    
-    {
-      /* %typemap(in,numinputs=0) (int *nLen3, const int **pList3) */
-      arg3 = &nLen3;
-      arg4 = &pList3;
-    }
-    if ((items < 2) || (items > 2)) {
-      SWIG_croak("Usage: Feature_GetFieldAsIntegerList(self,name,pList);");
-    }
-    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OGRFeatureShadow, 0 |  0 );
-    if (!SWIG_IsOK(res1)) {
-      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Feature_GetFieldAsIntegerList" "', argument " "1"" of type '" "OGRFeatureShadow *""'"); 
-    }
-    arg1 = reinterpret_cast< OGRFeatureShadow * >(argp1);
-    {
-      /* %typemap(in,numinputs=1) (const char* name) */
-      arg2 = sv_to_utf8_string(ST(1), &tmpbuf2);
-    }
-    {
-      if (!arg2) {
-        SWIG_exception(SWIG_ValueError,"Received a NULL pointer.");
-      }
-    }
-    {
-      CPLErrorReset();
-      OGRFeatureShadow_GetFieldAsIntegerList__SWIG_1(arg1,(char const *)arg2,arg3,(int const **)arg4);
-      CPLErr eclass = CPLGetLastErrorType();
-      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        do_confess( CPLGetLastErrorMsg(), 0 );
-        
-        
-        
-        
-        
-      }
-      
-      
-      /*
-          Make warnings regular Perl warnings. This duplicates the warning
-          message if DontUseExceptions() is in effect (it is not by default).
-          */
-      if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg(), "%s" );
-      }
-      
-      
-    }
-    {
-      /* %typemap(out) void */
-    }
-    {
-      /* %typemap(argout) (int *nLen, const int **pList) */
-      ST(argvi) = CreateArrayFromIntArray( *(arg4), *(arg3) );
-      argvi++;
-    }
-    
-    {
-      /* %typemap(freearg) (const char* name) */
-      if (tmpbuf2) free(tmpbuf2);
-    }
-    XSRETURN(argvi);
-  fail:
-    
-    {
-      /* %typemap(freearg) (const char* name) */
-      if (tmpbuf2) free(tmpbuf2);
-    }
-    SWIG_croak_null();
-  }
-}
-
-
-XS(_wrap_Feature_GetFieldAsIntegerList) {
-  dXSARGS;
-  
-  {
-    unsigned long _index = 0;
-    SWIG_TypeRank _rank = 0; 
-    if (items == 2) {
-      SWIG_TypeRank _ranki = 0;
-      SWIG_TypeRank _rankm = 0;
-      SWIG_TypeRank _pi = 1;
-      int _v = 0;
-      {
-        void *vptr = 0;
-        int res = SWIG_ConvertPtr(ST(0), &vptr, SWIGTYPE_p_OGRFeatureShadow, 0);
-        _v = SWIG_CheckState(res);
-      }
-      if (!_v) goto check_1;
-      _ranki += _v*_pi;
-      _rankm += _pi;
-      _pi *= SWIG_MAXCASTRANK;
-      {
-        {
-          int res = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(1), NULL);
-          _v = SWIG_CheckState(res);
-        }
-      }
-      if (!_v) goto check_1;
-      _ranki += _v*_pi;
-      _rankm += _pi;
-      _pi *= SWIG_MAXCASTRANK;
-      if (!_index || (_ranki < _rank)) {
-        _rank = _ranki; _index = 1;
-        if (_rank == _rankm) goto dispatch;
-      }
-    }
-  check_1:
-    
-    if (items == 2) {
-      SWIG_TypeRank _ranki = 0;
-      SWIG_TypeRank _rankm = 0;
-      SWIG_TypeRank _pi = 1;
-      int _v = 0;
-      {
-        void *vptr = 0;
-        int res = SWIG_ConvertPtr(ST(0), &vptr, SWIGTYPE_p_OGRFeatureShadow, 0);
-        _v = SWIG_CheckState(res);
-      }
-      if (!_v) goto check_2;
-      _ranki += _v*_pi;
-      _rankm += _pi;
-      _pi *= SWIG_MAXCASTRANK;
-      {
-        int res = SWIG_AsCharPtrAndSize(ST(1), 0, NULL, 0);
-        _v = SWIG_CheckState(res);
-      }
-      if (!_v) goto check_2;
-      _ranki += _v*_pi;
-      _rankm += _pi;
-      _pi *= SWIG_MAXCASTRANK;
-      if (!_index || (_ranki < _rank)) {
-        _rank = _ranki; _index = 2;
-        if (_rank == _rankm) goto dispatch;
-      }
-    }
-  check_2:
-    
-  dispatch:
-    switch(_index) {
-    case 1:
-      PUSHMARK(MARK); SWIG_CALLXS(_wrap_Feature_GetFieldAsIntegerList__SWIG_0); return;
-    case 2:
-      PUSHMARK(MARK); SWIG_CALLXS(_wrap_Feature_GetFieldAsIntegerList__SWIG_1); return;
-    }
-  }
-  
-  croak("No matching function for overloaded 'Feature_GetFieldAsIntegerList'");
-  XSRETURN(0);
-}
-
-
-XS(_wrap_Feature_GetFieldAsInteger64List__SWIG_0) {
+XS(_wrap_Feature_GetFieldAsInteger64List) {
   {
     OGRFeatureShadow *arg1 = (OGRFeatureShadow *) 0 ;
     int arg2 ;
@@ -11189,7 +9696,7 @@ XS(_wrap_Feature_GetFieldAsInteger64List__SWIG_0) {
     arg2 = static_cast< int >(val2);
     {
       CPLErrorReset();
-      OGRFeatureShadow_GetFieldAsInteger64List__SWIG_0(arg1,arg2,arg3,(GIntBig const **)arg4);
+      OGRFeatureShadow_GetFieldAsInteger64List(arg1,arg2,arg3,(GIntBig const **)arg4);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
         do_confess( CPLGetLastErrorMsg(), 0 );
@@ -11230,172 +9737,7 @@ XS(_wrap_Feature_GetFieldAsInteger64List__SWIG_0) {
 }
 
 
-XS(_wrap_Feature_GetFieldAsInteger64List__SWIG_1) {
-  {
-    OGRFeatureShadow *arg1 = (OGRFeatureShadow *) 0 ;
-    char *arg2 = (char *) 0 ;
-    int *arg3 = (int *) 0 ;
-    GIntBig **arg4 = (GIntBig **) 0 ;
-    void *argp1 = 0 ;
-    int res1 = 0 ;
-    U8 *tmpbuf2 = NULL ;
-    int nLen3 ;
-    GIntBig *pList3 ;
-    int argvi = 0;
-    dXSARGS;
-    
-    {
-      /* %typemap(in,numinputs=0) (int *nLen3, const GIntBig **pList3) */
-      arg3 = &nLen3;
-      arg4 = &pList3;
-    }
-    if ((items < 2) || (items > 2)) {
-      SWIG_croak("Usage: Feature_GetFieldAsInteger64List(self,name,pList);");
-    }
-    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OGRFeatureShadow, 0 |  0 );
-    if (!SWIG_IsOK(res1)) {
-      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Feature_GetFieldAsInteger64List" "', argument " "1"" of type '" "OGRFeatureShadow *""'"); 
-    }
-    arg1 = reinterpret_cast< OGRFeatureShadow * >(argp1);
-    {
-      /* %typemap(in,numinputs=1) (const char* name) */
-      arg2 = sv_to_utf8_string(ST(1), &tmpbuf2);
-    }
-    {
-      if (!arg2) {
-        SWIG_exception(SWIG_ValueError,"Received a NULL pointer.");
-      }
-    }
-    {
-      CPLErrorReset();
-      OGRFeatureShadow_GetFieldAsInteger64List__SWIG_1(arg1,(char const *)arg2,arg3,(GIntBig const **)arg4);
-      CPLErr eclass = CPLGetLastErrorType();
-      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        do_confess( CPLGetLastErrorMsg(), 0 );
-        
-        
-        
-        
-        
-      }
-      
-      
-      /*
-          Make warnings regular Perl warnings. This duplicates the warning
-          message if DontUseExceptions() is in effect (it is not by default).
-          */
-      if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg(), "%s" );
-      }
-      
-      
-    }
-    {
-      /* %typemap(out) void */
-    }
-    {
-      /* %typemap(argout) (int *nLen, const GIntBig **pList) */
-      ST(argvi) = CreateArrayFromGIntBigArray( *(arg4), *(arg3) );
-      argvi++;
-    }
-    
-    {
-      /* %typemap(freearg) (const char* name) */
-      if (tmpbuf2) free(tmpbuf2);
-    }
-    XSRETURN(argvi);
-  fail:
-    
-    {
-      /* %typemap(freearg) (const char* name) */
-      if (tmpbuf2) free(tmpbuf2);
-    }
-    SWIG_croak_null();
-  }
-}
-
-
-XS(_wrap_Feature_GetFieldAsInteger64List) {
-  dXSARGS;
-  
-  {
-    unsigned long _index = 0;
-    SWIG_TypeRank _rank = 0; 
-    if (items == 2) {
-      SWIG_TypeRank _ranki = 0;
-      SWIG_TypeRank _rankm = 0;
-      SWIG_TypeRank _pi = 1;
-      int _v = 0;
-      {
-        void *vptr = 0;
-        int res = SWIG_ConvertPtr(ST(0), &vptr, SWIGTYPE_p_OGRFeatureShadow, 0);
-        _v = SWIG_CheckState(res);
-      }
-      if (!_v) goto check_1;
-      _ranki += _v*_pi;
-      _rankm += _pi;
-      _pi *= SWIG_MAXCASTRANK;
-      {
-        {
-          int res = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(1), NULL);
-          _v = SWIG_CheckState(res);
-        }
-      }
-      if (!_v) goto check_1;
-      _ranki += _v*_pi;
-      _rankm += _pi;
-      _pi *= SWIG_MAXCASTRANK;
-      if (!_index || (_ranki < _rank)) {
-        _rank = _ranki; _index = 1;
-        if (_rank == _rankm) goto dispatch;
-      }
-    }
-  check_1:
-    
-    if (items == 2) {
-      SWIG_TypeRank _ranki = 0;
-      SWIG_TypeRank _rankm = 0;
-      SWIG_TypeRank _pi = 1;
-      int _v = 0;
-      {
-        void *vptr = 0;
-        int res = SWIG_ConvertPtr(ST(0), &vptr, SWIGTYPE_p_OGRFeatureShadow, 0);
-        _v = SWIG_CheckState(res);
-      }
-      if (!_v) goto check_2;
-      _ranki += _v*_pi;
-      _rankm += _pi;
-      _pi *= SWIG_MAXCASTRANK;
-      {
-        int res = SWIG_AsCharPtrAndSize(ST(1), 0, NULL, 0);
-        _v = SWIG_CheckState(res);
-      }
-      if (!_v) goto check_2;
-      _ranki += _v*_pi;
-      _rankm += _pi;
-      _pi *= SWIG_MAXCASTRANK;
-      if (!_index || (_ranki < _rank)) {
-        _rank = _ranki; _index = 2;
-        if (_rank == _rankm) goto dispatch;
-      }
-    }
-  check_2:
-    
-  dispatch:
-    switch(_index) {
-    case 1:
-      PUSHMARK(MARK); SWIG_CALLXS(_wrap_Feature_GetFieldAsInteger64List__SWIG_0); return;
-    case 2:
-      PUSHMARK(MARK); SWIG_CALLXS(_wrap_Feature_GetFieldAsInteger64List__SWIG_1); return;
-    }
-  }
-  
-  croak("No matching function for overloaded 'Feature_GetFieldAsInteger64List'");
-  XSRETURN(0);
-}
-
-
-XS(_wrap_Feature_GetFieldAsDoubleList__SWIG_0) {
+XS(_wrap_Feature_GetFieldAsDoubleList) {
   {
     OGRFeatureShadow *arg1 = (OGRFeatureShadow *) 0 ;
     int arg2 ;
@@ -11430,7 +9772,7 @@ XS(_wrap_Feature_GetFieldAsDoubleList__SWIG_0) {
     arg2 = static_cast< int >(val2);
     {
       CPLErrorReset();
-      OGRFeatureShadow_GetFieldAsDoubleList__SWIG_0(arg1,arg2,arg3,(double const **)arg4);
+      OGRFeatureShadow_GetFieldAsDoubleList(arg1,arg2,arg3,(double const **)arg4);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
         do_confess( CPLGetLastErrorMsg(), 0 );
@@ -11471,172 +9813,7 @@ XS(_wrap_Feature_GetFieldAsDoubleList__SWIG_0) {
 }
 
 
-XS(_wrap_Feature_GetFieldAsDoubleList__SWIG_1) {
-  {
-    OGRFeatureShadow *arg1 = (OGRFeatureShadow *) 0 ;
-    char *arg2 = (char *) 0 ;
-    int *arg3 = (int *) 0 ;
-    double **arg4 = (double **) 0 ;
-    void *argp1 = 0 ;
-    int res1 = 0 ;
-    U8 *tmpbuf2 = NULL ;
-    int nLen3 ;
-    double *pList3 ;
-    int argvi = 0;
-    dXSARGS;
-    
-    {
-      /* %typemap(in,numinputs=0) (int *nLen3, const double **pList3) */
-      arg3 = &nLen3;
-      arg4 = &pList3;
-    }
-    if ((items < 2) || (items > 2)) {
-      SWIG_croak("Usage: Feature_GetFieldAsDoubleList(self,name,pList);");
-    }
-    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OGRFeatureShadow, 0 |  0 );
-    if (!SWIG_IsOK(res1)) {
-      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Feature_GetFieldAsDoubleList" "', argument " "1"" of type '" "OGRFeatureShadow *""'"); 
-    }
-    arg1 = reinterpret_cast< OGRFeatureShadow * >(argp1);
-    {
-      /* %typemap(in,numinputs=1) (const char* name) */
-      arg2 = sv_to_utf8_string(ST(1), &tmpbuf2);
-    }
-    {
-      if (!arg2) {
-        SWIG_exception(SWIG_ValueError,"Received a NULL pointer.");
-      }
-    }
-    {
-      CPLErrorReset();
-      OGRFeatureShadow_GetFieldAsDoubleList__SWIG_1(arg1,(char const *)arg2,arg3,(double const **)arg4);
-      CPLErr eclass = CPLGetLastErrorType();
-      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        do_confess( CPLGetLastErrorMsg(), 0 );
-        
-        
-        
-        
-        
-      }
-      
-      
-      /*
-          Make warnings regular Perl warnings. This duplicates the warning
-          message if DontUseExceptions() is in effect (it is not by default).
-          */
-      if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg(), "%s" );
-      }
-      
-      
-    }
-    {
-      /* %typemap(out) void */
-    }
-    {
-      /* %typemap(argout) (int *nLen, const double **pList) */
-      ST(argvi) = CreateArrayFromDoubleArray( *(arg4), *(arg3) );
-      argvi++;
-    }
-    
-    {
-      /* %typemap(freearg) (const char* name) */
-      if (tmpbuf2) free(tmpbuf2);
-    }
-    XSRETURN(argvi);
-  fail:
-    
-    {
-      /* %typemap(freearg) (const char* name) */
-      if (tmpbuf2) free(tmpbuf2);
-    }
-    SWIG_croak_null();
-  }
-}
-
-
-XS(_wrap_Feature_GetFieldAsDoubleList) {
-  dXSARGS;
-  
-  {
-    unsigned long _index = 0;
-    SWIG_TypeRank _rank = 0; 
-    if (items == 2) {
-      SWIG_TypeRank _ranki = 0;
-      SWIG_TypeRank _rankm = 0;
-      SWIG_TypeRank _pi = 1;
-      int _v = 0;
-      {
-        void *vptr = 0;
-        int res = SWIG_ConvertPtr(ST(0), &vptr, SWIGTYPE_p_OGRFeatureShadow, 0);
-        _v = SWIG_CheckState(res);
-      }
-      if (!_v) goto check_1;
-      _ranki += _v*_pi;
-      _rankm += _pi;
-      _pi *= SWIG_MAXCASTRANK;
-      {
-        {
-          int res = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(1), NULL);
-          _v = SWIG_CheckState(res);
-        }
-      }
-      if (!_v) goto check_1;
-      _ranki += _v*_pi;
-      _rankm += _pi;
-      _pi *= SWIG_MAXCASTRANK;
-      if (!_index || (_ranki < _rank)) {
-        _rank = _ranki; _index = 1;
-        if (_rank == _rankm) goto dispatch;
-      }
-    }
-  check_1:
-    
-    if (items == 2) {
-      SWIG_TypeRank _ranki = 0;
-      SWIG_TypeRank _rankm = 0;
-      SWIG_TypeRank _pi = 1;
-      int _v = 0;
-      {
-        void *vptr = 0;
-        int res = SWIG_ConvertPtr(ST(0), &vptr, SWIGTYPE_p_OGRFeatureShadow, 0);
-        _v = SWIG_CheckState(res);
-      }
-      if (!_v) goto check_2;
-      _ranki += _v*_pi;
-      _rankm += _pi;
-      _pi *= SWIG_MAXCASTRANK;
-      {
-        int res = SWIG_AsCharPtrAndSize(ST(1), 0, NULL, 0);
-        _v = SWIG_CheckState(res);
-      }
-      if (!_v) goto check_2;
-      _ranki += _v*_pi;
-      _rankm += _pi;
-      _pi *= SWIG_MAXCASTRANK;
-      if (!_index || (_ranki < _rank)) {
-        _rank = _ranki; _index = 2;
-        if (_rank == _rankm) goto dispatch;
-      }
-    }
-  check_2:
-    
-  dispatch:
-    switch(_index) {
-    case 1:
-      PUSHMARK(MARK); SWIG_CALLXS(_wrap_Feature_GetFieldAsDoubleList__SWIG_0); return;
-    case 2:
-      PUSHMARK(MARK); SWIG_CALLXS(_wrap_Feature_GetFieldAsDoubleList__SWIG_1); return;
-    }
-  }
-  
-  croak("No matching function for overloaded 'Feature_GetFieldAsDoubleList'");
-  XSRETURN(0);
-}
-
-
-XS(_wrap_Feature_GetFieldAsStringList__SWIG_0) {
+XS(_wrap_Feature_GetFieldAsStringList) {
   {
     OGRFeatureShadow *arg1 = (OGRFeatureShadow *) 0 ;
     int arg2 ;
@@ -11668,7 +9845,7 @@ XS(_wrap_Feature_GetFieldAsStringList__SWIG_0) {
     arg2 = static_cast< int >(val2);
     {
       CPLErrorReset();
-      OGRFeatureShadow_GetFieldAsStringList__SWIG_0(arg1,arg2,arg3);
+      OGRFeatureShadow_GetFieldAsStringList(arg1,arg2,arg3);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
         do_confess( CPLGetLastErrorMsg(), 0 );
@@ -11711,171 +9888,7 @@ XS(_wrap_Feature_GetFieldAsStringList__SWIG_0) {
 }
 
 
-XS(_wrap_Feature_GetFieldAsStringList__SWIG_1) {
-  {
-    OGRFeatureShadow *arg1 = (OGRFeatureShadow *) 0 ;
-    char *arg2 = (char *) 0 ;
-    char ***arg3 = (char ***) 0 ;
-    void *argp1 = 0 ;
-    int res1 = 0 ;
-    U8 *tmpbuf2 = NULL ;
-    char **pList3 ;
-    int argvi = 0;
-    dXSARGS;
-    
-    {
-      /* %typemap(in,numinputs=0) (char ***pList3) */
-      arg3 = &pList3;
-    }
-    if ((items < 2) || (items > 2)) {
-      SWIG_croak("Usage: Feature_GetFieldAsStringList(self,name);");
-    }
-    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OGRFeatureShadow, 0 |  0 );
-    if (!SWIG_IsOK(res1)) {
-      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Feature_GetFieldAsStringList" "', argument " "1"" of type '" "OGRFeatureShadow *""'"); 
-    }
-    arg1 = reinterpret_cast< OGRFeatureShadow * >(argp1);
-    {
-      /* %typemap(in,numinputs=1) (const char* name) */
-      arg2 = sv_to_utf8_string(ST(1), &tmpbuf2);
-    }
-    {
-      if (!arg2) {
-        SWIG_exception(SWIG_ValueError,"Received a NULL pointer.");
-      }
-    }
-    {
-      CPLErrorReset();
-      OGRFeatureShadow_GetFieldAsStringList__SWIG_1(arg1,(char const *)arg2,arg3);
-      CPLErr eclass = CPLGetLastErrorType();
-      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        do_confess( CPLGetLastErrorMsg(), 0 );
-        
-        
-        
-        
-        
-      }
-      
-      
-      /*
-          Make warnings regular Perl warnings. This duplicates the warning
-          message if DontUseExceptions() is in effect (it is not by default).
-          */
-      if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg(), "%s" );
-      }
-      
-      
-    }
-    {
-      /* %typemap(out) void */
-    }
-    {
-      /* %typemap(argout) (char ***pList) */
-      ST(argvi) = CreateArrayFromStringArray( *(arg3) );
-      argvi++;
-    }
-    
-    {
-      /* %typemap(freearg) (const char* name) */
-      if (tmpbuf2) free(tmpbuf2);
-    }
-    
-    XSRETURN(argvi);
-  fail:
-    
-    {
-      /* %typemap(freearg) (const char* name) */
-      if (tmpbuf2) free(tmpbuf2);
-    }
-    
-    SWIG_croak_null();
-  }
-}
-
-
-XS(_wrap_Feature_GetFieldAsStringList) {
-  dXSARGS;
-  
-  {
-    unsigned long _index = 0;
-    SWIG_TypeRank _rank = 0; 
-    if (items == 2) {
-      SWIG_TypeRank _ranki = 0;
-      SWIG_TypeRank _rankm = 0;
-      SWIG_TypeRank _pi = 1;
-      int _v = 0;
-      {
-        void *vptr = 0;
-        int res = SWIG_ConvertPtr(ST(0), &vptr, SWIGTYPE_p_OGRFeatureShadow, 0);
-        _v = SWIG_CheckState(res);
-      }
-      if (!_v) goto check_1;
-      _ranki += _v*_pi;
-      _rankm += _pi;
-      _pi *= SWIG_MAXCASTRANK;
-      {
-        {
-          int res = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(1), NULL);
-          _v = SWIG_CheckState(res);
-        }
-      }
-      if (!_v) goto check_1;
-      _ranki += _v*_pi;
-      _rankm += _pi;
-      _pi *= SWIG_MAXCASTRANK;
-      if (!_index || (_ranki < _rank)) {
-        _rank = _ranki; _index = 1;
-        if (_rank == _rankm) goto dispatch;
-      }
-    }
-  check_1:
-    
-    if (items == 2) {
-      SWIG_TypeRank _ranki = 0;
-      SWIG_TypeRank _rankm = 0;
-      SWIG_TypeRank _pi = 1;
-      int _v = 0;
-      {
-        void *vptr = 0;
-        int res = SWIG_ConvertPtr(ST(0), &vptr, SWIGTYPE_p_OGRFeatureShadow, 0);
-        _v = SWIG_CheckState(res);
-      }
-      if (!_v) goto check_2;
-      _ranki += _v*_pi;
-      _rankm += _pi;
-      _pi *= SWIG_MAXCASTRANK;
-      {
-        int res = SWIG_AsCharPtrAndSize(ST(1), 0, NULL, 0);
-        _v = SWIG_CheckState(res);
-      }
-      if (!_v) goto check_2;
-      _ranki += _v*_pi;
-      _rankm += _pi;
-      _pi *= SWIG_MAXCASTRANK;
-      if (!_index || (_ranki < _rank)) {
-        _rank = _ranki; _index = 2;
-        if (_rank == _rankm) goto dispatch;
-      }
-    }
-  check_2:
-    
-  dispatch:
-    switch(_index) {
-    case 1:
-      PUSHMARK(MARK); SWIG_CALLXS(_wrap_Feature_GetFieldAsStringList__SWIG_0); return;
-    case 2:
-      PUSHMARK(MARK); SWIG_CALLXS(_wrap_Feature_GetFieldAsStringList__SWIG_1); return;
-    }
-  }
-  
-  croak("No matching function for overloaded 'Feature_GetFieldAsStringList'");
-  XSRETURN(0);
-}
-
-
-XS(_wrap_Feature_GetFieldAsBinary__SWIG_0) {
+XS(_wrap_Feature_GetFieldAsBinary) {
   {
     OGRFeatureShadow *arg1 = (OGRFeatureShadow *) 0 ;
     int arg2 ;
@@ -11911,7 +9924,7 @@ XS(_wrap_Feature_GetFieldAsBinary__SWIG_0) {
     arg2 = static_cast< int >(val2);
     {
       CPLErrorReset();
-      result = (OGRErr)OGRFeatureShadow_GetFieldAsBinary__SWIG_0(arg1,arg2,arg3,arg4);
+      result = (OGRErr)OGRFeatureShadow_GetFieldAsBinary(arg1,arg2,arg3,arg4);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
         do_confess( CPLGetLastErrorMsg(), 0 );
@@ -11969,190 +9982,7 @@ XS(_wrap_Feature_GetFieldAsBinary__SWIG_0) {
 }
 
 
-XS(_wrap_Feature_GetFieldAsBinary__SWIG_1) {
-  {
-    OGRFeatureShadow *arg1 = (OGRFeatureShadow *) 0 ;
-    char *arg2 = (char *) 0 ;
-    int *arg3 = (int *) 0 ;
-    char **arg4 = (char **) 0 ;
-    void *argp1 = 0 ;
-    int res1 = 0 ;
-    U8 *tmpbuf2 = NULL ;
-    int nLen3 = 0 ;
-    char *pBuf3 = 0 ;
-    int argvi = 0;
-    OGRErr result;
-    dXSARGS;
-    
-    {
-      /* %typemap(in,numinputs=0) (int *nLen3, char **pBuf3 ) */
-      arg3 = &nLen3;
-      arg4 = &pBuf3;
-    }
-    if ((items < 2) || (items > 2)) {
-      SWIG_croak("Usage: Feature_GetFieldAsBinary(self,name,pBuf);");
-    }
-    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OGRFeatureShadow, 0 |  0 );
-    if (!SWIG_IsOK(res1)) {
-      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Feature_GetFieldAsBinary" "', argument " "1"" of type '" "OGRFeatureShadow *""'"); 
-    }
-    arg1 = reinterpret_cast< OGRFeatureShadow * >(argp1);
-    {
-      /* %typemap(in,numinputs=1) (const char* name) */
-      arg2 = sv_to_utf8_string(ST(1), &tmpbuf2);
-    }
-    {
-      if (!arg2) {
-        SWIG_exception(SWIG_ValueError,"Received a NULL pointer.");
-      }
-    }
-    {
-      CPLErrorReset();
-      result = (OGRErr)OGRFeatureShadow_GetFieldAsBinary__SWIG_1(arg1,(char const *)arg2,arg3,arg4);
-      CPLErr eclass = CPLGetLastErrorType();
-      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        do_confess( CPLGetLastErrorMsg(), 0 );
-        
-        
-        
-        
-        
-      }
-      
-      
-      /*
-          Make warnings regular Perl warnings. This duplicates the warning
-          message if DontUseExceptions() is in effect (it is not by default).
-          */
-      if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg(), "%s" );
-      }
-      
-      
-    }
-    {
-      /* %typemap(out) OGRErr */
-      if ( result != 0 ) {
-        const char *err = CPLGetLastErrorMsg();
-        if (err and *err) do_confess(err, 0); /* this is usually better */
-        do_confess( OGRErrMessages(result), 1 );
-      }
-    }
-    {
-      /* %typemap(argout) (int *nLen, char **pBuf ) */
-      ST(argvi) = sv_2mortal(newSVpv( *arg4, *arg3 ));
-      argvi++;
-    }
-    
-    {
-      /* %typemap(freearg) (const char* name) */
-      if (tmpbuf2) free(tmpbuf2);
-    }
-    {
-      /* %typemap(freearg) (int *nLen, char **pBuf ) */
-      if( *arg3 ) {
-        free( *arg4 );
-      }
-    }
-    XSRETURN(argvi);
-  fail:
-    
-    {
-      /* %typemap(freearg) (const char* name) */
-      if (tmpbuf2) free(tmpbuf2);
-    }
-    {
-      /* %typemap(freearg) (int *nLen, char **pBuf ) */
-      if( *arg3 ) {
-        free( *arg4 );
-      }
-    }
-    SWIG_croak_null();
-  }
-}
-
-
-XS(_wrap_Feature_GetFieldAsBinary) {
-  dXSARGS;
-  
-  {
-    unsigned long _index = 0;
-    SWIG_TypeRank _rank = 0; 
-    if (items == 2) {
-      SWIG_TypeRank _ranki = 0;
-      SWIG_TypeRank _rankm = 0;
-      SWIG_TypeRank _pi = 1;
-      int _v = 0;
-      {
-        void *vptr = 0;
-        int res = SWIG_ConvertPtr(ST(0), &vptr, SWIGTYPE_p_OGRFeatureShadow, 0);
-        _v = SWIG_CheckState(res);
-      }
-      if (!_v) goto check_1;
-      _ranki += _v*_pi;
-      _rankm += _pi;
-      _pi *= SWIG_MAXCASTRANK;
-      {
-        {
-          int res = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(1), NULL);
-          _v = SWIG_CheckState(res);
-        }
-      }
-      if (!_v) goto check_1;
-      _ranki += _v*_pi;
-      _rankm += _pi;
-      _pi *= SWIG_MAXCASTRANK;
-      if (!_index || (_ranki < _rank)) {
-        _rank = _ranki; _index = 1;
-        if (_rank == _rankm) goto dispatch;
-      }
-    }
-  check_1:
-    
-    if (items == 2) {
-      SWIG_TypeRank _ranki = 0;
-      SWIG_TypeRank _rankm = 0;
-      SWIG_TypeRank _pi = 1;
-      int _v = 0;
-      {
-        void *vptr = 0;
-        int res = SWIG_ConvertPtr(ST(0), &vptr, SWIGTYPE_p_OGRFeatureShadow, 0);
-        _v = SWIG_CheckState(res);
-      }
-      if (!_v) goto check_2;
-      _ranki += _v*_pi;
-      _rankm += _pi;
-      _pi *= SWIG_MAXCASTRANK;
-      {
-        int res = SWIG_AsCharPtrAndSize(ST(1), 0, NULL, 0);
-        _v = SWIG_CheckState(res);
-      }
-      if (!_v) goto check_2;
-      _ranki += _v*_pi;
-      _rankm += _pi;
-      _pi *= SWIG_MAXCASTRANK;
-      if (!_index || (_ranki < _rank)) {
-        _rank = _ranki; _index = 2;
-        if (_rank == _rankm) goto dispatch;
-      }
-    }
-  check_2:
-    
-  dispatch:
-    switch(_index) {
-    case 1:
-      PUSHMARK(MARK); SWIG_CALLXS(_wrap_Feature_GetFieldAsBinary__SWIG_0); return;
-    case 2:
-      PUSHMARK(MARK); SWIG_CALLXS(_wrap_Feature_GetFieldAsBinary__SWIG_1); return;
-    }
-  }
-  
-  croak("No matching function for overloaded 'Feature_GetFieldAsBinary'");
-  XSRETURN(0);
-}
-
-
-XS(_wrap_Feature_IsFieldSet__SWIG_0) {
+XS(_wrap_Feature_IsFieldSet) {
   {
     OGRFeatureShadow *arg1 = (OGRFeatureShadow *) 0 ;
     int arg2 ;
@@ -12179,7 +10009,7 @@ XS(_wrap_Feature_IsFieldSet__SWIG_0) {
     arg2 = static_cast< int >(val2);
     {
       CPLErrorReset();
-      result = (bool)OGRFeatureShadow_IsFieldSet__SWIG_0(arg1,arg2);
+      result = (bool)OGRFeatureShadow_IsFieldSet(arg1,arg2);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
         do_confess( CPLGetLastErrorMsg(), 0 );
@@ -12213,37 +10043,34 @@ XS(_wrap_Feature_IsFieldSet__SWIG_0) {
 }
 
 
-XS(_wrap_Feature_IsFieldSet__SWIG_1) {
+XS(_wrap_Feature_IsFieldNull) {
   {
     OGRFeatureShadow *arg1 = (OGRFeatureShadow *) 0 ;
-    char *arg2 = (char *) 0 ;
+    int arg2 ;
     void *argp1 = 0 ;
     int res1 = 0 ;
-    U8 *tmpbuf2 = NULL ;
+    int val2 ;
+    int ecode2 = 0 ;
     int argvi = 0;
     bool result;
     dXSARGS;
     
     if ((items < 2) || (items > 2)) {
-      SWIG_croak("Usage: Feature_IsFieldSet(self,name);");
+      SWIG_croak("Usage: Feature_IsFieldNull(self,id);");
     }
     res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OGRFeatureShadow, 0 |  0 );
     if (!SWIG_IsOK(res1)) {
-      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Feature_IsFieldSet" "', argument " "1"" of type '" "OGRFeatureShadow *""'"); 
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Feature_IsFieldNull" "', argument " "1"" of type '" "OGRFeatureShadow *""'"); 
     }
     arg1 = reinterpret_cast< OGRFeatureShadow * >(argp1);
-    {
-      /* %typemap(in,numinputs=1) (const char* name) */
-      arg2 = sv_to_utf8_string(ST(1), &tmpbuf2);
-    }
-    {
-      if (!arg2) {
-        SWIG_exception(SWIG_ValueError,"Received a NULL pointer.");
-      }
-    }
+    ecode2 = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(1), &val2);
+    if (!SWIG_IsOK(ecode2)) {
+      SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "Feature_IsFieldNull" "', argument " "2"" of type '" "int""'");
+    } 
+    arg2 = static_cast< int >(val2);
     {
       CPLErrorReset();
-      result = (bool)OGRFeatureShadow_IsFieldSet__SWIG_1(arg1,(char const *)arg2);
+      result = (bool)OGRFeatureShadow_IsFieldNull(arg1,arg2);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
         do_confess( CPLGetLastErrorMsg(), 0 );
@@ -12267,103 +10094,17 @@ XS(_wrap_Feature_IsFieldSet__SWIG_1) {
     }
     ST(argvi) = SWIG_From_bool  SWIG_PERL_CALL_ARGS_1(static_cast< bool >(result)); argvi++ ;
     
-    {
-      /* %typemap(freearg) (const char* name) */
-      if (tmpbuf2) free(tmpbuf2);
-    }
+    
     XSRETURN(argvi);
   fail:
     
-    {
-      /* %typemap(freearg) (const char* name) */
-      if (tmpbuf2) free(tmpbuf2);
-    }
+    
     SWIG_croak_null();
   }
 }
 
 
-XS(_wrap_Feature_IsFieldSet) {
-  dXSARGS;
-  
-  {
-    unsigned long _index = 0;
-    SWIG_TypeRank _rank = 0; 
-    if (items == 2) {
-      SWIG_TypeRank _ranki = 0;
-      SWIG_TypeRank _rankm = 0;
-      SWIG_TypeRank _pi = 1;
-      int _v = 0;
-      {
-        void *vptr = 0;
-        int res = SWIG_ConvertPtr(ST(0), &vptr, SWIGTYPE_p_OGRFeatureShadow, 0);
-        _v = SWIG_CheckState(res);
-      }
-      if (!_v) goto check_1;
-      _ranki += _v*_pi;
-      _rankm += _pi;
-      _pi *= SWIG_MAXCASTRANK;
-      {
-        {
-          int res = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(1), NULL);
-          _v = SWIG_CheckState(res);
-        }
-      }
-      if (!_v) goto check_1;
-      _ranki += _v*_pi;
-      _rankm += _pi;
-      _pi *= SWIG_MAXCASTRANK;
-      if (!_index || (_ranki < _rank)) {
-        _rank = _ranki; _index = 1;
-        if (_rank == _rankm) goto dispatch;
-      }
-    }
-  check_1:
-    
-    if (items == 2) {
-      SWIG_TypeRank _ranki = 0;
-      SWIG_TypeRank _rankm = 0;
-      SWIG_TypeRank _pi = 1;
-      int _v = 0;
-      {
-        void *vptr = 0;
-        int res = SWIG_ConvertPtr(ST(0), &vptr, SWIGTYPE_p_OGRFeatureShadow, 0);
-        _v = SWIG_CheckState(res);
-      }
-      if (!_v) goto check_2;
-      _ranki += _v*_pi;
-      _rankm += _pi;
-      _pi *= SWIG_MAXCASTRANK;
-      {
-        int res = SWIG_AsCharPtrAndSize(ST(1), 0, NULL, 0);
-        _v = SWIG_CheckState(res);
-      }
-      if (!_v) goto check_2;
-      _ranki += _v*_pi;
-      _rankm += _pi;
-      _pi *= SWIG_MAXCASTRANK;
-      if (!_index || (_ranki < _rank)) {
-        _rank = _ranki; _index = 2;
-        if (_rank == _rankm) goto dispatch;
-      }
-    }
-  check_2:
-    
-  dispatch:
-    switch(_index) {
-    case 1:
-      PUSHMARK(MARK); SWIG_CALLXS(_wrap_Feature_IsFieldSet__SWIG_0); return;
-    case 2:
-      PUSHMARK(MARK); SWIG_CALLXS(_wrap_Feature_IsFieldSet__SWIG_1); return;
-    }
-  }
-  
-  croak("No matching function for overloaded 'Feature_IsFieldSet'");
-  XSRETURN(0);
-}
-
-
-XS(_wrap_Feature_GetFieldIndex__SWIG_0) {
+XS(_wrap_Feature_IsFieldSetAndNotNull) {
   {
     OGRFeatureShadow *arg1 = (OGRFeatureShadow *) 0 ;
     int arg2 ;
@@ -12372,25 +10113,25 @@ XS(_wrap_Feature_GetFieldIndex__SWIG_0) {
     int val2 ;
     int ecode2 = 0 ;
     int argvi = 0;
-    int result;
+    bool result;
     dXSARGS;
     
     if ((items < 2) || (items > 2)) {
-      SWIG_croak("Usage: Feature_GetFieldIndex(self,i);");
+      SWIG_croak("Usage: Feature_IsFieldSetAndNotNull(self,id);");
     }
     res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OGRFeatureShadow, 0 |  0 );
     if (!SWIG_IsOK(res1)) {
-      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Feature_GetFieldIndex" "', argument " "1"" of type '" "OGRFeatureShadow *""'"); 
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Feature_IsFieldSetAndNotNull" "', argument " "1"" of type '" "OGRFeatureShadow *""'"); 
     }
     arg1 = reinterpret_cast< OGRFeatureShadow * >(argp1);
     ecode2 = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(1), &val2);
     if (!SWIG_IsOK(ecode2)) {
-      SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "Feature_GetFieldIndex" "', argument " "2"" of type '" "int""'");
+      SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "Feature_IsFieldSetAndNotNull" "', argument " "2"" of type '" "int""'");
     } 
     arg2 = static_cast< int >(val2);
     {
       CPLErrorReset();
-      result = (int)OGRFeatureShadow_GetFieldIndex__SWIG_0(arg1,arg2);
+      result = (bool)OGRFeatureShadow_IsFieldSetAndNotNull(arg1,arg2);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
         do_confess( CPLGetLastErrorMsg(), 0 );
@@ -12412,7 +10153,7 @@ XS(_wrap_Feature_GetFieldIndex__SWIG_0) {
       
       
     }
-    ST(argvi) = SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(result)); argvi++ ;
+    ST(argvi) = SWIG_From_bool  SWIG_PERL_CALL_ARGS_1(static_cast< bool >(result)); argvi++ ;
     
     
     XSRETURN(argvi);
@@ -12424,7 +10165,7 @@ XS(_wrap_Feature_GetFieldIndex__SWIG_0) {
 }
 
 
-XS(_wrap_Feature_GetFieldIndex__SWIG_1) {
+XS(_wrap_Feature__GetFieldIndex) {
   {
     OGRFeatureShadow *arg1 = (OGRFeatureShadow *) 0 ;
     char *arg2 = (char *) 0 ;
@@ -12436,11 +10177,11 @@ XS(_wrap_Feature_GetFieldIndex__SWIG_1) {
     dXSARGS;
     
     if ((items < 2) || (items > 2)) {
-      SWIG_croak("Usage: Feature_GetFieldIndex(self,name);");
+      SWIG_croak("Usage: Feature__GetFieldIndex(self,name);");
     }
     res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OGRFeatureShadow, 0 |  0 );
     if (!SWIG_IsOK(res1)) {
-      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Feature_GetFieldIndex" "', argument " "1"" of type '" "OGRFeatureShadow *""'"); 
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Feature__GetFieldIndex" "', argument " "1"" of type '" "OGRFeatureShadow *""'"); 
     }
     arg1 = reinterpret_cast< OGRFeatureShadow * >(argp1);
     {
@@ -12454,7 +10195,7 @@ XS(_wrap_Feature_GetFieldIndex__SWIG_1) {
     }
     {
       CPLErrorReset();
-      result = (int)OGRFeatureShadow_GetFieldIndex__SWIG_1(arg1,(char const *)arg2);
+      result = (int)OGRFeatureShadow_GetFieldIndex(arg1,(char const *)arg2);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
         do_confess( CPLGetLastErrorMsg(), 0 );
@@ -12480,162 +10221,21 @@ XS(_wrap_Feature_GetFieldIndex__SWIG_1) {
     
     {
       /* %typemap(freearg) (const char* name) */
-      if (tmpbuf2) free(tmpbuf2);
+      if (tmpbuf2) Safefree(tmpbuf2);
     }
     XSRETURN(argvi);
   fail:
     
     {
       /* %typemap(freearg) (const char* name) */
-      if (tmpbuf2) free(tmpbuf2);
+      if (tmpbuf2) Safefree(tmpbuf2);
     }
     SWIG_croak_null();
   }
 }
 
 
-XS(_wrap_Feature_GetFieldIndex) {
-  dXSARGS;
-  
-  {
-    unsigned long _index = 0;
-    SWIG_TypeRank _rank = 0; 
-    if (items == 2) {
-      SWIG_TypeRank _ranki = 0;
-      SWIG_TypeRank _rankm = 0;
-      SWIG_TypeRank _pi = 1;
-      int _v = 0;
-      {
-        void *vptr = 0;
-        int res = SWIG_ConvertPtr(ST(0), &vptr, SWIGTYPE_p_OGRFeatureShadow, 0);
-        _v = SWIG_CheckState(res);
-      }
-      if (!_v) goto check_1;
-      _ranki += _v*_pi;
-      _rankm += _pi;
-      _pi *= SWIG_MAXCASTRANK;
-      {
-        {
-          int res = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(1), NULL);
-          _v = SWIG_CheckState(res);
-        }
-      }
-      if (!_v) goto check_1;
-      _ranki += _v*_pi;
-      _rankm += _pi;
-      _pi *= SWIG_MAXCASTRANK;
-      if (!_index || (_ranki < _rank)) {
-        _rank = _ranki; _index = 1;
-        if (_rank == _rankm) goto dispatch;
-      }
-    }
-  check_1:
-    
-    if (items == 2) {
-      SWIG_TypeRank _ranki = 0;
-      SWIG_TypeRank _rankm = 0;
-      SWIG_TypeRank _pi = 1;
-      int _v = 0;
-      {
-        void *vptr = 0;
-        int res = SWIG_ConvertPtr(ST(0), &vptr, SWIGTYPE_p_OGRFeatureShadow, 0);
-        _v = SWIG_CheckState(res);
-      }
-      if (!_v) goto check_2;
-      _ranki += _v*_pi;
-      _rankm += _pi;
-      _pi *= SWIG_MAXCASTRANK;
-      {
-        int res = SWIG_AsCharPtrAndSize(ST(1), 0, NULL, 0);
-        _v = SWIG_CheckState(res);
-      }
-      if (!_v) goto check_2;
-      _ranki += _v*_pi;
-      _rankm += _pi;
-      _pi *= SWIG_MAXCASTRANK;
-      if (!_index || (_ranki < _rank)) {
-        _rank = _ranki; _index = 2;
-        if (_rank == _rankm) goto dispatch;
-      }
-    }
-  check_2:
-    
-  dispatch:
-    switch(_index) {
-    case 1:
-      PUSHMARK(MARK); SWIG_CALLXS(_wrap_Feature_GetFieldIndex__SWIG_0); return;
-    case 2:
-      PUSHMARK(MARK); SWIG_CALLXS(_wrap_Feature_GetFieldIndex__SWIG_1); return;
-    }
-  }
-  
-  croak("No matching function for overloaded 'Feature_GetFieldIndex'");
-  XSRETURN(0);
-}
-
-
-XS(_wrap_Feature_GetGeomFieldIndex__SWIG_0) {
-  {
-    OGRFeatureShadow *arg1 = (OGRFeatureShadow *) 0 ;
-    int arg2 ;
-    void *argp1 = 0 ;
-    int res1 = 0 ;
-    int val2 ;
-    int ecode2 = 0 ;
-    int argvi = 0;
-    int result;
-    dXSARGS;
-    
-    if ((items < 2) || (items > 2)) {
-      SWIG_croak("Usage: Feature_GetGeomFieldIndex(self,i);");
-    }
-    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OGRFeatureShadow, 0 |  0 );
-    if (!SWIG_IsOK(res1)) {
-      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Feature_GetGeomFieldIndex" "', argument " "1"" of type '" "OGRFeatureShadow *""'"); 
-    }
-    arg1 = reinterpret_cast< OGRFeatureShadow * >(argp1);
-    ecode2 = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(1), &val2);
-    if (!SWIG_IsOK(ecode2)) {
-      SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "Feature_GetGeomFieldIndex" "', argument " "2"" of type '" "int""'");
-    } 
-    arg2 = static_cast< int >(val2);
-    {
-      CPLErrorReset();
-      result = (int)OGRFeatureShadow_GetGeomFieldIndex__SWIG_0(arg1,arg2);
-      CPLErr eclass = CPLGetLastErrorType();
-      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        do_confess( CPLGetLastErrorMsg(), 0 );
-        
-        
-        
-        
-        
-      }
-      
-      
-      /*
-          Make warnings regular Perl warnings. This duplicates the warning
-          message if DontUseExceptions() is in effect (it is not by default).
-          */
-      if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg(), "%s" );
-      }
-      
-      
-    }
-    ST(argvi) = SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(result)); argvi++ ;
-    
-    
-    XSRETURN(argvi);
-  fail:
-    
-    
-    SWIG_croak_null();
-  }
-}
-
-
-XS(_wrap_Feature_GetGeomFieldIndex__SWIG_1) {
+XS(_wrap_Feature__GetGeomFieldIndex) {
   {
     OGRFeatureShadow *arg1 = (OGRFeatureShadow *) 0 ;
     char *arg2 = (char *) 0 ;
@@ -12647,11 +10247,11 @@ XS(_wrap_Feature_GetGeomFieldIndex__SWIG_1) {
     dXSARGS;
     
     if ((items < 2) || (items > 2)) {
-      SWIG_croak("Usage: Feature_GetGeomFieldIndex(self,name);");
+      SWIG_croak("Usage: Feature__GetGeomFieldIndex(self,name);");
     }
     res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OGRFeatureShadow, 0 |  0 );
     if (!SWIG_IsOK(res1)) {
-      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Feature_GetGeomFieldIndex" "', argument " "1"" of type '" "OGRFeatureShadow *""'"); 
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Feature__GetGeomFieldIndex" "', argument " "1"" of type '" "OGRFeatureShadow *""'"); 
     }
     arg1 = reinterpret_cast< OGRFeatureShadow * >(argp1);
     {
@@ -12665,7 +10265,7 @@ XS(_wrap_Feature_GetGeomFieldIndex__SWIG_1) {
     }
     {
       CPLErrorReset();
-      result = (int)OGRFeatureShadow_GetGeomFieldIndex__SWIG_1(arg1,(char const *)arg2);
+      result = (int)OGRFeatureShadow_GetGeomFieldIndex(arg1,(char const *)arg2);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
         do_confess( CPLGetLastErrorMsg(), 0 );
@@ -12691,97 +10291,17 @@ XS(_wrap_Feature_GetGeomFieldIndex__SWIG_1) {
     
     {
       /* %typemap(freearg) (const char* name) */
-      if (tmpbuf2) free(tmpbuf2);
+      if (tmpbuf2) Safefree(tmpbuf2);
     }
     XSRETURN(argvi);
   fail:
     
     {
       /* %typemap(freearg) (const char* name) */
-      if (tmpbuf2) free(tmpbuf2);
+      if (tmpbuf2) Safefree(tmpbuf2);
     }
     SWIG_croak_null();
   }
-}
-
-
-XS(_wrap_Feature_GetGeomFieldIndex) {
-  dXSARGS;
-  
-  {
-    unsigned long _index = 0;
-    SWIG_TypeRank _rank = 0; 
-    if (items == 2) {
-      SWIG_TypeRank _ranki = 0;
-      SWIG_TypeRank _rankm = 0;
-      SWIG_TypeRank _pi = 1;
-      int _v = 0;
-      {
-        void *vptr = 0;
-        int res = SWIG_ConvertPtr(ST(0), &vptr, SWIGTYPE_p_OGRFeatureShadow, 0);
-        _v = SWIG_CheckState(res);
-      }
-      if (!_v) goto check_1;
-      _ranki += _v*_pi;
-      _rankm += _pi;
-      _pi *= SWIG_MAXCASTRANK;
-      {
-        {
-          int res = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(1), NULL);
-          _v = SWIG_CheckState(res);
-        }
-      }
-      if (!_v) goto check_1;
-      _ranki += _v*_pi;
-      _rankm += _pi;
-      _pi *= SWIG_MAXCASTRANK;
-      if (!_index || (_ranki < _rank)) {
-        _rank = _ranki; _index = 1;
-        if (_rank == _rankm) goto dispatch;
-      }
-    }
-  check_1:
-    
-    if (items == 2) {
-      SWIG_TypeRank _ranki = 0;
-      SWIG_TypeRank _rankm = 0;
-      SWIG_TypeRank _pi = 1;
-      int _v = 0;
-      {
-        void *vptr = 0;
-        int res = SWIG_ConvertPtr(ST(0), &vptr, SWIGTYPE_p_OGRFeatureShadow, 0);
-        _v = SWIG_CheckState(res);
-      }
-      if (!_v) goto check_2;
-      _ranki += _v*_pi;
-      _rankm += _pi;
-      _pi *= SWIG_MAXCASTRANK;
-      {
-        int res = SWIG_AsCharPtrAndSize(ST(1), 0, NULL, 0);
-        _v = SWIG_CheckState(res);
-      }
-      if (!_v) goto check_2;
-      _ranki += _v*_pi;
-      _rankm += _pi;
-      _pi *= SWIG_MAXCASTRANK;
-      if (!_index || (_ranki < _rank)) {
-        _rank = _ranki; _index = 2;
-        if (_rank == _rankm) goto dispatch;
-      }
-    }
-  check_2:
-    
-  dispatch:
-    switch(_index) {
-    case 1:
-      PUSHMARK(MARK); SWIG_CALLXS(_wrap_Feature_GetGeomFieldIndex__SWIG_0); return;
-    case 2:
-      PUSHMARK(MARK); SWIG_CALLXS(_wrap_Feature_GetGeomFieldIndex__SWIG_1); return;
-    }
-  }
-  
-  croak("No matching function for overloaded 'Feature_GetGeomFieldIndex'");
-  XSRETURN(0);
 }
 
 
@@ -12828,7 +10348,7 @@ XS(_wrap_Feature_GetFID) {
     }
     {
       char temp[256];
-      sprintf(temp, ""CPL_FRMT_GIB"", result);
+      sprintf(temp, "" CPL_FRMT_GIB "", result);
       ST(argvi) = sv_2mortal(newSVpv(temp, 0));
       argvi++;
     }
@@ -12955,7 +10475,7 @@ XS(_wrap_Feature_DumpReadable) {
 }
 
 
-XS(_wrap_Feature__UnsetField__SWIG_0) {
+XS(_wrap_Feature__UnsetField) {
   {
     OGRFeatureShadow *arg1 = (OGRFeatureShadow *) 0 ;
     int arg2 ;
@@ -12981,7 +10501,7 @@ XS(_wrap_Feature__UnsetField__SWIG_0) {
     arg2 = static_cast< int >(val2);
     {
       CPLErrorReset();
-      OGRFeatureShadow_UnsetField__SWIG_0(arg1,arg2);
+      OGRFeatureShadow_UnsetField(arg1,arg2);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
         do_confess( CPLGetLastErrorMsg(), 0 );
@@ -13017,36 +10537,33 @@ XS(_wrap_Feature__UnsetField__SWIG_0) {
 }
 
 
-XS(_wrap_Feature__UnsetField__SWIG_1) {
+XS(_wrap_Feature_SetFieldNull) {
   {
     OGRFeatureShadow *arg1 = (OGRFeatureShadow *) 0 ;
-    char *arg2 = (char *) 0 ;
+    int arg2 ;
     void *argp1 = 0 ;
     int res1 = 0 ;
-    U8 *tmpbuf2 = NULL ;
+    int val2 ;
+    int ecode2 = 0 ;
     int argvi = 0;
     dXSARGS;
     
     if ((items < 2) || (items > 2)) {
-      SWIG_croak("Usage: Feature__UnsetField(self,name);");
+      SWIG_croak("Usage: Feature_SetFieldNull(self,id);");
     }
     res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OGRFeatureShadow, 0 |  0 );
     if (!SWIG_IsOK(res1)) {
-      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Feature__UnsetField" "', argument " "1"" of type '" "OGRFeatureShadow *""'"); 
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Feature_SetFieldNull" "', argument " "1"" of type '" "OGRFeatureShadow *""'"); 
     }
     arg1 = reinterpret_cast< OGRFeatureShadow * >(argp1);
-    {
-      /* %typemap(in,numinputs=1) (const char* name) */
-      arg2 = sv_to_utf8_string(ST(1), &tmpbuf2);
-    }
-    {
-      if (!arg2) {
-        SWIG_exception(SWIG_ValueError,"Received a NULL pointer.");
-      }
-    }
+    ecode2 = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(1), &val2);
+    if (!SWIG_IsOK(ecode2)) {
+      SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "Feature_SetFieldNull" "', argument " "2"" of type '" "int""'");
+    } 
+    arg2 = static_cast< int >(val2);
     {
       CPLErrorReset();
-      OGRFeatureShadow_UnsetField__SWIG_1(arg1,(char const *)arg2);
+      OGRFeatureShadow_SetFieldNull(arg1,arg2);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
         do_confess( CPLGetLastErrorMsg(), 0 );
@@ -13072,99 +10589,13 @@ XS(_wrap_Feature__UnsetField__SWIG_1) {
       /* %typemap(out) void */
     }
     
-    {
-      /* %typemap(freearg) (const char* name) */
-      if (tmpbuf2) free(tmpbuf2);
-    }
+    
     XSRETURN(argvi);
   fail:
     
-    {
-      /* %typemap(freearg) (const char* name) */
-      if (tmpbuf2) free(tmpbuf2);
-    }
+    
     SWIG_croak_null();
   }
-}
-
-
-XS(_wrap_Feature__UnsetField) {
-  dXSARGS;
-  
-  {
-    unsigned long _index = 0;
-    SWIG_TypeRank _rank = 0; 
-    if (items == 2) {
-      SWIG_TypeRank _ranki = 0;
-      SWIG_TypeRank _rankm = 0;
-      SWIG_TypeRank _pi = 1;
-      int _v = 0;
-      {
-        void *vptr = 0;
-        int res = SWIG_ConvertPtr(ST(0), &vptr, SWIGTYPE_p_OGRFeatureShadow, 0);
-        _v = SWIG_CheckState(res);
-      }
-      if (!_v) goto check_1;
-      _ranki += _v*_pi;
-      _rankm += _pi;
-      _pi *= SWIG_MAXCASTRANK;
-      {
-        {
-          int res = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(1), NULL);
-          _v = SWIG_CheckState(res);
-        }
-      }
-      if (!_v) goto check_1;
-      _ranki += _v*_pi;
-      _rankm += _pi;
-      _pi *= SWIG_MAXCASTRANK;
-      if (!_index || (_ranki < _rank)) {
-        _rank = _ranki; _index = 1;
-        if (_rank == _rankm) goto dispatch;
-      }
-    }
-  check_1:
-    
-    if (items == 2) {
-      SWIG_TypeRank _ranki = 0;
-      SWIG_TypeRank _rankm = 0;
-      SWIG_TypeRank _pi = 1;
-      int _v = 0;
-      {
-        void *vptr = 0;
-        int res = SWIG_ConvertPtr(ST(0), &vptr, SWIGTYPE_p_OGRFeatureShadow, 0);
-        _v = SWIG_CheckState(res);
-      }
-      if (!_v) goto check_2;
-      _ranki += _v*_pi;
-      _rankm += _pi;
-      _pi *= SWIG_MAXCASTRANK;
-      {
-        int res = SWIG_AsCharPtrAndSize(ST(1), 0, NULL, 0);
-        _v = SWIG_CheckState(res);
-      }
-      if (!_v) goto check_2;
-      _ranki += _v*_pi;
-      _rankm += _pi;
-      _pi *= SWIG_MAXCASTRANK;
-      if (!_index || (_ranki < _rank)) {
-        _rank = _ranki; _index = 2;
-        if (_rank == _rankm) goto dispatch;
-      }
-    }
-  check_2:
-    
-  dispatch:
-    switch(_index) {
-    case 1:
-      PUSHMARK(MARK); SWIG_CALLXS(_wrap_Feature__UnsetField__SWIG_0); return;
-    case 2:
-      PUSHMARK(MARK); SWIG_CALLXS(_wrap_Feature__UnsetField__SWIG_1); return;
-    }
-  }
-  
-  croak("No matching function for overloaded 'Feature__UnsetField'");
-  XSRETURN(0);
 }
 
 
@@ -13229,7 +10660,7 @@ XS(_wrap_Feature__SetField__SWIG_0) {
     
     {
       /* %typemap(freearg) (tostring argin) */
-      if (tmpbuf3) free(tmpbuf3);
+      if (tmpbuf3) Safefree(tmpbuf3);
     }
     XSRETURN(argvi);
   fail:
@@ -13237,92 +10668,7 @@ XS(_wrap_Feature__SetField__SWIG_0) {
     
     {
       /* %typemap(freearg) (tostring argin) */
-      if (tmpbuf3) free(tmpbuf3);
-    }
-    SWIG_croak_null();
-  }
-}
-
-
-XS(_wrap_Feature__SetField__SWIG_1) {
-  {
-    OGRFeatureShadow *arg1 = (OGRFeatureShadow *) 0 ;
-    char *arg2 = (char *) 0 ;
-    char *arg3 = (char *) 0 ;
-    void *argp1 = 0 ;
-    int res1 = 0 ;
-    U8 *tmpbuf2 = NULL ;
-    U8 *tmpbuf3 = NULL ;
-    int argvi = 0;
-    dXSARGS;
-    
-    if ((items < 3) || (items > 3)) {
-      SWIG_croak("Usage: Feature__SetField(self,name,value);");
-    }
-    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OGRFeatureShadow, 0 |  0 );
-    if (!SWIG_IsOK(res1)) {
-      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Feature__SetField" "', argument " "1"" of type '" "OGRFeatureShadow *""'"); 
-    }
-    arg1 = reinterpret_cast< OGRFeatureShadow * >(argp1);
-    {
-      /* %typemap(in,numinputs=1) (const char* name) */
-      arg2 = sv_to_utf8_string(ST(1), &tmpbuf2);
-    }
-    {
-      /* %typemap(in) (tostring argin) */
-      arg3 = sv_to_utf8_string(ST(2), &tmpbuf3);
-    }
-    {
-      if (!arg2) {
-        SWIG_exception(SWIG_ValueError,"Received a NULL pointer.");
-      }
-    }
-    {
-      CPLErrorReset();
-      OGRFeatureShadow_SetField__SWIG_1(arg1,(char const *)arg2,(char const *)arg3);
-      CPLErr eclass = CPLGetLastErrorType();
-      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        do_confess( CPLGetLastErrorMsg(), 0 );
-        
-        
-        
-        
-        
-      }
-      
-      
-      /*
-          Make warnings regular Perl warnings. This duplicates the warning
-          message if DontUseExceptions() is in effect (it is not by default).
-          */
-      if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg(), "%s" );
-      }
-      
-      
-    }
-    {
-      /* %typemap(out) void */
-    }
-    
-    {
-      /* %typemap(freearg) (const char* name) */
-      if (tmpbuf2) free(tmpbuf2);
-    }
-    {
-      /* %typemap(freearg) (tostring argin) */
-      if (tmpbuf3) free(tmpbuf3);
-    }
-    XSRETURN(argvi);
-  fail:
-    
-    {
-      /* %typemap(freearg) (const char* name) */
-      if (tmpbuf2) free(tmpbuf2);
-    }
-    {
-      /* %typemap(freearg) (tostring argin) */
-      if (tmpbuf3) free(tmpbuf3);
+      if (tmpbuf3) Safefree(tmpbuf3);
     }
     SWIG_croak_null();
   }
@@ -13395,7 +10741,7 @@ XS(_wrap_Feature_SetFieldInteger64) {
 }
 
 
-XS(_wrap_Feature__SetField__SWIG_2) {
+XS(_wrap_Feature__SetField__SWIG_1) {
   {
     OGRFeatureShadow *arg1 = (OGRFeatureShadow *) 0 ;
     int arg2 ;
@@ -13427,6 +10773,78 @@ XS(_wrap_Feature__SetField__SWIG_2) {
       SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "Feature__SetField" "', argument " "3"" of type '" "int""'");
     } 
     arg3 = static_cast< int >(val3);
+    {
+      CPLErrorReset();
+      OGRFeatureShadow_SetField__SWIG_1(arg1,arg2,arg3);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        do_confess( CPLGetLastErrorMsg(), 0 );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /*
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
+    {
+      /* %typemap(out) void */
+    }
+    
+    
+    
+    XSRETURN(argvi);
+  fail:
+    
+    
+    
+    SWIG_croak_null();
+  }
+}
+
+
+XS(_wrap_Feature__SetField__SWIG_2) {
+  {
+    OGRFeatureShadow *arg1 = (OGRFeatureShadow *) 0 ;
+    int arg2 ;
+    double arg3 ;
+    void *argp1 = 0 ;
+    int res1 = 0 ;
+    int val2 ;
+    int ecode2 = 0 ;
+    double val3 ;
+    int ecode3 = 0 ;
+    int argvi = 0;
+    dXSARGS;
+    
+    if ((items < 3) || (items > 3)) {
+      SWIG_croak("Usage: Feature__SetField(self,id,value);");
+    }
+    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OGRFeatureShadow, 0 |  0 );
+    if (!SWIG_IsOK(res1)) {
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Feature__SetField" "', argument " "1"" of type '" "OGRFeatureShadow *""'"); 
+    }
+    arg1 = reinterpret_cast< OGRFeatureShadow * >(argp1);
+    ecode2 = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(1), &val2);
+    if (!SWIG_IsOK(ecode2)) {
+      SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "Feature__SetField" "', argument " "2"" of type '" "int""'");
+    } 
+    arg2 = static_cast< int >(val2);
+    ecode3 = SWIG_AsVal_double SWIG_PERL_CALL_ARGS_2(ST(2), &val3);
+    if (!SWIG_IsOK(ecode3)) {
+      SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "Feature__SetField" "', argument " "3"" of type '" "double""'");
+    } 
+    arg3 = static_cast< double >(val3);
     {
       CPLErrorReset();
       OGRFeatureShadow_SetField__SWIG_2(arg1,arg2,arg3);
@@ -13468,240 +10886,6 @@ XS(_wrap_Feature__SetField__SWIG_2) {
 
 
 XS(_wrap_Feature__SetField__SWIG_3) {
-  {
-    OGRFeatureShadow *arg1 = (OGRFeatureShadow *) 0 ;
-    char *arg2 = (char *) 0 ;
-    int arg3 ;
-    void *argp1 = 0 ;
-    int res1 = 0 ;
-    U8 *tmpbuf2 = NULL ;
-    int val3 ;
-    int ecode3 = 0 ;
-    int argvi = 0;
-    dXSARGS;
-    
-    if ((items < 3) || (items > 3)) {
-      SWIG_croak("Usage: Feature__SetField(self,name,value);");
-    }
-    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OGRFeatureShadow, 0 |  0 );
-    if (!SWIG_IsOK(res1)) {
-      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Feature__SetField" "', argument " "1"" of type '" "OGRFeatureShadow *""'"); 
-    }
-    arg1 = reinterpret_cast< OGRFeatureShadow * >(argp1);
-    {
-      /* %typemap(in,numinputs=1) (const char* name) */
-      arg2 = sv_to_utf8_string(ST(1), &tmpbuf2);
-    }
-    ecode3 = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(2), &val3);
-    if (!SWIG_IsOK(ecode3)) {
-      SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "Feature__SetField" "', argument " "3"" of type '" "int""'");
-    } 
-    arg3 = static_cast< int >(val3);
-    {
-      if (!arg2) {
-        SWIG_exception(SWIG_ValueError,"Received a NULL pointer.");
-      }
-    }
-    {
-      CPLErrorReset();
-      OGRFeatureShadow_SetField__SWIG_3(arg1,(char const *)arg2,arg3);
-      CPLErr eclass = CPLGetLastErrorType();
-      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        do_confess( CPLGetLastErrorMsg(), 0 );
-        
-        
-        
-        
-        
-      }
-      
-      
-      /*
-          Make warnings regular Perl warnings. This duplicates the warning
-          message if DontUseExceptions() is in effect (it is not by default).
-          */
-      if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg(), "%s" );
-      }
-      
-      
-    }
-    {
-      /* %typemap(out) void */
-    }
-    
-    {
-      /* %typemap(freearg) (const char* name) */
-      if (tmpbuf2) free(tmpbuf2);
-    }
-    
-    XSRETURN(argvi);
-  fail:
-    
-    {
-      /* %typemap(freearg) (const char* name) */
-      if (tmpbuf2) free(tmpbuf2);
-    }
-    
-    SWIG_croak_null();
-  }
-}
-
-
-XS(_wrap_Feature__SetField__SWIG_4) {
-  {
-    OGRFeatureShadow *arg1 = (OGRFeatureShadow *) 0 ;
-    int arg2 ;
-    double arg3 ;
-    void *argp1 = 0 ;
-    int res1 = 0 ;
-    int val2 ;
-    int ecode2 = 0 ;
-    double val3 ;
-    int ecode3 = 0 ;
-    int argvi = 0;
-    dXSARGS;
-    
-    if ((items < 3) || (items > 3)) {
-      SWIG_croak("Usage: Feature__SetField(self,id,value);");
-    }
-    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OGRFeatureShadow, 0 |  0 );
-    if (!SWIG_IsOK(res1)) {
-      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Feature__SetField" "', argument " "1"" of type '" "OGRFeatureShadow *""'"); 
-    }
-    arg1 = reinterpret_cast< OGRFeatureShadow * >(argp1);
-    ecode2 = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(1), &val2);
-    if (!SWIG_IsOK(ecode2)) {
-      SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "Feature__SetField" "', argument " "2"" of type '" "int""'");
-    } 
-    arg2 = static_cast< int >(val2);
-    ecode3 = SWIG_AsVal_double SWIG_PERL_CALL_ARGS_2(ST(2), &val3);
-    if (!SWIG_IsOK(ecode3)) {
-      SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "Feature__SetField" "', argument " "3"" of type '" "double""'");
-    } 
-    arg3 = static_cast< double >(val3);
-    {
-      CPLErrorReset();
-      OGRFeatureShadow_SetField__SWIG_4(arg1,arg2,arg3);
-      CPLErr eclass = CPLGetLastErrorType();
-      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        do_confess( CPLGetLastErrorMsg(), 0 );
-        
-        
-        
-        
-        
-      }
-      
-      
-      /*
-          Make warnings regular Perl warnings. This duplicates the warning
-          message if DontUseExceptions() is in effect (it is not by default).
-          */
-      if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg(), "%s" );
-      }
-      
-      
-    }
-    {
-      /* %typemap(out) void */
-    }
-    
-    
-    
-    XSRETURN(argvi);
-  fail:
-    
-    
-    
-    SWIG_croak_null();
-  }
-}
-
-
-XS(_wrap_Feature__SetField__SWIG_5) {
-  {
-    OGRFeatureShadow *arg1 = (OGRFeatureShadow *) 0 ;
-    char *arg2 = (char *) 0 ;
-    double arg3 ;
-    void *argp1 = 0 ;
-    int res1 = 0 ;
-    U8 *tmpbuf2 = NULL ;
-    double val3 ;
-    int ecode3 = 0 ;
-    int argvi = 0;
-    dXSARGS;
-    
-    if ((items < 3) || (items > 3)) {
-      SWIG_croak("Usage: Feature__SetField(self,name,value);");
-    }
-    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OGRFeatureShadow, 0 |  0 );
-    if (!SWIG_IsOK(res1)) {
-      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Feature__SetField" "', argument " "1"" of type '" "OGRFeatureShadow *""'"); 
-    }
-    arg1 = reinterpret_cast< OGRFeatureShadow * >(argp1);
-    {
-      /* %typemap(in,numinputs=1) (const char* name) */
-      arg2 = sv_to_utf8_string(ST(1), &tmpbuf2);
-    }
-    ecode3 = SWIG_AsVal_double SWIG_PERL_CALL_ARGS_2(ST(2), &val3);
-    if (!SWIG_IsOK(ecode3)) {
-      SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "Feature__SetField" "', argument " "3"" of type '" "double""'");
-    } 
-    arg3 = static_cast< double >(val3);
-    {
-      if (!arg2) {
-        SWIG_exception(SWIG_ValueError,"Received a NULL pointer.");
-      }
-    }
-    {
-      CPLErrorReset();
-      OGRFeatureShadow_SetField__SWIG_5(arg1,(char const *)arg2,arg3);
-      CPLErr eclass = CPLGetLastErrorType();
-      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        do_confess( CPLGetLastErrorMsg(), 0 );
-        
-        
-        
-        
-        
-      }
-      
-      
-      /*
-          Make warnings regular Perl warnings. This duplicates the warning
-          message if DontUseExceptions() is in effect (it is not by default).
-          */
-      if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg(), "%s" );
-      }
-      
-      
-    }
-    {
-      /* %typemap(out) void */
-    }
-    
-    {
-      /* %typemap(freearg) (const char* name) */
-      if (tmpbuf2) free(tmpbuf2);
-    }
-    
-    XSRETURN(argvi);
-  fail:
-    
-    {
-      /* %typemap(freearg) (const char* name) */
-      if (tmpbuf2) free(tmpbuf2);
-    }
-    
-    SWIG_croak_null();
-  }
-}
-
-
-XS(_wrap_Feature__SetField__SWIG_6) {
   {
     OGRFeatureShadow *arg1 = (OGRFeatureShadow *) 0 ;
     int arg2 ;
@@ -13783,7 +10967,7 @@ XS(_wrap_Feature__SetField__SWIG_6) {
     arg9 = static_cast< int >(val9);
     {
       CPLErrorReset();
-      OGRFeatureShadow_SetField__SWIG_6(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9);
+      OGRFeatureShadow_SetField__SWIG_3(arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
         do_confess( CPLGetLastErrorMsg(), 0 );
@@ -13821,147 +11005,6 @@ XS(_wrap_Feature__SetField__SWIG_6) {
   fail:
     
     
-    
-    
-    
-    
-    
-    
-    
-    SWIG_croak_null();
-  }
-}
-
-
-XS(_wrap_Feature__SetField__SWIG_7) {
-  {
-    OGRFeatureShadow *arg1 = (OGRFeatureShadow *) 0 ;
-    char *arg2 = (char *) 0 ;
-    int arg3 ;
-    int arg4 ;
-    int arg5 ;
-    int arg6 ;
-    int arg7 ;
-    float arg8 ;
-    int arg9 ;
-    void *argp1 = 0 ;
-    int res1 = 0 ;
-    U8 *tmpbuf2 = NULL ;
-    int val3 ;
-    int ecode3 = 0 ;
-    int val4 ;
-    int ecode4 = 0 ;
-    int val5 ;
-    int ecode5 = 0 ;
-    int val6 ;
-    int ecode6 = 0 ;
-    int val7 ;
-    int ecode7 = 0 ;
-    float val8 ;
-    int ecode8 = 0 ;
-    int val9 ;
-    int ecode9 = 0 ;
-    int argvi = 0;
-    dXSARGS;
-    
-    if ((items < 9) || (items > 9)) {
-      SWIG_croak("Usage: Feature__SetField(self,name,year,month,day,hour,minute,second,tzflag);");
-    }
-    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OGRFeatureShadow, 0 |  0 );
-    if (!SWIG_IsOK(res1)) {
-      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Feature__SetField" "', argument " "1"" of type '" "OGRFeatureShadow *""'"); 
-    }
-    arg1 = reinterpret_cast< OGRFeatureShadow * >(argp1);
-    {
-      /* %typemap(in,numinputs=1) (const char* name) */
-      arg2 = sv_to_utf8_string(ST(1), &tmpbuf2);
-    }
-    ecode3 = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(2), &val3);
-    if (!SWIG_IsOK(ecode3)) {
-      SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "Feature__SetField" "', argument " "3"" of type '" "int""'");
-    } 
-    arg3 = static_cast< int >(val3);
-    ecode4 = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(3), &val4);
-    if (!SWIG_IsOK(ecode4)) {
-      SWIG_exception_fail(SWIG_ArgError(ecode4), "in method '" "Feature__SetField" "', argument " "4"" of type '" "int""'");
-    } 
-    arg4 = static_cast< int >(val4);
-    ecode5 = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(4), &val5);
-    if (!SWIG_IsOK(ecode5)) {
-      SWIG_exception_fail(SWIG_ArgError(ecode5), "in method '" "Feature__SetField" "', argument " "5"" of type '" "int""'");
-    } 
-    arg5 = static_cast< int >(val5);
-    ecode6 = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(5), &val6);
-    if (!SWIG_IsOK(ecode6)) {
-      SWIG_exception_fail(SWIG_ArgError(ecode6), "in method '" "Feature__SetField" "', argument " "6"" of type '" "int""'");
-    } 
-    arg6 = static_cast< int >(val6);
-    ecode7 = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(6), &val7);
-    if (!SWIG_IsOK(ecode7)) {
-      SWIG_exception_fail(SWIG_ArgError(ecode7), "in method '" "Feature__SetField" "', argument " "7"" of type '" "int""'");
-    } 
-    arg7 = static_cast< int >(val7);
-    ecode8 = SWIG_AsVal_float SWIG_PERL_CALL_ARGS_2(ST(7), &val8);
-    if (!SWIG_IsOK(ecode8)) {
-      SWIG_exception_fail(SWIG_ArgError(ecode8), "in method '" "Feature__SetField" "', argument " "8"" of type '" "float""'");
-    } 
-    arg8 = static_cast< float >(val8);
-    ecode9 = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(8), &val9);
-    if (!SWIG_IsOK(ecode9)) {
-      SWIG_exception_fail(SWIG_ArgError(ecode9), "in method '" "Feature__SetField" "', argument " "9"" of type '" "int""'");
-    } 
-    arg9 = static_cast< int >(val9);
-    {
-      if (!arg2) {
-        SWIG_exception(SWIG_ValueError,"Received a NULL pointer.");
-      }
-    }
-    {
-      CPLErrorReset();
-      OGRFeatureShadow_SetField__SWIG_7(arg1,(char const *)arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9);
-      CPLErr eclass = CPLGetLastErrorType();
-      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        do_confess( CPLGetLastErrorMsg(), 0 );
-        
-        
-        
-        
-        
-      }
-      
-      
-      /*
-          Make warnings regular Perl warnings. This duplicates the warning
-          message if DontUseExceptions() is in effect (it is not by default).
-          */
-      if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg(), "%s" );
-      }
-      
-      
-    }
-    {
-      /* %typemap(out) void */
-    }
-    
-    {
-      /* %typemap(freearg) (const char* name) */
-      if (tmpbuf2) free(tmpbuf2);
-    }
-    
-    
-    
-    
-    
-    
-    
-    XSRETURN(argvi);
-  fail:
-    
-    {
-      /* %typemap(freearg) (const char* name) */
-      if (tmpbuf2) free(tmpbuf2);
-    }
     
     
     
@@ -14103,7 +11146,7 @@ XS(_wrap_Feature__SetField) {
     }
   check_3:
     
-    if (items == 3) {
+    if (items == 9) {
       SWIG_TypeRank _ranki = 0;
       SWIG_TypeRank _rankm = 0;
       SWIG_TypeRank _pi = 1;
@@ -14118,8 +11161,10 @@ XS(_wrap_Feature__SetField) {
       _rankm += _pi;
       _pi *= SWIG_MAXCASTRANK;
       {
-        int res = SWIG_AsCharPtrAndSize(ST(1), 0, NULL, 0);
-        _v = SWIG_CheckState(res);
+        {
+          int res = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(1), NULL);
+          _v = SWIG_CheckState(res);
+        }
       }
       if (!_v) goto check_4;
       _ranki += _v*_pi;
@@ -14127,8 +11172,68 @@ XS(_wrap_Feature__SetField) {
       _pi *= SWIG_MAXCASTRANK;
       {
         {
-          /* %typemap(typecheck,precedence=SWIG_TYPECHECK_POINTER) (tostring argin) */
-          _v = 1;
+          int res = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(2), NULL);
+          _v = SWIG_CheckState(res);
+        }
+      }
+      if (!_v) goto check_4;
+      _ranki += _v*_pi;
+      _rankm += _pi;
+      _pi *= SWIG_MAXCASTRANK;
+      {
+        {
+          int res = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(3), NULL);
+          _v = SWIG_CheckState(res);
+        }
+      }
+      if (!_v) goto check_4;
+      _ranki += _v*_pi;
+      _rankm += _pi;
+      _pi *= SWIG_MAXCASTRANK;
+      {
+        {
+          int res = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(4), NULL);
+          _v = SWIG_CheckState(res);
+        }
+      }
+      if (!_v) goto check_4;
+      _ranki += _v*_pi;
+      _rankm += _pi;
+      _pi *= SWIG_MAXCASTRANK;
+      {
+        {
+          int res = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(5), NULL);
+          _v = SWIG_CheckState(res);
+        }
+      }
+      if (!_v) goto check_4;
+      _ranki += _v*_pi;
+      _rankm += _pi;
+      _pi *= SWIG_MAXCASTRANK;
+      {
+        {
+          int res = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(6), NULL);
+          _v = SWIG_CheckState(res);
+        }
+      }
+      if (!_v) goto check_4;
+      _ranki += _v*_pi;
+      _rankm += _pi;
+      _pi *= SWIG_MAXCASTRANK;
+      {
+        {
+          int res = SWIG_AsVal_float SWIG_PERL_CALL_ARGS_2(ST(7), NULL);
+          _v = SWIG_CheckState(res);
+        }
+      }
+      if (!_v) goto check_4;
+      _ranki += _v*_pi;
+      _rankm += _pi;
+      _pi *= SWIG_MAXCASTRANK;
+      {
+        {
+          int res = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(8), NULL);
+          _v = SWIG_CheckState(res);
         }
       }
       if (!_v) goto check_4;
@@ -14142,302 +11247,16 @@ XS(_wrap_Feature__SetField) {
     }
   check_4:
     
-    if (items == 3) {
-      SWIG_TypeRank _ranki = 0;
-      SWIG_TypeRank _rankm = 0;
-      SWIG_TypeRank _pi = 1;
-      int _v = 0;
-      {
-        void *vptr = 0;
-        int res = SWIG_ConvertPtr(ST(0), &vptr, SWIGTYPE_p_OGRFeatureShadow, 0);
-        _v = SWIG_CheckState(res);
-      }
-      if (!_v) goto check_5;
-      _ranki += _v*_pi;
-      _rankm += _pi;
-      _pi *= SWIG_MAXCASTRANK;
-      {
-        int res = SWIG_AsCharPtrAndSize(ST(1), 0, NULL, 0);
-        _v = SWIG_CheckState(res);
-      }
-      if (!_v) goto check_5;
-      _ranki += _v*_pi;
-      _rankm += _pi;
-      _pi *= SWIG_MAXCASTRANK;
-      {
-        {
-          int res = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(2), NULL);
-          _v = SWIG_CheckState(res);
-        }
-      }
-      if (!_v) goto check_5;
-      _ranki += _v*_pi;
-      _rankm += _pi;
-      _pi *= SWIG_MAXCASTRANK;
-      if (!_index || (_ranki < _rank)) {
-        _rank = _ranki; _index = 5;
-        if (_rank == _rankm) goto dispatch;
-      }
-    }
-  check_5:
-    
-    if (items == 3) {
-      SWIG_TypeRank _ranki = 0;
-      SWIG_TypeRank _rankm = 0;
-      SWIG_TypeRank _pi = 1;
-      int _v = 0;
-      {
-        void *vptr = 0;
-        int res = SWIG_ConvertPtr(ST(0), &vptr, SWIGTYPE_p_OGRFeatureShadow, 0);
-        _v = SWIG_CheckState(res);
-      }
-      if (!_v) goto check_6;
-      _ranki += _v*_pi;
-      _rankm += _pi;
-      _pi *= SWIG_MAXCASTRANK;
-      {
-        int res = SWIG_AsCharPtrAndSize(ST(1), 0, NULL, 0);
-        _v = SWIG_CheckState(res);
-      }
-      if (!_v) goto check_6;
-      _ranki += _v*_pi;
-      _rankm += _pi;
-      _pi *= SWIG_MAXCASTRANK;
-      {
-        {
-          int res = SWIG_AsVal_double SWIG_PERL_CALL_ARGS_2(ST(2), NULL);
-          _v = SWIG_CheckState(res);
-        }
-      }
-      if (!_v) goto check_6;
-      _ranki += _v*_pi;
-      _rankm += _pi;
-      _pi *= SWIG_MAXCASTRANK;
-      if (!_index || (_ranki < _rank)) {
-        _rank = _ranki; _index = 6;
-        if (_rank == _rankm) goto dispatch;
-      }
-    }
-  check_6:
-    
-    if (items == 9) {
-      SWIG_TypeRank _ranki = 0;
-      SWIG_TypeRank _rankm = 0;
-      SWIG_TypeRank _pi = 1;
-      int _v = 0;
-      {
-        void *vptr = 0;
-        int res = SWIG_ConvertPtr(ST(0), &vptr, SWIGTYPE_p_OGRFeatureShadow, 0);
-        _v = SWIG_CheckState(res);
-      }
-      if (!_v) goto check_7;
-      _ranki += _v*_pi;
-      _rankm += _pi;
-      _pi *= SWIG_MAXCASTRANK;
-      {
-        {
-          int res = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(1), NULL);
-          _v = SWIG_CheckState(res);
-        }
-      }
-      if (!_v) goto check_7;
-      _ranki += _v*_pi;
-      _rankm += _pi;
-      _pi *= SWIG_MAXCASTRANK;
-      {
-        {
-          int res = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(2), NULL);
-          _v = SWIG_CheckState(res);
-        }
-      }
-      if (!_v) goto check_7;
-      _ranki += _v*_pi;
-      _rankm += _pi;
-      _pi *= SWIG_MAXCASTRANK;
-      {
-        {
-          int res = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(3), NULL);
-          _v = SWIG_CheckState(res);
-        }
-      }
-      if (!_v) goto check_7;
-      _ranki += _v*_pi;
-      _rankm += _pi;
-      _pi *= SWIG_MAXCASTRANK;
-      {
-        {
-          int res = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(4), NULL);
-          _v = SWIG_CheckState(res);
-        }
-      }
-      if (!_v) goto check_7;
-      _ranki += _v*_pi;
-      _rankm += _pi;
-      _pi *= SWIG_MAXCASTRANK;
-      {
-        {
-          int res = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(5), NULL);
-          _v = SWIG_CheckState(res);
-        }
-      }
-      if (!_v) goto check_7;
-      _ranki += _v*_pi;
-      _rankm += _pi;
-      _pi *= SWIG_MAXCASTRANK;
-      {
-        {
-          int res = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(6), NULL);
-          _v = SWIG_CheckState(res);
-        }
-      }
-      if (!_v) goto check_7;
-      _ranki += _v*_pi;
-      _rankm += _pi;
-      _pi *= SWIG_MAXCASTRANK;
-      {
-        {
-          int res = SWIG_AsVal_float SWIG_PERL_CALL_ARGS_2(ST(7), NULL);
-          _v = SWIG_CheckState(res);
-        }
-      }
-      if (!_v) goto check_7;
-      _ranki += _v*_pi;
-      _rankm += _pi;
-      _pi *= SWIG_MAXCASTRANK;
-      {
-        {
-          int res = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(8), NULL);
-          _v = SWIG_CheckState(res);
-        }
-      }
-      if (!_v) goto check_7;
-      _ranki += _v*_pi;
-      _rankm += _pi;
-      _pi *= SWIG_MAXCASTRANK;
-      if (!_index || (_ranki < _rank)) {
-        _rank = _ranki; _index = 7;
-        if (_rank == _rankm) goto dispatch;
-      }
-    }
-  check_7:
-    
-    if (items == 9) {
-      SWIG_TypeRank _ranki = 0;
-      SWIG_TypeRank _rankm = 0;
-      SWIG_TypeRank _pi = 1;
-      int _v = 0;
-      {
-        void *vptr = 0;
-        int res = SWIG_ConvertPtr(ST(0), &vptr, SWIGTYPE_p_OGRFeatureShadow, 0);
-        _v = SWIG_CheckState(res);
-      }
-      if (!_v) goto check_8;
-      _ranki += _v*_pi;
-      _rankm += _pi;
-      _pi *= SWIG_MAXCASTRANK;
-      {
-        int res = SWIG_AsCharPtrAndSize(ST(1), 0, NULL, 0);
-        _v = SWIG_CheckState(res);
-      }
-      if (!_v) goto check_8;
-      _ranki += _v*_pi;
-      _rankm += _pi;
-      _pi *= SWIG_MAXCASTRANK;
-      {
-        {
-          int res = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(2), NULL);
-          _v = SWIG_CheckState(res);
-        }
-      }
-      if (!_v) goto check_8;
-      _ranki += _v*_pi;
-      _rankm += _pi;
-      _pi *= SWIG_MAXCASTRANK;
-      {
-        {
-          int res = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(3), NULL);
-          _v = SWIG_CheckState(res);
-        }
-      }
-      if (!_v) goto check_8;
-      _ranki += _v*_pi;
-      _rankm += _pi;
-      _pi *= SWIG_MAXCASTRANK;
-      {
-        {
-          int res = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(4), NULL);
-          _v = SWIG_CheckState(res);
-        }
-      }
-      if (!_v) goto check_8;
-      _ranki += _v*_pi;
-      _rankm += _pi;
-      _pi *= SWIG_MAXCASTRANK;
-      {
-        {
-          int res = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(5), NULL);
-          _v = SWIG_CheckState(res);
-        }
-      }
-      if (!_v) goto check_8;
-      _ranki += _v*_pi;
-      _rankm += _pi;
-      _pi *= SWIG_MAXCASTRANK;
-      {
-        {
-          int res = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(6), NULL);
-          _v = SWIG_CheckState(res);
-        }
-      }
-      if (!_v) goto check_8;
-      _ranki += _v*_pi;
-      _rankm += _pi;
-      _pi *= SWIG_MAXCASTRANK;
-      {
-        {
-          int res = SWIG_AsVal_float SWIG_PERL_CALL_ARGS_2(ST(7), NULL);
-          _v = SWIG_CheckState(res);
-        }
-      }
-      if (!_v) goto check_8;
-      _ranki += _v*_pi;
-      _rankm += _pi;
-      _pi *= SWIG_MAXCASTRANK;
-      {
-        {
-          int res = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(8), NULL);
-          _v = SWIG_CheckState(res);
-        }
-      }
-      if (!_v) goto check_8;
-      _ranki += _v*_pi;
-      _rankm += _pi;
-      _pi *= SWIG_MAXCASTRANK;
-      if (!_index || (_ranki < _rank)) {
-        _rank = _ranki; _index = 8;
-        if (_rank == _rankm) goto dispatch;
-      }
-    }
-  check_8:
-    
   dispatch:
     switch(_index) {
     case 1:
       PUSHMARK(MARK); SWIG_CALLXS(_wrap_Feature__SetField__SWIG_0); return;
     case 2:
-      PUSHMARK(MARK); SWIG_CALLXS(_wrap_Feature__SetField__SWIG_2); return;
-    case 3:
-      PUSHMARK(MARK); SWIG_CALLXS(_wrap_Feature__SetField__SWIG_4); return;
-    case 4:
       PUSHMARK(MARK); SWIG_CALLXS(_wrap_Feature__SetField__SWIG_1); return;
-    case 5:
+    case 3:
+      PUSHMARK(MARK); SWIG_CALLXS(_wrap_Feature__SetField__SWIG_2); return;
+    case 4:
       PUSHMARK(MARK); SWIG_CALLXS(_wrap_Feature__SetField__SWIG_3); return;
-    case 6:
-      PUSHMARK(MARK); SWIG_CALLXS(_wrap_Feature__SetField__SWIG_5); return;
-    case 7:
-      PUSHMARK(MARK); SWIG_CALLXS(_wrap_Feature__SetField__SWIG_6); return;
-    case 8:
-      PUSHMARK(MARK); SWIG_CALLXS(_wrap_Feature__SetField__SWIG_7); return;
     }
   }
   
@@ -14446,7 +11265,7 @@ XS(_wrap_Feature__SetField) {
 }
 
 
-XS(_wrap_Feature_SetFieldIntegerList__SWIG_0) {
+XS(_wrap_Feature_SetFieldIntegerList) {
   {
     OGRFeatureShadow *arg1 = (OGRFeatureShadow *) 0 ;
     int arg2 ;
@@ -14489,7 +11308,7 @@ XS(_wrap_Feature_SetFieldIntegerList__SWIG_0) {
     }
     {
       CPLErrorReset();
-      OGRFeatureShadow_SetFieldIntegerList__SWIG_0(arg1,arg2,arg3,arg4);
+      OGRFeatureShadow_SetFieldIntegerList(arg1,arg2,arg3,arg4);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
         do_confess( CPLGetLastErrorMsg(), 0 );
@@ -14533,227 +11352,7 @@ XS(_wrap_Feature_SetFieldIntegerList__SWIG_0) {
 }
 
 
-XS(_wrap_Feature_SetFieldIntegerList__SWIG_1) {
-  {
-    OGRFeatureShadow *arg1 = (OGRFeatureShadow *) 0 ;
-    char *arg2 = (char *) 0 ;
-    int arg3 ;
-    int *arg4 = (int *) 0 ;
-    void *argp1 = 0 ;
-    int res1 = 0 ;
-    U8 *tmpbuf2 = NULL ;
-    int argvi = 0;
-    dXSARGS;
-    
-    if ((items < 3) || (items > 3)) {
-      SWIG_croak("Usage: Feature_SetFieldIntegerList(self,name,nList,pList);");
-    }
-    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OGRFeatureShadow, 0 |  0 );
-    if (!SWIG_IsOK(res1)) {
-      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Feature_SetFieldIntegerList" "', argument " "1"" of type '" "OGRFeatureShadow *""'"); 
-    }
-    arg1 = reinterpret_cast< OGRFeatureShadow * >(argp1);
-    {
-      /* %typemap(in,numinputs=1) (const char* name) */
-      arg2 = sv_to_utf8_string(ST(1), &tmpbuf2);
-    }
-    {
-      /* %typemap(in,numinputs=1) (int nList, int* pList) */
-      if (!(SvROK(ST(2)) && (SvTYPE(SvRV(ST(2)))==SVt_PVAV)))
-      do_confess(NEED_ARRAY_REF, 1);
-      AV *av = (AV*)(SvRV(ST(2)));
-      arg3 = av_len(av)+1;
-      arg4 = (int*)CPLMalloc(arg3*sizeof(int));
-      if (arg4) {
-        for( int i = 0; i<arg3; i++ ) {
-          SV **sv = av_fetch(av, i, 0);
-          arg4[i] =  SvIV(*sv);
-        }
-      } else
-      SWIG_fail;
-    }
-    {
-      if (!arg2) {
-        SWIG_exception(SWIG_ValueError,"Received a NULL pointer.");
-      }
-    }
-    {
-      CPLErrorReset();
-      OGRFeatureShadow_SetFieldIntegerList__SWIG_1(arg1,(char const *)arg2,arg3,arg4);
-      CPLErr eclass = CPLGetLastErrorType();
-      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        do_confess( CPLGetLastErrorMsg(), 0 );
-        
-        
-        
-        
-        
-      }
-      
-      
-      /*
-          Make warnings regular Perl warnings. This duplicates the warning
-          message if DontUseExceptions() is in effect (it is not by default).
-          */
-      if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg(), "%s" );
-      }
-      
-      
-    }
-    {
-      /* %typemap(out) void */
-    }
-    
-    {
-      /* %typemap(freearg) (const char* name) */
-      if (tmpbuf2) free(tmpbuf2);
-    }
-    {
-      /* %typemap(freearg) (int nList, int* pList) */
-      CPLFree((void*) arg4);
-    }
-    XSRETURN(argvi);
-  fail:
-    
-    {
-      /* %typemap(freearg) (const char* name) */
-      if (tmpbuf2) free(tmpbuf2);
-    }
-    {
-      /* %typemap(freearg) (int nList, int* pList) */
-      CPLFree((void*) arg4);
-    }
-    SWIG_croak_null();
-  }
-}
-
-
-XS(_wrap_Feature_SetFieldIntegerList) {
-  dXSARGS;
-  
-  {
-    unsigned long _index = 0;
-    SWIG_TypeRank _rank = 0; 
-    if (items == 3) {
-      SWIG_TypeRank _ranki = 0;
-      SWIG_TypeRank _rankm = 0;
-      SWIG_TypeRank _pi = 1;
-      int _v = 0;
-      {
-        void *vptr = 0;
-        int res = SWIG_ConvertPtr(ST(0), &vptr, SWIGTYPE_p_OGRFeatureShadow, 0);
-        _v = SWIG_CheckState(res);
-      }
-      if (!_v) goto check_1;
-      _ranki += _v*_pi;
-      _rankm += _pi;
-      _pi *= SWIG_MAXCASTRANK;
-      {
-        {
-          int res = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(1), NULL);
-          _v = SWIG_CheckState(res);
-        }
-      }
-      if (!_v) goto check_1;
-      _ranki += _v*_pi;
-      _rankm += _pi;
-      _pi *= SWIG_MAXCASTRANK;
-      {
-        {
-          /* %typemap(typecheck, precedence=SWIG_TYPECHECK_INTEGER) int nList, GUIntBig* pList */
-          _v = 1;
-        }
-      }
-      if (!_v) goto check_1;
-      _ranki += _v*_pi;
-      _rankm += _pi;
-      _pi *= SWIG_MAXCASTRANK;
-      if (items > 3) {
-        {
-          {
-            /* %typemap(typecheck, precedence=SWIG_TYPECHECK_INTEGER) int nList, int* pList */
-            _v = 1;
-          }
-        }
-        if (!_v) goto check_1;
-        _ranki += _v*_pi;
-        _rankm += _pi;
-        _pi *= SWIG_MAXCASTRANK;
-      }
-      if (!_index || (_ranki < _rank)) {
-        _rank = _ranki; _index = 1;
-        if (_rank == _rankm) goto dispatch;
-      }
-    }
-  check_1:
-    
-    if (items == 3) {
-      SWIG_TypeRank _ranki = 0;
-      SWIG_TypeRank _rankm = 0;
-      SWIG_TypeRank _pi = 1;
-      int _v = 0;
-      {
-        void *vptr = 0;
-        int res = SWIG_ConvertPtr(ST(0), &vptr, SWIGTYPE_p_OGRFeatureShadow, 0);
-        _v = SWIG_CheckState(res);
-      }
-      if (!_v) goto check_2;
-      _ranki += _v*_pi;
-      _rankm += _pi;
-      _pi *= SWIG_MAXCASTRANK;
-      {
-        int res = SWIG_AsCharPtrAndSize(ST(1), 0, NULL, 0);
-        _v = SWIG_CheckState(res);
-      }
-      if (!_v) goto check_2;
-      _ranki += _v*_pi;
-      _rankm += _pi;
-      _pi *= SWIG_MAXCASTRANK;
-      {
-        {
-          /* %typemap(typecheck, precedence=SWIG_TYPECHECK_INTEGER) int nList, GUIntBig* pList */
-          _v = 1;
-        }
-      }
-      if (!_v) goto check_2;
-      _ranki += _v*_pi;
-      _rankm += _pi;
-      _pi *= SWIG_MAXCASTRANK;
-      if (items > 3) {
-        {
-          {
-            /* %typemap(typecheck, precedence=SWIG_TYPECHECK_INTEGER) int nList, int* pList */
-            _v = 1;
-          }
-        }
-        if (!_v) goto check_2;
-        _ranki += _v*_pi;
-        _rankm += _pi;
-        _pi *= SWIG_MAXCASTRANK;
-      }
-      if (!_index || (_ranki < _rank)) {
-        _rank = _ranki; _index = 2;
-        if (_rank == _rankm) goto dispatch;
-      }
-    }
-  check_2:
-    
-  dispatch:
-    switch(_index) {
-    case 1:
-      PUSHMARK(MARK); SWIG_CALLXS(_wrap_Feature_SetFieldIntegerList__SWIG_0); return;
-    case 2:
-      PUSHMARK(MARK); SWIG_CALLXS(_wrap_Feature_SetFieldIntegerList__SWIG_1); return;
-    }
-  }
-  
-  croak("No matching function for overloaded 'Feature_SetFieldIntegerList'");
-  XSRETURN(0);
-}
-
-
-XS(_wrap_Feature_SetFieldInteger64List__SWIG_0) {
+XS(_wrap_Feature_SetFieldInteger64List) {
   {
     OGRFeatureShadow *arg1 = (OGRFeatureShadow *) 0 ;
     int arg2 ;
@@ -14796,7 +11395,7 @@ XS(_wrap_Feature_SetFieldInteger64List__SWIG_0) {
     }
     {
       CPLErrorReset();
-      OGRFeatureShadow_SetFieldInteger64List__SWIG_0(arg1,arg2,arg3,arg4);
+      OGRFeatureShadow_SetFieldInteger64List(arg1,arg2,arg3,arg4);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
         do_confess( CPLGetLastErrorMsg(), 0 );
@@ -14840,227 +11439,7 @@ XS(_wrap_Feature_SetFieldInteger64List__SWIG_0) {
 }
 
 
-XS(_wrap_Feature_SetFieldInteger64List__SWIG_1) {
-  {
-    OGRFeatureShadow *arg1 = (OGRFeatureShadow *) 0 ;
-    char *arg2 = (char *) 0 ;
-    int arg3 ;
-    GIntBig *arg4 = (GIntBig *) 0 ;
-    void *argp1 = 0 ;
-    int res1 = 0 ;
-    U8 *tmpbuf2 = NULL ;
-    int argvi = 0;
-    dXSARGS;
-    
-    if ((items < 3) || (items > 3)) {
-      SWIG_croak("Usage: Feature_SetFieldInteger64List(self,name,nList,pList);");
-    }
-    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OGRFeatureShadow, 0 |  0 );
-    if (!SWIG_IsOK(res1)) {
-      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Feature_SetFieldInteger64List" "', argument " "1"" of type '" "OGRFeatureShadow *""'"); 
-    }
-    arg1 = reinterpret_cast< OGRFeatureShadow * >(argp1);
-    {
-      /* %typemap(in,numinputs=1) (const char* name) */
-      arg2 = sv_to_utf8_string(ST(1), &tmpbuf2);
-    }
-    {
-      /* %typemap(in,numinputs=1) (int nList, GIntBig* pList) */
-      if (!(SvROK(ST(2)) && (SvTYPE(SvRV(ST(2)))==SVt_PVAV)))
-      do_confess(NEED_ARRAY_REF, 1);
-      AV *av = (AV*)(SvRV(ST(2)));
-      arg3 = av_len(av)+1;
-      arg4 = (GIntBig*)CPLMalloc(arg3*sizeof(GIntBig));
-      if (arg4) {
-        for( int i = 0; i<arg3; i++ ) {
-          SV **sv = av_fetch(av, i, 0);
-          arg4[i] =  CPLAtoGIntBig(SvPV_nolen(*sv));
-        }
-      } else
-      SWIG_fail;
-    }
-    {
-      if (!arg2) {
-        SWIG_exception(SWIG_ValueError,"Received a NULL pointer.");
-      }
-    }
-    {
-      CPLErrorReset();
-      OGRFeatureShadow_SetFieldInteger64List__SWIG_1(arg1,(char const *)arg2,arg3,arg4);
-      CPLErr eclass = CPLGetLastErrorType();
-      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        do_confess( CPLGetLastErrorMsg(), 0 );
-        
-        
-        
-        
-        
-      }
-      
-      
-      /*
-          Make warnings regular Perl warnings. This duplicates the warning
-          message if DontUseExceptions() is in effect (it is not by default).
-          */
-      if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg(), "%s" );
-      }
-      
-      
-    }
-    {
-      /* %typemap(out) void */
-    }
-    
-    {
-      /* %typemap(freearg) (const char* name) */
-      if (tmpbuf2) free(tmpbuf2);
-    }
-    {
-      /* %typemap(freearg) (int nList, GIntBig* pList) */
-      CPLFree((void*) arg4);
-    }
-    XSRETURN(argvi);
-  fail:
-    
-    {
-      /* %typemap(freearg) (const char* name) */
-      if (tmpbuf2) free(tmpbuf2);
-    }
-    {
-      /* %typemap(freearg) (int nList, GIntBig* pList) */
-      CPLFree((void*) arg4);
-    }
-    SWIG_croak_null();
-  }
-}
-
-
-XS(_wrap_Feature_SetFieldInteger64List) {
-  dXSARGS;
-  
-  {
-    unsigned long _index = 0;
-    SWIG_TypeRank _rank = 0; 
-    if (items == 3) {
-      SWIG_TypeRank _ranki = 0;
-      SWIG_TypeRank _rankm = 0;
-      SWIG_TypeRank _pi = 1;
-      int _v = 0;
-      {
-        void *vptr = 0;
-        int res = SWIG_ConvertPtr(ST(0), &vptr, SWIGTYPE_p_OGRFeatureShadow, 0);
-        _v = SWIG_CheckState(res);
-      }
-      if (!_v) goto check_1;
-      _ranki += _v*_pi;
-      _rankm += _pi;
-      _pi *= SWIG_MAXCASTRANK;
-      {
-        {
-          int res = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(1), NULL);
-          _v = SWIG_CheckState(res);
-        }
-      }
-      if (!_v) goto check_1;
-      _ranki += _v*_pi;
-      _rankm += _pi;
-      _pi *= SWIG_MAXCASTRANK;
-      {
-        {
-          /* %typemap(typecheck, precedence=SWIG_TYPECHECK_INTEGER) int nList, GUIntBig* pList */
-          _v = 1;
-        }
-      }
-      if (!_v) goto check_1;
-      _ranki += _v*_pi;
-      _rankm += _pi;
-      _pi *= SWIG_MAXCASTRANK;
-      if (items > 3) {
-        {
-          {
-            /* %typemap(typecheck, precedence=SWIG_TYPECHECK_INTEGER) int nList, GIntBig* pList */
-            _v = 1;
-          }
-        }
-        if (!_v) goto check_1;
-        _ranki += _v*_pi;
-        _rankm += _pi;
-        _pi *= SWIG_MAXCASTRANK;
-      }
-      if (!_index || (_ranki < _rank)) {
-        _rank = _ranki; _index = 1;
-        if (_rank == _rankm) goto dispatch;
-      }
-    }
-  check_1:
-    
-    if (items == 3) {
-      SWIG_TypeRank _ranki = 0;
-      SWIG_TypeRank _rankm = 0;
-      SWIG_TypeRank _pi = 1;
-      int _v = 0;
-      {
-        void *vptr = 0;
-        int res = SWIG_ConvertPtr(ST(0), &vptr, SWIGTYPE_p_OGRFeatureShadow, 0);
-        _v = SWIG_CheckState(res);
-      }
-      if (!_v) goto check_2;
-      _ranki += _v*_pi;
-      _rankm += _pi;
-      _pi *= SWIG_MAXCASTRANK;
-      {
-        int res = SWIG_AsCharPtrAndSize(ST(1), 0, NULL, 0);
-        _v = SWIG_CheckState(res);
-      }
-      if (!_v) goto check_2;
-      _ranki += _v*_pi;
-      _rankm += _pi;
-      _pi *= SWIG_MAXCASTRANK;
-      {
-        {
-          /* %typemap(typecheck, precedence=SWIG_TYPECHECK_INTEGER) int nList, GUIntBig* pList */
-          _v = 1;
-        }
-      }
-      if (!_v) goto check_2;
-      _ranki += _v*_pi;
-      _rankm += _pi;
-      _pi *= SWIG_MAXCASTRANK;
-      if (items > 3) {
-        {
-          {
-            /* %typemap(typecheck, precedence=SWIG_TYPECHECK_INTEGER) int nList, GIntBig* pList */
-            _v = 1;
-          }
-        }
-        if (!_v) goto check_2;
-        _ranki += _v*_pi;
-        _rankm += _pi;
-        _pi *= SWIG_MAXCASTRANK;
-      }
-      if (!_index || (_ranki < _rank)) {
-        _rank = _ranki; _index = 2;
-        if (_rank == _rankm) goto dispatch;
-      }
-    }
-  check_2:
-    
-  dispatch:
-    switch(_index) {
-    case 1:
-      PUSHMARK(MARK); SWIG_CALLXS(_wrap_Feature_SetFieldInteger64List__SWIG_0); return;
-    case 2:
-      PUSHMARK(MARK); SWIG_CALLXS(_wrap_Feature_SetFieldInteger64List__SWIG_1); return;
-    }
-  }
-  
-  croak("No matching function for overloaded 'Feature_SetFieldInteger64List'");
-  XSRETURN(0);
-}
-
-
-XS(_wrap_Feature_SetFieldDoubleList__SWIG_0) {
+XS(_wrap_Feature_SetFieldDoubleList) {
   {
     OGRFeatureShadow *arg1 = (OGRFeatureShadow *) 0 ;
     int arg2 ;
@@ -15103,7 +11482,7 @@ XS(_wrap_Feature_SetFieldDoubleList__SWIG_0) {
     }
     {
       CPLErrorReset();
-      OGRFeatureShadow_SetFieldDoubleList__SWIG_0(arg1,arg2,arg3,arg4);
+      OGRFeatureShadow_SetFieldDoubleList(arg1,arg2,arg3,arg4);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
         do_confess( CPLGetLastErrorMsg(), 0 );
@@ -15147,225 +11526,7 @@ XS(_wrap_Feature_SetFieldDoubleList__SWIG_0) {
 }
 
 
-XS(_wrap_Feature_SetFieldDoubleList__SWIG_1) {
-  {
-    OGRFeatureShadow *arg1 = (OGRFeatureShadow *) 0 ;
-    char *arg2 = (char *) 0 ;
-    int arg3 ;
-    double *arg4 = (double *) 0 ;
-    void *argp1 = 0 ;
-    int res1 = 0 ;
-    U8 *tmpbuf2 = NULL ;
-    int argvi = 0;
-    dXSARGS;
-    
-    if ((items < 3) || (items > 3)) {
-      SWIG_croak("Usage: Feature_SetFieldDoubleList(self,name,nList,pList);");
-    }
-    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OGRFeatureShadow, 0 |  0 );
-    if (!SWIG_IsOK(res1)) {
-      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Feature_SetFieldDoubleList" "', argument " "1"" of type '" "OGRFeatureShadow *""'"); 
-    }
-    arg1 = reinterpret_cast< OGRFeatureShadow * >(argp1);
-    {
-      /* %typemap(in,numinputs=1) (const char* name) */
-      arg2 = sv_to_utf8_string(ST(1), &tmpbuf2);
-    }
-    {
-      /* %typemap(in,numinputs=1) (int nList, double* pList) */
-      if (!(SvROK(ST(2)) && (SvTYPE(SvRV(ST(2)))==SVt_PVAV)))
-      do_confess(NEED_ARRAY_REF, 1);
-      AV *av = (AV*)(SvRV(ST(2)));
-      arg3 = av_len(av)+1;
-      arg4 = (double*)CPLMalloc(arg3*sizeof(double));
-      if (arg4) {
-        for( int i = 0; i<arg3; i++ ) {
-          SV **sv = av_fetch(av, i, 0);
-          arg4[i] =  SvNV(*sv);
-        }
-      } else
-      SWIG_fail;
-    }
-    {
-      if (!arg2) {
-        SWIG_exception(SWIG_ValueError,"Received a NULL pointer.");
-      }
-    }
-    {
-      CPLErrorReset();
-      OGRFeatureShadow_SetFieldDoubleList__SWIG_1(arg1,(char const *)arg2,arg3,arg4);
-      CPLErr eclass = CPLGetLastErrorType();
-      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        do_confess( CPLGetLastErrorMsg(), 0 );
-        
-        
-        
-        
-        
-      }
-      
-      
-      /*
-          Make warnings regular Perl warnings. This duplicates the warning
-          message if DontUseExceptions() is in effect (it is not by default).
-          */
-      if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg(), "%s" );
-      }
-      
-      
-    }
-    {
-      /* %typemap(out) void */
-    }
-    
-    {
-      /* %typemap(freearg) (const char* name) */
-      if (tmpbuf2) free(tmpbuf2);
-    }
-    {
-      /* %typemap(freearg) (int nList, double* pList) */
-      CPLFree((void*) arg4);
-    }
-    XSRETURN(argvi);
-  fail:
-    
-    {
-      /* %typemap(freearg) (const char* name) */
-      if (tmpbuf2) free(tmpbuf2);
-    }
-    {
-      /* %typemap(freearg) (int nList, double* pList) */
-      CPLFree((void*) arg4);
-    }
-    SWIG_croak_null();
-  }
-}
-
-
-XS(_wrap_Feature_SetFieldDoubleList) {
-  dXSARGS;
-  
-  {
-    unsigned long _index = 0;
-    SWIG_TypeRank _rank = 0; 
-    if (items == 3) {
-      SWIG_TypeRank _ranki = 0;
-      SWIG_TypeRank _rankm = 0;
-      SWIG_TypeRank _pi = 1;
-      int _v = 0;
-      {
-        void *vptr = 0;
-        int res = SWIG_ConvertPtr(ST(0), &vptr, SWIGTYPE_p_OGRFeatureShadow, 0);
-        _v = SWIG_CheckState(res);
-      }
-      if (!_v) goto check_1;
-      _ranki += _v*_pi;
-      _rankm += _pi;
-      _pi *= SWIG_MAXCASTRANK;
-      {
-        {
-          int res = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(1), NULL);
-          _v = SWIG_CheckState(res);
-        }
-      }
-      if (!_v) goto check_1;
-      _ranki += _v*_pi;
-      _rankm += _pi;
-      _pi *= SWIG_MAXCASTRANK;
-      {
-        {
-          /* %typemap(typecheck, precedence=SWIG_TYPECHECK_INTEGER) int nList, GUIntBig* pList */
-          _v = 1;
-        }
-      }
-      if (!_v) goto check_1;
-      _ranki += _v*_pi;
-      _rankm += _pi;
-      _pi *= SWIG_MAXCASTRANK;
-      if (items > 3) {
-        {
-          void *vptr = 0;
-          int res = SWIG_ConvertPtr(ST(3), &vptr, SWIGTYPE_p_double, 0);
-          _v = SWIG_CheckState(res);
-        }
-        if (!_v) goto check_1;
-        _ranki += _v*_pi;
-        _rankm += _pi;
-        _pi *= SWIG_MAXCASTRANK;
-      }
-      if (!_index || (_ranki < _rank)) {
-        _rank = _ranki; _index = 1;
-        if (_rank == _rankm) goto dispatch;
-      }
-    }
-  check_1:
-    
-    if (items == 3) {
-      SWIG_TypeRank _ranki = 0;
-      SWIG_TypeRank _rankm = 0;
-      SWIG_TypeRank _pi = 1;
-      int _v = 0;
-      {
-        void *vptr = 0;
-        int res = SWIG_ConvertPtr(ST(0), &vptr, SWIGTYPE_p_OGRFeatureShadow, 0);
-        _v = SWIG_CheckState(res);
-      }
-      if (!_v) goto check_2;
-      _ranki += _v*_pi;
-      _rankm += _pi;
-      _pi *= SWIG_MAXCASTRANK;
-      {
-        int res = SWIG_AsCharPtrAndSize(ST(1), 0, NULL, 0);
-        _v = SWIG_CheckState(res);
-      }
-      if (!_v) goto check_2;
-      _ranki += _v*_pi;
-      _rankm += _pi;
-      _pi *= SWIG_MAXCASTRANK;
-      {
-        {
-          /* %typemap(typecheck, precedence=SWIG_TYPECHECK_INTEGER) int nList, GUIntBig* pList */
-          _v = 1;
-        }
-      }
-      if (!_v) goto check_2;
-      _ranki += _v*_pi;
-      _rankm += _pi;
-      _pi *= SWIG_MAXCASTRANK;
-      if (items > 3) {
-        {
-          void *vptr = 0;
-          int res = SWIG_ConvertPtr(ST(3), &vptr, SWIGTYPE_p_double, 0);
-          _v = SWIG_CheckState(res);
-        }
-        if (!_v) goto check_2;
-        _ranki += _v*_pi;
-        _rankm += _pi;
-        _pi *= SWIG_MAXCASTRANK;
-      }
-      if (!_index || (_ranki < _rank)) {
-        _rank = _ranki; _index = 2;
-        if (_rank == _rankm) goto dispatch;
-      }
-    }
-  check_2:
-    
-  dispatch:
-    switch(_index) {
-    case 1:
-      PUSHMARK(MARK); SWIG_CALLXS(_wrap_Feature_SetFieldDoubleList__SWIG_0); return;
-    case 2:
-      PUSHMARK(MARK); SWIG_CALLXS(_wrap_Feature_SetFieldDoubleList__SWIG_1); return;
-    }
-  }
-  
-  croak("No matching function for overloaded 'Feature_SetFieldDoubleList'");
-  XSRETURN(0);
-}
-
-
-XS(_wrap_Feature_SetFieldStringList__SWIG_0) {
+XS(_wrap_Feature_SetFieldStringList) {
   {
     OGRFeatureShadow *arg1 = (OGRFeatureShadow *) 0 ;
     int arg2 ;
@@ -15398,9 +11559,10 @@ XS(_wrap_Feature_SetFieldStringList__SWIG_0) {
             AV *av = (AV*)(SvRV(ST(2)));
             for (int i = 0; i < av_len(av)+1; i++) {
               SV *sv = *(av_fetch(av, i, 0));
-              char *tmp = sv_to_utf8_string(sv, NULL);
+              bool sf;
+              char *tmp = sv_to_utf8_string(sv, NULL, &sf);
               arg3 = CSLAddString(arg3, tmp);
-              free(tmp);
+              if (sf) Safefree(tmp); else free(tmp);
             }
           } else if (SvTYPE(SvRV(ST(2)))==SVt_PVHV) {
             HV *hv = (HV*)SvRV(ST(2));
@@ -15410,9 +11572,10 @@ XS(_wrap_Feature_SetFieldStringList__SWIG_0) {
             arg3 = NULL;
             hv_iterinit(hv);
             while(sv = hv_iternextsv(hv, &key, &klen)) {
-              char *tmp = sv_to_utf8_string(sv, NULL);
+              bool sf;
+              char *tmp = sv_to_utf8_string(sv, NULL, &sf);
               arg3 = CSLAddNameValue(arg3, key, tmp);
-              free(tmp);
+              if (sf) Safefree(tmp); else free(tmp);
             }
           } else
           do_confess(NEED_REF, 1);
@@ -15422,7 +11585,7 @@ XS(_wrap_Feature_SetFieldStringList__SWIG_0) {
     }
     {
       CPLErrorReset();
-      OGRFeatureShadow_SetFieldStringList__SWIG_0(arg1,arg2,arg3);
+      OGRFeatureShadow_SetFieldStringList(arg1,arg2,arg3);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
         do_confess( CPLGetLastErrorMsg(), 0 );
@@ -15466,217 +11629,7 @@ XS(_wrap_Feature_SetFieldStringList__SWIG_0) {
 }
 
 
-XS(_wrap_Feature_SetFieldStringList__SWIG_1) {
-  {
-    OGRFeatureShadow *arg1 = (OGRFeatureShadow *) 0 ;
-    char *arg2 = (char *) 0 ;
-    char **arg3 = (char **) 0 ;
-    void *argp1 = 0 ;
-    int res1 = 0 ;
-    U8 *tmpbuf2 = NULL ;
-    int argvi = 0;
-    dXSARGS;
-    
-    if ((items < 3) || (items > 3)) {
-      SWIG_croak("Usage: Feature_SetFieldStringList(self,name,pList);");
-    }
-    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OGRFeatureShadow, 0 |  0 );
-    if (!SWIG_IsOK(res1)) {
-      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Feature_SetFieldStringList" "', argument " "1"" of type '" "OGRFeatureShadow *""'"); 
-    }
-    arg1 = reinterpret_cast< OGRFeatureShadow * >(argp1);
-    {
-      /* %typemap(in,numinputs=1) (const char* name) */
-      arg2 = sv_to_utf8_string(ST(1), &tmpbuf2);
-    }
-    {
-      /* %typemap(in) char **options */
-      if (SvOK(ST(2))) {
-        if (SvROK(ST(2))) {
-          if (SvTYPE(SvRV(ST(2)))==SVt_PVAV) {
-            AV *av = (AV*)(SvRV(ST(2)));
-            for (int i = 0; i < av_len(av)+1; i++) {
-              SV *sv = *(av_fetch(av, i, 0));
-              char *tmp = sv_to_utf8_string(sv, NULL);
-              arg3 = CSLAddString(arg3, tmp);
-              free(tmp);
-            }
-          } else if (SvTYPE(SvRV(ST(2)))==SVt_PVHV) {
-            HV *hv = (HV*)SvRV(ST(2));
-            SV *sv;
-            char *key;
-            I32 klen;
-            arg3 = NULL;
-            hv_iterinit(hv);
-            while(sv = hv_iternextsv(hv, &key, &klen)) {
-              char *tmp = sv_to_utf8_string(sv, NULL);
-              arg3 = CSLAddNameValue(arg3, key, tmp);
-              free(tmp);
-            }
-          } else
-          do_confess(NEED_REF, 1);
-        } else
-        do_confess(NEED_REF, 1);
-      }
-    }
-    {
-      if (!arg2) {
-        SWIG_exception(SWIG_ValueError,"Received a NULL pointer.");
-      }
-    }
-    {
-      CPLErrorReset();
-      OGRFeatureShadow_SetFieldStringList__SWIG_1(arg1,(char const *)arg2,arg3);
-      CPLErr eclass = CPLGetLastErrorType();
-      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        do_confess( CPLGetLastErrorMsg(), 0 );
-        
-        
-        
-        
-        
-      }
-      
-      
-      /*
-          Make warnings regular Perl warnings. This duplicates the warning
-          message if DontUseExceptions() is in effect (it is not by default).
-          */
-      if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg(), "%s" );
-      }
-      
-      
-    }
-    {
-      /* %typemap(out) void */
-    }
-    
-    {
-      /* %typemap(freearg) (const char* name) */
-      if (tmpbuf2) free(tmpbuf2);
-    }
-    {
-      /* %typemap(freearg) char **options */
-      if (arg3) CSLDestroy( arg3 );
-    }
-    XSRETURN(argvi);
-  fail:
-    
-    {
-      /* %typemap(freearg) (const char* name) */
-      if (tmpbuf2) free(tmpbuf2);
-    }
-    {
-      /* %typemap(freearg) char **options */
-      if (arg3) CSLDestroy( arg3 );
-    }
-    SWIG_croak_null();
-  }
-}
-
-
-XS(_wrap_Feature_SetFieldStringList) {
-  dXSARGS;
-  
-  {
-    unsigned long _index = 0;
-    SWIG_TypeRank _rank = 0; 
-    if (items == 3) {
-      SWIG_TypeRank _ranki = 0;
-      SWIG_TypeRank _rankm = 0;
-      SWIG_TypeRank _pi = 1;
-      int _v = 0;
-      {
-        void *vptr = 0;
-        int res = SWIG_ConvertPtr(ST(0), &vptr, SWIGTYPE_p_OGRFeatureShadow, 0);
-        _v = SWIG_CheckState(res);
-      }
-      if (!_v) goto check_1;
-      _ranki += _v*_pi;
-      _rankm += _pi;
-      _pi *= SWIG_MAXCASTRANK;
-      {
-        {
-          int res = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(1), NULL);
-          _v = SWIG_CheckState(res);
-        }
-      }
-      if (!_v) goto check_1;
-      _ranki += _v*_pi;
-      _rankm += _pi;
-      _pi *= SWIG_MAXCASTRANK;
-      {
-        {
-          /* %typemap(typecheck,precedence=SWIG_TYPECHECK_POINTER) char **options */
-          _v = 1;
-        }
-      }
-      if (!_v) goto check_1;
-      _ranki += _v*_pi;
-      _rankm += _pi;
-      _pi *= SWIG_MAXCASTRANK;
-      if (!_index || (_ranki < _rank)) {
-        _rank = _ranki; _index = 1;
-        if (_rank == _rankm) goto dispatch;
-      }
-    }
-  check_1:
-    
-    if (items == 3) {
-      SWIG_TypeRank _ranki = 0;
-      SWIG_TypeRank _rankm = 0;
-      SWIG_TypeRank _pi = 1;
-      int _v = 0;
-      {
-        void *vptr = 0;
-        int res = SWIG_ConvertPtr(ST(0), &vptr, SWIGTYPE_p_OGRFeatureShadow, 0);
-        _v = SWIG_CheckState(res);
-      }
-      if (!_v) goto check_2;
-      _ranki += _v*_pi;
-      _rankm += _pi;
-      _pi *= SWIG_MAXCASTRANK;
-      {
-        int res = SWIG_AsCharPtrAndSize(ST(1), 0, NULL, 0);
-        _v = SWIG_CheckState(res);
-      }
-      if (!_v) goto check_2;
-      _ranki += _v*_pi;
-      _rankm += _pi;
-      _pi *= SWIG_MAXCASTRANK;
-      {
-        {
-          /* %typemap(typecheck,precedence=SWIG_TYPECHECK_POINTER) char **options */
-          _v = 1;
-        }
-      }
-      if (!_v) goto check_2;
-      _ranki += _v*_pi;
-      _rankm += _pi;
-      _pi *= SWIG_MAXCASTRANK;
-      if (!_index || (_ranki < _rank)) {
-        _rank = _ranki; _index = 2;
-        if (_rank == _rankm) goto dispatch;
-      }
-    }
-  check_2:
-    
-  dispatch:
-    switch(_index) {
-    case 1:
-      PUSHMARK(MARK); SWIG_CALLXS(_wrap_Feature_SetFieldStringList__SWIG_0); return;
-    case 2:
-      PUSHMARK(MARK); SWIG_CALLXS(_wrap_Feature_SetFieldStringList__SWIG_1); return;
-    }
-  }
-  
-  croak("No matching function for overloaded 'Feature_SetFieldStringList'");
-  XSRETURN(0);
-}
-
-
-XS(_wrap_Feature_SetFieldBinary__SWIG_0) {
+XS(_wrap_Feature_SetFieldBinary) {
   {
     OGRFeatureShadow *arg1 = (OGRFeatureShadow *) 0 ;
     int arg2 ;
@@ -15709,7 +11662,7 @@ XS(_wrap_Feature_SetFieldBinary__SWIG_0) {
     }
     {
       CPLErrorReset();
-      OGRFeatureShadow_SetFieldBinary__SWIG_0(arg1,arg2,arg3,arg4);
+      OGRFeatureShadow_SetFieldBinary(arg1,arg2,arg3,arg4);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
         do_confess( CPLGetLastErrorMsg(), 0 );
@@ -15745,209 +11698,7 @@ XS(_wrap_Feature_SetFieldBinary__SWIG_0) {
 }
 
 
-XS(_wrap_Feature_SetFieldBinary__SWIG_1) {
-  {
-    OGRFeatureShadow *arg1 = (OGRFeatureShadow *) 0 ;
-    char *arg2 = (char *) 0 ;
-    int arg3 ;
-    GByte *arg4 = (GByte *) 0 ;
-    void *argp1 = 0 ;
-    int res1 = 0 ;
-    U8 *tmpbuf2 = NULL ;
-    int argvi = 0;
-    dXSARGS;
-    
-    if ((items < 3) || (items > 3)) {
-      SWIG_croak("Usage: Feature_SetFieldBinary(self,name,nBytes,pabyBuf);");
-    }
-    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OGRFeatureShadow, 0 |  0 );
-    if (!SWIG_IsOK(res1)) {
-      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Feature_SetFieldBinary" "', argument " "1"" of type '" "OGRFeatureShadow *""'"); 
-    }
-    arg1 = reinterpret_cast< OGRFeatureShadow * >(argp1);
-    {
-      /* %typemap(in,numinputs=1) (const char* name) */
-      arg2 = sv_to_utf8_string(ST(1), &tmpbuf2);
-    }
-    {
-      /* %typemap(in,numinputs=1) (int nBytes, GByte* pabyBuf) */
-      arg3 = SvCUR(ST(2));
-      arg4 = (GByte*)SvPV_nolen(ST(2));
-    }
-    {
-      if (!arg2) {
-        SWIG_exception(SWIG_ValueError,"Received a NULL pointer.");
-      }
-    }
-    {
-      CPLErrorReset();
-      OGRFeatureShadow_SetFieldBinary__SWIG_1(arg1,(char const *)arg2,arg3,arg4);
-      CPLErr eclass = CPLGetLastErrorType();
-      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        do_confess( CPLGetLastErrorMsg(), 0 );
-        
-        
-        
-        
-        
-      }
-      
-      
-      /*
-          Make warnings regular Perl warnings. This duplicates the warning
-          message if DontUseExceptions() is in effect (it is not by default).
-          */
-      if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg(), "%s" );
-      }
-      
-      
-    }
-    {
-      /* %typemap(out) void */
-    }
-    
-    {
-      /* %typemap(freearg) (const char* name) */
-      if (tmpbuf2) free(tmpbuf2);
-    }
-    XSRETURN(argvi);
-  fail:
-    
-    {
-      /* %typemap(freearg) (const char* name) */
-      if (tmpbuf2) free(tmpbuf2);
-    }
-    SWIG_croak_null();
-  }
-}
-
-
-XS(_wrap_Feature_SetFieldBinary) {
-  dXSARGS;
-  
-  {
-    unsigned long _index = 0;
-    SWIG_TypeRank _rank = 0; 
-    if (items == 3) {
-      SWIG_TypeRank _ranki = 0;
-      SWIG_TypeRank _rankm = 0;
-      SWIG_TypeRank _pi = 1;
-      int _v = 0;
-      {
-        void *vptr = 0;
-        int res = SWIG_ConvertPtr(ST(0), &vptr, SWIGTYPE_p_OGRFeatureShadow, 0);
-        _v = SWIG_CheckState(res);
-      }
-      if (!_v) goto check_1;
-      _ranki += _v*_pi;
-      _rankm += _pi;
-      _pi *= SWIG_MAXCASTRANK;
-      {
-        {
-          int res = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(1), NULL);
-          _v = SWIG_CheckState(res);
-        }
-      }
-      if (!_v) goto check_1;
-      _ranki += _v*_pi;
-      _rankm += _pi;
-      _pi *= SWIG_MAXCASTRANK;
-      {
-        {
-          /* %typemap(typecheck, precedence=SWIG_TYPECHECK_INTEGER) int nBytes, GByte* pabyBuf */
-          _v = 1;
-        }
-      }
-      if (!_v) goto check_1;
-      _ranki += _v*_pi;
-      _rankm += _pi;
-      _pi *= SWIG_MAXCASTRANK;
-      if (items > 3) {
-        {
-          {
-            /* %typemap(typecheck, precedence=SWIG_TYPECHECK_INTEGER) int nBytes, GByte* pabyBuf */
-            _v = 1;
-          }
-        }
-        if (!_v) goto check_1;
-        _ranki += _v*_pi;
-        _rankm += _pi;
-        _pi *= SWIG_MAXCASTRANK;
-      }
-      if (!_index || (_ranki < _rank)) {
-        _rank = _ranki; _index = 1;
-        if (_rank == _rankm) goto dispatch;
-      }
-    }
-  check_1:
-    
-    if (items == 3) {
-      SWIG_TypeRank _ranki = 0;
-      SWIG_TypeRank _rankm = 0;
-      SWIG_TypeRank _pi = 1;
-      int _v = 0;
-      {
-        void *vptr = 0;
-        int res = SWIG_ConvertPtr(ST(0), &vptr, SWIGTYPE_p_OGRFeatureShadow, 0);
-        _v = SWIG_CheckState(res);
-      }
-      if (!_v) goto check_2;
-      _ranki += _v*_pi;
-      _rankm += _pi;
-      _pi *= SWIG_MAXCASTRANK;
-      {
-        int res = SWIG_AsCharPtrAndSize(ST(1), 0, NULL, 0);
-        _v = SWIG_CheckState(res);
-      }
-      if (!_v) goto check_2;
-      _ranki += _v*_pi;
-      _rankm += _pi;
-      _pi *= SWIG_MAXCASTRANK;
-      {
-        {
-          /* %typemap(typecheck, precedence=SWIG_TYPECHECK_INTEGER) int nBytes, GByte* pabyBuf */
-          _v = 1;
-        }
-      }
-      if (!_v) goto check_2;
-      _ranki += _v*_pi;
-      _rankm += _pi;
-      _pi *= SWIG_MAXCASTRANK;
-      if (items > 3) {
-        {
-          {
-            /* %typemap(typecheck, precedence=SWIG_TYPECHECK_INTEGER) int nBytes, GByte* pabyBuf */
-            _v = 1;
-          }
-        }
-        if (!_v) goto check_2;
-        _ranki += _v*_pi;
-        _rankm += _pi;
-        _pi *= SWIG_MAXCASTRANK;
-      }
-      if (!_index || (_ranki < _rank)) {
-        _rank = _ranki; _index = 2;
-        if (_rank == _rankm) goto dispatch;
-      }
-    }
-  check_2:
-    
-  dispatch:
-    switch(_index) {
-    case 1:
-      PUSHMARK(MARK); SWIG_CALLXS(_wrap_Feature_SetFieldBinary__SWIG_0); return;
-    case 2:
-      PUSHMARK(MARK); SWIG_CALLXS(_wrap_Feature_SetFieldBinary__SWIG_1); return;
-    }
-  }
-  
-  croak("No matching function for overloaded 'Feature_SetFieldBinary'");
-  XSRETURN(0);
-}
-
-
-XS(_wrap_Feature_SetFieldBinaryFromHexString__SWIG_0) {
+XS(_wrap_Feature_SetFieldBinaryFromHexString) {
   {
     OGRFeatureShadow *arg1 = (OGRFeatureShadow *) 0 ;
     int arg2 ;
@@ -15982,7 +11733,7 @@ XS(_wrap_Feature_SetFieldBinaryFromHexString__SWIG_0) {
     arg3 = reinterpret_cast< char * >(buf3);
     {
       CPLErrorReset();
-      OGRFeatureShadow_SetFieldBinaryFromHexString__SWIG_0(arg1,arg2,(char const *)arg3);
+      OGRFeatureShadow_SetFieldBinaryFromHexString(arg1,arg2,(char const *)arg3);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
         do_confess( CPLGetLastErrorMsg(), 0 );
@@ -16017,184 +11768,6 @@ XS(_wrap_Feature_SetFieldBinaryFromHexString__SWIG_0) {
     if (alloc3 == SWIG_NEWOBJ) delete[] buf3;
     SWIG_croak_null();
   }
-}
-
-
-XS(_wrap_Feature_SetFieldBinaryFromHexString__SWIG_1) {
-  {
-    OGRFeatureShadow *arg1 = (OGRFeatureShadow *) 0 ;
-    char *arg2 = (char *) 0 ;
-    char *arg3 = (char *) 0 ;
-    void *argp1 = 0 ;
-    int res1 = 0 ;
-    U8 *tmpbuf2 = NULL ;
-    int res3 ;
-    char *buf3 = 0 ;
-    int alloc3 = 0 ;
-    int argvi = 0;
-    dXSARGS;
-    
-    if ((items < 3) || (items > 3)) {
-      SWIG_croak("Usage: Feature_SetFieldBinaryFromHexString(self,name,pszValue);");
-    }
-    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OGRFeatureShadow, 0 |  0 );
-    if (!SWIG_IsOK(res1)) {
-      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Feature_SetFieldBinaryFromHexString" "', argument " "1"" of type '" "OGRFeatureShadow *""'"); 
-    }
-    arg1 = reinterpret_cast< OGRFeatureShadow * >(argp1);
-    {
-      /* %typemap(in,numinputs=1) (const char* name) */
-      arg2 = sv_to_utf8_string(ST(1), &tmpbuf2);
-    }
-    res3 = SWIG_AsCharPtrAndSize(ST(2), &buf3, NULL, &alloc3);
-    if (!SWIG_IsOK(res3)) {
-      SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "Feature_SetFieldBinaryFromHexString" "', argument " "3"" of type '" "char const *""'");
-    }
-    arg3 = reinterpret_cast< char * >(buf3);
-    {
-      if (!arg2) {
-        SWIG_exception(SWIG_ValueError,"Received a NULL pointer.");
-      }
-    }
-    {
-      CPLErrorReset();
-      OGRFeatureShadow_SetFieldBinaryFromHexString__SWIG_1(arg1,(char const *)arg2,(char const *)arg3);
-      CPLErr eclass = CPLGetLastErrorType();
-      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        do_confess( CPLGetLastErrorMsg(), 0 );
-        
-        
-        
-        
-        
-      }
-      
-      
-      /*
-          Make warnings regular Perl warnings. This duplicates the warning
-          message if DontUseExceptions() is in effect (it is not by default).
-          */
-      if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg(), "%s" );
-      }
-      
-      
-    }
-    {
-      /* %typemap(out) void */
-    }
-    
-    {
-      /* %typemap(freearg) (const char* name) */
-      if (tmpbuf2) free(tmpbuf2);
-    }
-    if (alloc3 == SWIG_NEWOBJ) delete[] buf3;
-    XSRETURN(argvi);
-  fail:
-    
-    {
-      /* %typemap(freearg) (const char* name) */
-      if (tmpbuf2) free(tmpbuf2);
-    }
-    if (alloc3 == SWIG_NEWOBJ) delete[] buf3;
-    SWIG_croak_null();
-  }
-}
-
-
-XS(_wrap_Feature_SetFieldBinaryFromHexString) {
-  dXSARGS;
-  
-  {
-    unsigned long _index = 0;
-    SWIG_TypeRank _rank = 0; 
-    if (items == 3) {
-      SWIG_TypeRank _ranki = 0;
-      SWIG_TypeRank _rankm = 0;
-      SWIG_TypeRank _pi = 1;
-      int _v = 0;
-      {
-        void *vptr = 0;
-        int res = SWIG_ConvertPtr(ST(0), &vptr, SWIGTYPE_p_OGRFeatureShadow, 0);
-        _v = SWIG_CheckState(res);
-      }
-      if (!_v) goto check_1;
-      _ranki += _v*_pi;
-      _rankm += _pi;
-      _pi *= SWIG_MAXCASTRANK;
-      {
-        {
-          int res = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(1), NULL);
-          _v = SWIG_CheckState(res);
-        }
-      }
-      if (!_v) goto check_1;
-      _ranki += _v*_pi;
-      _rankm += _pi;
-      _pi *= SWIG_MAXCASTRANK;
-      {
-        int res = SWIG_AsCharPtrAndSize(ST(2), 0, NULL, 0);
-        _v = SWIG_CheckState(res);
-      }
-      if (!_v) goto check_1;
-      _ranki += _v*_pi;
-      _rankm += _pi;
-      _pi *= SWIG_MAXCASTRANK;
-      if (!_index || (_ranki < _rank)) {
-        _rank = _ranki; _index = 1;
-        if (_rank == _rankm) goto dispatch;
-      }
-    }
-  check_1:
-    
-    if (items == 3) {
-      SWIG_TypeRank _ranki = 0;
-      SWIG_TypeRank _rankm = 0;
-      SWIG_TypeRank _pi = 1;
-      int _v = 0;
-      {
-        void *vptr = 0;
-        int res = SWIG_ConvertPtr(ST(0), &vptr, SWIGTYPE_p_OGRFeatureShadow, 0);
-        _v = SWIG_CheckState(res);
-      }
-      if (!_v) goto check_2;
-      _ranki += _v*_pi;
-      _rankm += _pi;
-      _pi *= SWIG_MAXCASTRANK;
-      {
-        int res = SWIG_AsCharPtrAndSize(ST(1), 0, NULL, 0);
-        _v = SWIG_CheckState(res);
-      }
-      if (!_v) goto check_2;
-      _ranki += _v*_pi;
-      _rankm += _pi;
-      _pi *= SWIG_MAXCASTRANK;
-      {
-        int res = SWIG_AsCharPtrAndSize(ST(2), 0, NULL, 0);
-        _v = SWIG_CheckState(res);
-      }
-      if (!_v) goto check_2;
-      _ranki += _v*_pi;
-      _rankm += _pi;
-      _pi *= SWIG_MAXCASTRANK;
-      if (!_index || (_ranki < _rank)) {
-        _rank = _ranki; _index = 2;
-        if (_rank == _rankm) goto dispatch;
-      }
-    }
-  check_2:
-    
-  dispatch:
-    switch(_index) {
-    case 1:
-      PUSHMARK(MARK); SWIG_CALLXS(_wrap_Feature_SetFieldBinaryFromHexString__SWIG_0); return;
-    case 2:
-      PUSHMARK(MARK); SWIG_CALLXS(_wrap_Feature_SetFieldBinaryFromHexString__SWIG_1); return;
-    }
-  }
-  
-  croak("No matching function for overloaded 'Feature_SetFieldBinaryFromHexString'");
-  XSRETURN(0);
 }
 
 
@@ -16511,7 +12084,7 @@ XS(_wrap_Feature_SetStyleString) {
 }
 
 
-XS(_wrap_Feature_GetFieldType__SWIG_0) {
+XS(_wrap_Feature_GetFieldType) {
   {
     OGRFeatureShadow *arg1 = (OGRFeatureShadow *) 0 ;
     int arg2 ;
@@ -16538,7 +12111,7 @@ XS(_wrap_Feature_GetFieldType__SWIG_0) {
     arg2 = static_cast< int >(val2);
     {
       CPLErrorReset();
-      result = (OGRFieldType)OGRFeatureShadow_GetFieldType__SWIG_0(arg1,arg2);
+      result = (OGRFieldType)OGRFeatureShadow_GetFieldType(arg1,arg2);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
         do_confess( CPLGetLastErrorMsg(), 0 );
@@ -16569,156 +12142,6 @@ XS(_wrap_Feature_GetFieldType__SWIG_0) {
     
     SWIG_croak_null();
   }
-}
-
-
-XS(_wrap_Feature_GetFieldType__SWIG_1) {
-  {
-    OGRFeatureShadow *arg1 = (OGRFeatureShadow *) 0 ;
-    char *arg2 = (char *) 0 ;
-    void *argp1 = 0 ;
-    int res1 = 0 ;
-    U8 *tmpbuf2 = NULL ;
-    int argvi = 0;
-    OGRFieldType result;
-    dXSARGS;
-    
-    if ((items < 2) || (items > 2)) {
-      SWIG_croak("Usage: Feature_GetFieldType(self,name);");
-    }
-    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OGRFeatureShadow, 0 |  0 );
-    if (!SWIG_IsOK(res1)) {
-      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Feature_GetFieldType" "', argument " "1"" of type '" "OGRFeatureShadow *""'"); 
-    }
-    arg1 = reinterpret_cast< OGRFeatureShadow * >(argp1);
-    {
-      /* %typemap(in,numinputs=1) (const char* name) */
-      arg2 = sv_to_utf8_string(ST(1), &tmpbuf2);
-    }
-    {
-      if (!arg2) {
-        SWIG_exception(SWIG_ValueError,"Received a NULL pointer.");
-      }
-    }
-    {
-      CPLErrorReset();
-      result = (OGRFieldType)OGRFeatureShadow_GetFieldType__SWIG_1(arg1,(char const *)arg2);
-      CPLErr eclass = CPLGetLastErrorType();
-      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        do_confess( CPLGetLastErrorMsg(), 0 );
-        
-        
-        
-        
-        
-      }
-      
-      
-      /*
-          Make warnings regular Perl warnings. This duplicates the warning
-          message if DontUseExceptions() is in effect (it is not by default).
-          */
-      if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg(), "%s" );
-      }
-      
-      
-    }
-    ST(argvi) = SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(result)); argvi++ ;
-    
-    {
-      /* %typemap(freearg) (const char* name) */
-      if (tmpbuf2) free(tmpbuf2);
-    }
-    XSRETURN(argvi);
-  fail:
-    
-    {
-      /* %typemap(freearg) (const char* name) */
-      if (tmpbuf2) free(tmpbuf2);
-    }
-    SWIG_croak_null();
-  }
-}
-
-
-XS(_wrap_Feature_GetFieldType) {
-  dXSARGS;
-  
-  {
-    unsigned long _index = 0;
-    SWIG_TypeRank _rank = 0; 
-    if (items == 2) {
-      SWIG_TypeRank _ranki = 0;
-      SWIG_TypeRank _rankm = 0;
-      SWIG_TypeRank _pi = 1;
-      int _v = 0;
-      {
-        void *vptr = 0;
-        int res = SWIG_ConvertPtr(ST(0), &vptr, SWIGTYPE_p_OGRFeatureShadow, 0);
-        _v = SWIG_CheckState(res);
-      }
-      if (!_v) goto check_1;
-      _ranki += _v*_pi;
-      _rankm += _pi;
-      _pi *= SWIG_MAXCASTRANK;
-      {
-        {
-          int res = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(1), NULL);
-          _v = SWIG_CheckState(res);
-        }
-      }
-      if (!_v) goto check_1;
-      _ranki += _v*_pi;
-      _rankm += _pi;
-      _pi *= SWIG_MAXCASTRANK;
-      if (!_index || (_ranki < _rank)) {
-        _rank = _ranki; _index = 1;
-        if (_rank == _rankm) goto dispatch;
-      }
-    }
-  check_1:
-    
-    if (items == 2) {
-      SWIG_TypeRank _ranki = 0;
-      SWIG_TypeRank _rankm = 0;
-      SWIG_TypeRank _pi = 1;
-      int _v = 0;
-      {
-        void *vptr = 0;
-        int res = SWIG_ConvertPtr(ST(0), &vptr, SWIGTYPE_p_OGRFeatureShadow, 0);
-        _v = SWIG_CheckState(res);
-      }
-      if (!_v) goto check_2;
-      _ranki += _v*_pi;
-      _rankm += _pi;
-      _pi *= SWIG_MAXCASTRANK;
-      {
-        int res = SWIG_AsCharPtrAndSize(ST(1), 0, NULL, 0);
-        _v = SWIG_CheckState(res);
-      }
-      if (!_v) goto check_2;
-      _ranki += _v*_pi;
-      _rankm += _pi;
-      _pi *= SWIG_MAXCASTRANK;
-      if (!_index || (_ranki < _rank)) {
-        _rank = _ranki; _index = 2;
-        if (_rank == _rankm) goto dispatch;
-      }
-    }
-  check_2:
-    
-  dispatch:
-    switch(_index) {
-    case 1:
-      PUSHMARK(MARK); SWIG_CALLXS(_wrap_Feature_GetFieldType__SWIG_0); return;
-    case 2:
-      PUSHMARK(MARK); SWIG_CALLXS(_wrap_Feature_GetFieldType__SWIG_1); return;
-    }
-  }
-  
-  croak("No matching function for overloaded 'Feature_GetFieldType'");
-  XSRETURN(0);
 }
 
 
@@ -16833,9 +12256,10 @@ XS(_wrap_Feature_FillUnsetWithDefault) {
               AV *av = (AV*)(SvRV(ST(2)));
               for (int i = 0; i < av_len(av)+1; i++) {
                 SV *sv = *(av_fetch(av, i, 0));
-                char *tmp = sv_to_utf8_string(sv, NULL);
+                bool sf;
+                char *tmp = sv_to_utf8_string(sv, NULL, &sf);
                 arg3 = CSLAddString(arg3, tmp);
-                free(tmp);
+                if (sf) Safefree(tmp); else free(tmp);
               }
             } else if (SvTYPE(SvRV(ST(2)))==SVt_PVHV) {
               HV *hv = (HV*)SvRV(ST(2));
@@ -16845,9 +12269,10 @@ XS(_wrap_Feature_FillUnsetWithDefault) {
               arg3 = NULL;
               hv_iterinit(hv);
               while(sv = hv_iternextsv(hv, &key, &klen)) {
-                char *tmp = sv_to_utf8_string(sv, NULL);
+                bool sf;
+                char *tmp = sv_to_utf8_string(sv, NULL, &sf);
                 arg3 = CSLAddNameValue(arg3, key, tmp);
-                free(tmp);
+                if (sf) Safefree(tmp); else free(tmp);
               }
             } else
             do_confess(NEED_REF, 1);
@@ -17356,7 +12781,7 @@ XS(_wrap_FeatureDefn_GetFieldCount) {
 }
 
 
-XS(_wrap_FeatureDefn_GetFieldDefn) {
+XS(_wrap_FeatureDefn__GetFieldDefn) {
   {
     OGRFeatureDefnShadow *arg1 = (OGRFeatureDefnShadow *) 0 ;
     int arg2 ;
@@ -17369,16 +12794,16 @@ XS(_wrap_FeatureDefn_GetFieldDefn) {
     dXSARGS;
     
     if ((items < 2) || (items > 2)) {
-      SWIG_croak("Usage: FeatureDefn_GetFieldDefn(self,i);");
+      SWIG_croak("Usage: FeatureDefn__GetFieldDefn(self,i);");
     }
     res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OGRFeatureDefnShadow, 0 |  0 );
     if (!SWIG_IsOK(res1)) {
-      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "FeatureDefn_GetFieldDefn" "', argument " "1"" of type '" "OGRFeatureDefnShadow *""'"); 
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "FeatureDefn__GetFieldDefn" "', argument " "1"" of type '" "OGRFeatureDefnShadow *""'"); 
     }
     arg1 = reinterpret_cast< OGRFeatureDefnShadow * >(argp1);
     ecode2 = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(1), &val2);
     if (!SWIG_IsOK(ecode2)) {
-      SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "FeatureDefn_GetFieldDefn" "', argument " "2"" of type '" "int""'");
+      SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "FeatureDefn__GetFieldDefn" "', argument " "2"" of type '" "int""'");
     } 
     arg2 = static_cast< int >(val2);
     {
@@ -17417,68 +12842,7 @@ XS(_wrap_FeatureDefn_GetFieldDefn) {
 }
 
 
-XS(_wrap_FeatureDefn_GetFieldIndex__SWIG_0) {
-  {
-    OGRFeatureDefnShadow *arg1 = (OGRFeatureDefnShadow *) 0 ;
-    int arg2 ;
-    void *argp1 = 0 ;
-    int res1 = 0 ;
-    int val2 ;
-    int ecode2 = 0 ;
-    int argvi = 0;
-    int result;
-    dXSARGS;
-    
-    if ((items < 2) || (items > 2)) {
-      SWIG_croak("Usage: FeatureDefn_GetFieldIndex(self,i);");
-    }
-    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OGRFeatureDefnShadow, 0 |  0 );
-    if (!SWIG_IsOK(res1)) {
-      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "FeatureDefn_GetFieldIndex" "', argument " "1"" of type '" "OGRFeatureDefnShadow *""'"); 
-    }
-    arg1 = reinterpret_cast< OGRFeatureDefnShadow * >(argp1);
-    ecode2 = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(1), &val2);
-    if (!SWIG_IsOK(ecode2)) {
-      SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "FeatureDefn_GetFieldIndex" "', argument " "2"" of type '" "int""'");
-    } 
-    arg2 = static_cast< int >(val2);
-    {
-      CPLErrorReset();
-      result = (int)OGRFeatureDefnShadow_GetFieldIndex__SWIG_0(arg1,arg2);
-      CPLErr eclass = CPLGetLastErrorType();
-      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        do_confess( CPLGetLastErrorMsg(), 0 );
-        
-        
-        
-        
-        
-      }
-      
-      
-      /*
-          Make warnings regular Perl warnings. This duplicates the warning
-          message if DontUseExceptions() is in effect (it is not by default).
-          */
-      if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg(), "%s" );
-      }
-      
-      
-    }
-    ST(argvi) = SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(result)); argvi++ ;
-    
-    
-    XSRETURN(argvi);
-  fail:
-    
-    
-    SWIG_croak_null();
-  }
-}
-
-
-XS(_wrap_FeatureDefn_GetFieldIndex__SWIG_1) {
+XS(_wrap_FeatureDefn__GetFieldIndex) {
   {
     OGRFeatureDefnShadow *arg1 = (OGRFeatureDefnShadow *) 0 ;
     char *arg2 = (char *) 0 ;
@@ -17490,11 +12854,11 @@ XS(_wrap_FeatureDefn_GetFieldIndex__SWIG_1) {
     dXSARGS;
     
     if ((items < 2) || (items > 2)) {
-      SWIG_croak("Usage: FeatureDefn_GetFieldIndex(self,name);");
+      SWIG_croak("Usage: FeatureDefn__GetFieldIndex(self,name);");
     }
     res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OGRFeatureDefnShadow, 0 |  0 );
     if (!SWIG_IsOK(res1)) {
-      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "FeatureDefn_GetFieldIndex" "', argument " "1"" of type '" "OGRFeatureDefnShadow *""'"); 
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "FeatureDefn__GetFieldIndex" "', argument " "1"" of type '" "OGRFeatureDefnShadow *""'"); 
     }
     arg1 = reinterpret_cast< OGRFeatureDefnShadow * >(argp1);
     {
@@ -17508,7 +12872,7 @@ XS(_wrap_FeatureDefn_GetFieldIndex__SWIG_1) {
     }
     {
       CPLErrorReset();
-      result = (int)OGRFeatureDefnShadow_GetFieldIndex__SWIG_1(arg1,(char const *)arg2);
+      result = (int)OGRFeatureDefnShadow_GetFieldIndex(arg1,(char const *)arg2);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
         do_confess( CPLGetLastErrorMsg(), 0 );
@@ -17534,97 +12898,17 @@ XS(_wrap_FeatureDefn_GetFieldIndex__SWIG_1) {
     
     {
       /* %typemap(freearg) (const char* name) */
-      if (tmpbuf2) free(tmpbuf2);
+      if (tmpbuf2) Safefree(tmpbuf2);
     }
     XSRETURN(argvi);
   fail:
     
     {
       /* %typemap(freearg) (const char* name) */
-      if (tmpbuf2) free(tmpbuf2);
+      if (tmpbuf2) Safefree(tmpbuf2);
     }
     SWIG_croak_null();
   }
-}
-
-
-XS(_wrap_FeatureDefn_GetFieldIndex) {
-  dXSARGS;
-  
-  {
-    unsigned long _index = 0;
-    SWIG_TypeRank _rank = 0; 
-    if (items == 2) {
-      SWIG_TypeRank _ranki = 0;
-      SWIG_TypeRank _rankm = 0;
-      SWIG_TypeRank _pi = 1;
-      int _v = 0;
-      {
-        void *vptr = 0;
-        int res = SWIG_ConvertPtr(ST(0), &vptr, SWIGTYPE_p_OGRFeatureDefnShadow, 0);
-        _v = SWIG_CheckState(res);
-      }
-      if (!_v) goto check_1;
-      _ranki += _v*_pi;
-      _rankm += _pi;
-      _pi *= SWIG_MAXCASTRANK;
-      {
-        {
-          int res = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(1), NULL);
-          _v = SWIG_CheckState(res);
-        }
-      }
-      if (!_v) goto check_1;
-      _ranki += _v*_pi;
-      _rankm += _pi;
-      _pi *= SWIG_MAXCASTRANK;
-      if (!_index || (_ranki < _rank)) {
-        _rank = _ranki; _index = 1;
-        if (_rank == _rankm) goto dispatch;
-      }
-    }
-  check_1:
-    
-    if (items == 2) {
-      SWIG_TypeRank _ranki = 0;
-      SWIG_TypeRank _rankm = 0;
-      SWIG_TypeRank _pi = 1;
-      int _v = 0;
-      {
-        void *vptr = 0;
-        int res = SWIG_ConvertPtr(ST(0), &vptr, SWIGTYPE_p_OGRFeatureDefnShadow, 0);
-        _v = SWIG_CheckState(res);
-      }
-      if (!_v) goto check_2;
-      _ranki += _v*_pi;
-      _rankm += _pi;
-      _pi *= SWIG_MAXCASTRANK;
-      {
-        int res = SWIG_AsCharPtrAndSize(ST(1), 0, NULL, 0);
-        _v = SWIG_CheckState(res);
-      }
-      if (!_v) goto check_2;
-      _ranki += _v*_pi;
-      _rankm += _pi;
-      _pi *= SWIG_MAXCASTRANK;
-      if (!_index || (_ranki < _rank)) {
-        _rank = _ranki; _index = 2;
-        if (_rank == _rankm) goto dispatch;
-      }
-    }
-  check_2:
-    
-  dispatch:
-    switch(_index) {
-    case 1:
-      PUSHMARK(MARK); SWIG_CALLXS(_wrap_FeatureDefn_GetFieldIndex__SWIG_0); return;
-    case 2:
-      PUSHMARK(MARK); SWIG_CALLXS(_wrap_FeatureDefn_GetFieldIndex__SWIG_1); return;
-    }
-  }
-  
-  croak("No matching function for overloaded 'FeatureDefn_GetFieldIndex'");
-  XSRETURN(0);
 }
 
 
@@ -17746,7 +13030,7 @@ XS(_wrap_FeatureDefn_GetGeomFieldCount) {
 }
 
 
-XS(_wrap_FeatureDefn_GetGeomFieldDefn__SWIG_0) {
+XS(_wrap_FeatureDefn__GetGeomFieldDefn) {
   {
     OGRFeatureDefnShadow *arg1 = (OGRFeatureDefnShadow *) 0 ;
     int arg2 ;
@@ -17759,21 +13043,21 @@ XS(_wrap_FeatureDefn_GetGeomFieldDefn__SWIG_0) {
     dXSARGS;
     
     if ((items < 2) || (items > 2)) {
-      SWIG_croak("Usage: FeatureDefn_GetGeomFieldDefn(self,i);");
+      SWIG_croak("Usage: FeatureDefn__GetGeomFieldDefn(self,i);");
     }
     res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OGRFeatureDefnShadow, 0 |  0 );
     if (!SWIG_IsOK(res1)) {
-      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "FeatureDefn_GetGeomFieldDefn" "', argument " "1"" of type '" "OGRFeatureDefnShadow *""'"); 
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "FeatureDefn__GetGeomFieldDefn" "', argument " "1"" of type '" "OGRFeatureDefnShadow *""'"); 
     }
     arg1 = reinterpret_cast< OGRFeatureDefnShadow * >(argp1);
     ecode2 = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(1), &val2);
     if (!SWIG_IsOK(ecode2)) {
-      SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "FeatureDefn_GetGeomFieldDefn" "', argument " "2"" of type '" "int""'");
+      SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "FeatureDefn__GetGeomFieldDefn" "', argument " "2"" of type '" "int""'");
     } 
     arg2 = static_cast< int >(val2);
     {
       CPLErrorReset();
-      result = (OGRGeomFieldDefnShadow *)OGRFeatureDefnShadow_GetGeomFieldDefn__SWIG_0(arg1,arg2);
+      result = (OGRGeomFieldDefnShadow *)OGRFeatureDefnShadow_GetGeomFieldDefn(arg1,arg2);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
         do_confess( CPLGetLastErrorMsg(), 0 );
@@ -17807,7 +13091,7 @@ XS(_wrap_FeatureDefn_GetGeomFieldDefn__SWIG_0) {
 }
 
 
-XS(_wrap_FeatureDefn_GetGeomFieldDefn__SWIG_1) {
+XS(_wrap_FeatureDefn__GetGeomFieldIndex) {
   {
     OGRFeatureDefnShadow *arg1 = (OGRFeatureDefnShadow *) 0 ;
     char *arg2 = (char *) 0 ;
@@ -17815,15 +13099,15 @@ XS(_wrap_FeatureDefn_GetGeomFieldDefn__SWIG_1) {
     int res1 = 0 ;
     U8 *tmpbuf2 = NULL ;
     int argvi = 0;
-    OGRGeomFieldDefnShadow *result = 0 ;
+    int result;
     dXSARGS;
     
     if ((items < 2) || (items > 2)) {
-      SWIG_croak("Usage: FeatureDefn_GetGeomFieldDefn(self,name);");
+      SWIG_croak("Usage: FeatureDefn__GetGeomFieldIndex(self,name);");
     }
     res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OGRFeatureDefnShadow, 0 |  0 );
     if (!SWIG_IsOK(res1)) {
-      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "FeatureDefn_GetGeomFieldDefn" "', argument " "1"" of type '" "OGRFeatureDefnShadow *""'"); 
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "FeatureDefn__GetGeomFieldIndex" "', argument " "1"" of type '" "OGRFeatureDefnShadow *""'"); 
     }
     arg1 = reinterpret_cast< OGRFeatureDefnShadow * >(argp1);
     {
@@ -17837,218 +13121,7 @@ XS(_wrap_FeatureDefn_GetGeomFieldDefn__SWIG_1) {
     }
     {
       CPLErrorReset();
-      result = (OGRGeomFieldDefnShadow *)OGRFeatureDefnShadow_GetGeomFieldDefn__SWIG_1(arg1,(char const *)arg2);
-      CPLErr eclass = CPLGetLastErrorType();
-      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        do_confess( CPLGetLastErrorMsg(), 0 );
-        
-        
-        
-        
-        
-      }
-      
-      
-      /*
-          Make warnings regular Perl warnings. This duplicates the warning
-          message if DontUseExceptions() is in effect (it is not by default).
-          */
-      if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg(), "%s" );
-      }
-      
-      
-    }
-    ST(argvi) = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_OGRGeomFieldDefnShadow, 0 | SWIG_SHADOW); argvi++ ;
-    
-    {
-      /* %typemap(freearg) (const char* name) */
-      if (tmpbuf2) free(tmpbuf2);
-    }
-    XSRETURN(argvi);
-  fail:
-    
-    {
-      /* %typemap(freearg) (const char* name) */
-      if (tmpbuf2) free(tmpbuf2);
-    }
-    SWIG_croak_null();
-  }
-}
-
-
-XS(_wrap_FeatureDefn_GetGeomFieldDefn) {
-  dXSARGS;
-  
-  {
-    unsigned long _index = 0;
-    SWIG_TypeRank _rank = 0; 
-    if (items == 2) {
-      SWIG_TypeRank _ranki = 0;
-      SWIG_TypeRank _rankm = 0;
-      SWIG_TypeRank _pi = 1;
-      int _v = 0;
-      {
-        void *vptr = 0;
-        int res = SWIG_ConvertPtr(ST(0), &vptr, SWIGTYPE_p_OGRFeatureDefnShadow, 0);
-        _v = SWIG_CheckState(res);
-      }
-      if (!_v) goto check_1;
-      _ranki += _v*_pi;
-      _rankm += _pi;
-      _pi *= SWIG_MAXCASTRANK;
-      {
-        {
-          int res = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(1), NULL);
-          _v = SWIG_CheckState(res);
-        }
-      }
-      if (!_v) goto check_1;
-      _ranki += _v*_pi;
-      _rankm += _pi;
-      _pi *= SWIG_MAXCASTRANK;
-      if (!_index || (_ranki < _rank)) {
-        _rank = _ranki; _index = 1;
-        if (_rank == _rankm) goto dispatch;
-      }
-    }
-  check_1:
-    
-    if (items == 2) {
-      SWIG_TypeRank _ranki = 0;
-      SWIG_TypeRank _rankm = 0;
-      SWIG_TypeRank _pi = 1;
-      int _v = 0;
-      {
-        void *vptr = 0;
-        int res = SWIG_ConvertPtr(ST(0), &vptr, SWIGTYPE_p_OGRFeatureDefnShadow, 0);
-        _v = SWIG_CheckState(res);
-      }
-      if (!_v) goto check_2;
-      _ranki += _v*_pi;
-      _rankm += _pi;
-      _pi *= SWIG_MAXCASTRANK;
-      {
-        int res = SWIG_AsCharPtrAndSize(ST(1), 0, NULL, 0);
-        _v = SWIG_CheckState(res);
-      }
-      if (!_v) goto check_2;
-      _ranki += _v*_pi;
-      _rankm += _pi;
-      _pi *= SWIG_MAXCASTRANK;
-      if (!_index || (_ranki < _rank)) {
-        _rank = _ranki; _index = 2;
-        if (_rank == _rankm) goto dispatch;
-      }
-    }
-  check_2:
-    
-  dispatch:
-    switch(_index) {
-    case 1:
-      PUSHMARK(MARK); SWIG_CALLXS(_wrap_FeatureDefn_GetGeomFieldDefn__SWIG_0); return;
-    case 2:
-      PUSHMARK(MARK); SWIG_CALLXS(_wrap_FeatureDefn_GetGeomFieldDefn__SWIG_1); return;
-    }
-  }
-  
-  croak("No matching function for overloaded 'FeatureDefn_GetGeomFieldDefn'");
-  XSRETURN(0);
-}
-
-
-XS(_wrap_FeatureDefn_GetGeomFieldIndex__SWIG_0) {
-  {
-    OGRFeatureDefnShadow *arg1 = (OGRFeatureDefnShadow *) 0 ;
-    int arg2 ;
-    void *argp1 = 0 ;
-    int res1 = 0 ;
-    int val2 ;
-    int ecode2 = 0 ;
-    int argvi = 0;
-    int result;
-    dXSARGS;
-    
-    if ((items < 2) || (items > 2)) {
-      SWIG_croak("Usage: FeatureDefn_GetGeomFieldIndex(self,i);");
-    }
-    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OGRFeatureDefnShadow, 0 |  0 );
-    if (!SWIG_IsOK(res1)) {
-      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "FeatureDefn_GetGeomFieldIndex" "', argument " "1"" of type '" "OGRFeatureDefnShadow *""'"); 
-    }
-    arg1 = reinterpret_cast< OGRFeatureDefnShadow * >(argp1);
-    ecode2 = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(1), &val2);
-    if (!SWIG_IsOK(ecode2)) {
-      SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "FeatureDefn_GetGeomFieldIndex" "', argument " "2"" of type '" "int""'");
-    } 
-    arg2 = static_cast< int >(val2);
-    {
-      CPLErrorReset();
-      result = (int)OGRFeatureDefnShadow_GetGeomFieldIndex__SWIG_0(arg1,arg2);
-      CPLErr eclass = CPLGetLastErrorType();
-      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
-        do_confess( CPLGetLastErrorMsg(), 0 );
-        
-        
-        
-        
-        
-      }
-      
-      
-      /*
-          Make warnings regular Perl warnings. This duplicates the warning
-          message if DontUseExceptions() is in effect (it is not by default).
-          */
-      if ( eclass == CE_Warning ) {
-        warn( CPLGetLastErrorMsg(), "%s" );
-      }
-      
-      
-    }
-    ST(argvi) = SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(result)); argvi++ ;
-    
-    
-    XSRETURN(argvi);
-  fail:
-    
-    
-    SWIG_croak_null();
-  }
-}
-
-
-XS(_wrap_FeatureDefn_GetGeomFieldIndex__SWIG_1) {
-  {
-    OGRFeatureDefnShadow *arg1 = (OGRFeatureDefnShadow *) 0 ;
-    char *arg2 = (char *) 0 ;
-    void *argp1 = 0 ;
-    int res1 = 0 ;
-    U8 *tmpbuf2 = NULL ;
-    int argvi = 0;
-    int result;
-    dXSARGS;
-    
-    if ((items < 2) || (items > 2)) {
-      SWIG_croak("Usage: FeatureDefn_GetGeomFieldIndex(self,name);");
-    }
-    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OGRFeatureDefnShadow, 0 |  0 );
-    if (!SWIG_IsOK(res1)) {
-      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "FeatureDefn_GetGeomFieldIndex" "', argument " "1"" of type '" "OGRFeatureDefnShadow *""'"); 
-    }
-    arg1 = reinterpret_cast< OGRFeatureDefnShadow * >(argp1);
-    {
-      /* %typemap(in,numinputs=1) (const char* name) */
-      arg2 = sv_to_utf8_string(ST(1), &tmpbuf2);
-    }
-    {
-      if (!arg2) {
-        SWIG_exception(SWIG_ValueError,"Received a NULL pointer.");
-      }
-    }
-    {
-      CPLErrorReset();
-      result = (int)OGRFeatureDefnShadow_GetGeomFieldIndex__SWIG_1(arg1,(char const *)arg2);
+      result = (int)OGRFeatureDefnShadow_GetGeomFieldIndex(arg1,(char const *)arg2);
       CPLErr eclass = CPLGetLastErrorType();
       if ( eclass == CE_Failure || eclass == CE_Fatal ) {
         do_confess( CPLGetLastErrorMsg(), 0 );
@@ -18074,97 +13147,17 @@ XS(_wrap_FeatureDefn_GetGeomFieldIndex__SWIG_1) {
     
     {
       /* %typemap(freearg) (const char* name) */
-      if (tmpbuf2) free(tmpbuf2);
+      if (tmpbuf2) Safefree(tmpbuf2);
     }
     XSRETURN(argvi);
   fail:
     
     {
       /* %typemap(freearg) (const char* name) */
-      if (tmpbuf2) free(tmpbuf2);
+      if (tmpbuf2) Safefree(tmpbuf2);
     }
     SWIG_croak_null();
   }
-}
-
-
-XS(_wrap_FeatureDefn_GetGeomFieldIndex) {
-  dXSARGS;
-  
-  {
-    unsigned long _index = 0;
-    SWIG_TypeRank _rank = 0; 
-    if (items == 2) {
-      SWIG_TypeRank _ranki = 0;
-      SWIG_TypeRank _rankm = 0;
-      SWIG_TypeRank _pi = 1;
-      int _v = 0;
-      {
-        void *vptr = 0;
-        int res = SWIG_ConvertPtr(ST(0), &vptr, SWIGTYPE_p_OGRFeatureDefnShadow, 0);
-        _v = SWIG_CheckState(res);
-      }
-      if (!_v) goto check_1;
-      _ranki += _v*_pi;
-      _rankm += _pi;
-      _pi *= SWIG_MAXCASTRANK;
-      {
-        {
-          int res = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(1), NULL);
-          _v = SWIG_CheckState(res);
-        }
-      }
-      if (!_v) goto check_1;
-      _ranki += _v*_pi;
-      _rankm += _pi;
-      _pi *= SWIG_MAXCASTRANK;
-      if (!_index || (_ranki < _rank)) {
-        _rank = _ranki; _index = 1;
-        if (_rank == _rankm) goto dispatch;
-      }
-    }
-  check_1:
-    
-    if (items == 2) {
-      SWIG_TypeRank _ranki = 0;
-      SWIG_TypeRank _rankm = 0;
-      SWIG_TypeRank _pi = 1;
-      int _v = 0;
-      {
-        void *vptr = 0;
-        int res = SWIG_ConvertPtr(ST(0), &vptr, SWIGTYPE_p_OGRFeatureDefnShadow, 0);
-        _v = SWIG_CheckState(res);
-      }
-      if (!_v) goto check_2;
-      _ranki += _v*_pi;
-      _rankm += _pi;
-      _pi *= SWIG_MAXCASTRANK;
-      {
-        int res = SWIG_AsCharPtrAndSize(ST(1), 0, NULL, 0);
-        _v = SWIG_CheckState(res);
-      }
-      if (!_v) goto check_2;
-      _ranki += _v*_pi;
-      _rankm += _pi;
-      _pi *= SWIG_MAXCASTRANK;
-      if (!_index || (_ranki < _rank)) {
-        _rank = _ranki; _index = 2;
-        if (_rank == _rankm) goto dispatch;
-      }
-    }
-  check_2:
-    
-  dispatch:
-    switch(_index) {
-    case 1:
-      PUSHMARK(MARK); SWIG_CALLXS(_wrap_FeatureDefn_GetGeomFieldIndex__SWIG_0); return;
-    case 2:
-      PUSHMARK(MARK); SWIG_CALLXS(_wrap_FeatureDefn_GetGeomFieldIndex__SWIG_1); return;
-    }
-  }
-  
-  croak("No matching function for overloaded 'FeatureDefn_GetGeomFieldIndex'");
-  XSRETURN(0);
 }
 
 
@@ -19048,14 +14041,14 @@ XS(_wrap_FieldDefn_SetName) {
     
     {
       /* %typemap(freearg) (const char* name) */
-      if (tmpbuf2) free(tmpbuf2);
+      if (tmpbuf2) Safefree(tmpbuf2);
     }
     XSRETURN(argvi);
   fail:
     
     {
       /* %typemap(freearg) (const char* name) */
-      if (tmpbuf2) free(tmpbuf2);
+      if (tmpbuf2) Safefree(tmpbuf2);
     }
     SWIG_croak_null();
   }
@@ -20437,14 +15430,14 @@ XS(_wrap_GeomFieldDefn_SetName) {
     
     {
       /* %typemap(freearg) (const char* name) */
-      if (tmpbuf2) free(tmpbuf2);
+      if (tmpbuf2) Safefree(tmpbuf2);
     }
     XSRETURN(argvi);
   fail:
     
     {
       /* %typemap(freearg) (const char* name) */
-      if (tmpbuf2) free(tmpbuf2);
+      if (tmpbuf2) Safefree(tmpbuf2);
     }
     SWIG_croak_null();
   }
@@ -21028,14 +16021,14 @@ XS(_wrap_CreateGeometryFromWkt) {
     ST(argvi) = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_OGRGeometryShadow, SWIG_OWNER | SWIG_SHADOW); argvi++ ;
     {
       /* %typemap(freearg) (char **ignorechange) */
-      if (tmpbuf1) free(tmpbuf1);
+      if (tmpbuf1) Safefree(tmpbuf1);
     }
     
     XSRETURN(argvi);
   fail:
     {
       /* %typemap(freearg) (char **ignorechange) */
-      if (tmpbuf1) free(tmpbuf1);
+      if (tmpbuf1) Safefree(tmpbuf1);
     }
     
     SWIG_croak_null();
@@ -21655,9 +16648,10 @@ XS(_wrap_ForceTo) {
               AV *av = (AV*)(SvRV(ST(2)));
               for (int i = 0; i < av_len(av)+1; i++) {
                 SV *sv = *(av_fetch(av, i, 0));
-                char *tmp = sv_to_utf8_string(sv, NULL);
+                bool sf;
+                char *tmp = sv_to_utf8_string(sv, NULL, &sf);
                 arg3 = CSLAddString(arg3, tmp);
-                free(tmp);
+                if (sf) Safefree(tmp); else free(tmp);
               }
             } else if (SvTYPE(SvRV(ST(2)))==SVt_PVHV) {
               HV *hv = (HV*)SvRV(ST(2));
@@ -21667,9 +16661,10 @@ XS(_wrap_ForceTo) {
               arg3 = NULL;
               hv_iterinit(hv);
               while(sv = hv_iternextsv(hv, &key, &klen)) {
-                char *tmp = sv_to_utf8_string(sv, NULL);
+                bool sf;
+                char *tmp = sv_to_utf8_string(sv, NULL, &sf);
                 arg3 = CSLAddNameValue(arg3, key, tmp);
-                free(tmp);
+                if (sf) Safefree(tmp); else free(tmp);
               }
             } else
             do_confess(NEED_REF, 1);
@@ -22258,9 +17253,10 @@ XS(_wrap_Geometry_ExportToGML) {
               AV *av = (AV*)(SvRV(ST(1)));
               for (int i = 0; i < av_len(av)+1; i++) {
                 SV *sv = *(av_fetch(av, i, 0));
-                char *tmp = sv_to_utf8_string(sv, NULL);
+                bool sf;
+                char *tmp = sv_to_utf8_string(sv, NULL, &sf);
                 arg2 = CSLAddString(arg2, tmp);
-                free(tmp);
+                if (sf) Safefree(tmp); else free(tmp);
               }
             } else if (SvTYPE(SvRV(ST(1)))==SVt_PVHV) {
               HV *hv = (HV*)SvRV(ST(1));
@@ -22270,9 +17266,10 @@ XS(_wrap_Geometry_ExportToGML) {
               arg2 = NULL;
               hv_iterinit(hv);
               while(sv = hv_iternextsv(hv, &key, &klen)) {
-                char *tmp = sv_to_utf8_string(sv, NULL);
+                bool sf;
+                char *tmp = sv_to_utf8_string(sv, NULL, &sf);
                 arg2 = CSLAddNameValue(arg2, key, tmp);
-                free(tmp);
+                if (sf) Safefree(tmp); else free(tmp);
               }
             } else
             do_confess(NEED_REF, 1);
@@ -22438,9 +17435,10 @@ XS(_wrap_Geometry_ExportToJson) {
               AV *av = (AV*)(SvRV(ST(1)));
               for (int i = 0; i < av_len(av)+1; i++) {
                 SV *sv = *(av_fetch(av, i, 0));
-                char *tmp = sv_to_utf8_string(sv, NULL);
+                bool sf;
+                char *tmp = sv_to_utf8_string(sv, NULL, &sf);
                 arg2 = CSLAddString(arg2, tmp);
-                free(tmp);
+                if (sf) Safefree(tmp); else free(tmp);
               }
             } else if (SvTYPE(SvRV(ST(1)))==SVt_PVHV) {
               HV *hv = (HV*)SvRV(ST(1));
@@ -22450,9 +17448,10 @@ XS(_wrap_Geometry_ExportToJson) {
               arg2 = NULL;
               hv_iterinit(hv);
               while(sv = hv_iternextsv(hv, &key, &klen)) {
-                char *tmp = sv_to_utf8_string(sv, NULL);
+                bool sf;
+                char *tmp = sv_to_utf8_string(sv, NULL, &sf);
                 arg2 = CSLAddNameValue(arg2, key, tmp);
-                free(tmp);
+                if (sf) Safefree(tmp); else free(tmp);
               }
             } else
             do_confess(NEED_REF, 1);
@@ -25211,6 +20210,72 @@ XS(_wrap_Geometry_Distance) {
 }
 
 
+XS(_wrap_Geometry_Distance3D) {
+  {
+    OGRGeometryShadow *arg1 = (OGRGeometryShadow *) 0 ;
+    OGRGeometryShadow *arg2 = (OGRGeometryShadow *) 0 ;
+    void *argp1 = 0 ;
+    int res1 = 0 ;
+    void *argp2 = 0 ;
+    int res2 = 0 ;
+    int argvi = 0;
+    double result;
+    dXSARGS;
+    
+    if ((items < 2) || (items > 2)) {
+      SWIG_croak("Usage: Geometry_Distance3D(self,other);");
+    }
+    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OGRGeometryShadow, 0 |  0 );
+    if (!SWIG_IsOK(res1)) {
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Geometry_Distance3D" "', argument " "1"" of type '" "OGRGeometryShadow *""'"); 
+    }
+    arg1 = reinterpret_cast< OGRGeometryShadow * >(argp1);
+    res2 = SWIG_ConvertPtr(ST(1), &argp2,SWIGTYPE_p_OGRGeometryShadow, 0 |  0 );
+    if (!SWIG_IsOK(res2)) {
+      SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "Geometry_Distance3D" "', argument " "2"" of type '" "OGRGeometryShadow *""'"); 
+    }
+    arg2 = reinterpret_cast< OGRGeometryShadow * >(argp2);
+    {
+      if (!arg2) {
+        SWIG_exception(SWIG_ValueError,"Received a NULL pointer.");
+      }
+    }
+    {
+      CPLErrorReset();
+      result = (double)OGRGeometryShadow_Distance3D(arg1,arg2);
+      CPLErr eclass = CPLGetLastErrorType();
+      if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+        do_confess( CPLGetLastErrorMsg(), 0 );
+        
+        
+        
+        
+        
+      }
+      
+      
+      /*
+          Make warnings regular Perl warnings. This duplicates the warning
+          message if DontUseExceptions() is in effect (it is not by default).
+          */
+      if ( eclass == CE_Warning ) {
+        warn( CPLGetLastErrorMsg(), "%s" );
+      }
+      
+      
+    }
+    ST(argvi) = SWIG_From_double  SWIG_PERL_CALL_ARGS_1(static_cast< double >(result)); argvi++ ;
+    
+    
+    XSRETURN(argvi);
+  fail:
+    
+    
+    SWIG_croak_null();
+  }
+}
+
+
 XS(_wrap_Geometry_Empty) {
   {
     OGRGeometryShadow *arg1 = (OGRGeometryShadow *) 0 ;
@@ -27392,9 +22457,10 @@ XS(_wrap_Geometry_GetLinearGeometry) {
               AV *av = (AV*)(SvRV(ST(2)));
               for (int i = 0; i < av_len(av)+1; i++) {
                 SV *sv = *(av_fetch(av, i, 0));
-                char *tmp = sv_to_utf8_string(sv, NULL);
+                bool sf;
+                char *tmp = sv_to_utf8_string(sv, NULL, &sf);
                 arg3 = CSLAddString(arg3, tmp);
-                free(tmp);
+                if (sf) Safefree(tmp); else free(tmp);
               }
             } else if (SvTYPE(SvRV(ST(2)))==SVt_PVHV) {
               HV *hv = (HV*)SvRV(ST(2));
@@ -27404,9 +22470,10 @@ XS(_wrap_Geometry_GetLinearGeometry) {
               arg3 = NULL;
               hv_iterinit(hv);
               while(sv = hv_iternextsv(hv, &key, &klen)) {
-                char *tmp = sv_to_utf8_string(sv, NULL);
+                bool sf;
+                char *tmp = sv_to_utf8_string(sv, NULL, &sf);
                 arg3 = CSLAddNameValue(arg3, key, tmp);
-                free(tmp);
+                if (sf) Safefree(tmp); else free(tmp);
               }
             } else
             do_confess(NEED_REF, 1);
@@ -27486,9 +22553,10 @@ XS(_wrap_Geometry_GetCurveGeometry) {
               AV *av = (AV*)(SvRV(ST(1)));
               for (int i = 0; i < av_len(av)+1; i++) {
                 SV *sv = *(av_fetch(av, i, 0));
-                char *tmp = sv_to_utf8_string(sv, NULL);
+                bool sf;
+                char *tmp = sv_to_utf8_string(sv, NULL, &sf);
                 arg2 = CSLAddString(arg2, tmp);
-                free(tmp);
+                if (sf) Safefree(tmp); else free(tmp);
               }
             } else if (SvTYPE(SvRV(ST(1)))==SVt_PVHV) {
               HV *hv = (HV*)SvRV(ST(1));
@@ -27498,9 +22566,10 @@ XS(_wrap_Geometry_GetCurveGeometry) {
               arg2 = NULL;
               hv_iterinit(hv);
               while(sv = hv_iternextsv(hv, &key, &klen)) {
-                char *tmp = sv_to_utf8_string(sv, NULL);
+                bool sf;
+                char *tmp = sv_to_utf8_string(sv, NULL, &sf);
                 arg2 = CSLAddNameValue(arg2, key, tmp);
-                free(tmp);
+                if (sf) Safefree(tmp); else free(tmp);
               }
             } else
             do_confess(NEED_REF, 1);
@@ -28916,7 +23985,6 @@ static void *_p_OGRLayerShadowTo_p_GDALMajorObjectShadow(void *x, int *SWIGUNUSE
     return (void *)((GDALMajorObjectShadow *)  ((OGRLayerShadow *) x));
 }
 static swig_type_info _swigt__p_GDALMajorObjectShadow = {"_p_GDALMajorObjectShadow", "GDALMajorObjectShadow *", 0, 0, (void*)"Geo::GDAL::MajorObject", 0};
-static swig_type_info _swigt__p_GDALProgressFunc = {"_p_GDALProgressFunc", "GDALProgressFunc *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_GIntBig = {"_p_GIntBig", "GIntBig *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_OGRFeatureDefnShadow = {"_p_OGRFeatureDefnShadow", "OGRFeatureDefnShadow *", 0, 0, (void*)"Geo::OGR::FeatureDefn", 0};
 static swig_type_info _swigt__p_OGRFeatureShadow = {"_p_OGRFeatureShadow", "OGRFeatureShadow *", 0, 0, (void*)"Geo::OGR::Feature", 0};
@@ -28940,7 +24008,6 @@ static swig_type_info _swigt__p_p_p_char = {"_p_p_p_char", "char ***", 0, 0, (vo
 
 static swig_type_info *swig_type_initial[] = {
   &_swigt__p_GDALMajorObjectShadow,
-  &_swigt__p_GDALProgressFunc,
   &_swigt__p_GIntBig,
   &_swigt__p_OGRFeatureDefnShadow,
   &_swigt__p_OGRFeatureShadow,
@@ -28964,7 +24031,6 @@ static swig_type_info *swig_type_initial[] = {
 };
 
 static swig_cast_info _swigc__p_GDALMajorObjectShadow[] = {  {&_swigt__p_GDALMajorObjectShadow, 0, 0, 0},  {&_swigt__p_OGRLayerShadow, _p_OGRLayerShadowTo_p_GDALMajorObjectShadow, 0, 0},{0, 0, 0, 0}};
-static swig_cast_info _swigc__p_GDALProgressFunc[] = {  {&_swigt__p_GDALProgressFunc, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_GIntBig[] = {  {&_swigt__p_GIntBig, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_OGRFeatureDefnShadow[] = {  {&_swigt__p_OGRFeatureDefnShadow, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_OGRFeatureShadow[] = {  {&_swigt__p_OGRFeatureShadow, 0, 0, 0},{0, 0, 0, 0}};
@@ -28988,7 +24054,6 @@ static swig_cast_info _swigc__p_p_p_char[] = {  {&_swigt__p_p_p_char, 0, 0, 0},{
 
 static swig_cast_info *swig_cast_initial[] = {
   _swigc__p_GDALMajorObjectShadow,
-  _swigc__p_GDALProgressFunc,
   _swigc__p_GIntBig,
   _swigc__p_OGRFeatureDefnShadow,
   _swigc__p_OGRFeatureShadow,
@@ -29104,12 +24169,15 @@ static swig_command_info swig_commands[] = {
 {"Geo::OGRc::Feature_GetFieldAsStringList", _wrap_Feature_GetFieldAsStringList},
 {"Geo::OGRc::Feature_GetFieldAsBinary", _wrap_Feature_GetFieldAsBinary},
 {"Geo::OGRc::Feature_IsFieldSet", _wrap_Feature_IsFieldSet},
-{"Geo::OGRc::Feature_GetFieldIndex", _wrap_Feature_GetFieldIndex},
-{"Geo::OGRc::Feature_GetGeomFieldIndex", _wrap_Feature_GetGeomFieldIndex},
+{"Geo::OGRc::Feature_IsFieldNull", _wrap_Feature_IsFieldNull},
+{"Geo::OGRc::Feature_IsFieldSetAndNotNull", _wrap_Feature_IsFieldSetAndNotNull},
+{"Geo::OGRc::Feature__GetFieldIndex", _wrap_Feature__GetFieldIndex},
+{"Geo::OGRc::Feature__GetGeomFieldIndex", _wrap_Feature__GetGeomFieldIndex},
 {"Geo::OGRc::Feature_GetFID", _wrap_Feature_GetFID},
 {"Geo::OGRc::Feature_SetFID", _wrap_Feature_SetFID},
 {"Geo::OGRc::Feature_DumpReadable", _wrap_Feature_DumpReadable},
 {"Geo::OGRc::Feature__UnsetField", _wrap_Feature__UnsetField},
+{"Geo::OGRc::Feature_SetFieldNull", _wrap_Feature_SetFieldNull},
 {"Geo::OGRc::Feature_SetFieldInteger64", _wrap_Feature_SetFieldInteger64},
 {"Geo::OGRc::Feature__SetField", _wrap_Feature__SetField},
 {"Geo::OGRc::Feature_SetFieldIntegerList", _wrap_Feature_SetFieldIntegerList},
@@ -29133,12 +24201,12 @@ static swig_command_info swig_commands[] = {
 {"Geo::OGRc::new_FeatureDefn", _wrap_new_FeatureDefn},
 {"Geo::OGRc::FeatureDefn_GetName", _wrap_FeatureDefn_GetName},
 {"Geo::OGRc::FeatureDefn_GetFieldCount", _wrap_FeatureDefn_GetFieldCount},
-{"Geo::OGRc::FeatureDefn_GetFieldDefn", _wrap_FeatureDefn_GetFieldDefn},
-{"Geo::OGRc::FeatureDefn_GetFieldIndex", _wrap_FeatureDefn_GetFieldIndex},
+{"Geo::OGRc::FeatureDefn__GetFieldDefn", _wrap_FeatureDefn__GetFieldDefn},
+{"Geo::OGRc::FeatureDefn__GetFieldIndex", _wrap_FeatureDefn__GetFieldIndex},
 {"Geo::OGRc::FeatureDefn_AddFieldDefn", _wrap_FeatureDefn_AddFieldDefn},
 {"Geo::OGRc::FeatureDefn_GetGeomFieldCount", _wrap_FeatureDefn_GetGeomFieldCount},
-{"Geo::OGRc::FeatureDefn_GetGeomFieldDefn", _wrap_FeatureDefn_GetGeomFieldDefn},
-{"Geo::OGRc::FeatureDefn_GetGeomFieldIndex", _wrap_FeatureDefn_GetGeomFieldIndex},
+{"Geo::OGRc::FeatureDefn__GetGeomFieldDefn", _wrap_FeatureDefn__GetGeomFieldDefn},
+{"Geo::OGRc::FeatureDefn__GetGeomFieldIndex", _wrap_FeatureDefn__GetGeomFieldIndex},
 {"Geo::OGRc::FeatureDefn_AddGeomFieldDefn", _wrap_FeatureDefn_AddGeomFieldDefn},
 {"Geo::OGRc::FeatureDefn_DeleteGeomFieldDefn", _wrap_FeatureDefn_DeleteGeomFieldDefn},
 {"Geo::OGRc::FeatureDefn_GetGeomType", _wrap_FeatureDefn_GetGeomType},
@@ -29247,6 +24315,7 @@ static swig_command_info swig_commands[] = {
 {"Geo::OGRc::Geometry_SymDifference", _wrap_Geometry_SymDifference},
 {"Geo::OGRc::Geometry_SymmetricDifference", _wrap_Geometry_SymmetricDifference},
 {"Geo::OGRc::Geometry_Distance", _wrap_Geometry_Distance},
+{"Geo::OGRc::Geometry_Distance3D", _wrap_Geometry_Distance3D},
 {"Geo::OGRc::Geometry_Empty", _wrap_Geometry_Empty},
 {"Geo::OGRc::Geometry_IsEmpty", _wrap_Geometry_IsEmpty},
 {"Geo::OGRc::Geometry_IsValid", _wrap_Geometry_IsValid},
@@ -29703,6 +24772,11 @@ XS(SWIG_init) {
     SvREADONLY_on(sv);
   } while(0) /*@SWIG@*/;
   /*@SWIG:/home/rouault/install-swig-2.0.12/share/swig/2.0.12/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+    SV *sv = get_sv((char*) SWIG_prefix "wkbTriangle", TRUE | 0x2 | GV_ADDMULTI);
+    sv_setsv(sv, SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(17)));
+    SvREADONLY_on(sv);
+  } while(0) /*@SWIG@*/;
+  /*@SWIG:/home/rouault/install-swig-2.0.12/share/swig/2.0.12/perl5/perltypemaps.swg,65,%set_constant@*/ do {
     SV *sv = get_sv((char*) SWIG_prefix "wkbNone", TRUE | 0x2 | GV_ADDMULTI);
     sv_setsv(sv, SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(100)));
     SvREADONLY_on(sv);
@@ -29755,6 +24829,11 @@ XS(SWIG_init) {
   /*@SWIG:/home/rouault/install-swig-2.0.12/share/swig/2.0.12/perl5/perltypemaps.swg,65,%set_constant@*/ do {
     SV *sv = get_sv((char*) SWIG_prefix "wkbTINZ", TRUE | 0x2 | GV_ADDMULTI);
     sv_setsv(sv, SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(1016)));
+    SvREADONLY_on(sv);
+  } while(0) /*@SWIG@*/;
+  /*@SWIG:/home/rouault/install-swig-2.0.12/share/swig/2.0.12/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+    SV *sv = get_sv((char*) SWIG_prefix "wkbTriangleZ", TRUE | 0x2 | GV_ADDMULTI);
+    sv_setsv(sv, SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(1017)));
     SvREADONLY_on(sv);
   } while(0) /*@SWIG@*/;
   /*@SWIG:/home/rouault/install-swig-2.0.12/share/swig/2.0.12/perl5/perltypemaps.swg,65,%set_constant@*/ do {
@@ -29838,6 +24917,11 @@ XS(SWIG_init) {
     SvREADONLY_on(sv);
   } while(0) /*@SWIG@*/;
   /*@SWIG:/home/rouault/install-swig-2.0.12/share/swig/2.0.12/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+    SV *sv = get_sv((char*) SWIG_prefix "wkbTriangleM", TRUE | 0x2 | GV_ADDMULTI);
+    sv_setsv(sv, SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(2017)));
+    SvREADONLY_on(sv);
+  } while(0) /*@SWIG@*/;
+  /*@SWIG:/home/rouault/install-swig-2.0.12/share/swig/2.0.12/perl5/perltypemaps.swg,65,%set_constant@*/ do {
     SV *sv = get_sv((char*) SWIG_prefix "wkbPointZM", TRUE | 0x2 | GV_ADDMULTI);
     sv_setsv(sv, SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(3001)));
     SvREADONLY_on(sv);
@@ -29915,6 +24999,11 @@ XS(SWIG_init) {
   /*@SWIG:/home/rouault/install-swig-2.0.12/share/swig/2.0.12/perl5/perltypemaps.swg,65,%set_constant@*/ do {
     SV *sv = get_sv((char*) SWIG_prefix "wkbTINZM", TRUE | 0x2 | GV_ADDMULTI);
     sv_setsv(sv, SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(3016)));
+    SvREADONLY_on(sv);
+  } while(0) /*@SWIG@*/;
+  /*@SWIG:/home/rouault/install-swig-2.0.12/share/swig/2.0.12/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+    SV *sv = get_sv((char*) SWIG_prefix "wkbTriangleZM", TRUE | 0x2 | GV_ADDMULTI);
+    sv_setsv(sv, SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(3017)));
     SvREADONLY_on(sv);
   } while(0) /*@SWIG@*/;
   /*@SWIG:/home/rouault/install-swig-2.0.12/share/swig/2.0.12/perl5/perltypemaps.swg,65,%set_constant@*/ do {
@@ -30250,6 +25339,16 @@ XS(SWIG_init) {
   /*@SWIG:/home/rouault/install-swig-2.0.12/share/swig/2.0.12/perl5/perltypemaps.swg,65,%set_constant@*/ do {
     SV *sv = get_sv((char*) SWIG_prefix "ODsCMeasuredGeometries", TRUE | 0x2 | GV_ADDMULTI);
     sv_setsv(sv, SWIG_FromCharPtr("MeasuredGeometries"));
+    SvREADONLY_on(sv);
+  } while(0) /*@SWIG@*/;
+  /*@SWIG:/home/rouault/install-swig-2.0.12/share/swig/2.0.12/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+    SV *sv = get_sv((char*) SWIG_prefix "ODsCRandomLayerRead", TRUE | 0x2 | GV_ADDMULTI);
+    sv_setsv(sv, SWIG_FromCharPtr("RandomLayerRead"));
+    SvREADONLY_on(sv);
+  } while(0) /*@SWIG@*/;
+  /*@SWIG:/home/rouault/install-swig-2.0.12/share/swig/2.0.12/perl5/perltypemaps.swg,65,%set_constant@*/ do {
+    SV *sv = get_sv((char*) SWIG_prefix "ODsCRandomLayerWrite", TRUE | 0x2 | GV_ADDMULTI);
+    sv_setsv(sv, SWIG_FromCharPtr("RandomLayerWrite"));
     SvREADONLY_on(sv);
   } while(0) /*@SWIG@*/;
   /*@SWIG:/home/rouault/install-swig-2.0.12/share/swig/2.0.12/perl5/perltypemaps.swg,65,%set_constant@*/ do {

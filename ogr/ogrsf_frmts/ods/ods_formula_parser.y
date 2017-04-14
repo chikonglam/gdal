@@ -1,6 +1,5 @@
 %{
 /******************************************************************************
- * $Id: ods_formula_parser.y 33713 2016-03-12 17:41:57Z goatbar $
  *
  * Component: OGR ODS Formula Engine
  * Purpose: expression and select parser grammar.
@@ -33,6 +32,8 @@
 #include "cpl_conv.h"
 #include "cpl_string.h"
 #include "ods_formula.h"
+
+CPL_CVSID("$Id: ods_formula_parser.y 34819 2016-07-28 22:32:18Z goatbar $");
 
 #define YYSTYPE  ods_formula_node*
 

@@ -1,4 +1,4 @@
-.TH "gdal_utilities" 1 "Fri Jan 20 2017" "GDAL" \" -*- nroff -*-
+.TH "gdal_utilities" 1 "Fri Apr 14 2017" "GDAL" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
@@ -9,7 +9,7 @@ The following utility programs are distributed with GDAL\&.
 .PP
 .PD 0
 .IP "\(bu" 2
-\fBgdalinfo\fP - report information about a file\&. 
+\fBgdalinfo\fP - Report information about a file\&. 
 .IP "\(bu" 2
 \fBgdal_translate\fP - Copy a raster file, with control of output format\&. 
 .IP "\(bu" 2
@@ -25,13 +25,13 @@ The following utility programs are distributed with GDAL\&.
 .IP "\(bu" 2
 \fBgdaldem\fP - Tools to analyze and visualize DEMs\&. 
 .IP "\(bu" 2
-\fBrgb2pct\&.py\fP - Convert a 24bit RGB image to 8bit paletted\&. 
+\fBrgb2pct\fP - Convert a 24bit RGB image to 8bit paletted\&. 
 .IP "\(bu" 2
-\fBpct2rgb\&.py\fP - Convert an 8bit paletted image to 24bit RGB\&. 
+\fBpct2rgb\fP - Convert an 8bit paletted image to 24bit RGB\&. 
 .IP "\(bu" 2
-\fBgdal_merge\&.py\fP - Build a quick mosaic from a set of images\&. 
+\fBgdal_merge\fP - Build a quick mosaic from a set of images\&. 
 .IP "\(bu" 2
-\fBgdal2tiles\&.py\fP - Create a TMS tile structure, KML and simple web viewer\&. 
+\fBgdal2tiles\fP - Create a TMS tile structure, KML and simple web viewer\&. 
 .IP "\(bu" 2
 \fBgdal_rasterize\fP - Rasterize vectors into raster file\&. 
 .IP "\(bu" 2
@@ -39,35 +39,35 @@ The following utility programs are distributed with GDAL\&.
 .IP "\(bu" 2
 \fBnearblack\fP - Convert nearly black/white borders to exact value\&. 
 .IP "\(bu" 2
-\fBgdal_retile\&.py\fP - Retiles a set of tiles and/or build tiled pyramid levels\&. 
+\fBgdal_retile\fP - Retiles a set of tiles and/or build tiled pyramid levels\&. 
 .IP "\(bu" 2
 \fBgdal_grid\fP - Create raster from the scattered data\&. 
 .IP "\(bu" 2
-\fBgdal_proximity\&.py\fP - Compute a raster proximity map\&. 
+\fBgdal_proximity\fP - Compute a raster proximity map\&. 
 .IP "\(bu" 2
-\fBgdal_polygonize\&.py\fP - Generate polygons from raster\&. 
+\fBgdal_polygonize\fP - Generate polygons from raster\&. 
 .IP "\(bu" 2
-\fBgdal_sieve\&.py\fP - Raster Sieve filter\&. 
+\fBgdal_sieve\fP - Raster Sieve filter\&. 
 .IP "\(bu" 2
-\fBgdal_fillnodata\&.py\fP - Interpolate in nodata regions\&. 
+\fBgdal_fillnodata\fP - Interpolate in nodata regions\&. 
 .IP "\(bu" 2
 \fBgdallocationinfo\fP - Query raster at a location\&. 
 .IP "\(bu" 2
 \fBgdalsrsinfo\fP - Report a given SRS in different formats\&. (GDAL >= 1\&.9\&.0) 
 .IP "\(bu" 2
-\fBgdalmove\&.py\fP - Transform the coordinate system of a file (GDAL >= 1\&.10) 
+\fBgdalmove\fP - Transform the coordinate system of a file (GDAL >= 1\&.10) 
 .IP "\(bu" 2
-\fBgdal_edit\&.py\fP - Edit in place various information of an existing GDAL dataset (projection, geotransform, nodata, metadata) 
+\fBgdal_edit\fP - Edit in place various information of an existing GDAL dataset (projection, geotransform, nodata, metadata) 
 .IP "\(bu" 2
-\fBgdal_calc\&.py\fP - Command line raster calculator with numpy syntax 
+\fBgdal_calc\fP - Command line raster calculator with numpy syntax 
 .IP "\(bu" 2
-\fBgdal_pansharpen\&.py\fP - Perform a pansharpen operation\&. 
+\fBgdal_pansharpen\fP - Perform a pansharpen operation\&. 
 .IP "\(bu" 2
 \fBgdal-config\fP - Get options required to build software using GDAL\&. 
 .IP "\(bu" 2
 \fBgdalmanage\fP - Identify, copy, rename and delete raster\&. 
 .IP "\(bu" 2
-\fBgdalcompare\&.py\fP - Compare two images and report on differences\&. 
+\fBgdalcompare\fP - Compare two images and report on differences\&. 
 .PP
 .SH "Creating New Files"
 .PP
@@ -81,7 +81,7 @@ Many utilities default to creating GeoTIFF files if a format is not specified\&.
 .IP "\fB\fB-co\fP \fINAME=VALUE\fP\fP" 1c
 Many formats have one or more optional creation options that can be used to control particulars about the file created\&. For instance, the GeoTIFF driver supports creation options to control compression, and whether the file should be tiled\&.
 .PP
-The creation options available vary by format driver, and some simple formats have no creation options at all\&. A list of options supported for a format can be listed with the '--format <format>' command line option but the web page for the format is the definitive source of information on driver creation options\&.
+The creation options available vary by format driver, and some simple formats have no creation options at all\&. A list of options supported for a format can be listed with the '--format <format>' command line option but the web page for the format is the definitive source of information on driver creation options\&. See \fCformat specific documentation for legal creation options for each format\fP
 .PP
 .PP
 .IP "\fB\fB-a_srs\fP \fISRS\fP\fP" 1c

@@ -1,15 +1,14 @@
-.TH "gdal_rasterize" 1 "Fri Jan 20 2017" "GDAL" \" -*- nroff -*-
+.TH "gdal_rasterize" 1 "Fri Apr 14 2017" "GDAL" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
-gdal_rasterize \- gdal_rasterize 
-burns vector geometries into a raster
+gdal_rasterize \- Burns vector geometries into a raster\&.
 .SH "SYNOPSIS"
 .PP
 .PP
 .nf
 Usage: gdal_rasterize [-b band]* [-i] [-at]
-       [-burn value]* | [-a attribute_name] [-3d]
+       {[-burn value]* | [-a attribute_name] | [-3d]} [-add]
        [-l layername]* [-where expression] [-sql select_statement]
        [-dialect dialect] [-of format] [-a_srs srs_def]
        [-co "NAME=VALUE"]* [-a_nodata value] [-init value]*
@@ -31,7 +30,7 @@ Since GDAL 1\&.8\&.0, the target GDAL file can be created by gdal_rasterize\&. E
 The band(s) to burn values into\&. Multiple -b arguments may be used to burn into a list of bands\&. The default is to burn into band 1\&.
 .PP
 .IP "\fB\fB-i\fP: \fP" 1c
-Invert rasterization\&. Burn the fixed burn value, or the burn value associated with the first feature into all parts of the image \fInot\fP inside the provided a polygon\&.
+Invert rasterization\&. Burn the fixed burn value, or the burn value associated with the first feature into all parts of the image \fInot\fP inside the provided polygon\&.
 .PP
 .IP "\fB\fB-at\fP: \fP" 1c
 Enables the ALL_TOUCHED rasterization option so that all pixels touched by lines or polygons will be updated, not just those on the line render path, or whose center point is within the polygon\&. Defaults to disabled for normal rendering rules\&.
@@ -43,7 +42,10 @@ A fixed value to burn into a band for all objects\&. A list of -burn options can
 Identifies an attribute field on the features to be used for a burn-in value\&. The value will be burned into all output bands\&.
 .PP
 .IP "\fB\fB-3d\fP: \fP" 1c
-Indicates that a burn value should be extracted from the 'Z' values of the feature\&. These values are added to the burn value given by '-burn value' or '-a attribute_name' if provided\&. As of now, only points and lines are drawn in 3D\&.
+Indicates that a burn value should be extracted from the 'Z' values of the feature\&. As of now, only points and lines are drawn in 3D\&.
+.PP
+.IP "\fB\fB-add\fP: \fP" 1c
+Instead of burning a new value, this adds the new value to the existing raster\&. Suitable for heatmaps for instance\&.
 .PP
 .IP "\fB\fB-l\fP \fIlayername\fP: \fP" 1c
 Indicates the layer(s) from the datasource that will be used for input features\&. May be specified multiple times, but at least one layer name or a -sql option must be specified\&.
@@ -70,7 +72,7 @@ An SQL statement to be evaluated against the datasource to produce a virtual lay
 (GDAL >= 1\&.8\&.0) Override the projection for the output file\&. If not specified, the projection of the input vector file will be used if available\&. If incompatible projections between input and output files, no attempt will be made to reproject features\&. The \fIsrs_def\fP may be any of the usual GDAL/OGR forms, complete WKT, PROJ\&.4, EPSG:n or a file containing the WKT\&. 
 .PP
 .IP "\fB\fB-co\fP \fI'NAME=VALUE'\fP:\fP" 1c
-(GDAL >= 1\&.8\&.0) Passes a creation option to the output format driver\&. Multiple \fB-co\fP options may be listed\&. See format specific documentation for legal creation options for each format\&.
+(GDAL >= 1\&.8\&.0) Passes a creation option to the output format driver\&. Multiple \fB-co\fP options may be listed\&. See \fCformat specific documentation for legal creation options for each format\fP\&.
 .PP
 .IP "\fB\fB-te\fP \fIxmin ymin xmax ymax\fP :\fP" 1c
 (GDAL >= 1\&.8\&.0) Set georeferenced extents\&. The values must be expressed in georeferenced units\&. If not specified, the extent of the output file will be the extent of the vector layers\&. 

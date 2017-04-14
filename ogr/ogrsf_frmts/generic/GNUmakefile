@@ -125,6 +125,10 @@ ifeq ($(HAVE_XERCES),yes)
 CXXFLAGS :=	$(CXXFLAGS) -DILI_ENABLED
 endif
 
+ifeq ($(HAVE_XERCES),yes)
+CXXFLAGS :=	$(CXXFLAGS) -DGMLAS_ENABLED
+endif
+
 ifeq ($(HAVE_NAS),yes)
 CXXFLAGS :=	$(CXXFLAGS) -DNAS_ENABLED
 endif
@@ -133,8 +137,8 @@ ifeq ($(HAVE_LIBKML),yes)
 CXXFLAGS :=	$(CXXFLAGS) -DLIBKML_ENABLED
 endif
 
-ifeq ($(HAVE_DWGDIRECT),yes)
-CXXFLAGS :=	$(CXXFLAGS) -DDWGDIRECT_ENABLED
+ifeq ($(HAVE_TEIGHA),yes)
+CXXFLAGS :=	$(CXXFLAGS) -DDWG_ENABLED -DDGNV8_ENABLED
 endif
 
 ifeq ($(HAVE_IDB),yes)
@@ -216,6 +220,10 @@ endif
 
 ifeq ($(HAVE_MONGODB),yes)
 CXXFLAGS :=	$(CXXFLAGS) -DMONGODB_ENABLED
+endif
+
+ifeq ($(HAVE_CAD),yes)
+CXXFLAGS :=	$(CXXFLAGS) -DCAD_ENABLED
 endif
 
 CPPFLAGS	:=	-I.. -I../..  $(CPPFLAGS)

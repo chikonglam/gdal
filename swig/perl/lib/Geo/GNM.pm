@@ -7,6 +7,9 @@
 package Geo::GNM;
 use base qw(Exporter);
 use base qw(DynaLoader);
+require Geo::OGR;
+require Geo::OSR;
+require Geo::GDAL;
 package Geo::GNMc;
 bootstrap Geo::GNM;
 package Geo::GNM;
@@ -52,38 +55,11 @@ package Geo::GNM;
 *CastToNetwork = *Geo::GNMc::CastToNetwork;
 *CastToGenericNetwork = *Geo::GNMc::CastToGenericNetwork;
 
-############# Class : Geo::GNM::MajorObject ##############
-
-package Geo::GNM::MajorObject;
-use vars qw(@ISA %OWNER %ITERATORS %BLESSEDMEMBERS);
-@ISA = qw( Geo::GNM );
-%OWNER = ();
-*GetDescription = *Geo::GNMc::MajorObject_GetDescription;
-*SetDescription = *Geo::GNMc::MajorObject_SetDescription;
-*GetMetadataDomainList = *Geo::GNMc::MajorObject_GetMetadataDomainList;
-*GetMetadata_Dict = *Geo::GNMc::MajorObject_GetMetadata_Dict;
-*GetMetadata_List = *Geo::GNMc::MajorObject_GetMetadata_List;
-*SetMetadata = *Geo::GNMc::MajorObject_SetMetadata;
-*GetMetadataItem = *Geo::GNMc::MajorObject_GetMetadataItem;
-*SetMetadataItem = *Geo::GNMc::MajorObject_SetMetadataItem;
-sub DISOWN {
-    my $self = shift;
-    my $ptr = tied(%$self);
-    delete $OWNER{$ptr};
-}
-
-sub ACQUIRE {
-    my $self = shift;
-    my $ptr = tied(%$self);
-    $OWNER{$ptr} = 1;
-}
-
-
 ############# Class : Geo::GNM::Network ##############
 
 package Geo::GNM::Network;
 use vars qw(@ISA %OWNER %ITERATORS %BLESSEDMEMBERS);
-@ISA = qw( Geo::GNM::MajorObject Geo::GNM );
+@ISA = qw( Geo::GDAL::MajorObject Geo::GNM );
 %OWNER = ();
 %ITERATORS = ();
 sub DESTROY {
@@ -97,7 +73,7 @@ sub DESTROY {
     }
 }
 
-*ReleaseResultSet = *Geo::GNMc::Network_ReleaseResultSet;
+*_ReleaseResultSet = *Geo::GNMc::Network__ReleaseResultSet;
 *GetVersion = *Geo::GNMc::Network_GetVersion;
 *GetName = *Geo::GNMc::Network_GetName;
 *GetFeatureByGlobalFID = *Geo::GNMc::Network_GetFeatureByGlobalFID;
@@ -106,13 +82,13 @@ sub DESTROY {
 *GetProjection = *Geo::GNMc::Network_GetProjection;
 *GetProjectionRef = *Geo::GNMc::Network_GetProjectionRef;
 *GetFileList = *Geo::GNMc::Network_GetFileList;
-*CreateLayer = *Geo::GNMc::Network_CreateLayer;
+*_CreateLayer = *Geo::GNMc::Network__CreateLayer;
 *CopyLayer = *Geo::GNMc::Network_CopyLayer;
-*DeleteLayer = *Geo::GNMc::Network_DeleteLayer;
+*_DeleteLayer = *Geo::GNMc::Network__DeleteLayer;
 *GetLayerCount = *Geo::GNMc::Network_GetLayerCount;
 *GetLayerByIndex = *Geo::GNMc::Network_GetLayerByIndex;
 *GetLayerByName = *Geo::GNMc::Network_GetLayerByName;
-*TestCapability = *Geo::GNMc::Network_TestCapability;
+*_TestCapability = *Geo::GNMc::Network__TestCapability;
 *StartTransaction = *Geo::GNMc::Network_StartTransaction;
 *CommitTransaction = *Geo::GNMc::Network_CommitTransaction;
 *RollbackTransaction = *Geo::GNMc::Network_RollbackTransaction;

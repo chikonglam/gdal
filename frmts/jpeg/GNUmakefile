@@ -16,7 +16,7 @@ OBJ	=	\
 XTRA_OPT	=	-Ilibjpeg -DDEFAULT_MAX_MEM=500000000L
 else
 OBJ	=	jpgdataset.o vsidataio.o
-XTRA_OPT	=	
+XTRA_OPT	=
 endif
 
 ifeq ($(JPEG12_ENABLED),yes)
@@ -33,7 +33,7 @@ OBJ :=	jcapimin12.o jcapistd12.o jccoefct12.o jccolor12.o jcdctmgr12.o jchuff12.
         $(OBJ) jpgdataset_12.o vsidataio_12.o
 endif
 
-CPPFLAGS	:=	$(XTRA_OPT)  $(CPPFLAGS) -I../mem -DENABLE_LIBJPEG_NO_RETURN
+CPPFLAGS	:=	-I../mem $(XTRA_OPT)  $(CPPFLAGS)  -DENABLE_LIBJPEG_NO_RETURN
 # # Enable this to compile with -Wextra -Werror and get around the jump complaint.
 # CPPFLAGS += -Wno-clobbered
 

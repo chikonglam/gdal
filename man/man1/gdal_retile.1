@@ -1,15 +1,15 @@
-.TH "gdal_retile" 1 "Fri Jan 20 2017" "GDAL" \" -*- nroff -*-
+.TH "gdal_retile" 1 "Fri Apr 14 2017" "GDAL" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
-gdal_retile \- gdal_retile\&.py 
-gdal_retile\&.py retiles a set of tiles and/or build tiled pyramid levels
+gdal_retile \- Retiles a set of tiles and/or build tiled pyramid levels\&.
 .SH "SYNOPSIS"
 .PP
 .PP
 .PP
 .nf
 gdal_retile.py [-v] [-co NAME=VALUE]* [-of out_format] [-ps pixelWidth pixelHeight]
+               [-overlap val_in_pixel]
                [-ot  {Byte/Int16/UInt16/UInt32/Int32/Float32/Float64/
                       CInt16/CInt32/CFloat32/CFloat64}]'
                [ -tileIndex tileIndexName [-tileIndexField tileIndexFieldName]]
@@ -17,7 +17,7 @@ gdal_retile.py [-v] [-co NAME=VALUE]* [-of out_format] [-ps pixelWidth pixelHeig
                [-s_srs srs_def]  [-pyramidOnly]
                [-r {near/bilinear/cubic/cubicspline/lanczos}]
                -levels numberoflevels
-               [-useDirForEachRow]   
+               [-useDirForEachRow]
                -targetDir TileDirectory input_files.fi
 .PP
  
@@ -32,11 +32,13 @@ The directory where the tile result is created\&. Pyramids are stored in sub-dir
 .IP "\fB\fB-of\fP \fIformat\fP:\fP" 1c
 Output format, defaults to GeoTIFF (GTiff)\&.  
 .IP "\fB\fB-co\fP \fINAME=VALUE\fP:\fP" 1c
-Creation option for output file\&. Multiple options can be specified\&.  
+Creation option for output file\&. Multiple options can be specified\&. See \fCformat specific documentation for legal creation options for each format\fP  
 .IP "\fB\fB-ot\fP \fIdatatype\fP:\fP" 1c
 Force the output image bands to have a specific type\&. Use type names (i\&.e\&. Byte, Int16,\&.\&.\&.)  
 .IP "\fB\fB-ps\fP \fIpixelsize_x pixelsize_y\fP:\fP" 1c
 Pixel size to be used for the output file\&. If not specified, 256 x 256 is the default  
+.IP "\fB\fB-overlap\fP \fIval_in_pixel\fP:\fP" 1c
+(GDAL >= 2\&.2) Overlap in pixels between consecutive tiles\&. If not specified, 0 is the default  
 .IP "\fB\fB-levels\fP \fInumberOfLevels\fP:\fP" 1c
 Number of pyramids levels to build\&.  
 .IP "\fB\fB-v\fP:\fP" 1c

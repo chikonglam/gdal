@@ -1,4 +1,4 @@
-dnl $Id: ax_lib_libkml.m4 29715 2015-08-21 17:46:02Z rouault $
+dnl $Id: ax_lib_libkml.m4 36466 2016-11-23 14:51:29Z rouault $
 dnl
 dnl @synopsis AX_LIB_LIBKML([MINIMUM-VERSION])
 dnl
@@ -39,7 +39,7 @@ dnl
 dnl @category InstalledPackages
 dnl @category Cxx
 dnl @author Mateusz Loskot <mateusz@loskot.net>
-dnl @version $Date: 2015-08-21 10:46:02 -0700 (Fri, 21 Aug 2015) $
+dnl @version $Date: 2016-11-23 06:51:29 -0800 (Wed, 23 Nov 2016) $
 dnl @license AllPermissive
 dnl          Copying and distribution of this file, with or without modification,
 dnl          are permitted in any medium without royalty provided the copyright notice and
@@ -106,6 +106,39 @@ AC_DEFUN([AX_LIB_LIBKML],
         [LIBKML_VERSION=;])
 
     if test -n "$LIBKML_VERSION" -a -n "$libkml_prefix"; then
+        # Test that the package found is for the right architecture
+        saved_CPPFLAGS="$CPPFLAGS"
+        saved_LIBS="$LIBS"
+        CPPFLAGS="$CPPFLAGS $LIBKML_CFLAGS"
+        LIBS="$LIBKML_LIBS"
+
+        AC_MSG_CHECKING([if libkml can be linked])
+        AC_LANG_PUSH([C++])
+        AC_LINK_IFELSE([
+            AC_LANG_PROGRAM(
+                [[
+@%:@include <kml/dom.h>
+                        ]],
+                        [[
+kmldom::KmlFactory* factory = kmldom::KmlFactory::GetFactory();
+                ]]
+            )],
+            [
+            HAVE_LIBKML=yes
+            AC_MSG_RESULT([yes])
+            ],
+            [
+            HAVE_LIBKML=no
+            AC_MSG_RESULT([no])
+            ]
+        )
+        AC_LANG_POP([C++])
+
+        CPPFLAGS="$saved_CPPFLAGS"
+        LIBS="$saved_LIBS"
+    fi
+
+    if test "$HAVE_LIBKML" = "yes"; then
         HAVE_LIBKML="yes"
 
 	LIBKML_LDFLAGS="$LIBKML_LIBS"

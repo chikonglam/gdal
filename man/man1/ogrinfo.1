@@ -1,17 +1,16 @@
-.TH "ogrinfo" 1 "Fri Jan 20 2017" "GDAL" \" -*- nroff -*-
+.TH "ogrinfo" 1 "Fri Apr 14 2017" "GDAL" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
-ogrinfo \- ogrinfo 
-lists information about an OGR supported data source
+ogrinfo \- Lists information about an OGR supported data source\&.
 .SH "SYNOPSIS"
 .PP
 .PP
 .PP
 .nf
-ogrinfo [--help-general] [-ro] [-q] [-where restricted_where|@filename]
+ogrinfo [--help-general] [-ro] [-q] [-where restricted_where|\@filename]
         [-spat xmin ymin xmax ymax] [-geomfield field] [-fid fid]
-        [-sql statement|@filename] [-dialect dialect] [-al] [-so] [-fields={YES/NO}]
+        [-sql statement|\@filename] [-dialect dialect] [-al] [-rl] [-so] [-fields={YES/NO}]
         [-geom={YES/NO/SUMMARY/WKT/ISO_WKT}] [-formats] [[-oo NAME=VALUE] ...]
         [-nomd] [-listmdd] [-mdd domain|`all`]*
         [-nocount] [-noextent]
@@ -25,14 +24,16 @@ The ogrinfo program lists various information about an OGR supported data source
 Open the data source in read-only mode\&.  
 .IP "\fB\fB-al\fP:\fP" 1c
 List all features of all layers (used instead of having to give layer names as arguments)\&. 
+.IP "\fB\fB-rl\fP:\fP" 1c
+(Available in GDAL 2\&.2) Enable random layer reading mode, i\&.e\&. iterate over features in the order they are found in the dataset, and not layer per layer\&. This can be significantly faster for some formats (for example OSM, GMLAS)\&. 
 .IP "\fB\fB-so\fP:\fP" 1c
 Summary Only: suppress listing of features, show only the summary information like projection, schema, feature count and extents\&. 
 .IP "\fB\fB-q\fP:\fP" 1c
 Quiet verbose reporting of various information, including coordinate system, layer schema, extents, and feature count\&.  
 .IP "\fB\fB-where\fP \fIrestricted_where\fP:\fP" 1c
-An attribute query in a restricted form of the queries used in the SQL WHERE statement\&. Only features matching the attribute query will be reported\&. Starting with GDAL 2\&.1, the  syntax can be used to indicate that the content is in the pointed filename\&. 
+An attribute query in a restricted form of the queries used in the SQL WHERE statement\&. Only features matching the attribute query will be reported\&. Starting with GDAL 2\&.1, the \\filename syntax can be used to indicate that the content is in the pointed filename\&. 
 .IP "\fB\fB-sql\fP \fIstatement\fP:\fP" 1c
-Execute the indicated SQL statement and return the result\&. Starting with GDAL 2\&.1, the  syntax can be used to indicate that the content is in the pointed filename\&. 
+Execute the indicated SQL statement and return the result\&. Starting with GDAL 2\&.1, the @filename syntax can be used to indicate that the content is in the pointed filename\&. 
 .IP "\fB\fB-dialect\fP \fIdialect\fP:\fP" 1c
 SQL dialect\&. In some cases can be used to use (unoptimized) OGR SQL instead of the native SQL of an RDBMS by passing OGRSQL\&. Starting with GDAL 1\&.10, the 'SQLITE' dialect can also be used with any datasource\&. 
 .IP "\fB\fB-spat\fP \fIxmin ymin xmax ymax\fP:\fP" 1c

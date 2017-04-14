@@ -1,9 +1,8 @@
-.TH "gdaltransform" 1 "Fri Jan 20 2017" "GDAL" \" -*- nroff -*-
+.TH "gdaltransform" 1 "Fri Apr 14 2017" "GDAL" \" -*- nroff -*-
 .ad l
 .nh
 .SH NAME
-gdaltransform \- gdaltransform 
-transforms coordinates
+gdaltransform \- Transforms coordinates\&.
 .SH "SYNOPSIS"
 .PP
 .PP
@@ -61,7 +60,7 @@ gdaltransform -s_srs EPSG:28992 -t_srs EPSG:31370
 .fi
 .PP
 .PP
-Produces the following output in meters in the 'Belge 1972 / Belgian Lambert 
+Produces the following output in meters in the 'Belge 1972 / Belgian Lambert
 72' projection:
 .PP
 .PP
@@ -69,14 +68,14 @@ Produces the following output in meters in the 'Belge 1972 / Belgian Lambert
 244510.77404604 166154.532871342 -1046.79270555763
 .fi
 .PP
-.SH "Reprojection Example"
+.SH "Image RPC Example"
 .PP
 The following command requests an RPC based transformation using the RPC model associated with the named file\&. Because the -i (inverse) flag is used, the transformation is from output georeferenced (WGS84) coordinates back to image coordinates\&.
 .PP
 .PP
 .nf
 gdaltransform -i -rpc 06OCT20025052-P2AS-005553965230_01_P001.TIF
-125.67206 39.85307 50                    
+125.67206 39.85307 50
 .fi
 .PP
 .PP

@@ -304,6 +304,9 @@ class OsrPINVOKE {
   [DllImport("osr_wrap", EntryPoint="CSharp_SpatialReference_SetLinearUnitsAndUpdateParameters")]
   public static extern int SpatialReference_SetLinearUnitsAndUpdateParameters(HandleRef jarg1, string jarg2, double jarg3);
 
+  [DllImport("osr_wrap", EntryPoint="CSharp_SpatialReference_GetTargetLinearUnits")]
+  public static extern double SpatialReference_GetTargetLinearUnits(HandleRef jarg1, string jarg2);
+
   [DllImport("osr_wrap", EntryPoint="CSharp_SpatialReference_GetLinearUnits")]
   public static extern double SpatialReference_GetLinearUnits(HandleRef jarg1);
 

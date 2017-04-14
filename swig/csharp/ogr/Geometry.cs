@@ -396,6 +396,12 @@ public int ExportToWkb( byte[] buffer, wkbByteOrder byte_order ) {
     return ret;
   }
 
+  public double Distance3D(Geometry other) {
+    double ret = OgrPINVOKE.Geometry_Distance3D(swigCPtr, Geometry.getCPtr(other));
+    if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
+    return ret;
+  }
+
   public void Empty() {
     OgrPINVOKE.Geometry_Empty(swigCPtr);
     if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();

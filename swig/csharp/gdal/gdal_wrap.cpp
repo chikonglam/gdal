@@ -1676,6 +1676,22 @@ SWIGINTERN int GDALTransformerInfoShadow_TransformGeolocations(GDALTransformerIn
                             	      callback, callback_data, options );
   }
 
+GDALDatasetShadow* ApplyVerticalShiftGrid( GDALDatasetShadow *src_ds,
+                                           GDALDatasetShadow *grid_ds,
+                                           bool inverse = false,
+                                           double srcUnitToMeter = 1.0,
+                                           double dstUnitToMeter = 1.0,
+                                           char** options = NULL ) {
+  GDALDatasetShadow *ds = GDALApplyVerticalShiftGrid( src_ds, grid_ds,
+                                                      inverse,
+                                                      srcUnitToMeter,
+                                                      dstUnitToMeter,
+                                                      options );
+  return ds;
+
+}
+
+
 int wrapper_GDALGetCacheMax()
 {
     return GDALGetCacheMax();
@@ -1771,6 +1787,18 @@ GDALDriverShadow *IdentifyDriver( const char *utf8_path,
                                   char **papszSiblings = NULL ) {
     return (GDALDriverShadow *) GDALIdentifyDriver( utf8_path,
 	                                            papszSiblings );
+}
+
+
+GDALDriverShadow *IdentifyDriverEx( const char* utf8_path,
+                                    unsigned int nIdentifyFlags = 0,
+                                    char** allowed_drivers = NULL,
+                                    char** sibling_files = NULL )
+{
+    return  (GDALDriverShadow *) GDALIdentifyDriverEx( utf8_path,
+                                                nIdentifyFlags,
+                                                allowed_drivers,
+                                                sibling_files );
 }
 
 
@@ -12092,6 +12120,63 @@ SWIGEXPORT int SWIGSTDCALL CSharp_Transformer_TransformGeolocations(void * jarg1
 }
 
 
+SWIGEXPORT void * SWIGSTDCALL CSharp_ApplyVerticalShiftGrid(void * jarg1, void * jarg2, unsigned int jarg3, double jarg4, double jarg5, void * jarg6) {
+  void * jresult ;
+  GDALDatasetShadow *arg1 = (GDALDatasetShadow *) 0 ;
+  GDALDatasetShadow *arg2 = (GDALDatasetShadow *) 0 ;
+  bool arg3 = (bool) false ;
+  double arg4 = (double) 1.0 ;
+  double arg5 = (double) 1.0 ;
+  char **arg6 = (char **) NULL ;
+  GDALDatasetShadow *result = 0 ;
+  
+  arg1 = (GDALDatasetShadow *)jarg1; 
+  arg2 = (GDALDatasetShadow *)jarg2; 
+  arg3 = jarg3 ? true : false; 
+  arg4 = (double)jarg4; 
+  arg5 = (double)jarg5; 
+  arg6 = (char **)jarg6; 
+  {
+    if (!arg1) {
+      {
+        SWIG_CSharpException(SWIG_ValueError, "Received a NULL pointer."); return 0; 
+      };
+    }
+  }
+  {
+    if (!arg2) {
+      {
+        SWIG_CSharpException(SWIG_ValueError, "Received a NULL pointer."); return 0; 
+      };
+    }
+  }
+  {
+    CPLErrorReset();
+    result = (GDALDatasetShadow *)ApplyVerticalShiftGrid(arg1,arg2,arg3,arg4,arg5,arg6);
+    CPLErr eclass = CPLGetLastErrorType();
+    if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+      SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
+      
+      
+      
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+  }
+  jresult = (void *)result; 
+  return jresult;
+}
+
+
 SWIGEXPORT void SWIGSTDCALL CSharp_ApplyGeoTransform(void * jarg1, double jarg2, double jarg3, double * jarg4, double * jarg5) {
   double *arg1 ;
   double arg2 ;
@@ -13040,6 +13125,52 @@ SWIGEXPORT void * SWIGSTDCALL CSharp_IdentifyDriver(char * jarg1, void * jarg2) 
   {
     CPLErrorReset();
     result = (GDALDriverShadow *)IdentifyDriver((char const *)arg1,arg2);
+    CPLErr eclass = CPLGetLastErrorType();
+    if ( eclass == CE_Failure || eclass == CE_Fatal ) {
+      SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());
+      
+      
+      
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+  }
+  jresult = (void *)result; 
+  return jresult;
+}
+
+
+SWIGEXPORT void * SWIGSTDCALL CSharp_IdentifyDriverEx(char * jarg1, unsigned int jarg2, void * jarg3, void * jarg4) {
+  void * jresult ;
+  char *arg1 = (char *) 0 ;
+  unsigned int arg2 = (unsigned int) 0 ;
+  char **arg3 = (char **) NULL ;
+  char **arg4 = (char **) NULL ;
+  GDALDriverShadow *result = 0 ;
+  
+  arg1 = (char *)jarg1; 
+  arg2 = (unsigned int)jarg2; 
+  arg3 = (char **)jarg3; 
+  arg4 = (char **)jarg4; 
+  {
+    if (!arg1) {
+      {
+        SWIG_CSharpException(SWIG_ValueError, "Received a NULL pointer."); return 0; 
+      };
+    }
+  }
+  {
+    CPLErrorReset();
+    result = (GDALDriverShadow *)IdentifyDriverEx((char const *)arg1,arg2,arg3,arg4);
     CPLErr eclass = CPLGetLastErrorType();
     if ( eclass == CE_Failure || eclass == CE_Fatal ) {
       SWIG_CSharpException(SWIG_RuntimeError, CPLGetLastErrorMsg());

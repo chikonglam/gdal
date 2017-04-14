@@ -277,6 +277,12 @@ class OgrPINVOKE {
   [DllImport("ogr_wrap", EntryPoint="CSharp_ODsCMeasuredGeometries_get")]
   public static extern string ODsCMeasuredGeometries_get();
 
+  [DllImport("ogr_wrap", EntryPoint="CSharp_ODsCRandomLayerRead_get")]
+  public static extern string ODsCRandomLayerRead_get();
+
+  [DllImport("ogr_wrap", EntryPoint="CSharp_ODsCRandomLayerWrite_get")]
+  public static extern string ODsCRandomLayerWrite_get();
+
   [DllImport("ogr_wrap", EntryPoint="CSharp_ODrCCreateDataSource_get")]
   public static extern string ODrCCreateDataSource_get();
 
@@ -775,6 +781,18 @@ class OgrPINVOKE {
   [DllImport("ogr_wrap", EntryPoint="CSharp_Feature_IsFieldSet__SWIG_1")]
   public static extern bool Feature_IsFieldSet__SWIG_1(HandleRef jarg1, string jarg2);
 
+  [DllImport("ogr_wrap", EntryPoint="CSharp_Feature_IsFieldNull__SWIG_0")]
+  public static extern bool Feature_IsFieldNull__SWIG_0(HandleRef jarg1, int jarg2);
+
+  [DllImport("ogr_wrap", EntryPoint="CSharp_Feature_IsFieldNull__SWIG_1")]
+  public static extern bool Feature_IsFieldNull__SWIG_1(HandleRef jarg1, string jarg2);
+
+  [DllImport("ogr_wrap", EntryPoint="CSharp_Feature_IsFieldSetAndNotNull__SWIG_0")]
+  public static extern bool Feature_IsFieldSetAndNotNull__SWIG_0(HandleRef jarg1, int jarg2);
+
+  [DllImport("ogr_wrap", EntryPoint="CSharp_Feature_IsFieldSetAndNotNull__SWIG_1")]
+  public static extern bool Feature_IsFieldSetAndNotNull__SWIG_1(HandleRef jarg1, string jarg2);
+
   [DllImport("ogr_wrap", EntryPoint="CSharp_Feature_GetFieldIndex")]
   public static extern int Feature_GetFieldIndex(HandleRef jarg1, string jarg2);
 
@@ -795,6 +813,12 @@ class OgrPINVOKE {
 
   [DllImport("ogr_wrap", EntryPoint="CSharp_Feature_UnsetField__SWIG_1")]
   public static extern void Feature_UnsetField__SWIG_1(HandleRef jarg1, string jarg2);
+
+  [DllImport("ogr_wrap", EntryPoint="CSharp_Feature_SetFieldNull__SWIG_0")]
+  public static extern void Feature_SetFieldNull__SWIG_0(HandleRef jarg1, int jarg2);
+
+  [DllImport("ogr_wrap", EntryPoint="CSharp_Feature_SetFieldNull__SWIG_1")]
+  public static extern void Feature_SetFieldNull__SWIG_1(HandleRef jarg1, string jarg2);
 
   [DllImport("ogr_wrap", EntryPoint="CSharp_Feature_SetField__SWIG_0")]
   public static extern void Feature_SetField__SWIG_0(HandleRef jarg1, int jarg2, byte[] jarg3);
@@ -1224,6 +1248,9 @@ class OgrPINVOKE {
 
   [DllImport("ogr_wrap", EntryPoint="CSharp_Geometry_Distance")]
   public static extern double Geometry_Distance(HandleRef jarg1, HandleRef jarg2);
+
+  [DllImport("ogr_wrap", EntryPoint="CSharp_Geometry_Distance3D")]
+  public static extern double Geometry_Distance3D(HandleRef jarg1, HandleRef jarg2);
 
   [DllImport("ogr_wrap", EntryPoint="CSharp_Geometry_Empty")]
   public static extern void Geometry_Empty(HandleRef jarg1);

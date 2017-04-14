@@ -198,6 +198,12 @@ public class SpatialReference : IDisposable {
     return ret;
   }
 
+  public double GetTargetLinearUnits(string target_key) {
+    double ret = OsrPINVOKE.SpatialReference_GetTargetLinearUnits(swigCPtr, target_key);
+    if (OsrPINVOKE.SWIGPendingException.Pending) throw OsrPINVOKE.SWIGPendingException.Retrieve();
+    return ret;
+  }
+
   public double GetLinearUnits() {
     double ret = OsrPINVOKE.SpatialReference_GetLinearUnits(swigCPtr);
     if (OsrPINVOKE.SWIGPendingException.Pending) throw OsrPINVOKE.SWIGPendingException.Retrieve();

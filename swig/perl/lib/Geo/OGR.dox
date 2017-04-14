@@ -1,7 +1,6 @@
 ## @class Geo::OGR
 # @brief OGR utility functions.
-#
-# A wrapper for many OGR utility functions and a root class for all
+# @details A wrapper for many OGR utility functions and a root class for all
 # OGR classes.
 
 ## @ignore TermProgress
@@ -65,6 +64,9 @@
 
 ## @sub @DriverNames()
 # A.k.a GetDriverNames
+# \code
+# perl -MGeo::GDAL -e '@d=Geo::OGR::DriverNames;print "@d\n"'
+# \endcode
 # @note Use Geo::GDAL::DriverNames for raster drivers.
 # @return a list of the short names of all available GDAL vector drivers.
 
@@ -90,7 +92,8 @@
 
 
 ## @class Geo::OGR::Driver
-# @brief A vector format driver. This is a legacy class which
+# @brief A vector format driver.
+# @details This is a legacy class which
 # should not be used in new code. Use Geo::GDAL::Driver.
 
 ## @method Open
@@ -99,7 +102,7 @@
 ## @method Geo::GDAL::Dataset Create($name, hashref options = undef )
 # Create a new vector data source using this driver.
 # @param name The data source name.
-# @param options Driver specific dataset creation options. 
+# @param options Driver specific dataset creation options.
 
 ## @method Geo::GDAL::Dataset Copy(Geo::GDAL::Dataset source, $name, arrayref options = undef)
 # Copy a vector data source into a new data source with this driver.
@@ -114,7 +117,8 @@
 
 
 ## @class Geo::OGR::DataSource
-# @brief A vector dataset. This is a legacy class which should not be
+# @brief A vector dataset.
+# @details This is a legacy class which should not be
 # used in new code. Use Geo::GDAL::Dataset.
 
 ## @sub Geo::GDAL::Dataset Open
@@ -128,8 +132,7 @@
 
 ## @class Geo::OGR::Layer
 # @brief A collection of similar features.
-#
-# A layer object is typically obtained with a data source object. A
+# @details A layer object is typically obtained with a data source object. A
 # layer has a data model (a schema), which is maintained in a
 # definition object, and a set of features, which contain data
 # according to the data model. The schema is typically set when the
@@ -140,11 +143,10 @@
 # read, inserted and deleted. Reading can be filtered. Layers can be
 # compared to each other with methods Clip, Erase, Identity,
 # Intersection, SymDifference, Union, and Update.
-# @isa (Geo::OGR)
-#
 # A layer may have metadata OLMD_FID64 => 'YES' if it holds features
 # with 64 bit FIDs. The metadata of a layer can be obtained with
 # GetMetadata method.
+# @isa (Geo::OGR)
 
 ## @method @Capabilities()
 # Both a package subroutine and an object method.
@@ -275,11 +277,15 @@
 
 ## @ignore FindFieldIndex
 
-## @method %GetFieldDefn($name)
+## @method $GetFieldDefn($name)
 # Get the definition of a field.
 # @param name the name of the field.
-# @return the field definition object, either Geo::OGR::FieldDefn or
-# Geo::OGR::GeomFieldDefn.
+# @return a Geo::OGR::FieldDefn object.
+
+## @method $GetGeomFieldDefn($name)
+# Get the definition of a spatial field.
+# @param name the name of the spatial field.
+# @return a Geo::OGR::GeomFieldDefn object.
 
 ## @ignore CreateGeomField
 
@@ -404,6 +410,18 @@
 ## @method $GetName()
 # @return the name of the layer.
 
+## @method Geo::OGR::Feature Feature($f)
+#
+# @param f [optional] feature id, a feature, a row, or a tuple 
+#
+# @note If the argument feature has a null FID (FID not set) the
+# feature is inserted into the layer as a new feature. If the FID is
+# non null, then the feature replaces the feature in the layer with
+# that FID.
+#
+# @return a new Geo::OGR::Feature object that represents the feature
+# in the layer.
+
 ## @method Geo::OGR::Feature GetFeature($fid)
 # @param fid feature id
 # @return a new Geo::OGR::Feature object that represents the feature in the layer.
@@ -413,15 +431,6 @@
 #
 # Replaces a feature in the layer based on the given feature's
 # id. Requires RandomWrite capability.
-# @param feature a Geo::OGR::Feature object
-
-## @method CreateFeature($feature)
-# @deprecated use Geo::OGR::Layer::InsertFeature which accepts Perl
-# data and checks for geometry type and attribute data
-#
-# @note The feature should have the same schema as the layer.
-#
-# Inserts a feature into the layer. The given feature's id may change.
 # @param feature a Geo::OGR::Feature object
 
 ## @method InsertFeature($feature)
@@ -445,7 +454,8 @@
 # A.k.a GetLayerDefn.
 # @return a Geo::OGR::FeatureDefn object.
 
-## @method $GetFeatureCount($force = 1)
+## @method $FeatureCount($force = 1)
+# A.k.a GetFeatureCount
 # @param force
 # @return integer
 
@@ -492,8 +502,7 @@
 
 ## @class Geo::OGR::Feature
 # @brief A collection of non-spatial and spatial attributes.
-#
-# A feature is a collection of non-spatial and spatial attributes and
+# @details A feature is a collection of non-spatial and spatial attributes and
 # an id, which is a special attribute, and data records according to
 # this data model. Attributes are called fields and some fields are
 # spatial, i.e., their value is a geometry. Fields have at least a
@@ -503,14 +512,22 @@
 
 ## @cmethod Geo::OGR::Feature new(%schema)
 # @brief Create a new feature.
-# @param A Geo::OGR::FeatureDefn object or named parameters to create one:
-# - \a Name
+# @param Named parameters:
+# - \a Schema a reference to a schema hash, or a Geo::OGR::Layer,
+#      Geo::OGR::Feature, or Geo::OGR::FeatureDefn object.
+# - \a Values values for the feature attributes.
+# - \a StyleIgnored whether the style can be omitted when fetching
+#      features. (default is false)
+#
+# Schema is a hash with the following keys:
+# - \a Name name of the schema (not used).
 # - \a Fields a list of Geo::OGR::FieldDefn or Geo::OGR::GeomFieldDefn
-# objects or anonymous hashes from which such can be created.
+# objects or references to hashes from which fields can be created.
 # - \a GeometryType the geometry type if the feature has only one spatial field.
-# - \a StyleIgnored whether the style can be omitted when fetching features. (default is false)
 #
 # @note Do not mix GeometryType and geometry fields in Fields list.
+# @note Old syntax where the argument is a Geo::OGR::FeatureDefn
+# object or Schema hash is supported.
 #
 # @return a new Geo::OGR::Feature object.
 
@@ -577,11 +594,15 @@
 ## @ignore GetFieldType
 ## @ignore GetGeomFieldDefnRef
 
-## @method Geo::OGR::FieldDefn GetFieldDefn($name)
-# @note A.k.a GetFieldDefnRef
+## @method $GetFieldDefn($name)
+# Get the definition of a field.
 # @param name the name of the field.
-# @return a new Geo::OGR::FieldDefn object that represents the field
-# in question.
+# @return a Geo::OGR::FieldDefn object.
+
+## @method $GetGeomFieldDefn($name)
+# Get the definition of a spatial field.
+# @param name the name of the spatial field.
+# @return a Geo::OGR::GeomFieldDefn object.
 
 ## @method Geo::OGR::Feature Clone()
 # @return a new Geo::OGR::Feature object
@@ -635,6 +656,8 @@
 # @note Non-scalar fields (for example Date) can be set either from a
 # scalar, which is then assumed to be a string and parsed, or from a
 # list of values (for example year, month, day for Date).
+# @note Setting and getting Integer64 fields requires 'use bigint' if
+# \$Config{ivsize} is smaller than 8, i.e., in a 32 bit machine.
 # @return in non-void context the value of the field, which may be a
 # scalar or a list, depending on the field type. For unset fields the
 # undef value is returned.
@@ -711,8 +734,7 @@
 
 ## @class Geo::OGR::FeatureDefn
 # @brief The schema of a feature or a layer.
-#
-# A FeatureDefn object is a collection of field definition objects. A
+# @details A FeatureDefn object is a collection of field definition objects. A
 # read-only FeatureDefn object can be obtained from a layer
 # (Geo::OGR::Layer::GetDefn()) or a feature
 # (Geo::OGR::Feature::GetDefn()).
@@ -730,7 +752,7 @@
 #
 # Example usage:
 # \code
-# $fd = Geo::OGR::FeatureDefn->new( 
+# $fd = Geo::OGR::FeatureDefn->new(
 #     Name => "name",
 #     Fields => [{ Name => 'field1', Type => 'String' },
 #                { Name => 'geom', GeometryType => 'Point' }] );
@@ -739,7 +761,7 @@
 ## @ignore Schema
 
 ## @method \%GetSchema()
-# @brief Get the schema of this feature or layer definition. 
+# @brief Get the schema of this feature or layer definition.
 #
 # @return the schema as a hash whose keywords are Name, StyleIgnored
 # and Fields. Fields is an anonymous array of first non-spatial and
@@ -762,12 +784,16 @@
 
 ## @ignore GeometryIgnored
 ## @ignore GeometryType
-## @ignore GetGeomFieldDefn
 
-## @method object GetFieldDefn($name)
+## @method $GetFieldDefn($name)
+# Get the definition of a field.
 # @param name the name of the field.
-# @return either a Geo::OGR::FieldDefn or Geo::OGR::GeomFieldDefn
-# object that represents the field in question.
+# @return a Geo::OGR::FieldDefn object.
+
+## @method $GetGeomFieldDefn($name)
+# Get the definition of a spatial field.
+# @param name the name of the spatial field.
+# @return a Geo::OGR::GeomFieldDefn object.
 
 ## @ignore AddFieldDefn
 ## @ignore AddGeomFieldDefn
@@ -834,6 +860,7 @@
 
 ## @class Geo::OGR::FieldDefn
 # @brief A definition of a non-spatial attribute.
+# @details
 # @isa (Geo::OGR)
 
 ## @sub list Types
@@ -853,11 +880,14 @@
 # - \a Type Field type, one of Geo::OGR::FieldDefn::Types (default is 'String').
 # - \a SubType Field sub type, one of Geo::OGR::FieldDefn::SubTypes.
 # - \a Justify Justify value, one of Geo::OGR::FieldDefn::JustifyValues
-# - \a Width 
+# - \a Width
 # - \a Precision
 # - \a Nullable (default is true)
-# - \a Default 
+# - \a Default
 # - \a Ignored (default is false)
+#
+# @note Simplified parameters <name> => <type> is also supported.
+#
 # @return a new Geo::OGR::FieldDefn object
 
 ## @method \%Schema(%params)
@@ -955,6 +985,7 @@
 
 ## @class Geo::OGR::GeomFieldDefn
 # @brief A definition of a spatial attribute.
+# @details
 # @isa (Geo::OGR)
 
 ## @cmethod Geo::OGR::GeomFieldDefn new(%params)
@@ -966,6 +997,9 @@
 # - \a SpatialReference a Geo::OSR::SpatialReference object.
 # - \a Nullable (default is true)
 # - \a Ignored (default is false)
+#
+# @note Simplified parameters <name> => <type> is also supported.
+#
 # @return a new Geo::OGR::GeomFieldDefn object
 
 ## @method \%Schema(%params)
@@ -1020,16 +1054,15 @@
 
 
 ## @class Geo::OGR::Geometry
-# @isa (Geo::OGR)
 # @brief Spatial data.
-#
-# A geometry is spatial data (coordinate values, and a reference to a
+# @details A geometry is spatial data (coordinate values, and a reference to a
 # spatial reference system) organized into one of the geometry
 # types. Geometries can be created from several type of data including
 # a Perl data structure. There are several methods, which modify,
 # compare, test, or compute values from geometries.
 # @note Most spatial analysis methods require <a
 # href="http://geos.osgeo.org/doxygen/">GEOS</a> to work rigorously.
+# @isa (Geo::OGR)
 
 ## @sub @GeometryTypes()
 # Same as Geo::OGR::GeometryTypes
@@ -1056,7 +1089,7 @@
 # @return a new Geo::OGR::Geometry object.
 
 ## @sub Geo::OGR::Geometry ApproximateArcAngles(%params)
-# Create a line string, which approximates an arc. 
+# Create a line string, which approximates an arc.
 # @note All angles are in degrees.
 #
 # @param %params Named parameters:
@@ -1066,7 +1099,7 @@
 # - \a Rotation default is 0.
 # - \a StartAngle default is 0.
 # - \a EndAngle default is 360.
-# - \a MaxAngleStepSizeDegrees default is 4. 
+# - \a MaxAngleStepSizeDegrees default is 4.
 # @return a new Geo::OGR::Geometry object.
 
 ## @method FlattenTo2D()
@@ -1103,7 +1136,7 @@
 # Export the geometry into a known format.
 #
 # @param params Named parameters:
-# - \a Format One of 
+# - \a Format One of
 #     - \a WKT Well Known Text.
 #     - <em>ISO WKT</em>
 #     - \a Text Same as WKT.
@@ -1212,7 +1245,7 @@
 #
 # @param points [optional] A reference to an array. A point is a reference to an
 # array of numbers, a linestring or a ring is a reference to an array of points,
-# a polygon is a reference to an array of rings, etc. 
+# a polygon is a reference to an array of rings, etc.
 #
 # @return A reference to an array.
 
@@ -1352,7 +1385,7 @@
 ## @ignore SymmetricDifference
 
 ## @method Geo::OGR::Geometry SymDifference($other)
-# Compute symmetric difference. 
+# Compute symmetric difference.
 # @note a.k.a. SymmetricDifference
 # @param other a Geo::OGR::Geometry object
 # @return a new Geo::OGR::Geometry object
