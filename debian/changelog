@@ -3,6 +3,7 @@ gdal (2.2.0~beta2+dfsg-1) UNRELEASED; urgency=medium
   * New upstream beta release.
   * Update symbols for 2.2.0~beta1.
   * Update copyright years for Ivan Lucena.
+  * Refresh patches.
 
  -- Bas Couwenberg <sebastic@debian.org>  Sun, 23 Apr 2017 15:52:39 +0200
 
