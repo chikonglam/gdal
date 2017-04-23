@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: pdfio.h 36501 2016-11-25 14:09:24Z rouault $
+ * $Id: pdfio.h 38070 2017-04-20 12:02:25Z rouault $
  *
  * Project:  PDF driver
  * Purpose:  GDALDataset driver for PDF dataset.
@@ -85,9 +85,18 @@ class VSIPDFFileStream: public BaseStream
         virtual void       close() override;
 
     private:
-        /* Added in poppler 0.15.0 */
+#ifdef POPPLER_BASE_STREAM_HAS_TWO_ARGS
+        /* getChars/hasGetChars added in poppler 0.15.0
+         * POPPLER_BASE_STREAM_HAS_TWO_ARGS true from poppler 0.16,
+         * This test will be wrong for poppler 0.15 or 0.16,
+         * but will still compile correctly.
+         */
         virtual GBool hasGetChars() override;
         virtual int getChars(int nChars, Guchar *buffer) override;
+#else
+        virtual GBool hasGetChars() ;
+        virtual int getChars(int nChars, Guchar *buffer) ;
+#endif
 
         VSIPDFFileStream  *poParent;
         GooString         *poFilename;

@@ -33,7 +33,7 @@
 #include "cpl_time.h"
 #include "ogr_p.h"
 
-CPL_CVSID("$Id: ogrgeopackagetablelayer.cpp 37814 2017-03-20 20:37:16Z rouault $");
+CPL_CVSID("$Id: ogrgeopackagetablelayer.cpp 38036 2017-04-16 12:35:59Z rouault $");
 
 static const char UNSUPPORTED_OP_READ_ONLY[] =
   "%s : unsupported operation on a read-only datasource.";
@@ -1647,7 +1647,7 @@ OGRErr OGRGeoPackageTableLayer::ISetFeature( OGRFeature *poFeature )
             /* Construct a SQL INSERT statement from the OGRFeature */
             /* Only work with fields that are set */
             /* Do not stick values into SQL, use placeholder and bind values later */
-            CPLString osCommand = FeatureGenerateInsertSQL(poFeature, true);
+            CPLString osCommand = FeatureGenerateInsertSQL(poFeature, true, true);
 
             /* Prepare the SQL into a statement */
             int err = sqlite3_prepare_v2(m_poDS->GetDB(), osCommand, -1, &m_poUpdateStatement, NULL);
@@ -1670,7 +1670,7 @@ OGRErr OGRGeoPackageTableLayer::ISetFeature( OGRFeature *poFeature )
             return errOgr;
 
         /* Bind values onto the statement now */
-        errOgr = FeatureBindInsertParameters(poFeature, m_poUpdateStatement, true);
+        errOgr = FeatureBindInsertParameters(poFeature, m_poUpdateStatement, true, true);
         if ( errOgr != OGRERR_NONE )
             return errOgr;
     }

@@ -49,7 +49,7 @@
 
 /*! @cond Doxygen_Suppress */
 
-CPL_CVSID("$Id: vrtderivedrasterband.cpp 36981 2016-12-20 19:46:41Z rouault $");
+CPL_CVSID("$Id: vrtderivedrasterband.cpp 38039 2017-04-16 13:08:39Z rouault $");
 
 // #define GDAL_VRT_DISABLE_PYTHON
 // #define PYTHONSO_DEFAULT "libpython2.7.so"
@@ -1385,7 +1385,7 @@ bool VRTDerivedRasterBand::InitializePython()
     PyObject* poCompiledString = Py_CompileString(
         ("import numpy\n"
         "def GDALCreateNumpyArray(buffer, dtype, height, width):\n"
-        "    return numpy.frombuffer(buffer, dtype.decode('ascii'))."
+        "    return numpy.frombuffer(buffer, str(dtype.decode('ascii')))."
                                                 "reshape([height, width])\n"
         "\n" + m_poPrivate->m_osCode).c_str(),
         osModuleName, Py_file_input);

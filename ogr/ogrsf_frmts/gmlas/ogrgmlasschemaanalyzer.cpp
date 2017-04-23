@@ -41,7 +41,7 @@ static XSModel* getGrammarPool(XMLGrammarPool* pool)
 #include "ogr_gmlas.h"
 #include "ogr_pgdump.h"
 
-CPL_CVSID("$Id: ogrgmlasschemaanalyzer.cpp 37871 2017-03-31 16:39:20Z rouault $");
+CPL_CVSID("$Id: ogrgmlasschemaanalyzer.cpp 38073 2017-04-20 17:00:47Z rouault $");
 
 /************************************************************************/
 /*                        IsCompatibleOfArray()                         */
@@ -1494,6 +1494,12 @@ static bool IsAnyType(XSComplexTypeDefinition* poType)
                 }
             }
         }
+        else if( poType->getDerivationMethod() ==
+                                            XSConstants::DERIVATION_EXTENSION )
+        {
+            // swe:values case
+            return true;
+        }
     }
     return false;
 }
@@ -2198,16 +2204,21 @@ bool GMLASSchemaAnalyzer::FindElementsWithMustBeToLevel(
                             aoSetXPathEltsForTopClass.find( osXPath )
                                 == aoSetXPathEltsForTopClass.end() )
                         {
+                            CPLString osIgnored;
+                            if( !m_oForcedFlattenedXPathMatcher.MatchesRefXPath(
+                                                        osXPath, osIgnored))
+                            {
 #ifdef DEBUG_VERBOSE
-                            CPLDebug("GMLAS", "%s (%s) must be exposed as "
-                                     "top-level (multiple time referenced)",
-                                     osXPath.c_str(),
-                                     transcode(
-                                        poTypeDef->getNamespace()).c_str());
+                                CPLDebug("GMLAS", "%s (%s) must be exposed as "
+                                        "top-level (multiple time referenced)",
+                                        osXPath.c_str(),
+                                        transcode(
+                                            poTypeDef->getNamespace()).c_str());
 #endif
-                            m_oSetEltsForTopClass.insert(poElt);
-                            oVectorEltsForTopClass.push_back(poElt);
-                            aoSetXPathEltsForTopClass.insert( osXPath );
+                                m_oSetEltsForTopClass.insert(poElt);
+                                oVectorEltsForTopClass.push_back(poElt);
+                                aoSetXPathEltsForTopClass.insert( osXPath );
+                            }
                         }
                     }
                     else

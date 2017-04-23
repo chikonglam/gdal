@@ -57,7 +57,7 @@
 // #include "symbol_renames.h"
 
 
-CPL_CVSID("$Id: ogrgeojsondatasource.cpp 37374 2017-02-13 11:59:01Z goatbar $");
+CPL_CVSID("$Id: ogrgeojsondatasource.cpp 38109 2017-04-22 22:26:06Z rouault $");
 
 /************************************************************************/
 /*                           OGRGeoJSONDataSource()                     */
@@ -247,7 +247,7 @@ OGRLayer* OGRGeoJSONDataSource::ICreateLayer( const char* pszNameIn,
         CSLFetchNameValue(papszOptions, "NATIVE_MEDIA_TYPE");
     bool bWriteCRSIfWGS84 = true;
     bool bFoundNameInNativeData = false;
-    if( pszNativeMediaType &&
+    if( pszNativeData && pszNativeMediaType &&
         EQUAL(pszNativeMediaType, "application/vnd.geo+json") )
     {
         json_object *poObj = NULL;

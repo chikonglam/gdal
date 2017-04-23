@@ -2233,11 +2233,11 @@ SWIGINTERN OGRGeometryShadow *OGRFeatureShadow_GetGeometryRef(OGRFeatureShadow *
 SWIGINTERN OGRErr OGRFeatureShadow_SetGeomField__SWIG_0(OGRFeatureShadow *self,int iField,OGRGeometryShadow *geom){
     return OGR_F_SetGeomField(self, iField, geom);
   }
-SWIGINTERN OGRErr OGRFeatureShadow_SetGeomField__SWIG_1(OGRFeatureShadow *self,char const *name,OGRGeometryShadow *geom){
-      int iField = OGR_F_GetGeomFieldIndex(self, name);
+SWIGINTERN OGRErr OGRFeatureShadow_SetGeomField__SWIG_1(OGRFeatureShadow *self,char const *field_name,OGRGeometryShadow *geom){
+      int iField = OGR_F_GetGeomFieldIndex(self, field_name);
       if (iField == -1)
       {
-          CPLError(CE_Failure, 1, FIELD_NAME_ERROR_TMPL, name);
+          CPLError(CE_Failure, 1, FIELD_NAME_ERROR_TMPL, field_name);
           return OGRERR_FAILURE;
       }
       else
@@ -2246,11 +2246,11 @@ SWIGINTERN OGRErr OGRFeatureShadow_SetGeomField__SWIG_1(OGRFeatureShadow *self,c
 SWIGINTERN OGRErr OGRFeatureShadow_SetGeomFieldDirectly__SWIG_0(OGRFeatureShadow *self,int iField,OGRGeometryShadow *geom){
     return OGR_F_SetGeomFieldDirectly(self, iField, geom);
   }
-SWIGINTERN OGRErr OGRFeatureShadow_SetGeomFieldDirectly__SWIG_1(OGRFeatureShadow *self,char const *name,OGRGeometryShadow *geom){
-      int iField = OGR_F_GetGeomFieldIndex(self, name);
+SWIGINTERN OGRErr OGRFeatureShadow_SetGeomFieldDirectly__SWIG_1(OGRFeatureShadow *self,char const *field_name,OGRGeometryShadow *geom){
+      int iField = OGR_F_GetGeomFieldIndex(self, field_name);
       if (iField == -1)
       {
-          CPLError(CE_Failure, 1, FIELD_NAME_ERROR_TMPL, name);
+          CPLError(CE_Failure, 1, FIELD_NAME_ERROR_TMPL, field_name);
           return OGRERR_FAILURE;
       }
       else
@@ -2259,11 +2259,11 @@ SWIGINTERN OGRErr OGRFeatureShadow_SetGeomFieldDirectly__SWIG_1(OGRFeatureShadow
 SWIGINTERN OGRGeometryShadow *OGRFeatureShadow_GetGeomFieldRef__SWIG_0(OGRFeatureShadow *self,int iField){
     return (OGRGeometryShadow*) OGR_F_GetGeomFieldRef(self, iField);
   }
-SWIGINTERN OGRGeometryShadow *OGRFeatureShadow_GetGeomFieldRef__SWIG_1(OGRFeatureShadow *self,char const *name){
-      int i = OGR_F_GetGeomFieldIndex(self, name);
+SWIGINTERN OGRGeometryShadow *OGRFeatureShadow_GetGeomFieldRef__SWIG_1(OGRFeatureShadow *self,char const *field_name){
+      int i = OGR_F_GetGeomFieldIndex(self, field_name);
       if (i == -1)
       {
-          CPLError(CE_Failure, 1, FIELD_NAME_ERROR_TMPL, name);
+          CPLError(CE_Failure, 1, FIELD_NAME_ERROR_TMPL, field_name);
           return NULL;
       }
       else
@@ -2383,13 +2383,13 @@ SWIGINTERN bool OGRFeatureShadow_IsFieldNull(OGRFeatureShadow *self,int id){
 SWIGINTERN bool OGRFeatureShadow_IsFieldSetAndNotNull(OGRFeatureShadow *self,int id){
     return (OGR_F_IsFieldSetAndNotNull(self, id) > 0);
   }
-SWIGINTERN int OGRFeatureShadow_GetFieldIndex(OGRFeatureShadow *self,char const *name){
+SWIGINTERN int OGRFeatureShadow_GetFieldIndex(OGRFeatureShadow *self,char const *field_name){
       // Do not issue an error if the field doesn't exist. It is intended to be silent
-      return OGR_F_GetFieldIndex(self, name);
+      return OGR_F_GetFieldIndex(self, field_name);
   }
-SWIGINTERN int OGRFeatureShadow_GetGeomFieldIndex(OGRFeatureShadow *self,char const *name){
+SWIGINTERN int OGRFeatureShadow_GetGeomFieldIndex(OGRFeatureShadow *self,char const *field_name){
       // Do not issue an error if the field doesn't exist. It is intended to be silent
-      return OGR_F_GetGeomFieldIndex(self, name);
+      return OGR_F_GetGeomFieldIndex(self, field_name);
   }
 SWIGINTERN GIntBig OGRFeatureShadow_GetFID(OGRFeatureShadow *self){
     return OGR_F_GetFID(self);
@@ -2625,9 +2625,9 @@ SWIGINTERN int OGRFeatureDefnShadow_GetFieldCount(OGRFeatureDefnShadow *self){
 SWIGINTERN OGRFieldDefnShadow *OGRFeatureDefnShadow_GetFieldDefn(OGRFeatureDefnShadow *self,int i){
     return (OGRFieldDefnShadow*) OGR_FD_GetFieldDefn(self, i);
   }
-SWIGINTERN int OGRFeatureDefnShadow_GetFieldIndex(OGRFeatureDefnShadow *self,char const *name){
+SWIGINTERN int OGRFeatureDefnShadow_GetFieldIndex(OGRFeatureDefnShadow *self,char const *field_name){
       // Do not issue an error if the field doesn't exist. It is intended to be silent
-      return OGR_FD_GetFieldIndex(self, name);
+      return OGR_FD_GetFieldIndex(self, field_name);
   }
 SWIGINTERN void OGRFeatureDefnShadow_AddFieldDefn(OGRFeatureDefnShadow *self,OGRFieldDefnShadow *defn){
     OGR_FD_AddFieldDefn(self, defn);
@@ -2638,9 +2638,9 @@ SWIGINTERN int OGRFeatureDefnShadow_GetGeomFieldCount(OGRFeatureDefnShadow *self
 SWIGINTERN OGRGeomFieldDefnShadow *OGRFeatureDefnShadow_GetGeomFieldDefn(OGRFeatureDefnShadow *self,int i){
     return (OGRGeomFieldDefnShadow*) OGR_FD_GetGeomFieldDefn(self, i);
   }
-SWIGINTERN int OGRFeatureDefnShadow_GetGeomFieldIndex(OGRFeatureDefnShadow *self,char const *name){
+SWIGINTERN int OGRFeatureDefnShadow_GetGeomFieldIndex(OGRFeatureDefnShadow *self,char const *field_name){
       // Do not issue an error if the field doesn't exist. It is intended to be silent
-      return OGR_FD_GetGeomFieldIndex(self, name);
+      return OGR_FD_GetGeomFieldIndex(self, field_name);
   }
 SWIGINTERN void OGRFeatureDefnShadow_AddGeomFieldDefn(OGRFeatureDefnShadow *self,OGRGeomFieldDefnShadow *defn){
     OGR_FD_AddGeomFieldDefn(self, defn);
@@ -8203,7 +8203,7 @@ XS(_wrap_Feature_SetGeomField__SWIG_1) {
     dXSARGS;
     
     if ((items < 3) || (items > 3)) {
-      SWIG_croak("Usage: Feature_SetGeomField(self,name,geom);");
+      SWIG_croak("Usage: Feature_SetGeomField(self,field_name,geom);");
     }
     res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OGRFeatureShadow, 0 |  0 );
     if (!SWIG_IsOK(res1)) {
@@ -8211,7 +8211,7 @@ XS(_wrap_Feature_SetGeomField__SWIG_1) {
     }
     arg1 = reinterpret_cast< OGRFeatureShadow * >(argp1);
     {
-      /* %typemap(in,numinputs=1) (const char* name) */
+      /* %typemap(in,numinputs=1) (const char* field_name) */
       arg2 = sv_to_utf8_string(ST(1), &tmpbuf2);
     }
     res3 = SWIG_ConvertPtr(ST(2), &argp3,SWIGTYPE_p_OGRGeometryShadow, 0 |  0 );
@@ -8219,11 +8219,6 @@ XS(_wrap_Feature_SetGeomField__SWIG_1) {
       SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "Feature_SetGeomField" "', argument " "3"" of type '" "OGRGeometryShadow *""'"); 
     }
     arg3 = reinterpret_cast< OGRGeometryShadow * >(argp3);
-    {
-      if (!arg2) {
-        SWIG_exception(SWIG_ValueError,"Received a NULL pointer.");
-      }
-    }
     {
       CPLErrorReset();
       result = (OGRErr)OGRFeatureShadow_SetGeomField__SWIG_1(arg1,(char const *)arg2,arg3);
@@ -8258,7 +8253,7 @@ XS(_wrap_Feature_SetGeomField__SWIG_1) {
     }
     
     {
-      /* %typemap(freearg) (const char* name) */
+      /* %typemap(freearg) (const char* field_name) */
       if (tmpbuf2) Safefree(tmpbuf2);
     }
     
@@ -8266,7 +8261,7 @@ XS(_wrap_Feature_SetGeomField__SWIG_1) {
   fail:
     
     {
-      /* %typemap(freearg) (const char* name) */
+      /* %typemap(freearg) (const char* field_name) */
       if (tmpbuf2) Safefree(tmpbuf2);
     }
     
@@ -8463,7 +8458,7 @@ XS(_wrap_Feature_SetGeomFieldDirectly__SWIG_1) {
     dXSARGS;
     
     if ((items < 3) || (items > 3)) {
-      SWIG_croak("Usage: Feature_SetGeomFieldDirectly(self,name,geom);");
+      SWIG_croak("Usage: Feature_SetGeomFieldDirectly(self,field_name,geom);");
     }
     res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OGRFeatureShadow, 0 |  0 );
     if (!SWIG_IsOK(res1)) {
@@ -8471,17 +8466,12 @@ XS(_wrap_Feature_SetGeomFieldDirectly__SWIG_1) {
     }
     arg1 = reinterpret_cast< OGRFeatureShadow * >(argp1);
     {
-      /* %typemap(in,numinputs=1) (const char* name) */
+      /* %typemap(in,numinputs=1) (const char* field_name) */
       arg2 = sv_to_utf8_string(ST(1), &tmpbuf2);
     }
     res3 = SWIG_ConvertPtr(ST(2), SWIG_as_voidptrptr(&arg3), SWIGTYPE_p_OGRGeometryShadow, SWIG_POINTER_DISOWN |  0 );
     if (!SWIG_IsOK(res3)) {
       SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "Feature_SetGeomFieldDirectly" "', argument " "3"" of type '" "OGRGeometryShadow *""'");
-    }
-    {
-      if (!arg2) {
-        SWIG_exception(SWIG_ValueError,"Received a NULL pointer.");
-      }
     }
     {
       CPLErrorReset();
@@ -8517,7 +8507,7 @@ XS(_wrap_Feature_SetGeomFieldDirectly__SWIG_1) {
     }
     
     {
-      /* %typemap(freearg) (const char* name) */
+      /* %typemap(freearg) (const char* field_name) */
       if (tmpbuf2) Safefree(tmpbuf2);
     }
     
@@ -8525,7 +8515,7 @@ XS(_wrap_Feature_SetGeomFieldDirectly__SWIG_1) {
   fail:
     
     {
-      /* %typemap(freearg) (const char* name) */
+      /* %typemap(freearg) (const char* field_name) */
       if (tmpbuf2) Safefree(tmpbuf2);
     }
     
@@ -8705,7 +8695,7 @@ XS(_wrap_Feature_GetGeomFieldRef__SWIG_1) {
     dXSARGS;
     
     if ((items < 2) || (items > 2)) {
-      SWIG_croak("Usage: Feature_GetGeomFieldRef(self,name);");
+      SWIG_croak("Usage: Feature_GetGeomFieldRef(self,field_name);");
     }
     res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OGRFeatureShadow, 0 |  0 );
     if (!SWIG_IsOK(res1)) {
@@ -8713,13 +8703,8 @@ XS(_wrap_Feature_GetGeomFieldRef__SWIG_1) {
     }
     arg1 = reinterpret_cast< OGRFeatureShadow * >(argp1);
     {
-      /* %typemap(in,numinputs=1) (const char* name) */
+      /* %typemap(in,numinputs=1) (const char* field_name) */
       arg2 = sv_to_utf8_string(ST(1), &tmpbuf2);
-    }
-    {
-      if (!arg2) {
-        SWIG_exception(SWIG_ValueError,"Received a NULL pointer.");
-      }
     }
     {
       CPLErrorReset();
@@ -8748,14 +8733,14 @@ XS(_wrap_Feature_GetGeomFieldRef__SWIG_1) {
     ST(argvi) = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_OGRGeometryShadow, 0 | SWIG_SHADOW); argvi++ ;
     
     {
-      /* %typemap(freearg) (const char* name) */
+      /* %typemap(freearg) (const char* field_name) */
       if (tmpbuf2) Safefree(tmpbuf2);
     }
     XSRETURN(argvi);
   fail:
     
     {
-      /* %typemap(freearg) (const char* name) */
+      /* %typemap(freearg) (const char* field_name) */
       if (tmpbuf2) Safefree(tmpbuf2);
     }
     SWIG_croak_null();
@@ -10177,7 +10162,7 @@ XS(_wrap_Feature__GetFieldIndex) {
     dXSARGS;
     
     if ((items < 2) || (items > 2)) {
-      SWIG_croak("Usage: Feature__GetFieldIndex(self,name);");
+      SWIG_croak("Usage: Feature__GetFieldIndex(self,field_name);");
     }
     res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OGRFeatureShadow, 0 |  0 );
     if (!SWIG_IsOK(res1)) {
@@ -10185,13 +10170,8 @@ XS(_wrap_Feature__GetFieldIndex) {
     }
     arg1 = reinterpret_cast< OGRFeatureShadow * >(argp1);
     {
-      /* %typemap(in,numinputs=1) (const char* name) */
+      /* %typemap(in,numinputs=1) (const char* field_name) */
       arg2 = sv_to_utf8_string(ST(1), &tmpbuf2);
-    }
-    {
-      if (!arg2) {
-        SWIG_exception(SWIG_ValueError,"Received a NULL pointer.");
-      }
     }
     {
       CPLErrorReset();
@@ -10220,14 +10200,14 @@ XS(_wrap_Feature__GetFieldIndex) {
     ST(argvi) = SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(result)); argvi++ ;
     
     {
-      /* %typemap(freearg) (const char* name) */
+      /* %typemap(freearg) (const char* field_name) */
       if (tmpbuf2) Safefree(tmpbuf2);
     }
     XSRETURN(argvi);
   fail:
     
     {
-      /* %typemap(freearg) (const char* name) */
+      /* %typemap(freearg) (const char* field_name) */
       if (tmpbuf2) Safefree(tmpbuf2);
     }
     SWIG_croak_null();
@@ -10247,7 +10227,7 @@ XS(_wrap_Feature__GetGeomFieldIndex) {
     dXSARGS;
     
     if ((items < 2) || (items > 2)) {
-      SWIG_croak("Usage: Feature__GetGeomFieldIndex(self,name);");
+      SWIG_croak("Usage: Feature__GetGeomFieldIndex(self,field_name);");
     }
     res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OGRFeatureShadow, 0 |  0 );
     if (!SWIG_IsOK(res1)) {
@@ -10255,13 +10235,8 @@ XS(_wrap_Feature__GetGeomFieldIndex) {
     }
     arg1 = reinterpret_cast< OGRFeatureShadow * >(argp1);
     {
-      /* %typemap(in,numinputs=1) (const char* name) */
+      /* %typemap(in,numinputs=1) (const char* field_name) */
       arg2 = sv_to_utf8_string(ST(1), &tmpbuf2);
-    }
-    {
-      if (!arg2) {
-        SWIG_exception(SWIG_ValueError,"Received a NULL pointer.");
-      }
     }
     {
       CPLErrorReset();
@@ -10290,14 +10265,14 @@ XS(_wrap_Feature__GetGeomFieldIndex) {
     ST(argvi) = SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(result)); argvi++ ;
     
     {
-      /* %typemap(freearg) (const char* name) */
+      /* %typemap(freearg) (const char* field_name) */
       if (tmpbuf2) Safefree(tmpbuf2);
     }
     XSRETURN(argvi);
   fail:
     
     {
-      /* %typemap(freearg) (const char* name) */
+      /* %typemap(freearg) (const char* field_name) */
       if (tmpbuf2) Safefree(tmpbuf2);
     }
     SWIG_croak_null();
@@ -12854,7 +12829,7 @@ XS(_wrap_FeatureDefn__GetFieldIndex) {
     dXSARGS;
     
     if ((items < 2) || (items > 2)) {
-      SWIG_croak("Usage: FeatureDefn__GetFieldIndex(self,name);");
+      SWIG_croak("Usage: FeatureDefn__GetFieldIndex(self,field_name);");
     }
     res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OGRFeatureDefnShadow, 0 |  0 );
     if (!SWIG_IsOK(res1)) {
@@ -12862,13 +12837,8 @@ XS(_wrap_FeatureDefn__GetFieldIndex) {
     }
     arg1 = reinterpret_cast< OGRFeatureDefnShadow * >(argp1);
     {
-      /* %typemap(in,numinputs=1) (const char* name) */
+      /* %typemap(in,numinputs=1) (const char* field_name) */
       arg2 = sv_to_utf8_string(ST(1), &tmpbuf2);
-    }
-    {
-      if (!arg2) {
-        SWIG_exception(SWIG_ValueError,"Received a NULL pointer.");
-      }
     }
     {
       CPLErrorReset();
@@ -12897,14 +12867,14 @@ XS(_wrap_FeatureDefn__GetFieldIndex) {
     ST(argvi) = SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(result)); argvi++ ;
     
     {
-      /* %typemap(freearg) (const char* name) */
+      /* %typemap(freearg) (const char* field_name) */
       if (tmpbuf2) Safefree(tmpbuf2);
     }
     XSRETURN(argvi);
   fail:
     
     {
-      /* %typemap(freearg) (const char* name) */
+      /* %typemap(freearg) (const char* field_name) */
       if (tmpbuf2) Safefree(tmpbuf2);
     }
     SWIG_croak_null();
@@ -13103,7 +13073,7 @@ XS(_wrap_FeatureDefn__GetGeomFieldIndex) {
     dXSARGS;
     
     if ((items < 2) || (items > 2)) {
-      SWIG_croak("Usage: FeatureDefn__GetGeomFieldIndex(self,name);");
+      SWIG_croak("Usage: FeatureDefn__GetGeomFieldIndex(self,field_name);");
     }
     res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_OGRFeatureDefnShadow, 0 |  0 );
     if (!SWIG_IsOK(res1)) {
@@ -13111,13 +13081,8 @@ XS(_wrap_FeatureDefn__GetGeomFieldIndex) {
     }
     arg1 = reinterpret_cast< OGRFeatureDefnShadow * >(argp1);
     {
-      /* %typemap(in,numinputs=1) (const char* name) */
+      /* %typemap(in,numinputs=1) (const char* field_name) */
       arg2 = sv_to_utf8_string(ST(1), &tmpbuf2);
-    }
-    {
-      if (!arg2) {
-        SWIG_exception(SWIG_ValueError,"Received a NULL pointer.");
-      }
     }
     {
       CPLErrorReset();
@@ -13146,14 +13111,14 @@ XS(_wrap_FeatureDefn__GetGeomFieldIndex) {
     ST(argvi) = SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(result)); argvi++ ;
     
     {
-      /* %typemap(freearg) (const char* name) */
+      /* %typemap(freearg) (const char* field_name) */
       if (tmpbuf2) Safefree(tmpbuf2);
     }
     XSRETURN(argvi);
   fail:
     
     {
-      /* %typemap(freearg) (const char* name) */
+      /* %typemap(freearg) (const char* field_name) */
       if (tmpbuf2) Safefree(tmpbuf2);
     }
     SWIG_croak_null();

@@ -30,7 +30,6 @@
  ****************************************************************************/
 
 #include "cpl_port.h"
-#include "netcdfdataset.h"
 
 #include <cctype>
 #include <cerrno>
@@ -47,6 +46,10 @@
 #include <utility>
 #include <vector>
 
+// Must be included after standard includes, otherwise VS2015 fails when
+// including <ctime>
+#include "netcdfdataset.h"
+
 #include "cpl_conv.h"
 #include "cpl_error.h"
 #include "cpl_minixml.h"
@@ -59,7 +62,7 @@
 #include "ogr_core.h"
 #include "ogr_srs_api.h"
 
-CPL_CVSID("$Id: netcdfdataset.cpp 37984 2017-04-13 19:03:32Z goatbar $");
+CPL_CVSID("$Id: netcdfdataset.cpp 38053 2017-04-18 15:22:27Z rouault $");
 
 // Internal function declarations.
 
@@ -333,7 +336,8 @@ netCDFRasterBand::netCDFRasterBand( netCDFDataset *poNCDFDS,
     // First look for valid_range.
     bool bGotValidRange = false;
     status = nc_inq_att(cdfid, nZId, "valid_range", &atttype, &attlen);
-    if( (status == NC_NOERR) && (attlen == 2))
+    if( (status == NC_NOERR) && (attlen == 2) &&
+        CPLFetchBool(poNCDFDS->GetOpenOptions(), "HONOUR_VALID_RANGE", true) )
     {
         int vrange[2] = { 0, 0 };
         status = nc_get_att_int(cdfid, nZId, "valid_range", vrange);
@@ -5514,6 +5518,7 @@ GDALDataset *netCDFDataset::Open( GDALOpenInfo *poOpenInfo )
     CPLReleaseMutex(hNCMutex);  // Release mutex otherwise we'll deadlock with
                                 // GDALDataset own mutex.
     netCDFDataset *poDS = new netCDFDataset();
+    poDS->papszOpenOptions = CSLDuplicate(poOpenInfo->papszOpenOptions);
     CPLAcquireMutex(hNCMutex, 1000.0);
 
     poDS->SetDescription(poOpenInfo->pszFilename);
@@ -7655,6 +7660,14 @@ void GDALRegister_netCDF()
 "   <Option name='PROFILE_DIM_INIT_SIZE' type='string' description='Initial size of profile dimension (default 100), or UNLIMITED for NC4 files'/>"
 "   <Option name='PROFILE_VARIABLES' type='string' description='Comma separated list of field names that must be indexed by the profile dimension'/>"
 "</LayerCreationOptionList>");
+
+    poDriver->SetMetadataItem( GDAL_DMD_OPENOPTIONLIST,
+"<OpenOptionList>"
+"   <Option name='HONOUR_VALID_RANGE' type='boolean' "
+    "description='Whether to set to nodata pixel values outside of the "
+    "validity range' default='YES'/>"
+"</OpenOptionList>" );
+
 
     // Make driver config and capabilities available.
     poDriver->SetMetadataItem("NETCDF_VERSION", nc_inq_libvers());

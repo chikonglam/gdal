@@ -2,7 +2,7 @@
 #define SHAPEFILE_H_INCLUDED
 
 /******************************************************************************
- * $Id: shapefil.h 36727 2016-12-06 20:04:22Z rouault $
+ * $Id: shapefil.h 37997 2017-04-14 10:20:57Z rouault $
  *
  * Project:  Shapelib
  * Purpose:  Primary include file for Shapelib.
@@ -46,6 +46,12 @@
 
 #ifdef USE_CPL
 #include "cpl_conv.h"
+
+/* Hide shapelib symbols in GDAL builds --with-hide-internal-symbols */
+#if !defined(SHPAPI_CALL) && defined(USE_GCC_VISIBILITY_FLAG)
+#define SHPAPI_CALL
+#endif
+
 #endif
 
 #ifdef __cplusplus

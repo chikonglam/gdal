@@ -66,7 +66,7 @@
 #include "tifvsi.h"
 #include "xtiffio.h"
 
-CPL_CVSID("$Id: gt_wkt_srs.cpp 36582 2016-11-30 17:06:18Z goatbar $")
+CPL_CVSID("$Id: gt_wkt_srs.cpp 38045 2017-04-17 17:48:25Z rouault $")
 
 static const geokey_t ProjLinearUnitsInterpCorrectGeoKey =
     static_cast<geokey_t>(3059);
@@ -91,17 +91,13 @@ CPL_C_END
 
 static const char * const papszDatumEquiv[] =
 {
-    "Militar_Geographische_Institut",
-    "Militar_Geographische_Institute",
-    "World_Geodetic_System_1984",
-    "WGS_1984",
-    "WGS_72_Transit_Broadcast_Ephemeris",
-    "WGS_1972_Transit_Broadcast_Ephemeris",
-    "World_Geodetic_System_1972",
-    "WGS_1972",
-    "European_Terrestrial_Reference_System_89",
-    "European_Reference_System_1989",
-    NULL
+  "Militar_Geographische_Institut", "Militar_Geographische_Institute",
+  "World_Geodetic_System_1984", "WGS_1984",
+  "WGS_72_Transit_Broadcast_Ephemeris", "WGS_1972_Transit_Broadcast_Ephemeris",
+  "World_Geodetic_System_1972", "WGS_1972",
+  "European_Terrestrial_Reference_System_89", "European_Reference_System_1989",
+  "D_North_American_1927", "North_American_Datum_1927", // #6863
+  NULL
 };
 
 // Older libgeotiff's won't list this.

@@ -30,7 +30,7 @@
 #include "ogrgeojsonreader.h"
 #include "swq.h"
 
-CPL_CVSID("$Id: ogrcouchdbdatasource.cpp 36981 2016-12-20 19:46:41Z rouault $");
+CPL_CVSID("$Id: ogrcouchdbdatasource.cpp 38115 2017-04-23 07:24:41Z rouault $");
 
 /************************************************************************/
 /*                        OGRCouchDBDataSource()                        */
@@ -1122,23 +1122,13 @@ json_object* OGRCouchDBDataSource::REQUEST(const char* pszVerb,
         return NULL;
     }
 
-    json_tokener* jstok = NULL;
     json_object* jsobj = NULL;
-
-    jstok = json_tokener_new();
-    jsobj = json_tokener_parse_ex(jstok, (const char*)psResult->pabyData, -1);
-    if( jstok->err != json_tokener_success)
+    const char* pszText = reinterpret_cast<const char*>(psResult->pabyData);
+    if( !OGRJSonParse(pszText, &jsobj, true) )
     {
-        CPLError( CE_Failure, CPLE_AppDefined,
-                    "JSON parsing error: %s (at offset %d)",
-                    json_tokener_error_desc(jstok->err), jstok->char_offset);
-
-        json_tokener_free(jstok);
-
         CPLHTTPDestroyResult(psResult);
         return NULL;
     }
-    json_tokener_free(jstok);
 
     CPLHTTPDestroyResult(psResult);
     return jsobj;

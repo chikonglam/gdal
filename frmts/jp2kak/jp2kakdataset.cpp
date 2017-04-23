@@ -53,7 +53,7 @@
 #include <cmath>
 #include <vector>
 
-CPL_CVSID("$Id: jp2kakdataset.cpp 37710 2017-03-14 19:12:48Z goatbar $");
+CPL_CVSID("$Id: jp2kakdataset.cpp 38086 2017-04-21 14:34:14Z rouault $");
 
 // Before v7.5 Kakadu does not advertise its version well
 // After v7.5 Kakadu has KDU_{MAJOR,MINOR,PATCH}_VERSION defines so it's easier
@@ -2205,7 +2205,8 @@ JP2KAKCreateCopy( const char * pszFilename, GDALDataset *poSrcDS,
 
     kdu_compressed_target *poOutputFile = NULL;
     jp2_target jp2_out;
-    const bool bIsJP2 = !EQUAL(CPLGetExtension(pszFilename), "jpc") && !bIsJPX;
+    const bool bIsJP2 = !EQUAL(CPLGetExtension(pszFilename), "jpc") && !bIsJPX &&
+        EQUAL(CSLFetchNameValueDef(papszOptions, "CODEC", "JP2"), "JP2");
     kdu_codestream oCodeStream;
 
     vsil_target oVSILTarget;
@@ -2670,6 +2671,11 @@ void GDALRegister_JP2KAK()
 
     poDriver->SetMetadataItem(GDAL_DMD_CREATIONOPTIONLIST,
 "<CreationOptionList>"
+"   <Option name='CODEC' type='string-select' "
+    "default='according to file extension. If unknown, default to JP2'>"
+"       <Value>JP2</Value>"
+"       <Value>J2K</Value>"
+"   </Option>"
 "   <Option name='QUALITY' type='integer' description="
 "'0.01-100, 100 is lossless'/>"
 "   <Option name='BLOCKXSIZE' type='int' description='Tile Width'/>"

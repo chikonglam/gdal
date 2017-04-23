@@ -91,8 +91,8 @@ public class FeatureDefn : IDisposable {
     return ret;
   }
 
-  public int GetFieldIndex(string name) {
-    int ret = OgrPINVOKE.FeatureDefn_GetFieldIndex(swigCPtr, name);
+  public int GetFieldIndex(string field_name) {
+    int ret = OgrPINVOKE.FeatureDefn_GetFieldIndex(swigCPtr, field_name);
     if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
     return ret;
   }
@@ -115,8 +115,8 @@ public class FeatureDefn : IDisposable {
     return ret;
   }
 
-  public int GetGeomFieldIndex(string name) {
-    int ret = OgrPINVOKE.FeatureDefn_GetGeomFieldIndex(swigCPtr, name);
+  public int GetGeomFieldIndex(string field_name) {
+    int ret = OgrPINVOKE.FeatureDefn_GetGeomFieldIndex(swigCPtr, field_name);
     if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
     return ret;
   }

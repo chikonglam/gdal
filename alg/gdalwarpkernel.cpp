@@ -71,7 +71,7 @@
 
 #endif
 
-CPL_CVSID("$Id: gdalwarpkernel.cpp 37976 2017-04-13 12:34:40Z rouault $");
+CPL_CVSID("$Id: gdalwarpkernel.cpp 38093 2017-04-21 21:02:44Z rouault $");
 
 static const double BAND_DENSITY_THRESHOLD = 0.0000000001;
 static const float SRC_DENSITY_THRESHOLD =  0.000000001f;
@@ -4659,6 +4659,18 @@ static CPL_INLINE bool GWKCheckAndComputeSrcOffsets(
 {
     if( !_pabSuccess[_iDstX] )
         return false;
+
+    // If this happens this is likely the symptom of a bug somewhere.
+    if( CPLIsNan(_padfX[_iDstX]) || CPLIsNan(_padfY[_iDstX]) )
+    {
+        static bool bNanCoordFound = false;
+        if( !bNanCoordFound )
+        {
+            CPLDebug("WARP", "NaN coordinate found.");
+            bNanCoordFound = true;
+        }
+        return false;
+    }
 
 /* -------------------------------------------------------------------- */
 /*      Figure out what pixel we want in our source raster, and skip    */

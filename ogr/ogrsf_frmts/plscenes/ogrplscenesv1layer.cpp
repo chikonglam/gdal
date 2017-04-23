@@ -30,7 +30,7 @@
 #include "ogrgeojsonreader.h"
 #include <algorithm>
 
-CPL_CVSID("$Id: ogrplscenesv1layer.cpp 37371 2017-02-13 11:41:59Z rouault $");
+CPL_CVSID("$Id: ogrplscenesv1layer.cpp 38115 2017-04-23 07:24:41Z rouault $");
 
 /************************************************************************/
 /*                           GetFieldCount()                            */
@@ -545,14 +545,12 @@ void OGRPLScenesV1Layer::EstablishLayerDefn()
     osPropertiesDesc += "}";
 
     // Prettify description
-    json_tokener* jstok = json_tokener_new();
-    json_object* poPropertiesDesc = json_tokener_parse_ex(jstok, osPropertiesDesc, -1);
-    if( jstok->err == json_tokener_success)
+    json_object* poPropertiesDesc = NULL;
+    if( OGRJSonParse(osPropertiesDesc, &poPropertiesDesc, false) )
     {
         osPropertiesDesc = json_object_to_json_string_ext( poPropertiesDesc, JSON_C_TO_STRING_PRETTY );
         json_object_put(poPropertiesDesc);
     }
-    json_tokener_free(jstok);
 
     SetMetadataItem("FIELDS_DESCRIPTION", osPropertiesDesc.c_str());
 

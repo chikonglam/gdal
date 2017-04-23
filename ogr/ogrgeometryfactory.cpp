@@ -62,7 +62,7 @@
 #define UNUSED_IF_NO_GEOS
 #endif
 
-CPL_CVSID("$Id: ogrgeometryfactory.cpp 37865 2017-03-30 20:13:32Z rouault $");
+CPL_CVSID("$Id: ogrgeometryfactory.cpp 38117 2017-04-23 07:36:29Z rouault $");
 
 /************************************************************************/
 /*                           createFromWkb()                            */
@@ -1337,7 +1337,8 @@ typedef enum
  * @param papszOptions a list of strings for passing options
  *
  * @return a single resulting geometry (either OGRPolygon, OGRCurvePolygon,
- * OGRMultiPolygon, OGRMultiSurface or OGRGeometryCollection).
+ * OGRMultiPolygon, OGRMultiSurface or OGRGeometryCollection). Returns a
+ * POLYGON EMPTY in the case of nPolygonCount being 0.
  */
 
 OGRGeometry* OGRGeometryFactory::organizePolygons( OGRGeometry **papoPolygons,
@@ -1345,6 +1346,14 @@ OGRGeometry* OGRGeometryFactory::organizePolygons( OGRGeometry **papoPolygons,
                                                    int *pbIsValidGeometry,
                                                    const char** papszOptions )
 {
+    if( nPolygonCount == 0 )
+    {
+        if( pbIsValidGeometry )
+            *pbIsValidGeometry = TRUE;
+
+        return new OGRPolygon();
+    }
+
     OGRGeometry* geom = NULL;
     OrganizePolygonMethod method = METHOD_NORMAL;
     bool bHasCurves = false;

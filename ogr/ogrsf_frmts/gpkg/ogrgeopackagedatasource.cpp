@@ -38,7 +38,7 @@
 
 #include <algorithm>
 
-CPL_CVSID("$Id: ogrgeopackagedatasource.cpp 37945 2017-04-10 14:25:25Z rouault $");
+CPL_CVSID("$Id: ogrgeopackagedatasource.cpp 37995 2017-04-14 09:50:49Z rouault $");
 
 /************************************************************************/
 /*                             Tiling schemes                           */
@@ -3003,6 +3003,39 @@ int GDALGeoPackageDataset::Create( const char * pszFilename,
     /* will be written into the main file and supported henceforth */
     SQLCommand(hDB, "PRAGMA encoding = \"UTF-8\"");
 
+    if( bFileExists )
+    {
+        VSILFILE* fp = VSIFOpenL(pszFilename, "rb");
+        if( fp )
+        {
+            GByte abyHeader[100];
+            VSIFReadL(abyHeader, 1, sizeof(abyHeader), fp);
+            VSIFCloseL(fp);
+
+            memcpy(&m_nApplicationId, abyHeader + knApplicationIdPos, 4);
+            m_nApplicationId = CPL_MSBWORD32(m_nApplicationId);
+            memcpy(&m_nUserVersion, abyHeader + knUserVersionPos, 4);
+            m_nUserVersion = CPL_MSBWORD32(m_nUserVersion);
+
+            if( m_nApplicationId == GP10_APPLICATION_ID )
+            {
+                CPLDebug("GPKG", "GeoPackage v1.0");
+            }
+            else if( m_nApplicationId == GP11_APPLICATION_ID )
+            {
+                CPLDebug("GPKG", "GeoPackage v1.1");
+            }
+            else if( m_nApplicationId == GPKG_APPLICATION_ID &&
+                    m_nUserVersion >= GPKG_1_2_VERSION )
+            {
+                CPLDebug("GPKG", "GeoPackage v%d.%d.%d",
+                        m_nUserVersion / 10000,
+                        (m_nUserVersion % 10000) / 100,
+                        m_nUserVersion % 100);
+            }
+        }
+    }
+
     if( nBandsIn > 0 && eDT != GDT_Byte )
     {
         m_nApplicationId = GPKG_APPLICATION_ID;
@@ -4898,7 +4931,8 @@ void GDALGeoPackageDataset::CheckUnknownExtensions(bool bCheckRasterTable)
             "AND scope IS NOT NULL "
             "AND extension_name != 'gdal_aspatial' "
             "AND extension_name != 'gpkg_elevation_tiles' "
-            "AND extension_name != 'gpkg_metadata') "
+            "AND extension_name != 'gpkg_metadata' "
+            "AND extension_name != 'gpkg_schema') "
 #ifdef WORKAROUND_SQLITE3_BUGS
             "OR 0 "
 #endif
@@ -4912,7 +4946,8 @@ void GDALGeoPackageDataset::CheckUnknownExtensions(bool bCheckRasterTable)
             "AND definition IS NOT NULL "
             "AND scope IS NOT NULL "
             "AND extension_name != 'gpkg_elevation_tiles' "
-            "AND extension_name != 'gpkg_metadata') "
+            "AND extension_name != 'gpkg_metadata' "
+            "AND extension_name != 'gpkg_schema') "
 #ifdef WORKAROUND_SQLITE3_BUGS
             "OR 0 "
 #endif

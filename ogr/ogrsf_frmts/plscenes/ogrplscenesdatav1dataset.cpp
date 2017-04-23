@@ -30,7 +30,7 @@
 #include "ogrgeojsonreader.h"
 #include <time.h>
 
-CPL_CVSID("$Id: ogrplscenesdatav1dataset.cpp 37371 2017-02-13 11:41:59Z rouault $");
+CPL_CVSID("$Id: ogrplscenesdatav1dataset.cpp 38115 2017-04-23 07:24:41Z rouault $");
 
 /************************************************************************/
 /*                       OGRPLScenesDataV1Dataset()                     */
@@ -335,25 +335,17 @@ json_object* OGRPLScenesDataV1Dataset::RunRequest(const char* pszURL,
         return NULL;
     }
 
-    json_tokener* jstok = NULL;
-    json_object* poObj = NULL;
-
+    const char* pszText = reinterpret_cast<const char*>(psResult->pabyData);
 #ifdef DEBUG_VERBOSE
-    CPLDebug("PLScenes", "%s", (const char*) psResult->pabyData);
+    CPLDebug("PLScenes", "%s", (pszText);
 #endif
 
-    jstok = json_tokener_new();
-    poObj = json_tokener_parse_ex(jstok, (const char*) psResult->pabyData, -1);
-    if( jstok->err != json_tokener_success)
+    json_object* poObj = NULL;
+    if( !OGRJSonParse(pszText, &poObj, true) )
     {
-        CPLError( CE_Failure, CPLE_AppDefined,
-                    "JSON parsing error: %s (at offset %d)",
-                    json_tokener_error_desc(jstok->err), jstok->char_offset);
-        json_tokener_free(jstok);
         CPLHTTPDestroyResult(psResult);
         return NULL;
     }
-    json_tokener_free(jstok);
 
     CPLHTTPDestroyResult(psResult);
 
