@@ -749,11 +749,11 @@ SWIGINTERN OGRGeometryShadow *OGRFeatureShadow_GetGeometryRef(OGRFeatureShadow *
 SWIGINTERN OGRErr OGRFeatureShadow_SetGeomField__SWIG_0(OGRFeatureShadow *self,int iField,OGRGeometryShadow *geom){
     return OGR_F_SetGeomField(self, iField, geom);
   }
-SWIGINTERN OGRErr OGRFeatureShadow_SetGeomField__SWIG_1(OGRFeatureShadow *self,char const *name,OGRGeometryShadow *geom){
-      int iField = OGR_F_GetGeomFieldIndex(self, name);
+SWIGINTERN OGRErr OGRFeatureShadow_SetGeomField__SWIG_1(OGRFeatureShadow *self,char const *field_name,OGRGeometryShadow *geom){
+      int iField = OGR_F_GetGeomFieldIndex(self, field_name);
       if (iField == -1)
       {
-          CPLError(CE_Failure, 1, FIELD_NAME_ERROR_TMPL, name);
+          CPLError(CE_Failure, 1, FIELD_NAME_ERROR_TMPL, field_name);
           return 6;
       }
       else
@@ -762,11 +762,11 @@ SWIGINTERN OGRErr OGRFeatureShadow_SetGeomField__SWIG_1(OGRFeatureShadow *self,c
 SWIGINTERN OGRErr OGRFeatureShadow_SetGeomFieldDirectly__SWIG_0(OGRFeatureShadow *self,int iField,OGRGeometryShadow *geom){
     return OGR_F_SetGeomFieldDirectly(self, iField, geom);
   }
-SWIGINTERN OGRErr OGRFeatureShadow_SetGeomFieldDirectly__SWIG_1(OGRFeatureShadow *self,char const *name,OGRGeometryShadow *geom){
-      int iField = OGR_F_GetGeomFieldIndex(self, name);
+SWIGINTERN OGRErr OGRFeatureShadow_SetGeomFieldDirectly__SWIG_1(OGRFeatureShadow *self,char const *field_name,OGRGeometryShadow *geom){
+      int iField = OGR_F_GetGeomFieldIndex(self, field_name);
       if (iField == -1)
       {
-          CPLError(CE_Failure, 1, FIELD_NAME_ERROR_TMPL, name);
+          CPLError(CE_Failure, 1, FIELD_NAME_ERROR_TMPL, field_name);
           return 6;
       }
       else
@@ -775,11 +775,11 @@ SWIGINTERN OGRErr OGRFeatureShadow_SetGeomFieldDirectly__SWIG_1(OGRFeatureShadow
 SWIGINTERN OGRGeometryShadow *OGRFeatureShadow_GetGeomFieldRef__SWIG_0(OGRFeatureShadow *self,int iField){
     return (OGRGeometryShadow*) OGR_F_GetGeomFieldRef(self, iField);
   }
-SWIGINTERN OGRGeometryShadow *OGRFeatureShadow_GetGeomFieldRef__SWIG_1(OGRFeatureShadow *self,char const *name){
-      int i = OGR_F_GetGeomFieldIndex(self, name);
+SWIGINTERN OGRGeometryShadow *OGRFeatureShadow_GetGeomFieldRef__SWIG_1(OGRFeatureShadow *self,char const *field_name){
+      int i = OGR_F_GetGeomFieldIndex(self, field_name);
       if (i == -1)
       {
-          CPLError(CE_Failure, 1, FIELD_NAME_ERROR_TMPL, name);
+          CPLError(CE_Failure, 1, FIELD_NAME_ERROR_TMPL, field_name);
           return NULL;
       }
       else
@@ -797,10 +797,10 @@ SWIGINTERN int OGRFeatureShadow_GetFieldCount(OGRFeatureShadow *self){
 SWIGINTERN OGRFieldDefnShadow *OGRFeatureShadow_GetFieldDefnRef__SWIG_0(OGRFeatureShadow *self,int id){
     return (OGRFieldDefnShadow *) OGR_F_GetFieldDefnRef(self, id);
   }
-SWIGINTERN OGRFieldDefnShadow *OGRFeatureShadow_GetFieldDefnRef__SWIG_1(OGRFeatureShadow *self,char const *name){
-      int i = OGR_F_GetFieldIndex(self, name);
+SWIGINTERN OGRFieldDefnShadow *OGRFeatureShadow_GetFieldDefnRef__SWIG_1(OGRFeatureShadow *self,char const *field_name){
+      int i = OGR_F_GetFieldIndex(self, field_name);
       if (i == -1)
-          CPLError(CE_Failure, 1, FIELD_NAME_ERROR_TMPL, name);
+          CPLError(CE_Failure, 1, FIELD_NAME_ERROR_TMPL, field_name);
       else
           return (OGRFieldDefnShadow *) OGR_F_GetFieldDefnRef(self, i);
       return NULL;
@@ -811,10 +811,10 @@ SWIGINTERN int OGRFeatureShadow_GetGeomFieldCount(OGRFeatureShadow *self){
 SWIGINTERN OGRGeomFieldDefnShadow *OGRFeatureShadow_GetGeomFieldDefnRef__SWIG_0(OGRFeatureShadow *self,int id){
       return (OGRGeomFieldDefnShadow *) OGR_F_GetGeomFieldDefnRef(self, id);
   }
-SWIGINTERN OGRGeomFieldDefnShadow *OGRFeatureShadow_GetGeomFieldDefnRef__SWIG_1(OGRFeatureShadow *self,char const *name){
-      int i = OGR_F_GetGeomFieldIndex(self, name);
+SWIGINTERN OGRGeomFieldDefnShadow *OGRFeatureShadow_GetGeomFieldDefnRef__SWIG_1(OGRFeatureShadow *self,char const *field_name){
+      int i = OGR_F_GetGeomFieldIndex(self, field_name);
       if (i == -1)
-          CPLError(CE_Failure, 1, FIELD_NAME_ERROR_TMPL, name);
+          CPLError(CE_Failure, 1, FIELD_NAME_ERROR_TMPL, field_name);
       else
           return (OGRGeomFieldDefnShadow *) OGR_F_GetGeomFieldDefnRef(self, i);
       return NULL;
@@ -822,10 +822,10 @@ SWIGINTERN OGRGeomFieldDefnShadow *OGRFeatureShadow_GetGeomFieldDefnRef__SWIG_1(
 SWIGINTERN char const *OGRFeatureShadow_GetFieldAsString__SWIG_0(OGRFeatureShadow *self,int id){
     return (const char *) OGR_F_GetFieldAsString(self, id);
   }
-SWIGINTERN char const *OGRFeatureShadow_GetFieldAsString__SWIG_1(OGRFeatureShadow *self,char const *name){
-      int i = OGR_F_GetFieldIndex(self, name);
+SWIGINTERN char const *OGRFeatureShadow_GetFieldAsString__SWIG_1(OGRFeatureShadow *self,char const *field_name){
+      int i = OGR_F_GetFieldIndex(self, field_name);
       if (i == -1)
-	  CPLError(CE_Failure, 1, FIELD_NAME_ERROR_TMPL, name);
+	  CPLError(CE_Failure, 1, FIELD_NAME_ERROR_TMPL, field_name);
       else
 	  return (const char *) OGR_F_GetFieldAsString(self, i);
       return NULL;
@@ -833,10 +833,10 @@ SWIGINTERN char const *OGRFeatureShadow_GetFieldAsString__SWIG_1(OGRFeatureShado
 SWIGINTERN int OGRFeatureShadow_GetFieldAsInteger__SWIG_0(OGRFeatureShadow *self,int id){
     return OGR_F_GetFieldAsInteger(self, id);
   }
-SWIGINTERN int OGRFeatureShadow_GetFieldAsInteger__SWIG_1(OGRFeatureShadow *self,char const *name){
-      int i = OGR_F_GetFieldIndex(self, name);
+SWIGINTERN int OGRFeatureShadow_GetFieldAsInteger__SWIG_1(OGRFeatureShadow *self,char const *field_name){
+      int i = OGR_F_GetFieldIndex(self, field_name);
       if (i == -1)
-	  CPLError(CE_Failure, 1, FIELD_NAME_ERROR_TMPL, name);
+	  CPLError(CE_Failure, 1, FIELD_NAME_ERROR_TMPL, field_name);
       else
 	  return OGR_F_GetFieldAsInteger(self, i);
       return 0;
@@ -844,10 +844,10 @@ SWIGINTERN int OGRFeatureShadow_GetFieldAsInteger__SWIG_1(OGRFeatureShadow *self
 SWIGINTERN GIntBig OGRFeatureShadow_GetFieldAsInteger64__SWIG_0(OGRFeatureShadow *self,int id){
     return OGR_F_GetFieldAsInteger64(self, id);
   }
-SWIGINTERN GIntBig OGRFeatureShadow_GetFieldAsInteger64__SWIG_1(OGRFeatureShadow *self,char const *name){
-      int i = OGR_F_GetFieldIndex(self, name);
+SWIGINTERN GIntBig OGRFeatureShadow_GetFieldAsInteger64__SWIG_1(OGRFeatureShadow *self,char const *field_name){
+      int i = OGR_F_GetFieldIndex(self, field_name);
       if (i == -1)
-          CPLError(CE_Failure, 1, FIELD_NAME_ERROR_TMPL, name);
+          CPLError(CE_Failure, 1, FIELD_NAME_ERROR_TMPL, field_name);
       else
           return OGR_F_GetFieldAsInteger64(self, i);
       return 0;
@@ -855,10 +855,10 @@ SWIGINTERN GIntBig OGRFeatureShadow_GetFieldAsInteger64__SWIG_1(OGRFeatureShadow
 SWIGINTERN double OGRFeatureShadow_GetFieldAsDouble__SWIG_0(OGRFeatureShadow *self,int id){
     return OGR_F_GetFieldAsDouble(self, id);
   }
-SWIGINTERN double OGRFeatureShadow_GetFieldAsDouble__SWIG_1(OGRFeatureShadow *self,char const *name){
-      int i = OGR_F_GetFieldIndex(self, name);
+SWIGINTERN double OGRFeatureShadow_GetFieldAsDouble__SWIG_1(OGRFeatureShadow *self,char const *field_name){
+      int i = OGR_F_GetFieldIndex(self, field_name);
       if (i == -1)
-          CPLError(CE_Failure, 1, FIELD_NAME_ERROR_TMPL, name);
+          CPLError(CE_Failure, 1, FIELD_NAME_ERROR_TMPL, field_name);
       else
           return OGR_F_GetFieldAsDouble(self, i);
       return 0;
@@ -868,10 +868,10 @@ SWIGINTERN void OGRFeatureShadow_GetFieldAsDateTime__SWIG_0(OGRFeatureShadow *se
 			       pnHour, pnMinute, pfSecond,
 			       pnTZFlag);
   }
-SWIGINTERN void OGRFeatureShadow_GetFieldAsDateTime__SWIG_1(OGRFeatureShadow *self,char const *name,int *pnYear,int *pnMonth,int *pnDay,int *pnHour,int *pnMinute,float *pfSecond,int *pnTZFlag){
-      int id = OGR_F_GetFieldIndex(self, name);
+SWIGINTERN void OGRFeatureShadow_GetFieldAsDateTime__SWIG_1(OGRFeatureShadow *self,char const *field_name,int *pnYear,int *pnMonth,int *pnDay,int *pnHour,int *pnMinute,float *pfSecond,int *pnTZFlag){
+      int id = OGR_F_GetFieldIndex(self, field_name);
       if (id == -1)
-	  CPLError(CE_Failure, 1, FIELD_NAME_ERROR_TMPL, name);
+	  CPLError(CE_Failure, 1, FIELD_NAME_ERROR_TMPL, field_name);
       else
 	  OGR_F_GetFieldAsDateTimeEx(self, id, pnYear, pnMonth, pnDay,
 			       pnHour, pnMinute, pfSecond,
@@ -889,10 +889,10 @@ SWIGINTERN char **OGRFeatureShadow_GetFieldAsStringList(OGRFeatureShadow *self,i
 SWIGINTERN bool OGRFeatureShadow_IsFieldSet__SWIG_0(OGRFeatureShadow *self,int id){
     return (OGR_F_IsFieldSet(self, id) > 0);
   }
-SWIGINTERN bool OGRFeatureShadow_IsFieldSet__SWIG_1(OGRFeatureShadow *self,char const *name){
-      int i = OGR_F_GetFieldIndex(self, name);
+SWIGINTERN bool OGRFeatureShadow_IsFieldSet__SWIG_1(OGRFeatureShadow *self,char const *field_name){
+      int i = OGR_F_GetFieldIndex(self, field_name);
       if (i == -1)
-	  CPLError(CE_Failure, 1, FIELD_NAME_ERROR_TMPL, name);
+	  CPLError(CE_Failure, 1, FIELD_NAME_ERROR_TMPL, field_name);
       else
 	  return (OGR_F_IsFieldSet(self, i) > 0);
       return false;
@@ -900,10 +900,10 @@ SWIGINTERN bool OGRFeatureShadow_IsFieldSet__SWIG_1(OGRFeatureShadow *self,char 
 SWIGINTERN bool OGRFeatureShadow_IsFieldNull__SWIG_0(OGRFeatureShadow *self,int id){
     return (OGR_F_IsFieldNull(self, id) > 0);
   }
-SWIGINTERN bool OGRFeatureShadow_IsFieldNull__SWIG_1(OGRFeatureShadow *self,char const *name){
-      int i = OGR_F_GetFieldIndex(self, name);
+SWIGINTERN bool OGRFeatureShadow_IsFieldNull__SWIG_1(OGRFeatureShadow *self,char const *field_name){
+      int i = OGR_F_GetFieldIndex(self, field_name);
       if (i == -1)
-	  CPLError(CE_Failure, 1, FIELD_NAME_ERROR_TMPL, name);
+	  CPLError(CE_Failure, 1, FIELD_NAME_ERROR_TMPL, field_name);
       else
 	  return (OGR_F_IsFieldNull(self, i) > 0);
       return false;
@@ -911,21 +911,21 @@ SWIGINTERN bool OGRFeatureShadow_IsFieldNull__SWIG_1(OGRFeatureShadow *self,char
 SWIGINTERN bool OGRFeatureShadow_IsFieldSetAndNotNull__SWIG_0(OGRFeatureShadow *self,int id){
     return (OGR_F_IsFieldSetAndNotNull(self, id) > 0);
   }
-SWIGINTERN bool OGRFeatureShadow_IsFieldSetAndNotNull__SWIG_1(OGRFeatureShadow *self,char const *name){
-      int i = OGR_F_GetFieldIndex(self, name);
+SWIGINTERN bool OGRFeatureShadow_IsFieldSetAndNotNull__SWIG_1(OGRFeatureShadow *self,char const *field_name){
+      int i = OGR_F_GetFieldIndex(self, field_name);
       if (i == -1)
-	  CPLError(CE_Failure, 1, FIELD_NAME_ERROR_TMPL, name);
+	  CPLError(CE_Failure, 1, FIELD_NAME_ERROR_TMPL, field_name);
       else
 	  return (OGR_F_IsFieldSetAndNotNull(self, i) > 0);
       return false;
   }
-SWIGINTERN int OGRFeatureShadow_GetFieldIndex(OGRFeatureShadow *self,char const *name){
+SWIGINTERN int OGRFeatureShadow_GetFieldIndex(OGRFeatureShadow *self,char const *field_name){
       // Do not issue an error if the field doesn't exist. It is intended to be silent
-      return OGR_F_GetFieldIndex(self, name);
+      return OGR_F_GetFieldIndex(self, field_name);
   }
-SWIGINTERN int OGRFeatureShadow_GetGeomFieldIndex(OGRFeatureShadow *self,char const *name){
+SWIGINTERN int OGRFeatureShadow_GetGeomFieldIndex(OGRFeatureShadow *self,char const *field_name){
       // Do not issue an error if the field doesn't exist. It is intended to be silent
-      return OGR_F_GetGeomFieldIndex(self, name);
+      return OGR_F_GetGeomFieldIndex(self, field_name);
   }
 SWIGINTERN GIntBig OGRFeatureShadow_GetFID(OGRFeatureShadow *self){
     return OGR_F_GetFID(self);
@@ -939,30 +939,30 @@ SWIGINTERN void OGRFeatureShadow_DumpReadable(OGRFeatureShadow *self){
 SWIGINTERN void OGRFeatureShadow_UnsetField__SWIG_0(OGRFeatureShadow *self,int id){
     OGR_F_UnsetField(self, id);
   }
-SWIGINTERN void OGRFeatureShadow_UnsetField__SWIG_1(OGRFeatureShadow *self,char const *name){
-      int i = OGR_F_GetFieldIndex(self, name);
+SWIGINTERN void OGRFeatureShadow_UnsetField__SWIG_1(OGRFeatureShadow *self,char const *field_name){
+      int i = OGR_F_GetFieldIndex(self, field_name);
       if (i == -1)
-          CPLError(CE_Failure, 1, FIELD_NAME_ERROR_TMPL, name);
+          CPLError(CE_Failure, 1, FIELD_NAME_ERROR_TMPL, field_name);
       else
           OGR_F_UnsetField(self, i);
   }
 SWIGINTERN void OGRFeatureShadow_SetFieldNull__SWIG_0(OGRFeatureShadow *self,int id){
     OGR_F_SetFieldNull(self, id);
   }
-SWIGINTERN void OGRFeatureShadow_SetFieldNull__SWIG_1(OGRFeatureShadow *self,char const *name){
-      int i = OGR_F_GetFieldIndex(self, name);
+SWIGINTERN void OGRFeatureShadow_SetFieldNull__SWIG_1(OGRFeatureShadow *self,char const *field_name){
+      int i = OGR_F_GetFieldIndex(self, field_name);
       if (i == -1)
-          CPLError(CE_Failure, 1, FIELD_NAME_ERROR_TMPL, name);
+          CPLError(CE_Failure, 1, FIELD_NAME_ERROR_TMPL, field_name);
       else
           OGR_F_SetFieldNull(self, i);
   }
 SWIGINTERN void OGRFeatureShadow_SetField__SWIG_0(OGRFeatureShadow *self,int id,char const *value){
     OGR_F_SetFieldString(self, id, value);
   }
-SWIGINTERN void OGRFeatureShadow_SetField__SWIG_1(OGRFeatureShadow *self,char const *name,char const *value){
-      int i = OGR_F_GetFieldIndex(self, name);
+SWIGINTERN void OGRFeatureShadow_SetField__SWIG_1(OGRFeatureShadow *self,char const *field_name,char const *value){
+      int i = OGR_F_GetFieldIndex(self, field_name);
       if (i == -1)
-          CPLError(CE_Failure, 1, FIELD_NAME_ERROR_TMPL, name);
+          CPLError(CE_Failure, 1, FIELD_NAME_ERROR_TMPL, field_name);
       else
           OGR_F_SetFieldString(self, i, value);
   }
@@ -972,20 +972,20 @@ SWIGINTERN void OGRFeatureShadow_SetFieldInteger64(OGRFeatureShadow *self,int id
 SWIGINTERN void OGRFeatureShadow_SetField__SWIG_2(OGRFeatureShadow *self,int id,int value){
     OGR_F_SetFieldInteger(self, id, value);
   }
-SWIGINTERN void OGRFeatureShadow_SetField__SWIG_3(OGRFeatureShadow *self,char const *name,int value){
-      int i = OGR_F_GetFieldIndex(self, name);
+SWIGINTERN void OGRFeatureShadow_SetField__SWIG_3(OGRFeatureShadow *self,char const *field_name,int value){
+      int i = OGR_F_GetFieldIndex(self, field_name);
       if (i == -1)
-	  CPLError(CE_Failure, 1, FIELD_NAME_ERROR_TMPL, name);
+	  CPLError(CE_Failure, 1, FIELD_NAME_ERROR_TMPL, field_name);
       else
 	  OGR_F_SetFieldInteger(self, i, value);
   }
 SWIGINTERN void OGRFeatureShadow_SetField__SWIG_4(OGRFeatureShadow *self,int id,double value){
     OGR_F_SetFieldDouble(self, id, value);
   }
-SWIGINTERN void OGRFeatureShadow_SetField__SWIG_5(OGRFeatureShadow *self,char const *name,double value){
-      int i = OGR_F_GetFieldIndex(self, name);
+SWIGINTERN void OGRFeatureShadow_SetField__SWIG_5(OGRFeatureShadow *self,char const *field_name,double value){
+      int i = OGR_F_GetFieldIndex(self, field_name);
       if (i == -1)
-	  CPLError(CE_Failure, 1, FIELD_NAME_ERROR_TMPL, name);
+	  CPLError(CE_Failure, 1, FIELD_NAME_ERROR_TMPL, field_name);
       else
 	  OGR_F_SetFieldDouble(self, i, value);
   }
@@ -994,10 +994,10 @@ SWIGINTERN void OGRFeatureShadow_SetField__SWIG_6(OGRFeatureShadow *self,int id,
                              hour, minute, second,
                              tzflag);
   }
-SWIGINTERN void OGRFeatureShadow_SetField__SWIG_7(OGRFeatureShadow *self,char const *name,int year,int month,int day,int hour,int minute,float second,int tzflag){
-      int i = OGR_F_GetFieldIndex(self, name);
+SWIGINTERN void OGRFeatureShadow_SetField__SWIG_7(OGRFeatureShadow *self,char const *field_name,int year,int month,int day,int hour,int minute,float second,int tzflag){
+      int i = OGR_F_GetFieldIndex(self, field_name);
       if (i == -1)
-	  CPLError(CE_Failure, 1, FIELD_NAME_ERROR_TMPL, name);
+	  CPLError(CE_Failure, 1, FIELD_NAME_ERROR_TMPL, field_name);
       else
 	  OGR_F_SetFieldDateTimeEx(self, i, year, month, day,
 				 hour, minute, second,
@@ -1018,10 +1018,10 @@ SWIGINTERN void OGRFeatureShadow_SetFieldBinaryFromHexString__SWIG_0(OGRFeatureS
      OGR_F_SetFieldBinary(self, id, nBytes, pabyBuf);
      CPLFree(pabyBuf);
   }
-SWIGINTERN void OGRFeatureShadow_SetFieldBinaryFromHexString__SWIG_1(OGRFeatureShadow *self,char const *name,char const *pszValue){
-      int i = OGR_F_GetFieldIndex(self, name);
+SWIGINTERN void OGRFeatureShadow_SetFieldBinaryFromHexString__SWIG_1(OGRFeatureShadow *self,char const *field_name,char const *pszValue){
+      int i = OGR_F_GetFieldIndex(self, field_name);
       if (i == -1)
-          CPLError(CE_Failure, 1, FIELD_NAME_ERROR_TMPL, name);
+          CPLError(CE_Failure, 1, FIELD_NAME_ERROR_TMPL, field_name);
       else
       {
           int nBytes;
@@ -1055,10 +1055,10 @@ SWIGINTERN OGRFieldType OGRFeatureShadow_GetFieldType__SWIG_0(OGRFeatureShadow *
       else
           return (OGRFieldType)0;
   }
-SWIGINTERN OGRFieldType OGRFeatureShadow_GetFieldType__SWIG_1(OGRFeatureShadow *self,char const *name){
-      int i = OGR_F_GetFieldIndex(self, name);
+SWIGINTERN OGRFieldType OGRFeatureShadow_GetFieldType__SWIG_1(OGRFeatureShadow *self,char const *field_name){
+      int i = OGR_F_GetFieldIndex(self, field_name);
       if (i == -1) {
-          CPLError(CE_Failure, 1, FIELD_NAME_ERROR_TMPL, name);
+          CPLError(CE_Failure, 1, FIELD_NAME_ERROR_TMPL, field_name);
           return (OGRFieldType)0;
       } else
           return (OGRFieldType) OGR_Fld_GetType( OGR_F_GetFieldDefnRef( self, i ) );
@@ -1182,9 +1182,9 @@ SWIGINTERN int OGRFeatureDefnShadow_GetFieldCount(OGRFeatureDefnShadow *self){
 SWIGINTERN OGRFieldDefnShadow *OGRFeatureDefnShadow_GetFieldDefn(OGRFeatureDefnShadow *self,int i){
     return (OGRFieldDefnShadow*) OGR_FD_GetFieldDefn(self, i);
   }
-SWIGINTERN int OGRFeatureDefnShadow_GetFieldIndex(OGRFeatureDefnShadow *self,char const *name){
+SWIGINTERN int OGRFeatureDefnShadow_GetFieldIndex(OGRFeatureDefnShadow *self,char const *field_name){
       // Do not issue an error if the field doesn't exist. It is intended to be silent
-      return OGR_FD_GetFieldIndex(self, name);
+      return OGR_FD_GetFieldIndex(self, field_name);
   }
 SWIGINTERN void OGRFeatureDefnShadow_AddFieldDefn(OGRFeatureDefnShadow *self,OGRFieldDefnShadow *defn){
     OGR_FD_AddFieldDefn(self, defn);
@@ -1195,9 +1195,9 @@ SWIGINTERN int OGRFeatureDefnShadow_GetGeomFieldCount(OGRFeatureDefnShadow *self
 SWIGINTERN OGRGeomFieldDefnShadow *OGRFeatureDefnShadow_GetGeomFieldDefn(OGRFeatureDefnShadow *self,int i){
     return (OGRGeomFieldDefnShadow*) OGR_FD_GetGeomFieldDefn(self, i);
   }
-SWIGINTERN int OGRFeatureDefnShadow_GetGeomFieldIndex(OGRFeatureDefnShadow *self,char const *name){
+SWIGINTERN int OGRFeatureDefnShadow_GetGeomFieldIndex(OGRFeatureDefnShadow *self,char const *field_name){
       // Do not issue an error if the field doesn't exist. It is intended to be silent
-      return OGR_FD_GetGeomFieldIndex(self, name);
+      return OGR_FD_GetGeomFieldIndex(self, field_name);
   }
 SWIGINTERN void OGRFeatureDefnShadow_AddGeomFieldDefn(OGRFeatureDefnShadow *self,OGRGeomFieldDefnShadow *defn){
     OGR_FD_AddGeomFieldDefn(self, defn);
@@ -6218,13 +6218,6 @@ SWIGEXPORT int SWIGSTDCALL CSharp_Feature_SetGeomField__SWIG_1(void * jarg1, cha
   arg2 = (char *)jarg2; 
   arg3 = (OGRGeometryShadow *)jarg3; 
   {
-    if (!arg2) {
-      {
-        SWIG_CSharpException(SWIG_ValueError, "Received a NULL pointer."); return 0; 
-      };
-    }
-  }
-  {
     CPLErrorReset();
     result = (OGRErr)OGRFeatureShadow_SetGeomField__SWIG_1(arg1,(char const *)arg2,arg3);
     CPLErr eclass = CPLGetLastErrorType();
@@ -6313,13 +6306,6 @@ SWIGEXPORT int SWIGSTDCALL CSharp_Feature_SetGeomFieldDirectly__SWIG_1(void * ja
   arg2 = (char *)jarg2; 
   arg3 = (OGRGeometryShadow *)jarg3; 
   {
-    if (!arg2) {
-      {
-        SWIG_CSharpException(SWIG_ValueError, "Received a NULL pointer."); return 0; 
-      };
-    }
-  }
-  {
     CPLErrorReset();
     result = (OGRErr)OGRFeatureShadow_SetGeomFieldDirectly__SWIG_1(arg1,(char const *)arg2,arg3);
     CPLErr eclass = CPLGetLastErrorType();
@@ -6396,13 +6382,6 @@ SWIGEXPORT void * SWIGSTDCALL CSharp_Feature_GetGeomFieldRef__SWIG_1(void * jarg
   
   arg1 = (OGRFeatureShadow *)jarg1; 
   arg2 = (char *)jarg2; 
-  {
-    if (!arg2) {
-      {
-        SWIG_CSharpException(SWIG_ValueError, "Received a NULL pointer."); return 0; 
-      };
-    }
-  }
   {
     CPLErrorReset();
     result = (OGRGeometryShadow *)OGRFeatureShadow_GetGeomFieldRef__SWIG_1(arg1,(char const *)arg2);
@@ -6582,13 +6561,6 @@ SWIGEXPORT void * SWIGSTDCALL CSharp_Feature_GetFieldDefnRef__SWIG_1(void * jarg
   arg1 = (OGRFeatureShadow *)jarg1; 
   arg2 = (char *)jarg2; 
   {
-    if (!arg2) {
-      {
-        SWIG_CSharpException(SWIG_ValueError, "Received a NULL pointer."); return 0; 
-      };
-    }
-  }
-  {
     CPLErrorReset();
     result = (OGRFieldDefnShadow *)OGRFeatureShadow_GetFieldDefnRef__SWIG_1(arg1,(char const *)arg2);
     CPLErr eclass = CPLGetLastErrorType();
@@ -6692,13 +6664,6 @@ SWIGEXPORT void * SWIGSTDCALL CSharp_Feature_GetGeomFieldDefnRef__SWIG_1(void * 
   arg1 = (OGRFeatureShadow *)jarg1; 
   arg2 = (char *)jarg2; 
   {
-    if (!arg2) {
-      {
-        SWIG_CSharpException(SWIG_ValueError, "Received a NULL pointer."); return 0; 
-      };
-    }
-  }
-  {
     CPLErrorReset();
     result = (OGRGeomFieldDefnShadow *)OGRFeatureShadow_GetGeomFieldDefnRef__SWIG_1(arg1,(char const *)arg2);
     CPLErr eclass = CPLGetLastErrorType();
@@ -6768,13 +6733,6 @@ SWIGEXPORT char * SWIGSTDCALL CSharp_Feature_GetFieldAsString__SWIG_1(void * jar
   
   arg1 = (OGRFeatureShadow *)jarg1; 
   arg2 = (char *)jarg2; 
-  {
-    if (!arg2) {
-      {
-        SWIG_CSharpException(SWIG_ValueError, "Received a NULL pointer."); return 0; 
-      };
-    }
-  }
   {
     CPLErrorReset();
     result = (char *)OGRFeatureShadow_GetFieldAsString__SWIG_1(arg1,(char const *)arg2);
@@ -6846,13 +6804,6 @@ SWIGEXPORT int SWIGSTDCALL CSharp_Feature_GetFieldAsInteger__SWIG_1(void * jarg1
   arg1 = (OGRFeatureShadow *)jarg1; 
   arg2 = (char *)jarg2; 
   {
-    if (!arg2) {
-      {
-        SWIG_CSharpException(SWIG_ValueError, "Received a NULL pointer."); return 0; 
-      };
-    }
-  }
-  {
     CPLErrorReset();
     result = (int)OGRFeatureShadow_GetFieldAsInteger__SWIG_1(arg1,(char const *)arg2);
     CPLErr eclass = CPLGetLastErrorType();
@@ -6923,13 +6874,6 @@ SWIGEXPORT GIntBig SWIGSTDCALL CSharp_Feature_GetFieldAsInteger64__SWIG_1(void *
   arg1 = (OGRFeatureShadow *)jarg1; 
   arg2 = (char *)jarg2; 
   {
-    if (!arg2) {
-      {
-        SWIG_CSharpException(SWIG_ValueError, "Received a NULL pointer."); return 0; 
-      };
-    }
-  }
-  {
     CPLErrorReset();
     result = OGRFeatureShadow_GetFieldAsInteger64__SWIG_1(arg1,(char const *)arg2);
     CPLErr eclass = CPLGetLastErrorType();
@@ -6999,13 +6943,6 @@ SWIGEXPORT double SWIGSTDCALL CSharp_Feature_GetFieldAsDouble__SWIG_1(void * jar
   
   arg1 = (OGRFeatureShadow *)jarg1; 
   arg2 = (char *)jarg2; 
-  {
-    if (!arg2) {
-      {
-        SWIG_CSharpException(SWIG_ValueError, "Received a NULL pointer."); return 0; 
-      };
-    }
-  }
   {
     CPLErrorReset();
     result = (double)OGRFeatureShadow_GetFieldAsDouble__SWIG_1(arg1,(char const *)arg2);
@@ -7098,13 +7035,6 @@ SWIGEXPORT void SWIGSTDCALL CSharp_Feature_GetFieldAsDateTime__SWIG_1(void * jar
   arg7 = (int *)jarg7; 
   arg8 = (float *)jarg8; 
   arg9 = (int *)jarg9; 
-  {
-    if (!arg2) {
-      {
-        SWIG_CSharpException(SWIG_ValueError, "Received a NULL pointer."); return ; 
-      };
-    }
-  }
   {
     CPLErrorReset();
     OGRFeatureShadow_GetFieldAsDateTime__SWIG_1(arg1,(char const *)arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9);
@@ -7289,13 +7219,6 @@ SWIGEXPORT unsigned int SWIGSTDCALL CSharp_Feature_IsFieldSet__SWIG_1(void * jar
   arg1 = (OGRFeatureShadow *)jarg1; 
   arg2 = (char *)jarg2; 
   {
-    if (!arg2) {
-      {
-        SWIG_CSharpException(SWIG_ValueError, "Received a NULL pointer."); return 0; 
-      };
-    }
-  }
-  {
     CPLErrorReset();
     result = (bool)OGRFeatureShadow_IsFieldSet__SWIG_1(arg1,(char const *)arg2);
     CPLErr eclass = CPLGetLastErrorType();
@@ -7365,13 +7288,6 @@ SWIGEXPORT unsigned int SWIGSTDCALL CSharp_Feature_IsFieldNull__SWIG_1(void * ja
   
   arg1 = (OGRFeatureShadow *)jarg1; 
   arg2 = (char *)jarg2; 
-  {
-    if (!arg2) {
-      {
-        SWIG_CSharpException(SWIG_ValueError, "Received a NULL pointer."); return 0; 
-      };
-    }
-  }
   {
     CPLErrorReset();
     result = (bool)OGRFeatureShadow_IsFieldNull__SWIG_1(arg1,(char const *)arg2);
@@ -7443,13 +7359,6 @@ SWIGEXPORT unsigned int SWIGSTDCALL CSharp_Feature_IsFieldSetAndNotNull__SWIG_1(
   arg1 = (OGRFeatureShadow *)jarg1; 
   arg2 = (char *)jarg2; 
   {
-    if (!arg2) {
-      {
-        SWIG_CSharpException(SWIG_ValueError, "Received a NULL pointer."); return 0; 
-      };
-    }
-  }
-  {
     CPLErrorReset();
     result = (bool)OGRFeatureShadow_IsFieldSetAndNotNull__SWIG_1(arg1,(char const *)arg2);
     CPLErr eclass = CPLGetLastErrorType();
@@ -7485,13 +7394,6 @@ SWIGEXPORT int SWIGSTDCALL CSharp_Feature_GetFieldIndex(void * jarg1, char * jar
   arg1 = (OGRFeatureShadow *)jarg1; 
   arg2 = (char *)jarg2; 
   {
-    if (!arg2) {
-      {
-        SWIG_CSharpException(SWIG_ValueError, "Received a NULL pointer."); return 0; 
-      };
-    }
-  }
-  {
     CPLErrorReset();
     result = (int)OGRFeatureShadow_GetFieldIndex(arg1,(char const *)arg2);
     CPLErr eclass = CPLGetLastErrorType();
@@ -7526,13 +7428,6 @@ SWIGEXPORT int SWIGSTDCALL CSharp_Feature_GetGeomFieldIndex(void * jarg1, char *
   
   arg1 = (OGRFeatureShadow *)jarg1; 
   arg2 = (char *)jarg2; 
-  {
-    if (!arg2) {
-      {
-        SWIG_CSharpException(SWIG_ValueError, "Received a NULL pointer."); return 0; 
-      };
-    }
-  }
   {
     CPLErrorReset();
     result = (int)OGRFeatureShadow_GetGeomFieldIndex(arg1,(char const *)arg2);
@@ -7702,13 +7597,6 @@ SWIGEXPORT void SWIGSTDCALL CSharp_Feature_UnsetField__SWIG_1(void * jarg1, char
   arg1 = (OGRFeatureShadow *)jarg1; 
   arg2 = (char *)jarg2; 
   {
-    if (!arg2) {
-      {
-        SWIG_CSharpException(SWIG_ValueError, "Received a NULL pointer."); return ; 
-      };
-    }
-  }
-  {
     CPLErrorReset();
     OGRFeatureShadow_UnsetField__SWIG_1(arg1,(char const *)arg2);
     CPLErr eclass = CPLGetLastErrorType();
@@ -7770,13 +7658,6 @@ SWIGEXPORT void SWIGSTDCALL CSharp_Feature_SetFieldNull__SWIG_1(void * jarg1, ch
   
   arg1 = (OGRFeatureShadow *)jarg1; 
   arg2 = (char *)jarg2; 
-  {
-    if (!arg2) {
-      {
-        SWIG_CSharpException(SWIG_ValueError, "Received a NULL pointer."); return ; 
-      };
-    }
-  }
   {
     CPLErrorReset();
     OGRFeatureShadow_SetFieldNull__SWIG_1(arg1,(char const *)arg2);
@@ -7843,13 +7724,6 @@ SWIGEXPORT void SWIGSTDCALL CSharp_Feature_SetField__SWIG_1(void * jarg1, char *
   arg1 = (OGRFeatureShadow *)jarg1; 
   arg2 = (char *)jarg2; 
   arg3 = (char *)jarg3; 
-  {
-    if (!arg2) {
-      {
-        SWIG_CSharpException(SWIG_ValueError, "Received a NULL pointer."); return ; 
-      };
-    }
-  }
   {
     CPLErrorReset();
     OGRFeatureShadow_SetField__SWIG_1(arg1,(char const *)arg2,(char const *)arg3);
@@ -7950,13 +7824,6 @@ SWIGEXPORT void SWIGSTDCALL CSharp_Feature_SetField__SWIG_3(void * jarg1, char *
   arg2 = (char *)jarg2; 
   arg3 = (int)jarg3; 
   {
-    if (!arg2) {
-      {
-        SWIG_CSharpException(SWIG_ValueError, "Received a NULL pointer."); return ; 
-      };
-    }
-  }
-  {
     CPLErrorReset();
     OGRFeatureShadow_SetField__SWIG_3(arg1,(char const *)arg2,arg3);
     CPLErr eclass = CPLGetLastErrorType();
@@ -8022,13 +7889,6 @@ SWIGEXPORT void SWIGSTDCALL CSharp_Feature_SetField__SWIG_5(void * jarg1, char *
   arg1 = (OGRFeatureShadow *)jarg1; 
   arg2 = (char *)jarg2; 
   arg3 = (double)jarg3; 
-  {
-    if (!arg2) {
-      {
-        SWIG_CSharpException(SWIG_ValueError, "Received a NULL pointer."); return ; 
-      };
-    }
-  }
   {
     CPLErrorReset();
     OGRFeatureShadow_SetField__SWIG_5(arg1,(char const *)arg2,arg3);
@@ -8119,13 +7979,6 @@ SWIGEXPORT void SWIGSTDCALL CSharp_Feature_SetField__SWIG_7(void * jarg1, char *
   arg7 = (int)jarg7; 
   arg8 = (float)jarg8; 
   arg9 = (int)jarg9; 
-  {
-    if (!arg2) {
-      {
-        SWIG_CSharpException(SWIG_ValueError, "Received a NULL pointer."); return ; 
-      };
-    }
-  }
   {
     CPLErrorReset();
     OGRFeatureShadow_SetField__SWIG_7(arg1,(char const *)arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9);
@@ -8301,13 +8154,6 @@ SWIGEXPORT void SWIGSTDCALL CSharp_Feature_SetFieldBinaryFromHexString__SWIG_1(v
   arg1 = (OGRFeatureShadow *)jarg1; 
   arg2 = (char *)jarg2; 
   arg3 = (char *)jarg3; 
-  {
-    if (!arg2) {
-      {
-        SWIG_CSharpException(SWIG_ValueError, "Received a NULL pointer."); return ; 
-      };
-    }
-  }
   {
     CPLErrorReset();
     OGRFeatureShadow_SetFieldBinaryFromHexString__SWIG_1(arg1,(char const *)arg2,(char const *)arg3);
@@ -8549,13 +8395,6 @@ SWIGEXPORT int SWIGSTDCALL CSharp_Feature_GetFieldType__SWIG_1(void * jarg1, cha
   
   arg1 = (OGRFeatureShadow *)jarg1; 
   arg2 = (char *)jarg2; 
-  {
-    if (!arg2) {
-      {
-        SWIG_CSharpException(SWIG_ValueError, "Received a NULL pointer."); return 0; 
-      };
-    }
-  }
   {
     CPLErrorReset();
     result = (OGRFieldType)OGRFeatureShadow_GetFieldType__SWIG_1(arg1,(char const *)arg2);
@@ -8953,13 +8792,6 @@ SWIGEXPORT int SWIGSTDCALL CSharp_FeatureDefn_GetFieldIndex(void * jarg1, char *
   arg1 = (OGRFeatureDefnShadow *)jarg1; 
   arg2 = (char *)jarg2; 
   {
-    if (!arg2) {
-      {
-        SWIG_CSharpException(SWIG_ValueError, "Received a NULL pointer."); return 0; 
-      };
-    }
-  }
-  {
     CPLErrorReset();
     result = (int)OGRFeatureDefnShadow_GetFieldIndex(arg1,(char const *)arg2);
     CPLErr eclass = CPLGetLastErrorType();
@@ -9100,13 +8932,6 @@ SWIGEXPORT int SWIGSTDCALL CSharp_FeatureDefn_GetGeomFieldIndex(void * jarg1, ch
   
   arg1 = (OGRFeatureDefnShadow *)jarg1; 
   arg2 = (char *)jarg2; 
-  {
-    if (!arg2) {
-      {
-        SWIG_CSharpException(SWIG_ValueError, "Received a NULL pointer."); return 0; 
-      };
-    }
-  }
   {
     CPLErrorReset();
     result = (int)OGRFeatureDefnShadow_GetGeomFieldIndex(arg1,(char const *)arg2);

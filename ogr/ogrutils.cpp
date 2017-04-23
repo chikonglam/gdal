@@ -48,7 +48,7 @@
 #include "ogr_geometry.h"
 #include "ogrsf_frmts.h"
 
-CPL_CVSID("$Id: ogrutils.cpp 37564 2017-03-03 09:09:26Z rouault $");
+CPL_CVSID("$Id: ogrutils.cpp 38076 2017-04-20 19:37:14Z rouault $");
 
 // Returns whether a double fits within an int.
 // Unable to put this in cpl_port.h as include limit breaks grib.
@@ -1050,12 +1050,16 @@ int OGRParseDate( const char *pszInput,
 
         while( *pszInput >= '0' && *pszInput <= '9' )
             ++pszInput;
+        if( *pszInput == '\0' )
+            return TRUE;
 
         bGotSomething = true;
 
         // If ISO 8601 format.
         if( *pszInput == 'T' )
             ++pszInput;
+        else if( *pszInput != ' ' )
+            return FALSE;
     }
 
 /* -------------------------------------------------------------------- */

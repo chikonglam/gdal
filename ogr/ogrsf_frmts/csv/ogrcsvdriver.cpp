@@ -44,7 +44,7 @@
 #include "gdal.h"
 #include "gdal_priv.h"
 
-CPL_CVSID("$Id: ogrcsvdriver.cpp 37367 2017-02-13 05:32:41Z goatbar $");
+CPL_CVSID("$Id: ogrcsvdriver.cpp 38032 2017-04-16 08:26:01Z rouault $");
 
 static CPLMutex* hMutex = NULL;
 static std::map<CPLString, GDALDataset*> *poMap = NULL;
@@ -83,7 +83,7 @@ static int OGRCSVDriverIdentify( GDALOpenInfo* poOpenInfo )
               STARTS_WITH_CI(osBaseFilename, "AllStatesFedCodes_") ||
               (osBaseFilename.size() > 2
                && STARTS_WITH_CI(osBaseFilename+2, "_Features_")) ||
-              (osBaseFilename.size()
+              (osBaseFilename.size() > 2
                && STARTS_WITH_CI(osBaseFilename+2, "_FedCodes_"))) &&
              (EQUAL(osExt, "txt") || EQUAL(osExt, "zip")) )
         {

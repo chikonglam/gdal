@@ -36,7 +36,7 @@
 
 #include <algorithm>
 
-CPL_CVSID("$Id: ogrgmlaswriter.cpp 37470 2017-02-26 02:23:50Z goatbar $");
+CPL_CVSID("$Id: ogrgmlaswriter.cpp 38073 2017-04-20 17:00:47Z rouault $");
 
 namespace GMLAS
 {
@@ -1061,7 +1061,8 @@ bool GMLASWriter::CollectFields()
         }
     }
 
-    m_poFieldsMDLayer->SetAttributeFilter( NULL );
+    m_poFieldsMDLayer->SetAttributeFilter(
+        (CPLString(szFIELD_CATEGORY) + " != '" + szSWE_FIELD + "'").c_str() );
     m_poFieldsMDLayer->ResetReading();
     while( true )
     {

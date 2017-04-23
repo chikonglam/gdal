@@ -1,5 +1,5 @@
 dnl ***************************************************************************
-dnl $Id: configure.ac 37968 2017-04-12 07:16:55Z rouault $
+dnl $Id: configure.ac 38000 2017-04-14 11:50:06Z rouault $
 dnl
 dnl Project:  GDAL
 dnl Purpose:  Configure source file.
@@ -767,6 +767,10 @@ if test "$with_hide_internal_symbols" = "yes"; then
         AC_MSG_RESULT([yes])
         CFLAGS="$CFLAGS -fvisibility=hidden"
         CXXFLAGS="$CXXFLAGS -fvisibility=hidden"
+        CFLAGS_NOFTRAPV="$CFLAGS_NOFTRAPV -fvisibility=hidden"
+        CXXFLAGS_NOFTRAPV="$CXXFLAGS_NOFTRAPV -fvisibility=hidden"
+        CXXFLAGS_NO_LTO_IF_AVX_NONDEFAULT="$CXXFLAGS_NO_LTO_IF_AVX_NONDEFAULT -fvisibility=hidden"
+        CXXFLAGS_NO_LTO_IF_SSSE3_NONDEFAULT="$CXXFLAGS_NO_LTO_IF_SSSE3_NONDEFAULT -fvisibility=hidden"
     else
         AC_MSG_RESULT([no])
     fi

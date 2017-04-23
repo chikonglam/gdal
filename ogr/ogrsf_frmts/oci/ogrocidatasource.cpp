@@ -30,7 +30,7 @@
 #include "cpl_conv.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: ogrocidatasource.cpp 36385 2016-11-21 12:24:06Z rouault $");
+CPL_CVSID("$Id: ogrocidatasource.cpp 38061 2017-04-19 05:23:56Z ilucena $");
 
 static const int anEPSGOracleMapping[] =
 {
@@ -139,7 +139,7 @@ int OGROCIDataSource::Open( const char * pszNewName,
         const char* pszTables = CSLFetchNameValue(papszOpenOptionsIn, "TABLES");
         if( pszTables )
             papszTableList = CSLTokenizeStringComplex(pszTables, ",", TRUE, FALSE );
-        pszWorkspace = CSLFetchNameValueDef(papszOpenOptions, "WORKSPACE", "");
+        pszWorkspace = CSLFetchNameValueDef(papszOpenOptionsIn, "WORKSPACE", "");
     }
     else
     {
@@ -181,8 +181,6 @@ int OGROCIDataSource::Open( const char * pszNewName,
 /* -------------------------------------------------------------------- */
 /*      Try to establish connection.                                    */
 /* -------------------------------------------------------------------- */
-    CPLDebug( "OCI", "Userid=%s, Password=%s, Database=%s",
-              pszUserid, pszPassword, pszDatabase );
 
     if( EQUAL(pszDatabase, "") &&
         EQUAL(pszPassword, "") &&

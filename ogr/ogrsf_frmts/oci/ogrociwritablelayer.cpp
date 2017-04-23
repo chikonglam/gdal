@@ -32,7 +32,7 @@
 #include "cpl_conv.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: ogrociwritablelayer.cpp 36347 2016-11-20 20:43:39Z rouault $");
+CPL_CVSID("$Id: ogrociwritablelayer.cpp 38061 2017-04-19 05:23:56Z ilucena $");
 
 /************************************************************************/
 /*                        OGROCIWritableLayer()                         */
@@ -246,7 +246,7 @@ OGRErr OGROCIWritableLayer::CreateField( OGRFieldDefn *poFieldIn, int bApproxOK 
 {
     OGROCISession      *poSession = poDS->GetSession();
     char                szFieldType[256];
-    char                szFieldName[30];     // specify at most 30 characters, see ORA-00972
+    char                szFieldName[128]; // 12.2 max identifier name
     OGRFieldDefn        oField( poFieldIn );
 
 /* -------------------------------------------------------------------- */

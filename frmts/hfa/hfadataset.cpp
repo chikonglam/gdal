@@ -62,7 +62,7 @@
 #include "ogr_spatialref.h"
 #include "ogr_srs_api.h"
 
-CPL_CVSID("$Id: hfadataset.cpp 37967 2017-04-12 03:44:05Z goatbar $");
+CPL_CVSID("$Id: hfadataset.cpp 38009 2017-04-14 15:07:49Z rouault $");
 
 static const double R2D = 180.0 / M_PI;
 static const double D2R = M_PI / 180.0;
@@ -2182,8 +2182,10 @@ void HFARasterBand::ReadHistogramMetadata()
         for( int i = 0; i < nNumBins; i++ )
         {
             const double dfNumber = padfWorkBuf[i];
-            if( dfNumber >= std::numeric_limits<GUIntBig>::max() ||
-                dfNumber < std::numeric_limits<GUIntBig>::min() ||
+            if( dfNumber >= static_cast<double>(
+                                std::numeric_limits<GUIntBig>::max()) ||
+                dfNumber < static_cast<double>(
+                                std::numeric_limits<GUIntBig>::min()) ||
                 CPLIsNan(dfNumber) )
             {
                 CPLError(CE_Failure, CPLE_FileIO, "Out of range hist vals.");

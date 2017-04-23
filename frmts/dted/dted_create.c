@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: dted_create.c 36380 2016-11-21 10:21:20Z rouault $
+ * $Id: dted_create.c 38003 2017-04-14 13:28:13Z rouault $
  *
  * Project:  DTED Translator
  * Purpose:  Implementation of DTEDCreate() portion of DTED API.
@@ -30,7 +30,7 @@
 #include "dted_api.h"
 #include <assert.h>
 
-CPL_CVSID("$Id: dted_create.c 36380 2016-11-21 10:21:20Z rouault $");
+CPL_CVSID("$Id: dted_create.c 38003 2017-04-14 13:28:13Z rouault $");
 
 #define DTED_ABS_VERT_ACC "NA  "
 #define DTED_SECURITY     "U"
@@ -118,7 +118,7 @@ const char *DTEDCreate( const char *pszFilename, int nLevel,
 {
     VSILFILE     *fp;
     unsigned char achRecord[3601*2 + 12];
-    int         nXSize, nYSize, iProfile;
+    int         nXSize, nYSize, nReferenceLat, iProfile;
 
 /* -------------------------------------------------------------------- */
 /*      Establish resolution.                                           */
@@ -144,13 +144,15 @@ const char *DTEDCreate( const char *pszFilename, int nLevel,
                  nLevel );
     }
 
-    if( ABS(nLLOriginLat) >= 80 )
+    nReferenceLat = nLLOriginLat < 0 ? - (nLLOriginLat + 1) : nLLOriginLat;
+
+    if( nReferenceLat >= 80 )
         nXSize = (nXSize - 1) / 6 + 1;
-    else if( ABS(nLLOriginLat) >= 75 )
+    else if( nReferenceLat >= 75 )
         nXSize = (nXSize - 1) / 4 + 1;
-    else if( ABS(nLLOriginLat) >= 70 )
+    else if( nReferenceLat >= 70 )
         nXSize = (nXSize - 1) / 3 + 1;
-    else if( ABS(nLLOriginLat) >= 50 )
+    else if( nReferenceLat >= 50 )
         nXSize = (nXSize - 1) / 2 + 1;
 
 /* -------------------------------------------------------------------- */

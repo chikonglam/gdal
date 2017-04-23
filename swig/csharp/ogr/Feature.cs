@@ -104,8 +104,8 @@ public class Feature : IDisposable {
     return ret;
   }
 
-  public int SetGeomField(string name, Geometry geom) {
-    int ret = OgrPINVOKE.Feature_SetGeomField__SWIG_1(swigCPtr, name, Geometry.getCPtr(geom));
+  public int SetGeomField(string field_name, Geometry geom) {
+    int ret = OgrPINVOKE.Feature_SetGeomField__SWIG_1(swigCPtr, field_name, Geometry.getCPtr(geom));
     if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
     return ret;
   }
@@ -116,8 +116,8 @@ public class Feature : IDisposable {
     return ret;
   }
 
-  public int SetGeomFieldDirectly(string name, Geometry geom) {
-    int ret = OgrPINVOKE.Feature_SetGeomFieldDirectly__SWIG_1(swigCPtr, name, Geometry.getCPtrAndDisown(geom, ThisOwn_false()));
+  public int SetGeomFieldDirectly(string field_name, Geometry geom) {
+    int ret = OgrPINVOKE.Feature_SetGeomFieldDirectly__SWIG_1(swigCPtr, field_name, Geometry.getCPtrAndDisown(geom, ThisOwn_false()));
     if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
     return ret;
   }
@@ -129,8 +129,8 @@ public class Feature : IDisposable {
     return ret;
   }
 
-  public Geometry GetGeomFieldRef(string name) {
-    IntPtr cPtr = OgrPINVOKE.Feature_GetGeomFieldRef__SWIG_1(swigCPtr, name);
+  public Geometry GetGeomFieldRef(string field_name) {
+    IntPtr cPtr = OgrPINVOKE.Feature_GetGeomFieldRef__SWIG_1(swigCPtr, field_name);
     Geometry ret = (cPtr == IntPtr.Zero) ? null : new Geometry(cPtr, false, ThisOwn_false());
     if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
     return ret;
@@ -162,8 +162,8 @@ public class Feature : IDisposable {
     return ret;
   }
 
-  public FieldDefn GetFieldDefnRef(string name) {
-    IntPtr cPtr = OgrPINVOKE.Feature_GetFieldDefnRef__SWIG_1(swigCPtr, name);
+  public FieldDefn GetFieldDefnRef(string field_name) {
+    IntPtr cPtr = OgrPINVOKE.Feature_GetFieldDefnRef__SWIG_1(swigCPtr, field_name);
     FieldDefn ret = (cPtr == IntPtr.Zero) ? null : new FieldDefn(cPtr, false, ThisOwn_false());
     if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
     return ret;
@@ -182,8 +182,8 @@ public class Feature : IDisposable {
     return ret;
   }
 
-  public GeomFieldDefn GetGeomFieldDefnRef(string name) {
-    IntPtr cPtr = OgrPINVOKE.Feature_GetGeomFieldDefnRef__SWIG_1(swigCPtr, name);
+  public GeomFieldDefn GetGeomFieldDefnRef(string field_name) {
+    IntPtr cPtr = OgrPINVOKE.Feature_GetGeomFieldDefnRef__SWIG_1(swigCPtr, field_name);
     GeomFieldDefn ret = (cPtr == IntPtr.Zero) ? null : new GeomFieldDefn(cPtr, false, ThisOwn_false());
     if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
     return ret;
@@ -198,9 +198,9 @@ public class Feature : IDisposable {
         return ret;
 }
 
-  public string GetFieldAsString(string name) {
+  public string GetFieldAsString(string field_name) {
         /* %typemap(csout) (const char *utf8_path) */
-        IntPtr cPtr = OgrPINVOKE.Feature_GetFieldAsString__SWIG_1(swigCPtr, name);
+        IntPtr cPtr = OgrPINVOKE.Feature_GetFieldAsString__SWIG_1(swigCPtr, field_name);
         string ret = Ogr.Utf8BytesToString(cPtr);
         
     if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
@@ -213,8 +213,8 @@ public class Feature : IDisposable {
     return ret;
   }
 
-  public int GetFieldAsInteger(string name) {
-    int ret = OgrPINVOKE.Feature_GetFieldAsInteger__SWIG_1(swigCPtr, name);
+  public int GetFieldAsInteger(string field_name) {
+    int ret = OgrPINVOKE.Feature_GetFieldAsInteger__SWIG_1(swigCPtr, field_name);
     if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
     return ret;
   }
@@ -225,8 +225,8 @@ public class Feature : IDisposable {
     return res;
 }
 
-  public long GetFieldAsInteger64(string name) {
-    long res = OgrPINVOKE.Feature_GetFieldAsInteger64__SWIG_1(swigCPtr, name);
+  public long GetFieldAsInteger64(string field_name) {
+    long res = OgrPINVOKE.Feature_GetFieldAsInteger64__SWIG_1(swigCPtr, field_name);
     if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
     return res;
 }
@@ -237,8 +237,8 @@ public class Feature : IDisposable {
     return ret;
   }
 
-  public double GetFieldAsDouble(string name) {
-    double ret = OgrPINVOKE.Feature_GetFieldAsDouble__SWIG_1(swigCPtr, name);
+  public double GetFieldAsDouble(string field_name) {
+    double ret = OgrPINVOKE.Feature_GetFieldAsDouble__SWIG_1(swigCPtr, field_name);
     if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
     return ret;
   }
@@ -248,8 +248,8 @@ public class Feature : IDisposable {
     if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
   }
 
-  public void GetFieldAsDateTime(string name, out int pnYear, out int pnMonth, out int pnDay, out int pnHour, out int pnMinute, out float pfSecond, out int pnTZFlag) {
-    OgrPINVOKE.Feature_GetFieldAsDateTime__SWIG_1(swigCPtr, name, out pnYear, out pnMonth, out pnDay, out pnHour, out pnMinute, out pfSecond, out pnTZFlag);
+  public void GetFieldAsDateTime(string field_name, out int pnYear, out int pnMonth, out int pnDay, out int pnHour, out int pnMinute, out float pfSecond, out int pnTZFlag) {
+    OgrPINVOKE.Feature_GetFieldAsDateTime__SWIG_1(swigCPtr, field_name, out pnYear, out pnMonth, out pnDay, out pnHour, out pnMinute, out pfSecond, out pnTZFlag);
     if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
   }
 
@@ -304,8 +304,8 @@ public class Feature : IDisposable {
     return ret;
   }
 
-  public bool IsFieldSet(string name) {
-    bool ret = OgrPINVOKE.Feature_IsFieldSet__SWIG_1(swigCPtr, name);
+  public bool IsFieldSet(string field_name) {
+    bool ret = OgrPINVOKE.Feature_IsFieldSet__SWIG_1(swigCPtr, field_name);
     if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
     return ret;
   }
@@ -316,8 +316,8 @@ public class Feature : IDisposable {
     return ret;
   }
 
-  public bool IsFieldNull(string name) {
-    bool ret = OgrPINVOKE.Feature_IsFieldNull__SWIG_1(swigCPtr, name);
+  public bool IsFieldNull(string field_name) {
+    bool ret = OgrPINVOKE.Feature_IsFieldNull__SWIG_1(swigCPtr, field_name);
     if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
     return ret;
   }
@@ -328,20 +328,20 @@ public class Feature : IDisposable {
     return ret;
   }
 
-  public bool IsFieldSetAndNotNull(string name) {
-    bool ret = OgrPINVOKE.Feature_IsFieldSetAndNotNull__SWIG_1(swigCPtr, name);
+  public bool IsFieldSetAndNotNull(string field_name) {
+    bool ret = OgrPINVOKE.Feature_IsFieldSetAndNotNull__SWIG_1(swigCPtr, field_name);
     if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
     return ret;
   }
 
-  public int GetFieldIndex(string name) {
-    int ret = OgrPINVOKE.Feature_GetFieldIndex(swigCPtr, name);
+  public int GetFieldIndex(string field_name) {
+    int ret = OgrPINVOKE.Feature_GetFieldIndex(swigCPtr, field_name);
     if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
     return ret;
   }
 
-  public int GetGeomFieldIndex(string name) {
-    int ret = OgrPINVOKE.Feature_GetGeomFieldIndex(swigCPtr, name);
+  public int GetGeomFieldIndex(string field_name) {
+    int ret = OgrPINVOKE.Feature_GetGeomFieldIndex(swigCPtr, field_name);
     if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
     return ret;
   }
@@ -368,8 +368,8 @@ public class Feature : IDisposable {
     if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
   }
 
-  public void UnsetField(string name) {
-    OgrPINVOKE.Feature_UnsetField__SWIG_1(swigCPtr, name);
+  public void UnsetField(string field_name) {
+    OgrPINVOKE.Feature_UnsetField__SWIG_1(swigCPtr, field_name);
     if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
   }
 
@@ -378,8 +378,8 @@ public class Feature : IDisposable {
     if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
   }
 
-  public void SetFieldNull(string name) {
-    OgrPINVOKE.Feature_SetFieldNull__SWIG_1(swigCPtr, name);
+  public void SetFieldNull(string field_name) {
+    OgrPINVOKE.Feature_SetFieldNull__SWIG_1(swigCPtr, field_name);
     if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
   }
 
@@ -388,8 +388,8 @@ public class Feature : IDisposable {
     if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
   }
 
-  public void SetField(string name, string value) {
-    OgrPINVOKE.Feature_SetField__SWIG_1(swigCPtr, name, Ogr.StringToUtf8Bytes(value));
+  public void SetField(string field_name, string value) {
+    OgrPINVOKE.Feature_SetField__SWIG_1(swigCPtr, field_name, Ogr.StringToUtf8Bytes(value));
     if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
   }
 
@@ -403,8 +403,8 @@ public class Feature : IDisposable {
     if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
   }
 
-  public void SetField(string name, int value) {
-    OgrPINVOKE.Feature_SetField__SWIG_3(swigCPtr, name, value);
+  public void SetField(string field_name, int value) {
+    OgrPINVOKE.Feature_SetField__SWIG_3(swigCPtr, field_name, value);
     if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
   }
 
@@ -413,8 +413,8 @@ public class Feature : IDisposable {
     if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
   }
 
-  public void SetField(string name, double value) {
-    OgrPINVOKE.Feature_SetField__SWIG_5(swigCPtr, name, value);
+  public void SetField(string field_name, double value) {
+    OgrPINVOKE.Feature_SetField__SWIG_5(swigCPtr, field_name, value);
     if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
   }
 
@@ -423,8 +423,8 @@ public class Feature : IDisposable {
     if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
   }
 
-  public void SetField(string name, int year, int month, int day, int hour, int minute, float second, int tzflag) {
-    OgrPINVOKE.Feature_SetField__SWIG_7(swigCPtr, name, year, month, day, hour, minute, second, tzflag);
+  public void SetField(string field_name, int year, int month, int day, int hour, int minute, float second, int tzflag) {
+    OgrPINVOKE.Feature_SetField__SWIG_7(swigCPtr, field_name, year, month, day, hour, minute, second, tzflag);
     if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
   }
 
@@ -448,8 +448,8 @@ public class Feature : IDisposable {
     if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
   }
 
-  public void SetFieldBinaryFromHexString(string name, string pszValue) {
-    OgrPINVOKE.Feature_SetFieldBinaryFromHexString__SWIG_1(swigCPtr, name, pszValue);
+  public void SetFieldBinaryFromHexString(string field_name, string pszValue) {
+    OgrPINVOKE.Feature_SetFieldBinaryFromHexString__SWIG_1(swigCPtr, field_name, pszValue);
     if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
   }
 
@@ -482,8 +482,8 @@ public class Feature : IDisposable {
     return ret;
   }
 
-  public FieldType GetFieldType(string name) {
-    FieldType ret = (FieldType)OgrPINVOKE.Feature_GetFieldType__SWIG_1(swigCPtr, name);
+  public FieldType GetFieldType(string field_name) {
+    FieldType ret = (FieldType)OgrPINVOKE.Feature_GetFieldType__SWIG_1(swigCPtr, field_name);
     if (OgrPINVOKE.SWIGPendingException.Pending) throw OgrPINVOKE.SWIGPendingException.Retrieve();
     return ret;
   }

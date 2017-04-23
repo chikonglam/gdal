@@ -48,7 +48,7 @@
 #include "cpl_string.h"
 #include "cpl_vsi.h"
 
-CPL_CVSID("$Id: hfafield.cpp 37947 2017-04-10 19:20:23Z goatbar $");
+CPL_CVSID("$Id: hfafield.cpp 38009 2017-04-14 15:07:49Z rouault $");
 
 static const int MAX_ENTRY_REPORT = 16;
 
@@ -993,8 +993,10 @@ HFAField::ExtractInstValue( const char *pszField, int nIndexValue,
           memcpy(&fNumber, pabyData + nIndexValue * 4, 4);
           HFAStandard(4, &fNumber);
           dfDoubleRet = fNumber;
-          if( fNumber > std::numeric_limits<int>::max() ||
-              fNumber < std::numeric_limits<int>::min() ||
+          if( dfDoubleRet > static_cast<double>(
+                                            std::numeric_limits<int>::max()) ||
+              dfDoubleRet < static_cast<double>(
+                                            std::numeric_limits<int>::min()) ||
               CPLIsNan(fNumber) )
           {
               CPLError(CE_Failure, CPLE_AppDefined,

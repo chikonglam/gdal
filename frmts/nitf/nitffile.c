@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: nitffile.c 36457 2016-11-23 00:18:37Z rouault $
+ * $Id: nitffile.c 38086 2017-04-21 14:34:14Z rouault $
  *
  * Project:  NITF Read/Write Library
  * Purpose:  Module responsible for opening NITF file, populating NITFFile
@@ -34,7 +34,7 @@
 #include "cpl_conv.h"
 #include "cpl_string.h"
 
-CPL_CVSID("$Id: nitffile.c 36457 2016-11-23 00:18:37Z rouault $");
+CPL_CVSID("$Id: nitffile.c 38086 2017-04-21 14:34:14Z rouault $");
 
 CPL_INLINE static void CPL_IGNORE_RET_VAL_INT(CPL_UNUSED int unused) {}
 
@@ -619,9 +619,6 @@ int NITFCreate( const char *pszFilename,
     nNPPBH = nPixels;
     nNPPBV = nLines;
 
-    if( CSLFetchNameValue( papszOptions, "BLOCKSIZE" ) != NULL )
-        nNPPBH = nNPPBV = atoi(CSLFetchNameValue( papszOptions, "BLOCKSIZE" ));
-
     if( CSLFetchNameValue( papszOptions, "BLOCKXSIZE" ) != NULL )
         nNPPBH = atoi(CSLFetchNameValue( papszOptions, "BLOCKXSIZE" ));
 
@@ -634,7 +631,7 @@ int NITFCreate( const char *pszFilename,
     if( CSLFetchNameValue( papszOptions, "NPPBV" ) != NULL )
         nNPPBV = atoi(CSLFetchNameValue( papszOptions, "NPPBV" ));
 
-    if (EQUAL(pszIC, "NC") &&
+    if ( (EQUAL(pszIC, "NC") || EQUAL(pszIC, "C8")) &&
         (nPixels > 8192 || nLines > 8192) &&
         nNPPBH == nPixels && nNPPBV == nLines)
     {
@@ -649,7 +646,7 @@ int NITFCreate( const char *pszFilename,
             * ((GIntBig) nPixels *nLines)
             * nBands;
     }
-    else if (EQUAL(pszIC, "NC") &&
+    else if ( (EQUAL(pszIC, "NC") || EQUAL(pszIC, "C8")) &&
              nPixels > 8192 && nNPPBH == nPixels)
     {
         /* See MIL-STD-2500-C, paragraph 5.4.2.2-d */
@@ -671,7 +668,7 @@ int NITFCreate( const char *pszFilename,
             * ((GIntBig) nPixels * (nNBPC * nNPPBV))
             * nBands;
     }
-    else if (EQUAL(pszIC, "NC") &&
+    else if ( (EQUAL(pszIC, "NC") || EQUAL(pszIC, "C8")) &&
              nLines > 8192 && nNPPBV == nLines)
     {
         /* See MIL-STD-2500-C, paragraph 5.4.2.2-d */
