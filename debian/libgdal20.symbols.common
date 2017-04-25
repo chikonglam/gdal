@@ -320,42 +320,6 @@
  CSVScanLines@Base 1.8.0
  CSVScanLinesL@Base 2.1.0
  CheckExtensionConsistency@Base 2.1.0
- DBFAddField@Base 1.8.0
- DBFAddNativeFieldType@Base 1.8.0
- DBFAlterFieldDefn@Base 1.9.0
- DBFCloneEmpty@Base 1.8.0
- DBFClose@Base 1.8.0
- DBFCreate@Base 1.8.0
- DBFCreateEx@Base 1.8.0
- DBFCreateLL@Base 1.8.0
- DBFDeleteField@Base 1.8.0
- DBFGetCodePage@Base 1.8.0
- DBFGetFieldCount@Base 1.8.0
- DBFGetFieldIndex@Base 1.8.0
- DBFGetFieldInfo@Base 1.8.0
- DBFGetNativeFieldType@Base 1.8.0
- DBFGetRecordCount@Base 1.8.0
- DBFIsAttributeNULL@Base 1.8.0
- DBFIsRecordDeleted@Base 1.8.0
- DBFMarkRecordDeleted@Base 1.8.0
- DBFOpen@Base 1.8.0
- DBFOpenLL@Base 1.8.0
- DBFReadDoubleAttribute@Base 1.8.0
- DBFReadIntegerAttribute@Base 1.8.0
- DBFReadLogicalAttribute@Base 1.8.0
- DBFReadStringAttribute@Base 1.8.0
- DBFReadTuple@Base 1.8.0
- DBFReorderFields@Base 1.9.0
- DBFSetLastModifiedDate@Base 2.0.1
- DBFSetWriteEndOfFileChar@Base 2.2.0~beta1
- DBFUpdateHeader@Base 1.8.0
- DBFWriteAttributeDirectly@Base 1.8.0
- DBFWriteDoubleAttribute@Base 1.8.0
- DBFWriteIntegerAttribute@Base 1.8.0
- DBFWriteLogicalAttribute@Base 1.8.0
- DBFWriteNULLAttribute@Base 1.8.0
- DBFWriteStringAttribute@Base 1.8.0
- DBFWriteTuple@Base 1.8.0
  DGNAddMSLink@Base 1.8.0
  DGNAddRawAttrLink@Base 1.8.0
  DGNAddShapeFillInfo@Base 1.8.0
@@ -1649,43 +1613,6 @@
  RegisterOGRXLS@Base 1.9.0
  RegisterOGRXLSX@Base 1.10.1
  RegisterOGRXPlane@Base 1.8.0
- SASetupDefaultHooks@Base 1.8.0
- SBNCloseDiskTree@Base 1.10.1
- SBNOpenDiskTree@Base 1.10.1
- SBNSearchDiskTree@Base 1.10.1
- SBNSearchDiskTreeInteger@Base 1.10.1
- SBNSearchFreeIds@Base 1.10.1
- SHPCheckBoundsOverlap@Base 1.8.0
- SHPClose@Base 1.8.0
- SHPCloseDiskTree@Base 1.9.0
- SHPComputeExtents@Base 1.8.0
- SHPCreate@Base 1.8.0
- SHPCreateLL@Base 1.8.0
- SHPCreateObject@Base 1.8.0
- SHPCreateSimpleObject@Base 1.8.0
- SHPCreateTree@Base 1.8.0
- SHPDestroyObject@Base 1.8.0
- SHPDestroyTree@Base 1.8.0
- SHPGetInfo@Base 1.8.0
- SHPOpen@Base 1.8.0
- SHPOpenDiskTree@Base 1.9.0
- SHPOpenLL@Base 1.8.0
- SHPOpenLLEx@Base 2.1.0
- SHPPartTypeName@Base 1.8.0
- SHPReadObject@Base 1.8.0
- SHPRestoreSHX@Base 2.1.0
- SHPRewindObject@Base 1.8.0
- SHPSearchDiskTree@Base 1.8.0
- SHPSearchDiskTreeEx@Base 1.9.0
- SHPSetFastModeReadObject@Base 1.11.0
- SHPTreeAddShapeId@Base 1.8.0
- SHPTreeFindLikelyShapes@Base 1.8.0
- SHPTreeTrimExtraNodes@Base 1.8.0
- SHPTypeName@Base 1.8.0
- SHPWriteHeader@Base 1.8.0
- SHPWriteObject@Base 1.8.0
- SHPWriteTree@Base 1.8.0
- SHPWriteTreeLL@Base 1.9.0
  SetCSVFilenameHook@Base 1.8.0
  VRTAddBand@Base 1.8.0
  VRTAddComplexSource@Base 1.8.0

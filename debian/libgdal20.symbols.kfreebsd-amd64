@@ -66,14 +66,11 @@ libgdal.so.20 libgdal20 #MINVER#
  (c++)"S57GenerateStandardAttributes(OGRFeatureDefn*, int)@Base" 1.10.0 1
  (c++)"VSICreateBufferedReaderHandle(VSIVirtualHandle*)@Base" 2.0.1 1
  (c++)"GDALRegenerateOverviewsMultiBand(int, GDALRasterBand**, int, GDALRasterBand***, char const*, int (*)(double, char const*, void*), void*)@Base" 2.1.0 1
- (c++)"GDALUnrolledCopy_GByte_3_1_SSSE3(unsigned char*, unsigned char const*, int)@Base" 2.2.0~beta1 1
- (c++)"GDALUnrolledCopy_GByte_4_1_SSSE3(unsigned char*, unsigned char const*, int)@Base" 2.2.0~beta1 1
  (c++)"OGRPGCommonLayerNormalizeDefault(OGRFieldDefn*, char const*)@Base" 2.0.1 1
  (c++)"OGRCreateCoordinateTransformation(OGRSpatialReference*, OGRSpatialReference*)@Base" 1.10.0 1
  (c++)"OGRPGCommonAppendCopyFieldsExceptGeom(CPLString&, OGRFeature*, char const*, bool, CPLString (*)(void*, char const*, int, char const*, char const*), void*)@Base" 2.2.0~beta1 1
  (c++)"S57GenerateVectorPrimitiveFeatureDefn(int, int)@Base" 1.10.0 1
  (c++)"OGRCreateEmulatedTransactionDataSourceWrapper(OGRDataSource*, IOGRTransactionBehaviour*, int, int)@Base" 2.0.1 1
- (c++)"GDALGridInverseDistanceToAPower2NoSmoothingNoSearchAVX(void const*, unsigned int, double const*, double const*, double const*, double, double, double*, void*)@Base" 2.1.0 1
  (c++)"AIGDataset::GetFileList()@Base" 1.10.0 1
  (c++)"AIGDataset::GetGeoTransform(double*)@Base" 1.10.0 1
  (c++)"AIGDataset::GetProjectionRef()@Base" 1.10.0 1

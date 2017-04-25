@@ -71,7 +71,6 @@ libgdal.so.20 libgdal20 #MINVER#
  (c++)"OGRPGCommonAppendCopyFieldsExceptGeom(CPLString&, OGRFeature*, char const*, bool, CPLString (*)(void*, char const*, int, char const*, char const*), void*)@Base" 2.2.0~beta1 1
  (c++)"S57GenerateVectorPrimitiveFeatureDefn(int, int)@Base" 1.9.0 1
  (c++)"OGRCreateEmulatedTransactionDataSourceWrapper(OGRDataSource*, IOGRTransactionBehaviour*, int, int)@Base" 2.0.1 1
- (c++)"GDALGridInverseDistanceToAPower2NoSmoothingNoSearchAVX(void const*, unsigned int, double const*, double const*, double const*, double, double, double*, void*)@Base" 2.1.0 1
  (c++)"AIGDataset::GetFileList()@Base" 1.9.0 1
  (c++)"AIGDataset::GetGeoTransform(double*)@Base" 1.9.0 1
  (c++)"AIGDataset::GetProjectionRef()@Base" 1.9.0 1
@@ -3085,6 +3084,7 @@ libgdal.so.20 libgdal20 #MINVER#
  (c++)"std::_Sp_counted_base<(__gnu_cxx::_Lock_policy)2>::_M_destroy()@Base" 2.2.0~beta1 1
  (c++)"std::_Sp_counted_base<(__gnu_cxx::_Lock_policy)2>::_M_release()@Base" 2.2.0~beta1 1
  (c++)"CADAttrib* std::__uninitialized_copy<false>::__uninit_copy<__gnu_cxx::__normal_iterator<CADAttrib const*, std::vector<CADAttrib, std::allocator<CADAttrib> > >, CADAttrib*>(__gnu_cxx::__normal_iterator<CADAttrib const*, std::vector<CADAttrib, std::allocator<CADAttrib> > >, __gnu_cxx::__normal_iterator<CADAttrib const*, std::vector<CADAttrib, std::allocator<CADAttrib> > >, CADAttrib*)@Base" 2.2.0~beta1 1
+ (c++)"std::pair<CPLString, CPLString>* std::__uninitialized_copy<false>::__uninit_copy<__gnu_cxx::__normal_iterator<std::pair<CPLString, CPLString> const*, std::vector<std::pair<CPLString, CPLString>, std::allocator<std::pair<CPLString, CPLString> > > >, std::pair<CPLString, CPLString>*>(__gnu_cxx::__normal_iterator<std::pair<CPLString, CPLString> const*, std::vector<std::pair<CPLString, CPLString>, std::allocator<std::pair<CPLString, CPLString> > > >, __gnu_cxx::__normal_iterator<std::pair<CPLString, CPLString> const*, std::vector<std::pair<CPLString, CPLString>, std::allocator<std::pair<CPLString, CPLString> > > >, std::pair<CPLString, CPLString>*)@Base" 2.2.0~beta2 1
  (c++)"std::map<CPLString, OGREnvelope, std::less<CPLString>, std::allocator<std::pair<CPLString const, OGREnvelope> > >::operator[](CPLString const&)@Base" 2.1.0 1
  (c++)"std::map<CPLString, CPLErr (*)(void**, int, void*, int, int, GDALDataType, GDALDataType, int, int), std::less<CPLString>, std::allocator<std::pair<CPLString const, CPLErr (*)(void**, int, void*, int, int, GDALDataType, GDALDataType, int, int)> > >::~map()@Base" 1.9.0 1
  (c++)"std::map<CPLString, CPLErr (*)(void**, int, void*, int, int, GDALDataType, GDALDataType, int, int), std::less<CPLString>, std::allocator<std::pair<CPLString const, CPLErr (*)(void**, int, void*, int, int, GDALDataType, GDALDataType, int, int)> > >::~map()@Base" 1.9.0 1
