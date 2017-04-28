@@ -1,9 +1,9 @@
-gdal (2.2.0~rc1+dfsg-1) UNRELEASED; urgency=medium
+gdal (2.2.0~rc1+dfsg-1~exp1) experimental; urgency=medium
 
   * New upstream release candidate.
   * Update symbols for 2.2.0~beta2. Add symbols file for powerpcspe.
 
- -- Bas Couwenberg <sebastic@debian.org>  Fri, 28 Apr 2017 18:39:16 +0200
+ -- Bas Couwenberg <sebastic@debian.org>  Fri, 28 Apr 2017 18:41:31 +0200
 
 gdal (2.2.0~beta2+dfsg-1~exp1) experimental; urgency=medium
 
