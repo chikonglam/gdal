@@ -1,5 +1,5 @@
 /******************************************************************************
- * $Id: ogrgeojsonreader.h 37858 2017-03-29 10:19:55Z rouault $
+ * $Id: ogrgeojsonreader.h 38146 2017-04-26 14:09:40Z rouault $
  *
  * Project:  OpenGIS Simple Features Reference Implementation
  * Purpose:  Defines GeoJSON reader within OGR OGRGeoJSON Driver.
@@ -180,8 +180,8 @@ json_object* json_ex_get_object_by_path( json_object* poObj,
 json_object CPL_DLL*  CPL_json_object_object_get( struct json_object* obj,
                                                   const char *key );
 
-bool OGRJSonParse( const char* pszText, json_object** ppoObj,
-                   bool bVerboseError = true );
+bool CPL_DLL OGRJSonParse( const char* pszText, json_object** ppoObj,
+                           bool bVerboseError = true );
 
 /************************************************************************/
 /*                 GeoJSON Geometry Translators                         */
