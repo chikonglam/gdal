@@ -31,7 +31,7 @@
 #include "cpl_string.h"
 #include "ogr_p.h"
 
-CPL_CVSID("$Id: ogrpgdumplayer.cpp 37371 2017-02-13 11:41:59Z rouault $");
+CPL_CVSID("$Id: ogrpgdumplayer.cpp 38135 2017-04-25 22:42:55Z rouault $");
 
 static const int USE_COPY_UNSET = -1;
 
@@ -1436,8 +1436,16 @@ void OGRPGCommonLayerNormalizeDefault(OGRFieldDefn* poFieldDefn,
         return;
     CPLString osDefault(pszDefault);
     size_t nPos = osDefault.find("::character varying");
-    if( nPos != std::string::npos )
+    if( nPos != std::string::npos &&
+        nPos + strlen("::character varying") == osDefault.size() )
+    {
         osDefault.resize(nPos);
+    }
+    else if( (nPos = osDefault.find("::text")) != std::string::npos &&
+             nPos + strlen("::text") == osDefault.size() )
+    {
+        osDefault.resize(nPos);
+    }
     else if( strcmp(osDefault, "now()") == 0 )
         osDefault = "CURRENT_TIMESTAMP";
     else if( strcmp(osDefault, "('now'::text)::date") == 0 )

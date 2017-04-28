@@ -32,7 +32,7 @@
 #include "ogr_api.h"
 #include "s57.h"
 
-CPL_CVSID("$Id: s57featuredefns.cpp 35911 2016-10-24 15:03:26Z goatbar $");
+CPL_CVSID("$Id: s57featuredefns.cpp 38140 2017-04-26 08:41:23Z rouault $");
 
 /************************************************************************/
 /*                     S57GenerateGeomFeatureDefn()                     */
@@ -264,6 +264,15 @@ S57GenerateVectorPrimitiveFeatureDefn( int nRCNM,
     poFDefn->AddFieldDefn( &oField );
 
     oField.Set( "RUIN", OFTInteger, 2, 0 );
+    poFDefn->AddFieldDefn( &oField );
+
+/* -------------------------------------------------------------------- */
+/*      Geometric primitive attributes                                  */
+/* -------------------------------------------------------------------- */
+    oField.Set( "POSACC", OFTReal, 10, 2 );
+    poFDefn->AddFieldDefn( &oField );
+
+    oField.Set( "QUAPOS", OFTInteger, 2, 0 );
     poFDefn->AddFieldDefn( &oField );
 
 /* -------------------------------------------------------------------- */

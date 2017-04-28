@@ -37,7 +37,7 @@
 #include <algorithm>
 #include <string>
 
-CPL_CVSID("$Id: s57reader.cpp 36948 2016-12-18 13:32:14Z rouault $");
+CPL_CVSID("$Id: s57reader.cpp 38138 2017-04-26 08:10:11Z rouault $");
 
 /**
 * Recode the given string from a source encoding to UTF-8 encoding.  The source
@@ -1505,6 +1505,34 @@ OGRFeature *S57Reader::ReadVector( int nFeatureId, int nRCNM )
         poFeature->SetField( "MASK_1",
                              poRecord->GetIntSubfield("VRPT",iField,
                              "MASK",iSubField) );
+    }
+
+/* -------------------------------------------------------------------- */
+/*      Geometric attributes                                            */
+/*      Retrieve POSACC and QUAPOS attributes                           */
+/* -------------------------------------------------------------------- */
+
+    const int posaccField = poRegistrar->FindAttrByAcronym("POSACC");
+    const int quaposField = poRegistrar->FindAttrByAcronym("QUAPOS");
+
+    DDFField * poATTV = poRecord->FindField("ATTV");
+    if( poATTV != NULL )
+    {
+        for( int j = 0; j < poATTV->GetRepeatCount(); j++ )
+        {
+            const int subField = poRecord->GetIntSubfield("ATTV",0,"ATTL",j);
+            // POSACC field
+            if (subField == posaccField) {
+                poFeature->SetField( "POSACC",
+                                    poRecord->GetFloatSubfield("ATTV",0,"ATVL",j) );
+            }
+
+            // QUAPOS field
+            if (subField == quaposField) {
+                poFeature->SetField( "QUAPOS",
+                                    poRecord->GetIntSubfield("ATTV",0,"ATVL",j) );
+            }
+        }
     }
 
     return poFeature;

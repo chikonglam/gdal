@@ -41,7 +41,7 @@
 #include "cpl_string.h"
 
 
-CPL_CVSID("$Id: ogrfielddefn.cpp 37441 2017-02-24 23:16:17Z goatbar $");
+CPL_CVSID("$Id: ogrfielddefn.cpp 38135 2017-04-25 22:42:55Z rouault $");
 
 /************************************************************************/
 /*                            OGRFieldDefn()                            */
@@ -434,14 +434,9 @@ void OGRFieldDefn::SetDefault( const char* pszDefaultIn )
     CPLFree(pszDefault);
     pszDefault = NULL;
 
-    if( pszDefaultIn && pszDefaultIn[0] == '\'' )
+    if( pszDefaultIn && pszDefaultIn[0] == '\''  &&
+        pszDefaultIn[strlen(pszDefaultIn)-1] == '\'' )
     {
-        if( pszDefaultIn[strlen(pszDefaultIn)-1] != '\'' )
-        {
-            CPLError(CE_Failure, CPLE_AppDefined,
-                     "Incorrectly quoted string literal");
-            return;
-        }
         const char* pszPtr = pszDefaultIn + 1;  // Used after for.
         for( ; *pszPtr != '\0'; pszPtr++ )
         {
