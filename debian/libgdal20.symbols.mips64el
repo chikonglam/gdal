@@ -8,6 +8,7 @@ libgdal.so.20 libgdal20 #MINVER#
  (c++)"OpenCADFile(char const*, CADFile::OpenOptions, bool)@Base" 2.2.0~beta1 1
  (c++)"PamGetProxy(char const*)@Base" 2.0.1 1
  (c++)"CPLURLAddKVP(char const*, char const*, char const*)@Base" 2.0.1 1
+ (c++)"OGRJSonParse(char const*, json_object**, bool)@Base" 2.2.0~rc1 1
  (c++)"GetCADFormats()@Base" 2.2.0~beta1 1
  (c++)"CPLURLGetValue(char const*, char const*)@Base" 2.0.1 1
  (c++)"HFACreateLayer(hfainfo*, HFAEntry*, char const*, int, int, int, int, int, int, int, EPTType, char**, long long, long long, int, int)@Base" 2.1.0 1
