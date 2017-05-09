@@ -1,10 +1,10 @@
-gdal (2.2.0+dfsg-1) UNRELEASED; urgency=medium
+gdal (2.2.0+dfsg-1~exp1) experimental; urgency=medium
 
   * New upstream release.
   * Update symbols for 2.2.0~rc1.
   * Strip pre-releases from symbols version.
 
- -- Bas Couwenberg <sebastic@debian.org>  Tue, 09 May 2017 17:22:43 +0200
+ -- Bas Couwenberg <sebastic@debian.org>  Tue, 09 May 2017 17:33:46 +0200
 
 gdal (2.2.0~rc1+dfsg-1~exp1) experimental; urgency=medium
 
