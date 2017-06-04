@@ -1,3 +1,9 @@
+gdal (2.2.0+dfsg-1~exp2) UNRELEASED; urgency=medium
+
+  * Disable PIE on Ubuntu where it's still problematic.
+
+ -- Bas Couwenberg <sebastic@debian.org>  Sun, 04 Jun 2017 19:50:51 +0200
+
 gdal (2.2.0+dfsg-1~exp1) experimental; urgency=medium
 
   * New upstream release.
